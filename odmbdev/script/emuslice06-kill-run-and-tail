@@ -1,8 +1,0 @@
-#!/bin/bash
-
-exedir=`pwd`/`dirname $0`
-
-kill -9 $(ps aux | grep xdaq | grep 9991 | awk '{print $2}')
-set -m
-$exedir/startME11Dev_emuslice06.sh &> $exedir/odmbdev_emuslice06.log &
-tail -f -n 100 $exedir/odmbdev_emuslice06.log

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<?xml-stylesheet type="text/xml" href="RUI-to-computer_mapping_XSLT.xml"?>
-<RUI-to-computer_mapping date="2009-08-23">
-  <computer host="emuslice06.cern.ch" alias="emudaq02.cern.ch">
-    <RUI instance="1" port="20301" schar="2"/>
-  </computer>
-</RUI-to-computer_mapping>

@@ -1,4 +1,0 @@
-c++ -o scr2pl scr2pl.cpp
-cp scr2pl ../../bin/.
-c++ -o SwitchClearMacs SwitchPerlClearMacs.cpp
-cp SwitchClearMacs ../../bin/.

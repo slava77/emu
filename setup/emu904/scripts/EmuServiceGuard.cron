@@ -1,2 +1,0 @@
-# Check for dead xdaqd services and resurrect them.
-*/1 * * * * root /opt/xdaq/share/`cat /etc/xdaq.zone`/scripts/EmuServiceGuard.sh

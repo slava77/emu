@@ -1,8 +1,0 @@
-#!/bin/bash
-
-exedir=`pwd`/`dirname $0`
-
-kill -9 $(ps aux | grep xdaq | grep 9991 | awk '{print $2}')
-set -m
-$exedir/startme11.sh &> $exedir/odmbdev.log &
-tail -f -n 100 $exedir/odmbdev.log

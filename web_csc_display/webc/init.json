@@ -1,8 +1,0 @@
-{
-    "status": 1,
-    "msg": "Success",
-    "data": {
-        "chambersID": [162, 491, 623, 713, 958],
-        "totalEventNum": 1500
-    }
-}

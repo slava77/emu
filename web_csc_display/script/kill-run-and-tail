@@ -1,8 +1,0 @@
-#!/bin/bash
-
-exedir=`pwd`/`dirname $0`
-
-kill -9 $(ps aux | grep xdaq | grep 9093 | awk '{print $2}')
-set -m
-$exedir/startCSCDisp.sh &> $exedir/csc_display.log &
-tail -f -n 100 $exedir/csc_display.log

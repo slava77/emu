@@ -1,4 +1,0 @@
-<?xml version="1.0"?>
-<locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
-  <documentElement prefix="" localName="EmuSystem" uri="../../emuDCS/PeripheralApps/xml/EmuPC.rnc"/>
-</locatingRules>
