@@ -1,0 +1,1074 @@
+//-----------------------------------------------------------------------
+// $Id: CCB.cc,v 2.0 2005/04/12 08:07:05 geurts Exp $
+// $Log: CCB.cc,v $
+// Revision 2.0  2005/04/12 08:07:05  geurts
+// *** empty log message ***
+//
+// Revision 1.41  2004/10/07 19:39:26  tfcvs
+// regular test beam update
+//
+// Revision 1.40  2004/10/03 20:31:20  tfcvs
+// regular update
+//
+// Revision 1.39  2004/10/03 01:55:50  tfcvs
+// various updates at H2a
+//
+// Revision 1.38  2004/09/14 00:27:07  tfcvs
+// Update files
+//
+// Revision 1.37  2004/08/10 18:21:42  tfcvs
+// Update
+//
+// Revision 1.36  2004/08/05 04:19:45  tfcvs
+// Update
+//
+// Revision 1.35  2004/08/03 18:03:00  tfcvs
+// Update
+//
+// Revision 1.34  2004/07/20 22:20:33  tfcvs
+// - Removed a bug in configure() which prevented hardReset from being called
+//   for any non-DLOG mode;
+// - Renamed configure(CCB2004Mode_t) to setCCBMode(CCB2004Mode_t) to prevent
+//   any confusion
+// - setCCBMode and rice_clk_setup() are moved away from public to protected
+//
+// Revision 1.33  2004/07/19 19:37:57  tfcvs
+// Removed unused variables and unsigned some variables in order to prevent compiler warnings (-Wall flag) (FG)
+//
+// Revision 1.32  2004/06/17 12:28:03  tfcvs
+// Introduced an Initialization kludge in which the DLOG mode temporarily switches back to FPGA mode to do a BackPlane hard reset. (FG)
+//
+// Revision 1.31  2004/06/05 19:47:05  tfcvs
+// Reorganized and debugged TTC control mode for CCB2004 (and 2001).
+// CCB2004 mode configurable through XML option: <CCB CCBmode=""> (FG)
+//
+// Revision 1.30  2004/06/02 16:07:46  tfcvs
+// Add 2nd sequence of prgall_bckpln to hardReset(). This should allow the CFEBs to program the FPGAs. Suggested by Jianhui. (FG)
+//
+// Revision 1.29  2004/05/27 16:06:57  tfcvs
+// minor changes in print-out
+//
+// Revision 1.28  2004/05/20 17:01:16  tfcvs
+// solved a bug, uncovered another one ...
+//  - fixed enableL1
+//  - initialized l1enabled_
+//  - moved all printf to cout and identify class in log message
+//
+// Revision 1.27  2004/05/19 14:32:39  tfcvs
+// fixed CCB2004 incompatibilities w.r.t. CSRB1 (CSR1) register bits and reordered the configuration sequence for the CCB2004. (FG)
+//
+// Revision 1.26  2004/05/19 00:07:45  tfcvs
+// oops, forgot that semi-colon
+//
+//-----------------------------------------------------------------------
+#include "CCB.h"
+#include "VMEController.h"
+#include <iostream>
+#include <iomanip>
+#include <unistd.h> // for sleep
+
+CCB::CCB(int newcrate ,int slot, int version)
+: VMEModule(newcrate, slot), 
+  l1enabled_(false),
+  mVersion(version),
+  mCCBMode(CCB::VMEFPGA),
+  TTC(NO_TTC),
+  CLK_INIT_FLAG(0),
+  BX_Orbit_(924),
+  SPS25ns_(0)
+{
+  /// initialize VME registers pointers to the default CCB-version 2001
+  if (mVersion == 2001){
+    CSR1 = 0x00;
+    CSR2 = 0x02;
+    CSR5 = 0x08; 
+    RST_CCB_INT_LOG = 0x28;
+    CRATE_HARD_RESET = 0x34;
+    DMB_CFEB_CAL0 = 0x48;
+    DMB_CFEB_CAL1 = 0x4a;
+    DMB_CFEB_CAL2 = 0x4c;
+  } else if (mVersion == 2004){
+    CSR1 = CSRB1;
+    CSR2 = CSRB2;
+    CSR5 = CSRB5; 
+    // deprecated:
+    //RST_CCB_INT_LOG = 0x28; 
+    CRATE_HARD_RESET = 0x60;
+    DMB_CFEB_CAL0 = 0x8a;
+    DMB_CFEB_CAL1 = 0x8c;
+    DMB_CFEB_CAL2 = 0x8e;
+  } else {
+    std::cerr << "CCB: FATAL: unknown CCB version number ("<< mVersion
+	      << "). Cannot create: exiting ..." << std::endl;
+    exit(0);
+  }
+    
+  std::cout << "CCB: configured for crate=" << this->crate()
+	    << " slot=" << this->slot() << " (version=" << mVersion << ")" 
+	    << std::endl;
+ };
+
+CCB::~CCB() {
+  std::cout << "CCB: removing CCB from crate=" << this->crate() 
+       << ", slot=" << this->slot() << std::endl;
+}
+
+void CCB::end() {
+  char rcvx[2];
+  char sndx[2];
+  //fg 0xff is a JTAG reset ... not sure what it does here.
+  do_vme(0xff,CSR1,sndx,rcvx,NOW);
+  //2004 do_vme(0xff,CSRB1,sndx,rcvx,NOW);
+}
+
+
+void CCB::pulse(int Num_pulse,unsigned int * delays, char vme) 
+{
+   for(int j=0;j<Num_pulse;j++){
+     sndbuf[0]=(delays[j]&0xff00)>>8;
+     sndbuf[1]=(delays[j]&0x00ff);
+     do_vme(0x03,CSR1,sndbuf,rcvbuf,LATER);
+     //2004 do_vme(0x03,CSRB1,sndbuf,rcvbuf,LATER);
+     sndbuf[0]=0x00;
+     sndbuf[1]=0x00;
+     if(j<(Num_pulse-1)){
+       do_vme(VME_WRITE,vme,sndbuf,rcvbuf,LATER);
+     }
+     else{
+       do_vme(VME_WRITE,vme,sndbuf,rcvbuf,NOW);
+     }
+   }
+}
+
+
+void CCB::pulse() {
+ //use 0x48 for pulse (cal0), 0x4a inject (cal1), 0x4c pedestal (cal2):
+
+  sndbuf[0]=0x00;
+  sndbuf[1]=0xff;
+  //fg ?? what does 0x03 do?? do_vme ignores it!
+  do_vme(0x03,CSR1,sndbuf,rcvbuf,LATER);
+  //2004 do_vme(0x03,CSRB1,sndbuf,rcvbuf,LATER);
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x00;
+  do_vme(VME_WRITE,DMB_CFEB_CAL0,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,0x8a,sndbuf,rcvbuf,NOW);
+}
+
+
+void CCB::pulse(int Num_pulse,unsigned int pulse_delay, char vme)
+{
+  unsigned int * delays = new unsigned int[Num_pulse];
+  for(int i = 0; i <  Num_pulse; ++i) { 
+    delays[i] = pulse_delay;
+  }
+  pulse( Num_pulse, delays, vme);
+  delete[] delays;
+}
+
+
+void CCB::pulse(int Num_pulse,unsigned int pulse_delay)
+{
+  //old pulse(Num_pulse, pulse_delay, 0x48;)
+  pulse(Num_pulse, pulse_delay, DMB_CFEB_CAL0);
+}
+
+
+void CCB::inject(int Num_pulse,unsigned int pulse_delay)
+{
+  //old pulse(Num_pulse, pulse_delay, 0x4a);
+  pulse(Num_pulse, pulse_delay, DMB_CFEB_CAL1);
+}
+
+
+void CCB::prgall_bckpln()
+{
+  /// Performs a Hard-Reset to all modules in the crate
+  /// through a dedicated VME register (not FastControl)
+  std::cout << "CCB: hard reset" << std::endl;
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x00;
+  do_vme(VME_WRITE,CRATE_HARD_RESET,sndbuf,rcvbuf,NOW);
+  theController->end();
+}
+
+void CCB::reset_bckpln()
+{
+  /// Reinitializes the FPGAs on DMB, TMB and MPC boards
+  /// through a FastControl soft-reset.
+  std::cout << "CCB: soft reset" << std::endl;
+  int i_ccb=0x1c;
+  sndbuf[0]=0x00;
+  sndbuf[1]=(i_ccb<<2)&0xfc;
+  do_vme(VME_WRITE, CSR2, sndbuf,rcvbuf,NOW);
+  sleep(1);
+  theController->end();
+}
+
+void CCB::GenerateAlctAdbSync(){
+   //
+   std::cout << "CCB: GenerateAlctAdbPulseSync" << std::endl;
+   //int i_ccb=0x18;
+   //sndbuf[0]=0x00;
+   //sndbuf[1]=(i_ccb<<2)&0xfc;
+   //do_vme(VME_WRITE, CSR2, sndbuf,rcvbuf,NOW);
+   //theController->end();
+   //
+   sndbuf[0]=0x00;
+   sndbuf[1]=0x01;
+   if (mVersion==2001) {
+     do_vme(VME_WRITE, 0x40, sndbuf,rcvbuf,NOW);
+   }
+   else{
+     do_vme(VME_WRITE, 0x82, sndbuf,rcvbuf,NOW);
+   }
+   //
+   theController->end();
+   //
+}
+
+void CCB::GenerateAlctAdbASync(){
+   //
+   std::cout << "CCB: GenerateAlctAdbPulseASync" << std::endl;
+   int i_ccb=0x19;
+   sndbuf[0]=0x00;
+   sndbuf[1]=(i_ccb<<2)&0xfc;
+   do_vme(VME_WRITE, CSR2, sndbuf,rcvbuf,NOW);
+   theController->end();
+   //
+}
+
+
+void CCB::rice_clk_setup()
+{
+  int l1en=0;
+  std::cout << "CCB: Setup rice_clk_setup" << std::endl;
+
+  sndbuf[0]=0x00;
+  sndbuf[1]=l1aDelay_;  // was 76;
+  do_vme(VME_WRITE,CSR5,sndbuf,rcvbuf,LATER);
+  //2004 do_vme(VME_WRITE,CSRB5,sndbuf,rcvbuf,LATER);
+
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x00;
+  if (mVersion==2001)
+    do_vme(VME_WRITE,RST_CCB_INT_LOG,sndbuf,rcvbuf,LATER);
+  else
+    std::cout << "CCB:  rice_clk_setup: RST_CCB_INT_LOG deprecated" << std::endl;
+
+
+//JRG, For TMB with CCB clk: 0x0D8 or 0x0C8?  I think 0x048 is best.
+  /*  sndbuf[0]=0x00;
+  sndbuf[1]=0xd8;
+  sndbuf[0]=0x00;
+  sndbuf[1]=0xc8; */
+//JRG, Ext. clk/L1A via CCB-FP: 0x16c
+  sndbuf[0]=0x01;
+  sndbuf[1]=0x6c;
+//JRG, Use Normal CCB clk: 0x068
+  sndbuf[0]=0xfe;  // Entirely disable CCB front panel inputs
+  // sndbuf[1]=0x68;
+  sndbuf[1]=0x40;    // unmask all CCB L1 sources
+  sndbuf[1]=0xc8;    // CCB clock, TMB_bkpln_req  and  VME_L1  control
+
+
+  std::cout << "TTC " << TTC << " CLK_INIT_FLAG " << CLK_INIT_FLAG << " l1en " << l1en << std::endl;
+  std::cout << "SPS " << SPS25ns_ << std::endl;
+  //std::cout << "TEMPORARILY DEMANDING TTC = 1 " << std::endl;
+  //TTC = 1;
+  if (TTC==TTC_CLOCK)sndbuf[1]=0xf2; // TTC clock only, CMD_BUS control via VME
+  if (TTC==ALL_TTC)sndbuf[1]=0xf3;    // TTC clock and control
+
+/*
+  TTC=1/2 actually allows TMB_L1Req, VME and TTCrx L1 sources!
+  Pawloski:  To REALLY disable TTCrx L1A set bit 0x08 high.
+             To disable TMB_L1Req set bit 0x20 high.
+*/
+  if(CLK_INIT_FLAG==1){
+    do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
+    //2004 do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
+
+    if((rcvbuf[1]&0xf8)!=0xf8) l1en=1;
+// only load the new trigger setting NOW if triggers are enabled;
+//    otherwise, change the SAV register in software, and the
+//    new setting will be loaded when  rice_l1_enable  is called.
+//      This applies to TTC=0 and TTC=2 case (L1 trigger change).
+
+    sndbuf[0]=rcvbuf[0];
+    sndbuf[1]=((rcvbuf[1]&0xf8)|(sndbuf[1]&0x07));
+    if(TTC==ALL_TTC){
+      sndbuf[1]=(sndbuf[1]&0xf7);
+      CCB_CSR1_SAV=(CCB_CSR1_SAV&0xf7);
+    }
+
+    if(TTC==NO_TTC){
+      sndbuf[1]=(sndbuf[1]|0x08);
+      CCB_CSR1_SAV=(CCB_CSR1_SAV|0x08);
+    }
+
+    if((l1en>0)||(TTC==TTC_CLOCK)){
+      //fg why???
+      std::cout << std::endl;
+    }
+    else{
+      std::cout << "CCB: effective after  rice_l1_enable  call." << std::endl;
+      sndbuf[1]=sndbuf[1]|0xf8;
+      //JRG: add CCB_CSR1_SAV=sndbuf[1]; ?
+    }
+  }
+  std::cout << "CCB: CSRB1=0x" << std::hex 
+       << std::setw(2) << int(sndbuf[0]&0xff) << std::setw(2) <<int(sndbuf[1]&0xff)
+       << std::dec << std::endl;
+  do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,LATER);
+  //2004 do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,LATER);
+
+
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x00;
+  // JRG, phos4: do_vme(VME_WRITE,0x24,sndbuf,rcvbuf,NOW);
+  /* JRG, phos4:  rice_i2c();
+  ierr=rice_delay(11,0,0); // manual say initial write required
+  for(a=0;a<4;a++){
+    for(b=0;b<5;b++){
+      ierr=rice_delay(11,a,b);
+    }
+  }*/
+
+  // XIT:
+  CLK_INIT_FLAG=1;
+  theController->end();
+
+}
+
+void CCB::enableCLCT(){
+   //
+   std::cout << "CCB.enableCLCT" <<std::endl;
+   //
+   if (mVersion==2001) {
+      //
+      sndbuf[0]=0xff; 
+      sndbuf[1]=0xd0;
+      //
+      do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
+      //
+   }
+   //
+   if (mVersion==2004) {
+      //
+      sndbuf[0]=0xdf; 
+      sndbuf[1]=0x10;
+      //
+      do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
+      //
+   }
+   //
+}
+
+void CCB::enableL1() {
+  std::cout << "CCB: Enable L1A." << std::endl;
+  do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
+
+  if (mVersion==2001){
+    sndbuf[0]=(rcvbuf[0]&0xDF); // JRG: //11011111    GUJH  Mar. 19, 2003
+    //  sndbuf[0]=0xdf;  //11011111    GUJH  Mar. 19, 2003
+    sndbuf[1]=(rcvbuf[1]&0x07)|(CCB_CSR1_SAV&0xF8);
+  } else{
+    //sndbuf[0]=(rcvbuf[0]&0xFE);
+    sndbuf[0]=(rcvbuf[0]&0xDF);
+    //sndbuf[1]=(rcvbuf[1]&0x07)|(CCB_CSR1_SAV&0xF8);
+    sndbuf[1]=(rcvbuf[1]&0x07)|(CCB_CSR1_SAV&0xF0);
+  }
+
+  std::cout << "CCB: CSRB1=0x" << std::hex 
+	    << std::setw(2) << int(sndbuf[0]&0xff) << std::setw(2) 
+	    <<int(sndbuf[1]&0xff) << std::dec << std::endl;
+
+  do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+  l1enabled_ = true;
+
+  //enableCLCT();
+
+}
+
+
+void CCB::disableL1() {
+  std::cout << "CCB: Disable L1A." << std::endl;
+  do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
+  sndbuf[0]=rcvbuf[0];
+  CCB_CSR1_SAV=rcvbuf[1];
+  sndbuf[1]=(rcvbuf[1]|0xf8); // Disable L1ACC from CCB to custom backplane
+
+  //std::cout << "disableL1.CCB: CSRB1=0x" << hex 
+  //     << setw(2) << int(sndbuf[0]&0xff) << setw(2) <<int(sndbuf[1]&0xff)
+  //     << dec << std::endl;
+  do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+  l1enabled_ = false;
+}
+
+
+void CCB::hardReset() {
+
+  // when in DLOG mode, briefly switch to FPGA mode so we can 
+  // have the CCB issue the backplane reset. This is *only* for
+  // TestBeam purposes and only for the  prgall_bckpln function.
+  bool switchedMode = false;
+  if (mCCBMode == (CCB2004Mode_t)CCB::DLOG){
+    setCCBMode(CCB::VMEFPGA);
+    switchedMode=true;
+    std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for BackPlane HardReset" << std::endl; 
+  }
+
+  prgall_bckpln();
+  //fg note: these 10seconds are not necessary for new/old TMB
+  //fg sleep(10);
+
+
+  // sequence of 2nd hard reset with additional delays (Jianhui)
+  if  (mVersion==2004){
+    sleep(2);
+    prgall_bckpln();
+    sleep(1); // could go down to ~100msec (Jianhui)
+  }
+
+  if (switchedMode){
+    setCCBMode(CCB::DLOG);
+    std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
+  };
+
+  reset_bckpln();
+  //fg note: this 1second is not necessary
+  sleep(1);
+  syncReset();
+  //fg note: *keep* this 1second!
+  sleep(1);
+  theController->end();
+}
+
+
+void CCB::syncReset() {
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x01;
+
+  int i_ccb=0x03;
+  sndbuf[0]=0x00;
+  sndbuf[1]=(i_ccb<<2)&0xfc;
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+  theController->end();
+} 
+
+
+void CCB::bx0() {
+  /// send ccb_bx0 on the backplane:
+  std::cout << "CCB: BX-zero" << std::endl;
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x01;
+/* JRG, old way, write to directly to VME adr 0x36, but this
+      DOES NOT drive the ccb_cmd bus (no cmd_strobe):
+  do_vme(VME_WRITE,0x36,sndbuf,rcvbuf,NOW);
+*/
+
+// JRG, best way, write to CSR2[7-2] to drive ccb_cmd bus; this way
+//      also drives dedicated decode lines on the backplane:
+  int i_ccb=0x01;
+  sndbuf[0]=0x00;
+  sndbuf[1]=(i_ccb<<2)&0xfc;
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+  theController->end();
+}
+
+
+void CCB::bxr() {
+  std::cout << "CCB: BX-reset" << std::endl;
+  usleep(10000);
+
+// set ccb_cmd bits (CSR2[7:2]), EvCntRes (CSR2[1]) and BcntRes (CSR2[0]):
+  sndbuf[0]=0x00;
+  sndbuf[1]=0xC8;
+// send CSR2 setting on backplane:
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+  usleep(10000);
+}
+
+
+void CCB::l1CathodeScint() {
+/*
+   idly is the delay in nanoseconds
+   add and add2 are defined in table 9 of VME ccb manual
+   for instance  DMB1 has add=0x20 add2=0x00
+                 DMB4 has add=0x30 add2=0x02
+*/
+
+// Use CCB front panel L1 to generate L1ACC,
+  //sndbuf[0]=0xff;  
+  sndbuf[0]=0xdf; // disable all but bit 13 (L1AC enabled unconditionally)
+  sndbuf[1]=0x70; // enable both TTCrx and FrontPannel L1A
+
+  //JG, reads current CSR1 status:
+  do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
+  std::cout << "CCB: (l1cathodescint) " << std::hex << (int)rcvbuf[0] << "-" <<  (int)rcvbuf[1] << std::dec << std::endl;
+
+  // make sure TTCrx is/remains the source for commands (bit 0=0)
+  // CCB2001: make sure CCB quarts osc. is selected (b1=b2=0)
+  // CCB2004: bit1-2 are not used.
+  CCB_CSR1_SAV=(sndbuf[1]&0xf8);
+
+
+  if((rcvbuf[1]&0xf8)!=0xf8){    //skip CCB read, replace with (CCB_L1_EN>0)?
+// only load the new trigger setting NOW if triggers are enabled;
+//    otherwise, change the SAV register in software, and the
+//    new setting will be loaded when  rice_l1_enable  is called.
+    sndbuf[1]=rcvbuf[1];
+  }
+  else{
+//JRG define sndbuf[1]=unchanged_L1_bits
+    std::cout << "CCB:  effective after  rice_l1_enable  call."<< std::endl;
+    //fg this operation doesn't seem to be very usefull:
+    sndbuf[1]=rcvbuf[1]&0xff;
+  }
+
+  std::cout << "CCB: CSRB1=0x" << std::hex 
+	    << std::setw(2) << int(sndbuf[0]&0xff) << std::setw(2)
+	    <<int(sndbuf[1]&0xff) << std::dec << std::endl;
+  do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+
+// J. Gu tuned CCB L1 delay to allow for TCB-L1 passthrough (77 was ~78 or 79)
+  std::cout << "CCB: set L1ADelay (CSRB5) to " << l1aDelay_ << std::endl;
+  sndbuf[0]=0x00;
+  sndbuf[1]=l1aDelay_;
+  do_vme(VME_WRITE,CSR5,sndbuf,rcvbuf,LATER);
+  //2004 do_vme(VME_WRITE,CSRB5,sndbuf,rcvbuf,LATER);
+}
+
+
+void CCB::reset_bxevt() {
+  usleep(10000);
+
+//  Send BCR, ECR and BC0  --GUJH   Mar. 20, 2003
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x03;
+// send CSR2 setting on backplane:
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+  usleep(10000);
+  theController->end();
+}
+
+void CCB::configure() {
+  if (mVersion==2001)
+    rice_clk_setup();
+  else if (mVersion==2004){
+    // Set the CCB mode  
+    setCCBMode((CCB2004Mode_t)mCCBMode);
+    // report firmware version
+    firmwareVersion();
+  }
+  else 
+    std::cerr << "Error: Unknown CCB version ("<< mVersion << "). Unable to configure."<< std::endl;
+
+  hardReset();
+  disableL1();
+}
+
+
+void CCB::setCCBMode(CCB2004Mode_t mode){
+  /// Set the mode of operation for the CCB2004 model
+  switch (mode) {
+  case TTCrqFPGA:
+    sndbuf[0]=0x00;
+    sndbuf[1]=0x00;
+    do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
+    sndbuf[0]=0x00;
+    sndbuf[1]=0x00;
+    do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+    break;
+  case VMEFPGA:
+    sndbuf[0]=0x00;
+    sndbuf[1]=0x00;
+    do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
+    sndbuf[0]=0x00;
+    sndbuf[1]=0x01;
+    do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+    break;
+  case DLOG:
+    sndbuf[0]=0x00;
+    sndbuf[1]=0x01;
+    do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
+    break;
+  default:
+    std::cerr << "Warning: unkown CCB2004 operation mode. Using DLOG instead" << std::endl;
+    sndbuf[0]=0x00;
+    sndbuf[1]=0x01;
+    do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
+  }
+}
+
+ 
+void CCB::enable() {
+  std::cout << "Sync reset, mainly for TMB " << std::endl;
+  if(l1enabled_) disableL1();
+  syncReset();
+  usleep(50000);
+
+  std::cout << "BXR and EVTCNTRST" << std::endl;
+  reset_bxevt();
+
+  if (SPS25ns_==0) {
+    startTrigger();
+    usleep(10000);
+    std::cout << "CCB BC0" << std::endl;
+
+    bx0();
+    usleep(10000);
+  }
+
+  if (mVersion==2001)
+    enableTTCControl();
+  else if (mVersion==2004)
+    if (TTC==ALL_TTC)
+      enableTTCControl();
+
+  enableL1();
+}
+
+
+void CCB::enableTTCControl() {
+  std::cout << "CCB: Enable TTC control " << std::endl;
+  if (mVersion==2001) TTC = ALL_TTC;
+
+  do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
+
+  usleep(50000);
+  if (mVersion==2001){
+    sndbuf[0]=rcvbuf[0];
+    sndbuf[1]=(rcvbuf[1]|0x03);
+  }
+  else{  // version 2004 flipped the bit ..
+    sndbuf[0]=rcvbuf[0];
+    sndbuf[1]=(rcvbuf[1]&0xfe);
+  }
+
+  do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+  usleep(50000);
+  std::cout << "CCB: CSRB1(read)=0x" << std::hex 
+	    << std::setw(2) << int(rcvbuf[0]&0xff) << std::setw(2) 
+	    <<int(rcvbuf[1]&0xff) << "changed to CSRB1(set)=0x"
+	    << std::setw(2) << int(sndbuf[0]&0xff) << std::setw(2)
+	    <<int(sndbuf[1]&0xff) << std::dec << std::endl;
+}
+
+
+void CCB::startTrigger() {
+  /// Send "Start Trigger" command on the Fast Control Bus
+  std::cout << "CCB: Start Trigger" << std::endl;
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x18;          //cmd[5:0]=0x06 for start_trigger     GUJH
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+}
+
+
+void CCB::stopTrigger() {
+  /// Send "Stop Trigger" command on the Fast Control Bus
+  std::cout << "CCB: Stop Trigger" << std::endl;
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x1C;          //cmd[5:0]=0x07 for stop_trigger     GUJH
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+}
+
+
+void CCB::disable() {
+  std::cout << "CCB: disable" << std::endl;
+  disableTTCControl();
+  if (SPS25ns_==0) {
+    //stop trigger
+    stopTrigger();
+  }
+}
+
+
+void CCB::disableTTCControl() {
+  std::cout << "CCB: disable TTC control" << std::endl;
+  do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
+  usleep(50000);
+  if (mVersion==2001){
+    sndbuf[0]=rcvbuf[0];
+    sndbuf[1]=(rcvbuf[1]&0xfe);
+    TTC=1;
+  }else {// mVersion==2004
+    sndbuf[0]=rcvbuf[0];
+    sndbuf[1]=(rcvbuf[1]|0x01);
+  }
+  do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+  usleep(5000);
+}
+
+
+void CCB::executeCommand(std::string command) {
+  if(command=="Program Backplane") prgall_bckpln();
+  if(command=="Reset Backplane")   reset_bckpln();
+
+  if(command=="Enable L1")         enableL1();
+  if(command=="Disable L1")       disableL1();
+  if(command=="L1 Cathode Scint") l1CathodeScint();
+
+  if(command=="Hard Reset")       hardReset();
+  if(command=="Sync Reset")       syncReset();
+  if(command=="Reset BXEVT")      reset_bxevt();
+  if(command=="BX0")              bx0();
+  if(command=="BXR")              bxr();
+}
+
+
+void CCB::firmwareVersion(){
+  /// report the firmware version
+  do_vme(VME_READ,CSRB17,sndbuf,rcvbuf,NOW);  
+  int versionWord = (rcvbuf[0]<<8) + (rcvbuf[1]&0xFF);
+  int day   =  versionWord & 0x1F;
+  int month = (versionWord >> 5   ) & 0xF;
+  int year  = (versionWord >>(5+4)) + 2000;
+  std::cout << "CCB: firmware date: " 
+       << day << "-" << month << "-" << year << std::endl;
+}
+
+
+
+#ifdef USEDCS
+//fg NOTE: CSR1 (2001) vs CSRB1(2004) bit  incompatibilities ...
+void CCB::cmd_source_to_ttcrx(){
+// 2004
+  sndbuf[0]=0x00; // ??????????
+  sndbuf[1]=0;  // ??????????
+  do_vme(VME_WRITE,0x20,sndbuf,rcvbuf,1);
+}
+
+
+
+void CCB::cmd_source_to_vme(){
+/// this function should be executed before any *_csr2 function 
+// 2004
+  sndbuf[0]=0x00; // ??????????
+  sndbuf[1]=1;  // ??????????
+  do_vme(VME_WRITE,0x20,sndbuf,rcvbuf,1);
+}
+
+
+
+void CCB::hard_reset_all_csr2(){
+/// reload all fpga-s from eprom (CCB specification)
+// Hard reset ALL:
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x01;
+// JRG, old way, write to directly to VME adr 0x34, but this
+//    DOES NOT drive the ccb_cmd bus (no cmd_strobe):
+//rice_vme(0x02,0x34,sndbuf,rcvbuf,1);
+//
+// JRG, best way, write to CSR2[7-2] to drive ccb_cmd bus; this way
+//      also drives dedicated decode lines on the backplane:
+
+// 2004
+  int i_ccb=0x04;
+  sndbuf[0]=0x00;
+  sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/12/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 4
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+}
+
+
+
+void CCB::sync_reset_csr2(){
+/// reset L1 readout buffers and resynchronize optical links (CCB specification) ???
+
+// Generate ccb_L1_Reset (sync reset):
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x01;
+// 2004
+  int i_ccb=0x03;
+  sndbuf[0]=0x00;
+  sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/13/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 3
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+}
+
+
+
+void CCB::soft_reset_all_csr2(){
+/// initialize the FPGA-s on dmb,tmb,mpc (CCB specification)
+
+// Soft reset ALL:
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x01;
+// JRG, old way, write to directly to VME adr 0x3c, but this
+//    DOES NOT drive the ccb_cmd bus (no cmd_strobe):
+//rice_vme(0x02,0x3c,sndbuf,rcvbuf,1);
+//
+//
+// JRG, best way, write to CSR2[7-2] to drive ccb_cmd bus; this way
+//      also drives dedicated decode lines on the backplane:
+// 2004
+  int i_ccb=0x1c;
+  sndbuf[0]=0x00;
+  sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/13/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 1c
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+}
+
+
+
+void CCB::soft_reset_dmb_csr2(){
+/// initialize the FPGA-s on dmb (CCB specification)
+
+// Soft reset DMBs:
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x01;
+// JRG, old way, write to directly to VME adr 0x6a, but this
+//    DOES NOT drive the ccb_cmd bus (no cmd_strobe):
+//rice_vme(0x02,0x6a,sndbuf,rcvbuf,1);
+//
+//
+// JRG, best way, write to CSR2[7-2] to drive ccb_cmd bus; this way
+//      also drives dedicated decode lines on the backplane:
+
+// 2004
+  int i_ccb=0x1d;
+  sndbuf[0]=0x00;
+  sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/13/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 1d
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+}
+
+
+
+void CCB::soft_reset_tmb_csr2(){
+/// initialize the FPGA-s on tmb (CCB specification)
+
+// Soft reset TMBs:
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x01;
+// JRG, old way, write to directly to VME adr 0x7e, but this
+//    DOES NOT drive the ccb_cmd bus (no cmd_strobe):
+//rice_vme(0x02,0x7e,sndbuf,rcvbuf,1);
+//
+//
+// JRG, best way, write to CSR2[7-2] to drive ccb_cmd bus; this way
+//      also drives dedicated decode lines on the backplane:
+// 2004
+  int i_ccb=0x1e;
+  sndbuf[0]=0x00;
+  sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/13/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 1e
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+}
+
+
+
+void CCB::soft_reset_mpc_csr2(){
+/// initialize the FPGA-s on mpc (CCB specification)
+
+// Soft reset MPCs:
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x01;
+
+// 2004
+  int i_ccb=0x1f;
+  sndbuf[0]=0x00;
+  sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/13/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 1f
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+}
+
+
+
+
+void CCB::hard_reset_dmb_csr2(){
+/// initialize the FPGA-s on dmb (CCB specification)
+// Hard reset DMBs:
+// 2004
+  int i_ccb=0x12;
+  sndbuf[0]=0x00;
+  sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/21/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 12
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+}
+
+
+
+void CCB::hard_reset_tmb_csr2(){
+/// initialize the FPGA on TMB (CCB specification)
+// Hard reset TMBs:
+// 2004
+  int i_ccb=0x10;
+  sndbuf[0]=0x00;
+  sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/21/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 10
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+}
+
+
+
+void CCB::hard_reset_alct_csr2(){
+/// initialize the FPGA-s on ALCT (CCB specification)
+// Hard reset ALCT:
+// 2004
+  int i_ccb=0x11;
+  sndbuf[0]=0x00;
+  sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/21/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 11
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+}
+
+
+
+void CCB::hard_reset_ccb_csr2(){
+/// initialize the FPGA-s on CCB (CCB specification)
+// Hard reset CCB:
+// 2004
+  int i_ccb=0x0f;
+  sndbuf[0]=0x00;
+  sndbuf[1]=(i_ccb<<2)&0xfc; //
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+}
+
+
+
+void CCB::hard_reset_mpc_csr2(){
+/// initialize the FPGA on MPC (CCB specification)
+// Hard reset MPC:
+// 2004
+  int i_ccb=0x13;
+  sndbuf[0]=0x00;
+  sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/21/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 13
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+}
+
+
+
+void CCB::hard_reset_alct(){
+/// Hard ALCT reset: programming
+/// Generate ALCT "Hard Reset" 400ns pulse
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x01; 
+// Hard ALCT reset:
+// 2004 
+  do_vme(VME_WRITE,0x66,sndbuf,rcvbuf,1); // correct: 11/13/2003 base+0x30  data to write : anything
+}
+
+
+
+void CCB::hard_reset_dmb(){
+/// Hard DMB reset: programming
+/// Generate DMB "Hard Reset" 400ns pulse
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x74; // 0x00;
+// Hard DMB reset:
+// 2004
+  do_vme(VME_WRITE,0x64,sndbuf,rcvbuf,1);  // this is the correct DMB Hard Reset // correct: 11/13/2003 base+0x2e  data to write : anything
+}
+
+
+
+void CCB::hard_reset_tmb(){
+/// Hard TMB reset: programming
+/// Generate TMB "Hard Reset" 400ns pulse
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x78; // 0x00;
+// Hard TMB reset:
+// 2004
+  do_vme(VME_WRITE,0x62,sndbuf,rcvbuf,1); // correct: 11/13/2003 base+0x2c  data to write : anything
+}
+
+
+
+void CCB::hard_reset_mpc(){
+/// Hard MPC reset: programming
+/// Generate MPC "Hard Reset" 400ns pulse
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x78; // 0x00;
+// Hard MPC reset:
+// 2004
+  do_vme(VME_WRITE,0x68,sndbuf,rcvbuf,1); // correct: 11/13/2003 base+0x32  data to write : anything
+}
+
+
+
+void CCB::hard_reset_all(){
+/// Generate "Hard Reset" 400ns pulse to all modules in crate
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x00;
+  // 2004
+  do_vme(VME_WRITE,0x60,sndbuf,rcvbuf,1);
+}
+
+
+
+void CCB::soft_reset_dmb(){
+/// Generate "Soft Reset" 25 ns pulse to DMB
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x01;
+  //2004
+  do_vme(VME_WRITE,0x6e,sndbuf,rcvbuf,1);  //  base+0x6a
+}
+
+
+
+void CCB::soft_reset_tmb(){
+/// Generate "Soft Reset" 25 ns pulse to TMB
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x01;
+  //2004
+  do_vme(VME_WRITE,0x6c,sndbuf,rcvbuf,1); // base+0x7e
+}
+
+
+
+void CCB::soft_reset_mpc(){
+/// Generate "Soft Reset" 25 ns pulse to MPC
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x01;
+  //2004
+  do_vme(VME_WRITE,0x70,sndbuf,rcvbuf,1); // base+0x64
+}
+
+
+
+void CCB::soft_reset_all(){
+/// Generate "Soft Reset" 25 ns pulse to all modules in crate!!!
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x01;
+  //2004
+  do_vme(VME_WRITE,0x6a,sndbuf,rcvbuf,1); // base+0x3c
+}
+
+
+
+//======= test stuff below ===================
+int CCB::set_la1_delay(int delay){
+  sndbuf[0]=0x00;
+  sndbuf[1]=(char)delay;
+  do_vme(VME_WRITE,0x08,sndbuf,rcvbuf,0);
+  return 1;
+}
+
+int CCB::get_la1_delay(){
+  do_vme(VME_READ,0x08,sndbuf,rcvbuf,0);
+  std::cout << "rcvbuf " << std::hex << std::setw(2) 
+	    << int(rcvbuf[0]&0xff) << " " << int(rcvbuf[1]&0xff)
+	    << std::dec << std::endl;
+  return 1;
+}
+#endif
