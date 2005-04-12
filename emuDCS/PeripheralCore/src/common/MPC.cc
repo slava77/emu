@@ -1,0 +1,446 @@
+//-----------------------------------------------------------------------
+// $Id: MPC.cc,v 2.0 2005/04/12 08:07:05 geurts Exp $
+// $Log: MPC.cc,v $
+// Revision 2.0  2005/04/12 08:07:05  geurts
+// *** empty log message ***
+//
+// Revision 1.15  2004/10/07 19:39:26  tfcvs
+// regular test beam update
+//
+// Revision 1.14  2004/07/19 19:37:57  tfcvs
+// Removed unused variables and unsigned some variables in order to prevent compiler warnings (-Wall flag) (FG)
+//
+// Revision 1.13  2004/06/18 23:43:02  tfcvs
+// Updates to support new firmware (06/11/2004) options.
+// -introduced Sorter/Transparent Mode selectors (xml configurable)
+// -introduced Programmable Delay for TMB-MPC path
+// -added all addresses to VMEAddresses enumaration
+// -deprecated read_date() in favor of firmwareVersion()
+// -fixed a bug in setTLK2501TxMode
+//
+// Revision 1.12  2004/05/27 16:02:09  tfcvs
+// corrected the meaning of CONTINUOUS and FRAMED mode
+//
+// Revision 1.11  2004/05/20 17:06:31  tfcvs
+// Introduced firmware-date code and general code clean-up (FG)
+//
+// Revision 1.10  2004/05/18 17:07:27  tfcvs
+// Serializer behaviour (Lev's request) formalized and now controlled through xml. (FG)
+//
+// Revision 1.9  2004/05/18 07:38:47  tfcvs
+// temporary change for Lev in initialization behavior: CONTINUOUS instead of FRAMED mode. (FG)
+//
+// Revision 1.8  2004/05/15 22:11:14  tfcvs
+// Added PRBS methods,  C++-ified the code (cout replaces printf) and introduced CVS keywords
+//
+//-----------------------------------------------------------------------
+#include <iostream>
+#include <iomanip>
+#include "MPC.h"
+#include "VMEController.h"
+
+
+MPC::MPC(int newCrate, int slot) : VMEModule(newCrate, slot),
+  TLK2501TxMode_(0), TransparentModeSources_(0), TMBDelayPattern_(0){
+  std::cout << "MPC: module created in crate=" << this->crate() 
+       << " slot=" << this->slot() << std::endl;
+}
+
+
+MPC::~MPC(){
+  std::cout << "MPC: module removed from crate=" << this->crate() 
+       << " slot=" << this->slot() << std::endl;
+}
+
+
+void MPC::start() {
+  char tdata[2];
+  int n=2;
+  char c=0;
+  int lev=0x01;
+  c=c|lev;
+  // next two bits are board type
+  c=c|(boardType()<<2);
+  tdata[0]=c;
+  if(theMode == READ) {
+    tdata[1]=0x01;
+  } else {
+    tdata[1]=0x00;
+  }
+  int nt1;
+     //printf(" first send \n");
+  if( (nt1=theController->writen(tdata, n))  != n)
+    std::cout << "MPC: str_cli:  writen error on socket" << std::endl;
+}
+
+
+void MPC::init() {
+  int btd;
+  int xfer_done[2];
+  char data[2];
+  unsigned long int addr;
+
+  std::cout << "MPC: initialize" << std::endl;
+
+  std::cout << "MPC: turn off Resets" <<std::endl;
+  addr = theBaseAddress + CSR0;
+  data[0]=0x10;
+  data[1]=0x4a;
+  write(btd,data,addr,2,xfer_done);
+
+  std::cout << "MPC: logic reset" << std::endl;
+  data[0]=0x12;
+  data[1]=0x4a;
+  write(btd,data,addr,2,xfer_done);
+
+  std::cout << "MPC: end logic Reset" << std::endl;
+  data[0]=0x10;
+  data[1]=0x4a;
+  write(btd,data,addr,2,xfer_done);
+
+  //read_csr0();
+
+  std::cout << "MPC: set default serializer TX mode ..." << std::endl;
+  setTLK2501TxMode(TLK2501TxMode_);
+
+  // Sorter Mode is the default power-up mode of the MPC.
+  std::cout << "MPC: set default MPC operation Mode ..." << std::endl;
+  if (TransparentModeSources_)
+    setTransparentMode(TransparentModeSources_);
+  else
+    setSorterMode();
+
+  // The default power-up delays are always 0.
+  std::cout << "MPC: setting default TMB-MPC delays ..." << std::endl;
+  setDelayFromTMB(TMBDelayPattern_);
+
+  // report firmware version
+  firmwareVersion();
+}
+
+
+
+void MPC::read_fifo(unsigned long int address, char * data) {
+  int xfer_done[2];
+  int btd; // comes from d360_bt_open(btd_p,devname_p,0);
+  //data[0] = 0x00;
+  //data[1] = 0x00;
+  read(btd, data, theBaseAddress + address,2, xfer_done); 
+}
+
+
+void MPC::read_fifos() {
+  std::cout << "MPC:  Read FIFO-B" << std::endl;
+  char data[100];
+  //read_fifo(STATUS, data);
+  read_fifo(CSR3, data);
+  //bool full_fifoa=(data[1]&0x0001);
+  //bool empty_fifoa=(data[1]&0x0002)>>1;
+  //bool full_fifob=(data[1]&0x0004)>>2;
+  bool empty_fifob=(data[1]&0x0008)>>3;
+
+  if(empty_fifob) {
+    std::cout << "MPC: FIFO-B is empty!" << std::endl;
+  } else {
+    std::cout << "MPC: 1st Best Muon FIFO" << std::endl;
+    read_fifo(FIFO_B1, data);
+    std::cout << std::hex;
+    std::cout.fill('0');
+    std::cout << "MPC: FIFO-B1a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+    read_fifo(FIFO_B1, data);
+    std::cout << "MPC: FIFO-B1b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00f)  << std::endl;
+
+    std::cout << "MPC: 2nd Best Muon FIFO" << std::endl;
+    read_fifo(FIFO_B2, data);
+    std::cout << "MPC: FIFO-B2a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+    read_fifo(FIFO_B2, data);
+    std::cout << "MPC: FIFO-B2b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+
+    std::cout << "MPC: 3nd Best Muon FIFO" << std::endl;
+    read_fifo(FIFO_B3, data);
+    std::cout << "MPC: FIFO-B3a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+    read_fifo(FIFO_B3, data);
+    std::cout << "MPC: FIFO-B3b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) <<(data[1]&0x00ff) << std::endl;
+    std::cout.fill(' ');
+    std::cout << std::dec;
+  }
+}
+
+
+void MPC::read_csr0() {
+  char data[100];
+  read_fifo(CSR0,data);
+  std::cout.fill('0');
+  std::cout << "MPC: data read from CSR0: 0x" << std::hex 
+       << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff)
+       << std::dec << std::endl;
+  std::cout.fill(' ');
+}
+
+
+void MPC::read_status() {
+  //Check FIFO Status:
+  char data[100];
+  //read_fifo(STATUS, data);
+  read_fifo(CSR3, data);
+  std::cout.fill('0');
+  std::cout << "MPC: FIFO status = 0x" << std::hex << std::setw(2) << (data[0]&0x00ff)
+       << std::setw(2) << (data[1]&0x00ff) << std::dec << std::endl;
+  std::cout.fill(' ');
+  bool full_fifoa=(data[1]&0x0001);
+  bool empty_fifoa=(data[1]&0x0002)>>1;
+  bool full_fifob=(data[1]&0x0004)>>2;
+  bool empty_fifob=(data[1]&0x0008)>>3;
+
+  if (full_fifoa>0)  std::cout << "MPC: FIFO_A is Full"  << std::endl;
+  if (empty_fifoa>0) std::cout << "MPC: FIFO_A is Empty" << std::endl;
+  if (full_fifob>0)  std::cout << "MPC: FIFO_B is Full"  << std::endl;
+  if (empty_fifob>0) std::cout << "MPC: FIFO_B is Empty" << std::endl;;
+}
+
+
+//fg deprecated member ... replaced by MPC::firmWare(). 
+//fg void MPC::read_date() {
+//fg   char data[100];
+//fg   read_fifo(DATE, data);
+//fg   std::cout.fill('0');
+//fg   std::cout << hex << "MPC: date code read = 0x" << setw(2) << (data[0]&0x00ff) 
+//fg        << setw(2) << (data[1]&0x00ff) << dec << endl;
+//fg   std::cout.fill(' ');
+//fg   std::cout << "MPC: month="<< (((data[0]&0x0001)<<3)|((data[1]&0x00e0)>>5))
+//fg        << " day=" << (data[1]&0x001f)
+//fg        << " year=" << (2000+((data[0]&0x000e)>>1)) << endl;
+//fg }
+
+
+int MPC::read(int btd,char *buf_p,
+    unsigned long int add,
+    int xfer_len,
+    int *xfer_done_p) {
+
+  theMode = READ;
+  theController->start(this);
+  writeToAddress(add, buf_p, xfer_len);
+
+  int ncnt=0;
+  int nleft=xfer_len;
+  while(nleft>0){
+    int max=xfer_len;
+    if(max>nleft)max=nleft;
+    int n=theController->readline(&buf_p[ncnt],max);
+//         printf(" ncnt %d %02x %02x \n",ncnt,buf_p[0]&0xff,buf_p[1]&0xff);
+    ncnt+=n;
+    nleft-=n;
+  }
+  theController->end();
+  return ncnt;
+}
+
+
+int MPC::write(int btd,char *buf_p,
+    unsigned long int add,
+    int xfer_len,
+    int *xfer_done_p) {
+
+  theMode = WRITE;
+  theController->start(this);
+  writeToAddress(add, buf_p, xfer_len);
+  *xfer_done_p = xfer_len;
+  theController->end();
+  return xfer_len;
+}
+
+
+void MPC::writeToAddress(unsigned long int add,
+     char * bufp, int xfer_len) {
+
+  char * tdata = new char[xfer_len+8];
+
+  int cnt = 0;
+  tdata[0]=(add>>24)&0xff;
+  tdata[1]=(add>>16)&0xff;
+  tdata[2]=(add>>8)&0xff;
+  tdata[3]=(add)&0xff;
+  cnt+=4;
+    //printf(" address filled:  add %08x  xfer_len %d \n",add,xfer_len);
+  for(int i=0;i<xfer_len;i++){
+    //printf(" cnt %d i %d \n",cnt,i);
+    tdata[cnt]=bufp[i];
+    ++cnt;
+    //printf(" cnt %d \n");
+  }
+    //printf(" call writenn %d \n",cnt);
+  theController->writenn(tdata,cnt);
+  delete[] tdata;
+}
+
+
+void MPC::executeCommand(std::string command) {
+  if(command=="Init")   init();
+  if(command=="Read FIFOs") read_fifos();
+  if(command=="Read CSR0") read_csr0();
+  //if(command=="Read Date") read_date();
+  if(command=="Read Date") firmwareVersion();
+}
+
+void MPC::enablePRBS(){
+  int btd, xfer_done[2];
+  char data[2];
+  unsigned long int addr;
+
+  // make sure we are in framed mode
+  addr = theBaseAddress + CSR2;
+  //fg read(btd,data,addr,2,xfer_done);
+  //fg data[0]=data[0]|0x01;
+  data[0]=0x01;
+  data[1]=0x00;
+  write(btd,data,addr,2,xfer_done);
+
+  // brute force set to 0xC210, will change to masking soon, very soon ...
+  addr = theBaseAddress + CSR0;
+  data[0]=0x10;
+  data[1]=0xC2;
+  write(btd,data,addr,2,xfer_done);
+
+  std::cout << "MPC: PRBS mode enabled" << std::endl;
+}
+
+void MPC::disablePRBS(){
+  int btd, xfer_done[2];
+  char data[2];
+  unsigned long int addr;
+
+  // brute force set back to 0x5B10, will change to masking soon, very soon ...
+  addr = theBaseAddress + CSR0;
+  data[0]=0x10;
+  data[1]=0x5B;
+  write(btd,data,addr,2,xfer_done);
+
+  std::cout << "MPC: PRBS mode disabled" << std::endl;
+}
+
+
+
+void MPC::setTLK2501TxMode(int mode){
+  /// set the TLK2501 serializer Tx mode
+  if (mode==1)
+    std::cout << "MPC: serializer in FRAMED mode" << std::endl;
+  else if (mode==0)
+    std::cout << "MPC: serializer in CONTINUOUS mode" << std::endl;
+  else
+    std::cerr << "MPC: -WARNING- serializer in UNKNOWN mode ("<<mode<<")"<< std::endl;
+
+  //Note: CSR2 has only bit-0 as a relevant bit. As soon as there are more
+  //      bits this should be specific to that bit using a mask.
+
+  int addr = theBaseAddress + CSR2; //addr=0x000ac;
+  int btd;
+  int xfer_done[2];
+  char data[2];
+  //fg was this really the right way ... or, maybe, 
+  //fg it should have been the other way around -- oh-oh.
+  //fg anyways, nobody but Lev uses it ...
+  //fg data[0]=mode;
+  //fg data[1]=0x00;
+  data[0]=0x00;
+  data[1]=mode;
+  write(btd,data,addr,2,xfer_done);
+}
+
+
+void MPC::firmwareVersion(){
+  /// report the firmware version
+  int btd, xfer_done[2];
+  char data[2];
+  read(btd, data, theBaseAddress + CSR1,2, xfer_done);
+  
+  int versionWord = (data[0]<<8) + (data[1]&0xFF);
+  int day   =  versionWord & 0x1F;
+  int month = (versionWord >> 5   ) & 0xF;
+  int year  = (versionWord >>(5+4)) + 2000;
+  std::cout << "MPC: firmware version: " << std::dec
+       << day << "-" << month << "-" << year << std::endl;
+}
+
+
+void MPC::setSorterMode(){
+  /// Switches the MPC to Sorter Mode while keeping the original sources intact.
+  std::cout << "MPC: switching to Sorter Mode" << std::endl;
+  int addr = theBaseAddress + CSR4;
+  int btd;
+  int xfer_done[2];
+  char data[2];
+  read(btd,data,addr,2,xfer_done);  
+  //fg data[0]=data[0]&0xfe;
+  //fg data[1]=data[1];
+  //fg andersom, slimpy.
+  data[0]=data[0];
+  data[1]=data[1]&0xfe;
+  write(btd,data,addr,2,xfer_done);
+}
+
+
+void MPC::setTransparentMode(unsigned int pattern){
+  /// Sets the Transparent Mode according to the source pattern.
+
+  //fg At this point the routine expects the full CSR4 pattern.
+  //fg This should change to the source pattern only followed by a
+  //fg bit shift adding the bit-1=1 ... Should change once we feel
+  //fg comfortable enough about it.
+
+  std::cout << "MPC: switching to Transparent Mode. Source pattern = 0x" 
+       << std::hex << pattern << std::dec << std::endl;
+  int btd, xfer_done[2];
+  char data[2];
+  int addr(theBaseAddress + CSR4);
+
+  read(btd,data,addr,2,xfer_done);  
+
+  // make sure that the last bit is actually 1, otherwise there is no transparentMode
+  if ( !(pattern & 0x01)){
+    std::cout << "MPC: WARNING - last bit in source pattern (" << (unsigned short)pattern 
+	 << ") assumes Sorter Mode. Using Transparent instead" << std::endl;
+    pattern |=0x01;
+  }
+
+  // upload the pattern
+  //fg data[0]=pattern;
+  //fg data[1]=0;
+  //fg andersom, slimpy
+  data[1]=pattern>>8;   // MSB
+  data[0]=pattern&0xff; // LSB
+  write(btd,data,addr,2,xfer_done);
+}
+
+
+void MPC::setTransparentMode(){
+  /// Switches to Transparent Mode using whatever orginal source pattern
+  /// was previously loaded.
+  std::cout << "MPC: switching to Transparent Mode. No new source pattern loaded" << std::endl;
+  int btd;
+  int xfer_done[2];
+  char data[2];
+  int addr = theBaseAddress + CSR4; 
+  read(btd,data,addr,2,xfer_done);
+  //fg data[0] |= 0x01;
+  //fg data[1] = 0;
+  data[0] =0;
+  data[1] |= 0x01;
+  write(btd,data,addr,2,xfer_done);
+}
+
+
+void MPC::setDelayFromTMB(unsigned char delays){
+  /// Add single BX delays to each of the TMBs based on the delayPattern
+   std::cout << "MPC: setting TMB-MPC delays. Delay pattern = 0x"
+	<< std::hex << (unsigned short)delays << std::dec << std::endl;
+  int btd;
+  int xfer_done[2];
+  char data[2];
+  int addr = theBaseAddress + CSR5;
+  //fg data[0] = delays;
+  //fg data[1] = 0;
+  data[0] = 0;
+  data[1] = delays;
+  write(btd,data,addr,2,xfer_done);
+}

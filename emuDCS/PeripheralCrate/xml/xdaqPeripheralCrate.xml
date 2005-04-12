@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<Partition>
+ <Definitions>
+    <ClassDef id="40">ptTCP</ClassDef>
+    <ClassDef id="411">XdaqPeripheralCrate</ClassDef>
+  </Definitions>
+
+  <Host id="0" url="http://emuslice02.cern.ch:35000">
+    <Address type="ptTCP" hostname="emuslice02.cern.ch" port="37000" network="SLICEnet"/>
+    <Application class="XdaqPeripheralCrate" targetAddr="81" instance="0" network="SLICEnet"/>
+
+    <urlApplication>/home/slice/lib/libXdaqPeripheralCrate.so</urlApplication>
+
+    <Transport class="ptTCP" instance="0" targetAddr="601"/>
+    <urlTransport>/home/slice/lib/libptTCP.so</urlTransport>
+  </Host>
+
+</Partition>
