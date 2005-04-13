@@ -1,0 +1,34 @@
+##
+#
+# This is the TriDAS/emu/emuDAQ Project Makefile
+#  (this Makefile will soon become obsolete:
+#   only project and package Makefiles should remain)
+#
+##
+
+include $(XDAQ_ROOT)/config/mfAutoconf.rules
+include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
+
+Project=emu
+
+ifeq ($(Set),framework)
+Packages=\
+	emuDAQ/DDUReadout \
+	emuDAQ/GenericRUI \
+	emuDAQ/EmuRUI
+endif
+
+ifeq ($(Set),DDUReadout)
+Packages= emuDAQ/DDUReadout
+endif
+
+ifeq ($(Set),GenericRUI)
+Packages= emuDAQ/GenericRUI
+endif
+
+ifeq ($(Set),EmuRUI)
+Packages= emuDAQ/EmuRUI
+endif
+
+
+include $(XDAQ_ROOT)/config/Makefile.rules
