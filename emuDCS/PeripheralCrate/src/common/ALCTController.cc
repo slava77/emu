@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.0 2005/04/12 08:07:05 geurts Exp $
+// $Id: ALCTController.cc,v 2.1 2005/06/06 15:17:18 geurts Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.1  2005/06/06 15:17:18  geurts
+// TMB/ALCT timing updates (Martin vd Mey)
+//
 // Revision 2.0  2005/04/12 08:07:05  geurts
 // *** empty log message ***
 //
@@ -29,6 +32,9 @@
 #include <unistd.h>
 #include <cmath>
 //#include <algo.h>
+
+
+//using namespace std;
 
 char* trim(char* str);
 char* strtolower(char* str);
@@ -110,7 +116,7 @@ Rfield  CRfld[] =
     {
         {   3,  0,    0, "trig_mode"},
         {   1,  2,    0, "ext_trig_en"},
-        {   1,  3,    0, "pretrig_halt"},
+        {   1,  3,    0, "send_empty"},
         {   1,  4,    0, "inject"},
         {   1,  5,    0, "inject_mode"},
         {0x7f,  6, 0x7f, "inject_mask"},
@@ -132,7 +138,7 @@ Rfield  CRfld[] =
         {   3, 62,    0, "alct_tmode"},
         {   3, 64,    0, "alct_amode"},
         {   1, 66,    0,"alct_mask_all"},
-        {   1, 67,    0, "trig_info_en"},  // have to provide the field in alct_params_type
+        {   1, 67,    1, "trig_info_en"},  // have to provide the field in alct_params_type
         {   1, 68,    0, "sn_select"}   // have to provide the field in alct_params_type
     };
 
@@ -394,7 +400,9 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   chamber_type_string_(chamberType), 
   alct_link_type(VME), 
   fd(tmb_->slot()),
-  delays_inited_(false)
+  delays_inited_(false),
+  alct_fifo_mode_(1),
+  alct_send_empty_(1)
  {
    alctPatternFile="";
    
@@ -404,6 +412,8 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   if(chamber_type_string_ == "ME13") chamber_type_ = ME13;
   if(chamber_type_string_ == "ME21") chamber_type_ = ME21;
   if(chamber_type_string_ == "ME22") chamber_type_ = ME22;
+  if(chamber_type_string_ == "ME32") chamber_type_ = ME22;
+  if(chamber_type_string_ == "ME42") chamber_type_ = ME22;
   if(chamber_type_string_ == "ME31") chamber_type_ = ME31;
   if(chamber_type_string_ == "ME41") chamber_type_ = ME41;
 
@@ -416,7 +426,7 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   // now give a default value for the control registers
   unsigned cr[] = {0x80fc5fc0, 0x20a03786, 0x8}; // default values for CR
   setCRfld(&params_);
-  unpackControlRegister(cr);
+  //unpackControlRegister(cr);
 
 }
 
@@ -1176,6 +1186,12 @@ void ALCTController::SetConf(  unsigned cr[3], int verbose=0 ){
 //   
 }
 
+int ALCTController::GetWGNumber(){
+  //
+  return chamtype[chamber_type_].WG_number;
+}
+
+
 
 void ALCTController::GetConf(  unsigned cr[3], int verbose=0 ){
    //
@@ -1418,7 +1434,7 @@ void ALCTController::setCRfld(alct_params_type* p) {
   {
     crParams_[0] = (char*)&(alct_trig_mode_);
     crParams_[1] = (char*)&(alct_ext_trig_en_);
-    crParams_[2] = (char*)&(p->pretrigger_and_halt);
+    crParams_[2] = (char*)&(alct_send_empty_);
     crParams_[3] = (char*)&(p->inject_test_pattern);
     crParams_[4] = (char*)&(p->inject_mode);
     crParams_[5] = (char*)&(p->inj_lct_chip_mask);
@@ -1427,7 +1443,7 @@ void ALCTController::setCRfld(alct_params_type* p) {
     crParams_[8] = (char*)&(p->drift_delay);
     crParams_[9] = (char*)&(alct_fifo_tbins_);
     crParams_[10] = (char*)&(alct_fifo_pretrig_);
-    crParams_[11] = (char*)&(p->fifo_mode);
+    crParams_[11] = (char*)&(alct_fifo_mode_);
     crParams_[12] = (char*)&(p->fifo_last_feb);
     crParams_[13] = (char*)&(alct_l1a_delay_);
     crParams_[14] = (char*)&(alct_l1a_window_);
@@ -1477,7 +1493,7 @@ void ALCTController::unpackControlRegister(unsigned * cr) {
      {
         *(crParams_[i]) = (cr[wordn] >> bitn) & mask;
      }
-     if (verbose) printf ("%s \t %d\n", CRfld[i].name, ((cr[wordn] >> bitn) & mask));
+     printf ("%s \t %d\n", CRfld[i].name, ((cr[wordn] >> bitn) & mask));
   }
 }
 
@@ -3068,6 +3084,25 @@ ALCTController::ALCTSTATUS ALCTController::alct_init_slow_control(int* jtag, lon
 // end from alct_slow_lib
 
 
+ALCTController::ALCTSTATUS ALCTController::DumpFifo(){
+  //
+  elong OS;
+  unsigned hfa, h, hn, hpatb, lfa, l, ln, lpatb, daq, bxn, empty;
+      // read output FIFO
+      elReadRegister(OSread, &OS);// read first dummy word
+      for (int i = 0; i < 1030; i++) {       
+	// This command reads one word of the information from FIFO
+	elReadRegister(OSread, &OS);
+	// split OS into fields
+	DecodeOS(&OS,&empty,&hfa,&h,&hn,&hpatb,&lfa,&l,&ln,&lpatb,&daq,&bxn);
+	if (empty) {
+	  printf("Fifo empty\n");
+	  break; // fifo empty
+	}
+      }
+  //
+}
+
 ALCTController::ALCTSTATUS ALCTController::alct_fast_CheckShiftingPatternViaJTAG
 (unsigned long verbose) {
 
@@ -3249,8 +3284,8 @@ void ALCTController::set_defaults(alct_params_type *p) {
 
 /* -- Configuration register */
   alct_trig_mode_		= 0;
-  alct_ext_trig_en_	= 0;
-  p->pretrigger_and_halt	= 0;
+  alct_ext_trig_en_	        = 0;
+  alct_send_empty_         	= 0;
   p->inject_test_pattern	= 0;
 
   p->inject_mode		= 0;
@@ -3262,7 +3297,7 @@ void ALCTController::set_defaults(alct_params_type *p) {
 
   alct_fifo_tbins_		= 7;
   alct_fifo_pretrig_ 	= 1;
-  p->fifo_mode			= 1;
+  alct_fifo_mode_			= 1;
   p->fifo_last_feb		= 3;
 
   alct_l1a_delay_		= 0x78;
@@ -4798,32 +4833,34 @@ int ALCTController::ConstructShift(char HeaderData[],int HeaderDataSize, char Da
 
 int ALCTController::SVFLoad(int *jch, char *fn, int db )
 {
-  
-  unsigned char snd[MAXBUFSIZE], rcv[MAXBUFSIZE], expect[MAXBUFSIZE],rmask[MAXBUFSIZE],smask[MAXBUFSIZE],cmpbuf[MAXBUFSIZE];
-  unsigned char realsnd[MAXBUFSIZE];
+ unsigned char snd[MAXBUFSIZE], rcv[MAXBUFSIZE], expect[MAXBUFSIZE],rmask[MAXBUFSIZE],smask[MAXBUFSIZE],cmpbuf[MAXBUFSIZE];
+  unsigned char sndbuf[MAXBUFSIZE],rcvbuf[MAXBUFSIZE], realsnd[MAXBUFSIZE];
   unsigned char sndhdr[MAXBUFSIZE],sndtdr[MAXBUFSIZE], sndhir[MAXBUFSIZE], sndtir[MAXBUFSIZE];
   unsigned char hdrsmask[MAXBUFSIZE],tdrsmask[MAXBUFSIZE], hirsmask[MAXBUFSIZE], tirsmask[MAXBUFSIZE];
+  int rcvword;
   FILE *dwnfp, *ftmptdi, *ftmpsmask;
-  char buf[8192],buf2[256];
+  char buf[MAXBUFSIZE], buf2[256];
+//  char buf[8192],buf2[256];
   char *Word[256],*lastn;
   char *downfile;
   char fStop;
+  int jchan;
   unsigned char sndvalue;
   fpos_t ftdi_pos, fsmask_pos;
-  unsigned char send_tmp, rcv_tmp;
+  unsigned char send_tmp;//, rcv_tmp;
   int i,j,Count,nbytes,nbits,nframes,step_mode,pause;
   int hdrbits = 0, tdrbits = 0, hirbits = 0, tirbits = 0;
   int hdrbytes = 0, tdrbytes = 0, hirbytes = 0, tirbytes = 0; 
   int nowrit, cmpflag, errcntr;
   static int count;
-  JTAG_BBitStruct driver_data;
-  int jtag_chain[4] = {1, 0, 5, 4};
+  struct JTAG_BBitStruct   driver_data;
+  // int jtag_chain[4] = {1, 0, 5, 4};
   int jtag_chain_tmb[5] = {7, 6, 9, 8, 3};
   // === SIR Go through SelectDRScan->SelectIRScan->CaptureIR->ShiftIR  
-  char tms_pre_sir[4]={ 1, 1, 0, 0 }; 
+  //char tms_pre_sir[4]={ 1, 1, 0, 0 }; 
   char tdi_pre_sir[4]={ 0, 0, 0, 0 };
   // === SDR Go through SelectDRScan->CaptureDR->ShiftDR
-  char tms_pre_sdr[3]={ 1, 0, 0 };
+  // char tms_pre_sdr[3]={ 1, 0, 0 };
   char tdi_pre_sdr[3]={ 0, 0, 0 };
   // === SDR,SIR Go to RunTestIdle after scan
   // char tms_post[4]={ 0, 1, 1, 0 };
@@ -4833,7 +4870,7 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 
   total_packages = 0 ;
   send_packages = 0 ;
-  int jchan = *jch;
+  jchan = *jch;
   downfile = fn;
   errcntr = 0;
   if (downfile==NULL)    downfile="default.svf";
@@ -4848,7 +4885,7 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
   fclose(dwnfp) ;
 
   printf("=== Programming Design with %s through JTAG chain %d\n",downfile, jchan);  
-  printf("=== Have to send %d %d DATA packages \n",total_packages,fd) ;
+  printf("=== Have to send %d DATA packages \n",total_packages) ;
   dwnfp    = fopen(downfile,"r");
   
   if (dwnfp == NULL)
@@ -4858,227 +4895,234 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
       return -1;
     }
   
-  tmb_->start(jtag_chain_tmb[jchan-1]);
-  
+  tmb_->start(jtag_chain_tmb[jchan-1]); 
+ 
   count=0; 
   nowrit=1;
   step_mode=0;
   while (fgets(buf,256,dwnfp) != NULL)  
     {
-       if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!')
-       {
+      if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!')
+	{
 	  if (db>4)          printf("%s",buf);
-       }
-       else 
-       {
+	}
+      else 
+	{
 	  if(strrchr(buf,';')==0)
-	  {
-	     lastn=strrchr(buf,'\r');
-	     if(lastn!=0)lastn[0]='\0';
+	    {
+	      lastn=strrchr(buf,'\r');
+	      if(lastn!=0)lastn[0]='\0';
 	      lastn=strrchr(buf,'\n');
 	      if(lastn!=0)lastn[0]='\0';
 	      memcpy(buf2,buf,256);
 	      Parse(buf2, &Count, &(Word[0]));
 	      if(( strcmp(Word[0],"SDR")==0) || (strcmp(Word[0],"SIR")==0))
-	      {
-		 sscanf(Word[1],"%d",&nbits);
-		 if (nbits>MAXBUFSIZE) // === Handle Big Bitstreams
-		 {
-		    if (db) printf("%s Bitstream size %d is bigger than MAXBUFSIZE = %d ...splitting...\n",
-				   Word[0], nbits, MAXBUFSIZE);
-		    ftmptdi=fopen("tdi_tmp.bit","w");
-		    nbytes=(nbits-1)/8+1;
-		    if (db)              printf("%d Bytes required\n", nbytes);
-		    if(strcmp(Word[2],"TDI")==0)
-		    {
-		       fprintf(ftmptdi,&Word[3][1]);
-		       fStop = 0; 
-		       do
-		       {
-			     if (fgets(buf2, 256, dwnfp) != NULL)
-			     {
-				lastn=strrchr(buf2,'\r');
-				if(lastn!=0)lastn[0]='\0';
-				lastn=strrchr(buf2,'\n');
-				if(lastn!=0)lastn[0]='\0';
-				Parse(buf2, &Count, &(Word[0]));
-				lastn=strchr(Word[0],')');
-				if(lastn!=0){ lastn[0]='\0'; fStop = 1; } 
-				fprintf(ftmptdi, Word[0]);
-			     }
-			     else
-			     {
-				if (db)                    printf("End of File encountered.\n");
-				return -1;
-			     }
-		       }
-		       while (!fStop);
-		    }
-		    ftmpsmask=fopen("smask_tmp.bit","w"); 
-		    if(strcmp(Word[1],"SMASK")==0)
-		      {
-			fprintf(ftmpsmask,&Word[2][1]);
-			fStop = 0;
-			do
-			  {
-			    if (fgets(buf2, 256, dwnfp) != NULL)
-			      {
-				lastn=strrchr(buf2,'\r');
-				if(lastn!=0)lastn[0]='\0';
-				lastn=strrchr(buf2,'\n');
-				if(lastn!=0)lastn[0]='\0';
-				Parse(buf2, &Count, &(Word[0]));
-				lastn=strrchr(Word[0],')');
-				if(lastn!=0){ lastn[0]='\0'; fStop = 1; } 
-				fprintf(ftmpsmask, Word[0]);
-			      }
-			    else
-			      {
-				if (db)                    printf("End of File encountered.\n");
-				return -1;
-			      }
-			  }
-			while (!fStop); 
-		      }
-		    freopen("tdi_tmp.bit","r",ftmptdi);
-		    freopen("smask_tmp.bit","r",ftmpsmask);
-		    fseek(ftmptdi,-2, SEEK_END);
-		    fseek(ftmpsmask,-2,SEEK_END);
-		    count=0;
-		    printf("[");
-		    driver_data.target = JTAG_B_DATA;
-		     driver_data.n = 8;
-		     driver_data.data = (char*)&sndbuf[0];
-		     if (ioctl(fd, JTAG_BIOSETTAP, &driver_data) < 0)
-		       perror("ioctl JTAG_BIOSETTAP");
-		     do
-		       {
-			 if ((fgetpos(ftmptdi, &ftdi_pos)==0) && (fgetpos( ftmpsmask, &fsmask_pos) ==0))
-			   {
-			     if (db>10) printf("pos - %d; pos - %d\n", ftdi_pos, fsmask_pos );
-			     if ((fread(buf, 2, 1, ftmptdi)>0) && (fread(buf2, 2, 1, ftmpsmask)>0))
-			       {
-				 sscanf(buf,"%2x",&snd[0]);
-				 sscanf(buf2,"%2x",&smask[0]);
-				 sndbuf[0]=snd[0]&smask[0];
-				 for (i=0;i<8;i++)
-				   {
-				     sndvalue=(sndbuf[0]>>i)&0x01;
-				     if ((count*8+i+1)<nbits)
-				       {  
-					 if (db>5)                              printf("%d",sndvalue); 
-					 if (ioctl(fd, JTAG_BIOBIT, &sndvalue ) < 0)
-					   perror("ioctl JTAG_BIOBIT"); 
-				       }
-				 else
-				   if ((count*8+i+1)==nbits) 
-				     {
-				       if (db>5)                              printf("%d",sndvalue);
-				       if (ioctl(fd, JTAG_BIOLASTBIT, &sndvalue) < 0)
-					 {
-					  perror("ioctl JTAG_BIOLASTBIT");
-					 }
-				       if (db)                               printf(" nbits %d sent ",(count*8+i+1)); 
-				       
-				     }
-				   }
-				 count=count+1;
-			       }
-			     fseek(ftmptdi,-4, SEEK_CUR);
-			     fseek(ftmpsmask,-4,SEEK_CUR);
-			   } 
-		       }
-		     while ((feof(ftmptdi) == false) && (feof(ftmpsmask) == false));
-		     //@@ changed from simply while ((ftdi_pos > 0) && (fsmask_pos > 0)), which gave errors
-		     if (ioctl(fd, JTAG_BIORTI, &driver_data) < 0)
-		       perror("ioctl JTAG_BIORTI");
-		     if (db)              printf("]...done\n");
-		     fclose(ftmptdi); 
-		     fclose(ftmpsmask);
-		     continue;
-		 }
-		 else do  // == Handle Normal Bitstreams
-		   {
-		     lastn=strrchr(buf,'\r');
-		     if(lastn!=0)lastn[0]='\0';
-		     lastn=strrchr(buf,'\n');
-		     if(lastn!=0)lastn[0]='\0';
-		     if (fgets(buf2,256,dwnfp) != NULL)
-		    {
-		      strcat(buf,buf2);
-		    }
-		     else 
-		    {
-		      if (db)              printf("End of File encountered.  Quiting\n");
-		      return -1;
-		    }
-		   }
-		      while (strrchr(buf,';')==0);
-	      }
-	  }  
-	  for(i=0;i<8192;i++)
-	    {
-	      snd[i]=0;
-	      cmpbuf[i]=0;
-	      sndbuf[i]=0;
-	      rcvbuf[i]=0;
-	    }
-	  Parse(buf, &Count, &(Word[0]));
-	  count=count+1;
-	  cmpflag=0;
-	  // ==================  Parsing commands from SVF file ====================
-	  // === Handling HDR ===
-	  if(strcmp(Word[0],"HDR")==0)
-	    {
-	      sscanf(Word[1],"%d",&hdrbits);
-	      hdrbytes=(hdrbits-1)/8+1;
-	      if (db)	  
-		printf("Sending %d bits of Header Data\n", hdrbits);
-	      // if (db>3)          printf("HDR: Num of bits - %d, num of bytes - %d\n",hdrbits,hdrbytes);
-	      for(i=2;i<Count;i+=2)
 		{
-		  if(strcmp(Word[i],"TDI")==0)
+		  sscanf(Word[1],"%d",&nbits);
+		  if (nbits>MAXBUFSIZE) // === Handle Big Bitstreams
 		    {
-		      for(j=0;j<hdrbytes;j++)
-			{
-			  sscanf(&Word[i+1][2*(hdrbytes-j-1)+1],"%2X",&sndhdr[j]);
-			  // printf("%2X",sndhdr[j]);
-			}
-		      // printf("\n%d\n",nbytes);
-		    }
-		  if(strcmp(Word[i],"SMASK")==0)
+		      if (db)              printf("%s Bitstream size %d is bigger than MAXBUFSIZE = %d ...splitting...\n",Word[0], nbits, MAXBUFSIZE);
+		     ftmptdi=fopen("tdi_tmp.bit","w");
+		     nbytes=(nbits-1)/8+1;
+		     if (db)              printf("%d Bytes required\n", nbytes);
+		     if(strcmp(Word[2],"TDI")==0)
+		       {
+			 fprintf(ftmptdi,&Word[3][1]);
+			 fStop = 0; 
+			 do
+			   {
+			     if (fgets(buf2, 256, dwnfp) != NULL)
+			       {
+				 lastn=strrchr(buf2,'\r');
+				 if(lastn!=0)lastn[0]='\0';
+				 lastn=strrchr(buf2,'\n');
+				 if(lastn!=0)lastn[0]='\0';
+				 Parse(buf2, &Count, &(Word[0]));
+				 lastn=strchr(Word[0],')');
+				 if(lastn!=0){ lastn[0]='\0'; fStop = 1; } 
+				 fprintf(ftmptdi, Word[0]);
+			       }
+			     else
+			       {
+				 if (db)                    printf("End of File encountered.\n");
+				 return -1;
+			    }
+			   }
+			 while (!fStop);
+		       }
+		     ftmpsmask=fopen("smask_tmp.bit","w"); 
+		     if(strcmp(Word[1],"SMASK")==0)
 		    {
-		      for(j=0;j<hdrbytes;j++)
+		      fprintf(ftmpsmask,&Word[2][1]);
+		      fStop = 0;
+		      do
 			{
-			  sscanf(&Word[i+1][2*(hdrbytes-j-1)+1],"%2X",&hdrsmask[j]);
-			}
-		    }
-		  if(strcmp(Word[i],"TDO")==0)
+			  if (fgets(buf2, 256, dwnfp) != NULL)
+			    {
+			      lastn=strrchr(buf2,'\r');
+			      if(lastn!=0)lastn[0]='\0';
+			      lastn=strrchr(buf2,'\n');
+			      if(lastn!=0)lastn[0]='\0';
+			      Parse(buf2, &Count, &(Word[0]));
+			      lastn=strrchr(Word[0],')');
+			      if(lastn!=0){ lastn[0]='\0'; fStop = 1; } 
+			      fprintf(ftmpsmask, Word[0]);
+			    }
+			  else
+			    {
+			      if (db)                    printf("End of File encountered.\n");
+			      return -1;
+			    }
+                  }
+                while (!fStop); 
+                }
+                freopen("tdi_tmp.bit","r",ftmptdi);
+                freopen("smask_tmp.bit","r",ftmpsmask);
+                fseek(ftmptdi,-2, SEEK_END);
+                fseek(ftmpsmask,-2,SEEK_END);
+              	count=0;
+              	printf("[");
+		driver_data.target = JTAG_B_DATA;
+		driver_data.n = 8;
+		driver_data.data = (char*)&sndbuf[0];
+		if (ioctl(fd, JTAG_BIOSETTAP, &driver_data) < 0)
+		  perror("ioctl JTAG_BIOSETTAP");
+		do
+                {
+		  if ((fgetpos(ftmptdi, &ftdi_pos)==0) && (fgetpos( ftmpsmask, &fsmask_pos) ==0))
 		    {
-		      //if (db>2)             cmpflag=1;
-		      cmpflag=1;
-		      for(j=0;j<hdrbytes;j++)
+		      if (db>10) printf("pos - %d; pos - %d\n", ftdi_pos, fsmask_pos );
+										      
+		      if ((fread(buf, 2, 1, ftmptdi)>0) && (fread(buf2, 2, 1, ftmpsmask)>0))
 			{
-        			sscanf(&Word[i+1][2*(hdrbytes-j-1)+1],"%2X",&expect[j]);
-        		}
-		    }
-		  if(strcmp(Word[i],"MASK")==0)
-		    {
-		      for(j=0;j<hdrbytes;j++)
-			{
-			  sscanf(&Word[i+1][2*(hdrbytes-j-1)+1],"%2X",&rmask[j]);
-			}
-		    }
-		}
+			  sscanf(buf,"%2x",(int *)&snd[0]);
+			  sscanf(buf2,"%2x",(int *)&smask[0]);
+			  sndbuf[0]=snd[0]&smask[0];
+			  for (i=0;i<8;i++)
+			    {
+			      sndvalue=(sndbuf[0]>>i)&0x01;
+			      if ((count*8+i+1)<nbits)
+				{  
+				  if (db>5)                              printf("%d",sndvalue); 
+				  if (ioctl(fd, JTAG_BIOBIT, &sndvalue ) < 0)
+				    perror("ioctl JTAG_BIOBIT"); 
+				}
+			      else
+				if ((count*8+i+1)==nbits) 
+				  {
+				    if (db>5)                              printf("%d",sndvalue);
+				    if (ioctl(fd, JTAG_BIOLASTBIT, &sndvalue) < 0)
+				      {
+					perror("ioctl JTAG_BIOLASTBIT");
+				      }
+				    if (db)                               printf(" nbits %d sent ",(count*8+i+1)); 
+				    
+				  }
+			    }
+			  count=count+1;
+                    }
+		      fseek(ftmptdi,-4, SEEK_CUR);
+		      fseek(ftmpsmask,-4,SEEK_CUR);
+		    } 
+                }
+		while ((feof(ftmptdi) == false) && (feof(ftmpsmask) == false));
+		//@@ changed from simply while ((ftdi_pos > 0) && (fsmask_pos > 0)), which gave errors
+		if (ioctl(fd, JTAG_BIORTI, &driver_data) < 0)
+		  perror("ioctl JTAG_BIORTI");
+		if (db)              printf("]...done\n");
+		fclose(ftmptdi); 
+		fclose(ftmpsmask);
+		continue;
+              }
+	    else do  // == Handle Normal Bitstreams
+	      {
+		lastn=strrchr(buf,'\r');
+		if(lastn!=0)lastn[0]='\0';
+		lastn=strrchr(buf,'\n');
+		if(lastn!=0)lastn[0]='\0';
+		if (fgets(buf2,256,dwnfp) != NULL)
+		  {
+		    strcat(buf,buf2);
+		  }
+		else 
+		  {
+		    if (db)              printf("End of File encountered.  Quiting\n");
+		    return -1;
+		  }
+	      }
+		 while (strrchr(buf,';')==0);
 	    }
-	  
-	  // === Handling HIR ===
+	  } 
+	bzero(snd, sizeof(snd));
+	bzero(cmpbuf, sizeof(cmpbuf));
+	bzero(sndbuf, sizeof(sndbuf));
+	bzero(rcvbuf, sizeof(rcvbuf));
+	
+	/*
+        for(i=0;i<MAXBUFSIZE;i++)
+	  {
+	    snd[i]=0;
+	    cmpbuf[i]=0;
+	    sndbuf[i]=0;
+	    rcvbuf[i]=0;
+          }
+	  */
+        Parse(buf, &Count, &(Word[0]));
+	count=count+1;
+        cmpflag=0;
+	// ==================  Parsing commands from SVF file ====================
+	// === Handling HDR ===
+	if(strcmp(Word[0],"HDR")==0)
+	  {
+	    sscanf(Word[1],"%d",&hdrbits);
+	    hdrbytes=(hdrbits)?(hdrbits-1)/8+1:0;
+	    if (db)	  
+	      printf("Sending %d bits of Header Data\n", hdrbits);
+	    // if (db>3)          printf("HDR: Num of bits - %d, num of bytes - %d\n",hdrbits,hdrbytes);
+	    for(i=2;i<Count;i+=2)
+	      {
+		if(strcmp(Word[i],"TDI")==0)
+		  {
+		    for(j=0;j<hdrbytes;j++)
+		      {
+			sscanf(&Word[i+1][2*(hdrbytes-j-1)+1],"%2X",(int *)&sndhdr[j]);
+			// printf("%2X",sndhdr[j]);
+		      }
+		    // printf("\n%d\n",nbytes);
+    		  }
+      		if(strcmp(Word[i],"SMASK")==0)
+		  {
+		    for(j=0;j<hdrbytes;j++)
+		      {
+      		  	sscanf(&Word[i+1][2*(hdrbytes-j-1)+1],"%2X",(int *)&hdrsmask[j]);
+      		  }
+     		 	}
+     	 	if(strcmp(Word[i],"TDO")==0)
+	    	{
+			//if (db>2)             cmpflag=1;
+			cmpflag=1;
+        		for(j=0;j<hdrbytes;j++)
+			{
+        			sscanf(&Word[i+1][2*(hdrbytes-j-1)+1],"%2X",(int *)&expect[j]);
+        		}
+      		}
+      		if(strcmp(Word[i],"MASK")==0)
+		  {
+		    for(j=0;j<hdrbytes;j++)
+		      {
+			sscanf(&Word[i+1][2*(hdrbytes-j-1)+1],"%2X",(int *)&rmask[j]);
+		      }
+		  }
+	      }
+	  }
+	
+	// === Handling HIR ===
 	else if(strcmp(Word[0],"HIR")==0)
 	  {
 	    // for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
 	    // cmpflag=1;    //disable the comparison for no TDO SDR
 	    sscanf(Word[1],"%d",&hirbits);
-	    hirbytes=(hirbits-1)/8+1;
+	    hirbytes=(hirbits)?(hirbits-1)/8+1:0;
 	    if (db)	  
 	      printf("Sending %d bits of Header Data\n", hirbits);
 				// if (db>3)          printf("HIR: Num of bits - %d, num of bytes - %d\n",hirbits,hirbytes);
@@ -5088,7 +5132,7 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 		  {
 		    for(j=0;j<hirbytes;j++)
 		      {
-			sscanf(&Word[i+1][2*(hirbytes-j-1)+1],"%2X",&sndhir[j]);
+			sscanf(&Word[i+1][2*(hirbytes-j-1)+1],"%2X",(int *)&sndhir[j]);
 			// printf("%2X",sndhir[j]);
 		      }
 		    // printf("\n%d\n",nbytes);
@@ -5097,7 +5141,7 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 		  {
 		    for(j=0;j<hirbytes;j++)
 		      {
-      		  	sscanf(&Word[i+1][2*(hirbytes-j-1)+1],"%2X",&hirsmask[j]);
+      		  	sscanf(&Word[i+1][2*(hirbytes-j-1)+1],"%2X",(int *)&hirsmask[j]);
       		  }
 		  }
 		if(strcmp(Word[i],"TDO")==0)
@@ -5106,14 +5150,14 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 		    cmpflag=1;
 		    for(j=0;j<hirbytes;j++)
 		      {
-			sscanf(&Word[i+1][2*(hirbytes-j-1)+1],"%2X",&expect[j]);
+			sscanf(&Word[i+1][2*(hirbytes-j-1)+1],"%2X",(int *)&expect[j]);
 		      }
 		  }
       		if(strcmp(Word[i],"MASK")==0)
 		  {
 		    for(j=0;j<hirbytes;j++)
 		      {
-			sscanf(&Word[i+1][2*(hirbytes-j-1)+1],"%2X",&rmask[j]);
+			sscanf(&Word[i+1][2*(hirbytes-j-1)+1],"%2X",(int *)&rmask[j]);
 		      }
 		  }
 	      }
@@ -5125,7 +5169,7 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 	    // for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
 	    // cmpflag=1;    //disable the comparison for no TDO SDR
 	    sscanf(Word[1],"%d",&tdrbits);
-	    tdrbytes=(tdrbits-1)/8+1;
+	    tdrbytes=(tdrbits)?(tdrbits-1)/8+1:0;
 	    if (db)	  
 	      printf("Sending %d bits of Tailer Data\n", tdrbits);
 				// if (db>3)          printf("TDR: Num of bits - %d, num of bytes - %d\n",tdrbits,tdrbytes);
@@ -5135,7 +5179,7 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 		  {
     		  	for(j=0;j<tdrbytes;j++)
 			  {
-			    sscanf(&Word[i+1][2*(tdrbytes-j-1)+1],"%2X",&sndtdr[j]);
+			    sscanf(&Word[i+1][2*(tdrbytes-j-1)+1],"%2X",(int *)&sndtdr[j]);
 			    // printf("%2X",sndhir[j]);
 			  }
 			// printf("\n%d\n",nbytes);
@@ -5144,7 +5188,7 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 		  {
     		  	for(j=0;j<tdrbytes;j++)
 			  {
-			    sscanf(&Word[i+1][2*(tdrbytes-j-1)+1],"%2X",&tdrsmask[j]);
+			    sscanf(&Word[i+1][2*(tdrbytes-j-1)+1],"%2X",(int *)&tdrsmask[j]);
 			  }
 		  }
 		if(strcmp(Word[i],"TDO")==0)
@@ -5153,143 +5197,143 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 						cmpflag=1;
 						for(j=0;j<tdrbytes;j++)
 						  {
-						    sscanf(&Word[i+1][2*(tdrbytes-j-1)+1],"%2X",&expect[j]);
+						    sscanf(&Word[i+1][2*(tdrbytes-j-1)+1],"%2X",(int *)&expect[j]);
 						  }
 		  }
       		if(strcmp(Word[i],"MASK")==0)
 		  {
 		    for(j=0;j<tdrbytes;j++)
 		      {
-        			sscanf(&Word[i+1][2*(tdrbytes-j-1)+1],"%2X",&rmask[j]);
+        			sscanf(&Word[i+1][2*(tdrbytes-j-1)+1],"%2X",(int *)&rmask[j]);
 		      }	
 		  }
 	      }
 	  }
-	  
-	  // === Handling TDR ===
-	  else if(strcmp(Word[0],"TIR")==0)
-	    {
-	      // for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
-	      // cmpflag=1;    //disable the comparison for no TDO SDR
-	      sscanf(Word[1],"%d",&tirbits);
-	      tirbytes=(tirbits-1)/8+1;
-	      if (db)	  
-		printf("Sending %d bits of Tailer Data\n", tdrbits);
+	
+// === Handling TDR ===
+	else if(strcmp(Word[0],"TIR")==0)
+	  {
+	    // for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
+	    // cmpflag=1;    //disable the comparison for no TDO SDR
+	    sscanf(Word[1],"%d",&tirbits);
+	    tirbytes=(tirbits)?(tirbits-1)/8+1:0;
+	    if (db)	  
+	      printf("Sending %d bits of Tailer Data\n", tdrbits);
 				// if (db>3)          printf("TIR: Num of bits - %d, num of bytes - %d\n",tirbits,tirbytes);
-	      for(i=2;i<Count;i+=2)
-		{
-		  if(strcmp(Word[i],"TDI")==0)
-		    {
-		      for(j=0;j<tirbytes;j++)
-			{
-			  sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",&sndtir[j]);
-			  // printf("%2X",sndhir[j]);
-			}
-		      // printf("\n%d\n",nbytes);
-		    }
-		  if(strcmp(Word[i],"SMASK")==0)
-		    {
+	    for(i=2;i<Count;i+=2)
+	      {
+		if(strcmp(Word[i],"TDI")==0)
+		  {
+    		  	for(j=0;j<tirbytes;j++)
+			  {
+			    sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",(int *)&sndtir[j]);
+			    // printf("%2X",sndhir[j]);
+			  }
+			// printf("\n%d\n",nbytes);
+    		  }
+      		if(strcmp(Word[i],"SMASK")==0)
+		 	    {
 			      for(j=0;j<tirbytes;j++)
 				{
-				  sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",&tirsmask[j]);
+				  sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",(int *)&tirsmask[j]);
 				}
-		    }
-		  if(strcmp(Word[i],"TDO")==0)
-		    {
-		      //if (db>2)             cmpflag=1;
-		      cmpflag=1;
-		      for(j=0;j<tirbytes;j++)
-			{
-						    sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",&expect[j]);
-			}
-		    }
-		  if(strcmp(Word[i],"MASK")==0)
-		    {
-		      for(j=0;j<tirbytes;j++)
-			{
-			  sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",&rmask[j]);
-			}
-		    }
+			    }
+		if(strcmp(Word[i],"TDO")==0)
+		  {
+		    //if (db>2)             cmpflag=1;
+						cmpflag=1;
+						for(j=0;j<tirbytes;j++)
+						  {
+						    sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",(int *)&expect[j]);
+						  }
+		  }
+      		if(strcmp(Word[i],"MASK")==0)
+		  {
+		    for(j=0;j<tirbytes;j++)
+		      {
+			sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",(int *)&rmask[j]);
+		      }
+		  }
     		}
-	    }
+	  }
 	// === Handling SDR ===
-	  else if(strcmp(Word[0],"SDR")==0)
+	else if(strcmp(Word[0],"SDR")==0)
+	  {
+	    for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
+	    // cmpflag=1;    //disable the comparison for no TDO SDR
+	    sscanf(Word[1],"%d",&nbits);
+          nbytes=(nbits)?(nbits-1)/8+1:0;
+	  if (db)	  printf("Sending %d bits Data\n", nbits);
+	  // if (db>3)          printf("SDR: Num of bits - %d, num of bytes - %d\n",nbits,nbytes);
+          for(i=2;i<Count;i+=2)
+            {
+	      if(strcmp(Word[i],"TDI")==0)
+		{
+		  for(j=0;j<nbytes;j++)
+		    {
+                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&snd[j]);
+		//                printf("%2X",snd[j]);
+		    }
+//                printf("\n%d\n",nbytes);
+		}
+	      if(strcmp(Word[i],"SMASK")==0)
+		{
+		  for(j=0;j<nbytes;j++)
+		    {
+		      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&smask[j]);
+		    }
+              }
+	      if(strcmp(Word[i],"TDO")==0)
+		{
+		  //if (db>2)             cmpflag=1;
+		  cmpflag=1;
+		  for(j=0;j<nbytes;j++)
+		    {
+		      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&expect[j]);
+		    }
+		}
+	      if(strcmp(Word[i],"MASK")==0)
+		{
+		  for(j=0;j<nbytes;j++)
+		    {
+		      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&rmask[j]);
+		    }
+		}
+            }
+          for(i=0;i<nbytes;i++)
 	    {
-	      for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
-	      // cmpflag=1;    //disable the comparison for no TDO SDR
-	      sscanf(Word[1],"%d",&nbits);
-	      nbytes=(nbits-1)/8+1;
-	      if (db)	  printf("Sending %d bits Data\n", nbits);
-	      // if (db>3)          printf("SDR: Num of bits - %d, num of bytes - %d\n",nbits,nbytes);
-	      for(i=2;i<Count;i+=2)
+	      send_tmp = snd[i]&smask[i];
+	      for(j=0;j<8;j++)
 		{
-		  if(strcmp(Word[i],"TDI")==0)
-		    {
-		      for(j=0;j<nbytes;j++)
-		    {
-		      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&snd[j]);
-		      //                printf("%2X",snd[j]);
+		  if ((i*8+j)< nbits) 
+		    { 
+		      sndbuf[i*8+j+3]=send_tmp&0x01; 
 		    }
-		      //                printf("\n%d\n",nbytes);
-		    }
-		  if(strcmp(Word[i],"SMASK")==0)
-		    {
-		      for(j=0;j<nbytes;j++)
-			{
-			  sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&smask[j]);
-			}
-		    }
-		  if(strcmp(Word[i],"TDO")==0)
-		    {
-		      //if (db>2)             cmpflag=1;
-		      cmpflag=1;
-		      for(j=0;j<nbytes;j++)
-			{
-			  sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&expect[j]);
-			}
-		    }
-		  if(strcmp(Word[i],"MASK")==0)
-		    {
-		      for(j=0;j<nbytes;j++)
-			{
-		      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&rmask[j]);
-			}
-		    }
+		  send_tmp = send_tmp >> 1;
 		}
-	      for(i=0;i<nbytes;i++)
-		{
-		  send_tmp = snd[i]&smask[i];
-		  for(j=0;j<8;j++)
-		    {
-		      if ((i*8+j)< nbits) 
-			{ 
-			  sndbuf[i*8+j+3]=send_tmp&0x01; 
-			}
-		      send_tmp = send_tmp >> 1;
-		    }
+            }
+          for(i=0;i<4;i++)sndbuf[nbits+3]=tdi_post[i];         
+          nframes=nbits+7;
+          // Put send SDR here
+	  for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++)
+	    realsnd[i] = 0;
+	  if (hdrbytes>0) {
+	    for (i=0;i<hdrbytes;i++)
+	      realsnd[i]=sndhdr[i];
 		}
-	      for(i=0;i<4;i++)sndbuf[nbits+3]=tdi_post[i];         
-	      nframes=nbits+7;
-	      // Put send SDR here
-	      for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++)
-		realsnd[i] = 0;
-	      if (hdrbytes>0) {
-		for (i=0;i<hdrbytes;i++)
-		  realsnd[i]=sndhdr[i];
-	      }
-	      for (i=0;i<nbits;i++)
-		realsnd[(i+hdrbits)/8] |= (snd[i/8] >> (i%8)) << ((i+hdrbits)%8);
-	      if (tdrbytes>0) {
-		for (i=0;i<tdrbits;i++)
-		  realsnd[(i+hdrbits+nbits)/8] |= (sndtdr[i/8] >> (i%8)) << ((i+hdrbits+nbits)%8);
-	      }
-	      
-	      if (db>6) {	printf("SDR Send Data:\n");
-	      for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++)
-		printf("%02X",realsnd[i]);
-	      printf("\n");
-	      }
-	      send_packages++ ;
+	  for (i=0;i<nbits;i++)
+	    realsnd[(i+hdrbits)/8] |= (snd[i/8] >> (i%8)) << ((i+hdrbits)%8);
+	  if (tdrbytes>0) {
+	    for (i=0;i<tdrbits;i++)
+	      realsnd[(i+hdrbits+nbits)/8] |= (sndtdr[i/8] >> (i%8)) << ((i+hdrbits+nbits)%8);
+	  }
+	  
+	  if (db>6) {	printf("SDR Send Data:\n");
+	  for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++)
+	    printf("%02X",realsnd[i]);
+	  printf("\n");
+	  }
+	  send_packages++ ;
 	  printf("%c[0m", '\033');
 	  printf("%c[1m", '\033');
 	  //printf("%c[2;50H", '\033');
@@ -5322,13 +5366,17 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 	      */
 	      if (db>4){	  	printf("SDR Readback Data:\n");
 	      //for(i=0;i<nbytes;i++) printf("%02X",rcv[i]);
-	      for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) printf("%02X",rcv[i]);
-	      printf("\n");
+	      	for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) 
+		      printf("%02X",rcv[i]);
+	      	printf("\n");
 	      }	
+						    
 	      for(i=0;i<nbytes;i++)
 		{
+		  rcvword = rcv[i+(hdrbits/8)]+(((int)rcv[i+1+(hdrbits/8)])<<8);
+		  rcvword = rcvword>>(hdrbits%8); 
 		  // if (((rcv[nbytes-1-i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
-		  if (((rcv[i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
+		  if ((((rcvword&0xFF)^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
 		    {
 		      printf("read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
 		      errcntr++;
@@ -5348,7 +5396,7 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 	    for(i=0;i<4;i++)sndbuf[i]=tdi_pre_sir[i];
 	    // cmpflag=1;    //disable the comparison for no TDO SDR
 	    sscanf(Word[1],"%d",&nbits);
-	    nbytes=(nbits-1)/8+1;
+	    nbytes=(nbits)?(nbits-1)/8+1:0;
 	    if (db)	  printf("Sending %d bits of Command\n",nbits);
 	    // if (db>3)          printf("SIR: Num of bits - %d, num of bytes - %d\n",nbits,nbytes);
 	    for(i=2;i<Count;i+=2)
@@ -5357,14 +5405,14 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 		  {
 		    for(j=0;j<nbytes;j++)
 		      {
-			sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&snd[j]);
+			sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&snd[j]);
 		      }
 		  }
 		if(strcmp(Word[i],"SMASK")==0)
 		  {
 		    for(j=0;j<nbytes;j++)
 		      {
-			sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&smask[j]);
+			sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&smask[j]);
 		      }
 		  }
 		if(strcmp(Word[i],"TDO")==0)
@@ -5373,14 +5421,14 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 			// if (db>2)              cmpflag=1;
 			for(j=0;j<nbytes;j++)
 			  {
-			    sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&expect[j]);
+			    sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&expect[j]);
 			  }
 		  }
 		if(strcmp(Word[i],"MASK")==0)
 		  {
 		    for(j=0;j<nbytes;j++)
 		      {
-			sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&rmask[j]);
+			sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&rmask[j]);
 		      }
 		  }
 	      }
@@ -5419,6 +5467,7 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 	      printf("%02X",realsnd[i]);
 	    printf("\n");
 	    }
+	    //	  jtag_load_(&fd, &nframes, tms_pre_sir, sndbuf, rcvbuf, &step_mode);
 	    if (cmpflag==1)
 	      {
 		/*               for(i=0;i<nbytes;i++)
@@ -5441,10 +5490,13 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 		for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) printf("%02X",rcv[i]);
                 printf("\n");
 		}
+		
                 for(i=0;i<nbytes;i++)
 		  {
+		    rcvword = rcv[i+(hirbits/8)]+(((int)rcv[i+1+(hirbits/8)])<<8);
+		    rcvword = rcvword>>(hirbits%8);
 		    // if (((rcv[nbytes-1-i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
-		    if (((rcv[i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
+		    if ((((rcvword&0xFF)^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
 		      {
 			printf("read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
                 	errcntr++;
@@ -5465,7 +5517,8 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
           {
 	    sscanf(Word[1],"%d",&pause);
 	    if (db>3)          printf("RUNTEST:  %d\n",pause);
-	    InsertDelayJTAG(pause,MYMICROSECONDS);
+	    usleep(pause);
+	    // InsertDelayJTAG(pause,MYMICROSECONDS);
           }
         // === Handling STATE ===
         else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0))
@@ -5492,7 +5545,7 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
       }
     alct_end();    
     fclose(dwnfp);
-    return errcntr;
+    return errcntr; 
 }
 
 

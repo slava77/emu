@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTClasses.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: ALCTClasses.h,v 2.1 2005/06/06 15:17:17 geurts Exp $
 // $Log: ALCTClasses.h,v $
+// Revision 2.1  2005/06/06 15:17:17  geurts
+// TMB/ALCT timing updates (Martin vd Mey)
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
@@ -111,15 +114,16 @@ struct chamtypefield
 
 // end from jtag_b.h
 
-#define MAXBUFSIZE 8192
+#define MAXBUFSIZE 8200
 
 /************************************************************************/
 #define ALCTDEBUG 1
 #define ALCT_V_IRsize 5         // = VB = ALCT Virtex IR size
 #define ALCT_SC_IRsize 6        // = VB = ALCT Slow Control IR size
-#define IRsize 5                // Instruction Register size
+#define IRsize 5                // Instruction Register size 
 #define IRPreBits 4
 #define DRPreBits 3
 #define PostBits 3
 
 #endif
+
