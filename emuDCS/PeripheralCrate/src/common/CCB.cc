@@ -1,64 +1,13 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.0 2005/04/12 08:07:05 geurts Exp $
+// $Id: CCB.cc,v 2.1 2005/06/06 11:10:53 geurts Exp $
 // $Log: CCB.cc,v $
+// Revision 2.1  2005/06/06 11:10:53  geurts
+// default power-up mode DLOG. updated for calibration code.
+// direct read/write access to registers
+//
 // Revision 2.0  2005/04/12 08:07:05  geurts
 // *** empty log message ***
 //
-// Revision 1.41  2004/10/07 19:39:26  tfcvs
-// regular test beam update
-//
-// Revision 1.40  2004/10/03 20:31:20  tfcvs
-// regular update
-//
-// Revision 1.39  2004/10/03 01:55:50  tfcvs
-// various updates at H2a
-//
-// Revision 1.38  2004/09/14 00:27:07  tfcvs
-// Update files
-//
-// Revision 1.37  2004/08/10 18:21:42  tfcvs
-// Update
-//
-// Revision 1.36  2004/08/05 04:19:45  tfcvs
-// Update
-//
-// Revision 1.35  2004/08/03 18:03:00  tfcvs
-// Update
-//
-// Revision 1.34  2004/07/20 22:20:33  tfcvs
-// - Removed a bug in configure() which prevented hardReset from being called
-//   for any non-DLOG mode;
-// - Renamed configure(CCB2004Mode_t) to setCCBMode(CCB2004Mode_t) to prevent
-//   any confusion
-// - setCCBMode and rice_clk_setup() are moved away from public to protected
-//
-// Revision 1.33  2004/07/19 19:37:57  tfcvs
-// Removed unused variables and unsigned some variables in order to prevent compiler warnings (-Wall flag) (FG)
-//
-// Revision 1.32  2004/06/17 12:28:03  tfcvs
-// Introduced an Initialization kludge in which the DLOG mode temporarily switches back to FPGA mode to do a BackPlane hard reset. (FG)
-//
-// Revision 1.31  2004/06/05 19:47:05  tfcvs
-// Reorganized and debugged TTC control mode for CCB2004 (and 2001).
-// CCB2004 mode configurable through XML option: <CCB CCBmode=""> (FG)
-//
-// Revision 1.30  2004/06/02 16:07:46  tfcvs
-// Add 2nd sequence of prgall_bckpln to hardReset(). This should allow the CFEBs to program the FPGAs. Suggested by Jianhui. (FG)
-//
-// Revision 1.29  2004/05/27 16:06:57  tfcvs
-// minor changes in print-out
-//
-// Revision 1.28  2004/05/20 17:01:16  tfcvs
-// solved a bug, uncovered another one ...
-//  - fixed enableL1
-//  - initialized l1enabled_
-//  - moved all printf to cout and identify class in log message
-//
-// Revision 1.27  2004/05/19 14:32:39  tfcvs
-// fixed CCB2004 incompatibilities w.r.t. CSRB1 (CSR1) register bits and reordered the configuration sequence for the CCB2004. (FG)
-//
-// Revision 1.26  2004/05/19 00:07:45  tfcvs
-// oops, forgot that semi-colon
 //
 //-----------------------------------------------------------------------
 #include "CCB.h"
@@ -71,7 +20,6 @@ CCB::CCB(int newcrate ,int slot, int version)
 : VMEModule(newcrate, slot), 
   l1enabled_(false),
   mVersion(version),
-  mCCBMode(CCB::VMEFPGA),
   TTC(NO_TTC),
   CLK_INIT_FLAG(0),
   BX_Orbit_(924),
@@ -87,6 +35,7 @@ CCB::CCB(int newcrate ,int slot, int version)
     DMB_CFEB_CAL0 = 0x48;
     DMB_CFEB_CAL1 = 0x4a;
     DMB_CFEB_CAL2 = 0x4c;
+    mCCBMode = CCB::VMEFPGA;
   } else if (mVersion == 2004){
     CSR1 = CSRB1;
     CSR2 = CSRB2;
@@ -97,6 +46,7 @@ CCB::CCB(int newcrate ,int slot, int version)
     DMB_CFEB_CAL0 = 0x8a;
     DMB_CFEB_CAL1 = 0x8c;
     DMB_CFEB_CAL2 = 0x8e;
+    mCCBMode = CCB::DLOG;
   } else {
     std::cerr << "CCB: FATAL: unknown CCB version number ("<< mVersion
 	      << "). Cannot create: exiting ..." << std::endl;
@@ -124,6 +74,17 @@ void CCB::end() {
 
 void CCB::pulse(int Num_pulse,unsigned int * delays, char vme) 
 {
+
+  // when in DLOG mode, briefly switch to FPGA mode so we can 
+  // have the CCB issue the backplane reset. This is *only* for
+  // TestBeam purposes.
+  bool switchedMode = false;
+  if (mCCBMode == (CCB2004Mode_t)CCB::DLOG){
+    setCCBMode(CCB::VMEFPGA);
+    switchedMode=true;
+    std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for pulse" << std::endl; 
+  }
+
    for(int j=0;j<Num_pulse;j++){
      sndbuf[0]=(delays[j]&0xff00)>>8;
      sndbuf[1]=(delays[j]&0x00ff);
@@ -138,10 +99,26 @@ void CCB::pulse(int Num_pulse,unsigned int * delays, char vme)
        do_vme(VME_WRITE,vme,sndbuf,rcvbuf,NOW);
      }
    }
+  if (switchedMode){
+    setCCBMode(CCB::DLOG);
+    std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
+  };
+
+
 }
 
 
 void CCB::pulse() {
+  // when in DLOG mode, briefly switch to FPGA mode so we can 
+  // have the CCB issue the backplane reset. This is *only* for
+  // TestBeam purposes.
+  bool switchedMode = false;
+  if (mCCBMode == (CCB2004Mode_t)CCB::DLOG){
+    setCCBMode(CCB::VMEFPGA);
+    switchedMode=true;
+    std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for pulse" << std::endl; 
+  }
+
  //use 0x48 for pulse (cal0), 0x4a inject (cal1), 0x4c pedestal (cal2):
 
   sndbuf[0]=0x00;
@@ -153,17 +130,40 @@ void CCB::pulse() {
   sndbuf[1]=0x00;
   do_vme(VME_WRITE,DMB_CFEB_CAL0,sndbuf,rcvbuf,NOW);
   //2004 do_vme(VME_WRITE,0x8a,sndbuf,rcvbuf,NOW);
+
+  if (switchedMode){
+    setCCBMode(CCB::DLOG);
+    std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
+  };
+
+
 }
 
 
 void CCB::pulse(int Num_pulse,unsigned int pulse_delay, char vme)
 {
+  // when in DLOG mode, briefly switch to FPGA mode so we can 
+  // have the CCB issue the backplane reset. This is *only* for
+  // TestBeam purposes.
+  bool switchedMode = false;
+  if (mCCBMode == (CCB2004Mode_t)CCB::DLOG){
+    setCCBMode(CCB::VMEFPGA);
+    switchedMode=true;
+    std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for pulse" << std::endl; 
+  }
   unsigned int * delays = new unsigned int[Num_pulse];
   for(int i = 0; i <  Num_pulse; ++i) { 
     delays[i] = pulse_delay;
   }
   pulse( Num_pulse, delays, vme);
   delete[] delays;
+
+  if (switchedMode){
+    setCCBMode(CCB::DLOG);
+    std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
+  };
+
+
 }
 
 
@@ -208,11 +208,6 @@ void CCB::reset_bckpln()
 void CCB::GenerateAlctAdbSync(){
    //
    std::cout << "CCB: GenerateAlctAdbPulseSync" << std::endl;
-   //int i_ccb=0x18;
-   //sndbuf[0]=0x00;
-   //sndbuf[1]=(i_ccb<<2)&0xfc;
-   //do_vme(VME_WRITE, CSR2, sndbuf,rcvbuf,NOW);
-   //theController->end();
    //
    sndbuf[0]=0x00;
    sndbuf[1]=0x01;
@@ -220,7 +215,11 @@ void CCB::GenerateAlctAdbSync(){
      do_vme(VME_WRITE, 0x40, sndbuf,rcvbuf,NOW);
    }
    else{
-     do_vme(VME_WRITE, 0x82, sndbuf,rcvbuf,NOW);
+     std::cout << "Writing " << std::endl;
+     do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
+     sndbuf[0]=0x00;
+     sndbuf[1]=0x00;
+     do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
    }
    //
    theController->end();
@@ -238,6 +237,13 @@ void CCB::GenerateAlctAdbASync(){
    //
 }
 
+void CCB::DumpAddress(int address) {
+  //
+  do_vme(VME_READ,address,sndbuf,rcvbuf,NOW);  
+  //
+  printf("CCB.Dump %x %x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  //
+}
 
 void CCB::rice_clk_setup()
 {
@@ -363,6 +369,28 @@ void CCB::enableCLCT(){
    }
    //
 }
+
+void CCB::WriteRegister(int reg, int value){
+  //
+  sndbuf[0] = (value>>8)&0xff;
+  sndbuf[1] = value&0xff;
+  //
+  do_vme(VME_WRITE,reg,sndbuf,rcvbuf,NOW);
+  //
+}
+
+int CCB::ReadRegister(int reg){
+  //
+  do_vme(VME_READ,reg,sndbuf,rcvbuf,NOW);
+  //
+  int value = ((rcvbuf[0]&0xff)<<8)|(rcvbuf[1]&0xff);
+  //
+  printf(" CCB.reg=%x %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
+  //
+  return value;
+  //
+}
+
 
 void CCB::enableL1() {
   std::cout << "CCB: Enable L1A." << std::endl;

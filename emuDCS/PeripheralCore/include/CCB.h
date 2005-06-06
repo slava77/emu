@@ -1,34 +1,12 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: CCB.h,v 2.1 2005/06/06 11:10:53 geurts Exp $
 // $Log: CCB.h,v $
+// Revision 2.1  2005/06/06 11:10:53  geurts
+// default power-up mode DLOG. updated for calibration code.
+// direct read/write access to registers
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
-//
-// Revision 1.21  2004/08/10 18:22:05  tfcvs
-// Update
-//
-// Revision 1.20  2004/08/05 04:19:17  tfcvs
-// Update
-//
-// Revision 1.19  2004/07/20 22:20:33  tfcvs
-// - Removed a bug in configure() which prevented hardReset from being called
-//   for any non-DLOG mode;
-// - Renamed configure(CCB2004Mode_t) to setCCBMode(CCB2004Mode_t) to prevent
-//   any confusion
-// - setCCBMode and rice_clk_setup() are moved away from public to protected
-//
-// Revision 1.18  2004/06/05 19:47:05  tfcvs
-// Reorganized and debugged TTC control mode for CCB2004 (and 2001).
-// CCB2004 mode configurable through XML option: <CCB CCBmode=""> (FG)
-//
-// Revision 1.17  2004/05/20 17:01:16  tfcvs
-// solved a bug, uncovered another one ...
-//  - fixed enableL1
-//  - initialized l1enabled_
-//  - moved all printf to cout and identify class in log message
-//
-// Revision 1.16  2004/05/18 09:44:14  tfcvs
-// added DMB_CFEB_CAL2 address pointer (ccb01/04) and CVS keywords (FG)
 //
 //-----------------------------------------------------------------------
 #ifndef CCB_h
@@ -43,12 +21,15 @@ class CCBParser;
 class CCB: public VMEModule
 {
 public:
+  int ReadRegister(int);
+  void WriteRegister(int,int);
   void firmwareVersion();
-  CCB(int newcrate ,int slot, int version = 2001 );
+  CCB(int newcrate ,int slot, int version = 2004 );
   virtual ~CCB();
 
   /// VMEModule type identifier
   enum CCB2004Mode_t {TTCrqFPGA=0, VMEFPGA=1, DLOG=2};  
+  void setCCBMode(CCB2004Mode_t);
   virtual unsigned int boardType() const {return VMEModule::CCB_ENUM;}
 
   // start routine from VMEModule OK
@@ -123,6 +104,8 @@ public:
   void hard_reset_tmb();     //+
   void hard_reset_mpc();     //+
 
+  void DumpAddress(int);
+
   void soft_reset_dmb();
   void soft_reset_tmb();
   void soft_reset_mpc();
@@ -134,7 +117,6 @@ public:
 
 protected:
   int mCCBMode;
-  void setCCBMode(CCB2004Mode_t);
   enum TTCMode {NO_TTC=0, TTC_CLOCK=1, ALL_TTC=2};
 
   void rice_clk_setup();
