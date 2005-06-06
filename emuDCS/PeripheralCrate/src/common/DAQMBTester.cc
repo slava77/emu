@@ -1,14 +1,17 @@
-> //-----------------------------------------------------------------------
-> // $Id: DAQMBTester.cc,v 2.1 2005/06/06 10:05:51 geurts Exp $
-> // $Log: DAQMBTester.cc,v $
-> // Revision 2.1  2005/06/06 10:05:51  geurts
-> // calibration-related updates by Alex Tumanov and Jason Gilmore
-> //
-> // Revision 2.0  2005/04/12 08:07:05  geurts
-> // *** empty log message ***
-> //
-> //
-> //-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
+// $Id: DAQMBTester.cc,v 2.2 2005/06/06 10:10:07 geurts Exp $
+// $Log: DAQMBTester.cc,v $
+// Revision 2.2  2005/06/06 10:10:07  geurts
+// typo ...
+//
+// Revision 2.1  2005/06/06 10:05:51  geurts
+// calibration-related updates by Alex Tumanov and Jason Gilmore
+//
+// Revision 2.0  2005/04/12 08:07:05  geurts
+// *** empty log message ***
+//
+//
+//-----------------------------------------------------------------------
 #include<iostream>
 #include<stdio.h>
 #include<unistd.h> // for sleep()
