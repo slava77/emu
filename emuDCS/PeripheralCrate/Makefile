@@ -100,7 +100,6 @@ StaticLibrary= EmuPeripheralCrate
 Executables=
 TestExecutables= \
         calibpulse.cpp \
-        injecttest.cpp \
 	slicetestconfig.cpp \
 	testbeamcontrol.cpp \
 	tmbtiming.cpp \
