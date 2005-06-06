@@ -103,6 +103,7 @@ TestExecutables= \
 	slicetestconfig.cpp \
 	testbeamcontrol.cpp \
 	tmbtiming.cpp \
+        CrateScan.cpp \
 	parsemain.cpp \
 	alctmain.cpp \
 	contrmain.cpp \
