@@ -1,12 +1,5 @@
-//-----------------------------------------------------------------------
-// $Id: loadALCT.cpp,v 2.0 2005/04/12 08:07:07 geurts Exp $
-// $Log: loadALCT.cpp,v $
-// Revision 2.0  2005/04/12 08:07:07  geurts
-// *** empty log message ***
-//
-//
-//-----------------------------------------------------------------------
 #include <iostream>
+#include <unistd.h> // for sleep
 #include "Crate.h"
 #include "DAQMB.h"
 #include "TMB.h"
@@ -23,23 +16,50 @@ int main(int argc,char **argv){
 
   // create VME Controller and Crate
   int crateId(0);
-  string ipAddr("10.0.0.3");
+  string ipAddr("10.0.0.11");
   int port(6050);
   VMEController *dynatem = new VMEController(crateId,ipAddr,port);
   Crate *crate = new Crate(crateId,dynatem);
 
-  // create TMB
-  int tmbSlot(20);
+  // create CCB
+  int ccbSlot(13);
+  CCB *ccb = new CCB(crateId,ccbSlot,2004);
+  ccb->configure();
+  ::sleep(1);
+
+  // create TMB & ALCT
+  int tmbSlot(10);
+  string chamberType("ME22");
   TMB *tmb = new TMB(crateId,tmbSlot);
   tmb->version_="2004";
-
-  // create ALCT
-  string chamberType("ME11");
   ALCTController *alct = new ALCTController(tmb,chamberType);
-  
+  //for (int i=0;i<42;i++){
+  //  alct->delays_[i]=0;
+  //  alct->thresholds_[i] = 20;
+  //}
+
+  //tmb->SetALCTController(alct);
+
+  //tmb->configure();
+  //::sleep(1);
+  //alct->setup(1);
+  //::sleep(1);
+
+  ALCTIDRegister sc_id, chipID ;
+
+  alct->alct_read_slowcontrol_id(&sc_id) ;
+  std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
+  alct->alct_fast_read_id(chipID);
+  std::cout << " ALCT Fastcontrol ID " << chipID << std::endl;
+
+#if 1
+  tmb->disableAllClocks();
   int debugMode(0);
   int jch(3);
-  int status = alct->SVFLoad(&jch,"filename.svf",debugMode);
+  //int status = alct->SVFLoad(&jch,"alctcrc384mirror.svf",debugMode);
+  int status = alct->SVFLoad(&jch,"alctcrc384.svf",debugMode);
+  //--int status = alct->NewSVFLoad(&jch,"alctcrc384mirror.svf",debugMode);
+  tmb->enableAllClocks();
 
   if (status >= 0){
     cout << "=== Programming finished"<< endl;
@@ -48,6 +68,8 @@ int main(int argc,char **argv){
   else{
     cout << "=== Fatal Error. Exiting with " <<  status << endl;
   }
+
+#endif
 
 }
 
