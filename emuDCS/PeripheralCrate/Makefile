@@ -107,6 +107,7 @@ TestExecutables= \
 	parsemain.cpp \
 	alctmain.cpp \
 	contrmain.cpp \
+	mpc2sp.cpp \
 	loadALCT.cpp
 
 include $(XDAQ_ROOT)/config/Makefile.rules

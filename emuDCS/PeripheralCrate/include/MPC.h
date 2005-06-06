@@ -1,28 +1,12 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: MPC.h,v 2.1 2005/06/06 19:22:35 geurts Exp $
 // $Log: MPC.h,v $
+// Revision 2.1  2005/06/06 19:22:35  geurts
+// additions for MPC/SP connectivity tests (Dan Holmes)
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
-// Revision 1.10  2004/10/07 19:39:26  tfcvs
-// regular test beam update
-//
-// Revision 1.9  2004/06/18 23:43:02  tfcvs
-// Updates to support new firmware (06/11/2004) options.
-// -introduced Sorter/Transparent Mode selectors (xml configurable)
-// -introduced Programmable Delay for TMB-MPC path
-// -added all addresses to VMEAddresses enumaration
-// -deprecated read_date() in favor of firmwareVersion()
-// -fixed a bug in setTLK2501TxMode
-//
-// Revision 1.8  2004/05/24 10:14:59  tfcvs
-// Introduced firmware-date code and general code clean-up (FG)
-//
-// Revision 1.7  2004/05/18 17:07:27  tfcvs
-// Serializer behaviour (Lev's request) formalized and now controlled through xml. (FG)
-//
-// Revision 1.6  2004/05/15 22:11:14  tfcvs
-// Added PRBS methods,  C++-ified the code (cout replaces printf) and introduced CVS keywords
 //
 //-----------------------------------------------------------------------
 #ifndef MPC_h
@@ -72,11 +56,18 @@ class MPC : public VMEModule {
 
   void enablePRBS();
   void disablePRBS();
+
+  void initTestLinks(); // initialise the Links for injectSP() funct below:DH.
+  void injectSP();      // injects some test patterns into fifos :dan Holmes
+  void injectSP(char*); // as above you give me file with data in.:dan Holmes
+
   void setTransparentMode();
   void setTransparentMode(unsigned int);
   void setSorterMode();
   void setDelayFromTMB(unsigned char);
 
+  /// MPC-SP02 interconnect validation procedure
+  void interconnectTest();
 
  protected:
   /// MPC base address should always correspond to VME Slot 12 (=0x600000)
