@@ -1,11 +1,14 @@
-//-----------------------------------------------------------------------
-// $Id: DAQMBTester.cc,v 2.0 2005/04/12 08:07:05 geurts Exp $
-// $Log: DAQMBTester.cc,v $
-// Revision 2.0  2005/04/12 08:07:05  geurts
-// *** empty log message ***
-//
-//
-//-----------------------------------------------------------------------
+> //-----------------------------------------------------------------------
+> // $Id: DAQMBTester.cc,v 2.1 2005/06/06 10:05:51 geurts Exp $
+> // $Log: DAQMBTester.cc,v $
+> // Revision 2.1  2005/06/06 10:05:51  geurts
+> // calibration-related updates by Alex Tumanov and Jason Gilmore
+> //
+> // Revision 2.0  2005/04/12 08:07:05  geurts
+> // *** empty log message ***
+> //
+> //
+> //-----------------------------------------------------------------------
 #include<iostream>
 #include<stdio.h>
 #include<unistd.h> // for sleep()
@@ -40,12 +43,18 @@ void DAQMBTester::runAllTests() {
   std::cout << "done halfset(4,4,0)" << std::endl;
   cfeb_pedestals();  
   std::cout << "done pedestals" << std::endl;*/
+  fakeBackPlane_ = false;  
+ 
   lowv_dump();
   std::cout << "done lowv_dump"<<std::endl;
   daqmb_adc_dump();
   std::cout << "done daqmb_adc_dump" << std::endl;
   daqmb_promfpga_dump();
   std::cout << "done daqmb_promfpga_dump" << std::endl;
+ 
+  cfeb_inject();
+  std::cout << "done inject half strip 27 on cfeb 2" << std::endl;
+ 
 }
 
 
@@ -140,6 +149,7 @@ void DAQMBTester::cfeb_pulse()
 int chip,ch,schan,brd;
 // set dac
   daqmb_->set_cal_dac(1.0,1.0);
+
 // set external pulser for channel 5 on all 6 chips    
   
   schan=5;  
@@ -154,13 +164,14 @@ int chip,ch,schan,brd;
   daqmb_->buck_shift();
 
 // set timing
-  daqmb_->set_cal_tim(10);  // 0-22 are valid times
+  daqmb_->set_cal_tim_pulse(10);  // 0-22 are valid times
 
 // pulse 1000 times
   if(fakeBackPlane_) {
     daqmb_->pulse(1000,0xff);
   } else {
-    ccb_->pulse(1000, 0xff);
+    std::cout << "pulsing one time" << std::endl;
+    ccb_->pulse(1, 0xff);
   }
  
 }
@@ -172,19 +183,21 @@ void DAQMBTester::cfeb_inject()
 // set dac
   daqmb_->set_cal_dac(1.0,1.0);
 
-// shift patterns for half strip 32 on all planes in feb 2    
-  for(int i=0;i<6;i++) halfset(2,i,32);
+// shift patterns for half strip 27 on all planes in feb 2    
+  for(int i=0;i<6;i++) halfset(2,i,30);
   daqmb_->buck_shift();
   
 // set timing
 
-  daqmb_->set_cal_tim(10);  // 0-22 are valid times
+  daqmb_->set_cal_tim_inject(10);  // 0-22 are valid times
 
 // pulse 1000 times
   if(fakeBackPlane_) {
     daqmb_->inject(1000,0xff);
+    std::cout << "injecting 1000 times" << std::endl;
   } else {
-    ccb_->inject(1000, 0xff);
+    std::cout << "injecting one time" << std::endl;
+    ccb_->inject(1, 0xff);
   }
 
 }
@@ -241,47 +254,44 @@ void DAQMBTester::cfeb_pedestals()
 
 void DAQMBTester::lowv_dump()
 {
-  std::cout << " Digital Feed = " << daqmb_->lowv_adc(1,0) << std::endl;
-  std::cout << " Analog Feed = "  << daqmb_->lowv_adc(1,1) << std::endl;
-  std::cout << " ALCT 2.5V = "    << daqmb_->lowv_adc(1,2) << std::endl;
-  std::cout << " ALCT 3.3V = "    << daqmb_->lowv_adc(1,3) << std::endl;
-  std::cout << " ALCT 5.5V A = "  << daqmb_->lowv_adc(1,4) << std::endl;
-  std::cout << " ALCT 5.5V B = "  << daqmb_->lowv_adc(1,5) << std::endl;
-  std::cout << " CFEB5 3.3V = "   << daqmb_->lowv_adc(1,6) << std::endl;
-  std::cout << " CFEB5 5.0V = "   << daqmb_->lowv_adc(1,7) << std::endl;
-  std::cout << " CFEB5 6.0V = "   << daqmb_->lowv_adc(2,0) << std::endl;
-  std::cout << " CFEB4 3.3V = "   << daqmb_->lowv_adc(2,1) << std::endl;
-  std::cout << " CFEB4 5.0V = "   << daqmb_->lowv_adc(2,2) << std::endl;
-  std::cout << " CFEB4 6.0V = "   << daqmb_->lowv_adc(2,3) << std::endl;
-  std::cout << " CFEB3 3.3V = "   << daqmb_->lowv_adc(2,4) << std::endl;
-  std::cout << " CFEB3 5.0V = "   << daqmb_->lowv_adc(2,5) << std::endl;
-  std::cout << " CFEB3 6.0V = "   << daqmb_->lowv_adc(2,6) << std::endl;
-  std::cout << " CFEB2 3.3V = "   << daqmb_->lowv_adc(2,7) << std::endl;
-  std::cout << " CFEB2 5.0V = "   << daqmb_->lowv_adc(3,0) << std::endl;
-  std::cout << " CFEB2 6.0V = "   << daqmb_->lowv_adc(3,1) << std::endl;
-  std::cout << " CFEB1 3.3V = "   << daqmb_->lowv_adc(3,2) << std::endl;
-  std::cout << " CFEB1 5.0V = "   << daqmb_->lowv_adc(3,3) << std::endl;
-  std::cout << " CFEB1 6.0V  = "  << daqmb_->lowv_adc(3,4) << std::endl;
-  std::cout << " ALCT OCM 2.5= "  << daqmb_->lowv_adc(3,5) << std::endl;
-  std::cout << " ALCT OCM 3.3= "  << daqmb_->lowv_adc(3,6) << std::endl;
-  std::cout << " ALCT OCM 5A = "  << daqmb_->lowv_adc(3,7) << std::endl;
-  std::cout << " ALCT OCM 5B = "  << daqmb_->lowv_adc(4,0) << std::endl;
-  std::cout << " CFEB5 OCM 3 = "  << daqmb_->lowv_adc(4,1) << std::endl;
-  std::cout << " CFEB5 OCM 5 = "  << daqmb_->lowv_adc(4,2) << std::endl;
-  std::cout << " CFEB5 OCM 6 = "  << daqmb_->lowv_adc(4,3) << std::endl;
-  std::cout << " CFEB4 OCM 3 = "  << daqmb_->lowv_adc(4,4) << std::endl;
-  std::cout << " CFEB4 OCM 5 = "  << daqmb_->lowv_adc(4,5) << std::endl;
-  std::cout << " CFEB4 OCM 6 = "  << daqmb_->lowv_adc(4,6) << std::endl;
-  std::cout << " CFEB3 OCM 3 = "  << daqmb_->lowv_adc(4,7) << std::endl;
-  std::cout << " CFEB3 OCM 5 = "  << daqmb_->lowv_adc(5,0) << std::endl;
-  std::cout << " CFEB3 OCM 6 = "  << daqmb_->lowv_adc(5,1) << std::endl;
-  std::cout << " CFEB2 OCM 3 = "  << daqmb_->lowv_adc(5,2) << std::endl;
-  std::cout << " CFEB2 OCM 5 = "  << daqmb_->lowv_adc(5,3) << std::endl;
-  std::cout << " CFEB2 OCM 6 = "  << daqmb_->lowv_adc(5,4) << std::endl;
-  std::cout << " CFEB1 OCM 3 = "  << daqmb_->lowv_adc(5,5) << std::endl;
-  std::cout << " CFEB1 OCM 5 = "  << daqmb_->lowv_adc(5,6) << std::endl;
-  std::cout << " CFEB1 OCM 6 = "  << daqmb_->lowv_adc(5,7) << std::endl;
- 
+  std::cout << " CFEB1 OCM 3 = "  << daqmb_->lowv_adc(1,0)/1000 << std::endl;
+  std::cout << " CFEB1 OCM 5 = "  << daqmb_->lowv_adc(1,1)/1000 << std::endl;
+  std::cout << " CFEB1 OCM 6 = "  << daqmb_->lowv_adc(1,2)/1000 << std::endl;
+  std::cout << " CFEB2 OCM 3 = "  << daqmb_->lowv_adc(1,3)/1000 << std::endl;
+  std::cout << " CFEB2 OCM 5 = "  << daqmb_->lowv_adc(1,4)/1000 << std::endl;
+  std::cout << " CFEB2 OCM 6 = "  << daqmb_->lowv_adc(1,5)/1000 << std::endl;
+  std::cout << " CFEB3 OCM 3 = "  << daqmb_->lowv_adc(1,6)/1000 << std::endl;
+  std::cout << " CFEB3 OCM 5 = "  << daqmb_->lowv_adc(1,7)/1000 << std::endl;
+  std::cout << " CFEB3 OCM 6 = "  << daqmb_->lowv_adc(2,0)/1000 << std::endl;
+  std::cout << " CFEB4 OCM 3 = "  << daqmb_->lowv_adc(2,1)/1000 << std::endl;
+  std::cout << " CFEB4 OCM 5 = "  << daqmb_->lowv_adc(2,2)/1000 << std::endl;
+  std::cout << " CFEB4 OCM 6 = "  << daqmb_->lowv_adc(2,3)/1000 << std::endl;
+  std::cout << " CFEB5 OCM 3 = "  << daqmb_->lowv_adc(2,4)/1000 << std::endl;
+  std::cout << " CFEB5 OCM 5 = "  << daqmb_->lowv_adc(2,5)/1000 << std::endl;
+  std::cout << " CFEB5 OCM 6 = "  << daqmb_->lowv_adc(2,6)/1000 << std::endl;
+  std::cout << " ALCT OCM 3.3 = " << daqmb_->lowv_adc(2,7)/1000 << std::endl;
+  std::cout << " ALCT OCM 1.8 = " << daqmb_->lowv_adc(3,0)/1000 << std::endl;
+  std::cout << " ALCT OCM 5B = "  << daqmb_->lowv_adc(3,1)/1000 << std::endl;
+  std::cout << " ALCT OCM 5A = "  << daqmb_->lowv_adc(3,2)/1000 << std::endl;
+  std::cout << " CFEB1 3.3V = "   << daqmb_->lowv_adc(3,3)/1000 << std::endl;
+  std::cout << " CFEB1 5.0V = "   << daqmb_->lowv_adc(3,4)/1000 << std::endl;
+  std::cout << " CFEB1 6.0V = "   << daqmb_->lowv_adc(3,5)/1000 << std::endl;
+  std::cout << " CFEB2 3.3V = "   << daqmb_->lowv_adc(3,6)/1000 << std::endl;
+  std::cout << " CFEB2 5.0V = "   << daqmb_->lowv_adc(3,7)/1000 << std::endl;
+  std::cout << " CFEB2 6.0V = "   << daqmb_->lowv_adc(4,0)/1000 << std::endl;
+  std::cout << " CFEB3 3.3V = "   << daqmb_->lowv_adc(4,1)/1000 << std::endl;
+  std::cout << " CFEB3 5.0V = "   << daqmb_->lowv_adc(4,2)/1000 << std::endl;
+  std::cout << " CFEB3 6.0V = "   << daqmb_->lowv_adc(4,3)/1000 << std::endl;
+  std::cout << " CFEB4 3.3V = "   << daqmb_->lowv_adc(4,4)/1000 << std::endl;
+  std::cout << " CFEB4 5.0V = "   << daqmb_->lowv_adc(4,5)/1000 << std::endl;
+  std::cout << " CFEB4 6.0V = "   << daqmb_->lowv_adc(4,6)/1000 << std::endl;
+  std::cout << " CFEB5 3.3V = "   << daqmb_->lowv_adc(4,7)/1000 << std::endl;
+  std::cout << " CFEB5 5.0V = "   << daqmb_->lowv_adc(5,0)/1000 << std::endl;
+  std::cout << " CFEB5 6.0V = "   << daqmb_->lowv_adc(5,1)/1000 << std::endl;
+  std::cout << " ALCT 3.3V = "    << daqmb_->lowv_adc(5,2)/1000 << std::endl;
+  std::cout << " ALCT 1.8V = "    << daqmb_->lowv_adc(5,3)/1000 << std::endl;
+  std::cout << " ALCT 5.5V B = "  << daqmb_->lowv_adc(5,4)/1000 << std::endl;
+  std::cout << " ALCT 5.5V A = "  << daqmb_->lowv_adc(5,5)/1000 << std::endl;
 }
 
 
