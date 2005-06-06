@@ -20,7 +20,7 @@ extern bool SIMULATION;
 
 // NORMAL MODE:                      CONFIRMATION_NEEDED = true;
 // ALL BOARDS PROGRAMMING MODE:      CONFIRMATION_NEEDED = false
-bool CONFIRMATION_NEEDED = false;  
+bool CONFIRMATION_NEEDED = true;  
                                     
 bool SUSPEND_UPDATE_SERVICE = false;
 
@@ -213,8 +213,6 @@ int DcsDimCommand::commandParse(string &command){
 //===============================================================================================
 void DcsDimCommand::commandHandler(){
 
-
-
 #ifdef DCS_PRINTING_1
     printf("server++\n");
 #endif
@@ -312,7 +310,7 @@ int DcsDimCommand::svc(){
 
       if(!(nextSlotsLoading(&i,&j))){
 #ifdef DCS_PRINTING_1
-	printf("break !!!!!!\n");
+	printf("break !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 #endif
 break;
       }
@@ -358,6 +356,9 @@ SUSPEND_UPDATE_SERVICE = false;
 #ifdef DCS_PRINTING_1
       printf("get_data command local!!!!!========\n");
 #endif
+
+      PUBLISHING_ENABLED=true;
+
       getDataLV();
       
       EmuDcs_o->readAllTemperatures();

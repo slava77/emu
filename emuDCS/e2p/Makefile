@@ -1,6 +1,6 @@
 ##
 #
-# This is the TriDAS/emu/emuDCS/e2p Package Makefile
+# This is the TriDAS/emu/emuDCS/base Package Makefile
 #
 ##
 
@@ -14,7 +14,8 @@ Package=emuDCS/e2p
 Sources =\
          DcsDimService.cxx \
          DcsDimCommand.cxx \
-         EmuDcs.cxx
+         EmuDcs.cxx \
+	 Rc2Dcs.cxx
 
 IncludeDirs = \
 	$(XDAQ_ROOT)/daq/toolbox/include \
@@ -32,12 +33,7 @@ IncludeDirs = \
 
 LibraryDirs = \
 	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
-	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
-	$(XDAQ_ROOT)/daq/xdaq/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-	$(XDAQ_ROOT)/daq/pt/soap/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-	$(XDAQ_ROOT)/daq/pt/tcp/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-	$(XDAQ_ROOT)/daq/toolbox/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-	$(XDAQ_ROOT)/daq/xoap/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+	$(XDAQ_ROOT)/daq/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) 
 
 TestLibraryDirs = \
 	$(XDAQ_ROOT)/emu/extern/dim/$(XDAQ_OS)$(XDAQ_PLATFORM)/$(XDAQ_OS) \
