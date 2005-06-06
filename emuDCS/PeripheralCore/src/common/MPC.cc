@@ -1,44 +1,19 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.0 2005/04/12 08:07:05 geurts Exp $
+// $Id: MPC.cc,v 2.1 2005/06/06 19:22:35 geurts Exp $
 // $Log: MPC.cc,v $
+// Revision 2.1  2005/06/06 19:22:35  geurts
+// additions for MPC/SP connectivity tests (Dan Holmes)
+//
 // Revision 2.0  2005/04/12 08:07:05  geurts
 // *** empty log message ***
 //
-// Revision 1.15  2004/10/07 19:39:26  tfcvs
-// regular test beam update
-//
-// Revision 1.14  2004/07/19 19:37:57  tfcvs
-// Removed unused variables and unsigned some variables in order to prevent compiler warnings (-Wall flag) (FG)
-//
-// Revision 1.13  2004/06/18 23:43:02  tfcvs
-// Updates to support new firmware (06/11/2004) options.
-// -introduced Sorter/Transparent Mode selectors (xml configurable)
-// -introduced Programmable Delay for TMB-MPC path
-// -added all addresses to VMEAddresses enumaration
-// -deprecated read_date() in favor of firmwareVersion()
-// -fixed a bug in setTLK2501TxMode
-//
-// Revision 1.12  2004/05/27 16:02:09  tfcvs
-// corrected the meaning of CONTINUOUS and FRAMED mode
-//
-// Revision 1.11  2004/05/20 17:06:31  tfcvs
-// Introduced firmware-date code and general code clean-up (FG)
-//
-// Revision 1.10  2004/05/18 17:07:27  tfcvs
-// Serializer behaviour (Lev's request) formalized and now controlled through xml. (FG)
-//
-// Revision 1.9  2004/05/18 07:38:47  tfcvs
-// temporary change for Lev in initialization behavior: CONTINUOUS instead of FRAMED mode. (FG)
-//
-// Revision 1.8  2004/05/15 22:11:14  tfcvs
-// Added PRBS methods,  C++-ified the code (cout replaces printf) and introduced CVS keywords
 //
 //-----------------------------------------------------------------------
 #include <iostream>
-#include <iomanip>
+#include <iomanip> 
+#include <stdlib.h>
 #include "MPC.h"
 #include "VMEController.h"
-
 
 MPC::MPC(int newCrate, int slot) : VMEModule(newCrate, slot),
   TLK2501TxMode_(0), TransparentModeSources_(0), TMBDelayPattern_(0){
@@ -134,6 +109,7 @@ void MPC::read_fifos() {
   char data[100];
   //read_fifo(STATUS, data);
   read_fifo(CSR3, data);
+   std::cout << data << std::endl;
   //bool full_fifoa=(data[1]&0x0001);
   //bool empty_fifoa=(data[1]&0x0002)>>1;
   //bool full_fifob=(data[1]&0x0004)>>2;
@@ -319,6 +295,225 @@ void MPC::disablePRBS(){
   std::cout << "MPC: PRBS mode disabled" << std::endl;
 }
 
+void MPC::initTestLinks(){
+// initialise FIFOs ready to load test data with injectSP functs
+//nb! need to time in SP after this funct but before inject data
+
+//initialise!!! toggle CSR0 bits.
+ std::cout << "Initialising peripheral crate links for load FIFOs" << std::endl;
+
+  int btd, xfer_done[2];
+  char data[2];
+  unsigned long int addr;
+
+
+  addr = theBaseAddress + CSR0;
+  data[0]=0x11;
+  data[1]=0x4E;
+  write(btd,data,addr,2,xfer_done);
+  
+  data[0]=0x13;
+  data[1]=0x4E;
+  write(btd,data,addr,2,xfer_done);
+ 
+  data[0]=0x11;
+  data[1]=0x4E;
+  write(btd,data,addr,2,xfer_done);
+//done init
+}
+
+void MPC::injectSP(){
+
+  int btd, xfer_done[2];
+  char data[2];
+  unsigned long int addr;
+
+  int ITR=255;
+
+ this->read_status();
+ 
+   std::cout << "..now filling FIFO-A" <<std::endl;
+	   // Fill FIFOA with 255 events
+	   for (int EVNT=0; EVNT<255; EVNT++)
+           {
+             unsigned long mframe1, mframe2;
+
+//             mframe1 = (0x1 << 15) | (0xF << 11) | EVNT;
+ 	mframe1 =  (0xF << 12) | EVNT;
+//	     ITR--;
+	ITR=3;
+	     mframe2 = (0xF << 12) | ITR;
+
+	     // Load 9x2 LCTs to MPC Input "FIFOA"
+	     addr=theBaseAddress+FIFO_A1a;
+	     for (int fifo_a=1; fifo_a<=9; fifo_a++) 
+             {
+	       for (int LCT=0; LCT<2; LCT++)
+//2 LCTs
+	         {
+		     data[0]= mframe1&0x00FF;
+		     data[1]=(mframe1&0xFF00)>>8;
+		     this->write(btd,data,addr,2,xfer_done);
+
+//2 frames?:ie 2x16 bits =tot 32 bits..
+
+		     data[0]= mframe2&0x00FF;
+		     data[1]=(mframe2&0xFF00)>>8;
+		     this->write(btd,data,addr,2,xfer_done);
+
+		     addr+=0x00002;
+
+	         }
+	     } 
+	   }
+        
+
+	// Append 0's to the last one..
+	addr=theBaseAddress+FIFO_A1a;
+	for (int fifo_a=1; fifo_a<=9; fifo_a++) {
+	    for (int LCT=0; LCT<2; LCT++) {
+
+		     data[0]=0;
+		     data[1]=0;
+		     this->write(btd,data,addr,2,xfer_done);
+		     data[0]=0;
+		     data[1]=0;
+		     this->write(btd,data,addr,2,xfer_done);
+		     addr+=0x00002;
+	    }
+    }
+ 
+this->read_status();
+
+}
+
+
+void MPC::injectSP(char *injectDataFileName){
+
+
+// member function as above but here you have passed a file 
+// containing the LCTs you want to inject.
+// data file shouold have a set of 16 bit (4 hex character) words 
+
+
+  int btd, xfer_done[2];
+  char data[2];
+  char DataWord[4];//4 character hex string=16 bit word 
+  int dataWordInt_fr1;// the above string "DataWord" converted -->int.::frame 1s
+  int dataWordInt_fr2;// the above string "DataWord" converted -->int.::frame 2s
+  unsigned long mframe1, mframe2;
+  unsigned long int addr;
+  int readWord;//number of words read by fscanf
+ 
+ std::cout<<"...inject test pattern funct"<<std::endl;
+ std::cout<<"data file passed is: "<<injectDataFileName<<std::endl;
+//let's try to open the file:: 
+
+
+
+std::cout<<"opening file..."<<std::endl;
+ FILE* myFile = fopen(injectDataFileName , "r" );
+if (myFile==NULL){
+std::cout<<"problem opening data file, exiting.."<<std::endl;
+exit(0);
+}
+
+
+
+ this->read_status();
+ 
+ std::cout<<" will use LCT data from file "<<injectDataFileName<<std::endl;
+ 
+   std::cout << "..now filling FIFO-A, with your data, alternating frame 1, 2.." <<std::endl;
+//   int ITR=2;mframe2 = ITR;
+  
+
+
+// read the first data word and turn it into and integer:
+readWord=fscanf( myFile,"%s",DataWord);
+sscanf(DataWord,"%x",&dataWordInt_fr1);
+std::cout<<"first frame 1 :: (first word in file) is "<<std::hex<<dataWordInt_fr1<<std::endl;
+if (readWord<1){
+std::cout<<"problem reading first word in file ..exiting..."<<std::endl;
+exit(0);
+}
+readWord=fscanf( myFile,"%s",DataWord);
+sscanf(DataWord,"%x",&dataWordInt_fr2);
+std::cout<<"first frame 2 :: (second word in file) is "<<std::hex<<dataWordInt_fr2<<std::endl;
+	
+	
+	 
+
+	int EVNT=0;//event counter
+	while (dataWordInt_fr1 !=0 && dataWordInt_fr2 !=0)//keep on looping while we have valid words
+           {
+          
+	EVNT++;
+//             mframe1 = (0x1 << 15) | (0xF << 11) | dataWordInt_fr1;
+	mframe1 =  dataWordInt_fr1;
+	mframe2 =  dataWordInt_fr2;
+	
+	     // Load 9x2 LCTs to MPC Input "FIFOA"
+	     addr=theBaseAddress+FIFO_A1a;
+	     for (int fifo_a=1; fifo_a<=9; fifo_a++) 
+             {
+	     
+
+	       for (int LCT=0; LCT<2; LCT++)
+//2 LCTs
+	         {
+		     data[0]= mframe1&0x00FF;
+		     data[1]=(mframe1&0xFF00)>>8;
+		     this->write(btd,data,addr,2,xfer_done);
+		     
+//		     std::cout<<"event: "<<EVNT<<"...filling fifoA with "<<std::hex<<mframe1<<std::endl;
+
+//2 frames?:ie 2x16 bits =tot 32 bits..
+
+		     data[0]= mframe2&0x00FF;
+		     data[1]=(mframe2&0xFF00)>>8;
+		     this->write(btd,data,addr,2,xfer_done);
+
+		     addr+=0x00002;
+
+	         }//end for loop, 2LCT
+		 }
+	      
+//try to read next 2 data words from file:
+fscanf(myFile,"%s",DataWord);
+sscanf(DataWord,"%x",&dataWordInt_fr1);
+readWord= fscanf(myFile,"%s",DataWord);
+sscanf(DataWord,"%x",&dataWordInt_fr2);
+
+if (readWord<1){
+std::cout<<"reached end of file... .."<<EVNT<<" eventsx2 frames loaded.."<<std::endl;
+dataWordInt_fr1=0;
+dataWordInt_fr2=0;
+		}//end if	     
+	     
+	   }//end while we have valid words
+        
+
+	// Append 0's to the last one..
+	addr=theBaseAddress+FIFO_A1a;
+	for (int fifo_a=1; fifo_a<=9; fifo_a++) {
+	    for (int LCT=0; LCT<2; LCT++) {
+
+		     data[0]=0;
+		     data[1]=0;
+		     this->write(btd,data,addr,2,xfer_done);
+		     data[0]=0;
+		     data[1]=0;
+		     this->write(btd,data,addr,2,xfer_done);
+		     addr+=0x00002;
+	    }
+    }
+ 
+this->read_status();
+return;
+}
+
+
 
 
 void MPC::setTLK2501TxMode(int mode){
@@ -443,4 +638,30 @@ void MPC::setDelayFromTMB(unsigned char delays){
   data[0] = 0;
   data[1] = delays;
   write(btd,data,addr,2,xfer_done);
+}
+
+
+void MPC::interconnectTest(){
+  char data[2];
+  int btd, xfer_done[2];
+
+  // reset FPGA logic
+  int addr = theBaseAddress + CSR0;
+  data[0] = 0x00;
+  data[1] = 0x12;
+  //data[0] = 0x12;
+  //data[1] = 0x00;
+  write(btd,data,addr,2,xfer_done);
+  read(btd, data, theBaseAddress + CSR0,2, xfer_done);
+  std::cout << "MPC: interconnectTest  0x" << std::hex << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+
+  // release reset, put TLK2501 transmitters in the test mode
+  addr = theBaseAddress + CSR0;
+  data[0] = 0xc2;
+  data[1] = 0x10;
+  //data[0] = 0x10;
+  //data[1] = 0xc2;
+  write(btd,data,addr,2,xfer_done);
+  read(btd, data, theBaseAddress + CSR0,2, xfer_done);
+  std::cout << "MPC: interconnectTest  0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::dec << std::endl;
 }
