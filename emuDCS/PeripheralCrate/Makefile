@@ -20,6 +20,7 @@ Package=emuDCS/PeripheralCrate
 Sources=\
 	ALCTController.cc \
 	AnodeChannel.cc \
+        CalibDAQ.cc \
 	CCB.cc \
 	CCBParser.cc \
 	CFEB.cc \
@@ -98,6 +99,8 @@ StaticLibrary= EmuPeripheralCrate
 
 Executables=
 TestExecutables= \
+        calibpulse.cpp \
+        injecttest.cpp \
 	slicetestconfig.cpp \
 	testbeamcontrol.cpp \
 	tmbtiming.cpp \
