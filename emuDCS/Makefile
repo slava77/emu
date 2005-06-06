@@ -13,11 +13,16 @@ Project=emu
 
 ifeq ($(Set),framework)
 Packages=\
-	emuDCS/PeripheralCrate
+	emuDCS/PeripheralCrate \
+	emuDCS/e2p
 endif
 
 ifeq ($(Set),PeripheralCrate)
 Packages= emuDCS/PeripheralCrate
+endif
+
+ifeq ($(Set),e2p)
+Packages= emuDCS/e2p
 endif
 
 
