@@ -53,18 +53,40 @@ bool  CRATE_CONFIGURED_NEEDED = true;
 #include <DcsDimStructures.h>
 #include <EmuDcs.h>
 #include <DcsDimService.h>
-
+#include <Rc2Dcs.h>
 
 ////#include <DcsDimCommand.h>
 
 //  void (*was)(int), catchFunction(int);
+int EmuDcs::svc(){
+
+    ::sleep(10);
+    //  Rc2Dcs *rc2dcs= new Rc2Dcs();  // corr++ 
+    ///  rc2dcs->turnLV(1);   // corr++
+
+    DimClient::sendCommand("LV_1_COMMAND","all;all|power_on");  
+    DimClient::sendCommand("LV_1_COMMAND","all;all|get_data_local");
+
+  while(1){ // indefinite loop (there are no breaks for it)
+
+
+    ::sleep(100);
+    printf("LV_1_COMMAND is SENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!before\n");
+   DimClient::sendCommand("LV_1_COMMAND","all;all|get_data_local");
+    printf("LV_1_COMMAND is SENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");   
+
+  }
+
+
+}
+
 //========================================================================  
 EmuDcs::EmuDcs(string *file_to_load_cfeb, string *file_to_load_vme_chip, string *file_to_load_control_chip,
        string *file_to_load_valct288, string *file_to_load_salct288, 
        string *file_to_load_valct384, string *file_to_load_salct384, 
        string *file_to_load_valct672, string *file_to_load_salct672, 
 string *file_to_load_tmb)
-: RepeatNumber(1), OPERATION_ACTIVE(false), 
+  : RepeatNumber(1), OPERATION_ACTIVE(false),  Task(""), 
  file_to_load_cfeb(file_to_load_cfeb),file_to_load_vme_chip(file_to_load_vme_chip), 
   file_to_load_control_chip(file_to_load_control_chip),
   file_to_load_valct288(file_to_load_valct288), file_to_load_salct288(file_to_load_salct288), 
@@ -74,12 +96,12 @@ string *file_to_load_tmb)
 {
 
 EmuDcs_launch();
-
+activate();
 // sleep(1);
 }
 
 //========================================================================  
-EmuDcs::EmuDcs() : RepeatNumber(1), OPERATION_ACTIVE(false){
+EmuDcs::EmuDcs() : RepeatNumber(1), OPERATION_ACTIVE(false), Task(""){
 
 file_to_load_cfeb = new string("/home/fast/data/daqmb_config/feb_prom/fcntl_v9_r1.svf");
 file_to_load_vme_chip=new string("/home/fast/data/daqmb_config/mthb_vprom/vme4_v16_r3.svf");
@@ -90,7 +112,7 @@ file_to_load_valct672=new string("/home/fast/data/daqmb_config/alct_vprom/alct67
 file_to_load_tmb=new string("/home/fast/data/daqmb_config/tmb_eprom/tmb2001a_101802.svf");
 
 EmuDcs_launch();
-
+activate();
 }
 //========================================================================  
 void EmuDcs::EmuDcs_launch()
@@ -109,6 +131,8 @@ string *file_to_load_tmb)
   file_to_load_tmb(file_to_load_tmb)
   */
 {
+
+  alct_c=NULL;
 
   EmuDcs::RUN_MODE=1;
 
@@ -169,11 +193,23 @@ string *file_to_load_tmb)
 					      COMMAND_1_MonitorService,REFERENCE_1_MonitorService, RunControlService, this );
 
   DimServer::start("Emu-Dcs Dim Server");
+  /*
+
+  while(1){
+    ::sleep(10);
+    printf("LV_1_COMMAND is SENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!before\n");
+   DimClient::sendCommand("LV_1_COMMAND","all;all|get_data_local");
+    printf("LV_1_COMMAND is SENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");   
 
 
 
+  }
+
+  
 
   signal(SIGALRM,EmuDcs::catchFunction);
+
+  */
 
   /*
   signal(SIGALRM,EmuDcs::catchFunction);
@@ -182,7 +218,9 @@ string *file_to_load_tmb)
   timer_interval.it_interval.tv_usec =0;
   setitimer(ITIMER_REAL,&timer_interval,0);
   */
-  alarm(10); // temporary solution maybe
+
+
+  ///// alarm(5); // temporary solution maybe
 
 }
 //=======================================================================================
@@ -289,11 +327,17 @@ void EmuDcs::catchFunction(int){
 
   if(number_of_hard_resets==2)CRATE_CONFIGURED_NEEDED=false;
   }
-  else
-  DimClient::sendCommand("LV_1_COMMAND","all;all|get_data_local");
+  else{
+    printf("number_of_hard_resets=%d\n",number_of_hard_resets);
+    printf("LV_1_COMMAND is SENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!before\n");
+   DimClient::sendCommand("LV_1_COMMAND","all;all|get_data_local");
+    printf("LV_1_COMMAND is SENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+  }
 
-  alarm(10);
-
+  
+  if(number_of_hard_resets<=2)
+  alarm(5);
+  else alarm(5);
 
 }
 

@@ -16,12 +16,12 @@
 #include <DcsDimStructures.h>
 #include <DcsDimService.h>
 #include <DcsDimCommand.h>
-
+#include "xdaqExecutive.h"
 using namespace std;
 
 class DcsDimCommand;
 
-class EmuDcs : public PeripheralCrateController{
+class EmuDcs : public PeripheralCrateController, public Task{
 
 public:
   
@@ -161,6 +161,9 @@ int current_set;
 
 
 //================================================
+
+// === implemented virtial functions ==================
+int svc();
 
 };
 
