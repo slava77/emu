@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.0 2005/04/12 08:07:05 geurts Exp $
+// $Id: DAQMB.cc,v 2.1 2005/06/06 10:05:51 geurts Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.1  2005/06/06 10:05:51  geurts
+// calibration-related updates by Alex Tumanov and Jason Gilmore
+//
 // Revision 2.0  2005/04/12 08:07:05  geurts
 // *** empty log message ***
 //
@@ -14,6 +17,8 @@
 #include <cmath>
 #include <unistd.h>
 #include "geom.h"
+
+//using namespace std;
 
 #ifndef debugV //silent mode
 #define PRINT(x) 
@@ -77,7 +82,7 @@ DAQMB::~DAQMB() {
 
 void DAQMB::end()
 {
-  std::cout << "calling DAQMB::end" << std::endl;
+  //std::cout << "calling DAQMB::end" << std::endl;
   theController->send_last();
   VMEModule::end();
 }
@@ -93,6 +98,8 @@ void DAQMB::configure() {
       | (inject_delay_ & 0x1F) << 14;
    std::cout << "DAQMB:configure: caldelay " << std::hex << cal_delay_bits << std::dec << std::endl;
    setcaldelay(cal_delay_bits);
+
+ 
    //
    int dav_delay_bits = (feb_dav_delay_    & 0x1F)
       | (tmb_dav_delay_ & 0X1F) << 5
@@ -204,6 +211,8 @@ void DAQMB::setcaldelay(int dword)
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2); 
+  std::cout << "caldelay was set to " << std::hex << dword <<std::dec << std::endl;
+
 }
 
 void DAQMB::setdavdelay(int dword)
@@ -408,6 +417,34 @@ void DAQMB::halfset(int icrd,int ipln,int ihalf,int chan[5][6][16])
 }
 
 
+void  DAQMB::halfset(int ifeb,int ipln,int ihalf)
+{
+  if(ihalf>=0&&ihalf<32){
+    int ichan=ihalf/2;
+    int iside=ihalf-2*ichan;
+    if(iside==0){
+      if(ichan-1>=0) shift_array[ifeb][ipln][ichan-1]=MEDIUM_CAP;
+      if(ichan-1<0&&ifeb-1>=0) shift_array[ifeb-1][ipln][15]=MEDIUM_CAP;
+
+      if(ichan>=0&&ichan<=15) shift_array[ifeb][ipln][ichan]=LARGE_CAP;
+
+      if(ichan+1<=15) shift_array[ifeb][ipln][ichan+1]=SMALL_CAP;
+      if(ichan+1>15&&ifeb+1<5) shift_array[ifeb+1][ipln][0]=SMALL_CAP;
+    }
+    if(iside==1){
+      if(ichan-1>=0) shift_array[ifeb][ipln][ichan-1]=SMALL_CAP;
+      if(ichan-1<0&&ifeb-1>=0) shift_array[ifeb-1][ipln][15]=SMALL_CAP;
+
+      if(ichan>=0&&ichan<=15) shift_array[ifeb][ipln][ichan]=LARGE_CAP;
+
+      if(ichan+1<=15) shift_array[ifeb][ipln][ichan+1]=MEDIUM_CAP;
+      if(ichan+1>15&&ifeb+1<5) shift_array[ifeb+1][ipln][0]=MEDIUM_CAP;
+    }
+  }
+
+}
+
+
 void DAQMB::trigsetx(int *hp)
 {
    
@@ -461,7 +498,7 @@ void DAQMB::chan2shift(int chan[5][6][16])
       for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
 	 int brdn = cfebs_[icfeb].number();
 	 for(int i=0; i<16;i++) {
-	    if ( chan[brdn][lay][i] > 0 ) printf("%c[01;44m", '\033');
+	    if ( chan[brdn][lay][i] > 0 ) printf("%c[01;43m", '\033');
 	    std::cout << chan[brdn][lay][i] << "" ;
 	    printf("%c[0m", '\033'); 
 	 }
@@ -1011,27 +1048,27 @@ int i,j,nchips2;
 }
 
 
-void DAQMB::set_cal_tim(int ntim)
+void DAQMB::set_cal_tim_pulse(int ntim)
+
 {
-int dword;
+  //std::cout<< "setting pulse timing to " << ntim << std::endl;  
+  int dword;
   dword=(CAL_DEF_DELAY)&0x1ff;
   dword=dword|((ntim&0x1f)<<9); 
+  setcaldelay(dword);
 
-  cmd[0]=VTX2_USR1;
-  sndbuf[0]=CAL_DELAY;
-  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX2_USR2;
-  sndbuf[0]=dword&0XFF; 
-  sndbuf[1]=(dword>>8)&0xFF;
-  sndbuf[2]=(dword>>16)&0xFF;
-  devdo(MCTRL,6,cmd,19,sndbuf,rcvbuf,0);
-  cmd[0]=VTX2_USR1;
-  sndbuf[0]=0;
-  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX2_BYPASS;
-  sndbuf[0]=0;
-  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 }
+
+
+void DAQMB::set_cal_tim_inject(int ntim)
+{
+  std::cout<< "setting inject timing to " << ntim << std::endl;
+  int dword;
+  dword=(CAL_DEF_DELAY)&0x3fff;
+  dword=dword|((ntim&0x1f)<<14);
+  setcaldelay(dword);
+}
+  
 
 void DAQMB::toggle_pedestal()
 {

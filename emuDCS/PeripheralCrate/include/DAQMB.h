@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: DAQMB.h,v 2.1 2005/06/06 10:05:50 geurts Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.1  2005/06/06 10:05:50  geurts
+// calibration-related updates by Alex Tumanov and Jason Gilmore
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
@@ -106,11 +109,16 @@ public:
   void set_cal_dac(float volt0,float volt1);
   void buck_shift();
   int buck_shift_test();
-  void set_cal_tim(int ntim);
+
+  void set_cal_tim_pulse(int ntim);
+  void set_cal_tim_inject(int ntim);
+
+
   void toggle_pedestal();
   void pulse(int Num_pulse,unsigned int pulse_delay);
   void inject(int Num_pulse,unsigned int pulse_delay);
   void halfset(int icrd,int ipln,int ihalf,int chan[][6][16]);
+  void halfset(int icrd,int ipln,int ihalf);
   void trigsetx(int *hp);
   void chan2shift(int chan[][6][16]);
 
