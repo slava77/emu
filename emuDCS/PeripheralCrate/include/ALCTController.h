@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: ALCTController.h,v 2.1 2005/06/06 15:17:17 geurts Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.1  2005/06/06 15:17:17  geurts
+// TMB/ALCT timing updates (Martin vd Mey)
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
@@ -8,6 +11,7 @@
 //-----------------------------------------------------------------------
 #ifndef ALCTController_h
 #define ALCTController_h
+
 #include "ALCTClasses.h"
 #include <string>
 #include <bitset>
@@ -124,6 +128,7 @@ public:
       void jam_jtag_flush ();
       void GetConf(  unsigned cr[3], int );
       void SetConf(  unsigned cr[3], int );
+      int  GetWGNumber();
       void packControlRegister(unsigned * cr) const;
       /// fills the relevant data members
       void unpackControlRegister(unsigned * cr);
@@ -478,6 +483,8 @@ public:
   	unsigned long verbose
   );
   
+  ALCTSTATUS DumpFifo();
+
   void set_defaults(alct_params_type *p);
       void show_params(int access_mode, alct_params_type *p);
       
@@ -504,13 +511,16 @@ public:
 			 char TrailerData[8192], int TrailerDataSize, int[] );
   int ReadIDCODE();
   int nAfebs() { return nAFEBs_; }
+  //fg temporarily made public
+    unsigned int delays_[42];
+    int thresholds_[42];
 
   protected:
      // can't have an anodeChannel, since it needs to download 6 delays at a time.
     //std::vector<AnodeChannel> anodeChannels_;
     bool delays_inited_;
-    unsigned int delays_[42];
-    int thresholds_[42];
+    //fg unsigned int delays_[42];
+    //fg int thresholds_[42];
     int alct_trig_mode_;
     int alct_inject_mode_;
     int alct_ext_trig_en_;
@@ -522,11 +532,13 @@ public:
     int alct_fifo_tbins_;
     int alct_l1a_delay_;
     int alct_l1a_window_;
+    int alct_fifo_mode_;
     /// number of hit planes for pretrigger
     int alct_nph_thresh_;
     /// pattern number threshold for trigger
     int alct_nph_pattern_;
     int alct_ccb_enable_;
+    int alct_send_empty_;
     std::string chamber_type_string_;
   
     /// this holds all the other non-congurable parameters.  It probably should disappear someday

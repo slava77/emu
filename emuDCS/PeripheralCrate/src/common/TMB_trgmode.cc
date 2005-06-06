@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_trgmode.cc,v 2.0 2005/04/12 08:07:06 geurts Exp $
+// $Id: TMB_trgmode.cc,v 2.1 2005/06/06 15:17:18 geurts Exp $
 // $Log: TMB_trgmode.cc,v $
+// Revision 2.1  2005/06/06 15:17:18  geurts
+// TMB/ALCT timing updates (Martin vd Mey)
+//
 // Revision 2.0  2005/04/12 08:07:06  geurts
 // *** empty log message ***
 //
@@ -45,6 +48,15 @@ void TMB::trgmode(int choice)
   printf(" Setting ALCT input to %x %x \n",sndbuf[0],sndbuf[1]);
   // Change address
   tmb_vme(VME_WRITE, TMB_ADR_LOOPBK ,sndbuf,rcvbuf, NOW); 
+
+  // Read address back
+  tmb_vme(VME_READ, TMB_ADR_CCB_TRIG ,sndbuf,rcvbuf, NOW); 
+  sndbuf[0]=rcvbuf[0];
+  sndbuf[1]=0;
+  printf(" Disabling L1a_request %x %x \n",sndbuf[0],sndbuf[1]);
+  // Change address
+  tmb_vme(VME_WRITE, TMB_ADR_CCB_TRIG ,sndbuf,rcvbuf, NOW); 
+
 
   // Read address back
   tmb_vme(VME_READ, seq_fifo_adr ,sndbuf,rcvbuf, NOW);

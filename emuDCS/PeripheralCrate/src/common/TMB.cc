@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.0 2005/04/12 08:07:05 geurts Exp $
+// $Id: TMB.cc,v 2.1 2005/06/06 15:17:18 geurts Exp $
 // $Log: TMB.cc,v $
+// Revision 2.1  2005/06/06 15:17:18  geurts
+// TMB/ALCT timing updates (Martin vd Mey)
+//
 // Revision 2.0  2005/04/12 08:07:05  geurts
 // *** empty log message ***
 //
@@ -51,6 +54,64 @@ TMB::~TMB() {
   std::cout << "destructing ALCTController" << std::endl; 
   delete alctController_; 
   std::cout << "destructing TMB" << std::endl;
+}
+
+
+int TMB::ReadRegister(int reg){
+  //
+  tmb_vme(VME_READ,reg,sndbuf,rcvbuf,NOW);
+  //
+  int value = ((rcvbuf[0]&0xff)<<8)|(rcvbuf[1]&0xff);
+  //
+  printf(" TMB.reg=%d %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
+  //
+  return value;
+  //
+}
+
+void TMB::GetTTC(){
+  //
+  sndbuf[0] = 0x0;
+  sndbuf[1] = 0x1;
+  tmb_vme(VME_WRITE,0x9c,sndbuf,rcvbuf,NOW);
+  //
+  sndbuf[0] = 0x6;
+  sndbuf[1] = 0x3;
+  tmb_vme(VME_WRITE,0x9c,sndbuf,rcvbuf,NOW);
+  //
+  sndbuf[0] = 0x0;
+  sndbuf[1] = 0x1;
+  tmb_vme(VME_WRITE,0x9c,sndbuf,rcvbuf,NOW);
+  //
+  tmb_vme(VME_READ,0x9c,sndbuf,rcvbuf,NOW);
+  //
+  printf(" %x %x \n",rcvbuf[0],rcvbuf[1]);
+  //
+  sndbuf[0] = 0x0;
+  sndbuf[1] = 0x1;
+  tmb_vme(VME_WRITE,0x9c,sndbuf,rcvbuf,NOW);
+  //
+  sndbuf[0] = 0x1;
+  sndbuf[1] = 0x3;
+  tmb_vme(VME_WRITE,0x9c,sndbuf,rcvbuf,NOW);
+  //
+  sndbuf[0] = 0x0;
+  sndbuf[1] = 0x1;
+  tmb_vme(VME_WRITE,0x9c,sndbuf,rcvbuf,NOW);
+  //
+  tmb_vme(VME_READ,0x9c,sndbuf,rcvbuf,NOW);
+  //
+  printf(" %x %x \n",rcvbuf[0],rcvbuf[1]);
+  //
+}
+
+void TMB::WriteRegister(int reg, int value){
+  //
+  sndbuf[0] = (value>>8)&0xff;
+  sndbuf[1] = value&0xff;
+  //
+  tmb_vme(VME_WRITE,reg,sndbuf,rcvbuf,NOW);
+  //
 }
 
 
@@ -2086,6 +2147,15 @@ void TMB::SetALCTPatternTrigger(){
    //
 }
 
+void TMB::SetCLCTPatternTrigger(){
+   //
+   sndbuf[0] = 0x0;
+   sndbuf[1] = 0x1;
+   tmb_vme(VME_WRITE,seq_trig_en_adr,sndbuf,rcvbuf,NOW);
+   //
+}
+
+
 int TMB::GetALCTWordCount(){
    //
    tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);
@@ -2387,6 +2457,13 @@ void TMB::activecfeb()
 
 }
 
+void TMB::DumpAddress(int address){
+  //
+  tmb_vme(VME_READ,address,sndbuf,rcvbuf,NOW);
+  //
+  printf(" TMB.Dump %x %x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  //
+}
 
 
 void TMB::toggle_l1req()
@@ -3289,3 +3366,20 @@ void TMB::executeCommand(std::string command) {
 }
 
 
+void TMB::disableAllClocks(){
+  /// disable all clocks to cfeb and alct. Should be used when
+  /// updating the ALCT firmware
+   tmb_vme(VME_READ, vme_step_adr,sndbuf,rcvbuf,NOW);
+   sndbuf[0]=rcvbuf[0] & 0x1f;
+   sndbuf[1]=rcvbuf[1] & 0xf8;
+   tmb_vme(VME_WRITE, vme_step_adr, sndbuf,rcvbuf,NOW);
+}
+
+void TMB::enableAllClocks(){
+  /// enable all clocks to cfeb and alct. Should be used after
+  /// updating the ALCT firmware to get the TMB back in default mode.
+   tmb_vme(VME_READ, vme_step_adr,sndbuf,rcvbuf,NOW);
+   sndbuf[0]=rcvbuf[0] | 0xe0;
+   sndbuf[1]=rcvbuf[1] | 0x07;
+   tmb_vme(VME_WRITE, vme_step_adr, sndbuf,rcvbuf,NOW);
+}

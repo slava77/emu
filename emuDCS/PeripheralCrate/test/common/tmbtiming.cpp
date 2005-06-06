@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.0 2005/04/12 08:07:07 geurts Exp $
+// $Id: tmbtiming.cpp,v 2.1 2005/06/06 15:17:19 geurts Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.1  2005/06/06 15:17:19  geurts
+// TMB/ALCT timing updates (Martin vd Mey)
+//
 // Revision 2.0  2005/04/12 08:07:07  geurts
 // *** empty log message ***
 //
@@ -54,6 +57,7 @@ void ALCTChamberScanning();
 void ALCTSVFLoad();
 void TMBL1aTiming();
 void FindBestL1aAlct();
+void PulseRandomALCT();
 
 int main(int argc,char **argv){
 
@@ -83,6 +87,11 @@ int main(int argc,char **argv){
   bool doLv1TMBTiming(false);
   bool doFindBestL1aALCT(false);
   bool doReadALCTThreshold(false);
+  bool doDumpFifo(false);
+  bool doGetTTC(false);
+  bool doCCBFPGA(false);
+  bool doCCBDLOG(false);
+  bool doReadTMBIDRegister(false);
   //
   //-- read commandline arguments and xml configuration file
   //
@@ -90,7 +99,7 @@ int main(int argc,char **argv){
     for (int i=1;i<argc;i++){
       // help: print usage and exit
       if (!strcmp(argv[i],"-h")){
-	cout << "Usage: " << argv[0] << " [-alct] [-cfeb] [-scope] [-ALCTRawhits] [-TMBRawhits] [-t (time=" 
+	cout << "Usage: " << argv[0] << " [-alct] [-cfeb] [-scope] [-ALCTRawhits] [-TMBRawhits] [-PulseTest] [-Interactive] [-CFEBTiming] [-CFEBChamberScanning] [-ALCTTiming][-t (time=" 
 	     << scantime << ")] [-f (file="<< xmlFile <<")]"
 	     << "[-scint]"<<endl;
 	exit(0);
@@ -156,6 +165,12 @@ int main(int argc,char **argv){
   MPC * thisMPC = thisCrate->mpc();
   DDU * thisDDU = thisCrate->ddu();
   //
+  //thisTMB->DumpAddress(0x2c);
+  //thisCCB->DumpAddress(0x20);
+  //thisCCB->enableCLCT();
+  //thisCCB->disableL1();
+  //
+  //
   //-- Configure the Cosmic Set-up
   cout << "---- Cosmic ParticConfiguration ----"<<endl;
   if (useScint){
@@ -166,34 +181,37 @@ int main(int argc,char **argv){
     // do the test beam configuration manually
     //  based on TestBeamController::configure()
     
-    cout << "-- Configuring CCB --" << endl;
+    //cout << "-- Configuring CCB --" << endl;
     //thisCCB->configure();
     //sleep(1);
 
-    cout << "-- Configuring DMB --" << endl;
+
+
+    //cout << "-- Configuring DMB --" << endl;
     //thisDMB->restoreCFEBIdle(); // keep
     //thisDMB->restoreMotherboardIdle(); //keep
     //thisDMB->configure(); //keep
     
-    cout << "-- Configuring TMB --" << endl;
+    //cout << "-- Configuring TMB --" << endl;
     //thisTMB->configure(); //keep
     
-    cout << "-- Configuring DMB (cont'd)" << endl;
+    //cout << "-- Configuring DMB (cont'd)" << endl;
     //thisDMB->calctrl_fifomrst(); //
     //sleep(1);
 
     cout << "-- Configuring ALCT --" << endl;
     alct = thisTMB->alctController();
+    if (alct) alct->GetWGNumber();
     //if (alct) alct->setup(1);
 
-    cout << "-- Configuring CCB (cont'd)" << endl;
+    //cout << "-- Configuring CCB (cont'd)" << endl;
     //thisCCB->l1CathodeScint();
 
-    cout << "-- Configuring MPC --" << endl;
+    //cout << "-- Configuring MPC --" << endl;
     //if(thisMPC) thisMPC->init();
     //sleep(1);
 
-    cout << "-- Resetting DDU registers (via DCNTRL) " << endl;
+    //cout << "-- Resetting DDU registers (via DCNTRL) " << endl;
     //if(thisDDU) thisDDU->dcntrl_reset();
     //sleep(2);
   }
@@ -206,9 +224,9 @@ int main(int argc,char **argv){
     //tbController.enable();
   } else {
     // do the test beam configuration manually (assuming CCB2001)
-    cout << "-- Enable CCB -- " << endl;
+    //cout << "-- Enable CCB -- " << endl;
     //thisCCB->enable();
-    cout << "-- Re-init MPC" << endl;
+    //cout << "-- Re-init MPC" << endl;
     //if (thisMPC) thisMPC->init();
     //thisCCB->enableCLCT();
 
@@ -219,6 +237,13 @@ int main(int argc,char **argv){
     if (doInteractive) {
        printf("%c7", '\033'); 
        printf("%c8", '\033'); 
+       printf("%c[01;35m", '\033');
+       cout << " 1:TMBScope 2:ALCTRawhits 3:TMBRawhits 4:PulseTest 5:ScopeReadArm" << endl;
+       cout << " 6:ScopeRead 7:ForceScopeTrigger 8:CFEBTiming 9:CFEBChamberScanning" << endl;
+       cout << " 10:PrintCounters 11:ResetCounters 12:PulseRandomALCT 13:ALCTChamberScanning" << endl;
+       cout << " 14:ALCTSVFLoad 15:ReadIDCODE 16:Lv1TMBTiming 17:FindBestL1aALCT 18:ReadALCTThreshold" << endl;
+       cout << " 19:ALCTTiming  20:DumpFifo 21:doGetTTC 22:CCB_FPGA_mode 23:CCB_DLOG_mode" << endl;
+       cout << " 24:ReadTMBIDRegister " << endl;
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
        printf("%c8", '\033'); 
@@ -244,6 +269,12 @@ int main(int argc,char **argv){
        doFindBestL1aALCT     = false;
        doLv1TMBTiming        = false;
        doReadALCTThreshold   = false;
+       doALCTTiming          = false;
+       doDumpFifo            = false;
+       doGetTTC              = false;
+       doCCBFPGA             = false;
+       doCCBDLOG             = false;
+       doReadTMBIDRegister   = false;
        //
        if ( Menu == 1 ) doTMBScope             = true ;
        if ( Menu == 2 ) doALCTRawhits          = true ;
@@ -263,15 +294,62 @@ int main(int argc,char **argv){
        if ( Menu == 16) doLv1TMBTiming         = true ;
        if ( Menu == 17) doFindBestL1aALCT      = true ;
        if ( Menu == 18) doReadALCTThreshold    = true ;
+       if ( Menu == 19) doALCTTiming           = true ;
+       if ( Menu == 20) doDumpFifo             = true ; 
+       if ( Menu == 21) doGetTTC               = true ; 
+       if ( Menu == 22) doCCBFPGA              = true ; 
+       if ( Menu == 23) doCCBDLOG              = true ; 
+       if ( Menu == 24) doReadTMBIDRegister    = true ; 
+       //
+    }
+
+    if (doReadTMBIDRegister) {
+      //
+      printf("TMB ID Register %x \n",thisTMB->ReadRegister(0x02));
+      printf("TMB ID Register %x \n",thisTMB->ReadRegister(0x04));
+      printf("TMB ID Register %x \n",thisTMB->ReadRegister(0x2e));
+      printf("TMB ID Register %x \n",thisTMB->ReadRegister(0x38));
+      thisTMB->WriteRegister(0x9c,0x1);
+      printf("TMB ID Register %x \n",thisTMB->ReadRegister(0x9c));
+      printf("TMB ID Register %x \n",thisTMB->ReadRegister(0x10));
+      //
     }
 
     if (doReadALCTThreshold ) {
+
+      int err;
+      ALCTIDRegister sc_id, chipID ;
+
+      err = alct->alct_read_slowcontrol_id(&sc_id) ;
+      std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
+
       long readval;
       printf("Number of afebs %d \n",alct->nAfebs());
       for (int i=0; i<alct->nAfebs(); i++) {
 	alct->alct_read_thresh(i,&readval);
 	printf("Setting AFEB= %d = %d \n",i,readval);
       }
+      //
+      alct->setup(1);
+      //
+    }
+
+    if (doCCBFPGA) {
+      printf("Setting into FPGA\n");
+      thisCCB->setCCBMode(CCB::VMEFPGA);      
+    }
+
+    if (doCCBDLOG) {
+      printf("Setting into DLOG\n");
+      thisCCB->setCCBMode(CCB::DLOG);      
+    }
+
+    if (doDumpFifo){
+      if (alct) alct->DumpFifo();
+    }
+
+    if ( doGetTTC) {
+      thisTMB->GetTTC();
     }
 
     if (doFindBestL1aALCT){
@@ -324,11 +402,11 @@ int main(int argc,char **argv){
     }
     
     if (doPulseTestStrips){
-       PulseTestStrips();
-       thisTMB->DecodeALCT();
+      PulseRandomALCT();
+      printf("\n WordCount = %x \n",thisTMB->GetALCTWordCount());
     }
   }
-
+  
   if (doReadIDCODE) {
     cout << "Read IDCODE" << endl;
     alct->ReadIDCODE();
@@ -379,13 +457,13 @@ int main(int argc,char **argv){
 
   // done: disable triggering
   cout << "---- Test Beam Disable ----"<<endl;
-  if (useScint)
-    tbController.disable();
-  else {
-    thisCCB->disableL1();
-    thisCCB->disable();
-    sleep(1);
-  }
+  //if (useScint)
+    //tbController.disable();
+    //else {
+      //thisCCB->disableL1();
+      // thisCCB->disable();
+      //sleep(1);
+  //}
   cout<< "---- done ----" << endl;
 
 
@@ -501,42 +579,77 @@ void ALCTSVFLoad(){
 void ALCTChamberScanning(){
    //
    unsigned long HCmask[22];
+   unsigned long HCmask2[22];
    //
    int NPulses = 1;
-   int chamberResult[64];
-   int chamberResult2[64];
-   int InJected[64];
+   int chamberResult[112];
+   int chamberResult2[112];
+   int InJected[112];
    //
-   for ( int keyWG=0; keyWG<64; keyWG++) chamberResult[keyWG] = 0;
-   for ( int keyWG=0; keyWG<64; keyWG++) chamberResult2[keyWG] = 0;
-   for ( int keyWG=0; keyWG<64; keyWG++) InJected[keyWG] = 0;
+   thisTMB->SetALCTPatternTrigger();
+   //
+   for ( int keyWG=0; keyWG<112; keyWG++) chamberResult[keyWG] = 0;
+   for ( int keyWG=0; keyWG<112; keyWG++) chamberResult2[keyWG] = 0;
+   for ( int keyWG=0; keyWG<112; keyWG++) InJected[keyWG] = 0;
    //
    for (int Ninject=0; Ninject<NPulses; Ninject++){
       //
-      for (int keyWG=0; keyWG<32; keyWG++) {
+      for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) {
 	 //
-	 printf("%c[01;41m", '\033');
-	 cout << "Injecting in WG = " << dec << keyWG << endl;
-	 printf("%c[0m", '\033'); 
-	 //
-	 for (int i=0; i<12; i++) {
-	    if ( i%2 == 0 ) {
-	       if (keyWG<32) {
-		  HCmask[i] = 0x1<<keyWG;
-	       } else {
-		  HCmask[i] = 0x1<<(keyWG-32);
-	       }
-	    } else {
-	       if (keyWG<32) {
-		  HCmask[i] = 0x1<<(keyWG) ;
-	       } else {
-		  HCmask[i] = 0x1<<(keyWG-32);
-	       }
-	    }
+	cout << endl;
+	printf("%c[01;43m", '\033');
+	cout << "Injecting in WG = " << dec << keyWG ;
+	printf("%c[0m", '\033'); 
+	cout << endl;
+	//
+	 for (int i=0; i<22; i++) {
+	   HCmask[i] = 0;
+	   HCmask2[i] = 0;
 	 }
-	 alct->alct_write_hcmask(HCmask);
 	 //
+	 bitset<672> bits(*HCmask) ;
+	 //
+	 for (int i=0;i<672;i++){
+	   if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
+	   //if ( i%(alct->GetWGNumber()/6) == (alct->GetWGNumber())/6-keyWG ) bits.set(i);
+	 }
+	 //
+	 bitset<32> Convert;
+	 //
+	 Convert.reset();
+	 //
+	 for (int i=0;i<(alct->GetWGNumber());i++){
+	   if ( bits.test(i) ) Convert.set(i%32);
+	   if ( i%32 == 31 ) {
+	     HCmask[i/32] = Convert.to_ulong();
+	     //printf(" Convert %d %d \n",i,Convert.to_ulong());
+	     Convert.reset();
+	   }
+	 }
+	 /*
+	 for (int i=0; i<12; i++) {
+	   //if ( i%2 == 0 ) {
+	       if (keyWG<32) {
+		 //HCmask[i] = 0x1<<keyWG;
+	       } else {
+		 //HCmask[i] = 0x1<<(keyWG-32);
+	       }
+	       //} else {
+	       //if (keyWG<32) {
+	       // HCmask[i] = 0x1<<(keyWG) ;
+	       //} else {
+	       // HCmask[i] = 0x1<<(keyWG-32);
+	       //}
+	       //}
+	 }
+	 */
+	 //for (int i=0; i<22; i++ ) {
+	 //printf(" %x %x \n",HCmask[i],HCmask2[i]);
+	 //}
+	 //
+	 alct->alct_write_hcmask(HCmask);
 	 alct->alct_read_hcmask(HCmask);
+	 /*
 	 for (int i=0; i<12; i++ ) {
 	    if (i == 0 ) cout << "Layer 0 " ;
 	    for(int j=0; j<32; j++ ) 
@@ -552,50 +665,54 @@ void ALCTChamberScanning(){
 	       if (i+1<12) cout << "Layer " << (i+1)/2 << " ";
 	    }
 	 }
+	 */
+	 //
+	 printf("\n");
+	 for (int i=0; i<(alct->GetWGNumber()); i++) {
+	   if ( i%(alct->GetWGNumber()/6) == 0 ) printf("\n");
+	   if (bits.test(i)) {
+	     printf("|");
+	   } else {
+	     printf("-");
+	   }
+	 }
+	 //
 	 cout << endl;
 	 //
 	 PulseTestStrips();
 	 //
 	 thisTMB->DecodeALCT();
 	 //
-	 if ( thisTMB->GetAlct0FirstKey()  == keyWG && thisTMB->GetAlct0Quality() == 3 ) 
-	    chamberResult[keyWG]++;
-	 if ( thisTMB->GetAlct0FirstKey()  == keyWG+32 && thisTMB->GetAlct0Quality() == 3 ) 
-	    chamberResult[keyWG+32]++;
-	 if ( thisTMB->GetAlct0FirstKey()  == keyWG-32 && thisTMB->GetAlct0Quality() == 3 ) 
-	    chamberResult[keyWG-32]++;
+	 printf("Wordcount %x \n",thisTMB->GetALCTWordCount());
 	 //
-	 if ( thisTMB->GetAlct1SecondKey() == keyWG+32 && thisTMB->GetAlct1Quality() == 3 ) 
-	    chamberResult2[keyWG+32]++;
-	 if ( thisTMB->GetAlct1SecondKey() == keyWG && thisTMB->GetAlct1Quality() == 3 ) 
+	 if ( thisTMB->GetAlct0FirstKey()  == keyWG && thisTMB->GetAlct0Quality() >= 1 ) 
+	    chamberResult[keyWG]++;
+	 //
+	 if ( thisTMB->GetAlct1SecondKey() == keyWG && thisTMB->GetAlct1Quality() >= 1 ) 
 	    chamberResult2[keyWG]++;
-	 if ( thisTMB->GetAlct1SecondKey() == keyWG-32 && thisTMB->GetAlct1Quality() == 3 ) 
-	    chamberResult2[keyWG-32]++;
 	 //
 	 InJected[keyWG]++;
-	 if ( keyWG<32) {
-	    InJected[keyWG+32]++;
-	 } else {
-	    InJected[keyWG-32]++;
-	 }
 	 //
       }
    }
    cout << endl;
-   for (int keyWG=0; keyWG<64; keyWG++) cout << keyWG/10 ;
+   cout << "Wire" << endl;
+   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << keyWG/100 ;
    cout << endl;
-   for (int keyWG=0; keyWG<64; keyWG++) cout << keyWG%10 ;
+   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << ((keyWG/10)%10) ;
+   cout << endl;
+   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << keyWG%10 ;
    cout << endl;
    cout << "InJected" << endl;
-   for (int keyWG=0; keyWG<64; keyWG++) cout << InJected[keyWG] ;
+   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << InJected[keyWG] ;
    cout << endl;
    cout << "CFEBChamberResult" << endl;
-   for (int keyWG=0; keyWG<64; keyWG++) cout << chamberResult[keyWG] ;
+   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << chamberResult[keyWG] ;
    cout << endl;
-   for (int keyWG=0; keyWG<64; keyWG++) cout << chamberResult2[keyWG] ;
+   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << chamberResult2[keyWG] ;
    cout << endl;
    printf("%c[0m", '\033'); 
-}
+   }
 
 void ALCTTiming(){
    //
@@ -604,6 +721,7 @@ void ALCTTiming(){
    int selected2[13][13];
    int selected3[13][13];
    int ALCTWordCount[13][13];
+   int ALCTConfDone[13][13];
    int j,k;
    int alct0_quality = 0;
    int alct1_quality = 0;
@@ -613,8 +731,8 @@ void ALCTTiming(){
    int alct1_key = 0;
    //
    unsigned cr[3]  = {0x80fc5fc0, 0x20a0f786, 0x8}; // Configuration for this test L1a_delay=120 L1a_window=0xf
-   alct->SetConf(cr,1);
-   alct->unpackControlRegister(cr);
+   //alct->SetConf(cr,1);
+   //alct->unpackControlRegister(cr);
    thisTMB->SetALCTPatternTrigger();
    //
    for (j=0;j<maxTimeBins;j++){
@@ -627,53 +745,95 @@ void ALCTTiming(){
    //
    unsigned long HCmask[22];
    //
-   int keyWG = 16;
-   for (int i=0; i<12; i++) {
-      if ( i%2 == 0 ) {
-	 if (keyWG<32) {
-	    HCmask[i] = 0x1<<keyWG;
-	 } else {
-	    HCmask[i] = 0x1<<(keyWG-32);
-	 }
-      } else {
-	 if (keyWG<32) {
-	    HCmask[i] = 0x1<<(keyWG) ;
-	 } else {
-	    HCmask[i] = 0x1<<(keyWG-32);
-	 }
-      }
-   }
-   alct->alct_write_hcmask(HCmask);
-   alct->alct_read_hcmask(HCmask);
+   for (int i=0; i< 22; i++) HCmask[i] = 0;
    //
-   for (int i=0; i<12; i++ ) {
-      if (i == 0 ) cout << "Layer 0 " ;
-      for(int j=0; j<32; j++ ) 
-	 if (((HCmask[i]>>j)&0x1) == 0 ) {
-	    cout <<"-";
-	 } else {
-	    printf("%c[01;44m", '\033');	 
-	    cout <<"|";
-	    printf("%c[0m", '\033'); 
-	 }
-      if ((i+1)%2 == 0 ) {
-	 cout << endl;
-	 if (i+1<12) cout << "Layer " << (i+1)/2 << " ";
-      }
-   }
-   cout << endl;
-//
    for (j=0;j<maxTimeBins;j++){
       for (k=0;k<maxTimeBins;k++) {
-	while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
-	 cout << "Setting k=" << k << " j="<<j << endl;
-	 thisTMB->tmb_clk_delays(k,5) ;
-	 thisTMB->tmb_clk_delays(j,6) ;	 
-	 thisTMB->ResetALCTRAMAddress();
-	 PulseTestStrips();
-	 printf("Decode ALCT\n");
-	 thisTMB->DecodeALCT();
-	 printf("After Decode ALCT\n");
+	//
+	int keyWG  = rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6/4;
+	int keyWG2 = (alct->GetWGNumber())/6-keyWG;
+	int ChamberSection = alct->GetWGNumber()/6;
+	printf("Injecting at %d \n",keyWG);
+	//
+	for (int i=0; i< 22; i++) HCmask[i] = 0;
+	//
+	bitset<672> bits(*HCmask) ;
+	//
+	for (int i=0;i<672;i++){
+	  if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
+	  if ( i%(alct->GetWGNumber()/6) == (alct->GetWGNumber())/6-keyWG ) bits.set(i);
+	}
+	//
+	bitset<32> Convert;
+	//
+	Convert.reset();
+	//
+	for (int i=0;i<(alct->GetWGNumber());i++){
+	  if ( bits.test(i) ) Convert.set(i%32);
+	  if ( i%32 == 31 ) {
+	    HCmask[i/32] = Convert.to_ulong();
+	    //printf(" Convert %d %d \n",i,Convert.to_ulong());
+	    Convert.reset();
+	  }
+	}
+	//
+	/*
+	  for (int i=0; i<(alct->GetWGNumber()/32); i++) {
+	  if ( i%2 == 0 ) {
+	  if (keyWG<ChamberSection) {
+	  HCmask[i] = 0x1<<keyWG;
+	  } else {
+	  HCmask[i] = 0x1<<(keyWG-ChamberSection);
+	  }
+	  } else {
+	  if (keyWG<ChamberSection) {
+	  HCmask[i] = 0x1<<(keyWG) ;
+	  } else {
+	  HCmask[i] = 0x1<<(keyWG-ChamberSection);
+	  }
+	  }
+	  }
+	*/
+	//for (int i=0;i<22;i++) {
+	//
+	//printf(" %02x ",HCmask[i]);
+	//
+	//if ( i%((alct->GetWGNumber())/8/6+1) == 0 ) printf("\n");
+     //
+	//}
+	//
+	printf("\n");
+	//
+	alct->alct_write_hcmask(HCmask);
+	alct->alct_read_hcmask(HCmask);
+	/*
+	  for (int i=0; i<(alct->GetWGNumber())/32; i++ ) {
+	  if (i == 0 ) cout << "Layer 0 " ;
+	  for(int j=0; j<ChamberSection; j++ ) 
+	  if (((HCmask[i]>>j)&0x1) == 0 ) {
+	  cout <<"-";
+	  } else {
+	  printf("%c[01;44m", '\033');	 
+	  cout <<"|";
+	  printf("%c[0m", '\033'); 
+	  }
+	  if ((i+1)%2 == 0 ) {
+	  cout << endl;
+	  if (i+1<(alct->GetWGNumber())/32) cout << "Layer " << (i+1)/2 << " ";
+	  }
+	  }
+	  cout << endl;
+	*/
+	//
+	//while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
+	cout << "Setting k=" << k << " j="<<j << endl;
+	thisTMB->tmb_clk_delays(k,5) ;
+	thisTMB->tmb_clk_delays(j,6) ;	 
+	thisTMB->ResetALCTRAMAddress();
+	PulseTestStrips();
+	printf("Decode ALCT\n");
+	thisTMB->DecodeALCT();
+	printf("After Decode ALCT\n");
 	 //
 	 selected[k][j]  = 0;
 	 selected2[k][j] = 0;
@@ -694,23 +854,59 @@ void ALCTTiming(){
 	   alct0_key         = thisTMB->GetAlct0FirstKey();
 	   alct1_key         = thisTMB->GetAlct1SecondKey();
 	   ALCTWordCount[k][j] = thisTMB->GetALCTWordCount();
+	   ALCTConfDone[k][j]  = thisTMB->ReadRegister(0x38) & 0x1 ;
 	   //
-	   if ( alct0_quality == 3 && alct0_key == 16) selected[k][j]++;
-	   if ( alct1_quality == 3 && alct1_key == 16) selected[k][j]++;
-	   if ( alct0_quality == 3 && alct0_key == 48) selected2[k][j]++;
-	   if ( alct1_quality == 3 && alct1_key == 48) selected2[k][j]++;
-	   if ( (alct0_quality == 3 && alct0_key == 16) &&
-		(alct1_quality == 3 && alct1_key == 16) ) selected3[k][j]++;
-	   if ( (alct0_quality == 3 && alct0_key == 48) &&
-		(alct1_quality == 3 && alct1_key == 48) ) selected3[k][j]++;
-	   if ( (alct0_quality == 3 && alct0_key == 16) &&
-		(alct1_quality == 3 && alct1_key == 48) ) selected3[k][j]++;
-	   if ( (alct0_quality == 3 && alct0_key == 48) &&
-		(alct1_quality == 3 && alct1_key == 16) ) selected3[k][j]++;
+	   if ( alct0_quality == 3 && alct0_key == keyWG) selected[k][j]++;
+	   if ( alct1_quality == 3 && alct1_key == keyWG) selected[k][j]++;
+	   if ( alct0_quality == 3 && alct0_key == keyWG2) selected2[k][j]++;
+	   if ( alct1_quality == 3 && alct1_key == keyWG2) selected2[k][j]++;
+	   if ( (alct0_quality == 3 && alct0_key == keyWG) &&
+		(alct1_quality == 3 && alct1_key == keyWG) ) selected3[k][j]++;
+	   if ( (alct0_quality == 3 && alct0_key == keyWG2) &&
+		(alct1_quality == 3 && alct1_key == keyWG2) ) selected3[k][j]++;
+	   if ( (alct0_quality == 3 && alct0_key == keyWG) &&
+		(alct1_quality == 3 && alct1_key == keyWG2) ) selected3[k][j]++;
+	   if ( (alct0_quality == 3 && alct0_key == keyWG2) &&
+		(alct1_quality == 3 && alct1_key == keyWG) ) selected3[k][j]++;
 	   //
+	   /*
+	   if ( alct0_quality >= 1 ) selected[k][j]++;
+	   if ( alct1_quality >= 1 ) selected[k][j]++;
+	   if ( alct0_quality >= 1 ) selected2[k][j]++;
+	   if ( alct1_quality >= 1 ) selected2[k][j]++;
+	   if ( (alct0_quality >= 1 ) &&
+		(alct1_quality >= 1 ) ) selected3[k][j]++;
+	   if ( (alct0_quality >= 1 ) &&
+		(alct1_quality >= 1 ) ) selected3[k][j]++;
+	   if ( (alct0_quality >= 1 ) &&
+		(alct1_quality >= 1 ) ) selected3[k][j]++;
+	   if ( (alct0_quality >= 1 ) &&
+		(alct1_quality >= 1 ) ) selected3[k][j]++;
+	   */
 	 }	      
       }
    }
+   //
+   cout << "WordCount " << endl;
+   //
+   for (j=0;j<maxTimeBins;j++){
+      for (k=0;k<maxTimeBins;k++) {
+	 printf("%02x ",ALCTWordCount[j][k]&0xffff);
+      }
+      cout << endl;
+   }
+   //
+   cout << endl;
+   cout << "ConfDone " << endl;
+   //
+   for (j=0;j<maxTimeBins;j++){
+      for (k=0;k<maxTimeBins;k++) {
+	 printf("%02x ",ALCTConfDone[j][k]&0xffff);
+      }
+      cout << endl;
+   }
+   //
+   cout << endl;
    //
    cout << endl;
    //
@@ -746,17 +942,22 @@ void ALCTTiming(){
    //
    cout << endl;
    //
-   cout << "WordCount " << endl;
+   cout << "Result " << endl;
    //
    for (j=0;j<maxTimeBins;j++){
       for (k=0;k<maxTimeBins;k++) {
-	 printf("%02x ",ALCTWordCount[j][k]&0xff);
+	 if ( ALCTConfDone[j][k] > 0 ) {
+	   printf("%02x ",(ALCTWordCount[j][k]&0xffff));
+	 } else {
+	   printf("00 ");
+	 }
       }
       cout << endl;
    }
    //
    cout << endl;
    //
+   /*
    cout << "Result " << endl;
    //
    for (j=0;j<maxTimeBins;j++){
@@ -771,7 +972,7 @@ void ALCTTiming(){
       }
       cout << endl;
    }
-   //
+   */
    cout << endl;
    //
    cout << endl;
@@ -783,7 +984,7 @@ void FindBestL1aAlct(){
   //
   thisTMB->SetALCTPatternTrigger();
   unsigned long HCmask[22];
-  //
+  /*
   int keyWG = 16;
   for (int i=0; i<12; i++) {
     if ( i%2 == 0 ) {
@@ -800,9 +1001,8 @@ void FindBestL1aAlct(){
       }
     }
   }
-  alct->alct_write_hcmask(HCmask);
-  alct->alct_read_hcmask(HCmask);
-  //
+  */
+  /*
   for (int i=0; i<12; i++ ) {
     if (i == 0 ) cout << "Layer 0 " ;
     for(int j=0; j<32; j++ ) 
@@ -819,7 +1019,7 @@ void FindBestL1aAlct(){
     }
   }
   cout << endl;
-  //
+  */
   //
   int WordCount[200];
   for (int i=0; i<200; i++) WordCount[i] = 0;
@@ -830,18 +1030,49 @@ void FindBestL1aAlct(){
   //
   alct->GetConf(cr,1);
   //
-  int minlimit = 100;
-  int maxlimit = 130;
+  int minlimit = 50;
+  int maxlimit = 150;
   //
-  for (int i=minlimit; i<maxlimit; i++) {
-    while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
-    cr[1] = (cr[1] & 0xfffff00f) | ((i&0xff)<<4) ;
+  for (int l1a=minlimit; l1a<maxlimit; l1a++) {
+    //
+    //while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
+    //
+    int keyWG = (rand()/(RAND_MAX+0.01))*(alct->GetWGNumber())/6./2.;
+    int ChamberSection = alct->GetWGNumber()/6;
+    //
+    printf("-----> Injecting at %d \n",keyWG);
+    //
+    for (int i=0; i<22; i++) HCmask[i] = 0;
+    //
+    bitset<672> bits(*HCmask) ;
+    //
+    for (int i=0;i<672;i++){
+      if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
+      //if ( i%(alct->GetWGNumber()/6) == (alct->GetWGNumber())/6-keyWG ) bits.set(i);
+    }
+    //
+    bitset<32> Convert;
+    //
+    Convert.reset();
+    //
+    for (int ii=0;ii<(alct->GetWGNumber());ii++){
+      if ( bits.test(ii) ) Convert.set(ii%32);
+      if ( ii%32 == 31 ) {
+	HCmask[ii/32] = Convert.to_ulong();
+	Convert.reset();
+      }
+    }
+    //
+    alct->alct_write_hcmask(HCmask);
+    alct->alct_read_hcmask(HCmask);
+    //
+    cr[1] = (cr[1] & 0xfffff00f) | ((l1a&0xff)<<4) ;
     alct->SetConf(cr,1);
     alct->unpackControlRegister(cr);
     thisTMB->ResetALCTRAMAddress();
     PulseTestStrips();
     thisTMB->DecodeALCT();
-    WordCount[i] = thisTMB->GetALCTWordCount();
+    WordCount[l1a] = thisTMB->GetALCTWordCount();
     printf(" WordCount %d \n",thisTMB->GetALCTWordCount());
   }
   //
@@ -851,46 +1082,126 @@ void FindBestL1aAlct(){
   //
 }
 
+void PulseRandomALCT(){
+  //
+  unsigned long HCmask[22];
+  //
+  for (int i=0; i< 22; i++) HCmask[i] = 0;
+  //
+  int keyWG  = rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6/4;
+  int keyWG2 = (alct->GetWGNumber())/6-keyWG;
+  int ChamberSection = alct->GetWGNumber()/6;
+  //
+  printf("Injecting at %d and %d\n",keyWG,keyWG2);
+  //
+  for (int i=0; i< 22; i++) HCmask[i] = 0;
+  //
+  bitset<672> bits(*HCmask) ;
+  //
+  for (int i=0;i<672;i++){
+    if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
+    if ( i%(alct->GetWGNumber()/6) == (alct->GetWGNumber())/6-keyWG ) bits.set(i);
+  }
+  //
+  bitset<32> Convert;
+  //
+  Convert.reset();
+  //
+  for (int i=0;i<(alct->GetWGNumber());i++){
+    if ( bits.test(i) ) Convert.set(i%32);
+     if ( i%32 == 31 ) {
+       HCmask[i/32] = Convert.to_ulong();
+       Convert.reset();
+     }
+  }
+  //
+  alct->alct_write_hcmask(HCmask);
+  alct->alct_read_hcmask(HCmask);
+  //
+  thisTMB->ResetALCTRAMAddress();
+  PulseTestStrips();
+  printf("Decode ALCT\n");
+  thisTMB->DecodeALCT();
+  //
+}	      
+
+
 void PulseTestStrips(){
-   //
+  //
    int slot = thisTMB->slot();
    //
    if ( alct ) {
       //
+      thisTMB->ResetALCTRAMAddress();
+      thisTMB->SetALCTPatternTrigger();
+     //
+     unsigned cr[3]  = {0x80fc5fc0, 0x20a0f786, 0x8}; // Configuration for this test L1a_delay=120 L1a_window=0xf
+     //
+     //alct->SetConf(cr,1);
+     //alct->unpackControlRegister(cr);
+     //thisTMB->SetALCTPatternTrigger();
+     //
       long int StripMask = 0x3f;
-      long int PowerUp = 1 ;
-      long int Amplitude = 0xff;
+      long int PowerUp   = 1 ;
+      long int Amplitude = 0x3f;
+      //
+       thisTMB->DisableCLCTInputs();
       //
       if ( beginning == 0 ) {
+	//
+	printf("Init \n");
+	//
 	 //
-	 thisTMB->DisableCLCTInputs();
+	  alct->alct_set_test_pulse_amp(&slot,Amplitude);
 	 //
-	 alct->alct_set_test_pulse_amp(&slot,Amplitude);
-	 alct->alct_set_test_pulse_stripmask(&slot,StripMask);
-	 alct->alct_set_test_pulse_powerup(&slot,PowerUp);
-	 //
-	 alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
+	  alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
 	 cout << " StripMask = " << hex << StripMask << endl;
-	 alct->alct_read_test_pulse_powerup(&slot,&PowerUp);
+	 //
+	 //old alct->alct_set_test_pulse_stripmask(&slot,0x3f);
+	 //old alct->alct_set_test_pulse_groupmask(&slot,0xff);
+	 //
+	  alct->alct_set_test_pulse_stripmask(&slot,0x00);
+	  alct->alct_set_test_pulse_groupmask(&slot,0xff);
+	 //
+	  alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
+	 cout << " StripMask = " << hex << StripMask << endl;
+	 //
+	  alct->alct_read_test_pulse_powerup(&slot,&PowerUp);
 	 cout << " PowerUp   = " << hex << PowerUp << endl;
 	 //
-	 alct->alct_fire_test_pulse('s');
+	 alct->alct_fire_test_pulse('a');
+	 //
+	 alct->alct_set_test_pulse_powerup(&slot,1);
 	 //
 	 beginning = 1;
+	 //
 	 PulseTestStrips();
+	 //
       } else {
+	//
+	//alct->alct_set_test_pulse_powerup(&slot,PowerUp);
+	//alct->alct_set_test_pulse_powerup(&slot,0);
+	//
+	thisCCB->setCCBMode(CCB::VMEFPGA);
+	thisCCB->WriteRegister(0x28,0x7878);
+	thisCCB->ReadRegister(0x28);
+	thisCCB->WriteRegister(0x20,0x01);
 	thisCCB->GenerateAlctAdbSync();	 
-      }
+	thisCCB->setCCBMode(CCB::DLOG);
+	//
+	}
       //
    } else {
       cout << " No ALCT " << endl;
    }   
+   //thisCCB->DumpAddress(0x20);
    //
 }
 
 void PulseCFEB(int HalfStrip, int CLCTInputs ){
    //
    thisTMB->DisableCLCTInputs();
+   thisTMB->SetCLCTPatternTrigger();
    //
    thisDMB->set_comp_thresh(0.3);
    thisDMB->set_dac(.5,0);

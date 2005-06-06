@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: TMB.h,v 2.1 2005/06/06 15:17:17 geurts Exp $
 // $Log: TMB.h,v $
+// Revision 2.1  2005/06/06 15:17:17  geurts
+// TMB/ALCT timing updates (Martin vd Mey)
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
@@ -40,8 +43,12 @@ public:
       int  GetWordCount();
       int  GetALCTWordCount();
       void configure();
+      void GetTTC();
+      int  ReadRegister(int);
+      void WriteRegister(int,int);
       void DecodeCLCT();
       void DecodeALCT();
+      void DumpAddress(int);
       void lctrequestdelay(int dword);
       void clear_i2c();
       void clk_delays(unsigned short int time,int cfeb_id);
@@ -64,6 +71,7 @@ public:
       void trgmode(int choice);
       void ResetCounters();
       void SetALCTPatternTrigger();
+      void SetCLCTPatternTrigger();
       /// called by TRGMODE, depending on version_
       void setupNewDelayChips();
       void setupOldDelayChips();
@@ -88,6 +96,7 @@ public:
       std::bitset<22> calCRC22(const std::vector< std::bitset<16> >& datain);
       std::bitset<22> nextCRC22_D16(const std::bitset<16>& D, const std::bitset<22>& C);
       //
+      void SetALCTController(ALCTController* a) {alctController_=a;}
       ALCTController * alctController() const {return alctController_;}
 //      
       int tmb_get_id(struct tmb_id_regs* tmb_id);
@@ -128,6 +137,9 @@ public:
       int GetAlct1Amu()       { return alct1_amu_; }
       int GetAlct1SecondKey() { return alct1_second_key_; }
       int GetAlct1SecondBxn() { return alct1_second_bxn_; }
+      //
+      void enableAllClocks();
+      void disableAllClocks();
       //
    public:
       //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 2.0 2005/04/12 08:07:06 geurts Exp $
+// $Id: TMBParser.cc,v 2.1 2005/06/06 15:17:18 geurts Exp $
 // $Log: TMBParser.cc,v $
+// Revision 2.1  2005/06/06 15:17:18  geurts
+// TMB/ALCT timing updates (Martin vd Mey)
+//
 // Revision 2.0  2005/04/12 08:07:06  geurts
 // *** empty log message ***
 //
@@ -72,6 +75,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, int crateNumber)
 	parser_.fillInt("nph_pattern", alct_->alct_nph_pattern_);
 	parser_.fillInt("ccb_enable", alct_->alct_ccb_enable_);
 	parser_.fillInt("inject_mode", alct_->alct_inject_mode_);
+	parser_.fillInt("send_empty", alct_->alct_send_empty_);
 	parser_.fillString("alct_pattern_file", alct_->alctPatternFile);
                    
 	int number, delay, threshold;
