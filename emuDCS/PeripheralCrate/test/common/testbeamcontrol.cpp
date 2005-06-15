@@ -1,27 +1,13 @@
 //-----------------------------------------------------------------------
-// $Id: testbeamcontrol.cpp,v 2.0 2005/04/12 08:07:07 geurts Exp $
+// $Id: testbeamcontrol.cpp,v 2.1 2005/06/15 13:54:46 geurts Exp $
 // $Log: testbeamcontrol.cpp,v $
+// Revision 2.1  2005/06/15 13:54:46  geurts
+// Changed default run behavior.
+// testbeamcontrol runs a full Configure and Enable. Use -i option for
+// interactive use, including the possibility to execute Disable
+//
 // Revision 2.0  2005/04/12 08:07:07  geurts
 // *** empty log message ***
-//
-// Revision 1.16  2004/10/03 01:55:51  tfcvs
-// various updates at H2a
-//
-// Revision 1.15  2004/09/15 21:44:42  tfcvs
-// New timing routines
-//
-// Revision 1.14  2004/09/14 00:27:07  tfcvs
-// Update files
-//
-// Revision 1.13  2004/05/21 10:05:05  tfcvs
-// *** empty log message ***
-//
-// Revision 1.12  2004/05/20 09:52:23  tfcvs
-// fixed type in CVS keyword
-//
-// Revision 1.11  2004/05/20 09:50:32  tfcvs
-// Introduced "-f" commandline option to set the configuration file.
-// Wait for user input before disabling the TestBeamController. (FG)
 //
 //-----------------------------------------------------------------------
 #include <iostream>
@@ -39,7 +25,8 @@
 
 int main(int argc, char **argv)
 {
-  char *xmlFile = "configTestBeam2004.xml";
+  char *xmlFile = "config.xml";
+  bool doInteractive(false);
 
   // process command line arguments
   if (argc>1)
@@ -49,6 +36,7 @@ int main(int argc, char **argv)
         exit(0);
       }
       if (!strcmp(argv[i],"-f")) xmlFile=argv[++i];
+      if (!strcmp(argv[i],"-i")) doInteractive=true;
     }
 
  
@@ -61,7 +49,7 @@ int main(int argc, char **argv)
   
   std::cout << "Configuring TestBeamController: " << std::endl; 
   tbController.configure();
-  std::cout << "Finished TestBeamCrateController configure" << std::endl;
+  std::cout << "TestBeamCrateController configured." << std::endl;
 
   // Examples of direct access to some modules 
   //DAQMB * daqmb = parser.daqmbParser().daqmb();
@@ -71,25 +59,26 @@ int main(int argc, char **argv)
 
 
   // wait for the user to hit return-key before disabling
-  {
-  std::cout << "Hit Return to continue ..." << std::endl;
-  char wait[10];
-  std::cin.getline(wait,1);
+  if (doInteractive){
+    std::cout << "Hit Return to continue ..." << std::endl;
+    char wait[10];
+    std::cin.getline(wait,1);
   }
 
   std::cout << "Enabling TestBeamCrateController" << std::endl;
   tbController.enable();
-  std::cout << "Finished TestBeamCrateController enable!!!!!!!!!!!!!!!!!!" << std::endl;
+  std::cout << "TestBeamCrateController enabled." << std::endl;
 
   // wait for the user to hit return-key before disabling
-  {
-  std::cout << "Hit Return to continue ..." << std::endl;
-  char wait[10];
-  std::cin.getline(wait,1);
+  if (doInteractive){
+    std::cout << "Hit Return to continue ..." << std::endl;
+    char wait[10];
+    std::cin.getline(wait,1);
+  
+    // only do a disable in the interactive mode
+    tbController.disable();
+    std::cout<< "Finished TestBeamCrateController disable" << std::endl;
   }
-
-  tbController.disable();
-  std::cout<< "Finished TestBeamCrateController disable" << std::endl;
   
   return 0;
 }
