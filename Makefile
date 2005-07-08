@@ -17,7 +17,8 @@ Packages=\
 	emuDCS/e2p \
 	emuDAQ/DDUReadout \
 	emuDAQ/GenericRUI \
-	emuDAQ/EmuRUI
+	emuDAQ/EmuRUI \
+	emuDAQ/TriggerAdapter
 endif
 
 ### specific package target builds
@@ -32,7 +33,8 @@ ifeq ($(Set),emuDAQ)
 Packages= \
 	emuDAQ/DDUReadout \
 	emuDAQ/GenericRUI \
-	emuDAQ/EmuRUI
+	emuDAQ/EmuRUI \
+	emuDAQ/TriggerAdapter
 endif
 
 ifeq ($(Set),emuDQM)

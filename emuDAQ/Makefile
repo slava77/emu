@@ -15,7 +15,8 @@ ifeq ($(Set),framework)
 Packages=\
 	emuDAQ/DDUReadout \
 	emuDAQ/GenericRUI \
-	emuDAQ/EmuRUI
+	emuDAQ/EmuRUI \
+	emuDAQ/TriggerAdapter
 endif
 
 ifeq ($(Set),DDUReadout)
@@ -28,6 +29,10 @@ endif
 
 ifeq ($(Set),EmuRUI)
 Packages= emuDAQ/EmuRUI
+endif
+
+ifeq ($(Set),TriggerAdapter)
+Packages= emuDAQ/TriggerAdapter
 endif
 
 
