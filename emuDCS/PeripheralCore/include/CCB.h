@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.1 2005/06/06 11:10:53 geurts Exp $
+// $Id: CCB.h,v 2.2 2005/07/08 10:29:34 geurts Exp $
 // $Log: CCB.h,v $
+// Revision 2.2  2005/07/08 10:29:34  geurts
+// introduce debug switch to hide debugging messages
+//
 // Revision 2.1  2005/06/06 11:10:53  geurts
 // default power-up mode DLOG. updated for calibration code.
 // direct read/write access to registers
@@ -157,7 +160,7 @@ protected:
 
   bool l1enabled_;
   int mVersion; // CCB version number (2001,2004)
-
+  bool mDebug;
 
 };
 

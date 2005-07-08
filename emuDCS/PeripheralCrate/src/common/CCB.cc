@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.1 2005/06/06 11:10:53 geurts Exp $
+// $Id: CCB.cc,v 2.2 2005/07/08 10:29:34 geurts Exp $
 // $Log: CCB.cc,v $
+// Revision 2.2  2005/07/08 10:29:34  geurts
+// introduce debug switch to hide debugging messages
+//
 // Revision 2.1  2005/06/06 11:10:53  geurts
 // default power-up mode DLOG. updated for calibration code.
 // direct read/write access to registers
@@ -23,7 +26,8 @@ CCB::CCB(int newcrate ,int slot, int version)
   TTC(NO_TTC),
   CLK_INIT_FLAG(0),
   BX_Orbit_(924),
-  SPS25ns_(0)
+  SPS25ns_(0),
+  mDebug(false)
 {
   /// initialize VME registers pointers to the default CCB-version 2001
   if (mVersion == 2001){
@@ -82,7 +86,7 @@ void CCB::pulse(int Num_pulse,unsigned int * delays, char vme)
   if (mCCBMode == (CCB2004Mode_t)CCB::DLOG){
     setCCBMode(CCB::VMEFPGA);
     switchedMode=true;
-    std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for pulse" << std::endl; 
+    if (mDebug) std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for pulse" << std::endl; 
   }
 
    for(int j=0;j<Num_pulse;j++){
@@ -101,7 +105,7 @@ void CCB::pulse(int Num_pulse,unsigned int * delays, char vme)
    }
   if (switchedMode){
     setCCBMode(CCB::DLOG);
-    std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
+    if (mDebug) std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
   };
 
 
@@ -116,7 +120,7 @@ void CCB::pulse() {
   if (mCCBMode == (CCB2004Mode_t)CCB::DLOG){
     setCCBMode(CCB::VMEFPGA);
     switchedMode=true;
-    std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for pulse" << std::endl; 
+    if (mDebug) std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for pulse" << std::endl; 
   }
 
  //use 0x48 for pulse (cal0), 0x4a inject (cal1), 0x4c pedestal (cal2):
@@ -133,7 +137,7 @@ void CCB::pulse() {
 
   if (switchedMode){
     setCCBMode(CCB::DLOG);
-    std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
+    if (mDebug) std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
   };
 
 
@@ -149,7 +153,7 @@ void CCB::pulse(int Num_pulse,unsigned int pulse_delay, char vme)
   if (mCCBMode == (CCB2004Mode_t)CCB::DLOG){
     setCCBMode(CCB::VMEFPGA);
     switchedMode=true;
-    std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for pulse" << std::endl; 
+    if (mDebug) std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for pulse" << std::endl; 
   }
   unsigned int * delays = new unsigned int[Num_pulse];
   for(int i = 0; i <  Num_pulse; ++i) { 
@@ -160,7 +164,7 @@ void CCB::pulse(int Num_pulse,unsigned int pulse_delay, char vme)
 
   if (switchedMode){
     setCCBMode(CCB::DLOG);
-    std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
+    if (mDebug) std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
   };
 
 
@@ -215,7 +219,7 @@ void CCB::GenerateAlctAdbSync(){
      do_vme(VME_WRITE, 0x40, sndbuf,rcvbuf,NOW);
    }
    else{
-     std::cout << "Writing " << std::endl;
+     if (mDebug) std::cout << "Writing " << std::endl;
      do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
      sndbuf[0]=0x00;
      sndbuf[1]=0x00;
@@ -408,7 +412,7 @@ void CCB::enableL1() {
     sndbuf[1]=(rcvbuf[1]&0x07)|(CCB_CSR1_SAV&0xF0);
   }
 
-  std::cout << "CCB: CSRB1=0x" << std::hex 
+  if (mDebug) std::cout << "CCB: CSRB1=0x" << std::hex 
 	    << std::setw(2) << int(sndbuf[0]&0xff) << std::setw(2) 
 	    <<int(sndbuf[1]&0xff) << std::dec << std::endl;
 
