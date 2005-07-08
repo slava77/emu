@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.1 2005/06/06 15:17:17 geurts Exp $
+// $Id: TMB.h,v 2.2 2005/07/08 10:33:31 geurts Exp $
 // $Log: TMB.h,v $
+// Revision 2.2  2005/07/08 10:33:31  geurts
+// allow arbitrary scope trigger channel in TMB::scope()
+//
 // Revision 2.1  2005/06/06 15:17:17  geurts
 // TMB/ALCT timing updates (Martin vd Mey)
 //
@@ -52,7 +55,7 @@ public:
       void lctrequestdelay(int dword);
       void clear_i2c();
       void clk_delays(unsigned short int time,int cfeb_id);
-      void scope(int scp_arm,int scp_readout);
+      void scope(int scp_arm,int scp_readout, int scp_channel=0x1d);
       void decode();
       void ALCTRawhits();
       void TMBRawhits();

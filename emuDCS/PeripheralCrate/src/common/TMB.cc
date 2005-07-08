@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.1 2005/06/06 15:17:18 geurts Exp $
+// $Id: TMB.cc,v 2.2 2005/07/08 10:33:32 geurts Exp $
 // $Log: TMB.cc,v $
+// Revision 2.2  2005/07/08 10:33:32  geurts
+// allow arbitrary scope trigger channel in TMB::scope()
+//
 // Revision 2.1  2005/06/06 15:17:18  geurts
 // TMB/ALCT timing updates (Martin vd Mey)
 //
@@ -435,7 +438,9 @@ LOOPBACK:
 }
 
 
-void TMB::scope(int scp_arm,int scp_readout) {
+
+
+void TMB::scope(int scp_arm,int scp_readout, int scp_channel) {
 
   unsigned int nchannels = 128;
   unsigned int nrams     = nchannels/16;
@@ -643,7 +648,7 @@ void TMB::scope(int scp_arm,int scp_readout) {
 
     //Select channel
     sndbuf[0] = 0x00;
-    sndbuf[1] = 0x1d;
+    sndbuf[1] = scp_channel;
     tmb_vme(VME_WRITE,0xce,sndbuf,rcvbuf,NOW);
 
     //Arm scope for triggering, send scope state to wait_trig
