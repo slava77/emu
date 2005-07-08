@@ -76,7 +76,8 @@ LibraryDirs = \
 
 TestLibraryDirs = \
 	$(DIMDIR)/$(XDAQ_OS) \
-	$(DCSDIR)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+	$(DCSDIR)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
+        $(XDAQ_ROOT)/emu/emuDCS/PeripheralCrate/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
 UserCFlags = -DUSEDSC
 UserCCFlags = -DUSEDCS
@@ -89,7 +90,7 @@ UserExecutableLinkFlags =
 #
 Libraries = xerces-c xdaq log4cplus ptSOAP ptTCP toolbox xoap
 TestLibraries = xerces-c xdaq log4cplus ptSOAP ptTCP toolbox xoap \
-	        dim dcs_emu
+	        dim dcs_emu EmuPeripheralCrate
 
 #
 # Compile the source files and create a shared library

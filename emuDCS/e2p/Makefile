@@ -1,6 +1,6 @@
 ##
 #
-# This is the TriDAS/emu/emuDCS/base Package Makefile
+# This is the TriDAS/emu/emuDCS/e2p Package Makefile
 #
 ##
 
@@ -42,7 +42,9 @@ LibraryDirs = \
 
 TestLibraryDirs = \
 	$(XDAQ_ROOT)/emu/extern/dim/$(XDAQ_OS)$(XDAQ_PLATFORM)/$(XDAQ_OS) \
+	$(XDAQ_ROOT)/emu/emuDCS/e2p/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
 	$(XDAQ_ROOT)/emu/emuDCS/PeripheralCrate/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+
 
 UserCFlags = -DUSEDCS
 UserCCFlags = -DUSEDCS
@@ -55,7 +57,7 @@ UserExecutableLinkFlags =
 #
 Libraries = xerces-c xdaq log4cplus ptSOAP ptTCP toolbox xoap
 TestLibraries = xerces-c xdaq log4cplus ptSOAP ptTCP toolbox xoap \
-                dim EmuPeripheralCrate
+                dim dcs_emu EmuPeripheralCrate
 
 #
 # Compile the source files and create a shared library
