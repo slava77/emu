@@ -1,10 +1,14 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.1 2005/06/06 15:17:19 geurts Exp $
+// $Id: tmbtiming.cpp,v 2.2 2005/08/10 12:54:36 geurts Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.2  2005/08/10 12:54:36  geurts
+// Martin's updates
+//
 // Revision 2.1  2005/06/06 15:17:19  geurts
 // TMB/ALCT timing updates (Martin vd Mey)
 //
 // Revision 2.0  2005/04/12 08:07:07  geurts
+//  updated by M von der Mey sometimes
 // *** empty log message ***
 //
 //
@@ -37,7 +41,7 @@
 #include "DDU.h"
 #include "ALCTController.h"
 #include "CrateSelector.h"
-
+#include "JTAG_constants.h"
 
 using namespace std;
 
@@ -48,16 +52,29 @@ DAQMB* thisDMB ;
 CCB* thisCCB ;
 ALCTController *alct ;
 //
-void CFEBTiming();
+void CFEBTiming(float CFEBMean[5]);
 void PulseCFEB(int HalfStrip = -1, int CLCTInputs = 0x1f );
 void CFEBChamberScanning();
 void PulseTestStrips();
-void ALCTTiming();
+void ALCTTiming(int &,int &);
 void ALCTChamberScanning();
 void ALCTSVFLoad();
-void TMBL1aTiming();
-void FindBestL1aAlct();
+int  TMBL1aTiming();
+int  FindBestL1aAlct();
 void PulseRandomALCT();
+void FindWinner();
+int  FindALCTvpf();
+int  FindTMB_L1A_delay(int,int);
+int  FindALCT_L1A_delay(int,int);
+void Automatic();
+void InitStartSystem();
+int  AdjustL1aLctDMB();
+//
+bool UseCosmic(false);
+bool UsePulsing(true);
+//
+TestBeamCrateController tbController;
+//
 
 int main(int argc,char **argv){
 
@@ -88,10 +105,31 @@ int main(int argc,char **argv){
   bool doFindBestL1aALCT(false);
   bool doReadALCTThreshold(false);
   bool doDumpFifo(false);
-  bool doGetTTC(false);
+  bool doStartTTC(false);
   bool doCCBFPGA(false);
   bool doCCBDLOG(false);
   bool doReadTMBIDRegister(false);
+  bool doReadTMBRegister(false);
+  bool doWriteTMBRegister(false);
+  bool doTMBRegisterDump(false);
+  bool doReadCCBRegister(false);
+  bool doWriteCCBRegister(false);
+  bool doReadDMBRegister(false);
+  bool doWriteDMBRegister(false);
+  bool doReadDMBCounters(false);
+  bool doReadDMB_DAV(false);
+  bool doWriteDMB_DAV(false);
+  bool doFindWinner(false);
+  bool doFindALCTvpf(false);
+  bool doFindTMB_L1A_delay(false);
+  bool doFindALCT_L1A_delay(false);
+  bool doSetDMBtrgsrc(false);
+  bool doInitSystem(false);
+  bool doL1aRequest(false);
+  bool doCCBstartTrigger(false);
+  bool doAutomatic(false);
+  bool doAdjustL1aLctDMB(false);
+  //
   //
   //-- read commandline arguments and xml configuration file
   //
@@ -100,7 +138,7 @@ int main(int argc,char **argv){
       // help: print usage and exit
       if (!strcmp(argv[i],"-h")){
 	cout << "Usage: " << argv[0] << " [-alct] [-cfeb] [-scope] [-ALCTRawhits] [-TMBRawhits] [-PulseTest] [-Interactive] [-CFEBTiming] [-CFEBChamberScanning] [-ALCTTiming][-t (time=" 
-	     << scantime << ")] [-f (file="<< xmlFile <<")]"
+	     << scantime << ")] [-f (file="<< xmlFile <<")]" 
 	     << "[-scint]"<<endl;
 	exit(0);
       }
@@ -117,7 +155,8 @@ int main(int argc,char **argv){
       if (!strcmp(argv[i],"-CFEBTiming")) doCFEBTiming = true;
       if (!strcmp(argv[i],"-CFEBChamberScanning")) doCFEBChamberScanning = true;
       if (!strcmp(argv[i],"-ALCTTiming")) doALCTTiming = true;
-  }
+      if (!strcmp(argv[i],"-Automatic"))  doAutomatic = true;
+    }
   //
   //-- Configure and initialize VME modules
   //
@@ -135,7 +174,7 @@ int main(int argc,char **argv){
     
   //-- Set-up and configure Testbeam 
   cout << " ---- Cosmic Particle Controller ----" << endl;
-  TestBeamCrateController tbController;
+
 
   //-- Make sure that only one TMB in one crate is configured
   CrateSelector selector = tbController.selector();
@@ -202,6 +241,7 @@ int main(int argc,char **argv){
     cout << "-- Configuring ALCT --" << endl;
     alct = thisTMB->alctController();
     if (alct) alct->GetWGNumber();
+
     //if (alct) alct->setup(1);
 
     //cout << "-- Configuring CCB (cont'd)" << endl;
@@ -238,12 +278,21 @@ int main(int argc,char **argv){
        printf("%c7", '\033'); 
        printf("%c8", '\033'); 
        printf("%c[01;35m", '\033');
-       cout << " 1:TMBScope 2:ALCTRawhits 3:TMBRawhits 4:PulseTest 5:ScopeReadArm" << endl;
-       cout << " 6:ScopeRead 7:ForceScopeTrigger 8:CFEBTiming 9:CFEBChamberScanning" << endl;
-       cout << " 10:PrintCounters 11:ResetCounters 12:PulseRandomALCT 13:ALCTChamberScanning" << endl;
-       cout << " 14:ALCTSVFLoad 15:ReadIDCODE 16:Lv1TMBTiming 17:FindBestL1aALCT 18:ReadALCTThreshold" << endl;
-       cout << " 19:ALCTTiming  20:DumpFifo 21:doGetTTC 22:CCB_FPGA_mode 23:CCB_DLOG_mode" << endl;
-       cout << " 24:ReadTMBIDRegister " << endl;
+       cout << "  0:Init System " << endl;
+       cout << "  1:TMBscope              2:ALCTrawhits            3:TMBrawhits        " << endl;      
+       cout << "  4:PulseTest             5:ScopeReadArm           6:ScopeRead         " << endl;
+       cout << "  7:ForceScopeTrigger     8:CFEBtiming             9:CFEBchamberScan   " << endl;
+       cout << " 10:PrintCounters        11:ResetCounters         12:PulseRandomALCT   " << endl;
+       cout << " 13:ALCTchamberScan      14:ALCT_SVF_Load         15:ReadIDcode        " << endl;
+       cout << " 16:L1A_TMBtiming        17:FindBestL1A_ALCT      18:ReadALCTthresh    " << endl;
+       cout << " 19:ALCTtiming           20:DumpFifo              21:TMBStartTrigger   " << endl;
+       cout << " 22:CCB_FPGA_mode        23:CCB_DLOG_mode         24:ReadTMB_IDregister" << endl;
+       cout << " 25:ReadTMBregister      26:WriteTMBregister      27:TMB_CCB_RegDump   " << endl;
+       cout << " 28:ReadCCBregister      29:WriteCCBregister      30:ReadDMBregister   " << endl;
+       cout << " 31:WriteDMBregister     32:ReadDMB_DelCounters   33:ReadDMB_DAVdelays " << endl;
+       cout << " 34:WriteDMB_DAVdelays   35:MPCwinnerScan         36:ALCTvpfScan       " << endl;
+       cout << " 37:TMB_L1Adelayscan     38:SetDMBtrgsrc          39:ALCT_L1Adelayscan " << endl;
+       cout << " 40:EnableL1aRequest     41:CCBstartTrigger       42:AdjustL1aLctDMB   " << endl;
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
        printf("%c8", '\033'); 
@@ -251,6 +300,8 @@ int main(int argc,char **argv){
        int Menu;
        cin >> Menu;
        //
+       doInitSystem     = false;
+       doL1aRequest     = false;
        doTMBScope       = false;
        doALCTRawhits    = false;
        doALCTSVFLoad    = false;
@@ -271,11 +322,29 @@ int main(int argc,char **argv){
        doReadALCTThreshold   = false;
        doALCTTiming          = false;
        doDumpFifo            = false;
-       doGetTTC              = false;
+       doStartTTC            = false;
        doCCBFPGA             = false;
        doCCBDLOG             = false;
-       doReadTMBIDRegister   = false;
+       doReadTMBIDRegister   = false;       
+       doReadTMBRegister     = false;
+       doWriteTMBRegister    = false;
+       doTMBRegisterDump     = false;
+       doReadCCBRegister     = false;    
+       doWriteCCBRegister    = false;
+       doReadDMBRegister     = false;
+       doWriteDMBRegister    = false;
+       doReadDMBCounters     = false;
+       doReadDMB_DAV         = false;
+       doWriteDMB_DAV        = false;
+       doFindWinner          = false;
+       doFindALCTvpf         = false;
+       doFindTMB_L1A_delay   = false;
+       doSetDMBtrgsrc        = false;
+       doFindALCT_L1A_delay  = false;
+       doCCBstartTrigger     = false;
+       doAdjustL1aLctDMB     = false;
        //
+       if ( Menu == 0 ) doInitSystem           = true ;
        if ( Menu == 1 ) doTMBScope             = true ;
        if ( Menu == 2 ) doALCTRawhits          = true ;
        if ( Menu == 3 ) doTMBRawhits           = true ;
@@ -296,27 +365,448 @@ int main(int argc,char **argv){
        if ( Menu == 18) doReadALCTThreshold    = true ;
        if ( Menu == 19) doALCTTiming           = true ;
        if ( Menu == 20) doDumpFifo             = true ; 
-       if ( Menu == 21) doGetTTC               = true ; 
+       if ( Menu == 21) doStartTTC             = true ; 
        if ( Menu == 22) doCCBFPGA              = true ; 
        if ( Menu == 23) doCCBDLOG              = true ; 
        if ( Menu == 24) doReadTMBIDRegister    = true ; 
+       if ( Menu == 25) doReadTMBRegister      = true ; 
+       if ( Menu == 26) doWriteTMBRegister     = true ; 
+       if ( Menu == 27) doTMBRegisterDump      = true ; 
+       if ( Menu == 28) doReadCCBRegister      = true ; 
+       if ( Menu == 29) doWriteCCBRegister     = true ; 
+       if ( Menu == 30) doReadDMBRegister      = true ; 
+       if ( Menu == 31) doWriteDMBRegister     = true ; 
+       if ( Menu == 32) doReadDMBCounters      = true ; 
+       if ( Menu == 33) doReadDMB_DAV          = true ; 
+       if ( Menu == 34) doWriteDMB_DAV         = true ; 
+       if ( Menu == 35) doFindWinner           = true ; 
+       if ( Menu == 36) doFindALCTvpf          = true ; 
+       if ( Menu == 37) doFindTMB_L1A_delay    = true ;
+       if ( Menu == 38) doSetDMBtrgsrc         = true ;
+       if ( Menu == 39) doFindALCT_L1A_delay   = true ;
+       if ( Menu == 40) doL1aRequest           = true ;
+       if ( Menu == 41) doCCBstartTrigger      = true ;
+       if ( Menu == 42) doAdjustL1aLctDMB      = true ;
+       if ( Menu  > 42 | Menu < 0) cout << "Invalid menu choice, try again." << endl << endl;
        //
     }
 
-    if (doReadTMBIDRegister) {
+    if(doAdjustL1aLctDMB){
+      AdjustL1aLctDMB();
+    }
+
+    if (doAutomatic){
+      Automatic();
+    }
+
+    if (doCCBstartTrigger) {
+      thisCCB->startTrigger();
+      thisCCB->bc0();
+    }
+
+    if (doL1aRequest) {
+      thisTMB->EnableL1aRequest();
+      thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
+    }
+
+    if (doFindALCT_L1A_delay) {
       //
-      printf("TMB ID Register %x \n",thisTMB->ReadRegister(0x02));
-      printf("TMB ID Register %x \n",thisTMB->ReadRegister(0x04));
-      printf("TMB ID Register %x \n",thisTMB->ReadRegister(0x2e));
-      printf("TMB ID Register %x \n",thisTMB->ReadRegister(0x38));
-      thisTMB->WriteRegister(0x9c,0x1);
-      printf("TMB ID Register %x \n",thisTMB->ReadRegister(0x9c));
-      printf("TMB ID Register %x \n",thisTMB->ReadRegister(0x10));
+      cout << "Enter lowest ALCT L1A delay value to loop over (bunch crossings, decimal)" << endl;
+      int minlimit;
+      cin >> minlimit;
+      //
+      cout << "Enter highest ALCT L1A delay value to loop over (bunch crossings, decimal)" << endl;
+      int maxlimit;
+      cin >> maxlimit;
+      //
+      int best_alct_l1a = FindALCT_L1A_delay(minlimit,maxlimit);
+      printf("Best Alct L1a %d \n",best_alct_l1a);
       //
     }
 
-    if (doReadALCTThreshold ) {
+    if (doInitSystem) {
+      tbController.configureNoDCS();
+    }
 
+    if (doFindWinner) {
+      FindWinner(); 
+    }
+
+
+    if (doFindALCTvpf) {
+      FindALCTvpf(); 
+    }
+
+    if (doFindTMB_L1A_delay) {
+      //
+      cout << "Enter lowest TMB L1A delay value to loop over (bunch crossings, decimal)" << endl;
+      int idelay_min;
+      cin >> idelay_min;
+      //
+      cout << "Enter highest TMB L1A delay value to loop over (bunch crossings, decimal)" << endl;
+      int idelay_max;
+      cin >> idelay_max;
+      //
+      int L1adelay = FindTMB_L1A_delay( idelay_min, idelay_max );
+      //
+      printf(" L1a delay = %d \n",L1adelay);
+      //
+    }
+    
+    //allows you to set the DMB trigger source value;default is 3 which is
+    //internal L1A and LCT; 0 turns these off
+
+    if (doSetDMBtrgsrc) {
+      int dword;
+      cout << "Input DMB trigger source value in hex (0 turns off internal L1A and LCT)" << endl;
+      cin >> hex >> dword >> dec;
+      thisDMB->settrgsrc(dword);
+      cout << "Have now set DMB trigger source value to: " << hex << dword << dec << endl;
+    } 
+    
+    
+    if (doReadTMBIDRegister) {
+      //
+      cout << endl;
+      printf("TMB ID Reg: addr = 0x2, month day (MMDD) =  %x \n",thisTMB->ReadRegister(0x02));
+      cout << endl;
+      printf("TMB ID Reg: addr = 0x4, year =  %x \n",thisTMB->ReadRegister(0x04));
+      cout << endl;
+      printf("TMB ID Reg: addr = 0x2e, CCB status =  %x \n",thisTMB->ReadRegister(0x2e));
+      cout << endl;
+      printf("TMB ID Reg: addr = 0x38, ALCT seq Control status =  %x \n",thisTMB->ReadRegister(0x38));
+      thisTMB->WriteRegister(0x9c,0x1);
+      cout << endl;
+      printf("TMB ID Reg: addr = 0x9c, CCB TTC command gen =  %x \n",thisTMB->ReadRegister(0x9c));
+      cout << endl;
+      printf("TMB ID Reg: addr = 0x10, UserJTAG =  %x \n",thisTMB->ReadRegister(0x10));
+      cout << endl;
+      //
+    }
+
+
+    // Read arbitrary TMB register: caution, if register doesn't exist, can cause problem(?)
+    // JH and DM 26-jun-05
+    // use hex for everything (duh)
+
+    if (doReadTMBRegister) {           
+      cout << "Enter TMB register address (hex)" << endl;
+      int TMBRegAddr;
+      cin >> hex >> TMBRegAddr >> dec;            // Make sure to return to decimal mode
+      int TMBRegValue  = thisTMB->ReadRegister(TMBRegAddr) ;
+      printf("TMB register Address= %x     value=0x %x \n",TMBRegAddr,TMBRegValue);
+      cout << endl  << endl;
+    }
+
+
+    // Write arbitrary TMB register: caution, can of course cause all kinds of problems
+    // JH and DM 26-jun-05
+    // use hex for everything (duh)
+
+    if (doWriteTMBRegister) {           
+      cout << "Caution: can cause serious problems, proceed with caution" << endl;
+      cout << "Enter TMB register address (hex)" << endl;
+
+      int TMBRegAddr;
+      cin >> hex >> TMBRegAddr >> dec;  // Make sure to return to decimal mode after reading
+
+      int TMBRegValue  = thisTMB->ReadRegister(TMBRegAddr) ;
+      printf("TMB register Address= %x     read initial value=0x %x \n",TMBRegAddr,TMBRegValue);
+
+      cout << "Enter data value to write (hex, <=4 characters, i.e. 16 bits)" << endl;
+      int TMBRegWriteData;
+      cin >> hex >> TMBRegWriteData >> dec;  // Make sure to return to decimal mode after reading
+
+      cout << "Echo desired write data=" << hex << TMBRegWriteData << dec << endl;
+
+      thisTMB->WriteRegister(TMBRegAddr,TMBRegWriteData);
+
+      TMBRegValue  = thisTMB->ReadRegister(TMBRegAddr) ;
+      printf("TMB register Address= %x     read back written value=0x %x \n",TMBRegAddr,TMBRegValue);
+
+      cout << endl  << endl;
+    }
+
+    // Reads all TMB registers and part (the first 12) of the CCB  registers 
+    // JH and DM 26-jun-05
+    // use hex for everything (duh)
+
+    if (doTMBRegisterDump) { 
+      //this part does a complete register dump of the TMB registers
+
+      string TMBregname[]={"ADR_IDREG0","ADR_IDREG1","ADR_IDREG2","ADR_IDREG3", "ADR_VME_STATUS",
+			"ADR_VME_ADR0","ADR_VME_ADR1",
+			"ADR_LOOKBK","ADR_USR_JTAG","ADR_PROM","ADR_DDDSM","ADR_DDD0","ADR_DDD1",
+			"ADR_DDD2","ADR_DDD0E",
+			"ADR_RATCTRL","ADR_STEP","ADR_LED","ADR_ADC","ADR_DSN","ADR_MOD_CFG",
+			"ADR_CCB_CFG","ADR_CCB_TRIG",
+			"ADR_CCB_STAT","ADR_ALCT_CFG","ADR_ALCT_INJ","ADR_ALCT0_INJ","ADR_ALCT1_INJ",
+			"ADR_ALCT_STAT",
+			"ADR_ALCT0_RCD","ADR_ALCT1_RCD","ADR_ALCT_FIFO","ADR_DMB_MON","ADR_CFEB_INJ",
+			"ADR_CFEB_INJ_ADR",
+			"ADR_CFEB_INJ_WDATA","ADR_CFEB_INJ_RDATA","ADR_HCM001","ADR_HCM023",
+			"ADR_HCM045","ADR_HCM101",
+			"ADR_HCM123","ADR_HCM145","ADR_HCM201","ADR_HCM223","ADR_HCM245","ADR_HCM301",
+			"ADR_HCM323",
+			"ADR_HCM345","ADR_HCM401","ADR_HCM423","ADR_HCM445","ADR_SEQ_TRIG_EN",
+			"ADR_SEQ_TRIG_DLYO",
+			"ADR_SEQ_TRIG_DLY1",
+			"ADR_SEQ_ID","ADR_SEQ_CLCT","ADR_SEQ_FIFO","ADR_SEQ_L1A","ADR_SEQ_OFFSET",
+			"ADR_SEQ_CLCT0",
+			"ADR_SEQ_CLCT1",
+			"ADR_SEQ_TRIG_SRC","ADR_DMB_RAM_ADR","ADR_DMB_RAM_WDATA","ADR_DMB_RAM_WDCNT",
+			"ADR_DMB_RAM_RDATA","ADR_TMB_TRIG","ADR_MPC0_FRAME0","ADR_MPC0_FRAME1",
+			"ADR_MPC1_FRAME0","ADR_MPC1_FRAME1",
+			"ADR_MPC_INJ","ADR_MPC_RAM_ADR","ADR_MPC_RAM_WDATA","ADR_MPC_RAM_RDATA",
+			"ADR_SCP_CTRL","ADR_SCP_RDATA",
+                        "ADR_CCB_CMD","ADR_BUF_STAT","ADR_SRLPGM","ADR_ALCT_F1F01","ADR_ALCT_F1F02",
+			"ADR_ADJCFEB0",
+			"ADR_ADJCFEB1",
+			"ADR_ADJCFEB2","ADR_SEQMOD","ADR_SEQSM","ADR_SEQCLCTM","ADR_TMBTIM",
+			"ADR_LHC_CYCLE","ADR_RPC_CFG",
+			"ADR_RPC_RDATA", "ADR_RPC_RAW_DELAY","ADR_RPC_INJ","ADR_RPC_INJ_ADR",
+			"ADR_RPC_INJ_WDATA","ADR_RPC_INJ_RDATA",
+			"ADR_RPC_BXN_DIFF","ADR_RPC0_HCM","ADR_RPC1_HCM","ADR_RPC2_HCM","ADR_RPC3_HCM",
+			"ADR_SCP_TRIG","ADR_CNT_CTRL",
+			"ADR_CNT_RDATA"};
+
+      string TMBdescription[]={"ID Register 0","ID Register 1","ID Register 2","ID Register 3",
+			    "VME Status Register",
+			       "VME Address read-back","VME Address read-back","Loop-back Register",
+			    "User JTAG","PROM",
+			       "3D3444 State Machine Reg + Clock DCMs","3D3444 Delay Chip 0",
+			    "3D3444 Delay Chip 1",
+			       "3D3444 Delay Chip 2","3D3444 Delay Chip Output Enables",
+			    "RAT Module Control","Step Register",
+			       "Front Panel + On-board LEDs",
+			       "ADCs","Digital Serials","TMB Configurations","CCB Configurations",
+			    "CCB Trigger Control",
+			       "CCB Status","ALCT Configurations","ALCT Injector Control",
+			    "ALCT Injected ALCT0","ALCT Injected ALCT1",
+			       "ALCT Sequencer Control/Status","ALCT LCT0 Received by TMB",
+			    "ALCT LCT1 Received by TMB",
+			       "ALCT FIFO RAM Status","DMB Monitored signals","CFEB Injector Control",
+			    "CFEB Injector RAM address",
+			       "CFEB Injector Write Data","CFEB Injector Read Data",
+			       "CFEB0 Ly0,Ly1 Hot Channel Mask","CFEB0 Ly2,Ly3 Hot Channel Mask",
+			    "CFEB0 Ly4,Ly5 Hot Channel Mask",
+			       "CFEB1 Ly0,Ly1 Hot Channel Mask","CFEB1 Ly2,Ly3 Hot Channel Mask",
+			    "CFEB1 Ly4,Ly5 Hot Channel Mask",
+			       "CFEB2 Ly0,Ly1 Hot Channel Mask","CFEB2 Ly2,Ly3 Hot Channel Mask",
+			    "CFEB2 Ly4,Ly5 Hot Channel Mask",
+			       "CFEB3 Ly0,Ly1 Hot Channel Mask","CFEB3 Ly2,Ly3 Hot Channel Mask",
+			    "CFEB3 Ly4,Ly5 Hot Channel Mask",
+			       "CFEB4 Ly0,Ly1 Hot Channel Mask","CFEB4 Ly2,Ly3 Hot Channel Mask",
+			    "CFEB4 Ly4,Ly5 Hot Channel Mask",
+			       "Sequencer Trigger Source Enables","Sequencer Trigger Source Delays",
+			    "Sequencer Trigger Source Delays",
+			       "Sequencer Board + CSC ID","Sequencer CLCT Configuration",
+			    "Sequencer FIFO Configuration",
+			       "Sequencer L1A Configuration","Sequencer Counter Offsets",
+			    "Sequencer Latched CLCT0",
+			       "Sequencer Latched CLCT1","Sequencer Trigger Source Read-back",
+			    "Sequencer RAM Address",
+			       "Sequencer RAM Write Data","Sequencer RAM Word Count",
+			    "Sequencer RAM Read Data",
+			       "TMB Trigger Configuration/MPC Accept",
+			       "MPC0 Frame 0 Data sent to MPC","MPC0 Frame 1 Data sent to MPC",
+			    "MPC1 Frame 0 Data sent to MPC",
+			       "MPC1 Frame 1 Data sent to MPC","MPC Injector Control",
+			    "MPC Injector RAM address",
+			       "MPC Injector RAM Write Data","MPC Injector RAM Read Data",
+			    "Scope control","Scope read data",
+			       "CCB TTC Command Generator","Buffer Status","SRL LUT Program",
+			    "ALCT Raw hits RAM Control",
+			       "ALCT Raw hits RAM data","CFEB Adjacent hs Mask lsbs",
+			    "CFEB Adjacent hs Mask msbs",
+			       "CFEB Adjacent ds Mask",
+			       "Sequencer Trigger Modifiers","Sequencer Machine State",
+			    "Sequencer CLCT msbs",
+			       "TMB Timing for ALCT*CLCT coincidence","LHC Cycle period, Maximum BXN+1",
+			       "RPC Configuration","RPC Sync Mode Read Data","RPC Raw Hits Delay",
+			    "RPC Injector Control",
+			       "Injector RAM Address","RPC Injector Write Data","RPC Injector Read Data",
+			       "RPC BXN Differnces",
+			       "RPC0 Hot Chamber Mask","RPC1 Hot Chamber Mask","RPC2 Hot Chamber Mask",
+			    "RPC3 Hot Chamber Mask",
+			       "Scope Trigger Source Channel","Status Counter Control","Status Counter Data"};
+
+      int j;
+      int reg_value=0;
+      cout << "All TMB Registers" << endl;
+      for (j=0;j<106;j++) {
+      reg_value = thisTMB->ReadRegister(j*2); //comment this line out to work with code when register can't be read
+	printf("addr= %02x   value= %04x  name= %s  \'%s\' \n", j*2,
+	     reg_value, TMBregname[j].c_str(),TMBdescription[j].c_str() );
+          }
+      cout << endl;
+
+      //Now let's do a partial dump of the CCB register...just the first 12 registers
+
+      int CCBaddr[]={0x0,0x2,0x4,0x20,0x22, 0x24,0x26,0x28,0x2a,0x2c,0x2e};
+      string CCBname[]={"CSRA1 (control/status register), discrete logic",
+			    "CSRA2 (status register), discrete logic",
+			    "CSRA3 (status register), discrete logic",
+			    "CSRB1 (control register), FPGA",
+			    "CSRB2 (command bus), FPGA",
+			    "CSRB3 (data bus), FPGA",
+			    "CSRB4 (general purpose R/W register, future use), FPGA",
+			    "CSRB5 (delay register), FPGA",
+			    "CSRB6 (control register), FPGA",
+			    "CSRB7 (QPLL control register), FPGA",
+			    "CSRB8 (general purpose R/W register, future use), FPGA",
+			    "CSRB9 (status register, serial ID chip), FPGA"};
+
+      cout << "First 12 CCB Registers" << endl;
+      int i;
+      int CCBreg_value=0;
+
+      for (i=0;i<11;i++) {
+      CCBreg_value = thisCCB->ReadRegister(CCBaddr[i]); //comment this line out to work with code when register can't be read
+	printf("addr= %02x   value= %04x  name= %s \n",
+	     CCBaddr[i], CCBreg_value, CCBname[i].c_str() );
+          }
+      cout << endl;
+
+
+
+  }
+
+    //
+    /* 
+           int j;
+      for (j=0;j<106;j++) {
+	cout << "address= "<< hex << setw(18) << j*2 << dec
+	     << "            register value="<< hex << setw(19) << thisTMB->ReadRegister(j*2)<<dec << endl;
+	cout <<"register name= " << setw(18) << regname[j]
+	     << "      description= " << setw(25) << description[j] << endl;
+	cout << endl;
+        }
+      cout << endl;
+  }
+    */
+    //
+
+    // Read arbitrary CCB register: caution, if register doesn't exist, can cause problem(?)
+    // JH and DM 1-july-05
+    // use hex for everything (duh)
+
+    if (doReadCCBRegister) {           
+      cout << "Enter CCB register address (hex)" << endl;
+      int CCBRegAddr;
+      cin >> hex >> CCBRegAddr >> dec;            // Make sure to return to decimal mode
+      int CCBRegValue  = thisCCB->ReadRegister(CCBRegAddr) ;
+      printf("CCB register Address= %02x     value=0x %04x \n",CCBRegAddr,CCBRegValue);
+      cout << endl  << endl;
+    }
+
+    // Write arbitrary CCB register: caution, can of course cause all kinds of problems
+    // JH and DM 26-jun-05
+    // use hex for everything
+
+    if (doWriteCCBRegister) {           
+      cout << "Caution: can cause serious problems, proceed with caution. CAUTION!" << endl;
+      cout << "Enter CCB register address (hex)" << endl;
+
+      int CCBRegAddr;
+      cin >> hex >> CCBRegAddr >> dec;  // Make sure to return to decimal mode after reading
+
+      int CCBRegValue  = thisCCB->ReadRegister(CCBRegAddr) ;
+      printf("CCB register Address= %02x     read initial value=0x %04x \n",CCBRegAddr,CCBRegValue);
+
+      cout << "Enter data value to write (hex, <=4 characters, i.e. 16 bits)" << endl;
+      int CCBRegWriteData;
+      cin >> hex >> CCBRegWriteData >> dec;  // Make sure to return to decimal mode after reading
+
+      cout << "Echo desired write data=" << hex << CCBRegWriteData << dec << endl;
+
+      thisCCB->WriteRegister(CCBRegAddr,CCBRegWriteData);
+
+      CCBRegValue  = thisCCB->ReadRegister(CCBRegAddr) ;
+      printf("CCB register Address= %02x     read back written value=0x %04x \n",CCBRegAddr,CCBRegValue);
+
+      cout << endl  << endl;
+    }
+
+
+    // Read arbitrary DMB register: caution, if register doesn't exist, can cause problem(?)
+    // JH and DM 12-july-05
+    // use hex for everything
+
+    if (doReadDMBRegister) { 
+      cout << "function not implemented" << endl;
+    /*          
+      cout << "Enter DMB register address (hex)" << endl;
+      int DMBRegAddr;
+      cin >> hex >> DMBRegAddr >> dec;            // Make sure to return to decimal mode
+      int DMBRegValue  = thisDMB->ReadRegister(DMBRegAddr) ;
+      printf("DMB register Address= %x     value=0x %x \n",DMBRegAddr,DMBRegValue);
+      cout << endl  << endl;
+    */
+      }
+    
+
+    // Write arbitrary DMB register: caution, can of course cause all kinds of problems
+    // JH and DM 12-july-05
+    // use hex for everything
+
+    if (doWriteDMBRegister) {           
+      cout << "function not implemented" << endl;
+      
+      /*
+      cout << "Caution: can cause serious problems, proceed with caution. Caution!" << endl;
+      cout << "Enter DMB register address (hex)" << endl;
+
+      int DMBRegAddr;
+      cin >> hex >> DMBRegAddr >> dec;  // Make sure to return to decimal mode after reading
+
+      int DMBRegValue  = thisDMB->ReadRegister(DMBRegAddr) ;
+      printf("DMB register Address= %x     read initial value=0x %x \n",DMBRegAddr,DMBRegValue);
+
+      cout << "Enter data value to write (hex, <=4 characters, i.e. 16 bits)" << endl;
+      int DMBRegWriteData;
+      cin >> hex >> DMBRegWriteData >> dec;  // Make sure to return to decimal mode after reading
+
+      cout << "Echo desired write data=" << hex << DMBRegWriteData << dec << endl;
+
+      thisDMB->WriteRegister(DMBRegAddr,MBRegWriteData);
+
+      DMBRegValue  = thisDMB->ReadRegister(DMBRegAddr) ;
+      printf("DMB register Address= %x     read back written value=0x %x \n",DMBRegAddr,DMBRegValue);
+
+      cout << endl  << endl;
+      */
+    }
+
+   
+    
+    
+    if (doReadDMBCounters) {
+      //
+      thisDMB->readtiming();
+      //
+      printf("  L1A to LCT delay: %d", thisDMB->GetL1aLctCounter()  ); printf(" CMS clock cycles \n");
+      printf("  CFEB DAV delay:   %d", thisDMB->GetCfebDavCounter() ); printf(" CMS clock cycles \n");
+      printf("  TMB DAV delay:    %d", thisDMB->GetTmbDavCounter()  ); printf(" CMS clock cycles \n");
+      printf("  ALCT DAV delay:   %d", thisDMB->GetAlctDavCounter() ); printf(" CMS clock cycles \n");
+      //
+    }
+    
+    
+    if (doReadDMB_DAV) {
+      cout << "Function not implemented" << endl;
+      //     DAQMB::readdavdelay()
+    }
+    
+    if (doWriteDMB_DAV) {
+      cout << "Function not implemented" << endl;
+      //     DAQMB::setdavdelay()
+    }
+    
+    
+    
+    if (doReadALCTThreshold ) {
+      
       int err;
       ALCTIDRegister sc_id, chipID ;
 
@@ -348,8 +838,8 @@ int main(int argc,char **argv){
       if (alct) alct->DumpFifo();
     }
 
-    if ( doGetTTC) {
-      thisTMB->GetTTC();
+    if ( doStartTTC) {
+      thisTMB->StartTTC();
     }
 
     if (doFindBestL1aALCT){
@@ -394,13 +884,15 @@ int main(int argc,char **argv){
     }
     
     if (doCFEBTiming){
-       CFEBTiming();
+      float CFEBMean[5];
+      CFEBTiming(CFEBMean);
     }
     
     if (doALCTTiming){
-       ALCTTiming();
+      int RXphase, TXphase;
+      ALCTTiming(RXphase,TXphase);
     }
-    
+
     if (doPulseTestStrips){
       PulseRandomALCT();
       printf("\n WordCount = %x \n",thisTMB->GetALCTWordCount());
@@ -413,12 +905,17 @@ int main(int argc,char **argv){
   }
     
   if (doLv1TMBTiming){
-     TMBL1aTiming();
+     int L1aTMB = TMBL1aTiming();
   }
-
+  int scp_channel;
   if (doScopeReadArm){
-     cout << "Arm Scope" << endl;
-     thisTMB->scope(1,0);
+     cout << "Arm Scope: select channel (suggest 1d) in hex:" << endl;
+     cin >> hex >> scp_channel >> dec;
+     // scanf("%x", &scp_channel);
+     if(scp_channel > 127 | scp_channel < 0)
+       cout << "Invalid channel selected" << endl;
+     else
+       thisTMB->scope(1,0,scp_channel);
   }
 
   if (doScopeRead){
@@ -569,13 +1066,217 @@ int main(int argc,char **argv){
   
   
 }
-
+//
+void InitStartSystem(){
+  //
+  tbController.configureNoDCS();          // Init system
+  thisTMB->StartTTC();
+  thisTMB->EnableL1aRequest();
+  thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
+  //
+}
+//
+int AdjustL1aLctDMB(){
+  //
+  thisDMB->readtiming();
+  //
+  if ( thisDMB->GetL1aLctCounter() == 0 ) {
+    printf("Need to enable DMB \n");
+    return 0;
+  }
+  //
+  for( int l1a=80; l1a<120; l1a++) {
+    thisCCB->SetL1aDelay(l1a);
+    sleep(2);
+    thisDMB->readtiming();
+    printf(" ************ L1a lct counter l1a=%d Counter=%d \n ",l1a,thisDMB->GetL1aLctCounter());
+  }
+  //
+  return 0;
+  //
+}
+//
+void Automatic(){
+  //
+  ////////////////////////////////////////////////////////////// Do CFEB phases
+  //
+  InitStartSystem();
+  //
+  float CFEBMean[5];
+  //
+  CFEBTiming(CFEBMean);
+  //
+  for( int CFEBs=0; CFEBs<5; CFEBs++ ) printf(" %f ",CFEBMean[CFEBs]);
+  printf("\n");
+  //
+  //////////////////////////////////////////////////////////////// Do ALCT phases
+  //
+  InitStartSystem();
+  //
+  // Now set new CFEB phases
+  //
+  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(CFEBMean[CFEBs],CFEBs) ;
+  //
+  int ALCT_L1a_delay_pulse = 110;
+  //
+  int ALCTRXphase = 0 ;
+  int ALCTTXphase = 0 ;
+  //
+  while ( ALCTRXphase == 0 && ALCTTXphase == 0 ) {
+    //
+    ALCT_L1a_delay_pulse += 5;
+    // 
+    unsigned cr[3];
+    alct->GetConf(cr,1);
+    cr[1] = (cr[1] & 0xfffff00f) | ((ALCT_L1a_delay_pulse&0xff)<<4) ;
+    alct->SetConf(cr,1);
+    alct->unpackControlRegister(cr);
+    //
+    ALCTTiming(ALCTRXphase,ALCTTXphase);
+    //
+    printf("ALCT RX=%d TX=%d \n",ALCTRXphase,ALCTTXphase);
+    //
+    printf("ALCT_L1a_delay = %d \n",ALCT_L1a_delay_pulse);
+    // 
+    //int input;
+    //cin >> input ;
+    //
+  }
+  //
+  printf("ALCT_L1a_delay = %d \n",ALCT_L1a_delay_pulse);
+  //
+  ////////////////////////////////////////////////////////////////// Do TMB L1a timing
+  //
+  // Init System again
+  //
+  InitStartSystem();
+  //
+  // Now set new CFEB phases
+  //
+  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(CFEBMean[CFEBs],CFEBs) ;
+  //
+  // Now set new ALCT phases
+  //
+  thisTMB->tmb_clk_delays(ALCTRXphase,5) ;
+  thisTMB->tmb_clk_delays(ALCTTXphase,6) ;	 
+  //
+  int TMB_L1a_timing = TMBL1aTiming(); // Use pulsing
+  //
+  // Init System again
+  //
+  InitStartSystem();
+  //
+  // Now set new CFEB phases
+  //
+  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(CFEBMean[CFEBs],CFEBs) ;
+  //
+  // Now set new ALCT phases
+  //
+  thisTMB->tmb_clk_delays(ALCTRXphase,5) ;
+  thisTMB->tmb_clk_delays(ALCTTXphase,6) ;	 
+  //
+  int TMB_L1a_delay = FindTMB_L1A_delay(50,150); // Use real data
+  //
+  printf(" TMB_l1a_timing=%d TMB_L1a_delay=%d \n ",TMB_L1a_timing, TMB_L1a_delay);
+  //
+  //int input;
+  //cin >> input;
+  //
+  ////////////////////////////////////////////////////////////////////// Do ALCT L1a timing
+  //
+  InitStartSystem();
+  //
+  // Now set new CFEB phases
+  //
+  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(CFEBMean[CFEBs],CFEBs) ;
+  //
+  // Now set new ALCT phases
+  //
+  thisTMB->tmb_clk_delays(ALCTRXphase,5) ;
+  thisTMB->tmb_clk_delays(ALCTTXphase,6) ;	 
+  //
+  // Now set L1a TMB delay
+  //
+  thisTMB->lvl1_delay(TMB_L1a_delay);
+  //
+  int Find_ALCT_L1a_delay = FindBestL1aAlct(); // Use pulsing
+  //
+  InitStartSystem();
+  //
+  // Now set new CFEB phases
+  //
+  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(CFEBMean[CFEBs],CFEBs) ;
+  //
+  // Now set new ALCT phases
+  //
+  thisTMB->tmb_clk_delays(ALCTRXphase,5) ;
+  thisTMB->tmb_clk_delays(ALCTTXphase,6) ;	 
+  //
+  // Now set L1a TMB delay
+  //
+  thisTMB->lvl1_delay(TMB_L1a_delay);
+  //
+  int ALCT_L1a_delay = FindALCT_L1A_delay(50,150); // Use real data
+  //
+  printf("ALCT delay %d %d \n",Find_ALCT_L1a_delay,ALCT_L1a_delay); 
+  //
+  //int input2;
+  //cin >> input2;
+  //
+  //////////////////////////////////////////////////////////////////////// Get alct vpf
+  //
+  InitStartSystem();
+  //
+  // Now set new CFEB phases
+  //
+  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(CFEBMean[CFEBs],CFEBs) ;
+  //
+  // Now set new ALCT phases
+  //
+  thisTMB->tmb_clk_delays(ALCTRXphase,5) ;
+  thisTMB->tmb_clk_delays(ALCTTXphase,6) ;	 
+  //
+  // Now set L1a TMB delay
+  //
+  thisTMB->lvl1_delay(TMB_L1a_delay);
+  //
+  // Now set L1a ALCT delay
+  //
+  unsigned cr[3];
+  alct->GetConf(cr,1);
+  cr[1] = (cr[1] & 0xfffff00f) | ((ALCT_L1a_delay&0xff)<<4) ;
+  alct->SetConf(cr,1);
+  alct->unpackControlRegister(cr);
+  //
+  int ALCTvpf = FindALCTvpf(); // Use data for this
+  //
+  ////////////////////////////////////////////////////////////////////////////////////// Result
+  //
+  // Result
+  // 
+  printf("******************** End result ********************\n");
+  printf("CFEB phases : \n");
+  for( int CFEBs=0; CFEBs<5; CFEBs++) printf("CFEBs%d= %f ",CFEBs,CFEBMean[CFEBs]);
+  printf("\n");
+  printf("ALCT phases    : ");
+  printf("        ALCT RX=%d TX=%d \n",ALCTRXphase,ALCTTXphase);  
+  printf("TMB L1a delay  : ");
+  printf("        TMB_L1a_delay=%d \n",TMB_L1a_delay);
+  printf("ALCT L1a delay : ");
+  printf("        ALCT_L1a_delay=%d ",ALCT_L1a_delay);
+  if (ALCT_L1a_delay == 0 ) printf(" *** Failed *** ") ;
+  printf("\n");
+  printf("ALCTvpf        : ");
+  printf("        ALCTvpf=%d \n",ALCTvpf);
+  //
+}
+//
 void ALCTSVFLoad(){
   int jch = 3;
   char* filename="/home/fastcosmic/Erase.svf";
   alct->NewSVFLoad(&jch,filename,10);
 }
-
+//
 void ALCTChamberScanning(){
    //
    unsigned long HCmask[22];
@@ -714,7 +1415,7 @@ void ALCTChamberScanning(){
    printf("%c[0m", '\033'); 
    }
 
-void ALCTTiming(){
+void ALCTTiming( int & RXphase, int & TXphase ){
    //
    int maxTimeBins(13);
    int selected[13][13];
@@ -730,9 +1431,8 @@ void ALCTTiming(){
    int alct0_key = 0;
    int alct1_key = 0;
    //
-   unsigned cr[3]  = {0x80fc5fc0, 0x20a0f786, 0x8}; // Configuration for this test L1a_delay=120 L1a_window=0xf
-   //alct->SetConf(cr,1);
-   //alct->unpackControlRegister(cr);
+   alct->set_empty(1);
+   //
    thisTMB->SetALCTPatternTrigger();
    //
    for (j=0;j<maxTimeBins;j++){
@@ -887,21 +1587,27 @@ void ALCTTiming(){
       }
    }
    //
-   cout << "WordCount " << endl;
+   cout << "WordCount  (tx vs. rx)   tx ---->" << endl;
    //
    for (j=0;j<maxTimeBins;j++){
+     cout << " rx =" << j << ": ";
       for (k=0;k<maxTimeBins;k++) {
-	 printf("%02x ",ALCTWordCount[j][k]&0xffff);
+	if ( ALCTWordCount[j][k] >0 ) printf("%c[01;35m", '\033');	 
+	printf("%02x ",ALCTWordCount[j][k]&0xffff);
+	printf("%c[01;0m", '\033');	 
       }
       cout << endl;
    }
    //
    cout << endl;
-   cout << "ConfDone " << endl;
+   cout << "ConfDone (tx vs. rx)   tx ----> " << endl;
    //
    for (j=0;j<maxTimeBins;j++){
+     cout << " rx =" << j << ": ";
       for (k=0;k<maxTimeBins;k++) {
-	 printf("%02x ",ALCTConfDone[j][k]&0xffff);
+	if ( ALCTConfDone[j][k] >0 ) printf("%c[01;35m", '\033');	 
+	printf("%02x ",ALCTConfDone[j][k]&0xffff);
+	printf("%c[01;0m", '\033');	 
       }
       cout << endl;
    }
@@ -910,8 +1616,9 @@ void ALCTTiming(){
    //
    cout << endl;
    //
-   cout << "Selected 1 " << endl;
+   cout << "Selected 1 (tx vs. rx)   tx ----> " << endl;
    for (j=0;j<maxTimeBins;j++){
+     cout << " rx =" << j << ": ";
       for (k=0;k<maxTimeBins;k++) {
 	 cout << selected[j][k] << " " ;
       }
@@ -920,9 +1627,10 @@ void ALCTTiming(){
    //
    cout << endl;
    //
-   cout << "Selected 2 " << endl;
+   cout << "Selected 2 (tx vs. rx)   tx ----> " << endl;
    //
    for (j=0;j<maxTimeBins;j++){
+     cout << " rx =" << j << ": ";
       for (k=0;k<maxTimeBins;k++) {
 	 cout << selected2[j][k] << " " ;
       }
@@ -931,9 +1639,10 @@ void ALCTTiming(){
    //
    cout << endl;
 //
-   cout << "Selected 3 " << endl;
+   cout << "Selected 3 (tx vs. rx)   tx ----> " << endl;
    //
    for (j=0;j<maxTimeBins;j++){
+     cout << " rx =" << j << ": ";
       for (k=0;k<maxTimeBins;k++) {
 	 cout << selected3[j][k] << " " ;
       }
@@ -942,43 +1651,51 @@ void ALCTTiming(){
    //
    cout << endl;
    //
-   cout << "Result " << endl;
+   cout << "Result (tx vs. rx)   tx ----> " << endl;
+   //
+   float meanX  = 0;
+   float meanXn = 0;
+   float meanY  = 0;
+   float meanYn = 0;
    //
    for (j=0;j<maxTimeBins;j++){
+     printf(" rx = %02d : ",j);   
       for (k=0;k<maxTimeBins;k++) {
-	 if ( ALCTConfDone[j][k] > 0 ) {
-	   printf("%02x ",(ALCTWordCount[j][k]&0xffff));
-	 } else {
-	   printf("00 ");
-	 }
+  	if ( ALCTConfDone[j][k] > 0 ) {
+	  if ( ALCTWordCount[j][k] >0 ) printf("%c[01;35m", '\033');	 
+	  printf("%02x ",(ALCTWordCount[j][k]&0xffff));
+	  printf("%c[01;0m", '\033');	 
+	  if ( ALCTWordCount[j][k] >0 ) {
+	    meanX += k;
+	    meanXn++;
+	    meanY += j;
+	    meanYn++;
+	  }
+	} else {
+	  int myprintout = 0;
+	  printf("%02x ",0x00 );
+	}
       }
       cout << endl;
    }
    //
-   cout << endl;
+   meanX /= meanXn+0.0001;
+   meanY /= meanYn+0.0001;
    //
-   /*
-   cout << "Result " << endl;
+   printf(" \n Best Setting TX=%f RX=%f \n",meanX ,meanY);
    //
-   for (j=0;j<maxTimeBins;j++){
-      for (k=0;k<maxTimeBins;k++) {
-	 if ( selected3[j][k] ) {
-	    if(ALCTWordCount[j][k]) printf("%c[01;35m", '\033');	 
-	    printf("%04d ",ALCTWordCount[j][k]&0xffff);
-	    printf("%c[01;0m", '\033');	 
-	 } else {
-	    printf("%04d ",0x0);
-	 }
-      }
-      cout << endl;
-   }
-   */
    cout << endl;
    //
    cout << endl;
+   //
+   cout << endl;
+   //
+   TXphase = meanX ;
+   RXphase = meanY ;
    //
 }
-void FindBestL1aAlct(){
+//
+int FindBestL1aAlct(){
   //
   // Now find the best L1a_delay value for the ALCT
   //
@@ -1040,6 +1757,7 @@ void FindBestL1aAlct(){
     int keyWG = (rand()/(RAND_MAX+0.01))*(alct->GetWGNumber())/6./2.;
     int ChamberSection = alct->GetWGNumber()/6;
     //
+    printf("\n");
     printf("-----> Injecting at %d \n",keyWG);
     //
     for (int i=0; i<22; i++) HCmask[i] = 0;
@@ -1080,7 +1798,83 @@ void FindBestL1aAlct(){
     printf(" Value = %d WordCount = %x \n",i,WordCount[i]);
   }
   //
+  float DelayBin  = 0;
+  int   DelayBinN = 0;
+  int   flag      = 0;
+  //
+  for (int i=maxlimit; i>minlimit; i--){
+    //
+    if (flag == 1 && WordCount[i] == 0 ) break;
+    //
+    if ( WordCount[i]>0 ) {
+      //
+      //printf("Including %d \n",i);
+      //
+      flag = 1;
+      DelayBin  += i ;
+      DelayBinN ++;
+    }
+    //
+  }
+  //
+  printf(" DelayBin=%f DelaybinN=%d \n",DelayBin,DelayBinN);
+  //
+  DelayBin /= (DelayBinN+0.0001) ;
+  //
+  return DelayBin;
+  //
 }
+//
+int FindALCT_L1A_delay(int minlimit, int maxlimit){
+  //
+  unsigned cr[3];
+  //
+  alct->GetConf(cr,1);
+  //
+  int WordCount[200];
+  for (int i=0; i<200; i++) WordCount[i] = 0;
+  //
+  for (int l1a=minlimit; l1a<maxlimit+1; l1a++) {
+    //
+    cr[1] = (cr[1] & 0xfffff00f) | ((l1a&0xff)<<4) ;
+    alct->SetConf(cr,1);
+    alct->unpackControlRegister(cr);
+    thisTMB->ResetCounters();
+    thisTMB->ResetALCTRAMAddress();
+    sleep(6);
+    thisTMB->GetCounters();
+    //
+    cout << endl;
+    printf("L1a ALCT delay %d : \n",l1a);
+    //
+    thisTMB->PrintCounters(3);
+    thisTMB->DecodeALCT();
+    WordCount[l1a] = thisTMB->GetALCTWordCount();
+    printf(" WordCount %d \n",thisTMB->GetALCTWordCount());
+    //
+  }
+  float DelayBin  = 0;
+  int   DelayBinN = 0;
+  //
+  for (int i=maxlimit; i>minlimit; i--){
+    //
+    if ( WordCount[i]>0 ) {
+      DelayBin  += i ;
+      DelayBinN ++;
+    }
+    //
+  }
+  //
+  printf(" DelayBin=%f DelaybinN=%d \n",DelayBin,DelayBinN);
+  //
+  DelayBin /= (DelayBinN+0.0001) ;
+  //
+  printf("In.Best L1a ALCT delay %f \n",DelayBin);
+  //
+  return DelayBin;
+  //
+}
+
 
 void PulseRandomALCT(){
   //
@@ -1129,6 +1923,7 @@ void PulseRandomALCT(){
 void PulseTestStrips(){
   //
    int slot = thisTMB->slot();
+   int TMBtime(1);
    //
    if ( alct ) {
       //
@@ -1167,7 +1962,7 @@ void PulseTestStrips(){
 	 cout << " StripMask = " << hex << StripMask << endl;
 	 //
 	  alct->alct_read_test_pulse_powerup(&slot,&PowerUp);
-	 cout << " PowerUp   = " << hex << PowerUp << endl;
+	  cout << " PowerUp   = " << hex << PowerUp << dec << endl; //11July05 DM added dec
 	 //
 	 alct->alct_fire_test_pulse('a');
 	 //
@@ -1183,17 +1978,27 @@ void PulseTestStrips(){
 	//alct->alct_set_test_pulse_powerup(&slot,0);
 	//
 	thisCCB->setCCBMode(CCB::VMEFPGA);
-	thisCCB->WriteRegister(0x28,0x7878);
+	thisCCB->WriteRegister(0x28,0x7862);  //4Aug05 DM changed 0x789b to 0x7862
+	                                        //July05 changed 0x7878 to 0x789b
+	
+	                                      
+	//
+	//cout <<"Enter 78 then l1a delay time (in hex)" <<  endl;
+	//cin >> hex >>  TMBtime;
+	//thisCCB->WriteRegister(0x28,TMBtime);      //5July05 DM allows you to write in CCB reg value
+	                                           //in option 12, but since option 19 calls this also.... 
+	//cout <<"TMBtime is " << TMBtime << dec << endl;
+	//
 	thisCCB->ReadRegister(0x28);
 	thisCCB->WriteRegister(0x20,0x01);
 	thisCCB->GenerateAlctAdbSync();	 
-	thisCCB->setCCBMode(CCB::DLOG);
+	thisCCB->setCCBMode(CCB::DLOG);  
 	//
 	}
       //
    } else {
       cout << " No ALCT " << endl;
-   }   
+   }  
    //thisCCB->DumpAddress(0x20);
    //
 }
@@ -1307,99 +2112,304 @@ void CFEBChamberScanning(){
       cout << endl;
    }
 }
-
-void TMBL1aTiming(){
-   //
-   int wordcounts[200];
-   int nmuons = 1;
-   //
-   for (int delay=0;delay<200;delay++) wordcounts[delay] = 0;
-   //
-   int minlimit = 110;
-   int maxlimit = 140;
-   //
-   for( int delay=minlimit; delay<maxlimit; delay++){
-     //
-     printf("delay %d\n",delay);
-     //
-      thisTMB->lvl1_delay(delay);
+//
+int TMBL1aTiming(){
+  //
+  int wordcounts[200];
+  int nmuons = 1;
+  //
+  for (int delay=0;delay<200;delay++) wordcounts[delay] = 0;
+  //
+  int minlimit = 100;
+  int maxlimit = 130;
+  //
+  float RightTimeBin = 0;
+  int   DataCounter  = 0;
+  //
+  for( int delay=minlimit; delay<maxlimit; delay++){
+    //
+    printf("delay %d\n",delay);
+    //
+    thisTMB->lvl1_delay(delay);
+    //
+    for (int Nmuons=0; Nmuons<nmuons; Nmuons++){
+      while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
+      thisTMB->ResetRAMAddress();
+      if ( UseCosmic ) sleep(2);
+      if ( UsePulsing) PulseCFEB(16,0xa);
+      wordcounts[delay] += thisTMB->GetWordCount();
+      printf(" WordCount %d \n",thisTMB->GetWordCount());
+    }
+  }
+  //
+  for (int delay=minlimit;delay<maxlimit;delay++){
+    if ( wordcounts[delay] > 0 ) {
+      RightTimeBin += delay ;
+      DataCounter++ ;
+    }
+    printf("delay = %d wordcount = %d wordcount/nmuons %d \n",delay,wordcounts[delay],wordcounts[delay]/(nmuons));
+  }
+  //
+  RightTimeBin /= float(DataCounter) ;
+  //
+  printf("Right L1a delay setting is %f \n",RightTimeBin);
+  //
+  return RightTimeBin ;
+  //
+}
+//
+void CFEBTiming(float CFEBMean[5]){
+  //
+  int MaxTimeDelay=13;
+  //
+  int Muons[5][MaxTimeDelay];
+  //
+  for(int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++) {
+    for(int CFEBs=0; CFEBs<5; CFEBs++) {
+      Muons[CFEBs][TimeDelay] = 0;
+    }
+   }
+  //
+  for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){
+    //
+    cout << " Setting TimeDelay to " << TimeDelay << endl;
+    //
+    thisTMB->tmb_clk_delays(TimeDelay,0) ;
+    thisTMB->tmb_clk_delays(TimeDelay,1) ;
+    thisTMB->tmb_clk_delays(TimeDelay,2) ;
+    thisTMB->tmb_clk_delays(TimeDelay,3) ;
+    thisTMB->tmb_clk_delays(TimeDelay,4) ;
+    //
+    int CLCTInputList[3] = {0x1,0xa,0x14};
+    //
+    for (int List=0; List<3; List++){
       //
-      for (int Nmuons=0; Nmuons<nmuons; Nmuons++){
-	while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
-	thisTMB->ResetRAMAddress();
-	PulseCFEB(16,0xa);
-	wordcounts[delay] += thisTMB->GetWordCount();
-	//printf(" WordCount %d \n",thisTMB->GetWordCount());
+      for (int Nmuons=0; Nmuons<10; Nmuons++){
+	//
+	PulseCFEB(16,CLCTInputList[List]);
+	//
+	thisTMB->DiStripHCMask(16/4-1); // counting from 0;
+	//
+	cout << " TimeDelay " << TimeDelay << " CLCTInput " 
+	     << CLCTInputList[List] << " Nmuons " << Nmuons << endl;
+	  //
+	int clct0cfeb = thisTMB->GetCLCT0Cfeb();
+	int clct1cfeb = thisTMB->GetCLCT1Cfeb();
+	int clct0nhit = thisTMB->GetCLCT0Nhit();
+	int clct1nhit = thisTMB->GetCLCT1Nhit();
+	int clct0keyHalfStrip = thisTMB->GetCLCT0keyHalfStrip();
+	int clct1keyHalfStrip = thisTMB->GetCLCT1keyHalfStrip();
+	//
+	cout << " clct0cfeb " << clct0cfeb << " clct1cfeb " << clct1cfeb << endl;
+	cout << " clct0nhit " << clct0nhit << " clct1nhit " << clct1nhit << endl;
+	//
+	if ( clct0nhit == 6 && clct0keyHalfStrip == 16 ) Muons[clct0cfeb][TimeDelay]++;
+	if ( clct1nhit == 6 && clct1keyHalfStrip == 16 ) Muons[clct1cfeb][TimeDelay]++;
+	//
       }
-   }
-   //
-   for (int delay=minlimit;delay<maxlimit;delay++){
-      printf("delay = %d wordcount = %d wordcount/nmuons %d \n",delay,wordcounts[delay],wordcounts[delay]/(nmuons));
-   }
-   //
+    }
+  }
+  //
+  //float CFEBMean[5];
+  //
+  float CFEBMeanN[5];
+  //
+  //
+  cout << endl;
+  printf("TimeDelay ");
+  for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++) printf(" %03d ",TimeDelay);
+  printf("\n");
+  for (int CFEBs=0; CFEBs<5; CFEBs++) {
+    cout << "CFEB Id=" << CFEBs << " " ;
+    for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){ 
+      if ( Muons[CFEBs][TimeDelay] > 0  ) printf("%c[01;35m", '\033');	 
+      if ( Muons[CFEBs][TimeDelay] > 0  ) {
+	CFEBMean[CFEBs]  += TimeDelay  ; 
+	 CFEBMeanN[CFEBs] += 1 ; 
+      }
+      printf(" %03d ",Muons[CFEBs][TimeDelay]);
+      printf("%c[01;0m", '\033');	 
+    }     
+    cout << endl;
+  }   
+  //
+  cout << endl ;
+  //
+  for( int CFEBs=0; CFEBs<5; CFEBs++) {
+    CFEBMean[CFEBs] /= CFEBMeanN[CFEBs]+0.0001 ;
+    printf(" %f ",CFEBMean[CFEBs]);
+  }
+  //
+  cout << endl;
+  cout << endl;
+  //
+}
+//
+void FindWinner(){
+  //
+  thisCCB->setCCBMode(CCB::VMEFPGA);
+  //
+  //thisTMB->alct_match_window_size_ = 3;
+  //thisTMB->alct_vpf_delay_ = 3;
+  //
+  for (int i = 5; i < 11; i++){
+    //
+    //thisTMB->alct_match_window_size_ = i;
+    //
+    thisTMB->mpc_delay(i);
+    //
+    //thisTMB->trgmode(1);
+    //
+    thisTMB->ResetCounters();
+    //
+    //thisCCB->startTrigger();
+    //thisCCB->bx0();
+    //
+    if ( UseCosmic  ) sleep(2);
+    //
+    //if ( UsePulsing ) PulseCFEB(16,0xa);
+    //
+    //thisCCB->stopTrigger();
+    //
+    thisTMB->GetCounters();
+    //
+    //thisTMB->PrintCounters();
+    //
+    cout << "mpc_delay_ =  " << i << endl;
+    //
+    thisTMB->PrintCounters(8);
+    thisTMB->PrintCounters(16);
+    thisTMB->PrintCounters(17);
+  }
+  //
+  //thisCCB->setCCBMode(CCB::DLOG);      
+  //
+}
+//
+int FindALCTvpf(){
+  //
+  // thisCCB->setCCBMode(CCB::VMEFPGA);
+  // Not really necessary:
+  // thisTMB->alct_match_window_size_ = 3;
+  //
+  float RightTimeBin = 0;
+  int   DataCounter  = 0;
+  //
+  int MaxTimeBin   = 8;
+     //
+  for (int i = 0; i < MaxTimeBin; i++){
+    //
+    cout << endl << "ALCT_vpf_delay=" << i << endl;
+    //
+    thisTMB->alct_vpf_delay(i);// loop over this
+    //thisTMB->trgmode(1);         // 
+    thisTMB->ResetCounters();    // reset counters
+    //thisCCB->startTrigger();     // 2 commands to get trigger going
+    //thisCCB->bx0();
+    sleep(2);                   // accumulate statistics
+    //if (UsePulsing) PulseCFEB(16,0xa);
+    //thisCCB->stopTrigger();      // stop trigger
+    thisTMB->GetCounters();      // read counter values
+    //
+    //thisTMB->PrintCounters();    // display them to screen
+    //
+    thisTMB->PrintCounters(8);
+    thisTMB->PrintCounters(10);
+    //
+    if ( thisTMB->GetCounter(10) > 0 ) {
+      RightTimeBin += i ;
+      DataCounter++;
+    }
+    //
+  }
+  
+  RightTimeBin /= float(DataCounter) ;
+  
+  printf("Best Setting is %f \n",RightTimeBin);
+  
+  printf("\n");
+     
+  return RightTimeBin ;
+
 }
 
-void CFEBTiming(){
-   //
-   int MaxTimeDelay=13;
-   //
-   int Muons[5][MaxTimeDelay];
-   //
-   for(int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++) {
-      for(int CFEBs=0; CFEBs<5; CFEBs++) {
-	 Muons[CFEBs][TimeDelay] = 0;
-      }
-   }
-   //
-   for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){
-      //
-      cout << " Setting TimeDelay to " << TimeDelay << endl;
-      //
-      thisTMB->tmb_clk_delays(TimeDelay,0) ;
-      thisTMB->tmb_clk_delays(TimeDelay,1) ;
-      thisTMB->tmb_clk_delays(TimeDelay,2) ;
-      thisTMB->tmb_clk_delays(TimeDelay,3) ;
-      thisTMB->tmb_clk_delays(TimeDelay,4) ;
-      //
-      int CLCTInputList[3] = {0x1,0xa,0x14};
-      //
-      for (int List=0; List<3; List++){
-	 //
-	 for (int Nmuons=0; Nmuons<10; Nmuons++){
-	    //
-	    PulseCFEB(16,CLCTInputList[List]);
-	    //
-	    cout << " TimeDelay " << TimeDelay << " CLCTInput " 
-		 << CLCTInputList[List] << " Nmuons " << Nmuons << endl;
-	    //
-	    int clct0cfeb = thisTMB->GetCLCT0Cfeb();
-	    int clct1cfeb = thisTMB->GetCLCT1Cfeb();
-	    int clct0nhit = thisTMB->GetCLCT0Nhit();
-	    int clct1nhit = thisTMB->GetCLCT1Nhit();
-	    int clct0keyHalfStrip = thisTMB->GetCLCT0keyHalfStrip();
-	    int clct1keyHalfStrip = thisTMB->GetCLCT1keyHalfStrip();
-	    //
-	    cout << " clct0cfeb " << clct0cfeb << " clct1cfeb " << clct1cfeb << endl;
-	    cout << " clct0nhit " << clct0nhit << " clct1nhit " << clct1nhit << endl;
-	    //
-	    if ( clct0nhit == 6 && clct0keyHalfStrip == 16 ) Muons[clct0cfeb][TimeDelay]++;
-	    if ( clct1nhit == 6 && clct1keyHalfStrip == 16 ) Muons[clct1cfeb][TimeDelay]++;
-	    //
-	 }
-      }
-   }
-   //
-   cout << endl;
-   for (int CFEBs=0; CFEBs<5; CFEBs++) {
-      cout << "CFEB Id=" << CFEBs << " " ;
-      for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++) 
-	 cout << " " << Muons[CFEBs][TimeDelay]  ;
-      cout << endl;
-   }
-   //
-   cout << endl;
-   //
+
+int FindTMB_L1A_delay( int idelay_min, int idelay_max ){
+  
+  //bool useCCB = false; // if using TTC for L1A and start trig, bc0, set to false
+  //cout << "Value of useCCB is" << useCCB <<endl;
+  
+  //if (useCCB) thisCCB->setCCBMode(CCB::VMEFPGA);
+  // Not really necessary:
+  //     thisTMB->alct_match_window_size_ = 3;
+
+  float RightTimeBin = 0;
+  int   DataCounter  = 0;
+
+  for (int i = idelay_min; i < idelay_max+1; i++){
+    
+    //thisTMB->l1adelay_ = i;// loop over this
+    //
+    thisTMB->lvl1_delay(i);
+    //
+    // thisTMB->trgmode(1);         // 
+    //
+    thisTMB->ResetCounters();    // reset counters
+    //if (useCCB) thisCCB->startTrigger();     // 2 commands to get trigger going
+    //if (useCCB) thisCCB->bx0();
+    cout << endl << "TMB_l1adelay=" << i << ":" << endl;
+    sleep(3);                   // accumulate statistics
+    //if (useCCB) thisCCB->stopTrigger();      // stop trigger
+    thisTMB->GetCounters();      // read counter values
+    
+    //thisTMB->PrintCounters(); // display them to screen
+    thisTMB->PrintCounters(8);    // display them to screen
+    thisTMB->PrintCounters(19);
+    thisTMB->PrintCounters(20);
+
+    if ( thisTMB->GetCounter(19) > 0) {
+      RightTimeBin += i;
+      DataCounter++;
+    }
+
+  }
+
+  RightTimeBin /= float(DataCounter) ;
+  
+  printf("Right L1a delay setting is %f \n",RightTimeBin);
+
+  printf("\n");
+
+  //if (useCCB) thisCCB->setCCBMode(CCB::DLOG);      // return to "regular" mode for CCB
+
+  return RightTimeBin ;
+
 }
+//
+/*
+extern char cmd[];
+extern char sndbuf[];
+extern char rcvbuf[];
 
+void settrgsrc(int dword)
+      {
+	cout << "Input DMB trigger source value in hex (0 turns off internal L1A and LCT)" << endl;
+	cin >> hex >> dword >> dec;
 
-
+	cmd[0]=VTX2_USR1;
+	sndbuf[0]=37;
+	thisDMB->devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+	cmd[0]=VTX2_USR2;
+	sndbuf[0]=dword&0x0F; 
+	thisDMB->devdo(MCTRL,6,cmd,4,sndbuf,rcvbuf,0);
+	cmd[0]=VTX2_USR1;
+	sndbuf[0]=0;
+	thisDMB->devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+	cmd[0]=VTX2_BYPASS;
+	sndbuf[0]=0;
+	thisDMB->devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+	
+	printf("Cal_trg source are Set to %01x (Hex). \n",dword&0x0F);
+      }
+*/
+//
