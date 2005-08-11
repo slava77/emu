@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: elong.cc,v 2.0 2005/04/12 08:07:06 geurts Exp $
+// $Id: elong.cc,v 2.1 2005/08/11 08:13:04 mey Exp $
 // $Log: elong.cc,v $
+// Revision 2.1  2005/08/11 08:13:04  mey
+// Update
+//
 // Revision 2.0  2005/04/12 08:07:06  geurts
 // *** empty log message ***
 //
@@ -16,7 +19,7 @@ void elong::clear ()
         for (i = 0; i < ELLENGTH; i++) r[i] = 0;
         l = 0;      
 }
-
+//
 // concatenates "bits" bits from "arg" ulong with extended long
 // these bits are added into MSBs
 void elong::cat (unsigned long arg, int bits)

@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: VMEModule.h,v 2.1 2005/08/11 08:13:59 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.1  2005/08/11 08:13:59  mey
+// Update
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
@@ -43,7 +46,6 @@ public:
 
    VMEController* getTheController();
 
-
 protected:
    /// used for calls to do_vme
    enum FCN { VME_READ=1, VME_WRITE=2 };
@@ -77,6 +79,7 @@ protected:
   enum {TDATASIZE = 70000};
   char Tdata[TDATASIZE];
   int cnt;
+
 };
 
 #endif

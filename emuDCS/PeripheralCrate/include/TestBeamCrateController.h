@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TestBeamCrateController.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: TestBeamCrateController.h,v 2.1 2005/08/11 08:13:59 mey Exp $
 // $Log: TestBeamCrateController.h,v $
+// Revision 2.1  2005/08/11 08:13:59  mey
+// Update
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
@@ -30,6 +33,7 @@ public:
   ~TestBeamCrateController() {}
 
   void configure();
+  void configureNoDCS();
 
   void enable();
 

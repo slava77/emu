@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.1 2005/06/06 10:05:51 geurts Exp $
+// $Id: DAQMB.cc,v 2.2 2005/08/11 08:13:04 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.2  2005/08/11 08:13:04  mey
+// Update
+//
 // Revision 2.1  2005/06/06 10:05:51  geurts
 // calibration-related updates by Alex Tumanov and Jason Gilmore
 //
@@ -54,7 +57,9 @@ DAQMB::DAQMB(int newcrate,int newslot):
   pulse_delay_(15), inject_delay_(15),
   pul_dac_set_(1.0), inj_dac_set_(1.0),
   set_comp_thresh_(0.06), feb_clock_delay_(0),
-  comp_timing_(2), comp_mode_(2), pre_block_end_(7)
+  comp_timing_(2), comp_mode_(2), pre_block_end_(7),
+  l1a_lct_counter_(-1), cfeb_dav_counter_(-1), 
+  tmb_dav_counter_(-1), alct_dav_counter_(-1)
 {
   cfebs_.clear();
   std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
@@ -616,6 +621,35 @@ void DAQMB::trigtest()
   }
 }
 
+/*DAQMB set trigger source */
+
+//extern char cmd[];
+//extern char sndbuf[];
+//extern char rcvbuf[];
+
+void DAQMB::settrgsrc(int dword)
+{
+  //
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=37;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR2;
+  //
+  //devdo(MCTRL,6,cmd,4,sndbuf,rcvbuf,0);
+  //printf("Cal_trg source was Set to %01x (Hex). \n",unpack_ival());
+  //
+  sndbuf[0]=dword&0x0F; 
+  devdo(MCTRL,6,cmd,4,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=0;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_BYPASS;
+  sndbuf[0]=0;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  //
+  printf("Cal_trg source are Set to %01x (Hex). \n",dword&0xf);
+  //
+}
 
 
 /* DAQMB   Voltages  */
@@ -1419,7 +1453,7 @@ int nowrit;
 	  //  if(pause>1000)printf("pause = %f s  while erasing\n",t2-t1); */
 	  //          for (i=0;i<pause/100;i++)
 	  //  devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
-          pause=pause/10;
+          pause=pause/2;
           sndbuf[0]=pause-(pause/256)*256;
           sndbuf[1]=pause/256;
 	  // printf(" sndbuf %d %d %d \n",sndbuf[1],sndbuf[0],pause);
@@ -1878,9 +1912,39 @@ void DAQMB::cfeb_vtx_prom(enum DEVTYPE devnum) {
   std::cout << "DAQMB: SCA Master is programmed by PROM (Calcntrl command)." <<std::endl;
 }
 
-
 void DAQMB::devdoReset(){
 /// used for emergency loading
   devdo(RESET,-1,cmd,0,sndbuf,rcvbuf,2);
 }
 #endif
+
+void DAQMB::readtiming()
+{
+  //GenDATA *dp;
+  printf(" Entered READ_TIMING \n");
+  //dp = (GenDATA *)data;
+  //
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=CAL_STATUS;
+  sndbuf[0]=36;      //F36 in DMB6cntl, July 5, 2005
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  //
+  cmd[0]=VTX2_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+  //
+  cmd[0]=VTX2_USR2;
+  sndbuf[0]=0;
+  sndbuf[1]=0;
+  sndbuf[2]=0;
+  sndbuf[3]=0;
+  devdo(MCTRL,6,cmd,32,sndbuf,rcvbuf,1);
+  //
+  l1a_lct_counter_  = rcvbuf[0]&0xFF ;
+  cfeb_dav_counter_ = rcvbuf[1]&0xff ;
+  tmb_dav_counter_  = rcvbuf[2]&0xff ;
+  alct_dav_counter_ = rcvbuf[3]&0xff ;
+  //
+  //
+  cmd[0]=VTX2_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+}

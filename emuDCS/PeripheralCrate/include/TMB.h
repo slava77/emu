@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.2 2005/07/08 10:33:31 geurts Exp $
+// $Id: TMB.h,v 2.3 2005/08/11 08:13:59 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.3  2005/08/11 08:13:59  mey
+// Update
+//
 // Revision 2.2  2005/07/08 10:33:31  geurts
 // allow arbitrary scope trigger channel in TMB::scope()
 //
@@ -46,7 +49,7 @@ public:
       int  GetWordCount();
       int  GetALCTWordCount();
       void configure();
-      void GetTTC();
+      void StartTTC();
       int  ReadRegister(int);
       void WriteRegister(int,int);
       void DecodeCLCT();
@@ -64,9 +67,12 @@ public:
       void fifomode();
       void init_alct(int choice);
       void load_cscid();
-      void PrintCounters();
+      void DiStripHCMask(int);
+      void PrintCounters(int counter=-1);
       // should have bx window coded in.  See trgmode.
       void lvl1_delay(unsigned short int time);
+      void alct_vpf_delay(unsigned short int time);
+      void mpc_delay(unsigned short int time);
       void optimize();
       void read_delays();
       void reset();
@@ -88,11 +94,13 @@ public:
       void tmb_PHOS4_alct(int time=0);
       void tmb_PHOS4_cfeb();
       void EnableCLCTInputs(int CLCInputs );
+      void EnableL1aRequest();
       void DisableCLCTInputs();
       void tmb_clk_delays(unsigned short int time, int cfeb_id);
       //
       void ResetRAMAddress();
       void ResetALCTRAMAddress();
+      int  GetCounter(int);
       void GetCounters();
       int TestArray();
       int TMBCRCcalc(std::vector< std::bitset<16> >& datain );

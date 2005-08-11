@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.1 2005/06/06 19:22:35 geurts Exp $
+// $Id: MPC.cc,v 2.2 2005/08/11 08:13:04 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.2  2005/08/11 08:13:04  mey
+// Update
+//
 // Revision 2.1  2005/06/06 19:22:35  geurts
 // additions for MPC/SP connectivity tests (Dan Holmes)
 //
@@ -345,11 +348,12 @@ void MPC::injectSP(){
 	     mframe2 = (0xF << 12) | ITR;
 
 	     // Load 9x2 LCTs to MPC Input "FIFOA"
+	     //9 buffers in FIFO-A corresponding to 9 TMBs
 	     addr=theBaseAddress+FIFO_A1a;
 	     for (int fifo_a=1; fifo_a<=9; fifo_a++) 
              {
-	       for (int LCT=0; LCT<2; LCT++)
-//2 LCTs
+	       for (int LCT=0; LCT<2; LCT++)  //dammit, no i think this should just be a loop over frames!!
+//2 sorts of LCTs
 	         {
 		     data[0]= mframe1&0x00FF;
 		     data[1]=(mframe1&0xFF00)>>8;
@@ -453,14 +457,14 @@ std::cout<<"first frame 2 :: (second word in file) is "<<std::hex<<dataWordInt_f
 	mframe1 =  dataWordInt_fr1;
 	mframe2 =  dataWordInt_fr2;
 	
-	     // Load 9x2 LCTs to MPC Input "FIFOA"
+	     // Load 2 LCTs to each of 8/9!! buffers in FIFO-A corresponding to 9TMBs
 	     addr=theBaseAddress+FIFO_A1a;
-	     for (int fifo_a=1; fifo_a<=9; fifo_a++) 
+	     for (int fifo_a=1; fifo_a<=9; fifo_a++) //hmm why do we stop at 8??  ..9TMBs and FIFO-A9..?
              {
 	     
 
 	       for (int LCT=0; LCT<2; LCT++)
-//2 LCTs
+//2 sorts of LCTs
 	         {
 		     data[0]= mframe1&0x00FF;
 		     data[1]=(mframe1&0xFF00)>>8;

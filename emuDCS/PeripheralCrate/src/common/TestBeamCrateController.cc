@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TestBeamCrateController.cc,v 2.0 2005/04/12 08:07:06 geurts Exp $
+// $Id: TestBeamCrateController.cc,v 2.1 2005/08/11 08:13:04 mey Exp $
 // $Log: TestBeamCrateController.cc,v $
+// Revision 2.1  2005/08/11 08:13:04  mey
+// Update
+//
 // Revision 2.0  2005/04/12 08:07:06  geurts
 // *** empty log message ***
 //
@@ -89,6 +92,17 @@ void TestBeamCrateController::configure() {
   if (mEmuDcs) delete mEmuDcs;
   mEmuDcs=new EmuDcs();
 #endif
+
+}
+
+void TestBeamCrateController::configureNoDCS() {
+
+  // read the configuration
+  std::vector<Crate*> myCrates = theSelector.crates();
+  
+  for(unsigned i = 0; i < myCrates.size(); ++i) {
+    configure(myCrates[i]);
+  }
 
 }
 
@@ -241,6 +255,17 @@ void TestBeamCrateController::executeCommand(std::string boardType, std::string 
 
 #ifdef USEDCS
 void TestBeamCrateController::DcsSetup(){
+
+ char* envvar;
+ static char envbuf[256];
+ envvar = getenv("DIM_DNS_NODE");
+ if(!envvar){
+  sprintf(envbuf,"DIM_DNS_NODE=%s","pcmsucr2.cern.ch");
+  if(putenv(envbuf)){
+   printf("error occured\n");
+  }  
+ }
+
   std::cout << "TestBeamController: DCS Setup" << std::endl;
   if (monitorService){
     delete monitorService;
