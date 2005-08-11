@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_trgmode.cc,v 2.1 2005/06/06 15:17:18 geurts Exp $
+// $Id: TMB_trgmode.cc,v 2.2 2005/08/11 08:13:04 mey Exp $
 // $Log: TMB_trgmode.cc,v $
+// Revision 2.2  2005/08/11 08:13:04  mey
+// Update
+//
 // Revision 2.1  2005/06/06 15:17:18  geurts
 // TMB/ALCT timing updates (Martin vd Mey)
 //
@@ -105,13 +108,13 @@ void TMB::trgmode(int choice)
     sndbuf[1]=0x10; 
   }
   printf("TRGMODE %x %x %x" , 0x68, sndbuf[0], sndbuf[1]); 
-  tmb_vme(VME_WRITE,0x68,sndbuf,rcvbuf,NOW); // Sequencer Trigger Source
+  tmb_vme(VME_WRITE,TMB_ADR_SEQ_TRIG,sndbuf,rcvbuf,NOW); // Sequencer Trigger Source
 
 //ALCT match window size and pulse delay settings ...
   sndbuf[0] = mpc_tx_delay_ & 0xf;
   sndbuf[1] = alct_match_window_size_ * 16 + alct_vpf_delay_;
   printf("TRGMODE %x %x %x \n" , 0xb2, sndbuf[0], sndbuf[1]);
-  tmb_vme(VME_WRITE,0xB2,sndbuf,rcvbuf,NOW); // ALCT delay
+  tmb_vme(VME_WRITE,tmbtim_adr,sndbuf,rcvbuf,NOW); // ALCT delay
   //
   // l1a and bxn offsets 
   //

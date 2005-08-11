@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.2 2005/07/08 10:33:32 geurts Exp $
+// $Id: TMB.cc,v 2.3 2005/08/11 08:13:04 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.3  2005/08/11 08:13:04  mey
+// Update
+//
 // Revision 2.2  2005/07/08 10:33:32  geurts
 // allow arbitrary scope trigger channel in TMB::scope()
 //
@@ -72,7 +75,7 @@ int TMB::ReadRegister(int reg){
   //
 }
 
-void TMB::GetTTC(){
+void TMB::StartTTC(){
   //
   sndbuf[0] = 0x0;
   sndbuf[1] = 0x1;
@@ -240,35 +243,35 @@ int TMB::FmState(){
   //
 }
 //
-void TMB::PrintCounters(){
+void TMB::PrintCounters(int counter){
 //
    std::cout << std::endl;
    std::cout << "--------------------------------------------------------" << std::endl;
    std::cout << "---              Counters                             --" << std::endl;
    std::cout << "--------------------------------------------------------" << std::endl;
-   std::cout << "ALCT: CRC error                                  " << FinalCounter[0] <<std::endl ;
-   std::cout << "ALCT: LCT sent to TMB                            " << FinalCounter[1] <<std::endl ;
-   std::cout << "ALCT: LCT error (alct debug firmware)            " << FinalCounter[2] <<std::endl ;
-   std::cout << "ALCT: L1A readout                                " << FinalCounter[3] <<std::endl ;
-   std::cout << "CLCT: Pretrigger                                 " << FinalCounter[4] <<std::endl ;
-   std::cout << "CLCT: Pretrig but no wbuf available              " << FinalCounter[5] <<std::endl ;
-   std::cout << "CLCT: Invalid pattern after drift                " << FinalCounter[6] <<std::endl ;
-   std::cout << "CLCT: TMB matching rejected event                " << FinalCounter[7] <<std::endl ;
-   std::cout << "TMB:  CLCT or  ALCT or both triggered            " << FinalCounter[8] <<std::endl ;
-   std::cout << "TMB:  CLCT or  ALCT or both triggered xmit MPC   " << FinalCounter[9] <<std::endl ;
-   std::cout << "TMB:  CLCT and ALCT matched in time              " << FinalCounter[10] <<std::endl ;
-   std::cout << "TMB:  ALCT-only trigger                          " << FinalCounter[11] <<std::endl ;
-   std::cout << "TMB:  CLCT-only trigger                          " << FinalCounter[12] <<std::endl ;
-   std::cout << "TMB:  No trig pulse response                     " << FinalCounter[13] <<std::endl ;
-   std::cout << "TMB:  No MPC transmission                        " << FinalCounter[14] <<std::endl ;
-   std::cout << "TMB:  No MPC response FF pulse                   " << FinalCounter[15] <<std::endl ;
-   std::cout << "TMB:  MPC accepted LCT0                          " << FinalCounter[16] <<std::endl ;
-   std::cout << "TMB:  MPC accepted LCT1                          " << FinalCounter[17] <<std::endl ;
-   std::cout << "L1A:  L1A received                               " << FinalCounter[18] <<std::endl ;
-   std::cout << "L1A:  TMB triggered, TMB in L1A window           " << FinalCounter[19] <<std::endl ;
-   std::cout << "L1A:  L1A received, no TMB in window             " << FinalCounter[20] <<std::endl ;
-   std::cout << "L1A:  TMB triggered, no L1A received             " << FinalCounter[21] <<std::endl ;
-   std::cout << "L1A:  TMB readout                                " << FinalCounter[22] <<std::endl;
+   if ((counter<0)||(counter==0)) std::cout << "ALCT: CRC error                                  " << FinalCounter[0] <<std::endl ;
+   if ((counter<0)||(counter==1)) std::cout << "ALCT: LCT sent to TMB                            " << FinalCounter[1] <<std::endl ;
+   if ((counter<0)||(counter==2)) std::cout << "ALCT: LCT error (alct debug firmware)            " << FinalCounter[2] <<std::endl ;
+   if ((counter<0)||(counter==3)) std::cout << "ALCT: L1A readout                                " << FinalCounter[3] <<std::endl ;
+   if ((counter<0)||(counter==4)) std::cout << "CLCT: Pretrigger                                 " << FinalCounter[4] <<std::endl ;
+   if ((counter<0)||(counter==5)) std::cout << "CLCT: Pretrig but no wbuf available              " << FinalCounter[5] <<std::endl ;
+   if ((counter<0)||(counter==6)) std::cout << "CLCT: Invalid pattern after drift                " << FinalCounter[6] <<std::endl ;
+   if ((counter<0)||(counter==7)) std::cout << "CLCT: TMB matching rejected event                " << FinalCounter[7] <<std::endl ;
+   if ((counter<0)||(counter==8)) std::cout << "TMB:  CLCT or  ALCT or both triggered            " << FinalCounter[8] <<std::endl ;
+   if ((counter<0)||(counter==9)) std::cout << "TMB:  CLCT or  ALCT or both triggered xmit MPC   " << FinalCounter[9] <<std::endl ;
+   if ((counter<0)||(counter==10)) std::cout << "TMB:  CLCT and ALCT matched in time              " << FinalCounter[10] <<std::endl ;
+   if ((counter<0)||(counter==11)) std::cout << "TMB:  ALCT-only trigger                          " << FinalCounter[11] <<std::endl ;
+   if ((counter<0)||(counter==12)) std::cout << "TMB:  CLCT-only trigger                          " << FinalCounter[12] <<std::endl ;
+   if ((counter<0)||(counter==13)) std::cout << "TMB:  No trig pulse response                     " << FinalCounter[13] <<std::endl ;
+   if ((counter<0)||(counter==14)) std::cout << "TMB:  No MPC transmission                        " << FinalCounter[14] <<std::endl ;
+   if ((counter<0)||(counter==15)) std::cout << "TMB:  No MPC response FF pulse                   " << FinalCounter[15] <<std::endl ;
+   if ((counter<0)||(counter==16)) std::cout << "TMB:  MPC accepted LCT0                          " << FinalCounter[16] <<std::endl ;
+   if ((counter<0)||(counter==17)) std::cout << "TMB:  MPC accepted LCT1                          " << FinalCounter[17] <<std::endl ;
+   if ((counter<0)||(counter==18)) std::cout << "L1A:  BUGS, IGNORE (should be L1A received)      " << FinalCounter[18] <<std::endl ;
+   if ((counter<0)||(counter==19)) std::cout << "L1A:  TMB triggered, TMB in L1A window           " << FinalCounter[19] <<std::endl ;
+   if ((counter<0)||(counter==20)) std::cout << "L1A:  L1A received, no TMB in window             " << FinalCounter[20] <<std::endl ;
+   if ((counter<0)||(counter==21)) std::cout << "L1A:  TMB triggered, no L1A received             " << FinalCounter[21] <<std::endl ;
+   if ((counter<0)||(counter==22)) std::cout << "L1A:  TMB readout                                " << FinalCounter[22] <<std::endl;
    std::cout << std::endl;
 //
 }
@@ -293,6 +296,12 @@ void TMB::ResetCounters(){
 //
 }
 
+int TMB::GetCounter(int counterID){
+  //
+  return FinalCounter[counterID];
+  //
+}
+
 void TMB::GetCounters(){
    //
    unsigned long int adr;
@@ -311,9 +320,9 @@ void TMB::GetCounters(){
    sndbuf[1] = (wr_data&0xff);
    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);   
    //
-//
-// Read counters
-   //   
+   //
+   // Read counters
+   //
    for (int counter=0; counter < MaxCounter; counter++){
       adr = cnt_ctrl_adr;
       wr_data= counter << 8 ;
@@ -323,8 +332,8 @@ void TMB::GetCounters(){
       adr = cnt_rdata_adr;
       tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
       rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-//
-// Combine lsbs+msbs
+      //
+      // Combine lsbs+msbs
       //
       int cnt_lsb, cnt_msb;
       long int cnt_full;
@@ -339,6 +348,7 @@ void TMB::GetCounters(){
 	 FinalCounter[counter/2] = cnt_full ;     //assembled counter MSB,LSB	 
       }
    }   
+   //
    //
 }
 
@@ -437,143 +447,143 @@ LOOPBACK:
   printf(" done so unstart state machine \n");
 }
 
-
-
-
+// JMT uncomment to see scope output on screen as well as file
+//#define fprintf(fp, fmt, s...) { fprintf(fp, fmt, ## s); printf(fmt, ## s); }
+  
 void TMB::scope(int scp_arm,int scp_readout, int scp_channel) {
 
   unsigned int nchannels = 128;
   unsigned int nrams     = nchannels/16;
   unsigned int nbits     = nchannels*16;
 
-  static const char* scope_tag[128] = {"ch00 sequencer pretrig  ",
-				      "ch01 active_feb_flag    ",
-				      "ch02 any_cfeb_hit       ",
-				      "ch03 any_cfeb_hsds      ",
-				      "ch04 wr_buf_busy        ",
-				      "ch05 wr_buf_ready       ",
-				      "ch06 clct_ext_trig_os   ",
-				      "ch07 alct_active_feb    ",
-				      "ch08 alct_pretrig_win   ",
-				      "ch09 first_really_valid ",
-				      "ch10 clct_sm==xtmb      ",
-				      "ch11 tmb_discard        ",
-				      "ch12 discard_nobuf      ",
-				      "ch13 discard_invp       ",
-				      "ch14 discard_tmbreject  ",
-				      "ch15 0(no dmb readout)  ",
-				      "ch16 first_nhit[0]      ",
-				      "ch17 first_nhit[1]      ",
-				      "ch18 first_nhit[2]      ",
-				      "ch19 first_pat[3]hsds   ",
-				      "ch20 second_nhit[0]     ",
-				      "ch21 second_nhit[1]     ",
-				      "ch22 second_nhit[2]     ",
-				      "ch23 second_pat[3]hsds  ",
-				      "ch24 latch_clct0        ",
-				      "ch25 latch_clct1        ",
-				      "ch26 alct_1st_valid     ",
-				      "ch27 alct_2nd_valid     ",
-				      "ch28 alct_vpf_tp        ",
-				      "ch29 clct_vpf_tp        ",
-				      "ch30 clct_window_tp     ",
-				      "ch31 0(no dmb readout)  ",
-				      "ch32 sequencer pretrig  ",
-				      "ch33 mpc_frame_ff       ",
-				      "ch34 mpc_response_ff    ",
-				      "ch35 mpc_accept_tp[0]   ",
-				      "ch36 mpc_accept_tp[1]   ",
-				      "ch37 l1a_pulse_dsp      ",
-				      "ch38 l1a_window_dsp     ",
-				      "ch39 dmb_dav_mux        ",
-				      "ch40 dmb_busy           ",
-				      "ch41 hs_thresh[0]       ",
-				      "ch42 hs_thresh[1]       ",
-				      "ch43 hs_thresh[2]       ",
-				      "ch44 ds_thresh[0]       ",
-				      "ch45 ds_thresh[1]       ",
-				      "ch46 ds_thresh[2]       ",
-				      "ch47 0(no dmb readout)  ",
-				      "ch48 sequencer pretrig  ",
-				      "ch49 valid_clct_required",
-				      "ch50 buf_nbusy[0]       ",
-				      "ch51 buf_nbusy[1]       ",
-				      "ch52 buf_nbusy[2]       ",
-				      "ch53 buf_nbusy[3]       ",
-				      "ch54 0                  ",
-				      "ch55 0                  ",
-				      "ch56 0                  ",
-				      "ch57 0                  ",
-				      "ch58 0                  ",
-				      "ch59 l1a_rx_counter[0]  ",
-				      "ch60 l1a_rx_counter[0]  ",
-				      "ch61 l1a_rx_counter[0]  ",
-				      "ch62 l1a_rx_counter[0]  ",
-				      "ch63 0(no dmb readout)  ",
-				      "ch64 sequencer pretrig  ",
-				      "ch65 bxn_counter[ 0]    ",
-				      "ch66 bxn_counter[ 1]    ",
-				      "ch67 bxn_counter[ 2]    ",
-				      "ch68 bxn_counter[ 3]    ",
-				      "ch69 bxn_counter[ 4]    ",
-				      "ch70 bxn_counter[ 5]    ",
-				      "ch71 bxn_counter[ 6]    ",
-				      "ch72 bxn_counter[ 7]    ",
-				      "ch73 bxn_counter[ 8]    ",
-				      "ch74 bxn_counter[ 9]    ",
-				      "ch75 bxn_counter[10]    ",
-				      "ch76 bxn_counter[11]    ",
-				      "ch77 0                  ",
-				      "ch78 0                  ",
-				      "ch79 0(no dmb readout)  ",
-				      "ch80 dmb seq_wdata[0]   ",
-				      "ch81 dmb seq_wdata[1]   ",
-				      "ch82 dmb seq_wdata[2]   ",
-				      "ch83 dmb seq_wdata[3]   ",
-				      "ch84 dmb seq_wdata[4]   ",
-				      "ch85 dmb seq_wdata[5]   ",
-				      "ch86 dmb seq_wdata[6]   ",
-				      "ch87 dmb seq_wdata[7]   ",
-				      "ch88 dmb seq_wdata[8]   ",
-				      "ch89 dmb seq_wdata[9]   ",
-				      "ch90 dmb seq_wdata[10]  ",
-				      "ch91 dmb seq_wdata[11]  ",
-				      "ch92 dmb seq_wdata[12]  ",
-				      "ch93 dmb seq_wdata[13]  ",
-				      "ch94 dmb seq_wdata[14]  ",
-				      "ch95 dmb seq_wdata[15]  ",
-				      "ch96  rpc0_bxn[0]       ",
-				      "ch97  rpc0_bxn[1]       ",
-				      "ch98  rpc0_bxn[2]       ",
-				      "ch99  rpc1_bxn[0]        ",
-				      "ch100 rpc1_bxn[1]        ",
-				      "ch101 rpc1_bxn[2]        ",
-				      "ch102 rpc2bxn[0]         ",
-				      "ch103 rpc2bxn[1]         ",
-				      "ch104 rpc2bxn[2]         ",
-				      "ch105 rpc3bxn[0]         ",
-				      "ch106 rpc3bxn[1]         ",
-				      "ch107 rpc3bxn[2]         ",
-				      "ch108 0                  ",
-				      "ch109 0                  ",
-				      "ch110 0                  ",
-				      "ch111 0(no dmb readout)  ",
-				      "ch112 rpc0_nhits[0]      ",
-				      "ch113 rpc0_nhits[1]      ",
-				      "ch114 rpc0_nhits[2]      ",
-				      "ch115 rpc0_nhits[3]      ",
-				      "ch116 rpc1_nhits[0]      ",
-				      "ch117 rpc1_nhits[1]      ",
-				      "ch118 rpc1_nhits[2]      ",
-				      "ch119 rpc1_nhits[3]      ",
-				      "ch120 rpc2_nhits[0]      ",
-				      "ch121 rpc2_nhits[1]      ",
-				      "ch122 rpc2_nhits[2]      ",
-				      "ch123 rpc2_nhits[3]      ",
-				      "ch124 rpc3_nhits[0]      ",
-				      "ch125 rpc3_nhits[1]      ",
-				      "ch126 rpc3_nhits[2]      ",
-				      "ch127 rpc3_nhits[3](no d)"
+  static const char* scope_tag[128] = {"ch00 sequencer pretrig    ",
+				       "ch01 active_feb_flag      ",
+				       "ch02 any_cfeb_hit         ",
+				       "ch03 any_cfeb_hsds        ",
+				       "ch04 wr_buf_busy          ",
+				       "ch05 wr_buf_ready         ",
+				       "ch06 clct_ext_trig_os     ",
+				       "ch07 alct_active_feb      ",
+				       "ch08 alct_pretrig_win     ",
+				       "ch09 first_really_valid   ",
+				       "ch10 clct_sm==xtmb        ",
+				       "ch11 tmb_discard          ",
+				       "ch12 discard_nobuf        ",
+				       "ch13 discard_invp         ",
+				       "ch14 discard_tmbreject    ",
+				       "ch15 0(no dmb readout)    ",
+				       "ch16 first_nhit[0]        ",
+				       "ch17 first_nhit[1]        ",
+				       "ch18 first_nhit[2]        ",
+				       "ch19 first_pat[3]hsds     ",
+				       "ch20 second_nhit[0]       ",
+				       "ch21 second_nhit[1]       ",
+				       "ch22 second_nhit[2]       ",
+				       "ch23 second_pat[3]hsds    ",
+				       "ch24 latch_clct0          ",
+				       "ch25 latch_clct1          ",
+				       "ch26 alct_1st_valid       ",
+				       "ch27 alct_2nd_valid       ",
+				       "ch28 alct_vpf_tp          ",
+				       "ch29 clct_vpf_tp          ",
+				       "ch30 clct_window_tp       ",
+				       "ch31 0(no dmb readout)    ",
+				       "ch32 sequencer pretrig    ",
+				       "ch33 mpc_frame_ff         ",
+				       "ch34 mpc_response_ff      ",
+				       "ch35 mpc_accept_tp[0]     ",
+				       "ch36 mpc_accept_tp[1]     ",
+				       "ch37 l1a_pulse_dsp        ",
+				       "ch38 l1a_window_dsp       ",
+				       "ch39 dmb_dav_mux          ",
+				       "ch40 dmb_busy             ",
+				       "ch41 hs_thresh[0]         ",
+				       "ch42 hs_thresh[1]         ",
+				       "ch43 hs_thresh[2]         ",
+				       "ch44 ds_thresh[0]         ",
+				       "ch45 ds_thresh[1]         ",
+				       "ch46 ds_thresh[2]         ",
+				       "ch47 0(no dmb readout)    ",
+				       "ch48 sequencer pretrig    ",
+				       "ch49 valid_clct_required  ",
+				       "ch50 buf_nbusy[0]         ",
+				       "ch51 buf_nbusy[1]         ",
+				       "ch52 buf_nbusy[2]         ",
+				       "ch53 buf_nbusy[3]         ",
+				       "ch54 0                    ",
+				       "ch55 0                    ",
+				       "ch56 0                    ",
+				       "ch57 0                    ",
+				       "ch58 0                    ",
+				       "ch59 l1a_rx_counter[0]    ",
+				       "ch60 l1a_rx_counter[1]    ",
+				       "ch61 l1a_rx_counter[2]    ",
+				       "ch62 l1a_rx_counter[3]    ",
+				       "ch63 0(no dmb readout)    ",
+				       "ch64 sequencer pretrig    ",
+				       "ch65 bxn_counter[ 0]      ",
+				       "ch66 bxn_counter[ 1]      ",
+				       "ch67 bxn_counter[ 2]      ",
+				       "ch68 bxn_counter[ 3]      ",
+				       "ch69 bxn_counter[ 4]      ",
+				       "ch70 bxn_counter[ 5]      ",
+				       "ch71 bxn_counter[ 6]      ",
+				       "ch72 bxn_counter[ 7]      ",
+				       "ch73 bxn_counter[ 8]      ",
+				       "ch74 bxn_counter[ 9]      ",
+				       "ch75 bxn_counter[10]      ",
+				       "ch76 bxn_counter[11]      ",
+				       "ch77 0                    ",
+				       "ch78 0                    ",
+				       "ch79 0(no dmb readout)    ",
+				       "ch80 dmb seq_wdata[0]     ",
+				       "ch81 dmb seq_wdata[1]     ",
+				       "ch82 dmb seq_wdata[2]     ",
+				       "ch83 dmb seq_wdata[3]     ",
+				       "ch84 dmb seq_wdata[4]     ",
+				       "ch85 dmb seq_wdata[5]     ",
+				       "ch86 dmb seq_wdata[6]     ",
+				       "ch87 dmb seq_wdata[7]     ",
+				       "ch88 dmb seq_wdata[8]     ",
+				       "ch89 dmb seq_wdata[9]     ",
+				       "ch90 dmb seq_wdata[10]    ",
+				       "ch91 dmb seq_wdata[11]    ",
+				       "ch92 dmb seq_wdata[12]    ",
+				       "ch93 dmb seq_wdata[13]    ",
+				       "ch94 dmb seq_wdata[14]    ",
+				       "ch95 dmb seq_wdata[15]    ",
+				       "ch96  rpc0_bxn[0]         ",
+				       "ch97  rpc0_bxn[1]         ",
+				       "ch98  rpc0_bxn[2]         ",
+				       "ch99  rpc1_bxn[0]         ",
+				       "ch100 rpc1_bxn[1]         ",
+				       "ch101 rpc1_bxn[2]         ",
+				       "ch102 rpc2bxn[0]          ",
+				       "ch103 rpc2bxn[1]          ",
+				       "ch104 rpc2bxn[2]          ",
+				       "ch105 rpc3bxn[0]          ",
+				       "ch106 rpc3bxn[1]          ",
+				       "ch107 rpc3bxn[2]          ",
+				       "ch108 0                   ",
+				       "ch109 0                   ",
+				       "ch110 0                   ",
+				       "ch111 0(no dmb readout)   ",
+				       "ch112 rpc0_nhits[0]       ",
+				       "ch113 rpc0_nhits[1]       ",
+				       "ch114 rpc0_nhits[2]       ",
+				       "ch115 rpc0_nhits[3]       ",
+				       "ch116 rpc1_nhits[0]       ",
+				       "ch117 rpc1_nhits[1]       ",
+				       "ch118 rpc1_nhits[2]       ",
+				       "ch119 rpc1_nhits[3]       ",
+				       "ch120 rpc2_nhits[0]       ",
+				       "ch121 rpc2_nhits[1]       ",
+				       "ch122 rpc2_nhits[2]       ",
+				       "ch123 rpc2_nhits[3]       ",
+				       "ch124 rpc3_nhits[0]       ",
+				       "ch125 rpc3_nhits[1]       ",
+				       "ch126 rpc3_nhits[2]       ",
+				       "ch127 rpc3_nhits[3](no d) "
   } ;
 
   unsigned long int scope_ram[256][nrams];
@@ -954,6 +964,9 @@ void TMB::scope(int scp_arm,int scp_readout, int scp_channel) {
       //
       fprintf(pfile,"\n");
     }
+
+    // JMT close the file so it actually gets all flushed
+    if (pfile) fclose(pfile);
 
   END:
     return;
@@ -1350,6 +1363,23 @@ void TMB::EnableCLCTInputs(int CLCTInputs = 0x1f){
    sndbuf[1] = (rcvbuf[1] & 0xde) | CLCTInputs ;
    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
 //
+}
+
+void TMB::EnableL1aRequest(){
+  //
+  int adr;
+  adr = TMB_ADR_CCB_TRIG;
+  tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
+  printf(" Current %x %x \n",rcvbuf[0], rcvbuf[1]);
+  //
+  sndbuf[0] = rcvbuf[0];
+  sndbuf[1] = 4;
+  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+  //
+  tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
+  printf(" Setting to %x %x \n",rcvbuf[0], rcvbuf[1]);
+
+  //
 }
 
 
@@ -2134,6 +2164,29 @@ void TMB::lvl1_delay(unsigned short int time)
   sndbuf[0]=  rcvbuf[0];
   sndbuf[1]=  (time&0x00ff);
   tmb_vme(VME_WRITE,seq_l1a_adr,sndbuf,rcvbuf,NOW);
+}
+
+void TMB::alct_vpf_delay(unsigned short int time)
+{
+  tmb_vme(VME_READ,tmbtim_adr,sndbuf,rcvbuf,NOW);
+  sndbuf[0]=  rcvbuf[0];
+  sndbuf[1]=  (time&0xf) | (rcvbuf[1]&0xf0);
+  tmb_vme(VME_WRITE,tmbtim_adr,sndbuf,rcvbuf,NOW);
+}
+
+void TMB::mpc_delay(unsigned short int time)
+{
+   // Read Trigger conf
+   tmb_vme(VME_READ,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
+   //
+   printf("*** Inside.MPC delay %d \n", time);
+   //
+   printf("Reading address 0x86 to %x %x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+   sndbuf[0] = (rcvbuf[0] & 0xfe | (time & 0x8)>>3) & 0xff;
+   sndbuf[1] = (rcvbuf[1] & 0x1f | (time & 0x7)<<5) & 0xff;
+   printf("Setting address 0x86 to %x %x\n",sndbuf[0]&0xff,sndbuf[1]&0xff);
+   tmb_vme(VME_WRITE,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Write Trigger conf
+   //
 }
 
 int TMB::GetWordCount(){
@@ -3165,11 +3218,45 @@ void TMB::tmb_PHOS4_cfeb()
 
 
 void TMB::tmb_clk_delays(unsigned short int time,int cfeb_id) {
+  //
   if(version_ == "2004") {
     new_clk_delays(time, cfeb_id);
   } else {
     old_clk_delays(time, cfeb_id);
   }
+  //
+}
+
+void TMB::DiStripHCMask(int DiStrip) {
+  //
+  // Only enables specific Distrp channels
+  //
+  printf("Enabling DiStrip %d \n",DiStrip);
+  //
+  sndbuf[0] = (0x1<<(DiStrip+1))&0xff;
+  sndbuf[1] =   (0x1<<(DiStrip))&0xff;
+  //
+  printf(" %x %x \n",sndbuf[0],sndbuf[1]);
+  //
+  tmb_vme(VME_WRITE, hcm001_adr,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE, hcm023_adr,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE, hcm045_adr,sndbuf,rcvbuf,NOW);
+  //
+  tmb_vme(VME_WRITE, hcm101_adr,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE, hcm123_adr,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE, hcm145_adr,sndbuf,rcvbuf,NOW);
+  //
+  tmb_vme(VME_WRITE, hcm201_adr,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE, hcm223_adr,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE, hcm245_adr,sndbuf,rcvbuf,NOW);
+  /*
+  tmb_vme(VME_WRITE, hcm301_adr,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE, hcm323_adr,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE, hcm345_adr,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE, hcm401_adr,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE, hcm423_adr,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE, hcm445_adr,sndbuf,rcvbuf,NOW);
+  */
 }
 
 

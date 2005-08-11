@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.1 2005/06/06 15:17:17 geurts Exp $
+// $Id: ALCTController.h,v 2.2 2005/08/11 08:13:59 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.2  2005/08/11 08:13:59  mey
+// Update
+//
 // Revision 2.1  2005/06/06 15:17:17  geurts
 // TMB/ALCT timing updates (Martin vd Mey)
 //
@@ -119,106 +122,108 @@ public:
     alct_link_type = linktype;
     return alct_link_type;
   }
-      // ==========================
-      /// Set ALCT JTAG Channel
-      int alct_fast_set_jtag_channel(int jtagchannel);
-      /// Low Level JTAG One Bit Send/Read  Function
-      int jam_jtag_io(int tms, int tdi, int read_tdo, unsigned long * ret);
-      /// Flush and Decode Received JTAG bits
-      void jam_jtag_flush ();
-      void GetConf(  unsigned cr[3], int );
-      void SetConf(  unsigned cr[3], int );
-      int  GetWGNumber();
-      void packControlRegister(unsigned * cr) const;
-      /// fills the relevant data members
-      void unpackControlRegister(unsigned * cr);
-      /// writes to the control register
-      void alct_read_hcmask(unsigned long HCmask[22]);      
-      void alct_write_hcmask(unsigned long HCmask[22]);      
-      // ==========================
-      // Set Standard JTAG States
-      /// Set JTAG State Machine into Start-IR-Shift State
-      int StartIRShift();
-      /// Set JTAG State Machine into Start-DR-Shift State
-      int StartDRShift();
-      // Set JTAG State Machine into Exit-IR-Shift State
-      int ExitIRShift();
-      // Set JTAG State Machine into Exit-DR-Shift State
-      int ExitDRShift();
-      // ==========================      
-      // Writes Instruction Register (IR) of the JTAG
-      int WriteIR(unsigned IR);
-      // shifts the data into DR of the JTAG. The IR must be already written with the proper instruction
-      // and the JTAG TAP must be already in the ShiftDR state.
-      int ShiftIntoDR(unsigned *DR, unsigned sz, unsigned sendtms);
-      int ShiftFromDR(unsigned *DR, unsigned sz, unsigned sendtms);
-      // Writes data register (DR) of the JTAG. The IR must be already written with the proper instruction.
-      int WriteDR(unsigned *DR, unsigned sz);
-      // Reads data register (DR) of the JTAG. The IR must be already written with the proper instruction
-      int ReadDR(unsigned *DR, unsigned sz);
-      // writes the data to any data register, using the instruction.
-      // The size of the data register determined automatically, using instruction code.
-      int WriteRegister (unsigned instruction, unsigned *data);
-      // reads the data from any data register, using the instruction.
-      // The size of the data register determined automatically, using instruction code.
-      int ReadRegister (unsigned instruction, unsigned *data);
-      // writes the data to any data register, using the instruction.
-      // The size of the data register determined automatically, using instruction code.
-      int elWriteRegister (unsigned instruction, elong *data);
-      // reads the data from any data register, using the instruction.
-      // The size of the data register determined automatically, using instruction code.
-      int elReadRegister (unsigned instruction, elong *data);
+  // ==========================
+  void set_empty(int);
+  //
+  /// Set ALCT JTAG Channel
+  int alct_fast_set_jtag_channel(int jtagchannel);
+  /// Low Level JTAG One Bit Send/Read  Function
+  int jam_jtag_io(int tms, int tdi, int read_tdo, unsigned long * ret);
+  /// Flush and Decode Received JTAG bits
+  void jam_jtag_flush ();
+  void GetConf(  unsigned cr[3], int );
+  void SetConf(  unsigned cr[3], int );
+  int  GetWGNumber();
+  void packControlRegister(unsigned * cr) const;
+  /// fills the relevant data members
+  void unpackControlRegister(unsigned * cr);
+  /// writes to the control register
+  void alct_read_hcmask(unsigned long HCmask[22]);      
+  void alct_write_hcmask(unsigned long HCmask[22]);      
+  // ==========================
+  // Set Standard JTAG States
+  /// Set JTAG State Machine into Start-IR-Shift State
+  int StartIRShift();
+  /// Set JTAG State Machine into Start-DR-Shift State
+  int StartDRShift();
+  // Set JTAG State Machine into Exit-IR-Shift State
+  int ExitIRShift();
+  // Set JTAG State Machine into Exit-DR-Shift State
+  int ExitDRShift();
+  // ==========================      
+  // Writes Instruction Register (IR) of the JTAG
+  int WriteIR(unsigned IR);
+  // shifts the data into DR of the JTAG. The IR must be already written with the proper instruction
+  // and the JTAG TAP must be already in the ShiftDR state.
+  int ShiftIntoDR(unsigned *DR, unsigned sz, unsigned sendtms);
+  int ShiftFromDR(unsigned *DR, unsigned sz, unsigned sendtms);
+  // Writes data register (DR) of the JTAG. The IR must be already written with the proper instruction.
+  int WriteDR(unsigned *DR, unsigned sz);
+  // Reads data register (DR) of the JTAG. The IR must be already written with the proper instruction
+  int ReadDR(unsigned *DR, unsigned sz);
+  // writes the data to any data register, using the instruction.
+  // The size of the data register determined automatically, using instruction code.
+  int WriteRegister (unsigned instruction, unsigned *data);
+  // reads the data from any data register, using the instruction.
+  // The size of the data register determined automatically, using instruction code.
+  int ReadRegister (unsigned instruction, unsigned *data);
+  // writes the data to any data register, using the instruction.
+  // The size of the data register determined automatically, using instruction code.
+  int elWriteRegister (unsigned instruction, elong *data);
+  // reads the data from any data register, using the instruction.
+  // The size of the data register determined automatically, using instruction code.
+  int elReadRegister (unsigned instruction, elong *data);
   // flips the 32-bit word, so bit 0 is bit 31, bit 1 is bit 30, etc.
-      unsigned Flip (unsigned d);
-      // flips the byte, so bit 0 is bit 7, bit 1 is bit 6, etc.
-      unsigned char FlipByte (unsigned char d);
-      // writes 6 delay lines. delay is the array of 6 values by 4 bits, containing the desired delays,
-      // pattern is the array of 6 values by 16 bits, containing the patterns.
-      // cs is a 3,4,or 7-bit mask for chip select signals of the delay line groups. bit set to 1 enables the group
-      int Write6DelayLines(unsigned *delay, unsigned *pattern, unsigned cs);
-      // reads 6 delay lines. delay is the array of 6 values by 4 bits, containing the delays upon return ,
-      // pattern is the array of 6 values by 16 bits, containing the patterns upon return.
-      // cs is a 4-bit mask for chip select signals of the delay line groups. bit set to 1 enables the group
-      int Read6DelayLines(unsigned *delay, unsigned *pattern, unsigned cs);
-      // generates pattern in the specified WG and ORs it into the image (global variable).
-      // If clear != 0, the image is cleared.
-      void GeneratePattern(int WG, int clear);
-      // generates acc pattern in the specified WG and ORs it into the image (global variable).
-      void GenerateAccPattern(int WG);
-      void DecodeOS(
-	 elong * OS,
-	 unsigned * empty,
-	 unsigned * hfa,
-	 unsigned * h,
-	 unsigned * hn,
-	 unsigned * hpatb,
-	 unsigned * lfa,
-	 unsigned * l,
-	 unsigned * ln,
-	 unsigned * lpatb,
-	 unsigned * daq,
-          unsigned * bxn
-	 );
-      
-      ALCTSTATUS alct_fast_self_test
-      (       
-	 long* code,
+  unsigned Flip (unsigned d);
+  // flips the byte, so bit 0 is bit 7, bit 1 is bit 6, etc.
+  unsigned char FlipByte (unsigned char d);
+  // writes 6 delay lines. delay is the array of 6 values by 4 bits, containing the desired delays,
+  // pattern is the array of 6 values by 16 bits, containing the patterns.
+  // cs is a 3,4,or 7-bit mask for chip select signals of the delay line groups. bit set to 1 enables the group
+  int Write6DelayLines(unsigned *delay, unsigned *pattern, unsigned cs);
+  // reads 6 delay lines. delay is the array of 6 values by 4 bits, containing the delays upon return ,
+  // pattern is the array of 6 values by 16 bits, containing the patterns upon return.
+  // cs is a 4-bit mask for chip select signals of the delay line groups. bit set to 1 enables the group
+  int Read6DelayLines(unsigned *delay, unsigned *pattern, unsigned cs);
+  // generates pattern in the specified WG and ORs it into the image (global variable).
+  // If clear != 0, the image is cleared.
+  void GeneratePattern(int WG, int clear);
+  // generates acc pattern in the specified WG and ORs it into the image (global variable).
+  void GenerateAccPattern(int WG);
+  void DecodeOS(
+		elong * OS,
+		unsigned * empty,
+		unsigned * hfa,
+		unsigned * h,
+		unsigned * hn,
+		unsigned * hpatb,
+		unsigned * lfa,
+		unsigned * l,
+		unsigned * ln,
+		unsigned * lpatb,
+		unsigned * daq,
+		unsigned * bxn
+		);
+  
+  ALCTSTATUS alct_fast_self_test
+    (       
+     long* code,
+     unsigned long verbose
+     );
+  
+  ALCTSTATUS alct_fire_test_pulse
+    (
+     char pulse
+     );
+  
+  ALCTSTATUS alct_download_patterns
+    (
+     const char* filename, 
 	 unsigned long verbose
-	 );
-      
-      ALCTSTATUS alct_fire_test_pulse
-      (
-	 char pulse
-	 );
-      
-      ALCTSTATUS alct_download_patterns
-      (
-	 const char* filename, 
-	 unsigned long verbose
-	 );
-      
+     );
+  
   ALCTSTATUS alct_download_hot_mask 
-  (
+    (
      char* filename, 
      unsigned long verbose
   );

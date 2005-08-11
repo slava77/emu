@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.1 2005/06/06 10:05:50 geurts Exp $
+// $Id: DAQMB.h,v 2.2 2005/08/11 08:13:59 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.2  2005/08/11 08:13:59  mey
+// Update
+//
 // Revision 2.1  2005/06/06 10:05:50  geurts
 // calibration-related updates by Alex Tumanov and Jason Gilmore
 //
@@ -52,6 +55,7 @@ public:
   void setcaldelay(int dword);
   void setdavdelay(int dword);
   void fxpreblkend(int dword);
+  void settrgsrc(int dword); 
   void calctrl_fifomrst();
   void calctrl_global();
   void restoreCFEBIdle();
@@ -136,6 +140,10 @@ public:
   /// sends commands by name
   void executeCommand(std::string command);
 
+  /// Get DAV time
+  void readtiming();
+
+
 #ifdef USEDCS
   /// DCS additions
   void cfeb_vtx_prom(enum DEVTYPE devnum);
@@ -182,10 +190,26 @@ public:
   /// used as pedestals.
   int pre_block_end_;
 
-
-
   typedef std::vector<CFEB>::iterator CFEBItr;
   std::vector<CFEB> cfebs_;
+
+  inline int GetL1aLctCounter() { 
+    return l1a_lct_counter_ ;
+  } 
+  inline int GetCfebDavCounter() { 
+    return cfeb_dav_counter_ ;
+  } 
+  inline int GetTmbDavCounter() { 
+    return tmb_dav_counter_ ;
+  } 
+  inline int GetAlctDavCounter() { 
+    return alct_dav_counter_ ;
+  } 
+
+ private:
+
+  int l1a_lct_counter_, cfeb_dav_counter_, tmb_dav_counter_, alct_dav_counter_ ;
+
 }; 
 
 #endif

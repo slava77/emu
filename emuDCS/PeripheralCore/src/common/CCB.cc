@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.2 2005/07/08 10:29:34 geurts Exp $
+// $Id: CCB.cc,v 2.3 2005/08/11 08:12:42 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.3  2005/08/11 08:12:42  mey
+// Update
+//
 // Revision 2.2  2005/07/08 10:29:34  geurts
 // introduce debug switch to hide debugging messages
 //
@@ -254,17 +257,36 @@ void CCB::rice_clk_setup()
   int l1en=0;
   std::cout << "CCB: Setup rice_clk_setup" << std::endl;
 
+  // when in DLOG mode, briefly switch to FPGA mode so we can 
+  // have the CCB issue the backplane reset. This is *only* for
+  // TestBeam purposes.
+  bool switchedMode = false;
+  if (mCCBMode == (CCB2004Mode_t)CCB::DLOG){
+    setCCBMode(CCB::VMEFPGA);
+    switchedMode=true;
+    if (mDebug) std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for setup" << std::endl; 
+  }
+  
   sndbuf[0]=0x00;
-  sndbuf[1]=l1aDelay_;  // was 76;
-  do_vme(VME_WRITE,CSR5,sndbuf,rcvbuf,LATER);
-  //2004 do_vme(VME_WRITE,CSRB5,sndbuf,rcvbuf,LATER);
+  sndbuf[1]=l1aDelay_;  
+  if (mVersion==2001) 
+    do_vme(VME_WRITE,CSR5,sndbuf,rcvbuf,LATER);
+  if (mVersion==2004) 
+    do_vme(VME_WRITE,CSRB5,sndbuf,rcvbuf,LATER);
+  
+  if (switchedMode){
+    setCCBMode(CCB::DLOG);
+    if (mDebug) std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
+  };
+  
+  return; // Ignore rest until needed MvdM
 
   sndbuf[0]=0x00;
   sndbuf[1]=0x00;
   if (mVersion==2001)
     do_vme(VME_WRITE,RST_CCB_INT_LOG,sndbuf,rcvbuf,LATER);
-  else
-    std::cout << "CCB:  rice_clk_setup: RST_CCB_INT_LOG deprecated" << std::endl;
+  //else
+  //std::cout << "CCB:  rice_clk_setup: RST_CCB_INT_LOG deprecated" << std::endl;
 
 
 //JRG, For TMB with CCB clk: 0x0D8 or 0x0C8?  I think 0x048 is best.
@@ -595,9 +617,8 @@ void CCB::reset_bxevt() {
 }
 
 void CCB::configure() {
-  if (mVersion==2001)
-    rice_clk_setup();
-  else if (mVersion==2004){
+  //
+  if (mVersion==2004){
     // Set the CCB mode  
     setCCBMode((CCB2004Mode_t)mCCBMode);
     // report firmware version
@@ -607,9 +628,24 @@ void CCB::configure() {
     std::cerr << "Error: Unknown CCB version ("<< mVersion << "). Unable to configure."<< std::endl;
 
   hardReset();
+  rice_clk_setup();
   disableL1();
 }
-
+void CCB::SetL1aDelay(int l1adelay){
+  //
+  if (mVersion==2001) 
+    do_vme(VME_READ,CSR5,sndbuf,rcvbuf,NOW);
+  if (mVersion==2004) 
+    do_vme(VME_READ,CSRB5,sndbuf,rcvbuf,NOW);
+  //
+  sndbuf[0]=rcvbuf[0];
+  sndbuf[1]=l1adelay;  
+  if (mVersion==2001) 
+    do_vme(VME_WRITE,CSR5,sndbuf,rcvbuf,NOW);
+  if (mVersion==2004) 
+    do_vme(VME_WRITE,CSRB5,sndbuf,rcvbuf,NOW);
+  //
+}
 
 void CCB::setCCBMode(CCB2004Mode_t mode){
   /// Set the mode of operation for the CCB2004 model
@@ -705,8 +741,16 @@ void CCB::startTrigger() {
   std::cout << "CCB: Start Trigger" << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=0x18;          //cmd[5:0]=0x06 for start_trigger     GUJH
-  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
-  //2004 do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+}
+
+void CCB::bc0() {
+  /// Send "bc0" command on the Fast Control Bus
+  std::cout << "CCB: Start Trigger" << std::endl;
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x4; 
+  do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+
 }
 
 
@@ -753,7 +797,7 @@ void CCB::executeCommand(std::string command) {
   if(command=="Program Backplane") prgall_bckpln();
   if(command=="Reset Backplane")   reset_bckpln();
 
-  if(command=="Enable L1")         enableL1();
+  if(command=="Enable L1")        enableL1();
   if(command=="Disable L1")       disableL1();
   if(command=="L1 Cathode Scint") l1CathodeScint();
 

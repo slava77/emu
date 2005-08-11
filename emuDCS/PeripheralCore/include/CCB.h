@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.2 2005/07/08 10:29:34 geurts Exp $
+// $Id: CCB.h,v 2.3 2005/08/11 08:13:59 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.3  2005/08/11 08:13:59  mey
+// Update
+//
 // Revision 2.2  2005/07/08 10:29:34  geurts
 // introduce debug switch to hide debugging messages
 //
@@ -24,6 +27,7 @@ class CCBParser;
 class CCB: public VMEModule
 {
 public:
+  void SetL1aDelay(int);
   int ReadRegister(int);
   void WriteRegister(int,int);
   void firmwareVersion();
@@ -58,6 +62,7 @@ public:
   void syncReset();
   void reset_bxevt();
   void bx0();
+  void bc0();
   void bxr();
   void configure();
   /// uses SPS25ns to decide whether to use TTC triggers

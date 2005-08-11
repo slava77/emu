@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.1 2005/06/06 15:17:18 geurts Exp $
+// $Id: ALCTController.cc,v 2.2 2005/08/11 08:13:04 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.2  2005/08/11 08:13:04  mey
+// Update
+//
 // Revision 2.1  2005/06/06 15:17:18  geurts
 // TMB/ALCT timing updates (Martin vd Mey)
 //
@@ -3245,6 +3248,19 @@ ALCTController::ALCTSTATUS ALCTController::alct_fast_CheckShiftingPatternViaJTAG
 /*---------------------------------------------------------------------------*/
 
 /* These defaults are either values to be loaded, or values to be expected */
+
+void ALCTController::set_empty(int empty){
+  //
+  unsigned cr[3];
+  //
+  GetConf(cr,1);
+  //
+  cr[0] = cr[0]&0xfffffffb | ((empty&0x1)<<3) ;
+  //
+  SetConf(cr,1);
+  unpackControlRegister(cr);
+  //
+}
 
 void ALCTController::set_defaults(alct_params_type *p) {
   int    j, k;
