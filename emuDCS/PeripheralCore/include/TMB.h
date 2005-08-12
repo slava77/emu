@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.3 2005/08/11 08:13:59 mey Exp $
+// $Id: TMB.h,v 2.4 2005/08/12 14:16:03 mey Exp $
 // $Log: TMB.h,v $
-// Revision 2.3  2005/08/11 08:13:59  mey
-// Update
+// Revision 2.4  2005/08/12 14:16:03  mey
+// Added pulsing vor TMB-MPC delay
 //
 // Revision 2.2  2005/07/08 10:33:31  geurts
 // allow arbitrary scope trigger channel in TMB::scope()
@@ -151,6 +151,9 @@ public:
       //
       void enableAllClocks();
       void disableAllClocks();
+      //
+      int MPC0Accept();
+      int MPC1Accept();
       //
    public:
       //

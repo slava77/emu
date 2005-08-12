@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.3 2005/08/11 08:07:07 mey Exp $
+// $Id: tmbtiming.cpp,v 2.4 2005/08/12 14:16:04 mey Exp $
 // $Log: tmbtiming.cpp,v $
-// Revision 2.3  2005/08/11 08:07:07  mey
-// TesT
+// Revision 2.4  2005/08/12 14:16:04  mey
+// Added pulsing vor TMB-MPC delay
 //
 // Revision 2.2  2005/08/10 12:54:36  geurts
 // Martin's updates
@@ -29,6 +29,7 @@
  * (tmb_alct.dat and tmb_scan.dat).
  *
  */
+
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -46,8 +47,6 @@
 #include "CrateSelector.h"
 #include "JTAG_constants.h"
 
-//
-
 using namespace std;
 
 int beginning = 0;
@@ -58,7 +57,7 @@ CCB* thisCCB ;
 ALCTController *alct ;
 //
 void CFEBTiming(float CFEBMean[5]);
-void PulseCFEB(int HalfStrip = -1, int CLCTInputs = 0x1f );
+void PulseCFEB(fstream* output_log=0, int HalfStrip = -1, int CLCTInputs = 0x1f );
 void CFEBChamberScanning();
 void PulseTestStrips();
 void ALCTTiming(int &,int &);
@@ -67,7 +66,7 @@ void ALCTSVFLoad();
 int  TMBL1aTiming();
 int  FindBestL1aAlct();
 void PulseRandomALCT();
-void FindWinner();
+int  FindWinner();
 int  FindALCTvpf();
 int  FindTMB_L1A_delay(int,int);
 int  FindALCT_L1A_delay(int,int);
@@ -305,15 +304,15 @@ int main(int argc,char **argv){
        int Menu;
        cin >> Menu;
        //
-       doInitSystem     = false;
-       doL1aRequest     = false;
-       doTMBScope       = false;
-       doALCTRawhits    = false;
-       doALCTSVFLoad    = false;
-       doTMBRawhits     = false;
-       doPulseTest      = false;
-       doScopeRead      = false;
-       doScopeReadArm   = false;
+       doInitSystem          = false;
+       doL1aRequest          = false;
+       doTMBScope            = false;
+       doALCTRawhits         = false;
+       doALCTSVFLoad         = false;
+       doTMBRawhits          = false;
+       doPulseTest           = false;
+       doScopeRead           = false;
+       doScopeReadArm        = false;
        doForceScopeTrigger   = false;
        doCFEBTiming          = false;
        doCFEBChamberScanning = false;
@@ -1103,7 +1102,7 @@ int AdjustL1aLctDMB(){
 //
 void Automatic(){
   //
-  ////////////////////////////////////////////////////////////// Do CFEB phases
+  ///////////////////////////////////////////////////////////////// Do CFEB phases
   //
   InitStartSystem();
   //
@@ -1427,6 +1426,7 @@ void ALCTTiming( int & RXphase, int & TXphase ){
    int selected2[13][13];
    int selected3[13][13];
    int ALCTWordCount[13][13];
+   int ALCTWordCountWrap[13*2][13*2];
    int ALCTConfDone[13][13];
    int j,k;
    int alct0_quality = 0;
@@ -1531,6 +1531,7 @@ void ALCTTiming( int & RXphase, int & TXphase ){
 	*/
 	//
 	//while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
+	//
 	cout << "Setting k=" << k << " j="<<j << endl;
 	thisTMB->tmb_clk_delays(k,5) ;
 	thisTMB->tmb_clk_delays(j,6) ;	 
@@ -1643,7 +1644,7 @@ void ALCTTiming( int & RXphase, int & TXphase ){
    }
    //
    cout << endl;
-//
+   //
    cout << "Selected 3 (tx vs. rx)   tx ----> " << endl;
    //
    for (j=0;j<maxTimeBins;j++){
@@ -1658,6 +1659,10 @@ void ALCTTiming( int & RXphase, int & TXphase ){
    //
    cout << "Result (tx vs. rx)   tx ----> " << endl;
    //
+   // Result
+   //
+   cout << endl ;
+   //
    float meanX  = 0;
    float meanXn = 0;
    float meanY  = 0;
@@ -1665,9 +1670,9 @@ void ALCTTiming( int & RXphase, int & TXphase ){
    //
    for (j=0;j<maxTimeBins;j++){
      printf(" rx = %02d : ",j);   
-      for (k=0;k<maxTimeBins;k++) {
-  	if ( ALCTConfDone[j][k] > 0 ) {
-	  if ( ALCTWordCount[j][k] >0 ) printf("%c[01;35m", '\033');	 
+     for (k=0;k<maxTimeBins;k++) {
+       if ( ALCTConfDone[j][k] > 0 ) {
+	 if ( ALCTWordCount[j][k] >0 ) printf("%c[01;35m", '\033');	 
 	  printf("%02x ",(ALCTWordCount[j][k]&0xffff));
 	  printf("%c[01;0m", '\033');	 
 	  if ( ALCTWordCount[j][k] >0 ) {
@@ -1676,22 +1681,56 @@ void ALCTTiming( int & RXphase, int & TXphase ){
 	    meanY += j;
 	    meanYn++;
 	  }
-	} else {
-	  int myprintout = 0;
-	  printf("%02x ",0x00 );
-	}
-      }
-      cout << endl;
+       } else {
+	 printf("%02x ",0x00 );
+       }
+     }
+     cout << endl;
    }
    //
+   cout << endl ;
+   //
+   // Work it
+   //
+   for (j=0;j<maxTimeBins*2;j++){
+     for (k=0;k<maxTimeBins*2;k++) {
+       ALCTWordCountWrap[j][k] = 0 ;
+     }
+   }   
+   //
+   for (j=0;j<maxTimeBins;j++){
+     for (k=0;k<maxTimeBins;k++) {
+       if ( ALCTConfDone[j][k] > 0 ) {
+	 ALCTWordCountWrap[j][k] = ALCTWordCount[j][k] ;
+       }
+     }
+   }   
+   //   
+   for( int j=0; j<maxTimeBins; j++ ) {
+     k=0;
+     while ( ALCTWordCount[j][k] > 0 ) {
+       ALCTWordCountWrap[j+13][k+13] = ALCTWordCount[j][k] ;
+       ALCTWordCountWrap[j][k] = 0;
+       k++;
+     }
+   }   
+   //
+   for (int j=0; j<maxTimeBins*2; j++ ){
+     printf(" rx = %02d : ",j);   
+     for (k=0;k<maxTimeBins*2;k++) {
+       if ( ALCTWordCount[j][k] >0 ) printf("%c[01;35m", '\033');	 
+       printf("%02x ",(ALCTWordCountWrap[j][k]&0xffff));
+       printf("%c[01;0m", '\033');	 
+     }
+     cout << endl;
+   }
+   //
+   // Calculate mean
+   // 
    meanX /= meanXn+0.0001;
    meanY /= meanYn+0.0001;
    //
    printf(" \n Best Setting TX=%f RX=%f \n",meanX ,meanY);
-   //
-   cout << endl;
-   //
-   cout << endl;
    //
    cout << endl;
    //
@@ -2008,7 +2047,7 @@ void PulseTestStrips(){
    //
 }
 
-void PulseCFEB(int HalfStrip, int CLCTInputs ){
+void PulseCFEB(fstream* output_log, int HalfStrip, int CLCTInputs ){
    //
    thisTMB->DisableCLCTInputs();
    thisTMB->SetCLCTPatternTrigger();
@@ -2067,7 +2106,7 @@ void CFEBChamberScanning(){
 	 //
 	 printf("Enabling Inputs %x \n",CLCTInputList[List]);
 	 //
-	 PulseCFEB(Strip,CLCTInputList[List]);
+	 PulseCFEB(0, Strip,CLCTInputList[List]);
 	 //
 	 int clct0cfeb = thisTMB->GetCLCT0Cfeb();
 	 int clct1cfeb = thisTMB->GetCLCT1Cfeb();
@@ -2141,7 +2180,7 @@ int TMBL1aTiming(){
       while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
       thisTMB->ResetRAMAddress();
       if ( UseCosmic ) sleep(2);
-      if ( UsePulsing) PulseCFEB(16,0xa);
+      if ( UsePulsing) PulseCFEB(0,16,0xa);
       wordcounts[delay] += thisTMB->GetWordCount();
       printf(" WordCount %d \n",thisTMB->GetWordCount());
     }
@@ -2165,9 +2204,12 @@ int TMBL1aTiming(){
 //
 void CFEBTiming(float CFEBMean[5]){
   //
+  fstream cfeb_timing_log("cfeb_timing.txt");
+  //
   int MaxTimeDelay=13;
   //
   int Muons[5][MaxTimeDelay];
+  int MuonsWork[5][2*MaxTimeDelay];
   //
   for(int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++) {
     for(int CFEBs=0; CFEBs<5; CFEBs++) {
@@ -2175,9 +2217,15 @@ void CFEBTiming(float CFEBMean[5]){
     }
    }
   //
+  for(int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++) {
+    for(int CFEBs=0; CFEBs<5; CFEBs++) {
+      MuonsWork[CFEBs][TimeDelay] = 0;
+    }
+   }
+  //
   for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){
     //
-    cout << " Setting TimeDelay to " << TimeDelay << endl;
+    cfeb_timing_log << " Setting TimeDelay to " << TimeDelay << endl;
     //
     thisTMB->tmb_clk_delays(TimeDelay,0) ;
     thisTMB->tmb_clk_delays(TimeDelay,1) ;
@@ -2191,13 +2239,13 @@ void CFEBTiming(float CFEBMean[5]){
       //
       for (int Nmuons=0; Nmuons<10; Nmuons++){
 	//
-	PulseCFEB(16,CLCTInputList[List]);
+	PulseCFEB(0, 16,CLCTInputList[List]);
 	//
 	thisTMB->DiStripHCMask(16/4-1); // counting from 0;
 	//
-	cout << " TimeDelay " << TimeDelay << " CLCTInput " 
+	cfeb_timing_log << " TimeDelay " << TimeDelay << " CLCTInput " 
 	     << CLCTInputList[List] << " Nmuons " << Nmuons << endl;
-	  //
+	//
 	int clct0cfeb = thisTMB->GetCLCT0Cfeb();
 	int clct1cfeb = thisTMB->GetCLCT1Cfeb();
 	int clct0nhit = thisTMB->GetCLCT0Nhit();
@@ -2205,8 +2253,8 @@ void CFEBTiming(float CFEBMean[5]){
 	int clct0keyHalfStrip = thisTMB->GetCLCT0keyHalfStrip();
 	int clct1keyHalfStrip = thisTMB->GetCLCT1keyHalfStrip();
 	//
-	cout << " clct0cfeb " << clct0cfeb << " clct1cfeb " << clct1cfeb << endl;
-	cout << " clct0nhit " << clct0nhit << " clct1nhit " << clct1nhit << endl;
+	cfeb_timing_log << " clct0cfeb " << clct0cfeb << " clct1cfeb " << clct1cfeb << endl;
+	cfeb_timing_log << " clct0nhit " << clct0nhit << " clct1nhit " << clct1nhit << endl;
 	//
 	if ( clct0nhit == 6 && clct0keyHalfStrip == 16 ) Muons[clct0cfeb][TimeDelay]++;
 	if ( clct1nhit == 6 && clct1keyHalfStrip == 16 ) Muons[clct1cfeb][TimeDelay]++;
@@ -2215,49 +2263,88 @@ void CFEBTiming(float CFEBMean[5]){
     }
   }
   //
-  //float CFEBMean[5];
-  //
   float CFEBMeanN[5];
   //
+  for( int i=0; i<5; i++) {
+    CFEBMean[i]  = 0 ;
+    CFEBMeanN[i] = 0 ;
+  }
   //
-  cout << endl;
-  printf("TimeDelay ");
-  for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++) printf(" %03d ",TimeDelay);
-  printf("\n");
+  cfeb_timing_log << endl;
+  cfeb_timing_log << "TimeDelay " ;
+  for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++) cfeb_timing_log << setw(5) << TimeDelay ;
+  cfeb_timing_log << endl ;
   for (int CFEBs=0; CFEBs<5; CFEBs++) {
-    cout << "CFEB Id=" << CFEBs << " " ;
+    cfeb_timing_log << "CFEB Id=" << CFEBs << " " ;
     for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){ 
-      if ( Muons[CFEBs][TimeDelay] > 0  ) printf("%c[01;35m", '\033');	 
-      if ( Muons[CFEBs][TimeDelay] > 0  ) {
-	CFEBMean[CFEBs]  += TimeDelay  ; 
-	 CFEBMeanN[CFEBs] += 1 ; 
-      }
-      printf(" %03d ",Muons[CFEBs][TimeDelay]);
-      printf("%c[01;0m", '\033');	 
+      cfeb_timing_log << setw(5) << Muons[CFEBs][TimeDelay] ;
     }     
-    cout << endl;
+    cfeb_timing_log << endl ;
   }   
   //
-  cout << endl ;
+  cfeb_timing_log << endl ;
+  //
+  int TimeDelay;
+  //
+  for (int CFEBs=0; CFEBs<5; CFEBs++) {
+    for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){ 
+      MuonsWork[CFEBs][TimeDelay] = Muons[CFEBs][TimeDelay] ;
+    }
+  }
+  //
+  for (int CFEBs=0; CFEBs<5; CFEBs++) {
+    TimeDelay=0;
+    while (Muons[CFEBs][TimeDelay]>0) {
+      MuonsWork[CFEBs][TimeDelay+13] = Muons[CFEBs][TimeDelay] ;
+      MuonsWork[CFEBs][TimeDelay] = 0 ;
+      TimeDelay++;
+    }
+  }
+  //
+  cfeb_timing_log << endl ;
+  // 
+  cfeb_timing_log << "TimeDelay Fixed for Delay Wrapping " << endl ;
+  cfeb_timing_log << "TimeDelay " ;
+  for (int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++) cfeb_timing_log << setw(5) << TimeDelay ;
+  cfeb_timing_log << endl;
+  for (int CFEBs=0; CFEBs<5; CFEBs++) {
+    cfeb_timing_log << "CFEB Id=" << CFEBs << " " ;
+    for (int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++){ 
+      if ( MuonsWork[CFEBs][TimeDelay] > 0  ) {
+	CFEBMean[CFEBs]  += TimeDelay  ; 
+	CFEBMeanN[CFEBs] += 1 ; 
+      }
+      cfeb_timing_log << setw(5) << MuonsWork[CFEBs][TimeDelay] ;
+    }     
+    cfeb_timing_log << endl ;
+  }   
+  //
+  cfeb_timing_log << endl ;
   //
   for( int CFEBs=0; CFEBs<5; CFEBs++) {
     CFEBMean[CFEBs] /= CFEBMeanN[CFEBs]+0.0001 ;
-    printf(" %f ",CFEBMean[CFEBs]);
+    if (CFEBMean[CFEBs] > 12 ) CFEBMean[CFEBs] = (CFEBMean[CFEBs]) - 13 ;
+    cfeb_timing_log << " CFEB = " << CFEBMean[CFEBs] ;
   }
   //
-  cout << endl;
-  cout << endl;
+  cfeb_timing_log << endl ;
+  cfeb_timing_log << endl ;
+  //
+  cfeb_timing_log.close();
   //
 }
 //
-void FindWinner(){
+int FindWinner(){
   //
   thisCCB->setCCBMode(CCB::VMEFPGA);
   //
   //thisTMB->alct_match_window_size_ = 3;
   //thisTMB->alct_vpf_delay_ = 3;
   //
-  for (int i = 5; i < 11; i++){
+  float MpcDelay=0;
+  int  MpcDelayN=0;
+    //
+  for (int i = 2; i < 11; i++){
     //
     //thisTMB->alct_match_window_size_ = i;
     //
@@ -2270,24 +2357,38 @@ void FindWinner(){
     //thisCCB->startTrigger();
     //thisCCB->bx0();
     //
-    if ( UseCosmic  ) sleep(2);
+    if (UsePulsing) PulseCFEB(0,16,0xa);
+    if (UseCosmic)  sleep(2);
     //
-    //if ( UsePulsing ) PulseCFEB(16,0xa);
+    //if ( UsePulsing ) PulseCFEB(0,16,0xa);
     //
     //thisCCB->stopTrigger();
     //
-    thisTMB->GetCounters();
+    if (UseCosmic) thisTMB->GetCounters();
     //
     //thisTMB->PrintCounters();
     //
     cout << "mpc_delay_ =  " << i << endl;
     //
-    thisTMB->PrintCounters(8);
-    thisTMB->PrintCounters(16);
-    thisTMB->PrintCounters(17);
+    //cout << thisTMB->MPC0Accept() << " " << thisTMB->MPC1Accept() << endl ;
+    //
+    if (UseCosmic) {
+      thisTMB->PrintCounters(8);
+      thisTMB->PrintCounters(16);
+      thisTMB->PrintCounters(17);
+    }
+    //
+    if (thisTMB->GetCounter(16) || 
+	(thisTMB->MPC0Accept()+thisTMB->MPC1Accept()) > 0 ) {
+      MpcDelay  += i ;    
+      MpcDelayN++;
+    }
+    //
   }
   //
-  //thisCCB->setCCBMode(CCB::DLOG);      
+  MpcDelay /= (MpcDelayN+0.0001) ;
+  //
+  cout << "Correct MPC setting : " << MpcDelay << endl ;
   //
 }
 //
@@ -2312,7 +2413,7 @@ int FindALCTvpf(){
     //thisCCB->startTrigger();     // 2 commands to get trigger going
     //thisCCB->bx0();
     sleep(2);                   // accumulate statistics
-    //if (UsePulsing) PulseCFEB(16,0xa);
+    //if (UsePulsing) PulseCFEB(0,16,0xa);
     //thisCCB->stopTrigger();      // stop trigger
     thisTMB->GetCounters();      // read counter values
     //

@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.3 2005/08/11 08:13:04 mey Exp $
+// $Id: TMB.cc,v 2.4 2005/08/12 14:16:03 mey Exp $
 // $Log: TMB.cc,v $
-// Revision 2.3  2005/08/11 08:13:04  mey
-// Update
+// Revision 2.4  2005/08/12 14:16:03  mey
+// Added pulsing vor TMB-MPC delay
 //
 // Revision 2.2  2005/07/08 10:33:32  geurts
 // allow arbitrary scope trigger channel in TMB::scope()
@@ -62,6 +62,22 @@ TMB::~TMB() {
   std::cout << "destructing TMB" << std::endl;
 }
 
+
+int TMB::MPC0Accept(){
+  //
+  tmb_vme(VME_READ,tmb_trig_adr,sndbuf,rcvbuf,NOW);
+  //
+  return (rcvbuf[0]&0x2)>>1; 
+  //
+}
+
+int TMB::MPC1Accept(){
+  //
+  tmb_vme(VME_READ,tmb_trig_adr,sndbuf,rcvbuf,NOW);
+  //
+  return (rcvbuf[0]&0x4)>>2; 
+  //
+}
 
 int TMB::ReadRegister(int reg){
   //
@@ -1808,8 +1824,7 @@ void TMB::OnlyReadTMBRawhits(){
 }
 
 void TMB::decode() {
-
-
+  //
   unsigned long int base_adr;
   unsigned long int boot_adr;
   unsigned long int adr;
@@ -1821,7 +1836,7 @@ void TMB::decode() {
   //  static const unsigned long int tmb_boot_adr        = 0x070000;
   static const unsigned long int islot               = 6;
 
-
+  //
   unsigned long int firmware_type;
   unsigned long int firmware_series;
   char *firmware_name;
@@ -1879,6 +1894,7 @@ void TMB::decode() {
   boot_adr = base_adr|0x070000;
 
   pfile = fopen("tmb_scope.txt","w");
+
   //pfile2 = fopen("TMBOUT.dat","w");
 
   /*** Get firmware type code ***/
@@ -1897,7 +1913,7 @@ void TMB::decode() {
   /*** Inject ALCT+CLCT then readout raw hits ***/
 
   int kill_loop=0;
-  nloop = 0;
+  nloop = 10;
 
   //Single cycle or loop
   printf(" Loop? (y/n): ");
@@ -1908,20 +1924,22 @@ void TMB::decode() {
     printf(" How many events? (1-100): ");
     scanf("%d",&nloop);
   }
-  else kill_loop = nloop;
+  //else kill_loop = nloop;
 
-  ians = 'n';
-  printf("Display cathode dump on screen? (y/n): ");
-  scanf("%c",&ians);
-  if((ians == 'y') || (ians == 'Y')) disp_dump = true;
-  else disp_dump = false;
+  //ians = 'n';
+  //printf("Display cathode dump on screen? (y/n): ");
+  //scanf("%c",&ians);
+  //if((ians == 'y') || (ians == 'Y')) disp_dump = true;
+  //else disp_dump = false;
+
+  disp_dump = false ;
 
   rdscope = true;
+  //
   //if(iloop) rdscope = false;
   //
   printf("\n");
   //
-  //while(((iloop) || ((kill_loop++) <= 20))) {
   while( ((kill_loop++) <= nloop) )  {
     //
     while(FmState() == 1 ) {
@@ -1946,7 +1964,9 @@ void TMB::decode() {
       if(phos4_lock == 0) printf("Waiting for PHOS4 lock");
     }
     */
+    //
     //Clear DMB RAM write-address
+    //
     adr = dmb_ram_adr ;
     wr_data = 0x2000;   //reset RAM write address
     sndbuf[0] = (wr_data & 0xff00)>>8 ;
@@ -1985,13 +2005,13 @@ void TMB::decode() {
 
     //if(!iloop) {
     //if(kill_loop == 0) {
+
     fprintf(pfile,"\n\n*********************************************\n");
     fprintf(pfile,"* Event Number: %d                          *\n",kill_loop);
     fprintf(pfile,"*********************************************\n");
-      fprintf(pfile,"clct0_vme = %6.6lx\n",clct0_vme);
-      fprintf(pfile,"clct1_vme = %6.6lx\n",clct1_vme);
-      fprintf(pfile,"clctm_vme = %6.6lx\n",rd_data);
-      //}
+    fprintf(pfile,"clct0_vme = %6.6lx\n",clct0_vme);
+    fprintf(pfile,"clct1_vme = %6.6lx\n",clct1_vme);
+    fprintf(pfile,"clctm_vme = %6.6lx\n",rd_data);
 
     //Decompose readout CLCT
     clct0_vpf   = (clct0_vme >>  0) & 0x0001;   //Valid pattern flag
@@ -2018,17 +2038,17 @@ void TMB::decode() {
 
     //if(!iloop) {
     //if(kill_loop == 0) {
-      fprintf(pfile,"CLCT0: vpf= %4ld nhit= %4ld pat= %4ld hsds= %4ld bend= %4ld key= %4ld cfeb= %4ld\n",
-              clct0_vpf,clct0_nhit,clct0_pat,clct0_hsds,clct0_bend,clct0_key,clct0_cfeb);
 
-      fprintf(pfile,"CLCT1: vpf= %4ld nhit= %4ld pat= %4ld hsds= %4ld bend= %4ld key= %4ld cfeb= %4ld\n",
-              clct1_vpf,clct1_nhit,clct1_pat,clct1_hsds,clct1_bend,clct1_key,clct1_cfeb);
-      //}
-
-
-
+    fprintf(pfile,"CLCT0: vpf= %4ld nhit= %4ld pat= %4ld hsds= %4ld bend= %4ld key= %4ld cfeb= %4ld\n",
+	    clct0_vpf,clct0_nhit,clct0_pat,clct0_hsds,clct0_bend,clct0_key,clct0_cfeb);
+    
+    fprintf(pfile,"CLCT1: vpf= %4ld nhit= %4ld pat= %4ld hsds= %4ld bend= %4ld key= %4ld cfeb= %4ld\n",
+	    clct1_vpf,clct1_nhit,clct1_pat,clct1_hsds,clct1_bend,clct1_key,clct1_cfeb);
+    //}
+        
+    
     /***** Readout raw hits *****/
-
+    
     //Read back embedded scope data
     scp_arm = false;
     scp_readout = true;
@@ -2045,7 +2065,7 @@ void TMB::decode() {
     printf("   busy       = %4ld\n",dmb_busy);
 
     if((dmb_busy) || (dmb_wdcnt <= 0)) {
-      if(dmb_busy) printf("Can not read RAM: dmb reports busy\n");
+      if(dmb_busy)       printf("Can not read RAM: dmb reports busy\n");
       if(dmb_wdcnt <= 0) printf("Can not read RAM: dmb reports word count <=0\n");
     } else {
       //Write RAM read address to TMB
@@ -2087,6 +2107,7 @@ void TMB::decode() {
   /***** Exit: Close VME Interface *****/
   theController->end() ;
   fclose(pfile);
+
   //fclose(pfile2);
   //return 0;
 
