@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.4 2005/08/12 14:16:04 mey Exp $
+// $Id: tmbtiming.cpp,v 2.5 2005/08/12 19:45:27 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.5  2005/08/12 19:45:27  mey
+// Updated MPC printout in TMB-MPC timing
+//
 // Revision 2.4  2005/08/12 14:16:04  mey
 // Added pulsing vor TMB-MPC delay
 //
@@ -2342,8 +2345,14 @@ int FindWinner(){
   //thisTMB->alct_vpf_delay_ = 3;
   //
   float MpcDelay=0;
-  int  MpcDelayN=0;
-    //
+  int   MpcDelayN=0;
+  //
+  float Mpc0Delay=0;
+  int   Mpc0DelayN=0;
+  //
+  float Mpc1Delay=0;
+  int   Mpc1DelayN=0;
+  //
   for (int i = 2; i < 11; i++){
     //
     //thisTMB->alct_match_window_size_ = i;
@@ -2357,7 +2366,14 @@ int FindWinner(){
     //thisCCB->startTrigger();
     //thisCCB->bx0();
     //
-    if (UsePulsing) PulseCFEB(0,16,0xa);
+    int iterations = 0;
+    //
+  REPEAT:
+    //
+    if (UsePulsing) {
+      iterations++;
+      PulseCFEB(0,16,0xa);
+    }
     if (UseCosmic)  sleep(2);
     //
     //if ( UsePulsing ) PulseCFEB(0,16,0xa);
@@ -2382,13 +2398,27 @@ int FindWinner(){
 	(thisTMB->MPC0Accept()+thisTMB->MPC1Accept()) > 0 ) {
       MpcDelay  += i ;    
       MpcDelayN++;
+      if ( thisTMB->MPC0Accept() > 0 ) {
+	Mpc0Delay  += i ;    
+	Mpc0DelayN++;
+      }
+      if ( thisTMB->MPC1Accept() > 0 ) {
+	Mpc1Delay  += i ;    
+	Mpc1DelayN++;
+      }
     }
+    //
+    if (UsePulsing && iterations < 10 ) goto REPEAT;
     //
   }
   //
-  MpcDelay /= (MpcDelayN+0.0001) ;
+  MpcDelay  /= (MpcDelayN+0.0001) ;
+  Mpc0Delay /= (Mpc0DelayN+0.0001) ;
+  Mpc1Delay /= (Mpc1DelayN+0.0001) ;
   //
-  cout << "Correct MPC setting : " << MpcDelay << endl ;
+  cout << "Correct MPC  setting  : " << MpcDelay << endl ;
+  cout << "Correct MPC0 setting : " << Mpc0Delay << endl ;
+  cout << "Correct MPC1 setting : " << Mpc1Delay << endl ;
   //
 }
 //
