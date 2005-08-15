@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.5 2005/08/12 19:45:27 mey Exp $
+// $Id: tmbtiming.cpp,v 2.6 2005/08/15 11:00:10 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.6  2005/08/15 11:00:10  mey
+// Added pulsing to MPC Winner timing and several options for DAV DMB settings
+//
 // Revision 2.5  2005/08/12 19:45:27  mey
 // Updated MPC printout in TMB-MPC timing
 //
@@ -82,7 +85,6 @@ bool UsePulsing(true);
 //
 TestBeamCrateController tbController;
 //
-
 int main(int argc,char **argv){
 
   //-- default settings
@@ -789,14 +791,126 @@ int main(int argc,char **argv){
     
     
     if (doReadDMBCounters) {
-      //
-      thisDMB->readtiming();
-      //
-      printf("  L1A to LCT delay: %d", thisDMB->GetL1aLctCounter()  ); printf(" CMS clock cycles \n");
-      printf("  CFEB DAV delay:   %d", thisDMB->GetCfebDavCounter() ); printf(" CMS clock cycles \n");
-      printf("  TMB DAV delay:    %d", thisDMB->GetTmbDavCounter()  ); printf(" CMS clock cycles \n");
-      printf("  ALCT DAV delay:   %d", thisDMB->GetAlctDavCounter() ); printf(" CMS clock cycles \n");
-      //
+
+      // JH test code 12 Aug 2005
+      // Add some analysis ability to this option
+
+
+      cout << "Enter 1 for simple print-out" << endl;
+      cout << "      2 for print most frequent values" <<endl;
+      cout << "      3 for cuts by TMB DAV and/or same DAV, then print most frequent" <<endl;
+
+      int user_option;
+      cin >> user_option;
+
+      if(user_option<1 | user_option>3) cout << "Invalid option entered" << endl;
+
+//Simple read counters option:
+
+      if(user_option==1) {
+        thisDMB->readtiming();
+        printf("  L1A to LCT delay: %d", thisDMB->GetL1aLctCounter()  ); printf(" CMS clock cycles \n");
+        printf("  CFEB DAV delay:   %d", thisDMB->GetCfebDavCounter() ); printf(" CMS clock cycles \n");
+        printf("  TMB DAV delay:    %d", thisDMB->GetTmbDavCounter()  ); printf(" CMS clock cycles \n");
+        printf("  ALCT DAV delay:   %d", thisDMB->GetAlctDavCounter() ); printf(" CMS clock cycles \n");
+	}
+
+//Loop and choose "best" option:
+
+      else {
+	cout << "Enter number of DMB counter reads to perform: " << endl;
+	int nloop;
+	cin >> nloop;
+
+	int davsame;
+	int tmbdavcut;
+	if(user_option==3) {
+	  cout << "Enter value of TMB DAV to cut on (suggest 6, use -1 for no cut):" << endl;
+	  cin >> tmbdavcut;
+
+	  cout << "Enter -1 for no cut against same DAV delays or 1 to use cut:" << endl;
+	  cin >> davsame;
+	}
+
+//Before looping, zero all of the counters
+
+	int type;
+	int delay;
+      // counts for [time bin,type] where 
+      //       type=0 for LCT-L1A delay, 1 for CFEBDAV, 2 for TMBDAV, 3 for ALCTDAV
+      int counts[256][4]; 
+	for(type=0;type<4;type++) { 
+          for(delay=0;delay<256;delay++) {
+	    counts[delay][type] = 0;}
+	}
+
+//Next read the counters nloop times and accumulate statistics
+
+	int iloop;
+	int passcuts=0;
+        for(iloop=0;iloop<nloop;iloop++){
+	  thisDMB->readtiming();
+	  int l1alct  = thisDMB->GetL1aLctCounter();
+	  int cfebdav = thisDMB->GetCfebDavCounter();
+	  int tmbdav  = thisDMB->GetTmbDavCounter();
+	  int alctdav = thisDMB->GetAlctDavCounter();
+	  
+	  //	  cout << "Debug: l1alct= " << l1alct << "cfebdav=" << cfebdav;
+	  //      cout << " tmbdav=" <<tmbdav << " alctdav=" << alctdav << endl;
+
+	  //Pass cuts?
+	  //Maybe no cuts, or else have to 
+	  //pass tmbdav value cuts and pass not same cuts
+
+	  bool nocuts=(user_option==2);
+	  bool tmbdavok=(tmbdavcut==-1 || tmbdav==tmbdavcut);
+	  bool davdiff=(davsame==-1 || (cfebdav!=tmbdav || cfebdav!=alctdav || tmbdav!=alctdav));
+
+	  if (nocuts || (tmbdavok && davdiff))
+	    {
+
+	      passcuts+=1;
+	      counts[ l1alct  ][0] += 1;
+	      counts[ cfebdav ][1] += 1;
+	      counts[ tmbdav  ][2] += 1;
+	      counts[ alctdav ][3] += 1;
+	    }
+	}
+
+	//Next analyze the counters to find the most frequent setting
+
+	int maxnum[4],maxdelay[4];
+	maxnum[0]=-1;
+	maxnum[1]=-1;
+	maxnum[2]=-1;
+	maxnum[3]=-1;
+	for(delay=0;delay<256;delay++)
+	  {
+	    //Debug
+	    //	    cout << "Delay=" << delay << " Counts are";
+	    //	    cout << "  LCT-L1A : " << counts[delay][0]; 
+	    //	    cout << "  CFEB-DAV: " << counts[delay][1];
+	    //	    cout << "  TMB-DAV:  " << counts[delay][2];
+	    //	    cout << "  ALCT-DAV: " << counts[delay][3] << endl; 
+
+	    for(type=0;type<4;type++)
+	      {
+		if( counts[delay][type] > maxnum[type] )
+		  {
+		    maxnum[type]=counts[delay][type];
+		    maxdelay[type]=delay;
+		  }
+	      }	    
+	  }
+
+	cout << endl << "Best delay settings in " << nloop << " readings and " 
+	     << passcuts << " passing cuts are:" << endl;
+	cout << "  LCT -L1A delay=" << maxdelay[0] << " (" << maxnum[0] << "readings)" << endl;
+	cout << "  CFEB-DAV delay=" << maxdelay[1] << " (" << maxnum[1] << "readings)" << endl;
+	cout << "  TMB -DAV delay=" << maxdelay[2] << " (" << maxnum[2] << "readings)" << endl;
+	cout << "  ALCT-DAV delay=" << maxdelay[3] << " (" << maxnum[3] << "readings)" << endl;
+
+      }
     }
     
     
@@ -1122,7 +1236,7 @@ void Automatic(){
   //
   // Now set new CFEB phases
   //
-  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(CFEBMean[CFEBs],CFEBs) ;
+  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(int(CFEBMean[CFEBs]),CFEBs) ;
   //
   int ALCT_L1a_delay_pulse = 110;
   //
@@ -1160,7 +1274,7 @@ void Automatic(){
   //
   // Now set new CFEB phases
   //
-  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(CFEBMean[CFEBs],CFEBs) ;
+  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(int(CFEBMean[CFEBs]),CFEBs) ;
   //
   // Now set new ALCT phases
   //
@@ -1175,7 +1289,7 @@ void Automatic(){
   //
   // Now set new CFEB phases
   //
-  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(CFEBMean[CFEBs],CFEBs) ;
+  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(int(CFEBMean[CFEBs]),CFEBs) ;
   //
   // Now set new ALCT phases
   //
@@ -1195,7 +1309,7 @@ void Automatic(){
   //
   // Now set new CFEB phases
   //
-  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(CFEBMean[CFEBs],CFEBs) ;
+  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(int(CFEBMean[CFEBs]),CFEBs) ;
   //
   // Now set new ALCT phases
   //
@@ -1212,7 +1326,7 @@ void Automatic(){
   //
   // Now set new CFEB phases
   //
-  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(CFEBMean[CFEBs],CFEBs) ;
+  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(int(CFEBMean[CFEBs]),CFEBs) ;
   //
   // Now set new ALCT phases
   //
@@ -1236,7 +1350,7 @@ void Automatic(){
   //
   // Now set new CFEB phases
   //
-  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(CFEBMean[CFEBs],CFEBs) ;
+  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(int(CFEBMean[CFEBs]),CFEBs) ;
   //
   // Now set new ALCT phases
   //
@@ -1458,7 +1572,7 @@ void ALCTTiming( int & RXphase, int & TXphase ){
    for (j=0;j<maxTimeBins;j++){
       for (k=0;k<maxTimeBins;k++) {
 	//
-	int keyWG  = rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6/4;
+	int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6/4);
 	int keyWG2 = (alct->GetWGNumber())/6-keyWG;
 	int ChamberSection = alct->GetWGNumber()/6;
 	printf("Injecting at %d \n",keyWG);
@@ -1661,10 +1775,10 @@ void ALCTTiming( int & RXphase, int & TXphase ){
    cout << endl;
    //
    cout << "Result (tx vs. rx)   tx ----> " << endl;
+   cout << "           00 01 02 03 04 05 06 07 08 09 10 11 12" << endl;
+   cout << "           == == == == == == == == == == == == ==" << endl; 
    //
    // Result
-   //
-   cout << endl ;
    //
    float meanX  = 0;
    float meanXn = 0;
@@ -1737,8 +1851,8 @@ void ALCTTiming( int & RXphase, int & TXphase ){
    //
    cout << endl;
    //
-   TXphase = meanX ;
-   RXphase = meanY ;
+   TXphase = int(meanX) ;
+   RXphase = int(meanY) ;
    //
 }
 //
@@ -1801,7 +1915,7 @@ int FindBestL1aAlct(){
     //
     //while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
     //
-    int keyWG = (rand()/(RAND_MAX+0.01))*(alct->GetWGNumber())/6./2.;
+    int keyWG          = int((rand()/(RAND_MAX+0.01))*(alct->GetWGNumber())/6./2.);
     int ChamberSection = alct->GetWGNumber()/6;
     //
     printf("\n");
@@ -1868,7 +1982,7 @@ int FindBestL1aAlct(){
   //
   DelayBin /= (DelayBinN+0.0001) ;
   //
-  return DelayBin;
+  return int(DelayBin);
   //
 }
 //
@@ -1918,7 +2032,7 @@ int FindALCT_L1A_delay(int minlimit, int maxlimit){
   //
   printf("In.Best L1a ALCT delay %f \n",DelayBin);
   //
-  return DelayBin;
+  return int(DelayBin);
   //
 }
 
@@ -1929,7 +2043,7 @@ void PulseRandomALCT(){
   //
   for (int i=0; i< 22; i++) HCmask[i] = 0;
   //
-  int keyWG  = rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6/4;
+  int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6/4);
   int keyWG2 = (alct->GetWGNumber())/6-keyWG;
   int ChamberSection = alct->GetWGNumber()/6;
   //
@@ -2201,7 +2315,7 @@ int TMBL1aTiming(){
   //
   printf("Right L1a delay setting is %f \n",RightTimeBin);
   //
-  return RightTimeBin ;
+  return int(RightTimeBin) ;
   //
 }
 //
@@ -2341,8 +2455,8 @@ int FindWinner(){
   //
   thisCCB->setCCBMode(CCB::VMEFPGA);
   //
-  //thisTMB->alct_match_window_size_ = 3;
-  //thisTMB->alct_vpf_delay_ = 3;
+  // thisTMB->alct_match_window_size_ = 3;
+  // thisTMB->alct_vpf_delay_ = 3;
   //
   float MpcDelay=0;
   int   MpcDelayN=0;
@@ -2353,7 +2467,15 @@ int FindWinner(){
   float Mpc1Delay=0;
   int   Mpc1DelayN=0;
   //
-  for (int i = 2; i < 11; i++){
+  int MPC0Count[11];
+  int MPC1Count[11];
+  //
+  for (int i=0; i<11; i++ ) {
+    MPC0Count[i] = 0;
+    MPC1Count[i] = 0;
+  }
+  //
+  for (int i = 0; i < 11; i++){
     //
     //thisTMB->alct_match_window_size_ = i;
     //
@@ -2401,10 +2523,12 @@ int FindWinner(){
       if ( thisTMB->MPC0Accept() > 0 ) {
 	Mpc0Delay  += i ;    
 	Mpc0DelayN++;
+	MPC0Count[i]++ ;
       }
       if ( thisTMB->MPC1Accept() > 0 ) {
 	Mpc1Delay  += i ;    
 	Mpc1DelayN++;
+	MPC1Count[i]++ ;
       }
     }
     //
@@ -2412,13 +2536,27 @@ int FindWinner(){
     //
   }
   //
-  MpcDelay  /= (MpcDelayN+0.0001) ;
-  Mpc0Delay /= (Mpc0DelayN+0.0001) ;
-  Mpc1Delay /= (Mpc1DelayN+0.0001) ;
+  for (int i=0; i<11; i++) {
+    cout << "MPC0 winner delay=" << setw(3) << i << " gives " << MPC0Count[i] << endl;
+  }
+  //
+  cout << endl ;
+  //
+  for (int i=0; i<11; i++) {
+    cout << "MPC1 winner delay=" << setw(3) << i << " gives " << MPC1Count[i] << endl;
+  }
+  //
+  cout << endl ;
+  //
+  MpcDelay  /= (MpcDelayN  + 0.0001) ;
+  Mpc0Delay /= (Mpc0DelayN + 0.0001) ;
+  Mpc1Delay /= (Mpc1DelayN + 0.0001) ;
   //
   cout << "Correct MPC  setting  : " << MpcDelay << endl ;
-  cout << "Correct MPC0 setting : " << Mpc0Delay << endl ;
-  cout << "Correct MPC1 setting : " << Mpc1Delay << endl ;
+  cout << "Correct MPC0 setting  : " << Mpc0Delay << endl ;
+  cout << "Correct MPC1 setting  : " << Mpc1Delay << endl ;
+  //
+  cout << endl ;
   //
 }
 //
@@ -2465,7 +2603,7 @@ int FindALCTvpf(){
   
   printf("\n");
      
-  return RightTimeBin ;
+  return int(RightTimeBin) ;
 
 }
 
@@ -2518,7 +2656,7 @@ int FindTMB_L1A_delay( int idelay_min, int idelay_max ){
 
   //if (useCCB) thisCCB->setCCBMode(CCB::DLOG);      // return to "regular" mode for CCB
 
-  return RightTimeBin ;
+  return int(RightTimeBin) ;
 
 }
 //
