@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.2 2005/08/11 08:13:04 mey Exp $
+// $Id: ALCTController.cc,v 2.3 2005/08/15 15:37:48 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.3  2005/08/15 15:37:48  mey
+// Include alct_hotchannel_file
+//
 // Revision 2.2  2005/08/11 08:13:04  mey
 // Update
 //
@@ -408,29 +411,30 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   alct_send_empty_(1)
  {
    alctPatternFile="";
+   alctHotChannelFile="";
+   //
+   ALCT_FAST_JTAG_CHANNEL = ALCT_FAST_VME_JTAG_CHANNEL;
+   if(chamber_type_string_ == "ME11") chamber_type_ = ME11;
+   if(chamber_type_string_ == "ME12") chamber_type_ = ME12;
+   if(chamber_type_string_ == "ME13") chamber_type_ = ME13;
+   if(chamber_type_string_ == "ME21") chamber_type_ = ME21;
+   if(chamber_type_string_ == "ME22") chamber_type_ = ME22;
+   if(chamber_type_string_ == "ME32") chamber_type_ = ME22;
+   if(chamber_type_string_ == "ME42") chamber_type_ = ME22;
+   if(chamber_type_string_ == "ME31") chamber_type_ = ME31;
+   if(chamber_type_string_ == "ME41") chamber_type_ = ME41;
+   //
+   if(WRONG_CHAMBER_TYPE_(chamber_type_)) throw ("Bad chamber type in ALCTController");
+   nAFEBs_ = chamb_table[chamber_type_].wiregroups / alct_table[chamb_table[chamber_type_].alct].delaylines;
+   n_lct_chips_ = alct_table[chamb_table[chamber_type_].alct].groups;
+   std::cout << " ALCT: type " << chamber_type_string_ << " " << chamber_type_ << " AFEBS " << nAFEBs_ << " chips " << n_lct_chips_ << std::endl;
+   alct_rsz = chamtype[chamber_type_].RegSz;
    
-  ALCT_FAST_JTAG_CHANNEL = ALCT_FAST_VME_JTAG_CHANNEL;
-  if(chamber_type_string_ == "ME11") chamber_type_ = ME11;
-  if(chamber_type_string_ == "ME12") chamber_type_ = ME12;
-  if(chamber_type_string_ == "ME13") chamber_type_ = ME13;
-  if(chamber_type_string_ == "ME21") chamber_type_ = ME21;
-  if(chamber_type_string_ == "ME22") chamber_type_ = ME22;
-  if(chamber_type_string_ == "ME32") chamber_type_ = ME22;
-  if(chamber_type_string_ == "ME42") chamber_type_ = ME22;
-  if(chamber_type_string_ == "ME31") chamber_type_ = ME31;
-  if(chamber_type_string_ == "ME41") chamber_type_ = ME41;
-
-  if(WRONG_CHAMBER_TYPE_(chamber_type_)) throw ("Bad chamber type in ALCTController");
-  nAFEBs_ = chamb_table[chamber_type_].wiregroups / alct_table[chamb_table[chamber_type_].alct].delaylines;
-  n_lct_chips_ = alct_table[chamb_table[chamber_type_].alct].groups;
-  std::cout << " ALCT: type " << chamber_type_string_ << " " << chamber_type_ << " AFEBS " << nAFEBs_ << " chips " << n_lct_chips_ << std::endl;
-  alct_rsz = chamtype[chamber_type_].RegSz;
-
-  // now give a default value for the control registers
-  unsigned cr[] = {0x80fc5fc0, 0x20a03786, 0x8}; // default values for CR
-  setCRfld(&params_);
-  //unpackControlRegister(cr);
-
+   // now give a default value for the control registers
+   unsigned cr[] = {0x80fc5fc0, 0x20a03786, 0x8}; // default values for CR
+   setCRfld(&params_);
+   //unpackControlRegister(cr);
+   
 }
 
 
@@ -505,10 +509,17 @@ void ALCTController::setup(int choice)
 
   // download patterns if filename is not empty.
   // change change verbosity level to 0 for no output.
-  if (alctPatternFile!=""){
+
+  if (alctPatternFile != ""){
     int status=alct_download_patterns(alctPatternFile.c_str(),1);
     std::cout << "ALCT: download patterns. Status: " << alct_errs[status] << std::endl;
   }
+  //
+  if (alctHotChannelFile != ""){
+    int status=alct_download_hot_mask(alctHotChannelFile.c_str(),1);
+    std::cout << "ALCT: download hotchannel. Status: " << alct_errs[status] << std::endl;
+  }
+
 }
 
 
@@ -1194,8 +1205,6 @@ int ALCTController::GetWGNumber(){
   return chamtype[chamber_type_].WG_number;
 }
 
-
-
 void ALCTController::GetConf(  unsigned cr[3], int verbose=0 ){
    //
    ReadRegister (RdCfg, cr); // read configuration first
@@ -1317,7 +1326,7 @@ ALCTController::ALCTSTATUS ALCTController::alct_download_patterns(const char* fi
   return st;
 }
 
-ALCTController::ALCTSTATUS ALCTController::alct_download_hot_mask (char* filename, unsigned long verbose)
+ALCTController::ALCTSTATUS ALCTController::alct_download_hot_mask (const char* filename, unsigned long verbose)
 {
 //      unsigned HCmask[13], HCmaskCheck[13];
         unsigned char HCmask[6][14];
@@ -1389,43 +1398,43 @@ ALCTController::ALCTSTATUS ALCTController::alct_download_hot_mask (char* filenam
        }
     }
 	else
-	{
-	   if (verbose) printf ("Cannot open file: %s\n", filename);
-	   st = EALCT_FILEOPEN;
-	}
+	  {
+	    if (verbose) printf ("Cannot open file: %s\n", filename);
+	    st = EALCT_FILEOPEN;
+	  }
         if (verbose) printf("\n") ;
         if (verbose)
-        {
-	   for (i = 0; i < 6; i++)
-	   {
-	      for (j = totblk-1; j >= 0; j--)
-		 printf("%02x ", HCmask[i][j]);
-	      printf("\n");
-	   }
-        }
+	  {
+	    for (i = 0; i < 6; i++)
+	      {
+		for (j = totblk-1; j >= 0; j--)
+		  printf("%02x ", HCmask[i][j]);
+		printf("\n");
+	      }
+	  }
         
         for (i = 0; i < 6; i++)
-        {
+	  {
 	   for (j = 0; j < totblk; j++)
-	      el.cat((unsigned long)HCmask[i][j], 8);
+	     el.cat((unsigned long)HCmask[i][j], 8);
         }
         
         if (verbose)
-        {
-	   printf("el.l: %d\n", el.l);
-	   for (i = 0; i < el.l/32+1; i++) printf("%08lx\n", el.r[i]);
-        }
+	  {
+	    printf("el.l: %d\n", el.l);
+	    for (i = 0; i < el.l/32+1; i++) printf("%08lx\n", el.r[i]);
+	  }
         
         if (elWriteRegister(HCMaskWrite, &el) == -1) st = EALCT_PORT;
         elReadRegister(HCMaskRead, &elc);
         elWriteRegister(HCMaskWrite, &el);
         for (i = 0; i < el.l/32; i++)
 	{
-	   if (el.r[i] != elc.r[i])
-	   {
+	  if (el.r[i] != elc.r[i])
+	    {
 	      if (verbose) printf("Mismatch: i = %02d HCwr = %08lx HCrd = %08lx\n", i, el.r[i], elc.r[i]);
 	      st = EALCT_TESTFAIL;
-	   }
+	    }
 	}
 	
         return st;

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 2.1 2005/06/06 15:17:18 geurts Exp $
+// $Id: TMBParser.cc,v 2.2 2005/08/15 15:38:02 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 2.2  2005/08/15 15:38:02  mey
+// Include alct_hotchannel_file
+//
 // Revision 2.1  2005/06/06 15:17:18  geurts
 // TMB/ALCT timing updates (Martin vd Mey)
 //
@@ -77,6 +80,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, int crateNumber)
 	parser_.fillInt("inject_mode", alct_->alct_inject_mode_);
 	parser_.fillInt("send_empty", alct_->alct_send_empty_);
 	parser_.fillString("alct_pattern_file", alct_->alctPatternFile);
+	parser_.fillString("alct_hotchannel_file", alct_->alctHotChannelFile);
                    
 	int number, delay, threshold;
 
