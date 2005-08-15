@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.6 2005/08/15 11:00:10 mey Exp $
+// $Id: tmbtiming.cpp,v 2.7 2005/08/15 15:38:15 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.7  2005/08/15 15:38:15  mey
+// Include alct_hotchannel_file
+//
 // Revision 2.6  2005/08/15 11:00:10  mey
 // Added pulsing to MPC Winner timing and several options for DAV DMB settings
 //
@@ -72,7 +75,7 @@ void ALCTSVFLoad();
 int  TMBL1aTiming();
 int  FindBestL1aAlct();
 void PulseRandomALCT();
-int  FindWinner();
+int  FindWinner(int);
 int  FindALCTvpf();
 int  FindTMB_L1A_delay(int,int);
 int  FindALCT_L1A_delay(int,int);
@@ -438,7 +441,10 @@ int main(int argc,char **argv){
     }
 
     if (doFindWinner) {
-      FindWinner(); 
+      cout << "How may pulses ?" << endl ;
+      int npulses;
+      cin >> npulses;
+      FindWinner(npulses); 
     }
 
 
@@ -2451,7 +2457,7 @@ void CFEBTiming(float CFEBMean[5]){
   //
 }
 //
-int FindWinner(){
+int FindWinner(int npulses=10){
   //
   thisCCB->setCCBMode(CCB::VMEFPGA);
   //
@@ -2467,15 +2473,17 @@ int FindWinner(){
   float Mpc1Delay=0;
   int   Mpc1DelayN=0;
   //
-  int MPC0Count[11];
-  int MPC1Count[11];
+  int DelaySize = 15;
   //
-  for (int i=0; i<11; i++ ) {
+  int MPC0Count[DelaySize];
+  int MPC1Count[DelaySize];
+  //
+  for (int i=0; i<DelaySize; i++ ) {
     MPC0Count[i] = 0;
     MPC1Count[i] = 0;
   }
   //
-  for (int i = 0; i < 11; i++){
+  for (int i = 0; i < DelaySize; i++){
     //
     //thisTMB->alct_match_window_size_ = i;
     //
@@ -2532,17 +2540,17 @@ int FindWinner(){
       }
     }
     //
-    if (UsePulsing && iterations < 10 ) goto REPEAT;
+    if (UsePulsing && iterations < npulses ) goto REPEAT;
     //
   }
   //
-  for (int i=0; i<11; i++) {
+  for (int i=0; i<DelaySize; i++) {
     cout << "MPC0 winner delay=" << setw(3) << i << " gives " << MPC0Count[i] << endl;
   }
   //
   cout << endl ;
   //
-  for (int i=0; i<11; i++) {
+  for (int i=0; i<DelaySize; i++) {
     cout << "MPC1 winner delay=" << setw(3) << i << " gives " << MPC1Count[i] << endl;
   }
   //

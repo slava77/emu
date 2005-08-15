@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.4 2005/08/12 14:16:03 mey Exp $
+// $Id: TMB.cc,v 2.5 2005/08/15 15:37:57 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.5  2005/08/15 15:37:57  mey
+// Include alct_hotchannel_file
+//
 // Revision 2.4  2005/08/12 14:16:03  mey
 // Added pulsing vor TMB-MPC delay
 //
@@ -2106,7 +2109,7 @@ void TMB::decode() {
 
   /***** Exit: Close VME Interface *****/
   theController->end() ;
-  fclose(pfile);
+  //fclose(pfile);
 
   //fclose(pfile2);
   //return 0;

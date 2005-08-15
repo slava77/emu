@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.2 2005/08/11 08:13:59 mey Exp $
+// $Id: ALCTController.h,v 2.3 2005/08/15 15:37:38 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.3  2005/08/15 15:37:38  mey
+// Include alct_hotchannel_file
+//
 // Revision 2.2  2005/08/11 08:13:59  mey
 // Update
 //
@@ -219,12 +222,12 @@ public:
   ALCTSTATUS alct_download_patterns
     (
      const char* filename, 
-	 unsigned long verbose
+     unsigned long verbose
      );
   
   ALCTSTATUS alct_download_hot_mask 
     (
-     char* filename, 
+     const char* filename, 
      unsigned long verbose
   );
   /// deprecated.  Use the XML, and setConfig.
@@ -555,6 +558,7 @@ public:
     LINKTYPE alct_link_type;
     CHAMBER chamber_type_;
     std::string alctPatternFile;
+    std::string alctHotChannelFile;
     
     unsigned nAFEBs_;
     unsigned n_lct_chips_;
