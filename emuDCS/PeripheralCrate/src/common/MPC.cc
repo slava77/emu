@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.2 2005/08/11 08:13:04 mey Exp $
+// $Id: MPC.cc,v 2.3 2005/08/17 12:27:22 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.3  2005/08/17 12:27:22  mey
+// Updated FindWinner routine. Using FIFOs now
+//
 // Revision 2.2  2005/08/11 08:13:04  mey
 // Update
 //
@@ -96,8 +99,6 @@ void MPC::init() {
   firmwareVersion();
 }
 
-
-
 void MPC::read_fifo(unsigned long int address, char * data) {
   int xfer_done[2];
   int btd; // comes from d360_bt_open(btd_p,devname_p,0);
@@ -106,6 +107,67 @@ void MPC::read_fifo(unsigned long int address, char * data) {
   read(btd, data, theBaseAddress + address,2, xfer_done); 
 }
 
+void MPC::read_fifosA() {
+  //
+  char data[100];
+  //
+  std::cout.fill('0');
+  //
+  read_fifo(FIFO_A1a, data);  
+  std::cout << "MPC: FIFO-A1a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A1b, data);
+  std::cout << "MPC: FIFO-A1b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A2a, data);
+  std::cout << "MPC: FIFO-A2a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A2b, data);
+  std::cout << "MPC: FIFO-A2b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A3a, data);
+  std::cout << "MPC: FIFO-A3a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A3b, data);
+  std::cout << "MPC: FIFO-A3b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A4a, data);
+  std::cout << "MPC: FIFO-A4a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A4b, data);
+  std::cout << "MPC: FIFO-A4b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A5a, data);
+  std::cout << "MPC: FIFO-A5a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A5b, data);
+  std::cout << "MPC: FIFO-A5b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A6a, data);
+  std::cout << "MPC: FIFO-A6a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A6b, data);
+  std::cout << "MPC: FIFO-A6b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A7a, data);
+  std::cout << "MPC: FIFO-A7a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A7b, data);
+  std::cout << "MPC: FIFO-A7b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A8a, data);
+  std::cout << "MPC: FIFO-A8a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A8b, data);
+  std::cout << "MPC: FIFO-A8b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A9a, data);
+  std::cout << "MPC: FIFO-A9a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+  read_fifo(FIFO_A9b, data);
+  std::cout << "MPC: FIFO-A9b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  //
+}
 
 void MPC::read_fifos() {
   std::cout << "MPC:  Read FIFO-B" << std::endl;
@@ -217,10 +279,10 @@ int MPC::read(int btd,char *buf_p,
 
 
 int MPC::write(int btd,char *buf_p,
-    unsigned long int add,
-    int xfer_len,
-    int *xfer_done_p) {
-
+	       unsigned long int add,
+	       int xfer_len,
+	       int *xfer_done_p) {
+  
   theMode = WRITE;
   theController->start(this);
   writeToAddress(add, buf_p, xfer_len);
@@ -397,9 +459,9 @@ void MPC::injectSP(char *injectDataFileName){
 
 // member function as above but here you have passed a file 
 // containing the LCTs you want to inject.
-// data file shouold have a set of 16 bit (4 hex character) words 
-
-
+// data file should have a set of 16 bit (4 hex character) words 
+  
+  
   int btd, xfer_done[2];
   char data[2];
   char DataWord[4];//4 character hex string=16 bit word 
@@ -408,113 +470,109 @@ void MPC::injectSP(char *injectDataFileName){
   unsigned long mframe1, mframe2;
   unsigned long int addr;
   int readWord;//number of words read by fscanf
- 
- std::cout<<"...inject test pattern funct"<<std::endl;
- std::cout<<"data file passed is: "<<injectDataFileName<<std::endl;
-//let's try to open the file:: 
-
-
-
-std::cout<<"opening file..."<<std::endl;
- FILE* myFile = fopen(injectDataFileName , "r" );
-if (myFile==NULL){
-std::cout<<"problem opening data file, exiting.."<<std::endl;
-exit(0);
-}
-
-
-
- this->read_status();
- 
- std::cout<<" will use LCT data from file "<<injectDataFileName<<std::endl;
- 
-   std::cout << "..now filling FIFO-A, with your data, alternating frame 1, 2.." <<std::endl;
-//   int ITR=2;mframe2 = ITR;
+  
+  std::cout<<"...inject test pattern funct"<<std::endl;
+  std::cout<<"data file passed is: "<<injectDataFileName<<std::endl;
+  //let's try to open the file:: 
+  
+  
+  
+  std::cout<<"opening file..."<<std::endl;
+  FILE* myFile = fopen(injectDataFileName , "r" );
+  if (myFile==NULL){
+    std::cout<<"problem opening data file, exiting.."<<std::endl;
+    exit(0);
+  }
+  
+  
+  
+  this->read_status();
+  
+  std::cout<<" will use LCT data from file "<<injectDataFileName<<std::endl;
+  
+  std::cout << "..now filling FIFO-A, with your data, alternating frame 1, 2.." <<std::endl;
+  //   int ITR=2;mframe2 = ITR;
   
 
 
-// read the first data word and turn it into and integer:
-readWord=fscanf( myFile,"%s",DataWord);
-sscanf(DataWord,"%x",&dataWordInt_fr1);
-std::cout<<"first frame 1 :: (first word in file) is "<<std::hex<<dataWordInt_fr1<<std::endl;
-if (readWord<1){
-std::cout<<"problem reading first word in file ..exiting..."<<std::endl;
-exit(0);
-}
-readWord=fscanf( myFile,"%s",DataWord);
-sscanf(DataWord,"%x",&dataWordInt_fr2);
-std::cout<<"first frame 2 :: (second word in file) is "<<std::hex<<dataWordInt_fr2<<std::endl;
-	
-	
-	 
+  // read the first data word and turn it into and integer:
+  readWord=fscanf( myFile,"%s",DataWord);
+  sscanf(DataWord,"%x",&dataWordInt_fr1);
+  std::cout<<"first frame 1 :: (first word in file) is "<<std::hex<<dataWordInt_fr1<<std::endl;
+  if (readWord<1){
+    std::cout<<"problem reading first word in file ..exiting..."<<std::endl;
+    exit(0);
+  }
+  readWord=fscanf( myFile,"%s",DataWord);
+  sscanf(DataWord,"%x",&dataWordInt_fr2);
+  std::cout<<"first frame 2 :: (second word in file) is "<<std::hex<<dataWordInt_fr2<<std::endl;    
 
-	int EVNT=0;//event counter
-	while (dataWordInt_fr1 !=0 && dataWordInt_fr2 !=0)//keep on looping while we have valid words
-           {
-          
-	EVNT++;
-//             mframe1 = (0x1 << 15) | (0xF << 11) | dataWordInt_fr1;
-	mframe1 =  dataWordInt_fr1;
-	mframe2 =  dataWordInt_fr2;
-	
-	     // Load 2 LCTs to each of 8/9!! buffers in FIFO-A corresponding to 9TMBs
-	     addr=theBaseAddress+FIFO_A1a;
-	     for (int fifo_a=1; fifo_a<=9; fifo_a++) //hmm why do we stop at 8??  ..9TMBs and FIFO-A9..?
-             {
-	     
-
-	       for (int LCT=0; LCT<2; LCT++)
-//2 sorts of LCTs
-	         {
-		     data[0]= mframe1&0x00FF;
-		     data[1]=(mframe1&0xFF00)>>8;
-		     this->write(btd,data,addr,2,xfer_done);
-		     
-//		     std::cout<<"event: "<<EVNT<<"...filling fifoA with "<<std::hex<<mframe1<<std::endl;
-
-//2 frames?:ie 2x16 bits =tot 32 bits..
-
-		     data[0]= mframe2&0x00FF;
-		     data[1]=(mframe2&0xFF00)>>8;
-		     this->write(btd,data,addr,2,xfer_done);
-
-		     addr+=0x00002;
-
-	         }//end for loop, 2LCT
-		 }
+  int EVNT=0;//event counter
+  while (dataWordInt_fr1 !=0 && dataWordInt_fr2 !=0)//keep on looping while we have valid words
+    {
+      
+      EVNT++;
+      //             mframe1 = (0x1 << 15) | (0xF << 11) | dataWordInt_fr1;
+      mframe1 =  dataWordInt_fr1;
+      mframe2 =  dataWordInt_fr2;
+      
+      // Load 2 LCTs to each of 8/9!! buffers in FIFO-A corresponding to 9TMBs
+      addr=theBaseAddress+FIFO_A1a;
+      for (int fifo_a=1; fifo_a<=9; fifo_a++) //hmm why do we stop at 8??  ..9TMBs and FIFO-A9..?
+	{
+	  	  
+	  for (int LCT=0; LCT<2; LCT++)
+	    //2 sorts of LCTs
+	    {
+	      data[0]= mframe1&0x00FF;
+	      data[1]=(mframe1&0xFF00)>>8;
+	      this->write(btd,data,addr,2,xfer_done);
 	      
-//try to read next 2 data words from file:
-fscanf(myFile,"%s",DataWord);
-sscanf(DataWord,"%x",&dataWordInt_fr1);
-readWord= fscanf(myFile,"%s",DataWord);
-sscanf(DataWord,"%x",&dataWordInt_fr2);
-
-if (readWord<1){
-std::cout<<"reached end of file... .."<<EVNT<<" eventsx2 frames loaded.."<<std::endl;
-dataWordInt_fr1=0;
-dataWordInt_fr2=0;
-		}//end if	     
-	     
-	   }//end while we have valid words
-        
-
-	// Append 0's to the last one..
-	addr=theBaseAddress+FIFO_A1a;
-	for (int fifo_a=1; fifo_a<=9; fifo_a++) {
-	    for (int LCT=0; LCT<2; LCT++) {
-
-		     data[0]=0;
-		     data[1]=0;
-		     this->write(btd,data,addr,2,xfer_done);
-		     data[0]=0;
-		     data[1]=0;
-		     this->write(btd,data,addr,2,xfer_done);
-		     addr+=0x00002;
-	    }
+	      //std::cout<<"event: "<<EVNT<<"...filling fifoA with "<<std::hex<<mframe1<<std::endl;
+	      
+	      //2 frames?:ie 2x16 bits =tot 32 bits..
+	      
+	      data[0]= mframe2&0x00FF;
+	      data[1]=(mframe2&0xFF00)>>8;
+	      this->write(btd,data,addr,2,xfer_done);
+	      
+	      addr+=0x00002;
+	      
+	    }//end for loop, 2LCT
+	}
+      
+      //try to read next 2 data words from file:
+      fscanf(myFile,"%s",DataWord);
+      sscanf(DataWord,"%x",&dataWordInt_fr1);
+      readWord= fscanf(myFile,"%s",DataWord);
+      sscanf(DataWord,"%x",&dataWordInt_fr2);
+      
+      if (readWord<1){
+	std::cout<<"reached end of file... .."<<EVNT<<" eventsx2 frames loaded.."<<std::endl;
+	dataWordInt_fr1=0;
+	dataWordInt_fr2=0;
+      }//end if	     
+      
+    }//end while we have valid words
+  
+  
+  // Append 0's to the last one..
+  addr=theBaseAddress+FIFO_A1a;
+  for (int fifo_a=1; fifo_a<=9; fifo_a++) {
+    for (int LCT=0; LCT<2; LCT++) {
+      
+      data[0]=0;
+      data[1]=0;
+      this->write(btd,data,addr,2,xfer_done);
+      data[0]=0;
+      data[1]=0;
+      this->write(btd,data,addr,2,xfer_done);
+      addr+=0x00002;
     }
- 
-this->read_status();
-return;
+  }
+  
+  this->read_status();
+  return;
 }
 
 

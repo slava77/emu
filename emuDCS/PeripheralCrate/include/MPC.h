@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.1 2005/06/06 19:22:35 geurts Exp $
+// $Id: MPC.h,v 2.2 2005/08/17 12:27:22 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.2  2005/08/17 12:27:22  mey
+// Updated FindWinner routine. Using FIFOs now
+//
 // Revision 2.1  2005/06/06 19:22:35  geurts
 // additions for MPC/SP connectivity tests (Dan Holmes)
 //
@@ -39,6 +42,8 @@ class MPC : public VMEModule {
   void read_fifo(unsigned long int address, char * data);
 
   void read_fifos();
+
+  void read_fifosA();
 
   // dump_fifos just writes read_fifos output to file
 
