@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.7 2005/08/15 15:38:15 mey Exp $
+// $Id: tmbtiming.cpp,v 2.8 2005/08/17 12:27:23 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.8  2005/08/17 12:27:23  mey
+// Updated FindWinner routine. Using FIFOs now
+//
 // Revision 2.7  2005/08/15 15:38:15  mey
 // Include alct_hotchannel_file
 //
@@ -64,6 +67,7 @@ TMB *thisTMB ;
 DAQMB* thisDMB ;
 CCB* thisCCB ;
 ALCTController *alct ;
+MPC * thisMPC;
 //
 void CFEBTiming(float CFEBMean[5]);
 void PulseCFEB(fstream* output_log=0, int HalfStrip = -1, int CLCTInputs = 0x1f );
@@ -213,7 +217,7 @@ int main(int argc,char **argv){
   thisCCB = thisCrate->ccb();
   thisTMB = tmbVector[0];
   thisDMB = dmbVector[0];
-  MPC * thisMPC = thisCrate->mpc();
+  thisMPC = thisCrate->mpc();
   DDU * thisDDU = thisCrate->ddu();
   //
   //thisTMB->DumpAddress(0x2c);
@@ -2459,6 +2463,11 @@ void CFEBTiming(float CFEBMean[5]){
 //
 int FindWinner(int npulses=10){
   //
+  if ( ! thisMPC ) {
+    cout << " No MPC defined in XML file " << endl ;
+    return -1 ;
+  }
+  //
   thisCCB->setCCBMode(CCB::VMEFPGA);
   //
   // thisTMB->alct_match_window_size_ = 3;
@@ -2473,10 +2482,10 @@ int FindWinner(int npulses=10){
   float Mpc1Delay=0;
   int   Mpc1DelayN=0;
   //
-  int DelaySize = 15;
+  int   DelaySize = 15;
   //
-  int MPC0Count[DelaySize];
-  int MPC1Count[DelaySize];
+  int   MPC0Count[DelaySize];
+  int   MPC1Count[DelaySize];
   //
   for (int i=0; i<DelaySize; i++ ) {
     MPC0Count[i] = 0;
@@ -2500,6 +2509,8 @@ int FindWinner(int npulses=10){
     //
   REPEAT:
     //
+    //thisMPC->init();
+    //
     if (UsePulsing) {
       iterations++;
       PulseCFEB(0,16,0xa);
@@ -2510,11 +2521,13 @@ int FindWinner(int npulses=10){
     //
     //thisCCB->stopTrigger();
     //
+    thisTMB->DataSendMPC();
+    //
     if (UseCosmic) thisTMB->GetCounters();
     //
     //thisTMB->PrintCounters();
     //
-    cout << "mpc_delay_ =  " << i << endl;
+    cout << "mpc_delay_ =  " << dec << i << endl;
     //
     //cout << thisTMB->MPC0Accept() << " " << thisTMB->MPC1Accept() << endl ;
     //
@@ -2539,6 +2552,18 @@ int FindWinner(int npulses=10){
 	MPC1Count[i]++ ;
       }
     }
+    //
+    thisMPC->firmwareVersion();
+    //
+    thisMPC->read_fifosA();
+    //
+    cout << endl;
+    //
+    thisMPC->read_fifos();
+    //
+    cout << endl;
+    //
+    thisMPC->read_csr0();
     //
     if (UsePulsing && iterations < npulses ) goto REPEAT;
     //
@@ -2578,20 +2603,20 @@ int FindALCTvpf(){
   int   DataCounter  = 0;
   //
   int MaxTimeBin   = 8;
-     //
+  //
   for (int i = 0; i < MaxTimeBin; i++){
     //
     cout << endl << "ALCT_vpf_delay=" << i << endl;
     //
-    thisTMB->alct_vpf_delay(i);// loop over this
+    thisTMB->alct_vpf_delay(i);    // loop over this
     //thisTMB->trgmode(1);         // 
-    thisTMB->ResetCounters();    // reset counters
+    thisTMB->ResetCounters();      // reset counters
     //thisCCB->startTrigger();     // 2 commands to get trigger going
     //thisCCB->bx0();
-    sleep(2);                   // accumulate statistics
+    sleep(2);                      // accumulate statistics
     //if (UsePulsing) PulseCFEB(0,16,0xa);
     //thisCCB->stopTrigger();      // stop trigger
-    thisTMB->GetCounters();      // read counter values
+    thisTMB->GetCounters();        // read counter values
     //
     //thisTMB->PrintCounters();    // display them to screen
     //
@@ -2617,14 +2642,14 @@ int FindALCTvpf(){
 
 
 int FindTMB_L1A_delay( int idelay_min, int idelay_max ){
-  
+  //
   //bool useCCB = false; // if using TTC for L1A and start trig, bc0, set to false
   //cout << "Value of useCCB is" << useCCB <<endl;
-  
+  //
   //if (useCCB) thisCCB->setCCBMode(CCB::VMEFPGA);
   // Not really necessary:
   //     thisTMB->alct_match_window_size_ = 3;
-
+  //
   float RightTimeBin = 0;
   int   DataCounter  = 0;
 

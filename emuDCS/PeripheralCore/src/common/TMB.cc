@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.5 2005/08/15 15:37:57 mey Exp $
+// $Id: TMB.cc,v 2.6 2005/08/17 12:27:22 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.6  2005/08/17 12:27:22  mey
+// Updated FindWinner routine. Using FIFOs now
+//
 // Revision 2.5  2005/08/15 15:37:57  mey
 // Include alct_hotchannel_file
 //
@@ -2121,6 +2124,31 @@ void TMB::fifomode() {
 
 }
 
+void TMB::DataSendMPC(){
+  //
+  std::cout << "TMB LCT data send to MPC" << std::endl;
+  //
+  tmb_vme(VME_READ,mpc0_frame0_adr,sndbuf,rcvbuf,NOW);
+  //
+  std::cout << "MPC0 " << std::endl;
+  std::cout << "FRAME0 " << std::hex << ((rcvbuf[0]&0xff)<<8 | rcvbuf[1]&0xff) << std::endl ; 
+  //
+  tmb_vme(VME_READ,mpc0_frame1_adr,sndbuf,rcvbuf,NOW);
+  //
+  std::cout << "FRAME1 " << std::hex << ((rcvbuf[0]&0xff)<<8 | rcvbuf[1]&0xff) << std::endl ; 
+  //
+  tmb_vme(VME_READ,mpc1_frame0_adr,sndbuf,rcvbuf,NOW);
+  //
+  std::cout << "MPC1 " << std::endl;
+  std::cout << "FRAME0 " << std::hex << ((rcvbuf[0]&0xff)<<8 | rcvbuf[1]&0xff) << std::endl ; 
+  //
+  tmb_vme(VME_READ,mpc1_frame1_adr,sndbuf,rcvbuf,NOW);
+  //
+  std::cout << "FRAME1 " << std::hex << ((rcvbuf[0]&0xff)<<8 | rcvbuf[1]&0xff) << std:: endl ; 
+  //
+  std::cout << std::endl ;
+  //
+}
 
 void TMB::init_alct(int choice)
 {

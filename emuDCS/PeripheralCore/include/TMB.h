@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.4 2005/08/12 14:16:03 mey Exp $
+// $Id: TMB.h,v 2.5 2005/08/17 12:27:22 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.5  2005/08/17 12:27:22  mey
+// Updated FindWinner routine. Using FIFOs now
+//
 // Revision 2.4  2005/08/12 14:16:03  mey
 // Added pulsing vor TMB-MPC delay
 //
@@ -97,6 +100,8 @@ public:
       void EnableL1aRequest();
       void DisableCLCTInputs();
       void tmb_clk_delays(unsigned short int time, int cfeb_id);
+      //
+      void DataSendMPC();
       //
       void ResetRAMAddress();
       void ResetALCTRAMAddress();
