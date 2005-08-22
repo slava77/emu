@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.8 2005/08/22 16:38:27 mey Exp $
+// $Id: TMB.cc,v 2.9 2005/08/22 16:58:32 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.9  2005/08/22 16:58:32  mey
+// Fixed bug in TMB-MPC injector
+//
 // Revision 2.8  2005/08/22 16:38:27  mey
 // Added TMB-MPC injector
 //
@@ -323,15 +326,15 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
   std::cout << "Fire now" << std::endl;
   //
   sndbuf[0] = rcvbuf[0] & 0xfe ; // Unfire injector
-  sndbuf[1] = rcvbuf[1] | nEvents ;
+  sndbuf[1] = nEvents ;
   tmb_vme(VME_WRITE,mpc_inj_adr,sndbuf,rcvbuf,NOW);
   //
   sndbuf[0] = rcvbuf[0] & 0xfe | 0x1 ; // Fire injector
-  sndbuf[1] = rcvbuf[1] | nEvents ;
+  sndbuf[1] = nEvents ;
   tmb_vme(VME_WRITE,mpc_inj_adr,sndbuf,rcvbuf,NOW);
   //
   sndbuf[0] = rcvbuf[0] & 0xfe ; // UnFire injector
-  sndbuf[1] = rcvbuf[1] | nEvents ;
+  sndbuf[1] = nEvents ;
   tmb_vme(VME_WRITE,mpc_inj_adr,sndbuf,rcvbuf,NOW);
   //
 }
