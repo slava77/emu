@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.10 2005/08/22 16:38:28 mey Exp $
+// $Id: tmbtiming.cpp,v 2.11 2005/08/22 16:58:33 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.11  2005/08/22 16:58:33  mey
+// Fixed bug in TMB-MPC injector
+//
 // Revision 2.10  2005/08/22 16:38:28  mey
 // Added TMB-MPC injector
 //
@@ -2623,7 +2626,7 @@ void InjectMPCData(){
   thisMPC->init();
   thisMPC->read_fifos();
   //
-  thisTMB->InjectMPCData(1,0xaff05764,0x0);
+  thisTMB->InjectMPCData(3,0xaff05764,0xfaaf05762);
   thisMPC->read_fifos();
   //
 }
