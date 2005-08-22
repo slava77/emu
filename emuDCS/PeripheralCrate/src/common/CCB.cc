@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.3 2005/08/11 08:12:42 mey Exp $
+// $Id: CCB.cc,v 2.4 2005/08/22 07:55:45 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.4  2005/08/22 07:55:45  mey
+// New TMB MPC injector routines and improved ALCTTiming
+//
 // Revision 2.3  2005/08/11 08:12:42  mey
 // Update
 //
@@ -746,7 +749,7 @@ void CCB::startTrigger() {
 
 void CCB::bc0() {
   /// Send "bc0" command on the Fast Control Bus
-  std::cout << "CCB: Start Trigger" << std::endl;
+  std::cout << "CCB: bc0 Trigger" << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=0x4; 
   do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);

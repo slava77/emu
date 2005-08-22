@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.2 2005/08/17 12:27:22 mey Exp $
+// $Id: MPC.h,v 2.3 2005/08/22 07:55:44 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.3  2005/08/22 07:55:44  mey
+// New TMB MPC injector routines and improved ALCTTiming
+//
 // Revision 2.2  2005/08/17 12:27:22  mey
 // Updated FindWinner routine. Using FIFOs now
 //
@@ -55,6 +58,8 @@ class MPC : public VMEModule {
   void read_status();
 
   void setTLK2501TxMode(int);
+
+  void SoftReset() ;
 
   /// used by GUIs
   void executeCommand(std::string command);

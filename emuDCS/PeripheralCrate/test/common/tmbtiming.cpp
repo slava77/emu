@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.8 2005/08/17 12:27:23 mey Exp $
+// $Id: tmbtiming.cpp,v 2.9 2005/08/22 07:55:46 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.9  2005/08/22 07:55:46  mey
+// New TMB MPC injector routines and improved ALCTTiming
+//
 // Revision 2.8  2005/08/17 12:27:23  mey
 // Updated FindWinner routine. Using FIFOs now
 //
@@ -86,9 +89,20 @@ int  FindALCT_L1A_delay(int,int);
 void Automatic();
 void InitStartSystem();
 int  AdjustL1aLctDMB();
+void InjectMPCData() ;
+void ALCT_phase_analysis(int rxtxtiming[13][13]);
 //
 bool UseCosmic(false);
 bool UsePulsing(true);
+//
+int BestCCBDelaySetting = 98 ;
+float CFEBMean[5];
+int ALCTRXphase = 0 ;
+int ALCTTXphase = 0 ;
+int TMB_L1a_timing = 0 ;
+int Find_ALCT_L1a_delay = 0;
+int ALCT_L1a_delay = 0;
+int ALCTvpf = 0;
 //
 TestBeamCrateController tbController;
 //
@@ -145,6 +159,7 @@ int main(int argc,char **argv){
   bool doCCBstartTrigger(false);
   bool doAutomatic(false);
   bool doAdjustL1aLctDMB(false);
+  bool doInjectMPCData(false);
   //
   //
   //-- read commandline arguments and xml configuration file
@@ -294,6 +309,7 @@ int main(int argc,char **argv){
        printf("%c7", '\033'); 
        printf("%c8", '\033'); 
        printf("%c[01;35m", '\033');
+       //
        cout << "  0:Init System " << endl;
        cout << "  1:TMBscope              2:ALCTrawhits            3:TMBrawhits        " << endl;      
        cout << "  4:PulseTest             5:ScopeReadArm           6:ScopeRead         " << endl;
@@ -309,6 +325,8 @@ int main(int argc,char **argv){
        cout << " 34:WriteDMB_DAVdelays   35:MPCwinnerScan         36:ALCTvpfScan       " << endl;
        cout << " 37:TMB_L1Adelayscan     38:SetDMBtrgsrc          39:ALCT_L1Adelayscan " << endl;
        cout << " 40:EnableL1aRequest     41:CCBstartTrigger       42:AdjustL1aLctDMB   " << endl;
+       cout << " 43:InjectMPCData                                                      " << endl;
+       //
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
        printf("%c8", '\033'); 
@@ -359,6 +377,7 @@ int main(int argc,char **argv){
        doFindALCT_L1A_delay  = false;
        doCCBstartTrigger     = false;
        doAdjustL1aLctDMB     = false;
+       doInjectMPCData       = false;
        //
        if ( Menu == 0 ) doInitSystem           = true ;
        if ( Menu == 1 ) doTMBScope             = true ;
@@ -403,8 +422,13 @@ int main(int argc,char **argv){
        if ( Menu == 40) doL1aRequest           = true ;
        if ( Menu == 41) doCCBstartTrigger      = true ;
        if ( Menu == 42) doAdjustL1aLctDMB      = true ;
-       if ( Menu  > 42 | Menu < 0) cout << "Invalid menu choice, try again." << endl << endl;
+       if ( Menu == 43) doInjectMPCData        = true ;
+       if ( Menu  > 43 | Menu < 0) cout << "Invalid menu choice, try again." << endl << endl;
        //
+    }
+
+    if(doInjectMPCData){
+      InjectMPCData();
     }
 
     if(doAdjustL1aLctDMB){
@@ -1200,40 +1224,70 @@ int main(int argc,char **argv){
 //
 void InitStartSystem(){
   //
+  cout << "Init System " << endl ;
+  int input ;
+  cin >> input ;
+  //
   tbController.configureNoDCS();          // Init system
   thisTMB->StartTTC();
   thisTMB->EnableL1aRequest();
   thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
+  //
+  // Set constants
   //
 }
 //
 int AdjustL1aLctDMB(){
   //
   thisDMB->readtiming();
-  //
   if ( thisDMB->GetL1aLctCounter() == 0 ) {
-    printf("Need to enable DMB \n");
-    return 0;
+    printf(" ****************************** \n");
+    printf(" *** You need to enable DMB *** \n");
+    printf(" ****************************** \n");
+    //return -1;
   }
   //
-  for( int l1a=80; l1a<120; l1a++) {
+  int Counter = -1 ;
+  //
+  for( int l1a=90; l1a<110; l1a++) {
     thisCCB->SetL1aDelay(l1a);
     sleep(2);
     thisDMB->readtiming();
-    printf(" ************ L1a lct counter l1a=%d Counter=%d \n ",l1a,thisDMB->GetL1aLctCounter());
+    Counter = thisDMB->GetL1aLctCounter() ;
+    printf(" ************ L1a lct counter l1a=%d Counter=%d \n ",l1a,Counter);
+    //
+    if ( Counter >= 115 && Counter <= 117 ) break ;
+    //
   }
   //
-  return 0;
+  return Counter;
   //
 }
 //
 void Automatic(){
   //
+  ///////////////////////////////////////////////////////////////// Do AdjustL1aLctDMB()
+  //
+  InitStartSystem();
+  //
+  // Enable all...for DMB....be careful....
+  //
+  thisCCB->startTrigger();
+  thisCCB->bc0(); 
+  //
+  BestCCBDelaySetting = AdjustL1aLctDMB();
+  //
+  cout << "Best L1a Lct DMB CCB delay "<< BestCCBDelaySetting << endl ;
+  //
+  if (BestCCBDelaySetting == -1 ) return ;
+  //
   ///////////////////////////////////////////////////////////////// Do CFEB phases
   //
   InitStartSystem();
   //
-  float CFEBMean[5];
+  // Now set L1a delay
+  //
+  thisCCB->SetL1aDelay(BestCCBDelaySetting);
   //
   CFEBTiming(CFEBMean);
   //
@@ -1244,14 +1298,15 @@ void Automatic(){
   //
   InitStartSystem();
   //
+  // Now set CCB delay
+  //
+  thisCCB->SetL1aDelay(BestCCBDelaySetting);
+  //
   // Now set new CFEB phases
   //
   for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(int(CFEBMean[CFEBs]),CFEBs) ;
   //
   int ALCT_L1a_delay_pulse = 110;
-  //
-  int ALCTRXphase = 0 ;
-  int ALCTTXphase = 0 ;
   //
   while ( ALCTRXphase == 0 && ALCTTXphase == 0 ) {
     //
@@ -1282,6 +1337,10 @@ void Automatic(){
   //
   InitStartSystem();
   //
+  // Now set CCB delay
+  //
+  thisCCB->SetL1aDelay(BestCCBDelaySetting);
+  //
   // Now set new CFEB phases
   //
   for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(int(CFEBMean[CFEBs]),CFEBs) ;
@@ -1291,12 +1350,16 @@ void Automatic(){
   thisTMB->tmb_clk_delays(ALCTRXphase,5) ;
   thisTMB->tmb_clk_delays(ALCTTXphase,6) ;	 
   //
-  int TMB_L1a_timing = TMBL1aTiming(); // Use pulsing
+  TMB_L1a_timing = TMBL1aTiming(); // Use pulsing
   //
   // Init System again
   //
   InitStartSystem();
   //
+  // Now set CCB delay
+  //
+  thisCCB->SetL1aDelay(BestCCBDelaySetting);
+  //
   // Now set new CFEB phases
   //
   for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(int(CFEBMean[CFEBs]),CFEBs) ;
@@ -1306,7 +1369,7 @@ void Automatic(){
   thisTMB->tmb_clk_delays(ALCTRXphase,5) ;
   thisTMB->tmb_clk_delays(ALCTTXphase,6) ;	 
   //
-  int TMB_L1a_delay = FindTMB_L1A_delay(50,150); // Use real data
+  int TMB_L1a_delay = FindTMB_L1A_delay(100,150); // Use real data
   //
   printf(" TMB_l1a_timing=%d TMB_L1a_delay=%d \n ",TMB_L1a_timing, TMB_L1a_delay);
   //
@@ -1317,6 +1380,10 @@ void Automatic(){
   //
   InitStartSystem();
   //
+  // Now set CCB delay
+  //
+  thisCCB->SetL1aDelay(BestCCBDelaySetting);
+  //
   // Now set new CFEB phases
   //
   for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(int(CFEBMean[CFEBs]),CFEBs) ;
@@ -1330,7 +1397,7 @@ void Automatic(){
   //
   thisTMB->lvl1_delay(TMB_L1a_delay);
   //
-  int Find_ALCT_L1a_delay = FindBestL1aAlct(); // Use pulsing
+  Find_ALCT_L1a_delay = FindBestL1aAlct(); // Use pulsing
   //
   InitStartSystem();
   //
@@ -1347,7 +1414,7 @@ void Automatic(){
   //
   thisTMB->lvl1_delay(TMB_L1a_delay);
   //
-  int ALCT_L1a_delay = FindALCT_L1A_delay(50,150); // Use real data
+  ALCT_L1a_delay = FindALCT_L1A_delay(50,150); // Use real data
   //
   printf("ALCT delay %d %d \n",Find_ALCT_L1a_delay,ALCT_L1a_delay); 
   //
@@ -1357,6 +1424,10 @@ void Automatic(){
   //////////////////////////////////////////////////////////////////////// Get alct vpf
   //
   InitStartSystem();
+  //
+  // Now set CCB delay
+  //
+  thisCCB->SetL1aDelay(BestCCBDelaySetting);
   //
   // Now set new CFEB phases
   //
@@ -1379,7 +1450,7 @@ void Automatic(){
   alct->SetConf(cr,1);
   alct->unpackControlRegister(cr);
   //
-  int ALCTvpf = FindALCTvpf(); // Use data for this
+  ALCTvpf = FindALCTvpf(); // Use data for this
   //
   ////////////////////////////////////////////////////////////////////////////////////// Result
   //
@@ -1389,6 +1460,7 @@ void Automatic(){
   printf("CFEB phases : \n");
   for( int CFEBs=0; CFEBs<5; CFEBs++) printf("CFEBs%d= %f ",CFEBs,CFEBMean[CFEBs]);
   printf("\n");
+  printf(" Best CCB delay  ; \n",BestCCBDelaySetting);      
   printf("ALCT phases    : ");
   printf("        ALCT RX=%d TX=%d \n",ALCTRXphase,ALCTTXphase);  
   printf("TMB L1a delay  : ");
@@ -1549,10 +1621,12 @@ void ALCTChamberScanning(){
 void ALCTTiming( int & RXphase, int & TXphase ){
    //
    int maxTimeBins(13);
+   int ProjectionX[13*2], ProjectionY[13*2];
    int selected[13][13];
    int selected2[13][13];
    int selected3[13][13];
    int ALCTWordCount[13][13];
+   int rxtx_timing[13][13];
    int ALCTWordCountWrap[13*2][13*2];
    int ALCTConfDone[13][13];
    int j,k;
@@ -1790,30 +1864,25 @@ void ALCTTiming( int & RXphase, int & TXphase ){
    //
    // Result
    //
-   float meanX  = 0;
-   float meanXn = 0;
-   float meanY  = 0;
-   float meanYn = 0;
-   //
+  
    for (j=0;j<maxTimeBins;j++){
      printf(" rx = %02d : ",j);   
      for (k=0;k<maxTimeBins;k++) {
        if ( ALCTConfDone[j][k] > 0 ) {
 	 if ( ALCTWordCount[j][k] >0 ) printf("%c[01;35m", '\033');	 
-	  printf("%02x ",(ALCTWordCount[j][k]&0xffff));
-	  printf("%c[01;0m", '\033');	 
-	  if ( ALCTWordCount[j][k] >0 ) {
-	    meanX += k;
-	    meanXn++;
-	    meanY += j;
-	    meanYn++;
-	  }
+	 printf("%02x ",(ALCTWordCount[j][k]&0xffff));
+	 printf("%c[01;0m", '\033');
+	 rxtx_timing[j][k]=ALCTWordCount[j][k];
        } else {
 	 printf("%02x ",0x00 );
+	 rxtx_timing[j][k]=0;
        }
      }
      cout << endl;
    }
+   //
+   ALCT_phase_analysis(rxtx_timing);
+
    //
    cout << endl ;
    //
@@ -1825,29 +1894,109 @@ void ALCTTiming( int & RXphase, int & TXphase ){
      }
    }   
    //
+   // Copy old data
+   // 
    for (j=0;j<maxTimeBins;j++){
      for (k=0;k<maxTimeBins;k++) {
        if ( ALCTConfDone[j][k] > 0 ) {
 	 ALCTWordCountWrap[j][k] = ALCTWordCount[j][k] ;
        }
      }
-   }   
-   //   
-   for( int j=0; j<maxTimeBins; j++ ) {
-     k=0;
-     while ( ALCTWordCount[j][k] > 0 ) {
-       ALCTWordCountWrap[j+13][k+13] = ALCTWordCount[j][k] ;
-       ALCTWordCountWrap[j][k] = 0;
-       k++;
+   }
+   int nloop = 0;
+   //
+ LOOP:
+   //
+   // 1dim Projection
+   //
+   for (j=0;j<maxTimeBins*2;j++){
+     ProjectionX[j] = 0;
+     ProjectionY[j] = 0;
+   }
+   //
+   for (j=0;j<maxTimeBins*2;j++){
+     for (k=0;k<maxTimeBins*2;k++) {
+       if ( ALCTWordCountWrap[j][k] > 0 ) ProjectionY[j]++;
      }
-   }   
+   }
+   //
+   for (j=0;j<maxTimeBins*2;j++){
+     for (k=0;k<maxTimeBins*2;k++) {
+       if ( ALCTWordCountWrap[k][j] > 0 ) ProjectionX[j]++;
+     }
+   }
+   //
+   cout << "ProjectionX " << endl ;
+   for (j=0;j<maxTimeBins*2;j++) printf("%02d ",ProjectionX[j]) ;
+   printf("\n");
+   cout << "ProjectionY " << endl ;
+   for (j=0;j<maxTimeBins*2;j++) printf("%02d ",ProjectionY[j]) ;
+   printf("\n");
+   printf("\n");
+   //
+   // Kill bad regions
+   //
+   for (j=0;j<maxTimeBins*2;j++) {
+     if (ProjectionX[j] > 11 ) {
+       for (k=0;k<maxTimeBins;k++) ALCTWordCountWrap[k][j] = 0;
+     }
+   }
+   //
+   // Now do magic
+   //
+   j = 0;
+   while (ProjectionY[j] > 0 ) {
+     for (k=0;k<maxTimeBins;k++) {
+       ALCTWordCountWrap[j+13][k] = ALCTWordCountWrap[j][k] ;
+       ALCTWordCountWrap[j][k]    = 0 ;
+     }
+     j++;
+   }
+   //
+   j = 0;
+   while (ProjectionX[j] > 0 ) {
+     for ( k=0; k<maxTimeBins; k++) {
+       ALCTWordCountWrap[k][j+13] = ALCTWordCountWrap[k][j] ;
+       ALCTWordCountWrap[k][j] = 0 ;
+     }
+     j++;
+   }
    //
    for (int j=0; j<maxTimeBins*2; j++ ){
      printf(" rx = %02d : ",j);   
      for (k=0;k<maxTimeBins*2;k++) {
-       if ( ALCTWordCount[j][k] >0 ) printf("%c[01;35m", '\033');	 
+       if ( ALCTWordCountWrap[j][k] >0 ) printf("%c[01;35m", '\033');	 
        printf("%02x ",(ALCTWordCountWrap[j][k]&0xffff));
        printf("%c[01;0m", '\033');	 
+     }
+     cout << endl;
+   }
+   //
+   cout << endl;
+   //
+   nloop++ ;
+   //
+   //if ( nloop < 2 ) goto LOOP;
+   //
+   // End Result
+   //
+   float meanX  = 0;
+   float meanXn = 0;
+   float meanY  = 0;
+   float meanYn = 0;
+   //   
+   for (int j=0; j<maxTimeBins*2; j++ ){
+     printf(" rx = %02d : ",j);   
+     for (k=0;k<maxTimeBins*2;k++) {
+       if ( ALCTWordCountWrap[j][k] >0 ) printf("%c[01;35m", '\033');	 
+       printf("%02x ",(ALCTWordCountWrap[j][k]&0xffff));
+       printf("%c[01;0m", '\033');	 
+       if ( ALCTWordCountWrap[j][k] >0 ) {
+	 meanX += k;
+	 meanXn++;
+	 meanY += j;
+	 meanYn++;
+       }       
      }
      cout << endl;
    }
@@ -1857,12 +2006,12 @@ void ALCTTiming( int & RXphase, int & TXphase ){
    meanX /= meanXn+0.0001;
    meanY /= meanYn+0.0001;
    //
-   printf(" \n Best Setting TX=%f RX=%f \n",meanX ,meanY);
+   printf(" \n Best Setting TX=%f RX=%f \n",int(meanX)%13 ,int(meanY)%13);
    //
    cout << endl;
    //
-   TXphase = int(meanX) ;
-   RXphase = int(meanY) ;
+   TXphase = int(meanX)%13 ;
+   RXphase = int(meanY)%13 ;
    //
 }
 //
@@ -2188,6 +2337,8 @@ void PulseCFEB(fstream* output_log, int HalfStrip, int CLCTInputs ){
    cout << " -- Injecting in " << HalfStrip << endl;
    cout << endl;
    //
+   thisTMB->DiStripHCMask(HalfStrip/4-1); // counting from 0;
+   //
    int hp[6] = {HalfStrip, HalfStrip, HalfStrip, HalfStrip, HalfStrip, HalfStrip};       
    //
    // Set the pattern
@@ -2292,7 +2443,7 @@ int TMBL1aTiming(){
   for (int delay=0;delay<200;delay++) wordcounts[delay] = 0;
   //
   int minlimit = 100;
-  int maxlimit = 130;
+  int maxlimit = 160;
   //
   float RightTimeBin = 0;
   int   DataCounter  = 0;
@@ -2461,6 +2612,16 @@ void CFEBTiming(float CFEBMean[5]){
   //
 }
 //
+void InjectMPCData(){
+  //
+  thisMPC->SoftReset();
+  thisMPC->init();
+  //
+  thisTMB->InjectMPCData(10,0xa5a5,0x5a5a);
+  thisMPC->read_fifos();
+  //
+}
+//
 int FindWinner(int npulses=10){
   //
   if ( ! thisMPC ) {
@@ -2509,12 +2670,14 @@ int FindWinner(int npulses=10){
     //
   REPEAT:
     //
-    //thisMPC->init();
+    thisMPC->SoftReset();
+    thisMPC->init();
     //
     if (UsePulsing) {
       iterations++;
-      PulseCFEB(0,16,0xa);
+      PulseCFEB(0,-1,0xa);
     }
+
     if (UseCosmic)  sleep(2);
     //
     //if ( UsePulsing ) PulseCFEB(0,16,0xa);
@@ -2555,7 +2718,7 @@ int FindWinner(int npulses=10){
     //
     thisMPC->firmwareVersion();
     //
-    thisMPC->read_fifosA();
+    //thisMPC->read_fifosA();
     //
     cout << endl;
     //
@@ -2719,4 +2882,84 @@ void settrgsrc(int dword)
 	printf("Cal_trg source are Set to %01x (Hex). \n",dword&0x0F);
       }
 */
-//
+
+void ALCT_phase_analysis (int rxtx_timing[13][13]) {
+  int i, j, k, p;  
+  //
+  /* 
+  cout << "The array you are working with is:" << endl;
+  cout << endl;
+	for (j = 0; j < 13; j++) {
+		for (k = 0; k < 13; k++) {
+		cout << rxtx_timing[j][k] << " ";
+				}
+			cout << endl;
+		cout << endl;
+		}
+  */
+  //
+//now find best position by the non-zero number that is 
+//farthest from zero in both directions
+
+	int nmin_best, ntot_best;
+	int nup, ndown, nleft, nright;
+	int ntot, nmin;
+	int best_element_row, best_element_col;
+	nmin_best=0;
+	ntot_best=0;
+	for (j = 0; j < 13; j++) {           //loops over rows
+		for (k = 0; k < 13; k++) {       //loops over columns
+			
+			if ( rxtx_timing[j][k] != 0) {        //find all non-zero matrix elements
+ //				cout << "element (row column) " << j << k << " is  good "<< endl;
+				//
+			  for (i=j+1;rxtx_timing[i%13][k]!=0 && i<j+13;i++) {   //scans all non-zero element below
+				}
+			  ndown = i-1-j;  //number of non-zero elements below
+				//
+			  for (p=k+1;rxtx_timing[j][p%13]!=0 && p<k+13 ;p++) {  //scans all non-zero elements to the right
+				}
+			  nright = p-1-k;  //number of non-zero elements to the right
+				//
+			  for (i=j-1;rxtx_timing[(13+i)%13][k]!=0 && i>j-13;i--) {   //scans all non-zero elements above
+				}
+			  nup = j-1-i;  //number of non-zero elements above
+				//
+			  for (p=k-1;rxtx_timing[j][(13+p)%13]!=0 && p>k-13;p--) {   //scans all non-zero elements to the left
+				}
+			  nleft = k-1-p;  //number of non-zero elements to the left
+			  //
+			  nmin = 100;
+				int numbers[] = {nup, ndown, nleft, nright};
+
+				for (int d = 0; d < 4; d++) {    // finds the minimum number of non-zero elements in any direction
+					if (nmin > numbers[d]) {
+						nmin = numbers [d];
+					}
+				}
+				//
+// 				cout << "nmin =  " << nmin << endl;
+				ntot=ndown+nup+nright+nleft;         //finds the total number of non-zero elements in all directions
+//				cout << "ntot =  " << ntot << endl;
+//				cout << endl;
+			}	
+			if (nmin_best < nmin) {         //finds the array element with the best nmin and ntot value
+				nmin_best = nmin;
+				if (ntot_best < ntot) {
+					ntot_best = ntot;
+					}
+				best_element_row = j;
+				best_element_col = k;
+//				cout << "best element so far is " << best_element_row << best_element_col << endl;
+//				cout << endl;
+				}
+		}
+	}
+	cout << endl;
+	cout << "the best values of nmin and ntot are:  " << endl;
+	cout << "nmin =  " << nmin_best << "  and ntot =  " << ntot_best << endl;
+	cout << endl;
+     	cout << "best element is: " << endl;
+	cout << "rx =  " << best_element_row << "    tx =  " << best_element_col << endl;
+	cout << endl;
+}	
