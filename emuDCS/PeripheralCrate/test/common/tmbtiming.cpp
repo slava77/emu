@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.9 2005/08/22 07:55:46 mey Exp $
+// $Id: tmbtiming.cpp,v 2.10 2005/08/22 16:38:28 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.10  2005/08/22 16:38:28  mey
+// Added TMB-MPC injector
+//
 // Revision 2.9  2005/08/22 07:55:46  mey
 // New TMB MPC injector routines and improved ALCTTiming
 //
@@ -2260,7 +2263,7 @@ void PulseTestStrips(){
       long int PowerUp   = 1 ;
       long int Amplitude = 0x3f;
       //
-       thisTMB->DisableCLCTInputs();
+      thisTMB->DisableCLCTInputs();
       //
       if ( beginning == 0 ) {
 	//
@@ -2614,10 +2617,13 @@ void CFEBTiming(float CFEBMean[5]){
 //
 void InjectMPCData(){
   //
+  thisTMB->DisableCLCTInputs();
+  //
   thisMPC->SoftReset();
   thisMPC->init();
+  thisMPC->read_fifos();
   //
-  thisTMB->InjectMPCData(10,0xa5a5,0x5a5a);
+  thisTMB->InjectMPCData(1,0xaff05764,0x0);
   thisMPC->read_fifos();
   //
 }
