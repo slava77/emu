@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.7 2005/08/22 07:55:45 mey Exp $
+// $Id: TMB.cc,v 2.8 2005/08/22 16:38:27 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.8  2005/08/22 16:38:27  mey
+// Added TMB-MPC injector
+//
 // Revision 2.7  2005/08/22 07:55:45  mey
 // New TMB MPC injector routines and improved ALCTTiming
 //
@@ -189,12 +192,16 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
   //
   unsigned short frame1, frame2, ramAdd;
   //
+  std::cout << "Injecting data" << std::endl ;
+  //
   for (int evtId(0); evtId<nEvents; ++evtId) {
     //
     ramAdd = (evtId<<8);
     //
     frame2             = lct0 & 0xffff;
     frame1             = (lct0>>16) & 0xffff;
+    //
+    printf(" %x %x \n",frame1,frame2);
     //
     sndbuf[0] = (frame1>>8)&0xff ;
     sndbuf[1] = (frame1)&0xff ;
@@ -204,7 +211,7 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     sndbuf[1] = (ramAdd)&0xff ;
     tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
     //
-    sndbuf[0] = ((ramAdd+1)>>8)&0xff ;
+    sndbuf[0] = ((ramAdd+1)>>8)&0xff ; // Assert write enable
     sndbuf[1] = ((ramAdd+1))&0xff ;
     tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW );
     //
@@ -220,7 +227,7 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     sndbuf[1] = (ramAdd)&0xff ;
     tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
     //
-    sndbuf[0] = ((ramAdd+2)>>8)&0xff ;
+    sndbuf[0] = ((ramAdd+2)>>8)&0xff ;  // Assert write enable
     sndbuf[1] = (ramAdd+2)&0xff ;
     tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW );
     //
@@ -230,6 +237,8 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     //
     frame2             = lct1 & 0xffff;
     frame1             = (lct1>>16) & 0xffff;
+    //
+    printf(" %x %x \n",frame1,frame2);
     //
     sndbuf[0] = (frame1>>8)&0xff ;
     sndbuf[1] = (frame1)&0xff ;
@@ -241,7 +250,7 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     //
     sndbuf[0] = ((ramAdd+4)>>8)&0xff ;
     sndbuf[1] = ((ramAdd+4))&0xff ;
-    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW );
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW );        // Assert write enable
     //
     sndbuf[0] = (ramAdd>>8)&0xff ;
     sndbuf[1] = (ramAdd)&0xff ;
@@ -257,21 +266,73 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     //
     sndbuf[0] = ((ramAdd+8)>>8)&0xff ;
     sndbuf[1] = (ramAdd+8)&0xff ;
-    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW );
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW );      // Assert write enable
     //
     sndbuf[0] = ((ramAdd)>>8)&0xff ;
     sndbuf[1] = (ramAdd)&0xff ;
     tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
     //
-    // Now fire MPC injector
+  }
+  //
+  // Read back RAM address
+  //
+  std::cout << "Reading back RAM address" << std::endl ;
+  //
+  for (int evtId(0); evtId<nEvents; ++evtId) {
     //
-    tmb_vme(VME_READ,mpc_inj_adr,sndbuf,rcvbuf,NOW);
+    ramAdd = (evtId<<8);
     //
-    sndbuf[0] = rcvbuf[0] ;
-    sndbuf[1] = rcvbuf[1] ;
-    tmb_vme(VME_READ,mpc_inj_adr,sndbuf,rcvbuf,NOW);
+    sndbuf[0] = ((ramAdd)>>8)&0xff ;
+    sndbuf[1] = (ramAdd)&0xff | (0x1<<4) ;
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
+    //
+    tmb_vme(VME_READ,mpc_ram_rdata_adr,sndbuf,rcvbuf,NOW);
+    unsigned long int rlct01 = ((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff) ;
+    //
+    sndbuf[0] = ((ramAdd)>>8)&0xff ;
+    sndbuf[1] = (ramAdd)&0xff | (0x1<<5) ;
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
+    //
+    tmb_vme(VME_READ,mpc_ram_rdata_adr,sndbuf,rcvbuf,NOW);
+    unsigned long int rlct02 = ((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff) ;
+    //
+    printf(" %x %x \n",rlct01,rlct02);
+    //
+    sndbuf[0] = ((ramAdd)>>8)&0xff ;
+    sndbuf[1] = (ramAdd)&0xff | (0x1<<6) ;
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
+    //
+    tmb_vme(VME_READ,mpc_ram_rdata_adr,sndbuf,rcvbuf,NOW);
+    unsigned long int rlct11 = ((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff) ;
+    //
+    sndbuf[0] = ((ramAdd)>>8)&0xff ;
+    sndbuf[1] = (ramAdd)&0xff | (0x1<<7) ;
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
+    //
+    tmb_vme(VME_READ,mpc_ram_rdata_adr,sndbuf,rcvbuf,NOW);
+    unsigned long int rlct12 = ((rcvbuf[0]&0xff)<<8) | ((rcvbuf[1]&0xff)) ;
+    //
+    printf(" %x %x \n",rlct11,rlct12);
     //
   }
+  //
+  // Now fire MPC injector
+  //
+  tmb_vme(VME_WRITE,mpc_inj_adr,sndbuf,rcvbuf,NOW);
+  //
+  std::cout << "Fire now" << std::endl;
+  //
+  sndbuf[0] = rcvbuf[0] & 0xfe ; // Unfire injector
+  sndbuf[1] = rcvbuf[1] | nEvents ;
+  tmb_vme(VME_WRITE,mpc_inj_adr,sndbuf,rcvbuf,NOW);
+  //
+  sndbuf[0] = rcvbuf[0] & 0xfe | 0x1 ; // Fire injector
+  sndbuf[1] = rcvbuf[1] | nEvents ;
+  tmb_vme(VME_WRITE,mpc_inj_adr,sndbuf,rcvbuf,NOW);
+  //
+  sndbuf[0] = rcvbuf[0] & 0xfe ; // UnFire injector
+  sndbuf[1] = rcvbuf[1] | nEvents ;
+  tmb_vme(VME_WRITE,mpc_inj_adr,sndbuf,rcvbuf,NOW);
   //
 }
 //
@@ -317,7 +378,7 @@ void TMB::DecodeALCT(){
    printf(" second_bxn = %d  \n",alct1_second_bxn_);
    //
 }
-
+//
 void TMB::DecodeCLCT(){
    //
    std::cout << std::endl;
@@ -393,25 +454,25 @@ void TMB::PrintCounters(int counter){
    std::cout << std::endl;
 //
 }
-
-void TMB::ResetCounters(){
-   //
-   unsigned long int adr;
-   unsigned long int rd_data ;
-   unsigned long int wr_data;
-   //
-   // Clear counters
-   //
-   adr = cnt_ctrl_adr ;
-   wr_data= 0x1; //clear
-   sndbuf[0] = (wr_data>>8)&0xff;
-   sndbuf[1] = (wr_data&0xff);
-   tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-   wr_data= 0x0; //unclear
-   sndbuf[0] = (wr_data>>8)&0xff;
-   sndbuf[1] = (wr_data&0xff);
-   tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);   
 //
+void TMB::ResetCounters(){
+  //
+  unsigned long int adr;
+  unsigned long int rd_data ;
+  unsigned long int wr_data;
+  //
+  // Clear counters
+  //
+  adr = cnt_ctrl_adr ;
+  wr_data= 0x1; //clear
+  sndbuf[0] = (wr_data>>8)&0xff;
+  sndbuf[1] = (wr_data&0xff);
+  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+  wr_data= 0x0; //unclear
+  sndbuf[0] = (wr_data>>8)&0xff;
+  sndbuf[1] = (wr_data&0xff);
+  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);   
+  //
 }
 
 int TMB::GetCounter(int counterID){
@@ -421,53 +482,53 @@ int TMB::GetCounter(int counterID){
 }
 
 void TMB::GetCounters(){
-   //
-   unsigned long int adr;
-   unsigned long int rd_data ;
-   unsigned long int wr_data;
-   //
-   // Take snapshot of current counter state
-   //
-   adr = cnt_ctrl_adr ;
-   wr_data= 0x2; //snap
-   sndbuf[0] = (wr_data>>8)&0xff;
-   sndbuf[1] = (wr_data&0xff);
-   tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-   wr_data= 0x0; //unsnap
-   sndbuf[0] = (wr_data>>8)&0xff;
-   sndbuf[1] = (wr_data&0xff);
-   tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);   
-   //
-   //
-   // Read counters
-   //
-   for (int counter=0; counter < MaxCounter; counter++){
-      adr = cnt_ctrl_adr;
-      wr_data= counter << 8 ;
-      sndbuf[0] = (wr_data>>8)&0xff;
-      sndbuf[1] = (wr_data&0xff);
-      tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-      adr = cnt_rdata_adr;
-      tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-      rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-      //
-      // Combine lsbs+msbs
-      //
-      int cnt_lsb, cnt_msb;
+  //
+  unsigned long int adr;
+  unsigned long int rd_data ;
+  unsigned long int wr_data;
+  //
+  // Take snapshot of current counter state
+  //
+  adr = cnt_ctrl_adr ;
+  wr_data= 0x2; //snap
+  sndbuf[0] = (wr_data>>8)&0xff;
+  sndbuf[1] = (wr_data&0xff);
+  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+  wr_data= 0x0; //unsnap
+  sndbuf[0] = (wr_data>>8)&0xff;
+  sndbuf[1] = (wr_data&0xff);
+  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);   
+  //
+  //
+  // Read counters
+  //
+  for (int counter=0; counter < MaxCounter; counter++){
+    adr = cnt_ctrl_adr;
+    wr_data= counter << 8 ;
+    sndbuf[0] = (wr_data>>8)&0xff;
+    sndbuf[1] = (wr_data&0xff);
+    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+    adr = cnt_rdata_adr;
+    tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
+    rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
+    //
+    // Combine lsbs+msbs
+    //
+    int cnt_lsb, cnt_msb;
       long int cnt_full;
       //
       if( counter%2 ==0 ) {          //even addresses contain counter LSBs
-         cnt_lsb = rd_data;
+	cnt_lsb = rd_data;
       }
       else                           //odd addresses contain counter MSBs
-      {	 
-         cnt_msb  = rd_data;
-	 cnt_full = cnt_lsb | (cnt_msb<<16) ;
-	 FinalCounter[counter/2] = cnt_full ;     //assembled counter MSB,LSB	 
-      }
-   }   
-   //
-   //
+	{	 
+	  cnt_msb  = rd_data;
+	  cnt_full = cnt_lsb | (cnt_msb<<16) ;
+	  FinalCounter[counter/2] = cnt_full ;     //assembled counter MSB,LSB	 
+	}
+  }   
+  //
+  //
 }
 
 void TMB::old_clk_delays(unsigned short int time,int cfeb_id)
