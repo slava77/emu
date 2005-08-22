@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.5 2005/08/17 12:27:22 mey Exp $
+// $Id: TMB.h,v 2.6 2005/08/22 07:55:44 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.6  2005/08/22 07:55:44  mey
+// New TMB MPC injector routines and improved ALCTTiming
+//
 // Revision 2.5  2005/08/17 12:27:22  mey
 // Updated FindWinner routine. Using FIFOs now
 //
@@ -102,6 +105,7 @@ public:
       void tmb_clk_delays(unsigned short int time, int cfeb_id);
       //
       void DataSendMPC();
+      void InjectMPCData(const int nEvents, const unsigned long lct0, const unsigned long lct1);
       //
       void ResetRAMAddress();
       void ResetALCTRAMAddress();

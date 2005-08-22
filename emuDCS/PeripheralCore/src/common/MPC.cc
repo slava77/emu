@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.3 2005/08/17 12:27:22 mey Exp $
+// $Id: MPC.cc,v 2.4 2005/08/22 07:55:45 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.4  2005/08/22 07:55:45  mey
+// New TMB MPC injector routines and improved ALCTTiming
+//
 // Revision 2.3  2005/08/17 12:27:22  mey
 // Updated FindWinner routine. Using FIFOs now
 //
@@ -170,6 +173,9 @@ void MPC::read_fifosA() {
 }
 
 void MPC::read_fifos() {
+  //
+  // Read FIFO-B until empty
+  //
   std::cout << "MPC:  Read FIFO-B" << std::endl;
   char data[100];
   //read_fifo(STATUS, data);
@@ -182,6 +188,7 @@ void MPC::read_fifos() {
 
   if(empty_fifob) {
     std::cout << "MPC: FIFO-B is empty!" << std::endl;
+    return;
   } else {
     std::cout << "MPC: 1st Best Muon FIFO" << std::endl;
     read_fifo(FIFO_B1, data);
@@ -190,20 +197,23 @@ void MPC::read_fifos() {
     std::cout << "MPC: FIFO-B1a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
     read_fifo(FIFO_B1, data);
     std::cout << "MPC: FIFO-B1b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00f)  << std::endl;
-
+    //
     std::cout << "MPC: 2nd Best Muon FIFO" << std::endl;
     read_fifo(FIFO_B2, data);
     std::cout << "MPC: FIFO-B2a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
     read_fifo(FIFO_B2, data);
     std::cout << "MPC: FIFO-B2b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
-
+    //
     std::cout << "MPC: 3nd Best Muon FIFO" << std::endl;
     read_fifo(FIFO_B3, data);
     std::cout << "MPC: FIFO-B3a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
     read_fifo(FIFO_B3, data);
     std::cout << "MPC: FIFO-B3b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) <<(data[1]&0x00ff) << std::endl;
     std::cout.fill(' ');
-    std::cout << std::dec;
+    std::cout << std::dec;    
+    //
+    read_fifos();
+    //
   }
 }
 
@@ -218,6 +228,31 @@ void MPC::read_csr0() {
   std::cout.fill(' ');
 }
 
+void MPC::SoftReset() {
+  //
+  char data[2];
+  int btd, xfer_done[2];
+  //
+  int addr = theBaseAddress + CSR0;
+  //
+  read(btd,data,addr,2,xfer_done);
+  printf("%x %x \n",data[0],data[1]);
+  //
+  // reset FPGA logic
+  //
+  data[1] = (data[1]&0xfd) ;
+  write(btd,data,addr,2,xfer_done);
+  printf("%x %x \n",data[0],data[1]);
+  //
+  data[1] = (data[1]&0xfd) | 0x2 ;
+  write(btd,data,addr,2,xfer_done);
+  printf("%x %x \n",data[0],data[1]);
+  //
+  data[1] = (data[1]&0xfd) ;
+  write(btd,data,addr,2,xfer_done);
+  printf("%x %x \n",data[0],data[1]);
+  //
+}
 
 void MPC::read_status() {
   //Check FIFO Status:

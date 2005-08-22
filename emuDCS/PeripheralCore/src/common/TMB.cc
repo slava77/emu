@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.6 2005/08/17 12:27:22 mey Exp $
+// $Id: TMB.cc,v 2.7 2005/08/22 07:55:45 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.7  2005/08/22 07:55:45  mey
+// New TMB MPC injector routines and improved ALCTTiming
+//
 // Revision 2.6  2005/08/17 12:27:22  mey
 // Updated FindWinner routine. Using FIFOs now
 //
@@ -174,11 +177,104 @@ void TMB::lctrequestdelay(int dword)
 
 
 void TMB::clear_i2c() {
+  //
   printf(" done so unstart state machine \n");
   sndbuf[0]=0x8c;
   sndbuf[1]=0x33;
   tmb_vme(VME_WRITE,0x14,sndbuf,rcvbuf,NOW);
+  //
 }
+//
+void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsigned long lct1){
+  //
+  unsigned short frame1, frame2, ramAdd;
+  //
+  for (int evtId(0); evtId<nEvents; ++evtId) {
+    //
+    ramAdd = (evtId<<8);
+    //
+    frame2             = lct0 & 0xffff;
+    frame1             = (lct0>>16) & 0xffff;
+    //
+    sndbuf[0] = (frame1>>8)&0xff ;
+    sndbuf[1] = (frame1)&0xff ;
+    tmb_vme(VME_WRITE,mpc_ram_wdata_adr,sndbuf,rcvbuf,NOW);
+    //
+    sndbuf[0] = (ramAdd>>8)&0xff ;
+    sndbuf[1] = (ramAdd)&0xff ;
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
+    //
+    sndbuf[0] = ((ramAdd+1)>>8)&0xff ;
+    sndbuf[1] = ((ramAdd+1))&0xff ;
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW );
+    //
+    sndbuf[0] = (ramAdd>>8)&0xff ;
+    sndbuf[1] = (ramAdd)&0xff ;
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
+    //
+    sndbuf[0] = (frame2>>8)&0xff ;
+    sndbuf[1] = (frame2)&0xff ;
+    tmb_vme(VME_WRITE,mpc_ram_wdata_adr,sndbuf,rcvbuf,NOW);
+    //
+    sndbuf[0] = (ramAdd>>8)&0xff ;
+    sndbuf[1] = (ramAdd)&0xff ;
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
+    //
+    sndbuf[0] = ((ramAdd+2)>>8)&0xff ;
+    sndbuf[1] = (ramAdd+2)&0xff ;
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW );
+    //
+    sndbuf[0] = ((ramAdd)>>8)&0xff ;
+    sndbuf[1] = (ramAdd)&0xff ;
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
+    //
+    frame2             = lct1 & 0xffff;
+    frame1             = (lct1>>16) & 0xffff;
+    //
+    sndbuf[0] = (frame1>>8)&0xff ;
+    sndbuf[1] = (frame1)&0xff ;
+    tmb_vme(VME_WRITE,mpc_ram_wdata_adr,sndbuf,rcvbuf,NOW);
+    //
+    sndbuf[0] = (ramAdd>>8)&0xff ;
+    sndbuf[1] = (ramAdd)&0xff ;
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
+    //
+    sndbuf[0] = ((ramAdd+4)>>8)&0xff ;
+    sndbuf[1] = ((ramAdd+4))&0xff ;
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW );
+    //
+    sndbuf[0] = (ramAdd>>8)&0xff ;
+    sndbuf[1] = (ramAdd)&0xff ;
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
+    //
+    sndbuf[0] = (frame2>>8)&0xff ;
+    sndbuf[1] = (frame2)&0xff ;
+    tmb_vme(VME_WRITE,mpc_ram_wdata_adr,sndbuf,rcvbuf,NOW);
+    //
+    sndbuf[0] = (ramAdd>>8)&0xff ;
+    sndbuf[1] = (ramAdd)&0xff ;
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
+    //
+    sndbuf[0] = ((ramAdd+8)>>8)&0xff ;
+    sndbuf[1] = (ramAdd+8)&0xff ;
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW );
+    //
+    sndbuf[0] = ((ramAdd)>>8)&0xff ;
+    sndbuf[1] = (ramAdd)&0xff ;
+    tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
+    //
+    // Now fire MPC injector
+    //
+    tmb_vme(VME_READ,mpc_inj_adr,sndbuf,rcvbuf,NOW);
+    //
+    sndbuf[0] = rcvbuf[0] ;
+    sndbuf[1] = rcvbuf[1] ;
+    tmb_vme(VME_READ,mpc_inj_adr,sndbuf,rcvbuf,NOW);
+    //
+  }
+  //
+}
+//
 
 void TMB::DecodeALCT(){
    //
@@ -2655,6 +2751,7 @@ void TMB::setLogicAnalyzerToDataStream(bool yesorno) {
   sndbuf[1] = yesorno ? 0x38 : 0x18;
   tmb_vme(VME_WRITE,0x98,sndbuf,rcvbuf,NOW); // Scope Readout
 }
+
 
 
 void TMB::tmb_vme(char fcn, char vme,
