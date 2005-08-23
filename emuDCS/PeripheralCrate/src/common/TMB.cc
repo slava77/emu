@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.9 2005/08/22 16:58:32 mey Exp $
+// $Id: TMB.cc,v 2.10 2005/08/23 15:49:54 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.10  2005/08/23 15:49:54  mey
+// Update MPC injector for random LCT patterns
+//
 // Revision 2.9  2005/08/22 16:58:32  mey
 // Fixed bug in TMB-MPC injector
 //
@@ -201,8 +204,14 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     //
     ramAdd = (evtId<<8);
     //
-    frame2             = lct0 & 0xffff;
-    frame1             = (lct0>>16) & 0xffff;
+    if ( lct0 == 0 ) {
+      frame2             = (unsigned short) ((rand()/(RAND_MAX+0.01))*0xffff) ;
+      frame1             = (unsigned short) ((rand()/(RAND_MAX+0.01))*0xffff) ;
+      frame1            |= (0x1<<15) ;
+    } else {
+      frame2             = lct0 & 0xffff;
+      frame1             = (lct0>>16) & 0xffff;
+    }
     //
     printf(" %x %x \n",frame1,frame2);
     //
@@ -238,8 +247,14 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     sndbuf[1] = (ramAdd)&0xff ;
     tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
     //
-    frame2             = lct1 & 0xffff;
-    frame1             = (lct1>>16) & 0xffff;
+    if ( lct1 == 0 ) {
+      frame2             = (unsigned short) ((rand()/(RAND_MAX+0.01))*0xffff);
+      frame1             = (unsigned short) ((rand()/(RAND_MAX+0.01))*0xffff);
+      frame1            |= (0x1<<15) ;
+    } else {
+      frame2             = lct1 & 0xffff;
+      frame1             = (lct1>>16) & 0xffff;
+    }
     //
     printf(" %x %x \n",frame1,frame2);
     //

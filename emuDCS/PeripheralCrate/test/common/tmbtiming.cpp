@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.11 2005/08/22 16:58:33 mey Exp $
+// $Id: tmbtiming.cpp,v 2.12 2005/08/23 15:49:55 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.12  2005/08/23 15:49:55  mey
+// Update MPC injector for random LCT patterns
+//
 // Revision 2.11  2005/08/22 16:58:33  mey
 // Fixed bug in TMB-MPC injector
 //
@@ -2626,7 +2629,7 @@ void InjectMPCData(){
   thisMPC->init();
   thisMPC->read_fifos();
   //
-  thisTMB->InjectMPCData(3,0xaff05764,0xfaaf05762);
+  thisTMB->InjectMPCData(3,0,0);
   thisMPC->read_fifos();
   //
 }
@@ -2920,24 +2923,24 @@ void ALCT_phase_analysis (int rxtx_timing[13][13]) {
 		for (k = 0; k < 13; k++) {       //loops over columns
 			
 			if ( rxtx_timing[j][k] != 0) {        //find all non-zero matrix elements
- //				cout << "element (row column) " << j << k << " is  good "<< endl;
-				//
+//			  cout << "element (row column) " << j << k << " is  good "<< endl;
+			  //
 			  for (i=j+1;rxtx_timing[i%13][k]!=0 && i<j+13;i++) {   //scans all non-zero element below
 				}
 			  ndown = i-1-j;  //number of non-zero elements below
-				//
+//			  cout << "ndown = " << ndown << "  ";
 			  for (p=k+1;rxtx_timing[j][p%13]!=0 && p<k+13 ;p++) {  //scans all non-zero elements to the right
 				}
 			  nright = p-1-k;  //number of non-zero elements to the right
-				//
+//			  cout << "nright = " << nright << "  ";		       
 			  for (i=j-1;rxtx_timing[(13+i)%13][k]!=0 && i>j-13;i--) {   //scans all non-zero elements above
 				}
 			  nup = j-1-i;  //number of non-zero elements above
-				//
+//			  cout << "nup = " << nup << "  ";
 			  for (p=k-1;rxtx_timing[j][(13+p)%13]!=0 && p>k-13;p--) {   //scans all non-zero elements to the left
 				}
 			  nleft = k-1-p;  //number of non-zero elements to the left
-			  //
+//			  cout << "nleft = " << nleft << endl;
 			  nmin = 100;
 				int numbers[] = {nup, ndown, nleft, nright};
 
@@ -2951,17 +2954,18 @@ void ALCT_phase_analysis (int rxtx_timing[13][13]) {
 				ntot=ndown+nup+nright+nleft;         //finds the total number of non-zero elements in all directions
 //				cout << "ntot =  " << ntot << endl;
 //				cout << endl;
-			}	
-			if (nmin_best < nmin) {         //finds the array element with the best nmin and ntot value
-				nmin_best = nmin;
-				if (ntot_best < ntot) {
+				
+				if (nmin_best < nmin) {         //finds the array element with the best nmin and ntot value
+				  nmin_best = nmin;
+				  if (ntot_best < ntot) {
 					ntot_best = ntot;
 					}
-				best_element_row = j;
-				best_element_col = k;
-//				cout << "best element so far is " << best_element_row << best_element_col << endl;
-//				cout << endl;
+				  best_element_row = j;
+				  best_element_col = k;
+//				  cout << "best element so far is " << best_element_row << best_element_col << endl;
+//				  cout << endl;
 				}
+			}
 		}
 	}
 	cout << endl;
