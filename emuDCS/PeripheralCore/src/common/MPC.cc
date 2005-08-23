@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.4 2005/08/22 07:55:45 mey Exp $
+// $Id: MPC.cc,v 2.5 2005/08/23 19:27:17 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.5  2005/08/23 19:27:17  mey
+// Update MPC injector
+//
 // Revision 2.4  2005/08/22 07:55:45  mey
 // New TMB MPC injector routines and improved ALCTTiming
 //
@@ -196,7 +199,7 @@ void MPC::read_fifos() {
     std::cout.fill('0');
     std::cout << "MPC: FIFO-B1a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
     read_fifo(FIFO_B1, data);
-    std::cout << "MPC: FIFO-B1b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00f)  << std::endl;
+    std::cout << "MPC: FIFO-B1b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff)  << std::endl;
     //
     std::cout << "MPC: 2nd Best Muon FIFO" << std::endl;
     read_fifo(FIFO_B2, data);

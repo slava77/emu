@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.12 2005/08/23 15:49:55 mey Exp $
+// $Id: tmbtiming.cpp,v 2.13 2005/08/23 19:27:18 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.13  2005/08/23 19:27:18  mey
+// Update MPC injector
+//
 // Revision 2.12  2005/08/23 15:49:55  mey
 // Update MPC injector for random LCT patterns
 //
@@ -196,6 +199,7 @@ int main(int argc,char **argv){
       if (!strcmp(argv[i],"-CFEBChamberScanning")) doCFEBChamberScanning = true;
       if (!strcmp(argv[i],"-ALCTTiming")) doALCTTiming = true;
       if (!strcmp(argv[i],"-Automatic"))  doAutomatic = true;
+      if (!strcmp(argv[i],"-MPCWinnerScan"))  doFindWinner = true;
     }
   //
   //-- Configure and initialize VME modules
@@ -2623,14 +2627,74 @@ void CFEBTiming(float CFEBMean[5]){
 //
 void InjectMPCData(){
   //
+  float MpcDelay=0;
+  int   MpcDelayN=0;
+  //
+  float Mpc0Delay=0;
+  int   Mpc0DelayN=0;
+  //
+  float Mpc1Delay=0;
+  int   Mpc1DelayN=0;
+  //
+  int   DelaySize = 15;
+  //
+  int   MPC0Count[DelaySize];
+  int   MPC1Count[DelaySize];
+  //
+  for (int i=0; i<DelaySize; i++ ) {
+    MPC0Count[i] = 0;
+    MPC1Count[i] = 0;
+  }
+  //
   thisTMB->DisableCLCTInputs();
   //
-  thisMPC->SoftReset();
-  thisMPC->init();
-  thisMPC->read_fifos();
+  for (int i=0; i<DelaySize; i++) {
+    //
+    cout << endl ;
+    cout << "New Run" << endl ;
+    cout << endl ;
+    //
+    thisTMB->mpc_delay(i);
+    //
+    cout << "mpc_delay_ =  " << dec << i << endl;
+    //
+    thisMPC->SoftReset();
+    thisMPC->init();
+    thisMPC->read_fifos();
+    //
+    thisTMB->InjectMPCData(3,0,0);
+    thisMPC->read_fifos();
+    //
+    if ( thisTMB->MPC0Accept() > 0 ) {
+      Mpc0Delay  += i ;    
+      Mpc0DelayN++;
+      MPC0Count[i]++ ;
+    }
+    //
+    if ( thisTMB->MPC1Accept() > 0 ) {
+      Mpc1Delay  += i ;    
+      Mpc1DelayN++;
+      MPC1Count[i]++ ;
+    }
+    //
+    if( thisTMB->MPC0Accept()+thisTMB->MPC1Accept() > 0 ) {
+      MpcDelay  += i ;    
+      MpcDelayN++;
+    }
+    //
+  }
   //
-  thisTMB->InjectMPCData(3,0,0);
-  thisMPC->read_fifos();
+  for (int i=0; i<DelaySize; i++) {
+    cout << "MPC0 winner delay=" << setw(3) << i << " gives " << MPC0Count[i] << endl;
+  }
+  //
+  cout << endl ;
+  //
+  for (int i=0; i<DelaySize; i++) {
+    cout << "MPC1 winner delay=" << setw(3) << i << " gives " << MPC1Count[i] << endl;
+  }
+  //
+  cout << endl ;
   //
 }
 //
