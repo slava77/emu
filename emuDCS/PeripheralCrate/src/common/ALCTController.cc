@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.3 2005/08/15 15:37:48 mey Exp $
+// $Id: ALCTController.cc,v 2.4 2005/08/31 15:12:57 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.4  2005/08/31 15:12:57  mey
+// Bug fixes, updates and new routine for timing in DMB
+//
 // Revision 2.3  2005/08/15 15:37:48  mey
 // Include alct_hotchannel_file
 //
@@ -408,7 +411,8 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   fd(tmb_->slot()),
   delays_inited_(false),
   alct_fifo_mode_(1),
-  alct_send_empty_(1)
+  alct_send_empty_(0),
+  alct_drift_delay_(3)
  {
    alctPatternFile="";
    alctHotChannelFile="";
@@ -1452,7 +1456,7 @@ void ALCTController::setCRfld(alct_params_type* p) {
     crParams_[5] = (char*)&(p->inj_lct_chip_mask);
     crParams_[6] = (char*)&(alct_nph_thresh_);
     crParams_[7] = (char*)&(alct_nph_pattern_);
-    crParams_[8] = (char*)&(p->drift_delay);
+    crParams_[8] = (char*)&(alct_drift_delay_);
     crParams_[9] = (char*)&(alct_fifo_tbins_);
     crParams_[10] = (char*)&(alct_fifo_pretrig_);
     crParams_[11] = (char*)&(alct_fifo_mode_);
@@ -1737,11 +1741,12 @@ ALCTController::ALCTSTATUS ALCTController::alct_download_delay
 }
 
 
-ALCTController::ALCTSTATUS ALCTController::setDelays() {
+ALCTController::ALCTSTATUS ALCTController::setDelays() 
+{
   ALCTSTATUS st = EALCT_SUCCESS;
   unsigned pattern [6] = {1,2,3,0x8000,0x4000,0x2000};
   unsigned int r = 0x1fd;
-
+  //
   for (int i = 0; i < delayChains(); i++)
   {
     if (Write6DelayLines(&delays_[i*6], pattern, (1 << i)) == -1)
@@ -1753,7 +1758,7 @@ ALCTController::ALCTSTATUS ALCTController::setDelays() {
     WriteRegister (ParamRegWriteInt, &r); 
   }
   delays_inited_ = true;
-
+  //
   for (int i = 0; i < delayLines(); i++) {
     printf ("delay line: %02d, delay: %02d\n", i+1, delays_[i]);
   }
@@ -1762,7 +1767,8 @@ ALCTController::ALCTSTATUS ALCTController::setDelays() {
    
 
 // this routine sets the delays for one particular delay line.
-// you must first call at least once alct_download_delay routine before using this one, or else it will return error code 5
+// you must first call at least once alct_download_delay routine before using this one, 
+// or else it will return error code 5
 // if delay_line_number == -1 it sets all delay lines to "delay".
 ALCTController::ALCTSTATUS ALCTController::alct_set_delay(long delay_line_number, long delay)
 {
@@ -1770,26 +1776,26 @@ ALCTController::ALCTSTATUS ALCTController::alct_set_delay(long delay_line_number
     unsigned int r = 0x1fd;
     ALCTSTATUS st = EALCT_SUCCESS;
     if (delays_inited_ && delay_line_number >= 0) return st = EALCT_ARG;
-
+    
     if (delay_line_number < 0)
-    {
+      {
         for (int i = 0; i < delayLines(); i++)
-            delays_[i] = delay;
-    }
+	  delays_[i] = delay;
+      }
     else
-        delays_[delay_line_number] = delay;
-
+      delays_[delay_line_number] = delay;
+    //
     alct_fast_set_jtag_channel(ALCT_FAST_JTAG_CHANNEL);
-        
+    //
     for (int i = 0; i < delayChains(); i++)
-    {
+      {
         if (Write6DelayLines(&delays_[i*6], pattern, (1 << i)) == -1)
-        {
+	  {
             st = EALCT_PORT;
-        }
+	  }
 	int ParamRegWriteInt = ParamRegWrite; // enum put into int so it can be passed to WriteRegister
         WriteRegister (ParamRegWriteInt, &r);
-    }
+      }
     return st;
 }
 
@@ -3311,6 +3317,7 @@ void ALCTController::set_defaults(alct_params_type *p) {
   alct_trig_mode_		= 0;
   alct_ext_trig_en_	        = 0;
   alct_send_empty_         	= 0;
+  alct_drift_delay_         	= 3;
   p->inject_test_pattern	= 0;
 
   p->inject_mode		= 0;
@@ -3318,7 +3325,6 @@ void ALCTController::set_defaults(alct_params_type *p) {
 
   alct_nph_thresh_	= 2;
   alct_nph_pattern_		= 4;
-  p->drift_delay		= 3;
 
   alct_fifo_tbins_		= 7;
   alct_fifo_pretrig_ 	= 1;
@@ -3444,7 +3450,7 @@ void ALCTController::show_params(int access_mode, alct_params_type *p) {
   printf("  number of hit planes for pretrigger:  %d\n", 
 	 alct_nph_thresh_);
   printf("  pattern number threshold for trigger: %d\n", alct_nph_pattern_);
-  printf("  drift delay: %d\n", p->drift_delay);
+  printf("  drift delay: %d\n", alct_drift_delay_);
   printf("  total num fifo time bins: %d, ", alct_fifo_tbins_);
   printf("  num fifo time bins before pretrigger: %d\n", 
 	 alct_fifo_pretrig_);

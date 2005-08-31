@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.3 2005/08/15 15:37:38 mey Exp $
+// $Id: ALCTController.h,v 2.4 2005/08/31 15:12:56 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.4  2005/08/31 15:12:56  mey
+// Bug fixes, updates and new routine for timing in DMB
+//
 // Revision 2.3  2005/08/15 15:37:38  mey
 // Include alct_hotchannel_file
 //
@@ -547,6 +550,7 @@ public:
     int alct_nph_pattern_;
     int alct_ccb_enable_;
     int alct_send_empty_;
+    int alct_drift_delay_;
     std::string chamber_type_string_;
   
     /// this holds all the other non-congurable parameters.  It probably should disappear someday

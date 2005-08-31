@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.13 2005/08/23 19:27:18 mey Exp $
+// $Id: tmbtiming.cpp,v 2.14 2005/08/31 15:12:59 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.14  2005/08/31 15:12:59  mey
+// Bug fixes, updates and new routine for timing in DMB
+//
 // Revision 2.13  2005/08/23 19:27:18  mey
 // Update MPC injector
 //
@@ -89,6 +92,7 @@ void PulseCFEB(fstream* output_log=0, int HalfStrip = -1, int CLCTInputs = 0x1f 
 void CFEBChamberScanning();
 void PulseTestStrips();
 void ALCTTiming(int &,int &);
+void ALCTScanDelays();
 void ALCTChamberScanning();
 void ALCTSVFLoad();
 int  TMBL1aTiming();
@@ -172,6 +176,8 @@ int main(int argc,char **argv){
   bool doAutomatic(false);
   bool doAdjustL1aLctDMB(false);
   bool doInjectMPCData(false);
+  bool doEnableCLCTInputs(false);
+  bool doALCTScanDelays(false);
   //
   //
   //-- read commandline arguments and xml configuration file
@@ -338,7 +344,7 @@ int main(int argc,char **argv){
        cout << " 34:WriteDMB_DAVdelays   35:MPCwinnerScan         36:ALCTvpfScan       " << endl;
        cout << " 37:TMB_L1Adelayscan     38:SetDMBtrgsrc          39:ALCT_L1Adelayscan " << endl;
        cout << " 40:EnableL1aRequest     41:CCBstartTrigger       42:AdjustL1aLctDMB   " << endl;
-       cout << " 43:InjectMPCData                                                      " << endl;
+       cout << " 43:InjectMPCData        44:EnableCLCTInputs      45:ALCTScanDelays    " << endl;
        //
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
@@ -391,6 +397,8 @@ int main(int argc,char **argv){
        doCCBstartTrigger     = false;
        doAdjustL1aLctDMB     = false;
        doInjectMPCData       = false;
+       doEnableCLCTInputs    = false;
+       doALCTScanDelays      = false;
        //
        if ( Menu == 0 ) doInitSystem           = true ;
        if ( Menu == 1 ) doTMBScope             = true ;
@@ -436,8 +444,22 @@ int main(int argc,char **argv){
        if ( Menu == 41) doCCBstartTrigger      = true ;
        if ( Menu == 42) doAdjustL1aLctDMB      = true ;
        if ( Menu == 43) doInjectMPCData        = true ;
-       if ( Menu  > 43 | Menu < 0) cout << "Invalid menu choice, try again." << endl << endl;
+       if ( Menu == 44) doEnableCLCTInputs     = true ;
+       if ( Menu == 45) doALCTScanDelays       = true ;
+       if ( Menu  > 46 | Menu < 0) cout << "Invalid menu choice, try again." << endl << endl;
        //
+    }
+
+    if(doALCTScanDelays){
+      ALCTScanDelays();
+    }
+
+    if(doEnableCLCTInputs){
+      int Inputs;
+      cout << " Input which CLCT Inputs to enable " << endl ;
+      cin >> Inputs;
+      thisTMB->DisableCLCTInputs();
+      thisTMB->EnableCLCTInputs(Inputs);
     }
 
     if(doInjectMPCData){
@@ -852,20 +874,60 @@ int main(int argc,char **argv){
 
       if(user_option<1 | user_option>3) cout << "Invalid option entered" << endl;
 
-//Simple read counters option:
+      //Simple read counters option:
 
       if(user_option==1) {
-        thisDMB->readtiming();
+	//
+        thisDMB->readtimingCounter();
+	//
+        thisDMB->readtimingScope();
+	//
+	int trials = 0;
+	while ( thisDMB->GetL1aLctScope() == 0 && trials < 10 ) {
+	  thisDMB->readtimingScope();
+	  trials++;
+	}
+	//
         printf("  L1A to LCT delay: %d", thisDMB->GetL1aLctCounter()  ); printf(" CMS clock cycles \n");
         printf("  CFEB DAV delay:   %d", thisDMB->GetCfebDavCounter() ); printf(" CMS clock cycles \n");
         printf("  TMB DAV delay:    %d", thisDMB->GetTmbDavCounter()  ); printf(" CMS clock cycles \n");
         printf("  ALCT DAV delay:   %d", thisDMB->GetAlctDavCounter() ); printf(" CMS clock cycles \n");
+	//
+	cout << endl ;
+	//
+        cout << "  L1A to LCT Scope: " ;
+	cout << setw(3) << thisDMB->GetL1aLctScope() << " " ;
+	for( int i=4; i>-1; i--) cout << ((thisDMB->GetL1aLctScope()>>i)&0x1) ;
+	cout << endl ;
+	//
+        cout << "  CFEB DAV Scope:   " ;
+	cout << setw(3) << thisDMB->GetCfebDavScope() << " " ;
+	for( int i=4; i>-1; i--) cout << ((thisDMB->GetCfebDavScope()>>i)&0x1) ;
+	cout << endl ;
+	//
+	cout << "  TMB DAV Scope:    " ;
+	cout << setw(3) << thisDMB->GetTmbDavScope() << " " ;
+	for( int i=4; i>-1; i--) cout << ((thisDMB->GetTmbDavScope()>>i)&0x1) ;
+	cout << endl ;
+	//
+        cout << "  ALCT DAV Scope:   " ;
+	cout << setw(3) << thisDMB->GetAlctDavScope() << " " ;
+	for( int i=4; i>-1; i--) cout << ((thisDMB->GetAlctDavScope()>>i)&0x1) ;
+	cout << endl ;
+	//
+        cout << "  Active DAV Scope: " ;
+	cout << setw(3) << thisDMB->GetActiveDavScope() << " " ;
+	for( int i=4; i>-1; i--) cout << ((thisDMB->GetActiveDavScope()>>i)&0x1) ;
+	cout << endl ;
+	//
+	cout << endl ;
+	//
 	}
-
-//Loop and choose "best" option:
+      
+      //Loop and choose "best" option:
 
       else {
-	cout << "Enter number of DMB counter reads to perform: " << endl;
+	cout << "Enter number of DMB counter reads to perform: " ;
 	int nloop;
 	cin >> nloop;
 
@@ -878,44 +940,44 @@ int main(int argc,char **argv){
 	  cout << "Enter -1 for no cut against same DAV delays or 1 to use cut:" << endl;
 	  cin >> davsame;
 	}
-
-//Before looping, zero all of the counters
-
+	
+	//Before looping, zero all of the counters
+	
 	int type;
 	int delay;
-      // counts for [time bin,type] where 
-      //       type=0 for LCT-L1A delay, 1 for CFEBDAV, 2 for TMBDAV, 3 for ALCTDAV
-      int counts[256][4]; 
+	// counts for [time bin,type] where 
+	//       type=0 for LCT-L1A delay, 1 for CFEBDAV, 2 for TMBDAV, 3 for ALCTDAV
+	int counts[256][4]; 
 	for(type=0;type<4;type++) { 
           for(delay=0;delay<256;delay++) {
 	    counts[delay][type] = 0;}
 	}
-
-//Next read the counters nloop times and accumulate statistics
-
+	
+	//Next read the counters nloop times and accumulate statistics
+	
 	int iloop;
 	int passcuts=0;
         for(iloop=0;iloop<nloop;iloop++){
-	  thisDMB->readtiming();
+	  thisDMB->readtimingCounter();
+	  //
 	  int l1alct  = thisDMB->GetL1aLctCounter();
 	  int cfebdav = thisDMB->GetCfebDavCounter();
 	  int tmbdav  = thisDMB->GetTmbDavCounter();
 	  int alctdav = thisDMB->GetAlctDavCounter();
-	  
+	  //
 	  //	  cout << "Debug: l1alct= " << l1alct << "cfebdav=" << cfebdav;
 	  //      cout << " tmbdav=" <<tmbdav << " alctdav=" << alctdav << endl;
-
+	  //
 	  //Pass cuts?
 	  //Maybe no cuts, or else have to 
 	  //pass tmbdav value cuts and pass not same cuts
-
+	  //
 	  bool nocuts=(user_option==2);
 	  bool tmbdavok=(tmbdavcut==-1 || tmbdav==tmbdavcut);
 	  bool davdiff=(davsame==-1 || (cfebdav!=tmbdav || cfebdav!=alctdav || tmbdav!=alctdav));
-
+	  //
 	  if (nocuts || (tmbdavok && davdiff))
 	    {
-
 	      passcuts+=1;
 	      counts[ l1alct  ][0] += 1;
 	      counts[ cfebdav ][1] += 1;
@@ -923,23 +985,28 @@ int main(int argc,char **argv){
 	      counts[ alctdav ][3] += 1;
 	    }
 	}
-
+	//
 	//Next analyze the counters to find the most frequent setting
-
+	//
 	int maxnum[4],maxdelay[4];
+	//
 	maxnum[0]=-1;
 	maxnum[1]=-1;
 	maxnum[2]=-1;
 	maxnum[3]=-1;
-	for(delay=0;delay<256;delay++)
+	//
+	// Exclude delay=0 (no meaning!)
+	//
+	for(delay=1;delay<256;delay++)
 	  {
+	    //
 	    //Debug
 	    //	    cout << "Delay=" << delay << " Counts are";
 	    //	    cout << "  LCT-L1A : " << counts[delay][0]; 
 	    //	    cout << "  CFEB-DAV: " << counts[delay][1];
 	    //	    cout << "  TMB-DAV:  " << counts[delay][2];
 	    //	    cout << "  ALCT-DAV: " << counts[delay][3] << endl; 
-
+	    //
 	    for(type=0;type<4;type++)
 	      {
 		if( counts[delay][type] > maxnum[type] )
@@ -949,18 +1016,19 @@ int main(int argc,char **argv){
 		  }
 	      }	    
 	  }
-
-	cout << endl << "Best delay settings in " << nloop << " readings and " 
+	//
+	cout << endl << " Best delay settings in " << nloop << " readings and " 
 	     << passcuts << " passing cuts are:" << endl;
+	cout << endl;
 	cout << "  LCT -L1A delay=" << maxdelay[0] << " (" << maxnum[0] << "readings)" << endl;
 	cout << "  CFEB-DAV delay=" << maxdelay[1] << " (" << maxnum[1] << "readings)" << endl;
 	cout << "  TMB -DAV delay=" << maxdelay[2] << " (" << maxnum[2] << "readings)" << endl;
 	cout << "  ALCT-DAV delay=" << maxdelay[3] << " (" << maxnum[3] << "readings)" << endl;
-
+	cout << endl;
+	//
       }
-    }
-    
-    
+    }    
+    //
     if (doReadDMB_DAV) {
       cout << "Function not implemented" << endl;
       //     DAQMB::readdavdelay()
@@ -1252,7 +1320,7 @@ void InitStartSystem(){
 //
 int AdjustL1aLctDMB(){
   //
-  thisDMB->readtiming();
+  thisDMB->readtimingCounter();
   if ( thisDMB->GetL1aLctCounter() == 0 ) {
     printf(" ****************************** \n");
     printf(" *** You need to enable DMB *** \n");
@@ -1265,7 +1333,7 @@ int AdjustL1aLctDMB(){
   for( int l1a=90; l1a<110; l1a++) {
     thisCCB->SetL1aDelay(l1a);
     sleep(2);
-    thisDMB->readtiming();
+    thisDMB->readtimingCounter();
     Counter = thisDMB->GetL1aLctCounter() ;
     printf(" ************ L1a lct counter l1a=%d Counter=%d \n ",l1a,Counter);
     //
@@ -1629,8 +1697,96 @@ void ALCTChamberScanning(){
    for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << chamberResult2[keyWG] ;
    cout << endl;
    printf("%c[0m", '\033'); 
-   }
-
+}
+//
+void ALCTScanDelays(){
+  //
+  unsigned long HCmask[22];
+  int CountDelay[20];
+  int alct0_quality = 0;
+  int alct1_quality = 0;
+  int alct0_bxn = 0;
+  int alct1_bxn = 0;
+  int alct0_key = 0;
+  int alct1_key = 0;
+  //
+  for (int i=0; i< 22; i++) HCmask[i] = 0;
+  for (int i=0; i< 20; i++) CountDelay[i] = 0;
+  //
+  thisTMB->SetALCTPatternTrigger();
+  //
+  for ( int nloop=0; nloop<20; nloop++){
+    for ( int DelaySetting=0; DelaySetting<20; DelaySetting++){
+      //
+      int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6);
+      int ChamberSection = alct->GetWGNumber()/6;
+      //
+      cout << endl ;
+      cout << "Injecting at " << dec << keyWG << endl;
+      //
+      for (int i=0; i< 22; i++) HCmask[i] = 0;
+      //
+      bitset<672> bits(*HCmask) ;
+      //
+      for (int i=0;i<672;i++){
+	if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
+      }
+      //
+      bitset<32> Convert;
+      //
+      Convert.reset();
+      //
+      for (int i=0;i<(alct->GetWGNumber());i++){
+	if ( bits.test(i) ) Convert.set(i%32);
+	if ( i%32 == 31 ) {
+	  HCmask[i/32] = Convert.to_ulong();
+	  Convert.reset();
+	}
+      }
+      //
+      printf("\n");
+      //
+      alct->alct_write_hcmask(HCmask);
+      alct->alct_read_hcmask(HCmask);
+      //
+      cout << alct->alct_set_delay(-1,DelaySetting) << endl ; // Set all delays
+      //
+      PulseTestStrips();
+      printf("Decode ALCT\n");
+      thisTMB->DecodeALCT();
+      printf("After Decode ALCT\n");
+      //
+      // Now analize
+      //
+      if ( (thisTMB->GetAlct0Quality()   != alct0_quality) ||
+	   (thisTMB->GetAlct1Quality()   != alct1_quality) ||
+	   (thisTMB->GetAlct0FirstBxn()  != alct0_bxn) ||
+	   (thisTMB->GetAlct1SecondBxn() != alct1_bxn) ||
+	   (thisTMB->GetAlct0FirstKey()  != alct0_bxn) ||
+	   (thisTMB->GetAlct1SecondKey() != alct1_bxn) ) {
+	//
+	alct0_quality     = thisTMB->GetAlct0Quality();
+	alct1_quality     = thisTMB->GetAlct1Quality();
+	alct0_bxn         = thisTMB->GetAlct0FirstBxn();
+	alct1_bxn         = thisTMB->GetAlct1SecondBxn();
+	alct0_key         = thisTMB->GetAlct0FirstKey();
+	alct1_key         = thisTMB->GetAlct1SecondKey();
+	//
+	if ( alct0_quality == 3 && alct0_key == keyWG &&
+	     alct1_quality == 3 && alct1_key == keyWG ) CountDelay[DelaySetting]++ ;
+	//
+      }
+      //
+    }
+  }
+  //
+  for ( int DelaySetting=0; DelaySetting < 20; DelaySetting++ ) cout << CountDelay[DelaySetting] << " " ;
+  //
+  cout << endl ;
+  cout << endl ;
+  //
+}
+//
 void ALCTTiming( int & RXphase, int & TXphase ){
    //
    int maxTimeBins(13);
@@ -1656,7 +1812,7 @@ void ALCTTiming( int & RXphase, int & TXphase ){
    //
    for (j=0;j<maxTimeBins;j++){
       for (k=0;k<maxTimeBins;k++) {
-	 selected[j][k] = 0;
+	 selected[j][k]  = 0;
 	 selected2[j][k] = 0;
 	 selected3[j][k] = 0;
       }
@@ -1718,7 +1874,7 @@ void ALCTTiming( int & RXphase, int & TXphase ){
 	//printf(" %02x ",HCmask[i]);
 	//
 	//if ( i%((alct->GetWGNumber())/8/6+1) == 0 ) printf("\n");
-     //
+	//
 	//}
 	//
 	printf("\n");
@@ -1754,56 +1910,56 @@ void ALCTTiming( int & RXphase, int & TXphase ){
 	printf("Decode ALCT\n");
 	thisTMB->DecodeALCT();
 	printf("After Decode ALCT\n");
-	 //
-	 selected[k][j]  = 0;
-	 selected2[k][j] = 0;
-	 selected3[k][j] = 0;
-	 //
-	 printf("Check data \n");
-	 if ( (thisTMB->GetAlct0Quality()   != alct0_quality) ||
-	      (thisTMB->GetAlct1Quality()   != alct1_quality) ||
-	      (thisTMB->GetAlct0FirstBxn()  != alct0_bxn) ||
-	      (thisTMB->GetAlct1SecondBxn() != alct1_bxn) ||
-	      (thisTMB->GetAlct0FirstKey()  != alct0_bxn) ||
-	      (thisTMB->GetAlct1SecondKey() != alct1_bxn) )
-	 {
-	   alct0_quality     = thisTMB->GetAlct0Quality();
-	   alct1_quality     = thisTMB->GetAlct1Quality();
-	   alct0_bxn         = thisTMB->GetAlct0FirstBxn();
-	   alct1_bxn         = thisTMB->GetAlct1SecondBxn();
-	   alct0_key         = thisTMB->GetAlct0FirstKey();
-	   alct1_key         = thisTMB->GetAlct1SecondKey();
-	   ALCTWordCount[k][j] = thisTMB->GetALCTWordCount();
-	   ALCTConfDone[k][j]  = thisTMB->ReadRegister(0x38) & 0x1 ;
-	   //
-	   if ( alct0_quality == 3 && alct0_key == keyWG) selected[k][j]++;
-	   if ( alct1_quality == 3 && alct1_key == keyWG) selected[k][j]++;
-	   if ( alct0_quality == 3 && alct0_key == keyWG2) selected2[k][j]++;
-	   if ( alct1_quality == 3 && alct1_key == keyWG2) selected2[k][j]++;
-	   if ( (alct0_quality == 3 && alct0_key == keyWG) &&
-		(alct1_quality == 3 && alct1_key == keyWG) ) selected3[k][j]++;
-	   if ( (alct0_quality == 3 && alct0_key == keyWG2) &&
-		(alct1_quality == 3 && alct1_key == keyWG2) ) selected3[k][j]++;
-	   if ( (alct0_quality == 3 && alct0_key == keyWG) &&
-		(alct1_quality == 3 && alct1_key == keyWG2) ) selected3[k][j]++;
-	   if ( (alct0_quality == 3 && alct0_key == keyWG2) &&
-		(alct1_quality == 3 && alct1_key == keyWG) ) selected3[k][j]++;
+	//
+	selected[k][j]  = 0;
+	selected2[k][j] = 0;
+	selected3[k][j] = 0;
+	//
+	printf("Check data \n");
+	if ( (thisTMB->GetAlct0Quality()   != alct0_quality) ||
+	     (thisTMB->GetAlct1Quality()   != alct1_quality) ||
+	     (thisTMB->GetAlct0FirstBxn()  != alct0_bxn) ||
+	     (thisTMB->GetAlct1SecondBxn() != alct1_bxn) ||
+	     (thisTMB->GetAlct0FirstKey()  != alct0_bxn) ||
+	     (thisTMB->GetAlct1SecondKey() != alct1_bxn) )
+	  {
+	    alct0_quality     = thisTMB->GetAlct0Quality();
+	    alct1_quality     = thisTMB->GetAlct1Quality();
+	    alct0_bxn         = thisTMB->GetAlct0FirstBxn();
+	    alct1_bxn         = thisTMB->GetAlct1SecondBxn();
+	    alct0_key         = thisTMB->GetAlct0FirstKey();
+	    alct1_key         = thisTMB->GetAlct1SecondKey();
+	    ALCTWordCount[k][j] = thisTMB->GetALCTWordCount();
+	    ALCTConfDone[k][j]  = thisTMB->ReadRegister(0x38) & 0x1 ;
+	    //
+	    if ( alct0_quality == 3 && alct0_key == keyWG) selected[k][j]++;
+	    if ( alct1_quality == 3 && alct1_key == keyWG) selected[k][j]++;
+	    if ( alct0_quality == 3 && alct0_key == keyWG2) selected2[k][j]++;
+	    if ( alct1_quality == 3 && alct1_key == keyWG2) selected2[k][j]++;
+	    if ( (alct0_quality == 3 && alct0_key == keyWG) &&
+		 (alct1_quality == 3 && alct1_key == keyWG) ) selected3[k][j]++;
+	    if ( (alct0_quality == 3 && alct0_key == keyWG2) &&
+		 (alct1_quality == 3 && alct1_key == keyWG2) ) selected3[k][j]++;
+	    if ( (alct0_quality == 3 && alct0_key == keyWG) &&
+		 (alct1_quality == 3 && alct1_key == keyWG2) ) selected3[k][j]++;
+	    if ( (alct0_quality == 3 && alct0_key == keyWG2) &&
+		 (alct1_quality == 3 && alct1_key == keyWG) ) selected3[k][j]++;
 	   //
 	   /*
-	   if ( alct0_quality >= 1 ) selected[k][j]++;
-	   if ( alct1_quality >= 1 ) selected[k][j]++;
-	   if ( alct0_quality >= 1 ) selected2[k][j]++;
-	   if ( alct1_quality >= 1 ) selected2[k][j]++;
-	   if ( (alct0_quality >= 1 ) &&
-		(alct1_quality >= 1 ) ) selected3[k][j]++;
-	   if ( (alct0_quality >= 1 ) &&
-		(alct1_quality >= 1 ) ) selected3[k][j]++;
-	   if ( (alct0_quality >= 1 ) &&
-		(alct1_quality >= 1 ) ) selected3[k][j]++;
-	   if ( (alct0_quality >= 1 ) &&
-		(alct1_quality >= 1 ) ) selected3[k][j]++;
+	     if ( alct0_quality >= 1 ) selected[k][j]++;
+	     if ( alct1_quality >= 1 ) selected[k][j]++;
+	     if ( alct0_quality >= 1 ) selected2[k][j]++;
+	     if ( alct1_quality >= 1 ) selected2[k][j]++;
+	     if ( (alct0_quality >= 1 ) &&
+	     (alct1_quality >= 1 ) ) selected3[k][j]++;
+	     if ( (alct0_quality >= 1 ) &&
+	     (alct1_quality >= 1 ) ) selected3[k][j]++;
+	     if ( (alct0_quality >= 1 ) &&
+	     (alct1_quality >= 1 ) ) selected3[k][j]++;
+	     if ( (alct0_quality >= 1 ) &&
+	     (alct1_quality >= 1 ) ) selected3[k][j]++;
 	   */
-	 }	      
+	  }	      
       }
    }
    //
@@ -2495,8 +2651,6 @@ int TMBL1aTiming(){
 //
 void CFEBTiming(float CFEBMean[5]){
   //
-  fstream cfeb_timing_log("cfeb_timing.txt");
-  //
   int MaxTimeDelay=13;
   //
   int Muons[5][MaxTimeDelay];
@@ -2516,7 +2670,7 @@ void CFEBTiming(float CFEBMean[5]){
   //
   for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){
     //
-    cfeb_timing_log << " Setting TimeDelay to " << TimeDelay << endl;
+    std::cout << " Setting TimeDelay to " << TimeDelay << endl;
     //
     thisTMB->tmb_clk_delays(TimeDelay,0) ;
     thisTMB->tmb_clk_delays(TimeDelay,1) ;
@@ -2534,7 +2688,7 @@ void CFEBTiming(float CFEBMean[5]){
 	//
 	thisTMB->DiStripHCMask(16/4-1); // counting from 0;
 	//
-	cfeb_timing_log << " TimeDelay " << TimeDelay << " CLCTInput " 
+	std::cout << " TimeDelay " << TimeDelay << " CLCTInput " 
 	     << CLCTInputList[List] << " Nmuons " << Nmuons << endl;
 	//
 	int clct0cfeb = thisTMB->GetCLCT0Cfeb();
@@ -2544,8 +2698,8 @@ void CFEBTiming(float CFEBMean[5]){
 	int clct0keyHalfStrip = thisTMB->GetCLCT0keyHalfStrip();
 	int clct1keyHalfStrip = thisTMB->GetCLCT1keyHalfStrip();
 	//
-	cfeb_timing_log << " clct0cfeb " << clct0cfeb << " clct1cfeb " << clct1cfeb << endl;
-	cfeb_timing_log << " clct0nhit " << clct0nhit << " clct1nhit " << clct1nhit << endl;
+	std::cout << " clct0cfeb " << clct0cfeb << " clct1cfeb " << clct1cfeb << endl;
+	std::cout << " clct0nhit " << clct0nhit << " clct1nhit " << clct1nhit << endl;
 	//
 	if ( clct0nhit == 6 && clct0keyHalfStrip == 16 ) Muons[clct0cfeb][TimeDelay]++;
 	if ( clct1nhit == 6 && clct1keyHalfStrip == 16 ) Muons[clct1cfeb][TimeDelay]++;
@@ -2561,19 +2715,19 @@ void CFEBTiming(float CFEBMean[5]){
     CFEBMeanN[i] = 0 ;
   }
   //
-  cfeb_timing_log << endl;
-  cfeb_timing_log << "TimeDelay " ;
-  for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++) cfeb_timing_log << setw(5) << TimeDelay ;
-  cfeb_timing_log << endl ;
+  std::cout << endl;
+  std::cout << "TimeDelay " ;
+  for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++) std::cout << setw(5) << TimeDelay ;
+  std::cout << endl ;
   for (int CFEBs=0; CFEBs<5; CFEBs++) {
-    cfeb_timing_log << "CFEB Id=" << CFEBs << " " ;
+    std::cout << "CFEB Id=" << CFEBs << " " ;
     for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){ 
-      cfeb_timing_log << setw(5) << Muons[CFEBs][TimeDelay] ;
+      std::cout << setw(5) << Muons[CFEBs][TimeDelay] ;
     }     
-    cfeb_timing_log << endl ;
+    std::cout << endl ;
   }   
   //
-  cfeb_timing_log << endl ;
+  std::cout << endl ;
   //
   int TimeDelay;
   //
@@ -2592,36 +2746,34 @@ void CFEBTiming(float CFEBMean[5]){
     }
   }
   //
-  cfeb_timing_log << endl ;
+  std::cout << endl ;
   // 
-  cfeb_timing_log << "TimeDelay Fixed for Delay Wrapping " << endl ;
-  cfeb_timing_log << "TimeDelay " ;
-  for (int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++) cfeb_timing_log << setw(5) << TimeDelay ;
-  cfeb_timing_log << endl;
+  std::cout << "TimeDelay Fixed for Delay Wrapping " << endl ;
+  std::cout << "TimeDelay " ;
+  for (int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++) std::cout << setw(5) << TimeDelay ;
+  std::cout << endl;
   for (int CFEBs=0; CFEBs<5; CFEBs++) {
-    cfeb_timing_log << "CFEB Id=" << CFEBs << " " ;
+    std::cout << "CFEB Id=" << CFEBs << " " ;
     for (int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++){ 
       if ( MuonsWork[CFEBs][TimeDelay] > 0  ) {
 	CFEBMean[CFEBs]  += TimeDelay  ; 
 	CFEBMeanN[CFEBs] += 1 ; 
       }
-      cfeb_timing_log << setw(5) << MuonsWork[CFEBs][TimeDelay] ;
+      std::cout << setw(5) << MuonsWork[CFEBs][TimeDelay] ;
     }     
-    cfeb_timing_log << endl ;
+    std::cout << endl ;
   }   
   //
-  cfeb_timing_log << endl ;
+  std::cout << endl ;
   //
   for( int CFEBs=0; CFEBs<5; CFEBs++) {
     CFEBMean[CFEBs] /= CFEBMeanN[CFEBs]+0.0001 ;
     if (CFEBMean[CFEBs] > 12 ) CFEBMean[CFEBs] = (CFEBMean[CFEBs]) - 13 ;
-    cfeb_timing_log << " CFEB = " << CFEBMean[CFEBs] ;
+    std::cout << " CFEB = " << CFEBMean[CFEBs] ;
   }
   //
-  cfeb_timing_log << endl ;
-  cfeb_timing_log << endl ;
-  //
-  cfeb_timing_log.close();
+  std::cout << endl ;
+  std::cout << endl ;
   //
 }
 //
@@ -2650,36 +2802,46 @@ void InjectMPCData(){
   //
   for (int i=0; i<DelaySize; i++) {
     //
-    cout << endl ;
-    cout << "New Run" << endl ;
-    cout << endl ;
-    //
-    thisTMB->mpc_delay(i);
-    //
-    cout << "mpc_delay_ =  " << dec << i << endl;
-    //
-    thisMPC->SoftReset();
-    thisMPC->init();
-    thisMPC->read_fifos();
-    //
-    thisTMB->InjectMPCData(3,0,0);
-    thisMPC->read_fifos();
-    //
-    if ( thisTMB->MPC0Accept() > 0 ) {
-      Mpc0Delay  += i ;    
-      Mpc0DelayN++;
-      MPC0Count[i]++ ;
-    }
-    //
-    if ( thisTMB->MPC1Accept() > 0 ) {
-      Mpc1Delay  += i ;    
-      Mpc1DelayN++;
-      MPC1Count[i]++ ;
-    }
-    //
-    if( thisTMB->MPC0Accept()+thisTMB->MPC1Accept() > 0 ) {
-      MpcDelay  += i ;    
-      MpcDelayN++;
+    for (int npulse=0; npulse<1; npulse++) {
+      //
+      cout << endl ;
+      cout << "New Run" << endl ;
+      cout << endl ;
+      //
+      thisTMB->mpc_delay(i);
+      //
+      cout << "mpc_delay_ =  " << dec << i << endl;
+      //
+      thisMPC->SoftReset();
+      thisMPC->init();
+      thisMPC->read_fifos();
+      //
+      //thisTMB->InjectMPCData(1,0,0);
+      //
+      thisTMB->InjectMPCData(1,0xf7a6a813,0xc27da3b2);
+      thisMPC->read_fifos();
+      //
+      thisTMB->ReadRegister(0x86);
+      thisTMB->ReadRegister(0x92);
+      thisTMB->ReadRegister(0x90);
+      //
+      if ( thisTMB->MPC0Accept() > 0 ) {
+	Mpc0Delay  += i ;    
+	Mpc0DelayN++;
+	MPC0Count[i]++ ;
+      }
+      //
+      if ( thisTMB->MPC1Accept() > 0 ) {
+	Mpc1Delay  += i ;    
+	Mpc1DelayN++;
+	MPC1Count[i]++ ;
+      }
+      //
+      if( thisTMB->MPC0Accept()+thisTMB->MPC1Accept() > 0 ) {
+	MpcDelay  += i ;    
+	MpcDelayN++;
+      }
+      //
     }
     //
   }

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.2 2005/08/11 08:13:59 mey Exp $
+// $Id: DAQMB.h,v 2.3 2005/08/31 15:12:56 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.3  2005/08/31 15:12:56  mey
+// Bug fixes, updates and new routine for timing in DMB
+//
 // Revision 2.2  2005/08/11 08:13:59  mey
 // Update
 //
@@ -141,7 +144,8 @@ public:
   void executeCommand(std::string command);
 
   /// Get DAV time
-  void readtiming();
+  void readtimingCounter();
+  void readtimingScope();
 
 
 #ifdef USEDCS
@@ -192,7 +196,7 @@ public:
 
   typedef std::vector<CFEB>::iterator CFEBItr;
   std::vector<CFEB> cfebs_;
-
+  //
   inline int GetL1aLctCounter() { 
     return l1a_lct_counter_ ;
   } 
@@ -205,10 +209,28 @@ public:
   inline int GetAlctDavCounter() { 
     return alct_dav_counter_ ;
   } 
+  //
+  inline int GetL1aLctScope() { 
+    return l1a_lct_scope_ ;
+  } 
+  inline int GetCfebDavScope() { 
+    return cfeb_dav_scope_ ;
+  } 
+  inline int GetTmbDavScope() { 
+    return tmb_dav_scope_ ;
+  } 
+  inline int GetAlctDavScope() { 
+    return alct_dav_scope_ ;
+  } 
+  inline int GetActiveDavScope() { 
+    return active_dav_scope_ ;
+  } 
+  //
 
  private:
 
   int l1a_lct_counter_, cfeb_dav_counter_, tmb_dav_counter_, alct_dav_counter_ ;
+  int l1a_lct_scope_, cfeb_dav_scope_, tmb_dav_scope_, alct_dav_scope_, active_dav_scope_ ;
 
 }; 
 
