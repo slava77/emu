@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 2.2 2005/08/15 15:38:02 mey Exp $
+// $Id: TMBParser.cc,v 2.3 2005/08/31 15:12:58 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 2.3  2005/08/31 15:12:58  mey
+// Bug fixes, updates and new routine for timing in DMB
+//
 // Revision 2.2  2005/08/15 15:38:02  mey
 // Include alct_hotchannel_file
 //
@@ -79,6 +82,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, int crateNumber)
 	parser_.fillInt("ccb_enable", alct_->alct_ccb_enable_);
 	parser_.fillInt("inject_mode", alct_->alct_inject_mode_);
 	parser_.fillInt("send_empty", alct_->alct_send_empty_);
+	parser_.fillInt("drift_delay", alct_->alct_drift_delay_);
 	parser_.fillString("alct_pattern_file", alct_->alctPatternFile);
 	parser_.fillString("alct_hotchannel_file", alct_->alctHotChannelFile);
                    

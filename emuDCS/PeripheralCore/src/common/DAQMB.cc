@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.2 2005/08/11 08:13:04 mey Exp $
+// $Id: DAQMB.cc,v 2.3 2005/08/31 15:12:58 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.3  2005/08/31 15:12:58  mey
+// Bug fixes, updates and new routine for timing in DMB
+//
 // Revision 2.2  2005/08/11 08:13:04  mey
 // Update
 //
@@ -1918,11 +1921,9 @@ void DAQMB::devdoReset(){
 }
 #endif
 
-void DAQMB::readtiming()
+void DAQMB::readtimingCounter()
 {
-  //GenDATA *dp;
-  printf(" Entered READ_TIMING \n");
-  //dp = (GenDATA *)data;
+  //printf(" Entered READ_TIMING \n");
   //
   cmd[0]=VTX2_USR1;
   sndbuf[0]=CAL_STATUS;
@@ -1939,12 +1940,42 @@ void DAQMB::readtiming()
   sndbuf[3]=0;
   devdo(MCTRL,6,cmd,32,sndbuf,rcvbuf,1);
   //
-  l1a_lct_counter_  = rcvbuf[0]&0xFF ;
+  l1a_lct_counter_  = rcvbuf[0]&0xff ;
   cfeb_dav_counter_ = rcvbuf[1]&0xff ;
   tmb_dav_counter_  = rcvbuf[2]&0xff ;
   alct_dav_counter_ = rcvbuf[3]&0xff ;
   //
+  cmd[0]=VTX2_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+  //
+}
+
+void DAQMB::readtimingScope()
+{
+  //printf(" Entered READ_TIMING \n");
+  //
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=CAL_STATUS;
+  sndbuf[0]=38;      //F38
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   //
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+  //
+  cmd[0]=VTX2_USR2;
+  sndbuf[0]=0;
+  sndbuf[1]=0;
+  sndbuf[2]=0;
+  sndbuf[3]=0;
+  devdo(MCTRL,6,cmd,32,sndbuf,rcvbuf,1);
+  //
+  cfeb_dav_scope_   = rcvbuf[0]&0x1f ;
+  tmb_dav_scope_    = ((rcvbuf[1]<<3)&0x18) + ((rcvbuf[0]>>5)&0x07);
+  alct_dav_scope_   = (rcvbuf[1]>>2)&0x1f;
+  active_dav_scope_ = ((rcvbuf[2]<<1)&0x1e)+((rcvbuf[1]>>7)&0x01);  
+  l1a_lct_scope_    = ((rcvbuf[3]<<4)&0x10) + ((rcvbuf[2]>>4)&0x0f);
+  //
+  cmd[0]=VTX2_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+  //
 }

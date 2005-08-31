@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.10 2005/08/23 15:49:54 mey Exp $
+// $Id: TMB.cc,v 2.11 2005/08/31 15:12:58 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.11  2005/08/31 15:12:58  mey
+// Bug fixes, updates and new routine for timing in DMB
+//
 // Revision 2.10  2005/08/23 15:49:54  mey
 // Update MPC injector for random LCT patterns
 //
@@ -103,7 +106,7 @@ int TMB::ReadRegister(int reg){
   //
   int value = ((rcvbuf[0]&0xff)<<8)|(rcvbuf[1]&0xff);
   //
-  printf(" TMB.reg=%d %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
+  printf(" TMB.reg=%x %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
   //
   return value;
   //
@@ -213,7 +216,7 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
       frame1             = (lct0>>16) & 0xffff;
     }
     //
-    printf(" %x %x \n",frame1,frame2);
+    printf(" lct0 = %x %x \n",frame1,frame2);
     //
     sndbuf[0] = (frame1>>8)&0xff ;
     sndbuf[1] = (frame1)&0xff ;
@@ -256,7 +259,7 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
       frame1             = (lct1>>16) & 0xffff;
     }
     //
-    printf(" %x %x \n",frame1,frame2);
+    printf(" lct1 = %x %x \n",frame1,frame2);
     //
     sndbuf[0] = (frame1>>8)&0xff ;
     sndbuf[1] = (frame1)&0xff ;
@@ -341,15 +344,15 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
   std::cout << "Fire now" << std::endl;
   //
   sndbuf[0] = rcvbuf[0] & 0xfe ; // Unfire injector
-  sndbuf[1] = nEvents ;
+  sndbuf[1] = nEvents & 0xff;
   tmb_vme(VME_WRITE,mpc_inj_adr,sndbuf,rcvbuf,NOW);
   //
   sndbuf[0] = rcvbuf[0] & 0xfe | 0x1 ; // Fire injector
-  sndbuf[1] = nEvents ;
+  sndbuf[1] = nEvents & 0xff;
   tmb_vme(VME_WRITE,mpc_inj_adr,sndbuf,rcvbuf,NOW);
   //
   sndbuf[0] = rcvbuf[0] & 0xfe ; // UnFire injector
-  sndbuf[1] = nEvents ;
+  sndbuf[1] = nEvents & 0xff;
   tmb_vme(VME_WRITE,mpc_inj_adr,sndbuf,rcvbuf,NOW);
   //
 }
@@ -1581,59 +1584,59 @@ void TMB::EnableL1aRequest(){
 
 
 void TMB::ALCTRawhits(){
-//   
-   int adr, alct_wdcnt, alct_busy, rd_data, wr_data, alct_rdata;
-   int tmb_state, halt_state;
-   std::vector < std::bitset<16> > alct_data;
-
-   //Clear RAM address for next event and set sync bit
-   adr = alctfifo1_adr ;
-   wr_data  = 0x1; //reset RAM write address
-   wr_data |= 0x1000;  // Set sync mode
-   sndbuf[0] = (wr_data & 0xff00)>>8 ;
-   sndbuf[1] = wr_data & 0x00ff ;
-   tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-   wr_data  = 0x0; //unreset
-   wr_data |= 0x1000;  // Set sync mode
-   sndbuf[0] = (wr_data & 0xff00)>>8 ;
-   sndbuf[1] = wr_data & 0x00ff ;
-   tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-   //
-   sleep(2);
-   //
-   while ( 1 < 2 ) {
-      
-      // Pretrigger halt
-      
-      adr = seq_clct_adr ;
-      tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-      rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-      printf(" Start loop tmb_state machine  = %4ld\n",(rd_data>>15)&0x1);
-      sndbuf[0] = (rcvbuf[0] & 0x7f) | 0x80 ;
+  //   
+  int adr, alct_wdcnt, alct_busy, rd_data, wr_data, alct_rdata;
+  int tmb_state, halt_state;
+  std::vector < std::bitset<16> > alct_data;
+  
+  //Clear RAM address for next event and set sync bit
+  adr = alctfifo1_adr ;
+  wr_data  = 0x1; //reset RAM write address
+  wr_data |= 0x1000;  // Set sync mode
+  sndbuf[0] = (wr_data & 0xff00)>>8 ;
+  sndbuf[1] = wr_data & 0x00ff ;
+  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+  wr_data  = 0x0; //unreset
+  wr_data |= 0x1000;  // Set sync mode
+  sndbuf[0] = (wr_data & 0xff00)>>8 ;
+  sndbuf[1] = wr_data & 0x00ff ;
+  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+  //
+  sleep(2);
+  //
+  while ( 1 < 2 ) {
+    //
+    // Pretrigger halt
+    //
+    adr = seq_clct_adr ;
+    tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
+    rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
+    printf(" Start loop tmb_state machine  = %4ld\n",(rd_data>>15)&0x1);
+    sndbuf[0] = (rcvbuf[0] & 0x7f) | 0x80 ;
       sndbuf[1] = rcvbuf[1];
       tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-      
+      //
       adr = seqsm_adr ;
       tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
       rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
       tmb_state     = (rd_data & 0x7);
-      
+      //
       adr = seq_clct_adr ;
       tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
       rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
       halt_state = ((rd_data>>15)&0x1);
-      
+      //
       adr = alct_fifo_adr ;
       tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
       rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
       alct_wdcnt = (rd_data >> 2 ) & 0x1ff;
       alct_busy  = rd_data & 0x0001;
-      
+      //
       printf("   word count         = %4ld\n",alct_wdcnt);
       printf("   busy               = %4ld\n",alct_busy);
       printf("   tmb_state machine  = %4ld\n",tmb_state);
       printf("   halt_state         = %4ld\n",halt_state);   
-
+      //
       while((alct_busy) || (tmb_state != 7 )) {
 	 //
 	 adr = seqsm_adr ;
