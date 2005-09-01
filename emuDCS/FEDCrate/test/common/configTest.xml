@@ -1,0 +1,16 @@
+<EmuSystem>
+
+<!-- start of 1st crate -->
+  <FEDCrate Crate="0">
+
+    <VME crate="0" ipAddress="10.0.0.3" port="6057">
+    </VME>
+
+    <DDU slot="13">
+    </DDU>
+    <DCC slot="7">
+    </DCC>
+ </FEDCrate>
+
+</EmuSystem>
+

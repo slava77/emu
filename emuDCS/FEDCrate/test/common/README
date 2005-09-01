@@ -1,0 +1,15 @@
+S. Durkin Sept. 1, 2005
+
+This code was written to run using the 
+new OSU gigabit VME controller.
+
+- ddutest.cpp tests all routines
+- a java GUI for ddutest.cpp is available
+upon request
+
+durkin@mps.ohio-state.edu
+
+to compile:
+
+gcc -g -DLITTLE_ENDIAN__ -I/home/cerncvs/TriDAS/emu/emuDCS/FEDCrate/include -I/home/cerncvs/TriDAS/daq/extern/xerces/linuxx86/include -c ddutest.cpp
+gcc -g -DLITTLE_ENDIAN__ -lm -L/home/cerncvs/TriDAS/daq/extern/xerces/linuxx86/lib -lxerces-c -L/home/cerncvs/TriDAS/emu/emuDCS/FEDCrate/lib/linux/x86 -lEmuFEDCrate -o ddutest ddutest.o
