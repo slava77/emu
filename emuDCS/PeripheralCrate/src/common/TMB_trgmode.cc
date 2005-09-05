@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_trgmode.cc,v 2.2 2005/08/11 08:13:04 mey Exp $
+// $Id: TMB_trgmode.cc,v 2.3 2005/09/05 06:49:37 mey Exp $
 // $Log: TMB_trgmode.cc,v $
+// Revision 2.3  2005/09/05 06:49:37  mey
+// Fixed address
+//
 // Revision 2.2  2005/08/11 08:13:04  mey
 // Update
 //
@@ -147,9 +150,10 @@ void TMB::trgmode(int choice)
   //sndbuf[1]=0xA5;
   //sndbuf[0]=0x53;   // 7/2/4 new
   //sndbuf[1]=0xA5;
+  //
   printf("TRGMODE %x %x %x" , seq_clct_adr, sndbuf[0], sndbuf[1]);
-  tmb_vme(VME_WRITE,0x70,sndbuf,rcvbuf,NOW); // Sequencer CLCT Conf.
-
+  tmb_vme(VME_WRITE,seq_clct_adr,sndbuf,rcvbuf,NOW); // Sequencer CLCT Conf.
+  //
   if ( alct_clear_ == 1 ) {
     sndbuf[0] = 0x00;
     sndbuf[1] = 0x69;
@@ -196,7 +200,9 @@ void TMB::trgmode(int choice)
   tmb_vme(VME_READ,0x2a,sndbuf,rcvbuf,NOW); //Read CCB Config
   sndbuf[0]=rcvbuf[0];
   sndbuf[1]=(rcvbuf[1] & 0xfe);
+  //
   printf("TRGMODE %x %x %x" , 0x2a, sndbuf[0], sndbuf[1]);
+  //
   tmb_vme(VME_WRITE,0x2a,sndbuf,rcvbuf,NOW); //Write back, enable CCB
 
   tmb_vme(VME_READ,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
