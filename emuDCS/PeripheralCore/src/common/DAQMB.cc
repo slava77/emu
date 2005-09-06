@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.3 2005/08/31 15:12:58 mey Exp $
+// $Id: DAQMB.cc,v 2.4 2005/09/06 12:11:51 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.4  2005/09/06 12:11:51  mey
+// Update
+//
 // Revision 2.3  2005/08/31 15:12:58  mey
 // Bug fixes, updates and new routine for timing in DMB
 //
@@ -792,7 +795,7 @@ unsigned long int  DAQMB::febfpgauser(const CFEB & cfeb)
   sndbuf[3]=0xFF;
   devdo(dv,5,cmd,32,sndbuf,rcvbuf,1);
   // RPW not sure about this
-  printf(" The FPGA USERCODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+  //printf(" The FPGA USERCODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
   ibrd = unpack_ibrd();
   cmd[0]=VTX_BYPASS;
   sndbuf[0]=0;
@@ -809,8 +812,8 @@ unsigned long int  DAQMB::febfpgaid(const CFEB & cfeb)
   sndbuf[2]=0xFF;
   sndbuf[3]=0xFF;
   devdo(dv,5,cmd,32,sndbuf,rcvbuf,1);
-  printf(" The FEB %d FPGA Chip should be 610093 (last 6 digits) \n",dv-F1SCAM+1);
-  printf(" The FPGA Chip IDCODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+  //printf(" The FEB %d FPGA Chip should be 610093 (last 6 digits) \n",dv-F1SCAM+1);
+  //printf(" The FPGA Chip IDCODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
   // RPW not sure about this
   unsigned long ibrd = unpack_ibrd();
   cmd[0]=VTX_BYPASS;
@@ -882,28 +885,27 @@ unsigned long int  DAQMB::mbfpgauser()
 
 unsigned long int  DAQMB::mbfpgaid()
 {
-unsigned long int ibrd;
- 
-
+  //
+  unsigned long int ibrd;
+  //
   DEVTYPE dv=MCTRL;
-      cmd[0]=VTX2_IDCODE;
-      sndbuf[0]=0xFF;
-      sndbuf[1]=0xFF;
-      sndbuf[2]=0xFF;
-      sndbuf[3]=0xFF;
-      sndbuf[4]=0xFF;
-      devdo(dv,6,cmd,32,sndbuf,rcvbuf,1);
-      ibrd=unpack_ibrd();
-      cmd[0]=VTX2_BYPASS;
-      sndbuf[0]=0;
-      devdo(dv,6,cmd,0,sndbuf,rcvbuf,0);
-      return ibrd;
+  cmd[0]=VTX2_IDCODE;
+  sndbuf[0]=0xFF;
+  sndbuf[1]=0xFF;
+  sndbuf[2]=0xFF;
+  sndbuf[3]=0xFF;
+  sndbuf[4]=0xFF;
+  devdo(dv,6,cmd,32,sndbuf,rcvbuf,1);
+  ibrd=unpack_ibrd();
+  cmd[0]=VTX2_BYPASS;
+  sndbuf[0]=0;
+  devdo(dv,6,cmd,0,sndbuf,rcvbuf,0);
+  return ibrd;
 }
 
-
-
+//
 // DAQMB calibrate
-
+//
 void DAQMB::set_cal_dac(float volt0,float volt1)
 {
 unsigned short int dacout0,dacout1;
