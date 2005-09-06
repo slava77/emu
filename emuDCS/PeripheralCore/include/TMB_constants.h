@@ -1,13 +1,19 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: TMB_constants.h,v 2.1 2005/09/06 12:12:28 mey Exp $
 // $Log: TMB_constants.h,v $
+// Revision 2.1  2005/09/06 12:12:28  mey
+// Added register
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
 //
 //-----------------------------------------------------------------------
 
-static const unsigned long int vme_idreg_adr       = 0x000000;
+static const unsigned long int vme_idreg0_adr      = 0x000000;
+static const unsigned long int vme_idreg1_adr      = 0x000002;
+static const unsigned long int vme_idreg2_adr      = 0x000004;
+static const unsigned long int vme_idreg3_adr      = 0x000006;
 static const unsigned long int vme_status_adr      = 0x000008;
 static const unsigned long int vme_adr0_adr        = 0x00000A;
 static const unsigned long int vme_adr1_adr        = 0x00000C;
