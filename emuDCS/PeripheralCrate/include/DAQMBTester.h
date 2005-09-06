@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBTester.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: DAQMBTester.h,v 2.1 2005/09/06 14:44:43 mey Exp $
 // $Log: DAQMBTester.h,v $
+// Revision 2.1  2005/09/06 14:44:43  mey
+// Defined output stream
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
@@ -12,13 +15,21 @@
 class DAQMB;
 class CCB;
 
+#include<iostream>
+#include<fstream>
+#include<stdio.h>
+
 class DAQMBTester {
 public:
   // not responsible for deleting pointers
   DAQMBTester(DAQMB * daqmb, CCB * ccb, bool fakeBackPlane)
-  : daqmb_(daqmb), ccb_(ccb), fakeBackPlane_(fakeBackPlane) {}
+    : daqmb_(daqmb), ccb_(ccb), fakeBackPlane_(fakeBackPlane)
+  {
+    MyOutput_ = & std::cout ;
+  }
+  //
   ~DAQMBTester() {}
-
+  //
   void setDAQMB(DAQMB * dmb) {daqmb_ = dmb;}
   void setCCB(CCB * ccb) {ccb_ = ccb;}
 
@@ -39,8 +50,13 @@ public:
   /// not for standard users, only for experts
   void svfload_feb_prom();
   void svfload_prom();
-
+  //
+  // Redirect Output
+  //
+  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
+  //
 private:
+  std::ostream * MyOutput_ ;
   DAQMB * daqmb_;
   CCB   * ccb_;
   bool fakeBackPlane_;

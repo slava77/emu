@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBTester.cc,v 2.2 2005/06/06 10:10:07 geurts Exp $
+// $Id: DAQMBTester.cc,v 2.3 2005/09/06 14:44:25 mey Exp $
 // $Log: DAQMBTester.cc,v $
+// Revision 2.3  2005/09/06 14:44:25  mey
+// Defined output stream
+//
 // Revision 2.2  2005/06/06 10:10:07  geurts
 // typo ...
 //
@@ -47,7 +50,8 @@ void DAQMBTester::runAllTests() {
   cfeb_pedestals();  
   std::cout << "done pedestals" << std::endl;*/
   fakeBackPlane_ = false;  
- 
+
+
   lowv_dump();
   std::cout << "done lowv_dump"<<std::endl;
   daqmb_adc_dump();
@@ -257,44 +261,44 @@ void DAQMBTester::cfeb_pedestals()
 
 void DAQMBTester::lowv_dump()
 {
-  std::cout << " CFEB1 OCM 3 = "  << daqmb_->lowv_adc(1,0)/1000 << std::endl;
-  std::cout << " CFEB1 OCM 5 = "  << daqmb_->lowv_adc(1,1)/1000 << std::endl;
-  std::cout << " CFEB1 OCM 6 = "  << daqmb_->lowv_adc(1,2)/1000 << std::endl;
-  std::cout << " CFEB2 OCM 3 = "  << daqmb_->lowv_adc(1,3)/1000 << std::endl;
-  std::cout << " CFEB2 OCM 5 = "  << daqmb_->lowv_adc(1,4)/1000 << std::endl;
-  std::cout << " CFEB2 OCM 6 = "  << daqmb_->lowv_adc(1,5)/1000 << std::endl;
-  std::cout << " CFEB3 OCM 3 = "  << daqmb_->lowv_adc(1,6)/1000 << std::endl;
-  std::cout << " CFEB3 OCM 5 = "  << daqmb_->lowv_adc(1,7)/1000 << std::endl;
-  std::cout << " CFEB3 OCM 6 = "  << daqmb_->lowv_adc(2,0)/1000 << std::endl;
-  std::cout << " CFEB4 OCM 3 = "  << daqmb_->lowv_adc(2,1)/1000 << std::endl;
-  std::cout << " CFEB4 OCM 5 = "  << daqmb_->lowv_adc(2,2)/1000 << std::endl;
-  std::cout << " CFEB4 OCM 6 = "  << daqmb_->lowv_adc(2,3)/1000 << std::endl;
-  std::cout << " CFEB5 OCM 3 = "  << daqmb_->lowv_adc(2,4)/1000 << std::endl;
-  std::cout << " CFEB5 OCM 5 = "  << daqmb_->lowv_adc(2,5)/1000 << std::endl;
-  std::cout << " CFEB5 OCM 6 = "  << daqmb_->lowv_adc(2,6)/1000 << std::endl;
-  std::cout << " ALCT OCM 3.3 = " << daqmb_->lowv_adc(2,7)/1000 << std::endl;
-  std::cout << " ALCT OCM 1.8 = " << daqmb_->lowv_adc(3,0)/1000 << std::endl;
-  std::cout << " ALCT OCM 5B = "  << daqmb_->lowv_adc(3,1)/1000 << std::endl;
-  std::cout << " ALCT OCM 5A = "  << daqmb_->lowv_adc(3,2)/1000 << std::endl;
-  std::cout << " CFEB1 3.3V = "   << daqmb_->lowv_adc(3,3)/1000 << std::endl;
-  std::cout << " CFEB1 5.0V = "   << daqmb_->lowv_adc(3,4)/1000 << std::endl;
-  std::cout << " CFEB1 6.0V = "   << daqmb_->lowv_adc(3,5)/1000 << std::endl;
-  std::cout << " CFEB2 3.3V = "   << daqmb_->lowv_adc(3,6)/1000 << std::endl;
-  std::cout << " CFEB2 5.0V = "   << daqmb_->lowv_adc(3,7)/1000 << std::endl;
-  std::cout << " CFEB2 6.0V = "   << daqmb_->lowv_adc(4,0)/1000 << std::endl;
-  std::cout << " CFEB3 3.3V = "   << daqmb_->lowv_adc(4,1)/1000 << std::endl;
-  std::cout << " CFEB3 5.0V = "   << daqmb_->lowv_adc(4,2)/1000 << std::endl;
-  std::cout << " CFEB3 6.0V = "   << daqmb_->lowv_adc(4,3)/1000 << std::endl;
-  std::cout << " CFEB4 3.3V = "   << daqmb_->lowv_adc(4,4)/1000 << std::endl;
-  std::cout << " CFEB4 5.0V = "   << daqmb_->lowv_adc(4,5)/1000 << std::endl;
-  std::cout << " CFEB4 6.0V = "   << daqmb_->lowv_adc(4,6)/1000 << std::endl;
-  std::cout << " CFEB5 3.3V = "   << daqmb_->lowv_adc(4,7)/1000 << std::endl;
-  std::cout << " CFEB5 5.0V = "   << daqmb_->lowv_adc(5,0)/1000 << std::endl;
-  std::cout << " CFEB5 6.0V = "   << daqmb_->lowv_adc(5,1)/1000 << std::endl;
-  std::cout << " ALCT 3.3V = "    << daqmb_->lowv_adc(5,2)/1000 << std::endl;
-  std::cout << " ALCT 1.8V = "    << daqmb_->lowv_adc(5,3)/1000 << std::endl;
-  std::cout << " ALCT 5.5V B = "  << daqmb_->lowv_adc(5,4)/1000 << std::endl;
-  std::cout << " ALCT 5.5V A = "  << daqmb_->lowv_adc(5,5)/1000 << std::endl;
+  (*MyOutput_) << " CFEB1 OCM 3 = "  << daqmb_->lowv_adc(1,0)/1000 << std::endl;
+  (*MyOutput_) << " CFEB1 OCM 5 = "  << daqmb_->lowv_adc(1,1)/1000 << std::endl;
+  (*MyOutput_) << " CFEB1 OCM 6 = "  << daqmb_->lowv_adc(1,2)/1000 << std::endl;
+  (*MyOutput_) << " CFEB2 OCM 3 = "  << daqmb_->lowv_adc(1,3)/1000 << std::endl;
+  (*MyOutput_) << " CFEB2 OCM 5 = "  << daqmb_->lowv_adc(1,4)/1000 << std::endl;
+  (*MyOutput_) << " CFEB2 OCM 6 = "  << daqmb_->lowv_adc(1,5)/1000 << std::endl;
+  (*MyOutput_) << " CFEB3 OCM 3 = "  << daqmb_->lowv_adc(1,6)/1000 << std::endl;
+  (*MyOutput_) << " CFEB3 OCM 5 = "  << daqmb_->lowv_adc(1,7)/1000 << std::endl;
+  (*MyOutput_) << " CFEB3 OCM 6 = "  << daqmb_->lowv_adc(2,0)/1000 << std::endl;
+  (*MyOutput_) << " CFEB4 OCM 3 = "  << daqmb_->lowv_adc(2,1)/1000 << std::endl;
+  (*MyOutput_) << " CFEB4 OCM 5 = "  << daqmb_->lowv_adc(2,2)/1000 << std::endl;
+  (*MyOutput_) << " CFEB4 OCM 6 = "  << daqmb_->lowv_adc(2,3)/1000 << std::endl;
+  (*MyOutput_) << " CFEB5 OCM 3 = "  << daqmb_->lowv_adc(2,4)/1000 << std::endl;
+  (*MyOutput_) << " CFEB5 OCM 5 = "  << daqmb_->lowv_adc(2,5)/1000 << std::endl;
+  (*MyOutput_) << " CFEB5 OCM 6 = "  << daqmb_->lowv_adc(2,6)/1000 << std::endl;
+  (*MyOutput_) << " ALCT OCM 3.3 = " << daqmb_->lowv_adc(2,7)/1000 << std::endl;
+  (*MyOutput_) << " ALCT OCM 1.8 = " << daqmb_->lowv_adc(3,0)/1000 << std::endl;
+  (*MyOutput_) << " ALCT OCM 5B = "  << daqmb_->lowv_adc(3,1)/1000 << std::endl;
+  (*MyOutput_) << " ALCT OCM 5A = "  << daqmb_->lowv_adc(3,2)/1000 << std::endl;
+  (*MyOutput_) << " CFEB1 3.3V = "   << daqmb_->lowv_adc(3,3)/1000 << std::endl;
+  (*MyOutput_) << " CFEB1 5.0V = "   << daqmb_->lowv_adc(3,4)/1000 << std::endl;
+  (*MyOutput_) << " CFEB1 6.0V = "   << daqmb_->lowv_adc(3,5)/1000 << std::endl;
+  (*MyOutput_) << " CFEB2 3.3V = "   << daqmb_->lowv_adc(3,6)/1000 << std::endl;
+  (*MyOutput_) << " CFEB2 5.0V = "   << daqmb_->lowv_adc(3,7)/1000 << std::endl;
+  (*MyOutput_) << " CFEB2 6.0V = "   << daqmb_->lowv_adc(4,0)/1000 << std::endl;
+  (*MyOutput_) << " CFEB3 3.3V = "   << daqmb_->lowv_adc(4,1)/1000 << std::endl;
+  (*MyOutput_) << " CFEB3 5.0V = "   << daqmb_->lowv_adc(4,2)/1000 << std::endl;
+  (*MyOutput_) << " CFEB3 6.0V = "   << daqmb_->lowv_adc(4,3)/1000 << std::endl;
+  (*MyOutput_) << " CFEB4 3.3V = "   << daqmb_->lowv_adc(4,4)/1000 << std::endl;
+  (*MyOutput_) << " CFEB4 5.0V = "   << daqmb_->lowv_adc(4,5)/1000 << std::endl;
+  (*MyOutput_) << " CFEB4 6.0V = "   << daqmb_->lowv_adc(4,6)/1000 << std::endl;
+  (*MyOutput_) << " CFEB5 3.3V = "   << daqmb_->lowv_adc(4,7)/1000 << std::endl;
+  (*MyOutput_) << " CFEB5 5.0V = "   << daqmb_->lowv_adc(5,0)/1000 << std::endl;
+  (*MyOutput_) << " CFEB5 6.0V = "   << daqmb_->lowv_adc(5,1)/1000 << std::endl;
+  (*MyOutput_) << " ALCT 3.3V = "    << daqmb_->lowv_adc(5,2)/1000 << std::endl;
+  (*MyOutput_) << " ALCT 1.8V = "    << daqmb_->lowv_adc(5,3)/1000 << std::endl;
+  (*MyOutput_) << " ALCT 5.5V B = "  << daqmb_->lowv_adc(5,4)/1000 << std::endl;
+  (*MyOutput_) << " ALCT 5.5V A = "  << daqmb_->lowv_adc(5,5)/1000 << std::endl;
 }
 
 
