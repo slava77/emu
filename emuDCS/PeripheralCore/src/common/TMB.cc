@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.11 2005/08/31 15:12:58 mey Exp $
+// $Id: TMB.cc,v 2.12 2005/09/06 12:11:32 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.12  2005/09/06 12:11:32  mey
+// Added accessors
+//
 // Revision 2.11  2005/08/31 15:12:58  mey
 // Bug fixes, updates and new routine for timing in DMB
 //
@@ -109,6 +112,47 @@ int TMB::ReadRegister(int reg){
   printf(" TMB.reg=%x %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
   //
   return value;
+  //
+}
+
+int TMB::FirmwareDate(){
+  //
+  tmb_vme(VME_READ,vme_idreg1_adr,sndbuf,rcvbuf,NOW);
+  //
+  return (((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff)) ;
+  //
+}
+
+int TMB::FirmwareYear(){
+  //
+  tmb_vme(VME_READ,vme_idreg2_adr,sndbuf,rcvbuf,NOW);
+  //
+  return (((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff)) ;
+  //
+}
+
+
+int TMB::FirmwareVersion(){
+  //
+  tmb_vme(VME_READ,vme_idreg0_adr,sndbuf,rcvbuf,NOW);
+  //
+  return (((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff)) ;
+  //
+}
+
+int TMB::FirmwareRevCode(){
+  //
+  tmb_vme(VME_READ,vme_idreg3_adr,sndbuf,rcvbuf,NOW);
+  //
+  return (((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff)) ;
+  //
+}
+
+int TMB::PowerComparator(){
+  //
+  tmb_vme(VME_READ,vme_adc_adr,sndbuf,rcvbuf,NOW);
+  //
+  return (((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff)) ;
   //
 }
 
