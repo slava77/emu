@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBTester.h,v 2.1 2005/09/06 14:44:43 mey Exp $
+// $Id: DAQMBTester.h,v 2.2 2005/09/07 17:59:21 mey Exp $
 // $Log: DAQMBTester.h,v $
+// Revision 2.2  2005/09/07 17:59:21  mey
+// Update
+//
 // Revision 2.1  2005/09/06 14:44:43  mey
 // Defined output stream
 //
@@ -43,9 +46,6 @@ public:
   void cfeb_inject();
   void halfset(int ifeb,int ipln,int ihalf);
   void cfeb_pedestals();
-  void lowv_dump();
-  void daqmb_adc_dump();
-  void daqmb_promfpga_dump();
 
   /// not for standard users, only for experts
   void svfload_feb_prom();
