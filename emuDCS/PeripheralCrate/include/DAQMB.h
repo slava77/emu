@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.4 2005/09/07 13:54:21 mey Exp $
+// $Id: DAQMB.h,v 2.5 2005/09/07 16:18:15 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.5  2005/09/07 16:18:15  mey
+// DMB timing routines
+//
 // Revision 2.4  2005/09/07 13:54:21  mey
 // Included new timing routines from Jianhui
 //
@@ -66,6 +69,12 @@ public:
   void calctrl_global();
   void restoreCFEBIdle();
   void restoreMotherboardIdle();
+  void SFMWriteProtect();
+  void LoadCFEBDelaySFM();
+  void LoadDMBIdSFM();
+  void LoadCableDelaySFM();
+  void ProgramSFM();
+  void WriteSFM();
 
 // DAQMB trigger primitives
   void set_comp_mode(int dword);

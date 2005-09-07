@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.15 2005/09/07 13:55:16 mey Exp $
+// $Id: tmbtiming.cpp,v 2.16 2005/09/07 16:18:17 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.16  2005/09/07 16:18:17  mey
+// DMB timing routines
+//
 // Revision 2.15  2005/09/07 13:55:16  mey
 // Included new timing routines from Jianhui
 //
@@ -182,6 +185,7 @@ int main(int argc,char **argv){
   bool doEnableCLCTInputs(false);
   bool doALCTScanDelays(false);
   bool doSetCableDelay(false);
+  bool doWriteSFM(false);
   //
   //
   //-- read commandline arguments and xml configuration file
@@ -349,7 +353,7 @@ int main(int argc,char **argv){
        cout << " 37:TMB_L1Adelayscan     38:SetDMBtrgsrc          39:ALCT_L1Adelayscan " << endl;
        cout << " 40:EnableL1aRequest     41:CCBstartTrigger       42:AdjustL1aLctDMB   " << endl;
        cout << " 43:InjectMPCData        44:EnableCLCTInputs      45:ALCTScanDelays    " << endl;
-       cout << " 46:SetCableDelay " << endl ;
+       cout << " 46:SetCableDelay        47:WriteDMBSFM                                " << endl ;
        //
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
@@ -405,6 +409,7 @@ int main(int argc,char **argv){
        doEnableCLCTInputs    = false;
        doALCTScanDelays      = false;
        doSetCableDelay       = false;
+       doWriteSFM            = false;
        //
        if ( Menu == 0 ) doInitSystem           = true ;
        if ( Menu == 1 ) doTMBScope             = true ;
@@ -453,8 +458,13 @@ int main(int argc,char **argv){
        if ( Menu == 44) doEnableCLCTInputs     = true ;
        if ( Menu == 45) doALCTScanDelays       = true ;
        if ( Menu == 46) doSetCableDelay        = true ;
-       if ( Menu  > 46 | Menu < 0) cout << "Invalid menu choice, try again." << endl << endl;
+       if ( Menu == 47) doWriteSFM             = true ;
+       if ( Menu  > 47 | Menu < 0) cout << "Invalid menu choice, try again." << endl << endl;
        //
+    }
+
+    if(doWriteSFM){
+      thisDMB->WriteSFM();
     }
 
     if(doSetCableDelay){

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.5 2005/09/07 13:54:39 mey Exp $
+// $Id: DAQMB.cc,v 2.6 2005/09/07 16:18:16 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.6  2005/09/07 16:18:16  mey
+// DMB timing routines
+//
 // Revision 2.5  2005/09/07 13:54:39  mey
 // Included new timing routines from Jianhui
 //
@@ -188,6 +191,15 @@ void DAQMB::setcrateid(int dword)
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  //
+  // Update
+  //
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=22;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
 }
 
 void DAQMB::setfebdelay(int dword)
@@ -204,11 +216,20 @@ void DAQMB::setfebdelay(int dword)
   cmd[0]=VTX2_USR1;
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-
+  //
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   std::cout << "setfebdelay to " << dword << std::endl;
+  //
+  // Update
+  //
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=23;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
 }
 
 void DAQMB::setcaldelay(int dword)
@@ -1987,9 +2008,79 @@ void DAQMB::readtimingScope()
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
   //
 }
-
+//
+void DAQMB::ProgramSFM(){
+  //
+  printf(" Program Serial Flash Memory \n");
+  cmd[0]=VTX_USR1; 
+  sndbuf[0]=0x18;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  //
+}
+//
+void DAQMB::LoadCFEBDelaySFM(){
+  //
+  printf(" Load CFEB clock delay to SFM \n"); 
+  cmd[0]=VTX_USR1; 
+  sndbuf[0]=0x17;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  //
+}
+//
+void DAQMB::LoadDMBIdSFM(){
+  //
+  printf(" Load DAQMB ID to SFM  \n");
+  cmd[0]=VTX_USR1; 
+  sndbuf[0]=0x16;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  //
+}
+//
+void DAQMB::SFMWriteProtect(){
+  //
+  printf(" SFM Write Protect \n");
+  cmd[0]=VTX_USR1; 
+  sndbuf[0]=0x1e; 
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  //
+}
+//
+void DAQMB::LoadCableDelaySFM()
+{
+  printf(" Load Cable delay \n");
+  cmd[0]=VTX_USR1; 
+  sndbuf[0]=0x15;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);  
+}
+//
 void DAQMB::setcbldly(int dword)
 {
+  //
   cmd[0]=VTX2_USR1;
   sndbuf[0]=28;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
@@ -2008,8 +2099,26 @@ void DAQMB::setcbldly(int dword)
   //
   // Update
   //
-  cmd[0]=VTX2_USR1;
+  cmd[0]=VTX_USR1;
   sndbuf[0]=21;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  //
+}
+void DAQMB::WriteSFM(){
+  //
+  setcrateid(0);
+  //
+  LoadCableDelaySFM();
+  LoadDMBIdSFM();
+  LoadCFEBDelaySFM();
+  // Enable
+  SFMWriteProtect();
+  // Write
+  ProgramSFM();
+  // Disable
+  SFMWriteProtect();
   //
 }
