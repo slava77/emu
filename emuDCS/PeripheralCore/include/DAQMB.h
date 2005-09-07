@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.3 2005/08/31 15:12:56 mey Exp $
+// $Id: DAQMB.h,v 2.4 2005/09/07 13:54:21 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.4  2005/09/07 13:54:21  mey
+// Included new timing routines from Jianhui
+//
 // Revision 2.3  2005/08/31 15:12:56  mey
 // Bug fixes, updates and new routine for timing in DMB
 //
@@ -147,7 +150,9 @@ public:
   void readtimingCounter();
   void readtimingScope();
 
-
+  /// Set cable delay
+  void setcbldly(int );
+  
 #ifdef USEDCS
   /// DCS additions
   void cfeb_vtx_prom(enum DEVTYPE devnum);
@@ -193,6 +198,7 @@ public:
   /// Will adjust the number of time samples before the pulse, 
   /// used as pedestals.
   int pre_block_end_;
+  int cable_delay_;
 
   typedef std::vector<CFEB>::iterator CFEBItr;
   std::vector<CFEB> cfebs_;

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.14 2005/08/31 15:12:59 mey Exp $
+// $Id: tmbtiming.cpp,v 2.15 2005/09/07 13:55:16 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.15  2005/09/07 13:55:16  mey
+// Included new timing routines from Jianhui
+//
 // Revision 2.14  2005/08/31 15:12:59  mey
 // Bug fixes, updates and new routine for timing in DMB
 //
@@ -178,6 +181,7 @@ int main(int argc,char **argv){
   bool doInjectMPCData(false);
   bool doEnableCLCTInputs(false);
   bool doALCTScanDelays(false);
+  bool doSetCableDelay(false);
   //
   //
   //-- read commandline arguments and xml configuration file
@@ -345,6 +349,7 @@ int main(int argc,char **argv){
        cout << " 37:TMB_L1Adelayscan     38:SetDMBtrgsrc          39:ALCT_L1Adelayscan " << endl;
        cout << " 40:EnableL1aRequest     41:CCBstartTrigger       42:AdjustL1aLctDMB   " << endl;
        cout << " 43:InjectMPCData        44:EnableCLCTInputs      45:ALCTScanDelays    " << endl;
+       cout << " 46:SetCableDelay " << endl ;
        //
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
@@ -399,6 +404,7 @@ int main(int argc,char **argv){
        doInjectMPCData       = false;
        doEnableCLCTInputs    = false;
        doALCTScanDelays      = false;
+       doSetCableDelay       = false;
        //
        if ( Menu == 0 ) doInitSystem           = true ;
        if ( Menu == 1 ) doTMBScope             = true ;
@@ -446,8 +452,16 @@ int main(int argc,char **argv){
        if ( Menu == 43) doInjectMPCData        = true ;
        if ( Menu == 44) doEnableCLCTInputs     = true ;
        if ( Menu == 45) doALCTScanDelays       = true ;
+       if ( Menu == 46) doSetCableDelay        = true ;
        if ( Menu  > 46 | Menu < 0) cout << "Invalid menu choice, try again." << endl << endl;
        //
+    }
+
+    if(doSetCableDelay){
+      cout << "Cable delay to set : " ;
+      int delay;
+      cin >> delay ;
+      thisDMB->setcbldly(delay) ;
     }
 
     if(doALCTScanDelays){
