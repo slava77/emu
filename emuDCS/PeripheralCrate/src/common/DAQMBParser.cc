@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.cc,v 2.0 2005/04/12 08:07:05 geurts Exp $
+// $Id: DAQMBParser.cc,v 2.1 2005/09/07 13:54:45 mey Exp $
 // $Log: DAQMBParser.cc,v $
+// Revision 2.1  2005/09/07 13:54:45  mey
+// Included new timing routines from Jianhui
+//
 // Revision 2.0  2005/04/12 08:07:05  geurts
 // *** empty log message ***
 //
@@ -15,9 +18,9 @@
 
 DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, int crateNumber)
 {
-
+  //
   parser_.parseNode(pNode);
-
+  //
   int slot = 0;
   parser_.fillInt("slot", slot);
   if(slot == 0) {
@@ -33,7 +36,7 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, int crateNumber)
     parser_.fillInt("calibration_l1acc_delay", daqmb_->calibration_l1acc_delay_);
     parser_.fillInt("pulse_delay", daqmb_->pulse_delay_);
     parser_.fillInt("inject_delay", daqmb_->inject_delay_);
-
+    //
     parser_.fillFloat("pul_dac_set", daqmb_->pul_dac_set_);
     parser_.fillFloat("inj_dac_set", daqmb_->inj_dac_set_);
     parser_.fillFloat("set_comp_thresh", daqmb_->set_comp_thresh_);
@@ -41,7 +44,8 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, int crateNumber)
     parser_.fillInt("comp_mode", daqmb_->comp_mode_);
     parser_.fillInt("comp_timing", daqmb_->comp_timing_);
     parser_.fillInt("pre_block_end", daqmb_->pre_block_end_);
-   
+    parser_.fillInt("cable_delay", daqmb_->cable_delay_);
+    //
     int number=0;   
 
     xercesc::DOMNode * daughterNode = pNode->getFirstChild();

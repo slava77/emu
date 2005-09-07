@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.4 2005/09/06 12:11:51 mey Exp $
+// $Id: DAQMB.cc,v 2.5 2005/09/07 13:54:39 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.5  2005/09/07 13:54:39  mey
+// Included new timing routines from Jianhui
+//
 // Revision 2.4  2005/09/06 12:11:51  mey
 // Update
 //
@@ -65,7 +68,7 @@ DAQMB::DAQMB(int newcrate,int newslot):
   set_comp_thresh_(0.06), feb_clock_delay_(0),
   comp_timing_(2), comp_mode_(2), pre_block_end_(7),
   l1a_lct_counter_(-1), cfeb_dav_counter_(-1), 
-  tmb_dav_counter_(-1), alct_dav_counter_(-1)
+  tmb_dav_counter_(-1), alct_dav_counter_(-1), cable_delay_(0)
 {
   cfebs_.clear();
   std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
@@ -140,6 +143,9 @@ void DAQMB::configure() {
 	<<  pul_dac_set_ << std::endl;
    set_cal_dac(inj_dac_set_, pul_dac_set_);
    load_strip();
+   //
+   std::cout << "Set cable delay " << cable_delay_ << std::endl ;
+   setcbldly(cable_delay_);
    //
    // As suggested by Valery Sitnik: switch all LVs on (computer-controlled)
    // std::cout << "DAQMB: switching on LVs on LVMB" << endl; 
@@ -1979,5 +1985,31 @@ void DAQMB::readtimingScope()
   //
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+  //
+}
+
+void DAQMB::setcbldly(int dword)
+{
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=28;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR2;
+  sndbuf[0]=dword&0XFF; 
+  //
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=0;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_BYPASS;
+  sndbuf[0]=0;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  //
+  printf(" Cable delay Set to %02X. \n",dword&0x3F);
+  //
+  // Update
+  //
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=21;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   //
 }
