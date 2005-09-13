@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.cc,v 2.1 2005/09/07 13:54:45 mey Exp $
+// $Id: DAQMBParser.cc,v 2.2 2005/09/13 14:46:40 mey Exp $
 // $Log: DAQMBParser.cc,v $
+// Revision 2.2  2005/09/13 14:46:40  mey
+// Get DMB crate id; and DCS
+//
 // Revision 2.1  2005/09/07 13:54:45  mey
 // Included new timing routines from Jianhui
 //
@@ -45,6 +48,7 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, int crateNumber)
     parser_.fillInt("comp_timing", daqmb_->comp_timing_);
     parser_.fillInt("pre_block_end", daqmb_->pre_block_end_);
     parser_.fillInt("cable_delay", daqmb_->cable_delay_);
+    parser_.fillInt("crate_id", daqmb_->crate_id_);
     //
     int number=0;   
 

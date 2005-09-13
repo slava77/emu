@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TestBeamCrateController.h,v 2.1 2005/08/11 08:13:59 mey Exp $
+// $Id: TestBeamCrateController.h,v 2.2 2005/09/13 14:46:39 mey Exp $
 // $Log: TestBeamCrateController.h,v $
+// Revision 2.2  2005/09/13 14:46:39  mey
+// Get DMB crate id; and DCS
+//
 // Revision 2.1  2005/08/11 08:13:59  mey
 // Update
 //
@@ -45,6 +48,14 @@ public:
   /// boardType comes from VMEModule.h
   void executeCommand(std::string boardType, std::string command);
 
+#ifdef USEDCS
+  // DCS sharing
+  void DcsSetup();
+  void DcsEnable();
+  void DcsDisable();
+  //
+#endif
+
 protected:
   void configure(Crate * crate);
   void configure(CCB * ccb);
@@ -55,9 +66,6 @@ protected:
 
 #ifdef USEDCS
   // DCS sharing
-  void DcsSetup();
-  void DcsEnable();
-  void DcsDisable();
   EmuDcs *mEmuDcs;
 #endif
 
