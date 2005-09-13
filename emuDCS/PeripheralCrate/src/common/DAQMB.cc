@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.6 2005/09/07 16:18:16 mey Exp $
+// $Id: DAQMB.cc,v 2.7 2005/09/13 14:46:40 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.7  2005/09/13 14:46:40  mey
+// Get DMB crate id; and DCS
+//
 // Revision 2.6  2005/09/07 16:18:16  mey
 // DMB timing routines
 //
@@ -71,7 +74,7 @@ DAQMB::DAQMB(int newcrate,int newslot):
   set_comp_thresh_(0.06), feb_clock_delay_(0),
   comp_timing_(2), comp_mode_(2), pre_block_end_(7),
   l1a_lct_counter_(-1), cfeb_dav_counter_(-1), 
-  tmb_dav_counter_(-1), alct_dav_counter_(-1), cable_delay_(0)
+  tmb_dav_counter_(-1), alct_dav_counter_(-1), cable_delay_(0), crate_id_(0)
 {
   cfebs_.clear();
   std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
@@ -149,6 +152,9 @@ void DAQMB::configure() {
    //
    std::cout << "Set cable delay " << cable_delay_ << std::endl ;
    setcbldly(cable_delay_);
+   //
+   std::cout << "Set crate id " << crate_id_ << std::endl ;
+   setcrateid(crate_id_);
    //
    // As suggested by Valery Sitnik: switch all LVs on (computer-controlled)
    // std::cout << "DAQMB: switching on LVs on LVMB" << endl; 

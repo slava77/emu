@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.5 2005/09/07 16:18:15 mey Exp $
+// $Id: DAQMB.h,v 2.6 2005/09/13 14:46:39 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.6  2005/09/13 14:46:39  mey
+// Get DMB crate id; and DCS
+//
 // Revision 2.5  2005/09/07 16:18:15  mey
 // DMB timing routines
 //
@@ -208,6 +211,7 @@ public:
   /// used as pedestals.
   int pre_block_end_;
   int cable_delay_;
+  int crate_id_;
 
   typedef std::vector<CFEB>::iterator CFEBItr;
   std::vector<CFEB> cfebs_;
