@@ -16,7 +16,7 @@ int main(int argc,char **argv){
 
   // create VME Controller and Crate
   int crateId(0);
-  string ipAddr("10.0.0.11");
+  string ipAddr("10.0.0.3");
   int port(6050);
   VMEController *dynatem = new VMEController(crateId,ipAddr,port);
   Crate *crate = new Crate(crateId,dynatem);
@@ -28,8 +28,8 @@ int main(int argc,char **argv){
   ::sleep(1);
 
   // create TMB & ALCT
-  int tmbSlot(10);
-  string chamberType("ME22");
+  int tmbSlot(8);
+  string chamberType("ME21");
   TMB *tmb = new TMB(crateId,tmbSlot);
   tmb->version_="2004";
   ALCTController *alct = new ALCTController(tmb,chamberType);
@@ -57,7 +57,7 @@ int main(int argc,char **argv){
   int debugMode(0);
   int jch(3);
   //int status = alct->SVFLoad(&jch,"alctcrc384mirror.svf",debugMode);
-  int status = alct->SVFLoad(&jch,"alctcrc384.svf",debugMode);
+  int status = alct->SVFLoad(&jch,"alctcrc672mirror.svf",debugMode);
   //--int status = alct->NewSVFLoad(&jch,"alctcrc384mirror.svf",debugMode);
   tmb->enableAllClocks();
 

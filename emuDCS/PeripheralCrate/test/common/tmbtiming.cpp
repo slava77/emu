@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.17 2005/09/13 14:46:40 mey Exp $
+// $Id: tmbtiming.cpp,v 2.18 2005/09/15 08:13:19 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.18  2005/09/15 08:13:19  mey
+// Update
+//
 // Revision 2.17  2005/09/13 14:46:40  mey
 // Get DMB crate id; and DCS
 //
@@ -961,7 +964,7 @@ int main(int argc,char **argv){
         thisDMB->readtimingScope();
 	//
 	int trials = 0;
-	while ( thisDMB->GetL1aLctScope() == 0 && trials < 10 ) {
+	while ( thisDMB->GetL1aLctScope() == 0 && trials < 100 ) {
 	  thisDMB->readtimingScope();
 	  trials++;
 	}
