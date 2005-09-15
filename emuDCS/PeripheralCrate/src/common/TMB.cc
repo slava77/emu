@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.12 2005/09/06 12:11:32 mey Exp $
+// $Id: TMB.cc,v 2.13 2005/09/15 08:13:48 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.13  2005/09/15 08:13:48  mey
+// CSC id update
+//
 // Revision 2.12  2005/09/06 12:11:32  mey
 // Added accessors
 //
@@ -2414,8 +2417,12 @@ void TMB::init_alct(int choice)
 
 void TMB::load_cscid()
 {
-  
-  int i=(theSlot/2)&0x000f;
+  int i;
+  if ( theSlot <=12) {
+    i=(theSlot/2)&0x000f;
+  } else {
+    i=(theSlot/2-1)&0x000f;
+  }
   printf(" I am in CSC Slot %d \n",theSlot);
   sndbuf[0]=0;
   sndbuf[1]=0;
