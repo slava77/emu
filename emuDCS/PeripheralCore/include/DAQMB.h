@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.6 2005/09/13 14:46:39 mey Exp $
+// $Id: DAQMB.h,v 2.7 2005/09/19 07:14:48 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.7  2005/09/19 07:14:48  mey
+// Update
+//
 // Revision 2.6  2005/09/13 14:46:39  mey
 // Get DMB crate id; and DCS
 //
@@ -61,6 +64,7 @@ public:
   std::vector<CFEB> cfebs() const {return cfebs_;}
 
 // DAQMB constants&resets
+
   void load_strip();
   void setcrateid(int dword);
   void setfebdelay(int dword);

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.7 2005/09/13 14:46:40 mey Exp $
+// $Id: DAQMB.cc,v 2.8 2005/09/19 07:13:50 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.8  2005/09/19 07:13:50  mey
+// Update
+//
 // Revision 2.7  2005/09/13 14:46:40  mey
 // Get DMB crate id; and DCS
 //
@@ -109,11 +112,12 @@ void DAQMB::end()
 
 
 void DAQMB::configure() {
-   std::cout << std::endl;
-   std::cout << "CFEB size="<<cfebs_.size()<<std::endl;
-   std::cout << "DAQMB: configure() for crate " << this->crate() << " slot " << this->slot() << std::endl;
-   int cal_delay_bits = (calibration_LCT_delay_ & 0xF)
-      | (calibration_l1acc_delay_ & 0x1F) << 4
+  //
+  std::cout << std::endl;
+  std::cout << "CFEB size="<<cfebs_.size()<<std::endl;
+  std::cout << "DAQMB: configure() for crate " << this->crate() << " slot " << this->slot() << std::endl;
+  int cal_delay_bits = (calibration_LCT_delay_ & 0xF)
+     | (calibration_l1acc_delay_ & 0x1F) << 4
       | (pulse_delay_ & 0x1F) << 9
       | (inject_delay_ & 0x1F) << 14;
    std::cout << "DAQMB:configure: caldelay " << std::hex << cal_delay_bits << std::dec << std::endl;
@@ -137,6 +141,7 @@ void DAQMB::configure() {
    std::cout << "doing set_comp_mode " << comp_mode_bits << std::endl;
    std::cout << comp_mode_ << " " << comp_timing_ << std::endl;
    set_comp_mode(comp_mode_bits);
+   //
    //fg where did these lines come from ...????
    //fg usleep(100);
    //fg set_comp_mode(comp_mode_bits);
@@ -158,8 +163,10 @@ void DAQMB::configure() {
    //
    // As suggested by Valery Sitnik: switch all LVs on (computer-controlled)
    // std::cout << "DAQMB: switching on LVs on LVMB" << endl; 
-   //fg lowv_onof(0x3f);
+   lowv_onoff(0x3f);
 }
+
+
 
 
 void DAQMB::load_strip() {
@@ -2115,7 +2122,7 @@ void DAQMB::setcbldly(int dword)
 }
 void DAQMB::WriteSFM(){
   //
-  setcrateid(0);
+  //setcrateid(0);
   //
   LoadCableDelaySFM();
   LoadDMBIdSFM();
@@ -2124,6 +2131,7 @@ void DAQMB::WriteSFM(){
   SFMWriteProtect();
   // Write
   ProgramSFM();
+  sleep(2);
   // Disable
   SFMWriteProtect();
   //
