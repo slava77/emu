@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_trgmode.cc,v 2.3 2005/09/05 06:49:37 mey Exp $
+// $Id: TMB_trgmode.cc,v 2.4 2005/09/22 12:54:52 mey Exp $
 // $Log: TMB_trgmode.cc,v $
+// Revision 2.4  2005/09/22 12:54:52  mey
+// Update
+//
 // Revision 2.3  2005/09/05 06:49:37  mey
 // Fixed address
 //
@@ -85,9 +88,9 @@ void TMB::trgmode(int choice)
   //Write back with ignore CCB
   tmb_vme(VME_WRITE, ccb_cfg_adr,sndbuf,rcvbuf, NOW); 
 
-  sndbuf[0]=0x03;
-  sndbuf[1]=0x9C;
-  tmb_vme(VME_WRITE, lhc_cycle_adr,sndbuf,rcvbuf,NOW); // Maximum bxn
+  //sndbuf[0]=0x03;
+  //sndbuf[1]=0x9C;
+  //tmb_vme(VME_WRITE, lhc_cycle_adr,sndbuf,rcvbuf,NOW); // Maximum bxn
   sndbuf[0]=0x7c;
   sndbuf[1]=0x1f;
   tmb_vme(VME_WRITE, cfeb_inj_adr,sndbuf,rcvbuf,NOW); //Mask CFEBs
