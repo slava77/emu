@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.18 2005/09/15 08:13:19 mey Exp $
+// $Id: tmbtiming.cpp,v 2.19 2005/09/22 13:01:39 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.19  2005/09/22 13:01:39  mey
+// Update
+//
 // Revision 2.18  2005/09/15 08:13:19  mey
 // Update
 //
@@ -88,6 +91,7 @@
 #include "ALCTController.h"
 #include "CrateSelector.h"
 #include "JTAG_constants.h"
+#include "EmuDcs.h"
 
 using namespace std;
 
@@ -98,6 +102,7 @@ DAQMB* thisDMB ;
 CCB* thisCCB ;
 ALCTController *alct ;
 MPC * thisMPC;
+//EmuDcs *mEmuDcs;
 //
 void CFEBTiming(float CFEBMean[5]);
 void PulseCFEB(fstream* output_log=0, int HalfStrip = -1, int CLCTInputs = 0x1f );
@@ -324,7 +329,8 @@ int main(int argc,char **argv){
   cout << "---- Test Beam Enable ----"<<endl;
 
 
-  tbController.DcsSetup();
+  //tbController.DcsSetup();
+  //mEmuDcs = new EmuDcs ;
 
   if (useScint){
     //tbController.enable();
@@ -472,60 +478,66 @@ int main(int argc,char **argv){
     }
 
     if(doWriteSFM){
+      //tbController.DcsDisable();
       thisDMB->WriteSFM();
+      //tbController.DcsEnable();
     }
 
     if(doSetCableDelay){
       cout << "Cable delay to set : " ;
       int delay;
       cin >> delay ;
+      //tbController.DcsDisable();
       thisDMB->setcbldly(delay) ;
+      //tbController.DcsEnable();
     }
 
     if(doALCTScanDelays){
+      //tbController.DcsDisable();
       ALCTScanDelays();
+      //tbController.DcsEnable();
     }
 
     if(doEnableCLCTInputs){
-      tbController.DcsDisable();
       int Inputs;
       cout << " Input which CLCT Inputs to enable " << endl ;
       cin >> Inputs;
+      //tbController.DcsDisable();
       thisTMB->DisableCLCTInputs();
       thisTMB->EnableCLCTInputs(Inputs);
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if(doInjectMPCData){
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       InjectMPCData();
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if(doAdjustL1aLctDMB){
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       AdjustL1aLctDMB();
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if (doAutomatic){
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       Automatic();
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if (doCCBstartTrigger) {
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       thisCCB->startTrigger();
       thisCCB->bc0();
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if (doL1aRequest) {
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       thisTMB->EnableL1aRequest();
       thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if (doFindALCT_L1A_delay) {
@@ -538,36 +550,36 @@ int main(int argc,char **argv){
       int maxlimit;
       cin >> maxlimit;
       //
+      //tbController.DcsDisable();
       int best_alct_l1a = FindALCT_L1A_delay(minlimit,maxlimit);
+      //tbController.DcsEnable();
       printf("Best Alct L1a %d \n",best_alct_l1a);
       //
     }
 
     if (doInitSystem) {
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       tbController.configureNoDCS();
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if (doFindWinner) {
-      tbController.DcsDisable();
       cout << "How may pulses ?" << endl ;
       int npulses;
       cin >> npulses;
+      //tbController.DcsDisable();
       FindWinner(npulses); 
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
 
     if (doFindALCTvpf) {
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       FindALCTvpf(); 
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if (doFindTMB_L1A_delay) {
-      //
-      tbController.DcsDisable();
       //
       cout << "Enter lowest TMB L1A delay value to loop over (bunch crossings, decimal)" << endl;
       int idelay_min;
@@ -577,11 +589,11 @@ int main(int argc,char **argv){
       int idelay_max;
       cin >> idelay_max;
       //
+      //tbController.DcsDisable();
       int L1adelay = FindTMB_L1A_delay( idelay_min, idelay_max );
+      //tbController.DcsEnable();
       //
       printf(" L1a delay = %d \n",L1adelay);
-      //
-      tbController.DcsEnable();
       //
     }
     
@@ -590,20 +602,21 @@ int main(int argc,char **argv){
 
     if (doSetDMBtrgsrc) {
       //
-      tbController.DcsDisable();
       int dword;
       cout << "Input DMB trigger source value in hex (0 turns off internal L1A and LCT)" << endl;
       cin >> hex >> dword >> dec;
+      //
+      //tbController.DcsDisable();
       thisDMB->settrgsrc(dword);
+      //tbController.DcsEnable();
+      //
       cout << "Have now set DMB trigger source value to: " << hex << dword << dec << endl;
-      tbController.DcsEnable();
       //
     } 
     
     
     if (doReadTMBIDRegister) {
       //
-      tbController.DcsDisable();
       cout << endl;
       printf("TMB ID Reg: addr = 0x2, month day (MMDD) =  %x \n",thisTMB->ReadRegister(0x02));
       cout << endl;
@@ -612,13 +625,16 @@ int main(int argc,char **argv){
       printf("TMB ID Reg: addr = 0x2e, CCB status =  %x \n",thisTMB->ReadRegister(0x2e));
       cout << endl;
       printf("TMB ID Reg: addr = 0x38, ALCT seq Control status =  %x \n",thisTMB->ReadRegister(0x38));
+      //
+      //tbController.DcsDisable();
       thisTMB->WriteRegister(0x9c,0x1);
+      //tbController.DcsEnable();
+      //
       cout << endl;
       printf("TMB ID Reg: addr = 0x9c, CCB TTC command gen =  %x \n",thisTMB->ReadRegister(0x9c));
       cout << endl;
       printf("TMB ID Reg: addr = 0x10, UserJTAG =  %x \n",thisTMB->ReadRegister(0x10));
       cout << endl;
-      tbController.DcsEnable();
       //
     }
 
@@ -629,14 +645,16 @@ int main(int argc,char **argv){
 
     if (doReadTMBRegister) {    
       //
-      tbController.DcsDisable();
       cout << "Enter TMB register address (hex)" << endl;
       int TMBRegAddr;
       cin >> hex >> TMBRegAddr >> dec;            // Make sure to return to decimal mode
+      //
+      //tbController.DcsDisable();
       int TMBRegValue  = thisTMB->ReadRegister(TMBRegAddr) ;
+      //tbController.DcsEnable();
+      //
       printf("TMB register Address= %x     value=0x %x \n",TMBRegAddr,TMBRegValue);
       cout << endl  << endl;
-      tbController.DcsEnable();
       //
     }
 
@@ -647,7 +665,7 @@ int main(int argc,char **argv){
 
     if (doWriteTMBRegister) {   
       //
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       cout << "Caution: can cause serious problems, proceed with caution" << endl;
       cout << "Enter TMB register address (hex)" << endl;
       //
@@ -669,7 +687,7 @@ int main(int argc,char **argv){
       printf("TMB register Address= %x     read back written value=0x %x \n",TMBRegAddr,TMBRegValue);
       //
       cout << endl  << endl;
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
       //
     }
 
@@ -679,7 +697,7 @@ int main(int argc,char **argv){
 
     if (doTMBRegisterDump) { 
 
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
 
       //this part does a complete register dump of the TMB registers
 
@@ -819,7 +837,7 @@ int main(int argc,char **argv){
 
 
 
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
 
   }
 
@@ -843,14 +861,14 @@ int main(int argc,char **argv){
     // use hex for everything (duh)
 
     if (doReadCCBRegister) {           
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       cout << "Enter CCB register address (hex)" << endl;
       int CCBRegAddr;
       cin >> hex >> CCBRegAddr >> dec;            // Make sure to return to decimal mode
       int CCBRegValue  = thisCCB->ReadRegister(CCBRegAddr) ;
       printf("CCB register Address= %02x     value=0x %04x \n",CCBRegAddr,CCBRegValue);
       cout << endl  << endl;
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     // Write arbitrary CCB register: caution, can of course cause all kinds of problems
@@ -859,7 +877,7 @@ int main(int argc,char **argv){
 
     if (doWriteCCBRegister) { 
       //
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       //
       cout << "Caution: can cause serious problems, proceed with caution. CAUTION!" << endl;
       cout << "Enter CCB register address (hex)" << endl;
@@ -883,7 +901,7 @@ int main(int argc,char **argv){
 
       cout << endl  << endl;
       //
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
       //
     }
 
@@ -941,6 +959,8 @@ int main(int argc,char **argv){
     
     
     if (doReadDMBCounters) {
+
+      //tbController.DcsDisable();
 
       // JH test code 12 Aug 2005
       // Add some analysis ability to this option
@@ -1108,6 +1128,7 @@ int main(int argc,char **argv){
 	cout << endl;
 	//
       }
+      //tbController.DcsEnable();
     }    
     //
     if (doReadDMB_DAV) {
@@ -1124,7 +1145,7 @@ int main(int argc,char **argv){
     
     if (doReadALCTThreshold ) {
       //
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       //
       int err;
       ALCTIDRegister sc_id, chipID ;
@@ -1141,136 +1162,136 @@ int main(int argc,char **argv){
       //
       alct->setup(1);
       //
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if (doCCBFPGA) {
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       printf("Setting into FPGA\n");
       thisCCB->setCCBMode(CCB::VMEFPGA);      
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if (doCCBDLOG) {
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       printf("Setting into DLOG\n");
       thisCCB->setCCBMode(CCB::DLOG);      
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if (doDumpFifo){
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       if (alct) alct->DumpFifo();
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if ( doStartTTC) {
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       thisTMB->StartTTC();
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if (doFindBestL1aALCT){
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
        FindBestL1aAlct();
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if (doResetCounters){
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       thisTMB->ResetCounters();
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if (doPrintCounters){
-      tbController.DcsDisable();
+      ////tbController.DcsDisable();
       thisTMB->GetCounters();
       thisTMB->PrintCounters();
-      tbController.DcsEnable();
+      ////tbController.DcsEnable();
     }
 
     if (doALCTChamberScanning){
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       ALCTChamberScanning();
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if (doALCTSVFLoad) {
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       ALCTSVFLoad();
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     // TMB Scope
     if (doTMBScope) {
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       thisTMB->decode();
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
     
     //ALCT Rawhits
     if (doALCTRawhits) {
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       thisTMB->ALCTRawhits();
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
     
     if (doTMBRawhits) {
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       thisTMB->TMBRawhits();
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
     
     if (doPulseTest){
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       PulseCFEB();
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
     
     if (doCFEBChamberScanning){
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       CFEBChamberScanning();
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
     
     if (doCFEBTiming){
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       float CFEBMean[5];
       CFEBTiming(CFEBMean);
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
     
     if (doALCTTiming){
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       int RXphase, TXphase;
       ALCTTiming(RXphase,TXphase);
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
 
     if (doPulseTestStrips){
-      tbController.DcsDisable();
+      //tbController.DcsDisable();
       PulseRandomALCT();
       printf("\n WordCount = %x \n",thisTMB->GetALCTWordCount());
-      tbController.DcsEnable();
+      //tbController.DcsEnable();
     }
   }
   
   if (doReadIDCODE) {
-    tbController.DcsDisable();
+    //tbController.DcsDisable();
     cout << "Read IDCODE" << endl;
     alct->ReadIDCODE();
-    tbController.DcsEnable();
+    //tbController.DcsEnable();
   }
     
   if (doLv1TMBTiming){
-    tbController.DcsDisable();
+    //tbController.DcsDisable();
     int L1aTMB = TMBL1aTiming();
-    tbController.DcsEnable();
+    //tbController.DcsEnable();
   }
 
   int scp_channel;
   if (doScopeReadArm){
-    tbController.DcsDisable();
+    //tbController.DcsDisable();
      cout << "Arm Scope: select channel (suggest 1d) in hex:" << endl;
      cin >> hex >> scp_channel >> dec;
      // scanf("%x", &scp_channel);
@@ -1279,21 +1300,21 @@ int main(int argc,char **argv){
      else
        thisTMB->scope(1,0,scp_channel);
      //
-     tbController.DcsEnable();
+     //tbController.DcsEnable();
   }
 
   if (doScopeRead){
-    tbController.DcsDisable();
+    //tbController.DcsDisable();
     cout << "Readout Scope"<< endl;
     thisTMB->scope(0,1);
-    tbController.DcsEnable();
+    //tbController.DcsEnable();
   }
 
   if (doForceScopeTrigger){
-    tbController.DcsDisable();
+    //tbController.DcsDisable();
     cout << "Force Scope Trigger" << endl;
     thisTMB->ForceScopeTrigger();
-    tbController.DcsEnable();
+    //tbController.DcsEnable();
   }
 
   if (doInteractive) goto interactive;
@@ -1323,7 +1344,7 @@ int main(int argc,char **argv){
   // done: disable triggering
   cout << "---- Test Beam Disable ----"<<endl;
   //if (useScint)
-    //tbController.disable();
+    ////tbController.disable();
     //else {
       //thisCCB->disableL1();
       // thisCCB->disable();
@@ -1464,7 +1485,7 @@ int AdjustL1aLctDMB(){
   //
   for( int l1a=90; l1a<110; l1a++) {
     thisCCB->SetL1aDelay(l1a);
-    sleep(2);
+    ::sleep(2);
     thisDMB->readtimingCounter();
     Counter = thisDMB->GetL1aLctCounter() ;
     printf(" ************ L1a lct counter l1a=%d Counter=%d \n ",l1a,Counter);
@@ -2462,7 +2483,7 @@ int FindALCT_L1A_delay(int minlimit, int maxlimit){
     alct->unpackControlRegister(cr);
     thisTMB->ResetCounters();
     thisTMB->ResetALCTRAMAddress();
-    sleep(6);
+    ::sleep(6);
     thisTMB->GetCounters();
     //
     cout << endl;
@@ -2758,7 +2779,7 @@ int TMBL1aTiming(){
     for (int Nmuons=0; Nmuons<nmuons; Nmuons++){
       while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
       thisTMB->ResetRAMAddress();
-      if ( UseCosmic ) sleep(2);
+      if ( UseCosmic ) ::sleep(2);
       if ( UsePulsing) PulseCFEB(0,16,0xa);
       wordcounts[delay] += thisTMB->GetWordCount();
       printf(" WordCount %d \n",thisTMB->GetWordCount());
@@ -3048,7 +3069,9 @@ int FindWinner(int npulses=10){
       PulseCFEB(0,-1,0xa);
     }
 
-    if (UseCosmic)  sleep(2);
+    cout << "Interactions " << iterations << endl ;
+
+    if (UseCosmic)  ::sleep(2);
     //
     //if ( UsePulsing ) PulseCFEB(0,16,0xa);
     //
@@ -3146,7 +3169,7 @@ int FindALCTvpf(){
     thisTMB->ResetCounters();      // reset counters
     //thisCCB->startTrigger();     // 2 commands to get trigger going
     //thisCCB->bx0();
-    sleep(2);                      // accumulate statistics
+    ::sleep(2);                      // accumulate statistics
     //if (UsePulsing) PulseCFEB(0,16,0xa);
     //thisCCB->stopTrigger();      // stop trigger
     thisTMB->GetCounters();        // read counter values
@@ -3198,7 +3221,7 @@ int FindTMB_L1A_delay( int idelay_min, int idelay_max ){
     //if (useCCB) thisCCB->startTrigger();     // 2 commands to get trigger going
     //if (useCCB) thisCCB->bx0();
     cout << endl << "TMB_l1adelay=" << i << ":" << endl;
-    sleep(3);                   // accumulate statistics
+    ::sleep(3);                   // accumulate statistics
     //if (useCCB) thisCCB->stopTrigger();      // stop trigger
     thisTMB->GetCounters();      // read counter values
     
