@@ -1,0 +1,5 @@
+/sbin/ifdown eth2
+/sbin/ifdown eth3
+/sbin/rmmod dl2x
+/sbin/rmmod eth_hook_2
+/sbin/rmmod eth_hook_3
