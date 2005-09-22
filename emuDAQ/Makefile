@@ -16,7 +16,8 @@ Packages=\
 	emuDAQ/DDUReadout \
 	emuDAQ/GenericRUI \
 	emuDAQ/EmuRUI \
-	emuDAQ/TriggerAdapter
+	emuDAQ/TriggerAdapter \
+	emuDAQ/drivers/bigphysarea_xxxx
 endif
 
 ifeq ($(Set),DDUReadout)
@@ -33,6 +34,10 @@ endif
 
 ifeq ($(Set),TriggerAdapter)
 Packages= emuDAQ/TriggerAdapter
+endif
+
+ifeq ($(Set),drivers)
+Packages=emuDAQ/drivers/bigphysarea_xxxx
 endif
 
 
