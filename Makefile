@@ -15,6 +15,7 @@ Packages=\
         extern/dim \
 	emuDCS/PeripheralCrate \
 	emuDCS/e2p \
+	emuDCS/FEDCrate \
 	emuDAQ/DDUReadout \
 	emuDAQ/GenericRUI \
 	emuDAQ/EmuRUI \
@@ -26,7 +27,8 @@ ifeq ($(Set),emuDCS)
 Packages= \
         extern/dim \
         emuDCS/PeripheralCrate \
-	emuDCS/e2p
+	emuDCS/e2p \
+	emuDCS/FEDCrate
 endif
 
 ifeq ($(Set),emuDAQ)

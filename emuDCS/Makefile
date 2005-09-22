@@ -14,7 +14,8 @@ Project=emu
 ifeq ($(Set),framework)
 Packages=\
 	emuDCS/PeripheralCrate \
-	emuDCS/e2p
+	emuDCS/e2p \
+	emuDCS/FEDCrate
 endif
 
 ifeq ($(Set),PeripheralCrate)
@@ -25,5 +26,8 @@ ifeq ($(Set),e2p)
 Packages= emuDCS/e2p
 endif
 
+ifeq ($(Set),FEDCrate)
+Packages= emuDCS/FEDCrate
+endif
 
 include $(XDAQ_ROOT)/config/Makefile.rules
