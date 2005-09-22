@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: calibpulse.cpp,v 2.0 2005/06/06 10:01:44 geurts Exp $
+// $Id: calibpulse.cpp,v 2.1 2005/09/22 12:59:18 mey Exp $
 // $Log: calibpulse.cpp,v $
+// Revision 2.1  2005/09/22 12:59:18  mey
+// Alex's changes
+//
 // Revision 2.0  2005/06/06 10:01:44  geurts
 // calibration test routines by Alex Tumanov and Jason Gilmore
 //
@@ -35,27 +38,27 @@ int main(int argc, char **argv)
  
   CalibDAQ calib;
   calib.loadConstants();
-  calib.rateTest();
+  //calib.rateTest();
 
-  /*
+  
   int nsleep, nstrip, tries, counter =0;
   float dac;
   nsleep = 1000;  
   dac = 1.0;
-  nstrip = 10;
 
-  for (int i=0;i<1;i++) {  
+
+  for (int i=1;i<17;i++) {  
     for (int ntim=0;ntim<32;ntim++) {
-      calib.pulseAllDMBs(ntim, nstrip, dac, nsleep);  
+      calib.pulseAllDMBs(ntim, i, dac, nsleep);  
       counter++;
       std::cout << "dac = " << dac <<
-	"  strip = " << nstrip <<
+	"  strip = " << i <<
         "  ntim = " << ntim <<
 	"  event  = " << counter << std::endl;
     }
   }
 
-  */
+ 
   return 0;
 }
 
