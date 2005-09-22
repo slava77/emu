@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: contrmain.cpp,v 2.0 2005/04/12 08:07:07 geurts Exp $
+// $Id: contrmain.cpp,v 2.1 2005/09/22 13:00:18 mey Exp $
 // $Log: contrmain.cpp,v $
+// Revision 2.1  2005/09/22 13:00:18  mey
+// Alex's changes
+//
 // Revision 2.0  2005/04/12 08:07:07  geurts
 // *** empty log message ***
 //
@@ -27,6 +30,7 @@ int main()
   DAQMBTester tester(daqmb, ccb, true);
   tester.runAllTests();
 
+  /*
   TestBeamCrateController tbController;
   std::cout << "Created TestBeamController" << std::endl;  
   
@@ -43,7 +47,7 @@ int main()
      
   tbController.disable();
   std::cout<< "Finished TestBeamCrateController disable" << std::endl;
-
+  */
 
 
 
