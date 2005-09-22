@@ -51,7 +51,7 @@ UserExecutableLinkFlags =
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries = xerces-c EmuFEDCrate
+Libraries = xerces-c 
 TestLibraries = xerces-c EmuFEDCrate
 
 #
@@ -62,6 +62,6 @@ StaticLibrary= EmuFEDCrate
 
 Executables=
 TestExecutables= \
-        daqtest.cpp
+        ddutest.cpp
 
 include $(XDAQ_ROOT)/config/Makefile.rules
