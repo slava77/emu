@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DDUReader.h,v 2.0 2005/04/13 10:52:56 geurts Exp $
+// $Id: DDUReader.h,v 2.1 2005/09/26 17:11:49 tumanov Exp $
 // $Log: DDUReader.h,v $
+// Revision 2.1  2005/09/26 17:11:49  tumanov
+// new data format
+//
 // Revision 2.0  2005/04/13 10:52:56  geurts
 // Makefile
 //
@@ -46,7 +49,8 @@ public:
   void closeFile();
 
   unsigned short errorFlag;
-
+  unsigned int errorStat;
+  bool fillBuff;
 
 protected:
   /// How many bytes to read at a time
