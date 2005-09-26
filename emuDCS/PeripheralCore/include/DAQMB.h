@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.7 2005/09/19 07:14:48 mey Exp $
+// $Id: DAQMB.h,v 2.8 2005/09/26 07:27:05 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.8  2005/09/26 07:27:05  mey
+// Added BXN toogle routine
+//
 // Revision 2.7  2005/09/19 07:14:48  mey
 // Update
 //
@@ -82,6 +85,7 @@ public:
   void LoadCableDelaySFM();
   void ProgramSFM();
   void WriteSFM();
+  void ToogleBXN();
 
 // DAQMB trigger primitives
   void set_comp_mode(int dword);
@@ -216,6 +220,7 @@ public:
   int pre_block_end_;
   int cable_delay_;
   int crate_id_;
+  int toogle_bxn_;
 
   typedef std::vector<CFEB>::iterator CFEBItr;
   std::vector<CFEB> cfebs_;

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.8 2005/09/19 07:13:50 mey Exp $
+// $Id: DAQMB.cc,v 2.9 2005/09/26 07:27:14 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.9  2005/09/26 07:27:14  mey
+// Added BXN toogle routine
+//
 // Revision 2.8  2005/09/19 07:13:50  mey
 // Update
 //
@@ -77,7 +80,8 @@ DAQMB::DAQMB(int newcrate,int newslot):
   set_comp_thresh_(0.06), feb_clock_delay_(0),
   comp_timing_(2), comp_mode_(2), pre_block_end_(7),
   l1a_lct_counter_(-1), cfeb_dav_counter_(-1), 
-  tmb_dav_counter_(-1), alct_dav_counter_(-1), cable_delay_(0), crate_id_(0)
+  tmb_dav_counter_(-1), alct_dav_counter_(-1), cable_delay_(0), 
+  crate_id_(0), toogle_bxn_(1)
 {
   cfebs_.clear();
   std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
@@ -160,6 +164,9 @@ void DAQMB::configure() {
    //
    std::cout << "Set crate id " << crate_id_ << std::endl ;
    setcrateid(crate_id_);
+   //
+   std::cout << "Toogle bxn " << crate_id_ << std::endl ;
+   if (toogle_bxn_) ToogleBXN();
    //
    // As suggested by Valery Sitnik: switch all LVs on (computer-controlled)
    // std::cout << "DAQMB: switching on LVs on LVMB" << endl; 
@@ -2069,6 +2076,19 @@ void DAQMB::SFMWriteProtect(){
   printf(" SFM Write Protect \n");
   cmd[0]=VTX_USR1; 
   sndbuf[0]=0x1e; 
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  //
+}
+//
+void DAQMB::ToogleBXN(){
+  //
+  cmd[0]=VTX_USR1; 
+  sndbuf[0]=34; 
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX_USR1;
   sndbuf[0]=NOOP;
