@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.4 2005/08/22 07:55:45 mey Exp $
+// $Id: CCB.cc,v 2.5 2005/09/28 16:59:57 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.5  2005/09/28 16:59:57  mey
+// Update
+//
 // Revision 2.4  2005/08/22 07:55:45  mey
 // New TMB MPC injector routines and improved ALCTTiming
 //
@@ -24,7 +27,7 @@
 #include <iostream>
 #include <iomanip>
 #include <unistd.h> // for sleep
-
+//
 CCB::CCB(int newcrate ,int slot, int version)
 : VMEModule(newcrate, slot), 
   l1enabled_(false),
@@ -246,7 +249,7 @@ void CCB::GenerateAlctAdbASync(){
    theController->end();
    //
 }
-
+//
 void CCB::DumpAddress(int address) {
   //
   do_vme(VME_READ,address,sndbuf,rcvbuf,NOW);  
@@ -254,7 +257,7 @@ void CCB::DumpAddress(int address) {
   printf("CCB.Dump %x %x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   //
 }
-
+//
 void CCB::rice_clk_setup()
 {
   int l1en=0;
@@ -881,9 +884,7 @@ void CCB::sync_reset_csr2(){
   //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
   do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
-
-
-
+//
 void CCB::soft_reset_all_csr2(){
 /// initialize the FPGA-s on dmb,tmb,mpc (CCB specification)
 

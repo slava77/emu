@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.3 2005/08/11 08:13:59 mey Exp $
+// $Id: CCB.h,v 2.4 2005/09/28 17:00:05 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.4  2005/09/28 17:00:05  mey
+// Update
+//
 // Revision 2.3  2005/08/11 08:13:59  mey
 // Update
 //
@@ -112,7 +115,6 @@ public:
   void hard_reset_tmb();     //+
   void hard_reset_mpc();     //+
 
-  void DumpAddress(int);
 
   void soft_reset_dmb();
   void soft_reset_tmb();
@@ -122,6 +124,9 @@ public:
   int set_la1_delay(int delay);  // test stuff
   int get_la1_delay(); // test stuff
 #endif
+
+  void DumpAddress(int);
+
 
 protected:
   int mCCBMode;
