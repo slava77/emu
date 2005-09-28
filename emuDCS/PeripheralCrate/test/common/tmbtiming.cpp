@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.19 2005/09/22 13:01:39 mey Exp $
+// $Id: tmbtiming.cpp,v 2.20 2005/09/28 16:54:27 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.20  2005/09/28 16:54:27  mey
+// Update
+//
 // Revision 2.19  2005/09/22 13:01:39  mey
 // Update
 //
@@ -1964,11 +1967,11 @@ void ALCTTiming( int & RXphase, int & TXphase ){
    thisTMB->SetALCTPatternTrigger();
    //
    for (j=0;j<maxTimeBins;j++){
-      for (k=0;k<maxTimeBins;k++) {
-	 selected[j][k]  = 0;
-	 selected2[j][k] = 0;
-	 selected3[j][k] = 0;
-      }
+     for (k=0;k<maxTimeBins;k++) {
+       selected[j][k]  = 0;
+       selected2[j][k] = 0;
+       selected3[j][k] = 0;
+     }
    }
    //
    unsigned long HCmask[22];
