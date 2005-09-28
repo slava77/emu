@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.8 2005/09/26 07:27:05 mey Exp $
+// $Id: DAQMB.h,v 2.9 2005/09/28 16:57:30 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.9  2005/09/28 16:57:30  mey
+// Update Tests
+//
 // Revision 2.8  2005/09/26 07:27:05  mey
 // Added BXN toogle routine
 //
@@ -51,12 +54,13 @@ class DAQMB: public VMEModule
 public:
   friend class DAQMBParser;
 
-// standard routines
+  // standard routines
   /// construct with all the standard CFEBs and BuckeyeChips
-  DAQMB(int newcrate, int slot);
+  DAQMB(int newcrate, int slot) ;
   /// construct with a single CFEB, count from zero
   DAQMB(int newcrate, int slot, int cfeb);
   DAQMB(int newcrate, int slot, const std::vector<CFEB> & cfebs);
+  //
   virtual ~DAQMB();
   /// from the BOARDTYPE enum
   virtual unsigned int boardType() const {return DMB_ENUM;}
@@ -79,17 +83,41 @@ public:
   void calctrl_global();
   void restoreCFEBIdle();
   void restoreMotherboardIdle();
+  void PrintCounters(int);
+  //
+  void lowv_dump();
+  void daqmb_adc_dump();
+  void daqmb_promfpga_dump();
+  //
+  // Tests
+  void test3();
+  int  test4();
+  int  test5();
+  int  test6();
+  int  test8();
+  int  test9();
+  int  test10();
+  int  test11();
+  int  memchk(int);
+  //
+  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
+  //
   void SFMWriteProtect();
   void LoadCFEBDelaySFM();
   void LoadDMBIdSFM();
   void LoadCableDelaySFM();
   void ProgramSFM();
   void WriteSFM();
+  //  
+  // DAQMB trigger primitives
+  //
   void ToogleBXN();
 
 // DAQMB trigger primitives
+
   void set_comp_mode(int dword);
   void set_comp_thresh(float thresh);
+  void set_comp_thresh(int, float thresh);
 
 /// DAQMB voltages
 /// see manual, but usually ichp 1 = therm, 2 = DAC, 3 = GND
@@ -130,6 +158,7 @@ public:
   void buckflash_load(char *fshift);
   void buckflash_read(char *rshift);
   void buckflash_pflash(); 
+  void buckflash_erase(); 
   void preamp_initx();
 // DAQMB program proms (electronics experts only)
   void epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum);
@@ -138,6 +167,7 @@ public:
 // DAQMB calibrate
   void set_cal_dac(float volt0,float volt1);
   void buck_shift();
+  void buck_shift_out();
   int buck_shift_test();
 
   void set_cal_tim_pulse(int ntim);
@@ -173,11 +203,28 @@ public:
   /// Set cable delay
   void setcbldly(int );
   
-#ifdef USEDCS
-  /// DCS additions
+  /// 
   void cfeb_vtx_prom(enum DEVTYPE devnum);
+  void febpromuser2(const CFEB &,char *cbrdnum);
+  void toggle_caltrg();
+  void set_ext_chanx(int chan);
+  void setpulsedelay(int tinj);
   void devdoReset();
-#endif
+
+  // cable delay routines
+  void cbldly_init();
+  void cbldly_trig(); 
+  void cbldly_phaseA();
+  void cbldly_phaseB();
+  void cbldly_loadfinedelay();
+  void cbldly_programSFM();
+  void cbldly_wrtprotectSFM();
+  void cbldly_loadmbidSFM();
+  void cbldly_loadcfebdlySFM();
+  void cbldly_refreshcfebdly();
+  void sfm_test_load(char *sndpat);
+  void sfm_test_read(char *rcvpat);
+
 
 public:
   // unpacks rcvbuf from FPGA operations
@@ -256,7 +303,8 @@ public:
   //
 
  private:
-
+  int shift_out[5][36];
+  std::ostream * MyOutput_ ;
   int l1a_lct_counter_, cfeb_dav_counter_, tmb_dav_counter_, alct_dav_counter_ ;
   int l1a_lct_scope_, cfeb_dav_scope_, tmb_dav_scope_, alct_dav_scope_, active_dav_scope_ ;
 
