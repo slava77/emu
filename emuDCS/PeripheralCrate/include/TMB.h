@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.7 2005/09/06 12:12:12 mey Exp $
+// $Id: TMB.h,v 2.8 2005/09/28 16:52:51 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.8  2005/09/28 16:52:51  mey
+// Include Output streamer
+//
 // Revision 2.7  2005/09/06 12:12:12  mey
 // Added accessors
 //
@@ -41,11 +44,14 @@ class TMBParser;
 class TMB : public VMEModule {
 
 public:
-      friend class ALCTController;
-      friend class TMBParser;
+  friend class ALCTController;
+  friend class TMBParser;
       
-      TMB(int newcrate, int slot);
+  TMB(int newcrate, int slot);
   virtual ~TMB();
+  //
+  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
+  //
   /// from the BOARDTYPE enum
   virtual unsigned int boardType() const {return TMB_ENUM;}
   /// ucla_start was always called with a dev and a slot
@@ -174,6 +180,7 @@ public:
   //
 public:
   //
+  std::ostream * MyOutput_ ;
   FILE *pfile;
   FILE *pfile2;
   int ucla_ldev;
@@ -185,56 +192,56 @@ public:
   int cfeb1delay_;
   int cfeb2delay_;
   int cfeb3delay_;
-      int cfeb4delay_;
-      int l1a_offset_;
-      int bxn_offset_;
-      int alct_tx_clock_delay_;
-      int alct_rx_clock_delay_;
-      int l1a_window_size_;
-      int l1adelay_;
-      int alct_match_window_size_;
-      int alct_vpf_delay_;
-      std::string version_;
-      int mpc_delay_;
-      int ALCT_input_;
-      int rpc_exists_;
-      int fifo_mode_;
-      int fifo_tbins_;
-      int fifo_pretrig_;
-      int alct_clear_;
-      int mpc_tx_delay_;
-      //
-   protected:
-      /// for PHOS4 chips, v2001
-      void old_clk_delays(unsigned short int time, int cfeb_id);
-      /// for DDD chips, v2004
-      void new_clk_delays(unsigned short int time, int cfeb_id);
-      
-      ALCTController * alctController_;
-      
-   private:
-      //
-      int CLCT0_cfeb_;
-      int CLCT1_cfeb_;
-      int CLCT0_nhit_;
-      int CLCT1_nhit_;
-      int CLCT0_keyHalfStrip_;
-      int CLCT1_keyHalfStrip_;
-      static const int MaxCounter = 0x2d;
-      long int FinalCounter[MaxCounter];
-      //
-      int alct0_valid_;
-      int alct0_quality_;
-      int alct0_amu_;
+  int cfeb4delay_;
+  int l1a_offset_;
+  int bxn_offset_;
+  int alct_tx_clock_delay_;
+  int alct_rx_clock_delay_;
+  int l1a_window_size_;
+  int l1adelay_;
+  int alct_match_window_size_;
+  int alct_vpf_delay_;
+  std::string version_;
+  int mpc_delay_;
+  int ALCT_input_;
+  int rpc_exists_;
+  int fifo_mode_;
+  int fifo_tbins_;
+  int fifo_pretrig_;
+  int alct_clear_;
+  int mpc_tx_delay_;
+  //
+protected:
+  /// for PHOS4 chips, v2001
+  void old_clk_delays(unsigned short int time, int cfeb_id);
+  /// for DDD chips, v2004
+  void new_clk_delays(unsigned short int time, int cfeb_id);
+  
+  ALCTController * alctController_;
+  
+private:
+  //
+  int CLCT0_cfeb_;
+  int CLCT1_cfeb_;
+  int CLCT0_nhit_;
+  int CLCT1_nhit_;
+  int CLCT0_keyHalfStrip_;
+  int CLCT1_keyHalfStrip_;
+  static const int MaxCounter = 0x2d;
+  long int FinalCounter[MaxCounter];
+  //
+  int alct0_valid_;
+  int alct0_quality_;
+  int alct0_amu_;
       int alct0_first_key_;
-      int alct0_first_bxn_;
-      //
-      int alct1_valid_;
-      int alct1_quality_;
-      int alct1_amu_;
-      int alct1_second_key_;
-      int alct1_second_bxn_;
-      //
+  int alct0_first_bxn_;
+  //
+  int alct1_valid_;
+  int alct1_quality_;
+  int alct1_amu_;
+  int alct1_second_key_;
+  int alct1_second_bxn_;
+  //
 };
 
 #endif
