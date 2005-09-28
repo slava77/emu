@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.9 2005/09/28 16:57:30 mey Exp $
+// $Id: DAQMB.h,v 2.10 2005/09/28 17:11:19 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.10  2005/09/28 17:11:19  mey
+// Update
+//
 // Revision 2.9  2005/09/28 16:57:30  mey
 // Update Tests
 //
@@ -190,6 +193,11 @@ public:
   static const int layers[6];
 
   // RPW utilities
+  // rtrig
+  void toggle_rndmtrg_start();
+  void burst_rndmtrg();
+
+
   // shifts all buckeyes
   void shift_all(int mode); 
   
