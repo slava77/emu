@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.13 2005/09/15 08:13:48 mey Exp $
+// $Id: TMB.cc,v 2.14 2005/09/28 16:52:40 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.14  2005/09/28 16:52:40  mey
+// Include Output streamer
+//
 // Revision 2.13  2005/09/15 08:13:48  mey
 // CSC id update
 //
@@ -79,6 +82,7 @@ TMB::TMB(int newcrate, int slot) :
   l1a_offset_(0),
   bxn_offset_(0)
 {
+  MyOutput_ = &std::cout ;
   std::cout << "TMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
 } 
 
@@ -175,7 +179,7 @@ void TMB::StartTTC(){
   //
   tmb_vme(VME_READ,0x9c,sndbuf,rcvbuf,NOW);
   //
-  printf(" %x %x \n",rcvbuf[0],rcvbuf[1]);
+  (*MyOutput_) << rcvbuf[0] << " " << rcvbuf[1] << std::endl;
   //
   sndbuf[0] = 0x0;
   sndbuf[1] = 0x1;
@@ -191,7 +195,7 @@ void TMB::StartTTC(){
   //
   tmb_vme(VME_READ,0x9c,sndbuf,rcvbuf,NOW);
   //
-  printf(" %x %x \n",rcvbuf[0],rcvbuf[1]);
+  (*MyOutput_) << rcvbuf[0] << " " << rcvbuf[1] << std::endl;
   //
 }
 
@@ -491,36 +495,36 @@ int TMB::FmState(){
 }
 //
 void TMB::PrintCounters(int counter){
-//
-   std::cout << std::endl;
-   std::cout << "--------------------------------------------------------" << std::endl;
-   std::cout << "---              Counters                             --" << std::endl;
-   std::cout << "--------------------------------------------------------" << std::endl;
-   if ((counter<0)||(counter==0)) std::cout << "ALCT: CRC error                                  " << FinalCounter[0] <<std::endl ;
-   if ((counter<0)||(counter==1)) std::cout << "ALCT: LCT sent to TMB                            " << FinalCounter[1] <<std::endl ;
-   if ((counter<0)||(counter==2)) std::cout << "ALCT: LCT error (alct debug firmware)            " << FinalCounter[2] <<std::endl ;
-   if ((counter<0)||(counter==3)) std::cout << "ALCT: L1A readout                                " << FinalCounter[3] <<std::endl ;
-   if ((counter<0)||(counter==4)) std::cout << "CLCT: Pretrigger                                 " << FinalCounter[4] <<std::endl ;
-   if ((counter<0)||(counter==5)) std::cout << "CLCT: Pretrig but no wbuf available              " << FinalCounter[5] <<std::endl ;
-   if ((counter<0)||(counter==6)) std::cout << "CLCT: Invalid pattern after drift                " << FinalCounter[6] <<std::endl ;
-   if ((counter<0)||(counter==7)) std::cout << "CLCT: TMB matching rejected event                " << FinalCounter[7] <<std::endl ;
-   if ((counter<0)||(counter==8)) std::cout << "TMB:  CLCT or  ALCT or both triggered            " << FinalCounter[8] <<std::endl ;
-   if ((counter<0)||(counter==9)) std::cout << "TMB:  CLCT or  ALCT or both triggered xmit MPC   " << FinalCounter[9] <<std::endl ;
-   if ((counter<0)||(counter==10)) std::cout << "TMB:  CLCT and ALCT matched in time              " << FinalCounter[10] <<std::endl ;
-   if ((counter<0)||(counter==11)) std::cout << "TMB:  ALCT-only trigger                          " << FinalCounter[11] <<std::endl ;
-   if ((counter<0)||(counter==12)) std::cout << "TMB:  CLCT-only trigger                          " << FinalCounter[12] <<std::endl ;
-   if ((counter<0)||(counter==13)) std::cout << "TMB:  No trig pulse response                     " << FinalCounter[13] <<std::endl ;
-   if ((counter<0)||(counter==14)) std::cout << "TMB:  No MPC transmission                        " << FinalCounter[14] <<std::endl ;
-   if ((counter<0)||(counter==15)) std::cout << "TMB:  No MPC response FF pulse                   " << FinalCounter[15] <<std::endl ;
-   if ((counter<0)||(counter==16)) std::cout << "TMB:  MPC accepted LCT0                          " << FinalCounter[16] <<std::endl ;
-   if ((counter<0)||(counter==17)) std::cout << "TMB:  MPC accepted LCT1                          " << FinalCounter[17] <<std::endl ;
-   if ((counter<0)||(counter==18)) std::cout << "L1A:  BUGS, IGNORE (should be L1A received)      " << FinalCounter[18] <<std::endl ;
-   if ((counter<0)||(counter==19)) std::cout << "L1A:  TMB triggered, TMB in L1A window           " << FinalCounter[19] <<std::endl ;
-   if ((counter<0)||(counter==20)) std::cout << "L1A:  L1A received, no TMB in window             " << FinalCounter[20] <<std::endl ;
-   if ((counter<0)||(counter==21)) std::cout << "L1A:  TMB triggered, no L1A received             " << FinalCounter[21] <<std::endl ;
-   if ((counter<0)||(counter==22)) std::cout << "L1A:  TMB readout                                " << FinalCounter[22] <<std::endl;
-   std::cout << std::endl;
-//
+  //
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "--------------------------------------------------------" << std::endl;
+  (*MyOutput_) << "---              Counters                             --" << std::endl;
+  (*MyOutput_) << "--------------------------------------------------------" << std::endl;
+  if ((counter<0)||(counter==0)) (*MyOutput_) << "ALCT: CRC error                                  " << FinalCounter[0] <<std::endl ;
+  if ((counter<0)||(counter==1)) (*MyOutput_) << "ALCT: LCT sent to TMB                            " << FinalCounter[1] <<std::endl ;
+  if ((counter<0)||(counter==2)) (*MyOutput_) << "ALCT: LCT error (alct debug firmware)            " << FinalCounter[2] <<std::endl ;
+  if ((counter<0)||(counter==3)) (*MyOutput_) << "ALCT: L1A readout                                " << FinalCounter[3] <<std::endl ;
+  if ((counter<0)||(counter==4)) (*MyOutput_) << "CLCT: Pretrigger                                 " << FinalCounter[4] <<std::endl ;
+  if ((counter<0)||(counter==5)) (*MyOutput_) << "CLCT: Pretrig but no wbuf available              " << FinalCounter[5] <<std::endl ;
+  if ((counter<0)||(counter==6)) (*MyOutput_) << "CLCT: Invalid pattern after drift                " << FinalCounter[6] <<std::endl ;
+  if ((counter<0)||(counter==7)) (*MyOutput_) << "CLCT: TMB matching rejected event                " << FinalCounter[7] <<std::endl ;
+  if ((counter<0)||(counter==8)) (*MyOutput_) << "TMB:  CLCT or  ALCT or both triggered            " << FinalCounter[8] <<std::endl ;
+  if ((counter<0)||(counter==9)) (*MyOutput_) << "TMB:  CLCT or  ALCT or both triggered xmit MPC   " << FinalCounter[9] <<std::endl ;
+  if ((counter<0)||(counter==10)) (*MyOutput_) << "TMB:  CLCT and ALCT matched in time              " << FinalCounter[10] <<std::endl ;
+  if ((counter<0)||(counter==11)) (*MyOutput_) << "TMB:  ALCT-only trigger                          " << FinalCounter[11] <<std::endl ;
+  if ((counter<0)||(counter==12)) (*MyOutput_) << "TMB:  CLCT-only trigger                          " << FinalCounter[12] <<std::endl ;
+  if ((counter<0)||(counter==13)) (*MyOutput_) << "TMB:  No trig pulse response                     " << FinalCounter[13] <<std::endl ;
+  if ((counter<0)||(counter==14)) (*MyOutput_) << "TMB:  No MPC transmission                        " << FinalCounter[14] <<std::endl ;
+  if ((counter<0)||(counter==15)) (*MyOutput_) << "TMB:  No MPC response FF pulse                   " << FinalCounter[15] <<std::endl ;
+  if ((counter<0)||(counter==16)) (*MyOutput_) << "TMB:  MPC accepted LCT0                          " << FinalCounter[16] <<std::endl ;
+  if ((counter<0)||(counter==17)) (*MyOutput_) << "TMB:  MPC accepted LCT1                          " << FinalCounter[17] <<std::endl ;
+  if ((counter<0)||(counter==18)) (*MyOutput_) << "L1A:  BUGS, IGNORE (should be L1A received)      " << FinalCounter[18] <<std::endl ;
+   if ((counter<0)||(counter==19)) (*MyOutput_) << "L1A:  TMB triggered, TMB in L1A window           " << FinalCounter[19] <<std::endl ;
+   if ((counter<0)||(counter==20)) (*MyOutput_) << "L1A:  L1A received, no TMB in window             " << FinalCounter[20] <<std::endl ;
+   if ((counter<0)||(counter==21)) (*MyOutput_) << "L1A:  TMB triggered, no L1A received             " << FinalCounter[21] <<std::endl ;
+   if ((counter<0)||(counter==22)) (*MyOutput_) << "L1A:  TMB readout                                " << FinalCounter[22] <<std::endl;
+   (*MyOutput_) << std::endl;
+   //
 }
 //
 void TMB::ResetCounters(){
