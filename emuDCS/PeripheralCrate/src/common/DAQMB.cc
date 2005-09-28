@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.9 2005/09/26 07:27:14 mey Exp $
+// $Id: DAQMB.cc,v 2.10 2005/09/28 16:57:22 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.10  2005/09/28 16:57:22  mey
+// Update Tests
+//
 // Revision 2.9  2005/09/26 07:27:14  mey
 // Added BXN toogle routine
 //
@@ -40,9 +43,10 @@
 #include <stdio.h>
 #include <cmath>
 #include <unistd.h>
+#include <iomanip>
 #include "geom.h"
 
-//using namespace std;
+using namespace std;
 
 #ifndef debugV //silent mode
 #define PRINT(x) 
@@ -83,6 +87,7 @@ DAQMB::DAQMB(int newcrate,int newslot):
   tmb_dav_counter_(-1), alct_dav_counter_(-1), cable_delay_(0), 
   crate_id_(0), toogle_bxn_(1)
 {
+  MyOutput_ = &std::cout ;
   cfebs_.clear();
   std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
 }
@@ -90,6 +95,7 @@ DAQMB::DAQMB(int newcrate,int newslot):
 DAQMB::DAQMB(int newcrate,int newslot,  int newcfeb):
   VMEModule(newcrate, newslot)
 {
+  MyOutput_ = &std::cout ;
   cfebs_.push_back(CFEB(newcfeb));
   std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl; 
 }
@@ -98,6 +104,7 @@ DAQMB::DAQMB(int newcrate,int newslot, const std::vector<CFEB> & cfebs):
   VMEModule(newcrate, newslot),
   cfebs_(cfebs)
 {
+  MyOutput_ = &std::cout ;
   std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl; 
 }
 
@@ -383,40 +390,81 @@ void  DAQMB::set_comp_mode(int dword)
 void DAQMB::set_comp_thresh(float thresh)
 {
 char dt[2];
- 
+// 
 /* digitize voltages */
-  int dthresh=int(4095*((3.5-thresh)/3.5)); 
-  dt[0]=0;
-  dt[1]=0;
-  for(int i=0;i<8;i++){
-    dt[0]|=((dthresh>>(i+7))&1)<<(7-i);
-    dt[1]|=((dthresh>>i)&1)<<(6-i);
-  }
-  dt[0]=((dt[1]<<7)&0x80) + ((dt[0]>>1)&0x7f);
-  dt[1]=dt[1]>>1;
-  std::cout << "CFEB size="<<cfebs_.size() << std::endl;
-  for(int i=0; i<cfebs_.size();i++) {
-     std::cout << i << " CFEB number" << cfebs_[i].number() << std::endl;
-  }
-  for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
-      DEVTYPE dv = cfebs_[icfeb].scamDevice();
-      cmd[0]=VTX_USR1;
-      sndbuf[0]=COMP_DAC;
-      devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
-      cmd[0]=VTX_USR2;
-      sndbuf[0]=dt[0];
-      sndbuf[1]=dt[1];
-      sndbuf[2]=0x00; 
-      devdo(dv,5,cmd,15,sndbuf,rcvbuf,0);
-      cmd[0]=VTX_USR1;
-      sndbuf[0]=NOOP;
-      devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
-      cmd[0]=VTX_BYPASS;
-      devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
-      usleep(20);
-  }
+// 
+ int dthresh=int(4095*((3.5-thresh)/3.5)); 
+ dt[0]=0;
+ dt[1]=0;
+ for(int i=0;i<8;i++){
+   dt[0]|=((dthresh>>(i+7))&1)<<(7-i);
+   dt[1]|=((dthresh>>i)&1)<<(6-i);
+ }
+ dt[0]=((dt[1]<<7)&0x80) + ((dt[0]>>1)&0x7f);
+ dt[1]=dt[1]>>1;
+ std::cout << "CFEB size="<<cfebs_.size() << std::endl;
+ //
+ for(int i=0; i<cfebs_.size();i++) {
+   std::cout << i << " CFEB number" << cfebs_[i].number() << std::endl;
+ }
+ //
+ for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
+   DEVTYPE dv = cfebs_[icfeb].scamDevice();
+   cmd[0]=VTX_USR1;
+   sndbuf[0]=COMP_DAC;
+   devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+   cmd[0]=VTX_USR2;
+   sndbuf[0]=dt[0];
+   sndbuf[1]=dt[1];
+   sndbuf[2]=0x00; 
+   devdo(dv,5,cmd,15,sndbuf,rcvbuf,0);
+   cmd[0]=VTX_USR1;
+   sndbuf[0]=NOOP;
+   devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+   cmd[0]=VTX_BYPASS;
+   devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
+   usleep(20);
+ }
 }
-
+//
+void DAQMB::set_comp_thresh(int icfeb, float thresh)
+{
+char dt[2];
+// 
+/* digitize voltages */
+// 
+ int dthresh=int(4095*((3.5-thresh)/3.5)); 
+ dt[0]=0;
+ dt[1]=0;
+ for(int i=0;i<8;i++){
+   dt[0]|=((dthresh>>(i+7))&1)<<(7-i);
+   dt[1]|=((dthresh>>i)&1)<<(6-i);
+ }
+ dt[0]=((dt[1]<<7)&0x80) + ((dt[0]>>1)&0x7f);
+ dt[1]=dt[1]>>1;
+ std::cout << "CFEB size="<<cfebs_.size() << std::endl;
+ //
+ for(int i=0; i<cfebs_.size();i++) {
+   std::cout << i << " CFEB number" << cfebs_[i].number() << std::endl;
+ }
+ //
+ DEVTYPE dv = cfebs_[icfeb].scamDevice();
+ cmd[0]=VTX_USR1;
+ sndbuf[0]=COMP_DAC;
+ devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+ cmd[0]=VTX_USR2;
+ sndbuf[0]=dt[0];
+ sndbuf[1]=dt[1];
+ sndbuf[2]=0x00; 
+ devdo(dv,5,cmd,15,sndbuf,rcvbuf,0);
+ cmd[0]=VTX_USR1;
+ sndbuf[0]=NOOP;
+ devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+ cmd[0]=VTX_BYPASS;
+ devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
+ usleep(20);
+}
+//
 void DAQMB::set_dac(float volt0,float volt1)
 {
   unsigned short int dacout0,dacout1;
@@ -1025,6 +1073,70 @@ char shft_bits[6][6];
   }
 }
 
+void DAQMB::buck_shift_out()
+{
+int lay,i,j;
+int nchips2;
+int boffset;
+int xtrabits = 2;
+int swtchbits = -1;
+char shft_bits[6][6];
+  boffset=xtrabits+swtchbits;
+
+  for(CFEBItr cfebItr = cfebs_.begin(); cfebItr != cfebs_.end(); ++cfebItr) {
+    
+    DEVTYPE dv = cfebItr->scamDevice();
+    int brd=cfebItr->number();
+    printf(" BUCKSHIFT scamdev %d brd %d \n",dv,brd);
+      for(lay=0;lay<6;lay++){
+        shft_bits[lay][0]=((shift_array[brd][lay][13]<<6)|(shift_array[brd][lay][14]<<3)|shift_array[brd][lay][15])&0XFF;
+        shft_bits[lay][1]=((shift_array[brd][lay][10]<<7)|(shift_array[brd][lay][11]<<4)|(shift_array[brd][lay][12]<<1)|(shift_array[brd][lay][13]>>2))&0XFF;
+        shft_bits[lay][2]=((shift_array[brd][lay][8]<<5)|(shift_array[brd][lay][9]<<2)|(shift_array[brd][lay][10]>>1))&0XFF;
+        shft_bits[lay][3]=((shift_array[brd][lay][5]<<6)|(shift_array[brd][lay][6]<<3)|shift_array[brd][lay][7])&0XFF;
+        shft_bits[lay][4]=((shift_array[brd][lay][2]<<7)|(shift_array[brd][lay][3]<<4)|(shift_array[brd][lay][4]<<1)|(shift_array[brd][lay][5]>>2))&0XFF;
+        shft_bits[lay][5]=((shift_array[brd][lay][0]<<5)|(shift_array[brd][lay][1]<<2)|(shift_array[brd][lay][2]>>1))&0XFF;
+      }
+      cmd[0]=VTX_USR1;
+      sndbuf[0]=CHIP_MASK;
+      devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+      // cout<<" first devdo call \n";
+      cmd[0]=VTX_USR2;
+      char chip_mask= cfebItr->chipMask();
+      devdo(dv,5,cmd,6,&chip_mask,rcvbuf,0);
+      vector<BuckeyeChip> buckeyes = cfebItr->buckeyeChips();
+      nchips2=buckeyes.size();
+      cmd[0]=VTX_USR1;
+      sndbuf[0]=CHIP_SHFT;
+      devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+      cmd[0]=VTX_USR2;
+      j=0;
+      for(int ichip = nchips2-1; ichip >= 0; --ichip) {
+        int chip = buckeyes[ichip].number();
+
+        lay=layers[chip];
+        for(i=0;i<6;i++){
+          sndbuf[j*6+i]=shft_bits[lay][i];
+        }
+        j++;
+      }
+
+      devdo(dv,5,cmd,nchips2*48+xtrabits,sndbuf,rcvbuf,0);
+      cmd[0]=VTX_USR1;
+      sndbuf[0]=NOOP;
+      devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+      cmd[0]=VTX_BYPASS;
+      devdo(dv,5,cmd,0,sndbuf,rcvbuf,2); 
+      for(int k=0;k<6*nchips2;k++)shift_out[brd][k]=0;
+      int jj=0; 
+      for(int k=6*(nchips2);k>=0;k--){
+        shift_out[brd][jj]=shift_out[brd][jj]|(rcvbuf[k]<<(8-boffset));
+        shift_out[brd][jj]=shift_out[brd][jj]|((rcvbuf[k-1]>>boffset)&~(~0<<(8-boffset)));
+        jj++;
+      }
+  }
+}
+
+
 
 int DAQMB::buck_shift_test()
 {
@@ -1323,6 +1435,17 @@ void DAQMB::buckflash_init()
  // sndbuf[0]=0xff;
  // sndbuf[1]=0x03;
  // devdo(BUCSHF,-99,sndbuf,0,sndbuf,rcvbuf,0);
+}
+
+void DAQMB::buckflash_erase()
+{int i;  
+ cmd[0]=0;
+ devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,1); // erase Flash memory
+ cmd[0]=5;
+ devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,1); 
+ printf(" Wait for 10 Seconds for Flash Memory to finish \n");
+ sleep(10);  // 10 seconds are required after erase
+
 }
 
 
@@ -1964,6 +2087,271 @@ void DAQMB::cfeb_vtx_prom(enum DEVTYPE devnum) {
   std::cout << "DAQMB: SCA Master is programmed by PROM (Calcntrl command)." <<std::endl;
 }
 
+void DAQMB::febpromuser2(const CFEB & cfeb,char *cbrdnum)
+{
+int i;
+    DEVTYPE dv = cfeb.promDevice();
+      cmd[0]=PROM_USERCODE;
+      sndbuf[0]=0xFF;
+      sndbuf[1]=0xFF;
+      sndbuf[2]=0xFF;
+      sndbuf[3]=0xFF;
+      sndbuf[4]=0xFF;
+      devdo(dv,8,cmd,33,sndbuf,rcvbuf,1);
+      rcvbuf[0]=((rcvbuf[0]>>1)&0x7f)+((rcvbuf[1]<<7)&0x80);
+      rcvbuf[1]=((rcvbuf[1]>>1)&0x7f)+((rcvbuf[2]<<7)&0x80);
+      rcvbuf[2]=((rcvbuf[2]>>1)&0x7f)+((rcvbuf[3]<<7)&0x80);
+      rcvbuf[3]=((rcvbuf[3]>>1)&0x7f)+((rcvbuf[4]<<7)&0x80);
+      printf(" The ISPROM USERCODE is %02x%02x%02x%02x  \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+      cbrdnum[0]=rcvbuf[0];
+      cbrdnum[1]=rcvbuf[1];
+      cbrdnum[2]=rcvbuf[2];
+      cbrdnum[3]=rcvbuf[3];
+      cmd[0]=PROM_BYPASS;
+      sndbuf[0]=0;
+      devdo(dv,8,cmd,0,sndbuf,rcvbuf,1);
+}
+
+void DAQMB::toggle_caltrg()
+{
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=11;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR2;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_BYPASS;
+  sndbuf[0]=0;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  printf("Toggled Cal_trigger_generation_disable in MCTRL FPGA\n");
+}
+
+void DAQMB::set_ext_chanx(int schan)
+{
+  for(int brd=0;brd<5;brd++){
+    for(int chip=0;chip<6;chip++){
+      for(int ch=0;ch<16;ch++){
+        shift_array[brd][chip][ch]=NORM_RUN;
+      }
+      shift_array[brd][chip][schan]=EXT_CAP;
+    }
+  }
+}
+
+
+void DAQMB::setpulsedelay(int tinj){
+  int cal_delay_bits;
+  if(tinj==-1){
+     cal_delay_bits = (calibration_LCT_delay_ & 0xF)
+      | (calibration_l1acc_delay_ & 0x1F) << 4
+      | (pulse_delay_ & 0x1F) << 9
+      | (inject_delay_ & 0x1F) << 14;
+  }else{
+     cal_delay_bits = (calibration_LCT_delay_ & 0xF)
+      | (calibration_l1acc_delay_ & 0x1F) << 4
+      | (tinj & 0x1F) << 9
+      | (inject_delay_ & 0x1F) << 14;
+  }
+   cout << "DAQMB:configure: caldelay " << hex << cal_delay_bits << dec << endl;
+   setcaldelay(cal_delay_bits);
+}
+
+void DAQMB::toggle_rndmtrg_start()
+{
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=RTRG_TGL;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+
+  cmd[0]=VTX2_USR2;
+  sndbuf[0]=0;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=0;   // NO_OP mode
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_BYPASS;
+  sndbuf[0]=0;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,1);
+  printf("Toggled RandomTrigger Start in MCTRL FPGA, RTRG_TGL %02x\n",RTRG_TGL);
+}
+
+void DAQMB::burst_rndmtrg()
+{
+  toggle_rndmtrg_start();
+    usleep(5000);
+  toggle_rndmtrg_start();
+}
+
+
+void DAQMB::cbldly_init(){
+	 printf(" Initialize \n");
+         cmd[0]=VTX_USR1; 
+         sndbuf[0]=0x1A;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_USR1;
+         sndbuf[0]=NOOP;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_BYPASS;
+         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+}
+
+void DAQMB::cbldly_trig(){
+          printf(" Trigger Once \n");
+         cmd[0]=VTX_USR1; 
+         sndbuf[0]=0x03;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_USR1;
+         sndbuf[0]=NOOP;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_BYPASS;
+         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+}
+
+void DAQMB::cbldly_phaseA(){
+         printf(" Detect Phase A \n");
+         cmd[0]=VTX_USR1; 
+         sndbuf[0]=0x1B;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_USR1;
+         sndbuf[0]=NOOP;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_BYPASS;
+         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+}
+
+void DAQMB::cbldly_phaseB(){
+         printf(" Detect Phase B \n");
+         cmd[0]=VTX_USR1; 
+         sndbuf[0]=0x1C;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_USR1;
+         sndbuf[0]=NOOP;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_BYPASS;
+         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+}
+
+void DAQMB::cbldly_loadfinedelay(){
+         printf(" Load Fine Delay \n");
+         cmd[0]=VTX_USR1; 
+         sndbuf[0]=0x15;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_USR1;
+         sndbuf[0]=NOOP;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_BYPASS;
+         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+}
+
+void DAQMB::cbldly_programSFM(){
+         printf(" Program Serial Flash Memory \n");
+         cmd[0]=VTX_USR1; 
+         sndbuf[0]=0x18;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_USR1;
+         sndbuf[0]=NOOP;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_BYPASS;
+         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+}
+
+void DAQMB::cbldly_wrtprotectSFM(){
+	 printf(" SFM Write Protect \n");
+         cmd[0]=VTX_USR1; 
+         sndbuf[0]=0x1e; 
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_USR1;
+         sndbuf[0]=NOOP;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_BYPASS;
+         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+}
+
+void DAQMB::cbldly_loadmbidSFM(){
+	 printf(" Load DAQMB ID to SFM  \n");
+         cmd[0]=VTX_USR1; 
+         sndbuf[0]=0x16;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_USR1;
+         sndbuf[0]=NOOP;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_BYPASS;
+         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+}
+
+void DAQMB::cbldly_loadcfebdlySFM(){
+	 printf(" Load CFEB clock delay to SFM \n"); 
+         cmd[0]=VTX_USR1; 
+         sndbuf[0]=0x17;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_USR1;
+         sndbuf[0]=NOOP;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_BYPASS;
+         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+}
+
+void DAQMB::cbldly_refreshcfebdly(){
+	 printf(" Refresh Onboard CFEB delay \n");
+         cmd[0]=VTX_USR1; 
+         sndbuf[0]=0x1d;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_USR1;
+         sndbuf[0]=NOOP;
+         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+         cmd[0]=VTX_BYPASS;
+         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+}
+
+
+void DAQMB::sfm_test_load(char *sndpat)
+{    
+//Program SFM with 0,1,2,3,...,263
+    cmd[0]=VTX2_USR1;
+    sndbuf[0]=35;   //Serial Flash Memory TEST
+    devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+    cmd[0]=VTX2_USR2;
+    sndbuf[0]=0x41;  //bit reversed for 82H
+    sndbuf[1]=0xc0;
+    sndbuf[2]=0x3c;
+    sndbuf[3]=0x00;
+    for (int i=0;i<264;i++) sndbuf[i+4]=sndpat[i];
+    devdo(MCTRL,6,cmd,2144,sndbuf,rcvbuf,0);
+    cmd[0]=VTX2_USR1;
+    sndbuf[0]=NOOP;
+    devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+    cmd[0]=VTX2_BYPASS;
+    devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,1);
+}
+
+void DAQMB::sfm_test_read(char *rcvpat)
+{
+  int boffset;
+    //Read SFM 
+    cmd[0]=VTX2_USR1;
+    sndbuf[0]=35;   //Serial Flash Memory TEST
+    devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+    cmd[0]=VTX2_USR2;
+    sndbuf[0]=0x4B;  //bit reversed for D2H
+    sndbuf[0]=0x4A;  //bit reversed for 52H
+    sndbuf[1]=0xc0;
+    sndbuf[2]=0x3c;
+    sndbuf[3]=0x00;
+    for (int i=0;i<268;i++) sndbuf[i+4]=0;  //264 data bytes plus 4 dummy bytes
+    devdo(MCTRL,6,cmd,2176,sndbuf,rcvbuf,1);
+    boffset=2;
+    for(int i=0;i<256;i++){
+	  // printf("shfttst %d %02X \n",i,rcvbuf[i]&0xFF);
+	rcvpat[i]=0x00;
+        rcvpat[i]=rcvpat[i]|(rcvbuf[i+9]<<(8-boffset));
+        rcvpat[i]=rcvpat[i]|((rcvbuf[i+8]>>boffset)&~(~0<<(8-boffset)));
+    }
+    cmd[0]=VTX2_USR1;
+    sndbuf[0]=NOOP;
+    devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+    cmd[0]=VTX2_BYPASS;
+    devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,1);
+}
+
 void DAQMB::devdoReset(){
 /// used for emergency loading
   devdo(RESET,-1,cmd,0,sndbuf,rcvbuf,2);
@@ -2027,6 +2415,104 @@ void DAQMB::readtimingScope()
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
   //
+}
+//
+void DAQMB::lowv_dump()
+{
+  (*MyOutput_) << " CFEB1 OCM 3 = "  << lowv_adc(1,0)/1000 << std::endl;
+  (*MyOutput_) << " CFEB1 OCM 5 = "  << lowv_adc(1,1)/1000 << std::endl;
+  (*MyOutput_) << " CFEB1 OCM 6 = "  << lowv_adc(1,2)/1000 << std::endl;
+  (*MyOutput_) << " CFEB2 OCM 3 = "  << lowv_adc(1,3)/1000 << std::endl;
+  (*MyOutput_) << " CFEB2 OCM 5 = "  << lowv_adc(1,4)/1000 << std::endl;
+  (*MyOutput_) << " CFEB2 OCM 6 = "  << lowv_adc(1,5)/1000 << std::endl;
+  (*MyOutput_) << " CFEB3 OCM 3 = "  << lowv_adc(1,6)/1000 << std::endl;
+  (*MyOutput_) << " CFEB3 OCM 5 = "  << lowv_adc(1,7)/1000 << std::endl;
+  (*MyOutput_) << " CFEB3 OCM 6 = "  << lowv_adc(2,0)/1000 << std::endl;
+  (*MyOutput_) << " CFEB4 OCM 3 = "  << lowv_adc(2,1)/1000 << std::endl;
+  (*MyOutput_) << " CFEB4 OCM 5 = "  << lowv_adc(2,2)/1000 << std::endl;
+  (*MyOutput_) << " CFEB4 OCM 6 = "  << lowv_adc(2,3)/1000 << std::endl;
+  (*MyOutput_) << " CFEB5 OCM 3 = "  << lowv_adc(2,4)/1000 << std::endl;
+  (*MyOutput_) << " CFEB5 OCM 5 = "  << lowv_adc(2,5)/1000 << std::endl;
+  (*MyOutput_) << " CFEB5 OCM 6 = "  << lowv_adc(2,6)/1000 << std::endl;
+  (*MyOutput_) << " ALCT OCM 3.3 = " << lowv_adc(2,7)/1000 << std::endl;
+  (*MyOutput_) << " ALCT OCM 1.8 = " << lowv_adc(3,0)/1000 << std::endl;
+  (*MyOutput_) << " ALCT OCM 5B = "  << lowv_adc(3,1)/1000 << std::endl;
+  (*MyOutput_) << " ALCT OCM 5A = "  << lowv_adc(3,2)/1000 << std::endl;
+  (*MyOutput_) << " CFEB1 3.3V = "   << lowv_adc(3,3)/1000 << std::endl;
+  (*MyOutput_) << " CFEB1 5.0V = "   << lowv_adc(3,4)/1000 << std::endl;
+  (*MyOutput_) << " CFEB1 6.0V = "   << lowv_adc(3,5)/1000 << std::endl;
+  (*MyOutput_) << " CFEB2 3.3V = "   << lowv_adc(3,6)/1000 << std::endl;
+  (*MyOutput_) << " CFEB2 5.0V = "   << lowv_adc(3,7)/1000 << std::endl;
+  (*MyOutput_) << " CFEB2 6.0V = "   << lowv_adc(4,0)/1000 << std::endl;
+  (*MyOutput_) << " CFEB3 3.3V = "   << lowv_adc(4,1)/1000 << std::endl;
+  (*MyOutput_) << " CFEB3 5.0V = "   << lowv_adc(4,2)/1000 << std::endl;
+  (*MyOutput_) << " CFEB3 6.0V = "   << lowv_adc(4,3)/1000 << std::endl;
+  (*MyOutput_) << " CFEB4 3.3V = "   << lowv_adc(4,4)/1000 << std::endl;
+  (*MyOutput_) << " CFEB4 5.0V = "   << lowv_adc(4,5)/1000 << std::endl;
+  (*MyOutput_) << " CFEB4 6.0V = "   << lowv_adc(4,6)/1000 << std::endl;
+  (*MyOutput_) << " CFEB5 3.3V = "   << lowv_adc(4,7)/1000 << std::endl;
+  (*MyOutput_) << " CFEB5 5.0V = "   << lowv_adc(5,0)/1000 << std::endl;
+  (*MyOutput_) << " CFEB5 6.0V = "   << lowv_adc(5,1)/1000 << std::endl;
+  (*MyOutput_) << " ALCT 3.3V = "    << lowv_adc(5,2)/1000 << std::endl;
+  (*MyOutput_) << " ALCT 1.8V = "    << lowv_adc(5,3)/1000 << std::endl;
+  (*MyOutput_) << " ALCT 5.5V B = "  << lowv_adc(5,4)/1000 << std::endl;
+  (*MyOutput_) << " ALCT 5.5V A = "  << lowv_adc(5,5)/1000 << std::endl;
+}
+
+
+
+
+/*********** DAQMB ADC dump ***************/
+
+void DAQMB::daqmb_adc_dump()
+{ 
+  (*MyOutput_) << " DAC1 Volts = "  << adcplus(2,0) << std::endl;
+  (*MyOutput_) << " DAC2 Volts = "  << adcplus(2,1) << std::endl;
+  (*MyOutput_) << " DAC3 Volts = "  << adcplus(2,2) << std::endl;
+  (*MyOutput_) << " DAC4 Volts = "  << adcplus(2,3) << std::endl;
+  (*MyOutput_) << " DAC5 Volts = "  << adcplus(2,4) << std::endl;
+  (*MyOutput_) << " 1.8V Chip 1 = " << adcplus(1,6) << std::endl;
+  (*MyOutput_) << " 1.8V Chip 2 = " << adcplus(2,6) << std::endl;
+  (*MyOutput_) << " 1.8V Chip 3 = " << adcminus(3,6) << std::endl;
+  (*MyOutput_) << " DMB GND = "     << adcminus(3,0) << std::endl;
+  (*MyOutput_) << " CFEB1 GND = "   << adcminus(3,1) << std::endl;
+  (*MyOutput_) << " CFEB2 GND = "   << adcminus(3,2) << std::endl;
+  (*MyOutput_) << " CFEB3 GND = "   << adcminus(3,3) << std::endl;
+  (*MyOutput_) << " CFEB4 GND = "   << adcminus(3,4) << std::endl;
+  (*MyOutput_) << " CFEB5 GND = "   << adcminus(3,5) << std::endl;
+  (*MyOutput_) << " Internal Calib. DAC = "  << adcplus(2,7) << std::endl;
+  (*MyOutput_) << " External Calib. DAC = "  << adcminus(3,7) << std::endl; 
+  (*MyOutput_) << " Precision Calib. DAC = " << adc16(4,0) << std::endl;
+  (*MyOutput_) << " DAQMB temperature = "    << readthermx(0) << std::endl;
+  (*MyOutput_) << " FEB1 temperature = "     << readthermx(1) << std::endl;
+  (*MyOutput_) << " FEB2 temperature = "     << readthermx(2) << std::endl;
+  (*MyOutput_) << " FEB3 temperature = "     << readthermx(3) << std::endl;
+  (*MyOutput_) << " FEB4 temperature = "     << readthermx(4) << std::endl;
+  (*MyOutput_) << " FEB5 temperature = "     << readthermx(5) << std::endl; 
+ 
+}
+ 
+
+/*********** DAQMB PROM/FPGA dumps ***************/
+
+void DAQMB::daqmb_promfpga_dump()
+{
+  (*MyOutput_) << "DMB VPROM usercodes = " << std::hex << mbpromuser(0) << std::endl;
+  (*MyOutput_) << "DMB VPROM ID codes = "  << std::hex << mbpromid(0) << std::endl;
+  (*MyOutput_) << "DMB MPROM usercodes = " << std::hex << mbpromuser(1) << std::endl;
+  (*MyOutput_) << "DMB MPROM ID codes = "       << std::hex << mbpromid(1) << std::endl;
+  (*MyOutput_) << "DMB Virtex usercodes = "     << std::hex << mbfpgauser() << std::endl;
+  (*MyOutput_) << "DMB Virtex Chip ID codes = " << std::hex << mbfpgaid() << std::endl;
+  /*
+  std::vector<CFEB> cfebs = cfebs();
+  for(unsigned i = 0; i < cfebs.size(); ++i) {
+    (*MyOutput_) << " CFEB FPGA usercodes = " << std::hex << febpromuser(cfebs[i]) << std::endl;
+    (*MyOutput_) << " CFEB ISPROM usercodes = " << std::hex << febfpgauser(cfebs[i]) << std::endl;
+    (*MyOutput_) << " CFEB FPGA Chip ID code = " << std::hex << febpromid(cfebs[i]) << std::endl;
+    (*MyOutput_) << " CFEB ISPROM Chip ID code = " << std::hex << febfpgaid(cfebs[i]) << std::endl;
+  }
+  */
+  (*MyOutput_) << std::dec;
 }
 //
 void DAQMB::ProgramSFM(){
@@ -2156,3 +2642,714 @@ void DAQMB::WriteSFM(){
   SFMWriteProtect();
   //
 }
+
+void DAQMB::PrintCounters(int user_option){
+  //
+  (*MyOutput_) << "Enter 1 for simple print-out" << std::endl;
+  (*MyOutput_) << "      2 for print most frequent values" <<std::endl;
+  (*MyOutput_) << "      3 for cuts by TMB DAV and/or same DAV, then print most frequent" <<std::endl;
+  //
+  if(user_option<1 | user_option>3) (*MyOutput_) << "Invalid option entered" << std::endl;
+  //
+  //Simple read counters option:
+  //
+  if(user_option==1) {
+    //
+    readtimingCounter();
+    //
+    readtimingScope();
+    //
+    (*MyOutput_) << "  Counters " << std::endl ;
+    //
+    (*MyOutput_) << "  L1A to LCT delay: " << GetL1aLctCounter()  << std::endl ;
+    (*MyOutput_) << "  CFEB DAV delay:   " << GetCfebDavCounter() << std::endl ;
+    (*MyOutput_) << "  TMB DAV delay:    " << GetTmbDavCounter()  << std::endl ;
+    (*MyOutput_) << "  ALCT DAV delay:   " << GetAlctDavCounter() << std::endl ;
+    //
+    (*MyOutput_) << std::endl ;
+    //
+    int trials = 0;
+    while ( GetL1aLctScope() == 0 && trials < 10 ) {
+      readtimingScope();
+      trials++;
+    }
+    //
+    (*MyOutput_) << "  L1A to LCT Scope: " ;
+    (*MyOutput_) << setw(5) << GetL1aLctScope() << " " ;
+    for( int i=4; i>-1; i--) (*MyOutput_) << ((GetL1aLctScope()>>i)&0x1) ;
+    (*MyOutput_) << std::endl ;
+    //
+    trials = 0;
+    while ( GetCfebDavScope() == 0 && trials < 10 ) {
+      readtimingScope();
+      trials++;
+    }
+    //
+    (*MyOutput_) << "  CFEB DAV Scope:   " ;
+    (*MyOutput_) << setw(5) << GetCfebDavScope() << " " ;
+    for( int i=4; i>-1; i--) (*MyOutput_) << ((GetCfebDavScope()>>i)&0x1) ;
+    (*MyOutput_) << std::endl ;
+    //
+    trials = 0;
+    while ( GetTmbDavScope() == 0 && trials < 10 ) {
+      readtimingScope();
+      trials++;
+    }
+    //
+    (*MyOutput_) << "  TMB DAV Scope:    " ;
+    (*MyOutput_) << setw(5) << GetTmbDavScope() << " " ;
+    for( int i=4; i>-1; i--) (*MyOutput_) << ((GetTmbDavScope()>>i)&0x1) ;
+    (*MyOutput_) << std::endl ;
+    //
+    trials = 0;
+    while ( GetAlctDavScope() == 0 && trials < 10 ) {
+      readtimingScope();
+      trials++;
+    }
+    //
+    (*MyOutput_) << "  ALCT DAV Scope:   " ;
+    (*MyOutput_) << setw(5) << GetAlctDavScope() << " " ;
+    for( int i=4; i>-1; i--) (*MyOutput_) << ((GetAlctDavScope()>>i)&0x1) ;
+    (*MyOutput_) << std::endl ;
+    //
+    (*MyOutput_) << "  Active DAV Scope: " ;
+    (*MyOutput_) << setw(5) << GetActiveDavScope() << " " ;
+    for( int i=4; i>-1; i--) (*MyOutput_) << ((GetActiveDavScope()>>i)&0x1) ;
+    (*MyOutput_) << std::endl ;
+    //
+    (*MyOutput_) << std::endl ;
+    //
+  }
+  //Loop and choose "best" option:
+  else {
+    //
+    int nloop = 100;
+    //
+    int davsame;
+    int tmbdavcut;
+    if(user_option==3) {
+      (*MyOutput_) << "Enter value of TMB DAV to cut on (suggest 6, use -1 for no cut):" << std::endl;
+      std::cin >> tmbdavcut;
+      //
+      (*MyOutput_) << "Enter -1 for no cut against same DAV delays or 1 to use cut:" << std::endl;
+      std::cin >> davsame;
+    }
+    //
+    //Before looping, zero all of the counters
+    //
+    int type;
+    int delay;
+    // counts for [time bin,type] where 
+    //       type=0 for LCT-L1A delay, 1 for CFEBDAV, 2 for TMBDAV, 3 for ALCTDAV
+    int counts[256][4]; 
+    for(type=0;type<4;type++) { 
+      for(delay=0;delay<256;delay++) {
+	counts[delay][type] = 0;}
+    }
+    //
+    //Next read the counters nloop times and accumulate statistics
+    //
+    int iloop;
+    int passcuts=0;
+    for(iloop=0;iloop<nloop;iloop++){
+      readtimingCounter();
+      //
+      int l1alct  = GetL1aLctCounter();
+      int cfebdav = GetCfebDavCounter();
+      int tmbdav  = GetTmbDavCounter();
+      int alctdav = GetAlctDavCounter();
+      //
+      //	  (*MyOutput_) << "Debug: l1alct= " << l1alct << "cfebdav=" << cfebdav;
+      //      (*MyOutput_) << " tmbdav=" <<tmbdav << " alctdav=" << alctdav << std::endl;
+      //
+      //Pass cuts?
+      //Maybe no cuts, or else have to 
+      //pass tmbdav value cuts and pass not same cuts
+      //
+      bool nocuts=(user_option==2);
+      bool tmbdavok=(tmbdavcut==-1 || tmbdav==tmbdavcut);
+      bool davdiff=(davsame==-1 || (cfebdav!=tmbdav || cfebdav!=alctdav || tmbdav!=alctdav));
+      //
+      if (nocuts || (tmbdavok && davdiff))
+	{
+	  passcuts+=1;
+	  counts[ l1alct  ][0] += 1;
+	  counts[ cfebdav ][1] += 1;
+	  counts[ tmbdav  ][2] += 1;
+	  counts[ alctdav ][3] += 1;
+	}
+    }
+    //
+    //Next analyze the counters to find the most frequent setting
+    //
+    int maxnum[4],maxdelay[4];
+    //
+    maxnum[0]=-1;
+    maxnum[1]=-1;
+    maxnum[2]=-1;
+    maxnum[3]=-1;
+    //
+    // Exclude delay=0 (no meaning!)
+    //
+    for(delay=1;delay<256;delay++)
+      {
+	//
+	//Debug
+	//	    (*MyOutput_) << "Delay=" << delay << " Counts are";
+	//	    (*MyOutput_) << "  LCT-L1A : " << counts[delay][0]; 
+	//	    (*MyOutput_) << "  CFEB-DAV: " << counts[delay][1];
+	//	    (*MyOutput_) << "  TMB-DAV:  " << counts[delay][2];
+	//	    (*MyOutput_) << "  ALCT-DAV: " << counts[delay][3] << std::endl; 
+	//
+	for(type=0;type<4;type++)
+	  {
+	    if( counts[delay][type] > maxnum[type] )
+	      {
+		maxnum[type]=counts[delay][type];
+		maxdelay[type]=delay;
+	      }
+	  }	    
+      }
+    //
+    (*MyOutput_) << std::endl << " Best delay settings in " << nloop << " readings and " 
+		 << passcuts << " passing cuts are:" << std::endl;
+    (*MyOutput_) << std::endl;
+    (*MyOutput_) << "  LCT -L1A delay=" << maxdelay[0] << " (" << maxnum[0] << "readings)" << std::endl;
+    (*MyOutput_) << "  CFEB-DAV delay=" << maxdelay[1] << " (" << maxnum[1] << "readings)" << std::endl;
+    (*MyOutput_) << "  TMB -DAV delay=" << maxdelay[2] << " (" << maxnum[2] << "readings)" << std::endl;
+    (*MyOutput_) << "  ALCT-DAV delay=" << maxdelay[3] << " (" << maxnum[3] << "readings)" << std::endl;
+    (*MyOutput_) << std::endl;
+    //
+  }    
+  //
+}
+//
+void DAQMB::test3()
+{
+  int errs,err[8];
+  int pass;
+  //
+  pass=1;
+  errs=0; 
+  //
+  calctrl_fifomrst(); usleep(5000);
+  //
+  printf("Running Memchk\n");
+  err[1]=memchk(1);
+  errs+=err[1];
+  if(err[1]==0){
+    (*MyOutput_) << " FIFO1 is OK  " << std::endl;
+  }else{
+    (*MyOutput_) << " FIFO1 is Bad " << err[1] << std::endl;
+  }
+  err[2]= memchk(2);
+  errs+=err[2];
+  if(err[2]==0){
+    (*MyOutput_) << " FIFO2 is OK " << std::endl ;
+  }else{
+    (*MyOutput_) << " FIFO2 is Bad " << err[2] << std::endl;
+  }
+  err[3]= memchk(3);
+  errs+=err[3];
+  if(err[3]==0){
+    (*MyOutput_) << " FIFO3 is OK " << std::endl;
+  }else{
+    (*MyOutput_) << " FIFO3 is Bad " << err[3] << std::endl;
+  }
+  err[4]= memchk(4);
+  errs+=err[4];
+  if(err[4]==0){
+    (*MyOutput_) << " FIFO4 is OK " << std::endl;
+  }else{
+    (*MyOutput_) << " FIFO4 is Bad " << err[4] << std::endl;
+  }
+  err[5]= memchk(5);
+  errs+=err[5];
+  if(err[5]==0){
+    (*MyOutput_) << " FIFO5 is OK " << std::endl;
+  }else{
+    (*MyOutput_) << " FIFO5 is Bad " << err[5] << std::endl;
+  }
+  err[6]= memchk(6);
+  if(err[6]==0){
+    (*MyOutput_) << " FIFO6 is OK " << std::endl;
+  }else{
+    (*MyOutput_) << " FIFO6 is Bad " << err[6] << std::endl;
+  }
+  errs+=err[6];
+  calctrl_fifomrst(); usleep(500);
+  err[7]= memchk(7);
+  errs+=err[7];
+  if(err[7]==0){
+    (*MyOutput_) << " FIFO7 is OK " << std::endl;
+  }else{
+    (*MyOutput_) << " FIFO7 is Bad " << err[7] << std::endl;
+  }
+  errs+=err[7];
+  calctrl_fifomrst();
+  if(errs!=0)pass=0;
+  //
+}
+//
+int DAQMB::memchk(int fifo)
+{
+  static int fifosize=16380;
+  int err,err1;
+  char *sndfifo;
+  char *rcvfifo;
+  sndfifo=(char *)malloc(33000);
+  rcvfifo=(char *)malloc(33000);
+  printf(" MEMCHK for FIFO%1d \n",fifo);
+  calctrl_fifomrst();
+  // 0xffff
+  for(int i=0;i<fifosize*2;i++)sndfifo[i]=0xff;
+  wrtfifo(fifo,fifosize,sndfifo);
+  readfifo(fifo,fifosize,rcvfifo);
+  err=0;for(int i=0;i<fifosize*2;i++)if(sndfifo[i]!=rcvfifo[i])err=err+1;err1=err1+err;
+  printf(" Error 0xffff %d \n",err); 
+  // 0x0000
+  for(int i=0;i<fifosize*2;i++)sndfifo[i]=0x00;
+  wrtfifo(fifo,fifosize,sndfifo);
+  readfifo(fifo,fifosize,rcvfifo);
+  err=0;for(int i=0;i<fifosize*2;i++)if(sndfifo[i]!=rcvfifo[i])err=err+1;err1=err1+err;
+  printf(" Error 0x0000 %d \n",err); 
+  // 0x5555
+  for(int i=0;i<fifosize*2;i++)sndfifo[i]=0x55;
+  wrtfifo(fifo,fifosize,sndfifo);
+  readfifo(fifo,fifosize,rcvfifo);
+  err=0;for(int i=0;i<fifosize*2;i++)if(sndfifo[i]!=rcvfifo[i])err=err+1;err1=err1+err;
+  printf(" Error 0x5555 %d \n",err); 
+// 0xaaaa
+  for(int i=0;i<fifosize*2;i++)sndfifo[i]=0xaa;
+  wrtfifo(fifo,fifosize,sndfifo);
+  readfifo(fifo,fifosize,rcvfifo);
+  err=0;for(int i=0;i<fifosize*2;i++)if(sndfifo[i]!=rcvfifo[i])err=err+1;err1=err1+err;
+  printf(" Error 0xaaaa %d \n",err); 
+   // 0,1,2,3,... 
+  for(int i=0;i<fifosize*2;i++)sndfifo[i]=(i&0xff);
+  wrtfifo(fifo,fifosize,sndfifo);
+  readfifo(fifo,fifosize,rcvfifo);
+  err=0;for(int i=0;i<fifosize*2;i++)if(sndfifo[i]!=rcvfifo[i])err=err+1;err1=err1+err;
+  printf(" Error 0x1234 %d \n",err); 
+  free(sndfifo);
+  free(rcvfifo);
+  return err1;
+}
+//
+int DAQMB::test4()
+{
+  int k,j,ierr;
+  int pass;
+  float voltage,temp;
+  //
+  ierr=0; 
+  //
+  for(j=1;j<=3;j++){
+    printf("Reading 1.8V Chip %d\n",j);
+    voltage = adcminus(j,6);
+    //
+    if(voltage>=1740.0 && voltage<=1860.0){
+      printf("The voltage on 1.8V Chip %d is good\n",j);
+      printf("The voltage is %.3f mv\n",voltage);
+    }else{
+      printf("The voltage on 1.8V Chip %d is out of range\n",j);
+      printf("The voltage is %.3f mv\n",voltage);
+      ierr=1;
+    }
+  }
+  //
+  printf("Reading DMB GND\n");
+  voltage=adcminus(3,0); 
+  //
+  if(voltage>=-10.0 &&voltage<=10.0){
+    printf("The voltage on DMB GND is good\n");
+    printf("The voltage is %.3f mv\n\n",voltage);
+  }
+  if(voltage<=-10.0 || voltage>=10.0){
+    printf("The voltage on DMB GND is out of range\n");
+    printf("The voltage is %.3f mv\n\n",voltage);
+    ierr=1;}
+  //
+  for(k=1;k<6;k++){
+    printf("Reading CFEB%d GND \n",k);
+    voltage = adcminus(3,k);
+    //
+    if(voltage>=-35.0 &&voltage<=35.0){
+      printf("The voltage on CFEB%d is good\n",k);
+      printf("The voltage is%.3f mv\n",voltage);
+    }
+    if(voltage<-35.0 || voltage>35.0){
+      printf("The voltage on CFEB%d is out of range\n",k);
+      printf("The voltage is %.3f mv\n\n",voltage);
+      ierr=1;}
+  }
+  //
+  printf("Temperature Reading for DMB\n");
+  temp=readthermx(0); 
+  if(temp>=63.0 &&temp<=90.0){
+    printf("The temperature on DMB is good\n");
+    printf("The temperature is %.3f F \n\n",temp);
+  }
+  if(temp<63.0 || temp >90.0){
+    printf("The temperature on DMB is out of range\n\n");ierr=1;
+    printf("The temperature is %.3f F \n\n",temp);    
+  }
+  //
+  for(k=1;k<6;k++){
+    printf("Temperature Reading CFEB%d temp \n",k);
+    temp = readthermx(k);
+    //
+    if(temp>=63.0 && temp<=90.0){
+      printf("The temperature on CFEB%d is good\n",k);
+      printf("The temperature is %.3f F\n\n",temp);
+    }
+    if(temp<63.0 || temp >90.0){
+      printf("The temperature on CFEB%d is out of range\n",k);
+      printf("The temperature is %.3f F\n\n",temp);
+      ierr=1;
+    }
+  }
+  //
+  pass=1; 
+  if(ierr!=0)pass=0;
+  return pass;
+}
+//
+int DAQMB::test5()
+{
+  int i,j,k;
+  int pass,ierr;
+  int itog;
+  int f1[5]={3,3,4,4,5};
+  int f2[5]={4,7,2,5,0};
+  float value;
+  float val0,val1,val2,val3,val4,val5;
+  unsigned int ival;
+  char c;
+  //
+  ierr=0;  
+  itog=0;
+  for(k=0;k<2;k++){
+    if(itog==0)c=0x00; 
+    if(itog==1)c=0x3f;
+    lowv_onoff(c);
+    lowv_rdpwrreg(); 
+    printf(" power register %04x \n",ival);
+    sleep(1);
+    itog=itog+1;
+    if(itog==2)itog=0;
+    /* these are the adcs connected to the power register */
+    printf(" Selected Reg. Channel\n");            
+    //
+    /*j is 0-7 i is 1-5*/
+    for(i=0;i<5;i++){
+      value = lowv_adc(f1[i],f2[i]);
+      if(itog==0){
+	if(value<5000 && value>4100.0){
+	  printf("The voltage on %d %d is good - %f mv\n",f1[i],f2[i],value);
+	}else{   
+	  printf("The voltage on %d %d is out of range - %f mv\n",f1[i],f2[i],value);
+	  ierr=1;
+	} 
+      }
+      if(itog==1){
+	if(value>-50 && value<50){
+	  printf("The voltage off %d %d is good - %f mv\n",f1[i],f2[i],value);
+	}else{   
+	  printf("The voltage off %d %d is out of range - %f mv\n",f1[i],f2[i],value);
+	  ierr=1;
+	} 
+      }
+    }
+  }
+  //
+  pass=1; 
+  if(ierr!=0)pass=0;
+  return pass;
+}
+//
+int DAQMB::test6()
+{
+  //
+  int i,j,nn;
+  int err2,pass;
+  //
+  unsigned long int ival;
+  //
+  err2=0;
+  if(cfebs_.size()!=5){
+    err2=err2+100;
+    printf("ERROR: only %d FEBs found \n",cfebs_.size());
+  }
+  err2=0;
+  for(unsigned i = 0; i < cfebs_.size(); ++i) {
+    ival=febfpgaid(cfebs_[i]);
+    if(ival!=0x93006120){
+      err2=err2+1;
+      printf(" ERROR: %d febfpgaid is: %08x and should be 0x93006120 ",i,ival);
+    }
+  }
+  pass=1; 
+  if(err2!=0)pass=0;
+  //
+  return pass;
+  //
+}
+//
+int  DAQMB::test8()
+{
+  //
+  int i,ierr,err2,pass;
+  int devnum,devstp,dv;
+  float v0,v1,vout,diff,diff2;
+  //
+  double sn,sx,sy,sxy,sx2;
+  float x[9],y[9];
+  float a,b;
+  ierr=0;
+  //
+  // check comparator DAC/ADC
+  //
+  if(cfebs_.size()!=5){
+     ierr=ierr+100;
+     printf("ERROR: only %d FEBs found \n",cfebs_.size());
+  }
+  err2=0;
+  for(int cfeb = 0; cfeb < cfebs_.size(); ++cfeb) {
+    //
+    for(i=0;i<10;i++){
+      //
+      v0=0.25*i;
+      set_comp_thresh(cfeb,v0);
+      usleep(500000);
+      vout=adcplus(2,cfeb);
+      if(i>0){
+	x[i-1]=v0;
+	y[i-1]=vout;
+	printf("%d %f %f    \n",cfeb,v0,vout);
+      }
+      //
+    }
+    //
+    sn=0.;
+    sx=0.;
+    sy=0.;
+    sxy=0.;
+    sx2=0.;
+    //
+    for(i=0;i<9;i++){
+      sn=sn+1;
+      sx=sx+x[i];
+      sy=sy+y[i];
+      sxy=sxy+x[i]*y[i];
+      sx2=sx2+x[i]*x[i];
+    }
+    a=(sxy*sn-sx*sy)/(sn*sx2-sx*sx);
+    b=(sy*sx2-sxy*sx)/(sn*sx2-sx*sx);
+    printf(" a b %f %f \n",a,b);
+    //
+    if(a<-1025.||a>-1000.){
+      ierr=1;
+      printf(" slope out of range- got %f should be -1005. \n",a);
+    }
+    //
+    //
+    if(b<3400.||a>3800.){
+      ierr=1;
+      printf(" intercept out of range- got %f should be 3600. \n",a);
+    }
+    //
+    for(i=0;i<9;i++){
+      diff=y[i]-a*x[i]-b;
+      diff2=diff;
+      if(diff2<0)diff2=-diff2;
+      if(diff2<2.0){
+	printf("Good - i %d %f %f %f \n",i,y[i],a*x[i]+b,diff);
+      }else{
+	ierr=1;
+	printf("Bad  - i %d %f %f %f \n",i,y[i],a*x[i]+b,diff);
+      }
+    }
+  }
+// end comparator DAQ/ADC
+
+  pass=1; 
+  if(ierr!=0)pass=0;
+  return pass;
+}
+//
+int DAQMB::test9()
+{
+  int i,ierr,pass;
+  int devnum,devstp,dv;
+  float v0,v1,vout,diff;
+  int ius;
+  float voff;
+  float capn[5]={0.0,0.25,0.50,0.748,0.992};
+  float presn[5]={0.0,0.25,0.50,0.745,0.988};
+  //
+  ierr=0;  
+  // 
+  ius=0;
+  voff=0.0;
+  for(i=0;i<5;i++){
+    v0=.25*i;
+    v1=v0;
+    set_dac(v0,v1);
+    vout=adcplus(2,7);
+    vout=vout/1000.;
+    if(ius==0&&vout>0.0){ius=1;voff=v0-vout;}
+    diff=capn[i]-vout-voff;
+    if(diff<0.0)diff=-diff;
+    if(diff>0.020){
+      ierr=1;
+      printf("Problem -Int CDAC - got %f expect %f \n",vout,v0);
+    }else{ 
+      printf("Good - Int CDAC - got %f expect %f \n",vout,v0);
+    }
+    printf(" %f %f  \n",v0,vout);
+  }
+  // end int cal
+  printf(" end int cal \n");
+  // ext cal
+  ius=0;
+  voff=0.;
+  for(i=0;i<5;i++){
+    v0=.25*i;
+    v1=v0;
+    set_dac(v0,v1);
+    vout=adcminus(3,7);
+    vout=vout/1000.; 
+    if(ius==0&&vout>0.0){ius=1;voff=v0-vout;}
+    diff=presn[i]-vout-voff;
+    if(diff<0.0)diff=-diff;
+    if(diff>0.020){
+      ierr=1;
+      printf("Problem -Ext CDAC - got %f expect %f \n",vout,v0);
+    }else{ 
+      printf("Good -Ext CDAC - got %f expect %f \n",vout,v0);
+    }
+    printf(" %f %f  \n",v0,vout);
+  }
+  // end ext cal
+  printf(" end ext cal \n");
+  // ext cal ptrd
+  ius=0;
+  voff=0.0;
+  for(i=0;i<5;i++){
+    v0=.25*i;
+    v1=v0;
+    set_dac(v0,v1);
+    vout=adc16(4,0);
+    if(ius==0&&vout>0.0){ius=1;voff=v0-vout;}
+    diff=presn[i]-vout-voff;
+    if(diff<0.0)diff=-diff;
+    if(diff>0.020){
+      ierr=1;
+      printf("*Problem -Pres Ext CDAC - got %f expect %f \n",vout,v0);
+    }else{ 
+      printf("Good -Pres Ext CDAC - got %f expect %f \n",vout,v0);
+    }
+    printf(" %f %f  \n",v0,vout);
+  }
+  // end ext pres
+  printf(" end ext pres \n");
+  //
+  pass=1; 
+  if(ierr!=0)pass=0;
+  //
+  return pass;
+  //
+}
+//
+int DAQMB::test10()
+{
+  //
+  int i,err,pass;
+  int boffset;
+  char cmp;
+  char rcvpat[256];
+  char sndpat[256];
+  int match;
+  //
+  err=0;
+  //Program SFM with 0,1,2,3,...,263
+  for(i=0;i<264;i++)sndpat[i]=i&0xff;
+  sfm_test_load(sndpat);  
+  //Read SFM 
+  sfm_test_read(rcvpat);
+  //
+  match=0;
+  for(i=0;i<256;i++){cmp=i&0xff;if(cmp==rcvpat[i])match=match+1;}
+  if(match!=256){
+    for (i=0;i<256;i++) printf("%02x ",rcvpat[i]&0xff);printf("\n");
+    err=match;
+  }
+  //
+  pass=1; 
+  if(err!=0)pass=0;
+  //
+  return pass;
+}
+//
+int  DAQMB::test11()
+{  
+  enum DEVTYPE dv;
+  int i,j,ierr,itog;
+  int nmtch;
+  char pat[36],chk[32];
+  char vshift[300];
+  char v[2]={0x00,0xff};
+  int err,pass;
+  //
+  err=0;
+  itog=0;
+  j=0;
+ LOOP: j=j+1; 
+   itog=itog+1;
+   if(itog==2)itog=0;
+   buckflash_erase();
+   printf(" enter buckflash_load2 \n");
+   //
+   for(int k=0;k<295;k++)vshift[k]=v[itog];
+   //
+   buckflash_load(vshift);
+   printf(" Sleep after buckflash Load \n");
+   sleep(1);
+   //
+   buckflash_pflash();
+   printf(" Sleep after buckflash program \n");
+   sleep(5);
+   //
+   buckflash_init();
+   sleep(1);
+   //
+   buckflash_init();         //add an extra init
+   printf(" Sleep after buckeye init \n");
+   sleep(2);
+   //
+   buck_shift_out();
+   for(int brd=0;brd<5;brd++){
+     for(i=0;i<36;i++)pat[i]=shift_out[brd][i];
+     for(i=0;i<36;i++)chk[i]=v[itog];
+     if(itog==1)chk[0]=0x7f;
+     nmtch=0;
+     for(i=0;i<36;i++){
+       if(pat[i]==chk[i])nmtch++;
+     }
+     if(nmtch!=36){
+       err=err+1;}
+     printf(" nmtch %d \n",nmtch);
+     for(i=0;i<36;i++)printf("%02x",pat[i]&0xff);printf("\n");
+     printf("*Bad CFEB %d",dv); for(i=0;i<36;i++)printf("%02x",pat[i]&0xff);printf("\n");
+   }
+   if(j==2)goto ENDR;
+   goto LOOP;
+ ENDR: 
+   //
+   pass=1; 
+   if(err!=0)pass=0;
+   return pass;
+   //
+}
+//
