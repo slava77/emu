@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DDUReader.h,v 2.1 2005/09/26 17:11:49 tumanov Exp $
+// $Id: DDUReader.h,v 2.2 2005/10/03 19:20:22 geurts Exp $
 // $Log: DDUReader.h,v $
+// Revision 2.2  2005/10/03 19:20:22  geurts
+// BigPhys/Gbit driver and reader updates to prevent bigphys data corruption
+//
 // Revision 2.1  2005/09/26 17:11:49  tumanov
 // new data format
 //
@@ -75,6 +78,7 @@ protected:
   char *buf_start;
   unsigned long int buf_pnt;
   unsigned long int buf_end;
+  unsigned long int buf_eend;
   unsigned long int buf_pnt_kern;
 
   char *ring_start;

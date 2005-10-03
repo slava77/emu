@@ -10,8 +10,10 @@ OBJS := dl2k.o
 K_VER=$(shell uname -r)
 INCLUDEDIR=$(shell if [ -e /usr/src/linux-$(K_VER)/include ]; \
 	then echo "/usr/src/linux-$(K_VER)/include"; \
-	elif [ -e /usr/src/linux/include ]; \
-	then echo "/usr/src/linux/include"; \
+	elif [ -e /usr/src/linux-2.4/include ]; \
+	then echo "/usr/src/linux-2.4/include"; \
+        elif [ -e /usr/src/linux/include ]; \
+        then echo "/usr/src/linux/include"; \
 	else echo "/usr/include"; fi)
 #DEBUG := -DRIO_DEBUG
 CFLAGS := -D__KERNEL__ -DMODULE -O2 -Wall -Wstrict-prototypes -I$(INCLUDEDIR)

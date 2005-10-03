@@ -14,7 +14,13 @@
 #define SCHAR_PMISSING		_IOR(SCHAR_IOCTL_BASE, 3, 0)
 #define SCHAR_EEVENT		_IOR(SCHAR_IOCTL_BASE, 4, 0)
 
-#define DEBUG
+/* definitions used by DDUReadout */
+#define SCHAR_END  		_IOR(SCHAR_IOCTL_BASE, 1, 0)
+#define SCHAR_BLOCKON		_IOR(SCHAR_IOCTL_BASE, 2, 0)
+#define SCHAR_BLOCKOFF		_IOR(SCHAR_IOCTL_BASE, 3, 0)
+
+
+//#define DEBUG
 
 #ifdef DEBUG
 #define MSG(string, args...) if (schar_debug) printk(KERN_DEBUG "schar: " string, ##args)

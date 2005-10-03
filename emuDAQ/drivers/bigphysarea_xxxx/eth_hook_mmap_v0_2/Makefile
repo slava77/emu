@@ -1,5 +1,5 @@
 # standards
-INCLUDE		= /usr/src/linux/include
+INCLUDE		= /usr/src/linux-2.4/include
 CC 		= gcc
 CFLAGS 		= -D__KERNEL__ -I$(INCLUDE) -DMODULE -Wall -O2
 

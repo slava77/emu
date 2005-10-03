@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: HardwareDDU.cc,v 2.0 2005/04/13 10:52:57 geurts Exp $
+// $Id: HardwareDDU.cc,v 2.1 2005/10/03 19:20:23 geurts Exp $
 // $Log: HardwareDDU.cc,v $
+// Revision 2.1  2005/10/03 19:20:23  geurts
+// BigPhys/Gbit driver and reader updates to prevent bigphys data corruption
+//
 // Revision 2.0  2005/04/13 10:52:57  geurts
 // Makefile
 //
@@ -28,6 +31,7 @@
 //-----------------------------------------------------------------------
 #include "HardwareDDU.h"
 #include "schar.h"
+#include "eth_hook_2.h"
 
 #include <iostream>
 #include <iomanip>
@@ -209,12 +213,14 @@ int HardwareDDU::readDDU(unsigned short **buf, const bool debug) {
 
     buf_pnt=buf_pnt+length;
     ring_pnt=ring_pnt+1;
-    if((buf_pnt > buf_end)||(ring_pnt>=ring_size)){
+    //    if((buf_pnt > buf_end)||(ring_pnt>=ring_size)){
+    if (((end_event==0x4000)&&(buf_pnt>buf_eend))||(buf_pnt > buf_end)||(ring_pnt>=ring_size)){
       ring_pnt=0;
       ring_loop=ring_loop+1;
       buf_pnt=0;
     }
     packets=packets+1;
+    if(len>MAXEVENT_2) break;
     if(pmissing!=0) break;
     if(end_event==0x4000) break;
   }
