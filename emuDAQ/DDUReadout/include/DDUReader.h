@@ -1,6 +1,11 @@
 //-----------------------------------------------------------------------
-// $Id: DDUReader.h,v 2.2 2005/10/03 19:20:22 geurts Exp $
+// $Id: DDUReader.h,v 2.3 2005/10/03 20:20:14 geurts Exp $
 // $Log: DDUReader.h,v $
+// Revision 2.3  2005/10/03 20:20:14  geurts
+// Removed hardware-related implementations out of DDUReader, created dependency on driver-include files.
+// - openFile is virtual function, HardwareDDU and FileReaderDDU take care of its own implementation
+// - schar.h and eth_hook_2.h contain driver and bigphys parameters shared by the DDUReadout and eth_hook_2
+//
 // Revision 2.2  2005/10/03 19:20:22  geurts
 // BigPhys/Gbit driver and reader updates to prevent bigphys data corruption
 //
@@ -48,7 +53,7 @@ public:
   virtual int endBlockRead() = 0;
 
   virtual void printStats();
-  int openFile(std::string filename);
+  virtual int openFile(std::string filename);
   void closeFile();
 
   unsigned short errorFlag;

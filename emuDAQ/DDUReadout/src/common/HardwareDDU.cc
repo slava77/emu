@@ -1,6 +1,11 @@
 //-----------------------------------------------------------------------
-// $Id: HardwareDDU.cc,v 2.1 2005/10/03 19:20:23 geurts Exp $
+// $Id: HardwareDDU.cc,v 2.2 2005/10/03 20:20:15 geurts Exp $
 // $Log: HardwareDDU.cc,v $
+// Revision 2.2  2005/10/03 20:20:15  geurts
+// Removed hardware-related implementations out of DDUReader, created dependency on driver-include files.
+// - openFile is virtual function, HardwareDDU and FileReaderDDU take care of its own implementation
+// - schar.h and eth_hook_2.h contain driver and bigphys parameters shared by the DDUReadout and eth_hook_2
+//
 // Revision 2.1  2005/10/03 19:20:23  geurts
 // BigPhys/Gbit driver and reader updates to prevent bigphys data corruption
 //
@@ -39,7 +44,9 @@
 #include <sys/ioctl.h>
 #include <errno.h>
 #include <unistd.h>
-
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 HardwareDDU::HardwareDDU(std::string schar_path)
 {
@@ -51,6 +58,44 @@ HardwareDDU::HardwareDDU(std::string schar_path)
 HardwareDDU::~HardwareDDU()
 {
   this->closeFile();
+}
+
+int HardwareDDU::openFile(std::string filename) {
+  //std::cout << "filename here was " << filename << std::endl;
+  liveData_ = (filename.find("/dev/schar")==0);
+  if (liveData_)
+    std::cout << "DDUread: we have got a life one here, Jimmy" << std::endl;
+  fd_schar = open(filename.c_str(), O_RDONLY);
+ 
+  // Abort in case of any failure
+  if (fd_schar == -1) {
+    std::cerr << "DDUReader: FATAL in openFile - " << std::strerror(errno) << std::endl;
+    std::cerr << "DDUReader will abort!!!" << std::endl;
+    abort();
+  }
+ 
+#ifdef USE_DDU2004
+  // MemoryMapped DDU2004 readout
+  buf_start = (char *)mmap(NULL,BIGPHYS_PAGES_2*PAGE_SIZE,PROT_READ,MAP_PRIVATE,fd_schar,0);
+  if (buf_start==MAP_FAILED) {
+    std::cerr << "DDUReader: FATAL in memorymap - " << std::strerror(errno) << std::endl;
+    std::cerr << "DDUReader will abort!!!" << std::endl;
+    abort();
+  };
+  std::cout << "DDUReader: Memory map succeeded " << std::endl;
+  buf_end=(BIGPHYS_PAGES_2-RING_PAGES_2)*PAGE_SIZE-MAXPACKET_2;
+  buf_eend=(BIGPHYS_PAGES_2-RING_PAGES_2)*PAGE_SIZE-TAILPOS-MAXEVENT_2;
+  ring_start=buf_start+(BIGPHYS_PAGES_2-RING_PAGES_2)*PAGE_SIZE;
+  ring_size=(RING_PAGES_2*PAGE_SIZE-RING_ENTRY_LENGTH-TAILMEM)/RING_ENTRY_LENGTH;
+  tail_start=buf_start+BIGPHYS_PAGES_2*PAGE_SIZE-TAILPOS;
+  buf_pnt=0;
+  ring_pnt=0;
+  ring_loop=0;
+  pmissing=0;
+  pmissing_prev=0;
+#endif
+ 
+  return 0;
 }
 
 int HardwareDDU::reset(void){
