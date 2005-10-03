@@ -1,6 +1,11 @@
 //-----------------------------------------------------------------------
-// $Id: FileReaderDDU.cc,v 2.1 2005/09/26 17:11:11 tumanov Exp $
+// $Id: FileReaderDDU.cc,v 2.2 2005/10/03 20:20:15 geurts Exp $
 // $Log: FileReaderDDU.cc,v $
+// Revision 2.2  2005/10/03 20:20:15  geurts
+// Removed hardware-related implementations out of DDUReader, created dependency on driver-include files.
+// - openFile is virtual function, HardwareDDU and FileReaderDDU take care of its own implementation
+// - schar.h and eth_hook_2.h contain driver and bigphys parameters shared by the DDUReadout and eth_hook_2
+//
 // Revision 2.1  2005/09/26 17:11:11  tumanov
 // new data format
 //
@@ -13,6 +18,26 @@
 #include <iostream>
 #include <cstdio>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+ 
+
+int FileReaderDDU::openFile(std::string filename) {
+   //std::cout << "filename here was " << filename << std::endl;
+   //fg liveData_ = (filename.find("/dev/schar")==0);
+   //fg if (liveData_)
+   //fg   std::cout << "DDUread: we have got a life one here, Jimmy" << std::endl;
+   fd_schar = open(filename.c_str(), O_RDONLY);
+ 
+   // Abort in case of any failure
+   if (fd_schar == -1) {
+     std::cerr << "DDUReader: FATAL in openFile - " << std::strerror(errno) << std::endl;
+     std::cerr << "DDUReader will abort!!!" << std::endl;
+     abort();
+   }
+   return 0;
+} 
 
 
 int FileReaderDDU::check(int & EndofEvent, int count, unsigned short * tmp) {

@@ -1,6 +1,11 @@
 //-----------------------------------------------------------------------
-// $Id: HardwareDDU.h,v 2.0 2005/04/13 10:52:57 geurts Exp $
+// $Id: HardwareDDU.h,v 2.1 2005/10/03 20:20:14 geurts Exp $
 // $Log: HardwareDDU.h,v $
+// Revision 2.1  2005/10/03 20:20:14  geurts
+// Removed hardware-related implementations out of DDUReader, created dependency on driver-include files.
+// - openFile is virtual function, HardwareDDU and FileReaderDDU take care of its own implementation
+// - schar.h and eth_hook_2.h contain driver and bigphys parameters shared by the DDUReadout and eth_hook_2
+//
 // Revision 2.0  2005/04/13 10:52:57  geurts
 // Makefile
 //
@@ -34,6 +39,7 @@ public:
   virtual int endBlockRead();
   virtual int chunkSize();
   int readDDU(unsigned short **buf, const bool debug = false);
+  int openFile(std::string);
 };
 
 #endif
