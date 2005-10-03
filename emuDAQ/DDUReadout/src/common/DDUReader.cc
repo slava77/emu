@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DDUReader.cc,v 2.0 2005/04/13 10:52:57 geurts Exp $
+// $Id: DDUReader.cc,v 2.1 2005/10/03 19:20:23 geurts Exp $
 // $Log: DDUReader.cc,v $
+// Revision 2.1  2005/10/03 19:20:23  geurts
+// BigPhys/Gbit driver and reader updates to prevent bigphys data corruption
+//
 // Revision 2.0  2005/04/13 10:52:57  geurts
 // Makefile
 //
@@ -46,6 +49,7 @@
 #include <sys/mman.h>
 #include "Muon/METBRawFormat/interface/MuEndDDUHeader.h"
 #include "schar.h"
+#include "eth_hook_2.h"
 
 
 bool DDUReader::debug = false;
@@ -74,6 +78,7 @@ int DDUReader::openFile(std::string filename) {
   };
   std::cout << "DDUReader: Memory map succeeded " << std::endl;
   buf_end=(BIGPHYS_PAGES_2-RING_PAGES_2)*PAGE_SIZE-MAXPACKET_2;
+  buf_eend=(BIGPHYS_PAGES_2-RING_PAGES_2)*PAGE_SIZE-TAILPOS-MAXEVENT_2;
   ring_start=buf_start+(BIGPHYS_PAGES_2-RING_PAGES_2)*PAGE_SIZE;
   ring_size=(RING_PAGES_2*PAGE_SIZE-RING_ENTRY_LENGTH-TAILMEM)/RING_ENTRY_LENGTH;
   tail_start=buf_start+BIGPHYS_PAGES_2*PAGE_SIZE-TAILPOS;
