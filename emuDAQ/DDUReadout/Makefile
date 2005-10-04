@@ -44,7 +44,7 @@ LibraryDirs =  \
         $(XDAQ_ROOT)/daq/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
 UserCFlags =
-UserCCFlags =
+UserCCFlags = -DUSE_DDU2004
 UserDynamicLinkFlags =
 UserStaticLinkFlags =
 UserExecutableLinkFlags =
