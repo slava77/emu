@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DDUReader.cc,v 2.2 2005/10/03 20:20:15 geurts Exp $
+// $Id: DDUReader.cc,v 2.3 2005/10/04 17:47:40 geurts Exp $
 // $Log: DDUReader.cc,v $
+// Revision 2.3  2005/10/04 17:47:40  geurts
+// bug update: keep marginal openFile implementation
+//
 // Revision 2.2  2005/10/03 20:20:15  geurts
 // Removed hardware-related implementations out of DDUReader, created dependency on driver-include files.
 // - openFile is virtual function, HardwareDDU and FileReaderDDU take care of its own implementation
@@ -59,43 +62,19 @@
 
 bool DDUReader::debug = false;
 
-//fg int DDUReader::openFile(std::string filename) {
-//fg   //std::cout << "filename here was " << filename << std::endl;
-//fg   liveData_ = (filename.find("/dev/schar")==0);
-//fg   if (liveData_)
-//fg     std::cout << "DDUread: we have got a life one here, Jimmy" << std::endl;
-//fg   fd_schar = open(filename.c_str(), O_RDONLY);
-//fg 
-//fg   // Abort in case of any failure
-//fg   if (fd_schar == -1) {
-//fg     std::cerr << "DDUReader: FATAL in openFile - " << std::strerror(errno) << std::endl;
-//fg     std::cerr << "DDUReader will abort!!!" << std::endl;
-//fg     abort();
-//fg   }
-//fg 
-//fg #ifdef USE_DDU2004
-//fg   // MemoryMapped DDU2004 readout
-//fg    buf_start = (char *)mmap(NULL,BIGPHYS_PAGES_2*PAGE_SIZE,PROT_READ,MAP_PRIVATE,fd_schar,0);
-//fg   if (buf_start==MAP_FAILED) {
-//fg     std::cerr << "DDUReader: FATAL in memorymap - " << std::strerror(errno) << std::endl;
-//fg     std::cerr << "DDUReader will abort!!!" << std::endl;
-//fg     abort();
-//fg   };
-//fg   std::cout << "DDUReader: Memory map succeeded " << std::endl;
-//fg   buf_end=(BIGPHYS_PAGES_2-RING_PAGES_2)*PAGE_SIZE-MAXPACKET_2;
-//fg   buf_eend=(BIGPHYS_PAGES_2-RING_PAGES_2)*PAGE_SIZE-TAILPOS-MAXEVENT_2;
-//fg   ring_start=buf_start+(BIGPHYS_PAGES_2-RING_PAGES_2)*PAGE_SIZE;
-//fg   ring_size=(RING_PAGES_2*PAGE_SIZE-RING_ENTRY_LENGTH-TAILMEM)/RING_ENTRY_LENGTH;
-//fg   tail_start=buf_start+BIGPHYS_PAGES_2*PAGE_SIZE-TAILPOS;
-//fg   buf_pnt=0;
-//fg   ring_pnt=0;
-//fg   ring_loop=0;
-//fg   pmissing=0;
-//fg   pmissing_prev=0;
-//fg #endif
-//fg 
-//fg   return 0;
-//fg }
+int DDUReader::openFile(std::string filename) {
+
+  fd_schar = open(filename.c_str(), O_RDONLY);
+
+  // Abort in case of any failure
+  if (fd_schar == -1) {
+    std::cerr << "DDUReader: FATAL in openFile - " << std::strerror(errno) << std::endl;
+    std::cerr << "DDUReader will abort!!!" << std::endl;
+    abort();
+  }
+
+  return 0;
+}
 
 bool DDUReader::readNextEvent() {
   unsigned short ** buf2 = new unsigned short* ; 
