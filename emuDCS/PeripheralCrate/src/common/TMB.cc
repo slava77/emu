@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.14 2005/09/28 16:52:40 mey Exp $
+// $Id: TMB.cc,v 2.15 2005/10/04 16:01:17 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.15  2005/10/04 16:01:17  mey
+// Update
+//
 // Revision 2.14  2005/09/28 16:52:40  mey
 // Include Output streamer
 //
@@ -2126,7 +2129,7 @@ void TMB::decode() {
 
 
   //start(1) ;
-  boot_adr = base_adr|0x070000;
+  //boot_adr = base_adr|0x070000;
 
   pfile = fopen("tmb_scope.txt","w");
 
