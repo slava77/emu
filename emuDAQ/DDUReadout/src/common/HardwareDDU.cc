@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: HardwareDDU.cc,v 2.2 2005/10/03 20:20:15 geurts Exp $
+// $Id: HardwareDDU.cc,v 2.3 2005/10/04 17:45:44 geurts Exp $
 // $Log: HardwareDDU.cc,v $
+// Revision 2.3  2005/10/04 17:45:44  geurts
+// bug update: include mmap header file for DDU2004 mode
+//
 // Revision 2.2  2005/10/03 20:20:15  geurts
 // Removed hardware-related implementations out of DDUReader, created dependency on driver-include files.
 // - openFile is virtual function, HardwareDDU and FileReaderDDU take care of its own implementation
@@ -47,6 +50,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/mman.h>
 
 HardwareDDU::HardwareDDU(std::string schar_path)
 {
