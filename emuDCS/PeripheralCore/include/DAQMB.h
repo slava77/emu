@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.10 2005/09/28 17:11:19 mey Exp $
+// $Id: DAQMB.h,v 2.11 2005/10/04 16:02:15 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.11  2005/10/04 16:02:15  mey
+// Added Output
+//
 // Revision 2.10  2005/09/28 17:11:19  mey
 // Update
 //
@@ -104,6 +107,7 @@ public:
   int  memchk(int);
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
+  
   //
   void SFMWriteProtect();
   void LoadCFEBDelaySFM();
@@ -121,9 +125,9 @@ public:
   void set_comp_mode(int dword);
   void set_comp_thresh(float thresh);
   void set_comp_thresh(int, float thresh);
-
-/// DAQMB voltages
-/// see manual, but usually ichp 1 = therm, 2 = DAC, 3 = GND
+  
+  /// DAQMB voltages
+  /// see manual, but usually ichp 1 = therm, 2 = DAC, 3 = GND
   /// voltages which range from 0-4.096
   float adcplus(int ichp,int ichn);
   /// voltages which range from +/- 2.048, usually grounds
@@ -133,7 +137,7 @@ public:
   unsigned int readADC(int ichp, int ichn);
 
   void set_dac(float volt0,float volt1);
-  void DAQMB::trigtest();
+  void trigtest();
 
 // DAQMB Thermometers
   enum Temps {DMBTEMP, CFEB1TEMP, CFEB2TEMP, CFEB3TEMP, CFEB4TEMP,
@@ -230,9 +234,10 @@ public:
   void cbldly_loadmbidSFM();
   void cbldly_loadcfebdlySFM();
   void cbldly_refreshcfebdly();
+  //
   void sfm_test_load(char *sndpat);
   void sfm_test_read(char *rcvpat);
-
+  //
 
 public:
   // unpacks rcvbuf from FPGA operations
@@ -309,13 +314,17 @@ public:
     return active_dav_scope_ ;
   } 
   //
+  inline int GetTestStatus(int test) {
+    return TestStatus_[test];
+  }
+  //
 
  private:
   int shift_out[5][36];
   std::ostream * MyOutput_ ;
   int l1a_lct_counter_, cfeb_dav_counter_, tmb_dav_counter_, alct_dav_counter_ ;
   int l1a_lct_scope_, cfeb_dav_scope_, tmb_dav_scope_, alct_dav_scope_, active_dav_scope_ ;
-
+  int  TestStatus_[20];
 }; 
 
 #endif

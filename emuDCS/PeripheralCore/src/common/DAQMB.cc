@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.10 2005/09/28 16:57:22 mey Exp $
+// $Id: DAQMB.cc,v 2.11 2005/10/04 16:02:07 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.11  2005/10/04 16:02:07  mey
+// Added Output
+//
 // Revision 2.10  2005/09/28 16:57:22  mey
 // Update Tests
 //
@@ -90,6 +93,7 @@ DAQMB::DAQMB(int newcrate,int newslot):
   MyOutput_ = &std::cout ;
   cfebs_.clear();
   std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
+  for(int i=0;i<20;i++) TestStatus_[i]=-1;
 }
 
 DAQMB::DAQMB(int newcrate,int newslot,  int newcfeb):
@@ -98,6 +102,7 @@ DAQMB::DAQMB(int newcrate,int newslot,  int newcfeb):
   MyOutput_ = &std::cout ;
   cfebs_.push_back(CFEB(newcfeb));
   std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl; 
+  for(int i=0;i<20;i++) TestStatus_[i]=-1;
 }
 
 DAQMB::DAQMB(int newcrate,int newslot, const std::vector<CFEB> & cfebs):
@@ -106,6 +111,7 @@ DAQMB::DAQMB(int newcrate,int newslot, const std::vector<CFEB> & cfebs):
 {
   MyOutput_ = &std::cout ;
   std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl; 
+  for(int i=0;i<20;i++) TestStatus_[i]=-1;
 }
 
 
@@ -179,10 +185,7 @@ void DAQMB::configure() {
    // std::cout << "DAQMB: switching on LVs on LVMB" << endl; 
    lowv_onoff(0x3f);
 }
-
-
-
-
+//
 void DAQMB::load_strip() {
   cmd[0]=VTX2_USR1;
   sndbuf[0]=LOAD_STR;
@@ -200,8 +203,7 @@ void DAQMB::load_strip() {
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
 }
-
-
+//
 void DAQMB::setcrateid(int dword)
 {
   cmd[0]=VTX2_USR1;
@@ -228,7 +230,7 @@ void DAQMB::setcrateid(int dword)
   sndbuf[0]=NOOP;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
 }
-
+//
 void DAQMB::setfebdelay(int dword)
 {
   cmd[0]=VTX2_USR1;
@@ -261,7 +263,7 @@ void DAQMB::setfebdelay(int dword)
 
 void DAQMB::setcaldelay(int dword)
 {
-
+  //
   cmd[0]=VTX2_USR1;
   sndbuf[0]=CAL_DELAY;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
@@ -277,7 +279,7 @@ void DAQMB::setcaldelay(int dword)
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2); 
   std::cout << "caldelay was set to " << std::hex << dword <<std::dec << std::endl;
-
+  //
 }
 
 void DAQMB::setdavdelay(int dword)
@@ -442,11 +444,8 @@ char dt[2];
  }
  dt[0]=((dt[1]<<7)&0x80) + ((dt[0]>>1)&0x7f);
  dt[1]=dt[1]>>1;
- std::cout << "CFEB size="<<cfebs_.size() << std::endl;
  //
- for(int i=0; i<cfebs_.size();i++) {
-   std::cout << i << " CFEB number" << cfebs_[i].number() << std::endl;
- }
+ cout << "Set_comp_thresh.icfeb=" << icfeb << " thresh=" << thresh << std::endl;
  //
  DEVTYPE dv = cfebs_[icfeb].scamDevice();
  cmd[0]=VTX_USR1;
@@ -558,7 +557,7 @@ void DAQMB::trigsetx(int *hp)
    std::cout << "CFEB size="<<cfebs_.size() << std::endl;;
 
   int hs[6];
-  int i,j,k,l;
+  int i,j,k;
   int chan[5][6][16];
   for(i=0;i<5;i++){
     for(j=0;j<6;j++){
@@ -588,7 +587,7 @@ void DAQMB::trigsetx(int *hp)
 void DAQMB::chan2shift(int chan[5][6][16])
 {
    
-   int i,j,k,l;
+   int i,j,l;
    int chip,lay,nchips;
    char chip_mask;
    char shft_bits[6][6];
@@ -659,12 +658,8 @@ void DAQMB::chan2shift(int chan[5][6][16])
 
 void DAQMB::trigtest()
 {
-  int ucla_c_hs;
-  int ucla_c_nplns;
-  int ucla_c_ndata;
-  int i,j,k,count;
+  int i,k;
   int hp[6],ho[]={-1,0,1,2};
-  int ierr;
   int imid,hits;
   int ip0,ip1,ip2,ip3,ip4,ip5;
   int p0hit,p1hit,p2hit,p3hit,p4hit,p5hit;
@@ -762,8 +757,10 @@ float DAQMB::adcplus(int ichp,int ichn){
 
 
 float DAQMB::adcminus(int ichp,int ichn){
-  unsigned int ival= readADC(ichp, ichn);
+  short int ival= readADC(ichp, ichn);
   if((0x0800&ival)==0x0800)ival=ival|0xf000;
+  float cval;
+  cval = ival;
   return (float) ival;
 }
 
@@ -907,8 +904,8 @@ unsigned long int  DAQMB::febfpgaid(const CFEB & cfeb)
   sndbuf[2]=0xFF;
   sndbuf[3]=0xFF;
   devdo(dv,5,cmd,32,sndbuf,rcvbuf,1);
-  //printf(" The FEB %d FPGA Chip should be 610093 (last 6 digits) \n",dv-F1SCAM+1);
-  //printf(" The FPGA Chip IDCODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+  printf(" The FEB %d FPGA Chip should be 610093 (last 6 digits) \n",dv-F1SCAM+1);
+  printf(" The FPGA Chip IDCODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
   // RPW not sure about this
   unsigned long ibrd = unpack_ibrd();
   cmd[0]=VTX_BYPASS;
@@ -1438,14 +1435,15 @@ void DAQMB::buckflash_init()
 }
 
 void DAQMB::buckflash_erase()
-{int i;  
- cmd[0]=0;
- devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,1); // erase Flash memory
- cmd[0]=5;
- devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,1); 
- printf(" Wait for 10 Seconds for Flash Memory to finish \n");
- sleep(10);  // 10 seconds are required after erase
-
+{
+  //
+  cmd[0]=0;
+  devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,1); // erase Flash memory
+  cmd[0]=5;
+  devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,1); 
+  (*MyOutput_) << " Wait for 10 Seconds for Flash Memory to finish " << std::endl;
+  sleep(10);  // 10 seconds are required after erase
+  //
 }
 
 
@@ -1454,19 +1452,19 @@ void DAQMB::buckflash_erase()
 
 void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
 {
-char snd[1024],expect[1024],rmask[1024],smask[1024],cmpbuf[1024];
-DEVTYPE devstp,dv;
-char *devstr;
-FILE *dwnfp,*fpout;
-char buf[8192],buf2[256];
-char *Word[256],*lastn;
- int Count,j,nbits,nbytes,pause,xtrbits;
-int tmp,cmpflag;
-int tstusr;
-int nowrit;
-
-  printf(" epromload \n");
-
+  char snd[1024],expect[1024],rmask[1024],smask[1024],cmpbuf[1024];
+  DEVTYPE devstp,dv;
+  char *devstr;
+  FILE *dwnfp,*fpout;
+  char buf[8192],buf2[256];
+  char *Word[256],*lastn;
+  int Count,j,nbits,nbytes,pause,xtrbits;
+  int tmp,cmpflag;
+  int tstusr;
+  int nowrit;
+  // 
+  (*MyOutput_) << " epromload " << std::endl;
+  //
   if(devnum==ALL){
     devnum=F1PROM;
     devstp=F5PROM;
@@ -1474,40 +1472,42 @@ int nowrit;
   else {
     devstp=devnum;
   }
+  //
   for(int i=devnum;i<=devstp;i++){
     dv=(DEVTYPE)i;
     xtrbits=geo[dv].sxtrbits;
+
     //    printf(" ************************** xtrbits %d geo[dv].sxtrbits %d \n",xtrbits,geo[dv].sxtrbits);
     devstr=geo[dv].nam;
     dwnfp    = fopen(downfile,"r");
     fpout=fopen("eprom.bit","w");
-    //  printf("Programming Design %s (%s) with %s\n",design,devstr,downfile);
-
-    while (fgets(buf,256,dwnfp) != NULL)  {
-      if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
-	//  printf("%s",buf);
-      }
-      else {
-        if(strrchr(buf,';')==0){
-          do {
-            lastn=strrchr(buf,'\n');
-            if(lastn!=0)lastn[0]='\0';
-            if (fgets(buf2,256,dwnfp) != NULL){
-              strcat(buf,buf2);
-            }
-            else {
-	      //    printf("End of File encountered.  Quiting\n");
-              return;
-            }
-          }
-          while (strrchr(buf,';')==0);
-        }
-        for(int i=0;i<1024;i++){
-          cmpbuf[i]=0;
-          sndbuf[i]=0;
-          rcvbuf[i]=0;
-        }
-        Parse(buf, &Count, &(Word[0]));
+   //  printf("Programming Design %s (%s) with %s\n",design,devstr,downfile);
+   //
+   while (fgets(buf,256,dwnfp) != NULL)  {
+     if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
+       //  printf("%s",buf);
+     }
+     else {
+       if(strrchr(buf,';')==0){
+	 do {
+	   lastn=strrchr(buf,'\n');
+	   if(lastn!=0)lastn[0]='\0';
+	   if (fgets(buf2,256,dwnfp) != NULL){
+	     strcat(buf,buf2);
+	   }
+	   else {
+	     //    printf("End of File encountered.  Quiting\n");
+	     return;
+	   }
+	 }
+	 while (strrchr(buf,';')==0);
+       }
+       for(int i=0;i<1024;i++){
+	 cmpbuf[i]=0;
+	 sndbuf[i]=0;
+	 rcvbuf[i]=0;
+       }
+       Parse(buf, &Count, &(Word[0]));
         // count=count+1;
         if(strcmp(Word[0],"SDR")==0){
           cmpflag=0;    //disable the comparison for no TDO SDR
@@ -2042,8 +2042,6 @@ void DAQMB::executeCommand(std::string command) {
 
 
 
-#ifdef USEDCS
-
 void DAQMB::cfeb_vtx_prom(enum DEVTYPE devnum) {
   //enum DEVTYPE devstp,dv;
   std::cout << "DAQMB: cfeb_vtx_prom" << std::endl;
@@ -2173,14 +2171,63 @@ void DAQMB::toggle_rndmtrg_start()
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,1);
   printf("Toggled RandomTrigger Start in MCTRL FPGA, RTRG_TGL %02x\n",RTRG_TGL);
 }
-
+//
 void DAQMB::burst_rndmtrg()
 {
   toggle_rndmtrg_start();
     usleep(5000);
   toggle_rndmtrg_start();
 }
-
+//
+void DAQMB::sfm_test_load(char *sndpat)
+{    
+  //Program SFM with 0,1,2,3,...,263
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=35;   //Serial Flash Memory TEST
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR2;
+  sndbuf[0]=0x41;  //bit reversed for 82H
+  sndbuf[1]=0xc0;
+  sndbuf[2]=0x3c;
+  sndbuf[3]=0x00;
+  for (int i=0;i<264;i++) sndbuf[i+4]=sndpat[i];
+  devdo(MCTRL,6,cmd,2144,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,1);
+}
+//
+void DAQMB::sfm_test_read(char *rcvpat)
+{
+  int boffset;
+  //Read SFM 
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=35;   //Serial Flash Memory TEST
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR2;
+  sndbuf[0]=0x4B;  //bit reversed for D2H
+  sndbuf[0]=0x4A;  //bit reversed for 52H
+  sndbuf[1]=0xc0;
+  sndbuf[2]=0x3c;
+  sndbuf[3]=0x00;
+  for (int i=0;i<268;i++) sndbuf[i+4]=0;  //264 data bytes plus 4 dummy bytes
+  devdo(MCTRL,6,cmd,2176,sndbuf,rcvbuf,1);
+  boffset=2;
+  for(int i=0;i<256;i++){
+    // printf("shfttst %d %02X \n",i,rcvbuf[i]&0xFF);
+    rcvpat[i]=0x00;
+    rcvpat[i]=rcvpat[i]|(rcvbuf[i+9]<<(8-boffset));
+    rcvpat[i]=rcvpat[i]|((rcvbuf[i+8]>>boffset)&~(~0<<(8-boffset)));
+  }
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,1);
+}
+//
 
 void DAQMB::cbldly_init(){
 	 printf(" Initialize \n");
@@ -2291,72 +2338,22 @@ void DAQMB::cbldly_loadcfebdlySFM(){
 }
 
 void DAQMB::cbldly_refreshcfebdly(){
-	 printf(" Refresh Onboard CFEB delay \n");
-         cmd[0]=VTX_USR1; 
-         sndbuf[0]=0x1d;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_USR1;
-         sndbuf[0]=NOOP;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_BYPASS;
-         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  printf(" Refresh Onboard CFEB delay \n");
+  cmd[0]=VTX_USR1; 
+  sndbuf[0]=0x1d;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 }
 
-
-void DAQMB::sfm_test_load(char *sndpat)
-{    
-//Program SFM with 0,1,2,3,...,263
-    cmd[0]=VTX2_USR1;
-    sndbuf[0]=35;   //Serial Flash Memory TEST
-    devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-    cmd[0]=VTX2_USR2;
-    sndbuf[0]=0x41;  //bit reversed for 82H
-    sndbuf[1]=0xc0;
-    sndbuf[2]=0x3c;
-    sndbuf[3]=0x00;
-    for (int i=0;i<264;i++) sndbuf[i+4]=sndpat[i];
-    devdo(MCTRL,6,cmd,2144,sndbuf,rcvbuf,0);
-    cmd[0]=VTX2_USR1;
-    sndbuf[0]=NOOP;
-    devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-    cmd[0]=VTX2_BYPASS;
-    devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,1);
-}
-
-void DAQMB::sfm_test_read(char *rcvpat)
-{
-  int boffset;
-    //Read SFM 
-    cmd[0]=VTX2_USR1;
-    sndbuf[0]=35;   //Serial Flash Memory TEST
-    devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-    cmd[0]=VTX2_USR2;
-    sndbuf[0]=0x4B;  //bit reversed for D2H
-    sndbuf[0]=0x4A;  //bit reversed for 52H
-    sndbuf[1]=0xc0;
-    sndbuf[2]=0x3c;
-    sndbuf[3]=0x00;
-    for (int i=0;i<268;i++) sndbuf[i+4]=0;  //264 data bytes plus 4 dummy bytes
-    devdo(MCTRL,6,cmd,2176,sndbuf,rcvbuf,1);
-    boffset=2;
-    for(int i=0;i<256;i++){
-	  // printf("shfttst %d %02X \n",i,rcvbuf[i]&0xFF);
-	rcvpat[i]=0x00;
-        rcvpat[i]=rcvpat[i]|(rcvbuf[i+9]<<(8-boffset));
-        rcvpat[i]=rcvpat[i]|((rcvbuf[i+8]>>boffset)&~(~0<<(8-boffset)));
-    }
-    cmd[0]=VTX2_USR1;
-    sndbuf[0]=NOOP;
-    devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-    cmd[0]=VTX2_BYPASS;
-    devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,1);
-}
-
+//
 void DAQMB::devdoReset(){
 /// used for emergency loading
   devdo(RESET,-1,cmd,0,sndbuf,rcvbuf,2);
 }
-#endif
 
 void DAQMB::readtimingCounter()
 {
@@ -2489,7 +2486,6 @@ void DAQMB::daqmb_adc_dump()
   (*MyOutput_) << " FEB3 temperature = "     << readthermx(3) << std::endl;
   (*MyOutput_) << " FEB4 temperature = "     << readthermx(4) << std::endl;
   (*MyOutput_) << " FEB5 temperature = "     << readthermx(5) << std::endl; 
- 
 }
  
 
@@ -2834,7 +2830,7 @@ void DAQMB::test3()
   //
   calctrl_fifomrst(); usleep(5000);
   //
-  printf("Running Memchk\n");
+  (*MyOutput_) << "Running Memchk" << std::endl;
   err[1]=memchk(1);
   errs+=err[1];
   if(err[1]==0){
@@ -2899,116 +2895,118 @@ int DAQMB::memchk(int fifo)
   char *rcvfifo;
   sndfifo=(char *)malloc(33000);
   rcvfifo=(char *)malloc(33000);
-  printf(" MEMCHK for FIFO%1d \n",fifo);
+  (*MyOutput_) << " MEMCHK for FIFO"<<fifo<<std::endl;
   calctrl_fifomrst();
   // 0xffff
   for(int i=0;i<fifosize*2;i++)sndfifo[i]=0xff;
   wrtfifo(fifo,fifosize,sndfifo);
   readfifo(fifo,fifosize,rcvfifo);
   err=0;for(int i=0;i<fifosize*2;i++)if(sndfifo[i]!=rcvfifo[i])err=err+1;err1=err1+err;
-  printf(" Error 0xffff %d \n",err); 
+  (*MyOutput_) << " Error 0xffff "<< err << std::endl; 
   // 0x0000
   for(int i=0;i<fifosize*2;i++)sndfifo[i]=0x00;
   wrtfifo(fifo,fifosize,sndfifo);
   readfifo(fifo,fifosize,rcvfifo);
   err=0;for(int i=0;i<fifosize*2;i++)if(sndfifo[i]!=rcvfifo[i])err=err+1;err1=err1+err;
-  printf(" Error 0x0000 %d \n",err); 
+  (*MyOutput_) << " Error 0x0000 " << err << std::endl; 
   // 0x5555
   for(int i=0;i<fifosize*2;i++)sndfifo[i]=0x55;
   wrtfifo(fifo,fifosize,sndfifo);
   readfifo(fifo,fifosize,rcvfifo);
   err=0;for(int i=0;i<fifosize*2;i++)if(sndfifo[i]!=rcvfifo[i])err=err+1;err1=err1+err;
-  printf(" Error 0x5555 %d \n",err); 
+  (*MyOutput_) << " Error 0x5555 "<< err << std::endl; 
 // 0xaaaa
   for(int i=0;i<fifosize*2;i++)sndfifo[i]=0xaa;
   wrtfifo(fifo,fifosize,sndfifo);
   readfifo(fifo,fifosize,rcvfifo);
   err=0;for(int i=0;i<fifosize*2;i++)if(sndfifo[i]!=rcvfifo[i])err=err+1;err1=err1+err;
-  printf(" Error 0xaaaa %d \n",err); 
-   // 0,1,2,3,... 
+  (*MyOutput_) << " Error 0xaaaa "<< err << std::endl; 
+  // 0,1,2,3,... 
   for(int i=0;i<fifosize*2;i++)sndfifo[i]=(i&0xff);
   wrtfifo(fifo,fifosize,sndfifo);
   readfifo(fifo,fifosize,rcvfifo);
   err=0;for(int i=0;i<fifosize*2;i++)if(sndfifo[i]!=rcvfifo[i])err=err+1;err1=err1+err;
-  printf(" Error 0x1234 %d \n",err); 
+  (*MyOutput_) << " Error 0x1234 " << err << std::endl; 
   free(sndfifo);
   free(rcvfifo);
+  //
   return err1;
+  //
 }
 //
 int DAQMB::test4()
 {
-  int k,j,ierr;
+  //
   int pass;
-  float voltage,temp;
+  float voltage, temp;
   //
-  ierr=0; 
+  int ierr=0; 
   //
-  for(j=1;j<=3;j++){
-    printf("Reading 1.8V Chip %d\n",j);
+  for(int j=1;j<=3;j++){
+    (*MyOutput_) << "Reading 1.8V Chip "<<j<<std::endl;
     voltage = adcminus(j,6);
+    (*MyOutput_) << "The voltage is " << voltage <<" mv" << std::endl;
     //
     if(voltage>=1740.0 && voltage<=1860.0){
-      printf("The voltage on 1.8V Chip %d is good\n",j);
-      printf("The voltage is %.3f mv\n",voltage);
+      (*MyOutput_) << "The voltage on 1.8V Chip "<<j<<" is good " << std::endl;
     }else{
-      printf("The voltage on 1.8V Chip %d is out of range\n",j);
-      printf("The voltage is %.3f mv\n",voltage);
+      (*MyOutput_) << "The voltage on 1.8V Chip " << j << " is out of range" << std::endl;
       ierr=1;
     }
   }
   //
-  printf("Reading DMB GND\n");
+  (*MyOutput_) << "Reading DMB GND" << std::endl;
   voltage=adcminus(3,0); 
+  (*MyOutput_) << "The voltage is " << voltage << " mv " << std::endl;
   //
   if(voltage>=-10.0 &&voltage<=10.0){
-    printf("The voltage on DMB GND is good\n");
-    printf("The voltage is %.3f mv\n\n",voltage);
+    (*MyOutput_) << "The voltage on DMB GND is good" << std::endl;
   }
-  if(voltage<=-10.0 || voltage>=10.0){
-    printf("The voltage on DMB GND is out of range\n");
-    printf("The voltage is %.3f mv\n\n",voltage);
-    ierr=1;}
+  else {
+    (*MyOutput_) << "The voltage on DMB GND is out of range" << std::endl;
+    ierr=1;
+  }
   //
-  for(k=1;k<6;k++){
-    printf("Reading CFEB%d GND \n",k);
+  for(int k=1;k<6;k++){
+    (*MyOutput_) << "Reading CFEB"<<k<< " GND "<<std::endl;
+    //
     voltage = adcminus(3,k);
+    (*MyOutput_) << "The voltage is " << voltage << " mv " << std::endl;
     //
     if(voltage>=-35.0 &&voltage<=35.0){
-      printf("The voltage on CFEB%d is good\n",k);
-      printf("The voltage is%.3f mv\n",voltage);
-    }
-    if(voltage<-35.0 || voltage>35.0){
-      printf("The voltage on CFEB%d is out of range\n",k);
-      printf("The voltage is %.3f mv\n\n",voltage);
-      ierr=1;}
-  }
-  //
-  printf("Temperature Reading for DMB\n");
-  temp=readthermx(0); 
-  if(temp>=63.0 &&temp<=90.0){
-    printf("The temperature on DMB is good\n");
-    printf("The temperature is %.3f F \n\n",temp);
-  }
-  if(temp<63.0 || temp >90.0){
-    printf("The temperature on DMB is out of range\n\n");ierr=1;
-    printf("The temperature is %.3f F \n\n",temp);    
-  }
-  //
-  for(k=1;k<6;k++){
-    printf("Temperature Reading CFEB%d temp \n",k);
-    temp = readthermx(k);
-    //
-    if(temp>=63.0 && temp<=90.0){
-      printf("The temperature on CFEB%d is good\n",k);
-      printf("The temperature is %.3f F\n\n",temp);
-    }
-    if(temp<63.0 || temp >90.0){
-      printf("The temperature on CFEB%d is out of range\n",k);
-      printf("The temperature is %.3f F\n\n",temp);
+      (*MyOutput_) << "The voltage on CFEB"<<k<< "is good"<<std::endl;
+    } else {
+      (*MyOutput_) << "The voltage on CFEB"<<k<< "is out of range" << std::endl;
       ierr=1;
     }
   }
+  //
+  (*MyOutput_) << "Temperature Reading for DMB" << std::endl;
+  temp=readthermx(0); 
+  (*MyOutput_) << "The temperature is " << temp <<" F " << std::endl;
+  //
+  if(temp>=50.0 &&temp<=95.0){
+    (*MyOutput_) << "The temperature on DMB is good " << std::endl;
+  } else {
+    (*MyOutput_) << "The temperature on DMB is out of range" << std::endl;
+    ierr=1;
+  }
+  //
+  for(int k=1;k<6;k++){
+    (*MyOutput_) << "Temperature Reading CFEB%d temp " << std::endl;
+    temp = readthermx(k);
+    (*MyOutput_) << "The temperature is " << temp << " F " << std::endl;
+    //
+    if(temp>=50.0 && temp<=95.0){
+      (*MyOutput_) << "The temperature on CFEB"<<k<<" is good " << std::endl;
+      
+    }else{
+      (*MyOutput_) << "The temperature on CFEB"<<k<<" is out of range " << std::endl;
+      ierr=1;
+    }
+  }
+  //
+  TestStatus_[4] = ierr;
   //
   pass=1; 
   if(ierr!=0)pass=0;
@@ -3017,13 +3015,12 @@ int DAQMB::test4()
 //
 int DAQMB::test5()
 {
-  int i,j,k;
+  int i,k;
   int pass,ierr;
   int itog;
   int f1[5]={3,3,4,4,5};
   int f2[5]={4,7,2,5,0};
   float value;
-  float val0,val1,val2,val3,val4,val5;
   unsigned int ival;
   char c;
   //
@@ -3034,34 +3031,41 @@ int DAQMB::test5()
     if(itog==1)c=0x3f;
     lowv_onoff(c);
     lowv_rdpwrreg(); 
-    printf(" power register %04x \n",ival);
+    (*MyOutput_) << " power register " << ival << std::endl;
     sleep(1);
     itog=itog+1;
     if(itog==2)itog=0;
     /* these are the adcs connected to the power register */
-    printf(" Selected Reg. Channel\n");            
+    (*MyOutput_) << " Selected Reg. Channel" << std::endl;
     //
     /*j is 0-7 i is 1-5*/
     for(i=0;i<5;i++){
       value = lowv_adc(f1[i],f2[i]);
       if(itog==0){
 	if(value<5000 && value>4100.0){
-	  printf("The voltage on %d %d is good - %f mv\n",f1[i],f2[i],value);
+	  (*MyOutput_) <<"The voltage on "<<f1[i]<<" "<<f2[i]
+		       <<" is good - "<<value<<" mv "<<std::endl;
 	}else{   
-	  printf("The voltage on %d %d is out of range - %f mv\n",f1[i],f2[i],value);
+	  (*MyOutput_) <<"The voltage on "<<f1[i]<<" "<<f2[i]
+		       <<" is out of range - "<<value<<" mv "<<std::endl;
 	  ierr=1;
 	} 
       }
+      //
       if(itog==1){
 	if(value>-50 && value<50){
-	  printf("The voltage off %d %d is good - %f mv\n",f1[i],f2[i],value);
+	  (*MyOutput_) << "The voltage off "<<f1[i]<<" "<<f2[i]
+		       <<" is good - "<<value<<" mv " << std::endl;
 	}else{   
-	  printf("The voltage off %d %d is out of range - %f mv\n",f1[i],f2[i],value);
+	  (*MyOutput_) << "The voltage off "<<f1[i]<<" "<<f2[i]
+		       <<" is out of range - "<<value<<" mv " << std::endl;
 	  ierr=1;
 	} 
       }
     }
   }
+  //
+  TestStatus_[5] = ierr;
   //
   pass=1; 
   if(ierr!=0)pass=0;
@@ -3071,24 +3075,28 @@ int DAQMB::test5()
 int DAQMB::test6()
 {
   //
-  int i,j,nn;
   int err2,pass;
-  //
+  int ierr=0;
   unsigned long int ival;
   //
   err2=0;
   if(cfebs_.size()!=5){
     err2=err2+100;
-    printf("ERROR: only %d FEBs found \n",cfebs_.size());
+    (*MyOutput_) << "ERROR: only " <<cfebs_.size()<< " FEBs found " << std::endl;
   }
   err2=0;
   for(unsigned i = 0; i < cfebs_.size(); ++i) {
     ival=febfpgaid(cfebs_[i]);
-    if(ival!=0x93006120){
+    if(ival!=0x20610093){
       err2=err2+1;
-      printf(" ERROR: %d febfpgaid is: %08x and should be 0x93006120 ",i,ival);
+      ierr=1;
+      (*MyOutput_) << " ERROR: "<<hex<<i<<" febfpgaid is: "<<ival
+		   << " and should be 0x20610093" << std::endl;
     }
   }
+  //
+  TestStatus_[6] = ierr;
+  //
   pass=1; 
   if(err2!=0)pass=0;
   //
@@ -3100,7 +3108,6 @@ int  DAQMB::test8()
 {
   //
   int i,ierr,err2,pass;
-  int devnum,devstp,dv;
   float v0,v1,vout,diff,diff2;
   //
   double sn,sx,sy,sxy,sx2;
@@ -3112,7 +3119,7 @@ int  DAQMB::test8()
   //
   if(cfebs_.size()!=5){
      ierr=ierr+100;
-     printf("ERROR: only %d FEBs found \n",cfebs_.size());
+     (*MyOutput_) << "ERROR: only "<<cfebs_.size()<<" FEBs found "<<std::endl;
   }
   err2=0;
   for(int cfeb = 0; cfeb < cfebs_.size(); ++cfeb) {
@@ -3121,12 +3128,19 @@ int  DAQMB::test8()
       //
       v0=0.25*i;
       set_comp_thresh(cfeb,v0);
+      //set_comp_thresh(v0);
       usleep(500000);
+      //
+      for(int cfeb=0; cfeb<cfebs_.size(); ++cfeb) {
+	vout=adcplus(2,cfeb);
+	cout << "cfeb="<<cfeb<<" "<<" v0=" << v0 << " vout="<<vout<<std::endl;
+      }
+      //
       vout=adcplus(2,cfeb);
       if(i>0){
 	x[i-1]=v0;
 	y[i-1]=vout;
-	printf("%d %f %f    \n",cfeb,v0,vout);
+	(*MyOutput_) << "CFEB=" << cfeb<<" "<<v0<<" "<<vout<<std::endl;
       }
       //
     }
@@ -3144,19 +3158,19 @@ int  DAQMB::test8()
       sxy=sxy+x[i]*y[i];
       sx2=sx2+x[i]*x[i];
     }
+    //
     a=(sxy*sn-sx*sy)/(sn*sx2-sx*sx);
     b=(sy*sx2-sxy*sx)/(sn*sx2-sx*sx);
-    printf(" a b %f %f \n",a,b);
+    (*MyOutput_)<<"a " <<a<< " b " <<b<<std::endl;
     //
     if(a<-1025.||a>-1000.){
       ierr=1;
-      printf(" slope out of range- got %f should be -1005. \n",a);
+      (*MyOutput_) << " slope     out of range- got "<<a<<" should be -1005. " <<std::endl;
     }
-    //
     //
     if(b<3400.||a>3800.){
       ierr=1;
-      printf(" intercept out of range- got %f should be 3600. \n",a);
+      (*MyOutput_) << " intercept out of range- got "<<a<<" should be 3600. " << std::endl;
     }
     //
     for(i=0;i<9;i++){
@@ -3164,15 +3178,18 @@ int  DAQMB::test8()
       diff2=diff;
       if(diff2<0)diff2=-diff2;
       if(diff2<2.0){
-	printf("Good - i %d %f %f %f \n",i,y[i],a*x[i]+b,diff);
+	(*MyOutput_) << "Good - i "<<i<<" " <<y[i]<<" "<<a*x[i]+b<<" "<<diff<<std::endl;
       }else{
 	ierr=1;
-	printf("Bad  - i %d %f %f %f \n",i,y[i],a*x[i]+b,diff);
+	(*MyOutput_) << "Bad  - i "<<i<<" " <<y[i]<<" "<<a*x[i]+b<<" "<<diff<<std::endl;
       }
     }
   }
-// end comparator DAQ/ADC
-
+  //
+  // end comparator DAQ/ADC
+  //
+  TestStatus_[8] = ierr;
+  //
   pass=1; 
   if(ierr!=0)pass=0;
   return pass;
@@ -3181,7 +3198,6 @@ int  DAQMB::test8()
 int DAQMB::test9()
 {
   int i,ierr,pass;
-  int devnum,devstp,dv;
   float v0,v1,vout,diff;
   int ius;
   float voff;
@@ -3203,14 +3219,13 @@ int DAQMB::test9()
     if(diff<0.0)diff=-diff;
     if(diff>0.020){
       ierr=1;
-      printf("Problem -Int CDAC - got %f expect %f \n",vout,v0);
+      (*MyOutput_) << "Problem -Int CDAC - got " << vout << " expect " << v0 << std::endl;
     }else{ 
-      printf("Good - Int CDAC - got %f expect %f \n",vout,v0);
+      (*MyOutput_) << "Good    -Int CDAC - got " << vout << " expect " << v0 << std::endl;
     }
-    printf(" %f %f  \n",v0,vout);
   }
   // end int cal
-  printf(" end int cal \n");
+  (*MyOutput_) << " end int cal " << std::endl;
   // ext cal
   ius=0;
   voff=0.;
@@ -3225,14 +3240,13 @@ int DAQMB::test9()
     if(diff<0.0)diff=-diff;
     if(diff>0.020){
       ierr=1;
-      printf("Problem -Ext CDAC - got %f expect %f \n",vout,v0);
+      (*MyOutput_) << "Problem -Ext CDAC - got "<<vout<<" expect "<<v0<<std::endl;
     }else{ 
-      printf("Good -Ext CDAC - got %f expect %f \n",vout,v0);
+      (*MyOutput_) << "Good    -Ext CDAC - got "<<vout<<" expect "<<v0<<std::endl;
     }
-    printf(" %f %f  \n",v0,vout);
   }
   // end ext cal
-  printf(" end ext cal \n");
+  (*MyOutput_) << "end ext cal " << std::endl;
   // ext cal ptrd
   ius=0;
   voff=0.0;
@@ -3246,17 +3260,18 @@ int DAQMB::test9()
     if(diff<0.0)diff=-diff;
     if(diff>0.020){
       ierr=1;
-      printf("*Problem -Pres Ext CDAC - got %f expect %f \n",vout,v0);
+      (*MyOutput_) << "Problem -Pres Ext CDAC - got "<<vout<<" expect "<<v0<<std::endl;
     }else{ 
-      printf("Good -Pres Ext CDAC - got %f expect %f \n",vout,v0);
+      (*MyOutput_) << "Good    -Pres Ext CDAC - got "<<vout<<" expect "<<v0<<std::endl;
     }
-    printf(" %f %f  \n",v0,vout);
   }
   // end ext pres
-  printf(" end ext pres \n");
+  (*MyOutput_) << " end ext pres " << std::endl;
   //
   pass=1; 
   if(ierr!=0)pass=0;
+  //
+  TestStatus_[9] = ierr;
   //
   return pass;
   //
@@ -3265,29 +3280,33 @@ int DAQMB::test9()
 int DAQMB::test10()
 {
   //
-  int i,err,pass;
-  int boffset;
+  int i,ierr,pass;
   char cmp;
   char rcvpat[256];
   char sndpat[256];
   int match;
   //
-  err=0;
+  ierr=0;
   //Program SFM with 0,1,2,3,...,263
   for(i=0;i<264;i++)sndpat[i]=i&0xff;
+  //
   sfm_test_load(sndpat);  
+  //
   //Read SFM 
+  //
   sfm_test_read(rcvpat);
   //
   match=0;
   for(i=0;i<256;i++){cmp=i&0xff;if(cmp==rcvpat[i])match=match+1;}
   if(match!=256){
     for (i=0;i<256;i++) printf("%02x ",rcvpat[i]&0xff);printf("\n");
-    err=match;
+    ierr=match;
   }
   //
   pass=1; 
-  if(err!=0)pass=0;
+  if(ierr!=0)pass=0;
+  //
+  TestStatus_[10] = ierr;
   //
   return pass;
 }
@@ -3295,14 +3314,14 @@ int DAQMB::test10()
 int  DAQMB::test11()
 {  
   enum DEVTYPE dv;
-  int i,j,ierr,itog;
+  int i,j,itog;
   int nmtch;
   char pat[36],chk[32];
   char vshift[300];
   char v[2]={0x00,0xff};
-  int err,pass;
+  int ierr,pass;
   //
-  err=0;
+  ierr=0;
   itog=0;
   j=0;
  LOOP: j=j+1; 
@@ -3338,7 +3357,7 @@ int  DAQMB::test11()
        if(pat[i]==chk[i])nmtch++;
      }
      if(nmtch!=36){
-       err=err+1;}
+       ierr=ierr+1;}
      printf(" nmtch %d \n",nmtch);
      for(i=0;i<36;i++)printf("%02x",pat[i]&0xff);printf("\n");
      printf("*Bad CFEB %d",dv); for(i=0;i<36;i++)printf("%02x",pat[i]&0xff);printf("\n");
@@ -3347,8 +3366,10 @@ int  DAQMB::test11()
    goto LOOP;
  ENDR: 
    //
+   TestStatus_[11] = ierr;
+   //
    pass=1; 
-   if(err!=0)pass=0;
+   if(ierr!=0)pass=0;
    return pass;
    //
 }
