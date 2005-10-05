@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.8 2005/09/28 16:52:51 mey Exp $
+// $Id: TMB.h,v 2.9 2005/10/05 14:24:29 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.9  2005/10/05 14:24:29  mey
+// Added tests
+//
 // Revision 2.8  2005/09/28 16:52:51  mey
 // Include Output streamer
 //
@@ -125,8 +128,10 @@ public:
   void ResetALCTRAMAddress();
   int  GetCounter(int);
   void GetCounters();
-  int TestArray();
-  int TMBCRCcalc(std::vector< std::bitset<16> >& datain );
+  void FireALCTInjector();
+  void ClearALCTInjector();
+  int  TestArray();
+  int  TMBCRCcalc(std::vector< std::bitset<16> >& datain );
   std::bitset<22> calCRC22(const std::vector< std::bitset<16> >& datain);
   std::bitset<22> nextCRC22_D16(const std::bitset<16>& D, const std::bitset<22>& C);
   //
@@ -174,6 +179,8 @@ public:
   //
   void enableAllClocks();
   void disableAllClocks();
+  //
+  void TriggerTestInjectALCT();
   //
   int MPC0Accept();
   int MPC1Accept();

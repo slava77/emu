@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.15 2005/10/04 16:01:17 mey Exp $
+// $Id: TMB.cc,v 2.16 2005/10/05 14:24:19 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.16  2005/10/05 14:24:19  mey
+// Added tests
+//
 // Revision 2.15  2005/10/04 16:01:17  mey
 // Update
 //
@@ -170,35 +173,31 @@ void TMB::StartTTC(){
   //
   sndbuf[0] = 0x0;
   sndbuf[1] = 0x1;
-  tmb_vme(VME_WRITE,0x9c,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
   //
   sndbuf[0] = 0x6;
   sndbuf[1] = 0x3;
-  tmb_vme(VME_WRITE,0x9c,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
   //
   sndbuf[0] = 0x0;
   sndbuf[1] = 0x1;
-  tmb_vme(VME_WRITE,0x9c,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
   //
-  tmb_vme(VME_READ,0x9c,sndbuf,rcvbuf,NOW);
-  //
-  (*MyOutput_) << rcvbuf[0] << " " << rcvbuf[1] << std::endl;
+  tmb_vme(VME_READ,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
   //
   sndbuf[0] = 0x0;
   sndbuf[1] = 0x1;
-  tmb_vme(VME_WRITE,0x9c,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
   //
   sndbuf[0] = 0x1;
   sndbuf[1] = 0x3;
-  tmb_vme(VME_WRITE,0x9c,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
   //
   sndbuf[0] = 0x0;
   sndbuf[1] = 0x1;
-  tmb_vme(VME_WRITE,0x9c,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
   //
-  tmb_vme(VME_READ,0x9c,sndbuf,rcvbuf,NOW);
-  //
-  (*MyOutput_) << rcvbuf[0] << " " << rcvbuf[1] << std::endl;
+  tmb_vme(VME_READ,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
   //
 }
 
@@ -994,234 +993,249 @@ void TMB::scope(int scp_arm,int scp_readout, int scp_channel) {
   /**** Display *********************************************************/
 
   //Construct waveform
-  DISPLAY:
-  printf("Displaying \n");
+ DISPLAY:
+  //
+  (*MyOutput_) << "Displaying " << std::endl;
+  //
   if (!pfile) pfile = fopen("tmb_scope.txt","w");
-    for(ich=0;ich<128;ich++) {                      //loop over 128 scope channels
-      iram=ich/16;
-      fprintf(pfile,"%s ",scope_tag[ich]);
+  //
+  for(ich=0;ich<128;ich++) {                      //loop over 128 scope channels
+    //
+    iram=ich/16;
+    (*MyOutput_) << scope_tag[ich] ;
+    //
+    for(itbin=0;itbin<256;itbin++) {                      //256 time bins per channel
+      //
+      ibit = ((scope_ram[itbin][iram]) >> (ich%16) ) & 1; //logic levels vs tbin for this chan	      
+      if(ibit == 0) scope_ch[itbin] = "_";       //display symbol for logic 0
+      if(ibit == 1) scope_ch[itbin] = "-";       //display symbol for logic 1
+      (*MyOutput_) << scope_ch[itbin];
+      //
+      // Construct integer for special channel groups
+      //
+      if (ich == 16) first_nhit[itbin]=ibit ;
+      if (ich == 17) first_nhit[itbin]=first_nhit[itbin] | (ibit<<1);
+      if (ich == 18) first_nhit[itbin]=first_nhit[itbin] | (ibit<<2);
+      //
+      if (ich == 20) second_nhit[itbin]=ibit;
+      if (ich == 21) second_nhit[itbin]=second_nhit[itbin] | (ibit<<1);
+      if (ich == 22) second_nhit[itbin]=second_nhit[itbin] | (ibit<<2);
+      //
+      if (ich == 41) hs_thresh[itbin]=ibit ;
+      if (ich == 42) hs_thresh[itbin]=hs_thresh[itbin] | (ibit<<1) ;
+      if (ich == 43) hs_thresh[itbin]=hs_thresh[itbin] | (ibit<<2) ;
+      //
+      if (ich == 44) ds_thresh[itbin]=ibit;
+      if (ich == 45) ds_thresh[itbin]=ds_thresh[itbin] | (ibit<<1);
+      if (ich == 46) ds_thresh[itbin]=ds_thresh[itbin] | (ibit<<2);
+      //
+      if (ich == 50) buf_nbusy[itbin]=ibit ;
+      if (ich == 51) buf_nbusy[itbin]=buf_nbusy[itbin] | (ibit<<1) ;
+      if (ich == 52) buf_nbusy[itbin]=buf_nbusy[itbin] | (ibit<<2) ;
+      if (ich == 53) buf_nbusy[itbin]=buf_nbusy[itbin] | (ibit<<3) ;
+      //									  //
+      if (ich == 59) l1a_rx_cnt[itbin]=ibit;
+      if (ich == 60) l1a_rx_cnt[itbin]=l1a_rx_cnt[itbin] | (ibit<<1);
+      if (ich == 61) l1a_rx_cnt[itbin]=l1a_rx_cnt[itbin] | (ibit<<2);
+      if (ich == 62) l1a_rx_cnt[itbin]=l1a_rx_cnt[itbin] | (ibit<<3);
+      //
+      if (ich == 65) bxn[itbin]=ibit ;
+      if (ich >= 66 && ich <= 76) bxn[itbin]=bxn[itbin] | (ibit<<(ich-65)) ;
+      // 
+      if (ich == 80) dmb[itbin] = ibit ;
+      if (ich >= 81 && ich <= 95) dmb[itbin]=dmb[itbin] | (ibit<<(ich-80)) ;
+      //
+      if (ich == 96) rpc0_bxn[itbin]=ibit ;
+      if (ich == 97) rpc0_bxn[itbin]=rpc0_bxn[itbin] | (ibit << 1);
+      if (ich == 98) rpc0_bxn[itbin]=rpc0_bxn[itbin] | (ibit << 2);
+      //
+      if (ich == 99 )rpc1_bxn[itbin]=ibit;
+      if (ich == 100)rpc1_bxn[itbin]=rpc1_bxn[itbin] | (ibit << 1);
+      if (ich == 101)rpc1_bxn[itbin]=rpc1_bxn[itbin] | (ibit << 2);
+      //
+      if (ich == 102)rpc2_bxn[itbin]=ibit;
+      if (ich == 103)rpc2_bxn[itbin]=rpc2_bxn[itbin] | (ibit << 1);
+      if (ich == 104)rpc2_bxn[itbin]=rpc2_bxn[itbin] | (ibit << 2);
+      //
+      if (ich == 105)rpc3_bxn[itbin]=ibit;
+      if (ich == 106)rpc3_bxn[itbin]=rpc3_bxn[itbin] | (ibit << 1);
+      if (ich == 107)rpc3_bxn[itbin]=rpc3_bxn[itbin] | (ibit << 2);
+	//
+      if(ich == 112)rpc0_nhits[itbin]=ibit;
+      if(ich == 113)rpc0_nhits[itbin]=rpc0_nhits[itbin] | (ibit << 1);
+      if(ich == 114)rpc0_nhits[itbin]=rpc0_nhits[itbin] | (ibit << 2);
+      if(ich == 115)rpc0_nhits[itbin]=rpc0_nhits[itbin] | (ibit << 3);
+      //
+      if(ich == 116)rpc1_nhits[itbin]=ibit;
+      if(ich == 117)rpc1_nhits[itbin]=rpc1_nhits[itbin] | (ibit << 1);
+      if(ich == 118)rpc1_nhits[itbin]=rpc1_nhits[itbin] | (ibit << 2);
+      if(ich == 119)rpc1_nhits[itbin]=rpc1_nhits[itbin] | (ibit << 3);
+      //
+      if(ich == 120)rpc2_nhits[itbin]=ibit;
+      if(ich == 121)rpc2_nhits[itbin]=rpc2_nhits[itbin] | (ibit << 1);
+      if(ich == 122)rpc2_nhits[itbin]=rpc2_nhits[itbin] | (ibit << 2);
+      if(ich == 123)rpc2_nhits[itbin]=rpc2_nhits[itbin] | (ibit << 3);
+      //
+      if(ich == 124)rpc3_nhits[itbin]=ibit;
+      if(ich == 125)rpc3_nhits[itbin]=rpc3_nhits[itbin] | (ibit << 1);
+      if(ich == 126)rpc3_nhits[itbin]=rpc3_nhits[itbin] | (ibit << 2);
+      if(ich == 127)rpc3_nhits[itbin]=rpc3_nhits[itbin] | (ibit << 3);
+      //
+    }  //close itbin
+    //
+    if (ich == 18) {
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
       for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	ibit = ((scope_ram[itbin][iram]) >> (ich%16) ) & 1;      //logic levels vs tbin for this chan	      
-	if(ibit == 0) scope_ch[itbin] = "_";       //display symbol for logic 0
-	if(ibit == 1) scope_ch[itbin] = "-";       //display symbol for logic 1
-	fprintf(pfile,"%s",scope_ch[itbin]);
-	      
-	// Construct integer for special channel groups
-	if (ich == 16) first_nhit[itbin]=ibit ;
-	if (ich == 17) first_nhit[itbin]=first_nhit[itbin] | (ibit<<1);
-	if (ich == 18) first_nhit[itbin]=first_nhit[itbin] | (ibit<<2);
-	//
-	if (ich == 20) second_nhit[itbin]=ibit;
-	if (ich == 21) second_nhit[itbin]=second_nhit[itbin] | (ibit<<1);
-	if (ich == 22) second_nhit[itbin]=second_nhit[itbin] | (ibit<<2);
-	//
-	if (ich == 41) hs_thresh[itbin]=ibit ;
-	if (ich == 42) hs_thresh[itbin]=hs_thresh[itbin] | (ibit<<1) ;
-	if (ich == 43) hs_thresh[itbin]=hs_thresh[itbin] | (ibit<<2) ;
-	//
-	if (ich == 44) ds_thresh[itbin]=ibit;
-	if (ich == 45) ds_thresh[itbin]=ds_thresh[itbin] | (ibit<<1);
-	if (ich == 46) ds_thresh[itbin]=ds_thresh[itbin] | (ibit<<2);
-	//
-	if (ich == 50) buf_nbusy[itbin]=ibit ;
-	if (ich == 51) buf_nbusy[itbin]=buf_nbusy[itbin] | (ibit<<1) ;
-	if (ich == 52) buf_nbusy[itbin]=buf_nbusy[itbin] | (ibit<<2) ;
-	if (ich == 53) buf_nbusy[itbin]=buf_nbusy[itbin] | (ibit<<3) ;
-	//									  //
-	if (ich == 59) l1a_rx_cnt[itbin]=ibit;
-	if (ich == 60) l1a_rx_cnt[itbin]=l1a_rx_cnt[itbin] | (ibit<<1);
-	if (ich == 61) l1a_rx_cnt[itbin]=l1a_rx_cnt[itbin] | (ibit<<2);
-	if (ich == 62) l1a_rx_cnt[itbin]=l1a_rx_cnt[itbin] | (ibit<<3);
-	//
-	if (ich == 65) bxn[itbin]=ibit ;
-	if (ich >= 66 && ich <= 76) bxn[itbin]=bxn[itbin] | (ibit<<(ich-65)) ;
-	// 
-	if (ich == 80) dmb[itbin] = ibit ;
-	if (ich >= 81 && ich <= 95) dmb[itbin]=dmb[itbin] | (ibit<<(ich-80)) ;
-	//
-	if (ich == 96) rpc0_bxn[itbin]=ibit ;
-	if (ich == 97) rpc0_bxn[itbin]=rpc0_bxn[itbin] | (ibit << 1);
-	if (ich == 98) rpc0_bxn[itbin]=rpc0_bxn[itbin] | (ibit << 2);
-	//
-	if (ich == 99 )rpc1_bxn[itbin]=ibit;
-	if (ich == 100)rpc1_bxn[itbin]=rpc1_bxn[itbin] | (ibit << 1);
-	if (ich == 101)rpc1_bxn[itbin]=rpc1_bxn[itbin] | (ibit << 2);
-	//
-	if (ich == 102)rpc2_bxn[itbin]=ibit;
-	if (ich == 103)rpc2_bxn[itbin]=rpc2_bxn[itbin] | (ibit << 1);
-	if (ich == 104)rpc2_bxn[itbin]=rpc2_bxn[itbin] | (ibit << 2);
-	//
-	if (ich == 105)rpc3_bxn[itbin]=ibit;
-	if (ich == 106)rpc3_bxn[itbin]=rpc3_bxn[itbin] | (ibit << 1);
-	if (ich == 107)rpc3_bxn[itbin]=rpc3_bxn[itbin] | (ibit << 2);
-	//
-	if(ich == 112)rpc0_nhits[itbin]=ibit;
-	if(ich == 113)rpc0_nhits[itbin]=rpc0_nhits[itbin] | (ibit << 1);
-	if(ich == 114)rpc0_nhits[itbin]=rpc0_nhits[itbin] | (ibit << 2);
-	if(ich == 115)rpc0_nhits[itbin]=rpc0_nhits[itbin] | (ibit << 3);
-	//
-	if(ich == 116)rpc1_nhits[itbin]=ibit;
-	if(ich == 117)rpc1_nhits[itbin]=rpc1_nhits[itbin] | (ibit << 1);
-	if(ich == 118)rpc1_nhits[itbin]=rpc1_nhits[itbin] | (ibit << 2);
-	if(ich == 119)rpc1_nhits[itbin]=rpc1_nhits[itbin] | (ibit << 3);
-	//
-	if(ich == 120)rpc2_nhits[itbin]=ibit;
-	if(ich == 121)rpc2_nhits[itbin]=rpc2_nhits[itbin] | (ibit << 1);
-	if(ich == 122)rpc2_nhits[itbin]=rpc2_nhits[itbin] | (ibit << 2);
-	if(ich == 123)rpc2_nhits[itbin]=rpc2_nhits[itbin] | (ibit << 3);
-	//
-	if(ich == 124)rpc3_nhits[itbin]=ibit;
-	if(ich == 125)rpc3_nhits[itbin]=rpc3_nhits[itbin] | (ibit << 1);
-	if(ich == 126)rpc3_nhits[itbin]=rpc3_nhits[itbin] | (ibit << 2);
-	if(ich == 127)rpc3_nhits[itbin]=rpc3_nhits[itbin] | (ibit << 3);
-	//
-      }  //close itbin
-
-      if (ich == 18) {
-	fprintf(pfile,"\n%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1d",first_nhit[itbin] ) ;
-	}
+	(*MyOutput_) << first_nhit[itbin] ;
       }
-      if (ich == 22) {
-	fprintf(pfile,"\n%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1d",second_nhit[itbin] ) ;
-	}
-      }
-      if (ich == 43) {
-	fprintf(pfile,"\n%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1d",hs_thresh[itbin] ) ;
-	}
-      }
-      if (ich == 46) {
-	fprintf(pfile,"\n%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1d",ds_thresh[itbin] ) ;
-	}
-      }
-      if (ich == 53) {
-	fprintf(pfile,"\n%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1d",buf_nbusy[itbin] ) ;
-	}
-      }
-      if (ich == 62) {
-	fprintf(pfile,"\n%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1x",l1a_rx_cnt[itbin] ) ;
-	}
-      }
-      if (ich == 76) {
-	fprintf(pfile,"\n%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1x",(bxn[itbin] >> 8) & 0xf ) ;
-	}
-	fprintf(pfile,"\n");    
-	fprintf(pfile,"%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1x",(bxn[itbin] >> 4) & 0xf) ;
-	}
-	fprintf(pfile,"\n");    
-	fprintf(pfile,"%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1x",(bxn[itbin]) & 0xf ) ;
-	}
-      }
-      //
-      if (ich == 95) {
-	fprintf(pfile,"\n%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1x",(dmb[itbin] >> 12) & 0xf ) ;
-	}
-	fprintf(pfile,"\n");    
-	fprintf(pfile,"%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1x",(dmb[itbin] >> 8) & 0xf ) ;
-	}
-	fprintf(pfile,"\n");    
-	fprintf(pfile,"%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1x",(dmb[itbin] >> 4) & 0xf) ;
-	}
-	fprintf(pfile,"\n");    
-	fprintf(pfile,"%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1x",(dmb[itbin]) & 0xf ) ;
-	}
-      }
-      //
-      if (ich == 98 ) {
-	fprintf(pfile,"\n");    
-	fprintf(pfile,"%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1x",(rpc0_bxn[itbin]) & 0xf ) ;
-	}
-      }
-      //
-      if (ich == 101 ) {
-	fprintf(pfile,"\n");    
-	fprintf(pfile,"%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1x",(rpc1_bxn[itbin]) & 0xf ) ;
-	}
-      }
-      //      
-      if (ich == 104 ) {
-	fprintf(pfile,"\n");    
-	fprintf(pfile,"%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1x",(rpc2_bxn[itbin]) & 0xf ) ;
-	}
-      }
-      //
-      if (ich == 107 ) {
-	fprintf(pfile,"\n");    
-	fprintf(pfile,"%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1x",(rpc3_bxn[itbin]) & 0xf ) ;
-	}
-      }
-      //
-      if (ich == 115 ) {
-	fprintf(pfile,"\n");    
-	fprintf(pfile,"%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1x",(rpc0_nhits[itbin]) & 0xf ) ;
-	}
-      }
-      //
-      if (ich == 119 ) {
-	fprintf(pfile,"\n");    
-	fprintf(pfile,"%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1x",(rpc1_nhits[itbin]) & 0xf ) ;
-	}
-      }
-      //
-      if (ich == 123 ) {
-	fprintf(pfile,"\n");    
-	fprintf(pfile,"%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1x",(rpc2_nhits[itbin]) & 0xf ) ;
-	}
-      }
-      //
-      if (ich == 127 ) {
-	fprintf(pfile,"\n");    
-	fprintf(pfile,"%s ",scope_tag[ich]);
-	for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	  fprintf(pfile,"%1x",(rpc3_nhits[itbin]) & 0xf ) ;
-	}
-      }
-      //
-      fprintf(pfile,"\n");
     }
-
-    // JMT close the file so it actually gets all flushed
-    if (pfile) fclose(pfile);
-
+    if (ich == 22) {
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << second_nhit[itbin] ;
+      }
+    }
+    if (ich == 43) {
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << hs_thresh[itbin] ;
+      }
+    }
+    if (ich == 46) {
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << ds_thresh[itbin] ;
+      }
+    }
+    if (ich == 53) {
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << buf_nbusy[itbin] ;
+      }
+    }
+    if (ich == 62) {
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << l1a_rx_cnt[itbin] ;
+      }
+    }
+    if (ich == 76) {
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << std::hex << ((bxn[itbin] >> 8) & 0xf) ;
+      }
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << std::hex << ((bxn[itbin] >> 4) & 0xf) ;
+      }
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << std::hex << ((bxn[itbin]) & 0xf ) ;
+      }
+    }
+    //
+    if (ich == 95) {
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << std::hex << ((dmb[itbin] >> 12) & 0xf ) ;
+      }
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << std::hex << ((dmb[itbin] >> 8) & 0xf ) ;
+      }
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << std::hex << ((dmb[itbin] >> 4) & 0xf) ;
+      }
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << ((dmb[itbin]) & 0xf ) ;
+      }
+    }
+    //
+    if (ich == 98 ) {
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << ((rpc0_bxn[itbin]) & 0xf ) ;
+      }
+    }
+    //
+    if (ich == 101 ) {
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+        (*MyOutput_) << ((rpc1_bxn[itbin]) & 0xf ) ;
+      }
+    }
+    //      
+    if (ich == 104 ) {
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << ((rpc2_bxn[itbin]) & 0xf ) ;
+      }
+    }
+    //
+    if (ich == 107 ) {
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << ((rpc3_bxn[itbin]) & 0xf ) ;
+      }
+    }
+    //
+    if (ich == 115 ) {
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << ((rpc0_nhits[itbin]) & 0xf ) ;
+      }
+    }
+    //
+    if (ich == 119 ) {
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << ((rpc1_nhits[itbin]) & 0xf ) ;
+      }
+    }
+    //
+    if (ich == 123 ) {
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << ((rpc2_nhits[itbin]) & 0xf ) ;
+      }
+    }
+    //
+    if (ich == 127 ) {
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << ((rpc3_nhits[itbin]) & 0xf ) ;
+      }
+    }
+    //
+    (*MyOutput_) << std::endl;
+    //
+  }    
+  // JMT close the file so it actually gets all flushed
+  if (pfile) fclose(pfile);
+  //
   END:
     return;
 } //scope
@@ -1587,23 +1601,39 @@ int TMB::TestArray(){
 }
 
 int TMB::TMBCRCcalc(std::vector<std::bitset <16> >& TMBData) {
-   std::bitset<22> CRC=calCRC22(TMBData);
-   std::cout << " Test here " << CRC.to_ulong() << std::endl ;
-   return CRC.to_ulong();
+  //
+  std::bitset<22> CRC=calCRC22(TMBData);
+  std::cout << " Test here " << CRC.to_ulong() << std::endl ;
+  return CRC.to_ulong();
+  //
+}
+
+void TMB::FireALCTInjector(){
+  //
+  tmb_vme(VME_READ, alct_inj_adr, sndbuf,rcvbuf,NOW);
+  sndbuf[0] =   rcvbuf[0]&0xff ;
+  sndbuf[1] =  (rcvbuf[1]&0xff) | 0x2 ;
+  tmb_vme(VME_WRITE, alct_inj_adr, sndbuf,rcvbuf,NOW);
+  //
+}
+
+void TMB::ClearALCTInjector(){
+  //
+  tmb_vme(VME_READ, alct_inj_adr, sndbuf,rcvbuf,NOW);
+  sndbuf[0] =  (rcvbuf[0]&0xff) ;
+  sndbuf[1] =  (rcvbuf[1]&0xfd) ;
+  tmb_vme(VME_WRITE, alct_inj_adr, sndbuf,rcvbuf,NOW);
+  //
 }
 
 
 void TMB::DisableCLCTInputs(){
-//
-   int adr, alct_wdcnt, alct_busy, rd_data, wr_data, alct_rdata;
-   int tmb_state, halt_state;
-   adr = cfeb_inj_adr ;
-   tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-   rd_data   = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-   sndbuf[0] = rcvbuf[0];
-   sndbuf[1] = (rcvbuf[1] & 0xe0) ;
-   tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-//
+  //
+  tmb_vme(VME_READ,cfeb_inj_adr,sndbuf,rcvbuf,NOW);
+  sndbuf[0] = (rcvbuf[0]&0xff);
+  sndbuf[1] = (rcvbuf[1]&0xe0) ;
+  tmb_vme(VME_WRITE,cfeb_inj_adr,sndbuf,rcvbuf,NOW);
+  //
 }
 
 void TMB::EnableCLCTInputs(int CLCTInputs = 0x1f){
@@ -2486,19 +2516,21 @@ int TMB::GetWordCount(){
 }
 
 void TMB::SetALCTPatternTrigger(){
-   //
-   sndbuf[0] = 0x0;
-   sndbuf[1] = 0x2;
-   tmb_vme(VME_WRITE,seq_trig_en_adr,sndbuf,rcvbuf,NOW);
-   //
+  //
+  tmb_vme(VME_READ, seq_trig_en_adr, sndbuf,rcvbuf,NOW);
+  sndbuf[0] =   rcvbuf[0]&0xff ;
+  sndbuf[1] =  (rcvbuf[1]&0xff) | (0x2) ;
+  tmb_vme(VME_WRITE, seq_trig_en_adr, sndbuf,rcvbuf,NOW);
+  //
 }
 
 void TMB::SetCLCTPatternTrigger(){
-   //
-   sndbuf[0] = 0x0;
-   sndbuf[1] = 0x1;
-   tmb_vme(VME_WRITE,seq_trig_en_adr,sndbuf,rcvbuf,NOW);
-   //
+  //
+  tmb_vme(VME_READ, seq_trig_en_adr, sndbuf,rcvbuf,NOW);
+  sndbuf[0] =   rcvbuf[0]&0xff ;
+  sndbuf[1] =  (rcvbuf[1]&0xff) | (0x1) ;
+  tmb_vme(VME_WRITE, seq_trig_en_adr, sndbuf,rcvbuf,NOW);
+  //
 }
 
 
@@ -3763,4 +3795,200 @@ void TMB::enableAllClocks(){
    sndbuf[0]=rcvbuf[0] | 0xe0;
    sndbuf[1]=rcvbuf[1] | 0x07;
    tmb_vme(VME_WRITE, vme_step_adr, sndbuf,rcvbuf,NOW);
+}
+
+void TMB::TriggerTestInjectALCT(){
+  //
+  // Turn off CCB backplane inputs, turn on L1A emulator
+  /*
+  adr = ccb_cfg_adr;
+  wr_data ='003D'x;
+  status = vme_write(%ref(adr),%ref(wr_data));
+  */
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x3D;
+  tmb_vme(VME_WRITE, ccb_cfg_adr, sndbuf,rcvbuf,NOW);
+  //
+  // Enable sequencer trigger, set internal l1a delay
+  /*
+  adr = ccb_trig_adr+base_adr;
+  status = vme_read (%ref(adr),%ref(rd_data));
+  wr_data =rd_data.and.'FF00'x;
+  wr_data =wr_data.or.'0004'x;
+  //	wr_data = wr_data.or.ishft(114,8);
+  status = vme_write(%ref(adr),%ref(wr_data));
+  */
+  tmb_vme(VME_READ, ccb_trig_adr, sndbuf,rcvbuf,NOW);
+  sndbuf[0] = rcvbuf[0];
+  sndbuf[1] = 0x4;
+  tmb_vme(VME_WRITE, ccb_trig_adr, sndbuf,rcvbuf,NOW);
+  //
+  // Turn off ALCT cable inputs, disable synchronized alct+clct triggers
+  /*
+  adr = alct_inj_adr+base_adr;
+  status = vme_read (%ref(adr),%ref(rd_data));
+  wr_data = rd_data.and.'0000'x;
+  wr_data = wr_data.or. '0001'x;
+  wr_data = wr_data.or.ishft(alct_injector_delay,3); //post-rat firmware;
+  status = vme_write(%ref(adr),%ref(wr_data));
+  */
+  int alct_injector_delay = 14;
+  tmb_vme(VME_READ, alct_inj_adr, sndbuf,rcvbuf,NOW);
+  sndbuf[0] =  0x0;
+  sndbuf[1] =  0x1 | ((alct_injector_delay&0x1f)<<3) ;
+  tmb_vme(VME_WRITE, alct_inj_adr, sndbuf,rcvbuf,NOW);
+  
+  // Turn off CLCT cable inputs
+  /*
+  adr = cfeb_inj_adr+base_adr;
+  status = vme_read (%ref(adr),%ref(rd_data));
+  wr_data = rd_data.and.'FFE0'x;
+  status = vme_write(%ref(adr),%ref(wr_data));
+  */
+  //
+  DisableCLCTInputs();
+  //
+  // Turn off internal level 1 accept for sequencer
+  /*
+  adr = seq_l1a_adr+base_adr;
+  status = vme_read (%ref(adr),%ref(rd_data));
+  wr_data = rd_data.and.'0FFF'x;
+  status = vme_write(%ref(adr),%ref(wr_data));
+  */
+  //
+  tmb_vme(VME_READ, seq_l1a_adr, sndbuf,rcvbuf,NOW);
+  sndbuf[0] =  rcvbuf[0]&0x0f ;
+  sndbuf[1] =  rcvbuf[1]&0xff ;
+  tmb_vme(VME_WRITE, seq_l1a_adr, sndbuf,rcvbuf,NOW);
+  //
+  // Select ALCT pattern trigger
+  /*
+  adr = seq_trig_en_adr+base_adr;
+  status = vme_read (%ref(adr),%ref(rd_data));
+  rd_data=rd_data.and.'FF00'x;
+  wr_data = rd_data.or.'0002'x;
+  status = vme_write(%ref(adr),%ref(wr_data));
+  */
+  //
+  SetALCTPatternTrigger();
+  //
+  // Set start_trigger state then bx0 for FMM
+  /*
+  ttc_cmd=6;
+  adr = base_adr+ccb_cmd_adr;
+  wr_data='0001'x;
+  status= vme_write (%ref(adr),%ref(wr_data));
+  */
+  //
+  /*
+  wr_data='0003'x.or.ishft(ttc_cmd,8);
+  status= vme_write (%ref(adr),%ref(wr_data));
+  */
+  /*
+  wr_data='0001'x;
+  status= vme_write (%ref(adr),%ref(wr_data));
+  */
+  /*
+  ttc_cmd=1;
+  wr_data='0003'x.or.ishft(ttc_cmd,8);
+  status= vme_write (%ref(adr),%ref(wr_data));
+  */
+  /*
+  wr_data='0001'x;
+  status= vme_write (%ref(adr),%ref(wr_data));
+  */
+  //
+  StartTTC();
+  //
+  // Arm scope trigger
+  /*
+  scp_arm=.true.;
+  scp_readout=.false.;
+  scp_raw_decode=.false.;
+  scp_silent=.false.;
+  if (rdscope)
+    scope128(base_adr,scp_ctrl_adr,scp_rdata_adr,
+	     scp_arm,scp_readout,scp_raw_decode,scp_silent,scp_raw_data);
+  */
+  //
+  scope(1,0,0);
+  //
+  // Clear previous inject
+  /*
+  adr=alct_inj_adr+base_adr;
+  status = vme_read (%ref(adr),%ref(rd_data));
+  wr_data=rd_data.and.'FFFD'x;
+  status = vme_write(%ref(adr),%ref(wr_data));
+  */
+  //
+  tmb_vme(VME_READ, alct_inj_adr, sndbuf,rcvbuf,NOW);
+  sndbuf[0] =  rcvbuf[0]&0xff ;
+  sndbuf[1] =  rcvbuf[1]&0xfd ;
+  tmb_vme(VME_WRITE, alct_inj_adr, sndbuf,rcvbuf,NOW);
+  //  
+  // Fire ALCT injector
+  /*
+    wr_data=wr_data.or.'0002'x;	//Fire ALCT inject
+  status = vme_write(%ref(adr),%ref(wr_data));
+  */
+  FireALCTInjector();
+  //
+
+  // Clear previous inject
+  /*
+  wr_data=rd_data.and.'FFFD'x ;
+  status = vme_write(%ref(adr),%ref(wr_data));
+  */
+  //
+  ClearALCTInjector();
+  //
+  
+  // Check scintillator veto is set
+  /*
+  adr=base_adr+seqmod_adr;
+  status = vme_read (%ref(adr),%ref(rd_data));
+  scint_veto=ishft(rd_data,-13).and.1;
+  if(scint_veto.ne.1)pause 'scint veto failed to set';
+  */
+  //
+  tmb_vme(VME_READ, seqmod_adr, sndbuf,rcvbuf,NOW);
+  int scint_veto = ((rcvbuf[0]&0xff)>>5&0x1);
+  if(scint_veto != 1) {
+    (*MyOutput_) << "scint veto failed to set" << std::endl;
+    return;
+  }
+  //
+  // Clear scintillator veto
+  /*
+  wr_data=rd_data.or.ishft(1,12);
+  status = vme_write(%ref(adr),%ref(wr_data));
+  */
+  tmb_vme(VME_READ, seqmod_adr, sndbuf,rcvbuf,NOW);
+  sndbuf[0] = (rcvbuf[0]&0xff) | (0x1<<4);
+  sndbuf[1] =  rcvbuf[1]&0xff ;
+  tmb_vme(VME_WRITE, seqmod_adr, sndbuf,rcvbuf,NOW);
+  /*
+  wr_data=wr_data.xor.ishft(1,12);
+  status = vme_write(%ref(adr),%ref(wr_data));
+  status = vme_read (%ref(adr),%ref(rd_data));
+  scint_veto=ishft(rd_data,-12).and.1;
+  if(scint_veto.ne.0)pause 'scint veto failed to clear';
+  */
+  tmb_vme(VME_READ, seqmod_adr, sndbuf,rcvbuf,NOW);
+  scint_veto = ((sndbuf[0]&0xff)>>4)&0x1;
+  if(scint_veto != 0) (*MyOutput_) << "scint veto failed to clear" << std::endl;
+  //
+  // Read back embedded scope data
+  /*
+  scp_arm=.false.;
+  scp_readout=.true.;
+  scp_raw_decode=.false.;
+  scp_silent=.false.;
+  */
+  scope(0,1);
+  /*
+    if (rdscope)
+    scope128(base_adr,scp_ctrl_adr,scp_rdata_adr,
+    scp_arm,scp_readout,scp_raw_decode,scp_silent,scp_raw_data);
+  */
 }
