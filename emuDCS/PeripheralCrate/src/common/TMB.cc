@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.16 2005/10/05 14:24:19 mey Exp $
+// $Id: TMB.cc,v 2.17 2005/10/06 14:48:32 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.17  2005/10/06 14:48:32  mey
+// Added tmb trigger test
+//
 // Revision 2.16  2005/10/05 14:24:19  mey
 // Added tests
 //
@@ -997,7 +1000,7 @@ void TMB::scope(int scp_arm,int scp_readout, int scp_channel) {
   //
   (*MyOutput_) << "Displaying " << std::endl;
   //
-  if (!pfile) pfile = fopen("tmb_scope.txt","w");
+  //if (!pfile) pfile = fopen("tmb_scope.txt","w");
   //
   for(ich=0;ich<128;ich++) {                      //loop over 128 scope channels
     //
@@ -1115,14 +1118,24 @@ void TMB::scope(int scp_arm,int scp_readout, int scp_channel) {
       (*MyOutput_) << std::endl;
       (*MyOutput_) << scope_tag[ich] ;
       for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	(*MyOutput_) << buf_nbusy[itbin] ;
+	(*MyOutput_) << std::hex << buf_nbusy[itbin] ;
       }
     }
     if (ich == 62) {
       (*MyOutput_) << std::endl;
       (*MyOutput_) << scope_tag[ich] ;
       for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
-	(*MyOutput_) << l1a_rx_cnt[itbin] ;
+	(*MyOutput_) << std::hex << ((l1a_rx_cnt[itbin]>>8)&0xf) ;
+      }
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << std::hex << ((l1a_rx_cnt[itbin]>>4)&0xf) ;
+      }
+      (*MyOutput_) << std::endl;
+      (*MyOutput_) << scope_tag[ich] ;
+      for(itbin=0;itbin<256;itbin++) {             //256 time bins per channel
+	(*MyOutput_) << std::hex << ((l1a_rx_cnt[itbin])&0xf) ;
       }
     }
     if (ich == 76) {
@@ -1234,7 +1247,7 @@ void TMB::scope(int scp_arm,int scp_readout, int scp_channel) {
     //
   }    
   // JMT close the file so it actually gets all flushed
-  if (pfile) fclose(pfile);
+  //if (pfile) fclose(pfile);
   //
   END:
     return;
@@ -1626,6 +1639,54 @@ void TMB::ClearALCTInjector(){
   //
 }
 
+void TMB::ClearScintillatorVeto(){
+  //
+  tmb_vme(VME_READ, seqmod_adr, sndbuf,rcvbuf,NOW);
+  sndbuf[0] = (rcvbuf[0]&0xef) | (0x1<<4);
+  sndbuf[1] =  rcvbuf[1]&0xff ;
+  tmb_vme(VME_WRITE, seqmod_adr, sndbuf,rcvbuf,NOW);
+  //
+}
+
+void TMB::FireCLCTInjector(){
+  //
+  tmb_vme(VME_READ, cfeb_inj_adr, sndbuf,rcvbuf,NOW);
+  sndbuf[0] =  (rcvbuf[0]&0x7f) | (0x80) ;
+  sndbuf[1] =  (rcvbuf[1]&0xff);
+  tmb_vme(VME_WRITE, cfeb_inj_adr, sndbuf,rcvbuf,NOW);
+  //
+}
+
+void TMB::ClearCLCTInjector(){
+  //
+  tmb_vme(VME_READ, cfeb_inj_adr, sndbuf,rcvbuf,NOW);
+  sndbuf[0] =  (rcvbuf[0]&0x7f) ;
+  sndbuf[1] =  (rcvbuf[1]&0xff);
+  tmb_vme(VME_WRITE, cfeb_inj_adr, sndbuf,rcvbuf,NOW);
+  //
+}
+
+
+
+void TMB::DisableALCTInputs(){
+  //
+  tmb_vme(VME_READ, alct_inj_adr, sndbuf,rcvbuf,NOW);
+  sndbuf[0] =  (rcvbuf[0]&0xff) ;
+  sndbuf[1] =  (rcvbuf[1]&0xfe) | (0x1);
+  tmb_vme(VME_WRITE, alct_inj_adr, sndbuf,rcvbuf,NOW);
+  //
+}
+
+void TMB::DisableALCTCLCTSync(){
+  //
+  tmb_vme(VME_READ, alct_inj_adr, sndbuf,rcvbuf,NOW);
+  sndbuf[0] =  (rcvbuf[0]&0xff) ;
+  sndbuf[1] =  (rcvbuf[1]&0xfb) ;
+  tmb_vme(VME_WRITE, alct_inj_adr, sndbuf,rcvbuf,NOW);
+  //
+}
+
+
 
 void TMB::DisableCLCTInputs(){
   //
@@ -1633,6 +1694,33 @@ void TMB::DisableCLCTInputs(){
   sndbuf[0] = (rcvbuf[0]&0xff);
   sndbuf[1] = (rcvbuf[1]&0xe0) ;
   tmb_vme(VME_WRITE,cfeb_inj_adr,sndbuf,rcvbuf,NOW);
+  //
+}
+
+void TMB::DisableExternalCCB(){
+  //
+  tmb_vme(VME_READ,ccb_cfg_adr,sndbuf,rcvbuf,NOW);
+  sndbuf[0] = (rcvbuf[0]&0xff);
+  sndbuf[1] = (rcvbuf[1]&0xfc) | (0x3);
+  tmb_vme(VME_WRITE,ccb_cfg_adr,sndbuf,rcvbuf,NOW);
+  //
+}
+
+void TMB::EnableInternalL1aEmulator(){
+  //
+  tmb_vme(VME_READ,ccb_cfg_adr,sndbuf,rcvbuf,NOW);
+  sndbuf[0] = (rcvbuf[0]&0xff);
+  sndbuf[1] = (rcvbuf[1]&0xfb) | (0x4);
+  tmb_vme(VME_WRITE,ccb_cfg_adr,sndbuf,rcvbuf,NOW);
+  //
+}
+
+void TMB::DisableInternalL1aSequencer(){
+  //
+  tmb_vme(VME_READ,seq_l1a_adr,sndbuf,rcvbuf,NOW);
+  sndbuf[0] = (rcvbuf[0]&0x0f);
+  sndbuf[1] = (rcvbuf[1]&0xff) ;
+  tmb_vme(VME_WRITE,seq_l1a_adr,sndbuf,rcvbuf,NOW);
   //
 }
 
@@ -3805,9 +3893,8 @@ void TMB::TriggerTestInjectALCT(){
   wr_data ='003D'x;
   status = vme_write(%ref(adr),%ref(wr_data));
   */
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x3D;
-  tmb_vme(VME_WRITE, ccb_cfg_adr, sndbuf,rcvbuf,NOW);
+  DisableExternalCCB();
+  EnableInternalL1aEmulator();
   //
   // Enable sequencer trigger, set internal l1a delay
   /*
@@ -3832,12 +3919,9 @@ void TMB::TriggerTestInjectALCT(){
   wr_data = wr_data.or.ishft(alct_injector_delay,3); //post-rat firmware;
   status = vme_write(%ref(adr),%ref(wr_data));
   */
-  int alct_injector_delay = 14;
-  tmb_vme(VME_READ, alct_inj_adr, sndbuf,rcvbuf,NOW);
-  sndbuf[0] =  0x0;
-  sndbuf[1] =  0x1 | ((alct_injector_delay&0x1f)<<3) ;
-  tmb_vme(VME_WRITE, alct_inj_adr, sndbuf,rcvbuf,NOW);
-  
+  DisableALCTInputs();
+  DisableALCTCLCTSync();
+  //
   // Turn off CLCT cable inputs
   /*
   adr = cfeb_inj_adr+base_adr;
@@ -3856,10 +3940,7 @@ void TMB::TriggerTestInjectALCT(){
   status = vme_write(%ref(adr),%ref(wr_data));
   */
   //
-  tmb_vme(VME_READ, seq_l1a_adr, sndbuf,rcvbuf,NOW);
-  sndbuf[0] =  rcvbuf[0]&0x0f ;
-  sndbuf[1] =  rcvbuf[1]&0xff ;
-  tmb_vme(VME_WRITE, seq_l1a_adr, sndbuf,rcvbuf,NOW);
+  DisableInternalL1aSequencer();
   //
   // Select ALCT pattern trigger
   /*
@@ -3921,19 +4002,16 @@ void TMB::TriggerTestInjectALCT(){
   status = vme_write(%ref(adr),%ref(wr_data));
   */
   //
-  tmb_vme(VME_READ, alct_inj_adr, sndbuf,rcvbuf,NOW);
-  sndbuf[0] =  rcvbuf[0]&0xff ;
-  sndbuf[1] =  rcvbuf[1]&0xfd ;
-  tmb_vme(VME_WRITE, alct_inj_adr, sndbuf,rcvbuf,NOW);
+  ClearALCTInjector();
   //  
   // Fire ALCT injector
   /*
     wr_data=wr_data.or.'0002'x;	//Fire ALCT inject
-  status = vme_write(%ref(adr),%ref(wr_data));
+    status = vme_write(%ref(adr),%ref(wr_data));
   */
+  //
   FireALCTInjector();
   //
-
   // Clear previous inject
   /*
   wr_data=rd_data.and.'FFFD'x ;
@@ -3963,10 +4041,7 @@ void TMB::TriggerTestInjectALCT(){
   wr_data=rd_data.or.ishft(1,12);
   status = vme_write(%ref(adr),%ref(wr_data));
   */
-  tmb_vme(VME_READ, seqmod_adr, sndbuf,rcvbuf,NOW);
-  sndbuf[0] = (rcvbuf[0]&0xff) | (0x1<<4);
-  sndbuf[1] =  rcvbuf[1]&0xff ;
-  tmb_vme(VME_WRITE, seqmod_adr, sndbuf,rcvbuf,NOW);
+  ClearScintillatorVeto();
   /*
   wr_data=wr_data.xor.ishft(1,12);
   status = vme_write(%ref(adr),%ref(wr_data));
@@ -3975,8 +4050,10 @@ void TMB::TriggerTestInjectALCT(){
   if(scint_veto.ne.0)pause 'scint veto failed to clear';
   */
   tmb_vme(VME_READ, seqmod_adr, sndbuf,rcvbuf,NOW);
-  scint_veto = ((sndbuf[0]&0xff)>>4)&0x1;
-  if(scint_veto != 0) (*MyOutput_) << "scint veto failed to clear" << std::endl;
+  scint_veto = ((sndbuf[0]&0xff)>>5)&0x1;
+  if(scint_veto != 0) {
+    (*MyOutput_) << "scint veto failed to clear" << std::endl;
+  }
   //
   // Read back embedded scope data
   /*
@@ -3984,6 +4061,185 @@ void TMB::TriggerTestInjectALCT(){
   scp_readout=.true.;
   scp_raw_decode=.false.;
   scp_silent=.false.;
+  */
+  scope(0,1);
+  /*
+    if (rdscope)
+    scope128(base_adr,scp_ctrl_adr,scp_rdata_adr,
+    scp_arm,scp_readout,scp_raw_decode,scp_silent,scp_raw_data);
+  */
+}
+
+void TMB::TriggerTestInjectCLCT(){
+  //
+  // Turn off CCB backplane inputs, turn on L1A emulator
+  /*
+    adr = ccb_cfg_adr;
+    wr_data ='003D'x;
+    status = vme_write(%ref(adr),%ref(wr_data));
+  */
+  //
+  DisableExternalCCB();
+  EnableInternalL1aEmulator();
+  //
+  // Enable sequencer trigger, turn off dmb trigger, set internal l1a delay
+  //
+  /*
+    adr = ccb_trig_adr+base_adr
+    wr_data ='0004'x
+    wr_data = wr_data.or.ishft(114,8)
+    status = vme_write(%ref(adr),%ref(wr_data))
+  */
+  tmb_vme(VME_READ, ccb_trig_adr, sndbuf,rcvbuf,NOW);
+  sndbuf[0] = rcvbuf[0];
+  sndbuf[1] = 0x4;
+  tmb_vme(VME_WRITE, ccb_trig_adr, sndbuf,rcvbuf,NOW);
+  //
+  // Turn off ALCT cable inputs, disable synchronized alct+clct triggers
+  /*
+  adr = alct_inj_adr+base_adr;
+  status = vme_read (%ref(adr),%ref(rd_data));
+  wr_data = rd_data.and.'0000'x;
+  wr_data = wr_data.or. '0001'x;
+  wr_data = wr_data.or.ishft(alct_injector_delay,3); //post-rat firmware;
+  status = vme_write(%ref(adr),%ref(wr_data));
+  */
+  DisableALCTInputs();
+  DisableALCTCLCTSync();
+  //
+  // Turn off CLCT cable inputs
+  /*
+  adr = cfeb_inj_adr+base_adr;
+  status = vme_read (%ref(adr),%ref(rd_data));
+  wr_data = rd_data.and.'FFE0'x;
+  status = vme_write(%ref(adr),%ref(wr_data));
+  */
+  //
+  DisableCLCTInputs();
+  //
+  // Turn off internal level 1 accept for sequencer
+  /*
+  adr = seq_l1a_adr+base_adr;
+  status = vme_read (%ref(adr),%ref(rd_data));
+  wr_data = rd_data.and.'0FFF'x;
+  status = vme_write(%ref(adr),%ref(wr_data));
+  */
+  //
+  DisableInternalL1aSequencer();
+  //
+  // Select pattern trigger
+  //
+  SetCLCTPatternTrigger();
+  //
+  // Set start_trigger state then bx0 for FMM
+  /*
+  ttc_cmd=6;
+  adr = base_adr+ccb_cmd_adr;
+  wr_data='0001'x;
+  status= vme_write (%ref(adr),%ref(wr_data));
+  */
+  //
+  /*
+  wr_data='0003'x.or.ishft(ttc_cmd,8);
+  status= vme_write (%ref(adr),%ref(wr_data));
+  */
+  /*
+  wr_data='0001'x;
+  status= vme_write (%ref(adr),%ref(wr_data));
+  */
+  /*
+  ttc_cmd=1;
+  wr_data='0003'x.or.ishft(ttc_cmd,8);
+  status= vme_write (%ref(adr),%ref(wr_data));
+  */
+  /*
+  wr_data='0001'x;
+  status= vme_write (%ref(adr),%ref(wr_data));
+  */
+  //
+  StartTTC();
+  //
+  // Arm scope trigger
+  /*
+  scp_arm=.true.;
+  scp_readout=.false.;
+  scp_raw_decode=.false.;
+  scp_silent=.false.;
+  if (rdscope)
+    scope128(base_adr,scp_ctrl_adr,scp_rdata_adr,
+	     scp_arm,scp_readout,scp_raw_decode,scp_silent,scp_raw_data);
+  */
+  //
+  scope(1,0,0);
+  //
+  // Clear previous CLCT inject
+  /*
+    adr=cfeb_inj_adr+base_adr
+    status = vme_read (%ref(adr),%ref(rd_data))
+    wr_data=rd_data.and.'7FFF'x	
+    status = vme_write(%ref(adr),%ref(wr_data))
+  */
+  //
+  ClearCLCTInjector();
+  //  
+  // Fire CLCT injector
+  /*
+    wr_data=wr_data.or.'8000'x
+    status = vme_write(%ref(adr),%ref(wr_data))
+  */
+  FireCLCTInjector();
+  //
+
+  // Clear previous inject
+  /*
+    adr=cfeb_inj_adr+base_adr
+    status = vme_read (%ref(adr),%ref(rd_data))
+    wr_data=rd_data.and.'7FFF'x	
+    status = vme_write(%ref(adr),%ref(wr_data))
+  */
+  //
+  ClearCLCTInjector();
+  //  
+  // Check scintillator veto is set
+  /*
+  adr=base_adr+seqmod_adr;
+  status = vme_read (%ref(adr),%ref(rd_data));
+  scint_veto=ishft(rd_data,-13).and.1;
+  if(scint_veto.ne.1)pause 'scint veto failed to set';
+  */
+  //
+  tmb_vme(VME_READ, seqmod_adr, sndbuf,rcvbuf,NOW);
+  int scint_veto = ((rcvbuf[0]&0xff)>>5&0x1);
+  if(scint_veto != 1) {
+    (*MyOutput_) << "scint veto failed to set" << std::endl;
+    return;
+  }
+  //
+  // Clear scintillator veto
+  /*
+    wr_data=rd_data.or.ishft(1,12);
+  status = vme_write(%ref(adr),%ref(wr_data));
+  */
+  ClearScintillatorVeto();
+  /*
+  wr_data=wr_data.xor.ishft(1,12);
+  status = vme_write(%ref(adr),%ref(wr_data));
+  status = vme_read (%ref(adr),%ref(rd_data));
+  scint_veto=ishft(rd_data,-12).and.1;
+  if(scint_veto.ne.0)pause 'scint veto failed to clear';
+  */
+  tmb_vme(VME_READ, seqmod_adr, sndbuf,rcvbuf,NOW);
+  scint_veto = ((sndbuf[0]&0xff)>>5)&0x1;
+  if(scint_veto != 0) {
+    (*MyOutput_) << "scint veto failed to clear" << std::endl;
+  }
+  //
+  // Read back embedded scope data
+  /*
+    scp_arm=.false.;
+    scp_readout=.true.;
+    scp_raw_decode=.false.;
+    scp_silent=.false.;
   */
   scope(0,1);
   /*
