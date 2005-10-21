@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.9 2005/10/05 14:24:29 mey Exp $
+// $Id: TMB.h,v 2.10 2005/10/21 17:13:48 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.10  2005/10/21 17:13:48  mey
+// Update
+//
 // Revision 2.9  2005/10/05 14:24:29  mey
 // Added tests
 //
@@ -119,6 +122,11 @@ public:
   void EnableCLCTInputs(int CLCInputs );
   void EnableL1aRequest();
   void DisableCLCTInputs();
+  void DisableALCTInputs();
+  void DisableALCTCLCTSync();
+  void DisableExternalCCB();
+  void EnableInternalL1aEmulator();
+  void DisableInternalL1aSequencer();
   void tmb_clk_delays(unsigned short int time, int cfeb_id);
   //
   void DataSendMPC();
@@ -129,7 +137,10 @@ public:
   int  GetCounter(int);
   void GetCounters();
   void FireALCTInjector();
+  void FireCLCTInjector();
   void ClearALCTInjector();
+  void ClearCLCTInjector();
+  void ClearScintillatorVeto();
   int  TestArray();
   int  TMBCRCcalc(std::vector< std::bitset<16> >& datain );
   std::bitset<22> calCRC22(const std::vector< std::bitset<16> >& datain);
@@ -181,6 +192,7 @@ public:
   void disableAllClocks();
   //
   void TriggerTestInjectALCT();
+  void TriggerTestInjectCLCT();
   //
   int MPC0Accept();
   int MPC1Accept();
