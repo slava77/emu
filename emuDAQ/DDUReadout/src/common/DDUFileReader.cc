@@ -111,7 +111,7 @@ size_t DDUFileReader::read(const unsigned short* &buf) {
 	}
 
 	if( !end ) eventStatus |= DDUoversize;
-	if( !(eventStatus&Header) && !(eventStatus&Trailer) ) eventStatus |= Unknown;
+	if( !(eventStatus&Header) && !(eventStatus&Trailer) && !(eventStatus&FFFF) ) eventStatus |= Unknown;
 
 	buf = (const unsigned short*)raw_event;
 	return (eventStatus&FFFF?event-raw_event-4:event-raw_event);
