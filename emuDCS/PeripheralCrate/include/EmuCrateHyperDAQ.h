@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.1 2005/10/28 13:07:49 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.2 2005/11/02 09:58:58 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -69,6 +69,8 @@ protected:
   ostringstream OutputString;
   ostringstream OutputStringDMBStatus;
   ostringstream OutputStringTMBStatus;
+  vector<TMB*>   tmbVector;
+  vector<DAQMB*> dmbVector;
   //
 public:
   //
@@ -109,7 +111,10 @@ public:
     //
     myParameter_ =  0;
     //
-    xmlFile_     = "/afs/cern.ch/user/m/mey/configurations/timingME+3-2-32.xml" ;
+    //xmlFile_     = "/afs/cern.ch/user/m/mey/configurations/timingME+3-2-32.xml" ;
+    //
+    xmlFile_     = 
+      "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/timingME+3-1-16.xml" ;
     //
     OutputString << "Output..." << std::endl;
     OutputStringDMBStatus << "Output..." << std::endl;
@@ -120,22 +125,10 @@ public:
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    cout << "Default" << endl ;
-    //
-    //cgicc::Cgicc cgi(in);
-    //
-    cout << "Default-1" << endl ;
-    //
-    //*out << cgicc::HTTPHTMLHeader();
-    //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    cout << "Default-2" << endl ;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("Simple Web Form") << std::endl;
-    //
-    cout << "Default1" << endl ;
     //
     std::string method =
       toolbox::toString("/%s/setConfFile",getApplicationDescriptor()->getURN().c_str());
@@ -150,8 +143,6 @@ public:
       .set("size","60")
       .set("ENCTYPE","multipart/form-data")
       .set("value",xmlFile_);
-    //
-    cout << "Here1" << endl ;
     //
     *out << std::endl;
     //
@@ -200,28 +191,29 @@ public:
 
     *out << std::endl;
 
-    cout << "Here2" << endl ;
-
     *out << cgicc::fieldset();
     *out << std::endl;
     //
-    std::string TMBStatus =
-      toolbox::toString("/%s/TMBStatus",getApplicationDescriptor()->getURN().c_str());
-    if(thisTMB) *out << cgicc::a("TMB Status").set("href",TMBStatus).set("target","_blank") << endl;
+    std::string TMBStatus[9] ;
+    for (int i=0; i<tmbVector.size(); i++) {
+      TMBStatus[i] =
+	toolbox::toString("/%s/TMBStatus?%d",getApplicationDescriptor()->getURN().c_str(),i);
+      int slot = tmbVector[i]->slot();
+      char Name[20] ;
+      sprintf(Name,"TMB Status slot=%d",tmbVector[i]->slot());
+      *out << cgicc::a(Name).set("href",TMBStatus[i]).set("target","_blank") << endl;
+    }
     //
-    std::string ALCTStatus =
-      toolbox::toString("/%s/ALCTStatus",getApplicationDescriptor()->getURN().c_str());
-    //
-    if(alct) *out << cgicc::a("ALCT Status").set("href",ALCTStatus).set("target","_blank") << endl;
-    //
-    std::string DMBStatus =
-      toolbox::toString("/%s/DMBStatus",getApplicationDescriptor()->getURN().c_str());
-    if(thisDMB) *out << cgicc::a("DMB Status").set("href",DMBStatus).set("target","_blank") << endl;
-    //
-    std::string CFEBStatus =
-      toolbox::toString("/%s/CFEBStatus",getApplicationDescriptor()->getURN().c_str());
-    if(thisDMB) *out << cgicc::a("CFEB Status").set("href",CFEBStatus).set("target","_blank") << endl;
-    //
+    std::string DMBStatus[9];
+    for (int i=0; i<dmbVector.size(); i++) {
+      DMBStatus[i] =
+	toolbox::toString("/%s/DMBStatus?%d",getApplicationDescriptor()->getURN().c_str(),i);
+      int slot = dmbVector[i]->slot();
+      char Name[20] ;
+      sprintf(Name,"DMB Status slot=%d",dmbVector[i]->slot());
+      *out << cgicc::a(Name).set("href",DMBStatus[i]).set("target","_blank") << endl;
+    }
+      //
     std::string CrateTests =
       toolbox::toString("/%s/CrateTests",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::a("Crate Tests").set("href",CrateTests).set("target","_blank") << endl;
@@ -235,8 +227,8 @@ public:
     cout << "Init System" << endl ;
     //
     tbController.configureNoDCS();          // Init system
-    thisTMB->StartTTC();
-    thisTMB->EnableL1aRequest();
+    //thisTMB->StartTTC();
+    //thisTMB->EnableL1aRequest();
     thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
     //
     this->Default(in,out);
@@ -303,6 +295,7 @@ public:
     cout << "DMB Test8" << endl ;
     //
     //thisDMB->RedirectOutput(&OutputStringDMBStatus);
+    //
     thisDMB->RedirectOutput(&std::cout);
     int pass = thisDMB->test8();
     thisDMB->RedirectOutput(&std::cout);
@@ -349,6 +342,7 @@ public:
   {
     //
     //*out << cgicc::HTTPHTMLHeader();
+    //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
@@ -438,7 +432,6 @@ public:
       *out << std::endl;
     }
     cgicc::pre();
-    //
     //
     std::string TMBL1aTiming =
       toolbox::toString("/%s/TMBL1aTiming",getApplicationDescriptor()->getURN().c_str());
@@ -566,24 +559,34 @@ public:
     //
   }
   //
-  void EmuCrateHyperDAQ::DMBTurnOff(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  void EmuCrateHyperDAQ::DMBTurnOff(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
   {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    const CgiEnvironment& env = cgi.getEnvironment();
+    //
+    std::string dmbStr = env.getQueryString() ;
+    int dmb = atoi(dmbStr.c_str());
+    //
+    std::string test =  env.getReferrer() ;
+    cout << test << endl ;
     //
     if (thisDMB) {
       thisDMB->lowv_onoff(0x0);
     }
     //
-    this->DMBStatus(in,out);
   }
   //
-  void EmuCrateHyperDAQ::DMBTurnOn(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  void EmuCrateHyperDAQ::DMBTurnOn(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
   {
     //
     if (thisDMB) {
       thisDMB->lowv_onoff(0x3f);
     }
     //
-    this->DMBStatus(in,out);
   }
   //
   void EmuCrateHyperDAQ::TMBPrintCounters(xgi::Input * in, xgi::Output * out ) 
@@ -595,8 +598,6 @@ public:
     thisTMB->PrintCounters();
     thisTMB->RedirectOutput(&std::cout);
     //
-    this->TMBStatus(in,out);
-    //
   }
   //
   void EmuCrateHyperDAQ::TMBResetCounters(xgi::Input * in, xgi::Output * out ) 
@@ -604,8 +605,6 @@ public:
   {
     //
     thisTMB->ResetCounters();
-    //
-    this->TMBStatus(in,out);
     //
   }
   //
@@ -636,7 +635,6 @@ public:
   void EmuCrateHyperDAQ::ALCTStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    //*out << cgicc::HTTPHTMLHeader();
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
@@ -663,7 +661,6 @@ public:
   void EmuCrateHyperDAQ::CFEBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    //*out << cgicc::HTTPHTMLHeader();
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
@@ -700,7 +697,24 @@ public:
   void EmuCrateHyperDAQ::TMBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    //*out << cgicc::HTTPHTMLHeader();
+    cgicc::Cgicc cgi(in);
+    //
+    const CgiEnvironment& env = cgi.getEnvironment();
+    //
+    std::string tmbStr = env.getQueryString() ;
+    int tmb = atoi(tmbStr.c_str());
+    //
+    thisTMB = tmbVector[tmb];
+    //
+    alct = thisTMB->alctController();
+    //
+    if (alct) {
+      std::string ALCTStatus =
+	toolbox::toString("/%s/ALCTStatus",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::a("ALCT Status").set("href",ALCTStatus).set("target","_blank") << endl;
+    }
+    //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
@@ -829,15 +843,32 @@ public:
     //
   }
   //
-  void EmuCrateHyperDAQ::DMBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  void EmuCrateHyperDAQ::DMBStatus(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
   {
     //
-    //*out << cgicc::HTTPHTMLHeader();
+    cgicc::Cgicc cgi(in);
+    //
+    const CgiEnvironment& env = cgi.getEnvironment();
+    //
+    std::string dmbStr = env.getQueryString() ;
+    int dmb = atoi(dmbStr.c_str());
+    //
+    std::string test =  env.getReferrer() ;
+    cout << test << endl ;
+    //
+    thisDMB = dmbVector[dmb];
+    //
+    if( thisDMB->cfebs().size() > 0 ) {
+      std::string CFEBStatus =
+	toolbox::toString("/%s/CFEBStatus",getApplicationDescriptor()->getURN().c_str());
+      *out << cgicc::a("CFEB Status").set("href",CFEBStatus).set("target","_blank") << endl;
+    }
+    //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("Simple Web Form") << std::endl;
-    //
     //
     char buf[200] ;
     //
@@ -1283,7 +1314,7 @@ public:
       toolbox::toString("/%s/DMBTurnOff",getApplicationDescriptor()->getURN().c_str());
     //
     *out << cgicc::form().set("method","GET").set("action",DMBTurnOff) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","DMB Turn Off LV") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","DMB Turn Off LV").set("onClick",DMBTurnOff) << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     std::string DMBTurnOn =
@@ -1508,37 +1539,38 @@ public:
     PeripheralCrateParser parser;
     cout << " Using file " << xmlFile_.toString() << endl ;
     parser.parseFile(xmlFile_.toString().c_str());
-    
+    //
     //-- Make sure that only one TMB in one crate is configured
     CrateSelector selector = tbController.selector();
     vector<Crate*> crateVector = selector.crates();
-    if (crateVector.size() > 1){
-      cerr << "Error: only one PeripheralCrate allowed" << endl;
-      exit(1);
-    }
     //
-    vector<TMB*> tmbVector = selector.tmbs(crateVector[0]);
-    if (tmbVector.size() > 1){
-      cerr << "Error: only one TMB in xml file allowed" << endl ;
-      exit(1);
-    }
+    //if (crateVector.size() > 1){
+    //cerr << "Error: only one PeripheralCrate allowed" << endl;
+    //exit(1);
+    //}
     //
-    vector<DAQMB*> dmbVector = selector.daqmbs(crateVector[0]);
-    if (dmbVector.size() > 1){
-      cerr << "Error: only one DMB in xml file allowed" << endl;
-      exit(1);
-    } 
+    tmbVector = selector.tmbs(crateVector[0]);
+    //if (tmbVector.size() > 1){
+    //cerr << "Error: only one TMB in xml file allowed" << endl ;
+    //exit(1);
+    //}
+    //
+    dmbVector = selector.daqmbs(crateVector[0]);
+    //if (dmbVector.size() > 1){
+    //cerr << "Error: only one DMB in xml file allowed" << endl;
+    //exit(1);
+    //} 
     //
     //-- get pointers to CCB, TMB and DMB
     //
-    Crate *thisCrate = crateVector[0];
-    thisCCB = thisCrate->ccb();
-    thisTMB = tmbVector[0];
-    thisDMB = dmbVector[0];
-    thisMPC = thisCrate->mpc();
-    DDU * thisDDU = thisCrate->ddu();
-    if(thisTMB) alct = thisTMB->alctController();
-    //
+     Crate *thisCrate = crateVector[0];
+     thisCCB = thisCrate->ccb();
+     //thisTMB = tmbVector[0];
+     //thisDMB = dmbVector[0];
+     //thisMPC = thisCrate->mpc();
+     //DDU * thisDDU = thisCrate->ddu();
+     //if(thisTMB) alct = thisTMB->alctController();
+     //
     std::cout << "Done" << std::endl ;
   }
   //

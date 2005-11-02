@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.11 2005/10/04 16:02:07 mey Exp $
+// $Id: DAQMB.cc,v 2.12 2005/11/02 10:01:05 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.12  2005/11/02 10:01:05  mey
+// Update
+//
 // Revision 2.11  2005/10/04 16:02:07  mey
 // Added Output
 //
@@ -481,7 +484,7 @@ void DAQMB::set_dac(float volt0,float volt1)
   cmd[3]=((dacout0>>8)&0xff);
   cmd[0]=(0xff&dacout1);
   cmd[1]=((dacout1>>8)&0xff);
-  printf(" CDAC %04x %04x %02x %02x \n",dacout0,dacout1,cmd[0]&0xff,cmd[1])&0xff;
+  //printf(" CDAC %04x %04x %02x %02x \n",dacout0,dacout1,cmd[0]&0xff,cmd[1])&0xff;
   devdo(CDAC,32,cmd,0,sndbuf,rcvbuf,2); 
 }
 
@@ -1350,15 +1353,27 @@ void DAQMB::wrtfifo(int fifo,int nsndfifo,char* sndfifo)
  cmd[0]=4;
   std::cout << "wrtfifo devnum FIFO7 " << devnum << " " << FIFO7 << std::endl;
  if(devnum-FIFO7!=0){
- devdo(devnum,1,cmd,nsndfifo*2,sndfifo,rcvbuf,2);}
+   std::cout << "devdo1" << std::endl;
+   devdo(devnum,1,cmd,nsndfifo*2,sndfifo,rcvbuf,2);
+   std::cout << "devdo1back" << std::endl;
+ }
  else{
- devdo(devnum,1,cmd,nsndfifo,sndfifo,rcvbuf,2);} 
+   std::cout << "devdo2" << std::endl;
+   devdo(devnum,1,cmd,nsndfifo,sndfifo,rcvbuf,2);
+   std::cout << "devdo2back" << std::endl;
+ } 
 }
 
 void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
 {  
+  //
+  std::cout << "readfifo" << std::endl;
+  //
   PRINTSTRING(OVAL: before start routine in readfifo);
   PRINTSTRING(OVAL: after start routine in readfifo);
+  //
+  std::cout << "readfifo2" << std::endl;
+  //
   int i=fifo+FIFO1;
   DEVTYPE devnum=(DEVTYPE)i;
   cmd[0]=VTX2_USR1;
@@ -1373,18 +1388,27 @@ void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
- 
+  //
+  std::cout << "readfifo3" << std::endl;
+  //
   cmd[0]=5;
   devdo(devnum,1,cmd,nrcvfifo*2+2,sndbuf,rcvfifo,2);
+  //
+  std::cout << "readfifo4" << std::endl;
+  //
   cmd[0]=VTX2_USR1;
   sndbuf[0]=FIFO_RD;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_USR2;
+  //
+  std::cout << "readfifo5" << std::endl;
+  //
   sndbuf[0]=0; 
   devdo(MCTRL,6,cmd,3,sndbuf,rcvbuf,0); 
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  //
   printf(" readfifo: %d %02x %02x \n",nrcvfifo,rcvfifo[0]&0xff,rcvfifo[1]&0xff); 
 }
 
