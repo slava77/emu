@@ -18,7 +18,13 @@ int main(int argc,char **argv){
   int crateId(0);
   string ipAddr("10.0.0.3");
   int port(6050);
+#ifdef D360
   VMEController *dynatem = new VMEController(crateId,ipAddr,port);
+#endif
+#ifdef OSUcc
+  VMEController *dynatem = new VMEController(ipAddr,port);
+#endif
+
   Crate *crate = new Crate(crateId,dynatem);
 
   // create CCB
