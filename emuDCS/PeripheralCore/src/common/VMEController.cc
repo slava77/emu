@@ -1,6 +1,12 @@
+
+#ifdef D360
+
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.0 2005/04/12 08:07:06 geurts Exp $
+// $Id: VMEController.cc,v 2.1 2005/11/02 16:16:24 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.1  2005/11/02 16:16:24  mey
+// Update for new controller
+//
 // Revision 2.0  2005/04/12 08:07:06  geurts
 // *** empty log message ***
 //
@@ -243,3 +249,129 @@ return nbytes;
 VMEModule* VMEController::getTheCurrentModule(){
  return theCurrentModule;
 }
+
+#endif
+
+#ifdef OSUcc
+//----------------------------------------------------------------------
+// $Id: VMEController.cc,v 2.1 2005/11/02 16:16:24 mey Exp $
+// $Log: VMEController.cc,v $
+// Revision 2.1  2005/11/02 16:16:24  mey
+// Update for new controller
+//
+// Revision 1.25  2004/07/22 18:52:38  tfcvs
+// added accessor functions for DCS integration
+//
+//
+//----------------------------------------------------------------------
+#include "VMEController.h"
+#include "VMEModule.h"
+#include "Crate.h"
+#include <cmath>
+#include <string>
+#include <stdio.h>
+#include <iostream>
+#include <unistd.h> // read and write
+#include <fcntl.h>
+
+#include <sys/socket.h>
+#include <unistd.h>
+
+
+
+#ifndef debugV //silent mode
+#define PRINT(x) 
+#define PRINTSTRING(x)  
+#else //verbose mode
+#define PRINT(x) cout << #x << ":\t" << x << endl; 
+#define PRINTSTRING(x) cout << #x << endl; 
+#endif
+
+
+
+VMEController::VMEController(string ipAddr, int port): 
+ theSocket(0), ipAddress_(ipAddr), port_(port), theCurrentModule(0),
+ indian(SWAP),  max_buff(0), tot_buff(0)
+{
+ 
+  int socket = openSocket();
+  cout << "VMEController opened socket = " << socket << endl;
+}
+
+
+VMEController::~VMEController(){
+  cout << "destructing VMEController .. closing socket " << endl;
+  closeSocket();
+}
+
+
+void VMEController::start(VMEModule * module) {
+  if(theCurrentModule != module) {
+    PRINTSTRING(OVAL: start method defined in VMEController.cc is starting )
+    end();
+    PRINTSTRING(OVAL: starting current module);
+    module->start();
+    PRINTSTRING(OVAL: current module was started);
+    theCurrentModule = module;
+    board=module->boardType();
+    vmeadd=(module->slot())<<19;
+  }
+}
+
+
+
+void VMEController::end() {
+  if(theCurrentModule != 0) {
+    theCurrentModule->end();
+    theCurrentModule = 0;
+  }
+  assert(plev !=2);
+  idevo = 0;
+  feuseo = 0;
+}
+
+
+void VMEController::send_last() {
+}
+
+
+int VMEController::openSocket() {
+
+   char schardev_name[12]="/dev/schar0";
+   schardev_name[11]=0;
+   if(port_ >0 || port_ <10)  schardev_name[10] += port_;
+   theSocket = open(schardev_name, O_RDWR);
+        if (theSocket == -1) {
+                perror("open");
+                return 1;
+        }
+  	// eth_enableblock();
+        eth_reset();
+        mrst_ff();
+	set_VME_mode();   
+        get_macaddr();
+  return theSocket;
+}
+
+
+void VMEController::closeSocket() {
+#ifndef DUMMY
+  close(theSocket);
+#endif
+  theSocket = 0;
+}
+
+
+
+void VMEController::goToScanLevel(){
+}
+
+void VMEController::release_plev(){
+}
+
+VMEModule* VMEController::getTheCurrentModule(){
+ return theCurrentModule;
+}
+
+
+#endif
