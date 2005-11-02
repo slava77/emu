@@ -21,6 +21,7 @@ int main(int argc,char **argv){
 #ifdef D360
   VMEController *dynatem = new VMEController(crateId,ipAddr,port);
 #endif
+
 #ifdef OSUcc
   VMEController *dynatem = new VMEController(ipAddr,port);
 #endif
