@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.4 2005/08/31 15:12:56 mey Exp $
+// $Id: ALCTController.h,v 2.5 2005/11/02 10:58:28 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.5  2005/11/02 10:58:28  mey
+// Update bxc_offset
+//
 // Revision 2.4  2005/08/31 15:12:56  mey
 // Bug fixes, updates and new routine for timing in DMB
 //
@@ -527,30 +530,31 @@ public:
     int thresholds_[42];
 
   protected:
-     // can't have an anodeChannel, since it needs to download 6 delays at a time.
-    //std::vector<AnodeChannel> anodeChannels_;
-    bool delays_inited_;
+  // can't have an anodeChannel, since it needs to download 6 delays at a time.
+  //std::vector<AnodeChannel> anodeChannels_;
+  bool delays_inited_;
     //fg unsigned int delays_[42];
     //fg int thresholds_[42];
-    int alct_trig_mode_;
-    int alct_inject_mode_;
-    int alct_ext_trig_en_;
-    int alct_trig_info_en_;
-    /// num fifo time bins before pretrigger
-    int alct_fifo_pretrig_;
-    int alct_l1a_internal_;
-    int alct_l1a_offset_;
-    int alct_fifo_tbins_;
-    int alct_l1a_delay_;
-    int alct_l1a_window_;
-    int alct_fifo_mode_;
-    /// number of hit planes for pretrigger
-    int alct_nph_thresh_;
-    /// pattern number threshold for trigger
-    int alct_nph_pattern_;
-    int alct_ccb_enable_;
-    int alct_send_empty_;
-    int alct_drift_delay_;
+  int alct_trig_mode_;
+  int alct_inject_mode_;
+  int alct_ext_trig_en_;
+  int alct_trig_info_en_;
+  /// num fifo time bins before pretrigger
+  int alct_fifo_pretrig_;
+  int alct_l1a_internal_;
+  int alct_l1a_offset_;
+  int alct_fifo_tbins_;
+  int alct_l1a_delay_;
+  int alct_l1a_window_;
+  int alct_fifo_mode_;
+  /// number of hit planes for pretrigger
+  int alct_nph_thresh_;
+  /// pattern number threshold for trigger
+  int alct_nph_pattern_;
+  int alct_ccb_enable_;
+  int alct_send_empty_;
+  int alct_bxc_offset_;
+  int alct_drift_delay_;
     std::string chamber_type_string_;
   
     /// this holds all the other non-congurable parameters.  It probably should disappear someday

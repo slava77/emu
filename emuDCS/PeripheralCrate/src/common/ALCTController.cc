@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.4 2005/08/31 15:12:57 mey Exp $
+// $Id: ALCTController.cc,v 2.5 2005/11/02 10:58:20 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.5  2005/11/02 10:58:20  mey
+// Update bxc_offset
+//
 // Revision 2.4  2005/08/31 15:12:57  mey
 // Bug fixes, updates and new routine for timing in DMB
 //
@@ -122,34 +125,33 @@ enum ALCT_FAST_ERRORS
 
 
 Rfield  CRfld[] =
-    {
-        {   3,  0,    0, "trig_mode"},
-        {   1,  2,    0, "ext_trig_en"},
-        {   1,  3,    0, "send_empty"},
-        {   1,  4,    0, "inject"},
-        {   1,  5,    0, "inject_mode"},
-        {0x7f,  6, 0x7f, "inject_mask"},
-        {   7, 13,    2, "nph_thresh"},
-        {   7, 16,    4, "nph_pattern"},
-        {   3, 19,    3, "drift_delay"},
-        {0x1f, 21,    7, "fifo_tbins"},
-        {0x1f, 26,    1, "fifo_pretrig"},
-        {   3, 31,    1, "fifo_mode"},
-        {   7, 33,    3, "fifo_lastlct"},
-        {0xff, 36, 0x78, "l1a_delay"},
-        { 0xf, 44,    3, "l1a_window"},
-        { 0xf, 48,    0, "l1a_offset"},
-        {   1, 52,    0, "l1a_internal"},
-        {   7, 53,    5, "board_id"},
-        { 0xf, 56,    0, "bxn_offset"},
-        {   1, 60,    0, "ccb_enable"},
-        {   1, 61,    1, "alct_jtag_ds"},
-        {   3, 62,    0, "alct_tmode"},
-        {   3, 64,    0, "alct_amode"},
-        {   1, 66,    0,"alct_mask_all"},
-        {   1, 67,    1, "trig_info_en"},  // have to provide the field in alct_params_type
-        {   1, 68,    0, "sn_select"}   // have to provide the field in alct_params_type
-    };
+  {
+    {   3,  0,    0, "trig_mode"},
+    {   1,  2,    0, "ext_trig_en"},
+    {   1,  3,    0, "send_empty"},
+    {   1,  4,    0, "inject"},
+    {0xff,  5,    0, "bxc_offset"},
+    {   7, 13,    2, "nph_thresh"},
+    {   7, 16,    4, "nph_pattern"},
+    {   3, 19,    3, "drift_delay"},
+    {0x1f, 21,    7, "fifo_tbins"},
+    {0x1f, 26,    1, "fifo_pretrig"},
+    {   3, 31,    1, "fifo_mode"},
+    {   7, 33,    3, "fifo_lastlct"},
+    {0xff, 36, 0x78, "l1a_delay"},
+    { 0xf, 44,    3, "l1a_window"},
+    { 0xf, 48,    0, "l1a_offset"},
+    {   1, 52,    0, "l1a_internal"},
+    {   7, 53,    5, "board_id"},
+    { 0xf, 56,    0, "bxn_offset"},
+    {   1, 60,    0, "ccb_enable"},
+    {   1, 61,    1, "alct_jtag_ds"},
+    {   3, 62,    0, "alct_tmode"},
+    {   3, 64,    0, "alct_amode"},
+    {   1, 66,    0,"alct_mask_all"},
+    {   1, 67,    1, "trig_info_en"},  // have to provide the field in alct_params_type
+    {   1, 68,    0, "sn_select"}   // have to provide the field in alct_params_type
+  };
 
 // sizes of the JTAG data registers, depending on the instruction code.
 // Instruction code is used as index for this array, to fetch the size
@@ -412,6 +414,7 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   delays_inited_(false),
   alct_fifo_mode_(1),
   alct_send_empty_(0),
+  alct_bxc_offset_(1),
   alct_drift_delay_(3)
  {
    alctPatternFile="";
@@ -1448,32 +1451,31 @@ ALCTController::ALCTSTATUS ALCTController::alct_download_hot_mask (const char* f
 void ALCTController::setCRfld(alct_params_type* p) {
   if(p != NULL)
   {
-    crParams_[0] = (char*)&(alct_trig_mode_);
-    crParams_[1] = (char*)&(alct_ext_trig_en_);
-    crParams_[2] = (char*)&(alct_send_empty_);
-    crParams_[3] = (char*)&(p->inject_test_pattern);
-    crParams_[4] = (char*)&(p->inject_mode);
-    crParams_[5] = (char*)&(p->inj_lct_chip_mask);
-    crParams_[6] = (char*)&(alct_nph_thresh_);
-    crParams_[7] = (char*)&(alct_nph_pattern_);
-    crParams_[8] = (char*)&(alct_drift_delay_);
-    crParams_[9] = (char*)&(alct_fifo_tbins_);
-    crParams_[10] = (char*)&(alct_fifo_pretrig_);
-    crParams_[11] = (char*)&(alct_fifo_mode_);
-    crParams_[12] = (char*)&(p->fifo_last_feb);
-    crParams_[13] = (char*)&(alct_l1a_delay_);
-    crParams_[14] = (char*)&(alct_l1a_window_);
-    crParams_[15] = (char*)&(alct_l1a_offset_);
-    crParams_[16] = (char*)&(alct_l1a_internal_);
-    crParams_[17] = (char*)NULL;
-    crParams_[18] = (char*)&(p->bx_counter_offset);
-    crParams_[19] = (char*)&(alct_ccb_enable_);
-    crParams_[20] = (char*)&(p->alct_jtag_disable);
-    crParams_[21] = (char*)&(p->alct_test_pat_mode);
-    crParams_[22] = (char*)&(p->alct_accel_mu_mode);
-    crParams_[23] = (char*)&(p->alct_mask_all);
+    crParams_[0]  = (char*)&(alct_trig_mode_);
+    crParams_[1]  = (char*)&(alct_ext_trig_en_);
+    crParams_[2]  = (char*)&(alct_send_empty_);
+    crParams_[3]  = (char*)&(p->inject_test_pattern);
+    crParams_[4]  = (char*)&(alct_bxc_offset_);
+    crParams_[5]  = (char*)&(alct_nph_thresh_);
+    crParams_[6]  = (char*)&(alct_nph_pattern_);
+    crParams_[7]  = (char*)&(alct_drift_delay_);
+    crParams_[8]  = (char*)&(alct_fifo_tbins_);
+    crParams_[9]  = (char*)&(alct_fifo_pretrig_);
+    crParams_[10] = (char*)&(alct_fifo_mode_);
+    crParams_[11] = (char*)&(p->fifo_last_feb);
+    crParams_[12] = (char*)&(alct_l1a_delay_);
+    crParams_[13] = (char*)&(alct_l1a_window_);
+    crParams_[14] = (char*)&(alct_l1a_offset_);
+    crParams_[15] = (char*)&(alct_l1a_internal_);
+    crParams_[16] = (char*)NULL;
+    crParams_[17] = (char*)&(p->bx_counter_offset);
+    crParams_[18] = (char*)&(alct_ccb_enable_);
+    crParams_[19] = (char*)&(p->alct_jtag_disable);
+    crParams_[20] = (char*)&(p->alct_test_pat_mode);
+    crParams_[21] = (char*)&(p->alct_accel_mu_mode);
+    crParams_[22] = (char*)&(p->alct_mask_all);
+    crParams_[23] = (char*)NULL;
     crParams_[24] = (char*)NULL;
-    crParams_[25] = (char*)NULL;
   }
   else
   {
@@ -3317,18 +3319,19 @@ void ALCTController::set_defaults(alct_params_type *p) {
   alct_trig_mode_		= 0;
   alct_ext_trig_en_	        = 0;
   alct_send_empty_         	= 0;
+  alct_bxc_offset_         	= 0;
   alct_drift_delay_         	= 3;
   p->inject_test_pattern	= 0;
 
   p->inject_mode		= 0;
   p->inj_lct_chip_mask		= 0x7f;
 
-  alct_nph_thresh_	= 2;
+  alct_nph_thresh_	        = 2;
   alct_nph_pattern_		= 4;
 
   alct_fifo_tbins_		= 7;
-  alct_fifo_pretrig_ 	= 1;
-  alct_fifo_mode_			= 1;
+  alct_fifo_pretrig_ 	        = 1;
+  alct_fifo_mode_		= 1;
   p->fifo_last_feb		= 3;
 
   alct_l1a_delay_		= 0x78;
@@ -3434,7 +3437,7 @@ void ALCTController::show_params(int access_mode, alct_params_type *p) {
   printf("Standby masks: "); 
   for (j = 0; j < n_lct_chips_; j++) printf(" 0x%2x", p->standby_mask[j]);
   printf("\n");
-
+  //
   printf("Concentrator configuration\n");
   mode = alct_trig_mode_;
   printf("  trigger mode:   %d (%s)\n", mode, trig_mode[mode]);
@@ -3444,9 +3447,7 @@ void ALCTController::show_params(int access_mode, alct_params_type *p) {
   printf("pretrigger and halt: %s\n", enabled[mode]);
   mode = p->inject_test_pattern;
   printf("  inject test pattern: %s, ", enabled[mode]);
-  mode = p->inject_mode;
-  printf("mode: %d (%s), ", mode, inject_mode[mode]);
-  printf("chip mask: %#x\n", p->inj_lct_chip_mask);
+  //
   printf("  number of hit planes for pretrigger:  %d\n", 
 	 alct_nph_thresh_);
   printf("  pattern number threshold for trigger: %d\n", alct_nph_pattern_);
