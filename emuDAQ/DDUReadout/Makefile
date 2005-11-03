@@ -62,6 +62,6 @@ DynamicLibrary=
 StaticLibrary= DDUReadout
 
 Executables=
-TestExecutables= HardwareDumper.cpp
+TestExecutables= HardwareDumper.cpp HardwareMonitor.cpp
 
 include $(XDAQ_ROOT)/config/Makefile.rules
