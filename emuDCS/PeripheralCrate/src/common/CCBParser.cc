@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCBParser.cc,v 2.0 2005/04/12 08:07:05 geurts Exp $
+// $Id: CCBParser.cc,v 2.1 2005/11/03 18:24:56 mey Exp $
 // $Log: CCBParser.cc,v $
+// Revision 2.1  2005/11/03 18:24:56  mey
+// I2C routines
+//
 // Revision 2.0  2005/04/12 08:07:05  geurts
 // *** empty log message ***
 //
@@ -27,5 +30,6 @@ CCBParser::CCBParser(xercesc::DOMNode *pNode, int crateNumber)
   parser_.fillInt("BX_Orbit" , ccb_->BX_Orbit_);
   parser_.fillInt("SPS25ns", ccb_->SPS25ns_);
   parser_.fillInt("l1aDelay", ccb_->l1aDelay_);
+  parser_.fillInt("TTCrxID", ccb_->TTCrxID_);
 }
 
