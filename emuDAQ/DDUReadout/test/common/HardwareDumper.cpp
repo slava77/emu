@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: HardwareDumper.cpp,v 2.0 2005/04/13 10:52:58 geurts Exp $
+// $Id: HardwareDumper.cpp,v 2.1 2005/11/03 09:20:55 mey Exp $
 // $Log: HardwareDumper.cpp,v $
+// Revision 2.1  2005/11/03 09:20:55  mey
+// New flags for switching between schar2 and schar3
+//
 // Revision 2.0  2005/04/13 10:52:58  geurts
 // Makefile
 //
@@ -32,6 +35,8 @@ using namespace std;
 int main(int argc, char *argv[]) {
   string schar = "/dev/schar2";
 
+  bool setReset(1);
+
   // read commandline arguments and set run-number
   int runnumber(0);
   unsigned long int maxEventPerFile(10000), maxEventTotal(1000000);
@@ -46,11 +51,14 @@ int main(int argc, char *argv[]) {
       if (!strcmp(argv[i],"-n")) maxEventPerFile=(int)atof(argv[++i]);
       if (!strcmp(argv[i],"-m")) maxEventTotal=(int)atof(argv[++i]);
       if (!strcmp(argv[i],"-dboff")) updateDb=false;
+      if (!strcmp(argv[i],"-noreset"))  setReset=false;
+      if (!strcmp(argv[i],"-schar2")) schar="/dev/schar2"; 
+      if (!strcmp(argv[i],"-schar3")) schar="/dev/schar3"; 
     }
-
-  HardwareDDU* ddu = new HardwareDDU("/dev/schar2");
-  ddu->openFile("/dev/schar2");
-  ddu->reset();
+  
+  HardwareDDU* ddu = new HardwareDDU(schar);
+  ddu->openFile(schar);
+  if ( setReset ) ddu->reset();
   ddu->enableBlock();
   BinaryEventStream* eventStream = new BinaryEventStream(runnumber,maxEventPerFile);
 
