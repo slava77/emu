@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.4 2005/09/28 17:00:05 mey Exp $
+// $Id: CCB.h,v 2.5 2005/11/03 18:24:38 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.5  2005/11/03 18:24:38  mey
+// I2C routines
+//
 // Revision 2.4  2005/09/28 17:00:05  mey
 // Update
 //
@@ -69,16 +72,23 @@ public:
   void bxr();
   void configure();
   /// uses SPS25ns to decide whether to use TTC triggers
-      void enable();
-      void enableTTCControl();
-      void disableTTCControl();
-      void enableCLCT();
-      void GenerateAlctAdbASync();
-      void GenerateAlctAdbSync();
-      void startTrigger();
-      void stopTrigger();      
-      void disable();
-      //
+  void enable();
+  void enableTTCControl();
+  void disableTTCControl();
+  void enableCLCT();
+  void GenerateAlctAdbASync();
+  void GenerateAlctAdbSync();
+  void startTrigger();
+  void stopTrigger();      
+  void disable();
+  //
+  void ReadTTCrxID();
+  void ReadTTCrxReg(const unsigned short);
+  int  readI2C();
+  void  startI2C();
+  void  stopI2C();
+  void writeI2C(int);
+  //
   /// mostly for GUIs
   void executeCommand(std::string command);
   friend class CCBParser;
@@ -86,13 +96,8 @@ public:
   int TTC; 
   int CLK_INIT_FLAG; 
   int CCB_CSR1_SAV;
-
-  // maybe these should be static, common to all CCBs?
-  /// I think this one really belongs in the DDU section...
-  int BX_Orbit_;
-  int SPS25ns_;
-  int l1aDelay_;
-
+  
+  
 #ifdef USEDCS
   void cmd_source_to_ttcrx();
   void cmd_source_to_vme();
@@ -133,8 +138,8 @@ protected:
   enum TTCMode {NO_TTC=0, TTC_CLOCK=1, ALL_TTC=2};
 
   void rice_clk_setup();
-
- private:
+  
+private:
   //-- Control and Status Registers for CCB2004
   //   group A: discrete logic
   static const unsigned int CSRA1  = 0x00;
@@ -158,7 +163,18 @@ protected:
   static const unsigned int CSRB15 = 0x3c;
   static const unsigned int CSRB16 = 0x3e;
   static const unsigned int CSRB17 = 0x40;
+  static const unsigned int CSRB18  = 0x42;
+  //
+  static const unsigned int L1Reset = 0x50;
+  static const unsigned int TTCrxReset = 0x5c;
 
+  // maybe these should be static, common to all CCBs?
+  // I think this one really belongs in the DDU section...
+  int BX_Orbit_;
+  int SPS25ns_;
+  int l1aDelay_;
+
+  //
   unsigned int CSR1;
   unsigned int CSR2;
   unsigned int CSR5;
@@ -167,6 +183,7 @@ protected:
   unsigned int DMB_CFEB_CAL0;
   unsigned int DMB_CFEB_CAL1;
   unsigned int DMB_CFEB_CAL2;
+  int TTCrxID_;
 
   bool l1enabled_;
   int mVersion; // CCB version number (2001,2004)

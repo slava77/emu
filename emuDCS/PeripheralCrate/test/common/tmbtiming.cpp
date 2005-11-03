@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.21 2005/09/28 18:44:20 mey Exp $
+// $Id: tmbtiming.cpp,v 2.22 2005/11/03 18:25:04 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.22  2005/11/03 18:25:04  mey
+// I2C routines
+//
 // Revision 2.21  2005/09/28 18:44:20  mey
 // Update
 //
@@ -203,6 +206,7 @@ int main(int argc,char **argv){
   bool doALCTScanDelays(false);
   bool doSetCableDelay(false);
   bool doWriteSFM(false);
+  bool doReadTTCrxID(false);
   //
   //
   //-- read commandline arguments and xml configuration file
@@ -373,7 +377,7 @@ int main(int argc,char **argv){
        cout << " 37:TMB_L1Adelayscan     38:SetDMBtrgsrc          39:ALCT_L1Adelayscan " << endl;
        cout << " 40:EnableL1aRequest     41:CCBstartTrigger       42:AdjustL1aLctDMB   " << endl;
        cout << " 43:InjectMPCData        44:EnableCLCTInputs      45:ALCTScanDelays    " << endl;
-       cout << " 46:SetCableDelay        47:WriteDMBSFM                                " << endl ;
+       cout << " 46:SetCableDelay        47:WriteDMBSFM           48:ReadTTCrxID       " << endl ;
        //
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
@@ -430,6 +434,7 @@ int main(int argc,char **argv){
        doALCTScanDelays      = false;
        doSetCableDelay       = false;
        doWriteSFM            = false;
+       doReadTTCrxID         = false;
        //
        if ( Menu == 0 ) doInitSystem           = true ;
        if ( Menu == 1 ) doTMBScope             = true ;
@@ -479,8 +484,49 @@ int main(int argc,char **argv){
        if ( Menu == 45) doALCTScanDelays       = true ;
        if ( Menu == 46) doSetCableDelay        = true ;
        if ( Menu == 47) doWriteSFM             = true ;
-       if ( Menu  > 47 | Menu < 0) cout << "Invalid menu choice, try again." << endl << endl;
+       if ( Menu == 48) doReadTTCrxID          = true ;
+       if ( Menu  > 48 | Menu < 0) cout << "Invalid menu choice, try again." << endl << endl;
        //
+    }
+
+    if(doReadTTCrxID) {
+      //
+      std::cout << "Register 0 " ;
+      thisCCB->ReadTTCrxReg(0);
+      //
+      std::cout << "Register 1 " ;
+      thisCCB->ReadTTCrxReg(1);
+      //
+      std::cout << "Register 2 " ;
+      thisCCB->ReadTTCrxReg(2);
+      //
+      std::cout << "Register 3 " ;
+      thisCCB->ReadTTCrxReg(3);
+      //
+      std::cout << "Register 8 " ;
+      thisCCB->ReadTTCrxReg(8);
+      //
+      std::cout << "Register 9 " ;
+      thisCCB->ReadTTCrxReg(9);
+      //
+      std::cout << "Register 10 " ;
+      thisCCB->ReadTTCrxReg(10);
+      //
+      std::cout << "Register 11 " ;
+      thisCCB->ReadTTCrxReg(11);
+      //
+      std::cout << "Register 19 " ;
+      thisCCB->ReadTTCrxReg(19);
+      //
+      std::cout << "Register 20 " ;
+      thisCCB->ReadTTCrxReg(20);
+      //
+      std::cout << "Register 21 " ;
+      thisCCB->ReadTTCrxReg(21);
+      //
+      std::cout << "Register 22 " ;
+      thisCCB->ReadTTCrxReg(22);
+      //
     }
 
     if(doWriteSFM){
