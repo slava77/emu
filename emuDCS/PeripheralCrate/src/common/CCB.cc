@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.6 2005/11/03 18:24:53 mey Exp $
+// $Id: CCB.cc,v 2.7 2005/11/04 10:26:24 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.7  2005/11/04 10:26:24  mey
+// Update
+//
 // Revision 2.6  2005/11/03 18:24:53  mey
 // I2C routines
 //
@@ -32,7 +35,7 @@
 #include <unistd.h> // for sleep
 #include <vector>
 #include <string>
-#include <bitset>
+
 //
 CCB::CCB(int newcrate ,int slot, int version)
 : VMEModule(newcrate, slot), 
@@ -386,11 +389,11 @@ void CCB::rice_clk_setup()
 
 }
 
-void CCB::ReadTTCrxReg(const unsigned short registerAdd){
+std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   //
   if (TTCrxID_ == -1) {
     std::cout << "ReadTTCrxReg.No TTCrxID" << std::endl;
-    return ;
+    return 0;
   }
   //
   std::bitset<7> pointerRegAddress(TTCrxID_*2);
@@ -457,11 +460,13 @@ void CCB::ReadTTCrxReg(const unsigned short registerAdd){
   //
   // read data
   int Data;
+  std::bitset<8> data;
   for(int i(7); i>=0; --i) {
     Data = readI2C();    
-    std::cout << Data ;
+    //std::cout << Data ;
+    data.set(i,Data&0x1);
   }      
-  std::cout << std::endl;
+  //std::cout << std::endl;
   //
   readI2C() ;
   //
@@ -475,6 +480,8 @@ void CCB::ReadTTCrxReg(const unsigned short registerAdd){
   //  
   // stop condition
   stopI2C();
+  //
+  return data;
   //
 }
 
