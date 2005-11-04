@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.5 2005/11/03 18:24:38 mey Exp $
+// $Id: CCB.h,v 2.6 2005/11/04 10:26:13 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.6  2005/11/04 10:26:13  mey
+// Update
+//
 // Revision 2.5  2005/11/03 18:24:38  mey
 // I2C routines
 //
@@ -26,6 +29,7 @@
 
 #include "VMEModule.h"
 #include <string>
+#include <bitset>
 
 class CCBParser;
 
@@ -83,7 +87,7 @@ public:
   void disable();
   //
   void ReadTTCrxID();
-  void ReadTTCrxReg(const unsigned short);
+  std::bitset<8> ReadTTCrxReg(const unsigned short);
   int  readI2C();
   void  startI2C();
   void  stopI2C();
