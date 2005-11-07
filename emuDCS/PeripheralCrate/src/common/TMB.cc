@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.17 2005/10/06 14:48:32 mey Exp $
+// $Id: TMB.cc,v 2.18 2005/11/07 10:12:05 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.18  2005/11/07 10:12:05  mey
+// Byte swap
+//
 // Revision 2.17  2005/10/06 14:48:32  mey
 // Added tmb trigger test
 //
@@ -125,7 +128,7 @@ int TMB::ReadRegister(int reg){
   //
   int value = ((rcvbuf[0]&0xff)<<8)|(rcvbuf[1]&0xff);
   //
-  printf(" TMB.reg=%x %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
+  printf(" TMB.reg=%02x %02x %02x %02x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
   //
   return value;
   //
@@ -3016,8 +3019,30 @@ void TMB::setLogicAnalyzerToDataStream(bool yesorno) {
 
 void TMB::tmb_vme(char fcn, char vme,
                   const char *snd,char *rcv, int wrt) {
+
+#ifdef OSUcc
+  //Fix now read swapping
+  char temp[2];
+  temp[0] = snd[1];
+  temp[1] = snd[0];
+  //
+  snd = temp ;
+  //
+#endif
+
   start(1);
   do_vme(fcn, vme, snd, rcv, wrt);
+
+#ifdef OSUcc
+  //Fix now read swapping
+  temp[0] = rcv[1];
+  temp[1] = rcv[0];
+  //
+  rcv[0] = temp[0];
+  rcv[1] = temp[1];
+  //
+#endif
+
 }
 
 
