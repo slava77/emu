@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.24 2005/11/07 10:12:26 mey Exp $
+// $Id: tmbtiming.cpp,v 2.25 2005/11/07 16:24:02 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.25  2005/11/07 16:24:02  mey
+// Update
+//
 // Revision 2.24  2005/11/07 10:12:26  mey
 // Byte swap
 //
@@ -216,6 +219,7 @@ int main(int argc,char **argv){
   bool dodaqmb_promfpga_dump(false);
   bool dodaqmb_adc_dump(false);
   bool dodaqmb_lowv_dump(false);
+  bool doccb_firmware_version(false);
   //
   //-- read commandline arguments and xml configuration file
   //
@@ -387,6 +391,7 @@ int main(int argc,char **argv){
        cout << " 43:InjectMPCData        44:EnableCLCTInputs      45:ALCTScanDelays    " << endl;
        cout << " 46:SetCableDelay        47:WriteDMBSFM           48:ReadTTCrxID       " << endl ;
        cout << " 49:daqmb_promfpga_dump  50:daqmb_adc_dump        51:damb_lowv_dump    " << endl;
+       cout << " 52:ccb_firmware_version                                               " << std::endl;
        //
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
@@ -447,6 +452,7 @@ int main(int argc,char **argv){
        dodaqmb_promfpga_dump = false;
        dodaqmb_adc_dump      = false;
        dodaqmb_lowv_dump     = false;
+       doccb_firmware_version     = false;
       //
        if ( Menu == 0 ) doInitSystem           = true ;
        if ( Menu == 1 ) doTMBScope             = true ;
@@ -500,9 +506,14 @@ int main(int argc,char **argv){
        if ( Menu == 49) dodaqmb_promfpga_dump  = true ;
        if ( Menu == 50) dodaqmb_adc_dump       = true ;
        if ( Menu == 51) dodaqmb_lowv_dump      = true ;
-       if ( Menu  > 51 | Menu < 0) 
+       if ( Menu == 52) doccb_firmware_version      = true ;
+       if ( Menu  > 52 | Menu < 0) 
 	 cout << "Invalid menu choice, try again." << endl << endl;
        //
+    }
+    //
+    if(doccb_firmware_version){
+      thisCCB->firmwareVersion();
     }
     //
     if(dodaqmb_lowv_dump) {

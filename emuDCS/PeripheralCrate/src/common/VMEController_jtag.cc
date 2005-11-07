@@ -2,8 +2,11 @@
 #ifdef D360
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.2 2005/11/07 10:12:15 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.3 2005/11/07 16:23:54 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.3  2005/11/07 16:23:54  mey
+// Update
+//
 // Revision 2.2  2005/11/07 10:12:15  mey
 // Byte swap
 //
@@ -1451,7 +1454,7 @@ void VMEController::lowvolt(int ichp,int ichn,char *rcv)
  unsigned short int *ptr;
  unsigned short int val[2];
  unsigned short int tmp[2]={0x0000,0x0000}; 
- printf(" enter vme_adc \n");
+ // printf(" enter vme_adc \n");
 
       val[0]=lowvreg[ichp];
       if(ichp>0&&ichp<8){
@@ -2005,7 +2008,7 @@ unsigned short int bits,wrds;
  data=(unsigned short int *)snd;
  bits=0;
   
- // fprintf(fplog," address %08x \n",ptr);
+ //  fprintf(fplog," address %08x \n",ptr);
  //  fprintf(fplog," cnt %d \n",cnt);
 
  /* instr */

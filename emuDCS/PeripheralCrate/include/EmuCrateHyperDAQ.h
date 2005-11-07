@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.2 2005/11/02 09:58:58 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.3 2005/11/07 16:23:32 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -114,7 +114,7 @@ public:
     //xmlFile_     = "/afs/cern.ch/user/m/mey/configurations/timingME+3-2-32.xml" ;
     //
     xmlFile_     = 
-      "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/timingME+3-1-16.xml" ;
+      "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/config.xml" ;
     //
     OutputString << "Output..." << std::endl;
     OutputStringDMBStatus << "Output..." << std::endl;
@@ -213,10 +213,10 @@ public:
       sprintf(Name,"DMB Status slot=%d",dmbVector[i]->slot());
       *out << cgicc::a(Name).set("href",DMBStatus[i]).set("target","_blank") << endl;
     }
-      //
-    std::string CrateTests =
-      toolbox::toString("/%s/CrateTests",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::a("Crate Tests").set("href",CrateTests).set("target","_blank") << endl;
+    //
+    //std::string CrateTests =
+    //toolbox::toString("/%s/CrateTests",getApplicationDescriptor()->getURN().c_str());
+    //*out << cgicc::a("Crate Tests").set("href",CrateTests).set("target","_blank") << endl;
     //
     cout << "Here4" << endl ;
     //
@@ -559,8 +559,7 @@ public:
     //
   }
   //
-  void EmuCrateHyperDAQ::DMBTurnOff(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
+  void EmuCrateHyperDAQ::MakeReference(xgi::Input * in , xgi::Output * out )
   {
     //
     cgicc::Cgicc cgi(in);
@@ -573,15 +572,27 @@ public:
     std::string test =  env.getReferrer() ;
     cout << test << endl ;
     //
+    *out << cgicc::a("Back").set("href",test) << endl;
+  }
+  //
+  void EmuCrateHyperDAQ::DMBTurnOff(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    MakeReference(in,out);
+    //
     if (thisDMB) {
       thisDMB->lowv_onoff(0x0);
     }
     //
+
   }
   //
   void EmuCrateHyperDAQ::DMBTurnOn(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
+    //
+    MakeReference(in,out);
     //
     if (thisDMB) {
       thisDMB->lowv_onoff(0x3f);
@@ -592,6 +603,8 @@ public:
   void EmuCrateHyperDAQ::TMBPrintCounters(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
+    //
+    MakeReference(in,out);
     //
     thisTMB->RedirectOutput(&OutputStringTMBStatus);
     thisTMB->GetCounters();
@@ -604,6 +617,8 @@ public:
     throw (xgi::exception::Exception)
   {
     //
+    MakeReference(in,out);
+    //
     thisTMB->ResetCounters();
     //
   }
@@ -612,11 +627,11 @@ public:
     throw (xgi::exception::Exception)
   {
     //
+    MakeReference(in,out);
+    //
     thisTMB->RedirectOutput(&OutputStringTMBStatus);
     thisTMB->TriggerTestInjectALCT();
     thisTMB->RedirectOutput(&std::cout);
-    //
-    this->TMBStatus(in,out);
     //
   }
   //
@@ -624,11 +639,11 @@ public:
     throw (xgi::exception::Exception)
   {
     //
+    MakeReference(in,out);
+    //
     thisTMB->RedirectOutput(&OutputStringTMBStatus);
     thisTMB->TriggerTestInjectCLCT();
     thisTMB->RedirectOutput(&std::cout);
-    //
-    this->TMBStatus(in,out);
     //
   }
   //
