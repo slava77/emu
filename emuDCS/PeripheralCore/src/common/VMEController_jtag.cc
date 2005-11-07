@@ -2,8 +2,11 @@
 #ifdef D360
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.1 2005/11/02 16:16:30 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.2 2005/11/07 10:12:15 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.2  2005/11/07 10:12:15  mey
+// Byte swap
+//
 // Revision 2.1  2005/11/02 16:16:30  mey
 // Update for new controller
 //
@@ -1736,10 +1739,10 @@ static int istrt=0;
     wbuf[nwbuf+4]=(ptrt&0xff00)>>8;
     wbuf[nwbuf+5]=(ptrt&0xff);
 // Jinghua Liu: no byte swap for CCB,MPC,TMB 
-    wbuf[nwbuf+6]=(*data&0xff);
-    wbuf[nwbuf+7]=(*data&0xff00)>>8;
-//    wbuf[nwbuf+6]=(*data&0xff00)>>8;
-//    wbuf[nwbuf+7]=(*data&0xff);
+//    wbuf[nwbuf+6]=(*data&0xff);
+//    wbuf[nwbuf+7]=(*data&0xff00)>>8;
+    wbuf[nwbuf+6]=(*data&0xff00)>>8;
+    wbuf[nwbuf+7]=(*data&0xff);
 // end byte swap
     if(irdwr==1||irdwr==3)nwbuf=nwbuf+8;
     if(irdwr==0||irdwr==2)nwbuf=nwbuf+6;   
@@ -1818,8 +1821,8 @@ static int istrt=0;
       // printf("  vmecontroller%d  %d %d %d \n ",nread,r_num,LRG_read_pnt,LRG_read_pnt+2*r_num);
       // if(nread!=2*r_num){printf(" nread %d %d %d %d %02x\n",nread,r_num,size,LRG_read_pnt,r_head0[0]&0xff);} 
 // Jinghua Liu: add the byte swap back:
-//    for(i=0;i<r_num;i++){rcv[2*i+LRG_read_pnt]=r_datat[2*i+1];rcv[2*i+1+LRG_read_pnt]=r_datat[2*i];}
-    for(i=0;i<r_num;i++){rcv[2*i+LRG_read_pnt]=r_datat[2*i];rcv[2*i+1+LRG_read_pnt]=r_datat[2*i+1];}
+    for(i=0;i<r_num;i++){rcv[2*i+LRG_read_pnt]=r_datat[2*i+1];rcv[2*i+1+LRG_read_pnt]=r_datat[2*i];}
+//    for(i=0;i<r_num;i++){rcv[2*i+LRG_read_pnt]=r_datat[2*i];rcv[2*i+1+LRG_read_pnt]=r_datat[2*i+1];}
 //end byte swap
 
     if(LRG_read_flag==1)LRG_read_pnt=LRG_read_pnt+2+2*r_num-2;
