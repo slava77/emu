@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.6 2005/11/04 10:26:13 mey Exp $
+// $Id: CCB.h,v 2.7 2005/11/07 16:23:24 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.7  2005/11/07 16:23:24  mey
+// Update
+//
 // Revision 2.6  2005/11/04 10:26:13  mey
 // Update
 //
@@ -67,7 +70,7 @@ public:
   void enableL1();
   void disableL1();
   void l1CathodeScint();
-
+  void ccb_vme(char fcn, char vme,const char *snd,char *rcv, int wrt);
   void hardReset();
   void syncReset();
   void reset_bxevt();
