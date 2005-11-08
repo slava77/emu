@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.5 2005/11/08 08:10:16 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.6 2005/11/08 15:10:25 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -114,6 +114,8 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTest10, "DMBTest10");
     xgi::bind(this,&EmuCrateHyperDAQ::TriggerTestInjectALCT, "TriggerTestInjectALCT");
     xgi::bind(this,&EmuCrateHyperDAQ::TriggerTestInjectCLCT, "TriggerTestInjectCLCT");
+    xgi::bind(this,&EmuCrateHyperDAQ::PowerUp,  "PowerUp");
+    xgi::bind(this,&EmuCrateHyperDAQ::Operator, "Operator");
     //
     myParameter_ =  0;
     //
@@ -136,6 +138,9 @@ public:
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("Simple Web Form") << std::endl;
     //
+    *out << cgicc::h1("904 Testing...");
+    *out << cgicc::br();
+    //
     if (tmbVector.size()==0 && dmbVector.size()==0) {
       //
       std::string method =
@@ -144,7 +149,9 @@ public:
       *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
       *out << std::endl;
       //
-      *out << cgicc::legend("Upload Configuration...").set("style","color:blue") << cgicc::p() << std::endl ;
+      *out << cgicc::legend("Upload Configuration...").set("style","color:blue") 
+	   << cgicc::p() << std::endl ;
+      //
       *out << cgicc::form().set("method","POST").set("action",method) << std::endl ;
       *out << cgicc::input().set("type","text")
 	.set("name","xmlFilename")
@@ -192,11 +199,44 @@ public:
     
 
     *out << std::endl;
-
+    //
+    //    
     *out << cgicc::fieldset();
     *out << std::endl;
     //
     } else if (tmbVector.size()>0 || dmbVector.size()>0) {
+      //
+      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+      *out << std::endl;
+      //
+      std::string Operator =
+	toolbox::toString("/%s/Operator",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::form().set("method","GET").set("action",Operator) << std::endl ;
+      *out << cgicc::input().set("type","text")
+	.set("name","operator")
+	.set("size","60");
+      *out << cgicc::input().set("type","submit").set("value","Operator") << std::endl ;
+      //
+      std::string PowerUp =
+	toolbox::toString("/%s/PowerUp",getApplicationDescriptor()->getURN().c_str());
+      //
+      //
+      *out << cgicc::form().set("method","GET").set("action",PowerUp)
+	.set("target","_blank") << std::endl ;
+      *out << cgicc::input().set("type","submit").set("value","Power Up") << std::endl ;
+      *out << cgicc::form() << std::endl ;
+      //
+      std::string InitSystem =
+	toolbox::toString("/%s/InitSystem",getApplicationDescriptor()->getURN().c_str());
+      //
+      //
+      *out << cgicc::form().set("method","GET").set("action",InitSystem) << std::endl ;
+      *out << cgicc::input().set("type","submit").set("value","Init System") << std::endl ;
+      *out << cgicc::form() << std::endl ;
+      //
+      *out << cgicc::fieldset();
+      *out << std::endl;
       //
       *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
       *out << std::endl;
@@ -226,11 +266,25 @@ public:
 	    toolbox::toString("/%s/TMBStatus?%d",getApplicationDescriptor()->getURN().c_str(),i);
 	  int slot = tmbVector[i]->slot();
 	  sprintf(Name,"TMB Status slot=%d",tmbVector[i]->slot());
-	  if(slot == ii) *out << cgicc::a(Name).set("href",TMBStatus[i]).set("target","_blank") << endl;
+	  if(slot == ii) {
+	    *out << cgicc::a(Name).set("href",TMBStatus[i]).set("target","_blank") << endl;
+	    //Found TMB...look for DMB...
+	    for (int iii=0; iii<dmbVector.size(); iii++) {
+	      int dmbslot = dmbVector[iii]->slot();
+	      sprintf(Name,"Crate tests TMBslot=%d DMBslot=%d",slot,dmbslot);
+	      //
+	      std::string CrateTests =
+		toolbox::toString("/%s/CrateTests?tmb=%d,dmb=%d",getApplicationDescriptor()->getURN().c_str(),i,iii);    
+	      //
+	      if ( dmbslot == slot+1 ) *out << cgicc::a(Name).set("href",CrateTests).set("target","_blank") << endl;
+	    }
+	    //
+	  }
 	}
 	//
 	std::string DMBStatus[9];
 	std::string DMBTests[9];
+	//
 	//
 	for (int i=0; i<dmbVector.size(); i++) {
 	  DMBStatus[i] =
@@ -252,20 +306,10 @@ public:
       //
       *out << cgicc::fieldset();
       //
-      std::string InitSystem =
-	toolbox::toString("/%s/InitSystem",getApplicationDescriptor()->getURN().c_str());
-      //
-      *out << cgicc::form().set("method","GET").set("action",InitSystem) << std::endl ;
-      *out << cgicc::input().set("type","submit").set("value","Init System") << std::endl ;
-      *out << cgicc::form() << std::endl ;
       //
     }
     //
-    //std::string CrateTests =
-    //toolbox::toString("/%s/CrateTests",getApplicationDescriptor()->getURN().c_str());
-    //*out << cgicc::a("Crate Tests").set("href",CrateTests).set("target","_blank") << endl;
-    //
-    cout << "Here4" << endl ;
+    //cout << "Here4" << endl ;
     //
   }
   //  
@@ -279,6 +323,22 @@ public:
     //thisTMB->StartTTC();
     //thisTMB->EnableL1aRequest();
     thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::PowerUp(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    cout << "PowerUp" << endl ;
+    //
+    *out << h1("Run Valery's program");
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::Operator(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    cout << "Operator" << endl ;
     //
   }
   //
@@ -391,6 +451,23 @@ public:
     //
     //*out << cgicc::HTTPHTMLHeader();
     //
+    cgicc::Cgicc cgi(in);
+    //
+    const CgiEnvironment& env = cgi.getEnvironment();
+    //
+    std::string crateStr = env.getQueryString() ;
+    //
+    cout << crateStr << endl ;
+    //
+    int tmb, dmb;
+    //
+    sscanf(crateStr.c_str(),"tmb=%d,dmb=%d",&tmb,&dmb);
+    //
+    cout << tmb << " " << dmb << endl;
+    //
+    thisTMB = tmbVector[tmb];
+    thisDMB = dmbVector[dmb];
+    //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
@@ -447,21 +524,27 @@ public:
 			   MyTest.GetCFEBrxPhase(i) << std::endl;
     *out << cgicc::pre();
     //
-    std::string ALCTScan =
-      toolbox::toString("/%s/ALCTScan",getApplicationDescriptor()->getURN().c_str());
+    alct = thisTMB->alctController();
     //
-    *out << cgicc::form().set("method","GET").set("action",ALCTScan) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","ALCT Scan") << std::endl ;
-    *out << cgicc::form() << std::endl ;
-    //
-    cgicc::pre();
-    for (int Wire = 0; Wire<(alct->GetWGNumber())/6; Wire++) {
-      *out << MyTest.GetALCTWireScan(Wire) ;
+    if ( alct ) {
+      //
+      std::string ALCTScan =
+	toolbox::toString("/%s/ALCTScan",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::form().set("method","GET").set("action",ALCTScan) << std::endl ;
+      *out << cgicc::input().set("type","submit").set("value","ALCT Scan") << std::endl ;
+      *out << cgicc::form() << std::endl ;
+      //
+      cgicc::pre();
+      for (int Wire = 0; Wire<(alct->GetWGNumber())/6; Wire++) {
+	*out << MyTest.GetALCTWireScan(Wire) ;
+      }
+      *out << cgicc::br();
+      *out << std::endl;
+      //
+      cgicc::pre();
+      //
     }
-    *out << cgicc::br();
-    *out << std::endl;
-    //
-    cgicc::pre();
     //
     std::string CFEBScan =
       toolbox::toString("/%s/CFEBScan",getApplicationDescriptor()->getURN().c_str());
