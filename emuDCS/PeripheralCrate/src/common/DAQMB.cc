@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.12 2005/11/02 10:01:05 mey Exp $
+// $Id: DAQMB.cc,v 2.13 2005/11/08 06:50:12 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.13  2005/11/08 06:50:12  mey
+// Update
+//
 // Revision 2.12  2005/11/02 10:01:05  mey
 // Update
 //
@@ -907,8 +910,9 @@ unsigned long int  DAQMB::febfpgaid(const CFEB & cfeb)
   sndbuf[2]=0xFF;
   sndbuf[3]=0xFF;
   devdo(dv,5,cmd,32,sndbuf,rcvbuf,1);
-  printf(" The FEB %d FPGA Chip should be 610093 (last 6 digits) \n",dv-F1SCAM+1);
-  printf(" The FPGA Chip IDCODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+  (*MyOutput_) << " The FEB " << dv-F1SCAM+1 << "FPGA Chip should be 610093 (last 6 digits) "  << std::endl;
+  (*MyOutput_) << " The FPGA Chip IDCODE is " << hex << 
+    (0xff&rcvbuf[3]) << (0xff&rcvbuf[2]) << (0xff&rcvbuf[1]) << (0xff&rcvbuf[0]) << std::endl;
   // RPW not sure about this
   unsigned long ibrd = unpack_ibrd();
   cmd[0]=VTX_BYPASS;
@@ -3017,7 +3021,7 @@ int DAQMB::test4()
   }
   //
   for(int k=1;k<6;k++){
-    (*MyOutput_) << "Temperature Reading CFEB%d temp " << std::endl;
+    (*MyOutput_) << "Temperature Reading CFEB "<<k << std::endl;
     temp = readthermx(k);
     (*MyOutput_) << "The temperature is " << temp << " F " << std::endl;
     //

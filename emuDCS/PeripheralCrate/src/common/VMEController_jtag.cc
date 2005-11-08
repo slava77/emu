@@ -2,8 +2,11 @@
 #ifdef D360
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.3 2005/11/07 16:23:54 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.4 2005/11/08 06:50:21 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.4  2005/11/08 06:50:21  mey
+// Update
+//
 // Revision 2.3  2005/11/07 16:23:54  mey
 // Update
 //
@@ -2134,3 +2137,4 @@ unsigned short int clkon={0x0004};
 }
 
 #endif
+
