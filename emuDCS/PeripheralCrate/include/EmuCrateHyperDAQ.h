@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.3 2005/11/07 16:23:32 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.4 2005/11/08 06:50:37 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -67,10 +67,12 @@ protected:
   MPC * thisMPC(0);
   CrateUtilities MyTest;
   ostringstream OutputString;
-  ostringstream OutputStringDMBStatus;
+  ostringstream OutputStringDMBStatus[9];
   ostringstream OutputStringTMBStatus;
+  ostringstream* Output;
   vector<TMB*>   tmbVector;
   vector<DAQMB*> dmbVector;
+  Crate *thisCrate;
   //
 public:
   //
@@ -84,6 +86,9 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::UploadConfFile, "UploadConfFile");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBStatus, "TMBStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBStatus, "DMBStatus");
+    xgi::bind(this,&EmuCrateHyperDAQ::CCBStatus, "CCBStatus");
+    xgi::bind(this,&EmuCrateHyperDAQ::MPCStatus, "MPCStatus");
+    xgi::bind(this,&EmuCrateHyperDAQ::DMBTests, "DMBTests");
     xgi::bind(this,&EmuCrateHyperDAQ::CFEBStatus, "CFEBStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::ALCTStatus, "ALCTStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::CrateTests, "CrateTests");
@@ -117,7 +122,7 @@ public:
       "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/config.xml" ;
     //
     OutputString << "Output..." << std::endl;
-    OutputStringDMBStatus << "Output..." << std::endl;
+    for(int i=0; i<8;i++) OutputStringDMBStatus[i] << "Output..." << std::endl;
     OutputStringTMBStatus << "Output..." << std::endl;
     //
   }
@@ -130,42 +135,44 @@ public:
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("Simple Web Form") << std::endl;
     //
-    std::string method =
-      toolbox::toString("/%s/setConfFile",getApplicationDescriptor()->getURN().c_str());
+    if (tmbVector.size()==0 && dmbVector.size()==0) {
+      //
+      std::string method =
+	toolbox::toString("/%s/setConfFile",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+      *out << std::endl;
+      //
+      *out << cgicc::legend("Upload Configuration...").set("style","color:blue") << cgicc::p() << std::endl ;
+      *out << cgicc::form().set("method","POST").set("action",method) << std::endl ;
+      *out << cgicc::input().set("type","text")
+	.set("name","xmlFilename")
+	.set("size","60")
+	.set("ENCTYPE","multipart/form-data")
+	.set("value",xmlFile_);
+      //
+      *out << std::endl;
+      //
+      *out << cgicc::input().set("type","submit").set("value","Set configuration file local") << std::endl ;
+      *out << cgicc::form() << std::endl ;
+      //
+      // Upload file...
+      //
+      std::string methodUpload =
+	toolbox::toString("/%s/UploadConfFile",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::form().set("method","POST")
+	.set("enctype","multipart/form-data")
+	.set("action",methodUpload) << std::endl ;
+      //
+      *out << cgicc::input().set("type","file")
+	.set("name","xmlFilenameUpload")
+	.set("size","60") ;
     //
-    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-    *out << std::endl;
+      *out << std::endl;
     //
-    *out << cgicc::legend("Configuration...").set("style","color:blue") << cgicc::p() << std::endl ;
-    *out << cgicc::form().set("method","POST").set("action",method) << std::endl ;
-    *out << cgicc::input().set("type","text")
-      .set("name","xmlFilename")
-      .set("size","60")
-      .set("ENCTYPE","multipart/form-data")
-      .set("value",xmlFile_);
-    //
-    *out << std::endl;
-    //
-    *out << cgicc::input().set("type","submit").set("value","Set configuration file local") << std::endl ;
-    *out << cgicc::form() << std::endl ;
-    //
-    // Upload file...
-    //
-    std::string methodUpload =
-      toolbox::toString("/%s/UploadConfFile",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","POST")
-      .set("enctype","multipart/form-data")
-      .set("action",methodUpload) << std::endl ;
-    //
-    *out << cgicc::input().set("type","file")
-      .set("name","xmlFilenameUpload")
-      .set("size","60") ;
-    //
-    *out << std::endl;
-    //
-    *out << cgicc::input().set("type","submit").set("value","Send") << std::endl ;
-    *out << cgicc::form() << std::endl ;
+      *out << cgicc::input().set("type","submit").set("value","Send") << std::endl ;
+      *out << cgicc::form() << std::endl ;
     //
     //
     *out << std::endl;
@@ -194,24 +201,61 @@ public:
     *out << cgicc::fieldset();
     *out << std::endl;
     //
-    std::string TMBStatus[9] ;
-    for (int i=0; i<tmbVector.size(); i++) {
-      TMBStatus[i] =
-	toolbox::toString("/%s/TMBStatus?%d",getApplicationDescriptor()->getURN().c_str(),i);
-      int slot = tmbVector[i]->slot();
-      char Name[20] ;
-      sprintf(Name,"TMB Status slot=%d",tmbVector[i]->slot());
-      *out << cgicc::a(Name).set("href",TMBStatus[i]).set("target","_blank") << endl;
-    }
-    //
-    std::string DMBStatus[9];
-    for (int i=0; i<dmbVector.size(); i++) {
-      DMBStatus[i] =
-	toolbox::toString("/%s/DMBStatus?%d",getApplicationDescriptor()->getURN().c_str(),i);
-      int slot = dmbVector[i]->slot();
-      char Name[20] ;
-      sprintf(Name,"DMB Status slot=%d",dmbVector[i]->slot());
-      *out << cgicc::a(Name).set("href",DMBStatus[i]).set("target","_blank") << endl;
+    } else if (tmbVector.size()>0 || dmbVector.size()>0) {
+      //
+      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+      *out << std::endl;
+      //
+      *out << cgicc::legend("Crate Configuration...").set("style","color:blue") << cgicc::p() << std::endl ;
+      //
+      for(int ii=0; ii<24; ii++) {
+	//
+	*out << "Slot " << ii << endl;
+	//
+	char Name[20] ;
+	std::string CCBStatus =
+	  toolbox::toString("/%s/CCBStatus",getApplicationDescriptor()->getURN().c_str());
+	int slot = thisCrate->ccb()->slot() ;
+	sprintf(Name,"CCB Status slot=%d",slot);
+	if(slot == ii) *out << cgicc::a(Name).set("href",CCBStatus).set("target","_blank") << endl;
+	//
+	std::string MPCStatus =
+	  toolbox::toString("/%s/MPCStatus",getApplicationDescriptor()->getURN().c_str());
+	slot = thisCrate->mpc()->slot() ;
+	sprintf(Name,"MPC Status slot=%d",slot);
+	if(slot == ii) *out << cgicc::a(Name).set("href",MPCStatus).set("target","_blank") << endl;
+	//
+	std::string TMBStatus[9] ;
+	for (int i=0; i<tmbVector.size(); i++) {
+	  TMBStatus[i] =
+	    toolbox::toString("/%s/TMBStatus?%d",getApplicationDescriptor()->getURN().c_str(),i);
+	  int slot = tmbVector[i]->slot();
+	  sprintf(Name,"TMB Status slot=%d",tmbVector[i]->slot());
+	  if(slot == ii) *out << cgicc::a(Name).set("href",TMBStatus[i]).set("target","_blank") << endl;
+	}
+	//
+	std::string DMBStatus[9];
+	std::string DMBTests[9];
+	for (int i=0; i<dmbVector.size(); i++) {
+	  DMBStatus[i] =
+	    toolbox::toString("/%s/DMBStatus?%d",getApplicationDescriptor()->getURN().c_str(),i);
+	  DMBTests[i] =
+	    toolbox::toString("/%s/DMBTests?%d",getApplicationDescriptor()->getURN().c_str(),i);
+	  int slot = dmbVector[i]->slot();
+	  if(slot == ii ) {
+	    sprintf(Name,"DMB Status slot=%d",dmbVector[i]->slot());
+	    *out << cgicc::a(Name).set("href",DMBStatus[i]).set("target","_blank") << endl;
+	    sprintf(Name,"DMB Tests  slot=%d",dmbVector[i]->slot());
+	    *out << cgicc::a(Name).set("href",DMBTests[i]).set("target","_blank") << endl;
+	  }
+	}
+	//
+	*out<< cgicc::br() ;
+	//
+      }
+      //
+      *out << cgicc::fieldset();
+      //
     }
     //
     //std::string CrateTests =
@@ -226,12 +270,12 @@ public:
   {
     cout << "Init System" << endl ;
     //
+    MakeReference(in,out);
+    //
     tbController.configureNoDCS();          // Init system
     //thisTMB->StartTTC();
     //thisTMB->EnableL1aRequest();
     thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
-    //
-    this->Default(in,out);
     //
   }
   //
@@ -240,12 +284,12 @@ public:
   {
     cout << "DMB Test3" << endl ;
     //
+    MakeReference(in,out);
+    //
     //thisDMB->RedirectOutput(&OutputStringDMBStatus);
     thisDMB->RedirectOutput(&std::cout);
     thisDMB->test3();
     thisDMB->RedirectOutput(&std::cout);
-    //
-    this->DMBStatus(in,out);
     //
   }
   //
@@ -254,11 +298,11 @@ public:
   {
     cout << "DMB Test4" << endl ;
     //
-    thisDMB->RedirectOutput(&OutputStringDMBStatus);
+    MakeReference(in,out);
+    //
+    thisDMB->RedirectOutput(Output);
     int pass = thisDMB->test4();
     thisDMB->RedirectOutput(&std::cout);
-    //
-    this->DMBStatus(in,out);
     //
   }
   //
@@ -267,12 +311,11 @@ public:
   {
     cout << "DMB Test5" << endl ;
     //
-    OutputStringDMBStatus.clear();
-    thisDMB->RedirectOutput(&OutputStringDMBStatus);
+    MakeReference(in,out);
+    //
+    thisDMB->RedirectOutput(Output);
     int pass = thisDMB->test5();
     thisDMB->RedirectOutput(&std::cout);
-    //
-    this->DMBStatus(in,out);
     //
   }
   //
@@ -281,11 +324,11 @@ public:
   {
     cout << "DMB Test6" << endl ;
     //
-    thisDMB->RedirectOutput(&OutputStringDMBStatus);
+    MakeReference(in,out);
+    //
+    thisDMB->RedirectOutput(Output);
     int pass = thisDMB->test6();
     thisDMB->RedirectOutput(&std::cout);
-    //
-    this->DMBStatus(in,out);
     //
   }
   //
@@ -294,13 +337,11 @@ public:
   {
     cout << "DMB Test8" << endl ;
     //
-    //thisDMB->RedirectOutput(&OutputStringDMBStatus);
+    MakeReference(in,out);
     //
-    thisDMB->RedirectOutput(&std::cout);
+    thisDMB->RedirectOutput(Output);
     int pass = thisDMB->test8();
     thisDMB->RedirectOutput(&std::cout);
-    //
-    this->DMBStatus(in,out);
     //
   }
   //
@@ -309,11 +350,11 @@ public:
   {
     cout << "DMB Test9" << endl ;
     //
-    thisDMB->RedirectOutput(&OutputStringDMBStatus);
+    MakeReference(in,out);
+    //
+    thisDMB->RedirectOutput(Output);
     int pass = thisDMB->test9();
     thisDMB->RedirectOutput(&std::cout);
-    //
-    this->DMBStatus(in,out);
     //
   }
   //
@@ -322,20 +363,24 @@ public:
   {
     cout << "DMB Test10" << endl ;
     //
-    thisDMB->RedirectOutput(&OutputStringDMBStatus);
+    MakeReference(in,out);
+    //
+    thisDMB->RedirectOutput(Output);
     int pass = thisDMB->test10();
     thisDMB->RedirectOutput(&std::cout);
-    //
-    this->DMBStatus(in,out);
     //
   }
   //
   void EmuCrateHyperDAQ::DMBPrintCounters(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-    thisDMB->RedirectOutput(out);
+    //
+    MakeReference(in,out);
+    //
+    thisDMB->RedirectOutput(Output);
     thisDMB->PrintCounters(1);
     thisDMB->RedirectOutput(&std::cout);
+    //
   }
   //
   void EmuCrateHyperDAQ::CrateTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
@@ -579,6 +624,8 @@ public:
     throw (xgi::exception::Exception)
   {
     //
+    cout << "DMBTurnOff" << endl;
+    //
     MakeReference(in,out);
     //
     if (thisDMB) {
@@ -591,6 +638,8 @@ public:
   void EmuCrateHyperDAQ::DMBTurnOn(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
+    //
+    cout << "DMBTurnOn" << endl;
     //
     MakeReference(in,out);
     //
@@ -706,6 +755,42 @@ public:
       //
       *out << cgicc::fieldset();
     *out << std::endl;
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::CCBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    *out << cgicc::title("Simple Web Form") << std::endl;
+    //
+    char buf[200] ;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    *out << std::endl;
+    //
+    *out << cgicc::legend("CCB Info").set("style","color:blue") << cgicc::p() << std::endl ;
+    //
+    *out << cgicc::fieldset();
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::MPCStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    *out << cgicc::title("Simple Web Form") << std::endl;
+    //
+    char buf[200] ;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    *out << std::endl;
+    //
+    *out << cgicc::legend("MPC Info").set("style","color:blue") << cgicc::p() << std::endl ;
+    //
+    *out << cgicc::fieldset();
     //
   }
   //
@@ -873,6 +958,7 @@ public:
     cout << test << endl ;
     //
     thisDMB = dmbVector[dmb];
+    Output  = &OutputStringDMBStatus[dmb];
     //
     if( thisDMB->cfebs().size() > 0 ) {
       std::string CFEBStatus =
@@ -1324,12 +1410,43 @@ public:
     //
     *out << cgicc::fieldset();
     *out << std::endl;
-      //
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::DMBTests(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    const CgiEnvironment& env = cgi.getEnvironment();
+    //
+    std::string dmbStr = env.getQueryString() ;
+    int dmb = atoi(dmbStr.c_str());
+    //
+    std::string test =  env.getReferrer() ;
+    cout << test << endl ;
+    //
+    thisDMB = dmbVector[dmb];
+    Output  = &OutputStringDMBStatus[dmb];
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    *out << cgicc::title("Simple Web Form") << std::endl;
+    //
+    char buf[200] ;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    *out << endl ;
+    //
+    *out << cgicc::legend("DMB Tests").set("style","color:blue") ;
+    //
     std::string DMBTurnOff =
       toolbox::toString("/%s/DMBTurnOff",getApplicationDescriptor()->getURN().c_str());
     //
     *out << cgicc::form().set("method","GET").set("action",DMBTurnOff) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","DMB Turn Off LV").set("onClick",DMBTurnOff) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","DMB Turn Off LV") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     std::string DMBTurnOn =
@@ -1342,7 +1459,7 @@ public:
     std::string DMBPrintCounters =
       toolbox::toString("/%s/DMBPrintCounters",getApplicationDescriptor()->getURN().c_str());
     //
-    *out << cgicc::form().set("method","GET").set("action",DMBPrintCounters).set("target","_blank") 
+    *out << cgicc::form().set("method","GET").set("action",DMBPrintCounters)
 	 << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","DMB Print Counters") << std::endl ;
     *out << cgicc::form() << std::endl ;
@@ -1504,12 +1621,14 @@ public:
 	   << std::endl ;
     }
     *out << cgicc::form() << std::endl ;
-    //        
+    //
+    *out << cgicc::fieldset() << std::endl;
+    //
     *out << cgicc::form().set("method","GET") << std::endl ;
     *out << cgicc::textarea().set("name","CrateTestDMBOutput")
       .set("WRAP","OFF")
       .set("rows","20").set("cols","60");
-    *out << OutputStringDMBStatus.str() << endl ;
+    *out << Output->str() << endl ;
     *out << cgicc::textarea();
     *out << cgicc::form() << std::endl ;
     //
@@ -1578,7 +1697,7 @@ public:
     //
     //-- get pointers to CCB, TMB and DMB
     //
-     Crate *thisCrate = crateVector[0];
+     thisCrate = crateVector[0];
      thisCCB = thisCrate->ccb();
      //thisTMB = tmbVector[0];
      //thisDMB = dmbVector[0];
