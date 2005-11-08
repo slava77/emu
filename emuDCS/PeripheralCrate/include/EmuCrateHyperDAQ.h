@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.4 2005/11/08 06:50:37 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.5 2005/11/08 08:10:16 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -19,6 +19,7 @@
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
+#include <iomanip>
 
 
 #include "xdaq/Application.h"
@@ -189,12 +190,6 @@ public:
     *out << cgicc::input().set("type","submit").set("value","Send");
     *out << cgicc::form() << std::endl ;
     
-    std::string InitSystem =
-      toolbox::toString("/%s/InitSystem",getApplicationDescriptor()->getURN().c_str());
-
-    *out << cgicc::form().set("method","GET").set("action",InitSystem) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Init System") << std::endl ;
-    *out << cgicc::form() << std::endl ;
 
     *out << std::endl;
 
@@ -210,7 +205,7 @@ public:
       //
       for(int ii=0; ii<24; ii++) {
 	//
-	*out << "Slot " << ii << endl;
+	*out << "Slot " << setfill('0') << setw(2) << dec << ii << endl;
 	//
 	char Name[20] ;
 	std::string CCBStatus =
@@ -236,6 +231,7 @@ public:
 	//
 	std::string DMBStatus[9];
 	std::string DMBTests[9];
+	//
 	for (int i=0; i<dmbVector.size(); i++) {
 	  DMBStatus[i] =
 	    toolbox::toString("/%s/DMBStatus?%d",getApplicationDescriptor()->getURN().c_str(),i);
@@ -255,6 +251,13 @@ public:
       }
       //
       *out << cgicc::fieldset();
+      //
+      std::string InitSystem =
+	toolbox::toString("/%s/InitSystem",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::form().set("method","GET").set("action",InitSystem) << std::endl ;
+      *out << cgicc::input().set("type","submit").set("value","Init System") << std::endl ;
+      *out << cgicc::form() << std::endl ;
       //
     }
     //
@@ -876,7 +879,17 @@ public:
     *out << cgicc::br();
     //
     sprintf(buf,"Geographic Address        : %02d ",((thisTMB->FirmwareVersion()>>8)&0xf));       
-    *out << buf ;
+    if ( ((thisTMB->FirmwareVersion()>>8)&0xf) == thisTMB->slot() ){
+      *out << cgicc::span().set("style","color:green");
+      *out << buf ;
+      *out << cgicc::span();
+    } else {
+      *out << cgicc::span().set("style","color:red");
+      *out << buf ;
+      *out << cgicc::span();
+      //
+    }
+    //
     *out << cgicc::br();
     //
     sprintf(buf,"Firmware Revision Code    : %04x ",((thisTMB->FirmwareRevCode())&0xffff));       
