@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.6 2005/11/02 16:16:06 mey Exp $
+// $Id: ALCTController.cc,v 2.7 2005/11/09 20:07:13 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.7  2005/11/09 20:07:13  mey
+// Update
+//
 // Revision 2.6  2005/11/02 16:16:06  mey
 // Update for new controller
 //
@@ -1912,43 +1915,43 @@ ALCTController::ALCTSTATUS ALCTController::alct_fast_enable_read()
 
 ALCTController::ALCTSTATUS ALCTController::alct_fast_read_id(ALCTIDRegister & id)
 {
-        ALCTSTATUS st = EALCT_SUCCESS;
-        unsigned long ID[2];
-	alct_fast_set_jtag_channel(ALCT_FAST_JTAG_CHANNEL);
-        int stInt = ReadRegister(IDRead, (unsigned *)ID);
-        
-	// switch statement to change int value returned by ReadRegister into an enum for ALCTSTATUS
-	switch (stInt)
-	  {
-	  case 0:
-	    st = EALCT_SUCCESS;
-	    break;
-	  case 1:
-	    st = EALCT_FILEOPEN;
-	    break;
-	  case 2:
-	    st = EALCT_FILEDEFECT;
-	    break;
-	  case 3:
-	    st = EALCT_PORT;
-	    break;
-	  case 4:
-	    st = EALCT_CHAMBER;
-	    break;
-	  case 5:
-	    st = EALCT_ARG;
-	    break;
-	  case 6:
-	    st = EALCT_TESTFAIL;
-	    break;
-	  case 7:
-	    st = EALCT_FIFONOTMT;
-	    break;
-	  }
-
-        id.unpack_fast_id(ID);
-        
-        return st;
+  ALCTSTATUS st = EALCT_SUCCESS;
+  unsigned long ID[2];
+  alct_fast_set_jtag_channel(ALCT_FAST_JTAG_CHANNEL);
+  int stInt = ReadRegister(IDRead, (unsigned *)ID);
+  //
+  // switch statement to change int value returned by ReadRegister into an enum for ALCTSTATUS
+  switch (stInt)
+    {
+    case 0:
+      st = EALCT_SUCCESS;
+      break;
+    case 1:
+      st = EALCT_FILEOPEN;
+      break;
+    case 2:
+      st = EALCT_FILEDEFECT;
+      break;
+    case 3:
+      st = EALCT_PORT;
+      break;
+    case 4:
+      st = EALCT_CHAMBER;
+      break;
+    case 5:
+      st = EALCT_ARG;
+      break;
+    case 6:
+      st = EALCT_TESTFAIL;
+      break;
+    case 7:
+      st = EALCT_FIFONOTMT;
+      break;
+    }
+  //
+  id.unpack_fast_id(ID);
+  //    
+  return st;
 }
 
 ALCTController::ALCTSTATUS ALCTController::alct_write_test_pulse_reg
@@ -1996,25 +1999,24 @@ ALCTController::ALCTSTATUS ALCTController::alct_read_serial_number
         
                 // read 64 bits of SN bit by bit
                 for (i = 0; i < 64; i++)
-                {
-                        ReadRegister (SNread, (unsigned*)&SNbit);
-                        el.cat(SNbit, 1);
-                        usleep (1000);
+		  {
+		    ReadRegister (SNread, (unsigned*)&SNbit);
+		    el.cat(SNbit, 1);
+		    usleep (1000);
                 }
-
+		
                 if (j == 0)
-                {
-                        alct_sn[0] = el.r[0];
-                        alct_sn[1] = el.r[1];
-                }
+		  {
+		    alct_sn[0] = el.r[0];
+		    alct_sn[1] = el.r[1];
+		  }
                 else
-                {
-                        mc_sn[0] = el.r[0];
+		  {
+		    mc_sn[0] = el.r[0];
                         mc_sn[1] = el.r[1];
-                }
+		  }
         }
-        return st;
-                
+        return st;	
 }
 
 // this function inputs the "image" array, which is the image of the hits in the chamber.
@@ -3620,96 +3622,95 @@ int ALCTController::do_jtag(int chip_id, int opcode, int mode, const int *first,
   } 
 
   // printf("\n\nOpcode 0x%02x", opcode);
-	for (i=0; i< sizeof(opcode); i++)
-	{
-  	sndbuf[i] = (opcode >> 8*i)  & 0x00ff;
-  	// printf(" %02x", sndbuf[i]); 
-	}
+  for (i=0; i< sizeof(opcode); i++)
+    {
+      sndbuf[i] = (opcode >> 8*i)  & 0x00ff;
+      // printf(" %02x", sndbuf[i]); 
+    }
   
   for (k = 0; k < bits_per_opcode[ichip]; k++) 
-  {
-  	tdi[j] = (opcode >> k) & 0x1;
-    tms[j++] = 0;
-  }
- 
+    {
+      tdi[j] = (opcode >> k) & 0x1;
+      tms[j++] = 0;
+    }
+  
   tms[j-1] = 1;        /* TMS goes high on last frame */
   
-/* Put TAP back in RTI mode */
+  /* Put TAP back in RTI mode */
   for (k = 0; k < 3; k++) 
-  {
-    tdi[j]   = 0;
-    tms[j++] = tms_postop_code[k];
-  }
-
-/* Do JTAG */
+    {
+      tdi[j]   = 0;
+      tms[j++] = tms_postop_code[k];
+    }
+  
+  /* Do JTAG */
   nframes = j;
-
+  
   for (j = 0; j < nframes; j++) 
-  {
-    tdo[j] = 0 ;
-  }
+    {
+      tdo[j] = 0 ;
+    }
 #ifdef D360
   tmb_->scan(INSTR_REG, sndbuf, bits_per_opcode[ichip], rcvbuf , 0 );
 #endif 
 #ifdef OSUcc
   tmb_->scan_alct(INSTR_REG, sndbuf, bits_per_opcode[ichip], rcvbuf , 0 );
 #endif 
-
+  
   // jtag_io_byte_(&nframes, tms, tdi, tdo, &step_mode);
- 
- /*
- * Second JTAG operation writes data to the selected register of chip_id, 
- * zero to bypass register of all other chips.
- */
-
-/* Put TAP in state ShfDR */
+  
+  /*
+   * Second JTAG operation writes data to the selected register of chip_id, 
+   * zero to bypass register of all other chips.
+   */
+  
+  /* Put TAP in state ShfDR */
   for (k = 0, j = 0; k < 3; k++) 
-  {
-    tdi[j]   = 0;
-    tms[j++] = tms_pre_read[k];
+    {
+      tdi[j]   = 0;
+      tms[j++] = tms_pre_read[k];
+    }
+  
+  
+  /* Convert the list of data items into a one-byte-per-bit array, if writing,
+   * or else fill with zeros.
+   */
+  for (k = 0; k < ((length-1)/8+1); k++)
+    { 
+      sndbuf[k] = 0; 
   }
-
-
-/* Convert the list of data items into a one-byte-per-bit array, if writing,
- * or else fill with zeros.
- */
-	for (k = 0; k < ((length-1)/8+1); k++)
-  { 
-  	sndbuf[k] = 0; 
-  }
-	// printf("\nTDI ");
+  // printf("\nTDI ");
   j_start = j;
   m = 0;
   for (k = 0; k < length; k++) 
-  {
-    if (mode == WRITE) 
+    {
+      if (mode == WRITE) 
     {
       if (k == first[m+1]) m++;
       tdi[j] = (val[m] >> (k-first[m])) & 0x1;
       sndbuf[k/8] |= tdi[j] << (k%8);
     }
-    else 
-    { 
-			tdi[j] = 0;
-		}
-		
-    tms[j++] = 0;
-  }
-    
+      else 
+	{ 
+	  tdi[j] = 0;
+	}      
+      tms[j++] = 0;
+    }
+  
   tms[j-1] = 1;        /* TMS goes high on last data frame */
-
+  
   // printf("\nData In ");    
   // for (k = 0; k < ((length-1)/8+1); k++)
   // { printf(" %x", sndbuf[k]); }
-
-/* Put TAP back in RTI mode */
+  
+  /* Put TAP back in RTI mode */
   for (k = 0; k < 3; k++) 
-  {
-    tdi[j]   = 0;
-    tms[j++] = tms_postop_code[k];
+    {
+      tdi[j]   = 0;
+      tms[j++] = tms_postop_code[k];
   }
-
-/* Do JTAG */
+  
+  /* Do JTAG */
   nframes = j;
   
   // jtag_io_byte_(&nframes, tms, tdi, tdo, &step_mode);
