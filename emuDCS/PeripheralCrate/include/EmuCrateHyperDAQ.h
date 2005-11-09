@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.6 2005/11/08 15:10:25 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.7 2005/11/09 13:50:11 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -74,6 +74,8 @@ protected:
   vector<TMB*>   tmbVector;
   vector<DAQMB*> dmbVector;
   Crate *thisCrate;
+  std::string Operator_;
+  int TMB_, DMB_;
   //
 public:
   //
@@ -116,6 +118,9 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::TriggerTestInjectCLCT, "TriggerTestInjectCLCT");
     xgi::bind(this,&EmuCrateHyperDAQ::PowerUp,  "PowerUp");
     xgi::bind(this,&EmuCrateHyperDAQ::Operator, "Operator");
+    xgi::bind(this,&EmuCrateHyperDAQ::Operator, "Operator");
+    xgi::bind(this,&EmuCrateHyperDAQ::MPCBoardID, "MPCBoardID");
+    xgi::bind(this,&EmuCrateHyperDAQ::CCBBoardID, "CCBBoardID");
     //
     myParameter_ =  0;
     //
@@ -123,6 +128,8 @@ public:
     //
     xmlFile_     = 
       "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/config.xml" ;
+    //
+    Operator_ = "Name...";
     //
     OutputString << "Output..." << std::endl;
     for(int i=0; i<8;i++) OutputStringDMBStatus[i] << "Output..." << std::endl;
@@ -197,9 +204,8 @@ public:
     *out << cgicc::input().set("type","submit").set("value","Send");
     *out << cgicc::form() << std::endl ;
     
-
-    *out << std::endl;
     //
+    *out << std::endl;
     //    
     *out << cgicc::fieldset();
     *out << std::endl;
@@ -213,14 +219,12 @@ public:
 	toolbox::toString("/%s/Operator",getApplicationDescriptor()->getURN().c_str());
       //
       *out << cgicc::form().set("method","GET").set("action",Operator) << std::endl ;
-      *out << cgicc::input().set("type","text")
-	.set("name","operator")
-	.set("size","60");
-      *out << cgicc::input().set("type","submit").set("value","Operator") << std::endl ;
+      *out << cgicc::input().set("type","text").set("name","Operator").set("size","20").set("value",Operator_) << std::endl ;
+      *out << "Operator" << std::endl;
+      *out << cgicc::form() << std::endl ;
       //
       std::string PowerUp =
 	toolbox::toString("/%s/PowerUp",getApplicationDescriptor()->getURN().c_str());
-      //
       //
       *out << cgicc::form().set("method","GET").set("action",PowerUp)
 	.set("target","_blank") << std::endl ;
@@ -243,40 +247,102 @@ public:
       //
       *out << cgicc::legend("Crate Configuration...").set("style","color:blue") << cgicc::p() << std::endl ;
       //
-      for(int ii=0; ii<24; ii++) {
+      for(int ii=1; ii<22; ii++) {
+	//
+	*out << cgicc::table().set("border","1");
+	//
+	*out << cgicc::td();
 	//
 	*out << "Slot " << setfill('0') << setw(2) << dec << ii << endl;
 	//
-	char Name[20] ;
+	*out << cgicc::td();
+	//
+	char Name[50] ;
 	std::string CCBStatus =
 	  toolbox::toString("/%s/CCBStatus",getApplicationDescriptor()->getURN().c_str());
+	std::string CCBBoardID =
+	  toolbox::toString("/%s/CCBBoardID",getApplicationDescriptor()->getURN().c_str());
 	int slot = thisCrate->ccb()->slot() ;
 	sprintf(Name,"CCB Status slot=%d",slot);
-	if(slot == ii) *out << cgicc::a(Name).set("href",CCBStatus).set("target","_blank") << endl;
+	if(slot == ii) {
+	  *out << cgicc::td();
+	  *out << "CCB Board ID" ;
+	  *out << cgicc::form().set("method","GET").set("action",CCBBoardID) << std::endl ;
+	  *out << cgicc::input().set("type","text").set("name","CCBBoardID") << std::endl ;
+	  *out << cgicc::form() << std::endl ;
+	  *out << cgicc::td();
+	  //
+	  *out << cgicc::td();
+	  *out << cgicc::form().set("method","GET").set("action",CCBStatus)
+	    .set("target","_blank") << std::endl ;
+	  *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	  char buf[20];
+	  sprintf(buf,"%d",ii);
+	  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ccb");
+	  *out << cgicc::form() << std::endl ;
+	  *out << cgicc::td();
+	}
 	//
 	std::string MPCStatus =
 	  toolbox::toString("/%s/MPCStatus",getApplicationDescriptor()->getURN().c_str());
+	std::string MPCBoardID =
+	  toolbox::toString("/%s/MPCBoardID",getApplicationDescriptor()->getURN().c_str());
 	slot = thisCrate->mpc()->slot() ;
 	sprintf(Name,"MPC Status slot=%d",slot);
-	if(slot == ii) *out << cgicc::a(Name).set("href",MPCStatus).set("target","_blank") << endl;
+	if(slot == ii) {
+	  *out << cgicc::td();
+	  *out << "MPC Board ID" ;
+	  *out << cgicc::form().set("method","GET").set("action",MPCBoardID) << std::endl ;
+	  *out << cgicc::input().set("type","text").set("name","MPCBoardID") << std::endl ;
+	  *out << cgicc::form() << std::endl ;
+	  *out << cgicc::td();
+	  //
+	  *out << cgicc::td();
+	  *out << cgicc::form().set("method","GET").set("action",MPCStatus)
+	    .set("target","_blank") << std::endl ;
+	  *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	  char buf[20];
+	  sprintf(buf,"%d",ii);
+	  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","mpc");
+	  *out << cgicc::form() << std::endl ;
+	  *out << cgicc::td();
+	}
 	//
 	std::string TMBStatus[9] ;
 	for (int i=0; i<tmbVector.size(); i++) {
 	  TMBStatus[i] =
-	    toolbox::toString("/%s/TMBStatus?%d",getApplicationDescriptor()->getURN().c_str(),i);
+	    toolbox::toString("/%s/TMBStatus",getApplicationDescriptor()->getURN().c_str());
 	  int slot = tmbVector[i]->slot();
 	  sprintf(Name,"TMB Status slot=%d",tmbVector[i]->slot());
 	  if(slot == ii) {
-	    *out << cgicc::a(Name).set("href",TMBStatus[i]).set("target","_blank") << endl;
+	    *out << cgicc::td();
+	    *out << cgicc::form().set("method","GET").set("action",TMBStatus[i])
+	      .set("target","_blank") << std::endl ;
+	    *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	    char buf[20];
+	    sprintf(buf,"%d",i);
+	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+	    *out << cgicc::form() << std::endl ;
+	    *out << cgicc::td();
 	    //Found TMB...look for DMB...
 	    for (int iii=0; iii<dmbVector.size(); iii++) {
 	      int dmbslot = dmbVector[iii]->slot();
+	      std::string CrateTests =
+		toolbox::toString("/%s/CrateTests",getApplicationDescriptor()->getURN().c_str());    
 	      sprintf(Name,"Crate tests TMBslot=%d DMBslot=%d",slot,dmbslot);
 	      //
-	      std::string CrateTests =
-		toolbox::toString("/%s/CrateTests?tmb=%d,dmb=%d",getApplicationDescriptor()->getURN().c_str(),i,iii);    
-	      //
-	      if ( dmbslot == slot+1 ) *out << cgicc::a(Name).set("href",CrateTests).set("target","_blank") << endl;
+	      if ( dmbslot == slot+1 ) {
+		*out << cgicc::td();
+		*out << cgicc::form().set("method","GET").set("action",CrateTests).set("target","_blank") << std::endl ;
+		*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+		char buf[20];
+		sprintf(buf,"%d",i);
+		*out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+		sprintf(buf,"%d",iii);
+		*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+		*out << cgicc::form() << std::endl ;
+		*out << cgicc::td();
+	      }
 	    }
 	    //
 	  }
@@ -285,22 +351,39 @@ public:
 	std::string DMBStatus[9];
 	std::string DMBTests[9];
 	//
-	//
 	for (int i=0; i<dmbVector.size(); i++) {
 	  DMBStatus[i] =
-	    toolbox::toString("/%s/DMBStatus?%d",getApplicationDescriptor()->getURN().c_str(),i);
+	    toolbox::toString("/%s/DMBStatus",getApplicationDescriptor()->getURN().c_str());
 	  DMBTests[i] =
-	    toolbox::toString("/%s/DMBTests?%d",getApplicationDescriptor()->getURN().c_str(),i);
+	    toolbox::toString("/%s/DMBTests",getApplicationDescriptor()->getURN().c_str());
 	  int slot = dmbVector[i]->slot();
 	  if(slot == ii ) {
+	    //
 	    sprintf(Name,"DMB Status slot=%d",dmbVector[i]->slot());
-	    *out << cgicc::a(Name).set("href",DMBStatus[i]).set("target","_blank") << endl;
+	    *out << cgicc::td();
+	    *out << cgicc::form().set("method","GET").set("action",DMBStatus[i]).set("target","_blank") << std::endl ;
+	    *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	    char buf[20];
+	    sprintf(buf,"%d",i);
+	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+	    *out << cgicc::form() << std::endl ;
+	    *out << cgicc::td();
+	    //
 	    sprintf(Name,"DMB Tests  slot=%d",dmbVector[i]->slot());
-	    *out << cgicc::a(Name).set("href",DMBTests[i]).set("target","_blank") << endl;
+	    *out << cgicc::td();
+	    *out << cgicc::form().set("method","GET").set("action",DMBTests[i]).set("target","_blank") << std::endl ;
+	    *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	    sprintf(buf,"%d",i);
+	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+	    *out << cgicc::form() << std::endl ;
+	    *out << cgicc::td();
+	    //
 	  }
 	}
 	//
-	*out<< cgicc::br() ;
+	//*out<< cgicc::br() ;
+	//
+	*out << cgicc::table();
 	//
       }
       //
@@ -317,12 +400,26 @@ public:
   {
     cout << "Init System" << endl ;
     //
-    MakeReference(in,out);
-    //
     tbController.configureNoDCS();          // Init system
     //thisTMB->StartTTC();
     //thisTMB->EnableL1aRequest();
     thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
+    //
+    this->Default(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::CCBBoardID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    this->Default(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::MPCBoardID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    this->Default(in,out);
     //
   }
   //
@@ -338,8 +435,13 @@ public:
   void EmuCrateHyperDAQ::Operator(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-    cout << "Operator" << endl ;
+    cout << "Operator" << std::endl ;
     //
+    cgicc::Cgicc cgi(in);
+    //
+    Operator_= cgi["Operator"]->getValue() ;
+    //
+    this->Default(in,out);
   }
   //
   void EmuCrateHyperDAQ::DMBTest3(xgi::Input * in, xgi::Output * out ) 
@@ -347,12 +449,22 @@ public:
   {
     cout << "DMB Test3" << endl ;
     //
-    MakeReference(in,out);
+    cgicc::Cgicc cgi(in);
     //
-    //thisDMB->RedirectOutput(&OutputStringDMBStatus);
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
+    //
     thisDMB->RedirectOutput(&std::cout);
     thisDMB->test3();
     thisDMB->RedirectOutput(&std::cout);
+    //
+    this->DMBTests(in,out);
     //
   }
   //
@@ -361,11 +473,22 @@ public:
   {
     cout << "DMB Test4" << endl ;
     //
-    MakeReference(in,out);
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
     //
     thisDMB->RedirectOutput(Output);
     int pass = thisDMB->test4();
     thisDMB->RedirectOutput(&std::cout);
+    //
+    this->DMBTests(in,out);
     //
   }
   //
@@ -374,11 +497,22 @@ public:
   {
     cout << "DMB Test5" << endl ;
     //
-    MakeReference(in,out);
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
     //
     thisDMB->RedirectOutput(Output);
     int pass = thisDMB->test5();
     thisDMB->RedirectOutput(&std::cout);
+    //
+    this->DMBTests(in,out);
     //
   }
   //
@@ -387,11 +521,22 @@ public:
   {
     cout << "DMB Test6" << endl ;
     //
-    MakeReference(in,out);
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
     //
     thisDMB->RedirectOutput(Output);
     int pass = thisDMB->test6();
     thisDMB->RedirectOutput(&std::cout);
+    //
+    this->DMBTests(in,out);
     //
   }
   //
@@ -400,12 +545,22 @@ public:
   {
     cout << "DMB Test8" << endl ;
     //
-    MakeReference(in,out);
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
     //
     thisDMB->RedirectOutput(Output);
     int pass = thisDMB->test8();
     thisDMB->RedirectOutput(&std::cout);
     //
+    this->DMBTests(in,out);
   }
   //
   void EmuCrateHyperDAQ::DMBTest9(xgi::Input * in, xgi::Output * out ) 
@@ -413,12 +568,22 @@ public:
   {
     cout << "DMB Test9" << endl ;
     //
-    MakeReference(in,out);
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
     //
     thisDMB->RedirectOutput(Output);
     int pass = thisDMB->test9();
     thisDMB->RedirectOutput(&std::cout);
     //
+    this->DMBTests(in,out);
   }
   //
   void EmuCrateHyperDAQ::DMBTest10(xgi::Input * in, xgi::Output * out ) 
@@ -426,24 +591,44 @@ public:
   {
     cout << "DMB Test10" << endl ;
     //
-    MakeReference(in,out);
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
     //
     thisDMB->RedirectOutput(Output);
     int pass = thisDMB->test10();
     thisDMB->RedirectOutput(&std::cout);
     //
+    this->DMBTests(in,out);
   }
   //
   void EmuCrateHyperDAQ::DMBPrintCounters(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
     //
-    MakeReference(in,out);
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
     //
     thisDMB->RedirectOutput(Output);
     thisDMB->PrintCounters(1);
     thisDMB->RedirectOutput(&std::cout);
     //
+    this->DMBTests(in,out);
   }
   //
   void EmuCrateHyperDAQ::CrateTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
@@ -461,9 +646,29 @@ public:
     //
     int tmb, dmb;
     //
-    sscanf(crateStr.c_str(),"tmb=%d,dmb=%d",&tmb,&dmb);
+    //sscanf(crateStr.c_str(),"tmb=%d,dmb=%d",&tmb,&dmb);
     //
-    cout << tmb << " " << dmb << endl;
+    //cout << tmb << " " << dmb << endl;
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "No dmb" << endl;
+    }
+    //
+    name = cgi.getElement("tmb");
+    //
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "No tmb" << endl;
+    }
     //
     thisTMB = tmbVector[tmb];
     thisDMB = dmbVector[dmb];
@@ -490,6 +695,11 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",TMBStartTrigger) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","TMBStartTrigger") << std::endl ;
+    char buf[20];
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
     std::string EnableL1aRequest =
@@ -497,6 +707,10 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",EnableL1aRequest) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","EnableL1aRequest") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
     std::string ALCTTiming =
@@ -504,6 +718,10 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",ALCTTiming) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","ALCT Timing") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::pre();
@@ -517,6 +735,10 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",CFEBTiming) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","CFEB Timing") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::pre();
@@ -533,6 +755,11 @@ public:
       //
       *out << cgicc::form().set("method","GET").set("action",ALCTScan) << std::endl ;
       *out << cgicc::input().set("type","submit").set("value","ALCT Scan") << std::endl ;
+      char buf[20];
+      sprintf(buf,"%d",tmb);
+      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+      sprintf(buf,"%d",dmb);
+      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
       *out << cgicc::form() << std::endl ;
       //
       cgicc::pre();
@@ -550,6 +777,10 @@ public:
       toolbox::toString("/%s/CFEBScan",getApplicationDescriptor()->getURN().c_str());
     //
     *out << cgicc::form().set("method","GET").set("action",CFEBScan) << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::input().set("type","submit").set("value","CFEB Scan") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
@@ -569,6 +800,10 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",TMBL1aTiming) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","TMB L1a Timing") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
     *out << MyTest.GetTMBL1aTiming() ;
@@ -593,6 +828,28 @@ public:
     //
     cgicc::Cgicc cgi(in);
     //
+    int tmb, dmb;
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "No dmb" << endl;
+    }
+    //
+    name = cgi.getElement("tmb");
+    //
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "No tmb" << endl;
+    }
+    //
     thisTMB->RedirectOutput(&OutputString);
     thisTMB->StartTTC();
     thisTMB->RedirectOutput(&std::cout);
@@ -604,6 +861,34 @@ public:
     void EmuCrateHyperDAQ::EnableL1aRequest(xgi::Input * in, xgi::Output * out ) 
       throw (xgi::exception::Exception)
   {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    int tmb, dmb;
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "No dmb" << endl;
+    }
+    //
+    name = cgi.getElement("tmb");
+    //
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "No tmb" << endl;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    thisTMB = tmbVector[tmb];
+    //
     thisTMB->EnableL1aRequest();
     thisCCB->setCCBMode(CCB::VMEFPGA);
     //
@@ -615,6 +900,33 @@ public:
   {
     //
     cout << "ALCTTiming" << endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    int tmb, dmb;
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "No dmb" << endl;
+    }
+    //
+    name = cgi.getElement("tmb");
+    //
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "No tmb" << endl;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    thisTMB = tmbVector[tmb];
     //
     MyTest.SetTMB(thisTMB);
     MyTest.SetCCB(thisCCB);
@@ -632,6 +944,33 @@ public:
     //
     cout << "CFEBTiming" << endl;
     //
+    cgicc::Cgicc cgi(in);
+    //
+    int tmb, dmb;
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "No dmb" << endl;
+    }
+    //
+    name = cgi.getElement("tmb");
+    //
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "No tmb" << endl;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    thisTMB = tmbVector[tmb];
+    //
     MyTest.SetTMB(thisTMB);
     MyTest.SetDMB(thisDMB);
     MyTest.SetCCB(thisCCB);
@@ -647,6 +986,33 @@ public:
   {
     //
     cout << "TMBL1aTiming" << endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    int tmb, dmb;
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "No dmb" << endl;
+    }
+    //
+    name = cgi.getElement("tmb");
+    //
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "No tmb" << endl;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    thisTMB = tmbVector[tmb];
     //
     MyTest.SetTMB(thisTMB);
     MyTest.SetDMB(thisDMB);
@@ -664,6 +1030,33 @@ public:
     //
     cout << "ALCTScan" << endl;
     //
+    cgicc::Cgicc cgi(in);
+    //
+    int tmb, dmb;
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "No dmb" << endl;
+    }
+    //
+    name = cgi.getElement("tmb");
+    //
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "No tmb" << endl;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    thisTMB = tmbVector[tmb];
+    //
     MyTest.SetTMB(thisTMB);
     MyTest.SetCCB(thisCCB);
     MyTest.SetALCT(alct);
@@ -679,6 +1072,33 @@ public:
   {
     //
     cout << "CFEBScan" << endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    int tmb, dmb;
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "No dmb" << endl;
+    }
+    //
+    name = cgi.getElement("tmb");
+    //
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "No tmb" << endl;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    thisTMB = tmbVector[tmb];
     //
     MyTest.SetTMB(thisTMB);
     MyTest.SetCCB(thisCCB);
@@ -710,28 +1130,53 @@ public:
     throw (xgi::exception::Exception)
   {
     //
-    cout << "DMBTurnOff" << endl;
+    cgicc::Cgicc cgi(in);
     //
-    MakeReference(in,out);
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    //
+    cout << "DMBTurnOff" << endl;
     //
     if (thisDMB) {
       thisDMB->lowv_onoff(0x0);
     }
     //
-
+    this->DMBTests(in,out);
+    //
   }
   //
   void EmuCrateHyperDAQ::DMBTurnOn(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
     //
-    cout << "DMBTurnOn" << endl;
+    cgicc::Cgicc cgi(in);
     //
-    MakeReference(in,out);
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    //
+    cout << "DMBTurnOn" << endl;
     //
     if (thisDMB) {
       thisDMB->lowv_onoff(0x3f);
     }
+    //
+    this->DMBTests(in,out);
     //
   }
   //
@@ -739,12 +1184,27 @@ public:
     throw (xgi::exception::Exception)
   {
     //
-    MakeReference(in,out);
+    cout << "TMBPrintCounters "<< endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    }
+    //
+    thisTMB = tmbVector[tmb];
     //
     thisTMB->RedirectOutput(&OutputStringTMBStatus);
     thisTMB->GetCounters();
     thisTMB->PrintCounters();
     thisTMB->RedirectOutput(&std::cout);
+    //
+    this->TMBStatus(in,out);
     //
   }
   //
@@ -752,9 +1212,21 @@ public:
     throw (xgi::exception::Exception)
   {
     //
-    MakeReference(in,out);
+    cgicc::Cgicc cgi(in);
     //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    }
+    //
+    thisTMB = tmbVector[tmb];
     thisTMB->ResetCounters();
+    //
+    this->TMBStatus(in,out);
     //
   }
   //
@@ -762,11 +1234,23 @@ public:
     throw (xgi::exception::Exception)
   {
     //
-    MakeReference(in,out);
+    cgicc::Cgicc cgi(in);
     //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    }
+    //
+    thisTMB = tmbVector[tmb];
     thisTMB->RedirectOutput(&OutputStringTMBStatus);
     thisTMB->TriggerTestInjectALCT();
     thisTMB->RedirectOutput(&std::cout);
+    //
+    this->TMBStatus(in,out);
     //
   }
   //
@@ -774,11 +1258,23 @@ public:
     throw (xgi::exception::Exception)
   {
     //
-    MakeReference(in,out);
+    cgicc::Cgicc cgi(in);
     //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    }
+    //
+    thisTMB = tmbVector[tmb];
     thisTMB->RedirectOutput(&OutputStringTMBStatus);
     thisTMB->TriggerTestInjectCLCT();
     thisTMB->RedirectOutput(&std::cout);
+    //
+    this->TMBStatus(in,out);
     //
   }
   //
@@ -888,7 +1384,17 @@ public:
     const CgiEnvironment& env = cgi.getEnvironment();
     //
     std::string tmbStr = env.getQueryString() ;
-    int tmb = atoi(tmbStr.c_str());
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "Not tmb" << endl ;
+      tmb = TMB_;
+    }
     //
     thisTMB = tmbVector[tmb];
     //
@@ -1002,6 +1508,8 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",TMBPrintCounters) ;
     *out << cgicc::input().set("type","submit").set("value","TMB Print Counters") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() ;
     //
     std::string TMBResetCounters =
@@ -1009,6 +1517,8 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",TMBResetCounters) ;
     *out << cgicc::input().set("type","submit").set("value","TMB Reset Counters") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
     //
     std::string TriggerTestInjectALCT =
@@ -1016,6 +1526,8 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",TriggerTestInjectALCT) ;
     *out << cgicc::input().set("type","submit").set("value","TriggerTest : InjectALCT") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
     //
     std::string TriggerTestInjectCLCT =
@@ -1023,6 +1535,8 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",TriggerTestInjectCLCT) ;
     *out << cgicc::input().set("type","submit").set("value","TriggerTest : InjectCLCT") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::form().set("method","GET") << std::endl ;
@@ -1048,10 +1562,21 @@ public:
     const CgiEnvironment& env = cgi.getEnvironment();
     //
     std::string dmbStr = env.getQueryString() ;
-    int dmb = atoi(dmbStr.c_str());
+    //int dmb = atoi(dmbStr.c_str());
     //
-    std::string test =  env.getReferrer() ;
-    cout << test << endl ;
+    //std::string test =  env.getReferrer() ;
+    //cout << test << endl ;
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "Not dmb" << endl ;
+      dmb = DMB_;
+    }
     //
     thisDMB = dmbVector[dmb];
     Output  = &OutputStringDMBStatus[dmb];
@@ -1518,7 +2043,18 @@ public:
     const CgiEnvironment& env = cgi.getEnvironment();
     //
     std::string dmbStr = env.getQueryString() ;
-    int dmb = atoi(dmbStr.c_str());
+    //int dmb = atoi(dmbStr.c_str());
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "Not dmb" << endl ;
+      dmb = DMB_;
+    }
     //
     std::string test =  env.getReferrer() ;
     cout << test << endl ;
@@ -1538,19 +2074,35 @@ public:
     //
     *out << cgicc::legend("DMB Tests").set("style","color:blue") ;
     //
+    *out << cgicc::table().set("border","1");
+    //
+    *out << cgicc::td();
+    //
     std::string DMBTurnOff =
       toolbox::toString("/%s/DMBTurnOff",getApplicationDescriptor()->getURN().c_str());
     //
     *out << cgicc::form().set("method","GET").set("action",DMBTurnOff) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","DMB Turn Off LV") << std::endl ;
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
     //
     std::string DMBTurnOn =
       toolbox::toString("/%s/DMBTurnOn",getApplicationDescriptor()->getURN().c_str());
     //
     *out << cgicc::form().set("method","GET").set("action",DMBTurnOn) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","DMB Turn On LV") << std::endl ;
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
     //
     std::string DMBPrintCounters =
       toolbox::toString("/%s/DMBPrintCounters",getApplicationDescriptor()->getURN().c_str());
@@ -1558,6 +2110,8 @@ public:
     *out << cgicc::form().set("method","GET").set("action",DMBPrintCounters)
 	 << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","DMB Print Counters") << std::endl ;
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
     std::string DMBTest3 =
@@ -1566,6 +2120,8 @@ public:
     *out << cgicc::form().set("method","GET").set("action",DMBTest3)
 	 << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","DMB Test3 (Check DMB Fifos)") << std::endl ;
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
     std::string DMBTest4 =
@@ -1591,6 +2147,8 @@ public:
 	.set("style","color:green") 
 	   << std::endl ;
     }
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //    
     std::string DMBTest5 =
@@ -1616,6 +2174,8 @@ public:
 	.set("style","color:green") 
 	   << std::endl ;
     }
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
     std::string DMBTest6 =
@@ -1641,6 +2201,8 @@ public:
 	.set("style","color:green") 
 	   << std::endl ;
     }
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
     std::string DMBTest8 =
@@ -1666,6 +2228,8 @@ public:
 	.set("style","color:green") 
 	   << std::endl ;
     }
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
     std::string DMBTest9 =
@@ -1691,6 +2255,8 @@ public:
 	.set("style","color:green") 
 	   << std::endl ;
     }
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
     std::string DMBTest10 =
@@ -1716,6 +2282,8 @@ public:
 	.set("style","color:green") 
 	   << std::endl ;
     }
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::fieldset() << std::endl;
