@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.25 2005/11/07 16:24:02 mey Exp $
+// $Id: tmbtiming.cpp,v 2.26 2005/11/09 20:07:34 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.26  2005/11/09 20:07:34  mey
+// Update
+//
 // Revision 2.25  2005/11/07 16:24:02  mey
 // Update
 //
@@ -1276,14 +1279,17 @@ int main(int argc,char **argv){
       err = alct->alct_read_slowcontrol_id(&sc_id) ;
       std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
 
-      long readval;
-      printf("Number of afebs %d \n",alct->nAfebs());
-      for (int i=0; i<alct->nAfebs(); i++) {
-	alct->alct_read_thresh(i,&readval);
-	printf("Setting AFEB= %d = %d \n",i,readval);
-      }
+      //alct->alct_fast_read_id(chipID);
+      //std::cout << "ALCT alct_fast_read_id " << chipID << std::endl;
+
+      //long readval;
+      //printf("Number of afebs %d \n",alct->nAfebs());
+      //for (int i=0; i<alct->nAfebs(); i++) {
+      //alct->alct_read_thresh(i,&readval);
+      //printf("Setting AFEB= %d = %d \n",i,readval);
+      //}
       //
-      alct->setup(1);
+      //alct->setup(1);
       //
       //tbController.DcsEnable();
     }
