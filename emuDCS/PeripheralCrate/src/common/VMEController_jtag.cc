@@ -2,8 +2,11 @@
 #ifdef D360
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.5 2005/11/09 20:07:23 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.6 2005/11/10 18:25:40 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.6  2005/11/10 18:25:40  mey
+// Update
+//
 // Revision 2.5  2005/11/09 20:07:23  mey
 // Update
 //
@@ -1262,6 +1265,7 @@ if(cnt==0)return;
 
 void VMEController::initDevice(int idev, int feuse) {
   if(debugV)cout << "InitDevice " << idev << " " <<(int) feuse << endl;
+  //cout << "InitDevice " << idev << " " <<(int) feuse << endl;
  char tmp[2]={0x00,0x00};
  unsigned short int tmp2[1];
 unsigned short int *ptrreg;
@@ -1270,28 +1274,52 @@ unsigned short int *ptrreg;
     switch(idev){
 
     case 1:
-    /* TMB */
-    break;
-
+      /* feboard */
+      break;
+      
     case 2:
-    /* ALCT JTAG Chain */
-    pvme=0x0098;
-    break;
-
+      /* ALCT Fast Programming JTAG Chain */
+      pvme=0x0098;
+      break;
+      
     case 3:
-    /* TMB Mezzanine FPGA +FPGA PROMS JTAG  */
-    pvme=0x00b8;
-    break;
-
-    case 4: 
-   /* TMB User Proms JTAG CHAIN */
-    pvme=0x00d8;
-    break;
+      /* TMB Mezzanine FPGA +FPGA PROMS JTAG  */
+      // fprintf(fplog," tmb mezzanine called \n");
+      pvme=0x00b8;
+      break;
+      
+    case 4:
+      /* TMB User Proms JTAG CHAIN */
+      pvme=0x00d8;
+      break;
 
     case 5:
-    /* TMB FPGA User JTAG chain */
-    pvme=0x00f8;
+      /* TMB FPGA User JTAG chain */
+      pvme=0x00f8;
+      break;
+      
+    case 6:
+      /* ALCT Slow User JTAG Chain */
+      pvme=0x0080;
+      break;
+      
+    case 7:
+      /* ALCT Slow Programming JTAG Chain
+	 ife=50;
+	 add_ucla=vmeadd|0x70000|(slot<<19);
+	 pvme=0x0088;
+    /* ALCT JTAG chain */
+      break;
+      
+    case 8:
+      /* ALCT Fast User JTAG chain */
+      pvme=0x0090;
     break;
+    
+    case 9:
+      /* ALCT Fast Programming JTAG chain */
+      pvme=0x0098;
+      break;
     }
 }
 
@@ -1443,16 +1471,16 @@ void VMEController::buckflash(const char *cmd,const char *inbuf,char *rcv)
  }
  if(cmd[0]==3){
    //  fprintf(fplog," buckflash about to read \n");
-     ptr=(unsigned short int *)add_bucr;
-     for(i=0;i<290;i++){
+   ptr=(unsigned short int *)add_bucr;
+   for(i=0;i<290;i++){
      vme_controller(0,ptr,tmp,rcv);    
-     }
-     vme_controller(2,ptr,tmp,rcv);    
-     return;
+   }
+   vme_controller(2,ptr,tmp,rcv);    
+   return;
  }
 }
 
-
+//
 
 void VMEController::lowvolt(int ichp,int ichn,char *rcv)
 {
@@ -2008,10 +2036,9 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
  unsigned short int *ptr;
  unsigned short int data2;
  unsigned short int bits,wrds;
- unsigned long int mytmp[2];
+ unsigned long int mytmp[MAXLINE];
 
- mytmp[0] = 0x0;
- mytmp[1] = 0x0;
+ for(int i=0;i<MAXLINE;i++) mytmp[i] = 0;
 
  if(cnt==0)return;
  ptr=(unsigned short int *)add_ucla;
@@ -2023,97 +2050,100 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
 
  /* instr */
 
- pvme = 0x80;
-
- printf("pvme %x \n",pvme);
-
+ //printf("pvme %x \n",pvme);
+ 
  if(reg==0){
+   //
    //printf("RestoreIdle \n");
    //RestoreIdle_alct();
-   //printf("Instruction \n");
+   //
+   printf("Instruction cnt=%d \n",cnt);
+   printf("%x %x \n",snd[0]&0xff,snd[1]&0xff);
+   //
    d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
    for(i=0;i<3;i++)vme_controller(3,ptr,d+i,rcv);
-
+   //
    d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
    for(i=0;i<3;i++)vme_controller(3,ptr,d+i,rcv);
-
+   
    d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;
    for(i=0;i<3;i++)vme_controller(3,ptr,d+i,rcv);
 
    d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;
    for(i=0;i<3;i++)vme_controller(3,ptr,d+i,rcv);
-
+   
    d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
    for(i=0;i<3;i++)vme_controller(3,ptr,d+i,rcv);
-
+   
    d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
    for(i=0;i<3;i++)vme_controller(3,ptr,d+i,rcv);
-
+   //
  }
 
  /* data */
 
  if(reg==1){ 
-   printf("DataReg ");
+   printf("DataReg cnt=%d \n",cnt);
    d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
    for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);
 
    d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
    for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);
-
+   
    d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;
    for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);
-
+   
    d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
    for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);
-
+   
    d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
    for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);
-
+   
  }
+
+ printf("General\n");
+
  byte=cnt/16;
  bit=cnt-byte*16;
+ printf("byte %d bit %d \n",byte,bit);
+ printf("%04x \n",*data&0xffff);   
  for(i=0;i<byte;i++){
    for(j=0;j<16;j++){
-      ival=*data>>j;
-      ival2=ival&0x01;
-      //
-      if(ird==1){
-        //*tmp_ucla=*ptr;
-        vme_controller(2,ptr,tmp,rcv);
-	if (bits<32) {
-	  mytmp[0] |= (((rcv[1]>>7)&0x1)<<bits);
-	} else {
-	  mytmp[1] |= (((rcv[1]>>7)&0x1)<<(bits-32));
-	}
-	printf("Read %x %x %d bits %d mytmp %x %x\n",rcv[1]&0xff,rcv[0]&0xff,(rcv[1]>>7)&0x1,bits,mytmp[1],mytmp[0]);
-        bits=bits+1;
-      }
-      //
-      if(i!=byte-1|bit!=0|j!=15){
-        if(ival2==0){d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
-        if(ival2==1){d[0]=0x0001|pvme;d[1]=0x0001|pvme|clkon;d[2]=0x0001|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
-      }else{
-        if(ival2==0){d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
-        if(ival2==1){d[0]=0x0003|pvme;d[1]=0x0003|pvme|clkon;d[2]=0x0003|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
-      }
+     ival=*data>>j;
+     ival2=ival&0x01;
+     //
+     if(ird==1){
+       //*tmp_ucla=*ptr;
+       vme_controller(2,ptr,tmp,rcv);
+       //
+       mytmp[bits/32] |= (((rcv[1]>>7)&0x1)<<(bits-(bits/32)*32));
+       //
+       printf("Read %x %x %d bits %d mytmp %x %x\n",rcv[1]&0xff,rcv[0]&0xff,(rcv[1]>>7)&0x1,bits,mytmp[1],mytmp[0]);
+       bits=bits+1;
+     }
+     //
+     if(i!=byte-1|bit!=0|j!=15){
+       if(ival2==0){d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
+       if(ival2==1){d[0]=0x0001|pvme;d[1]=0x0001|pvme|clkon;d[2]=0x0001|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
+     }else{
+       if(ival2==0){d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
+       if(ival2==1){d[0]=0x0003|pvme;d[1]=0x0003|pvme|clkon;d[2]=0x0003|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
+     }
    }
    // fprintf(fplog,"%04x",*data&0xffff);
    data=data+1;
  }
- // fprintf(fplog,"%04x \n",*data&0xffff);   
+ //
+ printf("%04x \n",*data&0xffff);   
  for(j=0;j<bit;j++){
+   printf("j=%d \n",j);
    if(bit>8)ival=*data>>j;
-   if(bit<=8)ival=*data>>j+8;
+   if(bit<=8)ival=*data>>j;
    ival2=ival&0x01;
    if(ird==1){
      // *tmp_ucla=*ptr; 
      vme_controller(2,ptr,tmp,rcv);
-     if (bits<32) {
-       mytmp[0] |= (((rcv[1]>>7)&0x1)<<(bits));
-     } else {
-       mytmp[1] |= (((rcv[1]>>7)&0x1)<<(bits-32));
-     }
+     mytmp[bits/32] |= (((rcv[1]>>7)&0x1)<<(bits-(bits/32)*32));
      printf("Read %x %x %d bits %d mytmp %x %x\n",rcv[1]&0xff,rcv[0]&0xff,(rcv[1]>>7)&0x1,bits,mytmp[1],mytmp[0]);
      bits=bits+1;
    }
@@ -2125,13 +2155,15 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
      if(ival2==1){d[0]=0x0003|pvme;d[1]=0x0003|pvme|clkon;d[2]=0x0003|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
    }
  }  
-
+ //
+ printf("done loop\n");
+ //
  d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;
  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);
-
+ //
  d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);
-
+ //
  wrds=bits/16;
  if(wrds%16!=0)wrds=wrds+1;
  for(i=0;i<wrds;i++){
@@ -2140,20 +2172,20 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
      data2=data2|((rcv[16*i+k]&0x8000)>>15)<<j;
    }
    rcv[i]=data2;
-   printf("Output = %x ",rcv[i]);
+   //printf("Output = %x ",rcv[i]);
  }
  //
- printf("\n");
+ //printf("\n");
  //
- printf("bits %d %x\n",bits,mytmp);
+ //printf("bits %d %x\n",bits,mytmp);
  //
  wrds=bits/8;
  if(wrds%16!=0)wrds=wrds+1;
  for(i=0;i<wrds;i++){
    rcv[i] = ((mytmp[i/4]>>(i*8))&0xff);
-   printf("Output = %02x ",rcv[i]&0xff);
+   //printf("Output = %02x ",rcv[i]&0xff);
  }
- printf("\n");
+ //printf("\n");
  //
 }
 

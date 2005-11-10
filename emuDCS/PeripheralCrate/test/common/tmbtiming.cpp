@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.26 2005/11/09 20:07:34 mey Exp $
+// $Id: tmbtiming.cpp,v 2.27 2005/11/10 18:25:53 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.27  2005/11/10 18:25:53  mey
+// Update
+//
 // Revision 2.26  2005/11/09 20:07:34  mey
 // Update
 //
@@ -1274,20 +1277,41 @@ int main(int argc,char **argv){
       //tbController.DcsDisable();
       //
       int err;
-      ALCTIDRegister sc_id, chipID ;
+      //ALCTIDRegister sc_id, chipID ;
 
-      err = alct->alct_read_slowcontrol_id(&sc_id) ;
-      std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
+      //err = alct->alct_read_slowcontrol_id(&sc_id) ;
+      //std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
 
       //alct->alct_fast_read_id(chipID);
       //std::cout << "ALCT alct_fast_read_id " << chipID << std::endl;
-
-      //long readval;
+      //
+      unsigned cr[3];
+      //
+      //alct->GetConf(cr,1);    
+      //
+      unsigned crw[] = {0x80fc5fcf, 0x2fa03786, 0x8}; // default values for CR
+      //
+      printf("**** Write conf \n");
+      //
+      alct->SetConf(crw,1);
+      //
+      printf("Setting to %x %x %x \n",crw[2],crw[1],crw[0]);
+      //
+      printf("**** Get conf \n");
+      //
+      //alct->GetConf(cr,1);    
+      //
+      //printf("SelfTest\n");
+      printf ("\nalct_fast_self_test returned %ld\n", alct->alct_fast_self_test ((long int*)NULL,(unsigned long)1));
+      //
+      long readval;
       //printf("Number of afebs %d \n",alct->nAfebs());
       //for (int i=0; i<alct->nAfebs(); i++) {
+      //int i = 1;
+      //alct->alct_set_thresh(i, 10);
       //alct->alct_read_thresh(i,&readval);
-      //printf("Setting AFEB= %d = %d \n",i,readval);
-      //}
+      //printf("ReadBack AFEB= %d = %d \n",i,readval);
+	///}
       //
       //alct->setup(1);
       //
