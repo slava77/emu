@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.7 2005/11/09 20:07:13 mey Exp $
+// $Id: ALCTController.cc,v 2.8 2005/11/10 18:25:21 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.8  2005/11/10 18:25:21  mey
+// Update
+//
 // Revision 2.7  2005/11/09 20:07:13  mey
 // Update
 //
@@ -1220,9 +1223,10 @@ void ALCTController::SetConf(  unsigned cr[3], int verbose=0 ){
    unsigned crr[3];
    //
    WriteRegister (WrCfg, cr); // write configuration first
-   if (verbose) printf("Configuration register:    %08x %08x %08x\n", cr[2], cr[1], cr[0]);
+   if (verbose) printf("Set to Configuration register:    %08x %08x %08x\n", cr[2], cr[1], cr[0]);
    //
    ReadRegister (RdCfg, crr);
+   if (verbose) printf("Read back  Configuration register:    %08x %08x %08x\n", crr[2], crr[1], crr[0]);
    if (cr[0] != crr[0] || cr[1] != crr[1] || cr[2] != crr[2])
    {
       if (verbose) printf("Configuration register mismatch:    %08x %08x %08x\n", crr[2], crr[1], crr[0]);
@@ -3792,6 +3796,10 @@ int ALCTController::do_jtag2(int chip_id, int opcode, int mode, const int *first
 #ifdef debugV
   std::cout << "call alct::do_jtag2 for slot "<< fd << " chip " << chip_id << std::endl;
 #endif
+
+  printf("do_jtag2\n") ;
+  std::cout << "call alct::do_jtag2 for slot "<< fd << " chip " << chip_id << " opcode " << opcode << std::endl;
+
   int     i, j, k, m, ichip, j_start, nframes, step_mode = 0;
   char    tms_pre_read[3] = { 1, 0, 0 };
   int     bits_per_opcode[MAX_NUM_CHIPS] = {4,6};  // myc++ { 4, 4, 4, 4, 4, 4, 4, 4, 6 }; back to 4
@@ -3829,42 +3837,41 @@ int ALCTController::do_jtag2(int chip_id, int opcode, int mode, const int *first
 
   // xblaster_(&jtagchannel) ;
 
- //	printf("\n\nOpcode 0x%02x", opcode);
-	for (i=0; i< sizeof(opcode); i++)
-	{
-  	sndbuf[i] = (opcode >> 8*i)  & 0x00ff;
-  	//		printf(" %02x", sndbuf[i]); 
-	}
-
+  //	printf("\n\nOpcode 0x%02x", opcode);
+  for (i=0; i< sizeof(opcode); i++)
+    {
+      sndbuf[i] = (opcode >> 8*i)  & 0x00ff;
+    }
+  //
   for (k = 0; k < bits_per_opcode[ichip]; k++) 
-  {
-  	tdi[j] = (opcode >> k) & 0x1;
-    tms[j++] = 0;
-  }
+    {
+      tdi[j] = (opcode >> k) & 0x1;
+      tms[j++] = 0;
+    }
   
   tms[j-1] = 1;        /* TMS goes high on last frame */
-
-/* Put TAP back in RTI mode */
-  for (k = 0; k < 3; k++) 
-  {
-    tdi[j]   = 0;
-    tms[j++] = tms_postop_code[k];
-  }
-
-/* Do JTAG */
-  nframes = j;
-
-  for(i10=0;i10<nframes;i10++)
-  {
-  }
-
   
-
-//   jtag_io_byte_(&nframes, tms, tdi, tdo, &step_mode);
+  /* Put TAP back in RTI mode */
+  for (k = 0; k < 3; k++) 
+    {
+      tdi[j]   = 0;
+      tms[j++] = tms_postop_code[k];
+    }
+  
+  /* Do JTAG */
+  nframes = j;
+  
+  for(i10=0;i10<nframes;i10++)
+    {
+    }
+  
+  std::cout << "bits_per_opcode" << bits_per_opcode[ichip] << std::endl;  
+	
+  //   jtag_io_byte_(&nframes, tms, tdi, tdo, &step_mode);
 #ifdef D360
   tmb_->scan(INSTR_REG, sndbuf, bits_per_opcode[ichip], rcvbuf , 0 );
 #endif
-
+  
 #ifdef OSUcc
   tmb_->scan_alct(INSTR_REG, sndbuf, bits_per_opcode[ichip], rcvbuf , 0 );
 #endif
@@ -3875,95 +3882,95 @@ int ALCTController::do_jtag2(int chip_id, int opcode, int mode, const int *first
   }
   for (j = 0; j < nframes; j++) {
   }
-
-
-/*
- * Second JTAG operation writes data to the selected register of chip_id, 
- * zero to bypass register of all other chips.
- */
-
-/* Put TAP in state ShfDR */
+  
+  
+  /*
+   * Second JTAG operation writes data to the selected register of chip_id, 
+   * zero to bypass register of all other chips.
+   */
+  
+  /* Put TAP in state ShfDR */
   for (k = 0, j = 0; k < 3; k++) 
-  {
-    tdi[j]   = 0;
-    tms[j++] = tms_pre_read[k];
-  }
-
-/* Convert the list of data items into a one-byte-per-bit array, if writing,
- * or else fill with zeros.
- */
- 	for (k = 0; k < ((length-1)/8+1); k++)
-  	{ sndbuf[k] = 0; }
-//	printf("\nTDI ");
-
+    {
+      tdi[j]   = 0;
+      tms[j++] = tms_pre_read[k];
+    }
+  
+  /* Convert the list of data items into a one-byte-per-bit array, if writing,
+   * or else fill with zeros.
+   */
+  for (k = 0; k < ((length-1)/8+1); k++)
+    { sndbuf[k] = 0; }
+  //	printf("\nTDI ");
+  
   j_start = j;
   m = 0;
   for (k = 0; k < length; k++) 
-  {
-  	if (mode == WRITE) 
-  	{
-    	if (k == first[m+1]) m++;
-      tdi[j] = (val[m] >> (k-first[m])) & 0x1;
-      sndbuf[k/8] |= tdi[j] << (k%8);
-    }
-    else 
     {
-    	tdi[j] = 0;
+      if (mode == WRITE) 
+	{
+	  if (k == first[m+1]) m++;
+	  tdi[j] = (val[m] >> (k-first[m])) & 0x1;
+	  sndbuf[k/8] |= tdi[j] << (k%8);
+	}
+      else 
+	{
+	  tdi[j] = 0;
+	}
+      tms[j++] = 0;
     }
-    tms[j++] = 0;
-  }
   tms[j-1] = 1;        /* TMS goes high on last data frame */
-
+	
   // printf("\nData In ");    
   // for (k = 0; k < ((length-1)/8+1); k++)
   // { printf(" %x", sndbuf[k]); }
-
-/* Put TAP back in RTI mode */
+  
+  /* Put TAP back in RTI mode */
   for (k = 0; k < 3; k++) 
-  {
-    tdi[j]   = 0;
-    tms[j++] = tms_postop_code[k];
+    {
+      tdi[j]   = 0;
+	    tms[j++] = tms_postop_code[k];
   }
-
-/* Do JTAG */
-  nframes = j;
-
-  for(i10=0;i10<nframes;i10++){
+	
+	/* Do JTAG */
+	nframes = j;
+	
+	for(i10=0;i10<nframes;i10++){
   }
-
-//   jtag_io_byte_(&nframes, tms, tdi, tdo, &step_mode);a
+	
+	//   jtag_io_byte_(&nframes, tms, tdi, tdo, &step_mode);a
 #ifdef D360
-  tmb_->scan(DATA_REG, sndbuf, length, rcvbuf, 1);
+	tmb_->scan(DATA_REG, sndbuf, length, rcvbuf, 1);
 #endif
-
+	
 #ifdef OSUcc
-  tmb_->scan_alct(DATA_REG, sndbuf, length, rcvbuf, 1);
+	tmb_->scan_alct(DATA_REG, sndbuf, length, rcvbuf, 1);
 #endif
-
-  for(i10=0;i10<nframes;i10++){
-  }
-
-
-
-/* Whether reading or writing, convert the one-byte-per-bit tdo data array 
-   into a list of values */
-
+	
+	for(i10=0;i10<nframes;i10++){
+	}
+	
+	
+	
+	/* Whether reading or writing, convert the one-byte-per-bit tdo data array 
+	   into a list of values */
+	
  /*
-	for (k = 0; k < ((length-1)/8+1); k++)
-  { 
-  	rcvbuf[k] = 0; 
-  }
-  */
+   for (k = 0; k < ((length-1)/8+1); k++)
+   { 
+   rcvbuf[k] = 0; 
+   }
+ */
   
  /* 
-  printf("\nTDO ");  
-  
-  i = 0;
-  val[0] = 0;
-  j = j_start;
-  j = -1 ;
-  for (k = 0; k < nframes-1; k++) 
-  {
+    printf("\nTDO ");  
+    
+    i = 0;
+    val[0] = 0;
+    j = j_start;
+    j = -1 ;
+    for (k = 0; k < nframes-1; k++) 
+    {
     if (k == first[i+1]) val[++i] = 0;
     if (tdo[j++]) 
     {
