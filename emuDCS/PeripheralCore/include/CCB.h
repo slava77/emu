@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.7 2005/11/07 16:23:24 mey Exp $
+// $Id: CCB.h,v 2.8 2005/11/15 15:37:22 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.8  2005/11/15 15:37:22  mey
+// Update
+//
 // Revision 2.7  2005/11/07 16:23:24  mey
 // Update
 //
@@ -44,6 +47,7 @@ public:
   int ReadRegister(int);
   void WriteRegister(int,int);
   void firmwareVersion();
+  void HardResetTTCrx();
   CCB(int newcrate ,int slot, int version = 2004 );
   virtual ~CCB();
 

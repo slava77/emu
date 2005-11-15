@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.8 2005/11/07 16:23:39 mey Exp $
+// $Id: CCB.cc,v 2.9 2005/11/15 15:37:13 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.9  2005/11/15 15:37:13  mey
+// Update
+//
 // Revision 2.8  2005/11/07 16:23:39  mey
 // Update
 //
@@ -487,6 +490,20 @@ std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   return data;
   //
 }
+void CCB::HardResetTTCrx(){
+  //
+  // Go to FPGA mode
+  //
+  setCCBMode(CCB::VMEFPGA);
+  //
+  // Hard reset TTCrx....
+  //
+  sndbuf[0]=0x00; 
+  sndbuf[1]=0x01;
+  //
+  ccb_vme(VME_WRITE,TTCrxReset,sndbuf,rcvbuf,NOW);
+  //
+}
 
 void CCB::ReadTTCrxID(){
   //
@@ -693,11 +710,11 @@ void CCB::hardReset() {
     switchedMode=true;
     std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for BackPlane HardReset" << std::endl; 
   }
-
-  prgall_bckpln();
+  
+  HardResetTTCrx();
+  prgall_bckpln();  
   //fg note: these 10seconds are not necessary for new/old TMB
   //fg sleep(10);
-
 
   // sequence of 2nd hard reset with additional delays (Jianhui)
   if  (mVersion==2004){
