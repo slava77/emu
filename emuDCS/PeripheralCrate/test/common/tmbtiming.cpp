@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.28 2005/11/11 13:37:20 mey Exp $
+// $Id: tmbtiming.cpp,v 2.29 2005/11/15 15:22:57 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.29  2005/11/15 15:22:57  mey
+// Update
+//
 // Revision 2.28  2005/11/11 13:37:20  mey
 // Update
 //
@@ -462,7 +465,8 @@ int main(int argc,char **argv){
        dodaqmb_adc_dump      = false;
        dodaqmb_lowv_dump     = false;
        doccb_firmware_version     = false;
-      //
+       //
+       if ( Menu == -1 ) goto outhere;
        if ( Menu == 0 ) doInitSystem           = true ;
        if ( Menu == 1 ) doTMBScope             = true ;
        if ( Menu == 2 ) doALCTRawhits          = true ;
@@ -516,7 +520,7 @@ int main(int argc,char **argv){
        if ( Menu == 50) dodaqmb_adc_dump       = true ;
        if ( Menu == 51) dodaqmb_lowv_dump      = true ;
        if ( Menu == 52) doccb_firmware_version      = true ;
-       if ( Menu  > 52 | Menu < 0) 
+       if ( Menu  > 52 | Menu < -2) 
 	 cout << "Invalid menu choice, try again." << endl << endl;
        //
     }
@@ -538,6 +542,8 @@ int main(int argc,char **argv){
     }		       
     //
     if(doReadTTCrxID) {
+      //
+      //thisCCB->ReadTTCrxID();
       //
       std::cout << "Register 0 " ;
       std::cout << thisCCB->ReadTTCrxReg(0);
@@ -1280,8 +1286,19 @@ int main(int argc,char **argv){
       //tbController.DcsDisable();
       //
       int err;
-      ALCTIDRegister sc_id, chipID ;
-
+      //ALCTIDRegister sc_id, chipID ;
+      long readval;
+      //for (int i=0; i<0xff; i++) {
+      //alct->alct_set_thresh(4, i);
+	//alct->alct_read_thresh(3,&readval);
+	//printf("ReadBack AFEB : %d = %d \n",3,readval);
+	//alct->alct_read_thresh(4,&readval);
+	//alct->alct_read_thresh(5,&readval);
+	//printf("ReadBack AFEB : %d = %d \n",5,readval);
+      //}
+      //}
+      
+      /*
       err = alct->alct_read_slowcontrol_id(&sc_id) ;
       std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
 
@@ -1290,31 +1307,24 @@ int main(int argc,char **argv){
       //
       unsigned cr[3];
       //
-      //alct->GetConf(cr,1);    
-      //
-      unsigned crw[] = {0x80fc5fcf, 0x2fa03786, 0x8}; // default values for CR
-      //
-      printf("**** Write conf \n");
-      //
-      //alct->SetConf(crw,1);
-      //
-      printf("Setting to %x %x %x \n",crw[2],crw[1],crw[0]);
-      //
-      //printf("**** Get conf \n");
-      //
-      alct->GetConf(cr,1);    
-      //
-      //printf("SelfTest\n");
-      //printf ("\nalct_fast_self_test returned %ld\n", alct->alct_fast_self_test ((long int*)NULL,(unsigned long)1));
-      //
-      long readval;
-      //printf("Number of afebs %d \n",alct->nAfebs());
-      //for (int i=0; i<alct->nAfebs(); i++) {
-      //int i = 1;
-      //alct->alct_set_thresh(i, 10);
-      //alct->alct_read_thresh(i,&readval);
-      //printf("ReadBack AFEB= %d = %d \n",i,readval);
-	///}
+      printf("SelfTest\n");
+      printf ("\nalct_fast_self_test returned %ld\n", alct->alct_fast_self_test ((long int*)NULL,(unsigned long)1));
+      */
+      printf("SelfTest\n");
+      long code;
+      int slot = thisTMB->slot();
+      printf ("\nalct_slow_self_test returned %ld\n", alct->alct_slow_self_test (&slot, &code));
+      printf ("code %d \n",code);
+      /*
+      printf("Number of afebs %d \n",alct->nAfebs());
+      int val = 10 ;
+      for (int i=0; i<alct->nAfebs(); i++) {
+	alct->alct_set_thresh(i, val);
+	printf("Setting thresh to %d \n",val);
+	alct->alct_read_thresh(i,&readval);
+	printf("ReadBack AFEB : %d = %d \n",i,readval);
+      }
+      */
       //
       //alct->setup(1);
       //
@@ -1475,6 +1485,8 @@ int main(int argc,char **argv){
 
   if (doInteractive) goto interactive;
 
+ outhere:
+
   // identify TMB
   cout << dec; // restore to decimal printing ...
   cout << "Hello, i am TMB in crate "<< thisTMB->crate()
@@ -1608,8 +1620,7 @@ int main(int argc,char **argv){
   cout << "-- CFEB-TMB timing (cf. tmb_scan.dat) --" << endl;
 
   // work in progress ...
-  
-  
+ 
 }
 //
 void InitStartSystem(){

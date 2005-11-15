@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.8 2005/11/10 18:25:21 mey Exp $
+// $Id: ALCTController.cc,v 2.9 2005/11/15 15:22:32 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.9  2005/11/15 15:22:32  mey
+// Update
+//
 // Revision 2.8  2005/11/10 18:25:21  mey
 // Update
 //
@@ -2342,34 +2345,41 @@ ALCTController::ALCTSTATUS ALCTController::alct_slowcontrol_id_status()
 // Set Threshold value of specified channel
 ALCTController::ALCTSTATUS ALCTController::alct_set_thresh(long channel, long thresh)
   {
-  int val;
-  int k, temp_bits, realchannel;
-  long i;
-
-  static int    first[] = { 0, 12 };
-  static int    length = 12;
-  
-  if (WRONG_PORT(chamber_type_))
-    return EALCT_PORT;
-
-  if (WRONG_CHANNEL(chamber_type_, channel))
-    return EALCT_ARG;
-
-  if (WRONG_DAC_VALUE(thresh))
-    return EALCT_ARG;
-
-  realchannel = channel;
-
-// DAC Remapping for channels higher that 33
-  if (channel >= 33) {realchannel += 3;}; 
-
-  temp_bits = (realchannel % 12) << 8 | (thresh & 0xff);
-  val = 0;
-  for (k = 0; k < 12; k++) if (temp_bits & (1 << (11 - k))) val |= 1 << k;
-  do_jtag(8, 010 + realchannel / 12, WRITE, first, length, &val);
-  //for (i=0; i<2000000; i++) {}; 
-  
-  return EALCT_SUCCESS;
+    //
+    //printf("\n *** Setting to %d \n",thresh);
+    //
+    int val;
+    int k, temp_bits, realchannel;
+    long i;
+    
+    static int    first[] = { 0, 12 };
+    static int    length = 12;
+    
+    if (WRONG_PORT(chamber_type_))
+      return EALCT_PORT;
+    
+    if (WRONG_CHANNEL(chamber_type_, channel))
+      return EALCT_ARG;
+    
+    if (WRONG_DAC_VALUE(thresh))
+      return EALCT_ARG;
+    
+    realchannel = channel;
+    
+    // DAC Remapping for channels higher that 33
+    if (channel >= 33) {realchannel += 3;}; 
+    
+    //printf(" Setting thresh %x channel %d \n",thresh&0xff,realchannel);
+    
+    temp_bits = (realchannel % 12) << 8 | (thresh & 0xff);
+    val = 0;
+    //printf(" temp %x \n",temp_bits);
+    for (k = 0; k < 12; k++) if (temp_bits & (1 << (11 - k))) val |= 1 << k;
+    //printf(" val  %x \n",val);
+    do_jtag(8, 010 + realchannel / 12, WRITE, first, length, &val);
+    //for (i=0; i<2000000; i++) {}; 
+    
+    return EALCT_SUCCESS;
   }
 
 // Read Threshold value from specified channel
@@ -2397,9 +2407,12 @@ ALCTController::ALCTSTATUS ALCTController::alct_read_thresh(long channel, long* 
   
   if (WRONG_PORT(chamber_type_))
     return EALCT_PORT;
-
+  
   if (WRONG_CHANNEL(chamber_type_, channel))
     return EALCT_ARG;
+
+  //printf("Reading back....\n");
+
 
   temp_bits = adc_channel[channel];
   data = 0;
@@ -2412,10 +2425,13 @@ ALCTController::ALCTSTATUS ALCTController::alct_read_thresh(long channel, long* 
   for (i=0; i<2000000; i++) {};
   val[0] = data;
   do_jtag2(8, 020 + adc_chip[channel], WRITE, first, length, val);
-
+  
   temp_bits = 0;
+  //printf("val %x \n",val[2]);
   for (k = 0; k < 10; k++ ) if ( val[2] & (1<<k) ) temp_bits |= 1 << (9-k) ;
   *thresh = temp_bits ;
+
+  //printf("ReadBack %d \n",*thresh);
 	  
   return EALCT_SUCCESS;
   }
@@ -2571,28 +2587,28 @@ ALCTController::ALCTSTATUS ALCTController::alct_slow_self_test(int* jtag,
   res = alct_read_slowcontrol_id(&sc_id);
   if (res != EALCT_SUCCESS)
     {
-    *code = 2;
-    return res;
+      *code = 2;
+      return res;
     }
   else
     {
-     if(sc_id != cur_sc_id) 
-      {
-      *code = 2;
-      return EALCT_TESTFAIL;
-      }
+      if(sc_id != cur_sc_id) 
+	{
+	  *code = 2;
+	  return EALCT_TESTFAIL;
+	}
     }
-
-
+  
+  
 
   // Checking Thresholds
   // --------------------
   
-     // Turn On AFEBs
+  // Turn On AFEBs
   for (i=0; i< alct_table[chamb_table[chamber_type_].alct].groups; i++)
     { alct_set_standby(&j, i, 0x3f);}
-    
-     // Calculating Offsets for MinDAC(0) and MaxDAC(255) thresholds values
+  
+  // Calculating Offsets for MinDAC(0) and MaxDAC(255) thresholds values
   for ( i=0; i< nAFEBs_; i++)
     {
       res = alct_set_thresh(i, 0);
@@ -2603,6 +2619,7 @@ ALCTController::ALCTSTATUS ALCTController::alct_slow_self_test(int* jtag,
       if (offset[i][0] > THRESH_OFFSET_TOLER)
         {
           *code = 3;
+	  printf("OFFSET %d \n",offset[i][0]);
           return EALCT_ARG;
         } 
       res = alct_set_thresh(i, 0xff);
@@ -2612,66 +2629,66 @@ ALCTController::ALCTSTATUS ALCTController::alct_slow_self_test(int* jtag,
       // printf("%d -[0] %d [1] %d\n", i, offset[i][0], offset[i][1] );
       if (offset[i][1]-offset[i][0] <= 0) // Return if MaxDAC Thresh <= MinDAC Thresh ADC values
 	{
-          *code = 3;
+          *code = 31;
           return EALCT_ARG;
         }
     }
   for (k=0 ; k<6; k++)
     {
-    for ( i=0; i< nAFEBs_; i++)
-      {
-      val = 50*k;
-      res = alct_set_thresh(i, val);
-      if (res != EALCT_SUCCESS)
-	{ 
-	*code = 3;
-	return res;
-	} 
-	 
-      for (h=0; h < 2000000; h++) {}
-      readval = 0;
-      res = alct_read_thresh(i, &readval);
-      if (res != EALCT_SUCCESS)
+      for ( i=0; i< nAFEBs_; i++)
 	{
-	*code = 3;
-	return res;
+	  val = 50*k;
+	  res = alct_set_thresh(i, val);
+	  if (res != EALCT_SUCCESS)
+	    { 
+	      *code = 32;
+	      return res;
+	    } 
+	  
+	  for (h=0; h < 2000000; h++) {}
+	  readval = 0;
+	  res = alct_read_thresh(i, &readval);
+	  if (res != EALCT_SUCCESS)
+	    {
+	      *code = 33;
+	      return res;
+	    }
+	  
+	  // Comparing DAC and ADC using offset compensation formula
+	  // printf ("Diff %d\n", val*4- (((readval - offset[i][0])*offset[i][1])/(offset[i][1]-offset[i][0])));
+	  int THRESH_TOLER = 10;
+	  if (fabs((double)val*4- ( ( (readval - offset[i][0]) * offset[i][1]) /(offset[i][1]-offset[i][0])) ) > THRESH_TOLER)
+	    {
+	      *code = 34;
+	      std::cout << "Tolerance " << 
+		fabs((double)val*4- ( ( (readval - offset[i][0]) * offset[i][1]) /(offset[i][1]-offset[i][0]))) << std::endl;
+	      return EALCT_TESTFAIL;  
+	    }
 	}
-        
-	// Comparing DAC and ADC using offset compensation formula
-	// printf ("Diff %d\n", val*4- (((readval - offset[i][0])*offset[i][1])/(offset[i][1]-offset[i][0])));
-        int THRESH_TOLER = 4;
-        if (fabs((double)val*4- ( ( (readval - offset[i][0]) * offset[i][1]) /(offset[i][1]-offset[i][0])) ) > THRESH_TOLER)
-	{
-	*code = 3;
-	return EALCT_TESTFAIL;  
-	}
-      }
     }
-
+  
   // Checking Standby Register
   // -----------------------
   for (i=0; i< alct_table[chamb_table[chamber_type_].alct].groups; i++)
     {
-    val = (0x30|((i&0xf)));
-    res = alct_set_standby(&j, i, val);
-    if (res != EALCT_SUCCESS)
+      val = (0x30|((i&0xf)));
+      res = alct_set_standby(&j, i, val);
+      if (res != EALCT_SUCCESS)
       {
-      *code = 4;
-      return res;
+	*code = 4;
+	return res;
       }
-    res = alct_read_standby(&j, i, &readval);
-    if (res != EALCT_SUCCESS)
-      {
-      *code = 4;
-      return res;
-      }
-    if (readval != val)
-      {
-      *code = 4;
-      // *code = 4+20+i;
-      return EALCT_TESTFAIL;
-      }
-      
+      res = alct_read_standby(&j, i, &readval);
+      if (res != EALCT_SUCCESS)
+	{
+	  *code = 41;
+	  return res;
+	}
+      if (readval != val)
+	{
+	*code = 42;
+	return EALCT_TESTFAIL;
+      }      
     }
 
  
@@ -2689,13 +2706,13 @@ ALCTController::ALCTSTATUS ALCTController::alct_slow_self_test(int* jtag,
   res = alct_read_test_pulse_powerup(&j, &readval);
   if (res != EALCT_SUCCESS)
     {
-    *code = 5;
+    *code = 51;
     return res;
     } 
   
   if (readval != 0)
     {
-    *code = 5;
+    *code = 52;
     return EALCT_TESTFAIL;
     }
   
@@ -2712,40 +2729,41 @@ ALCTController::ALCTSTATUS ALCTController::alct_slow_self_test(int* jtag,
   res = alct_read_test_pulse_powerup(&j, &readval);
   if (res != EALCT_SUCCESS)
     {
-    *code = 6;
-    return res;
+      *code = 61;
+      return res;
     } 
   
   if (readval != 1)
     {
-    *code = 6;
-    return EALCT_TESTFAIL;
+      *code = 62;
+      std::cout  << "Readval " << readval << std::endl ;
+      return EALCT_TESTFAIL;
     }
-
+  
   // Checking Test Pulse Group Mask
   // ------------------------
   for ( i=0; i<128; i++)
     {
-    val = i;
-    res = alct_set_test_pulse_groupmask(&j, val);
-    if (res != EALCT_SUCCESS)
-      {
-      *code = 7;
-      return res;
-      } 
-    res = alct_read_test_pulse_groupmask(&j, &val);
-    if (res != EALCT_SUCCESS)
-      {
-      *code = 7;
-      return res;
-      }
-    if (val != i)
-      {
-      *code = 7;
-      return EALCT_TESTFAIL;
-      }
+      val = i;
+      res = alct_set_test_pulse_groupmask(&j, val);
+      if (res != EALCT_SUCCESS)
+	{
+	  *code = 7;
+	  return res;
+	} 
+      res = alct_read_test_pulse_groupmask(&j, &val);
+      if (res != EALCT_SUCCESS)
+	{
+	  *code = 71;
+	  return res;
+	}
+      if (val != i)
+	{
+	  *code = 72;
+	  return EALCT_TESTFAIL;
+	}
     }
-
+  
   // Checking Test Pulse Strip Mask
   // ------------------------
   for ( i=0; i<64; i++)
@@ -2760,13 +2778,13 @@ ALCTController::ALCTSTATUS ALCTController::alct_slow_self_test(int* jtag,
     res = alct_read_test_pulse_stripmask(&j, &val);
     if (res != EALCT_SUCCESS)
       {
-      *code = 8;
+      *code = 81;
       return res;
       }
     if (val != i)
       {
-      *code = 8;
-      return EALCT_TESTFAIL;
+	*code = 82;
+	return EALCT_TESTFAIL;
       }
     }
 
@@ -2776,30 +2794,32 @@ ALCTController::ALCTSTATUS ALCTController::alct_slow_self_test(int* jtag,
   res = alct_read_volt(&j, V18, &valf);
   if (res != EALCT_SUCCESS)
     {
-    *code = 9;
-    return res;
+      *code = 9;
+      return res;
     }
   if (fabs(valf - volt_table[V18][0]) > volt_table[V18][1])
     {
-    *code = 9;
-    return EALCT_TESTFAIL;
+      *code = 91;
+      return EALCT_TESTFAIL;
     }
   
   // Voltage 3.3V
   res = alct_read_volt(&j, V33, &valf);
+  //printf("valf = %x \n",valf);
   if (res != EALCT_SUCCESS)
     {
-    *code = 10;
+    *code = 101;
     return res;
     }
   if (fabs(valf - volt_table[V33][0]) > volt_table[V33][1])  
     {
-    *code = 10;
+    *code = 102;
     return EALCT_TESTFAIL;
     }
   
   // Voltage 5.5V (1)
   res = alct_read_volt(&j, V55_1, &valf);
+  //printf("valf = %x \n",valf);
   if (res != EALCT_SUCCESS)
     {
     *code = 11;
@@ -2807,7 +2827,8 @@ ALCTController::ALCTSTATUS ALCTController::alct_slow_self_test(int* jtag,
     }
   if (fabs(valf - volt_table[V55_1][0]) > volt_table[V55_1][1])
     {
-    *code = 11;
+    *code = 111;
+    //printf("voltagediff %f \n",fabs(valf - volt_table[V55_1][0]) > volt_table[V55_1][1]);
     return EALCT_TESTFAIL;
     }
   // Voltage 5.5V (2)
@@ -2819,7 +2840,7 @@ ALCTController::ALCTSTATUS ALCTController::alct_slow_self_test(int* jtag,
     }
   if (fabs(valf - volt_table[V55_2][0]) > volt_table[V55_2][1])
     {
-    *code = 12;
+    *code = 121;
     return EALCT_TESTFAIL;
     }
 
@@ -2834,7 +2855,7 @@ ALCTController::ALCTSTATUS ALCTController::alct_slow_self_test(int* jtag,
     }
   if (fabs(valf - curr_table[V18][0]) > curr_table[V18][1])
     {
-    *code = 13;
+    *code = 131;
     return EALCT_TESTFAIL;
     }
   // Current for 3.3V
@@ -2846,7 +2867,7 @@ ALCTController::ALCTSTATUS ALCTController::alct_slow_self_test(int* jtag,
     }
   if (fabs(valf - curr_table[V33][0]) > curr_table[V33][1])
     {
-    *code = 14;
+    *code = 141;
     return EALCT_TESTFAIL;
     }
   // Current for 5.5V (1)
@@ -2858,7 +2879,7 @@ ALCTController::ALCTSTATUS ALCTController::alct_slow_self_test(int* jtag,
     }
   if (fabs(valf - curr_table[V55_1][0]) > curr_table[V55_1][1])
     {
-    *code = 15;
+    *code = 151;
     return EALCT_TESTFAIL;
     }
 
@@ -2874,7 +2895,7 @@ ALCTController::ALCTSTATUS ALCTController::alct_slow_self_test(int* jtag,
   if (fabs(valf - curr_table[V55_2][0]) > curr_table[V55_2][1])  
     {
     // printf("%.3f\n", valf);
-    *code = 16;
+    *code = 161;
     return EALCT_TESTFAIL;
     }
 
@@ -2888,7 +2909,7 @@ ALCTController::ALCTSTATUS ALCTController::alct_slow_self_test(int* jtag,
     }
   if (fabs(valf - temper[0]) > temper[1])  
     {
-    *code = 17;
+    *code = 171;
     return EALCT_TESTFAIL;
     }
   *code = 0;
@@ -2974,34 +2995,37 @@ ALCTController::ALCTSTATUS ALCTController::alct_set_test_pulse_amp(int* jtag,
 ALCTController::ALCTSTATUS ALCTController::alct_set_test_pulse_powerup(int* jtag,
 								       long test_pulse_power_up)
   {  
-  int j = *jtag;
-  int val = test_pulse_power_up;
- 
-  if (WRONG_PORT(chamber_type_))
+    //printf("*** Set_test_pulse_powerup\n");
+    
+    int j = *jtag;
+    int val = test_pulse_power_up;
+    
+    if (WRONG_PORT(chamber_type_))
     return EALCT_PORT; 
-
-  fd = j;
-  do_jtag(8, 046, WRITE, tppu_first, tppu_length, &val );
-  return EALCT_SUCCESS;	
+    
+    fd = j;
+    do_jtag(8, 046, WRITE, tppu_first, tppu_length, &val );
+    return EALCT_SUCCESS;	
   }
 
 // Read Test Pulse Power Up/Down status
 ALCTController::ALCTSTATUS ALCTController::alct_read_test_pulse_powerup(int* jtag,
 									long* test_pulse_power_up)
   {
-  int j = *jtag;
-  int val;
-  
-  if (WRONG_PORT(chamber_type_))
-    return EALCT_PORT; 
-
-  
-  val = 0;
-  fd = j;
-  do_jtag(8, 047, READ, tppu_first, tppu_length, &val);
-  *test_pulse_power_up = val;
-  
-  return EALCT_SUCCESS;	
+    int j = *jtag;
+    int val;
+    
+    //printf("*** Read_test_pulse_powerup\n");
+    
+    if (WRONG_PORT(chamber_type_))
+      return EALCT_PORT;     
+    
+    val = 0;
+    fd = j;
+    do_jtag(8, 047, READ, tppu_first, tppu_length, &val);
+    *test_pulse_power_up = val;
+    
+    return EALCT_SUCCESS;	
   }
 
 // Set Test Pulse Group Mask
@@ -3625,7 +3649,7 @@ int ALCTController::do_jtag(int chip_id, int opcode, int mode, const int *first,
     tmb_->start(6);
   } 
 
-  // printf("\n\nOpcode 0x%02x", opcode);
+  //printf("\nOpcode 0x%02x \n", opcode);
   for (i=0; i< sizeof(opcode); i++)
     {
       sndbuf[i] = (opcode >> 8*i)  & 0x00ff;
@@ -3654,6 +3678,7 @@ int ALCTController::do_jtag(int chip_id, int opcode, int mode, const int *first,
     {
       tdo[j] = 0 ;
     }
+
 #ifdef D360
   tmb_->scan(INSTR_REG, sndbuf, bits_per_opcode[ichip], rcvbuf , 0 );
 #endif 
@@ -3797,8 +3822,7 @@ int ALCTController::do_jtag2(int chip_id, int opcode, int mode, const int *first
   std::cout << "call alct::do_jtag2 for slot "<< fd << " chip " << chip_id << std::endl;
 #endif
 
-  printf("do_jtag2\n") ;
-  std::cout << "call alct::do_jtag2 for slot "<< fd << " chip " << chip_id << " opcode " << opcode << std::endl;
+  //std::cout << "call alct::do_jtag2 for slot "<< fd << " chip " << chip_id << " opcode " << opcode << std::endl;
 
   int     i, j, k, m, ichip, j_start, nframes, step_mode = 0;
   char    tms_pre_read[3] = { 1, 0, 0 };
@@ -3865,7 +3889,7 @@ int ALCTController::do_jtag2(int chip_id, int opcode, int mode, const int *first
     {
     }
   
-  std::cout << "bits_per_opcode" << bits_per_opcode[ichip] << std::endl;  
+  //std::cout << "bits_per_opcode" << bits_per_opcode[ichip] << std::endl;  
 	
   //   jtag_io_byte_(&nframes, tms, tdi, tdo, &step_mode);
 #ifdef D360
@@ -3993,20 +4017,28 @@ int ALCTController::do_jtag2(int chip_id, int opcode, int mode, const int *first
     val[0] = 0;
     val[1] = 0;
     val[2] = 0;
+    //
+    //for (k = 0 ; k <= length/8; k++) { printf("do_jtag2.%d %02x \n",k,rcvbuf[k]);} 
+    //
     for (k = 1 ; k <= length; k++)
-    {
-    	if (k == first[i+1]) val[++i] = 0;
-      if ((rcvbuf[k/8] >> (k%8)) & 0x01) 
-      { 
-      	// val[i] |= (1 << (k-first[i]));
-           val[i] |= 1 << (k-1); 
+      {
+	if (k == first[i+1]) val[++i] = 0;
+	if ((rcvbuf[k/8] >> (k%8)) & 0x01) 
+	  { 
+	    // val[i] |= (1 << (k-first[i]));
+	    val[i] |= 1 << (k-1); 
+	  }
       }
-    }
-//    printf("i - %d\n", i);
-//    printf("\nNet Out ");
-//    for (k=0; k<=i; k++)
-//    { printf(" 0x%02x", val[k]); }  
-//  }
+    //    printf("i - %d\n", i);
+    //    printf("\nNet Out ");
+    //    for (k=0; k<=i; k++)
+    //    { printf(" 0x%02x", val[k]); }  
+    //  }
+    //
+    //printf("val0 %x \n",val[0]);
+    //printf("val1 %x \n",val[1]);
+    //printf("val2 %x \n",val[2]);
+    //
     alct_end();  
   return 0;
 }

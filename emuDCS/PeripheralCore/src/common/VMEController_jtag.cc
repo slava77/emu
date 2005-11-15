@@ -2,8 +2,11 @@
 #ifdef D360
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.7 2005/11/11 13:37:31 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.8 2005/11/15 15:22:49 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.8  2005/11/15 15:22:49  mey
+// Update
+//
 // Revision 2.7  2005/11/11 13:37:31  mey
 // Update
 //
@@ -1720,6 +1723,8 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
      6 delay
   */
   
+  int debug = 0;
+
   static int nvme;
   static int nread=0;
   unsigned char *radd_to;
@@ -1743,9 +1748,11 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
     istrt=1;
   }
   // Jinghua Liu to debug
-  //printf("vme_control: %02x %08x",irdwr, (unsigned long int)ptr);
-  //if(irdwr==1 || irdwr==3) printf(" %04X",data[0]);
-  //printf("\n");
+  if ( debug ) {
+    printf("vme_control: %02x %08x",irdwr, (unsigned long int)ptr);
+    if(irdwr==1 || irdwr==3) printf(" %04X",data[0]);
+    printf("\n");
+  }
   //
   /* flush to vme */
   if(irdwr==4){      
@@ -1770,27 +1777,27 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
   if(irdwr<=3){
     wbuf[nwbuf+2]=0x00;
     ptrt=(unsigned long int)ptr;
-// Jinghua Liu to debug
+    // Jinghua Liu to debug
     if(ptrt<0x200000) 
-     { printf("VME ADDRESS ERROR: %06X\n",ptrt);
-       exit(-1);
+      { printf("VME ADDRESS ERROR: %06X\n",ptrt);
+     exit(-1);
      }
     wbuf[nwbuf+3]=(ptrt&0xff0000)>>16;
     wbuf[nwbuf+4]=(ptrt&0xff00)>>8;
     wbuf[nwbuf+5]=(ptrt&0xff);
-// Jinghua Liu: no byte swap for CCB,MPC,TMB 
+    // Jinghua Liu: no byte swap for CCB,MPC,TMB 
 //    wbuf[nwbuf+6]=(*data&0xff);
 //    wbuf[nwbuf+7]=(*data&0xff00)>>8;
     wbuf[nwbuf+6]=(*data&0xff00)>>8;
     wbuf[nwbuf+7]=(*data&0xff);
-// end byte swap
+    // end byte swap
     if(irdwr==1||irdwr==3)nwbuf=nwbuf+8;
     if(irdwr==0||irdwr==2)nwbuf=nwbuf+6;   
-  /* check for overflow */
+    /* check for overflow */
     LRG_read_flag2=0;
     if(nwbuf>MAX_DATA){
       // printf(" nwbuf %d MAX_DATA %d \n",nwbuf,MAX_DATA);
-       LRG_read_flag2=1;
+      LRG_read_flag2=1;
        if(irdwr==1)irdwr=3;
        if(irdwr==0)irdwr=2;
        if(LRG_read_flag==0){
@@ -2041,6 +2048,8 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
  unsigned short int bits,wrds;
  unsigned long int mytmp[MAXLINE];
 
+ int debug = 0;
+
  for(int i=0;i<MAXLINE;i++) mytmp[i] = 0;
 
  if(cnt==0)return;
@@ -2058,53 +2067,55 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
  if(reg==0){
    //
    //printf("RestoreIdle \n");
-   //RestoreIdle_alct();
    //
-   //printf("Instruction cnt=%d \n",cnt);
-   //printf("%x %x \n",snd[0]&0xff,snd[1]&0xff);
-   //
-   d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
-   for(i=0;i<3;i++)vme_controller(3,ptr,d+i,rcv);
+   if ( debug ) printf("* Instruction cnt=%d \n",cnt);
+   if ( debug ) printf("Send %x %x \n",snd[0]&0xff,snd[1]&0xff);
    //
    d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
-   for(i=0;i<3;i++)vme_controller(3,ptr,d+i,rcv);
+   for(i=0;i<3;i++)vme_controller(1,ptr,d+i,rcv);
+   //
+   d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
+   for(i=0;i<3;i++)vme_controller(1,ptr,d+i,rcv);
    
    d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;
-   for(i=0;i<3;i++)vme_controller(3,ptr,d+i,rcv);
+   for(i=0;i<3;i++)vme_controller(1,ptr,d+i,rcv);
 
    d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;
-   for(i=0;i<3;i++)vme_controller(3,ptr,d+i,rcv);
+   for(i=0;i<3;i++)vme_controller(1,ptr,d+i,rcv);
    
    d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
-   for(i=0;i<3;i++)vme_controller(3,ptr,d+i,rcv);
+   for(i=0;i<3;i++)vme_controller(1,ptr,d+i,rcv);
    
    d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
-   for(i=0;i<3;i++)vme_controller(3,ptr,d+i,rcv);
+   for(i=0;i<3;i++)vme_controller(1,ptr,d+i,rcv);
    //
  }
 
  /* data */
 
  if(reg==1){ 
-   //printf("DataReg cnt=%d \n",cnt);
+   //
+   if ( debug ) printf("* DataReg cnt=%d \n",cnt);
+   if ( debug ) printf("Send %x %x \n",snd[0]&0xff,snd[1]&0xff);
+   //
    d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
-   for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);
+   for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);
 
    d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
-   for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);
+   for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);
    
    d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;
-   for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);
+   for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);
    
    d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
-   for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);
+   for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);
    
    d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
-   for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);
+   for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);
    
  }
 
- //printf("General\n");
+ if ( debug ) printf("General\n");
 
  byte=cnt/16;
  bit=cnt-byte*16;
@@ -2126,20 +2137,19 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
      }
      //
      if(i!=byte-1|bit!=0|j!=15){
-       if(ival2==0){d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
-       if(ival2==1){d[0]=0x0001|pvme;d[1]=0x0001|pvme|clkon;d[2]=0x0001|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
+       if(ival2==0){d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);}
+       if(ival2==1){d[0]=0x0001|pvme;d[1]=0x0001|pvme|clkon;d[2]=0x0001|pvme;for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);}
      }else{
-       if(ival2==0){d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
-       if(ival2==1){d[0]=0x0003|pvme;d[1]=0x0003|pvme|clkon;d[2]=0x0003|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
+       if(ival2==0){d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);}
+       if(ival2==1){d[0]=0x0003|pvme;d[1]=0x0003|pvme|clkon;d[2]=0x0003|pvme;for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);}
      }
    }
-   // fprintf(fplog,"%04x",*data&0xffff);
    data=data+1;
  }
  //
  //printf("%04x \n",*data&0xffff);   
  for(j=0;j<bit;j++){
-   //printf("j=%d \n",j);
+   if ( debug ) printf("Shifting bits \n");
    if(bit>8)ival=*data>>j;
    if(bit<=8)ival=*data>>j;
    ival2=ival&0x01;
@@ -2151,43 +2161,45 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
      bits=bits+1;
    }
    if(j<bit-1){
-     if(ival2==0){d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
-     if(ival2==1){d[0]=0x0001|pvme;d[1]=0x0001|pvme|clkon;d[2]=0x0001|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
+     if(ival2==0){d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);}
+     if(ival2==1){d[0]=0x0001|pvme;d[1]=0x0001|pvme|clkon;d[2]=0x0001|pvme;for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);}
    }else{
-     if(ival2==0){d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
-     if(ival2==1){d[0]=0x0003|pvme;d[1]=0x0003|pvme|clkon;d[2]=0x0003|pvme;for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);}
+     if(ival2==0){d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);}
+     if(ival2==1){d[0]=0x0003|pvme;d[1]=0x0003|pvme|clkon;d[2]=0x0003|pvme;for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);}
    }
  }  
  //
- //printf("done loop\n");
+ if ( debug) printf("done loop\n");
  //
  d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;
- for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);
+ for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);
  //
  d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);
  //
- wrds=bits/16;
- if(wrds%16!=0)wrds=wrds+1;
- for(i=0;i<wrds;i++){
-   data2=0x0000;
-   for(k=0;k<16;k++){
-     data2=data2|((rcv[16*i+k]&0x8000)>>15)<<j;
-   }
-   rcv[i]=data2;
+ //wrds=bits/16;
+ //if(wrds%16!=0)wrds=wrds+1;
+ //for(i=0;i<wrds;i++){
+ //data2=0x0000;
+ //for(k=0;k<16;k++){
+ //  data2=data2|((rcv[16*i+k]&0x8000)>>15)<<j;
+ //}
+   //rcv[i]=data2;
    //printf("Output = %x ",rcv[i]);
- }
+ //}
  //
  //printf("\n");
  //
- //printf("bits %d %x\n",bits,mytmp);
+ if ( debug ) printf("bits back %d %x\n",bits,mytmp);
  //
- wrds=bits/8;
- if(wrds%16!=0)wrds=wrds+1;
+ wrds=bits/8+1;
+ //if(wrds%16!=0)wrds=wrds+1;
+ for(i=0;i<wrds;i++) rcv[i] = 0;
  for(i=0;i<wrds;i++){
    rcv[i] = ((mytmp[i/4]>>(i*8))&0xff);
-   //printf("Output = %02x ",rcv[i]&0xff);
+   if ( debug ) printf("Output %d = %02x \n",i,rcv[i]&0xff);
  }
+ //
  //printf("\n");
  //
 }
