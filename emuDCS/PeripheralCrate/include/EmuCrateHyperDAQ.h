@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.7 2005/11/09 13:50:11 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.8 2005/11/15 15:03:17 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -75,6 +75,10 @@ protected:
   vector<DAQMB*> dmbVector;
   Crate *thisCrate;
   std::string Operator_;
+  std::string MPCBoardID_;
+  std::string CCBBoardID_;
+  std::string DMBBoardID_[9];
+  std::string TMBBoardID_[9];
   int TMB_, DMB_;
   //
 public:
@@ -88,7 +92,10 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::setRawConfFile, "setRawConfFile");
     xgi::bind(this,&EmuCrateHyperDAQ::UploadConfFile, "UploadConfFile");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBStatus, "TMBStatus");
+    xgi::bind(this,&EmuCrateHyperDAQ::TMBTests,  "TMBTests");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBStatus, "DMBStatus");
+    xgi::bind(this,&EmuCrateHyperDAQ::DMBBoardID, "DMBBoardID");
+    xgi::bind(this,&EmuCrateHyperDAQ::TMBBoardID, "TMBBoardID");
     xgi::bind(this,&EmuCrateHyperDAQ::CCBStatus, "CCBStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::MPCStatus, "MPCStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTests, "DMBTests");
@@ -130,6 +137,9 @@ public:
       "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/config.xml" ;
     //
     Operator_ = "Name...";
+    MPCBoardID_ = "-1";
+    CCBBoardID_ = "-1";
+    for (int i=0; i<9; i++) { DMBBoardID_[i] = "-1" ; TMBBoardID_[i] = "-1" ; }
     //
     OutputString << "Output..." << std::endl;
     for(int i=0; i<8;i++) OutputStringDMBStatus[i] << "Output..." << std::endl;
@@ -242,89 +252,135 @@ public:
       *out << cgicc::fieldset();
       *out << std::endl;
       //
-      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-      *out << std::endl;
-      //
-      *out << cgicc::legend("Crate Configuration...").set("style","color:blue") << cgicc::p() << std::endl ;
-      //
-      for(int ii=1; ii<22; ii++) {
+      if ( Operator_.find("Name",0) == string::npos ) {
 	//
-	*out << cgicc::table().set("border","1");
+	*out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+	*out << std::endl;
 	//
-	*out << cgicc::td();
+	*out << cgicc::legend("Crate Configuration...").set("style","color:blue") << cgicc::p() << std::endl ;
 	//
-	*out << "Slot " << setfill('0') << setw(2) << dec << ii << endl;
-	//
-	*out << cgicc::td();
-	//
-	char Name[50] ;
-	std::string CCBStatus =
-	  toolbox::toString("/%s/CCBStatus",getApplicationDescriptor()->getURN().c_str());
-	std::string CCBBoardID =
-	  toolbox::toString("/%s/CCBBoardID",getApplicationDescriptor()->getURN().c_str());
-	int slot = thisCrate->ccb()->slot() ;
-	sprintf(Name,"CCB Status slot=%d",slot);
-	if(slot == ii) {
-	  *out << cgicc::td();
-	  *out << "CCB Board ID" ;
-	  *out << cgicc::form().set("method","GET").set("action",CCBBoardID) << std::endl ;
-	  *out << cgicc::input().set("type","text").set("name","CCBBoardID") << std::endl ;
-	  *out << cgicc::form() << std::endl ;
-	  *out << cgicc::td();
+	for(int ii=1; ii<22; ii++) {
+	  //
+	  *out << cgicc::table().set("border","1");
 	  //
 	  *out << cgicc::td();
-	  *out << cgicc::form().set("method","GET").set("action",CCBStatus)
-	    .set("target","_blank") << std::endl ;
-	  *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
-	  char buf[20];
-	  sprintf(buf,"%d",ii);
-	  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ccb");
-	  *out << cgicc::form() << std::endl ;
-	  *out << cgicc::td();
-	}
-	//
-	std::string MPCStatus =
-	  toolbox::toString("/%s/MPCStatus",getApplicationDescriptor()->getURN().c_str());
-	std::string MPCBoardID =
-	  toolbox::toString("/%s/MPCBoardID",getApplicationDescriptor()->getURN().c_str());
-	slot = thisCrate->mpc()->slot() ;
-	sprintf(Name,"MPC Status slot=%d",slot);
-	if(slot == ii) {
-	  *out << cgicc::td();
-	  *out << "MPC Board ID" ;
-	  *out << cgicc::form().set("method","GET").set("action",MPCBoardID) << std::endl ;
-	  *out << cgicc::input().set("type","text").set("name","MPCBoardID") << std::endl ;
-	  *out << cgicc::form() << std::endl ;
-	  *out << cgicc::td();
+	  //
+	  *out << "Slot " << setfill('0') << setw(2) << dec << ii << endl;
 	  //
 	  *out << cgicc::td();
-	  *out << cgicc::form().set("method","GET").set("action",MPCStatus)
-	    .set("target","_blank") << std::endl ;
-	  *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
-	  char buf[20];
-	  sprintf(buf,"%d",ii);
-	  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","mpc");
-	  *out << cgicc::form() << std::endl ;
-	  *out << cgicc::td();
-	}
-	//
-	std::string TMBStatus[9] ;
-	for (int i=0; i<tmbVector.size(); i++) {
-	  TMBStatus[i] =
-	    toolbox::toString("/%s/TMBStatus",getApplicationDescriptor()->getURN().c_str());
-	  int slot = tmbVector[i]->slot();
-	  sprintf(Name,"TMB Status slot=%d",tmbVector[i]->slot());
+	  //
+	  char Name[50] ;
+	  std::string CCBStatus =
+	    toolbox::toString("/%s/CCBStatus",getApplicationDescriptor()->getURN().c_str());
+	  std::string CCBBoardID =
+	    toolbox::toString("/%s/CCBBoardID",getApplicationDescriptor()->getURN().c_str());
+	  int slot = thisCrate->ccb()->slot() ;
+	  sprintf(Name,"CCB Status slot=%d",slot);
 	  if(slot == ii) {
 	    *out << cgicc::td();
-	    *out << cgicc::form().set("method","GET").set("action",TMBStatus[i])
+	    *out << "CCB Board ID" ;
+	    *out << cgicc::form().set("method","GET").set("action",CCBBoardID) << std::endl ;
+	    *out << cgicc::input().set("type","text").set("name","CCBBoardID").set("value",CCBBoardID_) << std::endl ;
+	    *out << cgicc::form() << std::endl ;
+	    *out << cgicc::td();
+	    //
+	    *out << cgicc::td();
+	    //
+	    if ( CCBBoardID_.find("-1") == string::npos ) {
+	      //
+	      *out << cgicc::form().set("method","GET").set("action",CCBStatus)
+		.set("target","_blank") << std::endl ;
+	      *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	      char buf[20];
+	      sprintf(buf,"%d",ii);
+	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ccb");
+	      *out << cgicc::form() << std::endl ;
+	      //
+	    }
+	    *out << cgicc::td();
+	  }
+	  //
+	  std::string MPCStatus =
+	    toolbox::toString("/%s/MPCStatus",getApplicationDescriptor()->getURN().c_str());
+	  std::string MPCBoardID =
+	    toolbox::toString("/%s/MPCBoardID",getApplicationDescriptor()->getURN().c_str());
+	  slot = thisCrate->mpc()->slot() ;
+	  sprintf(Name,"MPC Status slot=%d",slot);
+	  if(slot == ii) {
+	    //
+	    *out << cgicc::td();
+	    *out << "MPC Board ID" ;
+	    *out << cgicc::form().set("method","GET").set("action",MPCBoardID) << std::endl ;
+	    *out << cgicc::input().set("type","text").set("name","MPCBoardID").set("value",MPCBoardID_) << std::endl ;
+	    *out << cgicc::form() << std::endl ;
+	    *out << cgicc::td();
+	    //
+	  *out << cgicc::td();
+	  if ( MPCBoardID_.find("-1") == string::npos ) {
+	    *out << cgicc::form().set("method","GET").set("action",MPCStatus)
 	      .set("target","_blank") << std::endl ;
 	    *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
 	    char buf[20];
+	    sprintf(buf,"%d",ii);
+	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","mpc");
+	    *out << cgicc::form() << std::endl ;
+	  }
+	  *out << cgicc::td();
+	}
+	//
+	std::string TMBStatus ;
+	std::string TMBTests ;
+	std::string TMBBoardID ;
+	//
+	TMBStatus  =
+	  toolbox::toString("/%s/TMBStatus",getApplicationDescriptor()->getURN().c_str());
+	TMBBoardID =
+	  toolbox::toString("/%s/TMBBoardID",getApplicationDescriptor()->getURN().c_str());
+	TMBTests   =
+	  toolbox::toString("/%s/TMBTests",getApplicationDescriptor()->getURN().c_str());
+	//
+	for (int i=0; i<tmbVector.size(); i++) {
+	  //
+	  int slot = tmbVector[i]->slot();
+	  if(slot == ii) {
+	    //
+	    *out << cgicc::td();
+	    *out << "TMB Board ID" ;
+	    *out << cgicc::form().set("method","GET").set("action",TMBBoardID) << std::endl ;
+	    char buf[20];
+	    sprintf(buf,"TMBBoardID_%d",i);
+	    *out << cgicc::input().set("type","text").set("name",buf).set("value",TMBBoardID_[i]) << std::endl ;
 	    sprintf(buf,"%d",i);
 	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
 	    *out << cgicc::form() << std::endl ;
 	    *out << cgicc::td();
+	    //
+	    sprintf(Name,"TMB Status slot=%d",tmbVector[i]->slot());	
+	    *out << cgicc::td();
+	    if ( TMBBoardID_[i].find("-1") == string::npos ) {
+	      *out << cgicc::form().set("method","GET").set("action",TMBStatus)
+		.set("target","_blank") << std::endl ;
+	      *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	      sprintf(buf,"%d",i);
+	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+	      *out << cgicc::form() << std::endl ;
+	    }
+	    *out << cgicc::td();
+	    //
+	    sprintf(Name,"TMB Tests slot=%d",tmbVector[i]->slot());	  
+	    *out << cgicc::td();
+	    if ( TMBBoardID_[i].find("-1") == string::npos ) {
+	      *out << cgicc::form().set("method","GET").set("action",TMBTests)
+		.set("target","_blank") << std::endl ;
+	      *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	      sprintf(buf,"%d",i);
+	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+	      *out << cgicc::form() << std::endl ;
+	    }
+	    *out << cgicc::td();
+	    //
 	    //Found TMB...look for DMB...
+	    //
 	    for (int iii=0; iii<dmbVector.size(); iii++) {
 	      int dmbslot = dmbVector[iii]->slot();
 	      std::string CrateTests =
@@ -333,14 +389,16 @@ public:
 	      //
 	      if ( dmbslot == slot+1 ) {
 		*out << cgicc::td();
-		*out << cgicc::form().set("method","GET").set("action",CrateTests).set("target","_blank") << std::endl ;
-		*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
-		char buf[20];
-		sprintf(buf,"%d",i);
-		*out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-		sprintf(buf,"%d",iii);
-		*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-		*out << cgicc::form() << std::endl ;
+		if ( TMBBoardID_[i].find("-1") == string::npos ) {
+		  *out << cgicc::form().set("method","GET").set("action",CrateTests).set("target","_blank") << std::endl ;
+		  *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+		  char buf[20];
+		  sprintf(buf,"%d",i);
+		  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+		  sprintf(buf,"%d",iii);
+		  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+		  *out << cgicc::form() << std::endl ;
+		}
 		*out << cgicc::td();
 	      }
 	    }
@@ -348,34 +406,51 @@ public:
 	  }
 	}
 	//
-	std::string DMBStatus[9];
-	std::string DMBTests[9];
+	std::string DMBStatus;
+	std::string DMBTests;
+	std::string DMBBoardID;
 	//
 	for (int i=0; i<dmbVector.size(); i++) {
-	  DMBStatus[i] =
+	  DMBStatus =
 	    toolbox::toString("/%s/DMBStatus",getApplicationDescriptor()->getURN().c_str());
-	  DMBTests[i] =
+	  DMBTests =
 	    toolbox::toString("/%s/DMBTests",getApplicationDescriptor()->getURN().c_str());
+	  DMBBoardID =
+	    toolbox::toString("/%s/DMBBoardID",getApplicationDescriptor()->getURN().c_str());
 	  int slot = dmbVector[i]->slot();
 	  if(slot == ii ) {
 	    //
-	    sprintf(Name,"DMB Status slot=%d",dmbVector[i]->slot());
 	    *out << cgicc::td();
-	    *out << cgicc::form().set("method","GET").set("action",DMBStatus[i]).set("target","_blank") << std::endl ;
-	    *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	    *out << "DMB Board ID" ;
+	    *out << cgicc::form().set("method","GET").set("action",DMBBoardID) << std::endl ;
 	    char buf[20];
+	    sprintf(buf,"DMBBoardID_%d",i);
+	    *out << cgicc::input().set("type","text").set("name",buf).set("value",DMBBoardID_[i]) << std::endl ;
 	    sprintf(buf,"%d",i);
 	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
 	    *out << cgicc::form() << std::endl ;
+	    *out << cgicc::td();
+	    //
+	    sprintf(Name,"DMB Status slot=%d",dmbVector[i]->slot());
+	    *out << cgicc::td();
+	    if ( DMBBoardID_[i].find("-1",0) == string::npos ) {
+	      *out << cgicc::form().set("method","GET").set("action",DMBStatus).set("target","_blank") << std::endl ;
+	      *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	      sprintf(buf,"%d",i);
+	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+	      *out << cgicc::form() << std::endl ;
+	    }
 	    *out << cgicc::td();
 	    //
 	    sprintf(Name,"DMB Tests  slot=%d",dmbVector[i]->slot());
 	    *out << cgicc::td();
-	    *out << cgicc::form().set("method","GET").set("action",DMBTests[i]).set("target","_blank") << std::endl ;
-	    *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
-	    sprintf(buf,"%d",i);
-	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-	    *out << cgicc::form() << std::endl ;
+	    if ( DMBBoardID_[i].find("-1",0) == string::npos ) {
+	      *out << cgicc::form().set("method","GET").set("action",DMBTests).set("target","_blank") << std::endl ;
+	      *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	      sprintf(buf,"%d",i);
+	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+	      *out << cgicc::form() << std::endl ;
+	    }
 	    *out << cgicc::td();
 	    //
 	  }
@@ -387,17 +462,18 @@ public:
 	//
       }
       //
-      *out << cgicc::fieldset();
+	*out << cgicc::fieldset();
+	//
+      }
+	   //
+	   }
       //
+      //cout << "Here4" << endl ;
       //
     }
-    //
-    //cout << "Here4" << endl ;
-    //
-  }
-  //  
-  void EmuCrateHyperDAQ::InitSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
-  {
+    //  
+    void EmuCrateHyperDAQ::InitSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+      {
     cout << "Init System" << endl ;
     //
     tbController.configureNoDCS();          // Init system
@@ -412,12 +488,20 @@ public:
   void EmuCrateHyperDAQ::CCBBoardID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
+    cgicc::Cgicc cgi(in);
+    //
+    CCBBoardID_= cgi["CCBBoardID"]->getValue() ;
+    //
     this->Default(in,out);
     //
   }
   //
   void EmuCrateHyperDAQ::MPCBoardID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    MPCBoardID_= cgi["MPCBoardID"]->getValue() ;
     //
     this->Default(in,out);
     //
@@ -426,7 +510,6 @@ public:
   void EmuCrateHyperDAQ::PowerUp(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-    cout << "PowerUp" << endl ;
     //
     *out << h1("Run Valery's program");
     //
@@ -435,8 +518,6 @@ public:
   void EmuCrateHyperDAQ::Operator(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-    cout << "Operator" << std::endl ;
-    //
     cgicc::Cgicc cgi(in);
     //
     Operator_= cgi["Operator"]->getValue() ;
@@ -850,6 +931,8 @@ public:
       cout << "No tmb" << endl;
     }
     //
+    thisTMB = tmbVector[tmb];
+    //
     thisTMB->RedirectOutput(&OutputString);
     thisTMB->StartTTC();
     thisTMB->RedirectOutput(&std::cout);
@@ -861,6 +944,8 @@ public:
     void EmuCrateHyperDAQ::EnableL1aRequest(xgi::Input * in, xgi::Output * out ) 
       throw (xgi::exception::Exception)
   {
+    //
+    cout << "Enable L1a request" << endl ;
     //
     cgicc::Cgicc cgi(in);
     //
@@ -888,6 +973,8 @@ public:
     //
     thisDMB = dmbVector[dmb];
     thisTMB = tmbVector[tmb];
+    //
+    std::cout << "DMB slot " << thisDMB->slot() << " TMB slot " << thisTMB->slot() << std::endl;
     //
     thisTMB->EnableL1aRequest();
     thisCCB->setCCBMode(CCB::VMEFPGA);
@@ -1376,6 +1463,28 @@ public:
     //
   }
   //
+  void EmuCrateHyperDAQ::TMBTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "Not tmb" << endl ;
+      tmb = TMB_;
+    }
+    //
+    thisTMB = tmbVector[tmb];
+    //
+    alct = thisTMB->alctController();
+    //
+  }
+  //
   void EmuCrateHyperDAQ::TMBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
@@ -1553,15 +1662,64 @@ public:
     //
   }
   //
+  void EmuCrateHyperDAQ::DMBBoardID(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception){
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "Not dmb" << endl ;
+      dmb = DMB_;
+    }
+    //
+    char buf[20];
+    sprintf(buf,"DMBBoardID_%d",dmb);
+    DMBBoardID_[dmb] = cgi[buf]->getValue();
+    //
+    this->Default(in,out);
+    //
+    }
+  //
+  void EmuCrateHyperDAQ::TMBBoardID(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception){
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "Not tmb" << endl ;
+      tmb = TMB_;
+    }
+    //
+    char buf[20];
+    sprintf(buf,"TMBBoardID_%d",tmb);
+    TMBBoardID_[tmb] = cgi[buf]->getValue();
+    //
+    this->Default(in,out);
+    //
+    }
+  //
   void EmuCrateHyperDAQ::DMBStatus(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
     //
     cgicc::Cgicc cgi(in);
     //
-    const CgiEnvironment& env = cgi.getEnvironment();
+    //const CgiEnvironment& env = cgi.getEnvironment();
     //
-    std::string dmbStr = env.getQueryString() ;
+    //std::string dmbStr = env.getQueryString() ;
+    //
     //int dmb = atoi(dmbStr.c_str());
     //
     //std::string test =  env.getReferrer() ;
