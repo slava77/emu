@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: alctmain.cpp,v 2.1 2005/11/02 17:01:39 mey Exp $
+// $Id: alctmain.cpp,v 2.2 2005/11/16 16:23:11 mey Exp $
 // $Log: alctmain.cpp,v $
+// Revision 2.2  2005/11/16 16:23:11  mey
+// Update
+//
 // Revision 2.1  2005/11/02 17:01:39  mey
 // Update D360
 //
@@ -19,12 +22,7 @@ int main()
 {
 
   int crateId=1;
-#ifdef D360
   VMEController * controller = new VMEController(crateId,"128.146.39.89",6030);
-#endif
-#ifdef OSUcc
-  VMEController * controller = new VMEController("128.146.39.89",6030);
-#endif
   Crate * newCrate = new Crate(crateId, controller);
   TMB * tmb = new TMB(crateId, 6);
   ALCTController alct(tmb, "ME22");
