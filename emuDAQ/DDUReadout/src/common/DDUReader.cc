@@ -1,9 +1,11 @@
 //-----------------------------------------------------------------------
-// $Id: DDUReader.cc,v 2.4 2005/11/16 02:41:31 kkotov Exp $
+// $Id: DDUReader.cc,v 2.5 2005/11/16 15:17:44 kkotov Exp $
 // $Log: DDUReader.cc,v $
-// Revision 2.4  2005/11/16 02:41:31  kkotov
+// Revision 2.5  2005/11/16 15:17:44  kkotov
 //
-// Removed old version of FileReader. New version now inherits DDUReader.
+// DDUFileReader was renamed to FileReaderDDU ( for backward compatibility of this
+// package ) and finally substituted FileReader, FileReaderDDU ( old ), and FileReaderDCC
+// classes
 //
 // Revision 2.3  2005/10/04 17:47:40  geurts
 // bug update: keep marginal openFile implementation
@@ -51,9 +53,10 @@
 #include "DDUReader.h"
 
 #include <iostream>
+#include <unistd.h>
 #include <sys/mman.h>
 #include "Muon/METBRawFormat/interface/MuEndDDUHeader.h"
-#include "schar.h"
+//#include "schar.h"
 //#include "eth_hook_2.h"
 
 bool DDUReader::readNextEvent() {
@@ -68,10 +71,10 @@ int DDUReader::eventNumber() {
 }
 
 void DDUReader::closeFile() {
-#ifdef USE_DDU2004
-  // new MemoryMapped DDU readout
-  std::cout << "close and unmmap" << std::endl;
-  munmap((void *)buf_start,BIGPHYS_PAGES_2*PAGE_SIZE); // It will crash someday! Should not be here.
-#endif
+//#ifdef USE_DDU2004
+//  // new MemoryMapped DDU readout
+//  std::cout << "close and unmmap" << std::endl;
+//  munmap((void *)buf_start,BIGPHYS_PAGES_2*PAGE_SIZE); // It will crash someday! Should not be here.
+//#endif
   close(fd_schar);
 }

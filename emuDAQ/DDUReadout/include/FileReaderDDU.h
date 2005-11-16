@@ -1,13 +1,14 @@
-#ifndef DDUFileReader_h
-#define DDUFileReader_h
+// Author: Khristian Kotov ( University of Florida DQM group )
+#ifndef FileReaderDDU_h
+#define FileReaderDDU_h
 
 #include <unistd.h>
 
 #ifdef WITHOUT_DDUREADER
-class DDUFileReader {
+class FileReaderDDU {
 #else
 #include "DDUReader.h"
-class DDUFileReader : public DDUReader {
+class FileReaderDDU : public DDUReader {
 #endif
 private:
 	unsigned short raw_event[200000];
@@ -40,8 +41,8 @@ public:
 	int readDDU(unsigned short **buf, const bool debug = false){ const unsigned short *qqq; int len = 2*next(qqq); *buf = const_cast<unsigned short*>(qqq); return len; }
 #endif
 
-	DDUFileReader(void);
-	virtual ~DDUFileReader(void);
+	FileReaderDDU(void);
+	virtual ~FileReaderDDU(void);
 };
 
 #endif

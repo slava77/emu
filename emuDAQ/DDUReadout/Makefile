@@ -20,8 +20,6 @@ Sources=\
 	BinaryEventStream.cc \
 	DDUReader.cc \
 	EventStream.cc \
-	FileReader.cc \
-	FileReaderDCC.cc \
 	FileReaderDDU.cc \
 	HardwareDDU.cc
 
@@ -62,6 +60,6 @@ DynamicLibrary=
 StaticLibrary= DDUReadout
 
 Executables=
-TestExecutables= HardwareDumper.cpp HardwareMonitor.cpp
+TestExecutables= HardwareDumper.cpp HardwareMonitor.cpp FileReaderDDU.cpp
 
 include $(XDAQ_ROOT)/config/Makefile.rules

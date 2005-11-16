@@ -1,9 +1,11 @@
 //-----------------------------------------------------------------------
-// $Id: DDUReader.h,v 2.4 2005/11/16 02:41:31 kkotov Exp $
+// $Id: DDUReader.h,v 2.5 2005/11/16 15:17:44 kkotov Exp $
 // $Log: DDUReader.h,v $
-// Revision 2.4  2005/11/16 02:41:31  kkotov
+// Revision 2.5  2005/11/16 15:17:44  kkotov
 //
-// Removed old version of FileReader. New version now inherits DDUReader.
+// DDUFileReader was renamed to FileReaderDDU ( for backward compatibility of this
+// package ) and finally substituted FileReader, FileReaderDDU ( old ), and FileReaderDCC
+// classes
 //
 // Revision 2.3  2005/10/03 20:20:14  geurts
 // Removed hardware-related implementations out of DDUReader, created dependency on driver-include files.
@@ -52,6 +54,8 @@ public:
 	virtual ~DDUReader(void){};
 
 protected: // Everything bellow should go to HardwareDDU class
+
+	bool liveData_;
 
 	//all below needed for ddu2004 only
 	// new additions for MemoryMapped DDU
