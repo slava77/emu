@@ -1,5 +1,5 @@
 // Author: Khristian Kotov
-#include "DDUFileReader.h"
+#include "FileReaderDDU.h"
 #include <iostream>    // cerr
 #include <errno.h>     // errno
 #include <string.h>    // bzero, memcpy
@@ -10,9 +10,9 @@
 #include <unistd.h>    // read, close
 
 #ifdef WITHOUT_DDUREADER
-DDUFileReader::DDUFileReader(void){
+FileReaderDDU::FileReaderDDU(void){
 #else
-DDUFileReader::DDUFileReader(void):DDUReader(){
+FileReaderDDU::FileReaderDDU(void):DDUReader(){
 #endif
 	if( sizeof(unsigned long long)!=8 || sizeof(unsigned short)!=2 ){ std::cerr<<"Wrong platform"<<std::endl; exit(1); }
 	end = (file_buffer_end = file_buffer + sizeof(file_buffer)/sizeof(unsigned long long));
@@ -26,16 +26,16 @@ DDUFileReader::DDUFileReader(void):DDUReader(){
 	fd = 0;
 }
 
-DDUFileReader::~DDUFileReader(void){ if( fd ) close(fd); }
+FileReaderDDU::~FileReaderDDU(void){ if( fd ) close(fd); }
 
-int DDUFileReader::open(const char *filename){
+int FileReaderDDU::open(const char *filename){
 	if( fd ) close(fd);
 	fd = ::open(filename,O_RDONLY);
 	if( fd == -1 ){ std::cerr<<"Opening error: "<<errno<<std::endl; exit(1); }
 	return fd;
 }
 
-size_t DDUFileReader::read(const unsigned short* &buf) {
+size_t FileReaderDDU::read(const unsigned short* &buf) {
 	// Check for ubnormal situation
 	if( end>file_buffer_end || end<file_buffer ){ std::cerr<<"Error of reading"<<std::endl; exit(1); }
 	if( !fd ){ std::cerr<<"Open some file first"<<std::endl; exit(1); }
@@ -121,11 +121,11 @@ size_t DDUFileReader::read(const unsigned short* &buf) {
 	return (eventStatus&FFFF?event-raw_event-4:event-raw_event);
 }
 
-void DDUFileReader::select(unsigned int criteria){ selectCriteria = criteria; }
-void DDUFileReader::accept(unsigned int criteria){ acceptCriteria = criteria; }
-void DDUFileReader::reject(unsigned int criteria){ rejectCriteria = criteria; }
+void FileReaderDDU::select(unsigned int criteria){ selectCriteria = criteria; }
+void FileReaderDDU::accept(unsigned int criteria){ acceptCriteria = criteria; }
+void FileReaderDDU::reject(unsigned int criteria){ rejectCriteria = criteria; }
 
-size_t DDUFileReader::next(const unsigned short* &buf){
+size_t FileReaderDDU::next(const unsigned short* &buf){
 	size_t size=0;
 	do {
 		if( (size = read(buf)) == 0 ) break;
