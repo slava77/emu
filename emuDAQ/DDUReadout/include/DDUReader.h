@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DDUReader.h,v 2.3 2005/10/03 20:20:14 geurts Exp $
+// $Id: DDUReader.h,v 2.4 2005/11/16 02:41:31 kkotov Exp $
 // $Log: DDUReader.h,v $
+// Revision 2.4  2005/11/16 02:41:31  kkotov
+//
+// Removed old version of FileReader. New version now inherits DDUReader.
+//
 // Revision 2.3  2005/10/03 20:20:14  geurts
 // Removed hardware-related implementations out of DDUReader, created dependency on driver-include files.
 // - openFile is virtual function, HardwareDDU and FileReaderDDU take care of its own implementation
@@ -24,83 +28,54 @@
 #include <string>
 #include "EventReader.h"
 
-
-class DDUReader : public EventReader
-{
-public:
-  DDUReader() : nbytes_schar(0), npack_schar(0), nbyte_schar(0) {}
-  virtual ~DDUReader() {};
-  virtual void Configure() {};
-  virtual void Enable() {};
-  /// assumes fd_schar has been set
-  virtual int readDDU(unsigned short **buf, const bool debug = false) = 0;
-  /// assumes readNextEvent has been called
-
-  //virtual int check(int & EndofEvent, int count, unsigned short * tmp);
-
-  static void setDebug(bool value) {debug = value;}
-
-  /// from EventReader interface
-  bool readNextEvent();
-  int eventNumber();
-  int triggerID(void){ return eventNumber(); }
-
-  char * data() {return (char *) theBuffer;}
-  int dataLength()            {return theDataLength;}
-  virtual int reset()        = 0;
-  virtual int enableBlock()  = 0;
-  virtual int disableBlock() = 0;
-  virtual int endBlockRead() = 0;
-
-  virtual void printStats();
-  virtual int openFile(std::string filename);
-  void closeFile();
-
-  unsigned short errorFlag;
-  unsigned int errorStat;
-  bool fillBuff;
+class DDUReader : public EventReader {
+private:
+	unsigned short* theBuffer;     // Event buffer
+	size_t          theDataLength; // Event length in bytes ( not in shorts! )
 
 protected:
-  /// How many bytes to read at a time
-  virtual int chunkSize() = 0;
+	virtual int readDDU(unsigned short **buf, const bool debug = false) = 0; // Not changed for compatibility with HardwareDDU class
+	int fd_schar; // Left for compatibility with HardwareDDU class
 
-  int fd_schar;
-  unsigned long nbytes_schar;
-  int npack_schar;
-  int nbyte_schar;
-  bool liveData_;
+public:
+	virtual /*const*/ char* data(void) { return (char*)theBuffer; } // According to GenericRUI we allow everybody to modify our data
+	virtual int dataLength(void) /*const*/ { return theDataLength; } // This should be a constant method, but GenericRUI doesn't seem to care about such ditails!
 
-  static bool debug;
-  //buffer containing event data
-  short unsigned int * theBuffer;
-  int theDataLength;
+	virtual bool readNextEvent(void);
+	virtual int  eventNumber(void) /*const*/;
+	virtual int  triggerID(void) /*const*/ { return eventNumber(); }
 
+	virtual int  openFile(std::string filename) = 0;
+	virtual void closeFile(void);
 
+	DDUReader(void):EventReader(){}
+	virtual ~DDUReader(void){};
 
-  //all below needed for ddu2004 only
-  // new additions for MemoryMapped DDU
-  char *buf_data;
-  char *buf_start;
-  unsigned long int buf_pnt;
-  unsigned long int buf_end;
-  unsigned long int buf_eend;
-  unsigned long int buf_pnt_kern;
+protected: // Everything bellow should go to HardwareDDU class
 
-  char *ring_start;
-  unsigned long int ring_size;
-  unsigned long int ring_pnt;
-  int short ring_loop;
-  int short ring_loop_kern;
-  int short ring_loop_kern2;
-  int short timeout;  // timeout waiting for event
-  int short packets; // # of packets in event
-  int short pmissing;    // packets are  missing at beginning
-  int short pmissing_prev; // packets are missing at end
-  int short end_event;   // end of event seen
-  int short overwrite;   // overwrite
+	//all below needed for ddu2004 only
+	// new additions for MemoryMapped DDU
+	char *buf_data;
+	char *buf_start;
+	unsigned long int buf_pnt;
+	unsigned long int buf_end;
+	unsigned long int buf_eend;
+	unsigned long int buf_pnt_kern;
 
-  char *tail_start;
+	char *ring_start;
+	unsigned long int ring_size;
+	unsigned long int ring_pnt;
+	int short ring_loop;
+	int short ring_loop_kern;
+	int short ring_loop_kern2;
+	int short timeout;  // timeout waiting for event
+	int short packets; // # of packets in event
+	int short pmissing;    // packets are  missing at beginning
+	int short pmissing_prev; // packets are missing at end
+	int short end_event;   // end of event seen
+	int short overwrite;   // overwrite
 
+	char *tail_start;
 };
 
 #endif

@@ -9,7 +9,11 @@
 #include <fcntl.h>     // open
 #include <unistd.h>    // read, close
 
+#ifdef WITHOUT_DDUREADER
 DDUFileReader::DDUFileReader(void){
+#else
+DDUFileReader::DDUFileReader(void):DDUReader(){
+#endif
 	if( sizeof(unsigned long long)!=8 || sizeof(unsigned short)!=2 ){ std::cerr<<"Wrong platform"<<std::endl; exit(1); }
 	end = (file_buffer_end = file_buffer + sizeof(file_buffer)/sizeof(unsigned long long));
 	bzero(raw_event,  sizeof(raw_event)  );

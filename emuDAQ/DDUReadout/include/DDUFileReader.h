@@ -1,8 +1,14 @@
 #ifndef DDUFileReader_h
 #define DDUFileReader_h
+
 #include <unistd.h>
 
+#ifdef WITHOUT_DDUREADER
 class DDUFileReader {
+#else
+#include "DDUReader.h"
+class DDUFileReader : public DDUReader {
+#endif
 private:
 	unsigned short raw_event[200000];
 
@@ -28,6 +34,11 @@ public:
 	void reject(unsigned int criteria); // return events not satisfying any of criteria
 
 	unsigned int status(void){ return eventStatus; }
+
+#ifndef WITHOUT_DDUREADER
+	int openFile(std::string filename){ fd_schar = open(filename.c_str()); return 0; }
+	int readDDU(unsigned short **buf, const bool debug = false){ const unsigned short *qqq; int len = 2*next(qqq); *buf = const_cast<unsigned short*>(qqq); return len; }
+#endif
 
 	DDUFileReader(void);
 	virtual ~DDUFileReader(void);
