@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.29 2005/11/15 15:22:57 mey Exp $
+// $Id: tmbtiming.cpp,v 2.30 2005/11/16 17:02:06 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.30  2005/11/16 17:02:06  mey
+// Update
+//
 // Revision 2.29  2005/11/15 15:22:57  mey
 // Update
 //
@@ -1286,7 +1289,7 @@ int main(int argc,char **argv){
       //tbController.DcsDisable();
       //
       int err;
-      //ALCTIDRegister sc_id, chipID ;
+      ALCTIDRegister sc_id, chipID ;
       long readval;
       //for (int i=0; i<0xff; i++) {
       //alct->alct_set_thresh(4, i);
@@ -1298,13 +1301,13 @@ int main(int argc,char **argv){
       //}
       //}
       
-      /*
+      ///
       err = alct->alct_read_slowcontrol_id(&sc_id) ;
       std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
 
       alct->alct_fast_read_id(chipID);
       std::cout << "ALCT alct_fast_read_id " << chipID << std::endl;
-      //
+      /*
       unsigned cr[3];
       //
       printf("SelfTest\n");
