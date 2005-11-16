@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DDUReader.cc,v 2.3 2005/10/04 17:47:40 geurts Exp $
+// $Id: DDUReader.cc,v 2.4 2005/11/16 02:41:31 kkotov Exp $
 // $Log: DDUReader.cc,v $
+// Revision 2.4  2005/11/16 02:41:31  kkotov
+//
+// Removed old version of FileReader. New version now inherits DDUReader.
+//
 // Revision 2.3  2005/10/04 17:47:40  geurts
 // bug update: keep marginal openFile implementation
 //
@@ -47,59 +51,15 @@
 #include "DDUReader.h"
 
 #include <iostream>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <cstdio>
-#include <unistd.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <string>
 #include <sys/mman.h>
 #include "Muon/METBRawFormat/interface/MuEndDDUHeader.h"
 #include "schar.h"
-#include "eth_hook_2.h"
-
-
-bool DDUReader::debug = false;
-
-int DDUReader::openFile(std::string filename) {
-
-  fd_schar = open(filename.c_str(), O_RDONLY);
-
-  // Abort in case of any failure
-  if (fd_schar == -1) {
-    std::cerr << "DDUReader: FATAL in openFile - " << std::strerror(errno) << std::endl;
-    std::cerr << "DDUReader will abort!!!" << std::endl;
-    abort();
-  }
-
-  return 0;
-}
+//#include "eth_hook_2.h"
 
 bool DDUReader::readNextEvent() {
-  unsigned short ** buf2 = new unsigned short* ; 
-  theDataLength = readDDU(buf2, debug);
-  if (debug) std::cout << " theDataLength " << theDataLength << std::endl;
+  theDataLength = readDDU(&theBuffer, false);
   if(theDataLength<=7) return false;
-  unsigned short * buf=(unsigned short *)*buf2;
-  theBuffer = buf; 
-  delete buf2;  
   return true;
-}
-
-void DDUReader::printStats()
-{
-  std::cout << " npackets " << std::dec << npack_schar
-       << " nbytes " << nbytes_schar << std::endl; 
-}
-
-void DDUReader::closeFile() {
-#ifdef USE_DDU2004
-  // new MemoryMapped DDU readout
-  std::cout << "close and unmmap" << std::endl;
-  munmap((void *)buf_start,BIGPHYS_PAGES_2*PAGE_SIZE);
-#endif
-  close(fd_schar);
 }
 
 int DDUReader::eventNumber() {
@@ -107,5 +67,11 @@ int DDUReader::eventNumber() {
   return dduHeader->lvl1num();
 }
 
-
-
+void DDUReader::closeFile() {
+#ifdef USE_DDU2004
+  // new MemoryMapped DDU readout
+  std::cout << "close and unmmap" << std::endl;
+  munmap((void *)buf_start,BIGPHYS_PAGES_2*PAGE_SIZE); // It will crash someday! Should not be here.
+#endif
+  close(fd_schar);
+}
