@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.30 2005/11/16 17:02:06 mey Exp $
+// $Id: tmbtiming.cpp,v 2.31 2005/11/17 13:47:22 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.31  2005/11/17 13:47:22  mey
+// Update
+//
 // Revision 2.30  2005/11/16 17:02:06  mey
 // Update
 //
@@ -546,7 +549,7 @@ int main(int argc,char **argv){
     //
     if(doReadTTCrxID) {
       //
-      //thisCCB->ReadTTCrxID();
+      thisCCB->ReadTTCrxID();
       //
       std::cout << "Register 0 " ;
       std::cout << thisCCB->ReadTTCrxReg(0);
