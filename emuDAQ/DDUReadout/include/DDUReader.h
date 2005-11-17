@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DDUReader.h,v 2.5 2005/11/16 15:17:44 kkotov Exp $
+// $Id: DDUReader.h,v 2.6 2005/11/17 15:56:44 kkotov Exp $
 // $Log: DDUReader.h,v $
+// Revision 2.6  2005/11/17 15:56:44  kkotov
+//
+// Added few dummy functions for compatibility with EmuRUI
+//
 // Revision 2.5  2005/11/16 15:17:44  kkotov
 //
 // DDUFileReader was renamed to FileReaderDDU ( for backward compatibility of this
@@ -38,8 +42,16 @@ private:
 protected:
 	virtual int readDDU(unsigned short **buf, const bool debug = false) = 0; // Not changed for compatibility with HardwareDDU class
 	int fd_schar; // Left for compatibility with HardwareDDU class
+	virtual int chunkSize(void) = 0; // Needed for EmuRUI
 
 public:
+	virtual void Configure(void){} // Do nothing needed by EmuRUI
+	virtual void Enable(void)   {} // Do nothing needed by EmuRUI
+	virtual int  reset (void)       = 0; // Needed for EmuRUI
+	virtual int  enableBlock (void) = 0; // Needed for EmuRUI
+	virtual int  disableBlock(void) = 0; // Needed for EmuRUI
+	virtual int  endBlockRead(void) = 0; // Needed for EmuRUI
+
 	virtual /*const*/ char* data(void) { return (char*)theBuffer; } // According to GenericRUI we allow everybody to modify our data
 	virtual int dataLength(void) /*const*/ { return theDataLength; } // This should be a constant method, but GenericRUI doesn't seem to care about such ditails!
 
