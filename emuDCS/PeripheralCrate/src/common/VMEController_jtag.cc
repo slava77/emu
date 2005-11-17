@@ -2,8 +2,11 @@
 #ifdef D360
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.8 2005/11/15 15:22:49 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.9 2005/11/17 13:46:41 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.9  2005/11/17 13:46:41  mey
+// Update
+//
 // Revision 2.8  2005/11/15 15:22:49  mey
 // Update
 //
@@ -1610,15 +1613,15 @@ unsigned short int *ptr;
 void  VMEController::sleep_vme(const char *outbuf)   // in usecs (min 16 usec)
 {
 unsigned short int pause;
-char tmp[1]={0x00};
-unsigned short int tmp2[1]={0x0000};
-unsigned short int *ptr;
-// printf(" outbuf[0-1] %02x %02x \n",outbuf[0]&0xff,outbuf[1]&0xff);
+ char tmp[1]={0x00};
+ unsigned short int tmp2[1]={0x0000};
+ unsigned short int *ptr;
+ // printf(" outbuf[0-1] %02x %02x \n",outbuf[0]&0xff,outbuf[1]&0xff);
  delay_type=3;
-       tmp2[0]=outbuf[1]*256+outbuf[0];
-       tmp2[0]=2*tmp2[0];
-       tmp2[0]=tmp2[0]+1;
-       vme_controller(6,ptr,tmp2,tmp);
+ tmp2[0]=outbuf[1]*256+outbuf[0];
+ tmp2[0]=2*tmp2[0];
+ tmp2[0]=tmp2[0]+1;
+ vme_controller(6,ptr,tmp2,tmp);
 }
 
 void  VMEController::sleep_vme2(unsigned short int time) // time in usec

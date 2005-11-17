@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.8 2005/11/15 15:03:17 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.9 2005/11/17 13:43:56 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -20,6 +20,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <iomanip>
+#include <time.h>
 
 
 #include "xdaq/Application.h"
@@ -69,8 +70,8 @@ protected:
   CrateUtilities MyTest;
   ostringstream OutputString;
   ostringstream OutputStringDMBStatus[9];
-  ostringstream OutputStringTMBStatus;
-  ostringstream* Output;
+  ostringstream OutputStringTMBStatus[9];
+  ostringstream OutputDMBTests[9];
   vector<TMB*>   tmbVector;
   vector<DAQMB*> dmbVector;
   Crate *thisCrate;
@@ -128,6 +129,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::Operator, "Operator");
     xgi::bind(this,&EmuCrateHyperDAQ::MPCBoardID, "MPCBoardID");
     xgi::bind(this,&EmuCrateHyperDAQ::CCBBoardID, "CCBBoardID");
+    xgi::bind(this,&EmuCrateHyperDAQ::LogDMBTestsOutput, "LogDMBTestsOutput");
     //
     myParameter_ =  0;
     //
@@ -142,8 +144,11 @@ public:
     for (int i=0; i<9; i++) { DMBBoardID_[i] = "-1" ; TMBBoardID_[i] = "-1" ; }
     //
     OutputString << "Output..." << std::endl;
-    for(int i=0; i<8;i++) OutputStringDMBStatus[i] << "Output..." << std::endl;
-    OutputStringTMBStatus << "Output..." << std::endl;
+    for(int i=0; i<9;i++) {
+      OutputStringDMBStatus[i] << "Output..." << std::endl;
+      OutputStringTMBStatus[i] << "Output..." << std::endl;
+      OutputDMBTests[i]        << "Output..." << std::endl;
+    }
     //
   }
   //
@@ -528,7 +533,6 @@ public:
   void EmuCrateHyperDAQ::DMBTest3(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-    cout << "DMB Test3" << endl ;
     //
     cgicc::Cgicc cgi(in);
     //
@@ -541,7 +545,9 @@ public:
       DMB_ = dmb;
     }
     //
-    thisDMB->RedirectOutput(&std::cout);
+    OutputDMBTests[dmb] << "DMB Test3" << endl ;
+    //
+    thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
     thisDMB->test3();
     thisDMB->RedirectOutput(&std::cout);
     //
@@ -552,7 +558,7 @@ public:
   void EmuCrateHyperDAQ::DMBTest4(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-    cout << "DMB Test4" << endl ;
+    //
     //
     cgicc::Cgicc cgi(in);
     //
@@ -565,7 +571,9 @@ public:
       DMB_ = dmb;
     }
     //
-    thisDMB->RedirectOutput(Output);
+    OutputDMBTests[dmb] << "DMB Test4" << endl ;
+    //
+    thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
     int pass = thisDMB->test4();
     thisDMB->RedirectOutput(&std::cout);
     //
@@ -576,7 +584,7 @@ public:
   void EmuCrateHyperDAQ::DMBTest5(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-    cout << "DMB Test5" << endl ;
+    //
     //
     cgicc::Cgicc cgi(in);
     //
@@ -589,7 +597,9 @@ public:
       DMB_ = dmb;
     }
     //
-    thisDMB->RedirectOutput(Output);
+    OutputDMBTests[dmb] << "DMB Test5" << endl ;
+    //
+    thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
     int pass = thisDMB->test5();
     thisDMB->RedirectOutput(&std::cout);
     //
@@ -600,7 +610,7 @@ public:
   void EmuCrateHyperDAQ::DMBTest6(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-    cout << "DMB Test6" << endl ;
+    //
     //
     cgicc::Cgicc cgi(in);
     //
@@ -613,7 +623,9 @@ public:
       DMB_ = dmb;
     }
     //
-    thisDMB->RedirectOutput(Output);
+    OutputDMBTests[dmb] << "DMB Test6" << endl ;
+    //
+    thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
     int pass = thisDMB->test6();
     thisDMB->RedirectOutput(&std::cout);
     //
@@ -624,7 +636,7 @@ public:
   void EmuCrateHyperDAQ::DMBTest8(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-    cout << "DMB Test8" << endl ;
+    //
     //
     cgicc::Cgicc cgi(in);
     //
@@ -637,7 +649,9 @@ public:
       DMB_ = dmb;
     }
     //
-    thisDMB->RedirectOutput(Output);
+    OutputDMBTests[dmb] << "DMB Test8" << endl ;
+    //
+    thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
     int pass = thisDMB->test8();
     thisDMB->RedirectOutput(&std::cout);
     //
@@ -647,7 +661,7 @@ public:
   void EmuCrateHyperDAQ::DMBTest9(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-    cout << "DMB Test9" << endl ;
+    //
     //
     cgicc::Cgicc cgi(in);
     //
@@ -660,7 +674,9 @@ public:
       DMB_ = dmb;
     }
     //
-    thisDMB->RedirectOutput(Output);
+    OutputDMBTests[dmb] << "DMB Test9" << endl ;
+    //
+    thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
     int pass = thisDMB->test9();
     thisDMB->RedirectOutput(&std::cout);
     //
@@ -670,7 +686,7 @@ public:
   void EmuCrateHyperDAQ::DMBTest10(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-    cout << "DMB Test10" << endl ;
+    //
     //
     cgicc::Cgicc cgi(in);
     //
@@ -683,7 +699,9 @@ public:
       DMB_ = dmb;
     }
     //
-    thisDMB->RedirectOutput(Output);
+    OutputDMBTests[dmb] << "DMB Test10" << endl ;
+    //
+    thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
     int pass = thisDMB->test10();
     thisDMB->RedirectOutput(&std::cout);
     //
@@ -705,7 +723,7 @@ public:
       DMB_ = dmb;
     }
     //
-    thisDMB->RedirectOutput(Output);
+    thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
     thisDMB->PrintCounters(1);
     thisDMB->RedirectOutput(&std::cout);
     //
@@ -897,7 +915,7 @@ public:
       .set("WRAP","OFF")
       .set("rows","20").set("cols","60");
     *out << OutputString.str() << endl ;
-    OutputString.clear();
+    OutputString.str("");
     *out << cgicc::textarea();
     *out << cgicc::form() << std::endl ;
     //
@@ -1286,7 +1304,7 @@ public:
     //
     thisTMB = tmbVector[tmb];
     //
-    thisTMB->RedirectOutput(&OutputStringTMBStatus);
+    thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
     thisTMB->GetCounters();
     thisTMB->PrintCounters();
     thisTMB->RedirectOutput(&std::cout);
@@ -1333,7 +1351,7 @@ public:
     }
     //
     thisTMB = tmbVector[tmb];
-    thisTMB->RedirectOutput(&OutputStringTMBStatus);
+    thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
     thisTMB->TriggerTestInjectALCT();
     thisTMB->RedirectOutput(&std::cout);
     //
@@ -1357,7 +1375,7 @@ public:
     }
     //
     thisTMB = tmbVector[tmb];
-    thisTMB->RedirectOutput(&OutputStringTMBStatus);
+    thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
     thisTMB->TriggerTestInjectCLCT();
     thisTMB->RedirectOutput(&std::cout);
     //
@@ -1654,9 +1672,9 @@ public:
       .set("rows","20")
       .set("cols","100")
       .set("WRAP","OFF");
-    *out << OutputStringTMBStatus.str() << endl ;
+    *out << OutputStringTMBStatus[tmb].str() << endl ;
     *out << cgicc::textarea();
-    OutputStringTMBStatus.clear();
+    OutputStringTMBStatus[tmb].str("");
     *out << cgicc::pre();
     *out << cgicc::form() << std::endl ;
     //
@@ -1737,7 +1755,6 @@ public:
     }
     //
     thisDMB = dmbVector[dmb];
-    Output  = &OutputStringDMBStatus[dmb];
     //
     if( thisDMB->cfebs().size() > 0 ) {
       std::string CFEBStatus =
@@ -2214,11 +2231,10 @@ public:
       dmb = DMB_;
     }
     //
-    std::string test =  env.getReferrer() ;
-    cout << test << endl ;
+    //std::string test =  env.getReferrer() ;
+    //cout << test << endl ;
     //
     thisDMB = dmbVector[dmb];
-    Output  = &OutputStringDMBStatus[dmb];
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
@@ -2446,13 +2462,57 @@ public:
     //
     *out << cgicc::fieldset() << std::endl;
     //
-    *out << cgicc::form().set("method","GET") << std::endl ;
+    std::string method =
+      toolbox::toString("/%s/LogDMBTestsOutput",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",method) << std::endl ;
     *out << cgicc::textarea().set("name","CrateTestDMBOutput")
       .set("WRAP","OFF")
       .set("rows","20").set("cols","60");
-    *out << Output->str() << endl ;
+    *out << OutputDMBTests[dmb].str() << endl ;
     *out << cgicc::textarea();
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::input().set("type","submit").set("value","Log output") << std::endl ;
     *out << cgicc::form() << std::endl ;
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::LogDMBTestsOutput(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cout << "LogDMBTestsOutput" << std::endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "Not dmb" << endl ;
+      dmb = DMB_;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    //
+    cout << DMBBoardID_[dmb] << endl ;
+    //
+    char buf[20];
+    sprintf(buf,"DMBTestsLogFile_%d_%s.log",thisDMB->slot(),DMBBoardID_[dmb].c_str());
+    //
+    ofstream DMBTestsLogFile;
+    DMBTestsLogFile.open(buf);
+    DMBTestsLogFile << OutputDMBTests[dmb].str() ;
+    DMBTestsLogFile.close();
+    //
+    OutputDMBTests[dmb].str("");
+    //
+    this->DMBTests(in,out);
     //
   }
   //
