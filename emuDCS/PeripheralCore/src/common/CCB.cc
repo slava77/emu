@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.10 2005/11/21 17:51:23 mey Exp $
+// $Id: CCB.cc,v 2.11 2005/11/21 18:02:50 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.11  2005/11/21 18:02:50  mey
+// Update
+//
 // Revision 2.10  2005/11/21 17:51:23  mey
 // Update
 //
@@ -504,7 +507,7 @@ void CCB::HardResetTTCrx(){
   sndbuf[0]=0x00; 
   sndbuf[1]=0x01;
   //
-  ccb_vme(VME_WRITE,TTCrxReset,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,TTCrxReset,sndbuf,rcvbuf,NOW);
   //
 }
 
