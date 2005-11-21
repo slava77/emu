@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.9 2005/11/15 15:37:13 mey Exp $
+// $Id: CCB.cc,v 2.10 2005/11/21 17:51:23 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.10  2005/11/21 17:51:23  mey
+// Update
+//
 // Revision 2.9  2005/11/15 15:37:13  mey
 // Update
 //
@@ -97,8 +100,8 @@ void CCB::end() {
   char rcvx[2];
   char sndx[2];
   //fg 0xff is a JTAG reset ... not sure what it does here.
-  ccb_vme(0xff,CSR1,sndx,rcvx,NOW);
-  //2004 ccb_vme(0xff,CSRB1,sndx,rcvx,NOW);
+  do_vme(0xff,CSR1,sndx,rcvx,NOW);
+  //2004 do_vme(0xff,CSRB1,sndx,rcvx,NOW);
 }
 
 
@@ -118,15 +121,15 @@ void CCB::pulse(int Num_pulse,unsigned int * delays, char vme)
    for(int j=0;j<Num_pulse;j++){
      sndbuf[0]=(delays[j]&0xff00)>>8;
      sndbuf[1]=(delays[j]&0x00ff);
-     ccb_vme(0x03,CSR1,sndbuf,rcvbuf,LATER);
-     //2004 ccb_vme(0x03,CSRB1,sndbuf,rcvbuf,LATER);
+     do_vme(0x03,CSR1,sndbuf,rcvbuf,LATER);
+     //2004 do_vme(0x03,CSRB1,sndbuf,rcvbuf,LATER);
      sndbuf[0]=0x00;
      sndbuf[1]=0x00;
      if(j<(Num_pulse-1)){
-       ccb_vme(VME_WRITE,vme,sndbuf,rcvbuf,LATER);
+       do_vme(VME_WRITE,vme,sndbuf,rcvbuf,LATER);
      }
      else{
-       ccb_vme(VME_WRITE,vme,sndbuf,rcvbuf,NOW);
+       do_vme(VME_WRITE,vme,sndbuf,rcvbuf,NOW);
      }
    }
   if (switchedMode){
@@ -153,13 +156,13 @@ void CCB::pulse() {
 
   sndbuf[0]=0x00;
   sndbuf[1]=0xff;
-  //fg ?? what does 0x03 do?? ccb_vme ignores it!
-  ccb_vme(0x03,CSR1,sndbuf,rcvbuf,LATER);
-  //2004 ccb_vme(0x03,CSRB1,sndbuf,rcvbuf,LATER);
+  //fg ?? what does 0x03 do?? do_vme ignores it!
+  do_vme(0x03,CSR1,sndbuf,rcvbuf,LATER);
+  //2004 do_vme(0x03,CSRB1,sndbuf,rcvbuf,LATER);
   sndbuf[0]=0x00;
   sndbuf[1]=0x00;
-  ccb_vme(VME_WRITE,DMB_CFEB_CAL0,sndbuf,rcvbuf,NOW);
-  //2004 ccb_vme(VME_WRITE,0x8a,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,DMB_CFEB_CAL0,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,0x8a,sndbuf,rcvbuf,NOW);
 
   if (switchedMode){
     setCCBMode(CCB::DLOG);
@@ -218,7 +221,7 @@ void CCB::prgall_bckpln()
   std::cout << "CCB: hard reset" << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=0x00;
-  ccb_vme(VME_WRITE,CRATE_HARD_RESET,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,CRATE_HARD_RESET,sndbuf,rcvbuf,NOW);
   theController->end();
 }
 
@@ -230,7 +233,7 @@ void CCB::reset_bckpln()
   int i_ccb=0x1c;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc;
-  ccb_vme(VME_WRITE, CSR2, sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE, CSR2, sndbuf,rcvbuf,NOW);
   sleep(1);
   theController->end();
 }
@@ -242,14 +245,14 @@ void CCB::GenerateAlctAdbSync(){
    sndbuf[0]=0x00;
    sndbuf[1]=0x01;
    if (mVersion==2001) {
-     ccb_vme(VME_WRITE, 0x40, sndbuf,rcvbuf,NOW);
+     do_vme(VME_WRITE, 0x40, sndbuf,rcvbuf,NOW);
    }
    else{
      if (mDebug) std::cout << "Writing " << std::endl;
-     ccb_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
+     do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
      sndbuf[0]=0x00;
      sndbuf[1]=0x00;
-     ccb_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
+     do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
    }
    //
    theController->end();
@@ -262,14 +265,14 @@ void CCB::GenerateAlctAdbASync(){
    int i_ccb=0x19;
    sndbuf[0]=0x00;
    sndbuf[1]=(i_ccb<<2)&0xfc;
-   ccb_vme(VME_WRITE, CSR2, sndbuf,rcvbuf,NOW);
+   do_vme(VME_WRITE, CSR2, sndbuf,rcvbuf,NOW);
    theController->end();
    //
 }
 //
 void CCB::DumpAddress(int address) {
   //
-  ccb_vme(VME_READ,address,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_READ,address,sndbuf,rcvbuf,NOW);  
   //
   printf("CCB.Dump %x %x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   //
@@ -293,9 +296,9 @@ void CCB::rice_clk_setup()
   sndbuf[0]=0x00;
   sndbuf[1]=l1aDelay_;  
   if (mVersion==2001) 
-    ccb_vme(VME_WRITE,CSR5,sndbuf,rcvbuf,LATER);
+    do_vme(VME_WRITE,CSR5,sndbuf,rcvbuf,LATER);
   if (mVersion==2004) 
-    ccb_vme(VME_WRITE,CSRB5,sndbuf,rcvbuf,LATER);
+    do_vme(VME_WRITE,CSRB5,sndbuf,rcvbuf,LATER);
   
   if (switchedMode){
     setCCBMode(CCB::DLOG);
@@ -307,7 +310,7 @@ void CCB::rice_clk_setup()
   sndbuf[0]=0x00;
   sndbuf[1]=0x00;
   if (mVersion==2001)
-    ccb_vme(VME_WRITE,RST_CCB_INT_LOG,sndbuf,rcvbuf,LATER);
+    do_vme(VME_WRITE,RST_CCB_INT_LOG,sndbuf,rcvbuf,LATER);
   //else
   //std::cout << "CCB:  rice_clk_setup: RST_CCB_INT_LOG deprecated" << std::endl;
 
@@ -340,8 +343,8 @@ void CCB::rice_clk_setup()
              To disable TMB_L1Req set bit 0x20 high.
 */
   if(CLK_INIT_FLAG==1){
-    ccb_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
-    //2004 ccb_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
+    do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
+    //2004 do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
 
     if((rcvbuf[1]&0xf8)!=0xf8) l1en=1;
 // only load the new trigger setting NOW if triggers are enabled;
@@ -374,13 +377,13 @@ void CCB::rice_clk_setup()
   std::cout << "CCB: CSRB1=0x" << std::hex 
        << std::setw(2) << int(sndbuf[0]&0xff) << std::setw(2) <<int(sndbuf[1]&0xff)
        << std::dec << std::endl;
-  ccb_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,LATER);
-  //2004 ccb_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,LATER);
+  do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,LATER);
+  //2004 do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,LATER);
 
 
   sndbuf[0]=0x00;
   sndbuf[1]=0x00;
-  // JRG, phos4: ccb_vme(VME_WRITE,0x24,sndbuf,rcvbuf,NOW);
+  // JRG, phos4: do_vme(VME_WRITE,0x24,sndbuf,rcvbuf,NOW);
   /* JRG, phos4:  rice_i2c();
   ierr=rice_delay(11,0,0); // manual say initial write required
   for(a=0;a<4;a++){
@@ -412,7 +415,7 @@ std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   //
   startI2C();
   //
-  ccb_vme(VME_READ,CSRA1,sndbuf,rcvbuf,NOW);    
+  do_vme(VME_READ,CSRA1,sndbuf,rcvbuf,NOW);    
   //
   // write address of the pointer  register
   for( int i(6); i>=0; --i) {
@@ -425,11 +428,11 @@ std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x04; 
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x02; 
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
   //
   for( int i(7); i>=0; --i) {
     writeI2C(regAddress[i]);
@@ -439,7 +442,7 @@ std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x06; 
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
   //
   stopI2C();
   //
@@ -458,11 +461,11 @@ std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x04; 
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x02; 
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
   //
   // read data
   int Data;
@@ -478,11 +481,11 @@ std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x04 ; 
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x02; 
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
   //  
   // stop condition
   stopI2C();
@@ -516,13 +519,13 @@ void CCB::ReadTTCrxID(){
   sndbuf[0]=0x00; 
   sndbuf[1]=0x01;
   //
-  ccb_vme(VME_WRITE,TTCrxReset,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,TTCrxReset,sndbuf,rcvbuf,NOW);
   //
   // Wait some time
   usleep(60);
   //
   // Read TTCrx ID number
-  ccb_vme(VME_READ,CSRB18,sndbuf,rcvbuf,NOW);
+  do_vme(VME_READ,CSRB18,sndbuf,rcvbuf,NOW);
   //
   printf("%02x%02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
 }
@@ -531,13 +534,13 @@ int CCB::readI2C(){
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x04; 
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0c; 
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //  
-  ccb_vme(VME_READ,CSRA1, sndbuf,rcvbuf,NOW);
+  do_vme(VME_READ,CSRA1, sndbuf,rcvbuf,NOW);
   //
   //printf(" %x rcv \n",rcvbuf[1]&0xff);
   //
@@ -556,23 +559,23 @@ void CCB::writeI2C(int data){
   //
   sndbuf[0]= 0x00; 
   sndbuf[1]= (i2cBaseData&0xff);
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]= 0x00;
   sndbuf[1]=(i2cLowInput&0xff);
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]= 0x00;
   sndbuf[1]=(i2cHighInput&0xff);
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]= 0x00;
   sndbuf[1]=(i2cLowInput&0xff);
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]= 0x00;
   sndbuf[1]= (i2cBaseData&0xff);
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
 }
 //
@@ -580,15 +583,15 @@ void CCB::startI2C(){
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0e ;
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0a ;
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[1]=0x00;
   sndbuf[0]=0x02 ;
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
 }
 //
@@ -596,15 +599,15 @@ void CCB::stopI2C(){
   //
   sndbuf[1]=0x00;
   sndbuf[0]=0x02;
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0a ;
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x0e;
-  ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);  
   //
 }
 //
@@ -616,7 +619,7 @@ void CCB::enableCLCT(){
       //
       sndbuf[0]=0xff; 
       sndbuf[1]=0xd0;
-      ccb_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
+      do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
       //
    }
    //
@@ -625,7 +628,7 @@ void CCB::enableCLCT(){
       sndbuf[0]=0xdf; 
       sndbuf[1]=0x10;
       //
-      ccb_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
+      do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
       //
    }
    //
@@ -636,13 +639,13 @@ void CCB::WriteRegister(int reg, int value){
   sndbuf[0] = (value>>8)&0xff;
   sndbuf[1] = value&0xff;
   //
-  ccb_vme(VME_WRITE,reg,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,reg,sndbuf,rcvbuf,NOW);
   //
 }
 
 int CCB::ReadRegister(int reg){
   //
-  ccb_vme(VME_READ,reg,sndbuf,rcvbuf,NOW);
+  do_vme(VME_READ,reg,sndbuf,rcvbuf,NOW);
   //
   int value = ((rcvbuf[0]&0xff)<<8)|(rcvbuf[1]&0xff);
   //
@@ -655,8 +658,8 @@ int CCB::ReadRegister(int reg){
 
 void CCB::enableL1() {
   std::cout << "CCB: Enable L1A." << std::endl;
-  ccb_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
-  //2004 ccb_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
+  do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
 
   if (mVersion==2001){
     sndbuf[0]=(rcvbuf[0]&0xDF); // JRG: //11011111    GUJH  Mar. 19, 2003
@@ -673,8 +676,8 @@ void CCB::enableL1() {
 	    << std::setw(2) << int(sndbuf[0]&0xff) << std::setw(2) 
 	    <<int(sndbuf[1]&0xff) << std::dec << std::endl;
 
-  ccb_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
-  //2004 ccb_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
   l1enabled_ = true;
 
   //enableCLCT();
@@ -684,8 +687,8 @@ void CCB::enableL1() {
 
 void CCB::disableL1() {
   std::cout << "CCB: Disable L1A." << std::endl;
-  ccb_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
-  //2004 ccb_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
+  do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
   sndbuf[0]=rcvbuf[0];
   CCB_CSR1_SAV=rcvbuf[1];
   sndbuf[1]=(rcvbuf[1]|0xf8); // Disable L1ACC from CCB to custom backplane
@@ -693,8 +696,8 @@ void CCB::disableL1() {
   //std::cout << "disableL1.CCB: CSRB1=0x" << hex 
   //     << setw(2) << int(sndbuf[0]&0xff) << setw(2) <<int(sndbuf[1]&0xff)
   //     << dec << std::endl;
-  ccb_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
-  //2004 ccb_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
   l1enabled_ = false;
 }
 
@@ -745,8 +748,8 @@ void CCB::syncReset() {
   int i_ccb=0x03;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc;
-  ccb_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
-  //2004 ccb_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
   theController->end();
 } 
 
@@ -758,7 +761,7 @@ void CCB::bx0() {
   sndbuf[1]=0x01;
 /* JRG, old way, write to directly to VME adr 0x36, but this
       DOES NOT drive the ccb_cmd bus (no cmd_strobe):
-  ccb_vme(VME_WRITE,0x36,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,0x36,sndbuf,rcvbuf,NOW);
 */
 
 // JRG, best way, write to CSR2[7-2] to drive ccb_cmd bus; this way
@@ -766,8 +769,8 @@ void CCB::bx0() {
   int i_ccb=0x01;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc;
-  ccb_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
-  //2004 ccb_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
   theController->end();
 }
 
@@ -780,8 +783,8 @@ void CCB::bxr() {
   sndbuf[0]=0x00;
   sndbuf[1]=0xC8;
 // send CSR2 setting on backplane:
-  ccb_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
-  //2004 ccb_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
   usleep(10000);
 }
 
@@ -800,8 +803,8 @@ void CCB::l1CathodeScint() {
   sndbuf[1]=0x70; // enable both TTCrx and FrontPannel L1A
 
   //JG, reads current CSR1 status:
-  ccb_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
-  //2004 ccb_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
+  do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
   std::cout << "CCB: (l1cathodescint) " << std::hex << (int)rcvbuf[0] << "-" <<  (int)rcvbuf[1] << std::dec << std::endl;
 
   // make sure TTCrx is/remains the source for commands (bit 0=0)
@@ -826,15 +829,15 @@ void CCB::l1CathodeScint() {
   std::cout << "CCB: CSRB1=0x" << std::hex 
 	    << std::setw(2) << int(sndbuf[0]&0xff) << std::setw(2)
 	    <<int(sndbuf[1]&0xff) << std::dec << std::endl;
-  ccb_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
-  //2004 ccb_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
 
 // J. Gu tuned CCB L1 delay to allow for TCB-L1 passthrough (77 was ~78 or 79)
   std::cout << "CCB: set L1ADelay (CSRB5) to " << l1aDelay_ << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=l1aDelay_;
-  ccb_vme(VME_WRITE,CSR5,sndbuf,rcvbuf,LATER);
-  //2004 ccb_vme(VME_WRITE,CSRB5,sndbuf,rcvbuf,LATER);
+  do_vme(VME_WRITE,CSR5,sndbuf,rcvbuf,LATER);
+  //2004 do_vme(VME_WRITE,CSRB5,sndbuf,rcvbuf,LATER);
 }
 
 
@@ -845,8 +848,8 @@ void CCB::reset_bxevt() {
   sndbuf[0]=0x00;
   sndbuf[1]=0x03;
 // send CSR2 setting on backplane:
-  ccb_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
-  //2004 ccb_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
   usleep(10000);
   theController->end();
 }
@@ -869,16 +872,16 @@ void CCB::configure() {
 void CCB::SetL1aDelay(int l1adelay){
   //
   if (mVersion==2001) 
-    ccb_vme(VME_READ,CSR5,sndbuf,rcvbuf,NOW);
+    do_vme(VME_READ,CSR5,sndbuf,rcvbuf,NOW);
   if (mVersion==2004) 
-    ccb_vme(VME_READ,CSRB5,sndbuf,rcvbuf,NOW);
+    do_vme(VME_READ,CSRB5,sndbuf,rcvbuf,NOW);
   //
   sndbuf[0]=rcvbuf[0];
   sndbuf[1]=l1adelay;  
   if (mVersion==2001) 
-    ccb_vme(VME_WRITE,CSR5,sndbuf,rcvbuf,NOW);
+    do_vme(VME_WRITE,CSR5,sndbuf,rcvbuf,NOW);
   if (mVersion==2004) 
-    ccb_vme(VME_WRITE,CSRB5,sndbuf,rcvbuf,NOW);
+    do_vme(VME_WRITE,CSRB5,sndbuf,rcvbuf,NOW);
   //
 }
 
@@ -888,29 +891,29 @@ void CCB::setCCBMode(CCB2004Mode_t mode){
   case TTCrqFPGA:
     sndbuf[0]=0x00;
     sndbuf[1]=0x00;
-    ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
+    do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
     sndbuf[0]=0x00;
     sndbuf[1]=0x00;
-    ccb_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+    do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
     break;
   case VMEFPGA:
     sndbuf[0]=0x00;
     sndbuf[1]=0x00;
-    ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
+    do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
     sndbuf[0]=0x00;
     sndbuf[1]=0x01;
-    ccb_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+    do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
     break;
   case DLOG:
     sndbuf[0]=0x00;
     sndbuf[1]=0x01;
-    ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
+    do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
     break;
   default:
     std::cerr << "Warning: unkown CCB2004 operation mode. Using DLOG instead" << std::endl;
     sndbuf[0]=0x00;
     sndbuf[1]=0x01;
-    ccb_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
+    do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
   }
 }
 
@@ -947,8 +950,8 @@ void CCB::enableTTCControl() {
   std::cout << "CCB: Enable TTC control " << std::endl;
   if (mVersion==2001) TTC = ALL_TTC;
 
-  ccb_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
-  //2004 ccb_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
+  do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
 
   usleep(50000);
   if (mVersion==2001){
@@ -960,8 +963,8 @@ void CCB::enableTTCControl() {
     sndbuf[1]=(rcvbuf[1]&0xfe);
   }
 
-  ccb_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
-  //2004 ccb_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
   usleep(50000);
   std::cout << "CCB: CSRB1(read)=0x" << std::hex 
 	    << std::setw(2) << int(rcvbuf[0]&0xff) << std::setw(2) 
@@ -976,7 +979,7 @@ void CCB::startTrigger() {
   std::cout << "CCB: Start Trigger" << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=0x18;          //cmd[5:0]=0x06 for start_trigger     GUJH
-  ccb_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
 }
 
 void CCB::bc0() {
@@ -984,7 +987,7 @@ void CCB::bc0() {
   std::cout << "CCB: bc0 Trigger" << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=0x4; 
-  ccb_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
 
 }
 
@@ -994,8 +997,8 @@ void CCB::stopTrigger() {
   std::cout << "CCB: Stop Trigger" << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=0x1C;          //cmd[5:0]=0x07 for stop_trigger     GUJH
-  ccb_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
-  //2004 ccb_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
 }
 
 
@@ -1011,8 +1014,8 @@ void CCB::disable() {
 
 void CCB::disableTTCControl() {
   std::cout << "CCB: disable TTC control" << std::endl;
-  ccb_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
-  //2004 ccb_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
+  do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
   usleep(50000);
   if (mVersion==2001){
     sndbuf[0]=rcvbuf[0];
@@ -1022,8 +1025,8 @@ void CCB::disableTTCControl() {
     sndbuf[0]=rcvbuf[0];
     sndbuf[1]=(rcvbuf[1]|0x01);
   }
-  ccb_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
-  //2004 ccb_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
+  //2004 do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
   usleep(5000);
 }
 
@@ -1046,7 +1049,7 @@ void CCB::executeCommand(std::string command) {
 
 void CCB::firmwareVersion(){
   /// report the firmware version
-  ccb_vme(VME_READ,CSRB17,sndbuf,rcvbuf,NOW);  
+  do_vme(VME_READ,CSRB17,sndbuf,rcvbuf,NOW);  
   int versionWord = (rcvbuf[0]<<8) + (rcvbuf[1]&0xFF);
   int day   =  versionWord & 0x1F;
   int month = (versionWord >> 5   ) & 0xF;
@@ -1055,40 +1058,13 @@ void CCB::firmwareVersion(){
        << day << "-" << month << "-" << year << std::endl;
 }
 
-void CCB::ccb_vme(char fcn, char vme,
-                  const char *snd,char *rcv, int wrt) {
-#ifdef OSUcc
-  //Fix now read swapping
-  char temp[2];
-  temp[0] = snd[1];
-  temp[1] = snd[0];
-  //
-  snd = temp ;
-  //
-#endif
-
-  do_vme(fcn, vme, snd, rcv, wrt);
-
-#ifdef OSUcc
-  //Fix now read swapping
-  temp[0] = rcv[1];
-  temp[1] = rcv[0];
-  //
-  rcv[0] = temp[0];
-  rcv[1] = temp[1];
-  //
-#endif
-
-}
-
-
 #ifdef USEDCS
 //fg NOTE: CSR1 (2001) vs CSRB1(2004) bit  incompatibilities ...
 void CCB::cmd_source_to_ttcrx(){
 // 2004
   sndbuf[0]=0x00; // ??????????
   sndbuf[1]=0;  // ??????????
-  ccb_vme(VME_WRITE,0x20,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,0x20,sndbuf,rcvbuf,1);
 }
 
 
@@ -1098,7 +1074,7 @@ void CCB::cmd_source_to_vme(){
 // 2004
   sndbuf[0]=0x00; // ??????????
   sndbuf[1]=1;  // ??????????
-  ccb_vme(VME_WRITE,0x20,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,0x20,sndbuf,rcvbuf,1);
 }
 
 
@@ -1119,8 +1095,8 @@ void CCB::hard_reset_all_csr2(){
   int i_ccb=0x04;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/12/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 4
-  //ccb_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
-  ccb_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
 
 
@@ -1135,8 +1111,8 @@ void CCB::sync_reset_csr2(){
   int i_ccb=0x03;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/13/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 3
-  //ccb_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
-  ccb_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
 //
 void CCB::soft_reset_all_csr2(){
@@ -1156,8 +1132,8 @@ void CCB::soft_reset_all_csr2(){
   int i_ccb=0x1c;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/13/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 1c
-  //ccb_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
-  ccb_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
 
 
@@ -1180,8 +1156,8 @@ void CCB::soft_reset_dmb_csr2(){
   int i_ccb=0x1d;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/13/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 1d
-  //ccb_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
-  ccb_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
 
 
@@ -1203,8 +1179,8 @@ void CCB::soft_reset_tmb_csr2(){
   int i_ccb=0x1e;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/13/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 1e
-  //ccb_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
-  ccb_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
 
 
@@ -1220,8 +1196,8 @@ void CCB::soft_reset_mpc_csr2(){
   int i_ccb=0x1f;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/13/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 1f
-  //ccb_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
-  ccb_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
 
 
@@ -1234,8 +1210,8 @@ void CCB::hard_reset_dmb_csr2(){
   int i_ccb=0x12;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/21/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 12
-  //ccb_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
-  ccb_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
 
 
@@ -1247,8 +1223,8 @@ void CCB::hard_reset_tmb_csr2(){
   int i_ccb=0x10;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/21/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 10
-  //ccb_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
-  ccb_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
 
 
@@ -1260,8 +1236,8 @@ void CCB::hard_reset_alct_csr2(){
   int i_ccb=0x11;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/21/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 11
-  //ccb_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
-  ccb_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
 
 
@@ -1273,8 +1249,8 @@ void CCB::hard_reset_ccb_csr2(){
   int i_ccb=0x0f;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc; //
-  //ccb_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
-  ccb_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
 
 
@@ -1286,8 +1262,8 @@ void CCB::hard_reset_mpc_csr2(){
   int i_ccb=0x13;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc; // correct: 11/21/2003 ccb_cmd[5..0] (CSR2[7...2]) ; command code = 13
-  //ccb_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
-  ccb_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
+  //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
 
 
@@ -1299,7 +1275,7 @@ void CCB::hard_reset_alct(){
   sndbuf[1]=0x01; 
 // Hard ALCT reset:
 // 2004 
-  ccb_vme(VME_WRITE,0x66,sndbuf,rcvbuf,1); // correct: 11/13/2003 base+0x30  data to write : anything
+  do_vme(VME_WRITE,0x66,sndbuf,rcvbuf,1); // correct: 11/13/2003 base+0x30  data to write : anything
 }
 
 
@@ -1311,7 +1287,7 @@ void CCB::hard_reset_dmb(){
   sndbuf[1]=0x74; // 0x00;
 // Hard DMB reset:
 // 2004
-  ccb_vme(VME_WRITE,0x64,sndbuf,rcvbuf,1);  // this is the correct DMB Hard Reset // correct: 11/13/2003 base+0x2e  data to write : anything
+  do_vme(VME_WRITE,0x64,sndbuf,rcvbuf,1);  // this is the correct DMB Hard Reset // correct: 11/13/2003 base+0x2e  data to write : anything
 }
 
 
@@ -1323,7 +1299,7 @@ void CCB::hard_reset_tmb(){
   sndbuf[1]=0x78; // 0x00;
 // Hard TMB reset:
 // 2004
-  ccb_vme(VME_WRITE,0x62,sndbuf,rcvbuf,1); // correct: 11/13/2003 base+0x2c  data to write : anything
+  do_vme(VME_WRITE,0x62,sndbuf,rcvbuf,1); // correct: 11/13/2003 base+0x2c  data to write : anything
 }
 
 
@@ -1335,7 +1311,7 @@ void CCB::hard_reset_mpc(){
   sndbuf[1]=0x78; // 0x00;
 // Hard MPC reset:
 // 2004
-  ccb_vme(VME_WRITE,0x68,sndbuf,rcvbuf,1); // correct: 11/13/2003 base+0x32  data to write : anything
+  do_vme(VME_WRITE,0x68,sndbuf,rcvbuf,1); // correct: 11/13/2003 base+0x32  data to write : anything
 }
 
 
@@ -1345,7 +1321,7 @@ void CCB::hard_reset_all(){
   sndbuf[0]=0x00;
   sndbuf[1]=0x00;
   // 2004
-  ccb_vme(VME_WRITE,0x60,sndbuf,rcvbuf,1);
+  do_vme(VME_WRITE,0x60,sndbuf,rcvbuf,1);
 }
 
 
@@ -1355,7 +1331,7 @@ void CCB::soft_reset_dmb(){
   sndbuf[0]=0x00;
   sndbuf[1]=0x01;
   //2004
-  ccb_vme(VME_WRITE,0x6e,sndbuf,rcvbuf,1);  //  base+0x6a
+  do_vme(VME_WRITE,0x6e,sndbuf,rcvbuf,1);  //  base+0x6a
 }
 
 
@@ -1365,7 +1341,7 @@ void CCB::soft_reset_tmb(){
   sndbuf[0]=0x00;
   sndbuf[1]=0x01;
   //2004
-  ccb_vme(VME_WRITE,0x6c,sndbuf,rcvbuf,1); // base+0x7e
+  do_vme(VME_WRITE,0x6c,sndbuf,rcvbuf,1); // base+0x7e
 }
 
 
@@ -1375,7 +1351,7 @@ void CCB::soft_reset_mpc(){
   sndbuf[0]=0x00;
   sndbuf[1]=0x01;
   //2004
-  ccb_vme(VME_WRITE,0x70,sndbuf,rcvbuf,1); // base+0x64
+  do_vme(VME_WRITE,0x70,sndbuf,rcvbuf,1); // base+0x64
 }
 
 
@@ -1385,7 +1361,7 @@ void CCB::soft_reset_all(){
   sndbuf[0]=0x00;
   sndbuf[1]=0x01;
   //2004
-  ccb_vme(VME_WRITE,0x6a,sndbuf,rcvbuf,1); // base+0x3c
+  do_vme(VME_WRITE,0x6a,sndbuf,rcvbuf,1); // base+0x3c
 }
 
 
@@ -1394,12 +1370,12 @@ void CCB::soft_reset_all(){
 int CCB::set_la1_delay(int delay){
   sndbuf[0]=0x00;
   sndbuf[1]=(char)delay;
-  ccb_vme(VME_WRITE,0x08,sndbuf,rcvbuf,0);
+  do_vme(VME_WRITE,0x08,sndbuf,rcvbuf,0);
   return 1;
 }
 
 int CCB::get_la1_delay(){
-  ccb_vme(VME_READ,0x08,sndbuf,rcvbuf,0);
+  do_vme(VME_READ,0x08,sndbuf,rcvbuf,0);
   std::cout << "rcvbuf " << std::hex << std::setw(2) 
 	    << int(rcvbuf[0]&0xff) << " " << int(rcvbuf[1]&0xff)
 	    << std::dec << std::endl;
