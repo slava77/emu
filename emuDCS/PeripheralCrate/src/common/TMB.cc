@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.18 2005/11/07 10:12:05 mey Exp $
+// $Id: TMB.cc,v 2.19 2005/11/21 17:38:34 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.19  2005/11/21 17:38:34  mey
+// Update
+//
 // Revision 2.18  2005/11/07 10:12:05  mey
 // Byte swap
 //
@@ -226,7 +229,7 @@ void TMB::configure() {
   ResetCounters();
 }
 
-
+/*
 void TMB::lctrequestdelay(int dword)
 {
   cmd[0]=VTX2_USR1;
@@ -245,7 +248,7 @@ void TMB::lctrequestdelay(int dword)
 
   printf("LCT Request  Delay are Set to %04x (Hex). \n",dword&0xFFFF);
 }
-
+*/
 
 void TMB::clear_i2c() {
   //

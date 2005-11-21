@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.10 2005/10/21 17:13:48 mey Exp $
+// $Id: TMB.h,v 2.11 2005/11/21 17:38:52 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.11  2005/11/21 17:38:52  mey
+// Update
+//
 // Revision 2.10  2005/10/21 17:13:48  mey
 // Update
 //
@@ -76,7 +79,7 @@ public:
   void DecodeCLCT();
   void DecodeALCT();
   void DumpAddress(int);
-  void lctrequestdelay(int dword);
+  //void lctrequestdelay(int dword);
   void clear_i2c();
   void clk_delays(unsigned short int time,int cfeb_id);
   void scope(int scp_arm,int scp_readout, int scp_channel=0x1d);

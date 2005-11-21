@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.3 2005/08/22 07:55:44 mey Exp $
+// $Id: MPC.h,v 2.4 2005/11/21 17:38:45 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.4  2005/11/21 17:38:45  mey
+// Update
+//
 // Revision 2.3  2005/08/22 07:55:44  mey
 // New TMB MPC injector routines and improved ALCTTiming
 //
@@ -31,10 +34,6 @@ class MPC : public VMEModule {
   ~MPC();
   void firmwareVersion();
 
-  /// overrides VMEModule.  I don't understand what it does.
-  virtual void start();
-  virtual void end() {};
-
   /// from the BOARDTYPE enum
   virtual unsigned int boardType() const {return MPC_ENUM;} 
   
@@ -42,7 +41,7 @@ class MPC : public VMEModule {
 
   /// address is usually one of the above enums.  theBaseAddress
   /// defined in the constructor automatically added
-  void read_fifo(unsigned long int address, char * data);
+  void read_fifo(char address, char * data);
 
   void read_fifos();
 
@@ -81,7 +80,7 @@ class MPC : public VMEModule {
 
  protected:
   /// MPC base address should always correspond to VME Slot 12 (=0x600000)
-  static const unsigned long int theBaseAddress=0x00600000;
+//  static const unsigned long int theBaseAddress=0x00600000;
   enum VMEAddresses {
     /// FIFOs Ax[a,b] correspond to TMB x, a=[15-0] and b=[31-16]
     FIFO_A1a = 0x80, FIFO_A1b = 0x82, FIFO_A2a = 0x84, FIFO_A2b = 0x86, 
