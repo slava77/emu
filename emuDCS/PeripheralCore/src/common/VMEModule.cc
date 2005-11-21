@@ -1,7 +1,10 @@
 #ifdef D360
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.1 2005/11/02 16:16:43 mey Exp $
+// $Id: VMEModule.cc,v 2.2 2005/11/21 19:42:28 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.2  2005/11/21 19:42:28  mey
+// Update
+//
 // Revision 2.1  2005/11/02 16:16:43  mey
 // Update for new controller
 //
@@ -146,8 +149,11 @@ VMEController* VMEModule::getTheController(){
 #ifdef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.1 2005/11/02 16:16:43 mey Exp $
+// $Id: VMEModule.cc,v 2.2 2005/11/21 19:42:28 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.2  2005/11/21 19:42:28  mey
+// Update
+//
 // Revision 2.1  2005/11/02 16:16:43  mey
 // Update for new controller
 //
@@ -170,7 +176,6 @@ VMEController* VMEModule::getTheController(){
 extern unsigned long add_ucla;
 extern unsigned long add_control_r;
 extern unsigned long msk_control_r;
-extern int delay_type;
 
 #ifndef debugV //silent mode
 #define PRINT(x) 
@@ -204,7 +209,7 @@ void VMEModule::start() {
    //printf("slot: %d, base address: %08x\n", theSlot, vmebase);
 //
    if(boardType()==TMB_ENUM) {
-      add_ucla=vmebase|0x70000|(theSlot<<19);
+      add_ucla=vmebase|0x70000;
    }
 }
 
@@ -227,22 +232,29 @@ unsigned short int *ptr_rice;
 unsigned long add_rice;
 unsigned short int itwr[2]={1,3};
 unsigned short int itrd[2]={2,2};
+char ttt;
+
 //printf("in VMEModule::do_vme. fcn=%d, baseadd=%08X\n",fcn,vmebase);
 if(fcn==15)return;
-    it[0]=snd[0]&0x00ff;
-    it[0]=it[0]|((snd[1]<<8)&0xff00);
     add_rice=vmebase|(unsigned char)vme;
     ptr_rice=(unsigned short int *)add_rice;
     if(fcn==2){
       //printf(" rice VME W:%08x %04x \n",ptr_rice,it[0]);
+//Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
+      it[0]=snd[1]&0x00ff;
+      it[0]=it[0]|((snd[0]<<8)&0xff00);
       vme_controller(itwr[when],ptr_rice,it,rcv);
     }
     if(fcn==1){
       //printf(" rice VME R: %08x %04x \n",ptr_rice,*rcv);
       vme_controller(itrd[when],ptr_rice,tmp,rcv);
+//Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
+      ttt=rcv[0];
+      rcv[0]=rcv[1];
+      rcv[1]=ttt;
     }
-    if(fcn==4)ccb_handshake_vme(); // handshake
-    if(fcn==3)ccb_sleep_vme(snd); //delay 
+    if(fcn==3) theController->sleep_vme(snd); // sleep 
+    if(fcn==4) theController->handshake_vme(); // handshake
 }
 
 
@@ -263,14 +275,11 @@ void VMEModule::vme_controller(int irdwr,unsigned short int *ptr,unsigned short 
 
 void VMEModule::scan(int reg,const char *snd,int cnt,char *rcv,int ird) {
   theController->start(this);
-  theController->scan(reg, snd, cnt, rcv, ird);
+  if(boardType()==TMB_ENUM)
+    theController->scan_alct(reg, snd, cnt, rcv, ird);
+  else
+    theController->scan(reg, snd, cnt, rcv, ird);
 }
-
-void VMEModule::scan_alct(int reg,const char *snd,int cnt,char *rcv,int ird) {
-  theController->start(this);
-  theController->scan_alct(reg, snd, cnt, rcv, ird);
-}
-
 
 void VMEModule::InitJTAG(int port) {
   theController->start(this);
@@ -287,31 +296,6 @@ void VMEModule::CloseJTAG() {
 
 VMEController* VMEModule::getTheController(){
   return theController;
-}
-
-void  VMEModule::ccb_sleep_vme(const char *outbuf)   // in usecs (min 16 usec)
-{
-unsigned short int pause;
-char tmp[1]={0x00};
-unsigned short int tmp2[1]={0x0000};
-unsigned short int *ptr;
-// printf(" outbuf[0-1] %02x %02x \n",outbuf[0]&0xff,outbuf[1]&0xff);
- delay_type=3;
-       tmp2[0]=outbuf[1]*256+outbuf[0];
-       tmp2[0]=2*tmp2[0];
-       tmp2[0]=tmp2[0]+1;
-       vme_controller(6,ptr,tmp2,tmp);
-}
-
-void VMEModule::ccb_handshake_vme()
-{
-char tmp[1]={0x00};
-unsigned short int tmp2[1]={0x0000};
-unsigned short int *ptr;
-       add_control_r=msk_control_r;   
-       ptr=(unsigned short int *)add_control_r;
-       vme_controller(4,ptr,tmp2,tmp); // flush
-       vme_controller(5,ptr,tmp2,tmp); // handshake
 }
 
 #endif
