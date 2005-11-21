@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.19 2005/11/21 17:38:34 mey Exp $
+// $Id: TMB.cc,v 2.20 2005/11/21 18:08:38 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.20  2005/11/21 18:08:38  mey
+// UPdate
+//
 // Revision 2.19  2005/11/21 17:38:34  mey
 // Update
 //
@@ -3022,30 +3025,8 @@ void TMB::setLogicAnalyzerToDataStream(bool yesorno) {
 
 void TMB::tmb_vme(char fcn, char vme,
                   const char *snd,char *rcv, int wrt) {
-
-#ifdef OSUcc
-  //Fix now read swapping
-  char temp[2];
-  temp[0] = snd[1];
-  temp[1] = snd[0];
-  //
-  snd = temp ;
-  //
-#endif
-
   start(1);
   do_vme(fcn, vme, snd, rcv, wrt);
-
-#ifdef OSUcc
-  //Fix now read swapping
-  temp[0] = rcv[1];
-  temp[1] = rcv[0];
-  //
-  rcv[0] = temp[0];
-  rcv[1] = temp[1];
-  //
-#endif
-
 }
 
 
