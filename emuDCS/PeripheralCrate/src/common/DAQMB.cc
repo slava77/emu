@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.13 2005/11/08 06:50:12 mey Exp $
+// $Id: DAQMB.cc,v 2.14 2005/11/21 15:48:06 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.14  2005/11/21 15:48:06  mey
+// Update
+//
 // Revision 2.13  2005/11/08 06:50:12  mey
 // Update
 //
@@ -451,7 +454,7 @@ char dt[2];
  dt[0]=((dt[1]<<7)&0x80) + ((dt[0]>>1)&0x7f);
  dt[1]=dt[1]>>1;
  //
- cout << "Set_comp_thresh.icfeb=" << icfeb << " thresh=" << thresh << std::endl;
+ (*MyOutput_) << "Set_comp_thresh.icfeb=" << icfeb << " thresh=" << thresh << std::endl;
  //
  DEVTYPE dv = cfebs_[icfeb].scamDevice();
  cmd[0]=VTX_USR1;
@@ -3161,7 +3164,7 @@ int  DAQMB::test8()
       //
       for(int cfeb=0; cfeb<cfebs_.size(); ++cfeb) {
 	vout=adcplus(2,cfeb);
-	cout << "cfeb="<<cfeb<<" "<<" v0=" << v0 << " vout="<<vout<<std::endl;
+	(*MyOutput_) << "cfeb="<<cfeb<<" "<<" v0=" << v0 << " vout="<<vout<<std::endl;
       }
       //
       vout=adcplus(2,cfeb);
@@ -3229,7 +3232,7 @@ int DAQMB::test9()
   float v0,v1,vout,diff;
   int ius;
   float voff;
-  float capn[5]={0.0,0.25,0.50,0.748,0.992};
+  float capn[5] ={0.0,0.25,0.50,0.748,0.992};
   float presn[5]={0.0,0.25,0.50,0.745,0.988};
   //
   ierr=0;  

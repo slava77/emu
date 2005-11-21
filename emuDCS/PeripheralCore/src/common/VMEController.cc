@@ -2,8 +2,11 @@
 #ifdef D360
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.1 2005/11/02 16:16:24 mey Exp $
+// $Id: VMEController.cc,v 2.2 2005/11/21 15:48:24 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.2  2005/11/21 15:48:24  mey
+// Update
+//
 // Revision 2.1  2005/11/02 16:16:24  mey
 // Update for new controller
 //
@@ -254,8 +257,11 @@ VMEModule* VMEController::getTheCurrentModule(){
 
 #ifdef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.1 2005/11/02 16:16:24 mey Exp $
+// $Id: VMEController.cc,v 2.2 2005/11/21 15:48:24 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.2  2005/11/21 15:48:24  mey
+// Update
+//
 // Revision 2.1  2005/11/02 16:16:24  mey
 // Update for new controller
 //
@@ -289,9 +295,10 @@ VMEModule* VMEController::getTheCurrentModule(){
 
 
 
-VMEController::VMEController(string ipAddr, int port): 
+VMEController::VMEController(int crate, string ipAddr, int port): 
  theSocket(0), ipAddress_(ipAddr), port_(port), theCurrentModule(0),
- indian(SWAP),  max_buff(0), tot_buff(0)
+ indian(SWAP),  max_buff(0), tot_buff(0), crate_(crate),
+ plev(1), idevo(0)
 {
  
   int socket = openSocket();
@@ -325,9 +332,9 @@ void VMEController::end() {
     theCurrentModule->end();
     theCurrentModule = 0;
   }
-  assert(plev !=2);
-  idevo = 0;
-  feuseo = 0;
+//  assert(plev !=2);
+//  idevo = 0;
+//  feuseo = 0;
 }
 
 
@@ -345,11 +352,11 @@ int VMEController::openSocket() {
                 perror("open");
                 return 1;
         }
+        get_macaddr();
   	// eth_enableblock();
         eth_reset();
         mrst_ff();
 	set_VME_mode();   
-        get_macaddr();
   return theSocket;
 }
 

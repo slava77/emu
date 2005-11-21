@@ -2,8 +2,11 @@
 #ifdef D360
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.1 2005/11/02 16:17:01 mey Exp $
+// $Id: VMEController.h,v 2.2 2005/11/21 15:47:38 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.2  2005/11/21 15:47:38  mey
+// Update
+//
 // Revision 2.1  2005/11/02 16:17:01  mey
 // Update for new controller
 //
@@ -105,8 +108,11 @@ private:
 #ifdef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.1 2005/11/02 16:17:01 mey Exp $
+// $Id: VMEController.h,v 2.2 2005/11/21 15:47:38 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.2  2005/11/21 15:47:38  mey
+// Update
+//
 // Revision 2.1  2005/11/02 16:17:01  mey
 // Update for new controller
 //
@@ -126,10 +132,11 @@ class Crate;
 #include "JTAG_constants.h"
 #include <string>
 #include <arpa/inet.h>
+#include <netinet/if_ether.h>
 
 class VMEController {
 public:
-  VMEController(string ipAddr, int port);
+  VMEController(int crate, string ipAddr, int port);
   ~VMEController();
 
   enum ENDIAN {SWAP, NOSWAP};
@@ -192,9 +199,19 @@ private:
   int theSocket;
   string ipAddress_;
   int port_;
+  int crate_;
   VMEModule * theCurrentModule;
   sockaddr_in serv_addr;
   const ENDIAN indian;
+
+  unsigned char hw_source_addr[6];
+  unsigned char hw_dest_addr[6];
+  struct ethhdr ether_header; 
+
+  char wbuf[9000];
+  int nwbuf;
+  char rbuf[9000];
+  int nrbuf;
 
   int max_buff;
   int tot_buff;
@@ -207,6 +224,10 @@ private:
   int idevo;
   int board; //board type
   unsigned long vmeadd; // current VME base address for the module
+  unsigned short int pvme; // value for ALCT JTAG register (0x70000)
+  int feuse;
+  int ucla_ldev;
+
 
 };
 
