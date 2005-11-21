@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.10 2005/11/21 15:47:59 mey Exp $
+// $Id: ALCTController.cc,v 2.11 2005/11/21 19:47:06 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.11  2005/11/21 19:47:06  mey
+// Update
+//
 // Revision 2.10  2005/11/21 15:47:59  mey
 // Update
 //
@@ -724,7 +727,7 @@ int ALCTController::WriteIR(unsigned IR)
 #endif
    //
 #ifdef OSUcc
-   tmb_->scan_alct(INSTR_REG, sndbuf, ALCT_V_IRsize, rcvbuf , 0);
+   tmb_->scan(INSTR_REG, sndbuf, ALCT_V_IRsize, rcvbuf , 0);
 #endif
    alct_end();
    return 0;
@@ -776,7 +779,7 @@ int ALCTController::ShiftIntoDR(unsigned *DR, unsigned sz, unsigned sendtms)
 #endif
 
 #ifdef OSUcc
-            tmb_->scan_alct(DATA_REG, sndbuf, realsz, rcvbuf , 1);
+            tmb_->scan(DATA_REG, sndbuf, realsz, rcvbuf , 1);
 #endif
             alct_end();
             realsz = 0;
@@ -827,7 +830,7 @@ int ALCTController::ShiftFromDR(unsigned *DR, unsigned sz, unsigned sendtms)
       tmb_->scan(DATA_REG, sndbuf, sz, rcvbuf , 1);
 #endif
 #ifdef OSUcc
-      tmb_->scan_alct(DATA_REG, sndbuf, sz, rcvbuf , 1);
+      tmb_->scan(DATA_REG, sndbuf, sz, rcvbuf , 1);
 #endif
       alct_end();
 
@@ -3686,7 +3689,7 @@ int ALCTController::do_jtag(int chip_id, int opcode, int mode, const int *first,
   tmb_->scan(INSTR_REG, sndbuf, bits_per_opcode[ichip], rcvbuf , 0 );
 #endif 
 #ifdef OSUcc
-  tmb_->scan_alct(INSTR_REG, sndbuf, bits_per_opcode[ichip], rcvbuf , 0 );
+  tmb_->scan(INSTR_REG, sndbuf, bits_per_opcode[ichip], rcvbuf , 0 );
 #endif 
   
   // jtag_io_byte_(&nframes, tms, tdi, tdo, &step_mode);
@@ -3753,7 +3756,7 @@ int ALCTController::do_jtag(int chip_id, int opcode, int mode, const int *first,
 #endif
 
 #ifdef OSUcc
-  tmb_->scan_alct(DATA_REG, sndbuf, length, rcvbuf, 1);
+  tmb_->scan(DATA_REG, sndbuf, length, rcvbuf, 1);
 #endif
 
   //else { tmb_->scan(DATA_REG, sndbuf, length, rcvbuf, 0);}
@@ -3900,7 +3903,7 @@ int ALCTController::do_jtag2(int chip_id, int opcode, int mode, const int *first
 #endif
   
 #ifdef OSUcc
-  tmb_->scan_alct(INSTR_REG, sndbuf, bits_per_opcode[ichip], rcvbuf , 0 );
+  tmb_->scan(INSTR_REG, sndbuf, bits_per_opcode[ichip], rcvbuf , 0 );
 #endif
   
   for (j = 0; j < nframes; j++) {
@@ -3971,7 +3974,7 @@ int ALCTController::do_jtag2(int chip_id, int opcode, int mode, const int *first
 #endif
 	
 #ifdef OSUcc
-	tmb_->scan_alct(DATA_REG, sndbuf, length, rcvbuf, 1);
+	tmb_->scan(DATA_REG, sndbuf, length, rcvbuf, 1);
 #endif
 	
 	for(i10=0;i10<nframes;i10++){
@@ -4268,9 +4271,9 @@ int ALCTController::ReadIDCODE(){
 #endif
 
 #ifdef OSUcc
-  tmb_->scan_alct(-1, sndbuf,-1, rcvbuf , 0);
-  tmb_->scan_alct(INSTR_REG, sndbuf,13, rcvbuf , 1);
-  tmb_->scan_alct(-1, sndbuf,-1, rcvbuf , 0);
+  tmb_->scan(-1, sndbuf,-1, rcvbuf , 0);
+  tmb_->scan(INSTR_REG, sndbuf,13, rcvbuf , 1);
+  tmb_->scan(-1, sndbuf,-1, rcvbuf , 0);
 #endif
 
   alct_end();
@@ -4308,9 +4311,9 @@ int ALCTController::ReadIDCODE(){
 #endif
 
 #ifdef OSUcc
-  tmb_->scan_alct(-1, sndbuf,-1, rcvbuf , 0);
-  tmb_->scan_alct(DATA_REG, sndbuf,32, rcvbuf , 1);
-  tmb_->scan_alct(-1, sndbuf,-1, rcvbuf , 0);
+  tmb_->scan(-1, sndbuf,-1, rcvbuf , 0);
+  tmb_->scan(DATA_REG, sndbuf,32, rcvbuf , 1);
+  tmb_->scan(-1, sndbuf,-1, rcvbuf , 0);
 #endif
 
   alct_end();
@@ -4749,10 +4752,10 @@ int ALCTController::NewSVFLoad(int *jch, char *fn, int db ){
 #endif
 
 #ifdef OSUcc
-		 tmb_->scan_alct(-1, sndbuf,-1, rcvbuf , 0);
-		 if ( sir ) tmb_->scan_alct(INSTR_REG, sndbuf,sirvalue, rcvbuf, 1); // Always read back. Can't hurt...
-		 if ( sdr ) tmb_->scan_alct(DATA_REG, sndbuf,sdrvalue, rcvbuf, 1); // Always read back. Can't hurt...
-		 tmb_->scan_alct(-1, sndbuf,-1, rcvbuf , 0);
+		 tmb_->scan(-1, sndbuf,-1, rcvbuf , 0);
+		 if ( sir ) tmb_->scan(INSTR_REG, sndbuf,sirvalue, rcvbuf, 1); // Always read back. Can't hurt...
+		 if ( sdr ) tmb_->scan(DATA_REG, sndbuf,sdrvalue, rcvbuf, 1); // Always read back. Can't hurt...
+		 tmb_->scan(-1, sndbuf,-1, rcvbuf , 0);
 #endif
 		 alct_end();
 		  }
@@ -5494,7 +5497,7 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 #endif
 
 #ifdef OSUcc
-	  tmb_->scan_alct(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, 1); 
+	  tmb_->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, 1); 
 #endif
 
 	  if (cmpflag==1)
@@ -5616,7 +5619,7 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 	    tmb_->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, 1); 
 #endif
 #ifdef OSUcc
-	    tmb_->scan_alct(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, 1); 
+	    tmb_->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, 1); 
 #endif
 
 	    if (db>6) { 	printf("SIR Send Data:\n");
