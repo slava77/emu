@@ -16,10 +16,10 @@ int main(int argc,char **argv){
 
   // create VME Controller and Crate
   int crateId(0);
-  string ipAddr("10.0.0.3");
-  int port(6050);
+  string ipAddr("02:00:00:00:00:01");
+  int port(2);
   VMEController *dynatem = new VMEController(crateId,ipAddr,port);
-  //
+
   Crate *crate = new Crate(crateId,dynatem);
 
   // create CCB
@@ -29,11 +29,18 @@ int main(int argc,char **argv){
   ::sleep(1);
 
   // create TMB & ALCT
-  int tmbSlot(8);
+  int tmbSlot(14);
   string chamberType("ME21");
   TMB *tmb = new TMB(crateId,tmbSlot);
+  //
+  cout << "Read Register" << endl;
+  tmb->ReadRegister(0x4);  
+  //
   tmb->version_="2004";
+  cout << "Creating ALCT..." << endl;
   ALCTController *alct = new ALCTController(tmb,chamberType);
+  cout << "Done..." << endl;
+
   //for (int i=0;i<42;i++){
   //  alct->delays_[i]=0;
   //  alct->thresholds_[i] = 20;
@@ -48,6 +55,8 @@ int main(int argc,char **argv){
 
   ALCTIDRegister sc_id, chipID ;
 
+  printf("Reading IDs...") ;
+
   alct->alct_read_slowcontrol_id(&sc_id) ;
   std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
   alct->alct_fast_read_id(chipID);
@@ -58,7 +67,7 @@ int main(int argc,char **argv){
   int debugMode(0);
   int jch(3);
   //int status = alct->SVFLoad(&jch,"alctcrc384mirror.svf",debugMode);
-  int status = alct->SVFLoad(&jch,"alctcrc672mirror.svf",debugMode);
+  int status = alct->SVFLoad(&jch,"alct672.svf",debugMode);
   //--int status = alct->NewSVFLoad(&jch,"alctcrc384mirror.svf",debugMode);
   tmb->enableAllClocks();
 

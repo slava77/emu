@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.9 2005/11/17 13:43:56 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.10 2005/11/21 15:47:28 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1429,9 +1429,9 @@ public:
       typedef std::vector<CFEB>::iterator CFEBItr;
       //
       for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
-	sprintf(buf,"CFEB %d",(*cfebItr).number());
+	sprintf(buf,"CFEB %d : ",(*cfebItr).number());
 	*out << buf;
-	*out << cgicc::br();
+	//*out << cgicc::br();
 	sprintf(buf,"CFEB prom user id : %08x CFEB fpga user id : %08x ",
 		thisDMB->febpromuser(*cfebItr),
 		thisDMB->febfpgauser(*cfebItr));
@@ -2462,19 +2462,29 @@ public:
     //
     *out << cgicc::fieldset() << std::endl;
     //
-    std::string method =
-      toolbox::toString("/%s/LogDMBTestsOutput",getApplicationDescriptor()->getURN().c_str());
     //
-    *out << cgicc::form().set("method","GET").set("action",method) << std::endl ;
+    *out << cgicc::form().set("method","GET") << std::endl ;
     *out << cgicc::textarea().set("name","CrateTestDMBOutput")
       .set("WRAP","OFF")
       .set("rows","20").set("cols","60");
     *out << OutputDMBTests[dmb].str() << endl ;
     *out << cgicc::textarea();
+    *out << cgicc::form();
+    //
+    std::string method =
+      toolbox::toString("/%s/LogDMBTestsOutput",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",method) << std::endl ;
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    *out << cgicc::input().set("type","submit").set("value","Log output") << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Log output").set("name","LogDMBTestsOutput") << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Clear")
+      .set("name","ClearDMBTestsOutput") << std::endl ;
     *out << cgicc::form() << std::endl ;
+    //
+    std::cout << "Done" << std::endl;
     //
   }
   //
@@ -2486,7 +2496,9 @@ public:
     //
     cgicc::Cgicc cgi(in);
     //
+    //
     cgicc::form_iterator name = cgi.getElement("dmb");
+    //
     //
     int dmb;
     if(name != cgi.getElements().end()) {
@@ -2496,6 +2508,16 @@ public:
     } else {
       cout << "Not dmb" << endl ;
       dmb = DMB_;
+    }
+    //
+    cgicc::form_iterator name2 = cgi.getElement("ClearDMBTestsOutput");
+    //
+    if(name2 != cgi.getElements().end()) {
+      cout << "Clear..." << endl;
+      cout << cgi["ClearDMBTestsOutput"]->getValue() << std::endl ;
+      OutputDMBTests[dmb].str("");
+      //
+    this->DMBTests(in,out);
     }
     //
     thisDMB = dmbVector[dmb];

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.9 2005/11/15 15:22:32 mey Exp $
+// $Id: ALCTController.cc,v 2.10 2005/11/21 15:47:59 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.10  2005/11/21 15:47:59  mey
+// Update
+//
 // Revision 2.9  2005/11/15 15:22:32  mey
 // Update
 //
@@ -5514,11 +5517,11 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 	      */
 	      if (db>4){	  	printf("SDR Readback Data:\n");
 	      //for(i=0;i<nbytes;i++) printf("%02X",rcv[i]);
-	      	for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) 
-		      printf("%02X",rcv[i]);
-	      	printf("\n");
+	      for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) 
+		printf("%02X",rcv[i]);
+	      printf("\n");
 	      }	
-						    
+	      
 	      for(i=0;i<nbytes;i++)
 		{
 		  rcvword = rcv[i+(hdrbits/8)]+(((int)rcv[i+1+(hdrbits/8)])<<8);
