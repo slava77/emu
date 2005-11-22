@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.11 2005/11/21 19:47:06 mey Exp $
+// $Id: ALCTController.cc,v 2.12 2005/11/22 15:14:46 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.12  2005/11/22 15:14:46  mey
+// Update
+//
 // Revision 2.11  2005/11/21 19:47:06  mey
 // Update
 //
@@ -5068,78 +5071,79 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
 		  sscanf(Word[1],"%d",&nbits);
 		  if (nbits>MAXBUFSIZE) // === Handle Big Bitstreams
 		    {
-		      if (db)              printf("%s Bitstream size %d is bigger than MAXBUFSIZE = %d ...splitting...\n",Word[0], nbits, MAXBUFSIZE);
-		     ftmptdi=fopen("tdi_tmp.bit","w");
-		     nbytes=(nbits-1)/8+1;
-		     if (db)              printf("%d Bytes required\n", nbytes);
-		     if(strcmp(Word[2],"TDI")==0)
-		       {
-			 fprintf(ftmptdi,&Word[3][1]);
-			 fStop = 0; 
-			 do
-			   {
-			     if (fgets(buf2, 256, dwnfp) != NULL)
-			       {
-				 lastn=strrchr(buf2,'\r');
-				 if(lastn!=0)lastn[0]='\0';
-				 lastn=strrchr(buf2,'\n');
-				 if(lastn!=0)lastn[0]='\0';
-				 Parse(buf2, &Count, &(Word[0]));
-				 lastn=strchr(Word[0],')');
-				 if(lastn!=0){ lastn[0]='\0'; fStop = 1; } 
-				 fprintf(ftmptdi, Word[0]);
-			       }
-			     else
-			       {
-				 if (db)                    printf("End of File encountered.\n");
-				 return -1;
-			    }
-			   }
-			 while (!fStop);
-		       }
-		     ftmpsmask=fopen("smask_tmp.bit","w"); 
-		     if(strcmp(Word[1],"SMASK")==0)
-		    {
-		      fprintf(ftmpsmask,&Word[2][1]);
-		      fStop = 0;
-		      do
+		      if (db) printf("%s Bitstream size %d is bigger than MAXBUFSIZE = %d ...splitting...\n",
+				     Word[0], nbits, MAXBUFSIZE);
+		      ftmptdi=fopen("tdi_tmp.bit","w");
+		      nbytes=(nbits-1)/8+1;
+		      if (db)              printf("%d Bytes required\n", nbytes);
+		      if(strcmp(Word[2],"TDI")==0)
 			{
-			  if (fgets(buf2, 256, dwnfp) != NULL)
+			  fprintf(ftmptdi,&Word[3][1]);
+			  fStop = 0; 
+			  do
 			    {
-			      lastn=strrchr(buf2,'\r');
-			      if(lastn!=0)lastn[0]='\0';
-			      lastn=strrchr(buf2,'\n');
-			      if(lastn!=0)lastn[0]='\0';
-			      Parse(buf2, &Count, &(Word[0]));
-			      lastn=strrchr(Word[0],')');
-			      if(lastn!=0){ lastn[0]='\0'; fStop = 1; } 
-			      fprintf(ftmpsmask, Word[0]);
+			      if (fgets(buf2, 256, dwnfp) != NULL)
+				{
+				  lastn=strrchr(buf2,'\r');
+				  if(lastn!=0)lastn[0]='\0';
+				  lastn=strrchr(buf2,'\n');
+				  if(lastn!=0)lastn[0]='\0';
+				  Parse(buf2, &Count, &(Word[0]));
+				  lastn=strchr(Word[0],')');
+				  if(lastn!=0){ lastn[0]='\0'; fStop = 1; } 
+				  fprintf(ftmptdi, Word[0]);
+				}
+			      else
+				{
+				  if (db)                    printf("End of File encountered.\n");
+				  return -1;
+				}
 			    }
-			  else
+			  while (!fStop);
+			}
+		      ftmpsmask=fopen("smask_tmp.bit","w"); 
+		      if(strcmp(Word[1],"SMASK")==0)
+			{
+			  fprintf(ftmpsmask,&Word[2][1]);
+			  fStop = 0;
+			  do
 			    {
+			      if (fgets(buf2, 256, dwnfp) != NULL)
+				{
+				  lastn=strrchr(buf2,'\r');
+				  if(lastn!=0)lastn[0]='\0';
+				  lastn=strrchr(buf2,'\n');
+				  if(lastn!=0)lastn[0]='\0';
+				  Parse(buf2, &Count, &(Word[0]));
+				  lastn=strrchr(Word[0],')');
+				  if(lastn!=0){ lastn[0]='\0'; fStop = 1; } 
+				  fprintf(ftmpsmask, Word[0]);
+				}
+			      else
+				{
 			      if (db)                    printf("End of File encountered.\n");
 			      return -1;
+				}
 			    }
-                  }
-                while (!fStop); 
-                }
-                freopen("tdi_tmp.bit","r",ftmptdi);
-                freopen("smask_tmp.bit","r",ftmpsmask);
-                fseek(ftmptdi,-2, SEEK_END);
-                fseek(ftmpsmask,-2,SEEK_END);
-              	count=0;
-              	printf("[");
-		driver_data.target = JTAG_B_DATA;
-		driver_data.n = 8;
-		driver_data.data = (char*)&sndbuf[0];
-		if (ioctl(fd, JTAG_BIOSETTAP, &driver_data) < 0)
-		  perror("ioctl JTAG_BIOSETTAP");
-		do
-                {
-		  if ((fgetpos(ftmptdi, &ftdi_pos)==0) && (fgetpos( ftmpsmask, &fsmask_pos) ==0))
+			  while (!fStop); 
+			}
+		      freopen("tdi_tmp.bit","r",ftmptdi);
+		      freopen("smask_tmp.bit","r",ftmpsmask);
+		      fseek(ftmptdi,-2, SEEK_END);
+		      fseek(ftmpsmask,-2,SEEK_END);
+		      count=0;
+		      printf("[");
+		      driver_data.target = JTAG_B_DATA;
+		      driver_data.n = 8;
+		      driver_data.data = (char*)&sndbuf[0];
+		      if (ioctl(fd, JTAG_BIOSETTAP, &driver_data) < 0)
+			perror("ioctl JTAG_BIOSETTAP");
+		      do
+			{
+			  if ((fgetpos(ftmptdi, &ftdi_pos)==0) && (fgetpos( ftmpsmask, &fsmask_pos) ==0))
 		    {
 		      if (db>10) printf("pos - %d; pos - %d\n", ftdi_pos, fsmask_pos );
-										      
+		      //
 		      if ((fread(buf, 2, 1, ftmptdi)>0) && (fread(buf2, 2, 1, ftmpsmask)>0))
 			{
 			  sscanf(buf,"%2x",(int *)&snd[0]);

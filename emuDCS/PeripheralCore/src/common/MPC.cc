@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.7 2005/11/21 17:38:28 mey Exp $
+// $Id: MPC.cc,v 2.8 2005/11/22 15:15:01 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.8  2005/11/22 15:15:01  mey
+// Update
+//
 // Revision 2.7  2005/11/21 17:38:28  mey
 // Update
 //
@@ -549,6 +552,28 @@ void MPC::setTLK2501TxMode(int mode){
   data[0]=0x00;
   data[1]=mode;
   do_vme(2, addr, data, NULL, 1);
+}
+
+
+void MPC::WriteRegister(int reg, int value){
+  //
+  sndbuf[0] = (value>>8)&0xff;
+  sndbuf[1] = value&0xff;
+  //
+  do_vme(VME_WRITE,reg,sndbuf,rcvbuf,NOW);
+  //
+}
+
+int MPC::ReadRegister(int reg){
+  //
+  do_vme(VME_READ,reg,sndbuf,rcvbuf,NOW);
+  //
+  int value = ((rcvbuf[0]&0xff)<<8)|(rcvbuf[1]&0xff);
+  //
+  printf(" MPC.reg=%x %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
+  //
+  return value;
+  //
 }
 
 

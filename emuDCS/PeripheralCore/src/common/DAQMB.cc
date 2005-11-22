@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.14 2005/11/21 15:48:06 mey Exp $
+// $Id: DAQMB.cc,v 2.15 2005/11/22 15:14:53 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.15  2005/11/22 15:14:53  mey
+// Update
+//
 // Revision 2.14  2005/11/21 15:48:06  mey
 // Update
 //
@@ -1495,6 +1498,7 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
   int nowrit;
   // 
   (*MyOutput_) << " epromload " << std::endl;
+  (*MyOutput_) << " devnum    " << devnum << std::endl;
   //
   if(devnum==ALL){
     devnum=F1PROM;
@@ -1507,7 +1511,6 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
   for(int i=devnum;i<=devstp;i++){
     dv=(DEVTYPE)i;
     xtrbits=geo[dv].sxtrbits;
-
     //    printf(" ************************** xtrbits %d geo[dv].sxtrbits %d \n",xtrbits,geo[dv].sxtrbits);
     devstr=geo[dv].nam;
     dwnfp    = fopen(downfile,"r");
@@ -1579,7 +1582,8 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
             }
           }
           for(int i=0;i<nbytes;i++){
-            sndbuf[i]=snd[i]&smask[i];
+            //sndbuf[i]=snd[i]&smask[i];
+            sndbuf[i]=snd[i]&0xff;
           }
 	  //   printf("D%04d",nbits+xtrbits);
           // for(i=0;i<(nbits+xtrbits)/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
@@ -1631,7 +1635,8 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
             }
           }
           for(int i=0;i<nbytes;i++){
-            sndbuf[i]=snd[i]&smask[i];
+            //sndbuf[i]=snd[i]&smask[i];
+            sndbuf[i]=snd[i];
           }
 	  //   printf("I%04d",nbits);
           // for(i=0;i<nbits/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
@@ -1650,7 +1655,8 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
         }
         else if(strcmp(Word[0],"RUNTEST")==0){
           sscanf(Word[1],"%d",&pause);
-	  //          printf("RUNTEST = %d\n",pause);
+	  //printf("RUNTEST = %d\n",pause);
+	  //usleep(pause+1000);
 	  /*   ipd=83*pause;
           // sleep(1);
           t1=(double) clock()/(double) CLOCKS_PER_SEC;
@@ -1660,6 +1666,13 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
 	  //          for (i=0;i<pause/100;i++)
 	  //  devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
           pause=pause/2;
+          if (pause>65535) {
+            sndbuf[0]=255;
+            sndbuf[1]=255;
+            for (int looppause=0;looppause<pause/65536;looppause++) devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,0);
+            pause=65535;
+	  }
+
           sndbuf[0]=pause-(pause/256)*256;
           sndbuf[1]=pause/256;
 	  // printf(" sndbuf %d %d %d \n",sndbuf[1],sndbuf[0],pause);
@@ -1682,11 +1695,12 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
     fclose(fpout);
     fclose(dwnfp);
   }
-  sndbuf[0]=0x01;
-  sndbuf[1]=0x00;
-	  // printf(" sndbuf %d %d %d \n",sndbuf[1],sndbuf[0],pause);
-  devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,2);
-
+  //
+  //sndbuf[0]=0x01;
+  //sndbuf[1]=0x00;
+  // printf(" sndbuf %d %d %d \n",sndbuf[1],sndbuf[0],pause);
+  //devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,2);
+  //
 }
 
 void Parse(char *buf,int *Count,char **Word)
