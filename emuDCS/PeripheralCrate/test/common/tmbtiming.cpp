@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.31 2005/11/17 13:47:22 mey Exp $
+// $Id: tmbtiming.cpp,v 2.32 2005/11/22 15:15:36 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.32  2005/11/22 15:15:36  mey
+// Update
+//
 // Revision 2.31  2005/11/17 13:47:22  mey
 // Update
 //
@@ -238,6 +241,8 @@ int main(int argc,char **argv){
   bool dodaqmb_adc_dump(false);
   bool dodaqmb_lowv_dump(false);
   bool doccb_firmware_version(false);
+  bool doWriteMPCRegister(false);
+  bool doReadMPCRegister(false);
   //
   //-- read commandline arguments and xml configuration file
   //
@@ -409,7 +414,7 @@ int main(int argc,char **argv){
        cout << " 43:InjectMPCData        44:EnableCLCTInputs      45:ALCTScanDelays    " << endl;
        cout << " 46:SetCableDelay        47:WriteDMBSFM           48:ReadTTCrxID       " << endl ;
        cout << " 49:daqmb_promfpga_dump  50:daqmb_adc_dump        51:damb_lowv_dump    " << endl;
-       cout << " 52:ccb_firmware_version                                               " << std::endl;
+       cout << " 52:ccb_firmware_version 53:WriteMPCRegister      54:ReadMPCRegister   " << std::endl;
        //
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
@@ -471,6 +476,8 @@ int main(int argc,char **argv){
        dodaqmb_adc_dump      = false;
        dodaqmb_lowv_dump     = false;
        doccb_firmware_version     = false;
+       doWriteMPCRegister    = false;
+       doReadMPCRegister     = false;
        //
        if ( Menu == -1 ) goto outhere;
        if ( Menu == 0 ) doInitSystem           = true ;
@@ -526,7 +533,9 @@ int main(int argc,char **argv){
        if ( Menu == 50) dodaqmb_adc_dump       = true ;
        if ( Menu == 51) dodaqmb_lowv_dump      = true ;
        if ( Menu == 52) doccb_firmware_version      = true ;
-       if ( Menu  > 52 | Menu < -2) 
+       if ( Menu == 53) doWriteMPCRegister     = true ;
+       if ( Menu == 54) doReadMPCRegister      = true ;
+       if ( Menu  > 55 | Menu < -2) 
 	 cout << "Invalid menu choice, try again." << endl << endl;
        //
     }
@@ -798,6 +807,47 @@ int main(int argc,char **argv){
       //tbController.DcsEnable();
       //
       printf("TMB register Address= %x     value=0x %x \n",TMBRegAddr,TMBRegValue);
+      cout << endl  << endl;
+      //
+    }
+
+
+    if (doReadMPCRegister) {    
+      //
+      cout << "Enter MPC register address (hex)" << endl;
+      int MPCRegAddr;
+      cin >> hex >> MPCRegAddr >> dec;            // Make sure to return to decimal mode
+      //
+      int MPCRegValue  = thisMPC->ReadRegister(MPCRegAddr) ;
+      //
+      printf("MPC register Address= %x     value=0x %x \n",MPCRegAddr,MPCRegValue);
+      cout << endl  << endl;
+      //
+    }
+
+
+    if (doWriteMPCRegister) {   
+      //
+      cout << "Caution: can cause serious problems, proceed with caution" << endl;
+      cout << "Enter MPC register address (hex)" << endl;
+      //
+      int MPCRegAddr;
+      cin >> hex >> MPCRegAddr >> dec;  // Make sure to return to decimal mode after reading
+      //
+      int MPCRegValue  = thisMPC->ReadRegister(MPCRegAddr) ;
+      printf("MPC register Address= %x     read initial value=0x %x \n",MPCRegAddr,MPCRegValue);
+      //
+      cout << "Enter data value to write (hex, <=4 characters, i.e. 16 bits)" << endl;
+      int MPCRegWriteData;
+      cin >> hex >> MPCRegWriteData >> dec;  // Make sure to return to decimal mode after reading
+      //
+      cout << "Echo desired write data=" << hex << MPCRegWriteData << dec << endl;
+      //
+      thisMPC->WriteRegister(MPCRegAddr,MPCRegWriteData);
+      //
+      MPCRegValue  = thisMPC->ReadRegister(MPCRegAddr) ;
+      printf("MPC register Address= %x     read back written value=0x %x \n",MPCRegAddr,MPCRegValue);
+      //
       cout << endl  << endl;
       //
     }
@@ -1310,13 +1360,13 @@ int main(int argc,char **argv){
 
       alct->alct_fast_read_id(chipID);
       std::cout << "ALCT alct_fast_read_id " << chipID << std::endl;
-      /*
+      //
       unsigned cr[3];
       //
-      printf("SelfTest\n");
+      printf("FastControl SelfTest\n");
       printf ("\nalct_fast_self_test returned %ld\n", alct->alct_fast_self_test ((long int*)NULL,(unsigned long)1));
-      */
-      printf("SelfTest\n");
+      //
+      printf("SlowControl SelfTest\n");
       long code;
       int slot = thisTMB->slot();
       printf ("\nalct_slow_self_test returned %ld\n", alct->alct_slow_self_test (&slot, &code));

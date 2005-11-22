@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.4 2005/11/21 17:38:45 mey Exp $
+// $Id: MPC.h,v 2.5 2005/11/22 15:14:39 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.5  2005/11/22 15:14:39  mey
+// Update
+//
 // Revision 2.4  2005/11/21 17:38:45  mey
 // Update
 //
@@ -62,6 +65,9 @@ class MPC : public VMEModule {
 
   /// used by GUIs
   void executeCommand(std::string command);
+
+  void WriteRegister(int,int);
+  int  ReadRegister(int);
 
   void enablePRBS();
   void disablePRBS();
