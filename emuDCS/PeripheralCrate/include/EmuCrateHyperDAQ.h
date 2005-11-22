@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.10 2005/11/21 15:47:28 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.11 2005/11/22 15:13:14 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -49,6 +49,7 @@
 #include "ALCTController.h"
 #include "CrateSelector.h"
 #include "CrateUtilities.h"
+#include "geom.h"
 
 using namespace cgicc;
 using namespace std;
@@ -100,6 +101,8 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::CCBStatus, "CCBStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::MPCStatus, "MPCStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTests, "DMBTests");
+    xgi::bind(this,&EmuCrateHyperDAQ::DMBUtils, "DMBUtils");
+    xgi::bind(this,&EmuCrateHyperDAQ::DMBLoadFirmware, "DMBLoadFirmware");
     xgi::bind(this,&EmuCrateHyperDAQ::CFEBStatus, "CFEBStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::ALCTStatus, "ALCTStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::CrateTests, "CrateTests");
@@ -133,10 +136,11 @@ public:
     //
     myParameter_ =  0;
     //
-    //xmlFile_     = "/afs/cern.ch/user/m/mey/configurations/timingME+3-2-32.xml" ;
-    //
     xmlFile_     = 
-      "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/config.xml" ;
+      "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/timingME+3-1-16.xml" ;
+    //
+    //xmlFile_     = 
+    //"/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/config.xml" ;
     //
     Operator_ = "Name...";
     MPCBoardID_ = "-1";
@@ -413,6 +417,7 @@ public:
 	//
 	std::string DMBStatus;
 	std::string DMBTests;
+	std::string DMBUtils;
 	std::string DMBBoardID;
 	//
 	for (int i=0; i<dmbVector.size(); i++) {
@@ -420,6 +425,8 @@ public:
 	    toolbox::toString("/%s/DMBStatus",getApplicationDescriptor()->getURN().c_str());
 	  DMBTests =
 	    toolbox::toString("/%s/DMBTests",getApplicationDescriptor()->getURN().c_str());
+	  DMBUtils =
+	    toolbox::toString("/%s/DMBUtils",getApplicationDescriptor()->getURN().c_str());
 	  DMBBoardID =
 	    toolbox::toString("/%s/DMBBoardID",getApplicationDescriptor()->getURN().c_str());
 	  int slot = dmbVector[i]->slot();
@@ -448,9 +455,22 @@ public:
 	    *out << cgicc::td();
 	    //
 	    sprintf(Name,"DMB Tests  slot=%d",dmbVector[i]->slot());
+	    //
 	    *out << cgicc::td();
 	    if ( DMBBoardID_[i].find("-1",0) == string::npos ) {
 	      *out << cgicc::form().set("method","GET").set("action",DMBTests).set("target","_blank") << std::endl ;
+	      *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	      sprintf(buf,"%d",i);
+	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+	      *out << cgicc::form() << std::endl ;
+	    }
+	    *out << cgicc::td();
+	    //
+	    sprintf(Name,"DMB Utils  slot=%d",dmbVector[i]->slot());
+	    //
+	    *out << cgicc::td();
+	    if ( DMBBoardID_[i].find("-1",0) == string::npos ) {
+	      *out << cgicc::form().set("method","GET").set("action",DMBUtils).set("target","_blank") << std::endl ;
 	      *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
 	      sprintf(buf,"%d",i);
 	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
@@ -727,7 +747,7 @@ public:
     thisDMB->PrintCounters(1);
     thisDMB->RedirectOutput(&std::cout);
     //
-    this->DMBTests(in,out);
+    this->DMBUtils(in,out);
   }
   //
   void EmuCrateHyperDAQ::CrateTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
@@ -1254,7 +1274,36 @@ public:
       thisDMB->lowv_onoff(0x0);
     }
     //
-    this->DMBTests(in,out);
+    this->DMBUtils(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::DMBLoadFirmware(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    //
+    cout << "DMBLoadFirmware" << endl;
+    //
+    if (thisDMB) {
+      //
+      char *out;
+      thisDMB->epromload(MPROM,"dmb6cntl_v17_r2.svf",1,out);  // load mprom
+    }
+    //
+    this->DMBUtils(in,out);
     //
   }
   //
@@ -1281,7 +1330,7 @@ public:
       thisDMB->lowv_onoff(0x3f);
     }
     //
-    this->DMBTests(in,out);
+    this->DMBUtils(in,out);
     //
   }
   //
@@ -1424,23 +1473,24 @@ public:
     //
     char buf[200];
     //
-      std::vector<CFEB> cfebs = thisDMB->cfebs() ;
+    std::vector<CFEB> cfebs = thisDMB->cfebs() ;
+    //
+    typedef std::vector<CFEB>::iterator CFEBItr;
+    //
+    for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
+      sprintf(buf,"CFEB %d : ",(*cfebItr).number());
+      *out << buf;
       //
-      typedef std::vector<CFEB>::iterator CFEBItr;
+      //*out << cgicc::br();
       //
-      for(CFEBItr cfebItr = cfebs.begin(); cfebItr != cfebs.end(); ++cfebItr) {
-	sprintf(buf,"CFEB %d : ",(*cfebItr).number());
-	*out << buf;
-	//*out << cgicc::br();
-	sprintf(buf,"CFEB prom user id : %08x CFEB fpga user id : %08x ",
-		thisDMB->febpromuser(*cfebItr),
-		thisDMB->febfpgauser(*cfebItr));
-	*out << buf;
-	*out << cgicc::br();
-      }
-      //
-      //
-      *out << cgicc::fieldset();
+      sprintf(buf,"CFEB prom user id : %08x CFEB fpga user id : %08x ",
+	      thisDMB->febpromuser(*cfebItr),
+	      thisDMB->febfpgauser(*cfebItr));
+      *out << buf;
+      *out << cgicc::br();
+    }
+    //
+    *out << cgicc::fieldset();
     *out << std::endl;
     //
   }
@@ -1459,6 +1509,8 @@ public:
     //
     *out << cgicc::legend("CCB Info").set("style","color:blue") << cgicc::p() << std::endl ;
     //
+    thisCCB->firmwareVersion();
+    //
     *out << cgicc::fieldset();
     //
   }
@@ -1476,6 +1528,8 @@ public:
     *out << std::endl;
     //
     *out << cgicc::legend("MPC Info").set("style","color:blue") << cgicc::p() << std::endl ;
+    //
+    thisMPC->firmwareVersion();
     //
     *out << cgicc::fieldset();
     //
@@ -2209,6 +2263,93 @@ public:
     //
   }
   //
+  void EmuCrateHyperDAQ::DMBUtils(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    cgicc::Cgicc cgi(in);
+    //
+    const CgiEnvironment& env = cgi.getEnvironment();
+    //
+    std::string dmbStr = env.getQueryString() ;
+    //int dmb = atoi(dmbStr.c_str());
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "Not dmb" << endl ;
+      dmb = DMB_;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    *out << cgicc::title("Simple Web Form") << std::endl;
+    //
+    char buf[200] ;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    *out << endl ;
+    //
+    *out << cgicc::legend("DMB Tests").set("style","color:blue") ;
+    //
+    *out << cgicc::table().set("border","1");
+    //
+    *out << cgicc::td();
+    //
+    std::string DMBTurnOff =
+      toolbox::toString("/%s/DMBTurnOff",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",DMBTurnOff) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","DMB Turn Off LV") << std::endl ;
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    //
+    std::string DMBTurnOn =
+      toolbox::toString("/%s/DMBTurnOn",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",DMBTurnOn) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","DMB Turn On LV") << std::endl ;
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
+    //
+    std::string DMBPrintCounters =
+      toolbox::toString("/%s/DMBPrintCounters",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",DMBPrintCounters)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","DMB Print Counters") << std::endl ;
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string DMBLoadFirmware =
+      toolbox::toString("/%s/DMBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",DMBLoadFirmware)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","DMB Load Firmware") << std::endl ;
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+  }
+  //
   void EmuCrateHyperDAQ::DMBTests(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -2603,9 +2744,10 @@ public:
     //
      thisCrate = crateVector[0];
      thisCCB = thisCrate->ccb();
+     thisMPC = thisCrate->mpc();
      //thisTMB = tmbVector[0];
      //thisDMB = dmbVector[0];
-     //thisMPC = thisCrate->mpc();
+     //
      //DDU * thisDDU = thisCrate->ddu();
      //if(thisTMB) alct = thisTMB->alctController();
      //
