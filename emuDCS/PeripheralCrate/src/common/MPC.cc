@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.8 2005/11/22 15:15:01 mey Exp $
+// $Id: MPC.cc,v 2.9 2005/11/25 23:42:46 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.9  2005/11/25 23:42:46  mey
+// Update
+//
 // Revision 2.8  2005/11/22 15:15:01  mey
 // Update
 //
@@ -37,9 +40,10 @@
 #include "VMEController.h"
 
 MPC::MPC(int newCrate, int slot) : VMEModule(newCrate, slot),
-  TLK2501TxMode_(0), TransparentModeSources_(0), TMBDelayPattern_(0){
+				   TLK2501TxMode_(0), TransparentModeSources_(0), TMBDelayPattern_(0){
   std::cout << "MPC: module created in crate=" << this->crate() 
-       << " slot=" << this->slot() << std::endl;
+	    << " slot=" << this->slot() << std::endl;
+  MyOutput_ = &std::cout ;
 }
 
 
@@ -587,7 +591,7 @@ void MPC::firmwareVersion(){
   int day   =  versionWord & 0x1F;
   int month = (versionWord >> 5   ) & 0xF;
   int year  = (versionWord >>(5+4)) + 2000;
-  std::cout << "MPC: firmware version: " << std::dec
+  (*MyOutput_) << "MPC: firmware version: " << std::dec
        << day << "-" << month << "-" << year << std::endl;
 }
 

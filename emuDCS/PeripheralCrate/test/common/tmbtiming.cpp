@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.32 2005/11/22 15:15:36 mey Exp $
+// $Id: tmbtiming.cpp,v 2.33 2005/11/25 23:43:24 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.33  2005/11/25 23:43:24  mey
+// Update
+//
 // Revision 2.32  2005/11/22 15:15:36  mey
 // Update
 //
@@ -243,6 +246,9 @@ int main(int argc,char **argv){
   bool doccb_firmware_version(false);
   bool doWriteMPCRegister(false);
   bool doReadMPCRegister(false);
+  bool doLoadDMBFirmware(false);
+  bool doLoadALCTFirmware(false);
+  bool doLoadTMBFirmware(false);
   //
   //-- read commandline arguments and xml configuration file
   //
@@ -354,7 +360,7 @@ int main(int argc,char **argv){
 
     cout << "-- Configuring ALCT --" << endl;
     alct = thisTMB->alctController();
-    if (alct) alct->GetWGNumber();
+    //if (alct) alct->GetWGNumber();
 
     //if (alct) alct->setup(1);
 
@@ -415,6 +421,7 @@ int main(int argc,char **argv){
        cout << " 46:SetCableDelay        47:WriteDMBSFM           48:ReadTTCrxID       " << endl ;
        cout << " 49:daqmb_promfpga_dump  50:daqmb_adc_dump        51:damb_lowv_dump    " << endl;
        cout << " 52:ccb_firmware_version 53:WriteMPCRegister      54:ReadMPCRegister   " << std::endl;
+       cout << " 55:LoadDMBFirmware      56:LoadALCTfirmware      57:LoadTMBFirmware   " << std::endl;
        //
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
@@ -478,6 +485,9 @@ int main(int argc,char **argv){
        doccb_firmware_version     = false;
        doWriteMPCRegister    = false;
        doReadMPCRegister     = false;
+       doLoadDMBFirmware     = false;
+       doLoadALCTFirmware    = false;
+       doLoadTMBFirmware     = false;
        //
        if ( Menu == -1 ) goto outhere;
        if ( Menu == 0 ) doInitSystem           = true ;
@@ -535,9 +545,70 @@ int main(int argc,char **argv){
        if ( Menu == 52) doccb_firmware_version      = true ;
        if ( Menu == 53) doWriteMPCRegister     = true ;
        if ( Menu == 54) doReadMPCRegister      = true ;
-       if ( Menu  > 55 | Menu < -2) 
+       if ( Menu == 55) doLoadDMBFirmware      = true ;
+       if ( Menu == 56) doLoadALCTFirmware      = true ;
+       if ( Menu == 57) doLoadTMBFirmware      = true ;
+       if ( Menu  > 58 | Menu < -2) 
 	 cout << "Invalid menu choice, try again." << endl << endl;
        //
+    }
+    //
+    if(doLoadALCTFirmware) {
+      //
+      if (! alct ) {
+	printf("No ALCT\n") ; 
+      }
+      //
+      ALCTIDRegister sc_id, chipID ;
+      //
+      printf("Reading IDs...") ;
+      //
+      alct->alct_read_slowcontrol_id(&sc_id) ;
+      std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
+      alct->alct_fast_read_id(chipID);
+      std::cout << " ALCT Fastcontrol ID " << chipID << std::endl;
+      //
+      thisTMB->disableAllClocks();
+      int debugMode(0);
+      int jch(3);
+      int status = alct->SVFLoad(&jch,"alct672.svf",debugMode);
+      thisTMB->enableAllClocks();
+      //
+      if (status >= 0){
+	cout << "=== Programming finished"<< endl;
+	cout << "=== " << status << " Verify Errors  occured" << endl;
+      }
+      else{
+	cout << "=== Fatal Error. Exiting with " <<  status << endl;
+      }
+      //
+    }
+    //
+    if(doLoadTMBFirmware) {
+      //
+      //thisTMB->disableAllClocks();
+      int debugMode(0);
+      int jch(5);
+      string chamberType("ME21");
+      ALCTController *alct = new ALCTController(thisTMB,chamberType);
+      int status = alct->SVFLoad(&jch,"tmb2005e.svf",debugMode);
+      //thisTMB->enableAllClocks();
+      //
+      if (status >= 0){
+	cout << "=== Programming finished"<< endl;
+	cout << "=== " << status << " Verify Errors  occured" << endl;
+      }
+      else{
+	cout << "=== Fatal Error. Exiting with " <<  status << endl;
+      }
+      //
+    }
+    //
+    if(doLoadDMBFirmware) {
+      char out[10];
+      thisCCB->firmwareVersion();
+      thisDMB->epromload(MPROM,"dmb6cntl_v17_r2.svf",1,out);  // load mprom
+      //thisCCB->firmwareVersion();
     }
     //
     if(doccb_firmware_version){
@@ -711,9 +782,7 @@ int main(int argc,char **argv){
     }
 
     if (doInitSystem) {
-      //tbController.DcsDisable();
       tbController.configureNoDCS();
-      //tbController.DcsEnable();
     }
 
     if (doFindWinner) {

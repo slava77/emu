@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.8 2005/11/15 15:37:22 mey Exp $
+// $Id: CCB.h,v 2.9 2005/11/25 23:41:39 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.9  2005/11/25 23:41:39  mey
+// Update
+//
 // Revision 2.8  2005/11/15 15:37:22  mey
 // Update
 //
@@ -59,13 +62,14 @@ public:
   // start routine from VMEModule OK
   virtual void end();
 
-
   virtual void pulse(int num_pulse,unsigned int pulse_delay, char vme);
   // these two call pulse for different VME addresses
   virtual void pulse(int num_pulse,unsigned int pulse_delay);
   virtual void inject(int num_pulse,unsigned int pulse_delay);
   void pulse(int Num_pulse,unsigned int * delays, char vme);
   void pulse();
+
+  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
 
   virtual void prgall_bckpln();
   virtual void reset_bckpln();
@@ -151,6 +155,8 @@ protected:
   void rice_clk_setup();
   
 private:
+  std::ostream * MyOutput_ ;
+  //
   //-- Control and Status Registers for CCB2004
   //   group A: discrete logic
   static const unsigned int CSRA1  = 0x00;

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.15 2005/11/22 15:14:53 mey Exp $
+// $Id: DAQMB.cc,v 2.16 2005/11/25 23:42:33 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.16  2005/11/25 23:42:33  mey
+// Update
+//
 // Revision 2.15  2005/11/22 15:14:53  mey
 // Update
 //
@@ -1495,7 +1498,7 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
   int Count,j,nbits,nbytes,pause,xtrbits;
   int tmp,cmpflag;
   int tstusr;
-  int nowrit;
+  int nowrit=0;
   // 
   (*MyOutput_) << " epromload " << std::endl;
   (*MyOutput_) << " devnum    " << devnum << std::endl;
@@ -1515,101 +1518,101 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
     devstr=geo[dv].nam;
     dwnfp    = fopen(downfile,"r");
     fpout=fopen("eprom.bit","w");
-   //  printf("Programming Design %s (%s) with %s\n",design,devstr,downfile);
-   //
-   while (fgets(buf,256,dwnfp) != NULL)  {
-     if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
-       //  printf("%s",buf);
-     }
-     else {
-       if(strrchr(buf,';')==0){
-	 do {
-	   lastn=strrchr(buf,'\n');
-	   if(lastn!=0)lastn[0]='\0';
-	   if (fgets(buf2,256,dwnfp) != NULL){
-	     strcat(buf,buf2);
-	   }
-	   else {
+    //  printf("Programming Design %s (%s) with %s\n",design,devstr,downfile);
+    //
+    while (fgets(buf,256,dwnfp) != NULL)  {
+      if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
+	//  printf("%s",buf);
+      }
+      else {
+	if(strrchr(buf,';')==0){
+	  do {
+	    lastn=strrchr(buf,'\n');
+	    if(lastn!=0)lastn[0]='\0';
+	    if (fgets(buf2,256,dwnfp) != NULL){
+	      strcat(buf,buf2);
+	    }
+	    else {
 	     //    printf("End of File encountered.  Quiting\n");
-	     return;
+	      return;
 	   }
-	 }
-	 while (strrchr(buf,';')==0);
-       }
+	  }
+	  while (strrchr(buf,';')==0);
+	}
        for(int i=0;i<1024;i++){
 	 cmpbuf[i]=0;
 	 sndbuf[i]=0;
 	 rcvbuf[i]=0;
        }
        Parse(buf, &Count, &(Word[0]));
-        // count=count+1;
-        if(strcmp(Word[0],"SDR")==0){
-          cmpflag=0;    //disable the comparison for no TDO SDR
-          sscanf(Word[1],"%d",&nbits);
-          nbytes=(nbits-1)/8+1;
-          for(int i=2;i<Count;i+=2){
-            if(strcmp(Word[i],"TDI")==0){
-              for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&snd[j]);
-              }
-/*JRG, new selective way to download UNALTERED PromUserCode from SVF to
-    ANY prom:  just set cbrdnum[3,2,1,0]=0 in calling routine!
-    was  if(nowrit==1){  */
-              if(nowrit==1&&(cbrdnum[0]|cbrdnum[1]|cbrdnum[2]|cbrdnum[3])!=0){
-                tstusr=0;
-                snd[0]=cbrdnum[0];
-                snd[1]=cbrdnum[1];
-                snd[2]=cbrdnum[2]; 
-                snd[3]=cbrdnum[3];
-		//        printf(" snd %02x %02x %02x %02x \n",snd[0],snd[1],snd[2],snd[3]);
-              }
-            }
-            if(strcmp(Word[i],"SMASK")==0){
-              for(j=0;j<nbytes;j++){
+       // count=count+1;
+       if(strcmp(Word[0],"SDR")==0){
+	 cmpflag=0;    //disable the comparison for no TDO SDR
+	 sscanf(Word[1],"%d",&nbits);
+	 nbytes=(nbits-1)/8+1;
+	 for(int i=2;i<Count;i+=2){
+	   if(strcmp(Word[i],"TDI")==0){
+	     for(j=0;j<nbytes;j++){
+	       sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&snd[j]);
+	     }
+	     /*JRG, new selective way to download UNALTERED PromUserCode from SVF to
+	       ANY prom:  just set cbrdnum[3,2,1,0]=0 in calling routine!
+	       was  if(nowrit==1){  */
+	     if(nowrit==1&&(cbrdnum[0]|cbrdnum[1]|cbrdnum[2]|cbrdnum[3])!=0){
+	       tstusr=0;
+	       snd[0]=cbrdnum[0];
+	       snd[1]=cbrdnum[1];
+	       snd[2]=cbrdnum[2]; 
+	       snd[3]=cbrdnum[3];
+	       // printf(" snd %02x %02x %02x %02x \n",snd[0],snd[1],snd[2],snd[3]);
+	     }
+	   }
+	   if(strcmp(Word[i],"SMASK")==0){
+	     for(j=0;j<nbytes;j++){
                 sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&smask[j]);
+	     }
+	   }
+	   if(strcmp(Word[i],"TDO")==0){
+	     cmpflag=1;
+	     for(j=0;j<nbytes;j++){
+	       sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&expect[j]);
               }
-            }
-            if(strcmp(Word[i],"TDO")==0){
-              cmpflag=1;
-              for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&expect[j]);
-              }
-            }
-            if(strcmp(Word[i],"MASK")==0){
-              for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&rmask[j]);
-              }
-            }
+	   }
+	   if(strcmp(Word[i],"MASK")==0){
+	     for(j=0;j<nbytes;j++){
+	       sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&rmask[j]);
+	     }
+	   }
+	 }
+	 for(int i=0;i<nbytes;i++){
+	   //sndbuf[i]=snd[i]&smask[i];
+	   sndbuf[i]=snd[i]&0xff;
           }
-          for(int i=0;i<nbytes;i++){
-            //sndbuf[i]=snd[i]&smask[i];
-            sndbuf[i]=snd[i]&0xff;
-          }
-	  //   printf("D%04d",nbits+xtrbits);
+	 //   printf("D%04d",nbits+xtrbits);
           // for(i=0;i<(nbits+xtrbits)/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
-          if(nowrit==0){
-            scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
-          }else{
-	     if(writ==1) scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
-          } 
-	  //  Data readback comparison here:
-          for (int i=0;i<nbytes;i++) {
-            tmp=(rcvbuf[i]>>3)&0x1F;
-            rcvbuf[i]=tmp | (rcvbuf[i+1]<<5&0xE0);
-	    /*  if (((rcvbuf[i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1) 
+	 if(nowrit==0){
+	   scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+	 }else{
+	   if(writ==1) scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+	 } 
+	 //  Data readback comparison here:
+	 for (int i=0;i<nbytes;i++) {
+	   tmp=(rcvbuf[i]>>3)&0x1F;
+	   rcvbuf[i]=tmp | (rcvbuf[i+1]<<5&0xE0);
+	   /*  if (((rcvbuf[i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1) 
 		printf("read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcvbuf[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF); */
-          }
-          if (cmpflag==1) {
-            for (int i=0;i<nbytes;i++) {
-	        fprintf(fpout," %02X",rcvbuf[i]&0xFF);
-              if (i%4==3) fprintf(fpout,"\n");
-	      }
-	  }
-        }
-
-        else if(strcmp(Word[0],"SIR")==0){
-          nowrit=0;
-          sscanf(Word[1],"%d",&nbits);
+	 }
+	 if (cmpflag==1) {
+	   for (int i=0;i<nbytes;i++) {
+	     fprintf(fpout," %02X",rcvbuf[i]&0xFF);
+	     if (i%4==3) fprintf(fpout,"\n");
+	   }
+	 }
+       }
+       //
+       else if(strcmp(Word[0],"SIR")==0){
+	 nowrit=0;
+	 sscanf(Word[1],"%d",&nbits);
           nbytes=(nbits-1)/8+1;
           for(int i=2;i<Count;i+=2){
             if(strcmp(Word[i],"TDI")==0){
@@ -1640,8 +1643,8 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
           }
 	  //   printf("I%04d",nbits);
           // for(i=0;i<nbits/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
-/*JRG, brute-force way to download UNALTERED PromUserCode from SVF file to
-    DDU prom, but screws up CFEB/DMB program method:      nowrit=0;  */
+	  /*JRG, brute-force way to download UNALTERED PromUserCode from SVF file to
+	    DDU prom, but screws up CFEB/DMB program method:      nowrit=0;  */
           if(nowrit==0){
 	    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);}
           else{
@@ -1655,8 +1658,8 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
         }
         else if(strcmp(Word[0],"RUNTEST")==0){
           sscanf(Word[1],"%d",&pause);
-	  //printf("RUNTEST = %d\n",pause);
-	  //usleep(pause+1000);
+	  printf("RUNTEST = %d\n",pause);
+	  //usleep(pause);
 	  /*   ipd=83*pause;
           // sleep(1);
           t1=(double) clock()/(double) CLOCKS_PER_SEC;
@@ -1678,7 +1681,7 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
 	  // printf(" sndbuf %d %d %d \n",sndbuf[1],sndbuf[0],pause);
           devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,0);
           // printf(" send sleep \n");  
-/*          printf("pause      %d us\n",pause);*/
+	  /* printf("pause      %d us\n",pause);*/
         }
         else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0)){
 	   printf("goto reset idle state\n"); 
@@ -1699,7 +1702,7 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
   //sndbuf[0]=0x01;
   //sndbuf[1]=0x00;
   // printf(" sndbuf %d %d %d \n",sndbuf[1],sndbuf[0],pause);
-  //devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,2);
+  //devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
   //
 }
 
@@ -2011,35 +2014,35 @@ LOOP:
       devdo(dv,5,cmd,285,sndbuf2,rcvbuf,0);
       cmd[0]=VTX_CFG_OUT;
       devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
-        totbytes=4*clbword2;
-        totbits=8*totbytes;
-        char * data_ptr = new char;
-        char * rtn_ptr = new char;
-        // data_ptr=(char *)malloc((clbword2*4+1),sizeof(char));
-        // rtn_ptr=(char *)malloc((clbword2*4+1),sizeof(char));
-         //@@ looks wrong!
-        scan(DATA_REG,data_ptr,totbits+2,rtn_ptr,1);
-        
-    bits=0;
-    for(i=0;i<totbytes;i++){
-      for(j=0;j<8;j++) { 
-        if (bits>0) fprintf(fp,"%d",(rtn_ptr[i]>>j)&1);
-        bits++;
-        if (bits>2 && (bits-3)%32==0) fprintf(fp,"\n"); 
-        if (bits==totbits) fprintf(fp,"0\n");
+      totbytes=4*clbword2;
+      totbits=8*totbytes;
+      char * data_ptr = new char;
+      char * rtn_ptr = new char;
+      // data_ptr=(char *)malloc((clbword2*4+1),sizeof(char));
+      // rtn_ptr=(char *)malloc((clbword2*4+1),sizeof(char));
+      //@@ looks wrong!
+      scan(DATA_REG,data_ptr,totbits+2,rtn_ptr,1);
+      
+      bits=0;
+      for(i=0;i<totbytes;i++){
+	for(j=0;j<8;j++) { 
+	  if (bits>0) fprintf(fp,"%d",(rtn_ptr[i]>>j)&1);
+	  bits++;
+	  if (bits>2 && (bits-3)%32==0) fprintf(fp,"\n"); 
+	  if (bits==totbits) fprintf(fp,"0\n");
+	}
       }
-    }
-    delete data_ptr;
-    delete rtn_ptr;
-    //  printf("\n Total bits read %d \n",totbits);
-    cmd[0]=VTX_BYPASS;
-    devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
- 
-    // free(rtn_ptr);
-    // free(data_ptr);
-
-  //  printf(" SCA Master Configure file is read back. \n\n");
- fclose(fp);
+      delete data_ptr;
+      delete rtn_ptr;
+      //  printf("\n Total bits read %d \n",totbits);
+      cmd[0]=VTX_BYPASS;
+      devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
+      
+      // free(rtn_ptr);
+      // free(data_ptr);
+      
+      //  printf(" SCA Master Configure file is read back. \n\n");
+      fclose(fp);
 }
 
 

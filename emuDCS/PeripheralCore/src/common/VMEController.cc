@@ -2,8 +2,11 @@
 #ifdef D360
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.2 2005/11/21 15:48:24 mey Exp $
+// $Id: VMEController.cc,v 2.3 2005/11/25 23:43:00 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.3  2005/11/25 23:43:00  mey
+// Update
+//
 // Revision 2.2  2005/11/21 15:48:24  mey
 // Update
 //
@@ -89,7 +92,7 @@ void VMEController::end() {
 void VMEController::send_last() {
   char rcvx[2];
   char sndx[2];
-
+  
   if(plev==2){
     scan(TERMINATE,sndx,0,rcvx,2);
   }
@@ -217,7 +220,7 @@ int VMEController::writenn(const char *ptr,int nbytes)
     if(nleft>20000) {
       nwritten = write(theSocket, ptr,20000);
       if(nwritten != 20000) {
-        std::cerr<<"VMEController::writenn() - ERROR for write: nwritenn != 20000";
+        std::cerr<<"VMEController::writenn() - ERROR for write: nwritenn != 20000" << std::endl;
         return(nwritten);  /*error*/
       }
       nleft = nleft - 20000;
@@ -257,8 +260,11 @@ VMEModule* VMEController::getTheCurrentModule(){
 
 #ifdef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.2 2005/11/21 15:48:24 mey Exp $
+// $Id: VMEController.cc,v 2.3 2005/11/25 23:43:00 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.3  2005/11/25 23:43:00  mey
+// Update
+//
 // Revision 2.2  2005/11/21 15:48:24  mey
 // Update
 //
@@ -303,6 +309,7 @@ VMEController::VMEController(int crate, string ipAddr, int port):
  
   int socket = openSocket();
   cout << "VMEController opened socket = " << socket << endl;
+  cout << "VMEController opened port   = " << port << endl;
 }
 
 
@@ -344,19 +351,19 @@ void VMEController::send_last() {
 
 int VMEController::openSocket() {
 
-   char schardev_name[12]="/dev/schar0";
-   schardev_name[11]=0;
-   if(port_ >0 || port_ <10)  schardev_name[10] += port_;
-   theSocket = open(schardev_name, O_RDWR);
-        if (theSocket == -1) {
-                perror("open");
-                return 1;
-        }
-        get_macaddr();
-  	// eth_enableblock();
-        eth_reset();
-        mrst_ff();
-	set_VME_mode();   
+  char schardev_name[12]="/dev/schar0";
+  schardev_name[11]=0;
+  if(port_ >0 || port_ <10)  schardev_name[10] += port_;
+  theSocket = open(schardev_name, O_RDWR);
+  if (theSocket == -1) {
+    perror("open");
+    return 1;
+  }
+  get_macaddr();
+  // eth_enableblock();
+  eth_reset();
+  mrst_ff();
+  set_VME_mode();   
   return theSocket;
 }
 

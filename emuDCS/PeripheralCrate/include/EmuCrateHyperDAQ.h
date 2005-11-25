@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.11 2005/11/22 15:13:14 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.12 2005/11/25 23:41:46 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -94,7 +94,9 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::setRawConfFile, "setRawConfFile");
     xgi::bind(this,&EmuCrateHyperDAQ::UploadConfFile, "UploadConfFile");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBStatus, "TMBStatus");
+    xgi::bind(this,&EmuCrateHyperDAQ::LoadTMBFirmware, "LoadTMBFirmware");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBTests,  "TMBTests");
+    xgi::bind(this,&EmuCrateHyperDAQ::TMBUtils,  "TMBUtils");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBStatus, "DMBStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBBoardID, "DMBBoardID");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBBoardID, "TMBBoardID");
@@ -136,11 +138,11 @@ public:
     //
     myParameter_ =  0;
     //
-    xmlFile_     = 
-      "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/timingME+3-1-16.xml" ;
-    //
     //xmlFile_     = 
-    //"/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/config.xml" ;
+    //"/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/timingME+3-1-16.xml" ;
+    //
+    xmlFile_     = 
+      "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/config.xml" ;
     //
     Operator_ = "Name...";
     MPCBoardID_ = "-1";
@@ -313,7 +315,8 @@ public:
 	    toolbox::toString("/%s/MPCStatus",getApplicationDescriptor()->getURN().c_str());
 	  std::string MPCBoardID =
 	    toolbox::toString("/%s/MPCBoardID",getApplicationDescriptor()->getURN().c_str());
-	  slot = thisCrate->mpc()->slot() ;
+	  slot = -1;
+	  if ( thisMPC ) slot = thisCrate->mpc()->slot() ;
 	  sprintf(Name,"MPC Status slot=%d",slot);
 	  if(slot == ii) {
 	    //
@@ -325,7 +328,7 @@ public:
 	    *out << cgicc::td();
 	    //
 	  *out << cgicc::td();
-	  if ( MPCBoardID_.find("-1") == string::npos ) {
+	  if ( MPCBoardID_.find("-1") == string::npos && thisMPC ) {
 	    *out << cgicc::form().set("method","GET").set("action",MPCStatus)
 	      .set("target","_blank") << std::endl ;
 	    *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
@@ -339,6 +342,7 @@ public:
 	//
 	std::string TMBStatus ;
 	std::string TMBTests ;
+	std::string TMBUtils ;
 	std::string TMBBoardID ;
 	//
 	TMBStatus  =
@@ -347,6 +351,8 @@ public:
 	  toolbox::toString("/%s/TMBBoardID",getApplicationDescriptor()->getURN().c_str());
 	TMBTests   =
 	  toolbox::toString("/%s/TMBTests",getApplicationDescriptor()->getURN().c_str());
+	TMBUtils   =
+	  toolbox::toString("/%s/TMBUtils",getApplicationDescriptor()->getURN().c_str());
 	//
 	for (int i=0; i<tmbVector.size(); i++) {
 	  //
@@ -380,6 +386,18 @@ public:
 	    *out << cgicc::td();
 	    if ( TMBBoardID_[i].find("-1") == string::npos ) {
 	      *out << cgicc::form().set("method","GET").set("action",TMBTests)
+		.set("target","_blank") << std::endl ;
+	      *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	      sprintf(buf,"%d",i);
+	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+	      *out << cgicc::form() << std::endl ;
+	    }
+	    *out << cgicc::td();
+	    //
+	    sprintf(Name,"TMB Utils slot=%d",tmbVector[i]->slot());	  
+	    *out << cgicc::td();
+	    if ( TMBBoardID_[i].find("-1") == string::npos ) {
+	      *out << cgicc::form().set("method","GET").set("action",TMBUtils)
 		.set("target","_blank") << std::endl ;
 	      *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
 	      sprintf(buf,"%d",i);
@@ -1509,7 +1527,9 @@ public:
     //
     *out << cgicc::legend("CCB Info").set("style","color:blue") << cgicc::p() << std::endl ;
     //
+    thisCCB->RedirectOutput(out);
     thisCCB->firmwareVersion();
+    thisCCB->RedirectOutput(&std::cout);
     //
     *out << cgicc::fieldset();
     //
@@ -1529,7 +1549,9 @@ public:
     //
     *out << cgicc::legend("MPC Info").set("style","color:blue") << cgicc::p() << std::endl ;
     //
+    thisMPC->RedirectOutput(out);
     thisMPC->firmwareVersion();
+    thisMPC->RedirectOutput(&std::cout);
     //
     *out << cgicc::fieldset();
     //
@@ -2260,6 +2282,78 @@ public:
     //
     *out << cgicc::fieldset();
     *out << std::endl;
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::TMBUtils(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    cgicc::Cgicc cgi(in);
+    //
+    const CgiEnvironment& env = cgi.getEnvironment();
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "Not tmb" << endl ;
+      tmb = TMB_;
+    }
+    //
+    thisTMB = tmbVector[tmb];
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    *out << cgicc::title("Simple Web Form") << std::endl;
+    //
+    char buf[200] ;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    *out << endl ;
+    //
+    *out << cgicc::legend("TMB Utils").set("style","color:blue") ;
+    //
+    std::string LoadTMBFirmware =
+      toolbox::toString("/%s/LoadTMBFirmware",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",LoadTMBFirmware) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Load TMB Firmware") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::fieldset();
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::LoadTMBFirmware(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    const CgiEnvironment& env = cgi.getEnvironment();
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "Not tmb" << endl ;
+      tmb = TMB_;
+    }
+    //
+    thisTMB = tmbVector[tmb];
+    //
+    
+    //
+    this->TMBUtils(in,out);
     //
   }
   //

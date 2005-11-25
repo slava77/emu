@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.11 2005/11/21 18:02:50 mey Exp $
+// $Id: CCB.cc,v 2.12 2005/11/25 23:42:26 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.12  2005/11/25 23:42:26  mey
+// Update
+//
 // Revision 2.11  2005/11/21 18:02:50  mey
 // Update
 //
@@ -61,6 +64,7 @@ CCB::CCB(int newcrate ,int slot, int version)
   l1aDelay_(0),
   mDebug(false)
 {
+  MyOutput_ = &std::cout ;
   /// initialize VME registers pointers to the default CCB-version 2001
   if (mVersion == 2001){
     CSR1 = 0x00;
@@ -1057,7 +1061,7 @@ void CCB::firmwareVersion(){
   int day   =  versionWord & 0x1F;
   int month = (versionWord >> 5   ) & 0xF;
   int year  = (versionWord >>(5+4)) + 2000;
-  std::cout << "CCB: firmware date: " 
+  (*MyOutput_) << "CCB: firmware date: " 
        << day << "-" << month << "-" << year << std::endl;
 }
 
