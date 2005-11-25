@@ -2,9 +2,12 @@
 #ifdef D360
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.10 2005/11/22 15:15:14 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.11 2005/11/25 23:43:07 mey Exp $
 // $Log: VMEController_jtag.cc,v $
-// Revision 2.10  2005/11/22 15:15:14  mey
+// Revision 2.11  2005/11/25 23:43:07  mey
+// Update
+//
+// Revision 2.9  2005/11/17 13:46:41  mey
 // Update
 //
 // Revision 2.8  2005/11/15 15:22:49  mey
@@ -698,6 +701,8 @@ return l;
 #include <errno.h>
 #include <string.h>
 
+
+
 #include <unistd.h>
 
 #include "vme_cmd.h"
@@ -714,8 +719,16 @@ return l;
 #define       MRst_Ext_FF 0xE6
 
 
+static int uid,uid2;
+unsigned char hw_source_addr[ETH_ALEN];
+unsigned char hw_dest_addr[ETH_ALEN] = {2, 0, 0, 0, 0, 1};
+struct ethhdr ether_header; 
+
+// unsigned long vmeadd; /* vme base address for alct?*/
+
+
 // #define MAX_DATA 8990
-#define MAX_DATA 8900
+#define MAX_DATA 1400
 #define VME_CMDS 0x20
 #define ACNLG 0x20
 #define ACNLG_LOOP 0x60
@@ -729,11 +742,58 @@ unsigned short int LRG_read_flag={0};
 unsigned short int LRG_read_pnt={0};
 unsigned short int LRG_read_flag2={0};
 
+char wbuf[9000];
+int nwbuf;
+char rbuf[9000];
+int nrbuf;
+
+char a_mask[8]={0x00,0x20,0x40,0x50,0x80,0x90,0x00,0x00};
+char r_mask=0x00;
+char w_mask=0x10;
+char ts_mask[4]={0x00,0x04,0x08,0x0c};
+char ts_size[4]={1,2,4,8};
+char tt_mask[4]={0x00,0x01,0x02,0x03};;
+char delay_mask[8]={0,1,2,3,4,5,6,7};
+int iprint={0};
+unsigned short int header={0};
+unsigned short int tird[3]={1,1,3};
+
+int delay_type;
+
 int pows(int n,int m);
+
+char adcbyt[3][8]={
+  {0x89,0x99,0xa9,0xb9,0xc9,0xd9,0xe9,0xf9},
+  {0x89,0x99,0xa9,0xb9,0xc9,0xd9,0xe9,0xf9},
+  {0x85,0x95,0xa5,0xb5,0xc5,0xd5,0xe5,0xf5}
+};
+
+char adcreg[5]={0x00,0x0e,0x0d,0x0b,0x07};
+
+char lowvbyt[5][8]={
+  {0x89,0x99,0xa1,0xb1,0xc9,0xd9,0xe1,0xf9},
+  {0x89,0x91,0xa9,0xb9,0xc1,0xd9,0xe9,0xf1},
+  {0x89,0x99,0xa1,0xb9,0xc9,0xd9,0xe9,0xf9},
+  {0x89,0x99,0xa9,0xb9,0xc9,0xd9,0xe9,0xf9},
+  {0x89,0x99,0xa9,0xb9,0xc9,0xd9,0xe9,0xf9}
+};
+
+char lowvreg[10]={0x10,0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x11,0x12};
+unsigned short int pvme;
+static int plev=1;
+static int feuseo;
+static int feuse;
+static int idevo=0;
+static int ucla_ldev;
+
+char *bufvme;
+int cntvme;
+int cntvme_rd;
 
 #define debugV 0
 
 /* register 1-7 special commands 0x10-rs 0x11-w feb power 0x12-r febpower */
+
 
 void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd)
 {
@@ -1087,7 +1147,6 @@ int i;
 int cnt2;
 int npnt;
 int byte,bit;
-unsigned short int tird[3]={1,1,3};
 unsigned short int tmp[2]={0x0000};
 unsigned short int *data;
 unsigned short int *data2;
@@ -1285,6 +1344,7 @@ return l;
 }
 
 
+
 void VMEController::RestoreIdle()
 {
  char tmp[2]={0x00,0x00};
@@ -1343,14 +1403,6 @@ void VMEController::load_cdac(const char *snd)
 
 void VMEController::vme_adc(int ichp,int ichn,char *rcv)
 {
- char adcbyt[3][8]={
-  {0x89,0x99,0xa9,0xb9,0xc9,0xd9,0xe9,0xf9},
-  {0x89,0x99,0xa9,0xb9,0xc9,0xd9,0xe9,0xf9},
-  {0x85,0x95,0xa5,0xb5,0xc5,0xd5,0xe5,0xf5}
- };
-
- char adcreg[5]={0x00,0x0e,0x0d,0x0b,0x07};
-
  unsigned short int *data;
  unsigned short int *ptr;
  unsigned short int val[2];
@@ -1444,16 +1496,6 @@ void VMEController::buckflash(const char *cmd,const char *inbuf,char *rcv)
 
 void VMEController::lowvolt(int ichp,int ichn,char *rcv)
 {
-
- char lowvbyt[5][8]={
-  {0x89,0x99,0xa1,0xb1,0xc9,0xd9,0xe1,0xf9},
-  {0x89,0x91,0xa9,0xb9,0xc1,0xd9,0xe9,0xf1},
-  {0x89,0x99,0xa1,0xb9,0xc9,0xd9,0xe9,0xf9},
-  {0x89,0x99,0xa9,0xb9,0xc9,0xd9,0xe9,0xf9},
-  {0x89,0x99,0xa9,0xb9,0xc9,0xd9,0xe9,0xf9}
- };
-
- char lowvreg[10]={0x10,0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x11,0x12};
  unsigned short int *data;
  unsigned short int *ptr;
  unsigned short int val[2];
@@ -1562,52 +1604,56 @@ unsigned short int *ptr;
 
 void VMEController::sdly()
 {
-  unsigned char tmp[1]={0x00};
-  unsigned short int tmp2[2]={0,0};
-  unsigned short int *ptr;
-  tmp2[0]=50;  // 50x16=800ns delay
+unsigned char tmp[1]={0x00};
+unsigned short int tmp2[1]={0x0000};
+unsigned short int *ptr;
+ delay_type=2;
+ tmp2[0]=50;
  //       vme_controller(6,ptr,tmp2,tmp);
 }
 
 
 void  VMEController::sleep_vme(const char *outbuf)   // in usecs (min 16 usec)
 {
-unsigned short int *time;
-unsigned long tmp_time;
-char tmp[1]={0x00};
-unsigned short int tmp2[2]={0,0};
-unsigned short int *ptr;
-       time = (unsigned short int *) outbuf;
-       tmp_time=time[0]*1000+15; // in nsec
-       tmp_time >>= 4; // in 16 nsec
-       tmp2[0]=tmp_time & 0xffff;
-       tmp2[1]=(tmp_time >> 16) & 0xffff;
-       vme_controller(6,ptr,tmp2,tmp);
+unsigned short int pause;
+ char tmp[1]={0x00};
+ unsigned short int tmp2[1]={0x0000};
+ unsigned short int *ptr;
+ // printf(" outbuf[0-1] %02x %02x \n",outbuf[0]&0xff,outbuf[1]&0xff);
+ delay_type=3;
+ tmp2[0]=outbuf[1]*256+outbuf[0];
+ tmp2[0]=2*tmp2[0];
+ tmp2[0]=tmp2[0]+1;
+ vme_controller(6,ptr,tmp2,tmp);
 }
 
 void  VMEController::sleep_vme2(unsigned short int time) // time in usec
 {
-unsigned long tmp_time;
-char tmp[1]={0x00};
-unsigned short int tmp2[2]={0,0};
-unsigned short int *ptr;
-       tmp_time=time*1000+15; // in nsec
-       tmp_time >>= 4; // in 16 nsec
-       tmp2[0]=tmp_time & 0xffff;
-       tmp2[1]=(tmp_time >> 16) & 0xffff;
-       vme_controller(6,ptr,tmp2,tmp);
+  float tmp_time;
+ unsigned short int itime;
+ char tmp[1]={0x00};
+ unsigned short int tmp2[1]={0x0000};
+ unsigned short int *ptr;
+ delay_type=3;
+ tmp_time=time/16.384;
+ itime=tmp_time;
+ itime=itime+1;
+ tmp2[0]=itime;
+ vme_controller(6,ptr,tmp2,tmp);
 }
 
 void  VMEController::long_sleep_vme2(float time)   // time in usec
 {
-unsigned long tmp_time;
+float tmp_time;
+unsigned long int itime[0];
 char tmp[1]={0x00};
-unsigned short int tmp2[2]={0,0};
+unsigned short int *tmp2;
 unsigned short int *ptr;
-       tmp_time=(int)(time*1000)+15; // in nsec
-       tmp_time >>= 4; // in 16 nsec
-       tmp2[0]=tmp_time & 0xffff;
-       tmp2[1]=(tmp_time >> 16) & 0xffff;
+ delay_type=4;
+       tmp_time=time/0.004;
+       itime[0]=tmp_time+1;
+       printf(" time %f tmp_time %f itime %08x \n",time,tmp_time,itime[0]);
+       tmp2=(unsigned short int *)itime;
        vme_controller(6,ptr,tmp2,tmp);
 }
 
@@ -1683,14 +1729,6 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
      6 delay
   */
   
-  const char a_mask[8]={0x00,0x20,0x40,0x50,0x80,0x90,0x00,0x00};
-  const char r_mask=0x00;
-  const char w_mask=0x10;
-  const char ts_mask[4]={0x00,0x04,0x08,0x0c};
-  const char ts_size[4]={1,2,4,8};
-  const char tt_mask[4]={0x00,0x01,0x02,0x03};;
-  const char delay_mask[8]={0,1,2,3,4,5,6,7};
-
   int debug = 0;
 
   static int nvme;
@@ -1729,13 +1767,6 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
     irdwr=3;
     goto Process;
   }
-
-  ptrt=(unsigned long int)ptr;
-  // Jinghua Liu:
-  // VME address higher than 0xC00000 is for broadcasting,
-  // READ is not allowed in the software. 
-  if((irdwr==0 || irdwr==2) && ptrt >= 0xC00000) return;
-     
   /*  fill buffer  */
   nvme=nvme+1;
  //  VME command function code
@@ -1751,12 +1782,12 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
   if(irdwr==1||irdwr==3){wbuf[nwbuf+1]=a_mask[ATYPE]|w_mask|ts_mask[TSIZE]|tt_mask[TTYPE];} 
   if(irdwr<=3){
     wbuf[nwbuf+2]=0x00;
-    // Jinghua Liu: 
-    // to prevent the OSU controller hanging up on invalid VME address
-    if(ptrt<0x80000) 
-      {  printf("VME ADDRESS ERROR: %06X\n",ptrt);
-         exit(-1);
-      }
+    ptrt=(unsigned long int)ptr;
+    // Jinghua Liu to debug
+    if(ptrt<0x200000) 
+      { printf("VME ADDRESS ERROR: %06X\n",ptrt);
+     exit(-1);
+     }
     wbuf[nwbuf+3]=(ptrt&0xff0000)>>16;
     wbuf[nwbuf+4]=(ptrt&0xff00)>>8;
     wbuf[nwbuf+5]=(ptrt&0xff);
@@ -1784,20 +1815,17 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
   } 
   // delay
   if(irdwr==6){
-    // only use delay type 2 and 5 (in 16 ns)
-    int delay_type=2;
-    if(data[1]) delay_type=5;
     wbuf[nwbuf+0]=delay_mask[delay_type];
     wbuf[nwbuf+1]=0x00;
-    if(delay_type==2){
-      wbuf[nwbuf+3]=(data[0]&0xff);
-      wbuf[nwbuf+2]=(data[0]&0xff00)>>8;
+    if(delay_type<=3){
+      wbuf[nwbuf+3]=(*data&0xff);
+      wbuf[nwbuf+2]=(*data&0xff00)>>8;
       nwbuf=nwbuf+4;
     }else{
-      wbuf[nwbuf+5]=(data[0]&0xff);
-      wbuf[nwbuf+4]=(data[0]&0xff00)>>8;
-      wbuf[nwbuf+3]=(data[1]&0xff);
-      wbuf[nwbuf+2]=(data[1]&0xff00)>>8;
+      wbuf[nwbuf+5]=(*data&0xff);
+      wbuf[nwbuf+4]=(*data&0xff00)>>8;
+      wbuf[nwbuf+3]=(*(data+1)&0xff);
+      wbuf[nwbuf+2]=(*(data+1)&0xff00)>>8;
       nwbuf=nwbuf+6;
     }
   } 
@@ -1946,7 +1974,6 @@ void VMEController::mrst_ff()
   for(l=0;l<8000;l++)lcnt++;
   return;
 }
-
 void VMEController::set_VME_mode()
 {
   int n;
@@ -2011,124 +2038,176 @@ int VMEController::eth_write()
 
 }
 
-
 void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ird)
 {
-  int i, j, k, bit, cnt8;
- const unsigned short int TCK=4;
- const unsigned short int TMS=2;
- unsigned short int ival, d, dd;
+  int i,j,k;
+  int npnt;
+ int byte,bit;
+ unsigned short int d[3];
+ unsigned short int clkon={0x0004};
+ unsigned short int rcv2[2];
+ unsigned short int ival,ival2;
+ unsigned short int *data;
+ unsigned short int tmp[1]={0x0000};
  unsigned short int *ptr;
- unsigned char *rcv2, bdata, *data, mytmp[MAXLINE];
- int buff_mode;
+ unsigned short int data2;
+ unsigned short int bits,wrds;
+ unsigned long int mytmp[MAXLINE];
 
  int debug = 0;
 
- if(cnt<0 || reg<0 || reg>1)return;
  for(int i=0;i<MAXLINE;i++) mytmp[i] = 0;
+
+ if(cnt==0)return;
  ptr=(unsigned short int *)add_ucla;
- rcv2=(unsigned char *)rcv;
- data=(unsigned char *)snd;
-
-// Jinghua Liu:
-// If more than 290 bits, can't put them into a single packet,
-// need better algorithm later......
- buff_mode = (cnt>290)?3:1;
-
-   if (debug) {
-      printf("scan_alct: reg=%d, cnt=%d, ird=%d, Send %02x %02x\n", reg, cnt, ird, snd[0]&0xff, snd[1]&0xff);
-   }
-
-   //  reg=0: instruction
-   //  reg=1: data
- 
-   for(i=reg; i<6; i++)
-   {
-     d=pvme;
-     if(i>(reg+1) && i<4) d |=TMS;
-     for(j=0;j<3;j++)
-     {  
-        // each shift needs 3 VME writes, the 2nd one with TCK on:
-        dd=d;
-        if(j==1) dd |= TCK;
-        vme_controller(1,ptr,&dd,rcv);        
-     }
-   }
-
-  // Loop to shift in/out bits
-  bit=0;
-  k=0;
-  bdata = data[k];
-  for(i=0;i<cnt;i++) 
-  {
-     ival = bdata&0x01;
-     bdata >>= 1;
-     bit++;
-     if(bit==8) 
-     { 
-        bit=0;
-        k++;
-        bdata = data[k];
-     }
-
-     if(ird){
-       // read out one bit, the last argument is just a dummy.
-       vme_controller(0,ptr,&dd,rcv);
-     }
-     
-     // data bit to write (ival) is in the lowest bit (TDI)
-     d=pvme|ival;
-     // at the last shift, we need set TMS=1
-     if(i==cnt-1) d |=TMS;
-     for(j=0;j<3;j++)
-     {
-        dd=d;
-        if(j==1) dd |= TCK;
-        // buff_mode could be either 3 (send and READ!!!) or 1 (buffered):
-        vme_controller((j==2)?buff_mode:1,ptr,&dd,(char *)(mytmp+2*i));
-     }
-  }
+ data=(unsigned short int *)snd;
+ bits=0;
   
-  // printf("done loop\n");
-  // Now put the state machine into idle.
-  for(i=0; i<2; i++)
-  {
-     d=pvme;
-     if(i==0) d |=TMS;
-     for(j=0;j<3;j++)
-     {  
-        dd=d;
-        if(j==1) dd |= TCK;
-        // In the last VME WRITE send the packets. And READ back all data 
-        // in the case of fully buffered mode (buff_mode=1).
-        vme_controller((i==1 && j==2)?3:1,ptr,&dd,(char *)mytmp);        
-     }
-  }
+ //  fprintf(fplog," address %08x \n",ptr);
+ //  fprintf(fplog," cnt %d \n",cnt);
 
-  if(ird)
-  {
-    // combine bits in mytmp[] into bytes in rcv[].
-    //  for(i=0; i<cnt*2; i++) printf("%02x ", mytmp[i]&0xff);
-    //  printf("\n");
-     bit=0; 
-     bdata=0; 
-     j=0;
-    // Use cnt8 instead of cnt, to make sure the bits are in right place.
-     cnt8 = 8*((cnt+7)/8);
-     for(i=0;i<cnt8;i++)
-     {
-         if(i<cnt) bdata |= mytmp[2*i+1] & 0x80;
-         if(bit==7)
-           { rcv2[j++]=bdata;  bit=0;  bdata=0; }
-         else
-           { bdata >>= 1;     bit++; }
+ /* instr */
+
+ //printf("pvme %x \n",pvme);
+ 
+ if(reg==0){
+   //
+   //printf("RestoreIdle \n");
+   //
+   if ( debug ) printf("* Instruction cnt=%d \n",cnt);
+   if ( debug ) printf("Send %x %x \n",snd[0]&0xff,snd[1]&0xff);
+   //
+   d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
+   for(i=0;i<3;i++)vme_controller(1,ptr,d+i,rcv);
+   //
+   d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
+   for(i=0;i<3;i++)vme_controller(1,ptr,d+i,rcv);
+   
+   d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;
+   for(i=0;i<3;i++)vme_controller(1,ptr,d+i,rcv);
+
+   d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;
+   for(i=0;i<3;i++)vme_controller(1,ptr,d+i,rcv);
+   
+   d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
+   for(i=0;i<3;i++)vme_controller(1,ptr,d+i,rcv);
+   
+   d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
+   for(i=0;i<3;i++)vme_controller(1,ptr,d+i,rcv);
+   //
+ }
+
+ /* data */
+
+ if(reg==1){ 
+   //
+   if ( debug ) printf("* DataReg cnt=%d \n",cnt);
+   if ( debug ) printf("Send %x %x \n",snd[0]&0xff,snd[1]&0xff);
+   //
+   d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
+   for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);
+
+   d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
+   for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);
+   
+   d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;
+   for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);
+   
+   d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
+   for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);
+   
+   d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
+   for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);
+   
+ }
+
+ if ( debug ) printf("General\n");
+
+ byte=cnt/16;
+ bit=cnt-byte*16;
+ //printf("byte %d bit %d \n",byte,bit);
+ //printf("%04x \n",*data&0xffff);   
+ for(i=0;i<byte;i++){
+   for(j=0;j<16;j++){
+     ival=*data>>j;
+     ival2=ival&0x01;
+     //
+     if(ird==1){
+       //*tmp_ucla=*ptr;
+       vme_controller(2,ptr,tmp,rcv);
+       //
+       mytmp[bits/32] |= (((rcv[1]>>7)&0x1)<<(bits-(bits/32)*32));
+       //
+       //printf("Read %x %x %d bits %d mytmp %x %x\n",rcv[1]&0xff,rcv[0]&0xff,(rcv[1]>>7)&0x1,bits,mytmp[1],mytmp[0]);
+       bits=bits+1;
      }
-     if (debug) {
-        printf("   Output: ");
-        for(i=0; i<cnt8/8; i++) printf("%02X ", rcv2[i]);
-        printf("\n");
+     //
+     if(i!=byte-1|bit!=0|j!=15){
+       if(ival2==0){d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);}
+       if(ival2==1){d[0]=0x0001|pvme;d[1]=0x0001|pvme|clkon;d[2]=0x0001|pvme;for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);}
+     }else{
+       if(ival2==0){d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);}
+       if(ival2==1){d[0]=0x0003|pvme;d[1]=0x0003|pvme|clkon;d[2]=0x0003|pvme;for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);}
      }
-  }
+   }
+   data=data+1;
+ }
+ //
+ //printf("%04x \n",*data&0xffff);   
+ for(j=0;j<bit;j++){
+   if ( debug ) printf("Shifting bits \n");
+   if(bit>8)ival=*data>>j;
+   if(bit<=8)ival=*data>>j;
+   ival2=ival&0x01;
+   if(ird==1){
+     // *tmp_ucla=*ptr; 
+     vme_controller(2,ptr,tmp,rcv);
+     mytmp[bits/32] |= (((rcv[1]>>7)&0x1)<<(bits-(bits/32)*32));
+     //printf("Read %x %x %d bits %d mytmp %x %x\n",rcv[1]&0xff,rcv[0]&0xff,(rcv[1]>>7)&0x1,bits,mytmp[1],mytmp[0]);
+     bits=bits+1;
+   }
+   if(j<bit-1){
+     if(ival2==0){d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);}
+     if(ival2==1){d[0]=0x0001|pvme;d[1]=0x0001|pvme|clkon;d[2]=0x0001|pvme;for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);}
+   }else{
+     if(ival2==0){d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);}
+     if(ival2==1){d[0]=0x0003|pvme;d[1]=0x0003|pvme|clkon;d[2]=0x0003|pvme;for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);}
+   }
+ }  
+ //
+ if ( debug) printf("done loop\n");
+ //
+ d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;
+ for(k=0;k<3;k++)vme_controller(1,ptr,d+k,rcv);
+ //
+ d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
+ for(k=0;k<3;k++)vme_controller(3,ptr,d+k,rcv);
+ //
+ //wrds=bits/16;
+ //if(wrds%16!=0)wrds=wrds+1;
+ //for(i=0;i<wrds;i++){
+ //data2=0x0000;
+ //for(k=0;k<16;k++){
+ //  data2=data2|((rcv[16*i+k]&0x8000)>>15)<<j;
+ //}
+   //rcv[i]=data2;
+   //printf("Output = %x ",rcv[i]);
+ //}
+ //
+ //printf("\n");
+ //
+ if ( debug ) printf("bits back %d %x\n",bits,mytmp);
+ //
+ wrds=bits/8+1;
+ //if(wrds%16!=0)wrds=wrds+1;
+ for(i=0;i<wrds;i++) rcv[i] = 0;
+ for(i=0;i<wrds;i++){
+   rcv[i] = ((mytmp[i/4]>>(i*8))&0xff);
+   if ( debug ) printf("Output %d = %02x \n",i,rcv[i]&0xff);
+ }
+ //
+ //printf("\n");
+ //
 }
 
 

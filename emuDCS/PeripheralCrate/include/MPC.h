@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.5 2005/11/22 15:14:39 mey Exp $
+// $Id: MPC.h,v 2.6 2005/11/25 23:42:02 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.6  2005/11/25 23:42:02  mey
+// Update
+//
 // Revision 2.5  2005/11/22 15:14:39  mey
 // Update
 //
@@ -47,7 +50,7 @@ class MPC : public VMEModule {
   void read_fifo(char address, char * data);
 
   void read_fifos();
-
+  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   void read_fifosA();
 
   // dump_fifos just writes read_fifos output to file
@@ -118,6 +121,7 @@ class MPC : public VMEModule {
 
 
  private:
+  std::ostream * MyOutput_ ;
   int TLK2501TxMode_;
   int TransparentModeSources_;
   int TMBDelayPattern_;
