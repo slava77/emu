@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.20 2005/11/21 18:08:38 mey Exp $
+// $Id: TMB.cc,v 2.21 2005/11/25 14:45:07 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.21  2005/11/25 14:45:07  mey
+// UPdate
+//
 // Revision 2.20  2005/11/21 18:08:38  mey
 // UPdate
 //
@@ -1685,7 +1688,7 @@ void TMB::DisableALCTInputs(){
   tmb_vme(VME_WRITE, alct_inj_adr, sndbuf,rcvbuf,NOW);
   //
 }
-
+//
 void TMB::DisableALCTCLCTSync(){
   //
   tmb_vme(VME_READ, alct_inj_adr, sndbuf,rcvbuf,NOW);
@@ -1696,7 +1699,7 @@ void TMB::DisableALCTCLCTSync(){
 }
 
 
-
+//
 void TMB::DisableCLCTInputs(){
   //
   tmb_vme(VME_READ,cfeb_inj_adr,sndbuf,rcvbuf,NOW);
@@ -1705,7 +1708,7 @@ void TMB::DisableCLCTInputs(){
   tmb_vme(VME_WRITE,cfeb_inj_adr,sndbuf,rcvbuf,NOW);
   //
 }
-
+//
 void TMB::DisableExternalCCB(){
   //
   tmb_vme(VME_READ,ccb_cfg_adr,sndbuf,rcvbuf,NOW);
@@ -3739,14 +3742,24 @@ int iloop;
   sndbuf[0]=0x0;
   sndbuf[1]=0x20;
   tmb_vme(0x02,0x14,sndbuf,rcvbuf,0);
+  tmb_vme(0x01,0x14,sndbuf,rcvbuf,0);
+  //
   sndbuf[0]=0x0;
   sndbuf[1]=0x21;
   tmb_vme(0x02,0x14,sndbuf,rcvbuf,0);
+  tmb_vme(0x01,0x14,sndbuf,rcvbuf,0);
+  //
   sndbuf[0]=0x0;
   sndbuf[1]=0x20;
   tmb_vme(0x02,0x14,sndbuf,rcvbuf,0);
-
   tmb_vme(0x01,0x14,sndbuf,rcvbuf,0);
+  //
+  while ( ((rcvbuf[1]>>6)&(0x1)) ){
+    //
+    tmb_vme(0x01,0x14,sndbuf,rcvbuf,0);
+    printf("______________ check state machine1 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+    //
+  }
 
   printf("______________ check state machine1 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
 
@@ -3758,14 +3771,20 @@ int iloop;
     }
     tmb_vme(0x01,0x14,sndbuf,rcvbuf,0);
   }
-
+  //
   sndbuf[0]=rcvbuf[0];
   sndbuf[1]=rcvbuf[1]&0xfe;
+  //
   tmb_vme(0x02,0x14,sndbuf,rcvbuf,0);
   tmb_vme(0x01,0x14,sndbuf,rcvbuf,0);
-
-  printf(" check state machine2 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  //
+  while ( ((rcvbuf[1]>>6)&(0x1)) ){
+    tmb_vme(0x01,0x14,sndbuf,rcvbuf,0);
+    printf(" *** check state machine2 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  }
+  //
   if((rcvbuf[1]&0x80)!=0x80){
+    printf(" *** check state machine2 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
     printf(" tmb_clk_delays: something is wrong. Can NOT be verified \n");
     return;
   }
