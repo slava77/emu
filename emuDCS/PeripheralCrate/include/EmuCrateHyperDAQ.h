@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.12 2005/11/25 23:41:46 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.13 2005/11/28 14:12:41 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -73,6 +73,8 @@ protected:
   ostringstream OutputStringDMBStatus[9];
   ostringstream OutputStringTMBStatus[9];
   ostringstream OutputDMBTests[9];
+  int TMBRegisterValue_;
+  int CCBRegisterValue_;
   vector<TMB*>   tmbVector;
   vector<DAQMB*> dmbVector;
   Crate *thisCrate;
@@ -95,12 +97,15 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::UploadConfFile, "UploadConfFile");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBStatus, "TMBStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::LoadTMBFirmware, "LoadTMBFirmware");
+    xgi::bind(this,&EmuCrateHyperDAQ::ReadTMBRegister, "ReadTMBRegister");
+    xgi::bind(this,&EmuCrateHyperDAQ::ReadCCBRegister, "ReadCCBRegister");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBTests,  "TMBTests");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBUtils,  "TMBUtils");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBStatus, "DMBStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBBoardID, "DMBBoardID");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBBoardID, "TMBBoardID");
     xgi::bind(this,&EmuCrateHyperDAQ::CCBStatus, "CCBStatus");
+    xgi::bind(this,&EmuCrateHyperDAQ::CCBUtils, "CCBUtils");
     xgi::bind(this,&EmuCrateHyperDAQ::MPCStatus, "MPCStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTests, "DMBTests");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBUtils, "DMBUtils");
@@ -144,6 +149,8 @@ public:
     xmlFile_     = 
       "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/config.xml" ;
     //
+    TMBRegisterValue_ = -1;
+    CCBRegisterValue_ = -1;
     Operator_ = "Name...";
     MPCBoardID_ = "-1";
     CCBBoardID_ = "-1";
@@ -283,6 +290,8 @@ public:
 	  char Name[50] ;
 	  std::string CCBStatus =
 	    toolbox::toString("/%s/CCBStatus",getApplicationDescriptor()->getURN().c_str());
+	  std::string CCBUtils =
+	    toolbox::toString("/%s/CCBUtils",getApplicationDescriptor()->getURN().c_str());
 	  std::string CCBBoardID =
 	    toolbox::toString("/%s/CCBBoardID",getApplicationDescriptor()->getURN().c_str());
 	  int slot = thisCrate->ccb()->slot() ;
@@ -309,6 +318,23 @@ public:
 	      //
 	    }
 	    *out << cgicc::td();
+	    //
+	    *out << cgicc::td();
+	    //
+	    if ( CCBBoardID_.find("-1") == string::npos ) {
+	      //
+	      sprintf(Name,"CCB Utils slot=%d",slot);
+	      *out << cgicc::form().set("method","GET").set("action",CCBUtils)
+		.set("target","_blank") << std::endl ;
+	      *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	      char buf[20];
+	      sprintf(buf,"%d",ii);
+	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ccb");
+	      *out << cgicc::form() << std::endl ;
+	      //
+	    }
+	    *out << cgicc::td();
+	    //
 	  }
 	  //
 	  std::string MPCStatus =
@@ -1376,7 +1402,7 @@ public:
     thisTMB->PrintCounters();
     thisTMB->RedirectOutput(&std::cout);
     //
-    this->TMBStatus(in,out);
+    this->TMBUtils(in,out);
     //
   }
   //
@@ -1398,7 +1424,7 @@ public:
     thisTMB = tmbVector[tmb];
     thisTMB->ResetCounters();
     //
-    this->TMBStatus(in,out);
+    this->TMBUtils(in,out);
     //
   }
   //
@@ -1422,7 +1448,7 @@ public:
     thisTMB->TriggerTestInjectALCT();
     thisTMB->RedirectOutput(&std::cout);
     //
-    this->TMBStatus(in,out);
+    this->TMBUtils(in,out);
     //
   }
   //
@@ -1446,7 +1472,7 @@ public:
     thisTMB->TriggerTestInjectCLCT();
     thisTMB->RedirectOutput(&std::cout);
     //
-    this->TMBStatus(in,out);
+    this->TMBUtils(in,out);
     //
   }
   //
@@ -1530,6 +1556,34 @@ public:
     thisCCB->RedirectOutput(out);
     thisCCB->firmwareVersion();
     thisCCB->RedirectOutput(&std::cout);
+    //
+    *out << cgicc::fieldset();
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::CCBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    *out << cgicc::title("Simple Web Form") << std::endl;
+    //
+    char buf[200] ;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    *out << std::endl;
+    //
+    *out << cgicc::legend("CCB Utils").set("style","color:blue") << cgicc::p() << std::endl ;
+    //
+    std::string ReadCCBRegister =
+      toolbox::toString("/%s/ReadCCBRegister",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",ReadCCBRegister) << std::endl ;
+    *out << "Read Register (int)..." << std:: endl;
+    *out << cgicc::input().set("type","text").set("value","0")
+      .set("name","CCBRegister") << std::endl ;
+    *out << "Register value : (hex) " << std::hex << CCBRegisterValue_ << std::endl;
+    *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::fieldset();
     //
@@ -1705,54 +1759,6 @@ public:
     //
     *out << cgicc::fieldset();
     *out << std::endl;    
-    //
-    std::string TMBPrintCounters =
-      toolbox::toString("/%s/TMBPrintCounters",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",TMBPrintCounters) ;
-    *out << cgicc::input().set("type","submit").set("value","TMB Print Counters") ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() ;
-    //
-    std::string TMBResetCounters =
-      toolbox::toString("/%s/TMBResetCounters",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",TMBResetCounters) ;
-    *out << cgicc::input().set("type","submit").set("value","TMB Reset Counters") ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    std::string TriggerTestInjectALCT =
-      toolbox::toString("/%s/TriggerTestInjectALCT",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",TriggerTestInjectALCT) ;
-    *out << cgicc::input().set("type","submit").set("value","TriggerTest : InjectALCT") ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    std::string TriggerTestInjectCLCT =
-      toolbox::toString("/%s/TriggerTestInjectCLCT",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",TriggerTestInjectCLCT) ;
-    *out << cgicc::input().set("type","submit").set("value","TriggerTest : InjectCLCT") ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << cgicc::form().set("method","GET") << std::endl ;
-    *out << cgicc::pre();
-    *out << cgicc::textarea().set("name","CrateTestTMBOutput")
-      .set("rows","20")
-      .set("cols","100")
-      .set("WRAP","OFF");
-    *out << OutputStringTMBStatus[tmb].str() << endl ;
-    *out << cgicc::textarea();
-    OutputStringTMBStatus[tmb].str("");
-    *out << cgicc::pre();
-    *out << cgicc::form() << std::endl ;
     //
   }
   //
@@ -2326,7 +2332,66 @@ public:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
     //
+    std::string ReadTMBRegister =
+      toolbox::toString("/%s/ReadTMBRegister",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",ReadTMBRegister) << std::endl ;
+    *out << cgicc::input().set("type","text").set("value","Read Register (int)...")
+      .set("name","TMBRegister") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << "Register value : (hex) " << std::hex << TMBRegisterValue_ << std::endl;
+    *out << cgicc::form() << std::endl ;
+    //
     *out << cgicc::fieldset();
+    //
+    std::string TMBPrintCounters =
+      toolbox::toString("/%s/TMBPrintCounters",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",TMBPrintCounters) ;
+    *out << cgicc::input().set("type","submit").set("value","TMB Print Counters") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() ;
+    //
+    std::string TMBResetCounters =
+      toolbox::toString("/%s/TMBResetCounters",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",TMBResetCounters) ;
+    *out << cgicc::input().set("type","submit").set("value","TMB Reset Counters") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string TriggerTestInjectALCT =
+      toolbox::toString("/%s/TriggerTestInjectALCT",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",TriggerTestInjectALCT) ;
+    *out << cgicc::input().set("type","submit").set("value","TriggerTest : InjectALCT") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string TriggerTestInjectCLCT =
+      toolbox::toString("/%s/TriggerTestInjectCLCT",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",TriggerTestInjectCLCT) ;
+    *out << cgicc::input().set("type","submit").set("value","TriggerTest : InjectCLCT") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::form().set("method","GET") << std::endl ;
+    *out << cgicc::pre();
+    *out << cgicc::textarea().set("name","CrateTestTMBOutput")
+      .set("rows","20")
+      .set("cols","100")
+      .set("WRAP","OFF");
+    *out << OutputStringTMBStatus[tmb].str() << endl ;
+    *out << cgicc::textarea();
+    OutputStringTMBStatus[tmb].str("");
+    *out << cgicc::pre();
+    *out << cgicc::form() << std::endl ;
     //
   }
   //
@@ -2351,9 +2416,76 @@ public:
     //
     thisTMB = tmbVector[tmb];
     //
-    
+    int debugMode(0);
+    int jch(5);
+    string chamberType("ME21");
+    ALCTController *alct = new ALCTController(thisTMB,chamberType);
+    int status = alct->SVFLoad(&jch,"/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/tmb2005e.svf",debugMode);
+    //
+    if (status >= 0){
+      cout << "=== Programming finished"<< endl;
+      cout << "=== " << status << " Verify Errors  occured" << endl;
+    }
+    else{
+      cout << "=== Fatal Error. Exiting with " <<  status << endl;
+    }
     //
     this->TMBUtils(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::ReadTMBRegister(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    const CgiEnvironment& env = cgi.getEnvironment();
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "Not tmb" << endl ;
+      tmb = TMB_;
+    }
+    //
+    thisTMB = tmbVector[tmb];
+    //
+    cgicc::form_iterator name2 = cgi.getElement("TMBRegister");
+    int registerValue = -1;
+    if(name2 != cgi.getElements().end()) {
+      registerValue = cgi["TMBregister"]->getIntegerValue();
+      cout << "Register " << registerValue << endl;
+      //
+      TMBRegisterValue_ = thisTMB->ReadRegister(registerValue);
+      //
+    }
+    //
+    this->TMBUtils(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::ReadCCBRegister(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name2 = cgi.getElement("CCBRegister");
+    int registerValue = -1;
+    if(name2 != cgi.getElements().end()) {
+      registerValue = cgi["CCBregister"]->getIntegerValue();
+      cout << "Register " << registerValue << endl;
+      //
+      CCBRegisterValue_ = thisCCB->ReadRegister(registerValue);
+      //
+    }
+    //
+    this->CCBUtils(in,out);
     //
   }
   //
@@ -2482,46 +2614,6 @@ public:
     *out << endl ;
     //
     *out << cgicc::legend("DMB Tests").set("style","color:blue") ;
-    //
-    *out << cgicc::table().set("border","1");
-    //
-    *out << cgicc::td();
-    //
-    std::string DMBTurnOff =
-      toolbox::toString("/%s/DMBTurnOff",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",DMBTurnOff) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","DMB Turn Off LV") << std::endl ;
-    sprintf(buf,"%d",dmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << cgicc::td();
-    //
-    *out << cgicc::td();
-    //
-    std::string DMBTurnOn =
-      toolbox::toString("/%s/DMBTurnOn",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",DMBTurnOn) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","DMB Turn On LV") << std::endl ;
-    sprintf(buf,"%d",dmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << cgicc::td();
-    //
-    *out << cgicc::table();
-    //
-    std::string DMBPrintCounters =
-      toolbox::toString("/%s/DMBPrintCounters",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",DMBPrintCounters)
-	 << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","DMB Print Counters") << std::endl ;
-    sprintf(buf,"%d",dmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    *out << cgicc::form() << std::endl ;
     //
     std::string DMBTest3 =
       toolbox::toString("/%s/DMBTest3",getApplicationDescriptor()->getURN().c_str());
