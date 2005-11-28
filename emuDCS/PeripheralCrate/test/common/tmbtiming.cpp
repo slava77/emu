@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.33 2005/11/25 23:43:24 mey Exp $
+// $Id: tmbtiming.cpp,v 2.34 2005/11/28 14:12:47 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.34  2005/11/28 14:12:47  mey
+// Update
+//
 // Revision 2.33  2005/11/25 23:43:24  mey
 // Update
 //
@@ -608,7 +611,7 @@ int main(int argc,char **argv){
       char out[10];
       thisCCB->firmwareVersion();
       thisDMB->epromload(MPROM,"dmb6cntl_v17_r2.svf",1,out);  // load mprom
-      //thisCCB->firmwareVersion();
+      thisCCB->firmwareVersion();
     }
     //
     if(doccb_firmware_version){
