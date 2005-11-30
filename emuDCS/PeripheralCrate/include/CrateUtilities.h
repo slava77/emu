@@ -62,6 +62,7 @@ public:
   inline int  GetCFEBStripScan(int CFEB, int Strip){ return CFEBStripScan_[CFEB][Strip]; }
   inline int  GetALCTWireScan(int Wire){ return ALCTWireScan_[Wire]; }
   inline int  GetTMBL1aTiming(){ return TMBL1aTiming_; }
+  inline int  GetALCTvpf(){ return ALCTvpf_; }
   inline int  GetBestALCTL1aDelay(){ return BestALCTL1aDelay_; }
   //
 private:
@@ -76,6 +77,7 @@ private:
   //
   int ALCTrxPhase_, ALCTtxPhase_;
   int TMBL1aTiming_;
+  int ALCTvpf_;
   int BestALCTL1aDelay_;
   int CFEBrxPhase_[5];
   int CFEBStripScan_[5][32];
