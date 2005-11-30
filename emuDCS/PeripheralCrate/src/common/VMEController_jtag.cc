@@ -2,8 +2,11 @@
 #ifdef D360
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.13 2005/11/30 13:00:03 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.14 2005/11/30 16:27:42 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.14  2005/11/30 16:27:42  mey
+// Use DMB delay
+//
 // Revision 2.13  2005/11/30 13:00:03  mey
 // DMB firmware loading
 //
@@ -1867,7 +1870,7 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
     //
     packet_delay=fpacket_delay+1;
     packet_delay=packet_delay+15; 
-    udelay(packet_delay);
+    if ( usedelay_ ) udelay(packet_delay);
     //
     fpacket_delay=0.0;
     packet_delay=0;
