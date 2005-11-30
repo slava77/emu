@@ -2,8 +2,11 @@
 #ifdef D360
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.4 2005/11/30 12:59:59 mey Exp $
+// $Id: VMEController.cc,v 2.5 2005/11/30 16:26:53 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.5  2005/11/30 16:26:53  mey
+// DMB Firmware upload delay
+//
 // Revision 2.4  2005/11/30 12:59:59  mey
 // DMB firmware loading
 //
@@ -57,17 +60,9 @@ VMEController::VMEController(int crate, std::string ipAddr, int port):
   serv_addr.sin_family      = AF_INET;
   serv_addr.sin_addr.s_addr = inet_addr(ipAddr.c_str());
   serv_addr.sin_port        = htons(port);
-
+  //
   int socket = openSocket();
   //
-  fpacket_delay = 0;
-  packet_delay = 0;
-  packet_delay_flg = 0;
-  //
-  DELAY2 = 0.016;
-  DELAY3 = 16.384;
-  //
-
 }
 
 
@@ -272,8 +267,11 @@ VMEModule* VMEController::getTheCurrentModule(){
 
 #ifdef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.4 2005/11/30 12:59:59 mey Exp $
+// $Id: VMEController.cc,v 2.5 2005/11/30 16:26:53 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.5  2005/11/30 16:26:53  mey
+// DMB Firmware upload delay
+//
 // Revision 2.4  2005/11/30 12:59:59  mey
 // DMB firmware loading
 //
@@ -321,7 +319,15 @@ VMEController::VMEController(int crate, string ipAddr, int port):
  indian(SWAP),  max_buff(0), tot_buff(0), crate_(crate),
  plev(1), idevo(0)
 {
- 
+  //
+  fpacket_delay = 0;
+  packet_delay = 0;
+  packet_delay_flg = 0;
+  //
+  DELAY2 = 0.016;
+  DELAY3 = 16.384;
+  //
+  usedelay_ = false ;
   int socket = openSocket();
   cout << "VMEController opened socket = " << socket << endl;
   cout << "VMEController opened port   = " << port << endl;
