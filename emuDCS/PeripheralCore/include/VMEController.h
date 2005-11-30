@@ -2,8 +2,11 @@
 #ifdef D360
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.3 2005/11/30 12:59:43 mey Exp $
+// $Id: VMEController.h,v 2.4 2005/11/30 16:25:42 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.4  2005/11/30 16:25:42  mey
+// Update
+//
 // Revision 2.3  2005/11/30 12:59:43  mey
 // DMB firmware loading
 //
@@ -111,8 +114,11 @@ private:
 #ifdef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.3 2005/11/30 12:59:43 mey Exp $
+// $Id: VMEController.h,v 2.4 2005/11/30 16:25:42 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.4  2005/11/30 16:25:42  mey
+// Update
+//
 // Revision 2.3  2005/11/30 12:59:43  mey
 // DMB firmware loading
 //
@@ -204,6 +210,7 @@ public:
   VMEModule* getTheCurrentModule();
 
 private:
+  bool usedelay_;
   int theSocket;
   string ipAddress_;
   int port_;
@@ -238,8 +245,8 @@ private:
   long int packet_delay;
   float fpacket_delay;
   int packet_delay_flg;
-  const float DELAY2;
-  const float DELAY3;
+  float DELAY2;
+  float DELAY3;
 
 };
 
