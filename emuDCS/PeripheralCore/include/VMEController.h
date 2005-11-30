@@ -2,8 +2,11 @@
 #ifdef D360
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.4 2005/11/30 16:25:42 mey Exp $
+// $Id: VMEController.h,v 2.5 2005/11/30 16:49:49 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.5  2005/11/30 16:49:49  mey
+// Bug DMB firmware load
+//
 // Revision 2.4  2005/11/30 16:25:42  mey
 // Update
 //
@@ -114,8 +117,11 @@ private:
 #ifdef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.4 2005/11/30 16:25:42 mey Exp $
+// $Id: VMEController.h,v 2.5 2005/11/30 16:49:49 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.5  2005/11/30 16:49:49  mey
+// Bug DMB firmware load
+//
 // Revision 2.4  2005/11/30 16:25:42  mey
 // Update
 //
@@ -160,6 +166,8 @@ public:
 
   int openSocket();
   void closeSocket();
+
+  void SetUseDelay(bool state){usedelay_ = state;}
 
   string ipAddress() const {return ipAddress_;}
   int port() const {return port_;}

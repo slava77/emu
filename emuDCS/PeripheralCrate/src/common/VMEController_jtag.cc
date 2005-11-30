@@ -2,8 +2,11 @@
 #ifdef D360
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.14 2005/11/30 16:27:42 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.15 2005/11/30 16:49:32 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.15  2005/11/30 16:49:32  mey
+// Bug DMB firmware load
+//
 // Revision 2.14  2005/11/30 16:27:42  mey
 // Use DMB delay
 //
@@ -1235,7 +1238,7 @@ if(cnt==0)return;
 int udelay(long int itim)
 {
   usleep(30);
-  //printf("udelay...%d \n",itim);
+  std::cout << "udelay..." << itim << std::endl;;
   struct  timeval tp;
   long usec1,usec2;
   long int loop;

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.17 2005/11/30 12:59:52 mey Exp $
+// $Id: DAQMB.cc,v 2.18 2005/11/30 16:49:26 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.18  2005/11/30 16:49:26  mey
+// Bug DMB firmware load
+//
 // Revision 2.17  2005/11/30 12:59:52  mey
 // DMB firmware loading
 //
@@ -1514,6 +1517,10 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
     devstp=devnum;
   }
   //
+#ifdef OSUcc
+  theController->SetUseDelay(true);
+#endif OSUcc
+  //
   for(int i=devnum;i<=devstp;i++){
     dv=(DEVTYPE)i;
     xtrbits=geo[dv].sxtrbits;
@@ -1742,7 +1749,12 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
 #ifdef OSUcc
   theController->flush_vme();
 #endif OSUcc
+  //
   theController->send_last();
+  //
+#ifdef OSUcc
+  theController->SetUseDelay(false);
+#endif OSUcc
   //
   //sndbuf[0]=0x01;
   //sndbuf[1]=0x00;
