@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.16 2005/11/25 23:42:33 mey Exp $
+// $Id: DAQMB.cc,v 2.17 2005/11/30 12:59:52 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.17  2005/11/30 12:59:52  mey
+// DMB firmware loading
+//
 // Revision 2.16  2005/11/25 23:42:33  mey
 // Update
 //
@@ -1520,11 +1523,22 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
     fpout=fopen("eprom.bit","w");
     //  printf("Programming Design %s (%s) with %s\n",design,devstr,downfile);
     //
+    char bogobuf[8192];
+    unsigned long int nlines=0;
+    unsigned long int line=1;
+    FILE *bogodwnfp=fopen(downfile,"r");
+    while (fgets(bogobuf,256,bogodwnfp) != NULL)
+      if (strrchr(bogobuf,';')!=0) nlines++;
+    float percent;
     while (fgets(buf,256,dwnfp) != NULL)  {
+      percent = (float)line/(float)nlines;
+      printf("<   > Processed line %d of %d (%.1f%%)\r",line,nlines,percent*100.0);
+      fflush(stdout);
       if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
 	//  printf("%s",buf);
       }
       else {
+	line++;
 	if(strrchr(buf,';')==0){
 	  do {
 	    lastn=strrchr(buf,'\n');
@@ -1558,13 +1572,24 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
 	     /*JRG, new selective way to download UNALTERED PromUserCode from SVF to
 	       ANY prom:  just set cbrdnum[3,2,1,0]=0 in calling routine!
 	       was  if(nowrit==1){  */
-	     if(nowrit==1&&(cbrdnum[0]|cbrdnum[1]|cbrdnum[2]|cbrdnum[3])!=0){
+	     /*	     if(nowrit==1&&(cbrdnum[0]|cbrdnum[1]|cbrdnum[2]|cbrdnum[3])!=0){
 	       tstusr=0;
 	       snd[0]=cbrdnum[0];
 	       snd[1]=cbrdnum[1];
 	       snd[2]=cbrdnum[2]; 
 	       snd[3]=cbrdnum[3];
+	     */
 	       // printf(" snd %02x %02x %02x %02x \n",snd[0],snd[1],snd[2],snd[3]);
+	     //}
+	     //}
+	     if(nowrit==1&&cbrdnum[0]!=0) {
+	       tstusr=0;
+	       snd[0]=cbrdnum[0];
+	     }
+	     if(nowrit==1){
+	       //  printf(" snd %02x %02x %02x %02x \n",snd[0],snd[1],snd[2],snd[3]);
+	       //FOO[0]=((snd[3]&0x000000ff)<<24)|((snd[2]&0x000000ff)<<16)|((snd[1]&0x000000ff)<<8)|(snd[0]&0x000000ff);
+               // printf(" FOO %08x \n",FOO[0]);
 	     }
 	   }
 	   if(strcmp(Word[i],"SMASK")==0){
@@ -1591,9 +1616,19 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
 	 //   printf("D%04d",nbits+xtrbits);
           // for(i=0;i<(nbits+xtrbits)/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
 	 if(nowrit==0){
-	   scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+             if((geo[dv].jchan==12)){
+	       //scan_reset(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+             }else{
+                   scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+             }
 	 }else{
-	   if(writ==1) scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+	   if(writ==1) {
+	     if((geo[dv].jchan==12)){
+	       //scan_reset(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+	     }else{ 
+	       scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+	     }
+	   }
 	 } 
 	 //  Data readback comparison here:
 	 for (int i=0;i<nbytes;i++) {
@@ -1675,29 +1710,39 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
             for (int looppause=0;looppause<pause/65536;looppause++) devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,0);
             pause=65535;
 	  }
-
           sndbuf[0]=pause-(pause/256)*256;
           sndbuf[1]=pause/256;
 	  // printf(" sndbuf %d %d %d \n",sndbuf[1],sndbuf[0],pause);
-          devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,0);
+          devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,2);
           // printf(" send sleep \n");  
 	  /* printf("pause      %d us\n",pause);*/
+#ifdef OSUcc
+	   theController->flush_vme();
+#endif OSUcc
         }
         else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0)){
 	   printf("goto reset idle state\n"); 
-	   //  devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
+	   devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
+#ifdef OSUcc
+	   theController->flush_vme();
+#endif OSUcc
         }
-        else if(strcmp(Word[0],"TRST")==0){
-        }
-        else if(strcmp(Word[0],"ENDIR")==0){
-        }
-        else if(strcmp(Word[0],"ENDDR")==0){
-        }
+       else if(strcmp(Word[0],"TRST")==0){
+       }
+       else if(strcmp(Word[0],"ENDIR")==0){
+       }
+       else if(strcmp(Word[0],"ENDDR")==0){
+       }
       }
     }
     fclose(fpout);
     fclose(dwnfp);
   }
+  //
+#ifdef OSUcc
+  theController->flush_vme();
+#endif OSUcc
+  theController->send_last();
   //
   //sndbuf[0]=0x01;
   //sndbuf[1]=0x00;
