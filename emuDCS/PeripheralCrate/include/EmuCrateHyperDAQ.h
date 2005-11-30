@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.13 2005/11/28 14:12:41 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.14 2005/11/30 14:57:02 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -69,7 +69,7 @@ protected:
   ALCTController *alct(0) ;
   MPC * thisMPC(0);
   CrateUtilities MyTest;
-  ostringstream OutputString;
+  ostringstream CrateTestsOutput;
   ostringstream OutputStringDMBStatus[9];
   ostringstream OutputStringTMBStatus[9];
   ostringstream OutputDMBTests[9];
@@ -125,6 +125,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::TMBStartTrigger, "TMBStartTrigger");
     xgi::bind(this,&EmuCrateHyperDAQ::EnableL1aRequest, "EnableL1aRequest");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBL1aTiming, "TMBL1aTiming");
+    xgi::bind(this,&EmuCrateHyperDAQ::ALCTvpf,"ALCTvpf");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTest3, "DMBTest3");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTest4, "DMBTest4");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTest5, "DMBTest5");
@@ -156,7 +157,7 @@ public:
     CCBBoardID_ = "-1";
     for (int i=0; i<9; i++) { DMBBoardID_[i] = "-1" ; TMBBoardID_[i] = "-1" ; }
     //
-    OutputString << "Output..." << std::endl;
+    CrateTestsOutput << "Output..." << std::endl;
     for(int i=0; i<9;i++) {
       OutputStringDMBStatus[i] << "Output..." << std::endl;
       OutputStringTMBStatus[i] << "Output..." << std::endl;
@@ -540,18 +541,31 @@ public:
       //cout << "Here4" << endl ;
       //
     }
-    //  
-    void EmuCrateHyperDAQ::InitSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
-      {
+  //  
+  void EmuCrateHyperDAQ::InitSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
     cout << "Init System" << endl ;
     //
     tbController.configureNoDCS();          // Init system
+    //
     //thisTMB->StartTTC();
     //thisTMB->EnableL1aRequest();
+    //
     thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
     //
-    this->Default(in,out);
+    cgicc::Cgicc cgi(in);
     //
+    cgicc::form_iterator name = cgi.getElement("navigator");
+    //
+    int navigator;
+    if(name != cgi.getElements().end()) {
+      navigator = cgi["navigator"]->getIntegerValue();
+      cout << "Navigator " << navigator << endl;
+      if ( navigator == 1 ) this->CrateTests(in,out);
+    } else {
+      cout << "No navigator" << endl;
+      this->Default(in,out);
+    }
   }
   //
   void EmuCrateHyperDAQ::CCBBoardID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
@@ -821,6 +835,7 @@ public:
       DMB_ = dmb;
     } else {
       cout << "No dmb" << endl;
+      dmb = DMB_;
     }
     //
     name = cgi.getElement("tmb");
@@ -831,6 +846,7 @@ public:
       TMB_ = tmb;
     } else {
       cout << "No tmb" << endl;
+      tmb = TMB_;
     }
     //
     thisTMB = tmbVector[tmb];
@@ -851,6 +867,7 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",InitSystem) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Init System") << std::endl ;
+    *out << cgicc::input().set("type","hidden").set("value","1").set("name","navigator");
     *out << cgicc::form() << std::endl ;
     //
     std::string TMBStartTrigger =
@@ -971,6 +988,21 @@ public:
     //
     *out << MyTest.GetTMBL1aTiming() ;
     //
+    std::string ALCTvpf =
+      toolbox::toString("/%s/ALCTvpf",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",ALCTvpf) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Find ALCT vpf") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << MyTest.GetALCTvpf() ;
+    //
+    *out << cgicc::br();
+    //
     *out << cgicc::fieldset();
     *out << std::endl;
     //
@@ -978,8 +1010,8 @@ public:
     *out << cgicc::textarea().set("name","CrateTestOutput")
       .set("WRAP","OFF")
       .set("rows","20").set("cols","60");
-    *out << OutputString.str() << endl ;
-    OutputString.str("");
+    *out << CrateTestsOutput.str() << endl ;
+    CrateTestsOutput.str("");
     *out << cgicc::textarea();
     *out << cgicc::form() << std::endl ;
     //
@@ -1015,7 +1047,7 @@ public:
     //
     thisTMB = tmbVector[tmb];
     //
-    thisTMB->RedirectOutput(&OutputString);
+    thisTMB->RedirectOutput(&CrateTestsOutput);
     thisTMB->StartTTC();
     thisTMB->RedirectOutput(&std::cout);
     //
@@ -1082,6 +1114,7 @@ public:
       DMB_ = dmb;
     } else {
       cout << "No dmb" << endl;
+      dmb = DMB_;
     }
     //
     name = cgi.getElement("tmb");
@@ -1092,6 +1125,7 @@ public:
       TMB_ = tmb;
     } else {
       cout << "No tmb" << endl;
+      tmb = TMB_;
     }
     //
     thisDMB = dmbVector[dmb];
@@ -1125,6 +1159,7 @@ public:
       DMB_ = dmb;
     } else {
       cout << "No dmb" << endl;
+      dmb = DMB_;
     }
     //
     name = cgi.getElement("tmb");
@@ -1135,6 +1170,7 @@ public:
       TMB_ = tmb;
     } else {
       cout << "No tmb" << endl;
+      tmb = TMB_;
     }
     //
     thisDMB = dmbVector[dmb];
@@ -1144,6 +1180,7 @@ public:
     MyTest.SetDMB(thisDMB);
     MyTest.SetCCB(thisCCB);
     //
+    thisTMB->RedirectOutput(&CrateTestsOutput);
     MyTest.CFEBTiming();
     //
     this->CrateTests(in,out);
@@ -1188,6 +1225,49 @@ public:
     MyTest.SetCCB(thisCCB);
     //
     MyTest.TMBL1aTiming();
+    //
+    this->CrateTests(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::ALCTvpf(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cout << "TMBL1aTiming" << endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    int tmb, dmb;
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "No dmb" << endl;
+    }
+    //
+    name = cgi.getElement("tmb");
+    //
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "No tmb" << endl;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    thisTMB = tmbVector[tmb];
+    //
+    MyTest.SetTMB(thisTMB);
+    MyTest.SetDMB(thisDMB);
+    MyTest.SetCCB(thisCCB);
+    //
+    MyTest.FindALCTvpf();
     //
     this->CrateTests(in,out);
     //
@@ -2336,7 +2416,8 @@ public:
       toolbox::toString("/%s/ReadTMBRegister",getApplicationDescriptor()->getURN().c_str());
     //
     *out << cgicc::form().set("method","GET").set("action",ReadTMBRegister) << std::endl ;
-    *out << cgicc::input().set("type","text").set("value","Read Register (int)...")
+    *out << "Read Register (int)..." << std:: endl;
+    *out << cgicc::input().set("type","text").set("value","0")
       .set("name","TMBRegister") << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
