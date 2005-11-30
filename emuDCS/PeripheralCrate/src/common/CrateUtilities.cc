@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateUtilities.cc,v 1.1 2005/10/28 13:09:04 mey Exp $
+// $Id: CrateUtilities.cc,v 1.2 2005/11/30 14:58:02 mey Exp $
 // $Log: CrateUtilities.cc,v $
+// Revision 1.2  2005/11/30 14:58:02  mey
+// Update tests
+//
 // Revision 1.1  2005/10/28 13:09:04  mey
 // Timing class
 //
@@ -80,6 +83,7 @@ using namespace std;
 //
 CrateUtilities::CrateUtilities(){
   //
+  ALCTvpf       = -1;
   TMBL1aTiming_ = -1;
   ALCTrxPhase_  = -1;
   ALCTtxPhase_  = -1;
@@ -1842,12 +1846,14 @@ int CrateUtilities::FindALCTvpf(){
     }
     //
   }
-  
+  //
   RightTimeBin /= float(DataCounter) ;
-  
+  //
   printf("Best Setting is %f \n",RightTimeBin);
-  
+  //
   printf("\n");
+
+  ALCTvpf_ = int(RightTimeBin);
      
   return int(RightTimeBin) ;
 
