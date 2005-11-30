@@ -2,8 +2,11 @@
 #ifdef D360
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.12 2005/11/29 10:40:50 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.13 2005/11/30 13:00:03 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.13  2005/11/30 13:00:03  mey
+// DMB firmware loading
+//
 // Revision 2.12  2005/11/29 10:40:50  mey
 // Update
 //
@@ -569,7 +572,6 @@ void VMEController::RestoreIdle()
  scan(-1,sndx,-1,rcvx,0);
 }
 
-
 void VMEController::InitJTAG(int port)
 {
 }
@@ -1083,6 +1085,15 @@ switch(idev){
 }
 }
 
+void VMEController::flush_vme()
+{
+  char tmp[1]={0x00};
+  unsigned short int tmp2[1]={0x0000};
+  unsigned short int *ptr;
+  // printf(" flush buffers to VME \n");
+  vme_controller(4,ptr,tmp2,tmp); // flush
+}
+
 
 void VMEController::scan(int reg,const char *snd,int cnt,char *rcv,int ird)
 {
@@ -1216,6 +1227,45 @@ if(cnt==0)return;
 
   return;
  }
+}
+
+int udelay(long int itim)
+{
+  usleep(30);
+  //printf("udelay...%d \n",itim);
+  struct  timeval tp;
+  long usec1,usec2;
+  long int loop;
+  int tim;
+  int i,j,k;
+  static int inter=1000;
+  float xinter;
+  static int mdelay;
+  /* calibrate on first entry */
+  if(inter==1000){
+    mdelay=0;
+    for(j=0;j<10;j++){
+    RETRY:
+      usleep(1);
+      gettimeofday (&tp,NULL);
+      usec1=tp.tv_usec;
+      for(k=0;k<100;k++)for(i=0;i<inter;i++);
+      gettimeofday (&tp,NULL);
+      usec2=tp.tv_usec;
+      tim=usec2-usec1;
+      if(tim<0)goto RETRY;
+      // printf(" inter tim %d %d \n",inter,tim);
+      xinter=inter*110./tim;
+      inter=xinter+1;
+      if(j>3&&inter>mdelay)mdelay=inter;
+    }
+    printf(" udelay calibration: %d loops for 1 usec \n",mdelay);
+  }
+  /* now do loop delay */
+  //printf(" loop itim loop %d %d \n",loop,itim);
+  for(j=0;j<itim;j++){
+      for(i=0;i<mdelay;i++);
+  } 
 }
 
 
@@ -1616,13 +1666,13 @@ unsigned short int *ptr;
 
 void VMEController::handshake_vme()
 {
-char tmp[1]={0x00};
-unsigned short int tmp2[1]={0x0000};
-unsigned short int *ptr;
-       add_control_r=msk_control_r;   
-       ptr=(unsigned short int *)add_control_r;
-       vme_controller(4,ptr,tmp2,tmp); // flush
-       vme_controller(5,ptr,tmp2,tmp); // handshake
+  char tmp[1]={0x00};
+  unsigned short int tmp2[1]={0x0000};
+  unsigned short int *ptr;
+  add_control_r=msk_control_r;   
+  ptr=(unsigned short int *)add_control_r;
+  vme_controller(4,ptr,tmp2,tmp); // flush
+  vme_controller(5,ptr,tmp2,tmp); // handshake
 }
 
 void  VMEController::daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int *buf,unsigned char *rcv)
@@ -1792,10 +1842,12 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
     if(data[1]) delay_type=5;
     wbuf[nwbuf+0]=delay_mask[delay_type];
     wbuf[nwbuf+1]=0x00;
-    if(delay_type==2){
+    if(delay_type<=3){
       wbuf[nwbuf+3]=(data[0]&0xff);
       wbuf[nwbuf+2]=(data[0]&0xff00)>>8;
       nwbuf=nwbuf+4;
+      if(delay_type==2)fpacket_delay=fpacket_delay+(*data)*DELAY2;
+      if(delay_type==3)fpacket_delay=fpacket_delay+(*data)*DELAY3;
     }else{
       wbuf[nwbuf+5]=(data[0]&0xff);
       wbuf[nwbuf+4]=(data[0]&0xff00)>>8;
@@ -1812,7 +1864,16 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
     wbuf[3]=nvme&0xff;
     if(PACKETOUTDUMP!=0)dump_outpacket(nvme);
     nwrtn=eth_write();
+    //
+    packet_delay=fpacket_delay+1;
+    packet_delay=packet_delay+15; 
+    udelay(packet_delay);
+    //
+    fpacket_delay=0.0;
+    packet_delay=0;
+    //
     // printf(" nwrtn %d nwbuf %d \n",nwrtn,nwbuf);
+    //
     nwbuf=4;
     nvme=0;
   }

@@ -2,8 +2,11 @@
 #ifdef D360
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.3 2005/11/25 23:43:00 mey Exp $
+// $Id: VMEController.cc,v 2.4 2005/11/30 12:59:59 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.4  2005/11/30 12:59:59  mey
+// DMB firmware loading
+//
 // Revision 2.3  2005/11/25 23:43:00  mey
 // Update
 //
@@ -56,6 +59,15 @@ VMEController::VMEController(int crate, std::string ipAddr, int port):
   serv_addr.sin_port        = htons(port);
 
   int socket = openSocket();
+  //
+  fpacket_delay = 0;
+  packet_delay = 0;
+  packet_delay_flg = 0;
+  //
+  DELAY2 = 0.016;
+  DELAY3 = 16.384;
+  //
+
 }
 
 
@@ -260,8 +272,11 @@ VMEModule* VMEController::getTheCurrentModule(){
 
 #ifdef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.3 2005/11/25 23:43:00 mey Exp $
+// $Id: VMEController.cc,v 2.4 2005/11/30 12:59:59 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.4  2005/11/30 12:59:59  mey
+// DMB firmware loading
+//
 // Revision 2.3  2005/11/25 23:43:00  mey
 // Update
 //

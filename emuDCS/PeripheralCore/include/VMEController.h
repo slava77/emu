@@ -2,8 +2,11 @@
 #ifdef D360
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.2 2005/11/21 15:47:38 mey Exp $
+// $Id: VMEController.h,v 2.3 2005/11/30 12:59:43 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.3  2005/11/30 12:59:43  mey
+// DMB firmware loading
+//
 // Revision 2.2  2005/11/21 15:47:38  mey
 // Update
 //
@@ -56,7 +59,7 @@ public:
 
   /// JTAG stuff
 
-
+  int udelay(long int itim);
   void devdo(DEVTYPE dev,int ncmd, const char *cmd,int nbuf,char *inbuf,char *outbuf,int irdsnd);
   void scan(int reg,const char *snd,int cnt,char *rcv,int ird);
   void d360sleep();
@@ -108,8 +111,11 @@ private:
 #ifdef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.2 2005/11/21 15:47:38 mey Exp $
+// $Id: VMEController.h,v 2.3 2005/11/30 12:59:43 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.3  2005/11/30 12:59:43  mey
+// DMB firmware loading
+//
 // Revision 2.2  2005/11/21 15:47:38  mey
 // Update
 //
@@ -133,6 +139,9 @@ class Crate;
 #include <string>
 #include <arpa/inet.h>
 #include <netinet/if_ether.h>
+#include <time.h>
+#include <sys/time.h>
+
 
 class VMEController {
 public:
@@ -171,28 +180,27 @@ public:
   void buckflash(const char *cmd,const char *inbuf,char *rcv);
   void lowvolt(int ichp,int ichn,char *rcv);
   void  scan_reset(int reg, const char *snd, int cnt2, char *rcv,int ird);
-void  sleep_vme(const char *outbuf);   // in usecs (min 16 usec)
-void  sleep_vme2(unsigned short int time); // time in usec
-void  long_sleep_vme2(float time);   // time in usec
- void handshake_vme();
- void  daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int *buf,unsigned char *rcv);
- void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
- void dump_outpacket(int nvme);
-int eth_reset(void);
- int eth_read();
-int eth_write();
-void mrst_ff();
-void set_VME_mode();
- void get_macaddr();
- void setuse();
- void goToScanLevel();
- void release_plev();
- void sdly();
- void RestoreIdle_alct();
- void scan_alct(int reg, const char *snd, int cnt, char *rcv,int ird);
-
-
- 
+  void  sleep_vme(const char *outbuf);   // in usecs (min 16 usec)
+  void  sleep_vme2(unsigned short int time); // time in usec
+  void  long_sleep_vme2(float time);   // time in usec
+  void handshake_vme();
+  void flush_vme();
+  void  daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int *buf,unsigned char *rcv);
+  void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
+  void dump_outpacket(int nvme);
+  int eth_reset(void);
+  int eth_read();
+  int eth_write();
+  void mrst_ff();
+  void set_VME_mode();
+  void get_macaddr();
+  void setuse();
+  void goToScanLevel();
+  void release_plev();
+  void sdly();
+  void RestoreIdle_alct();
+  void scan_alct(int reg, const char *snd, int cnt, char *rcv,int ird);
+  
   VMEModule* getTheCurrentModule();
 
 private:
@@ -227,7 +235,11 @@ private:
   unsigned short int pvme; // value for ALCT JTAG register (0x70000)
   int feuse;
   int ucla_ldev;
-
+  long int packet_delay;
+  float fpacket_delay;
+  int packet_delay_flg;
+  const float DELAY2;
+  const float DELAY3;
 
 };
 
