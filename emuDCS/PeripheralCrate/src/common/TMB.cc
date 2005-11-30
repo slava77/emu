@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.21 2005/11/25 14:45:07 mey Exp $
+// $Id: TMB.cc,v 2.22 2005/11/30 16:26:07 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.22  2005/11/30 16:26:07  mey
+// Redirect output
+//
 // Revision 2.21  2005/11/25 14:45:07  mey
 // UPdate
 //
@@ -104,14 +107,14 @@ TMB::TMB(int newcrate, int slot) :
   bxn_offset_(0)
 {
   MyOutput_ = &std::cout ;
-  std::cout << "TMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
+  (*MyOutput_) << "TMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
 } 
 
 
 TMB::~TMB() {
-  std::cout << "destructing ALCTController" << std::endl; 
+  (*MyOutput_) << "destructing ALCTController" << std::endl; 
   delete alctController_; 
-  std::cout << "destructing TMB" << std::endl;
+  (*MyOutput_) << "destructing TMB" << std::endl;
 }
 
 
@@ -186,6 +189,8 @@ int TMB::PowerComparator(){
 
 void TMB::StartTTC(){
   //
+  (*MyOutput_) << "TMB.StartTTC" << std::endl;
+  //
   sndbuf[0] = 0x0;
   sndbuf[1] = 0x1;
   tmb_vme(VME_WRITE,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
@@ -231,7 +236,7 @@ void TMB::configure() {
   trgmode(1);
   printf("***Set TMB CSC ID to Slot_ID/2 = %d\n", theSlot/2);
   load_cscid();
-  std::cout << "Resetting counters" << std::endl;
+  (*MyOutput_) << "Resetting counters" << std::endl;
   ResetCounters();
 }
 
@@ -269,7 +274,7 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
   //
   unsigned short frame1, frame2, ramAdd;
   //
-  std::cout << "Injecting data" << std::endl ;
+  (*MyOutput_) << "Injecting data" << std::endl ;
   //
   for (int evtId(0); evtId<nEvents; ++evtId) {
     //
@@ -365,7 +370,7 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
   //
   // Read back RAM address
   //
-  std::cout << "Reading back RAM address" << std::endl ;
+  (*MyOutput_) << "Reading back RAM address" << std::endl ;
   //
   for (int evtId(0); evtId<nEvents; ++evtId) {
     //
@@ -409,7 +414,7 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
   //
   tmb_vme(VME_WRITE,mpc_inj_adr,sndbuf,rcvbuf,NOW);
   //
-  std::cout << "Fire now" << std::endl;
+  (*MyOutput_) << "Fire now" << std::endl;
   //
   sndbuf[0] = rcvbuf[0] & 0xfe ; // Unfire injector
   sndbuf[1] = nEvents & 0xff;
@@ -428,7 +433,7 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
 
 void TMB::DecodeALCT(){
    //
-   std::cout << std::endl;
+   (*MyOutput_) << std::endl;
    printf("DecodeALCT.Read %x \n",alct_alct0_adr);
    tmb_vme(VME_READ,alct_alct0_adr,sndbuf,rcvbuf,NOW);
    printf("DecodeALCT.Done %x \n",alct_alct0_adr);
@@ -447,7 +452,7 @@ void TMB::DecodeALCT(){
    printf(" amu        = %d  \n",alct0_amu_);
    printf(" first_key  = %d  \n",alct0_first_key_);
    printf(" first_bxn  = %d  \n",alct0_first_bxn_);
-   std::cout << std::endl;
+   (*MyOutput_) << std::endl;
    //
    tmb_vme(VME_READ,alct_alct1_adr,sndbuf,rcvbuf,NOW);
    //
@@ -470,7 +475,7 @@ void TMB::DecodeALCT(){
 //
 void TMB::DecodeCLCT(){
    //
-   std::cout << std::endl;
+   (*MyOutput_) << std::endl;
    tmb_vme(VME_READ,seq_clctm_adr,sndbuf,rcvbuf2,NOW);
    tmb_vme(VME_READ,seq_clct0_adr,sndbuf,rcvbuf,NOW);
    //
@@ -479,13 +484,13 @@ void TMB::DecodeCLCT(){
    CLCT0_cfeb_ =  ((data>>14) & 0x7);
    CLCT0_nhit_ =  ((data>>1)  & 0x7);
    CLCT0_keyHalfStrip_ =  ((data>>9)  & 0x1f) ;
-   std::cout << "CLCT0.Valid      = " << ((data)     & 0x1)  << std::endl ;
-   std::cout << "CLCT0.Key HStrip = " << CLCT0_keyHalfStrip_ << std::endl;
-   std::cout << "CLCT0.Key CFEB   = " << CLCT0_cfeb_  << std::endl ;
-   std::cout << "CLCT0.Key nhit   = " << CLCT0_nhit_  << std::endl;
-   std::cout << "CLCT0.Key PatD   = " << ((data>>7)  & 0x1)  << std::endl ;
-   std::cout << "CLCT0.BXN        = " << ((data>>17) & 0x3)  << std::endl ;
-   std::cout << std::endl;
+   (*MyOutput_) << "CLCT0.Valid      = " << ((data)     & 0x1)  << std::endl ;
+   (*MyOutput_) << "CLCT0.Key HStrip = " << CLCT0_keyHalfStrip_ << std::endl;
+   (*MyOutput_) << "CLCT0.Key CFEB   = " << CLCT0_cfeb_  << std::endl ;
+   (*MyOutput_) << "CLCT0.Key nhit   = " << CLCT0_nhit_  << std::endl;
+   (*MyOutput_) << "CLCT0.Key PatD   = " << ((data>>7)  & 0x1)  << std::endl ;
+   (*MyOutput_) << "CLCT0.BXN        = " << ((data>>17) & 0x3)  << std::endl ;
+   (*MyOutput_) << std::endl;
    //
    tmb_vme(VME_READ,seq_clct1_adr,sndbuf,rcvbuf,NOW);
    data = (((rcvbuf[0]&0xff)<<8) | rcvbuf[1]&0xff ) | ((rcvbuf2[1]>>5)&0x7)<<16 | (rcvbuf2[0]&0x3)<<19 ;
@@ -493,13 +498,13 @@ void TMB::DecodeCLCT(){
    CLCT1_cfeb_ =  ((data>>14) & 0x7);
    CLCT1_nhit_ =  ((data>>1)  & 0x7);
    CLCT1_keyHalfStrip_ =  ((data>>9)  & 0x1f) ;
-   std::cout << "CLCT1.Valid      = " << ((data)     & 0x1)  << std::endl;
-   std::cout << "CLCT1.Key HStrip = " << CLCT1_keyHalfStrip_ << std::endl;
-   std::cout << "CLCT1.Key CFEB   = " << CLCT1_cfeb_  << std::endl ;
-   std::cout << "CLCT1.Key nhit   = " << CLCT1_nhit_  << std::endl;
-   std::cout << "CLCT1.Key PatD   = " << ((data>>7)  & 0x1)  << std::endl ;
-   std::cout << "CLCT1.BXN        = " << ((data>>17) & 0x3)  << std::endl ;
-   std::cout << std::endl;
+   (*MyOutput_) << "CLCT1.Valid      = " << ((data)     & 0x1)  << std::endl;
+   (*MyOutput_) << "CLCT1.Key HStrip = " << CLCT1_keyHalfStrip_ << std::endl;
+   (*MyOutput_) << "CLCT1.Key CFEB   = " << CLCT1_cfeb_  << std::endl ;
+   (*MyOutput_) << "CLCT1.Key nhit   = " << CLCT1_nhit_  << std::endl;
+   (*MyOutput_) << "CLCT1.Key PatD   = " << ((data>>7)  & 0x1)  << std::endl ;
+   (*MyOutput_) << "CLCT1.BXN        = " << ((data>>17) & 0x3)  << std::endl ;
+   (*MyOutput_) << std::endl;
    //
 }
 //
@@ -1308,7 +1313,7 @@ std::bitset<22> TMB::nextCRC22_D16(const std::bitset<16>& D,
 
 
 int TMB::TestArray(){
-   std::cout << "In TestArray" << std::endl;
+   (*MyOutput_) << "In TestArray" << std::endl;
    int data[] = {      
  0x6b0c 
  ,0x13e7 
@@ -1628,7 +1633,7 @@ int TMB::TestArray(){
 int TMB::TMBCRCcalc(std::vector<std::bitset <16> >& TMBData) {
   //
   std::bitset<22> CRC=calCRC22(TMBData);
-  std::cout << " Test here " << CRC.to_ulong() << std::endl ;
+  (*MyOutput_) << " Test here " << CRC.to_ulong() << std::endl ;
   return CRC.to_ulong();
   //
 }
@@ -2488,27 +2493,27 @@ void TMB::fifomode() {
 
 void TMB::DataSendMPC(){
   //
-  std::cout << "TMB LCT data send to MPC" << std::endl;
+  (*MyOutput_) << "TMB LCT data send to MPC" << std::endl;
   //
   tmb_vme(VME_READ,mpc0_frame0_adr,sndbuf,rcvbuf,NOW);
   //
-  std::cout << "MPC0 " << std::endl;
-  std::cout << "FRAME0 " << std::hex << ((rcvbuf[0]&0xff)<<8 | rcvbuf[1]&0xff) << std::endl ; 
+  (*MyOutput_) << "MPC0 " << std::endl;
+  (*MyOutput_) << "FRAME0 " << std::hex << ((rcvbuf[0]&0xff)<<8 | rcvbuf[1]&0xff) << std::endl ; 
   //
   tmb_vme(VME_READ,mpc0_frame1_adr,sndbuf,rcvbuf,NOW);
   //
-  std::cout << "FRAME1 " << std::hex << ((rcvbuf[0]&0xff)<<8 | rcvbuf[1]&0xff) << std::endl ; 
+  (*MyOutput_) << "FRAME1 " << std::hex << ((rcvbuf[0]&0xff)<<8 | rcvbuf[1]&0xff) << std::endl ; 
   //
   tmb_vme(VME_READ,mpc1_frame0_adr,sndbuf,rcvbuf,NOW);
   //
-  std::cout << "MPC1 " << std::endl;
-  std::cout << "FRAME0 " << std::hex << ((rcvbuf[0]&0xff)<<8 | rcvbuf[1]&0xff) << std::endl ; 
+  (*MyOutput_) << "MPC1 " << std::endl;
+  (*MyOutput_) << "FRAME0 " << std::hex << ((rcvbuf[0]&0xff)<<8 | rcvbuf[1]&0xff) << std::endl ; 
   //
   tmb_vme(VME_READ,mpc1_frame1_adr,sndbuf,rcvbuf,NOW);
   //
-  std::cout << "FRAME1 " << std::hex << ((rcvbuf[0]&0xff)<<8 | rcvbuf[1]&0xff) << std:: endl ; 
+  (*MyOutput_) << "FRAME1 " << std::hex << ((rcvbuf[0]&0xff)<<8 | rcvbuf[1]&0xff) << std:: endl ; 
   //
-  std::cout << std::endl ;
+  (*MyOutput_) << std::endl ;
   //
 }
 
@@ -3035,7 +3040,7 @@ void TMB::tmb_vme(char fcn, char vme,
 
 void TMB::start() {
 #ifdef debugV
-  std::cout << "starting to talk to TMB, device " << ucla_ldev << std::endl;
+  (*MyOutput_) << "starting to talk to TMB, device " << ucla_ldev << std::endl;
 #endif
    // send the first signal
   VMEModule::start();
@@ -3055,7 +3060,7 @@ void TMB::start(int idev) {
 
 void TMB::end() {
 #ifdef debugV
-std::cout << "Ending TMB device " << ucla_ldev << std::endl;
+(*MyOutput_) << "Ending TMB device " << ucla_ldev << std::endl;
 #endif
 char rcvx[2];
 char sndx[2];
@@ -3339,11 +3344,11 @@ void TMB::tmb_PHOS4_alct(int time)
   int alct_counts[maxTimeBins][maxTimeBins];
   start(1);
   //ALCT part
-  std::cout << "first call in PHOs4 alct " << std::endl;
+  (*MyOutput_) << "first call in PHOs4 alct " << std::endl;
   sndbuf[0] = 0;
   sndbuf[1] = 0;
   tmb_vme(VME_READ,0x2A,sndbuf,rcvbuf_old,1);
-  std::cout << "write in PHOS4" << std::endl;
+  (*MyOutput_) << "write in PHOS4" << std::endl;
   //
   while(FmState() == 1 ) {
     printf("%c7", '\033');
@@ -3357,7 +3362,7 @@ void TMB::tmb_PHOS4_alct(int time)
   sndbuf[0] = rcvbuf_old[0];
   sndbuf[1] = (rcvbuf_old[1]&0xfe) | 0x1 ;  //Disconnect CCB
   tmb_vme(VME_WRITE,0x2A,sndbuf,rcvbuf,NOW);
-  std::cout << "going well " << std::endl;  
+  (*MyOutput_) << "going well " << std::endl;  
   sndbuf[0] = 0;
   sndbuf[1] = 0;
   tmb_vme(VME_READ,0xA2,sndbuf,rcvbuf_old2,1);
