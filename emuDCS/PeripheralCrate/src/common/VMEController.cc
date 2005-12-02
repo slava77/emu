@@ -1,9 +1,12 @@
 
-#ifdef D360
+#ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.5 2005/11/30 16:26:53 mey Exp $
+// $Id: VMEController.cc,v 2.6 2005/12/02 18:12:30 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.6  2005/12/02 18:12:30  mey
+// get rid of D360
+//
 // Revision 2.5  2005/11/30 16:26:53  mey
 // DMB Firmware upload delay
 //
@@ -263,12 +266,14 @@ VMEModule* VMEController::getTheCurrentModule(){
  return theCurrentModule;
 }
 
-#endif
+#else
 
-#ifdef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.5 2005/11/30 16:26:53 mey Exp $
+// $Id: VMEController.cc,v 2.6 2005/12/02 18:12:30 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.6  2005/12/02 18:12:30  mey
+// get rid of D360
+//
 // Revision 2.5  2005/11/30 16:26:53  mey
 // DMB Firmware upload delay
 //

@@ -1,9 +1,12 @@
 
-#ifdef D360
+#ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.15 2005/11/30 16:49:32 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.16 2005/12/02 18:12:26 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.16  2005/12/02 18:12:26  mey
+// get rid of D360
+//
 // Revision 2.15  2005/11/30 16:49:32  mey
 // Bug DMB firmware load
 //
@@ -678,9 +681,7 @@ l=1;
 return l;
 }
 
-#endif
-
-#ifdef OSUcc
+#else
 
 #include <cmath>
 #include <string>
