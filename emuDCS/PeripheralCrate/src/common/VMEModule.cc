@@ -1,7 +1,10 @@
-#ifdef D360
+#ifndef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.2 2005/11/21 19:42:28 mey Exp $
+// $Id: VMEModule.cc,v 2.3 2005/12/02 18:12:19 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.3  2005/12/02 18:12:19  mey
+// get rid of D360
+//
 // Revision 2.2  2005/11/21 19:42:28  mey
 // Update
 //
@@ -144,13 +147,15 @@ void VMEModule::CloseJTAG() {
 VMEController* VMEModule::getTheController(){
   return theController;
 }
-#endif
 
-#ifdef OSUcc
+#else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.2 2005/11/21 19:42:28 mey Exp $
+// $Id: VMEModule.cc,v 2.3 2005/12/02 18:12:19 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.3  2005/12/02 18:12:19  mey
+// get rid of D360
+//
 // Revision 2.2  2005/11/21 19:42:28  mey
 // Update
 //

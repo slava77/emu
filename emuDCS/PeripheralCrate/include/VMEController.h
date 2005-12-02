@@ -1,9 +1,12 @@
 
-#ifdef D360
+#ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.5 2005/11/30 16:49:49 mey Exp $
+// $Id: VMEController.h,v 2.6 2005/12/02 18:12:13 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.6  2005/12/02 18:12:13  mey
+// get rid of D360
+//
 // Revision 2.5  2005/11/30 16:49:49  mey
 // Bug DMB firmware load
 //
@@ -112,13 +115,14 @@ private:
 
 #endif
 
-#endif
-
-#ifdef OSUcc
+#else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.5 2005/11/30 16:49:49 mey Exp $
+// $Id: VMEController.h,v 2.6 2005/12/02 18:12:13 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.6  2005/12/02 18:12:13  mey
+// get rid of D360
+//
 // Revision 2.5  2005/11/30 16:49:49  mey
 // Bug DMB firmware load
 //

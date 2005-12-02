@@ -1,9 +1,12 @@
 
-#ifdef D360
+#ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.3 2005/11/21 19:42:39 mey Exp $
+// $Id: VMEModule.h,v 2.4 2005/12/02 18:12:08 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.4  2005/12/02 18:12:08  mey
+// get rid of D360
+//
 // Revision 2.3  2005/11/21 19:42:39  mey
 // Update
 //
@@ -93,13 +96,14 @@ protected:
 
 #endif
 
-#endif
-
-#ifdef OSUcc
+#else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.3 2005/11/21 19:42:39 mey Exp $
+// $Id: VMEModule.h,v 2.4 2005/12/02 18:12:08 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.4  2005/12/02 18:12:08  mey
+// get rid of D360
+//
 // Revision 2.3  2005/11/21 19:42:39  mey
 // Update
 //
