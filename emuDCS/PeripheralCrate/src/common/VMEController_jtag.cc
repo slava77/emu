@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.17 2005/12/05 09:00:42 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.18 2005/12/05 13:21:17 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.18  2005/12/05 13:21:17  mey
+// Update
+//
 // Revision 2.17  2005/12/05 09:00:42  mey
 // Update
 //
@@ -1067,7 +1070,7 @@ int i;
 int cnt2;
 int npnt;
 int byte,bit;
-unsigned short int tird[3]={1,1,3};
+unsigned short int tird[3]={3,1,3};
 unsigned short int tmp[2]={0x0000};
 unsigned short int *data;
 unsigned short int *data2;
