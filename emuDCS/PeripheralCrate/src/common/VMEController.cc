@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.7 2005/12/05 08:59:45 mey Exp $
+// $Id: VMEController.cc,v 2.8 2005/12/05 13:10:50 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.8  2005/12/05 13:10:50  mey
+// Update
+//
 // Revision 2.7  2005/12/05 08:59:45  mey
 // Update
 //
@@ -272,8 +275,11 @@ VMEModule* VMEController::getTheCurrentModule(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.7 2005/12/05 08:59:45 mey Exp $
+// $Id: VMEController.cc,v 2.8 2005/12/05 13:10:50 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.8  2005/12/05 13:10:50  mey
+// Update
+//
 // Revision 2.7  2005/12/05 08:59:45  mey
 // Update
 //
@@ -449,7 +455,8 @@ VMEModule* VMEController::getTheCurrentModule(){
 
 int udelay(long int itim)
 {
-  usleep(30);
+  usleep(100);
+  std::cout << "Waiting...." << std::endl;
   std::cout << "udelay..." << itim << std::endl;;
   struct  timeval tp;
   long usec1,usec2;
@@ -554,7 +561,13 @@ void VMEController::handshake_vme()
 
 void VMEController::flush_vme()
 {
-// should never been used.
+  // should never been used.
+  char tmp[1]={0x00};
+  unsigned short int tmp2[1]={0x0000};
+  unsigned short int *ptr;
+  // printf(" flush buffers to VME \n");
+  vme_controller(4,ptr,tmp2,tmp); // flush
+  //
 }
 
 int VMEController::eth_reset(void)
