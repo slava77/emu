@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.22 2005/11/30 16:26:07 mey Exp $
+// $Id: TMB.cc,v 2.23 2005/12/05 18:11:17 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.23  2005/12/05 18:11:17  mey
+// UPdate
+//
 // Revision 2.22  2005/11/30 16:26:07  mey
 // Redirect output
 //
@@ -446,7 +449,7 @@ void TMB::DecodeALCT(){
    alct0_first_key_ = (data>>4)&0x7f;
    alct0_first_bxn_ = (data>>11)&0x3 ;
    //
-   printf(" alct0      = %8x \n",data);
+   (*MyOutput_) << " alct0      = " << data << std::endl;
    printf(" valid      = %d  \n",alct0_valid_);
    printf(" quality    = %d  \n",alct0_quality_);
    printf(" amu        = %d  \n",alct0_amu_);
