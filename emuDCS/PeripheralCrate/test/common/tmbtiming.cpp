@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.34 2005/11/28 14:12:47 mey Exp $
+// $Id: tmbtiming.cpp,v 2.35 2005/12/05 18:11:26 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.35  2005/12/05 18:11:26  mey
+// UPdate
+//
 // Revision 2.34  2005/11/28 14:12:47  mey
 // Update
 //
@@ -252,6 +255,7 @@ int main(int argc,char **argv){
   bool doLoadDMBFirmware(false);
   bool doLoadALCTFirmware(false);
   bool doLoadTMBFirmware(false);
+  bool doLoadCFEBFirmware(false);
   //
   //-- read commandline arguments and xml configuration file
   //
@@ -425,6 +429,7 @@ int main(int argc,char **argv){
        cout << " 49:daqmb_promfpga_dump  50:daqmb_adc_dump        51:damb_lowv_dump    " << endl;
        cout << " 52:ccb_firmware_version 53:WriteMPCRegister      54:ReadMPCRegister   " << std::endl;
        cout << " 55:LoadDMBFirmware      56:LoadALCTfirmware      57:LoadTMBFirmware   " << std::endl;
+       cout << " 58:LoadCFEBFirmware     " << std::endl;
        //
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
@@ -491,6 +496,7 @@ int main(int argc,char **argv){
        doLoadDMBFirmware     = false;
        doLoadALCTFirmware    = false;
        doLoadTMBFirmware     = false;
+       doLoadCFEBFirmware     = false;
        //
        if ( Menu == -1 ) goto outhere;
        if ( Menu == 0 ) doInitSystem           = true ;
@@ -549,9 +555,10 @@ int main(int argc,char **argv){
        if ( Menu == 53) doWriteMPCRegister     = true ;
        if ( Menu == 54) doReadMPCRegister      = true ;
        if ( Menu == 55) doLoadDMBFirmware      = true ;
-       if ( Menu == 56) doLoadALCTFirmware      = true ;
+       if ( Menu == 56) doLoadALCTFirmware     = true ;
        if ( Menu == 57) doLoadTMBFirmware      = true ;
-       if ( Menu  > 58 | Menu < -2) 
+       if ( Menu == 58) doLoadCFEBFirmware     = true ;
+       if ( Menu  > 59 | Menu < -2) 
 	 cout << "Invalid menu choice, try again." << endl << endl;
        //
     }
@@ -574,7 +581,8 @@ int main(int argc,char **argv){
       thisTMB->disableAllClocks();
       int debugMode(0);
       int jch(3);
-      int status = alct->SVFLoad(&jch,"alct672.svf",debugMode);
+      //int status = alct->SVFLoad(&jch,"alct672.svf",debugMode);
+      int status = alct->SVFLoad(&jch,"alctcrc384mirror.svf",debugMode);
       thisTMB->enableAllClocks();
       //
       if (status >= 0){
@@ -607,11 +615,22 @@ int main(int argc,char **argv){
       //
     }
     //
+    if(doLoadCFEBFirmware) {
+      char out[10];
+      thisCCB->firmwareVersion();
+      vector<CFEB> thisCFEBs = thisDMB->cfebs();
+      for (int i=0; i<thisCFEBs.size(); i++) {
+	thisDMB->febpromuser(thisCFEBs[i]);
+	thisDMB->epromload(thisCFEBs[i].promDevice(),"feb_v6_r1_samp8.svf",1,out);  // load mprom
+      }
+      //thisCCB->firmwareVersion();
+    }
+    //
     if(doLoadDMBFirmware) {
       char out[10];
       thisCCB->firmwareVersion();
       thisDMB->epromload(MPROM,"dmb6cntl_v17_r2.svf",1,out);  // load mprom
-      thisCCB->firmwareVersion();
+      //thisCCB->firmwareVersion();
     }
     //
     if(doccb_firmware_version){

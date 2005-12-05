@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.15 2005/12/05 13:10:39 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.16 2005/12/05 18:11:32 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -110,6 +110,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTests, "DMBTests");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBUtils, "DMBUtils");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBLoadFirmware, "DMBLoadFirmware");
+    xgi::bind(this,&EmuCrateHyperDAQ::CFEBLoadFirmware, "CFEBLoadFirmware");
     xgi::bind(this,&EmuCrateHyperDAQ::CFEBStatus, "CFEBStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::ALCTStatus, "ALCTStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::CrateTests, "CrateTests");
@@ -1431,6 +1432,42 @@ public:
     //
   }
   //
+  void EmuCrateHyperDAQ::CFEBLoadFirmware(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    //
+    cout << "CFEBLoadFirmware" << endl;
+    //
+    if (thisDMB) {
+      //
+      char *out;
+      //
+      vector<CFEB> thisCFEBs = thisDMB->cfebs();
+      for (int i=0; i<thisCFEBs.size(); i++) {
+	thisDMB->febpromuser(thisCFEBs[i]);
+	thisDMB->epromload(thisCFEBs[i].promDevice(),"feb_v6_r1_samp8.svf",1,out);  // load mprom
+      }
+      //
+    }
+    //
+    this->DMBUtils(in,out);
+    //
+  }
+  //
+
   void EmuCrateHyperDAQ::DMBTurnOn(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -1850,6 +1887,27 @@ public:
     *out << cgicc::pre();
     //
     *out << cgicc::fieldset();
+    //
+    *out << cgicc::fieldset();
+    *out << cgicc::legend("CLCT Info").set("style","color:blue") << cgicc::p() << std::endl ;
+    *out << cgicc::pre();
+    thisTMB->RedirectOutput(out);
+    thisTMB->DecodeCLCT();
+    thisTMB->RedirectOutput(&std::cout);
+    *out << cgicc::pre();
+    *out << cgicc::fieldset();
+    //
+    if (alct) {
+      *out << cgicc::fieldset();
+      *out << cgicc::legend("ALCT Info").set("style","color:blue") << cgicc::p() << std::endl ;
+      *out << cgicc::pre();
+      thisTMB->RedirectOutput(out);
+      thisTMB->DecodeALCT();
+      thisTMB->RedirectOutput(&std::cout);
+      *out << cgicc::pre();
+      *out << cgicc::fieldset();
+    }
+    //
     *out << std::endl;    
     //
   }
@@ -2663,6 +2721,16 @@ public:
     *out << cgicc::form().set("method","GET").set("action",DMBLoadFirmware)
 	 << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","DMB Load Firmware") << std::endl ;
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string CFEBLoadFirmware =
+      toolbox::toString("/%s/CFEBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",DMBLoadFirmware)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","CFEB Load Firmware") << std::endl ;
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
