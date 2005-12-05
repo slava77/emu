@@ -80,7 +80,7 @@ TestLibraryDirs = \
         $(XDAQ_ROOT)/emu/emuDCS/PeripheralCrate/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
 UserCFlags = -DUSEDSC
-UserCCFlags = -DUSEDCS -DD360
+UserCCFlags = -DUSEDCS -DOSUcc
 UserDynamicLinkFlags =
 UserStaticLinkFlags =
 UserExecutableLinkFlags =
