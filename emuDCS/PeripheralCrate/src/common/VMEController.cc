@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.8 2005/12/05 13:10:50 mey Exp $
+// $Id: VMEController.cc,v 2.9 2005/12/05 13:21:14 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.9  2005/12/05 13:21:14  mey
+// Update
+//
 // Revision 2.8  2005/12/05 13:10:50  mey
 // Update
 //
@@ -275,8 +278,11 @@ VMEModule* VMEController::getTheCurrentModule(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.8 2005/12/05 13:10:50 mey Exp $
+// $Id: VMEController.cc,v 2.9 2005/12/05 13:21:14 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.9  2005/12/05 13:21:14  mey
+// Update
+//
 // Revision 2.8  2005/12/05 13:10:50  mey
 // Update
 //
@@ -562,11 +568,11 @@ void VMEController::handshake_vme()
 void VMEController::flush_vme()
 {
   // should never been used.
-  char tmp[1]={0x00};
-  unsigned short int tmp2[1]={0x0000};
-  unsigned short int *ptr;
+  //char tmp[1]={0x00};
+  //unsigned short int tmp2[1]={0x0000};
+  //unsigned short int *ptr;
   // printf(" flush buffers to VME \n");
-  vme_controller(4,ptr,tmp2,tmp); // flush
+  //vme_controller(4,ptr,tmp2,tmp); // flush
   //
 }
 
