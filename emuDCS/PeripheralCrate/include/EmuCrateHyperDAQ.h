@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.14 2005/11/30 14:57:02 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.15 2005/12/05 13:10:39 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1610,8 +1610,20 @@ public:
       sprintf(buf,"CFEB prom user id : %08x CFEB fpga user id : %08x ",
 	      thisDMB->febpromuser(*cfebItr),
 	      thisDMB->febfpgauser(*cfebItr));
-      *out << buf;
+      //
+      if ( thisDMB->febfpgauser(*cfebItr) == 0xcfeb9061 ) {
+	*out << cgicc::span().set("style","color:green");
+	*out << buf;
+	*out << cgicc::span();
+      } else {
+	*out << cgicc::span().set("style","color:red");
+	*out << buf;
+	*out << " (Should be 0xcfeb9061) ";
+	*out << cgicc::span();
+      }
+      //
       *out << cgicc::br();
+      //
     }
     //
     *out << cgicc::fieldset();
