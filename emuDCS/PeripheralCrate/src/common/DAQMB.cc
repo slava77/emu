@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.18 2005/11/30 16:49:26 mey Exp $
+// $Id: DAQMB.cc,v 2.19 2005/12/05 13:20:58 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.19  2005/12/05 13:20:58  mey
+// Got rid of flush_vme
+//
 // Revision 2.18  2005/11/30 16:49:26  mey
 // Bug DMB firmware load
 //
@@ -1723,16 +1726,16 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
           devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,2);
           // printf(" send sleep \n");  
 	  /* printf("pause      %d us\n",pause);*/
-#ifdef OSUcc
-	   theController->flush_vme();
-#endif OSUcc
+	  //#ifdef OSUcc
+	  //theController->flush_vme();
+	  //#endif OSUcc
         }
         else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0)){
 	   printf("goto reset idle state\n"); 
 	   devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
-#ifdef OSUcc
-	   theController->flush_vme();
-#endif OSUcc
+	   //#ifdef OSUcc
+	   //theController->flush_vme();
+	   //#endif OSUcc
         }
        else if(strcmp(Word[0],"TRST")==0){
        }
@@ -1746,9 +1749,9 @@ void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
     fclose(dwnfp);
   }
   //
-#ifdef OSUcc
-  theController->flush_vme();
-#endif OSUcc
+  //#ifdef OSUcc
+  //theController->flush_vme();
+  //#endif OSUcc
   //
   theController->send_last();
   //
