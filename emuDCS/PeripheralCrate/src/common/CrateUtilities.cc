@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateUtilities.cc,v 1.2 2005/11/30 14:58:02 mey Exp $
+// $Id: CrateUtilities.cc,v 1.3 2005/12/06 13:30:10 mey Exp $
 // $Log: CrateUtilities.cc,v $
+// Revision 1.3  2005/12/06 13:30:10  mey
+// Update
+//
 // Revision 1.2  2005/11/30 14:58:02  mey
 // Update tests
 //
@@ -88,6 +91,7 @@ CrateUtilities::CrateUtilities(){
   ALCTrxPhase_  = -1;
   ALCTtxPhase_  = -1;
   BestALCTL1aDelay_ = -1;
+  ALCTL1aDelay_     = -1;
   //
   for( int i=0; i<5; i++) CFEBrxPhase_[i] = -1;
   UsePulsing = true ;
@@ -387,7 +391,9 @@ void CrateUtilities::ALCTChamberScan(){
    int chamberResult2[112];
    int InJected[112];
    //
-   //thisTMB->SetALCTPatternTrigger();
+   std::cout << " *** New ************* " << std::endl ;
+   //
+   thisTMB->SetALCTPatternTrigger();
    //
    for ( int keyWG=0; keyWG<112; keyWG++) chamberResult[keyWG] = 0;
    for ( int keyWG=0; keyWG<112; keyWG++) chamberResult2[keyWG] = 0;
@@ -397,11 +403,11 @@ void CrateUtilities::ALCTChamberScan(){
       //
       for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) {
 	 //
-	cout << endl;
+	std::cout << std::endl;
 	printf("%c[01;43m", '\033');
-	cout << "Injecting in WG = " << dec << keyWG ;
+	std::cout << "Injecting in WG = " << dec << keyWG ;
 	printf("%c[0m", '\033'); 
-	cout << endl;
+	std::cout << endl;
 	//
 	 for (int i=0; i<22; i++) {
 	   HCmask[i] = 0;
@@ -1177,6 +1183,8 @@ int CrateUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
   //
   printf("In.Best L1a ALCT delay %f \n",DelayBin);
   //
+  ALCTL1aDelay_ = DelayBin;
+  //
   return int(DelayBin);
   //
 }
@@ -1503,7 +1511,11 @@ void CrateUtilities::CFEBTiming(){
       //
       for (int Nmuons=0; Nmuons<10; Nmuons++){
 	//
+	usleep(50);
+	//
 	PulseCFEB( 16,CLCTInputList[List]);
+	//
+	usleep(50);
 	//
 	thisTMB->DiStripHCMask(16/4-1); // counting from 0;
 	//
@@ -1907,6 +1919,8 @@ int CrateUtilities::FindTMB_L1A_delay( int idelay_min, int idelay_max ){
   printf("\n");
 
   //if (useCCB) thisCCB->setCCBMode(CCB::DLOG);      // return to "regular" mode for CCB
+
+  TMBL1aTiming_ = RightTimeBin;
 
   return int(RightTimeBin) ;
 

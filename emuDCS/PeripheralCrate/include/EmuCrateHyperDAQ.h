@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.16 2005/12/05 18:11:32 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.17 2005/12/06 13:30:31 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -126,6 +126,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::TMBStartTrigger, "TMBStartTrigger");
     xgi::bind(this,&EmuCrateHyperDAQ::EnableL1aRequest, "EnableL1aRequest");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBL1aTiming, "TMBL1aTiming");
+    xgi::bind(this,&EmuCrateHyperDAQ::ALCTL1aTiming, "ALCTL1aTiming");
     xgi::bind(this,&EmuCrateHyperDAQ::ALCTvpf,"ALCTvpf");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTest3, "DMBTest3");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTest4, "DMBTest4");
@@ -989,6 +990,19 @@ public:
     //
     *out << MyTest.GetTMBL1aTiming() ;
     //
+    std::string ALCTL1aTiming =
+      toolbox::toString("/%s/ALCTL1aTiming",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",ALCTL1aTiming) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","ALCT L1a Timing") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << MyTest.GetALCTL1aDelay() ;
+    //
     std::string ALCTvpf =
       toolbox::toString("/%s/ALCTvpf",getApplicationDescriptor()->getURN().c_str());
     //
@@ -1206,6 +1220,7 @@ public:
       DMB_ = dmb;
     } else {
       cout << "No dmb" << endl;
+      dmb = DMB_;
     }
     //
     name = cgi.getElement("tmb");
@@ -1216,6 +1231,7 @@ public:
       TMB_ = tmb;
     } else {
       cout << "No tmb" << endl;
+      tmb = TMB_;
     }
     //
     thisDMB = dmbVector[dmb];
@@ -1225,7 +1241,52 @@ public:
     MyTest.SetDMB(thisDMB);
     MyTest.SetCCB(thisCCB);
     //
-    MyTest.TMBL1aTiming();
+    MyTest.FindTMB_L1A_delay(50,100);
+    //
+    this->CrateTests(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::ALCTL1aTiming(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cout << "ALCTL1aTiming" << endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    int tmb, dmb;
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "No dmb" << endl;
+      dmb = DMB_;
+    }
+    //
+    name = cgi.getElement("tmb");
+    //
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "No tmb" << endl;
+      tmb = TMB_;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    thisTMB = tmbVector[tmb];
+    //
+    MyTest.SetTMB(thisTMB);
+    MyTest.SetDMB(thisDMB);
+    MyTest.SetCCB(thisCCB);
+    //
+    MyTest.FindALCT_L1A_delay(50,100);
     //
     this->CrateTests(in,out);
     //
@@ -1235,7 +1296,7 @@ public:
     throw (xgi::exception::Exception)
   {
     //
-    cout << "TMBL1aTiming" << endl;
+    cout << "ALCTvpf" << endl;
     //
     cgicc::Cgicc cgi(in);
     //

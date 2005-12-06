@@ -64,6 +64,7 @@ public:
   inline int  GetTMBL1aTiming(){ return TMBL1aTiming_; }
   inline int  GetALCTvpf(){ return ALCTvpf_; }
   inline int  GetBestALCTL1aDelay(){ return BestALCTL1aDelay_; }
+  inline int  GetALCTL1aDelay(){ return ALCTL1aDelay_; }
   //
 private:
   //
@@ -79,6 +80,7 @@ private:
   int TMBL1aTiming_;
   int ALCTvpf_;
   int BestALCTL1aDelay_;
+  int ALCTL1aDelay_;
   int CFEBrxPhase_[5];
   int CFEBStripScan_[5][32];
   int ALCTWireScan_[112];
