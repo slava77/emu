@@ -1,7 +1,10 @@
 #ifndef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.3 2005/12/02 18:12:19 mey Exp $
+// $Id: VMEModule.cc,v 2.4 2005/12/06 15:32:09 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.4  2005/12/06 15:32:09  mey
+// Fix bug
+//
 // Revision 2.3  2005/12/02 18:12:19  mey
 // get rid of D360
 //
@@ -87,8 +90,10 @@ void VMEModule::do_vme(char fcn, char vme,
   theController->start(this);
   Tdata[cnt]=fcn;
   Tdata[cnt+1]=vme;
-  Tdata[cnt+2]=snd[0];
-  Tdata[cnt+3]=snd[1];
+  if(fcn==VME_WRITE){
+    Tdata[cnt+2]=snd[0];
+    Tdata[cnt+3]=snd[1];
+  }
   cnt += 4;
   assert(cnt < TDATASIZE);
   ///@@ might be a bug with ORed codes in fcn
@@ -151,8 +156,11 @@ VMEController* VMEModule::getTheController(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.3 2005/12/02 18:12:19 mey Exp $
+// $Id: VMEModule.cc,v 2.4 2005/12/06 15:32:09 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.4  2005/12/06 15:32:09  mey
+// Fix bug
+//
 // Revision 2.3  2005/12/02 18:12:19  mey
 // get rid of D360
 //
