@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.11 2005/10/04 16:02:15 mey Exp $
+// $Id: DAQMB.h,v 2.12 2005/12/06 17:58:19 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.12  2005/12/06 17:58:19  mey
+// Update
+//
 // Revision 2.11  2005/10/04 16:02:15  mey
 // Added Output
 //
@@ -78,6 +81,8 @@ public:
 
 // DAQMB constants&resets
 
+  void trigset2(int, int [] );
+  void trgfire();
   void load_strip();
   void setcrateid(int dword);
   void setfebdelay(int dword);

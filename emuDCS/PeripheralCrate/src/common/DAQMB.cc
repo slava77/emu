@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.19 2005/12/05 13:20:58 mey Exp $
+// $Id: DAQMB.cc,v 2.20 2005/12/06 17:58:26 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.20  2005/12/06 17:58:26  mey
+// Update
+//
 // Revision 2.19  2005/12/05 13:20:58  mey
 // Got rid of flush_vme
 //
@@ -2347,6 +2350,72 @@ void DAQMB::cbldly_init(){
          devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
          cmd[0]=VTX_BYPASS;
          devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+}
+
+void DAQMB::trigset2(int nset, int iuse[5])
+{
+  int i,j,k;
+  char tsndbuf[512];
+  //
+  //  printf(" Loading Motherboard trigger register...");
+  /* load trigger pattern */
+  //
+  for(i=0;i<512;i++){
+    tsndbuf[i]=0;
+  }
+  //
+  /*
+  if(nset<2)tsndbuf[4]=0x03;
+  if(nset<3)tsndbuf[10]=0x03;
+  if(nset<4)tsndbuf[44]=0x03;
+  */
+  if (nset>0) tsndbuf[4]=0x03;
+  if (nset>1) tsndbuf[7]=0x03;
+  //
+  //  if (nset>1) tsndbuf[40]=0x03;
+  //  if (nset>1) tsndbuf[60]=0x03;
+  //
+  if (nset>2) tsndbuf[44]=0x03;
+  //
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=LOAD_TRIG;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0); 
+  for(i=0;i<512;i++)sndbuf[i]=tsndbuf[i]&0xFF;
+  cmd[0]=VTX2_USR2;
+  devdo(MCTRL,6,cmd,4096,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=LOAD_STR;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR2;
+  j=0;
+  k=1;
+  for(i=0;i<5;i++){if(iuse[i]==1)j=j+k;k=k*2;}
+  //  printf(" here is what we set %d \n",j);
+  sndbuf[0]=j;
+  devdo(MCTRL,6,cmd,5,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_BYPASS;
+  sndbuf[0]=0;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  //
+}
+
+
+void DAQMB::trgfire()
+{
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=CYCLE_TRIG;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,1);
+  /*    printf(" Returned from CYCLYE_TRIG instr: %02X  \n",rcvbuf[0]&0xFF); */
+  cmd[0]=VTX2_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR2;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,1);
+  /*  printf(" Returned from NOOP instr: %02X  \n",rcvbuf[0]&0xFF);*/
+  cmd[0]=VTX2_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
 }
 
 void DAQMB::cbldly_trig(){
