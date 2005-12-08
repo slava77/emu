@@ -1,7 +1,10 @@
 #ifndef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.4 2005/12/06 15:32:09 mey Exp $
+// $Id: VMEModule.cc,v 2.5 2005/12/08 12:00:32 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.5  2005/12/08 12:00:32  mey
+// Update
+//
 // Revision 2.4  2005/12/06 15:32:09  mey
 // Fix bug
 //
@@ -87,12 +90,23 @@ void VMEModule::endDevice() {
 
 void VMEModule::do_vme(char fcn, char vme, 
                        const char *snd,char *rcv, int when) {
+  char tmp;
+
   theController->start(this);
   Tdata[cnt]=fcn;
   Tdata[cnt+1]=vme;
+       Tdata[cnt+2]=snd[0];
+       Tdata[cnt+3]=snd[1];
   if(fcn==VME_WRITE){
-    Tdata[cnt+2]=snd[0];
-    Tdata[cnt+3]=snd[1];
+// Jinghua Liu, add byte swap for MPC. Dec.7,2005
+    if(boardType()==MPC_ENUM) {
+       Tdata[cnt+2]=snd[0];
+       Tdata[cnt+3]=snd[1];
+    }
+    else {
+       Tdata[cnt+2]=snd[0];
+       Tdata[cnt+3]=snd[1];
+    }
   }
   cnt += 4;
   assert(cnt < TDATASIZE);
@@ -102,7 +116,14 @@ void VMEModule::do_vme(char fcn, char vme,
   cnt=0;
   if(fcn==VME_READ){
     theController->readn(rcv);
+    if(boardType()==MPC_ENUM) {
+//       tmp=rcv[0];
+//       rcv[0]=rcv[1];
+//       rcv[1]=tmp;
+    }
   }
+  if(boardType()==MPC_ENUM) theController->end();
+
 }
 
 int VMEModule::readn(char *line) {
@@ -156,8 +177,11 @@ VMEController* VMEModule::getTheController(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.4 2005/12/06 15:32:09 mey Exp $
+// $Id: VMEModule.cc,v 2.5 2005/12/08 12:00:32 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.5  2005/12/08 12:00:32  mey
+// Update
+//
 // Revision 2.4  2005/12/06 15:32:09  mey
 // Fix bug
 //
