@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.7 2005/12/08 12:00:16 mey Exp $
+// $Id: MPC.h,v 2.8 2005/12/10 04:47:21 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.8  2005/12/10 04:47:21  mey
+// Fix bug
+//
 // Revision 2.7  2005/12/08 12:00:16  mey
 // Update
 //
@@ -45,7 +48,7 @@ class MPC : public VMEModule {
   virtual unsigned int boardType() const {return MPC_ENUM;} 
   
   void init();
-
+  inline void RedirectOutput(std::ostream * Output) { }
   void WriteRegister(int,int);
   int  ReadRegister(int);
 
@@ -150,8 +153,11 @@ class MPC : public VMEModule {
 #else
 
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.7 2005/12/08 12:00:16 mey Exp $
+// $Id: MPC.h,v 2.8 2005/12/10 04:47:21 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.8  2005/12/10 04:47:21  mey
+// Fix bug
+//
 // Revision 2.7  2005/12/08 12:00:16  mey
 // Update
 //

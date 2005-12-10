@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.35 2005/12/05 18:11:26 mey Exp $
+// $Id: tmbtiming.cpp,v 2.36 2005/12/10 04:47:44 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.36  2005/12/10 04:47:44  mey
+// Fix bug
+//
 // Revision 2.35  2005/12/05 18:11:26  mey
 // UPdate
 //
@@ -2875,7 +2878,7 @@ void PulseRandomALCT(){
   //
 }	      
 
-
+//
 void PulseTestStrips(){
   //
    int slot = thisTMB->slot();
@@ -2913,21 +2916,21 @@ void PulseTestStrips(){
 	 //
 	  alct->alct_set_test_pulse_stripmask(&slot,0x00);
 	  alct->alct_set_test_pulse_groupmask(&slot,0xff);
-	 //
+	  //
 	  alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
-	 cout << " StripMask = " << hex << StripMask << endl;
-	 //
+	  cout << " StripMask = " << hex << StripMask << endl;
+	  //
 	  alct->alct_read_test_pulse_powerup(&slot,&PowerUp);
 	  cout << " PowerUp   = " << hex << PowerUp << dec << endl; //11July05 DM added dec
-	 //
-	 alct->alct_fire_test_pulse('a');
-	 //
-	 alct->alct_set_test_pulse_powerup(&slot,1);
-	 //
-	 beginning = 1;
-	 //
-	 PulseTestStrips();
-	 //
+	  //
+	  alct->alct_fire_test_pulse('a');
+	  //
+	  alct->alct_set_test_pulse_powerup(&slot,1);
+	  //
+	  beginning = 1;
+	  //
+	  PulseTestStrips();
+	  //
       } else {
 	//
 	//alct->alct_set_test_pulse_powerup(&slot,PowerUp);
@@ -2935,7 +2938,7 @@ void PulseTestStrips(){
 	//
 	thisCCB->setCCBMode(CCB::VMEFPGA);
 	thisCCB->WriteRegister(0x28,0x7862);  //4Aug05 DM changed 0x789b to 0x7862
-	                                        //July05 changed 0x7878 to 0x789b
+	                                      //July05 changed 0x7878 to 0x789b
 	
 	                                      
 	//
