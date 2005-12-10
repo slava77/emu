@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: calibpulse.cpp,v 2.5 2005/12/10 09:17:03 mey Exp $
+// $Id: calibpulse.cpp,v 2.6 2005/12/10 11:24:22 mey Exp $
 // $Log: calibpulse.cpp,v $
+// Revision 2.6  2005/12/10 11:24:22  mey
+// Update
+//
 // Revision 2.5  2005/12/10 09:17:03  mey
 // Update
 //
@@ -137,7 +140,11 @@ int main(int argc, char **argv)
 	utils.SetCCB(thisCCB);
 	utils.SetALCT(alct);
 	//
-	alct->set_empty(1);
+	std::cout << "Here" << std::endl;
+	alct->set_empty(0);
+	alct->set_l1a_internal(1);
+	std::cout << "Here2" << std::endl;
+	//
 	thisTMB->SetALCTPatternTrigger();
 	thisTMB->StartTTC();
 	//
@@ -151,6 +158,7 @@ int main(int argc, char **argv)
 	  thisTMB->DecodeCLCT();
 	  std::cout << "TMB WordCount   "  << thisTMB->GetWordCount()     << std::endl;
 	  std::cout << "ALCT WordCount  "  << thisTMB->GetALCTWordCount() <<std::endl;
+	  //thisTMB->ALCTRawhits();
 	  std::cout << std::endl;
 	}
 	//

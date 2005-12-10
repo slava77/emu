@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.5 2005/11/02 10:58:28 mey Exp $
+// $Id: ALCTController.h,v 2.6 2005/12/10 11:24:05 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.6  2005/12/10 11:24:05  mey
+// Update
+//
 // Revision 2.5  2005/11/02 10:58:28  mey
 // Update bxc_offset
 //
@@ -133,6 +136,7 @@ public:
   }
   // ==========================
   void set_empty(int);
+  void set_l1a_internal(int);
   //
   /// Set ALCT JTAG Channel
   int alct_fast_set_jtag_channel(int jtagchannel);
