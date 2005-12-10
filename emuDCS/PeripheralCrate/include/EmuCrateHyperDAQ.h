@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.17 2005/12/06 13:30:31 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.18 2005/12/10 04:47:09 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -199,7 +199,8 @@ public:
       //
       *out << std::endl;
       //
-      *out << cgicc::input().set("type","submit").set("value","Set configuration file local") << std::endl ;
+      *out << cgicc::input().set("type","submit")
+	.set("value","Set configuration file local") << std::endl ;
       *out << cgicc::form() << std::endl ;
       //
       // Upload file...
@@ -250,7 +251,8 @@ public:
 	toolbox::toString("/%s/Operator",getApplicationDescriptor()->getURN().c_str());
       //
       *out << cgicc::form().set("method","GET").set("action",Operator) << std::endl ;
-      *out << cgicc::input().set("type","text").set("name","Operator").set("size","20").set("value",Operator_) << std::endl ;
+      *out << cgicc::input().set("type","text").set("name","Operator")
+	.set("size","20").set("value",Operator_) << std::endl ;
       *out << "Operator" << std::endl;
       *out << cgicc::form() << std::endl ;
       //
@@ -278,7 +280,8 @@ public:
 	*out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
 	*out << std::endl;
 	//
-	*out << cgicc::legend("Crate Configuration...").set("style","color:blue") << cgicc::p() << std::endl ;
+	*out << cgicc::legend("Crate Configuration...").set("style","color:blue") << 
+	  cgicc::p() << std::endl ;
 	//
 	for(int ii=1; ii<22; ii++) {
 	  //
@@ -303,7 +306,8 @@ public:
 	    *out << cgicc::td();
 	    *out << "CCB Board ID" ;
 	    *out << cgicc::form().set("method","GET").set("action",CCBBoardID) << std::endl ;
-	    *out << cgicc::input().set("type","text").set("name","CCBBoardID").set("value",CCBBoardID_) << std::endl ;
+	    *out << cgicc::input().set("type","text").set("name","CCBBoardID")
+	      .set("value",CCBBoardID_) << std::endl ;
 	    *out << cgicc::form() << std::endl ;
 	    *out << cgicc::td();
 	    //
@@ -803,7 +807,7 @@ public:
       DMB_ = dmb;
     }
     //
-    thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
+    thisDMB->RedirectOutput(&std::cout);
     thisDMB->PrintCounters(1);
     thisDMB->RedirectOutput(&std::cout);
     //
@@ -2734,7 +2738,7 @@ public:
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << endl ;
     //
-    *out << cgicc::legend("DMB Tests").set("style","color:blue") ;
+    *out << cgicc::legend("DMB Utils").set("style","color:blue") ;
     //
     *out << cgicc::table().set("border","1");
     //
@@ -2795,6 +2799,8 @@ public:
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::fieldset();
     //
   }
   //
