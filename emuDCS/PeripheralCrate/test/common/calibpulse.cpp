@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: calibpulse.cpp,v 2.3 2005/12/10 04:51:38 mey Exp $
+// $Id: calibpulse.cpp,v 2.4 2005/12/10 08:49:09 mey Exp $
 // $Log: calibpulse.cpp,v $
+// Revision 2.4  2005/12/10 08:49:09  mey
+// Update
+//
 // Revision 2.3  2005/12/10 04:51:38  mey
 // Update
 //
@@ -82,6 +85,8 @@ int main(int argc, char **argv)
   vector<DAQMB*> dmbVector;
   Crate *thisCrate;
   //
+  int npulses = 10;
+  //
   vector<Crate*> crateVector = theSelector.crates();
   thisCrate = crateVector[0];
   tmbVector = theSelector.tmbs(crateVector[0]);
@@ -130,10 +135,13 @@ int main(int argc, char **argv)
 	utils.SetALCT(alct);
 	//
 	thisTMB->SetALCTPatternTrigger();
-	thisTMB->ResetALCTRAMAddress();
-	utils.PulseTestStrips();
-	printf("Decode ALCT\n");
-	thisTMB->DecodeALCT();
+	//
+	for (int i=0; i<npulses; i++) {
+	  thisTMB->ResetALCTRAMAddress();
+	  utils.PulseTestStrips();
+	  printf("Decode ALCT\n");
+	  thisTMB->DecodeALCT();
+	}
 	//
       }
     }
