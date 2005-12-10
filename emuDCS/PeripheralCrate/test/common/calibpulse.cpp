@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: calibpulse.cpp,v 2.2 2005/12/10 04:47:36 mey Exp $
+// $Id: calibpulse.cpp,v 2.3 2005/12/10 04:51:38 mey Exp $
 // $Log: calibpulse.cpp,v $
+// Revision 2.3  2005/12/10 04:51:38  mey
+// Update
+//
 // Revision 2.2  2005/12/10 04:47:36  mey
 // Fix bug
 //
@@ -38,14 +41,14 @@ using namespace std;
 int main(int argc, char **argv)
 {
   char * xmlfile;
-  if (argv[1]) {
-    xmlfile = argv[1];
-  }
-  else {
-    std::cout <<" xml filepath is missing! " << std::endl;
-    std::cout <<" usage: calibpulse.exe filepath " << std::endl;
+  //if (argv[1]) {
+  //xmlfile = argv[1];
+  //}
+  //else {
+  //std::cout <<" xml filepath is missing! " << std::endl;
+  //std::cout <<" usage: calibpulse.exe filepath " << std::endl;
     //    return 0;
-  }
+  //}
 
   bool doPulsealct = false;
   bool doPulsecfeb = false;
@@ -131,8 +134,6 @@ int main(int argc, char **argv)
 	utils.PulseTestStrips();
 	printf("Decode ALCT\n");
 	thisTMB->DecodeALCT();
-	printf("Decode TMB\n");
-	thisTMB->DecodeTMB();
 	//
       }
     }
