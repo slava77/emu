@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.14 2005/12/02 18:12:41 mey Exp $
+// $Id: ALCTController.cc,v 2.15 2005/12/10 11:24:14 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.15  2005/12/10 11:24:14  mey
+// Update
+//
 // Revision 2.14  2005/12/02 18:12:41  mey
 // get rid of D360
 //
@@ -3326,7 +3329,26 @@ void ALCTController::set_empty(int empty){
   //
   GetConf(cr,1);
   //
-  cr[0] = cr[0]&0xfffffffb | ((empty&0x1)<<3) ;
+  cr[0] = cr[0]&0xfffffff7 | ((empty&0x1)<<3) ;
+  //
+  SetConf(cr,1);
+  unpackControlRegister(cr);
+  //
+}
+
+void ALCTController::set_l1a_internal(int internal){
+  //
+  unsigned cr[3];
+  //
+  GetConf(cr,1);
+  //
+  printf("cr[1] %x \n",cr[1]);
+  //
+  printf("internal %d \n",internal); 
+  //
+  cr[1] = cr[1]&0xffefffff | ((internal&0x1)<<20) ;
+  //
+  printf("cr[1] %x \n",cr[1]);
   //
   SetConf(cr,1);
   unpackControlRegister(cr);
