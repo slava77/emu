@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateUtilities.cc,v 1.3 2005/12/06 13:30:10 mey Exp $
+// $Id: CrateUtilities.cc,v 1.4 2005/12/14 08:32:36 mey Exp $
 // $Log: CrateUtilities.cc,v $
+// Revision 1.4  2005/12/14 08:32:36  mey
+// Update
+//
 // Revision 1.3  2005/12/06 13:30:10  mey
 // Update
 //
@@ -1304,7 +1307,7 @@ void CrateUtilities::PulseTestStrips(){
 	thisCCB->ReadRegister(0x28);
 	thisCCB->WriteRegister(0x20,0x01);
 	thisCCB->GenerateAlctAdbSync();	 
-	thisCCB->setCCBMode(CCB::DLOG);  
+	//thisCCB->setCCBMode(CCB::DLOG);  
 	//
       }
       //
