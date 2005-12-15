@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.12 2005/11/25 23:42:26 mey Exp $
+// $Id: CCB.cc,v 2.13 2005/12/15 14:22:56 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.13  2005/12/15 14:22:56  mey
+// Update
+//
 // Revision 2.12  2005/11/25 23:42:26  mey
 // Update
 //
@@ -60,7 +63,7 @@ CCB::CCB(int newcrate ,int slot, int version)
   CLK_INIT_FLAG(0),
   BX_Orbit_(924),
   SPS25ns_(0),
-  TTCrxID_(0x0108),
+  TTCrxID_(0x010e),
   l1aDelay_(0),
   mDebug(false)
 {

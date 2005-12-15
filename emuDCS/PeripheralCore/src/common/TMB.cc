@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.23 2005/12/05 18:11:17 mey Exp $
+// $Id: TMB.cc,v 2.24 2005/12/15 14:25:09 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.24  2005/12/15 14:25:09  mey
+// Update
+//
 // Revision 2.23  2005/12/05 18:11:17  mey
 // UPdate
 //
@@ -450,11 +453,11 @@ void TMB::DecodeALCT(){
    alct0_first_bxn_ = (data>>11)&0x3 ;
    //
    (*MyOutput_) << " alct0      = " << data << std::endl;
-   printf(" valid      = %d  \n",alct0_valid_);
-   printf(" quality    = %d  \n",alct0_quality_);
-   printf(" amu        = %d  \n",alct0_amu_);
-   printf(" first_key  = %d  \n",alct0_first_key_);
-   printf(" first_bxn  = %d  \n",alct0_first_bxn_);
+   (*MyOutput_) << " valid      = " << alct0_valid_ << std::endl;
+   (*MyOutput_) << " quality    = " << alct0_quality_ << std::endl ;
+   (*MyOutput_) << " amu        = " << alct0_amu_ << std::endl ;
+   (*MyOutput_) << " first_key  = " << alct0_first_key_ << std::endl;
+   (*MyOutput_) << " first_bxn  = " << alct0_first_bxn_ << std::endl;
    (*MyOutput_) << std::endl;
    //
    tmb_vme(VME_READ,alct_alct1_adr,sndbuf,rcvbuf,NOW);
@@ -467,12 +470,12 @@ void TMB::DecodeALCT(){
    alct1_second_key_ = (data>>4)&0x7f;
    alct1_second_bxn_ = (data>>11)&0x3 ;
    //
-   printf(" alct1      = %8x \n",data);
-   printf(" valid      = %d  \n",alct1_valid_);
-   printf(" quality    = %d  \n",alct1_quality_);
-   printf(" amu        = %d  \n",alct1_amu_);
-   printf(" second_key = %d  \n",alct1_second_key_);
-   printf(" second_bxn = %d  \n",alct1_second_bxn_);
+   (*MyOutput_) << " alct1      = " << data << std::endl ;
+   (*MyOutput_) << " valid      = " << alct1_valid_ << std::endl ;
+   (*MyOutput_) << " quality    = " << alct1_quality_ << std::endl ;
+   (*MyOutput_) << " amu        = " << alct1_amu_ << std::endl ;
+   (*MyOutput_) << " second_key = " << alct1_second_key_ << std::endl ;
+   (*MyOutput_) << " second_bxn = " << alct1_second_bxn_ << std::endl ;
    //
 }
 //
@@ -1782,6 +1785,7 @@ void TMB::ALCTRawhits(){
   std::vector < std::bitset<16> > alct_data;
   
   //Clear RAM address for next event and set sync bit
+  /*
   adr = alctfifo1_adr ;
   wr_data  = 0x1; //reset RAM write address
   wr_data |= 0x1000;  // Set sync mode
@@ -1793,132 +1797,139 @@ void TMB::ALCTRawhits(){
   sndbuf[0] = (wr_data & 0xff00)>>8 ;
   sndbuf[1] = wr_data & 0x00ff ;
   tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+  */
   //
   sleep(2);
   //
-  while ( 1 < 2 ) {
+  //while ( 1 < 2 ) {
     //
     // Pretrigger halt
+    //
+  adr = seq_clct_adr ;
+  tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
+  rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
+  printf(" Start loop tmb_state machine  = %4ld\n",(rd_data>>15)&0x1);
+  sndbuf[0] = (rcvbuf[0] & 0x7f) | 0x80 ;
+  sndbuf[1] = rcvbuf[1];
+  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+  //
+  adr = seqsm_adr ;
+  tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
+  rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
+  tmb_state     = (rd_data & 0x7);
+  //
+  adr = seq_clct_adr ;
+  tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
+  rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
+  halt_state = ((rd_data>>15)&0x1);
+  //
+  adr = alct_fifo_adr ;
+  tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
+  rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
+  alct_wdcnt = (rd_data >> 2 ) & 0x1ff;
+  alct_busy  = rd_data & 0x0001;
+  //
+  printf("   word count         = %4ld\n",alct_wdcnt);
+  printf("   busy               = %4ld\n",alct_busy);
+  printf("   tmb_state machine  = %4ld\n",tmb_state);
+  printf("   halt_state         = %4ld\n",halt_state);   
+  //
+  while((alct_busy) || (tmb_state != 7 )) {
+    //
+    adr = seqsm_adr ;
+    tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
+    rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
+    tmb_state     = (rd_data & 0x7);
     //
     adr = seq_clct_adr ;
     tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
     rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-    printf(" Start loop tmb_state machine  = %4ld\n",(rd_data>>15)&0x1);
-    sndbuf[0] = (rcvbuf[0] & 0x7f) | 0x80 ;
-      sndbuf[1] = rcvbuf[1];
-      tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-      //
-      adr = seqsm_adr ;
-      tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-      rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-      tmb_state     = (rd_data & 0x7);
-      //
-      adr = seq_clct_adr ;
-      tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-      rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-      halt_state = ((rd_data>>15)&0x1);
-      //
-      adr = alct_fifo_adr ;
-      tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-      rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-      alct_wdcnt = (rd_data >> 2 ) & 0x1ff;
-      alct_busy  = rd_data & 0x0001;
-      //
-      printf("   word count         = %4ld\n",alct_wdcnt);
-      printf("   busy               = %4ld\n",alct_busy);
-      printf("   tmb_state machine  = %4ld\n",tmb_state);
-      printf("   halt_state         = %4ld\n",halt_state);   
-      //
-      while((alct_busy) || (tmb_state != 7 )) {
-	 //
-	 adr = seqsm_adr ;
-	 tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-	 rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-	 tmb_state     = (rd_data & 0x7);
-	 //
-	 adr = seq_clct_adr ;
-	 tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-	 rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-	 halt_state = ((rd_data>>15)&0x1);
-	 //
-	 adr = alct_fifo_adr ;
-	 tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-	 rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-	 alct_wdcnt = (rd_data >> 2 ) & 0x1ff;
-	 alct_busy  = rd_data & 0x0001;
-	 //
-	 printf("   word count = %4ld\n",alct_wdcnt);
-	 printf("   busy       = %4ld\n",alct_busy);
-	 printf("   tmb_state machine  = %4ld\n",tmb_state);
-	 printf("   halt_state         = %4ld\n",halt_state);   
-	 //
-      }
-      //Write RAM read address to TMB
-      for(int i=0;i<alct_wdcnt;i++) {
-	 adr = alctfifo1_adr ;
-	 wr_data = (i & 0x7FFF) << 1;
-	 wr_data |= 0x1000;  // Set sync mode
-	 sndbuf[0] = (wr_data & 0xff00)>>8 ;
-	 sndbuf[1] = wr_data & 0x00ff ;
-	 tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+    halt_state = ((rd_data>>15)&0x1);
+    //
+    adr = alct_fifo_adr ;
+    tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
+    rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
+    alct_wdcnt = (rd_data >> 2 ) & 0x1ff;
+    alct_busy  = rd_data & 0x0001;
+    //
+    printf("   word count = %4ld\n",alct_wdcnt);
+    printf("   busy       = %4ld\n",alct_busy);
+    printf("   tmb_state machine  = %4ld\n",tmb_state);
+    printf("   halt_state         = %4ld\n",halt_state);   
+    //
+  }
+  //Write RAM read address to TMB
+  for(int i=0;i<alct_wdcnt;i++) {
+    //
+    adr = alctfifo1_adr ;
+    wr_data = (i & 0x7FFF) << 1;
+    wr_data |= 0x1000;  // Set sync mode
+    wr_data |= 0x0000;  // Disable sync mode
+    sndbuf[0] = (wr_data & 0xff00)>>8 ;
+    sndbuf[1] = wr_data & 0x00ff ;
+    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+    
+    //Read RAM data from TMB
+    adr = alctfifo2_adr ;
+    tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);     //read lsbs
+    rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
+    alct_rdata = rd_data;
+    
+    printf("Adr=%4ld, Data=%5lx\n",i,alct_rdata);
+    alct_data.push_back((std::bitset<16>)alct_rdata);
+  }
+  //
+  if ( alct_wdcnt > 0 ) {
+    
+    printf("The size is %d\n",alct_data.size());
+	
+    int CRC_end  = alct_data.size();
+    int CRC_low  = (alct_data[CRC_end-4].to_ulong()) &0x7ff ;
+    int CRC_high = (alct_data[CRC_end-3].to_ulong()) &0x7ff ;
+    int CRCdata  = (CRC_high<<11) | CRC_low ;
+    
+    int CRCcalc = TMBCRCcalc(alct_data) ;
+    
+    printf(" CRC %x \n",CRCcalc);
+    printf(" CRC in data stream %x %x %x \n",alct_data[CRC_end-4].to_ulong(),
+	   alct_data[CRC_end-3].to_ulong(),CRCdata);
 	 
-	 //Read RAM data from TMB
-	 adr = alctfifo2_adr ;
-	 tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);     //read lsbs
-	 rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-	 alct_rdata = rd_data;
-	 
-	 printf("Adr=%4ld, Data=%5lx\n",i,alct_rdata);
-	 alct_data.push_back((std::bitset<16>)alct_rdata);
-      }
-
-      if ( alct_wdcnt > 0 ) {
-      
-	 printf("The size is %d\n",alct_data.size());
-	 
-	 int CRC_end  = alct_data.size();
-	 int CRC_low  = (alct_data[CRC_end-4].to_ulong()) &0x7ff ;
-	 int CRC_high = (alct_data[CRC_end-3].to_ulong()) &0x7ff ;
-	 int CRCdata  = (CRC_high<<11) | CRC_low ;
-	 
-	 int CRCcalc = TMBCRCcalc(alct_data) ;
-	 
-	 printf(" CRC %x \n",CRCcalc);
-	 printf(" CRC in data stream %x %x %x \n",alct_data[CRC_end-4].to_ulong(),alct_data[CRC_end-3].to_ulong(),CRCdata);
-	 
-	 if ( CRCcalc != CRCdata ) {
-	    printf("ALCT CRC doesn't agree \n");
-	 } else {
-	    printf("ALCT CRC does    agree \n");
+    if ( CRCcalc != CRCdata ) {
+      printf("ALCT CRC doesn't agree \n");
+    } else {
+      printf("ALCT CRC does    agree \n");
 	 }
-	 
-      }
-      
-      alct_data.clear();
-      
-      //Clear RAM address for next event
-      adr = alctfifo1_adr ;
-      wr_data = 0x1; //reset RAM write address
-      sndbuf[0] = (wr_data & 0xff00)>>8 ;
-      sndbuf[1] = wr_data & 0x00ff ;
-      tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-      wr_data = 0x0; //unreset
-      sndbuf[0] = (wr_data & 0xff00)>>8 ;
-      sndbuf[1] = wr_data & 0x00ff ;
-      tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-      //
-
-      // Pretrigger unhalt
-      
-      adr = seq_clct_adr ;
-      tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-      rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-      sndbuf[0] = (rcvbuf[0] & 0x7f) ;
-      sndbuf[1] = rcvbuf[1];
-      tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-      
-   }
-}      
+    
+  }
+  
+  alct_data.clear();
+  
+  //Clear RAM address for next event
+  /*
+    adr = alctfifo1_adr ;
+    wr_data = 0x1; //reset RAM write address
+    sndbuf[0] = (wr_data & 0xff00)>>8 ;
+    sndbuf[1] = wr_data & 0x00ff ;
+    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+    wr_data = 0x0; //unreset
+    sndbuf[0] = (wr_data & 0xff00)>>8 ;
+    sndbuf[1] = wr_data & 0x00ff ;
+    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+  */
+  //
+  
+  // Pretrigger unhalt
+  
+  adr = seq_clct_adr ;
+  tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
+  rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
+  sndbuf[0] = (rcvbuf[0] & 0x7f) ;
+  sndbuf[1] = rcvbuf[1];
+  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+  
+  //}
+} 
+//
 void TMB::ResetALCTRAMAddress(){
    //
    //Clear RAM address for next event
