@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.20 2005/12/06 17:58:26 mey Exp $
+// $Id: DAQMB.cc,v 2.21 2005/12/15 14:23:34 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.21  2005/12/15 14:23:34  mey
+// Update
+//
 // Revision 2.20  2005/12/06 17:58:26  mey
 // Update
 //
@@ -778,20 +781,20 @@ void DAQMB::settrgsrc(int dword)
 /* DAQMB   Voltages  */
 
 float DAQMB::adcplus(int ichp,int ichn){
-  unsigned int ival= readADC(ichp, ichn);
+  unsigned int ival= (readADC(ichp, ichn)&0x0fff);
   return (float) ival;
 }
 
-
+//
 float DAQMB::adcminus(int ichp,int ichn){
-  short int ival= readADC(ichp, ichn);
+  short int ival= (readADC(ichp, ichn)&0x0fff);
   if((0x0800&ival)==0x0800)ival=ival|0xf000;
   float cval;
   cval = ival;
   return (float) ival;
 }
 
-
+//
 float DAQMB::adc16(int ichp,int ichn){
   unsigned int ival= readADC(ichp, ichn);
   float cval=ival*4.999924/65535.;

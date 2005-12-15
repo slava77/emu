@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.18 2005/12/10 04:47:09 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.19 2005/12/15 14:25:59 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1523,7 +1523,7 @@ public:
       vector<CFEB> thisCFEBs = thisDMB->cfebs();
       for (int i=0; i<thisCFEBs.size(); i++) {
 	thisDMB->febpromuser(thisCFEBs[i]);
-	thisDMB->epromload(thisCFEBs[i].promDevice(),"feb_v6_r1_samp8.svf",1,out);  // load mprom
+	thisDMB->epromload(thisCFEBs[i].promDevice(),"cfeb_v4_r2.svf",1,out);  // load mprom
       }
       //
     }
@@ -1713,7 +1713,7 @@ public:
 	      thisDMB->febpromuser(*cfebItr),
 	      thisDMB->febfpgauser(*cfebItr));
       //
-      if ( thisDMB->febfpgauser(*cfebItr) == 0xcfeb9061 ) {
+      if ( thisDMB->febfpgauser(*cfebItr) == 0xcfeba042 ) {
 	*out << cgicc::span().set("style","color:green");
 	*out << buf;
 	*out << cgicc::span();
@@ -2456,28 +2456,66 @@ public:
     *out << cgicc::table().set("border","1");;
     //
     *out << cgicc::td();
-    sprintf(buf,"DMB DAC1 = %3.1f ",thisDMB->adcplus(2,0));
+    float readout = thisDMB->adcplus(2,0) ;
+    sprintf(buf,"DMB DAC1 = %3.1f ",readout);
+    //
+    if ( readout > 3400 && readout < 3600 ) {
+      *out << cgicc::span().set("style","color:green");
+    } else {
+      *out << cgicc::span().set("style","color:red");
+    }
+    //
     *out << buf ;
+    *out << cgicc::span() ;
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"DMB DAC2 = %3.1f ",thisDMB->adcplus(2,1));
+    readout = thisDMB->adcplus(2,1) ;
+    sprintf(buf,"DMB DAC2 = %3.1f ",readout);
+    if ( readout < 3300 || readout > 3500 ) {
+      *out << cgicc::span().set("style","color:green");
+    } else {
+      *out << cgicc::span().set("style","color:red");
+    }
+    //
     *out << buf ;
+    *out << cgicc::span() ;
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"DMB DAC3 = %3.1f ",thisDMB->adcplus(2,2));
+    readout = thisDMB->adcplus(2,2) ;
+    sprintf(buf,"DMB DAC3 = %3.1f ",readout);
+    if ( readout < 3300 || readout > 3500 ) {
+      *out << cgicc::span().set("style","color:green");
+    } else {
+      *out << cgicc::span().set("style","color:red");
+    }
     *out << buf ;
+    *out << cgicc::span() ;
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"DMB DAC4 = %3.1f ",thisDMB->adcplus(2,3));
+    readout = thisDMB->adcplus(2,3) ;
+    sprintf(buf,"DMB DAC4 = %3.1f ",readout);
+    if ( readout < 3300 || readout > 3500 ) {
+      *out << cgicc::span().set("style","color:green");
+    } else {
+      *out << cgicc::span().set("style","color:red");
+    }
     *out << buf ;
+    *out << cgicc::span() ;
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"DMB DAC5 = %3.1f ",thisDMB->adcplus(2,4));
+    readout = thisDMB->adcplus(2,4) ;
+    sprintf(buf,"DMB DAC5 = %3.1f ",readout);
+    if ( readout < 3300 || readout > 3500 ) {
+      *out << cgicc::span().set("style","color:green");
+    } else {
+      *out << cgicc::span().set("style","color:red");
+    }
     *out << buf ;
+    *out << cgicc::span() ;
     *out << cgicc::td();
     //
     *out << cgicc::table();
@@ -2485,18 +2523,39 @@ public:
     *out << cgicc::table().set("border","1");;
     //
     *out << cgicc::td();
-    sprintf(buf,"1.8V Chip1 = %3.1f ",thisDMB->adcplus(1,6));
+    readout = thisDMB->adcplus(1,6) ;
+    sprintf(buf,"1.8V Chip1 = %3.1f ",readout);
+    if ( readout < 3300 || readout > 3500 ) {
+      *out << cgicc::span().set("style","color:green");
+    } else {
+      *out << cgicc::span().set("style","color:red");
+    }
     *out << buf ;
+    *out << cgicc::span() ;
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"1.8V Chip2 = %3.1f ",thisDMB->adcplus(2,6));
+    readout = thisDMB->adcplus(2,6) ;
+    sprintf(buf,"1.8V Chip2 = %3.1f ",readout);
+    if ( readout < 3300 || readout > 3500 ) {
+      *out << cgicc::span().set("style","color:green");
+    } else {
+      *out << cgicc::span().set("style","color:red");
+    }
     *out << buf ;
+    *out << cgicc::span() ;
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"1.8V Chip3 = %3.1f ",thisDMB->adcplus(3,6));
+    readout = thisDMB->adcplus(3,6) ;
+    sprintf(buf,"1.8V Chip3 = %3.1f ",readout);
+    if ( readout < 3300 || readout > 3500 ) {
+      *out << cgicc::span().set("style","color:green");
+    } else {
+      *out << cgicc::span().set("style","color:red");
+    }
     *out << buf ;
+    *out << cgicc::span() ;
     *out << cgicc::td();
     //
     *out << cgicc::table();
