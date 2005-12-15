@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.9 2005/12/05 13:21:14 mey Exp $
+// $Id: VMEController.cc,v 2.10 2005/12/15 14:32:21 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.10  2005/12/15 14:32:21  mey
+// Update
+//
 // Revision 2.9  2005/12/05 13:21:14  mey
 // Update
 //
@@ -278,8 +281,11 @@ VMEModule* VMEController::getTheCurrentModule(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.9 2005/12/05 13:21:14 mey Exp $
+// $Id: VMEController.cc,v 2.10 2005/12/15 14:32:21 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.10  2005/12/15 14:32:21  mey
+// Update
+//
 // Revision 2.9  2005/12/05 13:21:14  mey
 // Update
 //
@@ -461,7 +467,8 @@ VMEModule* VMEController::getTheCurrentModule(){
 
 int udelay(long int itim)
 {
-  usleep(100);
+  usleep(300);
+  std::cout << "Udelay..." << std::endl;
   std::cout << "Waiting...." << std::endl;
   std::cout << "udelay..." << itim << std::endl;;
   struct  timeval tp;

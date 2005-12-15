@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.36 2005/12/10 04:47:44 mey Exp $
+// $Id: tmbtiming.cpp,v 2.37 2005/12/15 14:34:12 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.37  2005/12/15 14:34:12  mey
+// Update
+//
 // Revision 2.36  2005/12/10 04:47:44  mey
 // Fix bug
 //
@@ -249,6 +252,7 @@ int main(int argc,char **argv){
   bool doSetCableDelay(false);
   bool doWriteSFM(false);
   bool doReadTTCrxID(false);
+  bool doReadTTCrxRegs(false);
   bool dodaqmb_promfpga_dump(false);
   bool dodaqmb_adc_dump(false);
   bool dodaqmb_lowv_dump(false);
@@ -259,6 +263,8 @@ int main(int argc,char **argv){
   bool doLoadALCTFirmware(false);
   bool doLoadTMBFirmware(false);
   bool doLoadCFEBFirmware(false);
+  bool doCrazyTMB(false);
+  bool doDecodeALCT(false);
   //
   //-- read commandline arguments and xml configuration file
   //
@@ -432,7 +438,8 @@ int main(int argc,char **argv){
        cout << " 49:daqmb_promfpga_dump  50:daqmb_adc_dump        51:damb_lowv_dump    " << endl;
        cout << " 52:ccb_firmware_version 53:WriteMPCRegister      54:ReadMPCRegister   " << std::endl;
        cout << " 55:LoadDMBFirmware      56:LoadALCTfirmware      57:LoadTMBFirmware   " << std::endl;
-       cout << " 58:LoadCFEBFirmware     " << std::endl;
+       cout << " 58:LoadCFEBFirmware     59:doCrazyCrate          60:DumpTTCrxRegs     " << std::endl;
+       cout << " 61:DecodeALCT        " <<std::endl;
        //
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
@@ -490,6 +497,7 @@ int main(int argc,char **argv){
        doSetCableDelay       = false;
        doWriteSFM            = false;
        doReadTTCrxID         = false;
+       doReadTTCrxRegs       = false;
        dodaqmb_promfpga_dump = false;
        dodaqmb_adc_dump      = false;
        dodaqmb_lowv_dump     = false;
@@ -499,7 +507,8 @@ int main(int argc,char **argv){
        doLoadDMBFirmware     = false;
        doLoadALCTFirmware    = false;
        doLoadTMBFirmware     = false;
-       doLoadCFEBFirmware     = false;
+       doLoadCFEBFirmware    = false;
+       doDecodeALCT          = false;
        //
        if ( Menu == -1 ) goto outhere;
        if ( Menu == 0 ) doInitSystem           = true ;
@@ -554,14 +563,17 @@ int main(int argc,char **argv){
        if ( Menu == 49) dodaqmb_promfpga_dump  = true ;
        if ( Menu == 50) dodaqmb_adc_dump       = true ;
        if ( Menu == 51) dodaqmb_lowv_dump      = true ;
-       if ( Menu == 52) doccb_firmware_version      = true ;
+       if ( Menu == 52) doccb_firmware_version = true ;
        if ( Menu == 53) doWriteMPCRegister     = true ;
        if ( Menu == 54) doReadMPCRegister      = true ;
        if ( Menu == 55) doLoadDMBFirmware      = true ;
        if ( Menu == 56) doLoadALCTFirmware     = true ;
        if ( Menu == 57) doLoadTMBFirmware      = true ;
        if ( Menu == 58) doLoadCFEBFirmware     = true ;
-       if ( Menu  > 59 | Menu < -2) 
+       if ( Menu == 59) doCrazyTMB             = true ;
+       if ( Menu == 60) doReadTTCrxRegs        = true ;
+       if ( Menu == 61) doDecodeALCT           = true ;
+       if ( Menu  > 61 | Menu < -2) 
 	 cout << "Invalid menu choice, try again." << endl << endl;
        //
     }
@@ -598,6 +610,22 @@ int main(int argc,char **argv){
       //
     }
     //
+    if(doCrazyTMB){
+      //
+      std::cout << "Looping " << std::endl;
+      //
+      for(int i=0; i<100000; i++) {
+	//
+	thisTMB->WriteRegister(0x16,0x1234);
+	//
+	thisDMB->setcrateid(10);
+	//
+	thisCCB->WriteRegister(0x0,0x1234);
+	//
+      }
+      //
+    }
+    //
     if(doLoadTMBFirmware) {
       //
       //thisTMB->disableAllClocks();
@@ -622,10 +650,13 @@ int main(int argc,char **argv){
       char out[10];
       thisCCB->firmwareVersion();
       vector<CFEB> thisCFEBs = thisDMB->cfebs();
-      for (int i=0; i<thisCFEBs.size(); i++) {
+      int i=0;
+      cout << "Welcher CFEB ?" << endl;
+      cin >> i;
+      //for (int i=0; i<thisCFEBs.size(); i++) {
 	thisDMB->febpromuser(thisCFEBs[i]);
-	thisDMB->epromload(thisCFEBs[i].promDevice(),"feb_v6_r1_samp8.svf",1,out);  // load mprom
-      }
+	thisDMB->epromload(thisCFEBs[i].promDevice(),"cfeb_v4_r2.svf",1,out);  // load mprom
+	//}
       //thisCCB->firmwareVersion();
     }
     //
@@ -633,7 +664,9 @@ int main(int argc,char **argv){
       char out[10];
       thisCCB->firmwareVersion();
       thisDMB->epromload(MPROM,"dmb6cntl_v17_r2.svf",1,out);  // load mprom
+      //
       //thisCCB->firmwareVersion();
+      //
     }
     //
     if(doccb_firmware_version){
@@ -653,8 +686,17 @@ int main(int argc,char **argv){
     }		       
     //
     if(doReadTTCrxID) {
-      //
       thisCCB->ReadTTCrxID();
+    }
+    //
+    if(doDecodeALCT) {
+      //
+      thisTMB->DecodeALCT();
+      std::cout << "ALCT WordCount  "  << thisTMB->GetALCTWordCount() <<std::endl;
+      //
+    }
+    //
+    if(doReadTTCrxRegs) {
       //
       std::cout << "Register 0 " ;
       std::cout << thisCCB->ReadTTCrxReg(0);
@@ -987,7 +1029,7 @@ int main(int argc,char **argv){
 
       //tbController.DcsDisable();
 
-      //this part does a complete register dump of the TMB registers
+      //this part does a complte register dump of the TMB registers
 
       string TMBregname[]={"ADR_IDREG0","ADR_IDREG1","ADR_IDREG2","ADR_IDREG3", "ADR_VME_STATUS",
 			"ADR_VME_ADR0","ADR_VME_ADR1",
@@ -1586,6 +1628,7 @@ int main(int argc,char **argv){
 
     if (doPulseTestStrips){
       //tbController.DcsDisable();
+      thisTMB->ResetALCTRAMAddress();
       PulseRandomALCT();
       printf("\n WordCount = %x \n",thisTMB->GetALCTWordCount());
       //tbController.DcsEnable();
@@ -1682,7 +1725,7 @@ int main(int argc,char **argv){
       array3[scanMax][scanMax];
 
   //-- Read back the configuration files --//
-  // replace this by making the wordcount1 arrays availabe
+  // replce this by making the wordcount1 arrays availabe
   // (protected) as members of TMB
 
   // open file (created by tmb_PHOS4_alct)
@@ -2706,10 +2749,12 @@ int FindBestL1aAlct(){
   //
   alct->GetConf(cr,1);
   //
-  int minlimit = 50;
-  int maxlimit = 150;
+  int minlimit = 0;
+  int maxlimit = 100;
   //
   for (int l1a=minlimit; l1a<maxlimit; l1a++) {
+    //
+    usleep(100);
     //
     //while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
     //
@@ -2749,6 +2794,8 @@ int FindBestL1aAlct(){
     thisTMB->ResetALCTRAMAddress();
     PulseTestStrips();
     thisTMB->DecodeALCT();
+    thisTMB->GetCounters();
+    thisTMB->PrintCounters(3);
     WordCount[l1a] = thisTMB->GetALCTWordCount();
     printf(" WordCount %d \n",thisTMB->GetALCTWordCount());
   }
@@ -2949,9 +2996,9 @@ void PulseTestStrips(){
 	//cout <<"TMBtime is " << TMBtime << dec << endl;
 	//
 	thisCCB->ReadRegister(0x28);
-	thisCCB->WriteRegister(0x20,0x01);
+	//thisCCB->WriteRegister(0x20,0x01);
 	thisCCB->GenerateAlctAdbSync();	 
-	thisCCB->setCCBMode(CCB::DLOG);  
+	//thisCCB->setCCBMode(CCB::DLOG);  
 	//
 	}
       //
@@ -3156,6 +3203,42 @@ void CFEBTiming(float CFEBMean[5]){
 	//
 	PulseCFEB(0, 16,CLCTInputList[List]);
 	//
+        thisDMB->readtimingCounter();
+	//
+        thisDMB->readtimingScope();
+	//
+        printf("  L1A to LCT delay: %d", thisDMB->GetL1aLctCounter()  ); printf(" CMS clock cycles \n");
+        printf("  CFEB DAV delay:   %d", thisDMB->GetCfebDavCounter() ); printf(" CMS clock cycles \n");
+        printf("  TMB DAV delay:    %d", thisDMB->GetTmbDavCounter()  ); printf(" CMS clock cycles \n");
+        printf("  ALCT DAV delay:   %d", thisDMB->GetAlctDavCounter() ); printf(" CMS clock cycles \n");
+	//
+	cout << endl ;
+	//
+        cout << "  L1A to LCT Scope: " ;
+	cout << setw(3) << thisDMB->GetL1aLctScope() << " " ;
+	for( int i=4; i>-1; i--) cout << ((thisDMB->GetL1aLctScope()>>i)&0x1) ;
+	cout << endl ;
+	//
+        cout << "  CFEB DAV Scope:   " ;
+	cout << setw(3) << thisDMB->GetCfebDavScope() << " " ;
+	for( int i=4; i>-1; i--) cout << ((thisDMB->GetCfebDavScope()>>i)&0x1) ;
+	cout << endl ;
+	//
+	cout << "  TMB DAV Scope:    " ;
+	cout << setw(3) << thisDMB->GetTmbDavScope() << " " ;
+	for( int i=4; i>-1; i--) cout << ((thisDMB->GetTmbDavScope()>>i)&0x1) ;
+	cout << endl ;
+	//
+        cout << "  ALCT DAV Scope:   " ;
+	cout << setw(3) << thisDMB->GetAlctDavScope() << " " ;
+	for( int i=4; i>-1; i--) cout << ((thisDMB->GetAlctDavScope()>>i)&0x1) ;
+	cout << endl ;
+	//
+        cout << "  Active DAV Scope: " ;
+	cout << setw(3) << thisDMB->GetActiveDavScope() << " " ;
+	for( int i=4; i>-1; i--) cout << ((thisDMB->GetActiveDavScope()>>i)&0x1) ;
+	cout << endl ;
+//
 	thisTMB->DiStripHCMask(16/4-1); // counting from 0;
 	//
 	std::cout << " TimeDelay " << TimeDelay << " CLCTInput " 
