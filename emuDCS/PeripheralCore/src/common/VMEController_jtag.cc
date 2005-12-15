@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.18 2005/12/05 13:21:17 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.19 2005/12/15 14:33:26 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.19  2005/12/15 14:33:26  mey
+// Update
+//
 // Revision 2.18  2005/12/05 13:21:17  mey
 // Update
 //
@@ -1600,7 +1603,7 @@ unsigned short int *ptrreg;
 
  ptrreg=(unsigned short int *) add_sw;
  tmp2[0]=feuse;
- vme_controller(1,ptrreg,tmp2,tmp);
+ vme_controller(3,ptrreg,tmp2,tmp);
  // x*ptrreg=feuse;
  //  printf(" setuse %08x %04x \n",ptrreg,feuse&0xffff);
 }
