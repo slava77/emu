@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.21 2005/12/15 14:23:34 mey Exp $
+// $Id: DAQMB.cc,v 2.22 2005/12/16 17:49:47 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.22  2005/12/16 17:49:47  mey
+// Update
+//
 // Revision 2.21  2005/12/15 14:23:34  mey
 // Update
 //
@@ -169,8 +172,6 @@ void DAQMB::configure() {
       | (inject_delay_ & 0x1F) << 14;
    std::cout << "DAQMB:configure: caldelay " << std::hex << cal_delay_bits << std::dec << std::endl;
    setcaldelay(cal_delay_bits);
-
- 
    //
    int dav_delay_bits = (feb_dav_delay_    & 0x1F)
       | (tmb_dav_delay_ & 0X1F) << 5

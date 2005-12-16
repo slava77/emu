@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateUtilities.cc,v 1.4 2005/12/14 08:32:36 mey Exp $
+// $Id: CrateUtilities.cc,v 1.5 2005/12/16 17:49:39 mey Exp $
 // $Log: CrateUtilities.cc,v $
+// Revision 1.5  2005/12/16 17:49:39  mey
+// Update
+//
 // Revision 1.4  2005/12/14 08:32:36  mey
 // Update
 //
@@ -174,6 +177,13 @@ int CrateUtilities::AdjustL1aLctDMB(){
   //
 }
 //
+void CrateUtilities::CCBStartTrigger(){
+  //
+  thisCCB->startTrigger();
+  thisCCB->bc0(); 
+  //
+}
+//
 void CrateUtilities::Automatic(){
   //
   ///////////////////////////////////////////////////////////////// Do AdjustL1aLctDMB()
@@ -182,8 +192,7 @@ void CrateUtilities::Automatic(){
   //
   // Enable all...for DMB....be careful....
   //
-  thisCCB->startTrigger();
-  thisCCB->bc0(); 
+  CCBStartTrigger();
   //
   BestCCBDelaySetting = AdjustL1aLctDMB();
   //
@@ -1241,9 +1250,9 @@ void CrateUtilities::PulseTestStrips(){
    int TMBtime(1);
    //
    if ( alct ) {
-      //
-      thisTMB->ResetALCTRAMAddress();
-      thisTMB->SetALCTPatternTrigger();
+     //
+     //thisTMB->ResetALCTRAMAddress();
+     //thisTMB->SetALCTPatternTrigger();
      //
      unsigned cr[3]  = {0x80fc5fc0, 0x20a0f786, 0x8}; // Configuration for this test L1a_delay=120 L1a_window=0xf
      //
@@ -1251,69 +1260,69 @@ void CrateUtilities::PulseTestStrips(){
      //alct->unpackControlRegister(cr);
      //thisTMB->SetALCTPatternTrigger();
      //
-      long int StripMask = 0x3f;
-      long int PowerUp   = 1 ;
-      long int Amplitude = 0x3f;
-      //
-      thisTMB->DisableCLCTInputs();
-      //
-      if ( beginning == 0 ) {
-	//
-	printf("Init \n");
-	//
+     long int StripMask = 0x3f;
+     long int PowerUp   = 1 ;
+     long int Amplitude = 0x3f;
+     //
+     thisTMB->DisableCLCTInputs();
+     //
+     if ( beginning == 0 ) {
+       //
+       printf("Init \n");
+       //
+       //
+       alct->alct_set_test_pulse_amp(&slot,Amplitude);
+       //
+       alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
+       cout << " StripMask = " << hex << StripMask << endl;
+       //
+       //old alct->alct_set_test_pulse_stripmask(&slot,0x3f);
+       //old alct->alct_set_test_pulse_groupmask(&slot,0xff);
+       //
+       alct->alct_set_test_pulse_stripmask(&slot,0x00);
+       alct->alct_set_test_pulse_groupmask(&slot,0xff);
+       //
+       alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
+       cout << " StripMask = " << hex << StripMask << endl;
+       //
+       alct->alct_read_test_pulse_powerup(&slot,&PowerUp);
+       cout << " PowerUp   = " << hex << PowerUp << dec << endl; //11July05 DM added dec
+       //
+       alct->alct_fire_test_pulse('a');
+       //
+       alct->alct_set_test_pulse_powerup(&slot,1);
+       //
+       beginning = 1;
+       //
+       PulseTestStrips();
 	 //
-	  alct->alct_set_test_pulse_amp(&slot,Amplitude);
-	 //
-	  alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
-	 cout << " StripMask = " << hex << StripMask << endl;
-	 //
-	 //old alct->alct_set_test_pulse_stripmask(&slot,0x3f);
-	 //old alct->alct_set_test_pulse_groupmask(&slot,0xff);
-	 //
-	  alct->alct_set_test_pulse_stripmask(&slot,0x00);
-	  alct->alct_set_test_pulse_groupmask(&slot,0xff);
-	 //
-	  alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
-	 cout << " StripMask = " << hex << StripMask << endl;
-	 //
-	  alct->alct_read_test_pulse_powerup(&slot,&PowerUp);
-	  cout << " PowerUp   = " << hex << PowerUp << dec << endl; //11July05 DM added dec
-	 //
-	 alct->alct_fire_test_pulse('a');
-	 //
-	 alct->alct_set_test_pulse_powerup(&slot,1);
-	 //
-	 beginning = 1;
-	 //
-	 PulseTestStrips();
-	 //
-      } else {
+     } else {
 	//
 	//alct->alct_set_test_pulse_powerup(&slot,PowerUp);
 	//alct->alct_set_test_pulse_powerup(&slot,0);
 	//
-	thisCCB->setCCBMode(CCB::VMEFPGA);
-	thisCCB->WriteRegister(0x28,0x7862);  //4Aug05 DM changed 0x789b to 0x7862
-	                                        //July05 changed 0x7878 to 0x789b
-	
-	                                      
-	//
-	//cout <<"Enter 78 then l1a delay time (in hex)" <<  endl;
-	//cin >> hex >>  TMBtime;
+       thisCCB->setCCBMode(CCB::VMEFPGA);
+       thisCCB->WriteRegister(0x28,0x7862);  //4Aug05 DM changed 0x789b to 0x7862
+       //
+       //July05 changed 0x7878 to 0x789b
+       //
+       //cout <<"Enter 78 then l1a delay time (in hex)" <<  endl;
+       //cin >> hex >>  TMBtime;
 	//thisCCB->WriteRegister(0x28,TMBtime);      //5July05 DM allows you to write in CCB reg value
 	                                           //in option 12, but since option 19 calls this also.... 
 	//cout <<"TMBtime is " << TMBtime << dec << endl;
 	//
 	thisCCB->ReadRegister(0x28);
-	thisCCB->WriteRegister(0x20,0x01);
+	//thisCCB->WriteRegister(0x20,0x01);
 	thisCCB->GenerateAlctAdbSync();	 
 	//thisCCB->setCCBMode(CCB::DLOG);  
 	//
-      }
-      //
+     }
+     //
    } else {
      cout << " No ALCT " << endl;
-   }  
+   } 
+   //
    //thisCCB->DumpAddress(0x20);
    //
 }

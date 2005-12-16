@@ -20,6 +20,7 @@ public:
   CrateUtilities(TMB*);
   virtual ~CrateUtilities();
   //
+  void CCBStartTrigger();
   void CFEBTiming();
   void PulseCFEB(int HalfStrip = -1, int CLCTInputs = 0x1f );
   void CFEBChamberScan();

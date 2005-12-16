@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.15 2005/12/10 11:24:14 mey Exp $
+// $Id: ALCTController.cc,v 2.16 2005/12/16 17:49:27 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.16  2005/12/16 17:49:27  mey
+// Update
+//
 // Revision 2.15  2005/12/10 11:24:14  mey
 // Update
 //
@@ -3412,7 +3415,7 @@ void ALCTController::set_defaults(alct_params_type *p) {
 
   alct_l1a_delay_		= 0x78;
   alct_l1a_window_		= 3;
-  alct_l1a_offset_	= 0;
+  alct_l1a_offset_	        = 0;
   alct_l1a_internal_		= 0;
 
   p->board_id			= 5;
