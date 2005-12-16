@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: calibpulse.cpp,v 2.6 2005/12/10 11:24:22 mey Exp $
+// $Id: calibpulse.cpp,v 2.7 2005/12/16 17:49:20 mey Exp $
 // $Log: calibpulse.cpp,v $
+// Revision 2.7  2005/12/16 17:49:20  mey
+// Update
+//
 // Revision 2.6  2005/12/10 11:24:22  mey
 // Update
 //
@@ -91,7 +94,7 @@ int main(int argc, char **argv)
   vector<DAQMB*> dmbVector;
   Crate *thisCrate;
   //
-  int npulses = 10;
+  int npulses = 1000;
   //
   vector<Crate*> crateVector = theSelector.crates();
   thisCrate = crateVector[0];
@@ -122,7 +125,7 @@ int main(int argc, char **argv)
       }
     }
   }
-
+  //
   if ( doPulsealct ) {
     //
     std::cout << "Pulse alct" << std::endl;
@@ -140,25 +143,54 @@ int main(int argc, char **argv)
 	utils.SetCCB(thisCCB);
 	utils.SetALCT(alct);
 	//
-	std::cout << "Here" << std::endl;
-	alct->set_empty(0);
-	alct->set_l1a_internal(1);
-	std::cout << "Here2" << std::endl;
-	//
-	thisTMB->SetALCTPatternTrigger();
-	thisTMB->StartTTC();
+	thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
+	utils.CCBStartTrigger();
 	//
 	for (int i=0; i<npulses; i++) {
 	  std::cout << "Pulse..." << std::endl;
 	  thisTMB->ResetALCTRAMAddress();
-	  utils.PulseTestStrips();
+	  utils.PulseRandomALCT();
 	  std::cout << "Decode ALCT" << std::endl;
 	  thisTMB->DecodeALCT();
-	  std::cout << "Decode CLCT" << std::endl;
-	  thisTMB->DecodeCLCT();
-	  std::cout << "TMB WordCount   "  << thisTMB->GetWordCount()     << std::endl;
+	  //
 	  std::cout << "ALCT WordCount  "  << thisTMB->GetALCTWordCount() <<std::endl;
-	  //thisTMB->ALCTRawhits();
+	  //
+	  thisDMB->readtimingCounter();
+	  //
+	  thisDMB->readtimingScope();
+	  //
+	  printf("  L1A to LCT delay: %d", thisDMB->GetL1aLctCounter()  ); printf(" CMS clock cycles \n");
+	  printf("  CFEB DAV delay:   %d", thisDMB->GetCfebDavCounter() ); printf(" CMS clock cycles \n");
+	  printf("  TMB DAV delay:    %d", thisDMB->GetTmbDavCounter()  ); printf(" CMS clock cycles \n");
+	  printf("  ALCT DAV delay:   %d", thisDMB->GetAlctDavCounter() ); printf(" CMS clock cycles \n");
+	  //
+	  cout << endl ;
+	  //
+	  cout << "  L1A to LCT Scope: " ;
+	  cout << setw(3) << thisDMB->GetL1aLctScope() << " " ;
+	  for( int i=4; i>-1; i--) cout << ((thisDMB->GetL1aLctScope()>>i)&0x1) ;
+	  cout << endl ;
+	  //
+	  cout << "  CFEB DAV Scope:   " ;
+	  cout << setw(3) << thisDMB->GetCfebDavScope() << " " ;
+	  for( int i=4; i>-1; i--) cout << ((thisDMB->GetCfebDavScope()>>i)&0x1) ;
+	  cout << endl ;
+	  //
+	  cout << "  TMB DAV Scope:    " ;
+	  cout << setw(3) << thisDMB->GetTmbDavScope() << " " ;
+	  for( int i=4; i>-1; i--) cout << ((thisDMB->GetTmbDavScope()>>i)&0x1) ;
+	  cout << endl ;
+	  //
+	  cout << "  ALCT DAV Scope:   " ;
+	  cout << setw(3) << thisDMB->GetAlctDavScope() << " " ;
+	  for( int i=4; i>-1; i--) cout << ((thisDMB->GetAlctDavScope()>>i)&0x1) ;
+	  cout << endl ;
+	  //
+	  cout << "  Active DAV Scope: " ;
+	  cout << setw(3) << thisDMB->GetActiveDavScope() << " " ;
+	  for( int i=4; i>-1; i--) cout << ((thisDMB->GetActiveDavScope()>>i)&0x1) ;
+	  cout << endl ;
+	  //
 	  std::cout << std::endl;
 	}
 	//
@@ -166,8 +198,9 @@ int main(int argc, char **argv)
     }
     //
   }
-
+  //
   return 0;
+  //
 }
 
 
