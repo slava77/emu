@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.37 2005/12/15 14:34:12 mey Exp $
+// $Id: tmbtiming.cpp,v 2.38 2005/12/16 12:59:54 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.38  2005/12/16 12:59:54  mey
+// Update
+//
 // Revision 2.37  2005/12/15 14:34:12  mey
 // Update
 //
@@ -1629,8 +1632,10 @@ int main(int argc,char **argv){
     if (doPulseTestStrips){
       //tbController.DcsDisable();
       thisTMB->ResetALCTRAMAddress();
-      PulseRandomALCT();
+      while (1 <2 ) {
+	PulseRandomALCT();
       printf("\n WordCount = %x \n",thisTMB->GetALCTWordCount());
+      }
       //tbController.DcsEnable();
     }
   }
@@ -2933,14 +2938,14 @@ void PulseTestStrips(){
    //
    if ( alct ) {
       //
-      thisTMB->ResetALCTRAMAddress();
-      thisTMB->SetALCTPatternTrigger();
+      //thisTMB->ResetALCTRAMAddress();
+     //
+     //thisTMB->SetCLCTPatternTrigger();
      //
      unsigned cr[3]  = {0x80fc5fc0, 0x20a0f786, 0x8}; // Configuration for this test L1a_delay=120 L1a_window=0xf
      //
      //alct->SetConf(cr,1);
      //alct->unpackControlRegister(cr);
-     //thisTMB->SetALCTPatternTrigger();
      //
       long int StripMask = 0x3f;
       long int PowerUp   = 1 ;
