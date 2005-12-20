@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 2.0 2005/04/12 08:07:05 geurts Exp $
+// $Id: Crate.cc,v 2.1 2005/12/20 23:39:37 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 2.1  2005/12/20 23:39:37  mey
+// UPdate
+//
 // Revision 2.0  2005/04/12 08:07:05  geurts
 // *** empty log message ***
 //
@@ -16,7 +19,7 @@
 #include "MPC.h"
 #include "CCB.h"
 #include "DDU.h"
-
+#include "ALCTController.h"
 
 Crate::Crate(int number, VMEController * controller) : 
   theNumber(number),  
@@ -72,4 +75,59 @@ MPC * Crate::mpc() const {
 
 DDU * Crate::ddu() const {
   return findBoard<DDU>();
+}
+//
+void Crate::enable() {
+  //
+  MPC * mpc = this->mpc();
+  DDU * ddu = this->ddu();
+  CCB * ccb = this->ccb();
+  //
+  if(mpc) mpc->init();
+  if(ddu) ddu->dcntrl_reset();
+  ccb->enable();
+}
+//
+void Crate::disable() {
+  CCB * ccb = this->ccb();
+  ccb->disableL1();
+  ccb->disable();
+  //::sleep(1);
+  std::cout << "data taking disabled " << std::endl;
+}
+//
+void Crate::configure() {
+  //
+  CCB * ccb = this->ccb();
+  MPC * mpc = this->mpc();
+  DDU * ddu = this->ddu();
+  //
+  ccb->configure();
+  //::sleep(1);
+  //
+  std::vector<TMB*> myTmbs = this->tmbs();
+  for(unsigned i =0; i < myTmbs.size(); ++i) {
+    myTmbs[i]->configure();
+  }
+  //
+  //::sleep(1);
+  for(unsigned i =0; i < myTmbs.size(); ++i) {
+    ALCTController * alct = myTmbs[i]->alctController();
+    if(alct) alct->setup(1);
+  }
+  //
+  std::vector<DAQMB*> myDmbs = this->daqmbs();
+  for(unsigned i =0; i < myDmbs.size(); ++i) {
+    myDmbs[i]->restoreCFEBIdle();
+    myDmbs[i]->restoreMotherboardIdle();
+    myDmbs[i]->configure();
+  }
+  //  
+  std::cout << "cards " << ccb << " " << mpc << " " << ddu << std::endl;
+  if(mpc) mpc->init();
+  //::sleep(1);
+  //
+  if(ddu) ddu->dcntrl_reset();
+  //::sleep(2);
+  //
 }

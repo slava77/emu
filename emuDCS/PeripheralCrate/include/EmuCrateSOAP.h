@@ -1,4 +1,4 @@
-// $Id: EmuCrateSOAP.h,v 1.2 2005/12/20 14:48:15 mey Exp $
+// $Id: EmuCrateSOAP.h,v 1.3 2005/12/20 23:39:27 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -34,12 +34,12 @@
 #include "cgicc/HTTPHTMLHeader.h"
 #include "cgicc/HTMLClasses.h"
 
-#include "EmuCrateController.h"
+#include "EmuController.h"
 
 using namespace cgicc;
 using namespace std;
 
-class EmuCrateSOAP: public xdaq::Application, public EmuCrateController
+class EmuCrateSOAP: public xdaq::Application, public EmuController
 {
   
 public:

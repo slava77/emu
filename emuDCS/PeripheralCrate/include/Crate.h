@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: Crate.h,v 2.1 2005/12/20 23:39:13 mey Exp $
 // $Log: Crate.h,v $
+// Revision 2.1  2005/12/20 23:39:13  mey
+// UPdate
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
@@ -26,6 +29,9 @@ public:
 
   int number() const {return theNumber;}
 
+  void enable();
+  void disable();
+  void configure();
   void addModule(VMEModule * module);
 
   VMEController * vmeController() const {return theController;}
