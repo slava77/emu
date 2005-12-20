@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.22 2005/12/20 14:48:08 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.23 2005/12/20 15:24:14 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -2168,10 +2168,12 @@ public:
     //
     *out << cgicc::table().set("border","1");
     //
+    float value;
+    //
     *out << cgicc::td();
-    sprintf(buf,"CFEB1 3.3V = %3.2f ",thisDMB->lowv_adc(3,3)/1000.);
-    if ( thisDMB->lowv_adc(3,3)/1000. < 3.3*(0.95) ||
-	 thisDMB->lowv_adc(3,3)/1000. > 3.3*(1.05) ) {	 
+    sprintf(buf,"CFEB1 3.3V = %3.2f ",(value=thisDMB->lowv_adc(3,3))/1000.);
+    if ( value/1000. < 3.3*(0.95) ||
+	 value/1000. > 3.3*(1.05) ) {	 
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");
@@ -2181,9 +2183,9 @@ public:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB1 5.0V = %3.2f ",thisDMB->lowv_adc(3,4)/1000.);
-    if ( thisDMB->lowv_adc(3,4)/1000. < 5.0*0.95 ||
-	 thisDMB->lowv_adc(3,4)/1000. > 5.0*1.05 ) {
+    sprintf(buf,"CFEB1 5.0V = %3.2f ",(value=thisDMB->lowv_adc(3,4))/1000.);
+    if ( value/1000. < 5.0*0.95 ||
+	 value/1000. > 5.0*1.05 ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");
@@ -2193,9 +2195,9 @@ public:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB1 6.0V = %3.2f ",thisDMB->lowv_adc(3,5)/1000.);
-    if ( thisDMB->lowv_adc(3,5)/1000. < 6.0*0.95 ||
-	 thisDMB->lowv_adc(3,5)/1000. > 6.0*1.05  ) {
+    sprintf(buf,"CFEB1 6.0V = %3.2f ",(value=thisDMB->lowv_adc(3,5))/1000.);
+    if ( value/1000. < 6.0*0.95 ||
+	 value/1000. > 6.0*1.05  ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");
@@ -2209,9 +2211,9 @@ public:
     *out << cgicc::table().set("border","1");
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB2 3.3V = %3.2f ",thisDMB->lowv_adc(3,6)/1000.);
-    if ( thisDMB->lowv_adc(3,6)/1000. < 3.3*0.95 ||
-	 thisDMB->lowv_adc(3,6)/1000. > 3.3*1.05 ) {
+    sprintf(buf,"CFEB2 3.3V = %3.2f ",(value=thisDMB->lowv_adc(3,6))/1000.);
+    if ( value/1000. < 3.3*0.95 ||
+	 value/1000. > 3.3*1.05 ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");      
@@ -2221,9 +2223,9 @@ public:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB2 5.0V = %3.2f ",thisDMB->lowv_adc(3,7)/1000.);
-    if ( thisDMB->lowv_adc(3,7)/1000. < 5.0*0.95 ||
-	 thisDMB->lowv_adc(3,7)/1000. > 5.0*1.05 ) {
+    sprintf(buf,"CFEB2 5.0V = %3.2f ",(value=thisDMB->lowv_adc(3,7))/1000.);
+    if ( value/1000. < 5.0*0.95 ||
+	 value/1000. > 5.0*1.05 ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");      
@@ -2233,9 +2235,9 @@ public:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB2 6.0V = %3.2f ",thisDMB->lowv_adc(4,0)/1000.);
-    if ( thisDMB->lowv_adc(4,0)/1000. < 6.0*0.95 ||
-	 thisDMB->lowv_adc(4,0)/1000. > 6.0*1.95 ) {
+    sprintf(buf,"CFEB2 6.0V = %3.2f ",(value=thisDMB->lowv_adc(4,0))/1000.);
+    if ( value/1000. < 6.0*0.95 ||
+	 value/1000. > 6.0*1.95 ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");      
@@ -2248,9 +2250,9 @@ public:
     //
     *out << cgicc::table().set("border","1");
     *out << cgicc::td();
-    sprintf(buf,"CFEB3 3.3V = %3.2f ",thisDMB->lowv_adc(4,1)/1000.);
-    if ( thisDMB->lowv_adc(4,1)/1000. < 3.3*0.95 ||
-	 thisDMB->lowv_adc(4,1)/1000. > 3.3*1.05 ) {
+    sprintf(buf,"CFEB3 3.3V = %3.2f ",(value=thisDMB->lowv_adc(4,1))/1000.);
+    if ( value/1000. < 3.3*0.95 ||
+	 value/1000. > 3.3*1.05 ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");      
@@ -2260,9 +2262,9 @@ public:
     *out << cgicc::td();
       //
     *out << cgicc::td();
-    sprintf(buf,"CFEB3 5.0V = %3.2f ",thisDMB->lowv_adc(4,2)/1000.);
-    if (  thisDMB->lowv_adc(4,2)/1000. < 5.0*0.95 ||
-	  thisDMB->lowv_adc(4,2)/1000. > 5.0*1.05 ) {
+    sprintf(buf,"CFEB3 5.0V = %3.2f ",(value=thisDMB->lowv_adc(4,2))/1000.);
+    if (  value/1000. < 5.0*0.95 ||
+	  value/1000. > 5.0*1.05 ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");      
@@ -2272,9 +2274,9 @@ public:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB3 6.0V = %3.2f ",thisDMB->lowv_adc(4,3)/1000.);
-    if ( thisDMB->lowv_adc(4,3)/1000. < 6.0*0.95 ||
-	 thisDMB->lowv_adc(4,3)/1000. > 6.0*1.05 ) {
+    sprintf(buf,"CFEB3 6.0V = %3.2f ",(value=thisDMB->lowv_adc(4,3))/1000.);
+    if ( value/1000. < 6.0*0.95 ||
+	 value/1000. > 6.0*1.05 ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");      
@@ -2288,9 +2290,9 @@ public:
     *out << cgicc::table().set("border","1");
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB4 3.3V = %3.2f ",thisDMB->lowv_adc(4,4)/1000.);
-    if ( thisDMB->lowv_adc(4,4)/1000. < 3.3*0.95 ||
-	 thisDMB->lowv_adc(4,4)/1000. > 3.3*1.05 ) {
+    sprintf(buf,"CFEB4 3.3V = %3.2f ",(value=thisDMB->lowv_adc(4,4))/1000.);
+    if ( value/1000. < 3.3*0.95 ||
+	 value/1000. > 3.3*1.05 ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");      
@@ -2300,9 +2302,9 @@ public:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB4 5.0V = %3.2f ",thisDMB->lowv_adc(4,5)/1000.);
-    if ( thisDMB->lowv_adc(4,5)/1000. < 5.0*0.95 ||
-	 thisDMB->lowv_adc(4,5)/1000. > 5.0*1.05 ) {
+    sprintf(buf,"CFEB4 5.0V = %3.2f ",(value=thisDMB->lowv_adc(4,5))/1000.);
+    if ( value/1000. < 5.0*0.95 ||
+	 value/1000. > 5.0*1.05 ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");  
@@ -2312,9 +2314,9 @@ public:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB4 6.0V = %3.2f ",thisDMB->lowv_adc(4,6)/1000.);
-    if ( thisDMB->lowv_adc(4,6)/1000. < 6.0*0.95 ||
-	 thisDMB->lowv_adc(4,6)/1000. > 6.0*1.05 ){
+    sprintf(buf,"CFEB4 6.0V = %3.2f ",(value=thisDMB->lowv_adc(4,6))/1000.);
+    if ( value/1000. < 6.0*0.95 ||
+	 value/1000. > 6.0*1.05 ){
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");  
@@ -2328,9 +2330,9 @@ public:
     *out << cgicc::table().set("border","1");
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB5 3.3V = %3.2f ",thisDMB->lowv_adc(4,7)/1000.);
-    if ( thisDMB->lowv_adc(4,7)/1000. < 3.3*0.95 ||
-	 thisDMB->lowv_adc(4,7)/1000. > 3.3*1.05 ) {
+    sprintf(buf,"CFEB5 3.3V = %3.2f ",(value=thisDMB->lowv_adc(4,7))/1000.);
+    if ( value/1000. < 3.3*0.95 ||
+	 value/1000. > 3.3*1.05 ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");  
@@ -2340,9 +2342,9 @@ public:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB5 5.0V = %3.2f ",thisDMB->lowv_adc(5,0)/1000.);
-    if ( thisDMB->lowv_adc(5,0)/1000. < 5.0*0.95 ||
-	 thisDMB->lowv_adc(5,0)/1000. > 5.0*1.05 ) {
+    sprintf(buf,"CFEB5 5.0V = %3.2f ",(value=thisDMB->lowv_adc(5,0))/1000.);
+    if ( value/1000. < 5.0*0.95 ||
+	 value/1000. > 5.0*1.05 ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");  
@@ -2352,9 +2354,9 @@ public:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB5 6.0V = %3.2f ",thisDMB->lowv_adc(5,1)/1000.);
-    if ( thisDMB->lowv_adc(5,1)/1000. < 6.0*0.95 ||
-	 thisDMB->lowv_adc(5,1)/1000. > 6.0*1.05 ) {
+    sprintf(buf,"CFEB5 6.0V = %3.2f ",(value=thisDMB->lowv_adc(5,1))/1000.);
+    if ( value/1000. < 6.0*0.95 ||
+	 value/1000. > 6.0*1.05 ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");  
@@ -2370,9 +2372,9 @@ public:
     *out << cgicc::table().set("border","1");
     //
     *out << cgicc::td();
-    sprintf(buf,"ALCT  3.3V = %3.2f ",thisDMB->lowv_adc(5,2)/1000.);
-    if ( thisDMB->lowv_adc(5,2)/1000. < 3.3*0.95 ||
-	 thisDMB->lowv_adc(5,2)/1000. > 3.3*1.05 ) {
+    sprintf(buf,"ALCT  3.3V = %3.2f ",(value=thisDMB->lowv_adc(5,2))/1000.);
+    if ( value/1000. < 3.3*0.95 ||
+	 value/1000. > 3.3*1.05 ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");  
@@ -2382,9 +2384,9 @@ public:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"ALCT  1.8V = %3.2f ",thisDMB->lowv_adc(5,3)/1000.);
-    if ( thisDMB->lowv_adc(5,3)/1000. < 1.8*0.95 ||
-	 thisDMB->lowv_adc(5,3)/1000. > 1.8*1.95 ) {
+    sprintf(buf,"ALCT  1.8V = %3.2f ",(value=thisDMB->lowv_adc(5,3))/1000.);
+    if ( value/1000. < 1.8*0.95 ||
+	 value/1000. > 1.8*1.95 ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");  
@@ -2394,9 +2396,9 @@ public:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"ALCT  5.5V B = %3.2f ",thisDMB->lowv_adc(5,4)/1000.);
-    if ( thisDMB->lowv_adc(5,4)/1000. < 5.5*0.95 ||
-	 thisDMB->lowv_adc(5,4)/1000. > 5.5*1.05 ) {
+    sprintf(buf,"ALCT  5.5V B = %3.2f ",(value=thisDMB->lowv_adc(5,4))/1000.);
+    if ( value/1000. < 5.5*0.95 ||
+	 value/1000. > 5.5*1.05 ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");  
@@ -2406,9 +2408,9 @@ public:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"ALCT  5.5V A = %3.2f ",thisDMB->lowv_adc(5,5)/1000.);
-    if ( thisDMB->lowv_adc(5,5)/1000. < 5.5*0.95 ||
-	 thisDMB->lowv_adc(5,5)/1000. > 5.5*1.05 ) {
+    sprintf(buf,"ALCT  5.5V A = %3.2f ",(value=thisDMB->lowv_adc(5,5))/1000.);
+    if ( value/1000. < 5.5*0.95 ||
+	 value/1000. > 5.5*1.05 ) {
       *out << cgicc::span().set("style","color:red");
     } else {
       *out << cgicc::span().set("style","color:green");  
@@ -2424,8 +2426,8 @@ public:
     *out << cgicc::table().set("border","1");;
     //
     *out << cgicc::td();
-    sprintf(buf,"DMB temperature = %3.1f ",thisDMB->readthermx(0));
-    if ( thisDMB->readthermx(0) > 50 && thisDMB->readthermx(0) < 95 ) {
+    sprintf(buf,"DMB temperature = %3.1f ",(value=thisDMB->readthermx(0)));
+    if ( value > 50 && value < 95 ) {
       *out << cgicc::span().set("style","color:green");
     } else {
       *out << cgicc::span().set("style","color:red");
@@ -2435,8 +2437,8 @@ public:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"FEB1 temperature = %3.1f ",thisDMB->readthermx(1));
-    if ( thisDMB->readthermx(1) > 50 && thisDMB->readthermx(1) < 95 ) {
+    sprintf(buf,"FEB1 temperature = %3.1f ",(value=thisDMB->readthermx(1)));
+    if ( value > 50 && value < 95 ) {
       *out << cgicc::span().set("style","color:green");
     } else {
       *out << cgicc::span().set("style","color:red");
@@ -2446,8 +2448,8 @@ public:
     *out << cgicc::td();
       //
     *out << cgicc::td();
-    sprintf(buf,"FEB2 temperature = %3.1f ",thisDMB->readthermx(2));
-    if ( thisDMB->readthermx(2) > 50 && thisDMB->readthermx(2) < 95 ) {
+    sprintf(buf,"FEB2 temperature = %3.1f ",(value=thisDMB->readthermx(2)));
+    if ( value > 50 && value < 95 ) {
       *out << cgicc::span().set("style","color:green");
     } else {
       *out << cgicc::span().set("style","color:red");
@@ -2459,8 +2461,8 @@ public:
     *out << cgicc::tr();
     //
     *out << cgicc::td();
-    sprintf(buf,"FEB3 temperature = %3.1f ",thisDMB->readthermx(3));
-    if ( thisDMB->readthermx(3) > 50 && thisDMB->readthermx(3) < 95 ) {
+    sprintf(buf,"FEB3 temperature = %3.1f ",(value=thisDMB->readthermx(3)));
+    if ( value > 50 && value < 95 ) {
       *out << cgicc::span().set("style","color:green");
     } else {
       *out << cgicc::span().set("style","color:red");
@@ -2470,8 +2472,8 @@ public:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"FEB4 temperature = %3.1f ",thisDMB->readthermx(4));
-    if ( thisDMB->readthermx(4) > 50 && thisDMB->readthermx(4) < 95 ) {
+    sprintf(buf,"FEB4 temperature = %3.1f ",(value=thisDMB->readthermx(4)));
+    if ( value > 50 && value < 95 ) {
       *out << cgicc::span().set("style","color:green");
     } else {
       *out << cgicc::span().set("style","color:red");
@@ -2481,8 +2483,8 @@ public:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"FEB5 temperature = %3.1f ",thisDMB->readthermx(5));
-    if ( thisDMB->readthermx(5) > 50 && thisDMB->readthermx(5) < 95 ) {
+    sprintf(buf,"FEB5 temperature = %3.1f ",(value=thisDMB->readthermx(5)));
+    if ( value > 50 && value < 95 ) {
       *out << cgicc::span().set("style","color:green");
     } else {
       *out << cgicc::span().set("style","color:red");
