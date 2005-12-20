@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.20 2005/12/16 17:50:23 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.21 2005/12/20 14:19:50 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -22,13 +22,22 @@
 #include <iomanip>
 #include <time.h>
 
-
 #include "xdaq/Application.h"
+#include "xdaq/ApplicationGroup.h"
+#include "xdaq/ApplicationContext.h"
+#include "xdaq/ApplicationStub.h"
+#include "xdaq/exception/Exception.h"
+
 #include "xgi/Utils.h"
 #include "xgi/Method.h"
 #include "xdata/UnsignedLong.h"
 #include "xdata/String.h"
 
+#include "xoap/MessageReference.h"
+#include "xoap/MessageFactory.h"
+#include "xoap/SOAPEnvelope.h"
+#include "xoap/SOAPBody.h"
+#include "xoap/Method.h"
 
 #include "cgicc/CgiDefs.h"
 #include "cgicc/Cgicc.h"
@@ -143,6 +152,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::MPCBoardID, "MPCBoardID");
     xgi::bind(this,&EmuCrateHyperDAQ::CCBBoardID, "CCBBoardID");
     xgi::bind(this,&EmuCrateHyperDAQ::LogDMBTestsOutput, "LogDMBTestsOutput");
+    xgi::bind(this,&EmuCrateHyperDAQ::SendSOAPMessage, "SendSOAPMessage");
     //
     myParameter_ =  0;
     //
@@ -178,6 +188,14 @@ public:
     //
     *out << cgicc::h1("904 Testing...");
     *out << cgicc::br();
+    //
+    std::string methodSOAP =
+      toolbox::toString("/%s/SendSOAPMessage",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",methodSOAP) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Send SOAP message") << std::endl ;
+    *out << cgicc::form();
     //
     if (tmbVector.size()==0 && dmbVector.size()==0) {
       //
@@ -547,7 +565,36 @@ public:
       //cout << "Here4" << endl ;
       //
     }
-  //  
+  //
+  void EmuCrateHyperDAQ::SendSOAPMessage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "SendSOAPMessage" << std::endl;
+    //
+    xoap::MessageReference msg = xoap::createMessage();
+    xoap::SOAPPart soap = msg->getSOAPPart();
+    xoap::SOAPEnvelope envelope = soap.getEnvelope();
+    xoap::SOAPBody body = envelope.getBody();
+    xoap::SOAPName command = envelope.createName("Configure","xdaq", "urn:xdaq-soap:3.0");
+    body.addBodyElement(command);
+    //
+    try
+      {	
+	std::cout << "Sent" << std::endl ;
+	xdaq::ApplicationDescriptor * d = getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuCrateSOAP", 0);
+	std::cout << "Sent" << std::endl ;
+	xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
+      } 
+    catch (xdaq::exception::Exception& e)
+      {
+	XCEPT_RETHROW (xgi::exception::Exception, "Cannot send message", e);	      	
+      }
+    //
+    std::cout << "Done" << std::endl ;
+    this->Default(in,out);
+    //
+  }
+  //
   void EmuCrateHyperDAQ::InitSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     cout << "Init System" << endl ;

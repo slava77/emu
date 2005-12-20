@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.38 2005/12/16 12:59:54 mey Exp $
+// $Id: tmbtiming.cpp,v 2.39 2005/12/20 14:20:15 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.39  2005/12/20 14:20:15  mey
+// Update
+//
 // Revision 2.38  2005/12/16 12:59:54  mey
 // Update
 //
@@ -1632,10 +1635,10 @@ int main(int argc,char **argv){
     if (doPulseTestStrips){
       //tbController.DcsDisable();
       thisTMB->ResetALCTRAMAddress();
-      while (1 <2 ) {
-	PulseRandomALCT();
+      //while (1 <2 ) {
+      PulseRandomALCT();
       printf("\n WordCount = %x \n",thisTMB->GetALCTWordCount());
-      }
+      //}
       //tbController.DcsEnable();
     }
   }
@@ -2957,32 +2960,32 @@ void PulseTestStrips(){
 	//
 	printf("Init \n");
 	//
-	 //
-	  alct->alct_set_test_pulse_amp(&slot,Amplitude);
-	 //
-	  alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
-	 cout << " StripMask = " << hex << StripMask << endl;
-	 //
-	 //old alct->alct_set_test_pulse_stripmask(&slot,0x3f);
-	 //old alct->alct_set_test_pulse_groupmask(&slot,0xff);
-	 //
-	  alct->alct_set_test_pulse_stripmask(&slot,0x00);
-	  alct->alct_set_test_pulse_groupmask(&slot,0xff);
-	  //
-	  alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
-	  cout << " StripMask = " << hex << StripMask << endl;
-	  //
-	  alct->alct_read_test_pulse_powerup(&slot,&PowerUp);
-	  cout << " PowerUp   = " << hex << PowerUp << dec << endl; //11July05 DM added dec
-	  //
-	  alct->alct_fire_test_pulse('a');
-	  //
-	  alct->alct_set_test_pulse_powerup(&slot,1);
-	  //
-	  beginning = 1;
-	  //
-	  PulseTestStrips();
-	  //
+	//
+	alct->alct_set_test_pulse_amp(&slot,Amplitude);
+	//
+	alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
+	cout << " StripMask = " << hex << StripMask << endl;
+	//
+	//old alct->alct_set_test_pulse_stripmask(&slot,0x3f);
+	//old alct->alct_set_test_pulse_groupmask(&slot,0xff);
+	//
+	alct->alct_set_test_pulse_stripmask(&slot,0xff);
+	alct->alct_set_test_pulse_groupmask(&slot,0xff);
+	//
+	alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
+	cout << " StripMask = " << hex << StripMask << endl;
+	//
+	alct->alct_read_test_pulse_powerup(&slot,&PowerUp);
+	cout << " PowerUp   = " << hex << PowerUp << dec << endl; //11July05 DM added dec
+	//
+	alct->alct_fire_test_pulse('a');
+	//
+	alct->alct_set_test_pulse_powerup(&slot,1);
+	//
+	beginning = 1;
+	//
+	PulseTestStrips();
+	//
       } else {
 	//
 	//alct->alct_set_test_pulse_powerup(&slot,PowerUp);
