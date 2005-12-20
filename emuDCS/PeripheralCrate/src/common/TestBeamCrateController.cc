@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TestBeamCrateController.cc,v 2.1 2005/08/11 08:13:04 mey Exp $
+// $Id: TestBeamCrateController.cc,v 2.2 2005/12/20 14:20:04 mey Exp $
 // $Log: TestBeamCrateController.cc,v $
+// Revision 2.2  2005/12/20 14:20:04  mey
+// Update
+//
 // Revision 2.1  2005/08/11 08:13:04  mey
 // Update
 //
@@ -108,34 +111,32 @@ void TestBeamCrateController::configureNoDCS() {
 
 
 void TestBeamCrateController::configure(Crate * crate) {
+  //
   CCB * ccb = crate->ccb();
   MPC * mpc = crate->mpc();
   DDU * ddu = crate->ddu();
-
+  //
   ccb->configure();
   ::sleep(1);
-
+  //
   std::vector<TMB*> myTmbs = theSelector.tmbs(crate);
   for(unsigned i =0; i < myTmbs.size(); ++i) {
     myTmbs[i]->configure();
   }
-
+  //
   ::sleep(1);
   for(unsigned i =0; i < myTmbs.size(); ++i) {
     ALCTController * alct = myTmbs[i]->alctController();
     if(alct) alct->setup(1);
   }
-
+  //
   std::vector<DAQMB*> myDmbs = theSelector.daqmbs(crate);
   for(unsigned i =0; i < myDmbs.size(); ++i) {
     myDmbs[i]->restoreCFEBIdle();
     myDmbs[i]->restoreMotherboardIdle();
     myDmbs[i]->configure();
   }
-
-  //std::cout << "CCB: L1cath ..." << endl;
-  //ccb->l1CathodeScint();
-
+  //  
   std::cout << "cards " << ccb << " " << mpc << " " << ddu << std::endl;
   if(mpc) mpc->init();
   ::sleep(1);

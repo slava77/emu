@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.13 2005/12/15 14:22:56 mey Exp $
+// $Id: CCB.cc,v 2.14 2005/12/20 14:19:58 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.14  2005/12/20 14:19:58  mey
+// Update
+//
 // Revision 2.13  2005/12/15 14:22:56  mey
 // Update
 //
@@ -262,7 +265,7 @@ void CCB::GenerateAlctAdbSync(){
      do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
      sndbuf[0]=0x00;
      sndbuf[1]=0x00;
-     do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
+     //do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
    }
    //
    theController->end();
