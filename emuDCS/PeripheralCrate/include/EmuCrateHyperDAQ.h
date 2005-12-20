@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.23 2005/12/20 15:24:14 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.24 2005/12/20 23:39:20 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -47,7 +47,7 @@
 // My Stuff
 
 #include "PeripheralCrateParser.h"
-#include "TestBeamCrateController.h"
+#include "EmuController.h"
 #include "Crate.h"
 #include "DAQMB.h"
 #include "TMB.h"
@@ -71,7 +71,7 @@ protected:
   //
   xdata::String xmlFile_;
   xdata::UnsignedLong myParameter_;
-  TestBeamCrateController tbController;
+  EmuController MyController;
   TMB *thisTMB(0) ;
   DAQMB* thisDMB(0) ;
   CCB* thisCCB(0) ;
@@ -194,7 +194,7 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",methodSOAP) << std::endl ;
     *out << cgicc::input().set("type","submit")
-      .set("value","Send SOAP message") << std::endl ;
+      .set("value","Send SOAP message : Configure") << std::endl ;
     *out << cgicc::form();
     //
     if (tmbVector.size()==0 && dmbVector.size()==0) {
@@ -596,7 +596,7 @@ public:
   {
     cout << "Init System" << endl ;
     //
-    tbController.configureNoDCS();          // Init system
+    MyController.configure();          // Init system
     //
     //thisTMB->StartTTC();
     //thisTMB->EnableL1aRequest();
@@ -3239,7 +3239,7 @@ public:
     parser.parseFile(xmlFile_.toString().c_str());
     //
     //-- Make sure that only one TMB in one crate is configured
-    CrateSelector selector = tbController.selector();
+    CrateSelector selector = MyController.selector();
     vector<Crate*> crateVector = selector.crates();
     //
     //if (crateVector.size() > 1){
