@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuCrateController.cc,v 1.1 2005/12/20 14:37:40 mey Exp $
+// $Id: EmuCrateController.cc,v 1.2 2005/12/20 14:48:26 mey Exp $
 // $Log: EmuCrateController.cc,v $
+// Revision 1.2  2005/12/20 14:48:26  mey
+// Update
+//
 // Revision 1.1  2005/12/20 14:37:40  mey
 // Update
 //
@@ -49,7 +52,6 @@ EmuCrateController::EmuCrateController(){
   // clear pointers
 }
 
-
 void EmuCrateController::configure() {
   // read the configuration
   std::vector<Crate*> myCrates = theSelector.crates();
@@ -58,7 +60,7 @@ void EmuCrateController::configure() {
     configure(myCrates[i]);
   }
 }
-
+//
 void EmuCrateController::configure(Crate * crate) {
   //
   CCB * ccb = crate->ccb();
@@ -89,25 +91,22 @@ void EmuCrateController::configure(Crate * crate) {
   std::cout << "cards " << ccb << " " << mpc << " " << ddu << std::endl;
   if(mpc) mpc->init();
   ::sleep(1);
-
+  //
   if(ddu) ddu->dcntrl_reset();
   ::sleep(2);
-
-
+  //
 }
-
-
+//
 void  EmuCrateController::enable() {
-
+  //
   std::vector<Crate*> myCrates = theSelector.crates();
-
+  //
   for(unsigned i = 0; i < myCrates.size(); ++i) {
     enable(myCrates[i]);
   }
   std::cout << "TAKING DATA" << std::endl;
 }
-
-
+//
 void EmuCrateController::enable(Crate * crate) {
   //
   MPC * mpc = crate->mpc();
@@ -118,8 +117,7 @@ void EmuCrateController::enable(Crate * crate) {
   if(ddu) ddu->dcntrl_reset();
   ccb->enable();
 }
-
-
+//
 void EmuCrateController::disable() {
   std::vector<Crate*> myCrates = theSelector.crates();
 
@@ -127,8 +125,7 @@ void EmuCrateController::disable() {
     disable(myCrates[i]);
   }
 }
-
-
+//
 void EmuCrateController::disable(Crate * crate) {
   CCB * ccb = crate->ccb();
   ccb->disableL1();
@@ -136,47 +133,46 @@ void EmuCrateController::disable(Crate * crate) {
   ::sleep(1);
   std::cout << "data taking disabled " << std::endl;
 }
- 
-
+//
 void EmuCrateController::executeCommand(std::string boardType, std::string command) {
-
-    // to do introduce open/closeSocket calls ... 
-    // (or remove open/close alltogether)
-
-    if (boardType=="DAQMB") {
-      std::vector<DAQMB*> dmbs(theSelector.daqmbs());
-      for(unsigned i = 0; i < dmbs.size(); ++i) {
-	dmbs[i]->executeCommand(command);
-      }
+  //
+  // to do introduce open/closeSocket calls ... 
+  // (or remove open/close alltogether)
+  //
+  if (boardType=="DAQMB") {
+    std::vector<DAQMB*> dmbs(theSelector.daqmbs());
+    for(unsigned i = 0; i < dmbs.size(); ++i) {
+      dmbs[i]->executeCommand(command);
     }
-    
-    else if (boardType=="CCB") {  
-      std::vector<Crate *> crates = theSelector.crates();
+  }
+  //
+  else if (boardType=="CCB") {  
+    std::vector<Crate *> crates = theSelector.crates();
       for(unsigned i = 0; i < crates.size(); ++i) {
 	CCB * ccb = crates[i]->ccb();
 	if(ccb == 0) throw("Could not find CCB");
 	ccb->executeCommand(command);
       }
+  }
+  //
+  else if (boardType=="TMB") {
+    std::vector<TMB*> tmbs = theSelector.tmbs();
+    for(unsigned i = 0; i < tmbs.size(); ++i) {
+      tmbs[i]->executeCommand(command);
     }
- 
-    else if (boardType=="TMB") {
-      std::vector<TMB*> tmbs = theSelector.tmbs();
-      for(unsigned i = 0; i < tmbs.size(); ++i) {
-	tmbs[i]->executeCommand(command);
-      }
-    }
- 
-    else if (boardType=="MPC") {
-      std::vector<Crate *> crates = theSelector.crates();
-      for(unsigned i = 0; i < crates.size(); ++i) {
-	MPC * mpc = crates[i]->mpc();
+  }
+  //
+  else if (boardType=="MPC") {
+    std::vector<Crate *> crates = theSelector.crates();
+    for(unsigned i = 0; i < crates.size(); ++i) {
+      MPC * mpc = crates[i]->mpc();
 	if(mpc == 0) throw("Could not find MPC");
 	mpc->executeCommand(command);
-      }
     }
-
-    else {
-      throw("Bad Board type!");
-    }
+  }
+  //
+  else {
+    throw("Bad Board type!");
+  }
 }
-    
+

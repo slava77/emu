@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.21 2005/12/20 14:19:50 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.22 2005/12/20 14:48:08 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -580,9 +580,7 @@ public:
     //
     try
       {	
-	std::cout << "Sent" << std::endl ;
 	xdaq::ApplicationDescriptor * d = getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuCrateSOAP", 0);
-	std::cout << "Sent" << std::endl ;
 	xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
       } 
     catch (xdaq::exception::Exception& e)
@@ -590,7 +588,6 @@ public:
 	XCEPT_RETHROW (xgi::exception::Exception, "Cannot send message", e);	      	
       }
     //
-    std::cout << "Done" << std::endl ;
     this->Default(in,out);
     //
   }
