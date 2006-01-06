@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: HardwareDumper.cpp,v 2.1 2005/11/03 09:20:55 mey Exp $
+// $Id: HardwareDumper.cpp,v 2.2 2006/01/06 16:53:51 mey Exp $
 // $Log: HardwareDumper.cpp,v $
+// Revision 2.2  2006/01/06 16:53:51  mey
+// Fixed small bug
+//
 // Revision 2.1  2005/11/03 09:20:55  mey
 // New flags for switching between schar2 and schar3
 //
@@ -33,7 +36,7 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-  string schar = "/dev/schar2";
+  string schar = "/dev/schar3";
 
   bool setReset(1);
 
@@ -80,12 +83,14 @@ int main(int argc, char *argv[]) {
   eventStream->openFile();
   unsigned long int eventNumber(0);
   while(eventNumber<maxEventTotal) {
+    std::cout << "Data... " << eventNumber << std::endl;
     ddu->readNextEvent();
     char *data = ddu->data();
     unsigned int dataLength=ddu->dataLength();
     if (data){
       eventStream->writeEnv(data, dataLength);
-      eventNumber++;
+      std::cout << dataLength << std::endl;
+      if (dataLength>0) eventNumber++;
     }
 }
   delete ddu;
