@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.14 2005/12/20 14:19:58 mey Exp $
+// $Id: CCB.cc,v 2.15 2006/01/09 07:17:30 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.15  2006/01/09 07:17:30  mey
+// Update
+//
 // Revision 2.14  2005/12/20 14:19:58  mey
 // Update
 //
@@ -237,7 +240,7 @@ void CCB::prgall_bckpln()
   do_vme(VME_WRITE,CRATE_HARD_RESET,sndbuf,rcvbuf,NOW);
   theController->end();
 }
-
+//
 void CCB::reset_bckpln()
 {
   /// Reinitializes the FPGAs on DMB, TMB and MPC boards
@@ -250,28 +253,28 @@ void CCB::reset_bckpln()
   sleep(1);
   theController->end();
 }
-
+//
 void CCB::GenerateAlctAdbSync(){
-   //
-   std::cout << "CCB: GenerateAlctAdbPulseSync" << std::endl;
-   //
-   sndbuf[0]=0x00;
-   sndbuf[1]=0x01;
-   if (mVersion==2001) {
-     do_vme(VME_WRITE, 0x40, sndbuf,rcvbuf,NOW);
-   }
-   else{
-     if (mDebug) std::cout << "Writing " << std::endl;
-     do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
-     sndbuf[0]=0x00;
-     sndbuf[1]=0x00;
-     //do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
-   }
-   //
-   theController->end();
-   //
+  //
+  std::cout << "CCB: GenerateAlctAdbPulseSync" << std::endl;
+  //
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x01;
+  if (mVersion==2001) {
+    do_vme(VME_WRITE, 0x40, sndbuf,rcvbuf,NOW);
+  }
+  else{
+    if (mDebug) std::cout << "Writing " << std::endl;
+    //do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
+    sndbuf[0]=0x00;
+    sndbuf[1]=0x00;
+    do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
+  }
+  //
+  theController->end();
+  //
 }
-
+//
 void CCB::GenerateAlctAdbASync(){
    //
    std::cout << "CCB: GenerateAlctAdbPulseASync" << std::endl;

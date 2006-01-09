@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.39 2005/12/20 14:20:15 mey Exp $
+// $Id: tmbtiming.cpp,v 2.40 2006/01/09 07:17:43 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.40  2006/01/09 07:17:43  mey
+// Update
+//
 // Revision 2.39  2005/12/20 14:20:15  mey
 // Update
 //
@@ -1633,13 +1636,11 @@ int main(int argc,char **argv){
     }
 
     if (doPulseTestStrips){
-      //tbController.DcsDisable();
       thisTMB->ResetALCTRAMAddress();
       //while (1 <2 ) {
-      PulseRandomALCT();
-      printf("\n WordCount = %x \n",thisTMB->GetALCTWordCount());
-      //}
-      //tbController.DcsEnable();
+	PulseRandomALCT();
+	printf("\n WordCount = %x \n",thisTMB->GetALCTWordCount());
+	//}
     }
   }
   
