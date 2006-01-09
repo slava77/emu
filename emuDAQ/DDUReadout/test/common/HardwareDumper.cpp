@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: HardwareDumper.cpp,v 2.2 2006/01/06 16:53:51 mey Exp $
+// $Id: HardwareDumper.cpp,v 2.3 2006/01/09 09:24:00 mey Exp $
 // $Log: HardwareDumper.cpp,v $
+// Revision 2.3  2006/01/09 09:24:00  mey
+// Update
+//
 // Revision 2.2  2006/01/06 16:53:51  mey
 // Fixed small bug
 //
@@ -84,15 +87,16 @@ int main(int argc, char *argv[]) {
   unsigned long int eventNumber(0);
   while(eventNumber<maxEventTotal) {
     std::cout << "Data... " << eventNumber << std::endl;
-    ddu->readNextEvent();
-    char *data = ddu->data();
-    unsigned int dataLength=ddu->dataLength();
-    if (data){
-      eventStream->writeEnv(data, dataLength);
-      std::cout << dataLength << std::endl;
-      if (dataLength>0) eventNumber++;
+    if ( ddu->readNextEvent() ) {
+      char *data = ddu->data();
+      unsigned int dataLength=ddu->dataLength();
+      //if (data){
+	eventStream->writeEnv(data, dataLength);
+	std::cout << dataLength << std::endl;
+	eventNumber++;
+	//}
     }
-}
+  }
   delete ddu;
   eventStream->closeFile();
 

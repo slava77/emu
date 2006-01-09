@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DDUUtilities.cc,v 1.2 2006/01/09 09:23:52 mey Exp $
+// $Id: DDUUtilities.cc,v 1.3 2006/01/09 09:26:36 mey Exp $
 // $Log: DDUUtilities.cc,v $
+// Revision 1.3  2006/01/09 09:26:36  mey
+// Update
+//
 // Revision 1.2  2006/01/09 09:23:52  mey
 // Update
 //
@@ -68,17 +71,18 @@ int DDUUtilities::HardwareDumper() {
   unsigned long int eventNumber(0);
   while(eventNumber<maxEventTotal_) {
     std::cout << "Data... " << eventNumber << std::endl;
-    ddu->readNextEvent();
-    char *data = ddu->data();
-    unsigned int dataLength=ddu->dataLength();
-    if (data){
+    if( ddu->readNextEvent() ) {
+      char *data = ddu->data();
+      unsigned int dataLength=ddu->dataLength();
+      //if (data){
       eventStream->writeEnv(data, dataLength);
       eventNumber++;
+      //}
     }
-}
+  }
   delete ddu;
   eventStream->closeFile();
-
+  //
   //-- dbase entries  
   if (updateDB_){
     cout << "End-phase dBase update ..." << endl;

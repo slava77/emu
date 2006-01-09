@@ -8,10 +8,10 @@
 //   default maxEventTotal=4e9
 //
 //-----------------------------------------------------------------------
-// $Id: HardwareMonitor.cpp,v 1.1 2005/11/03 09:17:09 mey Exp $
+// $Id: HardwareMonitor.cpp,v 1.2 2006/01/09 09:25:08 mey Exp $
 // $Log: HardwareMonitor.cpp,v $
-// Revision 1.1  2005/11/03 09:17:09  mey
-// New file from Jason
+// Revision 1.2  2006/01/09 09:25:08  mey
+// Update
 //
 // Revision 2.0  2005/04/13 10:52:58  geurts
 // Makefile
@@ -42,7 +42,9 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-  string schar = "/dev/schar3";
+  string schar = "/dev/schar2";
+
+  bool setReset(1);
 
   // read commandline arguments and set run-number
   int runnumber(0);
@@ -51,18 +53,26 @@ int main(int argc, char *argv[]) {
   if (argc>1)
     for (int i=1;i<argc;i++){
       if (!strcmp(argv[i],"-h")) {
-	cout << argv[0] << " [-r run#=" << runnumber << "] [-n evt/file=" 
-             << maxEventPerFile << "] [-m maxevt=" << maxEventTotal << "] [-dboff (switch dbase update off)]" << endl;
+	//cout << argv[0] << " [-r run#=" << runnumber << "] [-n evt/file=" 
+	//<< maxEventPerFile << "] [-m maxevt=" << maxEventTotal << "] [-dboff (switch dbase update off)]" << endl;
+	//
+	cout << argv[0] << " [-r run#=" << runnumber << "] " << endl;
+	//
         exit(1);}
       if (!strcmp(argv[i],"-r")) runnumber=(int)atof(argv[++i]);
-      if (!strcmp(argv[i],"-n")) maxEventPerFile=(int)atof(argv[++i]);
-      if (!strcmp(argv[i],"-m")) maxEventTotal=(int)atof(argv[++i]);
-      if (!strcmp(argv[i],"-dboff")) updateDb=false;
+      //
+      //if (!strcmp(argv[i],"-n")) maxEventPerFile=(int)atof(argv[++i]);
+      //if (!strcmp(argv[i],"-m")) maxEventTotal=(int)atof(argv[++i]);
+      //if (!strcmp(argv[i],"-dboff"))    updateDb=false;
+      //
+      if (!strcmp(argv[i],"-noreset"))  setReset=false;
+      if (!strcmp(argv[i],"-schar2"))   schar="/dev/schar2"; 
+      if (!strcmp(argv[i],"-schar3"))   schar="/dev/schar3"; 
     }
 
-  HardwareDDU* ddu = new HardwareDDU("/dev/schar3");
-  ddu->openFile("/dev/schar3");
-  ddu->reset();
+  HardwareDDU* ddu = new HardwareDDU(schar);
+  ddu->openFile(schar);
+  if ( setReset ) ddu->reset();
   ddu->enableBlock();
   BinaryEventStream* eventStream = new BinaryEventStream(runnumber,maxEventPerFile);
 
@@ -70,17 +80,26 @@ int main(int argc, char *argv[]) {
   //-- dbase entries  
   char cmd[1024]; time_t ttt; time(&ttt);
   updateDb=false;
-  if (updateDb){
-    cout << "Start-phase dBase update ..." << endl;
-    sprintf(cmd,"/home/dbase/lib/start_insert.pl %d  \"%s\"",runnumber,ctime(&ttt));
-    int pos=0; while( cmd[pos] && cmd[pos]!='\n' ) pos++; 
-    if( cmd[pos]=='\n' ) cmd[pos]=' ';
-    if( system(cmd) ) printf("Error executing /home/dbase/lib/start_insert.pl"); 
-    sprintf(cmd,"/home/dbase/dbase/pcConfig2db.pl run=%d file=/home/pccntrl/EmuDAQ/PeripheralCrate/test/configTestBeam2004.xml",runnumber);
-    if( system(cmd) ) printf("Error executing /home/dbase/lib/dbwrapper.pl");
-    cout << "Start-phase dBase update done." << endl;
-  }
+  //cout << " Selected Options:  run#=" << runnumber << " -n evt/file=" 
+  //   << maxEventPerFile << " -m maxevt=" << maxEventTotal << " -dboff " << endl;
+  //
+  cout << " Selected Options:  run#=" << runnumber << endl;
+  //
+  //if (updateDb){
+  //cout << "Start-phase dBase update ..." << endl;
+  //sprintf(cmd,"/home/dbase/lib/start_insert.pl %d  \"%s\"",runnumber,ctime(&ttt));
+  //int pos=0; while( cmd[pos] && cmd[pos]!='\n' ) pos++; 
+  //if( cmd[pos]=='\n' ) cmd[pos]=' ';
+  //if( system(cmd) ) printf("Error executing /home/dbase/lib/start_insert.pl"); 
+  //sprintf(cmd,"/home/dbase/dbase/pcConfig2db.pl run=%d file=/home/pccntrl/EmuDAQ/PeripheralCrate/test/configTestBeam2004.xml",runnumber);
+  //if( system(cmd) ) printf("Error executing /home/dbase/lib/dbwrapper.pl");
+  //cout << "Start-phase dBase update done." << endl;
+  //}
   //--
+
+  unsigned long int eventBeat=10000, BeatCnt=0, nBeat=0, emptyCnt=0,
+    maxEvtLength=48;
+  float avgSize=0.0;
 
   eventStream->openFile();
   unsigned long int eventNumber(0);
@@ -92,26 +111,42 @@ int main(int argc, char *argv[]) {
     unsigned int dataLength=ddu->dataLength();
 
 // JRG, assume that dataLength is byte count
-    //    if (dataLength>7) cout << " " << dataLength;
-    if (dataLength>7 && dataLength<=64){
-      printf("\n Empty: %d bytes.  3rd-to-last=%02x  Next-to-last=%02x  Last=%02x \n",dataLength,data[dataLength-2]&0xff,data[dataLength-1]&0xff,data[dataLength]&0xff);
-      //      cout << endl << " Empty: " << dataLength << " bytes.  3rd-to-last=" << (unsigned short int)data[dataLength-2] << " Next-to-last=" << (unsigned short int)data[dataLength-1] << " Last=" << (unsigned short int)data[dataLength] << endl;
-      while ( dataLength>7 && 
-	      (data[dataLength-1]&0x00ff)==0x00ff && 
-	      (data[dataLength-2]&0x00ff)==0x00ff && 
-	      (data[dataLength-3]&0x00ff)==0x00ff && 
-	      (data[dataLength-4]&0x00ff)==0x00ff ) {
-	dataLength -= 8;
-	printf(" Empty: %d bytes.  3rd-to-last=%02x  Next-to-last=%02x  Last=%02x \n",dataLength,data[dataLength-2]&0xff,data[dataLength-1]&0xff,data[dataLength]&0xff);      }
+//    if (dataLength>7 && dataLength<=64){
+//      printf("\n Empty: %d bytes.  3rd-to-last=%02x  Next-to-last=%02x  Last=%02x \n",dataLength,data[dataLength-2]&0xff,data[dataLength-1]&0xff,data[dataLength]&0xff);
+//    }
+    while ( dataLength>7 && dataLength<999999 &&
+	    (data[dataLength-1]&0x00ff)==0x00ff && 
+	    (data[dataLength-2]&0x00ff)==0x00ff && 
+	    (data[dataLength-3]&0x00ff)==0x00ff && 
+	    (data[dataLength-4]&0x00ff)==0x00ff ) {
+      dataLength -= 8;
+//    printf(" Removed GbE filler: %d bytes.  Ending is %02x%02x %02x%02x %02x%02x %02x%02x \n",dataLength,data[dataLength-1]&0xff,data[dataLength-2]&0xff,data[dataLength-3]&0xff,data[dataLength-4]&0xff,data[dataLength-5]&0xff,data[dataLength-6]&0xff,data[dataLength-7]&0xff,data[dataLength-8]&0xff);
     }
 
     if (data){
+      if(dataLength<=64)emptyCnt++;
+      if(dataLength>maxEvtLength)maxEvtLength=dataLength;
+      eventNumber++;
+      BeatCnt++;
+      if(BeatCnt==eventBeat){
+	nBeat++;
+	cout << "  Event " << eventNumber << ", " << dataLength << " bytes. ";
+	if((nBeat%10)==0) cout << endl;
+	BeatCnt=0;
+      }
       DDUwarn=((data[dataLength-8]&0x0010)|(data[dataLength-13]&0x0080));
       DDUerror=(data[dataLength-11]&0x0040);
       DDUcritical=((data[dataLength-8]&0x0060)|(data[dataLength-11]&0x0080));
-      // JRG debug, print to LOG:  data[dataLength/2-i] for i=1 to 16
       if (DDUwarn>0||DDUerror>0||DDUcritical>0){
 	DDUprob++;
+	cout << endl;
+	// << "#" << eventNumber ;
+	if (DDUwarn>0) cout << "   DDU Warn " ;
+	if (DDUerror>0) cout << "   DDU Error " ;
+	if (DDUcritical>0) cout << "   DDU Critical " ;
+	cout << "  in event " << eventNumber << ": " << endl;
+	for (unsigned int i=dataLength-16; i<dataLength-1; i+=2)printf(" %02x%02x",data[i+1]&0xff,data[i]&0xff);
+	cout << endl;
 	// print warn/err/crit values to LOG?  also eventNumber (dec & hex)
 	eventStream->writeEnv(data, dataLength);
 	if (DDUcritical>0&&gotDDUcrit==0){
@@ -119,10 +154,16 @@ int main(int argc, char *argv[]) {
 	  maxEventTotal=eventNumber+63;  // stop 63 events after critical
 	}
       }
-      // else accumulate average event size in bytes?
-      eventNumber++;
+      // accumulate average event size in bytes
+      avgSize=(((eventNumber-1)*avgSize)+(1.0*dataLength))/(1.0*eventNumber);
     }
   }
+  //  cout << endl << "Wrote " << eventNumber << " out of " << eventNumber << " events to file. " << endl;
+  cout << endl;
+  cout << " Processed " << eventNumber << " events; " << emptyCnt << " were empty (48 bytes each). " << endl;
+  cout << " Average event size = " << avgSize << " bytes; biggest event = " << maxEvtLength << " bytes. " << endl;
+  cout << endl;
+
   delete ddu;
   eventStream->closeFile();
   // print #events, average size & DDUprob total (and %) to LOG; run time too?
