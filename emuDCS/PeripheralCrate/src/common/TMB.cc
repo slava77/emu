@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.24 2005/12/15 14:25:09 mey Exp $
+// $Id: TMB.cc,v 2.25 2006/01/09 07:17:37 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.25  2006/01/09 07:17:37  mey
+// Update
+//
 // Revision 2.24  2005/12/15 14:25:09  mey
 // Update
 //
@@ -2625,15 +2628,15 @@ void TMB::mpc_delay(unsigned short int time)
    tmb_vme(VME_WRITE,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Write Trigger conf
    //
 }
-
+//
 int TMB::GetWordCount(){
-   //
-   tmb_vme(VME_READ,dmb_wdcnt_adr,sndbuf,rcvbuf,NOW);
-   //
-   return ( rcvbuf[1]&0xff | (rcvbuf[0]&0xf)>>8);
-   //
+  //
+  tmb_vme(VME_READ,dmb_wdcnt_adr,sndbuf,rcvbuf,NOW);
+  //
+  return ( rcvbuf[1]&0xff | (rcvbuf[0]&0xf)>>8);
+  //
 }
-
+//
 void TMB::SetALCTPatternTrigger(){
   //
   tmb_vme(VME_READ, seq_trig_en_adr, sndbuf,rcvbuf,NOW);
@@ -2642,7 +2645,7 @@ void TMB::SetALCTPatternTrigger(){
   tmb_vme(VME_WRITE, seq_trig_en_adr, sndbuf,rcvbuf,NOW);
   //
 }
-
+//
 void TMB::SetCLCTPatternTrigger(){
   //
   tmb_vme(VME_READ, seq_trig_en_adr, sndbuf,rcvbuf,NOW);
@@ -2651,19 +2654,18 @@ void TMB::SetCLCTPatternTrigger(){
   tmb_vme(VME_WRITE, seq_trig_en_adr, sndbuf,rcvbuf,NOW);
   //
 }
-
-
+//
 int TMB::GetALCTWordCount(){
-   //
-   tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);
-   //
-   return ( (rcvbuf[1]>>2)&0x3f | (rcvbuf[0]&0x1f)>>6);
-   //
+  //
+  tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);
+  //
+  return ( (rcvbuf[1]>>2)&0x3f | (rcvbuf[0]&0x1f)>>6);
+  //
 }
-
-
+//
 void TMB::optimize()
 {
+  //
   char rcvbuf_read[2];
   char rcvbuf_sav[2];
   char rcvbuf_sav2[2];
@@ -2677,9 +2679,8 @@ void TMB::optimize()
   int i,j,k,l,m ;
   FILE *pfile3;
   //
-
   pfile3 = fopen("Optimize.txt","w");
-
+  //
   //start(1) ;
   sndbuf[0] = 0x0 ;
   sndbuf[1] = 0x0 ;
@@ -2697,7 +2698,8 @@ void TMB::optimize()
   printf("rcvbuf 0: %x  1: %x\n",rcvbuf_sav[0],rcvbuf_sav[1]);
   //
   //for (i=1;i<9;i++) {
-  i = 5 ;                                                                                                                 sndbuf[0] = rcvbuf[0]  ;
+  i = 5 ;                                                                                   
+  sndbuf[0] = rcvbuf[0]  ;
   if ( i>5 ) sndbuf[1] = (rcvbuf[1]&0xf0) | (i-4)&0xf  ;
   else sndbuf[1] = (rcvbuf[1]&0xf0) | 0x1  ;
   tmb_vme(VME_WRITE,0xac,sndbuf,rcvbuf_read,1);
@@ -2705,7 +2707,8 @@ void TMB::optimize()
   //for (k=1;k<7;k++) {
   //for (l=0;l<4;l++) {
   j=4;
-  k=4;                                                                                                                    l=3;
+  k=4;                                                                                                
+  l=3;
   ncounts = 0;
   sndbuf[0] = (rcvbuf[0]&0x83) | (i&0xf) | ((j&0x7)<<4) ;
   sndbuf[1] = (rcvbuf[1]&0x80) | ((k&0x7)<<2) | ((l&3)<<5) ;
@@ -2770,9 +2773,7 @@ void TMB::reset() {
   tmb_vme(VME_READ,0x70000,sndbuf,rcvbuf,NOW);
   printf("Bootstrap %x %x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff ) ;
 }
-
-
-
+//
 void TMB::scan_rx_clock() 
 {
   int nhits;
