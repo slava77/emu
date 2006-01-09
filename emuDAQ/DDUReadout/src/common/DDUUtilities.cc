@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DDUUtilities.cc,v 1.1 2005/12/19 13:29:59 mey Exp $
+// $Id: DDUUtilities.cc,v 1.2 2006/01/09 09:23:52 mey Exp $
 // $Log: DDUUtilities.cc,v $
+// Revision 1.2  2006/01/09 09:23:52  mey
+// Update
+//
 // Revision 1.1  2005/12/19 13:29:59  mey
 // Update
 //
@@ -38,24 +41,18 @@ using namespace std;
 
 int DDUUtilities::HardwareDumper() {
   //
-  string schar = "/dev/schar3";
-  //
-  bool setReset(1);
-  //
   // read commandline arguments and set run-number
-  unsigned long int maxEventPerFile(10000), maxEventTotal(1000000);
-  bool updateDb(true);
   //
-  HardwareDDU* ddu = new HardwareDDU(schar);
-  ddu->openFile(schar);
-  if ( setReset ) ddu->reset();
+  HardwareDDU* ddu = new HardwareDDU(schar_);
+  ddu->openFile(schar_);
+  if ( setReset_ ) ddu->reset();
   ddu->enableBlock();
-  BinaryEventStream* eventStream = new BinaryEventStream(runnumber_,maxEventPerFile);
+  BinaryEventStream* eventStream = new BinaryEventStream(runnumber_,maxEventPerFile_);
   //
 
   //-- dbase entries  
   char cmd[1024]; time_t ttt; time(&ttt);
-  if (updateDb){
+  if (updateDB_){
     cout << "Start-phase dBase update ..." << endl;
     sprintf(cmd,"/home/dbase/lib/start_insert.pl %d  \"%s\"",runnumber_,ctime(&ttt));
     int pos=0; while( cmd[pos] && cmd[pos]!='\n' ) pos++; 
@@ -69,7 +66,7 @@ int DDUUtilities::HardwareDumper() {
 
   eventStream->openFile();
   unsigned long int eventNumber(0);
-  while(eventNumber<maxEventTotal) {
+  while(eventNumber<maxEventTotal_) {
     std::cout << "Data... " << eventNumber << std::endl;
     ddu->readNextEvent();
     char *data = ddu->data();
@@ -83,7 +80,7 @@ int DDUUtilities::HardwareDumper() {
   eventStream->closeFile();
 
   //-- dbase entries  
-  if (updateDb){
+  if (updateDB_){
     cout << "End-phase dBase update ..." << endl;
     sprintf(cmd,"/home/dbase/lib/end_insert.pl %d \"%s\" %ld",runnumber_,ctime(&ttt),eventNumber);
     int pos=0; while( cmd[pos] && cmd[pos]!='\n' ) pos++; 

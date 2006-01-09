@@ -1,4 +1,4 @@
-// $Id: DDUHyperDAQ.h,v 1.1 2005/12/19 13:30:38 mey Exp $
+// $Id: DDUHyperDAQ.h,v 1.2 2006/01/09 09:23:23 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -75,29 +75,67 @@ public:
     //
     std::string DDURunNumber =
       toolbox::toString("/%s/SetRunNumber",getApplicationDescriptor()->getURN().c_str());
+    std::string DDURunNumberValue =
+      toolbox::toString("%d",util.GetRunNumber());
     //
     *out << cgicc::form().set("method","GET").set("action",DDURunNumber) << std::endl ;
     *out << cgicc::input().set("type","text").set("name","DDURunNumber")
-      .set("size","20").set("value",DDURunNumber_) << std::endl ;
+      .set("size","20").set("value",DDURunNumberValue) << std::endl ;
     *out << "DDURunNumber" << std::endl;
     *out << cgicc::form() << std::endl ;
     //
     std::string DDUMaxEventPerFile =
       toolbox::toString("/%s/SetMaxEventPerFile",getApplicationDescriptor()->getURN().c_str());
+    std::string DDUMaxEventPerFileValue =
+      toolbox::toString("%d",util.GetMaxEventPerFile());
     //
     *out << cgicc::form().set("method","GET").set("action",DDUMaxEventPerFile) << std::endl ;
     *out << cgicc::input().set("type","text").set("name","DDUMaxEventPerFile")
-      .set("size","20").set("value",DDUMaxEventPerFile_) << std::endl ;
+      .set("size","20").set("value",DDUMaxEventPerFileValue) << std::endl ;
     *out << "DDUMaxEventPerFile" << std::endl;
     *out << cgicc::form() << std::endl ;
     //
     std::string DDUMaxEventTotal =
       toolbox::toString("/%s/SetMaxEventTotal",getApplicationDescriptor()->getURN().c_str());
+    std::string DDUMaxEventTotalValue =
+      toolbox::toString("%d",util.GetMaxEventTotal());
     //
     *out << cgicc::form().set("method","GET").set("action",DDUMaxEventTotal) << std::endl ;
     *out << cgicc::input().set("type","text").set("name","DDUMaxEventTotal")
-      .set("size","20").set("value",DDUMaxEventTotal_) << std::endl ;
+      .set("size","20").set("value",DDUMaxEventTotalValue) << std::endl ;
     *out << "DDUMaxEventTotal" << std::endl;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string DDUDevice =
+      toolbox::toString("/%s/Device",getApplicationDescriptor()->getURN().c_str());
+    std::string DDUDeviceValue = util.GetDevice() ;
+    //
+    *out << cgicc::form().set("method","GET").set("action",DDUDevice) << std::endl ;
+    *out << cgicc::input().set("type","text").set("name","DDUDevice")
+      .set("size","20").set("value",DDUDeviceValue) << std::endl ;
+    *out << "DDUDevice" << std::endl;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string DDUReset =
+      toolbox::toString("/%s/DDUReset",getApplicationDescriptor()->getURN().c_str());
+    std::string DDUResetValue =
+      toolbox::toString("%d",util.GetReset());
+    //
+    *out << cgicc::form().set("method","GET").set("action",DDUReset) << std::endl ;
+    *out << cgicc::input().set("type","checkbox").set("name","DDUReset").set("checked","checked")
+      .set("value",DDUResetValue) << std::endl ;
+    *out << "DDU reset" << std::endl;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string DDUdb =
+      toolbox::toString("/%s/DDUdb",getApplicationDescriptor()->getURN().c_str());
+    std::string DDUdbValue =
+      toolbox::toString("%d",util.GetDB());
+    //
+    *out << cgicc::form().set("method","GET").set("action",DDUdb) << std::endl ;
+    *out << cgicc::input().set("type","checkbox").set("name","DDUupdateDB").set("checked","checked")
+      .set("value",DDUdbValue) << std::endl ;
+    *out << "DDU update DB" << std::endl;
     *out << cgicc::form() << std::endl ;
     //
     std::string DDUHardwareDumper =
@@ -105,7 +143,7 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",DDUHardwareDumper) << std::endl ;
     *out << cgicc::input().set("type","submit")
-      .set("value","Set configuration file local") << std::endl ;
+      .set("value","Start dumping data...") << std::endl ;
     *out << cgicc::form() << std::endl ;
       //
   }
@@ -114,6 +152,20 @@ public:
   {
     //
     cgicc::Cgicc cgi(in);
+    //
+    if ( cgi.queryCheckbox("DDUReset") ) 
+      {
+	util.SetReset(true);
+      } else {
+	util.SetReset(false);
+      }
+    //
+    if ( cgi.queryCheckbox("DDUupdateDB") ) 
+      {
+	util.SetDB(true);
+      } else {
+	util.SetDB(false);
+      }
     //
     util.HardwareDumper();
   }

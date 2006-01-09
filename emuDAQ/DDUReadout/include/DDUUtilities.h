@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DDUUtilities.h,v 1.1 2005/12/19 13:29:32 mey Exp $
+// $Id: DDUUtilities.h,v 1.2 2006/01/09 09:23:32 mey Exp $
 // $Log: DDUUtilities.h,v $
+// Revision 1.2  2006/01/09 09:23:32  mey
+// Update
+//
 // Revision 1.1  2005/12/19 13:29:32  mey
 // Update
 //
@@ -32,14 +35,23 @@ class DDUUtilities
 {
 public:
 
-  DDUUtilities() : nbytes_schar(0), runnumber_(0),npack_schar(0), nbyte_schar(0),
-  maxEventPerFile_(10000), maxEventTotal_(1000000){}
+  DDUUtilities() : nbytes_schar(0), runnumber_(-1),npack_schar(0), nbyte_schar(0),
+  maxEventPerFile_(10000), maxEventTotal_(1000000), schar_("/dev/schar3"), setReset_(true), updateDB_(true){}
   virtual ~DDUUtilities() {};
 
   int HardwareDumper();
   inline void SetRunNumber(int runnumber) { runnumber_ = runnumber; }
+  inline int  GetRunNumber() { return runnumber_ ; }
+  inline int  GetMaxEventPerFile() { return maxEventPerFile_ ; }
+  inline int  GetMaxEventTotal() { return maxEventTotal_ ; }
   inline void SetMaxEventPerFile(int maxEventPerFile) { maxEventPerFile_ = maxEventPerFile; }
   inline void SetMaxEventTotal(int maxEventTotal)     { maxEventTotal_   = maxEventTotal; }
+  inline void SetDevice(std::string schar)     { schar_   = schar; }
+  inline std::string  GetDevice() { return schar_ ; }
+  inline bool  GetReset() { return setReset_ ; }
+  inline void  SetReset(int setReset) { setReset_ = setReset ; }
+  inline bool  GetDB() { return updateDB_ ; }
+  inline void  SetDB( bool updateDB ) { updateDB_ = updateDB ; }
 
 protected:
 
@@ -48,6 +60,9 @@ protected:
   int npack_schar;
   int nbyte_schar;
   bool liveData_;
+  std::string schar_ ;
+  bool setReset_;
+  bool updateDB_;
 
   static bool debug;
   //buffer containing event data
