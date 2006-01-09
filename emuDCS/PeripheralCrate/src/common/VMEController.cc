@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.10 2005/12/15 14:32:21 mey Exp $
+// $Id: VMEController.cc,v 2.11 2006/01/09 07:27:37 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.11  2006/01/09 07:27:37  mey
+// Update
+//
 // Revision 2.10  2005/12/15 14:32:21  mey
 // Update
 //
@@ -281,8 +284,11 @@ VMEModule* VMEController::getTheCurrentModule(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.10 2005/12/15 14:32:21 mey Exp $
+// $Id: VMEController.cc,v 2.11 2006/01/09 07:27:37 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.11  2006/01/09 07:27:37  mey
+// Update
+//
 // Revision 2.10  2005/12/15 14:32:21  mey
 // Update
 //
@@ -385,7 +391,8 @@ VMEController::VMEController(int crate, string ipAddr, int port):
   DELAY3 = 16.384;
   //
   usedelay_ = false ;
-  int socket = openSocket();
+  
+  int socket = do_schar(1); // register a new schar device
   cout << "VMEController opened socket = " << socket << endl;
   cout << "VMEController opened port   = " << port << endl;
 }
@@ -393,7 +400,7 @@ VMEController::VMEController(int crate, string ipAddr, int port):
 
 VMEController::~VMEController(){
   cout << "destructing VMEController .. closing socket " << endl;
-  closeSocket();
+  do_schar(2); // give up the schar device
 }
 
 
@@ -426,31 +433,46 @@ void VMEController::end() {
 void VMEController::send_last() {
 }
 
+int VMEController::do_schar(int open_or_close) 
+{
+  static int scharhandles[10];
+  int realport=2;
+  if(port_ >0 && port_ <10)  realport= port_;
 
-int VMEController::openSocket() {
-
-  char schardev_name[12]="/dev/schar0";
-  schardev_name[11]=0;
-  if(port_ >0 || port_ <10)  schardev_name[10] += port_;
-  theSocket = open(schardev_name, O_RDWR);
-  if (theSocket == -1) {
-    perror("open");
-    return 1;
+  if(open_or_close==1) 
+  {
+    if(scharhandles[realport]<1)
+    {
+       char schardev_name[12]="/dev/schar0";
+       schardev_name[10] += realport;
+       schardev_name[11]=0;
+       theSocket = open(schardev_name, O_RDWR);
+       if (theSocket == -1) 
+       {
+         perror("open");
+         exit(-1);
+       }
+       // eth_enableblock();
+       eth_reset();
+       scharhandles[realport]=0;
+    }
+    scharhandles[realport]++;
+    get_macaddr(realport);
+    mrst_ff();
+    set_VME_mode();   
+    
+    return theSocket;
   }
-  get_macaddr();
-  // eth_enableblock();
-  eth_reset();
-  mrst_ff();
-  set_VME_mode();   
-  return theSocket;
-}
-
-
-void VMEController::closeSocket() {
-#ifndef DUMMY
-  close(theSocket);
-#endif
-  theSocket = 0;
+  else if(open_or_close==2)
+  {
+    if(scharhandles[realport]>0)
+    {
+    scharhandles[realport]--;
+    if(scharhandles[realport]==0) close(theSocket);
+    theSocket = 0;
+    }
+    return theSocket;
+  }
 }
 
 
@@ -634,14 +656,14 @@ void VMEController::set_VME_mode()
   return;
 }
 
-void VMEController::get_macaddr()
+void VMEController::get_macaddr(int realport)
 {
   int msock_fd;
   struct ifreq mifr;
 
   char eth[5]="eth2";
 
-   if(port_ >=0 && port_ <10) eth[3] = '0' + port_; 
+   eth[3] = '0' + realport; 
    //create socket
    if((msock_fd = socket(PF_INET, SOCK_STREAM, 0)) == -1)
      fprintf(stderr, "Error in call: socket()\n");
@@ -653,6 +675,7 @@ void VMEController::get_macaddr()
    
    memcpy(hw_source_addr,mifr.ifr_addr.sa_data, ETH_ALEN);
    memcpy(ether_header.h_source, hw_source_addr, ETH_ALEN);
+   close(msock_fd);
 
    sscanf(ipAddress_.c_str(), "%02x:%02x:%02x:%02x:%02x:%02x",
        hw_dest_addr, hw_dest_addr+1, hw_dest_addr+2,

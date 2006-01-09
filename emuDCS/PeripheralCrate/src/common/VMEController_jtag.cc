@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.19 2005/12/15 14:33:26 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.20 2006/01/09 07:27:27 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.20  2006/01/09 07:27:27  mey
+// Update
+//
 // Revision 2.19  2005/12/15 14:33:26  mey
 // Update
 //
@@ -1242,11 +1245,8 @@ unsigned short int *ptrreg;
       break;
       
     case 7:
-      /* ALCT Slow Programming JTAG Chain
-	 ife=50;
-	 add_ucla=vmeadd|0x70000|(slot<<19);
+      /* ALCT Slow Programming JTAG Chain */
 	 pvme=0x0088;
-    /* ALCT JTAG chain */
       break;
       
     case 8:
@@ -1300,7 +1300,7 @@ char tmp[2]={0x00,0x00};
 unsigned short int *ptr;
  int i;
  ptr=(unsigned short int *)add_reset;
- for(i=0;i<5;i++){vme_controller(1,ptr,one,tmp);sdly();}
+ for(i=0;i<5;i++){vme_controller(3,ptr,one,tmp);sdly();}
 }
 
 void VMEController::load_cdac(const char *snd)
