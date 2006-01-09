@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.6 2005/12/02 18:12:13 mey Exp $
+// $Id: VMEController.h,v 2.7 2006/01/09 07:27:15 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.7  2006/01/09 07:27:15  mey
+// Update
+//
 // Revision 2.6  2005/12/02 18:12:13  mey
 // get rid of D360
 //
@@ -118,8 +121,11 @@ private:
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.6 2005/12/02 18:12:13 mey Exp $
+// $Id: VMEController.h,v 2.7 2006/01/09 07:27:15 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.7  2006/01/09 07:27:15  mey
+// Update
+//
 // Revision 2.6  2005/12/02 18:12:13  mey
 // get rid of D360
 //
@@ -167,9 +173,7 @@ public:
   enum ENDIAN {SWAP, NOSWAP};
   enum {MAXLINE = 70000};
   
-
-  int openSocket();
-  void closeSocket();
+  int do_schar(int open_or_close);
 
   void SetUseDelay(bool state){usedelay_ = state;}
 
@@ -211,7 +215,7 @@ public:
   int eth_write();
   void mrst_ff();
   void set_VME_mode();
-  void get_macaddr();
+  void get_macaddr(int port);
   void setuse();
   void goToScanLevel();
   void release_plev();
