@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 2.1 2005/12/20 23:39:13 mey Exp $
+// $Id: Crate.h,v 2.2 2006/01/10 23:31:58 mey Exp $
 // $Log: Crate.h,v $
+// Revision 2.2  2006/01/10 23:31:58  mey
+// Update
+//
 // Revision 2.1  2005/12/20 23:39:13  mey
 // UPdate
 //
@@ -21,6 +24,7 @@ class TMB;
 class CCB;
 class MPC;
 class DDU;
+class ChamberUtilities;
 
 class Crate {
 public:
@@ -39,9 +43,12 @@ public:
   /// uses RTTI to find types
   std::vector<DAQMB *> daqmbs() const;
   std::vector<TMB *> tmbs() const;
+  std::vector<ChamberUtilities> chambers() const;
+  //
   CCB * ccb() const;
   MPC * mpc() const;
   DDU * ddu() const;
+  //
 private:
 
   template<class T> T * findBoard() const

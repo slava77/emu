@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.12 2005/12/06 17:58:19 mey Exp $
+// $Id: DAQMB.h,v 2.13 2006/01/10 23:32:09 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.13  2006/01/10 23:32:09  mey
+// Update
+//
 // Revision 2.12  2005/12/06 17:58:19  mey
 // Update
 //
@@ -120,6 +123,7 @@ public:
   void LoadCableDelaySFM();
   void ProgramSFM();
   void WriteSFM();
+  void PrintCounters();
   //  
   // DAQMB trigger primitives
   //

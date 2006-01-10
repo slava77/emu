@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 2.1 2005/12/20 23:39:37 mey Exp $
+// $Id: Crate.cc,v 2.2 2006/01/10 23:32:30 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 2.2  2006/01/10 23:32:30  mey
+// Update
+//
 // Revision 2.1  2005/12/20 23:39:37  mey
 // UPdate
 //
@@ -20,6 +23,7 @@
 #include "CCB.h"
 #include "DDU.h"
 #include "ALCTController.h"
+#include "ChamberUtilities.h"
 
 Crate::Crate(int number, VMEController * controller) : 
   theNumber(number),  
@@ -43,6 +47,33 @@ void Crate::addModule(VMEModule * module) {
 }
 
 
+std::vector<ChamberUtilities> Crate::chambers() const {
+  //
+  std::vector<DAQMB *> dmbVector = daqmbs();
+  std::vector<TMB *>   tmbVector = tmbs();
+  std::vector<ChamberUtilities>   result;
+  //
+  for( int i=0; i< dmbVector.size(); i++) {
+      for( int j=0; j< tmbVector.size(); j++) {
+	//
+	printf("CCB %x \n",this->ccb());
+	//
+	if ( (tmbVector[j]->slot()+1) == (dmbVector[i]->slot()) ) {
+	  ChamberUtilities chamber ;
+	  chamber.SetTMB(tmbVector[j]);
+	  chamber.SetDMB(dmbVector[i]);
+	  chamber.SetMPC(this->mpc());
+	  chamber.SetCCB(this->ccb());
+	  result.push_back(chamber);
+	}
+	//
+      }
+  }
+  //
+  return result;
+  //
+}
+
 std::vector<DAQMB *> Crate::daqmbs() const {
   std::vector<DAQMB *> result;
   for(unsigned i = 0; i < theModules.size(); ++i) {
@@ -64,6 +95,8 @@ std::vector<TMB *> Crate::tmbs() const {
 
 
 CCB * Crate::ccb() const {
+  std::cout << "finding CCB" << std::endl;
+  printf("%x \n",findBoard<CCB>());
   return findBoard<CCB>();
 }
 
@@ -89,11 +122,13 @@ void Crate::enable() {
 }
 //
 void Crate::disable() {
+  //
   CCB * ccb = this->ccb();
   ccb->disableL1();
   ccb->disable();
   //::sleep(1);
   std::cout << "data taking disabled " << std::endl;
+  //
 }
 //
 void Crate::configure() {
