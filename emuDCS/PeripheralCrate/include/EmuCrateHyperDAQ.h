@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.25 2006/01/09 07:18:06 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.26 2006/01/10 19:46:32 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -57,7 +57,7 @@
 #include "DAQMBTester.h"
 #include "ALCTController.h"
 #include "CrateSelector.h"
-#include "CrateUtilities.h"
+#include "ChamberUtilities.h"
 #include "geom.h"
 
 using namespace cgicc;
@@ -77,7 +77,7 @@ protected:
   CCB* thisCCB(0) ;
   ALCTController *alct(0) ;
   MPC * thisMPC(0);
-  CrateUtilities MyTest;
+  ChamberUtilities MyTest;
   ostringstream CrateTestsOutput;
   ostringstream OutputStringDMBStatus[9];
   ostringstream OutputStringTMBStatus[9];
@@ -3214,12 +3214,14 @@ public:
     //}
     //
     tmbVector = selector.tmbs(crateVector[0]);
+    //
     //if (tmbVector.size() > 1){
     //cerr << "Error: only one TMB in xml file allowed" << endl ;
     //exit(1);
     //}
     //
     dmbVector = selector.daqmbs(crateVector[0]);
+    //
     //if (dmbVector.size() > 1){
     //cerr << "Error: only one DMB in xml file allowed" << endl;
     //exit(1);
@@ -3227,15 +3229,16 @@ public:
     //
     //-- get pointers to CCB, TMB and DMB
     //
-     thisCrate = crateVector[0];
-     thisCCB = thisCrate->ccb();
-     thisMPC = thisCrate->mpc();
-     //thisTMB = tmbVector[0];
-     //thisDMB = dmbVector[0];
-     //
-     //DDU * thisDDU = thisCrate->ddu();
-     //if(thisTMB) alct = thisTMB->alctController();
-     //
+    thisCrate = crateVector[0];
+    thisCCB = thisCrate->ccb();
+    thisMPC = thisCrate->mpc();
+    //
+    //thisTMB = tmbVector[0];
+    //thisDMB = dmbVector[0];
+    //
+    //DDU * thisDDU = thisCrate->ddu();
+    //if(thisTMB) alct = thisTMB->alctController();
+    //
     std::cout << "Done" << std::endl ;
   }
   //
