@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.26 2006/01/10 19:46:32 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.27 2006/01/10 23:32:17 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1162,7 +1162,7 @@ public:
     //
     MyTest.SetTMB(thisTMB);
     MyTest.SetCCB(thisCCB);
-    MyTest.SetALCT(alct);
+    //MyTest.SetALCT(alct);
     //
     int RXphase, TXphase;
     MyTest.ALCTTiming();
@@ -1384,7 +1384,7 @@ public:
     //
     MyTest.SetTMB(thisTMB);
     MyTest.SetCCB(thisCCB);
-    MyTest.SetALCT(alct);
+    //MyTest.SetALCT(alct);
     //
     MyTest.ALCTChamberScan();
     //

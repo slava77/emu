@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: calibpulse.cpp,v 2.8 2006/01/10 19:47:01 mey Exp $
+// $Id: calibpulse.cpp,v 2.9 2006/01/10 23:32:47 mey Exp $
 // $Log: calibpulse.cpp,v $
+// Revision 2.9  2006/01/10 23:32:47  mey
+// Update
+//
 // Revision 2.8  2006/01/10 19:47:01  mey
 // UPdate
 //
@@ -50,6 +53,7 @@
 #include <unistd.h> // for sleep
 
 #include "CrateSelector.h"
+#include "EmuController.h"
 
 using namespace std;
 
@@ -83,33 +87,41 @@ int main(int argc, char **argv)
       if (!strcmp(argv[i],"-cfeb"))  doPulsecfeb = true;
     }
 
+  EmuController emuController;
+
   CrateSelector theSelector;
   
-  PeripheralCrateParser parser;
-  parser.parseFile(xmlfile);  
+  //PeripheralCrateParser parser;
+  //parser.parseFile(xmlfile);  
+
+  emuController.SetConfFile(xmlfile);
+  emuController.init();
+  emuController.configure();
+
   //
-  TMB *thisTMB(0) ;
-  DAQMB* thisDMB(0) ;
-  CCB* thisCCB(0) ;
-  ALCTController *alct(0) ;
+  //TMB *thisTMB(0) ;
+  //DAQMB* thisDMB(0) ;
+  //CCB* thisCCB(0) ;
+  //ALCTController *alct(0) ;
   //
-  vector<TMB*>   tmbVector;
-  vector<DAQMB*> dmbVector;
-  Crate *thisCrate;
+  //vector<TMB*>   tmbVector;
+  //vector<DAQMB*> dmbVector;
+  //Crate *thisCrate;
   //
   int npulses = 1000;
   //
   vector<Crate*> crateVector = theSelector.crates();
-  thisCrate = crateVector[0];
-  tmbVector = theSelector.tmbs(crateVector[0]);
-  dmbVector = theSelector.daqmbs(crateVector[0]);
-  thisCCB   = thisCrate->ccb();
+  //
+  //thisCrate = crateVector[0];
+  //tmbVector = theSelector.tmbs(crateVector[0]);
+  //dmbVector = theSelector.daqmbs(crateVector[0]);
+  //thisCCB   = thisCrate->ccb();
 
   if ( doPulsecfeb ) {
 
     CalibDAQ calib;
     calib.loadConstants();
-  //calib.rateTest();
+    //calib.rateTest();
     
   
     int nsleep, nstrip, tries, counter =0;
@@ -133,73 +145,46 @@ int main(int argc, char **argv)
     //
     std::cout << "Pulse alct" << std::endl;
     //
-    ChamberUtilities utils;
+    ChamberUtilities utils = (crateVector[0]->chambers())[0] ;
     //
-
-    if (tmbVector.size() > 0 && dmbVector.size() > 0 ) {
-      thisTMB = tmbVector[0];
-      cout << thisTMB->slot() << endl;
-      thisDMB = dmbVector[0];
-      alct = thisTMB->alctController();
-      if ( alct ) {
+    printf("Here1\n");
+    //
+    //if (tmbVector.size() > 0 && dmbVector.size() > 0 ) {
+      //thisTMB = tmbVector[0];
+      //cout << thisTMB->slot() << endl;
+      //thisDMB = dmbVector[0];
+      //alct = thisTMB->alctController();
+      //if ( alct ) {
 	//
-	utils.SetTMB(thisTMB);
-	utils.SetCCB(thisCCB);
-	utils.SetDMB(thisDMB);
-	utils.SetALCT(alct);
+	//utils.SetTMB(thisTMB);
+	//utils.SetCCB(thisCCB);
+	//utils.SetDMB(thisDMB);
 	//
-	thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
+	printf("Here \n");
+	printf("%x \n",&utils);
+	//
+	//thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
 	utils.CCBStartTrigger();
 	//
-	for (int i=0; i<npulses; i++) {
+	for (int ii=0; ii<npulses; ii++) {
+	  //
+	  cout << npulses << endl;
 	  std::cout << "Pulse..." << std::endl;
-	  thisTMB->ResetALCTRAMAddress();
+	  //thisTMB->ResetALCTRAMAddress();
 	  utils.PulseRandomALCT();
 	  std::cout << "Decode ALCT" << std::endl;
-	  thisTMB->DecodeALCT();
+	  //thisTMB->DecodeALCT();
 	  //
-	  std::cout << "ALCT WordCount  "  << thisTMB->GetALCTWordCount() <<std::endl;
+	  //std::cout << "ALCT WordCount  "  << thisTMB->GetALCTWordCount() <<std::endl;
 	  //
-	  thisDMB->readtimingCounter();
+	  //thisDMB->PrintCounters();
 	  //
-	  thisDMB->readtimingScope();
-	  //
-	  printf("  L1A to LCT delay: %d", thisDMB->GetL1aLctCounter()  ); printf(" CMS clock cycles \n");
-	  printf("  CFEB DAV delay:   %d", thisDMB->GetCfebDavCounter() ); printf(" CMS clock cycles \n");
-	  printf("  TMB DAV delay:    %d", thisDMB->GetTmbDavCounter()  ); printf(" CMS clock cycles \n");
-	  printf("  ALCT DAV delay:   %d", thisDMB->GetAlctDavCounter() ); printf(" CMS clock cycles \n");
-	  //
-	  cout << endl ;
-	  //
-	  cout << "  L1A to LCT Scope: " ;
-	  cout << setw(3) << thisDMB->GetL1aLctScope() << " " ;
-	  for( int i=4; i>-1; i--) cout << ((thisDMB->GetL1aLctScope()>>i)&0x1) ;
-	  cout << endl ;
-	  //
-	  cout << "  CFEB DAV Scope:   " ;
-	  cout << setw(3) << thisDMB->GetCfebDavScope() << " " ;
-	  for( int i=4; i>-1; i--) cout << ((thisDMB->GetCfebDavScope()>>i)&0x1) ;
-	  cout << endl ;
-	  //
-	  cout << "  TMB DAV Scope:    " ;
-	  cout << setw(3) << thisDMB->GetTmbDavScope() << " " ;
-	  for( int i=4; i>-1; i--) cout << ((thisDMB->GetTmbDavScope()>>i)&0x1) ;
-	  cout << endl ;
-	  //
-	  cout << "  ALCT DAV Scope:   " ;
-	  cout << setw(3) << thisDMB->GetAlctDavScope() << " " ;
-	  for( int i=4; i>-1; i--) cout << ((thisDMB->GetAlctDavScope()>>i)&0x1) ;
-	  cout << endl ;
-	  //
-	  cout << "  Active DAV Scope: " ;
-	  cout << setw(3) << thisDMB->GetActiveDavScope() << " " ;
-	  for( int i=4; i>-1; i--) cout << ((thisDMB->GetActiveDavScope()>>i)&0x1) ;
-	  cout << endl ;
+	  printf(" ii = %d \n",ii) ;
 	  //
 	  std::cout << std::endl;
-	}
+	  //}
 	//
-      }
+	//}
     }
     //
   }

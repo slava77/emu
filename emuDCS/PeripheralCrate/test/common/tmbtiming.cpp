@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.41 2006/01/10 19:47:07 mey Exp $
+// $Id: tmbtiming.cpp,v 2.42 2006/01/10 23:32:52 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.42  2006/01/10 23:32:52  mey
+// Update
+//
 // Revision 2.41  2006/01/10 19:47:07  mey
 // UPdate
 //
@@ -279,6 +282,7 @@ int main(int argc,char **argv){
   bool doLoadCFEBFirmware(false);
   bool doCrazyTMB(false);
   bool doDecodeALCT(false);
+  bool doChambers(false);
   //
   //-- read commandline arguments and xml configuration file
   //
@@ -391,8 +395,8 @@ int main(int argc,char **argv){
     //sleep(1);
 
     cout << "-- Configuring ALCT --" << endl;
-    alct = thisTMB->alctController();
-    util.SetALCT(alct);
+    //alct = thisTMB->alctController();
+    //util.SetALCT(alct);
     //
     //if (alct) alct->GetWGNumber();
 
@@ -457,7 +461,7 @@ int main(int argc,char **argv){
        cout << " 52:ccb_firmware_version 53:WriteMPCRegister      54:ReadMPCRegister   " << std::endl;
        cout << " 55:LoadDMBFirmware      56:LoadALCTfirmware      57:LoadTMBFirmware   " << std::endl;
        cout << " 58:LoadCFEBFirmware     59:doCrazyCrate          60:DumpTTCrxRegs     " << std::endl;
-       cout << " 61:DecodeALCT        " <<std::endl;
+       cout << " 61:DecodeALCT           62:Chambers " <<std::endl;
        //
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
@@ -527,6 +531,7 @@ int main(int argc,char **argv){
        doLoadTMBFirmware     = false;
        doLoadCFEBFirmware    = false;
        doDecodeALCT          = false;
+       doChambers            = false;
        //
        if ( Menu == -1 ) goto outhere;
        if ( Menu == 0 ) doInitSystem           = true ;
@@ -591,9 +596,16 @@ int main(int argc,char **argv){
        if ( Menu == 59) doCrazyTMB             = true ;
        if ( Menu == 60) doReadTTCrxRegs        = true ;
        if ( Menu == 61) doDecodeALCT           = true ;
-       if ( Menu  > 61 | Menu < -2) 
+       if ( Menu == 62) doChambers           = true ;
+       if ( Menu  > 62 | Menu < -2) 
 	 cout << "Invalid menu choice, try again." << endl << endl;
        //
+    }
+    //
+    if ( doChambers) {
+      //
+      std::cout << crateVector[0]->chambers().size() << std::endl;
+      //
     }
     //
     if(doLoadALCTFirmware) {

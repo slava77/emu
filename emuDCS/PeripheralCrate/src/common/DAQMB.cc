@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.22 2005/12/16 17:49:47 mey Exp $
+// $Id: DAQMB.cc,v 2.23 2006/01/10 23:32:40 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.23  2006/01/10 23:32:40  mey
+// Update
+//
 // Revision 2.22  2005/12/16 17:49:47  mey
 // Update
 //
@@ -2534,6 +2537,46 @@ void DAQMB::cbldly_refreshcfebdly(){
 void DAQMB::devdoReset(){
 /// used for emergency loading
   devdo(RESET,-1,cmd,0,sndbuf,rcvbuf,2);
+}
+
+void DAQMB::PrintCounters(){
+  //
+  readtimingCounter();
+  //
+  readtimingScope();
+  //
+  printf("  L1A to LCT delay: %d", GetL1aLctCounter()  ); printf(" CMS clock cycles \n");
+  printf("  CFEB DAV delay:   %d", GetCfebDavCounter() ); printf(" CMS clock cycles \n");
+  printf("  TMB DAV delay:    %d", GetTmbDavCounter()  ); printf(" CMS clock cycles \n");
+  printf("  ALCT DAV delay:   %d", GetAlctDavCounter() ); printf(" CMS clock cycles \n");
+  //
+  cout << endl ;
+  //
+  cout << "  L1A to LCT Scope: " ;
+  cout << setw(3) << GetL1aLctScope() << " " ;
+  for( int i=4; i>-1; i--) cout << ((GetL1aLctScope()>>i)&0x1) ;
+  cout << endl ;
+  //
+  cout << "  CFEB DAV Scope:   " ;
+  cout << setw(3) << GetCfebDavScope() << " " ;
+  for( int i=4; i>-1; i--) cout << ((GetCfebDavScope()>>i)&0x1) ;
+  cout << endl ;
+  //
+  cout << "  TMB DAV Scope:    " ;
+  cout << setw(3) << GetTmbDavScope() << " " ;
+  for( int i=4; i>-1; i--) cout << ((GetTmbDavScope()>>i)&0x1) ;
+  cout << endl ;
+  //
+  cout << "  ALCT DAV Scope:   " ;
+  cout << setw(3) << GetAlctDavScope() << " " ;
+  for( int i=4; i>-1; i--) cout << ((GetAlctDavScope()>>i)&0x1) ;
+  cout << endl ;
+  //
+  cout << "  Active DAV Scope: " ;
+  cout << setw(3) << GetActiveDavScope() << " " ;
+  for( int i=4; i>-1; i--) cout << ((GetActiveDavScope()>>i)&0x1) ;
+  cout << endl ;
+  //
 }
 
 void DAQMB::readtimingCounter()
