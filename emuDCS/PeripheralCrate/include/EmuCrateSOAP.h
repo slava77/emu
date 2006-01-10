@@ -1,4 +1,4 @@
-// $Id: EmuCrateSOAP.h,v 1.4 2006/01/09 07:18:15 mey Exp $
+// $Id: EmuCrateSOAP.h,v 1.5 2006/01/10 19:46:37 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -52,6 +52,7 @@ public:
     xgi::bind (this,&EmuCrateSOAP::Default, "Default");
     xoap::bind(this, &EmuCrateSOAP::onMessage, "onMessage", XDAQ_NS_URI );    
     xoap::bind(this, &EmuCrateSOAP::Configure, "Configure", XDAQ_NS_URI );    
+    xoap::bind(this, &EmuCrateSOAP::Init, "Init", XDAQ_NS_URI );    
     //
   }  
   //
@@ -87,9 +88,27 @@ public:
   xoap::MessageReference Configure (xoap::MessageReference msg) throw (xoap::exception::Exception)
   {
     //
+    configure();
+    //
     // reply to caller
     //
     std::cout << "Received Message Configure" << std::endl ;
+    //
+    xoap::MessageReference reply = xoap::createMessage();
+    xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+    xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
+    xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
+    return reply;    
+  }
+  //
+  xoap::MessageReference Init (xoap::MessageReference msg) throw (xoap::exception::Exception)
+  {
+    //
+    init();
+    //
+    // reply to caller
+    //
+    std::cout << "Received Message Init" << std::endl ;
     //
     xoap::MessageReference reply = xoap::createMessage();
     xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: calibpulse.cpp,v 2.7 2005/12/16 17:49:20 mey Exp $
+// $Id: calibpulse.cpp,v 2.8 2006/01/10 19:47:01 mey Exp $
 // $Log: calibpulse.cpp,v $
+// Revision 2.8  2006/01/10 19:47:01  mey
+// UPdate
+//
 // Revision 2.7  2005/12/16 17:49:20  mey
 // Update
 //
@@ -43,7 +46,7 @@
 #include "CalibDAQ.h"
 #include "PeripheralCrateParser.h"
 #include "MPC.h"
-#include "CrateUtilities.h"
+#include "ChamberUtilities.h"
 #include <unistd.h> // for sleep
 
 #include "CrateSelector.h"
@@ -130,8 +133,9 @@ int main(int argc, char **argv)
     //
     std::cout << "Pulse alct" << std::endl;
     //
-    CrateUtilities utils;
+    ChamberUtilities utils;
     //
+
     if (tmbVector.size() > 0 && dmbVector.size() > 0 ) {
       thisTMB = tmbVector[0];
       cout << thisTMB->slot() << endl;
@@ -141,6 +145,7 @@ int main(int argc, char **argv)
 	//
 	utils.SetTMB(thisTMB);
 	utils.SetCCB(thisCCB);
+	utils.SetDMB(thisDMB);
 	utils.SetALCT(alct);
 	//
 	thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.

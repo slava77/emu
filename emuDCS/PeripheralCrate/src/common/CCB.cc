@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.15 2006/01/09 07:17:30 mey Exp $
+// $Id: CCB.cc,v 2.16 2006/01/10 19:46:48 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.16  2006/01/10 19:46:48  mey
+// UPdate
+//
 // Revision 2.15  2006/01/09 07:17:30  mey
 // Update
 //
@@ -254,9 +257,9 @@ void CCB::reset_bckpln()
   theController->end();
 }
 //
-void CCB::GenerateAlctAdbSync(){
+void CCB::GenerateAlctAdbASync(){
   //
-  std::cout << "CCB: GenerateAlctAdbPulseSync" << std::endl;
+  std::cout << "CCB: GenerateAlctAdbPulseASync" << std::endl;
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x01;
@@ -275,9 +278,9 @@ void CCB::GenerateAlctAdbSync(){
   //
 }
 //
-void CCB::GenerateAlctAdbASync(){
+void CCB::GenerateAlctAdbSync(){
    //
-   std::cout << "CCB: GenerateAlctAdbPulseASync" << std::endl;
+   std::cout << "CCB: GenerateAlctAdbPulseSync" << std::endl;
    int i_ccb=0x19;
    sndbuf[0]=0x00;
    sndbuf[1]=(i_ccb<<2)&0xfc;

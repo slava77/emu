@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.40 2006/01/09 07:17:43 mey Exp $
+// $Id: tmbtiming.cpp,v 2.41 2006/01/10 19:47:07 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.41  2006/01/10 19:47:07  mey
+// UPdate
+//
 // Revision 2.40  2006/01/09 07:17:43  mey
 // Update
 //
@@ -154,6 +157,8 @@
 #include "ALCTController.h"
 #include "CrateSelector.h"
 #include "JTAG_constants.h"
+#include "ChamberUtilities.h"
+//
 //#include "EmuDcs.h"
 
 using namespace std;
@@ -281,7 +286,8 @@ int main(int argc,char **argv){
     for (int i=1;i<argc;i++){
       // help: print usage and exit
       if (!strcmp(argv[i],"-h")){
-	cout << "Usage: " << argv[0] << " [-alct] [-cfeb] [-scope] [-ALCTRawhits] [-TMBRawhits] [-PulseTest] [-Interactive] [-CFEBTiming] [-CFEBChamberScanning] [-ALCTTiming][-t (time=" 
+	cout << "Usage: " << argv[0] 
+	     << " [-alct] [-cfeb] [-scope] [-ALCTRawhits] [-TMBRawhits] [-PulseTest] [-Interactive] [-CFEBTiming] [-CFEBChamberScanning] [-ALCTTiming][-t (time=" 
 	     << scantime << ")] [-f (file="<< xmlFile <<")]" 
 	     << "[-scint]"<<endl;
 	exit(0);
@@ -349,13 +355,14 @@ int main(int argc,char **argv){
   thisMPC = thisCrate->mpc();
   DDU * thisDDU = thisCrate->ddu();
   //
-  //thisTMB->DumpAddress(0x2c);
-  //thisCCB->DumpAddress(0x20);
-  //thisCCB->enableCLCT();
-  //thisCCB->disableL1();
-  //
+  ChamberUtilities util;
+  util.SetCCB(thisCCB);
+  util.SetTMB(thisTMB);
+  util.SetDMB(thisDMB);
+  util.SetMPC(thisMPC);
   //
   //-- Configure the Cosmic Set-up
+  //
   cout << "---- Cosmic ParticConfiguration ----"<<endl;
   if (useScint){
     // use default test beam configurator
@@ -385,6 +392,8 @@ int main(int argc,char **argv){
 
     cout << "-- Configuring ALCT --" << endl;
     alct = thisTMB->alctController();
+    util.SetALCT(alct);
+    //
     //if (alct) alct->GetWGNumber();
 
     //if (alct) alct->setup(1);
@@ -827,10 +836,7 @@ int main(int argc,char **argv){
     }
 
     if (doCCBstartTrigger) {
-      //tbController.DcsDisable();
-      thisCCB->startTrigger();
-      thisCCB->bc0();
-      //tbController.DcsEnable();
+      util.CCBStartTrigger();
     }
 
     if (doL1aRequest) {
@@ -858,7 +864,8 @@ int main(int argc,char **argv){
     }
 
     if (doInitSystem) {
-      tbController.configureNoDCS();
+      util.InitStartSystem();
+      //tbController.configureNoDCS();
     }
 
     if (doFindWinner) {
@@ -1560,7 +1567,7 @@ int main(int argc,char **argv){
 
     if (doFindBestL1aALCT){
       //tbController.DcsDisable();
-       FindBestL1aAlct();
+      util.FindBestL1aAlct();
       //tbController.DcsEnable();
     }
 
@@ -1638,9 +1645,12 @@ int main(int argc,char **argv){
     if (doPulseTestStrips){
       thisTMB->ResetALCTRAMAddress();
       //while (1 <2 ) {
-	PulseRandomALCT();
-	printf("\n WordCount = %x \n",thisTMB->GetALCTWordCount());
-	//}
+      //PulseRandomALCT();
+      //
+      util.PulseRandomALCT();
+      //printf("\n WordCount = %x \n",thisTMB->GetALCTWordCount());
+      //}
+      //
     }
   }
   
@@ -2711,6 +2721,7 @@ int FindBestL1aAlct(){
   // Now find the best L1a_delay value for the ALCT
   //
   thisTMB->SetALCTPatternTrigger();
+  //
   unsigned long HCmask[22];
   /*
   int keyWG = 16;
@@ -2946,7 +2957,7 @@ void PulseTestStrips(){
      //
      //thisTMB->SetCLCTPatternTrigger();
      //
-     unsigned cr[3]  = {0x80fc5fc0, 0x20a0f786, 0x8}; // Configuration for this test L1a_delay=120 L1a_window=0xf
+     //unsigned cr[3]  = {0x80fc5fc0, 0x20a0f786, 0x8}; // Configuration for this test L1a_delay=120 L1a_window=0xf
      //
      //alct->SetConf(cr,1);
      //alct->unpackControlRegister(cr);
@@ -2971,7 +2982,7 @@ void PulseTestStrips(){
 	//old alct->alct_set_test_pulse_groupmask(&slot,0xff);
 	//
 	alct->alct_set_test_pulse_stripmask(&slot,0xff);
-	alct->alct_set_test_pulse_groupmask(&slot,0xff);
+	alct->alct_set_test_pulse_groupmask(&slot,0x00);
 	//
 	alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
 	cout << " StripMask = " << hex << StripMask << endl;
@@ -2979,7 +2990,7 @@ void PulseTestStrips(){
 	alct->alct_read_test_pulse_powerup(&slot,&PowerUp);
 	cout << " PowerUp   = " << hex << PowerUp << dec << endl; //11July05 DM added dec
 	//
-	alct->alct_fire_test_pulse('a');
+	alct->alct_fire_test_pulse('A');
 	//
 	alct->alct_set_test_pulse_powerup(&slot,1);
 	//
@@ -2995,8 +3006,9 @@ void PulseTestStrips(){
 	thisCCB->setCCBMode(CCB::VMEFPGA);
 	thisCCB->WriteRegister(0x28,0x7862);  //4Aug05 DM changed 0x789b to 0x7862
 	                                      //July05 changed 0x7878 to 0x789b
-	
-	                                      
+	//thisCCB->WriteRegister(0x20,0x1e71);
+	//
+	//                                      
 	//
 	//cout <<"Enter 78 then l1a delay time (in hex)" <<  endl;
 	//cin >> hex >>  TMBtime;
@@ -3005,8 +3017,10 @@ void PulseTestStrips(){
 	//cout <<"TMBtime is " << TMBtime << dec << endl;
 	//
 	thisCCB->ReadRegister(0x28);
+	//
 	//thisCCB->WriteRegister(0x20,0x01);
-	thisCCB->GenerateAlctAdbSync();	 
+	//
+	thisCCB->GenerateAlctAdbASync();	 
 	//thisCCB->setCCBMode(CCB::DLOG);  
 	//
 	}
@@ -3014,6 +3028,7 @@ void PulseTestStrips(){
    } else {
       cout << " No ALCT " << endl;
    }  
+   //
    //thisCCB->DumpAddress(0x20);
    //
 }
