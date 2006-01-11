@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.16 2006/01/10 19:46:48 mey Exp $
+// $Id: CCB.cc,v 2.17 2006/01/11 13:47:27 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.17  2006/01/11 13:47:27  mey
+// Update
+//
 // Revision 2.16  2006/01/10 19:46:48  mey
 // UPdate
 //
@@ -122,7 +125,6 @@ void CCB::end() {
   do_vme(0xff,CSR1,sndx,rcvx,NOW);
   //2004 do_vme(0xff,CSRB1,sndx,rcvx,NOW);
 }
-
 
 void CCB::pulse(int Num_pulse,unsigned int * delays, char vme) 
 {
@@ -871,6 +873,16 @@ void CCB::reset_bxevt() {
   //2004 do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
   usleep(10000);
   theController->end();
+}
+
+void CCB::SelfTest() {
+  //
+  //
+}
+
+void CCB::init() {
+  //
+  //
 }
 
 void CCB::configure() {

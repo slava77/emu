@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.10 2005/12/08 12:00:07 mey Exp $
+// $Id: MPC.cc,v 2.11 2006/01/11 13:47:47 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.11  2006/01/11 13:47:47  mey
+// Update
+//
 // Revision 2.10  2005/12/08 12:00:07  mey
 // Update
 //
@@ -90,6 +93,7 @@ int MPC::ReadRegister(int reg){
 
 
 void MPC::init() {
+  //
   int btd;
   int xfer_done[2];
   char data[2];
@@ -286,6 +290,7 @@ void MPC::SoftReset() {
 }
 
 void MPC::read_status() {
+  //
   //Check FIFO Status:
   char data[100];
   //read_fifo(STATUS, data);
@@ -798,8 +803,11 @@ void MPC::interconnectTest(){
 #else
 
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.10 2005/12/08 12:00:07 mey Exp $
+// $Id: MPC.cc,v 2.11 2006/01/11 13:47:47 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.11  2006/01/11 13:47:47  mey
+// Update
+//
 // Revision 2.10  2005/12/08 12:00:07  mey
 // Update
 //
@@ -854,6 +862,12 @@ MPC::~MPC(){
        << " slot=" << this->slot() << std::endl;
 }
 
+
+void MPC::configure() {
+}
+
+void MPC::SelfTest() {
+}
 
 void MPC::init() {
   int btd;
