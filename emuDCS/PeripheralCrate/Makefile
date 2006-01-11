@@ -47,7 +47,8 @@ Sources=\
 	VMEController_jtag.cc \
 	VMEModule.cc \
 	VMEParser.cc \
-	CrateUtilities.cc \
+	EmuController.cc \
+	ChamberUtilities.cc \
 	EmuPeripheralCrate.cc \
 	EmuPeripheralCrateSO.cc \
 	EmuPeripheralCrateV.cc 
