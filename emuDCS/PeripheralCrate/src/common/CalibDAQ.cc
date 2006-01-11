@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.0 2005/06/06 10:01:03 geurts Exp $
+// $Id: CalibDAQ.cc,v 2.1 2006/01/11 17:00:01 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.1  2006/01/11 17:00:01  mey
+// Update
+//
 // Revision 2.0  2005/06/06 10:01:03  geurts
 // calibration routines by Alex Tumanov and Jason Gilmore
 //
@@ -14,7 +17,7 @@
 #include "DAQMB.h"
 #include "CCB.h"
 #include "JTAG_constants.h"
-
+#include "ChamberUtilities.h"
 
 void CalibDAQ::loadConstants() {
 
@@ -40,10 +43,9 @@ void CalibDAQ::loadConstants(Crate * crate) {
   }
 
 }
-
+//
 void CalibDAQ::rateTest() {
-
-
+  //
   int chip,ch,brd, nstrip;
   int counter = 0;
   float dac;
@@ -86,9 +88,27 @@ void CalibDAQ::rateTest() {
     } //endof loop by amplitudes
   }//end of loop by crates
 }
-
-
-
+//
+void CalibDAQ::pulseAllWires(){
+  //
+  std::vector<Crate*> myCrates = theSelector.crates();
+  //
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
+    //
+    (myCrates[j]->chambers())[0].CCBStartTrigger();
+    //
+    std::vector<ChamberUtilities> utils = (myCrates[j]->chambers()) ;
+    //
+    for (int i = 0; i < utils.size() ; i++ ) {
+      //
+      utils[i].PulseRandomALCT();
+      //
+    }
+    //
+  }
+  //
+}
+//
 void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep) { 
 //injects identical pulse to all dmbs (EXT capacitors)
 //in all crates one crate at a time          
@@ -115,23 +135,23 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep) {
 	  myDmbs[i]->shift_array[brd][chip][nstrip]=EXT_CAP;
 	}
       }
-
+      //
       myDmbs[i]->buck_shift();
-      
+      //
       //set timing
       //ntim is the same as pulse_delay initially set in xml configuration file
       myDmbs[i]->set_cal_tim_pulse(ntim);   
-
+      //
     }
-  
+    //
     //std::cout << "pulsing one time" << std::endl;
     ::usleep(nsleep);
     ccb->pulse(1, 0xff);//pulse all dmbs in this crate
     ::usleep(nsleep);
-
+    //
   }
 }
-  
+//
 void CalibDAQ::injectAllDMBs(int ntim) { //injects identical pulse to all dmbs
 
   std::vector<Crate*> myCrates = theSelector.crates();
