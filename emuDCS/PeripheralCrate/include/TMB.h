@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.11 2005/11/21 17:38:52 mey Exp $
+// $Id: TMB.h,v 2.12 2006/01/11 13:26:26 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.12  2006/01/11 13:26:26  mey
+// Update
+//
 // Revision 2.11  2005/11/21 17:38:52  mey
 // Update
 //
@@ -72,7 +75,6 @@ public:
   void tmb_vme(char fcn, char vme, const char *snd,char *rcv, int wrt);      
   int  GetWordCount();
   int  GetALCTWordCount();
-  void configure();
   void StartTTC();
   int  ReadRegister(int);
   void WriteRegister(int,int);
@@ -199,6 +201,10 @@ public:
   //
   int MPC0Accept();
   int MPC1Accept();
+  //
+  virtual void SelfTest() ;
+  virtual void init() ;
+  virtual void configure() ;
   //
 public:
   //
