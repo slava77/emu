@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.10 2005/12/16 17:50:08 mey Exp $
+// $Id: CCB.h,v 2.11 2006/01/11 13:25:17 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.11  2006/01/11 13:25:17  mey
+// Update
+//
 // Revision 2.10  2005/12/16 17:50:08  mey
 // Update
 //
@@ -76,6 +79,11 @@ public:
 
   virtual void prgall_bckpln();
   virtual void reset_bckpln();
+  //
+  virtual void SelfTest() ;
+  virtual void init() ;
+  virtual void configure() ;
+  //
 
   bool l1Enabled() const {return l1enabled_;}
   void enableL1();
@@ -88,7 +96,6 @@ public:
   void bx0();
   void bc0();
   void bxr();
-  void configure();
   /// uses SPS25ns to decide whether to use TTC triggers
   void enable();
   void enableTTCControl();

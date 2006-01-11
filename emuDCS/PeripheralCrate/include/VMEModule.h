@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.4 2005/12/02 18:12:08 mey Exp $
+// $Id: VMEModule.h,v 2.5 2006/01/11 13:26:45 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.5  2006/01/11 13:26:45  mey
+// Update
+//
 // Revision 2.4  2005/12/02 18:12:08  mey
 // get rid of D360
 //
@@ -99,8 +102,11 @@ protected:
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.4 2005/12/02 18:12:08 mey Exp $
+// $Id: VMEModule.h,v 2.5 2006/01/11 13:26:45 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.5  2006/01/11 13:26:45  mey
+// Update
+//
 // Revision 2.4  2005/12/02 18:12:08  mey
 // get rid of D360
 //
@@ -144,12 +150,14 @@ public:
    /// should automatically start().  Here's what you do if
    /// you want to end() by hand
    void endDevice();
+  
+  enum BOARDTYPE { DMB_ENUM=0, CCB_ENUM, TMB_ENUM, MPC_ENUM };
+  virtual unsigned int boardType() const = 0;
+  virtual void SelfTest() = 0;
+  virtual void init() = 0;
+  virtual void configure() = 0;
 
-   enum BOARDTYPE { DMB_ENUM=0, CCB_ENUM, TMB_ENUM, MPC_ENUM };
-   virtual unsigned int boardType() const = 0;
-
-   VMEController* getTheController();
-
+  VMEController* getTheController();
 
 protected:
    /// used for calls to do_vme

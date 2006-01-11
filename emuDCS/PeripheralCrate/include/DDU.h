@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DDU.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: DDU.h,v 2.1 2006/01/11 13:26:21 mey Exp $
 // $Log: DDU.h,v $
+// Revision 2.1  2006/01/11 13:26:21  mey
+// Update
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
@@ -77,6 +80,10 @@ public:
    
   //@@ it sends the same code to VME as DAQMB does.  Maybe can fix this later
   virtual unsigned int boardType() const {return DMB_ENUM;} 
+  virtual void SelfTest() ;
+  virtual void init() ;
+  virtual void configure() ;
+  //
   
 private:
   //@@ NOT FILLED YET

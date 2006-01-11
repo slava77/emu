@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.8 2005/12/10 04:47:21 mey Exp $
+// $Id: MPC.h,v 2.9 2006/01/11 13:26:37 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.9  2006/01/11 13:26:37  mey
+// Update
+//
 // Revision 2.8  2005/12/10 04:47:21  mey
 // Fix bug
 //
@@ -46,8 +49,10 @@ class MPC : public VMEModule {
 
   /// from the BOARDTYPE enum
   virtual unsigned int boardType() const {return MPC_ENUM;} 
-  
-  void init();
+  virtual void SelfTest();
+  virtual void configure();
+  virtual void init();
+
   inline void RedirectOutput(std::ostream * Output) { }
   void WriteRegister(int,int);
   int  ReadRegister(int);
@@ -153,8 +158,11 @@ class MPC : public VMEModule {
 #else
 
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.8 2005/12/10 04:47:21 mey Exp $
+// $Id: MPC.h,v 2.9 2006/01/11 13:26:37 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.9  2006/01/11 13:26:37  mey
+// Update
+//
 // Revision 2.8  2005/12/10 04:47:21  mey
 // Fix bug
 //
@@ -202,8 +210,9 @@ class MPC : public VMEModule {
 
   /// from the BOARDTYPE enum
   virtual unsigned int boardType() const {return MPC_ENUM;} 
-  
-  void init();
+  virtual void SelfTest();
+  virtual void configure();  
+  virtual void init();
 
   /// address is usually one of the above enums.  theBaseAddress
   /// defined in the constructor automatically added
