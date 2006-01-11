@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: calibpulse.cpp,v 2.9 2006/01/10 23:32:47 mey Exp $
+// $Id: calibpulse.cpp,v 2.10 2006/01/11 17:00:24 mey Exp $
 // $Log: calibpulse.cpp,v $
+// Revision 2.10  2006/01/11 17:00:24  mey
+// Update
+//
 // Revision 2.9  2006/01/10 23:32:47  mey
 // Update
 //
@@ -117,13 +120,14 @@ int main(int argc, char **argv)
   //dmbVector = theSelector.daqmbs(crateVector[0]);
   //thisCCB   = thisCrate->ccb();
 
+  CalibDAQ calib;
+
   if ( doPulsecfeb ) {
 
-    CalibDAQ calib;
     calib.loadConstants();
+
     //calib.rateTest();
-    
-  
+      
     int nsleep, nstrip, tries, counter =0;
     float dac;
     nsleep = 1000;  
@@ -145,46 +149,49 @@ int main(int argc, char **argv)
     //
     std::cout << "Pulse alct" << std::endl;
     //
-    ChamberUtilities utils = (crateVector[0]->chambers())[0] ;
+    //ChamberUtilities utils = (crateVector[0]->chambers())[0] ;
     //
-    printf("Here1\n");
+    //printf("Here1\n");
     //
     //if (tmbVector.size() > 0 && dmbVector.size() > 0 ) {
-      //thisTMB = tmbVector[0];
-      //cout << thisTMB->slot() << endl;
+    //thisTMB = tmbVector[0];
+    //cout << thisTMB->slot() << endl;
       //thisDMB = dmbVector[0];
       //alct = thisTMB->alctController();
       //if ( alct ) {
-	//
-	//utils.SetTMB(thisTMB);
-	//utils.SetCCB(thisCCB);
-	//utils.SetDMB(thisDMB);
-	//
-	printf("Here \n");
-	printf("%x \n",&utils);
-	//
-	//thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
-	utils.CCBStartTrigger();
-	//
-	for (int ii=0; ii<npulses; ii++) {
-	  //
-	  cout << npulses << endl;
-	  std::cout << "Pulse..." << std::endl;
-	  //thisTMB->ResetALCTRAMAddress();
-	  utils.PulseRandomALCT();
-	  std::cout << "Decode ALCT" << std::endl;
-	  //thisTMB->DecodeALCT();
-	  //
-	  //std::cout << "ALCT WordCount  "  << thisTMB->GetALCTWordCount() <<std::endl;
-	  //
-	  //thisDMB->PrintCounters();
-	  //
-	  printf(" ii = %d \n",ii) ;
-	  //
-	  std::cout << std::endl;
-	  //}
-	//
-	//}
+    //
+    //utils.SetTMB(thisTMB);
+    //utils.SetCCB(thisCCB);
+    //utils.SetDMB(thisDMB);
+    //
+    //printf("Here \n");
+    //printf("%x \n",&utils);
+    //
+    //thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
+    //utils.CCBStartTrigger();
+    //
+    for (int ii=0; ii<npulses; ii++) {
+      //
+      calib.pulseAllWires();
+      //
+      cout << npulses << endl;
+      std::cout << "Pulse..." << std::endl;
+      //thisTMB->ResetALCTRAMAddress();
+      //utils.PulseRandomALCT();
+      //std::cout << "Decode ALCT" << std::endl;
+      //thisTMB->DecodeALCT();
+      //
+      //std::cout << "ALCT WordCount  "  << thisTMB->GetALCTWordCount() <<std::endl;
+      //
+      //thisDMB->PrintCounters();
+      //
+      
+      //printf(" ii = %d \n",ii) ;
+      //
+      std::cout << std::endl;
+      //}
+      //
+      //}
     }
     //
   }

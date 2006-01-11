@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.26 2006/01/11 13:47:51 mey Exp $
+// $Id: TMB.cc,v 2.27 2006/01/11 16:58:17 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.27  2006/01/11 16:58:17  mey
+// Update
+//
 // Revision 2.26  2006/01/11 13:47:51  mey
 // Update
 //
@@ -3252,8 +3255,6 @@ int TMB::tmb_jtag_io(unsigned char tms, unsigned char tdi, unsigned char* tdo)
 
 int TMB::tmb_get_boot_reg(unsigned short int* value)
 {
-   char sndbuf[2];
-   char rcvbuf[2];
    sndbuf[0]=0;
    sndbuf[1]=0;
    tmb_vme(VME_READ | VME_BOOT_REG, 0, sndbuf, rcvbuf, NOW );
@@ -3263,10 +3264,8 @@ int TMB::tmb_get_boot_reg(unsigned short int* value)
 
 int TMB::tmb_set_boot_reg(unsigned short int value)
 {
-   char sndbuf[2];
-   char rcvbuf[2];
-   sndbuf[0]=value & 0xff;
-   sndbuf[1]=(value >> 8) & 0xff;
+   sndbuf[0]=(value >> 8) & 0xff;
+   sndbuf[1]=value & 0xff;
    tmb_vme(VME_WRITE | VME_BOOT_REG, 0, sndbuf, rcvbuf, NOW );
    return 0;   
 }

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.42 2006/01/10 23:32:52 mey Exp $
+// $Id: tmbtiming.cpp,v 2.43 2006/01/11 17:00:29 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.43  2006/01/11 17:00:29  mey
+// Update
+//
 // Revision 2.42  2006/01/10 23:32:52  mey
 // Update
 //
@@ -830,9 +833,7 @@ int main(int argc,char **argv){
     }
 
     if(doInjectMPCData){
-      //tbController.DcsDisable();
       InjectMPCData();
-      //tbController.DcsEnable();
     }
 
     if(doAdjustL1aLctDMB){
