@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DDU.cc,v 2.0 2005/04/12 08:07:05 geurts Exp $
+// $Id: DDU.cc,v 2.1 2006/01/11 13:47:39 mey Exp $
 // $Log: DDU.cc,v $
+// Revision 2.1  2006/01/11 13:47:39  mey
+// Update
+//
 // Revision 2.0  2005/04/12 08:07:05  geurts
 // *** empty log message ***
 //
@@ -23,6 +26,15 @@ DDU::DDU(int crate, int slot)
   std::cout << "DDU: crate " << this->crate() << " slot " << this->slot() << std::endl;
 }
 
+
+void DDU::init(){
+}
+
+void DDU::SelfTest(){
+}
+
+void DDU::configure() {
+}
 
 void DDU::end() {
   std::cout << "DDU: calling end" << std::endl;

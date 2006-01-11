@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.25 2006/01/09 07:17:37 mey Exp $
+// $Id: TMB.cc,v 2.26 2006/01/11 13:47:51 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.26  2006/01/11 13:47:51  mey
+// Update
+//
 // Revision 2.25  2006/01/09 07:17:37  mey
 // Update
 //
@@ -238,8 +241,13 @@ void TMB::WriteRegister(int reg, int value){
   tmb_vme(VME_WRITE,reg,sndbuf,rcvbuf,NOW);
   //
 }
-
-
+//
+void TMB::SelfTest() {
+}
+//
+void TMB::init() {
+}
+//
 void TMB::configure() {
   printf("Setting up trgmode CLCT TMB slot %2d\n", theSlot) ;
   trgmode(1);

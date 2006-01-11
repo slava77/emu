@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.23 2006/01/10 23:32:40 mey Exp $
+// $Id: DAQMB.cc,v 2.24 2006/01/11 13:47:32 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.24  2006/01/11 13:47:32  mey
+// Update
+//
 // Revision 2.23  2006/01/10 23:32:40  mey
 // Update
 //
@@ -163,6 +166,11 @@ void DAQMB::end()
   VMEModule::end();
 }
 
+void DAQMB::init(){
+}
+
+void DAQMB::SelfTest(){
+}
 
 void DAQMB::configure() {
   //
