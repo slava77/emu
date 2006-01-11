@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.5 2006/01/11 13:26:45 mey Exp $
+// $Id: VMEModule.h,v 2.6 2006/01/11 13:55:03 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.6  2006/01/11 13:55:03  mey
+// Update
+//
 // Revision 2.5  2006/01/11 13:26:45  mey
 // Update
 //
@@ -57,8 +60,11 @@ public:
    void endDevice();
 
    enum BOARDTYPE { DMB_ENUM=0, CCB_ENUM, TMB_ENUM, MPC_ENUM };
-   virtual unsigned int boardType() const = 0;
-
+  virtual unsigned int boardType() const = 0;
+  virtual void SelfTest() = 0;
+  virtual void init() = 0;
+  virtual void configure() = 0;
+  
    VMEController* getTheController();
 
 protected:
@@ -102,8 +108,11 @@ protected:
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.5 2006/01/11 13:26:45 mey Exp $
+// $Id: VMEModule.h,v 2.6 2006/01/11 13:55:03 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.6  2006/01/11 13:55:03  mey
+// Update
+//
 // Revision 2.5  2006/01/11 13:26:45  mey
 // Update
 //
