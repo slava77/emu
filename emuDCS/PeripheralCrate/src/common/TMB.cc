@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.28 2006/01/12 11:32:30 mey Exp $
+// $Id: TMB.cc,v 2.29 2006/01/12 11:48:12 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.29  2006/01/12 11:48:12  mey
+// Update
+//
 // Revision 2.28  2006/01/12 11:32:30  mey
 // Update
 //
@@ -3301,12 +3304,13 @@ int TMB::tmb_get_boot_reg(unsigned short int* value)
   //char sndbuf[2];
   //char rcvbuf[2];
   //
-  tmb_vme(VME_READ | VME_BOOT_REG, 0, sndbuf, rcvbuf, NOW );
-  tmb_vme(VME_READ, 0, sndbuf, rcvbuf, NOW );
-  tmb_vme(VME_READ, 0, sndbuf, rcvbuf, NOW );
+  tmb_vme(VME_READ | VME_BOOT_REG, 4, sndbuf, rcvbuf, NOW ); // Send read request
+  //tmb_vme(VME_READ, 4, sndbuf, rcvbuf, NOW );
+  //tmb_vme(VME_READ, 4, sndbuf, rcvbuf, NOW );
+  //tmb_vme(VME_READ, 4, sndbuf, rcvbuf, NOW );
   //
   *value = (rcvbuf[1]&0xff) | (rcvbuf[0]<<8);
-  printf("get_boot.%x %x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  printf("get_boot.%02x %02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   return 0;
   //
 }

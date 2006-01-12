@@ -1,7 +1,10 @@
 #ifndef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.6 2006/01/12 11:32:50 mey Exp $
+// $Id: VMEModule.cc,v 2.7 2006/01/12 11:48:17 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.7  2006/01/12 11:48:17  mey
+// Update
+//
 // Revision 2.6  2006/01/12 11:32:50  mey
 // Update
 //
@@ -118,7 +121,7 @@ void VMEModule::do_vme(char fcn, char vme,
   if(fcn!=VME_READ && when==LATER)return;
   theController->writenn(Tdata,cnt);
   cnt=0;
-  if( fcn==VME_READ ){
+  if( fcn==VME_READ || fcn==5 ){
     theController->readn(rcv);
     if(boardType()==MPC_ENUM) {
       //       tmp=rcv[0];
@@ -181,8 +184,11 @@ VMEController* VMEModule::getTheController(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.6 2006/01/12 11:32:50 mey Exp $
+// $Id: VMEModule.cc,v 2.7 2006/01/12 11:48:17 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.7  2006/01/12 11:48:17  mey
+// Update
+//
 // Revision 2.6  2006/01/12 11:32:50  mey
 // Update
 //
