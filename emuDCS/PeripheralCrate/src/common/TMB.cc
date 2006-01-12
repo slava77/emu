@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.29 2006/01/12 11:48:12 mey Exp $
+// $Id: TMB.cc,v 2.30 2006/01/12 12:14:53 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.30  2006/01/12 12:14:53  mey
+// Update
+//
 // Revision 2.29  2006/01/12 11:48:12  mey
 // Update
 //
@@ -3105,7 +3108,6 @@ void TMB::setLogicAnalyzerToDataStream(bool yesorno) {
 void TMB::tmb_vme(char fcn, char vme,
                   const char *snd,char *rcv, int wrt) {
   start(1);
-  printf("Sending %d %x %x \n",fcn,snd[0],snd[1]);
   do_vme(fcn, vme, snd, rcv, wrt);
 }
 
