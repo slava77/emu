@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.32 2006/01/12 22:36:09 mey Exp $
+// $Id: TMB.cc,v 2.33 2006/01/12 23:44:47 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.33  2006/01/12 23:44:47  mey
+// Update
+//
 // Revision 2.32  2006/01/12 22:36:09  mey
 // UPdate
 //
@@ -260,8 +263,9 @@ void TMB::WriteRegister(int reg, int value){
   //
 }
 //
-int TMB::SelfTest(int opt) {
+bool TMB::SelfTest() {
   //
+return 0;
   //
 }
 //

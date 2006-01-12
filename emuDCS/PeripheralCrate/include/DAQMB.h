@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.15 2006/01/12 12:27:44 mey Exp $
+// $Id: DAQMB.h,v 2.16 2006/01/12 23:43:43 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.16  2006/01/12 23:43:43  mey
+// Update
+//
 // Revision 2.15  2006/01/12 12:27:44  mey
 // UPdate
 //
@@ -251,7 +254,7 @@ public:
   void sfm_test_load(char *sndpat);
   void sfm_test_read(char *rcvpat);
   //
-  virtual int  SelfTest(int) ;
+  virtual bool  SelfTest() ;
   virtual void init() ;
   virtual void configure() ;
   //

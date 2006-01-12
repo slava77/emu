@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DDU.cc,v 2.2 2006/01/12 12:28:45 mey Exp $
+// $Id: DDU.cc,v 2.3 2006/01/12 23:44:32 mey Exp $
 // $Log: DDU.cc,v $
+// Revision 2.3  2006/01/12 23:44:32  mey
+// Update
+//
 // Revision 2.2  2006/01/12 12:28:45  mey
 // UPdate
 //
@@ -33,7 +36,7 @@ DDU::DDU(int crate, int slot)
 void DDU::init(){
 }
 
-int DDU::SelfTest(int opt){
+bool DDU::SelfTest(){
   //
   //
 }

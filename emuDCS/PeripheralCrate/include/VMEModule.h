@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.7 2006/01/12 12:28:09 mey Exp $
+// $Id: VMEModule.h,v 2.8 2006/01/12 23:44:11 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.8  2006/01/12 23:44:11  mey
+// Update
+//
 // Revision 2.7  2006/01/12 12:28:09  mey
 // UPdate
 //
@@ -64,7 +67,7 @@ public:
 
    enum BOARDTYPE { DMB_ENUM=0, CCB_ENUM, TMB_ENUM, MPC_ENUM };
   virtual unsigned int boardType() const = 0;
-  virtual int  SelfTest(int) = 0;
+  virtual bool  SelfTest() = 0;
   virtual void init() = 0;
   virtual void configure() = 0;
   
@@ -111,8 +114,11 @@ protected:
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.7 2006/01/12 12:28:09 mey Exp $
+// $Id: VMEModule.h,v 2.8 2006/01/12 23:44:11 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.8  2006/01/12 23:44:11  mey
+// Update
+//
 // Revision 2.7  2006/01/12 12:28:09  mey
 // UPdate
 //
