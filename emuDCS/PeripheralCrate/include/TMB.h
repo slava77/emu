@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.12 2006/01/11 13:26:26 mey Exp $
+// $Id: TMB.h,v 2.13 2006/01/12 11:32:08 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.13  2006/01/12 11:32:08  mey
+// Update
+//
 // Revision 2.12  2006/01/11 13:26:26  mey
 // Update
 //
@@ -195,6 +198,8 @@ public:
   //
   void enableAllClocks();
   void disableAllClocks();
+  void FireMPCInjector(int);
+  void ReadBackMpcRAM(int);
   //
   void TriggerTestInjectALCT();
   void TriggerTestInjectCLCT();
@@ -249,6 +254,7 @@ protected:
   
 private:
   //
+  unsigned long lct0_, lct1_;
   int CLCT0_cfeb_;
   int CLCT1_cfeb_;
   int CLCT0_nhit_;

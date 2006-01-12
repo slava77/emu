@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.17 2006/01/11 13:47:27 mey Exp $
+// $Id: CCB.cc,v 2.18 2006/01/12 11:32:26 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.18  2006/01/12 11:32:26  mey
+// Update
+//
 // Revision 2.17  2006/01/11 13:47:27  mey
 // Update
 //
@@ -1006,13 +1009,35 @@ void CCB::enableTTCControl() {
 
 
 void CCB::startTrigger() {
+  //
   /// Send "Start Trigger" command on the Fast Control Bus
   std::cout << "CCB: Start Trigger" << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=0x18;          //cmd[5:0]=0x06 for start_trigger     GUJH
   do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+  //
 }
-
+//
+void CCB::injectTMBPattern() {
+  //
+  /// Inject TMB Pattern data
+  std::cout << "CCB: Start Trigger" << std::endl;
+  sndbuf[0]=0x00;
+  sndbuf[1]=(0x24<<2);          
+  do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+  //
+}
+//
+void CCB::l1aReset(){
+  //
+  /// Send "L1a Reset" command on the Fast Control Bus
+  std::cout << "CCB: L1a Reset" << std::endl;
+  sndbuf[0]=0x00;
+  sndbuf[1]=(0x3<<2);          //cmd[5:0]=0x03 
+  do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+  //
+}
+//
 void CCB::bc0() {
   /// Send "bc0" command on the Fast Control Bus
   std::cout << "CCB: bc0 Trigger" << std::endl;
@@ -1077,6 +1102,31 @@ void CCB::executeCommand(std::string command) {
   if(command=="BXR")              bxr();
 }
 
+
+void CCB::FireCCBMpcInjector(){
+  //
+  //
+  // Issue L1Reset
+  //
+  l1aReset();
+  //
+  // Issue L1 Start
+  //
+  //startTrigger();
+  //
+  // Issue BC0
+  //
+  //bc0();
+  //
+  // Inject TMB Pattern
+  //
+  injectTMBPattern();
+  //
+  // Stop Trigger
+  //
+  //stopTrigger();
+  //
+}
 
 void CCB::firmwareVersion(){
   /// report the firmware version

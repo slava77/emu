@@ -1,7 +1,10 @@
 #ifndef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.5 2005/12/08 12:00:32 mey Exp $
+// $Id: VMEModule.cc,v 2.6 2006/01/12 11:32:50 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.6  2006/01/12 11:32:50  mey
+// Update
+//
 // Revision 2.5  2005/12/08 12:00:32  mey
 // Update
 //
@@ -90,23 +93,24 @@ void VMEModule::endDevice() {
 
 void VMEModule::do_vme(char fcn, char vme, 
                        const char *snd,char *rcv, int when) {
+  //
   char tmp;
-
+  //
   theController->start(this);
   Tdata[cnt]=fcn;
   Tdata[cnt+1]=vme;
-       Tdata[cnt+2]=snd[0];
-       Tdata[cnt+3]=snd[1];
+  Tdata[cnt+2]=snd[0];
+  Tdata[cnt+3]=snd[1];
   if(fcn==VME_WRITE){
-// Jinghua Liu, add byte swap for MPC. Dec.7,2005
+    // Jinghua Liu, add byte swap for MPC. Dec.7,2005
     if(boardType()==MPC_ENUM) {
-       Tdata[cnt+2]=snd[0];
-       Tdata[cnt+3]=snd[1];
+      Tdata[cnt+2]=snd[0];
+      Tdata[cnt+3]=snd[1];
     }
-    else {
-       Tdata[cnt+2]=snd[0];
-       Tdata[cnt+3]=snd[1];
-    }
+    //else {
+    //Tdata[cnt+2]=snd[0];
+    //Tdata[cnt+3]=snd[1];
+    //}
   }
   cnt += 4;
   assert(cnt < TDATASIZE);
@@ -114,16 +118,16 @@ void VMEModule::do_vme(char fcn, char vme,
   if(fcn!=VME_READ && when==LATER)return;
   theController->writenn(Tdata,cnt);
   cnt=0;
-  if(fcn==VME_READ){
+  if( fcn==VME_READ ){
     theController->readn(rcv);
     if(boardType()==MPC_ENUM) {
-//       tmp=rcv[0];
-//       rcv[0]=rcv[1];
-//       rcv[1]=tmp;
+      //       tmp=rcv[0];
+      //       rcv[0]=rcv[1];
+      //       rcv[1]=tmp;
     }
   }
   if(boardType()==MPC_ENUM) theController->end();
-
+  //
 }
 
 int VMEModule::readn(char *line) {
@@ -177,8 +181,11 @@ VMEController* VMEModule::getTheController(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.5 2005/12/08 12:00:32 mey Exp $
+// $Id: VMEModule.cc,v 2.6 2006/01/12 11:32:50 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.6  2006/01/12 11:32:50  mey
+// Update
+//
 // Revision 2.5  2005/12/08 12:00:32  mey
 // Update
 //
@@ -272,26 +279,26 @@ unsigned short int itrd[2]={2,2};
 char ttt;
 
 //printf("in VMEModule::do_vme. fcn=%d, baseadd=%08X\n",fcn,vmebase);
-if(fcn==15)return;
-    add_rice=vmebase|(unsigned char)vme;
-    ptr_rice=(unsigned short int *)add_rice;
-    if(fcn==2){
-      //printf(" rice VME W:%08x %04x \n",ptr_rice,it[0]);
-//Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
-      it[0]=snd[1]&0x00ff;
-      it[0]=it[0]|((snd[0]<<8)&0xff00);
-      vme_controller(itwr[when],ptr_rice,it,rcv);
-    }
-    if(fcn==1){
-      //printf(" rice VME R: %08x %04x \n",ptr_rice,*rcv);
-      vme_controller(itrd[when],ptr_rice,tmp,rcv);
-//Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
-      ttt=rcv[0];
-      rcv[0]=rcv[1];
+ if(fcn==15)return;
+ add_rice=vmebase|(unsigned char)vme;
+ ptr_rice=(unsigned short int *)add_rice;
+ if(fcn==2){
+   //printf(" rice VME W:%08x %04x \n",ptr_rice,it[0]);
+   //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
+   it[0]=snd[1]&0x00ff;
+   it[0]=it[0]|((snd[0]<<8)&0xff00);
+   vme_controller(itwr[when],ptr_rice,it,rcv);
+ }
+ if(fcn==1){
+   //printf(" rice VME R: %08x %04x \n",ptr_rice,*rcv);
+   vme_controller(itrd[when],ptr_rice,tmp,rcv);
+   //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
+   ttt=rcv[0];
+   rcv[0]=rcv[1];
       rcv[1]=ttt;
-    }
-    if(fcn==3) theController->sleep_vme(snd); // sleep 
-    if(fcn==4) theController->handshake_vme(); // handshake
+ }
+ if(fcn==3) theController->sleep_vme(snd); // sleep 
+ if(fcn==4) theController->handshake_vme(); // handshake
 }
 
 

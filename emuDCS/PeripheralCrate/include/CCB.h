@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.11 2006/01/11 13:25:17 mey Exp $
+// $Id: CCB.h,v 2.12 2006/01/12 11:32:02 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.12  2006/01/12 11:32:02  mey
+// Update
+//
 // Revision 2.11  2006/01/11 13:25:17  mey
 // Update
 //
@@ -84,7 +87,8 @@ public:
   virtual void init() ;
   virtual void configure() ;
   //
-
+  void FireCCBMpcInjector();
+  //
   bool l1Enabled() const {return l1enabled_;}
   void enableL1();
   void disableL1();
@@ -106,13 +110,15 @@ public:
   void startTrigger();
   void stopTrigger();      
   void disable();
+  void l1aReset();
+  void injectTMBPattern();
   //
   void CCBStartTrigger();
   void ReadTTCrxID();
   std::bitset<8> ReadTTCrxReg(const unsigned short);
   int  readI2C();
-  void  startI2C();
-  void  stopI2C();
+  void startI2C();
+  void stopI2C();
   void writeI2C(int);
   //
   /// mostly for GUIs
