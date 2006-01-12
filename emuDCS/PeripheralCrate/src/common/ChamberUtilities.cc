@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.2 2006/01/12 11:32:43 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.3 2006/01/12 22:36:27 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.3  2006/01/12 22:36:27  mey
+// UPdate
+//
 // Revision 1.2  2006/01/12 11:32:43  mey
 // Update
 //
@@ -116,7 +119,7 @@ ChamberUtilities::ChamberUtilities(){
   for (int i=0;i<112;i++) ALCTWireScan_[i] = -1;
   Npulses_ = 2;
   //
-  cout << "ChamberUtilities" << endl ;
+  //cout << "ChamberUtilities" << endl ;
   //
 }
 //
@@ -136,13 +139,10 @@ ChamberUtilities::ChamberUtilities(TMB* TMB)
   for (int i=0;i<112;i++) ALCTWireScan_[i] = -1;
   Npulses_ = 2;
   //
-  cout << "ChamberUtilities" << endl ;
-  //
 }
 //
 ChamberUtilities::~ChamberUtilities(){
   //
-  std::cout << "Destructor" << std::endl ;
   //
 }
 //
@@ -150,9 +150,18 @@ void ChamberUtilities::InitStartSystem(){
   //
   cout << "Init System " << endl ;
   //
-  emuController.configure();          // Init system
+  emuController.configure();               // Init system
   thisTMB->StartTTC();
   thisTMB->EnableL1aRequest();
+  thisCCB_->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
+  //
+}
+//
+void ChamberUtilities::InitSystem(){
+  //
+  cout << "Init System " << endl ;
+  //
+  emuController.configure();               // Init system
   thisCCB_->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
   //
 }
@@ -186,8 +195,8 @@ int ChamberUtilities::AdjustL1aLctDMB(){
 //
 void ChamberUtilities::CCBStartTrigger(){
   //
-  printf("CCB %x \n",thisCCB_);
-  printf("MPC %x \n",thisMPC);
+  //printf("CCB %x \n",thisCCB_);
+  //printf("MPC %x \n",thisMPC);
   //
   thisCCB_->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
   thisCCB_->startTrigger();
@@ -1220,8 +1229,8 @@ void ChamberUtilities::PulseRandomALCT(){
   //
   unsigned long HCmask[22];
   //
-  printf("CCB %x\n",thisCCB_);
-  printf("TMB %x\n",thisTMB);
+  //printf("CCB %x\n",thisCCB_);
+  //printf("TMB %x\n",thisTMB);
   //
   for (int i=0; i< 22; i++) HCmask[i] = 0;
   //
@@ -1322,12 +1331,12 @@ void ChamberUtilities::PulseTestStrips(){
 	//alct->alct_set_test_pulse_powerup(&slot,PowerUp);
 	//alct->alct_set_test_pulse_powerup(&slot,0);
 	//
-	printf("CCB %x \n",thisCCB_);
-	printf("MPC %x \n",thisMPC);
+	//printf("CCB %x \n",thisCCB_);
+	//printf("MPC %x \n",thisMPC);
 	//
 	thisCCB_->setCCBMode(CCB::VMEFPGA);
 	thisCCB_->WriteRegister(0x28,0x7862);  //4Aug05 DM changed 0x789b to 0x7862
-	                                      //July05 changed 0x7878 to 0x789b
+	//July05 changed 0x7878 to 0x789b
 	//thisCCB_->WriteRegister(0x20,0x1e71);
 	//
 	//                                      
@@ -1672,6 +1681,7 @@ void ChamberUtilities::InjectMPCData(){
   }
   //
   thisTMB->DisableCLCTInputs();
+  thisCCB_->setCCBMode(CCB::VMEFPGA);
   //
   for (int i=0; i<DelaySize; i++) {
     //

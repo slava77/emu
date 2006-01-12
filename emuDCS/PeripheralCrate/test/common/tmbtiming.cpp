@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.44 2006/01/12 11:32:59 mey Exp $
+// $Id: tmbtiming.cpp,v 2.45 2006/01/12 22:36:41 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.45  2006/01/12 22:36:41  mey
+// UPdate
+//
 // Revision 2.44  2006/01/12 11:32:59  mey
 // Update
 //
@@ -877,16 +880,13 @@ int main(int argc,char **argv){
       int maxlimit;
       cin >> maxlimit;
       //
-      //tbController.DcsDisable();
       int best_alct_l1a = FindALCT_L1A_delay(minlimit,maxlimit);
-      //tbController.DcsEnable();
       printf("Best Alct L1a %d \n",best_alct_l1a);
       //
     }
 
     if (doInitSystem) {
-      util.InitStartSystem();
-      //tbController.configureNoDCS();
+      util.InitSystem();
     }
 
     if (doFindWinner) {
@@ -900,9 +900,7 @@ int main(int argc,char **argv){
 
 
     if (doFindALCTvpf) {
-      //tbController.DcsDisable();
       FindALCTvpf(); 
-      //tbController.DcsEnable();
     }
 
     if (doFindTMB_L1A_delay) {

@@ -39,6 +39,7 @@ public:
   void Automatic();
   int  AdjustL1aLctDMB();
   void InitStartSystem();
+  void InitSystem();
   void InjectMPCData() ;
   void ALCT_phase_analysis(int rxtxtiming[13][13]);
   //

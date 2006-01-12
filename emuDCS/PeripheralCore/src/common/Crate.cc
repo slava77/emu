@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 2.2 2006/01/10 23:32:30 mey Exp $
+// $Id: Crate.cc,v 2.3 2006/01/12 22:36:34 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 2.3  2006/01/12 22:36:34  mey
+// UPdate
+//
 // Revision 2.2  2006/01/10 23:32:30  mey
 // Update
 //
@@ -56,8 +59,6 @@ std::vector<ChamberUtilities> Crate::chambers() const {
   for( int i=0; i< dmbVector.size(); i++) {
       for( int j=0; j< tmbVector.size(); j++) {
 	//
-	printf("CCB %x \n",this->ccb());
-	//
 	if ( (tmbVector[j]->slot()+1) == (dmbVector[i]->slot()) ) {
 	  ChamberUtilities chamber ;
 	  chamber.SetTMB(tmbVector[j]);
@@ -95,8 +96,6 @@ std::vector<TMB *> Crate::tmbs() const {
 
 
 CCB * Crate::ccb() const {
-  std::cout << "finding CCB" << std::endl;
-  printf("%x \n",findBoard<CCB>());
   return findBoard<CCB>();
 }
 

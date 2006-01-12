@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.27 2006/01/10 23:32:17 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.28 2006/01/12 22:35:38 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -59,6 +59,8 @@
 #include "CrateSelector.h"
 #include "ChamberUtilities.h"
 #include "geom.h"
+#include "InfoSpace.h"
+#include "CrateUtilities.h"
 
 using namespace cgicc;
 using namespace std;
@@ -69,7 +71,18 @@ private:
   //
 protected:
   //
+  xdata::InfoSpace *appInfoSpace_;
+  vector< pair<string, xdata::Serializable *> > stdConfigParams_;
+  //
+  xdata::UnsignedLong triggerSourceId_;
+  //
+  // EMu-specific stuff
+  //
+  xdata::UnsignedLong runNumber_;
+  xdata::UnsignedLong maxNumTriggers_;
+  //
   xdata::String xmlFile_;
+  xdata::String xmlFile;
   xdata::UnsignedLong myParameter_;
   EmuController MyController;
   TMB *thisTMB(0) ;
@@ -101,6 +114,7 @@ public:
     //
     xgi::bind(this,&EmuCrateHyperDAQ::Default, "Default");
     xgi::bind(this,&EmuCrateHyperDAQ::setConfFile, "setConfFile");
+    xgi::bind(this,&EmuCrateHyperDAQ::TmbMPCTest, "TmbMPCTest");
     xgi::bind(this,&EmuCrateHyperDAQ::InitSystem, "InitSystem");
     xgi::bind(this,&EmuCrateHyperDAQ::setRawConfFile, "setRawConfFile");
     xgi::bind(this,&EmuCrateHyperDAQ::UploadConfFile, "UploadConfFile");
@@ -155,11 +169,11 @@ public:
     //
     myParameter_ =  0;
     //
-    //xmlFile_     = 
-    //"/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/timingME+3-1-16.xml" ;
-    //
     xmlFile_     = 
-      "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/config.xml" ;
+      "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/timingME+2-1-14.xml" ;
+    //
+    //xmlFile_     = 
+    //"/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/configWinter2005ME2.xml" ;
     //
     TMBRegisterValue_ = -1;
     CCBRegisterValue_ = -1;
@@ -174,6 +188,9 @@ public:
       OutputStringTMBStatus[i] << "Output..." << std::endl;
       OutputDMBTests[i]        << "Output..." << std::endl;
     }
+    //
+    this->getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
+    //this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
     //
   }
   //
@@ -546,26 +563,29 @@ public:
 	//
 	*out << cgicc::table();
 	//
-      }
-      //
+	}
+	//
+	std::string TmbMPCTest =
+	  toolbox::toString("/%s/TmbMPCTest",getApplicationDescriptor()->getURN().c_str());
+	*out << cgicc::form().set("method","GET").set("action",TmbMPCTest) << std::endl ;
+	*out << cgicc::input().set("type","submit").set("value","Crate TMB/MPC test") << std::endl ;
+	*out << cgicc::form() << std::endl ;
+	//
 	*out << cgicc::fieldset();
 	//
       }
-	   //
-	   }
-      //
-      //cout << "Here4" << endl ;
       //
     }
+    //
+    //cout << "Here4" << endl ;
+    //
+  }
   //
   void EmuCrateHyperDAQ::InitSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     cout << "Init System" << endl ;
     //
     MyController.configure();          // Init system
-    //
-    //thisTMB->StartTTC();
-    //thisTMB->EnableL1aRequest();
     //
     thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
     //
@@ -590,6 +610,19 @@ public:
     cgicc::Cgicc cgi(in);
     //
     CCBBoardID_= cgi["CCBBoardID"]->getValue() ;
+    //
+    this->Default(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::TmbMPCTest(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    CrateUtilities myCrateTest;
+    myCrateTest.SetCrate(thisCrate);
+    myCrateTest.MpcTMBTest();
     //
     this->Default(in,out);
     //
