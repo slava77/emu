@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.13 2006/01/12 11:32:08 mey Exp $
+// $Id: TMB.h,v 2.14 2006/01/12 12:28:05 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.14  2006/01/12 12:28:05  mey
+// UPdate
+//
 // Revision 2.13  2006/01/12 11:32:08  mey
 // Update
 //
@@ -207,7 +210,7 @@ public:
   int MPC0Accept();
   int MPC1Accept();
   //
-  virtual void SelfTest() ;
+  virtual int  SelfTest(int) ;
   virtual void init() ;
   virtual void configure() ;
   //

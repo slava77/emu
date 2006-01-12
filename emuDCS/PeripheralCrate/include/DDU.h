@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DDU.h,v 2.1 2006/01/11 13:26:21 mey Exp $
+// $Id: DDU.h,v 2.2 2006/01/12 12:27:50 mey Exp $
 // $Log: DDU.h,v $
+// Revision 2.2  2006/01/12 12:27:50  mey
+// UPdate
+//
 // Revision 2.1  2006/01/11 13:26:21  mey
 // Update
 //
@@ -80,7 +83,7 @@ public:
    
   //@@ it sends the same code to VME as DAQMB does.  Maybe can fix this later
   virtual unsigned int boardType() const {return DMB_ENUM;} 
-  virtual void SelfTest() ;
+  virtual int  SelfTest(int) ;
   virtual void init() ;
   virtual void configure() ;
   //

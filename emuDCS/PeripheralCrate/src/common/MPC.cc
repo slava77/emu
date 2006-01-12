@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.12 2006/01/11 16:58:25 mey Exp $
+// $Id: MPC.cc,v 2.13 2006/01/12 12:28:50 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.13  2006/01/12 12:28:50  mey
+// UPdate
+//
 // Revision 2.12  2006/01/11 16:58:25  mey
 // Update
 //
@@ -97,7 +100,8 @@ int MPC::ReadRegister(int reg){
 void MPC::configure() {
 }
 
-void MPC::SelfTest() {
+int MPC::SelfTest(int opt) {
+  return 0;
 }
 
 
@@ -812,8 +816,11 @@ void MPC::interconnectTest(){
 #else
 
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.12 2006/01/11 16:58:25 mey Exp $
+// $Id: MPC.cc,v 2.13 2006/01/12 12:28:50 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.13  2006/01/12 12:28:50  mey
+// UPdate
+//
 // Revision 2.12  2006/01/11 16:58:25  mey
 // Update
 //
@@ -878,7 +885,10 @@ MPC::~MPC(){
 void MPC::configure() {
 }
 
-void MPC::SelfTest() {
+int MPC::SelfTest(int opt) {
+  //
+  return 0;
+  //
 }
 
 void MPC::init() {
