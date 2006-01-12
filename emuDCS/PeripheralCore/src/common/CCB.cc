@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.20 2006/01/12 22:36:23 mey Exp $
+// $Id: CCB.cc,v 2.21 2006/01/12 23:44:21 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.21  2006/01/12 23:44:21  mey
+// Update
+//
 // Revision 2.20  2006/01/12 22:36:23  mey
 // UPdate
 //
@@ -884,7 +887,7 @@ void CCB::reset_bxevt() {
   theController->end();
 }
 
-int CCB::SelfTest(int opt) {
+bool CCB::SelfTest() {
   //
   return 0;
   //

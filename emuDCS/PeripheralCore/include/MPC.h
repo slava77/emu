@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.11 2006/01/12 22:35:50 mey Exp $
+// $Id: MPC.h,v 2.12 2006/01/12 23:43:53 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.12  2006/01/12 23:43:53  mey
+// Update
+//
 // Revision 2.11  2006/01/12 22:35:50  mey
 // UPdate
 //
@@ -55,7 +58,7 @@ class MPC : public VMEModule {
 
   /// from the BOARDTYPE enum
   virtual unsigned int boardType() const {return MPC_ENUM;} 
-  virtual int  SelfTest(int);
+  virtual bool  SelfTest();
   virtual void configure();
   virtual void init();
   //
@@ -179,8 +182,11 @@ class MPC : public VMEModule {
 #else
 
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.11 2006/01/12 22:35:50 mey Exp $
+// $Id: MPC.h,v 2.12 2006/01/12 23:43:53 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.12  2006/01/12 23:43:53  mey
+// Update
+//
 // Revision 2.11  2006/01/12 22:35:50  mey
 // UPdate
 //
@@ -237,7 +243,7 @@ class MPC : public VMEModule {
 
   /// from the BOARDTYPE enum
   virtual unsigned int boardType() const {return MPC_ENUM;} 
-  virtual void SelfTest();
+  virtual bool SelfTest();
   virtual void configure();  
   virtual void init();
 
