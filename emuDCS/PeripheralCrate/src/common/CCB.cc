@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.19 2006/01/12 12:28:24 mey Exp $
+// $Id: CCB.cc,v 2.20 2006/01/12 22:36:23 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.20  2006/01/12 22:36:23  mey
+// UPdate
+//
 // Revision 2.19  2006/01/12 12:28:24  mey
 // UPdate
 //
@@ -1014,6 +1017,8 @@ void CCB::enableTTCControl() {
 
 void CCB::startTrigger() {
   //
+  setCCBMode(CCB::VMEFPGA);
+  //
   /// Send "Start Trigger" command on the Fast Control Bus
   std::cout << "CCB: Start Trigger" << std::endl;
   sndbuf[0]=0x00;
@@ -1023,6 +1028,8 @@ void CCB::startTrigger() {
 }
 //
 void CCB::injectTMBPattern() {
+  //
+  setCCBMode(CCB::VMEFPGA);
   //
   /// Inject TMB Pattern data
   std::cout << "CCB: Start Trigger" << std::endl;
@@ -1034,6 +1041,8 @@ void CCB::injectTMBPattern() {
 //
 void CCB::l1aReset(){
   //
+  setCCBMode(CCB::VMEFPGA);
+  //
   /// Send "L1a Reset" command on the Fast Control Bus
   std::cout << "CCB: L1a Reset" << std::endl;
   sndbuf[0]=0x00;
@@ -1043,6 +1052,9 @@ void CCB::l1aReset(){
 }
 //
 void CCB::bc0() {
+  //
+  setCCBMode(CCB::VMEFPGA);
+  //
   /// Send "bc0" command on the Fast Control Bus
   std::cout << "CCB: bc0 Trigger" << std::endl;
   sndbuf[0]=0x00;
@@ -1053,6 +1065,9 @@ void CCB::bc0() {
 
 
 void CCB::stopTrigger() {
+  //
+  setCCBMode(CCB::VMEFPGA);
+  //
   /// Send "Stop Trigger" command on the Fast Control Bus
   std::cout << "CCB: Stop Trigger" << std::endl;
   sndbuf[0]=0x00;

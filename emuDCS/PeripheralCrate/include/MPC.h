@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.10 2006/01/12 12:27:56 mey Exp $
+// $Id: MPC.h,v 2.11 2006/01/12 22:35:50 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.11  2006/01/12 22:35:50  mey
+// UPdate
+//
 // Revision 2.10  2006/01/12 12:27:56  mey
 // UPdate
 //
@@ -55,7 +58,17 @@ class MPC : public VMEModule {
   virtual int  SelfTest(int);
   virtual void configure();
   virtual void init();
-
+  //
+  inline std::vector<unsigned long int> GetFIFOBLct0() { return FIFOBLct0 ; }
+  inline std::vector<unsigned long int> GetFIFOBLct1() { return FIFOBLct1 ; }
+  inline std::vector<unsigned long int> GetFIFOBLct2() { return FIFOBLct2 ; }
+  //
+  inline void ResetFIFOBLct() {
+    FIFOBLct0.clear();
+    FIFOBLct1.clear();
+    FIFOBLct2.clear();
+  }
+  //
   inline void RedirectOutput(std::ostream * Output) { }
   void WriteRegister(int,int);
   int  ReadRegister(int);
@@ -133,6 +146,11 @@ class MPC : public VMEModule {
 
 
  private:
+  //
+  std::vector<unsigned long int> FIFOBLct0;
+  std::vector<unsigned long int> FIFOBLct1;
+  std::vector<unsigned long int> FIFOBLct2;
+  //
   int TLK2501TxMode_;
   int TransparentModeSources_;
   int TMBDelayPattern_;
@@ -161,8 +179,11 @@ class MPC : public VMEModule {
 #else
 
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.10 2006/01/12 12:27:56 mey Exp $
+// $Id: MPC.h,v 2.11 2006/01/12 22:35:50 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.11  2006/01/12 22:35:50  mey
+// UPdate
+//
 // Revision 2.10  2006/01/12 12:27:56  mey
 // UPdate
 //

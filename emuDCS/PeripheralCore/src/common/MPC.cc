@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.13 2006/01/12 12:28:50 mey Exp $
+// $Id: MPC.cc,v 2.14 2006/01/12 22:36:13 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.14  2006/01/12 22:36:13  mey
+// UPdate
+//
 // Revision 2.13  2006/01/12 12:28:50  mey
 // UPdate
 //
@@ -233,30 +236,46 @@ void MPC::read_fifos() {
   //bool empty_fifoa=(data[1]&0x0002)>>1;
   //bool full_fifob=(data[1]&0x0004)>>2;
   bool empty_fifob=(data[1]&0x0008)>>3;
-
+  //
+  unsigned long Lct0,Lct1, Lct2;
+  Lct0=0;Lct1=0;Lct2=0;
+  //
+  //
   if(empty_fifob) {
     std::cout << "MPC: FIFO-B is empty!" << std::endl;
     return;
   } else {
     std::cout << "MPC: 1st Best Muon FIFO" << std::endl;
     read_fifo(FIFO_B1, data);
+    Lct0 = ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
     std::cout << std::hex;
     std::cout.fill('0');
     std::cout << "MPC: FIFO-B1a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
     read_fifo(FIFO_B1, data);
+    Lct0 = (Lct0<<16) | ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
+    FIFOBLct0.push_back(Lct0);
     std::cout << "MPC: FIFO-B1b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff)  << std::endl;
+    std::cout << "MPC: LCT0     = 0x" << std::setw(8) << Lct0 << std::endl ;
     //
     std::cout << "MPC: 2nd Best Muon FIFO" << std::endl;
     read_fifo(FIFO_B2, data);
+    Lct1 = ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
     std::cout << "MPC: FIFO-B2a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
     read_fifo(FIFO_B2, data);
+    Lct1 = (Lct1<<16) | ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
     std::cout << "MPC: FIFO-B2b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+    FIFOBLct1.push_back(Lct1);
+    std::cout << "MPC: LCT1     = 0x" << std::setw(8) << Lct1 << std::endl ;
     //
     std::cout << "MPC: 3nd Best Muon FIFO" << std::endl;
     read_fifo(FIFO_B3, data);
+    Lct2 = ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
     std::cout << "MPC: FIFO-B3a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
     read_fifo(FIFO_B3, data);
+    Lct2 = (Lct2<<16) | ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
     std::cout << "MPC: FIFO-B3b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) <<(data[1]&0x00ff) << std::endl;
+    FIFOBLct2.push_back(Lct2);
+    std::cout << "MPC: LCT2     = 0x" << std::setw(8) << Lct2 << std::endl ;
     std::cout.fill(' ');
     std::cout << std::dec;    
     //
@@ -816,8 +835,11 @@ void MPC::interconnectTest(){
 #else
 
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.13 2006/01/12 12:28:50 mey Exp $
+// $Id: MPC.cc,v 2.14 2006/01/12 22:36:13 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.14  2006/01/12 22:36:13  mey
+// UPdate
+//
 // Revision 2.13  2006/01/12 12:28:50  mey
 // UPdate
 //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.14 2006/01/12 12:28:05 mey Exp $
+// $Id: TMB.h,v 2.15 2006/01/12 22:35:57 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.15  2006/01/12 22:35:57  mey
+// UPdate
+//
 // Revision 2.14  2006/01/12 12:28:05  mey
 // UPdate
 //
@@ -214,6 +217,14 @@ public:
   virtual void init() ;
   virtual void configure() ;
   //
+  inline std::vector<unsigned long int> GetInjectedLct0() { return InjectedLct0 ; }
+  inline std::vector<unsigned long int> GetInjectedLct1() { return InjectedLct1 ; }
+  //
+  inline void ResetInjectedLCT() {
+    InjectedLct0.clear();
+    InjectedLct1.clear();
+  }
+  //
 public:
   //
   std::ostream * MyOutput_ ;
@@ -257,6 +268,8 @@ protected:
   
 private:
   //
+  std::vector<unsigned long int> InjectedLct0;
+  std::vector<unsigned long int> InjectedLct1;
   unsigned long lct0_, lct1_;
   int CLCT0_cfeb_;
   int CLCT1_cfeb_;

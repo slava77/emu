@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.31 2006/01/12 12:28:29 mey Exp $
+// $Id: TMB.cc,v 2.32 2006/01/12 22:36:09 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.32  2006/01/12 22:36:09  mey
+// UPdate
+//
 // Revision 2.31  2006/01/12 12:28:29  mey
 // UPdate
 //
@@ -336,6 +339,8 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     //
     lct0_ = ((frame1&0xffff)<<16) | (frame2&0xffff) ;
     //
+    InjectedLct0.push_back(lct0_);
+    //
     printf(" lct0 = %x %x %x\n",frame1,frame2,lct0_);
     //
     sndbuf[0] = (frame1>>8)&0xff ;
@@ -391,6 +396,8 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     frame2 = ((lr<<8)&0x100) + halfSt;
     //
     lct1_ = ((frame1&0xffff)<<16) | (frame2&0xffff) ;
+    //
+    InjectedLct1.push_back(lct1_);
     //
     printf(" lct1 = %x %x %x\n",frame1,frame2,lct1_);
     //
