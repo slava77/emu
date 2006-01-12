@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.27 2006/01/11 16:58:17 mey Exp $
+// $Id: TMB.cc,v 2.28 2006/01/12 11:32:30 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.28  2006/01/12 11:32:30  mey
+// Update
+//
 // Revision 2.27  2006/01/11 16:58:17  mey
 // Update
 //
@@ -309,7 +312,20 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
       frame1             = (lct0>>16) & 0xffff;
     }
     //
-    printf(" lct0 = %x %x \n",frame1,frame2);
+    unsigned short vpf  = 1;         // 1 bit
+    unsigned short qual = rand()%16; // 4 bits
+    unsigned short clct = rand()%16; // 4 bits
+    unsigned short wire = rand()%128;// 7 bits
+    frame1 = ((vpf<<15)&0x8000) + ((qual<<11)&0x7800) +
+      ((clct<<7)& 0x780) + wire;
+	 //
+    unsigned short lr     = rand()%2;
+    unsigned short halfSt = rand()%256;
+    unsigned frame2 = ((lr<<8)&0x100) + halfSt;    
+    //
+    lct0_ = ((frame1&0xffff)<<16) | (frame2&0xffff) ;
+    //
+    printf(" lct0 = %x %x %x\n",frame1,frame2,lct0_);
     //
     sndbuf[0] = (frame1>>8)&0xff ;
     sndbuf[1] = (frame1)&0xff ;
@@ -352,7 +368,20 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
       frame1             = (lct1>>16) & 0xffff;
     }
     //
-    printf(" lct1 = %x %x \n",frame1,frame2);
+    vpf  = 1;         // 1 bit
+    qual = rand()%16; // 4 bits
+    clct = rand()%16; // 4 bits
+    wire = rand()%128;// 7 bits
+    frame1 = ((vpf<<15)&0x8000) + ((qual<<11)&0x7800) +
+      ((clct<<7)& 0x780) + wire;
+    //
+    lr     = rand()%2;
+    halfSt = rand()%256;
+    frame2 = ((lr<<8)&0x100) + halfSt;
+    //
+    lct1_ = ((frame1&0xffff)<<16) | (frame2&0xffff) ;
+    //
+    printf(" lct1 = %x %x %x\n",frame1,frame2,lct1_);
     //
     sndbuf[0] = (frame1>>8)&0xff ;
     sndbuf[1] = (frame1)&0xff ;
@@ -389,6 +418,18 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
   }
   //
   // Read back RAM address
+  //
+  ReadBackMpcRAM(nEvents);
+  //
+  // Now fire MPC injector
+  //
+  //FireMPCInjector(nEvents);
+  //
+}
+//
+void TMB::ReadBackMpcRAM(int nEvents){
+  //
+  unsigned short ramAdd;
   //
   (*MyOutput_) << "Reading back RAM address" << std::endl ;
   //
@@ -430,9 +471,11 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     //
   }
   //
-  // Now fire MPC injector
+}
+//
+void TMB::FireMPCInjector(int nEvents){
   //
-  tmb_vme(VME_WRITE,mpc_inj_adr,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_READ,mpc_inj_adr,sndbuf,rcvbuf,NOW);
   //
   (*MyOutput_) << "Fire now" << std::endl;
   //
@@ -449,7 +492,6 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
   tmb_vme(VME_WRITE,mpc_inj_adr,sndbuf,rcvbuf,NOW);
   //
 }
-//
 
 void TMB::DecodeALCT(){
    //
@@ -3060,6 +3102,7 @@ void TMB::setLogicAnalyzerToDataStream(bool yesorno) {
 void TMB::tmb_vme(char fcn, char vme,
                   const char *snd,char *rcv, int wrt) {
   start(1);
+  printf("Sending %d %x %x \n",fcn,snd[0],snd[1]);
   do_vme(fcn, vme, snd, rcv, wrt);
 }
 
@@ -3255,19 +3298,43 @@ int TMB::tmb_jtag_io(unsigned char tms, unsigned char tdi, unsigned char* tdo)
 
 int TMB::tmb_get_boot_reg(unsigned short int* value)
 {
-   sndbuf[0]=0;
-   sndbuf[1]=0;
-   tmb_vme(VME_READ | VME_BOOT_REG, 0, sndbuf, rcvbuf, NOW );
-   *value = (rcvbuf[1]&0xff) | (rcvbuf[0]<<8);
-   return 0;
+  //char sndbuf[2];
+  //char rcvbuf[2];
+  //
+  tmb_vme(VME_READ | VME_BOOT_REG, 0, sndbuf, rcvbuf, NOW );
+  tmb_vme(VME_READ, 0, sndbuf, rcvbuf, NOW );
+  tmb_vme(VME_READ, 0, sndbuf, rcvbuf, NOW );
+  //
+  *value = (rcvbuf[1]&0xff) | (rcvbuf[0]<<8);
+  printf("get_boot.%x %x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  return 0;
+  //
 }
 
 int TMB::tmb_set_boot_reg(unsigned short int value)
 {
-   sndbuf[0]=(value >> 8) & 0xff;
-   sndbuf[1]=value & 0xff;
-   tmb_vme(VME_WRITE | VME_BOOT_REG, 0, sndbuf, rcvbuf, NOW );
-   return 0;   
+  //char sndbuf[2];
+  //char rcvbuf[2];
+  //
+  sndbuf[0]=(value >> 8) & 0xff;
+  sndbuf[1]=value & 0xff;
+  //
+  //printf(" Here1. %x %x \n",sndbuf[0]&0xff,sndbuf[1]&0xff);
+  //
+  //tmb_vme(VME_WRITE, 0x16,sndbuf,rcvbuf, NOW);
+  //
+  //tmb_vme(VME_READ,  0x16,sndbuf,rcvbuf, NOW);
+  //
+  //sndbuf[0]=value & 0xff;
+  //sndbuf[1]=(value >> 8) & 0xff;
+  //
+  //printf(" Here2. %x %x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  //
+  printf("\n");
+  //
+  tmb_vme(VME_WRITE | VME_BOOT_REG, 0, sndbuf, rcvbuf, NOW );
+  //
+  return 0;   
 }
 
 int TMB::tmb_hard_reset_alct_fpga()
@@ -3682,7 +3749,7 @@ void TMB::DiStripHCMask(int DiStrip) {
   printf("Enabling DiStrip %d \n",DiStrip);
   //
   sndbuf[0] = (0x1<<(DiStrip+1))&0xff;
-  sndbuf[1] =   (0x1<<(DiStrip))&0xff;
+  sndbuf[1] = (0x1<<(DiStrip))&0xff;
   //
   printf(" %x %x \n",sndbuf[0],sndbuf[1]);
   //

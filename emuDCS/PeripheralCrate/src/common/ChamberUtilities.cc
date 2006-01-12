@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.1 2006/01/11 08:54:15 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.2 2006/01/12 11:32:43 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.2  2006/01/12 11:32:43  mey
+// Update
+//
 // Revision 1.1  2006/01/11 08:54:15  mey
 // Update
 //
@@ -1686,9 +1689,14 @@ void ChamberUtilities::InjectMPCData(){
       thisMPC->init();
       thisMPC->read_fifos();
       //
-      //thisTMB->InjectMPCData(1,0,0);
+      thisTMB->InjectMPCData(1,0,0);
       //
-      thisTMB->InjectMPCData(1,0xf7a6a813,0xc27da3b2);
+      //thisTMB->InjectMPCData(1,0xf7a6a813,0xc27da3b2);
+      //
+      //thisTMB->FireMPCInjector(1);
+      //
+      thisCCB_->FireCCBMpcInjector();
+      //
       thisMPC->read_fifos();
       //
       thisTMB->ReadRegister(0x86);
