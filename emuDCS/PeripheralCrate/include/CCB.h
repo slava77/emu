@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.12 2006/01/12 11:32:02 mey Exp $
+// $Id: CCB.h,v 2.13 2006/01/12 12:27:38 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.13  2006/01/12 12:27:38  mey
+// UPdate
+//
 // Revision 2.12  2006/01/12 11:32:02  mey
 // Update
 //
@@ -83,7 +86,7 @@ public:
   virtual void prgall_bckpln();
   virtual void reset_bckpln();
   //
-  virtual void SelfTest() ;
+  virtual int  SelfTest(int) ;
   virtual void init() ;
   virtual void configure() ;
   //

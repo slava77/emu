@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.24 2006/01/11 13:47:32 mey Exp $
+// $Id: DAQMB.cc,v 2.25 2006/01/12 12:28:41 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.25  2006/01/12 12:28:41  mey
+// UPdate
+//
 // Revision 2.24  2006/01/11 13:47:32  mey
 // Update
 //
@@ -169,7 +172,8 @@ void DAQMB::end()
 void DAQMB::init(){
 }
 
-void DAQMB::SelfTest(){
+int DAQMB::SelfTest(int opt){
+  return 0;
 }
 
 void DAQMB::configure() {
