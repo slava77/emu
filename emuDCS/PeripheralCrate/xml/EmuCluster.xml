@@ -1,0 +1,28 @@
+<?xml version='1.0'?>
+<xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
+
+    	<xc:Context url="http://emulab02:1972">		
+                <xc:Application class="EmuCrateSOAP" id="30" instance="0" network="local"/>
+                <xc:Application class="EmuCrateHyperDAQ" id="31" network="local"/>
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
+        </xc:Context>
+
+    	<xc:Context url="http://emuslice03:1973">		
+                <xc:Application class="EmuCrateSOAP" id="30" instance="1" network="local"/>
+                <xc:Application class="EmuCrateHyperDAQ" id="31" network="local">
+                 <properties xmlns="urn:xdaq-application:EmuCrateHyperDAQ" xsi:type="soapenc:Struct">
+                  <runNumber xsi:type="xsd:unsignedLong">57005</runNumber>
+                  <xmlFileName xsi:type="xsd:string">/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/timingME+2-1-14.xml
+                  </xmlFileName>
+                 </properties>
+                </xc:Application>
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
+        </xc:Context>
+
+    	<xc:Context url="http://emulab02:1974">		
+                <xc:Application class="EmuRunControlHyperDAQ" id="21" network="local"/>
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>        
+        </xc:Context>
+
+
+</xc:Partition>
