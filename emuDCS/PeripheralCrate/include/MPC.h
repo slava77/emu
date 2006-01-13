@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.12 2006/01/12 23:43:53 mey Exp $
+// $Id: MPC.h,v 2.13 2006/01/13 10:07:00 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.13  2006/01/13 10:07:00  mey
+// Got rid of virtuals
+//
 // Revision 2.12  2006/01/12 23:43:53  mey
 // Update
 //
@@ -53,14 +56,15 @@ class MPC : public VMEModule {
   void firmwareVersion();
 
   /// overrides VMEModule.  I don't understand what it does.
-  virtual void start();
-  virtual void end() {};
+  void start();
+  void end() {};
 
   /// from the BOARDTYPE enum
-  virtual unsigned int boardType() const {return MPC_ENUM;} 
-  virtual bool  SelfTest();
-  virtual void configure();
-  virtual void init();
+  unsigned int boardType() const {return MPC_ENUM;} 
+  //
+  bool SelfTest();
+  void configure();
+  void init();
   //
   inline std::vector<unsigned long int> GetFIFOBLct0() { return FIFOBLct0 ; }
   inline std::vector<unsigned long int> GetFIFOBLct1() { return FIFOBLct1 ; }
@@ -182,8 +186,11 @@ class MPC : public VMEModule {
 #else
 
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.12 2006/01/12 23:43:53 mey Exp $
+// $Id: MPC.h,v 2.13 2006/01/13 10:07:00 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.13  2006/01/13 10:07:00  mey
+// Got rid of virtuals
+//
 // Revision 2.12  2006/01/12 23:43:53  mey
 // Update
 //
@@ -242,10 +249,11 @@ class MPC : public VMEModule {
   void firmwareVersion();
 
   /// from the BOARDTYPE enum
-  virtual unsigned int boardType() const {return MPC_ENUM;} 
-  virtual bool SelfTest();
-  virtual void configure();  
-  virtual void init();
+  unsigned int boardType() const {return MPC_ENUM;} 
+  //
+  bool SelfTest();
+  void configure();  
+  void init();
 
   /// address is usually one of the above enums.  theBaseAddress
   /// defined in the constructor automatically added

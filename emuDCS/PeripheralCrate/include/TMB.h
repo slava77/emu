@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.16 2006/01/12 23:44:04 mey Exp $
+// $Id: TMB.h,v 2.17 2006/01/13 10:07:09 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.17  2006/01/13 10:07:09  mey
+// Got rid of virtuals
+//
 // Revision 2.16  2006/01/12 23:44:04  mey
 // Update
 //
@@ -77,10 +80,10 @@ public:
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   //
   /// from the BOARDTYPE enum
-  virtual unsigned int boardType() const {return TMB_ENUM;}
+  unsigned int boardType() const {return TMB_ENUM;}
   /// ucla_start was always called with a dev and a slot
-  virtual void start();
-  virtual void end();
+  void start();
+  void end();
   /// ALCTs need to go to lower scan level, whatever that means
   void start(int idev);
   /// does start(1)
@@ -216,9 +219,9 @@ public:
   int MPC0Accept();
   int MPC1Accept();
   //
-  virtual bool  SelfTest() ;
-  virtual void init() ;
-  virtual void configure() ;
+  bool SelfTest() ;
+  void init() ;
+  void configure() ;
   //
   inline std::vector<unsigned long int> GetInjectedLct0() { return InjectedLct0 ; }
   inline std::vector<unsigned long int> GetInjectedLct1() { return InjectedLct1 ; }
