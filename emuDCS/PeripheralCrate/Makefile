@@ -51,7 +51,8 @@ Sources=\
 	ChamberUtilities.cc \
 	EmuPeripheralCrate.cc \
 	EmuPeripheralCrateSO.cc \
-	EmuPeripheralCrateV.cc 
+	EmuPeripheralCrateV.cc \
+	TMBTester.cc
 
 IncludeDirs = \
 	$(XDAQ_ROOT)/daq/toolbox/include \
@@ -82,7 +83,7 @@ TestLibraryDirs = \
         $(XDAQ_ROOT)/emu/emuDCS/PeripheralCrate/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
 UserCFlags = -DUSEDSC
-UserCCFlags = -DUSEDCS -DOSUcc
+UserCCFlags = -DUSEDCS 
 UserDynamicLinkFlags =
 UserStaticLinkFlags =
 UserExecutableLinkFlags =
@@ -111,6 +112,7 @@ TestExecutables= \
 	alctmain.cpp \
 	contrmain.cpp \
 	mpc2sp.cpp \
-	loadALCT.cpp
+	loadALCT.cpp \
+	testtmbmain.cpp
 
 include $(XDAQ_ROOT)/config/Makefile.rules
