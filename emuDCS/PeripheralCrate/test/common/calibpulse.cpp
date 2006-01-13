@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: calibpulse.cpp,v 2.10 2006/01/11 17:00:24 mey Exp $
+// $Id: calibpulse.cpp,v 2.11 2006/01/13 13:12:13 mey Exp $
 // $Log: calibpulse.cpp,v $
+// Revision 2.11  2006/01/13 13:12:13  mey
+// UPdate
+//
 // Revision 2.10  2006/01/11 17:00:24  mey
 // Update
 //
@@ -133,8 +136,8 @@ int main(int argc, char **argv)
     nsleep = 1000;  
     dac = 1.0;
     
-    for (int i=1;i<17;i++) {  
-      for (int ntim=0;ntim<32;ntim++) {
+    for (int i=0;i<16;i++) {  
+      for (int ntim=0;ntim<20;ntim++) {
 	calib.pulseAllDMBs(ntim, i, dac, nsleep);  
 	counter++;
 	std::cout << "dac = " << dac <<
