@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.8 2006/01/12 23:44:11 mey Exp $
+// $Id: VMEModule.h,v 2.9 2006/01/13 09:36:19 geurts Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.9  2006/01/13 09:36:19  geurts
+// changed SelfTest return type from void to bool for both controllers
+//
 // Revision 2.8  2006/01/12 23:44:11  mey
 // Update
 //
@@ -114,8 +117,11 @@ protected:
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.8 2006/01/12 23:44:11 mey Exp $
+// $Id: VMEModule.h,v 2.9 2006/01/13 09:36:19 geurts Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.9  2006/01/13 09:36:19  geurts
+// changed SelfTest return type from void to bool for both controllers
+//
 // Revision 2.8  2006/01/12 23:44:11  mey
 // Update
 //
@@ -174,7 +180,7 @@ public:
   
   enum BOARDTYPE { DMB_ENUM=0, CCB_ENUM, TMB_ENUM, MPC_ENUM };
   virtual unsigned int boardType() const = 0;
-  virtual void SelfTest() = 0;
+  virtual bool SelfTest() = 0;
   virtual void init() = 0;
   virtual void configure() = 0;
 
