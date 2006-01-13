@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.13 2006/01/13 10:07:00 mey Exp $
+// $Id: MPC.h,v 2.14 2006/01/13 10:15:26 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.14  2006/01/13 10:15:26  mey
+// Update
+//
 // Revision 2.13  2006/01/13 10:07:00  mey
 // Got rid of virtuals
 //
@@ -186,8 +189,11 @@ class MPC : public VMEModule {
 #else
 
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.13 2006/01/13 10:07:00 mey Exp $
+// $Id: MPC.h,v 2.14 2006/01/13 10:15:26 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.14  2006/01/13 10:15:26  mey
+// Update
+//
 // Revision 2.13  2006/01/13 10:07:00  mey
 // Got rid of virtuals
 //
@@ -249,6 +255,16 @@ class MPC : public VMEModule {
   void firmwareVersion();
 
   /// from the BOARDTYPE enum
+  inline std::vector<unsigned long int> GetFIFOBLct0() { return FIFOBLct0 ; }
+  inline std::vector<unsigned long int> GetFIFOBLct1() { return FIFOBLct1 ; }
+  inline std::vector<unsigned long int> GetFIFOBLct2() { return FIFOBLct2 ; }
+  //
+  inline void ResetFIFOBLct() {
+    FIFOBLct0.clear();
+    FIFOBLct1.clear();
+    FIFOBLct2.clear();
+  }
+  //
   unsigned int boardType() const {return MPC_ENUM;} 
   //
   bool SelfTest();
@@ -331,6 +347,11 @@ class MPC : public VMEModule {
 
 
  private:
+  //
+  std::vector<unsigned long int> FIFOBLct0;
+  std::vector<unsigned long int> FIFOBLct1;
+  std::vector<unsigned long int> FIFOBLct2;
+  //
   std::ostream * MyOutput_ ;
   int TLK2501TxMode_;
   int TransparentModeSources_;
