@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DDU.h,v 2.3 2006/01/12 23:43:48 mey Exp $
+// $Id: DDU.h,v 2.4 2006/01/13 10:06:53 mey Exp $
 // $Log: DDU.h,v $
+// Revision 2.4  2006/01/13 10:06:53  mey
+// Got rid of virtuals
+//
 // Revision 2.3  2006/01/12 23:43:48  mey
 // Update
 //
@@ -27,7 +30,7 @@ public:
   virtual ~DDU() {std::cout << "killing DDU" << std::endl;}
 
   /// same as DAQMB::end()
-  virtual void end();
+  void end();
   void ddu_end();
   void tcb_end();
   void tcb_trig();
@@ -85,10 +88,11 @@ public:
   void pause(DEVTYPE dv, int microseconds = 10);
    
   //@@ it sends the same code to VME as DAQMB does.  Maybe can fix this later
-  virtual unsigned int boardType() const {return DMB_ENUM;} 
-  virtual bool  SelfTest() ;
-  virtual void init() ;
-  virtual void configure() ;
+  unsigned int boardType() const {return DMB_ENUM;} 
+  //
+  bool SelfTest() ;
+  void init() ;
+  void configure() ;
   //
   
 private:

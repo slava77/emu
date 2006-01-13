@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.14 2006/01/12 23:43:39 mey Exp $
+// $Id: CCB.h,v 2.15 2006/01/13 10:06:44 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.15  2006/01/13 10:06:44  mey
+// Got rid of virtuals
+//
 // Revision 2.14  2006/01/12 23:43:39  mey
 // Update
 //
@@ -72,26 +75,26 @@ public:
   /// VMEModule type identifier
   enum CCB2004Mode_t {TTCrqFPGA=0, VMEFPGA=1, DLOG=2};  
   void setCCBMode(CCB2004Mode_t);
-  virtual unsigned int boardType() const {return VMEModule::CCB_ENUM;}
+  unsigned int boardType() const {return VMEModule::CCB_ENUM;}
 
   // start routine from VMEModule OK
-  virtual void end();
+  void end();
 
-  virtual void pulse(int num_pulse,unsigned int pulse_delay, char vme);
+  void pulse(int num_pulse,unsigned int pulse_delay, char vme);
   // these two call pulse for different VME addresses
-  virtual void pulse(int num_pulse,unsigned int pulse_delay);
-  virtual void inject(int num_pulse,unsigned int pulse_delay);
+  void pulse(int num_pulse,unsigned int pulse_delay);
+  void inject(int num_pulse,unsigned int pulse_delay);
   void pulse(int Num_pulse,unsigned int * delays, char vme);
   void pulse();
-
-  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
-
-  virtual void prgall_bckpln();
-  virtual void reset_bckpln();
   //
-  virtual bool  SelfTest() ;
-  virtual void init() ;
-  virtual void configure() ;
+  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
+  //
+  void prgall_bckpln();
+  void reset_bckpln();
+  //
+  bool SelfTest() ;
+  void init() ;
+  void configure() ;
   //
   void FireCCBMpcInjector();
   //
@@ -106,7 +109,9 @@ public:
   void bx0();
   void bc0();
   void bxr();
+  //
   /// uses SPS25ns to decide whether to use TTC triggers
+  //
   void enable();
   void enableTTCControl();
   void disableTTCControl();

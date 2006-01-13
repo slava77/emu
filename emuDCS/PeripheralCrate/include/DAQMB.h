@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.16 2006/01/12 23:43:43 mey Exp $
+// $Id: DAQMB.h,v 2.17 2006/01/13 10:06:49 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.17  2006/01/13 10:06:49  mey
+// Got rid of virtuals
+//
 // Revision 2.16  2006/01/12 23:43:43  mey
 // Update
 //
@@ -84,8 +87,8 @@ public:
   //
   virtual ~DAQMB();
   /// from the BOARDTYPE enum
-  virtual unsigned int boardType() const {return DMB_ENUM;}
-  virtual void end();
+  unsigned int boardType() const {return DMB_ENUM;}
+  void end();
 
   std::vector<CFEB> cfebs() const {return cfebs_;}
 
@@ -254,9 +257,9 @@ public:
   void sfm_test_load(char *sndpat);
   void sfm_test_read(char *rcvpat);
   //
-  virtual bool  SelfTest() ;
-  virtual void init() ;
-  virtual void configure() ;
+  bool SelfTest() ;
+  void init() ;
+  void configure() ;
   //
 
 public:
