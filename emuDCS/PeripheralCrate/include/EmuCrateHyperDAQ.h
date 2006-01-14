@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.28 2006/01/12 22:35:38 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.29 2006/01/14 22:24:50 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -82,7 +82,7 @@ protected:
   xdata::UnsignedLong maxNumTriggers_;
   //
   xdata::String xmlFile_;
-  xdata::String xmlFile;
+  std::string xmlFile;
   xdata::UnsignedLong myParameter_;
   EmuController MyController;
   TMB *thisTMB(0) ;
@@ -172,8 +172,8 @@ public:
     xmlFile_     = 
       "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/timingME+2-1-14.xml" ;
     //
-    //xmlFile_     = 
-    //"/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/configWinter2005ME2.xml" ;
+    xmlFile_     = 
+      "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/configWinter2005ME2.xml" ;
     //
     TMBRegisterValue_ = -1;
     CCBRegisterValue_ = -1;
@@ -190,7 +190,9 @@ public:
     }
     //
     this->getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
-    //this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
+    this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
+    //
+    xmlFile_ = xmlFile;
     //
   }
   //
@@ -202,7 +204,7 @@ public:
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("Simple Web Form") << std::endl;
     //
-    *out << cgicc::h1("904 Testing...");
+    *out << cgicc::h1("EmuCrateHyperDAQ...");
     *out << cgicc::br();
     //
     //
@@ -302,7 +304,7 @@ public:
       *out << cgicc::fieldset();
       *out << std::endl;
       //
-      if ( Operator_.find("Name",0) == string::npos ) {
+      if ( Operator_.find("NameOld",0) == string::npos ) {
 	//
 	*out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
 	*out << std::endl;
@@ -813,7 +815,6 @@ public:
   void EmuCrateHyperDAQ::DMBTest10(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-    //
     //
     cgicc::Cgicc cgi(in);
     //
@@ -3235,6 +3236,7 @@ public:
     cout << " Here parser " << endl;
     PeripheralCrateParser parser;
     cout << " Using file " << xmlFile_.toString() << endl ;
+    //
     parser.parseFile(xmlFile_.toString().c_str());
     //
     //-- Make sure that only one TMB in one crate is configured

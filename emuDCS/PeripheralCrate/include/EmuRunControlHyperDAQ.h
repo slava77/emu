@@ -1,4 +1,4 @@
-// $Id: EmuRunControlHyperDAQ.h,v 1.1 2006/01/13 21:05:03 mey Exp $
+// $Id: EmuRunControlHyperDAQ.h,v 1.2 2006/01/14 22:24:50 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -54,6 +54,8 @@ public:
     xgi::bind(this,&EmuRunControlHyperDAQ::Default, "Default");
     xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageConfigure, "SendSOAPMessageConfigure");
     xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageInit, "SendSOAPMessageInit");
+    xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageInitXRelay, "SendSOAPMessageInitXRelay");
+    xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageConfigureXRelay, "SendSOAPMessageConfigureXRelay");
     xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageOpenFile, "SendSOAPMessageOpenFile");
     //
   }  
@@ -69,7 +71,7 @@ public:
     *out << cgicc::h1("EmuRunControlHyperDAQ") << std::endl ;
     //
     std::string methodSOAPMessageInit =
-      toolbox::toString("/%s/SendSOAPMessageInit",getApplicationDescriptor()->getURN().c_str());
+      toolbox::toString("/%s/SendSOAPMessageInitXRelay",getApplicationDescriptor()->getURN().c_str());
     //
     *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageInit) << std::endl ;
     *out << cgicc::input().set("type","submit")
@@ -77,7 +79,7 @@ public:
     *out << cgicc::form();
     //
     std::string methodSOAPMessageConfigure =
-      toolbox::toString("/%s/SendSOAPMessageConfigure",getApplicationDescriptor()->getURN().c_str());
+      toolbox::toString("/%s/SendSOAPMessageConfigureXRelay",getApplicationDescriptor()->getURN().c_str());
     //
     *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageConfigure) << std::endl ;
     *out << cgicc::input().set("type","submit")
@@ -92,6 +94,78 @@ public:
       .set("value","Send SOAP message : Open File") << std::endl ;
     *out << cgicc::form();
     //
+  }
+  //
+  // Create a XRelay SOAP Message
+  //
+  xoap::MessageReference createXRelayMessage(const std::string & command, std::vector<xdaq::ApplicationDescriptor * > descriptor )
+  {
+    // Build a SOAP msg with the Xrelay header:
+    xoap::MessageReference msg  = xoap::createMessage();
+    //
+    std::string topNode = "relay";
+    std::string prefix = "xr";
+    std::string httpAdd = "http://xdaq.web.cern.ch/xdaq/xsd/2004/XRelay-10";
+    xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
+    xoap::SOAPName envelopeName = envelope.getElementName();
+    xoap::SOAPHeader header = envelope.addHeader();
+    xoap::SOAPName relayName = envelope.createName(topNode, prefix,  httpAdd);
+    xoap::SOAPHeaderElement relayElement = header.addHeaderElement(relayName);
+    
+    // Add the actor attribute
+    xoap::SOAPName actorName = envelope.createName("actor", envelope.getElementName().getPrefix(),
+						   envelope.getElementName().getURI());
+    relayElement.addAttribute(actorName,httpAdd);
+    
+    // Add the "to" node
+    std::string childNode = "to";
+    // Send to all the destinations:
+    vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
+    for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) 
+      {
+	std::string classNameStr = (*itDescriptor)->getClassName();
+		
+	std::string url = (*itDescriptor)->getContextDescriptor()->getURL();
+	std::string urn = (*itDescriptor)->getURN();  	
+	xoap::SOAPName toName = envelope.createName(childNode, prefix, " ");
+	xoap::SOAPElement childElement = relayElement.addChildElement(toName);
+	xoap::SOAPName urlName = envelope.createName("url");
+	xoap::SOAPName urnName = envelope.createName("urn");
+	childElement.addAttribute(urlName,url);
+	childElement.addAttribute(urnName,urn);
+	
+      }
+    
+    // Create body
+    
+    xoap::SOAPBody body = envelope.getBody();
+    xoap::SOAPName cmd = envelope.createName(command,"xdaq","urn:xdaq-soap:3.0");
+    body.addBodyElement(cmd);
+    
+    msg->writeTo(std::cout);
+	
+    return msg;
+    
+  }
+  
+  // Post XRelay SOAP message to XRelay application
+  void EmuRunControlHyperDAQ::relayMessage (xoap::MessageReference msg) throw (xgi::exception::Exception)
+  {
+    // Retrieve the list of applications expecting this command and build the XRelay header
+    
+    try 
+      {	
+	// Get the Xrelay application descriptor and post the message:
+	xdaq::ApplicationDescriptor * xrelay = getApplicationContext()->
+	  getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),4);
+	
+	xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, xrelay);
+	
+      } 
+    catch (xdaq::exception::Exception& e) 
+      {
+		XCEPT_RETHROW (xgi::exception::Exception, "Cannot relay message", e);
+      }
   }
   //
   void EmuRunControlHyperDAQ::SendSOAPMessageOpenFile(xgi::Input * in, xgi::Output * out ) 
@@ -153,7 +227,37 @@ public:
     this->Default(in,out);
     //
   }
-  //  
+  //
+  void EmuRunControlHyperDAQ::SendSOAPMessageInitXRelay(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    std::vector<xdaq::ApplicationDescriptor * >  descriptors =
+      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuCrateSOAP");
+    //
+    xoap::MessageReference configure = createXRelayMessage("Init", descriptors);
+    //
+    this->relayMessage(configure);
+    // 
+    this->Default(in,out);
+    //
+  }
+  //
+  void EmuRunControlHyperDAQ::SendSOAPMessageConfigureXRelay(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    std::vector<xdaq::ApplicationDescriptor * >  descriptors =
+      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuCrateSOAP");
+    //
+    xoap::MessageReference configure = createXRelayMessage("Configure", descriptors);
+    //
+    this->relayMessage(configure);
+    //
+    this->Default(in,out);
+    //
+  }
+  //
   void EmuRunControlHyperDAQ::SendSOAPMessageConfigure(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {

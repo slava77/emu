@@ -1,7 +1,10 @@
 #ifndef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.7 2006/01/12 11:48:17 mey Exp $
+// $Id: VMEModule.cc,v 2.8 2006/01/14 22:25:09 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.8  2006/01/14 22:25:09  mey
+// UPdate
+//
 // Revision 2.7  2006/01/12 11:48:17  mey
 // Update
 //
@@ -104,17 +107,17 @@ void VMEModule::do_vme(char fcn, char vme,
   Tdata[cnt+1]=vme;
   Tdata[cnt+2]=snd[0];
   Tdata[cnt+3]=snd[1];
-  if(fcn==VME_WRITE){
+  //(fcn==VME_WRITE){
     // Jinghua Liu, add byte swap for MPC. Dec.7,2005
-    if(boardType()==MPC_ENUM) {
-      Tdata[cnt+2]=snd[0];
-      Tdata[cnt+3]=snd[1];
-    }
-    //else {
-    //Tdata[cnt+2]=snd[0];
-    //Tdata[cnt+3]=snd[1];
-    //}
-  }
+    //(boardType()==MPC_ENUM) {
+  //Tdata[cnt+2]=snd[0];
+  //Tdata[cnt+3]=snd[1];
+  //}
+  //else {
+  //Tdata[cnt+2]=snd[0];
+  //Tdata[cnt+3]=snd[1];
+  //}
+  //}
   cnt += 4;
   assert(cnt < TDATASIZE);
   ///@@ might be a bug with ORed codes in fcn
@@ -123,13 +126,13 @@ void VMEModule::do_vme(char fcn, char vme,
   cnt=0;
   if( fcn==VME_READ || fcn==5 ){
     theController->readn(rcv);
-    if(boardType()==MPC_ENUM) {
+    //if(boardType()==MPC_ENUM) {
       //       tmp=rcv[0];
       //       rcv[0]=rcv[1];
       //       rcv[1]=tmp;
-    }
+    //}
   }
-  if(boardType()==MPC_ENUM) theController->end();
+  //if(boardType()==MPC_ENUM) theController->end();
   //
 }
 
@@ -184,8 +187,11 @@ VMEController* VMEModule::getTheController(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.7 2006/01/12 11:48:17 mey Exp $
+// $Id: VMEModule.cc,v 2.8 2006/01/14 22:25:09 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.8  2006/01/14 22:25:09  mey
+// UPdate
+//
 // Revision 2.7  2006/01/12 11:48:17  mey
 // Update
 //
