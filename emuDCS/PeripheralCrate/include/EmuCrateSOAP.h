@@ -1,4 +1,4 @@
-// $Id: EmuCrateSOAP.h,v 1.5 2006/01/10 19:46:37 mey Exp $
+// $Id: EmuCrateSOAP.h,v 1.6 2006/01/14 22:24:50 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -23,6 +23,9 @@
 
 #include "xdaq/NamespaceURI.h"
 
+#include "xdata/UnsignedLong.h"
+#include "xdata/String.h"
+
 #include "xoap/MessageReference.h"
 #include "xoap/MessageFactory.h"
 #include "xoap/SOAPEnvelope.h"
@@ -43,16 +46,21 @@ class EmuCrateSOAP: public xdaq::Application, public EmuController
 {
   
 public:
+
+  xdata::String xmlFile_;
   
   XDAQ_INSTANTIATOR();
   
   EmuCrateSOAP(xdaq::ApplicationStub * s): xdaq::Application(s) 
   {	
     //
+    //
     xgi::bind (this,&EmuCrateSOAP::Default, "Default");
     xoap::bind(this, &EmuCrateSOAP::onMessage, "onMessage", XDAQ_NS_URI );    
     xoap::bind(this, &EmuCrateSOAP::Configure, "Configure", XDAQ_NS_URI );    
     xoap::bind(this, &EmuCrateSOAP::Init, "Init", XDAQ_NS_URI );    
+    //
+    this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
     //
   }  
   //
@@ -103,6 +111,8 @@ public:
   //
   xoap::MessageReference Init (xoap::MessageReference msg) throw (xoap::exception::Exception)
   {
+    //
+    SetConfFile(xmlFile_);
     //
     init();
     //

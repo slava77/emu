@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.33 2006/01/12 23:44:47 mey Exp $
+// $Id: TMB.cc,v 2.34 2006/01/14 22:25:08 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.34  2006/01/14 22:25:08  mey
+// UPdate
+//
 // Revision 2.33  2006/01/12 23:44:47  mey
 // Update
 //
@@ -336,7 +339,7 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     unsigned short wire = rand()%128;// 7 bits
     frame1 = ((vpf<<15)&0x8000) + ((qual<<11)&0x7800) +
       ((clct<<7)& 0x780) + wire;
-	 //
+    //
     unsigned short lr     = rand()%2;
     unsigned short halfSt = rand()%256;
     unsigned frame2 = ((lr<<8)&0x100) + halfSt;    
@@ -393,7 +396,7 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     clct = rand()%16; // 4 bits
     wire = rand()%128;// 7 bits
     frame1 = ((vpf<<15)&0x8000) + ((qual<<11)&0x7800) +
-      ((clct<<7)& 0x780) + wire;
+    ((clct<<7)& 0x780) + wire;
     //
     lr     = rand()%2;
     halfSt = rand()%256;
@@ -441,7 +444,9 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
   //
   // Read back RAM address
   //
+  usleep(100);
   ReadBackMpcRAM(nEvents);
+  usleep(100);
   //
   // Now fire MPC injector
   //
