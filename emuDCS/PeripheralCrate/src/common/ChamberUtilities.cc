@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.3 2006/01/12 22:36:27 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.4 2006/01/16 20:29:06 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.4  2006/01/16 20:29:06  mey
+// Update
+//
 // Revision 1.3  2006/01/12 22:36:27  mey
 // UPdate
 //
@@ -895,7 +898,7 @@ void ChamberUtilities::ALCTTiming(){
      printf(" rx = %02d : ",j);   
      for (k=0;k<maxTimeBins;k++) {
        if ( ALCTConfDone[j][k] > 0 ) {
-	 if ( ALCTWordCount[j][k] >0 ) printf("%c[01;35m", '\033');	 
+	 if ( ALCTWordCount[j][k] == 0x0c ) printf("%c[01;35m", '\033');	 
 	 printf("%02x ",(ALCTWordCount[j][k]&0xffff));
 	 printf("%c[01;0m", '\033');
 	 rxtx_timing[j][k]=ALCTWordCount[j][k];
