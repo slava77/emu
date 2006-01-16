@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.29 2006/01/14 22:24:50 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.30 2006/01/16 20:28:42 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -166,6 +166,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::MPCBoardID, "MPCBoardID");
     xgi::bind(this,&EmuCrateHyperDAQ::CCBBoardID, "CCBBoardID");
     xgi::bind(this,&EmuCrateHyperDAQ::LogDMBTestsOutput, "LogDMBTestsOutput");
+    xgi::bind(this,&EmuCrateHyperDAQ::FindWinner, "FindWinner");
     //
     myParameter_ =  0;
     //
@@ -173,14 +174,14 @@ public:
       "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/timingME+2-1-14.xml" ;
     //
     xmlFile_     = 
-      "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/configWinter2005ME2.xml" ;
+      "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/config0.xml" ;
     //
     TMBRegisterValue_ = -1;
     CCBRegisterValue_ = -1;
     Operator_ = "Name...";
-    MPCBoardID_ = "-1";
-    CCBBoardID_ = "-1";
-    for (int i=0; i<9; i++) { DMBBoardID_[i] = "-1" ; TMBBoardID_[i] = "-1" ; }
+    MPCBoardID_ = "-2";
+    CCBBoardID_ = "-2";
+    for (int i=0; i<9; i++) { DMBBoardID_[i] = "-2" ; TMBBoardID_[i] = "-2" ; }
     //
     CrateTestsOutput << "Output..." << std::endl;
     for(int i=0; i<9;i++) {
@@ -191,8 +192,6 @@ public:
     //
     this->getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
     this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
-    //
-    xmlFile_ = xmlFile;
     //
   }
   //
@@ -624,7 +623,7 @@ public:
     //
     CrateUtilities myCrateTest;
     myCrateTest.SetCrate(thisCrate);
-    myCrateTest.MpcTMBTest();
+    myCrateTest.MpcTMBTest(100);
     //
     this->Default(in,out);
     //
@@ -1024,6 +1023,17 @@ public:
       *out << std::endl;
     }
     cgicc::pre();
+    //
+    std::string FindWinner =
+      toolbox::toString("/%s/FindWinner",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",FindWinner) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Finner Winner bits") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
     //
     std::string TMBL1aTiming =
       toolbox::toString("/%s/TMBL1aTiming",getApplicationDescriptor()->getURN().c_str());
@@ -1464,6 +1474,50 @@ public:
     MyTest.SetDMB(thisDMB);
     //
     MyTest.CFEBChamberScan();
+    //
+    this->CrateTests(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::FindWinner(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cout << "FindWinner" << endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    int tmb, dmb;
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "No dmb" << endl;
+    }
+    //
+    name = cgi.getElement("tmb");
+    //
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "No tmb" << endl;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    thisTMB = tmbVector[tmb];
+    //
+    MyTest.SetTMB(thisTMB);
+    MyTest.SetCCB(thisCCB);
+    MyTest.SetDMB(thisDMB);
+    MyTest.SetMPC(thisMPC);
+    //
+    MyTest.FindWinner(2);
     //
     this->CrateTests(in,out);
     //
