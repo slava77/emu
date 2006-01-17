@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.45 2006/01/12 22:36:41 mey Exp $
+// $Id: tmbtiming.cpp,v 2.46 2006/01/17 18:56:53 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.46  2006/01/17 18:56:53  mey
+// Update
+//
 // Revision 2.45  2006/01/12 22:36:41  mey
 // UPdate
 //
@@ -404,7 +407,7 @@ int main(int argc,char **argv){
     //sleep(1);
 
     cout << "-- Configuring ALCT --" << endl;
-    //alct = thisTMB->alctController();
+    alct = thisTMB->alctController();
     //util.SetALCT(alct);
     //
     //if (alct) alct->GetWGNumber();
