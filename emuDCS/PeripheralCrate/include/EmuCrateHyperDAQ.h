@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.30 2006/01/16 20:28:42 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.31 2006/01/17 18:57:06 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -122,6 +122,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::LoadTMBFirmware, "LoadTMBFirmware");
     xgi::bind(this,&EmuCrateHyperDAQ::ReadTMBRegister, "ReadTMBRegister");
     xgi::bind(this,&EmuCrateHyperDAQ::ReadCCBRegister, "ReadCCBRegister");
+    xgi::bind(this,&EmuCrateHyperDAQ::HardReset, "HardReset");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBTests,  "TMBTests");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBUtils,  "TMBUtils");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBStatus, "DMBStatus");
@@ -623,7 +624,7 @@ public:
     //
     CrateUtilities myCrateTest;
     myCrateTest.SetCrate(thisCrate);
-    myCrateTest.MpcTMBTest(100);
+    myCrateTest.MpcTMBTest(1000);
     //
     this->Default(in,out);
     //
@@ -1028,7 +1029,7 @@ public:
       toolbox::toString("/%s/FindWinner",getApplicationDescriptor()->getURN().c_str());
     //
     *out << cgicc::form().set("method","GET").set("action",FindWinner) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Finner Winner bits") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Find Winner bits") << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     sprintf(buf,"%d",dmb);
@@ -1875,6 +1876,13 @@ public:
     *out << cgicc::input().set("type","text").set("value","0")
       .set("name","CCBRegister") << std::endl ;
     *out << "Register value : (hex) " << std::hex << CCBRegisterValue_ << std::endl;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string HardReset =
+      toolbox::toString("/%s/HardReset",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",HardReset) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","HardReset");
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::fieldset();
@@ -2859,6 +2867,20 @@ public:
       CCBRegisterValue_ = thisCCB->ReadRegister(registerValue);
       //
     }
+    //
+    this->CCBUtils(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::HardReset(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    std::cout << "hardReset" << std::endl;
+    //
+    thisCCB->hardReset();
     //
     this->CCBUtils(in,out);
     //
