@@ -1,0 +1,16 @@
+#!/bin/sh
+
+PWD=`pwd`
+/sbin/ifdown eth2
+/sbin/ifdown eth3
+/sbin/rmmod dl2k
+/sbin/rmmod eth_hook
+/sbin/rmmod eth_hook_2
+/sbin/modprobe crc32
+/sbin/insmod $PWD/eth_hook.o
+/sbin/insmod $PWD/eth_hook_2.o
+/sbin/insmod $PWD/dl2k.o jumbo=1,1 mtu=9000,9000 tx_flow=0 rx_flow=0 media=6,6
+/sbin/ifup eth2
+/sbin/ifup eth3
+/sbin/ifconfig eth3 promisc
+/sbin/ifconfig
