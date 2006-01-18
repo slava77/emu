@@ -37,9 +37,10 @@ typedef struct{
   LV_1_data data;
 
   // char dynatemTcpIp[80];
- int update_value;
+
  int setNumber;
  char dynatemTcpIp[80];
+ int update_value;
 
 }LV_1_DimBroker;
 
@@ -77,9 +78,10 @@ typedef struct{
    LV_1_data data;
 
   //  char dynatemTcpIp[80];
-   int update_value;
+
      int setNumber;
    char dynatemTcpIp[80];
+   int update_value;
 
 }LV_1_TEST;
 
@@ -97,10 +99,9 @@ typedef struct{
   float t_feb4;
   float t_feb5;
 
-
- int update_value;
  int setNumber;
  char dynatemTcpIp[80];
+ int update_value;
 
 }TEMPERATURE_1_DimBroker;
 
@@ -111,9 +112,10 @@ typedef struct{
 
   int operation_result; // 1 -- OK, 0 -- failed 
 
- int update_value;
+
  int setNumber;
  char dynatemTcpIp[80];
+ int update_value;
 
 }COMMAND_1_DimBroker;
 
@@ -134,9 +136,10 @@ typedef struct{
   float lv_ref_cfeb5;
 
 
- int update_value;
+
  int setNumber;
  char dynatemTcpIp[80];
+ int update_value;
 
 }REFERENCE_1_DimBroker;
 

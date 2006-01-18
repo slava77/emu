@@ -16,14 +16,24 @@
 #include <DcsDimStructures.h>
 #include <DcsDimService.h>
 #include <DcsDimCommand.h>
-#include "xdaqExecutive.h"
+//#include "xdaqExecutive.h"
+#include "Task.h"
 using namespace std;
+
+#define MAX_CHAMBER_NUMBER 108
+
 
 class DcsDimCommand;
 
 class EmuDcs : public PeripheralCrateController, public Task{
 
+
 public:
+
+int ch_counters[MAX_CHAMBER_NUMBER];
+int ch_all_counter;
+ int READOUT_CYCLE_DELAY;
+ int READOUT_COUNTER_NUMBER;
   
 EmuDcs(string *file_to_load_cfeb, string *file_to_load_vme_chip, string *file_to_load_control_chip,
        string *file_to_load_valct288, string *file_to_load_salct288, 
@@ -32,6 +42,8 @@ EmuDcs(string *file_to_load_cfeb, string *file_to_load_vme_chip, string *file_to
        string *file_to_load_tmb);
 
 EmuDcs();
+
+
 
 void EmuDcs_launch();
 
@@ -46,13 +58,15 @@ void EmuDcs_launch();
 
   int cfeb_lv(int cfeb_number);
   int alct_lv();
-  int lv_on_wrap(bool IS_SIMULATION_LOCAL);
+  int lv_on_wrap(bool IS_SIMULATION_LOCAL, int channels);
   int lv_off_wrap(bool IS_SIMULATION_LOCAL);
   int lowv_status(bool IS_SIMULATION_LOCAL);
 
   int resetAllBackplaneViaCCB();
   int programAllBackplaneViaCCB();
   int programAll2004();
+  int hardReset();
+
   int resetAllBackplaneViaDMB();
   int readAllTemperatures();
   int lvSet(); 
@@ -85,6 +99,9 @@ void EmuDcs_launch();
   int ccb_L1_Reset();
 
   int readLV_Reference();
+  
+  int db();
+  int getServiceName(int index, char *system, string &service_name);  
 
 
   ///  int commandParse(string &command);
@@ -104,6 +121,9 @@ void EmuDcs_launch();
   int test();
 
 //================================================
+
+  vector<string> slots;
+  int db_index;
 
   int number_of_cfebs; // temporal parameter: should be taken from DAQMB object 
                        // whenever it is declared there
@@ -129,16 +149,16 @@ private:
 
   DcsDimCommand *DcsDimCommand_o;
    
-  LV_1_DimBroker LV_1_DimBroker_lv;
-  TEMPERATURE_1_DimBroker TEMPERATURE_1_DimBroker_tm;
-  COMMAND_1_DimBroker COMMAND_1_DimBroker_cm;
-  REFERENCE_1_DimBroker REFERENCE_1_DimBroker_rf;
+  LV_1_DimBroker LV_1_DimBroker_lv[MAX_CHAMBER_NUMBER];
+  TEMPERATURE_1_DimBroker TEMPERATURE_1_DimBroker_tm[MAX_CHAMBER_NUMBER];
+  COMMAND_1_DimBroker COMMAND_1_DimBroker_cm[MAX_CHAMBER_NUMBER];
+  REFERENCE_1_DimBroker REFERENCE_1_DimBroker_rf[MAX_CHAMBER_NUMBER];
  
 
-  DcsDimService *LV_1_MonitorService;
-  DcsDimService *TEMPERATURE_1_MonitorService;
-  DcsDimService *COMMAND_1_MonitorService;
-  DcsDimService *REFERENCE_1_MonitorService;
+  DcsDimService *LV_1_MonitorService[MAX_CHAMBER_NUMBER];
+  DcsDimService *TEMPERATURE_1_MonitorService[MAX_CHAMBER_NUMBER];
+  DcsDimService *COMMAND_1_MonitorService[MAX_CHAMBER_NUMBER];
+  DcsDimService *REFERENCE_1_MonitorService[MAX_CHAMBER_NUMBER];
   DimService *RunControlService;
 
 

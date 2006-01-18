@@ -1,0 +1,17 @@
+#!/bin/bash
+
+
+
+
+  
+    cp Makefile_dcscontrol_web ../Makefile
+    cp Makefile_pc_dcscontrol_web ../../PeripheralCrate/Makefile
+ 
+
+cd ../../PeripheralCrate
+make clean
+make
+make tests
+cd ../e2p
+make clean
+make

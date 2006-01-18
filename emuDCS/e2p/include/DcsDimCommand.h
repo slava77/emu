@@ -9,9 +9,12 @@
 #include <EmuDcs.h>
 #include <DcsCommon.h>
 // XDAQ includes
-#include "xdaq.h"
+///////#include "xdaq.h"
 #include "SyncQueue.h"
-#include "xdaqExecutive.h"
+//#include "xdaqExecutive.h"
+#include "Task.h"
+
+#define MAX_CHAMBER_NUMBER 108
 
 class DcsDimService;
 class EmuDcs;
@@ -24,21 +27,26 @@ class DcsDimCommand: public DimCommand, public Task{//, public ErrorHandler{
  int dmb_slot; 
  int tmb_slot; 
  int mpc_slot;
+
+ int lvmb_channels;
+
  string operation_command;
 
  EmuDcs *EmuDcs_o;
 
    SyncQueue<string> sQueue;
 
+   int db_index;
+
 public:
 
 
 
-  DcsDimService *LV_1_DimBroker_o;
+  DcsDimService **LV_1_DimBroker_o;
   
-  DcsDimService *TEMPERATURE_1_DimBroker_o;
-  DcsDimService *COMMAND_1_DimBroker_o;
-  DcsDimService *REFERENCE_1_DimBroker_o;
+  DcsDimService **TEMPERATURE_1_DimBroker_o;
+  DcsDimService **COMMAND_1_DimBroker_o;
+  DcsDimService **REFERENCE_1_DimBroker_o;
   DimService *RunControlService_o; 
 
 
@@ -46,11 +54,11 @@ public:
   bool nextSlotsLoading(int *i,int *j);
   int commandParse(string &command);
   void commandHandler();
-  int getDataLV();
+  int getDataLV(bool isUpdate=false);
+  int get_db_index(string ip_address, int dmb_slot);
 
-
-DcsDimCommand(DcsDimService *LV_1_DimBroker_o, DcsDimService *TEMPERATURE_1_DimBroker_o,  
-              DcsDimService *COMMAND_1_DimBroker_o,DcsDimService *REFERENCE_1_DimBroker_o, DimService *RunControlService_o,
+DcsDimCommand(DcsDimService **LV_1_DimBroker_o, DcsDimService **TEMPERATURE_1_DimBroker_o,  
+              DcsDimService **COMMAND_1_DimBroker_o,DcsDimService **REFERENCE_1_DimBroker_o, DimService *RunControlService_o,
 	      EmuDcs *EmuDcs_o);
 
 // === implemented virtial functions ==================

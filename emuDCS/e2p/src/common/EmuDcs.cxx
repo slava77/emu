@@ -22,14 +22,14 @@
 #include <vector>
 
 
-
+int CHAMBER_NUMBER;
 
 bool SIMULATION=false;
 
 // NORMAL MODE:                      CRATE_CONFIGURED_NEEDED = false;
 // ALL BOARDS PROGRAMMING MODE:      CRATE_CONFIGURED_NEEDED = true;
 //bool  CRATE_CONFIGURED_NEEDED = false;
-bool  CRATE_CONFIGURED_NEEDED = true;
+bool  CRATE_CONFIGURED_NEEDED = false;
 
 
 
@@ -60,20 +60,85 @@ bool  CRATE_CONFIGURED_NEEDED = true;
 //  void (*was)(int), catchFunction(int);
 int EmuDcs::svc(){
 
-    ::sleep(10);
-    //  Rc2Dcs *rc2dcs= new Rc2Dcs();  // corr++ 
-    ///  rc2dcs->turnLV(1);   // corr++
 
-    DimClient::sendCommand("LV_1_COMMAND","all;all|power_on");  
-    DimClient::sendCommand("LV_1_COMMAND","all;all|get_data_local");
+   ::sleep(10);
 
+   //  printf("=============>>>>>>>>>>>========================================================================\n");
+  /*
+     Rc2Dcs *rc2dcs= new Rc2Dcs();  // corr++ 
+     rc2dcs->turnLV(1);   // corr++
+  */
+    DimClient::sendCommand("LV_1_COMMAND","all;all|power_on"); 
+
+#ifdef DCS_PRINTING_0 
+    printf("LV_1_COMMAND is SENT !!  1\n");
+#endif
+
+    DimClient::sendCommand("LV_1_COMMAND","all;all|get_data_local_update");
+ 
+#ifdef DCS_PRINTING_0
+    printf("LV_1_COMMAND is SENT !!  2\n");
+#endif
   while(1){ // indefinite loop (there are no breaks for it)
 
 
-    ::sleep(100);
+    //::usleep(100000);//::usleep(1000000); //::sleep(300);//::sleep(100);
+
+#ifdef TESTMODE
+::usleep(100000);
+#else
+//--------------------------------------------
+//::sleep(300);
+
+//::usleep(100000);
+
+
+
+ char tmp[40];
+
+#ifdef OSUcc 
+  ::usleep(READOUT_CYCLE_DELAY);
+#else
+  ::sleep(READOUT_CYCLE_DELAY);
+#endif
+
+  ch_all_counter++;
+  for(int i=0;i<CHAMBER_NUMBER;i++){
+    
+    ch_counters[i]++;
+    //    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++%d\n",ch_counters[i]);
+    if(ch_counters[i] >= READOUT_COUNTER_NUMBER){
+      sprintf(tmp,"%s|get_data_local_update",slots[i].c_str());
+      DimClient::sendCommand("LV_1_COMMAND",tmp);
+      ch_counters[i]=0;
+    }
+    else {
+      sprintf(tmp,"%s|get_data_local",slots[i].c_str());
+      DimClient::sendCommand("LV_1_COMMAND",tmp);
+    }
+  }
+
+
+
+
+//--------------------------------------------
+#endif
+  /*
+#ifdef DCS_PRINTING_0
     printf("LV_1_COMMAND is SENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!before\n");
+#endif
    DimClient::sendCommand("LV_1_COMMAND","all;all|get_data_local");
+#ifdef DCS_PRINTING_0
     printf("LV_1_COMMAND is SENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");   
+#endif
+  */
+
+    time_t t;
+    time(&t);
+    char t_c[40];
+    char *t_p=(char *)&t_c;
+    t_p=ctime(&t);
+    printf("----------------------------------------------------------------------------------------------------------------%s\n",t_p);
 
   }
 
@@ -136,32 +201,69 @@ string *file_to_load_tmb)
 
   EmuDcs::RUN_MODE=1;
 
-#ifdef DCS_PRINTING_1
+#ifdef DCS_PRINTING_0
   printf("%s \n %s \n %s \n",this->file_to_load_cfeb->c_str(),this->file_to_load_vme_chip->c_str(),this->file_to_load_control_chip->c_str());
 #endif
 
   number_of_cfebs=5; // temporal parameter: should be taken from DAQMB object 
                      // whenever it is declared there
-   
-  LV_1_MonitorService= new DcsDimService("LV_1","F:5;F:5;F:5;F:5;F:5;F:5;F:5;F:9;I:2;C:80",
-  (void *)&LV_1_DimBroker_lv, sizeof(LV_1_DimBroker));
+
+  db();   
 
   
-  //  TEMPERATURE_1_MonitorService= new DcsDimService("TEMP_1","F:5;F:5;F:5;F:5;F:5;I:2;C:80",
-  TEMPERATURE_1_MonitorService= new DcsDimService("TEMP_1","F:7;I:2;C:80",
-  (void *)&TEMPERATURE_1_DimBroker_tm, sizeof(TEMPERATURE_1_DimBroker));
+  string service_name;
+  
+  ch_all_counter=0;
+  
+#ifdef OSUcc
+  ///  READOUT_CYCLE_DELAY=CHAMBER_NUMBER*100000*2*1000; // temp for slow 
+  READOUT_CYCLE_DELAY=CHAMBER_NUMBER*100000*2-CHAMBER_NUMBER/2;
+  READOUT_COUNTER_NUMBER=(5000000/READOUT_CYCLE_DELAY)*100;  // 5sec. * 100 = 500 sec.
+#else
+  READOUT_CYCLE_DELAY=CHAMBER_NUMBER*2*1000;
+  ///  READOUT_CYCLE_DELAY=CHAMBER_NUMBER*2-CHAMBER_NUMBER/2;
+  READOUT_COUNTER_NUMBER=500/READOUT_CYCLE_DELAY;
+#endif
 
-  COMMAND_1_MonitorService= new DcsDimService("CHIP_1","I:3;C:80",
-  (void *)&COMMAND_1_DimBroker_cm, sizeof(COMMAND_1_DimBroker));
 
-  REFERENCE_1_MonitorService= new DcsDimService("RF_1","F:9;I:2;C:80",
-  (void *)&REFERENCE_1_DimBroker_rf, sizeof(REFERENCE_1_DimBroker));
+
+
+  for(int i=0;i<CHAMBER_NUMBER;i++){
+
+   ch_counters[i]=0;
+
+    memset(&(LV_1_DimBroker_lv[i]),0,sizeof(LV_1_DimBroker));
+    getServiceName(i,"LV_1",service_name);
+
+
+   LV_1_MonitorService[i]= new DcsDimService((char *)service_name.c_str(),"F:5;F:5;F:5;F:5;F:5;F:5;F:5;F:9;I:2;C:80",  
+   (void *)&(LV_1_DimBroker_lv[i]), sizeof(LV_1_DimBroker));
+
+
+    memset(&(TEMPERATURE_1_DimBroker_tm[i]),0,sizeof(TEMPERATURE_1_DimBroker));
+    getServiceName(i,"TEMP_1",service_name);
+   //  TEMPERATURE_1_MonitorService= new DcsDimService("TEMP_1","F:5;F:5;F:5;F:5;F:5;I:2;C:80",
+   TEMPERATURE_1_MonitorService[i]= new DcsDimService((char *)service_name.c_str(),"F:7;I:2;C:80",
+   (void *)&(TEMPERATURE_1_DimBroker_tm[i]), sizeof(TEMPERATURE_1_DimBroker));
+
+    memset(&(COMMAND_1_DimBroker_cm[i]),0,sizeof(COMMAND_1_DimBroker));
+    getServiceName(i,"CHIP_1",service_name);
+   COMMAND_1_MonitorService[i]= new DcsDimService((char *)service_name.c_str(),"I:3;C:80",
+   (void *)&(COMMAND_1_DimBroker_cm[i]), sizeof(COMMAND_1_DimBroker));
+
+    memset(&(REFERENCE_1_DimBroker_rf[i]),0,sizeof(REFERENCE_1_DimBroker));
+    getServiceName(i,"RF_1",service_name);
+   REFERENCE_1_MonitorService[i]= new DcsDimService((char *)service_name.c_str(),"F:9;I:2;C:80",
+   (void *)&(REFERENCE_1_DimBroker_rf[i]), sizeof(REFERENCE_1_DimBroker));
+
+  }
+
 
   RunControlService= new DimService("DCS_SERVICE","C:80",
   (void *)&RunControlAck, sizeof(RunControlStructure));
   
 
-#ifdef DCS_PRINTING_1
+#ifdef DCS_PRINTING_0
   printf("start=======\n");
 #endif
 
@@ -299,7 +401,7 @@ void EmuDcs::catchFunction(int){
 
   
   number_of_hard_resets++;
-#ifdef DCS_PRINTING_1
+#ifdef DCS_PRINTING_0
   printf("catch\n");
 #endif
   /*
@@ -313,7 +415,7 @@ void EmuDcs::catchFunction(int){
   /////  if(!(EmuDcs::RUN_MODE))return; 
 
   if(CRATE_CONFIGURED_NEEDED){
-#ifdef DCS_PRINTING_1
+#ifdef DCS_PRINTING_0
   printf("+++++++=======CRATE1\n");
 #endif
        DimClient::sendCommand("LV_1_COMMAND","all;all|program_all_via_ccb");
@@ -321,17 +423,21 @@ void EmuDcs::catchFunction(int){
   // DimClient::sendCommand("LV_1_COMMAND","all;all|load_alct384");
   //   DimClient::sendCommand("LV_1_COMMAND","all;all|load_all_cfebs");
 
-#ifdef DCS_PRINTING_1
+#ifdef DCS_PRINTING_0
   printf("+++++++=======CRATE2\n");
 #endif
 
   if(number_of_hard_resets==2)CRATE_CONFIGURED_NEEDED=false;
   }
   else{
+#ifdef DCS_PRINTING_0
     printf("number_of_hard_resets=%d\n",number_of_hard_resets);
     printf("LV_1_COMMAND is SENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!before\n");
+#endif
    DimClient::sendCommand("LV_1_COMMAND","all;all|get_data_local");
+#ifdef DCS_PRINTING_0
     printf("LV_1_COMMAND is SENT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+#endif
   }
 
   
@@ -373,27 +479,27 @@ int EmuDcs::cfeb_lv(int cfeb_number){
  frand_2 = 1./(factor1+frand_1);
  frand_3 = 1./(20+frand_1);
 
-  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.v33[cfeb_number-1] = 3.3+ frand_2 ;
-  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.c33[cfeb_number-1] = 0.5+ frand_3;
+  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.v33[cfeb_number-1] = 3.3+ frand_2 ;
+  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.c33[cfeb_number-1] = 0.5+ frand_3;
  frand_1 = 1+(int) (20.0*rand()/(RAND_MAX+1.0)); //(rand() % 10);
  frand_2 = 1./(factor1+frand_1);
  frand_3 = 1./(20+frand_1);
-  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.v50[cfeb_number-1] = 5.0+ frand_2 ;
-  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.c50[cfeb_number-1] = 0.6+ frand_3;
+  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.v50[cfeb_number-1] = 5.0+ frand_2 ;
+  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.c50[cfeb_number-1] = 0.6+ frand_3;
  frand_1 = 1+(int) (20.0*rand()/(RAND_MAX+1.0)); //(rand() % 10);
  frand_2 = 1./(factor1+frand_1);
  frand_3 = 1./(20+frand_1);
-  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.v60[cfeb_number-1] = 6.0+ frand_2 ;
-  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.c60[cfeb_number-1] = 0.7+ frand_3;
+  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.v60[cfeb_number-1] = 6.0+ frand_2 ;
+  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.c60[cfeb_number-1] = 0.7+ frand_3;
 
     }
     else{
-  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.v33[cfeb_number-1] = 0 ;
-  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.v50[cfeb_number-1] = 0 ;
-  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.v60[cfeb_number-1] = 0 ;
-  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.c33[cfeb_number-1] = 0;
-  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.c50[cfeb_number-1] = 0;
-  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.c60[cfeb_number-1] = 0;
+  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.v33[cfeb_number-1] = 0 ;
+  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.v50[cfeb_number-1] = 0 ;
+  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.v60[cfeb_number-1] = 0 ;
+  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.c33[cfeb_number-1] = 0;
+  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.c50[cfeb_number-1] = 0;
+  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.c60[cfeb_number-1] = 0;
     }
 
   }
@@ -502,9 +608,9 @@ printf("CFEB5 6.0V    %.3f V \n",adcval[2]/1000);
 
 	} // j
 
-   ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.v33[cfeb_number-1] =values[0];//adcval1/1000;
-   ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.v50[cfeb_number-1] =values[1];//adcval2/1000;
-   ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.v60[cfeb_number-1] =values[2];//adcval3/1000;
+   ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.v33[cfeb_number-1] =values[0];//adcval1/1000;
+   ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.v50[cfeb_number-1] =values[1];//adcval2/1000;
+   ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.v60[cfeb_number-1] =values[2];//adcval3/1000;
 	
  //==========================================
 
@@ -599,9 +705,9 @@ printf("CFEB5 OCM 6   %.3f A \n",adcval[2]/1000);
 
 
 
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.c33[cfeb_number-1] =values[0];//adcval1/1000;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.c50[cfeb_number-1] =values[1];//adcval2/1000;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.c60[cfeb_number-1] =values[2];//adcval3/1000;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.c33[cfeb_number-1] =values[0];//adcval1/1000;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.c50[cfeb_number-1] =values[1];//adcval2/1000;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.c60[cfeb_number-1] =values[2];//adcval3/1000;
 	
 	  /////////	 osu_end();
 
@@ -638,34 +744,34 @@ int EmuDcs::alct_lv(){
  frand_1 = 1+(int) (20.0*rand()/(RAND_MAX+1.0)); //(rand() % 10);
  frand_2 = 1./(factor1+frand_1);
  frand_3 = 1./(20+frand_1);
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.v18 =1.8+ frand_2;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.c18 =0.3+frand_3;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.v18 =1.8+ frand_2;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.c18 =0.3+frand_3;
  frand_1 = 1+(int) (20.0*rand()/(RAND_MAX+1.0)); //(rand() % 10);
  frand_2 = 1./(factor1+frand_1);
  frand_3 = 1./(20+frand_1);
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.v33 =3.3+ frand_2;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.c33 =0.5+frand_3;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.v33 =3.3+ frand_2;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.c33 =0.5+frand_3;
  frand_1 = 1+(int) (20.0*rand()/(RAND_MAX+1.0)); //(rand() % 10);
  frand_2 = 1./(factor1+frand_1);
  frand_3 = 1./(20+frand_1);
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.v55 =5.5+ frand_2;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.c55 =0.6+frand_3;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.v55 =5.5+ frand_2;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.c55 =0.6+frand_3;
  frand_1 = 1+(int) (20.0*rand()/(RAND_MAX+1.0)); //(rand() % 10);
  frand_2 = 1./(factor1+frand_1);
  frand_3 = 1./(20+frand_1);
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.v56 =5.6+ frand_2;	
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.c56 =0.6+frand_3;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.v56 =5.6+ frand_2;	
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.c56 =0.6+frand_3;
 
     }
     else{
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.v18 =0;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.v33 =0;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.v55 =0;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.v56 =0;	
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.c18 =0;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.c33 =0;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.c55 =0;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.c56 =0;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.v18 =0;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.v33 =0;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.v55 =0;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.v56 =0;	
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.c18 =0;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.c33 =0;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.c55 =0;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.c56 =0;
     }
 
   }
@@ -723,10 +829,10 @@ printf("ALCT 5.5V B   %.3f V \n",adcval[3]/1000);
 	} //j 
 	
 
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.v18 =values[0];//adcval1/1000;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.v33 =values[1];//adcval2/1000;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.v55 =values[2];//adcval3/1000;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.v56 =values[3];//adcval4/1000;	
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.v18 =values[0];//adcval1/1000;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.v33 =values[1];//adcval2/1000;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.v55 =values[2];//adcval3/1000;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.v56 =values[3];//adcval4/1000;	
      
 
 //-----------------------------------------
@@ -770,10 +876,10 @@ printf("ALCT OCM 5B   %.3f A \n",adcval[3]/1000);
 	} // j
 
 
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.c18 =values[0];//adcval1/1000;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.c33 =values[1];//adcval2/1000;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.c55 =values[2];//adcval3/1000;
-	  ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.c56 =values[3];//adcval4/1000;	
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.c18 =values[0];//adcval1/1000;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.c33 =values[1];//adcval2/1000;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.c55 =values[2];//adcval3/1000;
+	  ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.c56 =values[3];//adcval4/1000;	
 	  /////////	 osu_end();
 
 	 ///////	 memcpy((ALCT_LV *) &(((LV_1_DimBroker *)Command::LV_1_DimBroker_o->value)->data.Alct_o),(ALCT_LV *)Command::alct->value, sizeof(ALCT_LV) );
@@ -788,23 +894,23 @@ printf("ALCT OCM 5B   %.3f A \n",adcval[3]/1000);
 
 //=====================================================================
 
-int EmuDcs::lv_on_wrap(bool IS_SIMULATION_LOCAL){
+int EmuDcs::lv_on_wrap(bool IS_SIMULATION_LOCAL, int channels){
 
   OPERATION_ACTIVE=true;
 
-#ifdef DCS_PRINTING_1
+#ifdef DCS_PRINTING_0
   printf("lv_on_wrap()\n");
 #endif
  
   /////////  osu_start(dp->crate_slt);
   if(!IS_SIMULATION_LOCAL){
    for (int i=0;i< 10;i++){
-     /*if(!lowv_status(IS_SIMULATION_LOCAL))*/daqmb->lowv_onoff(0x3f);// commented out because of wrong work LVMB
+     /*if(!lowv_status(IS_SIMULATION_LOCAL))*/daqmb->lowv_onoff(channels);//  0x3f commented out because of wrong work LVMB
      if(lowv_status(IS_SIMULATION_LOCAL)) break;
    }
   }
   else{
-#ifdef DCS_PRINTING_1
+#ifdef DCS_PRINTING_0
       printf("on  SIMULATION\n");
 #endif
     slot_status[current_set]=1;
@@ -812,9 +918,15 @@ int EmuDcs::lv_on_wrap(bool IS_SIMULATION_LOCAL){
 
   ////////  osu_end();
 
-            for(int i=0;i<number_of_cfebs ;i++)
-           ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.status[i]=1;
-           ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.status=1; 
+  for(int i=0;i<number_of_cfebs ;i++){
+    if(channels & (1 << i))
+   ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.status[i]=1;
+    else ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.status[i]=0;
+  }
+    if(channels & (1 << 5))
+           ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.status=1;
+    else
+            ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.status=0;
 
 	 OPERATION_ACTIVE=false;
 
@@ -828,7 +940,7 @@ int EmuDcs::lv_off_wrap(bool IS_SIMULATION_LOCAL){
 
   OPERATION_ACTIVE=true;
 
-#ifdef DCS_PRINTING_1
+#ifdef DCS_PRINTING_0
   printf("lv_off_wrap()\n");
 #endif
 
@@ -842,12 +954,12 @@ int EmuDcs::lv_off_wrap(bool IS_SIMULATION_LOCAL){
       printf("off  SIMULATION\n");
    slot_status[current_set]=0;
   }
-#ifdef DCS_PRINTING_1
+#ifdef DCS_PRINTING_0
       printf("off  \n");
 #endif
             for(int i=0;i<number_of_cfebs ;i++)
-           ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Cfeb_o.status[i]=0;
-           ((LV_1_DimBroker *)LV_1_MonitorService->value)->data.Alct_o.status=0; 
+           ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Cfeb_o.status[i]=0;
+           ((LV_1_DimBroker *)LV_1_MonitorService[db_index]->value)->data.Alct_o.status=0; 
 
 
 	 OPERATION_ACTIVE=false;
@@ -861,7 +973,7 @@ int EmuDcs::lowv_status(bool IS_SIMULATION_LOCAL){
 
   if(!IS_SIMULATION_LOCAL){
    if((daqmb->lowv_rdpwrreg()&0x00ff) ==0xc0)return 0;
-   else return 1;
+   else return (daqmb->lowv_rdpwrreg() & 0x3f);
   }
   else{
    return slot_status[current_set];
@@ -992,15 +1104,25 @@ int EmuDcs::programAllBackplaneViaCCB(){
 
 }
 //=====================================================================
+int EmuDcs::hardReset(){
+
+  ccb->hardReset(); // version used in Crate configuration by daq people
+
+  return 1;
+
+}
+
+//=====================================================================
 int EmuDcs::programAll2004(){
 
   //  ccb->prgall_bckpln();
 
-  /////// ((CCBdcs *)ccb)->setCCBMode(CCB::VMEFPGA);
-  //////  ((CCBdcs *)ccb)->setCCBMode(CCB::DLOG);
-   /////// ((CCBdcs *)ccb)->hard_reset_all();
-
-
+  ccb->setCCBMode(CCB::VMEFPGA);
+  ::usleep(100000);
+  //ccb->setCCBMode(CCB::DLOG);
+  ccb->hard_reset_all();
+  ::sleep(1);
+   ccb->setCCBMode(CCB::DLOG);
 
   return 1;
 
@@ -1019,34 +1141,34 @@ int EmuDcs::readAllTemperatures(){
   if(!SIMULATION){
   //   printf("Reading all temperatures\n");
   //      printf("Reading Mother board temperature\n");
-         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService->value)->t_daq  = (daqmb->readthermx(0)-32.)*5./9.;
+         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService[db_index]->value)->t_daq  = (daqmb->readthermx(0)-32.)*5./9.;
   //     printf("Reading FEB1 temperature\n");
-         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService->value)->t_feb1 = (daqmb->readthermx(1)-32.)*5./9.;
+         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService[db_index]->value)->t_feb1 = (daqmb->readthermx(1)-32.)*5./9.;
   //    printf("Reading FEB2 temperature\n");
-         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService->value)->t_feb2 = (daqmb->readthermx(2)-32.)*5./9.;
+         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService[db_index]->value)->t_feb2 = (daqmb->readthermx(2)-32.)*5./9.;
   //   printf("Reading FEB3 temperature\n");
-         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService->value)->t_feb3 = (daqmb->readthermx(3)-32.)*5./9.;
+         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService[db_index]->value)->t_feb3 = (daqmb->readthermx(3)-32.)*5./9.;
   //    printf("Reading FEB4 temperature\n");
-         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService->value)->t_feb4 = (daqmb->readthermx(4)-32.)*5./9.;
+         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService[db_index]->value)->t_feb4 = (daqmb->readthermx(4)-32.)*5./9.;
   //      printf("Reading FEB5 temperature\n");
-         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService->value)->t_feb5 = (daqmb->readthermx(5)-32.)*5./9.;
+         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService[db_index]->value)->t_feb5 = (daqmb->readthermx(5)-32.)*5./9.;
   //         printf("Reading Virtex temperature\n");
   //         daqmb->readthermx(7);
 
 
 	float readtemp;
 #ifdef DCS_PRINTING_1
-        printf("alct_temperature>>\n");
+	//        printf("alct_temperature>>\n");
 #endif
         int tmb_slot=tmb->slot();
 #ifdef DCS_PRINTING_1
-        printf("alct_temperature>>\n");
+	//        printf("alct_temperature>>\n");
 #endif
 	alct_c->alct_read_temp(&tmb_slot, &readtemp);
 #ifdef DCS_PRINTING_1
-        printf("alct_temperature>>\n");
+	//        printf("alct_temperature>>\n");
 #endif
-        ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService->value)->t_alct = readtemp;
+        ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService[db_index]->value)->t_alct = readtemp;
 #ifdef DCS_PRINTING_1
         printf("alct_temperature = %f\n",readtemp);
 #endif
@@ -1054,20 +1176,20 @@ int EmuDcs::readAllTemperatures(){
   }
   else{
 
-         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService->value)->t_daq  = 20.;
+         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService[db_index]->value)->t_daq  = 20.;
   //     printf("Reading FEB1 temperature\n");
-         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService->value)->t_feb1 = 21.;
+         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService[db_index]->value)->t_feb1 = 21.;
   //    printf("Reading FEB2 temperature\n");
-         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService->value)->t_feb2 = 22.;
+         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService[db_index]->value)->t_feb2 = 22.;
   //   printf("Reading FEB3 temperature\n");
-         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService->value)->t_feb3 = 23.;
+         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService[db_index]->value)->t_feb3 = 23.;
   //    printf("Reading FEB4 temperature\n");
-         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService->value)->t_feb4 = 24.;
+         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService[db_index]->value)->t_feb4 = 24.;
   //      printf("Reading FEB5 temperature\n");
-         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService->value)->t_feb5 = 25.;
+         ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService[db_index]->value)->t_feb5 = 25.;
   //         printf("Reading Virtex temperature\n");
   //         daqmb->readthermx(7);
-        ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService->value)->t_alct = 26.;
+        ((TEMPERATURE_1_DimBroker *)TEMPERATURE_1_MonitorService[db_index]->value)->t_alct = 26.;
 
 
 
@@ -1095,6 +1217,15 @@ int EmuDcs::programAllCFEBs(){
   */
 
   /////////  03/31/2005 ((CCBdcs *)ccb)->hard_reset_dmb();
+ ccb->setCCBMode(CCB::VMEFPGA);
+  ::usleep(100000);
+  //ccb->setCCBMode(CCB::DLOG);
+   ccb->hard_reset_dmb();
+  ::sleep(1);
+   ccb->setCCBMode(CCB::DLOG);
+#ifdef DCS_PRINTING_0
+	printf("HARD RESET DMB DONE\n");
+#endif
 
   return 1;
 
@@ -1176,6 +1307,15 @@ DEVTYPE devnum;
 int EmuDcs::programALCT(){
 
   ////////// 03/31/2005  ((CCBdcs *)ccb)->hard_reset_alct();
+ ccb->setCCBMode(CCB::VMEFPGA);
+  ::usleep(100000);
+  //ccb->setCCBMode(CCB::DLOG);
+   ccb->hard_reset_alct();
+  ::sleep(1);
+   ccb->setCCBMode(CCB::DLOG);
+#ifdef DCS_PRINTING_0
+	printf("HARD RESET ALCT DONE\n");
+#endif
 
   return 1;
 
@@ -1185,6 +1325,16 @@ int EmuDcs::programDAQMB(){
 
   ///////// 03/31/2005 ((CCBdcs *)ccb)->hard_reset_dmb();
 
+ ccb->setCCBMode(CCB::VMEFPGA);
+  ::usleep(100000);
+  //ccb->setCCBMode(CCB::DLOG);
+   ccb->hard_reset_dmb();
+  ::sleep(1);
+   ccb->setCCBMode(CCB::DLOG);
+#ifdef DCS_PRINTING_0
+	printf("HARD RESET DMB DONE\n");
+#endif
+
   return 1;
 
 }
@@ -1193,6 +1343,17 @@ int EmuDcs::programTMB(){
 
   //////// 03/31/2005  ((CCBdcs *)ccb)->hard_reset_tmb();
 
+ ccb->setCCBMode(CCB::VMEFPGA);
+  ::usleep(100000);
+  //ccb->setCCBMode(CCB::DLOG);
+    ccb->hard_reset_tmb();
+  ::sleep(1);
+   ccb->setCCBMode(CCB::DLOG);
+#ifdef DCS_PRINTING_0
+	printf("HARD RESET TMB DONE\n");
+#endif
+
+
   return 1;
 
 }
@@ -1200,6 +1361,16 @@ int EmuDcs::programTMB(){
 int EmuDcs::programMPC(){
 
   ////////// 03/31/2005  ((CCBdcs *)ccb)->hard_reset_mpc();
+
+ ccb->setCCBMode(CCB::VMEFPGA);
+  ::usleep(100000);
+  //ccb->setCCBMode(CCB::DLOG);
+   ccb->hard_reset_mpc();
+  ::sleep(1);
+   ccb->setCCBMode(CCB::DLOG);
+#ifdef DCS_PRINTING_0
+	printf("HARD RESET MPC DONE\n");
+#endif
 
   return 1;
 
@@ -1362,39 +1533,39 @@ int EmuDcs::readLV_Reference(){
 #ifdef DCS_PRINTING_1
          printf("Reading 1.8V Chip 1\n");
 #endif
-       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService->value)->lv_ref_18_chip1=daqmb->adcplus(1,6);
+       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService[db_index]->value)->lv_ref_18_chip1=daqmb->adcplus(1,6);
 #ifdef DCS_PRINTING_1
         printf("Reading 1.8V Chip 2\n");
 #endif
-       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService->value)->lv_ref_18_chip2=daqmb->adcplus(2,6);
+       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService[db_index]->value)->lv_ref_18_chip2=daqmb->adcplus(2,6);
 #ifdef DCS_PRINTING_1
          printf("Reading 1.8V Chip 3\n");
 #endif
-       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService->value)->lv_ref_18_chip3 = daqmb->adcminus(3,6);
+       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService[db_index]->value)->lv_ref_18_chip3 = daqmb->adcminus(3,6);
 #ifdef DCS_PRINTING_1
          printf("Reading DMB GND\n");
 #endif
-       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService->value)->lv_ref_dmb_gnd = daqmb->adcminus(3,0);
+       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService[db_index]->value)->lv_ref_dmb_gnd = daqmb->adcminus(3,0);
 #ifdef DCS_PRINTING_1
          printf("Reading CFEB1 GND \n");
 #endif
-       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService->value)->lv_ref_cfeb1 =daqmb->adcminus(3,1);
+       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService[db_index]->value)->lv_ref_cfeb1 =daqmb->adcminus(3,1);
 #ifdef DCS_PRINTING_1
          printf("Reading CFEB2 GND \n");
 #endif
-       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService->value)->lv_ref_cfeb2 =daqmb->adcminus(3,2);
+       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService[db_index]->value)->lv_ref_cfeb2 =daqmb->adcminus(3,2);
 #ifdef DCS_PRINTING_1
          printf("Reading CFEB3 GND \n");
 #endif
-       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService->value)->lv_ref_cfeb3 =daqmb->adcminus(3,3);
+       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService[db_index]->value)->lv_ref_cfeb3 =daqmb->adcminus(3,3);
 #ifdef DCS_PRINTING_1
          printf("Reading CFEB4 GND \n");
 #endif
-       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService->value)->lv_ref_cfeb4 =daqmb->adcminus(3,4);
+       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService[db_index]->value)->lv_ref_cfeb4 =daqmb->adcminus(3,4);
 #ifdef DCS_PRINTING_1
          printf("Reading CFEB5 GND \n");
 #endif
-       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService->value)->lv_ref_cfeb5 =daqmb->adcminus(3,5);
+       ((REFERENCE_1_DimBroker *)REFERENCE_1_MonitorService[db_index]->value)->lv_ref_cfeb5 =daqmb->adcminus(3,5);
 
   return 1;
 
@@ -1447,6 +1618,90 @@ int EmuDcs::simulationLVStatusControl(string &ipslot){
 
 //=====================================================================
 
+int EmuDcs::db(){
+  
+  vector<Crate *> v_crates= crates();
+  vector<DAQMB *> v_daqmbs;
+  vector<TMB *>   v_tmbs;
+
+  char tmp[100];
+
+#ifdef DCS_PRINTING_1
+  ///printf("21 %d %d\n",*i,v_crates.size());
+#endif
+
+  CHAMBER_NUMBER=0;
+
+  for(int i=0;i<v_crates.size();i++){
+
+   v_daqmbs=daqmbs(v_crates[i]);
+
+      for(int j=0;j<v_daqmbs.size();j++){
+
+	sprintf(tmp,"%s;%d",(v_crates[i]->vmeController()->ipAddress()).c_str(),v_daqmbs[j]->slot()); 
+	slots.push_back(string(tmp));
+	CHAMBER_NUMBER++;
+      	printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++slots[%d]=%s\n",j,tmp);
+
+      }
+  }
+
+  return 1;
+
+}
+//=====================================================================
+int EmuDcs::getServiceName(int index, char *system, string &service_name){
+
+  
+      int pos, pos_prev=0; 
+
+      //   for(int i=0;i<slots.size();i++){
+      int i=index;
+
+           service_name=string(system);
+	   
+           pos_prev=slots[i].find(";",0)+1;
+           service_name+=string("_")+slots[i].substr(0,pos_prev-1);
+
+            for(int j=0;j<1;j++){
+        	pos=slots[i].find(";",pos_prev);
+                if(pos == string::npos)pos=slots[i].size();
+                service_name+=string("_")+slots[i].substr(pos_prev,pos-pos_prev);
+                pos_prev=pos+1;
+	    } // for j
+	   
+	    //pos_prev=slots[i].find(".",0)+1;
+
+
+            pos_prev=0;
+#ifdef OSUcc
+            for(int j=0;j<5;j++){
+        	pos=service_name.find(":",pos_prev);
+#else
+            for(int j=0;j<3;j++){
+                pos=service_name.find(".",pos_prev);
+#endif
+
+                if(pos==string::npos){
+
+
+		}
+                else{
+		  ///		  printf("pos=%d\n",pos);
+		}
+                //if(pos == string::npos)pos=slots[i].size();
+                //tmp_str+=string("_")+slots[i].substr(pos_prev,pos-pos_prev);
+                service_name.replace(pos,1,"_");
+                pos_prev=pos+1;
+	    } // for j
+	    //	 } // for i
+
+
+	    //	    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++service_name=%s\n",service_name.c_str());
+
+  return 1;
+
+}
 
 
 //=================== test stuff below ================================
