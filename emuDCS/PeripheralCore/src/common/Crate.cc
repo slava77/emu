@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 2.4 2006/01/18 12:46:48 mey Exp $
+// $Id: Crate.cc,v 2.5 2006/01/18 19:38:16 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 2.5  2006/01/18 19:38:16  mey
+// Fixed bugs
+//
 // Revision 2.4  2006/01/18 12:46:48  mey
 // Update
 //
@@ -30,6 +33,7 @@
 #include "DDU.h"
 #include "ALCTController.h"
 #include "ChamberUtilities.h"
+#include "Chamber.h"
 
 Crate::Crate(int number, VMEController * controller) : 
   theNumber(number),  
@@ -53,17 +57,42 @@ void Crate::addModule(VMEModule * module) {
 }
 
 
-std::vector<ChamberUtilities> Crate::chambers() const {
+std::vector<ChamberUtilities> Crate::chamberUtils() const {
   //
   std::vector<DAQMB *> dmbVector = daqmbs();
   std::vector<TMB *>   tmbVector = tmbs();
   std::vector<ChamberUtilities>   result;
   //
   for( int i=0; i< dmbVector.size(); i++) {
+    for( int j=0; j< tmbVector.size(); j++) {
+      //
+      if ( (tmbVector[j]->slot()+1) == (dmbVector[i]->slot()) ) {
+	ChamberUtilities chamber ;
+	chamber.SetTMB(tmbVector[j]);
+	chamber.SetDMB(dmbVector[i]);
+	chamber.SetMPC(this->mpc());
+	chamber.SetCCB(this->ccb());
+	result.push_back(chamber);
+      }
+      //
+    }
+  }
+  //
+  return result;
+  //
+}
+//
+std::vector<Chamber> Crate::chambers() const {
+  //
+  std::vector<DAQMB *> dmbVector = daqmbs();
+  std::vector<TMB *>   tmbVector = tmbs();
+  std::vector<Chamber>   result;
+  //
+  for( int i=0; i< dmbVector.size(); i++) {
       for( int j=0; j< tmbVector.size(); j++) {
 	//
 	if ( (tmbVector[j]->slot()+1) == (dmbVector[i]->slot()) ) {
-	  ChamberUtilities chamber ;
+	  Chamber chamber ;
 	  chamber.SetTMB(tmbVector[j]);
 	  chamber.SetDMB(dmbVector[i]);
 	  chamber.SetMPC(this->mpc());
@@ -77,7 +106,7 @@ std::vector<ChamberUtilities> Crate::chambers() const {
   return result;
   //
 }
-
+//
 std::vector<DAQMB *> Crate::daqmbs() const {
   std::vector<DAQMB *> result;
   for(unsigned i = 0; i < theModules.size(); ++i) {

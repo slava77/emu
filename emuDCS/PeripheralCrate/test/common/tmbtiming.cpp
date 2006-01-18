@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.47 2006/01/18 12:46:04 mey Exp $
+// $Id: tmbtiming.cpp,v 2.48 2006/01/18 19:38:17 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.48  2006/01/18 19:38:17  mey
+// Fixed bugs
+//
 // Revision 2.47  2006/01/18 12:46:04  mey
 // Cleaned up old code
 //
@@ -619,7 +622,7 @@ int main(int argc,char **argv){
     //
     if ( doChambers) {
       //
-      std::cout << crateVector[0]->chambers().size() << std::endl;
+      std::cout << crateVector[0]->chamberUtils().size() << std::endl;
       //
     }
     //

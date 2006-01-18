@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.1 2006/01/11 17:00:01 mey Exp $
+// $Id: CalibDAQ.cc,v 2.2 2006/01/18 19:38:16 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.2  2006/01/18 19:38:16  mey
+// Fixed bugs
+//
 // Revision 2.1  2006/01/11 17:00:01  mey
 // Update
 //
@@ -95,9 +98,9 @@ void CalibDAQ::pulseAllWires(){
   //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
     //
-    (myCrates[j]->chambers())[0].CCBStartTrigger();
+    (myCrates[j]->chamberUtils())[0].CCBStartTrigger();
     //
-    std::vector<ChamberUtilities> utils = (myCrates[j]->chambers()) ;
+    std::vector<ChamberUtilities> utils = (myCrates[j]->chamberUtils()) ;
     //
     for (int i = 0; i < utils.size() ; i++ ) {
       //

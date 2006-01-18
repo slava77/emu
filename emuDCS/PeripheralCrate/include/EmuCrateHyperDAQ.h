@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.32 2006/01/18 12:46:31 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.33 2006/01/18 19:38:16 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -90,7 +90,7 @@ protected:
   CCB* thisCCB(0) ;
   ALCTController *alct(0) ;
   MPC * thisMPC(0);
-  ChamberUtilities MyTest;
+  ChamberUtilities MyTest[9];
   ostringstream CrateTestsOutput;
   ostringstream OutputStringDMBStatus[9];
   ostringstream OutputStringTMBStatus[9];
@@ -124,6 +124,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::ReadTMBRegister, "ReadTMBRegister");
     xgi::bind(this,&EmuCrateHyperDAQ::ReadCCBRegister, "ReadCCBRegister");
     xgi::bind(this,&EmuCrateHyperDAQ::HardReset, "HardReset");
+    xgi::bind(this,&EmuCrateHyperDAQ::Automatic, "Automatic");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBTests,  "TMBTests");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBUtils,  "TMBUtils");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBStatus, "DMBStatus");
@@ -205,7 +206,7 @@ public:
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("Simple Web Form") << std::endl;
     //
-    *out << cgicc::h1("EmuCrateHyperDAQ...");
+    *out << cgicc::h1("EmuCrateHyperDAQ");
     *out << cgicc::br();
     //
     //
@@ -491,6 +492,12 @@ public:
 		  sprintf(buf,"%d",iii);
 		  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
 		  *out << cgicc::form() << std::endl ;
+		  //
+		  MyTest[i].SetTMB(tmbVector[i]);
+		  MyTest[i].SetDMB(dmbVector[iii]);
+		  MyTest[i].SetCCB(thisCCB);
+		  MyTest[i].SetMPC(thisMPC);
+		  //
 		}
 		*out << cgicc::td();
 	      }
@@ -650,11 +657,11 @@ public:
     thisDMB = dmbVector[dmb];
     thisTMB = tmbVector[tmb];
     //
-    MyTest.SetTMB(thisTMB);
-    MyTest.SetDMB(thisDMB);
-    MyTest.SetCCB(thisCCB);
+    //MyTest.SetTMB(thisTMB);
+    //MyTest.SetDMB(thisDMB);
+    //MyTest.SetCCB(thisCCB);
     //
-    MyTest.InitSystem();          // Init chamber
+    MyTest[tmb].InitSystem();          // Init chamber
     //
     thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
     //
@@ -972,8 +979,21 @@ public:
     //
     *out << cgicc::legend("Crate Tests").set("style","color:blue") << cgicc::p() << std::endl ;
     //
+    char buf[20];
+    //
+    std::string Automatic =
+      toolbox::toString("/%s/Automatic",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",Automatic) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Automatic") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
     std::string InitChamber =
-      toolbox::toString("/%s/InitSystem",getApplicationDescriptor()->getURN().c_str());
+      toolbox::toString("/%s/InitChamber",getApplicationDescriptor()->getURN().c_str());
     //
     *out << cgicc::form().set("method","GET").set("action",InitChamber) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Init Chamber") << std::endl ;
@@ -985,7 +1005,6 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",TMBStartTrigger) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","TMBStartTrigger") << std::endl ;
-    char buf[20];
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     sprintf(buf,"%d",dmb);
@@ -1015,9 +1034,9 @@ public:
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::pre();
-    *out << "ALCT rx Phase = " << MyTest.GetALCTrxPhase() << std::endl;
+    *out << "ALCT rx Phase = " << MyTest[tmb].GetALCTrxPhase() << std::endl;
     //
-    *out << "ALCT tx Phase = " << MyTest.GetALCTtxPhase() << std::endl;
+    *out << "ALCT tx Phase = " << MyTest[tmb].GetALCTtxPhase() << std::endl;
     *out << cgicc::pre();
     //
     std::string CFEBTiming =
@@ -1033,7 +1052,7 @@ public:
     //
     *out << cgicc::pre();
     for(int i=0;i<5;i++) *out << "CFEB " << i << " rx Phase = " << 
-			   MyTest.GetCFEBrxPhase(i) << std::endl;
+			   MyTest[tmb].GetCFEBrxPhase(i) << std::endl;
     *out << cgicc::pre();
     //
     alct = thisTMB->alctController();
@@ -1054,7 +1073,7 @@ public:
       //
       cgicc::pre();
       for (int Wire = 0; Wire<(alct->GetWGNumber())/6; Wire++) {
-	*out << MyTest.GetALCTWireScan(Wire) ;
+	*out << MyTest[tmb].GetALCTWireScan(Wire) ;
       }
       *out << cgicc::br();
       *out << std::endl;
@@ -1078,7 +1097,7 @@ public:
     for (int CFEBs = 0; CFEBs<5; CFEBs++) {
       *out << "CFEB Id="<<CFEBs<< " " ;
       for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) {
-	*out << MyTest.GetCFEBStripScan(CFEBs,HalfStrip) ;
+	*out << MyTest[tmb].GetCFEBStripScan(CFEBs,HalfStrip) ;
       }
       *out << cgicc::br();
       *out << std::endl;
@@ -1107,7 +1126,7 @@ public:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    *out << MyTest.GetTMBL1aTiming() ;
+    *out << MyTest[tmb].GetTMBL1aTiming() ;
     //
     std::string ALCTL1aTiming =
       toolbox::toString("/%s/ALCTL1aTiming",getApplicationDescriptor()->getURN().c_str());
@@ -1120,7 +1139,7 @@ public:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    *out << MyTest.GetALCTL1aDelay() ;
+    *out << MyTest[tmb].GetALCTL1aDelay() ;
     //
     std::string ALCTvpf =
       toolbox::toString("/%s/ALCTvpf",getApplicationDescriptor()->getURN().c_str());
@@ -1133,7 +1152,7 @@ public:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    *out << MyTest.GetALCTvpf() ;
+    *out << MyTest[tmb].GetALCTvpf() ;
     //
     *out << cgicc::br();
     //
@@ -1266,12 +1285,57 @@ public:
     thisDMB = dmbVector[dmb];
     thisTMB = tmbVector[tmb];
     //
-    MyTest.SetTMB(thisTMB);
-    MyTest.SetCCB(thisCCB);
-    //MyTest.SetALCT(alct);
+    //MyTest.SetTMB(thisTMB);
+    //MyTest.SetCCB(thisCCB);
     //
     int RXphase, TXphase;
-    MyTest.ALCTTiming();
+    MyTest[tmb].ALCTTiming();
+    //
+    this->CrateTests(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::Automatic(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cout << "Automatic" << endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    int tmb, dmb;
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "No dmb" << endl;
+      dmb = DMB_;
+    }
+    //
+    name = cgi.getElement("tmb");
+    //
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "No tmb" << endl;
+      tmb = TMB_;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    thisTMB = tmbVector[tmb];
+    //
+    //MyTest.SetTMB(thisTMB);
+    //MyTest.SetDMB(thisDMB);
+    //MyTest.SetCCB(thisCCB);
+    //
+    int RXphase, TXphase;
+    MyTest[tmb].Automatic();
     //
     this->CrateTests(in,out);
     //
@@ -1312,12 +1376,12 @@ public:
     thisDMB = dmbVector[dmb];
     thisTMB = tmbVector[tmb];
     //
-    MyTest.SetTMB(thisTMB);
-    MyTest.SetDMB(thisDMB);
-    MyTest.SetCCB(thisCCB);
+    //MyTest.SetTMB(thisTMB);
+    //MyTest.SetDMB(thisDMB);
+    //MyTest.SetCCB(thisCCB);
     //
     thisTMB->RedirectOutput(&CrateTestsOutput);
-    MyTest.CFEBTiming();
+    MyTest[tmb].CFEBTiming();
     //
     this->CrateTests(in,out);
     //
@@ -1358,11 +1422,11 @@ public:
     thisDMB = dmbVector[dmb];
     thisTMB = tmbVector[tmb];
     //
-    MyTest.SetTMB(thisTMB);
-    MyTest.SetDMB(thisDMB);
-    MyTest.SetCCB(thisCCB);
+    //MyTest.SetTMB(thisTMB);
+    //MyTest.SetDMB(thisDMB);
+    //MyTest.SetCCB(thisCCB);
     //
-    MyTest.FindTMB_L1A_delay(50,100);
+    MyTest[tmb].FindTMB_L1A_delay(50,100);
     //
     this->CrateTests(in,out);
     //
@@ -1403,11 +1467,11 @@ public:
     thisDMB = dmbVector[dmb];
     thisTMB = tmbVector[tmb];
     //
-    MyTest.SetTMB(thisTMB);
-    MyTest.SetDMB(thisDMB);
-    MyTest.SetCCB(thisCCB);
+    //MyTest.SetTMB(thisTMB);
+    //MyTest.SetDMB(thisDMB);
+    //MyTest.SetCCB(thisCCB);
     //
-    MyTest.FindALCT_L1A_delay(50,100);
+    MyTest[tmb].FindALCT_L1A_delay(50,100);
     //
     this->CrateTests(in,out);
     //
@@ -1446,11 +1510,11 @@ public:
     thisDMB = dmbVector[dmb];
     thisTMB = tmbVector[tmb];
     //
-    MyTest.SetTMB(thisTMB);
-    MyTest.SetDMB(thisDMB);
-    MyTest.SetCCB(thisCCB);
+    //MyTest.SetTMB(thisTMB);
+    //MyTest.SetDMB(thisDMB);
+    //MyTest.SetCCB(thisCCB);
     //
-    MyTest.FindALCTvpf();
+    MyTest[tmb].FindALCTvpf();
     //
     this->CrateTests(in,out);
     //
@@ -1489,11 +1553,10 @@ public:
     thisDMB = dmbVector[dmb];
     thisTMB = tmbVector[tmb];
     //
-    MyTest.SetTMB(thisTMB);
-    MyTest.SetCCB(thisCCB);
-    //MyTest.SetALCT(alct);
+    //MyTest.SetTMB(thisTMB);
+    //MyTest.SetCCB(thisCCB);
     //
-    MyTest.ALCTChamberScan();
+    MyTest[tmb].ALCTChamberScan();
     //
     this->CrateTests(in,out);
     //
@@ -1532,11 +1595,11 @@ public:
     thisDMB = dmbVector[dmb];
     thisTMB = tmbVector[tmb];
     //
-    MyTest.SetTMB(thisTMB);
-    MyTest.SetCCB(thisCCB);
-    MyTest.SetDMB(thisDMB);
+    //MyTest.SetTMB(thisTMB);
+    //MyTest.SetCCB(thisCCB);
+    //MyTest.SetDMB(thisDMB);
     //
-    MyTest.CFEBChamberScan();
+    MyTest[tmb].CFEBChamberScan();
     //
     this->CrateTests(in,out);
     //
@@ -1575,12 +1638,12 @@ public:
     thisDMB = dmbVector[dmb];
     thisTMB = tmbVector[tmb];
     //
-    MyTest.SetTMB(thisTMB);
-    MyTest.SetCCB(thisCCB);
-    MyTest.SetDMB(thisDMB);
-    MyTest.SetMPC(thisMPC);
+    //MyTest.SetTMB(thisTMB);
+    //MyTest.SetCCB(thisCCB);
+    //MyTest.SetDMB(thisDMB);
+    //MyTest.SetMPC(thisMPC);
     //
-    MyTest.FindWinner(2);
+    MyTest[tmb].FindWinner(2);
     //
     this->CrateTests(in,out);
     //
@@ -3370,16 +3433,23 @@ public:
     //
     //-- parse XML file
     //
-    cout << "---- XML parser ----" << endl;
-    cout << " Here parser " << endl;
-    PeripheralCrateParser parser;
-    cout << " Using file " << xmlFile_.toString() << endl ;
+    //cout << "---- XML parser ----" << endl;
+    //cout << " Here parser " << endl;
+    //PeripheralCrateParser parser;
+    //cout << " Using file " << xmlFile_.toString() << endl ;
     //
-    parser.parseFile(xmlFile_.toString().c_str());
+    //parser.parseFile(xmlFile_.toString().c_str());
+    //
+    MyController.SetConfFile(xmlFile_.toString().c_str());
+    MyController.init();
     //
     //-- Make sure that only one TMB in one crate is configured
+    //
     CrateSelector selector = MyController.selector();
     vector<Crate*> crateVector = selector.crates();
+    //
+    if (crateVector.size() > 1 ) std::cout << "Warning...this configuration file has more than one crate" 
+					   << std::endl;
     //
     //if (crateVector.size() > 1){
     //cerr << "Error: only one PeripheralCrate allowed" << endl;
@@ -3394,6 +3464,8 @@ public:
     //}
     //
     dmbVector = selector.daqmbs(crateVector[0]);
+    //
+    //chamberVector = selector.chambers(crateVector[0]);
     //
     //if (dmbVector.size() > 1){
     //cerr << "Error: only one DMB in xml file allowed" << endl;
