@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.4 2006/01/16 20:29:06 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.5 2006/01/18 12:46:48 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.5  2006/01/18 12:46:48  mey
+// Update
+//
 // Revision 1.4  2006/01/16 20:29:06  mey
 // Update
 //
@@ -162,9 +165,16 @@ void ChamberUtilities::InitStartSystem(){
 //
 void ChamberUtilities::InitSystem(){
   //
-  cout << "Init System " << endl ;
+  cout << "Init Chamber " << endl ;
   //
-  emuController.configure();               // Init system
+  //emuController.configure();               // Init system
+  //
+  thisCCB_->configure();
+  if (thisTMB) thisTMB->configure();
+  if (thisDMB) thisDMB->configure();
+  if (thisMPC) thisMPC->configure();
+  if (alct)    alct->setup(1);
+  //
   thisCCB_->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
   //
 }
