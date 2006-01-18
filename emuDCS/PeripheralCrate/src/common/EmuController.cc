@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuController.cc,v 1.1 2006/01/11 08:55:37 mey Exp $
+// $Id: EmuController.cc,v 1.2 2006/01/18 12:46:48 mey Exp $
 // $Log: EmuController.cc,v $
+// Revision 1.2  2006/01/18 12:46:48  mey
+// Update
+//
 // Revision 1.1  2006/01/11 08:55:37  mey
 // Update
 //
@@ -70,7 +73,13 @@ void EmuController::init(){
   std::cout << " Using file " << xmlFile_ << std::endl ;
   parser.parseFile(xmlFile_.c_str());
   //
+  std::vector<Crate*> myCrates = theSelector.crates();
+  //
+  for(unsigned i = 0; i < myCrates.size(); ++i) {
+    myCrates[i]->init();
+  }
 }
+//
 
 void EmuController::configure() {
   // read the configuration

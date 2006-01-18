@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 2.3 2006/01/12 22:36:34 mey Exp $
+// $Id: Crate.cc,v 2.4 2006/01/18 12:46:48 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 2.4  2006/01/18 12:46:48  mey
+// Update
+//
 // Revision 2.3  2006/01/12 22:36:34  mey
 // UPdate
 //
@@ -165,3 +168,26 @@ void Crate::configure() {
   //::sleep(2);
   //
 }
+//
+void Crate::init() {
+  //
+  CCB * ccb = this->ccb();
+  MPC * mpc = this->mpc();
+  DDU * ddu = this->ddu();
+  //
+  ccb->init();
+  //
+  std::vector<TMB*> myTmbs = this->tmbs();
+  for(unsigned i =0; i < myTmbs.size(); ++i) {
+    myTmbs[i]->init();
+  }
+  //
+  std::vector<DAQMB*> myDmbs = this->daqmbs();
+  for(unsigned i =0; i < myDmbs.size(); ++i) {
+    myDmbs[i]->init();
+  }
+  //  
+  if(mpc) mpc->init();
+  //
+}
+//

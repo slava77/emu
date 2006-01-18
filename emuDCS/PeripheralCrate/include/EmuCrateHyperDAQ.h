@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.31 2006/01/17 18:57:06 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.32 2006/01/18 12:46:31 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -116,6 +116,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::setConfFile, "setConfFile");
     xgi::bind(this,&EmuCrateHyperDAQ::TmbMPCTest, "TmbMPCTest");
     xgi::bind(this,&EmuCrateHyperDAQ::InitSystem, "InitSystem");
+    xgi::bind(this,&EmuCrateHyperDAQ::InitChamber, "InitChamber");
     xgi::bind(this,&EmuCrateHyperDAQ::setRawConfFile, "setRawConfFile");
     xgi::bind(this,&EmuCrateHyperDAQ::UploadConfFile, "UploadConfFile");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBStatus, "TMBStatus");
@@ -385,7 +386,8 @@ public:
 	    *out << cgicc::td();
 	    *out << "MPC Board ID" ;
 	    *out << cgicc::form().set("method","GET").set("action",MPCBoardID) << std::endl ;
-	    *out << cgicc::input().set("type","text").set("name","MPCBoardID").set("value",MPCBoardID_) << std::endl ;
+	    *out << cgicc::input().set("type","text").set("name","MPCBoardID")
+	      .set("value",MPCBoardID_) << std::endl ;
 	    *out << cgicc::form() << std::endl ;
 	    *out << cgicc::td();
 	    //
@@ -426,7 +428,8 @@ public:
 	    *out << cgicc::form().set("method","GET").set("action",TMBBoardID) << std::endl ;
 	    char buf[20];
 	    sprintf(buf,"TMBBoardID_%d",i);
-	    *out << cgicc::input().set("type","text").set("name",buf).set("value",TMBBoardID_[i]) << std::endl ;
+	    *out << cgicc::input().set("type","text").set("name",buf)
+	      .set("value",TMBBoardID_[i]) << std::endl ;
 	    sprintf(buf,"%d",i);
 	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
 	    *out << cgicc::form() << std::endl ;
@@ -479,7 +482,8 @@ public:
 	      if ( dmbslot == slot+1 ) {
 		*out << cgicc::td();
 		if ( TMBBoardID_[i].find("-1") == string::npos ) {
-		  *out << cgicc::form().set("method","GET").set("action",CrateTests).set("target","_blank") << std::endl ;
+		  *out << cgicc::form().set("method","GET").set("action",CrateTests)
+		    .set("target","_blank") << std::endl ;
 		  *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
 		  char buf[20];
 		  sprintf(buf,"%d",i);
@@ -517,7 +521,8 @@ public:
 	    *out << cgicc::form().set("method","GET").set("action",DMBBoardID) << std::endl ;
 	    char buf[20];
 	    sprintf(buf,"DMBBoardID_%d",i);
-	    *out << cgicc::input().set("type","text").set("name",buf).set("value",DMBBoardID_[i]) << std::endl ;
+	    *out << cgicc::input().set("type","text").set("name",buf)
+	      .set("value",DMBBoardID_[i]) << std::endl ;
 	    sprintf(buf,"%d",i);
 	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
 	    *out << cgicc::form() << std::endl ;
@@ -526,7 +531,8 @@ public:
 	    sprintf(Name,"DMB Status slot=%d",dmbVector[i]->slot());
 	    *out << cgicc::td();
 	    if ( DMBBoardID_[i].find("-1",0) == string::npos ) {
-	      *out << cgicc::form().set("method","GET").set("action",DMBStatus).set("target","_blank") << std::endl ;
+	      *out << cgicc::form().set("method","GET").set("action",DMBStatus)
+		.set("target","_blank") << std::endl ;
 	      *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
 	      sprintf(buf,"%d",i);
 	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
@@ -538,7 +544,8 @@ public:
 	    //
 	    *out << cgicc::td();
 	    if ( DMBBoardID_[i].find("-1",0) == string::npos ) {
-	      *out << cgicc::form().set("method","GET").set("action",DMBTests).set("target","_blank") << std::endl ;
+	      *out << cgicc::form().set("method","GET").set("action",DMBTests)
+		.set("target","_blank") << std::endl ;
 	      *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
 	      sprintf(buf,"%d",i);
 	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
@@ -550,7 +557,8 @@ public:
 	    //
 	    *out << cgicc::td();
 	    if ( DMBBoardID_[i].find("-1",0) == string::npos ) {
-	      *out << cgicc::form().set("method","GET").set("action",DMBUtils).set("target","_blank") << std::endl ;
+	      *out << cgicc::form().set("method","GET").set("action",DMBUtils)
+		.set("target","_blank") << std::endl ;
 	      *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
 	      sprintf(buf,"%d",i);
 	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
@@ -583,7 +591,8 @@ public:
     //
   }
   //
-  void EmuCrateHyperDAQ::InitSystem(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  void EmuCrateHyperDAQ::InitSystem(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
   {
     cout << "Init System" << endl ;
     //
@@ -606,7 +615,55 @@ public:
     }
   }
   //
-  void EmuCrateHyperDAQ::CCBBoardID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  void EmuCrateHyperDAQ::InitChamber(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cout << "Init Chamber" << endl ;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    int tmb, dmb;
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "No dmb" << endl;
+      dmb = DMB_;
+    }
+    //
+    name = cgi.getElement("tmb");
+    //
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "No tmb" << endl;
+      tmb = TMB_;
+    }
+    //
+    thisDMB = dmbVector[dmb];
+    thisTMB = tmbVector[tmb];
+    //
+    MyTest.SetTMB(thisTMB);
+    MyTest.SetDMB(thisDMB);
+    MyTest.SetCCB(thisCCB);
+    //
+    MyTest.InitSystem();          // Init chamber
+    //
+    thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
+    //
+    this->CrateTests(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::CCBBoardID(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
   {
     //
     cgicc::Cgicc cgi(in);
@@ -617,7 +674,8 @@ public:
     //
   }
   //
-  void EmuCrateHyperDAQ::TmbMPCTest(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  void EmuCrateHyperDAQ::TmbMPCTest(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
   {
     //
     cgicc::Cgicc cgi(in);
@@ -630,7 +688,8 @@ public:
     //
   }
   //
-  void EmuCrateHyperDAQ::MPCBoardID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  void EmuCrateHyperDAQ::MPCBoardID(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
   {
     //
     cgicc::Cgicc cgi(in);
@@ -858,7 +917,8 @@ public:
     this->DMBUtils(in,out);
   }
   //
-  void EmuCrateHyperDAQ::CrateTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  void EmuCrateHyperDAQ::CrateTests(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
   {
     //
     //*out << cgicc::HTTPHTMLHeader();
@@ -912,11 +972,11 @@ public:
     //
     *out << cgicc::legend("Crate Tests").set("style","color:blue") << cgicc::p() << std::endl ;
     //
-    std::string InitSystem =
+    std::string InitChamber =
       toolbox::toString("/%s/InitSystem",getApplicationDescriptor()->getURN().c_str());
     //
-    *out << cgicc::form().set("method","GET").set("action",InitSystem) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Init System") << std::endl ;
+    *out << cgicc::form().set("method","GET").set("action",InitChamber) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Init Chamber") << std::endl ;
     *out << cgicc::input().set("type","hidden").set("value","1").set("name","navigator");
     *out << cgicc::form() << std::endl ;
     //
@@ -1171,7 +1231,8 @@ public:
     //
   }
   //
-  void EmuCrateHyperDAQ::ALCTTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  void EmuCrateHyperDAQ::ALCTTiming(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
   {
     //
     cout << "ALCTTiming" << endl;
@@ -1216,7 +1277,8 @@ public:
     //
   }
   //
-  void EmuCrateHyperDAQ::CFEBTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  void EmuCrateHyperDAQ::CFEBTiming(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
   {
     //
     cout << "CFEBTiming" << endl;
