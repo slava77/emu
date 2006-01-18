@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.46 2006/01/17 18:56:53 mey Exp $
+// $Id: tmbtiming.cpp,v 2.47 2006/01/18 12:46:04 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.47  2006/01/18 12:46:04  mey
+// Cleaned up old code
+//
 // Revision 2.46  2006/01/17 18:56:53  mey
 // Update
 //
@@ -1728,23 +1731,23 @@ int main(int argc,char **argv){
        << " version " << thisTMB->version_ << endl;
 
   // scan ALCT-TMB timing
-  if (doPHOS4alct){
-    cout << "---- PHOS4 alct timing ----" << endl;
+  //if (doPHOS4alct){
+    //cout << "---- PHOS4 alct timing ----" << endl;
     
     // scan ALCT-TMB rx,tx settings and build histograms
     // UFL cosmic set-up: use 5-10s per scan evt.
     // beam test: 0s should be enough.
-    thisTMB->tmb_PHOS4_alct(scantime);
-  }
+    //thisTMB->tmb_PHOS4_alct(scantime);
+  //}
 
   // scan CFEB-TMB timing.
-  if (doPHOS4cfeb){
-    cout << "---- PHOS4 cfeb timing ----" << endl;
-    thisTMB->tmb_PHOS4_cfeb();
-  }
+  //if (doPHOS4cfeb){
+  //cout << "---- PHOS4 cfeb timing ----" << endl;
+  //thisTMB->tmb_PHOS4_cfeb();
+  //}
 
   // done: disable triggering
-  cout << "---- Test Beam Disable ----"<<endl;
+  //cout << "---- Test Beam Disable ----"<<endl;
   //if (useScint)
     ////tbController.disable();
     //else {
@@ -1756,7 +1759,7 @@ int main(int argc,char **argv){
 
 
   //----------------------------------------------------//
-
+  /*
   // maximum scan range on the PHOS4
   int scanMax(25);
   if (thisTMB->version_ == "2004") scanMax=13;
@@ -1854,8 +1857,11 @@ int main(int argc,char **argv){
   cout << "-- CFEB-TMB timing (cf. tmb_scan.dat) --" << endl;
 
   // work in progress ...
+
+  */
  
 }
+
 //
 void InitStartSystem(){
   //
