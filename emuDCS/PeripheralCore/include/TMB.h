@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.18 2006/01/18 12:45:50 mey Exp $
+// $Id: TMB.h,v 2.19 2006/01/18 20:17:49 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.19  2006/01/18 20:17:49  mey
+// Update
+//
 // Revision 2.18  2006/01/18 12:45:50  mey
 // Cleaned up old code
 //
@@ -226,6 +229,13 @@ public:
   void init() ;
   void configure() ;
   //
+  inline int  GetALCTrxPhase() { return alct_rx_clock_delay_; }
+  inline int  GetALCTtxPhase() { return alct_tx_clock_delay_; }
+  inline int  GetCFEBrxPhase(int CFEB) {
+    int tmp[5] = { cfeb0delay_, cfeb1delay_, cfeb2delay_, cfeb3delay_, cfeb4delay_ };
+    return tmp[CFEB]; 
+  }
+  //
   inline std::vector<unsigned long int> GetInjectedLct0() { return InjectedLct0 ; }
   inline std::vector<unsigned long int> GetInjectedLct1() { return InjectedLct1 ; }
   //
@@ -240,6 +250,19 @@ public:
   FILE *pfile;
   FILE *pfile2;
   int ucla_ldev;
+  //
+protected:
+  /// for PHOS4 chips, v2001
+  void old_clk_delays(unsigned short int time, int cfeb_id);
+  /// for DDD chips, v2004
+  void new_clk_delays(unsigned short int time, int cfeb_id);
+  
+  ALCTController * alctController_;
+  
+private:
+  //
+  int alct_tx_clock_delay_;
+  int alct_rx_clock_delay_;
   int trigMB_dav_delay_;
   int ALCT_dav_delay_; 
   int push_dav_delay_;
@@ -251,8 +274,6 @@ public:
   int cfeb4delay_;
   int l1a_offset_;
   int bxn_offset_;
-  int alct_tx_clock_delay_;
-  int alct_rx_clock_delay_;
   int l1a_window_size_;
   int l1adelay_;
   int alct_match_window_size_;
@@ -266,16 +287,6 @@ public:
   int fifo_pretrig_;
   int alct_clear_;
   int mpc_tx_delay_;
-  //
-protected:
-  /// for PHOS4 chips, v2001
-  void old_clk_delays(unsigned short int time, int cfeb_id);
-  /// for DDD chips, v2004
-  void new_clk_delays(unsigned short int time, int cfeb_id);
-  
-  ALCTController * alctController_;
-  
-private:
   //
   std::vector<unsigned long int> InjectedLct0;
   std::vector<unsigned long int> InjectedLct1;

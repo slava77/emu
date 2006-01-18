@@ -58,9 +58,10 @@ public:
   inline void SetCCB(CCB* myCCB)   {thisCCB_ = myCCB; }
   inline void SetMPC(MPC* myMPC)   {thisMPC = myMPC; }
   //
-  inline int  GetALCTrxPhase() { return ALCTrxPhase_; }
-  inline int  GetALCTtxPhase() { return ALCTtxPhase_; }
-  inline int  GetCFEBrxPhase(int CFEB) {return CFEBrxPhase_[CFEB]; }
+  inline int  GetALCTrxPhase() { return thisTMB->GetALCTrxPhase(); }
+  inline int  GetALCTtxPhase() { return thisTMB->GetALCTtxPhase(); }
+  inline int  GetCFEBrxPhase(int CFEB) {return thisTMB->GetCFEBrxPhase(CFEB); }
+  //
   inline int  GetCFEBStripScan(int CFEB, int Strip){ return CFEBStripScan_[CFEB][Strip]; }
   inline int  GetALCTWireScan(int Wire){ return ALCTWireScan_[Wire]; }
   inline int  GetTMBL1aTiming(){ return TMBL1aTiming_; }
