@@ -11,4 +11,6 @@
 
 #define CFEB_NUMBER 5
 
+/////#define TESTMODE
+
 #endif

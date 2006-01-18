@@ -1,0 +1,24 @@
+#!/bin/bash
+
+
+
+cp TestBeamCrateController_simple.cc ../../PeripheralCrate/src/common/TestBeamCrateController.cc
+cp TestBeamCrateController_simple.h ../../PeripheralCrate/include/TestBeamCrateController.h
+cp testbeamcontrol_simple.cpp ../../PeripheralCrate/test/common/testbeamcontrol.cpp
+
+  if [ $1 == 'd360' ] 
+  then
+    cp Makefile_emudcs_d360 ../Makefile
+    cp Makefile_pc_d360 ../../PeripheralCrate/Makefile
+  else  
+    cp Makefile_emudcs_osu ../Makefile
+    cp Makefile_pc_osu ../../PeripheralCrate/Makefile
+  fi
+
+cd ../../PeripheralCrate
+make
+make tests
+cd ../e2p
+make clean
+make
+
