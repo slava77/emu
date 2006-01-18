@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 2.3 2006/01/18 12:46:18 mey Exp $
+// $Id: Crate.h,v 2.4 2006/01/18 19:38:16 mey Exp $
 // $Log: Crate.h,v $
+// Revision 2.4  2006/01/18 19:38:16  mey
+// Fixed bugs
+//
 // Revision 2.3  2006/01/18 12:46:18  mey
 // Update
 //
@@ -28,6 +31,7 @@ class CCB;
 class MPC;
 class DDU;
 class ChamberUtilities;
+class Chamber;
 
 class Crate {
 public:
@@ -47,7 +51,8 @@ public:
   /// uses RTTI to find types
   std::vector<DAQMB *> daqmbs() const;
   std::vector<TMB *> tmbs() const;
-  std::vector<ChamberUtilities> chambers() const;
+  std::vector<ChamberUtilities> chamberUtils() const;
+  std::vector<Chamber> chambers() const;
   //
   CCB * ccb() const;
   MPC * mpc() const;

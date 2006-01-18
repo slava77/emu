@@ -17,7 +17,6 @@ class ChamberUtilities {
 public:
   //
   ChamberUtilities();
-  ChamberUtilities(TMB*);
   virtual ~ChamberUtilities();
   //
   void CCBStartTrigger();
@@ -58,7 +57,7 @@ public:
   inline void SetDMB(DAQMB* myDMB) {thisDMB = myDMB; }
   inline void SetCCB(CCB* myCCB)   {thisCCB_ = myCCB; }
   inline void SetMPC(MPC* myMPC)   {thisMPC = myMPC; }
-  //inline void SetALCT(ALCTController* myAlct) {alct = myAlct; }
+  //
   inline int  GetALCTrxPhase() { return ALCTrxPhase_; }
   inline int  GetALCTtxPhase() { return ALCTtxPhase_; }
   inline int  GetCFEBrxPhase(int CFEB) {return CFEBrxPhase_[CFEB]; }

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.5 2006/01/18 12:46:48 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.6 2006/01/18 19:38:16 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.6  2006/01/18 19:38:16  mey
+// Fixed bugs
+//
 // Revision 1.5  2006/01/18 12:46:48  mey
 // Update
 //
@@ -129,23 +132,6 @@ ChamberUtilities::ChamberUtilities(){
   //
 }
 //
-ChamberUtilities::ChamberUtilities(TMB* TMB)
-  :thisTMB(TMB)
-{
-  //
-  ALCTrxPhase_ = -1;
-  ALCTtxPhase_ = -1;
-  for( int i=0; i<5; i++) CFEBrxPhase_[i] = -1;
-  UsePulsing = true ;
-  UseCosmic = false ;
-  for (int i=0;i<5;i++) 
-    for (int j=0; j<32; j++) {
-      CFEBStripScan_[i][j] = -1;
-    }
-  for (int i=0;i<112;i++) ALCTWireScan_[i] = -1;
-  Npulses_ = 2;
-  //
-}
 //
 ChamberUtilities::~ChamberUtilities(){
   //
@@ -156,9 +142,16 @@ void ChamberUtilities::InitStartSystem(){
   //
   cout << "Init System " << endl ;
   //
-  emuController.configure();               // Init system
-  thisTMB->StartTTC();
-  thisTMB->EnableL1aRequest();
+  //emuController.configure();               // Init system
+  //
+  thisCCB_->configure();
+  if (thisTMB) thisTMB->configure();
+  if (thisDMB) thisDMB->configure();
+  if (thisMPC) thisMPC->configure();
+  if (alct)    alct->setup(1);
+  //
+  if (thisTMB) thisTMB->StartTTC();
+  if (thisTMB) thisTMB->EnableL1aRequest();
   thisCCB_->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
   //
 }
@@ -221,17 +214,17 @@ void ChamberUtilities::Automatic(){
   //
   ///////////////////////////////////////////////////////////////// Do AdjustL1aLctDMB()
   //
-  InitStartSystem();
+  //InitStartSystem();
   //
   // Enable all...for DMB....be careful....
   //
-  CCBStartTrigger();
+  //CCBStartTrigger();
   //
-  BestCCBDelaySetting = AdjustL1aLctDMB();
+  //BestCCBDelaySetting = AdjustL1aLctDMB();
   //
-  cout << "Best L1a Lct DMB CCB delay "<< BestCCBDelaySetting << endl ;
+  //cout << "Best L1a Lct DMB CCB delay "<< BestCCBDelaySetting << endl ;
   //
-  if (BestCCBDelaySetting == -1 ) return ;
+  //if (BestCCBDelaySetting == -1 ) return ;
   //
   ///////////////////////////////////////////////////////////////// Do CFEB phases
   //
@@ -239,12 +232,12 @@ void ChamberUtilities::Automatic(){
   //
   // Now set L1a delay
   //
-  thisCCB_->SetL1aDelay(BestCCBDelaySetting);
+  //thisCCB_->SetL1aDelay(BestCCBDelaySetting);
   //
   CFEBTiming();
   //
-  for( int CFEBs=0; CFEBs<5; CFEBs++ ) printf(" %f ",GetCFEBrxPhase(CFEBs));
-  printf("\n");
+  //for( int CFEBs=0; CFEBs<5; CFEBs++ ) printf(" %f ",GetCFEBrxPhase(CFEBs));
+  //printf("\n");
   //
   //////////////////////////////////////////////////////////////// Do ALCT phases
   //
@@ -252,32 +245,33 @@ void ChamberUtilities::Automatic(){
   //
   // Now set CCB delay
   //
-  thisCCB_->SetL1aDelay(BestCCBDelaySetting);
+  //thisCCB_->SetL1aDelay(BestCCBDelaySetting);
   //
   // Now set new CFEB phases
   //
-  for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(int(CFEBMean[CFEBs]),CFEBs) ;
+  //for( int CFEBs=0; CFEBs<5; CFEBs++) thisTMB->tmb_clk_delays(int(CFEBMean[CFEBs]),CFEBs) ;
   //
-  int ALCT_L1a_delay_pulse = 110;
+  //int ALCT_L1a_delay_pulse = 110;
   //
-  ALCT_L1a_delay_pulse += 5;
+  //ALCT_L1a_delay_pulse += 5;
   // 
-  unsigned cr[3];
-  alct->GetConf(cr,1);
-  cr[1] = (cr[1] & 0xfffff00f) | ((ALCT_L1a_delay_pulse&0xff)<<4) ;
-  alct->SetConf(cr,1);
-  alct->unpackControlRegister(cr);
+  //unsigned cr[3];
+  //alct->GetConf(cr,1);
+  //cr[1] = (cr[1] & 0xfffff00f) | ((ALCT_L1a_delay_pulse&0xff)<<4) ;
+  //alct->SetConf(cr,1);
+  //alct->unpackControlRegister(cr);
   //
   ALCTTiming();
   //
-  printf("ALCT_L1a_delay = %d \n",ALCT_L1a_delay_pulse);
+  //printf("ALCT_L1a_delay = %d \n",ALCT_L1a_delay_pulse);
   // 
   //int input;
   //cin >> input ;
   //
   //
-  printf("ALCT_L1a_delay = %d \n",ALCT_L1a_delay_pulse);
+  //printf("ALCT_L1a_delay = %d \n",ALCT_L1a_delay_pulse);
   //
+  /*
   ////////////////////////////////////////////////////////////////// Do TMB L1a timing
   //
   // Init System again
@@ -418,6 +412,7 @@ void ChamberUtilities::Automatic(){
   printf("ALCTvpf        : ");
   printf("ALCTvpf=%d \n",ALCTvpf);
   //
+  */
 }
 //
 void ChamberUtilities::ALCTSVFLoad(){
@@ -908,7 +903,7 @@ void ChamberUtilities::ALCTTiming(){
      printf(" rx = %02d : ",j);   
      for (k=0;k<maxTimeBins;k++) {
        if ( ALCTConfDone[j][k] > 0 ) {
-	 if ( ALCTWordCount[j][k] == 0x0c ) printf("%c[01;35m", '\033');	 
+	 if ( ALCTWordCount[j][k] == 0x0c || ALCTWordCount[j][k] == 0x18 ) printf("%c[01;35m", '\033');	 
 	 printf("%02x ",(ALCTWordCount[j][k]&0xffff));
 	 printf("%c[01;0m", '\033');
 	 rxtx_timing[j][k]=ALCTWordCount[j][k];
@@ -924,6 +919,7 @@ void ChamberUtilities::ALCTTiming(){
    //
    cout << endl ;
    //
+   /*
    // Work it
    //
    for (j=0;j<maxTimeBins*2;j++){
@@ -1047,7 +1043,7 @@ void ChamberUtilities::ALCTTiming(){
    printf(" \n Best Setting TX=%f RX=%f \n",int(meanX)%13 ,int(meanY)%13);
    //
    cout << endl;
-   //
+   */
 }
 //
 int ChamberUtilities::FindBestL1aAlct(){
