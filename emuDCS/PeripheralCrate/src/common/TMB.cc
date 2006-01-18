@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.34 2006/01/14 22:25:08 mey Exp $
+// $Id: TMB.cc,v 2.35 2006/01/18 12:45:44 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.35  2006/01/18 12:45:44  mey
+// Cleaned up old code
+//
 // Revision 2.34  2006/01/14 22:25:08  mey
 // UPdate
 //
@@ -2854,6 +2857,7 @@ void TMB::reset() {
   printf("Bootstrap %x %x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff ) ;
 }
 //
+/*
 void TMB::scan_rx_clock() 
 {
   int nhits;
@@ -2931,21 +2935,21 @@ void TMB::scan_rx_clock()
     for(j=0;j<25;j++)
       printf("CFEB: %d, timebin %d, counts %ld\n",cfeb_loop,j,cfeb[cfeb_loop][j]);
 
-    /*
-    for (j=0;j<50;j++) {
-      for (i=0;i<25;i++) {
-	if ( cfeb[cfeb_loop][i] > 50-j ) {
-	  printf ("*") ;
-	  fprintf (pfile,"*") ;
-	} else {
-	  printf ("_") ;
-	  fprintf (pfile,"_") ;
-	}
-      }
-      printf("\n") ;
-      fprintf(pfile,"\n") ;
-    }
-    */
+    //
+    //for (j=0;j<50;j++) {
+    //for (i=0;i<25;i++) {
+    //if ( cfeb[cfeb_loop][i] > 50-j ) {
+    //  printf ("*") ;
+    //  fprintf (pfile,"*") ;
+    //} else {
+    //  printf ("_") ;
+    //  fprintf (pfile,"_") ;
+    //}
+    //}
+    //printf("\n") ;
+    //fprintf(pfile,"\n") ;
+    //}
+    //
 
   }
   //
@@ -3006,6 +3010,7 @@ void TMB::scan_rx_clock()
 
 }
 
+*/
 
 void TMB::activecfeb()
 {
@@ -3428,10 +3433,10 @@ std::ostream & operator<<(std::ostream & os, TMB & tmb) {
   return os;
 }
 
-
+/*
 void TMB::tmb_PHOS4_alct(int time) 
 {
-  //fg a more elegant solution is on its way
+  ////fg a more elegant solution is on its way
   int maxTimeBins(25);
   //
   if (version_=="2004")
@@ -3514,15 +3519,15 @@ void TMB::tmb_PHOS4_alct(int time)
 	
 	printf( " Setting %d word_count %d \n ",j,word_count1[j][k]-word_count2[j][k] ) ;
 	alct_counts[j][k] = 0 ;
-	/*
-	  for (i=0;i<100;i++) {
-	  sndbuf[0] = 0;	
-	  sndbuf[1] = 0;
-	  tmb_vme(VME_READ,0x3A,sndbuf,rcvbuf,NOW); 
-	  pattern_quality[j] = (rcvbuf[1]&0x6)>>1 ;
-	  if ( pattern_quality[j] == 3 ) (alct_counts[j][k])++ ;
-	  }
-	*/
+	//
+	//for (i=0;i<100;i++) {
+	//sndbuf[0] = 0;	
+	//sndbuf[1] = 0;
+	//tmb_vme(VME_READ,0x3A,sndbuf,rcvbuf,NOW); 
+	//pattern_quality[j] = (rcvbuf[1]&0x6)>>1 ;
+	//if ( pattern_quality[j] == 3 ) (alct_counts[j][k])++ ;
+	//}
+	//
      }
   }
   sndbuf[0] = rcvbuf_old[0];
@@ -3563,15 +3568,15 @@ void TMB::tmb_PHOS4_alct(int time)
        //       
 	printf( " Setting %d word_count %d \n ",j,word_count3[j][k]-word_count4[j][k] ) ;
 	alct_counts[j][k] = 0 ;
-	/*
-	  for (i=0;i<100;i++) {
-	  sndbuf[0] = 0;
-	  sndbuf[1] = 0;
-	  tmb_vme(VME_READ,0x3A,sndbuf,rcvbuf,NOW);
-	  pattern_quality[j] = (rcvbuf[1]&0x6)>>1 ;
-	  if ( pattern_quality[j] == 3 ) (alct_counts[j][k])++ ;
-	  }
-	*/
+	//
+	//for (i=0;i<100;i++) {
+	//sndbuf[0] = 0;
+	//sndbuf[1] = 0;
+	//tmb_vme(VME_READ,0x3A,sndbuf,rcvbuf,NOW);
+	//pattern_quality[j] = (rcvbuf[1]&0x6)>>1 ;
+	//if ( pattern_quality[j] == 3 ) (alct_counts[j][k])++ ;
+	//}
+	//
      }
   }
 //
@@ -3642,7 +3647,9 @@ void TMB::tmb_PHOS4_alct(int time)
   fclose(pfile);
 //
 }
+*/
 
+/*
 void TMB::tmb_PHOS4_cfeb() 
 {
   //fg a more elegant solution is on its way
@@ -3728,21 +3735,21 @@ void TMB::tmb_PHOS4_cfeb()
     for(j=0;j<maxTimeBins;j++)
       fprintf(pfile,"CFEB: %d, timebin %d, counts %ld\n",cfeb_loop,j,cfeb[cfeb_loop][j]);
 
-    /*
-    for (j=0;j<50;j++) {
-      for (i=0;i<25;i++) {
-	if ( cfeb[cfeb_loop][i] > 50-j ) {
-	  printf ("*") ;
-	  fprintf (pfile,"*") ;
-	} else {
-	  printf ("_") ;
-	  fprintf (pfile,"_") ;
-	}
-      }
-      printf("\n") ;
-      fprintf(pfile,"\n") ;
-    }
-    */
+    //
+    //for (j=0;j<50;j++) {
+    //for (i=0;i<25;i++) {
+    //if ( cfeb[cfeb_loop][i] > 50-j ) {
+    //  printf ("*") ;
+    //  fprintf (pfile,"*") ;
+    //} else {
+    //  printf ("_") ;
+    //  fprintf (pfile,"_") ;
+    //}
+    //}
+    //printf("\n") ;
+    //fprintf(pfile,"\n") ;
+    //}
+    //
 
   }
   //
@@ -3757,14 +3764,14 @@ void TMB::tmb_PHOS4_cfeb()
   return ;
 
 }
-
+*/
 
 void TMB::tmb_clk_delays(unsigned short int time,int cfeb_id) {
   //
-  if(version_ == "2004") {
-    new_clk_delays(time, cfeb_id);
-  } else {
+  if(version_ == "2001") {
     old_clk_delays(time, cfeb_id);
+  } else {
+    new_clk_delays(time, cfeb_id);
   }
   //
 }
@@ -4009,9 +4016,9 @@ LOOPBACK:
 
 
 void TMB::executeCommand(std::string command) {
-  if(command=="PHOS4 ALCT")  tmb_PHOS4_alct();
-  if(command=="PHOS4 CFEB")  tmb_PHOS4_cfeb(); 
-  if(command=="Scan RX Clock") scan_rx_clock();
+  //if(command=="PHOS4 ALCT")  tmb_PHOS4_alct();
+  //if(command=="PHOS4 CFEB")  tmb_PHOS4_cfeb(); 
+  //if(command=="Scan RX Clock") scan_rx_clock();
   if(command=="Show Firmware Version") firmwareVersion();
 }
 

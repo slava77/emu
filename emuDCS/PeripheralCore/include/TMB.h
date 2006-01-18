@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.17 2006/01/13 10:07:09 mey Exp $
+// $Id: TMB.h,v 2.18 2006/01/18 12:45:50 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.18  2006/01/18 12:45:50  mey
+// Cleaned up old code
+//
 // Revision 2.17  2006/01/13 10:07:09  mey
 // Got rid of virtuals
 //
@@ -117,7 +120,7 @@ public:
   void optimize();
   void read_delays();
   void reset();
-  void scan_rx_clock();
+  //void scan_rx_clock();
   void trgmode(int choice);
   void ResetCounters();
   void SetALCTPatternTrigger();
@@ -137,8 +140,8 @@ public:
   void trgmode_bprsq_dmb();
   void firmwareVersion();
   void setLogicAnalyzerToDataStream(bool yesorno);
-  void tmb_PHOS4_alct(int time=0);
-  void tmb_PHOS4_cfeb();
+  //void tmb_PHOS4_alct(int time=0);
+  //void tmb_PHOS4_cfeb();
   void EnableCLCTInputs(int CLCInputs );
   void EnableL1aRequest();
   void DisableCLCTInputs();
