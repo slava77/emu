@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.26 2006/01/12 23:44:26 mey Exp $
+// $Id: DAQMB.cc,v 2.27 2006/01/19 10:03:46 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.27  2006/01/19 10:03:46  mey
+// Update
+//
 // Revision 2.26  2006/01/12 23:44:26  mey
 // Update
 //
@@ -133,7 +136,7 @@ DAQMB::DAQMB(int newcrate,int newslot):
   comp_timing_(2), comp_mode_(2), pre_block_end_(7),
   l1a_lct_counter_(-1), cfeb_dav_counter_(-1), 
   tmb_dav_counter_(-1), alct_dav_counter_(-1), cable_delay_(0), 
-  crate_id_(0), toogle_bxn_(1)
+  crate_id_(newcrate), toogle_bxn_(1)
 {
   MyOutput_ = &std::cout ;
   cfebs_.clear();
