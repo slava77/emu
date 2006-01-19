@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.19 2006/01/18 20:17:49 mey Exp $
+// $Id: TMB.h,v 2.20 2006/01/19 10:03:46 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.20  2006/01/19 10:03:46  mey
+// Update
+//
 // Revision 2.19  2006/01/18 20:17:49  mey
 // Update
 //
@@ -246,10 +249,10 @@ public:
   //
 public:
   //
-  std::ostream * MyOutput_ ;
   FILE *pfile;
   FILE *pfile2;
   int ucla_ldev;
+  std::string version_;
   //
 protected:
   /// for PHOS4 chips, v2001
@@ -261,6 +264,7 @@ protected:
   
 private:
   //
+  std::ostream * MyOutput_ ;
   int alct_tx_clock_delay_;
   int alct_rx_clock_delay_;
   int trigMB_dav_delay_;
@@ -278,7 +282,6 @@ private:
   int l1adelay_;
   int alct_match_window_size_;
   int alct_vpf_delay_;
-  std::string version_;
   int mpc_delay_;
   int ALCT_input_;
   int rpc_exists_;

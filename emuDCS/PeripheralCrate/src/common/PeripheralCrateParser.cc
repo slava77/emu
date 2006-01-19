@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.cc,v 2.0 2005/04/12 08:07:05 geurts Exp $
+// $Id: PeripheralCrateParser.cc,v 2.1 2006/01/19 10:03:46 mey Exp $
 // $Log: PeripheralCrateParser.cc,v $
+// Revision 2.1  2006/01/19 10:03:46  mey
+// Update
+//
 // Revision 2.0  2005/04/12 08:07:05  geurts
 // *** empty log message ***
 //
@@ -169,7 +172,6 @@ void PeripheralCrateParser::parseFile(const char* name){
   //  Delete the parser itself.  Must be done prior to calling Terminate, below.
   delete parser;
   
-
   // And call the termination method
   xercesc::XMLPlatformUtils::Terminate();
   // DomMemDebug().print();
