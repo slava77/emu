@@ -81,15 +81,15 @@ int main() {
 	      << std::endl;
     std::cout << "  1:Run All Tests, or singly test one of the following... " 
               << std::endl;
-    std::cout << "  2:Boot Register             3:TMB Hard Reset            4:VME FPGA data reg" 
+    std::cout << "  2:Boot Register             3:TMB Hard Reset             4:VME FPGA data reg" 
               << std::endl;
-    std::cout << "  5:Slot                      6:Firmware Date             7:Firmware Type"
+    std::cout << "  5:Slot                      6:Firmware Date              7:Firmware Type"
               << std::endl;
-    std::cout << "  8:Firmware Version          9:Firmware Rev Code        10:JTAG chains"
+    std::cout << "  8:Firmware Version          9:Firmware Rev Code         10:JTAG chains"
               << std::endl;
-    std::cout << " 11:Mezzanine ID             12:PROM ID                  13:PROM Path"
+    std::cout << " 11:Mezzanine ID             12:PROM ID                   13:PROM Path"
               << std::endl;
-    std::cout << " 14:Digital Serial # (DSN)   15:ADC status               16:3d3444 status"
+    std::cout << " 14:Digital Serial Numbers   15:Voltages, Currents, Temps 16:3d3444 status"
               << std::endl;
     std::cout << "  99:Read Register 4 " << std::endl;
     std::cout << "  100:Exit " << std::endl;
