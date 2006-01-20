@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.35 2006/01/18 12:45:44 mey Exp $
+// $Id: TMB.cc,v 2.36 2006/01/20 09:34:30 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.36  2006/01/20 09:34:30  mey
+// Got rid of LATER
+//
 // Revision 2.35  2006/01/18 12:45:44  mey
 // Cleaned up old code
 //
@@ -724,61 +727,61 @@ int iloop;
  iloop=0;
   printf(" write to delay registers \n");
   if ( cfeb_id == 0 ) {
-    tmb_vme(VME_READ,0x1A,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_READ,0x1A,sndbuf,rcvbuf,NOW);
     sndbuf[0]=time&0x00ff;
     sndbuf[1]=rcvbuf[1];
-    tmb_vme(VME_WRITE,0x1A,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_WRITE,0x1A,sndbuf,rcvbuf,NOW);
   }
   if ( cfeb_id == 1 ) {
-    tmb_vme(VME_READ,0x1C,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_READ,0x1C,sndbuf,rcvbuf,NOW);
     sndbuf[0]=rcvbuf[0];
     sndbuf[1]=time&0x00ff;
-    tmb_vme(VME_WRITE,0x1C,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_WRITE,0x1C,sndbuf,rcvbuf,NOW);
   }
   if ( cfeb_id == 2 ) {
-    tmb_vme(VME_READ,0x1C,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_READ,0x1C,sndbuf,rcvbuf,NOW);
     sndbuf[0]=time&0x00ff;
     sndbuf[1]=rcvbuf[1];
-    tmb_vme(VME_WRITE,0x1C,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_WRITE,0x1C,sndbuf,rcvbuf,NOW);
   }
   if ( cfeb_id == 3 ) {
-    tmb_vme(VME_READ,0x1E,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_READ,0x1E,sndbuf,rcvbuf,NOW);
     sndbuf[0]=rcvbuf[0];
     sndbuf[1]=time&0x00ff;
-    tmb_vme(VME_WRITE,0x1E,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_WRITE,0x1E,sndbuf,rcvbuf,NOW);
   }
   if ( cfeb_id == 4 ) {
-    tmb_vme(VME_READ,0x1E,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_READ,0x1E,sndbuf,rcvbuf,NOW);
     sndbuf[0]=time&0x00ff;
     sndbuf[1]=rcvbuf[1];
-    tmb_vme(VME_WRITE,0x1E,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_WRITE,0x1E,sndbuf,rcvbuf,NOW);
   }
   if ( cfeb_id == 5 ) {
-    tmb_vme(VME_READ,0x16,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_READ,0x16,sndbuf,rcvbuf,NOW);
     sndbuf[0]=time&0x00ff;
     sndbuf[1]=rcvbuf[1];
-    tmb_vme(VME_WRITE,0x16,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_WRITE,0x16,sndbuf,rcvbuf,NOW);
   }
   if ( cfeb_id == 6 ) {
-    tmb_vme(VME_READ,0x16,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_READ,0x16,sndbuf,rcvbuf,NOW);
     sndbuf[0]=rcvbuf[0];
     sndbuf[1]=time&0x00ff;
-    tmb_vme(VME_WRITE,0x16,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_WRITE,0x16,sndbuf,rcvbuf,NOW);
   }
   if ( cfeb_id == 1000 ) {
     sndbuf[1]=time&0x00ff;
     sndbuf[0]=time&0x00ff;
-    tmb_vme(VME_WRITE,0x1A,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_WRITE,0x1A,sndbuf,rcvbuf,NOW);
     sndbuf[1]=time&0x00ff;
     sndbuf[0]=time&0x00ff;
-    tmb_vme(VME_WRITE,0x1C,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_WRITE,0x1C,sndbuf,rcvbuf,NOW);
     sndbuf[1]=time&0x00ff;
     sndbuf[0]=time&0x00ff;
-    tmb_vme(VME_WRITE,0x1E,sndbuf,rcvbuf,LATER);
+    tmb_vme(VME_WRITE,0x1E,sndbuf,rcvbuf,NOW);
   }
   sndbuf[0]=0x00;
   sndbuf[1]=0x00;
-  tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,LATER);
+  tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
   printf(" check state machine %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   if((rcvbuf[1]&0x88)!=0x00){
     printf(" tmb_clk_delays: state machine not ready return \n");
@@ -786,14 +789,14 @@ int iloop;
   }
   sndbuf[0]=0x00;
   sndbuf[1]=0x33;
-  tmb_vme(VME_WRITE,0x14,sndbuf,rcvbuf,LATER);
+  tmb_vme(VME_WRITE,0x14,sndbuf,rcvbuf,NOW);
   sndbuf[0]=0x00;
   sndbuf[1]=0x77;
-  tmb_vme(VME_WRITE,0x14,sndbuf,rcvbuf,LATER);
+  tmb_vme(VME_WRITE,0x14,sndbuf,rcvbuf,NOW);
   // send delay to dynatem
   sndbuf[0]=0x7f;
   sndbuf[1]=0xff;
-  tmb_vme(0x03,0x00,sndbuf,rcvbuf,LATER);
+  tmb_vme(0x03,0x00,sndbuf,rcvbuf,NOW);
    sndbuf[0]=0x00;
   sndbuf[1]=0x33;
   tmb_vme(VME_WRITE,0x14,sndbuf,rcvbuf,NOW);
@@ -3814,77 +3817,77 @@ void TMB::new_clk_delays(unsigned short int time,int cfeb_id)
   //int ierr;
 int iloop;
  iloop=0;
-  printf(" write to delay registers \n");
+  printf(" here write to delay registers \n");
   if ( cfeb_id == 0 ) {
-    tmb_vme(0x01,0x18,sndbuf,rcvbuf,0);
+    tmb_vme(0x01,0x18,sndbuf,rcvbuf,NOW);
     sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
     sndbuf[1]=rcvbuf[1];
-    tmb_vme(0x02,0x18,sndbuf,rcvbuf,0);
+    tmb_vme(0x02,0x18,sndbuf,rcvbuf,NOW);
   } 
   if ( cfeb_id == 1 ) {
-    tmb_vme(0x01,0x1A,sndbuf,rcvbuf,0);
+    tmb_vme(0x01,0x1A,sndbuf,rcvbuf,NOW);
     sndbuf[0]=rcvbuf[0];
     sndbuf[1]=(time&0x0f)|(rcvbuf[1]&0xf0);
-    tmb_vme(0x02,0x1A,sndbuf,rcvbuf,0);
+    tmb_vme(0x02,0x1A,sndbuf,rcvbuf,NOW);
   } 
   if ( cfeb_id == 2 ) {
-    tmb_vme(0x01,0x1A,sndbuf,rcvbuf,0);
+    tmb_vme(0x01,0x1A,sndbuf,rcvbuf,NOW);
     sndbuf[0]=rcvbuf[0];
     sndbuf[1]=(((time&0x0f)<<4)&0xf0)|(rcvbuf[1]&0x0f);
-    tmb_vme(0x02,0x1A,sndbuf,rcvbuf,0);
+    tmb_vme(0x02,0x1A,sndbuf,rcvbuf,NOW);
   } 
   if ( cfeb_id == 3 ) {
-    tmb_vme(0x01,0x1A,sndbuf,rcvbuf,0);
+    tmb_vme(0x01,0x1A,sndbuf,rcvbuf,NOW);
     sndbuf[0]=(time&0x0f)|(rcvbuf[0]&0xf0);
     sndbuf[1]=rcvbuf[1];
-    tmb_vme(0x02,0x1A,sndbuf,rcvbuf,0);
+    tmb_vme(0x02,0x1A,sndbuf,rcvbuf,NOW);
   } 
   if ( cfeb_id == 4 ) {
-    tmb_vme(0x01,0x1A,sndbuf,rcvbuf,0);
+    tmb_vme(0x01,0x1A,sndbuf,rcvbuf,NOW);
     sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
     sndbuf[1]=rcvbuf[1];
-    tmb_vme(0x02,0x1A,sndbuf,rcvbuf,0);
+    tmb_vme(0x02,0x1A,sndbuf,rcvbuf,NOW);
   } 
   if ( cfeb_id == 5 ) {
-    tmb_vme(0x01,0x16,sndbuf,rcvbuf,0);
+    tmb_vme(0x01,0x16,sndbuf,rcvbuf,NOW);
     sndbuf[0]=rcvbuf[0];
     sndbuf[1]=(((time&0x0f)<<4)&0xf0)|(rcvbuf[1]&0x0f);
-    tmb_vme(0x02,0x16,sndbuf,rcvbuf,0);
+    tmb_vme(0x02,0x16,sndbuf,rcvbuf,NOW);
   } 
   if ( cfeb_id == 6 ) {
-    tmb_vme(0x01,0x16,sndbuf,rcvbuf,0);
+    tmb_vme(0x01,0x16,sndbuf,rcvbuf,NOW);
     sndbuf[0]=rcvbuf[0];
     sndbuf[1]=(time&0x0f)|(rcvbuf[1]&0xf0);
-    tmb_vme(0x02,0x16,sndbuf,rcvbuf,0);
+    tmb_vme(0x02,0x16,sndbuf,rcvbuf,NOW);
   } 
   if ( cfeb_id == 1000 ) {
-    tmb_vme(0x01,0x18,sndbuf,rcvbuf,0);
+    tmb_vme(0x01,0x18,sndbuf,rcvbuf,NOW);
     sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
     sndbuf[1]=rcvbuf[1];
-    tmb_vme(0x02,0x18,sndbuf,rcvbuf,0);
+    tmb_vme(0x02,0x18,sndbuf,rcvbuf,NOW);
     sndbuf[1]=(time&0x0f)|(((time&0xf)<<4)&0xf0);
     sndbuf[0]=(time&0x0f)|(((time&0xf)<<4)&0xf0);
-    tmb_vme(0x02,0x1A,sndbuf,rcvbuf,0);
+    tmb_vme(0x02,0x1A,sndbuf,rcvbuf,NOW);
   } 
 
   sndbuf[0]=0x0;
   sndbuf[1]=0x20;
-  tmb_vme(0x02,0x14,sndbuf,rcvbuf,0);
-  tmb_vme(0x01,0x14,sndbuf,rcvbuf,0);
+  tmb_vme(0x02,0x14,sndbuf,rcvbuf,NOW);
+  tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
   //
   sndbuf[0]=0x0;
   sndbuf[1]=0x21;
-  tmb_vme(0x02,0x14,sndbuf,rcvbuf,0);
-  tmb_vme(0x01,0x14,sndbuf,rcvbuf,0);
+  tmb_vme(0x02,0x14,sndbuf,rcvbuf,NOW);
+  tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
   //
   sndbuf[0]=0x0;
   sndbuf[1]=0x20;
-  tmb_vme(0x02,0x14,sndbuf,rcvbuf,0);
-  tmb_vme(0x01,0x14,sndbuf,rcvbuf,0);
+  tmb_vme(0x02,0x14,sndbuf,rcvbuf,NOW);
+  tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
   //
   while ( ((rcvbuf[1]>>6)&(0x1)) ){
     //
-    tmb_vme(0x01,0x14,sndbuf,rcvbuf,0);
+    tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
     printf("______________ check state machine1 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
     //
   }
@@ -3897,17 +3900,17 @@ int iloop;
       printf(" tmb_clk_delays: loop count exceeded so quit \n");
       return;
     }
-    tmb_vme(0x01,0x14,sndbuf,rcvbuf,0);
+    tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
   }
   //
   sndbuf[0]=rcvbuf[0];
   sndbuf[1]=rcvbuf[1]&0xfe;
   //
-  tmb_vme(0x02,0x14,sndbuf,rcvbuf,0);
-  tmb_vme(0x01,0x14,sndbuf,rcvbuf,0);
+  tmb_vme(0x02,0x14,sndbuf,rcvbuf,NOW);
+  tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
   //
   while ( ((rcvbuf[1]>>6)&(0x1)) ){
-    tmb_vme(0x01,0x14,sndbuf,rcvbuf,0);
+    tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
     printf(" *** check state machine2 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   }
   //
