@@ -39,9 +39,3 @@
 
 </xc:Partition>
 
-<SOAP-ENV:Header>
-   <xr:relay SOAP-ENV:actor="http://xdaq.web.cern.ch/xdaq/xsd/2004/XRelay-10" xmlns:xr="http://xdaq.web.cern.ch/xdaq/xsd/2004/XRelay-10">
-        <xr:to url="http://emuslice03:1972" urn="urn:xdaq-application:lid=42"/> 
-        <xr:to url="http://emuslice03:1973" urn="urn:xdaq-application:lid=42"/>
-   </xr:relay>
-</SOAP-ENV:Header>
