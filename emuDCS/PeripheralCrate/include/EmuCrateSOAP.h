@@ -1,4 +1,4 @@
-// $Id: EmuCrateSOAP.h,v 1.6 2006/01/14 22:24:50 mey Exp $
+// $Id: EmuCrateSOAP.h,v 1.7 2006/01/20 09:35:21 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -96,7 +96,11 @@ public:
   xoap::MessageReference Configure (xoap::MessageReference msg) throw (xoap::exception::Exception)
   {
     //
-    configure();
+    //configure();
+    //
+    std::cout << "Configure" << std::endl ;
+    //
+    sleep(3);
     //
     // reply to caller
     //
