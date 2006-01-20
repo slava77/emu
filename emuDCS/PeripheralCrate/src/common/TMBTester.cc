@@ -60,13 +60,28 @@ bool TMBTester::runAllTests() {
   bool TypeOK = testFirmwareType();
   bool VersionOK = testFirmwareVersion();
   bool RevCodeOK = testFirmwareRevCode();
-  bool JTAGchainOK = testJTAGchain();
   bool MezzIdOK = testMezzId();
   bool PROMidOK = testPROMid();
   bool PROMpathOK = testPROMpath();
   bool dsnOK = testDSN();
   bool adcOK = testADC();
   bool is3d3444OK = test3d3444();
+
+  std::cout << "TMBTester Full Test Summary:" << std::endl;
+
+  messageOK("Boot Register............. ",bootRegOK);
+  messageOK("VME FPGA Data Register.... ",VMEfpgaDataRegOK);
+  messageOK("TMB Slot.................. ",SlotOK);
+  messageOK("TMB Firmware date......... ",DateOK);
+  messageOK("TMB Firmware type......... ",TypeOK);
+  messageOK("TMB Firmware Version...... ",VersionOK);
+  messageOK("TMB Firmware Revision Code ",RevCodeOK);
+  messageOK("Mezzanine ID.............. ",MezzIdOK);
+  messageOK("PROM ID................... ",PROMidOK);
+  messageOK("PROM Path................. ",PROMpathOK);
+  messageOK("Digital Serial Numbers.... ",dsnOK);
+  messageOK("Voltages (ADC)............ ",adcOK);
+  messageOK("3d3444 verification....... ",is3d3444OK);
 
   AllOK = (bootRegOK &&
 	   VMEfpgaDataRegOK &&
@@ -75,7 +90,6 @@ bool TMBTester::runAllTests() {
 	   TypeOK &&
            VersionOK &&
            RevCodeOK &&
-           JTAGchainOK &&
            MezzIdOK &&
            PROMidOK &&
            PROMpathOK &&
@@ -83,13 +97,7 @@ bool TMBTester::runAllTests() {
            adcOK &&
            is3d3444OK);
 
-  if ( AllOK ) {
-    std::cout << "TMBTester: This board PASSED all tests...   OKAY" 
-              << std::endl;
-  } else {
-    std::cout << "TMBTester: This board did not pass all tests...  FAIL" 
-              << std::endl;
-  }  
+  messageOK("TMB all tests............. ",AllOK);
 
   return AllOK;
 }
@@ -106,7 +114,7 @@ bool TMBTester::testBootRegister() {
   
   unsigned short int BootData;
   dummy = tmb_->tmb_get_boot_reg(&BootData);
-  std::cout << "Initial boot contents = " << std::hex << BootData << std::endl;
+  //  std::cout << "Initial boot contents = " << std::hex << BootData << std::endl;
 
   unsigned short int write_data, read_data;
   int err_reg = 0;
@@ -130,23 +138,25 @@ bool TMBTester::testBootRegister() {
   // Restore boot contents
   dummy = tmb_->tmb_set_boot_reg(BootData);
   dummy = tmb_->tmb_get_boot_reg(&read_data);   //check for FPGA final state
-  std::cout << "Final Boot Contents = " << std::hex << read_data << std::endl;    
+  //  std::cout << "Final Boot Contents = " << std::hex << read_data << std::endl;    
 
   testOK = compareValues("Number of boot register errors",err_reg,0,true);  
+  messageOK("Boot Register",testOK);
+  dummy = sleep(1);
   return testOK; 
 }
 
 
 bool TMBTester::testHardReset(){
-  std::cout << "TMBTester: testing hard reset TMB via boot register" << std::endl;
-  std::cout << "NOTE:  Test not needed, as we hard reset by the CCB" << std::endl; 
+  std::cout << "TMBTester: checking hard reset TMB via boot register" << std::endl;
+  std::cout << "NOTE:  TEST NOT NEEDED, as we hard reset by the CCB" << std::endl; 
 
   bool testOK = false;
   int dummy;
 
   unsigned short int BootData;
   dummy = tmb_->tmb_get_boot_reg(&BootData);
-  std::cout << "Initial boot contents = " << std::hex << BootData << std::endl;
+  //  std::cout << "Initial boot contents = " << std::hex << BootData << std::endl;
 
   unsigned short int write_data, read_data;
 
@@ -174,8 +184,7 @@ bool TMBTester::testHardReset(){
   // Restore boot contents
   dummy = tmb_->tmb_set_boot_reg(BootData);
   dummy = tmb_->tmb_get_boot_reg(&read_data);   //check for FPGA final state
-  std::cout << "Final Boot Contents = " << std::hex << read_data << std::endl;    
-
+  //  std::cout << "Final Boot Contents = " << std::hex << read_data << std::endl;    
 
   testOK = (FPGAnotReady &&
 	    FPGAReady);
@@ -214,6 +223,8 @@ bool TMBTester::testVMEfpgaDataRegister(){
   tmb_->WriteRegister(ccb_cfg_adr,write_data);
 
   testOK = compareValues("Number of VME FPGA data reg errors",register_error,0,true);
+  messageOK("VME FPGA data register",testOK);
+  int dummy = sleep(1);
   return testOK;
 }
 
@@ -230,6 +241,8 @@ bool TMBTester::testFirmwareSlot(){
   int slotToCompare = (*TMBslot) - 1;
 
   bool testOK = compareValues("TMB slot",slot,slotToCompare,true);
+  messageOK("TMB slot",testOK);
+  int dummy = sleep(1);
   return testOK;
 }
 
@@ -243,6 +256,8 @@ bool TMBTester::testFirmwareDate() {
   int year=tmb_->FirmwareYear();
 
   bool testOK = compareValues("Firmware Year",year,0x2005,true);
+  messageOK("Firmware Year",testOK);
+  int dummy = sleep(1);
   return testOK; 
 }
 
@@ -263,6 +278,8 @@ bool TMBTester::testFirmwareType() {
     std::cout << 
       "What kind of Firmware is this? Firmware = " << type << std::endl;
   }
+  messageOK("Firmware Type Normal",TypeNormal);
+  int dummy = sleep(1);
   return TypeNormal;
 }
 
@@ -273,6 +290,8 @@ bool TMBTester::testFirmwareVersion() {
   int version = (firmwareData>>4) & 0xf;
 
   bool testOK = compareValues("Firmware Version",version,0xE,true);
+  messageOK("Firmware Version",testOK);
+  int dummy = sleep(1);
   return testOK;
 }
 
@@ -282,12 +301,14 @@ bool TMBTester::testFirmwareRevCode(){
 
   int firmwareData = tmb_->FirmwareRevCode();
 
-  int RevCodeDay = firmwareData & 0x001f;
-  int RevCodeMonth = (firmwareData>>5) & 0x000f;
-  int RevCodeYear = (firmwareData>>9) & 0x0007;
+  //  int RevCodeDay = firmwareData & 0x001f;
+  //  int RevCodeMonth = (firmwareData>>5) & 0x000f;
+  //  int RevCodeYear = (firmwareData>>9) & 0x0007;
   int RevCodeFPGA = (firmwareData>>12) & 0x000F;
 
   bool testOK = compareValues("Firmware Revcode FPGA",RevCodeFPGA,0x04,true);
+  messageOK("Firmware Revcode FPGA",testOK);
+  int dummy = sleep(1);
   return testOK;
 }
 
@@ -295,25 +316,30 @@ bool TMBTester::testFirmwareRevCode(){
 bool TMBTester::testJTAGchain(){
   std::cout << "TMBTester: testing User and Boot JTAG chains" << std::endl;
 
-  bool user = testJTAGchain(0);
+  //  bool user = testJTAGchain(0);
+  bool user = false;
   bool boot = testJTAGchain(1);
 
   bool JTAGchainOK = (user && boot);
+  messageOK("JTAG chains",JTAGchainOK);
+  int dummy = sleep(1);
   return JTAGchainOK;
 }
 
 bool TMBTester::testJTAGchain(int type){
-  std::cout << "testJTAGchain: WARNING not yet debugged" << std::endl; 
+  std::cout << "testJTAGchain: DOES NOT WORK with firmware not in debug mode" << std::endl; 
 
   bool testOK = false;  
+  int dummy;
 
   //Put boot register to power-up state:
-  tmb_->WriteRegister(TMB_ADR_BOOT,0);
+  dummy = tmb_->tmb_set_boot_reg(0);
 
-  unsigned int source_adr = UserOrBootJTAG(type);
+  //  int source_adr = UserOrBootJTAG(type);
 
   short unsigned int write_data, read_data;
   int write_pattern;
+
   // Select the FPGA JTAG chain
   int FPGAchain = 0x000C;
 
@@ -321,17 +347,15 @@ bool TMBTester::testJTAGchain(int type){
 
   bool tests[5];
 
-  int dummy;
-
   //loop over transmit bits... 
   for ( int itx=0; itx<=4; itx++) {  //step through tdi,tms,tck,sel0,sel1
 
     //write the walking 1 to the JTAG chain...
     write_pattern = 0x1 << itx;
     write_data = write_pattern | (FPGAchain << 3) | (0x1 << 7);
-    std::cout << "write_data = " << std::hex << write_data << std::endl;
-    dummy = tmb_->tmb_vme_reg(source_adr,&write_data);
-    tmb_->WriteRegister(source_adr,write_data);
+    //    std::cout << "write_data into boot reg = " << std::hex << write_data << std::endl;
+    dummy = tmb_->tmb_set_boot_reg(write_data);
+    //    tmb_->WriteRegister(source_adr,write_data);
 
     //copy the tdi to the tdo through gp_io0...
     read_data = tmb_->ReadRegister(gpio_adr);
@@ -365,6 +389,7 @@ bool TMBTester::testJTAGchain(int type){
     } else {
       tests[itx] = compareValues("User JTAG Chain",read_data,pat_expect,true);
     }
+  dummy = sleep(2);
   }
 
   testOK = (tests[0] &&
@@ -384,7 +409,7 @@ bool TMBTester::testMezzId(){
   bool testOK = false;
 
   //Select FPGA Mezzanine FPGA programming JTAG chain from TMB boot register
-  int ichain = 0x0004;
+  int ichain = 0x0004;                           //
   vme_jtag_anystate_to_rti(TMB_ADR_BOOT,ichain); //Take TAP to RTI
 
   int opcode;
@@ -398,16 +423,16 @@ bool TMBTester::testMezzId(){
     } else { 
       opcode = 0xFE;                  // PROM IDcode opcode
     }
-    // GREG, TRANSLATE THE FOLLOWING:
-    //    vme_jtag_write_ir(TMB_ADR_BOOT,ichain,chip_id,opcode);
-    //    vme_jtag_write_dr(TMB_ADR_BOOT,ichain,chip_id,tdi,tdo,reg_len);
+    //    vme_jtag_write_ir(TMB_ADR_BOOT,ichain,chip_id,opcode);         //write the opcode to the TAP
+    //    vme_jtag_write_dr(TMB_ADR_BOOT,ichain,chip_id,tdi,tdo,reg_len);//write the TDI bits
   }
 
   //Interpret ID code  GREG, FIGURE OUT HOW TO TO THE INTERPRET ID CODE PART
   //AFTER DOING THE VME_JTAG STUFF...
   
 
-
+  messageOK("Mezzanine ID",testOK);
+  int dummy = sleep(1);
   return testOK;
 }
 
@@ -419,20 +444,117 @@ bool TMBTester::testPROMid(){
    "TMBTester: testPROMid() NOT YET IMPLEMENTED" 
      << std::endl;
 
-  bool test = false;
-  return test;
+  bool testOK = false;
+  messageOK("PROM ID",testOK);
+  int dummy = sleep(1);
+  return testOK;
 }
 
 
 bool TMBTester::testPROMpath(){
   std::cout << "TMBTester: Checking User PROM Data Path" << std::endl;
 
-  std::cout << 
-   "TMBTester: testPROMpath() NOT YET IMPLEMENTED" 
-     << std::endl;
+  bool testOK = false;
+  int write_data,read_data;
 
-  bool test = false;
-  return test;
+  int iprom,jprom,prom_adr;
+  int prom_clk[2],prom_oe[2],prom_nce[2];
+  int prom_src;
+
+  int pat_expect;
+  bool temptest=true;
+
+  for (iprom=0; iprom<=1; iprom++) {
+    jprom = (iprom+1) % 2;
+
+  // **enable one prom and disable the other, since they share the onboard led bus**
+
+    prom_clk[iprom]=0;    //enable this one
+    prom_oe[iprom] =1;
+    prom_nce[iprom]=0;
+
+    prom_clk[jprom]=0;    //disable this one
+    prom_oe[jprom] =0;
+    prom_nce[jprom]=1;
+    
+    prom_src=1;
+
+    write_data = 
+      (prom_src   <<14) |        //0=on-board led, 1=enabled PROM
+      (prom_nce[1]<<13) |        //PROM 1 /chip_enable
+      (prom_oe[1] <<12) |        //PROM 1 output enable
+      (prom_clk[1]<<11) |        //PROM 1 clock
+      (prom_nce[0]<<10) |        //PROM 0 /chip_enable
+      (prom_oe[0] << 9) |        //PROM 0 output enable
+      (prom_clk[0]<< 8);         //PROM 0 clock
+    
+    tmb_->WriteRegister(vme_prom_adr,write_data);
+
+    // **Read the data from the selected PROM **
+    for (prom_adr=0; prom_adr<=9; prom_adr++) {
+      read_data = tmb_->ReadRegister(vme_prom_adr) & 0xff;
+
+      pat_expect = 0xff;
+      if (prom_adr==0) {
+	if (iprom == 0) pat_expect = 0xab;
+	if (iprom == 1) pat_expect = 0xcd;
+      } else if (prom_adr==9) {
+	if (iprom == 0) pat_expect = 0xee;
+	if (iprom == 1) pat_expect = 0xbb;
+      } else {
+	pat_expect = 1 << (prom_adr-1);
+      }
+      temptest &= compareValues("data = expected",read_data,pat_expect,true);
+
+      // ** Toggle the clock to advance the address **
+      prom_clk[iprom]=1;
+      write_data = 
+	(prom_src   <<14) |        //0=on-board led, 1=enabled PROM
+	(prom_nce[1]<<13) |        //PROM 1 /chip_enable
+	(prom_oe[1] <<12) |        //PROM 1 output enable
+	(prom_clk[1]<<11) |        //PROM 1 clock
+	(prom_nce[0]<<10) |        //PROM 0 /chip_enable
+	(prom_oe[0] << 9) |        //PROM 0 output enable
+	(prom_clk[0]<< 8);         //PROM 0 clock
+      tmb_->WriteRegister(vme_prom_adr,write_data);
+
+      prom_clk[iprom]=0;
+      write_data = 
+	(prom_src   <<14) |        //0=on-board led, 1=enabled PROM
+	(prom_nce[1]<<13) |        //PROM 1 /chip_enable
+	(prom_oe[1] <<12) |        //PROM 1 output enable
+	(prom_clk[1]<<11) |        //PROM 1 clock
+	(prom_nce[0]<<10) |        //PROM 0 /chip_enable
+	(prom_oe[0] << 9) |        //PROM 0 output enable
+	(prom_clk[0]<< 8);         //PROM 0 clock
+      tmb_->WriteRegister(vme_prom_adr,write_data);
+    
+    }
+
+    // ** Turn PROMs off **
+    prom_clk[iprom]=0;    //disable this one
+    prom_oe[iprom] =0;
+    prom_nce[iprom]=1;
+    
+    prom_src=0;
+
+    write_data = 
+      (prom_src   <<14) |        //0=on-board led, 1=enabled PROM
+      (prom_nce[1]<<13) |        //PROM 1 /chip_enable
+      (prom_oe[1] <<12) |        //PROM 1 output enable
+      (prom_clk[1]<<11) |        //PROM 1 clock
+      (prom_nce[0]<<10) |        //PROM 0 /chip_enable
+      (prom_oe[0] << 9) |        //PROM 0 output enable
+      (prom_clk[0]<< 8);         //PROM 0 clock
+    
+    tmb_->WriteRegister(vme_prom_adr,write_data);
+  }
+
+  testOK = temptest;
+
+  messageOK("PROM path",testOK);
+  int dummy = sleep(1);
+  return testOK;
 }
 
 
@@ -447,31 +569,18 @@ bool TMBTester::testDSN(){
 
   std::cout << "TMBTester: Checking Digital Serial Numbers for RAT" 
 	    << std::endl;
-  std::cout << "NOT YET IMPLEMENTED" << std::endl;
-  //  bool ratDSN = testDSN(2);
-  bool ratDSN = false;
+  bool ratDSN = testDSN(2);
 
-  if (tmbDSN) {
-    std::cout << "TMBTester: TMB DSN -> PASS" << std::endl;    
-  } else {
-    std::cout << "TMBTester: TMB DSN -> FAIL" << std::endl;    
-  }
-
-  if (mezzanineDSN) {
-    std::cout << "TMBTester: Mezzanine DSN -> PASS" << std::endl;    
-  } else {
-    std::cout << "TMBTester: Mezzanine DSN -> FAIL" << std::endl;    
-  }
-
-  if (ratDSN) {
-    std::cout << "TMBTester: RAT DSN -> PASS" << std::endl;    
-  } else {
-    std::cout << "TMBTester: RAT DSN -> FAIL" << std::endl;    
-  }
+  messageOK("TMB DSN",tmbDSN);
+  messageOK("Mezzanine DSN",mezzanineDSN);
+  messageOK("RAT DSN",ratDSN);
 
   bool DSNOK = (tmbDSN &&
                 mezzanineDSN &&
                 ratDSN);
+
+  messageOK("All Digital Serial Numbers",DSNOK);
+  int dummy = sleep(1);
   return DSNOK;
 }
 
@@ -485,7 +594,7 @@ bool TMBTester::testDSN(int BoardType){
   // compute the CRC
   int crc = dowCRC(dsn);
 
-  //get the 8 most significant bits (from LSB) to compare with CRC
+  //get the 8 most significant bits (from their LSB) to compare with CRC
   int dsntocompare = 0;
   int value;
   for (int bit=63; bit>=56; bit--){
@@ -504,14 +613,11 @@ bool TMBTester::testDSN(int BoardType){
 
 bool TMBTester::testADC(){
   std::cout << "TMBTester: Checking ADC and status" << std::endl;
-  std::cout << "testADC() WARNING not yet debugged" << std::endl;
 
   bool testOK = false;
-  int write_data,read_data;
-  int dummy;
 
   // Voltage status bits...
-  int voltage_status = tmb_->ReadRegister(vme_adc_adr);
+  int voltage_status = tmb_->PowerComparator();
   
   int vstat_5p0v = voltage_status & 0x1;          // 5.0V power supply OK
   int vstat_3p3v = (voltage_status >> 1) & 0x1;   // 3.3V power supply OK
@@ -531,7 +637,7 @@ bool TMBTester::testADC(){
 		      test1p5 &&
 		      testTcrit);
 
-  dummy = sleep(2);
+  int dummy = sleep(2);
 
   float adc_voltage[13];
 
@@ -553,11 +659,6 @@ bool TMBTester::testADC(){
   float vzero   =adc_voltage[12];
   float	vref    =adc_voltage[13];
 
-  // temperatures not being read out yet....
-
-  float t_local_f_tmb = 0;
-  float t_remote_f_tmb = 0;
-
   bool v5p0OK     = compareValues("+5.0V TMB      ",v5p0    ,5.010,0.025);
   bool v3p3OK     = compareValues("+3.3V TMB      ",v3p3    ,3.218,0.025);
   bool v1p5coreOK = compareValues("+1.5V core     ",v1p5core,1.506,0.025);
@@ -575,23 +676,68 @@ bool TMBTester::testADC(){
   bool a1p5ttOK   = compareValues("+1.5A TT       ",a1p5tt  ,0.030,atol*1.5);
   bool a1p8ratOK  = compareValues("+1.8A RAT Core ",a1p8rat ,0.030,atol*5.0);
 
-  float ttol = 0.2;
-  bool tlocalOK   = compareValues("T TMB pcb      ",t_local_f_tmb ,75.2,ttol);
-  bool tremoteOK  = compareValues("T FPGA chip    ",t_remote_f_tmb,78.8,ttol);
+  //  float t_local_f_tmb = tmb_temp(0x00,1);               // local temperature command, TMB)
+  //  float t_remote_f_tmb = tmb_temp(0x01,1);              // remote temperature command, TMB)
+  //  float tcrit_local_f_tmb = tmb_temp(0x05,1);           // (local tcrit command, TMB)
+  //  float tcrit_remote_f_tmb = tmb_temp(0x07,1);          // (remote tcrit command, TMB)
 
+  float ttol = 0.2;
+  //  bool tlocalOK   = compareValues("T TMB pcb      ",t_local_f_tmb ,75.2,ttol);
+  //  bool tremoteOK  = compareValues("T FPGA chip    ",t_remote_f_tmb,78.8,ttol);
+
+  testOK = (v5p0OK     &&
+	    v3p3OK     &&    
+	    v1p5coreOK &&
+	    v1p5ttOK   &&
+	    v1p0OK     &&
+	    v1p8ratOK  &&
+	    vref2OK    &&
+	    vzeroOK    &&
+	    vrefOK     &&
+	    a5p0OK     &&
+	    a3p3OK     &&
+	    a1p5coreOK &&
+	    a1p5ttOK   &&
+	    a1p8ratOK  );//&&
+	    //	    tlocalOK   &&
+	    //	    tremoteOK  );
+
+  messageOK("ADC voltages and temperatures",testOK);
+  dummy = sleep(1);
   return testOK;
 }
 
 
 bool TMBTester::test3d3444(){
   std::cout << "TMBTester: Verifying 3d3444 operation" << std::endl;
+  bool testOK = false;
 
-  std::cout << 
-   "TMBTester: test3d3444() NOT YET IMPLEMENTED" 
-     << std::endl;
+  bool tempbool = true;  
 
-  bool test = false;
-  return test;
+  int device; 
+  
+  unsigned short int ddd_delay;
+  int initial_data;
+  int delay_data;
+
+  for (device=0; device<=6; device++){
+
+    initial_data=tmb_read_delays(device);   //initial value of delays
+
+    for (ddd_delay=0; ddd_delay<=15; ddd_delay++ ) {
+      tmb_->tmb_clk_delays(ddd_delay,device);              
+      delay_data=tmb_read_delays(device);
+      tempbool &= compareValues("delay values ",delay_data,ddd_delay,true);
+    }
+
+    tmb_->tmb_clk_delays(initial_data,device);              
+  }
+  
+  testOK = tempbool;
+
+  messageOK("3d3444 Verification",testOK);
+  int dummy = sleep(1);
+  return testOK;
 }
 
 
@@ -603,7 +749,7 @@ bool TMBTester::compareValues(std::string TypeOfTest,
                               int compareval,
 			      bool equal) {
 
-// test if "testval" is equivalent to "compareval"
+// test if "testval" is equivalent to the expected value: "compareval"
 // return depends on if you wanted them to be "equal"
 
   std::cout << "compareValues:  " << TypeOfTest << " -> ";
@@ -667,6 +813,16 @@ bool TMBTester::compareValues(std::string TypeOfTest,
 
 }
 
+void TMBTester::messageOK(std::string TypeOfTest,
+			  bool testbool){
+  std::cout << TypeOfTest;
+  if (testbool) {
+    std::cout << " -> PASS" << std::endl;
+  } else {
+    std::cout << " -> FAIL <-" << std::endl;
+  }
+  return;
+}
 
 int TMBTester::dowCRC(std::bitset<64> DSN) {
 
@@ -708,7 +864,7 @@ int TMBTester::dowCRC(std::bitset<64> DSN) {
 }
 
 
-unsigned int TMBTester::UserOrBootJTAG(int choose){
+int TMBTester::UserOrBootJTAG(int choose){
   // Choose Source for JTAG commands
   int adr = (choose == 1) ? TMB_ADR_BOOT : vme_usr_jtag_adr;
 }
@@ -743,6 +899,269 @@ void TMBTester::vme_jtag_anystate_to_rti(int address, int chain) {
   return;
 }
 
+void TMBTester::vme_jtag_write_ir(int adr,int ichain,int chip_id,int opcode){
+
+  //	Writes opcode to the JTAG Instruction Register for the specified chip.
+  //
+  //	All chips except current chip are set to bypass mode.
+  //
+  //	It is presumed that the TAP controllers are presently in the RTI state
+  //
+  //	JTAG instructions and data are loaded for
+  //	PROM1 first and PROM0 last:
+  //
+  //	JTAG				Load	TMB		RAT
+  //	Position Chip ID	Order	Name	Name
+  //	tdi>0		0		1		PROM0	FPGA
+  //	tdo<1		1		0		PROM1	PROM
+
+  int dummy;
+
+  const int mxbits=128;       //maximum # bits of tms
+  const int mxchain=4;        //chain_id
+  const int mxdevices=5;      //devices in chain
+
+  unsigned char tms[mxbits],tdi[mxbits],tdo[mxbits];
+
+  const unsigned char tms_pre_opcode[4] = {1,1,0,0};      //RTI to ShfIR
+  const unsigned char tdi_pre_opcode[4] = {0,0,0,0};
+
+  const unsigned char tms_post_opcode[2] = {1,0};         //Ex1IR to RTI
+  const unsigned char tdi_post_opcode[2] = {0,0};
+
+  const int devices_in_chain[mxchain] = {2,2,2,5};        //chain 1,2,3,4
+
+  const int bits_per_opcode[mxchain][mxdevices] = { 8, 8, 0, 0, 0,
+						    5, 8, 0, 0, 0,
+						    5, 8, 0, 0, 0,
+						    6, 8, 8, 8, 8 };
+  const unsigned char prom_ir[8] = {1, 0, 0, 2, 2, 0, 0, 0};  // 2=don't care flag
+
+  //Set up TMS to take TAP from RTI to Shift IR:
+
+  int chain_id = select_jtag_chain(ichain);
+  
+  int iframe = -1;                                    //JTAG frame number
+  for (int preamble=0; preamble<=3; preamble++) {    //set up for writing opcode
+    tms[++iframe] = tms_pre_opcode[preamble];
+    tdi[iframe] = tdi_pre_opcode[preamble];
+  }
+
+  // Set up TMS to shift in the opcode bits for this chip, bypass code for others
+
+  int wr_opcode = opcode;                                  //copy callers opcode
+  int ndevices = devices_in_chain[chain_id-1];             //number of chips
+  int ichip, nbitsop;
+  int ibit;
+  int bit;
+  for (int idevice=0; idevice<=(ndevices-1); idevice++){   //loop over all chips
+    ichip = ndevices - idevice - 1;                        //chip order in chain is reversed
+    nbitsop = bits_per_opcode[chain_id][ichip];             //number of bits in its opcode
+    for (ibit=1; ibit<=nbitsop; ibit++) {                  //loop opcode bits
+      if (ichip==chip_id) {                                //This is the chip we want
+	bit = ( wr_opcode/((int)pow(2,ibit-1)) ) & 0x1;    //extract bit
+      } else {                                             //all other chips
+	bit = 1;                                           //bypass
+      }
+      iframe++;
+      if (iframe>mxbits) {
+	std::cout << "vme_write_ir:  TOO MANY FRAMES" << std::endl;
+	dummy = sleep(5);
+	return;
+      }
+      tms[iframe]=0;                                      //Tap stays in ShfIR
+      tdi[iframe]=bit;                                    //instruction bit
+    }
+  }
+
+  //set up TMS to take TAP from Ex1IR to RTI
+
+  tms[iframe]=1;
+  for (int postamble = 0; postamble<=1; postamble++) {
+    iframe++;
+    if (iframe>mxbits) {
+      std::cout << "vme_write_ir:  TOO MANY FRAMES" << std::endl;
+      dummy = sleep(5);
+      return;
+    }
+    tms[iframe]=tms_post_opcode[postamble];
+    tdi[iframe]=tdi_post_opcode[postamble];
+  }
+
+  //Write JTAG OpCodes, end up with tap in RTI
+
+  int step_mode = 1;                                   // 1=single step, 0=run
+  int nframes = iframe;                                // total number of frames
+  vme_jtag_io_byte(adr,ichain,nframes,tms,tdi,tdo,step_mode);
+
+  //Check that TDO shifted out instruction register strings
+
+  int iopbit;
+
+  if (ichain!=0x8 && ichain!=0xc) {                    // skip if not TMB
+    iframe = 4;                                        // start at first opcode bit
+    for (ichip=0; ichip<=(ndevices-1); ichip++){           //loop over all chips
+      nbitsop = bits_per_opcode[chain_id][ichip];             //number of bits in its opcode
+      for (ibit=0; ibit<=(nbitsop-1); ibit++) {
+	iframe++;
+	if (iframe>mxbits) {
+	  std::cout << "vme_write_ir:  TOO MANY FRAMES" << std::endl;
+	  dummy = sleep(5);
+	  return;
+	}
+	iopbit = tdo[iframe];
+	if (iopbit!=prom_ir[ibit] && prom_ir[ibit]!=2) {
+	  // did not read back proper opcode sequence...
+	  // it should be 000xy001 000xy001: x=ISP status, y=Security...
+	  std::cout << "vme_jtag_write_ir read bad ir " << std::hex << iopbit << std::endl;
+	}
+      }
+    }
+  }
+
+  return;
+}
+
+/*void TMBTester::vme_jtag_write_dr(int adr,
+				  int ichain,
+				  int chip_id,
+				  int write_data,
+				  int read_data,
+				  int nbits){
+  std::cout << "vme_jtag_write_dr:  CAUTION not yet debugged" << std::endl;
+
+  //	Writes TDI bits for the currently selected JTAG Data Register
+  //	for the specified chip.
+  //	Reads back TDO data.
+  //	
+  //	chip_id		=	device number to write
+  //	wr_data()	=	array to send containing nbits packed 1 bit per byte
+  //	rd_data()	=	read back data, 1 byte per bit
+  //	nbits		=	total number of bits to write
+  //
+  //	All chips except current chip are set to bypass mode.
+  //
+  //	It is presumed that the TAP controllers are presently in the RTI state
+  //	And that the desired opcode has already been written to the TAP.
+  //
+  //	JTAG instructions and data are loaded for
+  //	PROM1 first and PROM0 last:
+  //
+  //	JTAG				Load	TMB		RAT
+  //	Position Chip ID	Order	Name	Name
+  //	tdi>0		0		1		PROM0	FPGA
+  //	tdo<1		1		0		PROM1	PROM
+  //
+  int dummy;
+
+  const int mxchain=4;        //chain_id
+  const int mxdevices=5;      //devices in chain
+  const int mxbitstream=1000; //Max # bits in a jtag r/w cycle
+  const int mxline=80;        //max # character per input file line
+
+  unsigned char write_data[nbits],read_data[nbits];
+  unsigned char tms[mxbitstream],tdi[mxbitstream],tdo[mxbitstream];
+
+  const unsigned char tms_pre_read[3] = {1,0,0};      //RTI to ShfDR
+  const unsigned char tdi_pre_read[3] = {0,0,0};
+
+  const unsigned char tms_post_read[2] = {1,0};       //Ex1DR to RTI
+  const unsigned char tdi_post_read[2] = {0,0};
+
+  const int devices_in_chain[mxchain] = {2,2,2,5};        //chain 1,2,3,4
+
+  const int bits_per_opcode[mxchain][mxdevices] = { 8, 8, 0, 0, 0,
+						    5, 8, 0, 0, 0,
+						    5, 8, 0, 0, 0,
+						    6, 8, 8, 8, 8 };
+  const unsigned char prom_ir[8] = {1, 0, 0, 2, 2, 0, 0, 0};  // 2=don't care flag
+
+  //Set up TMS to take TAP from RTI to Shift DR:
+
+  int chain_id = select_jtag_chain(ichain);
+  
+  int iframe = -1;                                    //JTAG frame number
+  for (int preamble=0; preamble<=2; preamble++) {    //set up for writing opcode
+    tms[++iframe] = tms_pre_read[preamble];
+    tdi[iframe] = tdi_pre_read[preamble];
+  }
+
+  // Set up TMS to shift in the opcode bits for this chip, bypass code for others
+
+  int reg_len = nbits;                                     //register length
+  int ndevices = devices_in_chain[chain_id-1];             //number of chips
+
+  for (int idevice=0; idevice<=(ndevices-1); idevice++){   //loop over all chips
+    ichip = ndevices - idevice - 1;                        //chip order in chain is reversed
+    if (ichip==chip_id) {                                //This is the chip we want
+      offset=iframe;                                     //start of data
+      for (i=1; i<=reg_len; i++){
+	iframe++;
+	//	GREG YOU ARE HERE........
+
+
+      }
+    } else {
+      iframe++;
+      if (iframe>mxbits) {
+	std::cout << "vme_write_ir:  TOO MANY FRAMES" << std::endl;
+	dummy = sleep(5);
+	return;
+      }
+      tms[iframe]=0;                                      //Tap stays in ShfIR
+      tdi[iframe]=bit;                                    //instruction bit
+    }
+  }
+
+  //set up TMS to take TAP from Ex1IR to RTI
+
+  tms[iframe]=1;
+  for (int postamble = 0; postamble<=1; postamble++) {
+    iframe++;
+    if (iframe>mxbits) {
+      std::cout << "vme_write_ir:  TOO MANY FRAMES" << std::endl;
+      dummy = sleep(5);
+      return;
+    }
+    tms[iframe]=tms_post_opcode[postamble];
+    tdi[iframe]=tdi_post_opcode[postamble];
+  }
+
+  //Write JTAG OpCodes, end up with tap in RTI
+
+  int step_mode = 1;                                   // 1=single step, 0=run
+  int nframes = iframe;                                // total number of frames
+  vme_jtag_io_byte(adr,ichain,nframes,tms,tdi,tdo,step_mode);
+
+  //Check that TDO shifted out instruction register strings
+
+  int iopbit;
+
+  if (ichain!=0x8 && ichain!=0xc) {                    // skip if not TMB
+    iframe = 4;                                        // start at first opcode bit
+    for (ichip=0; ichip<=(ndevices-1); ichip++){           //loop over all chips
+      nbitsop = bits_per_opcode[chain_id][ichip];             //number of bits in its opcode
+      for (ibit=0; ibit<=(nbitsop-1); ibit++) {
+	iframe++;
+	if (iframe>mxbits) {
+	  std::cout << "vme_write_ir:  TOO MANY FRAMES" << std::endl;
+	  dummy = sleep(5);
+	  return;
+	}
+	iopbit = tdo[iframe];
+	if (iopbit!=prom_ir[ibit] && prom_ir[ibit]!=2) {
+	  // did not read back proper opcode sequence...
+	  // it should be 000xy001 000xy001: x=ISP status, y=Security...
+	  std::cout << "vme_jtag_write_ir read bad ir " << std::hex << iopbit << std::endl;
+	}
+      }
+    }
+  }
+
+  return;
+}
+*/
+
 void TMBTester::vme_jtag_io_byte(int address, 
 				 int chain, 
 				 int nframes,
@@ -750,6 +1169,8 @@ void TMBTester::vme_jtag_io_byte(int address,
 				 unsigned char * tdi,
 				 unsigned char * tdo,
 				 int step_mode) {
+
+  std::cout << "vme_jtag_io_byte:  CAUTION not yet debugged" << std::endl;
 
   //	Clocks tck for nframes number of cycles.
   //	Writes nframes of data to tms and tdi on the falling edge of tck.
@@ -764,7 +1185,8 @@ void TMBTester::vme_jtag_io_byte(int address,
   //	tck		=	toggled by this routine
 
   // get current boot register:
-  int boot_state = tmb_->ReadRegister(TMB_ADR_BOOT);
+  short unsigned int boot_state;
+  int dummy = tmb_->tmb_get_boot_reg(&boot_state);
   boot_state &= 0x7f80;                 //Clear JTAG bits
 
   //	Set tck,tms,tdi low, select jtag chain, enable VME control of chain
@@ -792,9 +1214,10 @@ void TMBTester::vme_jtag_io_byte(int address,
   jtag_word |= sel3    << 6;
   jtag_word |= jtag_en << 7;
 
-  tmb_->WriteRegister(TMB_ADR_BOOT,jtag_word);  //write boot register
-
-  int jtag_in,jtag_out;
+  dummy = tmb_->tmb_set_boot_reg(jtag_word);  //write boot register
+  
+  short unsigned int jtag_in;
+  int jtag_out;
 
   //Loop over input data frames
 
@@ -811,9 +1234,9 @@ void TMBTester::vme_jtag_io_byte(int address,
       jtag_out = jtag_word & 0x7ff8;           //clear old state
       jtag_out |= tck_bit | tms_bit | tdi_bit;
 
-      tmb_->WriteRegister(TMB_ADR_BOOT,jtag_out);  //write boot register
+      dummy = tmb_->tmb_set_boot_reg(jtag_out);    //write boot register
 
-      jtag_in = tmb_->ReadRegister(TMB_ADR_BOOT);  //read boot register
+      dummy = tmb_->tmb_get_boot_reg(&jtag_in);    //read boot register
       tdo[iframe] = (jtag_in << 15) & 0x1;         //extract tdo bit, mask lsb
       tdo_bit = tdo[iframe];
 
@@ -823,9 +1246,9 @@ void TMBTester::vme_jtag_io_byte(int address,
 
       tck_bit = 0x1 << 2;  //Take TCK high, leave tms,tdi as they were
       jtag_out |= tck_bit | tms_bit | tdi_bit;
-      tmb_->WriteRegister(TMB_ADR_BOOT,jtag_out);  //write boot register
+      dummy = tmb_->tmb_set_boot_reg(jtag_out);    //write boot register
 
-      jtag_in = tmb_->ReadRegister(TMB_ADR_BOOT);  //read boot register
+      dummy = tmb_->tmb_get_boot_reg(&jtag_in);    //read boot register
       tdo[iframe] = (jtag_in << 15) & 0x1;         //extract tdo bit, mask lsb
 
       if (!step_mode) {
@@ -834,7 +1257,7 @@ void TMBTester::vme_jtag_io_byte(int address,
     }
   }
   jtag_out &= 0xfffb;     //Take TCK low, leave others as they were
-  tmb_->WriteRegister(TMB_ADR_BOOT,jtag_out);      //write boot register
+  dummy = tmb_->tmb_set_boot_reg(jtag_out);        //write boot register
 
   return;
 }
@@ -852,19 +1275,433 @@ void TMBTester::step(int tck, int tms, int tdi, int tdo){
   return;
 }
 
+int TMBTester::select_jtag_chain(int ichain){
+
+  int dummy;
+
+  int chain_id = -1;
+
+  if (ichain==0x8) chain_id = 1;  //TMB user prom chain
+  if (ichain==0xc) chain_id = 1;  //TMB fpga chain
+  if (ichain==0xd) chain_id = 2;  //RAT chain
+  if (ichain==0x3) chain_id = 3;  //ALCT mez pgm chain
+  if (ichain==0x2) chain_id = 3;  //ALCT mez cfg chain
+  if (ichain==0x4) chain_id = 4;  //TMB mez FPGA+4 PROMs
+
+  if (chain_id == -1) {
+    std::cout << "select_jtag_chain:  ERROR chain_id not implemented" << std::endl;
+    dummy = sleep(5);
+  }
+
+  return chain_id;
+}
+
+float TMBTester::tmb_temp(int cmd,int module) {
+  // returns TMB temperature values in Farenheit...
+
+  //	Generates SMB serial clock and data streams to TMB LM84 chip
+  //
+  //	SMB requires that serial data is stable while clock is high,
+  //	so data transitions occur while clock is low,
+  //	midway between clock falling edge and rising edge
+
+  //    cmd = 0x00 = local temperature command
+  //        = 0x01 = remote temperature command
+  //        = 0x05 = local tcrit command  
+  //        = 0x07 = remote tcrit command  
+
+  //    module = 1 = TMB
+  //           = 2 = RAT
+
+  const int smb_adr = 0x2a;   // float, float state TMB LM84 chip address
+  const int adc_adr = vme_adc_adr;
+
+  int smb_data = 0xff;        // null write command
+
+  int sda_bit[29];
+
+  int write_data,read_data;
+  int dummy;
+
+  float fdummy;
+
+  // Current ADC register state:
+  int adc_status = tmb_->PowerComparator();
+
+  std::cout << "Initial ADC status = " << std::hex << adc_status << std::endl;
+
+  // **Step 1 write the data**
+
+  // ** initialize SMB data stream **
+  sda_bit[0] = 0;                                // Start
+  sda_bit[1] = (smb_adr >> 6) & 1;               // A6
+  sda_bit[2] = (smb_adr >> 5) & 1;               // A5
+  sda_bit[3] = (smb_adr >> 4) & 1;               // A4
+  sda_bit[4] = (smb_adr >> 3) & 1;               // A3
+  sda_bit[5] = (smb_adr >> 2) & 1;               // A2
+  sda_bit[6] = (smb_adr >> 1) & 1;               // A1
+  sda_bit[7] = (smb_adr >> 0) & 1;               // A0
+  sda_bit[8] = 0;                                // 0 = write command register                           
+  sda_bit[9] = 1;                                // ACK
+  sda_bit[10]= (cmd     >> 7) & 1;               // C7 
+  sda_bit[11]= (cmd     >> 6) & 1;               // C6 
+  sda_bit[12]= (cmd     >> 5) & 1;               // C5 
+  sda_bit[13]= (cmd     >> 4) & 1;               // C4 
+  sda_bit[14]= (cmd     >> 3) & 1;               // C3 
+  sda_bit[15]= (cmd     >> 2) & 1;               // C2 
+  sda_bit[16]= (cmd     >> 1) & 1;               // C1 
+  sda_bit[17]= (cmd     >> 0) & 1;               // C0 
+  sda_bit[18]= 1;                                // ACK
+  sda_bit[19]= (smb_data>> 7) & 1;               // D7 write data register
+  sda_bit[20]= (smb_data>> 6) & 1;               // D6 write data register
+  sda_bit[21]= (smb_data>> 5) & 1;               // D5 write data register
+  sda_bit[22]= (smb_data>> 4) & 1;               // D4 write data register
+  sda_bit[23]= (smb_data>> 3) & 1;               // D3 write data register
+  sda_bit[24]= (smb_data>> 2) & 1;               // D2 write data register
+  sda_bit[25]= (smb_data>> 1) & 1;               // D1 write data register
+  sda_bit[26]= (smb_data>> 0) & 1;               // D0 write data register
+  sda_bit[27]= 1;                                // ACK
+  sda_bit[28]= 0;                                // Stop
+
+  // ** Construct SMBclk and SMBdata **
+
+  std::cout << "smb address = " << std::hex << smb_adr
+	    << ", command = " << std::hex << cmd
+	    << ", smb data = " << std::hex << smb_data
+	    << std::endl;
+
+  int nclks = 115;
+  //  int nclks = 50;
+
+  int sda_clock,scl_clock;
+  int sda,scl;
+
+  int i2c_clock;
+  for (i2c_clock=0; i2c_clock<=nclks; i2c_clock++) {  //200kHz
+    sda_clock = (int) i2c_clock/4;                //50 kHz
+    scl_clock = (int) ( (i2c_clock+1)/2 );        //50 kHz shifted 1/2 of a 100kHz cycle
+
+    scl = scl_clock & 1;                          // 0 0 1 1 0 0 1 1 0 0 1 1 ....
+    sda = sda_bit[sda_clock];
+
+    std::cout << "Before Persistent -> i2c_clock " << i2c_clock << ", scl = " << scl << " sda_bit = " << sda << std::endl;
+
+    if (i2c_clock<3) scl=1;                       // START scl stays high
+    if (i2c_clock<2) sda=1;                       // START sda transitions low
+
+    if (i2c_clock>nclks-3) scl=1;                // STOP scl stays high
+    if (i2c_clock>nclks-2) sda=1;                // STOP sda transitions high
+
+    std::cout << "After Persistent  -> i2c_clock " << i2c_clock << ", scl = " << scl << " sda_bit = " << sda << std::endl;
+
+    //** Write serial clock and data to TMB VME interface **
+
+    write_data = adc_status & 0xf9ff;    //clear bits 9 and 10
+    write_data |= scl << 9;
+    write_data |= sda << 10;
+    tmb_->WriteRegister(adc_adr,write_data);
+
+    std::cout << "write_data =" << write_data << std::endl;
+
+    //    dummy=sleep(1);  // adjust wait time so scl is 50kHz or slower...
+  }
+
+  //  dummy=sleep(10);
+
+  // Current ADC register state:
+  adc_status = tmb_->PowerComparator();
+
+  // **Step 1 read the data**
+
+  // ** initialize SMB data stream **
+  sda_bit[0] = 0;                                // Start
+  sda_bit[1] = (smb_adr >> 6) & 1;               // A6
+  sda_bit[2] = (smb_adr >> 5) & 1;               // A5
+  sda_bit[3] = (smb_adr >> 4) & 1;               // A4
+  sda_bit[4] = (smb_adr >> 3) & 1;               // A3
+  sda_bit[5] = (smb_adr >> 2) & 1;               // A2
+  sda_bit[6] = (smb_adr >> 1) & 1;               // A1
+  sda_bit[7] = (smb_adr >> 0) & 1;               // A0
+  sda_bit[8] = 1;                                // 1 = read data register                           
+  sda_bit[9] = 1;                                // ACK
+  sda_bit[10]= 1;                                // D7 read from LM84, 1=z output from fpga
+  sda_bit[11]= 1;                                // D6
+  sda_bit[12]= 1;                                // D5
+  sda_bit[13]= 1;                                // D4
+  sda_bit[14]= 1;                                // D3
+  sda_bit[15]= 1;                                // D2
+  sda_bit[16]= 1;                                // D1
+  sda_bit[17]= 1;                                // D0
+  sda_bit[18]= 1;                                // ACK
+  sda_bit[19]= 0;                                // Stop
+
+  int d[20];
+  int sda_value;
+
+  nclks = 79;
+
+  for (i2c_clock=0; i2c_clock<=nclks; i2c_clock++) {  //200kHz
+    sda_clock = (int) i2c_clock/4;                //50 kHz
+    scl_clock = (int) ( (i2c_clock+1)/2 );        //50 kHz shifted 1/2 of a 100kHz cycle
+
+    scl = scl_clock & 1;                          // 0 0 1 1 0 0 1 1 0 0 1 1 ....
+    sda = sda_bit[sda_clock];
+
+    if (i2c_clock<3) scl=1;                       // START scl stays high
+    if (i2c_clock<2) sda=1;                       // START sda transitions low
+
+    if (i2c_clock>nclks-3) scl=1;                // STOP scl stays high
+    if (i2c_clock>nclks-2) sda=1;                // STOP sda transitions high
+
+    //** Write serial clock and data to TMB VME interface **
+
+    write_data = adc_status & 0xf9ff;    //clear bits 9 and 10
+    write_data |= scl << 9;
+    write_data |= sda << 10;
+    tmb_->WriteRegister(adc_adr,write_data);
+    //    dummy=sleep(1);  // adjust wait time so scl is 50kHz or slower...
+
+    //Read Serial data from TMB VME interface
+    //read on every cycle to keep clock symmetric
+
+    read_data = tmb_->ReadRegister(adc_adr);
+    if (scl==1) {
+      d[sda_clock] = read_data;
+      std::cout << "reading serial data d[" << sda_clock << "] =" << d[sda_clock] << std::endl;
+    }
+    //    dummy=sleep(1);  // adjust wait time so scl is 50kHz or slower...
+  }
+
+  // pack data into an integer...
+
+  int ishift = 0;
+  if (module == 1) ishift = 10;   //data bit from LM84 on TMB
+  if (module == 2) ishift = 11;   //data bit from LM84 on RAT
+
+  int i;
+  int data = 0;
+  for (i=0; i<=31; i++) {
+    if (i<=7) {
+      sda_value = (d[17-i]>>ishift) & 0x1;
+      data |= sda_value<<i;          //d[7:0]
+      //      std::cout << "d[17-" << i << "] =" << d[17-i] << "sda_value = " << sda_value << std::endl;
+    } else {
+      data |= sda_value<<i;          //sign extend if bit 7 indicates negative value      
+    }
+    //    std::cout << "sda_value = " << sda_value << ", data =" << data << std::endl;
+  }
+
+  std::cout << "Temperature = " << std::dec << data << " deg C -> " << std::hex << data << std::endl;
+
+  float temperature = float (data) * 9. / 5. + 32.;
+
+  return temperature;
+}
+
+
+/*
+int TMBTester::do_jtag(int chip_id, 
+		       int opcode, 
+		       int mode, 
+		       const int *first, 
+		       int length, 
+		       int *val) {
+  
+  std::cout << "call TMBTester::do_jtag for chip " << chip_id << std::endl;
+
+  int     i, j, k, m, ichip, j_start, nframes, step_mode = 0;
+  char    tms_pre_read[3] = { 1, 0, 0 };
+  int     bits_per_opcode[MAX_NUM_CHIPS] = {5,6};  // myc++ { 4, 4, 4, 4, 4, 4, 4, 4, 6 }; back to 4
+  int     tms_preop_code[5] = { 0, 1, 1, 0, 0 };  //Jonathan's code has 4 = {1, 1, 0, 0}...
+  int     tms_postop_code[3] = { 1, 0, 0 };       //Jonathan's code has 2 = {1, 0}...
+  char    tdi[MXBITSTREAM], tms[MXBITSTREAM], tdo[MXBITSTREAM];
+
+  for (i=0; i< MAX_JTAG_BUF_SIZE; i++) {
+    sndbuf[i] = 0;
+    rcvbuf[i] = 0;
+  }
+
+  // First JTAG operation writes opcodes to the TAP instruction registers... 
+
+  // Put TAP in state ShfIR 
+  j=0;
+  for (k = 0; k < 5; k++) {
+    tdi[j]   = 0;
+    tms[j++] = tms_preop_code[k];
+  }
+
+  // Construct opcode for each chip (all but chip_id are BYPASS = all 1's)
+  if(chip_id <= 7) {    //Why <= 7?
+    ichip=0;            //this picks the bits_per_opcode
+    tmb_->start(8);     //What is this doing?
+  } else {
+    ichip=1;
+    tmb_->start(6);
+  } 
+
+  //printf("\nOpcode 0x%02x \n", opcode);
+  for (i=0; i< sizeof(opcode); i++) {
+    sndbuf[i] = (opcode >> 8*i)  & 0x00ff;
+    // printf(" %02x", sndbuf[i]); 
+  }
+  
+  for (k = 0; k < bits_per_opcode[ichip]; k++) {
+    tdi[j] = (opcode >> k) & 0x1;
+    tms[j++] = 0;
+  }
+  
+  tms[j-1] = 1;        // TMS goes high on last frame
+  
+  // Put TAP back in RTI mode 
+  for (k = 0; k < 3; k++) {
+    tdi[j]   = 0;
+    tms[j++] = tms_postop_code[k];
+  }
+  
+  // Do JTAG
+  nframes = j;
+  
+  for (j = 0; j < nframes; j++) {
+    tdo[j] = 0 ;
+  }
+  
+  tmb_->scan(INSTR_REG, sndbuf, bits_per_opcode[ichip], rcvbuf , 0 );
+  
+  //  
+  //    Second JTAG operation writes data to the selected register of chip_id, 
+  //    zero to bypass register of all other chips.
+  //   
+  
+  // Put TAP in state ShfDR 
+  for (k = 0, j = 0; k < 3; k++) {
+    tdi[j]   = 0;
+    tms[j++] = tms_pre_read[k];
+  }
+  
+  //  Convert the list of data items into a one-byte-per-bit array, if writing,
+  //  or else fill with zeros.
+  for (k = 0; k < ((length-1)/8+1); k++) { 
+    sndbuf[k] = 0; 
+  }
+  // printf("\nTDI ");
+  j_start = j;
+  m = 0;
+  for (k = 0; k < length; k++) {
+    if (mode == WRITE) {
+      if (k == first[m+1]) m++;
+      tdi[j] = (val[m] >> (k-first[m])) & 0x1;
+      sndbuf[k/8] |= tdi[j] << (k%8);
+    } else { 
+      tdi[j] = 0;
+    }      
+    tms[j++] = 0;
+  }
+  
+  tms[j-1] = 1;        // TMS goes high on last data frame
+  
+  // printf("\nData In ");    
+  // for (k = 0; k < ((length-1)/8+1); k++)
+  // { printf(" %x", sndbuf[k]); }
+  
+  // Put TAP back in RTI mode 
+  for (k = 0; k < 3; k++) {
+    tdi[j]   = 0;
+    tms[j++] = tms_postop_code[k];
+  }
+  
+  // Do JTAG 
+  nframes = j;
+  
+  // jtag_io_byte_(&nframes, tms, tdi, tdo, &step_mode);
+
+  // if (mode == READ)
+  //
+  tmb_->scan(DATA_REG, sndbuf, length, rcvbuf, 1);
+  //
+
+  //else { tmb_->scan(DATA_REG, sndbuf, length, rcvbuf, 0);}
+  
+  // Whether reading or writing, convert the one-byte-per-bit tdo data array 
+  // into a list of values 
+  
+  //    for (k = 0; k < ((length-1)/8+1); k++){ 
+  //      rcvbuf[k] = 0; 
+  //    }
+  
+  //   printf("\nTDO "); 
+  
+  //   i = 0;
+  //   val[0] = 0;
+  //   j = j_start;
+  //   for (k = 0; k < length; k++) {
+  //   if (k == first[i+1]) val[++i] = 0;
+  //   if (tdo[j++]) {
+  //   val[i] |= (1 << (k-first[i]));
+  //   rcvbuf[k/8] |= 1 << (k%8);
+  //   }    
+  //   }
+
+  //   printf("\nOut ");
+  //   for (k=0; k<i; k++)
+  //   { printf(" 0x%02x", val[k]); }
+   
+  //   printf("\nData Out ");
+  //   for (k = 0; k < ((length-1)/8+1); k++)
+  //   { printf(" 0x%02x", rcvbuf[k]); }
+
+  //if (mode == READ) 
+  //{
+  i = 0;
+  val[0] = 0;
+  for (k = 0; k < length; k++) {
+    if (k == first[i+1]) val[++i] = 0;
+    if ((rcvbuf[k/8] >> (k%8)) & 0x01) { 
+      val[i] |= (1 << (k-first[i])); 
+    }
+  }
+
+  // printf("\nNet Out ");
+  // for (k=0; k<i; k++)
+  //  { printf(" 0x%02x", val[k]); }  
+  //}
+  
+  tmb_end();
+  return 0;
+}
+
+void TMBTester::tmb_end() {
+  tmb_->endDevice();
+}
+*/
+
 
 /////////////////////////////////////
 // The following should be in TMB: //
 /////////////////////////////////////
 std::bitset<64> TMBTester::dsnRead(int type) {
+  //type = 0 = TMB
+  //     = 1 = Mezzanine DSN
+  //     = 2 = RAT DSN
 
   std::bitset<64> dsn;
 
   int offset;
-  offset = type*5;  // 0=TMB, 1=Mezzanine, 2=RAT
+  offset = type*5; 
+
+  int wr_data, rd_data;
+
+  int initial_state;
+  // ** need to specifically enable RAT to read back DSN **
+  if (type == 2) {  
+    initial_state = tmb_->ReadRegister(TMB_ADR_PHOS4E);  //initial RAT state
+
+    wr_data = initial_state & 0xfffd;    //0=sync_mode, 1=posneg, 2=loop_tmb, 3=free_tx0, 4=dsn enable
+    wr_data |= 0x0010;                   //enable the dsn bit
+
+    tmb_->WriteRegister(TMB_ADR_PHOS4E,wr_data);
+  }
 
   int i;
-  int wr_data, rd_data;
   int idata;
 
   // init pulse >480usec
@@ -888,6 +1725,11 @@ std::bitset<64> TMBTester::dsnRead(int type) {
 
     // pack data into dsn[]
     dsn[i] = (rd_data >> (4+offset)) & 0x1;
+  }
+
+  // ** Return the RAT to its initial state **
+  if (type == 2) {
+    tmb_->WriteRegister(TMB_ADR_PHOS4E,initial_state);
   }
 
   return dsn;
@@ -1036,6 +1878,42 @@ void TMBTester::ADCvoltages(float * voltage){
 
   return;
 }
+
+
+int TMBTester::tmb_read_delays(int device) {
+
+  int data;
+
+  // device = 0  = CFEB 0 Clock
+  //        = 1  = CFEB 1 clock
+  //        = 2  = CFEB 2 clock
+  //        = 3  = CFEB 3 clock
+  //        = 4  = CFEB 4 clock
+  //        = 5  = ALCT rx clock
+  //        = 6  = ALCT tx clock
+  //        = 7  = DMB tx clock
+  //        = 8  = RPC tx clock
+  //        = 9  = TMB1 clock
+  //        = 10 = MPC clock
+  //        = 11 = DCC clock (CFEB duty cycle correction)
+  //        = 1000 = CFEB [0-5] Clock (all CFEB's)
+
+  if (device==0) data = (tmb_->ReadRegister(0x18)>>12) & 0xf; 
+  if (device==1) data = (tmb_->ReadRegister(0x1a)>> 0) & 0xf; 
+  if (device==2) data = (tmb_->ReadRegister(0x1a)>> 4) & 0xf; 
+  if (device==3) data = (tmb_->ReadRegister(0x1a)>> 8) & 0xf; 
+  if (device==4) data = (tmb_->ReadRegister(0x1a)>>12) & 0xf; 
+  if (device==5) data = (tmb_->ReadRegister(0x16)>> 4) & 0xf; 
+  if (device==6) data = (tmb_->ReadRegister(0x16)>> 0) & 0xf; 
+  if (device==7) data = (tmb_->ReadRegister(0x16)>> 8) & 0xf; 
+  if (device==8) data = (tmb_->ReadRegister(0x16)>>12) & 0xf; 
+  if (device==9) data = (tmb_->ReadRegister(0x18)>> 0) & 0xf; 
+  if (device==10) data =(tmb_->ReadRegister(0x18)>> 4) & 0xf; 
+  if (device==11) data =(tmb_->ReadRegister(0x18)>> 8) & 0xf; 
+
+  return data;
+}
+
 //////////////////////////////////////////
 // END: The following should be in TMB: //
 //////////////////////////////////////////
