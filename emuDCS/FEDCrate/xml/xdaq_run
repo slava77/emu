@@ -1,0 +1,2 @@
+./xdaq.sh -c /0/fastdducaen/v3.2/TriDAS/emu/emuDCS/FEDCrate/xml/EmuFCluster.xml   
+
