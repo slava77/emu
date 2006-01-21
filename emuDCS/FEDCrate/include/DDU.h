@@ -25,7 +25,11 @@ public:
   virtual unsigned int boardType() const {return DDU_ENUM;}
   virtual void end();
 
+  int gbe_prescale_;
+  int vmeirq_start_;
+
   void configure();
+  void vmeirq();
 
 // DDU commands initialization/reset
   void ddu_init();
@@ -41,7 +45,7 @@ public:
   void ddu_rdfibererr();
   void ddu_rdfiberok();
   void ddu_rdkillfiber();
-  void ddu_loadkillfiber(int regval);
+  void ddu_loadkillfiber(long int regval);
   void ddu_rdcrcerr();
   void ddu_rdl1aerr();
   void ddu_rdxmiterr();
@@ -57,6 +61,11 @@ public:
   void ddu_rderareg();
   void ddu_rderbreg();
   void ddu_rdercreg();
+  int  ddu_InRDstat();
+  int  ddu_InC_Hist();
+  int  ddu_dmblive();
+  int  ddu_pdmblive();
+  int  ddu_rd_WarnMon();
   void ddu_rd_verr_cnt();
   void ddu_rd_cons_cnt();
   void ddu_fifo0verr_cnt();
@@ -74,10 +83,13 @@ public:
   void ddu_lvl1onoff();
   void ddu_rd_boardID();
   void ddu_fpgastat();
+  unsigned short int ddu_code0,ddu_code1,ddu_shift0;
+
   // INFPGA register control
   void infpga_shfttst(enum DEVTYPE dv,int tst);
   void infpga_reset(enum DEVTYPE dv);
   void infpga_rdscaler(enum DEVTYPE dv);
+  int  infpga_rd1scaler(enum DEVTYPE dv);
   void infpga_lowstat(enum DEVTYPE dv);
   void infpga_histat(enum DEVTYPE dv);
   void infpgastat(enum DEVTYPE dv);
@@ -89,12 +101,16 @@ public:
   void infpga_Timeout(enum DEVTYPE dv);
   void infpga_XmitErr(enum DEVTYPE dv);
   void infpga_WrMemActive(enum DEVTYPE dv,int ifiber);
+  int DDU::infpga_DMBwarn(enum DEVTYPE dv);
   void infpga_MemAvail(enum DEVTYPE dv);
   void infpga_Min_Mem(enum DEVTYPE dv);
   void infpga_LostErr(enum DEVTYPE dv);
+  int  infpga_CcodeStat(enum DEVTYPE dv);
   void infpga_StatA(enum DEVTYPE dv);
   void infpga_StatB(enum DEVTYPE dv);
   void infpga_StatC(enum DEVTYPE dv);
+  unsigned short int infpga_code0,infpga_code1,infpga_shift0;
+
   // DDU Status Decode
   void ddu_status_decode(int long code);
   void ddu_ostatus_decode(int long code);
@@ -122,17 +138,30 @@ public:
   void all_chip_info();
 
   // DDU parallel 
-  void vmepara_busy();
-  void vmepara_fullwarn();
-  void vmepara_lostsync();
-  void vmepara_error();
-  void vmepara_switch();
-  void vmepara_status();
-  void vmepara_status2();
-  void vmepara_rd_inreg0();
-  void vmepara_rd_inreg1();
-  void vmepara_rd_inreg2();
-  void vmepara_wr_inreg(unsigned int par_val);
+  unsigned short int vmepara_busy();
+  unsigned short int vmepara_fullwarn();
+  unsigned short int vmepara_CSCstat();
+  unsigned short int vmepara_lostsync();
+  unsigned short int vmepara_error();
+  unsigned short int  vmepara_switch();
+  unsigned short int vmepara_status();
+  unsigned short int vmepara_rd_inreg0();
+  unsigned short int vmepara_rd_inreg1();
+  unsigned short int vmepara_rd_inreg2();
+  void vmepara_wr_inreg(unsigned short int par_val);
+  void  vmepara_wr_fmmreg(unsigned short int par_val);
+  unsigned short int  vmepara_rd_fmmreg();
+  void vmepara_wr_fakel1reg(unsigned short int par_val);
+  unsigned short int vmepara_rd_fakel1reg();
+  void vmepara_wr_GbEprescale(unsigned short int par_val);
+  unsigned short int vmepara_rd_GbEprescale();
+  unsigned short int vmepara_rd_testreg0();
+  unsigned short int vmepara_rd_testreg1();
+  unsigned short int vmepara_rd_testreg2();
+  unsigned short int vmepara_rd_testreg3();
+  unsigned short int vmepara_rd_testreg4();
+  unsigned short int vmepara_busyhist();
+  unsigned short int vmepara_warnhist();
 
   // DDU serial 
   void read_status();
@@ -142,13 +171,15 @@ public:
   void write_page4();
   void read_page5();
   void write_page5();
-  void read_page7();
+  int read_page7();
   void write_page7();
   void read_vmesd0();
   void read_vmesd1();
   void read_vmesd2();
   void read_vmesd3();
   void write_vmesdF();
+  char snd_serial[6];
+  char rcv_serial[6];
 
   // Voltages and Thermometers
   float adcplus(int ichp,int ichn);
@@ -163,10 +194,6 @@ public:
 
   // EPROM reprogramming (EXPERTS ONLY !)
   void epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum);
-  void vmeprgprom(char *buf);
-  void dduprgprom(char *buf);
-  void inprgprom(char *buf);
-  void resetprgprom(char *buf);
   void Parse(char *buf,int *Count,char **Word);
 
   /// sends commands by name

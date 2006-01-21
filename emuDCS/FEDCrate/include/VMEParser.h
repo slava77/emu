@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.h,v 1.1 2005/08/31 18:26:19 gilmore Exp $
+// $Id: VMEParser.h,v 1.2 2006/01/21 20:20:14 gilmore Exp $
 // $Log: VMEParser.h,v $
-// Revision 1.1  2005/08/31 18:26:19  gilmore
-// First try for FED Crate includes.
+// Revision 1.2  2006/01/21 20:20:14  gilmore
+// *** empty log message ***
 //
 // Revision 1.8  2004/07/19 19:37:57  tfcvs
 // Removed unused variables and unsigned some variables in order to prevent compiler warnings (-Wall flag) (FG)

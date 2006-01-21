@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.h,v 1.1 2005/08/31 18:26:19 gilmore Exp $
+// $Id: FEDCrateParser.h,v 1.2 2006/01/21 20:20:14 gilmore Exp $
 // $Log: FEDCrateParser.h,v $
-// Revision 1.1  2005/08/31 18:26:19  gilmore
-// First try for FED Crate includes.
+// Revision 1.2  2006/01/21 20:20:14  gilmore
+// *** empty log message ***
 //
 // Revision 1.16  2004/06/11 09:38:17  tfcvs
 // improved checks on top elements. print out warnings in case they do not

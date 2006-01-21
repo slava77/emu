@@ -1,8 +1,8 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 1.1 2005/08/31 18:26:19 gilmore Exp $
+// $Id: VMEModule.h,v 1.2 2006/01/21 20:20:14 gilmore Exp $
 // $Log: VMEModule.h,v $
-// Revision 1.1  2005/08/31 18:26:19  gilmore
-// First try for FED Crate includes.
+// Revision 1.2  2006/01/21 20:20:14  gilmore
+// *** empty log message ***
 //
 // Revision 1.16  2004/08/05 04:10:13  tfcvs
 // Update
@@ -18,6 +18,8 @@
 #include "Crate.h"
 class VMEController;
 #include "JTAG_constants.h"
+
+
 
 class VMEModule
 {
@@ -44,9 +46,19 @@ public:
 
    VMEController* getTheController();
 
+
+  // IRQ VME Interrupts
+static void *IRQ_Interrupt_Handler(void *threadarg);
+void irq_pthread_start();
+void irq_pthread_end();
+void irq_pthread_info();
+int irq_tester(int ival);
+int CAEN_err();
+void CAEN_err_reset();
+
 protected:
 
-  
+
   /// JTAG stuff
   void devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
   void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
@@ -66,12 +78,11 @@ void flush_vme();
  void dcc(const char *cmd,char *rcv);
  void vme_adc(int ichp,int ichn,char *rcv);
  void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
- void dump_outpacket(int nvme);
- int eth_read();
-int eth_write();
- int eth_enableblock(void);
- int eth_disableblock(void);
- void get_macaddr();
+void CAEN_close(void);
+int CAEN_reset(void);
+int CAEN_read(unsigned long Address,unsigned short int *data);
+int CAEN_write(unsigned long Address,unsigned short int *data);
+
  void sdly();
  void initDevice(int a);
    /// used for calls to do_vme
