@@ -10,10 +10,13 @@ DDUParser::DDUParser(DOMNode * pNode, int crateNumber)
 
   int slot = 0;
   parser_.fillInt("slot", slot);
+  
   if(slot == 0) {
     cerr << "No slot specified for DDU! " << endl;
   } else { 
-   ddu_ = new DDU(crateNumber,slot);  
+   ddu_ = new DDU(crateNumber,slot);
+   parser_.fillInt("gbe_prescale", ddu_->gbe_prescale_); 
+   parser_.fillInt("vmeirq_start", ddu_->vmeirq_start_); 
   }
 }
 

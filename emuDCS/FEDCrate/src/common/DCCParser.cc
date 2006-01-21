@@ -13,7 +13,8 @@ DCCParser::DCCParser(DOMNode * pNode, int crateNumber)
   if(slot == 0) {
     cerr << "No slot specified for DCC! " << endl;
   } else { 
-   dcc_ = new DCC(crateNumber,slot);  
+   dcc_ = new DCC(crateNumber,slot);
+   parser_.fillInt("fifoinuse", dcc_->fifoinuse_);
   }
 }
 

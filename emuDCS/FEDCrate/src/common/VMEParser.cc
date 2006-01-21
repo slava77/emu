@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.cc,v 1.1 2005/08/31 18:20:32 gilmore Exp $
+// $Id: VMEParser.cc,v 1.2 2006/01/21 19:55:02 gilmore Exp $
 // $Log: VMEParser.cc,v $
-// Revision 1.1  2005/08/31 18:20:32  gilmore
+// Revision 1.2  2006/01/21 19:55:02  gilmore
 // *** empty log message ***
 //
 // Revision 1.8  2004/07/19 19:37:57  tfcvs
@@ -15,13 +15,13 @@
 
 VMEParser::VMEParser(DOMNode * pNode, int number)
 {
-  int port;
-  string ipAddress;
+  int Link;
+  int Device;
   parser_.parseNode(pNode);
-  parser_.fillString("ipAddress",ipAddress); 
-  parser_.fillInt("port",port);
+  parser_.fillInt("Device",Device); 
+  parser_.fillInt("Link",Link);
   
-  controller_ = new VMEController(ipAddress, port);
+  controller_ = new VMEController(Device, Link);
   crate_ = new Crate(number, controller_);
 }
 

@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <cmath>
 #include <unistd.h>
-#include "GenDATA.h"
 #include "geom_def.h"
 
 using namespace std;
@@ -27,10 +26,10 @@ extern short int intval2;
 void Parse(char *buf,int *Count,char **Word);
 void shuffle(char *a,char *b);
 
-static int tst=0;
 
 DCC::DCC(int newcrate,int newslot):
-  VMEModule(newcrate, newslot)
+  VMEModule(newcrate, newslot),
+  fifoinuse_(511)
 {
   // cout<<"DDU \n";
 }
@@ -50,11 +49,16 @@ void DCC::end()
 
 
 void DCC::configure() {
+
+  printf(" *********************** DCC configure is called \n");
+  printf(" DCC slot %d fifoinuse %d \n",slot(),fifoinuse_);
+  if(slot()<21){
+     mctrl_fifoinuse(fifoinuse_);
+  }
 }
 
 unsigned long int  DCC::inprom_userid()
 {
-int i,loopi;
 enum DEVTYPE dv;
 // printf(" inpromuser entered \n");
       dv=INPROM;
@@ -74,51 +78,30 @@ enum DEVTYPE dv;
       return ibrd;
 
 }
-unsigned long int  DCC::m1prom_userid()
+unsigned long int  DCC::mprom_userid()
 {
-int i,loopi;
 enum DEVTYPE dv;;
-      dv=M1PROM;
-      cmd[0]=PROM_USERCODE;
+      dv=MPROM;
+      cmd[0]=MPROM_USERCODE_L;
+      cmd[1]=MPROM_USERCODE_H;
       sndbuf[0]=0xFF;
       sndbuf[1]=0xFF;
       sndbuf[2]=0xFF;
       sndbuf[3]=0xFF;
       sndbuf[4]=0xFF;
-      devdo(dv,8,cmd,32,sndbuf,rcvbuf,1);
-      // printf(" The PROM Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
-      cmd[0]=PROM_BYPASS;
+      devdo(dv,16,cmd,32,sndbuf,rcvbuf,1); 
+      printf(" The MPROM Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+
+      cmd[0]=MPROM_BYPASS_L;
+      cmd[1]=MPROM_BYPASS_H;
       sndbuf[0]=0;
-      devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
+      devdo(dv,16,cmd,0,sndbuf,rcvbuf,0); 
       unsigned long int ibrd=0x00000000; 
       ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
       return ibrd;
-
-}
-unsigned long int  DCC::m2prom_userid()
-{
-int i,loopi;
-enum DEVTYPE dv;
-      dv=M2PROM;
-      cmd[0]=PROM_USERCODE;
-      sndbuf[0]=0xFF;
-      sndbuf[1]=0xFF;
-      sndbuf[2]=0xFF;
-      sndbuf[3]=0xFF;
-      sndbuf[4]=0xFF;
-      devdo(dv,8,cmd,32,sndbuf,rcvbuf,1);
-      // printf(" The PROM Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
-      cmd[0]=PROM_BYPASS;
-      sndbuf[0]=0;
-      devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
-      unsigned long int ibrd=0x00000000; 
-      ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
-      return ibrd;
-
 }
 unsigned long int  DCC::inprom_chipid()
 {
-int i,loopi;
 enum DEVTYPE dv;
  printf(" inpromuser entered \n");
       dv=INPROM;
@@ -139,52 +122,32 @@ enum DEVTYPE dv;
 
 }
 
-unsigned long int  DCC::m1prom_chipid()
+unsigned long int  DCC::mprom_chipid()
 {
-int i,loopi;
 enum DEVTYPE dv;
-      dv=M1PROM;
-      cmd[0]=PROM_IDCODE;
+      dv=MPROM;
+      cmd[0]=MPROM_IDCODE_L;
+      cmd[1]=MPROM_IDCODE_H;
       sndbuf[0]=0xFF;
       sndbuf[1]=0xFF;
       sndbuf[2]=0xFF;
       sndbuf[3]=0xFF;
       sndbuf[4]=0xFF;
-      devdo(dv,8,cmd,32,sndbuf,rcvbuf,1);
-      // printf(" The PROM Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
-      cmd[0]=PROM_BYPASS;
+      devdo(dv,16,cmd,32,sndbuf,rcvbuf,1);
+      printf(" The MPROM Chip ID CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+      cmd[0]=MPROM_BYPASS_L;
+      cmd[1]=MPROM_BYPASS_H;
       sndbuf[0]=0;
-      devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
+      devdo(dv,16,cmd,0,sndbuf,rcvbuf,0); 
       unsigned long int ibrd=0x00000000; 
       ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
       return ibrd;
 }
 
-unsigned long int  DCC::m2prom_chipid()
-{
-int i,loopi;
-enum DEVTYPE dv;
-      dv=M2PROM;
-      cmd[0]=PROM_IDCODE;
-      sndbuf[0]=0xFF;
-      sndbuf[1]=0xFF;
-      sndbuf[2]=0xFF;
-      sndbuf[3]=0xFF;
-      sndbuf[4]=0xFF;
-      devdo(dv,8,cmd,32,sndbuf,rcvbuf,1);
-      // printf(" The PROM Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
-      cmd[0]=PROM_BYPASS;
-      sndbuf[0]=0;
-      devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
-      unsigned long int ibrd=0x00000000; 
-      ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
-      return ibrd;
-}
 
 
 void DCC::mctrl_bxr()
 {
-unsigned short int tmp;
  cmd[0]=0x00;  // fcn 0x00-write 0x01-read
  cmd[1]=0x00;  // vme add
  cmd[2]=0xFF;  // data h
@@ -194,7 +157,6 @@ unsigned short int tmp;
 
 void DCC::mctrl_evnr()
 {
-unsigned short int tmp;
  cmd[0]=0x00;  // fcn 0x00-write 0x01-read
  cmd[1]=0x00;  // vme add
  cmd[2]=0xFF;  // data h
@@ -226,7 +188,6 @@ unsigned short int tmp;
 
 void DCC::mctrl_reg(char *c)
 {
-int i,loopi;
  printf(" register entered \n");
      cmd[0]=0x01;  // fcn 0x00-write 0x01-read
      cmd[1]=0x01;  // vme add
@@ -247,8 +208,10 @@ unsigned short int  DCC::mctrl_stath()
      cmd[3]=0xff;  // data l
      devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
      printf(" status high %02x %02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+     rcvr=((rcvbuf[0]<<8)&0xff00)|(rcvbuf[1]&0x00ff);
      return rcvr;
 }
+
 
 unsigned short int DCC::mctrl_statl()
 {
@@ -259,6 +222,7 @@ unsigned short int rcvr=0;
      cmd[3]=0xff;  // data l
      devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
      printf(" status low %02x %02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+     rcvr=((rcvbuf[0]<<8)&0xff00)|(rcvbuf[1]&0x00ff);
      return rcvr;
 }
 
@@ -272,6 +236,64 @@ unsigned short int tmp;
  cmd[3]=tmp&0xff;  // data l
  devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
 }
+
+unsigned short int  DCC::mctrl_rd_fifoinuse()
+{
+  unsigned short int rcvr=0;
+     cmd[0]=0x01;  // fcn 0x00-write 0x01-read
+     cmd[1]=0x06;  // vme add
+     cmd[2]=0xff;  // data h
+     cmd[3]=0xff;  // data l
+     devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
+     printf(" status high %02x %02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+     rcvr=((rcvbuf[0]<<8)&0xff00)|(rcvbuf[1]&0x00ff);
+     return rcvr;
+}
+
+unsigned short int  DCC::mctrl_rd_ttccmd()
+{
+  unsigned short int rcvr=0;
+     cmd[0]=0x01;  // fcn 0x00-write 0x01-read
+     cmd[1]=0x05;  // vme add
+     cmd[2]=0xff;  // data h
+     cmd[3]=0xff;  // data l
+     devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
+     printf(" status high %02x %02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+     rcvr=((rcvbuf[0]<<8)&0xff00)|(rcvbuf[1]&0x00ff);
+     return rcvr;
+}
+
+
+void DCC::hdrst_in(void)
+{
+enum DEVTYPE dv;
+ printf(" InFOGA hardreset by inprom CF \n");
+      dv=INPROM;
+      cmd[0]=0xEE; // Pulse CF low, for XCF32, the code is 0x00EE, 16-bits
+      sndbuf[0]=0xFF;
+      devdo(dv,8,cmd,0,sndbuf,rcvbuf,2);
+      cmd[0]=PROM_BYPASS;
+      sndbuf[0]=0;
+      devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
+}
+
+void DCC::hdrst_main(void)
+{
+enum DEVTYPE dv;
+ printf(" MainFOGA hardreset by Main_prom CF \n");
+      printf(" MainPROM %d \n",RESET1);
+      dv=RESET1;
+      cmd[0]=0xEE; //(Pulse CF low, 16-bit SIR for SCF32P)
+      cmd[1]=0x00;
+      sndbuf[0]=0xFF;
+      devdo(dv,16,cmd,0,sndbuf,rcvbuf,2);
+      cmd[0]=0xFF; //PROM_BYPASS;
+      cmd[1]=0xFF;
+      sndbuf[0]=0;
+      devdo(dv,16,cmd,0,sndbuf,rcvbuf,0);
+}
+
+
 
 void DCC::Parse(char *buf,int *Count,char **Word)
 {
@@ -296,16 +318,13 @@ void DCC::epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,cha
 enum DEVTYPE devstp,dv;
 char *devstr;
 FILE *dwnfp,*fpout;
-char ch,buf[8192],buf2[256];
-char *Word[256],cmdstr[256],*lastn;
-double t1,t2;
-int Count,i,j,k,l,m,n,id,len,nbits,nbytes,pause,ipd,xtrbits,looppause;
-float fpause;
+char buf[8192],buf2[256];
+char *Word[256],*lastn;
+int Count,i,j,id,nbits,nbytes,pause,xtrbits,looppause;
 int tmp,cmpflag;
 int tstusr;
 int nowrit;
 char snd[5000],expect[5000],rmask[5000],smask[5000],cmpbuf[5000];
-static int count;
 extern struct GEOM geo[];
 // printf(" epromload %d \n",devnum);
  
@@ -361,7 +380,7 @@ extern struct GEOM geo[];
           for(i=2;i<Count;i+=2){
             if(strcmp(Word[i],"TDI")==0){
               for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&snd[j]);
+                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&snd[j]);
               }
 /*JRG, new selective way to download UNALTERED PromUserCode from SVF to
     ANY prom:  just set cbrdnum[3,2,1,0]=0 in calling routine!
@@ -377,18 +396,18 @@ extern struct GEOM geo[];
             }
             if(strcmp(Word[i],"SMASK")==0){
               for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&smask[j]);
+                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&smask[j]);
               }
             }
             if(strcmp(Word[i],"TDO")==0){
               cmpflag=1;
               for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&expect[j]);
+                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&expect[j]);
               }
             }
             if(strcmp(Word[i],"MASK")==0){
               for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&rmask[j]);
+                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&rmask[j]);
               }
             }
           }
@@ -437,23 +456,23 @@ extern struct GEOM geo[];
           for(i=2;i<Count;i+=2){
             if(strcmp(Word[i],"TDI")==0){
               for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&snd[j]);
+                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&snd[j]);
               }
               if(nbytes==1){if(0xfd==(snd[0]&0xff))nowrit=1;} // nowrit=1  
             }
             else if(strcmp(Word[i],"SMASK")==0){
               for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&smask[j]);
+                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&smask[j]);
               }
             }
             if(strcmp(Word[i],"TDO")==0){
               for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&expect[j]);
+                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&expect[j]);
               }
             }
             else if(strcmp(Word[i],"MASK")==0){
               for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&rmask[j]);
+                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&rmask[j]);
               }
             }
           }
@@ -488,7 +507,7 @@ extern struct GEOM geo[];
 	  //  if(pause>1000)printf("pause = %f s  while erasing\n",t2-t1); */
 	  //          for (i=0;i<pause/100;i++)
 	  //  devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
-          fpause=pause;
+          //fpause=pause;
           // pause=pause/2;
           if (pause>65535) {
             sndbuf[0]=255;
@@ -500,10 +519,10 @@ extern struct GEOM geo[];
           sndbuf[1]=pause/256;
 	  // printf(" sndbuf %d %d %d \n",sndbuf[1],sndbuf[0],pause);
           devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,2);
-          fpause=fpause*1.5+100;
-          pause=fpause; 
+          //fpause=fpause*1.5+100;
+          //pause=fpause; 
           flush_vme();
-          usleep(pause);
+          //usleep(pause);
           // printf(" send sleep \n");  
         }
         else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0)){
@@ -525,37 +544,6 @@ extern struct GEOM geo[];
   send_last();
 }
 
-void DCC::prgmgprom(char *buf)
-{
-char *cbrdnum;        
-int i;
-           printf(" MPRGPROM \n");
-           cbrdnum=(char*)malloc(5);
-           cbrdnum[0]=0x00;cbrdnum[1]=0x00;cbrdnum[2]=0x00;cbrdnum[3]=0x00;
-           for(i=0;i<128;i++){
-	     if(buf[i]=='_'&&(buf[i+1]=='0'||buf[i+1]=='1'))goto END3;
-           }
-           END3:
-           buf[i+1]='1';
-           printf(" %s \n",buf);
-           epromload("MPROM2",RESET1,buf,1,cbrdnum);  
-           buf[i+1]='0';
-           printf(" %s \n",buf);  
-	   //           printf(" sleep 100 seconds \n");
-	   //           sleep(100);
-           epromload("MPROM1",RESET2,buf,1,cbrdnum);
-           free(cbrdnum);
-}
-
-
-void DCC::prginprom(char *buf)
-{
-char *cbrdnum;   
-            cbrdnum=(char*)malloc(5);
-            cbrdnum[0]=0x00;cbrdnum[1]=0x00;cbrdnum[2]=0x00;cbrdnum[3]=0x00;
-            epromload("INPROM",INPROM,buf,1,cbrdnum);  
-           free(cbrdnum);
-}
 
 
 void DCC::executeCommand(string command)

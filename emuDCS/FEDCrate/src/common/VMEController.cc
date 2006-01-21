@@ -1,7 +1,7 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 1.1 2005/08/31 18:20:32 gilmore Exp $
+// $Id: VMEController.cc,v 1.2 2006/01/21 19:55:02 gilmore Exp $
 // $Log: VMEController.cc,v $
-// Revision 1.1  2005/08/31 18:20:32  gilmore
+// Revision 1.2  2006/01/21 19:55:02  gilmore
 // *** empty log message ***
 //
 // Revision 1.25  2004/07/22 18:52:38  tfcvs
@@ -18,24 +18,25 @@
 #include <iostream>
 #include <unistd.h> // read and write
 #include <fcntl.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h> 
-#include <netinet/if_ether.h> 
-#include <netinet/in.h> 
-#include <netinet/ip.h> 
-#include <net/if.h> 
-#include <sys/ioctl.h> 
-#include <netpacket/packet.h>
 #include <errno.h>
 #include <string.h>
 
 
 
 #include <unistd.h>
-#include "eth.h"
 
+#include <pthread.h>
+#include "CAENVMElib.h"
+#include "CAENVMEtypes.h"
+#include "vmeIRQ.h"
 
+#define DELAY2 0.016
+#define DELAY3 16.384
+
+struct IRQData irqdata[2];
+
+pthread_t threads[2];
+int irq_start=0;
 
 #ifndef debugV //silent mode
 #define PRINT(x) 
@@ -45,65 +46,41 @@
 #define PRINTSTRING(x) cout << #x << endl; 
 #endif
 
-extern char eth[5];
-static int uid,uid2;
-unsigned char hw_source_addr[ETH_ALEN];
-unsigned char hw_dest_addr[ETH_ALEN] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
-struct ethhdr ether_header; 
-
-#define MAX_DATA 8990
-//#define MAX_DATA 1400
-#define VME_CMDS 0x20
-#define ACNLG 0x20
-#define ACNLG_LOOP 0x60
-#define LOOP_CNTRL 0xff
-#define ATYPE 2    // VME A24 bit transfer
-#define TSIZE 1    // VME 16 bit data transfer
-#define TTYPE 0    // VME single transfer mode
-#define PACKETOUTDUMP 0   // to print dump set 1
 
 extern int delay_type;
-
-char a_mask[8]={0x00,0x20,0x40,0x50,0x80,0x90,0x00,0x00};
-char r_mask=0x00;
-char w_mask=0x10;
-char ts_mask[4]={0x00,0x04,0x08,0x0c};
-char ts_size[4]={1,2,4,8};
-char tt_mask[4]={0x00,0x01,0x02,0x03};;
-char delay_mask[8]={0,1,2,3,4,5,6,7};
-int iprint={0};
-unsigned short int header={0};
-
-
-
-unsigned short int LRG_read_flag={0};
-unsigned short int LRG_read_pnt={0};
-unsigned short int LRG_read_flag2={0};
-
-char wbuf[9000];
-int nwbuf;
-char rbuf[9000];
-int nrbuf;
+long OpenBHandle[4][4] = {{-1,-1,-1,-1},{-1,-1,-1,-1},{-1,-1,-1,-1},{-1,-1,-1,-1}};
 
 
 
 
-VMEController::VMEController(string ipAddr, int port): 
-  theSocket(0), ipAddress_(ipAddr), port_(port), theCurrentModule(0),indian(SWAP)
+VMEController::VMEController(int Device, int Link): 
+  theBHandle(-1), Device_(Device), Link_(Link), theCurrentModule(0),indian(SWAP)
 {
-int i;
 
-
-  int socket = openSocket();
-  cout << "VMEController opened socket = " << socket << endl;
+CVBoardTypes VMEBoard;
+short Lin;
+short Dev;
+VMEBoard=cvV2718;
+long BHandle; 
+    cout << "constructing VMEController " << endl;
+    Dev=Device;
+    Lin=Link;
+    if(OpenBHandle[Dev][Lin]==-1){
+    if(CAENVME_Init(VMEBoard,Device,Link,&BHandle) !=cvSuccess){
+      printf("\n\n Error in Opening CAEN Controller \n");
+      exit(1);
+    }
+    }else{
+      BHandle=OpenBHandle[Dev][Lin];
+    }
+    theBHandle=BHandle;
+    OpenBHandle[Dev][Lin]=BHandle;
 }
 
 
 VMEController::~VMEController(){
   cout << "destructing VMEController .. closing socket " << endl;
-   setuid(0);
-   closeSocket();
-   setuid(uid);
+   CAEN_close();
 }
 
 
@@ -135,91 +112,54 @@ void VMEController::send_last() {
 }
 
 
-int VMEController::openSocket() {
-
-  theSocket = open("/dev/schar", O_RDWR);
-        if (theSocket == -1) {
-                perror("open");
-                return 1;
-        }
-  	eth_enableblock();   
-        get_macaddr();
-  return theSocket;
-}
-int VMEController::eth_read()
-{  int err;
-int size;
-int loopcnt;
- 
- loopcnt=0;
- size=0;
- GETMORE: 
- size=read(theSocket,rbuf,nrbuf);
-        if(size<0)return size;
-        if(size<7){
-           if(rbuf[0]==0x03&&loopcnt<10){usleep(1000);loopcnt=loopcnt+1;goto GETMORE;}
-        }
-   return size;
-}
-
-
-int VMEController::eth_write()
-{  char *msg;
-  int msg_size;
-  int nwritten;
-  int i;
-   //Creating the packet
-     ether_header.h_proto = htons(nwbuf);
-     //   ether_header.h_proto = htons(0xfff);
-
-   msg_size = sizeof(ether_header) + nwbuf;
-   if((msg = (char *)malloc(msg_size*sizeof(unsigned char))) == NULL){ 
-           perror("rp_send: main(): malloc(): No memory available");
-           exit(1);
-   }
-   memcpy(msg, &ether_header, sizeof(ether_header));
-   memcpy(msg + sizeof(ether_header), wbuf, nwbuf);   
-   // printf("****");for(i=0;i<msg_size;i++)printf("%02x",msg[i]&0xff);printf("\n");
-   //   printf("Len : %4d\n",((msg[12]&0xff)<<8)|(msg[13]&0xff));
-   nwritten = write(theSocket, (const void *)msg, msg_size);
-   free(msg);
-   return nwritten; 
-
-}
-int VMEController::eth_enableblock(void)
-{
-  if(ioctl(theSocket,SCHAR_BLOCKON)==-1){
-    printf(" error in SCHAR_BLOCKON \n");
-  }
+int VMEController::CAEN_reset(void)
+{ 
+  /* blank for now, little reason to reset */
   return 0;
 }
 
-int VMEController::eth_disableblock(void)
-{
-  if(ioctl(theSocket,SCHAR_BLOCKOFF)==-1){
-    printf(" error in SCHAR_BLOCKOFF \n");
-  }
-  return 0;
+int VMEController::CAEN_read(unsigned long Address,unsigned short int *data)
+{  
+int err;
+CVAddressModifier AM=cvA24_U_DATA;
+CVDataWidth DW=cvD16;
+// printf("theBHandle %08x \n",theBHandle);
+   err=CAENVME_ReadCycle(theBHandle,Address,data,AM,DW);
+   if(err!=0)caen_err=err;
+   // printf(" CAENVME read err %d \n",caen_err);
+   //printf(" read: address %08x data %04x \n",Address,*data);
+   return err;
 }
 
-void VMEController::get_macaddr()
+
+int VMEController::CAEN_write(unsigned long Address,unsigned short int *data)
 {
-FILE *fp;
-int itmp;
-char mesg[60];
- sprintf(mesg,"/sbin/ifconfig %c%c%c%c > macadd \0",eth[0],eth[1],eth[2],eth[3]);
- system(mesg); 
- fp=fopen("macadd","r");
- fscanf(fp,"eth%1d      Link encap:Ethernet  HWaddr %02x:%02x:%02x:%02x:%02x:%02x  \n",&itmp,&hw_source_addr[0],&hw_source_addr[1],&hw_source_addr[2],&hw_source_addr[3],&hw_source_addr[4],&hw_source_addr[5]);
- fclose(fp);
- printf(" Source      HWaddr %02x:%02x:%02x:%02x:%02x:%02x\n",hw_source_addr[0]&0xff,hw_source_addr[1]&0xff,hw_source_addr[2]&0xff,hw_source_addr[3]&0xff,hw_source_addr[4]&0xff,hw_source_addr[5]&0xff); 
- printf(" Destination HWaddr %02x:%02x:%02x:%02x:%02x:%02x\n",hw_dest_addr[0]&0xff,hw_dest_addr[1]&0xff,hw_dest_addr[2]&0xff,hw_dest_addr[3]&0xff,hw_dest_addr[4]&0xff,hw_dest_addr[5]&0xff); 
-   memcpy(ether_header.h_dest, hw_dest_addr, ETH_ALEN);
-   memcpy(ether_header.h_source,hw_source_addr, ETH_ALEN);
+int err;
+CVAddressModifier AM=cvA24_U_DATA;
+CVDataWidth DW=cvD16;
+
+//printf("theBHandle %08x \n",theBHandle);
+//printf(" write: address %08x data %04x \n",Address,*data);
+   err=CAENVME_WriteCycle(theBHandle,Address,(char *)data,AM,DW); 
+   if(err!=0)caen_err=err;
+   // printf(" CAENVME write err %d \n",caen_err);
+   return err;
 }
+
+
+void VMEController::CAEN_close(void)
+{
+    CAENVME_End(theBHandle);
+}
+
 
 void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv)
 {
+static int ird=0;
+static long int packet_delay=0;
+char rdata[2];
+
+long unsigned int pttr;
   /* irdwr:   
               0 bufread
               1 bufwrite 
@@ -229,177 +169,177 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
               5 loop back 
               6 delay
 */
-
-static int nvme;
-static int nread=0;
-unsigned char *radd_to;
-unsigned char *radd_from;
-unsigned char *nbytet;
-unsigned short int r_nbyte;
-unsigned char *r_head0;
-unsigned char *r_head1;
-unsigned char *r_head2;
-unsigned short r_num;
-unsigned char *r_datat;
-int size,nwrtn;
-int i;
-unsigned long int ptrt;
-static int istrt=0;  
-/* initialize */
-  if(istrt==0){
-    nwbuf=4;
-    nvme=0;
-    istrt=1;
-  }
-  /* flush to vme */
-  if(irdwr==4){      
-    // printf(" flush to vme \n");
-    if(nvme==0)return;
-    irdwr=3;
-    goto Process;
-  }
-  /*  fill buffer  */
-  nvme=nvme+1;
- //  VME command function code
-  // wbuf[0]=ACNLG;
-  wbuf[0]=0x00;
-  wbuf[1]=VME_CMDS;
-  // LOOP back to/from Controller
-  if(irdwr==5){/* printf(" controller loop back \n"); */ wbuf[0]=ACNLG_LOOP;wbuf[1]=LOOP_CNTRL;irdwr=2;}
-  wbuf[nwbuf+0]=0x00;
-  // VME Read/Write 
-  
-  if(irdwr==0||irdwr==2){wbuf[nwbuf+1]=a_mask[ATYPE]|r_mask|ts_mask[TSIZE]|tt_mask[TTYPE];nread=nread+ts_size[TSIZE];}
-  if(irdwr==1||irdwr==3){wbuf[nwbuf+1]=a_mask[ATYPE]|w_mask|ts_mask[TSIZE]|tt_mask[TTYPE];} 
-  if(irdwr<=3){
-    wbuf[nwbuf+2]=0x00;
-    ptrt=(unsigned long int)ptr;
-    wbuf[nwbuf+3]=(ptrt&0xff0000)>>16;
-    wbuf[nwbuf+4]=(ptrt&0xff00)>>8;
-    wbuf[nwbuf+5]=(ptrt&0xff);
-    wbuf[nwbuf+6]=(*data&0xff00)>>8;
-    wbuf[nwbuf+7]=(*data&0xff);
-    if(irdwr==1||irdwr==3)nwbuf=nwbuf+8;
-    if(irdwr==0||irdwr==2)nwbuf=nwbuf+6;   
-  /* check for overflow */
-    LRG_read_flag2=0;
-    if(nwbuf>MAX_DATA){
-      // printf(" nwbuf %d MAX_DATA %d \n",nwbuf,MAX_DATA);
-       LRG_read_flag2=1;
-       if(irdwr==1)irdwr=3;
-       if(irdwr==0)irdwr=2;
-       if(LRG_read_flag==0){
-         LRG_read_flag=1;    // turn on large read
-         LRG_read_pnt=0;
-         // printf(" large read flag on \n");
-       }
-    }
-  } 
-  // delay
-  if(irdwr==6){
-    wbuf[nwbuf+0]=delay_mask[delay_type];
-    wbuf[nwbuf+1]=0x00;
-    if(delay_type<=3){
-      wbuf[nwbuf+3]=(*data&0xff);
-      wbuf[nwbuf+2]=(*data&0xff00)>>8;
-      nwbuf=nwbuf+4;
-    }else{
-      wbuf[nwbuf+5]=(*data&0xff);
-      wbuf[nwbuf+4]=(*data&0xff00)>>8;
-      wbuf[nwbuf+3]=(*(data+1)&0xff);
-      wbuf[nwbuf+2]=(*(data+1)&0xff00)>>8;
-      nwbuf=nwbuf+6;
-    }
-  } 
-  /* write VME commands to vme */
- Process:
-  if(irdwr==2||irdwr==3){
-    if(nread>0&&wbuf[1]!=0x1f)wbuf[0]=ACNLG;
-    wbuf[2]=(nvme&0xff00)>>8;
-    wbuf[3]=nvme&0xff;
-    if(PACKETOUTDUMP!=0)dump_outpacket(nvme);
-    nwrtn=eth_write();
-    // printf(" nwrtn %d nwbuf %d \n",nwrtn,nwbuf);
-    nwbuf=4;
-    nvme=0;
-  }
- 
- /* read back bytes from vme */
- 
-  if((irdwr==2||irdwr==3)&&nread>0){
-    nrbuf=nread;
-    size=eth_read();
-    if(size<10){printf(" no data read back \n");system("cat /proc/sys/dev/schar/0");exit(0);}
-      radd_to=(unsigned char *)rbuf;
-      radd_from=(unsigned char *)rbuf+6;
-      nbytet=(unsigned char *)rbuf+12;
-      r_nbyte=((nbytet[0]<<8)&0xff00)|(nbytet[1]&0xff);
-      r_head0=(unsigned char *)rbuf+14;
-      r_head1=(unsigned char *)rbuf+16;
-      r_head2=(unsigned char *)rbuf+18;
-      r_datat=(unsigned char *)rbuf+20;
-      r_num=((r_head2[0]<<8)&0xff00)|(r_head2[1]&0xff);  
-      // printf(" size %d \n",size);
-      // for(i=0;i<size;i++)printf("%02x",rbuf[i]&0xff);printf("\n");
-      if(r_head0[0]!=0x45|r_head0[1]!=0x00){
-             // loop back from controller 
-             if((r_head0[0]&0xff)==0xc1&&(r_head0[1]&0xff)==0x00)goto ENDL; 
-             printf(" HEADER is not stanard so quit %02x%02x \n",
-                        r_head0[0]&0xff,r_head0[1]&0xff);
-             exit(0);
-      }
-      // printf(" %d %d %d \n ",nread,r_num,LRG_read_pnt);
-      // if(nread!=2*r_num){printf(" nread %d %d %d %d %02x\n",nread,r_num,size,LRG_read_pnt,r_head0[0]&0xff);} 
-    for(i=0;i<r_num;i++){rcv[2*i+LRG_read_pnt]=r_datat[2*i+1];rcv[2*i+1+LRG_read_pnt]=r_datat[2*i];}
-    if(LRG_read_flag==1)LRG_read_pnt=LRG_read_pnt+2+2*r_num-2;
-  ENDL: 
-    if(LRG_read_flag2==0){
-      LRG_read_flag=0;     // turn off large read
-      LRG_read_pnt=0;
-      // printf(" large read flag off %d \n",nwbuf);
-    }
-    nread=0;
-  }
-}
-
-/* dump specific to A24/1/0 for now */
-
-void VMEController::dump_outpacket(int nvme)
-{
-int nwbuft,nwbufto,i;
- printf(" Header %02x%02x   #Cmds  %02x%02x \n",wbuf[0]&0xff,wbuf[1]&0xff,wbuf[2]&0xff,wbuf[3]&0xff);
- if(wbuf[1]==VME_CMDS){
-    nwbuft=4;
-    for(i=0;i<nvme;i++){
-      nwbufto=nwbuft;
-      if(wbuf[nwbufto]==0){
-      if(wbuf[1+nwbufto]==0x54){
-	printf(" %d. W %02x%02x %02x%02x%02x%02x %02x%02x \n",i,wbuf[0+nwbuft]&0xff,wbuf[1+nwbuft]&0xff,wbuf[2+nwbuft]&0xff,wbuf[3+nwbuft]&0xff,wbuf[4+nwbuft]&0xff,wbuf[5+nwbuft]&0xff,wbuf[6+nwbuft]&0xff,wbuf[7+nwbuft]&0xff);
-      nwbuft=nwbuft+8;}
-      if(wbuf[1+nwbufto]==0x44){
-         printf(" %d. R %02x%02x %02x%02x%02x%02x  \n",i,wbuf[0+nwbuft]&0xff,wbuf[1+nwbuft]&0xff,wbuf[2+nwbuft]&0xff,wbuf[3+nwbuft]&0xff,wbuf[4+nwbuft]&0xff,wbuf[5+nwbuft]&0xff);
-      nwbuft=nwbuft+6;}
-      }else{
-	if(wbuf[nwbufto]<=3){
-	   printf(" %d. D %02x%02x %02x%02x \n",i,wbuf[0+nwbuft]&0xff,wbuf[1+nwbuft]&0xff,wbuf[2+nwbuft]&0xff,wbuf[3+nwbuft]&0xff);
-           nwbuft=nwbuft+4;
-        }else{
-           printf(" %d. D %02x%02x %02x%02x%02x \n",i,wbuf[0+nwbuft]&0xff,wbuf[1+nwbuft]&0xff,wbuf[2+nwbuft]&0xff,wbuf[3+nwbuft]&0xff,wbuf[4+nwbuft]&0xff,wbuf[5+nwbuft]&0xff);
-           nwbuft=nwbuft+6;
-        }
-      }
-    }
+ pttr=(long unsigned int)ptr;
+ if(irdwr==0){
+   CAEN_read(pttr,(unsigned short int *)rdata);
+   rcv[ird]=rdata[0];
+   ird=ird+1;
+   rcv[ird]=rdata[1];
+   ird=ird+1;
+ }else if(irdwr==1){
+   CAEN_write(pttr,data);
+ }else if(irdwr==2){
+   CAEN_read(pttr,(unsigned short int *)rdata);
+   rcv[ird]=rdata[0];
+   ird=ird+1;
+   rcv[ird]=rdata[1];
+   ird=ird+1;
+   ird=0;
+ }else if(irdwr==3){
+   CAEN_write(pttr,data);
+ }else if(irdwr==6){
+   if(delay_type==2)packet_delay=(long int)((*data)*DELAY2);
+   if(delay_type==3)packet_delay=(long int)((*data)*DELAY3);
+   udelay(packet_delay);
  }
+
+}
+
+
+void *VMEController::IRQ_Interrupt_Handler(void *threadarg)
+{
+struct IRQData *locdata;
+long          BHandle;
+unsigned long Address;
+unsigned char Data[2];
+CVAddressModifier AM=cvA24_U_DATA;
+CVDataWidth DW=cvD16;
+CVIRQLevels IRQLevel=cvIRQ1;
+unsigned long mask=0x00000001;
+
+int ierr;
+int j;
+unsigned int ERR,SYNC,FMM,SLOT,NUM_ERR,NUM_SYNC;
+unsigned int status,tmp;
+unsigned int last_status[15]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+int irqmap[21]={-1,-1,0,1,2,3,4,-1,5,6,7,8,9,10,11,12,-1,13,14,15,-1};
+
+ locdata=(struct IRQData *)threadarg;
+ LOOP:
+    BHandle=locdata->Handle;
+    CAENVME_IRQEnable(BHandle,mask);
+
+    ierr=CAENVME_IRQWait(BHandle,mask,5000); 
+
+    if(locdata->exit==1)goto ENDR;
+    if(ierr!=0)goto LOOP;
+
+    // CAENVME_IRQCheck(BHandle,omask);
+    // printf(" IRQ mask %02x \n",omask[0]&0xff);
+
+    Data[0]=0x00;Data[1]=0x00;
+    CAENVME_IACKCycle(BHandle,IRQLevel,Data,DW);
+    printf(" IRQ vector %02x%02x \n",Data[1]&0xff,Data[0]&0xff);
+    ERR=0;SYNC=0;FMM=0;SLOT=0;NUM_ERR=0;
+    locdata->count++;
+    if(Data[1]&0x80){ERR=1;locdata->errs[0]++;}
+    if(Data[1]&0x40){SYNC=1;locdata->errs[1]++;}
+    if(Data[1]&0x20){FMM=1;locdata->errs[2]++;}
+    SLOT=Data[1]&0x1f;
+    NUM_ERR=((Data[0]>>4)&0x0f);
+    NUM_SYNC=(Data[0]&0x0f); 
+    locdata->count_fmm=NUM_ERR;
+    printf(" ERR %d SYNC %d FMM %d SLOT %d NUM_ERR %d NUM_SYNC %d\n",ERR,SYNC,FMM,SLOT,NUM_ERR,NUM_SYNC); 
+    locdata->last_ddu=SLOT;
+    locdata->last_errs[0]=ERR;
+    locdata->last_errs[1]=SYNC;
+    locdata->last_errs[2]=FMM;
+    locdata->last_count_fmm=NUM_ERR;
+
+
+    // Address=0x001b4000;
+    Address=0x00034000|((SLOT<<19)&0x00f80000);
+    printf(" Address %08lx \n",Address);
+    Data[0]=0xFF;Data[1]=0xFF;
+    CAENVME_ReadCycle(BHandle,Address,Data,AM,DW);
+    status=((Data[1]<<8)&0x7f00)|(Data[0]&0xff);
+    printf(" CSC_Status %02x%02x \n",Data[1]&0xff,Data[0]&0xff);
+    tmp=1;
+    for(j=0;j<15;j++){
+      if(tmp==(status^last_status[irqmap[SLOT-1]])){
+             locdata->last_fiber=j+1;
+	     locdata->sums[irqmap[SLOT-1]][j]=locdata->sums[irqmap[SLOT-1]][j]+1;
+      }
+      tmp=tmp*2;
+    }
+    last_status[irqmap[SLOT-1]]=status;
+    goto LOOP;
+ ENDR: 
+    pthread_exit(NULL);
+}
+
+void VMEController::irq_pthread_start()
+{
+  int t,i,j,err;
+  printf(" about to launch pthreads \n");
+      t=0;
+      irqdata[t].threadid=t;
+      irqdata[t].Handle=VMEController::theBHandle;
+      irqdata[t].exit=0;
+      for(i=0;i<15;i++){
+      for(j=0;j<16;j++)irqdata[t].sums[i][j]=0;
+      }
+      for(j=0;j<3;j++){irqdata[t].errs[j]=0;irqdata[t].last_errs[j]=0;}
+      irqdata[t].count=0;
+      irqdata[t].count_fmm=0;
+      irqdata[t].last_ddu=0;
+      irqdata[t].last_fiber=0;
+      irqdata[t].last_count_fmm=0;
+      err=pthread_create(&threads[t],NULL,(void *(*)(void *))&IRQ_Interrupt_Handler,(void *)&irqdata[t]);
+      if(err){printf(" Error opening thread \n");exit(1);}
+    
+      irq_start=1;
+
+}
+
+int VMEController::irq_tester(int ival)
+{ 
+int word;
+  if(ival==0)word=irqdata[0].last_ddu;
+  if(ival==1)word=irqdata[0].last_errs[0];
+  if(ival==2)word=irqdata[0].last_errs[1];
+  if(ival==3)word=irqdata[0].last_errs[2];
+  if(ival==4)word=irqdata[0].last_count_fmm;
+  if(ival==5)word=irqdata[0].last_fiber;
+  return word;
+}
+
+void VMEController::irq_pthread_info()
+{
+int irqmap_rev[16]={3,4,5,6,7,9,10,11,12,13,14,15,16,18,19,20};
+int i,j;
+  printf("VME INTERRUPT INFORMATION \n");
+    printf("  Last Interrupt: \n");
+    printf("     SLOT %d FIBER %d ERR %d SYNC %d FMM %d  NUM_ERR %d \n",irqdata[0].last_ddu,irqdata[0].last_fiber,irqdata[0].last_errs[0],irqdata[0].last_errs[1],irqdata[0].last_errs[2],irqdata[0].last_count_fmm);  
+    printf("  All Interrupts: \n");
+    for(i=0;i<15;i++){
+      for(j=0;j<16;j++){
+	if(irqdata[0].sums[i][j]!=0)printf(" SLOT %d FIBER %d \n",irqmap_rev[i],j); 
+      }
+    }
+}
+
+void VMEController::irq_pthread_end()
+{
+unsigned long mask=0x00000001;
+
+  CAENVME_IRQDisable(theBHandle,mask);
+  if(irq_start==1){
+      irqdata[0].exit=1;
+      pthread_exit(NULL);
+  }
 }
 
 
 
 
-void VMEController::closeSocket() {
-#ifndef DUMMY
-  close(theSocket);
-#endif
-  theSocket = 0;
+int VMEController::udelay(long int itim)
+{
+  int i,j;
+  for(j=0;j<itim;j++){
+      for(i=0;i<200;i++);
+  }
+  return 0; 
 }
 
 

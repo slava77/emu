@@ -13,15 +13,11 @@
 
 int delay_type;
 char adcreg[5]={0x00,0x0e,0x0d,0x0b,0x07};
-char adcbyt[3][8]={0x89,0x99,0xa9,0xb9,0xc9,0xd9,0xe9,0xf9,0x89,0x99,0xa9,0xb9,0xc9,0xd9,0xe9,0xf9,0x85,0x95,0xa5,0xb5,0xc5,0xd5,0xe5,0xf5};
+char adcbyt[3][8]={{0x89,0x99,0xa9,0xb9,0xc9,0xd9,0xe9,0xf9},{0x89,0x99,0xa9,0xb9,0xc9,0xd9,0xe9,0xf9},{0x85,0x95,0xa5,0xb5,0xc5,0xd5,0xe5,0xf5}};
 
 unsigned short int tird[3]={1,1,3};
 
 int pows(int n,int m);
-
-static int plev=1;
-static int idevo=0;
-static int ucla_ldev;
 
 char *bufvme;
 int cntvme;
@@ -35,19 +31,19 @@ int cntvme_rd;
 void VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd)
 {
   char cmd2[9000];
-  char snd[10];
+  
   char tmp[4];
   int kbit,kbybit;
   char kbypass;
-  char c;
+  
   int ppnt,pcmd,pow2;
-  int idev,i,j,k,m;
+  int idev,i,k,m;
   int ncmd2,nbcmd2,nbuf2;
-  int n,nt1;
-  int nleft,ncnt,max;
+  
+ 
   int init;
-  int ififo;
-  int nbyte;
+  
+
   unsigned short int ishft,temp;
   unsigned long int vmeaddo;
   static int feuse;  
@@ -481,11 +477,11 @@ void VMEController::scan(int reg,const char *snd,int cnt,char *rcv,int ird)
 {
 int i;
 int cnt2;
-int npnt;
+
 int byte,bit;
 unsigned short int tmp[2]={0x0000};
 unsigned short int *data;
-unsigned short int *data2;
+
 unsigned short int *ptr_i;
 unsigned short int *ptr_d;
 unsigned short int *ptr_dh;
@@ -682,7 +678,7 @@ unsigned short int *ptr;
 void  VMEController::scan_reset(int reg,const char *snd, int cnt, char *rcv,int ird)
 {
 int i,j;
-int npnt;
+
 int byte,bit;
 unsigned short int x00[1]={0x00};
 unsigned short int x01[1]={0x01};
@@ -762,14 +758,14 @@ unsigned short int *ptr;
 
 void  VMEController::sleep_vme(const char *outbuf)   // in usecs (min 16 usec)
 {
-unsigned short int pause;
+
 char tmp[1]={0x00};
 unsigned short int tmp2[1]={0x0000};
 unsigned short int *ptr;
 // printf(" outbuf[0-1] %02x %02x \n",outbuf[0]&0xff,outbuf[1]&0xff);
  delay_type=3; 
        tmp2[0]=(outbuf[1]<<8)|outbuf[0];
-       tmp2[0]=tmp2[0]/16.0;
+       tmp2[0]=(unsigned short int)(tmp2[0]/16.0);
        tmp2[0]=tmp2[0]+1;
        vme_controller(6,ptr,tmp2,tmp);
 }
@@ -783,7 +779,7 @@ unsigned short int tmp2[1]={0x0000};
 unsigned short int *ptr;
  delay_type=3;
        tmp_time=time/16.384;
-       itime=tmp_time;
+       itime=(unsigned short int)(tmp_time);
        itime=itime+1;
        tmp2[0]=itime;
        vme_controller(6,ptr,tmp2,tmp);
@@ -798,8 +794,8 @@ unsigned short int *tmp2;
 unsigned short int *ptr;
  delay_type=4;
        tmp_time=time/0.004;
-       itime[0]=tmp_time+1;
-       printf(" time %f tmp_time %f itime %08x \n",time,tmp_time,itime[0]);
+       itime[0]=(unsigned long int)(tmp_time+1);
+       printf(" time %f tmp_time %f itime %08lx \n",time,tmp_time,itime[0]);
        tmp2=(unsigned short int *)itime;
        vme_controller(6,ptr,tmp2,tmp);
 }
@@ -827,15 +823,15 @@ unsigned short int *ptr;
 void VMEController::vmeser(const char *cmd,const char *snd,char *rcv)
 {
  int i;
- int n,nt;
+ int nt;
  short int seri[16]={2,2,0,0,4,6,0,2,0,2,0,0,4,6,0,2};
  unsigned short int icmd;
  unsigned short int iadr;
- char val[6];
+ 
  unsigned long int add_vmesert;
  unsigned short int *ptr;
- unsigned short int *data;
- char *data2,tr;
+ 
+ char tr;
  unsigned short int tmp[1]={0x0000};
  int nrcv;
 /* void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv)
@@ -895,14 +891,14 @@ void VMEController::vmeser(const char *cmd,const char *snd,char *rcv)
 
 void VMEController::vmepara(const char *cmd,const char *snd,char *rcv)
 {
-int n,i,nt;
-unsigned long int add;
+int i,nt;
+
 unsigned long int add_vmepart;
 unsigned short int idev, icmd;
 unsigned short int *ptr;
 unsigned short int *data;
 unsigned short int tmp[1]={0x0000};
-char *data2;
+
  int nrcv;
    icmd=cmd[1]&0x00ff;  //0-127 read, >=128 write
    idev=cmd[0]&0x000f;  //0-7 CMD ignored, >=8 CMD req'd.
@@ -939,10 +935,10 @@ void VMEController::dcc(const char *cmd,char *rcv)
 unsigned long add;
 unsigned short int *ptr;
 unsigned short int *data;
-unsigned short int *data2;
+
 unsigned short int tcmd;
 char c[2];
-int n;
+
 // n = readline(sockfd,cmd,4); 
 // printf(" dcc: cmd %02x %02x %02x %02x \n",cmd[0]&0xff,cmd[1]&0xff,cmd[2]&0xff,cmd[3]&0xff);
  tcmd=cmd[1]<<2;
@@ -971,7 +967,7 @@ int n;
 
 void VMEController::vme_adc(int ichp,int ichn,char *rcv)
 {
- unsigned short int *data;
+ 
  unsigned short int *ptr;
  unsigned short int val[2];
  unsigned short int tmp[2]={0x0000,0x0000}; 
