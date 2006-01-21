@@ -1,57 +1,66 @@
+//-----------------------------------------------------------------------
+// $Id: EmuParser.cc,v 1.2 2006/01/21 19:55:02 gilmore Exp $
+// $Log: EmuParser.cc,v $
+// Revision 1.2  2006/01/21 19:55:02  gilmore
+// *** empty log message ***
+//
+// Revision 2.0  2005/04/12 08:07:05  geurts
+// *** empty log message ***
+//
+//
+//-----------------------------------------------------------------------
 #include "EmuParser.h"
 #include <stdio.h>
 #include <iostream>
 
-using namespace std;
-
-void EmuParser::parseNode(DOMNode * pNode) {
+void EmuParser::parseNode(xercesc::DOMNode * pNode) {
   pAttributes_ = pNode->getAttributes();
   size_ = pAttributes_->getLength();
   #ifdef debugV
-  cout << "   number of attributes = " << size_ << endl;
+  std::cout << "   number of attributes = " << size_ << std::endl;
   #endif
 }
 
-void EmuParser::fillInt(string item, int & target) {
+void EmuParser::fillInt(std::string item, int & target) {
   int value; 
-  XMLCh * name = XMLString::transcode(item.c_str());
-  DOMAttr * pAttributeNode = (DOMAttr*) pAttributes_->getNamedItem(name);
+  XMLCh * name = xercesc::XMLString::transcode(item.c_str());
+  xercesc::DOMAttr * pAttributeNode = (xercesc::DOMAttr*) pAttributes_->getNamedItem(name);
   if(pAttributeNode) {
-    int err = sscanf(XMLString::transcode(pAttributeNode->getNodeValue()), "%d", &value);
-    if (err==0) cerr << "ERRORS in parsing!!!" << item << " code " << err << endl;
+    int err = sscanf(xercesc::XMLString::transcode(pAttributeNode->getNodeValue()), "%d", &value);
+    if (err==0) std::cerr << "ERRORS in parsing!!!" << item << " code " << err << std::endl;
     target = value;
     #ifdef debugV
-    cout << "  " << item << " = " << target << endl;
+    std::cout << "  " << item << " = " << target << std::endl;
     #endif
   }
   
 }
 
 
-void EmuParser::fillString(string item, string & target) {
-  string value;
-  XMLCh * name = XMLString::transcode(item.c_str());
-  DOMAttr * pAttributeNode = (DOMAttr*) pAttributes_->getNamedItem(name);
+void EmuParser::fillString(std::string item, std::string & target) {
+  std::string value;
+  XMLCh * name = xercesc::XMLString::transcode(item.c_str());
+  xercesc::DOMAttr * pAttributeNode = (xercesc::DOMAttr*) pAttributes_->getNamedItem(name);
   if(pAttributeNode) {
-    value = XMLString::transcode(pAttributeNode->getNodeValue());
+    value = xercesc::XMLString::transcode(pAttributeNode->getNodeValue());
     target = value;
     #ifdef debugV
-      cout << "  " << item << " = " << target << endl;
+      std::cout << "  " << item << " = " << target << std::endl;
     #endif
   }
 }
 
 
-void EmuParser::fillFloat(string item, float & target) {
+void EmuParser::fillFloat(std::string item, float & target) {
   float value;
-  XMLCh * name = XMLString::transcode(item.c_str());
-  DOMAttr * pAttributeNode = (DOMAttr*) pAttributes_->getNamedItem(name);
+  XMLCh * name = xercesc::XMLString::transcode(item.c_str());
+  xercesc::DOMAttr * pAttributeNode = (xercesc::DOMAttr*) pAttributes_->getNamedItem(name);
   if(pAttributeNode) {
-    int err = sscanf(XMLString::transcode(pAttributeNode->getNodeValue()), "%f", &value);
-    if (err==0) cerr << "ERRORS in parsing!!!" << item << " code " << err << endl;
+    int err = sscanf(xercesc::XMLString::transcode(pAttributeNode->getNodeValue()), "%f", &value);
+    if (err==0) std::cerr << "ERRORS in parsing!!!" << item << " code " << err << std::endl;
     target = value;
     #ifdef debugV
-      cout << "  " << item << " = " << target << endl;
+      std::cout << "  " << item << " = " << target << std::endl;
     #endif
   }
 }

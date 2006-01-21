@@ -1,7 +1,7 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 1.1 2005/08/31 18:20:32 gilmore Exp $
+// $Id: VMEModule.cc,v 1.2 2006/01/21 19:55:02 gilmore Exp $
 // $Log: VMEModule.cc,v $
-// Revision 1.1  2005/08/31 18:20:32  gilmore
+// Revision 1.2  2006/01/21 19:55:02  gilmore
 // *** empty log message ***
 //
 // Revision 1.23  2004/07/22 18:52:38  tfcvs
@@ -62,6 +62,16 @@ void VMEModule::endDevice() {
   theController->end();
 }
 
+ 
+int VMEModule::CAEN_read(unsigned long Address,unsigned short int *data){
+  theController->start(this);
+  return theController->CAEN_read(Address,data);
+}
+
+int VMEModule::CAEN_write(unsigned long Address,unsigned short int *data){
+  theController->start(this);
+  return theController->CAEN_write(Address,data);
+}
 
 void VMEModule::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,
                      const char *inbuf,char *outbuf,int irdsnd) {
@@ -151,6 +161,44 @@ void VMEModule::vme_adc(int ichp,int ichn,char *rcv)
 {
   theController->start(this);
   theController->vme_adc(ichp,ichn,rcv);
+}
+
+
+void VMEModule::irq_pthread_start()
+{
+  theController->start(this);
+  theController->irq_pthread_start();
+}
+
+int VMEModule::irq_tester(int ival)
+{
+  theController->start(this);
+  return theController->irq_tester(ival);
+}
+
+void VMEModule::irq_pthread_info()
+{
+  theController->start(this);
+  theController->irq_pthread_info();
+
+}
+
+void VMEModule::irq_pthread_end()
+{
+  theController->start(this);
+  theController->irq_pthread_end();
+}
+
+int VMEModule::CAEN_err()
+{
+  theController->start(this);
+  return theController->caen_err;
+}
+
+void VMEModule::CAEN_err_reset()
+{
+  theController->start(this);
+  theController->caen_err=0;
 }
 
 VMEController* VMEModule::getTheController(){

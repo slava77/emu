@@ -1,8 +1,8 @@
 
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.cc,v 1.1 2005/08/31 18:20:32 gilmore Exp $
+// $Id: FEDCrateParser.cc,v 1.2 2006/01/21 19:55:02 gilmore Exp $
 // $Log: FEDCrateParser.cc,v $
-// Revision 1.1  2005/08/31 18:20:32  gilmore
+// Revision 1.2  2006/01/21 19:55:02  gilmore
 // *** empty log message ***
 //
 // Revision 1.21  2004/07/19 19:37:57  tfcvs

@@ -9,7 +9,7 @@
 
 Crate::Crate(int number, VMEController * controller) : 
   theNumber(number),  
-  theModules(24),
+  theModules(31),
   theController(controller) 
 {
   Singleton<CrateSetup>::instance()->addCrate(number, this);
@@ -47,3 +47,29 @@ vector<DCC *> Crate::dccs() const {
   return result;
 }
 
+void Crate::enable() {
+  //
+  std::cout << "Crate::enable called " << std::endl;
+}
+
+//
+void Crate::disable() {
+  //
+  std::cout << "Crate::disable called " << std::endl;
+  //
+}
+//
+void Crate::configure() {
+  //
+  
+  printf(" Crate::configure is called \n");
+  std::vector<DDU*> myDdus = this->ddus();
+  for(unsigned i =0; i < myDdus.size(); ++i) {
+    myDdus[i]->configure();
+  }
+  myDdus[0]->vmeirq();
+  std::vector<DCC*> myDccs = this->dccs();
+  for(unsigned i =0; i < myDccs.size(); ++i) {
+    myDccs[i]->configure();
+  }
+}
