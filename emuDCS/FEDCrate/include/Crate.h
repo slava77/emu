@@ -4,6 +4,7 @@
 using namespace std;
 #include <vector>
 #include <iostream>
+
 class VMEModule;
 class VMEController;
 class DDU;
@@ -23,6 +24,11 @@ public:
   /// uses RTTI to find types
   vector<DDU *> ddus() const;
   vector<DCC *> dccs() const;
+
+  void enable();
+  void disable();
+  void configure();
+
 private:
 
   template<class T> T * findBoard() const

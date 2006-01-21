@@ -1,8 +1,8 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 1.1 2005/08/31 18:26:19 gilmore Exp $
+// $Id: VMEController.h,v 1.2 2006/01/21 20:20:14 gilmore Exp $
 // $Log: VMEController.h,v $
-// Revision 1.1  2005/08/31 18:26:19  gilmore
-// First try for FED Crate includes.
+// Revision 1.2  2006/01/21 20:20:14  gilmore
+// *** empty log message ***
 //
 // Revision 1.14  2004/07/22 18:52:38  tfcvs
 // added accessor functions for DCS integration
@@ -19,35 +19,19 @@ class VMEModule;
 class Crate;
 #include "JTAG_constants.h"
 #include <string>
-#include <arpa/inet.h>
-
-
-/* ioctl's for schar. */
-#define EMULATOR 0    // set to one for D360 emulator
-#define SCHAR_IOCTL_BASE	0xbb
-#define SCHAR_RESET     	_IO(SCHAR_IOCTL_BASE, 0)
-#define SCHAR_END		_IOR(SCHAR_IOCTL_BASE, 1, 0)
-#define SCHAR_BLOCKON		_IOR(SCHAR_IOCTL_BASE, 2, 0)
-#define SCHAR_BLOCKOFF		_IOR(SCHAR_IOCTL_BASE, 3, 0)
-#define SCHAR_DUMPON		_IOR(SCHAR_IOCTL_BASE, 4, 0)
-#define SCHAR_DUMPOFF		_IOR(SCHAR_IOCTL_BASE, 5, 0)
-
 
 
 class VMEController {
 public:
-  VMEController(string ipAddr, int port);
+  VMEController(int Device, int Link);
   ~VMEController();
 
   enum ENDIAN {SWAP, NOSWAP};
   enum {MAXLINE = 70000};
   
 
-  int openSocket();
-  void closeSocket();
-
-  string ipAddress() const {return ipAddress_;}
-  int port() const {return port_;}
+  int Device() const {return Device_;}
+  int Link() const {return Link_;}
 
   /// if not current modules, it stops current and starts new
   /// this base routine sends a signal consisting of the
@@ -76,27 +60,33 @@ void flush_vme();
  void dcc(const char *cmd,char *rcv);
  void vme_adc(int ichp,int ichn,char *rcv);
  void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
- void dump_outpacket(int nvme);
- int eth_read();
-int eth_write();
- int eth_enableblock(void);
- int eth_disableblock(void);
- void get_macaddr();
+void CAEN_close(void);
+int CAEN_reset(void);
+int CAEN_read(unsigned long Address,unsigned short int *data);
+int CAEN_write(unsigned long Address,unsigned short int *data);
+  // IRQ VME Interrupts
+static void *IRQ_Interrupt_Handler(void *threadarg);
+void irq_pthread_start();
+void irq_pthread_end();
+void irq_pthread_info();
+int irq_tester(int ival);
+
+ int udelay(long int itim);
  void sdly();
  void initDevice(int a);
   // EPROM reprogramming (EXPERTS ONLY !)
   void epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum);
   void Parse(char *buf,int *Count,char **Word);
-
+  long int theBHandle;
+  int caen_err;
  
   VMEModule* getTheCurrentModule();
 
 private:
-  int theSocket;
-  string ipAddress_;
-  int port_;
+  
+  int Device_;
+  int Link_;
   VMEModule * theCurrentModule;
-  sockaddr_in serv_addr;
   const ENDIAN indian;
   int idevo;
   int feuseo;

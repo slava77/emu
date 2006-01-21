@@ -25,15 +25,15 @@ public:
   virtual unsigned int boardType() const {return DCC_ENUM;}
   virtual void end();
 
+  int fifoinuse_;
+
   void configure();
 
    // DCC commands 
   unsigned long int inprom_userid();
-  unsigned long int m1prom_userid();
-  unsigned long int m2prom_userid();
+  unsigned long int mprom_userid();
   unsigned long int inprom_chipid();
-  unsigned long int m1prom_chipid();
-  unsigned long int m2prom_chipid();
+  unsigned long int mprom_chipid();
   void inpromuser(enum DEVTYPE devnum,char *c);
   void mctrl_bxr();
   void mctrl_evnr();
@@ -42,13 +42,15 @@ public:
   void mctrl_reg(char *c);
   unsigned short int  mctrl_stath();
   unsigned short int  mctrl_statl();
+  unsigned short int  mctrl_rd_fifoinuse();
+  unsigned short int  mctrl_rd_ttccmd();
   void mctrl_ttccmd(unsigned short int ctcc);
 
   // EPROM reprogramming (EXPERTS ONLY !)
+  void hdrst_main(void);
+  void hdrst_in(void);
   void epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum);
   void Parse(char *buf,int *Count,char **Word);
-  void prgmgprom(char *buf);
-  void prginprom(char *buf);
 
   /// sends commands by name
   void executeCommand(string command);
