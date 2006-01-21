@@ -1,0 +1,22 @@
+<EmuSystem>
+
+<!-- start of 1st crate -->
+  <FEDCrate Crate="0">
+
+    <VME crate="0" Device="0" Link="0">
+    </VME>
+    <DDU slot="4"
+       gbe_prescale="1"
+       vmeirq_start="0" >
+    </DDU>
+    <DDU slot="28">
+    </DDU>
+    <DCC slot="8" 
+        fifoinuse="255" >
+    </DCC>
+    <DCC slot="22">
+    </DCC>
+ </FEDCrate>
+
+</EmuSystem>
+
