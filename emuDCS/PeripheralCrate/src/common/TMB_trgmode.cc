@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_trgmode.cc,v 2.4 2005/09/22 12:54:52 mey Exp $
+// $Id: TMB_trgmode.cc,v 2.5 2006/01/23 14:21:59 mey Exp $
 // $Log: TMB_trgmode.cc,v $
+// Revision 2.5  2006/01/23 14:21:59  mey
+// Update
+//
 // Revision 2.4  2005/09/22 12:54:52  mey
 // Update
 //
@@ -39,32 +42,32 @@ void TMB::trgmode(int choice)
   //int ierr;
 
   // Read address back
-  tmb_vme(VME_READ, TMB_ADR_RPC_CFG ,sndbuf,rcvbuf, NOW); 
+  tmb_vme(VME_READ, rpc_cfg_adr ,sndbuf,rcvbuf, NOW); 
   sndbuf[0]=rcvbuf[0];
   sndbuf[1]=rcvbuf[1] & 0xf0 | rpc_exists_ & 0x0f ;
   // Change address
-  tmb_vme(VME_WRITE, TMB_ADR_RPC_CFG ,sndbuf,rcvbuf, NOW); 
+  tmb_vme(VME_WRITE, rpc_cfg_adr ,sndbuf,rcvbuf, NOW); 
 
   sndbuf[0]=0;
   sndbuf[1]=0;
-  tmb_vme(VME_WRITE, vme_phos4e_adr ,sndbuf,rcvbuf, NOW); 
+  tmb_vme(VME_WRITE, vme_ratctrl_adr ,sndbuf,rcvbuf, NOW); 
   
   // Read address back
-  tmb_vme(VME_READ, TMB_ADR_LOOPBK ,sndbuf,rcvbuf, NOW); 
+  tmb_vme(VME_READ, vme_loopbk_adr ,sndbuf,rcvbuf, NOW); 
   sndbuf[0]=rcvbuf[0];
   sndbuf[1]=rcvbuf[1] & 0xfb | (ALCT_input_ << 2) ;
   printf(" ALCT_input %d \n",ALCT_input_);
   printf(" Setting ALCT input to %x %x \n",sndbuf[0],sndbuf[1]);
   // Change address
-  tmb_vme(VME_WRITE, TMB_ADR_LOOPBK ,sndbuf,rcvbuf, NOW); 
+  tmb_vme(VME_WRITE, vme_loopbk_adr ,sndbuf,rcvbuf, NOW); 
 
   // Read address back
-  tmb_vme(VME_READ, TMB_ADR_CCB_TRIG ,sndbuf,rcvbuf, NOW); 
+  tmb_vme(VME_READ, ccb_trig_adr ,sndbuf,rcvbuf, NOW); 
   sndbuf[0]=rcvbuf[0];
   sndbuf[1]=0;
   printf(" Disabling L1a_request %x %x \n",sndbuf[0],sndbuf[1]);
   // Change address
-  tmb_vme(VME_WRITE, TMB_ADR_CCB_TRIG ,sndbuf,rcvbuf, NOW); 
+  tmb_vme(VME_WRITE, ccb_trig_adr ,sndbuf,rcvbuf, NOW); 
 
 
   // Read address back
@@ -114,7 +117,7 @@ void TMB::trgmode(int choice)
     sndbuf[1]=0x10; 
   }
   printf("TRGMODE %x %x %x" , 0x68, sndbuf[0], sndbuf[1]); 
-  tmb_vme(VME_WRITE,TMB_ADR_SEQ_TRIG,sndbuf,rcvbuf,NOW); // Sequencer Trigger Source
+  tmb_vme(VME_WRITE,seq_trig_en_adr,sndbuf,rcvbuf,NOW); // Sequencer Trigger Source
 
 //ALCT match window size and pulse delay settings ...
   sndbuf[0] = mpc_tx_delay_ & 0xf;
