@@ -55,7 +55,6 @@ bool TMBTester::runAllTests() {
 
   bool bootRegOK = testBootRegister();
   bool VMEfpgaDataRegOK = testVMEfpgaDataRegister();
-  bool SlotOK = testFirmwareSlot();
   bool DateOK = testFirmwareDate();
   bool TypeOK = testFirmwareType();
   bool VersionOK = testFirmwareVersion();
@@ -71,7 +70,6 @@ bool TMBTester::runAllTests() {
 
   messageOK("Boot Register............. ",bootRegOK);
   messageOK("VME FPGA Data Register.... ",VMEfpgaDataRegOK);
-  messageOK("TMB Slot.................. ",SlotOK);
   messageOK("TMB Firmware date......... ",DateOK);
   messageOK("TMB Firmware type......... ",TypeOK);
   messageOK("TMB Firmware Version...... ",VersionOK);
@@ -85,7 +83,6 @@ bool TMBTester::runAllTests() {
 
   AllOK = (bootRegOK &&
 	   VMEfpgaDataRegOK &&
-           SlotOK &&
 	   DateOK &&
 	   TypeOK &&
            VersionOK &&
@@ -620,7 +617,6 @@ bool TMBTester::testADC(){
   std::cout << "TMBTester: Checking ADC and status" << std::endl;
 
   bool testOK = false;
-  int dummy;
 
   // Voltage status bits...
   int voltage_status = tmb_->PowerComparator();
@@ -674,11 +670,11 @@ bool TMBTester::testADC(){
   bool vrefOK     = compareValues("+vref          ",vref    ,4.095,0.001);
 
   float atol = 0.16;
-  bool a5p0OK     = compareValues("+5.0A TMB      ",a5p0    ,0.245,atol);
-  bool a3p3OK     = compareValues("+3.3A TMB      ",a3p3    ,1.260,atol);
-  bool a1p5coreOK = compareValues("+1.5A TMB Core ",a1p5core,0.095,atol);
-  bool a1p5ttOK   = compareValues("+1.5A TT       ",a1p5tt  ,0.030,atol*1.5);
-  bool a1p8ratOK  = compareValues("+1.8A RAT Core ",a1p8rat ,0.030,atol*5.0);
+  //  bool a5p0OK     = compareValues("+5.0A TMB      ",a5p0    ,0.245,atol);
+  //  bool a3p3OK     = compareValues("+3.3A TMB      ",a3p3    ,1.260,atol);
+  //  bool a1p5coreOK = compareValues("+1.5A TMB Core ",a1p5core,0.095,atol);
+  //  bool a1p5ttOK   = compareValues("+1.5A TT       ",a1p5tt  ,0.030,atol*1.5);
+  //  bool a1p8ratOK  = compareValues("+1.8A RAT Core ",a1p8rat ,0.030,atol*5.0);
 
   //  float t_local_f_tmb = tmb_temp(0x00,1);               // local temperature command, TMB)
   //  float t_remote_f_tmb = tmb_temp(0x01,1);              // remote temperature command, TMB)
@@ -697,17 +693,17 @@ bool TMBTester::testADC(){
 	    v1p8ratOK  &&
 	    vref2OK    &&
 	    vzeroOK    &&
-	    vrefOK     &&
-	    a5p0OK     &&
-	    a3p3OK     &&
-	    a1p5coreOK &&
-	    a1p5ttOK   &&
-	    a1p8ratOK  );//&&
+	    vrefOK     );//&&
+  //	    a5p0OK     &&
+  //	    a3p3OK     &&
+  //	    a1p5coreOK &&
+  //	    a1p5ttOK   &&
+  //	    a1p8ratOK  );//&&
 	    //	    tlocalOK   &&
 	    //	    tremoteOK  );
 
   messageOK("ADC voltages and temperatures",testOK);
-  dummy = sleep(3);
+  int dummy = sleep(3);
   return testOK;
 }
 
