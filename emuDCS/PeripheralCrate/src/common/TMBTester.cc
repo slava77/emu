@@ -594,7 +594,7 @@ bool TMBTester::testDSN(int BoardType){
   std::bitset<64> dsn;
 
   // get the digital serial number
-  dsn = dsnRead(BoardType);
+  dsn = tmb_->dsnRead(BoardType);
 
   // compute the CRC
   int crc = dowCRC(dsn);
@@ -645,7 +645,7 @@ bool TMBTester::testADC(){
 
   float adc_voltage[13];
 
-  ADCvoltages(adc_voltage);
+  tmb_->ADCvoltages(adc_voltage);
 
   float v5p0	=adc_voltage[0];	      
   float	v3p3	=adc_voltage[1];
@@ -726,12 +726,11 @@ bool TMBTester::test3d3444(){
 
   for (device=0; device<=11; device++){
 
-    initial_data=tmb_read_delays(device);   //initial value of delays
+    initial_data=tmb_->tmb_read_delays(device);   //initial value of delays
 
     for (ddd_delay=0; ddd_delay<=15; ddd_delay++ ) {
-      //      tmb_->tmb_clk_delays(ddd_delay,device);              
-      rat_clk_delays(ddd_delay,device);              
-      delay_data=tmb_read_delays(device);
+      tmb_->tmb_clk_delays(ddd_delay,device);              
+      delay_data=tmb_->tmb_read_delays(device);
       tempbool &= compareValues("delay values ",delay_data,ddd_delay,true);
     }
 
@@ -797,7 +796,7 @@ void TMBTester::RatTmbDelayScan(){
   tmb_->WriteRegister(rpc_inj_adr,write_data);
 
   //Initial delay values:
-  int rpc_delay_default = tmb_read_delays(8);
+  int rpc_delay_default = tmb_->tmb_read_delays(8);
 
   int irat;
 
@@ -815,9 +814,7 @@ void TMBTester::RatTmbDelayScan(){
       count_bad=0;
 
       // ** write the delay to the RPC **
-      //NOTE:  The following should be replaced by tmb_->tmb_clk_delays(value,setting)
-      //once new_clk_delays has been updated to the following, which includes the RPC
-      rat_clk_delays(ddd_delay,8);
+      tmb_->tmb_clk_delays(ddd_delay,8);
 
       // ** read RAT 80MHz demux registers**
       for (irat=0; irat<=3; irat++) {
@@ -855,7 +852,7 @@ void TMBTester::RatTmbDelayScan(){
 
   // Put RPC delay back to initial values:
   std::cout << "Putting delay values back to " << rpc_delay_default << std::endl;
-  rat_clk_delays(rpc_delay_default,8);
+  tmb_->tmb_clk_delays(rpc_delay_default,8);
 
   // ** Take TMB out of sync mode **
   write_data = 0x0002;
@@ -1822,494 +1819,6 @@ void TMBTester::tmb_end() {
 /////////////////////////////////////
 // The following should be in TMB: //
 /////////////////////////////////////
-std::bitset<64> TMBTester::dsnRead(int type) {
-  //type = 0 = TMB
-  //     = 1 = Mezzanine DSN
-  //     = 2 = RAT DSN
-
-  std::bitset<64> dsn;
-
-  int offset;
-  offset = type*5; 
-
-  int wr_data, rd_data;
-
-  int initial_state;
-  // ** need to specifically enable RAT to read back DSN **
-  if (type == 2) {  
-    initial_state = tmb_->ReadRegister(vme_ratctrl_adr);  //initial RAT state
-
-    wr_data = initial_state & 0xfffd;    //0=sync_mode, 1=posneg, 2=loop_tmb, 3=free_tx0, 4=dsn enable
-    wr_data |= 0x0010;                   //enable the dsn bit
-
-    tmb_->WriteRegister(vme_ratctrl_adr,wr_data);
-  }
-
-  int i;
-  int idata;
-
-  // init pulse >480usec
-  wr_data = 0x0005; 
-  wr_data <<= offset; //send it to correct component
-  rd_data = dsnIO(wr_data);
-
-  // ROM Read command = serial 0x33:
-  for (i=0; i<=7; i++) {
-    idata = (0x33>>i) & 0x1;
-    wr_data = (idata<<1) | 0x1; //send "serial write pulse" with "serial SM start"
-    wr_data <<= offset; 
-    rd_data = dsnIO(wr_data);
-  }
-
-  // Read 64 bits of ROM data = 0x3 64 times
-  for (i=0; i<=63; i++) {
-    wr_data = 0x0003; 
-    wr_data <<= offset;
-    rd_data = dsnIO(wr_data);
-
-    // pack data into dsn[]
-    dsn[i] = (rd_data >> (4+offset)) & 0x1;
-  }
-
-  // ** Return the RAT to its initial state **
-  if (type == 2) {
-    tmb_->WriteRegister(vme_ratctrl_adr,initial_state);
-  }
-
-  return dsn;
-}
-
-int TMBTester::dsnIO(int writeData){
-  //Single I/O cycle for Digital Serial Number...
-  //called by dsnRead...
-
-  int adr = vme_dsn_adr;
-  int readData;
-
-  // write the desired data word:
-  tmb_->WriteRegister(adr,writeData);
-
-  int tmb_busy,mez_busy,rat_busy;
-  int busy = 1;
-  int nbusy = 1;
-
-  while (busy) {
-    readData = tmb_->ReadRegister(adr);
-    
-    // check busy on all components:
-    tmb_busy = (readData>>3) & 0x1;
-    mez_busy = (readData>>8) & 0x1;
-    rat_busy = (readData>>13) & 0x1;
-    busy = tmb_busy | mez_busy | rat_busy;
-
-    if (nbusy%1000 == 0) {
-      std::cout << "dsnIO: DSN state machine busy, nbusy = "
-                << nbusy << ", readData = " 
-		<< std::hex << readData << std::endl;  
-    }
-    nbusy++;
-  }
-
-  // end previous cycle
-  tmb_->WriteRegister(adr,0x0000);
-
-  return readData;
-}
-
-void TMBTester::ADCvoltages(float * voltage){
-
-  //Read the ADC of the voltage values ->
-  //voltage[0] = +5.0V TMB
-  //       [1] = +3.3V TMB
-  //       [2] = +1.5V core
-  //       [3] = +1.5V TT
-  //       [4] = +1.0V TT
-  //       [5] = +5.0V Current (A) TMB
-  //       [6] = +3.3V Current (A) TMB
-  //       [7] = +1.5V core Current (A) TMB
-  //       [8] = +1.5V TT Current (A) TMB
-  //       [9] = if SH921 set 1-2, +1.8V RAT current (A)
-  //           = if SH921 set 2-3, +3.3V RAT
-  //      [10] = +1.8V RAT core
-  //      [11] = reference Voltage * 0.5
-  //      [12] = ground (0V)
-  //      [13] = reference voltage (= ADC maximized)
-
-  int adc_dout;                      //Voltage monitor ADC serial data receive
-  int adc_sclock;                    //Voltage monitor ADC serial clock
-  int adc_din;                       //Voltage monitor ADC serial data transmit
-  int adc_cs;                        //Voltage monitor ADC chip select
-
-  int adc_shiftin;
-  int iclk;
-
-  int write_data, read_data;
-
-  for (int ich=0; ich<=14; ich++){
-    adc_dout = 0;
-
-    adc_din    = 0;
-    adc_sclock = 0;
-    adc_cs     = 1;
-
-    write_data = 0;
-    write_data |= (adc_sclock << 6);  
-    write_data |= (adc_din    << 7);  
-    write_data |= (adc_cs     << 8);  
-
-    tmb_->WriteRegister(vme_adc_adr,write_data);
-
-    adc_shiftin = ich << 4;      //d[7:4]=channel, d[3:2]=length, d[1:0]=ldbf,bip
-    if (ich >= 14) adc_shiftin = 0;  //don't send channel 14, it is power-down
-
-    //put adc_shiftin serially in 11 vme writes
-    for (iclk=0; iclk<=11; iclk++){
-
-      if (iclk <= 7) {
-	adc_din = (adc_shiftin >> (7-iclk)) & 0x1;
-      } else {
-	adc_din = 0;
-      }
-      adc_sclock = 0;
-      adc_cs     = 0;
-
-      write_data = 0;
-      write_data |= (adc_sclock << 6);  
-      write_data |= (adc_din    << 7);  
-      write_data |= (adc_cs     << 8);  
-      
-      tmb_->WriteRegister(vme_adc_adr,write_data);
-
-      adc_sclock = 1;
-      adc_cs     = 0;
-
-      write_data = 0;
-      write_data |= (adc_sclock << 6);  
-      write_data |= (adc_din    << 7);  
-      write_data |= (adc_cs     << 8);  
-      
-      tmb_->WriteRegister(vme_adc_adr,write_data);
-
-      read_data = (tmb_->PowerComparator() >> 5) & 0x1;
-
-      //pack output into adc_dout
-      adc_dout |= (read_data << (11-iclk));
-    }
-
-    adc_din    = 0;
-    adc_sclock = 0;
-    adc_cs     = 1;
-
-    write_data = 0;
-    write_data |= (adc_sclock << 6);  
-    write_data |= (adc_din    << 7);  
-    write_data |= (adc_cs     << 8);  
-
-    tmb_->WriteRegister(vme_adc_adr,write_data);
-
-    if (ich>=1) {
-      voltage[ich-1] = ((float) adc_dout / 4095.)*4.095; //convert adc value to volts
-    }
-
-  }
-
-  voltage[0] *= 2.0;                      // 1V/2V
-  voltage[5] /= 0.2;                      // 200mV/Amp
-  voltage[6] /= 0.2;                      // 200mV/Amp
-  voltage[7] /= 0.2;                      // 200mV/Amp
-  voltage[8] /= 0.2;                      // 200mV/Amp
-  voltage[9] /= 0.2;                      // 200mV/Amp if SH921 set 1-2, else comment out line
-
-  return;
-}
-
-
-int TMBTester::tmb_read_delays(int device) {
-
-  int data;
-
-  // device = 0  = CFEB 0 Clock
-  //        = 1  = CFEB 1 clock
-  //        = 2  = CFEB 2 clock
-  //        = 3  = CFEB 3 clock
-  //        = 4  = CFEB 4 clock
-  //        = 5  = ALCT rx clock
-  //        = 6  = ALCT tx clock
-  //        = 7  = DMB tx clock
-  //        = 8  = RPC clock
-  //        = 9  = TMB1 clock
-  //        = 10 = MPC clock
-  //        = 11 = DCC clock (CFEB duty cycle correction)
-
-  if (device==0) data = (tmb_->ReadRegister(0x18)>>12) & 0xf; 
-  if (device==1) data = (tmb_->ReadRegister(0x1a)>> 0) & 0xf; 
-  if (device==2) data = (tmb_->ReadRegister(0x1a)>> 4) & 0xf; 
-  if (device==3) data = (tmb_->ReadRegister(0x1a)>> 8) & 0xf; 
-  if (device==4) data = (tmb_->ReadRegister(0x1a)>>12) & 0xf; 
-  if (device==5) data = (tmb_->ReadRegister(0x16)>> 4) & 0xf; 
-  if (device==6) data = (tmb_->ReadRegister(0x16)>> 0) & 0xf; 
-  if (device==7) data = (tmb_->ReadRegister(0x16)>> 8) & 0xf; 
-  if (device==8) data = (tmb_->ReadRegister(0x16)>>12) & 0xf; 
-  if (device==9) data = (tmb_->ReadRegister(0x18)>> 0) & 0xf; 
-  if (device==10) data =(tmb_->ReadRegister(0x18)>> 4) & 0xf; 
-  if (device==11) data =(tmb_->ReadRegister(0x18)>> 8) & 0xf; 
-
-  return data;
-}
-
-void TMBTester::rat_clk_delays(unsigned short int time,int cfeb_id)
-{
-  // device = 0  = CFEB 0 Clock
-  //        = 1  = CFEB 1 clock
-  //        = 2  = CFEB 2 clock
-  //        = 3  = CFEB 3 clock
-  //        = 4  = CFEB 4 clock
-  //        = 5  = ALCT rx clock
-  //        = 6  = ALCT tx clock
-  //        = 7  = DMB tx clock
-  //        = 8  = RPC clock
-  //        = 9  = TMB1 clock
-  //        = 10 = MPC clock
-  //        = 11 = DCC clock (CFEB duty cycle correction)
-  //        = 1000 = CFEB [0-5] Clock (all CFEB's)
-
-  //GREG, take these out of here when it goes back in place of new_clk_delays:
-  enum WRT { LATER, NOW };
-  char sndbuf[2],rcvbuf[2];
-
-  //int ierr;
-int iloop;
- iloop=0;
-  printf(" here write to delay registers \n");
-  if ( cfeb_id == 0 ) {
-    tmb_->tmb_vme(0x01,0x18,sndbuf,rcvbuf,NOW);
-    sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
-    sndbuf[1]=rcvbuf[1];
-    tmb_->tmb_vme(0x02,0x18,sndbuf,rcvbuf,NOW);
-  } 
-  if ( cfeb_id == 1 ) {
-    tmb_->tmb_vme(0x01,0x1A,sndbuf,rcvbuf,NOW);
-    sndbuf[0]=rcvbuf[0];
-    sndbuf[1]=(time&0x0f)|(rcvbuf[1]&0xf0);
-    tmb_->tmb_vme(0x02,0x1A,sndbuf,rcvbuf,NOW);
-  } 
-  if ( cfeb_id == 2 ) {
-    tmb_->tmb_vme(0x01,0x1A,sndbuf,rcvbuf,NOW);
-    sndbuf[0]=rcvbuf[0];
-    sndbuf[1]=(((time&0x0f)<<4)&0xf0)|(rcvbuf[1]&0x0f);
-    tmb_->tmb_vme(0x02,0x1A,sndbuf,rcvbuf,NOW);
-  } 
-  if ( cfeb_id == 3 ) {
-    tmb_->tmb_vme(0x01,0x1A,sndbuf,rcvbuf,NOW);
-    sndbuf[0]=(time&0x0f)|(rcvbuf[0]&0xf0);
-    sndbuf[1]=rcvbuf[1];
-    tmb_->tmb_vme(0x02,0x1A,sndbuf,rcvbuf,NOW);
-  } 
-  if ( cfeb_id == 4 ) {
-    tmb_->tmb_vme(0x01,0x1A,sndbuf,rcvbuf,NOW);
-    sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
-    sndbuf[1]=rcvbuf[1];
-    tmb_->tmb_vme(0x02,0x1A,sndbuf,rcvbuf,NOW);
-  } 
-  if ( cfeb_id == 5 ) {
-    tmb_->tmb_vme(0x01,0x16,sndbuf,rcvbuf,NOW);
-    sndbuf[0]=rcvbuf[0];
-    sndbuf[1]=(((time&0x0f)<<4)&0xf0)|(rcvbuf[1]&0x0f);
-    tmb_->tmb_vme(0x02,0x16,sndbuf,rcvbuf,NOW);
-  } 
-  if ( cfeb_id == 6 ) {
-    tmb_->tmb_vme(0x01,0x16,sndbuf,rcvbuf,NOW);
-    sndbuf[0]=rcvbuf[0];
-    sndbuf[1]=(time&0x0f)|(rcvbuf[1]&0xf0);
-    tmb_->tmb_vme(0x02,0x16,sndbuf,rcvbuf,NOW);
-  } 
-  if ( cfeb_id == 7 ) {
-    tmb_->tmb_vme(0x01,0x16,sndbuf,rcvbuf,NOW);
-    sndbuf[0]=(time&0x0f)|(rcvbuf[0]&0xf0);
-    sndbuf[1]=rcvbuf[1];
-    tmb_->tmb_vme(0x02,0x16,sndbuf,rcvbuf,NOW);
-  } 
-  if ( cfeb_id == 8 ) {
-    tmb_->tmb_vme(0x01,0x16,sndbuf,rcvbuf,NOW);
-    sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
-    sndbuf[1]=rcvbuf[1];
-    tmb_->tmb_vme(0x02,0x16,sndbuf,rcvbuf,NOW);
-  } 
-  if ( cfeb_id == 9 ) {
-    tmb_->tmb_vme(0x01,0x18,sndbuf,rcvbuf,NOW);
-    sndbuf[0]=rcvbuf[0];
-    sndbuf[1]=(time&0x0f)|(rcvbuf[1]&0xf0);
-    tmb_->tmb_vme(0x02,0x18,sndbuf,rcvbuf,NOW);
-  } 
-  if ( cfeb_id == 10 ) {
-    tmb_->tmb_vme(0x01,0x18,sndbuf,rcvbuf,NOW);
-    sndbuf[0]=rcvbuf[0];
-    sndbuf[1]=(((time&0x0f)<<4)&0xf0)|(rcvbuf[1]&0x0f);
-    tmb_->tmb_vme(0x02,0x18,sndbuf,rcvbuf,NOW);
-  } 
-  if ( cfeb_id == 11 ) {
-    tmb_->tmb_vme(0x01,0x18,sndbuf,rcvbuf,NOW);
-    sndbuf[0]=(time&0x0f)|(rcvbuf[0]&0xf0);
-    sndbuf[1]=rcvbuf[1];
-    tmb_->tmb_vme(0x02,0x18,sndbuf,rcvbuf,NOW);
-  } 
-  if ( cfeb_id == 1000 ) {
-    tmb_->tmb_vme(0x01,0x18,sndbuf,rcvbuf,NOW);
-    sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
-    sndbuf[1]=rcvbuf[1];
-    tmb_->tmb_vme(0x02,0x18,sndbuf,rcvbuf,NOW);
-    sndbuf[1]=(time&0x0f)|(((time&0xf)<<4)&0xf0);
-    sndbuf[0]=(time&0x0f)|(((time&0xf)<<4)&0xf0);
-    tmb_->tmb_vme(0x02,0x1A,sndbuf,rcvbuf,NOW);
-  } 
-
-  sndbuf[0]=0x0;
-  sndbuf[1]=0x20;
-  tmb_->tmb_vme(0x02,0x14,sndbuf,rcvbuf,NOW);
-  tmb_->tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
-  //
-  sndbuf[0]=0x0;
-  sndbuf[1]=0x21;
-  tmb_->tmb_vme(0x02,0x14,sndbuf,rcvbuf,NOW);
-  tmb_->tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
-  //
-  sndbuf[0]=0x0;
-  sndbuf[1]=0x20;
-  tmb_->tmb_vme(0x02,0x14,sndbuf,rcvbuf,NOW);
-  tmb_->tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
-  //
-  while ( ((rcvbuf[1]>>6)&(0x1)) ){
-    //
-    tmb_->tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
-    printf("______________ check state machine1 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
-    //
-  }
-
-  printf("______________ check state machine1 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
-
-  while((rcvbuf[1]&0x40)!=0x00){
-    iloop++;
-    if(iloop>10){
-      printf(" tmb_clk_delays: loop count exceeded so quit \n");
-      return;
-    }
-    tmb_->tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
-  }
-  //
-  sndbuf[0]=rcvbuf[0];
-  sndbuf[1]=rcvbuf[1]&0xfe;
-  //
-  tmb_->tmb_vme(0x02,0x14,sndbuf,rcvbuf,NOW);
-  tmb_->tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
-  //
-  while ( ((rcvbuf[1]>>6)&(0x1)) ){
-    tmb_->tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
-    printf(" *** check state machine2 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
-  }
-  //
-  if((rcvbuf[1]&0x80)!=0x80){
-    printf(" *** check state machine2 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
-    printf(" tmb_clk_delays: something is wrong. Can NOT be verified \n");
-    return;
-  }
-
-  /* removed for new TMB delay chip
-int ierr;
-int iloop;
- iloop=0;
-  //start(1); 
-  printf(" write to delay registers \n");
-  if ( cfeb_id == 0 ) {
-    tmb_vme(VME_READ,0x1A,sndbuf,rcvbuf,LATER);
-    sndbuf[0]=time&0x00ff;
-    sndbuf[1]=rcvbuf[1];
-    tmb_vme(VME_WRITE,0x1A,sndbuf,rcvbuf,LATER);
-  } 
-  if ( cfeb_id == 1 ) {
-    tmb_vme(VME_READ,0x1C,sndbuf,rcvbuf,LATER);
-    sndbuf[0]=rcvbuf[0];
-    sndbuf[1]=time&0x00ff;
-    tmb_vme(VME_WRITE,0x1C,sndbuf,rcvbuf,LATER);
-  } 
-  if ( cfeb_id == 2 ) {
-    tmb_vme(VME_READ,0x1C,sndbuf,rcvbuf,LATER);
-    sndbuf[0]=time&0x00ff;
-    sndbuf[1]=rcvbuf[1];
-    tmb_vme(VME_WRITE,0x1C,sndbuf,rcvbuf,LATER);
-  } 
-  if ( cfeb_id == 3 ) {
-    tmb_vme(VME_READ,0x1E,sndbuf,rcvbuf,LATER);
-    sndbuf[0]=rcvbuf[0];
-    sndbuf[1]=time&0x00ff;
-    tmb_vme(VME_WRITE,0x1E,sndbuf,rcvbuf,LATER);
-  } 
-  if ( cfeb_id == 4 ) {
-    tmb_vme(VME_READ,0x1E,sndbuf,rcvbuf,LATER);
-    sndbuf[0]=time&0x00ff;
-    sndbuf[1]=rcvbuf[1];
-    tmb_vme(VME_WRITE,0x1E,sndbuf,rcvbuf,LATER);
-  } 
-  if ( cfeb_id == 5 ) {
-    tmb_vme(VME_READ,0x16,sndbuf,rcvbuf,LATER);
-    sndbuf[0]=time&0x00ff;
-    sndbuf[1]=rcvbuf[1];
-    tmb_vme(VME_WRITE,0x16,sndbuf,rcvbuf,LATER);
-  } 
-  if ( cfeb_id == 6 ) {
-    tmb_vme(VME_READ,0x16,sndbuf,rcvbuf,LATER);
-    sndbuf[0]=rcvbuf[0];
-    sndbuf[1]=time&0x00ff;
-    tmb_vme(VME_WRITE,0x16,sndbuf,rcvbuf,LATER);
-  } 
-  if ( cfeb_id == 1000 ) {
-    sndbuf[1]=time&0x00ff;
-    sndbuf[0]=time&0x00ff;
-    tmb_vme(VME_WRITE,0x1A,sndbuf,rcvbuf,LATER);
-    sndbuf[1]=time&0x00ff;
-    sndbuf[0]=time&0x00ff;
-    tmb_vme(VME_WRITE,0x1C,sndbuf,rcvbuf,LATER);
-    sndbuf[1]=time&0x00ff;
-    sndbuf[0]=time&0x00ff;
-    tmb_vme(VME_WRITE,0x1E,sndbuf,rcvbuf,LATER);
-  } 
-
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x00;
-  tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,LATER);
-  printf(" check state machine %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
-  if((rcvbuf[1]&0x88)!=0x00){
-    printf(" tmb_clk_delays: state machine not ready return \n");
-    return;
-  }
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x33;
-  tmb_vme(VME_WRITE,0x14,sndbuf,rcvbuf,LATER);
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x77;
-  tmb_vme(VME_WRITE,0x14,sndbuf,rcvbuf,LATER);
-  // send delay to dynatem 
-  sndbuf[0]=0x7f;
-  sndbuf[1]=0xff;
-  tmb_vme(0x03,0x00,sndbuf,rcvbuf,LATER); 
-   sndbuf[0]=0x00;
-  sndbuf[1]=0x33;
-  tmb_vme(VME_WRITE,0x14,sndbuf,rcvbuf,NOW);
-
- 
-LOOPBACK:
-  iloop=iloop+1;
-  if(iloop>100){
-    printf(" tmb_clk_delays: loop count exceeded so quit \n");
-    return;
-  }
-
-  tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
-  printf(" check state machine2  %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
-  if((rcvbuf[1]&0x88)!=0x00)goto LOOPBACK;
-  printf(" done so unstart state machine \n");
-  */
-}
-
 
 //////////////////////////////////////////
 // END: The following should be in TMB: //
