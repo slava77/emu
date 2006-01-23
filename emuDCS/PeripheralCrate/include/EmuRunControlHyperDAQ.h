@@ -1,4 +1,4 @@
-// $Id: EmuRunControlHyperDAQ.h,v 1.4 2006/01/23 12:46:03 mey Exp $
+// $Id: EmuRunControlHyperDAQ.h,v 1.5 2006/01/23 15:00:11 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -86,6 +86,30 @@ public:
 	std::string url = (*itDescriptor)->getContextDescriptor()->getURL();
 	*out << url << " " << std::endl;
 	std::string urn = (*itDescriptor)->getURN();  	
+	*out << urn << std::endl;
+	//
+	*out << cgicc::br();
+	//
+      }    
+    //
+    *out << cgicc::fieldset() ;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    //
+    *out << cgicc::legend("XRelays in Configuration file").set("style","color:blue") 
+	 << cgicc::p() << std::endl ;
+    //
+    std::vector<xdaq::ApplicationDescriptor * >  descriptorXRelay =
+      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("XRelay");
+    //
+    vector <xdaq::ApplicationDescriptor *>::iterator itDescriptorXRelay;
+    for ( itDescriptorXRelay = descriptorXRelay.begin(); itDescriptorXRelay != descriptorXRelay.end(); itDescriptorXRelay++ ) 
+      {
+	std::string classNameStr = (*itDescriptorXRelay)->getClassName();
+	*out << classNameStr << " " << std::endl ;
+	std::string url = (*itDescriptorXRelay)->getContextDescriptor()->getURL();
+	*out << url << " " << std::endl;
+	std::string urn = (*itDescriptorXRelay)->getURN();  	
 	*out << urn << std::endl;
 	//
 	*out << cgicc::br();

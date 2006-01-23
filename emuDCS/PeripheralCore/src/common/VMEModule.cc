@@ -1,7 +1,10 @@
 #ifndef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.9 2006/01/23 15:00:10 mey Exp $
+// $Id: VMEModule.cc,v 2.10 2006/01/23 15:01:34 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.10  2006/01/23 15:01:34  mey
+// Update
+//
 // Revision 2.9  2006/01/23 15:00:10  mey
 // Update
 //
@@ -190,8 +193,11 @@ VMEController* VMEModule::getTheController(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.9 2006/01/23 15:00:10 mey Exp $
+// $Id: VMEModule.cc,v 2.10 2006/01/23 15:01:34 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.10  2006/01/23 15:01:34  mey
+// Update
+//
 // Revision 2.9  2006/01/23 15:00:10  mey
 // Update
 //
@@ -318,7 +324,7 @@ char ttt;
    //
  }
  //
- if(fcn==5){
+ if(fcn==5){ // Need this to speak to the TMB bootregister MvdM
    //
    add_rice=vmebase|0x70000;
    ptr_rice=(unsigned short int *)add_rice;
@@ -334,7 +340,8 @@ char ttt;
    //
  }
  //
- if(fcn==6){
+ if(fcn==6){ // Need this to speak to the TMB bootregister MvdM
+   //
    //printf(" rice VME W:%08x %04x \n",ptr_rice,it[0]);
    //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
    it[0]=snd[1]&0x00ff;
