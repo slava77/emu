@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.20 2006/01/19 10:03:46 mey Exp $
+// $Id: TMB.h,v 2.21 2006/01/23 13:56:52 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.21  2006/01/23 13:56:52  mey
+// Update using Greg's new code
+//
 // Revision 2.20  2006/01/19 10:03:46  mey
 // Update
 //
@@ -232,6 +235,10 @@ public:
   void init() ;
   void configure() ;
   //
+  std::bitset<64> dsnRead(int); // TMB=0, mezzanine=1, RAT=2
+  void ADCvoltages(float*);
+  int tmb_read_delays(int);
+  //
   inline int  GetALCTrxPhase() { return alct_rx_clock_delay_; }
   inline int  GetALCTtxPhase() { return alct_tx_clock_delay_; }
   inline int  GetCFEBrxPhase(int CFEB) {
@@ -259,7 +266,10 @@ protected:
   void old_clk_delays(unsigned short int time, int cfeb_id);
   /// for DDD chips, v2004
   void new_clk_delays(unsigned short int time, int cfeb_id);
-  
+  void new_clk_delays_preGreg(unsigned short int time, int cfeb_id);
+  //
+  int dsnIO(int);
+  //
   ALCTController * alctController_;
   
 private:
