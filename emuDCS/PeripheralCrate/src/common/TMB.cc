@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.37 2006/01/23 13:56:53 mey Exp $
+// $Id: TMB.cc,v 2.38 2006/01/23 15:00:10 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.38  2006/01/23 15:00:10  mey
+// Update
+//
 // Revision 2.37  2006/01/23 13:56:53  mey
 // Update using Greg's new code
 //
@@ -3338,7 +3341,8 @@ int TMB::tmb_get_boot_reg(unsigned short int* value)
   //char sndbuf[2];
   //char rcvbuf[2];
   //
-  tmb_vme(VME_READ | VME_BOOT_REG, 4, sndbuf, rcvbuf, NOW ); // Send read request
+  tmb_vme(VME_READ | VME_BOOT_REG, 0x70000, sndbuf, rcvbuf, NOW ); // Send read request
+  //
   //tmb_vme(VME_READ, 4, sndbuf, rcvbuf, NOW );
   //tmb_vme(VME_READ, 4, sndbuf, rcvbuf, NOW );
   //tmb_vme(VME_READ, 4, sndbuf, rcvbuf, NOW );
