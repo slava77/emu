@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 2.2 2006/01/23 13:56:52 mey Exp $
+// $Id: TMB_constants.h,v 2.3 2006/01/23 14:21:59 mey Exp $
 // $Log: TMB_constants.h,v $
+// Revision 2.3  2006/01/23 14:21:59  mey
+// Update
+//
 // Revision 2.2  2006/01/23 13:56:52  mey
 // Update using Greg's new code
 //
@@ -116,8 +119,26 @@ static const unsigned long int	seqsm_adr	   = 0x0000AE;
 static const unsigned long int	seq_clctm_adr	   = 0x0000B0;
 static const unsigned long int	tmbtim_adr	   = 0x0000B2;
 static const unsigned long int  lhc_cycle_adr      = 0x0000B4;
+//
+static const unsigned long int  rpc_cfg_adr        = 0x0000B6;
+static const unsigned long int  rpc_rdata_adr      = 0x0000B8;
+static const unsigned long int  rpc_raw_delay_adr  = 0x0000BA;
+static const unsigned long int  rpc_inj_adr        = 0x0000BC;
+static const unsigned long int  adr_rpc_inj_adr    = 0x0000BE;
+//
+static const unsigned long int  rpc_inj_wdata_adr  = 0x0000C0;
+static const unsigned long int  rpc_inj_rdata_adr  = 0x0000C2;
+static const unsigned long int  rpc_bxn_diff_adr   = 0x0000C4;
+static const unsigned long int  rpc0_hcm_adr       = 0x0000C6;
+static const unsigned long int  rpc1_hcm_adr       = 0x0000C8;
+static const unsigned long int  rpc2_hcm_adr       = 0x0000CA;
+static const unsigned long int  rpc3_hcm_adr       = 0x0000CC;
+//
+static const unsigned long int  scp_trig_adr       = 0x0000CE;
+//
 static const unsigned long int  cnt_ctrl_adr       = 0x0000D0;
 static const unsigned long int  cnt_rdata_adr      = 0x0000D2;
+//
 // this comes from alct_routines2/tmb_vme_reg.h
 #define TMB_ADR_BOOT            0x70000 // Hardware Bootstrap Register
 /*

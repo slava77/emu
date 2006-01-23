@@ -757,10 +757,10 @@ void TMBTester::RatTmbDelayScan(){
   //** Find optimal rpc_clock delay = phasing between RAT board and TMB **
 
   //some useful addresses: RAT2005 ver.2
-  const unsigned long int adr_rpc_inj     = 0x0000bc;
-  const unsigned long int vme_ratctrl_adr = 0x00001e;
-  const unsigned long int rpc_cfg_adr     = 0x0000b6;
-  const unsigned long int rpc_rdata_adr   = 0x0000b8;
+  //const unsigned long int adr_rpc_inj     = 0x0000bc;
+  //const unsigned long int vme_ratctrl_adr = 0x00001e;
+  //const unsigned long int rpc_cfg_adr     = 0x0000b6;
+  //const unsigned long int rpc_rdata_adr   = 0x0000b8;
 
   int i,bit;
   int write_data, read_data;
@@ -792,9 +792,9 @@ void TMBTester::RatTmbDelayScan(){
   //  }
 
   //enable RAT input into TMB...
-  read_data = tmb_->ReadRegister(adr_rpc_inj);
+  read_data = tmb_->ReadRegister(rpc_inj_adr);
   write_data = read_data | 0x0001;
-  tmb_->WriteRegister(adr_rpc_inj,write_data);
+  tmb_->WriteRegister(rpc_inj_adr,write_data);
 
   //Initial delay values:
   int rpc_delay_default = tmb_read_delays(8);
