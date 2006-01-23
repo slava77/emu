@@ -1,4 +1,4 @@
-// $Id: EmuRunControlHyperDAQ.h,v 1.3 2006/01/23 10:19:34 mey Exp $
+// $Id: EmuRunControlHyperDAQ.h,v 1.4 2006/01/23 12:46:03 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -146,20 +146,38 @@ public:
     std::string childNode = "to";
     // Send to all the destinations:
     //
+    std::vector<xdaq::ApplicationDescriptor * >  descriptorsXrelays =
+      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("XRelay");
+    //
+    std::cout << "descriptorXrelays size = " << descriptorsXrelays.size() << std::endl;
+    //
+    int location = -1;
+    //
     vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
     for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) 
       {
+	//
+	location++;
+	//
 	std::string classNameStr = (*itDescriptor)->getClassName();
-		
+	//
 	std::string url = (*itDescriptor)->getContextDescriptor()->getURL();
 	std::string urn = (*itDescriptor)->getURN();  	
+	//
+	int XRelaySize = descriptorsXrelays.size();
+	std::string urlXRelay = (*descriptorsXrelays.at(location%XRelaySize)).getContextDescriptor()->getURL();
+	std::string urnXRelay = (*descriptorsXrelays.at(location%XRelaySize)).getURN();
+	//
 	xoap::SOAPName toName = envelope.createName(childNode, prefix, " ");
 	xoap::SOAPElement childElement = relayElement.addChildElement(toName);
 	xoap::SOAPName urlName = envelope.createName("url");
 	xoap::SOAPName urnName = envelope.createName("urn");
-	childElement.addAttribute(urlName,url);
-	childElement.addAttribute(urnName,urn);
-	
+	childElement.addAttribute(urlName,urlXRelay);
+	childElement.addAttribute(urnName,urnXRelay);
+	xoap::SOAPElement childElement2 = childElement.addChildElement(toName);
+	childElement2.addAttribute(urlName,url);
+	childElement2.addAttribute(urnName,urn);
+	//
       }
     //
     // Create body
