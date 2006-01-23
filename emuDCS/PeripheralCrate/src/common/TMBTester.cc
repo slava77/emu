@@ -142,7 +142,7 @@ bool TMBTester::testBootRegister() {
 
   testOK = compareValues("Number of boot register errors",err_reg,0,true);  
   messageOK("Boot Register",testOK);
-  dummy = sleep(1);
+  dummy = sleep(3);
   return testOK; 
 }
 
@@ -224,7 +224,7 @@ bool TMBTester::testVMEfpgaDataRegister(){
 
   testOK = compareValues("Number of VME FPGA data reg errors",register_error,0,true);
   messageOK("VME FPGA data register",testOK);
-  int dummy = sleep(1);
+  int dummy = sleep(3);
   return testOK;
 }
 
@@ -238,11 +238,11 @@ bool TMBTester::testFirmwareSlot(){
 	    << std::dec << slot << std::endl;
 
   //VME counts from 0, xml file counts from 1:
-  int slotToCompare = (*TMBslot) - 1;
+  int slotToCompare = ( (*TMBslot) - 1 ) & 0xf;  //only 4 bits assigned to this number...
 
   bool testOK = compareValues("TMB slot",slot,slotToCompare,true);
   messageOK("TMB slot",testOK);
-  int dummy = sleep(1);
+  int dummy = sleep(3);
   return testOK;
 }
 
@@ -257,7 +257,7 @@ bool TMBTester::testFirmwareDate() {
 
   bool testOK = compareValues("Firmware Year",year,0x2005,true);
   messageOK("Firmware Year",testOK);
-  int dummy = sleep(1);
+  int dummy = sleep(3);
   return testOK; 
 }
 
@@ -279,7 +279,7 @@ bool TMBTester::testFirmwareType() {
       "What kind of Firmware is this? Firmware = " << type << std::endl;
   }
   messageOK("Firmware Type Normal",TypeNormal);
-  int dummy = sleep(1);
+  int dummy = sleep(3);
   return TypeNormal;
 }
 
@@ -291,7 +291,7 @@ bool TMBTester::testFirmwareVersion() {
 
   bool testOK = compareValues("Firmware Version",version,0xE,true);
   messageOK("Firmware Version",testOK);
-  int dummy = sleep(1);
+  int dummy = sleep(3);
   return testOK;
 }
 
@@ -308,7 +308,7 @@ bool TMBTester::testFirmwareRevCode(){
 
   bool testOK = compareValues("Firmware Revcode FPGA",RevCodeFPGA,0x04,true);
   messageOK("Firmware Revcode FPGA",testOK);
-  int dummy = sleep(1);
+  int dummy = sleep(3);
   return testOK;
 }
 
@@ -322,7 +322,7 @@ bool TMBTester::testJTAGchain(){
 
   bool JTAGchainOK = (user && boot);
   messageOK("JTAG chains",JTAGchainOK);
-  int dummy = sleep(1);
+  int dummy = sleep(3);
   return JTAGchainOK;
 }
 
@@ -432,7 +432,7 @@ bool TMBTester::testMezzId(){
   
 
   messageOK("Mezzanine ID",testOK);
-  int dummy = sleep(1);
+  int dummy = sleep(3);
   return testOK;
 }
 
@@ -446,7 +446,7 @@ bool TMBTester::testPROMid(){
 
   bool testOK = false;
   messageOK("PROM ID",testOK);
-  int dummy = sleep(1);
+  int dummy = sleep(3);
   return testOK;
 }
 
@@ -553,23 +553,28 @@ bool TMBTester::testPROMpath(){
   testOK = temptest;
 
   messageOK("PROM path",testOK);
-  int dummy = sleep(1);
+  int dummy = sleep(3);
   return testOK;
 }
 
 
 bool TMBTester::testDSN(){
+  int dummy;
+
   std::cout << "TMBTester: Checking Digital Serial Numbers for TMB" 
 	    << std::endl;
   bool tmbDSN = testDSN(0);
+  dummy=sleep(1);
 
   std::cout << "TMBTester: Checking Digital Serial Numbers for Mezzanine" 
 	    << std::endl;
   bool mezzanineDSN = testDSN(1);
+  dummy=sleep(1);
 
   std::cout << "TMBTester: Checking Digital Serial Numbers for RAT" 
 	    << std::endl;
   bool ratDSN = testDSN(2);
+  dummy=sleep(1);
 
   messageOK("TMB DSN",tmbDSN);
   messageOK("Mezzanine DSN",mezzanineDSN);
@@ -580,7 +585,7 @@ bool TMBTester::testDSN(){
                 ratDSN);
 
   messageOK("All Digital Serial Numbers",DSNOK);
-  int dummy = sleep(1);
+  dummy = sleep(3);
   return DSNOK;
 }
 
@@ -615,6 +620,7 @@ bool TMBTester::testADC(){
   std::cout << "TMBTester: Checking ADC and status" << std::endl;
 
   bool testOK = false;
+  int dummy;
 
   // Voltage status bits...
   int voltage_status = tmb_->PowerComparator();
@@ -636,8 +642,6 @@ bool TMBTester::testADC(){
 		      test1p8 &&
 		      test1p5 &&
 		      testTcrit);
-
-  int dummy = sleep(2);
 
   float adc_voltage[13];
 
@@ -703,7 +707,7 @@ bool TMBTester::testADC(){
 	    //	    tremoteOK  );
 
   messageOK("ADC voltages and temperatures",testOK);
-  dummy = sleep(1);
+  dummy = sleep(3);
   return testOK;
 }
 
@@ -720,12 +724,13 @@ bool TMBTester::test3d3444(){
   int initial_data;
   int delay_data;
 
-  for (device=0; device<=6; device++){
+  for (device=0; device<=11; device++){
 
     initial_data=tmb_read_delays(device);   //initial value of delays
 
     for (ddd_delay=0; ddd_delay<=15; ddd_delay++ ) {
-      tmb_->tmb_clk_delays(ddd_delay,device);              
+      //      tmb_->tmb_clk_delays(ddd_delay,device);              
+      rat_clk_delays(ddd_delay,device);              
       delay_data=tmb_read_delays(device);
       tempbool &= compareValues("delay values ",delay_data,ddd_delay,true);
     }
@@ -736,10 +741,139 @@ bool TMBTester::test3d3444(){
   testOK = tempbool;
 
   messageOK("3d3444 Verification",testOK);
-  int dummy = sleep(1);
+  int dummy = sleep(3);
   return testOK;
 }
 
+
+void TMBTester::RatUser1JTAG(){
+
+
+
+  return;
+}
+
+void TMBTester::RatTmbDelayScan(){
+  //** Find optimal rpc_clock delay = phasing between RAT board and TMB **
+
+  //some useful addresses: RAT2005 ver.2
+  const unsigned long int adr_rpc_inj     = 0x0000bc;
+  const unsigned long int vme_ratctrl_adr = 0x00001e;
+  const unsigned long int rpc_cfg_adr     = 0x0000b6;
+  const unsigned long int rpc_rdata_adr   = 0x0000b8;
+
+  int i,bit;
+  int write_data, read_data;
+  int ddd_delay;
+  int rpc_bad[16] = {};
+
+  //Put RAT into correct mode [0]=sync-mode -> sends a fixed data pattern to TMB to be analyzed
+  //                          [1]=posneg    -> inserts 12.5ns (1/2-cycle) delay in RPC data path
+  //                                           to improve syncing to rising edge of TMB clock
+  //                          [2]=loop_tmb
+  //                          [3]=free_tx0
+  write_data = 0x0003;
+  tmb_->WriteRegister(vme_ratctrl_adr,write_data);
+
+  //here are the arrays of bits we expect from sync mode:
+  const int nbits = 19;
+  int rpc_rdata_expect[4][nbits];
+  bit_to_array(0x2aaaa,rpc_rdata_expect[0],nbits);
+  bit_to_array(0x55555,rpc_rdata_expect[1],nbits);
+  bit_to_array(0x55555,rpc_rdata_expect[2],nbits);
+  bit_to_array(0x2aaaa,rpc_rdata_expect[3],nbits);
+
+  //  for (i=0; i<=3; i++) {
+  //    std::cout << "rpc_rdata_expect[" << i << "] = ";
+  //    for (bit=0; bit<=(nbits-1); bit++) {
+  //      std::cout << rpc_rdata_expect[i][bit] << " ";
+  //    }
+  //    std::cout << std::endl;
+  //  }
+
+  //enable RAT input into TMB...
+  read_data = tmb_->ReadRegister(adr_rpc_inj);
+  write_data = read_data | 0x0001;
+  tmb_->WriteRegister(adr_rpc_inj,write_data);
+
+  //Initial delay values:
+  int rpc_delay_default = tmb_read_delays(8);
+
+  int irat;
+
+  int rpc_rbxn[4],rpc_rdata[4],rpcData[4];
+  int rpc_data_array[4][nbits];
+
+  int pass;
+  int count_bad;
+
+
+
+  //step through ddd_delay
+  for (pass=0; pass<=1000; pass++) {
+    for (ddd_delay=0; ddd_delay<=15; ddd_delay++) {
+      count_bad=0;
+
+      // ** write the delay to the RPC **
+      //NOTE:  The following should be replaced by tmb_->tmb_clk_delays(value,setting)
+      //once new_clk_delays has been updated to the following, which includes the RPC
+      rat_clk_delays(ddd_delay,8);
+
+      // ** read RAT 80MHz demux registers**
+      for (irat=0; irat<=3; irat++) {
+	read_data = tmb_->ReadRegister(rpc_cfg_adr);
+	read_data &= 0xf9ff;                   //zero out old RAT bank
+	write_data = read_data | (irat << 9);  //select RAT RAM bank
+	tmb_->WriteRegister(rpc_cfg_adr,write_data);
+
+	read_data = tmb_->ReadRegister(rpc_cfg_adr);
+	rpc_rbxn[irat] = (read_data >> 11) & 0x0007;  //RPC MSBS for sync mode
+
+	rpc_rdata[irat] = tmb_->ReadRegister(rpc_rdata_adr) & 0xffff; //RPC RAM read data for sync mode (LSBS)
+
+	rpcData[irat] = rpc_rdata[irat] | (rpc_rbxn[irat] << 16);  //pack MS and LSBs into single integer
+
+	bit_to_array(rpcData[irat],rpc_data_array[irat],nbits);
+
+	for (i=0; i<=(nbits-1); i++) {
+	  if (rpc_data_array[irat][i] != rpc_rdata_expect[irat][i]) count_bad += 1;
+	}
+      }
+
+      //      for (i=0; i<=3; i++) {
+      //	std::cout << "rpc_data_array[" << i << "] = ";
+      //	for (bit=0; bit<=(nbits-1); bit++) {
+      //	  std::cout << rpc_data_array[i][bit] << " ";
+      //	}
+      //	std::cout << std::endl;
+      //      }
+
+      rpc_bad[ddd_delay] += count_bad;
+
+    }
+  }
+
+  // Put RPC delay back to initial values:
+  std::cout << "Putting delay values back to " << rpc_delay_default << std::endl;
+  rat_clk_delays(rpc_delay_default,8);
+
+  // ** Take TMB out of sync mode **
+  write_data = 0x0002;
+  tmb_->WriteRegister(vme_ratctrl_adr,write_data);
+
+  int rpc_delay;
+
+  // ** print out results **
+  std::cout << "rpc_delay   bad data count" << std::endl;
+  std::cout << "---------   --------------" << std::endl;
+  for (rpc_delay = 0; rpc_delay <=15; rpc_delay++) {
+    std::cout << "    " << rpc_delay 
+	      << "           " << rpc_bad[rpc_delay] 
+	      <<std::endl;
+  }
+
+  return;
+}
 
 /////////////////////////////////////////
 // Functions needed to implement tests:
@@ -793,12 +927,14 @@ bool TMBTester::compareValues(std::string TypeOfTest,
 
   float err = (testval - compareval)/compareval;
 
+  float fractolerance = tolerance*compareval;
+
   if (fabs(err)>tolerance) {
       std::cout << "FAIL!" << std::endl;
       std::cout << TypeOfTest 
 		<< " expected = " << compareval 
 		<< ", returned = " << testval
-		<< " outside of tolerance "<< tolerance
+		<< " outside of tolerance "<< fractolerance
 		<< std::endl;
       return false;
   } else {
@@ -863,6 +999,14 @@ int TMBTester::dowCRC(std::bitset<64> DSN) {
   return crc;
 }
 
+void TMBTester::bit_to_array(int data, int * array, const int size) {
+  int i;
+  for (i=0; i<=(size-1); i++) {
+    array[i] = (data >> i) & 0x00000001;
+  }
+
+  return;
+}
 
 int TMBTester::UserOrBootJTAG(int choose){
   // Choose Source for JTAG commands
@@ -1892,11 +2036,10 @@ int TMBTester::tmb_read_delays(int device) {
   //        = 5  = ALCT rx clock
   //        = 6  = ALCT tx clock
   //        = 7  = DMB tx clock
-  //        = 8  = RPC tx clock
+  //        = 8  = RPC clock
   //        = 9  = TMB1 clock
   //        = 10 = MPC clock
   //        = 11 = DCC clock (CFEB duty cycle correction)
-  //        = 1000 = CFEB [0-5] Clock (all CFEB's)
 
   if (device==0) data = (tmb_->ReadRegister(0x18)>>12) & 0xf; 
   if (device==1) data = (tmb_->ReadRegister(0x1a)>> 0) & 0xf; 
@@ -1913,6 +2056,260 @@ int TMBTester::tmb_read_delays(int device) {
 
   return data;
 }
+
+void TMBTester::rat_clk_delays(unsigned short int time,int cfeb_id)
+{
+  // device = 0  = CFEB 0 Clock
+  //        = 1  = CFEB 1 clock
+  //        = 2  = CFEB 2 clock
+  //        = 3  = CFEB 3 clock
+  //        = 4  = CFEB 4 clock
+  //        = 5  = ALCT rx clock
+  //        = 6  = ALCT tx clock
+  //        = 7  = DMB tx clock
+  //        = 8  = RPC clock
+  //        = 9  = TMB1 clock
+  //        = 10 = MPC clock
+  //        = 11 = DCC clock (CFEB duty cycle correction)
+  //        = 1000 = CFEB [0-5] Clock (all CFEB's)
+
+  //GREG, take these out of here when it goes back in place of new_clk_delays:
+  enum WRT { LATER, NOW };
+  char sndbuf[2],rcvbuf[2];
+
+  //int ierr;
+int iloop;
+ iloop=0;
+  printf(" here write to delay registers \n");
+  if ( cfeb_id == 0 ) {
+    tmb_->tmb_vme(0x01,0x18,sndbuf,rcvbuf,NOW);
+    sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
+    sndbuf[1]=rcvbuf[1];
+    tmb_->tmb_vme(0x02,0x18,sndbuf,rcvbuf,NOW);
+  } 
+  if ( cfeb_id == 1 ) {
+    tmb_->tmb_vme(0x01,0x1A,sndbuf,rcvbuf,NOW);
+    sndbuf[0]=rcvbuf[0];
+    sndbuf[1]=(time&0x0f)|(rcvbuf[1]&0xf0);
+    tmb_->tmb_vme(0x02,0x1A,sndbuf,rcvbuf,NOW);
+  } 
+  if ( cfeb_id == 2 ) {
+    tmb_->tmb_vme(0x01,0x1A,sndbuf,rcvbuf,NOW);
+    sndbuf[0]=rcvbuf[0];
+    sndbuf[1]=(((time&0x0f)<<4)&0xf0)|(rcvbuf[1]&0x0f);
+    tmb_->tmb_vme(0x02,0x1A,sndbuf,rcvbuf,NOW);
+  } 
+  if ( cfeb_id == 3 ) {
+    tmb_->tmb_vme(0x01,0x1A,sndbuf,rcvbuf,NOW);
+    sndbuf[0]=(time&0x0f)|(rcvbuf[0]&0xf0);
+    sndbuf[1]=rcvbuf[1];
+    tmb_->tmb_vme(0x02,0x1A,sndbuf,rcvbuf,NOW);
+  } 
+  if ( cfeb_id == 4 ) {
+    tmb_->tmb_vme(0x01,0x1A,sndbuf,rcvbuf,NOW);
+    sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
+    sndbuf[1]=rcvbuf[1];
+    tmb_->tmb_vme(0x02,0x1A,sndbuf,rcvbuf,NOW);
+  } 
+  if ( cfeb_id == 5 ) {
+    tmb_->tmb_vme(0x01,0x16,sndbuf,rcvbuf,NOW);
+    sndbuf[0]=rcvbuf[0];
+    sndbuf[1]=(((time&0x0f)<<4)&0xf0)|(rcvbuf[1]&0x0f);
+    tmb_->tmb_vme(0x02,0x16,sndbuf,rcvbuf,NOW);
+  } 
+  if ( cfeb_id == 6 ) {
+    tmb_->tmb_vme(0x01,0x16,sndbuf,rcvbuf,NOW);
+    sndbuf[0]=rcvbuf[0];
+    sndbuf[1]=(time&0x0f)|(rcvbuf[1]&0xf0);
+    tmb_->tmb_vme(0x02,0x16,sndbuf,rcvbuf,NOW);
+  } 
+  if ( cfeb_id == 7 ) {
+    tmb_->tmb_vme(0x01,0x16,sndbuf,rcvbuf,NOW);
+    sndbuf[0]=(time&0x0f)|(rcvbuf[0]&0xf0);
+    sndbuf[1]=rcvbuf[1];
+    tmb_->tmb_vme(0x02,0x16,sndbuf,rcvbuf,NOW);
+  } 
+  if ( cfeb_id == 8 ) {
+    tmb_->tmb_vme(0x01,0x16,sndbuf,rcvbuf,NOW);
+    sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
+    sndbuf[1]=rcvbuf[1];
+    tmb_->tmb_vme(0x02,0x16,sndbuf,rcvbuf,NOW);
+  } 
+  if ( cfeb_id == 9 ) {
+    tmb_->tmb_vme(0x01,0x18,sndbuf,rcvbuf,NOW);
+    sndbuf[0]=rcvbuf[0];
+    sndbuf[1]=(time&0x0f)|(rcvbuf[1]&0xf0);
+    tmb_->tmb_vme(0x02,0x18,sndbuf,rcvbuf,NOW);
+  } 
+  if ( cfeb_id == 10 ) {
+    tmb_->tmb_vme(0x01,0x18,sndbuf,rcvbuf,NOW);
+    sndbuf[0]=rcvbuf[0];
+    sndbuf[1]=(((time&0x0f)<<4)&0xf0)|(rcvbuf[1]&0x0f);
+    tmb_->tmb_vme(0x02,0x18,sndbuf,rcvbuf,NOW);
+  } 
+  if ( cfeb_id == 11 ) {
+    tmb_->tmb_vme(0x01,0x18,sndbuf,rcvbuf,NOW);
+    sndbuf[0]=(time&0x0f)|(rcvbuf[0]&0xf0);
+    sndbuf[1]=rcvbuf[1];
+    tmb_->tmb_vme(0x02,0x18,sndbuf,rcvbuf,NOW);
+  } 
+  if ( cfeb_id == 1000 ) {
+    tmb_->tmb_vme(0x01,0x18,sndbuf,rcvbuf,NOW);
+    sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
+    sndbuf[1]=rcvbuf[1];
+    tmb_->tmb_vme(0x02,0x18,sndbuf,rcvbuf,NOW);
+    sndbuf[1]=(time&0x0f)|(((time&0xf)<<4)&0xf0);
+    sndbuf[0]=(time&0x0f)|(((time&0xf)<<4)&0xf0);
+    tmb_->tmb_vme(0x02,0x1A,sndbuf,rcvbuf,NOW);
+  } 
+
+  sndbuf[0]=0x0;
+  sndbuf[1]=0x20;
+  tmb_->tmb_vme(0x02,0x14,sndbuf,rcvbuf,NOW);
+  tmb_->tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
+  //
+  sndbuf[0]=0x0;
+  sndbuf[1]=0x21;
+  tmb_->tmb_vme(0x02,0x14,sndbuf,rcvbuf,NOW);
+  tmb_->tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
+  //
+  sndbuf[0]=0x0;
+  sndbuf[1]=0x20;
+  tmb_->tmb_vme(0x02,0x14,sndbuf,rcvbuf,NOW);
+  tmb_->tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
+  //
+  while ( ((rcvbuf[1]>>6)&(0x1)) ){
+    //
+    tmb_->tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
+    printf("______________ check state machine1 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+    //
+  }
+
+  printf("______________ check state machine1 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+
+  while((rcvbuf[1]&0x40)!=0x00){
+    iloop++;
+    if(iloop>10){
+      printf(" tmb_clk_delays: loop count exceeded so quit \n");
+      return;
+    }
+    tmb_->tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
+  }
+  //
+  sndbuf[0]=rcvbuf[0];
+  sndbuf[1]=rcvbuf[1]&0xfe;
+  //
+  tmb_->tmb_vme(0x02,0x14,sndbuf,rcvbuf,NOW);
+  tmb_->tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
+  //
+  while ( ((rcvbuf[1]>>6)&(0x1)) ){
+    tmb_->tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
+    printf(" *** check state machine2 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  }
+  //
+  if((rcvbuf[1]&0x80)!=0x80){
+    printf(" *** check state machine2 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+    printf(" tmb_clk_delays: something is wrong. Can NOT be verified \n");
+    return;
+  }
+
+  /* removed for new TMB delay chip
+int ierr;
+int iloop;
+ iloop=0;
+  //start(1); 
+  printf(" write to delay registers \n");
+  if ( cfeb_id == 0 ) {
+    tmb_vme(VME_READ,0x1A,sndbuf,rcvbuf,LATER);
+    sndbuf[0]=time&0x00ff;
+    sndbuf[1]=rcvbuf[1];
+    tmb_vme(VME_WRITE,0x1A,sndbuf,rcvbuf,LATER);
+  } 
+  if ( cfeb_id == 1 ) {
+    tmb_vme(VME_READ,0x1C,sndbuf,rcvbuf,LATER);
+    sndbuf[0]=rcvbuf[0];
+    sndbuf[1]=time&0x00ff;
+    tmb_vme(VME_WRITE,0x1C,sndbuf,rcvbuf,LATER);
+  } 
+  if ( cfeb_id == 2 ) {
+    tmb_vme(VME_READ,0x1C,sndbuf,rcvbuf,LATER);
+    sndbuf[0]=time&0x00ff;
+    sndbuf[1]=rcvbuf[1];
+    tmb_vme(VME_WRITE,0x1C,sndbuf,rcvbuf,LATER);
+  } 
+  if ( cfeb_id == 3 ) {
+    tmb_vme(VME_READ,0x1E,sndbuf,rcvbuf,LATER);
+    sndbuf[0]=rcvbuf[0];
+    sndbuf[1]=time&0x00ff;
+    tmb_vme(VME_WRITE,0x1E,sndbuf,rcvbuf,LATER);
+  } 
+  if ( cfeb_id == 4 ) {
+    tmb_vme(VME_READ,0x1E,sndbuf,rcvbuf,LATER);
+    sndbuf[0]=time&0x00ff;
+    sndbuf[1]=rcvbuf[1];
+    tmb_vme(VME_WRITE,0x1E,sndbuf,rcvbuf,LATER);
+  } 
+  if ( cfeb_id == 5 ) {
+    tmb_vme(VME_READ,0x16,sndbuf,rcvbuf,LATER);
+    sndbuf[0]=time&0x00ff;
+    sndbuf[1]=rcvbuf[1];
+    tmb_vme(VME_WRITE,0x16,sndbuf,rcvbuf,LATER);
+  } 
+  if ( cfeb_id == 6 ) {
+    tmb_vme(VME_READ,0x16,sndbuf,rcvbuf,LATER);
+    sndbuf[0]=rcvbuf[0];
+    sndbuf[1]=time&0x00ff;
+    tmb_vme(VME_WRITE,0x16,sndbuf,rcvbuf,LATER);
+  } 
+  if ( cfeb_id == 1000 ) {
+    sndbuf[1]=time&0x00ff;
+    sndbuf[0]=time&0x00ff;
+    tmb_vme(VME_WRITE,0x1A,sndbuf,rcvbuf,LATER);
+    sndbuf[1]=time&0x00ff;
+    sndbuf[0]=time&0x00ff;
+    tmb_vme(VME_WRITE,0x1C,sndbuf,rcvbuf,LATER);
+    sndbuf[1]=time&0x00ff;
+    sndbuf[0]=time&0x00ff;
+    tmb_vme(VME_WRITE,0x1E,sndbuf,rcvbuf,LATER);
+  } 
+
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x00;
+  tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,LATER);
+  printf(" check state machine %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  if((rcvbuf[1]&0x88)!=0x00){
+    printf(" tmb_clk_delays: state machine not ready return \n");
+    return;
+  }
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x33;
+  tmb_vme(VME_WRITE,0x14,sndbuf,rcvbuf,LATER);
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x77;
+  tmb_vme(VME_WRITE,0x14,sndbuf,rcvbuf,LATER);
+  // send delay to dynatem 
+  sndbuf[0]=0x7f;
+  sndbuf[1]=0xff;
+  tmb_vme(0x03,0x00,sndbuf,rcvbuf,LATER); 
+   sndbuf[0]=0x00;
+  sndbuf[1]=0x33;
+  tmb_vme(VME_WRITE,0x14,sndbuf,rcvbuf,NOW);
+
+ 
+LOOPBACK:
+  iloop=iloop+1;
+  if(iloop>100){
+    printf(" tmb_clk_delays: loop count exceeded so quit \n");
+    return;
+  }
+
+  tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
+  printf(" check state machine2  %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  if((rcvbuf[1]&0x88)!=0x00)goto LOOPBACK;
+  printf(" done so unstart state machine \n");
+  */
+}
+
 
 //////////////////////////////////////////
 // END: The following should be in TMB: //

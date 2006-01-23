@@ -42,6 +42,10 @@ class TMBTester {
   bool testADC();
   bool test3d3444();
   float tmb_temp(int,int);  //(command, 1=TMB 2=RAT)
+  void RatTmbDelayScan();
+  void rat_clk_delays(unsigned short int,int);
+  void RatUser1JTAG();
+
   //
   bool compareValues(std::string, int, int, bool);
   bool compareValues(std::string, float, float, float);
@@ -63,6 +67,7 @@ class TMBTester {
 
   //functions needed by above tests:
   int dowCRC(std::bitset<64>);
+  void bit_to_array(int, int *, const int); 
   int UserOrBootJTAG(int);
   void vme_jtag_anystate_to_rti(int,int);
   void vme_jtag_write_ir(int,int,int,int);
