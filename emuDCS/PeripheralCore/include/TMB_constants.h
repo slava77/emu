@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 2.1 2005/09/06 12:12:28 mey Exp $
+// $Id: TMB_constants.h,v 2.2 2006/01/23 13:56:52 mey Exp $
 // $Log: TMB_constants.h,v $
+// Revision 2.2  2006/01/23 13:56:52  mey
+// Update using Greg's new code
+//
 // Revision 2.1  2005/09/06 12:12:28  mey
 // Added register
 //
@@ -21,14 +24,21 @@ static const unsigned long int vme_loopbk_adr      = 0x00000E;
 
 static const unsigned long int	vme_usr_jtag_adr   = 0x000010;
 static const unsigned long int	vme_prom_adr	   = 0x000012;
-
+/*
 static const unsigned long int	vme_phos4sm_adr	   = 0x000014;
 static const unsigned long int	vme_phos4a_adr	   = 0x000016;
 static const unsigned long int	vme_phos4b_adr	   = 0x000018;
 static const unsigned long int	vme_phos4c_adr	   = 0x00001A;
 static const unsigned long int	vme_phos4d_adr	   = 0x00001C;
 static const unsigned long int	vme_phos4e_adr	   = 0x00001E;
-
+*/
+static const unsigned long int	vme_dddsm_adr	   = 0x000014;
+static const unsigned long int	vme_ddd0_adr	   = 0x000016;
+static const unsigned long int	vme_ddd1_adr	   = 0x000018;
+static const unsigned long int	vme_ddd2_adr	   = 0x00001A;
+static const unsigned long int	vme_dddoe_adr	   = 0x00001C;
+static const unsigned long int	vme_ratctrl_adr	   = 0x00001E;
+//
 static const unsigned long int	vme_step_adr	   = 0x000020;
 static const unsigned long int	vme_led_adr	   = 0x000022;
 static const unsigned long int	vme_adc_adr	   = 0x000024;
@@ -110,7 +120,7 @@ static const unsigned long int  cnt_ctrl_adr       = 0x0000D0;
 static const unsigned long int  cnt_rdata_adr      = 0x0000D2;
 // this comes from alct_routines2/tmb_vme_reg.h
 #define TMB_ADR_BOOT            0x70000 // Hardware Bootstrap Register
-
+/*
 #define TMB_ADR_IDREG0          0x00    // ID Register 0
 #define TMB_ADR_IDREG1          0x02    // ID Register 1
 #define TMB_ADR_IDREG2          0x04    // ID Register 2
@@ -202,7 +212,7 @@ static const unsigned long int  cnt_rdata_adr      = 0x0000D2;
 #define TMB_ADR_RPC_CFG         0xb6    // RPC configuration
 
 // this comes from alctroutines2/tmb_vme.h
-
+*/
 /*
  *  Definitions to work with TMB
  */
@@ -216,7 +226,7 @@ static const unsigned long int  cnt_rdata_adr      = 0x0000D2;
 #define TMB_FPGA_PROG   0x4     // TMB Mezzanine FPGA + FPGA PROMs JTAG Chain
 #define TMB_USER_PROM   0x8     // TMB User PROMs JTAG Chain
 #define TMB_FPGA_USER   0xc     // TMB FPGA User JTAG Chain
-
+//
 #define TMB_JTAG_SRC    0x08    // Hardware Bootstrap Register JTAG Source Bit
 #define JTAG_SOFT_SRC   0x0     // JTAG Sourced by FPGA (TMB_ADR_USR_JTAG VME Register)
 #define JTAG_HARD_SRC   0x1     // JTAG Sourced by Bootstrap Register

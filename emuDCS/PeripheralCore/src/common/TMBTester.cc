@@ -197,7 +197,7 @@ bool TMBTester::testVMEfpgaDataRegister(){
   bool testOK = false;
 
   // Get current status:
-  int vme_cfg = tmb_->ReadRegister(vme_phos4a_adr);
+  int vme_cfg = tmb_->ReadRegister(vme_ddd0_adr);
 
   int write_data,read_data;
   bool tempBool;
@@ -207,9 +207,9 @@ bool TMBTester::testVMEfpgaDataRegister(){
   for (int i=0; i<=15; i++) {
     write_data = 1 << i;
 
-    tmb_->WriteRegister(vme_phos4a_adr,write_data);  //write walking 1
+    tmb_->WriteRegister(vme_ddd0_adr,write_data);  //write walking 1
     read_data = tmb_->ReadRegister(0);               //read base to purge bit3 buffers
-    read_data = tmb_->ReadRegister(vme_phos4a_adr);  //read walking 1
+    read_data = tmb_->ReadRegister(vme_ddd0_adr);  //read walking 1
     
     tempBool = compareValues("Register value",read_data,write_data,true);
     
@@ -217,7 +217,7 @@ bool TMBTester::testVMEfpgaDataRegister(){
   }
 
   //restore data register...
-  tmb_->WriteRegister(vme_phos4a_adr,vme_cfg);
+  tmb_->WriteRegister(vme_ddd0_adr,vme_cfg);
 
   write_data = 0x001A;       // turn on cylons
   tmb_->WriteRegister(ccb_cfg_adr,write_data);
@@ -1837,12 +1837,12 @@ std::bitset<64> TMBTester::dsnRead(int type) {
   int initial_state;
   // ** need to specifically enable RAT to read back DSN **
   if (type == 2) {  
-    initial_state = tmb_->ReadRegister(TMB_ADR_PHOS4E);  //initial RAT state
+    initial_state = tmb_->ReadRegister(vme_ratctrl_adr);  //initial RAT state
 
     wr_data = initial_state & 0xfffd;    //0=sync_mode, 1=posneg, 2=loop_tmb, 3=free_tx0, 4=dsn enable
     wr_data |= 0x0010;                   //enable the dsn bit
 
-    tmb_->WriteRegister(TMB_ADR_PHOS4E,wr_data);
+    tmb_->WriteRegister(vme_ratctrl_adr,wr_data);
   }
 
   int i;
@@ -1873,7 +1873,7 @@ std::bitset<64> TMBTester::dsnRead(int type) {
 
   // ** Return the RAT to its initial state **
   if (type == 2) {
-    tmb_->WriteRegister(TMB_ADR_PHOS4E,initial_state);
+    tmb_->WriteRegister(vme_ratctrl_adr,initial_state);
   }
 
   return dsn;
