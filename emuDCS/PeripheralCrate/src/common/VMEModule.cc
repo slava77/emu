@@ -1,7 +1,10 @@
 #ifndef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.8 2006/01/14 22:25:09 mey Exp $
+// $Id: VMEModule.cc,v 2.9 2006/01/23 15:00:10 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.9  2006/01/23 15:00:10  mey
+// Update
+//
 // Revision 2.8  2006/01/14 22:25:09  mey
 // UPdate
 //
@@ -187,8 +190,11 @@ VMEController* VMEModule::getTheController(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.8 2006/01/14 22:25:09 mey Exp $
+// $Id: VMEModule.cc,v 2.9 2006/01/23 15:00:10 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.9  2006/01/23 15:00:10  mey
+// Update
+//
 // Revision 2.8  2006/01/14 22:25:09  mey
 // UPdate
 //
@@ -301,14 +307,45 @@ char ttt;
    it[0]=it[0]|((snd[0]<<8)&0xff00);
    vme_controller(itwr[when],ptr_rice,it,rcv);
  }
- if(fcn==1){
+ //
+ if(fcn==1 ){
    //printf(" rice VME R: %08x %04x \n",ptr_rice,*rcv);
    vme_controller(itrd[when],ptr_rice,tmp,rcv);
    //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
    ttt=rcv[0];
    rcv[0]=rcv[1];
-      rcv[1]=ttt;
+   rcv[1]=ttt;
+   //
  }
+ //
+ if(fcn==5){
+   //
+   add_rice=vmebase|0x70000;
+   ptr_rice=(unsigned short int *)add_rice;
+   //
+   //printf(" rice VME R: %08x %04x \n",ptr_rice,*rcv);
+   vme_controller(itrd[when],ptr_rice,tmp,rcv);
+   //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
+   ttt=rcv[0];
+   rcv[0]=rcv[1];
+   rcv[1]=ttt;
+   //
+   std::cout << "ptr " << ptr_rice << std::endl;
+   //
+ }
+ //
+ if(fcn==6){
+   //printf(" rice VME W:%08x %04x \n",ptr_rice,it[0]);
+   //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
+   it[0]=snd[1]&0x00ff;
+   it[0]=it[0]|((snd[0]<<8)&0xff00);
+   //
+   add_rice=vmebase|0x70000;
+   ptr_rice=(unsigned short int *)add_rice;
+   //
+   vme_controller(itwr[when],ptr_rice,it,rcv);
+ }
+ //
  if(fcn==3) theController->sleep_vme(snd); // sleep 
  if(fcn==4) theController->handshake_vme(); // handshake
 }
