@@ -52,9 +52,6 @@ class TMBTester {
   void messageOK(std::string,bool);
   //
   // the following should be in TMB.cc:
-  std::bitset<64> dsnRead(int); // TMB=0, mezzanine=1, RAT=2
-  void ADCvoltages(float*);
-  int tmb_read_delays(int);
 
  protected:
   //
@@ -82,7 +79,6 @@ class TMBTester {
   int select_jtag_chain(int);
 
   // the following should be in TMB.cc:
-  int dsnIO(int);
 };
 
 #endif
