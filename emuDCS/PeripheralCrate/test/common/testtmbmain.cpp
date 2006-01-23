@@ -62,7 +62,7 @@ int main() {
   thisTMB = tmbVector[0];
 
   // !Martin!, the following needs to be obtained from the xml file somehow
-  int thisTMBslot = 15;
+  int thisTMBslot = 14;
 
   // point the TMBTester to the classes we need:
   TMBTester testTMB;
@@ -91,6 +91,7 @@ int main() {
               << std::endl;
     std::cout << " 14:Digital Serial Numbers   15:Voltages, Currents, Temps 16:3d3444 status"
               << std::endl;
+    std::cout << " 20:RAT RPC 80MHz Delay scan " << std::endl;
     std::cout << "  99:Read Register 4 " << std::endl;
     std::cout << "  100:Exit " << std::endl;
     std::cout << " menu choice? (Default = 99)" << std::endl;
@@ -148,6 +149,12 @@ int main() {
     case 16:
       is3d3444OK = testTMB.test3d3444();      
       break;      
+    case 20:
+      testTMB.RatTmbDelayScan();
+      break;
+    case 21:
+      testTMB.RatUser1JTAG();
+      break;
     case 99:
       testTMB.readreg4();      
       break;      
