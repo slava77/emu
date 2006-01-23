@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.48 2006/01/18 19:38:17 mey Exp $
+// $Id: tmbtiming.cpp,v 2.49 2006/01/23 10:19:19 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.49  2006/01/23 10:19:19  mey
+// Porting to ChamberUtilities
+//
 // Revision 2.48  2006/01/18 19:38:17  mey
 // Fixed bugs
 //
@@ -1665,8 +1668,9 @@ int main(int argc,char **argv){
     
     if (doALCTTiming){
       //tbController.DcsDisable();
-      int RXphase, TXphase;
-      ALCTTiming(RXphase,TXphase);
+      //int RXphase, TXphase;
+      util.ALCTTiming();
+      //ALCTTiming(RXphase,TXphase);
       //tbController.DcsEnable();
     }
 
