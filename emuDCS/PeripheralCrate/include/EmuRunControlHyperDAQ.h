@@ -1,4 +1,4 @@
-// $Id: EmuRunControlHyperDAQ.h,v 1.2 2006/01/14 22:24:50 mey Exp $
+// $Id: EmuRunControlHyperDAQ.h,v 1.3 2006/01/23 10:19:34 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -70,6 +70,30 @@ public:
     //
     *out << cgicc::h1("EmuRunControlHyperDAQ") << std::endl ;
     //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    //
+    *out << cgicc::legend("Crates in Configuration file").set("style","color:blue") 
+	 << cgicc::p() << std::endl ;
+    //
+    std::vector<xdaq::ApplicationDescriptor * >  descriptor =
+      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuCrateSOAP");
+    //
+    vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
+    for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) 
+      {
+	std::string classNameStr = (*itDescriptor)->getClassName();
+	*out << classNameStr << " " << std::endl ;
+	std::string url = (*itDescriptor)->getContextDescriptor()->getURL();
+	*out << url << " " << std::endl;
+	std::string urn = (*itDescriptor)->getURN();  	
+	*out << urn << std::endl;
+	//
+	*out << cgicc::br();
+	//
+      }    
+    //
+    *out << cgicc::fieldset() ;
+    //
     std::string methodSOAPMessageInit =
       toolbox::toString("/%s/SendSOAPMessageInitXRelay",getApplicationDescriptor()->getURN().c_str());
     //
@@ -77,6 +101,7 @@ public:
     *out << cgicc::input().set("type","submit")
       .set("value","Send SOAP message : Init Crate") << std::endl ;
     *out << cgicc::form();
+    //
     //
     std::string methodSOAPMessageConfigure =
       toolbox::toString("/%s/SendSOAPMessageConfigureXRelay",getApplicationDescriptor()->getURN().c_str());
@@ -120,6 +145,7 @@ public:
     // Add the "to" node
     std::string childNode = "to";
     // Send to all the destinations:
+    //
     vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
     for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) 
       {
@@ -135,9 +161,9 @@ public:
 	childElement.addAttribute(urnName,urn);
 	
       }
-    
+    //
     // Create body
-    
+    //
     xoap::SOAPBody body = envelope.getBody();
     xoap::SOAPName cmd = envelope.createName(command,"xdaq","urn:xdaq-soap:3.0");
     body.addBodyElement(cmd);
