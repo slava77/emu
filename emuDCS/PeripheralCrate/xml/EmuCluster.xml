@@ -16,6 +16,16 @@
         	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
         </xc:Context>
 
+    	<xc:Context url="http://emuslice03:5401">		
+                <xc:Application class="EmuCrateHyperDAQ" id="61" network="local">
+                </xc:Application>
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
+	<!-- XRelay --> 
+	<xc:Application class="XRelay" id="4"  network="local"/>
+	<xc:Module>${XDAQ_ROOT}/daq/xrelay/lib/linux/x86/libxr.so</xc:Module>
+        </xc:Context>
+
+
     	<xc:Context url="http://emuslice03:1973">		
                 <xc:Application class="EmuCrateSOAP" id="30" instance="1" network="local">
                  <properties xmlns="urn:xdaq-application:EmuCrateSOAP" xsi:type="soapenc:Struct">
@@ -31,9 +41,23 @@
         	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
         </xc:Context>
 
+    	<xc:Context url="http://emuslice03:5402">		
+                <xc:Application class="EmuCrateHyperDAQ" id="62" network="local">
+                </xc:Application>
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
+	<!-- XRelay --> 
+	<xc:Application class="XRelay" id="4"  network="local"/>
+	<xc:Module>${XDAQ_ROOT}/daq/xrelay/lib/linux/x86/libxr.so</xc:Module>
+
+        </xc:Context>
+
     	<xc:Context url="http://emulab02:1974">		
                 <xc:Application class="EmuRunControlHyperDAQ" id="21" network="local"/>
         	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>        
+	<!-- XRelay --> 
+	<xc:Application class="XRelay" id="4"  network="local"/>
+	<xc:Module>${XDAQ_ROOT}/daq/xrelay/lib/linux/x86/libxr.so</xc:Module>
+
         </xc:Context>
 
 
