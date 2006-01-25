@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.49 2006/01/23 10:19:19 mey Exp $
+// $Id: tmbtiming.cpp,v 2.50 2006/01/25 19:24:55 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.50  2006/01/25 19:24:55  mey
+// Update
+//
 // Revision 2.49  2006/01/23 10:19:19  mey
 // Porting to ChamberUtilities
 //
@@ -703,11 +706,14 @@ int main(int argc,char **argv){
     }
     //
     if(doLoadCFEBFirmware) {
+      //
+      cout << "Load CFEB firmware (0-4) ?" << endl;
+      //
       char out[10];
       thisCCB->firmwareVersion();
       vector<CFEB> thisCFEBs = thisDMB->cfebs();
+      //
       int i=0;
-      cout << "Welcher CFEB ?" << endl;
       cin >> i;
       //for (int i=0; i<thisCFEBs.size(); i++) {
 	thisDMB->febpromuser(thisCFEBs[i]);

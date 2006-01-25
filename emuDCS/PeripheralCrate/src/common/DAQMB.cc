@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.27 2006/01/19 10:03:46 mey Exp $
+// $Id: DAQMB.cc,v 2.28 2006/01/25 19:25:06 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.28  2006/01/25 19:25:06  mey
+// Update
+//
 // Revision 2.27  2006/01/19 10:03:46  mey
 // Update
 //
@@ -1403,26 +1406,26 @@ void DAQMB::wrtfifo(int fifo,int nsndfifo,char* sndfifo)
  cmd[0]=4;
   std::cout << "wrtfifo devnum FIFO7 " << devnum << " " << FIFO7 << std::endl;
  if(devnum-FIFO7!=0){
-   std::cout << "devdo1" << std::endl;
+   //std::cout << "devdo1" << std::endl;
    devdo(devnum,1,cmd,nsndfifo*2,sndfifo,rcvbuf,2);
-   std::cout << "devdo1back" << std::endl;
+   //std::cout << "devdo1back" << std::endl;
  }
  else{
-   std::cout << "devdo2" << std::endl;
+   //std::cout << "devdo2" << std::endl;
    devdo(devnum,1,cmd,nsndfifo,sndfifo,rcvbuf,2);
-   std::cout << "devdo2back" << std::endl;
+   //std::cout << "devdo2back" << std::endl;
  } 
 }
 
 void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
 {  
   //
-  std::cout << "readfifo" << std::endl;
+  //std::cout << "readfifo" << std::endl;
   //
   PRINTSTRING(OVAL: before start routine in readfifo);
   PRINTSTRING(OVAL: after start routine in readfifo);
   //
-  std::cout << "readfifo2" << std::endl;
+  //std::cout << "readfifo2" << std::endl;
   //
   int i=fifo+FIFO1;
   DEVTYPE devnum=(DEVTYPE)i;
@@ -1439,19 +1442,19 @@ void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
-  std::cout << "readfifo3" << std::endl;
+  //std::cout << "readfifo3" << std::endl;
   //
   cmd[0]=5;
   devdo(devnum,1,cmd,nrcvfifo*2+2,sndbuf,rcvfifo,2);
   //
-  std::cout << "readfifo4" << std::endl;
+  //std::cout << "readfifo4" << std::endl;
   //
   cmd[0]=VTX2_USR1;
   sndbuf[0]=FIFO_RD;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_USR2;
   //
-  std::cout << "readfifo5" << std::endl;
+  //std::cout << "readfifo5" << std::endl;
   //
   sndbuf[0]=0; 
   devdo(MCTRL,6,cmd,3,sndbuf,rcvbuf,0); 
@@ -1459,7 +1462,8 @@ void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
-  printf(" readfifo: %d %02x %02x \n",nrcvfifo,rcvfifo[0]&0xff,rcvfifo[1]&0xff); 
+  printf("readfifo: %d %02x %02x \n",nrcvfifo,rcvfifo[0]&0xff,rcvfifo[1]&0xff); 
+  //
 }
 
 // DAQMB load and read flash memory (electronics experts only)
@@ -3080,6 +3084,7 @@ void DAQMB::test3()
   }else{
     (*MyOutput_) << " FIFO1 is Bad " << err[1] << std::endl;
   }
+  /*
   err[2]= memchk(2);
   errs+=err[2];
   if(err[2]==0){
@@ -3114,6 +3119,7 @@ void DAQMB::test3()
   }else{
     (*MyOutput_) << " FIFO6 is Bad " << err[6] << std::endl;
   }
+  //
   errs+=err[6];
   calctrl_fifomrst(); usleep(500);
   err[7]= memchk(7);
@@ -3126,6 +3132,7 @@ void DAQMB::test3()
   errs+=err[7];
   calctrl_fifomrst();
   if(errs!=0)pass=0;
+  */
   //
 }
 //
@@ -3138,13 +3145,14 @@ int DAQMB::memchk(int fifo)
   sndfifo=(char *)malloc(33000);
   rcvfifo=(char *)malloc(33000);
   (*MyOutput_) << " MEMCHK for FIFO"<<fifo<<std::endl;
-  calctrl_fifomrst();
+  calctrl_fifomrst(); usleep(5000);
   // 0xffff
   for(int i=0;i<fifosize*2;i++)sndfifo[i]=0xff;
   wrtfifo(fifo,fifosize,sndfifo);
   readfifo(fifo,fifosize,rcvfifo);
   err=0;for(int i=0;i<fifosize*2;i++)if(sndfifo[i]!=rcvfifo[i])err=err+1;err1=err1+err;
-  (*MyOutput_) << " Error 0xffff "<< err << std::endl; 
+  (*MyOutput_) << " Error 0xffff "<< err << std::endl;
+  /* 
   // 0x0000
   for(int i=0;i<fifosize*2;i++)sndfifo[i]=0x00;
   wrtfifo(fifo,fifosize,sndfifo);
@@ -3172,6 +3180,7 @@ int DAQMB::memchk(int fifo)
   free(sndfifo);
   free(rcvfifo);
   //
+  */
   return err1;
   //
 }
@@ -3329,6 +3338,7 @@ int DAQMB::test6()
   err2=0;
   for(unsigned i = 0; i < cfebs_.size(); ++i) {
     ival=febfpgaid(cfebs_[i]);
+    usleep(100);
     if(ival!=0x20610093){
       err2=err2+1;
       ierr=1;
@@ -3405,7 +3415,7 @@ int  DAQMB::test8()
     b=(sy*sx2-sxy*sx)/(sn*sx2-sx*sx);
     (*MyOutput_)<<"a " <<a<< " b " <<b<<std::endl;
     //
-    if(a<-1025.||a>-1000.){
+    if(a<-1025.||a>-998.){
       ierr=1;
       (*MyOutput_) << " slope     out of range- got "<<a<<" should be -1005. " <<std::endl;
     }
@@ -3454,11 +3464,12 @@ int DAQMB::test9()
     v0=.25*i;
     v1=v0;
     set_dac(v0,v1);
+    usleep(100);
     vout=adcplus(2,7);
     vout=vout/1000.;
-    if(ius==0&&vout>0.0){ius=1;voff=v0-vout;}
-    diff=capn[i]-vout-voff;
-    if(diff<0.0)diff=-diff;
+    if(ius==0&&vout>0.0){ius=1;voff=fabs(vout-v0);}
+    diff=fabs(capn[i]-vout)-voff;
+    if(diff<0.0)diff=0;
     if(diff>0.020){
       ierr=1;
       (*MyOutput_) << "Problem -Int CDAC - got " << vout << " expect " << v0 << std::endl;
@@ -3475,11 +3486,12 @@ int DAQMB::test9()
     v0=.25*i;
     v1=v0;
     set_dac(v0,v1);
+    usleep(100);
     vout=adcminus(3,7);
     vout=vout/1000.; 
-    if(ius==0&&vout>0.0){ius=1;voff=v0-vout;}
-    diff=presn[i]-vout-voff;
-    if(diff<0.0)diff=-diff;
+    if(ius==0&&vout>0.0){ius=1;voff=fabs(v0-vout);}
+    diff=fabs(presn[i]-vout)-voff;
+    if(diff<0.0)diff=0.;
     if(diff>0.020){
       ierr=1;
       (*MyOutput_) << "Problem -Ext CDAC - got "<<vout<<" expect "<<v0<<std::endl;
@@ -3496,10 +3508,11 @@ int DAQMB::test9()
     v0=.25*i;
     v1=v0;
     set_dac(v0,v1);
+    usleep(100);
     vout=adc16(4,0);
-    if(ius==0&&vout>0.0){ius=1;voff=v0-vout;}
-    diff=presn[i]-vout-voff;
-    if(diff<0.0)diff=-diff;
+    if(ius==0&&vout>0.0){ius=1;voff=fabs(v0-vout);}
+    diff=fabs(presn[i]-vout)-voff;
+    if(diff<0.0)diff=0.;
     if(diff>0.020){
       ierr=1;
       (*MyOutput_) << "Problem -Pres Ext CDAC - got "<<vout<<" expect "<<v0<<std::endl;
@@ -3533,6 +3546,13 @@ int DAQMB::test10()
   for(i=0;i<264;i++)sndpat[i]=i&0xff;
   //
   sfm_test_load(sndpat);  
+  //
+  SFMWriteProtect();
+  // Write
+  ProgramSFM();
+  sleep(2);
+  // Disable
+  SFMWriteProtect();
   //
   //Read SFM 
   //
