@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.33 2006/01/18 19:38:16 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.34 2006/01/25 19:25:07 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -154,6 +154,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::TMBL1aTiming, "TMBL1aTiming");
     xgi::bind(this,&EmuCrateHyperDAQ::ALCTL1aTiming, "ALCTL1aTiming");
     xgi::bind(this,&EmuCrateHyperDAQ::ALCTvpf,"ALCTvpf");
+    xgi::bind(this,&EmuCrateHyperDAQ::DMBTestAll, "DMBTestAll");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTest3, "DMBTest3");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTest4, "DMBTest4");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTest5, "DMBTest5");
@@ -725,7 +726,7 @@ public:
     this->Default(in,out);
   }
   //
-  void EmuCrateHyperDAQ::DMBTest3(xgi::Input * in, xgi::Output * out ) 
+  void EmuCrateHyperDAQ::DMBTestAll(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
     //
@@ -743,6 +744,37 @@ public:
     OutputDMBTests[dmb] << "DMB Test3" << endl ;
     //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
+    //thisDMB->test3();
+    thisDMB->test4();
+    thisDMB->test5();
+    thisDMB->test6();
+    thisDMB->test8();
+    thisDMB->test9();
+    thisDMB->test10();
+    thisDMB->RedirectOutput(&std::cout);
+    //
+    this->DMBTests(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::DMBTest3(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
+    //
+    OutputDMBTests[dmb] << "DMB Test3" << endl ;
+    //
+    thisDMB->RedirectOutput(&std::cout);
     thisDMB->test3();
     thisDMB->RedirectOutput(&std::cout);
     //
@@ -3148,6 +3180,16 @@ public:
     *out << endl ;
     //
     *out << cgicc::legend("DMB Tests").set("style","color:blue") ;
+    //
+    std::string DMBTestAll =
+      toolbox::toString("/%s/DMBTestAll",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",DMBTestAll)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","DMB Test All ") << std::endl ;
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
     //
     std::string DMBTest3 =
       toolbox::toString("/%s/DMBTest3",getApplicationDescriptor()->getURN().c_str());
