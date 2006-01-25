@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.50 2006/01/25 19:24:55 mey Exp $
+// $Id: tmbtiming.cpp,v 2.51 2006/01/25 19:41:46 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.51  2006/01/25 19:41:46  mey
+// UPdate
+//
 // Revision 2.50  2006/01/25 19:24:55  mey
 // Update
 //
@@ -715,6 +718,7 @@ int main(int argc,char **argv){
       //
       int i=0;
       cin >> i;
+      std::cout << "Programming..." <<endl;
       //for (int i=0; i<thisCFEBs.size(); i++) {
 	thisDMB->febpromuser(thisCFEBs[i]);
 	thisDMB->epromload(thisCFEBs[i].promDevice(),"cfeb_v4_r2.svf",1,out);  // load mprom
