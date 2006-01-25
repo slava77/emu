@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.51 2006/01/25 19:41:46 mey Exp $
+// $Id: tmbtiming.cpp,v 2.52 2006/01/25 19:49:16 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.52  2006/01/25 19:49:16  mey
+// Update
+//
 // Revision 2.51  2006/01/25 19:41:46  mey
 // UPdate
 //
@@ -717,6 +720,7 @@ int main(int argc,char **argv){
       vector<CFEB> thisCFEBs = thisDMB->cfebs();
       //
       int i=0;
+      std::cout << "Which CFEB to program (0-4) ?" << std::endl ;
       cin >> i;
       std::cout << "Programming..." <<endl;
       //for (int i=0; i<thisCFEBs.size(); i++) {
