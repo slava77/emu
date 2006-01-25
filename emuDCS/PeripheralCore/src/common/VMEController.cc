@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.12 2006/01/16 20:29:16 mey Exp $
+// $Id: VMEController.cc,v 2.13 2006/01/25 19:49:44 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.13  2006/01/25 19:49:44  mey
+// UPdate
+//
 // Revision 2.12  2006/01/16 20:29:16  mey
 // Update
 //
@@ -287,8 +290,11 @@ VMEModule* VMEController::getTheCurrentModule(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.12 2006/01/16 20:29:16 mey Exp $
+// $Id: VMEController.cc,v 2.13 2006/01/25 19:49:44 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.13  2006/01/25 19:49:44  mey
+// UPdate
+//
 // Revision 2.12  2006/01/16 20:29:16  mey
 // Update
 //
@@ -452,6 +458,7 @@ int VMEController::do_schar(int open_or_close)
        char schardev_name[12]="/dev/schar0";
        schardev_name[10] += realport;
        schardev_name[11]=0;
+       std::cout << "Opening " << schardev_name << std::endl ;
        theSocket = open(schardev_name, O_RDWR);
        if (theSocket == -1) 
        {
