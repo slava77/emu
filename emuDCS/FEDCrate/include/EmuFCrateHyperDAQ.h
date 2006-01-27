@@ -246,7 +246,7 @@ public:
           *out << cgicc::input().set("type","hidden").set("value","0").set("name","ddu") << std::endl;
          *out << cgicc::form() << std::endl ;
         }else{
-	 if(HasInitialized==0){
+	 if(HasInitialized!=2){
 	   HasInitialized=1;
          std::string vmeintirq2 =
 	 toolbox::toString("/%s/VMEIntIRQ",getApplicationDescriptor()->getURN().c_str());
@@ -294,7 +294,7 @@ public:
             // float adc2=thisDDU->adcplus(1,7);
             unsigned short int status=thisDDU->vmepara_CSCstat();
             int brdnum;
-            sleep(1);
+            // sleep(1);
             thisDDU->CAEN_err_reset();
             brdnum=thisDDU->read_page7();
             sprintf(buf,"Board: %d ",brdnum);
@@ -1994,9 +1994,8 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
       para_val=((thisDDU->snd_serial[0]<<8))&0xff00|(thisDDU->snd_serial[1]&0x00ff);
       printf(" para_val %04x \n",para_val);
       thisDDU->vmepara_wr_inreg(para_val);
-      sleep(1);
       thisDDU->write_page1();
-      sleep(1);
+      // sleep(1);
     }
      if(val==602){
       sscanf(XMLtext.data(),"%02hhx%02hhx%02hhx%02hhx",&thisDDU->snd_serial[0],&thisDDU->snd_serial[1],&thisDDU->snd_serial[2],&thisDDU->snd_serial[3]);
@@ -2006,9 +2005,8 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
       para_val=((thisDDU->snd_serial[0]<<8))&0xff00|(thisDDU->snd_serial[1]&0x00ff);
       printf(" para_val %04x \n",para_val);
       thisDDU->vmepara_wr_inreg(para_val);
-      sleep(1);
       thisDDU->write_page4();
-      sleep(1);
+      // sleep(1);
     }
      if(val==603){
        thisDDU->snd_serial[5]=0x00;
@@ -2022,9 +2020,8 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
        para_val=((thisDDU->snd_serial[0]<<8))&0xff00|(thisDDU->snd_serial[1]&0x00ff);
       printf(" para_val %04x \n",para_val);
       thisDDU->vmepara_wr_inreg(para_val);
-      sleep(1);
       thisDDU->write_page5();
-      sleep(1);
+      // sleep(1);
     }
     if(val==604){
       sscanf(XMLtext.data(),"%02hhx%02hhx",&thisDDU->snd_serial[0],&thisDDU->snd_serial[1]);
@@ -2032,9 +2029,8 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
       para_val=((thisDDU->snd_serial[0]<<8))&0xff00|(thisDDU->snd_serial[1]&0x00ff);
       printf(" para_val %04x \n",para_val);
       thisDDU->vmepara_wr_inreg(para_val);
-      sleep(1);
       thisDDU->write_page7();
-      sleep(1);
+      //  sleep(1);
     }
     if(val==609){
       thisDDU->write_vmesdF();
@@ -2110,6 +2106,9 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
     //
     *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
     *out << std::endl;
+
+
+
     if(ddu!=99){
     //
     *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
@@ -2132,13 +2131,12 @@ one must then recompile the libcgicc.so library
     xtimer=(xtimer-xsec)/60;
     long int xmin=xtimer%60;
     long int xhr=(xtimer-xmin)/60;
-    timer=timer+2;
     sprintf(buf,"%02ld:%02ld:%02ld",xhr,xmin,xsec);
     *out << buf << std::endl;
     *out << cgicc::span() << std::endl;
 
     *out << cgicc::span().set("style","font-size: 20pt;color:red");
-    sprintf(buf," Failure in Slot %d ERR %d SYNC %d FMM %d FMMCount %d Fiber %d",thisDDU->irq_tester(0,0),thisDDU->irq_tester(0,1),thisDDU->irq_tester(0,2),thisDDU->irq_tester(0,3),thisDDU->irq_tester(0,4),thisDDU->irq_tester(0,5)); 
+    sprintf(buf," Failure in Crate %d Slot %d Status %04x",thisDDU->irq_tester(0,1),thisDDU->irq_tester(0,2),thisDDU->irq_tester(0,3)); 
     *out << buf << std::endl;
     }else{ 
     *out << cgicc::span().set("style","color:green");
@@ -2147,6 +2145,7 @@ one must then recompile the libcgicc.so library
     *out << cgicc::span().set("style","font-size: 25pt;color:blue;background-color:black;");
     //  printf(" timer %ld start %d irq_start \n",timer,irq_start[0]);
     long int xtimer=timer;
+    fixtimer=timer;
     long int xsec=xtimer%60;
     xtimer=(xtimer-xsec)/60;
     long int xmin=xtimer%60;
