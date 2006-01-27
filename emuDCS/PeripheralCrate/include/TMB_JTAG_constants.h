@@ -11,7 +11,7 @@
 #define TMB_FPGA_CHAIN        0xc     // TMB FPGA Monitor (for TMB self-test)
 #define RAT_CHAIN             0xd     // RAT FPGA+PROM
 
-#define MXBITSTREAM           128     //Maximum number of bits of tms
+#define MAX_FRAMES           1000     //Maximum number of frames in an i/o cycle
 #define MAX_NUM_CHIPS           5     //Maximum number of devices in chain
 
 const char     tms_pre_opcode[4] = { 1, 1, 0, 0 };     //go from RTI to ShfIR  
