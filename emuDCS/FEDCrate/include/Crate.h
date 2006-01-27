@@ -27,7 +27,8 @@ public:
 
   void enable();
   void disable();
-  void configure();
+  void configure(int crate);
+  int irqtest(int crate,int ival);
 
 private:
 

@@ -26,10 +26,8 @@ public:
   virtual void end();
 
   int gbe_prescale_;
-  int vmeirq_start_;
 
   void configure();
-  void vmeirq();
 
 // DDU commands initialization/reset
   void ddu_init();

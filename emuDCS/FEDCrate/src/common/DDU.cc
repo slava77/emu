@@ -33,8 +33,7 @@ void shuffle(char *a,char *b);
 
 DDU::DDU(int newcrate,int newslot):
   VMEModule(newcrate, newslot),
-  gbe_prescale_(1),
-  vmeirq_start_(0)
+  gbe_prescale_(1)
 {
   //  cout<<"DDU construct\n";
 }
@@ -47,7 +46,7 @@ DDU::~DDU() {
 
 void DDU::end()
 {
-  cout << "calling DDU::end" << endl;
+  //   cout << "calling DDU::end" << endl;
   theController->send_last();
   VMEModule::end();
 }
@@ -62,17 +61,6 @@ void DDU::configure() {
 
 }
 
-void DDU::vmeirq(){
-  printf(" ********************DDU vmeirq is called \n"); 
-  printf(" DCC slot %d vmeirq_start %d  \n",slot(),vmeirq_start_);
-  if(slot()<21){
-    if(vmeirq_start_==1){
-      irq_pthread_start();
-    }else{
-      irq_pthread_end();
-    }
-  }
-}
 
 
 void DDU::ddu_init()

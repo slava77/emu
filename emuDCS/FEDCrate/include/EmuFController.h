@@ -20,6 +20,10 @@ public:
 
   void disable();
 
+  int irqtest();
+  int irqlast[4];
+  int irqcrate,irqslot,irqstatus;
+
   inline void SetConfFile(std::string xmlFile) { xmlFile_ = xmlFile; }
 
   CrateSelector & selector() {return theSelector;}

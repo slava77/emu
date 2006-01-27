@@ -1,7 +1,7 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 1.2 2006/01/21 19:55:02 gilmore Exp $
+// $Id: VMEController.cc,v 1.3 2006/01/27 16:04:50 gilmore Exp $
 // $Log: VMEController.cc,v $
-// Revision 1.2  2006/01/21 19:55:02  gilmore
+// Revision 1.3  2006/01/27 16:04:50  gilmore
 // *** empty log message ***
 //
 // Revision 1.25  2004/07/22 18:52:38  tfcvs
@@ -33,10 +33,6 @@
 #define DELAY2 0.016
 #define DELAY3 16.384
 
-struct IRQData irqdata[2];
-
-pthread_t threads[2];
-int irq_start=0;
 
 #ifndef debugV //silent mode
 #define PRINT(x) 
@@ -46,6 +42,15 @@ int irq_start=0;
 #define PRINTSTRING(x) cout << #x << endl; 
 #endif
 
+//
+// the following variables must be kept global to assure
+// no conflict when running EmuFRunControlHyperDAQ and
+// EmuFCrateHyperDAQ simultaneously
+//
+
+struct IRQData irqdata[4];
+pthread_t threads[4];
+int irq_start[4]={0,0,0,0};
 
 extern int delay_type;
 long OpenBHandle[4][4] = {{-1,-1,-1,-1},{-1,-1,-1,-1},{-1,-1,-1,-1},{-1,-1,-1,-1}};
@@ -54,7 +59,7 @@ long OpenBHandle[4][4] = {{-1,-1,-1,-1},{-1,-1,-1,-1},{-1,-1,-1,-1},{-1,-1,-1,-1
 
 
 VMEController::VMEController(int Device, int Link): 
-  theBHandle(-1), Device_(Device), Link_(Link), theCurrentModule(0),indian(SWAP)
+  theBHandle(-1), Device_(Device), Link_(Link),theCurrentModule(0),indian(SWAP),vmeirq_start_(1)
 {
 
 CVBoardTypes VMEBoard;
@@ -208,11 +213,8 @@ CVIRQLevels IRQLevel=cvIRQ1;
 unsigned long mask=0x00000001;
 
 int ierr;
-int j;
 unsigned int ERR,SYNC,FMM,SLOT,NUM_ERR,NUM_SYNC;
-unsigned int status,tmp;
-unsigned int last_status[15]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-int irqmap[21]={-1,-1,0,1,2,3,4,-1,5,6,7,8,9,10,11,12,-1,13,14,15,-1};
+unsigned int status;
 
  locdata=(struct IRQData *)threadarg;
  LOOP:
@@ -220,7 +222,7 @@ int irqmap[21]={-1,-1,0,1,2,3,4,-1,5,6,7,8,9,10,11,12,-1,13,14,15,-1};
     CAENVME_IRQEnable(BHandle,mask);
 
     ierr=CAENVME_IRQWait(BHandle,mask,5000); 
-
+    // printf("CAENVME_IRQWait: %d %d \n",locdata->exit,ierr);
     if(locdata->exit==1)goto ENDR;
     if(ierr!=0)goto LOOP;
 
@@ -232,9 +234,9 @@ int irqmap[21]={-1,-1,0,1,2,3,4,-1,5,6,7,8,9,10,11,12,-1,13,14,15,-1};
     printf(" IRQ vector %02x%02x \n",Data[1]&0xff,Data[0]&0xff);
     ERR=0;SYNC=0;FMM=0;SLOT=0;NUM_ERR=0;
     locdata->count++;
-    if(Data[1]&0x80){ERR=1;locdata->errs[0]++;}
-    if(Data[1]&0x40){SYNC=1;locdata->errs[1]++;}
-    if(Data[1]&0x20){FMM=1;locdata->errs[2]++;}
+    if(Data[1]&0x80)ERR=1;
+    if(Data[1]&0x40)SYNC=1;
+    if(Data[1]&0x20)FMM=1;
     SLOT=Data[1]&0x1f;
     NUM_ERR=((Data[0]>>4)&0x0f);
     NUM_SYNC=(Data[0]&0x0f); 
@@ -249,84 +251,72 @@ int irqmap[21]={-1,-1,0,1,2,3,4,-1,5,6,7,8,9,10,11,12,-1,13,14,15,-1};
 
     // Address=0x001b4000;
     Address=0x00034000|((SLOT<<19)&0x00f80000);
-    printf(" Address %08lx \n",Address);
     Data[0]=0xFF;Data[1]=0xFF;
     CAENVME_ReadCycle(BHandle,Address,Data,AM,DW);
     status=((Data[1]<<8)&0x7f00)|(Data[0]&0xff);
     printf(" CSC_Status %02x%02x \n",Data[1]&0xff,Data[0]&0xff);
-    tmp=1;
-    for(j=0;j<15;j++){
-      if(tmp==(status^last_status[irqmap[SLOT-1]])){
-             locdata->last_fiber=j+1;
-	     locdata->sums[irqmap[SLOT-1]][j]=locdata->sums[irqmap[SLOT-1]][j]+1;
-      }
-      tmp=tmp*2;
-    }
-    last_status[irqmap[SLOT-1]]=status;
+    locdata->last_status=status;
     goto LOOP;
  ENDR: 
+    printf(" call pthread_exit \n");
     pthread_exit(NULL);
 }
 
-void VMEController::irq_pthread_start()
+void VMEController::irq_pthread_start(int crate)
 {
-  int t,i,j,err;
+  int t,j,err;
   printf(" about to launch pthreads \n");
-      t=0;
+      t=crate;
+      if(irq_start[t]==1)return;
       irqdata[t].threadid=t;
       irqdata[t].Handle=VMEController::theBHandle;
       irqdata[t].exit=0;
-      for(i=0;i<15;i++){
-      for(j=0;j<16;j++)irqdata[t].sums[i][j]=0;
-      }
-      for(j=0;j<3;j++){irqdata[t].errs[j]=0;irqdata[t].last_errs[j]=0;}
+      for(j=0;j<3;j++){irqdata[t].last_errs[j]=0;}
       irqdata[t].count=0;
       irqdata[t].count_fmm=0;
       irqdata[t].last_ddu=0;
-      irqdata[t].last_fiber=0;
+      irqdata[t].last_status=0;
       irqdata[t].last_count_fmm=0;
       err=pthread_create(&threads[t],NULL,(void *(*)(void *))&IRQ_Interrupt_Handler,(void *)&irqdata[t]);
       if(err){printf(" Error opening thread \n");exit(1);}
     
-      irq_start=1;
+      irq_start[t]=1;
 
 }
 
-int VMEController::irq_tester(int ival)
+int VMEController::irq_tester(int crate,int ival)
 { 
 int word;
-  if(ival==0)word=irqdata[0].last_ddu;
-  if(ival==1)word=irqdata[0].last_errs[0];
-  if(ival==2)word=irqdata[0].last_errs[1];
-  if(ival==3)word=irqdata[0].last_errs[2];
-  if(ival==4)word=irqdata[0].last_count_fmm;
-  if(ival==5)word=irqdata[0].last_fiber;
+  if(ival==0)word=irqdata[crate].count;
+  if(ival==1)word=irqdata[crate].threadid;
+  if(ival==2)word=irqdata[crate].last_ddu;
+  if(ival==3)word=irqdata[crate].last_status;
+  if(ival==4)word=irqdata[crate].last_errs[0];
+  if(ival==5)word=irqdata[crate].last_errs[1];
+  if(ival==6)word=irqdata[crate].last_errs[2];
+  if(ival==7)word=irqdata[crate].last_count_fmm;
+  // if(ival==0)printf(" irq_tester %d %d %d \n",crate,ival,word);
   return word;
 }
 
-void VMEController::irq_pthread_info()
-{
-int irqmap_rev[16]={3,4,5,6,7,9,10,11,12,13,14,15,16,18,19,20};
-int i,j;
+void VMEController::irq_pthread_info(int crate)
+{;
   printf("VME INTERRUPT INFORMATION \n");
     printf("  Last Interrupt: \n");
-    printf("     SLOT %d FIBER %d ERR %d SYNC %d FMM %d  NUM_ERR %d \n",irqdata[0].last_ddu,irqdata[0].last_fiber,irqdata[0].last_errs[0],irqdata[0].last_errs[1],irqdata[0].last_errs[2],irqdata[0].last_count_fmm);  
-    printf("  All Interrupts: \n");
-    for(i=0;i<15;i++){
-      for(j=0;j<16;j++){
-	if(irqdata[0].sums[i][j]!=0)printf(" SLOT %d FIBER %d \n",irqmap_rev[i],j); 
-      }
-    }
+    printf("  CRATE %d  SLOT %d FIBER %04x ERR %d SYNC %d FMM %d  NUM_ERR %d \n",crate,irqdata[crate].last_ddu,irqdata[crate].last_status,irqdata[crate].last_errs[crate],irqdata[crate].last_errs[1],irqdata[crate].last_errs[2],irqdata[crate].last_count_fmm);  
+
 }
 
-void VMEController::irq_pthread_end()
+
+void VMEController::irq_pthread_end(int crate)
 {
 unsigned long mask=0x00000001;
-
   CAENVME_IRQDisable(theBHandle,mask);
-  if(irq_start==1){
-      irqdata[0].exit=1;
-      pthread_exit(NULL);
+  if(irq_start[crate]==1){
+      irqdata[crate].exit=1;
+      irq_start[crate]=0;
+      //   pthread_exit(NULL);
+      pthread_cancel(threads[crate]);
   }
 }
 

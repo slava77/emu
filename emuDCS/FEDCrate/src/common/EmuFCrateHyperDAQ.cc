@@ -1,4 +1,4 @@
-// $Id: EmuFCrateHyperDAQ.cc,v 1.1 2006/01/21 19:55:02 gilmore Exp $
+// $Id: EmuFCrateHyperDAQ.cc,v 1.2 2006/01/27 16:04:50 gilmore Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *

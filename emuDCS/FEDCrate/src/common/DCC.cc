@@ -31,18 +31,18 @@ DCC::DCC(int newcrate,int newslot):
   VMEModule(newcrate, newslot),
   fifoinuse_(511)
 {
-  // cout<<"DDU \n";
+  // cout<<"DCC \n";
 }
 
 
 DCC::~DCC() {
-  // cout << "Killing DDDU" << endl;
+  // cout << "Killing DCC" << endl;
 }
 
 
 void DCC::end()
 {
-  cout << "calling DDU::end" << endl;
+  //  cout << "calling DCC::end" << endl;
   theController->send_last();
   VMEModule::end();
 }

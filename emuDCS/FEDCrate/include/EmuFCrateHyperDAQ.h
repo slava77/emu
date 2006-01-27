@@ -47,6 +47,10 @@
 #include "CrateSelector.h"
 #include "JTAG_constants.h"
 
+#include "EmuFController.h"
+
+extern int irq_start[4];
+
 using namespace cgicc;
 using namespace std;
 
@@ -72,8 +76,8 @@ protected:
   std::string DDUBoardID_[9];
   std::string DCCBoardID_[9];
   int DDU_, DCC_;
-  int irq_startval;
   long int timer,ltime;
+  int HasInitialized;
   //
 public:
   //
@@ -103,6 +107,7 @@ public:
 
     //
     myParameter_ =  0;
+    HasInitialized=0;
     //
     //
     xmlFile_     = 
@@ -131,7 +136,6 @@ public:
     //
     if (dduVector.size()==0 && dccVector.size()==0) {
       //
-      irq_startval=0;
 
       std::string method =
 	toolbox::toString("/%s/setConfFile",getApplicationDescriptor()->getURN().c_str());
@@ -192,7 +196,7 @@ public:
     *out << std::endl;
     //    
     *out << cgicc::fieldset() << std::endl;
-    *out << cgicc::body() << std::endl;
+    *out << cgicc::body() << std::endl; 
     } else if (dduVector.size()>0 || dccVector.size()>0) {
       //	std::string DDUBoardID ;
       //        char Name[50] ;
@@ -231,7 +235,8 @@ public:
 
         *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
         *out << endl ;
-        if(irq_startval==0){
+        if(irq_start[0]==0){
+	 HasInitialized=1;
          std::string vmeintirq =
 	 toolbox::toString("/%s/VMEIntIRQ",getApplicationDescriptor()->getURN().c_str());
          *out << cgicc::form().set("method","GET").set("action",vmeintirq)
@@ -241,7 +246,17 @@ public:
           *out << cgicc::input().set("type","hidden").set("value","0").set("name","ddu") << std::endl;
          *out << cgicc::form() << std::endl ;
         }else{
-
+	 if(HasInitialized==0){
+	   HasInitialized=1;
+         std::string vmeintirq2 =
+	 toolbox::toString("/%s/VMEIntIRQ",getApplicationDescriptor()->getURN().c_str());
+         *out << cgicc::form().set("method","GET").set("action",vmeintirq2)
+             .set("target","_blank") << std::endl; 
+        *out << cgicc::input().set("type","submit")
+	  .set("value","Start VME IRQ Monitor") << std::endl;
+          *out << cgicc::input().set("type","hidden").set("value","0").set("name","ddu") << std::endl;
+         *out << cgicc::form() << std::endl ; 
+         }  
          std::string vmeintirq =
 	 toolbox::toString("/%s/VMEIntIRQ",getApplicationDescriptor()->getURN().c_str());
          *out << cgicc::form().set("method","GET").set("action",vmeintirq)
@@ -798,14 +813,14 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     int ddu;
     if(name != cgi.getElements().end()) {
       ddu = cgi["ddu"]->getIntegerValue();
-      cout << "DDU inside " << ddu << endl;
+      // cout << "DDU inside " << ddu << endl;
       DDU_ = ddu;
     }else{
       ddu=DDU_;
     }
-    printf(" DDU %d \n",ddu);
+    //  printf(" DDU %d \n",ddu);
     thisDDU = dduVector[ddu];
-    printf(" set up web page \n");
+    //  printf(" set up web page \n");
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
@@ -2056,32 +2071,31 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-  
    cgicc::Cgicc cgi(in);
     //
    const CgiEnvironment& env = cgi.getEnvironment();
     //
    std::string crateStr = env.getQueryString() ;
     //
-   cout << crateStr << endl ;
+   //  cout << crateStr << endl ;
     cgicc::form_iterator name = cgi.getElement("ddu");
     //
     int ddu;
     if(name != cgi.getElements().end()) {
       ddu = cgi["ddu"]->getIntegerValue();
-      cout << "DDU inside " << ddu << endl;
+      //  cout << "DDU inside " << ddu << endl;
       DDU_ = ddu;
     }else{
       ddu=DDU_;
     }
     thisDDU = dduVector[0];
  
-   if(irq_startval==0){
-     thisDDU->irq_pthread_start();
-     irq_startval=1;
+   if(irq_start[0]==0){
+     VMEController *theController=thisCrate->vmeController();
+     theController->irq_pthread_start(0);
      timer=0;
    }
-        printf(" set up web page \n");
+   //   printf(" set up web page \n");
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
@@ -2099,7 +2113,7 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
     if(ddu!=99){
     //
     *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
-    if(thisDDU->irq_tester(0)!=0){ 
+    if(thisDDU->irq_tester(0,0)!=0){ 
     *out << img().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/redlight.gif") << std::endl;
     /* 
 S. Durkin kludge
@@ -2124,14 +2138,14 @@ one must then recompile the libcgicc.so library
     *out << cgicc::span() << std::endl;
 
     *out << cgicc::span().set("style","font-size: 20pt;color:red");
-    sprintf(buf," Failure in Slot %d ERR %d SYNC %d FMM %d FMMCount %d Fiber %d",thisDDU->irq_tester(0),thisDDU->irq_tester(1),thisDDU->irq_tester(2),thisDDU->irq_tester(3),thisDDU->irq_tester(4),thisDDU->irq_tester(5)); 
+    sprintf(buf," Failure in Slot %d ERR %d SYNC %d FMM %d FMMCount %d Fiber %d",thisDDU->irq_tester(0,0),thisDDU->irq_tester(0,1),thisDDU->irq_tester(0,2),thisDDU->irq_tester(0,3),thisDDU->irq_tester(0,4),thisDDU->irq_tester(0,5)); 
     *out << buf << std::endl;
     }else{ 
     *out << cgicc::span().set("style","color:green");
     *out << "Time without interrupt" << std::endl;
     *out << cgicc::span() << std::endl;
     *out << cgicc::span().set("style","font-size: 25pt;color:blue;background-color:black;");
-    printf(" timer %ld start %d irq_start \n",timer,irq_startval);
+    //  printf(" timer %ld start %d irq_start \n",timer,irq_start[0]);
     long int xtimer=timer;
     long int xsec=xtimer%60;
     xtimer=(xtimer-xsec)/60;
@@ -2148,8 +2162,8 @@ one must then recompile the libcgicc.so library
     *out << cgicc::fieldset() << std::endl;
     *out << cgicc::body() << std::endl;
     }else{
-           thisDDU->irq_pthread_end(); 
-           irq_startval=0;
+           VMEController *theController=thisCrate->vmeController();
+           theController->irq_pthread_end(0); 
     *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
     *out << std::endl;
     *out << " VME IRQ Interrupt has been disabled \n"; 
