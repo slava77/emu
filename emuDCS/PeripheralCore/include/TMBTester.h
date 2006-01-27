@@ -79,7 +79,7 @@ class TMBTester {
   int bits_to_int(int*,int,int);
   bool step_mode;
   void jtag_io_byte(int,int*,int*,int* );
-  void step(int,int,int,int);
+  void step(int,int,int,int,int);
 
   //functions needed by above tests:
   int dowCRC(std::bitset<64>);

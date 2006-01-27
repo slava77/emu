@@ -340,9 +340,8 @@ bool TMBTester::testJTAGchain(int type){
 bool TMBTester::testMezzId(){
   (*MyOutput_) << "TMBTester: Checking Mezzanine FPGA and PROMs ID codes" << std::endl;
   bool testOK = false;
-  (*MyOutput_) << "TMBTester::testMezzId() NOT YET IMPLEMENTED" << std::endl; 
+  int idcode[5];
 
-  /*
   set_jtag_address(TMB_ADR_BOOT);    
   set_jtag_chain(TMB_MEZZ_FPGA_CHAIN);         
 
@@ -361,12 +360,23 @@ bool TMBTester::testMezzId(){
       opcode = PROM_IDCODE;                  // PROM IDcode opcode
     }
     do_jtag(chip_id,opcode,register_length,value);
+
+    idcode[chip_id] = bits_to_int(value,32,0);
   }
 
-  // GREG, NOW YOU HAVE TO DECODE THE OUTPUT VALUE...
-  // FIRST, MAKE THE JTAG GO...
-  */
-  messageOK("Mezzanine ID",testOK);
+  bool testFPGAmezz = compareValues("FPGA Mezz ID code",idcode[0],0x11050093,true);  
+  bool testPROMmezz1 = compareValues("PROM Mezz ID code 1",idcode[1],0x05036093,true);  
+  bool testPROMmezz2 = compareValues("PROM Mezz ID code 2",idcode[2],0x05036093,true);  
+  bool testPROMmezz3 = compareValues("PROM Mezz ID code 3",idcode[3],0x05036093,true);  
+  bool testPROMmezz4 = compareValues("PROM Mezz ID code 4",idcode[4],0x05036093,true);  
+
+  testOK = (testFPGAmezz  &&
+	    testPROMmezz1 &&
+	    testPROMmezz2 &&
+	    testPROMmezz3 &&
+	    testPROMmezz4 );
+
+  messageOK("Mezzanine FPGA/PROM ID",testOK);
   int dummy = sleep(3);
   return testOK;
 }
@@ -374,10 +384,9 @@ bool TMBTester::testMezzId(){
 
 bool TMBTester::testPROMid(){
   (*MyOutput_) << "TMBTester: Checking User PROM ID codes" << std::endl;
+  int userID[2];
   bool testOK = false;
-  (*MyOutput_) << "TMBTester::testPROMid() NOT YET IMPLEMENTED" << std::endl; 
 
-  /*
   set_jtag_address(TMB_ADR_BOOT);    
   set_jtag_chain(TMB_USER_PROM_CHAIN);         
 
@@ -392,11 +401,16 @@ bool TMBTester::testPROMid(){
   for (int chip_id=0; chip_id<=1; chip_id++){
     do_jtag(chip_id,opcode,register_length,value);
 
-    // GREG, NOW YOU HAVE TO DECODE THE OUTPUT VALUE...
-    // FIRST, MAKE THE JTAG GO...
+    userID[chip_id] = bits_to_int(value,32,0);
   }
-  */
-  messageOK("PROM ID",testOK);
+
+  bool testPROMUserId0 = compareValues("PROM User ID 0",userID[0],0x05022093,true);  
+  bool testPROMUserId1 = compareValues("PROM User ID 1",userID[1],0x05022093,true);  
+
+  testOK = (testPROMUserId0 &&
+	    testPROMUserId1 );
+
+  messageOK("PROM User ID",testOK);
   int dummy = sleep(3);
   return testOK;
 }
@@ -800,8 +814,8 @@ void TMBTester::RatTmbDelayScan(){
   (*MyOutput_) << "rpc_delay   bad data count" << std::endl;
   (*MyOutput_) << "---------   --------------" << std::endl;
   for (rpc_delay = 0; rpc_delay <=15; rpc_delay++) {
-    (*MyOutput_) << "    " << rpc_delay 
-	      << "           " << rpc_bad[rpc_delay] 
+    (*MyOutput_) << "    " << std::hex << rpc_delay 
+		 << "           " << std::hex << rpc_bad[rpc_delay] 
 	      <<std::endl;
   }
 
@@ -812,6 +826,7 @@ void TMBTester::RatTmbDelayScan(){
 void TMBTester::RatStatusRegister(){
   (*MyOutput_) << "TMBTester: Read RAT USER1 JTAG (status register)" << std::endl;
 
+  int dummy;
   int read_data;
   int opcode,chip_id;
 
@@ -831,9 +846,9 @@ void TMBTester::RatStatusRegister(){
   jtag_anystate_to_rti();    
 
   const int register_length = 32;  
-  int value[register_length];
+  int data[register_length];
 
-  int idcode;
+  int idcode[2];
 
   for (chip_id=0; chip_id<=1; chip_id++){
     if (chip_id == 0) {
@@ -842,44 +857,31 @@ void TMBTester::RatStatusRegister(){
       opcode = PROM_IDCODE;                  
     }
     step_mode = false;
-    do_jtag(chip_id,opcode,register_length,value);
+    do_jtag(chip_id,opcode,register_length,data);
 
-    idcode = bits_to_int(value,register_length,0);
-
-    (*MyOutput_) << "RAT ID code = " << idcode;
-
-    if (chip_id == 0) {
-      (*MyOutput_) << " <- PROM " << std::endl;
-    } else if (chip_id == 1) {
-      (*MyOutput_) << " <- FPGA " << std::endl;
-    }
+    idcode[chip_id] = bits_to_int(data,32,0);
   }
 
-  int usercode;
+
+  int usercode[2];
   for (chip_id=0; chip_id<=1; chip_id++){
     if (chip_id == 0) {
       opcode = VTX2_USERCODE;                  
     } else { 
       opcode = PROM_USERCODE;                  
     }
-    do_jtag(chip_id,opcode,register_length,value);
+    do_jtag(chip_id,opcode,register_length,data);
 
-    usercode = bits_to_int(value,register_length,0);
-
-    (*MyOutput_) << "RAT User code = " << usercode;
-
-    if (chip_id == 0) {
-      (*MyOutput_) << " <- PROM " << std::endl;
-    } else if (chip_id == 1) {
-      (*MyOutput_) << " <- FPGA " << std::endl;
-    }
+    usercode[chip_id] = bits_to_int(data,32,0);
   }
 
+  chip_id=0;
+  opcode = VTX2_USR1;
   const int user1_length = 224;
   int user1_value[user1_length];
-  chip_id=0;
 
-  do_jtag(chip_id,VTX2_USR1,user1_length,user1_value);
+  step_mode=false;
+  do_jtag(chip_id,opcode,user1_length,user1_value);
 
   int bit_array[7][32];
   int first,second;
@@ -894,7 +896,14 @@ void TMBTester::RatStatusRegister(){
 
   for (first=0; first<7; first++) 
     rat_user1[first] = bits_to_int(bit_array[first],32,0);
+
+
   
+  (*MyOutput_) << "RAT PROM ID code = " << idcode[0] << std::endl;
+  (*MyOutput_) << "RAT FPGA ID code = " << idcode[1] << std::endl;
+  (*MyOutput_) << "RAT PROM User code = " << usercode[0] << std::endl;
+  (*MyOutput_) << "RAT FPGA User code = " << usercode[1] << std::endl;
+
   (*MyOutput_) << "RAT USER1 = ";
   for (first=0; first<7; first++) 
     (*MyOutput_) << rat_user1[first];
@@ -947,7 +956,7 @@ void TMBTester::jtag_io_byte(int nframes,
   //	tms[]	=	byte's lsb to write to parallel port
   //	tdi[]	=	byte's lsb to write to parallel port
   //	tdo[]	=	bit read back from parallel port, stored in lsb
-  //	tck		=	toggled by this routine
+  //	tck	=	toggled by this routine
 
   // get current boot register:
   short unsigned int boot_state;
@@ -986,7 +995,9 @@ void TMBTester::jtag_io_byte(int nframes,
   //Loop over input data frames
   int iframe;
 
-  if (nframes>=1) {                       //no frames to send
+  int i;
+
+  if (nframes>0) {                       //no frames to send
 
     //loop over input data frames...
     for (iframe=0; iframe<nframes; iframe++) { //arrays count from 0
@@ -1000,29 +1011,26 @@ void TMBTester::jtag_io_byte(int nframes,
       jtag_out |= tck_bit | tms_bit | tdi_bit;
 
       dummy = tmb_->tmb_set_boot_reg(jtag_out);    //write boot register
-
       dummy = tmb_->tmb_get_boot_reg(&jtag_in);    //read boot register
       //** here only read tdo for step_mode **
       tdo[iframe] = (jtag_in >> 15) & 0x1;         //extract tdo bit, mask lsb
       tdo_bit = tdo[iframe];
-      std::cout << "tdo[" << iframe << "] = " << tdo[iframe] <<std::endl;
 
       if (step_mode) {
-	step(tck_bit,tms_bit,tdi_bit,tdo_bit);
+	  step(iframe,tck_bit,tms_bit,tdi_bit,tdo_bit);
       }
 
       tck_bit = 0x1 << 2;  //Take TCK high, leave tms,tdi as they were
       jtag_out |= tck_bit | tms_bit | tdi_bit;
-      dummy = tmb_->tmb_set_boot_reg(jtag_out);    //write boot register
 
+      dummy = tmb_->tmb_set_boot_reg(jtag_out);    //write boot register
       dummy = tmb_->tmb_get_boot_reg(&jtag_in);    //read boot register
       //** here is the real tdo, read on the rising edge **
-      tdo[iframe] = (jtag_in << 15) & 0x1;         //extract tdo bit, mask lsb
+      tdo[iframe] = (jtag_in >> 15) & 0x1;         //extract tdo bit, mask lsb
       tdo_bit = tdo[iframe];
-      //      std::cout << "tdo[" << iframe << "] = " << tdo[iframe] <<std::endl;
 
       if (step_mode) {
-	step(tck_bit,tms_bit,tdi_bit,tdo_bit);
+      	step(iframe,tck_bit,tms_bit,tdi_bit,tdo_bit);
       }      
     }
   }
@@ -1030,20 +1038,17 @@ void TMBTester::jtag_io_byte(int nframes,
   jtag_out &= 0xfffb;     //Take TCK low, leave others as they were
   dummy = tmb_->tmb_set_boot_reg(jtag_out);        //write boot register
 
-  for (iframe=0; iframe<nframes; iframe++){
-    std::cout << "tdo[" << iframe << "] = " << tdo[iframe] <<std::endl;
-  }
-
-
   return;
 }
 
-void TMBTester::step(int tck, 
+void TMBTester::step(int frame,
+		     int tck, 
 		     int tms, 
 		     int tdi, 
 		     int tdo){
 
-  (*MyOutput_) << "tck = " << std::hex << tck
+  (*MyOutput_) << "frame = " << std::hex << frame
+	       << " tck = " << std::hex << tck
 	    << " tms = " << std::hex << tms
 	    << " tdi = " << std::hex << tdi
 	    << " tdo = " << std::hex << tdo
@@ -1135,7 +1140,7 @@ void TMBTester::do_jtag(int chip_id,
 	       << std::endl;
   int k;
   int     iframe;                                               //JTAG frame counter
-  int tdi[MXBITSTREAM], tms[MXBITSTREAM], tdo[MXBITSTREAM];
+  int tdi[MAX_FRAMES], tms[MAX_FRAMES], tdo[MAX_FRAMES];
 
   int promIR[8] = {1, 0, 0, 2, 2, 0, 0, 0};     //Values the PROM IR should return.... -> 2 = don't care...
 
@@ -1161,12 +1166,15 @@ void TMBTester::do_jtag(int chip_id,
     for (ibit=0; ibit<bits_per_opcode[ichip]; ibit++) {    //up to the number of bits in this chip's opcode
       bit = 1;                                             //BYPASS
       if (ichip == chip_id) {                              //this is the chip we want
-	bit = (opcode << ibit) & 0x1;                      //extract bit from opcode
+	bit = (opcode >> ibit) & 0x1;                      //extract bit from opcode
       }
       tms[iframe]=0;                                       // TAP stays in ShfIR
       tdi[iframe++]=bit;                                   // Instruction bit, advance the frame
     }
   }
+
+  // ** Put TAP from ShfIR to Ex1IR ** 
+  tms[iframe-1]=1;                                         // Done during the last bit of the opcode
 
   // ** Put TAP from Ex1IR to RTI **
   for (k = 0; k < 2; k++) {
@@ -1174,23 +1182,19 @@ void TMBTester::do_jtag(int chip_id,
     tdi[iframe++] = tdi_post_opcode[k];
   }
 
-  if (iframe > MXBITSTREAM) {
+  if (iframe > MAX_FRAMES) {
     (*MyOutput_) << "do_jtag IR ERROR: Too many frames -> " << iframe << std::endl;
     (*MyOutput_) << "STOP the program (ctrl-c)...";
     std::cin >> k;
   }
 
-  jtag_io_byte(iframe,tms,tdi,tdo);
-
-  for (k=0;k<iframe;k++) {
-    std::cout << "tdo[" << k << "] =" << tdo[k] << std::endl;
-  }
+  jtag_io_byte(iframe,tms,tdi,tdo);   
 
   // **Check that the TDO shifted out instruction register strings**
   int iopbit;
-  if ( jtag_chain != TMB_USER_PROM_CHAIN &&
-       jtag_chain != TMB_FPGA_CHAIN ) {
-    iframe = 5;                                    //start at first opcode bit
+  if ( jtag_chain == TMB_USER_PROM_CHAIN ||
+       jtag_chain == TMB_FPGA_CHAIN ) {
+    iframe = 4;                                    //start at first opcode bit (counting from 0)
 
     for (idevice=0; idevice<devices_in_chain; idevice++) {   //loop over all the chips up to the number of chips in this chain
 
@@ -1212,24 +1216,20 @@ void TMBTester::do_jtag(int chip_id,
       }
     }
     (*MyOutput_) << "JTAG write Instruction Register: ";
-    for (k=12; k>=5; k--) {
+    for (k=11; k>=4; k--) {
       (*MyOutput_) << tdo[k] << " ";
     }
     (*MyOutput_) << std::endl;
   }
 
-  (*MyOutput_) << "Waiting for input... " << std::endl;
-  std::cin >> k;
-
   // ** Now that the desired "opcode" has been written to "chip_id",
-  //    Perform the second JTAG operation, which is to write TDI bits
-  //    for the currently selected data register and read back the 
+  //    Perform the second JTAG operation, which is to read the 
   //    TDO data which ought to be "length" bits long, into the
   //    array "val"
 
   iframe = 0;
 
-  // Put TAP in state ShfIR 
+  // Put TAP in state ShfDR from RTI 
   for (k = 0; k < 3; k++) {
     tms[iframe] = tms_pre_read[k];
     tdi[iframe++] = tdi_pre_read[k];
@@ -1243,8 +1243,10 @@ void TMBTester::do_jtag(int chip_id,
 
     if (ichip == chip_id) {                                //this is the chip we want
       offset = iframe;                                     //here is the beginning of the data
-      for (ibit=0; ibit<bits_per_opcode[ichip]; ibit++)     //up to the number of bits in this chip's opcode
-	tms[iframe++] = 0;                                   // Stay in ShfDR, but leave tdi as it was for IR...
+      for (ibit=0; ibit<length; ibit++) {                  //up to the number of bits specified for this register
+	tms[iframe] = 0;                                   // Stay in ShfDR
+	tdi[iframe++] = 1;                                 // What TDI goes in for shifting out data?                         
+      }
     } else {
       tms[iframe] = 0;                                       // TAP stays in ShfDR
       tdi[iframe++] = 0;                                     // No going out to bypass regs, bypass register is one frame      
@@ -1259,7 +1261,7 @@ void TMBTester::do_jtag(int chip_id,
     tdi[iframe++] = tdi_post_read[k];
   }
 
-  if (iframe > MXBITSTREAM) {
+  if (iframe > MAX_FRAMES) {
     (*MyOutput_) << "do_jtag DR ERROR: Too many frames -> " << iframe << std::endl;
     (*MyOutput_) << "STOP the program (ctrl-c)...";
     std::cin >> k;
@@ -1270,7 +1272,7 @@ void TMBTester::do_jtag(int chip_id,
   // ** copy relevant section of tdo to caller's read array **
   for (ibit=0; ibit<length; ibit++) {
     iframe = ibit+offset;
-    if (iframe > MXBITSTREAM) {
+    if (iframe > MAX_FRAMES) {
       (*MyOutput_) << "do_jtag copy ERROR: Too many frames -> " << iframe << std::endl;
       (*MyOutput_) << "STOP the program (ctrl-c)...";
       std::cin >> k;
