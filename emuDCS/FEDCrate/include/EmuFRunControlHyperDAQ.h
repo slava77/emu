@@ -1,4 +1,4 @@
-// $Id: EmuFRunControlHyperDAQ.h,v 1.1 2006/01/21 20:20:14 gilmore Exp $
+// $Id: EmuFRunControlHyperDAQ.h,v 1.2 2006/01/27 15:57:34 gilmore Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -28,13 +28,31 @@
 #include "xoap/MessageReference.h"
 #include "xoap/MessageFactory.h"
 #include "xoap/SOAPEnvelope.h"
+#include "xoap/SOAPName.h"
 #include "xoap/SOAPBody.h"
+#include "xoap/SOAPBodyElement.h"
 #include "xoap/Method.h"
+#include "xoap/DOMParser.h"
+#include "xoap/domutils.h"
+
+#include "xdata/xdata.h"
+#include "xdata/XMLDOM.h"
+#include "xdata/Serializable.h"
+#include "xdata/soap/Serializer.h"
+#include "xdata/exception/Exception.h"
+#include "xdata/XStr.h"
+#include "xdata/Float.h"
+#include "xdata/Integer.h"
+#include "xdata/Boolean.h"
+#include "xdata/String.h"
+
 
 #include "cgicc/CgiDefs.h"
 #include "cgicc/Cgicc.h"
 #include "cgicc/HTTPHTMLHeader.h"
 #include "cgicc/HTMLClasses.h"
+
+#include "xcept/tools.h"
 
 using namespace cgicc;
 using namespace std;
@@ -57,9 +75,12 @@ public:
     xgi::bind(this,&EmuFRunControlHyperDAQ::SendSOAPMessageInitXRelay, "SendSOAPMessageInitXRelay");
     xgi::bind(this,&EmuFRunControlHyperDAQ::SendSOAPMessageConfigureXRelay, "SendSOAPMessageConfigureXRelay");
     xgi::bind(this,&EmuFRunControlHyperDAQ::SendSOAPMessageOpenFile, "SendSOAPMessageOpenFile");
-    //
+    xoap::bind(this,&EmuFRunControlHyperDAQ::IRQSeen,"IRQSeen",XDAQ_NS_URI);
+   //
+
   }  
   //
+
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
@@ -232,7 +253,6 @@ public:
     throw (xgi::exception::Exception)
   {
     //
-    printf(" called EmuFRunControlHyperDAQ InitXRelay \n");
     std::vector<xdaq::ApplicationDescriptor * >  descriptors =
       getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuFCrateSOAP");
     //
@@ -248,7 +268,6 @@ public:
     throw (xgi::exception::Exception)
   {
     //
-    printf(" EMUFRunControl send message configure ******************\n");
     std::vector<xdaq::ApplicationDescriptor * >  descriptors =
       getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuFCrateSOAP");
     //
@@ -293,6 +312,55 @@ public:
     //
   }
   //  
+
+
+
+  xoap::MessageReference IRQSeen (xoap::MessageReference msg) throw (xoap::exception::Exception)
+  {   
+    std::cout << "Received Message IRQSeen **********************" << std::endl ;
+        xoap::DOMParser* parser = xoap::DOMParser::get("ParseFromSOAP");
+	// msg->writeTo(std::cout);
+	//  std::cout << std::endl;
+	std::string data;
+        msg->writeTo(data); 
+        DOMDocument* doc = 0;
+        doc = parser->parse (data);
+	xdata::soap::Serializer serial;
+	xdata::Integer pcrate;
+	xdata::Integer pslot;
+	xdata::Integer pstatus;
+	DOMNodeList* dataNode = doc->getElementsByTagNameNS(xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("data"));
+	DOMNodeList* dataElements = dataNode->item(0)->getChildNodes();
+	
+	for (unsigned int j = 0; j < dataElements->getLength(); j++)
+	{
+		DOMNode* n = dataElements->item(j);
+		if (n->getNodeType() == DOMNode::ELEMENT_NODE)
+		{	
+			std::string nodeName = xoap::XMLCh2String(n->getNodeName());	
+			if (nodeName == "xdaq:irqCrate")
+			{
+				serial.import (&pcrate, n);
+			} else if (nodeName == "xdaq:irqSlot"){
+				serial.import (&pslot, n);
+			} else if (nodeName == "xdaq:irqStatus"){
+				serial.import (&pstatus, n);
+                        } 
+
+		}
+        }
+             
+
+        std::cout << " Crate: " << pcrate.toString() << " Slot: " << pslot.toString() << " Status: " << pstatus.toString() << std::endl;
+
+    xoap::MessageReference reply = xoap::createMessage();
+    xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+    xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
+    xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
+    return reply;
+} 
+
+
 };
 
 #endif

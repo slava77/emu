@@ -59,17 +59,26 @@ void Crate::disable() {
   //
 }
 //
-void Crate::configure() {
+void Crate::configure(int crate) {
   //
-  
   printf(" Crate::configure is called \n");
   std::vector<DDU*> myDdus = this->ddus();
   for(unsigned i =0; i < myDdus.size(); ++i) {
     myDdus[i]->configure();
   }
-  myDdus[0]->vmeirq();
   std::vector<DCC*> myDccs = this->dccs();
   for(unsigned i =0; i < myDccs.size(); ++i) {
-    myDccs[i]->configure();
-  }
+    myDccs[i]->configure(); 
+  } 
+  printf(" theController->vmeirq_start_ %d \n", theController->vmeirq_start_);
+  if(theController->vmeirq_start_==1){
+    theController->irq_pthread_start(crate);
+  }else{
+    theController->irq_pthread_end(crate);
+  } 
+}
+
+int Crate::irqtest(int crate,int ival)
+{
+  return theController->irq_tester(crate,ival);
 }

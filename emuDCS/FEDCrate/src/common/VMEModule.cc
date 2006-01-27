@@ -1,7 +1,7 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 1.2 2006/01/21 19:55:02 gilmore Exp $
+// $Id: VMEModule.cc,v 1.3 2006/01/27 16:04:50 gilmore Exp $
 // $Log: VMEModule.cc,v $
-// Revision 1.2  2006/01/21 19:55:02  gilmore
+// Revision 1.3  2006/01/27 16:04:50  gilmore
 // *** empty log message ***
 //
 // Revision 1.23  2004/07/22 18:52:38  tfcvs
@@ -164,29 +164,29 @@ void VMEModule::vme_adc(int ichp,int ichn,char *rcv)
 }
 
 
-void VMEModule::irq_pthread_start()
+void VMEModule::irq_pthread_start(int crate)
 {
   theController->start(this);
-  theController->irq_pthread_start();
+  theController->irq_pthread_start(crate);
 }
 
-int VMEModule::irq_tester(int ival)
+int VMEModule::irq_tester(int crate,int ival)
 {
   theController->start(this);
-  return theController->irq_tester(ival);
+  return theController->irq_tester(crate,ival);
 }
 
-void VMEModule::irq_pthread_info()
+void VMEModule::irq_pthread_info(int crate)
 {
   theController->start(this);
-  theController->irq_pthread_info();
+  theController->irq_pthread_info(crate);
 
 }
 
-void VMEModule::irq_pthread_end()
+void VMEModule::irq_pthread_end(int crate)
 {
   theController->start(this);
-  theController->irq_pthread_end();
+  theController->irq_pthread_end(crate);
 }
 
 int VMEModule::CAEN_err()

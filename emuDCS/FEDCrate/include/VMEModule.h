@@ -1,7 +1,7 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 1.2 2006/01/21 20:20:14 gilmore Exp $
+// $Id: VMEModule.h,v 1.3 2006/01/27 15:57:34 gilmore Exp $
 // $Log: VMEModule.h,v $
-// Revision 1.2  2006/01/21 20:20:14  gilmore
+// Revision 1.3  2006/01/27 15:57:34  gilmore
 // *** empty log message ***
 //
 // Revision 1.16  2004/08/05 04:10:13  tfcvs
@@ -49,10 +49,10 @@ public:
 
   // IRQ VME Interrupts
 static void *IRQ_Interrupt_Handler(void *threadarg);
-void irq_pthread_start();
-void irq_pthread_end();
-void irq_pthread_info();
-int irq_tester(int ival);
+void irq_pthread_start(int crate);
+void irq_pthread_end(int crate);
+void irq_pthread_info(int crate);
+int irq_tester(int crate,int ival);
 int CAEN_err();
 void CAEN_err_reset();
 

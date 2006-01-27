@@ -1,7 +1,7 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 1.2 2006/01/21 20:20:14 gilmore Exp $
+// $Id: VMEController.h,v 1.3 2006/01/27 15:57:34 gilmore Exp $
 // $Log: VMEController.h,v $
-// Revision 1.2  2006/01/21 20:20:14  gilmore
+// Revision 1.3  2006/01/27 15:57:34  gilmore
 // *** empty log message ***
 //
 // Revision 1.14  2004/07/22 18:52:38  tfcvs
@@ -40,7 +40,6 @@ public:
   /// ends whatever module is current
   void end();
 
- 
   /// JTAG stuff
   void devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
   void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
@@ -65,11 +64,13 @@ int CAEN_reset(void);
 int CAEN_read(unsigned long Address,unsigned short int *data);
 int CAEN_write(unsigned long Address,unsigned short int *data);
   // IRQ VME Interrupts
+
 static void *IRQ_Interrupt_Handler(void *threadarg);
-void irq_pthread_start();
-void irq_pthread_end();
-void irq_pthread_info();
-int irq_tester(int ival);
+int vmeirq_start_;
+void irq_pthread_start(int crate);
+void irq_pthread_end(int crate);
+void irq_pthread_info(int crate);
+int irq_tester(int crate,int ival);
 
  int udelay(long int itim);
  void sdly();
