@@ -7,6 +7,7 @@
 #include <string>
 #include "TMB.h"
 #include "CCB.h"
+#include "TMB_JTAG_constants.h"
 
 class TMBTester {
  public:
@@ -41,17 +42,25 @@ class TMBTester {
   bool testDSN(int); // TMB=0, mezzanine=1, RAT=2
   bool testADC();
   bool test3d3444();
-  float tmb_temp(int,int);  //(command, 1=TMB 2=RAT)
-  void RatTmbDelayScan();
-  void rat_clk_delays(unsigned short int,int);
-  void RatUser1JTAG();
-
   //
   bool compareValues(std::string, int, int, bool);
   bool compareValues(std::string, float, float, float);
   void messageOK(std::string,bool);
   //
-  // the following should be in TMB.cc:
+  // JTAG stuff:
+  inline void set_jtag_address(int address){ jtag_address = address;}
+  void set_jtag_chain(int);
+  void select_jtag_chain_param();
+
+  void jtag_anystate_to_rti();
+  void do_jtag(int,int,int,int*);
+  //
+  //To be RAT members:
+  void RatTmbDelayScan();
+  void RatStatusRegister();
+  //
+  //Not yet working but should eventually be in TMB.cc...
+  float tmb_temp(int, int);
 
  protected:
   //
@@ -62,23 +71,19 @@ class TMBTester {
   CCB * ccb_;
   int * TMBslot;
 
+  //JTAG stuff:
+  int jtag_address;
+  int jtag_chain;
+  int devices_in_chain;
+  int bits_per_opcode[MAX_NUM_CHIPS];
+  int bits_to_int(int*,int,int);
+  bool step_mode;
+  void jtag_io_byte(int,int*,int*,int* );
+  void step(int,int,int,int);
+
   //functions needed by above tests:
   int dowCRC(std::bitset<64>);
   void bit_to_array(int, int *, const int); 
-  int UserOrBootJTAG(int);
-  void vme_jtag_anystate_to_rti(int,int);
-  void vme_jtag_write_ir(int,int,int,int);
-  void vme_jtag_write_dr(int,int,int,int,
-			 int,int);
-  void vme_jtag_io_byte(int,int,int,
-			unsigned char*,
-			unsigned char*,
-			unsigned char*,
-			int);
-  void step(int,int,int,int);
-  int select_jtag_chain(int);
-
-  // the following should be in TMB.cc:
 };
 
 #endif
