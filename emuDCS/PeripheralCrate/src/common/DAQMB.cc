@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.28 2006/01/25 19:25:06 mey Exp $
+// $Id: DAQMB.cc,v 2.29 2006/01/30 09:29:53 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.29  2006/01/30 09:29:53  mey
+// Update
+//
 // Revision 2.28  2006/01/25 19:25:06  mey
 // Update
 //
@@ -1400,23 +1403,23 @@ void DAQMB::wrtfifo(int fifo,int nsndfifo,char* sndfifo)
 {
   int i=fifo+FIFO1;
   DEVTYPE devnum=(DEVTYPE)i;
-
+  //
   printf(" sndfifo: %d %02x %02x \n",nsndfifo,sndfifo[0]&0xff,sndfifo[1]&0xff);
-/* fifo write */  
- cmd[0]=4;
-  std::cout << "wrtfifo devnum FIFO7 " << devnum << " " << FIFO7 << std::endl;
- if(devnum-FIFO7!=0){
-   //std::cout << "devdo1" << std::endl;
-   devdo(devnum,1,cmd,nsndfifo*2,sndfifo,rcvbuf,2);
-   //std::cout << "devdo1back" << std::endl;
- }
- else{
-   //std::cout << "devdo2" << std::endl;
-   devdo(devnum,1,cmd,nsndfifo,sndfifo,rcvbuf,2);
-   //std::cout << "devdo2back" << std::endl;
- } 
+  /* fifo write */  
+  cmd[0]=4;
+  //std::cout << "wrtfifo devnum FIFO7 " << devnum << " " << FIFO7 << std::endl;
+  if(devnum-FIFO7!=0){
+    //std::cout << "devdo1" << std::endl;
+    devdo(devnum,1,cmd,nsndfifo*2,sndfifo,rcvbuf,2);
+    //std::cout << "devdo1back" << std::endl;
+  }
+  else{
+    //std::cout << "devdo2" << std::endl;
+    devdo(devnum,1,cmd,nsndfifo,sndfifo,rcvbuf,2);
+    //std::cout << "devdo2back" << std::endl;
+  } 
 }
-
+//
 void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
 {  
   //
@@ -1445,7 +1448,9 @@ void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
   //std::cout << "readfifo3" << std::endl;
   //
   cmd[0]=5;
-  devdo(devnum,1,cmd,nrcvfifo*2+2,sndbuf,rcvfifo,2);
+  devdo(devnum,1,cmd,nrcvfifo*2,sndbuf,rcvfifo,2);
+  //
+  for(i=0;i<16380;i++)printf(" %d %04x ",i,((rcvbuf[2*i]<<8)&0xff00)|(rcvbuf[2*i+1]&0xff)); 
   //
   //std::cout << "readfifo4" << std::endl;
   //
@@ -1453,9 +1458,7 @@ void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
   sndbuf[0]=FIFO_RD;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_USR2;
-  //
-  //std::cout << "readfifo5" << std::endl;
-  //
+
   sndbuf[0]=0; 
   devdo(MCTRL,6,cmd,3,sndbuf,rcvbuf,0); 
   cmd[0]=VTX2_BYPASS;
@@ -3071,10 +3074,39 @@ void DAQMB::test3()
   int errs,err[8];
   int pass;
   //
+  calctrl_fifomrst(); 
+  usleep(5000);
+  /*
+  errs=0;
+  printf("Running Memchk\n");
+  std::cout << "FIFO1 " << std::endl ;
+  err[1]=memchk(FIFO1);
+  errs+=err[1];
+  std::cout << "FIFO2 " << std::endl ;
+  err[2]=memchk(FIFO2);
+  errs+=err[2];
+  std::cout << "FIFO3 " << std::endl ;
+  err[3]=memchk(FIFO3);
+  errs+=err[3];
+  std::cout << "FIFO4 " << std::endl ;
+  err[4]=memchk(FIFO4);
+  errs+=err[4];
+  std::cout << "FIFO5 " << std::endl ;
+  err[5]=memchk(FIFO5);
+  errs+=err[5];
+  std::cout << "FIFO7 " << std::endl ;
+  err[7]=memchk(FIFO7);
+  errs+=err[7];
+  //
+  calctrl_fifomrst(); 
+  usleep(5000);
+  */
+  //
   pass=1;
   errs=0; 
   //
-  calctrl_fifomrst(); usleep(5000);
+  calctrl_fifomrst(); 
+  usleep(5000);
   //
   (*MyOutput_) << "Running Memchk" << std::endl;
   err[1]=memchk(1);
@@ -3084,7 +3116,7 @@ void DAQMB::test3()
   }else{
     (*MyOutput_) << " FIFO1 is Bad " << err[1] << std::endl;
   }
-  /*
+  //
   err[2]= memchk(2);
   errs+=err[2];
   if(err[2]==0){
@@ -3132,10 +3164,233 @@ void DAQMB::test3()
   errs+=err[7];
   calctrl_fifomrst();
   if(errs!=0)pass=0;
-  */
+  //
   //
 }
 //
+void DAQMB::wrtfifox(enum DEVTYPE devnum,unsigned short int pass)
+{ 
+
+ if(devnum<FIFO1||devnum>FIFO7){
+    printf(" Device is not a FIFO \n");
+    return;
+ }
+ //
+ /* fifo write */  
+ cmd[0]=0;
+ sndbuf[0]=pass&0xff;
+ sndbuf[1]=((pass>>8)&0xff);
+ //  printf(" wrtfifox 16384 %02x %02x \n",sndbuf[1]&0xff,sndbuf[0]&0xff);
+ if(devnum-FIFO7!=0){
+   devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);}
+ else{
+ devdo(devnum,1,cmd,8190*2,sndbuf,rcvbuf,2);}
+}
+//
+int DAQMB::readfifox_chk(enum DEVTYPE devnum,unsigned int short memchk)
+     
+{
+ int bad;
+ if(devnum<FIFO1||devnum>FIFO7){
+    printf(" Device is not a FIFO \n");
+    return -1;
+ }
+ //
+ cmd[0]=VTX2_USR1;
+ sndbuf[0]=FIFO_RD;
+ devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+ cmd[0]=VTX2_USR2;
+ sndbuf[0]=devnum-FIFO1+1; 
+ devdo(MCTRL,6,cmd,3,sndbuf,rcvbuf,0); 
+ cmd[0]=VTX2_USR1;
+ sndbuf[0]=0;
+ devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,2);
+ cmd[0]=VTX2_BYPASS;
+ sndbuf[0]=0;
+ devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+ //
+ /* fifo read check */  
+ cmd[0]=1;
+ sndbuf[0]=memchk&0xff;
+ sndbuf[1]=((memchk>>8)&0xff);
+ devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);
+ // printf(" Number Bad: rcvbuf %02x %02x \n",rcvbuf[1],rcvbuf[0]); 
+ bad=256*rcvbuf[1]+rcvbuf[0];
+ //
+ cmd[0]=VTX2_USR1;
+ sndbuf[0]=FIFO_RD;
+ devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+ cmd[0]=VTX2_USR2;
+ sndbuf[0]=0; 
+ devdo(MCTRL,6,cmd,3,sndbuf,rcvbuf,0); 
+ cmd[0]=VTX2_BYPASS;
+ sndbuf[0]=0;
+ devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+ //
+ return bad;
+}
+//
+int DAQMB::memchk(enum DEVTYPE devnum)
+{
+  int ierr,ierr2;
+  unsigned long int lmsk;
+  //
+  if(devnum<FIFO1||devnum>FIFO7){
+    printf(" Device is not a FIFO \n");
+    return -1;
+  }
+  //
+  ierr2=0;
+  wrtfifox(devnum,0xffff);
+  ierr=readfifox_chk(devnum,0xffff);
+  ierr2+=ierr;
+  printf(" ierr %d %d \n",ierr,ierr2);
+  wrtfifox(devnum,0x0000);
+  ierr=readfifox_chk(devnum,0x0000);
+  printf(" ierr %d \n",ierr);
+  ierr2+=ierr;
+  wrtfifox(devnum,0xaaaa);
+  ierr=readfifox_chk(devnum,0xaaaa);
+  printf(" ierr %d \n",ierr);
+  ierr2+=ierr; 
+  wrtfifox(devnum,0x5555);
+  ierr=readfifox_chk(devnum,0x5555);
+  printf(" ierr %d \n",ierr); 
+  ierr2+=ierr;  
+  wrtfifo_123(devnum);
+  ierr=readfifox_123chk(devnum);
+  printf(" ierr %d \n",ierr);
+  ierr2+=ierr; 
+  wrtfifo_toggle(devnum);
+  ierr=readfifox_togglechk(devnum);
+  printf(" ierr %d \n",ierr);
+  ierr2+=ierr;   
+  printf(" ierr2 %d \n",ierr2); 
+  return ierr2;
+}
+//
+int DAQMB::readfifox_togglechk(enum DEVTYPE devnum)
+  //
+{
+ int bad;
+ if(devnum<FIFO1||devnum>FIFO7){
+    printf(" Device is not a FIFO \n");
+    return -1;
+ }
+
+ /* fifo read  */  
+ 
+ cmd[0]=VTX2_USR1;
+ sndbuf[0]=FIFO_RD;
+ devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+ cmd[0]=VTX2_USR2;
+ sndbuf[0]=devnum-FIFO1+1; 
+ devdo(MCTRL,6,cmd,3,sndbuf,rcvbuf,0); 
+ cmd[0]=VTX2_USR1;
+ sndbuf[0]=0;
+ devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,2);
+ cmd[0]=VTX2_BYPASS;
+ sndbuf[0]=0;
+ devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+ 
+ cmd[0]=3;
+ sndbuf[0]=0;
+ devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);
+ //  printf(" Number Bad: rcvbuf %02x %02x \n",rcvbuf[1],rcvbuf[0]); 
+ bad=256*rcvbuf[1]+rcvbuf[0];
+
+ cmd[0]=VTX2_USR1;
+ sndbuf[0]=FIFO_RD;
+ devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+ cmd[0]=VTX2_USR2;
+ sndbuf[0]=0; 
+ devdo(MCTRL,6,cmd,3,sndbuf,rcvbuf,0); 
+ cmd[0]=VTX2_BYPASS;
+ sndbuf[0]=0;
+ devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+ 
+ return bad;
+}
+//
+void DAQMB::wrtfifo_toggle(enum DEVTYPE devnum)
+{
+    if(devnum<FIFO1||devnum>FIFO7){
+    printf(" Device is not a FIFO \n");
+    return;
+ }
+
+   /* fifo write */  
+ cmd[0]=2;
+ sndbuf[0]=0;
+ if(devnum-FIFO7!=0){
+   devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);}
+ else{ 
+   devdo(devnum,1,cmd,8190*2,sndbuf,rcvbuf,2);}
+}
+//
+void DAQMB::wrtfifo_123(enum DEVTYPE devnum)
+{
+  if(devnum<FIFO1||devnum>FIFO7){
+    printf(" Device is not a FIFO \n");
+    return;
+  }
+  //
+  /* fifo write */  
+  cmd[0]=2;
+  sndbuf[0]=2;
+  if(devnum-FIFO7!=0){
+    devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);}
+  else{
+    devdo(devnum,1,cmd,8190*2,sndbuf,rcvbuf,2);}
+}
+
+//
+int DAQMB::readfifox_123chk(enum DEVTYPE devnum)
+     
+{
+ int bad;
+ if(devnum<FIFO1||devnum>FIFO7){
+    printf(" Device is not a FIFO \n");
+    return -1;
+ }
+
+   /* fifo read */
+    cmd[0]=VTX2_USR1;
+  sndbuf[0]=FIFO_RD;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR2;
+  sndbuf[0]=devnum-FIFO1+1; 
+  devdo(MCTRL,6,cmd,3,sndbuf,rcvbuf,0); 
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=0;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,2);
+  cmd[0]=VTX2_BYPASS;
+  sndbuf[0]=0;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+
+ cmd[0]=3;
+ sndbuf[0]=2;
+ devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);
+ // printf(" Number Bad: rcvbuf %02x %02x \n",rcvbuf[1],rcvbuf[0]); 
+ bad=256*rcvbuf[1]+rcvbuf[0];
+
+
+
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=FIFO_RD;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR2;
+  sndbuf[0]=0; 
+  devdo(MCTRL,6,cmd,3,sndbuf,rcvbuf,0); 
+  cmd[0]=VTX2_BYPASS;
+  sndbuf[0]=0;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+
+ return bad;
+}
+
+//
+
 int DAQMB::memchk(int fifo)
 {
   static int fifosize=16380;
