@@ -77,7 +77,7 @@ protected:
   std::string DCCBoardID_[9];
   int DDU_, DCC_;
   long int timer,ltime;
-  int HasInitialized;
+  int irqprob;
   //
 public:
   //
@@ -107,7 +107,7 @@ public:
 
     //
     myParameter_ =  0;
-    HasInitialized=0;
+    irqprob=0;
     //
     //
     xmlFile_     = 
@@ -236,7 +236,6 @@ public:
         *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
         *out << endl ;
         if(irq_start[0]==0){
-	 HasInitialized=1;
          std::string vmeintirq =
 	 toolbox::toString("/%s/VMEIntIRQ",getApplicationDescriptor()->getURN().c_str());
          *out << cgicc::form().set("method","GET").set("action",vmeintirq)
@@ -246,8 +245,6 @@ public:
           *out << cgicc::input().set("type","hidden").set("value","0").set("name","ddu") << std::endl;
          *out << cgicc::form() << std::endl ;
         }else{
-	 if(HasInitialized!=2){
-	   HasInitialized=1;
          std::string vmeintirq2 =
 	 toolbox::toString("/%s/VMEIntIRQ",getApplicationDescriptor()->getURN().c_str());
          *out << cgicc::form().set("method","GET").set("action",vmeintirq2)
@@ -256,7 +253,7 @@ public:
 	  .set("value","Start VME IRQ Monitor") << std::endl;
           *out << cgicc::input().set("type","hidden").set("value","0").set("name","ddu") << std::endl;
          *out << cgicc::form() << std::endl ; 
-         }  
+           
          std::string vmeintirq =
 	 toolbox::toString("/%s/VMEIntIRQ",getApplicationDescriptor()->getURN().c_str());
          *out << cgicc::form().set("method","GET").set("action",vmeintirq)
@@ -2084,13 +2081,22 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
     }else{
       ddu=DDU_;
     }
+
+    if(irq_start[0]==0){
+      VMEController *theController=thisCrate->vmeController();
+      theController->irq_pthread_start(0);
+      timer=0;
+      for(int i=0;i<(int)dduVector.size();i++){
+	thisDDU=dduVector[i];
+        int slot=thisDDU->slot();
+        if(slot<21){
+	  if(thisDDU->vmepara_CSCstat()!=0x0000)irqprob=1;
+        }
+      }
+    }
+
     thisDDU = dduVector[0];
  
-   if(irq_start[0]==0){
-     VMEController *theController=thisCrate->vmeController();
-     theController->irq_pthread_start(0);
-     timer=0;
-   }
    //   printf(" set up web page \n");
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
@@ -2112,18 +2118,20 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
     if(ddu!=99){
     //
     *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
-    if(thisDDU->irq_tester(0,0)!=0){ 
+    if(thisDDU->irq_tester(0,0)!=0||irqprob!=0){ 
     *out << img().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/redlight.gif") << std::endl;
     /* 
 S. Durkin kludge
 
-for sound the following line must be added to 
-HTMLClasses.h:  ATOMIC_ELEMENT  (bgsound,        "bgsound"); 
+for IE sound the following line must be added to 
+HTMLClasses.h:  ATOMIC_ELEMENT  (bgsound,        "bgsound");
+for Mozilla sound the following line must be added to 
+HTMLClasses.h:  ATOMIC_ELEMENT  (embed,        "embed"); 
 one must then recompile the libcgicc.so library 
+    *out << bgsound().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/siren.wav") << std::endl;  */
 
-*/
+    *out << embed().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/siren.wav").set("hidden","true").set("autostart","true").set("loop","true") << std::endl;
 
-    *out << bgsound().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/siren.wav") << std::endl; 
     *out << br() << std::endl;
    *out << cgicc::span().set("style","font-size: 25pt;color:red;background-color:yellow;");
     long int xtimer=timer;
@@ -2135,8 +2143,13 @@ one must then recompile the libcgicc.so library
     *out << buf << std::endl;
     *out << cgicc::span() << std::endl;
 
-    *out << cgicc::span().set("style","font-size: 20pt;color:red");
-    sprintf(buf," Failure in Crate %d Slot %d Status %04x",thisDDU->irq_tester(0,1),thisDDU->irq_tester(0,2),thisDDU->irq_tester(0,3)); 
+    if(thisDDU->irq_tester(0,0)!=0){
+      *out << cgicc::span().set("style","font-size: 20pt;color:red");
+      sprintf(buf," Failure in Crate %d Slot %d Status %04x",thisDDU->irq_tester(0,1),thisDDU->irq_tester(0,2),thisDDU->irq_tester(0,3));
+    }else{ 
+     *out << cgicc::span().set("style","font-size: 20pt;color:red");
+      sprintf(buf," DDUs have Interrupted previously");
+    } 
     *out << buf << std::endl;
     }else{ 
     *out << cgicc::span().set("style","color:green");
@@ -2145,7 +2158,6 @@ one must then recompile the libcgicc.so library
     *out << cgicc::span().set("style","font-size: 25pt;color:blue;background-color:black;");
     //  printf(" timer %ld start %d irq_start \n",timer,irq_start[0]);
     long int xtimer=timer;
-    fixtimer=timer;
     long int xsec=xtimer%60;
     xtimer=(xtimer-xsec)/60;
     long int xmin=xtimer%60;
