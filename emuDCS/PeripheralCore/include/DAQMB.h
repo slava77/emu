@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.17 2006/01/13 10:06:49 mey Exp $
+// $Id: DAQMB.h,v 2.18 2006/01/30 09:29:29 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.18  2006/01/30 09:29:29  mey
+// Update
+//
 // Revision 2.17  2006/01/13 10:06:49  mey
 // Got rid of virtuals
 //
@@ -108,6 +111,12 @@ public:
   void restoreCFEBIdle();
   void restoreMotherboardIdle();
   void PrintCounters(int);
+  int readfifox_chk(enum DEVTYPE,unsigned int short);
+  void wrtfifox(enum DEVTYPE,unsigned short int);
+  int readfifox_123chk(enum DEVTYPE devnum);
+  void wrtfifo_123(enum DEVTYPE devnum);
+  void wrtfifo_toggle(enum DEVTYPE devnum);
+  int readfifox_togglechk(enum DEVTYPE devnum);
   //
   void lowv_dump();
   void daqmb_adc_dump();
@@ -123,6 +132,7 @@ public:
   int  test10();
   int  test11();
   int  memchk(int);
+  int  memchk(DEVTYPE);
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   

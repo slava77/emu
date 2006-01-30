@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.34 2006/01/25 19:25:07 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.35 2006/01/30 09:29:29 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -55,6 +55,7 @@
 #include "MPC.h"
 #include "DDU.h"
 #include "DAQMBTester.h"
+#include "TMBTester.h"
 #include "ALCTController.h"
 #include "CrateSelector.h"
 #include "ChamberUtilities.h"
@@ -85,7 +86,7 @@ protected:
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
   EmuController MyController;
-  TMB *thisTMB(0) ;
+  TMB * thisTMB(0) ;
   DAQMB* thisDMB(0) ;
   CCB* thisCCB(0) ;
   ALCTController *alct(0) ;
@@ -2087,6 +2088,13 @@ public:
     thisTMB = tmbVector[tmb];
     //
     alct = thisTMB->alctController();
+    //
+    TMBTester MyTMBTester;
+    //
+    MyTMBTester.setTMB(thisTMB);
+    MyTMBTester.setCCB(thisCCB);
+    //
+    MyTMBTester.runAllTests();
     //
   }
   //
