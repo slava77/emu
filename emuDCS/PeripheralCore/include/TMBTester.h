@@ -50,15 +50,18 @@ class TMBTester {
   // JTAG stuff:
   inline void set_jtag_address(int address){ jtag_address = address;}
   void set_jtag_chain(int);
-  void select_jtag_chain_param();
-
   void jtag_anystate_to_rti();
-  void do_jtag(int,int,int,int*);
+  void jtag_ir_dr(int,int,int*,int,int*);
   //
   //To be RAT members:
   void RatTmbDelayScan();
-  void RatStatusRegister();
-  //
+  void ReadRatUser1();
+  int ReadRatUser2();
+  int read_rat_delay();
+  void rpc_delay_scan();
+  void set_rat_delay(int,int);
+  int read_rat_data(int); 
+//
   //Not yet working but should eventually be in TMB.cc...
   float tmb_temp(int, int);
 
@@ -78,12 +81,14 @@ class TMBTester {
   int bits_per_opcode[MAX_NUM_CHIPS];
   int bits_to_int(int*,int,int);
   bool step_mode;
+  void select_jtag_chain_param();
   void jtag_io_byte(int,int*,int*,int* );
   void step(int,int,int,int,int);
 
   //functions needed by above tests:
   int dowCRC(std::bitset<64>);
   void bit_to_array(int, int *, const int); 
+  void decodeRATUser1(int*);
 };
 
 #endif
