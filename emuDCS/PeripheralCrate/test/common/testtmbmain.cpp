@@ -13,6 +13,8 @@
 
 int main() {
 
+  int dummy;
+
   // Test board OK:
   bool AllOK = false;
 
@@ -91,7 +93,10 @@ int main() {
               << std::endl;
     std::cout << " 14:Digital Serial Numbers     15:Voltages, Currents, Temps   16:3d3444 status"
               << std::endl;
-    std::cout << " 20:RAT RPC 80MHz Delay scan   21:RAT Status register" << std::endl;
+    std::cout << " 20:RAT RPC 80MHz Delay scan   21:Read RAT USER1              22:Read RAT USER2" 
+	      << std::endl;
+    std::cout << " 23:read RAT delay             24:RPC delay scan" 
+	      << std::endl;
     std::cout << "  99:Read Register 4 " << std::endl;
     std::cout << "  100:Exit " << std::endl;
     std::cout << " menu choice? (Default = 99)" << std::endl;
@@ -153,7 +158,16 @@ int main() {
       testTMB.RatTmbDelayScan();
       break;
     case 21:
-      testTMB.RatStatusRegister();
+      testTMB.ReadRatUser1();
+      break;
+    case 22:
+      dummy = testTMB.ReadRatUser2();
+      break;
+    case 23:
+      dummy = testTMB.read_rat_delay();
+      break;
+    case 24:
+      testTMB.rpc_delay_scan();
       break;
     case 99:
       testTMB.readreg4();      
