@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.35 2006/01/30 09:29:29 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.36 2006/01/31 08:52:03 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -51,6 +51,8 @@
 #include "Crate.h"
 #include "DAQMB.h"
 #include "TMB.h"
+#include "CrateUtils.h"
+#include "TMBTester.h"
 #include "CCB.h"
 #include "MPC.h"
 #include "DDU.h"
@@ -96,9 +98,11 @@ protected:
   ostringstream OutputStringDMBStatus[9];
   ostringstream OutputStringTMBStatus[9];
   ostringstream OutputDMBTests[9];
+  ostringstream OutputTMBTests[9];
   int TMBRegisterValue_;
   int CCBRegisterValue_;
   vector<TMB*>   tmbVector;
+  vector<TMBTester>   tmbTestVector;
   vector<DAQMB*> dmbVector;
   Crate *thisCrate;
   std::string Operator_;
@@ -125,6 +129,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::ReadTMBRegister, "ReadTMBRegister");
     xgi::bind(this,&EmuCrateHyperDAQ::ReadCCBRegister, "ReadCCBRegister");
     xgi::bind(this,&EmuCrateHyperDAQ::HardReset, "HardReset");
+    xgi::bind(this,&EmuCrateHyperDAQ::testTMB, "testTMB");
     xgi::bind(this,&EmuCrateHyperDAQ::Automatic, "Automatic");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBTests,  "TMBTests");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBUtils,  "TMBUtils");
@@ -193,6 +198,7 @@ public:
       OutputStringDMBStatus[i] << "Output..." << std::endl;
       OutputStringTMBStatus[i] << "Output..." << std::endl;
       OutputDMBTests[i]        << "Output..." << std::endl;
+      OutputTMBTests[i]        << "Output..." << std::endl;
     }
     //
     this->getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
@@ -2094,7 +2100,224 @@ public:
     MyTMBTester.setTMB(thisTMB);
     MyTMBTester.setCCB(thisCCB);
     //
-    MyTMBTester.runAllTests();
+    char buf[20];
+    //
+    std::string testBootRegister =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",testBootRegister)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB test Boot register ") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","1").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string testVMEfpgaDataRegister =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",testVMEfpgaDataRegister)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB test VME fpga data register ") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","2").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string testFirmwareDate =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",testFirmwareDate)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB test firmware date") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","3").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string testFirmwareType =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",testFirmwareType)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB test firmware type") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","4").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string testFirmwareVersion =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",testFirmwareVersion)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB test firmware version") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","5").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string testFirmwareRevCode =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",testFirmwareRevCode)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB test firmware RevCode Id") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","6").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string testMezzId =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",testMezzId)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB test mezzanine Id") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","7").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string testPromId =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",testPromId)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB test PROM Id") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","8").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string testPROMPath =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",testPROMPath)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB test PROM path") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","9").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string testDSN =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",testDSN)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB test DSN") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","10").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string testADC =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",testADC)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB test ADC") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","11").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string test3d3444 =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",test3d3444)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","TMB test 3d3444") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","12").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
+    //
+    //*out << cgicc::form().set("method","GET") << std::endl ;
+    *out << cgicc::textarea().set("name","TMBTestOutput")
+      .set("WRAP","OFF")
+      .set("rows","20").set("cols","60");
+    *out << OutputTMBTests[tmb].str() << endl ;
+    *out << cgicc::textarea();
+    //    
+  }
+  //
+  void EmuCrateHyperDAQ::testTMB(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    }
+    //
+    name = cgi.getElement("tmbTestid");
+    //
+    int tmbTestid;
+    if(name != cgi.getElements().end()) {
+      tmbTestid = cgi["tmbTestid"]->getIntegerValue();
+      cout << "tmbTestid " << tmbTestid << endl;
+    }
+    //
+    tmbTestVector[tmb].RedirectOutput(&OutputTMBTests[tmb]);
+    if ( tmbTestid == 1 || tmbTestid == 0 ) {
+      tmbTestVector[tmb].testBootRegister();
+    }
+    if ( tmbTestid == 2 || tmbTestid == 0 ) {
+      tmbTestVector[tmb].testVMEfpgaDataRegister();
+    }
+    if ( tmbTestid == 3 || tmbTestid == 0 ) {
+      tmbTestVector[tmb].testFirmwareDate();
+    }
+    if ( tmbTestid == 4 || tmbTestid == 0 ) {
+      tmbTestVector[tmb].testFirmwareType();
+    }
+    if ( tmbTestid == 5 || tmbTestid == 0 ) {
+      tmbTestVector[tmb].testFirmwareVersion();
+    }
+    if ( tmbTestid == 6 || tmbTestid == 0 ) {
+      tmbTestVector[tmb].testFirmwareRevCode();
+    }
+    if ( tmbTestid == 7 || tmbTestid == 0 ) {
+      tmbTestVector[tmb].testMezzId();
+    }
+    if ( tmbTestid == 8 || tmbTestid == 0 ) {
+      tmbTestVector[tmb].testPROMid();
+    }
+    if ( tmbTestid == 9 || tmbTestid == 0 ) {
+      tmbTestVector[tmb].testPROMpath();
+    }
+    if ( tmbTestid == 10 || tmbTestid == 0 ) {
+      tmbTestVector[tmb].testDSN();
+    }
+    if ( tmbTestid == 11 || tmbTestid == 0 ) {
+      tmbTestVector[tmb].testADC();
+    }
+    if ( tmbTestid == 12 || tmbTestid == 0 ) {
+      tmbTestVector[tmb].test3d3444();
+    }
+    tmbTestVector[tmb].RedirectOutput(&std::cout);
+    //
+    this->TMBTests(in,out);
     //
   }
   //
@@ -3507,6 +3730,11 @@ public:
     //}
     //
     tmbVector = selector.tmbs(crateVector[0]);
+    //
+    CrateUtils MyCrateUtils;
+    MyCrateUtils.SetCrate(crateVector[0]);
+    //
+    tmbTestVector = MyCrateUtils.TMBTests();
     //
     //if (tmbVector.size() > 1){
     //cerr << "Error: only one TMB in xml file allowed" << endl ;
