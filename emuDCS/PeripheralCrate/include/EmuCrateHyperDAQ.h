@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.36 2006/01/31 08:52:03 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.37 2006/01/31 14:41:42 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -17,6 +17,7 @@
 #include <vector>
 #include <stdexcept>
 #include <iostream>
+#include<unistd.h> // for sleep()
 #include <sstream>
 #include <cstdlib>
 #include <iomanip>
@@ -113,6 +114,8 @@ protected:
   int TMB_, DMB_;
   //
 public:
+  //
+  XDAQ_INSTANTIATOR();
   //
   EmuCrateHyperDAQ(xdaq::ApplicationStub * s): xdaq::Application(s) 
   {	
@@ -2095,19 +2098,47 @@ public:
     //
     alct = thisTMB->alctController();
     //
-    TMBTester MyTMBTester;
-    //
-    MyTMBTester.setTMB(thisTMB);
-    MyTMBTester.setCCB(thisCCB);
-    //
     char buf[20];
+    //
+    std::string RunAllTests =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",RunAllTests)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Run All TMB tests") 
+      .set("style","color:blue") 
+	 << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden")
+      .set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","0").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
     //
     std::string testBootRegister =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
     //
     *out << cgicc::form().set("method","GET").set("action",testBootRegister)
 	 << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","TMB test Boot register ") << std::endl ;
+    if ( tmbTestVector[tmb].GetResultTestBootRegister() == -1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test Boot register") 
+	.set("style","color:blue") 
+	   << std::endl ;
+    }
+    else if ( tmbTestVector[tmb].GetResultTestBootRegister() > 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test Boot register") 
+	.set("style","color:green") 
+	   << std::endl ;
+    }
+    else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test Boot register") 
+	.set("style","color:red") 
+	   << std::endl ;
+    }
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::input().set("type","hidden")
@@ -2119,7 +2150,24 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",testVMEfpgaDataRegister)
 	 << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","TMB test VME fpga data register ") << std::endl ;
+    //
+    if ( tmbTestVector[tmb].GetResultTestVMEfpgaDataRegister() == -1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test VME fpga data register") 
+	.set("style","color:blue") 
+	   << std::endl ;
+    } else if ( tmbTestVector[tmb].GetResultTestVMEfpgaDataRegister() > 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test VME fpga data register") 
+	.set("style","color:green") 
+	   << std::endl ;
+    } else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test VME fpga data register") 
+	.set("style","color:red") 
+	   << std::endl ;
+    }
+    //
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::input().set("type","hidden")
@@ -2131,7 +2179,24 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",testFirmwareDate)
 	 << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","TMB test firmware date") << std::endl ;
+    //
+    if ( tmbTestVector[tmb].GetResultTestFirmwareDate() == -1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test firmware date") 
+	.set("style","color:blue") 
+	   << std::endl ;
+    } else if ( tmbTestVector[tmb].GetResultTestFirmwareDate() > 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test firmware date") 
+	.set("style","color:green") 
+	   << std::endl ;
+    } else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test firmware date") 
+	.set("style","color:red") 
+	   << std::endl ;
+    }
+    //
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::input().set("type","hidden")
@@ -2143,7 +2208,24 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",testFirmwareType)
 	 << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","TMB test firmware type") << std::endl ;
+    //
+    if ( tmbTestVector[tmb].GetResultTestFirmwareType() == -1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test firmware type") 
+	.set("style","color:blue") 
+	   << std::endl ;
+    } else if ( tmbTestVector[tmb].GetResultTestFirmwareType() > 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test firmware type") 
+	.set("style","color:green") 
+	   << std::endl ;
+    } else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test firmware type") 
+	.set("style","color:red") 
+	   << std::endl ;
+    }
+    //
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::input().set("type","hidden")
@@ -2155,7 +2237,24 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",testFirmwareVersion)
 	 << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","TMB test firmware version") << std::endl ;
+    //
+    if ( tmbTestVector[tmb].GetResultTestFirmwareVersion() == -1 ) {
+    *out << cgicc::input().set("type","submit")
+      .set("value","TMB test firmware version") 
+      .set("style","color:blue") 
+	 << std::endl ;
+    } else if ( tmbTestVector[tmb].GetResultTestFirmwareVersion() > 0 ) {
+    *out << cgicc::input().set("type","submit")
+      .set("value","TMB test firmware version") 
+      .set("style","color:green") 
+	 << std::endl ;
+    } else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test firmware version") 
+	.set("style","color:red") 
+	   << std::endl ;
+    }
+    //
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::input().set("type","hidden")
@@ -2167,7 +2266,24 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",testFirmwareRevCode)
 	 << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","TMB test firmware RevCode Id") << std::endl ;
+    //
+    if ( tmbTestVector[tmb].GetResultTestFirmwareRevCode() == -1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test firmware RevCode Id") 
+	.set("style","color:blue") 
+	   << std::endl ;
+    } else if ( tmbTestVector[tmb].GetResultTestFirmwareRevCode() > 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test firmware RevCode Id") 
+	.set("style","color:green") 
+	   << std::endl ;
+    } else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test firmware RevCode Id") 
+	.set("style","color:red") 
+	   << std::endl ;
+    }
+    //
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::input().set("type","hidden")
@@ -2179,7 +2295,24 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",testMezzId)
 	 << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","TMB test mezzanine Id") << std::endl ;
+    //
+    if ( tmbTestVector[tmb].GetResultTestMezzId() == -1 ) {
+    *out << cgicc::input().set("type","submit")
+      .set("value","TMB test mezzanine Id") 
+      .set("style","color:blue") 
+	 << std::endl ;
+    } else if ( tmbTestVector[tmb].GetResultTestMezzId() > 0 ) {
+    *out << cgicc::input().set("type","submit")
+      .set("value","TMB test mezzanine Id") 
+      .set("style","color:green") 
+	 << std::endl ;
+    } else {
+      *out << cgicc::input().set("type","submit")
+      .set("value","TMB test mezzanine Id") 
+      .set("style","color:red") 
+	 << std::endl ;
+    }
+    //
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::input().set("type","hidden")
@@ -2191,7 +2324,24 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",testPromId)
 	 << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","TMB test PROM Id") << std::endl ;
+    //
+    if ( tmbTestVector[tmb].GetResultTestPromId() == -1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test PROM Id") 
+	.set("style","color:blue") 
+	   << std::endl ;
+    } else if ( tmbTestVector[tmb].GetResultTestPromId() > 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test PROM Id") 
+	.set("style","color:green") 
+	   << std::endl ;
+    } else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test PROM Id") 
+	.set("style","color:red") 
+	   << std::endl ;
+    }
+    //
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::input().set("type","hidden")
@@ -2203,7 +2353,24 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",testPROMPath)
 	 << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","TMB test PROM path") << std::endl ;
+    //
+    if ( tmbTestVector[tmb].GetResultTestPROMPath() == -1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test PROM path") 
+	.set("style","color:blue") 
+	   << std::endl ;
+    } else if ( tmbTestVector[tmb].GetResultTestPROMPath() > 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test PROM path") 
+	.set("style","color:green") 
+	   << std::endl ;
+    } else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test PROM path") 
+	.set("style","color:red") 
+	   << std::endl ;
+    }
+    //
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::input().set("type","hidden")
@@ -2215,7 +2382,24 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",testDSN)
 	 << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","TMB test DSN") << std::endl ;
+    //
+    if ( tmbTestVector[tmb].GetResultTestDSN() == -1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test DSN")
+	.set("style","color:blue")  
+	   << std::endl ;
+    } else if ( tmbTestVector[tmb].GetResultTestDSN() > 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test DSN") 
+	.set("style","color:green") 
+	   << std::endl ;
+    } else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test DSN") 
+	.set("style","color:red") 
+	   << std::endl ;
+    }
+    //
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::input().set("type","hidden")
@@ -2227,7 +2411,24 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",testADC)
 	 << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","TMB test ADC") << std::endl ;
+    //
+    if ( tmbTestVector[tmb].GetResultTestADC() == -1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test ADC")
+	.set("style","color:blue")  
+	   << std::endl ;
+    } else if ( tmbTestVector[tmb].GetResultTestADC() > 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test ADC")
+	.set("style","color:green")  
+	   << std::endl ;
+    } else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test ADC")
+	.set("style","color:red")  
+	   << std::endl ;
+    }
+    //
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::input().set("type","hidden")
@@ -2239,7 +2440,24 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",test3d3444)
 	 << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","TMB test 3d3444") << std::endl ;
+    //
+    if ( tmbTestVector[tmb].GetResultTest3d3444() == -1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test 3d3444") 
+	.set("style","color:blue")  
+	   << std::endl ;
+    } else if ( tmbTestVector[tmb].GetResultTest3d3444() > 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test 3d3444") 
+	.set("style","color:green")  
+	   << std::endl ;
+    } else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test 3d3444") 
+	.set("style","color:red")  
+	   << std::endl ;
+    }
+    //
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::input().set("type","hidden")
@@ -2249,7 +2467,7 @@ public:
     //*out << cgicc::form().set("method","GET") << std::endl ;
     *out << cgicc::textarea().set("name","TMBTestOutput")
       .set("WRAP","OFF")
-      .set("rows","20").set("cols","60");
+      .set("rows","20").set("cols","100");
     *out << OutputTMBTests[tmb].str() << endl ;
     *out << cgicc::textarea();
     //    
@@ -2281,6 +2499,7 @@ public:
     tmbTestVector[tmb].RedirectOutput(&OutputTMBTests[tmb]);
     if ( tmbTestid == 1 || tmbTestid == 0 ) {
       tmbTestVector[tmb].testBootRegister();
+      ::sleep(1);
     }
     if ( tmbTestid == 2 || tmbTestid == 0 ) {
       tmbTestVector[tmb].testVMEfpgaDataRegister();
@@ -2316,6 +2535,8 @@ public:
       tmbTestVector[tmb].test3d3444();
     }
     tmbTestVector[tmb].RedirectOutput(&std::cout);
+    //
+    //std::cout << "Done" << std::endl ;
     //
     this->TMBTests(in,out);
     //
