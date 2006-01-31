@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.21 2006/01/23 13:56:52 mey Exp $
+// $Id: TMB.h,v 2.22 2006/01/31 14:42:00 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.22  2006/01/31 14:42:00  mey
+// Update
+//
 // Revision 2.21  2006/01/23 13:56:52  mey
 // Update using Greg's new code
 //
@@ -104,6 +107,7 @@ public:
   int  GetALCTWordCount();
   void StartTTC();
   int  ReadRegister(int);
+  void DumpRegister(int);
   void WriteRegister(int,int);
   void DecodeCLCT();
   void DecodeALCT();

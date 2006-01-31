@@ -24,6 +24,20 @@ TMBTester::TMBTester() {
   jtag_address = -1;
   jtag_chain = -1;
   step_mode = false;
+  //
+  ResultTestBootRegister_ = -1;
+  ResultTestVMEfpgaDataRegister_ = -1;
+  ResultTestFirmwareDate_ = -1;
+  ResultTestFirmwareType_ = -1;
+  ResultTestFirmwareVersion_ = -1;
+  ResultTestFirmwareRevCode_ = -1;
+  ResultTestMezzId_ = -1;
+  ResultTestPromId_ = -1;
+  ResultTestPROMPath_ = -1;
+  ResultTestDSN_ = -1;
+  ResultTestADC_ = -1;
+  ResultTest3d3444_ = -1;
+  //
 }
 
 TMBTester::~TMBTester(){}
@@ -143,7 +157,10 @@ bool TMBTester::testBootRegister() {
 
   testOK = compareValues("Number of boot register errors",err_reg,0,true);  
   messageOK("Boot Register",testOK);
-  dummy = sleep(3);
+  //dummy = sleep(3);
+  //
+  ResultTestBootRegister_ = testOK ;
+  //
   return testOK; 
 }
 
@@ -197,8 +214,12 @@ bool TMBTester::testVMEfpgaDataRegister(){
   (*MyOutput_) << "TMBTester: testing VME FPGA Data Register" << std::endl;
   bool testOK = false;
 
+  //std::cout << "Read..." << std::endl;
+
   // Get current status:
   int vme_cfg = tmb_->ReadRegister(vme_ddd0_adr);
+
+  //std::cout << "Done..." << std::endl;
 
   int write_data,read_data;
   bool tempBool;
@@ -206,6 +227,9 @@ bool TMBTester::testVMEfpgaDataRegister(){
   int register_error = 0;
 
   for (int i=0; i<=15; i++) {
+    //
+    std::cout << "Looping " << std::endl ;
+    //
     write_data = 1 << i;
 
     tmb_->WriteRegister(vme_ddd0_adr,write_data);  //write walking 1
@@ -225,7 +249,10 @@ bool TMBTester::testVMEfpgaDataRegister(){
 
   testOK = compareValues("Number of VME FPGA data reg errors",register_error,0,true);
   messageOK("VME FPGA data register",testOK);
-  int dummy = sleep(3);
+  //int dummy = sleep(3);
+  //
+  ResultTestVMEfpgaDataRegister_ = testOK;
+  //
   return testOK;
 }
 
@@ -243,7 +270,10 @@ bool TMBTester::testFirmwareSlot(){
 
   bool testOK = compareValues("TMB slot",slot,slotToCompare,true);
   messageOK("TMB slot",testOK);
-  int dummy = sleep(3);
+  //int dummy = sleep(3);
+  //
+  ResultTestFirmwareSlot_ = testOK ;
+  //
   return testOK;
 }
 
@@ -258,7 +288,10 @@ bool TMBTester::testFirmwareDate() {
 
   bool testOK = compareValues("Firmware Year",year,0x2005,true);
   messageOK("Firmware Year",testOK);
-  int dummy = sleep(3);
+  //int dummy = sleep(3);
+  //
+  ResultTestFirmwareDate_ = testOK;
+  //
   return testOK; 
 }
 
@@ -280,7 +313,10 @@ bool TMBTester::testFirmwareType() {
       "What kind of Firmware is this? Firmware = " << type << std::endl;
   }
   messageOK("Firmware Type Normal",TypeNormal);
-  int dummy = sleep(3);
+  //int dummy = sleep(3);
+  //
+  ResultTestFirmwareType_ = TypeNormal;
+  //
   return TypeNormal;
 }
 
@@ -292,7 +328,10 @@ bool TMBTester::testFirmwareVersion() {
 
   bool testOK = compareValues("Firmware Version",version,0xE,true);
   messageOK("Firmware Version",testOK);
-  int dummy = sleep(3);
+  //int dummy = sleep(3);
+  //
+  ResultTestFirmwareVersion_ = testOK;
+  //
   return testOK;
 }
 
@@ -304,12 +343,17 @@ bool TMBTester::testFirmwareRevCode(){
 
   //  int RevCodeDay = firmwareData & 0x001f;
   //  int RevCodeMonth = (firmwareData>>5) & 0x000f;
-  //  int RevCodeYear = (firmwareData>>9) & 0x0007;
-  int RevCodeFPGA = (firmwareData>>12) & 0x000F;
+  //  int
 
+  int RevCodeYear = (firmwareData>>9) & 0x0007;
+  int RevCodeFPGA = (firmwareData>>12) & 0x000F;
+  
   bool testOK = compareValues("Firmware Revcode FPGA",RevCodeFPGA,0x04,true);
   messageOK("Firmware Revcode FPGA",testOK);
-  int dummy = sleep(3);
+  //int dummy = sleep(3);
+  //
+  ResultTestFirmwareRevCode_ = testOK ;
+  //
   return testOK;
 }
 
@@ -322,7 +366,7 @@ bool TMBTester::testJTAGchain(){
 
   bool JTAGchainOK = (user && boot);
   messageOK("JTAG chains",JTAGchainOK);
-  int dummy = sleep(3);
+  //int dummy = sleep(3);
   return JTAGchainOK;
 }
 
@@ -338,9 +382,12 @@ bool TMBTester::testJTAGchain(int type){
 
 
 bool TMBTester::testMezzId(){
+  //
   (*MyOutput_) << "TMBTester: Checking Mezzanine FPGA and PROMs ID codes" << std::endl;
   bool testOK = false;
   int idcode[5];
+
+  //std::cout << "Before 2 " << std::endl;
 
   set_jtag_address(TMB_ADR_BOOT);    
   set_jtag_chain(TMB_MEZZ_FPGA_CHAIN);         
@@ -355,31 +402,39 @@ bool TMBTester::testMezzId(){
 
   int write_data[MAX_FRAMES] = {};   //create fat 0 for writing to data registers
 
+  //std::cout << "Before 1 " << std::endl;
+
   for (int chip_id=0; chip_id<=4; chip_id++){
     if (chip_id == 0) {
       opcode = VTX2_IDCODE;                  // FPGA IDcode opcode, expect v0A30093
     } else { 
       opcode = PROM_IDCODE;                  // PROM IDcode opcode
     }
+    //std::cout << "Before 11" << std::endl;
     jtag_ir_dr(chip_id,opcode,write_data,register_length,value);
-
+    //std::cout << "Before 12" << std::endl;
     idcode[chip_id] = bits_to_int(value,32,0);
   }
-
-  bool testFPGAmezz = compareValues("FPGA Mezz ID code",idcode[0],0x11050093,true);  
+  //
+  //std::cout << "Before " << std::endl ;
+  bool testFPGAmezz  = compareValues("FPGA Mezz ID code",idcode[0],0x11050093,true);  
   bool testPROMmezz1 = compareValues("PROM Mezz ID code 1",idcode[1],0x05036093,true);  
   bool testPROMmezz2 = compareValues("PROM Mezz ID code 2",idcode[2],0x05036093,true);  
   bool testPROMmezz3 = compareValues("PROM Mezz ID code 3",idcode[3],0x05036093,true);  
   bool testPROMmezz4 = compareValues("PROM Mezz ID code 4",idcode[4],0x05036093,true);  
-
+  //std::cout << "End " << std::endl ;
+  //
   testOK = (testFPGAmezz  &&
 	    testPROMmezz1 &&
 	    testPROMmezz2 &&
 	    testPROMmezz3 &&
 	    testPROMmezz4 );
-
+  //
   messageOK("Mezzanine FPGA/PROM ID",testOK);
-  int dummy = sleep(3);
+  //int dummy = sleep(3);
+  //
+  ResultTestMezzId_ = testOK;
+  //
   return testOK;
 }
 
@@ -415,7 +470,10 @@ bool TMBTester::testPROMid(){
 	    testPROMUserId1 );
 
   messageOK("PROM User ID",testOK);
-  int dummy = sleep(3);
+  //int dummy = sleep(3);
+  //
+  ResultTestPromId_ = testOK ;
+  //
   return testOK;
 }
 
@@ -522,7 +580,10 @@ bool TMBTester::testPROMpath(){
   testOK = temptest;
 
   messageOK("PROM path",testOK);
-  int dummy = sleep(3);
+  //int dummy = sleep(3);
+  //
+  ResultTestPROMPath_ = testOK;
+  //
   return testOK;
 }
 
@@ -533,17 +594,17 @@ bool TMBTester::testDSN(){
   (*MyOutput_) << "TMBTester: Checking Digital Serial Numbers for TMB" 
 	    << std::endl;
   bool tmbDSN = testDSN(0);
-  dummy=sleep(1);
+  //dummy=sleep(1);
 
   (*MyOutput_) << "TMBTester: Checking Digital Serial Numbers for Mezzanine" 
 	    << std::endl;
   bool mezzanineDSN = testDSN(1);
-  dummy=sleep(1);
+  //dummy=sleep(1);
 
   (*MyOutput_) << "TMBTester: Checking Digital Serial Numbers for RAT" 
 	    << std::endl;
   bool ratDSN = testDSN(2);
-  dummy=sleep(1);
+  //dummy=sleep(1);
 
   messageOK("TMB DSN",tmbDSN);
   messageOK("Mezzanine DSN",mezzanineDSN);
@@ -554,7 +615,10 @@ bool TMBTester::testDSN(){
                 ratDSN);
 
   messageOK("All Digital Serial Numbers",DSNOK);
-  dummy = sleep(3);
+  //dummy = sleep(3);
+  //
+  ResultTestDSN_ = DSNOK ;
+  //
   return DSNOK;
 }
 
@@ -675,7 +739,10 @@ bool TMBTester::testADC(){
 	    //	    tremoteOK  );
 
   messageOK("ADC voltages and temperatures",testOK);
-  int dummy = sleep(3);
+  //int dummy = sleep(3);
+  //
+  ResultTestADC_ = testOK ;
+  //
   return testOK;
 }
 
@@ -708,7 +775,10 @@ bool TMBTester::test3d3444(){
   testOK = tempbool;
 
   messageOK("3d3444 Verification",testOK);
-  int dummy = sleep(3);
+  //int dummy = sleep(3);
+  //
+  ResultTest3d3444_ = testOK;
+  //
   return testOK;
 }
 
@@ -1518,6 +1588,8 @@ void TMBTester::jtag_ir_dr(int chip_id,
     tdi[iframe++] = tdi_post_opcode[k];
   }
 
+  //std::cout << "Step 1 " << std::endl ;
+
   if (iframe > MAX_FRAMES) {
     (*MyOutput_) << "do_jtag IR ERROR: Too many frames -> " << iframe << std::endl;
     (*MyOutput_) << "STOP the program (ctrl-c)...";
@@ -1564,6 +1636,8 @@ void TMBTester::jtag_ir_dr(int chip_id,
   //    on the tdi line, for destructive ShfDR.
 
   iframe = 0;
+
+  //std::cout << "Step 2 " << std::endl ;
 
   // Put TAP in state ShfDR from RTI 
   for (k = 0; k < 3; k++) {

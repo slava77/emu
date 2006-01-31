@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.39 2006/01/31 08:52:13 mey Exp $
+// $Id: TMB.cc,v 2.40 2006/01/31 14:42:14 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.40  2006/01/31 14:42:14  mey
+// Update
+//
 // Revision 2.39  2006/01/31 08:52:13  mey
 // Update
 //
@@ -184,14 +187,25 @@ int TMB::MPC1Accept(){
   return (rcvbuf[0]&0x4)>>2; 
   //
 }
-
+//
+void TMB::DumpRegister(int reg){
+  //
+  int value = ReadRegister(reg);
+  //
+  (*MyOutput_) << " TMB.reg=" 
+	       << std::hex << reg << " " 
+	       << (rcvbuf[0]&0xff) << " " 
+	       << (rcvbuf[1]&0xff) << " " 
+	       << (value&0xffff) << std::endl ;
+  //
+}
+//
 int TMB::ReadRegister(int reg){
   //
   tmb_vme(VME_READ,reg,sndbuf,rcvbuf,NOW);
   //
   int value = ((rcvbuf[0]&0xff)<<8)|(rcvbuf[1]&0xff);
   //
-  printf(" TMB.reg=%02x %02x %02x %02x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
   //
   return value;
   //
@@ -3375,7 +3389,7 @@ int TMB::tmb_set_boot_reg(unsigned short int value)
   //
   //printf(" Here2. %x %x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   //
-  printf("\n");
+  //printf("\n");
   //
   tmb_vme(VME_WRITE | VME_BOOT_REG, 0, sndbuf, rcvbuf, NOW );
   //
@@ -3827,7 +3841,7 @@ void TMB::new_clk_delays_preGreg(unsigned short int time,int cfeb_id)
   //int ierr;
 int iloop;
  iloop=0;
-  printf(" here write to delay registers \n");
+ //printf(" here write to delay registers \n");
   if ( cfeb_id == 0 ) {
     tmb_vme(0x01,0x18,sndbuf,rcvbuf,NOW);
     sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
@@ -4680,7 +4694,7 @@ void TMB::new_clk_delays(unsigned short int time,int cfeb_id)
   //int ierr;
 int iloop;
  iloop=0;
-  printf(" here write to delay registers \n");
+ //printf(" here write to delay registers \n");
   if ( cfeb_id == 0 ) {
     tmb_vme(0x01,0x18,sndbuf,rcvbuf,NOW);
     sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
@@ -4781,11 +4795,11 @@ int iloop;
   while ( ((rcvbuf[1]>>6)&(0x1)) ){
     //
     tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
-    printf("______________ check state machine1 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+    //printf("______________ check state machine1 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
     //
   }
 
-  printf("______________ check state machine1 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  //printf("______________ check state machine1 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
 
   while((rcvbuf[1]&0x40)!=0x00){
     iloop++;

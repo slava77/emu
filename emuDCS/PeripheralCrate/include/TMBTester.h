@@ -21,6 +21,19 @@ class TMBTester {
   inline void setCCB(CCB * ccb) {ccb_ = ccb;}
   inline void setTMBslot(int * slot) {TMBslot = slot;}
   //
+  inline int GetResultTestBootRegister() { return ResultTestBootRegister_ ; }
+  inline int GetResultTestVMEfpgaDataRegister() { return ResultTestVMEfpgaDataRegister_ ; }
+  inline int GetResultTestFirmwareDate() { return ResultTestFirmwareDate_ ; }
+  inline int GetResultTestFirmwareType() { return ResultTestFirmwareType_ ; }
+  inline int GetResultTestFirmwareVersion() { return ResultTestFirmwareVersion_ ; }
+  inline int GetResultTestFirmwareRevCode() { return ResultTestFirmwareRevCode_ ; }
+  inline int GetResultTestMezzId() { return ResultTestMezzId_ ; }
+  inline int GetResultTestPromId() { return ResultTestPromId_ ; }
+  inline int GetResultTestPROMPath() { return ResultTestPROMPath_ ; }
+  inline int GetResultTestDSN() { return ResultTestDSN_ ; }
+  inline int GetResultTestADC() { return ResultTestADC_ ; }
+  inline int GetResultTest3d3444() { return ResultTest3d3444_ ; }
+  //
   void reset();
   void readreg4();
   //
@@ -84,7 +97,21 @@ class TMBTester {
   void select_jtag_chain_param();
   void jtag_io_byte(int,int*,int*,int* );
   void step(int,int,int,int,int);
-
+  //
+  int ResultTestBootRegister_ ;
+  int ResultTestVMEfpgaDataRegister_ ;
+  int ResultTestFirmwareDate_;
+  int ResultTestFirmwareType_;
+  int ResultTestFirmwareVersion_;
+  int ResultTestFirmwareSlot_;
+  int ResultTestFirmwareRevCode_;
+  int ResultTestMezzId_;
+  int ResultTestPromId_;
+  int ResultTestPROMPath_;
+  int ResultTestDSN_;
+  int ResultTestADC_;
+  int ResultTest3d3444_;
+  //
   //functions needed by above tests:
   int dowCRC(std::bitset<64>);
   void bit_to_array(int, int *, const int); 
