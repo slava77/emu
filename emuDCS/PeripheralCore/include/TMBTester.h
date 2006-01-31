@@ -16,14 +16,14 @@ class TMBTester {
   //
   virtual ~TMBTester();
   //
-
+  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   inline void setTMB(TMB * tmb) {tmb_ = tmb;}
   inline void setCCB(CCB * ccb) {ccb_ = ccb;}
   inline void setTMBslot(int * slot) {TMBslot = slot;}
-
+  //
   void reset();
   void readreg4();
-
+  //
   bool runAllTests();
   bool testFirmwareDate();
   bool testFirmwareType();

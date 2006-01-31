@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.38 2006/01/23 15:00:10 mey Exp $
+// $Id: TMB.cc,v 2.39 2006/01/31 08:52:13 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.39  2006/01/31 08:52:13  mey
+// Update
+//
 // Revision 2.38  2006/01/23 15:00:10  mey
 // Update
 //
@@ -3210,9 +3213,9 @@ int TMB::tmb_set_jtag_src(unsigned short int jtag_src)
   unsigned short int value;
 
   tmb_get_boot_reg(&value);
-  printf("0x%04x\n", value);
+  //printf("0x%04x\n", value);
   value = (value & ~TMB_JTAG_SRC) | ((jtag_src & 0x01) << 7); // JTAG Source selection bit at position 7
-  printf("0x%04x\n", value);
+  //printf("0x%04x\n", value);
   // tmb_set_boot_reg(value);
 
   return 0;
@@ -3348,7 +3351,7 @@ int TMB::tmb_get_boot_reg(unsigned short int* value)
   //tmb_vme(VME_READ, 4, sndbuf, rcvbuf, NOW );
   //
   *value = (rcvbuf[1]&0xff) | (rcvbuf[0]<<8);
-  printf("get_boot.%02x %02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  //printf("get_boot.%02x %02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   return 0;
   //
 }
