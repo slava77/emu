@@ -1,7 +1,10 @@
 #ifndef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.10 2006/01/23 15:01:34 mey Exp $
+// $Id: VMEModule.cc,v 2.11 2006/01/31 08:52:29 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.11  2006/01/31 08:52:29  mey
+// UPdate
+//
 // Revision 2.10  2006/01/23 15:01:34  mey
 // Update
 //
@@ -193,8 +196,11 @@ VMEController* VMEModule::getTheController(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.10 2006/01/23 15:01:34 mey Exp $
+// $Id: VMEModule.cc,v 2.11 2006/01/31 08:52:29 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.11  2006/01/31 08:52:29  mey
+// UPdate
+//
 // Revision 2.10  2006/01/23 15:01:34  mey
 // Update
 //
@@ -336,7 +342,7 @@ char ttt;
    rcv[0]=rcv[1];
    rcv[1]=ttt;
    //
-   std::cout << "ptr " << ptr_rice << std::endl;
+   //std::cout << "ptr " << ptr_rice << std::endl;
    //
  }
  //
