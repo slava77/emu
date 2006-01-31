@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.cc,v 1.1 2005/10/28 13:07:26 mey Exp $
+// $Id: EmuCrateHyperDAQ.cc,v 1.2 2006/01/31 14:41:31 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -15,4 +15,4 @@
 //
 // provides factory method for instantion of HellWorld application
 //
-XDAQ_INSTANTIATE(EmuCrateHyperDAQ)
+XDAQ_INSTANTIATOR_IMPL(EmuCrateHyperDAQ)
