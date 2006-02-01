@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuConfig.cpp,v 1.1 2006/02/01 19:45:02 mey Exp $
+// $Id: EmuConfig.cpp,v 1.2 2006/02/01 21:03:23 mey Exp $
 // $Log: EmuConfig.cpp,v $
+// Revision 1.2  2006/02/01 21:03:23  mey
+// Got rid of TestBeam
+//
 // Revision 1.1  2006/02/01 19:45:02  mey
 // UPdate
 //
@@ -19,7 +22,7 @@
 #include "DAQMB.h"
 #include "DAQMBTester.h"
 #include "CCB.h"
-#include "TestBeamCrateController.h"
+#include "EmuController.h"
 #include "TMB.h"
 #include "ALCTController.h"
 #include "MPC.h"
@@ -44,15 +47,18 @@ int main(int argc, char **argv)
 
  
   std::cout << "PeripheralCrate configuration file: " << xmlFile << std::endl;
-  PeripheralCrateParser parser;
-  parser.parseFile(xmlFile);
+  //PeripheralCrateParser parser;
+  //parser.parseFile(xmlFile);
 
-  TestBeamCrateController tbController;
-  std::cout << "Created TestBeamController" << std::endl;  
+  //TestBeamCrateController tbController;
+  EmuController emuController;
+  emuController.SetConfFile(xmlFile);
+  emuController.init();
+  std::cout << "Created EmuController" << std::endl;  
   
-  std::cout << "Configuring TestBeamController: " << std::endl; 
-  tbController.configure();
-  std::cout << "TestBeamCrateController configured." << std::endl;
+  std::cout << "Configuring EmuController: " << std::endl; 
+  emuController.configure();
+  std::cout << "EmuCrateController configured." << std::endl;
 
   // Examples of direct access to some modules 
   //DAQMB * daqmb = parser.daqmbParser().daqmb();
@@ -68,9 +74,9 @@ int main(int argc, char **argv)
     std::cin.getline(wait,1);
   }
 
-  std::cout << "Enabling TestBeamCrateController" << std::endl;
-  tbController.enable();
-  std::cout << "TestBeamCrateController enabled." << std::endl;
+  std::cout << "Enabling EmuController" << std::endl;
+  emuController.enable();
+  std::cout << "EmuController enabled." << std::endl;
 
   // wait for the user to hit return-key before disabling
   if (doInteractive){
@@ -79,8 +85,8 @@ int main(int argc, char **argv)
     std::cin.getline(wait,1);
   
     // only do a disable in the interactive mode
-    tbController.disable();
-    std::cout<< "Finished TestBeamCrateController disable" << std::endl;
+    emuController.disable();
+    std::cout<< "Finished EmuController disable" << std::endl;
   }
   
   return 0;
