@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: slicetestconfig.cpp,v 2.0 2005/04/12 08:07:07 geurts Exp $
+// $Id: slicetestconfig.cpp,v 2.1 2006/02/01 20:58:02 mey Exp $
 // $Log: slicetestconfig.cpp,v $
+// Revision 2.1  2006/02/01 20:58:02  mey
+// Got rid of TestBeamController
+//
 // Revision 2.0  2005/04/12 08:07:07  geurts
 // *** empty log message ***
 //
@@ -12,7 +15,7 @@
 #include "DAQMB.h"
 #include "DAQMBTester.h"
 #include "CCB.h"
-#include "TestBeamCrateController.h"
+#include "EmuController.h"
 #include "TMB.h"
 #include "ALCTController.h"
 #include "MPC.h"
@@ -35,14 +38,18 @@ int main(int argc, char **argv)
 
  
   std::cout << "PeripheralCrate configuration file: " << xmlFile << std::endl;
-  PeripheralCrateParser parser;
-  parser.parseFile(xmlFile);
+  //PeripheralCrateParser parser;
+  //parser.parseFile(xmlFile);
 
-  TestBeamCrateController tbController;
+  //TestBeamCrateController tbController;
+  EmuController emuController;
+  emuController.SetConfFile(xmlFile);
+  emuController.init();
+  //
   std::cout << "Created TestBeamController for SliceTest" << std::endl;  
   
   std::cout << "Configuring TestBeamController for SliceTest: " << std::endl; 
-  tbController.configure();
+  emuController.configure();
   std::cout << "Finished TestBeamCrateController configure for SliceTest" << std::endl;
 
   // Examples of direct access to some modules 
