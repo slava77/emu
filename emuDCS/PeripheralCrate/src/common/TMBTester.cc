@@ -7,7 +7,6 @@
 #include "CCB.h"
 #include "TMB_constants.h"
 #include "JTAG_constants.h"
-#include "TMB_JTAG_constants.h"
 
 #ifndef debugV //silent mode
 #define PRINT(x)
@@ -980,8 +979,7 @@ void TMBTester::ReadRatUser1(){
 
   return;
 }
-
-
+//
 void TMBTester::decodeRATUser1(int * data) {
 
   // ** parse the bit array from the USER1 data register
