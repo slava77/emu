@@ -11,9 +11,17 @@
 #include "TestBeamCrateController.h"
 #include "PeripheralCrateParser.h"
 
+int  FindTMB_L1A_delay(int,int);
+TMB *thisTMB ;
+CCB *thisCCB ;
+
 int main() {
 
   int dummy;
+  int L1adelay;
+  int rpc;
+  int delay;
+  int trigger;
 
   // Test board OK:
   bool AllOK = false;
@@ -57,8 +65,6 @@ int main() {
 
   //-- get pointers to CCB, TMB and DMB
   Crate *thisCrate = crateVector[0];
-  TMB *thisTMB ;
-  CCB *thisCCB ;
 
   thisCCB = thisCrate->ccb();
   thisTMB = tmbVector[0];
@@ -93,9 +99,13 @@ int main() {
               << std::endl;
     std::cout << " 14:Digital Serial Numbers     15:Voltages, Currents, Temps   16:3d3444 status"
               << std::endl;
-    std::cout << " 20:RAT RPC 80MHz Delay scan   21:Read RAT USER1              22:Read RAT USER2" 
+    std::cout << " 20:TMB-RAT 80MHz Delay scan   21:Read RAT USER1              22:Read RAT USER2" 
 	      << std::endl;
-    std::cout << " 23:read RAT delay             24:RPC delay scan" 
+    std::cout << " 23:read RAT delay             24:RAT-RPC delay scan          25:Set RAT-RPC delay" 
+	      << std::endl;
+    std::cout << " 26:reset RAT parity error ctr 27:Read RPC data               28:Read RAT scope"
+	      << std::endl;
+    std::cout << " 90:enable CLCT ext trigger    91:Internal L1A from CCB       92:TMB-L1A delay scan" 
 	      << std::endl;
     std::cout << "  99:Read Register 4 " << std::endl;
     std::cout << "  100:Exit " << std::endl;
@@ -167,7 +177,57 @@ int main() {
       dummy = testTMB.read_rat_delay();
       break;
     case 24:
-      testTMB.rpc_delay_scan();
+      std::cout << "scan RPC0 (0) or RPC1 (1)" << std::endl;
+      std::cin >> rpc;
+
+      testTMB.RpcRatDelayScan(rpc);
+      break;
+    case 25:
+      std::cout << "set RPC0 (0) or RPC1 (1)" << std::endl;
+      std::cin >> rpc;
+
+      std::cout << "set delay (0-15)" << std::endl;
+      std::cin >> delay;
+
+      testTMB.set_rat_delay(rpc,delay);
+      break;
+    case 26:
+      std::cout << "set RPC0 (0) or RPC1 (1)" << std::endl;
+      std::cin >> rpc;
+
+      testTMB.reset_parity_error_counter(rpc);
+      break;
+    case 27:
+      std::cout << "set RPC0 (0) or RPC1 (1)" << std::endl;
+      std::cin >> rpc;
+
+      testTMB.read_rpc_data(rpc);
+      break;
+    case 28:
+      std::cout << "trigger (0-127)" << std::endl;
+      std::cin >> trigger;
+
+      thisTMB->scope(1,0,trigger);
+
+      thisTMB->scope(0,1,96);
+      thisTMB->scope(0,1,97);
+      thisTMB->scope(0,1,98);
+      break;
+    case 90:
+      testTMB.SetExtCLCTPatternTrigger();
+      break;
+    case 91:
+      thisTMB->StartTTC();
+      break;
+    case 92:
+      std::cout << "Enter lowest TMB L1A delay value to loop over (bunch crossings, decimal)" << std::endl;
+      int idelay_min;
+      std::cin >> idelay_min;
+      std::cout << "Enter highest TMB L1A delay value to loop over (bunch crossings, decimal)" << std::endl;
+      int idelay_max;
+      std::cin >> idelay_max;
+ 
+      L1adelay = FindTMB_L1A_delay(idelay_min,idelay_max);
       break;
     case 99:
       testTMB.readreg4();      
@@ -184,4 +244,38 @@ int main() {
   return 0;
 }
 
+
+int FindTMB_L1A_delay( int idelay_min, int idelay_max ){
+
+  float RightTimeBin = 0;
+  int   DataCounter  = 0;
+
+  for (int i = idelay_min; i < idelay_max+1; i++){
+    
+    thisTMB->lvl1_delay(i);
+
+    thisTMB->ResetCounters();                             // reset counters
+
+    std::cout << "TMB_l1adelay= " << i << ":" << std::endl;
+    ::sleep(3);                                           // accumulate statistics
+    thisTMB->GetCounters();                               // read counter values
+    
+    thisTMB->PrintCounters(8);                            // display them to screen
+    thisTMB->PrintCounters(19);
+    thisTMB->PrintCounters(20);
+
+    if (thisTMB->GetCounter(19) > 0) {
+      RightTimeBin += i;
+      DataCounter++;
+    }
+
+  }
+
+  RightTimeBin /= (float) DataCounter;
+  
+  std::cout << "Right L1a delay setting is " << RightTimeBin << std::endl;
+
+  return (int) RightTimeBin ;
+
+}
 

@@ -71,12 +71,18 @@ class TMBTester {
   void ReadRatUser1();
   int ReadRatUser2();
   int read_rat_delay();
-  void rpc_delay_scan();
+  void RpcRatDelayScan(int);
   void set_rat_delay(int,int);
-  int read_rat_data(int); 
-//
+  int read_rpc_parity_error_counter(int);
+  int read_rpc_parity_ok(int);
+  int read_rpc_data(int);
+  void reset_parity_error_counter(int);
+ //
   //Not yet working but should eventually be in TMB.cc...
   float tmb_temp(int, int);
+  //
+  //To be in TMB.cc...
+  void SetExtCLCTPatternTrigger();
 
  protected:
   //
