@@ -22,6 +22,7 @@ Sources=\
 	AnodeChannel.cc \
         CalibDAQ.cc \
 	CCB.cc \
+	RAT.cc \
 	CCBParser.cc \
 	CFEB.cc \
 	Crate.cc \
