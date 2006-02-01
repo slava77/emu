@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 1.1 2006/02/01 19:24:06 mey Exp $
+// $Id: CrateTiming.cpp,v 1.2 2006/02/01 20:43:10 mey Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 1.2  2006/02/01 20:43:10  mey
+// Got rid of TestBeamController
+//
 // Revision 1.1  2006/02/01 19:24:06  mey
 // Used to be tmbtiming
 //
@@ -186,7 +189,7 @@
 #include <unistd.h> 
 #include <string>
 #include "PeripheralCrateParser.h"
-#include "TestBeamCrateController.h"
+#include "EmuController.h"
 #include "Crate.h"
 #include "DAQMB.h"
 #include "TMB.h"
@@ -245,7 +248,8 @@ int Find_ALCT_L1a_delay = 0;
 int ALCT_L1a_delay = 0;
 int ALCTvpf = 0;
 //
-TestBeamCrateController tbController;
+//TestBeamCrateController tbController;
+  EmuController emuController;
 //
 int main(int argc,char **argv){
 
@@ -360,17 +364,20 @@ int main(int argc,char **argv){
   else
     cout << " Anode trigger" << endl;
 
+  emuController.SetConfFile(xmlFile);
+  emuController.init();
+
   //-- parse XML file
   cout << "---- XML parser ----" << endl;
-  PeripheralCrateParser parser;
-  parser.parseFile(xmlFile);
+  //PeripheralCrateParser parser;
+  //parser.parseFile(xmlFile);
     
   //-- Set-up and configure Testbeam 
   cout << " ---- Cosmic Particle Controller ----" << endl;
 
 
   //-- Make sure that only one TMB in one crate is configured
-  CrateSelector selector = tbController.selector();
+  CrateSelector selector = emuController.selector();
   vector<Crate*> crateVector = selector.crates();
   if (crateVector.size() > 1){
     cerr << "Error: only one PeripheralCrate allowed" << endl;
@@ -1906,7 +1913,9 @@ void InitStartSystem(){
   int input ;
   cin >> input ;
   //
-  tbController.configureNoDCS();          // Init system
+  //tbController.configureNoDCS();          // Init system
+  emuController.init();
+  emuController.configure();
   thisTMB->StartTTC();
   thisTMB->EnableL1aRequest();
   thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
