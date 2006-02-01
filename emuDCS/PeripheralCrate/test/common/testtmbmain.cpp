@@ -8,7 +8,7 @@
 #include "TMB.h"
 #include "CCB.h"
 #include "TMBTester.h"
-#include "TestBeamCrateController.h"
+#include "EmuController.h"
 #include "PeripheralCrateParser.h"
 
 int  FindTMB_L1A_delay(int,int);
@@ -44,12 +44,17 @@ int main() {
 
   int Menu = 99;
 
-  TestBeamCrateController tbController;
+  //TestBeamCrateController tbController;
 
-  PeripheralCrateParser parser;
-  parser.parseFile("config.xml");
+  EmuController emuController;
 
-  CrateSelector selector = tbController.selector();
+  //PeripheralCrateParser parser;
+  //parser.parseFile("config.xml");
+
+  emuController.SetConfFile("config.xml");
+  emuController.init();
+
+  CrateSelector selector = emuController.selector();
   std::vector<Crate*> crateVector = selector.crates();
 
   //-- Make sure that only one TMB in one crate is configured
