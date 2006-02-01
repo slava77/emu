@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.40 2006/01/31 14:42:14 mey Exp $
+// $Id: TMB.cc,v 2.41 2006/02/01 13:30:55 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.41  2006/02/01 13:30:55  mey
+// Fixed ADC readout
+//
 // Revision 2.40  2006/01/31 14:42:14  mey
 // Update
 //
@@ -4558,8 +4561,9 @@ void TMB::ADCvoltages(float * voltage){
   int iclk;
 
   int write_data, read_data;
-
+  //
   for (int ich=0; ich<=14; ich++){
+    //
     adc_dout = 0;
 
     adc_din    = 0;
@@ -4575,7 +4579,7 @@ void TMB::ADCvoltages(float * voltage){
 
     adc_shiftin = ich << 4;      //d[7:4]=channel, d[3:2]=length, d[1:0]=ldbf,bip
     if (ich >= 14) adc_shiftin = 0;  //don't send channel 14, it is power-down
-
+    
     //put adc_shiftin serially in 11 vme writes
     for (iclk=0; iclk<=11; iclk++){
 
@@ -4603,37 +4607,39 @@ void TMB::ADCvoltages(float * voltage){
       write_data |= (adc_cs     << 8);  
       
       WriteRegister(vme_adc_adr,write_data);
-
+      //
+      usleep(100);
+      //
       read_data = (PowerComparator() >> 5) & 0x1;
-
+      //
       //pack output into adc_dout
       adc_dout |= (read_data << (11-iclk));
     }
-
+    //
     adc_din    = 0;
     adc_sclock = 0;
     adc_cs     = 1;
-
+    //
     write_data = 0;
     write_data |= (adc_sclock << 6);  
     write_data |= (adc_din    << 7);  
     write_data |= (adc_cs     << 8);  
-
+    //
     WriteRegister(vme_adc_adr,write_data);
-
+    //
     if (ich>=1) {
       voltage[ich-1] = ((float) adc_dout / 4095.)*4.095; //convert adc value to volts
     }
-
+    //
   }
-
+  //
   voltage[0] *= 2.0;                      // 1V/2V
   voltage[5] /= 0.2;                      // 200mV/Amp
   voltage[6] /= 0.2;                      // 200mV/Amp
   voltage[7] /= 0.2;                      // 200mV/Amp
   voltage[8] /= 0.2;                      // 200mV/Amp
   voltage[9] /= 0.2;                      // 200mV/Amp if SH921 set 1-2, else comment out line
-
+  //
   return;
 }
 
