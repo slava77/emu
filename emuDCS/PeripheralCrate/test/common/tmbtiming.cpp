@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: tmbtiming.cpp,v 2.52 2006/01/25 19:49:16 mey Exp $
+// $Id: tmbtiming.cpp,v 2.53 2006/02/01 18:31:50 mey Exp $
 // $Log: tmbtiming.cpp,v $
+// Revision 2.53  2006/02/01 18:31:50  mey
+// Update
+//
 // Revision 2.52  2006/01/25 19:49:16  mey
 // Update
 //
@@ -185,6 +188,7 @@
 #include "DAQMB.h"
 #include "TMB.h"
 #include "CCB.h"
+#include "RAT.h"
 #include "MPC.h"
 #include "DDU.h"
 #include "ALCTController.h"
@@ -313,6 +317,7 @@ int main(int argc,char **argv){
   bool doCrazyTMB(false);
   bool doDecodeALCT(false);
   bool doChambers(false);
+  bool doReadRATUser1(false);
   //
   //-- read commandline arguments and xml configuration file
   //
@@ -491,7 +496,7 @@ int main(int argc,char **argv){
        cout << " 52:ccb_firmware_version 53:WriteMPCRegister      54:ReadMPCRegister   " << std::endl;
        cout << " 55:LoadDMBFirmware      56:LoadALCTfirmware      57:LoadTMBFirmware   " << std::endl;
        cout << " 58:LoadCFEBFirmware     59:doCrazyCrate          60:DumpTTCrxRegs     " << std::endl;
-       cout << " 61:DecodeALCT           62:Chambers " <<std::endl;
+       cout << " 61:DecodeALCT           62:Chambers              63:ReadRATUser1      " <<std::endl;
        //
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
@@ -626,10 +631,18 @@ int main(int argc,char **argv){
        if ( Menu == 59) doCrazyTMB             = true ;
        if ( Menu == 60) doReadTTCrxRegs        = true ;
        if ( Menu == 61) doDecodeALCT           = true ;
-       if ( Menu == 62) doChambers           = true ;
-       if ( Menu  > 62 | Menu < -2) 
+       if ( Menu == 62) doChambers             = true ;
+       if ( Menu == 63) doReadRATUser1         = true ;
+       if ( Menu  > 63 | Menu < -2) 
 	 cout << "Invalid menu choice, try again." << endl << endl;
        //
+    }
+    //
+    if ( doReadRATUser1 ) {
+      //
+      RAT myRat(thisTMB);
+      myRat.ReadRatUser1();
+      //
     }
     //
     if ( doChambers) {

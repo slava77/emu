@@ -27,7 +27,6 @@ const char     tdi_pre_read[3] = { 0, 0, 0 };
 const char     tms_post_read[2] = { 1, 0 };            //Ex1DR to RTI
 const char     tdi_post_read[2] = { 0, 0 };       
 
-
 // **some lengths of registers:
 const int tmb_mezzID_length = 32;  
 const int tmb_user_promID_length = 32;  

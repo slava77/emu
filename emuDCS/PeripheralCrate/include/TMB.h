@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.22 2006/01/31 14:42:00 mey Exp $
+// $Id: TMB.h,v 2.23 2006/02/01 18:31:49 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.23  2006/02/01 18:31:49  mey
+// Update
+//
 // Revision 2.22  2006/01/31 14:42:00  mey
 // Update
 //
@@ -78,6 +81,7 @@
 #include <string>
 #include <bitset>
 #include "AnodeChannel.h"
+#include "TMB_JTAG_constants.h"
 
 class ALCTController;
 class TMBParser;
@@ -182,6 +186,13 @@ public:
   std::bitset<22> calCRC22(const std::vector< std::bitset<16> >& datain);
   std::bitset<22> nextCRC22_D16(const std::bitset<16>& D, const std::bitset<22>& C);
   //
+  void select_jtag_chain_param();
+  //
+  void jtag_ir_dr(int,int,int*,int,int*);
+  void jtag_io_byte(int,int*,int*,int* );
+  int bits_to_int(int*,int,int);
+  void step(int,int,int,int,int);
+  //
   void SetALCTController(ALCTController* a) {alctController_=a;}
   ALCTController * alctController() const {return alctController_;}
   //      
@@ -189,6 +200,8 @@ public:
   int tmb_set_jtag_src(unsigned short int jtag_src);
   int tmb_get_jtag_src(unsigned short int* jtag_src);
   int tmb_set_jtag_chain(unsigned int jchain);
+  void set_jtag_chain(int);
+  void jtag_anystate_to_rti();
   int tmb_set_reg(unsigned int vmereg, unsigned short int value );
   int tmb_get_reg(unsigned int vmereg, unsigned short int* value );
   int tmb_vme_reg(unsigned int vmereg, unsigned short int* value);
@@ -278,6 +291,11 @@ protected:
   
 private:
   //
+  int jtag_address;
+  int jtag_chain;
+  int devices_in_chain;
+  bool step_mode;
+  int bits_per_opcode[MAX_NUM_CHIPS];
   std::ostream * MyOutput_ ;
   int alct_tx_clock_delay_;
   int alct_rx_clock_delay_;
