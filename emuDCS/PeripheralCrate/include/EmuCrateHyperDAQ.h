@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.37 2006/01/31 14:41:42 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.38 2006/02/01 13:31:25 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -179,6 +179,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::MPCBoardID, "MPCBoardID");
     xgi::bind(this,&EmuCrateHyperDAQ::CCBBoardID, "CCBBoardID");
     xgi::bind(this,&EmuCrateHyperDAQ::LogDMBTestsOutput, "LogDMBTestsOutput");
+    xgi::bind(this,&EmuCrateHyperDAQ::LogTMBTestsOutput, "LogTMBTestsOutput");
     xgi::bind(this,&EmuCrateHyperDAQ::FindWinner, "FindWinner");
     //
     myParameter_ =  0;
@@ -2471,6 +2472,19 @@ public:
     *out << OutputTMBTests[tmb].str() << endl ;
     *out << cgicc::textarea();
     //    
+    std::string method =
+      toolbox::toString("/%s/LogTMBTestsOutput",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",method) << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","submit")
+      .set("value","Log output").set("name","LogTMBTestsOutput") << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Clear")
+      .set("name","ClearTMBTestsOutput") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
   }
   //
   void EmuCrateHyperDAQ::testTMB(xgi::Input * in, xgi::Output * out ) 
@@ -3873,6 +3887,7 @@ public:
       OutputDMBTests[dmb].str("");
       //
     this->DMBTests(in,out);
+    return;
     }
     //
     thisDMB = dmbVector[dmb];
@@ -3890,6 +3905,56 @@ public:
     OutputDMBTests[dmb].str("");
     //
     this->DMBTests(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::LogTMBTestsOutput(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cout << "LogTMBTestsOutput" << std::endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "Not tmb" << endl ;
+      tmb = TMB_;
+    }
+    //
+    cgicc::form_iterator name2 = cgi.getElement("ClearTMBTestsOutput");
+    //
+    if(name2 != cgi.getElements().end()) {
+      cout << "Clear..." << endl;
+      cout << cgi["ClearTMBTestsOutput"]->getValue() << std::endl ;
+      OutputTMBTests[tmb].str("");
+      //
+      this->TMBTests(in,out);
+      return ;
+      //
+    }
+    //
+    thisTMB = tmbVector[tmb];
+    //
+    cout << TMBBoardID_[tmb] << endl ;
+    //
+    char buf[20];
+    sprintf(buf,"TMBTestsLogFile_%d_%s.log",thisTMB->slot(),TMBBoardID_[tmb].c_str());
+    //
+    ofstream TMBTestsLogFile;
+    TMBTestsLogFile.open(buf);
+    TMBTestsLogFile << OutputTMBTests[tmb].str() ;
+    TMBTestsLogFile.close();
+    //
+    OutputTMBTests[tmb].str("");
+    //
+    this->TMBTests(in,out);
     //
   }
   //
