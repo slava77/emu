@@ -107,12 +107,10 @@ Executables=
 TestExecutables= \
         calibpulse.cpp \
 	slicetestconfig.cpp \
-	testbeamcontrol.cpp \
-	tmbtiming.cpp \
+	EmuConfig.cpp \
+	CrateTiming.cpp \
         CrateScan.cpp \
 	parsemain.cpp \
-	alctmain.cpp \
-	contrmain.cpp \
 	mpc2sp.cpp \
 	loadALCT.cpp \
 	testtmbmain.cpp
