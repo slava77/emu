@@ -14,6 +14,7 @@
 #define MAX_FRAMES           1000     //Maximum number of frames in an i/o cycle
 #define MAX_NUM_CHIPS           5     //Maximum number of devices in chain
 
+// **bring the TMS to the appropriate state (from RTI) using the following sequences:
 const char     tms_pre_opcode[4] = { 1, 1, 0, 0 };     //go from RTI to ShfIR  
 const char     tdi_pre_opcode[4] = { 0, 0, 0, 0 };  
 
@@ -25,5 +26,13 @@ const char     tdi_pre_read[3] = { 0, 0, 0 };
 
 const char     tms_post_read[2] = { 1, 0 };            //Ex1DR to RTI
 const char     tdi_post_read[2] = { 0, 0 };       
+
+
+// **some lengths of registers:
+const int tmb_mezzID_length = 32;  
+const int tmb_user_promID_length = 32;  
+
+const int rat_user1_length = 224;
+const int rat_user2_length = 32;
 
 #endif
