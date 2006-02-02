@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.15 2006/01/13 10:06:44 mey Exp $
+// $Id: CCB.h,v 2.16 2006/02/02 14:27:31 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.16  2006/02/02 14:27:31  mey
+// Update
+//
 // Revision 2.15  2006/01/13 10:06:44  mey
 // Got rid of virtuals
 //
@@ -108,6 +111,7 @@ public:
   void reset_bxevt();
   void bx0();
   void bc0();
+  void CLCTexternalTrigger();
   void bxr();
   //
   /// uses SPS25ns to decide whether to use TTC triggers

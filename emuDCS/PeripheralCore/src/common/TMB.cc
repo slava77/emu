@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.42 2006/02/01 18:31:50 mey Exp $
+// $Id: TMB.cc,v 2.43 2006/02/02 14:27:32 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.43  2006/02/02 14:27:32  mey
+// Update
+//
 // Revision 2.42  2006/02/01 18:31:50  mey
 // Update
 //
@@ -254,7 +257,7 @@ int TMB::FirmwareRevCode(){
   return (((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff)) ;
   //
 }
-
+//
 int TMB::PowerComparator(){
   //
   tmb_vme(VME_READ,vme_adc_adr,sndbuf,rcvbuf,NOW);
@@ -262,7 +265,17 @@ int TMB::PowerComparator(){
   return (((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff)) ;
   //
 }
-
+//
+int TMB::CCB_command_from_TTC(){
+  //
+  sndbuf[0] = 0x0;
+  sndbuf[1] = 0x0;
+  tmb_vme(VME_READ,ccb_stat_adr,sndbuf,rcvbuf,NOW);
+  //
+  return (rcvbuf[1]&0xff);
+  //
+}
+//
 void TMB::StartTTC(){
   //
   (*MyOutput_) << "TMB.StartTTC" << std::endl;

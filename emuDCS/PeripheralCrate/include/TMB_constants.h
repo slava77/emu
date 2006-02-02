@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 2.3 2006/01/23 14:21:59 mey Exp $
+// $Id: TMB_constants.h,v 2.4 2006/02/02 14:27:31 mey Exp $
 // $Log: TMB_constants.h,v $
+// Revision 2.4  2006/02/02 14:27:31  mey
+// Update
+//
 // Revision 2.3  2006/01/23 14:21:59  mey
 // Update
 //
@@ -47,7 +50,7 @@ static const unsigned long int	vme_led_adr	   = 0x000022;
 static const unsigned long int	vme_adc_adr	   = 0x000024;
 static const unsigned long int	vme_dsn_adr	   = 0x000026;
 
-static const unsigned long int	mod_cfg_adr	   = 0x000028;	//For tmb2001a
+static const unsigned long int	mod_cfg_adr	   = 0x000028;	
 static const unsigned long int	ccb_cfg_adr	   = 0x00002A;
 static const unsigned long int	ccb_trig_adr	   = 0x00002C;
 static const unsigned long int	ccb_stat_adr	   = 0x00002E;	

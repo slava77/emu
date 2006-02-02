@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.21 2006/01/12 23:44:21 mey Exp $
+// $Id: CCB.cc,v 2.22 2006/02/02 14:27:32 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.22  2006/02/02 14:27:32  mey
+// Update
+//
 // Revision 2.21  2006/01/12 23:44:21  mey
 // Update
 //
@@ -1050,6 +1053,14 @@ void CCB::l1aReset(){
   std::cout << "CCB: L1a Reset" << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=(0x3<<2);          //cmd[5:0]=0x03 
+  do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
+  //
+}
+//
+void CCB::CLCTexternalTrigger() {
+  //
+  sndbuf[0]=0x00;
+  sndbuf[1]=(0x1A<<2);          //cmd[5:0]=0x03 
   do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
   //
 }
