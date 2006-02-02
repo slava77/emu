@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 1.2 2006/02/01 20:43:10 mey Exp $
+// $Id: CrateTiming.cpp,v 1.3 2006/02/02 14:27:32 mey Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 1.3  2006/02/02 14:27:32  mey
+// Update
+//
 // Revision 1.2  2006/02/01 20:43:10  mey
 // Got rid of TestBeamController
 //
@@ -325,6 +328,8 @@ int main(int argc,char **argv){
   bool doDecodeALCT(false);
   bool doChambers(false);
   bool doReadRATUser1(false);
+  bool doReadCCBTTCCommand(false);
+  bool doCCBCLCTexternTrigger(false);
   //
   //-- read commandline arguments and xml configuration file
   //
@@ -507,6 +512,7 @@ int main(int argc,char **argv){
        cout << " 55:LoadDMBFirmware      56:LoadALCTfirmware      57:LoadTMBFirmware   " << std::endl;
        cout << " 58:LoadCFEBFirmware     59:doCrazyCrate          60:DumpTTCrxRegs     " << std::endl;
        cout << " 61:DecodeALCT           62:Chambers              63:ReadRATUser1      " <<std::endl;
+       cout << " 64:ReadCCBTTCCommand    65:CCBCLCTexterTrigger                        " << std::endl;
        //
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
@@ -577,6 +583,8 @@ int main(int argc,char **argv){
        doLoadCFEBFirmware    = false;
        doDecodeALCT          = false;
        doChambers            = false;
+       doReadCCBTTCCommand   = false;
+       doCCBCLCTexternTrigger = false;
        //
        if ( Menu == -1 ) goto outhere;
        if ( Menu == 0 ) doInitSystem           = true ;
@@ -643,9 +651,23 @@ int main(int argc,char **argv){
        if ( Menu == 61) doDecodeALCT           = true ;
        if ( Menu == 62) doChambers             = true ;
        if ( Menu == 63) doReadRATUser1         = true ;
-       if ( Menu  > 63 | Menu < -2) 
+       if ( Menu == 64) doReadCCBTTCCommand    = true ;
+       if ( Menu == 65) doCCBCLCTexternTrigger = true ;
+       if ( Menu  > 65 | Menu < -2) 
 	 cout << "Invalid menu choice, try again." << endl << endl;
        //
+    }
+    //
+    if ( doCCBCLCTexternTrigger ) {
+      //
+      thisCCB->CLCTexternalTrigger();
+      //
+    }
+    //
+    if ( doReadCCBTTCCommand ) {
+      //
+      std::cout << hex << thisTMB->CCB_command_from_TTC() << std::endl;
+      //
     }
     //
     if ( doReadRATUser1 ) {

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.23 2006/02/01 18:31:49 mey Exp $
+// $Id: TMB.h,v 2.24 2006/02/02 14:27:31 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.24  2006/02/02 14:27:31  mey
+// Update
+//
 // Revision 2.23  2006/02/01 18:31:49  mey
 // Update
 //
@@ -169,6 +172,7 @@ public:
   void DisableInternalL1aSequencer();
   void tmb_clk_delays(unsigned short int time, int cfeb_id);
   //
+  int  CCB_command_from_TTC();
   void DataSendMPC();
   void InjectMPCData(const int nEvents, const unsigned long lct0, const unsigned long lct1);
   //
