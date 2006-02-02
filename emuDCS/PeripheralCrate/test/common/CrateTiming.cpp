@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 1.3 2006/02/02 14:27:32 mey Exp $
+// $Id: CrateTiming.cpp,v 1.4 2006/02/02 14:28:26 mey Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 1.4  2006/02/02 14:28:26  mey
+// Update
+//
 // Revision 1.3  2006/02/02 14:27:32  mey
 // Update
 //
@@ -666,7 +669,7 @@ int main(int argc,char **argv){
     //
     if ( doReadCCBTTCCommand ) {
       //
-      std::cout << hex << thisTMB->CCB_command_from_TTC() << std::endl;
+      std::cout << "TTC command : " << hex << thisTMB->CCB_command_from_TTC() << std::endl;
       //
     }
     //
