@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 1.4 2006/02/02 14:28:26 mey Exp $
+// $Id: CrateTiming.cpp,v 1.5 2006/02/02 15:34:23 mey Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 1.5  2006/02/02 15:34:23  mey
+// Update
+//
 // Revision 1.4  2006/02/02 14:28:26  mey
 // Update
 //
@@ -577,7 +580,7 @@ int main(int argc,char **argv){
        dodaqmb_promfpga_dump = false;
        dodaqmb_adc_dump      = false;
        dodaqmb_lowv_dump     = false;
-       doccb_firmware_version     = false;
+       doccb_firmware_version  = false;
        doWriteMPCRegister    = false;
        doReadMPCRegister     = false;
        doLoadDMBFirmware     = false;

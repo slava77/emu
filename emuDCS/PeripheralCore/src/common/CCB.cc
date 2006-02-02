@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.22 2006/02/02 14:27:32 mey Exp $
+// $Id: CCB.cc,v 2.23 2006/02/02 15:34:23 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.23  2006/02/02 15:34:23  mey
+// Update
+//
 // Revision 2.22  2006/02/02 14:27:32  mey
 // Update
 //
@@ -1076,8 +1079,7 @@ void CCB::bc0() {
   do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
 
 }
-
-
+//
 void CCB::stopTrigger() {
   //
   setCCBMode(CCB::VMEFPGA);
@@ -1089,8 +1091,7 @@ void CCB::stopTrigger() {
   do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
   //2004 do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
 }
-
-
+//
 void CCB::disable() {
   std::cout << "CCB: disable" << std::endl;
   disableTTCControl();
@@ -1099,8 +1100,7 @@ void CCB::disable() {
     stopTrigger();
   }
 }
-
-
+//
 void CCB::disableTTCControl() {
   std::cout << "CCB: disable TTC control" << std::endl;
   do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
@@ -1118,8 +1118,7 @@ void CCB::disableTTCControl() {
   //2004 do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
   usleep(5000);
 }
-
-
+//
 void CCB::executeCommand(std::string command) {
   if(command=="Program Backplane") prgall_bckpln();
   if(command=="Reset Backplane")   reset_bckpln();
@@ -1134,8 +1133,7 @@ void CCB::executeCommand(std::string command) {
   if(command=="BX0")              bx0();
   if(command=="BXR")              bxr();
 }
-
-
+//
 void CCB::FireCCBMpcInjector(){
   //
   //
@@ -1160,7 +1158,7 @@ void CCB::FireCCBMpcInjector(){
   //stopTrigger();
   //
 }
-
+//
 void CCB::firmwareVersion(){
   /// report the firmware version
   do_vme(VME_READ,CSRB17,sndbuf,rcvbuf,NOW);  
@@ -1171,7 +1169,7 @@ void CCB::firmwareVersion(){
   (*MyOutput_) << "CCB: firmware date: " 
        << day << "-" << month << "-" << year << std::endl;
 }
-
+//
 #ifdef USEDCS
 //fg NOTE: CSR1 (2001) vs CSRB1(2004) bit  incompatibilities ...
 void CCB::cmd_source_to_ttcrx(){
@@ -1180,9 +1178,7 @@ void CCB::cmd_source_to_ttcrx(){
   sndbuf[1]=0;  // ??????????
   do_vme(VME_WRITE,0x20,sndbuf,rcvbuf,1);
 }
-
-
-
+//
 void CCB::cmd_source_to_vme(){
 /// this function should be executed before any *_csr2 function 
 // 2004
@@ -1190,9 +1186,7 @@ void CCB::cmd_source_to_vme(){
   sndbuf[1]=1;  // ??????????
   do_vme(VME_WRITE,0x20,sndbuf,rcvbuf,1);
 }
-
-
-
+//
 void CCB::hard_reset_all_csr2(){
 /// reload all fpga-s from eprom (CCB specification)
 // Hard reset ALL:
@@ -1212,9 +1206,7 @@ void CCB::hard_reset_all_csr2(){
   //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
   do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
-
-
-
+//
 void CCB::sync_reset_csr2(){
 /// reset L1 readout buffers and resynchronize optical links (CCB specification) ???
 
@@ -1249,9 +1241,7 @@ void CCB::soft_reset_all_csr2(){
   //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
   do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
-
-
-
+//
 void CCB::soft_reset_dmb_csr2(){
 /// initialize the FPGA-s on dmb (CCB specification)
 
@@ -1273,9 +1263,7 @@ void CCB::soft_reset_dmb_csr2(){
   //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
   do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
-
-
-
+//
 void CCB::soft_reset_tmb_csr2(){
 /// initialize the FPGA-s on tmb (CCB specification)
 
@@ -1296,9 +1284,7 @@ void CCB::soft_reset_tmb_csr2(){
   //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
   do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
-
-
-
+//
 void CCB::soft_reset_mpc_csr2(){
 /// initialize the FPGA-s on mpc (CCB specification)
 
@@ -1313,10 +1299,7 @@ void CCB::soft_reset_mpc_csr2(){
   //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
   do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
-
-
-
-
+//
 void CCB::hard_reset_dmb_csr2(){
 /// initialize the FPGA-s on dmb (CCB specification)
 // Hard reset DMBs:
@@ -1327,9 +1310,7 @@ void CCB::hard_reset_dmb_csr2(){
   //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
   do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
-
-
-
+//
 void CCB::hard_reset_tmb_csr2(){
 /// initialize the FPGA on TMB (CCB specification)
 // Hard reset TMBs:
@@ -1340,9 +1321,7 @@ void CCB::hard_reset_tmb_csr2(){
   //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
   do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
-
-
-
+//
 void CCB::hard_reset_alct_csr2(){
 /// initialize the FPGA-s on ALCT (CCB specification)
 // Hard reset ALCT:
@@ -1353,9 +1332,7 @@ void CCB::hard_reset_alct_csr2(){
   //do_vme(VME_WRITE,0x22,sndbuf,rcvbuf,1);
   do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,1);
 }
-
-
-
+//
 void CCB::hard_reset_ccb_csr2(){
 /// initialize the FPGA-s on CCB (CCB specification)
 // Hard reset CCB:

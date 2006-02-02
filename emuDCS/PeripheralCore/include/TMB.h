@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.24 2006/02/02 14:27:31 mey Exp $
+// $Id: TMB.h,v 2.25 2006/02/02 15:34:23 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.25  2006/02/02 15:34:23  mey
+// Update
+//
 // Revision 2.24  2006/02/02 14:27:31  mey
 // Update
 //
@@ -266,6 +269,8 @@ public:
     int tmp[5] = { cfeb0delay_, cfeb1delay_, cfeb2delay_, cfeb3delay_, cfeb4delay_ };
     return tmp[CFEB]; 
   }
+  //
+  inline void SetStepMode(bool stepmode) { step_mode = stepmode ; }
   //
   inline std::vector<unsigned long int> GetInjectedLct0() { return InjectedLct0 ; }
   inline std::vector<unsigned long int> GetInjectedLct1() { return InjectedLct1 ; }
