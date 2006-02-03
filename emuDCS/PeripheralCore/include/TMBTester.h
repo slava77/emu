@@ -7,6 +7,7 @@
 #include <string>
 #include "TMB.h"
 #include "CCB.h"
+#include "RAT.h"
 #include "TMB_JTAG_constants.h"
 
 class TMBTester {
@@ -19,7 +20,7 @@ class TMBTester {
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   inline void setTMB(TMB * tmb) {tmb_ = tmb;}
   inline void setCCB(CCB * ccb) {ccb_ = ccb;}
-  inline void setTMBslot(int * slot) {TMBslot = slot;}
+  inline void setRAT(RAT * rat) {rat_ = rat;}
   //
   inline int GetResultTestBootRegister() { return ResultTestBootRegister_ ; }
   inline int GetResultTestVMEfpgaDataRegister() { return ResultTestVMEfpgaDataRegister_ ; }
@@ -33,9 +34,12 @@ class TMBTester {
   inline int GetResultTestDSN() { return ResultTestDSN_ ; }
   inline int GetResultTestADC() { return ResultTestADC_ ; }
   inline int GetResultTest3d3444() { return ResultTest3d3444_ ; }
+  inline int GetResultTestALCTtxrx() { return ResultTestALCTtxrx_ ; }
+  inline int GetResultTestRATtemper() { return ResultTestRATtemper_ ; }
+  inline int GetResultTestRATidCodes() { return ResultTestRATidCodes_ ; }
+  inline int GetResultTestRATuserCodes() { return ResultTestRATuserCodes_ ; }
   //
   void reset();
-  void readreg4();
   //
   bool runAllTests();
   bool testFirmwareDate();
@@ -55,54 +59,31 @@ class TMBTester {
   bool testDSN(int); // TMB=0, mezzanine=1, RAT=2
   bool testADC();
   bool test3d3444();
+  bool testALCTtxrx();      
+  bool testRATtemper();      
+  bool testRATidCodes();
+  bool testRATuserCodes();
   //
   bool compareValues(std::string, int, int, bool);
   bool compareValues(std::string, float, float, float);
   void messageOK(std::string,bool);
   //
-  // JTAG stuff:
-  inline void set_jtag_address(int address){ jtag_address = address;}
-  void set_jtag_chain(int);
-  void jtag_anystate_to_rti();
-  void jtag_ir_dr(int,int,int*,int,int*);
-  //
-  //To be RAT members:
+  // Maybe should be in CrateTiming.cpp?
   void RatTmbDelayScan();
-  void ReadRatUser1();
-  int ReadRatUser2();
-  int read_rat_delay();
   void RpcRatDelayScan(int);
-  void set_rat_delay(int,int);
-  int read_rpc_parity_error_counter(int);
-  int read_rpc_parity_ok(int);
-  int read_rpc_data(int);
-  void reset_parity_error_counter(int);
- //
+  //
   //Not yet working but should eventually be in TMB.cc...
   float tmb_temp(int, int);
   //
-  //To be in TMB.cc...
-  void SetExtCLCTPatternTrigger();
-
+  void bit_to_array(int,int *,const int);
+  //
  protected:
   //
-
  private: 
   std::ostream * MyOutput_ ;
   TMB * tmb_;
   CCB * ccb_;
-  int * TMBslot;
-
-  //JTAG stuff:
-  int jtag_address;
-  int jtag_chain;
-  int devices_in_chain;
-  int bits_per_opcode[MAX_NUM_CHIPS];
-  int bits_to_int(int*,int,int);
-  bool step_mode;
-  void select_jtag_chain_param();
-  void jtag_io_byte(int,int*,int*,int* );
-  void step(int,int,int,int,int);
+  RAT * rat_;
   //
   int ResultTestBootRegister_ ;
   int ResultTestVMEfpgaDataRegister_ ;
@@ -117,11 +98,13 @@ class TMBTester {
   int ResultTestDSN_;
   int ResultTestADC_;
   int ResultTest3d3444_;
+  int ResultTestALCTtxrx_;
+  int ResultTestRATtemper_;
+  int ResultTestRATidCodes_;
+  int ResultTestRATuserCodes_;
   //
   //functions needed by above tests:
   int dowCRC(std::bitset<64>);
-  void bit_to_array(int, int *, const int); 
-  void decodeRATUser1(int*);
 };
 
 #endif

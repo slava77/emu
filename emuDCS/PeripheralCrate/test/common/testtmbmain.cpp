@@ -6,6 +6,7 @@
 //#include <vector>
 #include "Crate.h"
 #include "TMB.h"
+#include "RAT.h"
 #include "CCB.h"
 #include "TMBTester.h"
 #include "EmuController.h"
@@ -13,9 +14,11 @@
 
 int  FindTMB_L1A_delay(int,int);
 TMB *thisTMB ;
-CCB *thisCCB ;
 
 int main() {
+
+  CCB *thisCCB ;
+  RAT *myRat;
 
   int dummy;
   int L1adelay;
@@ -39,6 +42,10 @@ int main() {
   bool ADCOK = false;
   bool BootRegOK = false;
   bool is3d3444OK = false;
+  bool isALCTtxrxOK = false;
+  bool isRATtemperOK = false;
+  bool isRATidCodesOK = false;
+  bool isRATuserCodesOK = false;
   bool HardResetOK = false;
   bool VMEfpgaDataRegisterOK = false;
 
@@ -73,16 +80,15 @@ int main() {
 
   thisCCB = thisCrate->ccb();
   thisTMB = tmbVector[0];
-
-  // !Martin!, the following needs to be obtained from the xml file somehow
-  int thisTMBslot = 14;
+  myRat = new RAT(thisTMB);
 
   // point the TMBTester to the classes we need:
   TMBTester testTMB;
 
+
   testTMB.setTMB(thisTMB);
   testTMB.setCCB(thisCCB);
-  testTMB.setTMBslot(&thisTMBslot);
+  testTMB.setRAT(myRat);
 
   while (Menu < 100 && Menu >=0 ){
 
@@ -104,16 +110,26 @@ int main() {
               << std::endl;
     std::cout << " 14:Digital Serial Numbers     15:Voltages, Currents, Temps   16:3d3444 status"
               << std::endl;
+    std::cout << " 17:ALCT TX/RX cables          18:RAT temperature OK          19:RAT ID codes"
+              << std::endl;
+    std::cout << " 70:RAT User codes"
+              << std::endl;
+    std::cout << std::endl;
     std::cout << " 20:TMB-RAT 80MHz Delay scan   21:Read RAT USER1              22:Read RAT USER2" 
 	      << std::endl;
-    std::cout << " 23:read RAT delay             24:RAT-RPC delay scan          25:Set RAT-RPC delay" 
+    std::cout << " 23:read RAT-RPC delay         24:RAT-RPC delay scan          25:Set RAT-RPC delay" 
 	      << std::endl;
-    std::cout << " 26:reset RAT parity error ctr 27:Read RPC data               28:Read RAT scope"
+    std::cout << " 26:reset RPC parity error ctr 27:Read RPC data"
 	      << std::endl;
-    std::cout << " 90:enable CLCT ext trigger    91:Internal L1A from CCB       92:TMB-L1A delay scan" 
+    std::cout << " 29:Read RAT Usercodes         30:Read RAT IDcodes            31:Read TMB-RAT delay"
 	      << std::endl;
-    std::cout << "  99:Read Register 4 " << std::endl;
-    std::cout << "  100:Exit " << std::endl;
+    std::cout << " 32:set TMB-RAT Delay"
+	      << std::endl;
+    std::cout << std::endl;
+    std::cout << " 90:enable CLCT ext trigger    91:read scope                  92:TTC command received" 
+	      << std::endl;
+    std::cout << std::endl;
+    std::cout << "100:Exit " << std::endl;
     std::cout << " menu choice? (Default = 99)" << std::endl;
     std::cin >> Menu;
 
@@ -122,7 +138,7 @@ int main() {
       testTMB.reset();
       break;
     case 1:
-      AllOK = testTMB.runAllTests();
+      testTMB.runAllTests();
       break;
     case 2:
       BootRegOK = testTMB.testBootRegister();
@@ -169,17 +185,33 @@ int main() {
     case 16:
       is3d3444OK = testTMB.test3d3444();      
       break;      
+    case 17:
+      isALCTtxrxOK = testTMB.testALCTtxrx();      
+      break;      
+    case 18:
+      isRATtemperOK = testTMB.testRATtemper();      
+      break;      
+    case 19:
+      isRATidCodesOK = testTMB.testRATidCodes();
+      break;
+    case 70:
+      isRATuserCodesOK = testTMB.testRATuserCodes();
+      break;
+      //
+      //
     case 20:
       testTMB.RatTmbDelayScan();
       break;
     case 21:
-      testTMB.ReadRatUser1();
+      myRat->ReadRatUser1();
+      myRat->decodeRATUser1();
       break;
     case 22:
-      dummy = testTMB.ReadRatUser2();
+      myRat->ReadRatUser2();
+      myRat->decodeRATUser2();
       break;
     case 23:
-      dummy = testTMB.read_rat_delay();
+      myRat->read_rpcrat_delay();
       break;
     case 24:
       std::cout << "scan RPC0 (0) or RPC1 (1)" << std::endl;
@@ -194,49 +226,47 @@ int main() {
       std::cout << "set delay (0-15)" << std::endl;
       std::cin >> delay;
 
-      testTMB.set_rat_delay(rpc,delay);
+      myRat->set_rpcrat_delay(rpc,delay);
       break;
     case 26:
-      std::cout << "set RPC0 (0) or RPC1 (1)" << std::endl;
-      std::cin >> rpc;
-
-      testTMB.reset_parity_error_counter(rpc);
+      myRat->reset_parity_error_counter();
       break;
     case 27:
-      std::cout << "set RPC0 (0) or RPC1 (1)" << std::endl;
-      std::cin >> rpc;
-
-      testTMB.read_rpc_data(rpc);
+      myRat->read_rpc_data();
       break;
-    case 28:
-      std::cout << "trigger (0-127)" << std::endl;
-      std::cin >> trigger;
-
-      thisTMB->scope(1,0,trigger);
-
-      thisTMB->scope(0,1,96);
-      thisTMB->scope(0,1,97);
-      thisTMB->scope(0,1,98);
+    case 29:
+      myRat->ReadRatUserCode();
       break;
+    case 30:
+      myRat->ReadRatIdCode();
+      break;
+    case 31:
+      myRat->read_rattmb_delay();
+      break;
+    case 32:
+      std::cout << "set delay (0-15)" << std::endl;
+      std::cin >> delay;
+
+      myRat->set_rattmb_delay(delay);
+      break;
+      //
+      //
     case 90:
-      testTMB.SetExtCLCTPatternTrigger();
+      thisCCB->CLCTexternalTrigger();
       break;
     case 91:
-      thisTMB->StartTTC();
+      std::cout << "trigger (0-127) - 98 = " << std::endl;
+      std::cin >> trigger;
+
+      thisTMB->scope(1,0,trigger);  // arm the scope to trigger on a particular channel
+      thisTMB->scope(0,1);          // read the scope (triggered on the chosen trigger)
       break;
     case 92:
-      std::cout << "Enter lowest TMB L1A delay value to loop over (bunch crossings, decimal)" << std::endl;
-      int idelay_min;
-      std::cin >> idelay_min;
-      std::cout << "Enter highest TMB L1A delay value to loop over (bunch crossings, decimal)" << std::endl;
-      int idelay_max;
-      std::cin >> idelay_max;
- 
-      L1adelay = FindTMB_L1A_delay(idelay_min,idelay_max);
+      std::cout << "TTC command at TMB: " << std::hex 
+		<< thisTMB->CCB_command_from_TTC() 
+		<< std::endl;
       break;
-    case 99:
-      testTMB.readreg4();      
-      break;      
+      //
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 
       Menu=100;
@@ -249,38 +279,4 @@ int main() {
   return 0;
 }
 
-
-int FindTMB_L1A_delay( int idelay_min, int idelay_max ){
-
-  float RightTimeBin = 0;
-  int   DataCounter  = 0;
-
-  for (int i = idelay_min; i < idelay_max+1; i++){
-    
-    thisTMB->lvl1_delay(i);
-
-    thisTMB->ResetCounters();                             // reset counters
-
-    std::cout << "TMB_l1adelay= " << i << ":" << std::endl;
-    ::sleep(3);                                           // accumulate statistics
-    thisTMB->GetCounters();                               // read counter values
-    
-    thisTMB->PrintCounters(8);                            // display them to screen
-    thisTMB->PrintCounters(19);
-    thisTMB->PrintCounters(20);
-
-    if (thisTMB->GetCounter(19) > 0) {
-      RightTimeBin += i;
-      DataCounter++;
-    }
-
-  }
-
-  RightTimeBin /= (float) DataCounter;
-  
-  std::cout << "Right L1a delay setting is " << RightTimeBin << std::endl;
-
-  return (int) RightTimeBin ;
-
-}
 
