@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.13 2006/01/25 19:49:44 mey Exp $
+// $Id: VMEController.cc,v 2.14 2006/02/06 10:30:16 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.14  2006/02/06 10:30:16  mey
+// Fixed DMB loading
+//
 // Revision 2.13  2006/01/25 19:49:44  mey
 // UPdate
 //
@@ -290,8 +293,11 @@ VMEModule* VMEController::getTheCurrentModule(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.13 2006/01/25 19:49:44 mey Exp $
+// $Id: VMEController.cc,v 2.14 2006/02/06 10:30:16 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.14  2006/02/06 10:30:16  mey
+// Fixed DMB loading
+//
 // Revision 2.13  2006/01/25 19:49:44  mey
 // UPdate
 //
@@ -505,7 +511,9 @@ int udelay(long int itim)
   usleep(500);
   std::cout << "Udelay..." << std::endl;
   std::cout << "Waiting...." << std::endl;
-  std::cout << "udelay..." << itim << std::endl;;
+  std::cout << "udelay..." << itim << std::endl;
+  usleep(itim*10);
+  //
   struct  timeval tp;
   long usec1,usec2;
   long int loop;
@@ -536,9 +544,10 @@ int udelay(long int itim)
   }
   /* now do loop delay */
   //printf(" loop itim loop %d %d \n",loop,itim);
-  for(j=0;j<itim;j++){
-      for(i=0;i<mdelay;i++);
-  } 
+  //for(j=0;j<itim;j++){
+  //for(i=0;i<mdelay;i++);
+  //usleep(mdelay);
+  //} 
 }
 
 void VMEController::sdly()
