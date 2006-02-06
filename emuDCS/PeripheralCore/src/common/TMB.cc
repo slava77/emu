@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.44 2006/02/06 14:06:55 mey Exp $
+// $Id: TMB.cc,v 2.45 2006/02/06 14:09:07 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.45  2006/02/06 14:09:07  mey
+// Fixed bug
+//
 // Revision 2.44  2006/02/06 14:06:55  mey
 // Fixed stream
 //
@@ -579,9 +582,9 @@ void TMB::FireMPCInjector(int nEvents){
 void TMB::DecodeALCT(){
    //
   (*MyOutput_) << std::endl;
-  (*MyOutput_) << "DecodeALCT.Read " << hex << alct_alct0_adr << std::endl ;
+  (*MyOutput_) << "DecodeALCT.Read " << std::hex << alct_alct0_adr << std::endl ;
   tmb_vme(VME_READ,alct_alct0_adr,sndbuf,rcvbuf,NOW);
-  (*MyOutput_) << "DecodeALCT.Done " << hex << alct_alct0_adr << std::endl ;
+  (*MyOutput_) << "DecodeALCT.Done " << std::hex << alct_alct0_adr << std::endl ;
   //
   int data = (((rcvbuf[0]&0xff)<<8) | rcvbuf[1]&0xff);
   //
