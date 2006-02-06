@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.38 2006/02/01 13:31:25 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.39 2006/02/06 10:30:32 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -221,6 +221,7 @@ public:
     *out << cgicc::h1("EmuCrateHyperDAQ");
     *out << cgicc::br();
     //
+    std::cout << "The xmlfile is " << xmlFile_.toString() << std::endl;
     //
     if (tmbVector.size()==0 && dmbVector.size()==0) {
       //
@@ -1754,11 +1755,15 @@ public:
     //
     cout << "DMBLoadFirmware" << endl;
     //
+    thisCCB->hardReset();
+    //
     if (thisDMB) {
       //
       char *out;
       thisDMB->epromload(MPROM,"dmb6cntl_v17_r2.svf",1,out);  // load mprom
     }
+    //
+    thisCCB->hardReset();
     //
     this->DMBUtils(in,out);
     //
