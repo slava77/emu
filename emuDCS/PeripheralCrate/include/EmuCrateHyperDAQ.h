@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.40 2006/02/06 10:31:32 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.41 2006/02/06 14:06:54 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -95,7 +95,7 @@ protected:
   ALCTController *alct(0) ;
   MPC * thisMPC(0);
   ChamberUtilities MyTest[9];
-  ostringstream CrateTestsOutput;
+  ostringstream CrateTestsOutput[9];
   ostringstream OutputStringDMBStatus[9];
   ostringstream OutputStringTMBStatus[9];
   ostringstream OutputDMBTests[9];
@@ -197,12 +197,12 @@ public:
     CCBBoardID_ = "-2";
     for (int i=0; i<9; i++) { DMBBoardID_[i] = "-2" ; TMBBoardID_[i] = "-2" ; }
     //
-    CrateTestsOutput << "Output..." << std::endl;
     for(int i=0; i<9;i++) {
       OutputStringDMBStatus[i] << "Output..." << std::endl;
       OutputStringTMBStatus[i] << "Output..." << std::endl;
       OutputDMBTests[i]        << "Output..." << std::endl;
       OutputTMBTests[i]        << "Output..." << std::endl;
+      CrateTestsOutput[i]      << "Output..." << std::endl;
     }
     //
     this->getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
@@ -315,6 +315,14 @@ public:
       *out << cgicc::form().set("method","GET").set("action",InitSystem) << std::endl ;
       *out << cgicc::input().set("type","submit").set("value","Init System") << std::endl ;
       *out << cgicc::form() << std::endl ;
+      //
+      std::string TmbMPCTest =
+	toolbox::toString("/%s/TmbMPCTest",getApplicationDescriptor()->getURN().c_str());
+      *out << cgicc::form().set("method","GET").set("action",TmbMPCTest) << std::endl ;
+      *out << cgicc::input().set("type","submit").set("value","Crate TMB/MPC test") << std::endl ;
+      *out << cgicc::form() << std::endl ;
+      //
+      *out << cgicc::fieldset();
       //
       *out << cgicc::fieldset();
       *out << std::endl;
@@ -595,13 +603,6 @@ public:
 	//
 	}
 	//
-	std::string TmbMPCTest =
-	  toolbox::toString("/%s/TmbMPCTest",getApplicationDescriptor()->getURN().c_str());
-	*out << cgicc::form().set("method","GET").set("action",TmbMPCTest) << std::endl ;
-	*out << cgicc::input().set("type","submit").set("value","Crate TMB/MPC test") << std::endl ;
-	*out << cgicc::form() << std::endl ;
-	//
-	*out << cgicc::fieldset();
 	//
       }
       //
@@ -1078,9 +1079,11 @@ public:
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::pre();
-    *out << "ALCT rx Phase = " << MyTest[tmb].GetALCTrxPhase() << std::endl;
+    *out << "ALCT rx Phase = " << MyTest[tmb].GetALCTrxPhaseTest() <<  " (" << MyTest[tmb].GetALCTrxPhase() 
+	 << ") " << std::endl;
     //
-    *out << "ALCT tx Phase = " << MyTest[tmb].GetALCTtxPhase() << std::endl;
+    *out << "ALCT tx Phase = " << MyTest[tmb].GetALCTtxPhaseTest() <<  " (" << MyTest[tmb].GetALCTtxPhase()
+	 << ") " << std::endl;
     *out << cgicc::pre();
     //
     std::string CFEBTiming =
@@ -1096,7 +1099,9 @@ public:
     //
     *out << cgicc::pre();
     for(int i=0;i<5;i++) *out << "CFEB " << i << " rx Phase = " << 
-			   MyTest[tmb].GetCFEBrxPhase(i) << std::endl;
+			   MyTest[tmb].GetCFEBrxPhaseTest(i) << " ("  << 
+			   MyTest[tmb].GetCFEBrxPhase(i)     << ") " <<
+			   std::endl;
     *out << cgicc::pre();
     //
     alct = thisTMB->alctController();
@@ -1207,15 +1212,14 @@ public:
     *out << cgicc::textarea().set("name","CrateTestOutput")
       .set("WRAP","OFF")
       .set("rows","20").set("cols","60");
-    *out << CrateTestsOutput.str() << endl ;
-    CrateTestsOutput.str("");
+    *out << CrateTestsOutput[tmb].str() << endl ;
     *out << cgicc::textarea();
     *out << cgicc::form() << std::endl ;
     //
   }
   //
-    void EmuCrateHyperDAQ::TMBStartTrigger(xgi::Input * in, xgi::Output * out ) 
-      throw (xgi::exception::Exception)
+  void EmuCrateHyperDAQ::TMBStartTrigger(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
   {
     //
     cgicc::Cgicc cgi(in);
@@ -1244,9 +1248,7 @@ public:
     //
     thisTMB = tmbVector[tmb];
     //
-    thisTMB->RedirectOutput(&CrateTestsOutput);
     thisTMB->StartTTC();
-    thisTMB->RedirectOutput(&std::cout);
     //
     this->CrateTests(in,out);
     //
@@ -1332,8 +1334,9 @@ public:
     //MyTest.SetTMB(thisTMB);
     //MyTest.SetCCB(thisCCB);
     //
-    int RXphase, TXphase;
+    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
     MyTest[tmb].ALCTTiming();
+    MyTest[tmb].RedirectOutput(&std::cout);
     //
     this->CrateTests(in,out);
     //
@@ -1424,7 +1427,6 @@ public:
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetCCB(thisCCB);
     //
-    thisTMB->RedirectOutput(&CrateTestsOutput);
     MyTest[tmb].CFEBTiming();
     //
     this->CrateTests(in,out);
@@ -1775,6 +1777,17 @@ public:
     //
     cgicc::Cgicc cgi(in);
     //
+    int dmbNumber = -1;
+    //
+    cgicc::form_iterator name2 = cgi.getElement("DMBNumber");
+    int registerValue = -1;
+    if(name2 != cgi.getElements().end()) {
+      dmbNumber = cgi["DMBNumber"]->getIntegerValue();
+      //
+    }
+    //
+    std::cout << "Loading DMBNumber " <<dmbNumber << std::endl ;
+    //
     cgicc::form_iterator name = cgi.getElement("dmb");
     //
     int dmb;
@@ -1795,9 +1808,14 @@ public:
       char *out;
       //
       vector<CFEB> thisCFEBs = thisDMB->cfebs();
-      for (int i=0; i<thisCFEBs.size(); i++) {
-	thisDMB->febpromuser(thisCFEBs[i]);
-	thisDMB->epromload(thisCFEBs[i].promDevice(),"cfeb_v4_r2.svf",1,out);  // load mprom
+      if (dmbNumber == -1 ) {
+	for (int i=0; i<thisCFEBs.size(); i++) {
+	  thisDMB->febpromuser(thisCFEBs[i]);
+	  thisDMB->epromload(thisCFEBs[i].promDevice(),"cfeb_v4_r2.svf",1,out);  // load mprom
+	}
+      } else {
+	thisDMB->febpromuser(thisCFEBs[dmbNumber]);
+	thisDMB->epromload(thisCFEBs[dmbNumber].promDevice(),"cfeb_v4_r2.svf",1,out);  // load mprom
       }
       //
     }
@@ -3606,8 +3624,11 @@ public:
     std::string CFEBLoadFirmware =
       toolbox::toString("/%s/CFEBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
     //
-    *out << cgicc::form().set("method","GET").set("action",DMBLoadFirmware)
+    *out << cgicc::form().set("method","GET").set("action",CFEBLoadFirmware)
 	 << std::endl ;
+    *out << "CFEB to download (0-4), (-1 == all) : ";
+    *out << cgicc::input().set("type","text").set("value","-1")
+      .set("name","DMBNumber") << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","CFEB Load Firmware") << std::endl ;
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");

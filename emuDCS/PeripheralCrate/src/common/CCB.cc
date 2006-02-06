@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.23 2006/02/02 15:34:23 mey Exp $
+// $Id: CCB.cc,v 2.24 2006/02/06 14:06:55 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.24  2006/02/06 14:06:55  mey
+// Fixed stream
+//
 // Revision 2.23  2006/02/02 15:34:23  mey
 // Update
 //
@@ -279,7 +282,7 @@ void CCB::reset_bckpln()
 //
 void CCB::GenerateAlctAdbASync(){
   //
-  std::cout << "CCB: GenerateAlctAdbPulseASync" << std::endl;
+  (*MyOutput_) << "CCB: GenerateAlctAdbPulseASync" << std::endl;
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x01;
@@ -287,7 +290,6 @@ void CCB::GenerateAlctAdbASync(){
     do_vme(VME_WRITE, 0x40, sndbuf,rcvbuf,NOW);
   }
   else{
-    if (mDebug) std::cout << "Writing " << std::endl;
     //do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
     sndbuf[0]=0x00;
     sndbuf[1]=0x00;
@@ -688,7 +690,7 @@ int CCB::ReadRegister(int reg){
   //
   int value = ((rcvbuf[0]&0xff)<<8)|(rcvbuf[1]&0xff);
   //
-  printf(" CCB.reg=%x %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
+  //printf(" CCB.reg=%x %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
   //
   return value;
   //

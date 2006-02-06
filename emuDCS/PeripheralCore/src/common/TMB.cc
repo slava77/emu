@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.43 2006/02/02 14:27:32 mey Exp $
+// $Id: TMB.cc,v 2.44 2006/02/06 14:06:55 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.44  2006/02/06 14:06:55  mey
+// Fixed stream
+//
 // Revision 2.43  2006/02/02 14:27:32  mey
 // Update
 //
@@ -575,44 +578,44 @@ void TMB::FireMPCInjector(int nEvents){
 
 void TMB::DecodeALCT(){
    //
-   (*MyOutput_) << std::endl;
-   printf("DecodeALCT.Read %x \n",alct_alct0_adr);
-   tmb_vme(VME_READ,alct_alct0_adr,sndbuf,rcvbuf,NOW);
-   printf("DecodeALCT.Done %x \n",alct_alct0_adr);
-   //
-   int data = (((rcvbuf[0]&0xff)<<8) | rcvbuf[1]&0xff);
-   //
-   alct0_valid_     = data&0x1;
-   alct0_quality_   = (data>>1)&0x3 ;
-   alct0_amu_       = (data>>3)&0x1 ;
-   alct0_first_key_ = (data>>4)&0x7f;
-   alct0_first_bxn_ = (data>>11)&0x3 ;
-   //
-   (*MyOutput_) << " alct0      = " << data << std::endl;
-   (*MyOutput_) << " valid      = " << alct0_valid_ << std::endl;
-   (*MyOutput_) << " quality    = " << alct0_quality_ << std::endl ;
-   (*MyOutput_) << " amu        = " << alct0_amu_ << std::endl ;
-   (*MyOutput_) << " first_key  = " << alct0_first_key_ << std::endl;
-   (*MyOutput_) << " first_bxn  = " << alct0_first_bxn_ << std::endl;
-   (*MyOutput_) << std::endl;
-   //
-   tmb_vme(VME_READ,alct_alct1_adr,sndbuf,rcvbuf,NOW);
-   //
-   data = (((rcvbuf[0]&0xff)<<8) | rcvbuf[1]&0xff);
-   //
-   alct1_valid_     = data&0x1;
-   alct1_quality_   = (data>>1)&0x3 ;
-   alct1_amu_       = (data>>3)&0x1 ;
-   alct1_second_key_ = (data>>4)&0x7f;
-   alct1_second_bxn_ = (data>>11)&0x3 ;
-   //
-   (*MyOutput_) << " alct1      = " << data << std::endl ;
-   (*MyOutput_) << " valid      = " << alct1_valid_ << std::endl ;
-   (*MyOutput_) << " quality    = " << alct1_quality_ << std::endl ;
-   (*MyOutput_) << " amu        = " << alct1_amu_ << std::endl ;
-   (*MyOutput_) << " second_key = " << alct1_second_key_ << std::endl ;
-   (*MyOutput_) << " second_bxn = " << alct1_second_bxn_ << std::endl ;
-   //
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "DecodeALCT.Read " << hex << alct_alct0_adr << std::endl ;
+  tmb_vme(VME_READ,alct_alct0_adr,sndbuf,rcvbuf,NOW);
+  (*MyOutput_) << "DecodeALCT.Done " << hex << alct_alct0_adr << std::endl ;
+  //
+  int data = (((rcvbuf[0]&0xff)<<8) | rcvbuf[1]&0xff);
+  //
+  alct0_valid_     = data&0x1;
+  alct0_quality_   = (data>>1)&0x3 ;
+  alct0_amu_       = (data>>3)&0x1 ;
+  alct0_first_key_ = (data>>4)&0x7f;
+  alct0_first_bxn_ = (data>>11)&0x3 ;
+  //
+  (*MyOutput_) << " alct0      = " << data << std::endl;
+  (*MyOutput_) << " valid      = " << alct0_valid_ << std::endl;
+  (*MyOutput_) << " quality    = " << alct0_quality_ << std::endl ;
+  (*MyOutput_) << " amu        = " << alct0_amu_ << std::endl ;
+  (*MyOutput_) << " first_key  = " << alct0_first_key_ << std::endl;
+  (*MyOutput_) << " first_bxn  = " << alct0_first_bxn_ << std::endl;
+  (*MyOutput_) << std::endl;
+  //
+  tmb_vme(VME_READ,alct_alct1_adr,sndbuf,rcvbuf,NOW);
+  //
+  data = (((rcvbuf[0]&0xff)<<8) | rcvbuf[1]&0xff);
+  //
+  alct1_valid_     = data&0x1;
+  alct1_quality_   = (data>>1)&0x3 ;
+  alct1_amu_       = (data>>3)&0x1 ;
+  alct1_second_key_ = (data>>4)&0x7f;
+  alct1_second_bxn_ = (data>>11)&0x3 ;
+  //
+  (*MyOutput_) << " alct1      = " << data << std::endl ;
+  (*MyOutput_) << " valid      = " << alct1_valid_ << std::endl ;
+  (*MyOutput_) << " quality    = " << alct1_quality_ << std::endl ;
+  (*MyOutput_) << " amu        = " << alct1_amu_ << std::endl ;
+  (*MyOutput_) << " second_key = " << alct1_second_key_ << std::endl ;
+  (*MyOutput_) << " second_bxn = " << alct1_second_bxn_ << std::endl ;
+  //
 }
 //
 void TMB::DecodeCLCT(){
