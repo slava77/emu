@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.29 2006/01/30 09:29:53 mey Exp $
+// $Id: DAQMB.cc,v 2.30 2006/02/06 14:06:55 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.30  2006/02/06 14:06:55  mey
+// Fixed stream
+//
 // Revision 2.29  2006/01/30 09:29:53  mey
 // Update
 //
@@ -910,6 +913,7 @@ unsigned long int DAQMB::febpromuser(const CFEB & cfeb)
   cmd[0]=PROM_BYPASS;
   sndbuf[0]=0;
   devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
+  usleep(100);
   return ibrd;
 }
 
@@ -950,6 +954,7 @@ unsigned long int  DAQMB::febfpgauser(const CFEB & cfeb)
   cmd[0]=VTX_BYPASS;
   sndbuf[0]=0;
   devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
+  usleep(100);
   return ibrd;
 }
 

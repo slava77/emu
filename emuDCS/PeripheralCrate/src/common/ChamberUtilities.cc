@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.6 2006/01/18 19:38:16 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.7 2006/02/06 14:06:55 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.7  2006/02/06 14:06:55  mey
+// Fixed stream
+//
 // Revision 1.6  2006/01/18 19:38:16  mey
 // Fixed bugs
 //
@@ -127,6 +130,8 @@ ChamberUtilities::ChamberUtilities(){
     }
   for (int i=0;i<112;i++) ALCTWireScan_[i] = -1;
   Npulses_ = 2;
+  //
+  MyOutput_ = &std::cout ;
   //
   //cout << "ChamberUtilities" << endl ;
   //
@@ -270,6 +275,14 @@ void ChamberUtilities::Automatic(){
   //
   //
   //printf("ALCT_L1a_delay = %d \n",ALCT_L1a_delay_pulse);
+  //
+  InitStartSystem();
+  //
+  CFEBChamberScan();
+  //
+  InitStartSystem();
+  //
+  ALCTChamberScan();
   //
   /*
   ////////////////////////////////////////////////////////////////// Do TMB L1a timing
@@ -693,7 +706,7 @@ void ChamberUtilities::ALCTTiming(){
 	int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6/4);
 	int keyWG2 = (alct->GetWGNumber())/6-keyWG;
 	int ChamberSection = alct->GetWGNumber()/6;
-	printf("Injecting at %d \n",keyWG);
+	(*MyOutput_) << "Injecting at " << dec << keyWG << std::endl;
 	//
 	for (int i=0; i< 22; i++) HCmask[i] = 0;
 	//
@@ -742,7 +755,7 @@ void ChamberUtilities::ALCTTiming(){
 	//
 	//}
 	//
-	printf("\n");
+	(*MyOutput_) << std::endl ;
 	//
 	alct->alct_write_hcmask(HCmask);
 	alct->alct_read_hcmask(HCmask);
@@ -767,20 +780,20 @@ void ChamberUtilities::ALCTTiming(){
 	//
 	//while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
 	//
-	cout << "Setting k=" << k << " j="<<j << endl;
+	(*MyOutput_) << "Setting k=" << k << " j="<<j << endl;
 	thisTMB->tmb_clk_delays(k,5) ;
 	thisTMB->tmb_clk_delays(j,6) ;	 
 	thisTMB->ResetALCTRAMAddress();
 	PulseTestStrips();
-	printf("Decode ALCT\n");
+	(*MyOutput_) << "Decode ALCT" << std::endl ;
 	thisTMB->DecodeALCT();
-	printf("After Decode ALCT\n");
+	(*MyOutput_) << "After Decode ALCT" << std::endl;
 	//
 	selected[k][j]  = 0;
 	selected2[k][j] = 0;
 	selected3[k][j] = 0;
 	//
-	printf("Check data \n");
+	(*MyOutput_) << "Check data" << std::endl ;
 	if ( (thisTMB->GetAlct0Quality()   != alct0_quality) ||
 	     (thisTMB->GetAlct1Quality()   != alct1_quality) ||
 	     (thisTMB->GetAlct0FirstBxn()  != alct0_bxn) ||
@@ -828,91 +841,91 @@ void ChamberUtilities::ALCTTiming(){
       }
    }
    //
-   cout << "WordCount  (tx vs. rx)   tx ---->" << endl;
+   (*MyOutput_) << "WordCount  (tx vs. rx)   tx ---->" << endl;
    //
    for (j=0;j<maxTimeBins;j++){
-     cout << " rx =" << j << ": ";
+     (*MyOutput_) << " rx =" << j << ": ";
       for (k=0;k<maxTimeBins;k++) {
-	if ( ALCTWordCount[j][k] >0 ) printf("%c[01;35m", '\033');	 
-	printf("%02x ",ALCTWordCount[j][k]&0xffff);
-	printf("%c[01;0m", '\033');	 
+	//if ( ALCTWordCount[j][k] >0 ) printf("%c[01;35m", '\033');	 
+	(*MyOutput_) << hex << setw(2) << (ALCTWordCount[j][k]&0xffff) << " ";
+	//printf("%c[01;0m", '\033');	 
       }
-      cout << endl;
+      (*MyOutput_) << endl;
    }
    //
-   cout << endl;
-   cout << "ConfDone (tx vs. rx)   tx ----> " << endl;
+   (*MyOutput_) << endl;
+   (*MyOutput_) << "ConfDone (tx vs. rx)   tx ----> " << endl;
    //
    for (j=0;j<maxTimeBins;j++){
-     cout << " rx =" << j << ": ";
-      for (k=0;k<maxTimeBins;k++) {
-	if ( ALCTConfDone[j][k] >0 ) printf("%c[01;35m", '\033');	 
-	printf("%02x ",ALCTConfDone[j][k]&0xffff);
-	printf("%c[01;0m", '\033');	 
-      }
-      cout << endl;
+     (*MyOutput_)  << " rx =" << j << ": ";
+     for (k=0;k<maxTimeBins;k++) {
+	//if ( ALCTConfDone[j][k] >0 ) printf("%c[01;35m", '\033');	 
+       (*MyOutput_) << hex << setw(2) << (ALCTConfDone[j][k]&0xffff) << " " ;
+       //printf("%c[01;0m", '\033');	 
+     }
+     (*MyOutput_) << endl;
    }
    //
-   cout << endl;
+   (*MyOutput_) << endl;
    //
-   cout << endl;
+   (*MyOutput_) << endl;
    //
-   cout << "Selected 1 (tx vs. rx)   tx ----> " << endl;
+   (*MyOutput_) << "Selected 1 (tx vs. rx)   tx ----> " << endl;
    for (j=0;j<maxTimeBins;j++){
-     cout << " rx =" << j << ": ";
+     (*MyOutput_) << " rx =" << j << ": ";
       for (k=0;k<maxTimeBins;k++) {
-	 cout << selected[j][k] << " " ;
+	 (*MyOutput_) << selected[j][k] << " " ;
       }
-      cout << endl;
+      (*MyOutput_) << endl;
    }
    //
-   cout << endl;
+   (*MyOutput_) << endl;
    //
-   cout << "Selected 2 (tx vs. rx)   tx ----> " << endl;
-   //
-   for (j=0;j<maxTimeBins;j++){
-     cout << " rx =" << j << ": ";
-      for (k=0;k<maxTimeBins;k++) {
-	 cout << selected2[j][k] << " " ;
-      }
-      cout << endl;
-   }
-   //
-   cout << endl;
-   //
-   cout << "Selected 3 (tx vs. rx)   tx ----> " << endl;
+   (*MyOutput_) << "Selected 2 (tx vs. rx)   tx ----> " << endl;
    //
    for (j=0;j<maxTimeBins;j++){
-     cout << " rx =" << j << ": ";
-      for (k=0;k<maxTimeBins;k++) {
-	 cout << selected3[j][k] << " " ;
-      }
-      cout << endl;
+     (*MyOutput_) << " rx =" << j << ": ";
+     for (k=0;k<maxTimeBins;k++) {
+       (*MyOutput_) << selected2[j][k] << " " ;
+     }
+     (*MyOutput_) << endl;
    }
    //
-   cout << endl;
+   (*MyOutput_) << endl;
    //
-   cout << "Result (tx vs. rx)   tx ----> " << endl;
-   cout << "           00 01 02 03 04 05 06 07 08 09 10 11 12" << endl;
-   cout << "           == == == == == == == == == == == == ==" << endl; 
+   (*MyOutput_) << "Selected 3 (tx vs. rx)   tx ----> " << endl;
+   //
+   for (j=0;j<maxTimeBins;j++){
+     (*MyOutput_) << " rx =" << j << ": ";
+     for (k=0;k<maxTimeBins;k++) {
+       (*MyOutput_) << selected3[j][k] << " " ;
+     }
+     (*MyOutput_) << endl;
+   }
+   //
+   (*MyOutput_) << endl;
+   //
+   (*MyOutput_) << "Result (tx vs. rx)   tx ----> " << endl;
+   (*MyOutput_) << "        00 01 02 03 04 05 06 07 08 09 10 11 12" << endl;
+   (*MyOutput_) << "        == == == == == == == == == == == == ==" << endl; 
    //
    // Result
    //
   
    for (j=0;j<maxTimeBins;j++){
-     printf(" rx = %02d : ",j);   
+     (*MyOutput_) << " rx =" << dec << setw(2) << j << " " ; 
      for (k=0;k<maxTimeBins;k++) {
        if ( ALCTConfDone[j][k] > 0 ) {
-	 if ( ALCTWordCount[j][k] == 0x0c || ALCTWordCount[j][k] == 0x18 ) printf("%c[01;35m", '\033');	 
-	 printf("%02x ",(ALCTWordCount[j][k]&0xffff));
-	 printf("%c[01;0m", '\033');
+	 //if ( ALCTWordCount[j][k] == 0x0c || ALCTWordCount[j][k] == 0x18 ) printf("%c[01;35m", '\033');	 
+	 (*MyOutput_) << hex << setw(2) << (ALCTWordCount[j][k]&0xffff) << " ";
+	 //printf("%c[01;0m", '\033');
 	 rxtx_timing[j][k]=ALCTWordCount[j][k];
        } else {
-	 printf("%02x ",0x00 );
+	 (*MyOutput_) << hex << setw(2) << 0x00 << " ";
 	 rxtx_timing[j][k]=0;
        }
      }
-     cout << endl;
+     (*MyOutput_) << endl;
    }
    //
    ALCT_phase_analysis(rxtx_timing);
@@ -2092,13 +2105,13 @@ void ChamberUtilities::ALCT_phase_analysis (int rxtx_timing[13][13]) {
       }
     }
   }
-  cout << endl;
-  cout << "the best values of nmin and ntot are:  " << endl;
-  cout << "nmin =  " << nmin_best << "  and ntot =  " << ntot_best << endl;
-  cout << endl;
-  cout << "best element is: " << endl;
-  cout << "rx =  " << best_element_row << "    tx =  " << best_element_col << endl;
-  cout << endl;
+  (*MyOutput_) << endl;
+  (*MyOutput_) << "the best values of nmin and ntot are:  " << endl;
+  (*MyOutput_) << "nmin =  " << nmin_best << "  and ntot =  " << ntot_best << endl;
+  (*MyOutput_) << endl;
+  (*MyOutput_) << "best element is: " << endl;
+  (*MyOutput_) << "rx =  " << best_element_row << "    tx =  " << best_element_col << endl;
+  (*MyOutput_) << endl;
   //
   ALCTrxPhase_ = best_element_row ;
   ALCTtxPhase_ = best_element_col ;

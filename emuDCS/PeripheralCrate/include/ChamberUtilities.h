@@ -19,6 +19,15 @@ public:
   ChamberUtilities();
   virtual ~ChamberUtilities();
   //
+  inline void RedirectOutput(std::ostream * Output) { 
+    //
+    thisTMB->RedirectOutput(Output);
+    thisDMB->RedirectOutput(Output);
+    thisCCB_->RedirectOutput(Output);
+    MyOutput_ = Output ;
+    //
+  }
+  //
   void CCBStartTrigger();
   void CFEBTiming();
   void PulseCFEB(int HalfStrip = -1, int CLCTInputs = 0x1f );
@@ -62,6 +71,10 @@ public:
   inline int  GetALCTtxPhase() { return thisTMB->GetALCTtxPhase(); }
   inline int  GetCFEBrxPhase(int CFEB) {return thisTMB->GetCFEBrxPhase(CFEB); }
   //
+  inline int  GetALCTrxPhaseTest()         { return ALCTrxPhase_ ; }
+  inline int  GetALCTtxPhaseTest()         { return ALCTtxPhase_ ; }
+  inline int  GetCFEBrxPhaseTest(int CFEB) { return CFEBrxPhase_[CFEB] ; }
+  //
   inline int  GetCFEBStripScan(int CFEB, int Strip){ return CFEBStripScan_[CFEB][Strip]; }
   inline int  GetALCTWireScan(int Wire){ return ALCTWireScan_[Wire]; }
   inline int  GetTMBL1aTiming(){ return TMBL1aTiming_; }
@@ -70,6 +83,8 @@ public:
   inline int  GetALCTL1aDelay(){ return ALCTL1aDelay_; }
   //
 private:
+  //
+  std::ostream * MyOutput_ ;
   //
   EmuController emuController;
   //
