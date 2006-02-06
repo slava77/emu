@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.39 2006/02/06 10:30:32 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.40 2006/02/06 10:31:32 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1788,6 +1788,8 @@ public:
     //
     cout << "CFEBLoadFirmware" << endl;
     //
+    thisCCB->hardReset();
+    //
     if (thisDMB) {
       //
       char *out;
@@ -1799,6 +1801,8 @@ public:
       }
       //
     }
+    //
+    thisCCB->hardReset();
     //
     this->DMBUtils(in,out);
     //
