@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTClasses.h,v 2.1 2005/06/06 15:17:17 geurts Exp $
+// $Id: ALCTClasses.h,v 2.2 2006/02/07 22:49:25 mey Exp $
 // $Log: ALCTClasses.h,v $
+// Revision 2.2  2006/02/07 22:49:25  mey
+// UPdate
+//
 // Revision 2.1  2005/06/06 15:17:17  geurts
 // TMB/ALCT timing updates (Martin vd Mey)
 //
@@ -95,6 +98,7 @@ struct chamtypefield
 #define MXBITSTREAM    1000       /* Same as Jonathan's Fortran version */
 #define NUM_POSTBITS    3
 #define MAX_NUM_CHIPS     2
+
 #define MAX_NUM_VALUES   50
 
 // end from alct_params.h
