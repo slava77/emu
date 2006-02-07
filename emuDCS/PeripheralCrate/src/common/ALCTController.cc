@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.16 2005/12/16 17:49:27 mey Exp $
+// $Id: ALCTController.cc,v 2.17 2006/02/07 22:49:25 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.17  2006/02/07 22:49:25  mey
+// UPdate
+//
 // Revision 2.16  2005/12/16 17:49:27  mey
 // Update
 //
@@ -737,9 +740,7 @@ int ALCTController::WriteIR(unsigned IR)
        sndbuf[i] = (IR >> 8*i)  & 0x00ff;
      }
    tmb_->start(ALCT_FAST_VME_JTAG_CHANNEL);
-   //
    tmb_->scan(INSTR_REG, sndbuf, ALCT_V_IRsize, rcvbuf , 0);
-   //
    alct_end();
    return 0;
   }

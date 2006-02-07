@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.6 2005/12/10 11:24:05 mey Exp $
+// $Id: ALCTController.h,v 2.7 2006/02/07 22:49:25 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.7  2006/02/07 22:49:25  mey
+// UPdate
+//
 // Revision 2.6  2005/12/10 11:24:05  mey
 // Update
 //
@@ -37,25 +40,24 @@ class AnodeChannel;
 
 class ALCTController {
 public:
-    friend class TMBParser;
- 
-    enum CHAMBER { ME11, ME12, ME13, ME21, ME22, ME31, ME41 };
   
-    ALCTController(TMB * tmb, std::string chamberType);
+  friend class TMBParser;
+  
+  enum CHAMBER { ME11, ME12, ME13, ME21, ME22, ME31, ME41 };
+  
+  ALCTController(TMB * tmb, std::string chamberType);
+  
+  enum ALCTSTATUS {
+    EALCT_SUCCESS   = 0, // Successful completion
+    EALCT_FILEOPEN  = 1, // Filename could not be opened
+    EALCT_FILEDEFECT= 2, // Configuration file inconsistency
+    EALCT_PORT      = 3, // JTAG Device problem
+    EALCT_CHAMBER   = 4, // Bad chamber_type_ number
+    EALCT_ARG       = 5, // Argument Out Of Range
+    EALCT_TESTFAIL  = 6, // Test failure
+    EALCT_FIFONOTMT = 7, // FIFO never empties
+  };
     
-    enum ALCTSTATUS {
-          EALCT_SUCCESS   = 0, // Successful completion
-          EALCT_FILEOPEN  = 1, // Filename could not be opened
-          EALCT_FILEDEFECT= 2, // Configuration file inconsistency
-          EALCT_PORT      = 3, // JTAG Device problem
-          EALCT_CHAMBER   = 4, // Bad chamber_type_ number
-          EALCT_ARG       = 5, // Argument Out Of Range
-          EALCT_TESTFAIL  = 6, // Test failure
-          EALCT_FIFONOTMT = 7, // FIFO never empties
-    };
-  
-  
-  
   enum LINKTYPE {LPT, VME};
   typedef enum LINKTYPE ALCTLINK;
   
@@ -566,19 +568,22 @@ public:
   
   
   private:
-    TMB * tmb_;
-    LINKTYPE alct_link_type;
-    CHAMBER chamber_type_;
-    std::string alctPatternFile;
-    std::string alctHotChannelFile;
-    
-    unsigned nAFEBs_;
-    unsigned n_lct_chips_;
-    // defines registry sizes: 288, 384, or 672.  Should be set
-    // when chamber type is set.
-    unsigned * alct_rsz;
+  //
+
+  //
+  TMB * tmb_;
+  LINKTYPE alct_link_type;
+  CHAMBER chamber_type_;
+  std::string alctPatternFile;
+  std::string alctHotChannelFile;
   
-    int fd; // slot
+  unsigned nAFEBs_;
+  unsigned n_lct_chips_;
+  // defines registry sizes: 288, 384, or 672.  Should be set
+  // when chamber type is set.
+  unsigned * alct_rsz;
+  
+  int fd; // slot
   unsigned ALCT_FAST_JTAG_CHANNEL;
   enum {ALCT_FAST_LPT_JTAG_CHANNEL=4, ALCT_FAST_VME_JTAG_CHANNEL=8};
   
