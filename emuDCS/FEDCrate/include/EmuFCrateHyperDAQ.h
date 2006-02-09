@@ -1,5 +1,4 @@
 
-
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
  * Copyright (C) 2000-2004, CERN.			                 *
@@ -589,8 +588,9 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     unsigned long int tidcode[8]={0x2124a093,0x31266093,0x31266093,0x05036093,0x05036093,0x05036093,0x05036093,0x05036093};
     unsigned long int tuscode[8]={0xcf028a02,0xdf017a03,0xdf017a03,0xd0017a03,0xd1017a03,0xb0016a01,0xc028dd03,0xc128dd03};
     //
+    printf(" entered DDUFirmware \n");
     cgicc::Cgicc cgi(in);
-    //    printf(" initialize env \n");
+    printf(" initialize env \n");
     //
     const CgiEnvironment& env = cgi.getEnvironment();
     //
@@ -699,7 +699,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
       std::string dduloadfirmware =
 	toolbox::toString("/%s/DDULoadFirmware",getApplicationDescriptor()->getURN().c_str());
       //
-      *out << cgicc::form().set("method","GET")
+      *out << cgicc::form().set("method","POST")
         .set("enctype","multipart/form-data")
 	.set("action",dduloadfirmware) << std::endl;;	
       //.set("enctype","multipart/form-data")
@@ -753,30 +753,31 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	
 	const_file_iterator file;
 	file = cgi.getFile("DDULoadSVF");
-	
+	//string XMLname = (*file).getFilename();
+	// cout <<"SVF FILE: " << XMLname  << endl ;
+
 
 	//
 	cout << "GetFiles" << endl ;
 	//
 
 	if(file != cgi.getFiles().end()) {
-          string XMLname = (*file).getFilename();
-          cout <<"SVF FILE: " << XMLname  << endl ;
-        
  	  ofstream TextFile ;
 	  TextFile.open("MySVFFile.svf");
 	  (*file).writeToStream(TextFile);
 	  TextFile.close();
 	} 
-
-	// FILE *dwnfp;
-        // dwnfp    = fopen("MySVFFile.svf","r");	
-        // while (fgets(buf,256,dwnfp) != NULL)printf("%s",buf);
-        // fclose(dwnfp);
+	char buf[400];
+	  FILE *dwnfp;
+          dwnfp    = fopen("MySVFFile.svf","r");	
+          while (fgets(buf,256,dwnfp) != NULL)printf("%s",buf);
+          fclose(dwnfp);
+          printf(" I am done so prom wont be called %d \n",prom);  
+          
           char *cbrdnum;
           cbrdnum=(char*)malloc(5);
           cbrdnum[0]=0x00;cbrdnum[1]=0x00;cbrdnum[2]=0x00;cbrdnum[3]=0x00;
-	  // if(prom==3)thisDDU->epromload("INPROM0",INPROM0,"MySVFFile.svf",1,cbrdnum);
+	  if(prom==3)thisDDU->epromload("INPROM0",INPROM0,"MySVFFile.svf",1,cbrdnum);
           if(prom==4)thisDDU->epromload("INPROM1",INPROM1,"MySVFFile.svf",1,cbrdnum);
           if(prom==5)thisDDU->epromload("RESET",RESET,"MySVFFile.svf",1,cbrdnum);
           if(prom==6||prom==7){
@@ -785,8 +786,10 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
           } 
           if(prom==6)thisDDU->epromload("DDUPROM0",DDUPROM0,"MySVFFile.svf",1,cbrdnum);
           if(prom==7)thisDDU->epromload("DDUPROM1",DDUPROM1,"MySVFFile.svf",1,cbrdnum);
-
-    	this->DDUFirmware(in,out);
+          free(cbrdnum);
+          in=NULL;
+	  this->DDUFirmware(in,out);
+          // this->Default(in,out);
 
  }
  
@@ -2128,10 +2131,9 @@ HTMLClasses.h:  ATOMIC_ELEMENT  (bgsound,        "bgsound");
 for Mozilla sound the following line must be added to 
 HTMLClasses.h:  ATOMIC_ELEMENT  (embed,        "embed"); 
 one must then recompile the libcgicc.so library 
-    *out << bgsound().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/siren.wav") << std::endl;  */
-
+    *out << bgsound().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/siren.wav") << std::endl;  
     *out << embed().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/siren.wav").set("hidden","true").set("autostart","true").set("loop","true") << std::endl;
-
+    */
     *out << br() << std::endl;
    *out << cgicc::span().set("style","font-size: 25pt;color:red;background-color:yellow;");
     long int xtimer=timer;
@@ -2231,8 +2233,8 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
   
     //
     for(int i=0;i<2;i++){ 
-      *out << cgicc::table().set("border","0").set("rules","none").set("frame","void"); 
-      *out << cgicc::tr();
+      //*out << cgicc::table().set("border","0").set("rules","none").set("frame","void"); 
+      // *out << cgicc::tr();
       printf(" LOOP: %d \n",i);
     *out << cgicc::span().set("style","color:black");
     if(thisDCC->slot()>=21){
@@ -2278,7 +2280,7 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
       std::string dccloadfirmware =
 	toolbox::toString("/%s/DCCLoadFirmware",getApplicationDescriptor()->getURN().c_str());
       //
-      *out << cgicc::form().set("method","GET")
+      *out << cgicc::form().set("method","POST")
         .set("enctype","multipart/form-data")
 	.set("action",dccloadfirmware) << std::endl;;	
       //.set("enctype","multipart/form-data")
@@ -2310,8 +2312,10 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
     }else{ 
      *out << std::endl; 
     }
-         *out << cgicc::table() << std::endl; 
-          *out << cgicc::tr() << std::endl;
+    // *out << cgicc::tr() << std::endl;
+    // *out << cgicc::table() << std::endl; 
+
+    *out << br() << std::endl;
     }
     *out << cgicc::legend() << std::endl;
     *out << cgicc::fieldset()<< std::endl;
@@ -2341,6 +2345,7 @@ void EmuFCrateHyperDAQ::DCCLoadFirmware(xgi::Input * in, xgi::Output * out )
       cout << "PROM " << prom << endl;
     } 
     //
+    printf(" Entered DCCLoadFirmware prom %d \n",prom);
     thisDCC = dccVector[dcc]; 
     //
 	//
@@ -2365,17 +2370,18 @@ void EmuFCrateHyperDAQ::DCCLoadFirmware(xgi::Input * in, xgi::Output * out )
 	  (*file).writeToStream(TextFile);
 	  TextFile.close();
 	} 
-
-	// FILE *dwnfp;
-        // dwnfp    = fopen("MySVFFile.svf","r");	
-        // while (fgets(buf,256,dwnfp) != NULL)printf("%s",buf);
-        // fclose(dwnfp);
+	/*  char buf[400];
+	FILE *dwnfp;
+        dwnfp    = fopen("MySVFFile.svf","r");	
+        while (fgets(buf,256,dwnfp) != NULL)printf("%s",buf);
+        fclose(dwnfp); */
           char *cbrdnum;
+          printf(" DCC epromload %d \n",prom);
           cbrdnum=(char*)malloc(5);
           cbrdnum[0]=0x00;cbrdnum[1]=0x00;cbrdnum[2]=0x00;cbrdnum[3]=0x00;
-	  if(prom==1)thisDCC->epromload("MPROM",MPROM,"MySVFFile.svf",1,cbrdnum);
+	  if(prom==1)thisDCC->epromload("MPROM",RESET,"MySVFFile.svf",1,cbrdnum);
           if(prom==2)thisDCC->epromload("INPROM",INPROM,"MySVFFile.svf",1,cbrdnum);
-
+          in=NULL;
           this->DCCFirmware(in,out);
   }
   catch (const std::exception & e )
