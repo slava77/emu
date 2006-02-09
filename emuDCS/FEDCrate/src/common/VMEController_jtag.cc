@@ -750,9 +750,9 @@ void VMEController::sdly()
 char tmp[1]={0x00};
 unsigned short int tmp2[1]={0x0000};
 unsigned short int *ptr;
- delay_type=2;
- tmp2[0]=50;
- vme_controller(6,ptr,tmp2,tmp);
+// delay_type=2;
+// tmp2[0]=50;
+//  vme_controller(6,ptr,tmp2,tmp);
 }
 
 
@@ -764,9 +764,10 @@ unsigned short int tmp2[1]={0x0000};
 unsigned short int *ptr;
 // printf(" outbuf[0-1] %02x %02x \n",outbuf[0]&0xff,outbuf[1]&0xff);
  delay_type=3; 
-       tmp2[0]=(outbuf[1]<<8)|outbuf[0];
+       tmp2[0]=((outbuf[1]<<8)&0xff00) + (outbuf[0]&0xff);
        tmp2[0]=(unsigned short int)(tmp2[0]/16.0);
        tmp2[0]=tmp2[0]+1;
+       //       printf(" tmp2 %d \n",tmp2[0]);
        vme_controller(6,ptr,tmp2,tmp);
 }
 

@@ -1,7 +1,7 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 1.3 2006/01/27 16:04:50 gilmore Exp $
+// $Id: VMEController.cc,v 1.4 2006/02/09 19:52:52 gilmore Exp $
 // $Log: VMEController.cc,v $
-// Revision 1.3  2006/01/27 16:04:50  gilmore
+// Revision 1.4  2006/02/09 19:52:52  gilmore
 // *** empty log message ***
 //
 // Revision 1.25  2004/07/22 18:52:38  tfcvs
@@ -181,7 +181,7 @@ long unsigned int pttr;
    ird=ird+1;
    rcv[ird]=rdata[1];
    ird=ird+1;
- }else if(irdwr==1){
+ }else if(irdwr==1){ 
    CAEN_write(pttr,data);
  }else if(irdwr==2){
    CAEN_read(pttr,(unsigned short int *)rdata);
@@ -193,8 +193,9 @@ long unsigned int pttr;
  }else if(irdwr==3){
    CAEN_write(pttr,data);
  }else if(irdwr==6){
-   if(delay_type==2)packet_delay=(long int)((*data)*DELAY2);
-   if(delay_type==3)packet_delay=(long int)((*data)*DELAY3);
+   if(delay_type==2)packet_delay=((*data)*DELAY2);
+   if(delay_type==3)packet_delay=((*data)*DELAY3);
+   // printf(" packet_delay %d %ld \n",*data,packet_delay);
    udelay(packet_delay);
  }
 
