@@ -611,6 +611,9 @@ bool TMBTester::testDSN(){
 }
 
 bool TMBTester::testDSN(int BoardType){
+  //BoardType = 0 = TMB
+  //          = 1 = Mezzanine
+  //          = 2 = RAT
 
   std::bitset<64> dsn;
 
@@ -854,316 +857,31 @@ bool TMBTester::testRATuserCodes(){
 /////////////////////////////////////////
 
 
-
 ///////////////////////////////////////////////
-//  The following belong in RAT.cc
+//  The following belong in TMB.cc
 ///////////////////////////////////////////////
-void TMBTester::RatTmbDelayScan(){
-  //** Find optimal rpc_clock delay = phasing between RAT board and TMB **
+void TMBTester::ExtClctTrigFromCCBonly() {
 
-  int i,bit;
-  int write_data, read_data;
-  int ddd_delay;
-  int rpc_bad[16] = {};
+  (*MyOutput_) << "Enable CLCT external trigger from TTC (through CCB)" << std::endl;
 
-  //Put RAT into correct mode [0]=sync-mode -> sends a fixed data pattern to TMB to be analyzed
-  //                          [1]=posneg    -> inserts 12.5ns (1/2-cycle) delay in RPC data path
-  //                                           to improve syncing to rising edge of TMB clock
-  //                          [2]=loop_tmb
-  //                          [3]=free_tx0
-  write_data = 0x0003;
-  tmb_->WriteRegister(vme_ratctrl_adr,write_data);
+  int data = tmb_->ReadRegister(seq_trig_en_adr);
 
-  //here are the arrays of bits we expect from sync mode:
-  const int nbits = 19;
-  int rpc_rdata_expect[4][nbits];
-  bit_to_array(0x2aaaa,rpc_rdata_expect[0],nbits);
-  bit_to_array(0x55555,rpc_rdata_expect[1],nbits);
-  bit_to_array(0x55555,rpc_rdata_expect[2],nbits);
-  bit_to_array(0x2aaaa,rpc_rdata_expect[3],nbits);
+  (*MyOutput_) << "TMB Sequencer trigger source before = " << std::hex << data << std::endl;
 
-  //  for (i=0; i<=3; i++) {
-  //    (*MyOutput_) << "rpc_rdata_expect[" << i << "] = ";
-  //    for (bit=0; bit<=(nbits-1); bit++) {
-  //      (*MyOutput_) << rpc_rdata_expect[i][bit] << " ";
-  //    }
-  //    (*MyOutput_) << std::endl;
-  //  }
+  data = 0x0020;                                 //allow CLCT external triggers from CCB
 
-  //enable RAT input into TMB...
-  read_data = tmb_->ReadRegister(rpc_inj_adr);
-  write_data = read_data | 0x0001;
-  tmb_->WriteRegister(rpc_inj_adr,write_data);
+  tmb_->WriteRegister(seq_trig_en_adr,data);
 
-  //Initial delay values:
-  rat_->read_rattmb_delay();
-  int rpc_delay_default = rat_->GetRatTmbDelay();
+  data = tmb_->ReadRegister(seq_trig_en_adr);
 
-  int irat;
-
-  int rpc_rbxn[4],rpc_rdata[4],rpcData[4];
-  int rpc_data_array[4][nbits];
-
-  int pass;
-  int count_bad;
-
-
-  (*MyOutput_) << "Performing RAT-TMB delay scan..." << std::endl;;
-
-  //step through ddd_delay
-  for (pass=0; pass<=1000; pass++) { //collect statistics
-
-    if ( (pass % 100) == 0 ) 
-      (*MyOutput_) << "Pass = " << std::dec << pass << std::endl;
-
-    for (ddd_delay=0; ddd_delay<=15; ddd_delay++) {
-      count_bad=0;
-
-      // ** write the delay to the RPC **
-      rat_->set_rattmb_delay(ddd_delay);
-
-      // ** read RAT 80MHz demux registers**
-      for (irat=0; irat<=3; irat++) {
-
-	read_data = tmb_->ReadRegister(rpc_cfg_adr);
-	read_data &= 0xf9ff;                        //zero out old RAT bank
-	write_data = read_data | (irat << 9);       //select RAT RAM bank
-	tmb_->WriteRegister(rpc_cfg_adr,write_data);
-
-	read_data = tmb_->ReadRegister(rpc_cfg_adr);
-	rpc_rbxn[irat] = (read_data >> 11) & 0x0007;  //RPC MSBS for sync mode
-
-	rpc_rdata[irat] = tmb_->ReadRegister(rpc_rdata_adr) & 0xffff; //RPC RAM read data for sync mode (LSBS)
-
-	rpcData[irat] = rpc_rdata[irat] | (rpc_rbxn[irat] << 16);  //pack MS and LSBs into single integer
-	
-	bit_to_array(rpcData[irat],rpc_data_array[irat],nbits);
-	
-	for (i=0; i<=(nbits-1); i++) {
-	  if (rpc_data_array[irat][i] != rpc_rdata_expect[irat][i]) count_bad += 1;
-	}
-      }
-
-      //      for (i=0; i<=3; i++) {
-      //	(*MyOutput_) << "rpc_data_array[" << i << "] = ";
-      //	for (bit=0; bit<=(nbits-1); bit++) {
-      //	  (*MyOutput_) << rpc_data_array[i][bit] << " ";
-      //	}
-      //	(*MyOutput_) << std::endl;
-      //      }
-
-      rpc_bad[ddd_delay] += count_bad;
-
-    }
-  }
-
-  // Put RPC delay back to initial values:
-  (*MyOutput_) << "Putting delay values back to " << rpc_delay_default << std::endl;
-  tmb_->tmb_clk_delays(rpc_delay_default,8);
-
-  // ** Take TMB out of sync mode **
-  write_data = 0x0000;
-  tmb_->WriteRegister(vme_ratctrl_adr,write_data);
-
-  int rpc_delay;
-
-  // ** print out results **
-  (*MyOutput_) << "rpc_delay   bad data count" << std::endl;
-  (*MyOutput_) << "---------   --------------" << std::endl;
-  for (rpc_delay = 0; rpc_delay <=15; rpc_delay++) {
-    (*MyOutput_) << "    " << std::hex << rpc_delay 
-		 << "           " << std::hex << rpc_bad[rpc_delay] 
-	      <<std::endl;
-  }
+  (*MyOutput_) << "TMB Sequencer trigger source after = " << std::hex << data << std::endl;
 
   return;
 }
-
-void TMBTester::RpcRatDelayScan(int rpc) {
-
-  rat_->read_rpcrat_delay();                  //read initial delay values
-  int initial_delay = rat_->GetRpcRatDelay();  //read values into local variable
-
-  int dummy;
-  int delay;
-
-  int parity_err_ctr[16];
-
-  for (delay = 0; delay<16; delay++) {                             //steps of 2ns
-    (*MyOutput_) << "set delay = " << delay 
-		 << " for RPC " << rpc
-		 << std::endl;
-    rat_->set_rpcrat_delay(rpc,delay);
-    rat_->read_rpcrat_delay();
-    dummy = sleep(2);                                              //collect statistics
-    rat_->read_rpc_parity_error_counter();
-    parity_err_ctr[delay] = rat_->GetRpcParityErrorCounter(rpc);
-    rat_->reset_parity_error_counter();
-
-    //rat_->read_rpc_data();
-  }
-
-  (*MyOutput_) << "Putting inital delay values back..." << std::endl;
-  int value;
-
-  for (int putback=0; dummy<4; dummy++) {
-    value = (initial_delay >> 4*putback) & 0xf;    //parse delay values to reload
-    rat_->set_rpcrat_delay(putback,value);
-  }
-  rat_->read_rpc_data();
-
-  // ** print out results **
-  (*MyOutput_) << "rpc_delay   bad data count" << std::endl;
-  (*MyOutput_) << "---------   --------------" << std::endl;
-  for (delay = 0; delay <=15; delay++) {
-    (*MyOutput_) << "    " << std::hex << delay 
-		 << "           " << std::hex << parity_err_ctr[delay] 
-		 <<std::endl;
-  }
-
-  return;
-}
-///////////////////////////////////////////////
-//  END  The following belong in RAT.cc
-///////////////////////////////////////////////
-
-
-/////////////////////////////////////////
-// Functions needed to implement tests:
-/////////////////////////////////////////
-bool TMBTester::compareValues(std::string TypeOfTest, 
-                              int testval, 
-                              int compareval,
-			      bool equal) {
-
-// test if "testval" is equivalent to the expected value: "compareval"
-// return depends on if you wanted them to be "equal"
-
-  (*MyOutput_) << "compareValues:  " << TypeOfTest << " -> ";
-  if (equal) {
-    if (testval == compareval) {
-      (*MyOutput_) << "PASS = " << std::hex << compareval << std::endl;
-      return true;
-    } else {
-      (*MyOutput_) << "FAIL!" << std::endl;
-      (*MyOutput_) << TypeOfTest 
-		<< " expected value = " << std::hex << compareval
-		<< ", returned value = " << std:: hex << testval
-		<< std::endl;
-      return false;
-    }
-  } else {
-    if (testval != compareval) {
-      (*MyOutput_) << "PASS -> " << std::hex << testval 
-		<< " not equal to " <<std::hex << compareval 
-		<< std::endl;
-      return true;
-    } else {
-      (*MyOutput_) << "FAIL!" << std::endl;
-      (*MyOutput_) << TypeOfTest 
-		<< " expected = returned = " << std::hex << testval
-		<< std::endl;
-      return false;
-    }
-  }
-
-}
-
-bool TMBTester::compareValues(std::string TypeOfTest, 
-                              float testval, 
-                              float compareval,
-			      float tolerance) {
-
-// test if "testval" is within "tolerance" of "compareval"...
-
-  (*MyOutput_) << "compareValues tolerance:  " << TypeOfTest << " -> ";
-
-  float err = (testval - compareval)/compareval;
-
-  float fractolerance = tolerance*compareval;
-
-  if (fabs(err)>tolerance) {
-      (*MyOutput_) << "FAIL!" << std::endl;
-      (*MyOutput_) << TypeOfTest 
-		<< " expected = " << compareval 
-		<< ", returned = " << testval
-		<< " outside of tolerance "<< fractolerance
-		<< std::endl;
-      return false;
-  } else {
-      (*MyOutput_) << "PASS!" << std::endl;
-      (*MyOutput_) << TypeOfTest 
-		<< " value = " << testval
-		<< " within "<< tolerance
-		<< " of " << compareval
-		<< std::endl;
-      return true;
-  }
-
-}
-
-void TMBTester::messageOK(std::string TypeOfTest,
-			  bool testbool){
-  (*MyOutput_) << TypeOfTest;
-  if (testbool) {
-    (*MyOutput_) << " -> PASS" << std::endl;
-  } else {
-    (*MyOutput_) << " -> FAIL <-" << std::endl;
-  }
-  return;
-}
-
-int TMBTester::dowCRC(std::bitset<64> DSN) {
-
-  // "Calculate CRC x**8 + x**5 + X**4 +1
-  //  for 7-byte Dallas Semi i-button data"
-  //    header to dow_crc.for, written by Jonathan Kubik
-
-  int ibit;
-
-  int sr[8];
-  //initialize CRC shift register
-  for (ibit=0; ibit<=7; ibit++) {
-    sr[ibit]=0;
-  }
-
-  int x8=0;
-  int bit;
-
-  //loop over 56 data bits, LSB first:
-  for (ibit=0; ibit<=55; ibit++) {
-    x8 = DSN[ibit]^sr[7];
-    sr[7] = sr[6];
-    sr[6] = sr[5];
-    sr[5] = sr[4]^x8;
-    sr[4] = sr[3]^x8;
-    sr[3] = sr[2];
-    sr[2] = sr[1];
-    sr[1] = sr[0];
-    sr[0] = x8;
-  }
-
-  //pack shift register into a byte
-  int crc=0;
-  for (ibit=0; ibit<=7; ibit++) {
-    crc |= sr[ibit] << (7-ibit);
-  }
-
-  return crc;
-}
-
-void TMBTester::bit_to_array(int data, int * array, const int size) {
-  int i;
-  for (i=0; i<=(size-1); i++) {
-    array[i] = (data >> i) & 0x00000001;
-  }
-
-  return;
-}
-
 
 float TMBTester::tmb_temp(int cmd,int module) {
   // returns TMB temperature values in Farenheit...
+  // CAUTION... NOT YET DEBUGGED....
 
   //	Generates SMB serial clock and data streams to TMB LM84 chip
   //
@@ -1363,6 +1081,540 @@ float TMBTester::tmb_temp(int cmd,int module) {
 
   return temperature;
 }
+///////////////////////////////////////////////
+//  END: The following belong in TMB.cc
+///////////////////////////////////////////////
+
+
+///////////////////////////////////////////////
+//  The following belong in CrateTiming.cpp
+///////////////////////////////////////////////
+void TMBTester::RatTmbDelayScan(){
+  //** Find optimal rpc_clock delay = phasing between RAT board and TMB **
+
+  int i,bit;
+  int write_data, read_data;
+  int ddd_delay;
+  int rpc_bad[16] = {};
+
+  //Put RAT into correct mode [0]=sync-mode -> sends a fixed data pattern to TMB to be analyzed
+  //                          [1]=posneg    -> inserts 12.5ns (1/2-cycle) delay in RPC data path
+  //                                           to improve syncing to rising edge of TMB clock
+  //                          [2]=loop_tmb
+  //                          [3]=free_tx0
+  write_data = 0x0003;
+  tmb_->WriteRegister(vme_ratctrl_adr,write_data);
+
+  //here are the arrays of bits we expect from sync mode:
+  const int nbits = 19;
+  int rpc_rdata_expect[4][nbits];
+  bit_to_array(0x2aaaa,rpc_rdata_expect[0],nbits);
+  bit_to_array(0x55555,rpc_rdata_expect[1],nbits);
+  bit_to_array(0x55555,rpc_rdata_expect[2],nbits);
+  bit_to_array(0x2aaaa,rpc_rdata_expect[3],nbits);
+
+  //  for (i=0; i<=3; i++) {
+  //    (*MyOutput_) << "rpc_rdata_expect[" << i << "] = ";
+  //    for (bit=0; bit<=(nbits-1); bit++) {
+  //      (*MyOutput_) << rpc_rdata_expect[i][bit] << " ";
+  //    }
+  //    (*MyOutput_) << std::endl;
+  //  }
+
+  //enable RAT input into TMB...
+  read_data = tmb_->ReadRegister(rpc_inj_adr);
+  write_data = read_data | 0x0001;
+  tmb_->WriteRegister(rpc_inj_adr,write_data);
+
+  //Initial delay values:
+  rat_->read_rattmb_delay();
+  int rpc_delay_default = rat_->GetRatTmbDelay();
+
+  int irat;
+
+  int rpc_rbxn[4],rpc_rdata[4],rpcData[4];
+  int rpc_data_array[4][nbits];
+
+  int pass;
+  int count_bad;
+
+
+  (*MyOutput_) << "Performing RAT-TMB delay scan..." << std::endl;;
+
+  //step through ddd_delay
+  for (pass=0; pass<=1000; pass++) { //collect statistics
+
+    if ( (pass % 100) == 0 ) 
+      (*MyOutput_) << "Pass = " << std::dec << pass << std::endl;
+
+    for (ddd_delay=0; ddd_delay<16; ddd_delay++) {
+      count_bad=0;
+
+      // ** write the delay to the RPC **
+      rat_->set_rattmb_delay(ddd_delay);
+
+      // ** read RAT 80MHz demux registers**
+      for (irat=0; irat<=3; irat++) {
+
+	read_data = tmb_->ReadRegister(rpc_cfg_adr);
+	read_data &= 0xf9ff;                        //zero out old RAT bank
+	write_data = read_data | (irat << 9);       //select RAT RAM bank
+	tmb_->WriteRegister(rpc_cfg_adr,write_data);
+
+	read_data = tmb_->ReadRegister(rpc_cfg_adr);
+	rpc_rbxn[irat] = (read_data >> 11) & 0x0007;  //RPC MSBS for sync mode
+
+	rpc_rdata[irat] = tmb_->ReadRegister(rpc_rdata_adr) & 0xffff; //RPC RAM read data for sync mode (LSBS)
+
+	rpcData[irat] = rpc_rdata[irat] | (rpc_rbxn[irat] << 16);  //pack MS and LSBs into single integer
+	
+	bit_to_array(rpcData[irat],rpc_data_array[irat],nbits);
+	
+	for (i=0; i<=(nbits-1); i++) {
+	  if (rpc_data_array[irat][i] != rpc_rdata_expect[irat][i]) count_bad += 1;
+	}
+      }
+
+      //      for (i=0; i<=3; i++) {
+      //	(*MyOutput_) << "rpc_data_array[" << i << "] = ";
+      //	for (bit=0; bit<=(nbits-1); bit++) {
+      //	  (*MyOutput_) << rpc_data_array[i][bit] << " ";
+      //	}
+      //	(*MyOutput_) << std::endl;
+      //      }
+
+      rpc_bad[ddd_delay] += count_bad;
+
+    }
+  }
+
+  // Put RPC delay back to initial values:
+  (*MyOutput_) << "Putting delay values back to " << rpc_delay_default << std::endl;
+  tmb_->tmb_clk_delays(rpc_delay_default,8);
+
+  // ** Take TMB out of sync mode **
+  write_data = 0x0002;
+  tmb_->WriteRegister(vme_ratctrl_adr,write_data);
+
+  int rpc_delay;
+
+  // ** print out results **
+  (*MyOutput_) << "**************************" << std::endl;
+  (*MyOutput_) << "** TMB-RAT delay results *" << std::endl;
+  (*MyOutput_) << "**************************" << std::endl;
+  (*MyOutput_) << "rpc_delay   bad data count" << std::endl;
+  (*MyOutput_) << "---------   --------------" << std::endl;
+  for (rpc_delay = 0; rpc_delay <13; rpc_delay++) {
+    (*MyOutput_) << "    " << std::hex << rpc_delay 
+		 << "           " << std::hex << rpc_bad[rpc_delay] 
+	      <<std::endl;
+  }
+
+  window_analysis(rpc_bad,13);
+
+  return;
+}
+
+void TMBTester::RpcRatDelayScan(int rpc) {
+  //** Find optimal rpc_rat_clock delay = phasing between RPC[rpc] and RAT **
+
+  //Put RAT into correct mode [0]=sync-mode -> sends a fixed data pattern to TMB to be analyzed
+  //                          [1]=posneg    -> inserts 12.5ns (1/2-cycle) delay in RPC data path
+  //                                           to improve syncing to rising edge of TMB clock
+  //                          [2]=loop_tmb
+  //                          [3]=free_tx0
+  int write_data = 0x0002;
+  tmb_->WriteRegister(vme_ratctrl_adr,write_data);
+
+  rat_->read_rpcrat_delay();                   //read initial delay values
+  int initial_delay = rat_->GetRpcRatDelay();  //get values into local variable
+
+  int delay;
+
+  int parity_err_ctr[16] = {};
+
+  for (delay = 0; delay<=12; delay++) {                             //steps of 2ns
+    (*MyOutput_) << "set delay = " << delay 
+		 << " for RPC " << rpc
+		 << std::endl;
+    rat_->set_rpcrat_delay(rpc,delay);
+    //    rat_->read_rpcrat_delay();
+
+    rat_->reset_parity_error_counter();
+    if (delay>0)
+      (*MyOutput_) << "parity error for delay " << delay-1 
+		   << " = " << parity_err_ctr[delay-1]
+		   << std::endl;
+    
+    ::sleep(1);                                                    //accumulate statistics
+
+    rat_->read_rpc_parity_error_counter();
+    parity_err_ctr[delay] = rat_->GetRpcParityErrorCounter(rpc);
+  }
+
+  (*MyOutput_) << "Putting inital delay values back..." << std::endl;
+  int value;
+
+  for (int putback=0; putback<4; putback++) {
+    value = (initial_delay >> 4*putback) & 0xf;    //parse delay values to reload
+    rat_->set_rpcrat_delay(putback,value);
+  }
+
+  //fake it:
+  /*  
+  parity_err_ctr[0]  = 0;
+  parity_err_ctr[1]  = 0;
+  parity_err_ctr[2]  = 0;
+  parity_err_ctr[3]  = 0;
+  parity_err_ctr[4]  = 0;
+  parity_err_ctr[5]  = 0;
+  parity_err_ctr[6]  = 0;
+  parity_err_ctr[7]  = 0x4;
+  parity_err_ctr[8]  = 0x414;
+  parity_err_ctr[9]  = 0;
+  parity_err_ctr[10] = 0xffff;
+  parity_err_ctr[11] = 0xffff;
+  parity_err_ctr[12] = 0x0;
+
+  parity_err_ctr[0]  = 0;
+  parity_err_ctr[1]  = 0;
+  parity_err_ctr[2]  = 0;
+  parity_err_ctr[3]  = 0;
+  parity_err_ctr[4]  = 0;
+  parity_err_ctr[5]  = 0;
+  parity_err_ctr[6]  = 0x5;
+  parity_err_ctr[7]  = 0;
+  parity_err_ctr[8]  = 0xffff;
+  parity_err_ctr[9]  = 0;
+  parity_err_ctr[10] = 0xffff;
+  parity_err_ctr[11] = 0xffff;
+  parity_err_ctr[12] = 0xc;
+  */
+  // ** print out results **
+  (*MyOutput_) << "********************************" << std::endl;
+  (*MyOutput_) << "**** RAT-RPC" << rpc << " delay results ****" << std::endl;
+  (*MyOutput_) << "********************************" << std::endl;
+  (*MyOutput_) << " delay    parity counter errors" << std::endl;
+  (*MyOutput_) << "-------   ---------------------" << std::endl;
+
+  for (delay = 0; delay <=12; delay++) {
+    (*MyOutput_) << "   " << std::hex << delay;
+    (*MyOutput_) << "               " << std::hex << parity_err_ctr[delay] 
+		 << std::endl;
+  }
+
+  window_analysis(parity_err_ctr,13);
+
+  return;
+}
+
+void TMBTester::window_analysis(int * data, const int length) {
+  // ** Determine the best value for the delay setting 
+  //    based on vector of data "data", of length "length"
+
+  // ASSUME:  Data wraps around (such as for phase)
+
+  // ASSUME:  Channel is GOOD if it has fewer counts than:
+  const int count_threshold = 10;
+
+  // ASSUME:  We want to exclude windows of width less than the following value:
+  const int width_threshold = 2;
+
+  (*MyOutput_) << "-----------------------------------------------" << std::endl;
+  (*MyOutput_) << "For Window Analysis:" << std::endl;
+  (*MyOutput_) << "  -> Counts > " << std::dec << count_threshold 
+	       << " considered bad" << std::endl;
+
+  // copy data for wrap-around:
+  int twotimeslength = 2 * length;
+  int copy[twotimeslength];
+  int begin_channel = -1;           
+  for (int i=0; i<twotimeslength; i++) {
+    copy[i] = data[i % length];
+    if (copy[i]>count_threshold && begin_channel<0)   //begin window scan on the first channel of "bad data"
+      begin_channel = i;
+  }
+  if (begin_channel < 0) {
+    (*MyOutput_) << std::endl;
+    (*MyOutput_) << "Scan is all 0's:  Something is wrong... "<< std::endl;
+    return;
+  }
+
+  int end_channel = begin_channel+length;
+
+  // Find the windows of "good data", beginning with the first channel of "bad data"
+  int window_counter = -1;
+  int window_width[length];
+  int window_start[length];
+  int window_end[length];
+  for (int i=0; i<length; i++) {
+    window_width[i] = 0;
+    window_start[i] = 0;
+    window_end[i] = 0;
+  }
+  for (int delay=begin_channel; delay<end_channel; delay++) {
+    if (copy[delay] < count_threshold) {            //Here is a good channel...
+      if (copy[delay-1] >= count_threshold)          //and it is a start of a good window
+	window_start[++window_counter] = delay;
+      window_width[window_counter]++;
+    } 
+  }
+
+  if (window_counter < 0) {
+    (*MyOutput_) << std::endl;
+    (*MyOutput_) << "No windows with counts above count_threshold.  Something is wrong... "<< std::endl;
+    return;
+  }    
+
+  int counter;
+  for (counter=0; counter<=window_counter; counter++) {
+    window_end[counter] = window_start[counter]+window_width[counter] -1;
+    (*MyOutput_) << "Window = " << std::dec << counter;
+    (*MyOutput_) << " is " << std::dec << window_width[counter] << " channels wide, ";
+    (*MyOutput_) << " from " << std::dec << (window_start[counter] % 13)
+		 << " to " << std::dec << (window_end[counter] % 13) << std::endl;    
+  }
+
+  (*MyOutput_) << "  -> window must be at least " << std::dec << width_threshold 
+	       << " channels wide" << std::endl;
+
+  //Determine middle of window(s)
+  int channel;
+  float value;
+  float channel_ctr;
+  float denominator;
+  float average_channel[length];
+
+  for (counter=0; counter<=window_counter; counter++) {
+    if (window_width[counter] > width_threshold) {                      // exclude narrow width windows
+      channel_ctr=0.;
+      denominator=0.;
+      for (channel=window_start[counter]; channel<=window_end[counter]; channel++) {
+	// For average, use unary operation on bits in counter (since 0 = good)
+	value = (float) ~(copy[channel] | 0xffff0000);
+	channel_ctr += value * (float) channel;
+	denominator += value;
+      }
+      average_channel[counter] = channel_ctr / denominator;
+      (*MyOutput_) << "=> BEST DELAY VALUE (window " << std::dec << counter << ") = "
+		   <<  (int) (average_channel[counter]+0.5) % 13 << " <=" << std::endl;
+    }
+  }
+  (*MyOutput_) << "-----------------------------------------------" << std::endl;
+  return;
+}
+
+//////////////////////////////////////////////////
+//  END  The following belong in CrateTiming.cpp
+//////////////////////////////////////////////////
+
+
+void TMBTester::RpcComputeParity(int rpc) {
+
+  //routine to determine if the rpc_parity_ok_[] bits are correlated with the 
+  //number of 1's in the rpc[0:15]+bxn[0:2] data word....
+  //   CONCLUSION:  YES.                G. Rakness  7 Feb. 2006
+
+  //Put RAT into correct mode [0]=sync-mode -> sends a fixed data pattern to TMB to be analyzed
+  //                          [1]=posneg    -> inserts 12.5ns (1/2-cycle) delay in RPC data path
+  //                                           to improve syncing to rising edge of TMB clock
+  //                          [2]=loop_tmb
+  //                          [3]=free_tx0
+  int write_data = 0x0002;
+  tmb_->WriteRegister(vme_ratctrl_adr,write_data);
+
+  // find out if the parity error counter is using even or odd parity...
+  rat_->ReadRpcParity();
+  int parity_used = rat_->GetRpcParityUsed();   // = 1 if odd, 0 if even
+
+  int data,parity_ok;
+  int counter,bxn;
+  int evenodd;
+  int total_counts[8] = {};
+  int parity_match[8] = {};
+
+  for (int event=0;event<100;event++) {
+    // get data and parity_ok for this (random) RPC event:
+    rat_->read_rpc_data();
+    data = rat_->GetRpcData(rpc);
+    parity_ok = rat_->GetRpcParityOK(rpc);
+
+    // count number of 1's
+    counter = 0;
+    for (int bit=0;bit<19;bit++) {
+      counter += (data >> bit) & 0x1;
+    }
+	
+    bxn = (data >> 16) & 0x7;         //here is the bunch crossing associated with this event
+    total_counts[bxn]++;              //total number of events analyzed for this bunch crossing
+
+    evenodd = counter % 2;            //even (0) or odd (1) number of 1's
+
+    if (parity_used == 1) {            //odd parity
+      if (evenodd == parity_ok) {
+	parity_match[bxn]++;
+      } else {
+	(*MyOutput_) << "No parity match, data = " 
+		     << std::hex << data 
+		     << ", counter = " << counter
+		     << ", parity_ok = " << parity_ok
+		     << std::endl;
+	//	::sleep(1);
+      }
+    } else {                           //even parity
+      if (evenodd != parity_ok)
+	parity_match[bxn]++;
+    }
+
+  }
+  
+  (*MyOutput_) << "  bxn     total events   parity match" << std::endl;
+  (*MyOutput_) << "-------   ------------   ------------" << std::endl;
+  for (bxn=0;bxn<8;bxn++) {
+    (*MyOutput_) << "   " << std::dec << bxn << "           ";
+    (*MyOutput_) << std::dec << total_counts[bxn] << "             ";
+    (*MyOutput_) << std::dec << parity_match[bxn] << "        ";
+    (*MyOutput_) << std::endl;
+  }
+
+
+  return;
+}
+
+
+/////////////////////////////////////////
+// Functions needed to implement tests:
+/////////////////////////////////////////
+bool TMBTester::compareValues(std::string TypeOfTest, 
+                              int testval, 
+                              int compareval,
+			      bool equal) {
+
+// test if "testval" is equivalent to the expected value: "compareval"
+// return depends on if you wanted them to be "equal"
+
+  (*MyOutput_) << "compareValues:  " << TypeOfTest << " -> ";
+  if (equal) {
+    if (testval == compareval) {
+      (*MyOutput_) << "PASS = " << std::hex << compareval << std::endl;
+      return true;
+    } else {
+      (*MyOutput_) << "FAIL!" << std::endl;
+      (*MyOutput_) << TypeOfTest 
+		<< " expected value = " << std::hex << compareval
+		<< ", returned value = " << std:: hex << testval
+		<< std::endl;
+      return false;
+    }
+  } else {
+    if (testval != compareval) {
+      (*MyOutput_) << "PASS -> " << std::hex << testval 
+		<< " not equal to " <<std::hex << compareval 
+		<< std::endl;
+      return true;
+    } else {
+      (*MyOutput_) << "FAIL!" << std::endl;
+      (*MyOutput_) << TypeOfTest 
+		<< " expected = returned = " << std::hex << testval
+		<< std::endl;
+      return false;
+    }
+  }
+
+}
+
+bool TMBTester::compareValues(std::string TypeOfTest, 
+                              float testval, 
+                              float compareval,
+			      float tolerance) {
+
+// test if "testval" is within "tolerance" of "compareval"...
+
+  (*MyOutput_) << "compareValues tolerance:  " << TypeOfTest << " -> ";
+
+  float err = (testval - compareval)/compareval;
+
+  float fractolerance = tolerance*compareval;
+
+  if (fabs(err)>tolerance) {
+      (*MyOutput_) << "FAIL!" << std::endl;
+      (*MyOutput_) << TypeOfTest 
+		<< " expected = " << compareval 
+		<< ", returned = " << testval
+		<< " outside of tolerance "<< fractolerance
+		<< std::endl;
+      return false;
+  } else {
+      (*MyOutput_) << "PASS!" << std::endl;
+      (*MyOutput_) << TypeOfTest 
+		<< " value = " << testval
+		<< " within "<< tolerance
+		<< " of " << compareval
+		<< std::endl;
+      return true;
+  }
+
+}
+
+void TMBTester::messageOK(std::string TypeOfTest,
+			  bool testbool){
+  (*MyOutput_) << TypeOfTest;
+  if (testbool) {
+    (*MyOutput_) << " -> PASS" << std::endl;
+  } else {
+    (*MyOutput_) << " -> FAIL <-" << std::endl;
+  }
+  return;
+}
+
+int TMBTester::dowCRC(std::bitset<64> DSN) {
+
+  // "Calculate CRC x**8 + x**5 + X**4 +1
+  //  for 7-byte Dallas Semi i-button data"
+  //    header to dow_crc.for, written by Jonathan Kubik
+
+  int ibit;
+
+  int sr[8];
+  //initialize CRC shift register
+  for (ibit=0; ibit<=7; ibit++) {
+    sr[ibit]=0;
+  }
+
+  int x8=0;
+  int bit;
+
+  //loop over 56 data bits, LSB first:
+  for (ibit=0; ibit<=55; ibit++) {
+    x8 = DSN[ibit]^sr[7];
+    sr[7] = sr[6];
+    sr[6] = sr[5];
+    sr[5] = sr[4]^x8;
+    sr[4] = sr[3]^x8;
+    sr[3] = sr[2];
+    sr[2] = sr[1];
+    sr[1] = sr[0];
+    sr[0] = x8;
+  }
+
+  //pack shift register into a byte
+  int crc=0;
+  for (ibit=0; ibit<=7; ibit++) {
+    crc |= sr[ibit] << (7-ibit);
+  }
+
+  return crc;
+}
+
+void TMBTester::bit_to_array(int data, int * array, const int size) {
+  int i;
+  for (i=0; i<=(size-1); i++) {
+    array[i] = (data >> i) & 0x00000001;
+  }
+
+  return;
+}
+
 //////////////////////////////////////////////
 // END: Functions needed to implement tests..
 //////////////////////////////////////////////

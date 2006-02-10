@@ -71,11 +71,17 @@ class TMBTester {
   // Maybe should be in CrateTiming.cpp?
   void RatTmbDelayScan();
   void RpcRatDelayScan(int);
+  void window_analysis(int *,const int);
+  //
+  // Maybe should be in TMB.cc?
+  void ExtClctTrigFromCCBonly();
   //
   //Not yet working but should eventually be in TMB.cc...
   float tmb_temp(int, int);
   //
+  //Some useful routines....
   void bit_to_array(int,int *,const int);
+  void RpcComputeParity(int);
   //
  protected:
   //
