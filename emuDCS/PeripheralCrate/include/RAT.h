@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: RAT.h,v 1.2 2006/02/03 16:33:52 rakness Exp $
+// $Id: RAT.h,v 1.3 2006/02/10 16:40:44 rakness Exp $
 // $Log: RAT.h,v $
+// Revision 1.3  2006/02/10 16:40:44  rakness
+// RAT delay scans implemented
+//
 // Revision 1.2  2006/02/03 16:33:52  rakness
 // update with much more RAT functionality
 //
@@ -54,11 +57,15 @@ public:
 
   void read_rpc_data();
   inline int GetRpcData(int rpc) { return rpc_data_[rpc] ; }
-
-  void read_rpc_parity_ok();
   inline int GetRpcParityOK(int rpc) { return rpc_parity_ok_[rpc] ; }
 
+  void set_perr_ignore();
+  void unset_perr_ignore();
 
+  void use_parity_odd();
+  void use_parity_even();
+  void ReadRpcParity();
+  inline int GetRpcParityUsed() { return rpc_parity_used_ ; }
   //
 private:
   //
@@ -77,6 +84,7 @@ private:
   int rpc_parity_err_ctr_[2];
   int rpc_data_[2];
   int rpc_parity_ok_[2];
+  int rpc_parity_used_ ; 
 };
 
 #endif

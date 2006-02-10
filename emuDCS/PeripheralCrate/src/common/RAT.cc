@@ -29,24 +29,23 @@ void RAT::ReadRatIdCode(){
   //
   (*MyOutput_) << "RAT: Read RAT ID Codes" << std::endl;
   //
-  int read_data;
-  int opcode,chip_id;
-  //
   // First make sure the RPC FPGA is finished:
-  read_data = tmb_->ReadRegister(rpc_cfg_adr);
+  int read_data = tmb_->ReadRegister(rpc_cfg_adr);
   int rpc_done = (read_data >> 14) & 0x1;
   (*MyOutput_) << "RPC done = " << rpc_done << std::endl;
 
   //tmb_->set_jtag_address(TMB_ADR_BOOT);    
   tmb_->set_jtag_chain(RAT_CHAIN);         
 
-  // **Take the chosen chain's TAP to RTI (via the chosen address)**
+  // **Take the chosen chain's TAP to RTI**
   tmb_->jtag_anystate_to_rti();    
   //
   const int register_length = 32;  
   int data[register_length];
   //
   int write_data[MAX_FRAMES] = {};   //create fat 0 for writing to data registers
+  //
+  int opcode,chip_id;
   //
   for (chip_id=0; chip_id<=1; chip_id++){
     if (chip_id == 0) {
@@ -70,24 +69,23 @@ void RAT::ReadRatUserCode(){
   //
   (*MyOutput_) << "RAT: Read RAT User Codes" << std::endl;
   //
-  int read_data;
-  int opcode,chip_id;
-  //
   // First make sure the RPC FPGA is finished:
-  read_data = tmb_->ReadRegister(rpc_cfg_adr);
+  int read_data = tmb_->ReadRegister(rpc_cfg_adr);
   int rpc_done = (read_data >> 14) & 0x1;
   (*MyOutput_) << "RPC done = " << rpc_done << std::endl;
 
   //tmb_->set_jtag_address(TMB_ADR_BOOT);    
   tmb_->set_jtag_chain(RAT_CHAIN);         
 
-  // **Take the chosen chain's TAP to RTI (via the chosen address)**
+  // **Take the chosen chain's TAP to RTI**
   tmb_->jtag_anystate_to_rti();    
   //
   const int register_length = 32;  
   int data[register_length];
   //
   int write_data[MAX_FRAMES] = {};   //create fat 0 for writing to data registers
+  //
+  int opcode,chip_id;
   //
   for (chip_id=0; chip_id<=1; chip_id++){
     if (chip_id == 0) {
@@ -110,23 +108,19 @@ void RAT::ReadRatUser1(){
   //
   (*MyOutput_) << "RAT: Read RAT USER1 JTAG (status register)" << std::endl;
   //
-  int dummy;
-  int read_data;
-  int opcode,chip_id;
-  //
   // First make sure the RPC FPGA is finished:
-  read_data = tmb_->ReadRegister(rpc_cfg_adr);
+  int read_data = tmb_->ReadRegister(rpc_cfg_adr);
   int rpc_done = (read_data >> 14) & 0x1;
   (*MyOutput_) << "RPC done = " << rpc_done << std::endl;
 
   //tmb_->set_jtag_address(TMB_ADR_BOOT);    
   tmb_->set_jtag_chain(RAT_CHAIN);         
 
-  // **Take the chosen chain's TAP to RTI (via the chosen address)**
+  // **Take the chosen chain's TAP to RTI**
   tmb_->jtag_anystate_to_rti();    
   //
-  chip_id=0;
-  opcode = VTX2_USR1;
+  int chip_id=0;
+  int opcode = VTX2_USR1;
   int write_data[MAX_FRAMES] = {};   //create fat 0 for writing to data registers
   //
   tmb_->jtag_ir_dr(chip_id,opcode,write_data,rat_user1_length,user1_value_);
@@ -355,12 +349,9 @@ void RAT::decodeRATUser1() {
 //
 void RAT::ReadRatUser2(){
   (*MyOutput_) << "RAT: Read RAT USER2 JTAG (control register)" << std::endl;
-
-  int read_data;
-  int opcode,chip_id;
-
+  //
   // First make sure the RPC FPGA is finished:
-  read_data = tmb_->ReadRegister(rpc_cfg_adr);
+  int read_data = tmb_->ReadRegister(rpc_cfg_adr);
   int rpc_done = (read_data >> 14) & 0x1;
   (*MyOutput_) << "RPC done = " << rpc_done << std::endl;
 
@@ -372,8 +363,8 @@ void RAT::ReadRatUser2(){
 
   int write_zeros[MAX_FRAMES] = {};   //create fat 0 for writing to data registers
 
-  chip_id=0;
-  opcode = VTX2_USR2;
+  int chip_id = 0;
+  int opcode = VTX2_USR2;
 
   tmb_->jtag_ir_dr(chip_id,opcode,write_zeros,rat_user2_length,user2_value_);
 
@@ -389,42 +380,36 @@ void RAT::ReadRatUser2(){
   tmb_->jtag_ir_dr(chip_id,opcode,rsd,rat_user2_length,dummy);
 
   (*MyOutput_) << "RAT USER2 = " << std::hex << rat_user2 << std::endl;
-  decodeRATUser2();
+  //  decodeRATUser2();
 
   return;
 }
 
 void RAT::WriteRatUser2_(int * rsd){
   (*MyOutput_) << "RAT: Write RAT USER2 JTAG (control register)" << std::endl;
-
-  int read_data;
-  int opcode,chip_id;
-
+  //
   // First make sure the RPC FPGA is finished:
-  read_data = tmb_->ReadRegister(rpc_cfg_adr);
+  int read_data = tmb_->ReadRegister(rpc_cfg_adr);
   int rpc_done = (read_data >> 14) & 0x1;
   (*MyOutput_) << "RPC done = " << rpc_done << std::endl;
 
   tmb_->set_jtag_chain(RAT_CHAIN);         
 
-  // **Take the chosen chain's TAP to RTI (via the chosen address)**
+  // **Take the chosen chain's TAP to RTI**
   tmb_->SetStepMode(false);
   tmb_->jtag_anystate_to_rti();    
 
   int dummy[rat_user2_length];
-  chip_id=0;
-  opcode = VTX2_USR2;
+  int chip_id = 0;
+  int opcode = VTX2_USR2;
   tmb_->jtag_ir_dr(chip_id,opcode,rsd,rat_user2_length,dummy);
-
-  //  int rat_user2 = tmb_->bits_to_int(user2_value_,rat_user2_length,0);
-  //  (*MyOutput_) << "RAT USER2 = " << std::hex << rat_user2 << std::endl;
 
   return;
 }
 
 void RAT::decodeRATUser2() {
 
-  // ** parse the bit array from the USER1 data register
+  // ** parse the bit array from the USER2 data register
   // ** to print it out in a human readable form
   int i;
   int counter = 0;
@@ -471,13 +456,12 @@ void RAT::decodeRATUser2() {
 
 
 void RAT::set_rpcrat_delay(int rpc,int delay) {
-  int dummy;
 
   if ( rpc==0 || rpc==1 ) {
-    if (delay >= 0 && delay <=15 ) {
+    if (delay >= 0 && delay <=12 ) {
       (*MyOutput_) << "Set RPC " << rpc << " delay = " << std::hex << delay << std::endl;
     } else {
-      (*MyOutput_) << "only delay values 0-15 allowed" << std::endl;      
+      (*MyOutput_) << "only delay values 0-12 allowed" << std::endl;      
       return;
     }
   } else {
@@ -485,17 +469,18 @@ void RAT::set_rpcrat_delay(int rpc,int delay) {
     return;
   }
 
-  ReadRatUser2();                           // get the current user2_value_, since writing to USER2 is destructive
+  ReadRatUser2();               // get the current user2_value_
 
-  delay &= 0x000f;     //strip off extraneous bits
+  delay &= 0x000f;              //strip off extraneous bits
 
-  int lowbit=2+rpc*4;      //lowest position of delay bit to set
-  int highbit=lowbit+4;   //highest position of delay bit to set
+  int lowbit =  2 + rpc*4;      //lowest position of delay bit to set
+  int highbit = lowbit+4;       //highest position of delay bit to set
 
   int rsd[rat_user2_length];
   int bitcount = 0;
 
-  // set the new RAT USER2 bits.  The USER2 read is destructive, so the data have to be put back:
+  // ** Set the new RAT USER2 bits. ** 
+  // ** Bits which are unchanged need to be explicitly put back**
   for (int i=0; i<rat_user2_length; i++) {
     rsd[i]=user2_value_[i];
     if (i==2) 
@@ -504,53 +489,61 @@ void RAT::set_rpcrat_delay(int rpc,int delay) {
       rsd[i] = (delay >> bitcount++) & 0x1;  // new delay values
     }
   }
-
   WriteRatUser2_(rsd);
 
-  //Check that the DDD state machine went idle...
-  ReadRatUser1();
-  int ddd_busy = user1_value_[80] & 0x1;
+  // **Check that the DDD state machine went idle...**
+  int ddd_busy = 1;
+  while (ddd_busy != 0) {
+    ReadRatUser1();
+    ddd_busy = user1_value_[80] & 0x1;
 
-  if (ddd_busy != 0) {
-    (*MyOutput_) << "ERROR: State machine stuck busy" << std::endl;
-    dummy = sleep(10);
+    if (ddd_busy != 0) {
+      (*MyOutput_) << "ERROR: State machine stuck busy" << std::endl;
+      ::sleep(1);
+    }
   }
 
-
-  // Start DDD state machine...
+  // **Start DDD state machine...**
   rsd[2] = 0x1;                         //keep all the other tdi data the same...
   WriteRatUser2_(rsd);
 
-  //Check that the DDD state machine went busy...
-  ReadRatUser1();
-  ddd_busy = user1_value_[80] & 0x1;
+  // **Check that the DDD state machine went busy...**
+  ddd_busy = 0;
+  while (ddd_busy != 1) {
+    ReadRatUser1();
+    ddd_busy = user1_value_[80] & 0x1;
 
-  if (ddd_busy != 1) {
-    (*MyOutput_) << "ERROR: State machine did not go busy" << std::endl;
-    dummy = sleep(10);
+    if (ddd_busy != 1) {
+      (*MyOutput_) << "ERROR: State machine did not go busy" << std::endl;
+      ::sleep(1);
+    }
   }
 
-
-  // Unstart DDD state machine again...
+  // **Unstart DDD state machine again...**
   rsd[2] = 0x0;
   WriteRatUser2_(rsd);
 
-  //Check that the DDD state machine is not busy...
-  ReadRatUser1();
-  ddd_busy = user1_value_[80] & 0x1;
-  //Check that the data made it OK...
-  int ddd_verify = user1_value_[81] & 0x1;
+  // **Check that the DDD state machine is not busy...**
+  ddd_busy = 1;
+  while (ddd_busy != 0) {
+    ReadRatUser1();
+    ddd_busy = user1_value_[80] & 0x1;
 
-  if (ddd_busy != 0) {
-    (*MyOutput_) << "ERROR: State machine is busy" << std::endl;
-    dummy = sleep(10);
+    if (ddd_busy != 0) {
+      (*MyOutput_) << "ERROR: State machine is busy" << std::endl;
+      ::sleep(1);
+    }
   }
+
+  // **Check that the data made it OK...**
+  int ddd_verify = user1_value_[81] & 0x1;
 
   if (ddd_verify != 1) {
     (*MyOutput_) << "ERROR: DDD data not verified" << std::endl;
-    dummy = sleep(10);
+    ::sleep(1);
   }
 
+  // ** Print out the delay values for the RAT ddd chip: **
   read_rpcrat_delay();
 
   return;
@@ -574,10 +567,13 @@ void RAT::read_rpcrat_delay(){
   (*MyOutput_) << "rpc_rat_delay_ = " << std::hex << rpc_rat_delay_ << std::endl;
 
   int ddd_delay[4];
-  for (i=0; i<4; i++) {
+  for (i=0; i<4; i++) 
     ddd_delay[i] = (rpc_rat_delay_ >> i*4) & 0xf;
-    (*MyOutput_) << "DDD delay " << i << " = " << std::hex << ddd_delay[i] << std::endl;
-  }
+
+  (*MyOutput_) << "RPC0 = " << std::hex << ddd_delay[0] << std::endl;
+  (*MyOutput_) << "RPC1 = " << std::hex << ddd_delay[1] << std::endl;
+  (*MyOutput_) << "RPC2 = NOT USED" << std::endl;
+  (*MyOutput_) << "RPC3 = NOT USED" << std::endl;
 
   return;
 }
@@ -603,13 +599,111 @@ void RAT::read_rattmb_delay() {
 }
 
 
-void RAT::reset_parity_error_counter() {
-  (*MyOutput_) << "RAT: Reset RPC parity error counter" << std::endl;
+void RAT::set_perr_ignore(){
+  (*MyOutput_) 
+    << "RAT: Ignore All 1's and all 1's data words in parity error counter" 
+    << std::endl;
 
-  ReadRatUser2();                           // get the current user2_value_, since writing to USER2 is destructive
+  ReadRatUser2();                           // get the current user2_value_
 
   int rsd[rat_user2_length];
 
+  // ** Set the new RAT USER2 bits. ** 
+  // ** Bits which are unchanged need to be explicitly put back**
+  for (int i=0; i<rat_user2_length; i++) {
+    rsd[i]=user2_value_[i];
+    if (i==25) 
+      rsd[i] = 1;                            // set perr_ignore bit
+  }
+  WriteRatUser2_(rsd);
+
+  return;
+}
+
+void RAT::unset_perr_ignore(){
+  (*MyOutput_) 
+    << "RAT: DO NOT ignore all 1's and all 1's data words in parity error counter" 
+    << std::endl;
+
+  ReadRatUser2();                           // get the current user2_value_
+
+  int rsd[rat_user2_length];
+
+  // ** Set the new RAT USER2 bits. ** 
+  // ** Bits which are unchanged need to be explicitly put back**
+  for (int i=0; i<rat_user2_length; i++) {
+    rsd[i]=user2_value_[i];
+    if (i==25) 
+      rsd[i] = 0;                            // set perr_ignore bit
+  }
+  WriteRatUser2_(rsd);
+
+  return;
+}
+
+void RAT::use_parity_odd() {
+  (*MyOutput_) 
+    << "RAT: Use odd parity in parity error counter" 
+    << std::endl;
+
+  ReadRatUser2();                           // get the current user2_value_
+
+  int rsd[rat_user2_length];
+
+  // ** Set the new RAT USER2 bits. ** 
+  // ** Bits which are unchanged need to be explicitly put back**
+  for (int i=0; i<rat_user2_length; i++) {
+    rsd[i]=user2_value_[i];
+    if (i==24) 
+      rsd[i] = 1;                            // set parity odd bit
+  }
+  WriteRatUser2_(rsd);
+
+  return;
+}
+
+void RAT::use_parity_even() {
+  (*MyOutput_) 
+    << "RAT: Use even parity in parity error counter" 
+    << std::endl;
+
+  ReadRatUser2();                           // get the current user2_value_
+
+  int rsd[rat_user2_length];
+
+  // ** Set the new RAT USER2 bits. ** 
+  // ** Bits which are unchanged need to be explicitly put back**
+  for (int i=0; i<rat_user2_length; i++) {
+    rsd[i]=user2_value_[i];
+    if (i==24) 
+      rsd[i] = 0;                            // set parity even bit
+  }
+  WriteRatUser2_(rsd);
+
+  return;
+}
+
+void RAT::ReadRpcParity() {
+  (*MyOutput_) 
+    << "RAT: Determine parity used in parity error counter" 
+    << std::endl;
+
+  ReadRatUser2();                           // get the current user2_value_
+
+  rpc_parity_used_ = user2_value_[24]; 
+
+  return;
+}
+
+void RAT::reset_parity_error_counter() {
+  (*MyOutput_) << "RAT: Reset RPC parity error counter" << std::endl;
+
+  ReadRatUser2();                           // get the current user2_value_
+
+  int rsd[rat_user2_length];
+
+  // ** Set the new RAT USER2 bits. ** 
+  // ** Bits which are unchanged need to be explicitly put back**
   for (int i=0; i<rat_user2_length; i++) {
     rsd[i]=user2_value_[i];
     if (i==23) 
@@ -626,19 +720,17 @@ void RAT::reset_parity_error_counter() {
 void RAT::read_rpc_parity_error_counter() {
   (*MyOutput_) << "RAT: Read RPC parity error counter" << std::endl;
 
-  int rpc;
-
   ReadRatUser1();                                   //get the current USER1 value
 
   int counter_array[2][16];
-  for (rpc=0; rpc<2; rpc++) {
+  for (int rpc=0; rpc<2; rpc++) {
     for (int i=0;i<16;i++) {
       counter_array[rpc][i] = user1_value_[84+16*rpc+i];
       rpc_parity_err_ctr_[rpc] = tmb_->bits_to_int(counter_array[rpc],16,0);
-      (*MyOutput_) << "RPC " << rpc 
-		   << " Parity error counter = " << rpc_parity_err_ctr_[rpc] 
-		   << std::endl;  
     }
+    (*MyOutput_) << "RPC " << rpc 
+		 << " Parity error counter = " << rpc_parity_err_ctr_[rpc] 
+		 << std::endl;  
   }
 
   return;
@@ -647,37 +739,32 @@ void RAT::read_rpc_parity_error_counter() {
 void RAT::read_rpc_data() {
   (*MyOutput_) << "RAT: Read RPC data" << std::endl;
 
-  int rpc;
-
   ReadRatUser1();                                   //get the current USER1 value
 
+  int counter,bit;
   int data_array[2][19];
-  for (rpc=0; rpc<2; rpc++) {
-    for (int i=0;i<19;i++) {
-      data_array[rpc][i] = user1_value_[153+19*rpc+i];
+
+  for (int rpc=0; rpc<2; rpc++) {
+    for (bit=0;bit<19;bit++) {
+      data_array[rpc][bit] = user1_value_[153+19*rpc+bit];
       rpc_data_[rpc] = tmb_->bits_to_int(data_array[rpc],19,0);
+      rpc_parity_ok_[rpc] = user1_value_[82+rpc];
     }
+
+    //** Count how many ones are in the word... **
+    //** Whether the count is even or odd should be correlated with the rpc_parity_ok_[] bit **
+    counter = 0;
+    for (bit=0;bit<19;bit++) {
+      counter += (rpc_data_[rpc] >> bit) & 0x1;
+    }
+
     (*MyOutput_) << "RPC " << rpc 
 		 << " Data = " << rpc_data_[rpc] 
+		 << " number of bits = " << counter 
+		 << " -> Parity ok = " << rpc_parity_ok_[rpc] 
 		 << std::endl;
   }
 
   return;
 }
 
-void RAT::read_rpc_parity_ok() {
-  (*MyOutput_) << "RAT: Read RPC parity OK" << std::endl;
-
-  int rpc;
-
-  ReadRatUser1();                                   //get the current USER1 value
-
-  for (rpc=0; rpc<2; rpc++) {
-    rpc_parity_ok_[rpc] = user1_value_[82+rpc];
-    (*MyOutput_) << "RPC " << rpc 
-		 << " Parity OK = " << rpc_parity_ok_[rpc] 
-		 << std::endl;  
-  }
-
-  return;
-}
