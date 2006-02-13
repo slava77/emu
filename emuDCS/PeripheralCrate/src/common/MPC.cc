@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.17 2006/01/14 22:24:50 mey Exp $
+// $Id: MPC.cc,v 2.18 2006/02/13 19:51:01 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.18  2006/02/13 19:51:01  mey
+// Fix bugs
+//
 // Revision 2.17  2006/01/14 22:24:50  mey
 // UPdate
 //
@@ -786,8 +789,8 @@ void MPC::setTransparentMode(unsigned int pattern){
   //fg data[0]=pattern;
   //fg data[1]=0;
   //fg andersom, slimpy
-  data[1]=pattern>>8;   // MSB
-  data[0]=pattern&0xff; // LSB
+  data[0]=pattern>>8;   // MSB
+  data[1]=pattern&0xff; // LSB
   write(btd,data,addr,2,xfer_done);
 }
 
@@ -854,8 +857,11 @@ void MPC::interconnectTest(){
 #else
 
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.17 2006/01/14 22:24:50 mey Exp $
+// $Id: MPC.cc,v 2.18 2006/02/13 19:51:01 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.18  2006/02/13 19:51:01  mey
+// Fix bugs
+//
 // Revision 2.17  2006/01/14 22:24:50  mey
 // UPdate
 //
@@ -1143,15 +1149,15 @@ void MPC::SoftReset() {
   //
   // reset FPGA logic
   //
-  data[1] = (data[1]&0xfd) ;
+  data[0] = (data[0]&0xfd) ;
   do_vme(2, addr, data, NULL, 1);
   printf("%x %x \n",data[0],data[1]);
   //
-  data[1] = (data[1]&0xfd) | 0x2 ;
+  data[0] = (data[0]&0xfd) | 0x2 ;
   do_vme(2, addr, data, NULL, 1);
   printf("%x %x \n",data[0],data[1]);
   //
-  data[1] = (data[1]&0xfd) ;
+  data[0] = (data[0]&0xfd) ;
   do_vme(2, addr, data, NULL, 1);
   printf("%x %x \n",data[0],data[1]);
   //
@@ -1195,14 +1201,14 @@ void MPC::enablePRBS(){
   addr = CSR2;
   //fg read(btd,data,addr,2,xfer_done);
   //fg data[0]=data[0]|0x01;
-  data[0]=0x01;
-  data[1]=0x00;
+  data[0]=0x00;
+  data[1]=0x01;
   do_vme(2, addr, data, NULL, 1);
 
   // brute force set to 0xC210, will change to masking soon, very soon ...
   addr = CSR0;
-  data[0]=0x10;
-  data[1]=0xC2;
+  data[0]=0xCA;
+  data[1]=0x10;
   do_vme(2, addr, data, NULL, 1);
 
   std::cout << "MPC: PRBS mode enabled" << std::endl;
@@ -1215,8 +1221,8 @@ void MPC::disablePRBS(){
 
   // brute force set back to 0x5B10, will change to masking soon, very soon ...
   addr = CSR0;
-  data[0]=0x10;
-  data[1]=0x5B;
+  data[0]=0x5B;
+  data[1]=0x10;
   do_vme(2, addr, data, NULL, 1);
 
   std::cout << "MPC: PRBS mode disabled" << std::endl;
@@ -1478,6 +1484,11 @@ void MPC::WriteRegister(int reg, int value){
 
 int MPC::ReadRegister(int reg){
   //
+  int btd;
+  char data[2];
+  unsigned long int addr;
+  //
+  // make sure we are in framed mode
   do_vme(VME_READ,reg,sndbuf,rcvbuf,NOW);
   //
   int value = ((rcvbuf[0]&0xff)<<8)|(rcvbuf[1]&0xff);

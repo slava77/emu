@@ -16,7 +16,7 @@ int main(int argc,char **argv){
 
   // create VME Controller and Crate
   int crateId(0);
-  string ipAddr("02:00:00:00:00:01");
+  string ipAddr("02:00:00:00:00:05");
   int port(2);
   VMEController *dynatem = new VMEController(crateId,ipAddr,port);
 

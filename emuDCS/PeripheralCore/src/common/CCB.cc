@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.24 2006/02/06 14:06:55 mey Exp $
+// $Id: CCB.cc,v 2.25 2006/02/13 19:51:12 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.25  2006/02/13 19:51:12  mey
+// Fix bugs
+//
 // Revision 2.24  2006/02/06 14:06:55  mey
 // Fixed stream
 //
@@ -756,10 +759,11 @@ void CCB::hardReset() {
   }
   
   HardResetTTCrx();
-  prgall_bckpln();  
+  prgall_bckpln();
+  //
   //fg note: these 10seconds are not necessary for new/old TMB
   //fg sleep(10);
-
+  //
   // sequence of 2nd hard reset with additional delays (Jianhui)
   if  (mVersion==2004){
     sleep(2);
