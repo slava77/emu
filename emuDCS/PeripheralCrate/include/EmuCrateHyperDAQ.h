@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.41 2006/02/06 14:06:54 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.42 2006/02/15 10:50:04 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -65,6 +65,7 @@
 #include "geom.h"
 #include "InfoSpace.h"
 #include "CrateUtilities.h"
+#include "CalibDAQ.h"
 
 using namespace cgicc;
 using namespace std;
@@ -181,6 +182,8 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::LogDMBTestsOutput, "LogDMBTestsOutput");
     xgi::bind(this,&EmuCrateHyperDAQ::LogTMBTestsOutput, "LogTMBTestsOutput");
     xgi::bind(this,&EmuCrateHyperDAQ::FindWinner, "FindWinner");
+    xgi::bind(this,&EmuCrateHyperDAQ::CalibrationCFEB, "CalibrationCFEB");
+    xgi::bind(this,&EmuCrateHyperDAQ::CalibrationALCT, "CalibrationALCT");
     //
     myParameter_ =  0;
     //
@@ -290,6 +293,7 @@ public:
       //
       *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
       *out << std::endl;
+      *out << cgicc::legend("Initialisation").set("style","color:blue") ;
       //
       std::string Operator =
 	toolbox::toString("/%s/Operator",getApplicationDescriptor()->getURN().c_str());
@@ -316,6 +320,11 @@ public:
       *out << cgicc::input().set("type","submit").set("value","Init System") << std::endl ;
       *out << cgicc::form() << std::endl ;
       //
+      *out << cgicc::fieldset();
+      //
+      *out << cgicc::fieldset();
+      *out << cgicc::legend("Crate Tests").set("style","color:blue") ;
+      //
       std::string TmbMPCTest =
 	toolbox::toString("/%s/TmbMPCTest",getApplicationDescriptor()->getURN().c_str());
       *out << cgicc::form().set("method","GET").set("action",TmbMPCTest) << std::endl ;
@@ -325,6 +334,22 @@ public:
       *out << cgicc::fieldset();
       //
       *out << cgicc::fieldset();
+      *out << cgicc::legend("Calibration Runs").set("style","color:blue") ;
+      //
+      std::string CalibrationCFEB =
+	toolbox::toString("/%s/CalibrationCFEB",getApplicationDescriptor()->getURN().c_str());
+      *out << cgicc::form().set("method","GET").set("action",CalibrationCFEB) << std::endl ;
+      *out << cgicc::input().set("type","submit").set("value","Calibration run CFEB") << std::endl ;
+      *out << cgicc::form() << std::endl ;
+      //
+      std::string CalibrationALCT =
+	toolbox::toString("/%s/CalibrationALCT",getApplicationDescriptor()->getURN().c_str());
+      *out << cgicc::form().set("method","GET").set("action",CalibrationALCT) << std::endl ;
+      *out << cgicc::input().set("type","submit").set("value","Calibration run ALCT") << std::endl ;
+      *out << cgicc::form() << std::endl ;
+      //
+      *out << cgicc::fieldset();
+      //
       *out << std::endl;
       //
       if ( Operator_.find("NameOld",0) == string::npos ) {
@@ -609,6 +634,53 @@ public:
     }
     //
     //cout << "Here4" << endl ;
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::CalibrationALCT(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    CalibDAQ calib;
+    int npulses = 1000;
+    for (int ii=0; ii<npulses; ii++) {
+      //
+      calib.pulseAllWires();
+      //
+      cout << npulses << endl;
+      std::cout << "Pulse..." << std::endl;
+      std::cout << std::endl;
+      //
+      this->Default(in,out);
+      //
+    }
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::CalibrationCFEB(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    CalibDAQ calib;
+    calib.loadConstants();
+    //
+    int nsleep, nstrip, tries, counter =0;
+    float dac;
+    nsleep = 1000;  
+    dac = 1.0;
+    //
+    for (int i=0;i<16;i++) {  
+      for (int ntim=0;ntim<20;ntim++) {
+	calib.pulseAllDMBs(ntim, i, dac, nsleep);  
+	counter++;
+	std::cout << "dac = " << dac <<
+	  "  strip = " << i <<
+	  "  ntim = " << ntim <<
+	  "  event  = " << counter << std::endl;
+      }
+    }
+    //
+    this->Default(in,out);
     //
   }
   //
@@ -1810,12 +1882,20 @@ public:
       vector<CFEB> thisCFEBs = thisDMB->cfebs();
       if (dmbNumber == -1 ) {
 	for (int i=0; i<thisCFEBs.size(); i++) {
+	  thisCCB->hardReset();
+	  ::sleep(1);
 	  thisDMB->febpromuser(thisCFEBs[i]);
 	  thisDMB->epromload(thisCFEBs[i].promDevice(),"cfeb_v4_r2.svf",1,out);  // load mprom
+	  ::sleep(1);
+	  thisCCB->hardReset();
 	}
       } else {
+	thisCCB->hardReset();
+	::sleep(1);
 	thisDMB->febpromuser(thisCFEBs[dmbNumber]);
 	thisDMB->epromload(thisCFEBs[dmbNumber].promDevice(),"cfeb_v4_r2.svf",1,out);  // load mprom
+	::sleep(1);
+	thisCCB->hardReset();
       }
       //
     }
@@ -3449,6 +3529,8 @@ public:
     //
     thisTMB = tmbVector[tmb];
     //
+    thisCCB->hardReset();
+    //
     int debugMode(0);
     int jch(5);
     string chamberType("ME21");
@@ -3462,6 +3544,8 @@ public:
     else{
       cout << "=== Fatal Error. Exiting with " <<  status << endl;
     }
+    //
+    thisCCB->hardReset();
     //
     this->TMBUtils(in,out);
     //
