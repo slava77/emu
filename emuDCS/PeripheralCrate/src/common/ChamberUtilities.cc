@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.7 2006/02/06 14:06:55 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.8 2006/02/15 10:49:13 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.8  2006/02/15 10:49:13  mey
+// Fixed pulsing for ME1
+//
 // Revision 1.7  2006/02/06 14:06:55  mey
 // Fixed stream
 //
@@ -1332,7 +1335,7 @@ void ChamberUtilities::PulseTestStrips(){
 	//old alct->alct_set_test_pulse_groupmask(&slot,0xff);
 	//
 	alct->alct_set_test_pulse_stripmask(&slot,0xff);
-	alct->alct_set_test_pulse_groupmask(&slot,0x00);
+	alct->alct_set_test_pulse_groupmask(&slot,0xff);
 	//
 	alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
 	cout << " StripMask = " << hex << StripMask << endl;
