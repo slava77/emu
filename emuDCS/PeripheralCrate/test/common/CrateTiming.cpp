@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 1.5 2006/02/02 15:34:23 mey Exp $
+// $Id: CrateTiming.cpp,v 1.6 2006/02/15 22:39:57 mey Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 1.6  2006/02/15 22:39:57  mey
+// UPdate
+//
 // Revision 1.5  2006/02/02 15:34:23  mey
 // Update
 //
@@ -217,7 +220,7 @@ using namespace std;
 
 int beginning = 0;
 
-TMB *thisTMB ;
+TMB *thisTMB = 0 ;
 DAQMB* thisDMB ;
 CCB* thisCCB ;
 ALCTController *alct ;
@@ -410,15 +413,15 @@ int main(int argc,char **argv){
   //-- get pointers to CCB, TMB and DMB
   Crate *thisCrate = crateVector[0];
   thisCCB = thisCrate->ccb();
-  thisTMB = tmbVector[0];
-  thisDMB = dmbVector[0];
+  if( tmbVector.size() ) thisTMB = tmbVector[0];
+  if( dmbVector.size() ) thisDMB = dmbVector[0];
   thisMPC = thisCrate->mpc();
   DDU * thisDDU = thisCrate->ddu();
   //
   ChamberUtilities util;
   util.SetCCB(thisCCB);
-  util.SetTMB(thisTMB);
-  util.SetDMB(thisDMB);
+  if ( thisTMB) util.SetTMB(thisTMB);
+  if ( thisDMB) util.SetDMB(thisDMB);
   util.SetMPC(thisMPC);
   //
   //-- Configure the Cosmic Set-up
@@ -451,7 +454,8 @@ int main(int argc,char **argv){
     //sleep(1);
 
     cout << "-- Configuring ALCT --" << endl;
-    alct = thisTMB->alctController();
+    //alct = thisTMB->alctController();
+    //
     //util.SetALCT(alct);
     //
     //if (alct) alct->GetWGNumber();

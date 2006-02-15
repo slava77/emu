@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.8 2006/02/15 10:49:13 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.9 2006/02/15 22:39:57 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.9  2006/02/15 22:39:57  mey
+// UPdate
+//
 // Revision 1.8  2006/02/15 10:49:13  mey
 // Fixed pulsing for ME1
 //
@@ -123,6 +126,8 @@ ChamberUtilities::ChamberUtilities(){
   BestALCTL1aDelay_ = -1;
   ALCTL1aDelay_     = -1;
   beginning         = 0;
+  thisTMB = 0;
+  thisDMB = 0;
   //
   for( int i=0; i<5; i++) CFEBrxPhase_[i] = -1;
   UsePulsing = true ;
@@ -1297,7 +1302,17 @@ void ChamberUtilities::PulseRandomALCT(){
   thisDMB->PrintCounters();
   //
 }	      
-
+//
+void ChamberUtilities::PulseAllWires(){
+  //
+  thisTMB->ResetALCTRAMAddress();
+  PulseTestStrips();
+  printf("Decode ALCT\n");
+  thisTMB->DecodeALCT();
+  //
+  thisDMB->PrintCounters();
+  //
+}
 //
 void ChamberUtilities::PulseTestStrips(){
   //

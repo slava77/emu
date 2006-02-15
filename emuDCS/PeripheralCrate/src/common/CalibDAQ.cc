@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.2 2006/01/18 19:38:16 mey Exp $
+// $Id: CalibDAQ.cc,v 2.3 2006/02/15 22:39:57 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.3  2006/02/15 22:39:57  mey
+// UPdate
+//
 // Revision 2.2  2006/01/18 19:38:16  mey
 // Fixed bugs
 //
@@ -104,7 +107,7 @@ void CalibDAQ::pulseAllWires(){
     //
     for (int i = 0; i < utils.size() ; i++ ) {
       //
-      utils[i].PulseRandomALCT();
+      utils[i].PulseAllWires();
       //
     }
     //

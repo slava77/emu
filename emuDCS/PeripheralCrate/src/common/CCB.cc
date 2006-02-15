@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.25 2006/02/13 19:51:12 mey Exp $
+// $Id: CCB.cc,v 2.26 2006/02/15 22:39:57 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.26  2006/02/15 22:39:57  mey
+// UPdate
+//
 // Revision 2.25  2006/02/13 19:51:12  mey
 // Fix bugs
 //
@@ -990,6 +993,7 @@ void CCB::enable() {
 
     bx0();
     usleep(10000);
+    setCCBMode(CCB::DLOG);
   }
 
   if (mVersion==2001)

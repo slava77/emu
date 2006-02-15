@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.19 2006/02/15 10:48:43 mey Exp $
+// $Id: MPC.cc,v 2.20 2006/02/15 22:39:57 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.20  2006/02/15 22:39:57  mey
+// UPdate
+//
 // Revision 2.19  2006/02/15 10:48:43  mey
 // Fixed byte swapping
 //
@@ -860,8 +863,11 @@ void MPC::interconnectTest(){
 #else
 
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.19 2006/02/15 10:48:43 mey Exp $
+// $Id: MPC.cc,v 2.20 2006/02/15 22:39:57 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.20  2006/02/15 22:39:57  mey
+// UPdate
+//
 // Revision 2.19  2006/02/15 10:48:43  mey
 // Fixed byte swapping
 //
@@ -944,7 +950,7 @@ MPC::~MPC(){
 }
 
 
-void MPC::configure() {
+void MPC::init() {
 }
 
 bool MPC::SelfTest() {
@@ -953,7 +959,7 @@ bool MPC::SelfTest() {
   //
 }
 
-void MPC::init() {
+void MPC::configure() {
   int btd;
   int xfer_done[2];
   char data[2];

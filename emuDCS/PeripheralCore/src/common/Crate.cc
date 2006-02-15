@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 2.5 2006/01/18 19:38:16 mey Exp $
+// $Id: Crate.cc,v 2.6 2006/02/15 22:39:57 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 2.6  2006/02/15 22:39:57  mey
+// UPdate
+//
 // Revision 2.5  2006/01/18 19:38:16  mey
 // Fixed bugs
 //
@@ -22,6 +25,7 @@
 //
 //-----------------------------------------------------------------------
 #include "Crate.h"
+#include <unistd.h> // for sleep
 #include "VMEModule.h"
 #include "VMEController.h"
 #include "CrateSetup.h"
@@ -190,7 +194,7 @@ void Crate::configure() {
   }
   //  
   std::cout << "cards " << ccb << " " << mpc << " " << ddu << std::endl;
-  if(mpc) mpc->init();
+  if(mpc) mpc->configure();
   //::sleep(1);
   //
   if(ddu) ddu->dcntrl_reset();

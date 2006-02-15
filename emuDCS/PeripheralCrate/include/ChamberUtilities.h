@@ -40,6 +40,7 @@ public:
   int  TMBL1aTiming();
   int  FindBestL1aAlct();
   void PulseRandomALCT();
+  void PulseAllWires();
   int  FindWinner(int);
   int  FindALCTvpf();
   int  FindTMB_L1A_delay(int,int);
