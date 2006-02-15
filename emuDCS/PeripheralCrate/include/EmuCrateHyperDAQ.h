@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.42 2006/02/15 10:50:04 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.43 2006/02/15 22:39:56 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -180,6 +180,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::MPCBoardID, "MPCBoardID");
     xgi::bind(this,&EmuCrateHyperDAQ::CCBBoardID, "CCBBoardID");
     xgi::bind(this,&EmuCrateHyperDAQ::LogDMBTestsOutput, "LogDMBTestsOutput");
+    xgi::bind(this,&EmuCrateHyperDAQ::LogOutput, "LogOutput");
     xgi::bind(this,&EmuCrateHyperDAQ::LogTMBTestsOutput, "LogTMBTestsOutput");
     xgi::bind(this,&EmuCrateHyperDAQ::FindWinner, "FindWinner");
     xgi::bind(this,&EmuCrateHyperDAQ::CalibrationCFEB, "CalibrationCFEB");
@@ -307,7 +308,7 @@ public:
       std::string PowerUp =
 	toolbox::toString("/%s/PowerUp",getApplicationDescriptor()->getURN().c_str());
       //
-      *out << cgicc::form().set("method","GET").set("action",PowerUp)
+      *out << cgicc::form().set("method","GET").set("action","http://emuslice03:1973/urn:xdaq-application:lid=30/")
 	.set("target","_blank") << std::endl ;
       *out << cgicc::input().set("type","submit").set("value","Power Up") << std::endl ;
       *out << cgicc::form() << std::endl ;
@@ -322,7 +323,7 @@ public:
       //
       *out << cgicc::fieldset();
       //
-      *out << cgicc::fieldset();
+      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
       *out << cgicc::legend("Crate Tests").set("style","color:blue") ;
       //
       std::string TmbMPCTest =
@@ -333,7 +334,7 @@ public:
       //
       *out << cgicc::fieldset();
       //
-      *out << cgicc::fieldset();
+      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
       *out << cgicc::legend("Calibration Runs").set("style","color:blue") ;
       //
       std::string CalibrationCFEB =
@@ -633,6 +634,14 @@ public:
       //
     }
     //
+    std::string method =
+      toolbox::toString("/%s/LogOutput",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",method) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Log output").set("name","LogOutput") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
     //cout << "Here4" << endl ;
     //
   }
@@ -642,7 +651,7 @@ public:
   {
     //
     CalibDAQ calib;
-    int npulses = 1000;
+    int npulses = 100;
     for (int ii=0; ii<npulses; ii++) {
       //
       calib.pulseAllWires();
@@ -798,6 +807,7 @@ public:
   {
     //
     *out << h1("Run Valery's program");
+    *out << cgicc::a("Voltages").set("href","http://emuslice03:1973/urn:xdaq-application:lid=30/") << endl;
     //
   }
   //
@@ -4019,6 +4029,32 @@ public:
     OutputDMBTests[dmb].str("");
     //
     this->DMBTests(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::LogOutput(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception){
+    //
+    char buf[20];
+    int test = 1;
+    sprintf(buf,"EmuCrateHyperDAQLogFile_%d.log",test);
+    //
+    ifstream TextFile ;
+    TextFile.open(xmlFile_.toString().c_str());
+    //
+    ofstream LogFile;
+    LogFile.open(buf);
+    while(TextFile.good()) LogFile << (char) TextFile.get() ;
+    TextFile.close();
+    for (int i=0; i<tmbVector.size(); i++) {
+      LogFile << OutputTMBTests[i].str() ;
+    }
+    for (int i=0; i<tmbVector.size(); i++) {
+      LogFile << OutputDMBTests[i].str() ;
+    }
+    LogFile.close();    
+    //
+    this->Default(in,out);
     //
   }
   //

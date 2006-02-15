@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuController.cc,v 1.2 2006/01/18 12:46:48 mey Exp $
+// $Id: EmuController.cc,v 1.3 2006/02/15 22:39:57 mey Exp $
 // $Log: EmuController.cc,v $
+// Revision 1.3  2006/02/15 22:39:57  mey
+// UPdate
+//
 // Revision 1.2  2006/01/18 12:46:48  mey
 // Update
 //
@@ -76,7 +79,7 @@ void EmuController::init(){
   std::vector<Crate*> myCrates = theSelector.crates();
   //
   for(unsigned i = 0; i < myCrates.size(); ++i) {
-    myCrates[i]->init();
+    //myCrates[i]->init();
   }
 }
 //
