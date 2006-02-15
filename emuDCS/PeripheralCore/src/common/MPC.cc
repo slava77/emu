@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.18 2006/02/13 19:51:01 mey Exp $
+// $Id: MPC.cc,v 2.19 2006/02/15 10:48:43 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.19  2006/02/15 10:48:43  mey
+// Fixed byte swapping
+//
 // Revision 2.18  2006/02/13 19:51:01  mey
 // Fix bugs
 //
@@ -857,8 +860,11 @@ void MPC::interconnectTest(){
 #else
 
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.18 2006/02/13 19:51:01 mey Exp $
+// $Id: MPC.cc,v 2.19 2006/02/15 10:48:43 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.19  2006/02/15 10:48:43  mey
+// Fixed byte swapping
+//
 // Revision 2.18  2006/02/13 19:51:01  mey
 // Fix bugs
 //
@@ -1241,16 +1247,16 @@ void MPC::initTestLinks(){
 
 
   addr = CSR0;
-  data[0]=0x11;
-  data[1]=0x4E;
+  data[1]=0x11;
+  data[0]=0x4E;
   do_vme(2, addr, data, NULL, 1);
   
-  data[0]=0x13;
-  data[1]=0x4E;
+  data[1]=0x13;
+  data[0]=0x4E;
   do_vme(2, addr, data, NULL, 1);
  
-  data[0]=0x11;
-  data[1]=0x4E;
+  data[1]=0x11;
+  data[0]=0x4E;
   do_vme(2, addr, data, NULL, 1);
 //done init
 }
@@ -1285,14 +1291,14 @@ void MPC::injectSP(){
 	       for (int LCT=0; LCT<2; LCT++)  //dammit, no i think this should just be a loop over frames!!
 //2 sorts of LCTs
 	         {
-		     data[0]= mframe1&0x00FF;
-		     data[1]=(mframe1&0xFF00)>>8;
+		     data[1]= mframe1&0x00FF;
+		     data[0]=(mframe1&0xFF00)>>8;
 		     this->do_vme(2, addr, data, NULL, 1);
 
 //2 frames?:ie 2x16 bits =tot 32 bits..
 
-		     data[0]= mframe2&0x00FF;
-		     data[1]=(mframe2&0xFF00)>>8;
+		     data[1]= mframe2&0x00FF;
+		     data[0]=(mframe2&0xFF00)>>8;
 		     this->do_vme(2, addr, data, NULL, 1);
 
 		     addr+=0x00002;
@@ -1392,8 +1398,8 @@ void MPC::injectSP(char *injectDataFileName){
 	  for (int LCT=0; LCT<2; LCT++)
 	    //2 sorts of LCTs
 	    {
-	      data[0]= mframe1&0x00FF;
-	      data[1]=(mframe1&0xFF00)>>8;
+	      data[1]= mframe1&0x00FF;
+	      data[0]=(mframe1&0xFF00)>>8;
 	      this->do_vme(2, addr, data, NULL, 1);
 	      
 	      //std::cout<<"event: "<<EVNT<<"...filling fifoA with "<<std::hex<<mframe1<<std::endl;
