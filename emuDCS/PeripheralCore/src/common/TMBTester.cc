@@ -703,14 +703,32 @@ bool TMBTester::testADC(){
   //  bool a1p5ttOK   = compareValues("+1.5A TT       ",a1p5tt  ,0.030,atol*1.5);
   //  bool a1p8ratOK  = compareValues("+1.8A RAT Core ",a1p8rat ,0.030,atol*5.0);
 
-  //  float t_local_f_tmb = tmb_temp(0x00,1);               // local temperature command, TMB)
-  //  float t_remote_f_tmb = tmb_temp(0x01,1);              // remote temperature command, TMB)
-  //  float tcrit_local_f_tmb = tmb_temp(0x05,1);           // (local tcrit command, TMB)
-  //  float tcrit_remote_f_tmb = tmb_temp(0x07,1);          // (remote tcrit command, TMB)
+  // ** Get TMB and RAT temperatures **
+  int TMBtempPCB = ReadTMBtempPCB();  
+  int TMBtempFPGA = ReadTMBtempFPGA();  
+  int RATtempPCB = ReadRATtempPCB(); 
+  int RATtempHeatSink = ReadRATtempHSink(); 
 
-  float ttol = 0.2;
-  //  bool tlocalOK   = compareValues("T TMB pcb      ",t_local_f_tmb ,75.2,ttol);
-  //  bool tremoteOK  = compareValues("T FPGA chip    ",t_remote_f_tmb,78.8,ttol);
+  // ** Get TMB and RAT critical temperature settings **
+  int TMBtCritPCB = ReadTMBtCritPCB();  
+  int TMBtCritFPGA = ReadTMBtCritFPGA();  
+  int RATtCritPCB = ReadRATtCritPCB(); 
+  int RATtCritHeatSink = ReadRATtCritHSink(); 
+
+
+  (*MyOutput_) << "TMB temperature IC (PCB)  = " << std::dec << TMBtempPCB
+	       << " deg C, tcrit = " << std::dec << TMBtCritPCB
+	       << std::endl;
+  (*MyOutput_) << "TMB temperature IC (FPGA) = " << std::dec << TMBtempFPGA 
+	       << " deg C, tcrit = " << std::dec << TMBtCritFPGA 
+	       << std::endl;
+
+  (*MyOutput_) << "RAT temperature IC (PCB)  = " << std::dec << RATtempPCB
+	       << " deg C, tcrit = " << std::dec << RATtCritPCB
+	       << std::endl;
+  (*MyOutput_) << "RAT temperature IC (Heat Sink) = " << std::dec << RATtempHeatSink
+	       << " deg C, tcrit = " << std::dec << RATtCritHeatSink
+	       << std::endl;
 
   testOK = (v5p0OK     &&
 	    v3p3OK     &&    
@@ -879,16 +897,50 @@ void TMBTester::ExtClctTrigFromCCBonly() {
   return;
 }
 
-float TMBTester::tmb_temp(int cmd,int module) {
-  // returns TMB temperature values in Farenheit...
-  // CAUTION... NOT YET DEBUGGED....
+int TMBTester::ReadTMBtempPCB() {
 
+  int smb_adr = 0x2a;   // float, float state TMB LM84 chip address
+  int command = 0x00;   // "local" temperature read
+  int temperature = smb_io(smb_adr,command,1);
+
+  return temperature;
+}
+
+int TMBTester::ReadTMBtempFPGA() {
+
+  int smb_adr = 0x2a;   // float, float state TMB LM84 chip address
+  int command = 0x01;   // "remote" temperature read
+  int temperature = smb_io(smb_adr,command,1);
+
+  return temperature;
+}
+
+int TMBTester::ReadTMBtCritPCB() {
+
+  int smb_adr = 0x2a;   // float, float state TMB LM84 chip address
+  int command = 0x05;   // "local" temperature critical read
+  int temperature = smb_io(smb_adr,command,1);
+
+  return temperature;
+}
+
+int TMBTester::ReadTMBtCritFPGA() {
+
+  int smb_adr = 0x2a;   // float, float state TMB LM84 chip address
+  int command = 0x07;   // "remote" temperature critical read
+  int temperature = smb_io(smb_adr,command,1);
+
+  return temperature;
+}
+
+int TMBTester::smb_io(int smb_adr, int cmd, int module) {
   //	Generates SMB serial clock and data streams to TMB LM84 chip
   //
-  //	SMB requires that serial data is stable while clock is high,
-  //	so data transitions occur while clock is low,
-  //	midway between clock falling edge and rising edge
-
+  //   -> Returns temperature values in Celcius <-
+  //
+  //    smb_adr = 0x2a = float, float state TMB LM84 chip address
+  //            = 0x18 = gnd, gnd state RAT LM84 chip address
+  //
   //    cmd = 0x00 = local temperature command
   //        = 0x01 = remote temperature command
   //        = 0x05 = local tcrit command  
@@ -897,26 +949,19 @@ float TMBTester::tmb_temp(int cmd,int module) {
   //    module = 1 = TMB
   //           = 2 = RAT
 
-  const int smb_adr = 0x2a;   // float, float state TMB LM84 chip address
   const int adc_adr = vme_adc_adr;
 
   int smb_data = 0xff;        // null write command
 
-  int sda_bit[29];
-
   int write_data,read_data;
-  int dummy;
-
-  float fdummy;
 
   // Current ADC register state:
-  int adc_status = tmb_->PowerComparator();
+  int adc_status = tmb_->ReadRegister(adc_adr);
 
-  (*MyOutput_) << "Initial ADC status = " << std::hex << adc_status << std::endl;
-
-  // **Step 1 write the data**
+  // **Step 1 write the command to read the data**
 
   // ** initialize SMB data stream **
+  int sda_bit[29];
   sda_bit[0] = 0;                                // Start
   sda_bit[1] = (smb_adr >> 6) & 1;               // A6
   sda_bit[2] = (smb_adr >> 5) & 1;               // A5
@@ -948,14 +993,12 @@ float TMBTester::tmb_temp(int cmd,int module) {
   sda_bit[28]= 0;                                // Stop
 
   // ** Construct SMBclk and SMBdata **
-
-  (*MyOutput_) << "smb address = " << std::hex << smb_adr
-	    << ", command = " << std::hex << cmd
-	    << ", smb data = " << std::hex << smb_data
-	    << std::endl;
+  //
+  //	SMB requires that serial data is stable while clock is high,
+  //	so data transitions occur while clock is low,
+  //	midway between clock falling edge and rising edge
 
   int nclks = 115;
-  //  int nclks = 50;
 
   int sda_clock,scl_clock;
   int sda,scl;
@@ -968,7 +1011,7 @@ float TMBTester::tmb_temp(int cmd,int module) {
     scl = scl_clock & 1;                          // 0 0 1 1 0 0 1 1 0 0 1 1 ....
     sda = sda_bit[sda_clock];
 
-    (*MyOutput_) << "Before Persistent -> i2c_clock " << i2c_clock << ", scl = " << scl << " sda_bit = " << sda << std::endl;
+    //    (*MyOutput_) << "Before Persistent -> i2c_clock " << i2c_clock << ", scl = " << scl << " sda_bit = " << sda << std::endl;
 
     if (i2c_clock<3) scl=1;                       // START scl stays high
     if (i2c_clock<2) sda=1;                       // START sda transitions low
@@ -976,7 +1019,7 @@ float TMBTester::tmb_temp(int cmd,int module) {
     if (i2c_clock>nclks-3) scl=1;                // STOP scl stays high
     if (i2c_clock>nclks-2) sda=1;                // STOP sda transitions high
 
-    (*MyOutput_) << "After Persistent  -> i2c_clock " << i2c_clock << ", scl = " << scl << " sda_bit = " << sda << std::endl;
+    //    (*MyOutput_) << "After Persistent  -> i2c_clock " << i2c_clock << ", scl = " << scl << " sda_bit = " << sda << std::endl;
 
     //** Write serial clock and data to TMB VME interface **
 
@@ -984,18 +1027,12 @@ float TMBTester::tmb_temp(int cmd,int module) {
     write_data |= scl << 9;
     write_data |= sda << 10;
     tmb_->WriteRegister(adc_adr,write_data);
-
-    (*MyOutput_) << "write_data =" << write_data << std::endl;
-
-    //    dummy=sleep(1);  // adjust wait time so scl is 50kHz or slower...
   }
 
-  //  dummy=sleep(10);
-
   // Current ADC register state:
-  adc_status = tmb_->PowerComparator();
+  adc_status = tmb_->ReadRegister(adc_adr);
 
-  // **Step 1 read the data**
+  // **Step 2 read the data**
 
   // ** initialize SMB data stream **
   sda_bit[0] = 0;                                // Start
@@ -1038,26 +1075,20 @@ float TMBTester::tmb_temp(int cmd,int module) {
     if (i2c_clock>nclks-2) sda=1;                // STOP sda transitions high
 
     //** Write serial clock and data to TMB VME interface **
-
     write_data = adc_status & 0xf9ff;    //clear bits 9 and 10
     write_data |= scl << 9;
     write_data |= sda << 10;
     tmb_->WriteRegister(adc_adr,write_data);
-    //    dummy=sleep(1);  // adjust wait time so scl is 50kHz or slower...
 
-    //Read Serial data from TMB VME interface
-    //read on every cycle to keep clock symmetric
-
+    //** Read Serial data from TMB VME interface **
+    // (read on every cycle to keep clock symmetric)
     read_data = tmb_->ReadRegister(adc_adr);
     if (scl==1) {
       d[sda_clock] = read_data;
-      (*MyOutput_) << "reading serial data d[" << sda_clock << "] =" << d[sda_clock] << std::endl;
     }
-    //    dummy=sleep(1);  // adjust wait time so scl is 50kHz or slower...
   }
 
   // pack data into an integer...
-
   int ishift = 0;
   if (module == 1) ishift = 10;   //data bit from LM84 on TMB
   if (module == 2) ishift = 11;   //data bit from LM84 on RAT
@@ -1068,21 +1099,60 @@ float TMBTester::tmb_temp(int cmd,int module) {
     if (i<=7) {
       sda_value = (d[17-i]>>ishift) & 0x1;
       data |= sda_value<<i;          //d[7:0]
-      //      (*MyOutput_) << "d[17-" << i << "] =" << d[17-i] << "sda_value = " << sda_value << std::endl;
     } else {
       data |= sda_value<<i;          //sign extend if bit 7 indicates negative value      
     }
-    //    (*MyOutput_) << "sda_value = " << sda_value << ", data =" << data << std::endl;
   }
 
-  (*MyOutput_) << "Temperature = " << std::dec << data << " deg C -> " << std::hex << data << std::endl;
+  //  (*MyOutput_) << "Temperature = " << std::dec << data << " deg C" << std::endl;
 
-  float temperature = float (data) * 9. / 5. + 32.;
+  return data;
+}
+///////////////////////////////////////////////
+//  END: The following belong in TMB.cc
+///////////////////////////////////////////////
+
+
+///////////////////////////////////////////////
+//  The following belong in RAT.cc
+///////////////////////////////////////////////
+int TMBTester::ReadRATtempPCB() {
+
+  int smb_adr = 0x18;   // gnd, gnd state RAT LM84 chip address
+  int command = 0x00;   // "local" temperature read
+  int temperature = smb_io(smb_adr,command,2);
+
+  return temperature;
+}
+
+int TMBTester::ReadRATtempHSink() {
+
+  int smb_adr = 0x18;   // gnd, gnd state RAT LM84 chip address
+  int command = 0x01;   // "remote" temperature read
+  int temperature = smb_io(smb_adr,command,2);
+
+  return temperature;
+}
+
+int TMBTester::ReadRATtCritPCB() {
+
+  int smb_adr = 0x18;   // gnd, gnd state RAT LM84 chip address  
+  int command = 0x05;   // "local" temperature critical read
+  int temperature = smb_io(smb_adr,command,2);
+
+  return temperature;
+}
+
+int TMBTester::ReadRATtCritHSink() {
+
+  int smb_adr = 0x18;   // gnd, gnd state RAT LM84 chip address
+  int command = 0x07;   // "remote" temperature critical read
+  int temperature = smb_io(smb_adr,command,2);
 
   return temperature;
 }
 ///////////////////////////////////////////////
-//  END: The following belong in TMB.cc
+//  The following belong in RAT.cc
 ///////////////////////////////////////////////
 
 
@@ -1260,36 +1330,6 @@ void TMBTester::RpcRatDelayScan(int rpc) {
     rat_->set_rpcrat_delay(putback,value);
   }
 
-  //fake it:
-  /*  
-  parity_err_ctr[0]  = 0;
-  parity_err_ctr[1]  = 0;
-  parity_err_ctr[2]  = 0;
-  parity_err_ctr[3]  = 0;
-  parity_err_ctr[4]  = 0;
-  parity_err_ctr[5]  = 0;
-  parity_err_ctr[6]  = 0;
-  parity_err_ctr[7]  = 0x4;
-  parity_err_ctr[8]  = 0x414;
-  parity_err_ctr[9]  = 0;
-  parity_err_ctr[10] = 0xffff;
-  parity_err_ctr[11] = 0xffff;
-  parity_err_ctr[12] = 0x0;
-
-  parity_err_ctr[0]  = 0;
-  parity_err_ctr[1]  = 0;
-  parity_err_ctr[2]  = 0;
-  parity_err_ctr[3]  = 0;
-  parity_err_ctr[4]  = 0;
-  parity_err_ctr[5]  = 0;
-  parity_err_ctr[6]  = 0x5;
-  parity_err_ctr[7]  = 0;
-  parity_err_ctr[8]  = 0xffff;
-  parity_err_ctr[9]  = 0;
-  parity_err_ctr[10] = 0xffff;
-  parity_err_ctr[11] = 0xffff;
-  parity_err_ctr[12] = 0xc;
-  */
   // ** print out results **
   (*MyOutput_) << "********************************" << std::endl;
   (*MyOutput_) << "**** RAT-RPC" << rpc << " delay results ****" << std::endl;

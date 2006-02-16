@@ -73,11 +73,19 @@ class TMBTester {
   void RpcRatDelayScan(int);
   void window_analysis(int *,const int);
   //
-  // Maybe should be in TMB.cc?
+  // Should be in TMB.cc...
   void ExtClctTrigFromCCBonly();
+  int ReadTMBtempPCB();  
+  int ReadTMBtempFPGA();  
+  int ReadTMBtCritPCB();  
+  int ReadTMBtCritFPGA();  
+  int smb_io(int,int,int);
   //
-  //Not yet working but should eventually be in TMB.cc...
-  float tmb_temp(int, int);
+  // Should be in RAT.cc (after smb_io(int,int,int) moves to TMB.cc)
+  int ReadRATtempPCB();  
+  int ReadRATtempHSink();  
+  int ReadRATtCritPCB();  
+  int ReadRATtCritHSink();    
   //
   //Some useful routines....
   void bit_to_array(int,int *,const int);
