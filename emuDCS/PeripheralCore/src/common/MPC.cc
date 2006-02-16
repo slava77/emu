@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.20 2006/02/15 22:39:57 mey Exp $
+// $Id: MPC.cc,v 2.21 2006/02/16 09:41:47 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.21  2006/02/16 09:41:47  mey
+// Fixed byte swap
+//
 // Revision 2.20  2006/02/15 22:39:57  mey
 // UPdate
 //
@@ -863,8 +866,11 @@ void MPC::interconnectTest(){
 #else
 
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.20 2006/02/15 22:39:57 mey Exp $
+// $Id: MPC.cc,v 2.21 2006/02/16 09:41:47 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.21  2006/02/16 09:41:47  mey
+// Fixed byte swap
+//
 // Revision 2.20  2006/02/15 22:39:57  mey
 // UPdate
 //
@@ -964,24 +970,32 @@ void MPC::configure() {
   int xfer_done[2];
   char data[2];
   char addr;
-
+  
   std::cout << "MPC: initialize" << std::endl;
+
+  ReadRegister(CSR0);
 
   std::cout << "MPC: turn off Resets" <<std::endl;
   addr = CSR0;
-  data[0]=0x10;
-  data[1]=0x4a;
+  data[1]=0x10;
+  data[0]=0x4a;
   do_vme(2, addr, data, NULL, 1);
+
+  ReadRegister(CSR0);
 
   std::cout << "MPC: logic reset" << std::endl;
-  data[0]=0x12;
-  data[1]=0x4a;
+  data[1]=0x12;
+  data[0]=0x4a;
   do_vme(2, addr, data, NULL, 1);
 
+  ReadRegister(CSR0);
+
   std::cout << "MPC: end logic Reset" << std::endl;
-  data[0]=0x10;
-  data[1]=0x4a;
+  data[1]=0x10;
+  data[0]=0x4a;
   do_vme(2, addr, data, NULL, 1);
+
+  ReadRegister(CSR0);
 
   //read_csr0();
 
@@ -1510,8 +1524,7 @@ int MPC::ReadRegister(int reg){
   return value;
   //
 }
-
-
+//
 void MPC::firmwareVersion(){
   /// report the firmware version
   int btd, xfer_done[2];
