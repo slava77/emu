@@ -343,10 +343,10 @@ int main() {
       std::cout << "                0  = sequencer trigger" << std::endl;      
       std::cout << "                96 = rpc0_bxn[0]" << std::endl;
       std::cout << "               112 = rpc0_nhits[0]" << std::endl;
-      //      std::cin >> trigger;
+      std::cin >> trigger;
 
-      //      thisTMB->scope(1,0,trigger);  // arm the scope to trigger on a particular channel
-      thisTMB->scope(1,0,0);  // arm the scope to trigger on a particular channel
+      thisTMB->scope(1,0,trigger);  // arm the scope to trigger on a particular channel
+      //      thisTMB->scope(1,0,0);  // arm the scope to trigger on a particular channel
       ::sleep(1);
       thisTMB->scope(0,1);          // read the scope (triggered on the chosen trigger)
       break;
