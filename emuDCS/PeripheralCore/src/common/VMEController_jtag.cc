@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.20 2006/01/09 07:27:27 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.21 2006/02/17 14:09:46 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.21  2006/02/17 14:09:46  mey
+// Added new RAT case
+//
 // Revision 2.20  2006/01/09 07:27:27  mey
 // Update
 //
@@ -1235,7 +1238,7 @@ unsigned short int *ptrreg;
       break;
 
     case 5:
-      /* TMB FPGA User JTAG chain */
+      /* TMB FPGA User JTAG chain */ //Seems crap
       pvme=0x00f8;
       break;
       
@@ -1258,6 +1261,12 @@ unsigned short int *ptrreg;
       /* ALCT Fast Programming JTAG chain */
       pvme=0x0098;
       break;
+
+    case 10:
+      /* RAT FPGA+PROMS */
+      pvme=0x00e8;
+      break;
+
     }
 }
 
