@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 1.6 2006/02/15 22:39:57 mey Exp $
+// $Id: CrateTiming.cpp,v 1.7 2006/02/20 13:31:14 mey Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 1.7  2006/02/20 13:31:14  mey
+// Update
+//
 // Revision 1.6  2006/02/15 22:39:57  mey
 // UPdate
 //
@@ -3007,7 +3010,7 @@ int FindALCT_L1A_delay(int minlimit, int maxlimit){
   //
 }
 
-
+/*
 void PulseRandomALCT(){
   //
   unsigned long HCmask[22];
@@ -3050,7 +3053,7 @@ void PulseRandomALCT(){
   thisTMB->DecodeALCT();
   //
 }	      
-
+*/
 //
 void PulseTestStrips(){
   //

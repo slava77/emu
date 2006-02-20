@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.h,v 2.1 2006/01/11 17:00:14 mey Exp $
+// $Id: CalibDAQ.h,v 2.2 2006/02/20 13:31:13 mey Exp $
 // $Log: CalibDAQ.h,v $
+// Revision 2.2  2006/02/20 13:31:13  mey
+// Update
+//
 // Revision 2.1  2006/01/11 17:00:14  mey
 // Update
 //
@@ -33,6 +36,8 @@ public:
   void injectAllDMBs(int ntim);
 
   void pulseAllWires();
+
+  void pulseRandomWires();
 
   CrateSelector & selector() {return theSelector;}
 
