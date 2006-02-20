@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: calibpulse.cpp,v 2.11 2006/01/13 13:12:13 mey Exp $
+// $Id: calibpulse.cpp,v 2.12 2006/02/20 13:31:14 mey Exp $
 // $Log: calibpulse.cpp,v $
+// Revision 2.12  2006/02/20 13:31:14  mey
+// Update
+//
 // Revision 2.11  2006/01/13 13:12:13  mey
 // UPdate
 //
@@ -175,7 +178,7 @@ int main(int argc, char **argv)
     //
     for (int ii=0; ii<npulses; ii++) {
       //
-      calib.pulseAllWires();
+      calib.pulseRandomWires();
       //
       cout << npulses << endl;
       std::cout << "Pulse..." << std::endl;

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.17 2006/02/07 22:49:25 mey Exp $
+// $Id: ALCTController.cc,v 2.18 2006/02/20 13:31:13 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.18  2006/02/20 13:31:13  mey
+// Update
+//
 // Revision 2.17  2006/02/07 22:49:25  mey
 // UPdate
 //
@@ -476,7 +479,7 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
    // now give a default value for the control registers
    unsigned cr[] = {0x80fc5fc0, 0x20a03786, 0x8}; // default values for CR
    setCRfld(&params_);
-   //unpackControlRegister(cr);
+   unpackControlRegister(cr);
    
 }
 
@@ -1562,10 +1565,10 @@ void ALCTController::setConfig() {
     bool verbose = true;
     unsigned cr[3]  = {0x80fc5fc0, 0x20a03786, 0x8}; // default values for CR
     unsigned crr[] = {0,0,0};
-
+    //
     packControlRegister(cr);
-
-    if (verbose) printf(    "Configuration register's new value: %08x %08x %08x\n", cr[2], cr[1], cr[0]);
+    //
+    if (verbose) printf("Configuration register's new value: %08x %08x %08x\n", cr[2], cr[1], cr[0]);
     if (WriteRegister (WrCfg, cr) == -1)
     {
        printf ("JTAG_B driver detected a problem\n");

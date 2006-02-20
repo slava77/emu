@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.3 2006/02/15 22:39:57 mey Exp $
+// $Id: CalibDAQ.cc,v 2.4 2006/02/20 13:31:14 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.4  2006/02/20 13:31:14  mey
+// Update
+//
 // Revision 2.3  2006/02/15 22:39:57  mey
 // UPdate
 //
@@ -61,13 +64,13 @@ void CalibDAQ::rateTest() {
   for(unsigned j = 0; j < myCrates.size(); ++j) {
     CCB * ccb = myCrates[j]->ccb();
     std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
-  
-    for (int j=0; j<10; j++) {
-      dac=0.2+0.2*j;
-      for(unsigned i =0; i < myDmbs.size(); ++i) {
-	myDmbs[i]->set_cal_dac(dac,dac);
-      }
-      for (nstrip=0;nstrip<1;nstrip++) {
+
+    for (nstrip=0;nstrip<16;nstrip++) {  
+      for (int j=0; j<10; j++) {
+	dac=0.2+0.2*j;
+	for(unsigned i =0; i < myDmbs.size(); ++i) {
+	  myDmbs[i]->set_cal_dac(dac,dac);
+	}
 	for(unsigned i =0; i < myDmbs.size(); ++i) {    
 	  for(brd=0;brd<5;brd++){
 	    for(chip=0;chip<6;chip++){
@@ -79,8 +82,8 @@ void CalibDAQ::rateTest() {
 	  }
 	  myDmbs[i]->buck_shift();
 	}
-  
-	for (int tries=0;tries<10000; tries++){
+	
+	for (int tries=0;tries<20; tries++){
           counter++;
 	  std::cout << "dac = " << dac <<
 	    "  strip = " << nstrip << 
@@ -103,11 +106,35 @@ void CalibDAQ::pulseAllWires(){
     //
     (myCrates[j]->chamberUtils())[0].CCBStartTrigger();
     //
+    sleep(1);
+    //
     std::vector<ChamberUtilities> utils = (myCrates[j]->chamberUtils()) ;
     //
     for (int i = 0; i < utils.size() ; i++ ) {
       //
       utils[i].PulseAllWires();
+      //
+    }
+    //
+  }
+  //
+}
+//
+void CalibDAQ::pulseRandomWires(){
+  //
+  std::vector<Crate*> myCrates = theSelector.crates();
+  //
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
+    //
+    //(myCrates[j]->chamberUtils())[0].CCBStartTrigger();
+    //
+    //sleep(1);
+    //
+    std::vector<ChamberUtilities> utils = (myCrates[j]->chamberUtils()) ;
+    //
+    for (int i = 0; i < utils.size() ; i++ ) {
+      //
+      utils[i].PulseRandomALCT();
       //
     }
     //
