@@ -107,7 +107,9 @@ public:
   void infpga_StatA(enum DEVTYPE dv);
   void infpga_StatB(enum DEVTYPE dv);
   void infpga_StatC(enum DEVTYPE dv);
+  void infpga_trap(enum DEVTYPE dv);
   unsigned short int infpga_code0,infpga_code1,infpga_shift0;
+  unsigned long int infpga_lcode[10];
 
   // DDU Status Decode
   void ddu_status_decode(int long code);
