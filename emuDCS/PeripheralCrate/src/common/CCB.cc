@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.26 2006/02/15 22:39:57 mey Exp $
+// $Id: CCB.cc,v 2.27 2006/02/21 12:44:00 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.27  2006/02/21 12:44:00  mey
+// fixed bug
+//
 // Revision 2.26  2006/02/15 22:39:57  mey
 // UPdate
 //
@@ -553,6 +556,8 @@ void CCB::HardResetTTCrx(){
   //
   do_vme(VME_WRITE,TTCrxReset,sndbuf,rcvbuf,NOW);
   //
+  setCCBMode(CCB::DLOG);
+  //
 }
 
 void CCB::ReadTTCrxID(){
@@ -696,7 +701,7 @@ int CCB::ReadRegister(int reg){
   //
   int value = ((rcvbuf[0]&0xff)<<8)|(rcvbuf[1]&0xff);
   //
-  //printf(" CCB.reg=%x %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
+  printf(" CCB.reg=%x %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
   //
   return value;
   //
@@ -925,8 +930,11 @@ void CCB::configure() {
     std::cerr << "Error: Unknown CCB version ("<< mVersion << "). Unable to configure."<< std::endl;
 
   hardReset();
+  ReadRegister(0x0);
   rice_clk_setup();
+  ReadRegister(0x0);
   disableL1();
+  ReadRegister(0x0);
 }
 void CCB::SetL1aDelay(int l1adelay){
   //

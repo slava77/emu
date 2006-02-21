@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.44 2006/02/20 13:31:13 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.45 2006/02/21 12:44:01 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -87,6 +87,8 @@ protected:
   xdata::UnsignedLong maxNumTriggers_;
   //
   xdata::String xmlFile_;
+  xdata::String TMBFirmware_;
+  //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
   EmuController MyController;
@@ -191,10 +193,10 @@ public:
     myParameter_ =  0;
     //
     xmlFile_     = 
-      "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/timingME+2-1-14.xml" ;
-    //
-    xmlFile_     = 
       "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/config0.xml" ;
+    //
+    TMBFirmware_ = 
+      "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/svf/tmb2005e.svf";
     //
     TMBRegisterValue_ = -1;
     CCBRegisterValue_ = -1;
@@ -745,7 +747,7 @@ public:
     //
     MyController.configure();          // Init system
     //
-    thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
+    //thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
     //
     cgicc::Cgicc cgi(in);
     //
@@ -1599,7 +1601,7 @@ public:
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetCCB(thisCCB);
     //
-    MyTest[tmb].FindTMB_L1A_delay(50,100);
+    MyTest[tmb].FindTMB_L1A_delay(50,200);
     //
     this->CrateTests(in,out);
     //
@@ -3499,6 +3501,11 @@ public:
     *out << cgicc::input().set("type","submit").set("value","Load TMB Firmware") << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","text")
+      .set("name","TMBFirmware")
+      .set("size","80")
+      .set("ENCTYPE","multipart/form-data")
+      .set("value",TMBFirmware_);
     *out << cgicc::form() << std::endl ;
     //
     if (alct) {
@@ -3605,7 +3612,8 @@ public:
     int jch(5);
     string chamberType("ME21");
     ALCTController *alct = new ALCTController(thisTMB,chamberType);
-    int status = alct->SVFLoad(&jch,"/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/svf/tmb2005e.svf",debugMode);
+    int status;
+    //int status = alct->SVFLoad(&jch,TMBFirmware_.toString().c_str(),debugMode);
     //
     if (status >= 0){
       cout << "=== Programming finished"<< endl;
