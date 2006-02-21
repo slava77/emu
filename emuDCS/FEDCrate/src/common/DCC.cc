@@ -70,11 +70,11 @@ enum DEVTYPE dv;
       sndbuf[4]=0xFF;
       devdo(dv,8,cmd,32,sndbuf,rcvbuf,1);
       printf(" The PROM Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+      unsigned long int ibrd=0x00000000;
+      ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
       cmd[0]=PROM_BYPASS;
       sndbuf[0]=0;
       devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
-      unsigned long int ibrd=0x00000000;
-      ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
       return ibrd;
 
 }
@@ -91,13 +91,12 @@ enum DEVTYPE dv;;
       sndbuf[4]=0xFF;
       devdo(dv,16,cmd,32,sndbuf,rcvbuf,1); 
       printf(" The MPROM Chip USER CODE is %02x%02x%02x%02x \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
-
+      unsigned long int ibrd=0x00000000; 
+      ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
       cmd[0]=MPROM_BYPASS_L;
       cmd[1]=MPROM_BYPASS_H;
       sndbuf[0]=0;
-      devdo(dv,16,cmd,0,sndbuf,rcvbuf,0); 
-      unsigned long int ibrd=0x00000000; 
-      ibrd=(rcvbuf[0]&0xff)|((rcvbuf[1]&0xff)<<8)|((rcvbuf[2]&0xff)<<16)|((rcvbuf[3]&0xff)<<24)|ibrd;
+      devdo(dv,16,cmd,0,sndbuf,rcvbuf,0);
       return ibrd;
 }
 unsigned long int  DCC::inprom_chipid()
@@ -177,7 +176,7 @@ void DCC::mctrl_fakeL1A(char rate,char num)
 void DCC::mctrl_fifoinuse(unsigned short int fifo)
 {
 unsigned short int tmp;
- tmp=(fifo&0x03FF);
+ tmp=(fifo&0x07FF);
  printf(" fifo in use %04x \n",tmp);
  cmd[0]=0x00;  // fcn 0x00-write 0x01-read
  cmd[1]=0x03;  // vme add
@@ -207,8 +206,8 @@ unsigned short int  DCC::mctrl_stath()
      cmd[2]=0xff;  // data h
      cmd[3]=0xff;  // data l
      devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
-     printf(" status high %02x %02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
-     rcvr=((rcvbuf[0]<<8)&0xff00)|(rcvbuf[1]&0x00ff);
+     printf(" status high %02x %02x \n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
+     rcvr=((rcvbuf[1]<<8)&0xff00)|(rcvbuf[0]&0x00ff);
      return rcvr;
 }
 
@@ -221,15 +220,15 @@ unsigned short int rcvr=0;
      cmd[2]=0xff;  // data h
      cmd[3]=0xff;  // data l
      devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
-     printf(" status low %02x %02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
-     rcvr=((rcvbuf[0]<<8)&0xff00)|(rcvbuf[1]&0x00ff);
+     printf(" status low %02x %02x \n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
+     rcvr=((rcvbuf[1]<<8)&0xff00)|(rcvbuf[0]&0x00ff);
      return rcvr;
 }
 
 void DCC::mctrl_ttccmd(unsigned short int ctcc)
 {
 unsigned short int tmp;
- tmp=(ctcc&0x1F)<<2;
+ tmp=(ctcc<<2)&0xfc;
  cmd[0]=0x00;  // fcn 0x00-write 0x01-read
  cmd[1]=0x00;  // vme add
  cmd[2]=0xFF;  // data h
@@ -245,8 +244,9 @@ unsigned short int  DCC::mctrl_rd_fifoinuse()
      cmd[2]=0xff;  // data h
      cmd[3]=0xff;  // data l
      devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
-     printf(" status high %02x %02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
-     rcvr=((rcvbuf[0]<<8)&0xff00)|(rcvbuf[1]&0x00ff);
+     printf(" FIFO_in_use register %02x%02x\n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
+     printf(" FIFO_in_Use %02x%02x \n",rcvbuf[1]&0x03,rcvbuf[0]&0xff);
+     rcvr=((rcvbuf[1]<<8)&0xff00)|(rcvbuf[0]&0x00ff);
      return rcvr;
 }
 
@@ -258,8 +258,9 @@ unsigned short int  DCC::mctrl_rd_ttccmd()
      cmd[2]=0xff;  // data h
      cmd[3]=0xff;  // data l
      devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
-     printf(" status high %02x %02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
-     rcvr=((rcvbuf[0]<<8)&0xff00)|(rcvbuf[1]&0x00ff);
+     printf(" TTC_cmd register %02x%02x \n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
+     printf(" TTC_CMD %02x \n",(rcvbuf[0]>>2)&0x3f);
+     rcvr=((rcvbuf[1]<<8)&0xff00)|(rcvbuf[0]&0x00ff);
      return rcvr;
 }
 
@@ -275,14 +276,15 @@ enum DEVTYPE dv;
       cmd[0]=PROM_BYPASS;
       sndbuf[0]=0;
       devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
+      sleep(1);
 }
 
 void DCC::hdrst_main(void)
 {
 enum DEVTYPE dv;
  printf(" MainFOGA hardreset by Main_prom CF \n");
-      printf(" MainPROM %d \n",RESET1);
-      dv=RESET1;
+      printf(" MainPROM %d \n",RESET);
+      dv=RESET;
       cmd[0]=0xEE; //(Pulse CF low, 16-bit SIR for SCF32P)
       cmd[1]=0x00;
       sndbuf[0]=0xFF;
@@ -291,6 +293,7 @@ enum DEVTYPE dv;
       cmd[1]=0xFF;
       sndbuf[0]=0;
       devdo(dv,16,cmd,0,sndbuf,rcvbuf,0);
+      sleep(1);
 }
 
 
@@ -346,9 +349,9 @@ extern struct GEOM geo[];
     //  printf("Programming Design %s (%s) with %s\n",design,devstr,downfile);
 
     while (fgets(buf,256,dwnfp) != NULL)  {
-      // printf("%s",buf);
+      //      printf("%s",buf);
      if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
-       // printf("%s",buf);
+       //       printf("%s",buf);
       }
       else {
         if(strrchr(buf,';')==0){
@@ -508,16 +511,16 @@ extern struct GEOM geo[];
 	  //          for (i=0;i<pause/100;i++)
 	  //  devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
           //fpause=pause;
-          // pause=pause/2;
+          pause=pause/2;
           if (pause>65535) {
             sndbuf[0]=255;
             sndbuf[1]=255;
-            for (looppause=0;looppause<pause/65536;looppause++) devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,0);
+	    for (looppause=0;looppause<pause/65536;looppause++) devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,0);
             pause=65535;
 	    }
           sndbuf[0]=pause-(pause/256)*256;
           sndbuf[1]=pause/256;
-	  // printf(" sndbuf %d %d %d \n",sndbuf[1],sndbuf[0],pause);
+	  //	  printf(" sndbuf %02x %02x %d \n",sndbuf[1],sndbuf[0],pause);
           devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,2);
           //fpause=fpause*1.5+100;
           //pause=fpause; 
