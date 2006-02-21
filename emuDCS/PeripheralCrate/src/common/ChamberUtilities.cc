@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.10 2006/02/20 13:31:14 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.11 2006/02/21 12:44:00 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.11  2006/02/21 12:44:00  mey
+// fixed bug
+//
 // Revision 1.10  2006/02/20 13:31:14  mey
 // Update
 //
@@ -1994,12 +1997,12 @@ int ChamberUtilities::FindTMB_L1A_delay( int idelay_min, int idelay_max ){
     //if (useCCB) thisCCB_->startTrigger();     // 2 commands to get trigger going
     //if (useCCB) thisCCB_->bx0();
     cout << endl << "TMB_l1adelay=" << i << ":" << endl;
-    sleep(3);                   // accumulate statistics
+    sleep(1);                   // accumulate statistics
     //if (useCCB) thisCCB_->stopTrigger();      // stop trigger
     thisTMB->GetCounters();      // read counter values
     
     //thisTMB->PrintCounters(); // display them to screen
-    thisTMB->PrintCounters(8);    // display them to screen
+    thisTMB->PrintCounters(8);  // display them to screen
     thisTMB->PrintCounters(19);
     thisTMB->PrintCounters(20);
 
