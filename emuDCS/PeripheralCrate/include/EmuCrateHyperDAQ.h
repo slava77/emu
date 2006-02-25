@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.45 2006/02/21 12:44:01 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.46 2006/02/25 11:25:11 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -196,7 +196,7 @@ public:
       "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/config0.xml" ;
     //
     TMBFirmware_ = 
-      "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/svf/tmb2005e.svf";
+      "../svf/tmb2005e.svf";
     //
     TMBRegisterValue_ = -1;
     CCBRegisterValue_ = -1;
@@ -747,8 +747,6 @@ public:
     //
     MyController.configure();          // Init system
     //
-    //thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
-    //
     cgicc::Cgicc cgi(in);
     //
     cgicc::form_iterator name = cgi.getElement("navigator");
@@ -757,7 +755,10 @@ public:
     if(name != cgi.getElements().end()) {
       navigator = cgi["navigator"]->getIntegerValue();
       cout << "Navigator " << navigator << endl;
-      if ( navigator == 1 ) this->CrateTests(in,out);
+      if ( navigator == 1 ) {
+	thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
+	this->CrateTests(in,out);
+      }
     } else {
       cout << "No navigator" << endl;
       this->Default(in,out);
@@ -1646,7 +1647,7 @@ public:
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetCCB(thisCCB);
     //
-    MyTest[tmb].FindALCT_L1A_delay(50,100);
+    MyTest[tmb].FindALCT_L1A_delay(140,160);
     //
     this->CrateTests(in,out);
     //
@@ -1888,11 +1889,16 @@ public:
     //
     thisCCB->hardReset();
     //
+    ::sleep(2);
+    //
     if (thisDMB) {
       //
       char *out;
-      thisDMB->epromload(MPROM,"dmb6cntl_v17_r2.svf",1,out);  // load mprom
+      thisDMB->epromload(MPROM,"../svf/dmb6cntl_v18_r2.svf",1,out);  // load mprom
+      //thisDMB->epromload(MPROM,"../svf/dmb6cntl_me11.svf",1,out);  // load mprom
     }
+    //
+    ::sleep(2);
     //
     thisCCB->hardReset();
     //
@@ -3612,8 +3618,11 @@ public:
     int jch(5);
     string chamberType("ME21");
     ALCTController *alct = new ALCTController(thisTMB,chamberType);
-    int status;
-    //int status = alct->SVFLoad(&jch,TMBFirmware_.toString().c_str(),debugMode);
+    //
+    thisTMB->disableAllClocks();
+    printf("Programming...");
+    int status = alct->SVFLoad(&jch,TMBFirmware_.toString().c_str(),debugMode);
+    thisTMB->enableAllClocks();
     //
     if (status >= 0){
       cout << "=== Programming finished"<< endl;
@@ -3653,8 +3662,21 @@ public:
     thisCCB->hardReset();
     //
     int debugMode(0);
-    int jch(5);
-    int status = alct->SVFLoad(&jch,"/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/svf/alct672.svf",debugMode);
+    int jch(3);
+    //
+    ALCTIDRegister sc_id, chipID ;
+    //
+    printf("Reading IDs...") ;
+    //
+    alct->alct_read_slowcontrol_id(&sc_id) ;
+    std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
+    alct->alct_fast_read_id(chipID);
+    std::cout << " ALCT Fastcontrol ID " << chipID << std::endl;
+    //
+    thisTMB->disableAllClocks();
+    printf("Programming...");
+    int status = alct->SVFLoad(&jch,"../svf/alct384rl.svf",debugMode);
+    thisTMB->enableAllClocks();
     //
     if (status >= 0){
       cout << "=== Programming finished"<< endl;

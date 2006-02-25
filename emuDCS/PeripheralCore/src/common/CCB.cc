@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.27 2006/02/21 12:44:00 mey Exp $
+// $Id: CCB.cc,v 2.28 2006/02/25 11:25:11 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.28  2006/02/25 11:25:11  mey
+// UPdate
+//
 // Revision 2.27  2006/02/21 12:44:00  mey
 // fixed bug
 //
@@ -766,8 +769,20 @@ void CCB::hardReset() {
     std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for BackPlane HardReset" << std::endl; 
   }
   
+  ReadRegister(0x0);
+
   HardResetTTCrx();
+
+  sleep(1);
+
+  setCCBMode(CCB::VMEFPGA);
+
+  ReadRegister(0x0);
+
   prgall_bckpln();
+
+  ReadRegister(0x0);
+
   //
   //fg note: these 10seconds are not necessary for new/old TMB
   //fg sleep(10);
@@ -783,6 +798,8 @@ void CCB::hardReset() {
     setCCBMode(CCB::DLOG);
     std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
   };
+
+  ReadRegister(0x0);
 
   reset_bckpln();
   //fg note: this 1second is not necessary

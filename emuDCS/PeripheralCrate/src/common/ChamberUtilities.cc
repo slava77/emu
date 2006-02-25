@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.11 2006/02/21 12:44:00 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.12 2006/02/25 11:25:11 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.12  2006/02/25 11:25:11  mey
+// UPdate
+//
 // Revision 1.11  2006/02/21 12:44:00  mey
 // fixed bug
 //
@@ -1174,6 +1177,9 @@ int ChamberUtilities::FindBestL1aAlct(){
     thisTMB->PrintCounters(3);
     WordCount[l1a] = thisTMB->GetALCTWordCount();
     printf(" WordCount %d \n",thisTMB->GetALCTWordCount());
+    //
+    thisDMB->PrintCounters();
+    //
   }
   //
   for (int i=minlimit; i<maxlimit; i++){
@@ -1225,13 +1231,14 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
     alct->unpackControlRegister(cr);
     thisTMB->ResetCounters();
     thisTMB->ResetALCTRAMAddress();
-    sleep(6);
+    sleep(1);
     thisTMB->GetCounters();
     //
     cout << endl;
     printf("L1a ALCT delay %d : \n",l1a);
     //
     thisTMB->PrintCounters(3);
+    thisDMB->PrintCounters();
     thisTMB->DecodeALCT();
     WordCount[l1a] = thisTMB->GetALCTWordCount();
     printf(" WordCount %d \n",thisTMB->GetALCTWordCount());
@@ -1356,7 +1363,7 @@ void ChamberUtilities::PulseTestStrips(){
 	//old alct->alct_set_test_pulse_groupmask(&slot,0xff);
 	//
 	alct->alct_set_test_pulse_stripmask(&slot,0xff);
-	alct->alct_set_test_pulse_groupmask(&slot,0x00);
+	alct->alct_set_test_pulse_groupmask(&slot,0xff);
 	//
 	alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
 	cout << " StripMask = " << hex << StripMask << endl;

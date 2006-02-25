@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 2.3 2005/08/31 15:12:58 mey Exp $
+// $Id: TMBParser.cc,v 2.4 2006/02/25 11:25:11 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 2.4  2006/02/25 11:25:11  mey
+// UPdate
+//
 // Revision 2.3  2005/08/31 15:12:58  mey
 // Bug fixes, updates and new routine for timing in DMB
 //
@@ -71,9 +74,9 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, int crateNumber)
        	parser_.fillInt("trig_mode", alct_->alct_trig_mode_);
 	parser_.fillInt("ext_trig_en", alct_->alct_ext_trig_en_);
 	parser_.fillInt("trig_info_en", alct_->alct_trig_info_en_);
-	parser_.fillInt("fifo_pretrig", alct_->alct_fifo_pretrig_);
 	parser_.fillInt("l1a_internal", alct_->alct_l1a_internal_);
 	parser_.fillInt("fifo_tbins", alct_->alct_fifo_tbins_);
+	parser_.fillInt("fifo_pretrig", alct_->alct_fifo_pretrig_);
 	parser_.fillInt("l1a_delay", alct_->alct_l1a_delay_);
 	parser_.fillInt("l1a_offset",alct_->alct_l1a_offset_);
 	parser_.fillInt("l1a_window", alct_->alct_l1a_window_);

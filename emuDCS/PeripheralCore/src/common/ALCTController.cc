@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.18 2006/02/20 13:31:13 mey Exp $
+// $Id: ALCTController.cc,v 2.19 2006/02/25 11:25:11 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.19  2006/02/25 11:25:11  mey
+// UPdate
+//
 // Revision 2.18  2006/02/20 13:31:13  mey
 // Update
 //
@@ -453,6 +456,8 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   delays_inited_(false),
   alct_fifo_mode_(1),
   alct_send_empty_(0),
+  alct_fifo_pretrig_(6),
+  alct_fifo_tbins_(8),
   alct_bxc_offset_(1),
   alct_drift_delay_(3)
  {
@@ -470,17 +475,23 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
    if(chamber_type_string_ == "ME31") chamber_type_ = ME31;
    if(chamber_type_string_ == "ME41") chamber_type_ = ME41;
    //
+   std::cout << "^^^^^^^" << chamber_type_string_ << std::endl ;
+   //
    if(WRONG_CHAMBER_TYPE_(chamber_type_)) throw ("Bad chamber type in ALCTController");
    nAFEBs_ = chamb_table[chamber_type_].wiregroups / alct_table[chamb_table[chamber_type_].alct].delaylines;
    n_lct_chips_ = alct_table[chamb_table[chamber_type_].alct].groups;
    std::cout << " ALCT: type " << chamber_type_string_ << " " << chamber_type_ << " AFEBS " << nAFEBs_ << " chips " << n_lct_chips_ << std::endl;
    alct_rsz = chamtype[chamber_type_].RegSz;
    
+   printf("####Object#############. %d \n",alct_fifo_pretrig_);
+
    // now give a default value for the control registers
    unsigned cr[] = {0x80fc5fc0, 0x20a03786, 0x8}; // default values for CR
    setCRfld(&params_);
-   unpackControlRegister(cr);
-   
+   //unpackControlRegister(cr);
+   //
+   printf("####Object#############. %d \n",alct_fifo_pretrig_);
+   //
 }
 
 
@@ -491,12 +502,14 @@ void ALCTController::setup(int choice)
   int err ;
   ALCTIDRegister sc_id, chipID ;
   int slot = tmb_->slot();
-
+  //
+  printf("*setup********************* alct_fifo_pretrig %d \n",alct_fifo_pretrig_);
+  //
   // ALCT stuff
-
+  //
   err = alct_read_slowcontrol_id(&sc_id) ;
   std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
-  err = alct_init_slow_control(&slot,(long)20) ;
+  err = alct_init_slow_control(&slot,(long)10) ;
 
   printf(" Initialize ALCT err %d \n",err ) ;
   alct_read_standby(&slot, 3, &value) ;
@@ -1504,7 +1517,9 @@ void ALCTController::setCRfld(alct_params_type* p) {
     crParams_[6]  = (char*)&(alct_nph_pattern_);
     crParams_[7]  = (char*)&(alct_drift_delay_);
     crParams_[8]  = (char*)&(alct_fifo_tbins_);
+    printf("********************** alct_fifo_pretrig %d \n",alct_fifo_pretrig_);
     crParams_[9]  = (char*)&(alct_fifo_pretrig_);
+    printf("********************** alct_fifo_pretrig %d \n",*crParams_[9]);
     crParams_[10] = (char*)&(alct_fifo_mode_);
     crParams_[11] = (char*)&(p->fifo_last_feb);
     crParams_[12] = (char*)&(alct_l1a_delay_);
@@ -1529,6 +1544,8 @@ void ALCTController::setCRfld(alct_params_type* p) {
 
 
 void ALCTController::packControlRegister(unsigned * cr) const {
+  printf("********************** %d ",*crParams_[9]);
+  //*crParams_[9] = 8;
   for (int i = 0; i < sizeof (CRfld) / sizeof (struct Rfield); i++)
   {
     if(crParams_[i] != NULL) {
@@ -1561,38 +1578,41 @@ void ALCTController::unpackControlRegister(unsigned * cr) {
 
 
 void ALCTController::setConfig() {
-    ALCTSTATUS st  = EALCT_SUCCESS; 
-    bool verbose = true;
-    unsigned cr[3]  = {0x80fc5fc0, 0x20a03786, 0x8}; // default values for CR
-    unsigned crr[] = {0,0,0};
+  //
+  ALCTSTATUS st  = EALCT_SUCCESS; 
+  bool verbose = true;
+  unsigned cr[3]  = {0x80fc5fc0, 0x20a03786, 0x8}; // default values for CR
+  unsigned crr[] = {0,0,0};
+  //
+  packControlRegister(cr);
+  //
+  printf("fifo_pretrig %d \n",alct_fifo_pretrig_);
     //
-    packControlRegister(cr);
-    //
-    if (verbose) printf("Configuration register's new value: %08x %08x %08x\n", cr[2], cr[1], cr[0]);
-    if (WriteRegister (WrCfg, cr) == -1)
+  if (verbose) printf("3.Configuration register's new value: %08x %08x %08x\n", cr[2], cr[1], cr[0]);
+  if (WriteRegister (WrCfg, cr) == -1)
     {
-       printf ("JTAG_B driver detected a problem\n");
-        st = EALCT_PORT;
+      printf ("JTAG_B driver detected a problem\n");
+      st = EALCT_PORT;
     }
-    else
+  else
     {
-        ReadRegister (RdCfg, crr);
-        if (cr[0] != crr[0] || cr[1] != crr[1] || cr[2] != crr[2])
+      ReadRegister (RdCfg, crr);
+      if (cr[0] != crr[0] || cr[1] != crr[1] || cr[2] != crr[2])
         {
-            st = EALCT_TESTFAIL;
-	    printf("Configuration register mismatch:    %08x %08x %08x\n", crr[2], crr[1], crr[0]);
+	  st = EALCT_TESTFAIL;
+	  printf("Configuration register mismatch:    %08x %08x %08x\n", crr[2], crr[1], crr[0]);
         }
     }
-
-    // enable real input from the AFEBs
-    unsigned r = 0x1fd;
-    WriteRegister (ParamRegWrite, &r);
-
-    // Set YRIclkEn (see Verilog code)
-    unsigned YR = 0;
-    WriteRegister (YRwrite, &YR);
-    // enable input.
-    WriteIR(InputEnable);
+  
+  // enable real input from the AFEBs
+  unsigned r = 0x1fd;
+  WriteRegister (ParamRegWrite, &r);
+  
+  // Set YRIclkEn (see Verilog code)
+  unsigned YR = 0;
+  WriteRegister (YRwrite, &YR);
+  // enable input.
+  WriteIR(InputEnable);
 }
 
 
@@ -1663,7 +1683,7 @@ ALCTController::ALCTSTATUS ALCTController::alct_download_fast_config
         if (verbose) printf ("Cannot open input file: %s\n", filename);
     }
     if (in != NULL) fclose(in);
-    if (verbose) printf(    "Configuration register's new value: %08x %08x %08x\n", cr[2], cr[1], cr[0]);
+    if (verbose) printf(    "2.Configuration register's new value: %08x %08x %08x\n", cr[2], cr[1], cr[0]);
     if (WriteRegister (WrCfg, cr) == -1)
     {
         if (verbose) printf ("JTAG_B driver detected a problem\n");
@@ -1881,7 +1901,7 @@ ALCTController::ALCTSTATUS ALCTController::alct_change_fast_parameter
         else
         {
         
-                if (verbose) printf(    "Configuration register's new value: %08x %08x %08x\n", cr[2], cr[1], cr[0]);
+                if (verbose) printf(    "1.Configuration register's new value: %08x %08x %08x\n", cr[2], cr[1], cr[0]);
                 if (WriteRegister (WrCfg, cr) == -1)
                 {
                         if (verbose) printf ("JTAG_B driver detected a problem\n");
@@ -4969,7 +4989,7 @@ int ALCTController::ConstructShift(char HeaderData[],int HeaderDataSize, char Da
 // ===  db  - Debug level option
 // ==============================
 
-int ALCTController::SVFLoad(int *jch, char *fn, int db )
+int ALCTController::SVFLoad(int *jch, const char *fn, int db )
 {
  unsigned char snd[MAXBUFSIZE], rcv[MAXBUFSIZE], expect[MAXBUFSIZE],rmask[MAXBUFSIZE],smask[MAXBUFSIZE],cmpbuf[MAXBUFSIZE];
   unsigned char sndbuf[MAXBUFSIZE],rcvbuf[MAXBUFSIZE], realsnd[MAXBUFSIZE];
@@ -4980,7 +5000,7 @@ int ALCTController::SVFLoad(int *jch, char *fn, int db )
   char buf[MAXBUFSIZE], buf2[256];
 //  char buf[8192],buf2[256];
   char *Word[256],*lastn;
-  char *downfile;
+  const char *downfile;
   char fStop;
   int jchan;
   unsigned char sndvalue;
