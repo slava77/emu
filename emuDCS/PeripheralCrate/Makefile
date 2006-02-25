@@ -38,10 +38,8 @@ Sources=\
 	EmuParser.cc \
 	MPC.cc \
 	MPCParser.cc \
-	PCDriverI2oListener.cpp \
 	PeripheralCrateController.cc \
 	PeripheralCrateParser.cc \
-	TestBeamCrateController.cc \
 	TMB.cc \
 	TMBParser.cc \
 	TMB_trgmode.cc \
@@ -51,9 +49,6 @@ Sources=\
 	VMEParser.cc \
 	EmuController.cc \
 	ChamberUtilities.cc \
-	EmuPeripheralCrate.cc \
-	EmuPeripheralCrateSO.cc \
-	EmuPeripheralCrateV.cc \
 	TMBTester.cc
 
 IncludeDirs = \
