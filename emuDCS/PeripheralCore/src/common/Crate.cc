@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 2.6 2006/02/15 22:39:57 mey Exp $
+// $Id: Crate.cc,v 2.7 2006/02/25 11:25:11 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 2.7  2006/02/25 11:25:11  mey
+// UPdate
+//
 // Revision 2.6  2006/02/15 22:39:57  mey
 // UPdate
 //
@@ -181,6 +184,9 @@ void Crate::configure() {
   }
   //
   //::sleep(1);
+  //
+  printf("############### Now setup \n");
+
   for(unsigned i =0; i < myTmbs.size(); ++i) {
     ALCTController * alct = myTmbs[i]->alctController();
     if(alct) alct->setup(1);

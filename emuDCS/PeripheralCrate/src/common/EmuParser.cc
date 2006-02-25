@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuParser.cc,v 2.0 2005/04/12 08:07:05 geurts Exp $
+// $Id: EmuParser.cc,v 2.1 2006/02/25 11:25:11 mey Exp $
 // $Log: EmuParser.cc,v $
+// Revision 2.1  2006/02/25 11:25:11  mey
+// UPdate
+//
 // Revision 2.0  2005/04/12 08:07:05  geurts
 // *** empty log message ***
 //
@@ -26,9 +29,9 @@ void EmuParser::fillInt(std::string item, int & target) {
     int err = sscanf(xercesc::XMLString::transcode(pAttributeNode->getNodeValue()), "%d", &value);
     if (err==0) std::cerr << "ERRORS in parsing!!!" << item << " code " << err << std::endl;
     target = value;
-    #ifdef debugV
+#ifdef debugV
     std::cout << "  " << item << " = " << target << std::endl;
-    #endif
+#endif
   }
   
 }

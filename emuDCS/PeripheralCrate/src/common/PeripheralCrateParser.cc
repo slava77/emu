@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.cc,v 2.1 2006/01/19 10:03:46 mey Exp $
+// $Id: PeripheralCrateParser.cc,v 2.2 2006/02/25 11:25:11 mey Exp $
 // $Log: PeripheralCrateParser.cc,v $
+// Revision 2.2  2006/02/25 11:25:11  mey
+// UPdate
+//
 // Revision 2.1  2006/01/19 10:03:46  mey
 // Update
 //
@@ -124,6 +127,9 @@ void PeripheralCrateParser::parseFile(const char* name){
 		vmeParser_ = VMEParser(pNode3, crateNumber);                       
 		Crate * crate = vmeParser_.crate();
 		crateNumber = crate->number();  
+		//
+		std::cout << "  *************** crateNumber = " << crateNumber << std::endl;
+		//
 	      }
 
 	      if (strcmp("DAQMB",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  

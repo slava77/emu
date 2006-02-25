@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.30 2006/02/06 14:06:55 mey Exp $
+// $Id: DAQMB.cc,v 2.31 2006/02/25 11:25:11 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.31  2006/02/25 11:25:11  mey
+// UPdate
+//
 // Revision 2.30  2006/02/06 14:06:55  mey
 // Fixed stream
 //
@@ -151,6 +154,9 @@ DAQMB::DAQMB(int newcrate,int newslot):
   cfebs_.clear();
   std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
   for(int i=0;i<20;i++) TestStatus_[i]=-1;
+  //
+  std::cout << "&&&&&&&&&&&&&&&&&& CrateId " << crate_id_ << std::endl ;
+  //
 }
 
 DAQMB::DAQMB(int newcrate,int newslot,  int newcfeb):
@@ -236,7 +242,7 @@ void DAQMB::configure() {
    std::cout << "Set cable delay " << cable_delay_ << std::endl ;
    setcbldly(cable_delay_);
    //
-   std::cout << "Set crate id " << crate_id_ << std::endl ;
+   std::cout << "&&&&&&&&&&&&&&&& Set crate id " << crate_id_ << std::endl ;
    setcrateid(crate_id_);
    //
    std::cout << "Toogle bxn " << crate_id_ << std::endl ;
