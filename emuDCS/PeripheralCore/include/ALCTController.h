@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.7 2006/02/07 22:49:25 mey Exp $
+// $Id: ALCTController.h,v 2.8 2006/02/25 11:24:34 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.8  2006/02/25 11:24:34  mey
+// Changed to constant
+//
 // Revision 2.7  2006/02/07 22:49:25  mey
 // UPdate
 //
@@ -524,7 +527,7 @@ public:
       void init_jtag();
       
       void Parse(char *buf,int *Count,char **Word);
-      int SVFLoad(int*, char *, int);
+      int SVFLoad(int*, const char *, int);
       int NewSVFLoad(int*, char *, int);
       int ConvertCharToInteger(char [], int [], int &);
       int ConstructShift(char HeaderData[8192],int HeaderDataSize, char Data[8192], int DataSize, 
