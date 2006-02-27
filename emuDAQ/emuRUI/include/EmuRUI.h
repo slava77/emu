@@ -21,11 +21,10 @@
 #include "xdata/include/xdata/Integer.h"
 
 /* // EMu-specific stuff */
-// #include "emuDAQ/emuRUI/include/emuRUI/Writer.h"
 #include "emuDAQ/emuUtil/include/FileWriter.h"
-#include "emuDAQ/DDUReadout/include/DDUReader.h"
-#include "emuDAQ/DDUReadout/include/EventReader.h"
-#include "emuDAQ/toyclient/include/i2oToyClientMsg.h"
+#include "emuDAQ/emuReadout/include/EmuReader.h"
+#include "emuDAQ/emuClient/include/i2oEmuClientMsg.h"
+#include "emuDAQ/emuUtil/include/EmuServer.h"
 
 using namespace std;
 
@@ -53,48 +52,131 @@ public:
 private:
 
   // EMu-specific stuff
-  DDUReader                         **DDU_;
-  unsigned int                       *nDDUReadFailures_;
-  xdata::UnsignedLong                 nDDUs_;
-  unsigned int                        iCurrentDDU_;
-  xdata::String                       DDUMode_;
-  xdata::Vector<xdata::String>        DDUInput_;
-//   xdata::Vector<xdata::UnsignedLong>  DDUSourceId_;
-  xdata::UnsignedLong                 nEvents_;
-  xdata::UnsignedLong                 prescalingForDQM_;
-//   emuRUI::Writer                     *emuRUIw_;
-  FileWriter                         *fileWriter_;
-  xdaq::ApplicationDescriptor        *DQMonitorDescriptor_;
-  I2O_TID                             DQMonitorTid_;
-  deque<toolbox::mem::Reference*>     dataBlocksForDQM_; // each block carries one DDU's one event
-  string                              ruiDqmPoolName_;
-  toolbox::mem::Pool                 *ruiDqmPool_;
-  bool                                dataForDQMArePendingTransmission_;
 
-  xdata::UnsignedLong*  getRunNumber();
-  void appendNewBlockToDataForDQM( char* data, unsigned long dataLength ) throw (emuRUI::exception::Exception);
-  void sendNextPendingBlockToDQM() throw (emuRUI::exception::Exception);
-  int  getDDUDataLengthWithoutPadding(char* data, const int dataLength);
+  bool serverLoopAction(toolbox::task::WorkLoop *wl);
+
+
+  static const unsigned int maxDevices_ = 5; // max possible number of input devices
+  static const unsigned int maxClients_ = 5; // max possible number of clients
+
+  xdata::Vector<xdata::String>       clientName_;
+  xdata::Vector<xdata::Boolean>      clientPersists_; // whether its server needs to be (re)created on config
+  xdata::Vector<xdata::String>       clientProtocol_;
+  xdata::Vector<xdata::UnsignedLong> clientPoolSize_;
+  xdata::Vector<xdata::UnsignedLong> prescaling_;
+  xdata::Vector<xdata::Boolean>      onRequest_;
+  xdata::Vector<xdata::UnsignedLong> creditsHeld_;
+  struct Client {
+    xdata::String                  *name;
+    xdata::Boolean                 *persists;
+    xdata::UnsignedLong            *poolSize;
+    xdata::UnsignedLong            *prescaling;
+    xdata::Boolean                 *onRequest;
+    xdata::UnsignedLong            *creditsHeld;
+    EmuServer                      *server;
+    toolbox::task::WorkLoop        *workLoop;
+    string                          workLoopName;
+    bool                            workLoopStarted;
+    toolbox::task::ActionSignature *workLoopActionSignature;
+    Client( xdata::Serializable*            n=NULL,
+	    xdata::Serializable*            e=NULL,
+	    xdata::Serializable*            s=NULL,
+	    xdata::Serializable*            p=NULL,
+	    xdata::Serializable*            r=NULL,
+	    xdata::Serializable*            c=NULL,
+	    EmuServer*                      S=NULL,
+            toolbox::task::WorkLoop*        wl =NULL,
+	    string                          wln="",
+	    bool                            wls=false,
+	    toolbox::task::ActionSignature* wla=NULL   ){
+      name                    = dynamic_cast<xdata::String*>      ( n );
+      persists                = dynamic_cast<xdata::Boolean*>     ( e );
+      poolSize                = dynamic_cast<xdata::UnsignedLong*>( s );
+      prescaling              = dynamic_cast<xdata::UnsignedLong*>( p );
+      onRequest               = dynamic_cast<xdata::Boolean*>     ( r );
+      creditsHeld             = dynamic_cast<xdata::UnsignedLong*>( c );
+      server                  = S;
+      workLoop                = wl;
+      workLoopName            = wln;
+      workLoopStarted         = wls;
+      workLoopActionSignature = wla;
+    }
+  };
+  std::vector<Client*> clients_;
+
+  std::vector<EmuReader*>             deviceReaders_;	     // vector of device readers
+  unsigned int                        iCurrentDeviceReader_; // index of device reader currently active
+  xdata::UnsignedLong                 nInputDevices_;        // number of input devices
+  xdata::Vector<xdata::String>        inputDeviceNames_;     // vector of input device names (file path or board number)
+  xdata::String                       inputDeviceType_;      // spy, slink or file
+  xdata::String                       inputDataFormat_;      // "DDU" or "DCC"
+  int                                 inputDataFormatInt_;   // EmuReader::DDU or EmuReader::DCC
+
+  void createDeviceReaders();
+  void destroyDeviceReaders();
+  void createServers();
+  void destroyServers();
+  bool createI2OServer( string clientName );
+  bool createSOAPServer( string clientName, bool persistent=true );
+  void onI2OClientCreditMsg(toolbox::mem::Reference *bufRef);
+  xoap::MessageReference onSOAPClientCreditMsg( xoap::MessageReference msg )
+    throw (xoap::exception::Exception);
+  string extractParametersFromSOAPClientCreditMsg( xoap::MessageReference msg, int& credits, int& prescaling )
+    throw (emuRUI::exception::Exception);
+  xoap::MessageReference processSOAPClientCreditMsg( xoap::MessageReference msg )
+    throw( emuRUI::exception::Exception );
+  void addDataForClients(const int   runNumber, 
+			 const int   nEventsRead,
+			 const bool  completesEvent, 
+			 char* const data, 
+			 const int   dataLength );
+
+
+  xdata::UnsignedLong                 nEventsRead_;
+  FileWriter                         *fileWriter_;
+  FileWriter                         *badEventsFileWriter_;
+  int                                 nDevicesWithBadData_;
+
+  int  getDDUDataLengthWithoutPadding(char* const data, const int dataLength);
+  int  getDCCDataLengthWithoutPadding(char* const data, const int dataLength);
+  bool interestingDDUErrorBitPattern(char* const data, const int dataLength);
   void printData(char* data, const int dataLength);
-  xdaq::ApplicationDescriptor* getDQMonitor(xdaq::ApplicationGroup *appGroup);
-  void clientCreditMsg(toolbox::mem::Reference *bufRef);
-  string createRuiDqmPoolName();
-  toolbox::mem::Pool *createCommittedHeapAllocatorMemoryPool( toolbox::mem::MemoryPoolFactory *poolFactory,
-							      const string                     poolName )
-    throw (emuRUI::exception::Exception);
-  void fillBlockForDQM( toolbox::mem::Reference *bufRef,
-			char*                    data,
-			const unsigned int       dataLength )
-    throw (emuRUI::exception::Exception);
 
 
   void printBlocks( deque<toolbox::mem::Reference*> d );
-  void fillBlock(
-		 toolbox::mem::Reference *bufRef,
+  void fillBlock(toolbox::mem::Reference *bufRef,
 		 char*                    data,
-		 const unsigned int       dataLength
-		 )
+		 const unsigned int       dataLength)
     throw (emuRUI::exception::Exception);
+  
+
+  vector< xdaq::ApplicationDescriptor* > getAppDescriptors(xdaq::ApplicationGroup *appGroup,
+								   const string            appClass)
+    throw (emuRUI::exception::Exception);
+
+  xoap::MessageReference createParameterGetSOAPMsg(const string appClass,
+						   const string paramName,
+						   const string paramType)
+    throw (emuRUI::exception::Exception);
+
+  DOMNode *findNode(DOMNodeList *nodeList,
+		    const string nodeLocalName)
+    throw (emuRUI::exception::Exception);
+
+  string extractScalarParameterValueFromSoapMsg(xoap::MessageReference msg,
+						const string           paramName)
+    throw (emuRUI::exception::Exception);
+  
+  string getScalarParam(xdaq::ApplicationDescriptor* appDescriptor,
+			const string                 paramName,
+			const string                 paramType)
+    throw (emuRUI::exception::Exception);
+
+  void getRunAndMaxEventNumber() throw (emuRUI::exception::Exception);
+
+
+
+
 
     /**
      * Pointer to the descriptor of the RUBuilderTester application.
@@ -298,14 +380,10 @@ private:
     // EMu-specific stuff
     //
     xdata::String       pathToDataOutFile_;    // the path to the file to write the data into (no file written if "")
+    xdata::String       pathToBadEventsFile_;    // the path to the file to write the bad events into (no file written if "")
     xdata::UnsignedLong fileSizeInMegaBytes_;  // when the file size exceeds this, no more events will be written to it (no file written if <=0)
-//     xdata::Integer      maxEvents_;            // stop reading from DDU after this many events
     xdata::UnsignedLong maxEvents_;            // stop reading from DDU after this many events
-    xdata::UnsignedLong maxDDUReadFailures_;   // give up trying to read from DDU after this many failures
     xdata::Boolean      passDataOnToRUBuilder_;// it true, data is sent to the event builder
-    xdata::Boolean      sendDQMDataOnRequestOnly_;// it true, data is sent to DQM only upon request
-    xdata::UnsignedLong nEventCreditsHeld_;    // number of credits (from DQM client) yet to be sent
-    xdata::UnsignedLong ruiDqmPoolSize_;       // committed memory pool size for data sent to DQM
     xdata::UnsignedLong runNumber_;            // run number to be obtained from TA
 
     /////////////////////////////////////////////////////////////

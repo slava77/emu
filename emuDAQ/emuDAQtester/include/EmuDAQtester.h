@@ -14,6 +14,7 @@
 #include "xdata/include/xdata/String.h"
 #include "xdata/include/xdata/UnsignedLong.h"
 
+#include <string>
 
 using namespace std;
 
@@ -206,6 +207,8 @@ private:
      */
     void controlWebPage(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
+
+  int purgeIntNumberString( string* s ); // Emu
 
     /**
      * Processes the form sent from the control web page.

@@ -23,6 +23,40 @@
 #include "xoap/include/xoap/SOAPBodyElement.h"
 #include "xoap/include/xoap/SOAPEnvelope.h"
 
+// EMu-specific stuff
+#include "toolbox/mem/CommittedHeapAllocator.h"
+#include "emu/emuDAQ/emuReadout/include/EmuFileReader.h"
+#include "emu/emuDAQ/emuReadout/include/EmuSpyReader.h"
+#include "emu/emuDAQ/emuUtil/include/EmuI2OServer.h"
+#include "emu/emuDAQ/emuUtil/include/EmuSOAPServer.h"
+#include <sstream>
+
+
+// #include "EmuFU.h"
+// #include "EmuFUV.h"
+// #include "cgicc/HTTPHTMLHeader.h"
+// #include "cgicc/HTTPPlainHeader.h"
+// #include "i2o/Method.h"
+// #include "i2oEVBMsgs.h"
+// #include "frl_header.h"
+// #include "fed_header.h"
+// #include "fed_trailer.h"
+// #include "i2oXFunctionCodes.h"
+// #include "toolbox/utils.h"
+// #include "toolbox/fsm/FailedEvent.h"
+// #include "toolbox/mem/HeapAllocator.h"
+// #include "xcept/tools.h"
+// #include "xdaq/NamespaceURI.h"
+// #include "xdaq/exception/ApplicationNotFound.h"
+// #include "xgi/Method.h"
+// #include "xoap/domutils.h"
+// #include "xoap/MessageFactory.h"
+// #include "xoap/MessageReference.h"
+// #include "xoap/Method.h"
+// #include "xoap/SOAPBody.h"
+// #include "xoap/SOAPBodyElement.h"
+// #include "xoap/SOAPEnvelope.h"
+
 #include <unistd.h>
 
 // Alias used to access the "versioning" namespace EmuFU from within the class EmuFU
@@ -113,6 +147,8 @@ bSem_(BSem::FULL)
     //
     // Emu-specific stuff
     //
+    workLoopFactory_ = toolbox::task::getWorkLoopFactory();
+
     fileWriter_ = NULL;
 
     bindFsmSoapCallbacks();
@@ -121,6 +157,10 @@ bSem_(BSem::FULL)
     // Bind web interface
     xgi::bind(this, &EmuFU::css           , "styles.css");
     xgi::bind(this, &EmuFU::defaultWebPage, "Default"   );
+
+    // bind SOAP client credit message callback
+    xoap::bind(this, &EmuFU::onSOAPClientCreditMsg, 
+	       "onClientCreditMessage", XDAQ_NS_URI);
 
     LOG4CPLUS_INFO(logger_, "End of constructor");
 }
@@ -141,6 +181,239 @@ string EmuFU::generateLoggerName()
     return loggerName;
 }
 
+string EmuFU::extractParametersFromSOAPClientCreditMsg
+(
+    xoap::MessageReference msg, int& credits, int& prescaling 
+)
+throw (emuFU::exception::Exception)
+{
+    try
+    {
+        xoap::SOAPPart part = msg->getSOAPPart();
+        xoap::SOAPEnvelope env = part.getEnvelope();
+        xoap::SOAPBody body = env.getBody();
+        DOMNode *bodyNode = body.getDOMNode();
+        DOMNodeList *bodyList = bodyNode->getChildNodes();
+        DOMNode *functionNode = findNode(bodyList, "onClientCreditMessage");
+        DOMNodeList *parameterList = functionNode->getChildNodes();
+// 	for ( unsigned int i=0; i<parameterList->getLength(); ++i ){
+// 	  cout << i << " " << xoap::XMLCh2String(parameterList->item(i)->getNodeName())
+// 	       << " " << xoap::XMLCh2String(parameterList->item(i)->getFirstChild()->getNodeValue()) << endl;
+// 	}
+	DOMNode *parameterNode = findNode(parameterList, "clientName");
+        string clientName      = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
+        parameterNode = findNode(parameterList, "nEventCredits");
+        string sc              = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
+	parameterNode          = findNode(parameterList, "prescalingFactor");
+        string sp              = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
+
+        LOG4CPLUS_DEBUG(logger_, 
+			"Received from "          << clientName << 
+			" nEventCredits = "       << sc << 
+			", prescalingFactor = 1/" << sp );
+
+	istringstream ssc(sc);
+	int ic;
+	ssc >> ic;
+	if ( ic > 0 ) credits = ic; 
+
+	istringstream ssp(sp);
+	int ip;
+	ssp >> ip;
+	if ( ip > 0 ) prescaling = ip;
+
+	return clientName;
+    }
+    catch(xcept::Exception e)
+    {
+        XCEPT_RETHROW(emuFU::exception::Exception,
+            "Parameter(s) not found", e);
+    }
+    catch(...)
+    {
+        XCEPT_RAISE(emuFU::exception::Exception,
+            "Parameter(s) not found");
+    }
+}
+
+xoap::MessageReference EmuFU::processSOAPClientCreditMsg( xoap::MessageReference msg )
+  throw( emuFU::exception::Exception )
+{
+  xoap::MessageReference reply;
+
+  int credits = 0, prescaling = 1;
+  string name = extractParametersFromSOAPClientCreditMsg( msg, credits, prescaling );
+
+  // Find out who sent this and add the credits to its corresponding server
+  bool knownClient = false;
+  for ( std::vector<Client*>::iterator c=clients_.begin(); c!=clients_.end(); ++c ){
+    if ( (*c)->name->toString() == name ){
+      knownClient = true;
+      (*c)->server->addCredits( credits, prescaling );
+      // If client descriptor is not known (non-XDAQ client), send data now:
+      if ( (*c)->server->getClientDescriptor() == NULL ){
+	reply = (*c)->server->getOldestMessagePendingTransmission();
+	if ( !reply.isNull() ){ 
+// 	  string rs;
+// 	  reply->writeTo(rs);
+	  LOG4CPLUS_DEBUG(logger_, string("***** Sending data to non-XDAQ SOAP client *****") );// << endl << rs << endl );
+	}
+      }
+      break;
+    }
+  }
+
+  // If this client is not yet known, create a new (non-persistent) server for it...
+  if ( !knownClient ){
+    if ( createSOAPServer( name, false ) ){
+      // ... and if successfully created, add credits
+      clients_.back()->server->addCredits( credits, prescaling );
+    }
+    else {
+      if ( reply.isNull() ) reply       = xoap::createMessage();
+      xoap::SOAPEnvelope envelope       = reply->getSOAPPart().getEnvelope();
+      xoap::SOAPName fault              = envelope.createName( "fault" );
+      xoap::SOAPBodyElement faultElem   = envelope.getBody().addBodyElement( fault );
+      xoap::SOAPName faultcode          = envelope.createName( "faultcode" );
+      xoap::SOAPElement faultcodeElem   = faultElem.addChildElement( faultcode );
+      faultcodeElem.addTextNode("Server");
+      xoap::SOAPName faultstring        = envelope.createName( "faultstring" );
+      xoap::SOAPElement faultstringElem = faultElem.addChildElement( faultstring );
+      faultstringElem.addTextNode("Could not create an Emu data server for you.");
+    }
+  }
+
+  return reply;
+}
+
+
+xoap::MessageReference EmuFU::onSOAPClientCreditMsg( xoap::MessageReference msg )
+  throw (xoap::exception::Exception)
+  // EMu-specific stuff
+{
+
+  stringstream ss;
+  std::multimap< std::string, std::string, std::less< std::string > > h = msg->getMimeHeaders()->getAllHeaders();
+  std::multimap< std::string, std::string, std::less< std::string > >::iterator i;
+  ss << "Mime headers (" << h.size() << ")" << endl;
+  for( i = h.begin(); i != h.end(); ++i )
+    ss << i->first << " " << i->second << endl;
+  string s;
+  msg->writeTo(s);
+  LOG4CPLUS_DEBUG(logger_, string("Received: ") << endl << ss.str() << s);
+
+  int credits = 0, prescaling = 1;
+  string name = extractParametersFromSOAPClientCreditMsg( msg, credits, prescaling );
+
+  bSem_.take();
+
+  xoap::MessageReference reply;
+
+  try
+    {
+      switch(fsm_.getCurrentState())
+        {
+        case 'H': // Halted
+        case 'F': // Failed
+	  break;
+        case 'E': // Enabled
+	  try
+	    {
+	      reply = processSOAPClientCreditMsg( msg );
+	    }
+	  catch( emuFU::exception::Exception e )
+	    {
+	      XCEPT_RETHROW(xoap::exception::Exception, string("Failed to process SOAP client credit message"), e);
+	    }
+	  break;
+        case 'R': // Ready
+        case 'S': // Suspended
+	  break;
+        default:
+	  LOG4CPLUS_ERROR(logger_,
+			  "EmuFU in undefined state");
+        }
+    }
+  catch(xcept::Exception e)
+    {
+      LOG4CPLUS_ERROR(logger_,
+		      "Failed to process client credit message : "
+		      << stdformat_exception_history(e));
+    }
+  catch(...)
+    {
+      LOG4CPLUS_ERROR(logger_,
+		      "Failed to process client credit message : Unknown exception");
+    }
+  
+  
+  if ( reply.isNull() ) reply = xoap::createMessage();
+  xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+  xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
+  envelope.getBody().addBodyElement ( responseName );
+
+  bSem_.give();
+
+  return reply;
+}
+
+void EmuFU::onI2OClientCreditMsg(toolbox::mem::Reference *bufRef)
+  // EMu-specific stuff
+{
+    I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME *msg =
+        (I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME*)bufRef->getDataLocation();
+
+
+    bSem_.take();
+
+    try
+    {
+        switch(fsm_.getCurrentState())
+        {
+        case 'H': // Halted
+        case 'F': // Failed
+            break;
+        case 'E': // Enabled
+	  // Find out who sent this and add the credits to its corresponding server
+	  LOG4CPLUS_DEBUG(logger_, 
+			  "Got I2O credit message from client of tid " << 
+			  msg->PvtMessageFrame.StdMessageFrame.InitiatorAddress );
+	  for ( std::vector<Client*>::iterator c=clients_.begin(); c!=clients_.end(); ++c )
+	    {
+	      if ( msg->PvtMessageFrame.StdMessageFrame.InitiatorAddress != 0 &&
+		   (*c)->server->getClientTid() == msg->PvtMessageFrame.StdMessageFrame.InitiatorAddress )
+		{
+		  (*c)->server->addCredits( msg->nEventCredits, msg->prescalingFactor );
+		  break;
+		}
+	    }
+	  break;
+        case 'R': // Ready
+        case 'S': // Suspended
+	  break;
+        default:
+	  LOG4CPLUS_ERROR(logger_,
+			  "EmuFU in undefined state");
+        }
+    }
+    catch(xcept::Exception e)
+    {
+        LOG4CPLUS_ERROR(logger_,
+            "Failed to process client credit message : "
+             << stdformat_exception_history(e));
+    }
+    catch(...)
+    {
+        LOG4CPLUS_ERROR(logger_,
+            "Failed to process client credit message : Unknown exception");
+    }
+
+    // Free the client's event credit message
+    bufRef->release();
+
+    bSem_.give();
+
+}
 
 xdaq::ApplicationDescriptor *EmuFU::getRUBuilderTester
 (
@@ -186,6 +459,35 @@ sentinel::Interface *EmuFU::getSentinel(xdaq::ApplicationContext *appContext)
     sentinel = dynamic_cast<sentinel::Interface*>(application);
 
     return sentinel;
+}
+
+
+DOMNode *EmuFU::findNode(DOMNodeList *nodeList,
+			 const string nodeLocalName)
+  throw (emuFU::exception::Exception)
+{
+    DOMNode            *node = 0;
+    string             name  = "";
+    unsigned int       i     = 0;
+
+
+    for(i=0; i<nodeList->getLength(); i++)
+    {
+        node = nodeList->item(i);
+
+        if(node->getNodeType() == DOMNode::ELEMENT_NODE)
+        {
+            name = xoap::XMLCh2String(node->getLocalName());
+
+            if(name == nodeLocalName)
+            {
+                return node;
+            }
+        }
+    }
+
+    XCEPT_RAISE(emuFU::exception::Exception,
+        "Failed to find node with local name: " + nodeLocalName);
 }
 
 
@@ -339,6 +641,25 @@ vector< pair<string, xdata::Serializable*> > EmuFU::initAndGetStdConfigParams()
     params.push_back(pair<string,xdata::Serializable *>
 		     ("fileSizeInMegaBytes", &fileSizeInMegaBytes_ ));
 
+
+    for( unsigned int iClient=0; iClient<maxClients_; ++iClient ) {
+      clientName_.push_back("");
+      clientProtocol_.push_back("I2O");
+      clientPoolSize_.push_back(0x100000); // 1MB
+      prescaling_.push_back(0);
+      onRequest_.push_back(true);
+    }
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("clientsClassName", &clientName_));
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("clientsProtocol", &clientProtocol_));
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("poolSizeForClient", &clientPoolSize_));
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("prescalingForClient", &prescaling_));
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("sendOnClientsRequestOnly", &onRequest_));
+
     return params;
 }
 
@@ -355,6 +676,22 @@ vector< pair<string, xdata::Serializable*> > EmuFU::initAndGetStdMonitorParams()
         ("stateName", &stateName_));
     params.push_back(pair<string,xdata::Serializable *>
         ("nbEventsProcessed", &nbEventsProcessed_));
+
+    //
+    // EMu-specific stuff
+    //
+    params.push_back(pair<string,xdata::Serializable *>
+		     ("runNumber", &runNumber_ ));
+
+    for( unsigned int iClient=0; iClient<maxClients_; ++iClient ){ 
+      creditsHeld_.push_back(0);
+      clientPersists_.push_back(true);
+    }
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("nEventCreditsHeld", &creditsHeld_));
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("clientPersists", &clientPersists_));
+
 
     return params;
 }
@@ -569,6 +906,96 @@ throw (emuFU::exception::Exception)
     }
 }
 
+void EmuFU::destroyServers(){
+  std::vector<Client*>::iterator c;
+  for ( c=clients_.begin(); c!=clients_.end(); ++c ){
+    LOG4CPLUS_INFO(logger_, string("Destroying server for ") + (*c)->server->getClientName() );
+    delete (*c)->server;
+//     delete (*c)->workLoopActionSignature;
+//     delete (*c)->workLoop;
+  }
+  clients_.clear();
+}
+
+bool EmuFU::createI2OServer( string clientName ){
+  bool created = false;
+  unsigned int iClient = clients_.size();
+  if ( iClient < maxClients_ ){
+    *(dynamic_cast<xdata::String*> ( clientName_.elementAt( iClient )     )) = clientName;
+    *(dynamic_cast<xdata::String*> ( clientProtocol_.elementAt( iClient ) )) = "I2O";
+    *(dynamic_cast<xdata::Boolean*>( clientPersists_.elementAt( iClient ) )) = true;
+    EmuI2OServer* s = new EmuI2OServer( this,
+					i2oExceptionHandler_,
+					clientName_.elementAt(iClient)->toString(),
+					clientPoolSize_.elementAt(iClient),
+					prescaling_.elementAt(iClient),
+					onRequest_.elementAt(iClient),
+					creditsHeld_.elementAt(iClient),
+					&logger_ );
+
+    clients_.push_back( new Client( clientName_.elementAt(iClient),
+				    clientPersists_.elementAt(iClient),
+				    clientPoolSize_.elementAt(iClient),
+				    prescaling_.elementAt(iClient),
+				    onRequest_.elementAt(iClient), 
+				    creditsHeld_.elementAt(iClient),
+				    s ) );
+    created = true;
+  }
+  return created;
+}
+
+bool EmuFU::createSOAPServer( string clientName, bool persistent ){
+  bool created = false;
+  unsigned int iClient = clients_.size();
+  if ( iClient < maxClients_ ){
+    *(dynamic_cast<xdata::String*> (     clientName_.elementAt( iClient ) )) = clientName;
+    *(dynamic_cast<xdata::String*> ( clientProtocol_.elementAt( iClient ) )) = "SOAP";
+    *(dynamic_cast<xdata::Boolean*>( clientPersists_.elementAt( iClient ) )) = persistent;
+    EmuSOAPServer* s = new EmuSOAPServer( this,
+					  clientName_.elementAt(iClient)->toString(),
+					  prescaling_.elementAt(iClient),
+					  onRequest_.elementAt(iClient),
+					  creditsHeld_.elementAt(iClient),
+					  &logger_ );
+    
+    clients_.push_back( new Client( clientName_.elementAt(iClient),
+				    clientPersists_.elementAt(iClient),
+				    clientPoolSize_.elementAt(iClient),
+				    prescaling_.elementAt(iClient),
+				    onRequest_.elementAt(iClient), 
+				    creditsHeld_.elementAt(iClient),
+				    s ) );
+    created = true;
+  }
+  else 
+    LOG4CPLUS_WARN(logger_, 
+		   "Maximum number of clients exceeded. Cannot create server for " << clientName );
+  return created;
+}
+
+
+void EmuFU::createServers(){
+  for ( int iClient=0; iClient<clientName_.elements(); ++iClient ){
+    xdata::Boolean *persists = dynamic_cast<xdata::Boolean*>( clientPersists_.elementAt(iClient) );
+    // (Re)create it only if it has a name and is not a temporary server created on the fly
+    if ( clientName_.elementAt(iClient)->toString() != "" && persists->value_ ){
+      LOG4CPLUS_INFO(logger_,
+		     clientName_.elementAt(iClient)->toString() + 
+		     "\'s server being created" );
+      if ( clientProtocol_.elementAt(iClient)->toString() == "I2O" )
+	createI2OServer( clientName_.elementAt(iClient)->toString() );
+      else if ( clientProtocol_.elementAt(iClient)->toString() == "SOAP" )
+	createSOAPServer( clientName_.elementAt(iClient)->toString() );
+      else
+	LOG4CPLUS_ERROR(logger_, "Unknown protocol \"" <<
+			clientProtocol_.elementAt(iClient)->toString() << 
+			"\" for client " <<
+			clientName_.elementAt(iClient)->toString() << 
+			". Please use \"I2O\" or \"SOAP\".");
+    }
+  }
+}
 
 void EmuFU::configureAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
@@ -622,13 +1049,97 @@ throw (toolbox::fsm::exception::Exception)
 
         XCEPT_RAISE(toolbox::fsm::exception::Exception, s);
     }
+
+    //
+    // EMu-specific stuff
+    //
+    runNumber_   = 0;
+
+    // Just in case there's a writer, terminate it in an orderly fashion
+    if ( fileWriter_ )
+      {
+	LOG4CPLUS_INFO( logger_, "Terminating leftover file writer." );
+	fileWriter_->endRun();
+	delete fileWriter_;
+	fileWriter_ = NULL;
+      }
+
+    destroyServers();
+    createServers();
+
 }
 
 
 void EmuFU::enableAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
 {
-    // Do nothing
+
+    // server loops
+    for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
+	
+      if( ! clients_[iClient]->workLoopStarted )
+	{
+	  clients_[iClient]->workLoopActionSignature = toolbox::task::bind
+	    (
+	     this,
+	     &EmuFU::serverLoopAction,
+	     "EmuFU server loop action"
+	     );
+
+	  if(clients_[iClient]->workLoopName == "")
+	    {
+	      stringstream oss;
+	      oss << xmlClass_ << instance_ << "Server" << iClient << "WorkLoop";
+	      clients_[iClient]->workLoopName = oss.str();
+	    }
+
+	  try
+	    {
+	      clients_[iClient]->workLoop =
+                workLoopFactory_->getWorkLoop(clients_[iClient]->workLoopName, "waiting");
+	    }
+	  catch(xcept::Exception e)
+	    {
+	      string s = "Failed to get work loop : " + clients_[iClient]->workLoopName;
+
+	      XCEPT_RETHROW(toolbox::fsm::exception::Exception, s, e);
+	    }
+
+	  try
+	    {
+	      clients_[iClient]->workLoop->submit(clients_[iClient]->workLoopActionSignature);
+	    }
+	  catch(xcept::Exception e)
+	    {
+	      string s = "Failed to submit action to work loop : " +
+		clients_[iClient]->workLoopName;
+
+
+	      XCEPT_RETHROW(toolbox::fsm::exception::Exception, s, e);
+	    }
+
+	  if(!clients_[iClient]->workLoop->isActive())
+	    {
+	      try
+		{
+		  clients_[iClient]->workLoop->activate();
+
+		  LOG4CPLUS_INFO(logger_,
+				 "Activated work loop : " << clients_[iClient]->workLoopName);
+		}
+	      catch(xcept::Exception e)
+		{
+		  string s = "Failed to active work loop : " +
+		    clients_[iClient]->workLoopName;
+
+		  XCEPT_RETHROW(toolbox::fsm::exception::Exception, s, e);
+		}
+	    }
+
+	  clients_[iClient]->workLoopStarted = true;
+	}
+    }
+
 }
 
 
@@ -685,8 +1196,117 @@ void EmuFU::bindI2oCallbacks()
         I2O_FU_TAKE,
         XDAQ_ORGANIZATION_ID
     );
+
+  // EMu-specific stuff
+  i2o::bind(this, &EmuFU::onI2OClientCreditMsg, I2O_EMUCLIENT_CODE, XDAQ_ORGANIZATION_ID );
 }
 
+
+// void EmuFU::clientCreditMsg(toolbox::mem::Reference *bufRef)
+//   // EMu-specific stuff
+// {
+//     I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME *msg =
+//         (I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME*)bufRef->getDataLocation();
+
+
+//     bSem_.take();
+
+//     try
+//     {
+//         switch(fsm_.getCurrentState())
+//         {
+//         case 'H': // Halted
+//         case 'F': // Failed
+//             break;
+//         case 'E': // Enabled
+// 	  addCreditsFromClients( msg->nEventCredits, msg->prescalingFactor );
+//             break;
+//         case 'R': // Ready
+//         case 'S': // Suspended
+// 	  addCreditsFromClients( msg->nEventCredits, msg->prescalingFactor );
+//             break;
+//         default:
+//             LOG4CPLUS_ERROR(logger_,
+//                 "EmuFU in undefined state");
+//         }
+//     }
+//     catch(xcept::Exception e)
+//     {
+//         LOG4CPLUS_ERROR(logger_,
+//             "Failed to process client credit message : "
+//              << stdformat_exception_history(e));
+//     }
+//     catch(...)
+//     {
+//         LOG4CPLUS_ERROR(logger_,
+//             "Failed to process client credit message : Unknown exception");
+//     }
+
+//     // Free the client's event credit message
+//     bufRef->release();
+
+//     bSem_.give();
+
+// }
+
+bool EmuFU::serverLoopAction(toolbox::task::WorkLoop *wl)
+{
+    try
+    {
+      bool isToBeRescheduled = true;
+
+      bSem_.take();
+
+        toolbox::fsm::State state = fsm_.getCurrentState();
+
+        switch(state)
+        {
+        case 'H':  // Halted
+        case 'R':  // Ready
+            break;
+        case 'E':  // Enabled
+	  // Find out from which work loop we dropped in here
+	  for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
+	    if ( clients_[iClient]->workLoop == wl ){
+// 	      LOG4CPLUS_DEBUG(logger_, "Sending data from " << clients_[iClient]->workLoopName << " ("<< wl << ")");
+	      clients_[iClient]->server->sendData();
+	    break;
+	    }
+	  }
+	  break;
+        default:
+            // Should never get here
+            LOG4CPLUS_FATAL(logger_,
+                "EmuFU" << instance_ << " is in an undefined state");
+        }
+
+	bSem_.give();
+
+        // Reschedule this action code
+        return isToBeRescheduled;
+    }
+    catch(xcept::Exception e)
+    {
+	bSem_.give();
+
+        LOG4CPLUS_FATAL(logger_,
+            "Failed to execute \"self-driven\" behaviour"
+            << " : " << xcept::stdformat_exception_history(e));
+
+        // Do not reschedule this action code as the application has failed
+        return false;
+    }
+}
+
+
+void EmuFU::addDataForClients( const int   runNumber, 
+			       const int   nEventsRead,
+			       const bool  completesEvent, 
+			       char* const data, 
+			       const int   dataLength ){
+  for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient )
+    clients_[iClient]->server->addData( runNumber, nEventsRead, completesEvent, data, dataLength );
+}
 
 void EmuFU::css
 (
@@ -844,8 +1464,37 @@ throw (xgi::exception::Exception)
     *out << "  </tr>"                                                  << endl;
 
 
-    for(pos = params.begin(); pos != params.end(); pos++)
+    for(pos = params.begin(); pos != params.end(); ++pos)
     {
+
+      //
+      // EMu-specific stuff
+      //
+      if ( pos->second->type() == "vector" ){
+
+ 	xdata::Vector<xdata::Serializable> *xsv = 
+	  static_cast<xdata::Vector<xdata::Serializable> * > (pos->second); // that's it!
+
+	for ( int i=0; i<xsv->elements(); ++i ){
+	  
+	  *out << "  <tr>"                                               << endl;
+	  
+	  // Name
+	  *out << "    <td>"                                             << endl;
+	  *out << "      " << pos->first << "[" << i << "]"              << endl;
+	  *out << "    </td>"                                            << endl;
+	  
+	  // Value
+	  *out << "    <td>"                                             << endl;
+	  *out << "      " << serializableScalarToString(xsv->elementAt(i))    << endl;
+	  *out << "    </td>"                                            << endl;
+	  
+	  *out << "  </tr>"                                              << endl;
+
+	}
+
+      }
+      else{
         *out << "  <tr>"                                               << endl;
 
         // Name
@@ -859,6 +1508,7 @@ throw (xgi::exception::Exception)
         *out << "    </td>"                                            << endl;
 
         *out << "  </tr>"                                              << endl;
+      }
     }
 
     *out << "</table>"                                                 << endl;
@@ -1027,7 +1677,8 @@ throw (emuFU::exception::Exception)
 
     if( superFragmentIsFirstOfEvent && blockIsFirstOfSuperFragment ) // trigger block
       {
-	tc = (SliceTestTriggerChunk*) startOfPayload;
+	tc         = (SliceTestTriggerChunk*) startOfPayload;
+	runNumber_ = tc->runNumber;
 	if ( block->eventNumber == 1 ) // first event --> a new run
 	  {
 	    // terminate old writer, if any
@@ -1055,6 +1706,15 @@ throw (emuFU::exception::Exception)
       {
 	fileWriter_->writeData( startOfPayload, sizeOfPayload );
       }
+
+    addDataForClients( runNumber_.value_,
+		       nbEventsProcessed_.value_,
+		       blockIsLastOfEvent,
+		       startOfPayload,
+		       sizeOfPayload );
+//     if ( blockIsLastOfEvent ) sendDataToClients();
+
+
 
     appendBlockToSuperFragment(bufRef);
 

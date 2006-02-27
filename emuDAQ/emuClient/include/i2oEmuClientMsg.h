@@ -1,15 +1,3 @@
-// $Id: i2oEmuClientMsg.h,v 3.0 2006/01/17 10:37:54 geurts Exp $
-
-/*************************************************************************
- * XDAQ Components for Distributed Data Acquisition                      *
- * Copyright (C) 2000-2004, CERN.			                 *
- * All rights reserved.                                                  *
- * Authors: J. Gutleber and L. Orsini					 *
- *                                                                       *
- * For the licensing terms see LICENSE.		                         *
- * For the list of contributors see CREDITS.   			         *
- *************************************************************************/
-
 #ifndef _i2oEmuClientMsg_h_
 #define _i2oEmuClientMsg_h_
 
