@@ -2680,7 +2680,7 @@ HTMLClasses.h:  ATOMIC_ELEMENT  (embed,        "embed");
 one must then recompile the libcgicc.so library 
     *out << bgsound().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/siren.wav") << std::endl;  */
 
-    *out << embed().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/siren.wav").set("hidden","true").set("autostart","true").set("loop","true") << std::endl;
+    //*out << embed().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/siren.wav").set("hidden","true").set("autostart","true").set("loop","true") << std::endl;
 
     *out << br() << std::endl;
    *out << cgicc::span().set("style","font-size: 25pt;color:red;background-color:yellow;");
