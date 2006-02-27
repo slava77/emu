@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.50 2006/02/27 14:29:21 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.51 2006/02/27 14:45:10 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -886,6 +886,7 @@ public:
     cgicc::Cgicc cgi(in);
     //
     RunNumber_= cgi["RunNumber"]->getValue() ;
+    std::cout << "RunNumber " << RunNumber_ << std::endl ;
     //
     this->Default(in,out);
   }
