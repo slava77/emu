@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.51 2006/02/27 14:45:10 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.52 2006/02/27 17:40:23 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -3934,6 +3934,7 @@ public:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
+    /*
     std::string DMBTest3 =
       toolbox::toString("/%s/DMBTest3",getApplicationDescriptor()->getURN().c_str());
     //
@@ -3943,6 +3944,7 @@ public:
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
+    */
     //
     std::string DMBTest4 =
       toolbox::toString("/%s/DMBTest4",getApplicationDescriptor()->getURN().c_str());
