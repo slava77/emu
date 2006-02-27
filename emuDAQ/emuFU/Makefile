@@ -12,6 +12,9 @@ Sources= \
 
 IncludeDirs = \
 	$(XDAQ_ROOT) \
+	$(XDAQ_ROOT)/emu \
+	$(XDAQ_ROOT)/emu/emuDAQ/DDUReadout/include \
+	$(XDAQ_ROOT)/emu/emuDAQ/DDUReadout/ORCA \
 	$(XDAQ_ROOT)/daq \
 	$(XDAQ_ROOT)/daq/i2o/include \
 	$(XDAQ_ROOT)/daq/toolbox/include \
@@ -32,6 +35,33 @@ IncludeDirs = \
 	$(XDAQ_ROOT)/daq/xgi/include \
 	$(XDAQ_ROOT)/daq/xdata/include \
 	$(XDAQ_ROOT)/daq/xoap/include
+
+# IncludeDirs = \
+# 	$(XDAQ_ROOT)/daq/i2o/include \
+# 	$(XDAQ_ROOT)/daq/toolbox/include \
+# 	$(XDAQ_ROOT)/daq/toolbox/include/$(XDAQ_OS) \
+# 	$(XDAQ_ROOT)/daq/toolbox/include/solaris \
+# 	$(XDAQ_ROOT)/daq/extern/cgicc/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
+# 	$(XDAQ_ROOT)/daq/extern/i2o/include/ \
+# 	$(XDAQ_ROOT)/daq/extern/i2o/include/i2o \
+# 	$(XDAQ_ROOT)/daq/extern/i2o/include/i2o/shared \
+# 	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
+# 	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
+# 	$(XDAQ_ROOT)/daq/pt/include \
+# 	$(XDAQ_ROOT)/daq/sentinel/include \
+# 	$(XDAQ_ROOT)/daq/xcept/include \
+# 	$(XDAQ_ROOT)/daq/xdaq/include \
+# 	$(XDAQ_ROOT)/daq/xdaq/include/solaris \
+# 	$(XDAQ_ROOT)/daq/xdaq/include/linux \
+# 	$(XDAQ_ROOT)/daq/xgi/include \
+# 	$(XDAQ_ROOT)/daq/xdata/include \
+# 	$(XDAQ_ROOT)/daq/xoap/include \
+# 	$(XDAQ_ROOT)/daq/interface/evb/include \
+# 	$(XDAQ_ROOT)/daq/interface/shared/include \
+# 	$(XDAQ_ROOT)/daq/i2o/utils/include \
+# 	$(XDAQ_ROOT) \
+# 	$(XDAQ_ROOT) \
+# 	$(XDAQ_ROOT)/emu/emuDAQ/emuFU/include \
 
 
 LibraryDirs = \

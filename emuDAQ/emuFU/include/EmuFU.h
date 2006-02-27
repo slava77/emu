@@ -15,13 +15,38 @@
 #include "xdata/include/xdata/InfoSpace.h"
 #include "xdata/include/xdata/String.h"
 #include "xdata/include/xdata/UnsignedLong.h"
+#include "xdata/include/xdata/Vector.h"
 
+/* // EMu-specific stuff */
+#include "toolbox/include/toolbox/task/Action.h"
+#include "toolbox/include/toolbox/task/WorkLoop.h"
+#include "toolbox/include/toolbox/task/WorkLoopFactory.h"
 #include "emu/emuDAQ/emuTA/include/SliceTestTriggerChunk.h"
-// #include "emu/emuDAQ/emuFU/include/emuFU/Writer.h"
 #include "emu/emuDAQ/emuUtil/include/FileWriter.h"
+#include "emuDAQ/emuClient/include/i2oEmuClientMsg.h"
+#include "emuDAQ/emuUtil/include/EmuServer.h"
+
+// #include "emuFU/exception/Exception.h"
+// #include "i2o/i2oDdmLib.h"
+// #include "i2o/utils/AddressMap.h"
+// #include "sentinel/Interface.h"
+// #include "BSem.h"
+// #include "toolbox/fsm/FiniteStateMachine.h"
+// #include "toolbox/mem/MemoryPoolFactory.h"
+// #include "xdaq/ApplicationGroup.h"
+// #include "xdaq/WebApplication.h"
+// #include "xdata/Boolean.h"
+// #include "xdata/Double.h"
+// #include "xdata/InfoSpace.h"
+// #include "xdata/String.h"
+// #include "xdata/UnsignedLong.h"
+// #include "xdata/Vector.h"
+
+// #include "SliceTestTriggerChunk.h"
+// #include "FileWriter.h"
+// #include "EmuServer.h"
 
 using namespace std;
-
 
 /**
  * Example Filter Unit (FU) to be copied and modified by end-users.
@@ -48,9 +73,86 @@ private:
     //
     // EMu-specific stuff
     //
-//   emuFU::Writer *emuFUw_;
+
+  toolbox::task::WorkLoopFactory *workLoopFactory_;
+  bool serverLoopAction(toolbox::task::WorkLoop *wl);
+
+
+  static const unsigned int maxDevices_ = 5; // max possible number of input devices
+  static const unsigned int maxClients_ = 5; // max possible number of clients
+
+  xdata::Vector<xdata::String>       clientName_;
+  xdata::Vector<xdata::Boolean>      clientPersists_; // whether its server needs to be (re)created on config
+  xdata::Vector<xdata::String>       clientProtocol_;
+  xdata::Vector<xdata::UnsignedLong> clientPoolSize_;
+  xdata::Vector<xdata::UnsignedLong> prescaling_;
+  xdata::Vector<xdata::Boolean>      onRequest_;
+  xdata::Vector<xdata::UnsignedLong> creditsHeld_;
+  struct Client {
+    xdata::String                  *name;
+    xdata::Boolean                 *persists;
+    xdata::UnsignedLong            *poolSize;
+    xdata::UnsignedLong            *prescaling;
+    xdata::Boolean                 *onRequest;
+    xdata::UnsignedLong            *creditsHeld;
+    EmuServer                      *server;
+    toolbox::task::WorkLoop        *workLoop;
+    string                          workLoopName;
+    bool                            workLoopStarted;
+    toolbox::task::ActionSignature *workLoopActionSignature;
+    Client( xdata::Serializable*            n=NULL,
+	    xdata::Serializable*            e=NULL,
+	    xdata::Serializable*            s=NULL,
+	    xdata::Serializable*            p=NULL,
+	    xdata::Serializable*            r=NULL,
+	    xdata::Serializable*            c=NULL,
+	    EmuServer*                      S=NULL,
+            toolbox::task::WorkLoop*        wl =NULL,
+	    string                          wln="",
+	    bool                            wls=false,
+	    toolbox::task::ActionSignature* wla=NULL   ){
+      name                    = dynamic_cast<xdata::String*>      ( n );
+      persists                = dynamic_cast<xdata::Boolean*>     ( e );
+      poolSize                = dynamic_cast<xdata::UnsignedLong*>( s );
+      prescaling              = dynamic_cast<xdata::UnsignedLong*>( p );
+      onRequest               = dynamic_cast<xdata::Boolean*>     ( r );
+      creditsHeld             = dynamic_cast<xdata::UnsignedLong*>( c );
+      server                  = S;
+      workLoop                = wl;
+      workLoopName            = wln;
+      workLoopStarted         = wls;
+      workLoopActionSignature = wla;
+    }
+  };
+  std::vector<Client*> clients_;
+
+  void createServers();
+  void destroyServers();
+  bool createI2OServer( string clientName );
+  bool createSOAPServer( string clientName, bool persistent=true );
+  void onI2OClientCreditMsg(toolbox::mem::Reference *bufRef);
+  xoap::MessageReference onSOAPClientCreditMsg( xoap::MessageReference msg )
+    throw (xoap::exception::Exception);
+  string extractParametersFromSOAPClientCreditMsg( xoap::MessageReference msg, int& credits, int& prescaling )
+    throw (emuFU::exception::Exception);
+  xoap::MessageReference processSOAPClientCreditMsg( xoap::MessageReference msg )
+    throw( emuFU::exception::Exception );
+  void addDataForClients(const int   runNumber, 
+			 const int   nEventsRead,
+			 const bool  completesEvent, 
+			 char* const data, 
+			 const int   dataLength );
+
+
   FileWriter *fileWriter_;
   void printBlock( toolbox::mem::Reference *bufRef, bool printMessageHeader=false );
+
+
+  DOMNode *findNode(DOMNodeList *nodeList,
+		    const string nodeLocalName)
+    throw (emuFU::exception::Exception);
+
+
 
     /**
      * Pointer to the descriptor of the RUBuilderTester application.
@@ -250,6 +352,11 @@ private:
      * configured.
      */
     xdata::UnsignedLong nbEventsProcessed_;
+
+    //
+    // EMu-specific stuff
+    //
+    xdata::UnsignedLong runNumber_;  // run number obtained from the trigger block of the event
 
     //////////////////////////////////////////////////////////
     // End of exported parameters used for monitoring       //

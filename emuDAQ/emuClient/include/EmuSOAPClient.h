@@ -1,4 +1,4 @@
-// $Id: EmuClient.h,v 3.1 2006/02/27 12:49:27 banicz Exp $
+// $Id: EmuSOAPClient.h,v 3.1 2006/02/27 12:49:27 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -10,8 +10,8 @@
  * For the list of contributors see CREDITS.   			         *
  *************************************************************************/
 
-#ifndef _EmuClient_h_
-#define _EmuClient_h_
+#ifndef _EmuSOAPClient_h_
+#define _EmuSOAPClient_h_
 
 #include <vector>
 #include "Task.h"
@@ -24,19 +24,27 @@
 #include "xdata/Event.h"
 #include "xdata/ActionListener.h"
 
-class EmuClient: public xdaq::Application, public Task, public xdata::ActionListener
+
+#include "xdaq/NamespaceURI.h"
+
+#include "xoap/MessageReference.h"
+#include "xoap/MessageFactory.h"
+#include "xoap/SOAPEnvelope.h"
+#include "xoap/SOAPBody.h"
+#include "xoap/Method.h"
+
+
+class EmuSOAPClient: public xdaq::Application, public Task, public xdata::ActionListener
 {	
 public:
   XDAQ_INSTANTIATOR();
 
-  EmuClient(xdaq::ApplicationStub* c) throw(xdaq::exception::Exception);
+  EmuSOAPClient(xdaq::ApplicationStub* c) throw(xdaq::exception::Exception);
 
 protected:
 	
-  // Send an I2O token message to all servers, If last is 1, the flag 'last' in the
-  // message is set to one. Otherwise it is set to 0
-  //
-  int sendMessage(unsigned long last);
+  int sendCreditSOAPMessage()
+    throw ( xoap::exception::Exception );
 
   // service routine for sending
   int svc();
@@ -46,30 +54,28 @@ protected:
   //	
   void actionPerformed (xdata::Event& e);
 	
-  void emuDataMsg(toolbox::mem::Reference *bufRef);
-  void printMessageReceived( toolbox::mem::Reference *bufRef );
+  xoap::MessageReference emuDataSOAPMsg(xoap::MessageReference msg)
+    throw (xoap::exception::Exception);
+  std::string printMessageReceived( xoap::MessageReference msg );
+  DOMNode *findNode(DOMNodeList *nodeList,
+		    const string nodeLocalName)
+    throw ( xoap::exception::Exception );
 
 protected:
 
+  std::string         name_;
   std::vector<xdaq::ApplicationDescriptor*> destination_;	// Vector of all server tids
-  xdata::UnsignedLong maxFrameSize_;	 	// The maximum frame size to be allocated by the Client       
-  xdata::UnsignedLong committedPoolSize_;	// Total memory for credit messages
   xdata::String       serversClassName_; 	// servers' class name
   xdata::UnsignedLong serversClassInstance_;	// instance of server
   xdata::UnsignedLong nEventCredits_;	 	// send this meny event credits at a time
   xdata::UnsignedLong prescalingFactor_;        // prescaling factor for data to be received
 
-  bool hasSet_committedPoolSize_;
   bool hasSet_serversClassName_; 
   bool hasSet_serversClassInstance_; 
   bool hasSet_nEventCredits_;	 
   bool hasSet_prescalingFactor_;
-
-  bool serviceLoopStarted_;
   
-  toolbox::mem::Pool* pool_;			// Memory pool for allocating messages for sending
-
-  deque<toolbox::mem::Reference*> dataMessages_; // the queue of data messages waiting to be processed
+  bool serviceLoopStarted_;
 
   BSem applicationBSem_;
 

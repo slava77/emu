@@ -296,7 +296,7 @@ vector< pair<string, xdata::Serializable*> > EmuTA::initAndGetStdConfigParams()
     vector< pair<string, xdata::Serializable*> > params;
 
 
-//     triggerSourceId_ = 0;
+    triggerSourceId_ = 0;
 
     params.push_back(pair<string,xdata::Serializable *>
         ("triggerSourceId", &triggerSourceId_));
@@ -786,7 +786,7 @@ throw (toolbox::fsm::exception::Exception)
             "Failed to get application descriptors and tids", e);
     }
     
-    LOG4CPLUS_INFO(logger_, toolbox::toString("Configure run number: %d", (unsigned long) runNumber_));
+    LOG4CPLUS_INFO(logger_, toolbox::toString("Configured run number: %d", (unsigned long) runNumber_));
     LOG4CPLUS_INFO(logger_, "End of configureAction");
 }
 
@@ -850,6 +850,9 @@ throw (toolbox::fsm::exception::Exception)
 void EmuTA::haltAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
 {
+  // Emu: Increment run number
+  runNumber_++;
+
     // Reset the dummy event number
     eventNumber_ = 1;
 
@@ -895,7 +898,7 @@ throw (emuTA::exception::Exception)
 
 
 //     for(i=0; i<n; i++)
-    for(i=0; i<n && eventNumber_<maxNumTriggers_; i++)
+    for(i=0; i<n && eventNumber_<maxNumTriggers_+1; i++)
     {
         bufRef = triggerGenerator_.generate
         (

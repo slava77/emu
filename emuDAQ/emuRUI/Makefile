@@ -11,6 +11,7 @@ Sources = \
 	EmuRUIV.cc
 
 IncludeDirs = \
+	$(XDAQ_ROOT) \
 	$(XDAQ_ROOT)/emu \
 	$(XDAQ_ROOT)/emu/emuDAQ/DDUReadout/include \
 	$(XDAQ_ROOT)/emu/emuDAQ/DDUReadout/ORCA \

@@ -4,6 +4,7 @@
 #include "interface/shared/include/fed_header.h"
 #include "interface/shared/include/fed_trailer.h"
 #include "toolbox/include/toolbox/mem/MemoryPoolFactory.h"
+#include <time.h>
 
 
 toolbox::mem::Reference *emuTA::TriggerGenerator::generate
@@ -99,9 +100,10 @@ throw (emuTA::exception::Exception)
 
     SliceTestTriggerChunk *sttc = (SliceTestTriggerChunk*) payload;
 
-    sttc->triggerNumber = eventNumber;
-    sttc->runNumber     = runNumber;
-      
+    sttc->triggerNumber    = eventNumber;
+    sttc->runNumber        = runNumber;
+    sttc->triggerTime_base = time(NULL);
+
     // common data format
     sttc->h1a  = (0)<<20; // bunch id
     sttc->h1a |= (0x8)|((SliceTestTriggerChunk_SourceId)<<8); // source

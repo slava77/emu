@@ -588,6 +588,36 @@ throw (xgi::exception::Exception)
 
     *out << "<hr/>"                                                    << endl;
 
+    if(!testConfigured_)
+      {
+	string num="";
+	if ( taDescriptors_.size() )
+	  num = getScalarParam(taDescriptors_[0],"runNumber","unsignedLong");
+
+	*out << "Set run number: "                                     << endl;
+	*out << "<input"                                               << endl;
+	*out << " type=\"text\""                                       << endl;
+	*out << " name=\"runnumber\""                                  << endl;
+	*out << " title=\"run number\""                                << endl;
+	*out << " alt=\"run number\""                                  << endl;
+	*out << " value=\"" << num << "\""                             << endl;
+	*out << " size=\"10\""                                         << endl;
+	*out << "/>  "                                                 << endl;
+
+	if ( taDescriptors_.size() )
+	  num = getScalarParam(taDescriptors_[0],"maxNumTriggers","unsignedLong");
+
+	*out << "Set maximum number of events: "                       << endl;
+	*out << "<input"                                               << endl;
+	*out << " type=\"text\""                                       << endl;
+	*out << " name=\"maxevents\""                                  << endl;
+	*out << " title=\"maximum number of events\""                  << endl;
+	*out << " alt=\"maximum number of events\""                    << endl;
+	*out << " value=\"" << num << "\""                             << endl;
+	*out << " size=\"10\""                                         << endl;
+	*out << "/>  "                                                 << endl;
+      }
+
     *out << "<input"                                                   << endl;
     *out << " type=\"submit\""                                         << endl;
     *out << " name=\"command\""                                        << endl;
@@ -614,12 +644,28 @@ throw (xgi::exception::Exception)
 }
 
 
+int EmuDAQtester::purgeIntNumberString( string* s ){
+  // Emu: purge string of all non-numeric characters
+  int nCharactersErased = 0;
+  for ( string::size_type i = s->find_first_not_of("0123456789",0); 
+	i != string::npos; 
+	i = s->find_first_not_of("0123456789",i) ){
+    s->erase(i,1);
+    nCharactersErased++;
+  }
+  return nCharactersErased;
+}
+
 void EmuDAQtester::processControlForm(xgi::Input *in)
 throw (xgi::exception::Exception)
 {
     cgicc::Cgicc         cgi(in);
-    cgicc::form_iterator cmdElement = cgi.getElement("command");
-    string               cmdName    = "";
+    cgicc::form_iterator cmdElement    = cgi.getElement("command");
+    cgicc::form_iterator runNumElement = cgi.getElement("runnumber");
+    cgicc::form_iterator maxEvtElement = cgi.getElement("maxevents");
+    string               cmdName       = "";
+    string               runNumber     = "";
+    string               maxNumEvents  = "";
 
 
     // If their is a command from the html form
@@ -629,6 +675,35 @@ throw (xgi::exception::Exception)
 
         if((cmdName == "configure") && (!testConfigured_))
 	  {
+
+	    // Emu: set run number in emuTA to the value given by the user on the control page
+	    runNumber     = (*runNumElement).getValue();
+	    maxNumEvents  = (*maxEvtElement).getValue();
+	    purgeIntNumberString( &runNumber );
+	    purgeIntNumberString( &maxNumEvents );
+	    if ( taDescriptors_.size() ){
+	      try
+		{
+		  setScalarParam(taDescriptors_[0],"runNumber","unsignedLong",runNumber);
+		  LOG4CPLUS_INFO(logger_,"Set run number to " + runNumber );
+		}
+	      catch(xcept::Exception e)
+		{
+		  XCEPT_RETHROW(xgi::exception::Exception,
+				"Failed to set run number to "  + runNumber, e);
+		}
+	      try
+		{
+		  setScalarParam(taDescriptors_[0],"maxNumTriggers","unsignedLong",maxNumEvents);
+		  LOG4CPLUS_INFO(logger_,"Set maximum number of events to " + maxNumEvents );
+		}
+	      catch(xcept::Exception e)
+		{
+		  XCEPT_RETHROW(xgi::exception::Exception,
+				"Failed to set maximum number of events to "  + maxNumEvents, e);
+		}
+	    }
+
             try
             {
                 configureTest();
@@ -1942,7 +2017,7 @@ throw (emuDAQtester::exception::Exception)
 
 
     ///////////////
-    // Halt RUIs //
+    // Halt FUs  //
     ///////////////
 
     for(pos = fuDescriptors_.begin(); pos != fuDescriptors_.end(); pos++)

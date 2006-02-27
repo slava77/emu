@@ -24,11 +24,13 @@
 #include "xoap/include/xoap/SOAPEnvelope.h"
 
 #include <unistd.h>
-
 // EMu-specific stuff
 #include "toolbox/mem/CommittedHeapAllocator.h"
-#include "emuDAQ/DDUReadout/include/FileReaderDDU.h"
-#include "emuDAQ/DDUReadout/include/HardwareDDU.h"
+#include "emuDAQ/emuReadout/include/EmuFileReader.h"
+#include "emuDAQ/emuReadout/include/EmuSpyReader.h"
+#include "emuDAQ/emuUtil/include/EmuI2OServer.h"
+#include "emuDAQ/emuUtil/include/EmuSOAPServer.h"
+#include <sstream>
 
 // Alias used to access the "versioning" namespace EmuRUI from within the class EmuRUI
 namespace EmuRUIV = EmuRUI;
@@ -113,11 +115,15 @@ applicationBSem_(BSem::FULL)
     xgi::bind(this, &EmuRUI::css           , "styles.css");
     xgi::bind(this, &EmuRUI::defaultWebPage, "Default"   );
 
+    //
     // EMu-specific
-    DQMonitorTid_   = 0;
-    ruiDqmPoolName_ = createRuiDqmPoolName();
-    ruiDqmPool_     = createCommittedHeapAllocatorMemoryPool(poolFactory_, ruiDqmPoolName_);
-    dataForDQMArePendingTransmission_ = false;
+    //
+    fileWriter_          = NULL;
+    badEventsFileWriter_ = NULL;
+
+    // bind SOAP client credit message callback
+    xoap::bind(this, &EmuRUI::onSOAPClientCreditMsg, 
+	       "onClientCreditMessage", XDAQ_NS_URI);
 
     LOG4CPLUS_INFO(logger_, "End of constructor");
 }
@@ -138,12 +144,187 @@ string EmuRUI::generateLoggerName()
     return loggerName;
 }
 
+string EmuRUI::extractParametersFromSOAPClientCreditMsg
+(
+    xoap::MessageReference msg, int& credits, int& prescaling 
+)
+throw (emuRUI::exception::Exception)
+{
+    try
+    {
+        xoap::SOAPPart part = msg->getSOAPPart();
+        xoap::SOAPEnvelope env = part.getEnvelope();
+        xoap::SOAPBody body = env.getBody();
+        DOMNode *bodyNode = body.getDOMNode();
+        DOMNodeList *bodyList = bodyNode->getChildNodes();
+        DOMNode *functionNode = findNode(bodyList, "onClientCreditMessage");
+        DOMNodeList *parameterList = functionNode->getChildNodes();
+// 	for ( unsigned int i=0; i<parameterList->getLength(); ++i ){
+// 	  cout << i << " " << xoap::XMLCh2String(parameterList->item(i)->getNodeName())
+// 	       << " " << xoap::XMLCh2String(parameterList->item(i)->getFirstChild()->getNodeValue()) << endl;
+// 	}
+	DOMNode *parameterNode = findNode(parameterList, "clientName");
+        string clientName      = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
+        parameterNode = findNode(parameterList, "nEventCredits");
+        string sc              = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
+	parameterNode          = findNode(parameterList, "prescalingFactor");
+        string sp              = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
 
-void EmuRUI::clientCreditMsg(toolbox::mem::Reference *bufRef)
+        LOG4CPLUS_DEBUG(logger_, 
+			"Received from "          << clientName << 
+			" nEventCredits = "       << sc << 
+			", prescalingFactor = 1/" << sp );
+
+	istringstream ssc(sc);
+	int ic;
+	ssc >> ic;
+	if ( ic > 0 ) credits = ic; 
+
+	istringstream ssp(sp);
+	int ip;
+	ssp >> ip;
+	if ( ip > 0 ) prescaling = ip;
+
+	return clientName;
+    }
+    catch(xcept::Exception e)
+    {
+        XCEPT_RETHROW(emuRUI::exception::Exception,
+            "Parameter(s) not found", e);
+    }
+    catch(...)
+    {
+        XCEPT_RAISE(emuRUI::exception::Exception,
+            "Parameter(s) not found");
+    }
+}
+
+xoap::MessageReference EmuRUI::processSOAPClientCreditMsg( xoap::MessageReference msg )
+  throw( emuRUI::exception::Exception )
+{
+  xoap::MessageReference reply;
+
+  int credits = 0, prescaling = 1;
+  string name = extractParametersFromSOAPClientCreditMsg( msg, credits, prescaling );
+
+  // Find out who sent this and add the credits to its corresponding server
+  bool knownClient = false;
+  for ( std::vector<Client*>::iterator c=clients_.begin(); c!=clients_.end(); ++c ){
+    if ( (*c)->name->toString() == name ){
+      knownClient = true;
+      (*c)->server->addCredits( credits, prescaling );
+      // If client descriptor is not known (non-XDAQ client), send data now:
+      if ( (*c)->server->getClientDescriptor() == NULL ){
+	reply = (*c)->server->getOldestMessagePendingTransmission();
+	if ( !reply.isNull() ){ 
+// 	  string rs;
+// 	  reply->writeTo(rs);
+	  LOG4CPLUS_DEBUG(logger_, string("***** Sending data to non-XDAQ SOAP client *****") );// << endl << rs << endl );
+	}
+      }
+      break;
+    }
+  }
+
+  // If this client is not yet known, create a new (non-persistent) server for it...
+  if ( !knownClient ){
+    if ( createSOAPServer( name, false ) ){
+      // ... and if successfully created, add credits
+      clients_.back()->server->addCredits( credits, prescaling );
+    }
+    else {
+      if ( reply.isNull() ) reply       = xoap::createMessage();
+      xoap::SOAPEnvelope envelope       = reply->getSOAPPart().getEnvelope();
+      xoap::SOAPName fault              = envelope.createName( "fault" );
+      xoap::SOAPBodyElement faultElem   = envelope.getBody().addBodyElement( fault );
+      xoap::SOAPName faultcode          = envelope.createName( "faultcode" );
+      xoap::SOAPElement faultcodeElem   = faultElem.addChildElement( faultcode );
+      faultcodeElem.addTextNode("Server");
+      xoap::SOAPName faultstring        = envelope.createName( "faultstring" );
+      xoap::SOAPElement faultstringElem = faultElem.addChildElement( faultstring );
+      faultstringElem.addTextNode("Could not create an Emu data server for you.");
+    }
+  }
+
+  return reply;
+}
+
+
+xoap::MessageReference EmuRUI::onSOAPClientCreditMsg( xoap::MessageReference msg )
+  throw (xoap::exception::Exception)
   // EMu-specific stuff
 {
-    I2O_TOYCLIENT_CREDIT_MESSAGE_FRAME *msg =
-        (I2O_TOYCLIENT_CREDIT_MESSAGE_FRAME*)bufRef->getDataLocation();
+
+  stringstream ss;
+  std::multimap< std::string, std::string, std::less< std::string > > h = msg->getMimeHeaders()->getAllHeaders();
+  std::multimap< std::string, std::string, std::less< std::string > >::iterator i;
+  ss << "Mime headers (" << h.size() << ")" << endl;
+  for( i = h.begin(); i != h.end(); ++i )
+    ss << i->first << " " << i->second << endl;
+  string s;
+  msg->writeTo(s);
+  LOG4CPLUS_DEBUG(logger_, string("Received: ") << endl << ss.str() << s);
+
+  int credits = 0, prescaling = 1;
+  string name = extractParametersFromSOAPClientCreditMsg( msg, credits, prescaling );
+
+  applicationBSem_.take();
+
+  xoap::MessageReference reply;
+
+  try
+    {
+      switch(fsm_.getCurrentState())
+        {
+        case 'H': // Halted
+        case 'F': // Failed
+	  break;
+        case 'E': // Enabled
+	  try
+	    {
+	      reply = processSOAPClientCreditMsg( msg );
+	    }
+	  catch( emuRUI::exception::Exception e )
+	    {
+	      XCEPT_RETHROW(xoap::exception::Exception, string("Failed to process SOAP client credit message"), e);
+	    }
+	  break;
+        case 'R': // Ready
+        case 'S': // Suspended
+	  break;
+        default:
+	  LOG4CPLUS_ERROR(logger_,
+			  "EmuRUI in undefined state");
+        }
+    }
+  catch(xcept::Exception e)
+    {
+      LOG4CPLUS_ERROR(logger_,
+		      "Failed to process client credit message : "
+		      << stdformat_exception_history(e));
+    }
+  catch(...)
+    {
+      LOG4CPLUS_ERROR(logger_,
+		      "Failed to process client credit message : Unknown exception");
+    }
+  
+  
+  if ( reply.isNull() ) reply = xoap::createMessage();
+  xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+  xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
+  envelope.getBody().addBodyElement ( responseName );
+
+  applicationBSem_.give();
+
+  return reply;
+}
+
+void EmuRUI::onI2OClientCreditMsg(toolbox::mem::Reference *bufRef)
+  // EMu-specific stuff
+{
+    I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME *msg =
+        (I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME*)bufRef->getDataLocation();
 
 
     applicationBSem_.take();
@@ -156,23 +337,26 @@ void EmuRUI::clientCreditMsg(toolbox::mem::Reference *bufRef)
         case 'F': // Failed
             break;
         case 'E': // Enabled
-            nEventCreditsHeld_.value_ += msg->nEventCredits;
-	    LOG4CPLUS_INFO(logger_, 
-			   "Received from DQM credits for " << msg->nEventCredits << 
-			   " events prescaled by 1/" << msg->prescalingFactor << 
-			   ". Now holding " << nEventCreditsHeld_ );
-            break;
+	  // Find out who sent this and add the credits to its corresponding server
+	  LOG4CPLUS_DEBUG(logger_, 
+			  "Got I2O credit message from client of tid " << 
+			  msg->PvtMessageFrame.StdMessageFrame.InitiatorAddress );
+	  for ( std::vector<Client*>::iterator c=clients_.begin(); c!=clients_.end(); ++c )
+	    {
+	      if ( msg->PvtMessageFrame.StdMessageFrame.InitiatorAddress != 0 &&
+		   (*c)->server->getClientTid() == msg->PvtMessageFrame.StdMessageFrame.InitiatorAddress )
+		{
+		  (*c)->server->addCredits( msg->nEventCredits, msg->prescalingFactor );
+		  break;
+		}
+	    }
+	  break;
         case 'R': // Ready
         case 'S': // Suspended
-            nEventCreditsHeld_.value_ += msg->nEventCredits;  // Hold credits
-	    LOG4CPLUS_INFO(logger_, 
-			   "Received from DQM credits for " << msg->nEventCredits << 
-			   " events prescaled by 1/" << msg->prescalingFactor << 
-			   ". Now holding " << nEventCreditsHeld_ );
-            break;
+	  break;
         default:
-            LOG4CPLUS_ERROR(logger_,
-                "EmuRUI in undefined state");
+	  LOG4CPLUS_ERROR(logger_,
+			  "EmuRUI in undefined state");
         }
     }
     catch(xcept::Exception e)
@@ -187,34 +371,13 @@ void EmuRUI::clientCreditMsg(toolbox::mem::Reference *bufRef)
             "Failed to process client credit message : Unknown exception");
     }
 
+    // Free the client's event credit message
+    bufRef->release();
+
     applicationBSem_.give();
 
-    // Free the toyclient event credit message
-    bufRef->release();
 }
 
-xdaq::ApplicationDescriptor *EmuRUI::getDQMonitor
-(
-    xdaq::ApplicationGroup *appGroup
-)
-  // EMu-specific stuff
-{
-    xdaq::ApplicationDescriptor *appDescriptor = 0;
-
-
-    try
-    {
-        appDescriptor =
-//             appGroup->getApplicationDescriptor("DQMonitor", 0);
-            appGroup->getApplicationDescriptor("ToyClient", 0);
-    }
-    catch(xcept::Exception e)
-    {
-        appDescriptor = 0;
-    }
-
-    return appDescriptor;
-}
 
 xdaq::ApplicationDescriptor *EmuRUI::getRUBuilderTester
 (
@@ -262,41 +425,281 @@ sentinel::Interface *EmuRUI::getSentinel(xdaq::ApplicationContext *appContext)
     return sentinel;
 }
 
-xdata::UnsignedLong* EmuRUI::getRunNumber()
-  // EMu-specific stuff
-  // Gets the run number from TA
+
+vector< xdaq::ApplicationDescriptor* > EmuRUI::getAppDescriptors(xdaq::ApplicationGroup *appGroup,
+								 const string            appClass)
+  throw (emuRUI::exception::Exception)
 {
-    xdaq::Application   *application = 0;
-    xdata::UnsignedLong *runNumber   = 0;
+    vector< xdaq::ApplicationDescriptor* > orderedDescriptors;
+    vector< xdaq::ApplicationDescriptor* > descriptors;
+    xdaq::ApplicationDescriptor *descriptor = 0;
+    int nbApps = 0;
+
 
     try
     {
-        application = appContext_->getFirstApplication("EmuTA");
-        LOG4CPLUS_INFO(logger_, "Found EmuTA");
+        descriptors = appGroup->getApplicationDescriptors(appClass);
     }
-    catch(xdaq::exception::ApplicationNotFound e)
+    catch(emuRUI::exception::Exception e)
     {
-        LOG4CPLUS_WARN(logger_, "Did not find EmuTA. ==> Run number will be unknown.");
-        return 0;
+        string s;
+
+        s = "Failed to get application descriptors for class: " + appClass;
+
+        XCEPT_RETHROW(emuRUI::exception::Exception, s, e);
     }
 
-    xdata::InfoSpace *TAis = application->getApplicationInfoSpace();
-//     cout << "Name of TA's infoSpace: " << TAis->name() << endl;
+    nbApps = descriptors.size();
 
-    try
+    // Fill application descriptors in instance order
+    for(int i=0; i<nbApps; i++)
     {
-      xdata::Serializable *rn = TAis->find("runNumber");
-      runNumber = dynamic_cast<xdata::UnsignedLong*>(rn);
-      LOG4CPLUS_INFO(logger_, "Found run number in EmuTA: " << *runNumber );
-    }
-    catch(xdaq::exception::Exception e)
-    {
-      LOG4CPLUS_WARN(logger_, "Did not find runNumber in EmuTA");
-      return 0;
+        try
+        {
+            descriptor = appGroup->getApplicationDescriptor(appClass, i);
+        }
+        catch(emuRUI::exception::Exception e)
+        {
+            stringstream oss;
+            string s;
+
+            oss << "Failed to get the application descriptor of ";
+            oss << appClass << i;
+            s = oss.str();
+
+            XCEPT_RETHROW(emuRUI::exception::Exception, s, e);
+        }
+
+        orderedDescriptors.push_back(descriptor);
     }
 
-    return runNumber;
+    return orderedDescriptors;
 }
+
+xoap::MessageReference EmuRUI::createParameterGetSOAPMsg
+(
+    const string appClass,
+    const string paramName,
+    const string paramType
+)
+throw (emuRUI::exception::Exception)
+{
+    string appNamespace = "urn:xdaq-application:" + appClass;
+    string paramXsdType = "xsd:" + paramType;
+
+    try
+    {
+        xoap::MessageReference message = xoap::createMessage();
+        xoap::SOAPPart soapPart = message->getSOAPPart();
+        xoap::SOAPEnvelope envelope = soapPart.getEnvelope();
+        envelope.addNamespaceDeclaration("xsi",
+            "http://www.w3.org/2001/XMLSchema-instance");
+        envelope.addNamespaceDeclaration("xsd",
+            "http://www.w3.org/2001/XMLSchema");
+        envelope.addNamespaceDeclaration("soapenc",
+            "http://schemas.xmlsoap.org/soap/encoding/");
+        xoap::SOAPBody body = envelope.getBody();
+        xoap::SOAPName cmdName =
+            envelope.createName("ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
+        xoap::SOAPBodyElement cmdElement =
+            body.addBodyElement(cmdName);
+        xoap::SOAPName propertiesName =
+            envelope.createName("properties", appClass, appNamespace);
+        xoap::SOAPElement propertiesElement =
+            cmdElement.addChildElement(propertiesName);
+        xoap::SOAPName propertiesTypeName =
+            envelope.createName("type", "xsi",
+             "http://www.w3.org/2001/XMLSchema-instance");
+        propertiesElement.addAttribute(propertiesTypeName, "soapenc:Struct");
+        xoap::SOAPName propertyName =
+            envelope.createName(paramName, appClass, appNamespace);
+        xoap::SOAPElement propertyElement =
+            propertiesElement.addChildElement(propertyName);
+        xoap::SOAPName propertyTypeName =
+             envelope.createName("type", "xsi",
+             "http://www.w3.org/2001/XMLSchema-instance");
+
+        propertyElement.addAttribute(propertyTypeName, paramXsdType);
+
+        return message;
+    }
+    catch(xcept::Exception e)
+    {
+        XCEPT_RETHROW(emuRUI::exception::Exception,
+            "Failed to create ParameterGet SOAP message for parameter " +
+            paramName + " of type " + paramType, e);
+    }
+}
+
+DOMNode *EmuRUI::findNode(DOMNodeList *nodeList,
+			  const string nodeLocalName)
+  throw (emuRUI::exception::Exception)
+{
+    DOMNode            *node = 0;
+    string             name  = "";
+    unsigned int       i     = 0;
+
+
+    for(i=0; i<nodeList->getLength(); i++)
+    {
+        node = nodeList->item(i);
+
+        if(node->getNodeType() == DOMNode::ELEMENT_NODE)
+        {
+            name = xoap::XMLCh2String(node->getLocalName());
+
+            if(name == nodeLocalName)
+            {
+                return node;
+            }
+        }
+    }
+
+    XCEPT_RAISE(emuRUI::exception::Exception,
+        "Failed to find node with local name: " + nodeLocalName);
+}
+
+
+string EmuRUI::extractScalarParameterValueFromSoapMsg
+(
+    xoap::MessageReference msg,
+    const string           paramName
+)
+throw (emuRUI::exception::Exception)
+{
+    try
+    {
+        xoap::SOAPPart part = msg->getSOAPPart();
+        xoap::SOAPEnvelope env = part.getEnvelope();
+        xoap::SOAPBody body = env.getBody();
+        DOMNode *bodyNode = body.getDOMNode();
+        DOMNodeList *bodyList = bodyNode->getChildNodes();
+        DOMNode *responseNode = findNode(bodyList, "ParameterGetResponse");
+        DOMNodeList *responseList = responseNode->getChildNodes();
+        DOMNode *propertiesNode = findNode(responseList, "properties");
+        DOMNodeList *propertiesList = propertiesNode->getChildNodes();
+        DOMNode *paramNode = findNode(propertiesList, paramName);
+        DOMNodeList *paramList = paramNode->getChildNodes();
+        DOMNode *valueNode = paramList->item(0);
+        string paramValue = xoap::XMLCh2String(valueNode->getNodeValue());
+
+        return paramValue;
+    }
+    catch(xcept::Exception e)
+    {
+        XCEPT_RETHROW(emuRUI::exception::Exception,
+            "Parameter " + paramName + " not found", e);
+    }
+    catch(...)
+    {
+        XCEPT_RAISE(emuRUI::exception::Exception,
+            "Parameter " + paramName + " not found");
+    }
+}
+
+string EmuRUI::getScalarParam
+(
+    xdaq::ApplicationDescriptor* appDescriptor,
+    const string                 paramName,
+    const string                 paramType
+)
+throw (emuRUI::exception::Exception)
+{
+    string appClass = appDescriptor->getClassName();
+    string value    = "";
+
+    try
+    {
+        xoap::MessageReference msg =
+            createParameterGetSOAPMsg(appClass, paramName, paramType);
+
+        xoap::MessageReference reply =
+            appContext_->postSOAP(msg, appDescriptor);
+
+        // Check if the reply indicates a fault occurred
+        xoap::SOAPBody replyBody =
+            reply->getSOAPPart().getEnvelope().getBody();
+
+        if(replyBody.hasFault())
+        {
+            stringstream oss;
+            string s;
+
+            oss << "Received fault reply: ";
+            oss << replyBody.getFault().getFaultString();
+            s = oss.str();
+
+            XCEPT_RAISE(emuRUI::exception::Exception, s);
+        }
+
+        value = extractScalarParameterValueFromSoapMsg(reply, paramName);
+    }
+    catch(xcept::Exception e)
+    {
+        string s = "Failed to get scalar parameter from application";
+
+        XCEPT_RETHROW(emuRUI::exception::Exception, s, e);
+    }
+
+    return value;
+}
+
+
+void EmuRUI::getRunAndMaxEventNumber()
+  // EMu-specific stuff
+  // Gets the run number and maximum number of events from TA
+throw (emuRUI::exception::Exception)
+{
+  xdata::UnsignedLong runNumber = 0;
+
+  vector< xdaq::ApplicationDescriptor* > taDescriptors;
+
+  try
+    {
+      taDescriptors = getAppDescriptors(appGroup_, "EmuTA");
+    }
+  catch(xcept::Exception e)
+    {
+      taDescriptors.clear();
+      XCEPT_RETHROW(emuRUI::exception::Exception, 
+		    "Failed to get application descriptors for class EmuTA",
+		    e);
+    }
+
+  string rn="";
+  string mn="";
+  if      ( taDescriptors.size() == 1 ){
+    rn = getScalarParam(taDescriptors[0],"runNumber","unsignedLong");
+    LOG4CPLUS_INFO(logger_, "Got run number from emuTA: " + rn );
+    mn = getScalarParam(taDescriptors[0],"maxNumTriggers","unsignedLong");
+    LOG4CPLUS_INFO(logger_, "Got maximum number of events from emuTA: " + mn );
+  }
+  else if ( taDescriptors.size() > 1 ){
+    LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
+		    taDescriptors.size() << " emuTA instances found. Trying first one.");
+    rn = getScalarParam(taDescriptors[0],"runNumber","unsignedLong");
+    LOG4CPLUS_INFO(logger_, "Got run number from emuTA: " + rn );
+    mn = getScalarParam(taDescriptors[0],"maxNumTriggers","unsignedLong");
+    LOG4CPLUS_INFO(logger_, "Got maximum number of events from emuTA: " + mn );
+  }
+  else{
+    LOG4CPLUS_ERROR(logger_, "Did not find EmuTA. ==> Run number and maximum number of events are unknown.");
+  }
+
+  unsigned int  irn(0);
+  istringstream srn(rn);
+  srn >> irn;
+  runNumber_ = irn;
+
+  unsigned int  imn(0);
+  istringstream smn(mn);
+  smn >> imn;
+  maxEvents_ = imn;
+
+  taDescriptors.clear();
+
+}
+
 
 
 string EmuRUI::createRuiRuPoolName(const unsigned long emuRUIInstance)
@@ -310,15 +713,6 @@ string EmuRUI::createRuiRuPoolName(const unsigned long emuRUIInstance)
     return s;
 }
 
-string EmuRUI::createRuiDqmPoolName()
-  // EMu-specific
-{
-    stringstream oss;
-
-    oss << "EmuRUI" << instance_ << "_DQM_Pool";
-
-    return oss.str();
-}
 
 
 toolbox::mem::Pool *EmuRUI::createHeapAllocatorMemoryPool
@@ -351,36 +745,6 @@ throw (emuRUI::exception::Exception)
     }
 }
 
-toolbox::mem::Pool *EmuRUI::createCommittedHeapAllocatorMemoryPool
-(
-    toolbox::mem::MemoryPoolFactory *poolFactory,
-    const string                     poolName
-)
-throw (emuRUI::exception::Exception)
-{
-    try
-    {
-        toolbox::net::URN urn("toolbox-mem-pool", poolName);
-        toolbox::mem::CommittedHeapAllocator* a = new toolbox::mem::CommittedHeapAllocator(ruiDqmPoolSize_.value_);
-        toolbox::mem::Pool *pool = poolFactory->createPool(urn, a);
-	pool->setHighThreshold ( (unsigned long) (ruiDqmPoolSize_ * 0.7));
-
-        return pool;
-    }
-    catch (xcept::Exception e)
-    {
-        string s = "Failed to set up commited pool: " + poolName;
-
-        XCEPT_RETHROW(emuRUI::exception::Exception, s, e);
-    }
-    catch(...)
-    {
-        string s = "Failed to set up commited pool: " + poolName +
-                   " : Unknown exception";
-
-        XCEPT_RAISE(emuRUI::exception::Exception, s);
-    }
-}
 
 
 void EmuRUI::defineFsm()
@@ -491,9 +855,6 @@ string EmuRUI::generateMonitoringInfoSpaceName
 
 vector< pair<string, xdata::Serializable*> > EmuRUI::initAndGetStdConfigParams()
 {
-//     unsigned int firstSourceId = 0;
-//     unsigned int lastSourceId  = 0;
-//     unsigned int sourceId      = 0;
     vector< pair<string, xdata::Serializable*> > params;
 
 
@@ -502,26 +863,12 @@ vector< pair<string, xdata::Serializable*> > EmuRUI::initAndGetStdConfigParams()
     fedPayloadSize_ = 2048;
     threshold_      = 0x4000000;//=64MB // 0x8000000;//=128MB //67108864; // 64 MB
 
-//     // Default is 8 FEDs per super-fragment
-//     // Trigger has FED source id 0, RU0 has 1 to 8, RU1 has 9 to 16, etc.
-//     firstSourceId = (instance_ * 8) + 1;
-//     lastSourceId  = (instance_ * 8) + 8;
-
-//     for(sourceId=firstSourceId; sourceId<=lastSourceId; sourceId++)
-//     {
-//         fedSourceIds_.push_back(sourceId);
-//     }
-
     params.push_back(pair<string,xdata::Serializable *>
         ("workLoopName", &workLoopName_));
     params.push_back(pair<string,xdata::Serializable *>
         ("dataBufSize", &dataBufSize_));
-//     params.push_back(pair<string,xdata::Serializable *>
-//         ("fedPayloadSize", &fedPayloadSize_));
     params.push_back(pair<string,xdata::Serializable *>
         ("threshold", &threshold_));
-//     params.push_back(pair<string,xdata::Serializable *>
-//         ("fedSourceIds", &fedSourceIds_));
 
     //
     // EMu-specific stuff
@@ -529,57 +876,51 @@ vector< pair<string, xdata::Serializable*> > EmuRUI::initAndGetStdConfigParams()
     maxEvents_ = 0;
     params.push_back(pair<string,xdata::Serializable *>
 		     ("maxEvents", &maxEvents_));
-    DDUMode_ = "file";
-    params.push_back(pair<string,xdata::Serializable *>
-		     ("DDUMode", &DDUMode_));
-    maxDDUReadFailures_ = 1;
-//     params.push_back(pair<string,xdata::Serializable *>
-// 		     ("maxDDUReadFailures", &maxDDUReadFailures_));
-    nDDUs_   = 0;
-    params.push_back(pair<string,xdata::Serializable *>
-		     ("nDDUs", &nDDUs_));
-    // Init DDUInput_ and DDUSourceId_ vectors.
-    int maxDDUs = 8;
-    for( int iDDU=0; iDDU<maxDDUs; ++iDDU ){
-      DDUInput_.push_back("not used");
-//       DDUSourceId_.push_back(0);
-    }
-    params.push_back(pair<string,xdata::Serializable *> 
-		     ("DDUInput", &DDUInput_));
-//     params.push_back(pair<string,xdata::Serializable *> 
-// 		     ("DDUSourceId", &DDUSourceId_));
 
-//     // Also, name their elements as long as PropertiesEditor is buggy.
-//     for( unsigned int iDDU=0; iDDU<DDUInput_.size(); ++iDDU ){
-//       stringstream oss;
-//       oss << "DDUInput" << iDDU;
-//       params.push_back(pair<string,xdata::Serializable *> 
-// 		     ( oss.str(), &DDUInput_.at(iDDU)));
-// //       oss.str("");
-// //       oss << "DDUSourceId" << iDDU;
-// //       params.push_back(pair<string,xdata::Serializable *> 
-// // 		     ( oss.str(), &DDUSourceId_.at(iDDU)));
-//     }
+    inputDataFormat_ = "DDU";
+    nInputDevices_   = 0;
+    inputDeviceType_ = "file";
+
+    params.push_back(pair<string,xdata::Serializable *>
+		     ("inputDataFormat", &inputDataFormat_));
+    params.push_back(pair<string,xdata::Serializable *>
+		     ("inputDeviceType", &inputDeviceType_));
+    for( unsigned int iDev=0; iDev<maxDevices_; ++iDev ) inputDeviceNames_.push_back("");
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("inputDeviceNames", &inputDeviceNames_));
+
 
     pathToDataOutFile_   = "/tmp";
+    pathToBadEventsFile_ = "/tmp";
     fileSizeInMegaBytes_ = 2;
     params.push_back(pair<string,xdata::Serializable *>
 		     ("pathToRUIDataOutFile"  , &pathToDataOutFile_   ));
+    params.push_back(pair<string,xdata::Serializable *>
+		     ("pathToBadEventsFile"   , &pathToBadEventsFile_ ));
     params.push_back(pair<string,xdata::Serializable *>
 		     ("ruiFileSizeInMegaBytes", &fileSizeInMegaBytes_ ));
     passDataOnToRUBuilder_ = true;
     params.push_back(pair<string,xdata::Serializable *>
 		     ("passDataOnToRUBuilder", &passDataOnToRUBuilder_));
 
-    sendDQMDataOnRequestOnly_ = true;
-    params.push_back(pair<string,xdata::Serializable *>
-		     ("sendDQMDataOnRequestOnly", &sendDQMDataOnRequestOnly_));
-    prescalingForDQM_ = 100;
-    params.push_back(pair<string,xdata::Serializable *>
-		     ("prescalingForDQM", &prescalingForDQM_));
-    ruiDqmPoolSize_ = 0x100000; // 1MB
-    params.push_back(pair<string,xdata::Serializable *>
-		     ("ruiDqmPoolSize", &ruiDqmPoolSize_));
+
+    for( unsigned int iClient=0; iClient<maxClients_; ++iClient ) {
+      clientName_.push_back("");
+      clientProtocol_.push_back("I2O");
+      clientPoolSize_.push_back(0x100000); // 1MB
+      prescaling_.push_back(0);
+      onRequest_.push_back(true);
+    }
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("clientsClassName", &clientName_));
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("clientsProtocol", &clientProtocol_));
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("poolSizeForClient", &clientPoolSize_));
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("prescalingForClient", &prescaling_));
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("sendOnClientsRequestOnly", &onRequest_));
 
     return params;
 }
@@ -602,13 +943,18 @@ vector< pair<string, xdata::Serializable*> > EmuRUI::initAndGetStdMonitorParams(
     //
     // EMu-specific stuff
     //
-    nEvents_ = 1;
+    nEventsRead_ = 1;
     params.push_back(pair<string,xdata::Serializable *>
-		     ("nEvents", &nEvents_));
+		     ("nEventsRead", &nEventsRead_));
 
-    nEventCreditsHeld_ = 0;
-    params.push_back(pair<string,xdata::Serializable *>
-		     ("nEventCreditsHeld", &nEventCreditsHeld_));
+    for( unsigned int iClient=0; iClient<maxClients_; ++iClient ){ 
+      creditsHeld_.push_back(0);
+      clientPersists_.push_back(true);
+    }
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("nEventCreditsHeld", &creditsHeld_));
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("clientPersists", &clientPersists_));
 
     return params;
 }
@@ -807,6 +1153,151 @@ throw (emuRUI::exception::Exception)
     }
 }
 
+void EmuRUI::destroyDeviceReaders(){
+  std::vector<EmuReader*>::iterator r;
+  for ( r=deviceReaders_.begin(); r!=deviceReaders_.end(); ++r ){
+    LOG4CPLUS_DEBUG(logger_, string("Destroying reader for ") + (*r)->getName() );
+    delete *r;
+  }
+  deviceReaders_.clear();
+}
+
+void EmuRUI::createDeviceReaders(){
+
+  // Count devices
+  nInputDevices_ = 0;
+  for( unsigned int iDev=0; iDev<maxDevices_; ++iDev )
+    if ( inputDeviceNames_.at(iDev).toString() != "" ) nInputDevices_++;
+
+  if ( nInputDevices_.value_ == (unsigned int) 0 ) {
+    LOG4CPLUS_ERROR(logger_, "Number of input devices is zero?!");
+  }
+
+  // Create readers
+  int inputDataFormatInt_ = -1;
+  if      ( inputDataFormat_ == "DDU" ) inputDataFormatInt_ = EmuReader::DDU;
+  else if ( inputDataFormat_ == "DCC" ) inputDataFormatInt_ = EmuReader::DCC;
+  else     LOG4CPLUS_ERROR(logger_,"No such data format: " << inputDataFormat_.toString() << 
+			   "Use \"DDU\" or \"DCC\"");
+  for( unsigned int iDev=0; iDev<nInputDevices_; ++iDev ){
+    LOG4CPLUS_INFO(logger_, "Creating " << inputDeviceType_.toString() << 
+		   " reader for " << inputDeviceNames_.at(iDev).toString());
+    deviceReaders_.push_back(NULL);
+    try {
+      if      ( inputDeviceType_ == "spy"  )
+	deviceReaders_[iDev] = new EmuSpyReader(  inputDeviceNames_.at(iDev).toString(), inputDataFormatInt_ );
+      else if ( inputDeviceType_ == "file" )
+	deviceReaders_[iDev] = new EmuFileReader( inputDeviceNames_.at(iDev).toString(), inputDataFormatInt_ );
+      // TODO: slink
+      else     LOG4CPLUS_ERROR(logger_,"Bad device type: " << inputDeviceType_.toString() << 
+			       "Use \"file\", \"spy\", or \"slink\"");
+    }
+    catch(char* e){
+
+      stringstream oss;
+      oss << "Failed to create " << inputDeviceType_.toString()
+	  << " reader for "      << inputDeviceNames_.at(iDev).toString()
+	  << ": "                << e;
+      LOG4CPLUS_ERROR(logger_, oss.str())
+
+	// Don't raise exception as it would be interpreted as FSM transition error
+	//	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
+	}
+  }
+
+  iCurrentDeviceReader_ = 0;
+}
+
+void EmuRUI::destroyServers(){
+  std::vector<Client*>::iterator c;
+  for ( c=clients_.begin(); c!=clients_.end(); ++c ){
+    LOG4CPLUS_INFO(logger_, string("Destroying server for ") + (*c)->server->getClientName() );
+    delete (*c)->server;
+//     delete (*c)->workLoopActionSignature;
+//     delete (*c)->workLoop;
+  }
+  clients_.clear();
+}
+
+bool EmuRUI::createI2OServer( string clientName ){
+  bool created = false;
+  unsigned int iClient = clients_.size();
+  if ( iClient < maxClients_ ){
+    *(dynamic_cast<xdata::String*> ( clientName_.elementAt( iClient )     )) = clientName;
+    *(dynamic_cast<xdata::String*> ( clientProtocol_.elementAt( iClient ) )) = "I2O";
+    *(dynamic_cast<xdata::Boolean*>( clientPersists_.elementAt( iClient ) )) = true;
+    EmuI2OServer* s = new EmuI2OServer( this,
+					i2oExceptionHandler_,
+					clientName_.elementAt(iClient)->toString(),
+					clientPoolSize_.elementAt(iClient),
+					prescaling_.elementAt(iClient),
+					onRequest_.elementAt(iClient),
+					creditsHeld_.elementAt(iClient),
+					&logger_ );
+
+    clients_.push_back( new Client( clientName_.elementAt(iClient),
+				    clientPersists_.elementAt(iClient),
+				    clientPoolSize_.elementAt(iClient),
+				    prescaling_.elementAt(iClient),
+				    onRequest_.elementAt(iClient), 
+				    creditsHeld_.elementAt(iClient),
+				    s ) );
+    created = true;
+  }
+  return created;
+}
+
+bool EmuRUI::createSOAPServer( string clientName, bool persistent ){
+  bool created = false;
+  unsigned int iClient = clients_.size();
+  if ( iClient < maxClients_ ){
+    *(dynamic_cast<xdata::String*> (     clientName_.elementAt( iClient ) )) = clientName;
+    *(dynamic_cast<xdata::String*> ( clientProtocol_.elementAt( iClient ) )) = "SOAP";
+    *(dynamic_cast<xdata::Boolean*>( clientPersists_.elementAt( iClient ) )) = persistent;
+    EmuSOAPServer* s = new EmuSOAPServer( this,
+					  clientName_.elementAt(iClient)->toString(),
+					  prescaling_.elementAt(iClient),
+					  onRequest_.elementAt(iClient),
+					  creditsHeld_.elementAt(iClient),
+					  &logger_ );
+    
+    clients_.push_back( new Client( clientName_.elementAt(iClient),
+				    clientPersists_.elementAt(iClient),
+				    clientPoolSize_.elementAt(iClient),
+				    prescaling_.elementAt(iClient),
+				    onRequest_.elementAt(iClient), 
+				    creditsHeld_.elementAt(iClient),
+				    s ) );
+    created = true;
+  }
+  else 
+    LOG4CPLUS_WARN(logger_, 
+		   "Maximum number of clients exceeded. Cannot create server for " << clientName );
+  return created;
+}
+
+
+void EmuRUI::createServers(){
+  for ( int iClient=0; iClient<clientName_.elements(); ++iClient ){
+    xdata::Boolean *persists = dynamic_cast<xdata::Boolean*>( clientPersists_.elementAt(iClient) );
+    // (Re)create it only if it has a name and is not a temporary server created on the fly
+    if ( clientName_.elementAt(iClient)->toString() != "" && persists->value_ ){
+      LOG4CPLUS_INFO(logger_,
+		     clientName_.elementAt(iClient)->toString() + 
+		     "\'s server being created" );
+      if ( clientProtocol_.elementAt(iClient)->toString() == "I2O" )
+	createI2OServer( clientName_.elementAt(iClient)->toString() );
+      else if ( clientProtocol_.elementAt(iClient)->toString() == "SOAP" )
+	createSOAPServer( clientName_.elementAt(iClient)->toString() );
+      else
+	LOG4CPLUS_ERROR(logger_, "Unknown protocol \"" <<
+			clientProtocol_.elementAt(iClient)->toString() << 
+			"\" for client " <<
+			clientName_.elementAt(iClient)->toString() << 
+			". Please use \"I2O\" or \"SOAP\".");
+    }
+  }
+}
 
 void EmuRUI::configureAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
@@ -856,64 +1347,35 @@ throw (toolbox::fsm::exception::Exception)
     //
     // EMu-specific stuff
     //
-    runNumber_ = *getRunNumber();
+    getRunAndMaxEventNumber();
 
-    if ( nDDUs_.value_ == (unsigned int) 0 ) {
-      LOG4CPLUS_FATAL(logger_, "Number of DDUs is zero?!");
-//       XCEPT_RAISE(xcept::Exception, "Number of DDUs is zero?!");
-      XCEPT_RAISE(xdaq::exception::Exception, "Number of DDUs is zero?!");
-    }
-    nDDUReadFailures_ = new unsigned int[nDDUs_];
-    DDU_              = new DDUReader*[nDDUs_];
-    for( unsigned int iDDU=0; iDDU<nDDUs_; ++iDDU ){
-      LOG4CPLUS_INFO(logger_, "Creating " << DDUMode_.toString() << 
-		     " reader for " << DDUInput_.at(iDDU).toString());
-      try {
-	if      ( DDUMode_ == "hardware" )
-	  DDU_[iDDU] = new HardwareDDU( DDUInput_.at(iDDU).toString() );
-	else if ( DDUMode_ == "file"     ) 
-	  DDU_[iDDU] = new FileReaderDDU( DDUInput_.at(iDDU).toString() );
-	else     LOG4CPLUS_ERROR(logger_,"Bad DDU mode: " << DDUMode_.toString() << 
-				 "Use \"file\" or \"hardware\"");
-      }
-      catch(xcept::Exception e){
-	nDDUReadFailures_[iDDU] = maxDDUReadFailures_;
+    nEventsRead_ = 1;
 
-        stringstream oss;
-        oss << "Failed to create " << DDUMode_.toString() << 
-	  " reader for " << DDUInput_.at(iDDU).toString(); 
-//         XCEPT_RETHROW(toolbox::fsm::exception::Exception, oss.str(), e);
-//         XCEPT_RETHROW(xdaq::exception::Exception, oss.str(), e);
-      }
-    }
+    nDevicesWithBadData_ = 0;
 
-    iCurrentDDU_ = 0;
+    destroyDeviceReaders();
+    createDeviceReaders();
 
     // Just in case there's a writer, terminate it in an orderly fashion
     if ( fileWriter_ )
       {
+	LOG4CPLUS_INFO( logger_, "Terminating leftover file writer." );
 	fileWriter_->endRun();
 	delete fileWriter_;
 	fileWriter_ = NULL;
       }
+    if ( badEventsFileWriter_ )
+      {
+	LOG4CPLUS_INFO( logger_, "Terminating leftover bad event file writer." );
+	badEventsFileWriter_->endRun();
+	if ( badEventsFileWriter_->getFileSize() == 0 ) badEventsFileWriter_->removeFile();
+	delete badEventsFileWriter_;
+	badEventsFileWriter_ = NULL;
+      }
 
-    nEvents_ = 1;
+    destroyServers();
+    createServers();
 
-    DQMonitorDescriptor_ = getDQMonitor(appGroup_);
-    if ( DQMonitorDescriptor_ ){
-      LOG4CPLUS_INFO(logger_,"DQM found.");
-      try
-	{
-	  DQMonitorTid_ = i2oAddressMap_->getTid(DQMonitorDescriptor_);
-	}
-      catch(xcept::Exception e)
-	{
-	  LOG4CPLUS_WARN(logger_,"Failed to get DQM's Tid.");
-	}
-    }
-    else{
-      LOG4CPLUS_INFO(logger_,"No DQM found.");
-    }
 
   // Emu: start work loop upon enable, not upon config
 //     if(!workLoopStarted_)
@@ -1047,8 +1509,75 @@ throw (toolbox::fsm::exception::Exception)
 
         workLoopStarted_ = true;
     }
-}
 
+
+    // server loops
+    for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
+	
+      if( ! clients_[iClient]->workLoopStarted )
+	{
+	  clients_[iClient]->workLoopActionSignature = toolbox::task::bind
+	    (
+	     this,
+	     &EmuRUI::serverLoopAction,
+	     "EmuRUI server loop action"
+	     );
+
+	  if(clients_[iClient]->workLoopName == "")
+	    {
+	      stringstream oss;
+	      oss << xmlClass_ << instance_ << "Server" << iClient << "WorkLoop";
+	      clients_[iClient]->workLoopName = oss.str();
+	    }
+
+	  try
+	    {
+	      clients_[iClient]->workLoop =
+                workLoopFactory_->getWorkLoop(clients_[iClient]->workLoopName, "waiting");
+	    }
+	  catch(xcept::Exception e)
+	    {
+	      string s = "Failed to get work loop : " + clients_[iClient]->workLoopName;
+
+	      XCEPT_RETHROW(toolbox::fsm::exception::Exception, s, e);
+	    }
+
+	  try
+	    {
+	      clients_[iClient]->workLoop->submit(clients_[iClient]->workLoopActionSignature);
+	    }
+	  catch(xcept::Exception e)
+	    {
+	      string s = "Failed to submit action to work loop : " +
+		clients_[iClient]->workLoopName;
+
+
+	      XCEPT_RETHROW(toolbox::fsm::exception::Exception, s, e);
+	    }
+
+	  if(!clients_[iClient]->workLoop->isActive())
+	    {
+	      try
+		{
+		  clients_[iClient]->workLoop->activate();
+
+		  LOG4CPLUS_INFO(logger_,
+				 "Activated work loop : " << clients_[iClient]->workLoopName);
+		}
+	      catch(xcept::Exception e)
+		{
+		  string s = "Failed to active work loop : " +
+		    clients_[iClient]->workLoopName;
+
+		  XCEPT_RETHROW(toolbox::fsm::exception::Exception, s, e);
+		}
+	    }
+
+	  clients_[iClient]->workLoopStarted = true;
+	}
+    }
+
+}
 
 void EmuRUI::haltAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
@@ -1071,17 +1600,23 @@ throw (toolbox::fsm::exception::Exception)
     // Reset event number
     eventNumber_ = 1;
 
-//     // Reset super-fragment generator
-//     superFragGenerator_.startSuperFragment(0, 0, 0, 0);
-
     // EMu specific
     if ( fileWriter_ ){
       fileWriter_->endRun();
       delete fileWriter_;
       fileWriter_ = NULL;
     }
+    if ( badEventsFileWriter_ ){
+      badEventsFileWriter_->endRun();
+      if ( badEventsFileWriter_->getFileSize() == 0 ) badEventsFileWriter_->removeFile();
+      delete badEventsFileWriter_;
+      badEventsFileWriter_ = NULL;
+    }
+    for ( std::vector<Client*>::iterator c=clients_.begin(); c!=clients_.end(); ++c ){
+      (*c)->workLoopStarted = false;
+    }
+
     workLoopStarted_  = false;
-    nDDUReadFailures_ = 0;
 }
 
 
@@ -1119,7 +1654,8 @@ void EmuRUI::bindI2oCallbacks()
     // Do nothing
 
   // EMu-specific stuff
-  i2o::bind(this, &EmuRUI::clientCreditMsg, I2O_TOYCLIENT_CODE, XDAQ_ORGANIZATION_ID );
+  i2o::bind(this, &EmuRUI::onI2OClientCreditMsg, I2O_EMUCLIENT_CODE, XDAQ_ORGANIZATION_ID );
+
 }
 
 
@@ -1285,8 +1821,6 @@ throw (xgi::exception::Exception)
       //
       // EMu-specific stuff
       //
-//       cout << pos->second->type() << "    " << pos->first << "    " << pos->second << endl;
-      
       if ( pos->second->type() == "vector" ){
 
 	// Q: How do I determine the type of a xdata::Vector's elements 
@@ -1310,7 +1844,6 @@ throw (xgi::exception::Exception)
 // 	      cout << "   type " << xsv_it->type() << endl; // crashes on second iteration...
 
 	for ( int i=0; i<xsv->elements(); ++i ){
-// 	  cout << "   type " << xsv->elementAt(i)->type() << "    " << endl;
 	  
 	  *out << "  <tr>"                                               << endl;
 	  
@@ -1511,52 +2044,72 @@ bool EmuRUI::workLoopAction(toolbox::task::WorkLoop *wl)
     }
 }
 
+bool EmuRUI::serverLoopAction(toolbox::task::WorkLoop *wl)
+{
+    try
+    {
+      bool isToBeRescheduled = true;
+
+      applicationBSem_.take();
+
+        toolbox::fsm::State state = fsm_.getCurrentState();
+
+        switch(state)
+        {
+        case 'H':  // Halted
+        case 'R':  // Ready
+            break;
+        case 'E':  // Enabled
+	  // Find out from which work loop we dropped in here
+	  for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
+	    if ( clients_[iClient]->workLoop == wl ){
+// 	      LOG4CPLUS_DEBUG(logger_, "Sending data from " << clients_[iClient]->workLoopName << " ("<< wl << ")");
+	      clients_[iClient]->server->sendData();
+	    break;
+	    }
+	  }
+	  break;
+        default:
+            // Should never get here
+            LOG4CPLUS_FATAL(logger_,
+                "EmuRUI" << instance_ << " is in an undefined state");
+        }
+
+	applicationBSem_.give();
+
+        // Reschedule this action code
+        return isToBeRescheduled;
+    }
+    catch(xcept::Exception e)
+    {
+	applicationBSem_.give();
+
+        LOG4CPLUS_FATAL(logger_,
+            "Failed to execute \"self-driven\" behaviour"
+            << " : " << xcept::stdformat_exception_history(e));
+
+        // Do not reschedule this action code as the application has failed
+        return false;
+    }
+}
+
+
+void EmuRUI::addDataForClients( const int   runNumber, 
+			        const int   nEventsRead,
+			        const bool  completesEvent, 
+			        char* const data, 
+			        const int   dataLength ){
+  for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient )
+    clients_[iClient]->server->addData( runNumber, nEventsRead, completesEvent, data, dataLength );
+}
+
+
 bool EmuRUI::processAndCommunicate()
 {
-
-//             // see if we need to send empty events before this one
-//             while(sendEmptyEvents_ && (nEvents_ < eventn)) {
-//               sendEmptyEvent(nEvents_);
-//               LOG4CPLUS_INFO(logger_, "adding empty event " << nEvents_ << " from source " << sourceId_ ));
-//               ++nEvents_;
-//             }
-//             // see if the event needs a Common Data Format header
-//             if(addCDF_) {
-//               addCDFAndSend(data, dataLength, eventn, ruTid_); 
-//             } else {
-// 	      sendMessage(data, dataLength, eventn, ruTid_);
-//             }
-
-// 	    LOG4CPLUS_DEBUG(logger_, "frame sent to " << ruTid_);
-
-//             // write event locally, if asked to
-// 	    if (eventWriter_ != NULL) {
-// 		eventWriter_->writeEvent(data, dataLength);
-// 	    }
-
-//             // see if the event needs to be pushed to the data quality monitor
-//             // maybe there's a more efficient thing to do than repacking.
-//             if(prescaleForPushingToDQM_ != 0 && 
-//                dataQualityMonitorTid_ != NIL_TARGET_ID) {
-//               // only send if it passes the prescale
-//               if((eventNumber_ % prescaleForPushingToDQM_) == 0) {
-// 		if(addCDF_){
-// 		  //The dqm would like to know where the data is coming from
-// 		  //if we are reading from a source with no CDF header/trailer
-// 		  //so add one and send.
-// 		  addCDFAndSend(data,dataLength,eventn,dataQualityMonitorTid_);
-// 		}
-// 		else{
-//                 sendMessage(data, dataLength, 
-//                                  eventn, dataQualityMonitorTid_);
-// 		}
-// 		LOG4CPLUS_DEBUG(logger_, "frame sent to " << dataQualityMonitorTid_);
-//               }	      
-//             }
     
   bool keepRunning = true;
 
-    if( blocksArePendingTransmission_ || dataForDQMArePendingTransmission_ )
+    if( blocksArePendingTransmission_ )
     {
       if( blocksArePendingTransmission_ )
         try
@@ -1569,17 +2122,8 @@ bool EmuRUI::processAndCommunicate()
                 "Failed to send data block to RU" << instance_ << "."
                 << "Will try again later");
         }
-      if( dataForDQMArePendingTransmission_ )
-        try
-        {
-            sendNextPendingBlockToDQM();
-        }
-        catch(xcept::Exception e)
-        {
-            LOG4CPLUS_WARN(logger_,
-                "Failed to send data block to DQM" << instance_ << "."
-                << "Will try again later");
-        }
+      // Send data to clients from here if not from serverLoopAction() in another thread
+      //       sendDataToClients();
     }
     else
     {
@@ -1660,145 +2204,128 @@ throw (emuRUI::exception::Exception)
     blocksArePendingTransmission_ = superFragBlocks_.size() > 0;
 }
 
-void EmuRUI::sendNextPendingBlockToDQM()
-throw (emuRUI::exception::Exception)
-  // EMu-specific
-{
-    try
-    {
-        appContext_->postFrame
-        (
-            dataBlocksForDQM_.front(),
-            appDescriptor_,
-            DQMonitorDescriptor_,
-            i2oExceptionHandler_,
-            DQMonitorDescriptor_
-        );
-    }
-    catch(xcept::Exception e)
-    {
-        stringstream oss;
-        string       s;
-
-        oss << "Failed to send block to DQM" << DQMonitorDescriptor_->getInstance();
-        s = oss.str();
-
-        XCEPT_RETHROW(emuRUI::exception::Exception, s, e);
-    }
-
-    dataBlocksForDQM_.erase(dataBlocksForDQM_.begin());
-
-    dataForDQMArePendingTransmission_ = dataBlocksForDQM_.size() > 0;
-
-    if ( !dataForDQMArePendingTransmission_  && nEventCreditsHeld_.value_ ) --nEventCreditsHeld_;
-}
-
 
 bool EmuRUI::continueConstructionOfSuperFrag()
-throw (emuRUI::exception::Exception)
+  throw (emuRUI::exception::Exception)
 {
 
-  bool keepRunning;
+  bool keepRunning = true;
 
-  if ( maxEvents_.value_ > 0 && nEvents_.value_ > maxEvents_.value_ ) return false;
+  if ( maxEvents_.value_ > 0 && nEventsRead_.value_ > maxEvents_.value_ ) return false;
 
-  // If the EmuRUI to RU memory pool has room for another data block
-  if(!ruiRuPool_->isHighThresholdExceeded()){
-
-    keepRunning = DDU_[iCurrentDDU_]->readNextEvent();
-
-    if ( !keepRunning ) {
-      LOG4CPLUS_ERROR(logger_, "DDU[" << iCurrentDDU_ << "] read error.");
-      if ( fileWriter_ ){
-	  fileWriter_->endRun();
-	  delete fileWriter_;
-	  fileWriter_ = NULL;
-	}
-    }
-
-    char* data;
-    int   dataLength  = 0;
-    int   eventNumber = 0;
-
-    if ( keepRunning ) {
-//     if ( true ) { // let's see those too short events too !!!
-      
-      data       = DDU_[iCurrentDDU_]->data();
-      dataLength = DDU_[iCurrentDDU_]->dataLength();
-      if ( dataLength>0 ) eventNumber = DDU_[iCurrentDDU_]->eventNumber();
-
-      dataLength = getDDUDataLengthWithoutPadding(data,dataLength);
-
-//       if ( nEvents_ % 100 == 0 )
-      LOG4CPLUS_INFO(logger_, 
-		     "Read event " << eventNumber                           << 
-		     " of "        << nEvents_                              <<
-		     " from "      << DDUInput_.at(iCurrentDDU_).toString() <<
-		     ", size: "    << dataLength   
-		     );
-
-      if ( nEvents_ == (unsigned long) 1 ) // first event --> a new run
-	if ( iCurrentDDU_ == 0 ) // don't do it for all DDU's...
-	  {
-	    // terminate old writer, if any
-	    if ( fileWriter_ )
-	      {
-		fileWriter_->endRun();
-		delete fileWriter_;
+  if ( nEventsRead_ == (unsigned long) 1 ) // first event --> a new run
+    {
+      if ( iCurrentDeviceReader_ == 0 ) // don't do it for all devices...
+	{
+	  // terminate old writers, if any
+	  if ( fileWriter_ )
+	    {
+	      fileWriter_->endRun();
+	      delete fileWriter_;
 	      fileWriter_ = NULL;
-	      }
-	    // create new writer if path is not empty
-	    if ( pathToDataOutFile_ != string("") && fileSizeInMegaBytes_ > (long unsigned int) 0 ){
+	    }
+	  if ( badEventsFileWriter_ )
+	    {
+	      badEventsFileWriter_->endRun();
+	      if ( badEventsFileWriter_->getFileSize() == 0 ) badEventsFileWriter_->removeFile();
+	      delete badEventsFileWriter_;
+	      badEventsFileWriter_ = NULL;
+	    }
+	  // create new writers if path is not empty
+	  if ( pathToDataOutFile_ != string("") && fileSizeInMegaBytes_ > (long unsigned int) 0 )
+	    {
 	      stringstream ss;
 	      ss << "EmuRUI" << instance_;
 	      fileWriter_ = new FileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), ss.str(), &logger_ );
 	    }
-	    if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_ );
-	  }
+	  if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_ );
+	  if ( pathToBadEventsFile_ != string("") && fileSizeInMegaBytes_ > (long unsigned int) 0 )
+	    {
+	      stringstream ss;
+	      ss << "EmuRUI" << instance_ << "_BadEvents";
+	      badEventsFileWriter_ = new FileWriter( 1000000*fileSizeInMegaBytes_, pathToBadEventsFile_.toString(), ss.str(), &logger_ );
+	    }
+	  if ( badEventsFileWriter_ ) badEventsFileWriter_->startNewRun( runNumber_.value_ );
+	} // if first input device 
+    } // if first event 
+
+    if (deviceReaders_[iCurrentDeviceReader_]) 
+      keepRunning = deviceReaders_[iCurrentDeviceReader_]->readNextEvent();
+
+    if ( !keepRunning ){
+      LOG4CPLUS_ERROR(logger_, 
+		      " " << inputDataFormat_.toString() << inputDeviceType_.toString() << 
+		      "[" << iCurrentDeviceReader_ << "] read error.");
     }
+
+
+
+    bool badData = false;
+
+  // If the EmuRUI to RU memory pool has room for another data block
+  if(!ruiRuPool_->isHighThresholdExceeded()){
+
+    char* data;
+    int   dataLength  = 0;
+
+    if ( deviceReaders_[iCurrentDeviceReader_] ) {
+      //     if ( keepRunning && deviceReaders_[iCurrentDeviceReader_] ) {
+      //     if ( true ) { // let's see those too short events too !!!
+      
+      data       = deviceReaders_[iCurrentDeviceReader_]->data();
+      dataLength = deviceReaders_[iCurrentDeviceReader_]->dataLength();
+      if ( dataLength>0 ) eventNumber_ = deviceReaders_[iCurrentDeviceReader_]->eventNumber();
+
+      if ( inputDataFormatInt_ == EmuReader::DDU ){
+	int dataLengthWithoutPadding = getDDUDataLengthWithoutPadding(data,dataLength);
+	if ( dataLengthWithoutPadding >= 0 ){
+	  dataLength = dataLengthWithoutPadding;
+	  badData    = interestingDDUErrorBitPattern(data,dataLength);
+	  if ( badData ) nDevicesWithBadData_++;
+	}
+      }
+      else {
+	int dataLengthWithoutPadding = getDDUDataLengthWithoutPadding(data,dataLength);
+	if ( dataLengthWithoutPadding >= 0 ){
+	  dataLength = dataLengthWithoutPadding;
+	  badData    = interestingDDUErrorBitPattern(data,dataLength);
+	  if ( badData ) nDevicesWithBadData_++;
+	}
+      }
+
+      if ( nEventsRead_ % 100 == 0 )
+	LOG4CPLUS_DEBUG(logger_, 
+			"Read event "    << eventNumber_                          << 
+			" ("             << nEventsRead_                              <<
+			" so far) from " << inputDeviceNames_.at(iCurrentDeviceReader_).toString() <<
+			", size: "       << dataLength   
+			);
+
+    } //  if (   )
     
     if ( fileWriter_ )
       {
-	if ( iCurrentDDU_ == 0 ) // don't start a new event for each DDU...
+	if ( iCurrentDeviceReader_ == 0 ) // don't start a new event for each device...
 	  fileWriter_->startNewEvent();
 	fileWriter_->writeData( data, dataLength );
+      }
+    if ( badEventsFileWriter_ )
+      {
+	if ( nDevicesWithBadData_ == 1 ) // start a new event for the first faulty device
+	  badEventsFileWriter_->startNewEvent();
+	if ( badData ) badEventsFileWriter_->writeData( data, dataLength );
       }
 
     // fill block and append it to superfragment
     if ( passDataOnToRUBuilder_ )
       appendNewBlockToSuperFrag( data, dataLength );
 
-    // fill block and append it to data for DQM
-    bool isToBeSentToDQM = false;
-    if ( sendDQMDataOnRequestOnly_ ){
-      if ( nEventCreditsHeld_.value_ && prescalingForDQM_.value_ ){
-	if ( nEvents_.value_ % prescalingForDQM_.value_ == 1 ){
-	  if( !ruiDqmPool_->isHighThresholdExceeded() )
-	    isToBeSentToDQM = true;
-	  else  LOG4CPLUS_WARN(logger_, "EmuRUI to DQM memory pool's high threshold exceeded.");
-	}
-      }
-    }
-    else if ( prescalingForDQM_.value_ ){
-      if ( nEvents_.value_ % prescalingForDQM_.value_ == 1 ){
-	if( !ruiDqmPool_->isHighThresholdExceeded() )
-	  isToBeSentToDQM = true;
-	else  LOG4CPLUS_WARN(logger_, "EmuRUI to DQM memory pool's high threshold exceeded.");
-      }
-    }
 
-    if ( isToBeSentToDQM ) 
-      try{
-	appendNewBlockToDataForDQM( data, dataLength );
-      }
-      catch(xcept::Exception e){
-	LOG4CPLUS_ERROR(logger_,
-			"Failed to append data to be sent to DQM"
-			<< " : " << stdformat_exception_history(e));
-      }
-    
+    bool lastChunkOfEvent = ( iCurrentDeviceReader_ +1 == nInputDevices_ );
+    addDataForClients( runNumber_.value_, nEventsRead_.value_, lastChunkOfEvent, data, dataLength );
 
-    if ( iCurrentDDU_ +1 == nDDUs_ ){ // superfragment ready
+
+    if ( lastChunkOfEvent ){ // superfragment ready
 
       if ( passDataOnToRUBuilder_ ){
 	// Prepare it for sending to the RU
@@ -1808,21 +2335,19 @@ throw (emuRUI::exception::Exception)
 	blocksArePendingTransmission_ = true;
       }
 
-      if ( isToBeSentToDQM )
-	dataForDQMArePendingTransmission_ = true;
-      
-      //
-      nEvents_++;
+      nDevicesWithBadData_ = 0;
+      nEventsRead_++;
+
     }
 
-    iCurrentDDU_++;
-    iCurrentDDU_ %= nDDUs_;
+    iCurrentDeviceReader_++;
+    iCurrentDeviceReader_ %= nInputDevices_;
 
   }
-  else  LOG4CPLUS_WARN(logger_, "EmuRUI to RU memory pool's high threshold exceeded.");
+  else  LOG4CPLUS_WARN(logger_, "EmuRUI-to-RU memory pool's high threshold exceeded.");
   
-//   return true;
-  return keepRunning;
+  return true;
+//   return keepRunning;
 
 
 
@@ -1877,55 +2402,6 @@ throw (emuRUI::exception::Exception)
 }
 
 
-// void EmuRUI::appendNewBlockToSuperFrag()
-// throw (rui::exception::Exception)
-// {
-//     toolbox::mem::Reference *bufRef = 0;
-
-//     // Get a free block from the EmuRUI/RU pool
-//     try
-//     {
-//         bufRef = poolFactory_->getFrame(ruiRuPool_, dataBufSize_);
-//     }
-//     catch(xcept::Exception e)
-//     {
-//         stringstream oss;
-//         string       s;
-
-//         oss << "Failed to allocate a data block from the ";
-//         oss << ruiRuPoolName_ << " pool";
-//         oss << " : " << stdformat_exception_history(e);
-//         s = oss.str();
-
-//         XCEPT_RETHROW(rui::exception::Exception, s, e);
-//     }
-
-//     cout 
-//       << "bufRef " << bufRef->getDataOffset()
-//       << ",  "     << bufRef->getDataSize() << endl;
-
-//     // Fill block with super-fragment data
-//     try
-//     {
-//         superFragGenerator_.fillBlock(bufRef, dataBufSize_);
-//     }
-//     catch(xcept::Exception e)
-//     {
-//         stringstream oss;
-//         string       s;
-
-//         oss << "Failed to fill super-fragment data block";
-//         oss << " : " << stdformat_exception_history(e);
-//         s = oss.str();
-
-//         LOG4CPLUS_ERROR(logger_, s);
-//     }
-
-//     // Append block to super-fragment under construction
-//     superFragBlocks_.push_back(bufRef);
-
-//     printSuperFragment();
-// }
 
 
 void EmuRUI::printData(char* data, const int dataLength){
@@ -1952,8 +2428,7 @@ void EmuRUI::printData(char* data, const int dataLength){
   std::cout.width(0);
 }
 
-int EmuRUI::getDDUDataLengthWithoutPadding(char* data, const int dataLength){
-  // EMu-specific stuff
+int EmuRUI::getDDUDataLengthWithoutPadding(char* const data, const int dataLength){
   // Get the data length without the padding that may have been added by Gbit Ethernet
 
   const int minEthPacketSize   = 32; // short (2-byte) words --> 64 bytes
@@ -1963,31 +2438,142 @@ int EmuRUI::getDDUDataLengthWithoutPadding(char* data, const int dataLength){
   if ( dataLength%2 ) LOG4CPLUS_ERROR(logger_, "DDU data is odd number of bytes (" << dataLength << ") long" );
   if ( dataLength<DDUTrailerLength*2 ) LOG4CPLUS_ERROR(logger_, 
 				      "DDU data is shorter (" << dataLength << " bytes) than trailer" );
-
-//   printData(data,dataLength);
+  //   printData(data,dataLength);
 
   unsigned short *shortData = reinterpret_cast<unsigned short *>(data);
-  int strippedDataLength    = dataLength/2; // short (2-byte) words
   // Let's go backward looking for trailer signatures:
-  for ( int iShort=dataLength/2-DDUTrailerLength; 
+  for ( int iShort=dataLength/2-DDUTrailerLength;
 	iShort>=0 && iShort>=dataLength/2-(minEthPacketSize+DDUTrailerLength); 
 	--iShort ){
-    if ( (shortData[iShort+11] & 0xf000) == 0xa000 ) // probably the trailer
+    if ( (shortData[iShort+11] & 0xf000) == 0xa000 ) // Probably the trailer.
       // Double check:
       if ( shortData[iShort  ]             == 0x8000 &&
 	   shortData[iShort+1]             == 0x8000 &&
 	   shortData[iShort+2]             == 0xFFFF &&
 	   shortData[iShort+3]             == 0x8000 &&
-	   (shortData[iShort+4] & 0xfff0)  == 0x0000 &&
-	   (shortData[iShort+5] & 0x8000)  == 0x0000    ){
-// 	LOG4CPLUS_DEBUG(logger_, "Trailer found");
-	strippedDataLength = iShort + DDUTrailerLength;
-	break;
+	   (shortData[iShort+4] & 0xfff0)  == 0x0000    ){
+	// The following bit may be set in the production version,
+	// so let's not rely on it being 0
+	// (shortData[iShort+5] & 0x8000)  == 0x0000    ){
+	return 2 * (iShort + DDUTrailerLength);
       }
   }
 
-  return 2*strippedDataLength;
+  stringstream ss;
+  ss << "No DDU trailer found within " 
+     << 2*minEthPacketSize
+     << " bytes of the end of data in "
+     << deviceReaders_[iCurrentDeviceReader_]->getName()
+     << ". Event number: "
+     << deviceReaders_[iCurrentDeviceReader_]->eventNumber();
+  LOG4CPLUS_ERROR(logger_,ss.str());
+  return -1; // no trailer found
 
+}
+
+int EmuRUI::getDCCDataLengthWithoutPadding(char* const data, const int dataLength){
+  // Get the data length without the padding that may have been added by Gbit Ethernet
+
+  const int minEthPacketSize   = 32; // short (2-byte) words --> 64 bytes
+  const int DCCTrailerLength   =  8; // short (2-byte) words --> 16 bytes
+
+  if ( !dataLength ) return 0;
+  if ( dataLength%2 ) LOG4CPLUS_ERROR(logger_, "DCC data is odd number of bytes (" << dataLength << ") long" );
+  if ( dataLength<DCCTrailerLength*2 ) LOG4CPLUS_ERROR(logger_, 
+				      "DCC data is shorter (" << dataLength << " bytes) than trailer" );
+  //   printData(data,dataLength);
+
+  unsigned short *shortData = reinterpret_cast<unsigned short *>(data);
+  // Let's go backward looking for trailer signatures:
+  for ( int iShort=dataLength/2-DCCTrailerLength;
+	iShort>=0 && iShort>=dataLength/2-(minEthPacketSize+DCCTrailerLength); 
+	--iShort ){
+    if ( (shortData[iShort+3] & 0xff00) == 0xef00 ) // Probably the trailer.
+      // Double check:
+      if ( (shortData[iShort+4] & 0x000f) == 0x0007 &&
+	   (shortData[iShort+7] & 0xff00) == 0xaf00    )
+	return 2 * (iShort + DCCTrailerLength);
+  }
+
+  stringstream ss;
+  ss << "No DCC trailer found within " 
+     << 2*minEthPacketSize
+     << " bytes of the end of data in "
+     << deviceReaders_[iCurrentDeviceReader_]->getName()
+     << ". Event number: "
+     << deviceReaders_[iCurrentDeviceReader_]->eventNumber();
+  LOG4CPLUS_ERROR(logger_,ss.str());
+  return -1; // no trailer found
+
+}
+
+bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLength){
+  // At this point dataLength should no longer contain Ethernet padding.
+
+  // Check for interesting error bit patterns (defined by J. Gilmore):
+  // 1) Critical Error = Sync Reset or Hard Reset required
+  //        DDU Trail bits 5 OR 6   -OR-
+  //        DDU Trailer-1 bit 47
+  //    ----> Persistent, these bits stay set for all events until
+  //         RESET occurs.
+  // 2) Error Detected = bad event  (no reset)
+  //        DDU Trailer-1 bit 46
+  //    ----> Only set for the single event with a detected error.
+  // 3) Warning = Buffer Near Full (no reset)
+  //        DDU Trailer-1 bit 31  -OR-
+  //        DDU Trail bit 4
+  //    ----> Remains set until the condition abates.
+  // 4) Special Warning (Rare & Interesting occurence, no reset)
+  //        DDU Trailer-1 bit 45
+  //    ----> Remains set until the condition abates; may be assosiated
+  //         with 1) or 2) above.
+
+  bool foundError = false;
+  const unsigned long DDUTrailerLength = 24; // bytes
+  unsigned short *trailerShortWord = 
+    reinterpret_cast<unsigned short*>( data + dataLength - DDUTrailerLength - 1 );
+  
+  // 1)
+  if ( trailerShortWord[8] & 0x0060 ||     // DDU Trail bits 5 OR 6
+       trailerShortWord[6] & 0x8000    ) { // DDU Trailer-1 bit 47
+    LOG4CPLUS_ERROR(logger_, 
+		    "Critical DDU error in "
+		    << deviceReaders_[iCurrentDeviceReader_]->getName()
+		    << ". Sync Reset or Hard Reset required. Event number: "
+		    << deviceReaders_[iCurrentDeviceReader_]->eventNumber());
+
+    foundError = true;
+  }
+  // 2)
+  if ( trailerShortWord[6] & 0x4000 ) {    // DDU Trailer-1 bit 46
+    LOG4CPLUS_ERROR(logger_,
+		    "DDU error: bad event read from " 
+		    << deviceReaders_[iCurrentDeviceReader_]->getName()
+		    << ". Event number: "
+		    << deviceReaders_[iCurrentDeviceReader_]->eventNumber());
+    foundError = true;
+  }
+  // 3)
+  if ( trailerShortWord[8] & 0x0001 ||      // DDU Trail bit 4
+       trailerShortWord[5] & 0x8000    ) {  // DDU Trailer-1 bit 31
+    LOG4CPLUS_WARN(logger_,
+		   "DDU buffer near Full in "
+		   << deviceReaders_[iCurrentDeviceReader_]->getName() 
+		   << ". Event number: "
+		   << deviceReaders_[iCurrentDeviceReader_]->eventNumber());
+    foundError = true;
+  }
+  // 4)
+  if ( trailerShortWord[6] & 0x2000 ) {      // DDU Trailer-1 bit 45
+    LOG4CPLUS_WARN(logger_,
+		   "DDU special warning in "
+		   << deviceReaders_[iCurrentDeviceReader_]->getName() 
+		   << ". Event number: "
+		   << deviceReaders_[iCurrentDeviceReader_]->eventNumber());
+    foundError = true;
+  }
+
+  return foundError;
 }
 
 void EmuRUI::appendNewBlockToSuperFrag( char* data, unsigned long dataLength )
@@ -2021,10 +2607,6 @@ throw (emuRUI::exception::Exception)
     try
     {
          fillBlock( bufRef, data, dataLength );
-//     cout 
-//       << "bufRef " << bufRef->getDataOffset()
-//       << ", "      << bufRef->getDataSize() 
-//       << " data "  << data << endl;
     }
     catch(xcept::Exception e)
     {
@@ -2044,65 +2626,11 @@ throw (emuRUI::exception::Exception)
 //     printBlocks( superFragBlocks_ );
 }
 
-void EmuRUI::appendNewBlockToDataForDQM( char* data, unsigned long dataLength )
-throw (emuRUI::exception::Exception)
-  // EMu-specific stuff
-{
-    toolbox::mem::Reference *bufRef = 0;
-
-    unsigned long dataBufSize = sizeof(I2O_RUI_DATA_MESSAGE_FRAME) 
-                                + dataLength;
-
-    // Get a free block from the RUI/DQM pool
-    try
-      {
-        bufRef = poolFactory_->getFrame(ruiDqmPool_, dataBufSize );
-      }
-    catch(xcept::Exception e)
-    {
-        stringstream oss;
-        string       s;
-
-        oss << "Failed to allocate a data block from the ";
-        oss << ruiDqmPoolName_ << " pool";
-        oss << " : " << stdformat_exception_history(e);
-        s = oss.str();
-
-        XCEPT_RETHROW(emuRUI::exception::Exception, s, e);
-    }
-
-
-    // Fill block with DDUs' data
-    try
-    {
-         fillBlockForDQM( bufRef, data, dataLength );
-//     cout 
-//       << "bufRef " << bufRef->getDataOffset()
-//       << ", "      << bufRef->getDataSize() 
-//       << " data "  << data << endl;
-    }
-    catch(xcept::Exception e)
-    {
-        stringstream oss;
-        string       s;
-
-        oss << "Failed to fill DDUs' data block";
-        oss << " : " << stdformat_exception_history(e);
-        s = oss.str();
-
-        LOG4CPLUS_ERROR(logger_, s);
-    }
-
-    // Append block to super-fragment under construction
-    dataBlocksForDQM_.push_back(bufRef);
-    
-//     printBlocks( dataBlocksForDQM_ );
-}
 
 void EmuRUI::printBlocks( deque<toolbox::mem::Reference*> d ){
   deque<toolbox::mem::Reference*>::iterator pos;
   toolbox::mem::Reference *bufRef = 0;
-  cout << "--------- " << nEvents_ <<  " events" << endl;
+  cout << "--------- " << nEventsRead_ <<  " events" << endl;
   for(pos=d.begin(); pos!=d.end(); pos++)
     {
       bufRef = *pos;
@@ -2145,9 +2673,9 @@ throw (emuRUI::exception::Exception)
 
     ::memset(blockAddr, 0, i2oMessageSize );
   
-    ///////////////////////////
-    // Fill FED (DDU) data   //
-    ///////////////////////////
+    /////////////////////
+    // Fill FED data   //
+    /////////////////////
 
     ::memcpy( fedAddr, data, dataLength );
 
@@ -2173,77 +2701,11 @@ throw (emuRUI::exception::Exception)
     pvtMsg->XFunctionCode  = I2O_RU_DATA_READY;
     pvtMsg->OrganizationID = XDAQ_ORGANIZATION_ID;
 
-//     block->eventNumber     = eventNumber_;
-    block->eventNumber     = nEvents_ % 0x1000000; // 2^24
-    block->blockNb         = iCurrentDDU_; // each block carries a whole DDU
+    block->eventNumber     = nEventsRead_ % 0x1000000; // 2^24
+    block->blockNb         = iCurrentDeviceReader_; // each block carries a whole device's data
 
 }
 
-void EmuRUI::fillBlockForDQM(
-    toolbox::mem::Reference *bufRef,
-    char*                    data,
-    const unsigned int       dataLength
-)
-throw (emuRUI::exception::Exception)
-{
-    char         *blockAddr        = 0;
-    char         *fedAddr          = 0;
-    unsigned int i2oMessageSize    = 0;
-
-    ////////////////////////////////////////////////
-    // Calculate addresses of block, and FED data //
-    ////////////////////////////////////////////////
-
-    blockAddr = (char*)bufRef->getDataLocation();
-    fedAddr   = blockAddr + sizeof(I2O_RUI_DATA_MESSAGE_FRAME);
-
-
-    ///////////////////////////////////////////////
-    // Set the data size of the buffer reference //
-    ///////////////////////////////////////////////
-
-    // I2O message size in bytes
-    i2oMessageSize = sizeof(I2O_RUI_DATA_MESSAGE_FRAME) + dataLength;
-    bufRef->setDataSize(i2oMessageSize);
-
-    ///////////////////////////
-    // Fill block with zeros //
-    ///////////////////////////
-
-    ::memset(blockAddr, 0, i2oMessageSize );
-  
-    ///////////////////////////
-    // Fill FED (DDU) data   //
-    ///////////////////////////
-
-    ::memcpy( fedAddr, data, dataLength );
-
-    /////////////////////////////
-    // Fill DQM headers        //
-    /////////////////////////////
-
-
-    I2O_MESSAGE_FRAME                  *stdMsg        = 0;
-    I2O_PRIVATE_MESSAGE_FRAME          *pvtMsg        = 0;
-    I2O_RUI_DATA_MESSAGE_FRAME         *block         = 0;
-
-    stdMsg    = (I2O_MESSAGE_FRAME*)blockAddr;
-    pvtMsg    = (I2O_PRIVATE_MESSAGE_FRAME*)blockAddr;
-    block     = (I2O_RUI_DATA_MESSAGE_FRAME*)blockAddr;
-
-    stdMsg->MessageSize    = i2oMessageSize >> 2;
-    stdMsg->TargetAddress  = DQMonitorTid_;
-    stdMsg->Function       = I2O_PRIVATE_MESSAGE;
-    stdMsg->VersionOffset  = 0;
-    stdMsg->MsgFlags       = 0;  // Point-to-point
-
-    pvtMsg->XFunctionCode  = I2O_TOYCLIENT_CODE;
-    pvtMsg->OrganizationID = XDAQ_ORGANIZATION_ID;
-
-    block->runNumber         = runNumber_;
-    block->nEventCreditsHeld = nEventCreditsHeld_;
-
-}
 
 void EmuRUI::setNbBlocksInSuperFragment(const unsigned int nbBlocks)
 {
