@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.46 2006/02/25 11:25:11 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.47 2006/02/27 12:12:52 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -193,7 +193,7 @@ public:
     myParameter_ =  0;
     //
     xmlFile_     = 
-      "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/config0.xml" ;
+      "config.xml" ;
     //
     TMBFirmware_ = 
       "../svf/tmb2005e.svf";
