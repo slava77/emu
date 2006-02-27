@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.47 2006/02/27 12:12:52 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.48 2006/02/27 12:23:30 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -307,6 +307,14 @@ public:
       *out << cgicc::input().set("type","text").set("name","Operator")
 	.set("size","20").set("value",Operator_) << std::endl ;
       *out << "Operator" << std::endl;
+      *out << cgicc::form() << std::endl ;
+      //
+      std::string method =
+	toolbox::toString("/%s/LogOutput",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::form().set("method","GET").set("action",method) << std::endl ;
+      *out << cgicc::input().set("type","submit")
+	.set("value","Log output").set("name","LogOutput") << std::endl ;
       *out << cgicc::form() << std::endl ;
       //
       std::string PowerUp =
@@ -647,14 +655,6 @@ public:
       }
       //
     }
-    //
-    std::string method =
-      toolbox::toString("/%s/LogOutput",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",method) << std::endl ;
-    *out << cgicc::input().set("type","submit")
-      .set("value","Log output").set("name","LogOutput") << std::endl ;
-    *out << cgicc::form() << std::endl ;
     //
     //cout << "Here4" << endl ;
     //
