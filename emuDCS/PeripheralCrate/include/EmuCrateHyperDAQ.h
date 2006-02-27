@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.49 2006/02/27 12:32:26 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.50 2006/02/27 14:29:21 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -202,6 +202,7 @@ public:
     TMBRegisterValue_ = -1;
     CCBRegisterValue_ = -1;
     Operator_ = "Name...";
+    RunNumber_= "0";
     MPCBoardID_ = "-2";
     CCBBoardID_ = "-2";
     for (int i=0; i<9; i++) { DMBBoardID_[i] = "-2" ; TMBBoardID_[i] = "-2" ; }
@@ -4188,7 +4189,7 @@ public:
     //
     char buf[20];
     int test = 1;
-    sprintf(buf,"EmuCrateHyperDAQLogFile_%s_%d.log",Operator_,test);
+    sprintf(buf,"EmuCrateHyperDAQLogFile_%s_%s_%d.log",RunNumber_,Operator_,test);
     //
     ifstream TextFile ;
     TextFile.open(xmlFile_.toString().c_str());
