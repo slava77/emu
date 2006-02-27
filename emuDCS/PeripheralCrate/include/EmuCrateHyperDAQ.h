@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.48 2006/02/27 12:23:30 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.49 2006/02/27 12:32:26 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -110,6 +110,7 @@ protected:
   vector<DAQMB*> dmbVector;
   Crate *thisCrate;
   std::string Operator_;
+  std::string RunNumber_;
   std::string MPCBoardID_;
   std::string CCBBoardID_;
   std::string DMBBoardID_[9];
@@ -179,7 +180,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::TriggerTestInjectCLCT, "TriggerTestInjectCLCT");
     xgi::bind(this,&EmuCrateHyperDAQ::PowerUp,  "PowerUp");
     xgi::bind(this,&EmuCrateHyperDAQ::Operator, "Operator");
-    xgi::bind(this,&EmuCrateHyperDAQ::Operator, "Operator");
+    xgi::bind(this,&EmuCrateHyperDAQ::RunNumber, "RunNumber");
     xgi::bind(this,&EmuCrateHyperDAQ::MPCBoardID, "MPCBoardID");
     xgi::bind(this,&EmuCrateHyperDAQ::CCBBoardID, "CCBBoardID");
     xgi::bind(this,&EmuCrateHyperDAQ::LogDMBTestsOutput, "LogDMBTestsOutput");
@@ -307,6 +308,15 @@ public:
       *out << cgicc::input().set("type","text").set("name","Operator")
 	.set("size","20").set("value",Operator_) << std::endl ;
       *out << "Operator" << std::endl;
+      *out << cgicc::form() << std::endl ;
+      //
+      std::string RunNumber =
+	toolbox::toString("/%s/RunNumber",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::form().set("method","GET").set("action",RunNumber) << std::endl ;
+      *out << cgicc::input().set("type","text").set("name","RunNumber")
+	.set("size","20").set("value",RunNumber_) << std::endl ;
+      *out << "RunNumber" << std::endl;
       *out << cgicc::form() << std::endl ;
       //
       std::string method =
@@ -865,6 +875,16 @@ public:
     cgicc::Cgicc cgi(in);
     //
     Operator_= cgi["Operator"]->getValue() ;
+    //
+    this->Default(in,out);
+  }
+  //
+  void EmuCrateHyperDAQ::RunNumber(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    cgicc::Cgicc cgi(in);
+    //
+    RunNumber_= cgi["RunNumber"]->getValue() ;
     //
     this->Default(in,out);
   }
@@ -4168,7 +4188,7 @@ public:
     //
     char buf[20];
     int test = 1;
-    sprintf(buf,"EmuCrateHyperDAQLogFile_%d.log",test);
+    sprintf(buf,"EmuCrateHyperDAQLogFile_%s_%d.log",Operator_,test);
     //
     ifstream TextFile ;
     TextFile.open(xmlFile_.toString().c_str());
