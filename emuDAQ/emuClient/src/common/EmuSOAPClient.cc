@@ -1,4 +1,4 @@
-// $Id: EmuSOAPClient.cc,v 1.1 2006/02/27 12:49:28 banicz Exp $
+// $Id: EmuSOAPClient.cc,v 3.1 2006/02/28 08:59:18 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
