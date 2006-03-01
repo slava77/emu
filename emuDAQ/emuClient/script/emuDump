@@ -1,0 +1,103 @@
+#!/bin/bash
+
+# default values
+CLIENTNAME=$(whoami)@$(hostname)
+SERVERURL=emuslice06.cern.ch
+SERVERPORT=44000
+SERVERAPP=EmuRUI
+SERVERAPPINSTANCE=0
+CREDITS=1
+PRESCALINGFACTOR=1
+VERBOSITY=0
+
+# user's options
+while [[ $1 = -* ]]; do
+    case $1 in 
+	-a ) SERVERAPP=$2
+	    shift ;;
+	-c ) CREDITS=$2
+	    shift ;;
+	-f ) PRESCALINGFACTOR=$2
+	    shift ;;
+	-h ) echo 'emuDump gets an event from a running local DAQ and dumps it.'
+	    echo
+	    echo 'emuDump must be invoked at least twice. First it must send event'
+	    echo 'credits ( -c ), whereupon the server will start collecting that'
+	    echo 'many events, prescaled as requested ( -f ). On the next invocation,'
+	    echo 'the server will send an event (provided it has already collected'
+	    echo 'one).'
+	    echo
+	    echo 'Data can be obtained from the Readout Unit Input or the Filter'
+	    echo 'Unit ( -a [ EmuRUI | EmuFU ] ) of the requested instance ( -i ).'
+	    echo 'You need to specify the URL ( -u ) and port ( -p ) for that'
+	    echo 'application.'
+	    echo
+	    echo 'Usage: '
+	    echo '------'
+	    echo '    emuDump [-a server_app] [-c number_of_event_credits]'
+	    echo '            [-f prescaling_factor] [-h] [-i server_app_instance]'
+	    echo '            [-n client_name] [-p server_port] [-u server_url] [-v]'
+	    echo
+	    echo '  option   meaning                            default'
+	    echo '  ------   -------                            -------'
+	    echo '      -a   server application                 EmuRUI'
+	    echo '      -c   number of event credits            1'
+	    echo '      -f   prescaling_factor                  1'
+	    echo '      -h   print help                         do not print help'
+	    echo '      -i   server application instance        0'
+	    echo '      -n   client name                        you@yourhost'
+	    echo '      -p   server port                        44000'
+	    echo '      -u   server url                         emuslice06.cern.ch'
+	    echo '      -v   verbose                            not verbose'
+	    echo
+	    echo 'Example:'
+	    echo '--------'
+	    echo '  Send a request for one event to EmuFU running on emuslice02,'
+	    echo '  listening on port 40000:'
+	    echo '      emuDump -a EmuFU -u emuslice02.cern.ch -p 40000'
+	    echo '  Then get that event, and send no more event credits:'
+	    echo '      emuDump -a EmuFU -u emuslice02.cern.ch -p 40000 -c 0'
+	    exit 1 ;;
+	-i ) SERVERAPPINSTANCE=$2
+	    shift ;;
+	-n ) CLIENTNAME=$2
+	    shift ;;
+	-p ) SERVERPORT=$2
+	    shift ;;
+	-u ) SERVERURL=$2
+	    shift ;;
+	-v ) VERBOSITY=1 ;;
+	*  ) 
+	    echo 'Usage: '
+	    echo '------'
+	    echo '    emuDump [-a server_app] [-c number_of_event_credits]'
+	    echo '            [-f prescaling_factor] [-h] [-i server_app_instance]'
+	    echo '            [-n client_name] [-p server_port] [-u server_url] [-v]'
+	    echo
+	    echo '  option   meaning                            default'
+	    echo '  ------   -------                            -------'
+	    echo '      -a   server application                 EmuRUI'
+	    echo '      -c   number of event credits            1'
+	    echo '      -f   prescaling_factor                  1'
+	    echo '      -h   print help                         do not print help'
+	    echo '      -i   server application instance        0'
+	    echo '      -n   client name                        you@yourhost'
+	    echo '      -p   server port                        44000'
+	    echo '      -u   server url                         emuslice06.cern.ch'
+	    echo '      -v   verbose                            not verbose'
+	    exit 1
+    esac
+    shift
+done
+
+HEADER="\"SOAPAction: urn:xdaq-application:class=$SERVERAPP,instance=$SERVERAPPINSTANCE\""
+
+MESSAGE="\"<soap-env:Envelope soap-env:encodingStyle=\\\"http://schemas.xmlsoap.org/soap/encoding/\\\" xmlns:soap-env=\\\"http://schemas.xmlsoap.org/soap/envelope/\\\" xmlns:xsd=\\\"http://www.w3.org/1999/XMLSchema\\\" xmlns:xsi=\\\"http://www.w3.org/1999/XMLSchema-instance\\\"><soap-env:Header/><soap-env:Body><xdaq:onClientCreditMessage soap-env:encodingStyle=\\\"http://schemas.xmlsoap.org/soap/encoding/\\\" xmlns:xdaq=\\\"urn:xdaq-soap:3.0\\\"><clientName xsi:type=\\\"xsd:string\\\">$CLIENTNAME</clientName><nEventCredits xsi:type=\\\"xsd:int\\\">$CREDITS</nEventCredits><prescalingFactor xsi:type=\\\"xsd:int\\\">$PRESCALINGFACTOR</prescalingFactor></xdaq:onClientCreditMessage></soap-env:Body></soap-env:Envelope>\""
+
+WRITEOUT=""
+if [[ $VERBOSITY = "1" ]]; then
+    WRITEOUT="--write-out \"\nGot %{size_download} bytes in total (%{size_header} in header) in %{time_total} s.\n\""
+    echo curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE
+fi
+
+eval curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE | hexdump -C
