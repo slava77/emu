@@ -16,6 +16,9 @@
 class EmuSOAPServer : public EmuServer {
 private:
 
+  // Whether or not its client is non-persistent (e.g. curl)
+  xdata::Boolean                            *persists_;
+
   // The message under construction
   xoap::MessageReference                     messageReference_;
   bool                                       messageComplete_;
@@ -46,6 +49,7 @@ public:
   // even after the it is modified in the parent app's info space
   EmuSOAPServer( xdaq::Application                    *parentApp,
 		 const string                          clientName,
+		 xdata::Serializable                  *persists,
 		 xdata::Serializable                  *prescaling,
 		 xdata::Serializable                  *onRequest,
 		 xdata::Serializable                  *creditsHeld,

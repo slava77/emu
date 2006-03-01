@@ -8,17 +8,19 @@
 
 EmuSOAPServer::EmuSOAPServer( xdaq::Application                    *parentApp,
 			      const string                          clientName,
+			      xdata::Serializable                  *persists,
 			      xdata::Serializable                  *prescaling,
 			      xdata::Serializable                  *onRequest,
 			      xdata::Serializable                  *creditsHeld,
 			      const Logger                         *logger )
   throw( xcept::Exception )
-  : EmuServer           ( parentApp,
-			  clientName,
-			  prescaling,
-			  onRequest,
-			  creditsHeld,
-			  logger       )
+  : EmuServer( parentApp,
+	       clientName,
+	       prescaling,
+	       onRequest,
+	       creditsHeld,
+	       logger       ),
+    persists_( dynamic_cast<xdata::Boolean*>( persists ) )
 {
   findClientDescriptor();
 
@@ -66,7 +68,8 @@ void EmuSOAPServer::addData( const int  runNumber,
     }
   }
 
-  if ( messages_.size() > maxMessagesPendingTransmission_ ){
+  if ( messages_.size() >= maxMessagesPendingTransmission_ ||
+       messages_.size() >= nEventCreditsHeld_->value_         ){
     isToBeSent = false;
   }
 
@@ -108,7 +111,6 @@ void EmuSOAPServer::appendData( char* const         data,
     messages_.push_back( messageReference_ );
     messageReference_          = NULL;
     dataIsPendingTransmission_ = true;
-    if ( nEventCreditsHeld_->value_ > 0 ) nEventCreditsHeld_->value_--;
   }
 }
 
@@ -210,13 +212,16 @@ xoap::MessageReference EmuSOAPServer::getOldestMessagePendingTransmission(){
   }
 
   msg = messages_.front();
+  messages_.pop_front();
 
   if ( msg.isNull() ){ 
     LOG4CPLUS_DEBUG(logger_, name_ << " SOAP server: Oldest message empty?!"); 
-    return msg;
   }
-
-  messages_.pop_front();
+  else{
+    // If non-persistent client (curl), decrement number of credits here
+    if ( nEventCreditsHeld_->value_ > 0 && !persists_->value_ )
+      nEventCreditsHeld_->value_--;
+  }
 
   return msg;
 
@@ -255,6 +260,12 @@ void EmuSOAPServer::sendData()
 	printMessages();
 
 	xoap::MessageReference reply = appContext_->postSOAP(msg, clientDescriptor_);
+
+	if ( !reply.isNull() ){
+	  if ( nEventCreditsHeld_->value_ > 0 &&
+	       !reply->getSOAPPart().getEnvelope().getBody().hasFault() )
+	    nEventCreditsHeld_->value_--;
+	}
 
 // 	s = "";
 // 	reply->writeTo(s);

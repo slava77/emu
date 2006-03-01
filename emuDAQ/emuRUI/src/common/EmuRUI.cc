@@ -230,7 +230,12 @@ xoap::MessageReference EmuRUI::processSOAPClientCreditMsg( xoap::MessageReferenc
   if ( !knownClient ){
     if ( createSOAPServer( name, false ) ){
       // ... and if successfully created, add credits
-      clients_.back()->server->addCredits( credits, prescaling );
+      for ( std::vector<Client*>::iterator c=clients_.begin(); c!=clients_.end(); ++c ){
+	if ( (*c)->server->getClientName() == name ){
+	  (*c)->server->addCredits( credits, prescaling );
+	  break;
+	}
+      }
     }
     else {
       if ( reply.isNull() ) reply       = xoap::createMessage();
@@ -264,9 +269,6 @@ xoap::MessageReference EmuRUI::onSOAPClientCreditMsg( xoap::MessageReference msg
   string s;
   msg->writeTo(s);
   LOG4CPLUS_DEBUG(logger_, string("Received: ") << endl << ss.str() << s);
-
-  int credits = 0, prescaling = 1;
-  string name = extractParametersFromSOAPClientCreditMsg( msg, credits, prescaling );
 
   applicationBSem_.take();
 
@@ -1256,6 +1258,7 @@ bool EmuRUI::createSOAPServer( string clientName, bool persistent ){
     *(dynamic_cast<xdata::Boolean*>( clientPersists_.elementAt( iClient ) )) = persistent;
     EmuSOAPServer* s = new EmuSOAPServer( this,
 					  clientName_.elementAt(iClient)->toString(),
+					  clientPersists_.elementAt(iClient),
 					  prescaling_.elementAt(iClient),
 					  onRequest_.elementAt(iClient),
 					  creditsHeld_.elementAt(iClient),
