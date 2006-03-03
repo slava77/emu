@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.19 2006/02/25 11:25:11 mey Exp $
+// $Id: ALCTController.cc,v 2.20 2006/03/03 07:59:19 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.20  2006/03/03 07:59:19  mey
+// Update
+//
 // Revision 2.19  2006/02/25 11:25:11  mey
 // UPdate
 //
@@ -5535,11 +5538,12 @@ int ALCTController::SVFLoad(int *jch, const char *fn, int db )
 	      for(i=0;i<nbytes;i++)
 		{
 		  rcvword = rcv[i+(hdrbits/8)]+(((int)rcv[i+1+(hdrbits/8)])<<8);
-		  rcvword = rcvword>>(hdrbits%8); 
+		  rcvword = rcvword>>(hdrbits%8);
+		  rcvword = rcv[i];
 		  // if (((rcv[nbytes-1-i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
 		  if ((((rcvword&0xFF)^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
 		    {
-		      printf("read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
+		      printf("1.read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
 		      errcntr++;
 		    }
 		}	
@@ -5659,10 +5663,11 @@ int ALCTController::SVFLoad(int *jch, const char *fn, int db )
 		  {
 		    rcvword = rcv[i+(hirbits/8)]+(((int)rcv[i+1+(hirbits/8)])<<8);
 		    rcvword = rcvword>>(hirbits%8);
+		    rcvword = rcv[i];
 		    // if (((rcv[nbytes-1-i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
 		    if ((((rcvword&0xFF)^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
 		      {
-			printf("read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
+			printf("2.read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
                 	errcntr++;
 		      }
 		  }
@@ -5681,7 +5686,7 @@ int ALCTController::SVFLoad(int *jch, const char *fn, int db )
 	    {
 	      sscanf(Word[1],"%d",&pause);
 	      //printf("RUNTEST:  %d\n",pause);
-	      usleep(pause);
+	      usleep(pause+100);
 	      // InsertDelayJTAG(pause,MYMICROSECONDS);
 	    }
 	  // === Handling STATE ===
