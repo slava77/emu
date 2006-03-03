@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.45 2006/02/06 14:09:07 mey Exp $
+// $Id: TMB.cc,v 2.46 2006/03/03 07:59:20 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.46  2006/03/03 07:59:20  mey
+// Update
+//
 // Revision 2.45  2006/02/06 14:09:07  mey
 // Fixed bug
 //
@@ -173,6 +176,7 @@ TMB::TMB(int newcrate, int slot) :
   alct_clear_(0),
   mpc_tx_delay_(0),
   l1a_offset_(0),
+  disableCLCTInputs_(0),
   bxn_offset_(0)
 {
   //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_trgmode.cc,v 2.5 2006/01/23 14:21:59 mey Exp $
+// $Id: TMB_trgmode.cc,v 2.6 2006/03/03 07:59:20 mey Exp $
 // $Log: TMB_trgmode.cc,v $
+// Revision 2.6  2006/03/03 07:59:20  mey
+// Update
+//
 // Revision 2.5  2006/01/23 14:21:59  mey
 // Update
 //
@@ -161,9 +164,7 @@ void TMB::trgmode(int choice)
   tmb_vme(VME_WRITE,seq_clct_adr,sndbuf,rcvbuf,NOW); // Sequencer CLCT Conf.
   //
   if ( alct_clear_ == 1 ) {
-    sndbuf[0] = 0x00;
-    sndbuf[1] = 0x69;
-    tmb_vme(VME_WRITE,alct_inj_adr,sndbuf,rcvbuf,NOW); // Clear alct inputs
+    DisableALCTInputs();
   }
 
   setLogicAnalyzerToDataStream(false);
@@ -216,6 +217,9 @@ void TMB::trgmode(int choice)
   printf("Reading address 0x86 to %x %x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   
   ::sleep(1);
+  //
+  if ( disableCLCTInputs_ ) DisableCLCTInputs();
+  //
 }
 
 

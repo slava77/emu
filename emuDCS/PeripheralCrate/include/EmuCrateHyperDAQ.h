@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.52 2006/02/27 17:40:23 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.53 2006/03/03 07:59:19 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -116,6 +116,7 @@ protected:
   std::string DMBBoardID_[9];
   std::string TMBBoardID_[9];
   int TMB_, DMB_;
+  bool AutoRefreshTMBCounters_;
   //
 public:
   //
@@ -189,6 +190,8 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::FindWinner, "FindWinner");
     xgi::bind(this,&EmuCrateHyperDAQ::CalibrationCFEB, "CalibrationCFEB");
     xgi::bind(this,&EmuCrateHyperDAQ::CalibrationALCT, "CalibrationALCT");
+    xgi::bind(this,&EmuCrateHyperDAQ::LaunchMonitor, "LaunchMonitor");
+    xgi::bind(this,&EmuCrateHyperDAQ::ResetAllCounters, "ResetAllCounters");
     xgi::bind(this,&EmuCrateHyperDAQ::CalibrationRandomWiresALCT, "CalibrationRandomWiresALCT");
     //
     myParameter_ =  0;
@@ -214,6 +217,8 @@ public:
       OutputTMBTests[i]        << "Output..." << std::endl;
       CrateTestsOutput[i]      << "Output..." << std::endl;
     }
+    //
+    AutoRefreshTMBCounters_ = true ;
     //
     this->getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
     this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
@@ -320,12 +325,20 @@ public:
       *out << "RunNumber" << std::endl;
       *out << cgicc::form() << std::endl ;
       //
-      std::string method =
+      std::string LogOutput =
 	toolbox::toString("/%s/LogOutput",getApplicationDescriptor()->getURN().c_str());
       //
-      *out << cgicc::form().set("method","GET").set("action",method) << std::endl ;
+      *out << cgicc::form().set("method","GET").set("action",LogOutput) << std::endl ;
       *out << cgicc::input().set("type","submit")
-	.set("value","Log output").set("name","LogOutput") << std::endl ;
+	.set("value","Log all output").set("name","LogOutput") << std::endl ;
+      *out << cgicc::form() << std::endl ;
+      //
+      std::string LaunchMonitor =
+	toolbox::toString("/%s/LaunchMonitor",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::form().set("method","GET").set("action",LaunchMonitor).set("target","_blank") << std::endl ;
+      *out << cgicc::input().set("type","submit")
+	.set("value","Launch Monitor").set("name","LaunchMonitor") << std::endl ;
       *out << cgicc::form() << std::endl ;
       //
       std::string PowerUp =
@@ -748,6 +761,59 @@ public:
     calib.rateTest();
     //
     this->Default(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::LaunchMonitor(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    //
+    for(int i=0; i<tmbVector.size(); i++) {
+      //
+      *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
+      //
+      tmbVector[i]->RedirectOutput(out);
+      tmbVector[i]->GetCounters();
+      tmbVector[i]->PrintCounters();
+      tmbVector[i]->RedirectOutput(&std::cout);
+      //
+      cgicc::br();
+      //
+      *out << cgicc::fieldset();    
+      //
+    }
+    //
+    std::string ResetAllCounters =
+      toolbox::toString("/%s/ResetAllCounters",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",ResetAllCounters) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Reset All Counters") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    //::sleep(1);
+    //
+    //this->LaunchMonitor(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::ResetAllCounters(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    for(int i=0; i<tmbVector.size(); i++) {
+      //
+      *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
+      //
+      tmbVector[i]->ResetCounters();
+      //
+      *out << cgicc::fieldset();    
+      //
+    }
     //
   }
   //
@@ -2036,6 +2102,13 @@ public:
       TMB_ = tmb;
     }
     //
+    name = cgi.getElement("AutoRefreshOn");
+    //
+    if(name != cgi.getElements().end()) {
+      std::cout << "auto refresh on" <<std::endl ;
+      AutoRefreshTMBCounters_ = true;
+    }
+    //
     thisTMB = tmbVector[tmb];
     //
     thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
@@ -2664,10 +2737,10 @@ public:
     *out << OutputTMBTests[tmb].str() << endl ;
     *out << cgicc::textarea();
     //    
-    std::string method =
+    std::string LogTMBTestsOutput =
       toolbox::toString("/%s/LogTMBTestsOutput",getApplicationDescriptor()->getURN().c_str());
     //
-    *out << cgicc::form().set("method","GET").set("action",method) << std::endl ;
+    *out << cgicc::form().set("method","GET").set("action",LogTMBTestsOutput) << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::input().set("type","submit")
@@ -2797,9 +2870,9 @@ public:
 	    (thisTMB->FirmwareDate()&0xff), 
 	    (thisTMB->FirmwareYear()&0xffff)  );
     //
-    if ( ((thisTMB->FirmwareDate()>>8)&0xff) == 0x11 &&
-	 ((thisTMB->FirmwareDate()&0xff)) == 0x15 &&
-	 ((thisTMB->FirmwareYear()&0xffff)) == 0x2004 ) {
+    if ( ((thisTMB->FirmwareDate()>>8)&0xff) ==  0x11 &&
+	 ((thisTMB->FirmwareDate()&0xff))    ==  0x15 &&
+	 ((thisTMB->FirmwareYear()&0xffff))  == 0x2004 ) {
       *out << cgicc::span().set("style","color:green");
       *out << buf;
       *out << cgicc::span();
@@ -3568,6 +3641,7 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",TMBPrintCounters) ;
     *out << cgicc::input().set("type","submit").set("value","TMB Print Counters") ;
+    //*out << cgicc::input().set("type","submit").set("value","AutoRefresh On").set("name","AutoRefreshOn") ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() ;
@@ -3599,10 +3673,12 @@ public:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
     //
+    // Output area
+    //
     *out << cgicc::form().set("method","GET") << std::endl ;
     *out << cgicc::pre();
     *out << cgicc::textarea().set("name","CrateTestTMBOutput")
-      .set("rows","20")
+      .set("rows","50")
       .set("cols","100")
       .set("WRAP","OFF");
     *out << OutputStringTMBStatus[tmb].str() << endl ;
@@ -4190,15 +4266,20 @@ public:
   void EmuCrateHyperDAQ::LogOutput(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception){
     //
-    char buf[20];
+    std::cout << "LogOuput" << std::endl;
+    //
+    //
+    std::string buf;
     int test = 1;
-    sprintf(buf,"EmuCrateHyperDAQLogFile_%s_%s_%d.log",RunNumber_,Operator_,test);
+    buf = "EmuCrateHyperDAQLogFile_"+RunNumber_+"_"+Operator_+".log";
+    //
+    std::cout << "File to write to" << buf << std::endl ;
     //
     ifstream TextFile ;
     TextFile.open(xmlFile_.toString().c_str());
     //
     ofstream LogFile;
-    LogFile.open(buf);
+    LogFile.open(buf.c_str());
     while(TextFile.good()) LogFile << (char) TextFile.get() ;
     TextFile.close();
     for (int i=0; i<tmbVector.size(); i++) {

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 2.4 2006/02/25 11:25:11 mey Exp $
+// $Id: TMBParser.cc,v 2.5 2006/03/03 07:59:20 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 2.5  2006/03/03 07:59:20  mey
+// Update
+//
 // Revision 2.4  2006/02/25 11:25:11  mey
 // UPdate
 //
@@ -57,6 +60,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, int crateNumber)
     parser_.fillInt("mpc_tx_delay",tmb_->mpc_tx_delay_);
     parser_.fillInt("l1a_offset",tmb_->l1a_offset_);
     parser_.fillInt("bxn_offset",tmb_->bxn_offset_);
+    parser_.fillInt("disableCLCTInputs",tmb_->disableCLCTInputs_);
     xercesc::DOMNode * daughterNode = pNode->getFirstChild();
     while(daughterNode) {
       if (daughterNode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
