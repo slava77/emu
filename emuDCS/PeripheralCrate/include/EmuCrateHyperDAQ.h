@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.53 2006/03/03 07:59:19 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.54 2006/03/05 18:45:08 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -60,6 +60,7 @@
 #include "DAQMBTester.h"
 #include "TMBTester.h"
 #include "ALCTController.h"
+#include "RAT.h"
 #include "CrateSelector.h"
 #include "ChamberUtilities.h"
 #include "geom.h"
@@ -96,6 +97,7 @@ protected:
   DAQMB* thisDMB(0) ;
   CCB* thisCCB(0) ;
   ALCTController *alct(0) ;
+  RAT * rat(0);
   MPC * thisMPC(0);
   ChamberUtilities MyTest[9];
   ostringstream CrateTestsOutput[9];
@@ -154,6 +156,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::CFEBLoadFirmware, "CFEBLoadFirmware");
     xgi::bind(this,&EmuCrateHyperDAQ::CFEBStatus, "CFEBStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::ALCTStatus, "ALCTStatus");
+    xgi::bind(this,&EmuCrateHyperDAQ::RATStatus, "RATStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::CrateTests, "CrateTests");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTurnOff, "DMBTurnOff");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTurnOn, "DMBTurnOn");
@@ -2216,6 +2219,32 @@ public:
     //
   }
   //
+  void EmuCrateHyperDAQ::RATStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    *out << cgicc::title("Simple Web Form") << std::endl;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    *out << std::endl;
+    //
+    *out << cgicc::legend("RAT Status").set("style","color:blue") << cgicc::p() << std::endl ;
+    //
+    *out << cgicc::br();
+    //
+    *out << cgicc::pre();
+    rat->RedirectOutput(out);
+    rat->ReadRatUser1();
+    rat->decodeRATUser1();
+    rat->RedirectOutput(&std::cout);
+    *out << cgicc::pre();
+    //
+    *out << cgicc::fieldset();
+    //
+  }
+  //
   void EmuCrateHyperDAQ::CFEBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
@@ -2844,12 +2873,20 @@ public:
     thisTMB = tmbVector[tmb];
     //
     alct = thisTMB->alctController();
+    rat  = thisTMB->getRAT();
     //
     if (alct) {
       std::string ALCTStatus =
 	toolbox::toString("/%s/ALCTStatus",getApplicationDescriptor()->getURN().c_str());
       //
       *out << cgicc::a("ALCT Status").set("href",ALCTStatus).set("target","_blank") << endl;
+    }
+    //
+    if (rat) {
+      std::string RATStatus =
+	toolbox::toString("/%s/RATStatus",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::a("RAT Status").set("href",RATStatus).set("target","_blank") << endl;
     }
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
@@ -3892,7 +3929,12 @@ public:
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << endl ;
     //
-    *out << cgicc::legend("DMB Utils").set("style","color:blue") ;
+    int slotnumber = thisDMB->slot();
+    std::string legend = "DMB Utils " + slotnumber ;
+    //
+    std::cout << legend << std::endl ;
+    //
+    *out << cgicc::legend(legend).set("style","color:blue") ;
     //
     *out << cgicc::table().set("border","1");
     //
