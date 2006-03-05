@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: RAT.h,v 1.3 2006/02/10 16:40:44 rakness Exp $
+// $Id: RAT.h,v 1.4 2006/03/05 18:45:08 mey Exp $
 // $Log: RAT.h,v $
+// Revision 1.4  2006/03/05 18:45:08  mey
+// Update
+//
 // Revision 1.3  2006/02/10 16:40:44  rakness
 // RAT delay scans implemented
 //
@@ -25,8 +28,10 @@ public:
   RAT();
   virtual ~RAT();
   //
+  friend class TMBParser;
+  //
   inline void setTMB(TMB * tmb) {tmb_ = tmb;}
-
+  //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
 
   void ReadRatUser1();
@@ -67,6 +72,10 @@ public:
   void ReadRpcParity();
   inline int GetRpcParityUsed() { return rpc_parity_used_ ; }
   //
+protected:
+  //
+  int rat_tmb_delay_;
+  //
 private:
   //
   std::ostream * MyOutput_ ;
@@ -80,7 +89,6 @@ private:
   int user2_value_[rat_user2_length];
 
   int rpc_rat_delay_;
-  int rat_tmb_delay_;
   int rpc_parity_err_ctr_[2];
   int rpc_data_[2];
   int rpc_parity_ok_[2];

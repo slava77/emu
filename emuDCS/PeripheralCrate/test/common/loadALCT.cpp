@@ -69,7 +69,7 @@ int main(int argc,char **argv){
   printf("Programming...");
   //int status;
   //int status = alct->SVFLoad(&jch,"alctcrc384mirror.svf",debugMode);
-  //int status = alct->SVFLoad(&jch,"../svf/tests/alct672rl_show_overflow.svf",debugMode);
+  //int status = alct->SVFLoad(&jch,"../svf/tests/alct672rl_readout_cnt.svf",debugMode);
   int status = alct->SVFLoad(&jch,"../svf/alct672rl.svf",debugMode);
   //--int status = alct->NewSVFLoad(&jch,"alctcrc384mirror.svf",debugMode);
   tmb->enableAllClocks();

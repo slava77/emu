@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 2.5 2006/03/03 07:59:20 mey Exp $
+// $Id: TMBParser.cc,v 2.6 2006/03/05 18:45:08 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 2.6  2006/03/05 18:45:08  mey
+// Update
+//
 // Revision 2.5  2006/03/03 07:59:20  mey
 // Update
 //
@@ -27,6 +30,7 @@
 #include "AnodeChannel.h"
 #include <xercesc/dom/DOM.hpp>
 #include "ALCTController.h"
+#include "RAT.h"
 
 TMBParser::TMBParser(xercesc::DOMNode * pNode, int crateNumber)
 {
@@ -74,7 +78,12 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, int crateNumber)
         parser_.fillString("chamber_type", chamberType);
         //alct_ memory area is deleted in ~TMB()
         ALCTController * alct_ = new ALCTController(tmb_, chamberType);
+	RAT * rat_ = new RAT(tmb_);
 	tmb_->alctController_ = alct_; //store alct_ in tmb_
+	tmb_->rat_            = rat_ ; //store rat_  in tmb_
+	//RAT
+       	parser_.fillInt("rpc_rat_delay", rat_->rat_tmb_delay_);
+	//ALCT
        	parser_.fillInt("trig_mode", alct_->alct_trig_mode_);
 	parser_.fillInt("ext_trig_en", alct_->alct_ext_trig_en_);
 	parser_.fillInt("trig_info_en", alct_->alct_trig_info_en_);

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.27 2006/03/03 07:59:19 mey Exp $
+// $Id: TMB.h,v 2.28 2006/03/05 18:45:08 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.28  2006/03/05 18:45:08  mey
+// Update
+//
 // Revision 2.27  2006/03/03 07:59:19  mey
 // Update
 //
@@ -94,10 +97,11 @@
 #include <bitset>
 #include "AnodeChannel.h"
 #include "TMB_JTAG_constants.h"
+#include "RAT.h"
 
 class ALCTController;
 class TMBParser;
-
+class RAT;
 
 class TMB : public VMEModule {
 
@@ -208,6 +212,7 @@ public:
   //
   void SetALCTController(ALCTController* a) {alctController_=a;}
   ALCTController * alctController() const {return alctController_;}
+  RAT * getRAT() const {return rat_;}
   //      
   int tmb_get_id(struct tmb_id_regs* tmb_id);
   int tmb_set_jtag_src(unsigned short int jtag_src);
@@ -303,6 +308,7 @@ protected:
   int dsnIO(int);
   //
   ALCTController * alctController_;
+  RAT * rat_;
   //
 private:
   //

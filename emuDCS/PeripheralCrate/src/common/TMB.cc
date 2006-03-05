@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.46 2006/03/03 07:59:20 mey Exp $
+// $Id: TMB.cc,v 2.47 2006/03/05 18:45:08 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.47  2006/03/05 18:45:08  mey
+// Update
+//
 // Revision 2.46  2006/03/03 07:59:20  mey
 // Update
 //
@@ -177,6 +180,8 @@ TMB::TMB(int newcrate, int slot) :
   mpc_tx_delay_(0),
   l1a_offset_(0),
   disableCLCTInputs_(0),
+  alctController_(0),
+  rat_(0),
   bxn_offset_(0)
 {
   //
@@ -192,6 +197,7 @@ TMB::TMB(int newcrate, int slot) :
 TMB::~TMB() {
   (*MyOutput_) << "destructing ALCTController" << std::endl; 
   delete alctController_; 
+  delete rat_;
   (*MyOutput_) << "destructing TMB" << std::endl;
 }
 
