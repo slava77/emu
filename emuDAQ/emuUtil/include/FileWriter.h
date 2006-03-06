@@ -10,17 +10,17 @@
 class FileWriter{
 
 private:
-  unsigned long  maxFileSize_; // bytes
-  string         pathToFile_;
-  string         filePrefix_;
-  Logger         logger_;
-  unsigned long  runNumber_;
-  unsigned long  bytesInFileCounter_;
-  unsigned long  eventsInFileCounter_;
-  unsigned long  filesInRunCounter_;
-  unsigned long  bytesInRunCounter_;
-  unsigned long  eventsInRunCounter_;
-  string         fileName_;
+  unsigned int  maxFileSize_; // bytes
+  string        pathToFile_;
+  string        filePrefix_;
+  Logger        logger_;
+  unsigned int  runNumber_;
+  unsigned int  bytesInFileCounter_;
+  unsigned int  eventsInFileCounter_;
+  unsigned int  filesInRunCounter_;
+  unsigned int  bytesInRunCounter_;
+  unsigned int  eventsInRunCounter_;
+  string        fileName_;
   std::fstream *fs_;
 
   string nameFile(){
@@ -57,11 +57,12 @@ private:
 
 
 public:
-  FileWriter(const unsigned long maxFileSize, const string pathToFile, const string prefix, const Logger* logger)
+  FileWriter(const unsigned int maxFileSize, const string pathToFile, const string prefix, const Logger* logger)
     :maxFileSize_         (maxFileSize)
     ,pathToFile_          (pathToFile)
     ,filePrefix_          (prefix)
     ,logger_              (*logger)
+    ,runNumber_           (0)
     ,bytesInFileCounter_  (0)
     ,eventsInFileCounter_ (0)
     ,filesInRunCounter_   (0)
@@ -107,26 +108,26 @@ public:
 		    (filesInRunCounter_==1?".":"s.")      );
   }
 
-  long getFileSize(){
+  int getFileSize(){
     // Returns file size in bytes, or -1 if file size couldn't be obtained.
     if ( fs_->is_open() ){
       // If it's still open, synchronize buffer, then get size
-      long size = (long) ( fs_->flush().seekp(0,ios::end).tellp() );
-      if ( fs_->fail() ) return long(-1);
+      int size = (int) ( fs_->flush().seekp(0,ios::end).tellp() );
+      if ( fs_->fail() ) return int(-1);
       else               return size;
     }
     else{
       fs_->open( fileName_.c_str(), ios::in | ios::binary );
       if ( fs_->fail() ){ 
-	return long(-1);
+	return int(-1);
       }
       else{
-	long size = (long) ( fs_->seekg(0,ios::end).tellg() );
+	int size = (int) ( fs_->seekg(0,ios::end).tellg() );
 	fs_->close();
 	return size;
       }
     }
-    return long(-1);
+    return int(-1);
   }
 
   void removeFile(){
@@ -139,6 +140,7 @@ public:
     }
   }
 
+  unsigned int getRunNumber(){ return runNumber_; }
 };
 
 
