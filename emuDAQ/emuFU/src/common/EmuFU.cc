@@ -1066,6 +1066,12 @@ throw (toolbox::fsm::exception::Exception)
 	delete fileWriter_;
 	fileWriter_ = NULL;
       }
+    // create new writer if path is not empty
+    if ( pathToDataOutFile_ != string("") && fileSizeInMegaBytes_ > (long unsigned int) 0 ){
+      stringstream ss;
+      ss << "EmuFU" << instance_;
+      fileWriter_ = new FileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), ss.str(), &logger_ );
+    }
 
     destroyServers();
     createServers();
@@ -1682,25 +1688,12 @@ throw (emuFU::exception::Exception)
       {
 	tc         = (SliceTestTriggerChunk*) startOfPayload;
 	runNumber_ = tc->runNumber;
-	if ( block->eventNumber == 1 ) // first event --> a new run
-	  {
-	    // terminate old writer, if any
-	    if ( fileWriter_ )
-	      {
-		fileWriter_->endRun();
-		delete fileWriter_;
-		fileWriter_ = NULL;
-	      }
-	    // create new writer if path is not empty
-	    if ( pathToDataOutFile_ != string("") && fileSizeInMegaBytes_ > (long unsigned int) 0 ){
-	      stringstream ss;
-	      ss << "EmuFU" << instance_;
-	      fileWriter_ = new FileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), ss.str(), &logger_ );
-	    }
-	    if ( fileWriter_ ) fileWriter_->startNewRun( tc->runNumber );
-	  }
 	if ( fileWriter_ )
 	  {
+	    if ( fileWriter_->getRunNumber() != tc->runNumber ) // new run number
+	      {
+		fileWriter_->startNewRun( tc->runNumber );
+	      }
 	    fileWriter_->startNewEvent();
 	  }
       }
