@@ -1,4 +1,4 @@
-// $Id: EmuCrateSOAP.h,v 1.8 2006/03/07 09:22:57 mey Exp $
+// $Id: EmuCrateSOAP.h,v 1.9 2006/03/07 10:39:21 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -135,7 +135,7 @@ public:
   xoap::MessageReference Enable (xoap::MessageReference msg) throw (xoap::exception::Exception)
   {
     //
-    enable();
+    //enable();
     //
     std::cout << "Enable" << std::endl ;
     //
@@ -155,7 +155,7 @@ public:
   xoap::MessageReference Disable (xoap::MessageReference msg) throw (xoap::exception::Exception)
   {
     //
-    disable();
+    //disable();
     //
     std::cout << "Disable" << std::endl ;
     //
