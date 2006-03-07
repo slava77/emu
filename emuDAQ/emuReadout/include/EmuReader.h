@@ -50,7 +50,7 @@ public:
   //     return true;
   //   }
 
-  bool         readNextEvent();
+  int          readNextEvent();
   int          eventNumber();
 
   char*        data()            { return (char*) theBuffer; }
