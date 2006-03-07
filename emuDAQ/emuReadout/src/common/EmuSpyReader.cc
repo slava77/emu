@@ -242,6 +242,8 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
     if(end_event==0x4000) break;
   }
 
+  if ( timeout ) std::cerr << "EmuSpyReader::readDDU timed out. Event length: " << len << " b" << std::endl;
+
   //fg adjust the length to account for filler bytes
 //  char *end_buf_data;
 //  end_buf_data = buf_data + len;
