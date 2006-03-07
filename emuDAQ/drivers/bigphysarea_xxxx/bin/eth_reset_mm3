@@ -1,0 +1,10 @@
+/sbin/ifdown eth2
+/sbin/ifdown eth3
+/sbin/rmmod dl2x
+/sbin/rmmod dl2k
+/sbin/rmmod eth_hook_3
+/sbin/insmod ../lib/linux/x86/eth_hook_3.o
+/sbin/insmod ../lib/linux/x86/dl2k.o jumbo=1 mtu=9000 tx_flow=0 rx_flow=0 media=6
+/sbin/ifup eth3
+/sbin/ifconfig eth3  -arp promisc
+#/sbin/ifconfig
