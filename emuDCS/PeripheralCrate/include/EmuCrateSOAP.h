@@ -1,4 +1,4 @@
-// $Id: EmuCrateSOAP.h,v 1.7 2006/01/20 09:35:21 mey Exp $
+// $Id: EmuCrateSOAP.h,v 1.8 2006/03/07 09:22:57 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -96,11 +96,11 @@ public:
   xoap::MessageReference Configure (xoap::MessageReference msg) throw (xoap::exception::Exception)
   {
     //
-    //configure();
+    configure();
     //
     std::cout << "Configure" << std::endl ;
     //
-    sleep(3);
+    //sleep(3);
     //
     // reply to caller
     //
@@ -130,6 +130,46 @@ public:
     xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
     return reply;
     
+  }
+  //
+  xoap::MessageReference Enable (xoap::MessageReference msg) throw (xoap::exception::Exception)
+  {
+    //
+    enable();
+    //
+    std::cout << "Enable" << std::endl ;
+    //
+    //sleep(3);
+    //
+    // reply to caller
+    //
+    std::cout << "Received Message Enable" << std::endl ;
+    //
+    xoap::MessageReference reply = xoap::createMessage();
+    xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+    xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
+    xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
+    return reply;    
+  }
+  //
+  xoap::MessageReference Disable (xoap::MessageReference msg) throw (xoap::exception::Exception)
+  {
+    //
+    disable();
+    //
+    std::cout << "Disable" << std::endl ;
+    //
+    sleep(3);
+    //
+    // reply to caller
+    //
+    std::cout << "Received Message Disable" << std::endl ;
+    //
+    xoap::MessageReference reply = xoap::createMessage();
+    xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+    xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
+    xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
+    return reply;    
   }
   //
 };

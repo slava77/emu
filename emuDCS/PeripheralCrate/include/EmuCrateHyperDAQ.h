@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.54 2006/03/05 18:45:08 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.55 2006/03/07 09:22:57 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -191,7 +191,9 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::LogOutput, "LogOutput");
     xgi::bind(this,&EmuCrateHyperDAQ::LogTMBTestsOutput, "LogTMBTestsOutput");
     xgi::bind(this,&EmuCrateHyperDAQ::FindWinner, "FindWinner");
-    xgi::bind(this,&EmuCrateHyperDAQ::CalibrationCFEB, "CalibrationCFEB");
+    xgi::bind(this,&EmuCrateHyperDAQ::CalibrationCFEBTime, "CalibrationCFEBTime");
+    xgi::bind(this,&EmuCrateHyperDAQ::CalibrationCFEBCharge, "CalibrationCFEBCharge");
+    xgi::bind(this,&EmuCrateHyperDAQ::CalibrationCFEBPedestal, "CalibrationCFEBPedestal");
     xgi::bind(this,&EmuCrateHyperDAQ::CalibrationALCT, "CalibrationALCT");
     xgi::bind(this,&EmuCrateHyperDAQ::LaunchMonitor, "LaunchMonitor");
     xgi::bind(this,&EmuCrateHyperDAQ::ResetAllCounters, "ResetAllCounters");
@@ -376,10 +378,22 @@ public:
       *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
       *out << cgicc::legend("Calibration Runs").set("style","color:blue") ;
       //
-      std::string CalibrationCFEB =
-	toolbox::toString("/%s/CalibrationCFEB",getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::form().set("method","GET").set("action",CalibrationCFEB) << std::endl ;
-      *out << cgicc::input().set("type","submit").set("value","Calibration run CFEB") << std::endl ;
+      std::string CalibrationCFEBTime =
+	toolbox::toString("/%s/CalibrationCFEBTime",getApplicationDescriptor()->getURN().c_str());
+      *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBTime) << std::endl ;
+      *out << cgicc::input().set("type","submit").set("value","Calibration run CFEB Time") << std::endl ;
+      *out << cgicc::form() << std::endl ;
+      //
+      std::string CalibrationCFEBCharge =
+	toolbox::toString("/%s/CalibrationCFEBCharge",getApplicationDescriptor()->getURN().c_str());
+      *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBCharge) << std::endl ;
+      *out << cgicc::input().set("type","submit").set("value","Calibration run CFEB Charge") << std::endl ;
+      *out << cgicc::form() << std::endl ;
+      //
+      std::string CalibrationCFEBPedestal =
+	toolbox::toString("/%s/CalibrationCFEBPedestal",getApplicationDescriptor()->getURN().c_str());
+      *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBPedestal) << std::endl ;
+      *out << cgicc::input().set("type","submit").set("value","Calibration run CFEB Pedestal") << std::endl ;
       *out << cgicc::form() << std::endl ;
       //
       std::string CalibrationALCT =
@@ -737,7 +751,7 @@ public:
     //
   }
   //
-  void EmuCrateHyperDAQ::CalibrationCFEB(xgi::Input * in, xgi::Output * out ) 
+  void EmuCrateHyperDAQ::CalibrationCFEBCharge(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
     //
@@ -746,7 +760,7 @@ public:
     //
     int nsleep, nstrip, tries, counter =0;
     float dac;
-    nsleep = 1000;  
+    nsleep = 100000;  
     dac = 1.0;
     /*
     for (int i=0;i<16;i++) {  
@@ -762,6 +776,48 @@ public:
     */
     //
     calib.rateTest();
+    //
+    this->Default(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::CalibrationCFEBTime(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    CalibDAQ calib;
+    calib.loadConstants();
+    //
+    int nsleep, nstrip, tries, counter =0;
+    float dac;
+    nsleep = 100000;  
+    dac = 1.0;
+    //
+    for (int i=0;i<16;i++) {  
+      for (int ntim=0;ntim<20;ntim++) {
+	calib.pulseAllDMBs(ntim, i, dac, nsleep);  
+	counter++;
+	std::cout << "dac = " << dac <<
+	  "  strip = " << i <<
+	  "  ntim = " << ntim <<
+	  "  event  = " << counter << std::endl;
+      }
+    }
+    //
+    this->Default(in,out);
+    //
+  }
+  void EmuCrateHyperDAQ::CalibrationCFEBPedestal(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    CalibDAQ calib;
+    calib.loadConstants();
+    //
+    int nsleep, nstrip, tries, counter =0;
+    float dac;
+    //
+    calib.pedestalCFEB();
     //
     this->Default(in,out);
     //

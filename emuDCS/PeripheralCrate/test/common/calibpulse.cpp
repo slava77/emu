@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: calibpulse.cpp,v 2.12 2006/02/20 13:31:14 mey Exp $
+// $Id: calibpulse.cpp,v 2.13 2006/03/07 09:22:58 mey Exp $
 // $Log: calibpulse.cpp,v $
+// Revision 2.13  2006/03/07 09:22:58  mey
+// Update
+//
 // Revision 2.12  2006/02/20 13:31:14  mey
 // Update
 //
@@ -136,7 +139,7 @@ int main(int argc, char **argv)
       
     int nsleep, nstrip, tries, counter =0;
     float dac;
-    nsleep = 1000;  
+    nsleep = 100000;  
     dac = 1.0;
     
     for (int i=0;i<16;i++) {  
