@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.55 2006/03/07 09:22:57 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.56 2006/03/07 18:36:08 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -189,6 +189,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::CCBBoardID, "CCBBoardID");
     xgi::bind(this,&EmuCrateHyperDAQ::LogDMBTestsOutput, "LogDMBTestsOutput");
     xgi::bind(this,&EmuCrateHyperDAQ::LogOutput, "LogOutput");
+    xgi::bind(this,&EmuCrateHyperDAQ::LogTestSummary, "LogTestSummary");
     xgi::bind(this,&EmuCrateHyperDAQ::LogTMBTestsOutput, "LogTMBTestsOutput");
     xgi::bind(this,&EmuCrateHyperDAQ::FindWinner, "FindWinner");
     xgi::bind(this,&EmuCrateHyperDAQ::CalibrationCFEBTime, "CalibrationCFEBTime");
@@ -336,6 +337,14 @@ public:
       *out << cgicc::form().set("method","GET").set("action",LogOutput) << std::endl ;
       *out << cgicc::input().set("type","submit")
 	.set("value","Log all output").set("name","LogOutput") << std::endl ;
+      *out << cgicc::form() << std::endl ;
+      //
+      std::string LogTestSummary =
+	toolbox::toString("/%s/LogTestSummary",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::form().set("method","GET").set("action",LogTestSummary) << std::endl ;
+      *out << cgicc::input().set("type","submit")
+	.set("value","Log Test Summary").set("name","LogTestSummary") << std::endl ;
       *out << cgicc::form() << std::endl ;
       //
       std::string LaunchMonitor =
@@ -4358,6 +4367,57 @@ public:
     OutputDMBTests[dmb].str("");
     //
     this->DMBTests(in,out);
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::LogTestSummary(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception){
+    //
+    std::string buf;
+    buf = "EmuCrateHyperDAQTestSummary_"+RunNumber_+"_"+Operator_+".log";
+    //
+    ofstream LogFile;
+    LogFile.open(buf.c_str());
+    //
+    LogFile << " *** Output : Test Summary *** " << std::endl ;
+    //
+    LogFile << std::endl;
+    //
+    for (int i=0; i<tmbVector.size(); i++) {
+      //
+      LogFile << "TMB " << std::setw(5) << tmbVector[i]->slot() << std::setw(5) <<
+	TMBBoardID_[i] << std::setw(5) <<
+	tmbTestVector[i].GetResultTestBootRegister() << std::setw(5) <<
+	tmbTestVector[i].GetResultTestVMEfpgaDataRegister() << std::setw(5) <<
+	tmbTestVector[i].GetResultTestFirmwareDate() << std::setw(5) <<
+	tmbTestVector[i].GetResultTestFirmwareType() << std::setw(5) <<
+	tmbTestVector[i].GetResultTestFirmwareVersion() << std::setw(5) <<
+	tmbTestVector[i].GetResultTestFirmwareRevCode() << std::setw(5) <<
+	tmbTestVector[i].GetResultTestMezzId() << std::setw(5) <<
+	tmbTestVector[i].GetResultTestPromId() << std::setw(5) <<
+	tmbTestVector[i].GetResultTestPROMPath() << std::setw(5) <<
+	tmbTestVector[i].GetResultTestDSN() << std::setw(5) <<
+	tmbTestVector[i].GetResultTestADC() << std::setw(5) <<
+	tmbTestVector[i].GetResultTest3d3444() << std::setw(5)
+	      << std::endl ;
+      //
+    }
+    //
+    for(int i=0; i<20; i++) LogFile << "+";
+    LogFile << std::endl ;
+    //
+    for (int i=0; i<dmbVector.size(); i++) {
+      //
+      LogFile << "DMB " << std::setw(5) << dmbVector[i]->slot() << std::setw(5) <<
+	DMBBoardID_[i] ;
+	for (int j=0; j<20; j++) LogFile << std::setw(5) << dmbVector[i]->GetTestStatus(j) ;
+      LogFile << std::endl ;
+      //
+    }
+    //
+    LogFile << std::endl;
+    //
+    LogFile.close();
     //
   }
   //

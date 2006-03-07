@@ -1,4 +1,4 @@
-// $Id: EmuCrateSOAP.h,v 1.9 2006/03/07 10:39:21 mey Exp $
+// $Id: EmuCrateSOAP.h,v 1.10 2006/03/07 18:36:08 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -42,12 +42,14 @@
 using namespace cgicc;
 using namespace std;
 
-class EmuCrateSOAP: public xdaq::Application, public EmuController
+class EmuCrateSOAP: public xdaq::Application
 {
   
 public:
 
   xdata::String xmlFile_;
+
+  EmuController MyEmuController;
   
   XDAQ_INSTANTIATOR();
   
@@ -96,7 +98,7 @@ public:
   xoap::MessageReference Configure (xoap::MessageReference msg) throw (xoap::exception::Exception)
   {
     //
-    configure();
+    MyEmuController.configure();
     //
     std::cout << "Configure" << std::endl ;
     //
@@ -116,9 +118,9 @@ public:
   xoap::MessageReference Init (xoap::MessageReference msg) throw (xoap::exception::Exception)
   {
     //
-    SetConfFile(xmlFile_);
+    MyEmuController.SetConfFile(xmlFile_);
     //
-    init();
+    MyEmuController.init();
     //
     // reply to caller
     //
