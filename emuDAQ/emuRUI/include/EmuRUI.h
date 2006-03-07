@@ -112,6 +112,7 @@ private:
   xdata::String                       inputDataFormat_;      // "DDU" or "DCC"
   int                                 inputDataFormatInt_;   // EmuReader::DDU or EmuReader::DCC
 
+  void createFileWriters();
   void createDeviceReaders();
   void destroyDeviceReaders();
   void createServers();

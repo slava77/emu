@@ -2207,19 +2207,7 @@ throw (emuRUI::exception::Exception)
     blocksArePendingTransmission_ = superFragBlocks_.size() > 0;
 }
 
-
-bool EmuRUI::continueConstructionOfSuperFrag()
-  throw (emuRUI::exception::Exception)
-{
-
-  bool keepRunning = true;
-
-  if ( maxEvents_.value_ > 0 && nEventsRead_.value_ > maxEvents_.value_ ) return false;
-
-  if ( nEventsRead_ == (unsigned long) 1 ) // first event --> a new run
-    {
-      if ( iCurrentDeviceReader_ == 0 ) // don't do it for all devices...
-	{
+void EmuRUI::createFileWriters(){
 	  // terminate old writers, if any
 	  if ( fileWriter_ )
 	    {
@@ -2249,21 +2237,39 @@ bool EmuRUI::continueConstructionOfSuperFrag()
 	      badEventsFileWriter_ = new FileWriter( 1000000*fileSizeInMegaBytes_, pathToBadEventsFile_.toString(), ss.str(), &logger_ );
 	    }
 	  if ( badEventsFileWriter_ ) badEventsFileWriter_->startNewRun( runNumber_.value_ );
+}
+
+bool EmuRUI::continueConstructionOfSuperFrag()
+  throw (emuRUI::exception::Exception)
+{
+
+//   bool keepRunning = true;
+  unsigned int nBytesRead = 0;
+
+  if ( maxEvents_.value_ > 0 && nEventsRead_.value_ > maxEvents_.value_ ) return false;
+
+  if (deviceReaders_[iCurrentDeviceReader_]) 
+    nBytesRead = deviceReaders_[iCurrentDeviceReader_]->readNextEvent();
+  
+  // No data ==> no business being here. Try to read again later.
+  if ( nBytesRead == 0 ) return true;
+
+  if ( nBytesRead < 8 ){
+    LOG4CPLUS_ERROR(logger_, 
+		    " " << inputDataFormat_.toString() << inputDeviceType_.toString() << 
+		    "[" << iCurrentDeviceReader_ << "] read " << nBytesRead << " bytes only.");
+  }
+
+  if ( nEventsRead_ == (unsigned long) 1 ) // first event --> a new run
+    {
+      if ( iCurrentDeviceReader_ == 0 ) // don't do it for all devices...
+	{
+	  createFileWriters();
 	} // if first input device 
     } // if first event 
 
-    if (deviceReaders_[iCurrentDeviceReader_]) 
-      keepRunning = deviceReaders_[iCurrentDeviceReader_]->readNextEvent();
 
-    if ( !keepRunning ){
-      LOG4CPLUS_ERROR(logger_, 
-		      " " << inputDataFormat_.toString() << inputDeviceType_.toString() << 
-		      "[" << iCurrentDeviceReader_ << "] read error.");
-    }
-
-
-
-    bool badData = false;
+  bool badData = false;
 
   // If the EmuRUI to RU memory pool has room for another data block
   if(!ruiRuPool_->isHighThresholdExceeded()){
@@ -2276,23 +2282,18 @@ bool EmuRUI::continueConstructionOfSuperFrag()
       //     if ( true ) { // let's see those too short events too !!!
       
       data       = deviceReaders_[iCurrentDeviceReader_]->data();
-      dataLength = deviceReaders_[iCurrentDeviceReader_]->dataLength();
-      if ( dataLength>0 ) eventNumber_ = deviceReaders_[iCurrentDeviceReader_]->eventNumber();
 
-      if ( inputDataFormatInt_ == EmuReader::DDU ){
-	int dataLengthWithoutPadding = getDDUDataLengthWithoutPadding(data,dataLength);
-	if ( dataLengthWithoutPadding >= 0 ){
-	  dataLength = dataLengthWithoutPadding;
-	  badData    = interestingDDUErrorBitPattern(data,dataLength);
-	  if ( badData ) nDevicesWithBadData_++;
-	}
-      }
-      else {
-	int dataLengthWithoutPadding = getDDUDataLengthWithoutPadding(data,dataLength);
-	if ( dataLengthWithoutPadding >= 0 ){
-	  dataLength = dataLengthWithoutPadding;
-	  badData    = interestingDDUErrorBitPattern(data,dataLength);
-	  if ( badData ) nDevicesWithBadData_++;
+      if ( data!=NULL ){
+	dataLength = deviceReaders_[iCurrentDeviceReader_]->dataLength();
+	if ( dataLength>0 ) eventNumber_ = deviceReaders_[iCurrentDeviceReader_]->eventNumber();
+
+	if ( inputDataFormatInt_ == EmuReader::DDU ){
+	  int dataLengthWithoutPadding = getDDUDataLengthWithoutPadding(data,dataLength);
+	  if ( dataLengthWithoutPadding >= 0 ){
+	    dataLength = dataLengthWithoutPadding;
+	    badData    = interestingDDUErrorBitPattern(data,dataLength);
+	    if ( badData ) nDevicesWithBadData_++;
+	  }
 	}
       }
 
@@ -2306,6 +2307,7 @@ bool EmuRUI::continueConstructionOfSuperFrag()
 
     } //  if (   )
     
+    // Write data to files
     if ( fileWriter_ )
       {
 	if ( iCurrentDeviceReader_ == 0 ) // don't start a new event for each device...
@@ -2323,7 +2325,7 @@ bool EmuRUI::continueConstructionOfSuperFrag()
     if ( passDataOnToRUBuilder_ )
       appendNewBlockToSuperFrag( data, dataLength );
 
-
+    // Store this data to be sent to clients (if any)
     bool lastChunkOfEvent = ( iCurrentDeviceReader_ +1 == nInputDevices_ );
     addDataForClients( runNumber_.value_, nEventsRead_.value_, lastChunkOfEvent, data, dataLength );
 
@@ -2343,6 +2345,7 @@ bool EmuRUI::continueConstructionOfSuperFrag()
 
     }
 
+    // Move on to the next device
     iCurrentDeviceReader_++;
     iCurrentDeviceReader_ %= nInputDevices_;
 
@@ -2351,56 +2354,6 @@ bool EmuRUI::continueConstructionOfSuperFrag()
   
   return true;
 //   return keepRunning;
-
-
-
-
-//     // If there is no super-fragment under construction
-//     if(superFragGenerator_.reachedEndOfSuperFragment())
-//     {
-//         superFragGenerator_.startSuperFragment
-//         (
-//             fedPayloadSize_,
-//             &fedSourceIds_,
-//             ruTid_,
-//             eventNumber_
-//         );
-
-//         // The event number of CMS will be 24-bits
-//         // 2 to the power of 24 = 16777216
-//         eventNumber_ = (eventNumber_ + 1) % 16777216;
-//     }
-//     // Else if the EmuRUI to RU memory pool has room for another data block
-//     else if(!ruiRuPool_->isHighThresholdExceeded())
-//     {
-//         try
-//         {
-//             appendNewBlockToSuperFrag();
-//         }
-//         catch(xcept::Exception e)
-//         {
-//             stringstream oss;
-//             string       s;
-
-//             oss << "Failed to append new block to super-fragment";
-//             oss << " : " << stdformat_exception_history(e);
-//             s = oss.str();
-
-//             XCEPT_RETHROW(rui::exception::Exception, s, e);
-//         }
-
-//         // If the super-fragment under construction is complete
-//         if(superFragGenerator_.reachedEndOfSuperFragment())
-//         {
-//              // Prepare it for sending to the RU
-//              setNbBlocksInSuperFragment(superFragBlocks_.size());
-
-//              // Current super-fragment is now ready to be sent to the RU
-//              blocksArePendingTransmission_ = true;
-//         }
-//     }
-
-//     return true;
 
 }
 
@@ -2533,8 +2486,8 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
 
   bool foundError = false;
   const unsigned long DDUTrailerLength = 24; // bytes
-  unsigned short *trailerShortWord = 
-    reinterpret_cast<unsigned short*>( data + dataLength - DDUTrailerLength - 1 );
+  unsigned short *trailerShortWord =
+    reinterpret_cast<unsigned short*>( data + dataLength - DDUTrailerLength );
   
   // 1)
   if ( trailerShortWord[8] & 0x0060 ||     // DDU Trail bits 5 OR 6
