@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.56 2006/03/07 18:36:08 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.57 2006/03/07 19:55:00 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -4373,8 +4373,21 @@ public:
   void EmuCrateHyperDAQ::LogTestSummary(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception){
     //
+    time_t rawtime;
+    time(&rawtime);
+    //
     std::string buf;
-    buf = "EmuCrateHyperDAQTestSummary_"+RunNumber_+"_"+Operator_+".log";
+    std::string time_dump = ctime(&rawtime);
+    std::string time = time_dump.substr(0,time_dump.length()-1);
+    //
+    while( time.find(" ",0) != string::npos ) {
+      //
+      int thispos = time.find(" ",0); 
+      time.replace(thispos,1,"_");
+      //
+    }
+    //
+    buf = "EmuCrateHyperDAQTestSummary_"+RunNumber_+"_"+Operator_+time+".log";
     //
     ofstream LogFile;
     LogFile.open(buf.c_str());
@@ -4382,6 +4395,8 @@ public:
     LogFile << " *** Output : Test Summary *** " << std::endl ;
     //
     LogFile << std::endl;
+    LogFile << "Operator : " << Operator_ << std::endl ;
+    LogFile << "Time     : " << ctime(&rawtime) << std::endl ;
     //
     for (int i=0; i<tmbVector.size(); i++) {
       //
