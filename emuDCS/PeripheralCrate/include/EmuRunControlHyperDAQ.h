@@ -1,4 +1,4 @@
-// $Id: EmuRunControlHyperDAQ.h,v 1.5 2006/01/23 15:00:11 mey Exp $
+// $Id: EmuRunControlHyperDAQ.h,v 1.6 2006/03/07 09:22:57 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -77,6 +77,7 @@ public:
     //
     std::vector<xdaq::ApplicationDescriptor * >  descriptor =
       getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuCrateSOAP");
+    //
     //
     vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
     for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) 

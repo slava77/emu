@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.h,v 2.2 2006/02/20 13:31:13 mey Exp $
+// $Id: CalibDAQ.h,v 2.3 2006/03/07 09:22:57 mey Exp $
 // $Log: CalibDAQ.h,v $
+// Revision 2.3  2006/03/07 09:22:57  mey
+// Update
+//
 // Revision 2.2  2006/02/20 13:31:13  mey
 // Update
 //
@@ -32,6 +35,8 @@ public:
   void loadConstants(Crate * crate);   
 
   void pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep);
+
+  void pedestalCFEB();
 
   void injectAllDMBs(int ntim);
 

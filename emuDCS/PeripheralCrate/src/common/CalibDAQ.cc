@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.4 2006/02/20 13:31:14 mey Exp $
+// $Id: CalibDAQ.cc,v 2.5 2006/03/07 09:22:58 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.5  2006/03/07 09:22:58  mey
+// Update
+//
 // Revision 2.4  2006/02/20 13:31:14  mey
 // Update
 //
@@ -90,7 +93,7 @@ void CalibDAQ::rateTest() {
 	    "  try = " << tries << 
 	    "  event  = " << counter << std::endl;
 	  ccb->pulse(1, 0xff);//pulse all dmbs in this crate
-	  ::usleep(1000);
+	  ::usleep(100000);
 	}
 
       } //end of loop by strips
@@ -142,6 +145,28 @@ void CalibDAQ::pulseRandomWires(){
   //
 }
 //
+void CalibDAQ::pedestalCFEB() { 
+  //
+  int ntim = 1;
+  float dac = 0.0;
+  int nsleep(100000);
+  int counter = 0;
+  int nevents = 1000;
+  //
+  std::vector<Crate*> myCrates = theSelector.crates();
+  //
+  for (int events = 0; events<nevents; events++) {
+    //for (int i=0;i<1;i++) {  
+      pulseAllDMBs(ntim, -1, dac, nsleep);  
+      counter++;
+      std::cout << "dac = " << dac <<
+	//"  strip = " << i <<
+	"  event  = " << counter << std::endl;
+      //}
+  }
+}  
+//
+//
 void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep) { 
 //injects identical pulse to all dmbs (EXT capacitors)
 //in all crates one crate at a time          
@@ -165,7 +190,7 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep) {
 	  for(ch=0;ch<16;ch++){
 	    myDmbs[i]->shift_array[brd][chip][ch]=NORM_RUN;
 	  }
-	  myDmbs[i]->shift_array[brd][chip][nstrip]=EXT_CAP;
+	  if ( nstrip != -1 ) myDmbs[i]->shift_array[brd][chip][nstrip]=EXT_CAP;
 	}
       }
       //
