@@ -19,6 +19,9 @@
 
 		<xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="local"/>
 		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>
+
+		<xc:Application class="EmuDAQManager" id="90" instance="0" network="local"/>
+		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libEmuDAQManager.so</xc:Module>
 	</xc:Context>
 </xc:Partition>
 <!-- vim: set ai sw=2 ts=2: -->
