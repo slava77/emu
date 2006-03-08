@@ -166,7 +166,8 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference e)
 			.addTextNode(runtype);
 
 	xdaq::ApplicationDescriptor *target = getApplicationContext()
-			->getApplicationGroup()->getApplicationDescriptor("EmuPC", 0);
+			->getApplicationGroup()->getApplicationDescriptor(
+			"EmuPeripheralCrate", 0);
 
 	getApplicationContext()->postSOAP(message, target);
 }
@@ -184,7 +185,8 @@ void CSCSupervisor::haltAction(toolbox::Event::Reference e)
 	envelope.getBody().addBodyElement(command);
 
 	xdaq::ApplicationDescriptor *target = getApplicationContext()
-			->getApplicationGroup()->getApplicationDescriptor("EmuPC", 0);
+			->getApplicationGroup()->getApplicationDescriptor(
+			"EmuPeripheralCrate", 0);
 
 	getApplicationContext()->postSOAP(message, target);
 }
