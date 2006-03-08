@@ -1,16 +1,16 @@
-#ifndef __EMU_FED_H__
-#define __EMU_FED_H__
+#ifndef __EMU_FED_CRATE_H__
+#define __EMU_FED_CRATE_H__
 
 #include "EmuApplication.h"
 
 #include "toolbox/fsm/FiniteStateMachine.h"
 
-class EmuFED : public EmuApplication
+class EmuFEDCrate : public EmuApplication
 {
 public:
 	XDAQ_INSTANTIATOR();
 
-	EmuFED(xdaq::ApplicationStub *stub) throw (xdaq::exception::Exception);
+	EmuFEDCrate(xdaq::ApplicationStub *stub) throw (xdaq::exception::Exception);
 
 	// SOAP interface
 	xoap::MessageReference onConfigure(xoap::MessageReference message)
@@ -30,5 +30,5 @@ private:
 
 };
 
-#endif  // ifndef __EMU_FED_H__
+#endif  // ifndef __EMU_FED_CRATE_H__
 // vim: set ai sw=4 ts=4:

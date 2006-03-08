@@ -14,8 +14,8 @@
 		<xc:Application class="CSCSupervisor" id="10" instance="0" network="local"/>
 		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libCSCSupervisor.so</xc:Module>
 
-		<xc:Application class="EmuFED" id="20" instance="0" network="local"/>
-		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libEmuFED.so</xc:Module>
+		<xc:Application class="EmuFEDCrate" id="20" instance="0" network="local"/>
+		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libEmuFEDCrate.so</xc:Module>
 
 		<xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="local"/>
 		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>
