@@ -1,15 +1,15 @@
 //
-// EmuFEDV.cc
+// EmuFEDCrateV.cc
 
-#include "EmuFEDV.h"
+#include "EmuFEDCrateV.h"
 
 #include "toolboxV.h"
 #include "xoap/version.h"
 #include "xdaqV.h"
 
-GETPACKAGEINFO(EmuFED)
+GETPACKAGEINFO(EmuFEDCrate)
 
-void EmuFED::checkPackageDependencies()
+void EmuFEDCrate::checkPackageDependencies()
 		throw (toolbox::PackageInfo::VersionException)
 {
 	CHECKDEPENDENCY(toolbox)

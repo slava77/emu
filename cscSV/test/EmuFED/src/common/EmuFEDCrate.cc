@@ -1,6 +1,6 @@
-// EmuFED.cc
+// EmuFEDCrate.cc
 
-#include "EmuFED.h"
+#include "EmuFEDCrate.h"
 
 #include "xdaq/NamespaceURI.h"
 #include "xoap/Method.h"
@@ -9,34 +9,34 @@
 #include "xoap/SOAPBody.h"
 #include "xoap/domutils.h"  // XMLCh2String()
 
-XDAQ_INSTANTIATOR_IMPL(EmuFED);
+XDAQ_INSTANTIATOR_IMPL(EmuFEDCrate);
 
-EmuFED::EmuFED(xdaq::ApplicationStub *stub)
+EmuFEDCrate::EmuFEDCrate(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
 		EmuApplication(stub)
 {
-	xoap::bind(this, &EmuFED::onConfigure, "Configure", XDAQ_NS_URI);
-	xoap::bind(this, &EmuFED::onHalt,      "Halt",      XDAQ_NS_URI);
+	xoap::bind(this, &EmuFEDCrate::onConfigure, "Configure", XDAQ_NS_URI);
+	xoap::bind(this, &EmuFEDCrate::onHalt,      "Halt",      XDAQ_NS_URI);
 
-	fsm_.addState('H', "Halted",     this, &EmuFED::stateChanged);
-	fsm_.addState('C', "Configured", this, &EmuFED::stateChanged);
+	fsm_.addState('H', "Halted",     this, &EmuFEDCrate::stateChanged);
+	fsm_.addState('C', "Configured", this, &EmuFEDCrate::stateChanged);
 
 	fsm_.addStateTransition(
-			'H', 'C', "Configure", this, &EmuFED::configureAction);
+			'H', 'C', "Configure", this, &EmuFEDCrate::configureAction);
 	fsm_.addStateTransition(
-			'C', 'C', "Configure", this, &EmuFED::configureAction);
+			'C', 'C', "Configure", this, &EmuFEDCrate::configureAction);
 	fsm_.addStateTransition(
-			'C', 'H', "Halt",      this, &EmuFED::haltAction);
+			'C', 'H', "Halt",      this, &EmuFEDCrate::haltAction);
 
 	fsm_.setInitialState('H');
 	fsm_.reset();
 
 	state_ = fsm_.getStateName(fsm_.getCurrentState());
 
-	LOG4CPLUS_INFO(getApplicationLogger(), "EmuFED");
+	LOG4CPLUS_INFO(getApplicationLogger(), "EmuFEDCrate");
 }
 
-xoap::MessageReference EmuFED::onConfigure(xoap::MessageReference message)
+xoap::MessageReference EmuFEDCrate::onConfigure(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
 	DOMNodeList *elements =
@@ -60,7 +60,7 @@ xoap::MessageReference EmuFED::onConfigure(xoap::MessageReference message)
 	return createReply(message);
 }
 
-xoap::MessageReference EmuFED::onHalt(xoap::MessageReference message)
+xoap::MessageReference EmuFEDCrate::onHalt(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
 	fireEvent("Halt");
@@ -68,19 +68,19 @@ xoap::MessageReference EmuFED::onHalt(xoap::MessageReference message)
 	return createReply(message);
 }
 
-void EmuFED::configureAction(toolbox::Event::Reference e)
+void EmuFEDCrate::configureAction(toolbox::Event::Reference e)
         throw (toolbox::fsm::exception::Exception)
 {   
     LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
 
-void EmuFED::haltAction(toolbox::Event::Reference e)
+void EmuFEDCrate::haltAction(toolbox::Event::Reference e)
 		throw (toolbox::fsm::exception::Exception)
 {
     LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
 
-void EmuFED::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
+void EmuFEDCrate::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
         throw (toolbox::fsm::exception::Exception)
 {
 	EmuApplication::stateChanged(fsm);
