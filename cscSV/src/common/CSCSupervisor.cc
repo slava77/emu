@@ -192,9 +192,17 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference e)
 			.addChildElement(parameter)
 			.addTextNode(runtype);
 
-	xdaq::ApplicationDescriptor *target = getApplicationContext()
-			->getApplicationGroup()->getApplicationDescriptor(
-			"EmuPeripheralCrate", 0);
+	xdaq::ApplicationDescriptor *target;
+
+	// Peripheral crate
+	target = getApplicationContext()->getApplicationGroup()
+			->getApplicationDescriptor("EmuFED", 0);
+
+	getApplicationContext()->postSOAP(message, target);
+
+	// Peripheral crate
+	target = getApplicationContext()->getApplicationGroup()
+			->getApplicationDescriptor("EmuPeripheralCrate", 0);
 
 	getApplicationContext()->postSOAP(message, target);
 }
@@ -218,6 +226,7 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference e)
 void CSCSupervisor::haltAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
+	propagateSOAP("Halt", "EmuFED", 0);
 	propagateSOAP("Halt", "EmuPeripheralCrate", 0);
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
