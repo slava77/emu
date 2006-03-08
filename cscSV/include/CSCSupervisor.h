@@ -18,9 +18,11 @@ public:
 	// SOAP interface
 	xoap::MessageReference onConfigure(xoap::MessageReference message)
 			throw (xoap::exception::Exception);
-	xoap::MessageReference onHalt(xoap::MessageReference message)
-			throw (xoap::exception::Exception);
 	xoap::MessageReference onEnable(xoap::MessageReference message)
+			throw (xoap::exception::Exception);
+	xoap::MessageReference onDisable(xoap::MessageReference message)
+			throw (xoap::exception::Exception);
+	xoap::MessageReference onHalt(xoap::MessageReference message)
 			throw (xoap::exception::Exception);
 
 	// HyperDAQ interface
@@ -30,19 +32,25 @@ public:
 			throw (xgi::exception::Exception);
 	void webEnable(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
+	void webDisable(xgi::Input *in, xgi::Output *out)
+			throw (xgi::exception::Exception);
 	void webHalt(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
 
 	// State transitions
 	void configureAction(toolbox::Event::Reference e) 
 			throw (toolbox::fsm::exception::Exception);
-	void haltAction(toolbox::Event::Reference e) 
-			throw (toolbox::fsm::exception::Exception);
 	void enableAction(toolbox::Event::Reference e) 
+			throw (toolbox::fsm::exception::Exception);
+	void disableAction(toolbox::Event::Reference e) 
+			throw (toolbox::fsm::exception::Exception);
+	void haltAction(toolbox::Event::Reference e) 
 			throw (toolbox::fsm::exception::Exception);
 
 private:
 	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
+			throw (toolbox::fsm::exception::Exception);
+	void propagateSOAP(string command, string klass, int instance)
 			throw (toolbox::fsm::exception::Exception);
 
 	string getRuntype(xoap::MessageReference message);
