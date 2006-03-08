@@ -194,7 +194,7 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference e)
 
 	xdaq::ApplicationDescriptor *target;
 
-	// Peripheral crate
+	// FED crate
 	target = getApplicationContext()->getApplicationGroup()
 			->getApplicationDescriptor("EmuFED", 0);
 
@@ -205,12 +205,19 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference e)
 			->getApplicationDescriptor("EmuPeripheralCrate", 0);
 
 	getApplicationContext()->postSOAP(message, target);
+
+	// DAQ
+	target = getApplicationContext()->getApplicationGroup()
+			->getApplicationDescriptor("EmuDAQManager", 0);
+
+	getApplicationContext()->postSOAP(message, target);
 }
 
 void CSCSupervisor::enableAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
 	propagateSOAP("Enable", "EmuPeripheralCrate", 0);
+	propagateSOAP("Enable", "EmuDAQManager", 0);
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
@@ -218,6 +225,7 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference e)
 void CSCSupervisor::disableAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
+	propagateSOAP("Disable", "EmuDAQManager", 0);
 	propagateSOAP("Disable", "EmuPeripheralCrate", 0);
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
@@ -228,6 +236,7 @@ void CSCSupervisor::haltAction(toolbox::Event::Reference e)
 {
 	propagateSOAP("Halt", "EmuFED", 0);
 	propagateSOAP("Halt", "EmuPeripheralCrate", 0);
+	propagateSOAP("Halt", "EmuDAQManager", 0);
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
