@@ -29,12 +29,12 @@ int main(int argc,char **argv){
   ::sleep(1);
 
   // create TMB & ALCT
-  int tmbSlot(2);
+  int tmbSlot(26);
   string chamberType("ME21");
   TMB *tmb = new TMB(crateId,tmbSlot);
   //
   cout << "Read Register" << endl;
-  tmb->ReadRegister(0x4);  
+  //tmb->ReadRegister(0x4);  
   //
   tmb->version_="2004";
   cout << "Creating ALCT..." << endl;
@@ -63,7 +63,7 @@ int main(int argc,char **argv){
   std::cout << " ALCT Fastcontrol ID " << chipID << std::endl;
 
 #if 1
-  tmb->disableAllClocks();
+  //tmb->disableAllClocks();
   int debugMode(0);
   int jch(5);
   printf("Programming...");
@@ -72,7 +72,7 @@ int main(int argc,char **argv){
   int status = alct->SVFLoad(&jch,"../svf/tmb2005e.svf",debugMode);
   //int status = alct->SVFLoad(&jch,"../svf/alct672rl.svf",debugMode);
   //--int status = alct->NewSVFLoad(&jch,"alctcrc384mirror.svf",debugMode);
-  tmb->enableAllClocks();
+  //tmb->enableAllClocks();
 
   if (status >= 0){
     cout << "=== Programming finished"<< endl;
