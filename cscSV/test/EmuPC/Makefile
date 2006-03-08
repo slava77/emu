@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2006/03/08 10:43:29 ichiro Exp $
+# $Id: Makefile,v 1.1 2006/03/08 10:43:31 ichiro Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -24,12 +24,15 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 # Packages to be built
 #
 Project = daq
-Package = CSCSupervisor
+Package = EmuPeripheralCrate
 
 Sources = \
-        EmuApplication.cc\
-	CSCSupervisor.cc \
-	CSCSupervisorV.cc
+	EmuPeripheralCrate.cc \
+	EmuPeripheralCrateV.cc
+
+DependentLibraryDirs = $(XDAQ_ROOT)/daq/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+DependentLibraries = CSCSupervisor
+EMU_APP_DIR = ../..
 
 IncludeDirs = \
 	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
@@ -50,6 +53,7 @@ IncludeDirs = \
 	$(XDAQ_ROOT)/daq/xgi/include \
 	$(XDAQ_ROOT)/daq/i2o/include \
 	$(XDAQ_ROOT)/daq/i2o/utils/include \
+	$(EMU_APP_DIR)/include
 
 
 LibraryDirs = \

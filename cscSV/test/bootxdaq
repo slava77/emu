@@ -1,0 +1,91 @@
+#!/bin/bash
+
+ECHO=
+
+RSH=ssh
+PORT=40000
+LOG=/tmp/xdaq.$USER
+XDAQ_EXE=$XDAQ_ROOT/daq/bin/linux/x86/xdaq.exe
+XDAQ_FLAGS="-l DEBUG"
+CONFIG=$PWD/test/config.xml
+
+LIBPATH=.\
+:$XDAQ_ROOT/daq/lib/linux/x86\
+:$XDAQ_ROOT/daq/extern/xerces/linuxx86/lib\
+:$XDAQ_ROOT/daq/extern/log4cplus/linuxx86/lib\
+:$XDAQ_ROOT/daq/extern/log4cplus/udpappender/lib/linux/x86\
+:$XDAQ_ROOT/daq/extern/log4cplus/xmlappender/lib/linux/x86\
+:$XDAQ_ROOT/daq/extern/cgicc/linuxx86/lib\
+:$XDAQ_ROOT/daq/extern/mimetic/linuxx86/lib
+
+run() {
+	with_host=`echo "$@" | sed -e "s/HOST/localhost/"`
+	$ECHO bash -c "$with_host"
+}
+
+check() {
+	result=`run "ps x --width=100 | grep xdaq.exe | grep -v grep | wc -l"`
+	if [[ $result -lt 1 ]]
+	then
+		echo XDAQ executive was not found in localhost
+	fi
+
+	result=`run "netstat -ntlp 2>/dev/null | grep :$PORT"`
+	if [[ ! $result = *xdaq.exe* ]]
+		then
+		echo XDAQ is not yet ready on $target
+	fi
+}
+
+start() {
+	run "LD_LIBRARY_PATH=$LIBPATH $XDAQ_EXE -h HOST -p $PORT -c $CONFIG $XDAQ_FLAGS >|$LOG 2>&1 &"
+
+	count=0
+	result=`check "$@"`
+	while [[ -n $result ]]
+	do
+		if [[ $count -gt 10 ]]
+		then
+			echo "Waited for 10 seconds without success."
+			exit 1;
+		fi
+		sleep 1
+		result=`check "$@"`
+		let count=count+1
+	done
+}
+
+stop() {
+	run "killall xdaq.exe; mv $LOG xdaq.log"
+
+	count=0
+	lines=`check "$@" | grep 'not found' | wc -l`
+	while [[ $lines -lt $# ]]
+	do
+		if [[ $count -gt 10 ]]
+		then
+			echo "Waited for 10 seconds without success."
+			exit 1;
+		fi
+		sleep 1
+		lines=`check "$@" | grep 'not found' | wc -l`
+		let count=count+1
+	done
+}
+
+RESULT=0
+
+command=$1; shift
+
+case $command in
+check)   check;;
+start)   start;;
+stop)    stop;;
+restart) stop; sleep 5; start;;
+*)       echo "Usage: bootxdaq {start|stop|restart|check} ..."
+esac
+
+exit $RESULT
+
+# End of file
+# vim: set ai ts=4 sw=4:

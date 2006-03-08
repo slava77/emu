@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xc:Partition
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+		xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
+	<xc:Context url="http://localhost:40000">
+		<xc:Application class="Executive" id="0" network="local" resident="true">                       
+			<properties xmlns="urn:xdaq-application:Executive" xsi:type="soapenc:Struct">
+				<logUrl xsi:type="xsd:string">file:/home/ichiro/work/emu/cscsv/xdaq.log</logUrl>
+			</properties>
+		</xc:Application> 
+
+		<xc:Application class="CSCSupervisor" id="10" instance="0" network="local"/>
+		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libCSCSupervisor.so</xc:Module>
+
+		<xc:Application class="EmuPeripheralCrate" id="11" instance="0" network="local"/>
+		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>
+	</xc:Context>
+</xc:Partition>
+<!-- vim: set ai sw=2 ts=2: -->
