@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.47 2006/03/05 18:45:08 mey Exp $
+// $Id: TMB.cc,v 2.48 2006/03/08 22:53:12 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.48  2006/03/08 22:53:12  mey
+// Update
+//
 // Revision 2.47  2006/03/05 18:45:08  mey
 // Update
 //
@@ -677,9 +680,9 @@ int TMB::FmState(){
 void TMB::PrintCounters(int counter){
   //
   (*MyOutput_) << std::endl;
-  (*MyOutput_) << "--------------------------------------------------------" << std::endl;
-  (*MyOutput_) << "---              Counters                             --" << std::endl;
-  (*MyOutput_) << "--------------------------------------------------------" << std::endl;
+  if (counter<0) (*MyOutput_) << "--------------------------------------------------------" << std::endl;
+  if (counter<0) (*MyOutput_) << "---              Counters                             --" << std::endl;
+  if (counter<0) (*MyOutput_) << "--------------------------------------------------------" << std::endl;
   if ((counter<0)||(counter==0)) (*MyOutput_) << "ALCT: CRC error                                  " << FinalCounter[0] <<std::endl ;
   if ((counter<0)||(counter==1)) (*MyOutput_) << "ALCT: LCT sent to TMB                            " << FinalCounter[1] <<std::endl ;
   if ((counter<0)||(counter==2)) (*MyOutput_) << "ALCT: LCT error (alct debug firmware)            " << FinalCounter[2] <<std::endl ;

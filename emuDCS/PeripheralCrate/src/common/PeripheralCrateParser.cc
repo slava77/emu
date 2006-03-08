@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.cc,v 2.2 2006/02/25 11:25:11 mey Exp $
+// $Id: PeripheralCrateParser.cc,v 2.3 2006/03/08 22:53:12 mey Exp $
 // $Log: PeripheralCrateParser.cc,v $
+// Revision 2.3  2006/03/08 22:53:12  mey
+// Update
+//
 // Revision 2.2  2006/02/25 11:25:11  mey
 // UPdate
 //
@@ -137,6 +140,7 @@ void PeripheralCrateParser::parseFile(const char* name){
 	      }
 	
 	      if (strcmp("TMB",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
+		std::cout << "Parsing TMB" <<std::endl ;
 		tmbParser_ = TMBParser(pNode3, crateNumber);
 	      }
 	

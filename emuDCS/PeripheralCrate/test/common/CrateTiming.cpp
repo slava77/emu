@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 1.7 2006/02/20 13:31:14 mey Exp $
+// $Id: CrateTiming.cpp,v 1.8 2006/03/08 22:53:12 mey Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 1.8  2006/03/08 22:53:12  mey
+// Update
+//
 // Revision 1.7  2006/02/20 13:31:14  mey
 // Update
 //
@@ -416,6 +419,7 @@ int main(int argc,char **argv){
   //-- get pointers to CCB, TMB and DMB
   Crate *thisCrate = crateVector[0];
   thisCCB = thisCrate->ccb();
+  if( tmbVector.size() == 0 ) std::cout << "no tmbs" <<std::endl;
   if( tmbVector.size() ) thisTMB = tmbVector[0];
   if( dmbVector.size() ) thisDMB = dmbVector[0];
   thisMPC = thisCrate->mpc();
@@ -1058,6 +1062,9 @@ int main(int argc,char **argv){
       cin >> hex >> TMBRegAddr >> dec;            // Make sure to return to decimal mode
       //
       //tbController.DcsDisable();
+      //
+      //printf("thisTMB %x\n",thisTMB);
+      //
       int TMBRegValue  = thisTMB->ReadRegister(TMBRegAddr) ;
       //tbController.DcsEnable();
       //

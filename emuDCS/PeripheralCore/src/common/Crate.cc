@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 2.7 2006/02/25 11:25:11 mey Exp $
+// $Id: Crate.cc,v 2.8 2006/03/08 22:53:12 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 2.8  2006/03/08 22:53:12  mey
+// Update
+//
 // Revision 2.7  2006/02/25 11:25:11  mey
 // UPdate
 //
@@ -44,7 +47,7 @@
 
 Crate::Crate(int number, VMEController * controller) : 
   theNumber(number),  
-  theModules(24),
+  theModules(27),
   theController(controller) 
 {
   Singleton<CrateSetup>::instance()->addCrate(number, this);

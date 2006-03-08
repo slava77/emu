@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.57 2006/03/07 19:55:00 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.58 2006/03/08 22:53:11 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -841,19 +841,64 @@ public:
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     //
     //
-    for(int i=0; i<tmbVector.size(); i++) {
-      //
+    for(int counter=0; counter<22; counter++) {
       *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
-      //
-      tmbVector[i]->RedirectOutput(out);
-      tmbVector[i]->GetCounters();
-      tmbVector[i]->PrintCounters();
-      tmbVector[i]->RedirectOutput(&std::cout);
-      //
-      cgicc::br();
-      //
+      for(int i=0; i<tmbVector.size(); i++) {
+	//
+	tmbVector[i]->RedirectOutput(out);
+	tmbVector[i]->GetCounters();
+	//
+	if ( counter == 0 ) {
+	  if ( tmbVector[i]->GetCounter(0) > 0 ) {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 3 ) {
+	  if ( tmbVector[i]->GetCounter(3) > 0 ) {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 4 ) {
+	  if ( tmbVector[i]->GetCounter(4) > 0 ) {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else {
+	  //
+	  *out << cgicc::pre() ;
+	  tmbVector[i]->PrintCounters(counter);
+	  *out << cgicc::pre() ;
+	  //
+	}
+	//
+	//
+	tmbVector[i]->RedirectOutput(&std::cout);
+	//
+	//cgicc::br();
+	//
+      }
       *out << cgicc::fieldset();    
-      //
     }
     //
     std::string ResetAllCounters =
@@ -875,12 +920,13 @@ public:
     //
     for(int i=0; i<tmbVector.size(); i++) {
       //
-      *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
+      //*out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
       //
       tmbVector[i]->ResetCounters();
       //
-      *out << cgicc::fieldset();    
+      //*out << cgicc::fieldset();    
       //
+      this->LaunchMonitor(in,out);
     }
     //
   }
