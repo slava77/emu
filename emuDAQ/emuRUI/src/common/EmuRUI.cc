@@ -2495,7 +2495,7 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
     LOG4CPLUS_ERROR(logger_, 
 		    "Critical DDU error in "
 		    << deviceReaders_[iCurrentDeviceReader_]->getName()
-		    << ". Sync Reset or Hard Reset required. Event number: "
+		    << ". Sync Reset or Hard Reset required. (bit T:5|T:6|T-1:47) Event number: "
 		    << deviceReaders_[iCurrentDeviceReader_]->eventNumber());
 
     foundError = true;
@@ -2505,7 +2505,7 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
     LOG4CPLUS_ERROR(logger_,
 		    "DDU error: bad event read from " 
 		    << deviceReaders_[iCurrentDeviceReader_]->getName()
-		    << ". Event number: "
+		    << ".  (bit T-1:46) Event number: "
 		    << deviceReaders_[iCurrentDeviceReader_]->eventNumber());
     foundError = true;
   }
@@ -2515,7 +2515,7 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
     LOG4CPLUS_WARN(logger_,
 		   "DDU buffer near Full in "
 		   << deviceReaders_[iCurrentDeviceReader_]->getName() 
-		   << ". Event number: "
+		   << ". (bit T:4|T-1:31) Event number: "
 		   << deviceReaders_[iCurrentDeviceReader_]->eventNumber());
     foundError = true;
   }
@@ -2524,7 +2524,7 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
     LOG4CPLUS_WARN(logger_,
 		   "DDU special warning in "
 		   << deviceReaders_[iCurrentDeviceReader_]->getName() 
-		   << ". Event number: "
+		   << ". (bit T-1:45) Event number: "
 		   << deviceReaders_[iCurrentDeviceReader_]->eventNumber());
     foundError = true;
   }
