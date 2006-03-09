@@ -1,0 +1,72 @@
+<?xml version='1.0'?>
+<xc:Partition xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+<i2o:protocol xmlns:i2o="http://xdaq.web.cern.ch/xdaq/xsd/2004/I2OConfiguration-30">
+  <i2o:target class="EmuMonitor"     instance="0" tid="29"/>
+</i2o:protocol>
+
+<xc:Context url="http://cms-dqm01.phys.ufl.edu:44000">
+
+  <!-- Edit access rights in ${XDAQ_ROOT}/daq/xaccess/etc/htaccess -->
+
+  <!-- To run: -->
+  <!-- xdaq.sh -h 137.138.11.168 -p 44000 -l INFO -c xml/EmuDAQ_with_a_client.xml -->
+  <!-- Then go to -->
+  <!-- http://137.138.11.168:44000 -->
+  <!-- Click on EmuDAQtester -> Control -> configure -> start -->
+
+  <!-- EmuReadout replaces DDUReadout -->
+  <xc:Module>/home/dqm/TriDAS/emu/emuDAQ/emuReadout/lib/linux/x86/libEmuReadout.so</xc:Module>
+
+  <!-- EmuDAQtester is a simple run control with a hyperDAQ interface -->
+  <!-- <xc:Application class="EmuDAQtester" id="12" instance="0" network="local"/>
+  <xc:Module>/home/dqm/TriDAS/emu/emuDAQ/emuDAQtester/lib/linux/x86/libEmuDAQtester.so</xc:Module>
+  -->
+
+  <xc:Application class="EmuMonitor" id="29" instance="0" network="local">
+    <properties xmlns="urn:xdaq-application:RUI" xsi:type="soapenc:Struct">
+      <readoutMode xsi:type="xsd:string">internal</readoutMode>
+      <!-- The input devices [ file name | /dev/scharN | Slink board ]-->
+      <inputDeviceType xsi:type="xsd:string">file</inputDeviceType>
+      <inputDeviceName xsi:type="xsd:string">/csc_data/RunNum1008Evs0to49999.bin</inputDeviceName>
+      <!-- The data format [ DDU | DCC ] -->
+      <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
+      <!-- <committedPoolSize xsi:type="xsd:unsignedLong">100</committedPoolSize> -->
+      <!-- Ask the server to send nEventCredits events -->
+      <nEventCredits xsi:type="xsd:unsignedLong">1</nEventCredits>
+      <!-- Ask the server to wait prescalingFactor events before sending another -->
+      <prescalingFactor xsi:type="xsd:unsignedLong">100</prescalingFactor>
+      <!-- The name of the server -->
+      <!-- <serversClassName xsi:type="xsd:string">EmuRUI</serversClassName> -->
+      <xmlCfgFile xsi:type="xsd:string">/home/dqm/TriDAS/emu/emuDQM/EmuMonitor/xml/EmuDQMBooking.xml</xmlCfgFile>
+      <outputROOTFile xsi:type="xsd:string">/csc_data/root/dqm.root</outputROOTFile>
+      <outputImagesPath xsi:type="xsd:string">/csc_data/images</outputImagesPath>
+    </properties>
+ </xc:Application>
+  <xc:Module>${XDAQ_ROOT}/emu/emuDQM/EmuMonitor/lib/linux/x86/libEmuMonitor.so</xc:Module>
+
+
+</xc:Context>
+
+<xc:Context url="http://cms-dqm01:45000">
+                <xc:Application class="EmuDisplayServer" id="10" instance="0" network="local">
+                        <properties xmlns="urn:xdaq-application:EmuDisplayServer" xsi:type="soapenc:Struct">
+                        </properties>
+                </xc:Application>
+                <!-- Application class="Monitor" targetAddr="40" instance="0" network="tcp1"/ -->
+                <!-- Module>/users/xdaq/TriDAS/daq/monitor/lib/linux/x86/libMonitor.so</urlApplication -->
+	        <!--
+                <xc:Application class="PeerTransportTCP" id="20" network="tcp1">
+                        <properties xmlns="urn:xdaq-application:PeerTransportTCP" xsi:type="soapenc:Struct">
+                                <autoSize xsi:type="xsd:boolean">true</autoSize>
+                                <maxPacketSize xsi:type="xsd:unsignedLong">4096</maxPacketSize>
+                        </properties>
+                </xc:Application>
+                <xc:Module>${XDAQ_ROOT}/daq/pt/tcp/lib/linux/x86/libpttcp.so</xc:Module>
+		-->
+                <xc:Module>${XDAQ_ROOT}/emu/emuDQM/EmuDisplayServer/lib/linux/x86/libEmuDisplayServer.so</xc:Module>
+</xc:Context>
+
+
+
+</xc:Partition>
