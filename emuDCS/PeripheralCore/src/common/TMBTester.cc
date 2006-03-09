@@ -147,8 +147,8 @@ bool TMBTester::testBootRegister() {
   unsigned short int write_data, read_data;
   int err_reg = 0;
 
-  // walk through the 16 bits on the register
-  for (int ibit=0; ibit<=15; ibit++) {
+  // walk through the 16 bits on the register, except the JTAG bits...
+  for (int ibit=3; ibit<=14; ibit++) {
     write_data = 0x1 << ibit;
     dummy = tmb_->tmb_set_boot_reg(write_data);
 
@@ -161,6 +161,9 @@ bool TMBTester::testBootRegister() {
     if ( !compareValues("bootreg bit",read_data,write_data,true) ) {
       err_reg++;
     }
+    // Need to pause in between to allow for reloading after hard resets 
+    // to various item...
+    ::sleep(1);
   }
 
   // Restore boot contents
