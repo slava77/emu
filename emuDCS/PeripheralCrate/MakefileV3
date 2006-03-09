@@ -8,8 +8,8 @@ include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
 # these variables will disappear soon ...
-DIMDIR=$(XDAQ_ROOT)/$(Project)/extern/dim/$(XDAQ_OS)$(XDAQ_PLATFORM)
-DCSDIR=$(XDAQ_ROOT)/emu/emuDCS/e2p
+#DIMDIR=$(XDAQ_ROOT)/$(Project)/extern/dim/$(XDAQ_OS)$(XDAQ_PLATFORM)
+#DCSDIR=$(XDAQ_ROOT)/emu/emuDCS/e2p
 
 #
 # Packages to be built
@@ -100,8 +100,8 @@ TestLibraryDirs = \
 	$(DCSDIR)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
         $(XDAQ_ROOT)/emu/emuDCS/PeripheralCrate/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
-UserCFlags  = -DUSEDSC
-UserCCFlags = -DOSUcc -DUSEDSC
+UserCFlags  = 
+UserCCFlags = -DOSUcc 
 UserDynamicLinkFlags =
 UserStaticLinkFlags =
 UserExecutableLinkFlags =
