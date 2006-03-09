@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.48 2006/03/08 22:53:12 mey Exp $
+// $Id: TMB.cc,v 2.49 2006/03/09 22:30:16 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.49  2006/03/09 22:30:16  mey
+// Jinghua's updates
+//
 // Revision 2.48  2006/03/08 22:53:12  mey
 // Update
 //
@@ -3223,7 +3226,7 @@ void TMB::start(int idev) {
     endDevice();
     ucla_ldev = idev;
   }
-  theController->start(this);
+  //theController->start(this);
 }
 
 

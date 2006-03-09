@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.9 2006/01/13 09:36:19 geurts Exp $
+// $Id: VMEModule.h,v 2.10 2006/03/09 22:30:16 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.10  2006/03/09 22:30:16  mey
+// Jinghua's updates
+//
 // Revision 2.9  2006/01/13 09:36:19  geurts
 // changed SelfTest return type from void to bool for both controllers
 //
@@ -117,8 +120,11 @@ protected:
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.9 2006/01/13 09:36:19 geurts Exp $
+// $Id: VMEModule.h,v 2.10 2006/03/09 22:30:16 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.10  2006/03/09 22:30:16  mey
+// Jinghua's updates
+//
 // Revision 2.9  2006/01/13 09:36:19  geurts
 // changed SelfTest return type from void to bool for both controllers
 //
@@ -200,12 +206,10 @@ protected:
    void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
    void InitJTAG(int port);
    void CloseJTAG();
-   void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
 
    Crate * theCrate;
    VMEController * theController;
    int theSlot;
-   unsigned long vmebase;
 
       /// is this really needed?
   char sndbuf[4096];
