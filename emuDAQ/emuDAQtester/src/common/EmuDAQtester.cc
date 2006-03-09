@@ -528,6 +528,9 @@ throw (xgi::exception::Exception)
     *out << "<html>"                                                   << endl;
 
     *out << "<head>"                                                   << endl;
+    if (testStarted_) {
+     *out << "<meta http-equiv=\"refresh\" content=\"5\">"              << endl;
+    }
     *out << "<link type=\"text/css\" rel=\"stylesheet\"";
     *out << " href=\"/" << urn_ << "/styles.css\"/>"                   << endl;
     *out << "<title>"                                                  << endl;
@@ -588,35 +591,68 @@ throw (xgi::exception::Exception)
 
     *out << "<hr/>"                                                    << endl;
 
-    if(!testConfigured_)
-      {
-	string num="";
-	if ( taDescriptors_.size() )
-	  num = getScalarParam(taDescriptors_[0],"runNumber","unsignedLong");
 
-	*out << "Set run number: "                                     << endl;
-	*out << "<input"                                               << endl;
-	*out << " type=\"text\""                                       << endl;
-	*out << " name=\"runnumber\""                                  << endl;
-	*out << " title=\"run number\""                                << endl;
-	*out << " alt=\"run number\""                                  << endl;
-	*out << " value=\"" << num << "\""                             << endl;
-	*out << " size=\"10\""                                         << endl;
-	*out << "/>  "                                                 << endl;
-
-	if ( taDescriptors_.size() )
-	  num = getScalarParam(taDescriptors_[0],"maxNumTriggers","unsignedLong");
-
-	*out << "Set maximum number of events: "                       << endl;
-	*out << "<input"                                               << endl;
-	*out << " type=\"text\""                                       << endl;
-	*out << " name=\"maxevents\""                                  << endl;
-	*out << " title=\"maximum number of events\""                  << endl;
-	*out << " alt=\"maximum number of events\""                    << endl;
-	*out << " value=\"" << num << "\""                             << endl;
-	*out << " size=\"10\""                                         << endl;
-	*out << "/>  "                                                 << endl;
+    string runNumber("unknown");
+    string maxNumEvents("unknown");
+    if ( taDescriptors_.size() ){
+      if ( taDescriptors_.size() > 1 ){
+	LOG4CPLUS_WARN(logger_,"The embarassment of riches: " << taDescriptors_.size() <<
+		       " TA instances found. Will use TA0.");
       }
+      try
+	{
+	  runNumber = getScalarParam(taDescriptors_[0],"runNumber","unsignedLong");
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(xgi::exception::Exception,
+			"Failed to get run number from TA0", e);
+	}
+      try
+	{
+	  maxNumEvents = getScalarParam(taDescriptors_[0],"maxNumTriggers","unsignedLong");
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(xgi::exception::Exception,
+			"Failed to get maximum number of events from TA0", e);
+	}
+    }
+    else{
+      LOG4CPLUS_ERROR(logger_,"No TA found.");
+    }
+
+
+    if(!testConfigured_){
+      *out << "Set run number: "                                     << endl;
+      *out << "<input"                                               << endl;
+      *out << " type=\"text\""                                       << endl;
+      *out << " name=\"runnumber\""                                  << endl;
+      *out << " title=\"run number\""                                << endl;
+      *out << " alt=\"run number\""                                  << endl;
+      *out << " value=\"" << runNumber << "\""                       << endl;
+      *out << " size=\"10\""                                         << endl;
+      *out << "/>  "                                                 << endl;
+      *out << "<br>"                                                 << endl;
+
+      *out << "Set maximum number of events: "                       << endl;
+      *out << "<input"                                               << endl;
+      *out << " type=\"text\""                                       << endl;
+      *out << " name=\"maxevents\""                                  << endl;
+      *out << " title=\"maximum number of events\""                  << endl;
+      *out << " alt=\"maximum number of events\""                    << endl;
+      *out << " value=\"" << maxNumEvents << "\""                    << endl;
+      *out << " size=\"10\""                                         << endl;
+      *out << "/>  "                                                 << endl;
+      *out << "<br>"                                                 << endl;
+    }
+    else{
+      *out << "Run " << runNumber                                    << endl;
+      *out << "<br>"                                                 << endl;
+      *out << "       Maximum number of events: " << maxNumEvents    << endl;
+      *out << "<br>"                                                 << endl;
+    }
+
 
     *out << "<input"                                                   << endl;
     *out << " type=\"submit\""                                         << endl;
@@ -635,9 +671,26 @@ throw (xgi::exception::Exception)
         *out << " value=\"start\""                                     << endl;
       }
 
-    *out << "/>"                                                       << endl;
+     *out << "/>"                                                       << endl;
+     *out << "</form>"                                                  << endl;
 
-    *out << "</form>"                                                  << endl;
+     *out << "<br>"                                                     << endl;
+
+    *out << "<table border=\"0\">"                                   << endl;
+    *out << "<tr valign=\"top\">"                                    << endl;
+    *out << "<td>"                                                   << endl;
+    printEventCountsTable( in, out, "Events read by RUI's"    , getRUIEventCounts() );
+    *out << "<td width=\"64\">"                                      << endl;
+    *out << "</td>"                                                  << endl;
+    *out << "</td>"                                                  << endl;
+    *out << "<td>"                                                   << endl;
+    printEventCountsTable( in, out, "Events processed by FU's", getFUEventCounts()  );      
+    *out << "     "                                                  << endl;
+    *out << "</td>"                                                  << endl;
+    *out << "</tr>"                                                  << endl;
+    *out << "</table>"                                               << endl;
+
+
     *out << "</body>"                                                  << endl;
 
     *out << "</html>"                                                  << endl;
@@ -682,6 +735,10 @@ throw (xgi::exception::Exception)
 	    purgeIntNumberString( &runNumber );
 	    purgeIntNumberString( &maxNumEvents );
 	    if ( taDescriptors_.size() ){
+	      if ( taDescriptors_.size() > 1 ){
+		LOG4CPLUS_WARN(logger_,"The embarassment of riches: " << taDescriptors_.size() <<
+				" TA instances found. Will use TA0.");
+	      }
 	      try
 		{
 		  setScalarParam(taDescriptors_[0],"runNumber","unsignedLong",runNumber);
@@ -702,6 +759,9 @@ throw (xgi::exception::Exception)
 		  XCEPT_RETHROW(xgi::exception::Exception,
 				"Failed to set maximum number of events to "  + maxNumEvents, e);
 		}
+	    }
+	    else{
+	      LOG4CPLUS_ERROR(logger_,"No TA found.");
 	    }
 
             try
@@ -2487,6 +2547,113 @@ void EmuDAQtester::printSoapMsgToStdOut(xoap::MessageReference message)
     cout << msgStr << "\n";
     cout << "*************** MESSAGE FINISH ***************\n";
     cout << flush;
+}
+
+
+vector< vector<string> > EmuDAQtester::getRUIEventCounts()
+  // Emu specific
+{
+  vector< vector<string> > ec;
+
+  vector< xdaq::ApplicationDescriptor* >::iterator rui;
+  for ( rui = ruiDescriptors_.begin(); rui!=ruiDescriptors_.end(); ++rui ){
+    string       count;
+    stringstream name;
+    string       href;
+    try
+    {
+      name << "EmuRUI" << (*rui)->getInstance();
+      count = getScalarParam( (*rui), "nEventsRead", "unsignedLong" );
+      href  = getHref( *rui );
+    }
+    catch(xcept::Exception e)
+    {
+      href  = getHref( appDescriptor_ ); // self
+      name << "UNKNOWN";
+      count = "UNKNOWN";
+      LOG4CPLUS_ERROR(logger_, "Failed to get event count of " << name.str()
+		      << " : " << xcept::stdformat_exception_history(e));
+    }
+    vector<string> sv;
+    sv.push_back( href       );
+    sv.push_back( name.str() );
+    sv.push_back( count      );
+    ec.push_back( sv );
+  }
+
+  return ec;
+}
+
+vector< vector<string> > EmuDAQtester::getFUEventCounts()
+  // Emu specific
+{
+  vector< vector<string> > ec;
+
+  vector< xdaq::ApplicationDescriptor* >::iterator fu;
+  for ( fu = fuDescriptors_.begin(); fu!=fuDescriptors_.end(); ++fu ){
+    string       count;
+    stringstream name;
+    string       href;
+    try
+    {
+      href  = getHref( *fu );
+      name << "EmuFU" << (*fu)->getInstance();
+      count = getScalarParam( (*fu), "nbEventsProcessed", "unsignedLong" );
+    }
+    catch(xcept::Exception e)
+    {
+      href  = getHref( appDescriptor_ ); // self
+      name << "UNKNOWN";
+      count = "UNKNOWN";
+      LOG4CPLUS_ERROR(logger_, "Failed to get event count of " << name.str()
+		      << " : " << xcept::stdformat_exception_history(e));
+    }
+    vector<string> sv;
+    sv.push_back( href       );
+    sv.push_back( name.str() );
+    sv.push_back( count      );
+    ec.push_back( sv );
+  }
+
+  return ec;
+}
+
+void EmuDAQtester::printEventCountsTable
+(
+    xgi::Input               *in,
+    xgi::Output              *out,
+    string                    title,
+    vector< vector<string> >  counts 
+) // Emu specific
+{
+    int nbRows    = counts.size();
+
+
+    *out << "<table frame=\"void\" rules=\"rows\" class=\"params\">"  << endl;
+
+    *out << "<tr>"                                                     << endl;
+    *out << "  <th colspan=2 align=\"center\">"                        << endl;
+    *out << "    <b>"                                                  << endl;
+    *out << title                                                      << endl;
+    *out << "    </b>"                                                 << endl;
+    *out << "  </th>"                                                  << endl;
+    *out << "</tr>"                                                    << endl;
+
+    for(int row=0; row<nbRows; row++)
+    {
+        *out << "<tr>"                                                 << endl;
+        *out << "  <td align=\"left\">"                                               << endl;
+	*out << "      <a href=\"" <<counts[row][0] << "\">"           << endl;
+        *out <<             counts[row][1]                             << endl;
+	*out << "      </a>"                                           << endl;
+        *out << "  </td>"                                              << endl;
+        *out << "  <td align=\"right\">"                                               << endl;
+        *out << "    " << counts[row][2]                               << endl;
+        *out << "  </td>"                                              << endl;
+        *out << "</tr>"                                                << endl;
+    }
+
+    *out << "</table>"                                                 << endl;
 }
 
 
