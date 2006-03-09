@@ -6,8 +6,8 @@
 // RCS Current Revision Record
 //-----------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/src/common/MessageStorage.cc,v $
-// $Revision: 1.1 $
-// $Date: 2006/02/16 00:05:14 $
+// $Revision: 1.2 $
+// $Date: 2006/03/09 00:17:06 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $

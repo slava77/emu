@@ -52,10 +52,10 @@ IncludeDirs = $(XdaqIncludeDirs) \
 LibraryDirs = $(XdaqLibraryDirs) 
 
 UserCFlags = $(ROOTCFLAGS)
-UserCCFlags = $(ROOTCFLAGS) -DCONSUMER_STANDALONE -DLITTLE_ENDIAN__
+UserCCFlags = -O -fPIC $(ROOTCFLAGS) -DCONSUMER_STANDALONE -DLITTLE_ENDIAN__
 UserDynamicLinkFlags = $(ROOTLIBS)
 UserStaticLinkFlags =  
-UserExecutableLinkFlags = -g $(ROOTGLIBS) 
+UserExecutableLinkFlags = -g -O -fPIC $(ROOTGLIBS) 
 
 Libraries= $(XdaqLibraries)
 
@@ -64,11 +64,6 @@ ExternalObjects =
 #------------------------------------------------------------------------------
 DynamicLibrary = EmuROOTDisplayServer 
 StaticLibrary = EmuROOTDisplayServer
-
-
-$(COBJECTDICTS): $(COBJECTH) CObject_linkdef.h
-	@echo "Generating dictionary $(COBJECTDICTS) ..."
-	@$(ROOTSYS)/bin/rootcint -f $(COBJECTDICTS) -c $(COBJECTH) CObject_linkdef.h
 
 MakeFilename=Makefile
 include $(XDAQ_ROOT)/$(Project)/$(Package)/../config/Makefile_root.rules

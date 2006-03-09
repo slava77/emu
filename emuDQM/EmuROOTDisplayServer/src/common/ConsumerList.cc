@@ -7,8 +7,8 @@
 // RCS Current Revision Record
 //-----------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/src/common/ConsumerList.cc,v $
-// $Revision: 1.1 $
-// $Date: 2006/02/16 00:05:14 $
+// $Revision: 1.2 $
+// $Date: 2006/03/09 00:17:06 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $
@@ -150,7 +150,7 @@ int ConsumerList::getOldNEvents(const char *hostname,int port)
 
 int ConsumerList::watchServers(const int port,const char*filename )
 {
-  // TMonitor *monitor = new TMonitor;
+  TMonitor *monitor = new TMonitor;
   // open sockets
   TServerSocket ss(port,kTRUE);
   if(!(ss.IsValid())) 

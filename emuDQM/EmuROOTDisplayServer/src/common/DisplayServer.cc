@@ -13,8 +13,8 @@
 // RCS Current Revision Record
 //-----------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/src/common/DisplayServer.cc,v $
-// $Revision: 1.1 $
-// $Date: 2006/02/16 00:05:14 $
+// $Revision: 1.2 $
+// $Date: 2006/03/09 00:17:06 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $
@@ -225,6 +225,30 @@ const std::string DisplayServer::_clName = std::string("DisplayServer");
 DisplayServer::~DisplayServer()
 {
   _logFile.close();
+  if (_updateTimer != NULL) {
+	_updateTimer->Stop();
+	delete _updateTimer;
+  }
+  if (_conSock != NULL) {
+	_conSock->Close();
+	delete _conSock;
+  }
+  if (_ss != NULL) {
+	if (_ss->IsValid()) {
+		_ss->Close();
+	}	
+	delete _ss;
+	_ss = NULL;
+  }
+  if (_conList != NULL) {
+	delete _conList;
+  }
+/*
+  if (_currInfo != NULL) {
+	_currInfo->clear();
+	delete _currInfo;
+  }
+*/
 }
 
 

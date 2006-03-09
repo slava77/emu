@@ -6,8 +6,8 @@
 // RCS Current Revision Record
 //-------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/src/common/TConsumerInfo.cc,v $
-// $Revision: 1.1 $
-// $Date: 2006/02/16 00:05:14 $
+// $Revision: 1.2 $
+// $Date: 2006/03/09 00:17:06 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $
@@ -36,9 +36,9 @@ using std::pair;
 #endif
 
 TConsumerInfo::TConsumerInfo(const char* const consumername,int runnumber)
-  : TNamed("ConsumerInfo",consumername), _inputname(), _list(new TList),
+  : TNamed("ConsumerInfo",consumername), _list(new TList),
     _runnumber(runnumber),_nevents(0),
-    _estimatedsize(100000)
+    _inputname(),_estimatedsize(100000)
 {
 }
 
@@ -301,7 +301,7 @@ void TConsumerInfo::Streamer(TBuffer &b)
        //std::cout << "reading" << std::endl;
        int size,s;
        TString p,n;
-       // Version_t v = b.ReadVersion(); 
+       Version_t v = b.ReadVersion(); 
        TNamed::Streamer(b);
        b >> _runnumber;
        b >> _nevents;

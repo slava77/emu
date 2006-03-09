@@ -7,7 +7,16 @@
 //
 //                    04/14/00 Harmut Stadie       first check in
 //************************************************************************
-
+//****************************************************************************
+// RCS Current Revision Record
+//-----------------------------------------------------------------------------
+// $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/include/ConsumerList.hh,v $
+// $Revision: 1.2 $
+// $Date: 2006/03/09 00:17:06 $
+// $Author: barvic $
+// $State: Exp $
+// $Locker:  $
+//*****************************************************************************
 #ifndef CONSUMERLIST_HH
 #define CONSUMERLIST_HH
 

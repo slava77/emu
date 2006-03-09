@@ -9,6 +9,15 @@
 //                    08/24/01 Hartmut Stadie      change to multimap, 
 //                                                 new Iterator for display 
 //*******************************************************************************
+// RCS Current Revision Record
+//-------------------------------------------------------------------------------
+// $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/include/TConsumerInfo.hh,v $
+// $Revision: 1.2 $
+// $Date: 2006/03/09 00:17:06 $
+// $Author: barvic $
+// $State: Exp $
+// $Locker:  $
+//*******************************************************************************
 #ifndef TCONSUMERINFO_HH
 #define TCONSUMERINFO_HH 1
 
@@ -83,15 +92,13 @@ private:
     TObject *address;
     psa(TString p = "", int s = 0, TObject *add = NULL);
   };
-
-  TString _inputname;
-  TList *_list;
-  
   bool _modified;
   Int_t _runnumber;
   Int_t _nevents;
   long _estimatedsize;
 
+  TString _inputname;
+  TList *_list;
  
 #ifndef __CINT__
   typedef std::multimap<TString,psa> ConsumerInfoMap;
