@@ -679,12 +679,12 @@ throw (xgi::exception::Exception)
     *out << "<table border=\"0\">"                                   << endl;
     *out << "<tr valign=\"top\">"                                    << endl;
     *out << "<td>"                                                   << endl;
-    printEventCountsTable( in, out, "Events read by RUI's"    , getRUIEventCounts() );
+    printEventCountsTable( in, out, "Events read by EmuRUI's"    , getRUIEventCounts() );
     *out << "<td width=\"64\">"                                      << endl;
     *out << "</td>"                                                  << endl;
     *out << "</td>"                                                  << endl;
     *out << "<td>"                                                   << endl;
-    printEventCountsTable( in, out, "Events processed by FU's", getFUEventCounts()  );      
+    printEventCountsTable( in, out, "Events processed by EmuFU's", getFUEventCounts()  );      
     *out << "     "                                                  << endl;
     *out << "</td>"                                                  << endl;
     *out << "</tr>"                                                  << endl;
@@ -2568,7 +2568,7 @@ vector< vector<string> > EmuDAQtester::getRUIEventCounts()
     }
     catch(xcept::Exception e)
     {
-      href  = getHref( appDescriptor_ ); // self
+      href  = getHref( appDescriptor_ ) + "/control"; // self
       name << "UNKNOWN";
       count = "UNKNOWN";
       LOG4CPLUS_ERROR(logger_, "Failed to get event count of " << name.str()
@@ -2589,20 +2589,26 @@ vector< vector<string> > EmuDAQtester::getFUEventCounts()
 {
   vector< vector<string> > ec;
 
+  unsigned int totalProcessed = 0;
   vector< xdaq::ApplicationDescriptor* >::iterator fu;
   for ( fu = fuDescriptors_.begin(); fu!=fuDescriptors_.end(); ++fu ){
     string       count;
     stringstream name;
     string       href;
+    unsigned int nProcessed = 0;
+    stringstream ss;
     try
     {
       href  = getHref( *fu );
       name << "EmuFU" << (*fu)->getInstance();
       count = getScalarParam( (*fu), "nbEventsProcessed", "unsignedLong" );
+      ss << count;
+      ss >> nProcessed;
+      totalProcessed += nProcessed;
     }
     catch(xcept::Exception e)
     {
-      href  = getHref( appDescriptor_ ); // self
+      href  = getHref( appDescriptor_ ) + "/control"; // self
       name << "UNKNOWN";
       count = "UNKNOWN";
       LOG4CPLUS_ERROR(logger_, "Failed to get event count of " << name.str()
@@ -2614,6 +2620,13 @@ vector< vector<string> > EmuDAQtester::getFUEventCounts()
     sv.push_back( count      );
     ec.push_back( sv );
   }
+  stringstream sst;
+  sst << totalProcessed;
+  vector<string> svt;
+  svt.push_back( getHref( appDescriptor_ ) + "/control" ); // self
+  svt.push_back( "Total" );
+  svt.push_back( sst.str()  );
+  ec.push_back( svt );
 
   return ec;
 }
