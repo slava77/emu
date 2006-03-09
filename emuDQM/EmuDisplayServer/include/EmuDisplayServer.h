@@ -38,12 +38,17 @@ class EmuUserDisplayServerTask: public Task
 public:
    EmuUserDisplayServerTask(): Task("EmuUserDisplayServerTask") 
 	{
-	_consinfo = new TConsumerInfo("DQM", 1);
+	// _consinfo = new TConsumerInfo("DQM", 1);
         puserDispServer = NULL;
 	}
-  ~EmuUserDisplayServerTask() {delete _consinfo; _consinfo = 0;};
-   void setInfo(const TConsumerInfo& info) { *_consinfo = info;
-	puserDispServer->setCurrentInfo(_consinfo);};
+  ~EmuUserDisplayServerTask() {
+	 // _consinfo->clear(); 
+	 // delete _consinfo; 
+	 // _consinfo = NULL;
+	puserDispServer = NULL;
+   }
+   void setInfo(TConsumerInfo* info) {  // *_consinfo = info;
+	if (puserDispServer != NULL && info != NULL) puserDispServer->setCurrentInfo(info);};
    void addStorage(MessageStorage* storage) { if (storage) puserDispServer->updateStorage(storage);
         }
    int svc() {
@@ -57,7 +62,7 @@ public:
   	loopRes = puserDispServer->loop();
   	return (loopRes);
    }
-   TConsumerInfo* _consinfo;
+   // TConsumerInfo* _consinfo;
 
 private:
    DisplayServer * puserDispServer;
@@ -106,18 +111,19 @@ public:
 	}
   ~EmuRef1DisplayServerTask() {delete _consinfo; _consinfo = 0;};
    void setInfo(const TConsumerInfo& info) { *_consinfo = info;
-	puserDispServer->setCurrentInfo(_consinfo);};
-   void addStorage(MessageStorage* storage) { if (storage) puserDispServer->updateStorage(storage);
+	if (puserDispServer != NULL) puserDispServer->setCurrentInfo(_consinfo);};
+   void addStorage(MessageStorage* storage) { if (storage && puserDispServer != NULL) puserDispServer->updateStorage(storage);
         }
    int svc() {
         gROOT->cd();
 	string host = "";
         string hname = "histo";
         string path = "path";
+	// _consinfo->clear();
         DisplayServer userDispServer((char*) host.c_str(), 0, 9093, gROOT, NULL, true, true, false);
         puserDispServer = &userDispServer;
         int loopRes = 0;
-  	loopRes = puserDispServer->loop();
+  	loopRes = puserDispServer->loop();	
   	return (loopRes);
    }
    TConsumerInfo* _consinfo;

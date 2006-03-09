@@ -41,7 +41,7 @@ EmuDisplayServer::EmuDisplayServer(xdaq::ApplicationStub* stub)
   RefFileName = "/csc_data/root/dqm_ref.root";
   consinfo = new TConsumerInfo("DQM", 1);
   userServer = new EmuUserDisplayServerTask();
-  RefServer = new EmuRefDisplayServerTask(); 
+  // RefServer = new EmuRefDisplayServerTask(); 
     //Ref1Server(new EmuRef1DisplayServerTask())
 
     getApplicationInfoSpace()->fireItemAvailable("RefFileName",&RefFileName);
@@ -88,13 +88,18 @@ EmuDisplayServer::EmuDisplayServer(xdaq::ApplicationStub* stub)
     
 EmuDisplayServer::~EmuDisplayServer() 
 {
-    userServer->kill();
-    RefServer->kill();
+   if (userServer != NULL) {
+	userServer->kill();
+	delete userServer;
+	userServer = NULL;
+   }
+    // RefServer->kill();
     //Ref1Server->kill();
-    delete userServer;
-    delete RefServer;
+    // delete RefServer;
     //delete Ref1Server;
+  if (consinfo != NULL) {
     delete consinfo;
+  }
 }
 
 
@@ -148,31 +153,43 @@ bool EmuDisplayServer::onError ( xcept::Exception& ex, void * context )
 
 void EmuDisplayServer::ConfigureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception) 
 {
-    userServer->activate();
+    // userServer->activate();
+	/*
+    if (consinfo != NULL) { 
+	delete consinfo;
+	consinfo = new TConsumerInfo("DQM", 1);
+    }
+	*/
+
     LOG4CPLUS_INFO (getApplicationLogger(),"Configure EmuDisplayServer for DQM Histos");
-    RefServer->activate();
+/*    RefServer->activate();
     LOG4CPLUS_INFO (getApplicationLogger(),"Configure EmuDisplayServer for Ref Histos");
     //Ref1Server->activate();
     //cout << "+++ Configure EmuDisplayServer for Dynamic Ref Histos" << endl;
     RFile = TFile::Open(RefFileName.toString().c_str(), "READ");
     if(RFile) { LOG4CPLUS_DEBUG (getApplicationLogger(),toolbox::toString("Reference Histogram File Opened: %s", RFile->GetName())); }
-    else {LOG4CPLUS_ERROR (getApplicationLogger(),toolbox::toString("Could not open Reference Histogram File : %s", RefFileName.toString())); }
+    else {LOG4CPLUS_ERROR (getApplicationLogger(),"Could not open Reference Histogram File :" << RefFileName.toString()); }
     InitialiseRef0 = 0;
+*/
 }
 
 void EmuDisplayServer::EnableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception)
 {
+    if (userServer != NULL) userServer->activate();
     // userServer->activate();
     LOG4CPLUS_INFO (getApplicationLogger(), "Enable EmuDisplayServer");
 }
 
 void EmuDisplayServer::HaltAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception)
 {
-    userServer->kill();
+    if (userServer != NULL) userServer->kill();
+/*
     RefServer->kill();
     //Ref1Server->kill();
     LOG4CPLUS_INFO (getApplicationLogger(), "Disable EmuDisplayServer");
     if(RFile) RFile->Close();
+*/
+    LOG4CPLUS_INFO (getApplicationLogger(), "Stop EmuDisplayServer");
 }
 
 // XGI Call back
@@ -455,7 +472,7 @@ xoap::MessageReference EmuDisplayServer::updateList(xoap::MessageReference node)
 			    int pos = value.rfind("/",value.size());
 			    if (pos != string::npos) {
                             string name = value.substr(pos+1,value.size());
-			    string path = dir+"/"+value.substr(0, pos+1);
+			    string path = dir+"/"+value.substr(0, pos);
 			    //cout << "path:" << path << " name:" << name << endl;
                             consinfo->addObject(TString(name.c_str()), TString(path.c_str()), 0, NULL);
 		            } else {
@@ -463,7 +480,7 @@ xoap::MessageReference EmuDisplayServer::updateList(xoap::MessageReference node)
 			    }
                             olist.sort();
                             // cout << "List Item: "<< dir<<"/"<<o_itr->getValue()<<endl;
-			    
+			    /*
                             TMessage* refbuf = new TMessage(kMESS_OBJECT); 
                             if(refbuf) refbuf->Reset();
                             else cout << " ++++++ Pointer to reference buffer is NULL in updateList()" << endl;
@@ -478,6 +495,7 @@ xoap::MessageReference EmuDisplayServer::updateList(xoap::MessageReference node)
                             }
                             else
                               cout << " ++++++ Pointer to reference buffer or reference storage is NULL in updateList()" << endl;
+			   */
 			    
                         }
                     }
@@ -488,10 +506,10 @@ xoap::MessageReference EmuDisplayServer::updateList(xoap::MessageReference node)
         }
     }
     cout << "+++ Consumer List is updated" <<endl;
-    if (consinfo) 
+    if (consinfo && userServer != NULL) 
     { 
-      userServer->setInfo(*consinfo); consinfo->print(); cout << "Set Info for userServer" << endl;
-      RefServer->setInfo(*consinfo); consinfo->print(); cout << "Set Info for RefServer" << endl;
+      userServer->setInfo(consinfo); /*consinfo->print();*/ cout << "Set Info for userServer" << endl;
+//      RefServer->setInfo(*consinfo); consinfo->print(); cout << "Set Info for RefServer" << endl;
       //Ref1Server->setInfo(*consinfo); consinfo->print(); cout << "Set Info for Ref1Server" << endl;
     }
     //   return reply;
@@ -621,8 +639,8 @@ void EmuDisplayServer::requestList(xdata::Integer nodeaddr)
         }
 
     cout << "+++ Consumer List is updated from requestList" <<endl;
-    if (consinfo) userServer->setInfo(*consinfo);
-    if (consinfo) RefServer->setInfo(*consinfo);
+    if (consinfo && userServer != NULL) userServer->setInfo(consinfo);
+    // if (consinfo) RefServer->setInfo(*consinfo);
     //if (consinfo) Ref1Server->setInfo(*consinfo);
     //   return reply;
 }
@@ -759,6 +777,7 @@ TH1* EmuDisplayServer::ModifyRefHistosFromCanvas( TVirtualPad * CurrentPad  )
 
 xoap::MessageReference EmuDisplayServer::updateObjects(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
+//	cout << "receiving updated objects" << endl;
     /*
     cout << endl;
     node.writeTo(cout);
