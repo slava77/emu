@@ -19,7 +19,7 @@
 
 namespace EmuDisplayServer 
 {
-    const string package  =  "EmuDisplayServer";
+    const string package  =  "emuDQM/EmuDisplayServer";
     const string versions =  "1.0";
     const string description = "CMS Emu DQM Display Server";
 	const string link = "http://www.phys.ufl.edu/cms/emu/dqm";
