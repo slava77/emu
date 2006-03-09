@@ -18,8 +18,8 @@ int main(int argc,char **argv){
   int crateId(0);
   string ipAddr("02:00:00:00:00:05");
   int port(2);
-  VMEController *dynatem = new VMEController(crateId,ipAddr,port);
-
+  VMEController *dynatem = new VMEController(crateId);
+  dynatem->init(ipAddr,port);
   Crate *crate = new Crate(crateId,dynatem);
 
   // create CCB
