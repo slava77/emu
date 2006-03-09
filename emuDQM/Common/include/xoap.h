@@ -16,5 +16,9 @@
 #include "xoap/SOAPAllocator.h"
 #include "xoap/SOAPConnection.h"
 #include "xoap/URLEndpoint.h"
+#include "xoap/Method.h"
+#include "xoap/MessageReference.h"
+#include "xoap/MessageFactory.h"
+#include "xoap/domutils.h"
 
 #endif
