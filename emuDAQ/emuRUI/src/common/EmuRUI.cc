@@ -945,7 +945,7 @@ vector< pair<string, xdata::Serializable*> > EmuRUI::initAndGetStdMonitorParams(
     //
     // EMu-specific stuff
     //
-    nEventsRead_ = 1;
+    nEventsRead_ = 0;
     params.push_back(pair<string,xdata::Serializable *>
 		     ("nEventsRead", &nEventsRead_));
 
@@ -1352,7 +1352,7 @@ throw (toolbox::fsm::exception::Exception)
     //
     getRunAndMaxEventNumber();
 
-    nEventsRead_ = 1;
+    nEventsRead_ = 0;
 
     nDevicesWithBadData_ = 0;
 
@@ -2246,7 +2246,7 @@ bool EmuRUI::continueConstructionOfSuperFrag()
 //   bool keepRunning = true;
   unsigned int nBytesRead = 0;
 
-  if ( maxEvents_.value_ > 0 && nEventsRead_.value_ > maxEvents_.value_ ) return false;
+  if ( maxEvents_.value_ > 0 && nEventsRead_.value_ >= maxEvents_.value_ ) return false;
 
   if (deviceReaders_[iCurrentDeviceReader_]) 
     nBytesRead = deviceReaders_[iCurrentDeviceReader_]->readNextEvent();
@@ -2259,6 +2259,9 @@ bool EmuRUI::continueConstructionOfSuperFrag()
 		    " " << inputDataFormat_.toString() << inputDeviceType_.toString() << 
 		    "[" << iCurrentDeviceReader_ << "] read " << nBytesRead << " bytes only.");
   }
+
+  bool lastChunkOfEvent = ( iCurrentDeviceReader_ +1 == nInputDevices_ );
+  if ( lastChunkOfEvent ) nEventsRead_++;
 
   if ( nEventsRead_ == (unsigned long) 1 ) // first event --> a new run
     {
@@ -2305,7 +2308,7 @@ bool EmuRUI::continueConstructionOfSuperFrag()
 			", size: "       << dataLength   
 			);
 
-    } //  if (   )
+    } //  if ( !ruiRuPool_->isHighThresholdExceeded() )
     
     // Write data to files
     if ( fileWriter_ )
@@ -2326,7 +2329,7 @@ bool EmuRUI::continueConstructionOfSuperFrag()
       appendNewBlockToSuperFrag( data, dataLength );
 
     // Store this data to be sent to clients (if any)
-    bool lastChunkOfEvent = ( iCurrentDeviceReader_ +1 == nInputDevices_ );
+//     bool lastChunkOfEvent = ( iCurrentDeviceReader_ +1 == nInputDevices_ );
     addDataForClients( runNumber_.value_, nEventsRead_.value_, lastChunkOfEvent, data, dataLength );
 
 
@@ -2341,7 +2344,6 @@ bool EmuRUI::continueConstructionOfSuperFrag()
       }
 
       nDevicesWithBadData_ = 0;
-      nEventsRead_++;
 
     }
 
@@ -2495,8 +2497,9 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
     LOG4CPLUS_ERROR(logger_, 
 		    "Critical DDU error in "
 		    << deviceReaders_[iCurrentDeviceReader_]->getName()
-		    << ". Sync Reset or Hard Reset required. (bit T:5|T:6|T-1:47) Event number: "
-		    << deviceReaders_[iCurrentDeviceReader_]->eventNumber());
+		    << ". Sync Reset or Hard Reset required. (bit T:5|T:6|T-1:47) Event "
+		    << deviceReaders_[iCurrentDeviceReader_]->eventNumber()
+		    << " (" << nEventsRead_ << " read)");
 
     foundError = true;
   }
@@ -2505,8 +2508,9 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
     LOG4CPLUS_ERROR(logger_,
 		    "DDU error: bad event read from " 
 		    << deviceReaders_[iCurrentDeviceReader_]->getName()
-		    << ".  (bit T-1:46) Event number: "
-		    << deviceReaders_[iCurrentDeviceReader_]->eventNumber());
+		    << ". (bit T-1:46) Event "
+		    << deviceReaders_[iCurrentDeviceReader_]->eventNumber()
+		    << " (" << nEventsRead_ << " read)");
     foundError = true;
   }
   // 3)
@@ -2515,8 +2519,9 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
     LOG4CPLUS_WARN(logger_,
 		   "DDU buffer near Full in "
 		   << deviceReaders_[iCurrentDeviceReader_]->getName() 
-		   << ". (bit T:4|T-1:31) Event number: "
-		   << deviceReaders_[iCurrentDeviceReader_]->eventNumber());
+		   << ". (bit T:4|T-1:31) Event "
+		   << deviceReaders_[iCurrentDeviceReader_]->eventNumber()
+		   << " (" << nEventsRead_ << " read)");
     foundError = true;
   }
   // 4)
@@ -2524,8 +2529,9 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
     LOG4CPLUS_WARN(logger_,
 		   "DDU special warning in "
 		   << deviceReaders_[iCurrentDeviceReader_]->getName() 
-		   << ". (bit T-1:45) Event number: "
-		   << deviceReaders_[iCurrentDeviceReader_]->eventNumber());
+		   << ". (bit T-1:45) Event "
+		   << deviceReaders_[iCurrentDeviceReader_]->eventNumber()
+		   << " (" << nEventsRead_ << " read)");
     foundError = true;
   }
 
@@ -2657,7 +2663,7 @@ throw (emuRUI::exception::Exception)
     pvtMsg->XFunctionCode  = I2O_RU_DATA_READY;
     pvtMsg->OrganizationID = XDAQ_ORGANIZATION_ID;
 
-    block->eventNumber     = nEventsRead_ % 0x1000000; // 2^24
+    // moved to EmuRUI::setNbBlocksInSuperFragment:    block->eventNumber     = nEventsRead_ % 0x1000000; // 2^24
     block->blockNb         = iCurrentDeviceReader_; // each block carries a whole device's data
 
 }
@@ -2676,6 +2682,11 @@ void EmuRUI::setNbBlocksInSuperFragment(const unsigned int nbBlocks)
          bufRef = *pos;
          block = (I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME*)bufRef->getDataLocation();
          block->nbBlocksInSuperFragment = nbBlocks;
+	 // If we read more than one device, nEventsRead_ is implemented only when
+	 // all devices have been read out. This method is invoked after that, so
+	 // it is now that we set the run number in all blocks. 
+	 // (Event numbering starts from 1.)
+	 block->eventNumber = nEventsRead_ % 0x1000000; // 2^24
      }
 }
 
