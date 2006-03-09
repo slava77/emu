@@ -6,6 +6,10 @@
 #include "xdaq/ApplicationGroup.h"
 #include "xdaq/ApplicationContext.h"
 #include "xdaq/ApplicationStub.h"
+#include "xdaq/NamespaceURI.h"
 #include "xdaq/exception/Exception.h"
+
+#include "xcept/Exception.h"
+#include "xcept/tools.h"
 
 #endif
