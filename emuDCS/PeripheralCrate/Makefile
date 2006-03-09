@@ -86,7 +86,7 @@ UserExecutableLinkFlags =
 #
 Libraries = xerces-c xdaq log4cplus ptSOAP ptTCP toolbox xoap
 TestLibraries = xerces-c xdaq log4cplus ptSOAP ptTCP toolbox xoap \
-	        dim dcs_emu EmuPeripheralCrate
+	        EmuPeripheralCrate
 
 #
 # Compile the source files and create a shared library
