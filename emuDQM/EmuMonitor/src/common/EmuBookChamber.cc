@@ -12,15 +12,17 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 	map<int, map<string,TH1*> >::iterator h_itr = histos.find(id);
       	if (h_itr == histos.end() || (histos.size()==0)) {
 	  if(debug_printout) {
-	    cout << "D**EmuFillChamber> #"
-		 << "> ch" << CrateID << ":" << DMBID << ">";
-	    cout << " List of Histos for chamber not found" << endl;
+	    LOG4CPLUS_INFO(logger_, 
+		// "D**EmuFillChamber> #" << 
+		 "CSC " << CrateID << ":" << DMBID << ">"
+	   	 << " List of Histos for chamber not found");
 	  }
 	  if(fill_histo) {
 	    if(debug_printout) {
-	      cout << "D**EmuFillChamber> #"
-		   << "> ch" << CrateID << ":" << DMBID << ">";
-	      cout << " Creating of list of Histos for the chamber ..." << endl;
+	      LOG4CPLUS_INFO(logger_,
+		// "D**EmuFillChamber> #" <<
+		 "CSC " << CrateID << ":" << DMBID << ">"
+	      	 << " Booking Histos for the chamber ...");
 	    }
 	  }
 	} else { return histos[id];}
@@ -51,7 +53,9 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 	Char_t str[200];
 
 //CSC
-	if(debug_printout) 	cout << "D**EmuBookChamber> New CSC Canvases are booking ..." << endl;
+	if(debug_printout) 	LOG4CPLUS_INFO(logger_, // "D**EmuBookChamber> " << 
+		"CSC " << CrateID << ":" << DMBID << "> " <<
+		"Booking new CSC Canvases...");
 	if(folders) 		path_to_folder = "CSC/";
 
 //KK additional information for each particular chamber
@@ -171,7 +175,10 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 	consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
 
 //DMBs
-	if(debug_printout) 	cout << "D**EmuBookChamber> New DMB Canvases are booking ..." << endl;
+	if(debug_printout) 	LOG4CPLUS_INFO(logger_,
+		// "D**EmuBookChamber> " <<
+		"CSC " << CrateID << ":" << DMBID << "> " <<
+		"Booking New DMB Canvases...");
 	if(folders) 		path_to_folder = "DMB/";
 
 	cnvtitle = "DMB: FEBs DAV and Unpacked";
@@ -386,7 +393,10 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 	consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
 
 //ALCTs
-	if(debug_printout) 	cout << "D**EmuBookChamber> New ALCT Canvases are booking ..." << endl;
+	if(debug_printout) 	LOG4CPLUS_INFO(logger_,
+		// "D**EmuBookChamber> " << 
+		"CSC " << CrateID << ":" << DMBID << "> " <<
+		"Booking new ALCT Canvases...");
 	if(folders) 		path_to_folder = "ALCT/";
 
 	cnvtitle = "ALCT: Number of Words in ALCT";
@@ -647,7 +657,10 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 	}
 
 //TMB
-	if(debug_printout) 	cout << "D**EmuBookChamber> New TMB Canvases are booking ..." << endl;
+	if(debug_printout) 	LOG4CPLUS_INFO(logger_, 
+		//"D**EmuBookChamber> " << 
+		"CSC " << CrateID << ":" << DMBID << "> " <<
+		"Booking new TMB Canvases...");
 	if(folders) 		path_to_folder = "TMB/";
 
 	cnvtitle = "TMB: Number of Words in TMB";
@@ -721,7 +734,9 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 	consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
 
 //TMB - CLCTs
-	if(debug_printout) 	cout << "D**EmuBookChamber> New TMB-CLCT Canvases are booking ..." << endl;
+	if(debug_printout) 	LOG4CPLUS_INFO(logger_, // "D**EmuBookChamber> " << 
+		"CSC " << CrateID << ":" << DMBID << "> " <<
+		"Booking new TMB-CLCT Canvases...");
 	if(folders) 		path_to_folder = "TMB/";
 
 	cnvtitle = "TMB-CLCT: Cathode Comparator Hit Occupancy per Chamber";
@@ -1061,7 +1076,10 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 	}
 
 // CFEBs
-	if(debug_printout) 	cout << "D**EmuBookChamber> New CFEB Canvases are booking ..." << endl;
+	if(debug_printout) 	LOG4CPLUS_INFO(logger_,
+		// "D**EmuBookChamber> "<< 
+		"CSC " << CrateID << ":" << DMBID << "> " << 
+		"Booking new CFEB Canvases...");
 	if(folders) 		path_to_folder = "CFEB/";
 
 //	CFEBs by numbers
@@ -1289,7 +1307,9 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
         consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
 
 //SYNC
-	if(debug_printout) 	cout << "D**EmuBookChamber> New SYNC Canvases are booking ..." << endl;
+	if(debug_printout) 	LOG4CPLUS_INFO(logger_,// "D**EmuBookChamber> " << 
+		"CSC " << CrateID << ":" << DMBID << "> " << 
+		"Booking new SYNC Canvases...");
 	if(folders) 		path_to_folder = "SYNC/";
 
 	cnvtitle = "SYNC: DMB - DDU Synchronization";

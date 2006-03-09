@@ -28,6 +28,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
 
   plotter_ = NULL;
   deviceReader_ = NULL;
+  altFileReader_ = NULL;
   pool_ = NULL;
   initProperties();
   setMemoryPool();
@@ -59,7 +60,7 @@ void EmuMonitor::initProperties()
 
   LOG4CPLUS_DEBUG(this->getApplicationLogger(),"initProperties called");
 
-  plotterSaveTimer_ = 30;
+  plotterSaveTimer_ = 120;
   outputROOTFile_ = "";
   outputImagesPath_ = ""; 
   xmlCfgFile_ = ""; 
@@ -82,6 +83,8 @@ void EmuMonitor::initProperties()
   committedPoolSize_	= 0x500000; // 1Mb
   nEventCredits_	= 1;
   prescalingFactor_	= 100;
+
+  useAltFileReader_	= false;
 
   getApplicationInfoSpace()->fireItemAvailable("totalEvents",&totalEvents_);
   getApplicationInfoSpace()->fireItemAvailable("sessionEvents",&sessionEvents_);
@@ -107,6 +110,8 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->fireItemAvailable("dduCheckMask",&dduCheckMask_);
   getApplicationInfoSpace()->fireItemAvailable("binCheckMask",&dduCheckMask_);
 
+  getApplicationInfoSpace()->fireItemAvailable("useAltFileReader",&useAltFileReader_);
+
   getApplicationInfoSpace()->addItemChangedListener ("readoutMode", this);
   getApplicationInfoSpace()->addItemChangedListener ("transport", this);
   getApplicationInfoSpace()->addItemChangedListener ("collectorsClassName", this);
@@ -124,6 +129,8 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->addItemChangedListener ("plotterSaveTimer", this);
   getApplicationInfoSpace()->addItemChangedListener ("dduCheckMask", this);
   getApplicationInfoSpace()->addItemChangedListener ("binCheckMask", this);
+
+  getApplicationInfoSpace()->addItemChangedListener ("useAltFileReader", this);
 
   getApplicationInfoSpace()->addItemRetrieveListener ("totalEvents", this);
   getApplicationInfoSpace()->addItemRetrieveListener ("sessionEvents", this);
@@ -191,7 +198,7 @@ void EmuMonitor::setupPlotter()
 		delete plotter_;
 		plotter_ = NULL;
 	}
-	plotter_ = new EmuLocalPlotter();
+	plotter_ = new EmuLocalPlotter(getApplicationLogger());
 //	plotter_ = new EmuPlotter(getApplicationLogger());
 //	if (xmlCfgFile_ != "") plotter_->setXMLCfgFile(xmlCfgFile_.toString());
 }
@@ -320,6 +327,12 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
           destroyDeviceReader();
           createDeviceReader();
         }
+	else if ( item == "useAltFileReader")
+        {
+          LOG4CPLUS_INFO(getApplicationLogger(), "Use Alt File Reader : " << useAltFileReader_.toString());
+          destroyDeviceReader();
+          createDeviceReader();
+        } 
 	else if ( item == "plotterSaveTimer")
         {
           LOG4CPLUS_INFO(getApplicationLogger(), "Plotter Save Timer : " << plotterSaveTimer_.toString());
@@ -431,12 +444,18 @@ void EmuMonitor::ConfigureAction(toolbox::Event::Reference e) throw (toolbox::fs
         if (plotter_ != NULL) {
       		timer_->setPlotter(plotter_);
 		if (outputROOTFile_.toString().length()) {
+			LOG4CPLUS_INFO (getApplicationLogger(),
+                        "plotter::outputROOTFile: 0x" << outputROOTFile_.toString());
 	     	 	plotter_->SetHistoFile(outputROOTFile_);
     		}
 		if (dduCheckMask_ >= xdata::UnsignedLong(0)) {
+			LOG4CPLUS_INFO (getApplicationLogger(),
+                        "plotter::dduCheckMask: 0x" << std::hex << dduCheckMask_.value_);
 		      	plotter_->SetDDUCheckMask(dduCheckMask_);
     		}
     		if (binCheckMask_ >= xdata::UnsignedLong(0)) {
+			LOG4CPLUS_INFO (getApplicationLogger(), 
+			"plotter::binCheckMask: 0x" << std::hex << binCheckMask_.value_);
       			plotter_->SetBinCheckMask(binCheckMask_);
     		}
 	
@@ -743,11 +762,19 @@ void EmuMonitor::createDeviceReader()
 		     "Creating " << inputDeviceType_.toString() <<
 		     " reader for " << inputDeviceName_.toString());
       deviceReader_ = NULL;
+      altFileReader_ = NULL;
       try {
 	if      ( inputDeviceType_ == "spy"  )
 	  deviceReader_ = new EmuSpyReader(  inputDeviceName_.toString(), inputDataFormatInt_ );
 	else if ( inputDeviceType_ == "file" )
-	  deviceReader_ = new EmuFileReader( inputDeviceName_.toString(), inputDataFormatInt_ );
+	  if (useAltFileReader_ == xdata::Boolean(true)) {
+		altFileReader_ = new FileReaderDDU();
+		altFileReader_->openFile((inputDeviceName_.toString()).c_str());
+		LOG4CPLUS_INFO(getApplicationLogger(),
+			"Will use Alternative File Reader");
+	  } else {
+	  	deviceReader_ = new EmuFileReader( inputDeviceName_.toString(), inputDataFormatInt_ );
+	  }
 	// TODO: slink
 	else     LOG4CPLUS_ERROR(getApplicationLogger(),
 				 "Bad device type: " << inputDeviceType_.toString() <<
@@ -776,6 +803,12 @@ void EmuMonitor::destroyDeviceReader()
   	delete deviceReader_;
   	deviceReader_ = NULL;
   }
+  if (altFileReader_ != NULL) {
+	LOG4CPLUS_DEBUG(getApplicationLogger(),
+                "Destroying alternative File Reader" );
+        delete altFileReader_;
+        altFileReader_ = NULL;
+  }
 }
 
 int EmuMonitor::svc()
@@ -787,9 +820,14 @@ int EmuMonitor::svc()
 
   while(keepRunning)
     {
-      if ((readoutMode_.toString() == "internal") && (deviceReader_ != NULL)) 
+      if ( (readoutMode_.toString() == "internal") && 
+	 ( (deviceReader_ != NULL) || ( (useAltFileReader_ == xdata::Boolean(true) && altFileReader_ != NULL) ) )) 
 	{
-	  keepRunning = deviceReader_->readNextEvent();
+	  if (useAltFileReader_ == xdata::Boolean(true) ) {
+		keepRunning = altFileReader_->readNextEvent();
+	  } else {
+	  	keepRunning = deviceReader_->readNextEvent();
+	  }
 	  if ( !keepRunning )
 	    {
 	      LOG4CPLUS_ERROR(getApplicationLogger(),
@@ -806,7 +844,12 @@ int EmuMonitor::svc()
 		}
 	    } else {
 	      unsigned long errorFlag = 0;
-	      processEvent(deviceReader_->data(), deviceReader_->dataLength(), errorFlag, appTid_);
+	      if (useAltFileReader_ == xdata::Boolean(true) ) {
+                errorFlag = altFileReader_->status();
+		processEvent(altFileReader_->data(), altFileReader_->dataLength(), errorFlag, appTid_);
+	      } else {
+	      		processEvent(deviceReader_->data(), deviceReader_->dataLength(), errorFlag, appTid_);
+	      }
 	    }
 
         }
@@ -848,7 +891,7 @@ void EmuMonitor::processEvent(const char * data, int dataSize, unsigned long err
    plotter_->fill((unsigned char *)data, dataSize, errorFlag);
    if (plotter_->isListModified()) {
     updateList(collectorID_);
-   // updateObjects(collectorID_);
+    updateObjects(collectorID_);
     plotter_->setListModified(false);
   }
 }
@@ -891,7 +934,8 @@ void EmuMonitor::updateList(xdata::Integer id)
       xdata::String hname  (h_itr->first);
       xoap::SOAPElement histoElement = histodirElement.addChildElement(histoName);
       histoElement.addTextNode(hname);
-//              cout << "MyHistograms: " << h_itr->first << " size: " << sizeof(*h_itr->second) << endl;
+//              LOG4CPLUS_DEBUG(getApplicationLogger(), 
+			"MyHistograms: " << h_itr->first << " size: " << sizeof(*h_itr->second));
     }
   }
 */
@@ -905,7 +949,8 @@ void EmuMonitor::updateList(xdata::Integer id)
       xdata::String hname  (h_itr->first);
       xoap::SOAPElement histoElement = histodirElement.addChildElement(histoName);
       histoElement.addTextNode(hname);
-//              cout << "MyCanvases: " << h_itr->first << " size: " << sizeof(*h_itr->second) << endl;
+//              LOG4CPLUS_DEBUG(getApplicationLogger(), 
+//		"MyCanvases: " << h_itr->first << " size: " << sizeof(*h_itr->second));
     }
   }
 try
@@ -938,13 +983,16 @@ try
                 vector<xoap::SOAPElement> statusElement = content[0].getChildElements (statusTag );
                 if (statusElement[0].getElementName() == statusTag)
                   {
-                    cout << "The server status is: " << statusElement[0].getValue() << endl;
+                    LOG4CPLUS_INFO(getApplicationLogger(), 
+			"The server status is: " << statusElement[0].getValue());
                   } else {
-                    cout << "Value of element is: " << statusElement[0].getValue() << endl;
+                    LOG4CPLUS_DEBUG(getApplicationLogger(), 
+			"Value of element is: " << statusElement[0].getValue());
                   }
               } else
                 {
-                  cout << "Response contains wrong number of elements: " << content.size() << endl;
+                  LOG4CPLUS_DEBUG(getApplicationLogger(), 
+			"Response contains wrong number of elements: " << content.size());
                 }
           }
     }
@@ -1007,7 +1055,7 @@ void EmuMonitor::updateObjects(xdata::Integer id)
       buf.Reset();
       buf.SetWriteMode();
       buf.WriteObjectAny(h_itr->second, h_itr->second->Class());
-      //        cout << "Histogram: " << h_itr->first << " buffer size:" << buf.BufferSize() <<endl;
+      //        LOG4CPLUS_DEBUG(getApplicationLogger(), "Histogram: " << h_itr->first << " buffer size:" << buf.BufferSize());
       char * attch_buf = new char[buf.BufferSize()];
       buf.Reset();
       buf.SetReadMode();
@@ -1049,7 +1097,7 @@ for (map<int, map<string, ConsumerCanvas*> >::iterator itr = plotter_->canvases.
       buf.Reset();
       buf.SetWriteMode();
       buf.WriteObjectAny(h_itr->second, h_itr->second->Class());
-    //           cout << "Canvas: " << h_itr->first << " buffer size:" << buf.BufferSize() <<endl;
+    //           LOG4CPLUS_DEBUG(getApplicationLogger(), "Canvas: " << h_itr->first << " buffer size:" << buf.BufferSize());
       char * attch_buf = new char[buf.BufferSize()];
       buf.Reset();
       buf.SetReadMode();
@@ -1074,9 +1122,7 @@ try
     	->getApplicationGroup()
     	->getApplicationDescriptor( collectorsClassName_, id );
 
-	cout << "trying to send" << endl;
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, collectorDescriptor);
-	cout << "done" << endl;
       /*
         cout << endl;
         reply.writeTo(cout);
@@ -1100,13 +1146,16 @@ try
                 vector<xoap::SOAPElement> statusElement = content[0].getChildElements (statusTag );
                 if (statusElement[0].getElementName() == statusTag)
                   {
-                    cout << "The server status is: " << statusElement[0].getValue() << endl;
+                    LOG4CPLUS_INFO(getApplicationLogger(), 
+			"The server status is: " << statusElement[0].getValue());
                   } else {
-                    cout << "Value of element is: " << statusElement[0].getValue() << endl;
+                    LOG4CPLUS_DEBUG(getApplicationLogger(), 
+			"Value of element is: " << statusElement[0].getValue());
                   }
               } else
                 {
-                  cout << "Response contains wrong number of elements: " << content.size() << endl;
+                  LOG4CPLUS_DEBUG(getApplicationLogger(), 
+			"Response contains wrong number of elements: " << content.size());
                 }
           }
       //   return reply;

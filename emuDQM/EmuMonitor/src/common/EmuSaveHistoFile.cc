@@ -6,7 +6,7 @@ void EmuLocalPlotter::save(const char *filename) {
 	string dir;
 	string hname;
 //	consinfo->clear();
-	cout << "++++++++++++ Saving Histos to " << filename << " ++++++++++++" << endl;
+	LOG4CPLUS_INFO(logger_, "Saving Histograms to " << filename);
 	TFile f(filename, "recreate");
 
 	f.cd();

@@ -13,8 +13,8 @@
 // RCS Current Revision Record
 //-----------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/src/common/DisplayServer.cc,v $
-// $Revision: 1.2 $
-// $Date: 2006/03/09 00:17:06 $
+// $Revision: 1.3 $
+// $Date: 2006/03/09 22:30:53 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $
@@ -724,7 +724,7 @@ void DisplayServer::updateStorage(MessageStorage* storage)
          _logFile << myName << ": updating object:" << storage->GetName() << ":" << storage->getMessage()->BufferSize() << std::endl;
 //   _currList.Sort();
     TObject* myobject = _currList.FindObject(storage->GetName());
-    myobject->ls();
+    // myobject->ls();
     //cout << "Does that object inherit from TCanvas ?  " << myobject->InheritsFrom(TCanvas::Class()) << std::endl;
     //cout << "Does that object inherit from TH1 ?  " << myobject->InheritsFrom(TH1::Class()) << std::endl;
 }

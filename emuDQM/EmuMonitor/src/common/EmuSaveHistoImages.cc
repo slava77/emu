@@ -4,7 +4,7 @@
 
 void EmuLocalPlotter::SaveImages(std::string path, std::string format, int width, int height) 
 {
-  cout << "++++++++++++ Saving Histo Images ++++++++++++" << endl;
+  LOG4CPLUS_INFO(logger_, "Generating Histo Images and saving them to " << path);
   if (format == "") { format = DEFAULT_IMAGE_FORMAT; }
   TString imgfile = "";
 
@@ -29,7 +29,7 @@ void EmuLocalPlotter::SaveImages(std::string path, std::string format, int width
     TString command = Form("mkdir -p %s/%s",path.c_str(), histodir.c_str());
     gSystem->Exec(command.Data());
  
-    cout << " +++ Saving Histograms +++ " << endl;
+    LOG4CPLUS_DEBUG(logger_, " +++ Saving Histograms +++ ");
 
     for (map<int, map<string, TH1*> >::iterator itr = histos.begin(); itr != histos.end(); ++itr) {
     if (itr->first != SLIDES_ID) {
@@ -39,7 +39,7 @@ void EmuLocalPlotter::SaveImages(std::string path, std::string format, int width
     fullname.Replace(0, fullname.Last('/')+1,"");
     imgfile = Form ("%s/%s/%s.%s",path.c_str(), histodir.c_str(), fullname.Data(), format.c_str());
 
-    cout << imgfile << endl;
+    LOG4CPLUS_DEBUG(logger_, imgfile);
     // string fullname = Form("%s_%s", (itr->first).c_str(), (h_itr->second->getFullName()).c_str());
     // imgfile = Form("%s/%s.%s", path, fullname, format);
     TCanvas *cnv = new TCanvas("cnv",fullname, width, height);
@@ -51,7 +51,7 @@ void EmuLocalPlotter::SaveImages(std::string path, std::string format, int width
     }
     }
   */
-  cout << "+++ Saving Canvases +++" << endl;
+  LOG4CPLUS_INFO(logger_, "Saving Canvases");
   for (map<int, map<string, ConsumerCanvas*> >::iterator itr = canvases.begin(); itr != canvases.end(); ++itr) {
     int id = itr->first;
     if (id != SLIDES_ID) 
@@ -81,7 +81,7 @@ void EmuLocalPlotter::SaveImages(std::string path, std::string format, int width
 	    string fullname = h_itr->second->GetName();
 	    replace(fullname.begin(), fullname.end(), '/', '_');
 	    imgfile =path + "/"+ fullname + "."+ format;
-	    cout << imgfile << " size" << width << ":" << height << endl;
+	    LOG4CPLUS_DEBUG(logger_, imgfile << " size" << width << ":" << height);
 	    ((TCanvas *)(h_itr->second))->SetCanvasSize(width, height);
 	    h_itr->second->Print(imgfile.c_str());
 	  */
@@ -129,7 +129,7 @@ void EmuLocalPlotter::SaveImages(std::string path, std::string format, int width
 	  obj->Draw();
 
 	  imgfile = Form("%s/%s.%s", fullPath.Data(), basename(pos,basename.Length()-pos).Data(), format.c_str());
-	  cout << imgfile.Data() << endl;
+	  LOG4CPLUS_INFO(logger_, imgfile.Data());
 	  ((TCanvas*)obj)->Print(imgfile.Data());
 	  TString relfilename  = Form("%s/%s.%s", relPath.Data(), basename(pos,basename.Length()-pos).Data(), format.c_str()); 
 	  canvas_nav << "<a href=\"" << relfilename << "\" target=\"imageout\">" << obj->GetName() << "</a><br>\n" << endl;
@@ -144,7 +144,7 @@ void EmuLocalPlotter::SaveImages(std::string path, std::string format, int width
   folders_nav.clear();
   folders_nav.close();
 
-  cout << "Done" << endl;
+  LOG4CPLUS_INFO(logger_, "Done");
 }
 
 
@@ -152,7 +152,7 @@ void EmuLocalPlotter::SaveImages(std::string path, std::string format, int width
 void EmuLocalPlotter::SaveImagesFromROOTFile(std::string rootfile,std::string path, std::string format, int width, int height)
 {
   if (rootfile == "") { return;}
-  cout << "++++++++++++ Generating Histo Images from " << rootfile << " and save them to " << path << endl;
+  LOG4CPLUS_INFO(logger_, "Generating Histo Images from " << rootfile << " and saving them to " << path);
   if (format == "") { format = DEFAULT_IMAGE_FORMAT; }
   TString imgfile = "";
   TString filename(rootfile.c_str());
@@ -212,11 +212,11 @@ void EmuLocalPlotter::SaveImagesFromROOTFile(std::string rootfile,std::string pa
     // obj->Draw();
     ((TCanvas*)obj)->SetCanvasSize(width, height);
     imgfile = Form("%s/%s.%s", fullPath.Data(), basename(pos,basename.Length()-pos).Data(), format.c_str());
-    cout << imgfile.Data() << endl;	
+    LOG4CPLUS_INFO(logger_, imgfile.Data());	
     ((TCanvas*)obj)->Print(imgfile.Data());
     delete obj;
   }
-  cout << "Done..." << endl;
+  LOG4CPLUS_INFO(logger_, "Done...");
 }
 
 void EmuLocalPlotter::createHTMLNavigation(std:: string path) 
