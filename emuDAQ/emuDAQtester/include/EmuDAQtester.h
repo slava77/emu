@@ -209,6 +209,12 @@ private:
     throw (xgi::exception::Exception);
 
   int purgeIntNumberString( string* s ); // Emu
+  vector< vector<string> > getRUIEventCounts(); // Emu
+  vector< vector<string> > getFUEventCounts(); // Emu
+  void printEventCountsTable( xgi::Input               *in,
+			      xgi::Output              *out,
+			      string                    title,
+			      vector< vector<string> >  counts ); // Emu
 
     /**
      * Processes the form sent from the control web page.
