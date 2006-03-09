@@ -61,9 +61,7 @@ IncludeDirs = \
 	$(XDAQ_ROOT)/daq/extern/i2o/include/i2o \
 	$(XDAQ_ROOT)/daq/extern/i2o/include/i2o/shared \
 	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
-	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
-	$(DCSDIR)/include \
-	$(DIMDIR)/dim
+	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/include 
 
 LibraryDirs = \
 	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
@@ -75,8 +73,6 @@ LibraryDirs = \
 	$(XDAQ_ROOT)/daq/xoap/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
 TestLibraryDirs = \
-#	$(DIMDIR)/$(XDAQ_OS) \
-#	$(DCSDIR)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
         $(XDAQ_ROOT)/emu/emuDCS/PeripheralCrate/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
 UserCFlags = 
