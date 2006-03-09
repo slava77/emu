@@ -18,6 +18,8 @@
 
   <!-- EmuReadout replaces DDUReadout -->
   <xc:Module>/home/dqm/TriDAS/emu/emuDAQ/emuReadout/lib/linux/x86/libEmuReadout.so</xc:Module>
+  <xc:Module>/home/dqm/TriDAS/emu/emuDAQ/DDUReadout/lib/linux/x86/libDDUReadout.so</xc:Module>
+
 
   <!-- EmuDAQtester is a simple run control with a hyperDAQ interface -->
   <!--
@@ -43,6 +45,9 @@
       <xmlCfgFile xsi:type="xsd:string">/home/dqm/TriDAS/emu/emuDQM/EmuMonitor/xml/EmuDQMBooking.xml</xmlCfgFile>
       <outputROOTFile xsi:type="xsd:string">/csc_data/root/dqm.root</outputROOTFile>
       <outputImagesPath xsi:type="xsd:string">/csc_data/images</outputImagesPath>
+      <useAltFileReader xsi:type="xsd:boolean">true</useAltFileReader>
+      <dduCheckMask xsi:type="xsd:unsignedLong">0</dduCheckMask>
+      <!-- <binCheckMask xsi:type="xsd:unsignedLong">0xFFFFFFFF</binCheckMask> -->
       <!-- <collectorsClassName xsi:type="xsd:string">EmuDisplayServer</collectorsClassName>
       <collectorID xsi:type="xsd:integer">0</collectorID>
 	-->

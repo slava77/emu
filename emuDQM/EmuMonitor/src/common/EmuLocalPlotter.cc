@@ -16,7 +16,8 @@ EmuLocalPlotter::EmuLocalPlotter()
   BXN(0),
   L1ANumber(0),
   dduCheckMask(0xFFFFFFFF),
-  binCheckMask(0xFFFFFFFF)
+  binCheckMask(0xFFFFFFFF),
+  logger_(Logger::getInstance("EmuLocalPlotter"))
 {
   // EmuLocalPlotter::debug = false;
 //KK
@@ -27,6 +28,32 @@ EmuLocalPlotter::EmuLocalPlotter()
 	bin_checker.crcCFEB(true);
 //KK end
 }
+
+EmuLocalPlotter::EmuLocalPlotter(Logger logger)
+: HistoFile(histofile),
+  fSaveHistos(false),
+  consinfo(new TConsumerInfo("DQM", 1)),
+  nEvents(0),
+  DMBEvents(0),
+  ALCTEvents(0),
+  CLCTEvents(0),
+  CFEBEvents(0),
+  BXN(0),
+  L1ANumber(0),
+  dduCheckMask(0xFFFFFFFF),
+  binCheckMask(0xFFFFFFFF),
+  logger_(logger)
+{
+  // EmuLocalPlotter::debug = false;
+//KK
+        bin_checker.output1().hide();
+        bin_checker.output2().hide();
+        bin_checker.crcALCT(true);
+        bin_checker.crcTMB (true);
+        bin_checker.crcCFEB(true);
+//KK end
+}
+
 
 
 EmuLocalPlotter::~EmuLocalPlotter() {

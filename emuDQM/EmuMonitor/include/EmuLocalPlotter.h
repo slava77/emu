@@ -4,6 +4,10 @@
 #include "EmuPlotterInterface.h"
 #include "dduBinExaminer.hh"
 
+#include "xdaq.h"
+#include "xdata.h"
+#include "toolbox.h"
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -114,6 +118,7 @@ class EmuLocalPlotter : public EmuPlotterInterface {
 public:
 
   EmuLocalPlotter();
+  EmuLocalPlotter(Logger logger);
   ~EmuLocalPlotter();
 
   void SetHistoFile(string);
@@ -178,6 +183,8 @@ private:
   int CLCTEvents;
   int CFEBEvents;
   dduBinExaminer bin_checker;
+
+  Logger logger_;
 };
 
 static string histofile = "dqm.root";

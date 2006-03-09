@@ -47,7 +47,9 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		DDUHardwareErrorName[31] = "Local DAQ FIFO Full: 31";
 		DDUHardwareErrorName[32] = "DDU Output Constricted: 32";
 //DDU
-	if(debug_printout) cout << "D**EmuBookCommon> New DDU Canvases are booking ..." << endl;
+	if(debug_printout) LOG4CPLUS_INFO(logger_, 
+		// "D**EmuBookCommon> <<
+		"Booking new DDU Canvases");
 	if(folders) 	path_to_folder = "DDU/";
 
 	cnvtitle = "DDU: Data Format Errors and Warnings in Tables";
@@ -90,7 +92,9 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("e");
                 consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 	consinfo->addObject(TString(cnvname.c_str()),TString(""),0,cnv[cnvname]);
-	if(debug_printout) cout << "D**EmuBookCommon> Canvas " << cnvname << " is created" << endl;
+	if(debug_printout) LOG4CPLUS_DEBUG(logger_,
+		// "D**EmuBookCommon> ">> 
+		"Canvas " << cnvname << " is created");
 
 	cnvtitle = "DDU: Unpacked DMBs";
 	cnvname = path_to_folder + cnvtitle;
@@ -105,7 +109,9 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("e");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 	consinfo->addObject(TString(cnvname.c_str()),TString(""),0,cnv[cnvname]);
-	if(debug_printout) cout << "D**EmuBookCommon> Canvas " << cnvname << " is created" << endl;
+	if(debug_printout) LOG4CPLUS_DEBUG(logger_,
+		// "D**EmuBookCommon> " << 
+		"Canvas " << cnvname << " is created");
 
 	cnvtitle = "DDU: L1A and BXN Counters";
 	cnvname = path_to_folder + cnvtitle;
@@ -132,7 +138,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("em");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 	consinfo->addObject(TString(cnvname.c_str()),TString(""),0,cnv[cnvname]);
-	if(debug_printout) cout << "D**EmuBookCommon> Canvas " << cnvname << " is created" << endl;
+	if(debug_printout) LOG4CPLUS_DEBUG(logger_,"D**EmuBookCommon> Canvas " << cnvname << " is created");
 
 	cnvtitle = "DDU: Connected and Active Inputs"; //KK +Connected and
 	cnvname = path_to_folder + cnvtitle;
@@ -173,7 +179,9 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
 	consinfo->addObject(TString(cnvname.c_str()),TString(""),0,cnv[cnvname]);
-	if(debug_printout) cout << "D**EmuBookCommon> Canvas " << cnvname << " is created" << endl;
+	if(debug_printout) LOG4CPLUS_DEBUG(logger_,
+		// "D**EmuBookCommon> " << 
+		"Canvas " << cnvname << " is created");
 
 	cnvtitle = "DDU: DMBs DAV and Unpacked vs DMBs Active";
 	cnvname = path_to_folder + cnvtitle;
@@ -214,7 +222,9 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("e");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 	consinfo->addObject(TString(cnvname.c_str()),TString(""),0,cnv[cnvname]);
-	if(debug_printout) cout << "D**EmuBookCommon> Canvas " << cnvname << " is created" << endl;
+	if(debug_printout) LOG4CPLUS_DEBUG(logger_,
+		// "D**EmuBookCommon> " << 
+		"Canvas " << cnvname << " is created");
 
 	cnvtitle = "DDU: Data Integrity Checks vs Event Number";
 	cnvname = path_to_folder + cnvtitle;
@@ -296,7 +306,9 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		pt5->Draw();
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 	consinfo->addObject(TString(cnvname.c_str()),TString(""),0,cnv[cnvname]);
-	if(debug_printout) cout << "D**EmuBookCommon> Canvas " << cnvname << " is created" << endl;
+	if(debug_printout) LOG4CPLUS_DEBUG(logger_,
+		// "D**EmuBookCommon> " <<
+		"Canvas " << cnvname << " is created");
 
 	cnvtitle = "DDU: Error Status from DDU Trailer vs Event Number";
 	cnvname = path_to_folder + cnvtitle;
@@ -312,7 +324,9 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("e");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 	consinfo->addObject(TString(cnvname.c_str()),TString(""),0,cnv[cnvname]);
-	if(debug_printout) cout << "D**EmuBookCommon> Canvas " << cnvname << " is created" << endl;
+	if(debug_printout) LOG4CPLUS_DEBUG(logger_,
+		// "D**EmuBookCommon> " << 
+		"Canvas " << cnvname << " is created");
 
 	cnvtitle = "DDU: Error Status from DDU Trailer";
 	cnvname = path_to_folder + cnvtitle;
@@ -355,7 +369,9 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("e");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 	consinfo->addObject(TString(cnvname.c_str()),TString(""),0,cnv[cnvname]);
-	if(debug_printout) cout << "D**EmuBookCommon> Canvas " << cnvname << " is created" << endl;
+	if(debug_printout) LOG4CPLUS_DEBUG(logger_,
+		// "D**EmuBookCommon> " << 
+		"Canvas " << cnvname << " is created");
 
 	cnvtitle = "DDU: Event Buffer Size and DDU Word Count";
 	cnvname = path_to_folder + cnvtitle;
@@ -382,7 +398,9 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("eomr");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 	consinfo->addObject(TString(cnvname.c_str()),TString(""),0,cnv[cnvname]);
-	if(debug_printout) cout << "D**EmuBookCommon> Canvas " << cnvname << " is created" << endl;
+	if(debug_printout) LOG4CPLUS_DEBUG(logger_,
+		// "D**EmuBookCommon> " <<
+		"Canvas " << cnvname << " is created");
 //KK
 	cnvtitle = "DDU: State of CSCs";
 	cnvname = path_to_folder + cnvtitle;
@@ -419,7 +437,9 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("eomr");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 	consinfo->addObject(TString(cnvname.c_str()),TString(""),0,cnv[cnvname]);
-	if(debug_printout) cout << "D**EmuBookCommon> Canvas " << cnvname << " is created" << endl;
+	if(debug_printout) LOG4CPLUS_DEBUG(logger_,
+		// "D**EmuBookCommon> " << 
+		"Canvas " << cnvname << " is created");
 //KK end
 
 	canvases[0] = cnv;

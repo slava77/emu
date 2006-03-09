@@ -146,7 +146,7 @@ xoap::MessageReference EmuDisplayServer::fireEvent (xoap::MessageReference msg) 
 
 bool EmuDisplayServer::onError ( xcept::Exception& ex, void * context )
 {
-        std::cout << "onError: " << ex.what() << std::endl;
+        LOG4CPLUS_INFO (getApplicationLogger(),"onError: " << ex.what());
         return false;
 }
 
@@ -165,7 +165,7 @@ void EmuDisplayServer::ConfigureAction(toolbox::Event::Reference e) throw (toolb
 /*    RefServer->activate();
     LOG4CPLUS_INFO (getApplicationLogger(),"Configure EmuDisplayServer for Ref Histos");
     //Ref1Server->activate();
-    //cout << "+++ Configure EmuDisplayServer for Dynamic Ref Histos" << endl;
+    //LOG4CPLUS_INFO (getApplicationLogger(), "+++ Configure EmuDisplayServer for Dynamic Ref Histos");
     RFile = TFile::Open(RefFileName.toString().c_str(), "READ");
     if(RFile) { LOG4CPLUS_DEBUG (getApplicationLogger(),toolbox::toString("Reference Histogram File Opened: %s", RFile->GetName())); }
     else {LOG4CPLUS_ERROR (getApplicationLogger(),"Could not open Reference Histogram File :" << RefFileName.toString()); }
@@ -366,8 +366,8 @@ void EmuDisplayServer::I2O_DQMDataRequest(toolbox::mem::Reference * ref)  throw 
     // the message size seems to have been passed in 16-bit words
     int dataSize = 2*stdMsgFrame->MessageSize  - frameHeaderSize;
 
-    cout << "Initiator: " << stdMsgFrame->InitiatorAddress << endl;
-    cout << "Data Size: " << dataSize << endl;
+    LOG4CPLUS_DEBUG (getApplicationLogger(), "Initiator: " << stdMsgFrame->InitiatorAddress);
+    LOG4CPLUS_DEBUG (getApplicationLogger(), "Data Size: " << dataSize);
     
     
     TBuffer mesg(TBuffer::kWrite);
@@ -401,7 +401,7 @@ xoap::MessageReference EmuDisplayServer::updateList(xoap::MessageReference node)
         
         xdaqInteger nodeAddr(0);
         nodeAddr.fromString(itr->getAttributeValue(originator));
-        cout << "+++ Requesting list from Node:" << nodeAddr.toString() << endl;
+        LOG4CPLUS_DEBUG (getApplicationLogger(), "+++ Requesting list from Node:" << nodeAddr.toString());
         requestList(nodeAddr);  
               
     }
@@ -454,7 +454,6 @@ xoap::MessageReference EmuDisplayServer::updateList(xoap::MessageReference node)
                     }   
                     
                     dir = "DQMNode"+n_itr->getValue()+dir;
-                    // cout << dir << endl;
                     xoap::SOAPName objTag("Obj", "", "");
                     
                     vector<xoap::SOAPElement> objElement = b_itr->getChildElements(objTag );
@@ -505,10 +504,10 @@ xoap::MessageReference EmuDisplayServer::updateList(xoap::MessageReference node)
             }
         }
     }
-    cout << "+++ Consumer List is updated" <<endl;
+    LOG4CPLUS_INFO (getApplicationLogger(), "+++ Consumer List is updated");
     if (consinfo && userServer != NULL) 
     { 
-      userServer->setInfo(consinfo); /*consinfo->print();*/ cout << "Set Info for userServer" << endl;
+      userServer->setInfo(consinfo); /*consinfo->print();*/ LOG4CPLUS_DEBUG (getApplicationLogger(), "Set Info for userServer");
 //      RefServer->setInfo(*consinfo); consinfo->print(); cout << "Set Info for RefServer" << endl;
       //Ref1Server->setInfo(*consinfo); consinfo->print(); cout << "Set Info for Ref1Server" << endl;
     }
@@ -638,7 +637,7 @@ void EmuDisplayServer::requestList(xdata::Integer nodeaddr)
      // handle exception
         }
 
-    cout << "+++ Consumer List is updated from requestList" <<endl;
+    LOG4CPLUS_INFO (getApplicationLogger(), "+++ Consumer List is updated from requestList");
     if (consinfo && userServer != NULL) userServer->setInfo(consinfo);
     // if (consinfo) RefServer->setInfo(*consinfo);
     //if (consinfo) Ref1Server->setInfo(*consinfo);
@@ -647,7 +646,7 @@ void EmuDisplayServer::requestList(xdata::Integer nodeaddr)
 
 void EmuDisplayServer::refHistComparator(string mystring, TMessage *buffer, TMessage *refbuffer, TMessage *ref1buffer)
 {
-  //cout << "+++ REF-HIST Comparator test" << " "<< mystring << endl;
+  //LOG4CPLUS_DEBUG (getApplicationLogger(), "+++ REF-HIST Comparator test" << " "<< mystring);
   int offset = 0;
   while( offset < mystring.size() )
     {
@@ -666,7 +665,7 @@ void EmuDisplayServer::refHistComparator(string mystring, TMessage *buffer, TMes
   removedDirName[position] = '\0';
   TObject *Ref = 0;
   if(RFile)  Ref = RFile->Get( removedDirName ); //be careful to do only once per unique removedDirName, else memory leak  
-  else cout << "+++ Pointer to NULL Reference File!! Can not get object " << removedDirName << endl;
+  else LOG4CPLUS_ERROR (getApplicationLogger(), "+++ Pointer to NULL Reference File!! Can not get object " << removedDirName);
   /*
   buffer->SetReadMode();
   if( buffer ) 
@@ -697,7 +696,7 @@ void EmuDisplayServer::refHistComparator(string mystring, TMessage *buffer, TMes
       if( refbuffer->What() == kMESS_OBJECT ) refbuffer->WriteObjectAny( Ref, Ref->Class() );
     }
   else
-    cout << "+++ NULL Pointer to reference object or reference buffer. Can not write object to buffer!!!" << endl;
+    LOG4CPLUS_ERROR(getApplicationLogger(), "+++ NULL Pointer to reference object or reference buffer. Can not write object to buffer!!!");
   refbuffer->Reset();  
   /*
   buffer->SetReadMode();
@@ -777,7 +776,6 @@ TH1* EmuDisplayServer::ModifyRefHistosFromCanvas( TVirtualPad * CurrentPad  )
 
 xoap::MessageReference EmuDisplayServer::updateObjects(xoap::MessageReference node) throw (xoap::exception::Exception)
 {
-//	cout << "receiving updated objects" << endl;
     /*
     cout << endl;
     node.writeTo(cout);
@@ -833,7 +831,7 @@ xoap::MessageReference EmuDisplayServer::updateObjects(xoap::MessageReference no
        //delete storage;           // crash...forced to do the same
     }  
                               
-    cout << "+++ Objects are updated" <<endl;
+    LOG4CPLUS_INFO (getApplicationLogger(), "+++ Objects are updated");
     xoap::MessageReference reply = xoap::createMessage();
     xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
     xoap::SOAPBody b = envelope.getBody();
@@ -907,7 +905,7 @@ void EmuDisplayServer::requestObjects(xdata::Integer nodeaddr)
         }  
                               
     } */
-    cout << "+++ Objects are updated" <<endl;
+    LOG4CPLUS_INFO (getApplicationLogger(), "+++ Objects are updated");
     // if (consinfo) userServer->setInfo(*consinfo);
     //   return reply;
 }

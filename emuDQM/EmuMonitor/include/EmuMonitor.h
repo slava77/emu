@@ -29,6 +29,8 @@
 #include "EmuFileReader.h"
 #include "EmuSpyReader.h"
 
+#include "FileReaderDDU.h"
+
 #include "EmuPlotterInterface.h"
 #include "EmuLocalPlotter.h"
 #include "EmuGlobalPlotter.h"
@@ -50,7 +52,7 @@ class EmuMonitorTimerTask: public Task
 
 public:
    EmuMonitorTimerTask(): Task("EmuMonitorTimerTask") {
-        timerDelay=30;
+        timerDelay=120;
         plotter = NULL;
         }
   ~EmuMonitorTimerTask() { plotter = NULL;}
@@ -155,6 +157,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   xdata::UnsignedLong dduCheckMask_;
 
 
+
   EmuMonitorTimerTask * timer_;
 
   // == Total processed events counter
@@ -163,8 +166,11 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   xdata::UnsignedLong 	sessionEvents_;
   // == Data processing rate
   xdata::Float 		dataRate_;
+  xdata::Boolean 	useAltFileReader_;
 
-  EmuReader*            deviceReader_;         // device reader
+
+  EmuReader*         	deviceReader_;         // device reader
+  FileReaderDDU*        altFileReader_;      // alternative device reader
   xdata::String         inputDeviceName_;      // input device name (file path or board number)
   xdata::String         inputDeviceType_;      // spy, slink or file
   xdata::String         inputDataFormat_;      // "DDU" or "DCC"
