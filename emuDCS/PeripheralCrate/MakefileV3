@@ -126,10 +126,10 @@ TestExecutables= \
 	slicetestconfig.cpp \
 	EmuConfig.cpp \
 	CrateTiming.cpp \
-        CrateScan.cpp \
 	parsemain.cpp \
 	mpc2sp.cpp \
 	testtmbmain.cpp \
-	loadALCT.cpp
+	loadALCT.cpp\
+	loadTMB.cpp
 
 include $(XDAQ_ROOT)/config/Makefile.rules
