@@ -364,37 +364,34 @@ class TGStatusBarPart;
 #include <sstream>
 
 
+//#include "ConsumerFramework/HistoDisplay.hh"
 #include "HistoDisplay.hh"
+//#include "Consumer/HistoDisplayHelpText.hh" //gHelpHistoDisplay
 #include "HistoDisplayHelpText.hh" //gHelpHistoDisplay
+//#include "Consumer/HistoDisplayPhoto.hh"
 #include "HistoDisplayPhoto.hh"
+//#include "Consumer/ConsumerList.hh"
 #include "ConsumerList.hh"
 
 #include "ConsumerListBox.hh"
 
 
+//#include "Consumer/TConsumerInfo.hh"
 #include "TConsumerInfo.hh"
 
+//#include "Consumer/CObject.hh"
 #include "CObject.hh"
+//#include "Consumer/CHistogram.hh"
 #include "CHistogram.hh"
 
 //using std::string;
 #include "ServerProtocol.hh"
 
 #include "xoap.h"
-/*
-#include "xoap/SOAPMessage.h"
-#include "xoap/SOAPPart.h"
-#include "xoap/SOAPEnvelope.h"
-#include "xoap/SOAPBody.h"
-#include "xoap/SOAPBodyElement.h"
-#include "xoap/SOAPName.h"
-#include "xoap/AttachmentPart.h"
-#include "xoap/SOAPAllocator.h"
-#include "xoap/SOAPConnection.h"
-*/
+// #include "xdaqExecutive.h"
+
 using namespace xoap;
 using namespace std;
-// #include "xdaqExecutive.h"
 
 enum HistoDisplayMessageTypes {
   kM_MENU_FILE_NEWGUI,

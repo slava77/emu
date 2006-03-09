@@ -11,8 +11,8 @@
 // RCS Current Revision Record
 //-----------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/src/common/ConsumerCanvas.cc,v $
-// $Revision: 1.1 $
-// $Date: 2006/02/16 00:05:14 $
+// $Revision: 1.2 $
+// $Date: 2006/03/09 00:17:06 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $
@@ -33,11 +33,11 @@
 #include "TROOT.h"
 
 ConsumerCanvas::ConsumerCanvas(const char* name, const char* title, 
-			       const char* title2,int nx, int ny)
+			       const char* title2,int nx, int ny, int width, int height)
 #ifndef CONSUMER_STANDALONE
-  : TCanvas(name,title),_info(ConsumerFramework::consumerinfo()),_n(0),_pads(NULL)
+  : TCanvas(name,title, width, height),_info(ConsumerFramework::consumerinfo()),_n(0),_pads(NULL)
 #else
-  : TCanvas(name,title),_info(NULL),_n(0),_pads(NULL)
+  : TCanvas(name,title, width, height),_info(NULL),_n(0),_pads(NULL)
 #endif
 {
   SetFillColor(0);
