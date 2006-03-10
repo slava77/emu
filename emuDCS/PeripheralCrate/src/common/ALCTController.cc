@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.20 2006/03/03 07:59:19 mey Exp $
+// $Id: ALCTController.cc,v 2.21 2006/03/10 10:51:47 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.21  2006/03/10 10:51:47  mey
+// Update
+//
 // Revision 2.20  2006/03/03 07:59:19  mey
 // Update
 //
@@ -5508,7 +5511,7 @@ int ALCTController::SVFLoad(int *jch, const char *fn, int db )
 	  printf("%c[0m", '\033');
 	  if ( send_packages == total_packages ) printf("\n") ;
 	  //
-	  tmb_->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, 1); 
+	  tmb_->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, 2); 
 	  //
 	  if (cmpflag==1)
 	    {     
@@ -5627,7 +5630,7 @@ int ALCTController::SVFLoad(int *jch, const char *fn, int db )
 		realsnd[(i+hirbits+nbits)/8] |= (sndtir[i/8] >> (i%8)) << ((i+hirbits+nbits)%8);
 	    }
 	    //
-	    tmb_->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, 1); 
+	    tmb_->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, 0); 
 	    //
 
 	    if (db>6) { 	printf("SIR Send Data:\n");
