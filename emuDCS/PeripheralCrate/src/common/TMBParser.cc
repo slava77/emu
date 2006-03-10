@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 2.7 2006/03/08 22:53:12 mey Exp $
+// $Id: TMBParser.cc,v 2.8 2006/03/10 15:55:28 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 2.8  2006/03/10 15:55:28  mey
+// Update
+//
 // Revision 2.7  2006/03/08 22:53:12  mey
 // Update
 //
@@ -117,8 +120,12 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, int crateNumber)
 	    parser_.fillInt("Number", number);
 	    parser_.fillInt("delay", delay);
 	    parser_.fillInt("threshold", threshold);
-            alct_->delays_[number-1] = delay;
-            alct_->thresholds_[number-1] = threshold;
+	    //
+	    alct_->SetDelay(number-1,delay);
+            //alct_->delays_[number-1] = delay;
+            //alct_->thresholds_[number-1] = threshold;
+	    alct_->SetThreshold(number-1,threshold);
+	    //
 	  }
 	  grandDaughterNode = grandDaughterNode->getNextSibling();
 	}

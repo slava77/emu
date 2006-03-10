@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.21 2006/03/10 10:51:47 mey Exp $
+// $Id: ALCTController.cc,v 2.22 2006/03/10 15:55:28 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.22  2006/03/10 15:55:28  mey
+// Update
+//
 // Revision 2.21  2006/03/10 10:51:47  mey
 // Update
 //
@@ -466,38 +469,34 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   alct_fifo_tbins_(8),
   alct_bxc_offset_(1),
   alct_drift_delay_(3)
- {
-   alctPatternFile="";
-   alctHotChannelFile="";
-   //
-   ALCT_FAST_JTAG_CHANNEL = ALCT_FAST_VME_JTAG_CHANNEL;
-   if(chamber_type_string_ == "ME11") chamber_type_ = ME11;
-   if(chamber_type_string_ == "ME12") chamber_type_ = ME12;
-   if(chamber_type_string_ == "ME13") chamber_type_ = ME13;
-   if(chamber_type_string_ == "ME21") chamber_type_ = ME21;
-   if(chamber_type_string_ == "ME22") chamber_type_ = ME22;
-   if(chamber_type_string_ == "ME32") chamber_type_ = ME22;
-   if(chamber_type_string_ == "ME42") chamber_type_ = ME22;
-   if(chamber_type_string_ == "ME31") chamber_type_ = ME31;
-   if(chamber_type_string_ == "ME41") chamber_type_ = ME41;
-   //
-   std::cout << "^^^^^^^" << chamber_type_string_ << std::endl ;
-   //
-   if(WRONG_CHAMBER_TYPE_(chamber_type_)) throw ("Bad chamber type in ALCTController");
-   nAFEBs_ = chamb_table[chamber_type_].wiregroups / alct_table[chamb_table[chamber_type_].alct].delaylines;
-   n_lct_chips_ = alct_table[chamb_table[chamber_type_].alct].groups;
-   std::cout << " ALCT: type " << chamber_type_string_ << " " << chamber_type_ << " AFEBS " << nAFEBs_ << " chips " << n_lct_chips_ << std::endl;
-   alct_rsz = chamtype[chamber_type_].RegSz;
-   
-   printf("####Object#############. %d \n",alct_fifo_pretrig_);
-
-   // now give a default value for the control registers
-   unsigned cr[] = {0x80fc5fc0, 0x20a03786, 0x8}; // default values for CR
-   setCRfld(&params_);
-   //unpackControlRegister(cr);
-   //
-   printf("####Object#############. %d \n",alct_fifo_pretrig_);
-   //
+{
+  alctPatternFile="";
+  alctHotChannelFile="";
+  //
+  ALCT_FAST_JTAG_CHANNEL = ALCT_FAST_VME_JTAG_CHANNEL;
+  if(chamber_type_string_ == "ME11") chamber_type_ = ME11;
+  if(chamber_type_string_ == "ME12") chamber_type_ = ME12;
+  if(chamber_type_string_ == "ME13") chamber_type_ = ME13;
+  if(chamber_type_string_ == "ME21") chamber_type_ = ME21;
+  if(chamber_type_string_ == "ME22") chamber_type_ = ME22;
+  if(chamber_type_string_ == "ME32") chamber_type_ = ME22;
+  if(chamber_type_string_ == "ME42") chamber_type_ = ME22;
+  if(chamber_type_string_ == "ME31") chamber_type_ = ME31;
+  if(chamber_type_string_ == "ME41") chamber_type_ = ME41;
+  //
+  std::cout << "^^^^^^^" << chamber_type_string_ << std::endl ;
+  //
+  if(WRONG_CHAMBER_TYPE_(chamber_type_)) throw ("Bad chamber type in ALCTController");
+  nAFEBs_ = chamb_table[chamber_type_].wiregroups / alct_table[chamb_table[chamber_type_].alct].delaylines;
+  n_lct_chips_ = alct_table[chamb_table[chamber_type_].alct].groups;
+  std::cout << " ALCT: type " << chamber_type_string_ << " " << chamber_type_ << " AFEBS " << nAFEBs_ << " chips " << n_lct_chips_ << std::endl;
+  alct_rsz = chamtype[chamber_type_].RegSz;
+  
+  // now give a default value for the control registers
+  unsigned cr[] = {0x80fc5fc0, 0x20a03786, 0x8}; // default values for CR
+  setCRfld(&params_);
+  //unpackControlRegister(cr);
+  //
 }
 
 
@@ -1523,9 +1522,7 @@ void ALCTController::setCRfld(alct_params_type* p) {
     crParams_[6]  = (char*)&(alct_nph_pattern_);
     crParams_[7]  = (char*)&(alct_drift_delay_);
     crParams_[8]  = (char*)&(alct_fifo_tbins_);
-    printf("********************** alct_fifo_pretrig %d \n",alct_fifo_pretrig_);
     crParams_[9]  = (char*)&(alct_fifo_pretrig_);
-    printf("********************** alct_fifo_pretrig %d \n",*crParams_[9]);
     crParams_[10] = (char*)&(alct_fifo_mode_);
     crParams_[11] = (char*)&(p->fifo_last_feb);
     crParams_[12] = (char*)&(alct_l1a_delay_);
@@ -1550,7 +1547,6 @@ void ALCTController::setCRfld(alct_params_type* p) {
 
 
 void ALCTController::packControlRegister(unsigned * cr) const {
-  printf("********************** %d ",*crParams_[9]);
   //*crParams_[9] = 8;
   for (int i = 0; i < sizeof (CRfld) / sizeof (struct Rfield); i++)
   {

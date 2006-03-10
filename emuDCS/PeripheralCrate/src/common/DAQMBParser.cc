@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.cc,v 2.2 2005/09/13 14:46:40 mey Exp $
+// $Id: DAQMBParser.cc,v 2.3 2006/03/10 15:55:28 mey Exp $
 // $Log: DAQMBParser.cc,v $
+// Revision 2.3  2006/03/10 15:55:28  mey
+// Update
+//
 // Revision 2.2  2005/09/13 14:46:40  mey
 // Get DMB crate id; and DCS
 //
@@ -59,8 +62,10 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, int crateNumber)
 	std::string  nodeName = xercesc::XMLString::transcode(daughterNode->getNodeName());
         parser_.parseNode(daughterNode);
 	parser_.fillInt("Number", number);
-	CFEB cfeb(number);
-	daqmb_->cfebs_.push_back(cfeb);
+	if ( number <5 ){
+	  CFEB cfeb(number);
+	  daqmb_->cfebs_.push_back(cfeb);
+	}
       }
       daughterNode = daughterNode->getNextSibling();
     }

@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.26 2006/03/10 13:13:13 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.27 2006/03/10 15:55:28 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.27  2006/03/10 15:55:28  mey
+// Update
+//
 // Revision 2.26  2006/03/10 13:13:13  mey
 // Jinghua's changes
 //
@@ -1706,14 +1709,19 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
 	 dd=d;
 	 if(j==1) dd |= TCK;
 	 // buff_mode could be either 3 (send and READ!!!) or 1 (buffered):
-	 //if((cnt%56) != 0  ){
-	 vme_controller((j==2)?buff_mode:1,ptr,&dd,(char *)(mytmp+2*i));
+	 int div = 224;
+	 //
+	 //if (cnt>290) div = cnt/(cnt/290 + 1) ;
+	 //
+	 //if((i%div) != 0  ){
+	   vme_controller((j==2)?buff_mode:1,ptr,&dd,(char *)(mytmp+2*i));
 	   //} else {
-	   //vme_controller(3,ptr,&dd,(char *)(mytmp+2*i));			  }
+	   //vme_controller(3,ptr,&dd,(char *)(mytmp+2*i));			 
 	   //}
+	 //
        }
    }
- 
+ //
  // printf("done loop\n");
  // Now put the state machine into idle.
  for(i=0; i<2; i++)
