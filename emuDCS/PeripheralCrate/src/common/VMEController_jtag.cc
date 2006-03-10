@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.24 2006/03/10 08:55:08 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.25 2006/03/10 10:51:47 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.25  2006/03/10 10:51:47  mey
+// Update
+//
 // Revision 2.24  2006/03/10 08:55:08  mey
 // Rollback
 //
@@ -1647,6 +1650,7 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
 // need better algorithm later......
  buff_mode = (cnt>290)?3:1;
  if(ird==0) buff_mode = 1;
+ if(ird==2) buff_mode = 1; //only for firmware loading...
  //
  if (debug) {
    printf("scan_alct: reg=%d, cnt=%d, ird=%d, Send %02x %02x\n", reg, cnt, ird, snd[0]&0xff, snd[1]&0xff);
