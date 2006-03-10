@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.8 2006/02/25 11:24:34 mey Exp $
+// $Id: ALCTController.h,v 2.9 2006/03/10 15:55:27 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.9  2006/03/10 15:55:27  mey
+// Update
+//
 // Revision 2.8  2006/02/25 11:24:34  mey
 // Changed to constant
 //
@@ -142,6 +145,13 @@ public:
   // ==========================
   void set_empty(int);
   void set_l1a_internal(int);
+  inline void SetDelay(int number,int delay) {
+    if (number<(sizeof(delays_)/4)) delays_[number]=delay;
+  }
+  inline void SetThreshold(int number,int threshold) {
+    std::cout << sizeof(thresholds_) << std::endl ;
+    if (number<(sizeof(delays_)/4)) thresholds_[number]=threshold;
+  }
   //
   /// Set ALCT JTAG Channel
   int alct_fast_set_jtag_channel(int jtagchannel);
@@ -509,35 +519,32 @@ public:
   ALCTSTATUS DumpFifo();
 
   void set_defaults(alct_params_type *p);
-      void show_params(int access_mode, alct_params_type *p);
-      
-      void start(int idev);
-      void alct_end();
-      void send_last();
-      
-      int do_jtag(int chip_id, int opcode, int mode, const int *first, int length, 
+  void show_params(int access_mode, alct_params_type *p);
+  
+  void start(int idev);
+  void alct_end();
+  void send_last();
+  
+  int do_jtag(int chip_id, int opcode, int mode, const int *first, int length, 
 	      int *val);
-      int do_jtag2(int chip_id, int opcode, int mode, const int *first, int length, 
+  int do_jtag2(int chip_id, int opcode, int mode, const int *first, int length, 
 	       int *val);
-      
-      /* Declarations for jtag_io_byte.c by Lisa Gorn */
-      
-      void jtag_io_byte_(int *nframes, char *tms, char *tdi, char *tdo, 
+  
+  /* Declarations for jtag_io_byte.c by Lisa Gorn */
+  
+  void jtag_io_byte_(int *nframes, char *tms, char *tdi, char *tdo, 
                      int *step_mode);
-      void init_jtag();
-      
-      void Parse(char *buf,int *Count,char **Word);
-      int SVFLoad(int*, const char *, int);
-      int NewSVFLoad(int*, char *, int);
-      int ConvertCharToInteger(char [], int [], int &);
-      int ConstructShift(char HeaderData[8192],int HeaderDataSize, char Data[8192], int DataSize, 
-			 char TrailerData[8192], int TrailerDataSize, int[] );
+  void init_jtag();
+  
+  void Parse(char *buf,int *Count,char **Word);
+  int SVFLoad(int*, const char *, int);
+  int NewSVFLoad(int*, char *, int);
+  int ConvertCharToInteger(char [], int [], int &);
+  int ConstructShift(char HeaderData[8192],int HeaderDataSize, char Data[8192], int DataSize, 
+		     char TrailerData[8192], int TrailerDataSize, int[] );
   int ReadIDCODE();
   int nAfebs() { return nAFEBs_; }
-  //fg temporarily made public
-    unsigned int delays_[42];
-    int thresholds_[42];
-
+  
   protected:
   // can't have an anodeChannel, since it needs to download 6 delays at a time.
   //std::vector<AnodeChannel> anodeChannels_;
@@ -572,7 +579,8 @@ public:
   
   private:
   //
-
+  unsigned int delays_[42];
+  int thresholds_[42];
   //
   TMB * tmb_;
   LINKTYPE alct_link_type;
