@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.17 2006/03/10 10:13:53 mey Exp $
+// $Id: CCB.h,v 2.18 2006/03/10 10:42:22 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.18  2006/03/10 10:42:22  mey
+// Left DCS message
+//
 // Revision 2.17  2006/03/10 10:13:53  mey
 // Got rid of DCS
 //
@@ -147,6 +150,7 @@ public:
   int CLK_INIT_FLAG; 
   int CCB_CSR1_SAV;
   
+  //code used by DCS
   
   void cmd_source_to_ttcrx();
   void cmd_source_to_vme();
@@ -179,6 +183,7 @@ public:
   int get_la1_delay(); // test stuff
   void DumpAddress(int);
 
+  //code used by DCS
 
 protected:
   int mCCBMode;
