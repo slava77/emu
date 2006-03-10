@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.49 2006/03/09 22:30:16 mey Exp $
+// $Id: TMB.cc,v 2.50 2006/03/10 13:13:13 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.50  2006/03/10 13:13:13  mey
+// Jinghua's changes
+//
 // Revision 2.49  2006/03/09 22:30:16  mey
 // Jinghua's updates
 //
@@ -3227,6 +3230,7 @@ void TMB::start(int idev) {
     ucla_ldev = idev;
   }
   //theController->start(this);
+  start();
 }
 
 
