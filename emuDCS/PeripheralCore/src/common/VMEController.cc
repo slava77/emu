@@ -2,10 +2,10 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.15 2006/03/09 22:30:16 mey Exp $
+// $Id: VMEController.cc,v 2.16 2006/03/10 08:55:08 mey Exp $
 // $Log: VMEController.cc,v $
-// Revision 2.15  2006/03/09 22:30:16  mey
-// Jinghua's updates
+// Revision 2.16  2006/03/10 08:55:08  mey
+// Rollback
 //
 // Revision 2.14  2006/02/06 10:30:16  mey
 // Fixed DMB loading
@@ -296,10 +296,10 @@ VMEModule* VMEController::getTheCurrentModule(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.15 2006/03/09 22:30:16 mey Exp $
+// $Id: VMEController.cc,v 2.16 2006/03/10 08:55:08 mey Exp $
 // $Log: VMEController.cc,v $
-// Revision 2.15  2006/03/09 22:30:16  mey
-// Jinghua's updates
+// Revision 2.16  2006/03/10 08:55:08  mey
+// Rollback
 //
 // Revision 2.14  2006/02/06 10:30:16  mey
 // Fixed DMB loading
@@ -349,6 +349,7 @@ VMEModule* VMEController::getTheCurrentModule(){
 //
 //----------------------------------------------------------------------
 #include "VMEController.h"
+#include "VMEModule.h"
 #include "Crate.h"
 #include <cmath>
 #include <string>
@@ -400,8 +401,9 @@ VMEModule* VMEController::getTheCurrentModule(){
 #endif
 
 
-VMEController::VMEController(int crate): 
- crate_(crate), indian(SWAP),  max_buff(0), tot_buff(0), 
+VMEController::VMEController(int crate, string ipAddr, int port): 
+ theSocket(0), ipAddress_(ipAddr), port_(port), theCurrentModule(0),
+ indian(SWAP),  max_buff(0), tot_buff(0), crate_(crate),
  plev(1), idevo(0)
 {
   //
@@ -413,164 +415,101 @@ VMEController::VMEController(int crate):
   DELAY3 = 16.384;
   //
   usedelay_ = false ;
+  
+  int socket = do_schar(1); // register a new schar device
+  cout << "VMEController opened socket = " << socket << endl;
+  cout << "VMEController opened port   = " << port << endl;
 }
+
 
 VMEController::~VMEController(){
   cout << "destructing VMEController .. closing socket " << endl;
   do_schar(2); // give up the schar device
 }
 
-void VMEController::init(string ipAddr, int port) {
-  ipAddress_=ipAddr;
-  port_=port;
-  theSocket=do_schar(1); // register a new schar device
-  
-  cout << "VMEController opened socket = " << socket << endl;
-  cout << "VMEController is using eth" << port_ << endl;
+
+void VMEController::start(VMEModule * module) {
+  if(theCurrentModule != module) {
+    PRINTSTRING(OVAL: start method defined in VMEController.cc is starting )
+    end();
+    PRINTSTRING(OVAL: starting current module);
+    module->start();
+    PRINTSTRING(OVAL: current module was started);
+    theCurrentModule = module;
+    board=module->boardType();
+    vmeadd=(module->slot())<<19;
+  }
 }
 
-void VMEController::reset() {
-  mrst_ff();
-  set_VME_mode();   
-  reload_FPGA();  
-}
 
-void VMEController::start(int slot, int boardtype) {
-    board=boardtype;
-    vmeadd=slot<<19;
-    add_ucla=vmeadd|0x70000;
-}
 
 void VMEController::end() {
+  if(theCurrentModule != 0) {
+    theCurrentModule->end();
+    theCurrentModule = 0;
+  }
+//  assert(plev !=2);
+//  idevo = 0;
+//  feuseo = 0;
 }
+
 
 void VMEController::send_last() {
 }
 
-void VMEController::do_vme(char fcn, char vme,
-                           const char *snd,char *rcv, int when) {
-unsigned short int it[1]; 
-unsigned short int tmp[1]={0x0000};
-unsigned short int *ptr_rice;
-unsigned long add_rice;
-unsigned short int itwr[2]={1,3};
-unsigned short int itrd[2]={2,2};
-char ttt;
-
-//printf("in VMEController::do_vme. fcn=%d, baseadd=%08X\n",fcn,vmeadd);
- if(fcn==15)return;
- add_rice=vmeadd|(unsigned char)vme;
- ptr_rice=(unsigned short int *)add_rice;
- if(fcn==2){
-   //printf(" rice VME W:%08x %04x \n",ptr_rice,it[0]);
-   //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
-   it[0]=snd[1]&0x00ff;
-   it[0]=it[0]|((snd[0]<<8)&0xff00);
-   vme_controller(itwr[when],ptr_rice,it,rcv);
- }
- //
- if(fcn==1 ){
-   //printf(" rice VME R: %08x %04x \n",ptr_rice,*rcv);
-   vme_controller(itrd[when],ptr_rice,tmp,rcv);
-   //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
-   ttt=rcv[0];
-   rcv[0]=rcv[1];
-   rcv[1]=ttt;
-   //
- }
- //
- if(fcn==5){ // Need this to speak to the TMB bootregister MvdM
-   //
-   add_rice=vmeadd|0x70000;
-   ptr_rice=(unsigned short int *)add_rice;
-   //
-   //printf(" rice VME R: %08x %04x \n",ptr_rice,*rcv);
-   vme_controller(itrd[when],ptr_rice,tmp,rcv);
-   //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
-   ttt=rcv[0];
-   rcv[0]=rcv[1];
-   rcv[1]=ttt;
-   //
-   //std::cout << "ptr " << ptr_rice << std::endl;
-   //
- }
- //
- if(fcn==6){ // Need this to speak to the TMB bootregister MvdM
-   //
-   //printf(" rice VME W:%08x %04x \n",ptr_rice,it[0]);
-   //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
-   it[0]=snd[1]&0x00ff;
-   it[0]=it[0]|((snd[0]<<8)&0xff00);
-   //
-   add_rice=vmeadd|0x70000;
-   ptr_rice=(unsigned short int *)add_rice;
-   //
-   vme_controller(itwr[when],ptr_rice,it,rcv);
- }
- //
- if(fcn==3) sleep_vme(snd); // sleep 
- if(fcn==4) handshake_vme(); // handshake
-}
-
-
-
 int VMEController::do_schar(int open_or_close) 
 {
   static int scharhandles[10];
-  static int scharcounts[10];
   int realport=2;
-  int schsocket;
   if(port_ >0 && port_ <10)  realport= port_;
 
   if(open_or_close==1) 
   {
-    if(scharcounts[realport]<1)
+    if(scharhandles[realport]<1)
     {
        char schardev_name[12]="/dev/schar0";
        schardev_name[10] += realport;
        schardev_name[11]=0;
        std::cout << "Opening " << schardev_name << std::endl ;
-       schsocket = open(schardev_name, O_RDWR);
+       theSocket = open(schardev_name, O_RDWR);
        if (theSocket == -1) 
        {
-          std::cout << "ERROR opening /dev/schar device...ERROR" << std::endl;
-          exit(-1);
+         perror("open");
+         exit(-1);
        }
        // eth_enableblock();
        eth_reset();
-       scharhandles[realport]=schsocket;
-       scharcounts[realport]=0;
+       scharhandles[realport]=0;
     }
-    else 
-    { 
-       schsocket = scharhandles[realport];
-    }
-    scharcounts[realport]++;
+    scharhandles[realport]++;
     get_macaddr(realport);
+    mrst_ff();
+    set_VME_mode();   
     
-    return schsocket;
+    return theSocket;
   }
   else if(open_or_close==2)
   {
-    if(scharcounts[realport]>0)
+    if(scharhandles[realport]>0)
     {
-       schsocket=scharhandles[realport];
-       scharcounts[realport]--;    
-       if(scharcounts[realport]==0) 
-       {  close(schsocket);
-          schsocket = 0;
-       } 
-       return schsocket;
+    scharhandles[realport]--;
+    if(scharhandles[realport]==0) close(theSocket);
+    theSocket = 0;
     }
-    return -1;
+    return theSocket;
   }
 }
+
 
 
 void VMEController::goToScanLevel(){
 }
 
 void VMEController::release_plev(){
+}
+
+VMEModule* VMEController::getTheCurrentModule(){
+ return theCurrentModule;
 }
 
 int udelay(long int itim)
@@ -697,7 +636,7 @@ void VMEController::flush_vme()
 int VMEController::eth_reset(void)
 { 
   if(ioctl(theSocket,SCHAR_RESET)==-1){
-    std::cout << "ERROR in SCHAR_RESET" << std::endl;
+    printf(" error in SCHAR_RESET \n");
   }
 
   return 0;
@@ -723,11 +662,11 @@ void VMEController::mrst_ff()
 {
   int n;
   int l,lcnt;
-  wbuf[0]=0x40;
+  wbuf[0]=0x00;
   wbuf[1]=MRst_Ext_FF;
   nwbuf=2;
   n=eth_write();
-  std::cout << "Full reset of FIFO done." << std::endl;
+  printf("Full reset of FIFO done.\n");
   for(l=0;l<8000;l++)lcnt++;
   return;
 }
@@ -736,25 +675,12 @@ void VMEController::set_VME_mode()
 {
   int n;
   int l,lcnt;
-  wbuf[0]=0x40;
+  wbuf[0]=0x00;
   wbuf[1]=Set_FF_VME;
   nwbuf=2;
   n=eth_write();
-  std::cout << "Controller is in VME mode." << std::endl;
+  printf("Controller is in VME mode.\n");
   for(l=0;l<8000;l++)lcnt++;
-  return;
-}
-
-void VMEController::reload_FPGA()
-{
-  int n;
-  int l,lcnt;
-  wbuf[0]=0x40;
-  wbuf[1]=0xF9;
-  nwbuf=2;
-  n=eth_write();
-  std::cout << "Controller's FPGA reloaded." << std::endl;
-  for(l=0;l<80000;l++)lcnt++;
   return;
 }
 
@@ -768,12 +694,12 @@ void VMEController::get_macaddr(int realport)
    eth[3] = '0' + realport; 
    //create socket
    if((msock_fd = socket(PF_INET, SOCK_STREAM, 0)) == -1)
-     std::cout << "Error in call: socket()" << std::endl;
+     fprintf(stderr, "Error in call: socket()\n");
      
    //get MAC address
    strcpy(mifr.ifr_name, eth);
    if(ioctl(msock_fd,SIOCGIFHWADDR,&mifr) < 0)
-     std::cout << "Error in call ioctl(socket, SIOCGIFHWADDR)" << std::endl;
+     fprintf(stderr, "Error in call ioctl(socket, SIOCGIFHWADDR)\n");
    
    memcpy(hw_source_addr,mifr.ifr_addr.sa_data, ETH_ALEN);
    memcpy(ether_header.h_source, hw_source_addr, ETH_ALEN);
@@ -796,7 +722,7 @@ int VMEController::eth_write()
 
    msg_size = sizeof(ether_header) + nwbuf;
    if((msg = (char *)malloc(msg_size*sizeof(unsigned char))) == NULL){ 
-          std::cout << "ERROR in eth_write(): malloc(): No memory available" << std::endl;
+           perror("rp_send: main(): malloc(): No memory available");
            exit(1);
    }
    memcpy(msg, &ether_header, sizeof(ether_header));
@@ -1027,7 +953,7 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
 }
 
 /* dump specific to A24/1/0 for now */
-/*
+
 void VMEController::dump_outpacket(int nvme)
 {
 int nwbuft,nwbufto,i;
@@ -1055,5 +981,5 @@ int nwbuft,nwbufto,i;
     }
  }
 }
-*/
+
 #endif

@@ -1,9 +1,9 @@
 #ifndef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.12 2006/03/09 22:30:16 mey Exp $
+// $Id: VMEModule.cc,v 2.13 2006/03/10 08:55:08 mey Exp $
 // $Log: VMEModule.cc,v $
-// Revision 2.12  2006/03/09 22:30:16  mey
-// Jinghua's updates
+// Revision 2.13  2006/03/10 08:55:08  mey
+// Rollback
 //
 // Revision 2.11  2006/01/31 08:52:29  mey
 // UPdate
@@ -199,10 +199,10 @@ VMEController* VMEModule::getTheController(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.12 2006/03/09 22:30:16 mey Exp $
+// $Id: VMEModule.cc,v 2.13 2006/03/10 08:55:08 mey Exp $
 // $Log: VMEModule.cc,v $
-// Revision 2.12  2006/03/09 22:30:16  mey
-// Jinghua's updates
+// Revision 2.13  2006/03/10 08:55:08  mey
+// Rollback
 //
 // Revision 2.11  2006/01/31 08:52:29  mey
 // UPdate
@@ -253,6 +253,10 @@ VMEController* VMEModule::getTheController(){
 #include <iostream>
 #include <unistd.h> // read and write
 
+extern unsigned long add_ucla;
+extern unsigned long add_control_r;
+extern unsigned long msk_control_r;
+
 #ifndef debugV //silent mode
 #define PRINT(x) 
 #define PRINTSTRING(x)  
@@ -280,7 +284,13 @@ void VMEModule::start() {
 #ifdef debugV
   cout << "starting VMEModule for slot " << dec << theSlot << " boardType " << boardType() << " line " << (int) c << endl;
 #endif  
-  theController->start( theSlot, boardType() );
+   vmebase=0x00000000|(theSlot<<19);
+// Jinghua Liu to debug
+   //printf("slot: %d, base address: %08x\n", theSlot, vmebase);
+//
+   if(boardType()==TMB_ENUM) {
+      add_ucla=vmebase|0x70000;
+   }
 }
 
 
@@ -292,21 +302,91 @@ void VMEModule::endDevice() {
   theController->end();
 }
 
+
 void VMEModule::do_vme(char fcn, char vme, 
                        const char *snd,char *rcv, int when) {
-   theController->start( theSlot, boardType() );
-   theController->do_vme(fcn, vme, snd, rcv, when);
+theController->start(this);
+unsigned short int it[1]; 
+unsigned short int tmp[1]={0x0000};
+unsigned short int *ptr_rice;
+unsigned long add_rice;
+unsigned short int itwr[2]={1,3};
+unsigned short int itrd[2]={2,2};
+char ttt;
+
+//printf("in VMEModule::do_vme. fcn=%d, baseadd=%08X\n",fcn,vmebase);
+ if(fcn==15)return;
+ add_rice=vmebase|(unsigned char)vme;
+ ptr_rice=(unsigned short int *)add_rice;
+ if(fcn==2){
+   //printf(" rice VME W:%08x %04x \n",ptr_rice,it[0]);
+   //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
+   it[0]=snd[1]&0x00ff;
+   it[0]=it[0]|((snd[0]<<8)&0xff00);
+   vme_controller(itwr[when],ptr_rice,it,rcv);
+ }
+ //
+ if(fcn==1 ){
+   //printf(" rice VME R: %08x %04x \n",ptr_rice,*rcv);
+   vme_controller(itrd[when],ptr_rice,tmp,rcv);
+   //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
+   ttt=rcv[0];
+   rcv[0]=rcv[1];
+   rcv[1]=ttt;
+   //
+ }
+ //
+ if(fcn==5){ // Need this to speak to the TMB bootregister MvdM
+   //
+   add_rice=vmebase|0x70000;
+   ptr_rice=(unsigned short int *)add_rice;
+   //
+   //printf(" rice VME R: %08x %04x \n",ptr_rice,*rcv);
+   vme_controller(itrd[when],ptr_rice,tmp,rcv);
+   //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
+   ttt=rcv[0];
+   rcv[0]=rcv[1];
+   rcv[1]=ttt;
+   //
+   //std::cout << "ptr " << ptr_rice << std::endl;
+   //
+ }
+ //
+ if(fcn==6){ // Need this to speak to the TMB bootregister MvdM
+   //
+   //printf(" rice VME W:%08x %04x \n",ptr_rice,it[0]);
+   //Jinghua Liu to added extra byte swap for those modules use do_vme(TMB,CCB,MPC)
+   it[0]=snd[1]&0x00ff;
+   it[0]=it[0]|((snd[0]<<8)&0xff00);
+   //
+   add_rice=vmebase|0x70000;
+   ptr_rice=(unsigned short int *)add_rice;
+   //
+   vme_controller(itwr[when],ptr_rice,it,rcv);
+ }
+ //
+ if(fcn==3) theController->sleep_vme(snd); // sleep 
+ if(fcn==4) theController->handshake_vme(); // handshake
 }
+
+
 
 void VMEModule::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,
                      const char *inbuf,char *outbuf,int irdsnd) {
   //printf("VMEModule::devdo\n");
-  theController->start( theSlot, boardType() );
+  theController->start(this);
   theController->devdo(dev, ncmd, cmd, nbuf, inbuf, outbuf, irdsnd);
 }
 
+void VMEModule::vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv){
+  //printf("VMEModule::vme_controller\n");
+  theController->start(this);
+  theController->vme_controller(irdwr,ptr,data,rcv);
+}
+
+
 void VMEModule::scan(int reg,const char *snd,int cnt,char *rcv,int ird) {
-  theController->start( theSlot, boardType() );
+  theController->start(this);
   if(boardType()==TMB_ENUM)
     theController->scan_alct(reg, snd, cnt, rcv, ird);
   else
@@ -314,12 +394,13 @@ void VMEModule::scan(int reg,const char *snd,int cnt,char *rcv,int ird) {
 }
 
 void VMEModule::InitJTAG(int port) {
-  theController->start( theSlot, boardType() );
+  theController->start(this);
   theController->InitJTAG(port);
 }
 
+
 void VMEModule::CloseJTAG() {
-  theController->start( theSlot, boardType() );
+  theController->start(this);
   theController->CloseJTAG();
   theController->end();
 }
