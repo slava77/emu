@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.28 2006/02/25 11:25:11 mey Exp $
+// $Id: CCB.cc,v 2.29 2006/03/10 10:13:54 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.29  2006/03/10 10:13:54  mey
+// Got rid of DCS
+//
 // Revision 2.28  2006/02/25 11:25:11  mey
 // UPdate
 //
@@ -1205,7 +1208,6 @@ void CCB::firmwareVersion(){
        << day << "-" << month << "-" << year << std::endl;
 }
 //
-#ifdef USEDCS
 //fg NOTE: CSR1 (2001) vs CSRB1(2004) bit  incompatibilities ...
 void CCB::cmd_source_to_ttcrx(){
 // 2004
@@ -1507,4 +1509,4 @@ int CCB::get_la1_delay(){
 	    << std::dec << std::endl;
   return 1;
 }
-#endif
+
