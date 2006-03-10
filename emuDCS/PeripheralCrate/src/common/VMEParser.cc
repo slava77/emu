@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.cc,v 2.3 2006/03/09 22:30:16 mey Exp $
+// $Id: VMEParser.cc,v 2.4 2006/03/10 08:55:08 mey Exp $
 // $Log: VMEParser.cc,v $
-// Revision 2.3  2006/03/09 22:30:16  mey
-// Jinghua's updates
+// Revision 2.4  2006/03/10 08:55:08  mey
+// Rollback
 //
 // Revision 2.2  2005/11/21 15:48:31  mey
 // Update
@@ -29,12 +29,7 @@ VMEParser::VMEParser(xercesc::DOMNode * pNode, int number)
   parser_.fillString("ipAddress",ipAddress); 
   parser_.fillInt("port",port);
   
-  controller_ = new VMEController(number); 
-
-// The following is just to show how it works. 
-// Must be moved to somewhere else. Jinghua Liu
-  controller_->init(ipAddress, port);
-
+  controller_ = new VMEController(number, ipAddress, port);
   crate_ = new Crate(number, controller_);
 }
 

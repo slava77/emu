@@ -2,10 +2,13 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.23 2006/03/09 22:30:16 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.24 2006/03/10 08:55:08 mey Exp $
 // $Log: VMEController_jtag.cc,v $
-// Revision 2.23  2006/03/09 22:30:16  mey
-// Jinghua's updates
+// Revision 2.24  2006/03/10 08:55:08  mey
+// Rollback
+//
+// Revision 2.22  2006/03/08 22:53:12  mey
+// Update
 //
 // Revision 2.21  2006/02/17 14:09:46  mey
 // Added new RAT case
@@ -707,6 +710,7 @@ return l;
 #include <stdio.h>
 #include <unistd.h> 
 #include "VMEController.h"
+#include "VMEModule.h"
 #include "geom.h"
 #include "Crate.h"
 #include <cmath>
@@ -1641,44 +1645,44 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
 // Jinghua Liu:
 // If more than 290 bits, can't put them into a single packet,
 // need better algorithm later......
- if(ird) {buff_mode = (cnt>290)?3:1;}
- else{buff_mode = 1;}
-
-   if (debug) {
-      printf("scan_alct: reg=%d, cnt=%d, ird=%d, Send %02x %02x\n", reg, cnt, ird, snd[0]&0xff, snd[1]&0xff);
-   }
-
-   //  reg=0: instruction
-   //  reg=1: data
+ buff_mode = (cnt>290)?3:1;
+ if(ird==0) buff_mode = 1;
+ //
+ if (debug) {
+   printf("scan_alct: reg=%d, cnt=%d, ird=%d, Send %02x %02x\n", reg, cnt, ird, snd[0]&0xff, snd[1]&0xff);
+ }
  
-   for(i=reg; i<6; i++)
+ //  reg=0: instruction
+ //  reg=1: data
+ 
+ for(i=reg; i<6; i++)
    {
      d=pvme;
      if(i>(reg+1) && i<4) d |=TMS;
      for(j=0;j<3;j++)
-     {  
-        // each shift needs 3 VME writes, the 2nd one with TCK on:
-        dd=d;
-        if(j==1) dd |= TCK;
-        vme_controller(1,ptr,&dd,rcv);        
-     }
+       {  
+	 // each shift needs 3 VME writes, the 2nd one with TCK on:
+	 dd=d;
+	 if(j==1) dd |= TCK;
+	 vme_controller(1,ptr,&dd,rcv);        
+       }
    }
-
-  // Loop to shift in/out bits
-  bit=0;
-  k=0;
-  bdata = data[k];
-  for(i=0;i<cnt;i++) 
-  {
+ 
+ // Loop to shift in/out bits
+ bit=0;
+ k=0;
+ bdata = data[k];
+ for(i=0;i<cnt;i++) 
+   {
      ival = bdata&0x01;
      bdata >>= 1;
      bit++;
      if(bit==8) 
-     { 
-        bit=0;
-        k++;
-        bdata = data[k];
-     }
+       { 
+	 bit=0;
+	 k++;
+	 bdata = data[k];
+       }
 
      if(ird){
        // read out one bit, the last argument is just a dummy.
@@ -1690,54 +1694,54 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
      // at the last shift, we need set TMS=1
      if(i==cnt-1) d |=TMS;
      for(j=0;j<3;j++)
-     {
-        dd=d;
-        if(j==1) dd |= TCK;
-        // buff_mode could be either 3 (send and READ!!!) or 1 (buffered):
-        vme_controller((j==2)?buff_mode:1,ptr,&dd,(char *)(mytmp+2*i));
-     }
-  }
-  
-  // printf("done loop\n");
-  // Now put the state machine into idle.
-  for(i=0; i<2; i++)
-  {
+       {
+	 dd=d;
+	 if(j==1) dd |= TCK;
+	 // buff_mode could be either 3 (send and READ!!!) or 1 (buffered):
+	 vme_controller((j==2)?buff_mode:1,ptr,&dd,(char *)(mytmp+2*i));
+       }
+   }
+ 
+ // printf("done loop\n");
+ // Now put the state machine into idle.
+ for(i=0; i<2; i++)
+   {
      d=pvme;
      if(i==0) d |=TMS;
      for(j=0;j<3;j++)
-     {  
-        dd=d;
-        if(j==1) dd |= TCK;
-        // In the last VME WRITE send the packets. And READ back all data 
-        // in the case of fully buffered mode (buff_mode=1).
-        vme_controller((i==1 && j==2)?3:1,ptr,&dd,(char *)mytmp);        
-     }
-  }
-
-  if(ird)
-  {
-    // combine bits in mytmp[] into bytes in rcv[].
-    //  for(i=0; i<cnt*2; i++) printf("%02x ", mytmp[i]&0xff);
-    //  printf("\n");
+       {  
+	 dd=d;
+	 if(j==1) dd |= TCK;
+	 // In the last VME WRITE send the packets. And READ back all data 
+	 // in the case of fully buffered mode (buff_mode=1).
+	 vme_controller((i==1 && j==2)?3:1,ptr,&dd,(char *)mytmp);        
+       }
+   }
+ 
+ if(ird)
+   {
+     // combine bits in mytmp[] into bytes in rcv[].
+     //  for(i=0; i<cnt*2; i++) printf("%02x ", mytmp[i]&0xff);
+     //  printf("\n");
      bit=0; 
      bdata=0; 
      j=0;
-    // Use cnt8 instead of cnt, to make sure the bits are in right place.
+     // Use cnt8 instead of cnt, to make sure the bits are in right place.
      cnt8 = 8*((cnt+7)/8);
      for(i=0;i<cnt8;i++)
-     {
+       {
          if(i<cnt) bdata |= mytmp[2*i+1] & 0x80;
          if(bit==7)
            { rcv2[j++]=bdata;  bit=0;  bdata=0; }
          else
            { bdata >>= 1;     bit++; }
-     }
+       }
      if (debug) {
-        printf("   Output: ");
-        for(i=0; i<cnt8/8; i++) printf("%02X ", rcv2[i]);
-        printf("\n");
+       printf("   Output: ");
+       for(i=0; i<cnt8/8; i++) printf("%02X ", rcv2[i]);
+       printf("\n");
      }
-  }
+   }
 }
 
 
