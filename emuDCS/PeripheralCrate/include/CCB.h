@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.16 2006/02/02 14:27:31 mey Exp $
+// $Id: CCB.h,v 2.17 2006/03/10 10:13:53 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.17  2006/03/10 10:13:53  mey
+// Got rid of DCS
+//
 // Revision 2.16  2006/02/02 14:27:31  mey
 // Update
 //
@@ -145,7 +148,6 @@ public:
   int CCB_CSR1_SAV;
   
   
-#ifdef USEDCS
   void cmd_source_to_ttcrx();
   void cmd_source_to_vme();
   void sync_reset_csr2();
@@ -175,8 +177,6 @@ public:
 
   int set_la1_delay(int delay);  // test stuff
   int get_la1_delay(); // test stuff
-#endif
-
   void DumpAddress(int);
 
 
