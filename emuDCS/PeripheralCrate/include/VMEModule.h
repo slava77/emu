@@ -2,10 +2,10 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.11 2006/03/10 08:54:23 mey Exp $
+// $Id: VMEModule.h,v 2.12 2006/03/10 13:13:12 mey Exp $
 // $Log: VMEModule.h,v $
-// Revision 2.11  2006/03/10 08:54:23  mey
-// Rollback
+// Revision 2.12  2006/03/10 13:13:12  mey
+// Jinghua's changes
 //
 // Revision 2.9  2006/01/13 09:36:19  geurts
 // changed SelfTest return type from void to bool for both controllers
@@ -120,10 +120,10 @@ protected:
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.11 2006/03/10 08:54:23 mey Exp $
+// $Id: VMEModule.h,v 2.12 2006/03/10 13:13:12 mey Exp $
 // $Log: VMEModule.h,v $
-// Revision 2.11  2006/03/10 08:54:23  mey
-// Rollback
+// Revision 2.12  2006/03/10 13:13:12  mey
+// Jinghua's changes
 //
 // Revision 2.9  2006/01/13 09:36:19  geurts
 // changed SelfTest return type from void to bool for both controllers
@@ -206,12 +206,10 @@ protected:
    void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
    void InitJTAG(int port);
    void CloseJTAG();
-   void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
 
    Crate * theCrate;
    VMEController * theController;
    int theSlot;
-   unsigned long vmebase;
 
       /// is this really needed?
   char sndbuf[4096];

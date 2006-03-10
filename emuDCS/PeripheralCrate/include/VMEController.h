@@ -2,10 +2,10 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.9 2006/03/10 08:53:47 mey Exp $
+// $Id: VMEController.h,v 2.10 2006/03/10 13:13:12 mey Exp $
 // $Log: VMEController.h,v $
-// Revision 2.9  2006/03/10 08:53:47  mey
-// Rollback
+// Revision 2.10  2006/03/10 13:13:12  mey
+// Jinghua's changes
 //
 // Revision 2.7  2006/01/09 07:27:15  mey
 // Update
@@ -124,10 +124,10 @@ private:
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.9 2006/03/10 08:53:47 mey Exp $
+// $Id: VMEController.h,v 2.10 2006/03/10 13:13:12 mey Exp $
 // $Log: VMEController.h,v $
-// Revision 2.9  2006/03/10 08:53:47  mey
-// Rollback
+// Revision 2.10  2006/03/10 13:13:12  mey
+// Jinghua's changes
 //
 // Revision 2.7  2006/01/09 07:27:15  mey
 // Update
@@ -161,8 +161,8 @@ private:
 using namespace std;
 #include <vector>
 #include <iostream>
-class VMEModule;
-class Crate;
+// class VMEModule;
+// class Crate;
 #include "JTAG_constants.h"
 #include <string>
 #include <arpa/inet.h>
@@ -170,29 +170,26 @@ class Crate;
 #include <time.h>
 #include <sys/time.h>
 
-
 class VMEController {
 public:
-  VMEController(int crate, string ipAddr, int port);
+  VMEController(int crate);
   ~VMEController();
 
   enum ENDIAN {SWAP, NOSWAP};
   enum {MAXLINE = 70000};
   
+  void init(string ipAddr, int port);
+  void reset();
   int do_schar(int open_or_close);
+  void do_vme(char fcn, char vme,const char *snd,char *rcv, int wrt);
 
   void SetUseDelay(bool state){usedelay_ = state;}
 
   string ipAddress() const {return ipAddress_;}
   int port() const {return port_;}
 
-  /// if not current modules, it stops current and starts new
-  /// this base routine sends a signal consisting of the
-  /// university and slot
-  void start(VMEModule * module);
-  /// ends whatever module is current
+  void start(int slot, int boardtype);
   void end();
-
  
   /// JTAG stuff
   void devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
@@ -203,41 +200,18 @@ public:
   void CloseJTAG();
   void send_last();
   void RestoreIdle_reset();
-  void load_cdac(const char *snd);
-  void vme_adc(int ichp,int ichn,char *rcv);
-  void buckflash(const char *cmd,const char *inbuf,char *rcv);
-  void lowvolt(int ichp,int ichn,char *rcv);
-  void  scan_reset(int reg, const char *snd, int cnt2, char *rcv,int ird);
-  void  sleep_vme(const char *outbuf);   // in usecs (min 16 usec)
-  void  sleep_vme2(unsigned short int time); // time in usec
-  void  long_sleep_vme2(float time);   // time in usec
-  void handshake_vme();
-  void flush_vme();
-  void  daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int *buf,unsigned char *rcv);
-  void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
-  void dump_outpacket(int nvme);
-  int eth_reset(void);
-  int eth_read();
-  int eth_write();
-  void mrst_ff();
-  void set_VME_mode();
-  void get_macaddr(int port);
-  void setuse();
   void goToScanLevel();
   void release_plev();
   void sdly();
   void RestoreIdle_alct();
   void scan_alct(int reg, const char *snd, int cnt, char *rcv,int ird);
   
-  VMEModule* getTheCurrentModule();
-
 private:
   bool usedelay_;
   int theSocket;
   string ipAddress_;
   int port_;
   int crate_;
-  VMEModule * theCurrentModule;
   sockaddr_in serv_addr;
   const ENDIAN indian;
 
@@ -260,6 +234,7 @@ private:
   int plev;
   int idevo;
   int board; //board type
+  unsigned long add_ucla; // current VME address for JTAG
   unsigned long vmeadd; // current VME base address for the module
   unsigned short int pvme; // value for ALCT JTAG register (0x70000)
   int feuse;
@@ -269,6 +244,29 @@ private:
   int packet_delay_flg;
   float DELAY2;
   float DELAY3;
+ 
+ // I like to keep them private. 
+  void load_cdac(const char *snd);
+  void vme_adc(int ichp,int ichn,char *rcv);
+  void buckflash(const char *cmd,const char *inbuf,char *rcv);
+  void lowvolt(int ichp,int ichn,char *rcv);
+  void  scan_reset(int reg, const char *snd, int cnt2, char *rcv,int ird);
+  void  sleep_vme(const char *outbuf);   // in usecs (min 16 usec)
+  void  sleep_vme2(unsigned short int time); // time in usec
+  void  long_sleep_vme2(float time);   // time in usec
+  void handshake_vme();
+  void flush_vme();
+  void  daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int *buf,unsigned char *rcv);
+  void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
+  void dump_outpacket(int nvme);
+  int eth_reset(void);
+  int eth_read();
+  int eth_write();
+  void mrst_ff();
+  void set_VME_mode();
+  void reload_FPGA();
+  void get_macaddr(int port);
+  void setuse();
 
 };
 
