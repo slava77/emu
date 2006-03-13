@@ -17,6 +17,8 @@ using namespace cgicc;
 
 XDAQ_INSTANTIATOR_IMPL(CSCSupervisor);
 
+static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
+
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
 		EmuApplication(stub), runtype("")
@@ -195,10 +197,10 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference e)
 		throw (toolbox::fsm::exception::Exception)
 {
 	setParameter("EmuPeripheralCrate", 0, "xmlFileName", "xsd:string", runtype);
-	propagateSOAP("Configure", "EmuPeripheralCrate", 0);
+	sendCommand("Configure", "EmuPeripheralCrate", 0);
 
-	propagateSOAP("Configure", "EmuFEDCrate", 0);
-	propagateSOAP("Configure", "EmuDAQManager", 0);
+	sendCommand("Configure", "EmuFEDCrate", 0);
+	sendCommand("Configure", "EmuDAQManager", 0);
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
@@ -206,8 +208,8 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference e)
 void CSCSupervisor::enableAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	propagateSOAP("Enable", "EmuPeripheralCrate", 0);
-	propagateSOAP("Enable", "EmuDAQManager", 0);
+	sendCommand("Enable", "EmuPeripheralCrate", 0);
+	sendCommand("Enable", "EmuDAQManager", 0);
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
@@ -215,8 +217,8 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference e)
 void CSCSupervisor::disableAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	propagateSOAP("Disable", "EmuDAQManager", 0);
-	propagateSOAP("Disable", "EmuPeripheralCrate", 0);
+	sendCommand("Disable", "EmuDAQManager", 0);
+	sendCommand("Disable", "EmuPeripheralCrate", 0);
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
@@ -224,9 +226,9 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference e)
 void CSCSupervisor::haltAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	propagateSOAP("Halt", "EmuPeripheralCrate", 0);
-	propagateSOAP("Halt", "EmuFEDCrate", 0);
-	propagateSOAP("Halt", "EmuDAQManager", 0);
+	sendCommand("Halt", "EmuPeripheralCrate", 0);
+	sendCommand("Halt", "EmuFEDCrate", 0);
+	sendCommand("Halt", "EmuDAQManager", 0);
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
@@ -237,7 +239,7 @@ void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
     EmuApplication::stateChanged(fsm);
 }
 
-void CSCSupervisor::propagateSOAP(string command, string klass, int instance)
+void CSCSupervisor::sendCommand(string command, string klass, int instance)
 		throw (toolbox::fsm::exception::Exception)
 {
 	xoap::MessageReference message = xoap::createMessage();
@@ -267,8 +269,7 @@ void CSCSupervisor::setParameter(
 			"properties", klass, "urn:xdaq-application:" + klass);
 	xoap::SOAPName parameter = envelope.createName(
 			name, klass, "urn:xdaq-application:" + klass);
-	xoap::SOAPName xsitype = envelope.createName(
-			"type", "xsi", "http://www.w3.org/2001/XMLSchema-instance");
+	xoap::SOAPName xsitype = envelope.createName("type", "xsi", NS_XSI);
 
 	xoap::SOAPElement properties_e = envelope.getBody()
 			.addBodyElement(command)
