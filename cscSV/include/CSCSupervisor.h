@@ -58,7 +58,7 @@ private:
 	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 			throw (toolbox::fsm::exception::Exception);
 
-	void propagateSOAP(string command, string klass, int instance)
+	void sendCommand(string command, string klass, int instance)
 			throw (toolbox::fsm::exception::Exception);
 	void setParameter(string klass, int instance,
 			string name, string type, string value)
