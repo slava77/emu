@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.59 2006/03/13 13:23:17 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.60 2006/03/13 13:27:37 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -284,7 +284,7 @@ public:
     //
     *out << cgicc::input().set("type","file")
       .set("name","xmlFilenameUpload")
-      .set("size","60") ;
+      .set("size","90") ;
     //
     *out << std::endl;
     //
@@ -299,7 +299,7 @@ public:
     *out << cgicc::form().set("method","POST").set("action",methodRaw) << std::endl ;
     *out << cgicc::textarea().set("name","Text")
       .set("WRAP","OFF")
-      .set("rows","20").set("cols","60");
+      .set("rows","10").set("cols","90");
     *out << "Paste configuration..." << endl ;
     *out << cgicc::textarea();
     *out << cgicc::input().set("type","submit").set("value","Send");
