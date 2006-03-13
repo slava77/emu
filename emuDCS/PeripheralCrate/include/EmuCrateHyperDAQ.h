@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.58 2006/03/08 22:53:11 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.59 2006/03/13 13:23:17 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -92,7 +92,7 @@ protected:
   //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
-  EmuController MyController;
+  EmuController * MyController(0);
   TMB * thisTMB(0) ;
   DAQMB* thisDMB(0) ;
   CCB* thisCCB(0) ;
@@ -156,8 +156,10 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::CFEBLoadFirmware, "CFEBLoadFirmware");
     xgi::bind(this,&EmuCrateHyperDAQ::CFEBStatus, "CFEBStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::ALCTStatus, "ALCTStatus");
+    xgi::bind(this,&EmuCrateHyperDAQ::CrateConfiguration, "CrateConfiguration");
     xgi::bind(this,&EmuCrateHyperDAQ::RATStatus, "RATStatus");
     xgi::bind(this,&EmuCrateHyperDAQ::CrateTests, "CrateTests");
+    xgi::bind(this,&EmuCrateHyperDAQ::ChamberTests, "ChamberTests");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTurnOff, "DMBTurnOff");
     xgi::bind(this,&EmuCrateHyperDAQ::DMBTurnOn, "DMBTurnOn");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBPrintCounters, "TMBPrintCounters");
@@ -167,6 +169,7 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::ALCTScan, "ALCTScan");
     xgi::bind(this,&EmuCrateHyperDAQ::CFEBTiming, "CFEBTiming");
     xgi::bind(this,&EmuCrateHyperDAQ::CFEBScan, "CFEBScan");
+    xgi::bind(this,&EmuCrateHyperDAQ::CalibrationRuns, "CalibrationRuns");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBStartTrigger, "TMBStartTrigger");
     xgi::bind(this,&EmuCrateHyperDAQ::EnableL1aRequest, "EnableL1aRequest");
     xgi::bind(this,&EmuCrateHyperDAQ::TMBL1aTiming, "TMBL1aTiming");
@@ -234,6 +237,8 @@ public:
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
+    if ( MyController == 0 ) MyController = new EmuController();
+    //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
@@ -244,54 +249,53 @@ public:
     //
     std::cout << "The xmlfile is " << xmlFile_.toString() << std::endl;
     //
-    if (tmbVector.size()==0 && dmbVector.size()==0) {
-      //
-      std::string method =
-	toolbox::toString("/%s/setConfFile",getApplicationDescriptor()->getURN().c_str());
-      //
-      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-      *out << std::endl;
-      //
-      *out << cgicc::legend("Upload Configuration...").set("style","color:blue") 
-	   << cgicc::p() << std::endl ;
-      //
-      *out << cgicc::form().set("method","POST").set("action",method) << std::endl ;
-      *out << cgicc::input().set("type","text")
-	.set("name","xmlFilename")
-	.set("size","60")
-	.set("ENCTYPE","multipart/form-data")
-	.set("value",xmlFile_);
-      //
-      *out << std::endl;
-      //
-      *out << cgicc::input().set("type","submit")
-	.set("value","Set configuration file local") << std::endl ;
-      *out << cgicc::form() << std::endl ;
-      //
-      // Upload file...
-      //
-      std::string methodUpload =
-	toolbox::toString("/%s/UploadConfFile",getApplicationDescriptor()->getURN().c_str());
-      //
-      *out << cgicc::form().set("method","POST")
-	.set("enctype","multipart/form-data")
-	.set("action",methodUpload) << std::endl ;
-      //
-      *out << cgicc::input().set("type","file")
-	.set("name","xmlFilenameUpload")
-	.set("size","60") ;
+    //if (tmbVector.size()==0 && dmbVector.size()==0) {
     //
-      *out << std::endl;
+    std::string method =
+      toolbox::toString("/%s/setConfFile",getApplicationDescriptor()->getURN().c_str());
     //
-      *out << cgicc::input().set("type","submit").set("value","Send") << std::endl ;
-      *out << cgicc::form() << std::endl ;
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    *out << std::endl;
     //
+    *out << cgicc::legend("Upload Configuration...").set("style","color:blue") 
+	 << cgicc::p() << std::endl ;
+    //
+    *out << cgicc::form().set("method","POST").set("action",method) << std::endl ;
+    *out << cgicc::input().set("type","text")
+      .set("name","xmlFilename")
+      .set("size","90")
+      .set("ENCTYPE","multipart/form-data")
+      .set("value",xmlFile_);
     //
     *out << std::endl;
-
+    //
+    *out << cgicc::input().set("type","submit")
+      .set("value","Set configuration file local") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    // Upload file...
+    //
+    std::string methodUpload =
+      toolbox::toString("/%s/UploadConfFile",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","POST")
+      .set("enctype","multipart/form-data")
+      .set("action",methodUpload) << std::endl ;
+    //
+    *out << cgicc::input().set("type","file")
+      .set("name","xmlFilenameUpload")
+      .set("size","60") ;
+    //
+    *out << std::endl;
+    //
+    *out << cgicc::input().set("type","submit").set("value","Send") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << std::endl;
+    //
     std::string methodRaw =
       toolbox::toString("/%s/setRawConfFile",getApplicationDescriptor()->getURN().c_str());
-
+    //
     *out << cgicc::form().set("method","POST").set("action",methodRaw) << std::endl ;
     *out << cgicc::textarea().set("name","Text")
       .set("WRAP","OFF")
@@ -299,15 +303,35 @@ public:
     *out << "Paste configuration..." << endl ;
     *out << cgicc::textarea();
     *out << cgicc::input().set("type","submit").set("value","Send");
-    *out << cgicc::form() << std::endl ;
-    
+    *out << cgicc::form() << std::endl ;    
     //
     *out << std::endl;
     //    
     *out << cgicc::fieldset();
     *out << std::endl;
     //
-    } else if (tmbVector.size()>0 || dmbVector.size()>0) {
+    if (tmbVector.size()>0 || dmbVector.size()>0) {
+      //
+      if ( Operator_.find("NameOld",0) == string::npos ) {
+	//
+	// Crate Configuration
+	//
+	std::string CrateConfiguration =
+	  toolbox::toString("/%s/CrateConfiguration",getApplicationDescriptor()->getURN().c_str());
+	//
+	*out << cgicc::a("[Crate Configuration]").set("href",CrateConfiguration) << endl;
+	//
+	std::string CrateTests =
+	  toolbox::toString("/%s/CrateTests",getApplicationDescriptor()->getURN().c_str());
+	//
+	*out << cgicc::a("[Crate Tests]").set("href",CrateTests) << endl;
+	//
+	std::string CalibrationRuns =
+	  toolbox::toString("/%s/CalibrationRuns",getApplicationDescriptor()->getURN().c_str());
+	//
+	*out << cgicc::a("[Calibration Runs]").set("href",CalibrationRuns) << endl;
+	//
+      }
       //
       *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:yellow");
       *out << std::endl;
@@ -373,34 +397,63 @@ public:
       //
       *out << cgicc::fieldset();
       //
-      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-      *out << cgicc::legend("Crate Tests").set("style","color:blue") ;
       //
-      std::string TmbMPCTest =
-	toolbox::toString("/%s/TmbMPCTest",getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::form().set("method","GET").set("action",TmbMPCTest) << std::endl ;
-      *out << cgicc::input().set("type","submit").set("value","Crate TMB/MPC test") << std::endl ;
-      *out << cgicc::form() << std::endl ;
       //
-      *out << cgicc::fieldset();
+      *out << std::endl;
       //
-      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-      *out << cgicc::legend("Calibration Runs").set("style","color:blue") ;
       //
-      std::string CalibrationCFEBTime =
-	toolbox::toString("/%s/CalibrationCFEBTime",getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBTime) << std::endl ;
-      *out << cgicc::input().set("type","submit").set("value","Calibration run CFEB Time") << std::endl ;
-      *out << cgicc::form() << std::endl ;
-      //
-      std::string CalibrationCFEBCharge =
-	toolbox::toString("/%s/CalibrationCFEBCharge",getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBCharge) << std::endl ;
-      *out << cgicc::input().set("type","submit").set("value","Calibration run CFEB Charge") << std::endl ;
-      *out << cgicc::form() << std::endl ;
-      //
-      std::string CalibrationCFEBPedestal =
-	toolbox::toString("/%s/CalibrationCFEBPedestal",getApplicationDescriptor()->getURN().c_str());
+    }
+    //
+    //cout << "Here4" << endl ;
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::CrateTests(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    *out << cgicc::legend("Crate Tests").set("style","color:blue") ;
+    //
+    std::string TmbMPCTest =
+      toolbox::toString("/%s/TmbMPCTest",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TmbMPCTest) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Crate TMB/MPC test") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::fieldset();
+    //
+  }
+  //
+  void EmuCrateHyperDAQ::CalibrationRuns(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    *out << cgicc::legend("Calibration Runs").set("style","color:blue") ;
+    //
+    std::string CalibrationCFEBTime =
+      toolbox::toString("/%s/CalibrationCFEBTime",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBTime) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Calibration run CFEB Time") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string CalibrationCFEBCharge =
+      toolbox::toString("/%s/CalibrationCFEBCharge",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBCharge) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Calibration run CFEB Charge") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string CalibrationCFEBPedestal =
+      toolbox::toString("/%s/CalibrationCFEBPedestal",getApplicationDescriptor()->getURN().c_str());
       *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBPedestal) << std::endl ;
       *out << cgicc::input().set("type","submit").set("value","Calibration run CFEB Pedestal") << std::endl ;
       *out << cgicc::form() << std::endl ;
@@ -419,31 +472,37 @@ public:
       //
       *out << cgicc::fieldset();
       //
-      *out << std::endl;
+  }
+  //
+  void EmuCrateHyperDAQ::CrateConfiguration(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:#00FF00");
+    *out << std::endl;
+    //
+    *out << cgicc::legend("Crate Configuration...").set("style","color:blue") << 
+      cgicc::p() << std::endl ;
+    //
+    //*out << cgicc::body().set("bgcolor=yellow");
+    //
+    for(int ii=1; ii<22; ii++) {
       //
-      if ( Operator_.find("NameOld",0) == string::npos ) {
-	//
-	*out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:#00FF00");
-	*out << std::endl;
-	//
-	*out << cgicc::legend("Crate Configuration...").set("style","color:blue") << 
-	  cgicc::p() << std::endl ;
-	//
-	//*out << cgicc::body().set("bgcolor=yellow");
-	//
-	for(int ii=1; ii<22; ii++) {
+      *out << cgicc::table().set("border","1");
+      //
+      *out << cgicc::td();
 	  //
-	  *out << cgicc::table().set("border","1");
-	  //
-	  *out << cgicc::td();
-	  //
-	  *out << "Slot " << setfill('0') << setw(2) << dec << ii << endl;
-	  //
-	  *out << cgicc::td();
-	  //
-	  char Name[50] ;
-	  std::string CCBStatus =
-	    toolbox::toString("/%s/CCBStatus",getApplicationDescriptor()->getURN().c_str());
+      *out << "Slot " << setfill('0') << setw(2) << dec << ii << endl;
+      //
+      *out << cgicc::td();
+      //
+      char Name[50] ;
+      std::string CCBStatus =
+	toolbox::toString("/%s/CCBStatus",getApplicationDescriptor()->getURN().c_str());
 	  std::string CCBUtils =
 	    toolbox::toString("/%s/CCBUtils",getApplicationDescriptor()->getURN().c_str());
 	  std::string CCBBoardID =
@@ -593,14 +652,14 @@ public:
 	      //
 	      for (int iii=0; iii<dmbVector.size(); iii++) {
 		int dmbslot = dmbVector[iii]->slot();
-		std::string CrateTests =
-		  toolbox::toString("/%s/CrateTests",getApplicationDescriptor()->getURN().c_str());    
-		sprintf(Name,"Crate tests TMBslot=%d DMBslot=%d",slot,dmbslot);
+		std::string ChamberTests =
+		  toolbox::toString("/%s/ChamberTests",getApplicationDescriptor()->getURN().c_str());    
+		sprintf(Name,"Chamber tests TMBslot=%d DMBslot=%d",slot,dmbslot);
 		//
 		if ( dmbslot == slot+1 ) {
 		  *out << cgicc::td();
 		  if ( TMBBoardID_[i].find("-1") == string::npos ) {
-		    *out << cgicc::form().set("method","GET").set("action",CrateTests)
+		    *out << cgicc::form().set("method","GET").set("action",ChamberTests)
 		      .set("target","_blank") << std::endl ;
 		    *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
 		    char buf[20];
@@ -702,12 +761,6 @@ public:
 	//*out << cgicc::body();
 	*out << cgicc::fieldset();
 	//
-      }
-      //
-    }
-    //
-    //cout << "Here4" << endl ;
-    //
   }
   //
   void EmuCrateHyperDAQ::CalibrationALCT(xgi::Input * in, xgi::Output * out ) 
@@ -860,6 +913,18 @@ public:
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
+	} else if ( counter == 1 ) {
+	  if ( tmbVector[i]->GetCounter(1) > 0 ) {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
 	} else if ( counter == 3 ) {
 	  if ( tmbVector[i]->GetCounter(3) > 0 ) {
 	    *out << cgicc::span().set("style","color:green");
@@ -880,6 +945,18 @@ public:
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 5 ) {
+	  if ( tmbVector[i]->GetCounter(5) > 0 ) {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:green");
 	    tmbVector[i]->PrintCounters(counter);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
@@ -936,7 +1013,7 @@ public:
   {
     cout << "Init System" << endl ;
     //
-    MyController.configure();          // Init system
+    MyController->configure();          // Init system
     //
     cgicc::Cgicc cgi(in);
     //
@@ -948,7 +1025,7 @@ public:
       cout << "Navigator " << navigator << endl;
       if ( navigator == 1 ) {
 	thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
-	this->CrateTests(in,out);
+	this->ChamberTests(in,out);
       }
     } else {
       cout << "No navigator" << endl;
@@ -999,7 +1076,7 @@ public:
     //
     thisCCB->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mode to work.
     //
-    this->CrateTests(in,out);
+    this->ChamberTests(in,out);
     //
   }
   //
@@ -1301,7 +1378,7 @@ public:
     this->DMBUtils(in,out);
   }
   //
-  void EmuCrateHyperDAQ::CrateTests(xgi::Input * in, xgi::Output * out ) 
+  void EmuCrateHyperDAQ::ChamberTests(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
     //
@@ -1582,7 +1659,7 @@ public:
     //
     thisTMB->StartTTC();
     //
-    this->CrateTests(in,out);
+    this->ChamberTests(in,out);
     //
   }
   //
@@ -1624,7 +1701,7 @@ public:
     thisTMB->EnableL1aRequest();
     thisCCB->setCCBMode(CCB::VMEFPGA);
     //
-    this->CrateTests(in,out);
+    this->ChamberTests(in,out);
     //
   }
   //
@@ -1670,7 +1747,7 @@ public:
     MyTest[tmb].ALCTTiming();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
-    this->CrateTests(in,out);
+    this->ChamberTests(in,out);
     //
   }
   //
@@ -1716,7 +1793,7 @@ public:
     int RXphase, TXphase;
     MyTest[tmb].Automatic();
     //
-    this->CrateTests(in,out);
+    this->ChamberTests(in,out);
     //
   }
   //
@@ -1761,7 +1838,7 @@ public:
     //
     MyTest[tmb].CFEBTiming();
     //
-    this->CrateTests(in,out);
+    this->ChamberTests(in,out);
     //
   }
   //
@@ -1806,7 +1883,7 @@ public:
     //
     MyTest[tmb].FindTMB_L1A_delay(50,200);
     //
-    this->CrateTests(in,out);
+    this->ChamberTests(in,out);
     //
   }
   //
@@ -1851,7 +1928,7 @@ public:
     //
     MyTest[tmb].FindALCT_L1A_delay(140,160);
     //
-    this->CrateTests(in,out);
+    this->ChamberTests(in,out);
     //
   }
   //
@@ -1894,7 +1971,7 @@ public:
     //
     MyTest[tmb].FindALCTvpf();
     //
-    this->CrateTests(in,out);
+    this->ChamberTests(in,out);
     //
   }
   //
@@ -1936,7 +2013,7 @@ public:
     //
     MyTest[tmb].ALCTChamberScan();
     //
-    this->CrateTests(in,out);
+    this->ChamberTests(in,out);
     //
   }
   //
@@ -1979,7 +2056,7 @@ public:
     //
     MyTest[tmb].CFEBChamberScan();
     //
-    this->CrateTests(in,out);
+    this->ChamberTests(in,out);
     //
   }
   //
@@ -2023,7 +2100,7 @@ public:
     //
     MyTest[tmb].FindWinner(2);
     //
-    this->CrateTests(in,out);
+    this->ChamberTests(in,out);
     //
   }
   //
@@ -4604,12 +4681,18 @@ public:
     //
     //parser.parseFile(xmlFile_.toString().c_str());
     //
-    MyController.SetConfFile(xmlFile_.toString().c_str());
-    MyController.init();
+    if ( MyController != 0 ) {
+      delete MyController ;
+    }
+    //
+    MyController = new EmuController();
+    //
+    MyController->SetConfFile(xmlFile_.toString().c_str());
+    MyController->init();
     //
     //-- Make sure that only one TMB in one crate is configured
     //
-    CrateSelector selector = MyController.selector();
+    CrateSelector selector = MyController->selector();
     vector<Crate*> crateVector = selector.crates();
     //
     if (crateVector.size() > 1 ) std::cout << "Warning...this configuration file has more than one crate" 

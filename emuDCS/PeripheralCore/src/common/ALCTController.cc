@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.22 2006/03/10 15:55:28 mey Exp $
+// $Id: ALCTController.cc,v 2.23 2006/03/13 13:23:17 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.23  2006/03/13 13:23:17  mey
+// Update
+//
 // Revision 2.22  2006/03/10 15:55:28  mey
 // Update
 //
@@ -1602,7 +1605,7 @@ void ALCTController::setConfig() {
       if (cr[0] != crr[0] || cr[1] != crr[1] || cr[2] != crr[2])
         {
 	  st = EALCT_TESTFAIL;
-	  printf("Configuration register mismatch:    %08x %08x %08x\n", crr[2], crr[1], crr[0]);
+	  printf("Configuration register mismatch:      %08x %08x %08x\n", crr[2], crr[1], crr[0]);
         }
     }
   
