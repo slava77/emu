@@ -1,0 +1,29 @@
+== 0. Files
+
+README		this file
+Makefile	Makefile for libCSCSupervisor.so
+Makefile.rules	Definitions to compile this package outside of TriDAS tree
+include/	include files for CSCSupervisor and EmuApplication
+src/common/	source files for CSCSupervisor and EmuApplication
+test/		files to test applications
+   config.xml	XDAQ XML configuration file to run everyone on localhost
+   bootxdaq	XDAQ executive boot shell script
+   EmuFED/	dummy EmuFEDCrate application
+   EmuPC/	dummy EmuPeripheralCrate application
+   EmuDAQ/	dummy EmuDAQManager application
+
+== 1. CVS access
+
+foo> cd ~/work
+foo> export CVSROOT=:pserver:anonymous@cmscvs.cern.ch:/cvs_server/repositories/TriDAS
+foo> cvs login
+...
+foo> cvs co -r Release-1_0 -d cscSV TriDAS/emu/cscSV
+
+== 2. Build and run
+
+foo> cd cscSV
+foo> export XDAQ_ROOT=/home/foo/work/tridas
+foo> make install
+foo> test/bootxdaq start
+
