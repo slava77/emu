@@ -4,10 +4,6 @@
 
 #include "xdaq/NamespaceURI.h"
 #include "xoap/Method.h"
-#include "xoap/SOAPPart.h"
-#include "xoap/SOAPEnvelope.h"
-#include "xoap/SOAPBody.h"
-#include "xoap/domutils.h"  // XMLCh2String()
 
 XDAQ_INSTANTIATOR_IMPL(EmuPeripheralCrate);
 
@@ -15,6 +11,9 @@ EmuPeripheralCrate::EmuPeripheralCrate(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
 		EmuApplication(stub)
 {
+	xml_file_name_ = "";
+	getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xml_file_name_);
+
 	xoap::bind(this, &EmuPeripheralCrate::onConfigure, "Configure", XDAQ_NS_URI);
 	xoap::bind(this, &EmuPeripheralCrate::onEnable,    "Enable",    XDAQ_NS_URI);
 	xoap::bind(this, &EmuPeripheralCrate::onDisable,   "Disable",   XDAQ_NS_URI);
@@ -48,22 +47,6 @@ EmuPeripheralCrate::EmuPeripheralCrate(xdaq::ApplicationStub *stub)
 xoap::MessageReference EmuPeripheralCrate::onConfigure(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
-	DOMNodeList *elements =
-			message->getSOAPPart().getEnvelope().getBody()
-			.getDOMNode()->getChildNodes();
-
-	for (unsigned int i = 0; i < elements->getLength(); i++) {
-		DOMNode *e = elements->item(i);
-		if (e->getNodeType() == DOMNode::ELEMENT_NODE &&
-				xoap::XMLCh2String(e->getLocalName()) == "runtype") {
-
-			LOG4CPLUS_DEBUG(getApplicationLogger(),
-					"==== PC: runtype: " <<
-					xoap::XMLCh2String(e->getFirstChild()->getNodeValue()));
-			break;
-		}
-	}
-
 	fireEvent("Configure");
 
 	return createReply(message);
@@ -96,7 +79,7 @@ xoap::MessageReference EmuPeripheralCrate::onHalt(xoap::MessageReference message
 void EmuPeripheralCrate::configureAction(toolbox::Event::Reference e)
         throw (toolbox::fsm::exception::Exception)
 {   
-    LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
+    LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << ":" << (string)xmlFileName_);
 }
 
 void EmuPeripheralCrate::enableAction(toolbox::Event::Reference e)

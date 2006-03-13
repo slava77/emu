@@ -11,7 +11,26 @@
 			</properties>
 		</xc:Application> 
 
-		<xc:Application class="CSCSupervisor" id="10" instance="0" network="local"/>
+		<xc:Application class="CSCSupervisor" id="10" instance="0" network="local">
+			<properties xmlns="urn:xdaq-application:CSCSupervisor" xsi:type="soapenc:Struct">
+				<configKeys soapenc:arrayType="xsd:ur-type[3]" xsi:type="soapenc:Array">
+					<item soapenc:position="[0]" xsi:type="xsd:string">global</item>
+					<item soapenc:position="[1]" xsi:type="xsd:string">local</item>
+					<item soapenc:position="[2]" xsi:type="xsd:string">calib</item>
+				</configKeys>
+				<configFiles soapenc:arrayType="xsd:ur-type[3]" xsi:type="soapenc:Array">
+					<item soapenc:position="[0]" xsi:type="xsd:string">
+						http://cms.cern.ch:8080/config/EmuPC/global.xml
+					</item>
+					<item soapenc:position="[1]" xsi:type="xsd:string">
+						file:///config/EmuPC/local.xml
+					</item>
+					<item soapenc:position="[2]" xsi:type="xsd:string">
+						file:///config/EmuPC/calib.xml
+					</item>
+				</configFiles>
+			</properties>
+		</xc:Application>
 		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libCSCSupervisor.so</xc:Module>
 
 		<xc:Application class="EmuFEDCrate" id="20" instance="0" network="local"/>

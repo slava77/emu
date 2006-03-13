@@ -4,10 +4,6 @@
 
 #include "xdaq/NamespaceURI.h"
 #include "xoap/Method.h"
-#include "xoap/SOAPPart.h"
-#include "xoap/SOAPEnvelope.h"
-#include "xoap/SOAPBody.h"
-#include "xoap/domutils.h"  // XMLCh2String()
 
 XDAQ_INSTANTIATOR_IMPL(EmuDAQManager);
 
@@ -48,22 +44,6 @@ EmuDAQManager::EmuDAQManager(xdaq::ApplicationStub *stub)
 xoap::MessageReference EmuDAQManager::onConfigure(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
-	DOMNodeList *elements =
-			message->getSOAPPart().getEnvelope().getBody()
-			.getDOMNode()->getChildNodes();
-
-	for (unsigned int i = 0; i < elements->getLength(); i++) {
-		DOMNode *e = elements->item(i);
-		if (e->getNodeType() == DOMNode::ELEMENT_NODE &&
-				xoap::XMLCh2String(e->getLocalName()) == "runtype") {
-
-			LOG4CPLUS_DEBUG(getApplicationLogger(),
-					"==== PC: runtype: " <<
-					xoap::XMLCh2String(e->getFirstChild()->getNodeValue()));
-			break;
-		}
-	}
-
 	fireEvent("Configure");
 
 	return createReply(message);
