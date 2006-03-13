@@ -21,6 +21,9 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
 		EmuApplication(stub), runtype("")
 {
+	getApplicationInfoSpace()->fireItemAvailable("configKeys", &config_keys_);
+	getApplicationInfoSpace()->fireItemAvailable("configFiles", &config_files_);
+
 	xgi::bind(this, &CSCSupervisor::webDefault,   "Default");
 	xgi::bind(this, &CSCSupervisor::webConfigure, "Configure");
 	xgi::bind(this, &CSCSupervisor::webEnable,    "Enable");
@@ -105,17 +108,31 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 	// Body
 	*out << body() << endl;
 
-	// Buttons
+	// Config listbox
 	*out << form().set("action",
 			"/" + getApplicationDescriptor()->getURN() + "/Configure") << endl;
-	*out << input().set("type", "text")
+
+	int n_keys = config_keys_.size();
+
+	*out << cgicc::select()
 			.set("name", "runtype")
-			.set("size", "40") << endl;
+			.set("size", "5") << endl;
+
+	for (int i = 0; i < n_keys; ++i) {
+		*out << option()
+				.set("label", (string)config_keys_[i])
+				.set("value", (string)config_files_[i])
+				<< (string)config_keys_[i] << option() << endl;
+	}
+
+	*out << cgicc::select() << endl;
+
 	*out << input().set("type", "submit")
 			.set("name", "command")
 			.set("value", "Configure") << endl;
 	*out << form() << endl;
 
+	// Buttons
 	*out << form().set("action",
 			"/" + getApplicationDescriptor()->getURN() + "/Enable") << endl;
 	*out << input().set("type", "submit")
@@ -177,40 +194,13 @@ void CSCSupervisor::webHalt(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::configureAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
+	setParameter("EmuPeripheralCrate", 0, "xmlFileName", "xsd:string", runtype);
+	propagateSOAP("Configure", "EmuPeripheralCrate", 0);
+
+	propagateSOAP("Configure", "EmuFEDCrate", 0);
+	propagateSOAP("Configure", "EmuDAQManager", 0);
+
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
-
-	xoap::MessageReference message = xoap::createMessage();
-	xoap::SOAPPart soap = message->getSOAPPart();
-	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-
-	xoap::SOAPName command = envelope.createName(
-			"Configure", "xdaq", "urn:xdaq-soap:3.0");
-	xoap::SOAPName parameter = envelope.createName(
-			"runtype", "xdaq", "urn:xdaq-soap:3.0");
-
-	envelope.getBody().addBodyElement(command) 
-			.addChildElement(parameter)
-			.addTextNode(runtype);
-
-	xdaq::ApplicationDescriptor *target;
-
-	// FED crate
-	target = getApplicationContext()->getApplicationGroup()
-			->getApplicationDescriptor("EmuFED", 0);
-
-	getApplicationContext()->postSOAP(message, target);
-
-	// Peripheral crate
-	target = getApplicationContext()->getApplicationGroup()
-			->getApplicationDescriptor("EmuPeripheralCrate", 0);
-
-	getApplicationContext()->postSOAP(message, target);
-
-	// DAQ
-	target = getApplicationContext()->getApplicationGroup()
-			->getApplicationDescriptor("EmuDAQManager", 0);
-
-	getApplicationContext()->postSOAP(message, target);
 }
 
 void CSCSupervisor::enableAction(toolbox::Event::Reference e) 
@@ -234,11 +224,17 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference e)
 void CSCSupervisor::haltAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	propagateSOAP("Halt", "EmuFED", 0);
 	propagateSOAP("Halt", "EmuPeripheralCrate", 0);
+	propagateSOAP("Halt", "EmuFEDCrate", 0);
 	propagateSOAP("Halt", "EmuDAQManager", 0);
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
+}
+
+void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
+        throw (toolbox::fsm::exception::Exception)
+{
+    EmuApplication::stateChanged(fsm);
 }
 
 void CSCSupervisor::propagateSOAP(string command, string klass, int instance)
@@ -257,10 +253,36 @@ void CSCSupervisor::propagateSOAP(string command, string klass, int instance)
 	getApplicationContext()->postSOAP(message, target);
 }
 
-void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
-        throw (toolbox::fsm::exception::Exception)
+void CSCSupervisor::setParameter(
+		string klass, int instance, string name, string type, string value)
+		throw (toolbox::fsm::exception::Exception)
 {
-    EmuApplication::stateChanged(fsm);
+	xoap::MessageReference message = xoap::createMessage();
+	xoap::SOAPPart soap = message->getSOAPPart();
+	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+
+	xoap::SOAPName command = envelope.createName(
+			"ParameterSet", "xdaq", "urn:xdaq-soap:3.0");
+	xoap::SOAPName properties = envelope.createName(
+			"properties", klass, "urn:xdaq-application:" + klass);
+	xoap::SOAPName parameter = envelope.createName(
+			name, klass, "urn:xdaq-application:" + klass);
+	xoap::SOAPName xsitype = envelope.createName(
+			"type", "xsi", "http://www.w3.org/2001/XMLSchema-instance");
+
+	xoap::SOAPElement properties_e = envelope.getBody()
+			.addBodyElement(command)
+			.addChildElement(properties);
+	properties_e.addAttribute(xsitype, "soapenc:Struct");
+
+	xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
+	parameter_e.addAttribute(xsitype, type);
+	parameter_e.addTextNode(value);
+
+	xdaq::ApplicationDescriptor *target = getApplicationContext()
+			->getApplicationGroup()->getApplicationDescriptor(klass, instance);
+
+	getApplicationContext()->postSOAP(message, target);
 }
 
 string CSCSupervisor::getRuntype(xoap::MessageReference message)

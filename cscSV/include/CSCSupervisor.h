@@ -6,6 +6,9 @@
 #include <string>
 
 #include "toolbox/fsm/FiniteStateMachine.h"
+#include "xdata/Vector.h"
+#include "xdata/Bag.h"
+#include "xdata/String.h"
 #include "xgi/Method.h"
 
 class CSCSupervisor : public EmuApplication
@@ -47,10 +50,18 @@ public:
 	void haltAction(toolbox::Event::Reference e) 
 			throw (toolbox::fsm::exception::Exception);
 
+private: // XDAQ parameters
+	xdata::Vector<xdata::String> config_keys_;
+	xdata::Vector<xdata::String> config_files_;
+
 private:
 	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 			throw (toolbox::fsm::exception::Exception);
+
 	void propagateSOAP(string command, string klass, int instance)
+			throw (toolbox::fsm::exception::Exception);
+	void setParameter(string klass, int instance,
+			string name, string type, string value)
 			throw (toolbox::fsm::exception::Exception);
 
 	string getRuntype(xoap::MessageReference message);

@@ -3,6 +3,7 @@
 
 #include "EmuApplication.h"
 
+#include "xdata/String.h"
 #include "toolbox/fsm/FiniteStateMachine.h"
 
 class EmuPeripheralCrate : public EmuApplication
@@ -36,6 +37,7 @@ private:
     void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 			throw (toolbox::fsm::exception::Exception);
 
+	xdata::String xml_file_name_;
 };
 
 #endif  // ifndef __EMU_PERIPHERAL_CRATE_H__
