@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.60 2006/03/13 13:27:37 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.61 2006/03/14 15:24:27 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -67,11 +67,13 @@
 #include "InfoSpace.h"
 #include "CrateUtilities.h"
 #include "CalibDAQ.h"
+#include "EmuApplication.h"
 
 using namespace cgicc;
 using namespace std;
 
-class EmuCrateHyperDAQ: public xdaq::Application 
+//class EmuCrateHyperDAQ: public xdaq::Application 
+class EmuCrateHyperDAQ: public EmuApplication
 {
 private:
   //
@@ -124,7 +126,8 @@ public:
   //
   XDAQ_INSTANTIATOR();
   //
-  EmuCrateHyperDAQ(xdaq::ApplicationStub * s): xdaq::Application(s) 
+  //EmuCrateHyperDAQ(xdaq::ApplicationStub * s): xdaq::Application(s) 
+  EmuCrateHyperDAQ(xdaq::ApplicationStub * s): EmuApplication(s)
   {	
     //
     xgi::bind(this,&EmuCrateHyperDAQ::Default, "Default");
