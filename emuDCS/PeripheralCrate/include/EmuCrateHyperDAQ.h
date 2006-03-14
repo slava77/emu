@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.61 2006/03/14 15:24:27 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.62 2006/03/14 21:07:20 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -12,6 +12,8 @@
 
 #ifndef _EmuCrateHyperDAQ_h_
 #define _EmuCrateHyperDAQ_h_
+
+//#define STANDALONE
 
 #include <string>
 #include <vector>
@@ -34,6 +36,7 @@
 #include "xdata/UnsignedLong.h"
 #include "xdata/String.h"
 
+#include "xdaq/NamespaceURI.h"
 #include "xoap/MessageReference.h"
 #include "xoap/MessageFactory.h"
 #include "xoap/SOAPEnvelope.h"
@@ -67,13 +70,20 @@
 #include "InfoSpace.h"
 #include "CrateUtilities.h"
 #include "CalibDAQ.h"
+//
+#ifdef STANDALONE
+#else
 #include "EmuApplication.h"
+#endif
 
 using namespace cgicc;
 using namespace std;
 
-//class EmuCrateHyperDAQ: public xdaq::Application 
+#ifdef STANDALONE
+class EmuCrateHyperDAQ: public xdaq::Application 
+#else
 class EmuCrateHyperDAQ: public EmuApplication
+#endif
 {
 private:
   //
@@ -126,8 +136,11 @@ public:
   //
   XDAQ_INSTANTIATOR();
   //
-  //EmuCrateHyperDAQ(xdaq::ApplicationStub * s): xdaq::Application(s) 
+#ifdef STANDALONE
+  EmuCrateHyperDAQ(xdaq::ApplicationStub * s): xdaq::Application(s) 
+#else
   EmuCrateHyperDAQ(xdaq::ApplicationStub * s): EmuApplication(s)
+#endif
   {	
     //
     xgi::bind(this,&EmuCrateHyperDAQ::Default, "Default");
@@ -205,6 +218,12 @@ public:
     xgi::bind(this,&EmuCrateHyperDAQ::LaunchMonitor, "LaunchMonitor");
     xgi::bind(this,&EmuCrateHyperDAQ::ResetAllCounters, "ResetAllCounters");
     xgi::bind(this,&EmuCrateHyperDAQ::CalibrationRandomWiresALCT, "CalibrationRandomWiresALCT");
+    //
+    xoap::bind(this, &EmuCrateHyperDAQ::onMessage, "onMessage", XDAQ_NS_URI );    
+    xoap::bind(this, &EmuCrateHyperDAQ::Configure, "Configure", XDAQ_NS_URI );    
+    xoap::bind(this, &EmuCrateHyperDAQ::Init, "Init", XDAQ_NS_URI );    
+    xoap::bind(this, &EmuCrateHyperDAQ::Init, "Enable", XDAQ_NS_URI );    
+    xoap::bind(this, &EmuCrateHyperDAQ::Init, "Disable", XDAQ_NS_URI );    
     //
     myParameter_ =  0;
     //
@@ -409,6 +428,119 @@ public:
     //
     //cout << "Here4" << endl ;
     //
+  }
+  //
+  //
+  // SOAP Callback  
+  //
+  xoap::MessageReference onMessage (xoap::MessageReference msg) throw (xoap::exception::Exception)
+  {   
+    //
+    // reply to caller
+    //
+    std::cout << "Received Message onMessage" << std::endl ;
+    //
+    xoap::MessageReference reply = xoap::createMessage();
+    xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+    xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
+    xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
+    return reply;
+    
+  }
+  //
+  xoap::MessageReference Configure (xoap::MessageReference msg) throw (xoap::exception::Exception)
+  {
+    //
+    if ( MyController != 0 ) {
+      delete MyController ;
+    }
+    //
+    MyController = new EmuController();
+    //
+    MyController->SetConfFile(xmlFile_);
+    //
+    MyController->init(); // For CSCSupervisor
+    //
+    MyController->configure();
+    //
+    std::cout << "Configure" << std::endl ;
+    //
+    //sleep(3);
+    //
+    // reply to caller
+    //
+    std::cout << "Received Message Configure" << std::endl ;
+    //
+    xoap::MessageReference reply = xoap::createMessage();
+    xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+    xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
+    xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
+    return reply;    
+  }
+  //
+  xoap::MessageReference Init (xoap::MessageReference msg) throw (xoap::exception::Exception)
+  {
+    //
+    if ( MyController != 0 ) {
+      delete MyController ;
+    }
+    //
+    MyController = new EmuController();
+    //
+    MyController->SetConfFile(xmlFile_);
+    //
+    MyController->init();
+    //
+    // reply to caller
+    //
+    std::cout << "Received Message Init" << std::endl ;
+    //
+    xoap::MessageReference reply = xoap::createMessage();
+    xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+    xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
+    xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
+    return reply;
+    
+  }
+  //
+  xoap::MessageReference Enable (xoap::MessageReference msg) throw (xoap::exception::Exception)
+  {
+    //
+    //enable();
+    //
+    std::cout << "Enable" << std::endl ;
+    //
+    //sleep(3);
+    //
+    // reply to caller
+    //
+    std::cout << "Received Message Enable" << std::endl ;
+    //
+    xoap::MessageReference reply = xoap::createMessage();
+    xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+    xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
+    xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
+    return reply;    
+  }
+  //
+  xoap::MessageReference Disable (xoap::MessageReference msg) throw (xoap::exception::Exception)
+  {
+    //
+    //disable();
+    //
+    std::cout << "Disable" << std::endl ;
+    //
+    ::sleep(3);
+    //
+    // reply to caller
+    //
+    std::cout << "Received Message Disable" << std::endl ;
+    //
+    xoap::MessageReference reply = xoap::createMessage();
+    xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+    xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
+    xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
+    return reply;    
   }
   //
   void EmuCrateHyperDAQ::CrateTests(xgi::Input * in, xgi::Output * out ) 
