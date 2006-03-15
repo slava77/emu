@@ -45,11 +45,10 @@ TestLibraries = xerces-c
 TestExecutables = xmlExample.cpp 
 
 ExternalObjects = \
+	$(CMSSW)/src/EventFilter/CSCRawToDigi/test/libCSCRawToDigi.a \
+        $(CMSSW)/src/DataFormats/CSCDigi/test/libCSCDigi.a \
 	$(XDAQ_ROOT)/$(Project)/emuDQM/dduBinExaminer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libdduBinExaminer.a \
 	$(XDAQ_ROOT)/$(Project)/emuDQM/EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a 
-	#$(CMSSW)/src/EventFilter/CSCRawToDigi/test/libCSCRawToDigi.a \
-        # $(CMSSW)/src/DataFormats/CSCDigi/test/libCSCDigi.a
-
 	# $(XDAQ_ROOT)/$(Project)/emuDAQ/DDUReadout/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libDDUReadout.a 
 
 IncludeDirs = $(XdaqIncludeDirs) \
@@ -66,7 +65,6 @@ IncludeDirs = $(XdaqIncludeDirs) \
 
 
 LibraryDirs = $(XdaqLibraryDirs) \
-	$(CMSSW)/lib/slc3_ia32_gcc323 \
 	$(XDAQ_ROOT)/$(Project)/emuDAQ/emuReadout/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/ \
 	$(XDAQ_ROOT)/$(Project)/emuDAQ/DDUReadout/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/
 
@@ -82,7 +80,7 @@ UserExecutableLinkFlags += $(ROOTCFLAGS)
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries = $(XdaqLibraries)  EmuReadout DDUReadout DataFormatsCSCDigi EventFilterCSCRawToDigi
+Libraries = $(XdaqLibraries)  EmuReadout DDUReadout
 
 #
 # Compile the source files and create a shared library
