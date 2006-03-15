@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.1 2006/03/15 13:50:11 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.2 2006/03/15 14:00:27 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -476,9 +476,9 @@ public:
     //
     MyController->SetConfFile(xmlFile_);
     //
-    MyController->init(); // For CSCSupervisor
+    //MyController->init(); // For CSCSupervisor
     //
-    MyController->configure();
+    //MyController->configure();
     //
     std::cout << "Configure" << std::endl ;
     //
