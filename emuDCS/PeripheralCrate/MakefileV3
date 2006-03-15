@@ -17,6 +17,9 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 Project=emu
 Package=emuDCS/PeripheralCrate
 
+DependentLibraryDirs = $(XDAQ_ROOT)/emu/cscSV/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+DependentLibraries = CSCSupervisor
+
 Sources=\
 	ALCTController.cc \
 	AnodeChannel.cc \
@@ -50,7 +53,7 @@ Sources=\
 	VMEController_jtag.cc \
 	VMEModule.cc \
 	VMEParser.cc \
-	EmuCrateHyperDAQ.cc  \
+	EmuPeripheralCrate.cc  \
 	EmuRunControlHyperDAQ.cc  \
 	EmuCrateSOAP.cc \
 	CrateUtilities.cc \
