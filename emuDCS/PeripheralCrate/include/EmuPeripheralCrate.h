@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.4 2006/03/15 16:42:57 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.5 2006/03/15 18:08:06 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -147,6 +147,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::Default, "Default");
     xgi::bind(this,&EmuPeripheralCrate::setConfFile, "setConfFile");
     xgi::bind(this,&EmuPeripheralCrate::getTestLogFile, "getTestLogFile");
+    xgi::bind(this,&EmuPeripheralCrate::getTestLogFileUpload, "getTestLogFileUpload");
     xgi::bind(this,&EmuPeripheralCrate::TmbMPCTest, "TmbMPCTest");
     xgi::bind(this,&EmuPeripheralCrate::InitSystem, "InitSystem");
     xgi::bind(this,&EmuPeripheralCrate::InitChamber, "InitChamber");
@@ -298,19 +299,6 @@ public:
     *out << cgicc::form() << std::endl ;
     //
     //
-    std::string getTestLogFile =
-      toolbox::toString("/%s/getTestLogFile",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","POST").set("action",getTestLogFile) << std::endl ;
-    *out << cgicc::input().set("type","text")
-      .set("name","TestLogFile")
-      .set("size","90")
-      .set("ENCTYPE","multipart/form-data")
-      .set("value",TestLogFile_);
-    //
-    *out << cgicc::input().set("type","submit")
-      .set("value","Restore Test configuration") << std::endl ;
-    *out << cgicc::form() << std::endl ;
     //
     // Upload file...
     //
@@ -346,6 +334,38 @@ public:
     //
     *out << std::endl;
     //    
+    std::string getTestLogFile =
+      toolbox::toString("/%s/getTestLogFile",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","POST").set("action",getTestLogFile) << std::endl ;
+    *out << cgicc::input().set("type","text")
+      .set("name","TestLogFile")
+      .set("size","90")
+      .set("ENCTYPE","multipart/form-data")
+      .set("value",TestLogFile_);
+    //
+    *out << cgicc::input().set("type","submit")
+      .set("value","Restore Test configuration") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string getTestLogFileUpload =
+      toolbox::toString("/%s/getTestLogFileUpload",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","POST")
+      .set("enctype","multipart/form-data")
+      .set("action",getTestLogFileUpload) << std::endl ;
+    //
+    *out << cgicc::input().set("type","file")
+      .set("name","TestFileUpload")
+      .set("size","90") ;
+    //
+    *out << std::endl;
+    //
+    *out << cgicc::input().set("type","submit").set("value","Send") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << std::endl;
+    //
     *out << cgicc::fieldset();
     *out << std::endl;
     //
@@ -4929,6 +4949,7 @@ public:
       }
   }
   //
+  //
   void EmuPeripheralCrate::getTestLogFile(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -4960,7 +4981,7 @@ public:
 	//XECPT_RAISE(xgi::exception::Exception, e.what());
       }
   }
-  //
+
   void EmuPeripheralCrate::ParseTestLogFile(xdata::String logFile) 
     throw (xgi::exception::Exception){
     //
@@ -5035,6 +5056,41 @@ public:
     TextFile.close();
     //
     
+  }
+  //
+  void EmuPeripheralCrate::getTestLogFileUpload(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    try
+      {
+	//
+	cgicc::Cgicc cgi(in);
+	//
+	const_file_iterator file;
+	file = cgi.getFile("TestLogFile");
+	//
+	cout << "GetFiles" << endl ;
+	//
+	if(file != cgi.getFiles().end()) {
+	  ofstream TextFile ;
+	  TextFile.open("MyTestLogFile.xml");
+	  (*file).writeToStream(TextFile);
+	  TextFile.close();
+	}
+	//
+	TestLogFile_ = "MyTestLogFile.xml" ;
+	//
+	//Configuring();
+	//
+	//cout << "UploadConfFile done" << endl ;
+	//
+	this->Default(in,out);
+	//
+      }
+    catch (const std::exception & e )
+      {
+	//XECPT_RAISE(xgi::exception::Exception, e.what());
+      }
   }
   //
   void EmuPeripheralCrate::UploadConfFile(xgi::Input * in, xgi::Output * out ) 
