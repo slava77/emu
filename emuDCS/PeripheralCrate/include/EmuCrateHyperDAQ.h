@@ -1,4 +1,4 @@
-// $Id: EmuCrateHyperDAQ.h,v 1.62 2006/03/14 21:07:20 mey Exp $
+// $Id: EmuCrateHyperDAQ.h,v 1.63 2006/03/15 10:45:56 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -101,6 +101,7 @@ protected:
   //
   xdata::String xmlFile_;
   xdata::String TMBFirmware_;
+  xdata::String TestLogFile_;
   //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
@@ -145,6 +146,7 @@ public:
     //
     xgi::bind(this,&EmuCrateHyperDAQ::Default, "Default");
     xgi::bind(this,&EmuCrateHyperDAQ::setConfFile, "setConfFile");
+    xgi::bind(this,&EmuCrateHyperDAQ::getTestLogFile, "getTestLogFile");
     xgi::bind(this,&EmuCrateHyperDAQ::TmbMPCTest, "TmbMPCTest");
     xgi::bind(this,&EmuCrateHyperDAQ::InitSystem, "InitSystem");
     xgi::bind(this,&EmuCrateHyperDAQ::InitChamber, "InitChamber");
@@ -269,18 +271,18 @@ public:
     *out << cgicc::h1("EmuCrateHyperDAQ");
     *out << cgicc::br();
     //
-    std::cout << "The xmlfile is " << xmlFile_.toString() << std::endl;
+    //std::cout << "The xmlfile is " << xmlFile_.toString() << std::endl;
     //
     //if (tmbVector.size()==0 && dmbVector.size()==0) {
-    //
-    std::string method =
-      toolbox::toString("/%s/setConfFile",getApplicationDescriptor()->getURN().c_str());
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
     //
     *out << cgicc::legend("Upload Configuration...").set("style","color:blue") 
 	 << cgicc::p() << std::endl ;
+    //
+    std::string method =
+      toolbox::toString("/%s/setConfFile",getApplicationDescriptor()->getURN().c_str());
     //
     *out << cgicc::form().set("method","POST").set("action",method) << std::endl ;
     *out << cgicc::input().set("type","text")
@@ -293,6 +295,21 @@ public:
     //
     *out << cgicc::input().set("type","submit")
       .set("value","Set configuration file local") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    //
+    std::string getTestLogFile =
+      toolbox::toString("/%s/getTestLogFile",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","POST").set("action",getTestLogFile) << std::endl ;
+    *out << cgicc::input().set("type","text")
+      .set("name","TestLogFile")
+      .set("size","90")
+      .set("ENCTYPE","multipart/form-data")
+      .set("value",TestLogFile_);
+    //
+    *out << cgicc::input().set("type","submit")
+      .set("value","Restore Test configuration") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     // Upload file...
@@ -4655,6 +4672,7 @@ public:
     LogFile << std::endl;
     LogFile << "Operator : " << Operator_ << std::endl ;
     LogFile << "Time     : " << ctime(&rawtime) << std::endl ;
+    LogFile << "XML File : " << xmlFile_.toString() << std::endl ;
     //
     for (int i=0; i<tmbVector.size(); i++) {
       //
@@ -4691,6 +4709,8 @@ public:
     LogFile << std::endl;
     //
     LogFile.close();
+    //
+    this->Default(in,out);
     //
   }
   //
@@ -4906,7 +4926,115 @@ public:
 	//XECPT_RAISE(xgi::exception::Exception, e.what());
       }
   }
-
+  //
+  void EmuCrateHyperDAQ::getTestLogFile(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    try
+      {
+	//
+	cgicc::Cgicc cgi(in);
+	//
+	const_file_iterator file;
+	file = cgi.getFile("TestLogFile");
+	//
+	cout << "GetFiles string" << endl ;
+	//
+	if(file != cgi.getFiles().end()) (*file).writeToStream(cout);
+	//
+	string TestLogFile = cgi["TestLogFile"]->getValue() ; 
+	//
+	cout << TestLogFile  << endl ;
+	//
+	TestLogFile_ = TestLogFile;
+	//
+	ParseTestLogFile(TestLogFile);
+	//
+	this->Default(in,out);
+	//
+      }
+    catch (const std::exception & e )
+      {
+	//XECPT_RAISE(xgi::exception::Exception, e.what());
+      }
+  }
+  //
+  void EmuCrateHyperDAQ::ParseTestLogFile(xdata::String logFile) 
+    throw (xgi::exception::Exception){
+    //
+    ifstream TextFile ;
+    std:: cout << "Opening file " << logFile.toString().c_str() << std::endl ;
+    TextFile.open(logFile.toString().c_str());    
+    //
+    //while(TextFile.good()) std::cout << (char) TextFile.get() ;
+    //
+    bool FoundXML = false ;
+    int nTMB = 0;
+    //
+    std::string line, line0, line1, line2;
+    while(TextFile.good()) {
+      //std::cout << "Line" <<std::endl ;
+      getline(TextFile,line);
+      //std::cout << line << std::endl ;
+      if ( line.find("XML File") != string::npos ) {
+	std::cout << "Found" << std::endl ;
+	int start = line.find("/");
+	int end   = line.length();
+	xmlFile_ = line.substr(start,end-start) ;
+	//
+	Configuring();
+	FoundXML = true ;
+	//
+      }
+      //
+      //
+      if ( FoundXML ) { // Processed XML File
+	if ( line.find("TMB") != string::npos ) {	  
+	  //
+	  int slot, boardid, testResult[12];
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> slot >> boardid 
+		   >> testResult[0] 
+		   >> testResult[1] 
+		   >> testResult[2] 
+		   >> testResult[3] 
+		   >> testResult[4] 
+		   >> testResult[5] 
+		   >> testResult[6] 
+		   >> testResult[7] 
+		   >> testResult[8] 
+		   >> testResult[9] 
+		   >> testResult[10] 
+		   >> testResult[11] ;
+	  //
+	  std::cout << "Setting " << nTMB << " " << testResult[0] <<  " " << testResult[1] << std::endl ;
+	  tmbTestVector[nTMB].SetResultTestBootRegister(testResult[0]);
+	  tmbTestVector[nTMB].SetResultTestVMEfpgaDataRegister(testResult[1]);
+	  tmbTestVector[nTMB].SetResultTestFirmwareDate(testResult[2]); 
+	  tmbTestVector[nTMB].SetResultTestFirmwareType(testResult[3]); 
+	  tmbTestVector[nTMB].SetResultTestFirmwareVersion(testResult[4]); 
+	  tmbTestVector[nTMB].SetResultTestFirmwareRevCode(testResult[5]);
+	  tmbTestVector[nTMB].SetResultTestMezzId(testResult[6]);
+	  tmbTestVector[nTMB].SetResultTestPromId(testResult[7]);
+	  tmbTestVector[nTMB].SetResultTestPROMPath(testResult[8]);
+	  tmbTestVector[nTMB].SetResultTestDSN(testResult[9]);
+	  tmbTestVector[nTMB].SetResultTestADC(testResult[10]);
+	  tmbTestVector[nTMB].SetResultTest3d3444(testResult[11]);
+	  //
+	  nTMB++ ;
+	  //
+	}
+      }
+    }
+    //
+    std::cout << std::endl ;
+    //
+    TextFile.close();
+    //
+    
+  }
+  //
   void EmuCrateHyperDAQ::UploadConfFile(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {

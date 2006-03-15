@@ -23,21 +23,52 @@ class TMBTester {
   inline void setRAT(RAT * rat) {rat_ = rat;}
   //
   inline int GetResultTestBootRegister() { return ResultTestBootRegister_ ; }
+  inline int SetResultTestBootRegister(int result) { ResultTestBootRegister_ = result; }
+  //
   inline int GetResultTestVMEfpgaDataRegister() { return ResultTestVMEfpgaDataRegister_ ; }
+  inline int SetResultTestVMEfpgaDataRegister(int result) { ResultTestVMEfpgaDataRegister_ = result ; }
+  //
   inline int GetResultTestFirmwareDate() { return ResultTestFirmwareDate_ ; }
+  inline int SetResultTestFirmwareDate(int result) { ResultTestFirmwareDate_ = result; }
+  //
   inline int GetResultTestFirmwareType() { return ResultTestFirmwareType_ ; }
+  inline int SetResultTestFirmwareType(int result) { ResultTestFirmwareType_ = result; }
+  //
   inline int GetResultTestFirmwareVersion() { return ResultTestFirmwareVersion_ ; }
+  inline int SetResultTestFirmwareVersion(int result) { ResultTestFirmwareVersion_ = result ; }
+  //
   inline int GetResultTestFirmwareRevCode() { return ResultTestFirmwareRevCode_ ; }
+  inline int SetResultTestFirmwareRevCode(int result) { ResultTestFirmwareRevCode_ = result ; }
+  //
   inline int GetResultTestMezzId() { return ResultTestMezzId_ ; }
+  inline int SetResultTestMezzId(int result) { ResultTestMezzId_ = result ; }
+  //
   inline int GetResultTestPromId() { return ResultTestPromId_ ; }
+  inline int SetResultTestPromId(int result) { ResultTestPromId_ = result; }
+  //
   inline int GetResultTestPROMPath() { return ResultTestPROMPath_ ; }
+  inline int SetResultTestPROMPath(int result) { ResultTestPROMPath_ = result; }
+  //
   inline int GetResultTestDSN() { return ResultTestDSN_ ; }
+  inline int SetResultTestDSN(int result) { ResultTestDSN_ = result; }
+  //
   inline int GetResultTestADC() { return ResultTestADC_ ; }
+  inline int SetResultTestADC(int result) { ResultTestADC_ = result; }
+  //
   inline int GetResultTest3d3444() { return ResultTest3d3444_ ; }
+  inline int SetResultTest3d3444(int result) { ResultTest3d3444_ = result ; }
+  //
   inline int GetResultTestALCTtxrx() { return ResultTestALCTtxrx_ ; }
+  inline int SetResultTestALCTtxrx(int result) { ResultTestALCTtxrx_ = result; }
+  //
   inline int GetResultTestRATtemper() { return ResultTestRATtemper_ ; }
+  inline int SetResultTestRATtemper(int result) { ResultTestRATtemper_ = result ; }
+  //
   inline int GetResultTestRATidCodes() { return ResultTestRATidCodes_ ; }
+  inline int SetResultTestRATidCodes(int result) { return ResultTestRATidCodes_ = result; }
+  //
   inline int GetResultTestRATuserCodes() { return ResultTestRATuserCodes_ ; }
+  inline int SetResultTestRATuserCodes(int result) { ResultTestRATuserCodes_ = result ; }
   //
   void reset();
   //
