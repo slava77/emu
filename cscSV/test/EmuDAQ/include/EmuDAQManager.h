@@ -3,6 +3,7 @@
 
 #include "EmuApplication.h"
 
+#include "xdata/UnsignedLong.h"
 #include "toolbox/fsm/FiniteStateMachine.h"
 
 class EmuDAQManager : public EmuApplication
@@ -36,6 +37,8 @@ private:
     void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 			throw (toolbox::fsm::exception::Exception);
 
+	xdata::UnsignedLong run_number_;
+	xdata::UnsignedLong max_n_events_;
 };
 
 #endif  // ifndef __EMU_DAQ_MANAGER_H__

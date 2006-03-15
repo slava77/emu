@@ -21,7 +21,7 @@ static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
 
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
-		EmuApplication(stub), runtype("")
+		EmuApplication(stub), runtype(""), runnumber(""), nevents("")
 {
 	getApplicationInfoSpace()->fireItemAvailable("configKeys", &config_keys_);
 	getApplicationInfoSpace()->fireItemAvailable("configFiles", &config_files_);
@@ -128,6 +128,14 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 	}
 
 	*out << cgicc::select() << endl;
+	
+	*out << input().set("type", "text")
+			.set("name", "runnumber")
+			.set("size", "40") << endl;
+
+	*out << input().set("type", "text")
+			.set("name", "nevents")
+			.set("size", "40") << endl;
 
 	*out << input().set("type", "submit")
 			.set("name", "command")
@@ -163,6 +171,8 @@ void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
 	runtype = getRuntype(in);
+	runnumber = getRunNumber(in);
+	nevents = getNEvents(in);
 
 	fireEvent("Configure");
 
@@ -197,6 +207,8 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference e)
 		throw (toolbox::fsm::exception::Exception)
 {
 	setParameter("EmuPeripheralCrate", 0, "xmlFileName", "xsd:string", runtype);
+	setParameter("EmuDAQManager", 0, "runNumber", "xsd:unsignedLong", runnumber);
+	setParameter("EmuDAQManager", 0, "maxNumberOfEvents", "xsd:unsignedLong", nevents);
 	sendCommand("Configure", "EmuPeripheralCrate", 0);
 
 	sendCommand("Configure", "EmuFEDCrate", 0);
@@ -304,6 +316,36 @@ string CSCSupervisor::getRuntype(xgi::Input *in)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "==== run type:" << runtype);
 
 	return runtype;
+}
+
+string CSCSupervisor::getRunNumber(xgi::Input *in)
+{
+	cgicc::Cgicc cgi(in);
+	string runnumber;
+
+	form_iterator i = cgi.getElement("runnumber");
+	if (i != cgi.getElements().end()) {
+		runnumber = (*i).getValue();
+	}
+
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "==== run number:" << runnumber);
+
+	return runnumber;
+}
+
+string CSCSupervisor::getNEvents(xgi::Input *in)
+{
+	cgicc::Cgicc cgi(in);
+	string nevents;
+
+	form_iterator i = cgi.getElement("nevents");
+	if (i != cgi.getElements().end()) {
+		nevents = (*i).getValue();
+	}
+
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "==== # of events:" << nevents);
+
+	return nevents;
 }
 
 // End of file

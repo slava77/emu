@@ -11,6 +11,12 @@ EmuDAQManager::EmuDAQManager(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
 		EmuApplication(stub)
 {
+	run_number_ = 0;
+	max_n_events_ = 0;
+
+	getApplicationInfoSpace()->fireItemAvailable("runNumber", &run_number_);
+	getApplicationInfoSpace()->fireItemAvailable("maxNumberOfEvents", &max_n_events_);
+
 	xoap::bind(this, &EmuDAQManager::onConfigure, "Configure", XDAQ_NS_URI);
 	xoap::bind(this, &EmuDAQManager::onEnable,    "Enable",    XDAQ_NS_URI);
 	xoap::bind(this, &EmuDAQManager::onDisable,   "Disable",   XDAQ_NS_URI);
