@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.23 2006/03/13 13:23:17 mey Exp $
+// $Id: ALCTController.cc,v 2.24 2006/03/15 16:42:57 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.24  2006/03/15 16:42:57  mey
+// Update
+//
 // Revision 2.23  2006/03/13 13:23:17  mey
 // Update
 //
@@ -498,6 +501,7 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   // now give a default value for the control registers
   unsigned cr[] = {0x80fc5fc0, 0x20a03786, 0x8}; // default values for CR
   setCRfld(&params_);
+  std::cout << "Done" << std::endl ;
   //unpackControlRegister(cr);
   //
 }

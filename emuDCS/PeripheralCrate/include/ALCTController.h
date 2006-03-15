@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.9 2006/03/10 15:55:27 mey Exp $
+// $Id: ALCTController.h,v 2.10 2006/03/15 16:42:57 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.10  2006/03/15 16:42:57  mey
+// Update
+//
 // Revision 2.9  2006/03/10 15:55:27  mey
 // Update
 //
@@ -149,7 +152,6 @@ public:
     if (number<(sizeof(delays_)/4)) delays_[number]=delay;
   }
   inline void SetThreshold(int number,int threshold) {
-    std::cout << sizeof(thresholds_) << std::endl ;
     if (number<(sizeof(delays_)/4)) thresholds_[number]=threshold;
   }
   //

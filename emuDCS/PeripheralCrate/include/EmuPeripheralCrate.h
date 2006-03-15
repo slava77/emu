@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.3 2006/03/15 14:13:13 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.4 2006/03/15 16:42:57 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -487,6 +487,8 @@ public:
     // reply to caller
     //
     std::cout << "Received Message Configure" << std::endl ;
+    //
+    //fireEvent("Configure");
     //
     xoap::MessageReference reply = xoap::createMessage();
     xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
