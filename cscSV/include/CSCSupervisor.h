@@ -66,8 +66,12 @@ private:
 
 	string getRuntype(xoap::MessageReference message);
 	string getRuntype(xgi::Input *in);
+	string getRunNumber(xgi::Input *in);
+	string getNEvents(xgi::Input *in);
 
 	string runtype;
+	string runnumber;
+	string nevents;
 };
 
 #endif  // ifndef __CSC_SUPERVISOR_H__
