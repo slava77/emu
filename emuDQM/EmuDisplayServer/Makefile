@@ -3,8 +3,8 @@
 # This is the emu/emuDQM/EmuDisplayServer Package Makefile
 #
 ##
-include $(XDAQ_ROOT)/config/xdaq.mk
-include $(XDAQ_ROOT)/config/site.mk
+include ../config/xdaq.mk
+include ../config/site.mk
 
 # ROOT Config
 ROOTCFLAGS    = $(shell root-config --cflags)

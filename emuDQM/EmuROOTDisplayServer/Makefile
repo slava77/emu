@@ -5,8 +5,8 @@
 ##
 #include $(XDAQ_ROOT)/emu/emuDQM/config/xdaq.mk
 #include $(XDAQ_ROOT)/emu/emuDQM/config/site.mk
-include $(XDAQ_ROOT)/config/xdaq.mk
-include $(XDAQ_ROOT)/config/site.mk
+include ../config/xdaq.mk
+include ../config/site.mk
 
 
 # ROOT Config
