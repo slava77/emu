@@ -3,9 +3,9 @@
 # This is the TriDAS/daq/xoap Package Makefile
 #
 ##
-include $(XDAQ_ROOT)/config/compdef.mk
-include $(XDAQ_ROOT)/config/xdaq.mk
-include $(XDAQ_ROOT)/config/site.mk
+#include $(XDAQ_ROOT)/config/compdef.mk
+include ../config/xdaq.mk
+include ../config/site.mk
 
 UserExecutableLinkFlags = $(ROOTGLIBS)
 
