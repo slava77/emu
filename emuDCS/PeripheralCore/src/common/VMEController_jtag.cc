@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.28 2006/03/14 15:24:27 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.29 2006/03/15 16:15:28 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.29  2006/03/15 16:15:28  mey
+// Update
+//
 // Revision 2.28  2006/03/14 15:24:27  mey
 // UPdate
 //
@@ -1658,7 +1661,7 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
 // If more than 290 bits, can't put them into a single packet,
 // need better algorithm later......
  buff_mode = (cnt>290)?3:1;
- buff_mode = 1;
+ //buff_mode = 1;
  if(ird==0) buff_mode = 1;
  if(ird==2) buff_mode = 1; //only for firmware loading...
  //
