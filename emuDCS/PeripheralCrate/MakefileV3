@@ -55,7 +55,6 @@ Sources=\
 	VMEParser.cc \
 	EmuPeripheralCrate.cc  \
 	EmuRunControlHyperDAQ.cc  \
-	EmuCrateSOAP.cc \
 	CrateUtilities.cc \
 	Chamber.cc \
 	ChamberUtilities.cc 
