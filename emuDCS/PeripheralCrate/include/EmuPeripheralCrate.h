@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.2 2006/03/15 14:00:27 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.3 2006/03/15 14:13:13 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -224,8 +224,8 @@ public:
     xoap::bind(this, &EmuPeripheralCrate::onMessage, "onMessage", XDAQ_NS_URI );    
     xoap::bind(this, &EmuPeripheralCrate::Configure, "Configure", XDAQ_NS_URI );    
     xoap::bind(this, &EmuPeripheralCrate::Init, "Init", XDAQ_NS_URI );    
-    xoap::bind(this, &EmuPeripheralCrate::Init, "Enable", XDAQ_NS_URI );    
-    xoap::bind(this, &EmuPeripheralCrate::Init, "Disable", XDAQ_NS_URI );    
+    xoap::bind(this, &EmuPeripheralCrate::Enable, "Enable", XDAQ_NS_URI );    
+    xoap::bind(this, &EmuPeripheralCrate::Disable, "Disable", XDAQ_NS_URI );    
     //
     myParameter_ =  0;
     //
