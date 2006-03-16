@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.30 2006/03/16 19:06:49 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.31 2006/03/16 19:48:40 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.31  2006/03/16 19:48:40  mey
+// Update
+//
 // Revision 2.30  2006/03/16 19:06:49  mey
 // Update
 //
@@ -1643,7 +1646,9 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
 // If more than 290 bits, can't put them into a single packet,
 // need better algorithm later......
  buff_mode = (cnt>290)?3:1;
-
+ if (ird==0) buff_mode=1;
+ if (ird==2) buff_mode=1;
+ //
    if (debug) {
       printf("scan_alct: reg=%d, cnt=%d, ird=%d, Send %02x %02x\n", reg, cnt, ird, snd[0]&0xff, snd[1]&0xff);
    }
