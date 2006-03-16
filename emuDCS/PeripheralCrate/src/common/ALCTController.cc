@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.24 2006/03/15 16:42:57 mey Exp $
+// $Id: ALCTController.cc,v 2.25 2006/03/16 19:30:02 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.25  2006/03/16 19:30:02  mey
+// UPdate
+//
 // Revision 2.24  2006/03/15 16:42:57  mey
 // Update
 //
@@ -2352,6 +2355,11 @@ ALCTController::ALCTSTATUS ALCTController::setThresholds() {
   for(int i = 0; i < delayLines(); ++i) {
     res = alct_set_thresh(i, thresholds_[i]);
   }
+  //
+  for (int i = 0; i < delayLines(); i++) {
+    printf ("delay line: %02d, threshold: %02d\n", i+1, thresholds_[i]);
+  }
+  //
   return res; 
 }
 
