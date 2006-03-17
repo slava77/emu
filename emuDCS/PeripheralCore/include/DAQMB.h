@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.18 2006/01/30 09:29:29 mey Exp $
+// $Id: DAQMB.h,v 2.19 2006/03/17 14:06:15 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.19  2006/03/17 14:06:15  mey
+// Added set test status
+//
 // Revision 2.18  2006/01/30 09:29:29  mey
 // Update
 //
@@ -349,6 +352,10 @@ public:
   //
   inline int GetTestStatus(int test) {
     return TestStatus_[test];
+  }
+  //
+  inline void SetTestStatus(int test, int result) {
+    TestStatus_[test] = result;
   }
   //
 
