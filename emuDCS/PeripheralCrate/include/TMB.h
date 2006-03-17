@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.28 2006/03/05 18:45:08 mey Exp $
+// $Id: TMB.h,v 2.29 2006/03/17 13:57:39 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 2.29  2006/03/17 13:57:39  rakness
+// Add friend EMUjtag
+//
 // Revision 2.28  2006/03/05 18:45:08  mey
 // Update
 //
@@ -98,16 +101,19 @@
 #include "AnodeChannel.h"
 #include "TMB_JTAG_constants.h"
 #include "RAT.h"
+#include "EMUjtag.h"
 
 class ALCTController;
 class TMBParser;
 class RAT;
+class EMUjtag;
 
 class TMB : public VMEModule {
 
 public:
   friend class ALCTController;
   friend class TMBParser;
+  friend class EMUjtag;
       
   TMB(int newcrate, int slot);
   virtual ~TMB();
