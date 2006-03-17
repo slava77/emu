@@ -57,7 +57,8 @@ Sources=\
 	EmuRunControlHyperDAQ.cc  \
 	CrateUtilities.cc \
 	Chamber.cc \
-	ChamberUtilities.cc 
+	ChamberUtilities.cc \
+	EMUjtag.cc 
 
 IncludeDirs = \
 	$(XDAQ_ROOT)/daq/toolbox/include \
