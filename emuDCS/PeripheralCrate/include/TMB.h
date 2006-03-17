@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.29 2006/03/17 13:57:39 rakness Exp $
+// $Id: TMB.h,v 2.30 2006/03/17 15:51:05 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.30  2006/03/17 15:51:05  mey
+// New routines
+//
 // Revision 2.29  2006/03/17 13:57:39  rakness
 // Add friend EMUjtag
 //
@@ -194,6 +197,13 @@ public:
   int  CCB_command_from_TTC();
   void DataSendMPC();
   void InjectMPCData(const int nEvents, const unsigned long lct0, const unsigned long lct1);
+  //
+  void ExtClctTrigFromCCBonly();
+  int ReadTMBtempPCB();  
+  int ReadTMBtempFPGA();  
+  int ReadTMBtCritPCB();  
+  int ReadTMBtCritFPGA();  
+  int smb_io(int,int,int);
   //
   void ResetRAMAddress();
   void ResetALCTRAMAddress();
