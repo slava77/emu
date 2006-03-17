@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.6 2006/03/17 13:16:39 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.7 2006/03/17 14:42:50 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -4993,6 +4993,7 @@ public:
     //
     bool FoundXML = false ;
     int nTMB = 0;
+    int nDMB = 0;
     //
     std::string line, line0, line1, line2;
     while(TextFile.good()) {
@@ -5032,6 +5033,7 @@ public:
 		   >> testResult[11] ;
 	  //
 	  std::cout << "Setting " << nTMB << " " << testResult[0] <<  " " << testResult[1] << std::endl ;
+	  //
 	  tmbTestVector[nTMB].SetResultTestBootRegister(testResult[0]);
 	  tmbTestVector[nTMB].SetResultTestVMEfpgaDataRegister(testResult[1]);
 	  tmbTestVector[nTMB].SetResultTestFirmwareDate(testResult[2]); 
@@ -5046,8 +5048,46 @@ public:
 	  tmbTestVector[nTMB].SetResultTest3d3444(testResult[11]);
 	  //
 	  nTMB++ ;
+	  //	  
+	}
+	//
+	if ( line.find("DMB") != string::npos ) {	  
+	  //
+	  int slot, boardid, testResult[20];
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> slot >> boardid 
+		   >> testResult[0] 
+		   >> testResult[1] 
+		   >> testResult[2] 
+		   >> testResult[3] 
+		   >> testResult[4] 
+		   >> testResult[5] 
+		   >> testResult[6] 
+		   >> testResult[7] 
+		   >> testResult[8] 
+		   >> testResult[9] 
+		   >> testResult[10] 
+		   >> testResult[11] 
+		   >> testResult[12] 
+		   >> testResult[13] 
+		   >> testResult[14] 
+		   >> testResult[15] 
+		   >> testResult[16] 
+		   >> testResult[17] 
+		   >> testResult[18] 
+		   >> testResult[19] ;
+	  //
+	  std::cout << "Setting " << nDMB << " " << testResult[0] <<  " " << testResult[1] << std::endl ;
+	  //
+	  if ( dmbVector[nDMB]->slot() == slot ) {
+	    for(int i=0; i<20; i++) dmbVector[nDMB]->SetTestStatus(i,testResult[i]);
+	  }
+	  //
+	  nDMB++;
 	  //
 	}
+	//
       }
     }
     //
