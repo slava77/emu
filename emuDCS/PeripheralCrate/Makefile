@@ -49,7 +49,8 @@ Sources=\
 	VMEParser.cc \
 	EmuController.cc \
 	ChamberUtilities.cc \
-	TMBTester.cc
+	TMBTester.cc \
+	EMUjtag.cc
 
 IncludeDirs = \
 	$(XDAQ_ROOT)/daq/toolbox/include \
