@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.5 2006/03/15 18:08:06 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.6 2006/03/17 13:16:39 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -5080,7 +5080,7 @@ public:
 	//
 	TestLogFile_ = "MyTestLogFile.xml" ;
 	//
-	//Configuring();
+	ParseTestLogFile(TestLogFile_);
 	//
 	//cout << "UploadConfFile done" << endl ;
 	//
