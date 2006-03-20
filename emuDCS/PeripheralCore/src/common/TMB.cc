@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.52 2006/03/20 09:10:43 mey Exp $
+// $Id: TMB.cc,v 2.53 2006/03/20 13:34:40 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.53  2006/03/20 13:34:40  mey
+// Update
+//
 // Revision 2.52  2006/03/20 09:10:43  mey
 // Update
 //
@@ -167,6 +170,7 @@
 #include <cstdio>
 #include "TMB_constants.h"
 #include "ALCTController.h"
+#include "RAT.h"
 
 // the VME addresses here are defined in
 // http://www-collider.physics.ucla.edu/cms/trigger/tmb2001/tmb2001_spec.pdf
