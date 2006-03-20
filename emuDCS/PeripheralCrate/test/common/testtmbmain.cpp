@@ -8,7 +8,6 @@
 #include "TMB.h"
 #include "DAQMB.h"
 #include "RAT.h"
-#include "EMUjtag.h"
 #include "CCB.h"
 #include "TMBTester.h"
 #include "EmuController.h"
@@ -59,7 +58,6 @@ int main() {
   ALCTController *alct;
   MPC *thisMPC;
   RAT *myRat;
-  EMUjtag *myJtag;
 
   //TestBeamCrateController tbController;
 
@@ -99,14 +97,12 @@ int main() {
   thisMPC = thisCrate->mpc();
   DDU * thisDDU = thisCrate->ddu();
   myRat = new RAT(thisTMB);
-  myJtag = new EMUjtag(thisTMB);
 
   // point the TMBTester to the classes we need:
   TMBTester testTMB;
   testTMB.setTMB(thisTMB);
   testTMB.setCCB(thisCCB);
   testTMB.setRAT(myRat);
-  testTMB.setJTAG(myJtag);
 
   // point the ChamberUtilities to the classes we need:
   ChamberUtilities util;
@@ -235,20 +231,15 @@ int main() {
       testTMB.RatTmbDelayScan();
       break;
     case 21:
-      //GREg      myRat->ReadRatUser1();
-      testTMB.ReadRatUser1();
-      //GREG      myRat->decodeRATUser1();
-      testTMB.decodeRATUser1();
+      myRat->ReadRatUser1();
+      myRat->decodeRATUser1();
       break;
     case 22:
-      //GREG      myRat->ReadRatUser2();
-      testTMB.ReadRatUser2();
-      //GREGmyRat->decodeRATUser2();
-      testTMB.decodeRATUser2();
+      myRat->ReadRatUser2();
+      myRat->decodeRATUser2();
       break;
     case 23:
-      //GREG      myRat->read_rpcrat_delay();
-      testTMB.read_rpcrat_delay();
+      myRat->read_rpcrat_delay();
       break;
     case 24:
       std::cout << "scan RPC0 (0) or RPC1 (1)" << std::endl;
@@ -258,8 +249,7 @@ int main() {
       break;
     case 25:
       std::cout << "Current RPC-RAT delay values..." << std::endl;
-      //GREG      myRat->read_rpcrat_delay();
-      testTMB.read_rpcrat_delay();
+      myRat->read_rpcrat_delay();
 
       std::cout << "set RPC0 (0) or RPC1 (1)" << std::endl;
       std::cin >> rpc;
@@ -267,55 +257,43 @@ int main() {
       std::cout << "set delay (0-15)" << std::endl;
       std::cin >> delay;
 
-      //GREG      myRat->set_rpcrat_delay(rpc,delay);
-      testTMB.set_rpcrat_delay(rpc,delay);
+      myRat->set_rpcrat_delay(rpc,delay);
       break;
     case 26:
-      //GREG      myRat->reset_parity_error_counter();
-      testTMB.reset_parity_error_counter();
+      myRat->reset_parity_error_counter();
       break;
     case 27:
-      //GREG      myRat->read_rpc_data();
-      testTMB.read_rpc_data();
+      myRat->read_rpc_data();
       break;
     case 29:
-      //GREG      myRat->ReadRatUserCode();
-      testTMB.ReadRatUserCode();
+      myRat->ReadRatUserCode();
       break;
     case 30:
-      //GREG      myRat->ReadRatIdCode();
-      testTMB.ReadRatIdCode();
+      myRat->ReadRatIdCode();
       break;
     case 31:
-      //GREG      myRat->read_rattmb_delay();
-      testTMB.read_rattmb_delay();
+      myRat->read_rattmb_delay();
       break;
     case 32:
       std::cout << "Current RAT-TMB delay value..." << std::endl;
-      //GREG      myRat->read_rattmb_delay();
-      testTMB.read_rattmb_delay();
+      myRat->read_rattmb_delay();
 
       std::cout << "set delay (0-15)" << std::endl;
       std::cin >> delay;
 
-      //GREG      myRat->set_rattmb_delay(delay);
-      testTMB.set_rattmb_delay(delay);
+      myRat->set_rattmb_delay(delay);
       break;
     case 33:
-      //GREG      myRat->set_perr_ignore();
-      testTMB.set_perr_ignore();
+      myRat->set_perr_ignore();
       break;
     case 34:
-      //GREG      myRat->unset_perr_ignore();
-      testTMB.unset_perr_ignore();
+      myRat->unset_perr_ignore();
       break;
     case 35:
-      //GREG      myRat->use_parity_odd();
-      testTMB.use_parity_odd();
+      myRat->use_parity_odd();
       break;
     case 36:
-      //GREg      myRat->use_parity_even();
-      testTMB.use_parity_even();
+      myRat->use_parity_even();
       break;
     case 37:
       std::cout << "compute parity for RPC0 (0) or RPC1 (1)" << std::endl;

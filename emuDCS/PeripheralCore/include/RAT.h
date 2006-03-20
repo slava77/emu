@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: RAT.h,v 1.5 2006/03/20 09:05:50 rakness Exp $
+// $Id: RAT.h,v 1.6 2006/03/20 16:04:19 rakness Exp $
 // $Log: RAT.h,v $
+// Revision 1.6  2006/03/20 16:04:19  rakness
+// Moved RAT JTAG to EMUjtag
+//
 // Revision 1.5  2006/03/20 09:05:50  rakness
 // move temperature reads to TMB/RAT
 //
@@ -19,23 +22,24 @@
 #ifndef RAT_h
 #define RAT_h
 
-#include "TMB.h"
 #include <string>
-#include <bitset>
+#include "EMUjtag.h"
 
-class RAT
+class TMB;
+
+class RAT : public EMUjtag
 {
 public:
   //
   RAT(TMB * );
   RAT();
-  virtual ~RAT();
+  ~RAT();
   //
   friend class TMBParser;
   //
-  inline void setTMB(TMB * tmb) {tmb_ = tmb;}
-  //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
+  //
+  void rpc_fpga_finished();
   //
   void ReadRatUser1();
   void decodeRATUser1();
@@ -89,13 +93,16 @@ private:
   std::ostream * MyOutput_ ;
   TMB * tmb_ ;
   //
-  int user1_value_[rat_user1_length];
+  int user1_value_[MAX_NUM_FRAMES];
+  int rat_user1_length_;
+  //
   int rat_idcode_[2];
   int rat_usercode_[2];
-
+  //
   void WriteRatUser2_(int*);
-  int user2_value_[rat_user2_length];
-
+  int user2_value_[MAX_NUM_FRAMES];
+  int rat_user2_length_;
+  //
   int rpc_rat_delay_;
   int rpc_parity_err_ctr_[2];
   int rpc_data_[2];
