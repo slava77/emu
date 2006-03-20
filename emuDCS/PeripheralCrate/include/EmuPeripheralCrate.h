@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.8 2006/03/20 09:10:43 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.9 2006/03/20 14:06:21 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -85,7 +85,6 @@ class EmuPeripheralCrate: public xdaq::Application
 class EmuPeripheralCrate: public EmuApplication
 #endif
 {
-private:
   //
 protected:
   //
@@ -470,6 +469,8 @@ public:
   //
   // SOAP Callback  
   //
+private:
+  //
   xoap::MessageReference onMessage (xoap::MessageReference msg) throw (xoap::exception::Exception)
   {   
     //
@@ -580,6 +581,14 @@ public:
     xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
     xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
     return reply;    
+  }
+  //
+  void EmuPeripheralCrate::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
+    throw (toolbox::fsm::exception::Exception)
+  {
+#ifndef STANDALONE
+    EmuApplication::stateChanged(fsm);
+#endif
   }
   //
   void EmuPeripheralCrate::CrateTests(xgi::Input * in, xgi::Output * out ) 
