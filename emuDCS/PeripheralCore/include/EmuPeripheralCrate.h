@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.9 2006/03/20 14:06:21 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.10 2006/03/20 15:36:10 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -117,6 +117,7 @@ protected:
   ostringstream OutputStringTMBStatus[9];
   ostringstream OutputDMBTests[9];
   ostringstream OutputTMBTests[9];
+  //
   int TMBRegisterValue_;
   int CCBRegisterValue_;
   vector<TMB*>   tmbVector;
@@ -129,7 +130,8 @@ protected:
   std::string CCBBoardID_;
   std::string DMBBoardID_[9];
   std::string TMBBoardID_[9];
-  int TMB_, DMB_;
+  std::string RATBoardID_[9];
+  int TMB_, DMB_,RAT_;
   bool AutoRefreshTMBCounters_;
   //
 public:
@@ -165,6 +167,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::DMBStatus, "DMBStatus");
     xgi::bind(this,&EmuPeripheralCrate::DMBBoardID, "DMBBoardID");
     xgi::bind(this,&EmuPeripheralCrate::TMBBoardID, "TMBBoardID");
+    xgi::bind(this,&EmuPeripheralCrate::RATBoardID, "RATBoardID");
     xgi::bind(this,&EmuPeripheralCrate::CCBStatus, "CCBStatus");
     xgi::bind(this,&EmuPeripheralCrate::CCBUtils, "CCBUtils");
     xgi::bind(this,&EmuPeripheralCrate::MPCStatus, "MPCStatus");
@@ -241,7 +244,7 @@ public:
     RunNumber_= "0";
     MPCBoardID_ = "-2";
     CCBBoardID_ = "-2";
-    for (int i=0; i<9; i++) { DMBBoardID_[i] = "-2" ; TMBBoardID_[i] = "-2" ; }
+    for (int i=0; i<9; i++) { DMBBoardID_[i] = "-2" ; TMBBoardID_[i] = "-2" ; RATBoardID_[i] = "-2" ;}
     //
     for(int i=0; i<9;i++) {
       OutputStringDMBStatus[i] << "Output..." << std::endl;
@@ -768,11 +771,14 @@ private:
 	  std::string TMBTests ;
 	  std::string TMBUtils ;
 	  std::string TMBBoardID ;
+	  std::string RATBoardID ;
 	  //
 	  TMBStatus  =
 	    toolbox::toString("/%s/TMBStatus",getApplicationDescriptor()->getURN().c_str());
 	  TMBBoardID =
 	    toolbox::toString("/%s/TMBBoardID",getApplicationDescriptor()->getURN().c_str());
+	  RATBoardID =
+	    toolbox::toString("/%s/RATBoardID",getApplicationDescriptor()->getURN().c_str());
 	  TMBTests   =
 	    toolbox::toString("/%s/TMBTests",getApplicationDescriptor()->getURN().c_str());
 	  TMBUtils   =
@@ -792,6 +798,18 @@ private:
 		.set("value",TMBBoardID_[i]) << std::endl ;
 	      sprintf(buf,"%d",i);
 	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+	      *out << cgicc::form() << std::endl ;
+	      *out << cgicc::td();
+	      //
+	      *out << cgicc::td();
+	      *out << "RAT Board ID" ;
+	      *out << cgicc::form().set("method","GET").set("action",RATBoardID) << std::endl ;
+	      buf[20];
+	      sprintf(buf,"RATBoardID_%d",i);
+	      *out << cgicc::input().set("type","text").set("name",buf)
+		.set("value",RATBoardID_[i]) << std::endl ;
+	      sprintf(buf,"%d",i);
+	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","rat");
 	      *out << cgicc::form() << std::endl ;
 	      *out << cgicc::td();
 	      //
@@ -3422,6 +3440,30 @@ private:
     char buf[20];
     sprintf(buf,"TMBBoardID_%d",tmb);
     TMBBoardID_[tmb] = cgi[buf]->getValue();
+    //
+    this->Default(in,out);
+    //
+    }
+  //
+  void EmuPeripheralCrate::RATBoardID(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception){
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("rat");
+    int rat;
+    if(name != cgi.getElements().end()) {
+      rat = cgi["rat"]->getIntegerValue();
+      cout << "RAT " << rat << endl;
+      RAT_ = rat;
+    } else {
+      cout << "Not rat" << endl ;
+      rat = RAT_;
+    }
+    //
+    char buf[20];
+    sprintf(buf,"RATBoardID_%d",rat);
+    RATBoardID_[rat] = cgi[buf]->getValue();
     //
     this->Default(in,out);
     //
