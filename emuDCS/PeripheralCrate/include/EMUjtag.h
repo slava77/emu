@@ -1,17 +1,17 @@
 #ifndef EMUjtag_h
 #define EMUjtag_h
 
+#include "TMB.h"
 #include <string>
 #include <bitset>
 #include "EMU_JTAG_constants.h"
-#include "TMB.h"
 
-class EMUjtag
+class EMUjtag 
 {
 public:
   //
-  EMUjtag(TMB * );
   EMUjtag();
+  EMUjtag(TMB * );
   virtual ~EMUjtag();
   //
   inline void setTMB(TMB * tmb) {tmb_ = tmb;}
@@ -61,6 +61,7 @@ private:
   int chip_id_;
   int register_length_;
   int shfDR_tdo_[MAX_FRAMES];
+  //
 };
 
 #endif

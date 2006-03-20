@@ -349,7 +349,7 @@ int main() {
       ::sleep(1);
 
       std::cout << "Enable external CLCT for TMB sequencer trigger..." << std::endl;      
-      testTMB.ExtClctTrigFromCCBonly();
+      thisTMB->ExtClctTrigFromCCBonly();
       ::sleep(1);
 
 

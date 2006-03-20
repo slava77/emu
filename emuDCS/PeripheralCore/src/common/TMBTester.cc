@@ -399,14 +399,14 @@ bool TMBTester::testMezzId(){
   EMUjtag_->setup_jtag(ChainTmbMezz);
 
   EMUjtag_->ShfIR_ShfDR(ChipLocationTmbMezzFpga,
-			VTX2_IDCODE,
-			RegSizeTmbMezzFpga_VTX2_IDCODE);
+			FPGAidCode,
+			RegSizeTmbMezzFpga_FPGAidCode);
   int fpgaIdCode = tmb_->bits_to_int(EMUjtag_->GetDRtdo(),EMUjtag_->GetRegLength(),0);
 
   for (int chip_location=1; chip_location<=4; chip_location++){
     EMUjtag_->ShfIR_ShfDR(chip_location,
-			  PROM_IDCODE,
-			  RegSizeTmbMezzProm_PROM_IDCODE);
+			  PROMidCode,
+			  RegSizeTmbMezzProm_PROMidCode);
 
     idcode[chip_location] = tmb_->bits_to_int(EMUjtag_->GetDRtdo(),EMUjtag_->GetRegLength(),0);
   }
@@ -441,8 +441,8 @@ bool TMBTester::testPROMid(){
 
   for (int chip_location=0; chip_location<=1; chip_location++){
     EMUjtag_->ShfIR_ShfDR(chip_location,
-			  PROM_IDCODE,
-			  RegSizeTmbUserProm_PROM_IDCODE);
+			  PROMidCode,
+			  RegSizeTmbUserProm_PROMidCode);
     userID[chip_location] = tmb_->bits_to_int(EMUjtag_->GetDRtdo(),EMUjtag_->GetRegLength(),0);
   }
 
@@ -714,24 +714,16 @@ bool TMBTester::testADC(){
   (*MyOutput_) << "Total power = " << std::dec << total_power << " Watts" << std::endl;
 
   // ** Get TMB and RAT temperatures **
-  //GREG  int TMBtempPCB = tmb_->ReadTMBtempPCB();  
-  int TMBtempPCB = ReadTMBtempPCB();  
-  //GREG  int TMBtempFPGA = tmb_->ReadTMBtempFPGA();  
-  int TMBtempFPGA = ReadTMBtempFPGA();  
-  //GREG  int RATtempPCB = rat_->ReadRATtempPCB(); 
-  int RATtempPCB = ReadRATtempPCB(); 
-  //GREG  int RATtempHeatSink = rat_->ReadRATtempHSink(); 
-  int RATtempHeatSink = ReadRATtempHSink(); 
+  int TMBtempPCB = tmb_->ReadTMBtempPCB();  
+  int TMBtempFPGA = tmb_->ReadTMBtempFPGA();  
+  int RATtempPCB = rat_->ReadRATtempPCB(); 
+  int RATtempHeatSink = rat_->ReadRATtempHSink(); 
 
   // ** Get TMB and RAT critical temperature settings **
-  //GREG  int TMBtCritPCB = tmb_->ReadTMBtCritPCB();  
-  int TMBtCritPCB = ReadTMBtCritPCB();  
-  //GREG  int TMBtCritFPGA = tmb_->ReadTMBtCritFPGA();  
-  int TMBtCritFPGA = ReadTMBtCritFPGA();  
-  //GREG  int RATtCritPCB = rat_->ReadRATtCritPCB(); 
-  int RATtCritPCB = ReadRATtCritPCB(); 
-  //GREGint RATtCritHeatSink = rat_->ReadRATtCritHSink(); 
-  int RATtCritHeatSink = ReadRATtCritHSink(); 
+  int TMBtCritPCB = tmb_->ReadTMBtCritPCB();  
+  int TMBtCritFPGA = tmb_->ReadTMBtCritFPGA();  
+  int RATtCritPCB = rat_->ReadRATtCritPCB(); 
+  int RATtCritHeatSink = rat_->ReadRATtCritHSink(); 
 
   testOK = (v5p0OK     &&
 	    v3p3OK     &&    
@@ -1017,21 +1009,6 @@ void TMBTester::bit_to_array(int data, int * array, const int size) {
 
   return;
 }
-
-
-void TMBTester::jtag_src_boot_reg() {
-  (*MyOutput_) << "TMBTester: Force JTAG to go through boot reg" << std::endl;
-  unsigned short int BootData, read_data;
-  int dummy = tmb_->tmb_get_boot_reg(&BootData);
-  (*MyOutput_) << "Initial boot contents = " << std::hex << BootData << std::endl;
-  BootData |= 0x0080;
-  
-  dummy = tmb_->tmb_set_boot_reg(BootData);
-  dummy = tmb_->tmb_get_boot_reg(&read_data);   //check for FPGA final state
-  (*MyOutput_) << "Final Boot Contents = " << std::hex << read_data << std::endl;    
-  return;
-}
-
 //////////////////////////////////////////////
 // END: Functions needed to implement tests..
 //////////////////////////////////////////////
@@ -1198,7 +1175,20 @@ void TMBTester::computeBER(int rpc){
 
   return;
 }
-
+//
+void TMBTester::jtag_src_boot_reg() {
+  (*MyOutput_) << "TMBTester: Force JTAG to go through boot reg" << std::endl;
+  unsigned short int BootData, read_data;
+  int dummy = tmb_->tmb_get_boot_reg(&BootData);
+  (*MyOutput_) << "Initial boot contents = " << std::hex << BootData << std::endl;
+  BootData |= 0x0080;
+  
+  dummy = tmb_->tmb_set_boot_reg(BootData);
+  dummy = tmb_->tmb_get_boot_reg(&read_data);   //check for FPGA final state
+  (*MyOutput_) << "Final Boot Contents = " << std::hex << read_data << std::endl;    
+  return;
+}
+//
 /////////////////////////////////////////
 // END Some useful methods
 /////////////////////////////////////////
@@ -1539,14 +1529,14 @@ void TMBTester::ReadRatIdCode(){
   EMUjtag_->setup_jtag(ChainRat);
 
   EMUjtag_->ShfIR_ShfDR(ChipLocationRatFpga,
-			VTX2_IDCODE,
-			RegSizeRatFpga_VTX2_IDCODE);
+			FPGAidCode,
+			RegSizeRatFpga_FPGAidCode);
   rat_idcode_[0] = tmb_->bits_to_int(EMUjtag_->GetDRtdo(),EMUjtag_->GetRegLength(),0);
 
 
   EMUjtag_->ShfIR_ShfDR(ChipLocationRatProm,
-			PROM_IDCODE,
-			RegSizeRatProm_PROM_IDCODE);
+			PROMidCode,
+			RegSizeRatProm_PROMidCode);
   rat_idcode_[1] = tmb_->bits_to_int(EMUjtag_->GetDRtdo(),EMUjtag_->GetRegLength(),0);
 
   (*MyOutput_) << "RAT FPGA ID code = " << rat_idcode_[0] << std::endl;
@@ -1563,14 +1553,14 @@ void TMBTester::ReadRatUserCode(){
   EMUjtag_->setup_jtag(ChainRat);
 
   EMUjtag_->ShfIR_ShfDR(ChipLocationRatFpga,
-			VTX2_USERCODE,
-			RegSizeRatFpga_VTX2_USERCODE);
+			FPGAuserCode,
+			RegSizeRatFpga_FPGAuserCode);
   rat_usercode_[0] = tmb_->bits_to_int(EMUjtag_->GetDRtdo(),EMUjtag_->GetRegLength(),0);
 
   
   EMUjtag_->ShfIR_ShfDR(ChipLocationRatProm,
-			PROM_USERCODE,
-			RegSizeRatProm_PROM_USERCODE);
+			PROMuserCode,
+			RegSizeRatProm_PROMuserCode);
   rat_usercode_[1] = tmb_->bits_to_int(EMUjtag_->GetDRtdo(),EMUjtag_->GetRegLength(),0);
 
 
@@ -1592,8 +1582,8 @@ void TMBTester::ReadRatUser1(){
   EMUjtag_->setup_jtag(ChainRat);
 		       
   EMUjtag_->ShfIR_ShfDR(ChipLocationRatFpga,
-			VTX2_USR1,
-			RegSizeRatFpga_VTX2_USR1);
+			FPGAuser1,
+			RegSizeRatFpga_FPGAuser1);
 
   //Fill user1_value_ with JTAG data...
   rat_user1_length_ = EMUjtag_->GetRegLength();
@@ -1827,8 +1817,8 @@ void TMBTester::ReadRatUser2(){
   EMUjtag_->setup_jtag(ChainRat);
 
   EMUjtag_->ShfIR_ShfDR(ChipLocationRatFpga,
-			VTX2_USR2,
-			RegSizeRatFpga_VTX2_USR2);
+			FPGAuser2,
+			RegSizeRatFpga_FPGAuser2);
 
   //Fill user2_ information:
   rat_user2_length_ = EMUjtag_->GetRegLength();
@@ -1848,8 +1838,8 @@ void TMBTester::ReadRatUser2(){
     rsd[i] = user2_value_[i];
   
   EMUjtag_->ShfIR_ShfDR(ChipLocationRatFpga,
-			VTX2_USR2,
-			RegSizeRatFpga_VTX2_USR2,
+			FPGAuser2,
+			RegSizeRatFpga_FPGAuser2,
 			rsd);
 
   //Print out the USER2 value from right (first bit out) to left (last bit out):
@@ -1921,8 +1911,8 @@ void TMBTester::WriteRatUser2_(int * data_in){
   EMUjtag_->setup_jtag(ChainRat);
 		       
   EMUjtag_->ShfIR_ShfDR(ChipLocationRatFpga,
-			VTX2_USR2,
-			RegSizeRatFpga_VTX2_USR2,
+			FPGAuser2,
+			RegSizeRatFpga_FPGAuser2,
 			data_in);
 
   return;
@@ -2238,310 +2228,13 @@ void TMBTester::read_rpc_data() {
 
   return;
 }
-//
-int TMBTester::ReadRATtempPCB() {
-
-  int smb_adr = 0x18;   // gnd, gnd state RAT LM84 chip address
-  int command = 0x00;   // "local" temperature read
-  //GREG  int temperature = tmb_->smb_io(smb_adr,command,2);
-  int temperature = smb_io(smb_adr,command,2);
-
-  (*MyOutput_) << "RAT temperature (PCB)                 = " << std::dec << temperature
-	       << " deg C " << std::endl;
-
-  return temperature;
-}
-//
-int TMBTester::ReadRATtempHSink() {
-
-  int smb_adr = 0x18;   // gnd, gnd state RAT LM84 chip address
-  int command = 0x01;   // "remote" temperature read
-  //GREG  int temperature = tmb_->smb_io(smb_adr,command,2);
-  int temperature = smb_io(smb_adr,command,2);
-
-  (*MyOutput_) << "RAT temperature (Heat Sink)           = " << std::dec << temperature
-	       << " deg C " << std::endl;
-
-  return temperature;
-}
-//
-int TMBTester::ReadRATtCritPCB() {
-
-  int smb_adr = 0x18;   // gnd, gnd state RAT LM84 chip address  
-  int command = 0x05;   // "local" temperature critical read
-  //GREG  int temperature = tmb_->smb_io(smb_adr,command,2);
-  int temperature = smb_io(smb_adr,command,2);
-
-  (*MyOutput_) << "RAT Critical Temperature (PCB)        = " << std::dec << temperature
-	       << " deg C " << std::endl;
-
-  return temperature;
-}
-//
-int TMBTester::ReadRATtCritHSink() {
-
-  int smb_adr = 0x18;   // gnd, gnd state RAT LM84 chip address
-  int command = 0x07;   // "remote" temperature critical read
-  //GREG  int temperature = tmb_->smb_io(smb_adr,command,2);
-  int temperature = smb_io(smb_adr,command,2);
-
-  (*MyOutput_) << "RAT Critical Temperature (Heat Sink)  = " << std::dec << temperature
-	       << " deg C " << std::endl;
-
-  return temperature;
-}
-//
 ////////////////////////////////////////////////
 // END The following belong in RAT.cc
 ////////////////////////////////////////////////
 
-
 ///////////////////////////////////////////////
 //  The following belong in TMB.cc
 ///////////////////////////////////////////////
-void TMBTester::ExtClctTrigFromCCBonly() {
-
-  (*MyOutput_) << "Enable CLCT external trigger from TTC (through CCB)" << std::endl;
-
-  int data = tmb_->ReadRegister(seq_trig_en_adr);
-
-  (*MyOutput_) << "TMB Sequencer trigger source before = " << std::hex << data << std::endl;
-
-  data = 0x0020;                                 //allow CLCT external triggers from CCB
-
-  tmb_->WriteRegister(seq_trig_en_adr,data);
-
-  data = tmb_->ReadRegister(seq_trig_en_adr);
-
-  (*MyOutput_) << "TMB Sequencer trigger source after = " << std::hex << data << std::endl;
-
-  return;
-}
-
-int TMBTester::ReadTMBtempPCB() {
-
-  int smb_adr = 0x2a;   // float, float state TMB LM84 chip address
-  int command = 0x00;   // "local" temperature read
-  int temperature = smb_io(smb_adr,command,1);
-
-  (*MyOutput_) << "TMB temperature (PCB)                 = " << std::dec << temperature
-	       << " deg C " << std::endl;
-
-
-  return temperature;
-}
-
-int TMBTester::ReadTMBtempFPGA() {
-
-  int smb_adr = 0x2a;   // float, float state TMB LM84 chip address
-  int command = 0x01;   // "remote" temperature read
-  int temperature = smb_io(smb_adr,command,1);
-
-  (*MyOutput_) << "TMB temperature IC (FPGA)             = " << std::dec << temperature
-	       << " deg C " << std::endl;
-
-  return temperature;
-}
-
-int TMBTester::ReadTMBtCritPCB() {
-
-  int smb_adr = 0x2a;   // float, float state TMB LM84 chip address
-  int command = 0x05;   // "local" temperature critical read
-  int temperature = smb_io(smb_adr,command,1);
-
-  (*MyOutput_) << "TMB Critical Temperature IC (PCB)     = " << std::dec << temperature
-	       << " deg C " << std::endl;
-
-  return temperature;
-}
-
-int TMBTester::ReadTMBtCritFPGA() {
-
-  int smb_adr = 0x2a;   // float, float state TMB LM84 chip address
-  int command = 0x07;   // "remote" temperature critical read
-  int temperature = smb_io(smb_adr,command,1);
-
-  (*MyOutput_) << "TMB Critical Temperature (FPGA)       = " << std::dec << temperature
-	       << " deg C " << std::endl;
-
-  return temperature;
-}
-
-int TMBTester::smb_io(int smb_adr, int cmd, int module) {
-  //	Generates SMB serial clock and data streams to TMB LM84 chip
-  //
-  //   -> Returns temperature values in Celcius <-
-  //
-  //    smb_adr = 0x2a = float, float state TMB LM84 chip address
-  //            = 0x18 = gnd, gnd state RAT LM84 chip address
-  //
-  //    cmd = 0x00 = local temperature command
-  //        = 0x01 = remote temperature command
-  //        = 0x05 = local tcrit command  
-  //        = 0x07 = remote tcrit command  
-
-  //    module = 1 = TMB
-  //           = 2 = RAT
-
-  const int adc_adr = vme_adc_adr;
-
-  int smb_data = 0xff;        // null write command
-
-  int write_data,read_data;
-
-  // Current ADC register state:
-  int adc_status = tmb_->ReadRegister(adc_adr);
-
-  // **Step 1 write the command to read the data**
-
-  // ** initialize SMB data stream **
-  int sda_bit[29];
-  sda_bit[0] = 0;                                // Start
-  sda_bit[1] = (smb_adr >> 6) & 1;               // A6
-  sda_bit[2] = (smb_adr >> 5) & 1;               // A5
-  sda_bit[3] = (smb_adr >> 4) & 1;               // A4
-  sda_bit[4] = (smb_adr >> 3) & 1;               // A3
-  sda_bit[5] = (smb_adr >> 2) & 1;               // A2
-  sda_bit[6] = (smb_adr >> 1) & 1;               // A1
-  sda_bit[7] = (smb_adr >> 0) & 1;               // A0
-  sda_bit[8] = 0;                                // 0 = write command register                           
-  sda_bit[9] = 1;                                // ACK
-  sda_bit[10]= (cmd     >> 7) & 1;               // C7 
-  sda_bit[11]= (cmd     >> 6) & 1;               // C6 
-  sda_bit[12]= (cmd     >> 5) & 1;               // C5 
-  sda_bit[13]= (cmd     >> 4) & 1;               // C4 
-  sda_bit[14]= (cmd     >> 3) & 1;               // C3 
-  sda_bit[15]= (cmd     >> 2) & 1;               // C2 
-  sda_bit[16]= (cmd     >> 1) & 1;               // C1 
-  sda_bit[17]= (cmd     >> 0) & 1;               // C0 
-  sda_bit[18]= 1;                                // ACK
-  sda_bit[19]= (smb_data>> 7) & 1;               // D7 write data register
-  sda_bit[20]= (smb_data>> 6) & 1;               // D6 write data register
-  sda_bit[21]= (smb_data>> 5) & 1;               // D5 write data register
-  sda_bit[22]= (smb_data>> 4) & 1;               // D4 write data register
-  sda_bit[23]= (smb_data>> 3) & 1;               // D3 write data register
-  sda_bit[24]= (smb_data>> 2) & 1;               // D2 write data register
-  sda_bit[25]= (smb_data>> 1) & 1;               // D1 write data register
-  sda_bit[26]= (smb_data>> 0) & 1;               // D0 write data register
-  sda_bit[27]= 1;                                // ACK
-  sda_bit[28]= 0;                                // Stop
-
-  // ** Construct SMBclk and SMBdata **
-  //
-  //	SMB requires that serial data is stable while clock is high,
-  //	so data transitions occur while clock is low,
-  //	midway between clock falling edge and rising edge
-
-  int nclks = 115;
-
-  int sda_clock,scl_clock;
-  int sda,scl;
-
-  int i2c_clock;
-  for (i2c_clock=0; i2c_clock<=nclks; i2c_clock++) {  //200kHz
-    sda_clock = (int) i2c_clock/4;                //50 kHz
-    scl_clock = (int) ( (i2c_clock+1)/2 );        //50 kHz shifted 1/2 of a 100kHz cycle
-
-    scl = scl_clock & 1;                          // 0 0 1 1 0 0 1 1 0 0 1 1 ....
-    sda = sda_bit[sda_clock];
-
-    //    (*MyOutput_) << "Before Persistent -> i2c_clock " << i2c_clock << ", scl = " << scl << " sda_bit = " << sda << std::endl;
-
-    if (i2c_clock<3) scl=1;                       // START scl stays high
-    if (i2c_clock<2) sda=1;                       // START sda transitions low
-
-    if (i2c_clock>nclks-3) scl=1;                // STOP scl stays high
-    if (i2c_clock>nclks-2) sda=1;                // STOP sda transitions high
-
-    //    (*MyOutput_) << "After Persistent  -> i2c_clock " << i2c_clock << ", scl = " << scl << " sda_bit = " << sda << std::endl;
-
-    //** Write serial clock and data to TMB VME interface **
-
-    write_data = adc_status & 0xf9ff;    //clear bits 9 and 10
-    write_data |= scl << 9;
-    write_data |= sda << 10;
-    tmb_->WriteRegister(adc_adr,write_data);
-  }
-
-  // Current ADC register state:
-  adc_status = tmb_->ReadRegister(adc_adr);
-
-  // **Step 2 read the data**
-
-  // ** initialize SMB data stream **
-  sda_bit[0] = 0;                                // Start
-  sda_bit[1] = (smb_adr >> 6) & 1;               // A6
-  sda_bit[2] = (smb_adr >> 5) & 1;               // A5
-  sda_bit[3] = (smb_adr >> 4) & 1;               // A4
-  sda_bit[4] = (smb_adr >> 3) & 1;               // A3
-  sda_bit[5] = (smb_adr >> 2) & 1;               // A2
-  sda_bit[6] = (smb_adr >> 1) & 1;               // A1
-  sda_bit[7] = (smb_adr >> 0) & 1;               // A0
-  sda_bit[8] = 1;                                // 1 = read data register                           
-  sda_bit[9] = 1;                                // ACK
-  sda_bit[10]= 1;                                // D7 read from LM84, 1=z output from fpga
-  sda_bit[11]= 1;                                // D6
-  sda_bit[12]= 1;                                // D5
-  sda_bit[13]= 1;                                // D4
-  sda_bit[14]= 1;                                // D3
-  sda_bit[15]= 1;                                // D2
-  sda_bit[16]= 1;                                // D1
-  sda_bit[17]= 1;                                // D0
-  sda_bit[18]= 1;                                // ACK
-  sda_bit[19]= 0;                                // Stop
-
-  int d[20];
-  int sda_value;
-
-  nclks = 79;
-
-  for (i2c_clock=0; i2c_clock<=nclks; i2c_clock++) {  //200kHz
-    sda_clock = (int) i2c_clock/4;                //50 kHz
-    scl_clock = (int) ( (i2c_clock+1)/2 );        //50 kHz shifted 1/2 of a 100kHz cycle
-
-    scl = scl_clock & 1;                          // 0 0 1 1 0 0 1 1 0 0 1 1 ....
-    sda = sda_bit[sda_clock];
-
-    if (i2c_clock<3) scl=1;                       // START scl stays high
-    if (i2c_clock<2) sda=1;                       // START sda transitions low
-
-    if (i2c_clock>nclks-3) scl=1;                // STOP scl stays high
-    if (i2c_clock>nclks-2) sda=1;                // STOP sda transitions high
-
-    //** Write serial clock and data to TMB VME interface **
-    write_data = adc_status & 0xf9ff;    //clear bits 9 and 10
-    write_data |= scl << 9;
-    write_data |= sda << 10;
-    tmb_->WriteRegister(adc_adr,write_data);
-
-    //** Read Serial data from TMB VME interface **
-    // (read on every cycle to keep clock symmetric)
-    read_data = tmb_->ReadRegister(adc_adr);
-    if (scl==1) {
-      d[sda_clock] = read_data;
-    }
-  }
-
-  // pack data into an integer...
-  int ishift = 0;
-  if (module == 1) ishift = 10;   //data bit from LM84 on TMB
-  if (module == 2) ishift = 11;   //data bit from LM84 on RAT
-
-  int i;
-  int data = 0;
-  for (i=0; i<=31; i++) {
-    if (i<=7) {
-      sda_value = (d[17-i]>>ishift) & 0x1;
-      data |= sda_value<<i;          //d[7:0]
-    } else {
-      data |= sda_value<<i;          //sign extend if bit 7 indicates negative value      
-    }
-  }
-
-  //  (*MyOutput_) << "Temperature = " << std::dec << data << " deg C" << std::endl;
-
-  return data;
-}
 ///////////////////////////////////////////////
 //  END: The following belong in TMB.cc
 ///////////////////////////////////////////////

@@ -106,19 +106,7 @@ class TMBTester {
   void window_analysis(int *,const int);
   void computeBER(int);
   //
-  // Should be in TMB.cc...
-  void ExtClctTrigFromCCBonly();
-  int ReadTMBtempPCB();  
-  int ReadTMBtempFPGA();  
-  int ReadTMBtCritPCB();  
-  int ReadTMBtCritFPGA();  
-  int smb_io(int,int,int);
-  //
   // Should be in RAT.cc (after smb_io(int,int,int) moves to TMB.cc)
-  int ReadRATtempPCB();  
-  int ReadRATtempHSink();  
-  int ReadRATtCritPCB();  
-  int ReadRATtCritHSink();    
   void rpc_fpga_finished();
   void ReadRatUser1();
   void decodeRATUser1();

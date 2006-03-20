@@ -767,4 +767,54 @@ void RAT::read_rpc_data() {
 
   return;
 }
+//
+int RAT::ReadRATtempPCB() {
+
+  int smb_adr = 0x18;   // gnd, gnd state RAT LM84 chip address
+  int command = 0x00;   // "local" temperature read
+  int temperature = tmb_->smb_io(smb_adr,command,2);
+
+  (*MyOutput_) << "RAT temperature (PCB)                 = " << std::dec << temperature
+	       << " deg C " << std::endl;
+
+  return temperature;
+}
+//
+int RAT::ReadRATtempHSink() {
+
+  int smb_adr = 0x18;   // gnd, gnd state RAT LM84 chip address
+  int command = 0x01;   // "remote" temperature read
+  int temperature = tmb_->smb_io(smb_adr,command,2);
+
+  (*MyOutput_) << "RAT temperature (Heat Sink)           = " << std::dec << temperature
+	       << " deg C " << std::endl;
+
+  return temperature;
+}
+//
+int RAT::ReadRATtCritPCB() {
+
+  int smb_adr = 0x18;   // gnd, gnd state RAT LM84 chip address  
+  int command = 0x05;   // "local" temperature critical read
+  int temperature = tmb_->smb_io(smb_adr,command,2);
+
+  (*MyOutput_) << "RAT Critical Temperature (PCB)        = " << std::dec << temperature
+	       << " deg C " << std::endl;
+
+  return temperature;
+}
+//
+int RAT::ReadRATtCritHSink() {
+
+  int smb_adr = 0x18;   // gnd, gnd state RAT LM84 chip address
+  int command = 0x07;   // "remote" temperature critical read
+  int temperature = tmb_->smb_io(smb_adr,command,2);
+
+  (*MyOutput_) << "RAT Critical Temperature (Heat Sink)  = " << std::dec << temperature
+	       << " deg C " << std::endl;
+
+  return temperature;
+}
+//
+
 
