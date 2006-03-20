@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.32 2006/03/20 15:35:42 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.33 2006/03/20 15:58:40 rakness Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.33  2006/03/20 15:58:40  rakness
+// Update
+//
 // Revision 2.32  2006/03/20 15:35:42  mey
 // Go back to Reset
 //
@@ -1660,6 +1663,7 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
    //  reg=1: data
    //
    // TLR
+   if (reg == 0) {
    for(i=reg; i<6; i++)
    {
      d=pvme;
@@ -1671,6 +1675,7 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
 	 if(j==1) dd |= TCK;
 	 vme_controller(1,ptr,&dd,rcv);        
        }
+   }
    }
    // End TLR
    //
