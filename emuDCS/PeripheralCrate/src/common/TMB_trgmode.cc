@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_trgmode.cc,v 2.6 2006/03/03 07:59:20 mey Exp $
+// $Id: TMB_trgmode.cc,v 2.7 2006/03/20 09:10:43 mey Exp $
 // $Log: TMB_trgmode.cc,v $
+// Revision 2.7  2006/03/20 09:10:43  mey
+// Update
+//
 // Revision 2.6  2006/03/03 07:59:20  mey
 // Update
 //
@@ -215,8 +218,10 @@ void TMB::trgmode(int choice)
   tmb_vme(VME_READ,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
   //
   printf("Reading address 0x86 to %x %x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
-  
+  //
   ::sleep(1);
+  //
+  EnableCLCTInputs(enableCLCTInputs_);
   //
   if ( disableCLCTInputs_ ) DisableCLCTInputs();
   //

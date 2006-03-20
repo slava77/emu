@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 2.8 2006/03/10 15:55:28 mey Exp $
+// $Id: TMBParser.cc,v 2.9 2006/03/20 09:10:43 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 2.9  2006/03/20 09:10:43  mey
+// Update
+//
 // Revision 2.8  2006/03/10 15:55:28  mey
 // Update
 //
@@ -72,6 +75,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, int crateNumber)
     parser_.fillInt("l1a_offset",tmb_->l1a_offset_);
     parser_.fillInt("bxn_offset",tmb_->bxn_offset_);
     parser_.fillInt("disableCLCTInputs",tmb_->disableCLCTInputs_);
+    parser_.fillInt("enableCLCTInputs",tmb_->enableCLCTInputs_);
     xercesc::DOMNode * daughterNode = pNode->getFirstChild();
     while(daughterNode) {
       if (daughterNode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
@@ -89,7 +93,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, int crateNumber)
 	tmb_->alctController_ = alct_; //store alct_ in tmb_
 	tmb_->rat_            = rat_ ; //store rat_  in tmb_
 	//RAT
-       	parser_.fillInt("rpc_rat_delay", rat_->rat_tmb_delay_);
+       	//parser_.fillInt("rpc_rat_delay", rat_->rat_tmb_delay_);
 	//ALCT
        	parser_.fillInt("trig_mode", alct_->alct_trig_mode_);
 	parser_.fillInt("ext_trig_en", alct_->alct_ext_trig_en_);
