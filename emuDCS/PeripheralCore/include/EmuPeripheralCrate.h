@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.7 2006/03/17 14:42:50 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.8 2006/03/20 09:10:43 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -5015,7 +5015,7 @@ public:
       if ( FoundXML ) { // Processed XML File
 	if ( line.find("TMB") != string::npos ) {	  
 	  //
-	  int slot, boardid, testResult[12];
+	  int slot, boardid, testResult[20];
 	  istringstream instring(line);
 	  //
 	  instring >> line0 >> slot >> boardid 
@@ -5032,7 +5032,11 @@ public:
 		   >> testResult[10] 
 		   >> testResult[11] ;
 	  //
-	  std::cout << "Setting " << nTMB << " " << testResult[0] <<  " " << testResult[1] << std::endl ;
+	  std::cout << "TMB.Setting " << nTMB << " " << boardid << " " << testResult[0] <<  " " << testResult[1] << std::endl ;
+	  //
+	  char buf[20];
+	  sprintf(buf,"%d",boardid);
+	  TMBBoardID_[nTMB] = buf ;
 	  //
 	  tmbTestVector[nTMB].SetResultTestBootRegister(testResult[0]);
 	  tmbTestVector[nTMB].SetResultTestVMEfpgaDataRegister(testResult[1]);
@@ -5078,7 +5082,11 @@ public:
 		   >> testResult[18] 
 		   >> testResult[19] ;
 	  //
-	  std::cout << "Setting " << nDMB << " " << testResult[0] <<  " " << testResult[1] << std::endl ;
+	  std::cout << "DMB.Setting " << nDMB << " " << boardid << " " << testResult[0] <<  " " << testResult[1] << std::endl ;
+	  //
+	  char buf[20];
+	  sprintf(buf,"%d",boardid);
+	  DMBBoardID_[nDMB] = buf;
 	  //
 	  if ( dmbVector[nDMB]->slot() == slot ) {
 	    for(int i=0; i<20; i++) dmbVector[nDMB]->SetTestStatus(i,testResult[i]);
@@ -5107,7 +5115,7 @@ public:
 	cgicc::Cgicc cgi(in);
 	//
 	const_file_iterator file;
-	file = cgi.getFile("TestLogFile");
+	file = cgi.getFile("TestFileUpload");
 	//
 	cout << "GetFiles" << endl ;
 	//

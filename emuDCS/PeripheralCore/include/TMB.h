@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.30 2006/03/17 15:51:05 mey Exp $
+// $Id: TMB.h,v 2.31 2006/03/20 09:10:43 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.31  2006/03/20 09:10:43  mey
+// Update
+//
 // Revision 2.30  2006/03/17 15:51:05  mey
 // New routines
 //
@@ -109,15 +112,16 @@
 class ALCTController;
 class TMBParser;
 class RAT;
-class EMUjtag;
+//class EMUjtag;
 
 class TMB : public VMEModule {
 
 public:
+  //
   friend class ALCTController;
   friend class TMBParser;
   friend class EMUjtag;
-      
+  //
   TMB(int newcrate, int slot);
   virtual ~TMB();
   //
@@ -359,6 +363,7 @@ private:
   int fifo_pretrig_;
   int alct_clear_;
   int disableCLCTInputs_;
+  int enableCLCTInputs_;
   int mpc_tx_delay_;
   //
   std::vector<unsigned long int> InjectedLct0;

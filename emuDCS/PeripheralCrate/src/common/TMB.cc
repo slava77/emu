@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.51 2006/03/17 15:51:04 mey Exp $
+// $Id: TMB.cc,v 2.52 2006/03/20 09:10:43 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.52  2006/03/20 09:10:43  mey
+// Update
+//
 // Revision 2.51  2006/03/17 15:51:04  mey
 // New routines
 //
@@ -192,6 +195,7 @@ TMB::TMB(int newcrate, int slot) :
   mpc_tx_delay_(0),
   l1a_offset_(0),
   disableCLCTInputs_(0),
+  enableCLCTInputs_(0x1f),
   alctController_(0),
   rat_(0),
   bxn_offset_(0)
