@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.31 2006/03/16 19:48:40 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.32 2006/03/20 15:35:42 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.32  2006/03/20 15:35:42  mey
+// Go back to Reset
+//
 // Revision 2.31  2006/03/16 19:48:40  mey
 // Update
 //
@@ -1655,7 +1658,22 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
 
    //  reg=0: instruction
    //  reg=1: data
- 
+   //
+   // TLR
+   for(i=reg; i<6; i++)
+   {
+     d=pvme;
+     d |= TMS;
+     for(j=0;j<3;j++)
+       {  
+	 // each shift needs 3 VME writes, the 2nd one with TCK on:
+	 dd=d;
+	 if(j==1) dd |= TCK;
+	 vme_controller(1,ptr,&dd,rcv);        
+       }
+   }
+   // End TLR
+   //
    for(i=reg; i<6; i++)
    {
      d=pvme;
