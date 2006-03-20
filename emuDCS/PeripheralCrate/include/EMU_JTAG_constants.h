@@ -1,13 +1,16 @@
 #ifndef EMU_JTAG_constants_h
 #define EMU_JTAG_constants_h
 //
-#define MAX_FRAMES                  1000       //Maximum number of frames in an i/o cycle
-#define MAX_BUFF_SIZE       MAX_FRAMES/8       //Maximum number of buffers in JTAG cycle
+const int MAX_NUM_FRAMES  =            1000;       //Maximum number of frames in an i/o cycle
+const int MAX_BUFFER_SIZE =MAX_NUM_FRAMES/8;       //Maximum number of buffers in JTAG cycle
 //
-#define MAX_NUM_DEVICES                5       //Maximum number of devices on any one chain
+const int MAX_NUM_DEVICES =               5;       //Maximum number of devices on any one chain
 //
-#define NO_READ_BACK                   0       //do not read TDO
-#define READ_BACK                      1       //read TDO and pack into buffer
+// Some constants for VMEController_jtag::scan_alct....
+const int INSTR_REGISTER  =               0;       //write to Instruction Register
+const int DATA_REGISTER   =               1;       //write to Data Register
+const int NO_READ_BACK    =               0;       //do not read TDO
+const int READ_BACK       =               1;       //read TDO and pack into buffer
 //
 //
 ////////////////////////////////////////////////////

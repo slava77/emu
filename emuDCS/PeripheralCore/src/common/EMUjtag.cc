@@ -5,6 +5,8 @@
 #include <unistd.h> // for sleep
 #include <vector>
 #include <string>
+//
+#include "TMB.h"
 
 EMUjtag::EMUjtag(){
 }
@@ -59,14 +61,14 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
 
 
   //** Clear the read data which was previously there:
-  for (int i=0; i<MAX_FRAMES; i++) 
+  for (int i=0; i<MAX_NUM_FRAMES; i++) 
     shfDR_tdo_[i] = 0;
 
-  int tdi[MAX_FRAMES];
-  char sndBuffer[MAX_BUFF_SIZE], rcvBuffer[MAX_BUFF_SIZE];
+  int tdi[MAX_NUM_FRAMES];
+  char sndBuffer[MAX_BUFFER_SIZE], rcvBuffer[MAX_BUFFER_SIZE];
 
   // ** Clean buffers:
-  for (int i=0; i<MAX_BUFF_SIZE; i++) {
+  for (int i=0; i<MAX_BUFFER_SIZE; i++) {
     sndBuffer[i] = 0;
     rcvBuffer[i] = 0;
   }
@@ -89,7 +91,7 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
 
   //  (*MyOutput_) << "There are " << std::dec << iframe << " frames to send..." << std::endl;
 
-  if (iframe > MAX_FRAMES) 
+  if (iframe > MAX_NUM_FRAMES) 
     (*MyOutput_) << "EMUjtag: ShfIR_ShfDR IR ERROR: Too many frames -> " << iframe << std::endl;
 
   //pack tdi into an array of char so scan can handle it:
@@ -100,12 +102,12 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
   //    (*MyOutput_) << " " << std::hex << (sndBuffer[i]&0xff); 
   //  (*MyOutput_) << std::endl;
   
-  tmb_->scan(INSTR_REG, sndBuffer, iframe, rcvBuffer, NO_READ_BACK);
+  tmb_->scan(INSTR_REGISTER, sndBuffer, iframe, rcvBuffer, NO_READ_BACK);
 
 
   // ** Second JTAG operation is to shift out the data register...
   // **Clean buffers**
-  for (int i=0; i<MAX_BUFF_SIZE; i++) {
+  for (int i=0; i<MAX_BUFFER_SIZE; i++) {
     sndBuffer[i] = 0;
     rcvBuffer[i] = 0;
   }
@@ -127,7 +129,7 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
     }
   }
 
-  if (iframe > MAX_FRAMES) 
+  if (iframe > MAX_NUM_FRAMES) 
     (*MyOutput_) << "EMUjtag: ShfIR_ShfDR DR ERROR: Too many frames -> " << iframe << std::endl;
 
   //pack tdi into an array of char so scan can handle it:
@@ -148,7 +150,7 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
   //    (*MyOutput_) << ((sndBuffer[i] >> 4) & 0xf) << (sndBuffer[i] & 0xf);  
   //  (*MyOutput_) << std::endl;
   
-  tmb_->scan(DATA_REG, sndBuffer, iframe, rcvBuffer, READ_BACK);
+  tmb_->scan(DATA_REGISTER, sndBuffer, iframe, rcvBuffer, READ_BACK);
 
 
   // ** copy relevant section of tdo to data array **
@@ -159,7 +161,7 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
   //    (*MyOutput_) << shfDR_tdo_[i];
   //  (*MyOutput_) << std::endl;
 
-  //  char tempBuffer[MAX_BUFF_SIZE];
+  //  char tempBuffer[MAX_BUFFER_SIZE];
   //  packCharBuffer(shfDR_tdo_,register_length_,tempBuffer);
   //  for (int i=(register_length_/8)-1; i>=0; i--) 
   //    (*MyOutput_) << ((tempBuffer[i] >> 4) & 0xf) << (tempBuffer[i] & 0xf);  
@@ -171,7 +173,7 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
 void EMUjtag::ShfIR_ShfDR(const int selected_chip, 
 			  const int opcode, 
 			  const int size_of_register) {
-  int all_zeros[MAX_FRAMES] = {};  // Shift in all 0's on tdi for read-only registers
+  int all_zeros[MAX_NUM_FRAMES] = {};  // Shift in all 0's on tdi for read-only registers
   ShfIR_ShfDR(selected_chip,
 	      opcode,
 	      size_of_register,
