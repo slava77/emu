@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.10 2006/03/20 15:36:10 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.11 2006/03/21 12:22:45 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -3197,39 +3197,51 @@ private:
     if ( tmbTestid == 1 || tmbTestid == 0 ) {
       tmbTestVector[tmb].testBootRegister();
       ::sleep(1);
+      printf("Test1");
     }
     if ( tmbTestid == 2 || tmbTestid == 0 ) {
       tmbTestVector[tmb].testVMEfpgaDataRegister();
+      printf("Test2");
     }
     if ( tmbTestid == 3 || tmbTestid == 0 ) {
       tmbTestVector[tmb].testFirmwareDate();
+      printf("Test3");
     }
     if ( tmbTestid == 4 || tmbTestid == 0 ) {
       tmbTestVector[tmb].testFirmwareType();
+      printf("Test4");
     }
     if ( tmbTestid == 5 || tmbTestid == 0 ) {
       tmbTestVector[tmb].testFirmwareVersion();
+      printf("Test5");
     }
     if ( tmbTestid == 6 || tmbTestid == 0 ) {
       tmbTestVector[tmb].testFirmwareRevCode();
+      printf("Test6");
     }
     if ( tmbTestid == 7 || tmbTestid == 0 ) {
       tmbTestVector[tmb].testMezzId();
+      printf("Test7");
     }
     if ( tmbTestid == 8 || tmbTestid == 0 ) {
       tmbTestVector[tmb].testPROMid();
+      printf("Test8");
     }
     if ( tmbTestid == 9 || tmbTestid == 0 ) {
       tmbTestVector[tmb].testPROMpath();
+      printf("Test9");
     }
     if ( tmbTestid == 10 || tmbTestid == 0 ) {
       tmbTestVector[tmb].testDSN();
+      printf("Test10");
     }
     if ( tmbTestid == 11 || tmbTestid == 0 ) {
       tmbTestVector[tmb].testADC();
+      printf("Test11");
     }
     if ( tmbTestid == 12 || tmbTestid == 0 ) {
       tmbTestVector[tmb].test3d3444();
+      printf("Test12");
     }
     tmbTestVector[tmb].RedirectOutput(&std::cout);
     //

@@ -8,10 +8,10 @@
 #include "TMB.h"
 #include "TMB_constants.h"
 //
-RAT::RAT() :
-  EMUjtag()
-{
-}
+//RAT::RAT() :
+//  EMUjtag()
+//{
+//}
 //
 RAT::RAT(TMB * tmb) :
   EMUjtag(tmb)
