@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.12 2006/03/21 14:11:55 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.13 2006/03/21 16:26:41 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -117,7 +117,7 @@ protected:
   ostringstream OutputStringTMBStatus[9];
   ostringstream OutputDMBTests[9];
   ostringstream OutputTMBTests[9];
-  std::vector <int> ChartData0;
+  std::vector <int> ChartData[100];
   //
   int TMBRegisterValue_;
   int CCBRegisterValue_;
@@ -156,7 +156,24 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::setRawConfFile, "setRawConfFile");
     xgi::bind(this,&EmuPeripheralCrate::UploadConfFile, "UploadConfFile");
     xgi::bind(this,&EmuPeripheralCrate::TMBStatus, "TMBStatus");
-    xgi::bind(this,&EmuPeripheralCrate::getData, "getData");
+    xgi::bind(this,&EmuPeripheralCrate::getData0, "getData0");
+    xgi::bind(this,&EmuPeripheralCrate::getData1, "getData1");
+    xgi::bind(this,&EmuPeripheralCrate::getData2, "getData2");
+    xgi::bind(this,&EmuPeripheralCrate::getData3, "getData3");
+    xgi::bind(this,&EmuPeripheralCrate::getData4, "getData4");
+    xgi::bind(this,&EmuPeripheralCrate::getData5, "getData5");
+    xgi::bind(this,&EmuPeripheralCrate::getData6, "getData6");
+    xgi::bind(this,&EmuPeripheralCrate::getData7, "getData7");
+    xgi::bind(this,&EmuPeripheralCrate::getData8, "getData8");
+    xgi::bind(this,&EmuPeripheralCrate::getData9, "getData9");
+    xgi::bind(this,&EmuPeripheralCrate::getData10, "getData10");
+    xgi::bind(this,&EmuPeripheralCrate::getData11, "getData11");
+    xgi::bind(this,&EmuPeripheralCrate::getData12, "getData12");
+    xgi::bind(this,&EmuPeripheralCrate::getData13, "getData13");
+    xgi::bind(this,&EmuPeripheralCrate::getData14, "getData14");
+    xgi::bind(this,&EmuPeripheralCrate::getData15, "getData15");
+    xgi::bind(this,&EmuPeripheralCrate::getData16, "getData16");
+    xgi::bind(this,&EmuPeripheralCrate::getData17, "getData17");
     xgi::bind(this,&EmuPeripheralCrate::LoadTMBFirmware, "LoadTMBFirmware");
     xgi::bind(this,&EmuPeripheralCrate::LoadALCTFirmware, "LoadALCTFirmware");
     xgi::bind(this,&EmuPeripheralCrate::ReadTMBRegister, "ReadTMBRegister");
@@ -1100,12 +1117,14 @@ private:
     for(int counter=0; counter<22; counter++) {
       *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
       //
-      if(counter==1) ChartData0.clear();
+      ChartData[counter].clear();
       //
       for(int i=0; i<tmbVector.size(); i++) {
 	//
 	tmbVector[i]->RedirectOutput(out);
 	tmbVector[i]->GetCounters();
+	//
+	ChartData[counter].push_back(tmbVector[i]->GetCounter(counter));
 	//
 	if ( counter == 0 ) {
 	  //
@@ -1124,7 +1143,6 @@ private:
 	  //
 	} else if ( counter == 1 ) {
 	  //
-	  ChartData0.push_back(tmbVector[i]->GetCounter(1));
 	  //
 	  if ( tmbVector[i]->GetCounter(1) > 0 ) {
 	    *out << cgicc::span().set("style","color:green");
@@ -1187,7 +1205,7 @@ private:
 	//
       }
       //
-      if ( counter == 1 ) this->Display(in,out);
+      this->Display(in,out,counter);
       //
       *out << cgicc::fieldset();    
       //
@@ -1206,7 +1224,7 @@ private:
     //
   }
   //
-  void EmuPeripheralCrate::Display(xgi::Input * in, xgi::Output * out ) 
+  void EmuPeripheralCrate::Display(xgi::Input * in, xgi::Output * out, int counter ) 
     throw (xgi::exception::Exception)
   {
     //
@@ -1214,41 +1232,318 @@ private:
     *out << "<BODY bgcolor=\"#FFFFFF\">" <<std::endl;
     *out << "<OBJECT classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0\" WIDTH=\"565\" HEIGHT=\"420\" id=\"FC_2_3_Bar2D\">" <<std::endl;
     *out << "<PARAM NAME=movie VALUE=\"/daq/extern/FusionCharts/Charts/FC_2_3_Bar2D.swf\">" <<std::endl;
-    *out << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData\">"<<std::endl;
+    //
+    //*out << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData\">"<<std::endl;
+    ostringstream output;
+    output << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData" << counter <<"\">"<<std::endl;
+    //
+    std::cout << output.str() << std::endl;
+    *out << output.str() << std::endl ;
     *out << "<PARAM NAME=quality VALUE=high>" << std::endl ;
     *out << "<PARAM NAME=bgcolor VALUE=#FFFFFF>" << std::endl ;
-    *out << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_Bar2D.swf\" FlashVars=\"&dataURL=getData\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_Bar2D\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
+    //*out << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_Bar2D.swf\" FlashVars=\"&dataURL=getData\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_Bar2D\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
+    //
+    ostringstream output2;
+    output2 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_Bar2D.swf\" FlashVars=\"&dataURL=getData"<< counter <<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_Bar2D\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
+    //
+    *out << output2.str() << std::endl;
+    //
     *out << "</OBJECT>" << std::endl;
     *out << "</BODY>" << std::endl;
     *out << "</HTML>" << std::endl;
     //
   }
   //
-  void EmuPeripheralCrate::getData(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  void EmuPeripheralCrate::getData0(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
     std::cout << "GetData" << std::endl ;
     //
     *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
-    //*out << "<set name='Jan' value='17400' color='0099FF' />" << std::endl;
-    //*out << "<set name='Feb' value='19800' color='FF66CC' />" << std::endl;
-    //*out << "<set name='Mar' value='21800' color='996600' />" << std::endl;
-    //*out << "<set name='Apr' value='23800' color='669966' />" << std::endl;
-    //*out << "<set name='May' value='29600' color='7C7CB4' />" << std::endl;
-    //*out << "<set name='Jun' value='27600' color='FF9933' />" << std::endl;
-    //*out << "<set name='Jul' value='31800' color='CCCC00' />" << std::endl;
-    //*out << "<set name='Aug' value='39700' color='9900FF' />" << std::endl;
-    //*out << "<set name='Sep' value='37800' color='999999' />" << std::endl;
-    //*out << "<set name='Oct' value='21900' color='99FFCC' />" << std::endl;
-    //*out << "<set name='Nov' value='32900' color='CCCCFF' />" << std::endl;
-    //*out << "<set name='Dec' value='39800' color='669900' />" << std::endl;
-    std::cout << ChartData0.size() << endl ;
-    for(int i=0;i<ChartData0.size();i++) {
+    //
+    std::cout << ChartData[0].size() << endl ;
+    for(int i=0;i<ChartData[0].size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData0[i] << "'" << " />" << std::endl;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[0][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
       std::cout << output.str() << std::endl;
-      //*out << "<set name='Dec' value='1' color='669900' />" << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData1(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "GetData" << std::endl ;
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[1].size() << endl ;
+    for(int i=0;i<ChartData[1].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[1][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData2(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "GetData" << std::endl ;
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[2].size() << endl ;
+    for(int i=0;i<ChartData[2].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData3(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "GetData" << std::endl ;
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[3].size() << endl ;
+    for(int i=0;i<ChartData[3].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[3][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData4(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "GetData" << std::endl ;
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[4].size() << endl ;
+    for(int i=0;i<ChartData[4].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[4][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData5(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[5].size() << endl ;
+    for(int i=0;i<ChartData[5].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[5][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData6(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[6].size() << endl ;
+    for(int i=0;i<ChartData[6].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[6][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData7(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[7].size() << endl ;
+    for(int i=0;i<ChartData[7].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[7][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData8(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[8].size() << endl ;
+    for(int i=0;i<ChartData[8].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[8][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData9(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "GetData" << std::endl ;
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[9].size() << endl ;
+    for(int i=0;i<ChartData[9].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[9][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData10(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[10].size() << endl ;
+    for(int i=0;i<ChartData[10].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[10][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData11(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[2].size() << endl ;
+    for(int i=0;i<ChartData[2].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData12(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "GetData" << std::endl ;
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[2].size() << endl ;
+    for(int i=0;i<ChartData[2].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData13(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "GetData" << std::endl ;
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[2].size() << endl ;
+    for(int i=0;i<ChartData[2].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData14(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "GetData" << std::endl ;
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[2].size() << endl ;
+    for(int i=0;i<ChartData[2].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData15(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "GetData" << std::endl ;
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[2].size() << endl ;
+    for(int i=0;i<ChartData[2].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData16(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "GetData" << std::endl ;
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[2].size() << endl ;
+    for(int i=0;i<ChartData[2].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData17(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "GetData" << std::endl ;
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    std::cout << ChartData[2].size() << endl ;
+    for(int i=0;i<ChartData[2].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
