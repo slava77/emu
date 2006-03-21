@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.11 2006/03/21 12:22:45 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.12 2006/03/21 14:11:55 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -117,6 +117,7 @@ protected:
   ostringstream OutputStringTMBStatus[9];
   ostringstream OutputDMBTests[9];
   ostringstream OutputTMBTests[9];
+  std::vector <int> ChartData0;
   //
   int TMBRegisterValue_;
   int CCBRegisterValue_;
@@ -155,6 +156,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::setRawConfFile, "setRawConfFile");
     xgi::bind(this,&EmuPeripheralCrate::UploadConfFile, "UploadConfFile");
     xgi::bind(this,&EmuPeripheralCrate::TMBStatus, "TMBStatus");
+    xgi::bind(this,&EmuPeripheralCrate::getData, "getData");
     xgi::bind(this,&EmuPeripheralCrate::LoadTMBFirmware, "LoadTMBFirmware");
     xgi::bind(this,&EmuPeripheralCrate::LoadALCTFirmware, "LoadALCTFirmware");
     xgi::bind(this,&EmuPeripheralCrate::ReadTMBRegister, "ReadTMBRegister");
@@ -1097,12 +1099,16 @@ private:
     //
     for(int counter=0; counter<22; counter++) {
       *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
+      //
+      if(counter==1) ChartData0.clear();
+      //
       for(int i=0; i<tmbVector.size(); i++) {
 	//
 	tmbVector[i]->RedirectOutput(out);
 	tmbVector[i]->GetCounters();
 	//
 	if ( counter == 0 ) {
+	  //
 	  if ( tmbVector[i]->GetCounter(0) > 0 ) {
 	    *out << cgicc::span().set("style","color:red");
 	    tmbVector[i]->PrintCounters(counter);
@@ -1114,7 +1120,12 @@ private:
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
+	  //
+	  //
 	} else if ( counter == 1 ) {
+	  //
+	  ChartData0.push_back(tmbVector[i]->GetCounter(1));
+	  //
 	  if ( tmbVector[i]->GetCounter(1) > 0 ) {
 	    *out << cgicc::span().set("style","color:green");
 	    tmbVector[i]->PrintCounters(counter);
@@ -1170,13 +1181,16 @@ private:
 	  //
 	}
 	//
-	//
 	tmbVector[i]->RedirectOutput(&std::cout);
 	//
 	//cgicc::br();
 	//
       }
+      //
+      if ( counter == 1 ) this->Display(in,out);
+      //
       *out << cgicc::fieldset();    
+      //
     }
     //
     std::string ResetAllCounters =
@@ -1190,6 +1204,53 @@ private:
     //
     //this->LaunchMonitor(in,out);
     //
+  }
+  //
+  void EmuPeripheralCrate::Display(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    *out << "<HTML>" <<std::endl;
+    *out << "<BODY bgcolor=\"#FFFFFF\">" <<std::endl;
+    *out << "<OBJECT classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0\" WIDTH=\"565\" HEIGHT=\"420\" id=\"FC_2_3_Bar2D\">" <<std::endl;
+    *out << "<PARAM NAME=movie VALUE=\"/daq/extern/FusionCharts/Charts/FC_2_3_Bar2D.swf\">" <<std::endl;
+    *out << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData\">"<<std::endl;
+    *out << "<PARAM NAME=quality VALUE=high>" << std::endl ;
+    *out << "<PARAM NAME=bgcolor VALUE=#FFFFFF>" << std::endl ;
+    *out << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_Bar2D.swf\" FlashVars=\"&dataURL=getData\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_Bar2D\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
+    *out << "</OBJECT>" << std::endl;
+    *out << "</BODY>" << std::endl;
+    *out << "</HTML>" << std::endl;
+    //
+  }
+  //
+  void EmuPeripheralCrate::getData(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "GetData" << std::endl ;
+    //
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //*out << "<set name='Jan' value='17400' color='0099FF' />" << std::endl;
+    //*out << "<set name='Feb' value='19800' color='FF66CC' />" << std::endl;
+    //*out << "<set name='Mar' value='21800' color='996600' />" << std::endl;
+    //*out << "<set name='Apr' value='23800' color='669966' />" << std::endl;
+    //*out << "<set name='May' value='29600' color='7C7CB4' />" << std::endl;
+    //*out << "<set name='Jun' value='27600' color='FF9933' />" << std::endl;
+    //*out << "<set name='Jul' value='31800' color='CCCC00' />" << std::endl;
+    //*out << "<set name='Aug' value='39700' color='9900FF' />" << std::endl;
+    //*out << "<set name='Sep' value='37800' color='999999' />" << std::endl;
+    //*out << "<set name='Oct' value='21900' color='99FFCC' />" << std::endl;
+    //*out << "<set name='Nov' value='32900' color='CCCCFF' />" << std::endl;
+    //*out << "<set name='Dec' value='39800' color='669900' />" << std::endl;
+    std::cout << ChartData0.size() << endl ;
+    for(int i=0;i<ChartData0.size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData0[i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+      //*out << "<set name='Dec' value='1' color='669900' />" << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
   }
   //
   void EmuPeripheralCrate::ResetAllCounters(xgi::Input * in, xgi::Output * out ) 
