@@ -81,6 +81,9 @@ public:
   void ddu_lvl1onoff();
   void ddu_rd_boardID();
   void ddu_fpgastat();
+  void ddu_fpgatrap();
+  //  void ddu_trap_decode();
+  void ddu_maxTimeCount();
   unsigned short int ddu_code0,ddu_code1,ddu_shift0;
 
   // INFPGA register control
@@ -99,7 +102,7 @@ public:
   void infpga_Timeout(enum DEVTYPE dv);
   void infpga_XmitErr(enum DEVTYPE dv);
   void infpga_WrMemActive(enum DEVTYPE dv,int ifiber);
-  int DDU::infpga_DMBwarn(enum DEVTYPE dv);
+  int infpga_DMBwarn(enum DEVTYPE dv);
   void infpga_MemAvail(enum DEVTYPE dv);
   void infpga_Min_Mem(enum DEVTYPE dv);
   void infpga_LostErr(enum DEVTYPE dv);
@@ -107,9 +110,11 @@ public:
   void infpga_StatA(enum DEVTYPE dv);
   void infpga_StatB(enum DEVTYPE dv);
   void infpga_StatC(enum DEVTYPE dv);
+  void infpga_FiberDiagA(enum DEVTYPE dv);
+  void infpga_FiberDiagB(enum DEVTYPE dv);
   void infpga_trap(enum DEVTYPE dv);
   unsigned short int infpga_code0,infpga_code1,infpga_shift0;
-  unsigned long int infpga_lcode[10];
+  unsigned long int fpga_lcode[10];
 
   // DDU Status Decode
   void ddu_status_decode(int long code);
@@ -117,6 +122,12 @@ public:
   void ddu_era_decode(int long code);
   void ddu_erb_decode(int long code);
   void ddu_erc_decode(int long code);
+  void ddu5status_decode(int long code);
+  void ddu5ostatus_decode(int long code);
+  void ddu5begin_decode(int long code);
+  void ddu5vmestat_decode(int long code);
+  void in_Ccode_decode(int long code);
+  void in_stat_decode(int long code);
 
   // DDU FPGA id/user codes
   unsigned long int ddufpga_idcode();
