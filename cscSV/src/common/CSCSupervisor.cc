@@ -21,8 +21,8 @@ static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
 
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
-		EmuApplication(stub), runtype(""), runnumber(""), nevents(""),
-		error_message_("")
+		EmuApplication(stub),
+		runtype_(""), runnumber_(""), nevents_(""), error_message_("")
 {
 	getApplicationInfoSpace()->fireItemAvailable("configKeys", &config_keys_);
 	getApplicationInfoSpace()->fireItemAvailable("configFiles", &config_files_);
@@ -66,8 +66,6 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 xoap::MessageReference CSCSupervisor::onConfigure(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
-	runtype = getRuntype(message);
-
 	fireEvent("Configure");
 
 	return createReply(message);
@@ -179,13 +177,13 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
-	runtype = getRuntype(in);
-	runnumber = getRunNumber(in);
-	nevents = getNEvents(in);
+	runtype_ = getRuntype(in);
+	runnumber_ = getRunNumber(in);
+	nevents_ = getNEvents(in);
 
-	if (runtype.empty()) { error_message_ += "Please select run type.\n"; }
-	if (runnumber.empty()) { error_message_ += "Please set run number.\n"; }
-	if (nevents.empty()) { error_message_ += "Please set max # of events.\n"; }
+	if (runtype_.empty()) { error_message_ += "Please select run type.\n"; }
+	if (runnumber_.empty()) { error_message_ += "Please set run number.\n"; }
+	if (nevents_.empty()) { error_message_ += "Please set max # of events.\n"; }
 
 	if (error_message_.empty()) {
 		fireEvent("Configure");
@@ -221,9 +219,9 @@ void CSCSupervisor::webHalt(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::configureAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	setParameter("EmuPeripheralCrate", 0, "xmlFileName", "xsd:string", runtype);
-	setParameter("EmuDAQManager", 0, "runNumber", "xsd:unsignedLong", runnumber);
-	setParameter("EmuDAQManager", 0, "maxNumberOfEvents", "xsd:unsignedLong", nevents);
+	setParameter("EmuPeripheralCrate", 0, "xmlFileName", "xsd:string", runtype_);
+	setParameter("EmuDAQManager", 0, "runNumber", "xsd:unsignedLong", runnumber_);
+	setParameter("EmuDAQManager", 0, "maxNumberOfEvents", "xsd:unsignedLong", nevents_);
 	sendCommand("Configure", "EmuPeripheralCrate", 0);
 
 	sendCommand("Configure", "EmuFEDCrate", 0);
@@ -321,11 +319,6 @@ void CSCSupervisor::setParameter(
 	parameter_e.addTextNode(value);
 
 	getApplicationContext()->postSOAP(message, target);
-}
-
-string CSCSupervisor::getRuntype(xoap::MessageReference message)
-{
-	return "physics";
 }
 
 string CSCSupervisor::getRuntype(xgi::Input *in)
