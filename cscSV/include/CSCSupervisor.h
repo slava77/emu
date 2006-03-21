@@ -64,14 +64,13 @@ private:
 			string name, string type, string value)
 			throw (toolbox::fsm::exception::Exception);
 
-	string getRuntype(xoap::MessageReference message);
 	string getRuntype(xgi::Input *in);
 	string getRunNumber(xgi::Input *in);
 	string getNEvents(xgi::Input *in);
 
-	string runtype;
-	string runnumber;
-	string nevents;
+	string runtype_;
+	string runnumber_;
+	string nevents_;
 
 	string error_message_;
 };
