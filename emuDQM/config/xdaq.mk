@@ -40,4 +40,4 @@ XdaqLibraryDirs = \
 	$(XDAQ_ROOT)/daq/i2o/utils/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
 	$(XDAQ_ROOT)/daq/xdaq/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
-XdaqLibraries = toolbox xdaq xoap xerces-c log4cplus xdata xgi xcept cgicc mimetic xmlappender udpappender peer i2outils asyncresolv
+XdaqLibraries = toolbox xdaq xoap xerces-c log4cplus xdata xgi xcept cgicc mimetic xmlappender udpappender peer i2outils 

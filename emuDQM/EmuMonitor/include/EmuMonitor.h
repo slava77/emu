@@ -145,6 +145,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   void setMemoryPool();
   void setupPlotter();
 
+  void printParametersTable( xgi::Output * out ) throw (xgi::exception::Exception);
  protected:
 
   // == Plotter 
