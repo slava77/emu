@@ -8,12 +8,14 @@
 //
 #include "TMB.h"
 
-EMUjtag::EMUjtag(){
-}
+//EMUjtag::EMUjtag(){
+//}
 //
 EMUjtag::EMUjtag(TMB * tmb) :
   tmb_(tmb)
 {
+  //
+  std::cout << "Creating EMUjtag" << std::endl ;
   //
   MyOutput_ = &std::cout ;
   //
@@ -252,6 +254,8 @@ void EMUjtag::setup_jtag(int chain) {
   //start(N):
   //  - set the jtag chain for the boot register used in VMEController_jtag::scan(...)
 
+  std::cout << "setup_chain" << std::endl ;
+  
   jtag_chain_ = chain;
   devices_in_chain_ = 0;
   for (int device=0; device<MAX_NUM_DEVICES; device++)

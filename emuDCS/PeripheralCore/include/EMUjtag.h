@@ -10,7 +10,7 @@ class EMUjtag
 {
 public:
   //
-  EMUjtag();
+  //EMUjtag();
   EMUjtag(TMB * );
   ~EMUjtag();
   //

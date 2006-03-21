@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: RAT.h,v 1.6 2006/03/20 16:04:19 rakness Exp $
+// $Id: RAT.h,v 1.7 2006/03/21 12:22:45 mey Exp $
 // $Log: RAT.h,v $
+// Revision 1.7  2006/03/21 12:22:45  mey
+// UPdate
+//
 // Revision 1.6  2006/03/20 16:04:19  rakness
 // Moved RAT JTAG to EMUjtag
 //
@@ -32,7 +35,7 @@ class RAT : public EMUjtag
 public:
   //
   RAT(TMB * );
-  RAT();
+  //RAT();
   ~RAT();
   //
   friend class TMBParser;

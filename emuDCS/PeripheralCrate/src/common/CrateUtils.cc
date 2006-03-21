@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateUtils.cc,v 1.1 2006/02/01 18:35:37 mey Exp $
+// $Id: CrateUtils.cc,v 1.2 2006/03/21 12:22:46 mey Exp $
 // $Log: CrateUtils.cc,v $
+// Revision 1.2  2006/03/21 12:22:46  mey
+// UPdate
+//
 // Revision 1.1  2006/02/01 18:35:37  mey
 // UPdate
 //
@@ -16,6 +19,7 @@
 #include "CCB.h"
 #include "DAQMB.h"
 #include "TMB.h"
+#include "RAT.h"
 #include "Crate.h"
 #include "CrateSetup.h"
 #include "Singleton.h"
@@ -44,6 +48,8 @@ std::vector<TMBTester> CrateUtils::TMBTests() const {
     TMBTester tmp;
     tmp.setTMB(tmbVector[i]);
     tmp.setCCB(MyCCB_);
+    RAT* myRat = new RAT(tmbVector[i]); // Create a RAT only for communication
+    tmp.setRAT(myRat);
     result.push_back(tmp);
     //
   }
