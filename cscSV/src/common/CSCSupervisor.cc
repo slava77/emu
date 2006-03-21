@@ -269,15 +269,20 @@ void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 void CSCSupervisor::sendCommand(string command, string klass, int instance)
 		throw (toolbox::fsm::exception::Exception)
 {
+	xdaq::ApplicationDescriptor *target;
+	try {
+		target = getApplicationContext()->getApplicationGroup()
+				->getApplicationDescriptor(klass, instance);
+	} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+		return; // Do nothing if the target doesn't exist
+	}
+
 	xoap::MessageReference message = xoap::createMessage();
 	xoap::SOAPPart soap = message->getSOAPPart();
 	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
 	xoap::SOAPName name = envelope.createName(
 			command, "xdaq", "urn:xdaq-soap:3.0");
 	envelope.getBody().addBodyElement(name);
-
-	xdaq::ApplicationDescriptor *target = getApplicationContext()
-			->getApplicationGroup()->getApplicationDescriptor(klass, instance);
 
 	getApplicationContext()->postSOAP(message, target);
 }
@@ -286,6 +291,14 @@ void CSCSupervisor::setParameter(
 		string klass, int instance, string name, string type, string value)
 		throw (toolbox::fsm::exception::Exception)
 {
+	xdaq::ApplicationDescriptor *target;
+	try {
+		target = getApplicationContext()->getApplicationGroup()
+				->getApplicationDescriptor(klass, instance);
+	} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+		return; // Do nothing if the target doesn't exist
+	}
+
 	xoap::MessageReference message = xoap::createMessage();
 	xoap::SOAPPart soap = message->getSOAPPart();
 	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
@@ -306,9 +319,6 @@ void CSCSupervisor::setParameter(
 	xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
 	parameter_e.addAttribute(xsitype, type);
 	parameter_e.addTextNode(value);
-
-	xdaq::ApplicationDescriptor *target = getApplicationContext()
-			->getApplicationGroup()->getApplicationDescriptor(klass, instance);
 
 	getApplicationContext()->postSOAP(message, target);
 }
