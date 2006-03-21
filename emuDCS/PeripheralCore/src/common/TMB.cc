@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.53 2006/03/20 13:34:40 mey Exp $
+// $Id: TMB.cc,v 2.54 2006/03/21 12:27:02 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.54  2006/03/21 12:27:02  mey
+// Update
+//
 // Revision 2.53  2006/03/20 13:34:40  mey
 // Update
 //
@@ -177,6 +180,7 @@
 
 TMB::TMB(int newcrate, int slot) :
   VMEModule(newcrate, slot),
+  EMUjtag(this),
   ucla_ldev(1),
   cfeb0delay_(7),
   cfeb1delay_(7),
