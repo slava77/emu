@@ -37,6 +37,7 @@
 		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libEmuFEDCrate.so</xc:Module>
 
 		<xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="local"/>
+		<xc:Application class="EmuPeripheralCrate" id="31" instance="1" network="local"/>
 		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>
 
 		<xc:Application class="EmuDAQManager" id="90" instance="0" network="local"/>

@@ -219,13 +219,13 @@ void CSCSupervisor::webHalt(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::configureAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	setParameter("EmuPeripheralCrate", 0, "xmlFileName", "xsd:string", runtype_);
-	setParameter("EmuDAQManager", 0, "runNumber", "xsd:unsignedLong", runnumber_);
-	setParameter("EmuDAQManager", 0, "maxNumberOfEvents", "xsd:unsignedLong", nevents_);
-	sendCommand("Configure", "EmuPeripheralCrate", 0);
+	setParameter("EmuPeripheralCrate", "xmlFileName", "xsd:string", runtype_);
+	setParameter("EmuDAQManager", "runNumber", "xsd:unsignedLong", runnumber_);
+	setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:unsignedLong", nevents_);
+	sendCommand("Configure", "EmuPeripheralCrate");
 
-	sendCommand("Configure", "EmuFEDCrate", 0);
-	sendCommand("Configure", "EmuDAQManager", 0);
+	sendCommand("Configure", "EmuFEDCrate");
+	sendCommand("Configure", "EmuDAQManager");
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
@@ -233,8 +233,8 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference e)
 void CSCSupervisor::enableAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	sendCommand("Enable", "EmuPeripheralCrate", 0);
-	sendCommand("Enable", "EmuDAQManager", 0);
+	sendCommand("Enable", "EmuPeripheralCrate");
+	sendCommand("Enable", "EmuDAQManager");
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
@@ -242,8 +242,8 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference e)
 void CSCSupervisor::disableAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	sendCommand("Disable", "EmuDAQManager", 0);
-	sendCommand("Disable", "EmuPeripheralCrate", 0);
+	sendCommand("Disable", "EmuDAQManager");
+	sendCommand("Disable", "EmuPeripheralCrate");
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
@@ -251,9 +251,9 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference e)
 void CSCSupervisor::haltAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	sendCommand("Halt", "EmuPeripheralCrate", 0);
-	sendCommand("Halt", "EmuFEDCrate", 0);
-	sendCommand("Halt", "EmuDAQManager", 0);
+	sendCommand("Halt", "EmuPeripheralCrate");
+	sendCommand("Halt", "EmuFEDCrate");
+	sendCommand("Halt", "EmuDAQManager");
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
@@ -264,17 +264,29 @@ void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
     EmuApplication::stateChanged(fsm);
 }
 
-void CSCSupervisor::sendCommand(string command, string klass, int instance)
-		throw (toolbox::fsm::exception::Exception)
+void CSCSupervisor::sendCommand(string command, string klass)
 {
-	xdaq::ApplicationDescriptor *target;
+	// find applications
+	vector<xdaq::ApplicationDescriptor *> apps;
 	try {
-		target = getApplicationContext()->getApplicationGroup()
-				->getApplicationDescriptor(klass, instance);
+		apps = getApplicationContext()->getApplicationGroup()
+				->getApplicationDescriptors(klass);
 	} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
 		return; // Do nothing if the target doesn't exist
 	}
 
+	// prepare a SOAP message
+	xoap::MessageReference message = createCommandSOAP(command);
+
+	// send the message one-by-one
+	vector<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
+	for (; i != apps.end(); ++i) {
+		getApplicationContext()->postSOAP(message, *i);
+	}
+}
+
+xoap::MessageReference CSCSupervisor::createCommandSOAP(string command)
+{
 	xoap::MessageReference message = xoap::createMessage();
 	xoap::SOAPPart soap = message->getSOAPPart();
 	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
@@ -282,21 +294,35 @@ void CSCSupervisor::sendCommand(string command, string klass, int instance)
 			command, "xdaq", "urn:xdaq-soap:3.0");
 	envelope.getBody().addBodyElement(name);
 
-	getApplicationContext()->postSOAP(message, target);
+	return message;
 }
 
 void CSCSupervisor::setParameter(
-		string klass, int instance, string name, string type, string value)
-		throw (toolbox::fsm::exception::Exception)
+		string klass, string name, string type, string value)
 {
-	xdaq::ApplicationDescriptor *target;
+	// find applications
+	vector<xdaq::ApplicationDescriptor *> apps;
 	try {
-		target = getApplicationContext()->getApplicationGroup()
-				->getApplicationDescriptor(klass, instance);
+		apps = getApplicationContext()->getApplicationGroup()
+				->getApplicationDescriptors(klass);
 	} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
 		return; // Do nothing if the target doesn't exist
 	}
 
+	// prepare a SOAP message
+	xoap::MessageReference message =
+			createParameterSetSOAP(klass, name, type, value);
+
+	// send the message one-by-one
+	vector<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
+	for (; i != apps.end(); ++i) {
+		getApplicationContext()->postSOAP(message, *i);
+	}
+}
+
+xoap::MessageReference CSCSupervisor::createParameterSetSOAP(
+		string klass, string name, string type, string value)
+{
 	xoap::MessageReference message = xoap::createMessage();
 	xoap::SOAPPart soap = message->getSOAPPart();
 	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
@@ -318,7 +344,7 @@ void CSCSupervisor::setParameter(
 	parameter_e.addAttribute(xsitype, type);
 	parameter_e.addTextNode(value);
 
-	getApplicationContext()->postSOAP(message, target);
+	return message;
 }
 
 string CSCSupervisor::getRuntype(xgi::Input *in)

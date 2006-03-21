@@ -58,11 +58,11 @@ private:
 	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 			throw (toolbox::fsm::exception::Exception);
 
-	void sendCommand(string command, string klass, int instance)
-			throw (toolbox::fsm::exception::Exception);
-	void setParameter(string klass, int instance,
-			string name, string type, string value)
-			throw (toolbox::fsm::exception::Exception);
+	void sendCommand(string command, string klass);
+	xoap::MessageReference createCommandSOAP(string command);
+	void setParameter(string klass, string name, string type, string value);
+	xoap::MessageReference createParameterSetSOAP(
+	        string klass, string name, string type, string value);
 
 	string getRuntype(xgi::Input *in);
 	string getRunNumber(xgi::Input *in);
