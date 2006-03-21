@@ -104,7 +104,6 @@ public:
     xgi::bind(this,&EmuFCrateHyperDAQ::DCCTextLoad, "DCCTextLoad");
     xgi::bind(this,&EmuFCrateHyperDAQ::IRQTester,"IRQTester");
     xgi::bind(this,&EmuFCrateHyperDAQ::DDUVoltMon,"DDUVoltMon");
-
     //
     myParameter_ =  0;
     irqprob=0;
@@ -281,10 +280,10 @@ public:
             *out << buf;
 
             if(DDU_FMM==4){    // Busy
-	      *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
+	      *out << cgicc::span().set("style","color:orange;background-color:#dddddd;");
             }
             else if(DDU_FMM==1){    // Warn, near full: reduce trigger rate
-	      *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
+	      *out << cgicc::span().set("style","color:blue;background-color:#dddddd;");
 	      iblink=1;
             }
             else if(DDU_FMM==8){    // Ready
@@ -375,7 +374,8 @@ public:
 	    *out << cgicc::form() << std::endl;
           } 
           *out << cgicc::tr() << std::endl; 
-          *out << cgicc::table() << cgicc::div() << std::endl;
+	  //          *out << cgicc::table() << cgicc::div() << std::endl;
+          *out << cgicc::table() << std::endl;
         }
         *out << cgicc::fieldset() << std::endl;
         *out <<cgicc::br() << std::endl;
@@ -431,7 +431,8 @@ public:
           *out << cgicc::form() << std::endl;
           }
           *out << cgicc::tr() << std::endl; 
-          *out << cgicc::table() << cgicc::div() << std::endl;
+	  //          *out << cgicc::table() << cgicc::div() << std::endl;
+          *out << cgicc::table() << std::endl;
         }
         *out << cgicc::fieldset() << std::endl;
 
@@ -593,7 +594,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
   {
     unsigned long int idcode,uscode;
     unsigned long int tidcode[8]={0x2124a093,0x31266093,0x31266093,0x05036093,0x05036093,0x05036093,0x05036093,0x05036093};
-    unsigned long int tuscode[8]={0xcf029a01,0xdf020a01,0xdf020a01,0xb0016a04,0xc029dd99,0xc129dd99,0xd0020a01,0xd1020a01};
+    unsigned long int tuscode[8]={0xcf031a01,0xdf021a03,0xdf021a03,0xb0016a04,0xc031dd99,0xc131dd99,0xd0021a03,0xd1021a03};
 // JRG, 5-->3, 6-->4, 7-->5, 3-->6, 4-->7  --done
     //
     printf(" entered DDUFirmware \n");
@@ -846,264 +847,389 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 {
     printf(" enter: DDUFpga \n");
     cgicc::Cgicc cgi(in);
-    //
     const CgiEnvironment& env = cgi.getEnvironment();
-    //
     std::string crateStr = env.getQueryString() ;
-    //
     cout << crateStr << endl ;
-
     cgicc::form_iterator name = cgi.getElement("ddu");
-    //
-    int ddu;
+    int ddu,icrit,icond,icond2,icond3,icond4;
+    unsigned long int stat;
     if(name != cgi.getElements().end()) {
       ddu = cgi["ddu"]->getIntegerValue();
-      // cout << "DDU inside " << ddu << endl;
       DDU_ = ddu;
     }else{
       ddu=DDU_;
     }
-    //  printf(" DDU %d \n",ddu);
     thisDDU = dduVector[ddu];
-    //  printf(" set up web page \n");
-    //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("DDUFPGA Web Form") << std::endl;
-    // 
-    *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg") << std::endl;
+    *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg");
+    // << std::endl;
 
-    char buf[300],buf2[300] ;
+    char buf[300],buf2[300],buf3[300],buf4[20];
+    char buf5[300],buf6[10],buf7[300],buf8[10];
     sprintf(buf,"DDU Control FPGA, VME  Slot %d",thisDDU->slot());
-    //
-    *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
-    *out << std::endl;
-    //
-    *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
-    //   
-    
-    for(int i=200;i<235;i++){
-     if(i<226||i>232){
+    //    *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;") << std::endl;
+    //    *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
+    *out << "<h2 align=center><font color=blue>" << buf << "</font></h2>" << std::endl;
+//    for(int i=212;i<228;i++){
+    for(int i=200;i<228;i++){
       thisDDU->infpga_shift0=0x0000;
       thisDDU->CAEN_err_reset();
-      // *out << cgicc::table().set("border","0");
-      // *out << cgicc::td();
+      sprintf(buf3," ");
+      sprintf(buf4," ");
+      sprintf(buf5," ");
+      sprintf(buf6," ");
+      sprintf(buf7," ");
+      sprintf(buf8," ");
+      icond=0;
+      icond2=0;
+      icond3=0;
+      icond4=0;
       printf(" LOOP: %d \n",i);
       thisDDU->ddu_shift0=0x0000;
       if(i==200){
-           sprintf(buf,"ddu reset: ");
-           sprintf(buf2," EXPERT ONLY! ");
+	thisDDU->ddu_rd_boardID();
+	sprintf(buf,"16-bit DDU Board ID:"); 
+	sprintf(buf2," %04Xh ",thisDDU->ddu_code0);
       }
       if(i==201){
-	thisDDU->ddu_lowfpgastat();
-           sprintf(buf,"16-low-bits  DDU Control FPGA Status:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	thisDDU->ddu_fpgastat();
+	sprintf(buf,"32-bit DDU Control FPGA Status:");
+	stat=((0xffff&thisDDU->ddu_code1)<<16)|(0xffff&thisDDU->ddu_code0);
+	//	stat=0xffffffff;
+	sprintf(buf2," %08lX ",stat);
+	icrit=0;
+	if((0x00008000&stat)){
+	  icrit=1;
+	  icond=2;
+	}
+	else if((0xDE4F4BFF&stat)>0)icond=1;
       }
       if(i==202){
-	thisDDU->ddu_hifpgastat();
-           sprintf(buf,"16-high-bits DDU Control FPGA Status:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	thisDDU->ddu_rdostat();
+	sprintf(buf,"16-bit DDU Output Status:");
+	sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	stat=0xffff&thisDDU->ddu_code0;
+	//	stat=0xffff;
+	if((0x00000080&stat)){
+	  icond=2;
+	}
+	else if((0x00004000&stat)>0)icond=1;
       }
       if(i==203){
-	thisDDU->ddu_fpgastat();
-           sprintf(buf,"32-bit DDU Control DFPGA Status:");
-           sprintf(buf2," %04X%04X ",thisDDU->ddu_code1,thisDDU->ddu_code0);
+	thisDDU->ddu_rdscaler();
+           sprintf(buf,"DDU L1 Event Scaler, bits [23-0]:");
+           sprintf(buf2," %02X%04Xh ",thisDDU->ddu_code1,thisDDU->ddu_code0);
+	   stat=((thisDDU->ddu_code1)<<16)+thisDDU->ddu_code0;
+           sprintf(buf4," = %8lu Dec",stat&0x00ffffff);
       }
       if(i==204){
-	thisDDU->ddu_checkFIFOa();
-           sprintf(buf,"FIFO-A Status [15-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	thisDDU->ddu_rderareg();
+	sprintf(buf,"Error bus A Register bits [15-0]:");
+	sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	stat=0xffff&thisDDU->ddu_code0;
+	//	stat=0xffff;
+	if((0x0000C00C&stat)){
+	  icond=2;
+	}
+	else if((0x000001C8&stat)>0)icond=1;
       }
       if(i==205){
-	thisDDU->ddu_checkFIFOb();
-           sprintf(buf,"FIFO-B Status [14-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	thisDDU->ddu_rderbreg();
+	sprintf(buf,"Error bus B Register bits [15-0]:");
+	sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	stat=0xffff&thisDDU->ddu_code0;
+	//	stat=0xffff;
+	if((0x00000011&stat)){
+	  icond=2;
+	}
+	else if((0x0000D08E&stat)>0)icond=1;
       }
       if(i==206){
-	thisDDU->ddu_checkFIFOc();
-           sprintf(buf,"FIFO-C Status [15-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	thisDDU->ddu_rdercreg();
+	sprintf(buf,"Error bus C Register bits [15-0]:");
+	sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	stat=0xffff&thisDDU->ddu_code0;
+	//	stat=0xffff;
+	if((0x00008000&stat)>0)icond=1;
       }
       if(i==207){
-	thisDDU->ddu_rdfferr();
-           sprintf(buf,"FIFO Full Register bits [9-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	*out << br() << " <font color=blue> Fiber Registers below flag which CSCs experienced each condition</font>" << br() << std::endl;
+	thisDDU->ddu_pdmblive();
+	sprintf(buf,"First Event DMBLIVE, Fiber[14-0]:");
+	sprintf(buf2," %04X ",thisDDU->ddu_code0);
       }
       if(i==208){
-	thisDDU->ddu_rdkillfiber();
-           sprintf(buf,"KillFiber Register bits [19-0]:");
-           sprintf(buf2," %01X%02X ",thisDDU->ddu_code1,thisDDU->ddu_code0);
+	thisDDU->ddu_dmblive();
+	sprintf(buf,"Latest Event DMBLIVE, Fiber[14-0]:");
+	sprintf(buf2," %04X ",thisDDU->ddu_code0);
       }
-
       if(i==209){
 	thisDDU->ddu_rdcrcerr();
-           sprintf(buf,"CRC Error Register bits [14-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	sprintf(buf,"CRC Error, Fiber[14-0]:");
+	sprintf(buf2," %04X ",thisDDU->ddu_code0);
       }
       if(i==210){
 	thisDDU->ddu_rdxmiterr();
-           sprintf(buf,"Data Transmit Error Register bits [14-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	sprintf(buf,"Data Transmit Error, Fiber[14-0]:");
+	sprintf(buf2," %04X ",thisDDU->ddu_code0);
       }
       if(i==211){
 	thisDDU->ddu_rddmberr();
-           sprintf(buf,"DMB Error Register bits [14-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	sprintf(buf,"DMB Error, Fiber[14-0]:");
+	sprintf(buf2," %04X ",thisDDU->ddu_code0);
       }
       if(i==212){
 	thisDDU->ddu_rdtmberr();
-           sprintf(buf,"TMB Error Register bits [14-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	sprintf(buf,"TMB Error, Fiber[14-0]:");
+	sprintf(buf2," %04X ",thisDDU->ddu_code0);
       }
       if(i==213){
 	thisDDU->ddu_rdalcterr();
-           sprintf(buf,"ALCT Error Register bits [14-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	sprintf(buf,"ALCT Error, Fiber[14-0]:");
+	sprintf(buf2," %04X ",thisDDU->ddu_code0);
       }
       if(i==214){
 	thisDDU->ddu_rdlieerr();
-           sprintf(buf,"Lost-In-Event Error Register bits [14-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	sprintf(buf,"Lost-In-Event Error, Fiber[14-0]:");
+	sprintf(buf2," %04X ",thisDDU->ddu_code0);
       }
       if(i==215){
-	thisDDU->ddu_rdscaler();
-           sprintf(buf,"DDU L1 Event Scaler, bits [23-0]:");
-           sprintf(buf2," %02X%04X ",thisDDU->ddu_code1,thisDDU->ddu_code0);
+	*out << br() << " <font color=blue> 4-bit Registers below flag which InRD unit experienced each condition, plus" << br() << " &nbsp &nbsp some individual bit Decoding</font>" << br() << std::endl;
+	thisDDU->ddu_checkFIFOa();
+	// sprintf(buf,"FIFO-A Status [15-0]:");
+	// sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	sprintf(buf,"Stuck Data Error occurred [3-0]:");
+	sprintf(buf2," %01Xh ",(0xF000&thisDDU->ddu_code0)>>12);
+	if(0xF000&thisDDU->ddu_code0)icond=2;
+	sprintf(buf3," &nbsp &nbsp Fiber or FIFO Connection Error occurred [3-0]:");
+	sprintf(buf4," %01Xh ",(0x0F00&thisDDU->ddu_code0)>>8);
+	if(0x0F00&thisDDU->ddu_code0)icond2=2;
+	sprintf(buf5,"L1A Mismatch occurred [3-0]:");
+	sprintf(buf6," %01Xh ",(0x00F0&thisDDU->ddu_code0)>>4);
+	if(0x00F0&thisDDU->ddu_code0)icond3=1;
+	sprintf(buf7," &nbsp &nbsp InRD with active fiber [3-0]:");
+	sprintf(buf8," %01Xh ",(0x000F&thisDDU->ddu_code0));
       }
       if(i==216){
-	thisDDU->ddu_rderareg();
-           sprintf(buf,"Error bus A Register bits [15-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	thisDDU->ddu_checkFIFOb();
+	// sprintf(buf,"FIFO-B Status [14-0]:");
+	// sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	sprintf(buf,"Active Ext.FIFO Empty [3-0]:");
+	sprintf(buf2," %01Xh ",(0x3C00&thisDDU->ddu_code0)>>10);
+	sprintf(buf3," &nbsp &nbsp InRD Near Full Warn occurred [3-0]:");
+	sprintf(buf4," %01Xh ",(0x00F0&thisDDU->ddu_code0)>>4);
+	if(0x00F0&thisDDU->ddu_code0)icond2=1;
+	sprintf(buf5,"Ext.FIFO Almost-Full occurred [3-0]:");
+	sprintf(buf6," %01Xh ",(0x000F&thisDDU->ddu_code0));
+	if(0x000F&thisDDU->ddu_code0)icond3=1;
+	sprintf(buf7," &nbsp &nbsp special decode bits:");
+	sprintf(buf8," %02Xh ",(0x4300&thisDDU->ddu_code0)>>8);
+	stat=(0x4300&thisDDU->ddu_code0)>>8;
+	if(0x0001&stat)icond4=1;
+	//	stat=0x00ff;
       }
       if(i==217){
-	thisDDU->ddu_rderbreg();
-           sprintf(buf,"Error bus B Register bits [15-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	thisDDU->ddu_checkFIFOc();
+	// sprintf(buf,"FIFO-C Status [15-0]:");
+	// sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	sprintf(buf,"Timeout-EndBusy occurred [3-0]:");
+	sprintf(buf2," %01Xh ",(0xF000&thisDDU->ddu_code0)>>12);
+	if(0xF000&thisDDU->ddu_code0)icond=2;
+	sprintf(buf3," &nbsp &nbsp Timeout-EndWait occurred [3-0]:");
+	sprintf(buf4," %01Xh ",(0x0F00&thisDDU->ddu_code0)>>8);
+	if(0x0F00&thisDDU->ddu_code0)icond2=2;
+	sprintf(buf5,"Timeout-Start occurred [3-0]:");
+	sprintf(buf6," %01Xh ",(0x00F0&thisDDU->ddu_code0)>>4);
+	if(0x00F0&thisDDU->ddu_code0)icond3=2;
+	sprintf(buf7," &nbsp &nbsp Lost In Data Error occurred [3-0]:");
+	sprintf(buf8," %01Xh ",(0x000F&thisDDU->ddu_code0));
+	if(0x000F&thisDDU->ddu_code0)icond4=2;
       }
       if(i==218){
-	thisDDU->ddu_rdercreg();
-           sprintf(buf,"Error bus C Register bits [15-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	thisDDU->ddu_rdfferr();
+	// sprintf(buf,"FIFO Full Register bits [14-0]:");
+	// sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	sprintf(buf,"Raw Ext.FIFO Empty [3-0]:");
+	sprintf(buf2," %01Xh ",(0x3C00&thisDDU->ddu_code0)>>10);
+	sprintf(buf3," &nbsp &nbsp InRD FIFO Full occurred [3-0]:");
+	sprintf(buf4," %01Xh ",(0x00F0&thisDDU->ddu_code0)>>4);
+	if(0x00F0&thisDDU->ddu_code0)icond2=2;
+	sprintf(buf5,"Ext.FIFO Full occurred [3-0]:");
+	sprintf(buf6," %01Xh ",(0x000F&thisDDU->ddu_code0));
+	if(0x000F&thisDDU->ddu_code0)icond3=2;
+	sprintf(buf7," &nbsp &nbsp special decode bits:");
+	sprintf(buf8," %02Xh ",(0x4300&thisDDU->ddu_code0)>>8);
+	stat=(0x4300&thisDDU->ddu_code0)>>8;
+	//	stat=0x00ff;
+	if(0x0001&stat)icond4=2;
       }
       if(i==219){
 	thisDDU->ddu_InRDstat();
-           sprintf(buf,"InRDctrl Status [15-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	// sprintf(buf,"InRDctrl Status [15-0]:");
+	// sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	sprintf(buf,"InRD Hard Error occurred [3-0]:");
+	sprintf(buf2," %01Xh ",(0xF000&thisDDU->ddu_code0)>>12);
+	if(0xF000&thisDDU->ddu_code0)icond=2;
+	sprintf(buf3," &nbsp &nbsp InRD Sync Error occurred [3-0]:");
+	sprintf(buf4," %01Xh ",(0x0F00&thisDDU->ddu_code0)>>8);
+	if(0x0F00&thisDDU->ddu_code0)icond2=2;
+	sprintf(buf5,"InRD Single Event Error occurred [3-0]:");
+	sprintf(buf6," %01Xh ",(0x00F0&thisDDU->ddu_code0)>>4);
+	sprintf(buf7," &nbsp &nbsp InRD Timeout Error occurred [3-0]:");
+	sprintf(buf8," %01Xh ",(0x000F&thisDDU->ddu_code0));
+	if(0x000F&thisDDU->ddu_code0)icond4=2;
       }
       if(i==220){
 	thisDDU->ddu_InC_Hist();
-           sprintf(buf,"InRDctrl MxmitErr Reg [15-12] & C-code History [8-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	// sprintf(buf,"InRDctrl MxmitErr Reg [15-12] & C-code History [8-0]:");
+	// sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	sprintf(buf,"InRD Mutliple Transmit Errors occurred [3-0]:");
+	sprintf(buf2," %01Xh ",(0xF000&thisDDU->ddu_code0)>>12);
+	if(0xF000&thisDDU->ddu_code0)icond=2;
+
+	sprintf(buf3," &nbsp &nbsp special decode bits:");
+	sprintf(buf4," %03Xh ",(0x0FFF&thisDDU->ddu_code0));
+	stat=(0x0FFF&thisDDU->ddu_code0);
+	//	stat=0x0fff;
+	if(0x0C00&stat)icond2=1;
+	if(0x02DF&stat)icond2=2;
       }
       if(i==221){
-	thisDDU->ddu_dmblive();
-           sprintf(buf,"DMBLIVE bits [14-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	*out << br() << std::endl;
+	thisDDU->ddu_rd_WarnMon();
+	sprintf(buf,"8-bit DDU Near Full Warning, current:");
+	sprintf(buf2," %02Xh ",(0x00FF&thisDDU->ddu_code0));
+	if(0x00FF&thisDDU->ddu_code0)icond=1;
+	sprintf(buf3," &nbsp &nbsp historical:");
+	sprintf(buf4," %02Xh ",(0xFF00&thisDDU->ddu_code0)>>8);
+	if(0xFF00&thisDDU->ddu_code0)icond2=1;
       }
       if(i==222){
-	thisDDU->ddu_pdmblive();
-           sprintf(buf,"Permanent DMBLIVE bits [14-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	*out << br() << std::endl;
+	thisDDU->ddu_rdkillfiber();
+	sprintf(buf,"KillFiber Register bits [19-0] (0=dead, 1=alive):");
+	sprintf(buf2," %01X%04X ",thisDDU->ddu_code1,thisDDU->ddu_code0);
+	stat=((0x000f&thisDDU->ddu_code1)<<16)|(0xFFFF&thisDDU->ddu_code0);
       }
       if(i==223){
-	thisDDU->ddu_rd_WarnMon();
-           sprintf(buf,"16-bit DDU FMM-Warn Monitor:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	thisDDU->ddu_rdbxorbit();
+	sprintf(buf,"BX_Orbit Register bits [11-0]:");
+	sprintf(buf2," %03Xh ",thisDDU->ddu_code0);
       }
       if(i==224){
-	thisDDU->ddu_rdostat();
-           sprintf(buf,"16-bit DDU Output Status:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	if(icrit>0){
+	  thisDDU->ddu_fpgatrap();
+	  *out << br() << " <font color=blue> Diagnostic data only valid after Critical Error, traps conditions at that instant</font>" << br() << std::endl;
+	  sprintf(buf,"DDU Control diagnostic trap:");
+	  sprintf(buf2," %08lX %08lX %08lX %08lX %08lX %08lX",thisDDU->fpga_lcode[5],thisDDU->fpga_lcode[4],thisDDU->fpga_lcode[3],thisDDU->fpga_lcode[2],thisDDU->fpga_lcode[1],thisDDU->fpga_lcode[0]);
+	}else{
+	  sprintf(buf," ");
+	  sprintf(buf2," ");
+	  thisDDU->ddu_shift0=0xFACE;
+	}
       }
       if(i==225){
-	thisDDU->ddu_rdbxorbit();
-           sprintf(buf,"BX_Orbit Register bits [11-0]:");
-           sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	if(icrit>=0){
+	  thisDDU->ddu_maxTimeCount();
+//	  sprintf(buf,"DDU Control max time counted, EndTimeout <font size=-1>(1 unit = 6.4 usec)</font>:");
+//	  sprintf(buf2," %02Xh ",(0xff00&thisDDU->ddu_code0)>>8);
+	  sprintf(buf,"DDU Control max process time, L1A-to-Start <font size=-1>(1 unit = 400 ns)</font>:");
+	  sprintf(buf2," %02Xh ",(0x00ff&thisDDU->ddu_code0));
+//	  sprintf(buf3," &nbsp &nbsp StartTimeout <font size=-1>(1 unit = 400 ns)</font>:");
+//	  sprintf(buf4," %02Xh ",(0x00ff&thisDDU->ddu_code0));
+	  sprintf(buf3," &nbsp &nbsp Start-to-End <font size=-1>(1 unit = 6.4 usec)</font>:");
+	  sprintf(buf4," %02Xh ",(0xff00&thisDDU->ddu_code0)>>8);
+	}else{
+	  sprintf(buf," ");
+	  sprintf(buf2," ");
+	  thisDDU->ddu_shift0=0xFACE;
+	}
       }
-
-/* Expert only registers for special DDU Test Firmware, 226-232:
       if(i==226){
-	thisDDU->ddu_shfttst(0);
-	unsigned short int tmp;
-	tmp=thisDDU->ddu_shift0;
-	thisDDU->ddu_shfttst(1);
-           sprintf(buf,"DDU Shift Test:");
-           sprintf(buf2," %04X %04X",tmp,thisDDU->ddu_shift0);
-      }
-      if(i==227){
-	thisDDU->ddu_rd_verr_cnt();
-           sprintf(buf,"DDR Vote Error Count =");
-           sprintf(buf2," %d 0x%04X ",thisDDU->ddu_code0,thisDDU->ddu_code0);
-      }
-      if(i==228){
-	thisDDU->ddu_fifo0verr_cnt();
-           sprintf(buf,"DDR FIFO-0 Error Count ="); 
-           sprintf(buf2," %d 0x%04X ",thisDDU->ddu_code0,thisDDU->ddu_code0);
-      }
-      if(i==229){
-	thisDDU->ddu_fifo1verr_cnt();
-           sprintf(buf,"DDR FIFO-1 Error Count ="); 
-           sprintf(buf2," %d 0x%04X ",thisDDU->ddu_code0,thisDDU->ddu_code0);
-      }
-      if(i==230){
-	thisDDU->ddu_earlyVerr_cnt();
-           sprintf(buf,"DDR Early 200ns  Error Count ="); 
-           sprintf(buf2," %d 0x%04X ",thisDDU->ddu_code0,thisDDU->ddu_code0);
-      }
-      if(i==231){
-	thisDDU->ddu_verr23cnt();
-           sprintf(buf,"DDR VoteError23 Count ="); 
-           sprintf(buf2," %d 0x%04X ",thisDDU->ddu_code0,thisDDU->ddu_code0);
-      }
-      if(i==232){
-	thisDDU->ddu_verr55cnt();
-           sprintf(buf,"DDR VoteError55 Count ="); 
-           sprintf(buf2," %d 0x%04X ",thisDDU->ddu_code0,thisDDU->ddu_code0);
-      }
-*/
-
-      if(i==233){
-	thisDDU->ddu_rd_boardID();
-           sprintf(buf,"16-bit DDU Board ID:"); 
-           sprintf(buf2," 0x%04X ",thisDDU->ddu_code0);
-      }
-      if(i==234){
-           sprintf(buf,"DDUFPGA VME L1A:"); 
-           sprintf(buf2," EXPERT ONLY! ");
+	sprintf(buf,"Generate one Fake DDU L1A via VME:"); 
+	sprintf(buf2," EXPERT ONLY! ");
+	icond=2;
+	*out << hr();
       } 
+      if(i==227){
+	sprintf(buf,"DDU Sync Reset via VME: ");
+	sprintf(buf2," EXPERT ONLY! ");
+	icond=2;
+      }
 
 // JRGhere
-      if(i==200||i==208||i==225||i==234){
+      if(i==227||i==222||i==223||i==226){
 	std::string ddutextload =
 	  toolbox::toString("/%s/DDUTextLoad",getApplicationDescriptor()->getURN().c_str());
 	*out << cgicc::form().set("method","GET").set("action",ddutextload) << std::endl;
       }
       *out << cgicc::span().set("style","color:black");
       *out << buf << cgicc::span();
+      if(icond==1){
+        *out << cgicc::span().set("style","color:orange;background-color:#dddddd;");
+      }else if(icond==2){
+        *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
+      }else{
+        *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
+      }
+      *out << buf2 << cgicc::span();
+      *out << cgicc::span().set("style","color:black");
+      *out << buf3 << cgicc::span();
+      if(icond2==1){
+        *out << cgicc::span().set("style","color:orange;background-color:#dddddd;");
+      }else if(icond2==2){
+        *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
+      }else{
+        *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
+      }
+      *out << buf4 << cgicc::span();
+
       if(thisDDU->CAEN_err()!=0){
-       *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
-      }else if((thisDDU->ddu_shift0!=0xFACE)&&(i!=226)){
-	*out << cgicc::span().set("style","color:red;background-color:#dddddd;");
-      }else{ 
-	*out << cgicc::span().set("style","color:green;background-color:#dddddd;");
+        *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
+        *out << " **CAEN Error " << cgicc::span();
       }
-      *out << buf2;*out << cgicc::span();
-      if((thisDDU->ddu_shift0!=0xFACE)&&i!=226&&i!=200&&i!=234){
-        sprintf(buf," shift:%04X",thisDDU->ddu_shift0);
-        *out << buf;
+      if((thisDDU->ddu_shift0!=0xFACE)&&i<226){
+        sprintf(buf," **JTAG Error in i=%d, Shifted:%04X",i,thisDDU->ddu_shift0);
+        *out << cgicc::span().set("style","color:orange;background-color:#dddddd;");
+        *out << buf << cgicc::span();
       }
-      if(i==200||i==208||i==225||i==234){  //JRG, def. SET button properties
+
+      if(i>=215&&i<=219) *out << br();
+      *out << cgicc::span().set("style","color:black");
+      *out << buf5 << cgicc::span();
+      if(icond3==1){
+        *out << cgicc::span().set("style","color:orange;background-color:#dddddd;");
+      }else if(icond3==2){
+        *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
+      }else{
+        *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
+      }
+      *out << buf6 << cgicc::span();
+      *out << cgicc::span().set("style","color:black");
+      *out << buf7 << cgicc::span();
+      if(icond4==1){
+        *out << cgicc::span().set("style","color:orange;background-color:#dddddd;");
+      }else if(icond4==2){
+        *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
+      }else{
+        *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
+      }
+      *out << buf8 << cgicc::span();
+
+
+      if(i==227||i==222||i==223||i==226){  //JRG, def. SET button properties
 	string xmltext="";
-	if(i==208)xmltext="f7fff";
-	if(i==225)xmltext="fff";
-	if(i==200||i==234){
+	if(i==222)xmltext="f7fff";
+	if(i==223)xmltext="deb";
+	if(i==227||i==226){
 	  *out << cgicc::input().set("type","hidden")
 	   .set("name","textdata")
 	   .set("size","10")
 	   .set("ENCTYPE","multipart/form-data")
 	   .set("value",xmltext)
-	   .set("style","font-size: 13pt; font-family: arial;")<<std::endl;
+	   .set("style","font-size: 13pt; font-family: arial;") << std::endl;
 	}
 	else {
 	  *out << cgicc::input().set("type","text")
@@ -1111,7 +1237,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	   .set("size","10")
 	   .set("ENCTYPE","multipart/form-data")
 	   .set("value",xmltext)
-	   .set("style","font-size: 13pt; font-family: arial;")<<std::endl;
+	   .set("style","font-size: 13pt; font-family: arial;") << std::endl;
 	}
 	*out << cgicc::input().set("type","submit")
 	  .set("value","set");
@@ -1119,20 +1245,323 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu"); 
 	sprintf(buf,"%d",i);
 	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","val");
-	// *out << cgicc::form() << br() << std::endl ;
-	*out << cgicc::form() << std::endl ;
-	// *out << cgicc::td() << std::endl;
+
+	if(i==222){
+	  //	  *out << " &nbsp &nbsp bits [14-0]==DDU Fiber Readout Enable";
+	  *out << cgicc::form();
+	  *out << std::endl;
+	  *out << "<blockquote><font size=-1 face=arial>";
+	  *out << "key: &nbsp b15==0 forces all DDU Checks Enabled, &nbsp b[14-0]==DDU Fiber Readout Enable" << br();
+	  *out << "DDU Check Enable bits: &nbsp b19==Normal DMB Checks (not SP/TF)," << br() << " &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp b18==CFEB Checks,  &nbsp b17==TMB Checks,  &nbsp b16==ALCT Checks" << br();
+	  if((stat&0x00018000)==0x8000) *out << "<font color=blue> &nbsp &nbsp &nbsp ALCT checking is disabled</font>";
+	  if((stat&0x00028000)==0x8000) *out << "<font color=blue> &nbsp &nbsp &nbsp TMB checking is disabled</font>";
+	  if((stat&0x00008000)>0&&(stat&0x00030000)<0x00030000) *out << br() ;
+	  if((stat&0x00048000)==0x8000) *out << "<font color=blue> &nbsp &nbsp &nbsp CFEB LCT/MOVLP/L1A checks disabled</font>";
+	  if((stat&0x00088000)==0x8000) *out << "<font color=blue> &nbsp &nbsp &nbsp Some DMB checks disabled for SP/TF</font>";
+	  if((stat&0x00008000)==0) *out << "<font color=green> &nbsp &nbsp &nbsp All checks are Enabled</font>";
+	  *out << "</font></blockquote>" << std::endl;
+	}
+	else *out << cgicc::form() << std::endl;
+
+      }else if(i==201&&(stat&0x0000f000)>0){
+        *out << "<blockquote><font size=-1 color=red face=arial>";
+	if((stat&0xF0000000)>0){
+	  if((0x80000000&stat)>0) *out << " DMB DAV/LCT/MOVLP Error &nbsp ";
+	  if((0x40000000&stat)>0) *out << " CFEB L1A Mismatch &nbsp ";
+	  if((0x20000000&stat)>0) *out << " <font color=blue>DDUsawNoGoodDMB-CRCs</font> &nbsp ";
+	  if((0x10000000&stat)>0) *out << " CFEB Count Error";
+	  if(0x0fffffff&stat) *out << br();
+	}
+	if((stat&0x0F000000)>0){
+	  if((0x08000000&stat)>0) *out << " FirstDat Error &nbsp ";
+	  if((0x04000000&stat)>0) *out << " L1A-FIFO Full Error occurred &nbsp ";
+	  if((0x02000000&stat)>0) *out << " Data Stuck in FIFO occurred &nbsp ";
+	  if((0x01000000&stat)>0) *out << " <font color=blue>NoLiveFiber Warning</font>";
+	  if(0x00ffffff&stat) *out << br();
+	}
+	if((stat&0x00F00000)>0){
+	  if((0x00800000&stat)>0) *out << " <font color=blue>Special-word single-bit Warning</font> &nbsp ";
+	  if((0x00400000&stat)>0) *out << " InRDctrl Error &nbsp ";
+	  if((0x00200000&stat)>0) *out << " <font color=blue>DAQ Stop set</font> &nbsp ";
+	  if((0x00100000&stat)>0) *out << " <font color=blue>DAQ Not Ready</font>";
+	  if(0x000fffff&stat) *out << br();
+	}
+	if((stat&0x000F0000)>0){
+	  *out << "<font color=orange>";
+	  if((0x00080000&stat)>0) *out << " TMB Error &nbsp ";
+	  if((0x00040000&stat)>0) *out << " ALCT Error &nbsp ";
+	  if((0x00020000&stat)>0) *out << " Trigger Wordcount Error &nbsp ";
+	  if((0x00010000&stat)>0) *out << " Trigger L1A Match Error";
+	  if(0x0000ffff&stat) *out << br();
+	  *out << "</font>";
+	}
+// JRG, low-order 16-bit status (most serious errors):
+	if((stat&0x0000F000)>0){
+	  if((0x00008000&stat)>0) *out << " <font color=red>Critical Error ** needs reset **</font> &nbsp ";
+	  if((0x00004000&stat)>0) *out << " <font color=orange>Single Error, bad event</font> &nbsp ";
+	  if((0x00002000&stat)>0) *out << " <font color=blue>Single Warning</font> &nbsp ";
+	  if((0x00001000&stat)>0) *out << " <font color=black>Near Full Warning</font>";
+	  if(0x00000fff&stat) *out << br();
+	}
+	if((stat&0x00000F00)>0){
+	  if((0x00000800&stat)>0) *out << " <font color=orange>RX Error</font> &nbsp ";
+	  if((0x00000400&stat)>0) *out << " <font color=blue>DDU Control DLL Error (recent)</font> &nbsp ";
+	  if((0x00000200&stat)>0) *out << " <font color=orange>DMB Error</font> &nbsp ";
+	  if((0x00000100&stat)>0) *out << " <font color=orange>Lost In Event Error</font>";
+	  if(0x000000ff&stat) *out << br();
+	}
+	if((stat&0x000000F0)>0){
+	  if((0x00000080&stat)>0) *out << " Lost In Data Error occurred &nbsp ";
+	  if((0x00000040&stat)>0) *out << " Timeout Error occurred &nbsp ";
+	  if((0x00000020&stat)>0) *out << " <font color=orange>Trigger CRC Error</font> &nbsp ";
+	  if((0x00000010&stat)>0) *out << " Multiple Transmit Errors occurred";
+	  if(0x0000000f&stat) *out << br();
+	}
+	if((stat&0x0000000F)>0){
+	  if((0x00000008&stat)>0) *out << " Sync Lost occurred (FIFO Full or L1A Error) &nbsp ";
+	  if((0x00000004&stat)>0) *out << " Fiber/FIFO Connection Error occurred &nbsp ";
+	  if((0x00000002&stat)>0) *out << " <font color=orange>Single L1A Mismatch</font> &nbsp ";
+	  if((0x00000001&stat)>0) *out << " <font color=orange>CFEB CRC Error</font>";
+	}
+        *out << "</font></blockquote>";
+
+      }else if(i==202&&(stat&0x0000D981)>0){
+	//        *out << "<blockquote><font size=-1 color=black face=arial>";
+        *out << "<font size=-1 color=black face=arial>";
+	if(0x00001000&stat) *out << " &nbsp &nbsp <font color=green>DDU S-Link Not Present</font>";
+	if(0x00000100&stat) *out << " &nbsp &nbsp <font color=blue>SPY/GbE Fiber Disconnected</font>" << std::endl;
+	else if((0x00000200&stat)>0) *out << " &nbsp  &nbsp SPY/GbE FIFO Always Empty";
+	if((stat&0x0000ECEF)>0){
+	  *out << "<blockquote>";
+	  if((stat&0x0000E000)>0){
+	    if((0x00008000&stat)>0) *out << " DDU Output Limited Buffer Overflow occurred &nbsp ";
+	    if((0x00004000&stat)>0) *out << " <font color=blue>DAQ (DCC/S-Link) Wait occurred</font> &nbsp ";
+	    if((0x00002000&stat)>0) *out << " DDU S-Link Full occurred &nbsp ";
+	    //	  if((0x00001000&stat)>0) *out << " DDU S-Link Never Ready";
+	    if((0x000000cef&stat)>0&&(0x000000cef&stat)<=0x00ff) *out << br();
+	  }
+	  if((stat&0x00000E00)>0){
+	    if((stat&0x00000900)==0x0800||(stat&0x00000500)==0x0400) *out << br();
+	    if((0x00000800&stat)>0&&(0x00000100&stat)==0) *out << " <font color=blue>DDU GbE Overflow occurred</font> &nbsp ";
+	    if((0x00000400&stat)>0&&(0x00000100&stat)==0) *out << " GbE Transmit Limit occurred &nbsp ";
+	    //	    if((0x00000200&stat)>0&&(0x00000100&stat)==0) *out << " GbE FIFO Always Empty &nbsp ";
+	    //	  if((0x00000100&stat)>0) *out << " <font color=blue>SPY/GbE Fiber Disconnect occurred</font>";
+	    if(0x000000ef&stat) *out << br();
+	  }
+	  if((stat&0x000000F0)>0){
+	    if((0x00000080&stat)>0) *out << " <font color=red>DDU DAQ-Limited Overflow occurred (DCC/S-Link Wait)</font> &nbsp ";
+	    if((0x00000040&stat)>0) *out << " <font color=blue>DAQ (DCC/S-Link) Wait</font> &nbsp ";
+	    if((0x00000020&stat)>0) *out << " DDU S-Link Full/Stop &nbsp ";
+	    if((0x00000010&stat)>0&&(0x00001000&stat)==0) *out << " <font color=red>DDU S-Link Not Ready</font>";
+	  }
+	  if((stat&0x0000000F)>0){
+	    if((0x0000000e&stat)>0&&(0x00000001&stat)==0) *out << br();
+	    if((0x00000008&stat)>0&&(0x00000100&stat)==0) *out << " GbE FIFO Full &nbsp ";
+	    if((0x00000004&stat)>0&&(0x00000100&stat)==0) *out << " DDU Skipped SPY Event (GbE data not sent) &nbsp ";
+	    if((0x00000002&stat)>0&&(0x00000100&stat)==0) *out << " GbE FIFO Not Empty &nbsp ";
+	    if((0x00000001&stat)>0) *out << " <font color=blue>DCC Link Not Ready</font>";
+	  }
+	  //        *out << "</font></blockquote>";
+	  *out << "</blockquote></font>";
+	}
+	else *out << "</font>" << br();
+
+      }else if(i==204&&(stat&0x0000ffff)>0){
+        *out << "<blockquote><font size=-1 color=orange face=arial>";
+	if((stat&0x0000F000)>0){
+	  if((0x00008000&stat)>0) *out << " <font color=red>Critical Error, ** needs reset **</font> &nbsp ";
+	  if((0x00004000&stat)>0) *out << " <font color=red>Mult L1A Error occurred</font> &nbsp ";
+	  if((0x00002000&stat)>0) *out << " <font color=blue>L1A-FIFO Near Full Warning</font> &nbsp ";
+	  if((0x00001000&stat)>0) *out << " <font color=black>GbE FIFO Almost-Full</font>";
+	  if(0x0fff&stat) *out << br();
+	}
+	if((stat&0x00000F00)>0){
+	  if((0x00000800&stat)>0) *out << " <font color=blue>Ext.FIFO Near Full Warning</font> &nbsp ";
+	  if((0x00000400&stat)>0) *out << " <font color=blue>Near Full Warning</font> &nbsp ";
+	  if((0x00000200&stat)>0) *out << " <font color=black>CFEB-CRC not OK</font> &nbsp ";
+	  if((0x00000100&stat)>0) *out << " CFEB-CRC End Error";
+	  if(0x00ff&stat) *out << br();
+	}
+	if((stat&0x000000F0)>0){
+	  if((0x00000080&stat)>0) *out << " CFEB-CRC Count Error &nbsp ";
+	  if((0x00000040&stat)>0) *out << " CFEB-CRC Error occurred &nbsp ";
+	  //	  if((0x00000020&stat)>0) *out << " <font color=black>Latched Trigger Trail</font> &nbsp ";
+	  if((0x00000020&stat)>0) *out << " Trigger Readout Error &nbsp ";
+	  if((0x00000010&stat)>0) *out << " <font color=black>Trigger Trail Done</font>";
+	  if(0x000f&stat) *out << br();
+	}
+	if((stat&0x0000000F)>0){
+	  if((0x00000008&stat)>0) *out << " <font color=red>Start Timeout</font> &nbsp ";
+	  if((0x00000004&stat)>0) *out << " <font color=red>End Timeout</font> &nbsp ";
+	  if((0x00000002&stat)>0) *out << " SP/TF Error in last event &nbsp ";
+	  if((0x00000001&stat)>0) *out << " SP/TF data detected in last event";
+	}
+        *out << "</font></blockquote>";
+
+      }else if(i==205&&(stat&0x0000ffff)>0){
+	if((0x00000020&stat)>0) *out << " &nbsp  &nbsp <font color=green size=-1>Empty Event flag</font>";
+	if((0x0000FFDF&stat)>0) *out << "<blockquote><font size=-1 color=orange face=arial>";
+	if((stat&0x0000F000)>0){
+	  if((0x00008000&stat)>0) *out << " Lost In Event Error &nbsp ";
+	  if((0x00004000&stat)>0) *out << " DMB Error &nbsp ";
+	  if((0x00002000&stat)>0) *out << " <font color=blue>Control DLL Error occured</font> &nbsp ";
+	  if((0x00001000&stat)>0) *out << " 2nd Header First flag";
+	  if(0x0fdf&stat) *out << br();
+	}
+	if((stat&0x00000F00)>0){
+	  if((0x00000800&stat)>0) *out << " <font color=black>Early 2nd Trailer flag</font> &nbsp ";
+	  if((0x00000400&stat)>0) *out << " <font color=black>Extra 1st Trailer flag</font> &nbsp ";
+	  if((0x00000200&stat)>0) *out << " <font color=black>Extra 1st Header flag</font> &nbsp ";
+	  if((0x00000100&stat)>0) *out << " <font color=black>Extra 2nd Header flag</font>";
+	  if(0x00df&stat) *out << br();
+	}
+	if((stat&0x000000D0)>0){
+	  if((0x00000080&stat)>0) *out << " SCA Full detected this Event &nbsp ";
+	  if((0x00000040&stat)>0) *out << " <font color=blue>DMB Full occurred</font> &nbsp ";
+	  //	  if((0x00000020&stat)>0) *out << " <font color=green>Empty Event flag</font> &nbsp ";
+	  if((0x00000010&stat)>0) *out << " <font color=red>Bad Control Word Error occurred</font>";
+	  if(0x000f&stat) *out << br();
+	}
+	if((stat&0x0000000F)>0){
+	  if((0x00000008&stat)>0) *out << " Missed Trigger Trailer Error &nbsp ";
+	  if((0x00000004&stat)>0) *out << " First Dat Error &nbsp ";
+	  if((0x00000002&stat)>0) *out << " Bad First Word &nbsp ";
+	  if((0x00000001&stat)>0) *out << " <font color=red>Lost In Data occured</font>";
+	}
+        if((0x0000FFDF&stat)>0) *out << "</font></blockquote>";
+	else *out << br();
+
+      }else if(i==206&&(stat&0x0000ffff)>0){
+        *out << "<blockquote><font size=-1 color=black face=arial>";
+	if((stat&0x0000F000)>0){
+	  if((0x00008000&stat)>0) *out << " <font color=orange>Trigger Readout Error</font> &nbsp ";
+	  if((0x00004000&stat)>0) *out << " ALCT Trailer Done &nbsp ";
+	  if((0x00002000&stat)>0) *out << " ALCT DAV Vote True occurred &nbsp ";
+	  if((0x00001000&stat)>0) *out << " ALCT L1A mismatch error occurred";
+	  if(0x0fff&stat) *out << br();
+	}
+	if((stat&0x00000F00)>0){
+	  if((0x00000800&stat)>0) *out << " ALCT CRC Error occurred &nbsp ";
+	  if((0x00000400&stat)>0) *out << " ALCT Wordcount Error occurred &nbsp ";
+	  if((0x00000200&stat)>0) *out << " Missing ALCT Trailer occurred &nbsp ";
+	  if((0x00000100&stat)>0) *out << " ALCT Error occurred";
+	  if(0x00ff&stat) *out << br();
+	}
+	if((stat&0x000000F0)>0){
+	  if((0x00000080&stat)>0) *out << " Compare Trigger CRC flag &nbsp ";
+	  if((0x00000040&stat)>0) *out << " TMB Trailer Done &nbsp ";
+	  if((0x00000020&stat)>0) *out << " TMB DAV Vote True occurred &nbsp ";
+	  if((0x00000010&stat)>0) *out << " TMB L1A mismatch error occurred";
+	  if(0x000f&stat) *out << br();
+	}
+	if((stat&0x0000000F)>0){
+	  if((0x00000008&stat)>0) *out << " TMB CRC Error occurred &nbsp ";
+	  if((0x00000004&stat)>0) *out << " TMB Word Count Error occurred &nbsp ";
+	  if((0x00000002&stat)>0) *out << " Missing TMB Trailer occurred &nbsp ";
+	  if((0x00000001&stat)>0) *out << " TMB Error occurred";
+	}
+        *out << "</font></blockquote>";
+
+      }else if(i==216&&(stat&0x000000ff)>0){
+	*out << std::endl;
+        *out << "<font size=-2>";
+	if((0x00000040&stat)>0) *out << " &nbsp &nbsp &nbsp L1A FIFO Empty";
+	if((0x00000040&stat)==0) *out << " &nbsp &nbsp &nbsp L1A FIFO Not Empty";
+	if((0x00000003&stat)>0){
+	  *out << "<blockquote>";
+	  if((0x00000002&stat)>0) *out << " GbE FIFO Almost-Full occurred &nbsp ";
+	  if((0x00000001&stat)>0) *out << " <font color=blue>L1A FIFO Almost-Full occurred</font>";
+	  *out << "</blockquote></font>";
+	}
+	else *out << "</font>" << br();
+      }else if(i==218&&(stat&0x000000ff)>0){
+        *out << "<font size=-2>";
+	if((0x00000040&stat)>0) *out << " &nbsp &nbsp &nbsp L1A FIFO Empty";
+	if((0x00000040&stat)==0) *out << " &nbsp &nbsp &nbsp L1A FIFO Not Empty";
+	*out << std::endl;
+	if((0x00000003&stat)>0){
+	  *out << "<blockquote>";
+	  if((0x00000002&stat)>0) *out << " GbE FIFO Full occurred &nbsp ";
+	  if((0x00000001&stat)>0) *out << " <font color=red>L1A FIFO Full occurred</font>";
+	  *out << "</blockquote></font>";
+	}
+	else *out << "</font>" << br();
+
+      }else if(i==220&&(stat&0x00000fff)>0){
+	*out << std::endl;
+        *out << "<blockquote><font size=-1 color=red face=arial>";
+	if((stat&0x00000F00)>0){
+	  if((0x00000800&stat)>0) *out << " InRD End C-Code Error occurred &nbsp ";
+	  if((0x00000400&stat)>0) *out << " InRD Begin C-Code Error occurred &nbsp ";
+	  if((0x00000200&stat)>0) *out << " InRD Multiple L1A Mismatches occurred &nbsp ";
+	  else if((0x00000100&stat)>0) *out << " <font color=blue>InRD Single L1A Mismatch occurred</font>";
+	  *out << br();
+	}
+	if((stat&0x000000F0)>0){
+	  if((0x00000080&stat)>0) *out << " InRD Hard Error occurred &nbsp ";
+	  if((0x00000040&stat)>0) *out << " InRD Sync Error occurred &nbsp ";
+	  if((0x00000020&stat)>0) *out << " <font color=blue>InRD Single Error occurred</font> &nbsp ";
+	  if((0x00000010&stat)>0) *out << " InRD Mem/FIFO Error occurred";
+	  *out << br();
+	}
+	if((stat&0x0000000F)>0){
+	  if((0x00000008&stat)>0) *out << " InRD Fiber Connection Error occurred &nbsp ";
+	  if((0x00000004&stat)>0) *out << " InRD Multiple Transmit Errors occurred &nbsp ";
+	  if((0x00000002&stat)>0) *out << " InRD Stuck Data Error occurred &nbsp ";
+	  if((0x00000001&stat)>0) *out << " InRD Timeout Error occurred";
+	  *out << br();
+	}
+        *out << "</font></blockquote>";
+
+      }else if(i==221 && (icond>0 || icond2>0)){
+	*out  << std::endl;
+	*out << "<blockquote><font size=-1 face=arial>";
+	*out << "key for Near Full bits: &nbsp b7=DDU set FMM Warn, &nbsp b6=DMB set Warn," << br();
+	*out << " &nbsp &nbsp &nbsp &nbsp b5=Ext. FIFO set Warn, &nbsp b4==L1A FIFO set Warn, &nbsp b[3-0]=InRD 3-0 set Warn";
+	*out << "</font></blockquote>" << std::endl;
+
+      }else if(i==224 && icrit>0){
+	//	*out << "<blockquote><font size=-1 color=black face=arial>Trap decode goes here" << "</font></blockquote>";
+	*out << "<blockquote><font size=-2 color=black face=arial>";
+	DDUtrapDecode(in, out, thisDDU->fpga_lcode);
+	*out << "</font></blockquote>";
       }else{
 	*out << br() << std::endl;
-	// *out << cgicc::td() << std::endl ;
       }
-      // *out << cgicc::table() << std::endl;
-     }
     }
 
-    *out << cgicc::fieldset() << std::endl;
+    //    *out << cgicc::fieldset() << std::endl;
     *out << cgicc::body() << std::endl;    
     *out << cgicc::html() << std::endl;    
+}
+
+
+void DDUtrapDecode(xgi::Input * in, xgi::Output * out,  unsigned long int lcode[10]) throw (xgi::exception::Exception)
+{
+  printf(" enter DDUtrapDecode \n");
+  int i;
+  cgicc::Cgicc cgi(in);
+  char buf[300];
+
+  *out << "<pre>" << std::endl;
+  sprintf(buf,"  192-bit DDU Control Diagnostic Trap (24 bytes)");
+  *out << buf << std::endl;
+  i=23;
+  sprintf(buf,"                        ostat   fful  fifo-c fifo-b");
+  *out << buf << std::endl;
+  sprintf(buf,"      rcv bytes %2d-%2d:   %04lx   %04lx   %04lx   %04lx",i,i-7,(0xffff0000&lcode[5])>>16,0xffff&lcode[5],(0xffff0000&lcode[4])>>16,0xffff&lcode[4]);
+  *out << buf << std::endl;
+  i=15;
+  sprintf(buf,"                        fifo-a instat c-code  erc");
+  *out << buf << std::endl;
+  sprintf(buf,"      rcv bytes %2d-%2d:   %04lx   %04lx   %04lx   %04lx",i,i-7,(0xffff0000&lcode[3])>>16,0xffff&lcode[3],(0xffff0000&lcode[2])>>16,0xffff&lcode[2]);
+  *out << buf << std::endl;
+  i=7;
+  sprintf(buf,"                         erb    era   32-bit status");
+  *out << buf << std::endl;
+  sprintf(buf,"      rcv bytes %2d-%2d:   %04lx   %04lx   %04lx   %04lx",i,i-7,(0xffff0000&lcode[1])>>16,0xffff&lcode[1],(0xffff0000&lcode[0])>>16,0xffff&lcode[0]);
+  *out << buf << std::endl;
+  *out << "</pre>" << br() << std::endl;
 }
 
 
@@ -1163,14 +1592,14 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("INFPGA0 Web Form") << std::endl;
-    char buf[300],buf2[300],buf3[300],buf4[300];
+    char buf[300],buf2[300],buf3[300],buf4[30];
     sprintf(buf,"DDU INFPGA0, VME  Slot %d",thisDDU->slot());
     *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg");
-    *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
-    *out << std::endl;
-    *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
+    //    *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;") << std::endl;
+    //    *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
+    *out << "<h2 align=center><font color=blue>" << buf << "</font></h2>" << std::endl;
 
-    for(int i=300;i<321;i++){
+    for(int i=300;i<322;i++){
       printf(" LOOP: %d \n",i);
       thisDDU->infpga_shift0=0x0000; 
       thisDDU->CAEN_err_reset();
@@ -1193,18 +1622,22 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
       }
       if(i==301){
 	thisDDU->infpga_rdscaler(INFPGA0);
-           sprintf(buf,"infpga0 L1 Event Scaler0 bits{23-0]:");
+           sprintf(buf,"infpga0 L1 Event Scaler0 bits[23-0]:");
            sprintf(buf2," %02X%04X ",thisDDU->infpga_code1,thisDDU->infpga_code0);
+	   stat=((thisDDU->infpga_code1)<<16)+thisDDU->infpga_code0;
+           sprintf(buf4," = %8lu Dec",stat&0x00ffffff);
       }
       if(i==302){
 	thisDDU->infpga_rd1scaler(INFPGA0);
-           sprintf(buf,"infpga0 L1 Event Scaler1 bits{23-0]:");
+           sprintf(buf,"infpga0 L1 Event Scaler1 bits[23-0]:");
            sprintf(buf2," %02X%04X ",thisDDU->infpga_code1,thisDDU->infpga_code0);
+	   stat=((thisDDU->infpga_code1)<<16)+thisDDU->infpga_code0;
+           sprintf(buf4," = %8lu Dec",stat&0x00ffffff);
       }
       if(i==303){
 	thisDDU->infpga_DMBwarn(INFPGA0);
 //       	*out << br() << " <font color=blue> All 8-bit Fiber Flags below show if the condition has occurred since last Reset</font>" << br() << std::endl;
-       	*out << br() << " <font color=blue> Fiber Registers below flag which CSCs experienced each condition since last Reset (historical)</font>" << br() << std::endl;
+       	*out << br() << " <font color=blue> Fiber Registers below flag which CSCs experienced each condition since last Reset</font>" << br() << std::endl;
 	sprintf(buf,"infpga0 DMB Full, Fiber[7-0]:");
 	sprintf(buf2," %02X ",(thisDDU->infpga_code0&0xff00)>>8);
 	if(thisDDU->infpga_code0&0xff00)icond=1;
@@ -1232,16 +1665,16 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	thisDDU->infpga_RxErr(INFPGA0);
 	sprintf(buf,"infpga0 DDU Rx Error, Fiber[7-0]:");
 	sprintf(buf2," %02X ",(thisDDU->infpga_code0&0xff00)>>8);
-	sprintf(buf3," &nbsp &nbsp DDU Timeout-start, Fiber[7-0]:");
+	sprintf(buf3," &nbsp &nbsp Timeout-Start, Fiber[7-0]:");
 	sprintf(buf4," %02X ",(thisDDU->infpga_code0&0x00ff));
 	if(thisDDU->infpga_code0&0x00ff)icond2=2;
       }
       if(i==307){
 	thisDDU->infpga_Timeout(INFPGA0);
-	sprintf(buf,"infpga0 DDU Timeout-EndBusy, Fiber[7-0]:");
+	sprintf(buf,"infpga0 Timeout-EndBusy, Fiber[7-0]:");
 	sprintf(buf2," %02X ",(thisDDU->infpga_code0&0xff00)>>8);
 	if(thisDDU->infpga_code0&0xff00)icond=2;
-	sprintf(buf3," &nbsp &nbsp DDU Timeout-EndWait, Fiber[7-0]:");
+	sprintf(buf3," &nbsp &nbsp Timeout-EndWait, F[7-0]:");
 	sprintf(buf4," %02X ",(thisDDU->infpga_code0&0x00ff));
 	if(thisDDU->infpga_code0&0x00ff)icond2=2;
       } 
@@ -1249,7 +1682,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	thisDDU->infpga_XmitErr(INFPGA0);
 	sprintf(buf,"infpga0 SCA Full history, Fiber[7-0]:");
 	sprintf(buf2," %02X ",(thisDDU->infpga_code0&0xff00)>>8);
-	sprintf(buf3," &nbsp &nbsp CSC Xmit Error, Fiber[7-0]:");
+	sprintf(buf3," &nbsp &nbsp CSC Transmit Error, Fiber[7-0]:");
 	sprintf(buf4," %02X ",(thisDDU->infpga_code0&0x00ff));
 	if(thisDDU->infpga_code0&0x00ff)icond2=1;
       }
@@ -1258,7 +1691,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	sprintf(buf,"infpga0 DDU LostInEvent Error, Fiber[7-0]:");
 	sprintf(buf2," %02X ",(thisDDU->infpga_code0&0xff00)>>8);
 	if(thisDDU->infpga_code0&0xff00)icond=1;
-	sprintf(buf3," &nbsp &nbsp DDU LostInData Error, Fiber[7-0]:");
+	sprintf(buf3," &nbsp &nbsp DDU LostInData Error, F[7-0]:");
 	sprintf(buf4," %02X ",(thisDDU->infpga_code0&0x00ff));
 	if(thisDDU->infpga_code0&0x00ff)icond2=2;
       }
@@ -1270,6 +1703,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	sprintf(buf3," &nbsp &nbsp special decode (8-bit):");
 	sprintf(buf4," %02X ",(thisDDU->infpga_code0&0xff00)>>8);
 	stat=thisDDU->infpga_code0;
+	if(0xfc00&stat)icond2=1;
 // JRG, 410: bits 15-8 need decode in Blockquote below, black.
 	//	sprintf(buf,"infpga0 DDU Input FIFO Status [15-0]:");
 	//	sprintf(buf2," %04X ",thisDDU->infpga_code0);
@@ -1287,7 +1721,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 // JRG, 411: bits 11-8 need decode in Blockquote below, red.
 //	sprintf(buf,"infpga0 DDU Input FIFO Full[11-0]:");
 //	sprintf(buf2," %03X ",thisDDU->infpga_code0);
-	if(thisDDU->infpga_code0&0x0fff)icond=2;
+//	if(thisDDU->infpga_code0&0x0fff)icond=2;
       }
       if(i==312){
 	thisDDU->infpga_CcodeStat(INFPGA0);
@@ -1301,18 +1735,28 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	if(thisDDU->infpga_code0&0xdf00)icond2=2;
 	stat=thisDDU->infpga_code0;
       }
+
       if(i==313){
-	thisDDU->infpga_MemAvail(INFPGA0);
        	*out << br() << " <font color=blue> Each MemCtrl unit has a pool of 22 internal FIFOs</font>" << br() << std::endl;
-	sprintf(buf,"infpga0 FIFO Memory Available:");
-	sprintf(buf2,"MemCtrl-2 = %2d free, &nbsp MemCtrl-3 = %2d free",thisDDU->infpga_code0&0x001f,thisDDU->infpga_code1);
+	thisDDU->infpga_FiberDiagA(INFPGA0);
+	sprintf(buf,"infpga0 MemCtrl-0 #FIFOs Used, Fibers 3-0: ");
+	sprintf(buf2,"%ld, %ld, %ld, %ld <br>",(0x1f000000&thisDDU->fpga_lcode[0])>>24,(0x001f0000&thisDDU->fpga_lcode[0])>>16,(0x00001f00&thisDDU->fpga_lcode[0])>>8,0x0000001f&thisDDU->fpga_lcode[0]);
+	thisDDU->infpga_FiberDiagB(INFPGA0);
+	sprintf(buf3,"infpga0 MemCtrl-1 #FIFOs Used, Fibers 7-4: ");
+	sprintf(buf4,"%ld, %ld, %ld, %ld",(0x1f000000&thisDDU->fpga_lcode[0])>>24,(0x001f0000&thisDDU->fpga_lcode[0])>>16,(0x00001f00&thisDDU->fpga_lcode[0])>>8,0x0000001f&thisDDU->fpga_lcode[0]);
       }
       if(i==314){
-	thisDDU->infpga_Min_Mem(INFPGA0);
-	sprintf(buf,"infpga0 Minimum FIFO Memory Availabile:");
-	sprintf(buf2,"MemCtrl-2 min = %d free, &nbsp MemCtrl-3 min = %d free",thisDDU->infpga_code0,thisDDU->infpga_code1);
+	thisDDU->infpga_MemAvail(INFPGA0);
+	sprintf(buf,"infpga0 Current FIFO Memory Available:");
+	sprintf(buf2,"MemCtrl-0 = %2d free, &nbsp MemCtrl-1 = %2d free",thisDDU->infpga_code0&0x001f,thisDDU->infpga_code1);
       }
       if(i==315){
+	thisDDU->infpga_Min_Mem(INFPGA0);
+	sprintf(buf,"infpga0 Minimum FIFO Memory Availabile:");
+	sprintf(buf2,"MemCtrl-0 min = %d free, &nbsp MemCtrl-1 min = %d free",thisDDU->infpga_code0,thisDDU->infpga_code1);
+      }
+
+      if(i==316){
 	thisDDU->infpga_WrMemActive(INFPGA0,0);
 	sprintf(buf,"infpga0 Write Memory Active 0-1:");
 	sprintf(buf2," Fiber 0 writing to %02Xh, &nbsp ",thisDDU->infpga_code0);
@@ -1320,7 +1764,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	sprintf(buf4," Fiber 1 writing to %02Xh",thisDDU->infpga_code1);
 	if((thisDDU->infpga_code1&0x001f)==0x001f)sprintf(buf4," Fiber 1 Unused");
       }
-      if(i==316){
+      if(i==317){
 	thisDDU->infpga_WrMemActive(INFPGA0,1);
 	sprintf(buf,"infpga0 Write Memory Active 2-3:");
 	sprintf(buf2," Fiber 2 writing to %02Xh, &nbsp ",thisDDU->infpga_code0);
@@ -1328,7 +1772,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	sprintf(buf4," Fiber 3 writing to %02Xh",thisDDU->infpga_code1);
 	if((thisDDU->infpga_code1&0x001f)==0x001f)sprintf(buf4," Fiber 3 Unused");
       }
-      if(i==317){
+      if(i==318){
 	thisDDU->infpga_WrMemActive(INFPGA0,2);
 	sprintf(buf,"infpga0 Write Memory Active 4-5:");
 	sprintf(buf2," Fiber 4 writing to %02Xh, &nbsp ",thisDDU->infpga_code0);
@@ -1336,7 +1780,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	sprintf(buf4," Fiber 5 writing to %02Xh",thisDDU->infpga_code1);
 	if((thisDDU->infpga_code1&0x001f)==0x001f)sprintf(buf4," Fiber 5 Unused");
       }
-      if(i==318){
+      if(i==319){
 	thisDDU->infpga_WrMemActive(INFPGA0,3);
 	sprintf(buf,"infpga0 Write Memory Active 6-7:");
 	sprintf(buf2," Fiber 6 writing to %02Xh, &nbsp ",thisDDU->infpga_code0);
@@ -1344,26 +1788,26 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	sprintf(buf4," Fiber 7 writing to %02Xh",thisDDU->infpga_code1);
 	if((thisDDU->infpga_code1&0x001f)==0x001f)sprintf(buf4," Fiber 7 Unused");
       }
-      if(i==319){
+      if(i==320){
 	if(icrit>0){
 	  thisDDU->infpga_trap(INFPGA0);
 	  *out << br() << " <font color=blue> Diagnostic data only valid after Critical Error, traps conditions at that instant</font>" << br() << std::endl;
 	  sprintf(buf,"infpga0 diagnostic trap:");
-	  sprintf(buf2," %08lX %08lX %08lX %08lX %08lX %08lX",thisDDU->infpga_lcode[5],thisDDU->infpga_lcode[4],thisDDU->infpga_lcode[3],thisDDU->infpga_lcode[2],thisDDU->infpga_lcode[1],thisDDU->infpga_lcode[0]);
+	  sprintf(buf2," %08lX %08lX %08lX %08lX %08lX %08lX",thisDDU->fpga_lcode[5],thisDDU->fpga_lcode[4],thisDDU->fpga_lcode[3],thisDDU->fpga_lcode[2],thisDDU->fpga_lcode[1],thisDDU->fpga_lcode[0]);
 	}else{
 	  sprintf(buf," ");
 	  sprintf(buf2," ");
 	  thisDDU->infpga_shift0=0xFACE;
 	}
       }
-      if(i==320){
+      if(i==321){
 	sprintf(buf,"infpga0 reset: ");
 	sprintf(buf2," EXPERT ONLY! ");
 	icond=2;
       }
 
       // JRG, form Needed for 420?  *out << cgicc::form() << std::endl;
-      if(i==320){
+      if(i==321){
          std::string ddutextload =
 	 toolbox::toString("/%s/DDUTextLoad",getApplicationDescriptor()->getURN().c_str());
 	*out << cgicc::form().set("method","GET").set("action",ddutextload) << std::endl;
@@ -1383,7 +1827,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
       *out << buf3 << cgicc::span();
 
       if(icond2==1){
-	*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
+	*out << cgicc::span().set("style","color:orange;background-color:#dddddd;");
       }else if(icond2==2){
 	*out << cgicc::span().set("style","color:red;background-color:#dddddd;");
       }else{ 
@@ -1394,13 +1838,13 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
 	*out << " **CAEN Error " << cgicc::span();
       }
-      if((thisDDU->infpga_shift0!=0xFACE)&&i!=320){
+      if((thisDDU->infpga_shift0!=0xFACE)&&i!=321){
         sprintf(buf," **JTAG Error, Shifted:%04X",thisDDU->infpga_shift0);
-	*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
+	*out << cgicc::span().set("style","color:orange;background-color:#dddddd;");
         *out << buf << cgicc::span();
       }
 
-      if(i==320){
+      if(i==321){
 	  *out << cgicc::input().set("type","hidden")
 	   .set("name","textdata")
 	   .set("size","10")
@@ -1414,7 +1858,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu"); 
 	sprintf(buf,"%d",i);       
 	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","val"); 
-	*out << cgicc::form() << std::endl ;
+	*out << cgicc::form() << std::endl;
       }else if(i==300&&(stat&0x0000f000)>0){
         *out << "<blockquote><font size=-1 color=red face=arial>";
 	if((stat&0xF0000000)>0){
@@ -1432,7 +1876,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	  *out << br();
 	}
 	if((stat&0x00F00000)>0){
-	  if((0x00800000&stat)>0) *out << " <font color=black>InRD1 DMB Full</font> &nbsp ";
+	  if((0x00800000&stat)>0) *out << " <font color=blue>InRD1 DMB Full</font> &nbsp ";
 	  if((0x00400000&stat)>0) *out << " Mem/FIFO-InRD1 Error &nbsp ";
 	  if((0x00200000&stat)>0) *out << " MultL1A Error-InRD1 &nbsp ";
 	  if((0x00100000&stat)>0) *out << " <font color=black>NoLiveFiber4-7</font>";
@@ -1475,10 +1919,13 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	  *out << br();
 	}
         *out << "</font></blockquote>";
-      }else if(i==319 && icrit>0){
-	*out << "<blockquote><font size=-1 color=black face=arial>Trap decode goes here" << "</font></blockquote>";
-	//	infpga_trap_decode();
+      }else if(i==320 && icrit>0){
+	//	*out << "<blockquote><font size=-1 color=black face=arial>Trap decode goes here" << "</font></blockquote>";
+	*out << "<blockquote><font size=-2 color=black face=arial>";
+	DDUinTrapDecode(in, out, thisDDU->fpga_lcode);
+	*out << "</font></blockquote>";
       }else if(i==310&&(stat&0xff00)>0){
+	*out << std::endl ;
         *out << "<blockquote><font size=-1 color=black face=arial>";
 	if((stat&0x00005500)>0){
 	  *out << " &nbsp InRD0 Status: &nbsp <font color=orange>";
@@ -1525,7 +1972,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	  if((0x000020&stat)>0) *out << " <font color=orange>Single Error</font> &nbsp &nbsp ";
 	  if((0x000010&stat)>0) *out << " FIFO Overflow detected &nbsp &nbsp ";
 	  if((0x000008&stat)>0) *out << " Fiber Connection Error &nbsp &nbsp ";
-	  if((0x000004&stat)>0) *out << " Multi-Xmit Error &nbsp &nbsp ";
+	  if((0x000004&stat)>0) *out << " Multi-Transmit Error &nbsp &nbsp ";
 	  if((0x000002&stat)>0) *out << " Stuck Data &nbsp &nbsp ";
 	  if((0x000001&stat)>0) *out << " Timeout";
 	  *out  << "</font>" << br();
@@ -1537,7 +1984,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	  if((0x00002000&stat)>0) *out << " <font color=orange>Single Error</font> &nbsp &nbsp ";
 	  if((0x00001000&stat)>0) *out << " FIFO Overflow detected &nbsp &nbsp ";
 	  if((0x00000800&stat)>0) *out << " Fiber Connection Error &nbsp &nbsp ";
-	  if((0x00000400&stat)>0) *out << " Multi-Xmit Error &nbsp &nbsp ";
+	  if((0x00000400&stat)>0) *out << " Multi-Transmit Error &nbsp &nbsp ";
 	  if((0x00000200&stat)>0) *out << " Stuck Data &nbsp &nbsp ";
 	  if((0x00000100&stat)>0) *out << " Timeout";
 	  *out  << "</font>" << br();
@@ -1548,7 +1995,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
       }
     }
 
-    *out << cgicc::fieldset() << std::endl;
+    //    *out << cgicc::fieldset() << std::endl;
     *out << cgicc::body() << std::endl;
     *out << cgicc::html() << std::endl;
 
@@ -1589,13 +2036,13 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
     *out << cgicc::title("INFPGA1 Web Form") << std::endl;
      *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg");
 
-    char buf[300],buf2[300],buf3[300],buf4[300];
+    char buf[300],buf2[300],buf3[300],buf4[30];
     sprintf(buf,"DDU INFPGA1, VME  Slot %d",thisDDU->slot());
-    *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
-    *out << std::endl;
-    *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
+    //    *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;") << std::endl;
+    //    *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
+    *out << "<h2 align=center><font color=blue>" << buf << "</font></h2>" << std::endl;
     
-    for(int i=400;i<421;i++){
+    for(int i=400;i<422;i++){
       printf(" LOOP: %d \n",i);
       thisDDU->infpga_shift0=0x0000; 
       thisDDU->CAEN_err_reset();
@@ -1618,18 +2065,22 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
       }
       if(i==401){
 	thisDDU->infpga_rdscaler(INFPGA1);
-           sprintf(buf,"infpga1 L1 Event Scaler0 bits{23-0]:");
+           sprintf(buf,"infpga1 L1 Event Scaler0 bits[23-0]:");
            sprintf(buf2," %02X%04X ",thisDDU->infpga_code1,thisDDU->infpga_code0);
+	   stat=((thisDDU->infpga_code1)<<16)+thisDDU->infpga_code0;
+           sprintf(buf4," = %8lu Dec",stat&0x00ffffff);
       }
       if(i==402){
 	thisDDU->infpga_rd1scaler(INFPGA1);
-           sprintf(buf,"infpga1 L1 Event Scaler1 bits{23-0]:");
+           sprintf(buf,"infpga1 L1 Event Scaler1 bits[23-0]:");
            sprintf(buf2," %02X%04X ",thisDDU->infpga_code1,thisDDU->infpga_code0);
+	   stat=((thisDDU->infpga_code1)<<16)+thisDDU->infpga_code0;
+           sprintf(buf4," = %8lu Dec",stat&0x00ffffff);
       }
       if(i==403){
 	thisDDU->infpga_DMBwarn(INFPGA1);
 //       	*out << br() << " <font color=blue> All 8-bit Fiber Flags below show if the condition has occurred since last Reset</font>" << br() << std::endl;
-       	*out << br() << " <font color=blue> Fiber Registers below flag which CSCs experienced each condition since last Reset (historical)</font>" << br() << std::endl;
+       	*out << br() << " <font color=blue> Fiber Registers below flag which CSCs experienced each condition since last Reset</font>" << br() << std::endl;
 	sprintf(buf,"infpga1 DMB Full, Fiber[14-8]:");
 	sprintf(buf2," %02X ",(thisDDU->infpga_code0&0xff00)>>8);
 	if(thisDDU->infpga_code0&0xff00)icond=1;
@@ -1666,7 +2117,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	sprintf(buf,"infpga1 DDU Timeout-EndBusy, Fiber[14-8]:");
 	sprintf(buf2," %02X ",(thisDDU->infpga_code0&0xff00)>>8);
 	if(thisDDU->infpga_code0&0xff00)icond=2;
-	sprintf(buf3," &nbsp &nbsp DDU Timeout-EndWait, Fiber[14-8]:");
+	sprintf(buf3," &nbsp &nbsp DDU Timeout-EndWait, F[14-8]:");
 	sprintf(buf4," %02X ",(thisDDU->infpga_code0&0x00ff));
 	if(thisDDU->infpga_code0&0x00ff)icond2=2;
       } 
@@ -1674,7 +2125,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	thisDDU->infpga_XmitErr(INFPGA1);
 	sprintf(buf,"infpga1 SCA Full history, Fiber[14-8]:");
 	sprintf(buf2," %02X ",(thisDDU->infpga_code0&0xff00)>>8);
-	sprintf(buf3," &nbsp &nbsp CSC Xmit Error, Fiber[14-8]:");
+	sprintf(buf3," &nbsp &nbsp CSC Transmit Error, Fiber[14-8]:");
 	sprintf(buf4," %02X ",(thisDDU->infpga_code0&0x00ff));
 	if(thisDDU->infpga_code0&0x00ff)icond2=1;
       }
@@ -1683,7 +2134,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	sprintf(buf,"infpga1 DDU LostInEvent Error, Fiber[14-8]:");
 	sprintf(buf2," %02X ",(thisDDU->infpga_code0&0xff00)>>8);
 	if(thisDDU->infpga_code0&0xff00)icond=1;
-	sprintf(buf3," &nbsp &nbsp DDU LostInData Error, Fiber[14-8]:");
+	sprintf(buf3," &nbsp &nbsp DDU LostInData Error, F[14-8]:");
 	sprintf(buf4," %02X ",(thisDDU->infpga_code0&0x00ff));
 	if(thisDDU->infpga_code0&0x00ff)icond2=2;
       }
@@ -1695,6 +2146,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	sprintf(buf3," &nbsp &nbsp special decode (8-bit):");
 	sprintf(buf4," %02X ",(thisDDU->infpga_code0&0xff00)>>8);
 	stat=thisDDU->infpga_code0;
+	if(0xfc00&stat)icond2=1;
 // JRG, 410: bits 15-8 need decode in Blockquote below, black.
 	//	sprintf(buf,"infpga1 DDU Input FIFO Status [15-0]:");
 	//	sprintf(buf2," %04X ",thisDDU->infpga_code0);
@@ -1712,7 +2164,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 // JRG, 411: bits 11-8 need decode in Blockquote below, red.
 //	sprintf(buf,"infpga1 DDU Input FIFO Full[11-0]:");
 //	sprintf(buf2," %03X ",thisDDU->infpga_code0);
-	if(thisDDU->infpga_code0&0x0fff)icond=2;
+//	if(thisDDU->infpga_code0&0x0fff)icond=2;
       }
       if(i==412){
 	thisDDU->infpga_CcodeStat(INFPGA1);
@@ -1744,17 +2196,29 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
       }
 */
       if(i==413){
-	thisDDU->infpga_MemAvail(INFPGA1);
        	*out << br() << " <font color=blue> Each MemCtrl unit has a pool of 22 internal FIFOs</font>" << br() << std::endl;
-	sprintf(buf,"infpga1 FIFO Memory Available:");
-	sprintf(buf2,"MemCtrl-2 = %2d free, &nbsp MemCtrl-3 = %2d free",thisDDU->infpga_code0&0x001f,thisDDU->infpga_code1);
+	thisDDU->infpga_FiberDiagA(INFPGA1);
+//	sprintf(buf,"infpga1 Assigned Memory Usage (# FIFOs used), Fibers 8-11: ");
+	sprintf(buf,"infpga1 MemCtrl-2 #FIFOs Used, Fibers 11-8: ");
+	sprintf(buf2,"%ld, %ld, %ld, %ld <br>",(0x1f000000&thisDDU->fpga_lcode[0])>>24,(0x001f0000&thisDDU->fpga_lcode[0])>>16,(0x00001f00&thisDDU->fpga_lcode[0])>>8,0x0000001f&thisDDU->fpga_lcode[0]);
+//	sprintf(buf3,"<br>infpga1 New MemCtrl-2 Memory Assigned flags, Fiber[11-8]: ");
+//	sprintf(buf4,"%01lx",((0x00000040&thisDDU->fpga_lcode[0])>>6)|((0x00004000&thisDDU->fpga_lcode[0])>>13)|((0x00400000&thisDDU->fpga_lcode[0])>>20)|((0x40000000&thisDDU->fpga_lcode[0]>>27)));
+	thisDDU->infpga_FiberDiagB(INFPGA1);
+	sprintf(buf3,"infpga1 MemCtrl-3 #FIFOs Used, Fibers 14-12: ");
+	sprintf(buf4,"%ld, %ld, %ld",(0x1f000000&thisDDU->fpga_lcode[0])>>24,(0x00001f00&thisDDU->fpga_lcode[0])>>8,0x0000001f&thisDDU->fpga_lcode[0]);
       }
       if(i==414){
+	thisDDU->infpga_MemAvail(INFPGA1);
+	sprintf(buf,"infpga1 Current FIFO Memory Available:");
+	sprintf(buf2,"MemCtrl-2 = %2d free, &nbsp MemCtrl-3 = %2d free",thisDDU->infpga_code0&0x001f,thisDDU->infpga_code1);
+      }
+      if(i==415){
 	thisDDU->infpga_Min_Mem(INFPGA1);
 	sprintf(buf,"infpga1 Minimum FIFO Memory Availabile:");
 	sprintf(buf2,"MemCtrl-2 min = %d free, &nbsp MemCtrl-3 min = %d free",thisDDU->infpga_code0,thisDDU->infpga_code1);
       }
-      if(i==415){
+
+      if(i==416){
 	thisDDU->infpga_WrMemActive(INFPGA1,0);
 	sprintf(buf,"infpga1 Write Memory Active 8-9: ");
 	sprintf(buf2," Fiber 8 writing to %02Xh, &nbsp ",thisDDU->infpga_code0);
@@ -1763,7 +2227,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	if((thisDDU->infpga_code1&0x001f)==0x001f)sprintf(buf4," Fiber 9 Unused");
 	//	sprintf(buf2," Fiber 8 writing to %02Xh,  Fiber 9 writing to %02Xh",thisDDU->infpga_code0,thisDDU->infpga_code1);
       }
-      if(i==416){
+      if(i==417){
 	thisDDU->infpga_WrMemActive(INFPGA1,1);
 	sprintf(buf,"infpga1 Write Memory Active 10-11: ");
 	sprintf(buf2," Fiber 10 writing to %02Xh, &nbsp ",thisDDU->infpga_code0);
@@ -1772,7 +2236,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	if((thisDDU->infpga_code1&0x001f)==0x001f)sprintf(buf4," Fiber 11 Unused");
 	//	sprintf(buf2," Fiber 10 writing to %02Xh,  Fiber 11 writing to %02Xh",thisDDU->infpga_code0,thisDDU->infpga_code1);
       }
-      if(i==417){
+      if(i==418){
 	thisDDU->infpga_WrMemActive(INFPGA1,2);
 	sprintf(buf,"infpga1 Write Memory Active 12-13: ");
 	sprintf(buf2," Fiber 12 writing to %02Xh, &nbsp ",thisDDU->infpga_code0);
@@ -1781,31 +2245,31 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	if((thisDDU->infpga_code1&0x001f)==0x001f)sprintf(buf4," Fiber 13 Unused");
 	//	sprintf(buf2," Fiber 12 writing to %02Xh,  Fiber 13 writing to %02Xh",thisDDU->infpga_code0,thisDDU->infpga_code1);
       }
-      if(i==418){
+      if(i==419){
 	thisDDU->infpga_WrMemActive(INFPGA1,3);
 	sprintf(buf,"infpga1 Write Memory Active 14: ");
 	sprintf(buf2," Fiber 14 writing to %02Xh",thisDDU->infpga_code1);
 	if((thisDDU->infpga_code1&0x001f)==0x001f)sprintf(buf2," Fiber 14 Unused");
       }
-      if(i==419){
+      if(i==420){
 	if(icrit>0){
 	  thisDDU->infpga_trap(INFPGA1);
 	  *out << br() << " <font color=blue> Diagnostic data only valid after Critical Error, traps conditions at that instant</font>" << br() << std::endl;
 	  sprintf(buf,"infpga1 diagnostic trap:");
-	  sprintf(buf2," %08lX %08lX %08lX %08lX %08lX %08lX",thisDDU->infpga_lcode[5],thisDDU->infpga_lcode[4],thisDDU->infpga_lcode[3],thisDDU->infpga_lcode[2],thisDDU->infpga_lcode[1],thisDDU->infpga_lcode[0]);
+	  sprintf(buf2," %08lX %08lX %08lX %08lX %08lX %08lX",thisDDU->fpga_lcode[5],thisDDU->fpga_lcode[4],thisDDU->fpga_lcode[3],thisDDU->fpga_lcode[2],thisDDU->fpga_lcode[1],thisDDU->fpga_lcode[0]);
 	}else{
 	  sprintf(buf," ");
 	  sprintf(buf2," ");
 	  thisDDU->infpga_shift0=0xFACE;
 	}
       }
-      if(i==420){
+      if(i==421){
 	sprintf(buf,"infpga1 reset: ");
 	sprintf(buf2," EXPERT ONLY! ");
 	icond=2;
       }
-      // JRG, form Needed for 420?  *out << cgicc::form() << std::endl;
-      if(i==420){
+      // JRG, form Needed for 421?  *out << cgicc::form() << std::endl;
+      if(i==421){
          std::string ddutextload =
 	 toolbox::toString("/%s/DDUTextLoad",getApplicationDescriptor()->getURN().c_str());
 	*out << cgicc::form().set("method","GET").set("action",ddutextload) << std::endl;
@@ -1825,7 +2289,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
       *out << buf3 << cgicc::span();
 
       if(icond2==1){
-	*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
+	*out << cgicc::span().set("style","color:orange;background-color:#dddddd;");
       }else if(icond2==2){
 	*out << cgicc::span().set("style","color:red;background-color:#dddddd;");
       }else{ 
@@ -1836,13 +2300,13 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
 	*out << " **CAEN Error " << cgicc::span();
       }
-      if((thisDDU->infpga_shift0!=0xFACE)&&i!=420){
+      if((thisDDU->infpga_shift0!=0xFACE)&&i!=421){
         sprintf(buf," **JTAG Error, Shifted:%04X",thisDDU->infpga_shift0);
-	*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
+	*out << cgicc::span().set("style","color:orange;background-color:#dddddd;");
         *out << buf << cgicc::span();
       }
 
-      if(i==420){
+      if(i==421){
 	//	std::string ddutextload =
 	//	  toolbox::toString("/%s/DDUTextLoad",getApplicationDescriptor()->getURN().c_str());
 	//	*out << cgicc::form().set("method","GET").set("action",ddutextload) << std::endl;
@@ -1922,10 +2386,13 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	  *out << br();
 	}
         *out << "</font></blockquote>";
-      }else if(i==419 && icrit>0){
-	*out << "<blockquote><font size=-1 color=black face=arial>Trap decode goes here" << "</font></blockquote>";
-	//	infpga_trap_decode();
+      }else if(i==420 && icrit>0){
+	//	*out << "<blockquote><font size=-1 color=black face=arial>Trap decode goes here" << "</font></blockquote>";
+	*out << "<blockquote><font size=-2 color=black face=arial>";
+	DDUinTrapDecode(in, out, thisDDU->fpga_lcode);
+	*out << "</font></blockquote>";
       }else if(i==410&&(stat&0xff00)>0){
+	*out << std::endl;
         *out << "<blockquote><font size=-1 color=black face=arial>";
 	if((stat&0x00005500)>0){
 	  *out << " &nbsp InRD2 Status: &nbsp <font color=orange>";
@@ -1972,7 +2439,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	  if((0x000020&stat)>0) *out << " <font color=orange>Single Error</font> &nbsp &nbsp ";
 	  if((0x000010&stat)>0) *out << " FIFO Overflow detected &nbsp &nbsp ";
 	  if((0x000008&stat)>0) *out << " Fiber Connection Error &nbsp &nbsp ";
-	  if((0x000004&stat)>0) *out << " Multi-Xmit Error &nbsp &nbsp ";
+	  if((0x000004&stat)>0) *out << " Multi-Transmit Error &nbsp &nbsp ";
 	  if((0x000002&stat)>0) *out << " Stuck Data &nbsp &nbsp ";
 	  if((0x000001&stat)>0) *out << " Timeout";
 	  *out  << "</font>" << br();
@@ -1984,7 +2451,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	  if((0x00002000&stat)>0) *out << " <font color=orange>Single Error</font> &nbsp &nbsp ";
 	  if((0x00001000&stat)>0) *out << " FIFO Overflow detected &nbsp &nbsp ";
 	  if((0x00000800&stat)>0) *out << " Fiber Connection Error &nbsp &nbsp ";
-	  if((0x00000400&stat)>0) *out << " Multi-Xmit Error &nbsp &nbsp ";
+	  if((0x00000400&stat)>0) *out << " Multi-Transmit Error &nbsp &nbsp ";
 	  if((0x00000200&stat)>0) *out << " Stuck Data &nbsp &nbsp ";
 	  if((0x00000100&stat)>0) *out << " Timeout";
 	  *out  << "</font>" << br();
@@ -1994,7 +2461,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	*out << br() << std::endl;
       }
     }
-    *out << cgicc::fieldset() << std::endl; 
+    //    *out << cgicc::fieldset() << std::endl; 
     *out << cgicc::body() << std::endl;    
     *out << cgicc::html() << std::endl;
 
@@ -2004,6 +2471,36 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	 //XECPT_RAISE(xgi::exception::Exception, e.what());
        }
 }
+
+
+void DDUinTrapDecode(xgi::Input * in, xgi::Output * out,  unsigned long int lcode[10]) throw (xgi::exception::Exception)
+{
+  printf(" enter DDUinTrapDecode \n");
+  int i;
+  cgicc::Cgicc cgi(in);
+  char buf[300];
+
+  *out << "<pre>" << std::endl;
+  sprintf(buf,"  192-bit DDU InFPGA Diagnostic Trap (24 bytes) \n");
+  *out << buf << std::endl;
+  i=23;
+  sprintf(buf,"                       LFfull MemAvail C-code End-TO");
+  *out << buf << std::endl;
+  sprintf(buf,"      rcv bytes %2d-%2d:   %04lx   %04lx   %04lx   %04lx",i,i-7,(0xffff0000&lcode[5])>>16,0xffff&lcode[5],(0xffff0000&lcode[4])>>16,0xffff&lcode[4]);
+  *out << buf << std::endl;
+  i=15;
+  sprintf(buf,"                      Start-TO  Nrdy  L1err  DMBwarn");
+  *out << buf << std::endl;
+  sprintf(buf,"      rcv bytes %2d-%2d:   %04lx   %04lx   %04lx   %04lx",i,i-7,(0xffff0000&lcode[3])>>16,0xffff&lcode[3],(0xffff0000&lcode[2])>>16,0xffff&lcode[2]);
+  *out << buf << std::endl;
+  i=7;
+  sprintf(buf,"                       32-bit-Empty0M 32-bit-status");
+  *out << buf << std::endl;
+  sprintf(buf,"      rcv bytes %2d-%2d:   %04lx   %04lx   %04lx   %04lx",i,i-7,(0xffff0000&lcode[1])>>16,0xffff&lcode[1],(0xffff0000&lcode[0])>>16,0xffff&lcode[0]);
+  *out << buf << std::endl;
+  *out << "</pre>" << br() << std::endl;
+}
+
 
 
 void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out ) 
@@ -2076,7 +2573,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
            sprintf(buf2," %04X ",thisDDU->vmepara_error());
       }
       if(i==501){
-       	*out << " <font color=blue> Items below have 1+15 bits to report FMM status: 1 flag for DDU plus 15 for its CSC inputs</font>" << br() << std::endl;
+       	*out << " <font color=blue> Items below have 1+15 bits to report FMM status: 1 flag for DDU plus 15 for its CSC Fibers</font>" << br() << std::endl;
            sprintf(buf,"CSC FMM Problem Report:");
            sprintf(buf2," %04X ",thisDDU->vmepara_CSCstat());
       }
@@ -2114,7 +2611,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
       }
       if(i==514){
 	*out << " <font color=blue> Enable Fake L1A/Data Passthrough for DDU FPGAs: bit 0=InFPGA0, 1=InFPGA1, 2=DDUctrl</font>" << br() << std::endl;
-	sprintf(buf,"Fake L1 Reg:");
+	sprintf(buf,"Fake L1A Reg:");
 	sprintf(buf2," %04X <font color=red> EXPERT ONLY! </font> ",thisDDU->vmepara_rd_fakel1reg());
       }
       if(i==517){
@@ -2148,7 +2645,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
            sprintf(buf2," %04X ",thisDDU->vmepara_rd_testreg0());
       }
       if(i==513){
-           sprintf(buf,"Toggle DCC_wait:");
+           sprintf(buf,"Toggle DCC_wait Enable:");
            sprintf(buf2," <font color=red> EXPERT ONLY! </font> ");
       }
       if(i==515){
@@ -2186,11 +2683,11 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	*out << "<font color=black> &nbsp &nbsp " << "Current DDU FMM Report: </font>";
 	sprintf(buf2," READY ");
 	if(DDU_FMM==4){   // Busy
-	  *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
+	  *out << cgicc::span().set("style","color:orange;background-color:#dddddd;");
 	  sprintf(buf2," BUSY ");
 	}
 	else if(DDU_FMM==1){    // Warn, near full: reduce trigger rate
-	  *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
+	  *out << cgicc::span().set("style","color:blue;background-color:#dddddd;");
 	  iblink=1;
 	  sprintf(buf2," WARNING, Near Full ");
 	}
@@ -2213,16 +2710,16 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	*out << buf << buf2;
 	*out << cgicc::span();
 
-	sprintf(buf2,"<blockquote><font size=-1 color=black face=arial> slot=%d. &nbsp &nbsp ",((~stat)&0x003F));
+	sprintf(buf2,"<blockquote><font size=-1 color=black face=arial> slot=%d &nbsp &nbsp ",((~stat)&0x003F));
 	*out << buf2;
-	if(stat&0x0080) *out << " VME DLL-2 Not Locked. &nbsp ";
-	if(stat&0x0040) *out << " VME DLL-1 Not Locked. &nbsp ";
-	if((stat&0x00C0)&&(stat&0xF000)) *out << br();
+	if(stat&0x0080) *out << " VME DLL-2 Not Locked &nbsp ";
+	if(stat&0x0040) *out << " VME DLL-1 Not Locked &nbsp ";
+	if((stat&0x000000C0)&&(stat&0x0000F000)) *out << br();
 	if(stat&0x8000) *out << " VME FPGA detects a problem &nbsp ";
 	if(stat&0x4000) *out << " &nbsp VME FPGA has a clock problem &nbsp ";
 	if(stat&0x2000) *out << " &nbsp VME FPGA is Not Ready &nbsp ";
 	if(stat&0x1000) *out << " &nbsp DDU is Not Ready";
-	*out << "  </font></blockquote>";
+	*out << "</font></blockquote>";
 	iblink=0;
       }
       printf(" now boxes \n");
@@ -2313,7 +2810,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	istat=thisDDU->rcv_serial[1]&0xff;
 	sprintf(buf,"%02X</font> &nbsp ",istat);
 	sprintf(buf2,"<font color=green>");
-	if (istat&0x003c!=0x000c)sprintf(buf2,"<font color=yellow>");
+	if (istat&0x003c!=0x000c)sprintf(buf2,"<font color=orange>");
 	else if (istat&0x0080!=0x0080)sprintf(buf2,"<font color=red>");
 	*out << "Serial Flash RAM Status: " << buf2 << buf << br() << std::endl;
 
@@ -2342,28 +2839,28 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	radc=thisDDU->adcplus(1,4);
 	sprintf(buf,"%5.fmV</font> &nbsp &nbsp ",radc);
 	sprintf(buf2,"<font color=green>");
-	if (radc<1450||radc>1550)sprintf(buf2,"<font color=yellow>");
+	if (radc<1450||radc>1550)sprintf(buf2,"<font color=orange>");
 	if (radc<1400||radc>1600)sprintf(buf2,"<font color=red>");
 	*out << "Voltages: V15=" << buf2 << buf;
 
 	radc=thisDDU->adcplus(1,5);
 	sprintf(buf,"%5.fmV</font> &nbsp &nbsp ",radc);
 	sprintf(buf2,"<font color=green>");
-	if (radc<2450||radc>2550)sprintf(buf2,"<font color=yellow>");
+	if (radc<2450||radc>2550)sprintf(buf2,"<font color=orange>");
 	if (radc<2400||radc>2600)sprintf(buf2,"<font color=red>");
 	*out << "V25=" << buf2 << buf;
 
 	radc=thisDDU->adcplus(1,6);
 	sprintf(buf,"%5.fmV</font> &nbsp &nbsp ",radc);
 	sprintf(buf2,"<font color=green>");
-	if (radc<2450||radc>2550)sprintf(buf2,"<font color=yellow>");
+	if (radc<2450||radc>2550)sprintf(buf2,"<font color=orange>");
 	if (radc<2400||radc>2600)sprintf(buf2,"<font color=red>");
 	*out << "V25A=" << buf2 << buf;
 
 	radc=thisDDU->adcplus(1,7);
 	sprintf(buf,"%5.fmV</font>",radc);
 	sprintf(buf2,"<font color=green>");
-	if (radc<3250||radc>3400)sprintf(buf2,"<font color=yellow>");
+	if (radc<3250||radc>3400)sprintf(buf2,"<font color=orange>");
 	if (radc<3200||radc>3450)sprintf(buf2,"<font color=red>");
 	*out << "V33=" << buf2 << buf << br() << std::endl;
 	//	sprintf(buf2,"<font color=black>V25A=</font>%5.2fmV &nbsp <font color=black>V33=</font>%5.2fmV",thisDDU->adcplus(1,6),thisDDU->adcplus(1,7));
@@ -2374,28 +2871,28 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 	radc=thisDDU->readthermx(0);
 	sprintf(buf,"%5.2fF</font> &nbsp &nbsp ",radc);
 	sprintf(buf2,"<font color=green>");
-	if (radc<60.0||radc>99.0)sprintf(buf2,"<font color=yellow>");
+	if (radc<60.0||radc>99.0)sprintf(buf2,"<font color=orange>");
 	if (radc<35.0||radc>110.0)sprintf(buf2,"<font color=red>");
 	*out << "Temperatures: Sensor0=" << buf2 << buf;
 
 	radc=thisDDU->readthermx(1);
 	sprintf(buf,"%5.2fF</font> &nbsp &nbsp ",radc);
 	sprintf(buf2,"color=green>");
-	if (radc<60.0||radc>99.0)sprintf(buf2,"color=yellow>");
+	if (radc<60.0||radc>99.0)sprintf(buf2,"color=orange>");
 	if (radc<35.0||radc>110.0)sprintf(buf2,"color=red>");
 	*out << "Sensor1=<font " << buf2 << buf;
 
 	radc=thisDDU->readthermx(2);
 	sprintf(buf,"%5.2fF</font> &nbsp &nbsp ",radc);
 	sprintf(buf2,"<font color=green>");
-	if (radc<60.0||radc>99.0)sprintf(buf2,"<font color=yellow>");
+	if (radc<60.0||radc>99.0)sprintf(buf2,"<font color=orange>");
 	if (radc<35.0||radc>110.0)sprintf(buf2,"<font color=red>");
 	*out << "Sensor2=" << buf2 << buf;
 
 	radc=thisDDU->readthermx(3);
 	sprintf(buf,"%5.2fF</font>",radc);
 	sprintf(buf2,"<font color=green>");
-	if (radc<60.0||radc>99.0)sprintf(buf2,"<font color=yellow>");
+	if (radc<60.0||radc>99.0)sprintf(buf2,"<font color=orange>");
 	if (radc<35.0||radc>110.0)sprintf(buf2,"<font color=red>");
 	*out << "Sensor3=" << buf2 << buf << br() << std::endl;
 	//         sprintf(buf,"Temperatures:");
@@ -2446,7 +2943,6 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
 
 
 
-
 void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
@@ -2478,36 +2974,34 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
     cout << XMLtext  << endl ;
     unsigned short int para_val;
     unsigned long int send_val;
-    if(val==200)thisDDU->ddu_reset();
-    if(val==208){
+    if(val==227)thisDDU->ddu_reset();
+    if(val==222){
       sscanf(XMLtext.data(),"%01hhx%02hhx%02hhx",&thisDDU->snd_serial[0],&thisDDU->snd_serial[1],&thisDDU->snd_serial[2]);
       send_val=((thisDDU->snd_serial[0]<<16)&0x000f0000)|((thisDDU->snd_serial[1]<<8)&0x0000ff00)|(thisDDU->snd_serial[2]&0x0000ff);
-       printf(" loadkillfiber send %05lx \n",send_val);
-       thisDDU->ddu_loadkillfiber(send_val);
-   } 
-   if(val==225){
-      sscanf(XMLtext.data(),"%01hhx%02hhx",&thisDDU->snd_serial[0],&thisDDU->snd_serial[1]);
-      para_val=((thisDDU->snd_serial[0]<<8)&0x00000f00)|(thisDDU->snd_serial[1]&0x0000ff);
-       printf(" ldbxorbit send %d (%03xh) \n",para_val,para_val);
-       thisDDU->ddu_loadbxorbit(para_val);
-       } 
-    if(val==234)thisDDU->ddu_vmel1a(); 
-    if(val==320)thisDDU->infpga_reset(INFPGA0);
-    if(val==420)thisDDU->infpga_reset(INFPGA1);
-    if(val==508){
-      sscanf(XMLtext.data(),"%02hhx%02hhx",&thisDDU->snd_serial[0],&thisDDU->snd_serial[1]);
-      para_val=((thisDDU->snd_serial[0]<<8))&0xff00|(thisDDU->snd_serial[1]&0x00ff);
-      printf(" para_val %04x \n",para_val);
-      thisDDU->vmepara_wr_inreg(para_val);
-
-    }
-     if(val==512){
-      sscanf(XMLtext.data(),"%02hhx%02hhx",&thisDDU->snd_serial[0],&thisDDU->snd_serial[1]);
-      para_val=((thisDDU->snd_serial[0]<<8))&0xff00|(thisDDU->snd_serial[1]&0x00ff);
-      printf(" para_val %04x \n",para_val);
-      thisDDU->vmepara_wr_GbEprescale(para_val);
-
-    }
+      printf(" loadkillfiber send %05lx \n",send_val);
+      thisDDU->ddu_loadkillfiber(send_val);
+   }
+   if(val==223){
+     sscanf(XMLtext.data(),"%01hhx%02hhx",&thisDDU->snd_serial[0],&thisDDU->snd_serial[1]);
+     para_val=((thisDDU->snd_serial[0]<<8)&0x00000f00)|(thisDDU->snd_serial[1]&0x0000ff);
+     printf(" ldbxorbit send %d (%03xh) \n",para_val,para_val);
+     thisDDU->ddu_loadbxorbit(para_val);
+   }
+   if(val==226)thisDDU->ddu_vmel1a(); 
+   if(val==321)thisDDU->infpga_reset(INFPGA0);
+   if(val==421)thisDDU->infpga_reset(INFPGA1);
+   if(val==508){
+     sscanf(XMLtext.data(),"%02hhx%02hhx",&thisDDU->snd_serial[0],&thisDDU->snd_serial[1]);
+     para_val=((thisDDU->snd_serial[0]<<8))&0xff00|(thisDDU->snd_serial[1]&0x00ff);
+     printf(" para_val %04x \n",para_val);
+     thisDDU->vmepara_wr_inreg(para_val);
+   }
+   if(val==512){
+     sscanf(XMLtext.data(),"%02hhx%02hhx",&thisDDU->snd_serial[0],&thisDDU->snd_serial[1]);
+     para_val=((thisDDU->snd_serial[0]<<8))&0xff00|(thisDDU->snd_serial[1]&0x00ff);
+     printf(" para_val %04x \n",para_val);
+     thisDDU->vmepara_wr_GbEprescale(para_val);
+   }
 // 507->08, 508._09, 509->10, 510->11, 511->16, 512->SAME, 513->14,
 // 514->17, 515->18, 516->19, 517->20, 518->21, 519->22, 520->15,
 // 521->13, 522->06, 523->07
@@ -2612,6 +3106,7 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
   }  
 }  
   
+
 void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
@@ -2735,6 +3230,7 @@ one must then recompile the libcgicc.so library
     }
     *out << cgicc::html() << std::endl;
 }  
+
 
 void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -2873,6 +3369,7 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
     *out << cgicc::html() << std::endl;
 }  
 
+
 void EmuFCrateHyperDAQ::DCCLoadFirmware(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
@@ -2941,6 +3438,7 @@ void EmuFCrateHyperDAQ::DCCLoadFirmware(xgi::Input * in, xgi::Output * out )
 	//XECPT_RAISE(xgi::exception::Exception, e.what());
   }  
 }  
+
 
 void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -3079,6 +3577,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
 
 }  
 
+
 void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
@@ -3112,7 +3611,7 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 	//
      cout << XMLtext  << endl ;
     }
-    unsigned  short para_val;
+    unsigned short para_val;
     char snd_serial[2];
     static int rate,num;
     char arate;
@@ -3161,6 +3660,7 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
   }  
 }
 
+
 void EmuFCrateHyperDAQ::IRQTester(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
@@ -3178,6 +3678,7 @@ void EmuFCrateHyperDAQ::IRQTester(xgi::Input * in, xgi::Output * out )
 	//XECPT_RAISE(xgi::exception::Exception, e.what());
   }  
 }
+
 
 void EmuFCrateHyperDAQ::DCCFirmwareReset(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -3217,6 +3718,7 @@ void EmuFCrateHyperDAQ::DCCFirmwareReset(xgi::Input * in, xgi::Output * out )
 	//XECPT_RAISE(xgi::exception::Exception, e.what());
   }  
 }
+
 
 void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
