@@ -538,6 +538,36 @@ void EmuMonitor::Halt(xgi::Input * in ) throw (xgi::exception::Exception)
     }
 }
 
+// == Print application parameters == //
+void EmuMonitor::printParametersTable( xgi::Output * out ) throw (xgi::exception::Exception)
+{
+
+  // xdata::InfoSpace * params_list = getApplicationInfoSpace(); 
+  // xdata::InfoSpace::iterator itr;
+  std::map<std::string, xdata::Serializable*, std::less<std::string> > *params_list = getApplicationInfoSpace(); 
+  std::map<std::string, xdata::Serializable*, std::less<std::string> >::iterator itr;
+  *out 	<< "<table border>"
+	<< "<tr>"
+        << "<th colspan=3 bgcolor=#7F7FFF>" << "Parameters List" << "</th>"
+	<< "</tr>"
+	<< "<tr>"
+  	<< "<th>" << "Name" << "</th>"
+	<< "<th>" << "Type" << "</th>" 
+	<< "<th>" << "Value" << "</th>"
+ 	<< "</tr>" << std::endl;
+  for (itr=params_list->begin(); itr != params_list->end(); ++itr) 
+  {
+    if (itr->second->type() == "properties") continue;
+    *out << "<tr>" << std::endl;
+    *out << "<td>" << itr->first << "</td>" << std::endl;
+    *out << "<td>" << itr->second->type() << "</td>" << std::endl;
+    *out << "<td>" << itr->second->toString() << "</td>" << std::endl;
+
+    *out << "</tr>" << std::endl;
+  }
+  *out 	<< "</table>" << std::endl;
+}
+
 // == Web Navigation Pages == //
 void EmuMonitor::stateMachinePage( xgi::Output * out ) throw (xgi::exception::Exception)
 {
@@ -562,6 +592,11 @@ void EmuMonitor::stateMachinePage( xgi::Output * out ) throw (xgi::exception::Ex
 
 
   *out << cgicc::h3("Finite State Machine").set("style", "font-family: arial") << std::endl;
+
+//  printParametersTable(out);
+
+//  *out << cgicc::hr() << std::endl;
+
   *out << "<table border cellpadding=10 cellspacing=0>" << std::endl;
   *out << "<tr>" << std::endl;
   *out << "<th>" << wsm_.getStateName(wsm_.getCurrentState()) << "</th>" << std::endl;
@@ -591,6 +626,9 @@ void EmuMonitor::stateMachinePage( xgi::Output * out ) throw (xgi::exception::Ex
   //
 
   *out << cgicc::hr() << std::endl;
+
+  printParametersTable(out);
+  
 
   xgi::Utils::getPageFooter(*out);
 }
@@ -626,7 +664,10 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
   I2O_EMU_DATA_MESSAGE_FRAME *msg =
     (I2O_EMU_DATA_MESSAGE_FRAME*)bufRef->getDataLocation();
 
+  char *startOfPayload = (char*) bufRef->getDataLocation()
+    + sizeof(I2O_EMU_DATA_MESSAGE_FRAME);
 
+  unsigned long sizeOfPayload = bufRef->getDataSize()-sizeof(I2O_EMU_DATA_MESSAGE_FRAME);
 
   LOG4CPLUS_INFO(getApplicationLogger(),
                  "Received " << bufRef->getDataSize() <<
@@ -636,7 +677,7 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
 
   unsigned long errorFlag = 0;
 
-  processEvent(reinterpret_cast<const char *>(bufRef->getDataLocation()), bufRef->getDataSize(), errorFlag);
+  processEvent(reinterpret_cast<const char *>(startOfPayload), sizeOfPayload, errorFlag);
 
   // Free the Emu data message
   bufRef->release();

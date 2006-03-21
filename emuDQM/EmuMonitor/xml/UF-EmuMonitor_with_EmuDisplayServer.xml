@@ -6,7 +6,7 @@
   <i2o:target class="EmuDisplayServer" instance="0" tid="30"/>
 </i2o:protocol>
 
-<xc:Context url="http://cms-dqm01.phys.ufl.edu:44000">
+<xc:Context url="http://cms-hv02.phys.ufl.edu:44000">
 
   <!-- Edit access rights in ${XDAQ_ROOT}/daq/xaccess/etc/htaccess -->
 
@@ -45,7 +45,7 @@
       <xmlCfgFile xsi:type="xsd:string">/home/dqm/TriDAS/emu/emuDQM/EmuMonitor/xml/EmuDQMBooking.xml</xmlCfgFile>
       <outputROOTFile xsi:type="xsd:string">/csc_data/root/dqm.root</outputROOTFile>
       <outputImagesPath xsi:type="xsd:string">/csc_data/images</outputImagesPath>
-      <useAltFileReader xsi:type="xsd:boolean">true</useAltFileReader>
+      <useAltFileReader xsi:type="xsd:boolean">false</useAltFileReader>
       <dduCheckMask xsi:type="xsd:unsignedLong">0</dduCheckMask>
       <!-- <binCheckMask xsi:type="xsd:unsignedLong">0xFFFFFFFF</binCheckMask> -->
       <!-- <collectorsClassName xsi:type="xsd:string">EmuDisplayServer</collectorsClassName>
