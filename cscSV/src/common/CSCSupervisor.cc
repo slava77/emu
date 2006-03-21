@@ -21,7 +21,8 @@ static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
 
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
-		EmuApplication(stub), runtype(""), runnumber(""), nevents("")
+		EmuApplication(stub), runtype(""), runnumber(""), nevents(""),
+		error_message_("")
 {
 	getApplicationInfoSpace()->fireItemAvailable("configKeys", &config_keys_);
 	getApplicationInfoSpace()->fireItemAvailable("configFiles", &config_files_);
@@ -110,15 +111,21 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 	// Body
 	*out << body() << endl;
 
+	// Error message, if exists.
+	if (!error_message_.empty()) {
+		*out  << p() << span().set("style", "color: red;")
+				<< error_message_ << span() << p() << endl;
+		error_message_ = "";
+	}
+
 	// Config listbox
 	*out << form().set("action",
 			"/" + getApplicationDescriptor()->getURN() + "/Configure") << endl;
 
 	int n_keys = config_keys_.size();
 
-	*out << cgicc::select()
-			.set("name", "runtype")
-			.set("size", "5") << endl;
+	*out << "Peripheral Crate: " << endl;
+	*out << cgicc::select().set("name", "runtype") << endl;
 
 	for (int i = 0; i < n_keys; ++i) {
 		*out << option()
@@ -127,15 +134,17 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 				<< (string)config_keys_[i] << option() << endl;
 	}
 
-	*out << cgicc::select() << endl;
+	*out << cgicc::select() << br() << endl;
 	
+	*out << "Run Number: " << endl;
 	*out << input().set("type", "text")
 			.set("name", "runnumber")
-			.set("size", "40") << endl;
+			.set("size", "40") << br() << endl;
 
+	*out << "Max # of Events: " << endl;
 	*out << input().set("type", "text")
 			.set("name", "nevents")
-			.set("size", "40") << endl;
+			.set("size", "40") << br() << endl;
 
 	*out << input().set("type", "submit")
 			.set("name", "command")
@@ -174,7 +183,13 @@ void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 	runnumber = getRunNumber(in);
 	nevents = getNEvents(in);
 
-	fireEvent("Configure");
+	if (runtype.empty()) { error_message_ += "Please select run type.\n"; }
+	if (runnumber.empty()) { error_message_ += "Please set run number.\n"; }
+	if (nevents.empty()) { error_message_ += "Please set max # of events.\n"; }
+
+	if (error_message_.empty()) {
+		fireEvent("Configure");
+	}
 
 	webDefault(in, out);
 }
