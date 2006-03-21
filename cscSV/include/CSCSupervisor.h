@@ -72,6 +72,8 @@ private:
 	string runtype;
 	string runnumber;
 	string nevents;
+
+	string error_message_;
 };
 
 #endif  // ifndef __CSC_SUPERVISOR_H__
