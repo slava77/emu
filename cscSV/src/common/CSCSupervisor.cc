@@ -222,10 +222,10 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference e)
 	setParameter("EmuPeripheralCrate", "xmlFileName", "xsd:string", runtype_);
 	setParameter("EmuDAQManager", "runNumber", "xsd:unsignedLong", runnumber_);
 	setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:unsignedLong", nevents_);
-	sendCommand("Configure", "EmuPeripheralCrate");
-
 	sendCommand("Configure", "EmuFEDCrate");
+	sendCommand("Configure", "EmuPeripheralCrate");
 	sendCommand("Configure", "EmuDAQManager");
+	sendCommand("Configure", "LTCControl");
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
@@ -235,6 +235,8 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference e)
 {
 	sendCommand("Enable", "EmuPeripheralCrate");
 	sendCommand("Enable", "EmuDAQManager");
+	sendCommand("Resynch", "LTCControl");
+	sendCommand("Enable", "LTCControl");
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
@@ -242,8 +244,10 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference e)
 void CSCSupervisor::disableAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
+	sendCommand("Halt", "LTCControl");
 	sendCommand("Disable", "EmuDAQManager");
 	sendCommand("Disable", "EmuPeripheralCrate");
+	sendCommand("Configure", "LTCControl");
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
@@ -251,9 +255,10 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference e)
 void CSCSupervisor::haltAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	sendCommand("Halt", "EmuPeripheralCrate");
 	sendCommand("Halt", "EmuFEDCrate");
+	sendCommand("Halt", "EmuPeripheralCrate");
 	sendCommand("Halt", "EmuDAQManager");
+	sendCommand("Halt", "LTCControl");
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
@@ -288,7 +293,6 @@ void CSCSupervisor::sendCommand(string command, string klass)
 xoap::MessageReference CSCSupervisor::createCommandSOAP(string command)
 {
 	xoap::MessageReference message = xoap::createMessage();
-	xoap::SOAPPart soap = message->getSOAPPart();
 	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
 	xoap::SOAPName name = envelope.createName(
 			command, "xdaq", "urn:xdaq-soap:3.0");
@@ -324,7 +328,6 @@ xoap::MessageReference CSCSupervisor::createParameterSetSOAP(
 		string klass, string name, string type, string value)
 {
 	xoap::MessageReference message = xoap::createMessage();
-	xoap::SOAPPart soap = message->getSOAPPart();
 	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
 
 	xoap::SOAPName command = envelope.createName(
