@@ -397,35 +397,27 @@ bool TMBTester::testJTAGchain(int type){
 bool TMBTester::testMezzId(){
   //
   (*MyOutput_) << "TMBTester: Checking Mezzanine FPGA and PROMs ID codes" << std::endl;
-  int idcode[5];
   bool testOK = false;
-
-  rat_->setup_jtag(ChainTmbMezz);
-
-  rat_->ShfIR_ShfDR(ChipLocationTmbMezzFpga,
-		    FPGAidCode,
-		    RegSizeTmbMezzFpga_FPGAidCode);
-  int fpgaIdCode = tmb_->bits_to_int(rat_->GetDRtdo(),rat_->GetRegLength(),0);
-
-  for (int chip_location=1; chip_location<=4; chip_location++){
-    rat_->ShfIR_ShfDR(chip_location,
-		      PROMidCode,
-		      RegSizeTmbMezzProm_PROMidCode);
-
-    idcode[chip_location] = tmb_->bits_to_int(rat_->GetDRtdo(),rat_->GetRegLength(),0);
-  }
   //
-  bool testFPGAmezz  = compareValues("FPGA Mezz ID code",fpgaIdCode,0x11050093,true);  
-  bool testPROMmezz1 = compareValues("PROM Mezz ID code 1",idcode[1],0x05036093,true);  
-  bool testPROMmezz2 = compareValues("PROM Mezz ID code 2",idcode[2],0x05036093,true);  
-  bool testPROMmezz3 = compareValues("PROM Mezz ID code 3",idcode[3],0x05036093,true);  
-  bool testPROMmezz4 = compareValues("PROM Mezz ID code 4",idcode[4],0x05036093,true);  
+  ReadTmbIdCodes();
+  //
+  int fpgaIdCode = GetTMBmezzFpgaIdCode();
+  int prom0IdCode = GetTMBmezzProm0IdCode();
+  int prom1IdCode = GetTMBmezzProm1IdCode();
+  int prom2IdCode = GetTMBmezzProm2IdCode();
+  int prom3IdCode = GetTMBmezzProm3IdCode();
+  //
+  bool testFPGAmezz  = compareValues("Mezz FPGA ID code",fpgaIdCode,0x11050093,true);  
+  bool testPROMmezz0 = compareValues("Mezz PROM 0 ID code",prom0IdCode,0x05036093,true);  
+  bool testPROMmezz1 = compareValues("Mezz PROM 1 ID code",prom1IdCode,0x05036093,true);  
+  bool testPROMmezz2 = compareValues("Mezz PROM 2 ID code",prom2IdCode,0x05036093,true);  
+  bool testPROMmezz3 = compareValues("Mezz PROM 3 ID code",prom3IdCode,0x05036093,true);  
   //
   testOK = (testFPGAmezz  &&
+	    testPROMmezz0 &&
 	    testPROMmezz1 &&
 	    testPROMmezz2 &&
-	    testPROMmezz3 &&
-	    testPROMmezz4 );
+	    testPROMmezz3 );
   //
   messageOK("Mezzanine FPGA/PROM ID",testOK);
   //int dummy = sleep(3);
@@ -434,37 +426,31 @@ bool TMBTester::testMezzId(){
   //
   return testOK;
 }
-
-
+//
 bool TMBTester::testPROMid(){
   (*MyOutput_) << "TMBTester: Checking User PROM ID codes" << std::endl;
-  int userID[2];
   bool testOK = false;
-
-  rat_->setup_jtag(ChainTmbUser);
-
-  for (int chip_location=0; chip_location<=1; chip_location++){
-    rat_->ShfIR_ShfDR(chip_location,
-		      PROMidCode,
-		      RegSizeTmbUserProm_PROMidCode);
-    userID[chip_location] = tmb_->bits_to_int(rat_->GetDRtdo(),rat_->GetRegLength(),0);
-  }
-
+  //
+  ReadTmbIdCodes();
+  //
+  int userProm0IdCode = GetTMBuserProm0IdCode();
+  int userProm1IdCode = GetTMBuserProm1IdCode();
+  //
   //User PROM's could have 
   //    - ID = 0x05022093 for 256kB
   //    - ID = 0x05023093 or 0x05033093 for 512kB
   //
   // We require:  PROM's to be equal...
-  bool testSameID = compareValues("ID 0 = ID 1",userID[0],userID[1],true);
+  bool testSameID = compareValues("ID 0 = ID 1",userProm0IdCode,userProm1IdCode,true);
   //
   // We require:  PROM's to be one of the 3, above (i.e. lsb of bytes 3 and 4 don't matter)...
-  bool testPROMUserId0 = compareValues("PROM User ID 0",(userID[0]&0xfffeefff),0x05022093,true);  
-  bool testPROMUserId1 = compareValues("PROM User ID 1",(userID[1]&0xfffeefff),0x05022093,true);  
-
+  bool testPROMUserId0 = compareValues("User PROM 0 ID code",(userProm0IdCode&0xfffeefff),0x05022093,true);  
+  bool testPROMUserId1 = compareValues("User PROM 1 ID code",(userProm1IdCode&0xfffeefff),0x05022093,true);  
+  //
   testOK = (testSameID &&
 	    testPROMUserId0 &&
 	    testPROMUserId1 );
-
+  //
   messageOK("PROM User ID",testOK);
   //int dummy = sleep(3);
   //
@@ -1542,6 +1528,50 @@ void TMBTester::window_analysis(int * data, const int length) {
 ///////////////////////////////////////////////
 //  The following belong in TMB.cc
 ///////////////////////////////////////////////
+void TMBTester::ReadTmbIdCodes() {
+  //Get ID codes for the following devices:
+  //tmb_idcode_[0] = TMB Mezz FPGA IDCode
+  //           [1] = TMB Mezz PROM 0 IDCode
+  //           [2] = TMB Mezz PROM 1 IDCode
+  //           [3] = TMB Mezz PROM 2 IDCode
+  //           [4] = TMB Mezz PROM 3 IDCode
+  //           [5] = TMB User PROM 0 IDCode
+  //           [6] = TMB User PROM 1 IDCode
+  //
+  int device;
+  for (device=0; device<7; device++) 
+    tmb_idcode_[device] = 0;
+  //
+  device = 0;
+  //
+  tmb_->setup_jtag(ChainTmbMezz);
+  //
+  tmb_->ShfIR_ShfDR(ChipLocationTmbMezzFpga,
+		    FPGAidCode,
+		    RegSizeTmbMezzFpga_FPGAidCode);
+  tmb_idcode_[device++] = tmb_->bits_to_int(tmb_->GetDRtdo(),tmb_->GetRegLength(),0);
+  //
+  int chip_location;
+  for (chip_location=1; chip_location<=4; chip_location++){
+    tmb_->ShfIR_ShfDR(chip_location,
+		      PROMidCode,
+		      RegSizeTmbMezzProm_PROMidCode);
+
+    tmb_idcode_[device++] = tmb_->bits_to_int(tmb_->GetDRtdo(),tmb_->GetRegLength(),0);
+  }
+  //
+  //
+  tmb_->setup_jtag(ChainTmbUser);
+  //
+  for (chip_location=0; chip_location<=1; chip_location++){
+    tmb_->ShfIR_ShfDR(chip_location,
+		      PROMidCode,
+		      RegSizeTmbUserProm_PROMidCode);
+    tmb_idcode_[device++] = tmb_->bits_to_int(tmb_->GetDRtdo(),tmb_->GetRegLength(),0);
+  }
+  //
+  return;
+}
 ///////////////////////////////////////////////
 //  END: The following belong in TMB.cc
 ///////////////////////////////////////////////

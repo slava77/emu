@@ -114,6 +114,20 @@ class TMBTester {
   void bit_to_array(int,int *,const int);
   void RpcComputeParity(int);
   //
+  ///////////////////////////////////////////////////////////////
+  //The following should be in TMB.h....
+  ///////////////////////////////////////////////////////////////
+  void ReadTmbIdCodes();
+  inline int GetTMBmezzFpgaIdCode() { return tmb_idcode_[0]; }
+  inline int GetTMBmezzProm0IdCode() { return tmb_idcode_[1]; }
+  inline int GetTMBmezzProm1IdCode() { return tmb_idcode_[2]; }
+  inline int GetTMBmezzProm2IdCode() { return tmb_idcode_[3]; }
+  inline int GetTMBmezzProm3IdCode() { return tmb_idcode_[4]; }
+  inline int GetTMBuserProm0IdCode() { return tmb_idcode_[5]; }
+  inline int GetTMBuserProm1IdCode() { return tmb_idcode_[6]; }
+  ///////////////////////////////////////////////////////////////
+  //END The following should be in TMB.h....
+  ///////////////////////////////////////////////////////////////
   //
  protected:
   //
@@ -146,6 +160,14 @@ class TMBTester {
   //functions needed by above tests:
   int dowCRC(std::bitset<64>);
   //
+  ///////////////////////////////////////////////////////////////
+  //The following should be in TMB.h....
+  ///////////////////////////////////////////////////////////////
+  int tmb_idcode_[7];
+  ///////////////////////////////////////////////////////////////
+  //END The following should be in TMB.h....
+  ///////////////////////////////////////////////////////////////
+
 };
 
 #endif
