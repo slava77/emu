@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.34 2006/03/21 12:27:02 mey Exp $
+// $Id: TMB.h,v 2.35 2006/03/22 14:36:52 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.35  2006/03/22 14:36:52  mey
+// UPdate
+//
 // Revision 2.34  2006/03/21 12:27:02  mey
 // Update
 //
@@ -318,6 +321,15 @@ public:
     InjectedLct1.clear();
   }
   //
+  void ReadTmbIdCodes();
+  inline int GetTMBmezzFpgaIdCode() { return tmb_idcode_[0]; }
+  inline int GetTMBmezzProm0IdCode() { return tmb_idcode_[1]; }
+  inline int GetTMBmezzProm1IdCode() { return tmb_idcode_[2]; }
+  inline int GetTMBmezzProm2IdCode() { return tmb_idcode_[3]; }
+  inline int GetTMBmezzProm3IdCode() { return tmb_idcode_[4]; }
+  inline int GetTMBuserProm0IdCode() { return tmb_idcode_[5]; }
+  inline int GetTMBuserProm1IdCode() { return tmb_idcode_[6]; }
+  //
 public:
   //
   FILE *pfile;
@@ -339,6 +351,7 @@ protected:
   //
 private:
   //
+  int tmb_idcode_[7];
   int jtag_address;
   int jtag_chain;
   int devices_in_chain;
