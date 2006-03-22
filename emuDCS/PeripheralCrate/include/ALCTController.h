@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.10 2006/03/15 16:42:57 mey Exp $
+// $Id: ALCTController.h,v 2.11 2006/03/22 14:36:36 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.11  2006/03/22 14:36:36  mey
+// Update
+//
 // Revision 2.10  2006/03/15 16:42:57  mey
 // Update
 //
@@ -148,10 +151,10 @@ public:
   // ==========================
   void set_empty(int);
   void set_l1a_internal(int);
-  inline void SetDelay(int number,int delay) {
+  inline void SetDelay(unsigned int number,int delay) {
     if (number<(sizeof(delays_)/4)) delays_[number]=delay;
   }
-  inline void SetThreshold(int number,int threshold) {
+  inline void SetThreshold(unsigned int number,int threshold) {
     if (number<(sizeof(delays_)/4)) thresholds_[number]=threshold;
   }
   //
