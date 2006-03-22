@@ -399,13 +399,13 @@ bool TMBTester::testMezzId(){
   (*MyOutput_) << "TMBTester: Checking Mezzanine FPGA and PROMs ID codes" << std::endl;
   bool testOK = false;
   //
-  ReadTmbIdCodes();
+  tmb_->ReadTmbIdCodes();
   //
-  int fpgaIdCode = GetTMBmezzFpgaIdCode();
-  int prom0IdCode = GetTMBmezzProm0IdCode();
-  int prom1IdCode = GetTMBmezzProm1IdCode();
-  int prom2IdCode = GetTMBmezzProm2IdCode();
-  int prom3IdCode = GetTMBmezzProm3IdCode();
+  int fpgaIdCode = tmb_->GetTMBmezzFpgaIdCode();
+  int prom0IdCode = tmb_->GetTMBmezzProm0IdCode();
+  int prom1IdCode = tmb_->GetTMBmezzProm1IdCode();
+  int prom2IdCode = tmb_->GetTMBmezzProm2IdCode();
+  int prom3IdCode = tmb_->GetTMBmezzProm3IdCode();
   //
   bool testFPGAmezz  = compareValues("Mezz FPGA ID code",fpgaIdCode,0x11050093,true);  
   bool testPROMmezz0 = compareValues("Mezz PROM 0 ID code",prom0IdCode,0x05036093,true);  
@@ -431,10 +431,10 @@ bool TMBTester::testPROMid(){
   (*MyOutput_) << "TMBTester: Checking User PROM ID codes" << std::endl;
   bool testOK = false;
   //
-  ReadTmbIdCodes();
+  tmb_->ReadTmbIdCodes();
   //
-  int userProm0IdCode = GetTMBuserProm0IdCode();
-  int userProm1IdCode = GetTMBuserProm1IdCode();
+  int userProm0IdCode = tmb_->GetTMBuserProm0IdCode();
+  int userProm1IdCode = tmb_->GetTMBuserProm1IdCode();
   //
   //User PROM's could have 
   //    - ID = 0x05022093 for 256kB
@@ -1528,50 +1528,6 @@ void TMBTester::window_analysis(int * data, const int length) {
 ///////////////////////////////////////////////
 //  The following belong in TMB.cc
 ///////////////////////////////////////////////
-void TMBTester::ReadTmbIdCodes() {
-  //Get ID codes for the following devices:
-  //tmb_idcode_[0] = TMB Mezz FPGA IDCode
-  //           [1] = TMB Mezz PROM 0 IDCode
-  //           [2] = TMB Mezz PROM 1 IDCode
-  //           [3] = TMB Mezz PROM 2 IDCode
-  //           [4] = TMB Mezz PROM 3 IDCode
-  //           [5] = TMB User PROM 0 IDCode
-  //           [6] = TMB User PROM 1 IDCode
-  //
-  int device;
-  for (device=0; device<7; device++) 
-    tmb_idcode_[device] = 0;
-  //
-  device = 0;
-  //
-  tmb_->setup_jtag(ChainTmbMezz);
-  //
-  tmb_->ShfIR_ShfDR(ChipLocationTmbMezzFpga,
-		    FPGAidCode,
-		    RegSizeTmbMezzFpga_FPGAidCode);
-  tmb_idcode_[device++] = tmb_->bits_to_int(tmb_->GetDRtdo(),tmb_->GetRegLength(),0);
-  //
-  int chip_location;
-  for (chip_location=1; chip_location<=4; chip_location++){
-    tmb_->ShfIR_ShfDR(chip_location,
-		      PROMidCode,
-		      RegSizeTmbMezzProm_PROMidCode);
-
-    tmb_idcode_[device++] = tmb_->bits_to_int(tmb_->GetDRtdo(),tmb_->GetRegLength(),0);
-  }
-  //
-  //
-  tmb_->setup_jtag(ChainTmbUser);
-  //
-  for (chip_location=0; chip_location<=1; chip_location++){
-    tmb_->ShfIR_ShfDR(chip_location,
-		      PROMidCode,
-		      RegSizeTmbUserProm_PROMidCode);
-    tmb_idcode_[device++] = tmb_->bits_to_int(tmb_->GetDRtdo(),tmb_->GetRegLength(),0);
-  }
-  //
-  return;
-}
 ///////////////////////////////////////////////
 //  END: The following belong in TMB.cc
 ///////////////////////////////////////////////
