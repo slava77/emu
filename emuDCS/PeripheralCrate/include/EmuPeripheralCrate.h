@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.13 2006/03/21 16:26:41 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.14 2006/03/22 14:36:52 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -117,7 +117,7 @@ protected:
   ostringstream OutputStringTMBStatus[9];
   ostringstream OutputDMBTests[9];
   ostringstream OutputTMBTests[9];
-  std::vector <int> ChartData[100];
+  std::vector <float> ChartData[100];
   //
   int TMBRegisterValue_;
   int CCBRegisterValue_;
@@ -156,6 +156,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::setRawConfFile, "setRawConfFile");
     xgi::bind(this,&EmuPeripheralCrate::UploadConfFile, "UploadConfFile");
     xgi::bind(this,&EmuPeripheralCrate::TMBStatus, "TMBStatus");
+    //
     xgi::bind(this,&EmuPeripheralCrate::getData0, "getData0");
     xgi::bind(this,&EmuPeripheralCrate::getData1, "getData1");
     xgi::bind(this,&EmuPeripheralCrate::getData2, "getData2");
@@ -174,6 +175,11 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::getData15, "getData15");
     xgi::bind(this,&EmuPeripheralCrate::getData16, "getData16");
     xgi::bind(this,&EmuPeripheralCrate::getData17, "getData17");
+    xgi::bind(this,&EmuPeripheralCrate::getData18, "getData18");
+    xgi::bind(this,&EmuPeripheralCrate::getData19, "getData19");
+    xgi::bind(this,&EmuPeripheralCrate::getData20, "getData20");
+    xgi::bind(this,&EmuPeripheralCrate::getData21, "getData21");
+    //
     xgi::bind(this,&EmuPeripheralCrate::LoadTMBFirmware, "LoadTMBFirmware");
     xgi::bind(this,&EmuPeripheralCrate::LoadALCTFirmware, "LoadALCTFirmware");
     xgi::bind(this,&EmuPeripheralCrate::ReadTMBRegister, "ReadTMBRegister");
@@ -243,7 +249,46 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::ResetAllCounters, "ResetAllCounters");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationRandomWiresALCT, "CalibrationRandomWiresALCT");
     //
-    xoap::bind(this, &EmuPeripheralCrate::onMessage, "onMessage", XDAQ_NS_URI );    
+#ifndef STANDALONE
+    //
+    // State machine definition
+    //
+
+    // SOAP call-back functions, which relays to *Action method.
+    xoap::bind(this, &EmuPeripheralCrate::onConfigure, "Configure", XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrate::onEnable,    "Enable",    XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrate::onDisable,   "Disable",   XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrate::onHalt,      "Halt",      XDAQ_NS_URI);
+    //
+    // fsm_ is defined in EmuApplication
+    fsm_.addState('H', "Halted",     this, &EmuPeripheralCrate::stateChanged);
+    fsm_.addState('C', "Configured", this, &EmuPeripheralCrate::stateChanged);
+    fsm_.addState('E', "Enabled",    this, &EmuPeripheralCrate::stateChanged);
+    //
+    fsm_.addStateTransition(
+      'H', 'C', "Configure", this, &EmuPeripheralCrate::configureAction);
+    fsm_.addStateTransition(
+      'C', 'C', "Configure", this, &EmuPeripheralCrate::configureAction);
+    fsm_.addStateTransition(
+      'C', 'E', "Enable",    this, &EmuPeripheralCrate::enableAction);
+    fsm_.addStateTransition(
+      'E', 'C', "Disable",   this, &EmuPeripheralCrate::disableAction);
+    fsm_.addStateTransition(
+      'C', 'H', "Halt",      this, &EmuPeripheralCrate::haltAction);
+    fsm_.addStateTransition(
+      'E', 'H', "Halt",      this, &EmuPeripheralCrate::haltAction);
+
+    fsm_.setInitialState('H');
+    fsm_.reset();
+
+    //
+    // state_ is defined in EmuApplication
+    state_ = fsm_.getStateName(fsm_.getCurrentState());
+    //
+
+#endif // ! STANDALONE    
+    //
+    //xoap::bind(this, &EmuPeripheralCrate::onMessage, "onMessage", XDAQ_NS_URI );    
     xoap::bind(this, &EmuPeripheralCrate::Configure, "Configure", XDAQ_NS_URI );    
     xoap::bind(this, &EmuPeripheralCrate::Init, "Init", XDAQ_NS_URI );    
     xoap::bind(this, &EmuPeripheralCrate::Enable, "Enable", XDAQ_NS_URI );    
@@ -493,20 +538,103 @@ public:
   //
 private:
   //
-  xoap::MessageReference onMessage (xoap::MessageReference msg) throw (xoap::exception::Exception)
-  {   
+#ifndef STANDALONE
+  //
+  // SOAP Callback  
+  //
+  //
+  xoap::MessageReference EmuPeripheralCrate::onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    fireEvent("Configure");
+
+    return createReply(message);
+  }
+
+  //
+  xoap::MessageReference EmuPeripheralCrate::onEnable (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    fireEvent("Enable");
+
+    return createReply(message);
+  }
+
+  //
+  xoap::MessageReference EmuPeripheralCrate::onDisable (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    fireEvent("Disable");
+
+    return createReply(message);
+  }
+
+  //
+  xoap::MessageReference EmuPeripheralCrate::onHalt (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    fireEvent("Halt");
+
+    return createReply(message);
+  }
+
+  void EmuPeripheralCrate::configureAction(toolbox::Event::Reference e) 
+    throw (toolbox::fsm::exception::Exception)
+  {
+    //
+    if ( MyController != 0 ) {
+      delete MyController ;
+    }
+    //
+    MyController = new EmuController();
+    //
+    MyController->SetConfFile(xmlFile_);
+    //
+    //MyController->init(); // For CSCSupervisor
+    //
+    //MyController->configure();
+    //
+    std::cout << "Configure" << std::endl ;
+    //
+    //sleep(3);
     //
     // reply to caller
     //
-    std::cout << "Received Message onMessage" << std::endl ;
-    //
-    xoap::MessageReference reply = xoap::createMessage();
-    xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
-    xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
-    xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
-    return reply;
-    
+    std::cout << "Received Message Configure" << std::endl ;
   }
+
+  //
+  void EmuPeripheralCrate::enableAction(toolbox::Event::Reference e) 
+    throw (toolbox::fsm::exception::Exception)
+  {
+    //
+    MyController->init();
+    //
+    MyController->configure();
+    //
+    std::cout << "Received Message Enable" << std::endl ;
+  }
+
+  //
+  void EmuPeripheralCrate::disableAction(toolbox::Event::Reference e) 
+    throw (toolbox::fsm::exception::Exception)
+  {
+    // do nothing
+    std::cout << "Received Message Disable" << std::endl ;
+  }
+
+  //
+  void EmuPeripheralCrate::haltAction(toolbox::Event::Reference e) 
+    throw (toolbox::fsm::exception::Exception)
+  {
+    // do nothing
+    std::cout << "Received Message Halt" << std::endl ;
+  }
+
+  //
+  void EmuPeripheralCrate::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
+    throw (toolbox::fsm::exception::Exception)
+  {
+    EmuApplication::stateChanged(fsm);
+  }
+
+#endif // ! STANDALONE
   //
   xoap::MessageReference Configure (xoap::MessageReference msg) throw (xoap::exception::Exception)
   {
@@ -536,7 +664,7 @@ private:
     xoap::MessageReference reply = xoap::createMessage();
     xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
     xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
-    xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
+    //xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
     return reply;    
   }
   //
@@ -560,7 +688,7 @@ private:
     xoap::MessageReference reply = xoap::createMessage();
     xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
     xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
-    xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
+    //xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
     return reply;
     
   }
@@ -581,7 +709,7 @@ private:
     xoap::MessageReference reply = xoap::createMessage();
     xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
     xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
-    xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
+    //xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
     return reply;    
   }
   //
@@ -601,16 +729,8 @@ private:
     xoap::MessageReference reply = xoap::createMessage();
     xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
     xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
-    xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
+    //xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
     return reply;    
-  }
-  //
-  void EmuPeripheralCrate::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
-    throw (toolbox::fsm::exception::Exception)
-  {
-#ifndef STANDALONE
-    EmuApplication::stateChanged(fsm);
-#endif
   }
   //
   void EmuPeripheralCrate::CrateTests(xgi::Input * in, xgi::Output * out ) 
@@ -803,7 +923,7 @@ private:
 	  TMBUtils   =
 	    toolbox::toString("/%s/TMBUtils",getApplicationDescriptor()->getURN().c_str());
 	  //
-	  for (int i=0; i<tmbVector.size(); i++) {
+	  for (unsigned int i=0; i<tmbVector.size(); i++) {
 	    //
 	    int slot = tmbVector[i]->slot();
 	    if(slot == ii) {
@@ -823,7 +943,7 @@ private:
 	      *out << cgicc::td();
 	      *out << "RAT Board ID" ;
 	      *out << cgicc::form().set("method","GET").set("action",RATBoardID) << std::endl ;
-	      buf[20];
+	      //
 	      sprintf(buf,"RATBoardID_%d",i);
 	      *out << cgicc::input().set("type","text").set("name",buf)
 		.set("value",RATBoardID_[i]) << std::endl ;
@@ -870,7 +990,7 @@ private:
 	      //
 	      //Found TMB...look for DMB...
 	      //
-	      for (int iii=0; iii<dmbVector.size(); iii++) {
+	      for (unsigned int iii=0; iii<dmbVector.size(); iii++) {
 		int dmbslot = dmbVector[iii]->slot();
 		std::string ChamberTests =
 		  toolbox::toString("/%s/ChamberTests",getApplicationDescriptor()->getURN().c_str());    
@@ -907,7 +1027,7 @@ private:
 	  std::string DMBUtils;
 	  std::string DMBBoardID;
 	  //
-	  for (int i=0; i<dmbVector.size(); i++) {
+	  for (unsigned int i=0; i<dmbVector.size(); i++) {
 	    DMBStatus =
 	      toolbox::toString("/%s/DMBStatus",getApplicationDescriptor()->getURN().c_str());
 	    DMBTests =
@@ -1040,9 +1160,9 @@ private:
     CalibDAQ calib;
     calib.loadConstants();
     //
-    int nsleep, nstrip, tries, counter =0;
+    //int nsleep, nstrip, tries, counter =0;
     float dac;
-    nsleep = 100000;  
+    //int nsleep = 100000;  
     dac = 1.0;
     /*
     for (int i=0;i<16;i++) {  
@@ -1070,9 +1190,10 @@ private:
     CalibDAQ calib;
     calib.loadConstants();
     //
-    int nsleep, nstrip, tries, counter =0;
+    //int nsleep, nstrip, tries, counter =0;
     float dac;
-    nsleep = 100000;  
+    int counter=0;
+    int nsleep = 100000;  
     dac = 1.0;
     //
     for (int i=0;i<16;i++) {  
@@ -1096,8 +1217,8 @@ private:
     CalibDAQ calib;
     calib.loadConstants();
     //
-    int nsleep, nstrip, tries, counter =0;
-    float dac;
+    //int nsleep, nstrip, tries;
+    //float dac;
     //
     calib.pedestalCFEB();
     //
@@ -1119,12 +1240,17 @@ private:
       //
       ChartData[counter].clear();
       //
-      for(int i=0; i<tmbVector.size(); i++) {
+      *out << "Counter= " << counter << std::endl;
+      *out << cgicc::br();
+      //
+      for(unsigned int i=0; i<tmbVector.size(); i++) {
 	//
 	tmbVector[i]->RedirectOutput(out);
 	tmbVector[i]->GetCounters();
 	//
-	ChartData[counter].push_back(tmbVector[i]->GetCounter(counter));
+	if ( tmbVector[i]->GetCounter(4)>0) {
+	  ChartData[counter].push_back((float)(tmbVector[i]->GetCounter(counter))/(tmbVector[i]->GetCounter(4)));
+	} 	  
 	//
 	if ( counter == 0 ) {
 	  //
@@ -1142,8 +1268,6 @@ private:
 	  //
 	  //
 	} else if ( counter == 1 ) {
-	  //
-	  //
 	  if ( tmbVector[i]->GetCounter(1) > 0 ) {
 	    *out << cgicc::span().set("style","color:green");
 	    tmbVector[i]->PrintCounters(counter);
@@ -1151,6 +1275,18 @@ private:
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 2 ) {
+	  if ( tmbVector[i]->GetCounter(2) > 0 ) {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:green");
 	    tmbVector[i]->PrintCounters(counter);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
@@ -1187,6 +1323,198 @@ private:
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 6 ) {
+	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 7 ) {
+	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 8 ) {
+	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 9 ) {
+	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 10 ) {
+	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 11 ) {
+	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 12 ) {
+	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 13 ) {
+	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 14 ) {
+	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 15 ) {
+	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 16 ) {
+	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 17 ) {
+	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 18 ) {
+	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 19 ) {
+	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 20 ) {
+	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( counter == 21 ) {
+	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(counter);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:red");
 	    tmbVector[i]->PrintCounters(counter);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
@@ -1257,16 +1585,13 @@ private:
   void EmuPeripheralCrate::getData0(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    std::cout << "GetData" << std::endl ;
-    //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='ALCT: CRC error' subcaption='Normalized' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[0].size() << endl ;
-    for(int i=0;i<ChartData[0].size();i++) {
+    for(unsigned int i=0;i<ChartData[0].size();i++) {
       ostringstream output;
       output << "<set name='" << i <<"'"<< " value='" << ChartData[0][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1274,16 +1599,13 @@ private:
   void EmuPeripheralCrate::getData1(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    std::cout << "GetData" << std::endl ;
-    //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='ALCT: LCT sent to TMB' subcaption='Normalized' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[1].size() << endl ;
-    for(int i=0;i<ChartData[1].size();i++) {
+    for(unsigned int i=0;i<ChartData[1].size();i++) {
       ostringstream output;
       output << "<set name='" << i <<"'"<< " value='" << ChartData[1][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1291,16 +1613,13 @@ private:
   void EmuPeripheralCrate::getData2(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    std::cout << "GetData" << std::endl ;
-    //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='ALCT: LCT error' subcaption='Normalized' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[2].size() << endl ;
-    for(int i=0;i<ChartData[2].size();i++) {
+    for(unsigned int i=0;i<ChartData[2].size();i++) {
       ostringstream output;
       output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1308,16 +1627,13 @@ private:
   void EmuPeripheralCrate::getData3(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    std::cout << "GetData" << std::endl ;
-    //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='ALCT: L1A readout' subcaption='Normalized' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[3].size() << endl ;
-    for(int i=0;i<ChartData[3].size();i++) {
+    for(unsigned int i=0;i<ChartData[3].size();i++) {
       ostringstream output;
       output << "<set name='" << i <<"'"<< " value='" << ChartData[3][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1325,16 +1641,13 @@ private:
   void EmuPeripheralCrate::getData4(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    std::cout << "GetData" << std::endl ;
-    //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='CLCT Pretrigger' subcaption='Normalized' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[4].size() << endl ;
-    for(int i=0;i<ChartData[4].size();i++) {
+    for(unsigned int i=0;i<ChartData[4].size();i++) {
       ostringstream output;
       output << "<set name='" << i <<"'"<< " value='" << ChartData[4][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1342,14 +1655,13 @@ private:
   void EmuPeripheralCrate::getData5(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='CLCT Pretrig but no wbuf' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[5].size() << endl ;
-    for(int i=0;i<ChartData[5].size();i++) {
+    for(unsigned int i=0;i<ChartData[5].size();i++) {
       ostringstream output;
       output << "<set name='" << i <<"'"<< " value='" << ChartData[5][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1357,14 +1669,13 @@ private:
   void EmuPeripheralCrate::getData6(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='CLCT: Invalid pattern after drift 0' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[6].size() << endl ;
-    for(int i=0;i<ChartData[6].size();i++) {
+    for(unsigned int i=0;i<ChartData[6].size();i++) {
       ostringstream output;
       output << "<set name='" << i <<"'"<< " value='" << ChartData[6][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1372,14 +1683,13 @@ private:
   void EmuPeripheralCrate::getData7(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='TMB matching rejected' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[7].size() << endl ;
-    for(int i=0;i<ChartData[7].size();i++) {
+    for(unsigned int i=0;i<ChartData[7].size();i++) {
       ostringstream output;
       output << "<set name='" << i <<"'"<< " value='" << ChartData[7][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1387,14 +1697,13 @@ private:
   void EmuPeripheralCrate::getData8(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='CLCT or ALCT or both triggered' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[8].size() << endl ;
-    for(int i=0;i<ChartData[8].size();i++) {
+    for(unsigned int i=0;i<ChartData[8].size();i++) {
       ostringstream output;
       output << "<set name='" << i <<"'"<< " value='" << ChartData[8][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1402,16 +1711,13 @@ private:
   void EmuPeripheralCrate::getData9(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    std::cout << "GetData" << std::endl ;
-    //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='TMB: CLCT or ALCT or both trigger xmit MPC' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[9].size() << endl ;
-    for(int i=0;i<ChartData[9].size();i++) {
+    for(unsigned int i=0;i<ChartData[9].size();i++) {
       ostringstream output;
       output << "<set name='" << i <<"'"<< " value='" << ChartData[9][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1419,14 +1725,13 @@ private:
   void EmuPeripheralCrate::getData10(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='TMB: CLCT and ALCT matched in time' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[10].size() << endl ;
-    for(int i=0;i<ChartData[10].size();i++) {
+    for(unsigned int i=0;i<ChartData[10].size();i++) {
       ostringstream output;
       output << "<set name='" << i <<"'"<< " value='" << ChartData[10][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1434,14 +1739,13 @@ private:
   void EmuPeripheralCrate::getData11(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='TMB: ALCT-only trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
-    std::cout << ChartData[2].size() << endl ;
-    for(int i=0;i<ChartData[2].size();i++) {
+    std::cout << ChartData[11].size() << endl ;
+    for(unsigned int i=0;i<ChartData[11].size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[11][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1449,16 +1753,13 @@ private:
   void EmuPeripheralCrate::getData12(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    std::cout << "GetData" << std::endl ;
+    *out << "<graph caption='CLCT-only trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
-    //
-    std::cout << ChartData[2].size() << endl ;
-    for(int i=0;i<ChartData[2].size();i++) {
+    std::cout << ChartData[12].size() << endl ;
+    for(unsigned int i=0;i<ChartData[12].size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[12][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1466,16 +1767,13 @@ private:
   void EmuPeripheralCrate::getData13(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    std::cout << "GetData" << std::endl ;
+    *out << "<graph caption='TMB: No trig pulse response' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
-    //
-    std::cout << ChartData[2].size() << endl ;
-    for(int i=0;i<ChartData[2].size();i++) {
+    std::cout << ChartData[13].size() << endl ;
+    for(unsigned int i=0;i<ChartData[13].size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[13][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1483,16 +1781,12 @@ private:
   void EmuPeripheralCrate::getData14(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    std::cout << "GetData" << std::endl ;
+    *out << "<graph caption='TMB: No MPC transmission' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
-    //
-    std::cout << ChartData[2].size() << endl ;
-    for(int i=0;i<ChartData[2].size();i++) {
+    for(unsigned int i=0;i<ChartData[14].size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[14][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1500,16 +1794,12 @@ private:
   void EmuPeripheralCrate::getData15(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    std::cout << "GetData" << std::endl ;
+    *out << "<graph caption='No MPC response FF pulse' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
-    //
-    std::cout << ChartData[2].size() << endl ;
-    for(int i=0;i<ChartData[2].size();i++) {
+    for(unsigned int i=0;i<ChartData[15].size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[15][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1517,16 +1807,12 @@ private:
   void EmuPeripheralCrate::getData16(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    std::cout << "GetData" << std::endl ;
+    *out << "<graph caption='MPC accepted LCT0' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
-    //
-    std::cout << ChartData[2].size() << endl ;
-    for(int i=0;i<ChartData[2].size();i++) {
+    for(unsigned int i=0;i<ChartData[16].size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[16][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1534,16 +1820,65 @@ private:
   void EmuPeripheralCrate::getData17(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    std::cout << "GetData" << std::endl ;
+    *out << "<graph caption='MPC accepted LCT1' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    for(unsigned int i=0;i<ChartData[17].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[17][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+      std::cout << output.str() << std::endl;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData18(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    *out << "<graph caption='L1A received' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    for(unsigned int i=0;i<ChartData[18].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[18][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData19(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    *out << "<graph caption='L1A: TMB triggered, TMB in L1A window' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    for(unsigned int i=0;i<ChartData[19].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[19][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData20(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    *out << "<graph caption='L1A: L1A received, no TMB in window' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    //
+    for(unsigned int i=0;i<ChartData[20].size();i++) {
+      ostringstream output;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[20][i] << "'" << " />" << std::endl;
+      *out << output.str() << std::endl ;
+    }
+    *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::getData21(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
     //
     *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
-    std::cout << ChartData[2].size() << endl ;
-    for(int i=0;i<ChartData[2].size();i++) {
+    for(unsigned int i=0;i<ChartData[21].size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
+      output << "<set name='" << i <<"'"<< " value='" << ChartData[21][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
-      std::cout << output.str() << std::endl;
     }
     *out << "</graph>" << std::endl;    
   }
@@ -1552,7 +1887,7 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    for(int i=0; i<tmbVector.size(); i++) {
+    for(unsigned int i=0; i<tmbVector.size(); i++) {
       //
       //*out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
       //
@@ -1780,7 +2115,7 @@ private:
     OutputDMBTests[dmb] << "DMB Test4" << endl ;
     //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
-    int pass = thisDMB->test4();
+    //int pass = thisDMB->test4();
     thisDMB->RedirectOutput(&std::cout);
     //
     this->DMBTests(in,out);
@@ -1806,7 +2141,7 @@ private:
     OutputDMBTests[dmb] << "DMB Test5" << endl ;
     //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
-    int pass = thisDMB->test5();
+    //int pass = thisDMB->test5();
     thisDMB->RedirectOutput(&std::cout);
     //
     this->DMBTests(in,out);
@@ -1832,7 +2167,7 @@ private:
     OutputDMBTests[dmb] << "DMB Test6" << endl ;
     //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
-    int pass = thisDMB->test6();
+    //int pass = thisDMB->test6();
     thisDMB->RedirectOutput(&std::cout);
     //
     this->DMBTests(in,out);
@@ -1858,7 +2193,7 @@ private:
     OutputDMBTests[dmb] << "DMB Test8" << endl ;
     //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
-    int pass = thisDMB->test8();
+    //int pass = thisDMB->test8();
     thisDMB->RedirectOutput(&std::cout);
     //
     this->DMBTests(in,out);
@@ -1883,7 +2218,7 @@ private:
     OutputDMBTests[dmb] << "DMB Test9" << endl ;
     //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
-    int pass = thisDMB->test9();
+    //int pass = thisDMB->test9();
     thisDMB->RedirectOutput(&std::cout);
     //
     this->DMBTests(in,out);
@@ -1907,7 +2242,7 @@ private:
     OutputDMBTests[dmb] << "DMB Test10" << endl ;
     //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
-    int pass = thisDMB->test10();
+    //int pass = thisDMB->test10();
     thisDMB->RedirectOutput(&std::cout);
     //
     this->DMBTests(in,out);
@@ -2347,7 +2682,7 @@ private:
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetCCB(thisCCB);
     //
-    int RXphase, TXphase;
+    //int RXphase, TXphase;
     MyTest[tmb].Automatic();
     //
     this->ChamberTests(in,out);
@@ -2669,7 +3004,7 @@ private:
     const CgiEnvironment& env = cgi.getEnvironment();
     //
     std::string dmbStr = env.getQueryString() ;
-    int dmb = atoi(dmbStr.c_str());
+    //int dmb = atoi(dmbStr.c_str());
     //
     std::string test =  env.getReferrer() ;
     cout << test << endl ;
@@ -2751,7 +3086,7 @@ private:
     int dmbNumber = -1;
     //
     cgicc::form_iterator name2 = cgi.getElement("DMBNumber");
-    int registerValue = -1;
+    //int registerValue = -1;
     if(name2 != cgi.getElements().end()) {
       dmbNumber = cgi["DMBNumber"]->getIntegerValue();
       //
@@ -2780,7 +3115,7 @@ private:
       //
       vector<CFEB> thisCFEBs = thisDMB->cfebs();
       if (dmbNumber == -1 ) {
-	for (int i=0; i<thisCFEBs.size(); i++) {
+	for (unsigned int i=0; i<thisCFEBs.size(); i++) {
 	  thisCCB->hardReset();
 	  ::sleep(1);
 	  thisDMB->febpromuser(thisCFEBs[i]);
@@ -3016,8 +3351,8 @@ private:
       //*out << cgicc::br();
       //
       sprintf(buf,"CFEB prom user id : %08x CFEB fpga user id : %08x ",
-	      thisDMB->febpromuser(*cfebItr),
-	      thisDMB->febfpgauser(*cfebItr));
+	      (int)thisDMB->febpromuser(*cfebItr),
+	      (int)thisDMB->febfpgauser(*cfebItr));
       //
       if ( thisDMB->febfpgauser(*cfebItr) == 0xcfeba042 ) {
 	*out << cgicc::span().set("style","color:green");
@@ -3046,7 +3381,7 @@ private:
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("Simple Web Form") << std::endl;
     //
-    char buf[200] ;
+    //char buf[200] ;
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
@@ -3068,7 +3403,7 @@ private:
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("Simple Web Form") << std::endl;
     //
-    char buf[200] ;
+    //char buf[200] ;
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
@@ -3103,7 +3438,7 @@ private:
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("Simple Web Form") << std::endl;
     //
-    char buf[200] ;
+    //char buf[200] ;
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
@@ -3885,27 +4220,27 @@ private:
     //
     *out << cgicc::pre();
     //
-    sprintf(buf,"DMB prom VME->Motherboard          : %08x ",thisDMB->mbpromuser(0));
+    sprintf(buf,"DMB prom VME->Motherboard          : %08x ",(int)thisDMB->mbpromuser(0));
     *out << buf ;
     *out << cgicc::br();
     //
-    sprintf(buf,"DMB prom Motherboard Controller    : %08x ",thisDMB->mbpromuser(1));
+    sprintf(buf,"DMB prom Motherboard Controller    : %08x ",(int)thisDMB->mbpromuser(1));
     *out << buf  ;
     *out << cgicc::br();
     //
-    sprintf(buf,"DMB fpga id                        : %08x ",thisDMB->mbfpgaid());
+    sprintf(buf,"DMB fpga id                        : %08x ",(int)thisDMB->mbfpgaid());
     *out << buf  ;
     *out << cgicc::br();
       //
-    sprintf(buf,"DMB prom VME->Motherboard ID       : %08x ",thisDMB->mbpromid(0));
+    sprintf(buf,"DMB prom VME->Motherboard ID       : %08x ",(int)thisDMB->mbpromid(0));
     *out << buf  ;
     *out << cgicc::br();
     //
-    sprintf(buf,"DMB prom Motherboard Controller ID : %08x ",thisDMB->mbpromid(1));
+    sprintf(buf,"DMB prom Motherboard Controller ID : %08x ",(int) thisDMB->mbpromid(1));
     *out << buf  ;
     *out << cgicc::br();
       //
-    sprintf(buf,"DMB fpga user id                   : %x ", thisDMB->mbfpgauser());
+    sprintf(buf,"DMB fpga user id                   : %x ", (int) thisDMB->mbfpgauser());
     if ( thisDMB->mbfpgauser() == 0x48547172 ) {
 	*out << cgicc::span().set("style","color:green");
 	*out << buf;
@@ -4384,7 +4719,7 @@ private:
   {
     cgicc::Cgicc cgi(in);
     //
-    const CgiEnvironment& env = cgi.getEnvironment();
+    //const CgiEnvironment& env = cgi.getEnvironment();
     //
     cgicc::form_iterator name = cgi.getElement("tmb");
     int tmb;
@@ -4513,7 +4848,7 @@ private:
     //
     cgicc::Cgicc cgi(in);
     //
-    const CgiEnvironment& env = cgi.getEnvironment();
+    //const CgiEnvironment& env = cgi.getEnvironment();
     //
     cgicc::form_iterator name = cgi.getElement("tmb");
     int tmb;
@@ -4560,7 +4895,7 @@ private:
     //
     cgicc::Cgicc cgi(in);
     //
-    const CgiEnvironment& env = cgi.getEnvironment();
+    //const CgiEnvironment& env = cgi.getEnvironment();
     //
     cgicc::form_iterator name = cgi.getElement("tmb");
     int tmb;
@@ -4614,7 +4949,7 @@ private:
     //
     cgicc::Cgicc cgi(in);
     //
-    const CgiEnvironment& env = cgi.getEnvironment();
+    //const CgiEnvironment& env = cgi.getEnvironment();
     //
     cgicc::form_iterator name = cgi.getElement("tmb");
     int tmb;
@@ -5115,7 +5450,7 @@ private:
     LogFile << "Time     : " << ctime(&rawtime) << std::endl ;
     LogFile << "XML File : " << xmlFile_.toString() << std::endl ;
     //
-    for (int i=0; i<tmbVector.size(); i++) {
+    for (unsigned int i=0; i<tmbVector.size(); i++) {
       //
       LogFile << "TMB " << std::setw(5) << tmbVector[i]->slot() << std::setw(5) <<
 	TMBBoardID_[i] << std::setw(5) <<
@@ -5138,7 +5473,7 @@ private:
     for(int i=0; i<20; i++) LogFile << "+";
     LogFile << std::endl ;
     //
-    for (int i=0; i<dmbVector.size(); i++) {
+    for (unsigned int i=0; i<dmbVector.size(); i++) {
       //
       LogFile << "DMB " << std::setw(5) << dmbVector[i]->slot() << std::setw(5) <<
 	DMBBoardID_[i] ;
@@ -5162,7 +5497,7 @@ private:
     //
     //
     std::string buf;
-    int test = 1;
+    //int test = 1;
     buf = "EmuPeripheralCrateLogFile_"+RunNumber_+"_"+Operator_+".log";
     //
     std::cout << "File to write to" << buf << std::endl ;
@@ -5174,10 +5509,10 @@ private:
     LogFile.open(buf.c_str());
     while(TextFile.good()) LogFile << (char) TextFile.get() ;
     TextFile.close();
-    for (int i=0; i<tmbVector.size(); i++) {
+    for (unsigned int i=0; i<tmbVector.size(); i++) {
       LogFile << OutputTMBTests[i].str() ;
     }
-    for (int i=0; i<tmbVector.size(); i++) {
+    for (unsigned int i=0; i<tmbVector.size(); i++) {
       LogFile << OutputDMBTests[i].str() ;
     }
     LogFile.close();    

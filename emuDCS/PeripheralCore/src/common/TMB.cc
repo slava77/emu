@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.54 2006/03/21 12:27:02 mey Exp $
+// $Id: TMB.cc,v 2.55 2006/03/22 14:36:52 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.55  2006/03/22 14:36:52  mey
+// UPdate
+//
 // Revision 2.54  2006/03/21 12:27:02  mey
 // Update
 //
@@ -264,7 +267,52 @@ int TMB::ReadRegister(int reg){
   return value;
   //
 }
+//
+void TMB::ReadTmbIdCodes() {
+  //Get ID codes for the following devices:
+  //tmb_idcode_[0] = TMB Mezz FPGA IDCode
+  //           [1] = TMB Mezz PROM 0 IDCode
+  //           [2] = TMB Mezz PROM 1 IDCode
+  //           [3] = TMB Mezz PROM 2 IDCode
+  //           [4] = TMB Mezz PROM 3 IDCode
+  //           [5] = TMB User PROM 0 IDCode
+  //           [6] = TMB User PROM 1 IDCode
+  //
+  int device;
+  for (device=0; device<7; device++) 
+    tmb_idcode_[device] = 0;
+  //
+  device = 0;
+  //
+  setup_jtag(ChainTmbMezz);
+  //
+  ShfIR_ShfDR(ChipLocationTmbMezzFpga,
+		    FPGAidCode,
+		    RegSizeTmbMezzFpga_FPGAidCode);
+  tmb_idcode_[device++] = bits_to_int(GetDRtdo(),GetRegLength(),0);
+  //
+  int chip_location;
+  for (chip_location=1; chip_location<=4; chip_location++){
+    ShfIR_ShfDR(chip_location,
+		      PROMidCode,
+		      RegSizeTmbMezzProm_PROMidCode);
 
+    tmb_idcode_[device++] = bits_to_int(GetDRtdo(),GetRegLength(),0);
+  }
+  //
+  //
+  setup_jtag(ChainTmbUser);
+  //
+  for (chip_location=0; chip_location<=1; chip_location++){
+    ShfIR_ShfDR(chip_location,
+		      PROMidCode,
+		      RegSizeTmbUserProm_PROMidCode);
+    tmb_idcode_[device++] = bits_to_int(GetDRtdo(),GetRegLength(),0);
+  }
+  //
+  return;
+}
+//
 int TMB::FirmwareDate(){
   //
   tmb_vme(VME_READ,vme_idreg1_adr,sndbuf,rcvbuf,NOW);
