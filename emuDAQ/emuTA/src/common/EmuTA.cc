@@ -48,7 +48,7 @@ bSem_(BSem::FULL)
     urn_           = appDescriptor_->getURN();
 
     appDescriptor_->setAttribute("icon",
-        "/emu/emuDAQ/emuTA/images/ta64x64.gif");
+        "/emu/emuDAQ/emuTA/images/EmuTA64x64.gif");
 
     // Note that rubuilderTesterDescriptor_ will be zero if the
     // RUBuilderTester application is not found
@@ -445,7 +445,7 @@ throw (xgi::exception::Exception)
     *out << "  <td align=\"left\">"                                    << endl;
     *out << "    <img"                                                 << endl;
     *out << "     align=\"middle\""                                    << endl;
-    *out << "     src=\"/emu/emuDAQ/emuTA/images/ta64x64.gif\""     << endl;
+    *out << "     src=\"/emu/emuDAQ/emuTA/images/EmuTA64x64.gif\""     << endl;
     *out << "     alt=\"Main\""                                        << endl;
     *out << "     width=\"64\""                                        << endl;
     *out << "     height=\"64\""                                       << endl;
@@ -478,7 +478,7 @@ throw (xgi::exception::Exception)
         *out << "    <a href=";
         *out << "\"" << getHref(rubuilderTesterDescriptor_) << "\">"   << endl;
         *out << "      <img"                                           << endl;
-        *out << "     src=\"/emu/emuDAQ/emuDAQtester/images/rubtest64x64.gif\"";
+        *out << "     src=\"/emu/emuDAQ/emuDAQtester/images/EmuDAQManager64x64.gif\"";
         *out << endl;
         *out << "       alt=\"Tester\""                                << endl;
         *out << "       width=\"64\""                                  << endl;
