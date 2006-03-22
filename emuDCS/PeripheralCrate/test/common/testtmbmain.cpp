@@ -49,6 +49,7 @@ int main() {
   bool isRATuserCodesOK = false;
   bool HardResetOK = false;
   bool VMEfpgaDataRegisterOK = false;
+  bool isU76OK = false;
 
   int Menu = 99;
 
@@ -134,7 +135,7 @@ int main() {
               << std::endl;
     std::cout << " 17:ALCT TX/RX cables          18:RAT temperature OK          19:RAT ID codes"
               << std::endl;
-    std::cout << " 70:RAT User codes"
+    std::cout << " 70:RAT User codes             71:TMB U76 bus-hold chip"
               << std::endl;
     std::cout << std::endl;
     std::cout << " 20:TMB-RAT 80MHz Delay scan   21:Read RAT USER1              22:Read RAT USER2" 
@@ -154,7 +155,7 @@ int main() {
 	      << std::endl;
     std::cout << " 93:TMB Raw hits dump          94:Print counters              95:Reset counters"
 	      << std::endl;
-    std::cout << " 96:Who triggered TMB?         97:set jtag src boot register"
+    std::cout << " 96:Who triggered TMB?"
 	      << std::endl;
     std::cout << std::endl;
     std::cout << "100:Exit " << std::endl;
@@ -224,6 +225,9 @@ int main() {
       break;
     case 70:
       isRATuserCodesOK = testTMB.testRATuserCodes();
+      break;
+    case 71:
+      isU76OK = testTMB.testU76chip();
       break;
       //
       //
@@ -369,9 +373,6 @@ int main() {
     case 96:
       std::cout << "TMB trigger source = " << std::hex 
 		<< thisTMB->ReadRegister(seq_trig_src_adr) << std::endl;
-      break;
-    case 97:
-      testTMB.jtag_src_boot_reg();
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 

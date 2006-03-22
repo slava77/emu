@@ -93,8 +93,6 @@ bool TMBTester::runAllTests() {
   dummy = sleep(1);
   bool isRATuserCodesOK = testRATuserCodes();
 
-  //  jtag_src_boot_reg();
-
   (*MyOutput_) << "TMBTester Full Test Summary:" << std::endl;
 
   messageOK("Boot Register............. ",bootRegOK);
@@ -285,6 +283,8 @@ bool TMBTester::testFirmwareSlot(){
 bool TMBTester::testFirmwareDate() {
   (*MyOutput_) << "TMBTester: testing Firmware date" << std::endl;
 
+  bool testOK = false;
+
   int firmwareData = tmb_->FirmwareDate();
   int day = firmwareData & 0xff;
   int month = (firmwareData>>8) & 0xff;
@@ -293,8 +293,14 @@ bool TMBTester::testFirmwareDate() {
   (*MyOutput_) << "Firmware day.month.year = " << std::hex 
 	       << day << "." << month << "." << year << std::endl;
 
-  bool testOK = compareValues("Firmware Year",year,0x2005,true);
-  messageOK("Firmware Year",testOK);
+  bool dayOK = compareValues("Firmware Day",day,0x17,true);
+  bool monthOK = compareValues("Firmware Month",month,0x3,true);
+  bool yearOK = compareValues("Firmware Year",year,0x2006,true);
+  testOK = (dayOK &&
+	    monthOK &&
+	    yearOK);
+
+  messageOK("Firmware Date",testOK);
   //int dummy = sleep(3);
   //
   ResultTestFirmwareDate_ = testOK;
@@ -873,14 +879,70 @@ bool TMBTester::testRATuserCodes(){
   return testOK;
 }
 //
-//bool TMBTester::testTMBu76chip(){
-//  (*MyOutput_) << "TMBTester: Testing TMB U76 bus-hold chip" << std::endl;  
-//  bool testOK = false;
+bool TMBTester::testU76chip(){
+  (*MyOutput_) << "TMBTester: Testing TMB U76 bus-hold chip" << std::endl;  
+
+  short unsigned int initial_boot;
+  int dummy = tmb_->tmb_get_boot_reg(&initial_boot);
+
+  (*MyOutput_) << "Initial Boot Contents = " << std::hex << initial_boot << std::endl;
+
+  //make sure firmware_type is normal
+  if (!testFirmwareType()) return false;
+
+  //make sure we have the right types of chips on the Mezzanine
+  if (!testMezzId()) return false;
+
+  short unsigned int after_jtag;
+  dummy = tmb_->tmb_get_boot_reg(&after_jtag);
+
+  (*MyOutput_) << "Boot Contents after JTAG = " << std::hex << after_jtag << std::endl;
+
+  //put Boot register to power-up state
+  unsigned short int power_up = 0xc000;
+  tmb_->tmb_set_boot_reg(power_up);
+
+  short unsigned int after_power_up;
+  dummy = tmb_->tmb_get_boot_reg(&after_power_up);
+
+
+  (*MyOutput_) << "Boot Contents after putting back to power up state= " 
+	       << std::hex << after_power_up << std::endl;
+
+  bool testJTAGpattern[7];
+  int pattern_expect;
+  int read_data;
+  unsigned short int after_hard_reset;
+  bool testOK = true;
+  for (int bit=6; bit>=0; bit--) {
+    pattern_expect = 1 << bit;                   // write walking 1
+
+    (*MyOutput_) << "Write = " << std::hex << pattern_expect << std::endl;
+    
+    tmb_->WriteRegister(vme_usr_jtag_adr,pattern_expect);
+
+    tmb_->tmb_set_boot_reg(after_power_up | TMB_HARD_RESET);             
+    (*MyOutput_) << "Hard Reset TMB... " << std::endl;
+
+    tmb_->tmb_set_boot_reg(after_power_up);
+    //    (*MyOutput_) << "Resetting bootstrap register... " << std::endl;
+    ::sleep(1);                                  //give TMB time to reload
+
+    dummy = tmb_->tmb_get_boot_reg(&after_hard_reset);    
+    (*MyOutput_) << "After hard reset, boot register = " << after_hard_reset << std::endl;
+
+    read_data = tmb_->ReadRegister(vme_usr_jtag_adr);
+    read_data &= 0x7f;                                 // mask out lowest 7 bits
+    testJTAGpattern[bit] = compareValues("Test pattern",read_data,pattern_expect,true);
+
+    testOK &= testJTAGpattern[bit];
+    //    std::cout << "Enter a number to continue...";
+    //    std::cin >> dummy;
+
+  }
+  return testOK;
+}
 //
-//
-//
-//  return testOK;
-//}
 /////////////////////////////////////////
 // END  TMB Tests:
 /////////////////////////////////////////
@@ -1168,19 +1230,6 @@ void TMBTester::computeBER(int rpc){
 
   }
 
-  return;
-}
-//
-void TMBTester::jtag_src_boot_reg() {
-  (*MyOutput_) << "TMBTester: Force JTAG to go through boot reg" << std::endl;
-  unsigned short int BootData, read_data;
-  int dummy = tmb_->tmb_get_boot_reg(&BootData);
-  (*MyOutput_) << "Initial boot contents = " << std::hex << BootData << std::endl;
-  BootData |= 0x0080;
-  
-  dummy = tmb_->tmb_set_boot_reg(BootData);
-  dummy = tmb_->tmb_get_boot_reg(&read_data);   //check for FPGA final state
-  (*MyOutput_) << "Final Boot Contents = " << std::hex << read_data << std::endl;    
   return;
 }
 //
