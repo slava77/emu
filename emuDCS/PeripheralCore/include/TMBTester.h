@@ -59,6 +59,9 @@ class TMBTester {
   inline int GetResultTest3d3444() { return ResultTest3d3444_ ; }
   inline void SetResultTest3d3444(int result) { ResultTest3d3444_ = result ; }
   //
+  inline int GetResultTestU76() { return ResultTestU76_ ; }
+  inline int SetResultTestU76(int result) { ResultTestU76_ = result ; }
+  //
   inline int GetResultTestALCTtxrx() { return ResultTestALCTtxrx_ ; }
   inline void SetResultTestALCTtxrx(int result) { ResultTestALCTtxrx_ = result ; }
   //
@@ -91,6 +94,7 @@ class TMBTester {
   bool testDSN(int); // TMB=0, mezzanine=1, RAT=2
   bool testADC();
   bool test3d3444();
+  bool testU76chip();
   bool testALCTtxrx();      
   bool testRATtemper();      
   bool testRATidCodes();
@@ -110,12 +114,9 @@ class TMBTester {
   void bit_to_array(int,int *,const int);
   void RpcComputeParity(int);
   //
-  //HACK until TMB has correct chip:
-  void jtag_src_boot_reg();
   //
  protected:
-  // Should be in RAT.cc (after smb_io(int,int,int) moves to TMB.cc)
-  int rat_tmb_delay_;
+  //
   //
  private: 
   std::ostream * MyOutput_ ;
@@ -136,6 +137,7 @@ class TMBTester {
   int ResultTestDSN_;
   int ResultTestADC_;
   int ResultTest3d3444_;
+  int ResultTestU76_;
   int ResultTestALCTtxrx_;
   int ResultTestRATtemper_;
   int ResultTestRATidCodes_;
