@@ -94,11 +94,12 @@ void EmuI2OServer::createCommittedHeapAllocatorMemoryPool()
     }
 }
 
-void EmuI2OServer::addData( const int  runNumber, 
-			    const int  nEvents, 
-			    const bool completesEvent, 
-			    char*      data, 
-			    const int  dataLength ){
+void EmuI2OServer::addData( const int            runNumber, 
+			    const int            nEvents, 
+			    const bool           completesEvent, 
+			    const unsigned short errorFlag, 
+			    char*                data, 
+			    const int            dataLength ){
     LOG4CPLUS_DEBUG(logger_, poolName_ << 
 		    ": " << pool_->getMemoryUsage().getUsed() <<
 		    " bytes ( " << 100*(float)(pool_->getMemoryUsage().getUsed())/(float)(pool_->getMemoryUsage().getCommitted()) << 
@@ -134,6 +135,7 @@ void EmuI2OServer::addData( const int  runNumber,
 		      " to be sent." );
       try {
 	runNumber_ = runNumber;
+	errorFlag_ = errorFlag;
 	appendNewBlock( data, dataLength, completesEvent );
       }
       catch(xcept::Exception e){

@@ -49,6 +49,7 @@ protected:
   Logger                                      logger_;
 
   int                                         runNumber_;
+  unsigned short                              errorFlag_;
 
   string         createName();
   void           findClientDescriptor();
@@ -68,11 +69,12 @@ public:
   xdaq::ApplicationDescriptor* getClientDescriptor(){ return clientDescriptor_; }
   virtual unsigned long getClientTid()=0;
   void   addCredits( const int nCredits, const int prescaling );
-  virtual void   addData(  const int  runNumber, 
-			   const int  nEvents, 
-			   const bool completesEvent, 
-			   char* const data, 
-			   const int  dataLength )=0;
+  virtual void   addData(   const int            runNumber, 
+			    const int            nEvents, 
+			    const bool           completesEvent, 
+			    const unsigned short errorFlag, 
+			    char*                data, 
+			    const int            dataLength )=0;
 //     throw ( xcept::Exception )=0;
   virtual void   sendData()
     throw ( xcept::Exception )=0;

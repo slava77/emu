@@ -129,6 +129,7 @@ private:
   void addDataForClients(const int   runNumber, 
 			 const int   nEventsRead,
 			 const bool  completesEvent, 
+			 const unsigned short errorFlag, 
 			 char* const data, 
 			 const int   dataLength );
 

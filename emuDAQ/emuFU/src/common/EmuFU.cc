@@ -1313,8 +1313,14 @@ void EmuFU::addDataForClients( const int   runNumber,
 			       const bool  completesEvent, 
 			       char* const data, 
 			       const int   dataLength ){
+  unsigned short dummyErrorFlag = 0; // We don't have the error info amy more at this point.
   for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient )
-    clients_[iClient]->server->addData( runNumber, nEventsRead, completesEvent, data, dataLength );
+    clients_[iClient]->server->addData( runNumber, 
+					nEventsRead, 
+					completesEvent,
+					dummyErrorFlag,
+					data, 
+					dataLength );
 }
 
 void EmuFU::css

@@ -2100,10 +2100,12 @@ bool EmuRUI::serverLoopAction(toolbox::task::WorkLoop *wl)
 void EmuRUI::addDataForClients( const int   runNumber, 
 			        const int   nEventsRead,
 			        const bool  completesEvent, 
+				const unsigned short errorFlag, 
 			        char* const data, 
 			        const int   dataLength ){
   for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient )
-    clients_[iClient]->server->addData( runNumber, nEventsRead, completesEvent, data, dataLength );
+    clients_[iClient]->server->addData( runNumber, nEventsRead, completesEvent, 
+					errorFlag, data, dataLength );
 }
 
 
@@ -2244,7 +2246,8 @@ bool EmuRUI::continueConstructionOfSuperFrag()
 {
 
 //   bool keepRunning = true;
-  unsigned int nBytesRead = 0;
+  unsigned int   nBytesRead = 0;
+  unsigned short errorFlag  = 0;
 
   if ( maxEvents_.value_ > 0 && nEventsRead_.value_ >= maxEvents_.value_ ) return false;
 
@@ -2253,6 +2256,8 @@ bool EmuRUI::continueConstructionOfSuperFrag()
   
   // No data ==> no business being here. Try to read again later.
   if ( nBytesRead == 0 ) return true;
+
+  errorFlag = deviceReaders_[iCurrentDeviceReader_]->getErrorFlag();
 
   if ( nBytesRead < 8 ){
     LOG4CPLUS_ERROR(logger_, 
@@ -2329,8 +2334,8 @@ bool EmuRUI::continueConstructionOfSuperFrag()
       appendNewBlockToSuperFrag( data, dataLength );
 
     // Store this data to be sent to clients (if any)
-//     bool lastChunkOfEvent = ( iCurrentDeviceReader_ +1 == nInputDevices_ );
-    addDataForClients( runNumber_.value_, nEventsRead_.value_, lastChunkOfEvent, data, dataLength );
+    addDataForClients( runNumber_.value_, nEventsRead_.value_, lastChunkOfEvent, 
+		       errorFlag, data, dataLength );
 
 
     if ( lastChunkOfEvent ){ // superfragment ready
