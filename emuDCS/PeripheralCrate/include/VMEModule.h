@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.12 2006/03/10 13:13:12 mey Exp $
+// $Id: VMEModule.h,v 2.13 2006/03/23 12:41:41 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.13  2006/03/23 12:41:41  mey
+// UPdate
+//
 // Revision 2.12  2006/03/10 13:13:12  mey
 // Jinghua's changes
 //
@@ -120,8 +123,11 @@ protected:
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.12 2006/03/10 13:13:12 mey Exp $
+// $Id: VMEModule.h,v 2.13 2006/03/23 12:41:41 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.13  2006/03/23 12:41:41  mey
+// UPdate
+//
 // Revision 2.12  2006/03/10 13:13:12  mey
 // Jinghua's changes
 //
@@ -204,6 +210,7 @@ protected:
    /// maybe change these to HAL interface someday?
    void devdo(DEVTYPE dev,int ncmd,const  char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
    void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
+   void RestoreIdle();
    void InitJTAG(int port);
    void CloseJTAG();
 
