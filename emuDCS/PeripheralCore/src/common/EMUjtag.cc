@@ -296,6 +296,9 @@ void EMUjtag::setup_jtag(int chain) {
     jtag_chain_ = -1;
     ::sleep(5);    
   }  else {
+
+    tmb_->RestoreIdle();      //Valid JTAG chain:  bring the state machine to Run-Time Idle
+
     (*MyOutput_) << "EMUjtag: JTAG chain " << std::hex << jtag_chain_ 
 		 << " has " << std::dec << devices_in_chain_ << " devices" << std::endl;
   }
