@@ -1,4 +1,4 @@
-// $Id: EmuClient.cc,v 3.1 2006/02/28 08:59:18 banicz Exp $
+// $Id: EmuClient.cc,v 3.2 2006/03/23 13:00:09 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -36,7 +36,7 @@
 #include "xcept/Exception.h"
 #include "xcept/tools.h"
 
-#include "emuReadout/ORCA/Muon/METBRawFormat/interface/MuEndDDUHeader.h"
+#include "emuReadout/include/MuEndDDUHeader.h"
 
 EmuClient::EmuClient(xdaq::ApplicationStub* c)
   throw(xdaq::exception::Exception)
