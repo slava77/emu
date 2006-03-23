@@ -1,7 +1,8 @@
 #ifndef __EMU_READER_H__
 #define __EMU_READER_H__
 
-#include "Muon/METBRawFormat/interface/MuEndDDUHeader.h"
+// #include "Muon/METBRawFormat/interface/MuEndDDUHeader.h"
+#include "MuEndDDUHeader.h"
 
 #include <iostream>
 #include <string>
@@ -17,6 +18,7 @@ protected:
   unsigned short* theBuffer;     // buffer containing event data
   int             theDataLength; // in bytes
   unsigned int    theErrorCount; // counts consequitive read errors
+  unsigned short  theErrorFlag;  // for DQM
 
 public:
   enum { DDU, DCC };
@@ -58,6 +60,7 @@ public:
   void         setDebug( bool d ){ theDebugMode = d;         }
   unsigned int getErrorCount()   { return theErrorCount;     }
   std::string  getName()         { return theName;           }
+  unsigned short getErrorFlag()  { return theErrorFlag;      }
 
   virtual int  readDDU( unsigned short*& buf )=0;
   virtual int  readDCC( unsigned short*& buf )=0;
