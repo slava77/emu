@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.14 2006/03/22 14:36:52 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.15 2006/03/23 08:24:57 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -289,10 +289,10 @@ public:
 #endif // ! STANDALONE    
     //
     //xoap::bind(this, &EmuPeripheralCrate::onMessage, "onMessage", XDAQ_NS_URI );    
-    xoap::bind(this, &EmuPeripheralCrate::Configure, "Configure", XDAQ_NS_URI );    
-    xoap::bind(this, &EmuPeripheralCrate::Init, "Init", XDAQ_NS_URI );    
-    xoap::bind(this, &EmuPeripheralCrate::Enable, "Enable", XDAQ_NS_URI );    
-    xoap::bind(this, &EmuPeripheralCrate::Disable, "Disable", XDAQ_NS_URI );    
+    //xoap::bind(this, &EmuPeripheralCrate::Configure, "Configure", XDAQ_NS_URI );    
+    //xoap::bind(this, &EmuPeripheralCrate::Init, "Init", XDAQ_NS_URI );    
+    //xoap::bind(this, &EmuPeripheralCrate::Enable, "Enable", XDAQ_NS_URI );    
+    //xoap::bind(this, &EmuPeripheralCrate::Disable, "Disable", XDAQ_NS_URI );    
     //
     myParameter_ =  0;
     //
@@ -578,19 +578,22 @@ private:
     throw (toolbox::fsm::exception::Exception)
   {
     //
-    if ( MyController != 0 ) {
-      delete MyController ;
-    }
+    //if ( MyController != 0 ) {
+    //delete MyController ;
+    //}
     //
-    MyController = new EmuController();
+    //MyController = new EmuController();
     //
-    MyController->SetConfFile(xmlFile_);
+    //MyController->SetConfFile(xmlFile_);
+    //
+    Configuring();
     //
     //MyController->init(); // For CSCSupervisor
     //
     //MyController->configure();
     //
     std::cout << "Configure" << std::endl ;
+    std::cout << xmlFile_.toString() << std::endl;
     //
     //sleep(3);
     //
@@ -1585,7 +1588,7 @@ private:
   void EmuPeripheralCrate::getData0(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='ALCT: CRC error' subcaption='Normalized' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='ALCT: CRC error' subcaption='Normalized' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << std::endl;
     //
     std::cout << ChartData[0].size() << endl ;
     for(unsigned int i=0;i<ChartData[0].size();i++) {
