@@ -58,7 +58,7 @@ bool TMBTester::runAllTests() {
   int dummy;
   bool AllOK;
 
-  //reset();
+  reset();
   //  readreg4();
 
   bool bootRegOK = testBootRegister();
@@ -85,13 +85,15 @@ bool TMBTester::runAllTests() {
   dummy = sleep(1);
   bool is3d3444OK = test3d3444();
   dummy = sleep(1);
-  bool isALCTtxrxOK = testALCTtxrx();
-  dummy = sleep(1);
+  //  bool isALCTtxrxOK = testALCTtxrx();
+  //  dummy = sleep(1);
   bool isRATtemperOK = testRATtemper();
   dummy = sleep(1);
   bool isRATidCodesOK = testRATidCodes();
   dummy = sleep(1);
   bool isRATuserCodesOK = testRATuserCodes();
+  dummy = sleep(1);
+  bool isU76OK = testU76chip();
 
   (*MyOutput_) << "TMBTester Full Test Summary:" << std::endl;
 
@@ -107,10 +109,11 @@ bool TMBTester::runAllTests() {
   messageOK("Digital Serial Numbers.... ",dsnOK);
   messageOK("Voltages (ADC)............ ",adcOK);
   messageOK("3d3444 verification....... ",is3d3444OK);
-  messageOK("ALCT tx/rx cables (RAT)... ",isALCTtxrxOK);
+  //  messageOK("ALCT tx/rx cables (RAT)... ",isALCTtxrxOK);
   messageOK("RAT temperature........... ",isRATtemperOK);
   messageOK("RAT ID codes.............. ",isRATidCodesOK);
   messageOK("RAT User codes............ ",isRATuserCodesOK);
+  messageOK("TMB U76 bus-hold chip..... ",isU76OK);
 
   AllOK = (bootRegOK &&
 	   VMEfpgaDataRegOK &&
@@ -124,11 +127,13 @@ bool TMBTester::runAllTests() {
            dsnOK &&
            adcOK &&
            is3d3444OK &&
-           isALCTtxrxOK &&
+	   //           isALCTtxrxOK &&
 	   isRATtemperOK &&
 	   isRATidCodesOK &&
-	   isRATuserCodesOK);
+	   isRATuserCodesOK &&
+	   isU76OK);
 
+  (*MyOutput_) << "------------------------------" << std::endl;
   messageOK("TMB/RAT internal tests.... ",AllOK);
 
   return AllOK;
@@ -147,8 +152,8 @@ bool TMBTester::testBootRegister() {
   unsigned short int write_data, read_data;
   int err_reg = 0;
 
-  // walk through the 16 bits on the register, except the JTAG bits...
-  for (int ibit=3; ibit<=14; ibit++) {
+  // walk through the 16 bits on the register
+  for (int ibit=0; ibit<16; ibit++) {
     write_data = 0x1 << ibit;
     dummy = tmb_->tmb_set_boot_reg(write_data);
 
@@ -903,19 +908,19 @@ bool TMBTester::testU76chip(){
   for (int bit=6; bit>=0; bit--) {
     pattern_expect = 1 << bit;                   // write walking 1
 
-    (*MyOutput_) << "Write = " << std::hex << pattern_expect << std::endl;
+    //    (*MyOutput_) << "Write = " << std::hex << pattern_expect << std::endl;
     
     tmb_->WriteRegister(vme_usr_jtag_adr,pattern_expect);
 
     tmb_->tmb_set_boot_reg(after_power_up | TMB_HARD_RESET);             
-    (*MyOutput_) << "Hard Reset TMB... " << std::endl;
+    //    (*MyOutput_) << "Hard Reset TMB... " << std::endl;
 
     tmb_->tmb_set_boot_reg(after_power_up);
     //    (*MyOutput_) << "Resetting bootstrap register... " << std::endl;
     ::sleep(1);                                  //give TMB time to reload
 
     dummy = tmb_->tmb_get_boot_reg(&after_hard_reset);    
-    (*MyOutput_) << "After hard reset, boot register = " << after_hard_reset << std::endl;
+    //    (*MyOutput_) << "After hard reset, boot register = " << after_hard_reset << std::endl;
 
     read_data = tmb_->ReadRegister(vme_usr_jtag_adr);
     read_data &= 0x7f;                                 // mask out lowest 7 bits
@@ -926,6 +931,8 @@ bool TMBTester::testU76chip(){
     //    std::cin >> dummy;
 
   }
+
+  messageOK("TMB U76 bus-hold chip",testOK);
   return testOK;
 }
 //
