@@ -1,4 +1,4 @@
-// $Id: EmuClient.cc,v 3.2 2006/03/23 13:00:09 banicz Exp $
+// $Id: EmuClient.cc,v 3.3 2006/03/23 22:17:40 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -9,6 +9,8 @@
  * For the licensing terms see LICENSE.		                         *
  * For the list of contributors see CREDITS.   			         *
  *************************************************************************/
+
+#include <iomanip>
 
 #include "EmuClient.h"
 #include "i2oEmuClientMsg.h"
@@ -263,7 +265,9 @@ void EmuClient::emuDataMsg(toolbox::mem::Reference *bufRef){
 		 " bytes of event " << eventNumber << 
 		 " of run " << msg->runNumber << 
 		 " from " << serversClassName_.toString() <<
-		 " still holding " << msg->nEventCreditsHeld << " event credits.");
+		 " still holding " << msg->nEventCreditsHeld << 
+		 " event credits. Error flag 0x" << setw(2) 
+		 << std::hex << setfill('0') << msg->errorFlag );
 
   // Send it to the end of the queue
   dataMessages_.push_back( bufRef );

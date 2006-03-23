@@ -1,4 +1,4 @@
-// $Id: EmuSOAPClient.cc,v 3.1 2006/02/28 08:59:18 banicz Exp $
+// $Id: EmuSOAPClient.cc,v 3.2 2006/03/23 22:17:40 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -9,6 +9,7 @@
  * For the licensing terms see LICENSE.		                         *
  * For the list of contributors see CREDITS.   			         *
  *************************************************************************/
+#include <iomanip>
 
 #include "EmuSOAPClient.h"
 #include "i2oEmuClientMsg.h"
@@ -219,8 +220,9 @@ xoap::MessageReference EmuSOAPClient::emuDataSOAPMsg(xoap::MessageReference msg)
 //   LOG4CPLUS_DEBUG(getApplicationLogger(), 
 // 		  "Received data message with " << h.size() << 
 // 		  " mime headers:" << endl << ss.str() << s );
-  LOG4CPLUS_INFO(getApplicationLogger(), "Received data message.");
-  LOG4CPLUS_DEBUG(getApplicationLogger(), printMessageReceived(msg) );
+
+  LOG4CPLUS_INFO( getApplicationLogger(), printMessageReceived(msg) );
+  LOG4CPLUS_DEBUG(getApplicationLogger(), printAttachmentsOfMessageReceived(msg) );
 
   xoap::MessageReference reply = xoap::createMessage();
   xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
@@ -229,8 +231,6 @@ xoap::MessageReference EmuSOAPClient::emuDataSOAPMsg(xoap::MessageReference msg)
   return reply;
 }
 
-
-// TODO:
 
 std::string EmuSOAPClient::printMessageReceived( xoap::MessageReference msg ){
   stringstream ss;
@@ -250,15 +250,35 @@ std::string EmuSOAPClient::printMessageReceived( xoap::MessageReference msg ){
   string sr              = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
   parameterNode          = findNode(parameterList, "nEventCreditsHeld");
   string sc              = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
-  
-  ss <<
-    "Received from server "   << sn <<
-    " instance "              << si <<
-    ". Run "                  << sr <<
-    ". nEventCreditsHeld = "  << sc;
+  parameterNode          = findNode(parameterList, "errorFlag");
+  string se              = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
 
   std::list< xoap::AttachmentPart * > attachments = msg->getAttachments();
-  ss << endl << attachments.size() << " attachments:" << endl;
+  int totalSize = 0;
+  for ( std::list< xoap::AttachmentPart * >::iterator a=attachments.begin(); a!=attachments.end(); ++a ){
+    (*a)->removeAllMimeHeaders();
+    totalSize += (*a)->getSize();
+  }
+
+  ss <<
+    "Received "               << totalSize << 
+    " bytes in "              << attachments.size() << 
+    " attachment" << (attachments.size()==1?"":"s") <<
+    " from server "           << sn <<
+    " instance "              << si <<
+    ". Run "                  << sr <<
+    ". nEventCreditsHeld = "  << sc <<
+    ", errorFlag = 0x"        << 
+    setw(2) << std::hex       << 
+    setfill('0')              << se;
+
+  return ss.str();
+}
+
+std::string EmuSOAPClient::printAttachmentsOfMessageReceived( xoap::MessageReference msg ){
+  stringstream ss;
+
+  std::list< xoap::AttachmentPart * > attachments = msg->getAttachments();
   int count=0;
   for ( std::list< xoap::AttachmentPart * >::iterator a=attachments.begin(); a!=attachments.end(); ++a ){
     (*a)->removeAllMimeHeaders();

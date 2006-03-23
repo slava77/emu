@@ -43,11 +43,12 @@ void EmuSOAPServer::createMIMEInfo(){
   contentEncoding_ = "binary";
 }
 
-void EmuSOAPServer::addData( const int  runNumber, 
-			     const int  nEvents, 
-			     const bool completesEvent, 
-			     char* const data, 
-			     const int  dataLength ){
+void EmuSOAPServer::addData( const int            runNumber, 
+			     const int            nEvents, 
+			     const bool           completesEvent, 
+			     const unsigned short errorFlag, 
+			     char*                data, 
+			     const int            dataLength ){
 
   LOG4CPLUS_DEBUG(logger_, name_ << " has " << messages_.size() <<
 		  " messages at event " << nEvents <<
@@ -77,6 +78,7 @@ void EmuSOAPServer::addData( const int  runNumber,
     LOG4CPLUS_DEBUG(logger_, name_ << " SOAP server: Appending data to be sent *****"); 
     try {
       runNumber_ = runNumber;
+      errorFlag_ = errorFlag;
       appendData( data, dataLength, completesEvent );
     }
     catch( xoap::exception::Exception& xe ){
@@ -165,7 +167,13 @@ void EmuSOAPServer::createMessage()
   stringstream rn; rn << runNumber_;
   runnumElement.addTextNode( rn.str() );
 
-  xoap::SOAPName credits = envelope.createName( "nEventCreditsHeld" );
+  xoap::SOAPName    errorflag        = envelope.createName( "errorFlag" );
+  xoap::SOAPElement errorflagElement = bodyElement.addChildElement( errorflag );
+  errorflagElement.addAttribute( xsiType, "xsd:int" );
+  stringstream ef; ef << errorFlag_;
+  errorflagElement.addTextNode( ef.str() );
+
+  xoap::SOAPName    credits        = envelope.createName( "nEventCreditsHeld" );
   xoap::SOAPElement creditsElement = bodyElement.addChildElement( credits );
   creditsElement.addAttribute( xsiType, "xsd:int" );
   creditsElement.addTextNode( nEventCreditsHeld_->toString() );

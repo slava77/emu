@@ -1,4 +1,4 @@
-// $Id: EmuSOAPClient.h,v 3.1 2006/02/27 12:49:27 banicz Exp $
+// $Id: EmuSOAPClient.h,v 3.2 2006/03/23 22:17:40 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -57,6 +57,7 @@ protected:
   xoap::MessageReference emuDataSOAPMsg(xoap::MessageReference msg)
     throw (xoap::exception::Exception);
   std::string printMessageReceived( xoap::MessageReference msg );
+  std::string printAttachmentsOfMessageReceived( xoap::MessageReference msg );
   DOMNode *findNode(DOMNodeList *nodeList,
 		    const string nodeLocalName)
     throw ( xoap::exception::Exception );

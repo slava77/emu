@@ -56,11 +56,12 @@ public:
 		 const Logger                         *logger )
     throw( xcept::Exception );
   ~EmuSOAPServer();
-  void   addData(  const int  runNumber, 
-		   const int  nEvents, 
-		   const bool completesEvent, 
-		   char* const data, 
-		   const int  dataLength );
+  void   addData( const int            runNumber,
+		  const int            nEvents, 
+		  const bool           completesEvent, 
+		  const unsigned short errorFlag, 
+		  char*                data, 
+		  const int            dataLength );
   void   sendData()
     throw ( xcept::Exception );
   unsigned long getClientTid(){ return( (unsigned long)0 ); }
