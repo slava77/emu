@@ -1,7 +1,10 @@
 #ifndef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.14 2006/03/10 13:13:13 mey Exp $
+// $Id: VMEModule.cc,v 2.15 2006/03/23 12:41:41 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.15  2006/03/23 12:41:41  mey
+// UPdate
+//
 // Revision 2.14  2006/03/10 13:13:13  mey
 // Jinghua's changes
 //
@@ -199,8 +202,11 @@ VMEController* VMEModule::getTheController(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.14 2006/03/10 13:13:13 mey Exp $
+// $Id: VMEModule.cc,v 2.15 2006/03/23 12:41:41 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.15  2006/03/23 12:41:41  mey
+// UPdate
+//
 // Revision 2.14  2006/03/10 13:13:13  mey
 // Jinghua's changes
 //
@@ -312,6 +318,15 @@ void VMEModule::scan(int reg,const char *snd,int cnt,char *rcv,int ird) {
   else
     theController->scan(reg, snd, cnt, rcv, ird);
 }
+
+void VMEModule::RestoreIdle() {
+  theController->start( theSlot, boardType() );
+  if(boardType()==TMB_ENUM)
+    theController->RestoreIdle_alct();
+  //else
+  //
+}
+
 
 void VMEModule::InitJTAG(int port) {
   theController->start( theSlot, boardType() );
