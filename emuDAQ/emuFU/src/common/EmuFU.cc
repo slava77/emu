@@ -428,7 +428,8 @@ xdaq::ApplicationDescriptor *EmuFU::getRUBuilderTester
     try
     {
         appDescriptor =
-            appGroup->getApplicationDescriptor("EmuDAQtester", 0);
+//             appGroup->getApplicationDescriptor("EmuDAQtester", 0);
+            appGroup->getApplicationDescriptor("EmuDAQManager", 0);
     }
     catch(xcept::Exception e)
     {
@@ -1405,16 +1406,16 @@ throw (xgi::exception::Exception)
         *out << "    <a href=";
         *out << "\"" << getHref(rubuilderTesterDescriptor_) << "\">"   << endl;
         *out << "      <img"                                           << endl;
-        *out << "     src=\"/emu/emuDAQ/emuDAQtester/images/EmuDAQManager64x64.gif\"";
+        *out << "     src=\"/emu/emuDAQ/emuDAQManager/images/EmuDAQManager64x64.gif\"";
         *out << endl;
-        *out << "       alt=\"Tester\""                                << endl;
+        *out << "       alt=\"Manager\""                                << endl;
         *out << "       width=\"64\""                                  << endl;
         *out << "       height=\"64\""                                 << endl;
         *out << "       border=\"\"/>"                                 << endl;
         *out << "    </a>"                                             << endl;
         *out << "    <a href=";
         *out << "\"" << getHref(rubuilderTesterDescriptor_) << "\">"   << endl;
-        *out << "      Tester"                                         << endl;
+        *out << "      Manager"                                         << endl;
         *out << "    </a>"                                             << endl;
         *out << "  </td>"                                              << endl;
     }
