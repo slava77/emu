@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 1.8 2006/03/08 22:53:12 mey Exp $
+// $Id: CrateTiming.cpp,v 1.9 2006/03/24 14:35:46 mey Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 1.9  2006/03/24 14:35:46  mey
+// UPdate
+//
 // Revision 1.8  2006/03/08 22:53:12  mey
 // Update
 //
@@ -403,6 +406,7 @@ int main(int argc,char **argv){
     cerr << "Error: only one PeripheralCrate allowed" << endl;
     exit(1);
   }
+  //
   vector<TMB*> tmbVector = selector.tmbs(crateVector[0]);
   if (tmbVector.size() > 1){
     cerr << "Error: only one TMB in xml file (" << xmlFile 
@@ -481,7 +485,7 @@ int main(int argc,char **argv){
     //sleep(2);
   }
 
-  
+
   cout << "---- Test Beam Enable ----"<<endl;
 
 
@@ -691,12 +695,6 @@ int main(int argc,char **argv){
       //
       RAT myRat(thisTMB);
       myRat.ReadRatUser1();
-      //
-    }
-    //
-    if ( doChambers) {
-      //
-      std::cout << crateVector[0]->chamberUtils().size() << std::endl;
       //
     }
     //
@@ -1728,7 +1726,7 @@ int main(int argc,char **argv){
     
     if (doPulseTest){
       //tbController.DcsDisable();
-      PulseCFEB();
+      util.PulseCFEB();
       //tbController.DcsEnable();
     }
     
@@ -1740,8 +1738,9 @@ int main(int argc,char **argv){
     
     if (doCFEBTiming){
       //tbController.DcsDisable();
-      float CFEBMean[5];
-      CFEBTiming(CFEBMean);
+      //float CFEBMean[5];
+      //CFEBTiming(CFEBMean);
+      util.CFEBTiming();
       //tbController.DcsEnable();
     }
     
@@ -1774,7 +1773,7 @@ int main(int argc,char **argv){
     
   if (doLv1TMBTiming){
     //tbController.DcsDisable();
-    int L1aTMB = TMBL1aTiming();
+    int L1aTMB = util.TMBL1aTiming();
     //tbController.DcsEnable();
   }
 
@@ -3268,7 +3267,7 @@ int TMBL1aTiming(){
   //
   for (int delay=0;delay<200;delay++) wordcounts[delay] = 0;
   //
-  int minlimit = 100;
+  int minlimit = 10;
   int maxlimit = 160;
   //
   float RightTimeBin = 0;
