@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: calibpulse.cpp,v 2.14 2006/03/24 14:35:46 mey Exp $
+// $Id: calibpulse.cpp,v 2.15 2006/03/24 16:40:36 mey Exp $
 // $Log: calibpulse.cpp,v $
+// Revision 2.15  2006/03/24 16:40:36  mey
+// Update
+//
 // Revision 2.14  2006/03/24 14:35:46  mey
 // UPdate
 //
@@ -86,6 +89,7 @@ int main(int argc, char **argv)
 
   bool doPulsealct = false;
   bool doPulsecfeb = false;
+  bool doPulseComparator = false ;
 
 
   if (argc>1)
@@ -100,6 +104,7 @@ int main(int argc, char **argv)
       if (!strcmp(argv[i],"-f"))     xmlfile=argv[++i];
       if (!strcmp(argv[i],"-alct"))  doPulsealct = true;
       if (!strcmp(argv[i],"-cfeb"))  doPulsecfeb = true;
+      if (!strcmp(argv[i],"-comparator"))  doPulseComparator = true;
     }
 
   EmuController emuController;
@@ -155,6 +160,16 @@ int main(int argc, char **argv)
 	  "  event  = " << counter << std::endl;
       }
     }
+  }
+  //
+  if ( doPulseComparator ) {
+    //
+    for (int pulse=0; pulse=100; pulse++) {
+      //
+      calib.pulseComparator();
+      //
+    }
+    //
   }
   //
   if ( doPulsealct ) {

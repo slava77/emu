@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.55 2006/03/22 14:36:52 mey Exp $
+// $Id: TMB.cc,v 2.56 2006/03/24 16:40:36 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.56  2006/03/24 16:40:36  mey
+// Update
+//
 // Revision 2.55  2006/03/22 14:36:52  mey
 // UPdate
 //
@@ -1971,6 +1974,15 @@ void TMB::DisableInternalL1aSequencer(){
   //
 }
 
+void TMB::EnableInternalL1aSequencer(){
+  //
+  tmb_vme(VME_READ,seq_l1a_adr,sndbuf,rcvbuf,NOW);
+  sndbuf[0] = (rcvbuf[0]&0x0f) | 0x10;
+  sndbuf[1] = (rcvbuf[1]&0xff) ;
+  tmb_vme(VME_WRITE,seq_l1a_adr,sndbuf,rcvbuf,NOW);
+  //
+}
+
 void TMB::EnableCLCTInputs(int CLCTInputs = 0x1f){
 //
    int adr, alct_wdcnt, alct_busy, rd_data, wr_data, alct_rdata;
@@ -2822,7 +2834,7 @@ void TMB::load_cscid()
 void TMB::lvl1_delay(unsigned short int time)
 {
   tmb_vme(VME_READ,seq_l1a_adr,sndbuf,rcvbuf,NOW);
-  sndbuf[0]=  rcvbuf[0];
+  sndbuf[0]=  (rcvbuf[0]&0xff);
   sndbuf[1]=  (time&0x00ff);
   tmb_vme(VME_WRITE,seq_l1a_adr,sndbuf,rcvbuf,NOW);
 }

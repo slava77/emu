@@ -31,14 +31,14 @@ public:
   //
   void CCBStartTrigger();
   void CFEBTiming();
-  void PulseCFEB(int HalfStrip = -1, int CLCTInputs = 0x1f );
+  void PulseCFEB(int HalfStrip = -1, int CLCTInputs = 0x1f , bool enable=0);
   void CFEBChamberScan();
   void PulseTestStrips();
   void ALCTTiming();
   void ALCTScanDelays();
   void ALCTChamberScan();
   void ALCTSVFLoad();
-  int  TMBL1aTiming();
+  int  TMBL1aTiming(int enable=0);
   int  FindBestL1aAlct();
   void PulseRandomALCT();
   void PulseAllWires();
