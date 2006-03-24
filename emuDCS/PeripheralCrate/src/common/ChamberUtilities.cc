@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.14 2006/03/24 14:35:04 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.15 2006/03/24 16:40:36 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.15  2006/03/24 16:40:36  mey
+// Update
+//
 // Revision 1.14  2006/03/24 14:35:04  mey
 // Update
 //
@@ -1364,8 +1367,9 @@ void ChamberUtilities::PulseTestStrips(){
    //
 }
 //
-void ChamberUtilities::PulseCFEB(int HalfStrip, int CLCTInputs ){
+void ChamberUtilities::PulseCFEB(int HalfStrip, int CLCTInputs, bool enableL1aEmulator ){
   //
+  if ( enableL1aEmulator ) thisTMB->EnableInternalL1aSequencer();
   thisTMB->DisableCLCTInputs();
   thisTMB->SetCLCTPatternTrigger();
   //
@@ -1483,14 +1487,20 @@ void ChamberUtilities::CFEBChamberScan(){
   }
 }
 //
-int ChamberUtilities::TMBL1aTiming(){
+int ChamberUtilities::TMBL1aTiming(int enableInternalL1a){
   //
   int wordcounts[200];
+  int TmbDavScope[200];
   int nmuons = 1;
   //
-  for (int delay=0;delay<200;delay++) wordcounts[delay] = 0;
+  if(enableInternalL1a) thisTMB->EnableInternalL1aSequencer();
   //
-  int minlimit = 0;
+  for (int delay=0;delay<200;delay++) {
+    wordcounts[delay] = 0;
+    TmbDavScope[delay] = 0;
+  }
+  //
+  int minlimit = 100;
   int maxlimit = 200;
   //
   float RightTimeBin = 0;
@@ -1514,6 +1524,9 @@ int ChamberUtilities::TMBL1aTiming(){
       thisTMB->PrintCounters(19) ;
       thisTMB->PrintCounters(20) ;
       thisTMB->PrintCounters(21) ;
+      //
+      TmbDavScope[delay] = thisDMB->GetTmbDavScope();
+      //
       printf(" WordCount %d \n",thisTMB->GetWordCount());
     }
   }
@@ -1523,7 +1536,7 @@ int ChamberUtilities::TMBL1aTiming(){
       RightTimeBin += delay ;
       DataCounter++ ;
     }
-    printf("delay = %d wordcount = %d wordcount/nmuons %d \n",delay,wordcounts[delay],wordcounts[delay]/(nmuons));
+    printf("delay = %d wordcount = %d TmbDavScope %d wordcount/nmuons %f \n",delay,wordcounts[delay],TmbDavScope[delay],wordcounts[delay]/(nmuons));
   }
   //
   RightTimeBin /= float(DataCounter) ;

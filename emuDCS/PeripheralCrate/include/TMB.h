@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.35 2006/03/22 14:36:52 mey Exp $
+// $Id: TMB.h,v 2.36 2006/03/24 16:40:36 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.36  2006/03/24 16:40:36  mey
+// Update
+//
 // Revision 2.35  2006/03/22 14:36:52  mey
 // UPdate
 //
@@ -206,6 +209,7 @@ public:
   void DisableExternalCCB();
   void EnableInternalL1aEmulator();
   void DisableInternalL1aSequencer();
+  void EnableInternalL1aSequencer();
   void tmb_clk_delays(unsigned short int time, int cfeb_id);
   //
   int  CCB_command_from_TTC();
