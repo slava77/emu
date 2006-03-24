@@ -1,3 +1,4 @@
+#ifndef ChamberUtilities_h
 #define ChamberUtilities_h
 
 #include <iostream>
@@ -106,3 +107,5 @@ private:
   int Npulses_;
   //
 };
+
+#endif

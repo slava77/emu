@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 2.8 2006/03/08 22:53:12 mey Exp $
+// $Id: Crate.cc,v 2.9 2006/03/24 14:35:04 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 2.9  2006/03/24 14:35:04  mey
+// Update
+//
 // Revision 2.8  2006/03/08 22:53:12  mey
 // Update
 //
@@ -50,6 +53,7 @@ Crate::Crate(int number, VMEController * controller) :
   theModules(27),
   theController(controller) 
 {
+  theChambers.clear();
   Singleton<CrateSetup>::instance()->addCrate(number, this);
 }
 
@@ -66,8 +70,11 @@ void Crate::addModule(VMEModule * module) {
   theModules[module->slot()] = module;
 }
 
+void Crate::AddChamber(Chamber * chamber) {
+  theChambers.push_back(chamber);
+}
 
-std::vector<ChamberUtilities> Crate::chamberUtils() const {
+std::vector<ChamberUtilities> Crate::chamberUtilsMatch() const {
   //
   std::vector<DAQMB *> dmbVector = daqmbs();
   std::vector<TMB *>   tmbVector = tmbs();
@@ -92,7 +99,13 @@ std::vector<ChamberUtilities> Crate::chamberUtils() const {
   //
 }
 //
-std::vector<Chamber> Crate::chambers() const {
+std::vector<Chamber*> Crate::chambers() const {
+  //
+  return theChambers;
+  //
+}
+//
+std::vector<Chamber> Crate::chambersMatch() const {
   //
   std::vector<DAQMB *> dmbVector = daqmbs();
   std::vector<TMB *>   tmbVector = tmbs();

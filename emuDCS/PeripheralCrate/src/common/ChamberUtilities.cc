@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.13 2006/03/23 08:24:58 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.14 2006/03/24 14:35:04 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.14  2006/03/24 14:35:04  mey
+// Update
+//
 // Revision 1.13  2006/03/23 08:24:58  mey
 // Update
 //
@@ -1058,8 +1061,11 @@ int ChamberUtilities::FindBestL1aAlct(){
   cout << endl;
   */
   //
-  int WordCount[200];
-  for (int i=0; i<200; i++) WordCount[i] = 0;
+  int WordCount[200], DMBCount[200];
+  for (int i=0; i<200; i++) {
+    WordCount[i] = 0; 
+    DMBCount[i]=0;
+  }
   //
   //unsigned cr[3]  = {0x80fc5fc0, 0x20a03786, 0x8}; // default conf register
   //
@@ -1115,6 +1121,7 @@ int ChamberUtilities::FindBestL1aAlct(){
     thisTMB->GetCounters();
     thisTMB->PrintCounters(3);
     WordCount[l1a] = thisTMB->GetALCTWordCount();
+    DMBCount[l1a] = thisDMB->GetAlctDavCounter();
     printf(" WordCount %d \n",thisTMB->GetALCTWordCount());
     //
     thisDMB->PrintCounters();
@@ -1122,7 +1129,7 @@ int ChamberUtilities::FindBestL1aAlct(){
   }
   //
   for (int i=minlimit; i<maxlimit; i++){
-    printf(" Value = %d WordCount = %x \n",i,WordCount[i]);
+    printf(" Value = %d WordCount = %3d DMBCount = %3d \n",i,WordCount[i],DMBCount[i]);
   }
   //
   float DelayBin  = 0;
@@ -1344,6 +1351,7 @@ void ChamberUtilities::PulseTestStrips(){
 	//thisCCB_->WriteRegister(0x20,0x01);
 	//
 	thisCCB_->GenerateAlctAdbASync();	 
+	//
 	//thisCCB_->setCCBMode(CCB::DLOG);  
 	//
 	}
@@ -1357,7 +1365,7 @@ void ChamberUtilities::PulseTestStrips(){
 }
 //
 void ChamberUtilities::PulseCFEB(int HalfStrip, int CLCTInputs ){
-   //
+  //
   thisTMB->DisableCLCTInputs();
   thisTMB->SetCLCTPatternTrigger();
   //
@@ -1370,7 +1378,7 @@ void ChamberUtilities::PulseCFEB(int HalfStrip, int CLCTInputs ){
   cout << " -- Injecting in " << HalfStrip << endl;
   cout << endl;
   //
-  //thisTMB->DiStripHCMask(HalfStrip/4-1); // counting from 0;
+  //thisTMB->DiStripHCMask(HalfStrip/4-1); // counting from 0; //Bad...requests L1a....
   //
   int hp[6] = {HalfStrip, HalfStrip, HalfStrip, HalfStrip, HalfStrip, HalfStrip};       
   //
@@ -1382,11 +1390,16 @@ void ChamberUtilities::PulseCFEB(int HalfStrip, int CLCTInputs ){
   //
   // Inject it (pulse the CFEBs)
   //
+  thisCCB_->setCCBMode(CCB::VMEFPGA);
+  thisCCB_->WriteRegister(0x28,0x7878);  //4Aug05 DM changed 0x789b to 0x7862
+  //
   thisDMB->inject(1,0x4f);
   //
   // Decode the TMB CLCTs (0 and 1)
   //
   thisTMB->DecodeCLCT();
+  //
+  thisDMB->PrintCounters();
   //
   cout << endl ;
   //
@@ -1483,6 +1496,8 @@ int ChamberUtilities::TMBL1aTiming(){
   float RightTimeBin = 0;
   int   DataCounter  = 0;
   //
+  thisTMB->ResetCounters();
+  //
   for( int delay=minlimit; delay<maxlimit; delay++){
     //
     printf("delay %d\n",delay);
@@ -1493,8 +1508,12 @@ int ChamberUtilities::TMBL1aTiming(){
       while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
       thisTMB->ResetRAMAddress();
       if ( UseCosmic ) sleep(2);
-      if ( UsePulsing) PulseCFEB(16,0xa);
+      if ( UsePulsing) PulseCFEB(delay%16,0xa);
       wordcounts[delay] += thisTMB->GetWordCount();
+      thisTMB->GetCounters();
+      thisTMB->PrintCounters(19) ;
+      thisTMB->PrintCounters(20) ;
+      thisTMB->PrintCounters(21) ;
       printf(" WordCount %d \n",thisTMB->GetWordCount());
     }
   }

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.25 2006/03/16 19:30:02 mey Exp $
+// $Id: ALCTController.cc,v 2.26 2006/03/24 14:35:04 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.26  2006/03/24 14:35:04  mey
+// Update
+//
 // Revision 2.25  2006/03/16 19:30:02  mey
 // UPdate
 //
@@ -565,7 +568,7 @@ void ALCTController::setup(int choice)
 
   printf ("alct_download_hot_mask returned %ld\n", alct_download_hot_mask 
 	  //(dp->tmb_slt, "hcmask.file", 1));
-	  ("hcmask.file", (unsigned long)1));
+	  ("hcmask.file", (long)1));
 
 
   setDelays();
@@ -661,7 +664,7 @@ void ALCTController::jam_jtag_flush ()
         {
                 wc = 0;
                 d = 0;
-                for (i = 0; i < nbits; i++)
+                for (unsigned int i = 0; i < nbits; i++)
                 {
                         b = ((unsigned long)rbits[i]) << wc;
                         d |= b;
@@ -1551,14 +1554,14 @@ void ALCTController::setCRfld(alct_params_type* p) {
   }
   else
   {
-    for (int i = 0; i < sizeof (CRfld) / sizeof (struct Rfield); i++) crParams_[i] = NULL;
+    for (unsigned int i = 0; i < sizeof (CRfld) / sizeof (struct Rfield); i++) crParams_[i] = NULL;
   }
 }
 
 
 void ALCTController::packControlRegister(unsigned * cr) const {
   //*crParams_[9] = 8;
-  for (int i = 0; i < sizeof (CRfld) / sizeof (struct Rfield); i++)
+  for (unsigned int i = 0; i < sizeof (CRfld) / sizeof (struct Rfield); i++)
   {
     if(crParams_[i] != NULL) {
       int wordn = (CRfld[i].bit >> 5) & 3; // number of word in cr to be modified
@@ -1575,7 +1578,7 @@ void ALCTController::packControlRegister(unsigned * cr) const {
 void ALCTController::unpackControlRegister(unsigned * cr) {
   // fills the data fields pointed at by crParams_ with the values packed in cr
   bool verbose = false;
-  for (int i = 0; i < sizeof (CRfld) / sizeof (struct Rfield); i++)
+  for (unsigned int i = 0; i < sizeof (CRfld) / sizeof (struct Rfield); i++)
   {
      int wordn = (CRfld[i].bit >> 5) & 3; // number of word in cr
      int bitn  = (CRfld[i].bit) & 0x1f;   // number of bit in this word the parameter starts from
@@ -1664,7 +1667,7 @@ ALCTController::ALCTSTATUS ALCTController::alct_download_fast_config
                 if (strstr(line, "</alct_fast>") != NULL) state = 2; // end scan
                 if (sscanf (line, "%s %d", parname, &parval) == 2 && state == 1)
                 {
-                    for (i = 0; i < sizeof (CRfld) / sizeof (struct Rfield); i++)
+                    for (unsigned int i = 0; i < sizeof (CRfld) / sizeof (struct Rfield); i++)
                     {
                         if (strcmp (parname, CRfld[i].name) == 0) // search for the appropriate record in the fields of CR
                         {
@@ -3254,7 +3257,7 @@ ALCTController::ALCTSTATUS ALCTController::alct_fast_CheckShiftingPatternViaJTAG
     el.clear();
     // create the hot channel mask disabling one layer (or no layers on the first pass)
     for (lyc = 1; lyc <= 6; lyc++) {
-      if (lyc == tc) hclong = 0;
+      if ((unsigned)lyc == tc) hclong = 0;
       else           hclong = 0xffffffff;
 
       bitstowrite = lyWGs;
@@ -3269,7 +3272,7 @@ ALCTController::ALCTSTATUS ALCTController::alct_fast_CheckShiftingPatternViaJTAG
 
     if (verbose) {
       printf("el.l: %d\n", el.l);
-      for (i = 0; i < el.l/32+1; i++) printf("%08lx\n", el.r[i]);
+      for (unsigned int i = 0; i < el.l/32+1; i++) printf("%08lx\n", el.r[i]);
     }
                 
     elWriteRegister (HCMaskWrite, &el);
@@ -3298,7 +3301,7 @@ ALCTController::ALCTSTATUS ALCTController::alct_fast_CheckShiftingPatternViaJTAG
       // convert it into delay line pattern
       PrepareDelayLinePatterns();
       // write patterns into delay lines
-      for (chi = 0; chi < delayChains(); chi++) {
+      for (unsigned int chi = 0; chi < delayChains(); chi++) {
 	Write6DelayLines(delay, pattern[chi], (1 << chi));
 	ParamRegWriteInt = ParamRegWrite;  // enum put into int so it can be passed to WriteRegister
 	WriteRegister (ParamRegWriteInt, &r);
@@ -3524,28 +3527,28 @@ void ALCTController::show_params(int access_mode, alct_params_type *p) {
                               "Synchronization read out (nyi)   " };
   char   enabled[2][9] = { "disabled", " enabled" };
   char   power[2][4] = { "off", "on " };
-  char   inject_mode[2][11] = { "inject one", "continuous" };
+  //char   inject_mode[2][11] = { "inject one", "continuous" };
 
   if (access_mode == READ) {
     printf("Software versions \n");
     std::cout << "  Concentrator: " << p->conc_idreg << std::endl;
     std::cout << "  Slow Control: " << p->sc_idreg << std::endl;
-    for (j = 0; j < n_lct_chips_; j++) {
+    for (unsigned int j = 0; j < n_lct_chips_; j++) {
       std::cout << "  LCT" << j << " " << p->lct[j].idreg << std::endl;
     }
   }
 
   printf("AFEB Thresholds: ");
-  for (j = 0; j < nAFEBs_; j++) {
+  for (unsigned int j = 0; j < nAFEBs_; j++) {
     if (j == 12 || j == 24 || j == 36) printf("                 ");
     printf("%4d", (unsigned int)(thresholds_[j]));
     if (j % 3 == 2) printf("  ");
-    if (j % 12 == 11 || j == nAFEBs_-1) printf("\n");
+    if ((unsigned) j % 12 == 11 || j == nAFEBs_-1) printf("\n");
   }
 
   printf("Delays:");
 /* printf(" -- not yet implemented --"); */
-  for (j = 0; j < nAFEBs_; j++) printf("%3d", delays_[j]);
+  for (unsigned int j = 0; j < nAFEBs_; j++) printf("%3d", delays_[j]);
   printf("\n");
 
   printf("Test pulse parameters:\n  ");
@@ -3555,7 +3558,7 @@ void ALCTController::show_params(int access_mode, alct_params_type *p) {
   mode = p->test_pulse_power_up;
   printf("power: %1d (%s)\n", mode, power[mode]);
   printf("Standby masks: "); 
-  for (j = 0; j < n_lct_chips_; j++) printf(" 0x%2x", p->standby_mask[j]);
+  for (unsigned int j = 0; j < n_lct_chips_; j++) printf(" 0x%2x", p->standby_mask[j]);
   printf("\n");
   //
   printf("Concentrator configuration\n");
@@ -3592,7 +3595,7 @@ void ALCTController::show_params(int access_mode, alct_params_type *p) {
     if (access_mode == READ) printf("  csc id: %d", p->csc_id);
     printf("\n");
     
-    for (j = 0; j < n_lct_chips_; j++) {
+    for (unsigned int j = 0; j < n_lct_chips_; j++) {
        printf("LCT %d parameters: ", j);
        if (access_mode == READ) {
 	  mode = p->lct[j].lct_jtag_disable;
@@ -4366,7 +4369,7 @@ int ALCTController::NewSVFLoad(int *jch, char *fn, int db ){
   char buf[buffersize];
   char bufR[buffersize];
   char bufR1[buffersize];
-  char* dummy ;
+  //char* dummy ;
   //
   char sndbuf[buffersize];
   char rcvbuf[buffersize];
@@ -4397,7 +4400,7 @@ int ALCTController::NewSVFLoad(int *jch, char *fn, int db ){
   //
   dwnfp = fopen(fn,"r");
   int GettingData = 0;
-  int offset=0;
+  //int offset=0;
   int FirstTime=0;
   //
   hirsize = 0;
@@ -4405,9 +4408,9 @@ int ALCTController::NewSVFLoad(int *jch, char *fn, int db ){
   tdrsize = 0;
   tirsize = 0;
   //
-  for(int i=0; i<sizeof(buf); i++ ) buf[i] = '\0';
-  for(int i=0; i<sizeof(bufR); i++ ) bufR[i] = '\0';
-  for(int i=0; i<sizeof(bufR1); i++ ) bufR1[i] = '\0';
+  for(unsigned int i=0; i<sizeof(buf); i++ ) buf[i] = '\0';
+  for(unsigned int i=0; i<sizeof(bufR); i++ ) bufR[i] = '\0';
+  for(unsigned int i=0; i<sizeof(bufR1); i++ ) bufR1[i] = '\0';
   //
   while (fgets(bufR1,sizeof(bufR1),dwnfp) != NULL) {
      //
@@ -4503,7 +4506,7 @@ int ALCTController::NewSVFLoad(int *jch, char *fn, int db ){
      std::cout << std::endl;
      //
      if ( ! strstr(buf,"//") ) {
-	if ( runtest  = strstr(buf,"RUNTEST") ) {
+	if ( (runtest  = strstr(buf,"RUNTEST")) ) {
 	   char inst[10], inst2[10];
 	   int time;
 	   sscanf(runtest,"%s %d %s",inst,&time,inst2);
@@ -4511,53 +4514,53 @@ int ALCTController::NewSVFLoad(int *jch, char *fn, int db ){
 	   sleep((time/1000000)+1);
 	   printf("%c7", '\033');
 	}
-	if ( smask  = strstr(buf,"SMASK") ) {
+	if ( (smask  = strstr(buf,"SMASK")) ) {
 	   pointerList.push_back(smask);
-	   printf(" Found SMASK %x \n",smask);
+	   printf(" Found SMASK %x \n",(int)smask);
 	}
-	if ( tdo    = strstr(buf,"TDO") )  {
+	if ( (tdo    = strstr(buf,"TDO")) )  {
 	   pointerList.push_back(tdo);
-	   printf(" Found TDO %x \n",tdo);
+	   printf(" Found TDO %x \n",(int)tdo);
 	}
-	if ( tdi    = strstr(buf,"TDI") )  {
+	if ( (tdi    = strstr(buf,"TDI")) )  {
 	   pointerList.push_back(tdi);
-	   printf(" Found TDI %x \n",tdi);
+	   printf(" Found TDI %x \n",(int)tdi);
 	}
-	if ( mask   = strstr(buf," MASK") ) {
+	if ( (mask   = strstr(buf," MASK")) ) {
 	   pointerList.push_back(mask);
-	   printf(" Found MASK %x \n",mask);
+	   printf(" Found MASK %x \n",(int)mask);
 	}
-	if ( sdr    = strstr(buf,"SDR") ) {
-	   printf(" Found SDR %x \n",sdr);
+	if ( (sdr    = strstr(buf,"SDR")) ) {
+	   printf(" Found SDR %x \n",(int)sdr);
 	   pointerList.push_back(sdr);
 	}
-	if ( sir    = strstr(buf,"SIR") ) {
+	if ( (sir    = strstr(buf,"SIR")) ) {
 	   pointerList.push_back(sir);
-	   printf(" Found SIR %x \n",sir);
+	   printf(" Found SIR %x \n",(int)sir);
 	}
-	if ( tir    = strstr(buf,"TIR") ) {
+	if ( (tir    = strstr(buf,"TIR")) ) {
 	   pointerList.push_back(tir);
-	   printf(" Found TIR %x \n",tir);
+	   printf(" Found TIR %x \n",(int)tir);
 	}
-	if ( hir    = strstr(buf,"HIR") ) {
+	if ( (hir    = strstr(buf,"HIR")) ) {
 	   pointerList.push_back(hir);
-	   printf(" Found HIR %x \n",hir);
+	   printf(" Found HIR %x \n",(int)hir);
 	}
-	if ( tdr    = strstr(buf,"TDR") ) {
+	if ( (tdr    = strstr(buf,"TDR")) ) {
 	   pointerList.push_back(tdr);
-	   printf(" Found TDR %x \n",tdr);
+	   printf(" Found TDR %x \n",(int)tdr);
 	}
-	if ( hdr    = strstr(buf,"HDR") ) {
+	if ( (hdr    = strstr(buf,"HDR")) ) {
 	   pointerList.push_back(hdr);
-	   printf(" Found HDR %x \n",hdr);
+	   printf(" Found HDR %x \n",(int)hdr);
 	}
-	if ( sri    = strstr(buf,"STATE RESET IDLE") ) {
+	if ( (sri    = strstr(buf,"STATE RESET IDLE")) ) {
 	   pointerList.push_back(sri);
-	   printf(" Found STATE RESET %x \n",sri);
+	   printf(" Found STATE RESET %x \n",(int)sri);
 	}
-	if ( endline    = strstr(buf,";") ) {
+	if ( (endline    = strstr(buf,";")) ) {
 	   pointerList.push_back(endline);
-	   printf(" Found ; %x \n",endline);
+	   printf(" Found ; %x \n",(int)endline);
 	}
 	//
 	sort(pointerList.begin(),pointerList.end());
@@ -4573,12 +4576,12 @@ int ALCTController::NewSVFLoad(int *jch, char *fn, int db ){
 	tdr   = 0;
 	hdr   = 0;
 	//
-	for( int j=0; j<sizeof(tdivalue); j++) tdivalue[j] = '\0';
-	for( int j=0; j<sizeof(tdovalue); j++) tdovalue[j] = '\0';
-	for( int j=0; j<sizeof(maskvalue); j++) maskvalue[j] = '\0';
-	for( int j=0; j<sizeof(maskvalue); j++) smaskvalue[j] = '\0';
-	for( int j=0; j<sizeof(sndbuf); j++) sndbuf[j] = '\0';
-	for( int j=0; j<sizeof(rcvbuf); j++) rcvbuf[j] = '\0';
+	for( unsigned int j=0; j<sizeof(tdivalue); j++) tdivalue[j] = '\0';
+	for( unsigned int j=0; j<sizeof(tdovalue); j++) tdovalue[j] = '\0';
+	for( unsigned int j=0; j<sizeof(maskvalue); j++) maskvalue[j] = '\0';
+	for( unsigned int j=0; j<sizeof(maskvalue); j++) smaskvalue[j] = '\0';
+	for( unsigned int j=0; j<sizeof(sndbuf); j++) sndbuf[j] = '\0';
+	for( unsigned int j=0; j<sizeof(rcvbuf); j++) rcvbuf[j] = '\0';
 	//
 	for( int j=0; j<buffersize; j++)tdivalueInt[j] = 0;
 	//
@@ -4591,11 +4594,11 @@ int ALCTController::NewSVFLoad(int *jch, char *fn, int db ){
 	//
 	printf("Number of pointers %d \n",pointerList.size());
 	//
-	for (int NPointer=1; NPointer<pointerList.size(); NPointer++) {
+	for (unsigned int NPointer=1; NPointer<pointerList.size(); NPointer++) {
 	   //
 	   char Command[buffersize];
 	   //
-	   for (int count=0; count<sizeof(Command); count++) Command[count] = 0;
+	   for (unsigned int count=0; count<sizeof(Command); count++) Command[count] = 0;
 	   //
 	   //printf("Pointer %x Pointer %x diff %d \n",pointerList[NPointer],pointerList[NPointer-1],
 	   //pointerList[NPointer]-pointerList[NPointer-1]);
@@ -4616,7 +4619,7 @@ int ALCTController::NewSVFLoad(int *jch, char *fn, int db ){
 	      //
 	      printf("%s \n",CommandList[i]);
 	      //
-	      if ( dump = strstr(Command,CommandList[i])  ) {
+	      if ( (dump = strstr(Command,CommandList[i]))  ) {
 //
 		 if ( i == 0 ) smask = strstr(Command,CommandList[i]);
 		 if ( i == 1 ) tdo   = strstr(Command,CommandList[i]);
@@ -4808,6 +4811,8 @@ int ALCTController::NewSVFLoad(int *jch, char *fn, int db ){
      //
   }
   //
+  return 0;
+  //
 }
 
 int ALCTController::ConvertCharToInteger(char Data[], int DataInt[], int& counter){
@@ -4821,7 +4826,7 @@ int ALCTController::ConvertCharToInteger(char Data[], int DataInt[], int& counte
    //
    char mytry[9];
    char* mypointer = mytry;
-   for (int i=0; i<sizeof(mytry); i++) mytry[i] = '\0';
+   for (unsigned int i=0; i<sizeof(mytry); i++) mytry[i] = '\0';
    mypointer = mytry;
    int InLoop = 0;
 //
@@ -4872,7 +4877,7 @@ int ALCTController::ConvertCharToInteger(char Data[], int DataInt[], int& counte
       sscanf(mytry,"%x",&dummy);
       DataInt[counter] = dummy;
       counter++;
-      for (int i=0; i<sizeof(mytry); i++) mytry[i] = '\0';
+      for (unsigned int i=0; i<sizeof(mytry); i++) mytry[i] = '\0';
       mypointer = mytry;
       //
    }

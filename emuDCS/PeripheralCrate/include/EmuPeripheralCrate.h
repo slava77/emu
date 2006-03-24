@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.15 2006/03/23 08:24:57 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.16 2006/03/24 14:35:03 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1134,7 +1134,7 @@ private:
     //
     for(unsigned j = 0; j < myCrates.size(); ++j) {
       //
-      (myCrates[j]->chamberUtils())[0].CCBStartTrigger();
+      (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
       //
       ::sleep(1);
       //

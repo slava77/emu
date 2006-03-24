@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: PeripheralCrateParser.h,v 2.1 2006/03/24 14:35:03 mey Exp $
 // $Log: PeripheralCrateParser.h,v $
+// Revision 2.1  2006/03/24 14:35:03  mey
+// Update
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
@@ -18,6 +21,7 @@
 #include "CCBParser.h"
 #include "MPCParser.h"
 #include "DDUParser.h"
+#include "CSCParser.h"
 
 
 class PeripheralCrateParser {
@@ -36,6 +40,7 @@ public:
   CCBParser ccbParser()     const {return ccbParser_;}
   MPCParser mpcParser()     const {return mpcParser_;}
   DDUParser dduParser()     const {return dduParser_;}
+  CSCParser cscParser()     const {return cscParser_;}
 
 protected:
   DAQMBParser daqmbParser_;
@@ -44,6 +49,7 @@ protected:
   CCBParser ccbParser_;
   MPCParser mpcParser_;
   DDUParser dduParser_;
+  CSCParser cscParser_;
   int crateNumber;
 };
 
