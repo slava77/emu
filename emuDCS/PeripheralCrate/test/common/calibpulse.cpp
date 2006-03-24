@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: calibpulse.cpp,v 2.13 2006/03/07 09:22:58 mey Exp $
+// $Id: calibpulse.cpp,v 2.14 2006/03/24 14:35:46 mey Exp $
 // $Log: calibpulse.cpp,v $
+// Revision 2.14  2006/03/24 14:35:46  mey
+// UPdate
+//
 // Revision 2.13  2006/03/07 09:22:58  mey
 // Update
 //
@@ -133,7 +136,7 @@ int main(int argc, char **argv)
 
   if ( doPulsecfeb ) {
 
-    calib.loadConstants();
+    //calib.loadConstants();
 
     //calib.rateTest();
       
