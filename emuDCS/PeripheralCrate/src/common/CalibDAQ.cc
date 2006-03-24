@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.5 2006/03/07 09:22:58 mey Exp $
+// $Id: CalibDAQ.cc,v 2.6 2006/03/24 14:35:04 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.6  2006/03/24 14:35:04  mey
+// Update
+//
 // Revision 2.5  2006/03/07 09:22:58  mey
 // Update
 //
@@ -107,11 +110,11 @@ void CalibDAQ::pulseAllWires(){
   //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
     //
-    (myCrates[j]->chamberUtils())[0].CCBStartTrigger();
+    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
     //
     sleep(1);
     //
-    std::vector<ChamberUtilities> utils = (myCrates[j]->chamberUtils()) ;
+    std::vector<ChamberUtilities> utils = (myCrates[j]->chamberUtilsMatch()) ;
     //
     for (int i = 0; i < utils.size() ; i++ ) {
       //
@@ -133,7 +136,7 @@ void CalibDAQ::pulseRandomWires(){
     //
     //sleep(1);
     //
-    std::vector<ChamberUtilities> utils = (myCrates[j]->chamberUtils()) ;
+    std::vector<ChamberUtilities> utils = (myCrates[j]->chamberUtilsMatch()) ;
     //
     for (int i = 0; i < utils.size() ; i++ ) {
       //
@@ -179,6 +182,7 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep) {
 
     CCB * ccb = myCrates[j]->ccb();
     std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
+    std::vector<TMB*> myTmbs   = theSelector.tmbs(myCrates[j]);
     for(unsigned i =0; i < myDmbs.size(); ++i) {
       
       // set amplitude
@@ -206,6 +210,16 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep) {
     ::usleep(nsleep);
     ccb->pulse(1, 0xff);//pulse all dmbs in this crate
     ::usleep(nsleep);
+    //
+    for(unsigned i =0; i < myDmbs.size(); ++i) {
+      myDmbs[i]->PrintCounters();
+    }
+    //
+    for(unsigned i =0; i < myTmbs.size(); ++i) {
+      myTmbs[i]->EnableCLCTInputs(0x1f);
+      myTmbs[i]->GetCounters();
+      myTmbs[i]->PrintCounters();
+    }
     //
   }
 }

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.2 2006/03/23 08:24:58 mey Exp $
+// $Id: Chamber.cc,v 1.3 2006/03/24 14:35:04 mey Exp $
 // $Log: Chamber.cc,v $
+// Revision 1.3  2006/03/24 14:35:04  mey
+// Update
+//
 // Revision 1.2  2006/03/23 08:24:58  mey
 // Update
 //
@@ -49,6 +52,9 @@
 using namespace std;
 //
 Chamber::Chamber(){
+}
+//
+Chamber::Chamber(int crateNumber, int slot){
   //
   //
 }

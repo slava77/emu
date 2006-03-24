@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.cc,v 2.3 2006/03/08 22:53:12 mey Exp $
+// $Id: PeripheralCrateParser.cc,v 2.4 2006/03/24 14:35:04 mey Exp $
 // $Log: PeripheralCrateParser.cc,v $
+// Revision 2.4  2006/03/24 14:35:04  mey
+// Update
+//
 // Revision 2.3  2006/03/08 22:53:12  mey
 // Update
 //
@@ -131,8 +134,10 @@ void PeripheralCrateParser::parseFile(const char* name){
 		Crate * crate = vmeParser_.crate();
 		crateNumber = crate->number();  
 		//
-		std::cout << "  *************** crateNumber = " << crateNumber << std::endl;
-		//
+	      }
+	      
+	      if (strcmp("CSC",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
+		cscParser_ = CSCParser(pNode3, crateNumber);
 	      }
 
 	      if (strcmp("DAQMB",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  

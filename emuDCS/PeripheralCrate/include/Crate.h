@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 2.4 2006/01/18 19:38:16 mey Exp $
+// $Id: Crate.h,v 2.5 2006/03/24 14:35:03 mey Exp $
 // $Log: Crate.h,v $
+// Revision 2.5  2006/03/24 14:35:03  mey
+// Update
+//
 // Revision 2.4  2006/01/18 19:38:16  mey
 // Fixed bugs
 //
@@ -20,9 +23,10 @@
 //-----------------------------------------------------------------------
 #ifndef CRATE_h
 #define CRATE_h
+//
 #include <vector>
 #include <iostream>
-
+//
 class VMEModule;
 class VMEController;
 class DAQMB;
@@ -45,14 +49,16 @@ public:
   void configure();
   void init();
   void addModule(VMEModule * module);
+  void AddChamber(Chamber * chamber);
 
   VMEController * vmeController() const {return theController;}
 
   /// uses RTTI to find types
   std::vector<DAQMB *> daqmbs() const;
   std::vector<TMB *> tmbs() const;
-  std::vector<ChamberUtilities> chamberUtils() const;
-  std::vector<Chamber> chambers() const;
+  std::vector<ChamberUtilities> chamberUtilsMatch() const;
+  std::vector<Chamber*> chambers() const;
+  std::vector<Chamber> chambersMatch() const;
   //
   CCB * ccb() const;
   MPC * mpc() const;
@@ -72,6 +78,7 @@ private:
   int theNumber;
   /// indexed by slot 
   std::vector<VMEModule *> theModules;
+  std::vector<Chamber *> theChambers;
   VMEController * theController;
 };
 

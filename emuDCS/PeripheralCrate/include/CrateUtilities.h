@@ -1,3 +1,4 @@
+#ifndef CrateUtilities_h
 #define CrateUtilities_h
 
 #include <iostream>
@@ -23,3 +24,5 @@ private:
   Crate * myCrate_;
   //
 };
+
+#endif
