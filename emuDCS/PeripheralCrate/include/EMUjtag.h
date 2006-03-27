@@ -43,6 +43,9 @@ public:
 			int length, 
 			int firstBit, 
 			int * bitVector);
+  int bits_to_int(int * vector_of_bits,
+		  int length_of_vector,
+		  int start_from_MsbOrLsb);   // 0 = Translate LSB first
   //
 protected:
   //
