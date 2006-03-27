@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.8 2006/03/27 09:22:36 mey Exp $
+// $Id: CalibDAQ.cc,v 2.9 2006/03/27 09:51:42 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.9  2006/03/27 09:51:42  mey
+// UPdate
+//
 // Revision 2.8  2006/03/27 09:22:36  mey
 // Update
 //
@@ -145,10 +148,23 @@ void CalibDAQ::pulseComparator(){
     std::vector<ChamberUtilities> utils = (myCrates[j]->chamberUtilsMatch()) ;
     //
     for (int i = 0; i < utils.size() ; i++ ) {
-      //
-      utils[i].GetDMB()->set_cal_dac(0.15,0.15);
-      utils[i].PulseCFEB(-1,0x1f,true);
-      //
+      for (int strip=0; strip<32; strip++) {
+	utils[i].GetDMB()->set_cal_dac(0.15,0.15);
+	for (int thresh=0; thresh<35; thresh++) {
+	  utils[i].GetDMB()->set_comp_thresh(0.013+thresh*0.003);
+	  utils[i].PulseCFEB(strip,0x1f,true);
+	}
+      }
+    }
+    //
+    for (int i = 0; i < utils.size() ; i++ ) {
+      for (int strip=0; strip<32; strip++) {
+	utils[i].GetDMB()->set_cal_dac(0.35,0.35);
+	for (int thresh=0; thresh<35; thresh++) {
+	  utils[i].GetDMB()->set_comp_thresh(0.049+thresh*0.003);
+	  utils[i].PulseCFEB(strip,0x1f,true);
+	}
+      }
     }
     //
   }
