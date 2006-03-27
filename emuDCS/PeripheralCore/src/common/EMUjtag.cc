@@ -21,7 +21,6 @@ EMUjtag::EMUjtag(TMB * tmb) :
   //
   jtag_chain_ = -1;
   //
-  std::cout << "made it here" << std::endl;
 };
 //
 EMUjtag::~EMUjtag() {
