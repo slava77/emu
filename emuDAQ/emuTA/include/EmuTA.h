@@ -392,9 +392,16 @@ private:
 
     /**
      * Callback implementing the action to be executed on the
-     * ANY STATE->Halted transition.
+     * ANY STATE BUT READY->Halted transition.
      */
     void haltAction(toolbox::Event::Reference e)
+    throw (toolbox::fsm::exception::Exception);
+
+    /**
+     * Callback implementing the action to be executed on the
+     * READY->Halted transition.
+     */
+    void haltActionComingFromReady(toolbox::Event::Reference e)
     throw (toolbox::fsm::exception::Exception);
 
     /**
