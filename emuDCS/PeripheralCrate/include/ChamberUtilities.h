@@ -65,7 +65,10 @@ public:
   int beginning;
   //
   inline void SetTMB(TMB* myTMB)   {thisTMB = myTMB; alct = myTMB->alctController() ;}
+  //
   inline void SetDMB(DAQMB* myDMB) {thisDMB = myDMB; }
+  inline DAQMB* GetDMB() {return thisDMB; }
+  //
   inline void SetCCB(CCB* myCCB)   {thisCCB_ = myCCB; }
   inline void SetMPC(MPC* myMPC)   {thisMPC = myMPC; }
   //
