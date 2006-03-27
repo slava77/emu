@@ -221,7 +221,7 @@ throw (emuTA::exception::Exception)
         fsm_.addStateTransition('H', 'H', "Halt"     , this,
             &EmuTA::haltAction);
         fsm_.addStateTransition('R', 'H', "Halt"     , this,
-            &EmuTA::haltAction);
+            &EmuTA::haltActionComingFromReady);
         fsm_.addStateTransition('E', 'H', "Halt"     , this,
             &EmuTA::haltAction);
         fsm_.addStateTransition('S', 'H', "Halt"     , this,
@@ -854,6 +854,16 @@ throw (toolbox::fsm::exception::Exception)
   // Emu: Increment run number
   runNumber_++;
 
+    // Reset the dummy event number
+    eventNumber_ = 1;
+
+    // Reset the number of credits held
+    nbCreditsHeld_ = 0;
+}
+
+void EmuTA::haltActionComingFromReady(toolbox::Event::Reference e)
+throw (toolbox::fsm::exception::Exception)
+{
     // Reset the dummy event number
     eventNumber_ = 1;
 
