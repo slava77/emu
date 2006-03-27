@@ -97,8 +97,8 @@ logger_(Logger::getInstance(generateLoggerName()))
 
     getAllAppDescriptors();
 
-    testConfigured_ = false;
-    testStarted_    = false;
+//     testConfigured_ = false;
+//     testStarted_    = false;
 
     // Bind web interface
     xgi::bind(this, &EmuDAQManager::css           , "styles.css");
@@ -577,7 +577,7 @@ throw (xgi::exception::Exception)
     *out << "<html>"                                                   << endl;
 
     *out << "<head>"                                                   << endl;
-//     if (testStarted_) {
+
     if ( fsm_.getCurrentState() == 'E' ){
      *out << "<meta http-equiv=\"refresh\" content=\"5\">"              << endl;
     }
@@ -677,13 +677,12 @@ throw (xgi::exception::Exception)
     }
 
 
-//     if(!testConfigured_){
     if ( fsm_.getCurrentState() == 'H' ){
       *out << "Set run number: "                                     << endl;
       *out << "<input"                                               << endl;
       *out << " type=\"text\""                                       << endl;
       *out << " name=\"runnumber\""                                  << endl;
-      *out << " title=\"run number\""                                << endl;
+      *out << " title=\"Run number.\""                               << endl;
       *out << " alt=\"run number\""                                  << endl;
       *out << " value=\"" << runNumber << "\""                       << endl;
       *out << " size=\"10\""                                         << endl;
@@ -694,7 +693,7 @@ throw (xgi::exception::Exception)
       *out << "<input"                                               << endl;
       *out << " type=\"text\""                                       << endl;
       *out << " name=\"maxevents\""                                  << endl;
-      *out << " title=\"maximum number of events\""                  << endl;
+      *out << " title=\"Readout will stop after this many events.\"" << endl;
       *out << " alt=\"maximum number of events\""                    << endl;
       *out << " value=\"" << maxNumEvents << "\""                    << endl;
       *out << " size=\"10\""                                         << endl;
@@ -713,12 +712,11 @@ throw (xgi::exception::Exception)
     *out << " type=\"submit\""                                         << endl;
     *out << " name=\"command\""                                        << endl;
 
-//     if(!testConfigured_)
     if ( fsm_.getCurrentState() == 'H' )
       {
         *out << " value=\"configure\""                                 << endl;
       }
-//     else if(testStarted_)
+
     if ( fsm_.getCurrentState() == 'E' )
       {
         *out << " value=\"stop\""                                      << endl;
@@ -728,10 +726,18 @@ throw (xgi::exception::Exception)
         *out << " value=\"start\""                                     << endl;
       }
 
-     *out << "/>"                                                       << endl;
-     *out << "</form>"                                                  << endl;
-
-     *out << "<br>"                                                     << endl;
+    if ( fsm_.getCurrentState() == 'C' )
+      {
+	*out << "/>"                                                   << endl;
+	*out << "<input"                                               << endl;
+	*out << " type=\"submit\""                                     << endl;
+	*out << " name=\"command\""                                    << endl;
+        *out << " value=\"stop\""                                      << endl;
+	*out << "/>"                                                   << endl;
+      }
+    
+    *out << "</form>"                                                  << endl;
+    *out << "<br>"                                                     << endl;
 
     *out << "<table border=\"0\">"                                   << endl;
     *out << "<tr valign=\"top\">"                                    << endl;
@@ -785,10 +791,8 @@ throw (xgi::exception::Exception)
     {
         string cmdName = (*cmdElement).getValue();
 
-//         if((cmdName == "configure") && (!testConfigured_))
 	if ( (cmdName == "configure") && fsm_.getCurrentState() == 'H' )
 	  {
-
 	    // Emu: set run number in emuTA to the value given by the user on the control page
 	    cgicc::form_iterator runNumElement = cgi.getElement("runnumber");
 	    cgicc::form_iterator maxEvtElement = cgi.getElement("maxevents");
@@ -799,51 +803,17 @@ throw (xgi::exception::Exception)
 	    runNumber_.fromString( runNumber );
 	    maxNumberOfEvents_.fromString( maxNumEvents );
 
-//             try
-//             {
-//                 configureTest();
-//                 testConfigured_ = true;
-//             }
-//             catch(xcept::Exception e)
-//             {
-//                 XCEPT_RETHROW(xgi::exception::Exception,
-//                     "Failed to configure test", e);
-//             }
-
 	    fireEvent("Configure");
-
 	  }
-//         else if((cmdName == "start") && (!testStarted_))
+
 	if ( (cmdName == "start") && fsm_.getCurrentState() == 'C' )
         {
-//             try
-//             {
-//                 startTest();
-//                 testStarted_ = true;
-//             }
-//             catch(xcept::Exception e)
-//             {
-//                 XCEPT_RETHROW(xgi::exception::Exception,
-//                     "Failed to start test", e);
-//             }
-
 	    fireEvent("Enable");
-
         }
-//         else if((cmdName == "stop") && testStarted_)
-        else if((cmdName == "stop") && fsm_.getCurrentState() == 'E' )
+        else if( ( cmdName == "stop"                ) && 
+		 ( fsm_.getCurrentState() == 'C' ||
+		   fsm_.getCurrentState() == 'E'    )    )
         {
-//             try
-//             {
-//                 stopTest();
-//                 testStarted_ = false;
-//                 testConfigured_ = false;
-//             }
-//             catch(xcept::Exception e)
-//             {
-//                 XCEPT_RETHROW(xgi::exception::Exception,
-//                     "Failed to stop test", e);
-//             }
 	    fireEvent("Halt");
         }
     }
@@ -2902,7 +2872,7 @@ xoap::MessageReference EmuDAQManager::onHalt(xoap::MessageReference message)
 void EmuDAQManager::configureAction(toolbox::Event::Reference e)
         throw (toolbox::fsm::exception::Exception)
 {   
-//   if ( !testConfigured_ ){
+
     try
       {
 	configureTest();
@@ -2913,14 +2883,14 @@ void EmuDAQManager::configureAction(toolbox::Event::Reference e)
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		      "Failed to configure test", e);
       }
-//   }
+
   LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
 
 void EmuDAQManager::enableAction(toolbox::Event::Reference e)
 		throw (toolbox::fsm::exception::Exception)
 {
-//   if ( testConfigured_ && !testStarted_ ){
+
     try
       {
 	startTest();
@@ -2931,33 +2901,22 @@ void EmuDAQManager::enableAction(toolbox::Event::Reference e)
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		      "Failed to configure test", e);
       }
-//   }
+
     LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
 
 void EmuDAQManager::disableAction(toolbox::Event::Reference e)
 		throw (toolbox::fsm::exception::Exception)
 {
-//   if ( testStarted_ ){
-    try
-      {
-	stopTest();
-	testStarted_ = false;
-	testConfigured_ = false;
-      }
-    catch(xcept::Exception e)
-      {
-	XCEPT_RETHROW(xgi::exception::Exception,
-		      "Failed to stop test", e);
-      }
-//   }
-    LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
+  // Do nothing.
+
+  LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
 
 void EmuDAQManager::haltAction(toolbox::Event::Reference e)
 		throw (toolbox::fsm::exception::Exception)
 {
-//   if ( testStarted_ ){
+
     try
       {
 	stopTest();
@@ -2969,7 +2928,7 @@ void EmuDAQManager::haltAction(toolbox::Event::Reference e)
 	XCEPT_RETHROW(xgi::exception::Exception,
 		      "Failed to stop test", e);
       }
-//   }
+
     LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
 
