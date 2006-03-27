@@ -21,6 +21,7 @@ EMUjtag::EMUjtag(TMB * tmb) :
   //
   jtag_chain_ = -1;
   //
+  std::cout << "made it here" << std::endl;
 };
 //
 EMUjtag::~EMUjtag() {
@@ -241,6 +242,28 @@ void EMUjtag::unpackCharBuffer(char * buffer,
   }
 
   return;
+}
+//
+int EMUjtag::bits_to_int(int * bits,
+			 int length,
+			 int MsbOrLsb) {
+  //convert bits array of 1 bit per bye into an integer
+  // MsbOrLsb for DACs that take MSB first
+  //
+  if (length>32) 
+    (*MyOutput_) << "bits_to_int ERROR: Too many bits -> " << length << std::endl;
+  //
+  int ibit;
+  int value = 0;
+  if (MsbOrLsb == 0) {       // Translate LSB first    
+    for (ibit=0; ibit<length; ibit++) 
+      value |= ((bits[ibit]&0x1) << ibit);
+  } else {                   // Translate MSB first
+    for (ibit=0; ibit<length; ibit++) 
+      value |= ((bits[length-ibit-1]&0x1) << ibit);
+  }
+  //
+  return value;
 }
 //
 void EMUjtag::setup_jtag(int chain) {
