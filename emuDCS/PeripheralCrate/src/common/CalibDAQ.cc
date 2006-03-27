@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.7 2006/03/24 16:40:36 mey Exp $
+// $Id: CalibDAQ.cc,v 2.8 2006/03/27 09:22:36 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.8  2006/03/27 09:22:36  mey
+// Update
+//
 // Revision 2.7  2006/03/24 16:40:36  mey
 // Update
 //
@@ -115,7 +118,7 @@ void CalibDAQ::pulseAllWires(){
     //
     (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
     //
-    sleep(1);
+    usleep(100);
     //
     std::vector<ChamberUtilities> utils = (myCrates[j]->chamberUtilsMatch()) ;
     //
@@ -143,6 +146,7 @@ void CalibDAQ::pulseComparator(){
     //
     for (int i = 0; i < utils.size() ; i++ ) {
       //
+      utils[i].GetDMB()->set_cal_dac(0.15,0.15);
       utils[i].PulseCFEB(-1,0x1f,true);
       //
     }
