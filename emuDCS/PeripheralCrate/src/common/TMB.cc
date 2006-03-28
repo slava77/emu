@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.56 2006/03/24 16:40:36 mey Exp $
+// $Id: TMB.cc,v 2.57 2006/03/28 10:44:21 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.57  2006/03/28 10:44:21  mey
+// Update
+//
 // Revision 2.56  2006/03/24 16:40:36  mey
 // Update
 //
@@ -215,9 +218,9 @@ TMB::TMB(int newcrate, int slot) :
   bxn_offset_(0)
 {
   //
-  jtag_address = -1;
-  jtag_chain = -1;
-  step_mode = false;
+  //jtag_address = -1;
+  //jtag_chain = -1;
+  //step_mode = false;
   //
   MyOutput_ = &std::cout ;
   (*MyOutput_) << "TMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
@@ -3392,7 +3395,7 @@ int TMB::tmb_set_jtag_chain(unsigned int jchain)
 
    return 0;
 }
-//
+/*
 void TMB::jtag_anystate_to_rti() {
   //take JTAG tap from any state to TLR then to RTI
 
@@ -3416,7 +3419,8 @@ void TMB::jtag_anystate_to_rti() {
 
   return;
 }
-//
+*/
+/*
 int TMB::bits_to_int(int * bits,
 			   int length,
 			   int MsbOrLsb) {
@@ -3443,7 +3447,8 @@ int TMB::bits_to_int(int * bits,
 
   return value;
 }
-//
+*/
+/*
 void TMB::jtag_ir_dr(int chip_id, 
 			   int opcode,
 			   int * write_data,
@@ -3611,7 +3616,8 @@ void TMB::jtag_ir_dr(int chip_id,
 
   return;
 }
-//
+*/
+/*
 void TMB::jtag_io_byte(int nframes,
 			     int * tms,
 			     int * tdi,
@@ -3713,7 +3719,8 @@ void TMB::jtag_io_byte(int nframes,
 
   return;
 }
-//
+*/
+/*
 void TMB::step(int frame,
 		     int tck, 
 		     int tms, 
@@ -3731,7 +3738,8 @@ void TMB::step(int frame,
   //
   return;
 }
-//
+*/
+/*
 void TMB::select_jtag_chain_param(){
   //select:
   //  - how many chips are on this chain
@@ -3787,7 +3795,8 @@ void TMB::select_jtag_chain_param(){
 
   return;
 }
-//
+*/
+/*
 void TMB::set_jtag_chain(int chain) { 
   //
   jtag_chain = chain;
@@ -3795,7 +3804,7 @@ void TMB::set_jtag_chain(int chain) {
   //
   return;
 }
-//
+*/
 int TMB::tmb_set_reg(unsigned int vmereg, unsigned short int value )
 {
    char sndbuf[2];
