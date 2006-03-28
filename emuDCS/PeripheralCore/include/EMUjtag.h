@@ -45,7 +45,12 @@ public:
 			int * bitVector);
   int bits_to_int(int * vector_of_bits,
 		  int length_of_vector,
-		  int start_from_MsbOrLsb);   // 0 = Translate LSB first
+		  int start_from_MsbOrLsb);   // 0 => LSB of return integer = vector_of_bits[0]
+  void int_to_bits(int value_to_expand,
+		   int number_of_bits,
+		   int * vector_of_bits,
+		   int start_from_MsbOrLsb);   // 0 => vector_of_bits[0] = LSB of "value_to_expand"
+                                               //      vector_of_bits[number_of_bits] = MSB of "value_to_expand"
   //
 protected:
   //
