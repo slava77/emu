@@ -265,6 +265,7 @@ void EmuI2OServer::fillBlock( toolbox::mem::Reference *bufRef,
 
     block->runNumber         = runNumber_;
     block->nEventCreditsHeld = *nEventCreditsHeld_-1; // will be updated on sending, but anyway
+    block->errorFlag         = errorFlag_;
 
 }
 
