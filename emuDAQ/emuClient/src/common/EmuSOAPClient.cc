@@ -1,4 +1,4 @@
-// $Id: EmuSOAPClient.cc,v 3.2 2006/03/23 22:17:40 banicz Exp $
+// $Id: EmuSOAPClient.cc,v 3.3 2006/03/28 11:10:18 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -45,6 +45,7 @@
 #include "xcept/Exception.h"
 #include "xcept/tools.h"
 
+#include "emuReadout/include/MuEndDDUHeader.h"
 
 EmuSOAPClient::EmuSOAPClient(xdaq::ApplicationStub* c)
   throw(xdaq::exception::Exception)
@@ -253,24 +254,30 @@ std::string EmuSOAPClient::printMessageReceived( xoap::MessageReference msg ){
   parameterNode          = findNode(parameterList, "errorFlag");
   string se              = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
 
+  int eventNumber = -1;
+
   std::list< xoap::AttachmentPart * > attachments = msg->getAttachments();
   int totalSize = 0;
   for ( std::list< xoap::AttachmentPart * >::iterator a=attachments.begin(); a!=attachments.end(); ++a ){
     (*a)->removeAllMimeHeaders();
     totalSize += (*a)->getSize();
+    char *data = (*a)->getContent();
+    MuEndDDUHeader *dduHeader = (MuEndDDUHeader *) data;
+    eventNumber = dduHeader->lvl1num();
   }
 
   ss <<
     "Received "               << totalSize << 
-    " bytes in "              << attachments.size() << 
+    " bytes of event "        << eventNumber << 
+    " in "                    << attachments.size() << 
     " attachment" << (attachments.size()==1?"":"s") <<
-    " from server "           << sn <<
-    " instance "              << si <<
+    " from server "           << sn << si <<
     ". Run "                  << sr <<
     ". nEventCreditsHeld = "  << sc <<
-    ", errorFlag = 0x"        << 
-    setw(2) << std::hex       << 
-    setfill('0')              << se;
+    ", errorFlag = "          << se;
+//     ", errorFlag = 0x"        <<
+//     setw(2) << std::hex       << 
+//     setfill('0')              << ;
 
   return ss.str();
 }
