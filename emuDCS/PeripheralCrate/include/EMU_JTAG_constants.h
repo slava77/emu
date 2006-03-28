@@ -6,6 +6,10 @@ const int MAX_BUFFER_SIZE =MAX_NUM_FRAMES/8;       //Maximum number of buffers i
 //
 const int MAX_NUM_DEVICES =               5;       //Maximum number of devices on any one chain
 //
+// bits_to_int/int_to_bits specification...
+const int LSBfirst        =               0;
+const int MSBfirst        =               1;
+//
 // Some constants for VMEController_jtag::scan_alct....
 const int INSTR_REGISTER  =               0;       //write to Instruction Register
 const int DATA_REGISTER   =               1;       //write to Data Register
@@ -127,6 +131,9 @@ const int ChipLocationAlctSlowProm0=   0;
 const int ChipLocationAlctSlowProm1=   1;
 const int ChipLocationAlctSlowProm2=   2;
 const int OpcodeSizeAlctSlowProm   =   8;
+//
+const int POWER_OFF = 0;
+const int POWER_ON  = 1;
 //
 //
 ////-------------------------------////

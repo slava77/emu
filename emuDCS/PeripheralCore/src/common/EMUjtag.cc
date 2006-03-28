@@ -58,8 +58,8 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
 	       << " bits to write opcode " << std::hex << opcode 
 	       << " to chip " << std::hex << chip_id_ 
 	       << " on chain " << std::hex << jtag_chain_
-	       << " -> expect " << std::dec << register_length_ 
-	       << " bits back" << std::hex << std::endl;
+	       << " -> use " << std::dec << register_length_ 
+	       << " bits tdi/tdo" << std::hex << std::endl;
 
 
   //** Clear the read data which was previously there:
@@ -246,11 +246,14 @@ void EMUjtag::unpackCharBuffer(char * buffer,
 int EMUjtag::bits_to_int(int * bits,
 			 int length,
 			 int MsbOrLsb) {
-  //convert bits array of 1 bit per bye into an integer
-  // MsbOrLsb for DACs that take MSB first
+  //convert vector of "bits" into an integer
+  // MsbOrLsb = 0 for LSB first -> bits[0] = LSB of integer, bits[length] = MSB of integer
+  //          = 1 for MSB first -> bits[0] = MSB of integer, bits[length] = LSB of integer
   //
-  if (length>32) 
+  if (length>32) {
     (*MyOutput_) << "bits_to_int ERROR: Too many bits -> " << length << std::endl;
+    return 0;
+  }
   //
   int ibit;
   int value = 0;
@@ -262,7 +265,27 @@ int EMUjtag::bits_to_int(int * bits,
       value |= ((bits[length-ibit-1]&0x1) << ibit);
   }
   //
+  //    (*MyOutput_) << "value = " << std::hex << value << std::endl;
   return value;
+}
+//
+void EMUjtag::int_to_bits(int value,
+			  int length,
+			  int * bits,
+			  int MsbOrLsb) {
+  //expand integer "value" into first "length" slots of the vector of "bits"
+  // MsbOrLsb = 0 for LSB first -> bits[0] = LSB of "value", bits[length] = MSB of "value"
+  //          = 1 for MSB first -> bits[length] = LSB of "value", bits[0] = MSB of "value"
+  //
+  for (int ibit=0; ibit<length; ibit++) {
+    if (MsbOrLsb == 0) {       // Translate LSB first    
+      bits[ibit] = (value >> ibit) & 0x1;
+    } else {                   // Translate MSB first
+      bits[ibit] = (value >>(length-ibit-1)) & 0x1;
+    }
+    //    (*MyOutput_) << "bits[" << ibit << "] = " << bits[ibit] << std::endl;
+  }
+  return;
 }
 //
 void EMUjtag::setup_jtag(int chain) {
