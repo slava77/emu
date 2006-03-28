@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.15 2006/03/24 16:40:36 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.16 2006/03/28 10:44:21 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.16  2006/03/28 10:44:21  mey
+// Update
+//
 // Revision 1.15  2006/03/24 16:40:36  mey
 // Update
 //
@@ -1578,11 +1581,11 @@ void ChamberUtilities::CFEBTiming(){
     thisTMB->tmb_clk_delays(TimeDelay,3) ;
     thisTMB->tmb_clk_delays(TimeDelay,4) ;
     //
-    int CLCTInputList[3] = {0x1,0xa,0x14};
+    int CLCTInputList[5] = {0x1,0x2,0x4,0x8,0x10};
     //
     for (int List=0; List<3; List++){
       //
-      for (int Nmuons=0; Nmuons<10; Nmuons++){
+      for (int Nmuons=0; Nmuons<2; Nmuons++){
 	//
 	usleep(50);
 	//

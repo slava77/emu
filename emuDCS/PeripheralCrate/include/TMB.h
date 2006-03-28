@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.36 2006/03/24 16:40:36 mey Exp $
+// $Id: TMB.h,v 2.37 2006/03/28 10:44:21 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.37  2006/03/28 10:44:21  mey
+// Update
+//
 // Revision 2.36  2006/03/24 16:40:36  mey
 // Update
 //
@@ -119,7 +122,7 @@
 #include <vector>
 #include <string>
 #include <bitset>
-#include "TMB_JTAG_constants.h"
+//#include "TMB_JTAG_constants.h"
 #include "EMUjtag.h"
 
 class ALCTController;
@@ -237,12 +240,12 @@ public:
   std::bitset<22> calCRC22(const std::vector< std::bitset<16> >& datain);
   std::bitset<22> nextCRC22_D16(const std::bitset<16>& D, const std::bitset<22>& C);
   //
-  void select_jtag_chain_param();
+  //void select_jtag_chain_param();
   //
-  void jtag_ir_dr(int,int,int*,int,int*);
-  void jtag_io_byte(int,int*,int*,int* );
-  int bits_to_int(int*,int,int);
-  void step(int,int,int,int,int);
+  //void jtag_ir_dr(int,int,int*,int,int*);
+  //void jtag_io_byte(int,int*,int*,int* );
+  //int bits_to_int(int*,int,int);
+  //void step(int,int,int,int,int);
   //
   void SetALCTController(ALCTController* a) {alctController_=a;}
   ALCTController * alctController() const {return alctController_;}
@@ -252,8 +255,8 @@ public:
   int tmb_set_jtag_src(unsigned short int jtag_src);
   int tmb_get_jtag_src(unsigned short int* jtag_src);
   int tmb_set_jtag_chain(unsigned int jchain);
-  void set_jtag_chain(int);
-  void jtag_anystate_to_rti();
+  //void set_jtag_chain(int);
+  //void jtag_anystate_to_rti();
   int tmb_set_reg(unsigned int vmereg, unsigned short int value );
   int tmb_get_reg(unsigned int vmereg, unsigned short int* value );
   int tmb_vme_reg(unsigned int vmereg, unsigned short int* value);
@@ -315,7 +318,7 @@ public:
     return tmp[CFEB]; 
   }
   //
-  inline void SetStepMode(bool stepmode) { step_mode = stepmode ; }
+  //inline void SetStepMode(bool stepmode) { step_mode = stepmode ; }
   //
   inline std::vector<unsigned long int> GetInjectedLct0() { return InjectedLct0 ; }
   inline std::vector<unsigned long int> GetInjectedLct1() { return InjectedLct1 ; }
@@ -356,11 +359,11 @@ protected:
 private:
   //
   int tmb_idcode_[7];
-  int jtag_address;
-  int jtag_chain;
+  //int jtag_address;
+  //int jtag_chain;
   int devices_in_chain;
-  bool step_mode;
-  int bits_per_opcode[MAX_NUM_CHIPS];
+  //bool step_mode;
+  //int bits_per_opcode[MAX_NUM_CHIPS];
   std::ostream * MyOutput_ ;
   int alct_tx_clock_delay_;
   int alct_rx_clock_delay_;
