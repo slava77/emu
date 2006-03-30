@@ -120,12 +120,16 @@ logger_(Logger::getInstance(generateLoggerName()))
     fsm_.addState('E', "Enabled",    this, &EmuDAQManager::stateChanged);
     
     fsm_.addStateTransition('H', 'C', "Configure", this, &EmuDAQManager::configureAction);
-    fsm_.addStateTransition('C', 'C', "Configure", this, &EmuDAQManager::configureAction);
+    fsm_.addStateTransition('C', 'C', "Configure", this, &EmuDAQManager::reConfigureAction);
     fsm_.addStateTransition('C', 'E', "Enable",    this, &EmuDAQManager::enableAction);
-    fsm_.addStateTransition('E', 'C', "Disable",   this, &EmuDAQManager::disableAction);
+//     fsm_.addStateTransition('E', 'C', "Disable",   this, &EmuDAQManager::disableAction);
+    fsm_.addStateTransition('E', 'C', "Disable",   this, &EmuDAQManager::noAction);
     fsm_.addStateTransition('C', 'H', "Halt",      this, &EmuDAQManager::haltAction);
     fsm_.addStateTransition('E', 'H', "Halt",      this, &EmuDAQManager::haltAction);
     
+    fsm_.addStateTransition('H', 'H', "Halt",      this, &EmuDAQManager::noAction);
+    fsm_.addStateTransition('E', 'E', "Enable",    this, &EmuDAQManager::noAction);
+
     fsm_.setInitialState('H');
     fsm_.reset();
     
@@ -393,7 +397,8 @@ throw (xgi::exception::Exception)
     *out << "     border=\"\"/>"                                       << endl;
     *out << "    <b>"                                                  << endl;
     *out << "      " << xmlClass_ << instance_ << " Version "
-        << EmuDAQManagerV::versions << endl;
+	 << EmuDAQManagerV::versions << "  "
+	 << fsm_.getStateName(fsm_.getCurrentState())                  << endl;
     *out << "    </b>"                                                 << endl;
     *out << "  </td>"                                                  << endl;
     *out << "  <td class=\"app_links\">"                               << endl;
@@ -448,20 +453,63 @@ throw (xgi::exception::Exception)
     *out << "</table>"                                                 << endl;
 
     *out << "<br/>"                                                    << endl;
-    *out << " At " <<  getDateTime();
-    *out << " in state \"" << fsm_.getStateName(fsm_.getCurrentState()) << "\"";
+    *out << " Updated at " <<  getDateTime();
     *out << "<br/>"                                                    << endl;
 
 
     *out << "<hr/>"                                                    << endl;
+
+    // Emu: display event number and max number of events
+    string runNumber("unknown");
+    string maxNumEvents("unknown");
+    getRunInfoFromTA( &runNumber, &maxNumEvents );
+    *out << "<table border=\"0\">"                                   << endl;
+    *out << "<tr valign=\"top\">"                                    << endl;
+    *out << "<td>"                                                   << endl;
+    *out << "<table frame=\"void\" rules=\"rows\" class=\"params\">" << endl;
+    *out << "<tr>"                                                     << endl;
+    *out << "  <th align=\"center\">"                                  << endl;
+    *out << "    <b>"                                                  << endl;
+    *out << "      Run number"                                         << endl;
+    *out << "    </b>"                                                 << endl;
+    *out << "  </th>"                                                  << endl;
+    *out << "</tr>"                                                    << endl;
+    *out << "<tr>"                                                     << endl;
+    *out << "  <td>"                                                   << endl;
+    *out << "    " << runNumber                                        << endl;
+    *out << "  </td>"                                                  << endl;
+    *out << "</tr>"                                                    << endl;
+    *out << "</table>"                                               << endl;
+    *out << "<td width=\"64\">"                                      << endl;
+    *out << "</td>"                                                  << endl;
+    *out << "</td>"                                                  << endl;
+    *out << "<td>"                                                   << endl;
+    *out << "<table frame=\"void\" rules=\"rows\" class=\"params\">" << endl;
+    *out << "<tr>"                                                     << endl;
+    *out << "  <th align=\"center\">"                                  << endl;
+    *out << "    <b>"                                                  << endl;
+    *out << "      Max number of events"                               << endl;
+    *out << "    </b>"                                                 << endl;
+    *out << "  </th>"                                                  << endl;
+    *out << "</tr>"                                                    << endl;
+    *out << "<tr>"                                                     << endl;
+    *out << "  <td>"                                                   << endl;
+    *out << "    " << maxNumEvents                                     << endl;
+    *out << "  </td>"                                                  << endl;
+    *out << "</tr>"                                                    << endl;
+    *out << "</table>"                                               << endl;
+    *out << "</td>"                                                  << endl;
+    *out << "</tr>"                                                  << endl;
+    *out << "</table>"                                               << endl;
+
 
     // Emu: display RUIs' and FUs' event counts
     *out << "<table border=\"0\">"                                   << endl;
     *out << "<tr valign=\"top\">"                                    << endl;
     *out << "<td>"                                                   << endl;
     printEventCountsTable( out, "Events read by EmuRUI's"    , getRUIEventCounts() );
-    *out << "<td width=\"64\">"                                      << endl;
     *out << "</td>"                                                  << endl;
+    *out << "<td width=\"64\">"                                      << endl;
     *out << "</td>"                                                  << endl;
     *out << "<td>"                                                   << endl;
     printEventCountsTable( out, "Events processed by EmuFU's", getFUEventCounts()  );      
@@ -604,7 +652,8 @@ throw (xgi::exception::Exception)
     *out << "     border=\"\"/>"                                       << endl;
     *out << "    <b>"                                                  << endl;
     *out << "      " << xmlClass_ << instance_ << " Version "
-        << EmuDAQManagerV::versions << endl;
+	 << EmuDAQManagerV::versions << "  "
+	 << fsm_.getStateName(fsm_.getCurrentState())                  << endl;
     *out << "    </b>"                                                 << endl;
     *out << "  </td>"                                                  << endl;
     *out << "  <td class=\"app_links\" align=\"center\" width=\"70\">" << endl;
@@ -640,42 +689,14 @@ throw (xgi::exception::Exception)
     *out << "</table>"                                                 << endl;
 
     *out << "<br/>"                                                    << endl;
-    *out << " At " <<  getDateTime();
-    *out << " in state \"" << fsm_.getStateName(fsm_.getCurrentState()) << "\"";
+    *out << " Updated at " <<  getDateTime();
     *out << "<br/>"                                                    << endl;
 
     *out << "<hr/>"                                                    << endl;
 
     string runNumber("unknown");
     string maxNumEvents("unknown");
-    if ( taDescriptors_.size() ){
-      if ( taDescriptors_.size() > 1 ){
-	LOG4CPLUS_WARN(logger_,"The embarassment of riches: " << taDescriptors_.size() <<
-		       " TA instances found. Will use TA0.");
-      }
-      try
-	{
-	  runNumber = getScalarParam(taDescriptors_[0],"runNumber","unsignedLong");
-	}
-      catch(xcept::Exception e)
-	{
-	  XCEPT_RETHROW(xgi::exception::Exception,
-			"Failed to get run number from TA0", e);
-	}
-      try
-	{
-	  maxNumEvents = getScalarParam(taDescriptors_[0],"maxNumTriggers","unsignedLong");
-	}
-      catch(xcept::Exception e)
-	{
-	  XCEPT_RETHROW(xgi::exception::Exception,
-			"Failed to get maximum number of events from TA0", e);
-	}
-    }
-    else{
-      LOG4CPLUS_ERROR(logger_,"No TA found.");
-    }
-
+    getRunInfoFromTA( &runNumber, &maxNumEvents );
 
     if ( fsm_.getCurrentState() == 'H' ){
       *out << "Set run number: "                                     << endl;
@@ -760,6 +781,37 @@ throw (xgi::exception::Exception)
 }
 
 
+
+void EmuDAQManager::getRunInfoFromTA( string* runnum, string* maxevents ){
+    if ( taDescriptors_.size() ){
+      if ( taDescriptors_.size() > 1 ){
+	LOG4CPLUS_WARN(logger_,"The embarassment of riches: " << taDescriptors_.size() <<
+		       " TA instances found. Will use TA0.");
+      }
+      try
+	{
+	  *runnum = getScalarParam(taDescriptors_[0],"runNumber","unsignedLong");
+	}
+      catch(xcept::Exception e)
+	{
+	  LOG4CPLUS_ERROR(logger_,"Failed to get run number from TA0: " << 
+			  xcept::stdformat_exception_history(e) );
+	}
+      try
+	{
+	  *maxevents = getScalarParam(taDescriptors_[0],"maxNumTriggers","unsignedLong");
+	}
+      catch(xcept::Exception e)
+	{
+	  LOG4CPLUS_ERROR(logger_,"Failed to get maximum number of events from TA0: " << 
+			  xcept::stdformat_exception_history(e) );
+	}
+    }
+    else{
+      LOG4CPLUS_ERROR(logger_,"No TA found.");
+    }
+}
+
 int EmuDAQManager::purgeIntNumberString( string* s ){
   // Emu: purge string of all non-numeric characters
   int nCharactersErased = 0;
@@ -791,7 +843,8 @@ throw (xgi::exception::Exception)
     {
         string cmdName = (*cmdElement).getValue();
 
-	if ( (cmdName == "configure") && fsm_.getCurrentState() == 'H' )
+// 	if ( (cmdName == "configure") && fsm_.getCurrentState() == 'H' )
+	if ( (cmdName == "configure") )
 	  {
 	    // Emu: set run number in emuTA to the value given by the user on the control page
 	    cgicc::form_iterator runNumElement = cgi.getElement("runnumber");
@@ -805,17 +858,16 @@ throw (xgi::exception::Exception)
 
 	    fireEvent("Configure");
 	  }
-
-	if ( (cmdName == "start") && fsm_.getCurrentState() == 'C' )
-        {
+	else if ( (cmdName == "start") && fsm_.getCurrentState() == 'C' )
+	  {
 	    fireEvent("Enable");
-        }
+	  }
         else if( ( cmdName == "stop"                ) && 
 		 ( fsm_.getCurrentState() == 'C' ||
 		   fsm_.getCurrentState() == 'E'    )    )
-        {
+	  {
 	    fireEvent("Halt");
-        }
+	  }
     }
 }
 
@@ -2876,12 +2928,11 @@ void EmuDAQManager::configureAction(toolbox::Event::Reference e)
     try
       {
 	configureTest();
-	testConfigured_ = true;
       }
-    catch(xcept::Exception e)
+    catch(xcept::Exception ex)
       {
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
-		      "Failed to configure test", e);
+		      "Failed to configure EmuDAQ", ex);
       }
 
   LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
@@ -2894,12 +2945,11 @@ void EmuDAQManager::enableAction(toolbox::Event::Reference e)
     try
       {
 	startTest();
-	testStarted_ = true;
       }
-    catch(xcept::Exception e)
+    catch(xcept::Exception ex)
       {
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
-		      "Failed to configure test", e);
+		      "Failed to configure EmuDAQ", ex);
       }
 
     LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
@@ -2920,16 +2970,52 @@ void EmuDAQManager::haltAction(toolbox::Event::Reference e)
     try
       {
 	stopTest();
-	testStarted_ = false;
-	testConfigured_ = false;
       }
-    catch(xcept::Exception e)
+    catch(xcept::Exception ex)
       {
 	XCEPT_RETHROW(xgi::exception::Exception,
-		      "Failed to stop test", e);
+		      "Failed to stop EmuDAQ", ex);
       }
 
     LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
+}
+
+void EmuDAQManager::reConfigureAction(toolbox::Event::Reference e)
+        throw (toolbox::fsm::exception::Exception)
+{   
+
+    try
+      {
+	stopTest();
+      }
+    catch(xcept::Exception ex)
+      {
+	XCEPT_RETHROW(xgi::exception::Exception,
+		      "Failed to stop EmuDAQ before reconfiguration", ex);
+      }
+
+    LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
+
+    try
+      {
+	configureTest();
+      }
+    catch(xcept::Exception ex)
+      {
+	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+		      "Failed to reconfigure EmuDAQ", ex);
+      }
+
+  LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
+}
+
+void EmuDAQManager::noAction(toolbox::Event::Reference e)
+		throw (toolbox::fsm::exception::Exception)
+{
+  // Inaction...
+  LOG4CPLUS_WARN(getApplicationLogger(), e->type() 
+		 << " attempted when already " 
+		 << fsm_.getStateName(fsm_.getCurrentState()));
 }
 
 void EmuDAQManager::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
