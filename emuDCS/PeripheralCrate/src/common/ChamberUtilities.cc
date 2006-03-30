@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.16 2006/03/28 10:44:21 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.17 2006/03/30 13:55:38 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.17  2006/03/30 13:55:38  mey
+// Update
+//
 // Revision 1.16  2006/03/28 10:44:21  mey
 // Update
 //
@@ -1370,7 +1373,7 @@ void ChamberUtilities::PulseTestStrips(){
    //
 }
 //
-void ChamberUtilities::PulseCFEB(int HalfStrip, int CLCTInputs, bool enableL1aEmulator ){
+void ChamberUtilities::LoadCFEB(int HalfStrip, int CLCTInputs, bool enableL1aEmulator ){
   //
   if ( enableL1aEmulator ) thisTMB->EnableInternalL1aSequencer();
   thisTMB->DisableCLCTInputs();
@@ -1399,6 +1402,12 @@ void ChamberUtilities::PulseCFEB(int HalfStrip, int CLCTInputs, bool enableL1aEm
   //
   thisCCB_->setCCBMode(CCB::VMEFPGA);
   thisCCB_->WriteRegister(0x28,0x7878);  //4Aug05 DM changed 0x789b to 0x7862
+  //
+}
+//
+void ChamberUtilities::PulseCFEB(int HalfStrip, int CLCTInputs, bool enableL1aEmulator ){
+  //
+  LoadCFEB(HalfStrip, CLCTInputs, enableL1aEmulator);
   //
   thisDMB->inject(1,0x4f);
   //

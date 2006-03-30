@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 2.9 2006/03/20 09:10:43 mey Exp $
+// $Id: TMBParser.cc,v 2.10 2006/03/30 13:55:38 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 2.10  2006/03/30 13:55:38  mey
+// Update
+//
 // Revision 2.9  2006/03/20 09:10:43  mey
 // Update
 //
@@ -140,4 +143,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, int crateNumber)
   #ifdef debugV  
     std::cout << "finished TMBParsing" << std::endl;
   #endif
+}
+TMBParser::~TMBParser(){
+  //  delete tmb_;
 }

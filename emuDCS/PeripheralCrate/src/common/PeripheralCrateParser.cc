@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.cc,v 2.4 2006/03/24 14:35:04 mey Exp $
+// $Id: PeripheralCrateParser.cc,v 2.5 2006/03/30 13:55:38 mey Exp $
 // $Log: PeripheralCrateParser.cc,v $
+// Revision 2.5  2006/03/30 13:55:38  mey
+// Update
+//
 // Revision 2.4  2006/03/24 14:35:04  mey
 // Update
 //
@@ -34,6 +37,12 @@
 
 #define debug false
 
+xercesc::XercesDOMParser *parser;
+
+PeripheralCrateParser::~PeripheralCrateParser(){
+  //  delete parser;
+}
+
 void PeripheralCrateParser::parseFile(const char* name){ 
   /// Initialize XML4C system
   try{
@@ -53,7 +62,7 @@ void PeripheralCrateParser::parseFile(const char* name){
   //  The parser will call back to methods of the ErrorHandler if it
   //  discovers errors during the course of parsing the XML document.
   //
-  xercesc::XercesDOMParser *parser = new xercesc::XercesDOMParser;
+  parser = new xercesc::XercesDOMParser;
   parser->setValidationScheme(xercesc::XercesDOMParser::Val_Auto);
   parser->setDoNamespaces(false);
   parser->setCreateEntityReferenceNodes(false);

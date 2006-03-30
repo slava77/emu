@@ -32,6 +32,7 @@ public:
   void CCBStartTrigger();
   void CFEBTiming();
   void PulseCFEB(int HalfStrip = -1, int CLCTInputs = 0x1f , bool enable=0);
+  void LoadCFEB(int HalfStrip = -1, int CLCTInputs = 0x1f , bool enable=0);
   void CFEBChamberScan();
   void PulseTestStrips();
   void ALCTTiming();
@@ -65,11 +66,14 @@ public:
   int beginning;
   //
   inline void SetTMB(TMB* myTMB)   {thisTMB = myTMB; alct = myTMB->alctController() ;}
+  inline TMB* GetTMB() { return thisTMB; }
   //
   inline void SetDMB(DAQMB* myDMB) {thisDMB = myDMB; }
   inline DAQMB* GetDMB() {return thisDMB; }
   //
   inline void SetCCB(CCB* myCCB)   {thisCCB_ = myCCB; }
+  inline CCB* GetCCB()   {return thisCCB_;}
+  //
   inline void SetMPC(MPC* myMPC)   {thisMPC = myMPC; }
   //
   inline int  GetALCTrxPhase() { return thisTMB->GetALCTrxPhase(); }

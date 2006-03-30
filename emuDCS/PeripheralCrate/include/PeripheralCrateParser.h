@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.h,v 2.1 2006/03/24 14:35:03 mey Exp $
+// $Id: PeripheralCrateParser.h,v 2.2 2006/03/30 13:55:38 mey Exp $
 // $Log: PeripheralCrateParser.h,v $
+// Revision 2.2  2006/03/30 13:55:38  mey
+// Update
+//
 // Revision 2.1  2006/03/24 14:35:03  mey
 // Update
 //
@@ -28,6 +31,7 @@ class PeripheralCrateParser {
 
 public:
   PeripheralCrateParser() {}
+  ~PeripheralCrateParser();
 
   /** Parse the file
       @param name File Name
