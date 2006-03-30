@@ -220,6 +220,7 @@ private:
 			      string                    title,
 			      vector< vector<string> >  counts ); // Emu
   string getDateTime();
+  void getRunInfoFromTA( string* runnum, string* maxevents );
 
     /**
      * Processes the form sent from the control web page.
@@ -514,6 +515,11 @@ public:
   void haltAction(toolbox::Event::Reference e)
     throw (toolbox::fsm::exception::Exception);
   
+  void reConfigureAction(toolbox::Event::Reference e)
+    throw (toolbox::fsm::exception::Exception);
+  void noAction(toolbox::Event::Reference e)
+    throw (toolbox::fsm::exception::Exception);
+
 private:
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
     throw (toolbox::fsm::exception::Exception);
