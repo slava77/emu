@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.16 2006/03/24 14:35:03 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.17 2006/03/30 13:55:38 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -277,6 +277,8 @@ public:
       'C', 'H', "Halt",      this, &EmuPeripheralCrate::haltAction);
     fsm_.addStateTransition(
       'E', 'H', "Halt",      this, &EmuPeripheralCrate::haltAction);
+    fsm_.addStateTransition(
+      'H', 'H', "Halt",      this, &EmuPeripheralCrate::haltAction);
 
     fsm_.setInitialState('H');
     fsm_.reset();

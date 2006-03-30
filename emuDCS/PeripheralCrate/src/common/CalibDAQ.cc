@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.9 2006/03/27 09:51:42 mey Exp $
+// $Id: CalibDAQ.cc,v 2.10 2006/03/30 13:55:38 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.10  2006/03/30 13:55:38  mey
+// Update
+//
 // Revision 2.9  2006/03/27 09:51:42  mey
 // UPdate
 //
@@ -147,22 +150,40 @@ void CalibDAQ::pulseComparator(){
     //
     std::vector<ChamberUtilities> utils = (myCrates[j]->chamberUtilsMatch()) ;
     //
-    for (int i = 0; i < utils.size() ; i++ ) {
-      for (int strip=0; strip<32; strip++) {
-	utils[i].GetDMB()->set_cal_dac(0.15,0.15);
-	for (int thresh=0; thresh<35; thresh++) {
-	  utils[i].GetDMB()->set_comp_thresh(0.013+thresh*0.003);
-	  utils[i].PulseCFEB(strip,0x1f,true);
+    int CLCTInputList[5] = {0x1,0x2,0x4,0x8,0x10};
+    //
+    for (int thresh=0; thresh<35; thresh++) {
+      for (int input=0; input<5; input++) {
+	for (int strip=0; strip<32; strip++) {
+	  for (int i = 0; i < utils.size() ; i++ ) {	    
+	    utils[i].GetDMB()->set_cal_dac(0.15,0.15);
+	    utils[i].GetDMB()->set_comp_thresh(0.013+thresh*0.003);
+	    utils[i].LoadCFEB(strip,CLCTInputList[input],true);
+	  }
+	  std::cout << "Pulsing now" << std::endl;
+	  utils[0].GetCCB()->inject(25,0xff);
+	  //
+	  for (int i = 0; i < utils.size() ; i++ ) {	    
+	    utils[i].GetTMB()->DecodeCLCT();
+	    utils[i].GetTMB()->GetCounters();
+	    utils[i].GetTMB()->PrintCounters();
+	    utils[i].GetDMB()->PrintCounters();
+	  }
+	  //
 	}
       }
     }
     //
-    for (int i = 0; i < utils.size() ; i++ ) {
-      for (int strip=0; strip<32; strip++) {
-	utils[i].GetDMB()->set_cal_dac(0.35,0.35);
-	for (int thresh=0; thresh<35; thresh++) {
-	  utils[i].GetDMB()->set_comp_thresh(0.049+thresh*0.003);
-	  utils[i].PulseCFEB(strip,0x1f,true);
+    for (int thresh=0; thresh<35; thresh++) {
+      for (int input=0; input<5; input++) {
+	for (int strip=0; strip<32; strip++) {      	  
+	  for (int i = 0; i < utils.size() ; i++ ) {
+	    utils[i].GetDMB()->set_cal_dac(0.35,0.35);
+	    utils[i].GetDMB()->set_comp_thresh(0.049+thresh*0.003);
+	    utils[i].LoadCFEB(strip,CLCTInputList[input],true);
+	  }
+	  std::cout << "Pulsing now" << std::endl;
+	  utils[0].GetCCB()->inject(25,0xff);
 	}
       }
     }

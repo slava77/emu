@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: TMBParser.h,v 2.1 2006/03/30 13:55:38 mey Exp $
 // $Log: TMBParser.h,v $
+// Revision 2.1  2006/03/30 13:55:38  mey
+// Update
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
@@ -17,6 +20,7 @@ class TMBParser
 {
 public:
   TMBParser(){}
+  ~TMBParser();
   explicit TMBParser(xercesc::DOMNode * pNode, int crateNumber);
   
   /// returns the last tmb parsed

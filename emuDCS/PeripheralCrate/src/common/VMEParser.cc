@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.cc,v 2.5 2006/03/10 13:13:13 mey Exp $
+// $Id: VMEParser.cc,v 2.6 2006/03/30 13:55:38 mey Exp $
 // $Log: VMEParser.cc,v $
+// Revision 2.6  2006/03/30 13:55:38  mey
+// Update
+//
 // Revision 2.5  2006/03/10 13:13:13  mey
 // Jinghua's changes
 //
@@ -37,7 +40,9 @@ VMEParser::VMEParser(xercesc::DOMNode * pNode, int number)
 
   crate_ = new Crate(number, controller_);
 }
-
+//VMEParser::~VMEParser(){
+//  delete crate_;
+//}
 
 
 

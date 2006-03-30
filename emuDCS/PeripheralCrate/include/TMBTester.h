@@ -60,7 +60,7 @@ class TMBTester {
   inline void SetResultTest3d3444(int result) { ResultTest3d3444_ = result ; }
   //
   inline int GetResultTestU76() { return ResultTestU76_ ; }
-  inline int SetResultTestU76(int result) { ResultTestU76_ = result ; }
+  inline void SetResultTestU76(int result) { ResultTestU76_ = result ; }
   //
   inline int GetResultTestALCTtxrx() { return ResultTestALCTtxrx_ ; }
   inline void SetResultTestALCTtxrx(int result) { ResultTestALCTtxrx_ = result ; }

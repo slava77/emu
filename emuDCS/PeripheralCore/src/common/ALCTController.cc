@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.26 2006/03/24 14:35:04 mey Exp $
+// $Id: ALCTController.cc,v 2.27 2006/03/30 13:55:38 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.27  2006/03/30 13:55:38  mey
+// Update
+//
 // Revision 2.26  2006/03/24 14:35:04  mey
 // Update
 //
@@ -521,7 +524,7 @@ void ALCTController::setup(int choice)
   ALCTIDRegister sc_id, chipID ;
   int slot = tmb_->slot();
   //
-  printf("*setup********************* alct_fifo_pretrig %d \n",alct_fifo_pretrig_);
+  //printf("*setup********************* alct_fifo_pretrig %d \n",alct_fifo_pretrig_);
   //
   // ALCT stuff
   //
