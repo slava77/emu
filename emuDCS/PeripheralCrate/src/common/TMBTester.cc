@@ -933,6 +933,9 @@ bool TMBTester::testU76chip(){
   }
 
   messageOK("TMB U76 bus-hold chip",testOK);
+
+  ResultTestU76chip_ = testOK ;
+
   return testOK;
 }
 //
