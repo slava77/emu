@@ -58,6 +58,7 @@ Sources=\
 	CrateUtilities.cc \
 	Chamber.cc \
 	ChamberUtilities.cc \
+	CSCParser.cc \
 	EMUjtag.cc 
 
 IncludeDirs = \
