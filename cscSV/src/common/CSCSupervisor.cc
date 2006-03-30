@@ -54,6 +54,8 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 			'C', 'H', "Halt",      this, &CSCSupervisor::haltAction);
 	fsm_.addStateTransition(
 			'E', 'H', "Halt",      this, &CSCSupervisor::haltAction);
+	fsm_.addStateTransition(
+			'H', 'H', "Halt",      this, &CSCSupervisor::haltAction);
 
 	fsm_.setInitialState('H');
 	fsm_.reset();
