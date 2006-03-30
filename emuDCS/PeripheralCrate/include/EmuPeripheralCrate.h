@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.17 2006/03/30 13:55:38 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.18 2006/03/30 15:49:59 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -3815,6 +3815,8 @@ private:
       .set("value","11").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
     //
+    ///////////////////////////////////////////////////////////////////////
+    //
     std::string test3d3444 =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
     //
@@ -3844,7 +3846,132 @@ private:
       .set("value","12").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
     //
-    //*out << cgicc::form().set("method","GET") << std::endl ;
+    ///////////////////////////////////////////////////////////
+    //
+    std::string testRATtemper =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",testRATtemper)
+	 << std::endl ;
+    //
+    if ( tmbTestVector[tmb].GetResultTestRATtemper() == -1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test RAT temperature") 
+	.set("style","color:blue")  
+	   << std::endl ;
+    } else if ( tmbTestVector[tmb].GetResultTestRATtemper() > 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test RAT temperature") 
+	.set("style","color:green")  
+	   << std::endl ;
+    } else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test RAT temperature") 
+	.set("style","color:red")  
+	   << std::endl ;
+    }
+    //
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","13").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
+    //
+    ////////////////////////////////////////////////////////////////
+    //
+    std::string testRATidCodes =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",testRATidCodes)
+	 << std::endl ;
+    //
+    if ( tmbTestVector[tmb].GetResultTestRATidCodes() == -1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test RAT Id Codes") 
+	.set("style","color:blue")  
+	   << std::endl ;
+    } else if ( tmbTestVector[tmb].GetResultTestRATidCodes() > 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test RAT Id Codes") 
+	.set("style","color:green")  
+	   << std::endl ;
+    } else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test RAT Id Codes") 
+	.set("style","color:red")  
+	   << std::endl ;
+    }
+    //
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","14").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
+    //
+    ////////////////////////////////////////////////////////////////////
+    //
+    std::string testRATuserCodes =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",testRATtemper)
+	 << std::endl ;
+    //
+    if ( tmbTestVector[tmb].GetResultTestRATuserCodes() == -1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test RAT User Codes") 
+	.set("style","color:blue")  
+	   << std::endl ;
+    } else if ( tmbTestVector[tmb].GetResultTestRATuserCodes() > 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test RAT User Codes") 
+	.set("style","color:green")  
+	   << std::endl ;
+    } else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test RAT User Codes") 
+	.set("style","color:red")  
+	   << std::endl ;
+    }
+    //
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","15").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
+    //
+    /////////////////////////////////////////////////////////////////////
+    //
+    std::string testU760K =
+      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",testU760K)
+	 << std::endl ;
+    //
+    if ( tmbTestVector[tmb].GetResultTestU76chip() == -1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test U760K") 
+	.set("style","color:blue")  
+	   << std::endl ;
+    } else if ( tmbTestVector[tmb].GetResultTestU76chip() > 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test U760K") 
+	.set("style","color:green")  
+	   << std::endl ;
+    } else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","TMB test U760K") 
+	.set("style","color:red")  
+	   << std::endl ;
+    }
+    //
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","hidden")
+      .set("value","16").set("name","tmbTestid");
+    *out << cgicc::form() << std::endl ;
+    //
+    /////////////////////////////////////////////////////////////////////
+    //
     *out << cgicc::textarea().set("name","TMBTestOutput")
       .set("WRAP","OFF")
       .set("rows","20").set("cols","100");
@@ -3939,6 +4066,23 @@ private:
       tmbTestVector[tmb].test3d3444();
       printf("Test12");
     }
+    if ( tmbTestid == 13 || tmbTestid == 0 ) {
+      tmbTestVector[tmb].testRATtemper();
+      printf("Test13");
+    }
+    if ( tmbTestid == 14 || tmbTestid == 0 ) {
+      tmbTestVector[tmb].testRATidCodes();
+      printf("Test14");
+    }
+    if ( tmbTestid == 15 || tmbTestid == 0 ) {
+      tmbTestVector[tmb].testRATuserCodes();
+      printf("Test15");
+    }
+    if ( tmbTestid == 16 || tmbTestid == 0 ) {
+      tmbTestVector[tmb].testU76chip();
+      printf("Test16");
+    }
+    //
     tmbTestVector[tmb].RedirectOutput(&std::cout);
     //
     //std::cout << "Done" << std::endl ;
