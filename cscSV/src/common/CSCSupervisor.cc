@@ -329,6 +329,7 @@ xoap::MessageReference CSCSupervisor::createParameterSetSOAP(
 {
 	xoap::MessageReference message = xoap::createMessage();
 	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+	envelope.addNamespaceDeclaration("xsi", NS_XSI);
 
 	xoap::SOAPName command = envelope.createName(
 			"ParameterSet", "xdaq", "urn:xdaq-soap:3.0");
