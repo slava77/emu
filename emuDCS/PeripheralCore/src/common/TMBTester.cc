@@ -35,6 +35,11 @@ TMBTester::TMBTester() {
   ResultTestDSN_ = -1;
   ResultTestADC_ = -1;
   ResultTest3d3444_ = -1;
+  ResultTestU76chip_ = -1;
+  ResultTestALCTtxrx_ = -1;
+  ResultTestRATtemper_ = -1;
+  ResultTestRATidCodes_ = -1;
+  ResultTestRATuserCodes_ = -1;
   //
 }
 
@@ -872,34 +877,33 @@ bool TMBTester::testRATuserCodes(){
 //
 bool TMBTester::testU76chip(){
   (*MyOutput_) << "TMBTester: Testing TMB U76 bus-hold chip" << std::endl;  
-
+  //
   short unsigned int initial_boot;
   int dummy = tmb_->tmb_get_boot_reg(&initial_boot);
-
+  //
   (*MyOutput_) << "Initial Boot Contents = " << std::hex << initial_boot << std::endl;
-
+  //
   //make sure firmware_type is normal
   if (!testFirmwareType()) return false;
-
+  //
   //make sure we have the right types of chips on the Mezzanine
   if (!testMezzId()) return false;
-
+  //
   short unsigned int after_jtag;
   dummy = tmb_->tmb_get_boot_reg(&after_jtag);
-
+  //
   (*MyOutput_) << "Boot Contents after JTAG = " << std::hex << after_jtag << std::endl;
-
+  //
   //put Boot register to power-up state
   unsigned short int power_up = 0xc000;
   tmb_->tmb_set_boot_reg(power_up);
-
+  //
   short unsigned int after_power_up;
   dummy = tmb_->tmb_get_boot_reg(&after_power_up);
-
-
+  //
   (*MyOutput_) << "Boot Contents after putting back to power up state= " 
 	       << std::hex << after_power_up << std::endl;
-
+  //
   bool testJTAGpattern[7];
   int pattern_expect;
   int read_data;
@@ -907,35 +911,28 @@ bool TMBTester::testU76chip(){
   bool testOK = true;
   for (int bit=6; bit>=0; bit--) {
     pattern_expect = 1 << bit;                   // write walking 1
-
+    //
     //    (*MyOutput_) << "Write = " << std::hex << pattern_expect << std::endl;
-    
+    //
     tmb_->WriteRegister(vme_usr_jtag_adr,pattern_expect);
-
+    //
     tmb_->tmb_set_boot_reg(after_power_up | TMB_HARD_RESET);             
-    //    (*MyOutput_) << "Hard Reset TMB... " << std::endl;
-
     tmb_->tmb_set_boot_reg(after_power_up);
-    //    (*MyOutput_) << "Resetting bootstrap register... " << std::endl;
     ::sleep(1);                                  //give TMB time to reload
-
+    //
     dummy = tmb_->tmb_get_boot_reg(&after_hard_reset);    
     //    (*MyOutput_) << "After hard reset, boot register = " << after_hard_reset << std::endl;
-
+    //
     read_data = tmb_->ReadRegister(vme_usr_jtag_adr);
     read_data &= 0x7f;                                 // mask out lowest 7 bits
     testJTAGpattern[bit] = compareValues("Test pattern",read_data,pattern_expect,true);
-
+    //
     testOK &= testJTAGpattern[bit];
-    //    std::cout << "Enter a number to continue...";
-    //    std::cin >> dummy;
-
   }
-
+  //
   messageOK("TMB U76 bus-hold chip",testOK);
-
+  //
   ResultTestU76chip_ = testOK ;
-
   return testOK;
 }
 //
