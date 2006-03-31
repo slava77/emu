@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.cc,v 2.5 2006/03/30 13:55:38 mey Exp $
+// $Id: PeripheralCrateParser.cc,v 2.6 2006/03/31 09:22:05 mey Exp $
 // $Log: PeripheralCrateParser.cc,v $
+// Revision 2.6  2006/03/31 09:22:05  mey
+// Update
+//
 // Revision 2.5  2006/03/30 13:55:38  mey
 // Update
 //
@@ -56,7 +59,6 @@ void PeripheralCrateParser::parseFile(const char* name){
     return ;
   }
  
-  
  
   //  Create our parser, then attach an error handler to the parser.
   //  The parser will call back to methods of the ErrorHandler if it
