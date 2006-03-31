@@ -1165,6 +1165,10 @@ throw (toolbox::fsm::exception::Exception)
       delete fileWriter_;
       fileWriter_ = NULL;
     }
+
+  for ( std::vector<Client*>::iterator c=clients_.begin(); c!=clients_.end(); ++c ){
+    (*c)->workLoopStarted = false;
+  }
 }
 
 
