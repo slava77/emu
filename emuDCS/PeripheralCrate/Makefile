@@ -17,6 +17,9 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 Project=emu
 Package=emuDCS/PeripheralCrate
 
+DependentLibraryDirs = $(XDAQ_ROOT)/emu/cscSV/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+DependentLibraries = CSCSupervisor
+
 Sources=\
 	ALCTController.cc \
 	AnodeChannel.cc \
@@ -26,8 +29,8 @@ Sources=\
 	CCBParser.cc \
 	CFEB.cc \
 	Crate.cc \
-	Chamber.cc \
 	CrateSelector.cc \
+	CrateUtils.cc \
 	CrateSetup.cc \
 	DAQMB.cc \
 	DAQMBParser.cc \
@@ -40,6 +43,9 @@ Sources=\
 	MPCParser.cc \
 	PeripheralCrateController.cc \
 	PeripheralCrateParser.cc \
+	TestBeamCrateController.cc \
+	EmuController.cc \
+	TMBTester.cc \
 	TMB.cc \
 	TMBParser.cc \
 	TMB_trgmode.cc \
@@ -47,37 +53,57 @@ Sources=\
 	VMEController_jtag.cc \
 	VMEModule.cc \
 	VMEParser.cc \
-	EmuController.cc \
+	EmuPeripheralCrate.cc  \
+	EmuRunControlHyperDAQ.cc  \
+	CrateUtilities.cc \
+	Chamber.cc \
 	ChamberUtilities.cc \
-	TMBTester.cc \
-	EMUjtag.cc
+	CSCParser.cc \
+	EMUjtag.cc 
 
 IncludeDirs = \
 	$(XDAQ_ROOT)/daq/toolbox/include \
 	$(XDAQ_ROOT)/daq/toolbox/include/$(XDAQ_OS) \
 	$(XDAQ_ROOT)/daq/toolbox/include/solaris \
 	$(XDAQ_ROOT)/daq/xoap/include \
+	$(XDAQ_ROOT)/daq/xdata/include \
+	$(XDAQ_ROOT)/daq/xdata/include/xdata \
+	$(XDAQ_ROOT)/daq/pt/include \
 	$(XDAQ_ROOT)/daq/xdaq/include \
+	$(XDAQ_ROOT)/daq/xcept/include \
+	$(XDAQ_ROOT)/daq/extern/cgicc/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
 	$(XDAQ_ROOT)/daq/extern/i2o/include \
 	$(XDAQ_ROOT)/daq/extern/i2o/include/i2o \
 	$(XDAQ_ROOT)/daq/extern/i2o/include/i2o/shared \
 	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
-	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/include 
+	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
+	$(XDAQ_ROOT)/daq/xgi/include \
+	$(XDAQ_ROOT)/emu/cscSV/include
 
 LibraryDirs = \
+	$(XDAQ_ROOT)/daq/xdata/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
 	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
 	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
 	$(XDAQ_ROOT)/daq/xdaq/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-	$(XDAQ_ROOT)/daq/pt/soap/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
 	$(XDAQ_ROOT)/daq/pt/tcp/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
 	$(XDAQ_ROOT)/daq/toolbox/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-	$(XDAQ_ROOT)/daq/xoap/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+	$(XDAQ_ROOT)/daq/xoap/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
+	$(XDAQ_ROOT)/daq/pt/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
+        $(XDAQ_ROOT)/emu/cscSV/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
 TestLibraryDirs = \
+	$(XDAQ_ROOT)/daq/xdata/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
+	$(XDAQ_ROOT)/daq/xcept/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
+	$(XDAQ_ROOT)/daq/xgi/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
+	$(XDAQ_ROOT)/daq/extern/cgicc/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
+	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
+	$(XDAQ_ROOT)/daq/extern/log4cplus/xmlappender/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
+	$(XDAQ_ROOT)/daq/extern/log4cplus/udpappender/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
+	$(XDAQ_ROOT)/daq/extern/mimetic/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
         $(XDAQ_ROOT)/emu/emuDCS/PeripheralCrate/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
-UserCFlags = 
-UserCCFlags = -DOSUcc
+UserCFlags  = 
+UserCCFlags = -DOSUcc 
 UserDynamicLinkFlags =
 UserStaticLinkFlags =
 UserExecutableLinkFlags =
@@ -85,9 +111,10 @@ UserExecutableLinkFlags =
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries = xerces-c xdaq log4cplus ptSOAP ptTCP toolbox xoap
-TestLibraries = xerces-c xdaq log4cplus ptSOAP ptTCP toolbox xoap \
-	        EmuPeripheralCrate
+Libraries = xerces-c xdaq xdata log4cplus toolbox xoap cgicc xcept xgi peer CSCSupervisor
+TestLibraries = xerces-c xdaq xdata log4cplus toolbox xoap cgicc xcept xgi peer \
+                mimetic xmlappender udpappender \
+	        EmuPeripheralCrate CSCSupervisor
 
 #
 # Compile the source files and create a shared library
@@ -103,7 +130,8 @@ TestExecutables= \
 	CrateTiming.cpp \
 	parsemain.cpp \
 	mpc2sp.cpp \
-	loadALCT.cpp \
-	testtmbmain.cpp
+	testtmbmain.cpp \
+	loadALCT.cpp\
+	loadTMB.cpp
 
 include $(XDAQ_ROOT)/config/Makefile.rules
