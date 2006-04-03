@@ -100,11 +100,11 @@ const int RegSizeAlctSlowFpga_WRT_THRESH_DAC0        = 12;
 const int RegSizeAlctSlowFpga_WRT_THRESH_DAC1        = 12;
 const int RegSizeAlctSlowFpga_WRT_THRESH_DAC2        = 12;
 const int RegSizeAlctSlowFpga_WRT_THRESH_DAC3        = 12;
-const int RegSizeAlctSlowFpga_RD_THRESH_ADC0         = 10;
-const int RegSizeAlctSlowFpga_RD_THRESH_ADC1         = 10;
-const int RegSizeAlctSlowFpga_RD_THRESH_ADC2         = 10;
-const int RegSizeAlctSlowFpga_RD_THRESH_ADC3         = 10;
-const int RegSizeAlctSlowFpga_RD_THRESH_ADC4         = 10;
+const int RegSizeAlctSlowFpga_RD_THRESH_ADC0         = 11;  //in ALCT documentation length = 10... 
+const int RegSizeAlctSlowFpga_RD_THRESH_ADC1         = 11;  //while in ALCTController = 11... :-(
+const int RegSizeAlctSlowFpga_RD_THRESH_ADC2         = 11;
+const int RegSizeAlctSlowFpga_RD_THRESH_ADC3         = 11;
+const int RegSizeAlctSlowFpga_RD_THRESH_ADC4         = 11;
 const int RegSizeAlctSlowFpga_WRT_DELAY_ASIC_GRP0    = 24;
 const int RegSizeAlctSlowFpga_WRT_DELAY_ASIC_GRP1    = 24;
 const int RegSizeAlctSlowFpga_WRT_DELAY_ASIC_GRP2    = 24;
@@ -131,9 +131,6 @@ const int ChipLocationAlctSlowProm0=   0;
 const int ChipLocationAlctSlowProm1=   1;
 const int ChipLocationAlctSlowProm2=   2;
 const int OpcodeSizeAlctSlowProm   =   8;
-//
-const int POWER_OFF = 0;
-const int POWER_ON  = 1;
 //
 //
 ////-------------------------------////

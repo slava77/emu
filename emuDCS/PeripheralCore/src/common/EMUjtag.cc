@@ -55,9 +55,9 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
   register_length_ = size_of_register;
 
   (*MyOutput_) << "EMUjtag: Use " << std::dec << bits_in_opcode_[chip_id_] 
-	       << " bits to write opcode " << std::hex << opcode 
-	       << " to chip " << std::hex << chip_id_ 
-	       << " on chain " << std::hex << jtag_chain_
+	       << " bits to write opcode 0x" << std::hex << opcode 
+	       << " to chip " << std::dec << chip_id_ 
+	       << " on chain 0x" << std::hex << jtag_chain_
 	       << " -> use " << std::dec << register_length_ 
 	       << " bits tdi/tdo" << std::hex << std::endl;
 
@@ -148,7 +148,7 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
   //  (*MyOutput_) << std::endl;
 
   //  (*MyOutput_) << "sndBuffer to ShfDR=";
-  //  for (int i=iframe/8-1; i>=0; i--) 
+  //  for (int i=iframe/8; i>=0; i--) 
   //    (*MyOutput_) << ((sndBuffer[i] >> 4) & 0xf) << (sndBuffer[i] & 0xf);  
   //  (*MyOutput_) << std::endl;
   
@@ -310,11 +310,15 @@ void EMUjtag::setup_jtag(int chain) {
     devices_in_chain_ = NumberChipsAlctSlowFpga; 
     bits_in_opcode_[0] = OpcodeSizeAlctSlowFpga;
     tmb_->start(6);
-  } else if (jtag_chain_ == ChainAlctSlowProm) {           //288, 384, or 672
+  } else if (jtag_chain_ == ChainAlctSlowProm) {
     devices_in_chain_ = NumberChipsAlctSlowProm;
     bits_in_opcode_[0] = OpcodeSizeAlctSlowProm;
     bits_in_opcode_[1] = OpcodeSizeAlctSlowProm;
     bits_in_opcode_[2] = OpcodeSizeAlctSlowProm;
+    tmb_->start(7);
+  } else if (jtag_chain_ == ChainAlctFastFpga) {
+    devices_in_chain_ = NumberChipsAlctFastFpga; 
+    bits_in_opcode_[0] = OpcodeSizeAlctFastFpga;
     tmb_->start(8);
   } else if (jtag_chain_ == ChainTmbMezz) { 
     devices_in_chain_ = NumberChipsTmbMezz;
