@@ -68,6 +68,8 @@ private:
 	string getRunNumber(xgi::Input *in);
 	string getNEvents(xgi::Input *in);
 
+	string trim(string orig) const;
+
 	string runtype_;
 	string runnumber_;
 	string nevents_;

@@ -130,7 +130,7 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 	for (int i = 0; i < n_keys; ++i) {
 		*out << option()
 				.set("label", (string)config_keys_[i])
-				.set("value", (string)config_files_[i])
+				.set("value", trim((string)config_files_[i]))
 				<< (string)config_keys_[i] << option() << endl;
 	}
 
@@ -396,6 +396,16 @@ string CSCSupervisor::getNEvents(xgi::Input *in)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "==== # of events:" << nevents);
 
 	return nevents;
+}
+
+string CSCSupervisor::trim(string orig) const
+{
+	string s = orig;
+
+	s.erase(0, s.find_first_not_of(" \t\n"));
+	s.erase(s.find_last_not_of(" \t\n") + 1);
+
+	return s;
 }
 
 // End of file
