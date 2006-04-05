@@ -2,33 +2,45 @@
 <html>
 <head>
   <title>CSCSupervisor</title>
+	<link rel="stylesheet" href="./cscsv.css" media="screen,print" type="text/css" />
 </head>
 
 <body>
-  <p><span style="color: red;">!Error!</span></p>
+	<p><span style="color: red;">!Error!</span></p>
 
-  <form action="/urn:xdaq-application:lid=10/Configure" >
-    Peripheral Crate:
-    <select name="runtype">
-      <option label="global" value="http://cms.cern.ch:8080/config/EmuPC/global.xml">global</option>
-      <option label="local" value="file:///config/EmuPC/local.xml">local</option>
-      <option label="calib" value="file:///config/EmuPC/calib.xml">calib</option>
-    </select><br>
-    Run Number:
-    <input type="text" name="runnumber" size="40"  /><br>
-    Max # of Events:
-    <input type="text" name="nevents" size="40"  /><br>
+	<form action="/urn:xdaq-application:lid=10/Configure">
+		Peripheral Crate:
+		<select name="runtype">
+			<option label="global" value="http://cms.cern.ch:8080/config/EmuPC/global.xml">global</option>
+			<option label="local" value="file:///config/EmuPC/local.xml">local</option>
+			<option label="calib" value="file:///config/EmuPC/calib.xml">calib</option>
+		</select><br>
+		Run Number:
+		<input type="text" name="runnumber" size="40"  /><br>
+		Max # of Events:
+		<input type="text" name="nevents" size="40"  /><br>
 
-    <input type="submit" name="command" value="Configure" />
-  </form>
+		<input type="submit" name="command" value="Configure" />
+	</form>
 
-  <form action="/urn:xdaq-application:lid=10/Enable" >
-    <input type="submit" name="command" value="Enable"  />
-  </form>
-  <form action="/urn:xdaq-application:lid=10/Disable" >
-    <input type="submit" name="command" value="Disable"  />
-  </form>
-  <form action="/urn:xdaq-application:lid=10/Halt" >
-    <input type="submit" name="command" value="Halt"  />
-  </form>
+	<form action="/urn:xdaq-application:lid=10/Enable" >
+		<input type="submit" name="command" value="Enable"  />
+	</form>
+	<form action="/urn:xdaq-application:lid=10/Disable" >
+		<input type="submit" name="command" value="Disable"  />
+	</form>
+	<form action="/urn:xdaq-application:lid=10/Halt" >
+		<input type="submit" name="command" value="Halt"  />
+	</form>
+
+	<table>
+		<tbody>
+			<tr><td>EmuFEDCrate(0)</td><td class="configured">Configured</td></tr>
+			<tr><td>EmuPeripheralCrate(0)</td><td class="enabled">Enabled</td></tr>
+			<tr><td>EmuPeripheralCrate(1)</td><td class="enabled">Enabled</td></tr>
+			<tr><td>EmuDAQManager(0)</td><td class="error">Error</td></tr>
+			<tr><td>LTCControl(0)</td><td class="halted">Halted</td></tr>
+		</tbody>
+	</table>
 </body></html>
+<!-- vim: set ai sw=2 ts=2: -->

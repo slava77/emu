@@ -1,0 +1,13 @@
+td.halted {
+	color: #22c;
+}
+td.configured {
+	color: #2c2;
+}
+td.enabled {
+	color: #ca2;
+}
+td.error {
+	color: #c22;
+}
+/* vim: set sw=4 ts=4: */
