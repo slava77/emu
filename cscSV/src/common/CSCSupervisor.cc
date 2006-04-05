@@ -62,6 +62,11 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 
 	state_ = fsm_.getStateName(fsm_.getCurrentState());
 
+	state_table_.addApplication(this, "EmuFEDCrate");
+	state_table_.addApplication(this, "EmuPeripheralCrate");
+	state_table_.addApplication(this, "EmuDAQManager");
+	state_table_.addApplication(this, "LTCControl");
+
 	LOG4CPLUS_INFO(getApplicationLogger(), "CSCSupervisor");
 }
 
@@ -175,6 +180,8 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 			.set("name", "command")
 			.set("value", "Halt") << endl;
 	*out << form() << endl;
+
+	state_table_.webOutput(out);
 
 	*out << body() << html() << endl;
 }
@@ -409,6 +416,107 @@ string CSCSupervisor::trim(string orig) const
 	s.erase(s.find_last_not_of(" \t\n") + 1);
 
 	return s;
+}
+
+void CSCSupervisor::StateTable::addApplication(CSCSupervisor *sv, string klass)
+{
+	sv_ = sv;
+
+	// find applications
+	vector<xdaq::ApplicationDescriptor *> apps;
+	try {
+		apps = sv->getApplicationContext()->getApplicationGroup()
+				->getApplicationDescriptors(klass);
+	} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+		return; // Do nothing if the target doesn't exist
+	}
+
+	// add to the table
+	vector<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
+	for (; i != apps.end(); ++i) {
+		table_.push_back(
+				pair<xdaq::ApplicationDescriptor *, string>(*i, "NULL"));
+	}
+}
+
+void CSCSupervisor::StateTable::refresh()
+{
+	string klass = "";
+	xoap::MessageReference message, reply;
+
+	vector<pair<xdaq::ApplicationDescriptor *, string> >::iterator i =
+			table_.begin();
+	for (; i != table_.end(); ++i) {
+		if (klass != i->first->getClassName()) {
+			klass = i->first->getClassName();
+			message = createStateSOAP(klass);
+		}
+
+		reply = sv_->getApplicationContext()->postSOAP(message, i->first);
+
+		i->second = extractState(reply);
+	}
+}
+
+void CSCSupervisor::StateTable::webOutput(xgi::Output *out)
+		throw (xgi::exception::Exception)
+{
+	refresh();
+	*out << table() << tbody() << endl;
+
+	vector<pair<xdaq::ApplicationDescriptor *, string> >::iterator i =
+			table_.begin();
+	for (; i != table_.end(); ++i) {
+		string klass = i->first->getClassName();
+		int instance = i->first->getInstance();
+		string state = i->second;
+
+		*out << tr();
+		*out << td() << klass << "(" << instance << ")" << td();
+		*out << td().set("class", state) << state << td();
+		*out << tr() << endl;
+	}
+
+	*out << tbody() << table() << endl;
+}
+
+xoap::MessageReference CSCSupervisor::StateTable::createStateSOAP(
+		string klass)
+{
+	xoap::MessageReference message = xoap::createMessage();
+	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+	envelope.addNamespaceDeclaration("xsi", NS_XSI);
+
+	xoap::SOAPName command = envelope.createName(
+			"ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
+	xoap::SOAPName properties = envelope.createName(
+			"properties", klass, "urn:xdaq-application:" + klass);
+	xoap::SOAPName parameter = envelope.createName(
+			"State", klass, "urn:xdaq-application:" + klass);
+	xoap::SOAPName xsitype = envelope.createName("type", "xsi", NS_XSI);
+
+	xoap::SOAPElement properties_e = envelope.getBody()
+			.addBodyElement(command)
+			.addChildElement(properties);
+	properties_e.addAttribute(xsitype, "soapenc:Struct");
+
+	xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
+	parameter_e.addAttribute(xsitype, "xsd:string");
+
+	return message;
+}
+
+string CSCSupervisor::StateTable::extractState(xoap::MessageReference message)
+{
+		xoap::SOAPElement root = message->getSOAPPart()
+				.getEnvelope().getBody().getChildElements(
+				*(new xoap::SOAPName("ParameterGetResponse", "", "")))[0];
+		xoap::SOAPElement properties = root.getChildElements(
+				*(new xoap::SOAPName("properties", "", "")))[0];
+		xoap::SOAPElement state = properties.getChildElements(
+				*(new xoap::SOAPName("State", "", "")))[0];
+
+		return state.getValue();
 }
 
 // End of file

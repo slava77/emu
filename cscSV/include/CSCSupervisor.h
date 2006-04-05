@@ -4,6 +4,7 @@
 #include "EmuApplication.h"
 
 #include <string>
+#include <utility>  // pair
 
 #include "toolbox/fsm/FiniteStateMachine.h"
 #include "xdata/Vector.h"
@@ -75,6 +76,21 @@ private:
 	string nevents_;
 
 	string error_message_;
+
+	class StateTable
+	{
+	public:
+		void addApplication(CSCSupervisor *sv, string klass);
+		void refresh() ;
+		void webOutput(xgi::Output *out) throw (xgi::exception::Exception);
+
+	private:
+		xoap::MessageReference createStateSOAP(string klass);
+		string extractState(xoap::MessageReference message);
+
+		CSCSupervisor *sv_;
+		vector<pair<xdaq::ApplicationDescriptor *, string> > table_;
+	} state_table_;
 };
 
 #endif  // ifndef __CSC_SUPERVISOR_H__
