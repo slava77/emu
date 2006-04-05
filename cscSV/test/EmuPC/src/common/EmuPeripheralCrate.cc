@@ -79,7 +79,7 @@ xoap::MessageReference EmuPeripheralCrate::onHalt(xoap::MessageReference message
 void EmuPeripheralCrate::configureAction(toolbox::Event::Reference e)
         throw (toolbox::fsm::exception::Exception)
 {   
-    LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << ":" << (string)xmlFileName_);
+    LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << ":" << (string)xml_file_name_);
 }
 
 void EmuPeripheralCrate::enableAction(toolbox::Event::Reference e)
