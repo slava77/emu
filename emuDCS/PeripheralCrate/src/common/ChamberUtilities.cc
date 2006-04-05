@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.17 2006/03/30 13:55:38 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.18 2006/04/05 22:46:24 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.18  2006/04/05 22:46:24  mey
+// Bug fix
+//
 // Revision 1.17  2006/03/30 13:55:38  mey
 // Update
 //
@@ -1592,7 +1595,7 @@ void ChamberUtilities::CFEBTiming(){
     //
     int CLCTInputList[5] = {0x1,0x2,0x4,0x8,0x10};
     //
-    for (int List=0; List<3; List++){
+    for (int List=0; List<5; List++){
       //
       for (int Nmuons=0; Nmuons<2; Nmuons++){
 	//
