@@ -106,6 +106,9 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 
 	*out << head() << endl;
 	*out << title("CSCSupervisor") << endl;
+	*out << cgicc::link().set("rel", "stylesheet")
+			.set("href", "/daq/lib/linux/x86/cscsv.css")
+			.set("type", "text/css") << endl;
 	*out << head() << endl;
 
 	// Body

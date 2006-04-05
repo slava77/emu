@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2006/03/08 10:43:29 ichiro Exp $
+# $Id: Makefile,v 1.3 2006/04/05 13:27:46 ichiro Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -84,3 +84,6 @@ TestLibraries=
 TestExecutables=
 
 include ./Makefile.rules
+
+installcss:
+	$(Install) -p html/cscsv.css $(LibInstallDir)/
