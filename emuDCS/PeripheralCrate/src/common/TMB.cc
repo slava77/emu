@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.57 2006/03/28 10:44:21 mey Exp $
+// $Id: TMB.cc,v 2.58 2006/04/06 22:23:08 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.58  2006/04/06 22:23:08  mey
+// Update
+//
 // Revision 2.57  2006/03/28 10:44:21  mey
 // Update
 //
@@ -495,7 +498,7 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     //
     InjectedLct0.push_back(lct0_);
     //
-    printf(" lct0 = %x %x %x\n",frame1,frame2,lct0_);
+    printf(" lct0 = %x %x %x\n",frame1,frame2,(unsigned int)lct0_);
     //
     sndbuf[0] = (frame1>>8)&0xff ;
     sndbuf[1] = (frame1)&0xff ;
@@ -553,7 +556,7 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     //
     InjectedLct1.push_back(lct1_);
     //
-    printf(" lct1 = %x %x %x\n",frame1,frame2,lct1_);
+    printf(" lct1 = %x %x %x\n",frame1,frame2,(unsigned int)lct1_);
     //
     sndbuf[0] = (frame1>>8)&0xff ;
     sndbuf[1] = (frame1)&0xff ;
@@ -625,7 +628,7 @@ void TMB::ReadBackMpcRAM(int nEvents){
     tmb_vme(VME_READ,mpc_ram_rdata_adr,sndbuf,rcvbuf,NOW);
     unsigned long int rlct02 = ((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff) ;
     //
-    printf(" %x %x \n",rlct01,rlct02);
+    printf(" %x %x \n",(unsigned int)rlct01,(unsigned int)rlct02);
     //
     sndbuf[0] = ((ramAdd)>>8)&0xff ;
     sndbuf[1] = (ramAdd)&0xff | (0x1<<6) ;
@@ -641,7 +644,7 @@ void TMB::ReadBackMpcRAM(int nEvents){
     tmb_vme(VME_READ,mpc_ram_rdata_adr,sndbuf,rcvbuf,NOW);
     unsigned long int rlct12 = ((rcvbuf[0]&0xff)<<8) | ((rcvbuf[1]&0xff)) ;
     //
-    printf(" %x %x \n",rlct11,rlct12);
+    printf(" %x %x \n",(unsigned int)rlct11,(unsigned int)rlct12);
     //
   }
   //
@@ -750,6 +753,8 @@ int TMB::FmState(){
   //
   int fm_state = (rcvbuf[1]&0xf0)>>4;
   //
+  return fm_state;
+  //
 }
 //
 void TMB::PrintCounters(int counter){
@@ -788,7 +793,7 @@ void TMB::PrintCounters(int counter){
 void TMB::ResetCounters(){
   //
   unsigned long int adr;
-  unsigned long int rd_data ;
+  //unsigned long int rd_data ;
   unsigned long int wr_data;
   //
   // Clear counters
@@ -1191,7 +1196,7 @@ void TMB::scope(int scp_arm,int scp_readout, int scp_channel) {
       adr = scp_ctrl_adr ;
       tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);              //read scope status
       rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-      printf("Scope status %04x\n",rd_data);
+      printf("Scope status %04x\n",(unsigned int)rd_data);
       if((rd_data & 0x0080) != 0) goto TRIGGERED;                    //triggered and done
       printf("Waiting for scope to trigger %ld\n",i);
     }
@@ -1509,8 +1514,8 @@ void TMB::scope(int scp_arm,int scp_readout, int scp_channel) {
 std::bitset<22> TMB::calCRC22(const std::vector< std::bitset<16> >& datain){
   std::bitset<22> CRC;
   CRC.reset();
-  for(int i=0;i<datain.size()-4;i++){
-    printf("Taking %d %x \n",i,datain[i].to_ulong());
+  for(unsigned int i=0;i<datain.size()-4;i++){
+    printf("Taking %d %x \n",i,(unsigned int)datain[i].to_ulong());
     CRC=nextCRC22_D16(datain[i],CRC);
   }
   return CRC;
@@ -1861,7 +1866,9 @@ int TMB::TestArray(){
    int CRC_low  = (alct_data[CRC_end-3].to_ulong()) &0x7ff ;
    int CRC_high = (alct_data[CRC_end-2].to_ulong()) &0x7ff ;
    int CRCdata  = (CRC_high<<11) | CRC_low ;
-   printf(" CRC in data stream %x %x %x \n",alct_data[CRC_end-3].to_ulong(),alct_data[CRC_end-2].to_ulong(),CRCdata);
+   printf(" CRC in data stream %x %x %x \n",(unsigned int)alct_data[CRC_end-3].to_ulong(),
+	  (unsigned int)alct_data[CRC_end-2].to_ulong(),
+	  CRCdata);
    printf(" CRC %x \n",TMBCRCcalc(alct_data));
    return 0;
 }
@@ -1988,7 +1995,9 @@ void TMB::EnableInternalL1aSequencer(){
 
 void TMB::EnableCLCTInputs(int CLCTInputs = 0x1f){
 //
-   int adr, alct_wdcnt, alct_busy, rd_data, wr_data, alct_rdata;
+   int adr;
+   //int alct_wdcnt, alct_busy;
+   int rd_data, wr_data, alct_rdata;
    int tmb_state, halt_state;
    adr = cfeb_inj_adr ;
    tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
@@ -2452,7 +2461,7 @@ void TMB::OnlyReadTMBRawhits(){
 void TMB::decode() {
   //
   unsigned long int base_adr;
-  unsigned long int boot_adr;
+  //unsigned long int boot_adr;
   unsigned long int adr;
   unsigned long int wr_data;
   unsigned long int rd_data;

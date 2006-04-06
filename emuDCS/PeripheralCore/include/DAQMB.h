@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.19 2006/03/17 14:06:15 mey Exp $
+// $Id: DAQMB.h,v 2.20 2006/04/06 22:23:07 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.20  2006/04/06 22:23:07  mey
+// Update
+//
 // Revision 2.19  2006/03/17 14:06:15  mey
 // Added set test status
 //
@@ -208,11 +211,30 @@ public:
   void buck_shift();
   void buck_shift_out();
   int buck_shift_test();
-
+  //
   void set_cal_tim_pulse(int ntim);
   void set_cal_tim_inject(int ntim);
-
-
+  //
+  void SetFebDavDelay(int delay){feb_dav_delay_ = delay;}
+  void SetTmbDavDelay(int delay){tmb_dav_delay_ = delay;}
+  void SetPushDavDelay(int delay){push_dav_delay_ = delay;}
+  void SetL1aDavDelay(int delay){l1acc_dav_delay_ = delay;}
+  void SetAlctDavDelay(int delay){ALCT_dav_delay_ = delay;}
+  void SetCalibrationLctDelay(int delay){calibration_LCT_delay_ = delay;}
+  void SetCalibrationL1aDelay(int delay){calibration_l1acc_delay_ = delay;}
+  void SetPulseDelay(int delay){pulse_delay_ = delay;}
+  void SetInjectDelay(int delay){inject_delay_ = delay;}
+  void SetFebClockDelay(int delay){feb_clock_delay_ = delay;}
+  void SetCompMode(int mode){comp_mode_ = mode;}
+  void SetCompTiming(int delay){comp_timing_ = delay;}
+  void SetPreBlockEnd(int delay){pre_block_end_ = delay;}
+  void SetCableDelay(int delay){cable_delay_ = delay;}
+  void SetCrateId(int id){crate_id_ = id;}
+  //
+  void SetPulseDac(float value){pul_dac_set_= value;}
+  void SetInjectorDac(float value){inj_dac_set_=value;}
+  void SetCompThresh(float value){set_comp_thresh_=value;}
+  //
   void toggle_pedestal();
   void pulse(int Num_pulse,unsigned int pulse_delay);
   void inject(int Num_pulse,unsigned int pulse_delay);

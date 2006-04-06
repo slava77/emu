@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuParser.h,v 2.1 2006/04/06 08:54:32 mey Exp $
+// $Id: EmuParser.h,v 2.2 2006/04/06 22:23:07 mey Exp $
 // $Log: EmuParser.h,v $
+// Revision 2.2  2006/04/06 22:23:07  mey
+// Update
+//
 // Revision 2.1  2006/04/06 08:54:32  mey
 // Got rif of friend TMBParser
 //
@@ -23,7 +26,7 @@ public:
 
   void parseNode(xercesc::DOMNode * pNode);
   bool fillInt(std::string item, int & target);
-  void fillFloat(std::string item, float & target);
+  bool fillFloat(std::string item, float & target);
   bool fillString(std::string item, std::string & target);
      
   //void fillHex(std::string item, int & target);
