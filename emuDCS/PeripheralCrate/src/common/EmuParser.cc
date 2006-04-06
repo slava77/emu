@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuParser.cc,v 2.2 2006/04/06 08:54:32 mey Exp $
+// $Id: EmuParser.cc,v 2.3 2006/04/06 22:23:08 mey Exp $
 // $Log: EmuParser.cc,v $
+// Revision 2.3  2006/04/06 22:23:08  mey
+// Update
+//
 // Revision 2.2  2006/04/06 08:54:32  mey
 // Got rif of friend TMBParser
 //
@@ -59,18 +62,21 @@ bool EmuParser::fillString(std::string item, std::string & target) {
 }
 
 
-void EmuParser::fillFloat(std::string item, float & target) {
+bool EmuParser::fillFloat(std::string item, float & target) {
   float value;
+  bool found=false;
   XMLCh * name = xercesc::XMLString::transcode(item.c_str());
   xercesc::DOMAttr * pAttributeNode = (xercesc::DOMAttr*) pAttributes_->getNamedItem(name);
   if(pAttributeNode) {
     int err = sscanf(xercesc::XMLString::transcode(pAttributeNode->getNodeValue()), "%f", &value);
     if (err==0) std::cerr << "ERRORS in parsing!!!" << item << " code " << err << std::endl;
     target = value;
+    found = true;
     #ifdef debugV
       std::cout << "  " << item << " = " << target << std::endl;
     #endif
   }
+  return found;
 }
 
 
