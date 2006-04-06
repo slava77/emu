@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.37 2006/03/28 10:44:21 mey Exp $
+// $Id: TMB.h,v 2.38 2006/04/06 08:54:32 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.38  2006/04/06 08:54:32  mey
+// Got rif of friend TMBParser
+//
 // Revision 2.37  2006/03/28 10:44:21  mey
 // Update
 //
@@ -135,7 +138,7 @@ class TMB : public VMEModule, public EMUjtag {
 public:
   //
   friend class ALCTController;
-  friend class TMBParser;
+  //friend class TMBParser;
   friend class EMUjtag;
   //
   TMB(int newcrate, int slot);
@@ -319,6 +322,35 @@ public:
   }
   //
   //inline void SetStepMode(bool stepmode) { step_mode = stepmode ; }
+  //
+  void SetCFEB0delay(int delay){cfeb0delay_ = delay;}
+  void SetCFEB1delay(int delay){cfeb1delay_ = delay;}
+  void SetCFEB2delay(int delay){cfeb2delay_ = delay;}
+  void SetCFEB3delay(int delay){cfeb3delay_ = delay;}
+  void SetCFEB4delay(int delay){cfeb4delay_ = delay;}
+  //
+  void SetAlctTXclockDelay(int delay) {alct_tx_clock_delay_ = delay;}
+  void SetAlctRXclockDelay(int delay) {alct_rx_clock_delay_ = delay;}
+  //
+  void SetL1aDelay(int delay) { l1adelay_ = delay; }
+  void SetL1aWindowSize(int delay) {l1a_window_size_ = delay;}
+  void SetAlctMatchWindowSize(int size) {alct_match_window_size_ = size;}
+  void SetAlctVpfDelay(int delay){alct_vpf_delay_ = delay;}
+  void SetVersion(std::string version) {version_ = version;}
+  void SetMpcDelay(int delay) {mpc_delay_= delay;}
+  void SetAlctInput(int input) {ALCT_input_ = input;}
+  void SetRpcExist(int exist) {rpc_exists_ = exist;}
+  void SetFifoMode(int mode) {fifo_mode_ = mode;}
+  void SetFifoTbins(int tbins) {fifo_tbins_ = tbins;}
+  void SetFifoPreTrig(int pretrig) {fifo_pretrig_ = pretrig;}
+  void SetAlctClear(int clear){alct_clear_ = clear;}
+  void SetMpcTXdelay(int delay){mpc_tx_delay_ = delay;}
+  void SetL1aOffset(int offset){l1a_offset_ = offset;}
+  void SetBxnOffset(int offset){bxn_offset_ = offset;}
+  void SetDisableCLCTInputs(int disable){disableCLCTInputs_ = disable;}
+  void SetEnableCLCTInputs(int enable){enableCLCTInputs_ = enable;}
+  void SetAlct(ALCTController* alct){alctController_ = alct;}
+  void SetRat(RAT* rat){rat_ = rat;}
   //
   inline std::vector<unsigned long int> GetInjectedLct0() { return InjectedLct0 ; }
   inline std::vector<unsigned long int> GetInjectedLct1() { return InjectedLct1 ; }
