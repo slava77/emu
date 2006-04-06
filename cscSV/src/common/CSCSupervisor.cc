@@ -2,6 +2,8 @@
 
 #include "CSCSupervisor.h"
 
+#include <sstream>
+
 #include "xdaq/NamespaceURI.h"
 #include "xdaq/ApplicationGroup.h"
 #include "xoap/Method.h"
@@ -9,6 +11,7 @@
 #include "xoap/SOAPPart.h"
 #include "xoap/SOAPEnvelope.h"
 #include "xoap/SOAPBody.h"
+#include "xoap/SOAPSerializer.h"
 
 #include "cgicc/HTMLClasses.h"
 
@@ -18,6 +21,7 @@ using namespace cgicc;
 XDAQ_INSTANTIATOR_IMPL(CSCSupervisor);
 
 static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
+static const unsigned int N_LOG_MESSAGES = 10;
 
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
@@ -66,6 +70,8 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	state_table_.addApplication(this, "EmuPeripheralCrate");
 	state_table_.addApplication(this, "EmuDAQManager");
 	state_table_.addApplication(this, "LTCControl");
+
+	last_log_.size(N_LOG_MESSAGES);
 
 	LOG4CPLUS_INFO(getApplicationLogger(), "CSCSupervisor");
 }
@@ -183,6 +189,10 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 
 	state_table_.webOutput(out);
 
+	*out << hr() << endl;
+
+	last_log_.webOutput(out);
+
 	*out << body() << html() << endl;
 }
 
@@ -294,11 +304,13 @@ void CSCSupervisor::sendCommand(string command, string klass)
 
 	// prepare a SOAP message
 	xoap::MessageReference message = createCommandSOAP(command);
+	xoap::MessageReference reply;
 
 	// send the message one-by-one
 	vector<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
 	for (; i != apps.end(); ++i) {
-		getApplicationContext()->postSOAP(message, *i);
+		reply = getApplicationContext()->postSOAP(message, *i);
+		analyzeReply(message, reply, *i);
 	}
 }
 
@@ -326,13 +338,15 @@ void CSCSupervisor::setParameter(
 	}
 
 	// prepare a SOAP message
-	xoap::MessageReference message =
-			createParameterSetSOAP(klass, name, type, value);
+	xoap::MessageReference message = createParameterSetSOAP(
+			klass, name, type, value);
+	xoap::MessageReference reply;
 
 	// send the message one-by-one
 	vector<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
 	for (; i != apps.end(); ++i) {
-		getApplicationContext()->postSOAP(message, *i);
+		reply = getApplicationContext()->postSOAP(message, *i);
+		analyzeReply(message, reply, *i);
 	}
 }
 
@@ -361,6 +375,35 @@ xoap::MessageReference CSCSupervisor::createParameterSetSOAP(
 	parameter_e.addTextNode(value);
 
 	return message;
+}
+
+void CSCSupervisor::analyzeReply(
+		xoap::MessageReference message, xoap::MessageReference reply,
+		xdaq::ApplicationDescriptor *app)
+{
+	xoap::SOAPElement root = reply->getSOAPPart()
+			.getEnvelope().getBody().getChildElements()[0];
+
+	if (root.getElementName().getLocalName() != "Fault") { return; }
+
+	string buf = "";
+	ostringstream error(buf);
+
+	error << "SOAP Message:" << endl;
+	xoap::SOAPSerializer s(buf);
+	s.serialize((DOMElement *)&reply->getSOAPPart().getEnvelope());
+	error << endl;
+
+	error << "to " << app->getClassName() << "(" << app->getInstance() << ")"
+			<< " was replied as fault:" << endl;
+
+	xoap::SOAPElement faultstring = root.getChildElements(
+			*(new xoap::SOAPName("faultstring", "", "")))[0];
+	error << faultstring.getValue() << endl;
+
+	LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+
+	return;
 }
 
 string CSCSupervisor::getRuntype(xgi::Input *in)
@@ -453,6 +496,7 @@ void CSCSupervisor::StateTable::refresh()
 		}
 
 		reply = sv_->getApplicationContext()->postSOAP(message, i->first);
+		sv_->analyzeReply(message, reply, i->first);
 
 		i->second = extractState(reply);
 	}
@@ -508,15 +552,46 @@ xoap::MessageReference CSCSupervisor::StateTable::createStateSOAP(
 
 string CSCSupervisor::StateTable::extractState(xoap::MessageReference message)
 {
-		xoap::SOAPElement root = message->getSOAPPart()
-				.getEnvelope().getBody().getChildElements(
-				*(new xoap::SOAPName("ParameterGetResponse", "", "")))[0];
-		xoap::SOAPElement properties = root.getChildElements(
-				*(new xoap::SOAPName("properties", "", "")))[0];
-		xoap::SOAPElement state = properties.getChildElements(
-				*(new xoap::SOAPName("State", "", "")))[0];
+	xoap::SOAPElement root = message->getSOAPPart()
+			.getEnvelope().getBody().getChildElements(
+			*(new xoap::SOAPName("ParameterGetResponse", "", "")))[0];
+	xoap::SOAPElement properties = root.getChildElements(
+			*(new xoap::SOAPName("properties", "", "")))[0];
+	xoap::SOAPElement state = properties.getChildElements(
+			*(new xoap::SOAPName("State", "", "")))[0];
 
-		return state.getValue();
+	return state.getValue();
+}
+
+void CSCSupervisor::LastLog::size(unsigned int size)
+{
+	size_ = size;
+}
+
+unsigned int CSCSupervisor::LastLog::size() const
+{
+	return size_;
+}
+
+void CSCSupervisor::LastLog::add(string message)
+{
+	messages_.push_back(message);
+	if (messages_.size() > size_) { messages_.pop_front(); }
+}
+
+void CSCSupervisor::LastLog::webOutput(xgi::Output *out)
+		throw (xgi::exception::Exception)
+{
+	*out << "Last " << messages_.size() << " log messages:" << br() << endl;
+	*out << textarea().set("cols", "120").set("rows", "20")
+			.set("readonly").set("class", "log") << endl;
+
+	deque<string>::iterator i = messages_.begin();
+	for (; i != messages_.end(); ++i) {
+		*out << *i << endl;
+	}
+
+	*out << textarea() << endl;
 }
 
 // End of file

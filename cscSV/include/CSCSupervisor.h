@@ -4,6 +4,7 @@
 #include "EmuApplication.h"
 
 #include <string>
+#include <deque>
 #include <utility>  // pair
 
 #include "toolbox/fsm/FiniteStateMachine.h"
@@ -14,6 +15,9 @@
 
 class CSCSupervisor : public EmuApplication
 {
+	class StateTable;
+	friend class StateTable;
+
 public:
 	XDAQ_INSTANTIATOR();
 
@@ -64,6 +68,9 @@ private:
 	void setParameter(string klass, string name, string type, string value);
 	xoap::MessageReference createParameterSetSOAP(
 	        string klass, string name, string type, string value);
+	void analyzeReply(
+			xoap::MessageReference message, xoap::MessageReference reply,
+			xdaq::ApplicationDescriptor *app);
 
 	string getRuntype(xgi::Input *in);
 	string getRunNumber(xgi::Input *in);
@@ -91,6 +98,19 @@ private:
 		CSCSupervisor *sv_;
 		vector<pair<xdaq::ApplicationDescriptor *, string> > table_;
 	} state_table_;
+
+	class LastLog
+	{
+	public:
+		void size(unsigned int size);
+		unsigned int size() const;
+		void add(string message);
+		void webOutput(xgi::Output *out) throw (xgi::exception::Exception);
+
+	private:
+		unsigned int size_;
+		deque<string> messages_;
+	} last_log_;
 };
 
 #endif  // ifndef __CSC_SUPERVISOR_H__
