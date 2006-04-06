@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.11 2006/03/22 14:36:36 mey Exp $
+// $Id: ALCTController.h,v 2.12 2006/04/06 08:54:32 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.12  2006/04/06 08:54:32  mey
+// Got rif of friend TMBParser
+//
 // Revision 2.11  2006/03/22 14:36:36  mey
 // Update
 //
@@ -53,7 +56,7 @@ class AnodeChannel;
 class ALCTController {
 public:
   
-  friend class TMBParser;
+  //friend class TMBParser;
   
   enum CHAMBER { ME11, ME12, ME13, ME21, ME22, ME31, ME41 };
   
@@ -549,7 +552,25 @@ public:
 		     char TrailerData[8192], int TrailerDataSize, int[] );
   int ReadIDCODE();
   int nAfebs() { return nAFEBs_; }
-  
+  //
+  void SetTrigMode(int mode){alct_trig_mode_ = mode;}
+  void SetExtTrigEnable(int enable){alct_ext_trig_en_ = enable;}
+  void SetTrigInfoEnable(int enable){alct_trig_info_en_ = enable;}
+  void SetL1aInternal(int enable){alct_l1a_internal_ = enable;}
+  void SetFifoTbins(int tbins){alct_fifo_tbins_ = tbins;}
+  void SetFifoPretrig(int pretrig){alct_fifo_pretrig_ = pretrig;}
+  void SetL1aDelay(int delay){alct_l1a_delay_ = delay;}
+  void SetL1aOffset(int offset) {alct_l1a_offset_ = offset;}
+  void SetL1aWindowSize(int size){alct_l1a_window_ = size;}
+  void SetPretrigNumberOfLayers(int nph){alct_nph_thresh_ = nph;}
+  void SetPretrigNumberOfPattern(int nph){alct_nph_pattern_ = nph;}
+  void SetCCBEnable(int enable){alct_ccb_enable_ = enable;}
+  void SetAlctInjectMode(int mode){alct_inject_mode_ = mode;}
+  void SetSendEmpty(int enable){alct_send_empty_ = enable;}
+  void SetDriftDelay(int delay){alct_drift_delay_ = delay;}
+  void SetPatternFile(std::string file){alctPatternFile = file;}
+  void SetHotChannelFile(std::string file){alctHotChannelFile = file;}
+  //  
   protected:
   // can't have an anodeChannel, since it needs to download 6 delays at a time.
   //std::vector<AnodeChannel> anodeChannels_;

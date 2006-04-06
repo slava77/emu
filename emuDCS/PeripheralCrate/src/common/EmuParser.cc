@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuParser.cc,v 2.1 2006/02/25 11:25:11 mey Exp $
+// $Id: EmuParser.cc,v 2.2 2006/04/06 08:54:32 mey Exp $
 // $Log: EmuParser.cc,v $
+// Revision 2.2  2006/04/06 08:54:32  mey
+// Got rif of friend TMBParser
+//
 // Revision 2.1  2006/02/25 11:25:11  mey
 // UPdate
 //
@@ -21,7 +24,8 @@ void EmuParser::parseNode(xercesc::DOMNode * pNode) {
   #endif
 }
 
-void EmuParser::fillInt(std::string item, int & target) {
+bool EmuParser::fillInt(std::string item, int & target) {
+  bool found=false;
   int value; 
   XMLCh * name = xercesc::XMLString::transcode(item.c_str());
   xercesc::DOMAttr * pAttributeNode = (xercesc::DOMAttr*) pAttributes_->getNamedItem(name);
@@ -29,25 +33,29 @@ void EmuParser::fillInt(std::string item, int & target) {
     int err = sscanf(xercesc::XMLString::transcode(pAttributeNode->getNodeValue()), "%d", &value);
     if (err==0) std::cerr << "ERRORS in parsing!!!" << item << " code " << err << std::endl;
     target = value;
+    found = true;
 #ifdef debugV
     std::cout << "  " << item << " = " << target << std::endl;
 #endif
   }
-  
+  return found;  
 }
 
 
-void EmuParser::fillString(std::string item, std::string & target) {
+bool EmuParser::fillString(std::string item, std::string & target) {
+  bool found=false;
   std::string value;
   XMLCh * name = xercesc::XMLString::transcode(item.c_str());
   xercesc::DOMAttr * pAttributeNode = (xercesc::DOMAttr*) pAttributes_->getNamedItem(name);
   if(pAttributeNode) {
     value = xercesc::XMLString::transcode(pAttributeNode->getNodeValue());
     target = value;
+    found = true;
     #ifdef debugV
       std::cout << "  " << item << " = " << target << std::endl;
     #endif
   }
+  return found;
 }
 
 
