@@ -35,12 +35,24 @@
 
 	<table>
 		<tbody>
-			<tr><td>EmuFEDCrate(0)</td><td class="configured">Configured</td></tr>
-			<tr><td>EmuPeripheralCrate(0)</td><td class="enabled">Enabled</td></tr>
-			<tr><td>EmuPeripheralCrate(1)</td><td class="enabled">Enabled</td></tr>
-			<tr><td>EmuDAQManager(0)</td><td class="error">Error</td></tr>
-			<tr><td>LTCControl(0)</td><td class="halted">Halted</td></tr>
+			<tr><td>EmuFEDCrate(0)</td><td class="Configured">Configured</td></tr>
+			<tr><td>EmuPeripheralCrate(0)</td><td class="Enabled">Enabled</td></tr>
+			<tr><td>EmuPeripheralCrate(1)</td><td class="Enabled">Enabled</td></tr>
+			<tr><td>EmuDAQManager(0)</td><td class="Error">Error</td></tr>
+			<tr><td>LTCControl(0)</td><td class="Halted">Halted</td></tr>
 		</tbody>
 	</table>
+
+	<hr>
+
+	Last 5 log messages:<br>
+	<textarea cols="120" rows="20" readonly class="log">
+	Error in CSCSupervisor
+
+	Executive.lid(0).SOAPDispatcher <> - Caught exception: xoap::exception::Exception 'Parameter import failed in ParameterSet' raised at ParameterSet(Application.cc:182);
+	originated by xdata::exception::Exception 'Wrong node type or imported tag name EmuPeripheralCrate:xmlFileName, expected type xsd:string received type xsd:int' raised at import(StringSerializer.cc:87)
+
+	</textarea>
+
 </body></html>
 <!-- vim: set ai sw=2 ts=2: -->
