@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.18 2006/03/30 15:49:59 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.19 2006/04/07 14:50:53 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -66,7 +66,7 @@
 #include "RAT.h"
 #include "CrateSelector.h"
 #include "ChamberUtilities.h"
-#include "geom.h"
+//#include "geom.h"
 #include "InfoSpace.h"
 #include "CrateUtilities.h"
 #include "CalibDAQ.h"
@@ -133,6 +133,7 @@ protected:
   std::string TMBBoardID_[9];
   std::string RATBoardID_[9];
   int TMB_, DMB_,RAT_;
+  int Counter_;
   bool AutoRefreshTMBCounters_;
   //
 public:
@@ -246,6 +247,9 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBPedestal, "CalibrationCFEBPedestal");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationALCT, "CalibrationALCT");
     xgi::bind(this,&EmuPeripheralCrate::LaunchMonitor, "LaunchMonitor");
+    xgi::bind(this,&EmuPeripheralCrate::CreateMonitorUnit, "CreateMonitorUnit");
+    xgi::bind(this,&EmuPeripheralCrate::MonitorFrameLeft, "MonitorFrameLeft");
+    xgi::bind(this,&EmuPeripheralCrate::MonitorFrameRight, "MonitorFrameRight");
     xgi::bind(this,&EmuPeripheralCrate::ResetAllCounters, "ResetAllCounters");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationRandomWiresALCT, "CalibrationRandomWiresALCT");
     //
@@ -335,7 +339,7 @@ public:
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("Simple Web Form") << std::endl;
+    *out << cgicc::title("EmuPeripheralCrate") << std::endl;
     //
     *out << cgicc::h1("EmuPeripheralCrate");
     *out << cgicc::br();
@@ -813,6 +817,7 @@ private:
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:#00FF00");
+    //*out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial");
     *out << std::endl;
     //
     *out << cgicc::legend("Crate Configuration...").set("style","color:blue") << 
@@ -833,206 +838,251 @@ private:
       char Name[50] ;
       std::string CCBStatus =
 	toolbox::toString("/%s/CCBStatus",getApplicationDescriptor()->getURN().c_str());
+      std::string CCBUtils =
+	toolbox::toString("/%s/CCBUtils",getApplicationDescriptor()->getURN().c_str());
+      std::string CCBBoardID =
+	toolbox::toString("/%s/CCBBoardID",getApplicationDescriptor()->getURN().c_str());
+      int slot = thisCrate->ccb()->slot() ;
+      sprintf(Name,"CCB Status slot=%d",slot);
+      if(slot == ii) {
+	*out << cgicc::td();
+	*out << "CCB Board ID" ;
+	*out << cgicc::form().set("method","GET").set("action",CCBBoardID) << std::endl ;
+	*out << cgicc::input().set("type","text").set("name","CCBBoardID")
+	  .set("value",CCBBoardID_) << std::endl ;
+	*out << cgicc::form() << std::endl ;
+	*out << cgicc::td();
+	//
+	*out << cgicc::td();
+	//
+	if ( CCBBoardID_.find("-1") == string::npos ) {
+	  //
+	  //*out << cgicc::form().set("method","GET").set("action",CCBStatus)
+	  //.set("target","_blank") << std::endl ;
+	  //*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	  //char buf[20];
+	  //sprintf(buf,"%d",ii);
+	  //*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ccb");
+	  //*out << cgicc::form() << std::endl ;
+	  //
+	  std::string CCBStatus =
+	    toolbox::toString("/%s/CCBStatus?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
+	  //
+	  *out << cgicc::a("CCB Status").set("href",CCBStatus) << endl;
+	  //
+	}
+	*out << cgicc::td();
+	//
+	*out << cgicc::td();
+	//
+	if ( CCBBoardID_.find("-1") == string::npos ) {
+	  //
+	  sprintf(Name,"CCB Utils slot=%d",slot);
+	  //
+	  //*out << cgicc::form().set("method","GET").set("action",CCBUtils)
+	  //.set("target","_blank") << std::endl ;
+	  //*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	  //char buf[20];
+	  //sprintf(buf,"%d",ii);
+	  //*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ccb");
+	  //*out << cgicc::form() << std::endl ;
+	  //
 	  std::string CCBUtils =
-	    toolbox::toString("/%s/CCBUtils",getApplicationDescriptor()->getURN().c_str());
-	  std::string CCBBoardID =
-	    toolbox::toString("/%s/CCBBoardID",getApplicationDescriptor()->getURN().c_str());
-	  int slot = thisCrate->ccb()->slot() ;
-	  sprintf(Name,"CCB Status slot=%d",slot);
-	  if(slot == ii) {
-	    *out << cgicc::td();
-	    *out << "CCB Board ID" ;
-	    *out << cgicc::form().set("method","GET").set("action",CCBBoardID) << std::endl ;
-	    *out << cgicc::input().set("type","text").set("name","CCBBoardID")
-	      .set("value",CCBBoardID_) << std::endl ;
-	    *out << cgicc::form() << std::endl ;
-	    *out << cgicc::td();
-	    //
-	    *out << cgicc::td();
-	    //
-	    if ( CCBBoardID_.find("-1") == string::npos ) {
-	      //
-	      *out << cgicc::form().set("method","GET").set("action",CCBStatus)
-		.set("target","_blank") << std::endl ;
-	      *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
-	      char buf[20];
-	      sprintf(buf,"%d",ii);
-	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ccb");
-	      *out << cgicc::form() << std::endl ;
-	      //
-	    }
-	    *out << cgicc::td();
-	    //
-	    *out << cgicc::td();
-	    //
-	    if ( CCBBoardID_.find("-1") == string::npos ) {
-	      //
-	      sprintf(Name,"CCB Utils slot=%d",slot);
-	      *out << cgicc::form().set("method","GET").set("action",CCBUtils)
-		.set("target","_blank") << std::endl ;
-	      *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
-	      char buf[20];
-	      sprintf(buf,"%d",ii);
-	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ccb");
-	      *out << cgicc::form() << std::endl ;
-	      //
-	    }
-	    *out << cgicc::td();
-	    //
-	  }
+	    toolbox::toString("/%s/CCBUtils?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
+	  //
+	  *out << cgicc::a("CCB Utils").set("href",CCBUtils) << endl;
+	  //
+	}
+	*out << cgicc::td();
+	//
+      }
+      //
+      std::string MPCStatus =
+	toolbox::toString("/%s/MPCStatus",getApplicationDescriptor()->getURN().c_str());
+      std::string MPCBoardID =
+	toolbox::toString("/%s/MPCBoardID",getApplicationDescriptor()->getURN().c_str());
+      slot = -1;
+      if ( thisMPC ) slot = thisCrate->mpc()->slot() ;
+      sprintf(Name,"MPC Status slot=%d",slot);
+      if(slot == ii) {
+	//
+	*out << cgicc::td();
+	*out << "MPC Board ID" ;
+	*out << cgicc::form().set("method","GET").set("action",MPCBoardID) << std::endl ;
+	*out << cgicc::input().set("type","text").set("name","MPCBoardID")
+	  .set("value",MPCBoardID_) << std::endl ;
+	*out << cgicc::form() << std::endl ;
+	*out << cgicc::td();
+	//
+	*out << cgicc::td();
+	if ( MPCBoardID_.find("-1") == string::npos && thisMPC ) {
+	  //
+	  //*out << cgicc::form().set("method","GET").set("action",MPCStatus)
+	  //.set("target","_blank") << std::endl ;
+	  //*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	  //char buf[20];
+	  //sprintf(buf,"%d",ii);
+	  //*out << cgicc::input().set("type","hidden").set("value",buf).set("name","mpc");
+	  //*out << cgicc::form() << std::endl ;
 	  //
 	  std::string MPCStatus =
-	    toolbox::toString("/%s/MPCStatus",getApplicationDescriptor()->getURN().c_str());
-	  std::string MPCBoardID =
-	    toolbox::toString("/%s/MPCBoardID",getApplicationDescriptor()->getURN().c_str());
-	  slot = -1;
-	  if ( thisMPC ) slot = thisCrate->mpc()->slot() ;
-	  sprintf(Name,"MPC Status slot=%d",slot);
-	  if(slot == ii) {
-	    //
-	    *out << cgicc::td();
-	    *out << "MPC Board ID" ;
-	    *out << cgicc::form().set("method","GET").set("action",MPCBoardID) << std::endl ;
-	    *out << cgicc::input().set("type","text").set("name","MPCBoardID")
-	      .set("value",MPCBoardID_) << std::endl ;
-	    *out << cgicc::form() << std::endl ;
-	    *out << cgicc::td();
-	    //
+	    toolbox::toString("/%s/MPCStatus?mpc=%d",getApplicationDescriptor()->getURN().c_str(),ii);
+	  //
+	  *out << cgicc::a("MPC Status").set("href",MPCStatus) << endl;
+	  //
+	}
+	*out << cgicc::td();
+      }
+      //
+      std::string TMBStatus ;
+      std::string TMBTests ;
+      std::string TMBUtils ;
+      std::string TMBBoardID ;
+      std::string RATBoardID ;
+      //
+      TMBStatus  =
+	toolbox::toString("/%s/TMBStatus",getApplicationDescriptor()->getURN().c_str());
+      TMBBoardID =
+	toolbox::toString("/%s/TMBBoardID",getApplicationDescriptor()->getURN().c_str());
+      RATBoardID =
+	toolbox::toString("/%s/RATBoardID",getApplicationDescriptor()->getURN().c_str());
+      TMBTests   =
+	toolbox::toString("/%s/TMBTests",getApplicationDescriptor()->getURN().c_str());
+      TMBUtils   =
+	toolbox::toString("/%s/TMBUtils",getApplicationDescriptor()->getURN().c_str());
+      //
+      for (unsigned int i=0; i<tmbVector.size(); i++) {
+	//
+	int slot = tmbVector[i]->slot();
+	if(slot == ii) {
+	  //
 	  *out << cgicc::td();
-	  if ( MPCBoardID_.find("-1") == string::npos && thisMPC ) {
-	    *out << cgicc::form().set("method","GET").set("action",MPCStatus)
-	      .set("target","_blank") << std::endl ;
-	    *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
-	    char buf[20];
-	    sprintf(buf,"%d",ii);
-	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","mpc");
-	    *out << cgicc::form() << std::endl ;
+	  *out << "TMB Board ID" ;
+	  *out << cgicc::form().set("method","GET").set("action",TMBBoardID) << std::endl ;
+	  char buf[20];
+	  sprintf(buf,"TMBBoardID_%d",i);
+	  *out << cgicc::input().set("type","text").set("name",buf)
+	    .set("value",TMBBoardID_[i]) << std::endl ;
+	  sprintf(buf,"%d",i);
+	  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+	  *out << cgicc::form() << std::endl ;
+	  *out << cgicc::td();
+	  //
+	  *out << cgicc::td();
+	  *out << "RAT Board ID" ;
+	  *out << cgicc::form().set("method","GET").set("action",RATBoardID) << std::endl ;
+	  //
+	  sprintf(buf,"RATBoardID_%d",i);
+	  *out << cgicc::input().set("type","text").set("name",buf)
+	    .set("value",RATBoardID_[i]) << std::endl ;
+	  sprintf(buf,"%d",i);
+	  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","rat");
+	  *out << cgicc::form() << std::endl ;
+	  *out << cgicc::td();
+	  //
+	  sprintf(Name,"TMB Status slot=%d",tmbVector[i]->slot());	
+	  *out << cgicc::td();
+	  if ( TMBBoardID_[i].find("-1") == string::npos ) {
+	    //
+	    //*out << cgicc::form().set("method","GET").set("action",TMBStatus)
+	    //.set("target","_blank") << std::endl ;
+	    //*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	    //sprintf(buf,"%d",i);
+	    //*out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+	    //*out << cgicc::form() << std::endl ;
+	    //
+	    std::string TMBStatus =
+	      toolbox::toString("/%s/TMBStatus?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
+	    //
+	    *out << cgicc::a("TMB Status").set("href",TMBStatus) << endl;
+	    //
 	  }
 	  *out << cgicc::td();
-	  }
 	  //
-	  std::string TMBStatus ;
-	  std::string TMBTests ;
-	  std::string TMBUtils ;
-	  std::string TMBBoardID ;
-	  std::string RATBoardID ;
-	  //
-	  TMBStatus  =
-	    toolbox::toString("/%s/TMBStatus",getApplicationDescriptor()->getURN().c_str());
-	  TMBBoardID =
-	    toolbox::toString("/%s/TMBBoardID",getApplicationDescriptor()->getURN().c_str());
-	  RATBoardID =
-	    toolbox::toString("/%s/RATBoardID",getApplicationDescriptor()->getURN().c_str());
-	  TMBTests   =
-	    toolbox::toString("/%s/TMBTests",getApplicationDescriptor()->getURN().c_str());
-	  TMBUtils   =
-	    toolbox::toString("/%s/TMBUtils",getApplicationDescriptor()->getURN().c_str());
-	  //
-	  for (unsigned int i=0; i<tmbVector.size(); i++) {
+	  sprintf(Name,"TMB Tests slot=%d",tmbVector[i]->slot());	  
+	  *out << cgicc::td();
+	  if ( TMBBoardID_[i].find("-1") == string::npos ) {
 	    //
-	    int slot = tmbVector[i]->slot();
-	    if(slot == ii) {
-	      //
-	      *out << cgicc::td();
-	      *out << "TMB Board ID" ;
-	      *out << cgicc::form().set("method","GET").set("action",TMBBoardID) << std::endl ;
-	      char buf[20];
-	      sprintf(buf,"TMBBoardID_%d",i);
-	      *out << cgicc::input().set("type","text").set("name",buf)
-		.set("value",TMBBoardID_[i]) << std::endl ;
-	      sprintf(buf,"%d",i);
-	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-	      *out << cgicc::form() << std::endl ;
-	      *out << cgicc::td();
-	      //
-	      *out << cgicc::td();
-	      *out << "RAT Board ID" ;
-	      *out << cgicc::form().set("method","GET").set("action",RATBoardID) << std::endl ;
-	      //
-	      sprintf(buf,"RATBoardID_%d",i);
-	      *out << cgicc::input().set("type","text").set("name",buf)
-		.set("value",RATBoardID_[i]) << std::endl ;
-	      sprintf(buf,"%d",i);
-	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","rat");
-	      *out << cgicc::form() << std::endl ;
-	      *out << cgicc::td();
-	      //
-	      sprintf(Name,"TMB Status slot=%d",tmbVector[i]->slot());	
-	      *out << cgicc::td();
-	      if ( TMBBoardID_[i].find("-1") == string::npos ) {
-		*out << cgicc::form().set("method","GET").set("action",TMBStatus)
-		  .set("target","_blank") << std::endl ;
-		*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
-		sprintf(buf,"%d",i);
-		*out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-		*out << cgicc::form() << std::endl ;
-	      }
-	      *out << cgicc::td();
-	      //
-	      sprintf(Name,"TMB Tests slot=%d",tmbVector[i]->slot());	  
-	      *out << cgicc::td();
-	      if ( TMBBoardID_[i].find("-1") == string::npos ) {
-		*out << cgicc::form().set("method","GET").set("action",TMBTests)
-		  .set("target","_blank") << std::endl ;
-		*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
-		sprintf(buf,"%d",i);
-	      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-	      *out << cgicc::form() << std::endl ;
-	      }
-	      *out << cgicc::td();
-	      //
-	      sprintf(Name,"TMB Utils slot=%d",tmbVector[i]->slot());	  
+	    //*out << cgicc::form().set("method","GET").set("action",TMBTests)
+	    //.set("target","_blank") << std::endl ;
+	    //*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	    //sprintf(buf,"%d",i);
+	    //*out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+	    //*out << cgicc::form() << std::endl ;
+	    //
+	    std::string TMBTests =
+	      toolbox::toString("/%s/TMBTests?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
+	    //
+	    *out << cgicc::a("TMB Status").set("href",TMBTests) << endl;
+	    //
+	  }
+	  *out << cgicc::td();
+	  //
+	  sprintf(Name,"TMB Utils slot=%d",tmbVector[i]->slot());	  
+	  *out << cgicc::td();
+	  if ( TMBBoardID_[i].find("-1") == string::npos ) {
+	    //
+	    //*out << cgicc::form().set("method","GET").set("action",TMBUtils)
+	    //.set("target","_blank") << std::endl ;
+	    //*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+	    //sprintf(buf,"%d",i);
+	    //*out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+	    //*out << cgicc::form() << std::endl ;	    
+	    //
+	    std::string TMBUtils =
+	      toolbox::toString("/%s/TMBUtils?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
+	    //
+	    *out << cgicc::a("TMB Utils").set("href",TMBUtils) << endl;
+	    //
+	  }
+	  *out << cgicc::td();
+	  //
+	  //Found TMB...look for DMB...
+	  //
+	  for (unsigned int iii=0; iii<dmbVector.size(); iii++) {
+	    int dmbslot = dmbVector[iii]->slot();
+	    std::string ChamberTests =
+	      toolbox::toString("/%s/ChamberTests",getApplicationDescriptor()->getURN().c_str());    
+	    sprintf(Name,"Chamber tests TMBslot=%d DMBslot=%d",slot,dmbslot);
+	    //
+	    if ( dmbslot == slot+1 ) {
 	      *out << cgicc::td();
 	      if ( TMBBoardID_[i].find("-1") == string::npos ) {
-		*out << cgicc::form().set("method","GET").set("action",TMBUtils)
-		  .set("target","_blank") << std::endl ;
-		*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
-		sprintf(buf,"%d",i);
-		*out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-		*out << cgicc::form() << std::endl ;
-	      }
-	      *out << cgicc::td();
-	      //
-	      //Found TMB...look for DMB...
-	      //
-	      for (unsigned int iii=0; iii<dmbVector.size(); iii++) {
-		int dmbslot = dmbVector[iii]->slot();
-		std::string ChamberTests =
-		  toolbox::toString("/%s/ChamberTests",getApplicationDescriptor()->getURN().c_str());    
-		sprintf(Name,"Chamber tests TMBslot=%d DMBslot=%d",slot,dmbslot);
 		//
-		if ( dmbslot == slot+1 ) {
-		  *out << cgicc::td();
-		  if ( TMBBoardID_[i].find("-1") == string::npos ) {
-		    *out << cgicc::form().set("method","GET").set("action",ChamberTests)
-		      .set("target","_blank") << std::endl ;
-		    *out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
-		    char buf[20];
-		    sprintf(buf,"%d",i);
-		    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-		    sprintf(buf,"%d",iii);
-		    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-		    *out << cgicc::form() << std::endl ;
-		    //
-		    MyTest[i].SetTMB(tmbVector[i]);
-		    MyTest[i].SetDMB(dmbVector[iii]);
-		    MyTest[i].SetCCB(thisCCB);
-		    MyTest[i].SetMPC(thisMPC);
-		    //
-		  }
-		  *out << cgicc::td();
-		}
+		//*out << cgicc::form().set("method","GET").set("action",ChamberTests)
+		//.set("target","_blank") << std::endl ;
+		//*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+		//char buf[20];
+		//sprintf(buf,"%d",i);
+		//*out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+		//sprintf(buf,"%d",iii);
+		//*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+		//*out << cgicc::form() << std::endl ;
+		//
+		std::string ChamberTests =
+		  toolbox::toString("/%s/ChamberTests?tmb=%d&dmb=%d",getApplicationDescriptor()->getURN().c_str(),i,iii);
+		//
+		*out << cgicc::a(Name).set("href",ChamberTests) << endl;
+		//
+		MyTest[i].SetTMB(tmbVector[i]);
+		MyTest[i].SetDMB(dmbVector[iii]);
+		MyTest[i].SetCCB(thisCCB);
+		MyTest[i].SetMPC(thisMPC);
+		//
 	      }
-	      //
+	      *out << cgicc::td();
 	    }
-	  }
+	      }
 	  //
-	  std::string DMBStatus;
-	  std::string DMBTests;
-	  std::string DMBUtils;
-	  std::string DMBBoardID;
+	}
+      }
 	  //
-	  for (unsigned int i=0; i<dmbVector.size(); i++) {
+      std::string DMBStatus;
+      std::string DMBTests;
+      std::string DMBUtils;
+      std::string DMBBoardID;
+      //
+      for (unsigned int i=0; i<dmbVector.size(); i++) {
 	    DMBStatus =
 	      toolbox::toString("/%s/DMBStatus",getApplicationDescriptor()->getURN().c_str());
 	    DMBTests =
@@ -1059,12 +1109,19 @@ private:
 	      sprintf(Name,"DMB Status slot=%d",dmbVector[i]->slot());
 	      *out << cgicc::td();
 	      if ( DMBBoardID_[i].find("-1",0) == string::npos ) {
-		*out << cgicc::form().set("method","GET").set("action",DMBStatus)
-		  .set("target","_blank") << std::endl ;
-		*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
-		sprintf(buf,"%d",i);
-		*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-		*out << cgicc::form() << std::endl ;
+		//
+		//*out << cgicc::form().set("method","GET").set("action",DMBStatus)
+		//.set("target","_blank") << std::endl ;
+		//*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+		//sprintf(buf,"%d",i);
+		//*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+		//*out << cgicc::form() << std::endl ;
+		//
+		std::string DMBStatus =
+		  toolbox::toString("/%s/DMBStatus?dmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
+		//
+		*out << cgicc::a("DMB Status").set("href",DMBStatus) << endl;
+		//
 	      }
 	      *out << cgicc::td();
 	      //
@@ -1072,12 +1129,19 @@ private:
 	      //
 	      *out << cgicc::td();
 	      if ( DMBBoardID_[i].find("-1",0) == string::npos ) {
-		*out << cgicc::form().set("method","GET").set("action",DMBTests)
-		.set("target","_blank") << std::endl ;
-		*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
-		sprintf(buf,"%d",i);
-		*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-		*out << cgicc::form() << std::endl ;
+		//
+		//*out << cgicc::form().set("method","GET").set("action",DMBTests)
+		//.set("target","_blank") << std::endl ;
+		//*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+		//sprintf(buf,"%d",i);
+		//*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+		//*out << cgicc::form() << std::endl ;
+		//
+		std::string DMBTests =
+		  toolbox::toString("/%s/DMBTests?dmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
+		//
+		*out << cgicc::a("DMB Tests").set("href",DMBTests) << endl;
+		//
 	      }
 	      *out << cgicc::td();
 	      //
@@ -1085,12 +1149,18 @@ private:
 	      //
 	      *out << cgicc::td();
 	      if ( DMBBoardID_[i].find("-1",0) == string::npos ) {
-		*out << cgicc::form().set("method","GET").set("action",DMBUtils)
-		  .set("target","_blank") << std::endl ;
-		*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
-		sprintf(buf,"%d",i);
-		*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-		*out << cgicc::form() << std::endl ;
+		//*out << cgicc::form().set("method","GET").set("action",DMBUtils)
+		//.set("target","_blank") << std::endl ;
+		//*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
+		//sprintf(buf,"%d",i);
+		//*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+		//*out << cgicc::form() << std::endl ;
+		//
+		std::string DMBUtils =
+		  toolbox::toString("/%s/DMBUtils?dmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
+		//
+		*out << cgicc::a("DMB Utils").set("href",DMBUtils) << endl;
+		//
 	      }
 	      *out << cgicc::td();
 	    //
@@ -1235,17 +1305,90 @@ private:
     throw (xgi::exception::Exception)
   {
     //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    std::string MonitorFrameLeft =
+      toolbox::toString("/%s/MonitorFrameLeft",getApplicationDescriptor()->getURN().c_str());
+    std::string MonitorFrameRight =
+      toolbox::toString("/%s/MonitorFrameRight",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::frameset().set("cols","200,*");
+    *out << cgicc::frame().set("src",MonitorFrameLeft);
+    *out << cgicc::frame().set("src",MonitorFrameRight);
+    *out << cgicc::frameset() ;
+    //
+    //
+    //std::string ResetAllCounters =
+    //toolbox::toString("/%s/ResetAllCounters",getApplicationDescriptor()->getURN().c_str());
+    //
+    //*out << cgicc::form().set("method","GET").set("action",ResetAllCounters) << std::endl ;
+    //*out << cgicc::input().set("type","submit").set("value","Reset All Counters") << std::endl ;
+    //*out << cgicc::form() << std::endl ;
+    //
+    //::sleep(1);
+    //
+    //this->LaunchMonitor(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::MonitorFrameRight(xgi::Input * in, xgi::Output * out) 
+    throw (xgi::exception::Exception){
+    //
+    for(int counter=0; counter<22; counter++) {
+      //
+      Counter_ = counter;
+      //
+      std::string CreateMonitorUnit =
+	toolbox::toString("/%s/CreateMonitorUnit?counter=%d",getApplicationDescriptor()->getURN().c_str(),counter);
+      //
+      //*out << cgicc::frame().set("src",CreateMonitorUnit)<<std::endl;
+      //
+      //
+      this->CreateMonitorUnit(in,out);
+      //
+    }
+    //
+  }
+  //
+  void EmuPeripheralCrate::MonitorFrameLeft(xgi::Input * in, xgi::Output * out) 
+    throw (xgi::exception::Exception){
+    //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     //
+    std::string ResetAllCounters =
+      toolbox::toString("/%s/ResetAllCounters",getApplicationDescriptor()->getURN().c_str());
     //
-    for(int counter=0; counter<22; counter++) {
+    *out << cgicc::form().set("method","GET").set("action",ResetAllCounters) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Reset All Counters") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    this->LaunchMonitor(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::CreateMonitorUnit(xgi::Input * in, xgi::Output * out) 
+    throw (xgi::exception::Exception){
+    //
       *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
       //
-      ChartData[counter].clear();
       //
-      *out << "Counter= " << counter << std::endl;
+      cgicc::Cgicc cgi(in);
+      cgicc::form_iterator name = cgi.getElement("counter");
+      name = cgi.getElement("counter");
+      //
+      if(name != cgi.getElements().end()) {
+	Counter_ = cgi["counter"]->getIntegerValue();
+      } else {
+	cout << "No counter" << endl;
+      }
+      //
+      ChartData[Counter_].clear();
+      //
+      *out << "Counter= " << Counter_ << std::endl;
       *out << cgicc::br();
       //
       for(unsigned int i=0; i<tmbVector.size(); i++) {
@@ -1254,280 +1397,278 @@ private:
 	tmbVector[i]->GetCounters();
 	//
 	if ( tmbVector[i]->GetCounter(4)>0) {
-	  ChartData[counter].push_back((float)(tmbVector[i]->GetCounter(counter))/(tmbVector[i]->GetCounter(4)));
+	  ChartData[Counter_].push_back((float)(tmbVector[i]->GetCounter(Counter_))/(tmbVector[i]->GetCounter(4)));
 	} 	  
 	//
-	if ( counter == 0 ) {
-	  //
+	if ( Counter_ == 0 ) {
 	  if ( tmbVector[i]->GetCounter(0) > 0 ) {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
 	  //
-	  //
-	} else if ( counter == 1 ) {
+	} else if ( Counter_ == 1 ) {
 	  if ( tmbVector[i]->GetCounter(1) > 0 ) {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
-	} else if ( counter == 2 ) {
+	} else if ( Counter_ == 2 ) {
 	  if ( tmbVector[i]->GetCounter(2) > 0 ) {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
-	} else if ( counter == 3 ) {
+	} else if ( Counter_ == 3 ) {
 	  if ( tmbVector[i]->GetCounter(3) > 0 ) {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
-	} else if ( counter == 4 ) {
+	} else if ( Counter_ == 4 ) {
 	  if ( tmbVector[i]->GetCounter(4) > 0 ) {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
-	} else if ( counter == 5 ) {
+	} else if ( Counter_ == 5 ) {
 	  if ( tmbVector[i]->GetCounter(5) > 0 ) {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
-	} else if ( counter == 6 ) {
-	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	} else if ( Counter_ == 6 ) {
+	  if ( tmbVector[i]->GetCounter(Counter_) > 0 ) {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
-	} else if ( counter == 7 ) {
-	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	} else if ( Counter_ == 7 ) {
+	  if ( tmbVector[i]->GetCounter(Counter_) > 0 ) {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
-	} else if ( counter == 8 ) {
-	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	} else if ( Counter_ == 8 ) {
+	  if ( tmbVector[i]->GetCounter(Counter_) > 0 ) {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
-	    *out << cgicc::span();
-	    *out << cgicc::br();
-	  } else {
-	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
-	    *out << cgicc::span();
-	    *out << cgicc::br();
-	  }
-	} else if ( counter == 9 ) {
-	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
-	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
-	} else if ( counter == 10 ) {
-	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	} else if ( Counter_ == 9 ) {
+	  if ( tmbVector[i]->GetCounter(Counter_) > 0 ) {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
-	} else if ( counter == 11 ) {
-	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
-	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
-	    *out << cgicc::span();
-	    *out << cgicc::br();
-	  } else {
+	} else if ( Counter_ == 10 ) {
+	  if ( tmbVector[i]->GetCounter(Counter_) > 0 ) {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
-	    *out << cgicc::span();
-	    *out << cgicc::br();
-	  }
-	} else if ( counter == 12 ) {
-	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
-	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
-	} else if ( counter == 13 ) {
-	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	} else if ( Counter_ == 11 ) {
+	  if ( tmbVector[i]->GetCounter(Counter_) > 0 ) {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
-	} else if ( counter == 14 ) {
-	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
-	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
-	    *out << cgicc::span();
-	    *out << cgicc::br();
-	  } else {
+	} else if ( Counter_ == 12 ) {
+	  if ( tmbVector[i]->GetCounter(Counter_) > 0 ) {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
-	    *out << cgicc::span();
-	    *out << cgicc::br();
-	  }
-	} else if ( counter == 15 ) {
-	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
-	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
-	    *out << cgicc::span();
-	    *out << cgicc::br();
-	  } else {
-	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
-	    *out << cgicc::span();
-	    *out << cgicc::br();
-	  }
-	} else if ( counter == 16 ) {
-	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
-	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
-	} else if ( counter == 17 ) {
-	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	} else if ( Counter_ == 13 ) {
+	  if ( tmbVector[i]->GetCounter(Counter_) > 0 ) {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(Counter_);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( Counter_ == 14 ) {
+	  if ( tmbVector[i]->GetCounter(Counter_) > 0 ) {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(Counter_);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(Counter_);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( Counter_ == 15 ) {
+	  if ( tmbVector[i]->GetCounter(Counter_) > 0 ) {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(Counter_);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(Counter_);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( Counter_ == 16 ) {
+	  if ( tmbVector[i]->GetCounter(Counter_) > 0 ) {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
-	} else if ( counter == 18 ) {
-	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	} else if ( Counter_ == 17 ) {
+	  if ( tmbVector[i]->GetCounter(Counter_) > 0 ) {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
-	} else if ( counter == 19 ) {
-	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	} else if ( Counter_ == 18 ) {
+	  if ( tmbVector[i]->GetCounter(Counter_) > 0 ) {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
-	} else if ( counter == 20 ) {
-	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	} else if ( Counter_ == 19 ) {
+	  if ( tmbVector[i]->GetCounter(Counter_) > 0 ) {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
-	} else if ( counter == 21 ) {
-	  if ( tmbVector[i]->GetCounter(counter) > 0 ) {
+	} else if ( Counter_ == 20 ) {
+	  if ( tmbVector[i]->GetCounter(Counter_) > 0 ) {
 	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  } else {
 	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(counter);
+	    tmbVector[i]->PrintCounters(Counter_);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  }
+	} else if ( Counter_ == 21 ) {
+	  if ( tmbVector[i]->GetCounter(Counter_) > 0 ) {
+	    *out << cgicc::span().set("style","color:green");
+	    tmbVector[i]->PrintCounters(Counter_);
+	    *out << cgicc::span();
+	    *out << cgicc::br();
+	  } else {
+	    *out << cgicc::span().set("style","color:red");
+	    tmbVector[i]->PrintCounters(Counter_);
 	    *out << cgicc::span();
 	    *out << cgicc::br();
 	  }
 	} else {
 	  //
 	  *out << cgicc::pre() ;
-	  tmbVector[i]->PrintCounters(counter);
+	  tmbVector[i]->PrintCounters(Counter_);
 	  *out << cgicc::pre() ;
 	  //
 	}
@@ -1538,22 +1679,9 @@ private:
 	//
       }
       //
-      this->Display(in,out,counter);
+      this->Display(in,out,Counter_);
       //
       *out << cgicc::fieldset();    
-      //
-    }
-    //
-    std::string ResetAllCounters =
-      toolbox::toString("/%s/ResetAllCounters",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",ResetAllCounters) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Reset All Counters") << std::endl ;
-    *out << cgicc::form() << std::endl ;
-    //
-    //::sleep(1);
-    //
-    //this->LaunchMonitor(in,out);
     //
   }
   //
@@ -1900,8 +2028,9 @@ private:
       //
       //*out << cgicc::fieldset();    
       //
-      this->LaunchMonitor(in,out);
     }
+    //
+    this->MonitorFrameLeft(in,out);
     //
   }
   //
@@ -2320,10 +2449,16 @@ private:
     thisTMB = tmbVector[tmb];
     thisDMB = dmbVector[dmb];
     //
+    char Name[50];
+    sprintf(Name,"Chamber tests TMBslot=%d DMBslot=%d",thisTMB->slot(),thisDMB->slot());
+    //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("Simple Web Form") << std::endl;
+    *out << cgicc::title(Name) << std::endl;
+    //
+    *out << cgicc::h1(Name);
+    *out << cgicc::br();
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
@@ -3383,10 +3518,14 @@ private:
   {
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("Simple Web Form") << std::endl;
+    char Name[50] ;
+    sprintf(Name,"CCB Status slot=%d",thisCCB->slot());
     //
-    //char buf[200] ;
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    *out << cgicc::title(Name) << std::endl;
+    //
+    *out << cgicc::h1(Name);
+    *out << cgicc::br();
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
@@ -3405,10 +3544,14 @@ private:
   {
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("Simple Web Form") << std::endl;
+    char Name[50] ;
+    sprintf(Name,"CCB Utils slot=%d",thisCCB->slot());
     //
-    //char buf[200] ;
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    *out << cgicc::title(Name) << std::endl;
+    //
+    *out << cgicc::h1(Name);
+    *out << cgicc::br();
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
@@ -3440,10 +3583,14 @@ private:
   {
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("Simple Web Form") << std::endl;
+    char Name[50] ;
+    sprintf(Name,"MPC Status slot=%d",thisMPC->slot());
     //
-    //char buf[200] ;
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    *out << cgicc::title(Name) << std::endl;
+    //
+    *out << cgicc::h1(Name);
+    *out << cgicc::br();
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
@@ -3475,6 +3622,17 @@ private:
     }
     //
     thisTMB = tmbVector[tmb];
+    //
+    char Name[50];
+    sprintf(Name,"TMB Tests slot=%d",thisTMB->slot());	  
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    *out << cgicc::title(Name) << std::endl;
+    //
+    *out << cgicc::h1(Name);
+    *out << cgicc::br();
     //
     alct = thisTMB->alctController();
     //
@@ -4096,10 +4254,6 @@ private:
     //
     cgicc::Cgicc cgi(in);
     //
-    const CgiEnvironment& env = cgi.getEnvironment();
-    //
-    std::string tmbStr = env.getQueryString() ;
-    //
     cgicc::form_iterator name = cgi.getElement("tmb");
     int tmb;
     if(name != cgi.getElements().end()) {
@@ -4113,6 +4267,9 @@ private:
     //
     thisTMB = tmbVector[tmb];
     //
+    char Name[50];
+    sprintf(Name,"TMB Status slot=%d",thisTMB->slot());	
+    //
     alct = thisTMB->alctController();
     rat  = thisTMB->getRAT();
     //
@@ -4120,20 +4277,25 @@ private:
       std::string ALCTStatus =
 	toolbox::toString("/%s/ALCTStatus",getApplicationDescriptor()->getURN().c_str());
       //
-      *out << cgicc::a("ALCT Status").set("href",ALCTStatus).set("target","_blank") << endl;
+      *out << cgicc::a("ALCT Status").set("href",ALCTStatus) << endl;
+      //
     }
     //
     if (rat) {
       std::string RATStatus =
 	toolbox::toString("/%s/RATStatus",getApplicationDescriptor()->getURN().c_str());
       //
-      *out << cgicc::a("RAT Status").set("href",RATStatus).set("target","_blank") << endl;
+      *out << cgicc::a("RAT Status").set("href",RATStatus) << endl;
+      //
     }
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("Simple Web Form") << std::endl;
+    *out << cgicc::title(Name) << std::endl;
+    //
+    *out << cgicc::h1(Name);
+    *out << cgicc::br();
     //
     char buf[200] ;
     //
@@ -4327,15 +4489,6 @@ private:
     //
     cgicc::Cgicc cgi(in);
     //
-    //const CgiEnvironment& env = cgi.getEnvironment();
-    //
-    //std::string dmbStr = env.getQueryString() ;
-    //
-    //int dmb = atoi(dmbStr.c_str());
-    //
-    //std::string test =  env.getReferrer() ;
-    //cout << test << endl ;
-    //
     cgicc::form_iterator name = cgi.getElement("dmb");
     int dmb;
     if(name != cgi.getElements().end()) {
@@ -4349,18 +4502,25 @@ private:
     //
     thisDMB = dmbVector[dmb];
     //
-    if( thisDMB->cfebs().size() > 0 ) {
-      std::string CFEBStatus =
-	toolbox::toString("/%s/CFEBStatus",getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::a("CFEB Status").set("href",CFEBStatus).set("target","_blank") << endl;
-    }
+    char Name[50];
+    sprintf(Name,"DMB Status slot=%d",thisDMB->slot());	
+    //
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("Simple Web Form") << std::endl;
+    *out << cgicc::title(Name) << std::endl;
+    //
+    *out << cgicc::h1(Name);
+    *out << cgicc::br();
     //
     char buf[200] ;
+    //
+    if( thisDMB->cfebs().size() > 0 ) {
+      std::string CFEBStatus =
+	toolbox::toString("/%s/CFEBStatus",getApplicationDescriptor()->getURN().c_str());
+      *out << cgicc::a("CFEB Status").set("href",CFEBStatus) << endl;
+    }
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
@@ -4868,8 +5028,6 @@ private:
   {
     cgicc::Cgicc cgi(in);
     //
-    //const CgiEnvironment& env = cgi.getEnvironment();
-    //
     cgicc::form_iterator name = cgi.getElement("tmb");
     int tmb;
     if(name != cgi.getElements().end()) {
@@ -4883,12 +5041,18 @@ private:
     //
     thisTMB = tmbVector[tmb];
     //
+    char Name[50];
+    sprintf(Name,"TMB Utils slot=%d",thisTMB->slot());
+    //
     alct = thisTMB->alctController();
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("Simple Web Form") << std::endl;
+    *out << cgicc::title(Name) << std::endl;
+    //
+    *out << cgicc::h1(Name);
+    *out << cgicc::br();
     //
     char buf[200] ;
     //
@@ -5166,11 +5330,6 @@ private:
   {
     cgicc::Cgicc cgi(in);
     //
-    const CgiEnvironment& env = cgi.getEnvironment();
-    //
-    std::string dmbStr = env.getQueryString() ;
-    //int dmb = atoi(dmbStr.c_str());
-    //
     cgicc::form_iterator name = cgi.getElement("dmb");
     int dmb;
     if(name != cgi.getElements().end()) {
@@ -5184,10 +5343,16 @@ private:
     //
     thisDMB = dmbVector[dmb];
     //
+    char Name[50];
+    sprintf(Name,"DMB Utils slot=%d",thisDMB->slot());
+    //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("Simple Web Form") << std::endl;
+    *out << cgicc::title(Name) << std::endl;
+    //
+    *out << cgicc::h1(Name);
+    *out << cgicc::br();
     //
     char buf[200] ;
     //
@@ -5274,11 +5439,6 @@ private:
     //
     cgicc::Cgicc cgi(in);
     //
-    const CgiEnvironment& env = cgi.getEnvironment();
-    //
-    std::string dmbStr = env.getQueryString() ;
-    //int dmb = atoi(dmbStr.c_str());
-    //
     cgicc::form_iterator name = cgi.getElement("dmb");
     int dmb;
     if(name != cgi.getElements().end()) {
@@ -5290,15 +5450,18 @@ private:
       dmb = DMB_;
     }
     //
-    //std::string test =  env.getReferrer() ;
-    //cout << test << endl ;
-    //
     thisDMB = dmbVector[dmb];
+    //
+    char Name[50];
+    sprintf(Name,"DMB Tests slot=%d",thisDMB->slot());
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("Simple Web Form") << std::endl;
+    *out << cgicc::title(Name) << std::endl;
+    //
+    *out << cgicc::h1(Name);
+    *out << cgicc::br();
     //
     char buf[200] ;
     //
