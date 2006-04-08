@@ -842,6 +842,9 @@ bool TMBTester::testRATidCodes(){
   int * idcodes = rat_->GetRatIdCode();
 
   bool FPGAidOK = compareValues("RAT FPGA ID code",idcodes[0],0x20a10093,true);
+
+  // RAT PROM id can be 5034093 or 5024093....
+  idcodes[1] &= 0xfffefff;
   bool PROMidOK = compareValues("RAT PROM ID code",idcodes[1],0x05024093,true);
 
   testOK = (FPGAidOK &&
