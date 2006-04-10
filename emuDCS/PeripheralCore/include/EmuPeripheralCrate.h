@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.23 2006/04/10 13:45:02 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.24 2006/04/10 14:28:00 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -342,6 +342,8 @@ public:
   //
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
+    //
+    LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrate");
     //
     if ( MyController == 0 ) MyController = new EmuController();
     //
