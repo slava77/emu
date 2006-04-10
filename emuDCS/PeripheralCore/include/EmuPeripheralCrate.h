@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.20 2006/04/10 07:56:57 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.21 2006/04/10 11:34:00 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -105,8 +105,8 @@ protected:
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
   EmuController * MyController;
-  TMB * thisTMB ;
-  DAQMB* thisDMB ;
+  //TMB * thisTMB ;
+  //DAQMB* thisDMB ;
   CCB* thisCCB ;
   ALCTController *alct ;
   RAT * rat;
@@ -148,8 +148,8 @@ public:
   {	
     //
     MyController = 0;
-    thisTMB = 0;
-    thisDMB = 0;
+    //thisTMB = 0;
+    //thisDMB = 0;
     thisCCB = 0;
     thisMPC = 0;
     rat = 0;
@@ -347,6 +347,9 @@ public:
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
+    //
     *out << cgicc::title("EmuPeripheralCrate") << std::endl;
     //
     *out << cgicc::h1("EmuPeripheralCrate");
@@ -824,6 +827,8 @@ private:
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     //
+    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
+    //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:#00FF00");
     //*out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial");
     *out << std::endl;
@@ -1021,7 +1026,7 @@ private:
 	    std::string TMBTests =
 	      toolbox::toString("/%s/TMBTests?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
 	    //
-	    *out << cgicc::a("TMB Status").set("href",TMBTests) << endl;
+	    *out << cgicc::a("TMB Tests").set("href",TMBTests) << endl;
 	    //
 	  }
 	  *out << cgicc::td();
@@ -1271,7 +1276,7 @@ private:
   {
     //
     CalibDAQ calib;
-    calib.loadConstants();
+    //calib.loadConstants();
     //
     //int nsleep, nstrip, tries, counter =0;
     float dac;
@@ -2099,8 +2104,8 @@ private:
       tmb = TMB_;
     }
     //
-    thisDMB = dmbVector[dmb];
-    thisTMB = tmbVector[tmb];
+    //DAQMB * thisDMB = dmbVector[dmb];
+    //TMB * thisTMB = tmbVector[tmb];
     //
     //MyTest.SetTMB(thisTMB);
     //MyTest.SetDMB(thisDMB);
@@ -2197,6 +2202,8 @@ private:
       DMB_ = dmb;
     }
     //
+    DAQMB * thisDMB = dmbVector[dmb];
+    //
     OutputDMBTests[dmb] << "DMB Test3" << endl ;
     //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
@@ -2230,6 +2237,8 @@ private:
     //
     OutputDMBTests[dmb] << "DMB Test3" << endl ;
     //
+    DAQMB * thisDMB = dmbVector[dmb];
+    //
     thisDMB->RedirectOutput(&std::cout);
     thisDMB->test3();
     thisDMB->RedirectOutput(&std::cout);
@@ -2253,6 +2262,8 @@ private:
       cout << "DMB " << dmb << endl;
       DMB_ = dmb;
     }
+    //
+    DAQMB * thisDMB = dmbVector[dmb];
     //
     OutputDMBTests[dmb] << "DMB Test4" << endl ;
     //
@@ -2279,6 +2290,8 @@ private:
       cout << "DMB " << dmb << endl;
       DMB_ = dmb;
     }
+    //
+    DAQMB * thisDMB = dmbVector[dmb];
     //
     OutputDMBTests[dmb] << "DMB Test5" << endl ;
     //
@@ -2308,6 +2321,8 @@ private:
     //
     OutputDMBTests[dmb] << "DMB Test6" << endl ;
     //
+    DAQMB * thisDMB = dmbVector[dmb];
+    //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
     //int pass = thisDMB->test6();
     thisDMB->RedirectOutput(&std::cout);
@@ -2334,6 +2349,8 @@ private:
     //
     OutputDMBTests[dmb] << "DMB Test8" << endl ;
     //
+    DAQMB * thisDMB = dmbVector[dmb];
+    //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
     //int pass = thisDMB->test8();
     thisDMB->RedirectOutput(&std::cout);
@@ -2359,6 +2376,8 @@ private:
     //
     OutputDMBTests[dmb] << "DMB Test9" << endl ;
     //
+    DAQMB * thisDMB = dmbVector[dmb];
+    //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
     //int pass = thisDMB->test9();
     thisDMB->RedirectOutput(&std::cout);
@@ -2383,6 +2402,8 @@ private:
     //
     OutputDMBTests[dmb] << "DMB Test10" << endl ;
     //
+    DAQMB * thisDMB = dmbVector[dmb];
+    //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
     //int pass = thisDMB->test10();
     thisDMB->RedirectOutput(&std::cout);
@@ -2404,6 +2425,8 @@ private:
       cout << "DMB " << dmb << endl;
       DMB_ = dmb;
     }
+    //
+    DAQMB * thisDMB = dmbVector[dmb];
     //
     thisDMB->RedirectOutput(&std::cout);
     thisDMB->PrintCounters(1);
@@ -2454,8 +2477,8 @@ private:
       tmb = TMB_;
     }
     //
-    thisTMB = tmbVector[tmb];
-    thisDMB = dmbVector[dmb];
+    TMB * thisTMB = tmbVector[tmb];
+    DAQMB * thisDMB = dmbVector[dmb];
     //
     char Name[50];
     sprintf(Name,"Chamber tests TMBslot=%d DMBslot=%d",thisTMB->slot(),thisDMB->slot());
@@ -2695,7 +2718,7 @@ private:
       cout << "No tmb" << endl;
     }
     //
-    thisTMB = tmbVector[tmb];
+    TMB * thisTMB = tmbVector[tmb];
     //
     thisTMB->StartTTC();
     //
@@ -2733,8 +2756,8 @@ private:
       cout << "No tmb" << endl;
     }
     //
-    thisDMB = dmbVector[dmb];
-    thisTMB = tmbVector[tmb];
+    DAQMB * thisDMB = dmbVector[dmb];
+    TMB * thisTMB = tmbVector[tmb];
     //
     std::cout << "DMB slot " << thisDMB->slot() << " TMB slot " << thisTMB->slot() << std::endl;
     //
@@ -2777,8 +2800,8 @@ private:
       tmb = TMB_;
     }
     //
-    thisDMB = dmbVector[dmb];
-    thisTMB = tmbVector[tmb];
+    //DAQMB * thisDMB = dmbVector[dmb];
+    //TMB * thisTMB = tmbVector[tmb];
     //
     //MyTest.SetTMB(thisTMB);
     //MyTest.SetCCB(thisCCB);
@@ -2823,14 +2846,15 @@ private:
       tmb = TMB_;
     }
     //
-    thisDMB = dmbVector[dmb];
-    thisTMB = tmbVector[tmb];
+    //DAQMB * thisDMB = dmbVector[dmb];
+    //TMB * thisTMB = tmbVector[tmb];
     //
     //MyTest.SetTMB(thisTMB);
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetCCB(thisCCB);
     //
     //int RXphase, TXphase;
+    //
     MyTest[tmb].Automatic();
     //
     this->ChamberTests(in,out);
@@ -2869,8 +2893,8 @@ private:
       tmb = TMB_;
     }
     //
-    thisDMB = dmbVector[dmb];
-    thisTMB = tmbVector[tmb];
+    //DAQMB * thisDMB = dmbVector[dmb];
+    //TMB * thisTMB = tmbVector[tmb];
     //
     //MyTest.SetTMB(thisTMB);
     //MyTest.SetDMB(thisDMB);
@@ -2914,8 +2938,8 @@ private:
       tmb = TMB_;
     }
     //
-    thisDMB = dmbVector[dmb];
-    thisTMB = tmbVector[tmb];
+    //DAQMB * thisDMB = dmbVector[dmb];
+    //TMB * thisTMB = tmbVector[tmb];
     //
     //MyTest.SetTMB(thisTMB);
     //MyTest.SetDMB(thisDMB);
@@ -2959,8 +2983,8 @@ private:
       tmb = TMB_;
     }
     //
-    thisDMB = dmbVector[dmb];
-    thisTMB = tmbVector[tmb];
+    //DAQMB * thisDMB = dmbVector[dmb];
+    //TMB * thisTMB = tmbVector[tmb];
     //
     //MyTest.SetTMB(thisTMB);
     //MyTest.SetDMB(thisDMB);
@@ -3002,8 +3026,8 @@ private:
       cout << "No tmb" << endl;
     }
     //
-    thisDMB = dmbVector[dmb];
-    thisTMB = tmbVector[tmb];
+    //DAQMB * thisDMB = dmbVector[dmb];
+    //TMB * thisTMB = tmbVector[tmb];
     //
     //MyTest.SetTMB(thisTMB);
     //MyTest.SetDMB(thisDMB);
@@ -3045,8 +3069,8 @@ private:
       cout << "No tmb" << endl;
     }
     //
-    thisDMB = dmbVector[dmb];
-    thisTMB = tmbVector[tmb];
+    //DAQMB * thisDMB = dmbVector[dmb];
+    //TMB * thisTMB = tmbVector[tmb];
     //
     //MyTest.SetTMB(thisTMB);
     //MyTest.SetCCB(thisCCB);
@@ -3087,8 +3111,8 @@ private:
       cout << "No tmb" << endl;
     }
     //
-    thisDMB = dmbVector[dmb];
-    thisTMB = tmbVector[tmb];
+    //DAQMB * thisDMB = dmbVector[dmb];
+    //TMB * thisTMB = tmbVector[tmb];
     //
     //MyTest.SetTMB(thisTMB);
     //MyTest.SetCCB(thisCCB);
@@ -3130,8 +3154,8 @@ private:
       cout << "No tmb" << endl;
     }
     //
-    thisDMB = dmbVector[dmb];
-    thisTMB = tmbVector[tmb];
+    //DAQMB * thisDMB = dmbVector[dmb];
+    //TMB * thisTMB = tmbVector[tmb];
     //
     //MyTest.SetTMB(thisTMB);
     //MyTest.SetCCB(thisCCB);
@@ -3175,7 +3199,7 @@ private:
       DMB_ = dmb;
     }
     //
-    thisDMB = dmbVector[dmb];
+    DAQMB * thisDMB = dmbVector[dmb];
     //
     cout << "DMBTurnOff" << endl;
     //
@@ -3202,7 +3226,7 @@ private:
       DMB_ = dmb;
     }
     //
-    thisDMB = dmbVector[dmb];
+    DAQMB * thisDMB = dmbVector[dmb];
     //
     cout << "DMBLoadFirmware" << endl;
     //
@@ -3251,7 +3275,7 @@ private:
       DMB_ = dmb;
     }
     //
-    thisDMB = dmbVector[dmb];
+    DAQMB * thisDMB = dmbVector[dmb];
     //
     cout << "CFEBLoadFirmware" << endl;
     //
@@ -3304,7 +3328,7 @@ private:
       DMB_ = dmb;
     }
     //
-    thisDMB = dmbVector[dmb];
+    DAQMB * thisDMB = dmbVector[dmb];
     //
     cout << "DMBTurnOn" << endl;
     //
@@ -3340,7 +3364,7 @@ private:
       AutoRefreshTMBCounters_ = true;
     }
     //
-    thisTMB = tmbVector[tmb];
+    TMB * thisTMB = tmbVector[tmb];
     //
     thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
     thisTMB->GetCounters();
@@ -3366,7 +3390,7 @@ private:
       TMB_ = tmb;
     }
     //
-    thisTMB = tmbVector[tmb];
+    TMB * thisTMB = tmbVector[tmb];
     thisTMB->ResetCounters();
     //
     this->TMBUtils(in,out);
@@ -3388,7 +3412,7 @@ private:
       TMB_ = tmb;
     }
     //
-    thisTMB = tmbVector[tmb];
+    TMB * thisTMB = tmbVector[tmb];
     thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
     thisTMB->TriggerTestInjectALCT();
     thisTMB->RedirectOutput(&std::cout);
@@ -3412,7 +3436,7 @@ private:
       TMB_ = tmb;
     }
     //
-    thisTMB = tmbVector[tmb];
+    TMB * thisTMB = tmbVector[tmb];
     thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
     thisTMB->TriggerTestInjectCLCT();
     thisTMB->RedirectOutput(&std::cout);
@@ -3423,6 +3447,21 @@ private:
   //
   void EmuPeripheralCrate::ALCTStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "Not tmb" << endl ;
+      tmb = TMB_;
+    }
+    //
+    ALCTController * alct = tmbVector[tmb]->alctController();
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
@@ -3450,6 +3489,21 @@ private:
   void EmuPeripheralCrate::RATStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "Not tmb" << endl ;
+      tmb = TMB_;
+    }
+    //
+    RAT * rat = tmbVector[tmb]->getRAT();
+    //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
@@ -3475,6 +3529,21 @@ private:
   //
   void EmuPeripheralCrate::CFEBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    } else {
+      cout << "Not dmb" << endl ;
+      dmb = DMB_;
+    }
+    //
+    DAQMB * thisDMB = dmbVector[dmb];
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
@@ -3629,7 +3698,7 @@ private:
       tmb = TMB_;
     }
     //
-    thisTMB = tmbVector[tmb];
+    TMB * thisTMB = tmbVector[tmb];
     //
     char Name[50];
     sprintf(Name,"TMB Tests slot=%d",thisTMB->slot());	  
@@ -4273,7 +4342,7 @@ private:
       tmb = TMB_;
     }
     //
-    thisTMB = tmbVector[tmb];
+    TMB * thisTMB = tmbVector[tmb];
     //
     char Name[50];
     sprintf(Name,"TMB Status slot=%d",thisTMB->slot());	
@@ -4283,7 +4352,7 @@ private:
     //
     if (alct) {
       std::string ALCTStatus =
-	toolbox::toString("/%s/ALCTStatus",getApplicationDescriptor()->getURN().c_str());
+	toolbox::toString("/%s/ALCTStatus?tmb=%d",getApplicationDescriptor()->getURN().c_str(),tmb);
       //
       *out << cgicc::a("ALCT Status").set("href",ALCTStatus) << endl;
       //
@@ -4291,7 +4360,7 @@ private:
     //
     if (rat) {
       std::string RATStatus =
-	toolbox::toString("/%s/RATStatus",getApplicationDescriptor()->getURN().c_str());
+	toolbox::toString("/%s/RATStatus?tmb=%d",getApplicationDescriptor()->getURN().c_str(),tmb);
       //
       *out << cgicc::a("RAT Status").set("href",RATStatus) << endl;
       //
@@ -4508,7 +4577,7 @@ private:
       dmb = DMB_;
     }
     //
-    thisDMB = dmbVector[dmb];
+    DAQMB * thisDMB = dmbVector[dmb];
     //
     char Name[50];
     sprintf(Name,"DMB Status slot=%d",thisDMB->slot());	
@@ -4526,7 +4595,7 @@ private:
     //
     if( thisDMB->cfebs().size() > 0 ) {
       std::string CFEBStatus =
-	toolbox::toString("/%s/CFEBStatus",getApplicationDescriptor()->getURN().c_str());
+	toolbox::toString("/%s/CFEBStatus?dmb=%d",getApplicationDescriptor()->getURN().c_str(),dmb);
       *out << cgicc::a("CFEB Status").set("href",CFEBStatus) << endl;
     }
     //
@@ -5047,7 +5116,7 @@ private:
       tmb = TMB_;
     }
     //
-    thisTMB = tmbVector[tmb];
+    TMB * thisTMB = tmbVector[tmb];
     //
     char Name[50];
     sprintf(Name,"TMB Utils slot=%d",thisTMB->slot());
@@ -5182,7 +5251,7 @@ private:
       tmb = TMB_;
     }
     //
-    thisTMB = tmbVector[tmb];
+    TMB * thisTMB = tmbVector[tmb];
     //
     thisCCB->hardReset();
     //
@@ -5229,7 +5298,7 @@ private:
       tmb = TMB_;
     }
     //
-    thisTMB = tmbVector[tmb];
+    TMB * thisTMB = tmbVector[tmb];
     //
     thisCCB->hardReset();
     //
@@ -5283,7 +5352,7 @@ private:
       tmb = TMB_;
     }
     //
-    thisTMB = tmbVector[tmb];
+    TMB * thisTMB = tmbVector[tmb];
     //
     cgicc::form_iterator name2 = cgi.getElement("TMBRegister");
     int registerValue = -1;
@@ -5349,7 +5418,7 @@ private:
       dmb = DMB_;
     }
     //
-    thisDMB = dmbVector[dmb];
+    DAQMB * thisDMB = dmbVector[dmb];
     //
     char Name[50];
     sprintf(Name,"DMB Utils slot=%d",thisDMB->slot());
@@ -5458,7 +5527,7 @@ private:
       dmb = DMB_;
     }
     //
-    thisDMB = dmbVector[dmb];
+    DAQMB * thisDMB = dmbVector[dmb];
     //
     char Name[50];
     sprintf(Name,"DMB Tests slot=%d",thisDMB->slot());
@@ -5723,7 +5792,7 @@ private:
     return;
     }
     //
-    thisDMB = dmbVector[dmb];
+    DAQMB * thisDMB = dmbVector[dmb];
     //
     cout << DMBBoardID_[dmb] << endl ;
     //
@@ -5873,7 +5942,7 @@ private:
       //
     }
     //
-    thisTMB = tmbVector[tmb];
+    TMB * thisTMB = tmbVector[tmb];
     //
     cout << TMBBoardID_[tmb] << endl ;
     //
@@ -5981,8 +6050,8 @@ private:
     thisCCB = thisCrate->ccb();
     thisMPC = thisCrate->mpc();
     //
-    //thisTMB = tmbVector[0];
-    //thisDMB = dmbVector[0];
+    //TMB * thisTMB = tmbVector[0];
+    //DAQMB * thisDMB = dmbVector[0];
     //
     //DDU * thisDDU = thisCrate->ddu();
     //if(thisTMB) alct = thisTMB->alctController();
