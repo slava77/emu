@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.19 2006/04/07 14:50:53 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.20 2006/04/10 07:56:57 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -104,13 +104,13 @@ protected:
   //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
-  EmuController * MyController(0);
-  TMB * thisTMB(0) ;
-  DAQMB* thisDMB(0) ;
-  CCB* thisCCB(0) ;
-  ALCTController *alct(0) ;
-  RAT * rat(0);
-  MPC * thisMPC(0);
+  EmuController * MyController;
+  TMB * thisTMB ;
+  DAQMB* thisDMB ;
+  CCB* thisCCB ;
+  ALCTController *alct ;
+  RAT * rat;
+  MPC * thisMPC;
   ChamberUtilities MyTest[9];
   ostringstream CrateTestsOutput[9];
   ostringstream OutputStringDMBStatus[9];
@@ -146,6 +146,14 @@ public:
   EmuPeripheralCrate(xdaq::ApplicationStub * s): EmuApplication(s)
 #endif
   {	
+    //
+    MyController = 0;
+    thisTMB = 0;
+    thisDMB = 0;
+    thisCCB = 0;
+    thisMPC = 0;
+    rat = 0;
+    alct = 0;
     //
     xgi::bind(this,&EmuPeripheralCrate::Default, "Default");
     xgi::bind(this,&EmuPeripheralCrate::setConfFile, "setConfFile");
