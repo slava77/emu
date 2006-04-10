@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.22 2006/04/10 12:28:26 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.23 2006/04/10 13:45:02 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -165,6 +165,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::setRawConfFile, "setRawConfFile");
     xgi::bind(this,&EmuPeripheralCrate::UploadConfFile, "UploadConfFile");
     xgi::bind(this,&EmuPeripheralCrate::TMBStatus, "TMBStatus");
+    xgi::bind(this,&EmuPeripheralCrate::DefineConfiguration, "DefineConfiguration");
     //
     xgi::bind(this,&EmuPeripheralCrate::getData0, "getData0");
     xgi::bind(this,&EmuPeripheralCrate::getData1, "getData1");
@@ -359,98 +360,14 @@ public:
     //
     //if (tmbVector.size()==0 && dmbVector.size()==0) {
     //
-    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-    *out << std::endl;
+    *out << cgicc::b(cgicc::i("Current configuration filename : ")) << xmlFile_.toString() << std::endl ;
     //
-    *out << cgicc::legend("Upload Configuration...").set("style","color:blue") 
-	 << cgicc::p() << std::endl ;
+    std::string DefineConfiguration =
+      toolbox::toString("/%s/DefineConfiguration",getApplicationDescriptor()->getURN().c_str());
     //
-    std::string method =
-      toolbox::toString("/%s/setConfFile",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","POST").set("action",method) << std::endl ;
-    *out << cgicc::input().set("type","text")
-      .set("name","xmlFilename")
-      .set("size","90")
-      .set("ENCTYPE","multipart/form-data")
-      .set("value",xmlFile_);
-    //
-    *out << std::endl;
-    //
-    *out << cgicc::input().set("type","submit")
-      .set("value","Set configuration file local") << std::endl ;
+    *out << cgicc::form().set("method","GET").set("action",DefineConfiguration) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Define Configuration") << std::endl ;
     *out << cgicc::form() << std::endl ;
-    //
-    //
-    //
-    // Upload file...
-    //
-    std::string methodUpload =
-      toolbox::toString("/%s/UploadConfFile",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","POST")
-      .set("enctype","multipart/form-data")
-      .set("action",methodUpload) << std::endl ;
-    //
-    *out << cgicc::input().set("type","file")
-      .set("name","xmlFilenameUpload")
-      .set("size","90") ;
-    //
-    *out << std::endl;
-    //
-    *out << cgicc::input().set("type","submit").set("value","Send") << std::endl ;
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << std::endl;
-    //
-    std::string methodRaw =
-      toolbox::toString("/%s/setRawConfFile",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","POST").set("action",methodRaw) << std::endl ;
-    *out << cgicc::textarea().set("name","Text")
-      .set("WRAP","OFF")
-      .set("rows","10").set("cols","90");
-    *out << "Paste configuration..." << endl ;
-    *out << cgicc::textarea();
-    *out << cgicc::input().set("type","submit").set("value","Send");
-    *out << cgicc::form() << std::endl ;    
-    //
-    *out << std::endl;
-    //    
-    std::string getTestLogFile =
-      toolbox::toString("/%s/getTestLogFile",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","POST").set("action",getTestLogFile) << std::endl ;
-    *out << cgicc::input().set("type","text")
-      .set("name","TestLogFile")
-      .set("size","90")
-      .set("ENCTYPE","multipart/form-data")
-      .set("value",TestLogFile_);
-    //
-    *out << cgicc::input().set("type","submit")
-      .set("value","Restore Test configuration") << std::endl ;
-    *out << cgicc::form() << std::endl ;
-    //
-    std::string getTestLogFileUpload =
-      toolbox::toString("/%s/getTestLogFileUpload",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","POST")
-      .set("enctype","multipart/form-data")
-      .set("action",getTestLogFileUpload) << std::endl ;
-    //
-    *out << cgicc::input().set("type","file")
-      .set("name","TestFileUpload")
-      .set("size","90") ;
-    //
-    *out << std::endl;
-    //
-    *out << cgicc::input().set("type","submit").set("value","Send") << std::endl ;
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << std::endl;
-    //
-    *out << cgicc::fieldset();
-    *out << std::endl;
     //
     if (tmbVector.size()>0 || dmbVector.size()>0) {
       //
@@ -478,6 +395,14 @@ public:
       *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:yellow");
       *out << std::endl;
       *out << cgicc::legend("Initialisation").set("style","color:blue") ;
+      //
+      std::string InitSystem =
+	toolbox::toString("/%s/InitSystem",getApplicationDescriptor()->getURN().c_str());
+      //
+      //
+      *out << cgicc::form().set("method","GET").set("action",InitSystem) << std::endl ;
+      *out << cgicc::input().set("type","submit").set("value","Init System") << std::endl ;
+      *out << cgicc::form() << std::endl ;
       //
       std::string Operator =
 	toolbox::toString("/%s/Operator",getApplicationDescriptor()->getURN().c_str());
@@ -529,13 +454,6 @@ public:
       *out << cgicc::input().set("type","submit").set("value","Power Up") << std::endl ;
       *out << cgicc::form() << std::endl ;
       //
-      std::string InitSystem =
-	toolbox::toString("/%s/InitSystem",getApplicationDescriptor()->getURN().c_str());
-      //
-      //
-      *out << cgicc::form().set("method","GET").set("action",InitSystem) << std::endl ;
-      *out << cgicc::input().set("type","submit").set("value","Init System") << std::endl ;
-      *out << cgicc::form() << std::endl ;
       //
       *out << cgicc::fieldset();
       //
@@ -771,6 +689,111 @@ private:
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::fieldset();
+    //
+  }
+  //
+  void EmuPeripheralCrate::DefineConfiguration(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    *out << std::endl;
+    //
+    *out << cgicc::legend("Upload Configuration...").set("style","color:blue") 
+	 << cgicc::p() << std::endl ;
+    //
+    std::string method =
+      toolbox::toString("/%s/setConfFile",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","POST").set("action",method) << std::endl ;
+    *out << cgicc::input().set("type","text")
+      .set("name","xmlFilename")
+      .set("size","90")
+      .set("ENCTYPE","multipart/form-data")
+      .set("value",xmlFile_);
+    //
+    *out << std::endl;
+    //
+    *out << cgicc::input().set("type","submit")
+      .set("value","Set configuration file local") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    //
+    //
+    // Upload file...
+    //
+    std::string methodUpload =
+      toolbox::toString("/%s/UploadConfFile",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","POST")
+      .set("enctype","multipart/form-data")
+      .set("action",methodUpload) << std::endl ;
+    //
+    *out << cgicc::input().set("type","file")
+      .set("name","xmlFilenameUpload")
+      .set("size","90") ;
+    //
+    *out << std::endl;
+    //
+    *out << cgicc::input().set("type","submit").set("value","Send") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << std::endl;
+    //
+    std::string methodRaw =
+      toolbox::toString("/%s/setRawConfFile",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","POST").set("action",methodRaw) << std::endl ;
+    *out << cgicc::textarea().set("name","Text")
+      .set("WRAP","OFF")
+      .set("rows","10").set("cols","90");
+    *out << "Paste configuration..." << endl ;
+    *out << cgicc::textarea();
+    *out << cgicc::input().set("type","submit").set("value","Send");
+    *out << cgicc::form() << std::endl ;    
+    //
+    *out << std::endl;
+    //    
+    std::string getTestLogFile =
+      toolbox::toString("/%s/getTestLogFile",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","POST").set("action",getTestLogFile) << std::endl ;
+    *out << cgicc::input().set("type","text")
+      .set("name","TestLogFile")
+      .set("size","90")
+      .set("ENCTYPE","multipart/form-data")
+      .set("value",TestLogFile_);
+    //
+    *out << cgicc::input().set("type","submit")
+      .set("value","Restore Test configuration") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string getTestLogFileUpload =
+      toolbox::toString("/%s/getTestLogFileUpload",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","POST")
+      .set("enctype","multipart/form-data")
+      .set("action",getTestLogFileUpload) << std::endl ;
+    //
+    *out << cgicc::input().set("type","file")
+      .set("name","TestFileUpload")
+      .set("size","90") ;
+    //
+    *out << std::endl;
+    //
+    *out << cgicc::input().set("type","submit").set("value","Send") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << std::endl;
+    //
+    *out << cgicc::fieldset();
+    *out << std::endl;
     //
   }
   //
@@ -3706,6 +3729,9 @@ private:
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
+    //
     *out << cgicc::title(Name) << std::endl;
     //
     *out << cgicc::h1(Name);
@@ -3714,6 +3740,9 @@ private:
     alct = thisTMB->alctController();
     //
     char buf[20];
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    *out << endl ;
     //
     std::string RunAllTests =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
@@ -3730,6 +3759,9 @@ private:
     *out << cgicc::input().set("type","hidden")
       .set("value","0").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::table().set("border","0");
+    *out << cgicc::td();
     //
     std::string testBootRegister =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
@@ -3760,6 +3792,10 @@ private:
       .set("value","1").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
     //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    //
     std::string testVMEfpgaDataRegister =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
     //
@@ -3789,6 +3825,10 @@ private:
       .set("value","2").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
     //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    //    
     std::string testFirmwareDate =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
     //
@@ -3817,6 +3857,11 @@ private:
     *out << cgicc::input().set("type","hidden")
       .set("value","3").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::tr();
+    *out << cgicc::td();
     //
     std::string testFirmwareType =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
@@ -3847,6 +3892,10 @@ private:
       .set("value","4").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
     //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    //
     std::string testFirmwareVersion =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
     //
@@ -3875,6 +3924,10 @@ private:
     *out << cgicc::input().set("type","hidden")
       .set("value","5").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
     //
     std::string testFirmwareRevCode =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
@@ -3905,6 +3958,11 @@ private:
       .set("value","6").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
     //
+    *out << cgicc::td();
+    //
+    *out << cgicc::tr();
+    *out << cgicc::td();
+    //
     std::string testMezzId =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
     //
@@ -3933,6 +3991,10 @@ private:
     *out << cgicc::input().set("type","hidden")
       .set("value","7").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
     //
     std::string testPromId =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
@@ -3963,6 +4025,10 @@ private:
       .set("value","8").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
     //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    //
     std::string testPROMPath =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
     //
@@ -3991,6 +4057,13 @@ private:
     *out << cgicc::input().set("type","hidden")
       .set("value","9").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::tr();
+    //
+    *out << cgicc::tr();
+    *out << cgicc::td();
     //
     std::string testDSN =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
@@ -4021,6 +4094,10 @@ private:
       .set("value","10").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
     //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    //
     std::string testADC =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
     //
@@ -4049,6 +4126,10 @@ private:
     *out << cgicc::input().set("type","hidden")
       .set("value","11").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
     //
     ///////////////////////////////////////////////////////////////////////
     //
@@ -4081,6 +4162,13 @@ private:
       .set("value","12").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
     //
+    *out << cgicc::td();
+    *out << cgicc::tr();
+    //
+    *out << cgicc::tr();
+    //
+    *out << cgicc::td();
+    //
     ///////////////////////////////////////////////////////////
     //
     std::string testRATtemper =
@@ -4111,6 +4199,10 @@ private:
     *out << cgicc::input().set("type","hidden")
       .set("value","13").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
     //
     ////////////////////////////////////////////////////////////////
     //
@@ -4143,6 +4235,10 @@ private:
       .set("value","14").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
     //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    //
     ////////////////////////////////////////////////////////////////////
     //
     std::string testRATuserCodes =
@@ -4173,6 +4269,10 @@ private:
     *out << cgicc::input().set("type","hidden")
       .set("value","15").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    *out << cgicc::tr();
+    *out << cgicc::table();
     //
     /////////////////////////////////////////////////////////////////////
     //
@@ -4225,6 +4325,8 @@ private:
       .set("value","Clear")
       .set("name","ClearTMBTestsOutput") << std::endl ;
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::fieldset();
     //
   }
   //
@@ -5535,6 +5637,9 @@ private:
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
+    //
     *out << cgicc::title(Name) << std::endl;
     //
     *out << cgicc::h1(Name);
@@ -5569,6 +5674,9 @@ private:
     *out << cgicc::form() << std::endl ;
     */
     //
+    *out << cgicc::table().set("border","0");
+    *out << cgicc::td();
+    //
     std::string DMBTest4 =
       toolbox::toString("/%s/DMBTest4",getApplicationDescriptor()->getURN().c_str());
     //
@@ -5595,7 +5703,11 @@ private:
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
-    //    
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    //
     std::string DMBTest5 =
       toolbox::toString("/%s/DMBTest5",getApplicationDescriptor()->getURN().c_str());
     //
@@ -5622,6 +5734,10 @@ private:
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
     //
     std::string DMBTest6 =
       toolbox::toString("/%s/DMBTest6",getApplicationDescriptor()->getURN().c_str());
@@ -5650,6 +5766,11 @@ private:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
+    *out << cgicc::td();
+    //
+    *out << cgicc::tr();
+    *out << cgicc::td();
+    //
     std::string DMBTest8 =
       toolbox::toString("/%s/DMBTest8",getApplicationDescriptor()->getURN().c_str());
     //
@@ -5676,6 +5797,10 @@ private:
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
     //
     std::string DMBTest9 =
       toolbox::toString("/%s/DMBTest9",getApplicationDescriptor()->getURN().c_str());
@@ -5704,6 +5829,10 @@ private:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    //
     std::string DMBTest10 =
       toolbox::toString("/%s/DMBTest10",getApplicationDescriptor()->getURN().c_str());
     //
@@ -5731,8 +5860,12 @@ private:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    *out << cgicc::fieldset() << std::endl;
+    *out << cgicc::td();
+    *out << cgicc::tr();
     //
+    *out << cgicc::table();
+    //
+    *out << cgicc::fieldset() << std::endl;
     //
     *out << cgicc::form().set("method","GET") << std::endl ;
     *out << cgicc::textarea().set("name","CrateTestDMBOutput")
