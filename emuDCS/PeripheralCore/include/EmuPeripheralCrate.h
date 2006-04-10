@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.21 2006/04/10 11:34:00 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.22 2006/04/10 12:28:26 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -2268,7 +2268,7 @@ private:
     OutputDMBTests[dmb] << "DMB Test4" << endl ;
     //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
-    //int pass = thisDMB->test4();
+    thisDMB->test4();
     thisDMB->RedirectOutput(&std::cout);
     //
     this->DMBTests(in,out);
@@ -2296,7 +2296,7 @@ private:
     OutputDMBTests[dmb] << "DMB Test5" << endl ;
     //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
-    //int pass = thisDMB->test5();
+    thisDMB->test5();
     thisDMB->RedirectOutput(&std::cout);
     //
     this->DMBTests(in,out);
@@ -2324,7 +2324,7 @@ private:
     DAQMB * thisDMB = dmbVector[dmb];
     //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
-    //int pass = thisDMB->test6();
+    thisDMB->test6();
     thisDMB->RedirectOutput(&std::cout);
     //
     this->DMBTests(in,out);
@@ -2352,7 +2352,7 @@ private:
     DAQMB * thisDMB = dmbVector[dmb];
     //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
-    //int pass = thisDMB->test8();
+    thisDMB->test8();
     thisDMB->RedirectOutput(&std::cout);
     //
     this->DMBTests(in,out);
@@ -2379,7 +2379,7 @@ private:
     DAQMB * thisDMB = dmbVector[dmb];
     //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
-    //int pass = thisDMB->test9();
+    thisDMB->test9();
     thisDMB->RedirectOutput(&std::cout);
     //
     this->DMBTests(in,out);
@@ -2405,7 +2405,7 @@ private:
     DAQMB * thisDMB = dmbVector[dmb];
     //
     thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
-    //int pass = thisDMB->test10();
+    thisDMB->test10();
     thisDMB->RedirectOutput(&std::cout);
     //
     this->DMBTests(in,out);
