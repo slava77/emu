@@ -54,11 +54,12 @@
 #include "toolbox/task/TimerFactory.h"
 
 #include "EmuFController.h"
+#include "EmuApplication.h"
 
 using namespace cgicc;
 using namespace std;
 
-class EmuFCrateSOAP: public xdaq::Application, public toolbox::task::TimerListener, public EmuFController
+class EmuFCrateSOAP: public EmuApplication, public toolbox::task::TimerListener, public EmuFController
 {
   
 public:
@@ -67,7 +68,7 @@ public:
   
   XDAQ_INSTANTIATOR();
   
-  EmuFCrateSOAP(xdaq::ApplicationStub * s): xdaq::Application(s) 
+  EmuFCrateSOAP(xdaq::ApplicationStub * s): EmuApplication(s) 
   {	
     //
     //
@@ -75,6 +76,43 @@ public:
     xoap::bind(this, &EmuFCrateSOAP::onMessage, "onMessage", XDAQ_NS_URI );    
     xoap::bind(this, &EmuFCrateSOAP::Configure, "Configure", XDAQ_NS_URI );    
     xoap::bind(this, &EmuFCrateSOAP::Init, "Init", XDAQ_NS_URI );        
+    //
+    // State machine definition
+    //
+
+    // SOAP call-back functions, which relays to *Action method.
+    xoap::bind(this, &EmuFCrateSOAP::onConfigure, "Configure", XDAQ_NS_URI);
+    xoap::bind(this, &EmuFCrateSOAP::onEnable,    "Enable",    XDAQ_NS_URI);
+    xoap::bind(this, &EmuFCrateSOAP::onDisable,   "Disable",   XDAQ_NS_URI);
+    xoap::bind(this, &EmuFCrateSOAP::onHalt,      "Halt",      XDAQ_NS_URI);
+    //
+    // fsm_ is defined in EmuApplication
+    fsm_.addState('H', "Halted",     this, &EmuFCrateSOAP::stateChanged);
+    fsm_.addState('C', "Configured", this, &EmuFCrateSOAP::stateChanged);
+    fsm_.addState('E', "Enabled",    this, &EmuFCrateSOAP::stateChanged);
+    //
+    fsm_.addStateTransition(
+      'H', 'C', "Configure", this, &EmuFCrateSOAP::configureAction);
+    fsm_.addStateTransition(
+      'C', 'C', "Configure", this, &EmuFCrateSOAP::configureAction);
+    fsm_.addStateTransition(
+      'C', 'E', "Enable",    this, &EmuFCrateSOAP::enableAction);
+    fsm_.addStateTransition(
+      'E', 'C', "Disable",   this, &EmuFCrateSOAP::disableAction);
+    fsm_.addStateTransition(
+      'C', 'H', "Halt",      this, &EmuFCrateSOAP::haltAction);
+    fsm_.addStateTransition(
+      'E', 'H', "Halt",      this, &EmuFCrateSOAP::haltAction);
+    fsm_.addStateTransition(
+      'H', 'H', "Halt",      this, &EmuFCrateSOAP::haltAction);
+
+    fsm_.setInitialState('H');
+    fsm_.reset();
+
+    //
+    // state_ is defined in EmuApplication
+    state_ = fsm_.getStateName(fsm_.getCurrentState());
+    //
 
     //	
     counter_ = 0;
@@ -98,6 +136,81 @@ public:
     *out << cgicc::br() << std::endl;
     *out << "Counter: " << counter_.toString() << cgicc::br() << std::endl;
   }
+
+
+  xoap::MessageReference EmuFCrateSOAP::onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    fireEvent("Configure");
+
+    return createReply(message);
+  }
+
+  //
+  xoap::MessageReference EmuFCrateSOAP::onEnable (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    fireEvent("Enable");
+
+    return createReply(message);
+  }
+
+  //
+  xoap::MessageReference EmuFCrateSOAP::onDisable (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    fireEvent("Disable");
+
+    return createReply(message);
+  }
+
+  //
+  xoap::MessageReference EmuFCrateSOAP::onHalt (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    fireEvent("Halt");
+
+    return createReply(message);
+  }
+
+  void EmuFCrateSOAP::configureAction(toolbox::Event::Reference e) 
+    throw (toolbox::fsm::exception::Exception)
+  {
+     configure();
+    std::cout << "Configure" << std::endl ;
+    std::cout << xmlFile_.toString() << std::endl;
+    std::cout << "Received Message Configure" << std::endl ;
+  }
+
+  //
+  void EmuFCrateSOAP::enableAction(toolbox::Event::Reference e) 
+    throw (toolbox::fsm::exception::Exception)
+  {
+    SetConfFile(xmlFile_);
+    init();
+    std::cout << "Received Message Enable" << std::endl ;
+  }
+
+  //
+  void EmuFCrateSOAP::disableAction(toolbox::Event::Reference e) 
+    throw (toolbox::fsm::exception::Exception)
+  {
+    // do nothing
+    std::cout << "Received Message Disable" << std::endl ;
+  }
+
+  //
+  void EmuFCrateSOAP::haltAction(toolbox::Event::Reference e) 
+    throw (toolbox::fsm::exception::Exception)
+  {
+    // do nothing
+    std::cout << "Received Message Halt" << std::endl ;
+  }
+
+  //
+  void EmuFCrateSOAP::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
+    throw (toolbox::fsm::exception::Exception)
+  {
+    EmuApplication::stateChanged(fsm);
+  }
+
+
   //
   // SOAP Callback  
   //
@@ -124,7 +237,7 @@ public:
     // start irq monitor
 	// Create an infospace and launch a workloop task that populates data
 	// every 1 seconds
-	std::string infoSpaceName = toolbox::toString("urn:xdaq-monitorable:IRQMonitor");
+    /*	std::string infoSpaceName = toolbox::toString("urn:xdaq-monitorable:IRQMonitor");
 	infoSpace_ = xdata::InfoSpace::get(infoSpaceName);
 	
 	infoSpace_->fireItemAvailable("counter", &counter_, 0);
@@ -132,12 +245,12 @@ public:
 	toolbox::TimeInterval interval;
 	interval.fromString("00:00:00:00:01");
 	toolbox::TimeVal startTime;
-	startTime = toolbox::TimeVal::gettimeofday();
-	
+	startTime = toolbox::TimeVal::gettimeofday();	
+
 	// Pass a pointer to the infoSpace as the context
 	// The name of this timer task is "MonitoringProducer"
 	timer_->start(); // must activate timer before submission, abort otherwise!!!
-	timer_->scheduleAtFixedRate(startTime,this, interval, infoSpace_, "IRQMonitor" );
+	timer_->scheduleAtFixedRate(startTime,this, interval, infoSpace_, "IRQMonitor" ); */  // end IRQ Monitor Start
     //
     // reply to caller
     //
@@ -181,6 +294,8 @@ public:
 	xdata::InfoSpace::remove(infoSpaceName);
 	this->Default(in,out);
 } */
+
+
 
 void timeExpired (toolbox::task::TimerEvent& e) 
 { 
