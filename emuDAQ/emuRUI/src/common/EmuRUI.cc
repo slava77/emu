@@ -893,8 +893,8 @@ vector< pair<string, xdata::Serializable*> > EmuRUI::initAndGetStdConfigParams()
 		     ("inputDeviceNames", &inputDeviceNames_));
 
 
-    pathToDataOutFile_   = "/tmp";
-    pathToBadEventsFile_ = "/tmp";
+    pathToDataOutFile_   = "";
+    pathToBadEventsFile_ = "";
     fileSizeInMegaBytes_ = 2;
     params.push_back(pair<string,xdata::Serializable *>
 		     ("pathToRUIDataOutFile"  , &pathToDataOutFile_   ));
