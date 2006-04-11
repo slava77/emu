@@ -100,4 +100,5 @@ if [[ $VERBOSITY = "1" ]]; then
     echo curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE
 fi
 
-eval curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE | hexdump -C
+eval curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE | od -Ad -tx8z -w8
+
