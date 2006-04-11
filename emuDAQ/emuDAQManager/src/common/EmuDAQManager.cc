@@ -96,6 +96,7 @@ logger_(Logger::getInstance(generateLoggerName()))
     }
 
     getAllAppDescriptors();
+    createAllAppStatesVector();
 
 //     testConfigured_ = false;
 //     testStarted_    = false;
@@ -114,6 +115,7 @@ logger_(Logger::getInstance(generateLoggerName()))
     xoap::bind(this, &EmuDAQManager::onEnable,    "Enable",    XDAQ_NS_URI);
     xoap::bind(this, &EmuDAQManager::onDisable,   "Disable",   XDAQ_NS_URI);
     xoap::bind(this, &EmuDAQManager::onHalt,      "Halt",      XDAQ_NS_URI);
+    xoap::bind(this, &EmuDAQManager::onQuery,     "Query",     XDAQ_NS_URI);
     
     fsm_.addState('H', "Halted",     this, &EmuDAQManager::stateChanged);
     fsm_.addState('C', "Configured", this, &EmuDAQManager::stateChanged);
@@ -453,11 +455,16 @@ throw (xgi::exception::Exception)
     *out << "</table>"                                                 << endl;
 
     *out << "<br/>"                                                    << endl;
-    *out << " Updated at " <<  getDateTime();
+    *out << " Updated at " <<  getDateTime()                           << endl;
     *out << "<br/>"                                                    << endl;
 
-
     *out << "<hr/>"                                                    << endl;
+
+    *out << " DAQ is in <a href=\"#states\">" <<  getDAQState()        << endl;
+    *out << "</a> state."                                              << endl;
+    *out << "<br/>"                                                    << endl;
+    *out << "<br/>"                                                    << endl;
+
 
     // Emu: display event number and max number of events
     string runNumber("unknown");
@@ -518,6 +525,10 @@ throw (xgi::exception::Exception)
     *out << "</tr>"                                                  << endl;
     *out << "</table>"                                               << endl;
     // Emu end: display RUIs' and FUs' event counts
+
+    *out << "<br/>"                                                    << endl;
+    printStatesTable( out );
+    *out << "<br/>"                                                    << endl;
 
     vector< vector< pair<string,string> > > evmStats=getStats(evmDescriptors_);
     vector< vector< pair<string,string> > > ruStats =getStats(ruDescriptors_);
@@ -694,6 +705,11 @@ throw (xgi::exception::Exception)
 
     *out << "<hr/>"                                                    << endl;
 
+    *out << " DAQ is in <a href=\"#states\">" <<  getDAQState()        << endl;
+    *out << "</a> state."                                              << endl;
+    *out << "<br/>"                                                    << endl;
+    *out << "<br/>"                                                    << endl;
+
     string runNumber("unknown");
     string maxNumEvents("unknown");
     getRunInfoFromTA( &runNumber, &maxNumEvents );
@@ -729,34 +745,37 @@ throw (xgi::exception::Exception)
     }
 
 
-    *out << "<input"                                                   << endl;
-    *out << " type=\"submit\""                                         << endl;
-    *out << " name=\"command\""                                        << endl;
+//     if ( fsm_.getCurrentState() != 'F' ){
 
-    if ( fsm_.getCurrentState() == 'H' )
-      {
-        *out << " value=\"configure\""                                 << endl;
-      }
-
-    if ( fsm_.getCurrentState() == 'E' )
-      {
-        *out << " value=\"stop\""                                      << endl;
-      }
-    else
-      {
-        *out << " value=\"start\""                                     << endl;
-      }
-
-    if ( fsm_.getCurrentState() == 'C' )
-      {
-	*out << "/>"                                                   << endl;
-	*out << "<input"                                               << endl;
-	*out << " type=\"submit\""                                     << endl;
-	*out << " name=\"command\""                                    << endl;
-        *out << " value=\"stop\""                                      << endl;
-	*out << "/>"                                                   << endl;
-      }
-    
+      *out << "<input"                                                   << endl;
+      *out << " type=\"submit\""                                         << endl;
+      *out << " name=\"command\""                                        << endl;
+      
+      if ( fsm_.getCurrentState() == 'H' )
+	{
+	  *out << " value=\"configure\""                                 << endl;
+	}
+      
+      if ( fsm_.getCurrentState() == 'E' )
+	{
+	  *out << " value=\"stop\""                                      << endl;
+	}
+      else
+	{
+	  *out << " value=\"start\""                                     << endl;
+	}
+      
+      if ( fsm_.getCurrentState() == 'C' )
+	{
+	  *out << "/>"                                                   << endl;
+	  *out << "<input"                                               << endl;
+	  *out << " type=\"submit\""                                     << endl;
+	  *out << " name=\"command\""                                    << endl;
+	  *out << " value=\"stop\""                                      << endl;
+	  *out << "/>"                                                   << endl;
+	}
+//     }
+      
     *out << "</form>"                                                  << endl;
     *out << "<br>"                                                     << endl;
 
@@ -774,6 +793,9 @@ throw (xgi::exception::Exception)
     *out << "</tr>"                                                  << endl;
     *out << "</table>"                                               << endl;
 
+    *out << "<br/>"                                                    << endl;
+    *out << "<br/>"                                                    << endl;
+    printStatesTable( out );
 
     *out << "</body>"                                                  << endl;
 
@@ -1235,6 +1257,136 @@ vector< pair<string,string> > EmuDAQManager::getStats
     return stats;
 }
 
+void EmuDAQManager::createAllAppStatesVector(){
+  vector<xdaq::ApplicationDescriptor*> allApps;
+  allApps.insert( allApps.end(), evmDescriptors_.begin(), evmDescriptors_.end() );
+  allApps.insert( allApps.end(), buDescriptors_ .begin(), buDescriptors_ .end() );
+  allApps.insert( allApps.end(), ruDescriptors_ .begin(), ruDescriptors_ .end() );
+  allApps.insert( allApps.end(), taDescriptors_ .begin(), taDescriptors_ .end() );
+  allApps.insert( allApps.end(), ruiDescriptors_.begin(), ruiDescriptors_.end() );
+  allApps.insert( allApps.end(), fuDescriptors_ .begin(), fuDescriptors_ .end() );
+  vector<xdaq::ApplicationDescriptor*>::iterator a;
+  for ( a=allApps.begin(); a!=allApps.end(); ++a ){
+    allAppStates_.push_back( make_pair( *a, string("UNKNOWN") ) );
+    // Collect different contexts too
+    contexts_.insert( (*a)->getContextDescriptor()->getURL() );
+  }
+}
+
+void EmuDAQManager::queryAllAppStates(){
+  vector< pair<xdaq::ApplicationDescriptor*, string> >::iterator as;
+  for ( as=allAppStates_.begin(); as!=allAppStates_.end(); ++as ){
+    string s;
+    try
+      {
+	s = getScalarParam(as->first, "stateName", "string");
+      }
+    catch(xcept::Exception e)
+      {
+	s = "UNKNOWN";
+	LOG4CPLUS_ERROR(logger_, "Failed to get state"
+			<< " : " << xcept::stdformat_exception_history(e));
+      }
+    as->second = s;
+  }
+}
+
+string EmuDAQManager::getDAQState(){
+  queryAllAppStates();
+
+  // Combine states: 
+  // If one is unknown, the combined state will also be unknown.
+  // If all are known but not the same, the combined state will be indefinite.
+  string combinedState("UNKNOWN");
+  vector< pair<xdaq::ApplicationDescriptor*, string> >::iterator s;
+  for ( s=allAppStates_.begin(); s!=allAppStates_.end(); ++s ){
+    if ( s->second == "UNKNOWN" ){
+      combinedState = s->second;
+      break;
+    }
+    else if ( s->second != combinedState && combinedState != "UNKNOWN" ){
+      combinedState = "INDEFINITE";
+      break;
+    }
+    else{
+      combinedState = s->second;
+    }
+  }
+  return combinedState;
+}
+
+
+void EmuDAQManager::printStatesTable( xgi::Output *out )
+  throw (xgi::exception::Exception)
+{
+  map<string, string> bgcolor;
+  bgcolor["Halted" ] = "#ff0000";
+  bgcolor["Ready"  ] = "#ffff00";
+  bgcolor["Enabled"] = "#00ff00";
+  bgcolor["Failed" ] = "#000000";
+  bgcolor["UNKNOWN"] = "#888888";
+
+  map<string, string> color;
+  color["Halted" ] = "#000000";
+  color["Ready"  ] = "#000000";
+  color["Enabled"] = "#000000";
+  color["Failed" ] = "#ffffff";
+  color["UNKNOWN"] = "#ffffff";
+
+  *out << "<a name=\"states\"/>"                                         << endl;
+  *out << "<table frame=\"void\" rules=\"rows|cols\" class=\"params\">"  << endl;
+  
+  *out << "<tr>"                                                         << endl;
+  *out << "  <th>"                                                       << endl;
+  *out << "     States' color code"                                     << endl;
+  *out << "  </th>"                                                      << endl;
+  *out << "  <th>"                                                       << endl;
+  map<string, string>::iterator col;
+  for ( col=color.begin(); col!=color.end(); ++col ){
+    *out << "     <span align=\"center\" ";
+    *out << "style=\"";
+    *out << "background-color:" << bgcolor[col->first];
+    *out << "; color:"          << col->second;
+    *out << "\">";
+    *out << " " << col->first << " ";
+    *out << "</span>" << endl;
+  }
+  *out << "  </th>"                                                      << endl;
+  *out << "</tr>"                                                        << endl;
+
+  set<string>::iterator c;
+  for ( c=contexts_.begin(); c!=contexts_.end(); ++c ){
+    {
+
+      *out << "<tr>"                                                    << endl;
+
+      *out << "  <th>"                                                  << endl;
+      *out << "    <a href=\"" << *c << "\">" << c->substr(7) << "</a>" << endl;
+      *out << "  </th>"                                                 << endl;
+      
+      *out << "  <td>"                                                  << endl;
+      vector< pair<xdaq::ApplicationDescriptor*, string> >::iterator s;
+      for ( s=allAppStates_.begin(); s!=allAppStates_.end(); ++s )
+	if ( *c == s->first->getContextDescriptor()->getURL() )
+	{
+	  *out << "     <span align=\"center\" ";
+	  *out << "style=\"";
+	  *out << "background-color:" << bgcolor[s->second];
+	  *out << "; color:"          << color[s->second];
+	  *out << "\">";
+	  *out << " " << s->first->getClassName() << s->first->getInstance() << " ";
+	  *out << "</span>" << endl;
+      }
+      *out << "  </td>"                                                 << endl;
+
+      *out << "</tr>"                                                   << endl;
+    }
+  }
+  *out << "</table>"                                                    << endl;
+}
+
+
+
 
 // void EmuDAQManager::configureTest()
 // throw (emuDAQManager::exception::Exception)
@@ -1339,7 +1491,7 @@ vector< pair<string,string> > EmuDAQManager::getStats
 // }
 
 void EmuDAQManager::configureTest()
-throw (emuDAQManager::exception::Exception)
+  throw (emuDAQManager::exception::Exception)
 {
     bool evmGenerateDummyTriggers   = taDescriptors_.size()  == 0;
     bool rusGenerateDummySuperFrags = ruiDescriptors_.size() == 0;
@@ -1429,15 +1581,15 @@ throw (emuDAQManager::exception::Exception)
       LOG4CPLUS_ERROR(logger_,"No TA found.");
     }
 
-//     try
-//     {
-//         startRuBuilder();
-//     }
-//     catch(xcept::Exception e)
-//     {
-//         XCEPT_RETHROW(emuDAQManager::exception::Exception,
-//             "Failed to start RU builder", e);
-//     }
+    try
+    {
+        configureRuBuilder();
+    }
+    catch(xcept::Exception e)
+    {
+        XCEPT_RETHROW(emuDAQManager::exception::Exception,
+            "Failed to configure RU builder", e);
+    }
 
     // If RUIs are present then start them as an imaginary FED builder
     if(ruiDescriptors_.size() > 0)
@@ -1728,7 +1880,7 @@ throw (emuDAQManager::exception::Exception)
 }
 
 
-void EmuDAQManager::startRuBuilder()
+void EmuDAQManager::configureRuBuilder()
 throw (emuDAQManager::exception::Exception)
 {
     vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
@@ -1795,8 +1947,12 @@ throw (emuDAQManager::exception::Exception)
             XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
         }
     }
+}
 
-
+void EmuDAQManager::startRuBuilder()
+throw (emuDAQManager::exception::Exception)
+{
+    vector< xdaq::ApplicationDescriptor* >::const_iterator pos;
     ////////////////
     // Enable RUs //
     ////////////////
@@ -2092,8 +2248,11 @@ throw (emuDAQManager::exception::Exception)
         }
         catch(xcept::Exception e)
         {
-            XCEPT_RETHROW(emuDAQManager::exception::Exception,
-                "Failed to stop FED builder", e);
+//             XCEPT_RETHROW(emuDAQManager::exception::Exception,
+//                 "Failed to stop EmuRUIs", e);
+            LOG4CPLUS_ERROR(getApplicationLogger(), 
+			    "Failed to stop EmuRUIs: " << 
+			    xcept::stdformat_exception_history(e));
         }
     }
 
@@ -2153,8 +2312,10 @@ throw (emuDAQManager::exception::Exception)
     }
     catch(xcept::Exception e)
     {
-        XCEPT_RETHROW(emuDAQManager::exception::Exception,
-            "Failed to halt EVM", e);
+//         XCEPT_RETHROW(emuDAQManager::exception::Exception,
+//             "Failed to halt EVM", e);
+	// Don't raise exception here. Go on to try to stop the others.
+	LOG4CPLUS_ERROR(logger_, "Failed to halt EVM : " << xcept::stdformat_exception_history(e));
     }
 
 
@@ -2177,7 +2338,9 @@ throw (emuDAQManager::exception::Exception)
             oss << (*pos)->getClassName() << (*pos)->getInstance();
             s = oss.str();
 
-            XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
+//             XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
+	    // Don't raise exception here. Go on to try to stop the others.
+	    LOG4CPLUS_ERROR(logger_, s << " : " << xcept::stdformat_exception_history(e));
         }
     }
 
@@ -2201,7 +2364,9 @@ throw (emuDAQManager::exception::Exception)
             oss << (*pos)->getClassName() << (*pos)->getInstance();
             s = oss.str();
 
-            XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
+//             XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
+	    // Don't raise exception here. Go on to try to stop the others.
+	    LOG4CPLUS_ERROR(logger_, s << " : " << xcept::stdformat_exception_history(e));
         }
     }
 }
@@ -2232,7 +2397,9 @@ throw (emuDAQManager::exception::Exception)
             oss << (*pos)->getClassName() << (*pos)->getInstance();
             s = oss.str();
 
-            XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
+//             XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
+	    // Don't raise exception here. Go on to try to stop the others.
+	    LOG4CPLUS_ERROR(logger_, s << " : " << xcept::stdformat_exception_history(e));
         }
     }
 }
@@ -2291,7 +2458,9 @@ throw (emuDAQManager::exception::Exception)
             oss << (*pos)->getClassName() << (*pos)->getInstance();
             s = oss.str();
 
-            XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
+//             XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
+	    // Don't raise exception here. Go on to try to stop the others.
+	    LOG4CPLUS_ERROR(logger_, s << " : " << xcept::stdformat_exception_history(e));
         }
     }
 }
@@ -2771,7 +2940,6 @@ vector< vector<string> > EmuDAQManager::getRUIEventCounts()
     catch(xcept::Exception e)
     {
       href  = getHref( appDescriptor_ ) + "/control"; // self
-      name << "UNKNOWN";
       count = "UNKNOWN";
       LOG4CPLUS_ERROR(logger_, "Failed to get event count of " << name.str()
 		      << " : " << xcept::stdformat_exception_history(e));
@@ -2811,7 +2979,6 @@ vector< vector<string> > EmuDAQManager::getFUEventCounts()
     catch(xcept::Exception e)
     {
       href  = getHref( appDescriptor_ ) + "/control"; // self
-      name << "UNKNOWN";
       count = "UNKNOWN";
       LOG4CPLUS_ERROR(logger_, "Failed to get event count of " << name.str()
 		      << " : " << xcept::stdformat_exception_history(e));
@@ -2921,6 +3088,28 @@ xoap::MessageReference EmuDAQManager::onHalt(xoap::MessageReference message)
 	return createReply(message);
 }
 
+xoap::MessageReference EmuDAQManager::onQuery(xoap::MessageReference message)
+  throw (xoap::exception::Exception)
+{
+  xoap::MessageReference      reply = createReply(message);
+
+  xoap::SOAPEnvelope       envelope = reply->getSOAPPart().getEnvelope();
+  xoap::SOAPName            xsiType = envelope.createName("type",
+							  "xsi",
+							  "http://www.w3.org/1999/XMLSchema-instance");
+  xoap::SOAPName       daqStateName = envelope.createName( "daqState" );
+  xoap::SOAPBody               body = envelope.getBody();
+  xoap::SOAPElement daqStateElement = body.addBodyElement( daqStateName );
+//   xoap::SOAPElement daqStateElement = responseNameElement.addChildElement( daqStateName );
+  daqStateElement.addAttribute( xsiType, "xsd:string" );
+
+  string daqState = getDAQState();
+
+  daqStateElement.addTextNode( daqState );
+
+  return reply;
+}
+
 void EmuDAQManager::configureAction(toolbox::Event::Reference e)
         throw (toolbox::fsm::exception::Exception)
 {   
@@ -2973,7 +3162,7 @@ void EmuDAQManager::haltAction(toolbox::Event::Reference e)
       }
     catch(xcept::Exception ex)
       {
-	XCEPT_RETHROW(xgi::exception::Exception,
+	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		      "Failed to stop EmuDAQ", ex);
       }
 
@@ -2990,7 +3179,7 @@ void EmuDAQManager::reConfigureAction(toolbox::Event::Reference e)
       }
     catch(xcept::Exception ex)
       {
-	XCEPT_RETHROW(xgi::exception::Exception,
+	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		      "Failed to stop EmuDAQ before reconfiguration", ex);
       }
 
