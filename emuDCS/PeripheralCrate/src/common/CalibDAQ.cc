@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.10 2006/03/30 13:55:38 mey Exp $
+// $Id: CalibDAQ.cc,v 2.11 2006/04/11 15:27:42 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.11  2006/04/11 15:27:42  mey
+// Update
+//
 // Revision 2.10  2006/03/30 13:55:38  mey
 // Update
 //
@@ -108,7 +111,7 @@ void CalibDAQ::rateTest() {
 	    "  try = " << tries << 
 	    "  event  = " << counter << std::endl;
 	  ccb->pulse(1, 0xff);//pulse all dmbs in this crate
-	  ::usleep(100000);
+	  ::usleep(100);
 	}
 
       } //end of loop by strips
@@ -134,6 +137,22 @@ void CalibDAQ::pulseAllWires(){
       //
     }
     //
+  }
+  //
+}
+//
+void CalibDAQ::pulseComparatorPulse(){
+  //
+  for (int thresh=0; thresh<35; thresh++) {
+    for (int i=0;i<16;i++) {  
+      pulseAllDMBs(25, i, 0.15, 100,thresh*0.003+0.013);
+    }
+  }
+  //
+  for (int thresh=0; thresh<35; thresh++) {
+    for (int i=0;i<16;i++) {  
+      pulseAllDMBs(25, i, 0.35, 100,thresh*0.003+0.049);
+    }
   }
   //
 }
@@ -218,7 +237,7 @@ void CalibDAQ::pedestalCFEB() {
   //
   int ntim = 1;
   float dac = 0.0;
-  int nsleep(100000);
+  int nsleep(100);
   int counter = 0;
   int nevents = 1000;
   //
@@ -236,7 +255,7 @@ void CalibDAQ::pedestalCFEB() {
 }  
 //
 //
-void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep) { 
+void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep, float thresh) { 
 //injects identical pulse to all dmbs (EXT capacitors)
 //in all crates one crate at a time          
 
@@ -245,14 +264,24 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep) {
   std::vector<Crate*> myCrates = theSelector.crates();
   
   for(unsigned j = 0; j < myCrates.size(); ++j) {
-
+    //
+    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+    usleep(10);
+    //
     CCB * ccb = myCrates[j]->ccb();
     std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
     std::vector<TMB*> myTmbs   = theSelector.tmbs(myCrates[j]);
+    //
+    for (unsigned i=0; i<myTmbs.size(); i++) {
+      myTmbs[i]->EnableInternalL1aSequencer();
+      myTmbs[i]->DisableCLCTInputs();
+    }
+    //
     for(unsigned i =0; i < myDmbs.size(); ++i) {
       
       // set amplitude
       myDmbs[i]->set_cal_dac(dac,dac);
+      myDmbs[i]->set_comp_thresh(thresh);
 
       // set external pulser for strip # nstrip on all 6 chips
       for(brd=0;brd<5;brd++){
@@ -268,13 +297,16 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep) {
       //
       //set timing
       //ntim is the same as pulse_delay initially set in xml configuration file
+      //
       myDmbs[i]->set_cal_tim_pulse(ntim);   
       //
     }
     //
     //std::cout << "pulsing one time" << std::endl;
     ::usleep(nsleep);
+    for (unsigned i=0; i<myTmbs.size(); i++) myTmbs[i]->EnableCLCTInputs(0x1f);
     ccb->pulse(1, 0xff);//pulse all dmbs in this crate
+    for (unsigned i=0; i<myTmbs.size(); i++) myTmbs[i]->DisableCLCTInputs();
     ::usleep(nsleep);
     //
     for(unsigned i =0; i < myDmbs.size(); ++i) {
@@ -282,7 +314,6 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep) {
     }
     //
     for(unsigned i =0; i < myTmbs.size(); ++i) {
-      myTmbs[i]->EnableCLCTInputs(0x1f);
       myTmbs[i]->GetCounters();
       myTmbs[i]->PrintCounters();
     }

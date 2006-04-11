@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.38 2006/04/06 08:54:32 mey Exp $
+// $Id: TMB.h,v 2.39 2006/04/11 15:27:42 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.39  2006/04/11 15:27:42  mey
+// Update
+//
 // Revision 2.38  2006/04/06 08:54:32  mey
 // Got rif of friend TMBParser
 //
@@ -145,6 +148,8 @@ public:
   virtual ~TMB();
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
+  //
+  void WriteOutput(std::string);
   //
   /// from the BOARDTYPE enum
   unsigned int boardType() const {return TMB_ENUM;}
