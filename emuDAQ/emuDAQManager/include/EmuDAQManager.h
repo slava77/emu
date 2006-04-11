@@ -220,7 +220,14 @@ private:
 			      string                    title,
 			      vector< vector<string> >  counts ); // Emu
   string getDateTime();
-  void getRunInfoFromTA( string* runnum, string* maxevents );
+  void   getRunInfoFromTA( string* runnum, string* maxevents );
+  vector< pair<xdaq::ApplicationDescriptor*, string> > allAppStates_;
+  set<string> contexts_; // all different contexts with apps controlled by EmuDAQManager
+  void   createAllAppStatesVector();
+  void   queryAllAppStates();
+  string getDAQState();
+  void   printStatesTable( xgi::Output *out )
+    throw (xgi::exception::Exception);
 
     /**
      * Processes the form sent from the control web page.
@@ -350,6 +357,8 @@ private:
     /**
      * Starts just the RU builder, i.e. the BUs, EVM and RUs.
      */
+    void configureRuBuilder()
+      throw (emuDAQManager::exception::Exception);
     void startRuBuilder()
     throw (emuDAQManager::exception::Exception);
 
@@ -503,6 +512,8 @@ public:
   xoap::MessageReference onDisable(xoap::MessageReference message)
     throw (xoap::exception::Exception);
   xoap::MessageReference onHalt(xoap::MessageReference message)
+    throw (xoap::exception::Exception);
+  xoap::MessageReference onQuery(xoap::MessageReference message)
     throw (xoap::exception::Exception);
 
   // State transitions
