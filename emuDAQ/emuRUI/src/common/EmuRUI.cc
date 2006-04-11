@@ -2269,7 +2269,7 @@ bool EmuRUI::continueConstructionOfSuperFrag()
   bool lastChunkOfEvent = ( iCurrentDeviceReader_ +1 == nInputDevices_ );
   if ( lastChunkOfEvent ) nEventsRead_++;
 
-  if ( nEventsRead_ == (unsigned long) 1 ) // first event --> a new run
+  if ( nEventsRead_ == (unsigned long) 0 ) // first event being read --> a new run
     {
       if ( iCurrentDeviceReader_ == 0 ) // don't do it for all devices...
 	{
