@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.58 2006/04/06 22:23:08 mey Exp $
+// $Id: TMB.cc,v 2.59 2006/04/11 15:27:42 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.59  2006/04/11 15:27:42  mey
+// Update
+//
 // Revision 2.58  2006/04/06 22:23:08  mey
 // Update
 //
@@ -373,9 +376,19 @@ int TMB::CCB_command_from_TTC(){
   //
 }
 //
+void TMB::WriteOutput(std::string output){
+  //
+  (*MyOutput_) << output << std::endl ;
+  //
+  //LOG4CPLUS_INFO(getApplicationLogger(), output);
+  //
+}
+//
 void TMB::StartTTC(){
   //
   (*MyOutput_) << "TMB.StartTTC" << std::endl;
+  //
+  WriteOutput("TMB.StartTTC");
   //
   sndbuf[0] = 0x0;
   sndbuf[1] = 0x1;

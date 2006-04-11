@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.24 2006/04/10 14:28:00 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.25 2006/04/11 15:27:42 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -254,6 +254,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBTime, "CalibrationCFEBTime");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBCharge, "CalibrationCFEBCharge");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBPedestal, "CalibrationCFEBPedestal");
+    xgi::bind(this,&EmuPeripheralCrate::CalibrationComparatorPulse, "CalibrationComparatorPulse");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationALCT, "CalibrationALCT");
     xgi::bind(this,&EmuPeripheralCrate::LaunchMonitor, "LaunchMonitor");
     xgi::bind(this,&EmuPeripheralCrate::CreateMonitorUnit, "CreateMonitorUnit");
@@ -343,7 +344,12 @@ public:
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrate");
+    std::string LoggerName = getApplicationLogger().getName() ;
+    std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
+    //
+    //if (getApplicationLogger().exists(getApplicationLogger().getName())) {
+      LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrate");
+      //}
     //
     if ( MyController == 0 ) MyController = new EmuController();
     //
@@ -362,7 +368,13 @@ public:
     //
     //if (tmbVector.size()==0 && dmbVector.size()==0) {
     //
-    *out << cgicc::b(cgicc::i("Current configuration filename : ")) << xmlFile_.toString() << std::endl ;
+    *out << cgicc::span().set("style","color:blue");
+    *out << cgicc::h3(cgicc::b(cgicc::i("Current configuration filename : "))) ;
+    *out << cgicc::span();
+    //
+    *out << xmlFile_.toString() << std::endl ;
+    //
+    *out << cgicc::br();
     //
     std::string DefineConfiguration =
       toolbox::toString("/%s/DefineConfiguration",getApplicationDescriptor()->getURN().c_str());
@@ -396,14 +408,21 @@ public:
       //
       *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:yellow");
       *out << std::endl;
-      *out << cgicc::legend("Initialisation").set("style","color:blue") ;
+      *out << cgicc::legend((("Initialisation"))).set("style","color:blue") ;
       //
       std::string InitSystem =
 	toolbox::toString("/%s/InitSystem",getApplicationDescriptor()->getURN().c_str());
       //
-      //
       *out << cgicc::form().set("method","GET").set("action",InitSystem) << std::endl ;
       *out << cgicc::input().set("type","submit").set("value","Init System") << std::endl ;
+      *out << cgicc::form() << std::endl ;
+      //
+      std::string LaunchMonitor =
+	toolbox::toString("/%s/LaunchMonitor",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::form().set("method","GET").set("action",LaunchMonitor).set("target","_blank") << std::endl ;
+      *out << cgicc::input().set("type","submit")
+	.set("value","Launch Monitor").set("name","LaunchMonitor") << std::endl ;
       *out << cgicc::form() << std::endl ;
       //
       std::string Operator =
@@ -440,13 +459,6 @@ public:
 	.set("value","Log Test Summary").set("name","LogTestSummary") << std::endl ;
       *out << cgicc::form() << std::endl ;
       //
-      std::string LaunchMonitor =
-	toolbox::toString("/%s/LaunchMonitor",getApplicationDescriptor()->getURN().c_str());
-      //
-      *out << cgicc::form().set("method","GET").set("action",LaunchMonitor).set("target","_blank") << std::endl ;
-      *out << cgicc::input().set("type","submit")
-	.set("value","Launch Monitor").set("name","LaunchMonitor") << std::endl ;
-      *out << cgicc::form() << std::endl ;
       //
       std::string PowerUp =
 	toolbox::toString("/%s/PowerUp",getApplicationDescriptor()->getURN().c_str());
@@ -814,6 +826,12 @@ private:
       toolbox::toString("/%s/CalibrationCFEBTime",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBTime) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Calibration run CFEB Time") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string CalibrationComparatorPulse =
+      toolbox::toString("/%s/CalibrationComparatorPulse",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CalibrationComparatorPulse) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Calibration Comparator Pulse") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     std::string CalibrationCFEBCharge =
@@ -1306,7 +1324,7 @@ private:
     //int nsleep, nstrip, tries, counter =0;
     float dac;
     int counter=0;
-    int nsleep = 100000;  
+    int nsleep = 100;  
     dac = 1.0;
     //
     for (int i=0;i<16;i++) {  
@@ -1323,6 +1341,19 @@ private:
     this->Default(in,out);
     //
   }
+  //
+  void EmuPeripheralCrate::CalibrationComparatorPulse(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    CalibDAQ calib;
+    //
+    calib.pulseComparatorPulse();
+    //
+    this->Default(in,out);
+    //
+  }
+  //
   void EmuPeripheralCrate::CalibrationCFEBPedestal(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -1373,6 +1404,10 @@ private:
   //
   void EmuPeripheralCrate::MonitorFrameRight(xgi::Input * in, xgi::Output * out) 
     throw (xgi::exception::Exception){
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     //
     for(int counter=0; counter<22; counter++) {
       //
@@ -3391,10 +3426,12 @@ private:
     //
     TMB * thisTMB = tmbVector[tmb];
     //
+    LOG4CPLUS_INFO(getApplicationLogger(), "Start PrintCounters");
     thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
     thisTMB->GetCounters();
     thisTMB->PrintCounters();
     thisTMB->RedirectOutput(&std::cout);
+    LOG4CPLUS_INFO(getApplicationLogger(), "Done PrintCounters");
     //
     this->TMBUtils(in,out);
     //
@@ -3762,8 +3799,8 @@ private:
       .set("value","0").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
     //
-    *out << cgicc::table().set("border","0");
-    *out << cgicc::td();
+    *out << cgicc::table().set("border","1");
+    *out << cgicc::td().set("ALIGN","center");
     //
     std::string testBootRegister =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
@@ -3796,7 +3833,7 @@ private:
     //
     *out << cgicc::td();
     //
-    *out << cgicc::td();
+    *out << cgicc::td().set("ALIGN","center");
     //
     std::string testVMEfpgaDataRegister =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
@@ -3829,7 +3866,7 @@ private:
     //
     *out << cgicc::td();
     //
-    *out << cgicc::td();
+    *out << cgicc::td().set("ALIGN","center");
     //    
     std::string testFirmwareDate =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
@@ -3862,7 +3899,7 @@ private:
     //
     *out << cgicc::td();
     //
-    *out << cgicc::tr();
+    *out << cgicc::tr().set("ALIGN","center");
     *out << cgicc::td();
     //
     std::string testFirmwareType =
@@ -3961,8 +3998,9 @@ private:
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::td();
-    //
     *out << cgicc::tr();
+    //
+    *out << cgicc::tr().set("ALIGN","center");
     *out << cgicc::td();
     //
     std::string testMezzId =
@@ -4061,10 +4099,9 @@ private:
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::td();
-    //
     *out << cgicc::tr();
     //
-    *out << cgicc::tr();
+    *out << cgicc::tr().set("ALIGN","center");
     *out << cgicc::td();
     //
     std::string testDSN =
@@ -4167,8 +4204,7 @@ private:
     *out << cgicc::td();
     *out << cgicc::tr();
     //
-    *out << cgicc::tr();
-    //
+    *out << cgicc::tr().set("ALIGN","center");
     *out << cgicc::td();
     //
     ///////////////////////////////////////////////////////////
@@ -4274,7 +4310,9 @@ private:
     //
     *out << cgicc::td();
     *out << cgicc::tr();
-    *out << cgicc::table();
+    //
+    *out << cgicc::tr().set("ALIGN","center");
+    *out << cgicc::td().set("VALIGN","bottom");
     //
     /////////////////////////////////////////////////////////////////////
     //
@@ -4306,6 +4344,9 @@ private:
     *out << cgicc::input().set("type","hidden")
       .set("value","16").set("name","tmbTestid");
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    *out << cgicc::table();
     //
     /////////////////////////////////////////////////////////////////////
     //
@@ -5099,9 +5140,9 @@ private:
     sprintf(buf,"DMB DAC1 = %3.1f ",readout);
     //
     if ( readout > 3400 && readout < 3600 ) {
-      *out << cgicc::span().set("style","color:green");
+      *out << cgicc::span().set("style","color:black");
     } else {
-      *out << cgicc::span().set("style","color:red");
+      *out << cgicc::span().set("style","color:black");
     }
     //
     *out << buf ;
@@ -5112,9 +5153,9 @@ private:
     readout = thisDMB->adcplus(2,1) ;
     sprintf(buf,"DMB DAC2 = %3.1f ",readout);
     if ( readout > 3400 && readout < 3600 ) {
-      *out << cgicc::span().set("style","color:green");
+      *out << cgicc::span().set("style","color:black");
     } else {
-      *out << cgicc::span().set("style","color:red");
+      *out << cgicc::span().set("style","color:black");
     }
     //
     *out << buf ;
@@ -5125,9 +5166,9 @@ private:
     readout = thisDMB->adcplus(2,2) ;
     sprintf(buf,"DMB DAC3 = %3.1f ",readout);
     if ( readout > 3400 && readout < 3600 ) {
-      *out << cgicc::span().set("style","color:green");
+      *out << cgicc::span().set("style","color:black");
     } else {
-      *out << cgicc::span().set("style","color:red");
+      *out << cgicc::span().set("style","color:black");
     }
     *out << buf ;
     *out << cgicc::span() ;
@@ -5137,9 +5178,9 @@ private:
     readout = thisDMB->adcplus(2,3) ;
     sprintf(buf,"DMB DAC4 = %3.1f ",readout);
     if ( readout > 3400 && readout < 3600 ) {
-      *out << cgicc::span().set("style","color:green");
+      *out << cgicc::span().set("style","color:black");
     } else {
-      *out << cgicc::span().set("style","color:red");
+      *out << cgicc::span().set("style","color:black");
     }
     *out << buf ;
     *out << cgicc::span() ;
@@ -5149,9 +5190,9 @@ private:
     readout = thisDMB->adcplus(2,4) ;
     sprintf(buf,"DMB DAC5 = %3.1f ",readout);
     if ( readout > 3400 && readout < 3600 ) {
-      *out << cgicc::span().set("style","color:green");
+      *out << cgicc::span().set("style","color:black");
     } else {
-      *out << cgicc::span().set("style","color:red");
+      *out << cgicc::span().set("style","color:black");
     }
     *out << buf ;
     *out << cgicc::span() ;
@@ -5231,6 +5272,8 @@ private:
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title(Name) << std::endl;
+    //
+    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
     //
     *out << cgicc::h1(Name);
     *out << cgicc::br();
