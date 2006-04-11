@@ -55,7 +55,8 @@ IncludeDirs = \
 	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
 	$(DCSDIR)/include \
 	$(XDAQ_ROOT)/daq/xgi/include \
-	$(DIMDIR)/dim 
+	$(DIMDIR)/dim  \
+        $(XDAQ_ROOT)/emu/cscSV/include 
 
 LibraryDirs = \
 	$(XDAQ_ROOT)/daq/xdata/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
@@ -78,7 +79,8 @@ TestLibraryDirs = \
 	$(XDAQ_ROOT)/daq/extern/mimetic/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
 	$(DIMDIR)/$(XDAQ_OS) \
 	$(DCSDIR)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-        $(XDAQ_ROOT)/emu/emuDCS/FEDCrate/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+        $(XDAQ_ROOT)/emu/emuDCS/FEDCrate/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
+	$(XDAQ_ROOT)/emu/cscSV/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib 
 
 UserCFlags  = 
 UserCCFlags = -DOSUcc -fPIC -DLINUX  -s
