@@ -2443,6 +2443,29 @@ void DDU::ddu_reset()
 }
 
 
+void DDU::ddu_l1calonoff()
+{
+  printf(" Enter ddu_l1calonoff (toggle). \n");
+  cmd[0]=VTX2P_USR1_L;
+  cmd[1]=VTX2P_USR1_H;
+  sndbuf[0]=31;
+  devdo(DDUFPGA,10,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2P_BYPASS_L;
+  cmd[1]=VTX2P_BYPASS_H;
+  devdo(DDUFPGA,10,cmd,0,sndbuf,rcvbuf,0);
+
+  cmd[0]=VTX2P_USR1_L;
+  cmd[1]=VTX2P_USR1_H;
+  sndbuf[0]=NORM_MODE;
+  devdo(DDUFPGA,10,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2P_BYPASS_L;
+  cmd[1]=VTX2P_BYPASS_H;
+  sndbuf[0]=0;
+  devdo(DDUFPGA,10,cmd,0,sndbuf,rcvbuf,2);
+  printf(" DDUFPGA Calibration==L1A Toggle done. \n");
+}
+
+
 void DDU::ddu_vmel1a()
 {
   printf(" Enter ddu_vmel1a. \n");
@@ -5225,13 +5248,15 @@ void  DDU::vmepara_wr_fmmreg(unsigned short int par_val)
   sndbuf[4]=0x79;
   sndbuf[3]=0x24;
   sndbuf[2]=0x68;
-  sndbuf[1]=0xF0;
-  sndbuf[0]=0xE0;
+//  sndbuf[1]=0xF0;  // Reg. must contain F0Ex to override free-run state!
+//  sndbuf[0]=0xE0;  //             Then "x" will be the new state.
   rcvbuf[0]=0;
   rcvbuf[1]=0;
   rcvbuf[2]=0;
   rcvbuf[3]=0;
-  sndbuf[0]=(sndbuf[0]|(par_val&0x000f));
+  //  sndbuf[0]=(sndbuf[0]|(par_val&0x000f));
+  sndbuf[1]=(par_val>>8)&0x00ff;
+  sndbuf[0]=(par_val&0x00ff);
   //
   devdo(VMEPARA,1,  cmd,  0,  sndbuf, rcvbuf,  2);
   //    dev,  ncmd, cmd, nbuf, inbuf, outbuf, irdsnd

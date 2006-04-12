@@ -871,8 +871,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     //    *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;") << std::endl;
     //    *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
     *out << "<h2 align=center><font color=blue>" << buf << "</font></h2>" << std::endl;
-//    for(int i=212;i<228;i++){
-    for(int i=200;i<228;i++){
+    for(int i=200;i<229;i++){
       thisDDU->infpga_shift0=0x0000;
       thisDDU->CAEN_err_reset();
       sprintf(buf3," ");
@@ -1152,15 +1151,23 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	sprintf(buf2," EXPERT ONLY! ");
 	icond=2;
 	*out << hr();
-      } 
+      }
       if(i==227){
+	sprintf(buf,"Toggle DDU Cal-Pulse==L1A (default True): ");
+	sprintf(buf2," EXPERT ONLY! ");
+	icond=2;
+	// JRG, do better later: move to VMEpara and use bit3 of Fake L1A Reg.
+	//  add Reg Read & Print on page.
+	//    sprintf(buf2," %04X <font color=red> EXPERT ONLY! </font> ",0x0008&thisDDU->vmepara_rd_fakel1reg());
+      }
+      if(i==228){
 	sprintf(buf,"DDU Sync Reset via VME: ");
 	sprintf(buf2," EXPERT ONLY! ");
 	icond=2;
       }
 
 // JRGhere
-      if(i==227||i==222||i==223||i==226){
+      if(i==228||i==227||i==222||i==223||i==226){
 	std::string ddutextload =
 	  toolbox::toString("/%s/DDUTextLoad",getApplicationDescriptor()->getURN().c_str());
 	*out << cgicc::form().set("method","GET").set("action",ddutextload) << std::endl;
@@ -1225,11 +1232,11 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
       *out << buf8 << cgicc::span();
 
 
-      if(i==227||i==222||i==223||i==226){  //JRG, def. SET button properties
+      if(i==228||i==227||i==222||i==223||i==226){  //JRG, def. SET button properties
 	string xmltext="";
 	if(i==222)xmltext="f7fff";
 	if(i==223)xmltext="deb";
-	if(i==227||i==226){
+	if(i==228||i==227||i==226){
 	  *out << cgicc::input().set("type","hidden")
 	   .set("name","textdata")
 	   .set("size","10")
@@ -2726,6 +2733,11 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	DDU_FMM=(stat>>8)&0x000F;
 	sprintf(buf2," %04X ",stat);
       }
+      if(i==501){
+       	*out << " <font color=blue> Items below have 1+15 bits to report FMM status: 1 flag for DDU plus 15 for its CSC Fibers</font>" << br() << std::endl;
+	sprintf(buf,"CSC FMM Problem Report:");
+	sprintf(buf2," %04X ",thisDDU->vmepara_CSCstat());
+      }
       if(i==502){
 	sprintf(buf,"CSC Busy:");
 	stat=thisDDU->vmepara_busy();
@@ -2750,16 +2762,23 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	if(0xffff&stat)icond=2;
 	sprintf(buf2," %04X ",stat);
       }
-      if(i==501){
-       	*out << " <font color=blue> Items below have 1+15 bits to report FMM status: 1 flag for DDU plus 15 for its CSC Fibers</font>" << br() << std::endl;
-	sprintf(buf,"CSC FMM Problem Report:");
-	sprintf(buf2," %04X ",thisDDU->vmepara_CSCstat());
+      if(i==506){
+	sprintf(buf,"CSC Warn History:");
+	stat=thisDDU->vmepara_warnhist();
+	if(0xffff&stat)icond=3;
+	sprintf(buf2," %04X ",stat);
       }
-// JRG, 506 D.N.E.
-// 507->08, 508._09, 509->10, 510->11, 511->16, 512->SAME, 513->14,
-// 514->17, 515->18, 516->19, 517->20, 518->21, 519->22, 520->15,
-// 521->13, 522->06, 523->07
-//  then 508->09, 509->10, 510->11, 511->08, 515->13, 513->15
+      if(i==507){
+	sprintf(buf,"CSC Busy History:");
+	stat=thisDDU->vmepara_busyhist();
+	if(0xffff&stat)icond=1;
+	sprintf(buf2," %04X ",stat);
+      }
+      if(i==508){
+	*out << br() << " <font color=blue> 3 16-bit InRegisters, pipelined 0 ->> 1 ->> 2; use this to pre-load VMEserial writes</font>" << br() << std::endl;
+	sprintf(buf,"Write to InReg0:");
+	sprintf(buf2," ");
+      }
       if(i==509){
 	sprintf(buf,"InReg0:");
 	sprintf(buf2," %04X ",thisDDU->vmepara_rd_inreg0());
@@ -2772,30 +2791,33 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	sprintf(buf,"InReg2:");
 	sprintf(buf2," %04X ",thisDDU->vmepara_rd_inreg2());
       }
-      if(i==508){
-	*out << br() << " <font color=blue> 3 16-bit InRegisters, pipelined 0 ->> 1 ->> 2; use this to pre-load VMEserial writes</font>" << br() << std::endl;
-	sprintf(buf,"Write to InReg0:");
-	sprintf(buf2," ");
+      if(i==512){
+	*out << br() << " <font color=blue> Set SPY Rate (bits 2:0); set Ignore DCC Wait (bit 3) <br>  Rate 0-7 will transmit 1 event out of 1,8,32,128,1024,8192,32768,never</font>" << br() << std::endl;
+	//	*out << br() << " <font color=blue> Select 0-7 for SPY rate = 1 per 1,8,32,128,1024,8192,32768,never</font>" << br() << std::endl;
+	sprintf(buf,"GbE Prescale*:");
+	sprintf(buf2," %04X <font color=red> EXPERT ONLY! </font> ",thisDDU->vmepara_rd_GbEprescale());
+      }
+      if(i==513){
+	sprintf(buf,"Toggle DCC_wait Enable:");
+	sprintf(buf2," <font color=red> EXPERT ONLY! </font> ");
+      }
+      if(i==514){
+	*out << " <font color=blue> Enable Fake L1A/Data Passthrough for DDU FPGAs: bit 2=DDUctrl, 1=InFPGA1, 0=InFPGA0</font>" << br() << std::endl;
+	sprintf(buf,"Fake L1A Reg*:");
+	sprintf(buf2," %04X <font color=red> EXPERT ONLY! </font> ",thisDDU->vmepara_rd_fakel1reg());
+      }
+      if(i==515){
+	sprintf(buf,"Toggle All FakeL1A:");
+	sprintf(buf2," <font color=red> EXPERT ONLY! </font> ");
       }
       if(i==516){
 	sprintf(buf,"Switches:");
 	sprintf(buf2," %02X ",thisDDU->vmepara_switch()&0xff);
       }
-      if(i==512){
-	*out << br() << " <font color=blue> Set SPY Rate (bits 2:0); set Ignore DCC Wait (bit 3) <br>  Rate 0-7 will transmit 1 event out ot 1,8,32,128,1024,8192,32768,never</font>" << br() << std::endl;
-	//	*out << br() << " <font color=blue> Select 0-7 for SPY rate = 1 per 1,8,32,128,1024,8192,32768,never</font>" << br() << std::endl;
-	sprintf(buf,"GbE Prescale:");
-	sprintf(buf2," %04X <font color=red> EXPERT ONLY! </font> ",thisDDU->vmepara_rd_GbEprescale());
-      }
-      if(i==514){
-	*out << " <font color=blue> Enable Fake L1A/Data Passthrough for DDU FPGAs: bit 0=InFPGA0, 1=InFPGA1, 2=DDUctrl</font>" << br() << std::endl;
-	sprintf(buf,"Fake L1A Reg:");
-	sprintf(buf2," %04X <font color=red> EXPERT ONLY! </font> ",thisDDU->vmepara_rd_fakel1reg());
-      }
       if(i==517){
 	*out << hr() << " <font color=blue> Items below are Only for Board Testing, Do Not Use!</font>" << br() << std::endl;
 	//	*out << br() << " <font color=blue> Only for 4-bit FMM function testing, Do Not Use!</font>" << br() << std::endl;
-	sprintf(buf,"4-bit FMM Reg:");
+	sprintf(buf,"'F0E' + 4-bit FMM Reg:");
 	sprintf(buf2," %04X <font color=red> EXPERT ONLY! </font> ",thisDDU->vmepara_rd_fmmreg());
       }
       if(i==518){
@@ -2810,10 +2832,6 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	sprintf(buf,"Test Reg2:");
 	sprintf(buf2," %04X ",thisDDU->vmepara_rd_testreg0());
       }
-// 507->08, 508._09, 509->10, 510->11, 511->16, 512->SAME, 513->14,
-// 514->17, 515->18, 516->19, 517->20, 518->21, 519->22, 520->15,
-// 521->13, 522->06, 523->07
-//  then 508->09, 509->10, 510->11, 511->08, 515->013, 513->15
       if(i==521){
 	sprintf(buf,"Test Reg3:");
 	sprintf(buf2," %04X ",thisDDU->vmepara_rd_testreg0());
@@ -2822,32 +2840,11 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	sprintf(buf,"Test Reg4:");
 	sprintf(buf2," %04X ",thisDDU->vmepara_rd_testreg0());
       }
-      if(i==513){
-	sprintf(buf,"Toggle DCC_wait Enable:");
-	sprintf(buf2," <font color=red> EXPERT ONLY! </font> ");
-      }
-      if(i==515){
-	sprintf(buf,"Toggle All FakeL1A:");
-	sprintf(buf2," <font color=red> EXPERT ONLY! </font> ");
-      }
-      if(i==506){
-	sprintf(buf,"CSC Warn History:");
-	stat=thisDDU->vmepara_warnhist();
-	if(0xffff&stat)icond=3;
-	sprintf(buf2," %04X ",stat);
-      }
-      if(i==507){
-	sprintf(buf,"CSC Busy History:");
-	stat=thisDDU->vmepara_busyhist();
-	if(0xffff&stat)icond=1;
-	sprintf(buf2," %04X ",stat);
-      }
       if(i==508||i==512||i==514||i==517||i==515||i==513){
          std::string ddutextload =
 	 toolbox::toString("/%s/DDUTextLoad",getApplicationDescriptor()->getURN().c_str());
          *out << cgicc::form().set("method","GET").set("action",ddutextload);
       }
-// JJRRGG
       *out << cgicc::span().set("style","color:black");
       *out << buf << cgicc::span();
       if(icond==1){
@@ -2865,10 +2862,6 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
 	*out << " **CAEN Error " << cgicc::span();
       }
-// 507->08, 508._09, 509->10, 510->11, 511->16, 512->SAME, 513->14,
-// 514->17, 515->18, 516->19, 517->20, 518->21, 519->22, 520->15,
-// 521->13, 522->06, 523->07
-//  then 508->09, 509->10, 510->11, 511->08, 515->013, 513->15
       if(i==500){
 	*out << "<font color=black> &nbsp &nbsp " << "Current DDU FMM Report: </font>";
 	sprintf(buf2," READY ");
@@ -2941,9 +2934,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
          *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu"); 
          sprintf(buf,"%d",i);       
          *out << cgicc::input().set("type","hidden").set("value",buf).set("name","val"); 
-	 //         *out << cgicc::form() << std::endl ;
          *out << cgicc::form() << std::endl;
-	 //	*out << buf << br() 
       }
       else{
 	*out << br() << std::endl;
@@ -3164,7 +3155,8 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
     cout << XMLtext  << endl ;
     unsigned short int para_val;
     unsigned long int send_val;
-    if(val==227)thisDDU->ddu_reset();
+    if(val==227)thisDDU->ddu_l1calonoff();
+    if(val==228)thisDDU->ddu_reset();
     if(val==222){
       sscanf(XMLtext.data(),"%01hhx%02hhx%02hhx",&thisDDU->snd_serial[0],&thisDDU->snd_serial[1],&thisDDU->snd_serial[2]);
       send_val=((thisDDU->snd_serial[0]<<16)&0x000f0000)|((thisDDU->snd_serial[1]<<8)&0x0000ff00)|(thisDDU->snd_serial[2]&0x0000ff);
@@ -3192,10 +3184,16 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
      printf(" para_val %04x \n",para_val);
      thisDDU->vmepara_wr_GbEprescale(para_val);
    }
-// 507->08, 508._09, 509->10, 510->11, 511->16, 512->SAME, 513->14,
-// 514->17, 515->18, 516->19, 517->20, 518->21, 519->22, 520->15,
-// 521->13, 522->06, 523->07
-//  then 508->09, 509->10, 510->11, 511->08, 515->013, 513->15
+    if(val==513){
+        unsigned short int scale= thisDDU->vmepara_rd_GbEprescale();
+        if (scale&0x0008) { 
+           para_val=(scale&0xF7F7)|0x8080;
+        } else {
+           para_val=(scale|0x0808)&0x7f7f;
+        }
+	printf("          vmepara_wr_GbEprescale, para_val=%d \n",para_val);
+	thisDDU->vmepara_wr_GbEprescale(para_val);
+    } 
     if(val==514){
       sscanf(XMLtext.data(),"%02hhx%02hhx",&thisDDU->snd_serial[0],&thisDDU->snd_serial[1]);
       para_val=((thisDDU->snd_serial[0]<<8))&0xff00|(thisDDU->snd_serial[1]&0x00ff);
@@ -3203,31 +3201,21 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
       thisDDU->vmepara_wr_fakel1reg(para_val);
 
     }
+    if(val==515){
+	unsigned short int scale2=thisDDU-> vmepara_rd_fakel1reg();
+        if (scale2&0x0007) {
+          para_val=0xF0F0;
+        } else {
+          para_val=0x8787;
+        }
+	printf("         vmepara_wr_fakel1reg, para_val=%d \n",para_val);
+	thisDDU->vmepara_wr_fakel1reg(para_val);
+    }
     if(val==517){
       sscanf(XMLtext.data(),"%02hhx%02hhx",&thisDDU->snd_serial[0],&thisDDU->snd_serial[1]);
       para_val=((thisDDU->snd_serial[0]<<8))&0xff00|(thisDDU->snd_serial[1]&0x00ff);
       printf(" para_val %04x \n",para_val);
       thisDDU->vmepara_wr_fmmreg(para_val);
-    }
-    if(val==513){
-        unsigned short int scale= thisDDU->vmepara_rd_GbEprescale();
-        if (scale&0x0008) { 
-           para_val=scale&(0xFFFF-0x0008);
-        } else {
-           para_val=scale|0x0008;
-        }
-	printf("          vmepara_wr_GbEprescale, para_val=%d \n",para_val);
-	thisDDU->vmepara_wr_GbEprescale(para_val);
-    } 
-    if(val==515){
-	unsigned short int scale2=thisDDU-> vmepara_rd_fakel1reg();
-        if (scale2&0x0004) {
-          para_val=0x0000;
-        } else {
-          para_val=0xFFFF;
-        }
-	printf("         vmepara_wr_fakel1reg, para_val=%d \n",para_val);
-	//	thisDDU->vmepara_wr_fakel1reg(para_val);
     }
     if(val==603){
       sscanf(XMLtext.data(),"%02hhx%02hhx",&thisDDU->snd_serial[0],&thisDDU->snd_serial[1]);

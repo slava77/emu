@@ -32,6 +32,7 @@ public:
 // DDU commands initialization/reset
   void ddu_init();
   void ddu_reset();
+  void ddu_l1calonoff();
   void ddu_vmel1a();
 // DDU register control 
   void ddu_shfttst(int tst);
