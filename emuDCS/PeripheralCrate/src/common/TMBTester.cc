@@ -367,9 +367,7 @@ bool TMBTester::testFirmwareRevCode(){
 
   //  int RevCodeDay = firmwareData & 0x001f;
   //  int RevCodeMonth = (firmwareData>>5) & 0x000f;
-  //  int
-
-  int RevCodeYear = (firmwareData>>9) & 0x0007;
+  //  int RevCodeYear = (firmwareData>>9) & 0x0007;
   int RevCodeFPGA = (firmwareData>>12) & 0x000F;
   
   bool testOK = compareValues("Firmware Revcode FPGA",RevCodeFPGA,0x04,true);
@@ -582,22 +580,20 @@ bool TMBTester::testPROMpath(){
 
 
 bool TMBTester::testDSN(){
-  int dummy;
-
   (*MyOutput_) << "TMBTester: Checking Digital Serial Numbers for TMB" 
 	    << std::endl;
   bool tmbDSN = testDSN(0);
-  //dummy=sleep(1);
+  //::sleep(1);
 
   (*MyOutput_) << "TMBTester: Checking Digital Serial Numbers for Mezzanine" 
 	    << std::endl;
   bool mezzanineDSN = testDSN(1);
-  //dummy=sleep(1);
+  //::sleep(1);
 
   (*MyOutput_) << "TMBTester: Checking Digital Serial Numbers for RAT" 
 	    << std::endl;
   bool ratDSN = testDSN(2);
-  //dummy=sleep(1);
+  //::sleep(1);
 
   messageOK("TMB DSN",tmbDSN);
   messageOK("Mezzanine DSN",mezzanineDSN);
@@ -608,7 +604,7 @@ bool TMBTester::testDSN(){
                 ratDSN);
 
   messageOK("All Digital Serial Numbers",DSNOK);
-  //dummy = sleep(3);
+  //::sleep(3);
   //
   ResultTestDSN_ = DSNOK ;
   //
@@ -735,7 +731,8 @@ bool TMBTester::testADC(){
   int RATtCritPCB = rat_->ReadRATtCritPCB(); 
   int RATtCritHeatSink = rat_->ReadRATtCritHSink(); 
 
-  testOK = (v5p0OK     &&
+  testOK = (voltageDisc&&
+	    v5p0OK     &&
 	    v3p3OK     &&    
 	    v1p5coreOK &&
 	    v1p5ttOK   &&
@@ -865,7 +862,7 @@ bool TMBTester::testRATuserCodes(){
   int * usercodes = rat_->GetRatUserCode();
 
   int fpgauser = usercodes[0] & 0xffffffff;
-  int promuser = usercodes[1] & 0xffffffff;
+  //  int promuser = usercodes[1] & 0xffffffff;
 
   bool FPGAuserOK = compareValues("RAT FPGA user code",fpgauser,0x02232006,true);
   // Apparently the user id code is not being entered on the RAT when it is programmed.
@@ -1014,7 +1011,7 @@ bool TMBTester::compareValues(std::string TypeOfTest,
       (*MyOutput_) << "PASS!" << std::endl;
       (*MyOutput_) << TypeOfTest 
 		<< " value = " << testval
-		<< " within "<< tolerance
+		<< " within "<< fractolerance
 		<< " of " << compareval
 		<< std::endl;
       return true;
@@ -1047,7 +1044,6 @@ int TMBTester::dowCRC(std::bitset<64> DSN) {
   }
 
   int x8=0;
-  int bit;
 
   //loop over 56 data bits, LSB first:
   for (ibit=0; ibit<=55; ibit++) {
@@ -1244,7 +1240,7 @@ void TMBTester::computeBER(int rpc){
 void TMBTester::RatTmbDelayScan(){
   //** Find optimal rpc_clock delay = phasing between RAT board and TMB **
 
-  int i,bit;
+  int i;
   int write_data, read_data;
   int ddd_delay;
   int rpc_bad[16] = {};
@@ -1267,7 +1263,7 @@ void TMBTester::RatTmbDelayScan(){
 
   //  for (i=0; i<=3; i++) {
   //    (*MyOutput_) << "rpc_rdata_expect[" << i << "] = ";
-  //    for (bit=0; bit<=(nbits-1); bit++) {
+  //    for (int bit=0; bit<=(nbits-1); bit++) {
   //      (*MyOutput_) << rpc_rdata_expect[i][bit] << " ";
   //    }
   //    (*MyOutput_) << std::endl;
