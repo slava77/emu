@@ -686,12 +686,19 @@ bool TMBTester::testADC(){
   float	vref2   =adc_voltage[11];
   float vzero   =adc_voltage[12];
   float	vref    =adc_voltage[13];
-
-  bool v5p0OK     = compareValues("+5.0V TMB      ",v5p0    ,5.010,0.025);
-  bool v3p3OK     = compareValues("+3.3V TMB      ",v3p3    ,3.218,0.025);
-  bool v1p5coreOK = compareValues("+1.5V core     ",v1p5core,1.506,0.025);
-  bool v1p5ttOK   = compareValues("+1.5V TT       ",v1p5tt  ,1.489,0.025);
-  bool v1p0OK     = compareValues("+1.0V TT       ",v1p0    ,1.005,0.050);
+  //
+  bool v5p0OK     = compareValues("+5.0V TMB      ",v5p0    ,5.000,0.025);
+  //
+  // Measure average +3.314V for 9 slots on back of CRB with DVM at Bat. 904.
+  // Measure average 92mV drop through backplane to 3.3V ADC value, which is 44% higher than measured at UCLA: 
+  bool v3p3OK     = compareValues("+3.3V TMB      ",v3p3    ,3.222,0.025);         // if value goes below 3.135, there could be some instabilities showing up...
+  //
+  float vcore_noload = 1.525;                                                      // Puts Vcore=1.500 at 2.5amp load, midrange of 1.425-to-1.575
+  float vcore_expect = vcore_noload - a1p5core*0.010;                              //Expect Vcore-Acore*.010ohms.  At Acore nom=0.870A, Vcore=1.516
+  bool v1p5coreOK = compareValues("+1.5V core     ",v1p5core,vcore_expect,0.0015); // most critical value on TMB
+  //
+  bool v1p5ttOK   = compareValues("+1.5V TT       ",v1p5tt  ,1.493,0.025);
+  bool v1p0OK     = compareValues("+1.0V TT       ",v1p0    ,1.005,0.003);
   bool v1p8ratOK  = compareValues("+1.8V RAT core ",v1p8rat ,1.805,0.025);
   bool vref2OK    = compareValues("+vref/2        ",vref2   ,2.048,0.001);
   bool vzeroOK    = compareValues("+vzero         ",vzero   ,0.0  ,0.001);
