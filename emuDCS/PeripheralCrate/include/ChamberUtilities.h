@@ -39,7 +39,7 @@ public:
   void ALCTScanDelays();
   void ALCTChamberScan();
   void ALCTSVFLoad();
-  int  TMBL1aTiming(int enable=0);
+  int  TMBL1aTiming(int enable=1);
   int  FindBestL1aAlct();
   void PulseRandomALCT();
   void PulseAllWires();
