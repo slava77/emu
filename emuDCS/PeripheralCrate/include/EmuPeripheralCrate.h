@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.25 2006/04/11 15:27:42 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.26 2006/04/19 15:18:45 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -4574,8 +4574,8 @@ private:
     //
     *out << cgicc::br();
     //
-    sprintf(buf,"Geographic Address        : %02d ",((thisTMB->FirmwareVersion()>>8)&0xf));       
-    if ( ((thisTMB->FirmwareVersion()>>8)&0xf) == thisTMB->slot() ){
+    sprintf(buf,"Geographic Address        : %02d ",((thisTMB->FirmwareVersion()>>8)&0x1f));       
+    if ( ((thisTMB->FirmwareVersion()>>8)&0x1f) == thisTMB->slot() ){
       *out << cgicc::span().set("style","color:green");
       *out << buf ;
       *out << cgicc::span();
@@ -5583,12 +5583,7 @@ private:
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << endl ;
     //
-    int slotnumber = thisDMB->slot();
-    std::string legend = "DMB Utils " + slotnumber ;
-    //
-    std::cout << legend << std::endl ;
-    //
-    *out << cgicc::legend(legend).set("style","color:blue") ;
+    *out << cgicc::legend("DMB Utils").set("style","color:blue") ;
     //
     *out << cgicc::table().set("border","1");
     //
