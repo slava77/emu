@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.12 2006/04/18 08:17:29 mey Exp $
+// $Id: CalibDAQ.cc,v 2.13 2006/04/19 15:19:06 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.13  2006/04/19 15:19:06  mey
+// Update
+//
 // Revision 2.12  2006/04/18 08:17:29  mey
 // UPdate
 //
@@ -261,11 +264,11 @@ void CalibDAQ::pedestalCFEB() {
 void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep, float thresh) { 
 //injects identical pulse to all dmbs (EXT capacitors)
 //in all crates one crate at a time          
-
+  //
   int chip,ch,brd;
-
+  //
   std::vector<Crate*> myCrates = theSelector.crates();
-  
+  //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
     //
     (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
@@ -283,8 +286,9 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep, float t
     }
     //
     for(unsigned i =0; i < myDmbs.size(); ++i) {
-      
+      //
       // set amplitude
+      //
       myDmbs[i]->set_cal_dac(dac,dac);
       myDmbs[i]->set_comp_thresh(thresh);
 
@@ -311,12 +315,12 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep, float t
     ::usleep(nsleep);
     for (unsigned i=0; i<myTmbs.size(); i++) {
       myTmbs[i]->EnableCLCTInputs(0x1f);
-      //myTmbs[i]->DisableALCTInputs();
     }
+    //
     ccb->pulse(1, 0xff);//pulse all dmbs in this crate
+    //
     for (unsigned i=0; i<myTmbs.size(); i++) {
       myTmbs[i]->DisableCLCTInputs();
-      //myTmbs[i]->DisableALCTInputs();
     }
     ::usleep(nsleep);
     //
