@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.26 2006/04/19 15:18:45 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.27 2006/04/20 15:33:53 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -3351,7 +3351,7 @@ private:
 	  thisCCB->hardReset();
 	  ::sleep(1);
 	  thisDMB->febpromuser(thisCFEBs[i]);
-	  thisDMB->epromload(thisCFEBs[i].promDevice(),"cfeb_v4_r2.svf",1,out);  // load mprom
+	  thisDMB->epromload(thisCFEBs[i].promDevice(),"../svf/cfeb_v4_r2.svf",1,out);  // load mprom
 	  ::sleep(1);
 	  thisCCB->hardReset();
 	}

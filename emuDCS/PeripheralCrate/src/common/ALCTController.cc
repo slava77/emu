@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.27 2006/03/30 13:55:38 mey Exp $
+// $Id: ALCTController.cc,v 2.28 2006/04/20 15:33:54 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.28  2006/04/20 15:33:54  mey
+// Update
+//
 // Revision 2.27  2006/03/30 13:55:38  mey
 // Update
 //
@@ -478,12 +481,21 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   alct_link_type(VME), 
   fd(tmb_->slot()),
   delays_inited_(false),
+  alct_trig_mode_(0),
+  alct_ext_trig_en_(0),
   alct_fifo_mode_(1),
   alct_send_empty_(0),
   alct_fifo_pretrig_(6),
   alct_fifo_tbins_(8),
   alct_bxc_offset_(1),
-  alct_drift_delay_(3)
+  alct_drift_delay_(3),
+  alct_nph_thresh_(2),
+  alct_nph_pattern_(3),
+  alct_l1a_delay_(146),
+  alct_l1a_window_(5),
+  alct_l1a_internal_(0),
+  alct_ccb_enable_(1),
+  alct_l1a_offset_(1)
 {
   alctPatternFile="";
   alctHotChannelFile="";

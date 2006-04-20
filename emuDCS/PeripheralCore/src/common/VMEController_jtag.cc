@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.34 2006/03/23 11:14:18 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.35 2006/04/20 15:33:54 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.35  2006/04/20 15:33:54  mey
+// Update
+//
 // Revision 2.34  2006/03/23 11:14:18  mey
 // Fixed TMB downloading
 //
@@ -1655,7 +1658,7 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
 // If more than 290 bits, can't put them into a single packet,
 // need better algorithm later......
  buff_mode = (cnt>290)?3:1;
- if (ird==0) buff_mode=1;
+ //if (ird==0) buff_mode=1;
  if (ird==2) buff_mode=1;
  //
    if (debug) {

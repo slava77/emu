@@ -16,7 +16,7 @@ int main(int argc,char **argv){
 
   // create VME Controller and Crate
   int crateId(0);
-  string ipAddr("02:00:00:00:00:08");
+  string ipAddr("02:00:00:00:00:09");
   int port(2);
   VMEController *dynatem = new VMEController(crateId);
   dynatem->init(ipAddr,port);
@@ -29,8 +29,8 @@ int main(int argc,char **argv){
   ::sleep(1);
 
   // create TMB & ALCT
-  int tmbSlot(14);
-  string chamberType("ME32");
+  int tmbSlot(8);
+  string chamberType("ME12");
   TMB *tmb = new TMB(crateId,tmbSlot);
   //
   cout << "Read Register" << endl;
@@ -69,10 +69,8 @@ int main(int argc,char **argv){
   int jch(3);
   printf("Programming...");
   //int status;
-  //int status = alct->SVFLoad(&jch,"alctcrc384mirror.svf",debugMode);
-  int status = alct->SVFLoad(&jch,"../svf/alct384mirrorrl.svf",debugMode);
-  //int status = alct->SVFLoad(&jch,"../svf/alct672rl.svf",debugMode);
-  //--int status = alct->NewSVFLoad(&jch,"alctcrc384mirror.svf",debugMode);
+  int status = alct->SVFLoad(&jch,"../svf/alct384rl.svf",debugMode);
+  //int status = alct->SVFLoad(&jch,"../svf/alct288fp_rl.svf",debugMode);
   tmb->enableAllClocks();
 
   if (status >= 0){
@@ -99,85 +97,3 @@ int main(int argc,char **argv){
 
 
 
-/*
-cfeb_control:
-
-void prg_alct_cb(EZ_Widget *widget, void *data)
-{
-static char design[10];
-int i,txtlen;
-int call_fsel;
-char *stmp;
-GenDATA *dp;
-   if(widget){
-     dp=(GenDATA *)data;
-     call_fsel=1;
-     EZ_ConfigureWidget(config_button,
-                         EZ_BORDER_TYPE, EZ_BORDER_SUNKEN,
-                         EZ_FOREGROUND,"red",0);
-     dp->w[0]=config_button;
-     stmp=malloc(strlen(dp->config_prepath)+36);
-     strcpy(stmp,dp->config_prepath);
-     i = EZ_GetWidgetReturnData(widget);
-     switch(i){
-       case 1:
-	 strcat(stmp,"/alct_vprom/*.svf");
-	 printf(" stmp %s \n",stmp ) ;
-         printf(" about to call reset \n");
-	 dp->fsel_funct=ALCTPRGPROM;
-         dp->devnum=RESET;
-         strcpy(design,"DAQMBV");
-         break;
-       default:
-         call_fsel=0;
-         printf("Program ALCT Menu Illegal selection: i=%d\n",i);
-         break;
-     } 
-     dp->s[0]=design;
-     if(call_fsel==1){
-       printf(" In file selector \n"); 
-       EZ_SetFileSelectorInitialPattern(fsel,stmp);
-       printf(" Out of file selector \n") ;
-       EZ_ActivateWidget(fsel);
-       printf(" Out of Widget \n") ;
-     }
-     else {
-       EZ_ConfigureWidget(dp->w[0],
-                         EZ_BORDER_TYPE, EZ_BORDER_RAISED,
-                         EZ_FOREGROUND,NULL,0);
-     }
-     free(stmp);
-     free(dp->config_downloaded);
-     dp->config_downloaded = (char *) malloc(strlen(chngd)+1);
-     strcpy(dp->config_downloaded,chngd);
-     txtlen=strlen(dp->config_downloaded);
-     EZ_ConfigureWidget(DownLoad_file,EZ_LABEL_STRING,dp->config_downloaded,
-                           EZ_TEXT_LINE_LENGTH,txtlen,
-                           EZ_LABEL_POSITION,EZ_LEFT,0);
-   }
-}
-
-
-cfeb_control:
-
-        case ALCTPRGPROM:
-           jch = 3;
-           SVFdebug = 0 ;
-           printf(" Program ALCT \n") ;
-           printf(" ALCT.SVFfilename %s \n",buf) ;
-           osu_end();
-           ret=SVFLoad(dp->tmb_slt, &jch, buf, SVFdebug ) ; 
-           osu_start(dp->crate_slt);    
-           if (ret >= 0)
-           {
-	      printf("=== Programming finished\n");
-	      printf("=== %d Verify Errors  occured\n", ret);
-           }
-           else
-           {
-	      printf("=== Fatal Error. Exiting with %d\n", ret);
-           }
-           break;
-
-
-*/
