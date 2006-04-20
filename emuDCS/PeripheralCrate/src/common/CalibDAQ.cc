@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.13 2006/04/19 15:19:06 mey Exp $
+// $Id: CalibDAQ.cc,v 2.14 2006/04/20 15:33:54 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.14  2006/04/20 15:33:54  mey
+// Update
+//
 // Revision 2.13  2006/04/19 15:19:06  mey
 // Update
 //
@@ -151,13 +154,13 @@ void CalibDAQ::pulseComparatorPulse(){
   //
   for (int thresh=0; thresh<35; thresh++) {
     for (int i=0;i<16;i++) {  
-      pulseAllDMBs(25, i, 0.15, 100,thresh*0.003+0.013);
+      pulseAllDMBs(25, i, 0.15, 1000,thresh*0.003+0.013);
     }
   }
   //
   for (int thresh=0; thresh<35; thresh++) {
     for (int i=0;i<16;i++) {  
-      pulseAllDMBs(25, i, 0.35, 100,thresh*0.003+0.049);
+      pulseAllDMBs(25, i, 0.35, 1000,thresh*0.003+0.049);
     }
   }
   //
@@ -272,7 +275,7 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep, float t
   for(unsigned j = 0; j < myCrates.size(); ++j) {
     //
     (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
-    usleep(10);
+    usleep(10);    usleep(10);
     //
     CCB * ccb = myCrates[j]->ccb();
     std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
@@ -291,14 +294,16 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep, float t
       //
       myDmbs[i]->set_cal_dac(dac,dac);
       myDmbs[i]->set_comp_thresh(thresh);
-
+      //
+      //myDmbs[i]->set_comp_thresh(0.4);
+      //
       // set external pulser for strip # nstrip on all 6 chips
       for(brd=0;brd<5;brd++){
 	for(chip=0;chip<6;chip++){
 	  for(ch=0;ch<16;ch++){
 	    myDmbs[i]->shift_array[brd][chip][ch]=NORM_RUN;
 	  }
-	  if ( nstrip != -1 ) myDmbs[i]->shift_array[brd][chip][nstrip]=EXT_CAP;
+	  if ( nstrip != -1 ) myDmbs[i]->shift_array[brd][chip][nstrip]=SMALL_CAP;
 	}
       }
       //
@@ -311,7 +316,6 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep, float t
       //
     }
     //
-    //std::cout << "pulsing one time" << std::endl;
     ::usleep(nsleep);
     for (unsigned i=0; i<myTmbs.size(); i++) {
       myTmbs[i]->EnableCLCTInputs(0x1f);
