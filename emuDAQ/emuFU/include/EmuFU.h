@@ -142,6 +142,7 @@ private:
 			 const bool  completesEvent, 
 			 char* const data, 
 			 const int   dataLength );
+  void moveToFailedState();
 
 
   FileWriter *fileWriter_;

@@ -779,6 +779,10 @@ throw (emuRUI::exception::Exception)
             &EmuRUI::haltAction);
         fsm_.addStateTransition('E', 'H', "Halt"     , this,
             &EmuRUI::haltAction);
+
+        fsm_.addStateTransition('H', 'F', "Fail", this, &EmuRUI::failAction);
+        fsm_.addStateTransition('R', 'F', "Fail", this, &EmuRUI::failAction);
+        fsm_.addStateTransition('E', 'F', "Fail", this, &EmuRUI::failAction);
     }
     catch(xcept::Exception e)
     {
@@ -1173,15 +1177,24 @@ void EmuRUI::createDeviceReaders(){
     if ( inputDeviceNames_.at(iDev).toString() != "" ) nInputDevices_++;
 
   if ( nInputDevices_.value_ == (unsigned int) 0 ) {
-    LOG4CPLUS_ERROR(logger_, "Number of input devices is zero?!");
+	stringstream oss;
+	oss << "Number of input devices is zero?!";
+	LOG4CPLUS_FATAL(logger_, oss.str());
+	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
   }
 
   // Create readers
   int inputDataFormatInt_ = -1;
   if      ( inputDataFormat_ == "DDU" ) inputDataFormatInt_ = EmuReader::DDU;
   else if ( inputDataFormat_ == "DCC" ) inputDataFormatInt_ = EmuReader::DCC;
-  else     LOG4CPLUS_ERROR(logger_,"No such data format: " << inputDataFormat_.toString() << 
-			   "Use \"DDU\" or \"DCC\"");
+  else{
+	stringstream oss;
+	oss << "No such data format: " << inputDataFormat_.toString() << 
+	  "Use \"DDU\" or \"DCC\"";
+	LOG4CPLUS_FATAL(logger_, oss.str());
+	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
+  }
+
   for( unsigned int iDev=0; iDev<nInputDevices_; ++iDev ){
     LOG4CPLUS_INFO(logger_, "Creating " << inputDeviceType_.toString() << 
 		   " reader for " << inputDeviceNames_.at(iDev).toString());
@@ -1192,8 +1205,13 @@ void EmuRUI::createDeviceReaders(){
       else if ( inputDeviceType_ == "file" )
 	deviceReaders_[iDev] = new EmuFileReader( inputDeviceNames_.at(iDev).toString(), inputDataFormatInt_ );
       // TODO: slink
-      else     LOG4CPLUS_ERROR(logger_,"Bad device type: " << inputDeviceType_.toString() << 
-			       "Use \"file\", \"spy\", or \"slink\"");
+      else{
+	stringstream oss;
+	oss << "Bad device type: " << inputDeviceType_.toString() << 
+	  "Use \"file\", \"spy\", or \"slink\"";
+	LOG4CPLUS_FATAL(logger_, oss.str());
+	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
+      }
     }
     catch(char* e){
 
@@ -1201,11 +1219,10 @@ void EmuRUI::createDeviceReaders(){
       oss << "Failed to create " << inputDeviceType_.toString()
 	  << " reader for "      << inputDeviceNames_.at(iDev).toString()
 	  << ": "                << e;
-      LOG4CPLUS_ERROR(logger_, oss.str())
-
-	// Don't raise exception as it would be interpreted as FSM transition error
-	//	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
-	}
+      LOG4CPLUS_FATAL(logger_, oss.str());
+	
+      XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
+    }
   }
 
   iCurrentDeviceReader_ = 0;
@@ -1662,6 +1679,23 @@ void EmuRUI::bindI2oCallbacks()
 
 }
 
+void EmuRUI::moveToFailedState(){ // Emu-specific
+  try
+    {
+      // Move to the failed state
+      toolbox::Event::Reference evtRef(new toolbox::Event("Fail", this));
+      fsm_.fireEvent(evtRef);
+      applicationBSem_.give();
+    }
+  catch(xcept::Exception e)
+    {
+      applicationBSem_.give();
+      
+      LOG4CPLUS_FATAL(logger_,
+		      "Failed to move to the Failed state : "
+		      << xcept::stdformat_exception_history(e));
+    }
+}
 
 void EmuRUI::css
 (
@@ -2005,6 +2039,8 @@ bool EmuRUI::workLoopAction(toolbox::task::WorkLoop *wl)
         switch(state)
         {
         case 'H':  // Halted
+        case 'F': // Failed
+	  break;
         case 'R':  // Ready
             break;
         case 'E':  // Enabled
@@ -2061,6 +2097,8 @@ bool EmuRUI::serverLoopAction(toolbox::task::WorkLoop *wl)
         switch(state)
         {
         case 'H':  // Halted
+        case 'F': // Failed
+	  break;
         case 'R':  // Ready
             break;
         case 'E':  // Enabled
@@ -2232,14 +2270,28 @@ void EmuRUI::createFileWriters(){
 	      ss << "EmuRUI" << instance_;
 	      fileWriter_ = new FileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), ss.str(), &logger_ );
 	    }
-	  if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_ );
+	  try{
+	    if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_ );
+	  }
+	  catch(string e){
+	    LOG4CPLUS_FATAL( logger_, e );
+	    moveToFailedState();
+	  }
 	  if ( pathToBadEventsFile_ != string("") && fileSizeInMegaBytes_ > (long unsigned int) 0 )
 	    {
 	      stringstream ss;
 	      ss << "EmuRUI" << instance_ << "_BadEvents";
 	      badEventsFileWriter_ = new FileWriter( 1000000*fileSizeInMegaBytes_, pathToBadEventsFile_.toString(), ss.str(), &logger_ );
 	    }
-	  if ( badEventsFileWriter_ ) badEventsFileWriter_->startNewRun( runNumber_.value_ );
+	  if ( badEventsFileWriter_ ){
+	    try{
+	      badEventsFileWriter_->startNewRun( runNumber_.value_ );
+	    }
+	    catch(string e){
+	      LOG4CPLUS_ERROR( logger_, e );
+	      // Don't moveToFailedState, bad events file is not worth stopping the run for.
+	    }
+	  }
 }
 
 bool EmuRUI::continueConstructionOfSuperFrag()
@@ -2319,14 +2371,27 @@ bool EmuRUI::continueConstructionOfSuperFrag()
     // Write data to files
     if ( fileWriter_ )
       {
-	if ( iCurrentDeviceReader_ == 0 ) // don't start a new event for each device...
-	  fileWriter_->startNewEvent();
+	if ( iCurrentDeviceReader_ == 0 ){ // don't start a new event for each device...
+	  try{
+	    fileWriter_->startNewEvent();
+	  }
+	  catch(string e){
+	    LOG4CPLUS_FATAL( logger_, e );
+	    moveToFailedState();
+	  }
+	}
 	fileWriter_->writeData( data, dataLength );
       }
     if ( badEventsFileWriter_ )
       {
 	if ( nDevicesWithBadData_ == 1 ) // start a new event for the first faulty device
-	  badEventsFileWriter_->startNewEvent();
+	  try{
+	    badEventsFileWriter_->startNewEvent();
+	  }
+	  catch(string e){
+	    LOG4CPLUS_ERROR( logger_, e );
+	    // Don't moveToFailedState, bad events file is not worth stopping the run for.
+	  }
 	if ( badData ) badEventsFileWriter_->writeData( data, dataLength );
       }
 
