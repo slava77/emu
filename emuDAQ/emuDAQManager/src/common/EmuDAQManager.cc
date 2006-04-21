@@ -2264,11 +2264,8 @@ throw (emuDAQManager::exception::Exception)
         }
         catch(xcept::Exception e)
         {
-//             XCEPT_RETHROW(emuDAQManager::exception::Exception,
-//                 "Failed to stop EmuRUIs", e);
-            LOG4CPLUS_ERROR(getApplicationLogger(), 
-			    "Failed to stop EmuRUIs: " << 
-			    xcept::stdformat_exception_history(e));
+            XCEPT_RETHROW(emuDAQManager::exception::Exception,
+                "Failed to stop EmuRUIs", e);
         }
     }
 
@@ -2398,6 +2395,8 @@ throw (emuDAQManager::exception::Exception)
     // Halt RUIs //
     ///////////////
 
+    stringstream oss_all;
+
     for(pos = ruiDescriptors_.begin(); pos != ruiDescriptors_.end(); pos++)
     {
         try
@@ -2414,10 +2413,14 @@ throw (emuDAQManager::exception::Exception)
             s = oss.str();
 
 //             XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
-	    // Don't raise exception here. Go on to try to stop the others.
-	    LOG4CPLUS_ERROR(logger_, s << " : " << xcept::stdformat_exception_history(e));
+	    // Don't raise exception here. Go on to try to stop the others first.
+	    LOG4CPLUS_ERROR(logger_, s );
+
+	    oss_all << " | " << s << " : " << xcept::stdformat_exception_history(e);
         }
     }
+    if ( oss_all.str() != "" )
+      XCEPT_RAISE( emuDAQManager::exception::Exception, oss_all.str() );
 }
 
 
@@ -2474,9 +2477,7 @@ throw (emuDAQManager::exception::Exception)
             oss << (*pos)->getClassName() << (*pos)->getInstance();
             s = oss.str();
 
-//             XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
-	    // Don't raise exception here. Go on to try to stop the others.
-	    LOG4CPLUS_ERROR(logger_, s << " : " << xcept::stdformat_exception_history(e));
+            XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
         }
     }
 }
@@ -3178,8 +3179,9 @@ void EmuDAQManager::haltAction(toolbox::Event::Reference e)
       }
     catch(xcept::Exception ex)
       {
-	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
-		      "Failed to stop EmuDAQ", ex);
+	stringstream ss;
+	ss << "Failed to stop EmuDAQ: " << xcept::stdformat_exception_history(ex);
+	XCEPT_RETHROW(toolbox::fsm::exception::Exception, ss.str(), ex);
       }
 
     LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
