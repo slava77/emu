@@ -1294,11 +1294,19 @@ void EmuDAQManager::queryAllAppStates(){
 string EmuDAQManager::getDAQState(){
   queryAllAppStates();
 
-  // Combine states: 
-  // If one is unknown, the combined state will also be unknown.
-  // If all are known but not the same, the combined state will be indefinite.
+  // Combine states:
+  // If one is failed, the combined state will also be failed.
+  // Else, if one is unknown, the combined state will also be unknown.
+  // Else, if all are known but not the same, the combined state will be indefinite.
   string combinedState("UNKNOWN");
   vector< pair<xdaq::ApplicationDescriptor*, string> >::iterator s;
+  // First check if any failed:
+  for ( s=allAppStates_.begin(); s!=allAppStates_.end(); ++s )
+    if ( s->second == "Failed" ){
+      combinedState = s->second;
+      return combinedState;
+    }
+  // If none failed:
   for ( s=allAppStates_.begin(); s!=allAppStates_.end(); ++s ){
     if ( s->second == "UNKNOWN" ){
       combinedState = s->second;
@@ -1333,12 +1341,19 @@ void EmuDAQManager::printStatesTable( xgi::Output *out )
   color["Failed" ] = "#ffffff";
   color["UNKNOWN"] = "#ffffff";
 
+  map<string, string> decoration;
+  decoration["Halted" ] = "none";
+  decoration["Ready"  ] = "none";
+  decoration["Enabled"] = "none";
+  decoration["Failed" ] = "blink";
+  decoration["UNKNOWN"] = "none";
+
   *out << "<a name=\"states\"/>"                                         << endl;
   *out << "<table frame=\"void\" rules=\"rows|cols\" class=\"params\">"  << endl;
   
   *out << "<tr>"                                                         << endl;
   *out << "  <th>"                                                       << endl;
-  *out << "     States' color code"                                     << endl;
+  *out << "     States' color code: "                                    << endl;
   *out << "  </th>"                                                      << endl;
   *out << "  <th>"                                                       << endl;
   map<string, string>::iterator col;
@@ -1373,6 +1388,7 @@ void EmuDAQManager::printStatesTable( xgi::Output *out )
 	  *out << "style=\"";
 	  *out << "background-color:" << bgcolor[s->second];
 	  *out << "; color:"          << color[s->second];
+	  *out << "; text-decoration:"<< decoration[s->second];
 	  *out << "\">";
 	  *out << " " << s->first->getClassName() << s->first->getInstance() << " ";
 	  *out << "</span>" << endl;
