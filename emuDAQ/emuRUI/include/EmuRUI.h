@@ -132,7 +132,7 @@ private:
 			 const unsigned short errorFlag, 
 			 char* const data, 
 			 const int   dataLength );
-
+  void moveToFailedState();
 
   xdata::UnsignedLong                 nEventsRead_;
   FileWriter                         *fileWriter_;

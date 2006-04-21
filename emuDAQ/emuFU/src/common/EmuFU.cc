@@ -546,6 +546,10 @@ throw (emuFU::exception::Exception)
             &EmuFU::haltAction);
         fsm_.addStateTransition('E', 'H', "Halt"     , this,
             &EmuFU::haltAction);
+
+        fsm_.addStateTransition('H', 'F', "Fail", this, &EmuFU::failAction);
+        fsm_.addStateTransition('R', 'F', "Fail", this, &EmuFU::failAction);
+        fsm_.addStateTransition('E', 'F', "Fail", this, &EmuFU::failAction);
     }
     catch(xcept::Exception e)
     {
@@ -757,6 +761,24 @@ void EmuFU::bindFsmSoapCallbacks()
     xoap::bind(this, &EmuFU::processSoapFsmCmd, "Enable"   , XDAQ_NS_URI);
     xoap::bind(this, &EmuFU::processSoapFsmCmd, "Halt"     , XDAQ_NS_URI);
     xoap::bind(this, &EmuFU::processSoapFsmCmd, "Fail"     , XDAQ_NS_URI);
+}
+
+void EmuFU::moveToFailedState(){ // Emu-specific
+  try
+    {
+      // Move to the failed state
+      toolbox::Event::Reference evtRef(new toolbox::Event("Fail", this));
+      fsm_.fireEvent(evtRef);
+      bSem_.give();
+    }
+  catch(xcept::Exception e)
+    {
+      bSem_.give();
+      
+      LOG4CPLUS_FATAL(logger_,
+		      "Failed to move to the Failed state : "
+		      << xcept::stdformat_exception_history(e));
+    }
 }
 
 
@@ -1276,6 +1298,8 @@ bool EmuFU::serverLoopAction(toolbox::task::WorkLoop *wl)
         switch(state)
         {
         case 'H':  // Halted
+        case 'F': // Failed
+	  break;
         case 'R':  // Ready
             break;
         case 'E':  // Enabled
@@ -1703,9 +1727,21 @@ throw (emuFU::exception::Exception)
 	  {
 	    if ( fileWriter_->getRunNumber() != tc->runNumber ) // new run number
 	      {
-		fileWriter_->startNewRun( tc->runNumber );
+		try{
+		  fileWriter_->startNewRun( tc->runNumber );
+		}
+		catch(string e){
+		  LOG4CPLUS_FATAL( logger_, e );
+		  moveToFailedState();
+		}
 	      }
-	    fileWriter_->startNewEvent();
+	    try{
+	      fileWriter_->startNewEvent();
+	    }
+	    catch(string e){
+	      LOG4CPLUS_FATAL( logger_, e );
+	      moveToFailedState();
+	    }
 	  }
       }
 
