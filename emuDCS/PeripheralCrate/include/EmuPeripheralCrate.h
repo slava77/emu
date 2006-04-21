@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.27 2006/04/20 15:33:53 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.28 2006/04/21 11:51:15 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -3835,34 +3835,34 @@ private:
     //
     *out << cgicc::td().set("ALIGN","center");
     //
-    std::string testVMEfpgaDataRegister =
-      toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
+    //std::string testVMEfpgaDataRegister =
+    //toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
     //
-    *out << cgicc::form().set("method","GET").set("action",testVMEfpgaDataRegister)
-	 << std::endl ;
+    //*out << cgicc::form().set("method","GET").set("action",testVMEfpgaDataRegister)
+    // << std::endl ;
     //
-    if ( tmbTestVector[tmb].GetResultTestVMEfpgaDataRegister() == -1 ) {
-      *out << cgicc::input().set("type","submit")
-	.set("value","TMB test VME fpga data register") 
-	.set("style","color:blue") 
-	   << std::endl ;
-    } else if ( tmbTestVector[tmb].GetResultTestVMEfpgaDataRegister() > 0 ) {
-      *out << cgicc::input().set("type","submit")
-	.set("value","TMB test VME fpga data register") 
-	.set("style","color:green") 
-	   << std::endl ;
-    } else {
-      *out << cgicc::input().set("type","submit")
-	.set("value","TMB test VME fpga data register") 
-	.set("style","color:red") 
-	   << std::endl ;
-    }
+    //if ( tmbTestVector[tmb].GetResultTestVMEfpgaDataRegister() == -1 ) {
+    //*out << cgicc::input().set("type","submit")
+    //.set("value","TMB test VME fpga data register") 
+    //.set("style","color:blue") 
+    //   << std::endl ;
+    //} else if ( tmbTestVector[tmb].GetResultTestVMEfpgaDataRegister() > 0 ) {
+    //*out << cgicc::input().set("type","submit")
+    //.set("value","TMB test VME fpga data register") 
+    //.set("style","color:green") 
+    //   << std::endl ;
+    //} else {
+    //*out << cgicc::input().set("type","submit")
+    //.set("value","TMB test VME fpga data register") 
+    //.set("style","color:red") 
+    //   << std::endl ;
+    //}
     //
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::input().set("type","hidden")
-      .set("value","2").set("name","tmbTestid");
-    *out << cgicc::form() << std::endl ;
+    //sprintf(buf,"%d",tmb);
+    //*out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    //*out << cgicc::input().set("type","hidden")
+    //.set("value","2").set("name","tmbTestid");
+    //*out << cgicc::form() << std::endl ;
     //
     *out << cgicc::td();
     //
