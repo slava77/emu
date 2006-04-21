@@ -69,8 +69,8 @@ bool TMBTester::runAllTests() {
 
   bool bootRegOK = testBootRegister();
   dummy = sleep(1);
-  bool VMEfpgaDataRegOK = testVMEfpgaDataRegister();
-  dummy = sleep(1);
+  //  bool VMEfpgaDataRegOK = testVMEfpgaDataRegister();
+  //  dummy = sleep(1);
   bool DateOK = testFirmwareDate();
   dummy = sleep(1);
   bool TypeOK = testFirmwareType();
@@ -104,7 +104,7 @@ bool TMBTester::runAllTests() {
   (*MyOutput_) << "TMBTester Full Test Summary:" << std::endl;
 
   messageOK("Boot Register............. ",bootRegOK);
-  messageOK("VME FPGA Data Register.... ",VMEfpgaDataRegOK);
+  //  messageOK("VME FPGA Data Register.... ",VMEfpgaDataRegOK);
   messageOK("TMB Firmware date......... ",DateOK);
   messageOK("TMB Firmware type......... ",TypeOK);
   messageOK("TMB Firmware Version...... ",VersionOK);
@@ -122,7 +122,7 @@ bool TMBTester::runAllTests() {
   messageOK("TMB U76 bus-hold chip..... ",isU76OK);
 
   AllOK = (bootRegOK &&
-	   VMEfpgaDataRegOK &&
+	   //	   VMEfpgaDataRegOK &&
 	   DateOK &&
 	   TypeOK &&
            VersionOK &&
@@ -237,6 +237,9 @@ bool TMBTester::testHardReset(){
 
 
 bool TMBTester::testVMEfpgaDataRegister(){
+  //
+  // NOTE: This test is redundant with the 3d3444 test....       
+  //
   (*MyOutput_) << "TMBTester: testing VME FPGA Data Register" << std::endl;
   bool testOK = false;
 
