@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.18 2006/04/05 22:46:24 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.19 2006/04/21 11:50:49 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.19  2006/04/21 11:50:49  mey
+// include/EmuPeripheralCrate.h
+//
 // Revision 1.18  2006/04/05 22:46:24  mey
 // Bug fix
 //
@@ -657,7 +660,7 @@ void ChamberUtilities::ALCTTiming(){
   //
   alct->set_empty(1);
   //
-  thisTMB->SetALCTPatternTrigger();
+  thisTMB->SetCLCTPatternTrigger();
   //
   for (j=0;j<maxTimeBins;j++){
     for (k=0;k<maxTimeBins;k++) {

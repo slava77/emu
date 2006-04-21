@@ -16,7 +16,7 @@ int main(int argc,char **argv){
 
   // create VME Controller and Crate
   int crateId(0);
-  string ipAddr("02:00:00:00:00:09");
+  string ipAddr("02:00:00:00:00:03");
   int port(2);
   VMEController *dynatem = new VMEController(crateId);
   dynatem->init(ipAddr,port);
@@ -29,7 +29,7 @@ int main(int argc,char **argv){
   ::sleep(1);
 
   // create TMB & ALCT
-  int tmbSlot(8);
+  int tmbSlot(14);
   string chamberType("ME12");
   TMB *tmb = new TMB(crateId,tmbSlot);
   //
