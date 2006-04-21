@@ -37,10 +37,17 @@ private:
   void open(){
     fileName_ = nameFile();
     fs_->open(fileName_.c_str(), ios::out | ios::binary);
-    bytesInFileCounter_  = 0;
-    eventsInFileCounter_ = 0;
-    filesInRunCounter_++;
-    LOG4CPLUS_INFO( logger_, "Opened " << fileName_ );
+    if ( fs_->is_open() ){
+      bytesInFileCounter_  = 0;
+      eventsInFileCounter_ = 0;
+      filesInRunCounter_++;
+      LOG4CPLUS_INFO( logger_, "Opened " << fileName_ );
+    }
+    else{
+      stringstream oss;
+      oss << "Could not open " << fileName_ << " for writing.";
+      throw oss.str();
+    }
   }
 
 
@@ -84,8 +91,14 @@ public:
 
   void writeData( const char* buf, const int nBytes ){ 
     fs_->write(buf, nBytes);
-    bytesInFileCounter_ += nBytes;
-    bytesInRunCounter_  += nBytes;
+    if ( fs_->fail() ){
+      LOG4CPLUS_ERROR( logger_, "Error writing to " << fileName_ );
+      fs_->clear();
+    }
+    else{
+      bytesInFileCounter_ += nBytes;
+      bytesInRunCounter_  += nBytes;
+    }
   }
 
   void startNewEvent(){
