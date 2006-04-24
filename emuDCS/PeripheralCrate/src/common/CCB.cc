@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.30 2006/04/18 08:17:29 mey Exp $
+// $Id: CCB.cc,v 2.31 2006/04/24 14:57:21 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.31  2006/04/24 14:57:21  mey
+// Update
+//
 // Revision 2.30  2006/04/18 08:17:29  mey
 // UPdate
 //
@@ -178,20 +181,21 @@ void CCB::pulse(int Num_pulse,unsigned int * delays, char vme)
     if (mDebug) std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for pulse" << std::endl; 
   }
   //
-   for(int j=0;j<Num_pulse;j++){
-     sndbuf[0]=(delays[j]&0xff00)>>8;
-     sndbuf[1]=(delays[j]&0x00ff);
-     do_vme(0x03,CSR1,sndbuf,rcvbuf,LATER);
-     //
-     sndbuf[0]=0x00;
-     sndbuf[1]=0x00;
-     if(j<(Num_pulse-1)){
-       do_vme(VME_WRITE,vme,sndbuf,rcvbuf,LATER);
-     }
-     else{
-       do_vme(VME_WRITE,vme,sndbuf,rcvbuf,NOW);
-     }
-   }
+  for(int j=0;j<Num_pulse;j++){
+    std::cout << "Pulsing..."<<std::endl;
+    sndbuf[0]=(delays[j]&0xff00)>>8;
+    sndbuf[1]=(delays[j]&0x00ff);
+    do_vme(0x03,CSR1,sndbuf,rcvbuf,LATER);
+    //
+    sndbuf[0]=0x00;
+    sndbuf[1]=0x00;
+    if(j<(Num_pulse-1)){
+      do_vme(VME_WRITE,vme,sndbuf,rcvbuf,LATER);
+    }
+    else{
+      do_vme(VME_WRITE,vme,sndbuf,rcvbuf,NOW);
+    }
+  }
   if (switchedMode){
     setCCBMode(CCB::DLOG);
     if (mDebug) std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
