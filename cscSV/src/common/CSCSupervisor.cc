@@ -381,25 +381,28 @@ void CSCSupervisor::analyzeReply(
 		xoap::MessageReference message, xoap::MessageReference reply,
 		xdaq::ApplicationDescriptor *app)
 {
-	xoap::SOAPElement root = reply->getSOAPPart()
-			.getEnvelope().getBody().getChildElements()[0];
+	string message_str, reply_str;
 
-	if (root.getElementName().getLocalName() != "Fault") { return; }
+	reply->writeTo(reply_str);
+	ostringstream s;
+	s << "Reply from "
+			<< app->getClassName() << "(" << app->getInstance() << ")" << endl
+			<< reply_str;
+	last_log_.add(s.str());
+	LOG4CPLUS_DEBUG(getApplicationLogger(), reply_str);
 
-	string buf = "";
-	ostringstream error(buf);
+	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
 
-	error << "SOAP Message:" << endl;
-	xoap::SOAPSerializer s(buf);
-	s.serialize((DOMElement *)&reply->getSOAPPart().getEnvelope());
-	error << endl;
+	// do nothing when no fault
+	if (!body.hasFault()) { return; }
 
-	error << "to " << app->getClassName() << "(" << app->getInstance() << ")"
-			<< " was replied as fault:" << endl;
+	ostringstream error;
 
-	xoap::SOAPElement faultstring = root.getChildElements(
-			*(new xoap::SOAPName("faultstring", "", "")))[0];
-	error << faultstring.getValue() << endl;
+	error << "SOAP message: " << endl;
+	message->writeTo(message_str);
+	error << message_str << endl;
+	error << "Fault string: " << endl;
+	error << reply_str << endl;
 
 	LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
 
