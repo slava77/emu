@@ -250,8 +250,8 @@ void CSCSupervisor::webRedirect(xgi::Input *in, xgi::Output *out)
 
 	HTTPResponseHeader &header = out->getHTTPResponseHeader();
 
-	header.getStatusCode(301);
-	header.getReasonPhrase(xgi::Utils::getResponsePhrase(301));
+	header.getStatusCode(303);
+	header.getReasonPhrase("See Other");
 	header.addHeader("Location",
 			url.substr(0, url.find("/" + in->getenv("PATH_INFO"))));
 }
