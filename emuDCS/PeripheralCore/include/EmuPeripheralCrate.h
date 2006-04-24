@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.28 2006/04/21 11:51:15 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.29 2006/04/24 14:57:20 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -223,6 +223,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::DMBPrintCounters, "DMBPrintCounters");
     xgi::bind(this,&EmuPeripheralCrate::ALCTTiming, "ALCTTiming");
     xgi::bind(this,&EmuPeripheralCrate::ALCTScan, "ALCTScan");
+    xgi::bind(this,&EmuPeripheralCrate::FindLv1aDelayComparator, "FindLv1aDelayComparator");
     xgi::bind(this,&EmuPeripheralCrate::CFEBTiming, "CFEBTiming");
     xgi::bind(this,&EmuPeripheralCrate::CFEBScan, "CFEBScan");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationRuns, "CalibrationRuns");
@@ -834,6 +835,12 @@ private:
     *out << cgicc::input().set("type","submit").set("value","Calibration Comparator Pulse") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
+    std::string FindLv1aDelayComparator =
+      toolbox::toString("/%s/FindLv1aDelayComparator",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",FindLv1aDelayComparator) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Find l1a delay for Comparator") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
     std::string CalibrationCFEBCharge =
       toolbox::toString("/%s/CalibrationCFEBCharge",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBCharge) << std::endl ;
@@ -1251,6 +1258,18 @@ private:
       this->Default(in,out);
       //
     }
+  }
+  //
+  void EmuPeripheralCrate::FindLv1aDelayComparator(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    CalibDAQ calib;
+    //
+    calib.FindL1aDelayComparator();
+    //
+    this->Default(in,out);
+      //
   }
   //
   void EmuPeripheralCrate::CalibrationRandomWiresALCT(xgi::Input * in, xgi::Output * out ) 

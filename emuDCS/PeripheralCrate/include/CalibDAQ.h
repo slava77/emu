@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.h,v 2.5 2006/04/11 15:27:42 mey Exp $
+// $Id: CalibDAQ.h,v 2.6 2006/04/24 14:57:20 mey Exp $
 // $Log: CalibDAQ.h,v $
+// Revision 2.6  2006/04/24 14:57:20  mey
+// Update
+//
 // Revision 2.5  2006/04/11 15:27:42  mey
 // Update
 //
@@ -42,8 +45,8 @@ public:
   void injectAllDMBs(int ntim);
   void pulseAllWires();
   void pulseRandomWires();
-  void pulseComparator();
   void pulseComparatorPulse();
+  void FindL1aDelayComparator();
 
   CrateSelector & selector() {return theSelector;}
 

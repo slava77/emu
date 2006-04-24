@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.33 2006/03/31 09:22:05 mey Exp $
+// $Id: DAQMB.cc,v 2.34 2006/04/24 14:57:21 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.34  2006/04/24 14:57:21  mey
+// Update
+//
 // Revision 2.33  2006/03/31 09:22:05  mey
 // Update
 //
@@ -3692,7 +3695,7 @@ int  DAQMB::test8()
       (*MyOutput_) << " slope     out of range- got "<<a<<" should be -1005. " <<std::endl;
     }
     //
-    if(b<3400.||a>3800.){
+    if(b<3400.||b>3800.){ //changed a>3800 to b>3800
       ierr=1;
       (*MyOutput_) << " intercept out of range- got "<<a<<" should be 3600. " << std::endl;
     }
