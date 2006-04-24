@@ -14,6 +14,7 @@
 #include "xoap/SOAPSerializer.h"
 
 #include "cgicc/HTMLClasses.h"
+#include "xgi/Utils.h"
 
 using namespace std;
 using namespace cgicc;
@@ -139,7 +140,9 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 	int n_keys = config_keys_.size();
 
 	*out << "Peripheral Crate: " << endl;
-	*out << cgicc::select().set("name", "runtype") << endl;
+	*out << cgicc::select()
+			.set("name", "runtype")
+			.set("value", runtype_) << endl;
 
 	for (int i = 0; i < n_keys; ++i) {
 		*out << option()
@@ -153,11 +156,13 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << "Run Number: " << endl;
 	*out << input().set("type", "text")
 			.set("name", "runnumber")
+			.set("value", runnumber_)
 			.set("size", "40") << br() << endl;
 
 	*out << "Max # of Events: " << endl;
 	*out << input().set("type", "text")
 			.set("name", "nevents")
+			.set("value", nevents_)
 			.set("size", "40") << br() << endl;
 
 	*out << input().set("type", "submit")
@@ -211,7 +216,7 @@ void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 		fireEvent("Configure");
 	}
 
-	webDefault(in, out);
+	webRedirect(in, out);
 }
 
 void CSCSupervisor::webEnable(xgi::Input *in, xgi::Output *out)
@@ -219,7 +224,7 @@ void CSCSupervisor::webEnable(xgi::Input *in, xgi::Output *out)
 {
 	fireEvent("Enable");
 
-	webDefault(in, out);
+	webRedirect(in, out);
 }
 
 void CSCSupervisor::webDisable(xgi::Input *in, xgi::Output *out)
@@ -227,7 +232,7 @@ void CSCSupervisor::webDisable(xgi::Input *in, xgi::Output *out)
 {
 	fireEvent("Disable");
 
-	webDefault(in, out);
+	webRedirect(in, out);
 }
 
 void CSCSupervisor::webHalt(xgi::Input *in, xgi::Output *out)
@@ -235,7 +240,20 @@ void CSCSupervisor::webHalt(xgi::Input *in, xgi::Output *out)
 {
 	fireEvent("Halt");
 
-	webDefault(in, out);
+	webRedirect(in, out);
+}
+
+void CSCSupervisor::webRedirect(xgi::Input *in, xgi::Output *out)
+		throw (xgi::exception::Exception)
+{
+	string url = in->getenv("PATH_TRANSLATED");
+
+	HTTPResponseHeader &header = out->getHTTPResponseHeader();
+
+	header.getStatusCode(301);
+	header.getReasonPhrase(xgi::Utils::getResponsePhrase(301));
+	header.addHeader("Location",
+			url.substr(0, url.find("/" + in->getenv("PATH_INFO"))));
 }
 
 void CSCSupervisor::configureAction(toolbox::Event::Reference e) 

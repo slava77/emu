@@ -44,6 +44,8 @@ public:
 			throw (xgi::exception::Exception);
 	void webHalt(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
+	void webRedirect(xgi::Input *in, xgi::Output *out)
+			throw (xgi::exception::Exception);
 
 	// State transitions
 	void configureAction(toolbox::Event::Reference e) 
