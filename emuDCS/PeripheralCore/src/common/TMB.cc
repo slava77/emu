@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.59 2006/04/11 15:27:42 mey Exp $
+// $Id: TMB.cc,v 2.60 2006/04/25 13:25:19 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.60  2006/04/25 13:25:19  mey
+// Update
+//
 // Revision 2.59  2006/04/11 15:27:42  mey
 // Update
 //
@@ -2026,15 +2029,32 @@ void TMB::EnableL1aRequest(){
   int adr;
   adr = ccb_trig_adr;
   tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-  printf(" Current %x %x \n",rcvbuf[0], rcvbuf[1]);
+  //printf(" Current %x %x \n",rcvbuf[0], rcvbuf[1]);
   //
   sndbuf[0] = rcvbuf[0];
   sndbuf[1] = 4;
   tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
   //
-  tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-  printf(" Setting to %x %x \n",rcvbuf[0], rcvbuf[1]);
+  //tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
+  //printf(" Setting to %x %x \n",rcvbuf[0], rcvbuf[1]);
+  //
+}
 
+
+
+void TMB::DisableL1aRequest(){
+  //
+  int adr;
+  adr = ccb_trig_adr;
+  tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
+  //printf(" Current %x %x \n",rcvbuf[0], rcvbuf[1]);
+  //
+  sndbuf[0] = rcvbuf[0];
+  sndbuf[1] = 0;
+  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+  //
+  //tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
+  //printf(" Setting to %x %x \n",rcvbuf[0], rcvbuf[1]);
   //
 }
 
