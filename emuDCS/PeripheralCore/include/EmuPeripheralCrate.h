@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.29 2006/04/24 14:57:20 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.30 2006/04/25 13:25:18 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -240,6 +240,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::DMBTest8, "DMBTest8");
     xgi::bind(this,&EmuPeripheralCrate::DMBTest9, "DMBTest9");
     xgi::bind(this,&EmuPeripheralCrate::DMBTest10, "DMBTest10");
+    xgi::bind(this,&EmuPeripheralCrate::DMBTest11, "DMBTest11");
     xgi::bind(this,&EmuPeripheralCrate::TriggerTestInjectALCT, "TriggerTestInjectALCT");
     xgi::bind(this,&EmuPeripheralCrate::TriggerTestInjectCLCT, "TriggerTestInjectCLCT");
     xgi::bind(this,&EmuPeripheralCrate::PowerUp,  "PowerUp");
@@ -2490,6 +2491,32 @@ private:
     this->DMBTests(in,out);
   }
   //
+  void EmuPeripheralCrate::DMBTest11(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
+    //
+    OutputDMBTests[dmb] << "DMB Test11" << endl ;
+    //
+    DAQMB * thisDMB = dmbVector[dmb];
+    //
+    thisDMB->RedirectOutput(&std::cout);
+    thisDMB->test11();
+    thisDMB->RedirectOutput(&std::cout);
+    //
+    this->DMBTests(in,out);
+  }
+  //
   void EmuPeripheralCrate::DMBPrintCounters(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -3378,7 +3405,7 @@ private:
 	thisCCB->hardReset();
 	::sleep(1);
 	thisDMB->febpromuser(thisCFEBs[dmbNumber]);
-	thisDMB->epromload(thisCFEBs[dmbNumber].promDevice(),"cfeb_v4_r2.svf",1,out);  // load mprom
+	thisDMB->epromload(thisCFEBs[dmbNumber].promDevice(),"../svf/cfeb_v4_r2.svf",1,out);  // load mprom
 	::sleep(1);
 	thisCCB->hardReset();
       }
@@ -3659,7 +3686,7 @@ private:
       } else {
 	*out << cgicc::span().set("style","color:red");
 	*out << buf;
-	*out << " (Should be 0xcfeb9061) ";
+	*out << " (Should be 0xcfeba042) ";
 	*out << cgicc::span();
       }
       //
@@ -4791,7 +4818,7 @@ private:
     *out << cgicc::br();
       //
     sprintf(buf,"DMB fpga user id                   : %x ", (int) thisDMB->mbfpgauser());
-    if ( thisDMB->mbfpgauser() == 0x48547172 ) {
+    if ( thisDMB->mbfpgauser() == 0x48547182 ) {
 	*out << cgicc::span().set("style","color:green");
 	*out << buf;
 	*out << cgicc::span();
@@ -5920,7 +5947,40 @@ private:
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::td();
+    //
     *out << cgicc::tr();
+    //
+    *out << cgicc::tr();
+    *out << cgicc::td();
+    //
+    std::string DMBTest11 =
+      toolbox::toString("/%s/DMBTest11",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",DMBTest11)
+	 << std::endl ;
+    if( thisDMB->GetTestStatus(11) == -1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","DMB Test11 (Check Comparator DAC/ADC)")
+	.set("style","color:blue") 
+	   << std::endl ;
+    }
+    if( thisDMB->GetTestStatus(11) > 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","DMB Test11 (Check Comparator DAC/ADC)")
+	.set("style","color:red") 
+	   << std::endl ;
+    }
+    if( thisDMB->GetTestStatus(11) ==0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","DMB Test11 (Check Comparator DAC/ADC)")
+	.set("style","color:green") 
+	   << std::endl ;
+    }
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
     //
     *out << cgicc::table();
     //
