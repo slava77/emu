@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.16 2006/04/25 13:25:19 mey Exp $
+// $Id: CalibDAQ.cc,v 2.17 2006/04/25 14:50:45 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.17  2006/04/25 14:50:45  mey
+// Update
+//
 // Revision 2.16  2006/04/25 13:25:19  mey
 // Update
 //
@@ -94,13 +97,20 @@ void CalibDAQ::rateTest() {
   int chip,ch,brd, nstrip;
   int counter = 0;
   float dac;
-
+  //
   std::vector<Crate*> myCrates = theSelector.crates();
-
+  //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
     CCB * ccb = myCrates[j]->ccb();
     std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
+    std::vector<TMB*> myTmbs   = theSelector.tmbs(myCrates[j]);
 
+    for (unsigned i=0; i<myTmbs.size(); i++) {
+      myTmbs[i]->DisableCLCTInputs();
+      std::cout << "Disabling inputs for slot " << myTmbs[i]->slot() << std::endl;
+      myTmbs[i]->DisableALCTInputs();
+    }
+    
     for (nstrip=0;nstrip<16;nstrip++) {  
       for (int j=0; j<10; j++) {
 	dac=0.2+0.2*j;
@@ -118,7 +128,7 @@ void CalibDAQ::rateTest() {
 	  }
 	  myDmbs[i]->buck_shift();
 	}
-	
+	//
 	for (int tries=0;tries<20; tries++){
           counter++;
 	  std::cout << "dac = " << dac <<
@@ -126,7 +136,7 @@ void CalibDAQ::rateTest() {
 	    "  try = " << tries << 
 	    "  event  = " << counter << std::endl;
 	  ccb->pulse(1, 0xff);//pulse all dmbs in this crate
-	  ::usleep(100);
+	  ::usleep(1000);
 	}
 
       } //end of loop by strips
@@ -236,7 +246,6 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep, float t
     //
     for (unsigned i=0; i<myTmbs.size(); i++) {
       myTmbs[i]->DisableCLCTInputs();
-      myTmbs[i]->EnableInternalL1aSequencer();
       std::cout << "Disabling inputs for slot " << myTmbs[i]->slot() << std::endl;
       myTmbs[i]->DisableALCTInputs();
     }
@@ -249,24 +258,24 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep, float t
       myDmbs[i]->set_comp_thresh(thresh);
       //
       // set external pulser for strip # nstrip on all 6 chips
-      //for(brd=0;brd<5;brd++){
-      //for(chip=0;chip<6;chip++){
-      //  for(ch=0;ch<16;ch++){
-      //    myDmbs[i]->shift_array[brd][chip][ch]=NORM_RUN;
-      //  }
-      //  if ( nstrip != -1 ) myDmbs[i]->shift_array[brd][chip][nstrip]=SMALL_CAP;
-      //}
-      //}
+      for(brd=0;brd<5;brd++){
+	for(chip=0;chip<6;chip++){
+	  for(ch=0;ch<16;ch++){
+	    myDmbs[i]->shift_array[brd][chip][ch]=NORM_RUN;
+	  }
+	  if ( nstrip != -1 ) myDmbs[i]->shift_array[brd][chip][nstrip]=SMALL_CAP;
+	}
+      }
       //
-      //myDmbs[i]->buck_shift();
+      myDmbs[i]->buck_shift();
       //
-      int HalfStrip = nstrip*2 ;
+      //int HalfStrip = nstrip*2 ;
       //
-      int hp[6] = {HalfStrip, HalfStrip, HalfStrip, HalfStrip, HalfStrip, HalfStrip};       
+      //int hp[6] = {HalfStrip, HalfStrip, HalfStrip, HalfStrip, HalfStrip, HalfStrip};       
       //
       // Set the pattern
       //
-      myDmbs[i]->trigsetx(hp);
+      //myDmbs[i]->trigsetx(hp);
       //
       //set timing
       //ntim is the same as pulse_delay initially set in xml configuration file
@@ -275,18 +284,18 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep, float t
       //
     }
     //
-    ::usleep(nsleep);
+    ::usleep(1000);
     //
     //for (unsigned i=0; i<myTmbs.size(); i++) {
-      //myTmbs[i]->EnableCLCTInputs(0x1f);
+    //myTmbs[i]->EnableCLCTInputs(0x1f);
     //}
     //
-    usleep(100);
+    ::usleep(1000);
     //
     std::cout << "Sending pulse" <<std::endl;
     ccb->inject(1, 0xff);//pulse all dmbs in this crate
     //
-    usleep(1000);
+    ::usleep(1000);
     //
     for(unsigned i =0; i < myDmbs.size(); ++i) {
       std::cout << "Slot " << myDmbs[i]->slot();
@@ -363,13 +372,13 @@ void CalibDAQ::injectComparator(int ntim, int nstrip, float dac, int nsleep, flo
       //
     }
     //
-    ::usleep(nsleep);
+    ::usleep(1000);
     //
     for (unsigned i=0; i<myTmbs.size(); i++) {
       myTmbs[i]->EnableCLCTInputs(0x1f);
     }
     //
-    usleep(100);
+    usleep(1000);
     //
     //for(unsigned i =0; i<myDmbs.size(); ++i) {
     //myDmbs[i]->inject(1,0x4f);

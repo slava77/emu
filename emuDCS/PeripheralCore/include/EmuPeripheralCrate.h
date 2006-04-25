@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.30 2006/04/25 13:25:18 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.31 2006/04/25 14:50:44 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1309,7 +1309,7 @@ private:
   {
     //
     CalibDAQ calib;
-    calib.loadConstants();
+    //calib.loadConstants();
     //
     //int nsleep, nstrip, tries, counter =0;
     float dac;
