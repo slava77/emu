@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: HardwareDumper.cpp,v 2.3 2006/01/09 09:24:00 mey Exp $
+// $Id: HardwareDumper.cpp,v 2.4 2006/04/26 12:20:51 mey Exp $
 // $Log: HardwareDumper.cpp,v $
+// Revision 2.4  2006/04/26 12:20:51  mey
+// Update
+//
 // Revision 2.3  2006/01/09 09:24:00  mey
 // Update
 //
@@ -86,15 +89,18 @@ int main(int argc, char *argv[]) {
   eventStream->openFile();
   unsigned long int eventNumber(0);
   while(eventNumber<maxEventTotal) {
-    std::cout << "Data... " << eventNumber << std::endl;
     if ( ddu->readNextEvent() ) {
       char *data = ddu->data();
       unsigned int dataLength=ddu->dataLength();
-      //if (data){
+      if (data){
+	std::cout << "in here!" <<std::endl;
 	eventStream->writeEnv(data, dataLength);
 	std::cout << dataLength << std::endl;
 	eventNumber++;
-	//}
+      }else{
+	std::cout << "in here!" <<std::endl;
+	break;
+      }
     }
   }
   delete ddu;
