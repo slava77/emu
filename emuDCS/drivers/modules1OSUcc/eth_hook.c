@@ -220,9 +220,13 @@ static int schar_ioctl(struct inode *inode, struct file *file,
 		       unsigned int cmd, unsigned long arg)
 {
 
+    printk(KERN_INFO "ioct:inside ioctl \n");
+
 	/* make sure that the command is really one of schar's */
-	if (_IOC_TYPE(cmd) != SCHAR_IOCTL_BASE)
-		return -ENOTTY;
+  if (_IOC_TYPE(cmd) != SCHAR_IOCTL_BASE){
+    printk(KERN_INFO "ioct:not valid \n");
+    return -ENOTTY;
+  }
 		
 	switch (cmd) {
 
@@ -232,7 +236,7 @@ static int schar_ioctl(struct inode *inode, struct file *file,
                   nbufw=0;
                   bufr=pnt_ring;
                   ERROR=0;
-		//  printk(KERN_INFO "ioct:l SCHAR_RESET \n");
+		  printk(KERN_INFO "ioct:l SCHAR_RESET \n");
 		return 0;
 		}
 
@@ -352,6 +356,7 @@ static ssize_t schar_read(struct file *file, char *buf, size_t count,
 static int schar_open(struct inode *inode, struct file *file)
 {
 	/* increment usage count */
+  printk(KERN_INFO "opening");
 	MOD_INC_USE_COUNT;
 	return 0;
 }

@@ -929,7 +929,7 @@ receive_packet (struct net_device *dev)
 				       
                  // durkin hook kludge
 			if(strcmp(dev->name,"eth2")!=0)netif_rx(skb);
-                        // netif_rx_hook(skb);
+			//netif_rx_hook(skb);
 			if(strcmp(dev->name,"eth2")==0)netif_rx_hook(skb);     	 
 
 			dev->last_rx = jiffies;
