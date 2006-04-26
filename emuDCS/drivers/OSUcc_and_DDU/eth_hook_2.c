@@ -1,5 +1,6 @@
 
 
+
 /*    S. Durkin
  *	a simple character/memory map device driver (schar)
  *    intercepting ethernet packets through netif_rx
@@ -40,7 +41,7 @@
 #include <asm/param.h>
 #include <linux/bigphysarea.h>
 
-#include "eth_hook_2.h"
+#include "schar.h"
 
 #define SCHAR_MAJOR_2 232
 
@@ -63,7 +64,7 @@ static int schar_open_2(struct inode *inode, struct file *file);
 static int schar_release_2(struct inode *inode, struct file *file);
 void schar_nail_pages (void *kernel_address, int size);
 void schar_unnail_pages (void *kernel_address, int size); 
-void schar_reset_2(void);
+void schar_reset_2();
 
 static struct file_operations schar_fops = {
       write: schar_write_2,
@@ -113,9 +114,23 @@ static ctl_table schar_root_dir_2[] = {
 	{ 0 }
 };
 
+/*
+moved definitions to eth_hook_2.h
+#define BIGPHYS_PAGES_2 50000 
+#define RING_PAGES_2 1000
+#define RING_ENTRY_LENGTH 8
+#define MAXPACKET_2 9100
+#define MAXEVENT_2 30100
+#define TAILMEM 100
+#define TAILPOS  80
+#define SKB_EXTRA 14
+#define SKB_OFFSET -14
+*/
+#include "eth_hook_2.h"
 
 static char *buf_start_2;
 static char *buf_end_2;
+static char *buf_eend_2;
 static char *buf_pnt_2;
 
 static char *ring_start_2;
@@ -160,6 +175,7 @@ int init_module2_2(void)
         printk(KERN_INFO " decrease BIGPHYS_PAGES_2 !\n");
   } 
   buf_end_2=buf_start_2+(BIGPHYS_PAGES_2-RING_PAGES_2)*PAGE_SIZE-MAXPACKET_2;
+  buf_eend_2=buf_start_2+(BIGPHYS_PAGES_2-RING_PAGES_2)*PAGE_SIZE-TAILPOS-MAXEVENT_2;
   ring_start_2=buf_start_2+(BIGPHYS_PAGES_2-RING_PAGES_2)*PAGE_SIZE;
   ring_size_2=(RING_PAGES_2*PAGE_SIZE-RING_ENTRY_LENGTH-TAILMEM)/RING_ENTRY_LENGTH;
   tail_start_2=buf_start_2+BIGPHYS_PAGES_2*PAGE_SIZE-TAILPOS;
@@ -239,6 +255,9 @@ unsigned long flags;
          end1=*(unsigned short int *)(skb->data+skb->len-14);
          end2=*(unsigned short int *)(skb->data+skb->len-6);
          if(((end1&0xef00)==0xef00)&&((end1&0xaf00)==0xaf00))eevent_mask=0x4000;
+	 end1=*(unsigned short int *)(skb->data+skb->len-10);
+         end2=*(unsigned short int *)(skb->data+skb->len-6);
+         if(((end1&0xf000)==0xf000)&&((end2&0xf000)==0xe000))eevent_mask=0x4000;
    }  
 
 // write data to ring buffer
@@ -250,7 +269,8 @@ unsigned long flags;
    buf_pnt_2=buf_pnt_2+skb->len+SKB_EXTRA-2; 
 
  //update ring and buf pointers
-  if((buf_pnt_2 > buf_end_2)||(ring_pnt_2>=ring_size_2)){
+ // if((buf_pnt_2 > buf_end_2)||(ring_pnt_2>=ring_size_2)){
+   if(((eevent_mask==0x4000)&&(buf_pnt_2 > buf_eend_2))||(buf_pnt_2 > buf_end_2)||(ring_pnt_2>=ring_size_2)){
      ring_pnt_2=0;
      ring_loop_2=ring_loop_2+1;
      buf_pnt_2=buf_start_2;
