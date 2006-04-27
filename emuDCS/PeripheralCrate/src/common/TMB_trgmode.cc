@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_trgmode.cc,v 2.7 2006/03/20 09:10:43 mey Exp $
+// $Id: TMB_trgmode.cc,v 2.8 2006/04/27 18:46:04 mey Exp $
 // $Log: TMB_trgmode.cc,v $
+// Revision 2.8  2006/04/27 18:46:04  mey
+// UPdate
+//
 // Revision 2.7  2006/03/20 09:10:43  mey
 // Update
 //
@@ -220,6 +223,8 @@ void TMB::trgmode(int choice)
   printf("Reading address 0x86 to %x %x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   //
   ::sleep(1);
+  //
+  std::cout <<"enable CLCT Input " << enableCLCTInputs_ << std::endl;
   //
   EnableCLCTInputs(enableCLCTInputs_);
   //

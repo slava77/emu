@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.19 2006/04/21 11:50:49 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.20 2006/04/27 18:46:04 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.20  2006/04/27 18:46:04  mey
+// UPdate
+//
 // Revision 1.19  2006/04/21 11:50:49  mey
 // include/EmuPeripheralCrate.h
 //
@@ -661,12 +664,15 @@ void ChamberUtilities::ALCTTiming(){
   alct->set_empty(1);
   //
   thisTMB->SetCLCTPatternTrigger();
+  thisTMB->DisableCLCTInputs();
   //
   for (j=0;j<maxTimeBins;j++){
     for (k=0;k<maxTimeBins;k++) {
       selected[j][k]  = 0;
       selected2[j][k] = 0;
       selected3[j][k] = 0;
+      ALCTWordCount[k][j] = 0;
+      ALCTConfDone[k][j] = 0;
     }
   }
   //
@@ -680,6 +686,9 @@ void ChamberUtilities::ALCTTiming(){
 	int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6/4);
 	int keyWG2 = (alct->GetWGNumber())/6-keyWG;
 	int ChamberSection = alct->GetWGNumber()/6;
+	//
+	(*MyOutput_) << std::endl;
+	(*MyOutput_) << "*******************" << std::endl;
 	(*MyOutput_) << "Injecting at " << dec << keyWG << std::endl;
 	//
 	for (int i=0; i< 22; i++) HCmask[i] = 0;
@@ -688,7 +697,7 @@ void ChamberUtilities::ALCTTiming(){
 	//
 	for (int i=0;i<672;i++){
 	  if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
-	  if ( i%(alct->GetWGNumber()/6) == (alct->GetWGNumber())/6-keyWG ) bits.set(i);
+	  //if ( i%(alct->GetWGNumber()/6) == (alct->GetWGNumber())/6-keyWG ) bits.set(i);
 	}
 	//
 	bitset<32> Convert;
@@ -733,6 +742,7 @@ void ChamberUtilities::ALCTTiming(){
 	//
 	alct->alct_write_hcmask(HCmask);
 	alct->alct_read_hcmask(HCmask);
+	//
 	/*
 	  for (int i=0; i<(alct->GetWGNumber())/32; i++ ) {
 	  if (i == 0 ) cout << "Layer 0 " ;
@@ -759,13 +769,18 @@ void ChamberUtilities::ALCTTiming(){
 	thisTMB->tmb_clk_delays(j,6) ;	 
 	thisTMB->ResetALCTRAMAddress();
 	PulseTestStrips();
+	//
 	(*MyOutput_) << "Decode ALCT" << std::endl ;
 	thisTMB->DecodeALCT();
 	(*MyOutput_) << "After Decode ALCT" << std::endl;
 	//
-	selected[k][j]  = 0;
-	selected2[k][j] = 0;
-	selected3[k][j] = 0;
+	int MyWordCount = thisTMB->GetALCTWordCount() ;
+	//
+	(*MyOutput_) << "Wordcount : " << std::hex<< MyWordCount <<std::endl;
+	//
+	//selected[k][j]  = 0;
+	//selected2[k][j] = 0;
+	//selected3[k][j] = 0;
 	//
 	(*MyOutput_) << "Check data" << std::endl ;
 	if ( (thisTMB->GetAlct0Quality()   != alct0_quality) ||
@@ -773,7 +788,7 @@ void ChamberUtilities::ALCTTiming(){
 	     (thisTMB->GetAlct0FirstBxn()  != alct0_bxn) ||
 	     (thisTMB->GetAlct1SecondBxn() != alct1_bxn) ||
 	     (thisTMB->GetAlct0FirstKey()  != alct0_bxn) ||
-	     (thisTMB->GetAlct1SecondKey() != alct1_bxn) )
+	     (thisTMB->GetAlct1SecondKey() != alct1_bxn) || (1==1))
 	  {
 	    alct0_quality     = thisTMB->GetAlct0Quality();
 	    alct1_quality     = thisTMB->GetAlct1Quality();
@@ -781,7 +796,7 @@ void ChamberUtilities::ALCTTiming(){
 	    alct1_bxn         = thisTMB->GetAlct1SecondBxn();
 	    alct0_key         = thisTMB->GetAlct0FirstKey();
 	    alct1_key         = thisTMB->GetAlct1SecondKey();
-	    ALCTWordCount[k][j] = thisTMB->GetALCTWordCount();
+	    ALCTWordCount[k][j] = MyWordCount;
 	    ALCTConfDone[k][j]  = thisTMB->ReadRegister(0x38) & 0x1 ;
 	    //
 	    if ( alct0_quality == 3 && alct0_key == keyWG) selected[k][j]++;
@@ -1323,8 +1338,13 @@ void ChamberUtilities::PulseTestStrips(){
 	//old alct->alct_set_test_pulse_stripmask(&slot,0x3f);
 	//old alct->alct_set_test_pulse_groupmask(&slot,0xff);
 	//
-	alct->alct_set_test_pulse_stripmask(&slot,0xff);
-	alct->alct_set_test_pulse_groupmask(&slot,0xff);
+	if (alct->GetChamberType().find("ME11")!=string::npos) {
+	  alct->alct_set_test_pulse_stripmask(&slot,0x00);
+	  alct->alct_set_test_pulse_groupmask(&slot,0xff);
+	} else {
+	  alct->alct_set_test_pulse_stripmask(&slot,0x3f);
+	  alct->alct_set_test_pulse_groupmask(&slot,0xff);
+	}
 	//
 	alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
 	cout << " StripMask = " << hex << StripMask << endl;
@@ -1342,6 +1362,14 @@ void ChamberUtilities::PulseTestStrips(){
 	//
       } else {
 	//
+	if (alct->GetChamberType().find("ME11")!=string::npos) {
+	  std::cout << alct->GetChamberType().find("ME11") <<std::endl;
+	  std::cout << alct->GetChamberType() <<std::endl;
+	  std::cout << "ME11" <<std::endl;
+	} else {
+	  std::cout << "ME12" <<std::endl;
+	}
+	  //
 	//alct->alct_set_test_pulse_powerup(&slot,PowerUp);
 	//alct->alct_set_test_pulse_powerup(&slot,0);
 	//
