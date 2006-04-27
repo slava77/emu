@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.12 2006/04/06 08:54:32 mey Exp $
+// $Id: ALCTController.h,v 2.13 2006/04/27 18:46:03 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.13  2006/04/27 18:46:03  mey
+// UPdate
+//
 // Revision 2.12  2006/04/06 08:54:32  mey
 // Got rif of friend TMBParser
 //
@@ -159,6 +162,10 @@ public:
   }
   inline void SetThreshold(unsigned int number,int threshold) {
     if (number<(sizeof(delays_)/4)) thresholds_[number]=threshold;
+  }
+  //
+  inline std::string ALCTController::GetChamberType(){
+    return chamber_type_string_;
   }
   //
   /// Set ALCT JTAG Channel

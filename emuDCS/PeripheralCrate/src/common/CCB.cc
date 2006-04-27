@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.31 2006/04/24 14:57:21 mey Exp $
+// $Id: CCB.cc,v 2.32 2006/04/27 18:46:04 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.32  2006/04/27 18:46:04  mey
+// UPdate
+//
 // Revision 2.31  2006/04/24 14:57:21  mey
 // Update
 //
@@ -1212,7 +1215,7 @@ void CCB::firmwareVersion(){
   int month = (versionWord >> 5   ) & 0xF;
   int year  = (versionWord >>(5+4)) + 2000;
   (*MyOutput_) << "CCB: firmware date: " 
-       << day << "-" << month << "-" << year << std::endl;
+	       << std::dec << day << "-" << month << "-" << year << std::endl;
 }
 //
 //fg NOTE: CSR1 (2001) vs CSRB1(2004) bit  incompatibilities ...

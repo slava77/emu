@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.28 2006/04/20 15:33:54 mey Exp $
+// $Id: ALCTController.cc,v 2.29 2006/04/27 18:46:04 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.29  2006/04/27 18:46:04  mey
+// UPdate
+//
 // Revision 2.28  2006/04/20 15:33:54  mey
 // Update
 //
@@ -1302,6 +1305,7 @@ int ALCTController::GetWGNumber(){
   return chamtype[chamber_type_].WG_number;
 }
 
+
 void ALCTController::GetConf(  unsigned cr[3], int verbose=0 ){
    //
    ReadRegister (RdCfg, cr); // read configuration first
@@ -1313,7 +1317,9 @@ void ALCTController::alct_read_hcmask(unsigned long HCmask[22]){
    //
    alct_fast_set_jtag_channel(ALCT_FAST_JTAG_CHANNEL);
    ReadRegister  (HCMaskRead, (unsigned*)HCmask);
+   usleep(100);
    WriteRegister (HCMaskWrite, (unsigned*)HCmask);
+   usleep(100);
    //
 }
 
@@ -1321,6 +1327,7 @@ void ALCTController::alct_write_hcmask(unsigned long HCmask[22]){
    //
    alct_fast_set_jtag_channel(ALCT_FAST_JTAG_CHANNEL);
    WriteRegister (HCMaskWrite, (unsigned*)HCmask);
+   usleep(100);
    //
 }
 

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.17 2006/04/25 14:50:45 mey Exp $
+// $Id: CalibDAQ.cc,v 2.18 2006/04/27 18:46:04 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.18  2006/04/27 18:46:04  mey
+// UPdate
+//
 // Revision 2.17  2006/04/25 14:50:45  mey
 // Update
 //
@@ -101,10 +104,11 @@ void CalibDAQ::rateTest() {
   std::vector<Crate*> myCrates = theSelector.crates();
   //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
+    //
     CCB * ccb = myCrates[j]->ccb();
     std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
     std::vector<TMB*> myTmbs   = theSelector.tmbs(myCrates[j]);
-
+    //
     for (unsigned i=0; i<myTmbs.size(); i++) {
       myTmbs[i]->DisableCLCTInputs();
       std::cout << "Disabling inputs for slot " << myTmbs[i]->slot() << std::endl;
@@ -114,6 +118,7 @@ void CalibDAQ::rateTest() {
     for (nstrip=0;nstrip<16;nstrip++) {  
       for (int j=0; j<10; j++) {
 	dac=0.2+0.2*j;
+	//
 	for(unsigned i =0; i < myDmbs.size(); ++i) {
 	  myDmbs[i]->set_cal_dac(dac,dac);
 	}
@@ -123,7 +128,7 @@ void CalibDAQ::rateTest() {
 	      for(ch=0;ch<16;ch++){
 		myDmbs[i]->shift_array[brd][chip][ch]=NORM_RUN;
 	      }
-	      myDmbs[i]->shift_array[brd][chip][nstrip]=EXT_CAP;
+	      myDmbs[i]->shift_array[brd][chip][nstrip]=SMALL_CAP;
 	    }
 	  }
 	  myDmbs[i]->buck_shift();
@@ -135,10 +140,13 @@ void CalibDAQ::rateTest() {
 	    "  strip = " << nstrip << 
 	    "  try = " << tries << 
 	    "  event  = " << counter << std::endl;
+	  ::usleep(1000);
+	  ::sleep(1);
 	  ccb->pulse(1, 0xff);//pulse all dmbs in this crate
+	  ::sleep(1);
 	  ::usleep(1000);
 	}
-
+	//
       } //end of loop by strips
     } //endof loop by amplitudes
   }//end of loop by crates

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.60 2006/04/25 13:25:19 mey Exp $
+// $Id: TMB.cc,v 2.61 2006/04/27 18:46:04 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.61  2006/04/27 18:46:04  mey
+// UPdate
+//
 // Revision 2.60  2006/04/25 13:25:19  mey
 // Update
 //
@@ -702,7 +705,7 @@ void TMB::DecodeALCT(){
   alct0_first_bxn_ = (data>>11)&0x3 ;
   //
   (*MyOutput_) << " alct0      = " << data << std::endl;
-  (*MyOutput_) << " valid      = " << alct0_valid_ << std::endl;
+  (*MyOutput_) << " valid      = " << std::dec<< alct0_valid_ << std::endl;
   (*MyOutput_) << " quality    = " << alct0_quality_ << std::endl ;
   (*MyOutput_) << " amu        = " << alct0_amu_ << std::endl ;
   (*MyOutput_) << " first_key  = " << alct0_first_key_ << std::endl;
@@ -2019,7 +2022,7 @@ void TMB::EnableCLCTInputs(int CLCTInputs = 0x1f){
    tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
    rd_data   = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
    sndbuf[0] = rcvbuf[0];
-   sndbuf[1] = (rcvbuf[1] & 0xde) | CLCTInputs ;
+   sndbuf[1] = (rcvbuf[1] & 0xe0) | CLCTInputs ;
    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
 //
 }
@@ -2217,15 +2220,34 @@ void TMB::ResetALCTRAMAddress(){
    //
    int adr, wr_data, rd_data;
    //
+   tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
+   while ( rcvbuf[1]&0x1 != 0 ){
+     std::cout << "1.Waiting for busy to clear" <<std::endl;
+     tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
+   }
+   //
    adr = alctfifo1_adr ;
    wr_data = 0x1; //reset RAM write address
    sndbuf[0] = (wr_data & 0xff00)>>8 ;
    sndbuf[1] = wr_data & 0x00ff ;
    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+   //
+   tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
+   while ( rcvbuf[1]&0x1 != 0 ){
+     std::cout << "2.Waiting for busy to clear" <<std::endl;
+     tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
+   }
+   //
    wr_data = 0x0; //unreset
    sndbuf[0] = (wr_data & 0xff00)>>8 ;
    sndbuf[1] = wr_data & 0x00ff ;
    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+   //
+   tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
+   while ( rcvbuf[1]&0x1 != 0 ){
+     std::cout << "3.Waiting for busy to clear" <<std::endl;
+     tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
+   }
    //
 }
 
@@ -2934,6 +2956,17 @@ void TMB::SetCLCTPatternTrigger(){
 }
 //
 int TMB::GetALCTWordCount(){
+  //
+  tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
+  while ( rcvbuf[1]&0x1 != 0 ){
+    std::cout << "10.Waiting for busy to clear" <<std::endl;
+    tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
+  }
+  //
+  while ( rcvbuf[1]&0x1 != 1 ){
+    std::cout << "11.Waiting for done" <<std::endl;
+    tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
+  }
   //
   tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);
   //
@@ -5361,18 +5394,33 @@ int iloop;
 
   sndbuf[0]=0x0;
   sndbuf[1]=0x20;
-  tmb_vme(0x02,0x14,sndbuf,rcvbuf,NOW);
-  tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE,0x14,sndbuf,rcvbuf,NOW);
+  //
+  tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
+  //while((rcvbuf[1]>>6)&(0x1)){
+  //std::cout << "1.Waiting"<<std::endl;
+  //tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
+  //}
   //
   sndbuf[0]=0x0;
   sndbuf[1]=0x21;
   tmb_vme(0x02,0x14,sndbuf,rcvbuf,NOW);
-  tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
+  //
+  tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
+  //while((rcvbuf[1]>>6)&(0x1)){
+  //std::cout << "2.Waiting"<<std::endl;
+  //tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
+  //}
   //
   sndbuf[0]=0x0;
   sndbuf[1]=0x20;
-  tmb_vme(0x02,0x14,sndbuf,rcvbuf,NOW);
-  tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE,0x14,sndbuf,rcvbuf,NOW);
+  //
+  tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
+  //while((rcvbuf[1]>>6)&(0x1)){
+  //std::cout << "3.Waiting"<<std::endl;
+  //tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
+  //}
   //
   while ( ((rcvbuf[1]>>6)&(0x1)) ){
     //
@@ -5392,21 +5440,23 @@ int iloop;
     tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
   }
   //
+  //
   sndbuf[0]=rcvbuf[0];
   sndbuf[1]=rcvbuf[1]&0xfe;
   //
-  tmb_vme(0x02,0x14,sndbuf,rcvbuf,NOW);
-  tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_WRITE,0x14,sndbuf,rcvbuf,NOW);
   //
+  tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
   while ( ((rcvbuf[1]>>6)&(0x1)) ){
-    tmb_vme(0x01,0x14,sndbuf,rcvbuf,NOW);
+    std::cout << "4.Waiting"<<std::endl;
+    tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
     printf(" *** check state machine2 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   }
   //
   if((rcvbuf[1]&0x80)!=0x80){
     printf(" *** check state machine2 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
     printf(" tmb_clk_delays: something is wrong. Can NOT be verified \n");
-    return;
+    sleep(100);
   }
 
   /* removed for new TMB delay chip
