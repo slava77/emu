@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.32 2006/04/27 18:46:04 mey Exp $
+// $Id: CCB.cc,v 2.33 2006/04/28 13:41:17 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.33  2006/04/28 13:41:17  mey
+// Update
+//
 // Revision 2.32  2006/04/27 18:46:04  mey
 // UPdate
 //
@@ -280,6 +283,11 @@ void CCB::inject(int Num_pulse,unsigned int pulse_delay)
   pulse(Num_pulse, pulse_delay, DMB_CFEB_CAL1);
 }
 
+void CCB::pedestal(int Num_pulse,unsigned int pulse_delay)
+{
+  //old pulse(Num_pulse, pulse_delay, 0x48;)
+  pulse(Num_pulse, pulse_delay, DMB_CFEB_CAL2);
+}
 
 void CCB::prgall_bckpln()
 {
