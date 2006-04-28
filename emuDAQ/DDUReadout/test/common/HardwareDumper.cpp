@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: HardwareDumper.cpp,v 2.4 2006/04/26 12:20:51 mey Exp $
+// $Id: HardwareDumper.cpp,v 2.5 2006/04/28 14:59:37 mey Exp $
 // $Log: HardwareDumper.cpp,v $
+// Revision 2.5  2006/04/28 14:59:37  mey
+// UPdate
+//
 // Revision 2.4  2006/04/26 12:20:51  mey
 // Update
 //
@@ -87,23 +90,34 @@ int main(int argc, char *argv[]) {
   //--
 
   eventStream->openFile();
-  unsigned long int eventNumber(0);
+  unsigned long int eventNumber(1);
+  unsigned int dataLength(200);
+  unsigned int badCounter(0);
   while(eventNumber<maxEventTotal) {
     if ( ddu->readNextEvent() ) {
+      badCounter=0;
       char *data = ddu->data();
-      unsigned int dataLength=ddu->dataLength();
+      dataLength=ddu->dataLength();
       if (data){
-	std::cout << "in here!" <<std::endl;
 	eventStream->writeEnv(data, dataLength);
-	std::cout << dataLength << std::endl;
+	std::cout << "Event " << eventNumber << " " << dataLength << std::endl;
 	eventNumber++;
       }else{
-	std::cout << "in here!" <<std::endl;
-	break;
+	  break;
+	}
+    } else {
+      badCounter++;
+      if(eventNumber>0 and badCounter>20) {
+	std::cout << "No activity. Should I close the file ?" <<std::endl;
+	std::string userinput;
+	std::cin >> userinput;
+	if( userinput.find("y") != string::npos ) break;
+	badCounter=0;
       }
     }
   }
   delete ddu;
+  std::cout << "Closing File" <<std::endl;
   eventStream->closeFile();
 
   //-- dbase entries  

@@ -1,4 +1,4 @@
-// $Id: DDUHyperDAQ.h,v 1.2 2006/01/09 09:23:23 mey Exp $
+// $Id: DDUHyperDAQ.h,v 1.3 2006/04/28 15:00:28 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -22,13 +22,24 @@
 #include <iomanip>
 #include <time.h>
 
-
-#include "xdaq/Application.h"
 #include "xgi/Utils.h"
 #include "xgi/Method.h"
+
+#include "xdaq/Application.h"
+#include "xdaq/ApplicationContext.h"
+#include "xdaq/ApplicationStub.h"
+#include "xdaq/exception/Exception.h"
+
+#include "xdaq/NamespaceURI.h"
+
 #include "xdata/UnsignedLong.h"
 #include "xdata/String.h"
 
+#include "xoap/MessageReference.h"
+#include "xoap/MessageFactory.h"
+#include "xoap/SOAPEnvelope.h"
+#include "xoap/SOAPBody.h"
+#include "xoap/Method.h"
 
 #include "cgicc/CgiDefs.h"
 #include "cgicc/Cgicc.h"
@@ -56,11 +67,13 @@ public:
   DDUHyperDAQ(xdaq::ApplicationStub * s): xdaq::Application(s) 
   {	
     //
-    xgi::bind(this,&DDUHyperDAQ::Default, "Default");
-    xgi::bind(this,&DDUHyperDAQ::SetRunNumber, "SetRunNumber");
+    xgi::bind(this,&DDUHyperDAQ::Default,            "Default");
+    xgi::bind(this,&DDUHyperDAQ::SetRunNumber,       "SetRunNumber");
     xgi::bind(this,&DDUHyperDAQ::SetMaxEventPerFile, "SetMaxEventPerFile");
-    xgi::bind(this,&DDUHyperDAQ::SetMaxEventTotal, "SetMaxEventTotal");
-    xgi::bind(this,&DDUHyperDAQ::DDUHardwareDumper, "DDUHardwareDumper");
+    xgi::bind(this,&DDUHyperDAQ::SetMaxEventTotal,   "SetMaxEventTotal");
+    xgi::bind(this,&DDUHyperDAQ::DDUHardwareDumper,  "DDUHardwareDumper");
+    xoap::bind(this, &DDUHyperDAQ::OpenFile, "OpenFile", XDAQ_NS_URI );    
+    //
   }
   //
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
@@ -121,31 +134,25 @@ public:
     std::string DDUResetValue =
       toolbox::toString("%d",util.GetReset());
     //
-    *out << cgicc::form().set("method","GET").set("action",DDUReset) << std::endl ;
-    *out << cgicc::input().set("type","checkbox").set("name","DDUReset").set("checked","checked")
-      .set("value",DDUResetValue) << std::endl ;
-    *out << "DDU reset" << std::endl;
-    *out << cgicc::form() << std::endl ;
-    //
     std::string DDUdb =
       toolbox::toString("/%s/DDUdb",getApplicationDescriptor()->getURN().c_str());
     std::string DDUdbValue =
       toolbox::toString("%d",util.GetDB());
     //
-    *out << cgicc::form().set("method","GET").set("action",DDUdb) << std::endl ;
-    *out << cgicc::input().set("type","checkbox").set("name","DDUupdateDB").set("checked","checked")
-      .set("value",DDUdbValue) << std::endl ;
-    *out << "DDU update DB" << std::endl;
-    *out << cgicc::form() << std::endl ;
-    //
     std::string DDUHardwareDumper =
       toolbox::toString("/%s/DDUHardwareDumper",getApplicationDescriptor()->getURN().c_str());
     //
     *out << cgicc::form().set("method","GET").set("action",DDUHardwareDumper) << std::endl ;
+    *out << cgicc::input().set("type","checkbox").set("name","DDUReset").set("checked","checked")
+      .set("value",DDUResetValue) << std::endl ;
+    *out << "DDU reset" << std::endl;
+    *out << cgicc::input().set("type","checkbox").set("name","DDUupdateDB").set("checked","unchecked")
+      .set("value",DDUdbValue) << std::endl ;
+    *out << "DDU update DB" << std::endl;
     *out << cgicc::input().set("type","submit")
       .set("value","Start dumping data...") << std::endl ;
     *out << cgicc::form() << std::endl ;
-      //
+    //
   }
   //
   void DDUHardwareDumper(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
@@ -153,21 +160,28 @@ public:
     //
     cgicc::Cgicc cgi(in);
     //
-    if ( cgi.queryCheckbox("DDUReset") ) 
-      {
-	util.SetReset(true);
-      } else {
-	util.SetReset(false);
-      }
+    cgicc::form_iterator name = cgi.getElement("DDUReset");
     //
-    if ( cgi.queryCheckbox("DDUupdateDB") ) 
-      {
-	util.SetDB(true);
-      } else {
-	util.SetDB(false);
-      }
+    if(name != cgi.getElements().end()) {
+      util.SetReset(true);
+      std::cout << "True" << std::endl;
+    } else {
+      util.SetReset(false);
+      std::cout << "False" << std::endl;
+    }
+    //
+    name = cgi.getElement("DDUupdateDB");
+    //
+    if(name != cgi.getElements().end()) {
+      util.SetDB(true);
+      std::cout << "True" << std::endl;
+    } else {
+      util.SetDB(false);
+      std::cout << "False" << std::endl;
+    }
     //
     util.HardwareDumper();
+    //
   }
   //
   void SetRunNumber(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
@@ -204,6 +218,25 @@ public:
     util.SetMaxEventTotal(value);
     //
     this->Default(in,out);
+  }
+  //
+  xoap::MessageReference OpenFile (xoap::MessageReference msg) throw (xoap::exception::Exception)
+  {
+    //
+    //
+    // reply to caller
+    //
+    std::cout << "Received Message OpenFile" << std::endl ;
+    //
+    xoap::MessageReference reply = xoap::createMessage();
+    xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+    xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
+    xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
+    //
+    util.HardwareDumper();
+    //
+    return reply;    
+    //
   }
   //
 };
