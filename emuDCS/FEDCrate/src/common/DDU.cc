@@ -2317,6 +2317,94 @@ long int errcode;
   devdo(DDUFPGA,10,cmd,0,sndbuf,rcvbuf,2);
 }
 
+
+
+void DDU::ddu_occmon()
+{
+int i,j,shft0in,shft1in,shft2in;
+long int errcode;
+
+  printf(" ddu_occmon (CSC Board Occupancy Monitor) \n");
+ for(j=0;j<4;j++){
+  cmd[0]=VTX2P_USR1_L;
+  cmd[1]=VTX2P_USR1_H;
+  sndbuf[0]=34;
+  devdo(DDUFPGA,10,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2P_BYPASS_L;
+  cmd[1]=VTX2P_BYPASS_H;
+  devdo(DDUFPGA,10,cmd,0,sndbuf,rcvbuf,0);
+
+  cmd[0]=VTX2P_USR2_L;
+  cmd[1]=VTX2P_USR2_H;
+  sndbuf[0]=0xCE;
+  sndbuf[1]=0xFA;
+  sndbuf[2]=0x04;
+  sndbuf[3]=0x04;
+  sndbuf[4]=0x00;
+  sndbuf[5]=0x00;
+  sndbuf[6]=0xFE;
+  sndbuf[7]=0xCA;
+  sndbuf[8]=0x01;
+  sndbuf[9]=0x00;
+  sndbuf[10]=0x00;
+  sndbuf[11]=0x00;
+  sndbuf[12]=0x00;
+  sndbuf[13]=0x00;
+  sndbuf[14]=0x00;
+  sndbuf[15]=0x00;
+  sndbuf[16]=0x00;
+  devdo(DDUFPGA,10,cmd,70,sndbuf,rcvbuf,1);
+  errcode=((0x00ff&rcvbuf[0])|((0x00ff&rcvbuf[1])<<8)|((0x00ff&rcvbuf[2])<<16)|((0x00ff&rcvbuf[3])<<24));
+  if(j==0){
+    printf("   DDU input #%d, DMB Occupancy: %ld \n",0x000f&(rcvbuf[3]>>4),errcode&0x0fffffff);
+    fpga_lcode[0]=errcode;
+  }
+  if(j==1){
+    printf("   DDU input #%d, ALCT Occupancy: %ld \n",0x000f&(rcvbuf[3]>>4),errcode&0x0fffffff);
+    fpga_lcode[1]=errcode;
+  }
+  if(j==2){
+    printf("   DDU input #%d, TMB Occupancy: %ld \n",0x000f&(rcvbuf[3]>>4),errcode&0x0fffffff);
+    fpga_lcode[2]=errcode;
+  }
+  if(j==3){
+    printf("   DDU input #%d, CFEB Occupancy: %ld \n\n",0x000f&(rcvbuf[3]>>4),errcode&0x0fffffff);
+    fpga_lcode[3]=errcode;
+  }
+  shft2in=(((0xff&rcvbuf[5])<<8)|(0xff&rcvbuf[4]));
+  if(j==0)ddu_shift0=shft2in;
+  if((shft2in&0x0000ffff)!=0xFACE){
+    ddu_shift0=shft2in;
+    printf("   ----> 70-bit FPGA shift test:  sent 0xFACE, got back 0x%04X \n",shft2in);
+    for(i=0;i<11;i=i+4){
+      shft0in=(((0x01&rcvbuf[i+2])<<15)|((0xff&rcvbuf[i+1])<<7)|(0xfe&rcvbuf[i])>>1);
+      shft1in=(((0x01&rcvbuf[i+4])<<15)|((0xff&rcvbuf[i+3])<<7)|(0xfe&rcvbuf[i+2])>>1);
+      printf("      rcv bytes %d-%d:  %02x%02x/%02x%02x",i+3,i,0xff&rcvbuf[i+3],0xff&rcvbuf[i+2],0xff&rcvbuf[i+1],0xff&rcvbuf[i]);
+      printf("      right-shifted one: %04x/%04x\n",shft1in,shft0in);
+    }
+  }
+  cmd[0]=VTX2P_BYPASS_L;
+  cmd[1]=VTX2P_BYPASS_H;
+  sndbuf[0]=0;
+  sndbuf[1]=0;
+  sndbuf[2]=0;
+  sndbuf[3]=0;
+  devdo(DDUFPGA,10,cmd,0,sndbuf,rcvbuf,0);
+
+  cmd[0]=VTX2P_USR1_L;
+  cmd[1]=VTX2P_USR1_H;
+  sndbuf[0]=NORM_MODE;
+  devdo(DDUFPGA,10,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2P_BYPASS_L;
+  cmd[1]=VTX2P_BYPASS_H;
+  sndbuf[0]=0;
+  devdo(DDUFPGA,10,cmd,0,sndbuf,rcvbuf,2);
+ }
+}
+
+
+
+
 void DDU::ddu_fpgatrap()
 // JRG, 192-bits, Uses custom decode routine, skip for now in Monitor Loop
 {
@@ -2489,7 +2577,7 @@ void DDU::ddu_vmel1a()
 }
 
 
-void DDU::ddu_status_decode(int long code)
+void DDU::ddu_status_decode(int long code)  // Old outdated DDU3? do not use!
 {
 // JRG 21feb06, old outdated routine, only good for DDU prototypes!
 
@@ -2577,7 +2665,7 @@ Pre-ddu3ctrl_v8r15576:
 
 
 
-void DDU::ddu_ostatus_decode(int long code)
+void DDU::ddu_ostatus_decode(int long code)  // Old outdated DDU3? do not use!
 {
 //printf("\nReceived code=%08X\n",code);
 // JRG, 16-bit DDU output path status:
@@ -2632,7 +2720,7 @@ void DDU::ddu_era_decode(int long code)
    printf("\n");
  }
  if((code&0x00000F00)>0){
-   if((0x00000800&code)>0)printf("   DDU Input-FIFO Near Full Warning");
+   if((0x00000800&code)>0)printf("   DDU Ext.FIFO Near Full Warning");
    if((0x00000400&code)>0)printf("   DDU Near Full Warning");
    if((0x00000200&code)>0)printf("   DDU CFEB-CRC not OK");
    if((0x00000100&code)>0)printf("   DDU CFEB-CRC End Error");
@@ -2641,15 +2729,16 @@ void DDU::ddu_era_decode(int long code)
  if((code&0x000000F0)>0){
    if((0x00000080&code)>0)printf("   DDU CFEB-CRC Count Error");
    if((0x00000040&code)>0)printf("   DDU CFEB-CRC Error occurred");
-   if((0x00000020&code)>0)printf("   DDU Latched Trigger Trail");
-   if((0x00000010&code)>0)printf("   DDU Trigger Trail_Done");
+   //   if((0x00000020&code)>0)printf("   DDU Latched Trigger Trail");
+   if((0x00000020&code)>0)printf("   DDU Trigger Readout Error");
+   if((0x00000010&code)>0)printf("   DDU Trigger Trail Done");
    printf("\n");
  }
  if((code&0x0000000F)>0){
-   if((0x00000008&code)>0)printf("   DDU Trigger Readout Error");
+   if((0x00000008&code)>0)printf("   DDU Start Timeout");
    if((0x00000004&code)>0)printf("   DDU End Timeout");
-   if((0x00000002&code)>0)printf("   DDU Start Timeout");
-   if((0x00000001&code)>0)printf("   DDU Timeout Error occurred");
+   if((0x00000002&code)>0)printf("   DDU SP/TF Error in event");
+   if((0x00000001&code)>0)printf("   DDU SP/TF data in event");
    printf("\n");
  }
 }
@@ -2662,7 +2751,7 @@ void DDU::ddu_erb_decode(int long code)
 // JRG, 16-bit DDU Error Bus B:
  if((code&0x0000F000)>0){
    if((0x00008000&code)>0)printf("   DDU Lost In Event Error");
-   if((0x00004000&code)>0)printf("   DDU DMB Error occurred");
+   if((0x00004000&code)>0)printf("   DDU DMB Error in event");
    if((0x00002000&code)>0)printf("   DDU Control DLL Error occured");
    if((0x00001000&code)>0)printf("   DDU 2nd Header First flag");
    printf("\n");
@@ -2684,12 +2773,12 @@ void DDU::ddu_erb_decode(int long code)
 */
    if((0x00000080&code)>0)printf("   DDU SCA Full detected this Event");
    if((0x00000040&code)>0)printf("   DDU DMB Full occurred");
-   if((0x00000020&code)>0)printf("   DDU Lone Word Event flag");
+   if((0x00000020&code)>0)printf("   DDU Lone Word DMB in event");
    if((0x00000010&code)>0)printf("   DDU Bad Control Word Error occurred");
    printf("\n");
  }
  if((code&0x0000000F)>0){
-   if((0x00000008&code)>0)printf("   DDU Missed Trigger Trailer Error occurred");
+   if((0x00000008&code)>0)printf("   DDU Missed Trigger Trail");
    if((0x00000004&code)>0)printf("   DDU First Dat Error");
    if((0x00000002&code)>0)printf("   DDU Bad First Word");
    if((0x00000001&code)>0)printf("   DDU Lost In Data occured");
@@ -2708,7 +2797,7 @@ void DDU::ddu_erc_decode(int long code)
    if((0x00004000&code)>0)printf("   DDU ALCT Trailer Done");
    if((0x00002000&code)>0)printf("   DDU ALCT DAV Vote True occurred");
    //   if((0x00001000&code)>0)printf("   DDU do_ALCT flag");
-   if((0x00001000&code)>0)printf("   DDU ALCT L1 mismatch error occurred");
+   if((0x00001000&code)>0)printf("   DDU ALCT L1 mismatch occurred");
    printf("\n");
  }
  if((code&0x00000F00)>0){
@@ -2723,7 +2812,7 @@ void DDU::ddu_erc_decode(int long code)
    if((0x00000040&code)>0)printf("   DDU TMB Trailer Done");
    if((0x00000020&code)>0)printf("   DDU TMB DAV Vote True occurred");
    //   if((0x00000010&code)>0)printf("   DDU do_TMB flag");
-   if((0x00000010&code)>0)printf("   DDU TMB L1 mismatch error occurred");
+   if((0x00000010&code)>0)printf("   DDU TMB L1 mismatch occurred");
    printf("\n");
  }
  if((code&0x0000000F)>0){
@@ -2743,34 +2832,34 @@ void DDU::ddu5status_decode(int long code)
  if((code&0x0000F000)>0){
    if((0x00008000&code)>0)printf("   DDU Critical Error, ** needs reset **\n");
    if((0x00004000&code)>0)printf("   DDU Single Error, bad event");
-   if((0x00002000&code)>0)printf("   DDU Single Warning");
+   if((0x00002000&code)>0)printf("   DDU single warning, possible data problem");
    if((0x00001000&code)>0)printf("   DDU Near Full Warning");
    printf("\n");
  }
  if((code&0x00000F00)>0){
    if((0x00000800&code)>0)printf("   DDU RX Error");
    if((0x00000400&code)>0)printf("   DDU Control DLL Error (recent)");
-   if((0x00000200&code)>0)printf("   DDU DMB Error");
+   if((0x00000200&code)>0)printf("   DDU DMB Error in event");
    if((0x00000100&code)>0)printf("   DDU Lost In Event Error");
    printf("\n");
  }
  if((code&0x000000F0)>0){
    if((0x00000080&code)>0)printf("   DDU Lost In Data Error occurred");
-   if((0x00000040&code)>0)printf("   DDU Timeout Error");
+   if((0x00000040&code)>0)printf("   DDU Timeout Error occurred");
    if((0x00000020&code)>0)printf("   DDU Trigger CRC Error");
    if((0x00000010&code)>0)printf("   DDU Multiple Transmit Errors occurred");
    printf("\n");
  }
  if((code&0x0000000F)>0){
-   if((0x00000008&code)>0)printf("   DDU Sync Lost Error (FIFO Full or L1A Error)");
-   if((0x00000004&code)>0)printf("   DDU Fiber Error");
+   if((0x00000008&code)>0)printf("   DDU Sync Lost occurred (FIFO Full or L1A Error)");
+   if((0x00000004&code)>0)printf("   DDU Fiber Connection Error");
    if((0x00000002&code)>0)printf("   DDU L1A Match Error");
    if((0x00000001&code)>0)printf("   DDU CFEB CRC Error");
    printf("\n");
  }
  if((code&0xF0000000)>0){
 // JRG, high-order 16-bit status (not-so-serious errors):
-   if((0x80000000&code)>0)printf("   DDU DAV/LCT/MOVLP Mismatch");
+   if((0x80000000&code)>0)printf("   DDU DMB DAV/LCT/MOVLP Mismatch");
    if((0x40000000&code)>0)printf("   DDU CFEB L1 Mismatch");
    if((0x20000000&code)>0)printf("   DDU saw No Good DMB CRCs");
    if((0x10000000&code)>0)printf("   DDU CFEB Count Mismatch");
@@ -2780,11 +2869,11 @@ void DDU::ddu5status_decode(int long code)
    if((0x08000000&code)>0)printf("   DDU FirstDat Error");
    if((0x04000000&code)>0)printf("   DDU L1A-FIFO Full Error");
    if((0x02000000&code)>0)printf("   DDU Data Stuck in FIFO");
-   if((0x01000000&code)>0)printf("   DDU NoLiveFibers Error");
+   if((0x01000000&code)>0)printf("   DDU NoLiveFibers");
    printf("\n");
  }
  if((code&0x00F00000)>0){
-   if((0x00800000&code)>0)printf("   DDU Spwd single-bit Warning");
+   if((0x00800000&code)>0)printf("   DDU Spwd voted-bit Warning");
    if((0x00400000&code)>0)printf("   DDU InRDctrl Error");
    if((0x00200000&code)>0)printf("   DDU DAQ Stop Bit set");
    if((0x00100000&code)>0)printf("   DDU DAQ Not Ready");
@@ -2794,7 +2883,7 @@ void DDU::ddu5status_decode(int long code)
  if((code&0x000F0000)>0){
    if((0x00080000&code)>0)printf("   DDU TMB Error");
    if((0x00040000&code)>0)printf("   DDU ALCT Error");
-   if((0x00020000&code)>0)printf("   DDU Trigger Readout Wordcount Error");
+   if((0x00020000&code)>0)printf("   DDU Trigger Wordcount Error");
    if((0x00010000&code)>0)printf("   DDU Trigger L1A Match Error");
    printf("\n");
  }
@@ -2815,14 +2904,17 @@ void ddu5begin_decode(int long begin_status)
     printf("  DDU-BOE: Single Error");
   }
   if(begin_status&0x0008){
-    printf("  DDU-BOE: Critical Error");
+    printf("  DDU-BOE: Critical Error, reset needed");
   }
-  if(begin_status&0x0010)printf("  DDU-BOE: Fiber Error");
+  if((begin_status&0x000f)&&(begin_status&0x0070))printf("\n");
+  if(begin_status&0x0010)printf("  DDU-BOE: Fiber Connection Error");
   if(begin_status&0x0020){
-    printf("  DDU-BOE: DDU Full FIFO");
+    printf("  DDU-BOE: Sync Lost (FIFO Full or L1A Error)");
+    //    printf("  DDU-BOE: DDU Full FIFO");
   }
   if(begin_status&0x0040){
-    printf("  DDU-BOE: DDU DLL Error");
+    printf("  DDU-BOE: single warning, possible data problems");
+    //    printf("  DDU-BOE: DDU DLL Error");
   }
   printf("\n");
 }
@@ -2842,7 +2934,8 @@ void ddu5ostatus_decode(int long code)
  }
  if((code&0x00000F00)>0){
    if((0x00000800&code)>0)printf("   DDU Gigabit Ethernet Overflow occurred");
-   if((0x00000400&code)>0)printf("   DDU Gigabit Ethernet Xmit Limit occurred");   if((0x00000200&code)>0)printf("   DDU Gigabit Ethernet FIFO Always Empty");
+   if((0x00000400&code)>0)printf("   DDU Gigabit Ethernet Xmit Limit occurred");
+   if((0x00000200&code)>0)printf("   DDU Gigabit Ethernet FIFO Always Empty");
    if((0x00000100&code)>0)printf("   DDU Gigabit Ethernet Fiber Error occurred");
    printf("\n");
  }
@@ -2872,9 +2965,9 @@ void ddu5vmestat_decode(int long code)
  VMEslot=(~code)&0x001f;
  printf(" DDU VME slot = %d\n",VMEslot);
  if((code&0x0000F000)>0){
-   if((0x00008000&code)>0)printf("   DDU Problem Detected");
-   if((0x00004000&code)>0)printf("   VME DLL Lost Lock occurred");
-   if((0x00002000&code)>0)printf("   VME DLL Lock Failed");
+   if((0x00008000&code)>0)printf("   DDU-VME Reports Problem");
+   if((0x00004000&code)>0)printf("   DDU-VME DLL Lost Lock occurred");
+   if((0x00002000&code)>0)printf("   DDU-VME DLL Lock Failed or RESET");
    if((0x00001000&code)>0)printf("   DDU Never Ready");
    printf("\n");
  }
@@ -2899,7 +2992,7 @@ void in_stat_decode(int long code)
  if((code&0x0000F000)>0){
    if((0x00008000&code)>0)printf("   InFPGA Critical Error, ** needs reset **\n");
    if((0x00004000&code)>0)printf("   InFPGA Single Error, bad event");
-   if((0x00002000&code)>0)printf("   InFPGA Single Warning");
+   if((0x00002000&code)>0)printf("   InFPGA single warning, possible data problem");
    if((0x00001000&code)>0)printf("   InFPGA Near Full Warning");
    printf("\n");
  }
@@ -2907,19 +3000,20 @@ void in_stat_decode(int long code)
    if((0x00000800&code)>0)printf("   InFPGA RX Error");
    if((0x00000400&code)>0)printf("   InFPGA DLL Error (temp)");
    if((0x00000200&code)>0)printf("   InFPGA SCA Full detected");
-   if((0x00000100&code)>0)printf("   InFPGA Special Word Error");
+   //   if((0x00000100&code)>0)printf("   InFPGA Special Word Error");
+   if((0x00000100&code)>0)printf("   InFPGA Spwd voted-bit Warning");
    printf("\n");
  }
  if((code&0x000000F0)>0){
-   if((0x00000080&code)>0)printf("   InFPGA Stuck Data Error occurred");
-   if((0x00000040&code)>0)printf("   InFPGA Timeout Error");
-   if((0x00000020&code)>0)printf("   InFPGA Critical Data Error");
+   if((0x00000080&code)>0)printf("   InFPGA Stuck Data occurred");
+   if((0x00000040&code)>0)printf("   InFPGA Timeout Occurred");
+   if((0x00000020&code)>0)printf("   InFPGA Multiple voted-bit Errors");
    if((0x00000010&code)>0)printf("   InFPGA Multiple Transmit Errors");
    printf("\n");
  }
  if((code&0x0000000F)>0){
    if((0x00000008&code)>0)printf("   InFPGA Mem/FIFO Full Error");
-   if((0x00000004&code)>0)printf("   InFPGA Fiber Error");
+   if((0x00000004&code)>0)printf("   InFPGA Fiber Connection Error");
    if((0x00000002&code)>0)printf("   InFPGA L1A Match Error");
    if((0x00000001&code)>0)printf("   InFPGA Not Ready Error");
    printf("\n");
@@ -2927,8 +3021,8 @@ void in_stat_decode(int long code)
  if((code&0xF0000000)>0){
    if((0x80000000&code)>0)printf("   InFPGA DDL2 Not Locked");
    if((0x40000000&code)>0)printf("   InFPGA DDL1 Not Locked");
-   if((0x20000000&code)>0)printf("   InFPGA RdCtrl-1 Ready");
-   if((0x10000000&code)>0)printf("   InFPGA RdCtrl-0 Ready");
+   if((0x20000000&code)>0)printf("   InFPGA RdCtrl-1 Not Ready");
+   if((0x10000000&code)>0)printf("   InFPGA RdCtrl-0 Not Ready");
    printf("\n");
  }
  if((code&0x0F000000)>0){
@@ -2939,16 +3033,16 @@ void in_stat_decode(int long code)
    printf("\n");
  }
  if((code&0x00F00000)>0){
-   if((0x00800000&code)>0)printf("   InFPGA InRD1 DMB Full");
-   if((0x00400000&code)>0)printf("   InFPGA Mem/FIFO-1 Error");
-   if((0x00200000&code)>0)printf("   InFPGA MultL1A Error-1");
+   if((0x00800000&code)>0)printf("   InFPGA InRD1 DMB Full occurred");
+   if((0x00400000&code)>0)printf("   InFPGA Mem/FIFO-1 Error occurred");
+   if((0x00200000&code)>0)printf("   InFPGA MultL1A Error-1 occurred");
    if((0x00100000&code)>0)printf("   InFPGA NoLiveFiber-1");
    printf("\n");
  }
  if((code&0x000F0000)>0){
-   if((0x00080000&code)>0)printf("   InFPGA InRD0 DMB Full");
-   if((0x00040000&code)>0)printf("   InFPGA Mem/FIFO-0 Error");
-   if((0x00020000&code)>0)printf("   InFPGA MultL1A Error-0");
+   if((0x00080000&code)>0)printf("   InFPGA InRD0 DMB Full occurred");
+   if((0x00040000&code)>0)printf("   InFPGA Mem/FIFO-0 Error occurred");
+   if((0x00020000&code)>0)printf("   InFPGA MultL1A Error-0 occurred");
    if((0x00010000&code)>0)printf("   InFPGA NoLiveFiber-0");
    printf("\n");
  }
@@ -2967,7 +3061,7 @@ void in_Ccode_decode(int long code)
    printf("\n");
  }
  if((code&0x00000F00)>0){
-   if((0x00000800&code)>0)printf("   InRD1 Fiber Error occurred");
+   if((0x00000800&code)>0)printf("   InRD1 Fiber Connection Error occurred");
    if((0x00000400&code)>0)printf("   InRD1 Multi-Xmit-Error occurred");
    if((0x00000200&code)>0)printf("   InRD1 Stuck Data occurred");
    if((0x00000100&code)>0)printf("   InRD1 Timeout Error occurred");
@@ -2982,7 +3076,7 @@ void in_Ccode_decode(int long code)
    printf("\n");
  }
  if((code&0x0000000F)>0){
-   if((0x00000008&code)>0)printf("   InRD0 Fiber Error occurred");
+   if((0x00000008&code)>0)printf("   InRD0 Fiber Connection Error occurred");
    if((0x00000004&code)>0)printf("   InRD0 Multi-Xmit-Error occurred");
    if((0x00000002&code)>0)printf("   InRD0 Stuck Data occurred");
    if((0x00000001&code)>0)printf("   InRD0 Timeout Error occurred");

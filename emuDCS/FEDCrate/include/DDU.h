@@ -82,6 +82,7 @@ public:
   void ddu_lvl1onoff();
   void ddu_rd_boardID();
   void ddu_fpgastat();
+  void ddu_occmon();
   void ddu_fpgatrap();
   //  void ddu_trap_decode();
   void ddu_maxTimeCount();

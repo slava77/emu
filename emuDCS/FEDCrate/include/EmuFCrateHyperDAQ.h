@@ -401,7 +401,8 @@ public:
             }else if(statush==0x0000&&statusl==0x0000){
 	      *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
             }else{
-	      *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
+	      *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
+	      //	      *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
             }
             sprintf(buf,"Status H:%04X L:%04X ",statush,statusl);
             *out << buf; 
@@ -850,7 +851,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     std::string crateStr = env.getQueryString() ;
     cout << crateStr << endl ;
     cgicc::form_iterator name = cgi.getElement("ddu");
-    int ddu,icrit,icond,icond2,icond3,icond4;
+    int j,ddu,icrit,icond,icond2,icond3,icond4;
     unsigned long int stat;
     if(name != cgi.getElements().end()) {
       ddu = cgi["ddu"]->getIntegerValue();
@@ -871,7 +872,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     //    *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;") << std::endl;
     //    *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
     *out << "<h2 align=center><font color=blue>" << buf << "</font></h2>" << std::endl;
-    for(int i=200;i<229;i++){
+    for(int i=200;i<230;i++){
       thisDDU->infpga_shift0=0x0000;
       thisDDU->CAEN_err_reset();
       sprintf(buf3," ");
@@ -1156,14 +1157,37 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	sprintf(buf,"Toggle DDU Cal-Pulse==L1A (default True): ");
 	sprintf(buf2," EXPERT ONLY! ");
 	icond=2;
-	// JRG, do better later: move to VMEpara and use bit3 of Fake L1A Reg.
-	//  add Reg Read & Print on page.
-	//    sprintf(buf2," %04X <font color=red> EXPERT ONLY! </font> ",0x0008&thisDDU->vmepara_rd_fakel1reg());
+// JRG, do better later: move to VMEpara and use bit3 of Fake L1A Reg.
+//   --> No!  Can't do that because no free lines from VMEfpga to DDUfpga.
+//  add Reg Read & Print on page some other way?  Make F31 shiftable?
+//    sprintf(buf2," %04X <font color=red> EXPERT ONLY! </font> ",0x0008&thisDDU->vmepara_rd_fakel1reg());
       }
       if(i==228){
 	sprintf(buf,"DDU Sync Reset via VME: ");
 	sprintf(buf2," EXPERT ONLY! ");
 	icond=2;
+      }
+      if(i==229){
+	*out << br() << " <font color=blue> CSC Board Occupancies </font>" << br() << std::endl;
+	for(j=0;j<15;j++){
+	thisDDU->ddu_occmon();
+	sprintf(buf,"DDU input #%ld: ",0x0000000f&(thisDDU->fpga_lcode[0]>>28));
+	sprintf(buf2," DMB Occupancy=%ld; ALCT=%ld; TMB=%ld; CFEB=%ld",0x0fffffff&thisDDU->fpga_lcode[0],0x0fffffff&thisDDU->fpga_lcode[1],0x0fffffff&thisDDU->fpga_lcode[2],0x0fffffff&thisDDU->fpga_lcode[3]);
+	*out << buf << "<font color=green>" << buf2 << "</font>" << br() << std::endl;
+
+	if((0xf0000000&thisDDU->fpga_lcode[0])!=(0xf0000000&thisDDU->fpga_lcode[3])){
+	  sprintf(buf," &nbsp **End error: DDU input = %ld",0x0000000f&(thisDDU->fpga_lcode[3]>>28));
+	  *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
+	  *out << buf << cgicc::span();
+	}
+	if(thisDDU->ddu_shift0!=0xFACE){
+	  sprintf(buf," &nbsp **JTAG Error in i=%d, Shifted:%04X",i,thisDDU->ddu_shift0);
+	  *out << cgicc::span().set("style","color:orange;background-color:#dddddd;");
+	  *out << buf << cgicc::span();
+	}
+	}
+	sprintf(buf," ");
+	sprintf(buf2," ");
       }
 
 // JRGhere
@@ -1279,21 +1303,21 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
       }else if(i==201&&(stat&0x0000f000)>0){
         *out << "<blockquote><font size=-1 color=red face=arial>";
 	if((stat&0xF0000000)>0){
-	  if((0x80000000&stat)>0) *out << " DMB DAV/LCT/MOVLP Error &nbsp ";
+	  if((0x80000000&stat)>0) *out << " DMB DAV/LCT/MOVLP Mismatch &nbsp ";
 	  if((0x40000000&stat)>0) *out << " CFEB L1A Mismatch &nbsp ";
 	  if((0x20000000&stat)>0) *out << " <font color=blue>DDUsawNoGoodDMB-CRCs</font> &nbsp ";
-	  if((0x10000000&stat)>0) *out << " CFEB Count Error";
+	  if((0x10000000&stat)>0) *out << " CFEB Count Mismatch";
 	  if(0x0fffffff&stat) *out << br();
 	}
 	if((stat&0x0F000000)>0){
 	  if((0x08000000&stat)>0) *out << " FirstDat Error &nbsp ";
-	  if((0x04000000&stat)>0) *out << " L1A-FIFO Full Error occurred &nbsp ";
+	  if((0x04000000&stat)>0) *out << " L1A-FIFO Full occurred &nbsp ";
 	  if((0x02000000&stat)>0) *out << " Data Stuck in FIFO occurred &nbsp ";
-	  if((0x01000000&stat)>0) *out << " <font color=blue>NoLiveFiber Warning</font>";
+	  if((0x01000000&stat)>0) *out << " <font color=blue>NoLiveFiber warning</font>";
 	  if(0x00ffffff&stat) *out << br();
 	}
 	if((stat&0x00F00000)>0){
-	  if((0x00800000&stat)>0) *out << " <font color=blue>Special-word single-bit Warning</font> &nbsp ";
+	  if((0x00800000&stat)>0) *out << " <font color=blue>Special-word voted-bit warning</font> &nbsp ";
 	  if((0x00400000&stat)>0) *out << " InRDctrl Error &nbsp ";
 	  if((0x00200000&stat)>0) *out << " <font color=blue>DAQ Stop set</font> &nbsp ";
 	  if((0x00100000&stat)>0) *out << " <font color=blue>DAQ Not Ready</font>";
@@ -1312,7 +1336,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	if((stat&0x0000F000)>0){
 	  if((0x00008000&stat)>0) *out << " <font color=red>Critical Error ** needs reset **</font> &nbsp ";
 	  if((0x00004000&stat)>0) *out << " <font color=orange>Single Error, bad event</font> &nbsp ";
-	  if((0x00002000&stat)>0) *out << " <font color=blue>Single Warning</font> &nbsp ";
+	  if((0x00002000&stat)>0) *out << " <font color=blue>Single warning, possible data problem</font> &nbsp ";
 	  if((0x00001000&stat)>0) *out << " <font color=blue>Near Full Warning</font>";
 	  if(0x00000fff&stat) *out << br();
 	}
@@ -1412,11 +1436,11 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
         *out << "</font></blockquote>";
 
       }else if(i==205&&(stat&0x0000ffff)>0){
-	if((0x00000020&stat)>0) *out << " &nbsp  &nbsp <font color=green size=-1>Empty Event flag</font>";
+	if((0x00000020&stat)>0) *out << " &nbsp  &nbsp <font color=green size=-1>Empty CSC in Event flag</font>";
 	if((0x0000FFDF&stat)>0) *out << "<blockquote><font size=-1 color=orange face=arial>";
 	if((stat&0x0000F000)>0){
 	  if((0x00008000&stat)>0) *out << " Lost In Event Error &nbsp ";
-	  if((0x00004000&stat)>0) *out << " DMB Error &nbsp ";
+	  if((0x00004000&stat)>0) *out << " DMB Error in Event&nbsp ";
 	  if((0x00002000&stat)>0) *out << " <font color=blue>Control DLL Error occured</font> &nbsp ";
 	  if((0x00001000&stat)>0) *out << " 2nd Header First flag";
 	  if(0x0fdf&stat) *out << br();
@@ -1962,7 +1986,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	  *out << br();
 	}
 	if((stat&0x0F000000)>0){
-	  if((0x08000000&stat)>0) *out << " <font color=blue>NoLiveFiber Warn</font> &nbsp ";
+	  if((0x08000000&stat)>0) *out << " <font color=blue>NoLiveFiber 0 or 1</font> &nbsp ";
 	  if((0x04000000&stat)>0) *out << " <font color=blue>DLL Error occurred</font> &nbsp ";
 	  if((0x02000000&stat)>0) *out << " <font color=black>InRD1 DMB Warn</font> &nbsp ";
 	  if((0x01000000&stat)>0) *out << " <font color=black>InRD0 DMB Warn</font>";
@@ -1986,7 +2010,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	if((stat&0x0000F000)>0){
 	  if((0x00008000&stat)>0) *out << " <font color=red>Critical Error ** needs reset **</font> &nbsp ";
 	  if((0x00004000&stat)>0) *out << " <font color=orange>Single Error, bad event</font> &nbsp ";
-	  if((0x00002000&stat)>0) *out << " <font color=blue>Single Warning</font> &nbsp ";
+	  if((0x00002000&stat)>0) *out << " <font color=blue>Single warning, possible data problem</font> &nbsp ";
 	  if((0x00001000&stat)>0) *out << " <font color=blue>Near Full Warning</font>";
 	  *out << br();
 	}
@@ -1994,20 +2018,20 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	  if((0x00000800&stat)>0) *out << " <font color=blue>RX Error</font> &nbsp ";
 	  if((0x00000400&stat)>0) *out << " <font color=blue>DLL Error (recent)</font> &nbsp ";
 	  if((0x00000200&stat)>0) *out << " <font color=orange>SCA Full detected</font> &nbsp ";
-	  if((0x00000100&stat)>0) *out << " <font color=blue>Special Word Error</font>";
+	  if((0x00000100&stat)>0) *out << " <font color=blue>Special Word voted-bit warning</font>";
 	  *out << br();
 	}
 	if((stat&0x000000F0)>0){
-	  if((0x00000080&stat)>0) *out << " Stuck Data Error occurred &nbsp ";
-	  if((0x00000040&stat)>0) *out << " Timeout Error &nbsp ";
-	  if((0x00000020&stat)>0) *out << " Critical Data Error &nbsp ";
+	  if((0x00000080&stat)>0) *out << " Stuck Data occurred &nbsp ";
+	  if((0x00000040&stat)>0) *out << " Timeout occurred &nbsp ";
+	  if((0x00000020&stat)>0) *out << " Multiple voted-bit Errors &nbsp ";
 	  if((0x00000010&stat)>0) *out << " Multiple Transmit Errors";
 	  *out << br();
 	}
 	if((stat&0x0000000F)>0){
 	  if((0x00000008&stat)>0) *out << " Mem/FIFO Full Error &nbsp ";
 	  if((0x00000004&stat)>0) *out << " Fiber Error &nbsp ";
-	  if((0x00000002&stat)>0) *out << " <font color=orange>L1A Mismatch Error</font> &nbsp ";
+	  if((0x00000002&stat)>0) *out << " <font color=orange>L1A Match Error</font> &nbsp ";
 	  if((0x00000001&stat)>0) *out << " Not Ready Error";
 	  *out << br();
 	}
@@ -2444,7 +2468,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	  *out << br();
 	}
 	if((stat&0x0F000000)>0){
-	  if((0x08000000&stat)>0) *out << " <font color=blue>NoLiveFiber Warn</font> &nbsp ";
+	  if((0x08000000&stat)>0) *out << " <font color=blue>NoLiveFiber 0 or 1</font> &nbsp ";
 	  if((0x04000000&stat)>0) *out << " <font color=blue>DLL Error occurred</font> &nbsp ";
 	  if((0x02000000&stat)>0) *out << " <font color=black>InRD3 DMB Warn</font> &nbsp ";
 	  if((0x01000000&stat)>0) *out << " <font color=black>InRD2 DMB Warn</font>";
@@ -2468,7 +2492,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	if((stat&0x0000F000)>0){
 	  if((0x00008000&stat)>0) *out << " <font color=red>Critical Error ** needs reset **</font> &nbsp ";
 	  if((0x00004000&stat)>0) *out << " <font color=orange>Single Error, bad event</font> &nbsp ";
-	  if((0x00002000&stat)>0) *out << " <font color=blue>Single Warning</font> &nbsp ";
+	  if((0x00002000&stat)>0) *out << " <font color=blue>Single warning, possible data problem</font> &nbsp ";
 	  if((0x00001000&stat)>0) *out << " <font color=blue>Near Full Warning</font>";
 	  *out << br();
 	}
@@ -2476,20 +2500,20 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	  if((0x00000800&stat)>0) *out << " <font color=blue>RX Error</font> &nbsp ";
 	  if((0x00000400&stat)>0) *out << " <font color=blue>DLL Error (recent)</font> &nbsp ";
 	  if((0x00000200&stat)>0) *out << " <font color=orange>SCA Full detected</font> &nbsp ";
-	  if((0x00000100&stat)>0) *out << " <font color=blue>Special Word Error</font>";
+	  if((0x00000100&stat)>0) *out << " <font color=blue>Special Word voted-bit warning</font>";
 	  *out << br();
 	}
 	if((stat&0x000000F0)>0){
-	  if((0x00000080&stat)>0) *out << " Stuck Data Error occurred &nbsp ";
-	  if((0x00000040&stat)>0) *out << " Timeout Error &nbsp ";
-	  if((0x00000020&stat)>0) *out << " Critical Data Error &nbsp ";
+	  if((0x00000080&stat)>0) *out << " Stuck Data occurred &nbsp ";
+	  if((0x00000040&stat)>0) *out << " Timeout &nbsp ";
+	  if((0x00000020&stat)>0) *out << " Multiple voted-bit Errors &nbsp ";
 	  if((0x00000010&stat)>0) *out << " Multiple Transmit Errors";
 	  *out << br();
 	}
 	if((stat&0x0000000F)>0){
 	  if((0x00000008&stat)>0) *out << " Mem/FIFO Full Error &nbsp ";
 	  if((0x00000004&stat)>0) *out << " Fiber Error &nbsp ";
-	  if((0x00000002&stat)>0) *out << " <font color=orange>L1A Mismatch Error</font> &nbsp ";
+	  if((0x00000002&stat)>0) *out << " <font color=orange>L1A Match Error</font> &nbsp ";
 	  if((0x00000001&stat)>0) *out << " Not Ready Error";
 	  *out << br();
 	}
@@ -3415,7 +3439,7 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
 {
      unsigned long int idcode,uscode;
     unsigned long int tidcode[2]={0x05035093,0xf5059093};
-    unsigned long int tuscode[2]={0xdcc30046,0xdcc31061};
+    unsigned long int tuscode[2]={0xdcc30081,0xdcc310A8};
     //
     cgicc::Cgicc cgi(in);
     //    printf(" initialize env \n");
@@ -3490,7 +3514,8 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
     printf(" uscode %08lx \n",uscode);
     if(thisDCC->CAEN_err()!=0){ 
       *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
-    }else if(uscode!=tuscode[i]){
+      //    }else if(uscode!=tuscode[i]){
+    }else if(0xffff0000&uscode!=0xffff0000&tuscode[i]){
     *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
     }else{ 
     *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
