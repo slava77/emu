@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.32 2006/04/27 18:46:03 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.33 2006/04/28 13:41:16 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -254,6 +254,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::LogTMBTestsOutput, "LogTMBTestsOutput");
     xgi::bind(this,&EmuPeripheralCrate::FindWinner, "FindWinner");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBTime, "CalibrationCFEBTime");
+    xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBSaturation, "CalibrationSaturation");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBCharge, "CalibrationCFEBCharge");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBPedestal, "CalibrationCFEBPedestal");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationComparatorPulse, "CalibrationComparatorPulse");
@@ -821,13 +822,47 @@ private:
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     //
+    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
+    //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << cgicc::legend("Calibration Runs").set("style","color:blue") ;
     //
     std::string CalibrationCFEBTime =
       toolbox::toString("/%s/CalibrationCFEBTime",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBTime) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Calibration run CFEB Time") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Calibration Strips : CFEB time spread") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string CalibrationCFEBCharge =
+      toolbox::toString("/%s/CalibrationCFEBCharge",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBCharge) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Calibration Strips : CFEB pulse-amplitude uniformity") 
+	 << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string CalibrationCFEBSaturation =
+      toolbox::toString("/%s/CalibrationSaturation",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBSaturation) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Calibration Strips : CFEB high-end amplifier saturation") 
+	 << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string CalibrationCFEBPedestal =
+      toolbox::toString("/%s/CalibrationCFEBPedestal",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBPedestal) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Calibration Strips CFEB Pedestal") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string CalibrationALCT =
+      toolbox::toString("/%s/CalibrationALCT",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CalibrationALCT) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Calibration run all Wires ALCT") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string CalibrationRandomWiresALCT =
+      toolbox::toString("/%s/CalibrationRandomWiresALCT",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CalibrationRandomWiresALCT) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Calibration random Wires ALCT") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     std::string CalibrationComparatorPulse =
@@ -836,38 +871,19 @@ private:
     *out << cgicc::input().set("type","submit").set("value","Calibration Comparator Pulse") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
+    *out << cgicc::fieldset();
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    *out << cgicc::legend("Calibration tools").set("style","color:blue") ;
+    //
     std::string FindLv1aDelayComparator =
       toolbox::toString("/%s/FindLv1aDelayComparator",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",FindLv1aDelayComparator) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Find l1a delay for Comparator") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
-    std::string CalibrationCFEBCharge =
-      toolbox::toString("/%s/CalibrationCFEBCharge",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBCharge) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Calibration run CFEB Charge") << std::endl ;
-    *out << cgicc::form() << std::endl ;
+    *out << cgicc::fieldset();
     //
-    std::string CalibrationCFEBPedestal =
-      toolbox::toString("/%s/CalibrationCFEBPedestal",getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBPedestal) << std::endl ;
-      *out << cgicc::input().set("type","submit").set("value","Calibration run CFEB Pedestal") << std::endl ;
-      *out << cgicc::form() << std::endl ;
-      //
-      std::string CalibrationALCT =
-	toolbox::toString("/%s/CalibrationALCT",getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::form().set("method","GET").set("action",CalibrationALCT) << std::endl ;
-      *out << cgicc::input().set("type","submit").set("value","Calibration run all Wires ALCT") << std::endl ;
-      *out << cgicc::form() << std::endl ;
-      //
-      std::string CalibrationRandomWiresALCT =
-	toolbox::toString("/%s/CalibrationRandomWiresALCT",getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::form().set("method","GET").set("action",CalibrationRandomWiresALCT) << std::endl ;
-      *out << cgicc::input().set("type","submit").set("value","Calibration random Wires ALCT") << std::endl ;
-      *out << cgicc::form() << std::endl ;
-      //
-      *out << cgicc::fieldset();
-      //
   }
   //
   void EmuPeripheralCrate::CrateConfiguration(xgi::Input * in, xgi::Output * out ) 
@@ -1309,26 +1325,20 @@ private:
   {
     //
     CalibDAQ calib;
-    //calib.loadConstants();
-    //
-    //int nsleep, nstrip, tries, counter =0;
-    float dac;
-    //int nsleep = 100000;  
-    dac = 1.0;
-    /*
-    for (int i=0;i<16;i++) {  
-      for (int ntim=0;ntim<20;ntim++) {
-	calib.pulseAllDMBs(ntim, i, dac, nsleep);  
-	counter++;
-	std::cout << "dac = " << dac <<
-	  "  strip = " << i <<
-	  "  ntim = " << ntim <<
-	  "  event  = " << counter << std::endl;
-      }
-    }
-    */
     //
     calib.rateTest();
+    //
+    this->Default(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::CalibrationCFEBSaturation(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    CalibDAQ calib;
+    //
+    calib.CFEBSaturation();
     //
     this->Default(in,out);
     //
@@ -1339,24 +1349,8 @@ private:
   {
     //
     CalibDAQ calib;
-    //calib.loadConstants();
     //
-    //int nsleep, nstrip, tries, counter =0;
-    float dac;
-    int counter=0;
-    int nsleep = 100;  
-    dac = 1.0;
-    //
-    for (int i=0;i<16;i++) {  
-      for (int ntim=0;ntim<20;ntim++) {
-	calib.pulseAllDMBs(ntim, i, dac, nsleep);  
-	counter++;
-	std::cout << "dac = " << dac <<
-	  "  strip = " << i <<
-	  "  ntim = " << ntim <<
-	  "  event  = " << counter << std::endl;
-      }
-    }
+    calib.timeCFEB();
     //
     this->Default(in,out);
     //
@@ -1379,7 +1373,7 @@ private:
   {
     //
     CalibDAQ calib;
-    calib.loadConstants();
+    //calib.loadConstants();
     //
     //int nsleep, nstrip, tries;
     //float dac;
@@ -3575,7 +3569,7 @@ private:
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("Simple Web Form") << std::endl;
+    *out << cgicc::title("ALCT status") << std::endl;
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
@@ -3616,7 +3610,7 @@ private:
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("Simple Web Form") << std::endl;
+    *out << cgicc::title("RAT Status") << std::endl;
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
@@ -3657,7 +3651,7 @@ private:
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("Simple Web Form") << std::endl;
+    *out << cgicc::title("CFEB Status") << std::endl;
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;

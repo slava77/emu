@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.h,v 2.7 2006/04/25 13:25:18 mey Exp $
+// $Id: CalibDAQ.h,v 2.8 2006/04/28 13:41:16 mey Exp $
 // $Log: CalibDAQ.h,v $
+// Revision 2.8  2006/04/28 13:41:16  mey
+// Update
+//
 // Revision 2.7  2006/04/25 13:25:18  mey
 // Update
 //
@@ -42,10 +45,12 @@ public:
   
   void loadConstants();
   void rateTest();
+  void CFEBSaturation();
   void loadConstants(Crate * crate);   
-  void pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep, float thresh=0.03);
+  void pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep, int calType=0);
   void injectComparator(int ntim, int nstrip, float dac, int nsleep, float thresh=0.03);
   void pedestalCFEB();
+  void timeCFEB();
   void pulseAllWires();
   void pulseRandomWires();
   void pulseComparatorPulse();

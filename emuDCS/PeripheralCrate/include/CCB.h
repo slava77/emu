@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.18 2006/03/10 10:42:22 mey Exp $
+// $Id: CCB.h,v 2.19 2006/04/28 13:41:16 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.19  2006/04/28 13:41:16  mey
+// Update
+//
 // Revision 2.18  2006/03/10 10:42:22  mey
 // Left DCS message
 //
@@ -93,6 +96,7 @@ public:
   // these two call pulse for different VME addresses
   void pulse(int num_pulse,unsigned int pulse_delay);
   void inject(int num_pulse,unsigned int pulse_delay);
+  void pedestal(int num_pulse,unsigned int pulse_delay);
   void pulse(int Num_pulse,unsigned int * delays, char vme);
   void pulse();
   //
