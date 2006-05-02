@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.35 2006/04/20 15:33:54 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.36 2006/05/02 21:23:27 mey Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.36  2006/05/02 21:23:27  mey
+// Update
+//
 // Revision 2.35  2006/04/20 15:33:54  mey
 // Update
 //
@@ -1431,6 +1434,7 @@ void VMEController::buckflash(const char *cmd,const char *inbuf,char *rcv)
    ptr=(unsigned short int *)add_bucl;
    for(i=0;i<294;i++){ 
      line2=(char *)inbuf+i-1;
+     printf("%d\n",line2);
      // data=(unsigned short int *)line2;
      data[0]=((line2[0]<<8)&0xff00)|(line2[1]&0x00ff);
      vme_controller(1,ptr,data,rcv);    
