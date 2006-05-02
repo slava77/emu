@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 1.9 2006/03/24 14:35:46 mey Exp $
+// $Id: CrateTiming.cpp,v 1.10 2006/05/02 20:53:38 mey Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 1.10  2006/05/02 20:53:38  mey
+// UPdate
+//
 // Revision 1.9  2006/03/24 14:35:46  mey
 // UPdate
 //
@@ -348,6 +351,7 @@ int main(int argc,char **argv){
   bool doReadRATUser1(false);
   bool doReadCCBTTCCommand(false);
   bool doCCBCLCTexternTrigger(false);
+  bool doDMB11(false);
   //
   //-- read commandline arguments and xml configuration file
   //
@@ -533,7 +537,7 @@ int main(int argc,char **argv){
        cout << " 55:LoadDMBFirmware      56:LoadALCTfirmware      57:LoadTMBFirmware   " << std::endl;
        cout << " 58:LoadCFEBFirmware     59:doCrazyCrate          60:DumpTTCrxRegs     " << std::endl;
        cout << " 61:DecodeALCT           62:Chambers              63:ReadRATUser1      " <<std::endl;
-       cout << " 64:ReadCCBTTCCommand    65:CCBCLCTexterTrigger                        " << std::endl;
+       cout << " 64:ReadCCBTTCCommand    65:CCBCLCTexterTrigger   66:DMB11             " << std::endl;
        //
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
@@ -606,6 +610,7 @@ int main(int argc,char **argv){
        doChambers            = false;
        doReadCCBTTCCommand   = false;
        doCCBCLCTexternTrigger = false;
+       doDMB11                = false;
        //
        if ( Menu == -1 ) goto outhere;
        if ( Menu == 0 ) doInitSystem           = true ;
@@ -674,9 +679,14 @@ int main(int argc,char **argv){
        if ( Menu == 63) doReadRATUser1         = true ;
        if ( Menu == 64) doReadCCBTTCCommand    = true ;
        if ( Menu == 65) doCCBCLCTexternTrigger = true ;
-       if ( Menu  > 65 | Menu < -2) 
+       if ( Menu == 66) doDMB11 = true ;
+       if ( Menu  > 66 | Menu < -2) 
 	 cout << "Invalid menu choice, try again." << endl << endl;
        //
+    }
+    //
+    if ( doDMB11 ) {
+      thisDMB->test11();
     }
     //
     if ( doCCBCLCTexternTrigger ) {
