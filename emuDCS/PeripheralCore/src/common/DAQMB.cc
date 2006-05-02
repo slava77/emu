@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.35 2006/05/02 21:04:28 mey Exp $
+// $Id: DAQMB.cc,v 2.36 2006/05/02 21:12:43 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.36  2006/05/02 21:12:43  mey
+// UPdate
+//
 // Revision 2.35  2006/05/02 21:04:28  mey
 // UPdate
 //
@@ -1505,7 +1508,7 @@ void DAQMB::buckflash_load(char *fshift)
  sndbuf[288]=0x01|sndbuf[288];
  sndbuf[289]=0x01|sndbuf[289];
  cmd[0]=1;
- devdo(BUCSHF,1,cmd,295*8,sndbuf,rcvbuf,0); // load buckeye pattern
+ devdo(BUCSHF,1,cmd,295,sndbuf,rcvbuf,0); // load buckeye pattern
  //Just to put some extra TMS low after the process for safety.
  //The exact number needed is 295.
 }
