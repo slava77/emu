@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.34 2006/04/24 14:57:21 mey Exp $
+// $Id: DAQMB.cc,v 2.35 2006/05/02 21:04:28 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.35  2006/05/02 21:04:28  mey
+// UPdate
+//
 // Revision 2.34  2006/04/24 14:57:21  mey
 // Update
 //
@@ -1493,6 +1496,9 @@ void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
 
 void DAQMB::buckflash_load(char *fshift)
 {
+  
+  std::cout << "inside load" <<std::endl;
+  
  cmd[0]=0;
  devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,0); // initialize programming
  for(int i=0;i<295;i++)sndbuf[i]=fshift[i];
