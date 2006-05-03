@@ -125,7 +125,7 @@ move to /usr/include/eth_hook_3.h
 #define SKB_EXTRA 14
 #define SKB_OFFSET -14
 */
-#include <eth_hook_3.h>
+#include "eth_hook_3.h"
 static char *buf_start_3;
 static char *buf_end_3;
 static char *buf_eend_3;
