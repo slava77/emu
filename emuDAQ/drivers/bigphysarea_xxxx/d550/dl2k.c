@@ -123,7 +123,7 @@ static int mii_write (struct net_device *dev, int phy_addr, int reg_num,
 		      u16 data);
 // durkin hook kludge
 extern int netif_rx_hook_2(struct sk_buff *skb);
-// extern int netif_rx_hook_3(struct sk_buff *skb);
+extern int netif_rx_hook_3(struct sk_buff *skb);
 
 static int __devinit
 rio_probe1 (struct pci_dev *pdev, const struct pci_device_id *ent)
@@ -930,7 +930,7 @@ receive_packet (struct net_device *dev)
 			// netif_rx(skb);
                         // netif_rx_hook(skb);
 			if(strcmp(dev->name,"eth2")==0)netif_rx_hook_2(skb);	     /* send it up */
-			//   if(strcmp(dev->name,"eth3")==0)netif_rx_hook_3(skb);	     /*  send it up */
+			if(strcmp(dev->name,"eth3")==0)netif_rx_hook_3(skb);	     /*  send it up */
 
 			dev->last_rx = jiffies;
 		}
