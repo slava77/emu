@@ -12,4 +12,6 @@ PWD=`pwd`
 /sbin/insmod $PWD/dl2k.o jumbo=1,1 mtu=9000 tx_flow=0 rx_flow=0 media=6,6
 /sbin/ifup eth2
 /sbin/ifup eth3
+/sbin/ifconfig eth2 -arp -allmulti
+/sbin/ifconfig eth3 -arp -allmulti
 /sbin/ifconfig
