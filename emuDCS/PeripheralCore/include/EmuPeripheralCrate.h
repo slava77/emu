@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.33 2006/04/28 13:41:16 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.34 2006/05/03 21:00:34 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -289,6 +289,8 @@ public:
     fsm_.addStateTransition(
       'C', 'E', "Enable",    this, &EmuPeripheralCrate::enableAction);
     fsm_.addStateTransition(
+      'E', 'E', "Enable",    this, &EmuPeripheralCrate::enableAction);
+    fsm_.addStateTransition(
       'E', 'C', "Disable",   this, &EmuPeripheralCrate::disableAction);
     fsm_.addStateTransition(
       'C', 'H', "Halt",      this, &EmuPeripheralCrate::haltAction);
@@ -559,9 +561,9 @@ private:
     throw (toolbox::fsm::exception::Exception)
   {
     //
-    MyController->init();
+    //MyController->init();
     //
-    MyController->configure();
+    //MyController->configure();
     //
     std::cout << "Received Message Enable" << std::endl ;
   }
