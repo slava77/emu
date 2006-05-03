@@ -852,7 +852,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     cout << crateStr << endl ;
     cgicc::form_iterator name = cgi.getElement("ddu");
     int j,ddu,icrit,icond,icond2,icond3,icond4;
-    unsigned long int stat;
+    unsigned long int stat=0,live_fiber=0;
     if(name != cgi.getElements().end()) {
       ddu = cgi["ddu"]->getIntegerValue();
       DDU_ = ddu;
@@ -866,8 +866,9 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg");
     // << std::endl;
 
-    char buf[300],buf2[300],buf3[300],buf4[20];
+    char buf[300],buf2[300],buf3[300],buf4[200];
     char buf5[300],buf6[10],buf7[300],buf8[10];
+    unsigned long int ndmb,nalct,ntmb,ncfeb;
     sprintf(buf,"DDU Control FPGA, VME  Slot %d",thisDDU->slot());
     //    *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;") << std::endl;
     //    *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
@@ -918,10 +919,10 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
       }
       if(i==203){
 	thisDDU->ddu_rdscaler();
-           sprintf(buf,"DDU L1 Event Scaler, bits [23-0]:");
-           sprintf(buf2," %02X%04Xh ",thisDDU->ddu_code1,thisDDU->ddu_code0);
-	   stat=((thisDDU->ddu_code1)<<16)+thisDDU->ddu_code0;
-           sprintf(buf4," = %8lu Dec",stat&0x00ffffff);
+	sprintf(buf,"DDU L1 Event Scaler, bits [23-0]:");
+	sprintf(buf2," %02X%04Xh ",thisDDU->ddu_code1,thisDDU->ddu_code0);
+	stat=((thisDDU->ddu_code1)<<16)+thisDDU->ddu_code0;
+	sprintf(buf4," = %8lu Dec",stat&0x00ffffff);
       }
       if(i==204){
 	thisDDU->ddu_rderareg();
@@ -959,6 +960,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	thisDDU->ddu_pdmblive();
 	sprintf(buf,"First Event DMBLIVE, Fiber[14-0]:");
 	sprintf(buf2," %04X ",thisDDU->ddu_code0);
+	live_fiber=0x7fff&thisDDU->ddu_code0;
       }
       if(i==208){
 	thisDDU->ddu_dmblive();
@@ -1158,7 +1160,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	sprintf(buf2," EXPERT ONLY! ");
 	icond=2;
 // JRG, do better later: move to VMEpara and use bit3 of Fake L1A Reg.
-//   --> No!  Can't do that because no free lines from VMEfpga to DDUfpga.
+//   --> No...Can't do that because no free lines from VMEfpga to DDUfpga.
 //  add Reg Read & Print on page some other way?  Make F31 shiftable?
 //    sprintf(buf2," %04X <font color=red> EXPERT ONLY! </font> ",0x0008&thisDDU->vmepara_rd_fakel1reg());
       }
@@ -1168,29 +1170,74 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	icond=2;
       }
       if(i==229){
-	*out << br() << " <font color=blue> CSC Board Occupancies </font>" << br() << std::endl;
+	int err=0;
+	sprintf(buf3," ");
+	sprintf(buf4," ");
+	*out << br() << " <font color=blue size=+1> CSC Board Occupancies </font>" << br() << std::endl;
+	//	*out << cgicc::table().set("border","0").set("rules","none").set("frame","void"); 
+	*out << cgicc::table().set("align","center").set("width","800").set("cellpadding","5%").set("border","3").set("rules","all").set("frame","border");
+       	*out << cgicc::colgroup().set("align","center");
+       	*out << cgicc::col().set("span","2").set("align","center").set("width","20");
+       	*out << cgicc::col().set("span","4").set("align","center");
+	*out << cgicc::thead() << std::endl;
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::th().set("colspan","2") << " DDU " << cgicc::th() << cgicc::th().set("colspan","4") << " Board Occupancy " << cgicc::th() << cgicc::tr();
+	*out << cgicc::tr() << std::endl;
+	*out << cgicc::th() << "Input" << cgicc::th();
+	*out << cgicc::th() << "Reg.#" << cgicc::th();
+	*out << cgicc::th().set("width","165") << "DMB" << cgicc::th();
+	*out << cgicc::th().set("width","165") << "ALCT" << cgicc::th();
+	*out << cgicc::th().set("width","165") << "TMB" << cgicc::th();
+	*out << cgicc::th().set("width","165") << "CFEB" << cgicc::th() << cgicc::tr() << std::endl;
+	*out << cgicc::thead() << std::endl;
+	*out << cgicc::tbody() << std::endl;
 	for(j=0;j<15;j++){
-	thisDDU->ddu_occmon();
-	sprintf(buf,"DDU input #%ld: ",0x0000000f&(thisDDU->fpga_lcode[0]>>28));
-	sprintf(buf2," DMB Occupancy=%ld; ALCT=%ld; TMB=%ld; CFEB=%ld",0x0fffffff&thisDDU->fpga_lcode[0],0x0fffffff&thisDDU->fpga_lcode[1],0x0fffffff&thisDDU->fpga_lcode[2],0x0fffffff&thisDDU->fpga_lcode[3]);
-	*out << buf << "<font color=green>" << buf2 << "</font>" << br() << std::endl;
-
-	if((0xf0000000&thisDDU->fpga_lcode[0])!=(0xf0000000&thisDDU->fpga_lcode[3])){
-	  sprintf(buf," &nbsp **End error: DDU input = %ld",0x0000000f&(thisDDU->fpga_lcode[3]>>28));
+	  thisDDU->ddu_rdscaler();
+	  stat=((thisDDU->ddu_code1)<<16)+thisDDU->ddu_code0;
+	  thisDDU->ddu_occmon();
+	  ndmb=0x0fffffff&thisDDU->fpga_lcode[0];
+	  nalct=0x0fffffff&thisDDU->fpga_lcode[1];
+	  ntmb=0x0fffffff&thisDDU->fpga_lcode[2];
+	  ncfeb=0x0fffffff&thisDDU->fpga_lcode[3];
+	  sprintf(buf,"%d </td> <td> %ld ",j,0x0000000f&(thisDDU->fpga_lcode[0]>>28));
+// For CSCs with data, for each board print #events & percent vs nDMB;
+//   for DMB print percent vs # L1A.  Useful to detect hot/dead CSCs?
+//   Make RED if no DMBs seen from a LiveFiber.
+	  while(stat<ndmb){
+	    stat+=0x01000000;
+	  }
+	  if(ndmb>0&&stat>0)sprintf(buf2," %ld &nbsp; &nbsp; %3.1f%% </td><td align=\"center\"> %ld &nbsp; &nbsp; %3.1f%% </td><td align=\"center\"> %ld &nbsp; &nbsp; %3.1f%% </td><td align=\"center\"> %ld &nbsp; &nbsp; %3.1f%% ",ndmb,100.0*ndmb/stat,nalct,100.0*nalct/ndmb,ntmb,100.0*ntmb/ndmb,ncfeb,100.0*ncfeb/ndmb);
+	  else sprintf(buf2," %ld </td><td> %ld </td><td> %ld </td><td> %ld",ndmb,nalct,ntmb,ncfeb);
+	  if((ndmb==0&&(live_fiber&(0x0001<<j))==0)||(ndmb>0&&(live_fiber&(0x0001<<j))))
+	  *out << cgicc::tr() << cgicc::td() << buf << cgicc::td() << cgicc::td() << "<font color=green>" << buf2 << "</font>";
+	  else *out << cgicc::tr() << cgicc::td() << buf << cgicc::td() << cgicc::td() << "<font color=red>" << buf2 << "</font>";
+	  if((0xf0000000&thisDDU->fpga_lcode[0])!=(0xf0000000&thisDDU->fpga_lcode[3])){
+	    err++;
+	    *out << "<font=red> * </font>";
+	    sprintf(buf3," &nbsp * %d End error, last was DDU input = %d read as %ld",err,j,0x0000000f&(thisDDU->fpga_lcode[3]>>28));
+	  }
+	  if(thisDDU->ddu_shift0!=0xFACE){
+	    *out << "<font=orange> * </font>";
+	    sprintf(buf4," &nbsp ** JTAG Error in i=%d, DDU input #%d: Shifted %04X",i,j,thisDDU->ddu_shift0);
+	  }
+	  *out << cgicc::td() << cgicc::tr() << std::endl;
+	}
+	*out << cgicc::tbody() << std::endl;
+	*out << cgicc::table() << std::endl;
+	*out << "&nbsp; &nbsp; <font size=-1> DMB percentage is relative to # L1As; other board pecentages are relative to # hits on the CSC.</font>" << std::endl;
+	if(err>0){
 	  *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
-	  *out << buf << cgicc::span();
+	  *out << buf3 << cgicc::span();
 	}
-	if(thisDDU->ddu_shift0!=0xFACE){
-	  sprintf(buf," &nbsp **JTAG Error in i=%d, Shifted:%04X",i,thisDDU->ddu_shift0);
-	  *out << cgicc::span().set("style","color:orange;background-color:#dddddd;");
-	  *out << buf << cgicc::span();
-	}
-	}
+	*out << cgicc::span().set("style","color:orange;background-color:#dddddd;");
+	*out << buf4 << cgicc::span();
 	sprintf(buf," ");
 	sprintf(buf2," ");
+	sprintf(buf3," ");
+	sprintf(buf4," ");
       }
-
 // JRGhere
+
       if(i==228||i==227||i==222||i==223||i==226){
 	std::string ddutextload =
 	  toolbox::toString("/%s/DDUTextLoad",getApplicationDescriptor()->getURN().c_str());
@@ -1558,7 +1605,6 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	*out << "</font></blockquote>" << std::endl;
 
       }else if(i==224 && icrit>0){
-	//	*out << "<blockquote><font size=-1 color=black face=arial>Trap decode goes here" << "</font></blockquote>";
 	*out << "<blockquote><font size=-2 color=black face=arial>";
 	DDUtrapDecode(in, out, thisDDU->fpga_lcode);
 	*out << "</font></blockquote>";
@@ -1567,7 +1613,6 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
       }
     }
 
-    //    *out << cgicc::fieldset() << std::endl;
     *out << cgicc::body() << std::endl;    
     *out << cgicc::html() << std::endl;    
 }
@@ -1615,7 +1660,6 @@ void DDUtrapDecode(xgi::Input * in, xgi::Output * out,  unsigned long int lcode[
   sprintf(cbuf4,"%s",sgrn);
   if(0x01ff&lcode[4])sprintf(cbuf4,"%s",sblu);
   sprintf(buf4,"%s   %04lx%s",cbuf4,0xffff&lcode[4],snul);
-  //  sprintf(buf,"      rcv bytes %2d-%2d:   %04lx   %04lx   %04lx   %04lx",i,i-7,(0xffff0000&lcode[5])>>16,0xffff&lcode[5],(0xffff0000&lcode[4])>>16,0xffff&lcode[4]);
   *out << buf << buf1 << buf2 << buf3 << buf4 << std::endl;
 
   i=15;
@@ -1697,8 +1741,6 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
     char buf[300],buf2[300],buf3[300],buf4[30];
     sprintf(buf,"DDU INFPGA0, VME  Slot %d",thisDDU->slot());
     *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg");
-    //    *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;") << std::endl;
-    //    *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
     *out << "<h2 align=center><font color=blue>" << buf << "</font></h2>" << std::endl;
 
     for(int i=300;i<322;i++){
@@ -1738,7 +1780,6 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
       }
       if(i==303){
 	thisDDU->infpga_DMBwarn(INFPGA0);
-//       	*out << br() << " <font color=blue> All 8-bit Fiber Flags below show if the condition has occurred since last Reset</font>" << br() << std::endl;
        	*out << br() << " <font color=blue> Fiber Registers below flag which CSCs experienced each condition since last Reset</font>" << br() << std::endl;
 	sprintf(buf,"infpga0 DMB Full, Fiber[7-0]:");
 	sprintf(buf2," %02X ",(thisDDU->infpga_code0&0xff00)>>8);
@@ -1807,9 +1848,6 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	sprintf(buf4," %02X ",(thisDDU->infpga_code0&0xff00)>>8);
 	stat=thisDDU->infpga_code0;
 	if(0xfc00&stat)icond2=1;
-// JRG, 410: bits 15-8 need decode in Blockquote below, black.
-	//	sprintf(buf,"infpga0 DDU Input FIFO Status [15-0]:");
-	//	sprintf(buf2," %04X ",thisDDU->infpga_code0);
       }
       if(i==311){
 	thisDDU->infpga_FIFOfull(INFPGA0);
@@ -1820,11 +1858,6 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	sprintf(buf4," %01X ",(thisDDU->infpga_code0&0x0f00)>>8);
 	if(thisDDU->infpga_code0&0x0f00)icond2=2;
 	stat=thisDDU->infpga_code0;
-//	if(i==311&&(stat&0x0f00)>0){
-// JRG, 411: bits 11-8 need decode in Blockquote below, red.
-//	sprintf(buf,"infpga0 DDU Input FIFO Full[11-0]:");
-//	sprintf(buf2," %03X ",thisDDU->infpga_code0);
-//	if(thisDDU->infpga_code0&0x0fff)icond=2;
       }
       if(i==312){
 	thisDDU->infpga_CcodeStat(INFPGA0);
@@ -1851,7 +1884,6 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
       if(i==314){
 	thisDDU->infpga_MemAvail(INFPGA0);
 	sprintf(buf,"infpga0 Current FIFO Memory Available:");
-	//	sprintf(buf2,"MemCtrl-0 = %2d free, &nbsp MemCtrl-1 = %2d free",thisDDU->infpga_code0&0x001f,thisDDU->infpga_code1);
 	sprintf(buf2,"MemCtrl-0 = %2d free, ",thisDDU->infpga_code0&0x001f);
 	sprintf(buf4," &nbsp MemCtrl-1 = %2d free",thisDDU->infpga_code1);
 	if(thisDDU->infpga_code0==1)icond=1;
@@ -1862,7 +1894,6 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
       if(i==315){
 	thisDDU->infpga_Min_Mem(INFPGA0);
 	sprintf(buf,"infpga0 Minimum FIFO Memory Availabile:");
-	//	sprintf(buf2,"MemCtrl-0 min = %d free, &nbsp MemCtrl-1 min = %d free",thisDDU->infpga_code0&0x001f,thisDDU->infpga_code1);
 	sprintf(buf2,"MemCtrl-0 min = %d free, ",thisDDU->infpga_code0&0x001f);
 	sprintf(buf4," &nbsp MemCtrl-1 min = %d free",thisDDU->infpga_code1);
 	if(thisDDU->infpga_code0==1)icond=1;
@@ -1920,8 +1951,8 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	sprintf(buf2," EXPERT ONLY! ");
 	icond=2;
       }
+// JRGhere
 
-      // JRG, form Needed for 420?  *out << cgicc::form() << std::endl;
       if(i==321){
          std::string ddutextload =
 	 toolbox::toString("/%s/DDUTextLoad",getApplicationDescriptor()->getURN().c_str());
@@ -2037,7 +2068,6 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	}
         *out << "</font></blockquote>";
       }else if(i==320 && icrit>0){
-	//	*out << "<blockquote><font size=-1 color=black face=arial>Trap decode goes here" << "</font></blockquote>";
 	*out << "<blockquote><font size=-2 color=black face=arial>";
 	DDUinTrapDecode(in, out, thisDDU->fpga_lcode);
 	*out << "</font></blockquote>";
@@ -2112,7 +2142,6 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
       }
     }
 
-    //    *out << cgicc::fieldset() << std::endl;
     *out << cgicc::body() << std::endl;
     *out << cgicc::html() << std::endl;
 
@@ -2155,8 +2184,6 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 
     char buf[300],buf2[300],buf3[300],buf4[30];
     sprintf(buf,"DDU INFPGA1, VME  Slot %d",thisDDU->slot());
-    //    *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;") << std::endl;
-    //    *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
     *out << "<h2 align=center><font color=blue>" << buf << "</font></h2>" << std::endl;
     
     for(int i=400;i<422;i++){
@@ -2196,7 +2223,6 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
       }
       if(i==403){
 	thisDDU->infpga_DMBwarn(INFPGA1);
-//       	*out << br() << " <font color=blue> All 8-bit Fiber Flags below show if the condition has occurred since last Reset</font>" << br() << std::endl;
        	*out << br() << " <font color=blue> Fiber Registers below flag which CSCs experienced each condition since last Reset</font>" << br() << std::endl;
 	sprintf(buf,"infpga1 DMB Full, Fiber[14-8]:");
 	sprintf(buf2," %02X ",(thisDDU->infpga_code0&0xff00)>>8);
@@ -2265,9 +2291,6 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	sprintf(buf4," %02X ",(thisDDU->infpga_code0&0xff00)>>8);
 	stat=thisDDU->infpga_code0;
 	if(0xfc00&stat)icond2=1;
-// JRG, 410: bits 15-8 need decode in Blockquote below, black.
-	//	sprintf(buf,"infpga1 DDU Input FIFO Status [15-0]:");
-	//	sprintf(buf2," %04X ",thisDDU->infpga_code0);
       }
       if(i==411){
 	thisDDU->infpga_FIFOfull(INFPGA1);
@@ -2278,11 +2301,6 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	sprintf(buf4," %01X ",(thisDDU->infpga_code0&0x0f00)>>8);
 	if(thisDDU->infpga_code0&0x0f00)icond2=2;
 	stat=thisDDU->infpga_code0;
-//	if(i==411&&(stat&0x0f00)>0){
-// JRG, 411: bits 11-8 need decode in Blockquote below, red.
-//	sprintf(buf,"infpga1 DDU Input FIFO Full[11-0]:");
-//	sprintf(buf2," %03X ",thisDDU->infpga_code0);
-//	if(thisDDU->infpga_code0&0x0fff)icond=2;
       }
       if(i==412){
 	thisDDU->infpga_CcodeStat(INFPGA1);
@@ -2296,31 +2314,11 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	if(thisDDU->infpga_code0&0xdf00)icond2=2;
 	stat=thisDDU->infpga_code0;
       }
-/* JRG, Not Useful
-      if(i==413){
-	thisDDU->infpga_StatA(INFPGA1);
-           sprintf(buf,"infpga1 DDU Status Reg A [15-0]:");
-           sprintf(buf2," %04X ",thisDDU->infpga_code0);
-      }
-      if(i==414){
-	thisDDU->infpga_StatB(INFPGA1);
-           sprintf(buf,"infpga1 DDU Status Reg B [15-0]:");
-           sprintf(buf2," %04X ",thisDDU->infpga_code0);
-      }
-      if(i==415){
-	thisDDU->infpga_StatC(INFPGA1);
-           sprintf(buf,"infpga1 DDU Status Reg C [15-0]:");
-           sprintf(buf2," %04X ",thisDDU->infpga_code0);
-      }
-*/
       if(i==413){
        	*out << br() << " <font color=blue> Each MemCtrl unit has a pool of 22 internal FIFOs</font>" << br() << std::endl;
 	thisDDU->infpga_FiberDiagA(INFPGA1);
-//	sprintf(buf,"infpga1 Assigned Memory Usage (# FIFOs used), Fibers 8-11: ");
 	sprintf(buf,"infpga1 MemCtrl-2 #FIFOs Used, Fibers 11-8: ");
 	sprintf(buf2,"%ld, %ld, %ld, %ld <br>",(0x1f000000&thisDDU->fpga_lcode[0])>>24,(0x001f0000&thisDDU->fpga_lcode[0])>>16,(0x00001f00&thisDDU->fpga_lcode[0])>>8,0x0000001f&thisDDU->fpga_lcode[0]);
-//	sprintf(buf3,"<br>infpga1 New MemCtrl-2 Memory Assigned flags, Fiber[11-8]: ");
-//	sprintf(buf4,"%01lx",((0x00000040&thisDDU->fpga_lcode[0])>>6)|((0x00004000&thisDDU->fpga_lcode[0])>>13)|((0x00400000&thisDDU->fpga_lcode[0])>>20)|((0x40000000&thisDDU->fpga_lcode[0]>>27)));
 	thisDDU->infpga_FiberDiagB(INFPGA1);
 	sprintf(buf3,"infpga1 MemCtrl-3 #FIFOs Used, Fibers 14-12: ");
 	sprintf(buf4,"%ld, %ld, %ld",(0x1f000000&thisDDU->fpga_lcode[0])>>24,(0x00001f00&thisDDU->fpga_lcode[0])>>8,0x0000001f&thisDDU->fpga_lcode[0]);
@@ -2328,7 +2326,6 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
       if(i==414){
 	thisDDU->infpga_MemAvail(INFPGA1);
 	sprintf(buf,"infpga1 Current FIFO Memory Available:");
-	//	sprintf(buf2,"MemCtrl-2 = %2d free, &nbsp MemCtrl-3 = %2d free",thisDDU->infpga_code0&0x001f,thisDDU->infpga_code1);
 	sprintf(buf2,"MemCtrl-2 = %2d free, ",thisDDU->infpga_code0&0x001f);
 	sprintf(buf4," &nbsp MemCtrl-3 = %2d free",thisDDU->infpga_code1);
 	if(thisDDU->infpga_code0==1)icond=1;
@@ -2339,7 +2336,6 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
       if(i==415){
 	thisDDU->infpga_Min_Mem(INFPGA1);
 	sprintf(buf,"infpga1 Minimum FIFO Memory Availabile:");
-	//	sprintf(buf2,"MemCtrl-2 min = %d free, &nbsp MemCtrl-3 min = %d free",thisDDU->infpga_code0&0x001f,thisDDU->infpga_code1);
 	sprintf(buf2,"MemCtrl-2 min = %d free, ",thisDDU->infpga_code0&0x001f);
 	sprintf(buf4," &nbsp MemCtrl-3 min = %d free",thisDDU->infpga_code1);
 	if(thisDDU->infpga_code0==1)icond=1;
@@ -2355,7 +2351,6 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	if((thisDDU->infpga_code0&0x001f)==0x001f)sprintf(buf2," Fiber 8 Unused, &nbsp ");
 	sprintf(buf4," Fiber 9 writing to %02Xh",thisDDU->infpga_code1);
 	if((thisDDU->infpga_code1&0x001f)==0x001f)sprintf(buf4," Fiber 9 Unused");
-	//	sprintf(buf2," Fiber 8 writing to %02Xh,  Fiber 9 writing to %02Xh",thisDDU->infpga_code0,thisDDU->infpga_code1);
       }
       if(i==417){
 	thisDDU->infpga_WrMemActive(INFPGA1,1);
@@ -2364,7 +2359,6 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	if((thisDDU->infpga_code0&0x001f)==0x001f)sprintf(buf2," Fiber 10 Unused, &nbsp ");
 	sprintf(buf4," Fiber 11 writing to %02Xh",thisDDU->infpga_code1);
 	if((thisDDU->infpga_code1&0x001f)==0x001f)sprintf(buf4," Fiber 11 Unused");
-	//	sprintf(buf2," Fiber 10 writing to %02Xh,  Fiber 11 writing to %02Xh",thisDDU->infpga_code0,thisDDU->infpga_code1);
       }
       if(i==418){
 	thisDDU->infpga_WrMemActive(INFPGA1,2);
@@ -2373,7 +2367,6 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	if((thisDDU->infpga_code0&0x001f)==0x001f)sprintf(buf2," Fiber 12 Unused, &nbsp ");
 	sprintf(buf4," Fiber 13 writing to %02Xh",thisDDU->infpga_code1);
 	if((thisDDU->infpga_code1&0x001f)==0x001f)sprintf(buf4," Fiber 13 Unused");
-	//	sprintf(buf2," Fiber 12 writing to %02Xh,  Fiber 13 writing to %02Xh",thisDDU->infpga_code0,thisDDU->infpga_code1);
       }
       if(i==419){
 	thisDDU->infpga_WrMemActive(INFPGA1,3);
@@ -2398,7 +2391,8 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	sprintf(buf2," EXPERT ONLY! ");
 	icond=2;
       }
-      // JRG, form Needed for 421?  *out << cgicc::form() << std::endl;
+// JRGhere
+
       if(i==421){
          std::string ddutextload =
 	 toolbox::toString("/%s/DDUTextLoad",getApplicationDescriptor()->getURN().c_str());
@@ -2439,10 +2433,6 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
       }
 
       if(i==421){
-	//	std::string ddutextload =
-	//	  toolbox::toString("/%s/DDUTextLoad",getApplicationDescriptor()->getURN().c_str());
-	//	*out << cgicc::form().set("method","GET").set("action",ddutextload) << std::endl;
-	// JRG, Not Needed here?  *out << cgicc::form() << std::endl;
 	  *out << cgicc::input().set("type","hidden")
 	   .set("name","textdata")
 	   .set("size","10")
