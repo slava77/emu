@@ -19,6 +19,7 @@ protected:
   int             theDataLength; // in bytes
   unsigned int    theErrorCount; // counts consequitive read errors
   unsigned short  theErrorFlag;  // for DQM
+  std::string     theLogMessage; // in case anybody is interested...
 
 public:
   enum { DDU, DCC };
@@ -61,6 +62,7 @@ public:
   unsigned int getErrorCount()   { return theErrorCount;     }
   std::string  getName()         { return theName;           }
   unsigned short getErrorFlag()  { return theErrorFlag;      }
+  std::string  getLogMessage()   { return theLogMessage;     }
 
   virtual int  readDDU( unsigned short*& buf )=0;
   virtual int  readDCC( unsigned short*& buf )=0;

@@ -1,6 +1,7 @@
 #include "EmuSpyReader.h"
 
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <fcntl.h>  // for open()
 #include <unistd.h> // for read(), close()
@@ -9,6 +10,7 @@
 #include <sys/mman.h>
 #include "schar.h"
 #include "eth_hook_2.h"
+#include <stdexcept>   // std::runtime_error
 
 EmuSpyReader::EmuSpyReader( std::string filename, int format, bool debug )
   : EmuReader( filename, format, debug ),
@@ -24,28 +26,42 @@ EmuSpyReader::~EmuSpyReader(){
 }
 
 void EmuSpyReader::open(std::string filename) {
-  //std::cout << "filename here was " << filename << std::endl;
-//   liveData_ = (filename.find("/dev/schar")==0);
-  if (filename.find("/dev/schar")==0)
-    std::cout << "EmuSpyReader::open: we have got a life one here, Jimmy: " << filename << std::endl;
+  theLogMessage = "";
   theFileDescriptor = ::open(filename.c_str(), O_RDONLY);
- 
-  // Abort in case of any failure
-  if (theFileDescriptor == -1) {
-    std::cerr << ": FATAL in open - " << std::strerror(errno) << std::endl;
-    std::cerr << " will abort!!!" << std::endl;
-    abort();
+  if ( theDebugMode ){
+    if (filename.find("/dev/schar")==0)
+      std::cout << "EmuSpyReader::open: we have got a life one here, Jimmy: " << filename << std::endl;
+
+    // Abort in case of any failure
+    if (theFileDescriptor == -1) {
+      std::cerr << ": FATAL in open - " << std::strerror(errno) << std::endl;
+      std::cerr << " will abort!!!" << std::endl;
+      abort();
+    }
+  }
+  if (theFileDescriptor == -1){
+    std::stringstream ss;
+    ss << "Opening " << theName << ": " << std::strerror(errno);
+    throw std::runtime_error( ss.str().c_str() );
   }
  
 #ifdef USE_DDU2004
   // MemoryMapped DDU2004 readout
   buf_start = (char *)mmap(NULL,BIGPHYS_PAGES_2*PAGE_SIZE,PROT_READ,MAP_PRIVATE,theFileDescriptor,0);
-  if (buf_start==MAP_FAILED) {
-    std::cerr << "EmuSpyReader::open: FATAL in memorymap - " << std::strerror(errno) << std::endl;
-    std::cerr << "EmuSpyReader::open will abort!!!" << std::endl;
-    abort();
-  };
-  std::cout << "EmuSpyReader::open: Memory map succeeded " << std::endl;
+  if ( theDebugMode ){
+    if (buf_start==MAP_FAILED) {
+      std::cerr << "EmuSpyReader::open: FATAL in memorymap - " << std::strerror(errno) << std::endl;
+      std::cerr << "EmuSpyReader::open will abort!!!" << std::endl;
+      abort();
+    }
+    std::cout << "EmuSpyReader::open: Memory map succeeded " << std::endl;
+  }
+  if (buf_start==MAP_FAILED){
+    std::stringstream ss;
+    ss << "Memory map for " << theName << ": " << std::strerror(errno);
+    throw std::runtime_error( ss.str().c_str() );
+  }
+  theLogMessage = "Memory map succeeded.";
   buf_end=(BIGPHYS_PAGES_2-RING_PAGES_2)*PAGE_SIZE-MAXPACKET_2;
   buf_eend=(BIGPHYS_PAGES_2-RING_PAGES_2)*PAGE_SIZE-TAILPOS-MAXEVENT_2;
   ring_start=buf_start+(BIGPHYS_PAGES_2-RING_PAGES_2)*PAGE_SIZE;
@@ -63,7 +79,7 @@ void EmuSpyReader::open(std::string filename) {
 void EmuSpyReader::close() {
 #ifdef USE_DDU2004
   // new MemoryMapped DDU readout
-  std::cout << "close and unmmap" << std::endl;
+  if ( theDebugMode ) std::cout << "close and unmmap" << std::endl;
   munmap((void *)buf_start,BIGPHYS_PAGES_2*PAGE_SIZE);
 #endif
   ::close(theFileDescriptor);
@@ -72,9 +88,16 @@ void EmuSpyReader::close() {
 
 int EmuSpyReader::reset(void){
   int status;
-  std::cout << "EmuSpyReader: reset" << std::endl;
-  if((status=ioctl(theFileDescriptor,SCHAR_RESET))==-1)
-     std::cout << "EmuSpyReader: error in reset - " << std::strerror(errno) << std::endl;
+  if ( theDebugMode ) std::cout << "EmuSpyReader: reset" << std::endl;
+  if((status=ioctl(theFileDescriptor,SCHAR_RESET))==-1){
+     if ( theDebugMode ) std::cout << "EmuSpyReader: error in reset - " << std::strerror(errno) << std::endl;
+     else{
+       std::stringstream ss;
+       ss << "Reset " << theName << ": " << std::strerror(errno);
+       throw std::runtime_error( ss.str() );
+     }
+  }
+  theLogMessage += " Reset.";
 #ifdef USE_DDU2004
   buf_pnt=0;
   ring_pnt=0;
@@ -88,26 +111,46 @@ int EmuSpyReader::reset(void){
 
 int EmuSpyReader::enableBlock(void){
   int status;
-  std::cout << "EmuSpyReader: enableBlock" << std::endl;
-  if((status=ioctl(theFileDescriptor,SCHAR_BLOCKON))==-1)
-    std::cout << "EmuSpyReader: error in enableBlock - " << std::strerror(errno) << std::endl;
+  if ( theDebugMode ) std::cout << "EmuSpyReader: enableBlock" << std::endl;
+  if((status=ioctl(theFileDescriptor,SCHAR_BLOCKON))==-1){
+    if ( theDebugMode ) std::cout << "EmuSpyReader: error in enableBlock - " << std::strerror(errno) << std::endl;
+    else{
+      std::stringstream ss;
+      ss << "Enable block for " << theName << ": " << std::strerror(errno);
+      throw std::runtime_error( ss.str() );
+    }
+  }
+  theLogMessage += " Block enabled.";
   return status;
 }
 
 int EmuSpyReader::disableBlock(void){
   int status;
-  std::cout << "EmuSpyReader: disableBlock" << std::endl;
-  if((status=ioctl(theFileDescriptor,SCHAR_BLOCKOFF))==-1)
-    std::cout << "EmuSpyReader: error in disableBlock - " << std::strerror(errno) << std::endl;
+  if ( theDebugMode ) std::cout << "EmuSpyReader: disableBlock" << std::endl;
+  if((status=ioctl(theFileDescriptor,SCHAR_BLOCKOFF))==-1){
+    if ( theDebugMode ) std::cout << "EmuSpyReader: error in disableBlock - " << std::strerror(errno) << std::endl;
+    else{
+      std::stringstream ss;
+      ss << "Disable block for " << theName << ": " << std::strerror(errno);
+      throw std::runtime_error( ss.str() );
+    }
+  }
+  theLogMessage += " Block enabled.";
   return status;
 }
 
 
 int EmuSpyReader::endBlockRead(){
   int status;
-  std::cout << "EmuSpyReader: endBlockRead" << std::endl;
-  if((status=ioctl(theFileDescriptor,SCHAR_END))==-1)
-    std::cout << "EmuSpyReader: error in endBlockRead - " << std::strerror(errno) << std::endl;
+  if ( theDebugMode ) std::cout << "EmuSpyReader: endBlockRead" << std::endl;
+  if((status=ioctl(theFileDescriptor,SCHAR_END))==-1){
+    if ( theDebugMode ) std::cout << "EmuSpyReader: error in endBlockRead - " << std::strerror(errno) << std::endl;
+    else{
+      std::stringstream ss;
+      ss << "End block read from " << theName << ": " << std::strerror(errno);
+      throw std::runtime_error( ss.str() );
+    }
+  }
   return status;
 }
 
@@ -120,6 +163,7 @@ int EmuSpyReader::chunkSize() {
 
 // int EmuSpyReader::readDDU(unsigned short **buf) {
 int EmuSpyReader::readDDU(unsigned short*& buf) {
+  theLogMessage = "";
 #ifndef USE_DDU2004
 //---------------------------------------------------------------------//
 // use the -DUSE_DDU2004 switch in the Makefile to switch between DDU readout modes
@@ -211,11 +255,15 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
 
     if((ring_loop_kern2!=ring_loop)&&(buf_pnt<=buf_pnt_kern)){
       overwrite=1;
-      std::cout << "EmuSpyReader::readDDU:  BUFFER OVERWRITE" << std::endl; break;
+      if ( theDebugMode ) std::cout << "EmuSpyReader::readDDU:  BUFFER OVERWRITE" << std::endl; 
+      theLogMessage = theName+": buffer overwrite.";
+      break;
     }
     if(ring_loop_kern!=ring_loop){
       overwrite=1;
-      std::cout << "EmuSpyReader::readDDU: LOOP OVERWRITE" << std::endl; break;
+      if ( theDebugMode ) std::cout << "EmuSpyReader::readDDU: LOOP OVERWRITE" << std::endl;
+      theLogMessage = theName+": loop overwrite.";
+      break;
     }
     if(packets==0){
       buf_data=buf_start+buf_pnt;
@@ -242,7 +290,7 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
     if(end_event==0x4000) break;
   }
 
-  if ( timeout ) std::cerr << "EmuSpyReader::readDDU timed out. Event length: " << len << " b" << std::endl;
+//   if ( timeout ) std::cerr << "EmuSpyReader::readDDU timed out. Event length: " << len << " b" << std::endl;
 
   //fg adjust the length to account for filler bytes
 //  char *end_buf_data;

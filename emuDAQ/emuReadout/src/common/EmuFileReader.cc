@@ -4,6 +4,7 @@
 #include <fcntl.h>  // for open()
 #include <unistd.h> // for read(), close()
 #include <errno.h>  // for errno
+#include <stdexcept>   // std::runtime_error
 
 EmuFileReader::EmuFileReader( std::string filename, int format, bool debug )
   : EmuReader( filename, format, debug ),
@@ -39,7 +40,7 @@ void EmuFileReader::open(std::string filename) {
        std::cerr << "EmuFileReader will abort!!!" << std::endl;
        abort();
      }
-     throw std::strerror(errno);
+     throw std::runtime_error( std::strerror(errno) );
    }
 
 }
@@ -128,7 +129,7 @@ int EmuFileReader::readDDU(unsigned short*& buf) {
 */
 
 //KK
-#include <stdexcept>   // std::runtime_error
+// #include <stdexcept>   // std::runtime_error
 int EmuFileReader::readDDU(unsigned short*& buf) {
 	// Check for abnormal situation
 	if( end>file_buffer_end || end<file_buffer ) throw ( std::runtime_error("Error reading file.") );
