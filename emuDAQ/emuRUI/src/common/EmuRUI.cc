@@ -1199,30 +1199,42 @@ void EmuRUI::createDeviceReaders(){
     LOG4CPLUS_INFO(logger_, "Creating " << inputDeviceType_.toString() << 
 		   " reader for " << inputDeviceNames_.at(iDev).toString());
     deviceReaders_.push_back(NULL);
+    if ( inputDeviceType_ != "spy" && inputDeviceType_ != "file" ){
+      stringstream oss;
+      oss << "Bad device type: " << inputDeviceType_.toString() << 
+	"Use \"file\", \"spy\", or \"slink\"";
+      LOG4CPLUS_FATAL(logger_, oss.str());
+      XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
+    }
     try {
       if      ( inputDeviceType_ == "spy"  )
 	deviceReaders_[iDev] = new EmuSpyReader(  inputDeviceNames_.at(iDev).toString(), inputDataFormatInt_ );
       else if ( inputDeviceType_ == "file" )
 	deviceReaders_[iDev] = new EmuFileReader( inputDeviceNames_.at(iDev).toString(), inputDataFormatInt_ );
       // TODO: slink
-      else{
-	stringstream oss;
-	oss << "Bad device type: " << inputDeviceType_.toString() << 
-	  "Use \"file\", \"spy\", or \"slink\"";
-	LOG4CPLUS_FATAL(logger_, oss.str());
-	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
-      }
     }
-    catch(char* e){
+    catch(std::runtime_error e){
 
       stringstream oss;
       oss << "Failed to create " << inputDeviceType_.toString()
 	  << " reader for "      << inputDeviceNames_.at(iDev).toString()
-	  << ": "                << e;
+	  << ": "                << e.what();
       LOG4CPLUS_FATAL(logger_, oss.str());
 	
       XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
+    catch(...){
+      stringstream oss;
+      oss << "Failed to create " << inputDeviceType_.toString()
+	  << " reader for "      << inputDeviceNames_.at(iDev).toString()
+	  << ": unknown exception.";
+      LOG4CPLUS_FATAL(logger_, oss.str());
+      XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
+    }
+
+    if ( deviceReaders_[iCurrentDeviceReader_]->getLogMessage().length() > 0 )
+      LOG4CPLUS_INFO(logger_, deviceReaders_[iCurrentDeviceReader_]->getLogMessage());
+
   }
 
   iCurrentDeviceReader_ = 0;
@@ -2304,9 +2316,21 @@ bool EmuRUI::continueConstructionOfSuperFrag()
 
   if ( maxEvents_.value_ > 0 && nEventsRead_.value_ >= maxEvents_.value_ ) return false;
 
-  if (deviceReaders_[iCurrentDeviceReader_]) 
-    nBytesRead = deviceReaders_[iCurrentDeviceReader_]->readNextEvent();
-  
+  if (deviceReaders_[iCurrentDeviceReader_]){
+    try{
+      nBytesRead = deviceReaders_[iCurrentDeviceReader_]->readNextEvent();
+    }
+    catch(...){
+      stringstream oss;
+      oss << "Failed to read from " << inputDeviceNames_.at(iCurrentDeviceReader_).toString()
+	  << ": unknown exception.";
+      LOG4CPLUS_ERROR(logger_, oss.str());
+    }
+
+    if ( deviceReaders_[iCurrentDeviceReader_]->getLogMessage().length() > 0 )
+      LOG4CPLUS_INFO(logger_, deviceReaders_[iCurrentDeviceReader_]->getLogMessage());
+  }
+
   // No data ==> no business being here. Try to read again later.
   if ( nBytesRead == 0 ) return true;
 
@@ -2318,9 +2342,6 @@ bool EmuRUI::continueConstructionOfSuperFrag()
 		    "[" << iCurrentDeviceReader_ << "] read " << nBytesRead << " bytes only.");
   }
 
-  bool lastChunkOfEvent = ( iCurrentDeviceReader_ +1 == nInputDevices_ );
-  if ( lastChunkOfEvent ) nEventsRead_++;
-
   if ( nEventsRead_ == (unsigned long) 0 ) // first event being read --> a new run
     {
       if ( iCurrentDeviceReader_ == 0 ) // don't do it for all devices...
@@ -2329,17 +2350,12 @@ bool EmuRUI::continueConstructionOfSuperFrag()
 	} // if first input device 
     } // if first event 
 
-
   bool badData = false;
-
-  // If the EmuRUI to RU memory pool has room for another data block
-  if(!ruiRuPool_->isHighThresholdExceeded()){
 
     char* data;
     int   dataLength  = 0;
 
     if ( deviceReaders_[iCurrentDeviceReader_] ) {
-      //     if ( keepRunning && deviceReaders_[iCurrentDeviceReader_] ) {
       //     if ( true ) { // let's see those too short events too !!!
       
       data       = deviceReaders_[iCurrentDeviceReader_]->data();
@@ -2358,7 +2374,10 @@ bool EmuRUI::continueConstructionOfSuperFrag()
 	}
       }
 
-      if ( nEventsRead_ % 100 == 0 )
+      if ( ( nEventsRead_.value_+1 <   10                                        ) ||
+	   ( nEventsRead_.value_+1 <  100 && (nEventsRead_.value_+1) %   10 == 0 ) ||
+	   ( nEventsRead_.value_+1 < 1000 && (nEventsRead_.value_+1) %  100 == 0 ) ||
+	   (                                 (nEventsRead_.value_+1) % 1000 == 0 )    )
 	LOG4CPLUS_DEBUG(logger_, 
 			"Read event "    << eventNumber_                          << 
 			" ("             << nEventsRead_                              <<
@@ -2366,8 +2385,11 @@ bool EmuRUI::continueConstructionOfSuperFrag()
 			", size: "       << dataLength   
 			);
 
-    } //  if ( !ruiRuPool_->isHighThresholdExceeded() )
+    } // if ( deviceReaders_[iCurrentDeviceReader_] )
     
+    bool lastChunkOfEvent = ( iCurrentDeviceReader_ +1 == nInputDevices_ );
+    if ( lastChunkOfEvent ) nEventsRead_++;
+
     // Write data to files
     if ( fileWriter_ )
       {
@@ -2395,36 +2417,36 @@ bool EmuRUI::continueConstructionOfSuperFrag()
 	if ( badData ) badEventsFileWriter_->writeData( data, dataLength );
       }
 
-    // fill block and append it to superfragment
-    if ( passDataOnToRUBuilder_ )
-      appendNewBlockToSuperFrag( data, dataLength );
-
     // Store this data to be sent to clients (if any)
     addDataForClients( runNumber_.value_, nEventsRead_.value_, lastChunkOfEvent, 
 		       errorFlag, data, dataLength );
 
+    if ( passDataOnToRUBuilder_ ){
 
-    if ( lastChunkOfEvent ){ // superfragment ready
-
-      if ( passDataOnToRUBuilder_ ){
-	// Prepare it for sending to the RU
-	setNbBlocksInSuperFragment(superFragBlocks_.size());
+      // If the EmuRUI to RU memory pool has room for another data block
+      if(!ruiRuPool_->isHighThresholdExceeded()){
 	
-	// Current super-fragment is now ready to be sent to the RU
-	blocksArePendingTransmission_ = true;
-      }
+	// fill block and append it to superfragment
+	appendNewBlockToSuperFrag( data, dataLength );
 
-      nDevicesWithBadData_ = 0;
+	if ( lastChunkOfEvent ){ // superfragment ready
+	  // Prepare it for sending to the RU
+	  setNbBlocksInSuperFragment(superFragBlocks_.size());
+	  // Current super-fragment is now ready to be sent to the RU
+	  blocksArePendingTransmission_ = true;
+	}
+
+      }
+      else  LOG4CPLUS_WARN(logger_, "EmuRUI-to-RU memory pool's high threshold exceeded.");
 
     }
-
-    // Move on to the next device
-    iCurrentDeviceReader_++;
-    iCurrentDeviceReader_ %= nInputDevices_;
-
-  }
-  else  LOG4CPLUS_WARN(logger_, "EmuRUI-to-RU memory pool's high threshold exceeded.");
   
+  if ( lastChunkOfEvent ) nDevicesWithBadData_ = 0;
+
+  // Move on to the next device
+  iCurrentDeviceReader_++;
+  iCurrentDeviceReader_ %= nInputDevices_;
+
   return true;
 //   return keepRunning;
 
