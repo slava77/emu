@@ -263,7 +263,7 @@ throw (emuDAQManager::exception::Exception)
 {
     vector< xdaq::ApplicationDescriptor* > orderedDescriptors;
     vector< xdaq::ApplicationDescriptor* > descriptors;
-    xdaq::ApplicationDescriptor *descriptor = 0;
+//     xdaq::ApplicationDescriptor *descriptor = 0;
     int nbApps = 0;
 
 
@@ -282,27 +282,44 @@ throw (emuDAQManager::exception::Exception)
 
     nbApps = descriptors.size();
 
-    // Fill application descriptors in instance order
-    for(int i=0; i<nbApps; i++)
-    {
-        try
-        {
-            descriptor = appGroup->getApplicationDescriptor(appClass, i);
-        }
-        catch(xcept::Exception e)
-        {
-            stringstream oss;
-            string s;
-
-            oss << "Failed to get the application descriptor of ";
-            oss << appClass << i;
-            s = oss.str();
-
-            XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
-        }
-
-        orderedDescriptors.push_back(descriptor);
+    // Fill application descriptors in instance order allowing non-contiguous numbering
+    while( !descriptors.empty() ){
+      // Find app with smallest instance number
+      unsigned int minInstance = 99999;
+      vector< xdaq::ApplicationDescriptor* >::iterator adOfSmallest;
+      vector< xdaq::ApplicationDescriptor* >::iterator ad;
+      for ( ad=descriptors.begin(); ad!=descriptors.end(); ++ad )
+	if ( (*ad)->getInstance() < minInstance ){
+	  adOfSmallest = ad;
+	  minInstance  = (*ad)->getInstance();
+	}
+      // Append it to the ordered vector
+      orderedDescriptors.push_back( *adOfSmallest );
+      // Remove it from the unordered vector
+      descriptors.erase( adOfSmallest );
     }
+
+//     // Fill application descriptors in instance order
+//     for(int i=0; i<nbApps; i++)
+//     {
+//         try
+//         {
+//             descriptor = appGroup->getApplicationDescriptor(appClass, i);
+//         }
+//         catch(xcept::Exception e)
+//         {
+//             stringstream oss;
+//             string s;
+
+//             oss << "Failed to get the application descriptor of ";
+//             oss << appClass << i;
+//             s = oss.str();
+
+//             XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
+//         }
+
+//         orderedDescriptors.push_back(descriptor);
+//     }
 
     return orderedDescriptors;
 }
@@ -473,6 +490,7 @@ throw (xgi::exception::Exception)
     *out << "<table border=\"0\">"                                   << endl;
     *out << "<tr valign=\"top\">"                                    << endl;
     *out << "<td>"                                                   << endl;
+
     *out << "<table frame=\"void\" rules=\"rows\" class=\"params\">" << endl;
     *out << "<tr>"                                                     << endl;
     *out << "  <th align=\"center\">"                                  << endl;
@@ -487,11 +505,33 @@ throw (xgi::exception::Exception)
     *out << "  </td>"                                                  << endl;
     *out << "</tr>"                                                    << endl;
     *out << "</table>"                                               << endl;
+
     *out << "<td width=\"64\">"                                      << endl;
     *out << "</td>"                                                  << endl;
     *out << "</td>"                                                  << endl;
     *out << "<td>"                                                   << endl;
+
     *out << "<table frame=\"void\" rules=\"rows\" class=\"params\">" << endl;
+    *out << "<tr>"                                                     << endl;
+    *out << "  <th align=\"center\">"                                  << endl;
+    *out << "    <b>"                                                  << endl;
+    *out << "      Run type"                                           << endl;
+    *out << "    </b>"                                                 << endl;
+    *out << "  </th>"                                                  << endl;
+    *out << "</tr>"                                                    << endl;
+    *out << "<tr>"                                                     << endl;
+    *out << "  <td>"                                                   << endl;
+    *out << "    " << runType_.toString()                              << endl;
+    *out << "  </td>"                                                  << endl;
+    *out << "</tr>"                                                    << endl;
+    *out << "</table>"                                                 << endl;
+
+    *out << "<td width=\"64\">"                                      << endl;
+    *out << "</td>"                                                  << endl;
+    *out << "</td>"                                                  << endl;
+    *out << "<td>"                                                   << endl;
+
+    *out << "<table frame=\"void\" rules=\"rows\" class=\"params\">"   << endl;
     *out << "<tr>"                                                     << endl;
     *out << "  <th align=\"center\">"                                  << endl;
     *out << "    <b>"                                                  << endl;
@@ -505,6 +545,7 @@ throw (xgi::exception::Exception)
     *out << "  </td>"                                                  << endl;
     *out << "</tr>"                                                    << endl;
     *out << "</table>"                                               << endl;
+
     *out << "</td>"                                                  << endl;
     *out << "</tr>"                                                  << endl;
     *out << "</table>"                                               << endl;
@@ -726,6 +767,21 @@ throw (xgi::exception::Exception)
       *out << "/>  "                                                 << endl;
       *out << "<br>"                                                 << endl;
 
+      *out << "Select run type: "                                    << endl;
+      *out << "<select"                                              << endl;
+      *out << " name=\"runtype\""                                    << endl;
+      *out << " size=\"1\""                                          << endl;
+      *out << "/>  "                                                 << endl;
+      for ( int iType=0; iType<runTypes_.elements(); ++iType ){
+	xdata::String* runtype = dynamic_cast<xdata::String*>(runTypes_.elementAt(iType));
+	*out << "<option value=\"" 
+	     << runtype->toString()
+	     << "\">" 
+	     << runtype->toString()                                  << endl;
+      }
+      *out << "</select>"                                            << endl;
+      *out << "<br>"                                                 << endl;
+
       *out << "Set maximum number of events: "                       << endl;
       *out << "<input"                                               << endl;
       *out << " type=\"text\""                                       << endl;
@@ -868,6 +924,9 @@ throw (xgi::exception::Exception)
 // 	if ( (cmdName == "configure") && fsm_.getCurrentState() == 'H' )
 	if ( (cmdName == "configure") )
 	  {
+	    // Emu: run type will be queried by EmuRUI's and EmuFU's
+	    cgicc::form_iterator runTypeElement = cgi.getElement("runtype");
+	    runType_.fromString( runTypeElement->getValue() );
 	    // Emu: set run number in emuTA to the value given by the user on the control page
 	    cgicc::form_iterator runNumElement = cgi.getElement("runnumber");
 	    cgicc::form_iterator maxEvtElement = cgi.getElement("maxevents");
@@ -2918,8 +2977,11 @@ void EmuDAQManager::exportMonitoringParams(xdata::InfoSpace *s)
     // Emu:
     runNumber_         = 0;
     maxNumberOfEvents_ = 0;
+    runType_           = "Monitor";
     s->fireItemAvailable("runNumber",         &runNumber_        );
     s->fireItemAvailable("maxNumberOfEvents", &maxNumberOfEvents_);
+    s->fireItemAvailable("runType",           &runType_          );
+    s->fireItemAvailable("runTypes",          &runTypes_         );
 }
 
 
