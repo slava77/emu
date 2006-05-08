@@ -13,6 +13,7 @@
 #include "xdata/include/xdata/InfoSpace.h"
 #include "xdata/include/xdata/String.h"
 #include "xdata/include/xdata/UnsignedLong.h"
+#include "xdata/include/xdata/Vector.h"
 #include "EmuApplication.h"
 
 #include <string>
@@ -212,6 +213,8 @@ private:
 
   xdata::UnsignedLong runNumber_;
   xdata::UnsignedLong maxNumberOfEvents_;
+  xdata::Vector<xdata::String> runTypes_; // all possible run types
+  xdata::String runType_; // the current run type
   int stringToInt( const string* const s );
   int purgeIntNumberString( string* s ); // Emu
   vector< vector<string> > getRUIEventCounts(); // Emu
