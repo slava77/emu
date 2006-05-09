@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.39 2006/05/09 19:34:06 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.40 2006/05/09 19:36:45 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -719,7 +719,11 @@ private:
     //
     if (myCrateTest.GetMpcTMBTestResult() == -1 ) {
       *out << "Not tested yet" <<std::endl;
-	}
+    } else if (myCrateTest.GetMpcTMBTestResult() == 0 ) {
+      *out << "Failed" <<std::endl;
+    } else {
+      *out << "Passed" <<std::endl;
+    }
     //
     *out << cgicc::fieldset();
     //
