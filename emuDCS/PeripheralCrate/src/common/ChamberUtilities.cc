@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.20 2006/04/27 18:46:04 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.21 2006/05/09 14:56:29 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.21  2006/05/09 14:56:29  mey
+// Update
+//
 // Revision 1.20  2006/04/27 18:46:04  mey
 // UPdate
 //
@@ -769,6 +772,8 @@ void ChamberUtilities::ALCTTiming(){
 	thisTMB->tmb_clk_delays(j,6) ;	 
 	thisTMB->ResetALCTRAMAddress();
 	PulseTestStrips();
+	::usleep(100);
+	//PulseTestStrips();
 	//
 	(*MyOutput_) << "Decode ALCT" << std::endl ;
 	thisTMB->DecodeALCT();

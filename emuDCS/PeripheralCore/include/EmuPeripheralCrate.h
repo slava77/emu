@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.36 2006/05/09 10:56:10 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 2.37 2006/05/09 14:56:29 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -260,6 +260,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::CalibrationComparatorPulse, "CalibrationComparatorPulse");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationALCT, "CalibrationALCT");
     xgi::bind(this,&EmuPeripheralCrate::LaunchMonitor, "LaunchMonitor");
+    xgi::bind(this,&EmuPeripheralCrate::CrateStatus, "CrateStatus");
     xgi::bind(this,&EmuPeripheralCrate::CreateMonitorUnit, "CreateMonitorUnit");
     xgi::bind(this,&EmuPeripheralCrate::MonitorFrameLeft, "MonitorFrameLeft");
     xgi::bind(this,&EmuPeripheralCrate::MonitorFrameRight, "MonitorFrameRight");
@@ -428,6 +429,14 @@ public:
       *out << cgicc::form().set("method","GET").set("action",LaunchMonitor).set("target","_blank") << std::endl ;
       *out << cgicc::input().set("type","submit")
 	.set("value","Launch Monitor").set("name","LaunchMonitor") << std::endl ;
+      *out << cgicc::form() << std::endl ;
+      //
+      std::string CrateStatus =
+	toolbox::toString("/%s/CrateStatus",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::form().set("method","GET").set("action",CrateStatus).set("target","_blank") << std::endl ;
+      *out << cgicc::input().set("type","submit")
+	.set("value","CrateStatus").set("name","CrateStatus") << std::endl ;
       *out << cgicc::form() << std::endl ;
       //
       std::string Operator =
@@ -918,10 +927,6 @@ private:
       *out << cgicc::td();
       //
       char Name[50] ;
-      std::string CCBStatus =
-	toolbox::toString("/%s/CCBStatus",getApplicationDescriptor()->getURN().c_str());
-      std::string CCBUtils =
-	toolbox::toString("/%s/CCBUtils",getApplicationDescriptor()->getURN().c_str());
       std::string CCBBoardID =
 	toolbox::toString("/%s/CCBBoardID",getApplicationDescriptor()->getURN().c_str());
       int slot = thisCrate->ccb()->slot() ;
@@ -1386,12 +1391,23 @@ private:
     //
   }
   //
+  void EmuPeripheralCrate::CrateStatus(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    *out << cgicc::title("Crate Status") << std::endl;
+    //
+
+    //
+  }
+  //
   void EmuPeripheralCrate::LaunchMonitor(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-    //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     //
     std::string MonitorFrameLeft =
@@ -3093,7 +3109,7 @@ private:
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetCCB(thisCCB);
     //
-    MyTest[tmb].FindALCT_L1A_delay(140,160);
+    MyTest[tmb].FindALCT_L1A_delay(130,160);
     //
     this->ChamberTests(in,out);
     //
@@ -6091,8 +6107,7 @@ private:
     for (unsigned int i=0; i<tmbVector.size(); i++) {
       //
       LogFile << "TMB " << std::setw(5) << tmbVector[i]->slot() << std::setw(5) <<
-	TMBBoardID_[i] << std::setw(5) <<
-	RATBoardID_[i] << std::setw(5) <<
+	TMBBoardID_[i] << std::setw(5) << RATBoardID_ <<std::setw(5) <<
 	tmbTestVector[i].GetResultTestBootRegister() << std::setw(5) <<
 	//	tmbTestVector[i].GetResultTestVMEfpgaDataRegister() << std::setw(5) <<
 	tmbTestVector[i].GetResultTestFirmwareDate() << std::setw(5) <<
@@ -6415,7 +6430,7 @@ private:
 	  int slot, boardid, testResult[20], ratid;
 	  istringstream instring(line);
 	  //
-	  instring >> line0 >> slot >> boardid >> ratid
+	  instring >> line0 >> slot >> boardid >> ratid 
 		   >> testResult[0] 
 		   >> testResult[1] 
 		   >> testResult[2] 

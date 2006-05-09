@@ -16,8 +16,8 @@ int main(int argc,char **argv){
 
   // create VME Controller and Crate
   int crateId(0);
-  string ipAddr("02:00:00:00:00:10");
-  int port(2);
+  string ipAddr("02:00:00:00:00:03");
+  int port(3);
   VMEController *dynatem = new VMEController(crateId);
   dynatem->init(ipAddr,port);
   Crate *crate = new Crate(crateId,dynatem);
@@ -30,7 +30,7 @@ int main(int argc,char **argv){
 
   // create TMB & ALCT
   int tmbSlot(16);
-  string chamberType("ME13");
+  string chamberType("ME31");
   TMB *tmb = new TMB(crateId,tmbSlot);
   //
   cout << "Read Register" << endl;
@@ -57,10 +57,10 @@ int main(int argc,char **argv){
 
   printf("Reading IDs...") ;
 
-  alct->alct_read_slowcontrol_id(&sc_id) ;
-  std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
-  alct->alct_fast_read_id(chipID);
-  std::cout << " ALCT Fastcontrol ID " << chipID << std::endl;
+  //alct->alct_read_slowcontrol_id(&sc_id) ;
+  //std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
+  //alct->alct_fast_read_id(chipID);
+  //std::cout << " ALCT Fastcontrol ID " << chipID << std::endl;
 
 
 #if 1
@@ -69,7 +69,7 @@ int main(int argc,char **argv){
   int jch(3);
   printf("Programming...");
   //int status;
-  //int status = alct->SVFLoad(&jch,"../svf/alct384rl.svf",debugMode);
+  //int status = alct->SVFLoad(&jch,"../svf/alct384mirrorrl.svf",debugMode);
   int status = alct->SVFLoad(&jch,"../svf/alct288rl.svf",debugMode);
   tmb->enableAllClocks();
 
@@ -81,9 +81,9 @@ int main(int argc,char **argv){
     cout << "=== Fatal Error. Exiting with " <<  status << endl;
   }
 
-  ::sleep(1);
+  ::sleep(2);
   ccb->configure();
-  ::sleep(1);
+  ::sleep(2);
 
   alct->alct_read_slowcontrol_id(&sc_id) ;
   std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
