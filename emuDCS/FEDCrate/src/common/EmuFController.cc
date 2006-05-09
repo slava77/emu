@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: EmuFController.cc,v 1.2 2006/01/27 16:04:50 gilmore Exp $
+// $Id: EmuFController.cc,v 1.3 2006/05/09 19:20:03 gilmore Exp $
 // $Log: EmuFController.cc,v $
-// Revision 1.2  2006/01/27 16:04:50  gilmore
-// *** empty log message ***
+// Revision 1.3  2006/05/09 19:20:03  gilmore
+// Fix for DCC configure function.
 //
 //
 //-----------------------------------------------------------------------
@@ -43,6 +43,7 @@ void EmuFController::configure() {
   std::vector<Crate*> myCrates = theSelector.crates();
   printf(" myCrates.size() %d \n",myCrates.size());  
   for(unsigned i = 0; i < myCrates.size(); ++i) {
+    printf(" call mycrate->config %d \n",i);
     myCrates[i]->configure(i);
   }
 }

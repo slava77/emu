@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: EmuParser.h,v 1.2 2006/01/21 20:20:14 gilmore Exp $
+// $Id: EmuParser.h,v 1.3 2006/05/09 19:20:02 gilmore Exp $
 // $Log: EmuParser.h,v $
-// Revision 1.2  2006/01/21 20:20:14  gilmore
-// *** empty log message ***
+// Revision 1.3  2006/05/09 19:20:02  gilmore
+// Fix for DCC configure function.
 //
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
@@ -23,11 +23,9 @@ public:
 
   void parseNode(xercesc::DOMNode * pNode);
   void fillInt(std::string item, int & target);
+  void fillHex(std::string item, int & target);
   void fillFloat(std::string item, float & target);
   void fillString(std::string item, std::string & target);
-     
-  //void fillHex(std::string item, int & target);
-
 
 protected:
   xercesc::DOMNamedNodeMap * pAttributes_;

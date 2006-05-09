@@ -61,7 +61,7 @@ void Crate::disable() {
 //
 void Crate::configure(int crate) {
   //
-  printf(" Crate::configure is called \n");
+  printf(" ********   Crate::configure is called %d \n",crate);
   std::vector<DDU*> myDdus = this->ddus();
   for(unsigned i =0; i < myDdus.size(); ++i) {
     myDdus[i]->configure();
