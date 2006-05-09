@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.37 2006/05/09 14:56:29 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.38 2006/05/09 19:15:11 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -2806,6 +2806,17 @@ private:
     *out << cgicc::textarea();
     *out << cgicc::form() << std::endl ;
     //
+    std::string LogCrateTestsOutput = toolbox::toString("/%s/LogCrateTestsOutput",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",LogCrateTestsOutput) << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::input().set("type","submit")
+    .set("value","Log output").set("name","LogCrateTestsOutput") << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Clear")
+      .set("name","ClearCrateTestsOutput") << std::endl ;
+    *out << cgicc::form() << std::endl ;
   }
   //
   void EmuPeripheralCrate::TMBStartTrigger(xgi::Input * in, xgi::Output * out ) 
@@ -6222,6 +6233,56 @@ private:
     TMBTestsLogFile.open(buf);
     TMBTestsLogFile << OutputTMBTests[tmb].str() ;
     TMBTestsLogFile.close();
+    //
+    OutputTMBTests[tmb].str("");
+    //
+    this->TMBTests(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::LogCrateTestsOutput(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cout << "LogCrateTestsOutput" << std::endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "Not tmb" << endl ;
+      tmb = TMB_;
+    }
+    //
+    cgicc::form_iterator name2 = cgi.getElement("ClearCrateTestsOutput");
+    //
+    if(name2 != cgi.getElements().end()) {
+      cout << "Clear..." << endl;
+      cout << cgi["ClearCrateTestsOutput"]->getValue() << std::endl ;
+      OutputTMBTests[tmb].str("");
+      //
+      this->TMBTests(in,out);
+      return ;
+      //
+    }
+    //
+    TMB * thisTMB = tmbVector[tmb];
+    //
+    cout << TMBBoardID_[tmb] << endl ;
+    //
+    char buf[20];
+    sprintf(buf,"CrateTestsLogFile_%d_%s.log",thisTMB->slot(),TMBBoardID_[tmb].c_str());
+    //
+    ofstream CrateTestsLogFile;
+    CrateTestsLogFile.open(buf);
+    CrateTestsLogFile << OutputTMBTests[tmb].str() ;
+    CrateTestsLogFile.close();
     //
     OutputTMBTests[tmb].str("");
     //
