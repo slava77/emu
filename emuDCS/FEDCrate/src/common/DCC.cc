@@ -511,7 +511,7 @@ extern struct GEOM geo[];
 	  //          for (i=0;i<pause/100;i++)
 	  //  devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
           //fpause=pause;
-          pause=pause/2;
+	  //          pause=pause/2;
           if (pause>65535) {
             sndbuf[0]=255;
             sndbuf[1]=255;

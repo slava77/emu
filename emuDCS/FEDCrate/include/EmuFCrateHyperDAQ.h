@@ -508,6 +508,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     //-- get pointers to CCB, TMB and DMB
     //
      thisCrate = crateVector[0];
+     thisCrate->configure(0);
  
      //thisTMB = tmbVector[0];
      //thisDMB = dmbVector[0];
@@ -1202,7 +1203,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	  sprintf(buf,"%d </td> <td> %ld ",j,0x0000000f&(thisDDU->fpga_lcode[0]>>28));
 // For CSCs with data, for each board print #events & percent vs nDMB;
 //   for DMB print percent vs # L1A.  Useful to detect hot/dead CSCs?
-//   Make RED if no DMBs seen from a LiveFiber.
+//   Make RED if no DMBs seen from a LiveFiber.  May need %4.2f for ME1/3...
 	  while(stat<ndmb){
 	    stat+=0x01000000;
 	  }
@@ -1335,8 +1336,8 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	  *out << cgicc::form();
 	  *out << std::endl;
 	  *out << "<blockquote><font size=-1 face=arial>";
-	  *out << "key: &nbsp b15==0 forces all DDU Checks Enabled, &nbsp b[14-0]==DDU Fiber Readout Enable" << br();
-	  *out << "DDU Check Enable bits: &nbsp b19==Normal DMB Checks (zero for SP/TF checks only)," << br() << " &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp b18==CFEB Checks,  &nbsp b17==TMB Checks,  &nbsp b16==ALCT Checks" << br();
+	  *out << "key: &nbsp b15==0 forces all DDU Checks Enabled, &nbsp b[14-0]==DDU Fiber Readout Enable (high True)" << br();
+	  *out << "DDU Check Enable bits (high True): &nbsp b19==Normal DMB Checks (zero to enable only SP/TF checks)," << br() << " &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp b18==CFEB Checks (zero disables DAV checks),  &nbsp b17==TMB Checks,  &nbsp b16==ALCT Checks" << br();
 	  if((stat&0x00018000)==0x8000) *out << "<font color=blue> &nbsp &nbsp &nbsp ALCT checking is disabled</font>";
 	  if((stat&0x00028000)==0x8000) *out << "<font color=blue> &nbsp &nbsp &nbsp TMB checking is disabled</font>";
 	  if((stat&0x00008000)>0&&(stat&0x00030000)<0x00030000) *out << br() ;
