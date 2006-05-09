@@ -116,7 +116,13 @@ void CrateUtilities::MpcTMBTest(int Nloop){
     }
   }
   //
-  std::cout << "NFound " << std::dec << NFound%15 << " " << NFound << std::endl; 
+  std::cout << "NFound " << std::dec << NFound%15 << " " << NFound << std::endl;
+  if ( NFound == nloop*3*NFrames ) {
+    std::cout << "Passed" << std::endl;
+  } else {
+    std::cout << "Failed" << std::endl;
+    break;
+  }
   //
 }
 }
