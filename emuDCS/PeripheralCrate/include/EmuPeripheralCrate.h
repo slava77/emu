@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.34 2006/05/03 21:00:34 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.35 2006/05/09 09:40:49 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -6092,8 +6092,9 @@ private:
       //
       LogFile << "TMB " << std::setw(5) << tmbVector[i]->slot() << std::setw(5) <<
 	TMBBoardID_[i] << std::setw(5) <<
+	RATBoardID_[i] << std::setw(5) <<
 	tmbTestVector[i].GetResultTestBootRegister() << std::setw(5) <<
-	tmbTestVector[i].GetResultTestVMEfpgaDataRegister() << std::setw(5) <<
+	//	tmbTestVector[i].GetResultTestVMEfpgaDataRegister() << std::setw(5) <<
 	tmbTestVector[i].GetResultTestFirmwareDate() << std::setw(5) <<
 	tmbTestVector[i].GetResultTestFirmwareType() << std::setw(5) <<
 	tmbTestVector[i].GetResultTestFirmwareVersion() << std::setw(5) <<
@@ -6103,7 +6104,11 @@ private:
 	tmbTestVector[i].GetResultTestPROMPath() << std::setw(5) <<
 	tmbTestVector[i].GetResultTestDSN() << std::setw(5) <<
 	tmbTestVector[i].GetResultTestADC() << std::setw(5) <<
-	tmbTestVector[i].GetResultTest3d3444() << std::setw(5)
+	tmbTestVector[i].GetResultTest3d3444() << std::setw(5) <<
+	tmbTestVector[i].GetResultTestRATtemper() << std::setw(5) <<
+	tmbTestVector[i].GetResultTestRATidCodes() << std::setw(5) <<
+	tmbTestVector[i].GetResultTestRATuserCodes() << std::setw(5) <<
+	tmbTestVector[i].GetResultTestU76chip() << std::setw(5) 
 	      << std::endl ;
       //
     }
@@ -6407,10 +6412,10 @@ private:
       if ( FoundXML ) { // Processed XML File
 	if ( line.find("TMB") != string::npos ) {	  
 	  //
-	  int slot, boardid, testResult[20];
+	  int slot, boardid, testResult[20], ratid;
 	  istringstream instring(line);
 	  //
-	  instring >> line0 >> slot >> boardid 
+	  instring >> line0 >> slot >> boardid >> ratid
 		   >> testResult[0] 
 		   >> testResult[1] 
 		   >> testResult[2] 
@@ -6422,26 +6427,36 @@ private:
 		   >> testResult[8] 
 		   >> testResult[9] 
 		   >> testResult[10] 
-		   >> testResult[11] ;
+		   >> testResult[11] 
+		   >> testResult[12] 
+		   >> testResult[13] 
+		   >> testResult[14] ;
 	  //
-	  std::cout << "TMB.Setting " << nTMB << " " << boardid << " " << testResult[0] <<  " " << testResult[1] << std::endl ;
+	  std::cout << "TMB.Setting " << nTMB << " " << boardid << " " << ratid << " " 
+		    << testResult[0] <<  " " << testResult[1] << std::endl ;
 	  //
 	  char buf[20];
 	  sprintf(buf,"%d",boardid);
 	  TMBBoardID_[nTMB] = buf ;
+	  sprintf(buf,"%d",ratid);
+	  RATBoardID_[nTMB] = buf ;
 	  //
 	  tmbTestVector[nTMB].SetResultTestBootRegister(testResult[0]);
-	  tmbTestVector[nTMB].SetResultTestVMEfpgaDataRegister(testResult[1]);
-	  tmbTestVector[nTMB].SetResultTestFirmwareDate(testResult[2]); 
-	  tmbTestVector[nTMB].SetResultTestFirmwareType(testResult[3]); 
-	  tmbTestVector[nTMB].SetResultTestFirmwareVersion(testResult[4]); 
-	  tmbTestVector[nTMB].SetResultTestFirmwareRevCode(testResult[5]);
-	  tmbTestVector[nTMB].SetResultTestMezzId(testResult[6]);
-	  tmbTestVector[nTMB].SetResultTestPromId(testResult[7]);
-	  tmbTestVector[nTMB].SetResultTestPROMPath(testResult[8]);
-	  tmbTestVector[nTMB].SetResultTestDSN(testResult[9]);
-	  tmbTestVector[nTMB].SetResultTestADC(testResult[10]);
-	  tmbTestVector[nTMB].SetResultTest3d3444(testResult[11]);
+	  //	  tmbTestVector[nTMB].SetResultTestVMEfpgaDataRegister(testResult[1]);
+	  tmbTestVector[nTMB].SetResultTestFirmwareDate(testResult[1]); 
+	  tmbTestVector[nTMB].SetResultTestFirmwareType(testResult[2]); 
+	  tmbTestVector[nTMB].SetResultTestFirmwareVersion(testResult[3]); 
+	  tmbTestVector[nTMB].SetResultTestFirmwareRevCode(testResult[4]);
+	  tmbTestVector[nTMB].SetResultTestMezzId(testResult[5]);
+	  tmbTestVector[nTMB].SetResultTestPromId(testResult[6]);
+	  tmbTestVector[nTMB].SetResultTestPROMPath(testResult[7]);
+	  tmbTestVector[nTMB].SetResultTestDSN(testResult[8]);
+	  tmbTestVector[nTMB].SetResultTestADC(testResult[9]);
+	  tmbTestVector[nTMB].SetResultTest3d3444(testResult[10]);
+	  tmbTestVector[nTMB].SetResultTestRATtemper(testResult[11]);
+	  tmbTestVector[nTMB].SetResultTestRATidCodes(testResult[12]);
+	  tmbTestVector[nTMB].SetResultTestRATuserCodes(testResult[13]);
+	  tmbTestVector[nTMB].SetResultTestU76chip(testResult[14]);
 	  //
 	  nTMB++ ;
 	  //	  
