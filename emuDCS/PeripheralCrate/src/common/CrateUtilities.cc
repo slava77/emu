@@ -10,7 +10,7 @@
 //
 using namespace std;
 //
-CrateUtilities::CrateUtilities() : myCrate_(0)
+CrateUtilities::CrateUtilities() : myCrate_(0), MpcTMBTestResult(-1)
 {
   //
   cout << "CrateUtilities" << endl ;
@@ -119,8 +119,10 @@ void CrateUtilities::MpcTMBTest(int Nloop){
   std::cout << "NFound " << std::dec << NFound%15 << " " << NFound << std::endl;
   if ( NFound == (nloop+1)*3*NFrames ) {
     std::cout << "Passed" << std::endl;
+    MpcTMBTestResult = 1;
   } else {
     std::cout << "Failed " << " nloop=" << nloop << std::endl;
+    MpcTMBTestResult = 0;
     break;
   }
   //

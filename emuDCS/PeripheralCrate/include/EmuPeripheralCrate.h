@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.38 2006/05/09 19:15:11 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.39 2006/05/09 19:34:06 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -112,6 +112,7 @@ protected:
   RAT * rat;
   MPC * thisMPC;
   ChamberUtilities MyTest[9];
+  CrateUtilities myCrateTest;
   ostringstream CrateTestsOutput[9];
   ostringstream OutputStringDMBStatus[9];
   ostringstream OutputStringTMBStatus[9];
@@ -715,6 +716,10 @@ private:
     *out << cgicc::form().set("method","GET").set("action",TmbMPCTest) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Crate TMB/MPC test") << std::endl ;
     *out << cgicc::form() << std::endl ;
+    //
+    if (myCrateTest.GetMpcTMBTestResult() == -1 ) {
+      *out << "Not tested yet" <<std::endl;
+	}
     //
     *out << cgicc::fieldset();
     //
@@ -2229,7 +2234,7 @@ private:
     //
     cgicc::Cgicc cgi(in);
     //
-    CrateUtilities myCrateTest;
+    //CrateUtilities myCrateTest;
     myCrateTest.SetCrate(thisCrate);
     myCrateTest.MpcTMBTest(1000);
     //
