@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.23 2006/05/10 10:07:56 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.24 2006/05/10 10:24:32 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.24  2006/05/10 10:24:32  mey
+// Update
+//
 // Revision 1.23  2006/05/10 10:07:56  mey
 // Update
 //
@@ -439,7 +442,7 @@ void ChamberUtilities::ALCTChamberScan(){
    int chamberResult2[112];
    int InJected[112];
    //
-   std::cout << " *** New ************* " << std::endl ;
+   (*MyOutput_) << " *** New ************* " << std::endl ;
    //
    thisTMB->SetALCTPatternTrigger();
    //
@@ -451,11 +454,11 @@ void ChamberUtilities::ALCTChamberScan(){
       //
       for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) {
 	 //
-	std::cout << std::endl;
+	(*MyOutput_) << std::endl;
 	printf("%c[01;43m", '\033');
-	std::cout << "Injecting in WG = " << dec << keyWG ;
+	(*MyOutput_) << "Injecting in WG = " << dec << keyWG ;
 	printf("%c[0m", '\033'); 
-	std::cout << endl;
+	(*MyOutput_) << endl;
 	//
 	 for (int i=0; i<22; i++) {
 	   HCmask[i] = 0;
@@ -1383,11 +1386,11 @@ void ChamberUtilities::PulseTestStrips(){
       } else {
 	//
 	if (alct->GetChamberType().find("ME11")!=string::npos) {
-	  std::cout << alct->GetChamberType().find("ME11") <<std::endl;
-	  std::cout << alct->GetChamberType() <<std::endl;
-	  std::cout << "ME11" <<std::endl;
+	  (*MyOutput_) << alct->GetChamberType().find("ME11") <<std::endl;
+	  (*MyOutput_) << alct->GetChamberType() <<std::endl;
+	  (*MyOutput_) << "ME11" <<std::endl;
 	} else {
-	  std::cout << "ME12" <<std::endl;
+	  (*MyOutput_) << "ME12" <<std::endl;
 	}
 	  //
 	//alct->alct_set_test_pulse_powerup(&slot,PowerUp);
@@ -1636,7 +1639,7 @@ void ChamberUtilities::CFEBTiming(){
   //
   for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){
     //
-    std::cout << " Setting TimeDelay to " << TimeDelay << endl;
+    (*MyOutput_) << " Setting TimeDelay to " << TimeDelay << endl;
     //
     thisTMB->tmb_clk_delays(TimeDelay,0) ;
     thisTMB->tmb_clk_delays(TimeDelay,1) ;
@@ -1658,7 +1661,7 @@ void ChamberUtilities::CFEBTiming(){
 	//
 	thisTMB->DiStripHCMask(16/4-1); // counting from 0;
 	//
-	std::cout << " TimeDelay " << TimeDelay << " CLCTInput " 
+	(*MyOutput_) << " TimeDelay " << TimeDelay << " CLCTInput " 
 	     << CLCTInputList[List] << " Nmuons " << Nmuons << endl;
 	//
 	int clct0cfeb = thisTMB->GetCLCT0Cfeb();
@@ -1668,8 +1671,8 @@ void ChamberUtilities::CFEBTiming(){
 	int clct0keyHalfStrip = thisTMB->GetCLCT0keyHalfStrip();
 	int clct1keyHalfStrip = thisTMB->GetCLCT1keyHalfStrip();
 	//
-	std::cout << " clct0cfeb " << clct0cfeb << " clct1cfeb " << clct1cfeb << endl;
-	std::cout << " clct0nhit " << clct0nhit << " clct1nhit " << clct1nhit << endl;
+	(*MyOutput_) << " clct0cfeb " << clct0cfeb << " clct1cfeb " << clct1cfeb << endl;
+	(*MyOutput_) << " clct0nhit " << clct0nhit << " clct1nhit " << clct1nhit << endl;
 	//
 	if ( clct0nhit == 6 && clct0keyHalfStrip == 16 ) Muons[clct0cfeb][TimeDelay]++;
 	if ( clct1nhit == 6 && clct1keyHalfStrip == 16 ) Muons[clct1cfeb][TimeDelay]++;
@@ -1685,19 +1688,19 @@ void ChamberUtilities::CFEBTiming(){
     CFEBMeanN[i] = 0 ;
   }
   //
-  std::cout << endl;
-  std::cout << "TimeDelay " ;
-  for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++) std::cout << setw(5) << TimeDelay ;
-  std::cout << endl ;
+  (*MyOutput_) << endl;
+  (*MyOutput_) << "TimeDelay " ;
+  for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++) (*MyOutput_) << setw(5) << TimeDelay ;
+  (*MyOutput_) << endl ;
   for (int CFEBs=0; CFEBs<5; CFEBs++) {
-    std::cout << "CFEB Id=" << CFEBs << " " ;
+    (*MyOutput_) << "CFEB Id=" << CFEBs << " " ;
     for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){ 
-      std::cout << setw(5) << Muons[CFEBs][TimeDelay] ;
+      (*MyOutput_) << setw(5) << Muons[CFEBs][TimeDelay] ;
     }     
-    std::cout << endl ;
+    (*MyOutput_) << endl ;
   }   
   //
-  std::cout << endl ;
+  (*MyOutput_) << endl ;
   //
   int TimeDelay;
   //
@@ -1716,36 +1719,36 @@ void ChamberUtilities::CFEBTiming(){
     }
   }
   //
-  std::cout << endl ;
+  (*MyOutput_) << endl ;
   // 
-  std::cout << "TimeDelay Fixed for Delay Wrapping " << endl ;
-  std::cout << "TimeDelay " ;
-  for (int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++) std::cout << setw(5) << TimeDelay ;
-  std::cout << endl;
+  (*MyOutput_) << "TimeDelay Fixed for Delay Wrapping " << endl ;
+  (*MyOutput_) << "TimeDelay " ;
+  for (int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++) (*MyOutput_) << setw(5) << TimeDelay ;
+  (*MyOutput_) << endl;
   for (int CFEBs=0; CFEBs<5; CFEBs++) {
-    std::cout << "CFEB Id=" << CFEBs << " " ;
+    (*MyOutput_) << "CFEB Id=" << CFEBs << " " ;
     for (int TimeDelay=0; TimeDelay<2*MaxTimeDelay; TimeDelay++){ 
       if ( MuonsWork[CFEBs][TimeDelay] > 0  ) {
 	CFEBMean[CFEBs]  += TimeDelay  ; 
 	CFEBMeanN[CFEBs] += 1 ; 
       }
-      std::cout << setw(5) << MuonsWork[CFEBs][TimeDelay] ;
+      (*MyOutput_) << setw(5) << MuonsWork[CFEBs][TimeDelay] ;
     }     
-    std::cout << endl ;
+    (*MyOutput_) << endl ;
   }   
   //
-  std::cout << endl ;
+  (*MyOutput_) << endl ;
   //
   for( int CFEBs=0; CFEBs<5; CFEBs++) {
     CFEBMean[CFEBs] /= CFEBMeanN[CFEBs]+0.0001 ;
     if (CFEBMean[CFEBs] > 12 ) CFEBMean[CFEBs] = (CFEBMean[CFEBs]) - 13 ;
-    std::cout << " CFEB = " << CFEBMean[CFEBs] ;
+    (*MyOutput_) << " CFEB = " << CFEBMean[CFEBs] ;
   }
   //
   for( int i=0; i<5; i++) CFEBrxPhase_[i] = CFEBMean[i];
   //
-  std::cout << endl ;
-  std::cout << endl ;
+  (*MyOutput_) << endl ;
+  (*MyOutput_) << endl ;
   //
 }
 //

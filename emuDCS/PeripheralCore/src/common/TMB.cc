@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.61 2006/04/27 18:46:04 mey Exp $
+// $Id: TMB.cc,v 2.62 2006/05/10 10:24:32 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.62  2006/05/10 10:24:32  mey
+// Update
+//
 // Revision 2.61  2006/04/27 18:46:04  mey
 // UPdate
 //
@@ -2222,7 +2225,7 @@ void TMB::ResetALCTRAMAddress(){
    //
    tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
    while ( rcvbuf[1]&0x1 != 0 ){
-     std::cout << "1.Waiting for busy to clear" <<std::endl;
+     (*MyOutput_) << "1.Waiting for busy to clear" <<std::endl;
      tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
    }
    //
@@ -2234,7 +2237,7 @@ void TMB::ResetALCTRAMAddress(){
    //
    tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
    while ( rcvbuf[1]&0x1 != 0 ){
-     std::cout << "2.Waiting for busy to clear" <<std::endl;
+     (*MyOutput_) << "2.Waiting for busy to clear" <<std::endl;
      tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
    }
    //
@@ -2245,7 +2248,7 @@ void TMB::ResetALCTRAMAddress(){
    //
    tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
    while ( rcvbuf[1]&0x1 != 0 ){
-     std::cout << "3.Waiting for busy to clear" <<std::endl;
+     (*MyOutput_) << "3.Waiting for busy to clear" <<std::endl;
      tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
    }
    //
@@ -2959,12 +2962,12 @@ int TMB::GetALCTWordCount(){
   //
   tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
   while ( rcvbuf[1]&0x1 != 0 ){
-    std::cout << "10.Waiting for busy to clear" <<std::endl;
+    (*MyOutput_) << "10.Waiting for busy to clear" <<std::endl;
     tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
   }
   //
   while ( rcvbuf[1]&0x1 != 1 ){
-    std::cout << "11.Waiting for done" <<std::endl;
+    (*MyOutput_) << "11.Waiting for done" <<std::endl;
     tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
   }
   //
@@ -3585,7 +3588,7 @@ void TMB::jtag_ir_dr(int chip_id,
     tdi[iframe++] = tdi_post_opcode[k];
   }
 
-  //std::cout << "Step 1 " << std::endl ;
+  //(*MyOutput_) << "Step 1 " << std::endl ;
 
   if (iframe > MAX_FRAMES) {
     (*MyOutput_) << "do_jtag IR ERROR: Too many frames -> " << iframe << std::endl;
@@ -3634,7 +3637,7 @@ void TMB::jtag_ir_dr(int chip_id,
 
   iframe = 0;
 
-  //std::cout << "Step 2 " << std::endl ;
+  //(*MyOutput_) << "Step 2 " << std::endl ;
 
   // Put TAP in state ShfDR from RTI 
   for (k = 0; k < 3; k++) {
@@ -5129,7 +5132,7 @@ int TMB::dsnIO(int writeData){
     busy = tmb_busy | mez_busy | rat_busy;
 
     if (nbusy%1000 == 0) {
-      std::cout << "dsnIO: DSN state machine busy, nbusy = "
+      (*MyOutput_) << "dsnIO: DSN state machine busy, nbusy = "
                 << nbusy << ", readData = " 
 		<< std::hex << readData << std::endl;  
     }
@@ -5398,7 +5401,7 @@ int iloop;
   //
   tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
   //while((rcvbuf[1]>>6)&(0x1)){
-  //std::cout << "1.Waiting"<<std::endl;
+  //(*MyOutput_) << "1.Waiting"<<std::endl;
   //tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
   //}
   //
@@ -5408,7 +5411,7 @@ int iloop;
   //
   tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
   //while((rcvbuf[1]>>6)&(0x1)){
-  //std::cout << "2.Waiting"<<std::endl;
+  //(*MyOutput_) << "2.Waiting"<<std::endl;
   //tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
   //}
   //
@@ -5418,7 +5421,7 @@ int iloop;
   //
   tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
   //while((rcvbuf[1]>>6)&(0x1)){
-  //std::cout << "3.Waiting"<<std::endl;
+  //(*MyOutput_) << "3.Waiting"<<std::endl;
   //tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
   //}
   //
@@ -5448,7 +5451,7 @@ int iloop;
   //
   tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
   while ( ((rcvbuf[1]>>6)&(0x1)) ){
-    std::cout << "4.Waiting"<<std::endl;
+    (*MyOutput_) << "4.Waiting"<<std::endl;
     tmb_vme(VME_READ,0x14,sndbuf,rcvbuf,NOW);
     printf(" *** check state machine2 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   }
