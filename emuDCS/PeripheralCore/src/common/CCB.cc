@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.33 2006/04/28 13:41:17 mey Exp $
+// $Id: CCB.cc,v 2.34 2006/05/10 10:24:32 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.34  2006/05/10 10:24:32  mey
+// Update
+//
 // Revision 2.33  2006/04/28 13:41:17  mey
 // Update
 //
@@ -156,13 +159,13 @@ CCB::CCB(int newcrate ,int slot, int version)
     exit(0);
   }
     
-  std::cout << "CCB: configured for crate=" << this->crate()
+  (*MyOutput_) << "CCB: configured for crate=" << this->crate()
 	    << " slot=" << this->slot() << " (version=" << mVersion << ")" 
 	    << std::endl;
  };
 
 CCB::~CCB() {
-  std::cout << "CCB: removing CCB from crate=" << this->crate() 
+  (*MyOutput_) << "CCB: removing CCB from crate=" << this->crate() 
        << ", slot=" << this->slot() << std::endl;
 }
 
@@ -184,11 +187,11 @@ void CCB::pulse(int Num_pulse,unsigned int * delays, char vme)
   if (mCCBMode == (CCB2004Mode_t)CCB::DLOG){
     setCCBMode(CCB::VMEFPGA);
     switchedMode=true;
-    if (mDebug) std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for pulse" << std::endl; 
+    if (mDebug) (*MyOutput_) << "CCB: NOTE -- switching from DLOG to FPGA mode for pulse" << std::endl; 
   }
   //
   for(int j=0;j<Num_pulse;j++){
-    std::cout << "Pulsing..."<<std::endl;
+    (*MyOutput_) << "Pulsing..."<<std::endl;
     sndbuf[0]=(delays[j]&0xff00)>>8;
     sndbuf[1]=(delays[j]&0x00ff);
     do_vme(0x03,CSR1,sndbuf,rcvbuf,LATER);
@@ -204,7 +207,7 @@ void CCB::pulse(int Num_pulse,unsigned int * delays, char vme)
   }
   if (switchedMode){
     setCCBMode(CCB::DLOG);
-    if (mDebug) std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
+    if (mDebug) (*MyOutput_) << "CCB: NOTE -- switching back to DLOG" << std::endl;
   };
 
 
@@ -219,7 +222,7 @@ void CCB::pulse() {
   if (mCCBMode == (CCB2004Mode_t)CCB::DLOG){
     setCCBMode(CCB::VMEFPGA);
     switchedMode=true;
-    if (mDebug) std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for pulse" << std::endl; 
+    if (mDebug) (*MyOutput_) << "CCB: NOTE -- switching from DLOG to FPGA mode for pulse" << std::endl; 
   }
 
  //use 0x48 for pulse (cal0), 0x4a inject (cal1), 0x4c pedestal (cal2):
@@ -236,7 +239,7 @@ void CCB::pulse() {
 
   if (switchedMode){
     setCCBMode(CCB::DLOG);
-    if (mDebug) std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
+    if (mDebug) (*MyOutput_) << "CCB: NOTE -- switching back to DLOG" << std::endl;
   };
 
 
@@ -252,7 +255,7 @@ void CCB::pulse(int Num_pulse,unsigned int pulse_delay, char vme)
   if (mCCBMode == (CCB2004Mode_t)CCB::DLOG){
     setCCBMode(CCB::VMEFPGA);
     switchedMode=true;
-    if (mDebug) std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for pulse" << std::endl; 
+    if (mDebug) (*MyOutput_) << "CCB: NOTE -- switching from DLOG to FPGA mode for pulse" << std::endl; 
   }
   unsigned int * delays = new unsigned int[Num_pulse];
   for(int i = 0; i <  Num_pulse; ++i) { 
@@ -263,7 +266,7 @@ void CCB::pulse(int Num_pulse,unsigned int pulse_delay, char vme)
 
   if (switchedMode){
     setCCBMode(CCB::DLOG);
-    if (mDebug) std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
+    if (mDebug) (*MyOutput_) << "CCB: NOTE -- switching back to DLOG" << std::endl;
   };
 
 
@@ -293,7 +296,7 @@ void CCB::prgall_bckpln()
 {
   /// Performs a Hard-Reset to all modules in the crate
   /// through a dedicated VME register (not FastControl)
-  std::cout << "CCB: hard reset" << std::endl;
+  (*MyOutput_) << "CCB: hard reset" << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=0x00;
   do_vme(VME_WRITE,CRATE_HARD_RESET,sndbuf,rcvbuf,NOW);
@@ -304,7 +307,7 @@ void CCB::reset_bckpln()
 {
   /// Reinitializes the FPGAs on DMB, TMB and MPC boards
   /// through a FastControl soft-reset.
-  std::cout << "CCB: soft reset" << std::endl;
+  (*MyOutput_) << "CCB: soft reset" << std::endl;
   int i_ccb=0x1c;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc;
@@ -335,7 +338,7 @@ void CCB::GenerateAlctAdbASync(){
 //
 void CCB::GenerateAlctAdbSync(){
    //
-   std::cout << "CCB: GenerateAlctAdbPulseSync" << std::endl;
+   (*MyOutput_) << "CCB: GenerateAlctAdbPulseSync" << std::endl;
    int i_ccb=0x19;
    sndbuf[0]=0x00;
    sndbuf[1]=(i_ccb<<2)&0xfc;
@@ -355,7 +358,7 @@ void CCB::DumpAddress(int address) {
 void CCB::rice_clk_setup()
 {
   int l1en=0;
-  std::cout << "CCB: Setup rice_clk_setup" << std::endl;
+  (*MyOutput_) << "CCB: Setup rice_clk_setup" << std::endl;
 
   // when in DLOG mode, briefly switch to FPGA mode so we can 
   // have the CCB issue the backplane reset. This is *only* for
@@ -364,7 +367,7 @@ void CCB::rice_clk_setup()
   if (mCCBMode == (CCB2004Mode_t)CCB::DLOG){
     setCCBMode(CCB::VMEFPGA);
     switchedMode=true;
-    if (mDebug) std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for setup" << std::endl; 
+    if (mDebug) (*MyOutput_) << "CCB: NOTE -- switching from DLOG to FPGA mode for setup" << std::endl; 
   }
   
   sndbuf[0]=0x00;
@@ -376,7 +379,7 @@ void CCB::rice_clk_setup()
   
   if (switchedMode){
     setCCBMode(CCB::DLOG);
-    if (mDebug) std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
+    if (mDebug) (*MyOutput_) << "CCB: NOTE -- switching back to DLOG" << std::endl;
   };
   
   return; // Ignore rest until needed MvdM
@@ -386,7 +389,7 @@ void CCB::rice_clk_setup()
   if (mVersion==2001)
     do_vme(VME_WRITE,RST_CCB_INT_LOG,sndbuf,rcvbuf,LATER);
   //else
-  //std::cout << "CCB:  rice_clk_setup: RST_CCB_INT_LOG deprecated" << std::endl;
+  //(*MyOutput_) << "CCB:  rice_clk_setup: RST_CCB_INT_LOG deprecated" << std::endl;
 
 
 //JRG, For TMB with CCB clk: 0x0D8 or 0x0C8?  I think 0x048 is best.
@@ -404,9 +407,9 @@ void CCB::rice_clk_setup()
   sndbuf[1]=0xc8;    // CCB clock, TMB_bkpln_req  and  VME_L1  control
 
 
-  std::cout << "TTC " << TTC << " CLK_INIT_FLAG " << CLK_INIT_FLAG << " l1en " << l1en << std::endl;
-  std::cout << "SPS " << SPS25ns_ << std::endl;
-  //std::cout << "TEMPORARILY DEMANDING TTC = 1 " << std::endl;
+  (*MyOutput_) << "TTC " << TTC << " CLK_INIT_FLAG " << CLK_INIT_FLAG << " l1en " << l1en << std::endl;
+  (*MyOutput_) << "SPS " << SPS25ns_ << std::endl;
+  //(*MyOutput_) << "TEMPORARILY DEMANDING TTC = 1 " << std::endl;
   //TTC = 1;
   if (TTC==TTC_CLOCK)sndbuf[1]=0xf2; // TTC clock only, CMD_BUS control via VME
   if (TTC==ALL_TTC)sndbuf[1]=0xf3;    // TTC clock and control
@@ -440,15 +443,15 @@ void CCB::rice_clk_setup()
 
     if((l1en>0)||(TTC==TTC_CLOCK)){
       //fg why???
-      std::cout << std::endl;
+      (*MyOutput_) << std::endl;
     }
     else{
-      std::cout << "CCB: effective after  rice_l1_enable  call." << std::endl;
+      (*MyOutput_) << "CCB: effective after  rice_l1_enable  call." << std::endl;
       sndbuf[1]=sndbuf[1]|0xf8;
       //JRG: add CCB_CSR1_SAV=sndbuf[1]; ?
     }
   }
-  std::cout << "CCB: CSRB1=0x" << std::hex 
+  (*MyOutput_) << "CCB: CSRB1=0x" << std::hex 
        << std::setw(2) << int(sndbuf[0]&0xff) << std::setw(2) <<int(sndbuf[1]&0xff)
        << std::dec << std::endl;
   do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,LATER);
@@ -475,7 +478,7 @@ void CCB::rice_clk_setup()
 std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   //
   if (TTCrxID_ == -1) {
-    std::cout << "ReadTTCrxReg.No TTCrxID" << std::endl;
+    (*MyOutput_) << "ReadTTCrxReg.No TTCrxID" << std::endl;
     return 0;
   }
   //
@@ -483,7 +486,7 @@ std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   std::bitset<7> DataRegAddress(TTCrxID_*2+1);
   std::bitset<8> regAddress(registerAdd);
   //
-  //std::cout << " " << pointerRegAddress << " " << DataRegAddress << " " << regAddress << std::endl ;
+  //(*MyOutput_) << " " << pointerRegAddress << " " << DataRegAddress << " " << regAddress << std::endl ;
   //
   // start I2C
   //
@@ -546,10 +549,10 @@ std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   std::bitset<8> data;
   for(int i(7); i>=0; --i) {
     Data = readI2C();    
-    //std::cout << Data ;
+    //(*MyOutput_) << Data ;
     data.set(i,Data&0x1);
   }      
-  //std::cout << std::endl;
+  //(*MyOutput_) << std::endl;
   //
   readI2C() ;
   //
@@ -689,7 +692,7 @@ void CCB::stopI2C(){
 //
 void CCB::enableCLCT(){
    //
-   std::cout << "CCB.enableCLCT" <<std::endl;
+   (*MyOutput_) << "CCB.enableCLCT" <<std::endl;
    //
    if (mVersion==2001) {
       //
@@ -725,7 +728,7 @@ int CCB::ReadRegister(int reg){
   //
   int value = ((rcvbuf[0]&0xff)<<8)|(rcvbuf[1]&0xff);
   //
-  printf(" CCB.reg=%x %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
+  //printf(" CCB.reg=%x %x %x %x\n", reg, rcvbuf[0]&0xff, rcvbuf[1]&0xff,value&0xffff);
   //
   return value;
   //
@@ -733,7 +736,7 @@ int CCB::ReadRegister(int reg){
 
 
 void CCB::enableL1() {
-  std::cout << "CCB: Enable L1A." << std::endl;
+  (*MyOutput_) << "CCB: Enable L1A." << std::endl;
   do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
   //2004 do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
 
@@ -748,7 +751,7 @@ void CCB::enableL1() {
     sndbuf[1]=(rcvbuf[1]&0x07)|(CCB_CSR1_SAV&0xF0);
   }
 
-  if (mDebug) std::cout << "CCB: CSRB1=0x" << std::hex 
+  if (mDebug) (*MyOutput_) << "CCB: CSRB1=0x" << std::hex 
 	    << std::setw(2) << int(sndbuf[0]&0xff) << std::setw(2) 
 	    <<int(sndbuf[1]&0xff) << std::dec << std::endl;
 
@@ -762,14 +765,14 @@ void CCB::enableL1() {
 
 
 void CCB::disableL1() {
-  std::cout << "CCB: Disable L1A." << std::endl;
+  (*MyOutput_) << "CCB: Disable L1A." << std::endl;
   do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
   //2004 do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
   sndbuf[0]=rcvbuf[0];
   CCB_CSR1_SAV=rcvbuf[1];
   sndbuf[1]=(rcvbuf[1]|0xf8); // Disable L1ACC from CCB to custom backplane
 
-  //std::cout << "disableL1.CCB: CSRB1=0x" << hex 
+  //(*MyOutput_) << "disableL1.CCB: CSRB1=0x" << hex 
   //     << setw(2) << int(sndbuf[0]&0xff) << setw(2) <<int(sndbuf[1]&0xff)
   //     << dec << std::endl;
   do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
@@ -787,7 +790,7 @@ void CCB::hardReset() {
   if (mCCBMode == (CCB2004Mode_t)CCB::DLOG){
     setCCBMode(CCB::VMEFPGA);
     switchedMode=true;
-    std::cout << "CCB: NOTE -- switching from DLOG to FPGA mode for BackPlane HardReset" << std::endl; 
+    (*MyOutput_) << "CCB: NOTE -- switching from DLOG to FPGA mode for BackPlane HardReset" << std::endl; 
   }
   
   ReadRegister(0x0);
@@ -817,7 +820,7 @@ void CCB::hardReset() {
 
   if (switchedMode){
     setCCBMode(CCB::DLOG);
-    std::cout << "CCB: NOTE -- switching back to DLOG" << std::endl;
+    (*MyOutput_) << "CCB: NOTE -- switching back to DLOG" << std::endl;
   };
 
   ReadRegister(0x0);
@@ -847,7 +850,7 @@ void CCB::syncReset() {
 
 void CCB::bx0() {
   /// send ccb_bx0 on the backplane:
-  std::cout << "CCB: BX-zero" << std::endl;
+  (*MyOutput_) << "CCB: BX-zero" << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=0x01;
 /* JRG, old way, write to directly to VME adr 0x36, but this
@@ -867,7 +870,7 @@ void CCB::bx0() {
 
 
 void CCB::bxr() {
-  std::cout << "CCB: BX-reset" << std::endl;
+  (*MyOutput_) << "CCB: BX-reset" << std::endl;
   usleep(10000);
 
 // set ccb_cmd bits (CSR2[7:2]), EvCntRes (CSR2[1]) and BcntRes (CSR2[0]):
@@ -896,7 +899,7 @@ void CCB::l1CathodeScint() {
   //JG, reads current CSR1 status:
   do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
   //2004 do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
-  std::cout << "CCB: (l1cathodescint) " << std::hex << (int)rcvbuf[0] << "-" <<  (int)rcvbuf[1] << std::dec << std::endl;
+  (*MyOutput_) << "CCB: (l1cathodescint) " << std::hex << (int)rcvbuf[0] << "-" <<  (int)rcvbuf[1] << std::dec << std::endl;
 
   // make sure TTCrx is/remains the source for commands (bit 0=0)
   // CCB2001: make sure CCB quarts osc. is selected (b1=b2=0)
@@ -912,19 +915,19 @@ void CCB::l1CathodeScint() {
   }
   else{
 //JRG define sndbuf[1]=unchanged_L1_bits
-    std::cout << "CCB:  effective after  rice_l1_enable  call."<< std::endl;
+    (*MyOutput_) << "CCB:  effective after  rice_l1_enable  call."<< std::endl;
     //fg this operation doesn't seem to be very usefull:
     sndbuf[1]=rcvbuf[1]&0xff;
   }
 
-  std::cout << "CCB: CSRB1=0x" << std::hex 
+  (*MyOutput_) << "CCB: CSRB1=0x" << std::hex 
 	    << std::setw(2) << int(sndbuf[0]&0xff) << std::setw(2)
 	    <<int(sndbuf[1]&0xff) << std::dec << std::endl;
   do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
   //2004 do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
 
 // J. Gu tuned CCB L1 delay to allow for TCB-L1 passthrough (77 was ~78 or 79)
-  std::cout << "CCB: set L1ADelay (CSRB5) to " << l1aDelay_ << std::endl;
+  (*MyOutput_) << "CCB: set L1ADelay (CSRB5) to " << l1aDelay_ << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=l1aDelay_;
   do_vme(VME_WRITE,CSR5,sndbuf,rcvbuf,LATER);
@@ -1024,18 +1027,18 @@ void CCB::setCCBMode(CCB2004Mode_t mode){
 
  
 void CCB::enable() {
-  std::cout << "Sync reset, mainly for TMB " << std::endl;
+  (*MyOutput_) << "Sync reset, mainly for TMB " << std::endl;
   if(l1enabled_) disableL1();
   syncReset();
   usleep(50000);
 
-  std::cout << "BXR and EVTCNTRST" << std::endl;
+  (*MyOutput_) << "BXR and EVTCNTRST" << std::endl;
   reset_bxevt();
 
   if (SPS25ns_==0) {
     startTrigger();
     usleep(10000);
-    std::cout << "CCB BC0" << std::endl;
+    (*MyOutput_) << "CCB BC0" << std::endl;
 
     bx0();
     usleep(10000);
@@ -1053,7 +1056,7 @@ void CCB::enable() {
 
 
 void CCB::enableTTCControl() {
-  std::cout << "CCB: Enable TTC control " << std::endl;
+  (*MyOutput_) << "CCB: Enable TTC control " << std::endl;
   if (mVersion==2001) TTC = ALL_TTC;
 
   do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
@@ -1072,7 +1075,7 @@ void CCB::enableTTCControl() {
   do_vme(VME_WRITE,CSR1,sndbuf,rcvbuf,NOW);
   //2004 do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
   usleep(50000);
-  std::cout << "CCB: CSRB1(read)=0x" << std::hex 
+  (*MyOutput_) << "CCB: CSRB1(read)=0x" << std::hex 
 	    << std::setw(2) << int(rcvbuf[0]&0xff) << std::setw(2) 
 	    <<int(rcvbuf[1]&0xff) << "changed to CSRB1(set)=0x"
 	    << std::setw(2) << int(sndbuf[0]&0xff) << std::setw(2)
@@ -1085,7 +1088,7 @@ void CCB::startTrigger() {
   setCCBMode(CCB::VMEFPGA);
   //
   /// Send "Start Trigger" command on the Fast Control Bus
-  std::cout << "CCB: Start Trigger" << std::endl;
+  (*MyOutput_) << "CCB: Start Trigger" << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=0x18;          //cmd[5:0]=0x06 for start_trigger     GUJH
   do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
@@ -1097,7 +1100,7 @@ void CCB::injectTMBPattern() {
   setCCBMode(CCB::VMEFPGA);
   //
   /// Inject TMB Pattern data
-  std::cout << "CCB: Start Trigger" << std::endl;
+  (*MyOutput_) << "CCB: Start Trigger" << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=(0x24<<2);          
   do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
@@ -1109,7 +1112,7 @@ void CCB::l1aReset(){
   setCCBMode(CCB::VMEFPGA);
   //
   /// Send "L1a Reset" command on the Fast Control Bus
-  std::cout << "CCB: L1a Reset" << std::endl;
+  (*MyOutput_) << "CCB: L1a Reset" << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=(0x3<<2);          //cmd[5:0]=0x03 
   do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
@@ -1129,7 +1132,7 @@ void CCB::bc0() {
   setCCBMode(CCB::VMEFPGA);
   //
   /// Send "bc0" command on the Fast Control Bus
-  std::cout << "CCB: bc0 Trigger" << std::endl;
+  (*MyOutput_) << "CCB: bc0 Trigger" << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=0x4; 
   do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
@@ -1141,7 +1144,7 @@ void CCB::stopTrigger() {
   setCCBMode(CCB::VMEFPGA);
   //
   /// Send "Stop Trigger" command on the Fast Control Bus
-  std::cout << "CCB: Stop Trigger" << std::endl;
+  (*MyOutput_) << "CCB: Stop Trigger" << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=0x1C;          //cmd[5:0]=0x07 for stop_trigger     GUJH
   do_vme(VME_WRITE,CSR2,sndbuf,rcvbuf,NOW);
@@ -1149,7 +1152,7 @@ void CCB::stopTrigger() {
 }
 //
 void CCB::disable() {
-  std::cout << "CCB: disable" << std::endl;
+  (*MyOutput_) << "CCB: disable" << std::endl;
   disableTTCControl();
   if (SPS25ns_==0) {
     //stop trigger
@@ -1158,7 +1161,7 @@ void CCB::disable() {
 }
 //
 void CCB::disableTTCControl() {
-  std::cout << "CCB: disable TTC control" << std::endl;
+  (*MyOutput_) << "CCB: disable TTC control" << std::endl;
   do_vme(VME_READ,CSR1,sndbuf,rcvbuf,NOW);
   //2004 do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
   usleep(50000);
@@ -1522,7 +1525,7 @@ int CCB::set_la1_delay(int delay){
 
 int CCB::get_la1_delay(){
   do_vme(VME_READ,0x08,sndbuf,rcvbuf,0);
-  std::cout << "rcvbuf " << std::hex << std::setw(2) 
+  (*MyOutput_) << "rcvbuf " << std::hex << std::setw(2) 
 	    << int(rcvbuf[0]&0xff) << " " << int(rcvbuf[1]&0xff)
 	    << std::dec << std::endl;
   return 1;
