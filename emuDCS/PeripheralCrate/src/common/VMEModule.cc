@@ -1,7 +1,10 @@
 #ifndef OSUcc
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.15 2006/03/23 12:41:41 mey Exp $
+// $Id: VMEModule.cc,v 2.16 2006/05/10 23:57:24 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.16  2006/05/10 23:57:24  liu
+// // Update for Production Controller with firmware 3.59
+//
 // Revision 2.15  2006/03/23 12:41:41  mey
 // UPdate
 //
@@ -202,8 +205,11 @@ VMEController* VMEModule::getTheController(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.15 2006/03/23 12:41:41 mey Exp $
+// $Id: VMEModule.cc,v 2.16 2006/05/10 23:57:24 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.16  2006/05/10 23:57:24  liu
+// // Update for Production Controller with firmware 3.59
+//
 // Revision 2.15  2006/03/23 12:41:41  mey
 // UPdate
 //
@@ -342,6 +348,10 @@ void VMEModule::CloseJTAG() {
 
 VMEController* VMEModule::getTheController(){
   return theController;
+}
+
+bool VMEModule::exist(){
+  return theController->exist( theSlot );
 }
 
 #endif
