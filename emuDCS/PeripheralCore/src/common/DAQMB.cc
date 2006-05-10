@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.37 2006/05/02 21:23:27 mey Exp $
+// $Id: DAQMB.cc,v 2.38 2006/05/10 10:07:56 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.38  2006/05/10 10:07:56  mey
+// Update
+//
 // Revision 2.37  2006/05/02 21:23:27  mey
 // Update
 //
@@ -217,14 +220,14 @@ bool DAQMB::SelfTest(){
 
 void DAQMB::configure() {
   //
-  std::cout << std::endl;
-  std::cout << "CFEB size="<<cfebs_.size()<<std::endl;
-  std::cout << "DAQMB: configure() for crate " << this->crate() << " slot " << this->slot() << std::endl;
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "CFEB size="<<cfebs_.size()<<std::endl;
+  (*MyOutput_) << "DAQMB: configure() for crate " << this->crate() << " slot " << this->slot() << std::endl;
   int cal_delay_bits = (calibration_LCT_delay_ & 0xF)
      | (calibration_l1acc_delay_ & 0x1F) << 4
       | (pulse_delay_ & 0x1F) << 9
       | (inject_delay_ & 0x1F) << 14;
-   std::cout << "DAQMB:configure: caldelay " << std::hex << cal_delay_bits << std::dec << std::endl;
+   (*MyOutput_) << "DAQMB:configure: caldelay " << std::hex << cal_delay_bits << std::dec << std::endl;
    setcaldelay(cal_delay_bits);
    //
    int dav_delay_bits = (feb_dav_delay_    & 0x1F)
@@ -232,42 +235,42 @@ void DAQMB::configure() {
       | (push_dav_delay_   & 0x1F) << 10
       | (l1acc_dav_delay_  & 0x3F) << 15
       | (ALCT_dav_delay_   & 0x1F) << 21;
-   std::cout << "doing setdavdelay " << dav_delay_bits << std::endl;
+   (*MyOutput_) << "doing setdavdelay " << dav_delay_bits << std::endl;
    setdavdelay(dav_delay_bits);
    //
-   std::cout << "doing fxpreblkend " << pre_block_end_ << std::endl;
+   (*MyOutput_) << "doing fxpreblkend " << pre_block_end_ << std::endl;
    fxpreblkend(pre_block_end_);
    calctrl_fifomrst();
    //
    int comp_mode_bits = (comp_mode_ & 3) | ((comp_timing_ & 7) << 2);
-   std::cout << "doing set_comp_mode " << comp_mode_bits << std::endl;
-   std::cout << comp_mode_ << " " << comp_timing_ << std::endl;
+   (*MyOutput_) << "doing set_comp_mode " << comp_mode_bits << std::endl;
+   (*MyOutput_) << comp_mode_ << " " << comp_timing_ << std::endl;
    set_comp_mode(comp_mode_bits);
    //
    //fg where did these lines come from ...????
    //fg usleep(100);
    //fg set_comp_mode(comp_mode_bits);
    //
-   std::cout << "doing set_comp_thresh " << set_comp_thresh_ << std::endl;
+   (*MyOutput_) << "doing set_comp_thresh " << set_comp_thresh_ << std::endl;
    set_comp_thresh(set_comp_thresh_);
-   std::cout << "doing preamp_initx() " << std::endl;
+   (*MyOutput_) << "doing preamp_initx() " << std::endl;
    preamp_initx();
-   std::cout << "doing set_cal_dac " << inj_dac_set_ << " " 
+   (*MyOutput_) << "doing set_cal_dac " << inj_dac_set_ << " " 
 	<<  pul_dac_set_ << std::endl;
    set_cal_dac(inj_dac_set_, pul_dac_set_);
    load_strip();
    //
-   std::cout << "Set cable delay " << cable_delay_ << std::endl ;
+   (*MyOutput_) << "Set cable delay " << cable_delay_ << std::endl ;
    setcbldly(cable_delay_);
    //
-   //std::cout << "&&&&&&&&&&&&&&&& Set crate id " << crate_id_ << std::endl ;
+   //(*MyOutput_) << "&&&&&&&&&&&&&&&& Set crate id " << crate_id_ << std::endl ;
    setcrateid(crate_id_);
    //
-   std::cout << "Toogle bxn " << crate_id_ << std::endl ;
+   (*MyOutput_) << "Toogle bxn " << crate_id_ << std::endl ;
    if (toogle_bxn_) ToogleBXN();
    //
    // As suggested by Valery Sitnik: switch all LVs on (computer-controlled)
-   // std::cout << "DAQMB: switching on LVs on LVMB" << endl; 
+   // (*MyOutput_) << "DAQMB: switching on LVs on LVMB" << endl; 
    lowv_onoff(0x3f);
 }
 //
@@ -334,7 +337,7 @@ void DAQMB::setfebdelay(int dword)
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
-  std::cout << "setfebdelay to " << dword << std::endl;
+  (*MyOutput_) << "setfebdelay to " << dword << std::endl;
   //
   // Update
   //
@@ -363,7 +366,7 @@ void DAQMB::setcaldelay(int dword)
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2); 
-  std::cout << "caldelay was set to " << std::hex << dword <<std::dec << std::endl;
+  (*MyOutput_) << "caldelay was set to " << std::hex << dword <<std::dec << std::endl;
   //
 }
 
@@ -384,7 +387,7 @@ void DAQMB::setdavdelay(int dword)
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
-  std::cout << "set dav delay to " << dword << std::endl;
+  (*MyOutput_) << "set dav delay to " << dword << std::endl;
 }
 
 void DAQMB::fxpreblkend(int dword)
@@ -423,7 +426,7 @@ void DAQMB::calctrl_fifomrst()
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
-  std::cout << " FIFOMRST reset done " << std::endl;
+  (*MyOutput_) << " FIFOMRST reset done " << std::endl;
 }
 
 void DAQMB::calctrl_global()
@@ -471,7 +474,7 @@ void  DAQMB::set_comp_mode(int dword)
       sndbuf[0]=0;
       devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
   }
-  std::cout << "calling set_comp_mode " << dword << std::endl;
+  (*MyOutput_) << "calling set_comp_mode " << dword << std::endl;
 }
 
 void DAQMB::set_comp_thresh(float thresh)
@@ -489,10 +492,10 @@ char dt[2];
  }
  dt[0]=((dt[1]<<7)&0x80) + ((dt[0]>>1)&0x7f);
  dt[1]=dt[1]>>1;
- std::cout << "CFEB size="<<cfebs_.size() << std::endl;
+ (*MyOutput_) << "CFEB size="<<cfebs_.size() << std::endl;
  //
  for(int i=0; i<cfebs_.size();i++) {
-   std::cout << i << " CFEB number" << cfebs_[i].number() << std::endl;
+   (*MyOutput_) << i << " CFEB number" << cfebs_[i].number() << std::endl;
  }
  //
  for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
@@ -576,7 +579,7 @@ void DAQMB::halfset(int icrd,int ipln,int ihalf,int chan[5][6][16])
 
    int ichan,iside;
 
-   //std::cout << "DAQMB.halfset " << std::endl;
+   //(*MyOutput_) << "DAQMB.halfset " << std::endl;
    
    if (ihalf<0 && icrd-1>=0) {
       ihalf += 32;
@@ -634,13 +637,13 @@ void  DAQMB::halfset(int ifeb,int ipln,int ihalf)
 
 }
 
-
+//
 void DAQMB::trigsetx(int *hp)
 {
-   
-   std::cout << "DAQMB.trigsetx" << std::endl;
-   std::cout << "CFEB size="<<cfebs_.size() << std::endl;;
-
+  //
+  (*MyOutput_) << "DAQMB.trigsetx" << std::endl;
+  (*MyOutput_) << "CFEB size="<<cfebs_.size() << std::endl;;
+  //
   int hs[6];
   int i,j,k;
   int chan[5][6][16];
@@ -651,16 +654,16 @@ void DAQMB::trigsetx(int *hp)
       }
     }
   }
-
-  std::cout << "Setting Staggering" << std::endl;
-  
+  //
+  (*MyOutput_) << "Setting Staggering" << std::endl;
+  //
   for(i=0;i<6;i+=2){
      hs[i]=-1;
      hs[i+1]=0;
   } 
-  
-  std::cout << " Setting halfset " << std::endl;
-  
+  //
+  (*MyOutput_) << " Setting halfset " << std::endl;
+  //
   for(k=0;k<5;k++){
      for(j=0;j<6;j++){
 	halfset(k,j,hp[j]+hs[j],chan);
@@ -668,7 +671,7 @@ void DAQMB::trigsetx(int *hp)
   }
   chan2shift(chan);
 }
-
+//
 void DAQMB::chan2shift(int chan[5][6][16])
 {
    
@@ -677,24 +680,24 @@ void DAQMB::chan2shift(int chan[5][6][16])
    char chip_mask;
    char shft_bits[6][6];
    
-   std::cout << "CFEB size=" << cfebs_.size() << std::endl;
-   std::cout << "CFEB numbers" << std::endl;
+   (*MyOutput_) << "CFEB size=" << cfebs_.size() << std::endl;
+   (*MyOutput_) << "CFEB numbers" << std::endl;
 
-   for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) std::cout << " " << cfebs_[icfeb].number() ;
+   for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) (*MyOutput_) << " " << cfebs_[icfeb].number() ;
 
-   std::cout << std::endl;
+   (*MyOutput_) << std::endl;
    
    for(lay=0;lay<6;lay++){
       for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
 	 int brdn = cfebs_[icfeb].number();
 	 for(int i=0; i<16;i++) {
 	    if ( chan[brdn][lay][i] > 0 ) printf("%c[01;43m", '\033');
-	    std::cout << chan[brdn][lay][i] << "" ;
+	    (*MyOutput_) << chan[brdn][lay][i] << "" ;
 	    printf("%c[0m", '\033'); 
 	 }
-	 std::cout << " | " ;		
+	 (*MyOutput_) << " | " ;		
       }
-      std::cout << std::endl;
+      (*MyOutput_) << std::endl;
    }
    
    for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
@@ -790,7 +793,7 @@ void DAQMB::trigtest()
                   printf("Hits set = %d\n",hits);
                   trigsetx(hp);
                   inject(1,0x4f);
-		  std::cout << " Next ?"<< std::endl;
+		  (*MyOutput_) << " Next ?"<< std::endl;
 		  int next;
 		  std::cin >> next;
                 }
@@ -1128,7 +1131,7 @@ char shft_bits[6][6];
       cmd[0]=VTX_USR1;
       sndbuf[0]=CHIP_MASK;
       devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
-      // std::cout<<" first devdo call \n";
+      // (*MyOutput_)<<" first devdo call \n";
       cmd[0]=VTX_USR2;
       char chip_mask= cfebItr->chipMask();
       devdo(dv,5,cmd,6,&chip_mask,rcvbuf,0);
@@ -1226,7 +1229,7 @@ char shft_bits[6][6];
 int DAQMB::buck_shift_test()
 {
 #ifdef debugV
-  std::cout << "inside buck_shift_test()" << std::endl;
+  (*MyOutput_) << "inside buck_shift_test()" << std::endl;
 #endif
 
 int i,j,nmtch;
@@ -1274,18 +1277,18 @@ char pat[42],chk[42] = {0xBA,0xDF,0xEE,0xD5,0xDE,0xAD};
       }
       nmtch=0;
       for(i=0;i<6;i++){
-	// std::cout<< hex <<pat[i] << dec;
+	// (*MyOutput_)<< hex <<pat[i] << dec;
         printf("%02x",pat[i]&0xff);
         if(pat[i]==chk[i])nmtch++;
       }
       printf("\n");
-      // std::cout<< endl;
+      // (*MyOutput_)<< endl;
       if(nmtch==6){
         pass=1;
-        std::cout<<"Pattern returned is OK\n";
+        (*MyOutput_)<<"Pattern returned is OK\n";
       } else {
         pass=0;
-        std::cout<<"Pattern returned is Wrong\n";
+        (*MyOutput_)<<"Pattern returned is Wrong\n";
       }
       cmd[0]=VTX_USR1;
       sndbuf[0]=NOOP;
@@ -1327,14 +1330,14 @@ int i,j,nchips2;
     cmd[0]=VTX_BYPASS;
     devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
   }
-  std::cout << "done with preamp init " << std::endl;
+  (*MyOutput_) << "done with preamp init " << std::endl;
 }
 
 
 void DAQMB::set_cal_tim_pulse(int ntim)
 
 {
-  //std::cout<< "setting pulse timing to " << ntim << std::endl;  
+  //(*MyOutput_)<< "setting pulse timing to " << ntim << std::endl;  
   int dword;
   dword=(CAL_DEF_DELAY)&0x1ff;
   dword=dword|((ntim&0x1f)<<9); 
@@ -1345,7 +1348,7 @@ void DAQMB::set_cal_tim_pulse(int ntim)
 
 void DAQMB::set_cal_tim_inject(int ntim)
 {
-  std::cout<< "setting inject timing to " << ntim << std::endl;
+  (*MyOutput_)<< "setting inject timing to " << ntim << std::endl;
   int dword;
   dword=(CAL_DEF_DELAY)&0x3fff;
   dword=dword|((ntim&0x1f)<<14);
@@ -1400,7 +1403,7 @@ void DAQMB::pulse(int Num_pulse,unsigned int pulse_delay)
 void DAQMB::inject(int Num_pulse,unsigned int pulse_delay)
 {
 
-   std::cout << "DAQMB.inject " << std::endl;
+   (*MyOutput_) << "DAQMB.inject " << std::endl;
 
    for(int j=0;j<Num_pulse;j++){
      sndbuf[1]=(pulse_delay&0xff00)>>8;
@@ -1436,28 +1439,28 @@ void DAQMB::wrtfifo(int fifo,int nsndfifo,char* sndfifo)
   printf(" sndfifo: %d %02x %02x \n",nsndfifo,sndfifo[0]&0xff,sndfifo[1]&0xff);
   /* fifo write */  
   cmd[0]=4;
-  //std::cout << "wrtfifo devnum FIFO7 " << devnum << " " << FIFO7 << std::endl;
+  //(*MyOutput_) << "wrtfifo devnum FIFO7 " << devnum << " " << FIFO7 << std::endl;
   if(devnum-FIFO7!=0){
-    //std::cout << "devdo1" << std::endl;
+    //(*MyOutput_) << "devdo1" << std::endl;
     devdo(devnum,1,cmd,nsndfifo*2,sndfifo,rcvbuf,2);
-    //std::cout << "devdo1back" << std::endl;
+    //(*MyOutput_) << "devdo1back" << std::endl;
   }
   else{
-    //std::cout << "devdo2" << std::endl;
+    //(*MyOutput_) << "devdo2" << std::endl;
     devdo(devnum,1,cmd,nsndfifo,sndfifo,rcvbuf,2);
-    //std::cout << "devdo2back" << std::endl;
+    //(*MyOutput_) << "devdo2back" << std::endl;
   } 
 }
 //
 void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
 {  
   //
-  //std::cout << "readfifo" << std::endl;
+  //(*MyOutput_) << "readfifo" << std::endl;
   //
   PRINTSTRING(OVAL: before start routine in readfifo);
   PRINTSTRING(OVAL: after start routine in readfifo);
   //
-  //std::cout << "readfifo2" << std::endl;
+  //(*MyOutput_) << "readfifo2" << std::endl;
   //
   int i=fifo+FIFO1;
   DEVTYPE devnum=(DEVTYPE)i;
@@ -1474,14 +1477,14 @@ void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
-  //std::cout << "readfifo3" << std::endl;
+  //(*MyOutput_) << "readfifo3" << std::endl;
   //
   cmd[0]=5;
   devdo(devnum,1,cmd,nrcvfifo*2,sndbuf,rcvfifo,2);
   //
   for(i=0;i<16380;i++)printf(" %d %04x ",i,((rcvbuf[2*i]<<8)&0xff00)|(rcvbuf[2*i+1]&0xff)); 
   //
-  //std::cout << "readfifo4" << std::endl;
+  //(*MyOutput_) << "readfifo4" << std::endl;
   //
   cmd[0]=VTX2_USR1;
   sndbuf[0]=FIFO_RD;
@@ -1503,7 +1506,7 @@ void DAQMB::readfifo(int fifo,int nrcvfifo,char* rcvfifo)
 void DAQMB::buckflash_load(char *fshift)
 {
   
-  std::cout << "inside load" <<std::endl;
+  (*MyOutput_) << "inside load" <<std::endl;
   
  cmd[0]=0;
  devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,0); // initialize programming
@@ -2198,7 +2201,7 @@ unsigned int DAQMB::unpack_ival() const {
 
 void DAQMB::executeCommand(std::string command) {
   #ifdef debugV
-    std::cout << "inside DAQMB executeCommand"<< std::endl;
+    (*MyOutput_) << "inside DAQMB executeCommand"<< std::endl;
   #endif
   if(command == "BuckeyeShiftTest")  buck_shift_test();
 /*
@@ -2219,7 +2222,7 @@ void DAQMB::executeCommand(std::string command) {
 
 void DAQMB::cfeb_vtx_prom(enum DEVTYPE devnum) {
   //enum DEVTYPE devstp,dv;
-  std::cout << "DAQMB: cfeb_vtx_prom" << std::endl;
+  (*MyOutput_) << "DAQMB: cfeb_vtx_prom" << std::endl;
 
   cmd[0]=VTX2_USR1;
   sndbuf[0]=CAL_PROGFEB;
@@ -2257,7 +2260,7 @@ void DAQMB::cfeb_vtx_prom(enum DEVTYPE devnum) {
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
  
-  std::cout << "DAQMB: SCA Master is programmed by PROM (Calcntrl command)." <<std::endl;
+  (*MyOutput_) << "DAQMB: SCA Master is programmed by PROM (Calcntrl command)." <<std::endl;
 }
 
 void DAQMB::febpromuser2(const CFEB & cfeb,char *cbrdnum)
@@ -3111,22 +3114,22 @@ void DAQMB::test3()
   /*
   errs=0;
   printf("Running Memchk\n");
-  std::cout << "FIFO1 " << std::endl ;
+  (*MyOutput_) << "FIFO1 " << std::endl ;
   err[1]=memchk(FIFO1);
   errs+=err[1];
-  std::cout << "FIFO2 " << std::endl ;
+  (*MyOutput_) << "FIFO2 " << std::endl ;
   err[2]=memchk(FIFO2);
   errs+=err[2];
-  std::cout << "FIFO3 " << std::endl ;
+  (*MyOutput_) << "FIFO3 " << std::endl ;
   err[3]=memchk(FIFO3);
   errs+=err[3];
-  std::cout << "FIFO4 " << std::endl ;
+  (*MyOutput_) << "FIFO4 " << std::endl ;
   err[4]=memchk(FIFO4);
   errs+=err[4];
-  std::cout << "FIFO5 " << std::endl ;
+  (*MyOutput_) << "FIFO5 " << std::endl ;
   err[5]=memchk(FIFO5);
   errs+=err[5];
-  std::cout << "FIFO7 " << std::endl ;
+  (*MyOutput_) << "FIFO7 " << std::endl ;
   err[7]=memchk(FIFO7);
   errs+=err[7];
   //
