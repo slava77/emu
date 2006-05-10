@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.21 2006/05/09 14:56:29 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.22 2006/05/10 09:54:20 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.22  2006/05/10 09:54:20  mey
+// Update
+//
 // Revision 1.21  2006/05/09 14:56:29  mey
 // Update
 //
@@ -258,9 +261,18 @@ void ChamberUtilities::Automatic(){
   //
   InitStartSystem();
   //
+  thisTMB->SetCFEB0delay(CFEBrxPhase_[0]);
+  thisTMB->SetCFEB1delay(CFEBrxPhase_[1]);
+  thisTMB->SetCFEB2delay(CFEBrxPhase_[2]);
+  thisTMB->SetCFEB3delay(CFEBrxPhase_[3]);
+  thisTMB->SetCFEB4delay(CFEBrxPhase_[4]);
+  //
   CFEBChamberScan();
   //
   InitStartSystem();
+  //
+  thisTMB->SetAlctTXclockDelay(ALCTtxPhase_);
+  thisTMB->SetAlctRXclockDelay(ALCTrxPhase_);
   //
   ALCTChamberScan();
   //
