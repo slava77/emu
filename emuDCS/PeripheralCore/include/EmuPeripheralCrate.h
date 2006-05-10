@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.40 2006/05/09 19:36:45 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.41 2006/05/10 09:54:19 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -167,6 +167,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::UploadConfFile, "UploadConfFile");
     xgi::bind(this,&EmuPeripheralCrate::TMBStatus, "TMBStatus");
     xgi::bind(this,&EmuPeripheralCrate::DefineConfiguration, "DefineConfiguration");
+    xgi::bind(this,&EmuPeripheralCrate::LogCrateTestsOutput, "LogCrateTestsOutput");
     //
     xgi::bind(this,&EmuPeripheralCrate::getData0, "getData0");
     xgi::bind(this,&EmuPeripheralCrate::getData1, "getData1");
@@ -2944,8 +2945,8 @@ private:
     //MyTest.SetTMB(thisTMB);
     //MyTest.SetCCB(thisCCB);
     //
-    //MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
-    MyTest[tmb].RedirectOutput(&std::cout);
+    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    //MyTest[tmb].RedirectOutput(&std::cout);
     MyTest[tmb].ALCTTiming();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
@@ -3039,7 +3040,9 @@ private:
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetCCB(thisCCB);
     //
+    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
     MyTest[tmb].CFEBTiming();
+    MyTest[tmb].RedirectOutput(&std::cout);
     //
     this->ChamberTests(in,out);
     //
@@ -3084,7 +3087,7 @@ private:
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetCCB(thisCCB);
     //
-    MyTest[tmb].FindTMB_L1A_delay(50,200);
+    MyTest[tmb].FindTMB_L1A_delay(100,200);
     //
     this->ChamberTests(in,out);
     //
@@ -3214,7 +3217,9 @@ private:
     //MyTest.SetTMB(thisTMB);
     //MyTest.SetCCB(thisCCB);
     //
+    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
     MyTest[tmb].ALCTChamberScan();
+    MyTest[tmb].RedirectOutput(&std::cout);
     //
     this->ChamberTests(in,out);
     //
@@ -3257,7 +3262,9 @@ private:
     //MyTest.SetCCB(thisCCB);
     //MyTest.SetDMB(thisDMB);
     //
+    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
     MyTest[tmb].CFEBChamberScan();
+    MyTest[tmb].RedirectOutput(&std::cout);
     //
     this->ChamberTests(in,out);
     //
@@ -3301,7 +3308,9 @@ private:
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetMPC(thisMPC);
     //
+    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
     MyTest[tmb].FindWinner(2);
+    MyTest[tmb].RedirectOutput(&std::cout);
     //
     this->ChamberTests(in,out);
     //
@@ -6274,9 +6283,9 @@ private:
     if(name2 != cgi.getElements().end()) {
       cout << "Clear..." << endl;
       cout << cgi["ClearCrateTestsOutput"]->getValue() << std::endl ;
-      OutputTMBTests[tmb].str("");
+      CrateTestsOutput[tmb].str("");
       //
-      this->TMBTests(in,out);
+      this->ChamberTests(in,out);
       return ;
       //
     }
@@ -6290,12 +6299,12 @@ private:
     //
     ofstream CrateTestsLogFile;
     CrateTestsLogFile.open(buf);
-    CrateTestsLogFile << OutputTMBTests[tmb].str() ;
+    CrateTestsLogFile << CrateTestsOutput[tmb].str() ;
     CrateTestsLogFile.close();
     //
-    OutputTMBTests[tmb].str("");
+    CrateTestsOutput[tmb].str("");
     //
-    this->TMBTests(in,out);
+    this->ChamberTests(in,out);
     //
   }
   //
