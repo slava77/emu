@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.22 2006/05/10 09:54:20 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.23 2006/05/10 10:07:56 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.23  2006/05/10 10:07:56  mey
+// Update
+//
 // Revision 1.22  2006/05/10 09:54:20  mey
 // Update
 //
@@ -1435,9 +1438,9 @@ void ChamberUtilities::LoadCFEB(int HalfStrip, int CLCTInputs, bool enableL1aEmu
   //
   if (HalfStrip == -1 ) HalfStrip = int(rand()*31./(RAND_MAX+1.0));
   //
-  cout << endl;
-  cout << " -- Injecting in " << HalfStrip << endl;
-  cout << endl;
+  (*MyOutput_) << endl;
+  (*MyOutput_) << " -- Injecting in " << HalfStrip << endl;
+  (*MyOutput_) << endl;
   //
   //thisTMB->DiStripHCMask(HalfStrip/4-1); // counting from 0; //Bad...requests L1a....
   //
