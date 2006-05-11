@@ -595,7 +595,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
   {
     unsigned long int idcode,uscode;
     unsigned long int tidcode[8]={0x2124a093,0x31266093,0x31266093,0x05036093,0x05036093,0x05036093,0x05036093,0x05036093};
-    unsigned long int tuscode[8]={0xcf033a01,0xdf021a03,0xdf021a03,0xb0016a04,0xc033dd99,0xc133dd99,0xd0021a03,0xd1021a03};
+    unsigned long int tuscode[8]={0xcf033a01,0xdf022a02,0xdf022a02,0xb0016a04,0xc033dd99,0xc133dd99,0xd0022a02,0xd1022a02};
 // JRG, 5-->3, 6-->4, 7-->5, 3-->6, 4-->7  --done
     //
     printf(" entered DDUFirmware \n");
@@ -818,6 +818,8 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	char buf[400];
 	  FILE *dwnfp;
           dwnfp    = fopen("MySVFFile.svf","r");	
+	  printf("ready to download PROM %d \n",prom);
+// JRG, Need to debug Broadcast case	  sleep(59);
           while (fgets(buf,256,dwnfp) != NULL)printf("%s",buf);
           fclose(dwnfp);
           printf(" I am done so prom wont be called %d \n",prom);  
@@ -1176,7 +1178,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	sprintf(buf4," ");
 	*out << br() << " <font color=blue size=+1> CSC Board Occupancies </font>" << br() << std::endl;
 	//	*out << cgicc::table().set("border","0").set("rules","none").set("frame","void"); 
-	*out << cgicc::table().set("align","center").set("width","800").set("cellpadding","5%").set("border","3").set("rules","all").set("frame","border");
+	*out << cgicc::table().set("align","center").set("width","740").set("cellpadding","5%").set("border","3").set("rules","all").set("frame","border");
        	*out << cgicc::colgroup().set("align","center");
        	*out << cgicc::col().set("span","2").set("align","center").set("width","20");
        	*out << cgicc::col().set("span","4").set("align","center");
@@ -1186,10 +1188,10 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::tr() << std::endl;
 	*out << cgicc::th() << "Input" << cgicc::th();
 	*out << cgicc::th() << "Reg.#" << cgicc::th();
-	*out << cgicc::th().set("width","165") << "DMB" << cgicc::th();
-	*out << cgicc::th().set("width","165") << "ALCT" << cgicc::th();
-	*out << cgicc::th().set("width","165") << "TMB" << cgicc::th();
-	*out << cgicc::th().set("width","165") << "CFEB" << cgicc::th() << cgicc::tr() << std::endl;
+	*out << cgicc::th().set("width","150") << "DMB" << cgicc::th();
+	*out << cgicc::th().set("width","150") << "ALCT" << cgicc::th();
+	*out << cgicc::th().set("width","150") << "TMB" << cgicc::th();
+	*out << cgicc::th().set("width","150") << "CFEB" << cgicc::th() << cgicc::tr() << std::endl;
 	*out << cgicc::thead() << std::endl;
 	*out << cgicc::tbody() << std::endl;
 	for(j=0;j<15;j++){
@@ -1225,7 +1227,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	}
 	*out << cgicc::tbody() << std::endl;
 	*out << cgicc::table() << std::endl;
-	*out << "&nbsp; &nbsp; <font size=-1> DMB percentage is relative to # L1As; other board pecentages are relative to # hits on the CSC.</font>" << std::endl;
+	*out << "&nbsp; &nbsp; <font size=-1> DMB percentage is relative to # L1As; other board percentages are relative to # LCTxL1A hits on the CSC.</font>" << std::endl;
 	if(err>0){
 	  *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
 	  *out << buf3 << cgicc::span();
@@ -1341,7 +1343,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	  if((stat&0x00018000)==0x8000) *out << "<font color=blue> &nbsp &nbsp &nbsp ALCT checking is disabled</font>";
 	  if((stat&0x00028000)==0x8000) *out << "<font color=blue> &nbsp &nbsp &nbsp TMB checking is disabled</font>";
 	  if((stat&0x00008000)>0&&(stat&0x00030000)<0x00030000) *out << br() ;
-	  if((stat&0x00048000)==0x8000) *out << "<font color=blue> &nbsp &nbsp &nbsp CFEB LCT/MOVLP/L1A checks disabled</font>";
+	  if((stat&0x00048000)==0x8000) *out << "<font color=blue> &nbsp &nbsp &nbsp CFEB DAV/LCT/MOVLP/L1A checks disabled</font>";
 	  if((stat&0x00088000)==0x8000) *out << "<font color=blue> &nbsp &nbsp &nbsp Some DMB checks disabled for SP/TF compatibility</font>";
 	  if((stat&0x00008000)==0) *out << "<font color=green> &nbsp &nbsp &nbsp All checks are Enabled</font>";
 	  *out << "</font></blockquote>" << std::endl;

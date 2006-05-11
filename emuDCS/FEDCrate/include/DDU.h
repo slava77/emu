@@ -26,6 +26,7 @@ public:
   virtual void end();
 
   int gbe_prescale_;
+  int killfiber_;
 
   void configure();
 

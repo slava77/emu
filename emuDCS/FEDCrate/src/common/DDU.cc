@@ -33,7 +33,7 @@ void shuffle(char *a,char *b);
 
 DDU::DDU(int newcrate,int newslot):
   VMEModule(newcrate, newslot),
-  gbe_prescale_(1)
+  gbe_prescale_(1),killfiber_(0xf7fff)
 {
   //  cout<<"DDU construct\n";
 }
@@ -58,7 +58,7 @@ void DDU::configure() {
   printf(" ********************DDU configure is called \n");
   printf(" DCC slot %d gbe_prescale %d  \n",slot(),gbe_prescale_);
   if(slot()<21)vmepara_wr_GbEprescale(gbe_prescale_);
-
+  if(slot()<21)ddu_loadkillfiber(killfiber_);
 }
 
 
