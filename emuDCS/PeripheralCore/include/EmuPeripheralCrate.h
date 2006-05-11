@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.41 2006/05/10 09:54:19 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.42 2006/05/11 09:46:03 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -2811,7 +2811,7 @@ private:
     *out << cgicc::form().set("method","GET") << std::endl ;
     *out << cgicc::textarea().set("name","CrateTestOutput")
       .set("WRAP","OFF")
-      .set("rows","20").set("cols","60");
+      .set("rows","20").set("cols","100");
     *out << CrateTestsOutput[tmb].str() << endl ;
     *out << cgicc::textarea();
     *out << cgicc::form() << std::endl ;
