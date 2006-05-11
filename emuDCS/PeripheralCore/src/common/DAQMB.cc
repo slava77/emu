@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.38 2006/05/10 10:07:56 mey Exp $
+// $Id: DAQMB.cc,v 2.39 2006/05/11 11:00:26 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.39  2006/05/11 11:00:26  mey
+// Update
+//
 // Revision 2.38  2006/05/10 10:07:56  mey
 // Update
 //
@@ -533,9 +536,13 @@ char dt[2];
  dt[0]=((dt[1]<<7)&0x80) + ((dt[0]>>1)&0x7f);
  dt[1]=dt[1]>>1;
  //
- (*MyOutput_) << "Set_comp_thresh.icfeb=" << icfeb << " thresh=" << thresh << std::endl;
+ (*MyOutput_) << "Set_comp_thresh.icfeb=" << cfebs_[icfeb].number() << " thresh=" << thresh << std::endl;
  //
  DEVTYPE dv = cfebs_[icfeb].scamDevice();
+ //
+ (*MyOutput_) << "cfeb= " << icfeb << std::endl;
+ (*MyOutput_) << "dv= " << dv << std::endl;
+ //
  cmd[0]=VTX_USR1;
  sndbuf[0]=COMP_DAC;
  devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
@@ -3678,7 +3685,7 @@ int  DAQMB::test8()
 	(*MyOutput_) << "cfeb="<<cfeb<<" "<<" v0=" << v0 << " vout="<<vout<<std::endl;
       }
       //
-      vout=adcplus(2,cfeb);
+      vout=adcplus(2,cfebs_[cfeb].number());
       if(i>0){
 	x[i-1]=v0;
 	y[i-1]=vout;
