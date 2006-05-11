@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.39 2006/05/11 11:00:26 mey Exp $
+// $Id: DAQMB.cc,v 2.40 2006/05/11 13:14:33 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.40  2006/05/11 13:14:33  mey
+// Update
+//
 // Revision 2.39  2006/05/11 11:00:26  mey
 // Update
 //
@@ -283,7 +286,9 @@ void DAQMB::load_strip() {
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_USR2;
   int j=0;
+  //
   //for(i=0;i<5;i++){if(dp->iuse[i]==1)j=j+k;k=k*2;}
+  //
   for(unsigned i = 0; i < cfebs_.size(); ++i) {
     j += (int) pow(2.0, cfebs_[i].number()); 
   }
@@ -465,7 +470,7 @@ void  DAQMB::set_comp_mode(int dword)
 {
   for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
       DEVTYPE dv = cfebs_[icfeb].scamDevice();
-
+      
       cmd[0]=VTX_USR1;
       sndbuf[0]=COMP_MODE;
       devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
