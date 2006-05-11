@@ -16,7 +16,7 @@ DDUParser::DDUParser(DOMNode * pNode, int crateNumber)
   } else { 
    ddu_ = new DDU(crateNumber,slot);
    parser_.fillInt("gbe_prescale", ddu_->gbe_prescale_); 
-
+   parser_.fillHex("killfiber", ddu_->killfiber_);
   }
 }
 

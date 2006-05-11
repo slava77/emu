@@ -3,22 +3,35 @@
 <!-- start of 1st crate -->
   <FEDCrate Crate="0">
 
-    <VME crate="0" Device="0" Link="0">
+    <VME crate="0" Device="0" Link="0" vmeirq_start="1">
     </VME>
     <DDU slot="3"
        gbe_prescale="1"
-       vmeirq_start="0" >
+       killfiber="f7fff">
+    </DDU>
+    <DDU slot="4"
+       gbe_prescale="1"
+       killfiber="f7fff">
     </DDU>
     <DDU slot="5"
        gbe_prescale="1"
-       vmeirq_start="0" >
+       killfiber="f7fff">
     </DDU>
     <DDU slot="12"
        gbe_prescale="1"
-       vmeirq_start="0" >
+       killfiber="f7fff">
+    </DDU>
+    <DDU slot="13"
+       gbe_prescale="1"
+       killfiber="f7fff">
+    </DDU>
+
+    <DDU slot="28">
     </DDU>
     <DCC slot="8" 
-        fifoinuse="25" >
+        fifoinuse="1f" >
+    </DCC>
+    <DCC slot="22">
     </DCC>
  </FEDCrate>
 
