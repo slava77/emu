@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.17 2006/03/10 13:13:13 mey Exp $
+// $Id: VMEController.cc,v 2.18 2006/05/10 23:58:45 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.18  2006/05/10 23:58:45  liu
+// Update for Production Controller with firmware 3.59
+//
 // Revision 2.17  2006/03/10 13:13:13  mey
 // Jinghua's changes
 //
@@ -296,8 +299,11 @@ VMEModule* VMEController::getTheCurrentModule(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.17 2006/03/10 13:13:13 mey Exp $
+// $Id: VMEController.cc,v 2.18 2006/05/10 23:58:45 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.18  2006/05/10 23:58:45  liu
+// Update for Production Controller with firmware 3.59
+//
 // Revision 2.17  2006/03/10 13:13:13  mey
 // Jinghua's changes
 //
@@ -402,7 +408,7 @@ VMEModule* VMEController::getTheCurrentModule(){
 
 VMEController::VMEController(int crate): 
  crate_(crate), indian(SWAP),  max_buff(0), tot_buff(0), 
- plev(1), idevo(0)
+ plev(1), idevo(0), error_type(0)
 {
   //
   fpacket_delay = 0;
@@ -430,9 +436,10 @@ void VMEController::init(string ipAddr, int port) {
 }
 
 void VMEController::reset() {
-  mrst_ff();
-  set_VME_mode();   
+//  mrst_ff();
+//  set_VME_mode();   
   reload_FPGA();  
+  enable_Reset();
 }
 
 void VMEController::start(int slot, int boardtype) {
@@ -547,7 +554,7 @@ int VMEController::do_schar(int open_or_close)
     }
     scharcounts[realport]++;
     get_macaddr(realport);
-    
+    enable_Reset();    
     return schsocket;
   }
   else if(open_or_close==2)
@@ -704,18 +711,26 @@ int VMEController::eth_reset(void)
 }
 
 int VMEController::eth_read()
-{  int err;
-int size;
-int loopcnt;
+{  
+   int err;
+   int size;
+   int loopcnt;
  
- loopcnt=0;
- size=0;
- GETMORE: 
- size=read(theSocket,rbuf,nrbuf);
-        if(size<0)return size;
-        if(size<7){
-           if(rbuf[0]==0x03&&loopcnt<10){usleep(1000);loopcnt=loopcnt+1;goto GETMORE;}
-        }
+// clear the error index before READ
+   error_type=0;
+
+   loopcnt=0;
+   size=0;
+   GETMORE: 
+   size=read(theSocket,rbuf,nrbuf);
+   if(size<0)return size;
+   if(size<7)
+   {   if(rbuf[0]==0x03&&loopcnt<10)
+       {   usleep(1000);
+           loopcnt=loopcnt+1;
+           goto GETMORE;
+       }
+   }
    return size;
 }
 
@@ -723,7 +738,7 @@ void VMEController::mrst_ff()
 {
   int n;
   int l,lcnt;
-  wbuf[0]=0x40;
+  wbuf[0]=0x00;
   wbuf[1]=MRst_Ext_FF;
   nwbuf=2;
   n=eth_write();
@@ -736,7 +751,7 @@ void VMEController::set_VME_mode()
 {
   int n;
   int l,lcnt;
-  wbuf[0]=0x40;
+  wbuf[0]=0x00;
   wbuf[1]=Set_FF_VME;
   nwbuf=2;
   n=eth_write();
@@ -755,6 +770,85 @@ void VMEController::reload_FPGA()
   n=eth_write();
   std::cout << "Controller's FPGA reloaded." << std::endl;
   for(l=0;l<80000;l++)lcnt++;
+  return;
+}
+
+bool VMEController::SelfTest()
+{  // dummy routine
+   return 1;
+}
+
+bool VMEController::exist(int slot)
+{  // dummy routine
+
+   if(slot<1 || slot>21) return 0;
+   if(slot==1) return SelfTest();
+   return 1;
+}
+
+void VMEController::enable_Reset()
+{
+  int n;
+  int l,lcnt;
+  wbuf[0]=0x00;
+  wbuf[1]=0x11;
+  wbuf[2]=0x00;
+  wbuf[3]=0x1B;
+  nwbuf=4;
+  n=eth_write();
+  std::cout << "Controller Hard Reset enabled." << std::endl;
+  for(l=0;l<8000;l++)lcnt++;
+  return;
+}
+
+void VMEController::disable_Reset()
+{
+  int n;
+  int l,lcnt;
+  wbuf[0]=0x00;
+  wbuf[1]=0x11;
+  wbuf[2]=0x00;
+  wbuf[3]=0x13;
+  nwbuf=4;
+  n=eth_write();
+  std::cout << "Controller Hard Reset disabled." << std::endl;
+  for(l=0;l<8000;l++)lcnt++;
+  return;
+}
+
+void VMEController::set_Timeout(int to)
+{
+  // "to" is in microsecond
+  int n;
+  int l,lcnt;
+  if(to<0) return;
+  n=(to*1000)>>4;
+  wbuf[0]=0x00;
+  wbuf[1]=0x13;
+  wbuf[2]=(n>>8)&0xff;
+  wbuf[3]=n&0xff;
+  nwbuf=4;
+  n=eth_write();
+  std::cout << "VME Bus Timeout set to " << to << " microseconds" <<std::endl;
+  for(l=0;l<8000;l++)lcnt++;
+  return;
+}
+
+void VMEController::set_GrantTimeout(int to)
+{
+  // "to" is in microsecond
+  int n;
+  int l,lcnt;
+  if(to<0) return;
+  n=(to*1000)>>4;
+  wbuf[0]=0x00;
+  wbuf[1]=0x14;
+  wbuf[2]=(n>>8)&0xff;
+  wbuf[3]=n&0xff;
+  nwbuf=4;
+  n=eth_write();
+  std::cout << "VME BusGrant Timeout set to " << to << " microseconds" <<std::endl;
+  for(l=0;l<8000;l++)lcnt++;
   return;
 }
 
@@ -849,6 +943,7 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
   unsigned char *r_head3;
   unsigned short r_num;
   unsigned char *r_datat;
+  unsigned char return_type;
   int size,nwrtn;
   int i;
   unsigned long int ptrt;
@@ -1005,6 +1100,23 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
       r_head3=(unsigned char *)rbuf+20;
       r_datat=(unsigned char *)rbuf+22;
       r_num=((r_head3[0]<<8)&0xff00)|(r_head3[1]&0xff);  
+      return_type=r_head0[1];
+      if(return_type!=5)
+       {  fprintf(stderr, "Error: wrong return data type: %d \n", return_type);
+          if(return_type==0xff)
+          {
+             error_type=(r_datat[0]&0xf0)>>4;
+             if(error_type==0) error_type=16;
+//
+// Need to discard one garbage packet.
+// In the case of multuple VME commands in one packet, it can be
+// very complicated. Have to deal with that later. Jinghua Liu 5/5/2006.
+//
+             size=eth_read();
+          }
+          return;
+       }
+
 // Jinghua Liu to debug
 //      printf("Read back size %d \n",size);
 //      for(i=0;i<size;i++)printf("%02X ",rbuf[i]&0xff);printf("\n");
