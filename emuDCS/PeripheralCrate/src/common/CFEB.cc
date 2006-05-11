@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CFEB.cc,v 2.1 2005/10/04 16:00:46 mey Exp $
+// $Id: CFEB.cc,v 2.2 2006/05/11 11:00:26 mey Exp $
 // $Log: CFEB.cc,v $
+// Revision 2.2  2006/05/11 11:00:26  mey
+// Update
+//
 // Revision 2.1  2005/10/04 16:00:46  mey
 // Bug fix
 //
@@ -12,14 +15,14 @@
 #include "CFEB.h"
 
 CFEB::CFEB(int number, std::vector<BuckeyeChip> buckeyes) :
-  number_(4-number),
+  number_(number),
   buckeyeChips_(buckeyes)
 {
 }
 
 
 CFEB::CFEB(int number) :
-  number_(4-number)
+  number_(number)
 {
   for(unsigned i = 0; i < 6; ++i) {
     buckeyeChips_.push_back(BuckeyeChip(i));
