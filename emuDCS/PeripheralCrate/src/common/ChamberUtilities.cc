@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.24 2006/05/10 10:24:32 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.25 2006/05/11 09:37:31 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.25  2006/05/11 09:37:31  mey
+// Update
+//
 // Revision 1.24  2006/05/10 10:24:32  mey
 // Update
 //
@@ -1674,8 +1677,10 @@ void ChamberUtilities::CFEBTiming(){
 	(*MyOutput_) << " clct0cfeb " << clct0cfeb << " clct1cfeb " << clct1cfeb << endl;
 	(*MyOutput_) << " clct0nhit " << clct0nhit << " clct1nhit " << clct1nhit << endl;
 	//
-	if ( clct0nhit == 6 && clct0keyHalfStrip == 16 ) Muons[clct0cfeb][TimeDelay]++;
-	if ( clct1nhit == 6 && clct1keyHalfStrip == 16 ) Muons[clct1cfeb][TimeDelay]++;
+	if ( clct0nhit == 6 && clct0keyHalfStrip == 16 && clct0cfeb == List ) 
+	  Muons[clct0cfeb][TimeDelay]++;
+	if ( clct1nhit == 6 && clct1keyHalfStrip == 16 && clct1cfeb == List ) 
+	  Muons[clct1cfeb][TimeDelay]++;
 	//
       }
     }
