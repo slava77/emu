@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.42 2006/05/11 09:46:03 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.43 2006/05/11 13:13:22 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -6002,19 +6002,19 @@ private:
 	 << std::endl ;
     if( thisDMB->GetTestStatus(11) == -1 ) {
       *out << cgicc::input().set("type","submit")
-	.set("value","DMB Test11 (Check Comparator DAC/ADC)")
+	.set("value","DMB Test11 (Check buckflash)")
 	.set("style","color:blue") 
 	   << std::endl ;
     }
     if( thisDMB->GetTestStatus(11) > 0 ) {
       *out << cgicc::input().set("type","submit")
-	.set("value","DMB Test11 (Check Comparator DAC/ADC)")
+	.set("value","DMB Test11 (Check buckflash)")
 	.set("style","color:red") 
 	   << std::endl ;
     }
     if( thisDMB->GetTestStatus(11) ==0 ) {
       *out << cgicc::input().set("type","submit")
-	.set("value","DMB Test11 (Check Comparator DAC/ADC)")
+	.set("value","DMB Test11 (Check buckflash)")
 	.set("style","color:green") 
 	   << std::endl ;
     }
