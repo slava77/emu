@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.13 2006/03/23 12:41:41 mey Exp $
+// $Id: VMEModule.h,v 2.14 2006/05/10 23:59:47 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.14  2006/05/10 23:59:47  liu
+// Update for Production Controller with firmware 3.59
+//
 // Revision 2.13  2006/03/23 12:41:41  mey
 // UPdate
 //
@@ -123,8 +126,11 @@ protected:
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.13 2006/03/23 12:41:41 mey Exp $
+// $Id: VMEModule.h,v 2.14 2006/05/10 23:59:47 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.14  2006/05/10 23:59:47  liu
+// Update for Production Controller with firmware 3.59
+//
 // Revision 2.13  2006/03/23 12:41:41  mey
 // UPdate
 //
@@ -182,7 +188,8 @@ public:
    virtual ~VMEModule() {};
    int crate() const {return theCrate->number();}
    int slot() const {return theSlot;}
-
+   bool exist();
+   
    /// these will only be called by the VMEController
    virtual void start();
    virtual void end();

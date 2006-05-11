@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.10 2006/03/10 13:13:12 mey Exp $
+// $Id: VMEController.h,v 2.11 2006/05/11 00:00:06 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 2.11  2006/05/11 00:00:06  liu
+// Update for Production Controller with firmware 3.59
+//
 // Revision 2.10  2006/03/10 13:13:12  mey
 // Jinghua's changes
 //
@@ -124,8 +127,11 @@ private:
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.10 2006/03/10 13:13:12 mey Exp $
+// $Id: VMEController.h,v 2.11 2006/05/11 00:00:06 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 2.11  2006/05/11 00:00:06  liu
+// Update for Production Controller with firmware 3.59
+//
 // Revision 2.10  2006/03/10 13:13:12  mey
 // Jinghua's changes
 //
@@ -205,6 +211,13 @@ public:
   void sdly();
   void RestoreIdle_alct();
   void scan_alct(int reg, const char *snd, int cnt, char *rcv,int ird);
+  bool SelfTest();
+  bool exist(int slot);
+  int error() const {return error_type;}
+  void enable_Reset();
+  void disable_Reset();
+  void set_Timeout(int to);
+  void set_GrantTimeout(int to);
   
 private:
   bool usedelay_;
@@ -244,6 +257,7 @@ private:
   int packet_delay_flg;
   float DELAY2;
   float DELAY3;
+  int error_type;
  
  // I like to keep them private. 
   void load_cdac(const char *snd);
@@ -274,7 +288,4 @@ private:
 
 
 #endif
-
-
-
 

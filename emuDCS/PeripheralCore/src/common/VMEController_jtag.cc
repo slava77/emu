@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.36 2006/05/02 21:23:27 mey Exp $
+// $Id: VMEController_jtag.cc,v 2.37 2006/05/10 23:59:25 liu Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.37  2006/05/10 23:59:25  liu
+// Update for Production Controller with firmware 3.59
+//
 // Revision 2.36  2006/05/02 21:23:27  mey
 // Update
 //
@@ -1234,7 +1237,7 @@ void VMEController::initDevice(int idev, int feuse) {
  char tmp[2]={0x00,0x00};
  unsigned short int tmp2[1];
 unsigned short int *ptrreg;
-    vmeadd=0x00000000;
+//    vmeadd=0x00000000;
 
     switch(idev){
 
