@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.46 2006/05/12 11:09:26 mey Exp $
+// $Id: DAQMB.cc,v 2.47 2006/05/12 11:38:39 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.47  2006/05/12 11:38:39  mey
+// Update
+//
 // Revision 2.46  2006/05/12 11:09:26  mey
 // Update
 //
@@ -419,17 +422,17 @@ void DAQMB::setdavdelay(int dword)
 void DAQMB::fxpreblkend(int dword)
 {
   for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
-      DEVTYPE dv = cfebs_[icfeb].scamDevice();
-      cmd[0]=VTX_USR1;
-      sndbuf[0]=PREBLKEND;
-      devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
-      cmd[0]=VTX_USR2;
-      //  default preblkend is state 5
-      sndbuf[0]=dword&0x0F; 
-      devdo(dv,5,cmd,4,sndbuf,rcvbuf,0);
-      cmd[0]=VTX_BYPASS;
-      sndbuf[0]=0;
-      devdo(dv,5,cmd,0,sndbuf,rcvbuf,2);
+    DEVTYPE dv = cfebs_[icfeb].scamDevice();
+    cmd[0]=VTX_USR1;
+    sndbuf[0]=PREBLKEND;
+    devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+    cmd[0]=VTX_USR2;
+    //  default preblkend is state 5
+    sndbuf[0]=dword&0x0F; 
+    devdo(dv,5,cmd,4,sndbuf,rcvbuf,0);
+    cmd[0]=VTX_BYPASS;
+    sndbuf[0]=0;
+    devdo(dv,5,cmd,0,sndbuf,rcvbuf,2);
   }
 }
 
@@ -815,12 +818,12 @@ void DAQMB::trigtest()
                   hp[5]=imid+ho[ip5];
                   if(ip5==3)p5hit=0;
                   hits=p0hit+p1hit+p2hit+p3hit+p4hit+p5hit;
-                  printf("Pattern :\n");
+                  (*MyOutput_) << "Pattern :" << std::endl ;
                   for(k=0;k<6;k++){
-		     printf(" %d ",hp[k]);
+		    printf(" %d ",hp[k]);
                   }
-                  printf(" \n");
-                  printf("Hits set = %d\n",hits);
+                  (*MyOutput_) << std::endl;
+                  (*MyOutput_) << "Hits set = " << hits << std::endl;
                   trigsetx(hp);
                   inject(1,0x4f);
 		  (*MyOutput_) << " Next ?"<< std::endl;
