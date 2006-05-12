@@ -1,0 +1,342 @@
+#!/usr/bin/python2.4
+# -*- coding: utf-8 -*-
+
+# emuFarmer launches/kills XDAQ executives specified in a XDAQ XML configuration file.
+# Needs python v2.3 or higher and pyXML (http://pyxml.sourceforge.net/)
+
+from xml.dom.ext.reader import Sax2
+from xml.dom import Node
+import StringIO
+import sys
+import os
+import re
+import popen2
+import httplib
+import threading
+import logging
+
+#################
+class Emu_Farmer:
+#################
+    
+    def __init__( self, configFileName ):
+        self._configFileName = configFileName
+
+        # The remote user
+        self._user = None
+
+        # The XML reader
+        self._reader = Sax2.Reader()
+        
+        # The DOM document created from the config XML file
+        self._doc = None
+
+        # Dict of all command lines
+        self._commandLines = {} # { context : commandLine }
+        # Dict of command lines to issue
+        self._relevantCommandLines = {} # { context : commandLine }
+
+        # Dict of targets
+        self._targets = { 'EmuRUI'             : 'daq',
+                          'RU'                 : 'daq',
+                          'BU'                 : 'daq',
+                          'EVM'                : 'daq',
+                          'EmuTA'              : 'daq',
+                          'EmuFU'              : 'daq',
+                          'EmuDAQManager'      : 'man',
+                          'EmuPeripheralCrate' : 'pc' ,
+                          'LTCControl'         : 'ltc',
+                          'CSCSupervisor'      : 'sv'   }
+
+        # Dict of context sets grouped by target (context='host:port')
+        self._contexts = { 'daq' : set(),
+                           'man' : set(),
+                           'pc'  : set(),
+                           'ltc' : set(),
+                           'sv'  : set(),
+                           'all' : set() }
+
+        # List of ssh threads
+        self._sshThreads = []
+
+    def act( self, user, action, targets, xdaq_root, logLevel ):
+        self._user        = user
+        self._action      = action
+        self._target      = targets
+        self._xdaq_root   = xdaq_root
+        self._logLevel    = logLevel
+
+        self.validateOptions()
+        self.getConfigFile()
+        self.createCommandLines()
+        self.pickRelevantCommandLines()
+
+
+        for ctxt,cmnd in self._relevantCommandLines.iteritems():
+            #print ctxt,'\n',commands.getoutput(cmnd) # doesn't stop when starting xdaq as it wants to read stdout...
+            prettyContext = '[34m'+ctxt+'[0m'
+            if self._action == 'status':
+                # gathering status info one-by-one is too slow; do it in parallel
+                sshThread = AsyncSSH( prettyContext, cmnd )
+                sshThread.setName( ctxt )
+                self._sshThreads.append( sshThread )
+                sshThread.start()
+            elif self._action == 'start':
+                f = popen2.popen4(cmnd)
+                logging.info(prettyContext+'\t    starting')
+                #print '%35s    starting' % (prettyContext)
+            else:
+                f = popen2.popen4(cmnd)
+                logging.info(prettyContext+'\t    stopping')
+                #print '%35s    stopping' % (prettyContext)
+
+    def validateOptions( self ):
+        if self._action not in ['status','start','stop']:
+            print '***** Error:',self._action,'is not a recognized action. Use [status|start|stop]'
+            print '      Type emuFarmer -h for help.'
+            sys.exit(1)
+        if self._logLevel not in ['DEBUG','INFO','WARN','ERROR','FATAL']:
+            print '***** Error:',self._logLevel,'is not a valid log level. Use [DEBUG|INFO|WARN|ERROR|FATAL]'
+            print '      Type emuFarmer -h for help.'
+            sys.exit(1)
+        for g in re.split('[+\-]',self._target):
+            if g not in self._contexts:
+                print '***** Error:',g,'is not a valid target group. Use',self._contexts.keys()
+                print '      Type emuFarmer -h for help.'
+                sys.exit(1)
+        if len(self._xdaq_root) == 0:
+            print '***** Error: XDAQ_ROOT for remote hosts not specified. Use -X <xdaq_root>'
+            print '      Type emuFarmer -h for help.'
+            sys.exit(1)
+
+
+    def getConfigFile( self ):
+        m = re.match( 'http://(.+):(.+)', self._configFileName )
+        if m:
+            configFileURL  = m.group(1)
+            configFilePath = m.group(2)
+            conn           = httplib.HTTPConnection( configFileURL )
+            conn.request( "GET", configFilePath )
+            response = conn.getresponse()
+            if response.status <> OK:
+                print 'Failed to get ',self._configFileName, '\nReason: ',response.reason
+                sys.exit(1)
+            cf = response.read()
+            self._doc = self._reader.fromStream( StringIO.StringIO(cf) )
+            return
+        m = re.match( 'file://(.+)', self._configFileName )
+        if m:
+            configFilePath = m.group(1)
+            configFile     = open( configFilePath, 'r' )
+            self._doc      = self._reader.fromStream( configFile )
+            return
+        self._doc = self._reader.fromStream( self._configFileName )
+
+    def escapeRegexpSpecialChar( self, s ):
+        ss = re.sub('\.','\.',s )
+        ss = re.sub('\+','\+',ss)
+        ss = re.sub('\/','\/',ss)
+        return ss
+
+    def createCommandLines( self ):
+        contexts = self._doc.getElementsByTagName('xc:Context')
+        for context in contexts:
+            url = context.getAttributeNode('url').firstChild.data
+            m = re.match('(http://)(.*):([0-9]*$)',url)
+            host = m.group(2)
+            port = m.group(3)
+
+            if self._action == 'start':
+                remoteCommand = '"(export XDAQ_ROOT='+self._xdaq_root+' && \$XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -h '+host+' -p '+port+' -l '+self._logLevel+' -c '+self._configFileName+' &> /dev/null &)"'
+            elif self._action == 'stop':
+                remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ && /-c[ ]+"+self.escapeRegexpSpecialChar(self._configFileName)+"/ { print \$2 }' | xargs -r kill -9\""
+            elif self._action == 'status':
+                remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ && /-c[ ]+"+self.escapeRegexpSpecialChar(self._configFileName)+"/ { print \$7 }'\""
+
+            commandLine = 'ssh -2 -f '+self._user+'@'+host+' '+remoteCommand
+            hostAndPort = host+':'+port
+            self._commandLines[hostAndPort] = commandLine
+            
+            # put this command in the appropriate target set(s)
+            self._contexts['all'].add(hostAndPort)
+            apps = context.getElementsByTagName('xc:Application')
+            for app in apps:
+                klass = app.getAttributeNode('class').firstChild.data
+                if self._targets.has_key(klass):
+                    target = self._targets[klass]
+                    self._contexts[target].add(hostAndPort)
+                    #print hostAndPort,' added to ',target
+
+        #print '\nGrouping of contexts:'
+        #for tgt,ctxt in self._contexts.iteritems():
+        #    print tgt
+        #    for c in ctxt:
+        #        print '     ',c
+        #
+        #print '\nAll command lines'
+        #for ctxt,cmnd in self._commandLines.iteritems():
+        #    print ctxt,'\n        ',cmnd
+        
+    def pickRelevantCommandLines( self ):
+        groupToAdd  = set()
+        groupToOmit = set()
+        # parse the string of specified targets
+        target = self._target+' '
+        sign = '+'
+        t = ''
+        for i in range(len(target)):
+            if target[i] == '+' or target[i] == '-':
+                if len(t) > 0:
+                    if self._contexts.has_key(t):
+                        if sign == '+': groupToAdd  = groupToAdd  | self._contexts[t]
+                        else          : groupToOmit = groupToOmit | self._contexts[t]
+                    else:
+                        print '***** Error: ',t,' is not a recognized target group'
+                sign = self._target[i]
+                t = ''
+            elif i == len(self._target):
+                if len(t) > 0:
+                    if self._contexts.has_key(t):
+                        if sign == '+': groupToAdd  = groupToAdd  | self._contexts[t]
+                        else          : groupToOmit = groupToOmit | self._contexts[t]
+                    else:
+                        print '***** Error: ',t,' is not a recognized target group'
+                t = ''
+            else:
+                t += self._target[i]
+            
+        relevantContexts = groupToAdd - groupToOmit
+        if len( relevantContexts ) == 0:
+            print self._target,' corresponds to no context in ',self._configFileName
+            print '      Type emuFarmer -h for help.'
+            sys.exit(1)
+        for rctxt in relevantContexts:
+            self._relevantCommandLines[rctxt] = self._commandLines[rctxt]
+
+        
+    def printHelp():
+        print """
+emuFarmer launches/kills XDAQ executives specified in a XDAQ XML configuration file.
+
+    Usage:
+        emuFarmer -c config_file [-u user] [-a action] [-t target_group] [-l log_level] [-X xdaq_root] [-h]
+
+    Options:
+        -c    Configuration file's absolute path or URL. (A "mandatory option".)
+        -a    Action [status|start|stop] to take. Default is 'status'.
+              'status' prints the process state code reported by 'ps'. (See the ps man pages.)
+        -t    Group(s) of targeted executives.
+              Name        Executives running
+               daq         DAQ column
+               ltc         LTCControl
+               man         EmuDAQManager
+               pc          EmuPeripheralCrate
+               sv          CSCSupervisor
+               all         any application
+              E.g., man+daq will select all executives running DAQManager or DAQ column applications,
+              all-ltc will select all executives except the one running LTCControl.
+              Default is 'all'.
+        -u    User to run the executives on the remote hosts. Default is 'slice'.
+        -X    XDAQ_ROOT on the remote hosts. Default is $XDAQ_ROOT of the shell where emuFarmer is run.
+        -l    XDAQ executives' log level. Default is WARN.
+        -h    Print this help.
+
+    Example:
+        emuFarmer -a start -l INFO -c http://emudaq02/EmuDAQ/xml/EmuDAQ_SliceTest.xml
+    """
+
+    def waitForThreads(self):
+        allFinished = False
+        while not allFinished:
+            allFinished = True
+            for thread in farmer._sshThreads:
+                allFinished &= not thread.isAlive()
+                #print i,thread.getName(), thread.isAlive()
+        
+#################################
+class AsyncSSH(threading.Thread):
+#################################
+
+    def __init__(self, context, command):
+        threading.Thread.__init__(self)        
+        self._context = context
+        self._command = command
+
+    def run(self):
+        report = ''
+        f = popen2.popen4(self._command)
+        status = f[0].read() # this blocks when xdaq is being started
+        st = re.split('\n',status)
+        if len(st) >= 2:
+            # print the last-but-one line (the last one is empty)
+            logging.info(self._context+'\t    '+st[-2])
+        else:
+            # print the only line (must be empty...)
+            logging.info(self._context+'\t    '+st[-1])
+        f[0].close()
+
+if __name__ == "__main__":
+
+    # user is clueless
+    if len(sys.argv) == 1:
+        printHelp()
+        sys.exit(0)
+
+    # default arguments
+    configFileName =  None
+    action         = 'status'
+    targets        = 'all'
+    logLevel       = 'WARN'
+    user           = 'slice'
+    xdaq_root      = ''
+    
+    # user's command line options
+    for i in range(1,len(sys.argv)):
+        if sys.argv[i] == '-c':
+            configFileName = sys.argv[i+1]
+        elif sys.argv[i] == '-a':
+            action = sys.argv[i+1]
+        elif sys.argv[i] == '-t':
+            targets = sys.argv[i+1]
+        elif sys.argv[i] == '-l':
+            logLevel = sys.argv[i+1]
+        elif sys.argv[i] == '-u':
+            user = sys.argv[i+1]
+        elif sys.argv[i] == '-X':
+            xdaq_root = sys.argv[i+1]
+        elif sys.argv[i] == '-h':
+            printHelp()
+            sys.exit(0)
+
+    # XDAQ_ROOT must be known
+    if xdaq_root == '' and 'XDAQ_ROOT' not in os.environ:
+        print '***** Error: No XDAQ_ROOT specified or set. Please use the "-X <xdaq_root>" option.'
+        print '      Type emuFarmer -h for help.'
+        sys.exit(1)
+    if xdaq_root == '' and 'XDAQ_ROOT' in os.environ:
+        xdaq_root  = os.environ['XDAQ_ROOT']
+
+    # we must have a config file
+    if configFileName == None:
+        print '***** Error: No configuration file specified. Please use the "-c <configFile>" option.'
+        print '      Type emuFarmer -h for help.'
+        sys.exit(1)
+
+    # can we do that?
+    if action not in ['status','start','stop']:
+        print '***** Error:',action,'is not a recognized action. Use [status|start|stop]'
+        print '      Type emuFarmer -h for help.'
+        sys.exit(1)
+
+    # let's roll
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s %(message)s')
+    farmer = Emu_Farmer( configFileName )
+    print 'status (S: sleeping, R: running, "Scientific Linux" or nothing: no process found):'
+    farmer.act( user, 'status', targets, xdaq_root, logLevel )
+    if action == 'status': sys.exit(0)
+    farmer.waitForThreads()
+    if re.match('y',raw_input(action+'? [y|n] ')):
+        farmer.act( user,  action , targets, xdaq_root, logLevel )
+        print 'status:'
+        farmer.act( user, 'status', targets, xdaq_root, logLevel )
