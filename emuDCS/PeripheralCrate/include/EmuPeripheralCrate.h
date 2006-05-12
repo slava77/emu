@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.55 2006/05/12 14:58:29 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.56 2006/05/12 15:25:48 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -104,6 +104,7 @@ protected:
   xdata::String DMBFirmware_;
   xdata::String ALCTFirmware_;
   xdata::String CFEBFirmware_;
+  std::string FirmwareDir_;
   //
   xdata::String TestLogFile_;
   //
@@ -5540,6 +5541,12 @@ private:
     //
     TMB * thisTMB = tmbVector[tmb];
     //
+    alct = thisTMB->alctController();
+    if (!alct) {
+      std::cout << "No ALCT present" << std::endl;
+      return;
+    }
+    //
     thisCCB->hardReset();
     //
     int debugMode(0);
@@ -5559,7 +5566,14 @@ private:
     //
     //int status = alct->SVFLoad(&jch,"../svf/alct384rl.svf",debugMode);
     //
-    int status = alct->SVFLoad(&jch,ALCTFirmware_.toString().c_str(),debugMode);
+    std::string ALCTFirmware = FirmwareDir_+"alct";
+    //
+    if ( (alct->GetChamberType()).find("ME22") != string::npos ) {
+      ALCTFirmware += "alct384rl.svf";
+    }
+    //
+    std::cout << ALCTFirmware << std::endl ;
+    int status = alct->SVFLoad(&jch,ALCTFirmware.c_str(),debugMode);
     thisTMB->enableAllClocks();
     //
     if (status >= 0){
