@@ -215,6 +215,7 @@ private:
   xdata::UnsignedLong maxNumberOfEvents_;
   xdata::Vector<xdata::String> runTypes_; // all possible run types
   xdata::String runType_; // the current run type
+  xdata::Boolean buildEvents_;
   int stringToInt( const string* const s );
   int purgeIntNumberString( string* s ); // Emu
   vector< vector<string> > getRUIEventCounts(); // Emu
@@ -223,6 +224,7 @@ private:
 			      string                    title,
 			      vector< vector<string> >  counts ); // Emu
   string getDateTime();
+  string ageOfPageClock();
   void   getRunInfoFromTA( string* runnum, string* maxevents );
   vector< pair<xdaq::ApplicationDescriptor*, string> > allAppStates_;
   set<string> contexts_; // all different contexts with apps controlled by EmuDAQManager
