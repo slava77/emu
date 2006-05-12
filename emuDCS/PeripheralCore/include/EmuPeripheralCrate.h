@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.52 2006/05/12 14:41:59 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.53 2006/05/12 14:44:16 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -6641,7 +6641,7 @@ private:
 	  //
 	  instring >> line0 >> result ;
 	  //
-	  MyCrateTest.SetMpcTMBTestResult(result);
+	  myCrateTest.SetMpcTMBTestResult(result);
 	  //
 	}
 	//
