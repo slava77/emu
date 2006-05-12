@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.45 2006/05/12 10:39:43 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.46 2006/05/12 10:48:45 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -5803,7 +5803,26 @@ private:
     //
     *out << cgicc::form().set("method","GET").set("action",DMBTest3)
 	 << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","DMB Test3 (Check DMB Fifos)") << std::endl ;
+    //
+    if( thisDMB->GetTestStatus(3) == -1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","DMB Test3 (Check DMB Fifos)") 
+	.set("style","color:blue") 
+	   << std::endl ;
+    }
+    if( thisDMB->GetTestStatus(3) > 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","DMB Test3 (Check DMB Fifos)") 
+	.set("style","color:red") 
+	   << std::endl ;
+    } 
+    if( thisDMB->GetTestStatus(3) == 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","DMB Test3 (Check DMB Fifos)") 
+	.set("style","color:green") 
+	   << std::endl ;
+    }
+    //
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
