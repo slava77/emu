@@ -25,6 +25,7 @@ public:
     thisTMB->RedirectOutput(Output);
     thisDMB->RedirectOutput(Output);
     thisCCB_->RedirectOutput(Output);
+    thisMPC->RedirectOutput(Output);
     MyOutput_ = Output ;
     //
   }
