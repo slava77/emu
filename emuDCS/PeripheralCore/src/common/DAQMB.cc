@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.45 2006/05/12 11:03:12 mey Exp $
+// $Id: DAQMB.cc,v 2.46 2006/05/12 11:09:26 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.46  2006/05/12 11:09:26  mey
+// Update
+//
 // Revision 2.45  2006/05/12 11:03:12  mey
 // Update
 //
@@ -434,7 +437,7 @@ void DAQMB::calctrl_fifomrst()
 {
   cmd[0]=VTX2_USR1;
   sndbuf[0]=CAL_FIFOMRST;
-  printf(" %02x CAL_FIFOMRST \n",sndbuf[0]&0xff);
+  (*MyOutput_) << " CAL_FIFOMRST " << std::hex << (sndbuf[0]&0xff) << std::dec << std::endl;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
