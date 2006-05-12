@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.21 2006/02/16 09:41:47 mey Exp $
+// $Id: MPC.cc,v 2.22 2006/05/12 08:03:06 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.22  2006/05/12 08:03:06  mey
+// Update
+//
 // Revision 2.21  2006/02/16 09:41:47  mey
 // Fixed byte swap
 //
@@ -866,8 +869,11 @@ void MPC::interconnectTest(){
 #else
 
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.21 2006/02/16 09:41:47 mey Exp $
+// $Id: MPC.cc,v 2.22 2006/05/12 08:03:06 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.22  2006/05/12 08:03:06  mey
+// Update
+//
 // Revision 2.21  2006/02/16 09:41:47  mey
 // Fixed byte swap
 //
@@ -951,7 +957,7 @@ MPC::MPC(int newCrate, int slot) : VMEModule(newCrate, slot),
 
 
 MPC::~MPC(){
-  std::cout << "MPC: module removed from crate=" << this->crate() 
+  (*MyOutput_) << "MPC: module removed from crate=" << this->crate() 
        << " slot=" << this->slot() << std::endl;
 }
 
@@ -971,11 +977,11 @@ void MPC::configure() {
   char data[2];
   char addr;
   
-  std::cout << "MPC: initialize" << std::endl;
+  (*MyOutput_) << "MPC: initialize" << std::endl;
 
   ReadRegister(CSR0);
 
-  std::cout << "MPC: turn off Resets" <<std::endl;
+  (*MyOutput_) << "MPC: turn off Resets" <<std::endl;
   addr = CSR0;
   data[1]=0x10;
   data[0]=0x4a;
@@ -983,14 +989,14 @@ void MPC::configure() {
 
   ReadRegister(CSR0);
 
-  std::cout << "MPC: logic reset" << std::endl;
+  (*MyOutput_) << "MPC: logic reset" << std::endl;
   data[1]=0x12;
   data[0]=0x4a;
   do_vme(2, addr, data, NULL, 1);
 
   ReadRegister(CSR0);
 
-  std::cout << "MPC: end logic Reset" << std::endl;
+  (*MyOutput_) << "MPC: end logic Reset" << std::endl;
   data[1]=0x10;
   data[0]=0x4a;
   do_vme(2, addr, data, NULL, 1);
@@ -999,18 +1005,18 @@ void MPC::configure() {
 
   //read_csr0();
 
-  std::cout << "MPC: set default serializer TX mode ..." << std::endl;
+  (*MyOutput_) << "MPC: set default serializer TX mode ..." << std::endl;
   setTLK2501TxMode(TLK2501TxMode_);
 
   // Sorter Mode is the default power-up mode of the MPC.
-  std::cout << "MPC: set default MPC operation Mode ..." << std::endl;
+  (*MyOutput_) << "MPC: set default MPC operation Mode ..." << std::endl;
   if (TransparentModeSources_)
     setTransparentMode(TransparentModeSources_);
   else
     setSorterMode();
 
   // The default power-up delays are always 0.
-  std::cout << "MPC: setting default TMB-MPC delays ..." << std::endl;
+  (*MyOutput_) << "MPC: setting default TMB-MPC delays ..." << std::endl;
   setDelayFromTMB(TMBDelayPattern_);
 
   // report firmware version
@@ -1032,58 +1038,58 @@ void MPC::read_fifosA() {
   std::cout.fill('0');
   //
   read_fifo(FIFO_A1a, data);  
-  std::cout << "MPC: FIFO-A1a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A1a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A1b, data);
-  std::cout << "MPC: FIFO-A1b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A1b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A2a, data);
-  std::cout << "MPC: FIFO-A2a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A2a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A2b, data);
-  std::cout << "MPC: FIFO-A2b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A2b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A3a, data);
-  std::cout << "MPC: FIFO-A3a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A3a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A3b, data);
-  std::cout << "MPC: FIFO-A3b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A3b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A4a, data);
-  std::cout << "MPC: FIFO-A4a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A4a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A4b, data);
-  std::cout << "MPC: FIFO-A4b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A4b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A5a, data);
-  std::cout << "MPC: FIFO-A5a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A5a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A5b, data);
-  std::cout << "MPC: FIFO-A5b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A5b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A6a, data);
-  std::cout << "MPC: FIFO-A6a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A6a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A6b, data);
-  std::cout << "MPC: FIFO-A6b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A6b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A7a, data);
-  std::cout << "MPC: FIFO-A7a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A7a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A7b, data);
-  std::cout << "MPC: FIFO-A7b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A7b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A8a, data);
-  std::cout << "MPC: FIFO-A8a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A8a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A8b, data);
-  std::cout << "MPC: FIFO-A8b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A8b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A9a, data);
-  std::cout << "MPC: FIFO-A9a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A9a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
   read_fifo(FIFO_A9b, data);
-  std::cout << "MPC: FIFO-A9b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: FIFO-A9b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
   //
 }
 
@@ -1091,12 +1097,12 @@ void MPC::read_fifos() {
   //
   // Read FIFO-B until empty
   //
-  std::cout << "MPC:  Read FIFO-B" << std::endl;
+  (*MyOutput_) << "MPC:  Read FIFO-B" << std::endl;
   char data[100];
   //read_fifo(STATUS, data);
   read_fifo(CSR3, data);
   std::cout.fill('0');
-  std::cout << "FIFO status " << std::hex << data << std::endl;
+  (*MyOutput_) << "FIFO status " << std::hex << data << std::endl;
   std::cout.fill(' ');
   //bool full_fifoa=(data[1]&0x0001);
   //bool empty_fifoa=(data[1]&0x0002)>>1;
@@ -1107,60 +1113,60 @@ void MPC::read_fifos() {
   Lct0=0;Lct1=0;Lct2=0;
   //
   if(empty_fifob) {
-    std::cout << "MPC: FIFO-B is empty!" << std::endl;
+    (*MyOutput_) << "MPC: FIFO-B is empty!" << std::endl;
     return;
   } else {
-    std::cout << "MPC: 1st Best Muon FIFO" << std::endl;
+    (*MyOutput_) << "MPC: 1st Best Muon FIFO" << std::endl;
     read_fifo(FIFO_B1, data);
     Lct0 = ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
-    std::cout << std::hex;
+    (*MyOutput_) << std::hex;
     std::cout.fill('0');
-    std::cout << "MPC: FIFO-B1a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+    (*MyOutput_) << "MPC: FIFO-B1a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
     read_fifo(FIFO_B1, data);
     Lct0 = (Lct0<<16) | ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
     FIFOBLct0.push_back(Lct0);
-    std::cout << "MPC: FIFO-B1b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff)  << std::endl;
-    std::cout << "MPC: LCT0     = 0x" << std::setw(8) << Lct0 << std::endl ;
+    (*MyOutput_) << "MPC: FIFO-B1b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff)  << std::endl;
+    (*MyOutput_) << "MPC: LCT0     = 0x" << std::setw(8) << Lct0 << std::endl ;
     //
-    std::cout << "MPC: 2nd Best Muon FIFO" << std::endl;
+    (*MyOutput_) << "MPC: 2nd Best Muon FIFO" << std::endl;
     read_fifo(FIFO_B2, data);
     Lct1 = ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
-    std::cout << "MPC: FIFO-B2a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+    (*MyOutput_) << "MPC: FIFO-B2a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
     read_fifo(FIFO_B2, data);
     Lct1 = (Lct1<<16) | ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
-    std::cout << "MPC: FIFO-B2b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+    (*MyOutput_) << "MPC: FIFO-B2b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
     FIFOBLct1.push_back(Lct1);
-    std::cout << "MPC: LCT1     = 0x" << std::setw(8) << Lct1 << std::endl ;
+    (*MyOutput_) << "MPC: LCT1     = 0x" << std::setw(8) << Lct1 << std::endl ;
     //
-    std::cout << "MPC: 3nd Best Muon FIFO" << std::endl;
+    (*MyOutput_) << "MPC: 3nd Best Muon FIFO" << std::endl;
     read_fifo(FIFO_B3, data);
     Lct2 = ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
-    std::cout << "MPC: FIFO-B3a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+    (*MyOutput_) << "MPC: FIFO-B3a = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
     read_fifo(FIFO_B3, data);
     Lct2 = (Lct2<<16) | ((data[0]&0x00ff) << 8) | (data[1]&0x00ff) ;
-    std::cout << "MPC: FIFO-B3b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) <<(data[1]&0x00ff) << std::endl;
+    (*MyOutput_) << "MPC: FIFO-B3b = 0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) <<(data[1]&0x00ff) << std::endl;
     FIFOBLct2.push_back(Lct2);
-    std::cout << "MPC: LCT2     = 0x" << std::setw(8) << Lct2 << std::endl ;
+    (*MyOutput_) << "MPC: LCT2     = 0x" << std::setw(8) << Lct2 << std::endl ;
     std::cout.fill(' ');
-    std::cout << std::dec;    
+    (*MyOutput_) << std::dec;    
     //
     read_fifos();
     //
   }
   //
   read_fifo(CSR3, data);
-  std::cout << "FIFO status = " << std::hex << data << std::endl;
+  (*MyOutput_) << "FIFO status = " << std::hex << data << std::endl;
   //
 }
 
 void MPC::read_csr0() {
   char data[100];
   read_fifo(CSR0,data);
-  std::cout.fill('0');
-  std::cout << "MPC: data read from CSR0: 0x" << std::hex 
+  (*MyOutput_).fill('0');
+  (*MyOutput_) << "MPC: data read from CSR0: 0x" << std::hex 
        << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff)
        << std::dec << std::endl;
-  std::cout.fill(' ');
+  (*MyOutput_).fill(' ');
 }
 
 void MPC::SoftReset() {
@@ -1195,7 +1201,7 @@ void MPC::read_status() {
   //read_fifo(STATUS, data);
   read_fifo(CSR3, data);
   std::cout.fill('0');
-  std::cout << "MPC: FIFO status = 0x" << std::hex << std::setw(2) << (data[0]&0x00ff)
+  (*MyOutput_) << "MPC: FIFO status = 0x" << std::hex << std::setw(2) << (data[0]&0x00ff)
        << std::setw(2) << (data[1]&0x00ff) << std::dec << std::endl;
   std::cout.fill(' ');
   bool full_fifoa=(data[1]&0x0001);
@@ -1203,10 +1209,10 @@ void MPC::read_status() {
   bool full_fifob=(data[1]&0x0004)>>2;
   bool empty_fifob=(data[1]&0x0008)>>3;
 
-  if (full_fifoa>0)  std::cout << "MPC: FIFO_A is Full"  << std::endl;
-  if (empty_fifoa>0) std::cout << "MPC: FIFO_A is Empty" << std::endl;
-  if (full_fifob>0)  std::cout << "MPC: FIFO_B is Full"  << std::endl;
-  if (empty_fifob>0) std::cout << "MPC: FIFO_B is Empty" << std::endl;;
+  if (full_fifoa>0)  (*MyOutput_) << "MPC: FIFO_A is Full"  << std::endl;
+  if (empty_fifoa>0) (*MyOutput_) << "MPC: FIFO_A is Empty" << std::endl;
+  if (full_fifob>0)  (*MyOutput_) << "MPC: FIFO_B is Full"  << std::endl;
+  if (empty_fifob>0) (*MyOutput_) << "MPC: FIFO_B is Empty" << std::endl;;
 }
 
 
@@ -1237,7 +1243,7 @@ void MPC::enablePRBS(){
   data[1]=0x10;
   do_vme(2, addr, data, NULL, 1);
 
-  std::cout << "MPC: PRBS mode enabled" << std::endl;
+  (*MyOutput_) << "MPC: PRBS mode enabled" << std::endl;
 }
 
 void MPC::disablePRBS(){
@@ -1251,7 +1257,7 @@ void MPC::disablePRBS(){
   data[1]=0x10;
   do_vme(2, addr, data, NULL, 1);
 
-  std::cout << "MPC: PRBS mode disabled" << std::endl;
+  (*MyOutput_) << "MPC: PRBS mode disabled" << std::endl;
 }
 
 void MPC::initTestLinks(){
@@ -1259,7 +1265,7 @@ void MPC::initTestLinks(){
 //nb! need to time in SP after this funct but before inject data
 
 //initialise!!! toggle CSR0 bits.
- std::cout << "Initialising peripheral crate links for load FIFOs" << std::endl;
+ (*MyOutput_) << "Initialising peripheral crate links for load FIFOs" << std::endl;
 
   int btd, xfer_done[2];
   char data[2];
@@ -1291,7 +1297,7 @@ void MPC::injectSP(){
 
  this->read_status();
  
-   std::cout << "..now filling FIFO-A" <<std::endl;
+   (*MyOutput_) << "..now filling FIFO-A" <<std::endl;
 	   // Fill FIFOA with 255 events
 	   for (int EVNT=0; EVNT<255; EVNT++)
            {
@@ -1365,16 +1371,16 @@ void MPC::injectSP(char *injectDataFileName){
   char addr;
   int readWord;//number of words read by fscanf
   
-  std::cout<<"...inject test pattern funct"<<std::endl;
-  std::cout<<"data file passed is: "<<injectDataFileName<<std::endl;
+  (*MyOutput_)<<"...inject test pattern funct"<<std::endl;
+  (*MyOutput_)<<"data file passed is: "<<injectDataFileName<<std::endl;
   //let's try to open the file:: 
   
   
   
-  std::cout<<"opening file..."<<std::endl;
+  (*MyOutput_)<<"opening file..."<<std::endl;
   FILE* myFile = fopen(injectDataFileName , "r" );
   if (myFile==NULL){
-    std::cout<<"problem opening data file, exiting.."<<std::endl;
+    (*MyOutput_)<<"problem opening data file, exiting.."<<std::endl;
     exit(0);
   }
   
@@ -1382,9 +1388,9 @@ void MPC::injectSP(char *injectDataFileName){
   
   this->read_status();
   
-  std::cout<<" will use LCT data from file "<<injectDataFileName<<std::endl;
+  (*MyOutput_)<<" will use LCT data from file "<<injectDataFileName<<std::endl;
   
-  std::cout << "..now filling FIFO-A, with your data, alternating frame 1, 2.." <<std::endl;
+  (*MyOutput_) << "..now filling FIFO-A, with your data, alternating frame 1, 2.." <<std::endl;
   //   int ITR=2;mframe2 = ITR;
   
 
@@ -1392,14 +1398,14 @@ void MPC::injectSP(char *injectDataFileName){
   // read the first data word and turn it into and integer:
   readWord=fscanf( myFile,"%s",DataWord);
   sscanf(DataWord,"%x",&dataWordInt_fr1);
-  std::cout<<"first frame 1 :: (first word in file) is "<<std::hex<<dataWordInt_fr1<<std::endl;
+  (*MyOutput_)<<"first frame 1 :: (first word in file) is "<<std::hex<<dataWordInt_fr1<<std::endl;
   if (readWord<1){
-    std::cout<<"problem reading first word in file ..exiting..."<<std::endl;
+    (*MyOutput_)<<"problem reading first word in file ..exiting..."<<std::endl;
     exit(0);
   }
   readWord=fscanf( myFile,"%s",DataWord);
   sscanf(DataWord,"%x",&dataWordInt_fr2);
-  std::cout<<"first frame 2 :: (second word in file) is "<<std::hex<<dataWordInt_fr2<<std::endl;    
+  (*MyOutput_)<<"first frame 2 :: (second word in file) is "<<std::hex<<dataWordInt_fr2<<std::endl;    
 
   int EVNT=0;//event counter
   while (dataWordInt_fr1 !=0 && dataWordInt_fr2 !=0)//keep on looping while we have valid words
@@ -1422,7 +1428,7 @@ void MPC::injectSP(char *injectDataFileName){
 	      data[0]=(mframe1&0xFF00)>>8;
 	      this->do_vme(2, addr, data, NULL, 1);
 	      
-	      //std::cout<<"event: "<<EVNT<<"...filling fifoA with "<<std::hex<<mframe1<<std::endl;
+	      //(*MyOutput_)<<"event: "<<EVNT<<"...filling fifoA with "<<std::hex<<mframe1<<std::endl;
 	      
 	      //2 frames?:ie 2x16 bits =tot 32 bits..
 	      
@@ -1442,7 +1448,7 @@ void MPC::injectSP(char *injectDataFileName){
       sscanf(DataWord,"%x",&dataWordInt_fr2);
       
       if (readWord<1){
-	std::cout<<"reached end of file... .."<<EVNT<<" eventsx2 frames loaded.."<<std::endl;
+	(*MyOutput_)<<"reached end of file... .."<<EVNT<<" eventsx2 frames loaded.."<<std::endl;
 	dataWordInt_fr1=0;
 	dataWordInt_fr2=0;
       }//end if	     
@@ -1475,9 +1481,9 @@ void MPC::injectSP(char *injectDataFileName){
 void MPC::setTLK2501TxMode(int mode){
   /// set the TLK2501 serializer Tx mode
   if (mode==1)
-    std::cout << "MPC: serializer in FRAMED mode" << std::endl;
+    (*MyOutput_) << "MPC: serializer in FRAMED mode" << std::endl;
   else if (mode==0)
-    std::cout << "MPC: serializer in CONTINUOUS mode" << std::endl;
+    (*MyOutput_) << "MPC: serializer in CONTINUOUS mode" << std::endl;
   else
     std::cerr << "MPC: -WARNING- serializer in UNKNOWN mode ("<<mode<<")"<< std::endl;
 
@@ -1542,7 +1548,7 @@ void MPC::firmwareVersion(){
 
 void MPC::setSorterMode(){
   /// Switches the MPC to Sorter Mode while keeping the original sources intact.
-  std::cout << "MPC: switching to Sorter Mode" << std::endl;
+  (*MyOutput_) << "MPC: switching to Sorter Mode" << std::endl;
   char addr =  CSR4;
   int btd;
   int xfer_done[2];
@@ -1565,7 +1571,7 @@ void MPC::setTransparentMode(unsigned int pattern){
   //fg bit shift adding the bit-1=1 ... Should change once we feel
   //fg comfortable enough about it.
 
-  std::cout << "MPC: switching to Transparent Mode. Source pattern = 0x" 
+  (*MyOutput_) << "MPC: switching to Transparent Mode. Source pattern = 0x" 
        << std::hex << pattern << std::dec << std::endl;
   int btd, xfer_done[2];
   char data[2];
@@ -1575,7 +1581,7 @@ void MPC::setTransparentMode(unsigned int pattern){
 
   // make sure that the last bit is actually 1, otherwise there is no transparentMode
   if ( !(pattern & 0x01)){
-    std::cout << "MPC: WARNING - last bit in source pattern (" << (unsigned short)pattern 
+    (*MyOutput_) << "MPC: WARNING - last bit in source pattern (" << (unsigned short)pattern 
 	 << ") assumes Sorter Mode. Using Transparent instead" << std::endl;
     pattern |=0x01;
   }
@@ -1593,7 +1599,7 @@ void MPC::setTransparentMode(unsigned int pattern){
 void MPC::setTransparentMode(){
   /// Switches to Transparent Mode using whatever orginal source pattern
   /// was previously loaded.
-  std::cout << "MPC: switching to Transparent Mode. No new source pattern loaded" << std::endl;
+  (*MyOutput_) << "MPC: switching to Transparent Mode. No new source pattern loaded" << std::endl;
   int btd;
   int xfer_done[2];
   char data[2];
@@ -1610,7 +1616,7 @@ void MPC::setTransparentMode(){
 
 void MPC::setDelayFromTMB(unsigned char delays){
   /// Add single BX delays to each of the TMBs based on the delayPattern
-   std::cout << "MPC: setting TMB-MPC delays. Delay pattern = 0x"
+   (*MyOutput_) << "MPC: setting TMB-MPC delays. Delay pattern = 0x"
 	<< std::hex << (unsigned short)delays << std::dec << std::endl;
   int btd;
   int xfer_done[2];
@@ -1636,7 +1642,7 @@ void MPC::interconnectTest(){
   //data[1] = 0x00;
   do_vme(2, addr, data, NULL, 1);
   do_vme(1, addr, NULL, data, 1);
-  std::cout << "MPC: interconnectTest  0x" << std::hex << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
+  (*MyOutput_) << "MPC: interconnectTest  0x" << std::hex << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
 
   // release reset, put TLK2501 transmitters in the test mode
   addr =  CSR0;
@@ -1646,7 +1652,7 @@ void MPC::interconnectTest(){
   //data[1] = 0xc2;
   do_vme(2, addr, data, NULL, 1);
   do_vme(1, addr, NULL, data, 1);
-  std::cout << "MPC: interconnectTest  0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::dec << std::endl;
+  (*MyOutput_) << "MPC: interconnectTest  0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::dec << std::endl;
 }
 
 #endif

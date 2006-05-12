@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.40 2006/05/11 13:14:33 mey Exp $
+// $Id: DAQMB.cc,v 2.41 2006/05/12 08:03:06 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.41  2006/05/12 08:03:06  mey
+// Update
+//
 // Revision 2.40  2006/05/11 13:14:33  mey
 // Update
 //
@@ -264,7 +267,7 @@ void DAQMB::configure() {
    (*MyOutput_) << "doing set_cal_dac " << inj_dac_set_ << " " 
 	<<  pul_dac_set_ << std::endl;
    set_cal_dac(inj_dac_set_, pul_dac_set_);
-   load_strip();
+   load_strip(); //enable..disable CFEBs
    //
    (*MyOutput_) << "Set cable delay " << cable_delay_ << std::endl ;
    setcbldly(cable_delay_);

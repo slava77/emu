@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.25 2006/05/11 09:37:31 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.26 2006/05/12 08:03:06 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.26  2006/05/12 08:03:06  mey
+// Update
+//
 // Revision 1.25  2006/05/11 09:37:31  mey
 // Update
 //
@@ -1910,7 +1913,7 @@ int ChamberUtilities::FindWinner(int npulses=10){
     //
     //thisTMB->PrintCounters();
     //
-    cout << "mpc_delay_ =  " << dec << i << endl;
+    (*MyOutput_) << "mpc_delay_ =  " << dec << i << endl;
     //
     //cout << thisTMB->MPC0Accept() << " " << thisTMB->MPC1Accept() << endl ;
     //
@@ -1940,11 +1943,11 @@ int ChamberUtilities::FindWinner(int npulses=10){
     //
     //thisMPC->read_fifosA();
     //
-    cout << endl;
+    (*MyOutput_) << endl;
     //
     thisMPC->read_fifos();
     //
-    cout << endl;
+    (*MyOutput_) << endl;
     //
     thisMPC->read_csr0();
     //
@@ -1953,26 +1956,26 @@ int ChamberUtilities::FindWinner(int npulses=10){
   }
   //
   for (int i=0; i<DelaySize; i++) {
-    cout << "MPC0 winner delay=" << setw(3) << i << " gives " << MPC0Count[i] << endl;
+    (*MyOutput_) << "MPC0 winner delay=" << setw(3) << i << " gives " << MPC0Count[i] << endl;
   }
   //
-  cout << endl ;
+  (*MyOutput_) << endl ;
   //
   for (int i=0; i<DelaySize; i++) {
-    cout << "MPC1 winner delay=" << setw(3) << i << " gives " << MPC1Count[i] << endl;
+    (*MyOutput_) << "MPC1 winner delay=" << setw(3) << i << " gives " << MPC1Count[i] << endl;
   }
   //
-  cout << endl ;
+  (*MyOutput_) << endl ;
   //
   MpcDelay  /= (MpcDelayN  + 0.0001) ;
   Mpc0Delay /= (Mpc0DelayN + 0.0001) ;
   Mpc1Delay /= (Mpc1DelayN + 0.0001) ;
   //
-  cout << "Correct MPC  setting  : " << MpcDelay << endl ;
-  cout << "Correct MPC0 setting  : " << Mpc0Delay << endl ;
-  cout << "Correct MPC1 setting  : " << Mpc1Delay << endl ;
+  (*MyOutput_) << "Correct MPC  setting  : " << MpcDelay << endl ;
+  (*MyOutput_) << "Correct MPC0 setting  : " << Mpc0Delay << endl ;
+  (*MyOutput_) << "Correct MPC1 setting  : " << Mpc1Delay << endl ;
   //
-  cout << endl ;
+  (*MyOutput_) << endl ;
   //
 }
 //

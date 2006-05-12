@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.43 2006/05/11 13:13:22 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.44 2006/05/12 08:03:05 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -99,14 +99,21 @@ protected:
   xdata::UnsignedLong maxNumTriggers_;
   //
   xdata::String xmlFile_;
+  //
   xdata::String TMBFirmware_;
+  xdata::String DMBFirmware_;
+  xdata::String ALCTFirmware_;
+  xdata::String CFEBFirmware_;
+  //
   xdata::String TestLogFile_;
   //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
   EmuController * MyController;
+  //
   //TMB * thisTMB ;
   //DAQMB* thisDMB ;
+  //
   CCB* thisCCB ;
   ALCTController *alct ;
   RAT * rat;
@@ -5520,8 +5527,6 @@ private:
     //
     cgicc::Cgicc cgi(in);
     //
-    //const CgiEnvironment& env = cgi.getEnvironment();
-    //
     cgicc::form_iterator name = cgi.getElement("tmb");
     int tmb;
     if(name != cgi.getElements().end()) {
@@ -5551,7 +5556,10 @@ private:
     //
     thisTMB->disableAllClocks();
     printf("Programming...");
-    int status = alct->SVFLoad(&jch,"../svf/alct384rl.svf",debugMode);
+    //
+    //int status = alct->SVFLoad(&jch,"../svf/alct384rl.svf",debugMode);
+    //
+    int status = alct->SVFLoad(&jch,ALCTFirmware_.toString().c_str(),debugMode);
     thisTMB->enableAllClocks();
     //
     if (status >= 0){
@@ -6136,7 +6144,7 @@ private:
     for (unsigned int i=0; i<tmbVector.size(); i++) {
       //
       LogFile << "TMB " << std::setw(5) << tmbVector[i]->slot() << std::setw(5) <<
-	TMBBoardID_[i] << std::setw(5) << RATBoardID_ <<std::setw(5) <<
+	TMBBoardID_[i] << std::setw(5) << RATBoardID_[i] <<std::setw(5) <<
 	tmbTestVector[i].GetResultTestBootRegister() << std::setw(5) <<
 	//	tmbTestVector[i].GetResultTestVMEfpgaDataRegister() << std::setw(5) <<
 	tmbTestVector[i].GetResultTestFirmwareDate() << std::setw(5) <<
@@ -6198,8 +6206,9 @@ private:
     TextFile.close();
     for (unsigned int i=0; i<tmbVector.size(); i++) {
       LogFile << OutputTMBTests[i].str() ;
+      LogFile << CrateTestsOutput[i].str() ;
     }
-    for (unsigned int i=0; i<tmbVector.size(); i++) {
+    for (unsigned int i=0; i<dmbVector.size(); i++) {
       LogFile << OutputDMBTests[i].str() ;
     }
     LogFile.close();    
