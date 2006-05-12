@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.59 2006/05/12 15:45:45 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.60 2006/05/12 15:51:09 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -104,7 +104,7 @@ protected:
   xdata::String DMBFirmware_;
   xdata::String ALCTFirmware_;
   xdata::String CFEBFirmware_;
-  std::string FirmwareDir_;
+  std::string FirmwareDir_ ;
   //
   xdata::String TestLogFile_;
   //
@@ -155,6 +155,8 @@ public:
   EmuPeripheralCrate(xdaq::ApplicationStub * s): EmuApplication(s)
 #endif
   {	
+    //
+    FirmwareDir_ = "~/firmware/";
     //
     MyController = 0;
     //thisTMB = 0;
@@ -5379,7 +5381,7 @@ private:
     //
     *out << cgicc::legend("TMB Utils").set("style","color:blue") ;
     //
-    std::string TMBFirmware = FirmwareDir_+"tmb/";
+    std::string TMBFirmware = FirmwareDir_+"tmb/tmb17mar2006.svf";
     TMBFirmware_ = TMBFirmware;
     //
     std::string LoadTMBFirmware =
