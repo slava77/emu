@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.41 2006/05/12 08:03:06 mey Exp $
+// $Id: DAQMB.cc,v 2.42 2006/05/12 10:39:44 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.42  2006/05/12 10:39:44  mey
+// Update
+//
 // Revision 2.41  2006/05/12 08:03:06  mey
 // Update
 //
@@ -3159,7 +3162,7 @@ void DAQMB::test3()
   usleep(5000);
   //
   (*MyOutput_) << "Running Memchk" << std::endl;
-  err[1]=memchk(1);
+  err[1]=memchk(FIFO1);
   errs+=err[1];
   if(err[1]==0){
     (*MyOutput_) << " FIFO1 is OK  " << std::endl;
@@ -3167,44 +3170,43 @@ void DAQMB::test3()
     (*MyOutput_) << " FIFO1 is Bad " << err[1] << std::endl;
   }
   //
-  err[2]= memchk(2);
+  err[2]= memchk(FIFO2);
   errs+=err[2];
   if(err[2]==0){
     (*MyOutput_) << " FIFO2 is OK " << std::endl ;
   }else{
     (*MyOutput_) << " FIFO2 is Bad " << err[2] << std::endl;
   }
-  err[3]= memchk(3);
+  err[3]= memchk(FIFO3);
   errs+=err[3];
   if(err[3]==0){
     (*MyOutput_) << " FIFO3 is OK " << std::endl;
   }else{
     (*MyOutput_) << " FIFO3 is Bad " << err[3] << std::endl;
   }
-  err[4]= memchk(4);
+  err[4]= memchk(FIFO4);
   errs+=err[4];
   if(err[4]==0){
     (*MyOutput_) << " FIFO4 is OK " << std::endl;
   }else{
     (*MyOutput_) << " FIFO4 is Bad " << err[4] << std::endl;
   }
-  err[5]= memchk(5);
+  err[5]= memchk(FIFO5);
   errs+=err[5];
   if(err[5]==0){
     (*MyOutput_) << " FIFO5 is OK " << std::endl;
   }else{
     (*MyOutput_) << " FIFO5 is Bad " << err[5] << std::endl;
   }
-  err[6]= memchk(6);
+  err[6]= memchk(FIFO6);
   if(err[6]==0){
     (*MyOutput_) << " FIFO6 is OK " << std::endl;
   }else{
     (*MyOutput_) << " FIFO6 is Bad " << err[6] << std::endl;
   }
-  //
   errs+=err[6];
-  calctrl_fifomrst(); usleep(500);
-  err[7]= memchk(7);
+  //
+  err[7]= memchk(FIFO7);
   errs+=err[7];
   if(err[7]==0){
     (*MyOutput_) << " FIFO7 is OK " << std::endl;
@@ -3214,7 +3216,6 @@ void DAQMB::test3()
   errs+=err[7];
   calctrl_fifomrst();
   if(errs!=0)pass=0;
-  //
   //
 }
 //
