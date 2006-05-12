@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.48 2006/05/12 11:03:11 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.49 2006/05/12 11:09:26 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -5804,7 +5804,7 @@ private:
     *out << cgicc::form().set("method","GET").set("action",DMBTest3)
 	 << std::endl ;
     //
-    std::cout << thisDMB->GetTestStatus(3) << std::endl ;
+    //std::cout << thisDMB->GetTestStatus(3) << std::endl ;
     //
     if( thisDMB->GetTestStatus(3) == -1 ) {
       *out << cgicc::input().set("type","submit")
