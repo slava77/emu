@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.54 2006/05/12 14:55:54 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.55 2006/05/12 14:58:29 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -6541,7 +6541,7 @@ private:
       //
       //
       if ( FoundXML ) { // Processed XML File
-	if ( line.find("TMB") != string::npos ) {	  
+	if ( line.find("TMB ") != string::npos ) {	  
 	  //
 	  int slot, boardid, testResult[20], ratid;
 	  istringstream instring(line);
@@ -6570,10 +6570,7 @@ private:
 	  sprintf(buf,"%d",boardid);
 	  TMBBoardID_[nTMB] = buf ;
 	  sprintf(buf,"%d",ratid);
-	  //
-	  std::cout << "ratid" << ratid << std::endl;
-	  //
-	  //RATBoardID_[nTMB] = buf ;
+	  RATBoardID_[nTMB] = buf ;
 	  //
 	  tmbTestVector[nTMB].SetResultTestBootRegister(testResult[0]);
 	  //	  tmbTestVector[nTMB].SetResultTestVMEfpgaDataRegister(testResult[1]);
