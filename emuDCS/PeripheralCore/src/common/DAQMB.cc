@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.43 2006/05/12 10:53:20 mey Exp $
+// $Id: DAQMB.cc,v 2.44 2006/05/12 10:54:13 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.44  2006/05/12 10:54:13  mey
+// Update
+//
 // Revision 2.43  2006/05/12 10:53:20  mey
 // Update
 //
@@ -3220,7 +3223,7 @@ void DAQMB::test3()
   calctrl_fifomrst();
   if(errs!=0)pass=0;
   //
-  TestStatus_[3] = ierr;
+  TestStatus_[3] = errs;
   //
 }
 //
