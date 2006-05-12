@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.51 2006/05/12 14:20:13 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.52 2006/05/12 14:41:59 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -6198,9 +6198,14 @@ private:
     //
     LogFile << std::endl;
     //
-    LogFile << "MpcTMbTest : " << myCrateTest.GetMpcTMBTestResult() << std::endl ;
+    for(int i=0; i<20; i++) LogFile << "+";
+    LogFile << " CrateTest : ";
+    LogFile << std::endl ;
+    //
+    LogFile << "MpcTMBTest " << myCrateTest.GetMpcTMBTestResult() << std::endl ;
     //
     for(int i=0; i<20; i++) LogFile << "+";
+    LogFile << std::endl ;
     //
     LogFile.close();
     //
@@ -6626,6 +6631,17 @@ private:
 	  }
 	  //
 	  nDMB++;
+	  //
+	}
+	//
+	if ( line.find("MpcTMBTest") != string::npos ) {
+	  //
+	  int result;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> result ;
+	  //
+	  MyCrateTest.SetMpcTMBTestResult(result);
 	  //
 	}
 	//
