@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.60 2006/05/12 15:51:09 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.61 2006/05/12 16:03:18 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -156,6 +156,7 @@ public:
 #endif
   {	
     //
+    FirmwareDir_ = getenv("HOME");
     FirmwareDir_ = "~/firmware/";
     //
     MyController = 0;
