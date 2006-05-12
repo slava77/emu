@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.58 2006/05/12 15:37:52 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.59 2006/05/12 15:45:45 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -331,8 +331,6 @@ public:
     xmlFile_     = 
       "config.xml" ;
     //
-    TMBFirmware_ = 
-      "../svf/tmb2005e.svf";
     //
     TMBRegisterValue_ = -1;
     CCBRegisterValue_ = -1;
@@ -5381,6 +5379,9 @@ private:
     //
     *out << cgicc::legend("TMB Utils").set("style","color:blue") ;
     //
+    std::string TMBFirmware = FirmwareDir_+"tmb/";
+    TMBFirmware_ = TMBFirmware;
+    //
     std::string LoadTMBFirmware =
       toolbox::toString("/%s/LoadTMBFirmware",getApplicationDescriptor()->getURN().c_str());
     //
@@ -5388,11 +5389,7 @@ private:
     *out << cgicc::input().set("type","submit").set("value","Load TMB Firmware") << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::input().set("type","text")
-      .set("name","TMBFirmware")
-      .set("size","80")
-      .set("ENCTYPE","multipart/form-data")
-      .set("value",TMBFirmware_);
+    *out << TMBFirmware_.toString();
     *out << cgicc::form() << std::endl ;
     //
     if (alct) {
