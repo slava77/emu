@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.47 2006/05/12 10:51:17 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.48 2006/05/12 11:03:11 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -2348,7 +2348,7 @@ private:
     //
     DAQMB * thisDMB = dmbVector[dmb];
     //
-    thisDMB->RedirectOutput(&std::cout);
+    thisDMB->RedirectOutput(&OutputDMBTests[dmb]);
     thisDMB->test3();
     thisDMB->RedirectOutput(&std::cout);
     //

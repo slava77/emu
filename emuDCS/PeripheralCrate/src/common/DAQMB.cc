@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.44 2006/05/12 10:54:13 mey Exp $
+// $Id: DAQMB.cc,v 2.45 2006/05/12 11:03:12 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.45  2006/05/12 11:03:12  mey
+// Update
+//
 // Revision 2.44  2006/05/12 10:54:13  mey
 // Update
 //
@@ -3295,7 +3298,7 @@ int DAQMB::memchk(enum DEVTYPE devnum)
   unsigned long int lmsk;
   //
   if(devnum<FIFO1||devnum>FIFO7){
-    printf(" Device is not a FIFO \n");
+    (*MyOutput_) << " Device is not a FIFO " << std::endl;
     return -1;
   }
   //
@@ -3303,28 +3306,28 @@ int DAQMB::memchk(enum DEVTYPE devnum)
   wrtfifox(devnum,0xffff);
   ierr=readfifox_chk(devnum,0xffff);
   ierr2+=ierr;
-  printf(" ierr %d %d \n",ierr,ierr2);
+  (*MyOutput_) << " ierr " << ierr << ierr2 << std::endl;
   wrtfifox(devnum,0x0000);
   ierr=readfifox_chk(devnum,0x0000);
-  printf(" ierr %d \n",ierr);
+  (*MyOutput_) << " ierr "  << ierr << std::endl;
   ierr2+=ierr;
   wrtfifox(devnum,0xaaaa);
   ierr=readfifox_chk(devnum,0xaaaa);
-  printf(" ierr %d \n",ierr);
+  (*MyOutput_) << " ierr " << ierr << std::endl;
   ierr2+=ierr; 
   wrtfifox(devnum,0x5555);
   ierr=readfifox_chk(devnum,0x5555);
-  printf(" ierr %d \n",ierr); 
+  (*MyOutput_) << " ierr " << ierr << std::endl ;
   ierr2+=ierr;  
   wrtfifo_123(devnum);
   ierr=readfifox_123chk(devnum);
-  printf(" ierr %d \n",ierr);
+  (*MyOutput_) << " ierr " << ierr << std::endl;
   ierr2+=ierr; 
   wrtfifo_toggle(devnum);
   ierr=readfifox_togglechk(devnum);
-  printf(" ierr %d \n",ierr);
+  (*MyOutput_) << " ierr " << ierr << std::endl ;
   ierr2+=ierr;   
-  printf(" ierr2 %d \n",ierr2); 
+  (*MyOutput_) << " ierr2 " << ierr2 << std::endl;
   return ierr2;
 }
 //
