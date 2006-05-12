@@ -144,7 +144,6 @@ private:
 			 const int   dataLength );
   void moveToFailedState();
 
-
   FileWriter *fileWriter_;
   void printBlock( toolbox::mem::Reference *bufRef, bool printMessageHeader=false );
 
@@ -292,6 +291,7 @@ private:
     //
     xdata::String       pathToDataOutFile_;   // the path to the file to write the data into (no file written if "")
     xdata::UnsignedLong fileSizeInMegaBytes_; // when the file size exceeds this, no more events will be written to it (no file written if <=0)
+    xdata::String       runType_;             // run type to be included in the file name
 
     /**
      * Exported read/write parameter - The instance number of BU that the EmuFU

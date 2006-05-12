@@ -703,8 +703,6 @@ throw (emuRUI::exception::Exception)
 
 }
 
-
-
 string EmuRUI::createRuiRuPoolName(const unsigned long emuRUIInstance)
 {
     stringstream oss;
@@ -909,7 +907,10 @@ vector< pair<string, xdata::Serializable*> > EmuRUI::initAndGetStdConfigParams()
     passDataOnToRUBuilder_ = true;
     params.push_back(pair<string,xdata::Serializable *>
 		     ("passDataOnToRUBuilder", &passDataOnToRUBuilder_));
-
+    runType_ = "";
+    params.push_back(pair<string,xdata::Serializable *>
+		     ("runType", &runType_));
+    
 
     for( unsigned int iClient=0; iClient<maxClients_; ++iClient ) {
       clientName_.push_back("");
@@ -2279,7 +2280,11 @@ void EmuRUI::createFileWriters(){
 	  if ( pathToDataOutFile_ != string("") && fileSizeInMegaBytes_ > (long unsigned int) 0 )
 	    {
 	      stringstream ss;
-	      ss << "EmuRUI" << instance_;
+	      ss << "EmuRUI";
+	      ss.fill('0');
+	      ss.width(2);
+	      ss << instance_;
+	      ss << "_" << runType_.toString();
 	      fileWriter_ = new FileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), ss.str(), &logger_ );
 	    }
 	  try{
@@ -2292,7 +2297,11 @@ void EmuRUI::createFileWriters(){
 	  if ( pathToBadEventsFile_ != string("") && fileSizeInMegaBytes_ > (long unsigned int) 0 )
 	    {
 	      stringstream ss;
-	      ss << "EmuRUI" << instance_ << "_BadEvents";
+	      ss << "EmuRUI";
+	      ss.fill('0');
+	      ss.width(2);
+	      ss << instance_;
+	      ss << "_BadEvents";
 	      badEventsFileWriter_ = new FileWriter( 1000000*fileSizeInMegaBytes_, pathToBadEventsFile_.toString(), ss.str(), &logger_ );
 	    }
 	  if ( badEventsFileWriter_ ){
