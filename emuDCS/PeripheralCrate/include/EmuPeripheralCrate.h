@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.53 2006/05/12 14:44:16 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.54 2006/05/12 14:55:54 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -6570,7 +6570,10 @@ private:
 	  sprintf(buf,"%d",boardid);
 	  TMBBoardID_[nTMB] = buf ;
 	  sprintf(buf,"%d",ratid);
-	  RATBoardID_[nTMB] = buf ;
+	  //
+	  std::cout << "ratid" << ratid << std::endl;
+	  //
+	  //RATBoardID_[nTMB] = buf ;
 	  //
 	  tmbTestVector[nTMB].SetResultTestBootRegister(testResult[0]);
 	  //	  tmbTestVector[nTMB].SetResultTestVMEfpgaDataRegister(testResult[1]);
