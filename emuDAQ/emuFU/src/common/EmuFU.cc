@@ -647,6 +647,9 @@ vector< pair<string, xdata::Serializable*> > EmuFU::initAndGetStdConfigParams()
 		     ("pathToDataOutFile"  , &pathToDataOutFile_   ));
     params.push_back(pair<string,xdata::Serializable *>
 		     ("fileSizeInMegaBytes", &fileSizeInMegaBytes_ ));
+    runType_ = "";
+    params.push_back(pair<string,xdata::Serializable *>
+		     ("runType", &runType_));
 
 
     for( unsigned int iClient=0; iClient<maxClients_; ++iClient ) {
@@ -1092,7 +1095,11 @@ throw (toolbox::fsm::exception::Exception)
     // create new writer if path is not empty
     if ( pathToDataOutFile_ != string("") && fileSizeInMegaBytes_ > (long unsigned int) 0 ){
       stringstream ss;
-      ss << "EmuFU" << instance_;
+      ss << "EmuFU";
+      ss.fill('0');
+      ss.width(2);
+      ss << instance_;
+      ss << "_" << runType_.toString();
       fileWriter_ = new FileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), ss.str(), &logger_ );
     }
 

@@ -150,7 +150,6 @@ private:
 		 char*                    data,
 		 const unsigned int       dataLength)
     throw (emuRUI::exception::Exception);
-  
 
   vector< xdaq::ApplicationDescriptor* > getAppDescriptors(xdaq::ApplicationGroup *appGroup,
 								   const string            appClass)
@@ -175,9 +174,6 @@ private:
     throw (emuRUI::exception::Exception);
 
   void getRunAndMaxEventNumber() throw (emuRUI::exception::Exception);
-
-
-
 
 
     /**
@@ -387,6 +383,7 @@ private:
     xdata::UnsignedLong maxEvents_;            // stop reading from DDU after this many events
     xdata::Boolean      passDataOnToRUBuilder_;// it true, data is sent to the event builder
     xdata::UnsignedLong runNumber_;            // run number to be obtained from TA
+    xdata::String       runType_;              // run type to be included in the file name
 
     /////////////////////////////////////////////////////////////
     // End of exported parameters used for configuration       //
