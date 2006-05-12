@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.56 2006/05/12 15:25:48 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.57 2006/05/12 15:29:18 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -5562,7 +5562,7 @@ private:
     std::cout << " ALCT Fastcontrol ID " << chipID << std::endl;
     //
     thisTMB->disableAllClocks();
-    printf("Programming...");
+    std::cout << "Programming..." << std::endl ;
     //
     //int status = alct->SVFLoad(&jch,"../svf/alct384rl.svf",debugMode);
     //
@@ -5570,6 +5570,8 @@ private:
     //
     if ( (alct->GetChamberType()).find("ME22") != string::npos ) {
       ALCTFirmware += "alct384rl.svf";
+    } else if ( (alct->GetChamberType()).find("ME21") != string::npos ) {
+      ALCTFirmware += "alct672rl.svf";
     }
     //
     std::cout << ALCTFirmware << std::endl ;
