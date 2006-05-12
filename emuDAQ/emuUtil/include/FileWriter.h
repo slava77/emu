@@ -27,7 +27,7 @@ private:
     ostringstream fileNameStream;
     fileNameStream << pathToFile_ << "/" << filePrefix_ <<"_Run";
     fileNameStream.fill('0');
-    fileNameStream.width(5);
+    fileNameStream.width(6);
     fileNameStream << runNumber_ << "_";
     fileNameStream.width(3);
     fileNameStream << filesInRunCounter_ << ".bin";
