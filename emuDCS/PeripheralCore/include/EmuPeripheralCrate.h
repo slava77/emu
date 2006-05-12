@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.57 2006/05/12 15:29:18 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.58 2006/05/12 15:37:52 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -5397,12 +5397,27 @@ private:
     //
     if (alct) {
       //
+      std::string ALCTFirmware = FirmwareDir_+"alct/";
+      //
+      if ( (alct->GetChamberType()).find("ME22") != string::npos ) {
+	ALCTFirmware += "alct384rl.svf";
+      } else if ( (alct->GetChamberType()).find("ME21") != string::npos ) {
+	ALCTFirmware += "alct672rl.svf";
+      } else if ( (alct->GetChamberType()).find("ME31") != string::npos ) {
+	ALCTFirmware += "alct672mirrorrl.svf";
+      } else if ( (alct->GetChamberType()).find("ME32") != string::npos ) {
+	ALCTFirmware += "alct384mirrorrl.svf";
+      }
+      //
+      ALCTFirmware_ = ALCTFirmware;
+      //
       std::string LoadALCTFirmware =
 	toolbox::toString("/%s/LoadALCTFirmware",getApplicationDescriptor()->getURN().c_str());
       //
       *out << cgicc::form().set("method","GET").set("action",LoadALCTFirmware) << std::endl ;
       *out << cgicc::input().set("type","submit").set("value","Load ALCT Firmware") << std::endl ;
       sprintf(buf,"%d",tmb);
+      *out << ALCTFirmware_.toString() ;
       *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
       *out << cgicc::form() << std::endl ;
       //
@@ -5564,18 +5579,7 @@ private:
     thisTMB->disableAllClocks();
     std::cout << "Programming..." << std::endl ;
     //
-    //int status = alct->SVFLoad(&jch,"../svf/alct384rl.svf",debugMode);
-    //
-    std::string ALCTFirmware = FirmwareDir_+"alct";
-    //
-    if ( (alct->GetChamberType()).find("ME22") != string::npos ) {
-      ALCTFirmware += "alct384rl.svf";
-    } else if ( (alct->GetChamberType()).find("ME21") != string::npos ) {
-      ALCTFirmware += "alct672rl.svf";
-    }
-    //
-    std::cout << ALCTFirmware << std::endl ;
-    int status = alct->SVFLoad(&jch,ALCTFirmware.c_str(),debugMode);
+    int status = alct->SVFLoad(&jch,ALCTFirmware_.toString().c_str(),debugMode);
     thisTMB->enableAllClocks();
     //
     if (status >= 0){
