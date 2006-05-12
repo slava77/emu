@@ -399,9 +399,10 @@ throw (xgi::exception::Exception)
     *out << xmlClass_ << instance_ << " Version "
         << EmuDAQManagerV::versions << endl;
     *out << "</title>"                                                 << endl;
+    *out << ageOfPageClock();
     *out << "</head>"                                                  << endl;
 
-    *out << "<body>"                                                   << endl;
+    *out << "<body onload=\"countSeconds()\">"                         << endl;
     *out << "<form method=\"get\" action=\"/" << urn_ << "/\">"        << endl;
 
     *out << "<table border=\"0\" width=\"100%\">"                      << endl;
@@ -473,6 +474,7 @@ throw (xgi::exception::Exception)
 
     *out << "<br/>"                                                    << endl;
     *out << " Updated at " <<  getDateTime()                           << endl;
+    *out << " &#8212; <span id=\"ageOfPage\"></span> ago "             << endl;
     *out << "<br/>"                                                    << endl;
 
     *out << "<hr/>"                                                    << endl;
@@ -504,14 +506,14 @@ throw (xgi::exception::Exception)
     *out << "    " << runNumber                                        << endl;
     *out << "  </td>"                                                  << endl;
     *out << "</tr>"                                                    << endl;
-    *out << "</table>"                                               << endl;
+    *out << "</table>"                                                 << endl;
 
     *out << "<td width=\"64\">"                                      << endl;
     *out << "</td>"                                                  << endl;
     *out << "</td>"                                                  << endl;
     *out << "<td>"                                                   << endl;
 
-    *out << "<table frame=\"void\" rules=\"rows\" class=\"params\">" << endl;
+    *out << "<table frame=\"void\" rules=\"rows\" class=\"params\">"   << endl;
     *out << "<tr>"                                                     << endl;
     *out << "  <th align=\"center\">"                                  << endl;
     *out << "    <b>"                                                  << endl;
@@ -544,7 +546,7 @@ throw (xgi::exception::Exception)
     *out << "    " << maxNumEvents                                     << endl;
     *out << "  </td>"                                                  << endl;
     *out << "</tr>"                                                    << endl;
-    *out << "</table>"                                               << endl;
+    *out << "</table>"                                                 << endl;
 
     *out << "</td>"                                                  << endl;
     *out << "</tr>"                                                  << endl;
@@ -668,6 +670,24 @@ void EmuDAQManager::printAppInstanceLinks
     }
 }
 
+string EmuDAQManager::ageOfPageClock(){
+  stringstream ss;
+  ss << "<script type=\"text/javascript\">"                        << endl;
+  ss << "   ageOfPage=0"                                           << endl;
+  ss << "   function countSeconds(){"                              << endl;
+  ss << "      hours=Math.floor(ageOfPage/3600)"                   << endl;
+  ss << "      minutes=Math.floor(ageOfPage/60)%60"                << endl;
+  ss << "      age=\"\""                                           << endl;
+  ss << "      if (hours) age+=hours+\" h \""                      << endl;
+  ss << "      if (minutes) age+=minutes+\" m \""                  << endl;
+  ss << "      age+=ageOfPage%60+\" s \""                          << endl;
+  ss << "      document.getElementById('ageOfPage').innerHTML=age" << endl;
+  ss << "      ageOfPage=ageOfPage+1"                              << endl;
+  ss << "      setTimeout('countSeconds()',1000)"                  << endl;
+  ss << "   }"                                                     << endl;
+  ss << "</script>"                                                << endl;
+  return ss.str();
+}
 
 void EmuDAQManager::controlWebPage(xgi::Input *in, xgi::Output *out)
 throw (xgi::exception::Exception)
@@ -687,9 +707,10 @@ throw (xgi::exception::Exception)
     *out << xmlClass_ << instance_ << " Version " << EmuDAQManagerV::versions
         << " CONTROL" << endl;
     *out << "</title>"                                                 << endl;
+    *out << ageOfPageClock();
     *out << "</head>"                                                  << endl;
 
-    *out << "<body>"                                                   << endl;
+    *out << "<body onload=\"countSeconds()\">"                         << endl;
     *out << "<form method=\"get\" action=\"/" << urn_ << "/control\">" << endl;
 
     *out << "<table border=\"0\" width=\"100%\">"                      << endl;
@@ -742,6 +763,7 @@ throw (xgi::exception::Exception)
 
     *out << "<br/>"                                                    << endl;
     *out << " Updated at " <<  getDateTime();
+    *out << " &#8212; <span id=\"ageOfPage\"></span> ago "             << endl;
     *out << "<br/>"                                                    << endl;
 
     *out << "<hr/>"                                                    << endl;
@@ -768,16 +790,16 @@ throw (xgi::exception::Exception)
       *out << "<br>"                                                 << endl;
 
       *out << "Select run type: "                                    << endl;
-      *out << "<select"                                              << endl;
-      *out << " name=\"runtype\""                                    << endl;
-      *out << " size=\"1\""                                          << endl;
-      *out << "/>  "                                                 << endl;
+      *out << "<select"                                              ;
+      *out << " name=\"runtype\""                                    ;
+      *out << " size=\"1\""                                          ;
+      *out << "/>  "                                                 ;
       for ( int iType=0; iType<runTypes_.elements(); ++iType ){
 	xdata::String* runtype = dynamic_cast<xdata::String*>(runTypes_.elementAt(iType));
-	*out << "<option value=\"" 
-	     << runtype->toString()
-	     << "\">" 
-	     << runtype->toString()                                  << endl;
+	*out << "<option value=\"" << runtype->toString() << "\"";
+	if ( runtype->toString() == runType_.toString() )
+	  *out << " selected";
+	*out << ">" << runtype->toString();
       }
       *out << "</select>"                                            << endl;
       *out << "<br>"                                                 << endl;
@@ -792,45 +814,49 @@ throw (xgi::exception::Exception)
       *out << " size=\"10\""                                         << endl;
       *out << "/>  "                                                 << endl;
       *out << "<br>"                                                 << endl;
+
+      *out << "Build events: "                                       << endl;
+      *out << "<input"                                               << endl;
+      *out << " type=\"checkbox\""                                   << endl;
+      *out << " name=\"buildevents\""                                << endl;
+      *out << " title=\"If checked, events will be built.\""         << endl;
+      *out << " alt=\"build events\""                                << endl;
+      if ( buildEvents_.value_ ) *out << " checked"                  << endl;
+      *out << "/>  "                                                 << endl;
+      *out << "<br>"                                                 << endl;
     }
     else{
-      *out << "Run " << runNumber                                    << endl;
+      *out << "Run number: " << runNumber                            << endl;
       *out << "<br>"                                                 << endl;
-      *out << "       Maximum number of events: " << maxNumEvents    << endl;
+      *out << "Run type: " << runType_.toString()                    << endl;
+      *out << "<br>"                                                 << endl;
+      *out << "Maximum number of events: " << maxNumEvents           << endl;
+      *out << "<br>"                                                 << endl;
+      *out << "Build events: " << buildEvents_ .toString()           << endl;
       *out << "<br>"                                                 << endl;
     }
 
 
-//     if ( fsm_.getCurrentState() != 'F' ){
 
-      *out << "<input"                                                   << endl;
-      *out << " type=\"submit\""                                         << endl;
-      *out << " name=\"command\""                                        << endl;
-      
+      *out << "<input"                                               << endl;
+      *out << " type=\"submit\""                                     << endl;
+      *out << " name=\"command\""                                    << endl;
       if ( fsm_.getCurrentState() == 'H' )
-	{
-	  *out << " value=\"configure\""                                 << endl;
-	}
-      
-      if ( fsm_.getCurrentState() == 'E' )
-	{
-	  *out << " value=\"stop\""                                      << endl;
-	}
-      else
-	{
-	  *out << " value=\"start\""                                     << endl;
-	}
+	*out << " value=\"configure\""                               << endl;
+      else if ( fsm_.getCurrentState() == 'E' )
+	*out << " value=\"stop\""                                    << endl;
+      else if ( fsm_.getCurrentState() == 'C' )
+	*out << " value=\"start\""                                   << endl;
+      *out << "/>"                                                   << endl;
       
       if ( fsm_.getCurrentState() == 'C' )
 	{
-	  *out << "/>"                                                   << endl;
 	  *out << "<input"                                               << endl;
 	  *out << " type=\"submit\""                                     << endl;
 	  *out << " name=\"command\""                                    << endl;
 	  *out << " value=\"stop\""                                      << endl;
 	  *out << "/>"                                                   << endl;
 	}
-//     }
       
     *out << "</form>"                                                  << endl;
     *out << "<br>"                                                     << endl;
@@ -924,9 +950,25 @@ throw (xgi::exception::Exception)
 // 	if ( (cmdName == "configure") && fsm_.getCurrentState() == 'H' )
 	if ( (cmdName == "configure") )
 	  {
+	    std::vector<cgicc::FormEntry> fev = cgi.getElements();
+	    std::vector<cgicc::FormEntry>::iterator fe;
 	    // Emu: run type will be queried by EmuRUI's and EmuFU's
-	    cgicc::form_iterator runTypeElement = cgi.getElement("runtype");
-	    runType_.fromString( runTypeElement->getValue() );
+	    for ( fe=fev.begin(); fe!=fev.end(); ++ fe )
+	      if ( fe->getName() == "runtype" ){
+		// cgicc::form_iterator runTypeElement = cgi.getElement("runtype");
+		if ( fe->isEmpty() ){
+		  LOG4CPLUS_ERROR(logger_, "Failed to get run type from http form");
+		}
+		else{
+		  runType_.fromString( fe->getValue() );
+		}
+	      }
+	    // Emu: buildEvents will be queried by EmuRUI's
+	    // Apparently the query string does not even include the checkbox element if it's not checked...
+	    buildEvents_ = false;
+	    for ( fe=fev.begin(); fe!=fev.end(); ++ fe )
+	      if ( fe->getName() == "buildevents" && fe->getValue() == "on" ) 
+		buildEvents_ = true;
 	    // Emu: set run number in emuTA to the value given by the user on the control page
 	    cgicc::form_iterator runNumElement = cgi.getElement("runnumber");
 	    cgicc::form_iterator maxEvtElement = cgi.getElement("maxevents");
@@ -1666,7 +1708,7 @@ void EmuDAQManager::configureTest()
             "Failed to configure RU builder", e);
     }
 
-    // If RUIs are present then start them as an imaginary FED builder
+    // RUIs
     if(ruiDescriptors_.size() > 0)
     {
         try
@@ -1680,7 +1722,7 @@ void EmuDAQManager::configureTest()
         }
     }
 
-    // If FUs are present then start them as an imafinary filter farm
+    // FUs
     if(fuDescriptors_.size() > 0)
     {
         try
@@ -2158,6 +2200,29 @@ throw (emuDAQManager::exception::Exception)
 
     for(pos = ruiDescriptors_.begin(); pos != ruiDescriptors_.end(); pos++)
     {
+      stringstream app;
+      app << (*pos)->getClassName() << (*pos)->getInstance();
+      try
+	{
+	  setScalarParam(*pos,"runType","string",runType_.toString());
+	  LOG4CPLUS_INFO(logger_,"Set run type for " + app.str() + " to " + runType_.toString() );
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Failed to set run type for " + app.str() + " to "  + runType_.toString(), e);
+	}
+      try
+	{
+	  setScalarParam(*pos,"passDataOnToRUBuilder","boolean",buildEvents_.toString());
+	  LOG4CPLUS_INFO(logger_,"Set event building " + buildEvents_.toString() );
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Failed to set event building "  + buildEvents_.toString(), e);
+	}
+      
         try
         {
             sendFSMEventToApp("Configure", *pos);
@@ -2213,6 +2278,18 @@ throw (emuDAQManager::exception::Exception)
 
     for(pos = fuDescriptors_.begin(); pos != fuDescriptors_.end(); pos++)
     {
+      stringstream  app;
+      app << (*pos)->getClassName() << (*pos)->getInstance();
+      try
+	{
+	  setScalarParam(*pos,"runType","string",runType_.toString());
+	  LOG4CPLUS_INFO(logger_,"Set run type for " + app.str() + " to " + runType_.toString() );
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Failed to set run type for " + app.str() + " to "  + runType_.toString(), e);
+	}
         try
         {
             sendFSMEventToApp("Configure", *pos);
@@ -2982,6 +3059,7 @@ void EmuDAQManager::exportMonitoringParams(xdata::InfoSpace *s)
     s->fireItemAvailable("maxNumberOfEvents", &maxNumberOfEvents_);
     s->fireItemAvailable("runType",           &runType_          );
     s->fireItemAvailable("runTypes",          &runTypes_         );
+    s->fireItemAvailable("buildEvents",       &buildEvents_      );
 }
 
 
