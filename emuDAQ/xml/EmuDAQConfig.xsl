@@ -15,14 +15,14 @@
 	  padding: 0px 2px 0px 2px;
 	  }
 
-	  a{text-decoration: none;}
-	  a:link{
+	  a.contents{text-decoration: none;}
+	  a.contents:link{
 	  color: #00ccff;
 	  }
-	  a:visited{
+	  a.contents:visited{
 	  color: #cccc00;
 	  }
-	  a:active, a:hover{
+	  a.contents:active, a.contents:hover{
 	  color: #ffff00;
 	  }
 
@@ -64,8 +64,13 @@
 	  background-color: transparent;
 	  }
 	  th.context{
-	  color: #000088;
 	  background-color: #8888ff;
+	  }
+	  th.context, a.context:link, a.context:visited{
+	  color: #000088;
+	  }
+	  a.context:active, a.context:hover{
+	  color: #ffff00;
 	  }
 
 	  table.app{
@@ -76,8 +81,13 @@
 	  background-color: transparent;
 	  }
 	  th.app{
-	  color: #008800;
 	  background-color: #88ff88;
+	  }
+	  th.app, a.app:link, a.app:visited{
+	  color: #008800;
+	  }
+	  a.app:active, a.app:hover{
+	  color: #ff0000;
 	  }
 
 	  table.module{
@@ -128,6 +138,12 @@
 	  background-color: #ffccbb;
 	  text-align: left
 	  }
+	  th.prop, a.prop:link, a.prop:visited{
+	  color: #880000;
+	  }
+	  a.prop:active, a.prop:hover{
+	  color: #ff0000;
+	  }
 	</style>
 	<title>EmuDAQ Configuration</title>
       </head>
@@ -169,7 +185,7 @@
       <xsl:for-each select="i2o:protocol">
 	<tr class="contents0">
 	  <td class="contents" colspan="4">
-	    <a><xsl:attribute name="href">#protocol</xsl:attribute>I2O targets</a>
+	    <a class="contents"><xsl:attribute name="href">#protocol</xsl:attribute>I2O targets</a>
 	  </td>
 	</tr>
       </xsl:for-each>
@@ -178,14 +194,14 @@
 	<tr>
 	  <xsl:attribute name="class">contents<xsl:value-of select="position() mod 2"/></xsl:attribute>
 	  <td class="contents" style="font-weight: bold">
-	    <a>
+	    <a class="contents">
 	      <xsl:attribute name="href">#<xsl:value-of select="substring-after(attribute::url,'http://')"/></xsl:attribute>
 	      <xsl:value-of select="substring-after(attribute::url,'http://')"/>
 	    </a>
 	  </td>
 	  <td class="contents">
 	    <xsl:if test="child::xc:Endpoint">
-	    <a>
+	    <a class="contents">
 	      <xsl:attribute name="href">#<xsl:value-of select="substring-after(attribute::url,'http://')"/>.endp</xsl:attribute>
 	      End points
 	    </a>
@@ -193,7 +209,7 @@
 	  </td>
 	  <td class="contents">
 	    <xsl:if test="child::xc:Module">
-	    <a>
+	    <a class="contents">
 	      <xsl:attribute name="href">#<xsl:value-of select="substring-after(attribute::url,'http://')"/>.modules</xsl:attribute>
 	      Modules
 	    </a>
@@ -202,7 +218,7 @@
 	  <td class="contents">
 	    <xsl:for-each select="child::xc:Application">
 	      <xsl:sort select="attribute::class"/>
-	      <a>
+	      <a class="contents">
 		<xsl:attribute name="href">#<xsl:value-of select="substring-after(../attribute::url,'http://')"/>.<xsl:value-of select="attribute::class"/>.<xsl:value-of select="attribute::instance"/></xsl:attribute>
 		<xsl:value-of select="attribute::class"/>
 	      </a>
@@ -288,7 +304,10 @@
 	  <xsl:attribute name="rowspan">
 	    <xsl:value-of select="count(child::xc:Application)+count(child::xc:Endpoint)+count(child::xc:Module)+1"/>
 	  </xsl:attribute> 
-	  <xsl:value-of select="substring-after(attribute::url,'http://')"/>
+	  <a class="context">
+	    <xsl:attribute name="href"><xsl:value-of select="attribute::url"/></xsl:attribute>
+	    <xsl:value-of select="substring-after(attribute::url,'http://')"/>
+	  </a>
 	</th>
       </tr>
       <xsl:call-template name="xc:Endpoint"/>
@@ -305,7 +324,10 @@
 	<table class="app">
 	  <tr>
 	    <th class="app" rowspan="4">
-	      <xsl:value-of select="attribute::class"/>
+	      <a class="app">
+		<xsl:attribute name="href"><xsl:value-of select="../attribute::url"/>/urn:xdaq-application:lid=<xsl:value-of select="attribute::id"/></xsl:attribute>
+		<xsl:value-of select="attribute::class"/>
+	      </a>
 	    </th>
 	    <th class="app">instance</th>
 	    <th class="app">id</th>
@@ -484,7 +506,12 @@
 	      <th class="prop"><xsl:value-of select="attribute::soapenc:position"/></th>
 	    </xsl:when>
 	    <xsl:otherwise>
-	      <th class="prop"><xsl:value-of select="name()"/></th>
+	      <th class="prop">
+		<a class="prop">
+		  <xsl:attribute name="href"><xsl:value-of select="ancestor::xc:Context/attribute::url"/>/urn:xdaq-application:lid=<xsl:value-of select="ancestor::xc:Application/attribute::id"/>/ParameterQuery</xsl:attribute>
+		  <xsl:value-of select="name()"/>
+		</a>
+	      </th>
 	    </xsl:otherwise>
 	  </xsl:choose>
 	  <xsl:choose>
@@ -493,7 +520,12 @@
 	    </xsl:when>
 	    <xsl:otherwise>
 	      <td class="prop"><xsl:value-of select="substring-after(attribute::xsi:type,'xsd:')"/></td>
-	      <td class="prop" style="text-align:right; font-weight:bold" width="100%"><xsl:value-of select="."/></td>
+	      <td class="prop" style="text-align:right; font-weight:bold" width="100%">
+		<a class="prop">
+		  <xsl:attribute name="href"><xsl:value-of select="ancestor::xc:Context/attribute::url"/>/urn:xdaq-application:lid=3/editProperties?lid=<xsl:value-of select="ancestor::xc:Application/attribute::id"/></xsl:attribute>
+		  <xsl:value-of select="."/>
+		</a>
+	      </td>
 	    </xsl:otherwise>
 	  </xsl:choose>
 	</tr>
