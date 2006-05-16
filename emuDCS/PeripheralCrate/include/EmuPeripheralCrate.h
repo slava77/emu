@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.64 2006/05/16 13:48:58 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.65 2006/05/16 13:53:07 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1077,7 +1077,9 @@ private:
 	  char buf[20];
 	  sprintf(buf,"TMBBoardID_%d",i);
 	  *out << cgicc::input().set("type","text").set("name",buf)
-	    .set("value",TMBBoardID_[i]) << std::endl ;
+	    .set("value",TMBBoardID_[i]) 
+	    .set("size","10")
+	       << std::endl ;
 	  sprintf(buf,"%d",i);
 	  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
 	  *out << cgicc::form() << std::endl ;
