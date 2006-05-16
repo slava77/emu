@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.20 2006/04/06 22:23:07 mey Exp $
+// $Id: DAQMB.h,v 2.21 2006/05/16 15:54:37 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.21  2006/05/16 15:54:37  mey
+// UPdate
+//
 // Revision 2.20  2006/04/06 22:23:07  mey
 // Update
 //
@@ -85,7 +88,7 @@
 class DAQMB: public VMEModule
 {
 public:
-  friend class DAQMBParser;
+  //friend class DAQMBParser;
 
   // standard routines
   /// construct with all the standard CFEBs and BuckeyeChips

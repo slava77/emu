@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCBParser.cc,v 2.1 2005/11/03 18:24:56 mey Exp $
+// $Id: CCBParser.cc,v 2.2 2006/05/16 15:54:38 mey Exp $
 // $Log: CCBParser.cc,v $
+// Revision 2.2  2006/05/16 15:54:38  mey
+// UPdate
+//
 // Revision 2.1  2005/11/03 18:24:56  mey
 // I2C routines
 //
@@ -25,11 +28,28 @@ CCBParser::CCBParser(xercesc::DOMNode *pNode, int crateNumber)
   // shredded :)
   parser_.fillInt("version", version);
   ccb_ = new CCB(crateNumber, slot, version);
-  parser_.fillInt("TTCmode", ccb_->TTC);
-  parser_.fillInt("CCBmode", ccb_->mCCBMode);
-  parser_.fillInt("BX_Orbit" , ccb_->BX_Orbit_);
-  parser_.fillInt("SPS25ns", ccb_->SPS25ns_);
-  parser_.fillInt("l1aDelay", ccb_->l1aDelay_);
-  parser_.fillInt("TTCrxID", ccb_->TTCrxID_);
+  int mode;
+  if ( parser_.fillInt("TTCmode", mode) ) {
+    ccb_->SetTTCmode(mode);
+  }
+  if ( parser_.fillInt("CCBmode", mode) ) {
+    ccb_->SetCCBmode(mode);
+  }
+  int BxOrbit;
+  if ( parser_.fillInt("BX_Orbit" , BxOrbit) ) {
+    ccb_->SetBxOrbit(BxOrbit);
+  }
+  int SPS25ns;
+  if(parser_.fillInt("SPS25ns", SPS25ns)) {
+    ccb_->SetSPS25ns(SPS25ns);
+  }
+  int delay;
+  if (parser_.fillInt("l1aDelay", delay)){
+    ccb_->SetL1aDelay(delay);
+  }
+  int ID;
+  if (parser_.fillInt("TTCrxID", ID)){
+    ccb_->SetTTCrxID(ID);
+  }
 }
 
