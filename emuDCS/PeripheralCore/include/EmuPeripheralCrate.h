@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.62 2006/05/12 16:07:21 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.63 2006/05/16 07:42:41 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -5401,7 +5401,13 @@ private:
       //
       if ( (alct->GetChamberType()).find("ME22") != string::npos ) {
 	ALCTFirmware += "alct384rl.svf";
+      } else if ( (alct->GetChamberType()).find("ME12") != string::npos ) {
+	ALCTFirmware += "alct384rl.svf";
+      } else if ( (alct->GetChamberType()).find("ME13") != string::npos ) {
+	ALCTFirmware += "alct384rl.svf";
       } else if ( (alct->GetChamberType()).find("ME21") != string::npos ) {
+	ALCTFirmware += "alct672rl.svf";
+      } else if ( (alct->GetChamberType()).find("ME41") != string::npos ) {
 	ALCTFirmware += "alct672rl.svf";
       } else if ( (alct->GetChamberType()).find("ME31") != string::npos ) {
 	ALCTFirmware += "alct672mirrorrl.svf";
