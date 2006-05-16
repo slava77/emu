@@ -31,7 +31,7 @@ void CrateUtilities::MpcTMBTest(int Nloop){
   for(int nloop = 0; nloop<Nloop; nloop++) {
   //
   myCrate_->mpc()->SoftReset();
-  myCrate_->mpc()->init();
+  myCrate_->mpc()->configure();
   myCrate_->mpc()->read_csr0();
   myCrate_->mpc()->read_fifos();
   myCrate_->mpc()->read_csr0();
