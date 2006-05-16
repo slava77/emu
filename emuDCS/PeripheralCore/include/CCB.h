@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.19 2006/04/28 13:41:16 mey Exp $
+// $Id: CCB.h,v 2.20 2006/05/16 15:54:37 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.20  2006/05/16 15:54:37  mey
+// UPdate
+//
 // Revision 2.19  2006/04/28 13:41:16  mey
 // Update
 //
@@ -111,6 +114,13 @@ public:
   //
   void FireCCBMpcInjector();
   //
+  inline void SetTTCmode(int mode)   {TTC       = mode;}
+  inline void SetCCBmode(int mode)   {mCCBMode  = mode;}
+  inline void SetBxOrbit(int orbit)  {BX_Orbit_ = orbit;}
+  inline void SetSPS25ns(int delay)  {SPS25ns_  = delay;}
+  inline void Setl1adelay(int delay) {l1aDelay_ = delay;}
+  inline void SetTTCrxID(int ID)     {TTCrxID_  = ID;}
+  //
   bool l1Enabled() const {return l1enabled_;}
   void enableL1();
   void disableL1();
@@ -148,7 +158,7 @@ public:
   //
   /// mostly for GUIs
   void executeCommand(std::string command);
-  friend class CCBParser;
+  //friend class CCBParser;
 
   int TTC; 
   int CLK_INIT_FLAG; 
