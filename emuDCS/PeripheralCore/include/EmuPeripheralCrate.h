@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.63 2006/05/16 07:42:41 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.64 2006/05/16 13:48:58 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -337,7 +337,7 @@ public:
     //
     TMBRegisterValue_ = -1;
     CCBRegisterValue_ = -1;
-    Operator_ = "Name...";
+    Operator_ = "Operator";
     RunNumber_= "0";
     MPCBoardID_ = "-2";
     CCBBoardID_ = "-2";
@@ -434,6 +434,10 @@ public:
       *out << cgicc::input().set("type","submit").set("value","Init System") << std::endl ;
       *out << cgicc::form() << std::endl ;
       //
+      *out << cgicc::table().set("border","0");
+      //
+      *out << cgicc::td();
+      //
       std::string LaunchMonitor =
 	toolbox::toString("/%s/LaunchMonitor",getApplicationDescriptor()->getURN().c_str());
       //
@@ -442,13 +446,21 @@ public:
 	.set("value","Launch Monitor").set("name","LaunchMonitor") << std::endl ;
       *out << cgicc::form() << std::endl ;
       //
+      *out << cgicc::td();
+      //
+      *out << cgicc::td();
+      //
       std::string CrateStatus =
 	toolbox::toString("/%s/CrateStatus",getApplicationDescriptor()->getURN().c_str());
       //
       *out << cgicc::form().set("method","GET").set("action",CrateStatus).set("target","_blank") << std::endl ;
       *out << cgicc::input().set("type","submit")
-	.set("value","CrateStatus").set("name","CrateStatus") << std::endl ;
+	.set("value","Crate Status").set("name","CrateStatus") << std::endl ;
       *out << cgicc::form() << std::endl ;
+      //
+      *out << cgicc::td();
+      //
+      *out << cgicc::table();
       //
       std::string Operator =
 	toolbox::toString("/%s/Operator",getApplicationDescriptor()->getURN().c_str());
@@ -485,21 +497,18 @@ public:
       *out << cgicc::form() << std::endl ;
       //
       //
-      std::string PowerUp =
-	toolbox::toString("/%s/PowerUp",getApplicationDescriptor()->getURN().c_str());
+      //std::string PowerUp =
+      //toolbox::toString("/%s/PowerUp",getApplicationDescriptor()->getURN().c_str());
       //
-      *out << cgicc::form().set("method","GET").set("action","http://emuslice03:1973/urn:xdaq-application:lid=30/")
-	.set("target","_blank") << std::endl ;
-      *out << cgicc::input().set("type","submit").set("value","Power Up") << std::endl ;
-      *out << cgicc::form() << std::endl ;
+      //*out << cgicc::form().set("method","GET").set("action","http://emuslice03:1973/urn:xdaq-application:lid=30/")
+      //.set("target","_blank") << std::endl ;
+      //*out << cgicc::input().set("type","submit").set("value","Power Up") << std::endl ;
+      //*out << cgicc::form() << std::endl ;
       //
       //
       *out << cgicc::fieldset();
       //
-      //
-      //
       *out << std::endl;
-      //
       //
     }
     //
