@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.26 2006/05/12 08:03:06 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.27 2006/05/17 14:16:44 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.27  2006/05/17 14:16:44  mey
+// Update
+//
 // Revision 1.26  2006/05/12 08:03:06  mey
 // Update
 //
@@ -1273,7 +1276,7 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
   //
 }
 //
-void ChamberUtilities::PulseRandomALCT(){
+void ChamberUtilities::PulseRandomALCT(int delay){
   //
   unsigned long HCmask[22];
   //
@@ -1313,11 +1316,17 @@ void ChamberUtilities::PulseRandomALCT(){
   alct->alct_read_hcmask(HCmask);
   //
   thisTMB->ResetALCTRAMAddress();
-  PulseTestStrips();
+  PulseTestStrips(delay);
   printf("Decode ALCT\n");
   thisTMB->DecodeALCT();
   //
+  printf(" WordCount %d \n",thisTMB->GetALCTWordCount());
+  //
+  (*MyOutput_) << std::endl;
+  //
   thisDMB->PrintCounters();
+  //
+  (*MyOutput_) << std::endl;
   //
 }	      
 //
@@ -1328,112 +1337,81 @@ void ChamberUtilities::PulseAllWires(){
   printf("Decode ALCT\n");
   thisTMB->DecodeALCT();
   //
+  printf(" WordCount %d \n",thisTMB->GetALCTWordCount());
+  //
+  (*MyOutput_) << std::endl;
+  //
   thisDMB->PrintCounters();
   //
 }
 //
-void ChamberUtilities::PulseTestStrips(){
+void ChamberUtilities::PulseTestStrips(int delay){
   //
-   int slot = thisTMB->slot();
-   int TMBtime(1);
-   //
-   if ( alct ) {
+  int slot = thisTMB->slot();
+  int TMBtime(1);
+  //
+  if ( alct ) {
+    //
+    long int StripMask = 0x3f;
+    long int PowerUp   = 1 ;
+    long int Amplitude = 0x3f;
+    //
+    thisTMB->DisableCLCTInputs();
+    //
+    if ( beginning == 0 ) {
       //
-      //thisTMB->ResetALCTRAMAddress();
-     //
-     //thisTMB->SetCLCTPatternTrigger();
-     //
-     //unsigned cr[3]  = {0x80fc5fc0, 0x20a0f786, 0x8}; // Configuration for this test L1a_delay=120 L1a_window=0xf
-     //
-     //alct->SetConf(cr,1);
-     //alct->unpackControlRegister(cr);
-     //
-      long int StripMask = 0x3f;
-      long int PowerUp   = 1 ;
-      long int Amplitude = 0x3f;
+      printf("Init \n");
       //
-      thisTMB->DisableCLCTInputs();
+      alct->alct_set_test_pulse_amp(&slot,Amplitude);
       //
-      if ( beginning == 0 ) {
-	//
-	printf("Init \n");
-	//
-	//
-	alct->alct_set_test_pulse_amp(&slot,Amplitude);
-	//
-	alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
-	cout << " StripMask = " << hex << StripMask << endl;
-	//
-	//old alct->alct_set_test_pulse_stripmask(&slot,0x3f);
-	//old alct->alct_set_test_pulse_groupmask(&slot,0xff);
-	//
-	if (alct->GetChamberType().find("ME11")!=string::npos) {
-	  alct->alct_set_test_pulse_stripmask(&slot,0x00);
-	  alct->alct_set_test_pulse_groupmask(&slot,0xff);
-	} else {
-	  alct->alct_set_test_pulse_stripmask(&slot,0x3f);
-	  alct->alct_set_test_pulse_groupmask(&slot,0xff);
-	}
-	//
-	alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
-	cout << " StripMask = " << hex << StripMask << endl;
-	//
-	alct->alct_read_test_pulse_powerup(&slot,&PowerUp);
-	cout << " PowerUp   = " << hex << PowerUp << dec << endl; //11July05 DM added dec
-	//
-	alct->alct_fire_test_pulse('A');
-	//
-	alct->alct_set_test_pulse_powerup(&slot,1);
-	//
-	beginning = 1;
-	//
-	PulseTestStrips();
-	//
+      alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
+      cout << " StripMask = " << hex << StripMask << endl;
+      //
+      if (alct->GetChamberType().find("ME11")!=string::npos) {
+	alct->alct_set_test_pulse_stripmask(&slot,0x00);
+	alct->alct_set_test_pulse_groupmask(&slot,0xff);
       } else {
-	//
-	if (alct->GetChamberType().find("ME11")!=string::npos) {
-	  (*MyOutput_) << alct->GetChamberType().find("ME11") <<std::endl;
-	  (*MyOutput_) << alct->GetChamberType() <<std::endl;
-	  (*MyOutput_) << "ME11" <<std::endl;
-	} else {
-	  (*MyOutput_) << "ME12" <<std::endl;
-	}
-	  //
-	//alct->alct_set_test_pulse_powerup(&slot,PowerUp);
-	//alct->alct_set_test_pulse_powerup(&slot,0);
-	//
-	//printf("CCB %x \n",thisCCB_);
-	//printf("MPC %x \n",thisMPC);
-	//
-	thisCCB_->setCCBMode(CCB::VMEFPGA);
-	thisCCB_->WriteRegister(0x28,0x7862);  //4Aug05 DM changed 0x789b to 0x7862
-	//July05 changed 0x7878 to 0x789b
-	//thisCCB_->WriteRegister(0x20,0x1e71);
-	//
-	//                                      
-	//
-	//cout <<"Enter 78 then l1a delay time (in hex)" <<  endl;
-	//cin >> hex >>  TMBtime;
-	//thisCCB_->WriteRegister(0x28,TMBtime);      //5July05 DM allows you to write in CCB reg value
-	                                           //in option 12, but since option 19 calls this also.... 
-	//cout <<"TMBtime is " << TMBtime << dec << endl;
-	//
-	thisCCB_->ReadRegister(0x28);
-	//
-	//thisCCB_->WriteRegister(0x20,0x01);
-	//
-	thisCCB_->GenerateAlctAdbASync();	 
-	//
-	//thisCCB_->setCCBMode(CCB::DLOG);  
-	//
-	}
+	alct->alct_set_test_pulse_stripmask(&slot,0x3f);
+	alct->alct_set_test_pulse_groupmask(&slot,0xff);
+      }
       //
-   } else {
-      cout << " No ALCT " << endl;
-   }  
-   //
-   //thisCCB_->DumpAddress(0x20);
-   //
+      alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
+      cout << " StripMask = " << hex << StripMask << endl;
+      //
+      alct->alct_read_test_pulse_powerup(&slot,&PowerUp);
+      cout << " PowerUp   = " << hex << PowerUp << dec << endl; //11July05 DM added dec
+      //
+      alct->alct_fire_test_pulse('A');
+      //
+      alct->alct_set_test_pulse_powerup(&slot,1);
+      //
+      beginning = 1;
+      //
+      PulseTestStrips();
+	//
+    } else {
+      //
+      if (alct->GetChamberType().find("ME11")!=string::npos) {
+	(*MyOutput_) << alct->GetChamberType().find("ME11") <<std::endl;
+	(*MyOutput_) << alct->GetChamberType() <<std::endl;
+	(*MyOutput_) << "ME11" <<std::endl;
+      } else {
+	(*MyOutput_) << "ME12" <<std::endl;
+      }
+      //
+      thisCCB_->setCCBMode(CCB::VMEFPGA);
+      thisCCB_->WriteRegister(0x28,delay);  //4Aug05 DM changed 0x789b to 0x7862
+      //
+      thisCCB_->ReadRegister(0x28);
+      //
+      thisCCB_->GenerateAlctAdbASync();	 
+      //
+    }
+    //
+  } else {
+    cout << " No ALCT " << endl;
+  }  
+  //
 }
 //
 void ChamberUtilities::LoadCFEB(int HalfStrip, int CLCTInputs, bool enableL1aEmulator ){

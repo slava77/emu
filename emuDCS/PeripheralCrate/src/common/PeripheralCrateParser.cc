@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.cc,v 2.6 2006/03/31 09:22:05 mey Exp $
+// $Id: PeripheralCrateParser.cc,v 2.7 2006/05/17 14:16:45 mey Exp $
 // $Log: PeripheralCrateParser.cc,v $
+// Revision 2.7  2006/05/17 14:16:45  mey
+// Update
+//
 // Revision 2.6  2006/03/31 09:22:05  mey
 // Update
 //
@@ -148,6 +151,7 @@ void PeripheralCrateParser::parseFile(const char* name){
 	      }
 	      
 	      if (strcmp("CSC",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
+		std::cout << "CSC" << std::endl;
 		cscParser_ = CSCParser(pNode3, crateNumber);
 	      }
 
