@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.h,v 2.8 2006/04/28 13:41:16 mey Exp $
+// $Id: CalibDAQ.h,v 2.9 2006/05/17 14:16:44 mey Exp $
 // $Log: CalibDAQ.h,v $
+// Revision 2.9  2006/05/17 14:16:44  mey
+// Update
+//
 // Revision 2.8  2006/04/28 13:41:16  mey
 // Update
 //
@@ -52,9 +55,10 @@ public:
   void pedestalCFEB();
   void timeCFEB();
   void pulseAllWires();
-  void pulseRandomWires();
+  void pulseRandomWires(int delay=0x6868);
   void pulseComparatorPulse();
   void FindL1aDelayComparator();
+  void FindL1aDelayALCT();
 
   CrateSelector & selector() {return theSelector;}
 

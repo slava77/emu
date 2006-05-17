@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.66 2006/05/16 15:54:37 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.67 2006/05/17 14:16:44 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -237,6 +237,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::ALCTTiming, "ALCTTiming");
     xgi::bind(this,&EmuPeripheralCrate::ALCTScan, "ALCTScan");
     xgi::bind(this,&EmuPeripheralCrate::FindLv1aDelayComparator, "FindLv1aDelayComparator");
+    xgi::bind(this,&EmuPeripheralCrate::FindLv1aDelayALCT, "FindLv1aDelayALCT");
     xgi::bind(this,&EmuPeripheralCrate::CFEBTiming, "CFEBTiming");
     xgi::bind(this,&EmuPeripheralCrate::CFEBScan, "CFEBScan");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationRuns, "CalibrationRuns");
@@ -399,6 +400,8 @@ public:
     *out << cgicc::form().set("method","GET").set("action",DefineConfiguration) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Define Configuration") << std::endl ;
     *out << cgicc::form() << std::endl ;
+    //
+    std::cout << tmbVector.size() << std::endl;
     //
     if (tmbVector.size()>0 || dmbVector.size()>0) {
       //
@@ -923,6 +926,12 @@ private:
     //
     *out << cgicc::fieldset();
     //
+    std::string FindLv1aDelayALCT =
+      toolbox::toString("/%s/FindLv1aDelayALCT",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",FindLv1aDelayALCT) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Find l1a delay for ALCT") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
   }
   //
   void EmuPeripheralCrate::CrateConfiguration(xgi::Input * in, xgi::Output * out ) 
@@ -1328,6 +1337,18 @@ private:
     //
     this->Default(in,out);
       //
+  }
+  //
+  void EmuPeripheralCrate::FindLv1aDelayALCT(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    CalibDAQ calib;
+    //
+    calib.FindL1aDelayALCT();
+    //
+    this->Default(in,out);
+    //
   }
   //
   void EmuPeripheralCrate::CalibrationRandomWiresALCT(xgi::Input * in, xgi::Output * out ) 

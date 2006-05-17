@@ -35,14 +35,14 @@ public:
   void PulseCFEB(int HalfStrip = -1, int CLCTInputs = 0x1f , bool enable=0);
   void LoadCFEB(int HalfStrip = -1, int CLCTInputs = 0x1f , bool enable=0);
   void CFEBChamberScan();
-  void PulseTestStrips();
+  void PulseTestStrips(int delay = 0x6868);
   void ALCTTiming();
   void ALCTScanDelays();
   void ALCTChamberScan();
   void ALCTSVFLoad();
   int  TMBL1aTiming(int enable=1);
   int  FindBestL1aAlct();
-  void PulseRandomALCT();
+  void PulseRandomALCT(int delay = 0x6868);
   void PulseAllWires();
   int  FindWinner(int);
   int  FindALCTvpf();
