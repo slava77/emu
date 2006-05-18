@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.27 2006/05/17 14:16:44 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.28 2006/05/18 08:35:44 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.28  2006/05/18 08:35:44  mey
+// Update
+//
 // Revision 1.27  2006/05/17 14:16:44  mey
 // Update
 //
@@ -707,8 +710,8 @@ void ChamberUtilities::ALCTTiming(){
   }
   //
   unsigned long HCmask[22];
-   //
-   for (int i=0; i< 22; i++) HCmask[i] = 0;
+  //
+  for (int i=0; i< 22; i++) HCmask[i] = 0;
    //
    for (j=0;j<maxTimeBins;j++){
       for (k=0;k<maxTimeBins;k++) {
@@ -1278,42 +1281,7 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
 //
 void ChamberUtilities::PulseRandomALCT(int delay){
   //
-  unsigned long HCmask[22];
-  //
-  //printf("CCB %x\n",thisCCB_);
-  //printf("TMB %x\n",thisTMB);
-  //
-  for (int i=0; i< 22; i++) HCmask[i] = 0;
-  //
-  int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6/4);
-  int keyWG2 = (alct->GetWGNumber())/6-keyWG;
-  int ChamberSection = alct->GetWGNumber()/6;
-  //
-  printf("Injecting at %d and %d\n",keyWG,keyWG2);
-  //
-  for (int i=0; i< 22; i++) HCmask[i] = 0;
-  //
-  bitset<672> bits(*HCmask) ;
-  //
-  for (int i=0;i<672;i++){
-    if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
-    if ( i%(alct->GetWGNumber()/6) == (alct->GetWGNumber())/6-keyWG ) bits.set(i);
-  }
-  //
-  bitset<32> Convert;
-  //
-  Convert.reset();
-  //
-  for (int i=0;i<(alct->GetWGNumber());i++){
-    if ( bits.test(i) ) Convert.set(i%32);
-     if ( i%32 == 31 ) {
-       HCmask[i/32] = Convert.to_ulong();
-       Convert.reset();
-     }
-  }
-  //
-  alct->alct_write_hcmask(HCmask);
-  alct->alct_read_hcmask(HCmask);
+  alct->SetUpRandomALCT();
   //
   thisTMB->ResetALCTRAMAddress();
   PulseTestStrips(delay);
@@ -1348,47 +1316,19 @@ void ChamberUtilities::PulseAllWires(){
 void ChamberUtilities::PulseTestStrips(int delay){
   //
   int slot = thisTMB->slot();
-  int TMBtime(1);
   //
   if ( alct ) {
     //
-    long int StripMask = 0x3f;
-    long int PowerUp   = 1 ;
-    long int Amplitude = 0x3f;
-    //
-    thisTMB->DisableCLCTInputs();
-    //
     if ( beginning == 0 ) {
       //
-      printf("Init \n");
+      thisTMB->DisableCLCTInputs();
       //
-      alct->alct_set_test_pulse_amp(&slot,Amplitude);
-      //
-      alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
-      cout << " StripMask = " << hex << StripMask << endl;
-      //
-      if (alct->GetChamberType().find("ME11")!=string::npos) {
-	alct->alct_set_test_pulse_stripmask(&slot,0x00);
-	alct->alct_set_test_pulse_groupmask(&slot,0xff);
-      } else {
-	alct->alct_set_test_pulse_stripmask(&slot,0x3f);
-	alct->alct_set_test_pulse_groupmask(&slot,0xff);
-      }
-      //
-      alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
-      cout << " StripMask = " << hex << StripMask << endl;
-      //
-      alct->alct_read_test_pulse_powerup(&slot,&PowerUp);
-      cout << " PowerUp   = " << hex << PowerUp << dec << endl; //11July05 DM added dec
-      //
-      alct->alct_fire_test_pulse('A');
-      //
-      alct->alct_set_test_pulse_powerup(&slot,1);
+      alct->SetUpPulsing();
       //
       beginning = 1;
       //
       PulseTestStrips();
-	//
+      //
     } else {
       //
       if (alct->GetChamberType().find("ME11")!=string::npos) {
@@ -1401,6 +1341,8 @@ void ChamberUtilities::PulseTestStrips(int delay){
       //
       thisCCB_->setCCBMode(CCB::VMEFPGA);
       thisCCB_->WriteRegister(0x28,delay);  //4Aug05 DM changed 0x789b to 0x7862
+      //
+      std::cout << "Setting delay to = " << std::hex << delay << std::endl ;
       //
       thisCCB_->ReadRegister(0x28);
       //
