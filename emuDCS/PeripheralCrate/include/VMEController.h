@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.11 2006/05/11 00:00:06 liu Exp $
+// $Id: VMEController.h,v 2.12 2006/05/18 15:11:34 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 2.12  2006/05/18 15:11:34  liu
+// update error handling
+//
 // Revision 2.11  2006/05/11 00:00:06  liu
 // Update for Production Controller with firmware 3.59
 //
@@ -127,8 +130,11 @@ private:
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.11 2006/05/11 00:00:06 liu Exp $
+// $Id: VMEController.h,v 2.12 2006/05/18 15:11:34 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 2.12  2006/05/18 15:11:34  liu
+// update error handling
+//
 // Revision 2.11  2006/05/11 00:00:06  liu
 // Update for Production Controller with firmware 3.59
 //
@@ -213,7 +219,8 @@ public:
   void scan_alct(int reg, const char *snd, int cnt, char *rcv,int ird);
   bool SelfTest();
   bool exist(int slot);
-  int error() const {return error_type;}
+  int error() const {return (error_count<<16)+error_type;}
+  void clear_error();
   void enable_Reset();
   void disable_Reset();
   void set_Timeout(int to);
@@ -258,6 +265,7 @@ private:
   float DELAY2;
   float DELAY3;
   int error_type;
+  int error_count;
  
  // I like to keep them private. 
   void load_cdac(const char *snd);

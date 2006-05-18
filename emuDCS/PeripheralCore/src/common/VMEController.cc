@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.18 2006/05/10 23:58:45 liu Exp $
+// $Id: VMEController.cc,v 2.19 2006/05/18 15:11:10 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.19  2006/05/18 15:11:10  liu
+// update error handling
+//
 // Revision 2.18  2006/05/10 23:58:45  liu
 // Update for Production Controller with firmware 3.59
 //
@@ -299,8 +302,11 @@ VMEModule* VMEController::getTheCurrentModule(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.18 2006/05/10 23:58:45 liu Exp $
+// $Id: VMEController.cc,v 2.19 2006/05/18 15:11:10 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.19  2006/05/18 15:11:10  liu
+// update error handling
+//
 // Revision 2.18  2006/05/10 23:58:45  liu
 // Update for Production Controller with firmware 3.59
 //
@@ -408,7 +414,7 @@ VMEModule* VMEController::getTheCurrentModule(){
 
 VMEController::VMEController(int crate): 
  crate_(crate), indian(SWAP),  max_buff(0), tot_buff(0), 
- plev(1), idevo(0), error_type(0)
+ plev(1), idevo(0), error_type(0), error_count(0)
 {
   //
   fpacket_delay = 0;
@@ -710,14 +716,17 @@ int VMEController::eth_reset(void)
   return 0;
 }
 
+void VMEController::clear_error()
+{  
+   error_count=0;
+   error_type=0;
+}
+
 int VMEController::eth_read()
 {  
    int err;
    int size;
    int loopcnt;
- 
-// clear the error index before READ
-   error_type=0;
 
    loopcnt=0;
    size=0;
@@ -775,15 +784,25 @@ void VMEController::reload_FPGA()
 
 bool VMEController::SelfTest()
 {  // dummy routine
+   clear_error();
    return 1;
 }
 
 bool VMEController::exist(int slot)
-{  // dummy routine
+{ 
+   char tmp[2]={0, 0};
+   int add_ptr=0;
+   bool v_return;
+   unsigned short int tmp2[1]={0x0000}, *ptr;
 
    if(slot<1 || slot>21) return 0;
    if(slot==1) return SelfTest();
-   return 1;
+   if(slot%2==1 && slot!=13) add_ptr=0x6024;
+   ptr=(unsigned short int *)add_ptr;
+   vme_controller(2,ptr,tmp2,tmp);
+   v_return=!error_count;
+   clear_error();
+   return v_return;
 }
 
 void VMEController::enable_Reset()
@@ -1067,6 +1086,7 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
  /* read back bytes from vme */
  
   if((irdwr==2||irdwr==3)&&nread>0){
+    clear_error();
 READETH:
     nrbuf=nread;
     size=eth_read();
@@ -1107,12 +1127,13 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
           {
              error_type=(r_datat[0]&0xf0)>>4;
              if(error_type==0) error_type=16;
+             error_count++;
 //
-// Need to discard one garbage packet.
+// Need to discard all error packets!
 // In the case of multuple VME commands in one packet, it can be
 // very complicated. Have to deal with that later. Jinghua Liu 5/5/2006.
 //
-             size=eth_read();
+             goto READETH;
           }
           return;
        }
