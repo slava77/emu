@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.13 2006/04/27 18:46:03 mey Exp $
+// $Id: ALCTController.h,v 2.14 2006/05/18 08:35:43 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.14  2006/05/18 08:35:43  mey
+// Update
+//
 // Revision 2.13  2006/04/27 18:46:03  mey
 // UPdate
 //
@@ -177,6 +180,8 @@ public:
   void GetConf(  unsigned cr[3], int );
   void SetConf(  unsigned cr[3], int );
   int  GetWGNumber();
+  void SetUpRandomALCT();
+  void SetUpPulsing();
   void packControlRegister(unsigned * cr) const;
   /// fills the relevant data members
   void unpackControlRegister(unsigned * cr);
@@ -577,7 +582,9 @@ public:
   void SetDriftDelay(int delay){alct_drift_delay_ = delay;}
   void SetPatternFile(std::string file){alctPatternFile = file;}
   void SetHotChannelFile(std::string file){alctHotChannelFile = file;}
-  //  
+  //
+  void set_l1a_delay(int delay);
+  //
   protected:
   // can't have an anodeChannel, since it needs to download 6 delays at a time.
   //std::vector<AnodeChannel> anodeChannels_;

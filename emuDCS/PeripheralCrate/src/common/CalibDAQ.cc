@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.20 2006/05/17 14:16:44 mey Exp $
+// $Id: CalibDAQ.cc,v 2.21 2006/05/18 08:35:44 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.21  2006/05/18 08:35:44  mey
+// Update
+//
 // Revision 2.20  2006/05/17 14:16:44  mey
 // Update
 //
@@ -217,17 +220,32 @@ void CalibDAQ::pulseRandomWires(int delay){
     //
     for (unsigned i=0; i<myTmbs.size(); i++) {
       myTmbs[i]->DisableCLCTInputs();
-      std::cout << "Disabling inputs for slot " << myTmbs[i]->slot() << std::endl;
-    }
-    //
-    std::vector<ChamberUtilities> utils = (myCrates[j]->chamberUtilsMatch()) ;
-    //
-    for (int i = 0; i < utils.size() ; i++ ) {
+      myTmbs[i]->ResetALCTRAMAddress();
       //
-      utils[i].PulseRandomALCT(delay);
+      myTmbs[i]->alctController()->SetUpRandomALCT();
+      myTmbs[i]->alctController()->SetUpPulsing();
       //
     }
     //
+    CCB * ccb = myCrates[j]->ccb();
+    //
+    ccb->setCCBMode(CCB::VMEFPGA);
+    ccb->WriteRegister(0x28,0x7862);  //4Aug05 DM changed 0x789b to 0x7862
+    //
+    std::cout << "Setting delay to = " << std::hex << delay << std::endl ;
+    //
+    ccb->ReadRegister(0x28);
+    //
+    ccb->GenerateAlctAdbASync();	 
+    //
+  }
+  //
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
+    std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
+    for (unsigned i=0; i<myTmbs.size(); i++) {
+      myTmbs[i]->DecodeALCT();
+      myTmbs[i]->GetALCTWordCount();
+    }
   }
   //
 }
@@ -293,6 +311,7 @@ void CalibDAQ::pedestalCFEB() {
 }  
 //
 void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep,int calType) { 
+  //
   //injects identical pulse to all dmbs
   //in all crates one crate at a time          
   //disable TMBs and ALCts
@@ -465,38 +484,36 @@ void CalibDAQ::FindL1aDelayALCT() {
   //
   std::vector<Crate*> myCrates = theSelector.crates();
   //
-  for(int delay=100;delay<150;delay++){
+  for(int delay=150;delay<151;delay--){
+    //
     for(unsigned j = 0; j < myCrates.size(); ++j) {
-      //
-      std::cout << std::endl;
-      //
-      (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
-      usleep(100);
-      //
-      std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
-      std::vector<TMB*>   myTmbs = theSelector.tmbs(myCrates[j]);
-      //
-      pulseRandomWires(delay);
-      //
-      for(unsigned i =myDmbs.size(); i < myDmbs.size(); ++i) {
-	std::cout << "Slot " << myDmbs[i]->slot();
-	myDmbs[i]->PrintCounters();
-	int mycounter = myDmbs[i]->GetAlctDavScope();
-	if ( mycounter>0 ) counter[delay][i] = mycounter;
+      std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
+      for (unsigned i=0; i<myTmbs.size(); i++) {
+	myTmbs[i]->alctController()->set_l1a_delay(delay);
+	myTmbs[i]->ResetCounters();
       }
-      //
     }
+    //
+    pulseRandomWires();
+    //
+    for(unsigned j = 0; j < myCrates.size(); ++j) {
+      std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
+      for (unsigned i=0; i<myTmbs.size(); i++) {
+	counter[delay][i] = myTmbs[i]->GetALCTWordCount();
+	myTmbs[i]->PrintCounters();
+      }
+    }
+    //
   }
   //
-  for(unsigned j = 0; j < myCrates.size(); ++j) {
-    //
-    std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
-    for(int delay=0; delay<200;delay++) {
-      std::cout << delay << " " ;
-      for(unsigned i =0; i < myDmbs.size(); ++i) std::cout << counter[delay][i] << " ";
-      std::cout << std::endl;
-    }
-  }
+  //for(unsigned j = 0; j < myCrates.size(); ++j) {
+  //std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
+  //for(int delay=0; delay<200;delay++) {
+  //  std::cout << delay << " " ;
+  //  for(unsigned i =0; i < myTmbs.size(); ++i) std::cout << counter[delay][i] << " ";
+  //  std::cout << std::endl;
+  //}
+  //}
   //
 }
 //
@@ -586,7 +603,7 @@ void CalibDAQ::FindL1aDelayComparator() {
       //
       usleep(1000);
       //
-      for(unsigned i =myDmbs.size()-1; i < myDmbs.size(); ++i) {
+      for(unsigned i =0; i < myDmbs.size(); ++i) {
 	std::cout << "Slot " << myDmbs[i]->slot();
 	myDmbs[i]->PrintCounters();
 	int mycounter = myDmbs[i]->GetTmbDavScope();

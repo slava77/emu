@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.29 2006/04/27 18:46:04 mey Exp $
+// $Id: ALCTController.cc,v 2.30 2006/05/18 08:35:44 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.30  2006/05/18 08:35:44  mey
+// Update
+//
 // Revision 2.29  2006/04/27 18:46:04  mey
 // UPdate
 //
@@ -115,6 +118,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <cmath>
+#include <string>
 //#include <algo.h>
 
 
@@ -1156,7 +1160,83 @@ void ALCTController::GeneratePattern (int WG, int clear)
                 }
         }
 }
-
+//
+void ALCTController::SetUpPulsing(){
+  //
+  long int StripMask = 0x3f;
+  long int PowerUp   = 1 ;
+  long int Amplitude = 0x3f;
+  //
+  int slot=tmb_->slot();
+  //
+  std::cout << "Init slot=" << slot << std::endl;
+  //
+  alct_set_test_pulse_amp(&slot,Amplitude);
+  //
+  alct_read_test_pulse_stripmask(&slot,&StripMask);
+  std::cout << " StripMask = " << std::hex << StripMask << std::endl;
+  //
+  if (GetChamberType().find("ME11")!=std::string::npos) {
+    alct_set_test_pulse_stripmask(&slot,0x00);
+    alct_set_test_pulse_groupmask(&slot,0xff);
+  } else {
+    alct_set_test_pulse_stripmask(&slot,0x3f);
+    alct_set_test_pulse_groupmask(&slot,0xff);
+  }
+  //
+  alct_read_test_pulse_stripmask(&slot,&StripMask);
+  std::cout << " StripMask = " << std::hex << StripMask << std::endl;
+  //
+  alct_read_test_pulse_powerup(&slot,&PowerUp);
+  std::cout << " PowerUp   = " << std::hex << PowerUp << std::dec << std::endl; //11July05 DM added dec
+  //
+  alct_fire_test_pulse('A');
+  //
+  alct_set_test_pulse_powerup(&slot,1);
+  //
+  alct_read_test_pulse_powerup(&slot,&PowerUp);
+  std::cout << " PowerUp   = " << std::hex << PowerUp << std::dec << std::endl; //11July05 DM added dec
+  //
+}
+//
+void ALCTController::SetUpRandomALCT(){
+  //
+  unsigned long HCmask[22];
+  //
+  for (int i=0; i< 22; i++) HCmask[i] = 0;
+  //
+  int keyWG  = int(rand()/(RAND_MAX+0.01)*(GetWGNumber())/6/4);
+  int keyWG2 = (GetWGNumber())/6-keyWG;
+  int ChamberSection = GetWGNumber()/6;
+  //
+  printf("Injecting at %d and %d\n",keyWG,keyWG2);
+  //
+  for (int i=0; i< 22; i++) HCmask[i] = 0;
+  //
+  std::bitset<672> bits(*HCmask) ;
+  //
+  for (int i=0;i<672;i++){
+    if ( i%(GetWGNumber()/6) == keyWG ) bits.set(i);
+    if ( i%(GetWGNumber()/6) == (GetWGNumber())/6-keyWG ) bits.set(i);
+  }
+  //
+  std::bitset<32> Convert;
+  //
+  Convert.reset();
+  //
+  for (int i=0;i<(GetWGNumber());i++){
+    if ( bits.test(i) ) Convert.set(i%32);
+     if ( i%32 == 31 ) {
+       HCmask[i/32] = Convert.to_ulong();
+       Convert.reset();
+     }
+  }
+  //
+  alct_write_hcmask(HCmask);
+  alct_read_hcmask(HCmask);
+  //
+}
+//
 // generates acc pattern in the specified WG and ORs it into the image (global variable).
 void ALCTController::GenerateAccPattern (int WG)
 {
@@ -2599,7 +2679,7 @@ ALCTController::ALCTSTATUS ALCTController::alct_read_volt_adc(int* jtag,
 
 // Read row ADC value for Current of Power Supply
 ALCTController::ALCTSTATUS ALCTController::alct_read_current_adc(int* jtag,
-				 PWR_SPLY channel,
+								 PWR_SPLY channel,
 								 long* current)
   {
   int j = *jtag;
@@ -3416,6 +3496,26 @@ void ALCTController::set_l1a_internal(int internal){
   printf("internal %d \n",internal); 
   //
   cr[1] = cr[1]&0xffefffff | ((internal&0x1)<<20) ;
+  //
+  printf("cr[1] %x \n",cr[1]);
+  //
+  SetConf(cr,1);
+  unpackControlRegister(cr);
+  //
+}
+
+
+void ALCTController::set_l1a_delay(int delay){
+  //
+  unsigned cr[3];
+  //
+  GetConf(cr,1);
+  //
+  printf("cr[1] %x \n",cr[1]);
+  //
+  printf("delay %d \n",delay); 
+  //
+  cr[1] = cr[1]&0xfffff00f | ((delay&0xff)<<4) ;
   //
   printf("cr[1] %x \n",cr[1]);
   //

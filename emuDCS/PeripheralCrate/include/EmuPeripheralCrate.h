@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.67 2006/05/17 14:16:44 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.68 2006/05/18 08:35:43 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -924,13 +924,13 @@ private:
     *out << cgicc::input().set("type","submit").set("value","Find l1a delay for Comparator") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
-    *out << cgicc::fieldset();
-    //
     std::string FindLv1aDelayALCT =
       toolbox::toString("/%s/FindLv1aDelayALCT",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",FindLv1aDelayALCT) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Find l1a delay for ALCT") << std::endl ;
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::fieldset();
     //
   }
   //
