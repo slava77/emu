@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.49 2006/05/19 13:19:11 mey Exp $
+// $Id: DAQMB.cc,v 2.50 2006/05/19 13:22:36 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.50  2006/05/19 13:22:36  mey
+// Update
+//
 // Revision 2.49  2006/05/19 13:19:11  mey
 // Update
 //
@@ -3287,7 +3290,7 @@ int DAQMB::readfifox_chk(enum DEVTYPE devnum,unsigned int short memchk)
  cmd[0]=1;
  sndbuf[0]=memchk&0xff;
  sndbuf[1]=((memchk>>8)&0xff);
- devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);
+ devdo(devnum,1,cmd,8190*2,sndbuf,rcvbuf,2);
  // printf(" Number Bad: rcvbuf %02x %02x \n",rcvbuf[1],rcvbuf[0]); 
  bad=256*rcvbuf[1]+rcvbuf[0];
  //
@@ -3302,6 +3305,7 @@ int DAQMB::readfifox_chk(enum DEVTYPE devnum,unsigned int short memchk)
  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
  //
  return bad;
+ //
 }
 //
 int DAQMB::memchk(enum DEVTYPE devnum)
