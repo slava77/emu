@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.21 2006/05/18 08:35:44 mey Exp $
+// $Id: CalibDAQ.cc,v 2.22 2006/05/19 12:46:48 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.22  2006/05/19 12:46:48  mey
+// Update
+//
 // Revision 2.21  2006/05/18 08:35:44  mey
 // Update
 //
@@ -204,7 +207,6 @@ void CalibDAQ::pulseComparatorPulse(){
     }
   }
   //
-  //
 }
 //
 void CalibDAQ::pulseRandomWires(int delay){
@@ -222,21 +224,24 @@ void CalibDAQ::pulseRandomWires(int delay){
       myTmbs[i]->DisableCLCTInputs();
       myTmbs[i]->ResetALCTRAMAddress();
       //
-      myTmbs[i]->alctController()->SetUpRandomALCT();
-      myTmbs[i]->alctController()->SetUpPulsing();
+      //myTmbs[i]->alctController()->SetUpRandomALCT();
       //
     }
     //
     CCB * ccb = myCrates[j]->ccb();
     //
     ccb->setCCBMode(CCB::VMEFPGA);
+    ccb->WriteRegister(0x04,0x0001);  //Softreset
+    ccb->WriteRegister(0x20,0x0df9);  //Only enable adb_async as l1a source
     ccb->WriteRegister(0x28,0x7862);  //4Aug05 DM changed 0x789b to 0x7862
+    ccb->WriteRegister(0x04,0x0001);  //Softreset
     //
-    std::cout << "Setting delay to = " << std::hex << delay << std::endl ;
+    std::cout << "0x28= " << std::hex << ccb->ReadRegister(0x28) << std::endl;
+    std::cout << "0x20= " << std::hex << ccb->ReadRegister(0x20) << std::endl;
     //
-    ccb->ReadRegister(0x28);
-    //
+    ::usleep(200000);
     ccb->GenerateAlctAdbASync();	 
+    ::usleep(200000);
     //
   }
   //
@@ -244,7 +249,10 @@ void CalibDAQ::pulseRandomWires(int delay){
     std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
     for (unsigned i=0; i<myTmbs.size(); i++) {
       myTmbs[i]->DecodeALCT();
-      myTmbs[i]->GetALCTWordCount();
+      int WordCount = myTmbs[i]->GetALCTWordCount();
+      std::cout << "WordCount = " << WordCount <<std::endl ;
+      //myTmbs[i]->ALCTRawhits();
+      //
     }
   }
   //
@@ -451,10 +459,6 @@ void CalibDAQ::injectComparator(int ntim, int nstrip, float dac, int nsleep, flo
     //
     usleep(1000);
     //
-    //for(unsigned i =0; i<myDmbs.size(); ++i) {
-    //myDmbs[i]->inject(1,0x4f);
-    //}
-    //
     std::cout << "Sending inject" <<std::endl;
     ccb->inject(1, 0xff);//pulse all dmbs in this crate
     //
@@ -478,42 +482,73 @@ void CalibDAQ::injectComparator(int ntim, int nstrip, float dac, int nsleep, flo
 //
 void CalibDAQ::FindL1aDelayALCT() { 
   //
-  int counter[200][9];
+  int counter    [300][9];
+  int DMBCounter [300][9];
+  int DMBCounter0[300][9];
   //
-  for(int i=0; i<200;i++) for(int j=0;j<9;j++) counter[i][j] = 0;
+  for(int i=0; i<300;i++) for(int j=0;j<9;j++) {
+    counter[i][j]     = 0;
+    DMBCounter[i][j]  = 0;
+    DMBCounter0[i][j] = 0;
+  }
   //
   std::vector<Crate*> myCrates = theSelector.crates();
   //
-  for(int delay=150;delay<151;delay--){
+  for(int delay=150;delay<151;delay++){
     //
-    for(unsigned j = 0; j < myCrates.size(); ++j) {
-      std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
-      for (unsigned i=0; i<myTmbs.size(); i++) {
-	myTmbs[i]->alctController()->set_l1a_delay(delay);
-	myTmbs[i]->ResetCounters();
+    for (int npulses=0; npulses<5; npulses++) {
+      for(unsigned j = 0; j < myCrates.size(); j++) {
+	CCB * ccb = myCrates[j]->ccb();
+	ccb->ResetL1aCounter();
+	ccb->EnableL1aCounter();
+	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
+	for (unsigned i=0; i<myTmbs.size(); i++) {
+	  myTmbs[i]->alctController()->set_l1a_delay(delay);
+	  myTmbs[i]->alctController()->set_empty(0);
+	  myTmbs[i]->alctController()->set_l1a_internal(0);
+	  myTmbs[i]->alctController()->SetUpPulsing();
+	  myTmbs[i]->SetALCTPatternTrigger();
+	}
       }
-    }
-    //
-    pulseRandomWires();
-    //
-    for(unsigned j = 0; j < myCrates.size(); ++j) {
-      std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
-      for (unsigned i=0; i<myTmbs.size(); i++) {
-	counter[delay][i] = myTmbs[i]->GetALCTWordCount();
-	myTmbs[i]->PrintCounters();
+      //
+      pulseRandomWires();
+      //
+      for(unsigned j = 0; j < myCrates.size(); j++) {
+	CCB * ccb = myCrates[j]->ccb();
+	std::cout << "CCB L1a counter = " << ccb->ReadL1aCounter() << std::endl ;
+	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
+	std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
+	for (unsigned i=0; i<myTmbs.size(); i++) {
+	  counter[delay][i] += myTmbs[i]->GetALCTWordCount();
+	}
+	for (unsigned i=0; i<myDmbs.size(); i++) {
+	  //myDmbs[i]->readtimingCounter();
+	  //myDmbs[i]->readtimingScope();
+	  myDmbs[i]->PrintCounters();
+	  if ( i == 0 ) DMBCounter0[delay][npulses] = myDmbs[0]->GetAlctDavCounter();
+	  if ( myDmbs[i]->GetAlctDavCounter() > 0 )  DMBCounter[delay][i] = myDmbs[i]->GetAlctDavCounter();
+	}
       }
+      //
     }
-    //
   }
   //
-  //for(unsigned j = 0; j < myCrates.size(); ++j) {
-  //std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
-  //for(int delay=0; delay<200;delay++) {
-  //  std::cout << delay << " " ;
-  //  for(unsigned i =0; i < myTmbs.size(); ++i) std::cout << counter[delay][i] << " ";
-  //  std::cout << std::endl;
-  //}
-  //}
+  for(unsigned j = 0; j < myCrates.size(); j++) {
+    std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
+    std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
+    std::cout << std::endl;
+    for(int delay=0; delay<300;delay++) {
+      std::cout << delay << " " ;
+      for(unsigned i =0; i < myTmbs.size(); ++i) std::cout << counter[delay][i] << " ";
+      //std::cout << std::endl;
+      std::cout << " | " ;
+      for(unsigned i =0; i < myDmbs.size(); ++i) std::cout << DMBCounter[delay][i] << " ";
+      //std::cout << std::endl;
+      std::cout << " | " ;
+      for(unsigned i =0; i < 9; ++i) std::cout << DMBCounter0[delay][i] << " ";
+      std::cout << std::endl;
+    }
+  }
   //
 }
 //
@@ -532,7 +567,7 @@ void CalibDAQ::FindL1aDelayComparator() {
   //
   std::vector<Crate*> myCrates = theSelector.crates();
   //
-  for(int delay=100;delay<150;delay++){
+  for(int delay=0;delay<200;delay++){
     for(unsigned j = 0; j < myCrates.size(); ++j) {
       //
       (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();

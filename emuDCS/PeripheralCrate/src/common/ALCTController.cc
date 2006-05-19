@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.30 2006/05/18 08:35:44 mey Exp $
+// $Id: ALCTController.cc,v 2.31 2006/05/19 12:46:48 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.31  2006/05/19 12:46:48  mey
+// Update
+//
 // Revision 2.30  2006/05/18 08:35:44  mey
 // Update
 //
@@ -1171,7 +1174,13 @@ void ALCTController::SetUpPulsing(){
   //
   std::cout << "Init slot=" << slot << std::endl;
   //
+  alct_set_test_pulse_powerup(&slot,0);
+  //
+  usleep(100);
+  //
   alct_set_test_pulse_amp(&slot,Amplitude);
+  //
+  usleep(100);
   //
   alct_read_test_pulse_stripmask(&slot,&StripMask);
   std::cout << " StripMask = " << std::hex << StripMask << std::endl;
@@ -1181,7 +1190,7 @@ void ALCTController::SetUpPulsing(){
     alct_set_test_pulse_groupmask(&slot,0xff);
   } else {
     alct_set_test_pulse_stripmask(&slot,0x3f);
-    alct_set_test_pulse_groupmask(&slot,0xff);
+    alct_set_test_pulse_groupmask(&slot,0x00);
   }
   //
   alct_read_test_pulse_stripmask(&slot,&StripMask);
@@ -1190,9 +1199,13 @@ void ALCTController::SetUpPulsing(){
   alct_read_test_pulse_powerup(&slot,&PowerUp);
   std::cout << " PowerUp   = " << std::hex << PowerUp << std::dec << std::endl; //11July05 DM added dec
   //
-  alct_fire_test_pulse('A');
+  alct_fire_test_pulse('a');
+  //
+  usleep(100);
   //
   alct_set_test_pulse_powerup(&slot,1);
+  //
+  usleep(100);
   //
   alct_read_test_pulse_powerup(&slot,&PowerUp);
   std::cout << " PowerUp   = " << std::hex << PowerUp << std::dec << std::endl; //11July05 DM added dec
@@ -1202,8 +1215,12 @@ void ALCTController::SetUpPulsing(){
 void ALCTController::SetUpRandomALCT(){
   //
   unsigned long HCmask[22];
+  unsigned long HCmask2[22];
   //
-  for (int i=0; i< 22; i++) HCmask[i] = 0;
+  for (int i=0; i< 22; i++) {
+    HCmask[i] = 0;
+    HCmask2[i] = 0;
+  }
   //
   int keyWG  = int(rand()/(RAND_MAX+0.01)*(GetWGNumber())/6/4);
   int keyWG2 = (GetWGNumber())/6-keyWG;
@@ -1233,7 +1250,10 @@ void ALCTController::SetUpRandomALCT(){
   }
   //
   alct_write_hcmask(HCmask);
+  for(int i=0; i<22; i++) std::cout << std::hex << HCmask[i] << std::endl;
   alct_read_hcmask(HCmask);
+  std::cout << std::endl;
+  for(int i=0; i<22; i++) std::cout << std::hex << HCmask2[i] << std::endl;
   //
 }
 //
@@ -1369,10 +1389,10 @@ void ALCTController::SetConf(  unsigned cr[3], int verbose=0 ){
    unsigned crr[3];
    //
    WriteRegister (WrCfg, cr); // write configuration first
-   if (verbose) printf("Set to Configuration register:    %08x %08x %08x\n", cr[2], cr[1], cr[0]);
+   if (verbose) printf("Set to Configuration register:        %08x %08x %08x\n", cr[2], cr[1], cr[0]);
    //
    ReadRegister (RdCfg, crr);
-   if (verbose) printf("Read back  Configuration register:    %08x %08x %08x\n", crr[2], crr[1], crr[0]);
+   if (verbose) printf("Read back Configuration register:     %08x %08x %08x\n", crr[2], crr[1], crr[0]);
    if (cr[0] != crr[0] || cr[1] != crr[1] || cr[2] != crr[2])
    {
       if (verbose) printf("Configuration register mismatch:    %08x %08x %08x\n", crr[2], crr[1], crr[0]);

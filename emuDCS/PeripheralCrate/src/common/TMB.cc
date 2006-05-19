@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.62 2006/05/10 10:24:32 mey Exp $
+// $Id: TMB.cc,v 2.63 2006/05/19 12:46:48 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.63  2006/05/19 12:46:48  mey
+// Update
+//
 // Revision 2.62  2006/05/10 10:24:32  mey
 // Update
 //
@@ -1194,7 +1197,7 @@ void TMB::scope(int scp_arm,int scp_readout, int scp_channel) {
 
     //Select channel
     sndbuf[0] = 0x00;
-    sndbuf[1] = scp_channel;
+    sndbuf[1] = scp_channel&0xff;
     tmb_vme(VME_WRITE,0xce,sndbuf,rcvbuf,NOW);
 
     //Arm scope for triggering, send scope state to wait_trig
@@ -1221,12 +1224,12 @@ void TMB::scope(int scp_arm,int scp_readout, int scp_channel) {
       printf("Scope status %04x\n",(unsigned int)rd_data);
       if((rd_data & 0x0080) != 0) goto TRIGGERED;                    //triggered and done
       printf("Waiting for scope to trigger %ld\n",i);
-    }
-    printf("Scope never triggered\n");
-    goto END;
-
-    //Read back embedded scope data
-    TRIGGERED:
+     }
+     (*MyOutput_) << "Scope never triggered" << std::endl;
+     goto END;
+     
+     //Read back embedded scope data
+  TRIGGERED:
       printf("Scope triggered\n");
 
 	for(itbin=0;itbin<256;itbin++) {                    //loop over ram addresses
