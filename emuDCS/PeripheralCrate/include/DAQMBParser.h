@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: DAQMBParser.h,v 2.1 2006/05/19 15:13:32 mey Exp $
 // $Log: DAQMBParser.h,v $
+// Revision 2.1  2006/05/19 15:13:32  mey
+// UPDate
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
@@ -9,7 +12,6 @@
 #ifndef DAQMBParser_h
 #define DAQMBParser_h
 #include <vector>
-#include "EmuParser.h"
 #include <xercesc/dom/DOM.hpp>
 
 class CFEB;
@@ -25,7 +27,6 @@ public:
 
 protected:
   DAQMB * daqmb_;//last one parsed
-  EmuParser parser_;
 };
 
 #endif

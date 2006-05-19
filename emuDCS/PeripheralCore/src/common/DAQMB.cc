@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.52 2006/05/19 13:35:03 mey Exp $
+// $Id: DAQMB.cc,v 2.53 2006/05/19 15:13:32 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.53  2006/05/19 15:13:32  mey
+// UPDate
+//
 // Revision 2.52  2006/05/19 13:35:03  mey
 // Update
 //
@@ -3645,7 +3648,7 @@ int DAQMB::test5()
       }
       //
       if(itog==1){
-	if(value>-50 && value<50){
+	if(value>-200 && value<200){
 	  (*MyOutput_) << "The voltage off "<<f1[i]<<" "<<f2[i]
 		       <<" is good - "<<value<<" mv " << std::endl;
 	}else{   
@@ -3725,7 +3728,7 @@ int  DAQMB::test8()
       usleep(500000);
       //
       for(int cfeb=0; cfeb<cfebs_.size(); ++cfeb) {
-	vout=adcplus(2,cfeb);
+	vout=adcplus(2,cfebs_[cfeb].number());
 	(*MyOutput_) << "cfeb="<<cfeb<<" "<<" v0=" << v0 << " vout="<<vout<<std::endl;
       }
       //
@@ -3756,7 +3759,7 @@ int  DAQMB::test8()
     b=(sy*sx2-sxy*sx)/(sn*sx2-sx*sx);
     (*MyOutput_)<<"a " <<a<< " b " <<b<<std::endl;
     //
-    if(a<-1025.||a>-998.){
+    if(a<-1025.||a>-800.){
       ierr=1;
       (*MyOutput_) << " slope     out of range- got "<<a<<" should be -1005. " <<std::endl;
     }

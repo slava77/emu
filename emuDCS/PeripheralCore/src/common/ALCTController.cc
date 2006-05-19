@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.31 2006/05/19 12:46:48 mey Exp $
+// $Id: ALCTController.cc,v 2.32 2006/05/19 15:13:32 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.32  2006/05/19 15:13:32  mey
+// UPDate
+//
 // Revision 2.31  2006/05/19 12:46:48  mey
 // Update
 //
@@ -1549,58 +1552,58 @@ ALCTController::ALCTSTATUS ALCTController::alct_download_hot_mask (const char* f
         alct_fast_set_jtag_channel(ALCT_FAST_JTAG_CHANNEL);
         
         for (i = 0; i < 6; i++)
-                for (j = 0; j < 14; j++)
-                        HCmask[i][j] = 0xff;
-                
+	  for (j = 0; j < 14; j++)
+	    HCmask[i][j] = 0xff;
+	//
         hcmaskfile = fopen(filename,"r") ;
-
+	//
         if ( hcmaskfile != NULL )
-    {
-       if (verbose) printf("File : %s", filename);
-       i = 0;
-       while (!feof(hcmaskfile))
-       {
-	  fscanf (hcmaskfile, "%[^\n\r]", line);
-	  fscanf (hcmaskfile, "%[\n\r]", dummy);
-	  if (verbose) printf ("%s\n", line);
-	  sscanf (line, "%c", &commchar);
-	  if (commchar != '#')
 	  {
-	     if (strstr (line, "block") != NULL)
-	     {
-		block = -1;
-		if (sscanf (line, "%s %d", dummy, &block) == 2)
+	    if (verbose) printf("File : %s", filename);
+	    i = 0;
+	    while (!feof(hcmaskfile))
+	      {
+		fscanf (hcmaskfile, "%[^\n\r]", line);
+		fscanf (hcmaskfile, "%[\n\r]", dummy);
+		if (verbose) printf ("%s\n", line);
+		sscanf (line, "%c", &commchar);
+		if (commchar != '#')
+		  {
+		    if (strstr (line, "block") != NULL)
+		      {
+			block = -1;
+			if (sscanf (line, "%s %d", dummy, &block) == 2)
+			  {
+			    if (block > totblk || block < 1)
+			      {
+				block = -1;
+			      }
+			    ly = 0;
+			    if (verbose) printf ("block = %d\n", block);
+			  }
+			else block = -1;
+		      }
+		    else
+		      {
+			if (block != -1)        
 		{
-		   if (block > totblk || block < 1)
-		   {
-		      block = -1;
-		   }
-		   ly = 0;
-		   if (verbose) printf ("block = %d\n", block);
-		}
-		else block = -1;
-	     }
-	     else
-	     {
-		if (block != -1)        
-		{
-		   j = 0;
-		   for (i = 7; i >= 0; i--)
-		   {
+		  j = 0;
+		  for (i = 7; i >= 0; i--)
+		    {
 		      while (line[j] != '1' && line[j] != '0' && line[j] != 0) j++;
 		      if (line[j] == 0) break;
 		      if (line[j] == '0')
-		      {
-			 HCmask[ly][block-1] &= ~((unsigned char)(1 << i));
+			{
+			  HCmask[ly][block-1] &= ~((unsigned char)(1 << i));
 		      }
 		      j++;
-		   }
-		   if (i < 0) ly++;
+		    }
+		  if (i < 0) ly++;
 		}
-	     }
+		      }
+		  }
+	      }
 	  }
-       }
-    }
 	else
 	  {
 	    if (verbose) printf ("Cannot open file: %s\n", filename);
