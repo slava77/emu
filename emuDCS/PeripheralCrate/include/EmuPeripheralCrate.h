@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.68 2006/05/18 08:35:43 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.69 2006/05/19 12:46:48 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -257,6 +257,9 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::DMBTest11, "DMBTest11");
     xgi::bind(this,&EmuPeripheralCrate::TriggerTestInjectALCT, "TriggerTestInjectALCT");
     xgi::bind(this,&EmuPeripheralCrate::TriggerTestInjectCLCT, "TriggerTestInjectCLCT");
+    xgi::bind(this,&EmuPeripheralCrate::armScope, "armScope");
+    xgi::bind(this,&EmuPeripheralCrate::forceScope, "forceScope");
+    xgi::bind(this,&EmuPeripheralCrate::readoutScope, "readoutScope");
     xgi::bind(this,&EmuPeripheralCrate::PowerUp,  "PowerUp");
     xgi::bind(this,&EmuPeripheralCrate::Operator, "Operator");
     xgi::bind(this,&EmuPeripheralCrate::RunNumber, "RunNumber");
@@ -3616,6 +3619,79 @@ private:
     //
   }
   //
+  void EmuPeripheralCrate::armScope(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    }
+    //
+    TMB * thisTMB = tmbVector[tmb];
+    thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
+    thisTMB->scope(1,0,0);
+    thisTMB->RedirectOutput(&std::cout);
+    //
+    this->TMBUtils(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::forceScope(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    }
+    //
+    TMB * thisTMB = tmbVector[tmb];
+    thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
+    thisTMB->ForceScopeTrigger();
+    thisTMB->RedirectOutput(&std::cout);
+    //
+    this->TMBUtils(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::readoutScope(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    }
+    //
+    TMB * thisTMB = tmbVector[tmb];
+    thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
+    thisTMB->ClearScintillatorVeto();
+    thisTMB->scope(0,1);
+    thisTMB->RedirectOutput(&std::cout);
+    //
+    this->TMBUtils(in,out);
+    //
+  }
+  //
   void EmuPeripheralCrate::TriggerTestInjectCLCT(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -5498,6 +5574,33 @@ private:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
     //
+    std::string armScope =
+      toolbox::toString("/%s/armScope",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",armScope) ;
+    *out << cgicc::input().set("type","submit").set("value","arm Scope") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string readoutScope =
+      toolbox::toString("/%s/readoutScope",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",readoutScope) ;
+    *out << cgicc::input().set("type","submit").set("value","readout Scope") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string forceScope =
+      toolbox::toString("/%s/forceScope",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",forceScope) ;
+    *out << cgicc::input().set("type","submit").set("value","force Scope") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    //
     std::string TriggerTestInjectALCT =
       toolbox::toString("/%s/TriggerTestInjectALCT",getApplicationDescriptor()->getURN().c_str());
     //
@@ -5522,7 +5625,7 @@ private:
     *out << cgicc::pre();
     *out << cgicc::textarea().set("name","CrateTestTMBOutput")
       .set("rows","50")
-      .set("cols","100")
+      .set("cols","150")
       .set("WRAP","OFF");
     *out << OutputStringTMBStatus[tmb].str() << endl ;
     *out << cgicc::textarea();
@@ -5860,6 +5963,11 @@ private:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
+    //
+    *out << cgicc::table().set("border","0");
+    //
+    *out << cgicc::td();
+    //
     std::string DMBTest3 =
       toolbox::toString("/%s/DMBTest3",getApplicationDescriptor()->getURN().c_str());
     //
@@ -5891,7 +5999,8 @@ private:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    *out << cgicc::table().set("border","0");
+    *out << cgicc::td();
+    //
     *out << cgicc::td();
     //
     std::string DMBTest4 =

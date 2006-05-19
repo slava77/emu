@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.20 2006/05/16 15:54:37 mey Exp $
+// $Id: CCB.h,v 2.21 2006/05/19 12:46:48 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.21  2006/05/19 12:46:48  mey
+// Update
+//
 // Revision 2.20  2006/05/16 15:54:37  mey
 // UPdate
 //
@@ -187,6 +190,9 @@ public:
   void hard_reset_tmb();     //+
   void hard_reset_mpc();     //+
 
+  void EnableL1aCounter();
+  void ResetL1aCounter();
+  int  ReadL1aCounter();
 
   void soft_reset_dmb();
   void soft_reset_tmb();
@@ -233,9 +239,14 @@ private:
   static const unsigned int CSRB17 = 0x40;
   static const unsigned int CSRB18  = 0x42;
   //
-  static const unsigned int L1Reset = 0x50;
+  static const unsigned int L1Reset    = 0x50;
   static const unsigned int TTCrxReset = 0x5c;
-
+  //
+  static const unsigned int readL1aCounterLSB  = 0x90;
+  static const unsigned int readL1aCounterMSB  = 0x92;
+  static const unsigned int resetL1aCounter    = 0x94;
+  static const unsigned int enableL1aCounter   = 0x96;
+  //
   // maybe these should be static, common to all CCBs?
   // I think this one really belongs in the DDU section...
   int BX_Orbit_;
