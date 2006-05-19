@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.48 2006/05/19 13:17:16 mey Exp $
+// $Id: DAQMB.cc,v 2.49 2006/05/19 13:19:11 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.49  2006/05/19 13:19:11  mey
+// Update
+//
 // Revision 2.48  2006/05/19 13:17:16  mey
 // Update
 //
@@ -3224,7 +3227,7 @@ void DAQMB::test3()
   }
   errs+=err[6];
   //
-  //err[7]= memchk(FIFO7);
+  err[7]= memchk(FIFO7);
   errs+=err[7];
   if(err[7]==0){
     (*MyOutput_) << " FIFO7 is OK " << std::endl;
