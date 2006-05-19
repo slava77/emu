@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.51 2006/05/19 13:24:42 mey Exp $
+// $Id: DAQMB.cc,v 2.52 2006/05/19 13:35:03 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.52  2006/05/19 13:35:03  mey
+// Update
+//
 // Revision 2.51  2006/05/19 13:24:42  mey
 // Update
 //
@@ -2567,39 +2570,41 @@ void DAQMB::cbldly_phaseB(){
 }
 
 void DAQMB::cbldly_loadfinedelay(){
-         printf(" Load Fine Delay \n");
-         cmd[0]=VTX_USR1; 
-         sndbuf[0]=0x15;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_USR1;
-         sndbuf[0]=NOOP;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_BYPASS;
-         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  //
+  printf(" Load Fine Delay \n");
+  cmd[0]=VTX_USR1; 
+  sndbuf[0]=0x15;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  //
 }
 
 void DAQMB::cbldly_programSFM(){
-         printf(" Program Serial Flash Memory \n");
-         cmd[0]=VTX_USR1; 
-         sndbuf[0]=0x18;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_USR1;
-         sndbuf[0]=NOOP;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_BYPASS;
-         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  (*MyOutput_) <<" Program Serial Flash Memory" << std::endl ;
+  cmd[0]=VTX_USR1; 
+  sndbuf[0]=0x18;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 }
 
 void DAQMB::cbldly_wrtprotectSFM(){
-	 printf(" SFM Write Protect \n");
-         cmd[0]=VTX_USR1; 
-         sndbuf[0]=0x1e; 
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_USR1;
-         sndbuf[0]=NOOP;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_BYPASS;
-         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  (*MyOutput_) << " SFM Write Protect" <<std::endl;
+  cmd[0]=VTX_USR1; 
+  sndbuf[0]=0x1e; 
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 }
 
 void DAQMB::cbldly_loadmbidSFM(){
@@ -2842,7 +2847,7 @@ void DAQMB::daqmb_promfpga_dump()
 //
 void DAQMB::ProgramSFM(){
   //
-  printf(" Program Serial Flash Memory \n");
+  (*MyOutput_) << " Program Serial Flash Memory" << std::endl;
   cmd[0]=VTX_USR1; 
   sndbuf[0]=0x18;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
@@ -2884,7 +2889,7 @@ void DAQMB::LoadDMBIdSFM(){
 //
 void DAQMB::SFMWriteProtect(){
   //
-  printf(" SFM Write Protect \n");
+  (*MyOutput_) << " SFM Write Protect" << std::endl;
   cmd[0]=VTX_USR1; 
   sndbuf[0]=0x1e; 
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
@@ -3295,7 +3300,7 @@ int DAQMB::readfifox_chk(enum DEVTYPE devnum,unsigned int short memchk)
  sndbuf[1]=((memchk>>8)&0xff);
  devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);
  //
- printf(" Number Bad: rcvbuf %02x %02x \n",rcvbuf[1],rcvbuf[0]); 
+ (*MyOutput_) << " Number Bad: rcvbuf " << std::hex << rcvbuf[1] << " " << rcvbuf[0] << std::endl; 
  //
  bad=256*rcvbuf[1]+rcvbuf[0];
  //
