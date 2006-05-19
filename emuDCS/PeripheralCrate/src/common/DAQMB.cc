@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.47 2006/05/12 11:38:39 mey Exp $
+// $Id: DAQMB.cc,v 2.48 2006/05/19 13:17:16 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.48  2006/05/19 13:17:16  mey
+// Update
+//
 // Revision 2.47  2006/05/12 11:38:39  mey
 // Update
 //
@@ -2386,7 +2389,7 @@ void DAQMB::toggle_rndmtrg_start()
 void DAQMB::burst_rndmtrg()
 {
   toggle_rndmtrg_start();
-    usleep(5000);
+  usleep(5000);
   toggle_rndmtrg_start();
 }
 //
@@ -3221,7 +3224,7 @@ void DAQMB::test3()
   }
   errs+=err[6];
   //
-  err[7]= memchk(FIFO7);
+  //err[7]= memchk(FIFO7);
   errs+=err[7];
   if(err[7]==0){
     (*MyOutput_) << " FIFO7 is OK " << std::endl;
@@ -3252,7 +3255,7 @@ void DAQMB::wrtfifox(enum DEVTYPE devnum,unsigned short int pass)
  if(devnum-FIFO7!=0){
    devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);}
  else{
- devdo(devnum,1,cmd,8190*2,sndbuf,rcvbuf,2);}
+   devdo(devnum,1,cmd,8190*2,sndbuf,rcvbuf,2);}
 }
 //
 int DAQMB::readfifox_chk(enum DEVTYPE devnum,unsigned int short memchk)
@@ -3441,8 +3444,6 @@ int DAQMB::readfifox_123chk(enum DEVTYPE devnum)
  devdo(devnum,1,cmd,16380*2,sndbuf,rcvbuf,2);
  // printf(" Number Bad: rcvbuf %02x %02x \n",rcvbuf[1],rcvbuf[0]); 
  bad=256*rcvbuf[1]+rcvbuf[0];
-
-
 
   cmd[0]=VTX2_USR1;
   sndbuf[0]=FIFO_RD;
