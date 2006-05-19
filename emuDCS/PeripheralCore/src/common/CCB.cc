@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.34 2006/05/10 10:24:32 mey Exp $
+// $Id: CCB.cc,v 2.35 2006/05/19 12:46:48 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.35  2006/05/19 12:46:48  mey
+// Update
+//
 // Revision 2.34  2006/05/10 10:24:32  mey
 // Update
 //
@@ -314,6 +317,49 @@ void CCB::reset_bckpln()
   do_vme(VME_WRITE, CSR2, sndbuf,rcvbuf,NOW);
   sleep(1);
   theController->end();
+}
+//
+void CCB::EnableL1aCounter()
+{
+  //
+  setCCBMode(CCB::VMEFPGA);
+  //
+  sndbuf[0]=0x00; 
+  sndbuf[1]=0x01;
+  //
+  do_vme(VME_WRITE,enableL1aCounter,sndbuf,rcvbuf,NOW);
+  //
+}
+//
+void CCB::ResetL1aCounter()
+{
+  //
+  setCCBMode(CCB::VMEFPGA);
+  //
+  sndbuf[0]=0x00; 
+  sndbuf[1]=0x01;
+  //
+  do_vme(VME_WRITE,resetL1aCounter,sndbuf,rcvbuf,NOW);
+  //
+}
+//
+int CCB::ReadL1aCounter()
+{
+  //
+  int val=0;
+  //
+  setCCBMode(CCB::VMEFPGA);
+  //
+  do_vme(VME_READ,readL1aCounterLSB,sndbuf,rcvbuf,NOW);
+  //
+  val = ((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff);
+  //
+  do_vme(VME_READ,readL1aCounterMSB,sndbuf,rcvbuf,NOW);
+  //
+  val |= ((rcvbuf[0]&0xff)<<24) | ((rcvbuf[1]&0xff)<<16);
+  //
+  return val;
+  //
 }
 //
 void CCB::GenerateAlctAdbASync(){
