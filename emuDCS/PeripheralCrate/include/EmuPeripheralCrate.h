@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.72 2006/05/19 12:58:59 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.73 2006/05/19 13:00:10 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -6198,7 +6198,7 @@ private:
     //
     *out << cgicc::tr();
     *out << cgicc::td();
-    //
+    /*
     std::string DMBTest11 =
       toolbox::toString("/%s/DMBTest11",getApplicationDescriptor()->getURN().c_str());
     //
@@ -6225,7 +6225,7 @@ private:
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
-    //
+    */
     *out << cgicc::td();
     //
     *out << cgicc::table();
