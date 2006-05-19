@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.71 2006/05/19 12:56:22 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.72 2006/05/19 12:58:59 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -5988,7 +5988,7 @@ private:
 	.set("style","color:red") 
 	   << std::endl ;
     } 
-    if( thisDMB->GetTestStatus(3) > 0 ) {
+    if( thisDMB->GetTestStatus(3) > -1 ) {
       *out << cgicc::input().set("type","submit")
 	.set("value","DMB Test3 (Check DMB Fifos)") 
 	.set("style","color:red") 
