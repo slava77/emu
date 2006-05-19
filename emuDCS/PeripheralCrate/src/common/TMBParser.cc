@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 2.11 2006/04/06 08:54:32 mey Exp $
+// $Id: TMBParser.cc,v 2.12 2006/05/19 14:06:46 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 2.12  2006/05/19 14:06:46  mey
+// Fixed ALCT parser
+//
 // Revision 2.11  2006/04/06 08:54:32  mey
 // Got rif of friend TMBParser
 //
@@ -158,78 +161,83 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, int crateNumber)
     //
     xercesc::DOMNode * daughterNode = pNode->getFirstChild();
     while(daughterNode) {
-      if (daughterNode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
+      if (daughterNode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE and 
+	  strcmp("ALCT",xercesc::XMLString::transcode(daughterNode->getNodeName()))==0){
+	//
 	std::string  nodeName = xercesc::XMLString::transcode(daughterNode->getNodeName());
 #ifdef debugV  
 	std::cout << nodeName << std::endl;
 #endif
-	parser_.parseNode(daughterNode);
+	//
+	EmuParser alctParser_;
+	//
+	alctParser_.parseNode(daughterNode);
 
         std::string chamberType;
-        parser_.fillString("chamber_type", chamberType);
+        alctParser_.fillString("chamber_type", chamberType);
         //alct_ memory area is deleted in ~TMB()
         ALCTController * alct_ = new ALCTController(tmb_, chamberType);
 	RAT * rat_ = new RAT(tmb_);
 	tmb_->SetAlct(alct_); //store alct_ pointer in tmb_
 	tmb_->SetRat(rat_); //store rat_  in tmb_
 	//RAT
-       	//parser_.fillInt("rpc_rat_delay", rat_->rat_tmb_delay_);
+       	//alctParser_.fillInt("rpc_rat_delay", rat_->rat_tmb_delay_);
 	//ALCT
 	//
 	int mode;
-       	if ( parser_.fillInt("trig_mode", mode) ) {
+       	if ( alctParser_.fillInt("trig_mode", mode) ) {
 	  alct_->SetTrigMode(mode);
 	}
 	//
-	if ( parser_.fillInt("ext_trig_en", enable)) {
+	if ( alctParser_.fillInt("ext_trig_en", enable)) {
 	  alct_->SetExtTrigEnable(enable);
 	}
 	//
-	if ( parser_.fillInt("trig_info_en", enable)) {
+	if ( alctParser_.fillInt("trig_info_en", enable)) {
 	  alct_->SetTrigInfoEnable(enable);
 	}
-	if ( parser_.fillInt("l1a_internal", enable)) {
+	if ( alctParser_.fillInt("l1a_internal", enable)) {
 	  alct_->SetL1aInternal(enable);
 	}
-	if ( parser_.fillInt("fifo_tbins", tbins) ) {
+	if ( alctParser_.fillInt("fifo_tbins", tbins) ) {
 	  alct_->SetFifoTbins(tbins);
 	}
-	if ( parser_.fillInt("fifo_pretrig", pretrig)) {
+	if ( alctParser_.fillInt("fifo_pretrig", pretrig)) {
 	  alct_->SetFifoPretrig(pretrig);
 	}
-	if (parser_.fillInt("l1a_delay", delay)) {
+	if (alctParser_.fillInt("l1a_delay", delay)) {
 	  alct_->SetL1aDelay(delay);
 	}
-	if ( parser_.fillInt("l1a_offset",offset)) {
+	if ( alctParser_.fillInt("l1a_offset",offset)) {
 	  alct_->SetL1aOffset(offset);
 	}
-	if (parser_.fillInt("l1a_window", size)) {
+	if (alctParser_.fillInt("l1a_window", size)) {
 	  alct_->SetL1aWindowSize(size);
 	}
 	int nph;
-	if ( parser_.fillInt("nph_thresh", nph)) {
+	if ( alctParser_.fillInt("nph_thresh", nph)) {
 	  alct_->SetPretrigNumberOfLayers(nph);
 	}
-	if ( parser_.fillInt("nph_pattern", nph)){
+	if ( alctParser_.fillInt("nph_pattern", nph)){
 	  alct_->SetPretrigNumberOfPattern(nph);
 	}
-	if ( parser_.fillInt("ccb_enable", enable) ) {
+	if ( alctParser_.fillInt("ccb_enable", enable) ) {
 	  alct_->SetCCBEnable(enable);
 	}
-	if ( parser_.fillInt("inject_mode", mode)) {
+	if ( alctParser_.fillInt("inject_mode", mode)) {
 	  alct_->SetAlctInjectMode(mode);
 	}
-	if ( parser_.fillInt("send_empty", enable)) {
+	if ( alctParser_.fillInt("send_empty", enable)) {
 	  alct_->SetSendEmpty(enable);
 	}
-	if (parser_.fillInt("drift_delay", delay)) {
+	if (alctParser_.fillInt("drift_delay", delay)) {
 	  alct_->SetDriftDelay(delay);
 	}
 	std::string file;
-	if ( parser_.fillString("alct_pattern_file", file)) {
+	if ( alctParser_.fillString("alct_pattern_file", file)) {
 	  alct_->SetPatternFile(file);
 	}
-	if (parser_.fillString("alct_hotchannel_file", file)){
+	if (alctParser_.fillString("alct_hotchannel_file", file)){
 	  alct_->SetHotChannelFile(file);
 	}
 	
@@ -238,12 +246,17 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, int crateNumber)
 	xercesc::DOMNode * grandDaughterNode = daughterNode->getFirstChild();
 
 	while (grandDaughterNode) {
-	  if (grandDaughterNode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
+	  if (grandDaughterNode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE and
+	      strcmp("AnodeChannel",xercesc::XMLString::transcode(grandDaughterNode->getNodeName()))==0){
+	    //
 	    std::string  nodeName = xercesc::XMLString::transcode(grandDaughterNode->getNodeName());
-	    parser_.parseNode(grandDaughterNode);
-	    if(parser_.fillInt("Number", number)){
-	      parser_.fillInt("delay", delay);
-	      parser_.fillInt("threshold", threshold);
+	    //
+	    EmuParser anodeParser_;
+	    //
+	    anodeParser_.parseNode(grandDaughterNode);
+	    if(anodeParser_.fillInt("Number", number)){
+	      anodeParser_.fillInt("delay", delay);
+	      anodeParser_.fillInt("threshold", threshold);
 	      //
 	      alct_->SetDelay(number-1,delay);
 	      //alct_->delays_[number-1] = delay;
