@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.22 2006/05/19 12:46:48 mey Exp $
+// $Id: CalibDAQ.cc,v 2.23 2006/05/19 15:13:32 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.23  2006/05/19 15:13:32  mey
+// UPDate
+//
 // Revision 2.22  2006/05/19 12:46:48  mey
 // Update
 //
@@ -223,6 +226,7 @@ void CalibDAQ::pulseRandomWires(int delay){
     for (unsigned i=0; i<myTmbs.size(); i++) {
       myTmbs[i]->DisableCLCTInputs();
       myTmbs[i]->ResetALCTRAMAddress();
+      myTmbs[i]->scope(1,0,0);
       //
       //myTmbs[i]->alctController()->SetUpRandomALCT();
       //
@@ -233,7 +237,7 @@ void CalibDAQ::pulseRandomWires(int delay){
     ccb->setCCBMode(CCB::VMEFPGA);
     ccb->WriteRegister(0x04,0x0001);  //Softreset
     ccb->WriteRegister(0x20,0x0df9);  //Only enable adb_async as l1a source
-    ccb->WriteRegister(0x28,0x7862);  //4Aug05 DM changed 0x789b to 0x7862
+    ccb->WriteRegister(0x28,0x7878);  //4Aug05 DM changed 0x789b to 0x7862
     ccb->WriteRegister(0x04,0x0001);  //Softreset
     //
     std::cout << "0x28= " << std::hex << ccb->ReadRegister(0x28) << std::endl;
@@ -249,6 +253,7 @@ void CalibDAQ::pulseRandomWires(int delay){
     std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
     for (unsigned i=0; i<myTmbs.size(); i++) {
       myTmbs[i]->DecodeALCT();
+      myTmbs[i]->ForceScopeTrigger();
       int WordCount = myTmbs[i]->GetALCTWordCount();
       std::cout << "WordCount = " << WordCount <<std::endl ;
       //myTmbs[i]->ALCTRawhits();
@@ -494,16 +499,18 @@ void CalibDAQ::FindL1aDelayALCT() {
   //
   std::vector<Crate*> myCrates = theSelector.crates();
   //
-  for(int delay=150;delay<151;delay++){
+  for(int delay=0;delay<300;delay++){
     //
-    for (int npulses=0; npulses<5; npulses++) {
+    for (int npulses=0; npulses<1; npulses++) {
       for(unsigned j = 0; j < myCrates.size(); j++) {
 	CCB * ccb = myCrates[j]->ccb();
 	ccb->ResetL1aCounter();
 	ccb->EnableL1aCounter();
 	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
 	for (unsigned i=0; i<myTmbs.size(); i++) {
-	  myTmbs[i]->alctController()->set_l1a_delay(delay);
+	  //myTmbs[i]->alctController()->set_l1a_delay(delay);
+	  myTmbs[i]->lvl1_delay(delay);
+	  //myTmbs[i]->ResetCounters();
 	  myTmbs[i]->alctController()->set_empty(0);
 	  myTmbs[i]->alctController()->set_l1a_internal(0);
 	  myTmbs[i]->alctController()->SetUpPulsing();
@@ -520,6 +527,14 @@ void CalibDAQ::FindL1aDelayALCT() {
 	std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
 	for (unsigned i=0; i<myTmbs.size(); i++) {
 	  counter[delay][i] += myTmbs[i]->GetALCTWordCount();
+	  myTmbs[i]->GetCounters();
+	  //
+	  myTmbs[i]->PrintCounters(8);  // display them to screen
+	  myTmbs[i]->PrintCounters(19);
+	  myTmbs[i]->PrintCounters(20);
+	  //
+	  counter[delay][i] += myTmbs[i]->GetCounter(19);
+	  //
 	}
 	for (unsigned i=0; i<myDmbs.size(); i++) {
 	  //myDmbs[i]->readtimingCounter();

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.cc,v 2.4 2006/04/06 22:23:08 mey Exp $
+// $Id: DAQMBParser.cc,v 2.5 2006/05/19 15:13:32 mey Exp $
 // $Log: DAQMBParser.cc,v $
+// Revision 2.5  2006/05/19 15:13:32  mey
+// UPDate
+//
 // Revision 2.4  2006/04/06 22:23:08  mey
 // Update
 //
@@ -21,12 +24,15 @@
 #include "DAQMBParser.h"
 #include "DAQMB.h"
 #include "CFEB.h"
+#include "EmuParser.h"
 #include <xercesc/dom/DOM.hpp>
 
 #define debug false
 
 DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, int crateNumber)
 {
+  //
+  EmuParser parser_;
   //
   parser_.parseNode(pNode);
   //
