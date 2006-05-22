@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.20 2006/05/22 04:49:40 liu Exp $
+// $Id: VMEController.cc,v 2.21 2006/05/22 04:56:03 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.21  2006/05/22 04:56:03  liu
+// update
+//
 // Revision 2.20  2006/05/22 04:49:40  liu
 // update
 //
@@ -305,8 +308,11 @@ VMEModule* VMEController::getTheCurrentModule(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.20 2006/05/22 04:49:40 liu Exp $
+// $Id: VMEController.cc,v 2.21 2006/05/22 04:56:03 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.21  2006/05/22 04:56:03  liu
+// update
+//
 // Revision 2.20  2006/05/22 04:49:40  liu
 // update
 //
@@ -789,10 +795,11 @@ void VMEController::reload_FPGA()
 }
 
 bool VMEController::SelfTest()
-{  // dummy routine
+{ 
    int size, i, l,lcnt;
    unsigned char *radd_to, *radd_from;
 
+// To read back controller serial number
    wbuf[0]=0x20;
    wbuf[1]=0x1E;
    nwbuf=2;
@@ -810,10 +817,11 @@ bool VMEController::SelfTest()
      }
      radd_to=(unsigned char *)rbuf;
      radd_from=(unsigned char *)rbuf+6;
-// Check if the packet is expected. To reject unwanted broadcast packets.
-// Don't like GOTO, just keep it for the time being.
-      
-    } while(memcmp(radd_from, hw_dest_addr,6));
+
+// Check if the packet is from the controller, to reject unwanted broadcast packets.
+// No check on the content of the return packet (yet).
+
+   } while(memcmp(radd_from, hw_dest_addr,6));
    clear_error();
    return 1;
 }
