@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.55 2006/05/22 16:21:43 mey Exp $
+// $Id: DAQMB.cc,v 2.56 2006/05/22 16:28:10 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.56  2006/05/22 16:28:10  mey
+// UPdate
+//
 // Revision 2.55  2006/05/22 16:21:43  mey
 // UPdate
 //
@@ -3337,6 +3340,8 @@ int DAQMB::memchk(enum DEVTYPE devnum)
     return -1;
   }
   //
+  std::cout << "size of " << sizeof(rcvbuf) << std::endl;
+  //
   ierr2=0;
   wrtfifox(devnum,0xffff);
   ierr=readfifox_chk(devnum,0xffff);
@@ -3494,11 +3499,6 @@ int DAQMB::memchk(int fifo)
   char *rcvfifo;
   sndfifo=(char *)malloc(33000);
   rcvfifo=(char *)malloc(33000);
-  //
-  for(int i=0;i<33000;i++) {
-    sndfifo[i] = 0;
-    rcvfifo[i] = 0;
-  }
   //
   (*MyOutput_) << " MEMCHK for FIFO"<<fifo<<std::endl;
   calctrl_fifomrst(); usleep(5000);
