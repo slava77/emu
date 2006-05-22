@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.25 2006/05/22 16:20:39 mey Exp $
+// $Id: CalibDAQ.cc,v 2.26 2006/05/22 17:11:58 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.26  2006/05/22 17:11:58  mey
+// Update
+//
 // Revision 2.25  2006/05/22 16:20:39  mey
 // UPdate
 //
@@ -517,7 +520,7 @@ void CalibDAQ::FindL1aDelayALCT() {
 	  myTmbs[i]->alctController()->set_l1a_delay(delay);
 	  myTmbs[i]->lvl1_delay(delay);
 	  //myTmbs[i]->ResetCounters();
-	  myTmbs[i]->alctController()->set_empty(0);
+	  myTmbs[i]->alctController()->set_empty(1);
 	  myTmbs[i]->alctController()->set_l1a_internal(0);
 	  myTmbs[i]->alctController()->SetUpPulsing();
 	  myTmbs[i]->SetALCTPatternTrigger();
