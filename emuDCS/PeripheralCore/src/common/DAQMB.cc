@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.56 2006/05/22 16:28:10 mey Exp $
+// $Id: DAQMB.cc,v 2.57 2006/05/22 16:30:59 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.57  2006/05/22 16:30:59  mey
+// UPdate
+//
 // Revision 2.56  2006/05/22 16:28:10  mey
 // UPdate
 //
@@ -3341,6 +3344,10 @@ int DAQMB::memchk(enum DEVTYPE devnum)
   }
   //
   std::cout << "size of " << sizeof(rcvbuf) << std::endl;
+  //
+  for (int i=0; i<sizeof(rcvbuf);i++) {
+    rcvbuf[i] = 0;
+  }
   //
   ierr2=0;
   wrtfifox(devnum,0xffff);
