@@ -131,7 +131,9 @@ TestExecutables= \
 	parsemain.cpp \
 	mpc2sp.cpp \
 	testtmbmain.cpp \
-	loadALCT.cpp\
-	loadTMB.cpp
+	loadALCT.cpp \
+	loadTMB.cpp \
+        resetcc.cpp \
+        scancrate.cpp
 
 include $(XDAQ_ROOT)/config/Makefile.rules
