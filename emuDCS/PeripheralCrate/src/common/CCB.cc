@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.35 2006/05/19 12:46:48 mey Exp $
+// $Id: CCB.cc,v 2.36 2006/05/22 14:07:39 rakness Exp $
 // $Log: CCB.cc,v $
+// Revision 2.36  2006/05/22 14:07:39  rakness
+// Update
+//
 // Revision 2.35  2006/05/19 12:46:48  mey
 // Update
 //
@@ -368,15 +371,15 @@ void CCB::GenerateAlctAdbASync(){
   //
   sndbuf[0]=0x00;
   sndbuf[1]=0x01;
-  if (mVersion==2001) {
-    do_vme(VME_WRITE, 0x40, sndbuf,rcvbuf,NOW);
-  }
-  else{
+  //if (mVersion==2001) {
+  //do_vme(VME_WRITE, 0x40, sndbuf,rcvbuf,NOW);
+  //}
+  //else{
     //do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
     sndbuf[0]=0x00;
     sndbuf[1]=0x00;
-    do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
-  }
+    do_vme(VME_WRITE, 0x82, sndbuf,rcvbuf,NOW);
+    //}
   //
   theController->end();
   //
