@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.24 2006/05/22 14:07:39 rakness Exp $
+// $Id: CalibDAQ.cc,v 2.25 2006/05/22 16:20:39 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.25  2006/05/22 16:20:39  mey
+// UPdate
+//
 // Revision 2.24  2006/05/22 14:07:39  rakness
 // Update
 //
@@ -238,17 +241,17 @@ void CalibDAQ::pulseRandomWires(int delay){
     CCB * ccb = myCrates[j]->ccb();
     //
     ccb->setCCBMode(CCB::VMEFPGA);
+    //ccb->WriteRegister(0x20,0xe679);  //Only enable adb_async as l1a source
+    ccb->WriteRegister(0x20,0xc679);  //Only enable adb_async as l1a source
     ccb->WriteRegister(0x04,0x0001);  //Softreset
-    ccb->WriteRegister(0x20,0xe679);  //Only enable adb_async as l1a source
-    ccb->WriteRegister(0x28,0x7878);  //4Aug05 DM changed 0x789b to 0x7862
-    ccb->WriteRegister(0x04,0x0001);  //Softreset
+    ccb->WriteRegister(0x28,0x3030);  //4Aug05 DM changed 0x789b to 0x7862
     //
     std::cout << "0x28= " << std::hex << ccb->ReadRegister(0x28) << std::endl;
     std::cout << "0x20= " << std::hex << ccb->ReadRegister(0x20) << std::endl;
     //
-    ::usleep(200000);
+    ::usleep(2000);
     ccb->GenerateAlctAdbASync();	 
-    ::usleep(200000);
+    ::usleep(2000);
     //
   }
   //
@@ -502,7 +505,7 @@ void CalibDAQ::FindL1aDelayALCT() {
   //
   std::vector<Crate*> myCrates = theSelector.crates();
   //
-  for(int delay=0;delay<300;delay--){
+  for(int delay=0;delay<300;delay++){
     //
     for (int npulses=0; npulses<1; npulses++) {
       for(unsigned j = 0; j < myCrates.size(); j++) {
@@ -511,8 +514,8 @@ void CalibDAQ::FindL1aDelayALCT() {
 	ccb->EnableL1aCounter();
 	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
 	for (unsigned i=0; i<myTmbs.size(); i++) {
-	  //myTmbs[i]->alctController()->set_l1a_delay(delay);
-	  //myTmbs[i]->lvl1_delay(delay);
+	  myTmbs[i]->alctController()->set_l1a_delay(delay);
+	  myTmbs[i]->lvl1_delay(delay);
 	  //myTmbs[i]->ResetCounters();
 	  myTmbs[i]->alctController()->set_empty(0);
 	  myTmbs[i]->alctController()->set_l1a_internal(0);
@@ -544,7 +547,7 @@ void CalibDAQ::FindL1aDelayALCT() {
 	  //myDmbs[i]->readtimingScope();
 	  myDmbs[i]->PrintCounters();
 	  if ( i == 0 ) DMBCounter0[delay][npulses] = myDmbs[0]->GetAlctDavCounter();
-	  if ( myDmbs[i]->GetAlctDavCounter() > 0 )  DMBCounter[delay][i] = myDmbs[i]->GetAlctDavCounter();
+	  if ( myDmbs[i]->GetAlctDavCounter() > 0 )  DMBCounter[delay][i] += myDmbs[i]->GetAlctDavCounter();
 	}
       }
       //
