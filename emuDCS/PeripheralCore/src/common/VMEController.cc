@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.19 2006/05/18 15:11:10 liu Exp $
+// $Id: VMEController.cc,v 2.20 2006/05/22 04:49:40 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.20  2006/05/22 04:49:40  liu
+// update
+//
 // Revision 2.19  2006/05/18 15:11:10  liu
 // update error handling
 //
@@ -302,8 +305,11 @@ VMEModule* VMEController::getTheCurrentModule(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.19 2006/05/18 15:11:10 liu Exp $
+// $Id: VMEController.cc,v 2.20 2006/05/22 04:49:40 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.20  2006/05/22 04:49:40  liu
+// update
+//
 // Revision 2.19  2006/05/18 15:11:10  liu
 // update error handling
 //
@@ -414,7 +420,7 @@ VMEModule* VMEController::getTheCurrentModule(){
 
 VMEController::VMEController(int crate): 
  crate_(crate), indian(SWAP),  max_buff(0), tot_buff(0), 
- plev(1), idevo(0), error_type(0), error_count(0)
+ plev(1), idevo(0), error_type(0), error_count(0), DEBUG(0)
 {
   //
   fpacket_delay = 0;
@@ -544,7 +550,7 @@ int VMEController::do_schar(int open_or_close)
        schardev_name[11]=0;
        std::cout << "Opening " << schardev_name << std::endl ;
        schsocket = open(schardev_name, O_RDWR);
-       if (theSocket == -1) 
+       if (schsocket == -1) 
        {
           std::cout << "ERROR opening /dev/schar device...ERROR" << std::endl;
           exit(-1);
@@ -784,6 +790,30 @@ void VMEController::reload_FPGA()
 
 bool VMEController::SelfTest()
 {  // dummy routine
+   int size, i, l,lcnt;
+   unsigned char *radd_to, *radd_from;
+
+   wbuf[0]=0x20;
+   wbuf[1]=0x1E;
+   nwbuf=2;
+   eth_write();
+   for(l=0;l<8000;l++) lcnt++;
+   do {
+     size=eth_read();
+     if(size<10) return 0;
+// Jinghua Liu to debug
+     if(DEBUG>10)
+     {
+        printf("Read back size %d \n",size);
+        for(i=0;i<size;i++) printf("%02X ",rbuf[i]&0xff);
+        printf("\n");
+     }
+     radd_to=(unsigned char *)rbuf;
+     radd_from=(unsigned char *)rbuf+6;
+// Check if the packet is expected. To reject unwanted broadcast packets.
+// Don't like GOTO, just keep it for the time being.
+      
+    } while(memcmp(radd_from, hw_dest_addr,6));
    clear_error();
    return 1;
 }
@@ -791,13 +821,14 @@ bool VMEController::SelfTest()
 bool VMEController::exist(int slot)
 { 
    char tmp[2]={0, 0};
-   int add_ptr=0;
    bool v_return;
    unsigned short int tmp2[1]={0x0000}, *ptr;
 
    if(slot<1 || slot>21) return 0;
    if(slot==1) return SelfTest();
-   if(slot%2==1 && slot!=13) add_ptr=0x6024;
+   int add_ptr = slot<<19;
+   if(slot%2==1 && slot!=13) add_ptr += 0x6024;
+
    ptr=(unsigned short int *)add_ptr;
    vme_controller(2,ptr,tmp2,tmp);
    v_return=!error_count;
@@ -915,9 +946,13 @@ int VMEController::eth_write()
    memcpy(msg, &ether_header, sizeof(ether_header));
    memcpy(msg + sizeof(ether_header), wbuf, nwbuf); 
 // Jinghua Liu to debug
-//   printf("****");for(i=0;i<msg_size;i++)printf("%02X ",msg[i]&0xff);printf("\n");
-//   printf("Len : %4d\n",((msg[12]&0xff)<<8)|(msg[13]&0xff));
-//
+   if(DEBUG>10)
+   {
+     printf("ETH_WRITE****");
+     for(i=0;i<msg_size;i++) printf("%02X ",msg[i]&0xff);
+     printf("\n");
+     printf("Packet Length : %4d\n",((msg[12]&0xff)<<8)|(msg[13]&0xff));
+   }
    nwritten = write(theSocket, (const void *)msg, msg_size);
    free(msg);
    return nwritten; 
@@ -943,8 +978,7 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
   const char ts_size[4]={1,2,4,8};
   const char tt_mask[4]={0x00,0x01,0x02,0x03};;
   const char delay_mask[8]={0,1,2,3,4,5,6,7};
-
-  int debug = 0;
+  const char broadcast_addr[6]={0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
   static unsigned short int LRG_read_flag=0;
   static unsigned short int LRG_read_pnt=0;
@@ -974,7 +1008,7 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
     istrt=1;
   }
   // Jinghua Liu to debug
-  if ( debug ) {
+  if ( DEBUG ) {
     printf("vme_control: %02x %08x",irdwr, (unsigned long int)ptr);
     if(irdwr==1 || irdwr==3) printf(" %04X",data[0]);
     printf("\n");
@@ -1095,12 +1129,19 @@ READETH:
             system("cat /proc/sys/dev/schar/0");
             exit(0);
          }
+// Jinghua Liu to debug
+    if(DEBUG>10)
+    {
+      printf("Read back size %d \n",size);
+      for(i=0;i<size;i++) printf("%02X ",rbuf[i]&0xff);
+      printf("\n");
+    }
       radd_to=(unsigned char *)rbuf;
       radd_from=(unsigned char *)rbuf+6;
 // Check if the packet is expected. To reject unwanted broadcast packets.
 // Don't like GOTO, just keep it for the time being.
       
-      if(memcmp(radd_to, hw_source_addr, 6) || memcmp(radd_from, hw_dest_addr,6))
+      if(!memcmp(radd_to, broadcast_addr, 6) || memcmp(radd_from, hw_dest_addr,6))
         { 
 printf("From %02X:%02X:%02X:%02X:%02X:%02X, need %02X:%02X:%02X:%02X:%02X:%02X\n",
 radd_from[0],radd_from[1],radd_from[2],radd_from[3],radd_from[4], radd_from[5],
@@ -1122,12 +1163,13 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
       r_num=((r_head3[0]<<8)&0xff00)|(r_head3[1]&0xff);  
       return_type=r_head0[1];
       if(return_type!=5)
-       {  fprintf(stderr, "Error: wrong return data type: %d \n", return_type);
+       {  
           if(return_type==0xff)
           {
              error_type=(r_datat[0]&0xf0)>>4;
              if(error_type==0) error_type=16;
              error_count++;
+             if(DEBUG) fprintf(stderr, "Error packet: type: %d\n", return_type);
 //
 // Need to discard all error packets!
 // In the case of multuple VME commands in one packet, it can be
@@ -1135,13 +1177,11 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
 //
              goto READETH;
           }
+          else
+            fprintf(stderr, "Error: wrong return data type: %d \n", return_type);
           return;
        }
 
-// Jinghua Liu to debug
-//      printf("Read back size %d \n",size);
-//      for(i=0;i<size;i++)printf("%02X ",rbuf[i]&0xff);printf("\n");
-//
 
 // Jinghua Liu: add the byte swap back:
     for(i=0;i<r_num;i++){rcv[2*i+LRG_read_pnt]=r_datat[2*i+1];rcv[2*i+1+LRG_read_pnt]=r_datat[2*i];}
