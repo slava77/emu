@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.27 2006/05/22 17:14:23 mey Exp $
+// $Id: CalibDAQ.cc,v 2.28 2006/05/22 17:16:41 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.28  2006/05/22 17:16:41  mey
+// Update
+//
 // Revision 2.27  2006/05/22 17:14:23  mey
 // Update
 //
@@ -544,8 +547,6 @@ void CalibDAQ::FindL1aDelayALCT() {
 	  myTmbs[i]->PrintCounters(8);  // display them to screen
 	  myTmbs[i]->PrintCounters(19);
 	  myTmbs[i]->PrintCounters(20);
-	  //
-	  myTmbs[i]->ALCTRawhits();
 	  //
 	  counter[delay][i] += myTmbs[i]->GetCounter(19);
 	  //
