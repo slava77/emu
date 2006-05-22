@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.57 2006/05/22 16:30:59 mey Exp $
+// $Id: DAQMB.cc,v 2.58 2006/05/22 16:32:40 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.58  2006/05/22 16:32:40  mey
+// UPdate
+//
 // Revision 2.57  2006/05/22 16:30:59  mey
 // UPdate
 //
@@ -3342,8 +3345,6 @@ int DAQMB::memchk(enum DEVTYPE devnum)
     (*MyOutput_) << " Device is not a FIFO " << std::endl;
     return -1;
   }
-  //
-  std::cout << "size of " << sizeof(rcvbuf) << std::endl;
   //
   for (int i=0; i<sizeof(rcvbuf);i++) {
     rcvbuf[i] = 0;
