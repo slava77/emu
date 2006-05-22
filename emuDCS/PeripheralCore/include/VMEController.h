@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.12 2006/05/18 15:11:34 liu Exp $
+// $Id: VMEController.h,v 2.13 2006/05/22 04:49:25 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 2.13  2006/05/22 04:49:25  liu
+// update
+//
 // Revision 2.12  2006/05/18 15:11:34  liu
 // update error handling
 //
@@ -130,8 +133,11 @@ private:
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.12 2006/05/18 15:11:34 liu Exp $
+// $Id: VMEController.h,v 2.13 2006/05/22 04:49:25 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 2.13  2006/05/22 04:49:25  liu
+// update
+//
 // Revision 2.12  2006/05/18 15:11:34  liu
 // update error handling
 //
@@ -225,6 +231,7 @@ public:
   void disable_Reset();
   void set_Timeout(int to);
   void set_GrantTimeout(int to);
+  void Debug(int dbg) { DEBUG=dbg; }
   
 private:
   bool usedelay_;
@@ -266,6 +273,7 @@ private:
   float DELAY3;
   int error_type;
   int error_count;
+  int DEBUG;
  
  // I like to keep them private. 
   void load_cdac(const char *snd);
