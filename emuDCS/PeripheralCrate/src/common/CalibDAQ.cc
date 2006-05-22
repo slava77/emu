@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.28 2006/05/22 17:16:41 mey Exp $
+// $Id: CalibDAQ.cc,v 2.29 2006/05/22 17:45:19 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.29  2006/05/22 17:45:19  mey
+// Update
+//
 // Revision 2.28  2006/05/22 17:16:41  mey
 // Update
 //
@@ -233,7 +236,7 @@ void CalibDAQ::pulseRandomWires(int delay){
   //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
     //
-    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+    //(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
     usleep(100);
     //
     std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
@@ -514,9 +517,9 @@ void CalibDAQ::FindL1aDelayALCT() {
   //
   std::vector<Crate*> myCrates = theSelector.crates();
   //
-  for(int delay=140;delay<141;delay++){
+  for(int delay=100;delay<200;delay++){
     //
-    for (int npulses=0; npulses<1; npulses++) {
+    for (int npulses=0; npulses<2; npulses++) {
       for(unsigned j = 0; j < myCrates.size(); j++) {
 	CCB * ccb = myCrates[j]->ccb();
 	ccb->ResetL1aCounter();
