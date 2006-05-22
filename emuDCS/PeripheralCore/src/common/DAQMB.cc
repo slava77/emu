@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.53 2006/05/19 15:13:32 mey Exp $
+// $Id: DAQMB.cc,v 2.54 2006/05/22 16:20:38 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.54  2006/05/22 16:20:38  mey
+// UPdate
+//
 // Revision 2.53  2006/05/19 15:13:32  mey
 // UPDate
 //
@@ -3488,6 +3491,12 @@ int DAQMB::memchk(int fifo)
   char *rcvfifo;
   sndfifo=(char *)malloc(33000);
   rcvfifo=(char *)malloc(33000);
+  //
+  for(int i=0;i<33000) {
+    sndfifo[i] = 0;
+    rcvfifo[i] = 0;
+  }
+  //
   (*MyOutput_) << " MEMCHK for FIFO"<<fifo<<std::endl;
   calctrl_fifomrst(); usleep(5000);
   // 0xffff

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.36 2006/05/22 14:07:39 rakness Exp $
+// $Id: CCB.cc,v 2.37 2006/05/22 16:20:38 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.37  2006/05/22 16:20:38  mey
+// UPdate
+//
 // Revision 2.36  2006/05/22 14:07:39  rakness
 // Update
 //
@@ -369,17 +372,20 @@ void CCB::GenerateAlctAdbASync(){
   //
   (*MyOutput_) << "CCB: GenerateAlctAdbPulseASync" << std::endl;
   //
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x01;
+  //sndbuf[0]=0x00;
+  //sndbuf[1]=0x01;
+  //
   //if (mVersion==2001) {
   //do_vme(VME_WRITE, 0x40, sndbuf,rcvbuf,NOW);
   //}
   //else{
-    //do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
-    sndbuf[0]=0x00;
-    sndbuf[1]=0x00;
-    do_vme(VME_WRITE, 0x82, sndbuf,rcvbuf,NOW);
-    //}
+  //do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
+  //
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x00;
+  do_vme(VME_WRITE, 0x84, sndbuf,rcvbuf,NOW);
+  //
+  //}
   //
   theController->end();
   //
