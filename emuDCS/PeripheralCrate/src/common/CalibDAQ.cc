@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.31 2006/05/23 09:01:21 rakness Exp $
+// $Id: CalibDAQ.cc,v 2.32 2006/05/23 13:07:33 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.32  2006/05/23 13:07:33  mey
+// Update
+//
 // Revision 2.31  2006/05/23 09:01:21  rakness
 // Update
 //
@@ -261,9 +264,8 @@ void CalibDAQ::pulseRandomWires(int delay){
     //
     ccb->setCCBMode(CCB::VMEFPGA);
     ccb->WriteRegister(0x20,0xc7f9);  //Only enable adb_async as l1a source
-    //ccb->WriteRegister(0x20,0xc809);  //Only enable adb_async as l1a source
     ccb->WriteRegister(0x04,0x0001);  //Softreset
-    ccb->WriteRegister(0x28,0x3030);  //4Aug05 DM changed 0x789b to 0x7862
+    ccb->WriteRegister(0x28,0x7878);  //4Aug05 DM changed 0x789b to 0x7862
     //
     std::cout << "0x28= " << std::hex << ccb->ReadRegister(0x28) << std::endl;
     std::cout << "0x20= " << std::hex << ccb->ReadRegister(0x20) << std::endl;
@@ -518,7 +520,7 @@ void CalibDAQ::FindL1aDelayALCT() {
   int DMBCounter0[300][9];
   //
   int nmin=0;
-  int nmax=30;
+  int nmax=200;
   //
   for(int i=0; i<300;i++) for(int j=0;j<9;j++) {
     counter[i][j]     = 0;

@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.75 2006/05/23 09:30:20 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 2.76 2006/05/23 13:07:32 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1457,19 +1457,107 @@ private:
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("Crate Status") << std::endl;
     //
+    thisCCB->setCCBMode(CCB::VMEFPGA);
+    thisCCB->WriteRegister(0x04,0x0001);  //Softreset
+    //
+    *out << thisCCB->ReadRegister(0x2) << std::endl;
     int read = (thisCCB->ReadRegister(0x2))&0xffff;
     //
+    *out << read << std::endl;
+    *out << cgicc::br();
+    //
     *out << "Configuration done for Crate  " << std::endl;
+    *out << cgicc::br();
     *out << "MPC cfg                       " << (read&0x1);
+    *out << cgicc::br();
+    //
+    *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
+    //
     *out << "ALCT slot = 2  cfg            " << ((read>>1)&0x1);
+    *out << cgicc::br();
     *out << "ALCT slot = 4  cfg            " << ((read>>2)&0x1);
+    *out << cgicc::br();
     *out << "ALCT slot = 6  cfg            " << ((read>>3)&0x1);
+    *out << cgicc::br();
     *out << "ALCT slot = 8  cfg            " << ((read>>4)&0x1);
+    *out << cgicc::br();
     *out << "ALCT slot = 10 cfg            " << ((read>>5)&0x1);
+    *out << cgicc::br();
     *out << "ALCT slot = 14 cfg            " << ((read>>6)&0x1);
+    *out << cgicc::br();
     *out << "ALCT slot = 16 cfg            " << ((read>>7)&0x1);
+    *out << cgicc::br();
     *out << "ALCT slot = 18 cfg            " << ((read>>8)&0x1);
+    *out << cgicc::br();
     *out << "ALCT slot = 20 cfg            " << ((read>>9)&0x1);
+    *out << cgicc::br();
+    //
+    *out << cgicc::fieldset() ;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
+    //
+    *out << "TMB  slot =  2 cfg            " << ((read>>10)&0x1);
+    *out << cgicc::br();
+    *out << "TMB  slot =  4 cfg            " << ((read>>11)&0x1);
+    *out << cgicc::br();
+    *out << "TMB  slot =  6 cfg            " << ((read>>12)&0x1);
+    *out << cgicc::br();
+    *out << "TMB  slot =  8 cfg            " << ((read>>13)&0x1);
+    *out << cgicc::br();
+    *out << "TMB  slot = 10 cfg            " << ((read>>14)&0x1);
+    *out << cgicc::br();
+    *out << "TMB  slot = 14 cfg            " << ((read>>15)&0x1);
+    *out << cgicc::br();
+    //
+    read = (thisCCB->ReadRegister(0x4))&0xffff;
+    //
+    *out << "TMB  slot = 16 cfg            " << ((read)&0x1);
+    *out << cgicc::br();
+    *out << "TMB  slot = 18 cfg            " << ((read>>1)&0x1);
+    *out << cgicc::br();
+    *out << "TMB  slot = 20 cfg            " << ((read>>2)&0x1);
+    *out << cgicc::br();
+    //
+    *out << cgicc::fieldset() ;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
+    //
+    *out << "DMB  slot = 02 cfg            " << ((read>>3)&0x1);
+    *out << cgicc::br();
+    *out << "DMB  slot = 04 cfg            " << ((read>>4)&0x1);
+    *out << cgicc::br();
+    *out << "DMB  slot = 06 cfg            " << ((read>>5)&0x1);
+    *out << cgicc::br();
+    *out << "DMB  slot = 08 cfg            " << ((read>>6)&0x1);
+    *out << cgicc::br();
+    *out << "DMB  slot = 10 cfg            " << ((read>>7)&0x1);
+    *out << cgicc::br();
+    *out << "DMB  slot = 14 cfg            " << ((read>>8)&0x1);
+    *out << cgicc::br();
+    *out << "DMB  slot = 16 cfg            " << ((read>>9)&0x1);
+    *out << cgicc::br();
+    *out << "DMB  slot = 18 cfg            " << ((read>>10)&0x1);
+    *out << cgicc::br();
+    *out << "DMB  slot = 20 cfg            " << ((read>>11)&0x1);
+    *out << cgicc::br();
+    //
+    *out << cgicc::fieldset() ;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
+    //
+    *out << "CCB  slot = 14 cfg            " << ((read>>12)&0x1);
+    *out << cgicc::br();
+    //
+    *out << "TTCrx ready                   " << ((read>>13)&0x1);
+    *out << cgicc::br();
+    //
+    *out << "QPLL ready                    " << ((read>>14)&0x1);
+    *out << cgicc::br();
+    //
+    *out << "All cfg                       " << ((read>>15)&0x1);
+    *out << cgicc::br();
+    //
+    *out << cgicc::fieldset() ;
     //
   }
   //
@@ -1548,47 +1636,47 @@ private:
   void EmuPeripheralCrate::CreateMonitorUnit(xgi::Input * in, xgi::Output * out) 
     throw (xgi::exception::Exception){
     //
-      *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
+    *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
+    //
+    //
+    cgicc::Cgicc cgi(in);
+    cgicc::form_iterator name = cgi.getElement("counter");
+    name = cgi.getElement("counter");
+    //
+    if(name != cgi.getElements().end()) {
+      Counter_ = cgi["counter"]->getIntegerValue();
+    } else {
+      cout << "No counter" << endl;
+    }
+    //
+    ChartData[Counter_].clear();
       //
+    *out << "Counter= " << Counter_ << std::endl;
+    *out << cgicc::br();
+    //
+    for(unsigned int i=0; i<tmbVector.size(); i++) {
       //
-      cgicc::Cgicc cgi(in);
-      cgicc::form_iterator name = cgi.getElement("counter");
-      name = cgi.getElement("counter");
+      tmbVector[i]->RedirectOutput(out);
+      tmbVector[i]->GetCounters();
       //
-      if(name != cgi.getElements().end()) {
-	Counter_ = cgi["counter"]->getIntegerValue();
-      } else {
-	cout << "No counter" << endl;
-      }
+      if ( tmbVector[i]->GetCounter(4)>0) {
+	ChartData[Counter_].push_back((float)(tmbVector[i]->GetCounter(Counter_))/(tmbVector[i]->GetCounter(4)));
+      } 	  
       //
-      ChartData[Counter_].clear();
-      //
-      *out << "Counter= " << Counter_ << std::endl;
-      *out << cgicc::br();
-      //
-      for(unsigned int i=0; i<tmbVector.size(); i++) {
+      if ( Counter_ == 0 ) {
+	if ( tmbVector[i]->GetCounter(0) > 0 ) {
+	  *out << cgicc::span().set("style","color:red");
+	  tmbVector[i]->PrintCounters(Counter_);
+	  *out << cgicc::span();
+	  *out << cgicc::br();
+	} else {
+	  *out << cgicc::span().set("style","color:green");
+	  tmbVector[i]->PrintCounters(Counter_);
+	  *out << cgicc::span();
+	  *out << cgicc::br();
+	}
 	//
-	tmbVector[i]->RedirectOutput(out);
-	tmbVector[i]->GetCounters();
-	//
-	if ( tmbVector[i]->GetCounter(4)>0) {
-	  ChartData[Counter_].push_back((float)(tmbVector[i]->GetCounter(Counter_))/(tmbVector[i]->GetCounter(4)));
-	} 	  
-	//
-	if ( Counter_ == 0 ) {
-	  if ( tmbVector[i]->GetCounter(0) > 0 ) {
-	    *out << cgicc::span().set("style","color:red");
-	    tmbVector[i]->PrintCounters(Counter_);
-	    *out << cgicc::span();
-	    *out << cgicc::br();
-	  } else {
-	    *out << cgicc::span().set("style","color:green");
-	    tmbVector[i]->PrintCounters(Counter_);
-	    *out << cgicc::span();
-	    *out << cgicc::br();
-	  }
-	  //
-	} else if ( Counter_ == 1 ) {
+      } else if ( Counter_ == 1 ) {
 	  if ( tmbVector[i]->GetCounter(1) > 0 ) {
 	    *out << cgicc::span().set("style","color:green");
 	    tmbVector[i]->PrintCounters(Counter_);
