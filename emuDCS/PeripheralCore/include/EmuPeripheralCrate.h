@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.77 2006/05/23 13:17:49 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.78 2006/05/23 14:11:11 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -275,7 +275,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBCharge, "CalibrationCFEBCharge");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBPedestal, "CalibrationCFEBPedestal");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationComparatorPulse, "CalibrationComparatorPulse");
-    xgi::bind(this,&EmuPeripheralCrate::CalibrationALCT, "CalibrationALCT");
+    xgi::bind(this,&EmuPeripheralCrate::CalibrationALCTThresholdScan, "CalibrationALCTThresholdScan");
     xgi::bind(this,&EmuPeripheralCrate::LaunchMonitor, "LaunchMonitor");
     xgi::bind(this,&EmuPeripheralCrate::CrateStatus, "CrateStatus");
     xgi::bind(this,&EmuPeripheralCrate::CreateMonitorUnit, "CreateMonitorUnit");
@@ -897,10 +897,10 @@ private:
     *out << cgicc::input().set("type","submit").set("value","Calibration Strips CFEB Pedestal") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
-    std::string CalibrationALCT =
-      toolbox::toString("/%s/CalibrationALCT",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",CalibrationALCT) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Calibration run all Wires ALCT") << std::endl ;
+    std::string CalibrationALCTThresholdScan =
+      toolbox::toString("/%s/CalibrationALCTThresholdScan",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CalibrationALCTThresholdScan) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Calibration ALCT : Threshold Scan") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     std::string CalibrationComparatorPulse =
@@ -1304,23 +1304,16 @@ private:
 	//
   }
   //
-  void EmuPeripheralCrate::CalibrationALCT(xgi::Input * in, xgi::Output * out ) 
+  void EmuPeripheralCrate::CalibrationALCTThresholdScan(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
     //
     CalibDAQ calib;
-    int npulses = 100;
-    for (int ii=0; ii<npulses; ii++) {
-      //
-      calib.pulseAllWires();
-      //
-      cout << npulses << endl;
-      std::cout << "Pulse..." << std::endl;
-      std::cout << std::endl;
-      //
-      this->Default(in,out);
-      //
-    }
+    //
+    calib.ALCTThresholdScan();
+    //
+    this->Default(in,out);
+    //
   }
   //
   void EmuPeripheralCrate::FindLv1aDelayComparator(xgi::Input * in, xgi::Output * out ) 
@@ -1332,7 +1325,7 @@ private:
     calib.FindL1aDelayComparator();
     //
     this->Default(in,out);
-      //
+    //
   }
   //
   void EmuPeripheralCrate::FindLv1aDelayALCT(xgi::Input * in, xgi::Output * out ) 
