@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.32 2006/05/19 15:13:32 mey Exp $
+// $Id: ALCTController.cc,v 2.33 2006/05/23 09:01:21 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.33  2006/05/23 09:01:21  rakness
+// Update
+//
 // Revision 2.32  2006/05/19 15:13:32  mey
 // UPDate
 //
@@ -1202,7 +1205,7 @@ void ALCTController::SetUpPulsing(){
   alct_read_test_pulse_powerup(&slot,&PowerUp);
   std::cout << " PowerUp   = " << std::hex << PowerUp << std::dec << std::endl; //11July05 DM added dec
   //
-  alct_fire_test_pulse('a');
+  alct_fire_test_pulse('s');
   //
   usleep(100);
   //

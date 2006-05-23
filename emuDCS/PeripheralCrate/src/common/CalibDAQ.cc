@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.30 2006/05/22 19:38:16 mey Exp $
+// $Id: CalibDAQ.cc,v 2.31 2006/05/23 09:01:21 rakness Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.31  2006/05/23 09:01:21  rakness
+// Update
+//
 // Revision 2.30  2006/05/22 19:38:16  mey
 // UPdate
 //
@@ -97,6 +100,7 @@
 //
 //-----------------------------------------------------------------------
 #include <iostream>
+#include <iomanip>
 #include <unistd.h> // for sleep
 #include <string>
 #include "CalibDAQ.h"
@@ -256,17 +260,17 @@ void CalibDAQ::pulseRandomWires(int delay){
     CCB * ccb = myCrates[j]->ccb();
     //
     ccb->setCCBMode(CCB::VMEFPGA);
-    //ccb->WriteRegister(0x20,0xe679);  //Only enable adb_async as l1a source
-    ccb->WriteRegister(0x20,0xc679);  //Only enable adb_async as l1a source
+    ccb->WriteRegister(0x20,0xc7f9);  //Only enable adb_async as l1a source
+    //ccb->WriteRegister(0x20,0xc809);  //Only enable adb_async as l1a source
     ccb->WriteRegister(0x04,0x0001);  //Softreset
     ccb->WriteRegister(0x28,0x3030);  //4Aug05 DM changed 0x789b to 0x7862
     //
     std::cout << "0x28= " << std::hex << ccb->ReadRegister(0x28) << std::endl;
     std::cout << "0x20= " << std::hex << ccb->ReadRegister(0x20) << std::endl;
     //
-    ::usleep(2000);
-    ccb->GenerateAlctAdbASync();	 
-    ::usleep(2000);
+    ::usleep(20000);
+    ccb->GenerateAlctAdbSync();	 
+    ::usleep(20000);
     //
   }
   //
@@ -513,6 +517,9 @@ void CalibDAQ::FindL1aDelayALCT() {
   int DMBCounter [300][9];
   int DMBCounter0[300][9];
   //
+  int nmin=0;
+  int nmax=30;
+  //
   for(int i=0; i<300;i++) for(int j=0;j<9;j++) {
     counter[i][j]     = 0;
     counterC[i][j]     = 0;
@@ -522,9 +529,15 @@ void CalibDAQ::FindL1aDelayALCT() {
   //
   std::vector<Crate*> myCrates = theSelector.crates();
   //
-  for(int delay=100;delay<200;delay++){
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
     //
-    for (int npulses=0; npulses<2; npulses++) {
+    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+    usleep(100);
+  }
+  //
+  for(int delay=nmin;delay<nmax;delay++){
+    //
+    for (int npulses=0; npulses<1; npulses++) {
       for(unsigned j = 0; j < myCrates.size(); j++) {
 	CCB * ccb = myCrates[j]->ccb();
 	ccb->ResetL1aCounter();
@@ -532,12 +545,12 @@ void CalibDAQ::FindL1aDelayALCT() {
 	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
 	for (unsigned i=0; i<myTmbs.size(); i++) {
 	  myTmbs[i]->alctController()->set_l1a_delay(delay);
-	  //myTmbs[i]->lvl1_delay(delay);
-	  //myTmbs[i]->ResetCounters();
+	  myTmbs[i]->lvl1_delay(delay);
+	  myTmbs[i]->ResetCounters();
 	  myTmbs[i]->alctController()->set_empty(0);
 	  myTmbs[i]->alctController()->set_l1a_internal(0);
 	  myTmbs[i]->alctController()->SetUpPulsing();
-	  //myTmbs[i]->SetALCTPatternTrigger();
+	  myTmbs[i]->SetALCTPatternTrigger();
 	}
       }
       //
@@ -545,6 +558,9 @@ void CalibDAQ::FindL1aDelayALCT() {
       //
       for(unsigned j = 0; j < myCrates.size(); j++) {
 	CCB * ccb = myCrates[j]->ccb();
+	//
+	std::cout << "CCB " << std::hex << ccb << std::endl;
+	//
 	std::cout << "CCB L1a counter = " << ccb->ReadL1aCounter() << std::endl ;
 	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
 	std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
@@ -575,15 +591,15 @@ void CalibDAQ::FindL1aDelayALCT() {
     std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
     std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
     std::cout << std::endl;
-    for(int delay=0; delay<300;delay++) {
-      std::cout << delay << " " ;
-      for(unsigned i =0; i < myTmbs.size(); ++i) std::cout << counter[delay][i] << " ";
+    for(int delay=nmin; delay<nmax;delay++) {
+      std::cout << std::dec << std::setw(3) << delay << " " ;
+      for(unsigned i =0; i < myTmbs.size(); ++i) std::cout << std::dec << std::setw(3) << counter[delay][i] << " ";
       std::cout << " | " ;
-      for(unsigned i =0; i < myTmbs.size(); ++i) std::cout << counterC[delay][i] << " ";
+      for(unsigned i =0; i < myTmbs.size(); ++i) std::cout << std::dec << std::setw(3) << counterC[delay][i] << " ";
       std::cout << " | " ;
-      for(unsigned i =0; i < myDmbs.size(); ++i) std::cout << DMBCounter[delay][i] << " ";
+      for(unsigned i =0; i < myDmbs.size(); ++i) std::cout << std::dec << std::setw(3) << DMBCounter[delay][i] << " ";
       std::cout << " | " ;
-      for(unsigned i =0; i < 9; ++i) std::cout << DMBCounter0[delay][i] << " ";
+      for(unsigned i =0; i < 9; ++i) std::cout << std::dec << std::setw(3) << DMBCounter0[delay][i] << " ";
       std::cout << std::endl;
     }
   }
