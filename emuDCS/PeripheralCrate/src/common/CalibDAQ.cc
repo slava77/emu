@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.34 2006/05/23 14:11:11 mey Exp $
+// $Id: CalibDAQ.cc,v 2.35 2006/05/23 14:52:38 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.35  2006/05/23 14:52:38  mey
+// Update
+//
 // Revision 2.34  2006/05/23 14:11:11  mey
 // Update
 //
@@ -590,6 +593,7 @@ void CalibDAQ::ALCTThresholdScan() {
   //
   int nmin=0;
   int nmax=200;
+  int Counter=0;
   //
   int Npulses = 400;
   //
@@ -608,7 +612,7 @@ void CalibDAQ::ALCTThresholdScan() {
     usleep(100);
   }
   //
-  for(int thres=0; thres<80; thres++) {
+  for(int thres=1; thres<80; thres++) {
     for (int npulses=0; npulses<Npulses; npulses++) {
       for(unsigned j = 0; j < myCrates.size(); j++) {
 	CCB * ccb = myCrates[j]->ccb();
@@ -621,6 +625,14 @@ void CalibDAQ::ALCTThresholdScan() {
 	  //myTmbs[i]->ResetCounters();
 	  myTmbs[i]->alctController()->set_empty(0);
 	  myTmbs[i]->alctController()->set_l1a_internal(0);
+	  //
+	  ALCTController * alct = myTmbs[i]->alctController() ;
+	  //
+	  int nAFEBS = alct->nAfebs() ;
+	  std::cout << "nAFEBS" << nAFEBS << std::endl;
+	  for(int afebs=1; afebs<nAFEBS; afebs++) {
+	    alct->SetThreshold(afebs,thres);	    
+	  }
 	  myTmbs[i]->alctController()->setThresholds();
 	  myTmbs[i]->alctController()->SetUpPulsing();
 	  myTmbs[i]->SetALCTPatternTrigger();
@@ -628,6 +640,9 @@ void CalibDAQ::ALCTThresholdScan() {
       }
       //
       pulseAllWires();
+      Counter++;
+      //
+      std::cout << "Event = " << Counter <<std::endl;
       //
       for(unsigned j = 0; j < myCrates.size(); j++) {
 	CCB * ccb = myCrates[j]->ccb();
