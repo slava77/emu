@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.33 2006/05/23 13:17:49 mey Exp $
+// $Id: CalibDAQ.cc,v 2.34 2006/05/23 14:11:11 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.34  2006/05/23 14:11:11  mey
+// Update
+//
 // Revision 2.33  2006/05/23 13:17:49  mey
 // Update
 //
@@ -573,6 +576,81 @@ void CalibDAQ::FindL1aDelayALCT() {
       std::cout << " | " ;
       for(unsigned i =0; i < 9; ++i) std::cout << std::dec << std::setw(3) << DMBCounter0[delay][i] << " ";
       std::cout << std::endl;
+    }
+  }
+  //
+}
+//
+void CalibDAQ::ALCTThresholdScan() { 
+  //
+  int counter    [300][9];
+  int counterC   [300][9];
+  int DMBCounter [300][9];
+  int DMBCounter0[300][9];
+  //
+  int nmin=0;
+  int nmax=200;
+  //
+  int Npulses = 400;
+  //
+  for(int i=0; i<300;i++) for(int j=0;j<9;j++) {
+    counter[i][j]     = 0;
+    counterC[i][j]     = 0;
+    DMBCounter[i][j]  = 0;
+    DMBCounter0[i][j] = 0;
+  }
+  //
+  std::vector<Crate*> myCrates = theSelector.crates();
+  //
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
+    //
+    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+    usleep(100);
+  }
+  //
+  for(int thres=0; thres<80; thres++) {
+    for (int npulses=0; npulses<Npulses; npulses++) {
+      for(unsigned j = 0; j < myCrates.size(); j++) {
+	CCB * ccb = myCrates[j]->ccb();
+	ccb->ResetL1aCounter();
+	ccb->EnableL1aCounter();
+	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
+	for (unsigned i=0; i<myTmbs.size(); i++) {
+	  myTmbs[i]->alctController()->set_l1a_delay(83);
+	  myTmbs[i]->lvl1_delay(70);
+	  //myTmbs[i]->ResetCounters();
+	  myTmbs[i]->alctController()->set_empty(0);
+	  myTmbs[i]->alctController()->set_l1a_internal(0);
+	  myTmbs[i]->alctController()->setThresholds();
+	  myTmbs[i]->alctController()->SetUpPulsing();
+	  myTmbs[i]->SetALCTPatternTrigger();
+	}
+      }
+      //
+      pulseAllWires();
+      //
+      for(unsigned j = 0; j < myCrates.size(); j++) {
+	CCB * ccb = myCrates[j]->ccb();
+      //
+	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
+	std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
+	for (unsigned i=0; i<myTmbs.size(); i++) {
+	  myTmbs[i]->GetCounters();
+	  //
+	  myTmbs[i]->PrintCounters();
+	  //
+	  //myTmbs[i]->PrintCounters(8);  // display them to screen
+	  //myTmbs[i]->PrintCounters(19);
+	  //myTmbs[i]->PrintCounters(20);
+	  //
+	}
+	for (unsigned i=0; i<myDmbs.size(); i++) {
+	  //myDmbs[i]->readtimingCounter();
+	  //myDmbs[i]->readtimingScope();
+	  myDmbs[i]->PrintCounters();
+	}
+      }
+      //
     }
   }
   //

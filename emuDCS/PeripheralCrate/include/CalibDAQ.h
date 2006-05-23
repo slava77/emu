@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.h,v 2.10 2006/05/23 13:17:49 mey Exp $
+// $Id: CalibDAQ.h,v 2.11 2006/05/23 14:11:11 mey Exp $
 // $Log: CalibDAQ.h,v $
+// Revision 2.11  2006/05/23 14:11:11  mey
+// Update
+//
 // Revision 2.10  2006/05/23 13:17:49  mey
 // Update
 //
@@ -61,6 +64,7 @@ public:
   void pulseComparatorPulse();
   void FindL1aDelayComparator();
   void FindL1aDelayALCT();
+  void ALCTThresholdScan();
 
   CrateSelector & selector() {return theSelector;}
 
