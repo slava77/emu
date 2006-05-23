@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.74 2006/05/19 13:02:12 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.75 2006/05/23 09:30:20 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1457,7 +1457,19 @@ private:
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("Crate Status") << std::endl;
     //
-
+    int read = (thisCCB->ReadRegister(0x2))&0xffff;
+    //
+    *out << "Configuration done for Crate  " << std::endl;
+    *out << "MPC cfg                       " << (read&0x1);
+    *out << "ALCT slot = 2  cfg            " << ((read>>1)&0x1);
+    *out << "ALCT slot = 4  cfg            " << ((read>>2)&0x1);
+    *out << "ALCT slot = 6  cfg            " << ((read>>3)&0x1);
+    *out << "ALCT slot = 8  cfg            " << ((read>>4)&0x1);
+    *out << "ALCT slot = 10 cfg            " << ((read>>5)&0x1);
+    *out << "ALCT slot = 14 cfg            " << ((read>>6)&0x1);
+    *out << "ALCT slot = 16 cfg            " << ((read>>7)&0x1);
+    *out << "ALCT slot = 18 cfg            " << ((read>>8)&0x1);
+    *out << "ALCT slot = 20 cfg            " << ((read>>9)&0x1);
     //
   }
   //
