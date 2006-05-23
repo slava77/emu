@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.32 2006/05/23 13:07:33 mey Exp $
+// $Id: CalibDAQ.cc,v 2.33 2006/05/23 13:17:49 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.33  2006/05/23 13:17:49  mey
+// Update
+//
 // Revision 2.32  2006/05/23 13:07:33  mey
 // Update
 //
@@ -194,36 +197,6 @@ void CalibDAQ::rateTest() {
   }//end of loop by crates
 }
 //
-void CalibDAQ::pulseAllWires(){
-  //
-  std::vector<Crate*> myCrates = theSelector.crates();
-  //
-  for(unsigned j = 0; j < myCrates.size(); ++j) {
-    //
-    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
-    usleep(100);
-    //
-    std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
-    //
-    for (unsigned i=0; i<myTmbs.size(); i++) {
-      myTmbs[i]->DisableCLCTInputs();
-      std::cout << "Disabling inputs for slot " << myTmbs[i]->slot() << std::endl;
-    }
-    //
-    std::vector<ChamberUtilities> utils = (myCrates[j]->chamberUtilsMatch()) ;
-    //
-    for (int i = 0; i < utils.size() ; i++ ) {
-      //
-      ::usleep(200000);
-      utils[i].PulseAllWires();
-      ::usleep(200000);
-      //
-    }
-    //
-  }
-  //
-}
-//
 void CalibDAQ::pulseComparatorPulse(){
   //
   for (int thresh=0; thresh<35; thresh++) {
@@ -240,13 +213,12 @@ void CalibDAQ::pulseComparatorPulse(){
   //
 }
 //
-void CalibDAQ::pulseRandomWires(int delay){
+void CalibDAQ::pulseAllWires(){
   //
   std::vector<Crate*> myCrates = theSelector.crates();
   //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
     //
-    //(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
     usleep(100);
     //
     std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
@@ -255,8 +227,6 @@ void CalibDAQ::pulseRandomWires(int delay){
       myTmbs[i]->DisableCLCTInputs();
       myTmbs[i]->ResetALCTRAMAddress();
       myTmbs[i]->scope(1,0,0);
-      //
-      //myTmbs[i]->alctController()->SetUpRandomALCT();
       //
     }
     //
@@ -556,7 +526,7 @@ void CalibDAQ::FindL1aDelayALCT() {
 	}
       }
       //
-      pulseRandomWires();
+      pulseAllWires();
       //
       for(unsigned j = 0; j < myCrates.size(); j++) {
 	CCB * ccb = myCrates[j]->ccb();

@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.76 2006/05/23 13:07:32 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.77 2006/05/23 13:17:49 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -282,7 +282,6 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::MonitorFrameLeft, "MonitorFrameLeft");
     xgi::bind(this,&EmuPeripheralCrate::MonitorFrameRight, "MonitorFrameRight");
     xgi::bind(this,&EmuPeripheralCrate::ResetAllCounters, "ResetAllCounters");
-    xgi::bind(this,&EmuPeripheralCrate::CalibrationRandomWiresALCT, "CalibrationRandomWiresALCT");
     //
 #ifndef STANDALONE
     //
@@ -904,12 +903,6 @@ private:
     *out << cgicc::input().set("type","submit").set("value","Calibration run all Wires ALCT") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
-    std::string CalibrationRandomWiresALCT =
-      toolbox::toString("/%s/CalibrationRandomWiresALCT",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",CalibrationRandomWiresALCT) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Calibration random Wires ALCT") << std::endl ;
-    *out << cgicc::form() << std::endl ;
-    //
     std::string CalibrationComparatorPulse =
       toolbox::toString("/%s/CalibrationComparatorPulse",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",CalibrationComparatorPulse) << std::endl ;
@@ -1351,37 +1344,6 @@ private:
     calib.FindL1aDelayALCT();
     //
     this->Default(in,out);
-    //
-  }
-  //
-  void EmuPeripheralCrate::CalibrationRandomWiresALCT(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-    //
-    CrateSelector theSelector;
-    std::vector<Crate*> myCrates = theSelector.crates();
-    //
-    for(unsigned j = 0; j < myCrates.size(); ++j) {
-      //
-      (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
-      //
-      ::sleep(1);
-      //
-    }
-    //
-    CalibDAQ calib;
-    int npulses = 100;
-    for (int ii=0; ii<npulses; ii++) {
-      //
-      calib.pulseRandomWires();
-      //
-      cout << npulses << endl;
-      std::cout << "Pulse..." << std::endl;
-      std::cout << std::endl;
-      //
-      this->Default(in,out);
-      //
-    }
     //
   }
   //
