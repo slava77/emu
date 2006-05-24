@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.35 2006/05/23 14:52:38 mey Exp $
+// $Id: CalibDAQ.cc,v 2.36 2006/05/24 11:10:00 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.36  2006/05/24 11:10:00  mey
+// Update
+//
 // Revision 2.35  2006/05/23 14:52:38  mey
 // Update
 //
@@ -232,7 +235,7 @@ void CalibDAQ::pulseAllWires(){
     for (unsigned i=0; i<myTmbs.size(); i++) {
       myTmbs[i]->DisableCLCTInputs();
       myTmbs[i]->ResetALCTRAMAddress();
-      myTmbs[i]->scope(1,0,0);
+      //myTmbs[i]->scope(1,0,0);
       //
     }
     //
@@ -246,9 +249,9 @@ void CalibDAQ::pulseAllWires(){
     std::cout << "0x28= " << std::hex << ccb->ReadRegister(0x28) << std::endl;
     std::cout << "0x20= " << std::hex << ccb->ReadRegister(0x20) << std::endl;
     //
-    ::usleep(20000);
+    ::usleep(2000000);
     ccb->GenerateAlctAdbSync();	 
-    ::usleep(20000);
+    ::usleep(2000000);
     //
   }
   //
@@ -256,7 +259,7 @@ void CalibDAQ::pulseAllWires(){
     std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
     for (unsigned i=0; i<myTmbs.size(); i++) {
       myTmbs[i]->DecodeALCT();
-      myTmbs[i]->ForceScopeTrigger();
+      //myTmbs[i]->ForceScopeTrigger();
       int WordCount = myTmbs[i]->GetALCTWordCount();
       std::cout << "WordCount = " << WordCount <<std::endl ;
       //myTmbs[i]->ALCTRawhits();
@@ -595,7 +598,7 @@ void CalibDAQ::ALCTThresholdScan() {
   int nmax=200;
   int Counter=0;
   //
-  int Npulses = 400;
+  int Npulses = 10;
   //
   for(int i=0; i<300;i++) for(int j=0;j<9;j++) {
     counter[i][j]     = 0;
@@ -635,7 +638,7 @@ void CalibDAQ::ALCTThresholdScan() {
 	  }
 	  myTmbs[i]->alctController()->setThresholds();
 	  myTmbs[i]->alctController()->SetUpPulsing();
-	  myTmbs[i]->SetALCTPatternTrigger();
+	  myTmbs[i]->SetCLCTPatternTrigger();
 	}
       }
       //
