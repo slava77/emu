@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.40 2006/04/25 13:25:18 mey Exp $
+// $Id: TMB.h,v 2.41 2006/05/24 09:55:03 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.41  2006/05/24 09:55:03  mey
+// Added crate counters
+//
 // Revision 2.40  2006/04/25 13:25:18  mey
 // Update
 //
@@ -243,6 +246,7 @@ public:
   void ResetRAMAddress();
   void ResetALCTRAMAddress();
   int  GetCounter(int);
+  std::string CounterName(int);
   void GetCounters();
   void FireALCTInjector();
   void FireCLCTInjector();
