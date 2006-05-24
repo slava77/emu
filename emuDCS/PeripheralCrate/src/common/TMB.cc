@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.63 2006/05/19 12:46:48 mey Exp $
+// $Id: TMB.cc,v 2.64 2006/05/24 09:55:03 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.64  2006/05/24 09:55:03  mey
+// Added crate counters
+//
 // Revision 2.63  2006/05/19 12:46:48  mey
 // Update
 //
@@ -785,34 +788,67 @@ int TMB::FmState(){
 void TMB::PrintCounters(int counter){
   //
   (*MyOutput_) << std::endl;
-  if (counter<0) (*MyOutput_) << "--------------------------------------------------------" << std::endl;
-  if (counter<0) (*MyOutput_) << "---              Counters                             --" << std::endl;
-  if (counter<0) (*MyOutput_) << "--------------------------------------------------------" << std::endl;
-  if ((counter<0)||(counter==0)) (*MyOutput_) << "ALCT: CRC error                                  " << FinalCounter[0] <<std::endl ;
-  if ((counter<0)||(counter==1)) (*MyOutput_) << "ALCT: LCT sent to TMB                            " << FinalCounter[1] <<std::endl ;
-  if ((counter<0)||(counter==2)) (*MyOutput_) << "ALCT: LCT error (alct debug firmware)            " << FinalCounter[2] <<std::endl ;
-  if ((counter<0)||(counter==3)) (*MyOutput_) << "ALCT: L1A readout                                " << FinalCounter[3] <<std::endl ;
-  if ((counter<0)||(counter==4)) (*MyOutput_) << "CLCT: Pretrigger                                 " << FinalCounter[4] <<std::endl ;
-  if ((counter<0)||(counter==5)) (*MyOutput_) << "CLCT: Pretrig but no wbuf available              " << FinalCounter[5] <<std::endl ;
-  if ((counter<0)||(counter==6)) (*MyOutput_) << "CLCT: Invalid pattern after drift                " << FinalCounter[6] <<std::endl ;
-  if ((counter<0)||(counter==7)) (*MyOutput_) << "CLCT: TMB matching rejected event                " << FinalCounter[7] <<std::endl ;
-  if ((counter<0)||(counter==8)) (*MyOutput_) << "TMB:  CLCT or  ALCT or both triggered            " << FinalCounter[8] <<std::endl ;
-  if ((counter<0)||(counter==9)) (*MyOutput_) << "TMB:  CLCT or  ALCT or both triggered xmit MPC   " << FinalCounter[9] <<std::endl ;
-  if ((counter<0)||(counter==10)) (*MyOutput_) << "TMB:  CLCT and ALCT matched in time              " << FinalCounter[10] <<std::endl ;
-  if ((counter<0)||(counter==11)) (*MyOutput_) << "TMB:  ALCT-only trigger                          " << FinalCounter[11] <<std::endl ;
-  if ((counter<0)||(counter==12)) (*MyOutput_) << "TMB:  CLCT-only trigger                          " << FinalCounter[12] <<std::endl ;
-  if ((counter<0)||(counter==13)) (*MyOutput_) << "TMB:  No trig pulse response                     " << FinalCounter[13] <<std::endl ;
-  if ((counter<0)||(counter==14)) (*MyOutput_) << "TMB:  No MPC transmission                        " << FinalCounter[14] <<std::endl ;
-  if ((counter<0)||(counter==15)) (*MyOutput_) << "TMB:  No MPC response FF pulse                   " << FinalCounter[15] <<std::endl ;
-  if ((counter<0)||(counter==16)) (*MyOutput_) << "TMB:  MPC accepted LCT0                          " << FinalCounter[16] <<std::endl ;
-  if ((counter<0)||(counter==17)) (*MyOutput_) << "TMB:  MPC accepted LCT1                          " << FinalCounter[17] <<std::endl ;
-  if ((counter<0)||(counter==18)) (*MyOutput_) << "L1A:  BUGS, IGNORE (should be L1A received)      " << FinalCounter[18] <<std::endl ;
-   if ((counter<0)||(counter==19)) (*MyOutput_) << "L1A:  TMB triggered, TMB in L1A window           " << FinalCounter[19] <<std::endl ;
-   if ((counter<0)||(counter==20)) (*MyOutput_) << "L1A:  L1A received, no TMB in window             " << FinalCounter[20] <<std::endl ;
-   if ((counter<0)||(counter==21)) (*MyOutput_) << "L1A:  TMB triggered, no L1A received             " << FinalCounter[21] <<std::endl ;
-   if ((counter<0)||(counter==22)) (*MyOutput_) << "L1A:  TMB readout                                " << FinalCounter[22] <<std::endl;
-   (*MyOutput_) << std::endl;
+  //
+  if (counter<0)                  (*MyOutput_) << "--------------------------------------------------------" << std::endl;
+  if (counter<0)                  (*MyOutput_) << "---              Counters                             --" << std::endl;
+  if (counter<0)                  (*MyOutput_) << "--------------------------------------------------------" << std::endl;
+  if ((counter<0)||(counter==0))  (*MyOutput_) << CounterName(0)  << FinalCounter[0] <<std::endl ;
+  if ((counter<0)||(counter==1))  (*MyOutput_) << CounterName(1)  << FinalCounter[1] <<std::endl ;
+  if ((counter<0)||(counter==2))  (*MyOutput_) << CounterName(2)  << FinalCounter[2] <<std::endl ;
+  if ((counter<0)||(counter==3))  (*MyOutput_) << CounterName(3)  << FinalCounter[3] <<std::endl ;
+  if ((counter<0)||(counter==4))  (*MyOutput_) << CounterName(4)  << FinalCounter[4] <<std::endl ;
+  if ((counter<0)||(counter==5))  (*MyOutput_) << CounterName(5)  << FinalCounter[5] <<std::endl ;
+  if ((counter<0)||(counter==6))  (*MyOutput_) << CounterName(6)  << FinalCounter[6] <<std::endl ;
+  if ((counter<0)||(counter==7))  (*MyOutput_) << CounterName(7)  << FinalCounter[7] <<std::endl ;
+  if ((counter<0)||(counter==8))  (*MyOutput_) << CounterName(8)  << FinalCounter[8] <<std::endl ;
+  if ((counter<0)||(counter==9))  (*MyOutput_) << CounterName(9)  << FinalCounter[9] <<std::endl ;
+  if ((counter<0)||(counter==10)) (*MyOutput_) << CounterName(10) << FinalCounter[10] <<std::endl ;
+  if ((counter<0)||(counter==11)) (*MyOutput_) << CounterName(11) << FinalCounter[11] <<std::endl ;
+  if ((counter<0)||(counter==12)) (*MyOutput_) << CounterName(12) << FinalCounter[12] <<std::endl ;
+  if ((counter<0)||(counter==13)) (*MyOutput_) << CounterName(13) << FinalCounter[13] <<std::endl ;
+  if ((counter<0)||(counter==14)) (*MyOutput_) << CounterName(14) << FinalCounter[14] <<std::endl ;
+  if ((counter<0)||(counter==15)) (*MyOutput_) << CounterName(15) << FinalCounter[15] <<std::endl ;
+  if ((counter<0)||(counter==16)) (*MyOutput_) << CounterName(16) << FinalCounter[16] <<std::endl ;
+  if ((counter<0)||(counter==17)) (*MyOutput_) << CounterName(17) << FinalCounter[17] <<std::endl ;
+  if ((counter<0)||(counter==18)) (*MyOutput_) << CounterName(18) << FinalCounter[18] <<std::endl ;
+  if ((counter<0)||(counter==19)) (*MyOutput_) << CounterName(19) << FinalCounter[19] <<std::endl ;
+  if ((counter<0)||(counter==20)) (*MyOutput_) << CounterName(20) << FinalCounter[20] <<std::endl ;
+  if ((counter<0)||(counter==21)) (*MyOutput_) << CounterName(21) << FinalCounter[21] <<std::endl ;
+  if ((counter<0)||(counter==22)) (*MyOutput_) << CounterName(22) << FinalCounter[22] <<std::endl;
+  //
+  (*MyOutput_) << std::endl;
    //
+}
+//
+std::string TMB::CounterName(int counter){
+  //
+  std::string name="Not defined";;
+  if( counter == 0 ) name = "ALCT: CRC error                                         ";
+  if( counter == 1 ) name = "ALCT: LCT sent to TMB                                   ";
+  if( counter == 2 ) name = "ALCT: LCT error (alct debug firmware)                   ";
+  if( counter == 3 ) name = "ALCT: L1A readout                                       ";
+  if( counter == 4 ) name = "CLCT: Pretrigger                                        ";
+  if( counter == 5 ) name = "CLCT: Pretrig but no wbuf available                     ";
+  if( counter == 6 ) name = "CLCT: Invalid pattern after drift                       ";
+  if( counter == 7 ) name = "CLCT: TMB matching rejected event                       ";
+  if( counter == 8 ) name = "TMB:  CLCT or  ALCT or both triggered                   ";
+  if( counter == 9 ) name = "TMB:  CLCT or  ALCT or both triggered xmit MPC          ";
+  if( counter == 10) name = "TMB:  CLCT and ALCT matched in time                     ";
+  if( counter == 11) name = "TMB:  ALCT-only trigger                                 ";
+  if( counter == 12) name = "TMB:  CLCT-only trigger                                 ";
+  if( counter == 13) name = "TMB:  No trig pulse response                            ";
+  if( counter == 14) name = "TMB:  No MPC transmission                               ";
+  if( counter == 15) name = "TMB:  No MPC response FF pulse                          ";
+  if( counter == 16) name = "TMB:  MPC accepted LCT0                                 ";
+  if( counter == 17) name = "TMB:  MPC accepted LCT1                                 ";
+  if( counter == 18) name = "L1A:  BUGS, IGNORE (should be L1A received)             ";
+  if( counter == 19) name = "L1A:  TMB triggered, TMB in L1A window                  ";
+  if( counter == 20) name = "L1A:  L1A received, no TMB in window                    ";
+  if( counter == 21) name = "L1A:  TMB triggered, no L1A received                    ";
+  if( counter == 22) name = "L1A:  TMB readout                                       ";
+  //
+  return name;
+  //
 }
 //
 void TMB::ResetCounters(){

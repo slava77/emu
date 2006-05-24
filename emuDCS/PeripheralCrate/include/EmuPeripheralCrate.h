@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.78 2006/05/23 14:11:11 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.79 2006/05/24 09:55:03 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -277,6 +277,8 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::CalibrationComparatorPulse, "CalibrationComparatorPulse");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationALCTThresholdScan, "CalibrationALCTThresholdScan");
     xgi::bind(this,&EmuPeripheralCrate::LaunchMonitor, "LaunchMonitor");
+    xgi::bind(this,&EmuPeripheralCrate::CrateTMBCounters, "CrateTMBCounters");
+    xgi::bind(this,&EmuPeripheralCrate::CrateTMBCountersRight, "CrateTMBCountersRight");
     xgi::bind(this,&EmuPeripheralCrate::CrateStatus, "CrateStatus");
     xgi::bind(this,&EmuPeripheralCrate::CreateMonitorUnit, "CreateMonitorUnit");
     xgi::bind(this,&EmuPeripheralCrate::MonitorFrameLeft, "MonitorFrameLeft");
@@ -449,6 +451,18 @@ public:
       *out << cgicc::form().set("method","GET").set("action",LaunchMonitor).set("target","_blank") << std::endl ;
       *out << cgicc::input().set("type","submit")
 	.set("value","Launch Monitor").set("name","LaunchMonitor") << std::endl ;
+      *out << cgicc::form() << std::endl ;
+      //
+      *out << cgicc::td();
+      //
+      *out << cgicc::td();
+      //
+      std::string CrateTMBCounters =
+	toolbox::toString("/%s/CrateTMBCounters",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::form().set("method","GET").set("action",CrateTMBCounters).set("target","_blank") << std::endl ;
+      *out << cgicc::input().set("type","submit")
+	.set("value","Crate TMB counters").set("name","CrateTMBCounters") << std::endl ;
       *out << cgicc::form() << std::endl ;
       //
       *out << cgicc::td();
@@ -1513,6 +1527,61 @@ private:
     *out << cgicc::br();
     //
     *out << cgicc::fieldset() ;
+    //
+  }
+  //
+  void EmuPeripheralCrate::CrateTMBCountersRight(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    for(int tmb=0; tmb<tmbVector.size(); tmb++) {
+      tmbVector[tmb]->GetCounters();
+    }
+    //
+    *out << cgicc::table().set("border","1");
+    //
+    for (int count=0; count<23; count++) {
+      //*out <<cgicc::tr();
+      for(int tmb=0; tmb<tmbVector.size(); tmb++) {
+	*out <<cgicc::td();
+	if(tmb==0) {
+	  *out << tmbVector[tmb]->CounterName(count) ;
+	  *out <<cgicc::td();
+	  //
+	  *out <<cgicc::td();
+	  //
+	}
+	*out << tmbVector[tmb]->GetCounter(count) <<std::endl;
+	*out <<cgicc::td();
+      }
+      //*out << cgicc::br();
+      *out <<cgicc::tr();
+    }
+    //
+    *out << cgicc::table();
+    //
+  }
+  //
+  void EmuPeripheralCrate::CrateTMBCounters(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    std::string MonitorFrameLeft =
+      toolbox::toString("/%s/MonitorFrameLeft",getApplicationDescriptor()->getURN().c_str());
+    std::string CrateTMBCountersRight =
+      toolbox::toString("/%s/CrateTMBCountersRight",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::frameset().set("cols","200,*");
+    *out << cgicc::frame().set("src",MonitorFrameLeft);
+    *out << cgicc::frame().set("src",CrateTMBCountersRight);
+    *out << cgicc::frameset() ;
+    //
     //
   }
   //
