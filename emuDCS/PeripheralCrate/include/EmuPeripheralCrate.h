@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.79 2006/05/24 09:55:03 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.80 2006/05/24 12:55:18 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -396,6 +396,7 @@ public:
     //
     *out << xmlFile_.toString() << std::endl ;
     //
+    *out << cgicc::br();
     *out << cgicc::br();
     //
     std::string DefineConfiguration =
@@ -862,7 +863,7 @@ private:
     //
     *out << std::endl;
     //
-    *out << cgicc::input().set("type","submit").set("value","Send") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Send Test file") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     *out << std::endl;
@@ -1569,8 +1570,15 @@ private:
     throw (xgi::exception::Exception)
   {
     //
+    cgicc::CgiEnvironment cgiEnvi(in);
+    //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+    //
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"1; URL=/"
+         <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
     //
     std::string MonitorFrameLeft =
       toolbox::toString("/%s/MonitorFrameLeft",getApplicationDescriptor()->getURN().c_str());
@@ -5679,6 +5687,10 @@ private:
     //
     *out << cgicc::fieldset();
     //
+    *out << cgicc::table().set("border","0");
+    //
+    *out << cgicc::td();
+    //
     std::string TMBPrintCounters =
       toolbox::toString("/%s/TMBPrintCounters",getApplicationDescriptor()->getURN().c_str());
     //
@@ -5689,6 +5701,10 @@ private:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() ;
     //
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    //
     std::string TMBResetCounters =
       toolbox::toString("/%s/TMBResetCounters",getApplicationDescriptor()->getURN().c_str());
     //
@@ -5697,6 +5713,10 @@ private:
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
     //
     std::string armScope =
       toolbox::toString("/%s/armScope",getApplicationDescriptor()->getURN().c_str());
