@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.80 2006/05/24 12:55:18 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.81 2006/05/24 13:33:09 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1430,26 +1430,26 @@ private:
     thisCCB->setCCBMode(CCB::VMEFPGA);
     thisCCB->WriteRegister(0x04,0x0001);  //Softreset
     //
-    *out << thisCCB->ReadRegister(0x2) << std::endl;
     int read = (thisCCB->ReadRegister(0x2))&0xffff;
-    //
-    *out << read << std::endl;
+    // 
+    *out << cgicc::h3("Configuration done for Crate  ");
+    *out << cgicc::br();
+    *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
+    *out << cgicc::span().set("style","color:blue");
+    *out << "MPC slot = 14 cfg             " << (read&0x1);
+    *out << cgicc::span();
+    *out << cgicc::fieldset();
     *out << cgicc::br();
     //
-    *out << "Configuration done for Crate  " << std::endl;
-    *out << cgicc::br();
-    *out << "MPC cfg                       " << (read&0x1);
-    *out << cgicc::br();
+    *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
     //
-    *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
-    //
-    *out << "ALCT slot = 2  cfg            " << ((read>>1)&0x1);
+    *out << "ALCT slot = 02 cfg            " << ((read>>1)&0x1);
     *out << cgicc::br();
-    *out << "ALCT slot = 4  cfg            " << ((read>>2)&0x1);
+    *out << "ALCT slot = 04 cfg            " << ((read>>2)&0x1);
     *out << cgicc::br();
-    *out << "ALCT slot = 6  cfg            " << ((read>>3)&0x1);
+    *out << "ALCT slot = 06 cfg            " << ((read>>3)&0x1);
     *out << cgicc::br();
-    *out << "ALCT slot = 8  cfg            " << ((read>>4)&0x1);
+    *out << "ALCT slot = 08 cfg            " << ((read>>4)&0x1);
     *out << cgicc::br();
     *out << "ALCT slot = 10 cfg            " << ((read>>5)&0x1);
     *out << cgicc::br();
@@ -1464,7 +1464,7 @@ private:
     //
     *out << cgicc::fieldset() ;
     //
-    *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
+    *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
     //
     *out << "TMB  slot =  2 cfg            " << ((read>>10)&0x1);
     *out << cgicc::br();
@@ -1490,7 +1490,7 @@ private:
     //
     *out << cgicc::fieldset() ;
     //
-    *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
+    *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
     //
     *out << "DMB  slot = 02 cfg            " << ((read>>3)&0x1);
     *out << cgicc::br();
@@ -1513,7 +1513,7 @@ private:
     //
     *out << cgicc::fieldset() ;
     //
-    *out << cgicc::fieldset().set("style","font-size: 8pt; font-family: arial;");
+    *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
     //
     *out << "CCB  slot = 14 cfg            " << ((read>>12)&0x1);
     *out << cgicc::br();
