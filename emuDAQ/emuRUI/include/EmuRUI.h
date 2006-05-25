@@ -21,7 +21,7 @@
 #include "xdata/include/xdata/Integer.h"
 
 /* // EMu-specific stuff */
-#include "emuDAQ/emuUtil/include/FileWriter.h"
+#include "emuDAQ/emuUtil/include/EmuFileWriter.h"
 #include "emuDAQ/emuReadout/include/EmuReader.h"
 #include "emuDAQ/emuClient/include/i2oEmuClientMsg.h"
 #include "emuDAQ/emuUtil/include/EmuServer.h"
@@ -135,8 +135,8 @@ private:
   void moveToFailedState();
 
   xdata::UnsignedLong                 nEventsRead_;
-  FileWriter                         *fileWriter_;
-  FileWriter                         *badEventsFileWriter_;
+  EmuFileWriter                      *fileWriter_;
+  EmuFileWriter                      *badEventsFileWriter_;
   int                                 nDevicesWithBadData_;
 
   int  getDDUDataLengthWithoutPadding(char* const data, const int dataLength);
@@ -173,7 +173,7 @@ private:
 			const string                 paramType)
     throw (emuRUI::exception::Exception);
 
-  void getRunAndMaxEventNumber() throw (emuRUI::exception::Exception);
+  void getRunInfo() throw (emuRUI::exception::Exception);
 
 
     /**
@@ -383,6 +383,7 @@ private:
     xdata::UnsignedLong maxEvents_;            // stop reading from DDU after this many events
     xdata::Boolean      passDataOnToRUBuilder_;// it true, data is sent to the event builder
     xdata::UnsignedLong runNumber_;            // run number to be obtained from TA
+    xdata::String       runStartTime_;         // run start time to be included in the file name
     xdata::String       runType_;              // run type to be included in the file name
 
     /////////////////////////////////////////////////////////////
