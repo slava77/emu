@@ -443,7 +443,7 @@ vector< xdaq::ApplicationDescriptor* > EmuRUI::getAppDescriptors(xdaq::Applicati
     {
         descriptors = appGroup->getApplicationDescriptors(appClass);
     }
-    catch(emuRUI::exception::Exception e)
+    catch(xcept::Exception e)
     {
         string s;
 
@@ -648,12 +648,14 @@ throw (emuRUI::exception::Exception)
 }
 
 
-void EmuRUI::getRunAndMaxEventNumber()
+void EmuRUI::getRunInfo()
   // EMu-specific stuff
   // Gets the run number and maximum number of events from TA
 throw (emuRUI::exception::Exception)
 {
-  xdata::UnsignedLong runNumber = 0;
+  runNumber_    = 0;
+  runStartTime_ = "YYMMDD_hhmmss_UTC";
+  maxEvents_    = 0;
 
   vector< xdaq::ApplicationDescriptor* > taDescriptors;
 
@@ -671,22 +673,19 @@ throw (emuRUI::exception::Exception)
 
   string rn="";
   string mn="";
-  if      ( taDescriptors.size() == 1 ){
+  if ( taDescriptors.size() >= 1 ){
+    if ( taDescriptors.size() > 1 )
+      LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
+		      taDescriptors.size() << " emuTA instances found. Trying first one.");
     rn = getScalarParam(taDescriptors[0],"runNumber","unsignedLong");
     LOG4CPLUS_INFO(logger_, "Got run number from emuTA: " + rn );
     mn = getScalarParam(taDescriptors[0],"maxNumTriggers","unsignedLong");
     LOG4CPLUS_INFO(logger_, "Got maximum number of events from emuTA: " + mn );
-  }
-  else if ( taDescriptors.size() > 1 ){
-    LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
-		    taDescriptors.size() << " emuTA instances found. Trying first one.");
-    rn = getScalarParam(taDescriptors[0],"runNumber","unsignedLong");
-    LOG4CPLUS_INFO(logger_, "Got run number from emuTA: " + rn );
-    mn = getScalarParam(taDescriptors[0],"maxNumTriggers","unsignedLong");
-    LOG4CPLUS_INFO(logger_, "Got maximum number of events from emuTA: " + mn );
+    runStartTime_ = getScalarParam(taDescriptors[0],"runStartTime","string");
+    LOG4CPLUS_INFO(logger_, "Got run start time from emuTA: " + runStartTime_.toString() );
   }
   else{
-    LOG4CPLUS_ERROR(logger_, "Did not find EmuTA. ==> Run number and maximum number of events are unknown.");
+    LOG4CPLUS_ERROR(logger_, "Did not find EmuTA. ==> Run number, start time, and maximum number of events are unknown.");
   }
 
   unsigned int  irn(0);
@@ -1381,7 +1380,7 @@ throw (toolbox::fsm::exception::Exception)
     //
     // EMu-specific stuff
     //
-    getRunAndMaxEventNumber();
+    getRunInfo();
 
     nEventsRead_ = 0;
 
@@ -2279,16 +2278,15 @@ void EmuRUI::createFileWriters(){
 	  // create new writers if path is not empty
 	  if ( pathToDataOutFile_ != string("") && fileSizeInMegaBytes_ > (long unsigned int) 0 )
 	    {
-	      stringstream ss;
-	      ss << "EmuRUI";
-	      ss.fill('0');
-	      ss.width(2);
-	      ss << instance_;
-	      ss << "_" << runType_.toString();
-	      fileWriter_ = new FileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), ss.str(), &logger_ );
+	      stringstream app;
+	      app << "EmuRUI";
+	      app.fill('0');
+	      app.width(2);
+	      app << instance_;
+	      fileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), app.str(), &logger_ );
 	    }
 	  try{
-	    if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_ );
+	    if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_, runStartTime_, runType_ );
 	  }
 	  catch(string e){
 	    LOG4CPLUS_FATAL( logger_, e );
@@ -2296,17 +2294,16 @@ void EmuRUI::createFileWriters(){
 	  }
 	  if ( pathToBadEventsFile_ != string("") && fileSizeInMegaBytes_ > (long unsigned int) 0 )
 	    {
-	      stringstream ss;
-	      ss << "EmuRUI";
-	      ss.fill('0');
-	      ss.width(2);
-	      ss << instance_;
-	      ss << "_BadEvents";
-	      badEventsFileWriter_ = new FileWriter( 1000000*fileSizeInMegaBytes_, pathToBadEventsFile_.toString(), ss.str(), &logger_ );
+	      stringstream app;
+	      app << "EmuRUI";
+	      app.fill('0');
+	      app.width(2);
+	      app << instance_;
+	      badEventsFileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), app.str(), &logger_ );
 	    }
 	  if ( badEventsFileWriter_ ){
 	    try{
-	      badEventsFileWriter_->startNewRun( runNumber_.value_ );
+	      badEventsFileWriter_->startNewRun( runNumber_.value_, runStartTime_, string("BadEvents") );
 	    }
 	    catch(string e){
 	      LOG4CPLUS_ERROR( logger_, e );
