@@ -184,6 +184,7 @@ private:
   //
   // EMu-specific stuff
   //
+    xdata::String       runStartTime_;
     xdata::UnsignedLong runNumber_;
     xdata::UnsignedLong maxNumTriggers_;
 
@@ -473,6 +474,8 @@ private:
   //
   // EMu-specific stuff
   //
+
+  string getDateTime();
   void printBlock( toolbox::mem::Reference *bufRef, bool printMessageHeader );
 };
 

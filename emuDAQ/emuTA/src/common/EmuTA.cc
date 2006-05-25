@@ -24,6 +24,9 @@
 
 #include <netinet/in.h>
 
+#include <time.h>
+#include <iomanip>
+
 // Alias used to access the "versioning" namespace EmuTA from within the class EmuTA
 namespace EmuTAV = EmuTA;
 
@@ -303,7 +306,9 @@ vector< pair<string, xdata::Serializable*> > EmuTA::initAndGetStdConfigParams()
         ("triggerSourceId", &triggerSourceId_));
 
     // Emu specific
-//     runNumber_ = 0;
+    runStartTime_ = "YYMMDD_hhmmss_UTC";
+    params.push_back(pair<string,xdata::Serializable *>
+        ("runStartTime", &runStartTime_));
     params.push_back(pair<string,xdata::Serializable *>
         ("runNumber", &runNumber_));
     params.push_back(pair<string,xdata::Serializable *>
@@ -773,6 +778,23 @@ throw (emuTA::exception::Exception)
     }
 }
 
+string EmuTA::getDateTime(){
+  time_t t;
+  struct tm *tm;
+
+  time ( &t );
+  tm = gmtime ( &t ); // Unversal Coordinated Time
+
+  stringstream ss;
+  ss << setfill('0') << setw(2) << tm->tm_year%100
+     << setfill('0') << setw(2) << tm->tm_mon+1
+     << setfill('0') << setw(2) << tm->tm_mday      << "_"
+     << setfill('0') << setw(2) << tm->tm_hour
+     << setfill('0') << setw(2) << tm->tm_min
+     << setfill('0') << setw(2) << tm->tm_sec       << "_UTC";
+
+  return ss.str();
+}
 
 void EmuTA::configureAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
@@ -787,7 +809,11 @@ throw (toolbox::fsm::exception::Exception)
             "Failed to get application descriptors and tids", e);
     }
     
-    LOG4CPLUS_INFO(logger_, toolbox::toString("Configured run number: %d", (unsigned long) runNumber_));
+    runStartTime_ = getDateTime();
+
+    LOG4CPLUS_INFO(logger_, 
+		   "Configured run number " << runNumber_.toString() <<
+		   ", time " << runStartTime_.value_ );
     LOG4CPLUS_INFO(logger_, "End of configureAction");
 }
 
