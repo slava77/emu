@@ -1082,7 +1082,7 @@ throw (toolbox::fsm::exception::Exception)
     //
     // EMu-specific stuff
     //
-    runNumber_   = 0;
+    getRunInfo();
 
     // Just in case there's a writer, terminate it in an orderly fashion
     if ( fileWriter_ )
@@ -1094,15 +1094,21 @@ throw (toolbox::fsm::exception::Exception)
       }
     // create new writer if path is not empty
     if ( pathToDataOutFile_ != string("") && fileSizeInMegaBytes_ > (long unsigned int) 0 ){
-      stringstream ss;
-      ss << "EmuFU";
-      ss.fill('0');
-      ss.width(2);
-      ss << instance_;
-      ss << "_" << runType_.toString();
-      fileWriter_ = new FileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), ss.str(), &logger_ );
+      stringstream app;
+      app << "EmuFU";
+      app.fill('0');
+      app.width(2);
+      app << instance_;
+      fileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), app.str(), &logger_ );
     }
-
+    try{
+      if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_, runStartTime_, runType_ );
+    }
+    catch(string e){
+      LOG4CPLUS_FATAL( logger_, e );
+      moveToFailedState();
+    }
+    
     destroyServers();
     createServers();
 
@@ -1729,19 +1735,19 @@ throw (emuFU::exception::Exception)
     if( superFragmentIsFirstOfEvent && blockIsFirstOfSuperFragment ) // trigger block
       {
 	tc         = (SliceTestTriggerChunk*) startOfPayload;
-	runNumber_ = tc->runNumber;
+// 	runNumber_ = tc->runNumber;
 	if ( fileWriter_ )
 	  {
-	    if ( fileWriter_->getRunNumber() != tc->runNumber ) // new run number
-	      {
-		try{
-		  fileWriter_->startNewRun( tc->runNumber );
-		}
-		catch(string e){
-		  LOG4CPLUS_FATAL( logger_, e );
-		  moveToFailedState();
-		}
-	      }
+// 	    if ( fileWriter_->getRunNumber() != tc->runNumber ) // new run number
+// 	      {
+// 		try{
+// 		  fileWriter_->startNewRun( tc->runNumber );
+// 		}
+// 		catch(string e){
+// 		  LOG4CPLUS_FATAL( logger_, e );
+// 		  moveToFailedState();
+// 		}
+// 	      }
 	    try{
 	      fileWriter_->startNewEvent();
 	    }
@@ -2634,6 +2640,195 @@ string EmuFU::createValueForSentinelNotifierProperty
     s = oss.str();
 
     return s;
+}
+
+//---
+
+xoap::MessageReference EmuFU::createParameterGetSOAPMsg
+(
+    const string appClass,
+    const string paramName,
+    const string paramType
+)
+throw (emuFU::exception::Exception)
+{
+    string appNamespace = "urn:xdaq-application:" + appClass;
+    string paramXsdType = "xsd:" + paramType;
+
+    try
+    {
+        xoap::MessageReference message = xoap::createMessage();
+        xoap::SOAPPart soapPart = message->getSOAPPart();
+        xoap::SOAPEnvelope envelope = soapPart.getEnvelope();
+        envelope.addNamespaceDeclaration("xsi",
+            "http://www.w3.org/2001/XMLSchema-instance");
+        envelope.addNamespaceDeclaration("xsd",
+            "http://www.w3.org/2001/XMLSchema");
+        envelope.addNamespaceDeclaration("soapenc",
+            "http://schemas.xmlsoap.org/soap/encoding/");
+        xoap::SOAPBody body = envelope.getBody();
+        xoap::SOAPName cmdName =
+            envelope.createName("ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
+        xoap::SOAPBodyElement cmdElement =
+            body.addBodyElement(cmdName);
+        xoap::SOAPName propertiesName =
+            envelope.createName("properties", appClass, appNamespace);
+        xoap::SOAPElement propertiesElement =
+            cmdElement.addChildElement(propertiesName);
+        xoap::SOAPName propertiesTypeName =
+            envelope.createName("type", "xsi",
+             "http://www.w3.org/2001/XMLSchema-instance");
+        propertiesElement.addAttribute(propertiesTypeName, "soapenc:Struct");
+        xoap::SOAPName propertyName =
+            envelope.createName(paramName, appClass, appNamespace);
+        xoap::SOAPElement propertyElement =
+            propertiesElement.addChildElement(propertyName);
+        xoap::SOAPName propertyTypeName =
+             envelope.createName("type", "xsi",
+             "http://www.w3.org/2001/XMLSchema-instance");
+
+        propertyElement.addAttribute(propertyTypeName, paramXsdType);
+
+        return message;
+    }
+    catch(xcept::Exception e)
+    {
+        XCEPT_RETHROW(emuFU::exception::Exception,
+            "Failed to create ParameterGet SOAP message for parameter " +
+            paramName + " of type " + paramType, e);
+    }
+}
+
+
+string EmuFU::extractScalarParameterValueFromSoapMsg
+(
+    xoap::MessageReference msg,
+    const string           paramName
+)
+throw (emuFU::exception::Exception)
+{
+    try
+    {
+        xoap::SOAPPart part = msg->getSOAPPart();
+        xoap::SOAPEnvelope env = part.getEnvelope();
+        xoap::SOAPBody body = env.getBody();
+        DOMNode *bodyNode = body.getDOMNode();
+        DOMNodeList *bodyList = bodyNode->getChildNodes();
+        DOMNode *responseNode = findNode(bodyList, "ParameterGetResponse");
+        DOMNodeList *responseList = responseNode->getChildNodes();
+        DOMNode *propertiesNode = findNode(responseList, "properties");
+        DOMNodeList *propertiesList = propertiesNode->getChildNodes();
+        DOMNode *paramNode = findNode(propertiesList, paramName);
+        DOMNodeList *paramList = paramNode->getChildNodes();
+        DOMNode *valueNode = paramList->item(0);
+        string paramValue = xoap::XMLCh2String(valueNode->getNodeValue());
+
+        return paramValue;
+    }
+    catch(xcept::Exception e)
+    {
+        XCEPT_RETHROW(emuFU::exception::Exception,
+            "Parameter " + paramName + " not found", e);
+    }
+    catch(...)
+    {
+        XCEPT_RAISE(emuFU::exception::Exception,
+            "Parameter " + paramName + " not found");
+    }
+}
+
+string EmuFU::getScalarParam
+(
+    xdaq::ApplicationDescriptor* appDescriptor,
+    const string                 paramName,
+    const string                 paramType
+)
+throw (emuFU::exception::Exception)
+{
+    string appClass = appDescriptor->getClassName();
+    string value    = "";
+
+    try
+    {
+        xoap::MessageReference msg =
+            createParameterGetSOAPMsg(appClass, paramName, paramType);
+
+        xoap::MessageReference reply =
+            appContext_->postSOAP(msg, appDescriptor);
+
+        // Check if the reply indicates a fault occurred
+        xoap::SOAPBody replyBody =
+            reply->getSOAPPart().getEnvelope().getBody();
+
+        if(replyBody.hasFault())
+        {
+            stringstream oss;
+            string s;
+
+            oss << "Received fault reply: ";
+            oss << replyBody.getFault().getFaultString();
+            s = oss.str();
+
+            XCEPT_RAISE(emuFU::exception::Exception, s);
+        }
+
+        value = extractScalarParameterValueFromSoapMsg(reply, paramName);
+    }
+    catch(xcept::Exception e)
+    {
+        string s = "Failed to get scalar parameter from application";
+
+        XCEPT_RETHROW(emuFU::exception::Exception, s, e);
+    }
+
+    return value;
+}
+
+
+void EmuFU::getRunInfo()
+  // EMu-specific stuff
+  // Gets the run number and start time from TA
+throw (emuFU::exception::Exception)
+{
+  runNumber_    = 0;
+  runStartTime_ = "YYMMDD_hhmmss_UTC";
+
+  vector< xdaq::ApplicationDescriptor* > taDescriptors;
+
+  try
+    {
+      taDescriptors = appGroup_->getApplicationDescriptors( "EmuTA");
+    }
+  catch(xcept::Exception e)
+    {
+      taDescriptors.clear();
+      XCEPT_RETHROW(emuFU::exception::Exception, 
+		    "Failed to get application descriptors for class EmuTA",
+		    e);
+    }
+
+  string rn="";
+  string mn="";
+  if ( taDescriptors.size() >= 1 ){
+    if ( taDescriptors.size() > 1 )
+      LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
+		      taDescriptors.size() << " emuTA instances found. Trying first one.");
+    rn = getScalarParam(taDescriptors[0],"runNumber","unsignedLong");
+    LOG4CPLUS_INFO(logger_, "Got run number from emuTA: " + rn );
+    runStartTime_ = getScalarParam(taDescriptors[0],"runStartTime","string");
+    LOG4CPLUS_INFO(logger_, "Got run start time from emuTA: " + runStartTime_.toString() );
+  }
+  else{
+    LOG4CPLUS_ERROR(logger_, "Did not find EmuTA. ==> Run number and start time are unknown.");
+  }
+
+  unsigned int  irn(0);
+  istringstream srn(rn);
+  srn >> irn;
+  runNumber_ = irn;
+
+  taDescriptors.clear();
+
 }
 
 
