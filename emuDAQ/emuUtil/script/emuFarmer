@@ -1,9 +1,6 @@
 #!/usr/bin/python2.4
 # -*- coding: utf-8 -*-
 
-# emuFarmer launches/kills XDAQ executives specified in a XDAQ XML configuration file.
-# Needs python v2.3 or higher and pyXML (http://pyxml.sourceforge.net/)
-
 from xml.dom.ext.reader import Sax2
 from xml.dom import Node
 import StringIO
@@ -71,10 +68,11 @@ class Emu_Farmer:
         self.createCommandLines()
         self.pickRelevantCommandLines()
 
-
         for ctxt,cmnd in self._relevantCommandLines.iteritems():
             #print ctxt,'\n',commands.getoutput(cmnd) # doesn't stop when starting xdaq as it wants to read stdout...
-            prettyContext = '[34m'+ctxt+'[0m'
+            #prettyContext = '[34m'+ctxt+'[0m'+'\t( '+self.listTargets(ctxt)+')'
+            tgts = '  ( '+self.listTargets(ctxt)+')'
+            prettyContext = (20-len(ctxt))*' '+'[34m'+ctxt+'[0m'+tgts+(20-len(tgts))*' '
             if self._action == 'status':
                 # gathering status info one-by-one is too slow; do it in parallel
                 sshThread = AsyncSSH( prettyContext, cmnd )
@@ -83,30 +81,37 @@ class Emu_Farmer:
                 sshThread.start()
             elif self._action == 'start':
                 f = popen2.popen4(cmnd)
-                logging.info(prettyContext+'\t    starting')
+                logging.info(prettyContext+'starting')
                 #print '%35s    starting' % (prettyContext)
             else:
                 f = popen2.popen4(cmnd)
-                logging.info(prettyContext+'\t    stopping')
+                logging.info(prettyContext+'stopping')
                 #print '%35s    stopping' % (prettyContext)
 
+    def listTargets( self, context ):
+        tgtList = ''
+        for tgtGroupName,tgtContexts in self._contexts.iteritems():
+            if tgtGroupName != 'all' and context in tgtContexts:
+                tgtList += tgtGroupName+' '
+        return tgtList
+    
     def validateOptions( self ):
         if self._action not in ['status','start','stop']:
             print '***** Error:',self._action,'is not a recognized action. Use [status|start|stop]'
-            print '      Type emuFarmer -h for help.'
+            print '      Print emuFarmer -h for help.'
             sys.exit(1)
         if self._logLevel not in ['DEBUG','INFO','WARN','ERROR','FATAL']:
             print '***** Error:',self._logLevel,'is not a valid log level. Use [DEBUG|INFO|WARN|ERROR|FATAL]'
-            print '      Type emuFarmer -h for help.'
+            print '      Print emuFarmer -h for help.'
             sys.exit(1)
         for g in re.split('[+\-]',self._target):
             if g not in self._contexts:
                 print '***** Error:',g,'is not a valid target group. Use',self._contexts.keys()
-                print '      Type emuFarmer -h for help.'
+                print '      Print emuFarmer -h for help.'
                 sys.exit(1)
         if len(self._xdaq_root) == 0:
             print '***** Error: XDAQ_ROOT for remote hosts not specified. Use -X <xdaq_root>'
-            print '      Type emuFarmer -h for help.'
+            print '      Print emuFarmer -h for help.'
             sys.exit(1)
 
 
@@ -208,7 +213,7 @@ class Emu_Farmer:
         relevantContexts = groupToAdd - groupToOmit
         if len( relevantContexts ) == 0:
             print self._target,' corresponds to no context in ',self._configFileName
-            print '      Type emuFarmer -h for help.'
+            print '      Print emuFarmer -h for help.'
             sys.exit(1)
         for rctxt in relevantContexts:
             self._relevantCommandLines[rctxt] = self._commandLines[rctxt]
@@ -269,10 +274,10 @@ class AsyncSSH(threading.Thread):
         st = re.split('\n',status)
         if len(st) >= 2:
             # print the last-but-one line (the last one is empty)
-            logging.info(self._context+'\t    '+st[-2])
+            logging.info(self._context+st[-2])
         else:
             # print the only line (must be empty...)
-            logging.info(self._context+'\t    '+st[-1])
+            logging.info(self._context+st[-1])
         f[0].close()
 
 if __name__ == "__main__":
@@ -311,7 +316,7 @@ if __name__ == "__main__":
     # XDAQ_ROOT must be known
     if xdaq_root == '' and 'XDAQ_ROOT' not in os.environ:
         print '***** Error: No XDAQ_ROOT specified or set. Please use the "-X <xdaq_root>" option.'
-        print '      Type emuFarmer -h for help.'
+        print '      Print emuFarmer -h for help.'
         sys.exit(1)
     if xdaq_root == '' and 'XDAQ_ROOT' in os.environ:
         xdaq_root  = os.environ['XDAQ_ROOT']
@@ -319,13 +324,7 @@ if __name__ == "__main__":
     # we must have a config file
     if configFileName == None:
         print '***** Error: No configuration file specified. Please use the "-c <configFile>" option.'
-        print '      Type emuFarmer -h for help.'
-        sys.exit(1)
-
-    # can we do that?
-    if action not in ['status','start','stop']:
-        print '***** Error:',action,'is not a recognized action. Use [status|start|stop]'
-        print '      Type emuFarmer -h for help.'
+        print '      Print emuFarmer -h for help.'
         sys.exit(1)
 
     # let's roll
