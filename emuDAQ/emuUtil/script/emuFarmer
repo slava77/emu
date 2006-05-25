@@ -98,20 +98,20 @@ class Emu_Farmer:
     def validateOptions( self ):
         if self._action not in ['status','start','stop']:
             print '***** Error:',self._action,'is not a recognized action. Use [status|start|stop]'
-            print '      Print emuFarmer -h for help.'
+            print '      Type emuFarmer -h for help.'
             sys.exit(1)
         if self._logLevel not in ['DEBUG','INFO','WARN','ERROR','FATAL']:
             print '***** Error:',self._logLevel,'is not a valid log level. Use [DEBUG|INFO|WARN|ERROR|FATAL]'
-            print '      Print emuFarmer -h for help.'
+            print '      Type emuFarmer -h for help.'
             sys.exit(1)
         for g in re.split('[+\-]',self._target):
             if g not in self._contexts:
                 print '***** Error:',g,'is not a valid target group. Use',self._contexts.keys()
-                print '      Print emuFarmer -h for help.'
+                print '      Type emuFarmer -h for help.'
                 sys.exit(1)
         if len(self._xdaq_root) == 0:
             print '***** Error: XDAQ_ROOT for remote hosts not specified. Use -X <xdaq_root>'
-            print '      Print emuFarmer -h for help.'
+            print '      Type emuFarmer -h for help.'
             sys.exit(1)
 
 
@@ -213,7 +213,7 @@ class Emu_Farmer:
         relevantContexts = groupToAdd - groupToOmit
         if len( relevantContexts ) == 0:
             print self._target,' corresponds to no context in ',self._configFileName
-            print '      Print emuFarmer -h for help.'
+            print '      Type emuFarmer -h for help.'
             sys.exit(1)
         for rctxt in relevantContexts:
             self._relevantCommandLines[rctxt] = self._commandLines[rctxt]
@@ -316,7 +316,7 @@ if __name__ == "__main__":
     # XDAQ_ROOT must be known
     if xdaq_root == '' and 'XDAQ_ROOT' not in os.environ:
         print '***** Error: No XDAQ_ROOT specified or set. Please use the "-X <xdaq_root>" option.'
-        print '      Print emuFarmer -h for help.'
+        print '      Type emuFarmer -h for help.'
         sys.exit(1)
     if xdaq_root == '' and 'XDAQ_ROOT' in os.environ:
         xdaq_root  = os.environ['XDAQ_ROOT']
@@ -324,7 +324,13 @@ if __name__ == "__main__":
     # we must have a config file
     if configFileName == None:
         print '***** Error: No configuration file specified. Please use the "-c <configFile>" option.'
-        print '      Print emuFarmer -h for help.'
+        print '      Type emuFarmer -h for help.'
+        sys.exit(1)
+
+    # can we do that?
+    if action not in ['status','start','stop']:
+        print '***** Error:',action,'is not a recognized action. Use [status|start|stop]'
+        print '      Type emuFarmer -h for help.'
         sys.exit(1)
 
     # let's roll
