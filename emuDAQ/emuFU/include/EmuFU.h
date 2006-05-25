@@ -22,7 +22,7 @@
 #include "toolbox/include/toolbox/task/WorkLoop.h"
 #include "toolbox/include/toolbox/task/WorkLoopFactory.h"
 #include "emu/emuDAQ/emuTA/include/SliceTestTriggerChunk.h"
-#include "emu/emuDAQ/emuUtil/include/FileWriter.h"
+#include "emu/emuDAQ/emuUtil/include/EmuFileWriter.h"
 #include "emuDAQ/emuClient/include/i2oEmuClientMsg.h"
 #include "emuDAQ/emuUtil/include/EmuServer.h"
 
@@ -43,7 +43,7 @@
 // #include "xdata/Vector.h"
 
 // #include "SliceTestTriggerChunk.h"
-// #include "FileWriter.h"
+// #include "EmuFileWriter.h"
 // #include "EmuServer.h"
 
 using namespace std;
@@ -143,15 +143,23 @@ private:
 			 char* const data, 
 			 const int   dataLength );
   void moveToFailedState();
-
-  FileWriter *fileWriter_;
+  EmuFileWriter *fileWriter_;
   void printBlock( toolbox::mem::Reference *bufRef, bool printMessageHeader=false );
-
-
   DOMNode *findNode(DOMNodeList *nodeList,
 		    const string nodeLocalName)
     throw (emuFU::exception::Exception);
-
+  xoap::MessageReference createParameterGetSOAPMsg(const string appClass,
+						   const string paramName,
+						   const string paramType)
+    throw (emuFU::exception::Exception);
+  string extractScalarParameterValueFromSoapMsg(xoap::MessageReference msg,
+						const string           paramName)
+    throw (emuFU::exception::Exception);
+  string getScalarParam(xdaq::ApplicationDescriptor* appDescriptor,
+			const string                 paramName,
+			const string                 paramType)
+    throw (emuFU::exception::Exception);
+  void getRunInfo() throw (emuFU::exception::Exception);
 
 
     /**
@@ -291,7 +299,10 @@ private:
     //
     xdata::String       pathToDataOutFile_;   // the path to the file to write the data into (no file written if "")
     xdata::UnsignedLong fileSizeInMegaBytes_; // when the file size exceeds this, no more events will be written to it (no file written if <=0)
+    xdata::UnsignedLong runNumber_;           // run number to be obtained from TA
+    xdata::String       runStartTime_;        // run start time to be included in the file name
     xdata::String       runType_;             // run type to be included in the file name
+
 
     /**
      * Exported read/write parameter - The instance number of BU that the EmuFU
@@ -353,11 +364,6 @@ private:
      * configured.
      */
     xdata::UnsignedLong nbEventsProcessed_;
-
-    //
-    // EMu-specific stuff
-    //
-    xdata::UnsignedLong runNumber_;  // run number obtained from the trigger block of the event
 
     //////////////////////////////////////////////////////////
     // End of exported parameters used for monitoring       //
