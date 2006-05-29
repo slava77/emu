@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.21 2006/05/16 15:54:37 mey Exp $
+// $Id: DAQMB.h,v 2.22 2006/05/29 08:09:20 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.22  2006/05/29 08:09:20  mey
+// Update
+//
 // Revision 2.21  2006/05/16 15:54:37  mey
 // UPdate
 //
@@ -206,7 +209,7 @@ public:
   void buckflash_erase(); 
   void preamp_initx();
 // DAQMB program proms (electronics experts only)
-  void epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum);
+  void epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum);
   void rdbkvirtex(DEVTYPE);
   void rdbkvirtexII();
 // DAQMB calibrate

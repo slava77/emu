@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.58 2006/05/22 16:32:40 mey Exp $
+// $Id: DAQMB.cc,v 2.59 2006/05/29 08:09:20 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.59  2006/05/29 08:09:20  mey
+// Update
+//
 // Revision 2.58  2006/05/22 16:32:40  mey
 // UPdate
 //
@@ -1632,7 +1635,7 @@ void DAQMB::buckflash_erase()
 // DAQMB program proms
 
 
-void DAQMB::epromload(DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
+void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum)
 {
   char snd[1024],expect[1024],rmask[1024],smask[1024],cmpbuf[1024];
   DEVTYPE devstp,dv;
