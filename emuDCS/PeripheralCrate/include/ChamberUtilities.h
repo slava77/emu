@@ -81,9 +81,16 @@ public:
   inline int  GetALCTtxPhase() { return thisTMB->GetALCTtxPhase(); }
   inline int  GetCFEBrxPhase(int CFEB) {return thisTMB->GetCFEBrxPhase(CFEB); }
   //
+  // The following are test results, not configuration data:
   inline int  GetALCTrxPhaseTest()         { return ALCTrxPhase_ ; }
   inline int  GetALCTtxPhaseTest()         { return ALCTtxPhase_ ; }
-  inline int  GetCFEBrxPhaseTest(int CFEB) { return CFEBrxPhase_[CFEB]+1 ; }
+  inline int  GetCFEBrxPhaseTest(int CFEB) { return CFEBrxPhase_[CFEB] ; }
+  inline int  GetMPCdelayTest()            { return MPCdelay_ ; }
+  //
+  inline void SetALCTrxPhaseTest(int value) { ALCTrxPhase_ = value ; }
+  inline void SetALCTtxPhaseTest(int value) { ALCTtxPhase_ = value ; }
+  inline void SetCFEBrxPhaseTest(int CFEB, int value) { CFEBrxPhase_[CFEB] = value ; }
+  inline void SetMPCdelayTest(int value)    { MPCdelay_ = value ; }
   //
   inline int  GetCFEBStripScan(int CFEB, int Strip){ return CFEBStripScan_[CFEB][Strip]; }
   inline int  GetALCTWireScan(int Wire){ return ALCTWireScan_[Wire]; }
@@ -110,6 +117,7 @@ private:
   int BestALCTL1aDelay_;
   int ALCTL1aDelay_;
   int CFEBrxPhase_[5];
+  int MPCdelay_;
   int CFEBStripScan_[5][32];
   int ALCTWireScan_[112];
   int Npulses_;

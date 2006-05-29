@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.28 2006/05/18 08:35:44 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.29 2006/05/29 15:25:36 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.29  2006/05/29 15:25:36  rakness
+// log timing scan output in summary
+//
 // Revision 1.28  2006/05/18 08:35:44  mey
 // Update
 //
@@ -123,6 +126,7 @@ ChamberUtilities::ChamberUtilities(){
   thisDMB = 0;
   //
   for( int i=0; i<5; i++) CFEBrxPhase_[i] = -1;
+  MPCdelay_ = -1;
   UsePulsing = true ;
   UseCosmic = false ;
   for (int i=0;i<5;i++) 
@@ -1673,7 +1677,7 @@ void ChamberUtilities::CFEBTiming(){
     (*MyOutput_) << " CFEB = " << CFEBMean[CFEBs] ;
   }
   //
-  for( int i=0; i<5; i++) CFEBrxPhase_[i] = CFEBMean[i];
+  for( int i=0; i<5; i++) CFEBrxPhase_[i] = (int)(CFEBMean[i]+0.5);
   //
   (*MyOutput_) << endl ;
   (*MyOutput_) << endl ;
@@ -1896,6 +1900,8 @@ int ChamberUtilities::FindWinner(int npulses=10){
   (*MyOutput_) << "Correct MPC1 setting  : " << Mpc1Delay << endl ;
   //
   (*MyOutput_) << endl ;
+  //
+  MPCdelay_ = (int)(MpcDelay + 0.5);
   //
 }
 //

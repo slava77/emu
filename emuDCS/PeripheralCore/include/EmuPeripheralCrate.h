@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.82 2006/05/29 08:09:20 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.83 2006/05/29 15:25:36 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -5648,7 +5648,7 @@ private:
       } else if ( (alct->GetChamberType()).find("ME12") != string::npos ) {
 	ALCTFirmware += "alct384rl.svf";
       } else if ( (alct->GetChamberType()).find("ME13") != string::npos ) {
-	ALCTFirmware += "alct384rl.svf";
+	ALCTFirmware += "alct288rl.svf";
       } else if ( (alct->GetChamberType()).find("ME21") != string::npos ) {
 	ALCTFirmware += "alct672rl.svf";
       } else if ( (alct->GetChamberType()).find("ME41") != string::npos ) {
@@ -6478,13 +6478,16 @@ private:
     LogFile << " *** Output : Test Summary *** " << std::endl ;
     //
     LogFile << std::endl;
+    //
     LogFile << "Operator : " << Operator_ << std::endl ;
     LogFile << "Time     : " << ctime(&rawtime) << std::endl ;
     LogFile << "XML File : " << xmlFile_.toString() << std::endl ;
     //
+    LogFile << std::endl ;
+    //
     for (unsigned int i=0; i<tmbVector.size(); i++) {
       //
-      LogFile << "TMB " << std::setw(5) << tmbVector[i]->slot() << std::setw(5) <<
+      LogFile << "TMB" << std::setw(5) << tmbVector[i]->slot() << std::setw(5) <<
 	TMBBoardID_[i] << std::setw(5) << RATBoardID_[i] <<std::setw(5) <<
 	tmbTestVector[i].GetResultTestBootRegister() << std::setw(5) <<
 	//	tmbTestVector[i].GetResultTestVMEfpgaDataRegister() << std::setw(5) <<
@@ -6501,12 +6504,18 @@ private:
 	tmbTestVector[i].GetResultTestRATtemper() << std::setw(5) <<
 	tmbTestVector[i].GetResultTestRATidCodes() << std::setw(5) <<
 	tmbTestVector[i].GetResultTestRATuserCodes() << std::setw(5) <<
-	tmbTestVector[i].GetResultTestU76chip() << std::setw(5) 
+	tmbTestVector[i].GetResultTestU76chip() 
 	      << std::endl ;
       //
     }
     //
-    for(int i=0; i<20; i++) LogFile << "+";
+    for(int i=0; i<20; i++) LogFile << "-";
+    LogFile << std::endl ;
+    //
+    LogFile << "MPC    12 " << std::setw(5) << MPCBoardID_ << std::endl;
+    LogFile << "CCB    13 " << std::setw(5) << CCBBoardID_ << std::endl;
+    //
+    for(int i=0; i<20; i++) LogFile << "-";
     LogFile << std::endl ;
     //
     for (unsigned int i=0; i<dmbVector.size(); i++) {
@@ -6521,13 +6530,50 @@ private:
     LogFile << std::endl;
     //
     for(int i=0; i<20; i++) LogFile << "+";
-    LogFile << " CrateTest : ";
+    LogFile << std::endl ;
+    LogFile << " CrateTest : " << std::endl;
+    for(int i=0; i<20; i++) LogFile << "-";
     LogFile << std::endl ;
     //
     LogFile << "MpcTMBTest " << myCrateTest.GetMpcTMBTestResult() << std::endl ;
     //
+    LogFile << std::endl ;
+    //
     for(int i=0; i<20; i++) LogFile << "+";
     LogFile << std::endl ;
+    LogFile << " Timing scans : " << std::endl;
+    for(int i=0; i<20; i++) LogFile << "-";
+    LogFile << std::endl ;
+
+    for (unsigned int i=0; i<tmbVector.size(); i++) {
+      //
+      LogFile << "cfeb0delay " << std::setw(5) << i 
+	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(0)
+	      << std::endl;
+      LogFile << "cfeb1delay " << std::setw(5) << i 
+	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(1)
+	      << std::endl;
+      LogFile << "cfeb2delay " << std::setw(5) << i 
+	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(2)
+	      << std::endl;
+      LogFile << "cfeb3delay " << std::setw(5) << i 
+	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(3)
+	      << std::endl;
+      LogFile << "cfeb4delay " << std::setw(5) << i 
+	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(4)
+	      << std::endl;
+      LogFile << "alct_tx_clock_delay " << std::setw(5) << i 
+	      << std::setw(5) << MyTest[i].GetALCTtxPhaseTest()
+	      << std::endl;
+      LogFile << "alct_rx_clock_delay " << std::setw(5) << i 
+	      << std::setw(5) << MyTest[i].GetALCTrxPhaseTest()
+	      << std::endl;
+      LogFile << "mpc_delay " << std::setw(5) << i 
+	      << std::setw(5) << MyTest[i].GetMPCdelayTest()
+	      << std::endl;
+      LogFile << std::endl;
+
+    }
     //
     LogFile.close();
     //
@@ -6915,6 +6961,32 @@ private:
 	  //	  
 	}
 	//
+	if ( line.find("MPC") != string::npos ) {	  
+	  //
+	  int slot, boardid;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> slot >> boardid;
+	  std::cout << "MPC.Setting " << slot << " " << boardid << std::endl ;
+	  //
+	  char buf[20];
+	  sprintf(buf,"%d",boardid);
+	  MPCBoardID_ = buf;
+	}
+	//
+	if ( line.find("CCB") != string::npos ) {	  
+	  //
+	  int slot, boardid;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> slot >> boardid;
+	  std::cout << "CCB.Setting " << slot << " " << boardid << std::endl ;
+	  //
+	  char buf[20];
+	  sprintf(buf,"%d",boardid);
+	  CCBBoardID_ = buf;
+	}
+	//
 	if ( line.find("DMB") != string::npos ) {	  
 	  //
 	  int slot, boardid, testResult[20];
@@ -6967,6 +7039,85 @@ private:
 	  //
 	}
 	//
+	if ( line.find("cfeb0delay") != string::npos ) {	  
+	  //
+	  int vectorid, result;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid >> result;
+	  //
+	  MyTest[vectorid].SetCFEBrxPhaseTest(0,result);
+	}
+	//
+	if ( line.find("cfeb1delay") != string::npos ) {	  
+	  //
+	  int vectorid, result;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid >> result;
+	  //
+	  MyTest[vectorid].SetCFEBrxPhaseTest(1,result);
+	}
+	//
+	if ( line.find("cfeb2delay") != string::npos ) {	  
+	  //
+	  int vectorid, result;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid >> result;
+	  //
+	  MyTest[vectorid].SetCFEBrxPhaseTest(2,result);
+	}
+	//
+	if ( line.find("cfeb3delay") != string::npos ) {	  
+	  //
+	  int vectorid, result;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid >> result;
+	  //
+	  MyTest[vectorid].SetCFEBrxPhaseTest(3,result);
+	}
+	//
+	if ( line.find("cfeb4delay") != string::npos ) {	  
+	  //
+	  int vectorid, result;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid >> result;
+	  //
+	  MyTest[vectorid].SetCFEBrxPhaseTest(4,result);
+	}
+	//
+	if ( line.find("alct_tx_clock_delay") != string::npos ) {	  
+	  //
+	  int vectorid, result;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid >> result;
+	  //
+	  MyTest[vectorid].SetALCTtxPhaseTest(result);
+	}
+	//
+	if ( line.find("alct_rx_clock_delay") != string::npos ) {	  
+	  //
+	  int vectorid, result;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid >> result;
+	  //
+	  MyTest[vectorid].SetALCTrxPhaseTest(result);
+	}
+	//
+	if ( line.find("mpc_delay") != string::npos ) {	  
+	  //
+	  int vectorid, result;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid >> result;
+	  //
+	  MyTest[vectorid].SetMPCdelayTest(result);
+	}
       }
     }
     //
