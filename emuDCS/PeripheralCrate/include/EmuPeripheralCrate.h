@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.81 2006/05/24 13:33:09 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.82 2006/05/29 08:09:20 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -3565,8 +3565,8 @@ private:
     if (thisDMB) {
       //
       char *out;
-      thisDMB->epromload(MPROM,"../svf/dmb6cntl_v18_r2.svf",1,out);  // load mprom
-      //thisDMB->epromload(MPROM,"../svf/dmb6cntl_me11.svf",1,out);  // load mprom
+      //char *name = DMBFirmware_.toString().c_str() ;
+      thisDMB->epromload(MPROM,DMBFirmware_.toString().c_str(),1,out);  // load mprom
     }
     //
     ::sleep(2);
@@ -3619,7 +3619,7 @@ private:
 	  thisCCB->hardReset();
 	  ::sleep(1);
 	  thisDMB->febpromuser(thisCFEBs[i]);
-	  thisDMB->epromload(thisCFEBs[i].promDevice(),"../svf/cfeb_v4_r2.svf",1,out);  // load mprom
+	  thisDMB->epromload(thisCFEBs[i].promDevice(),CFEBFirmware_.toString().c_str(),1,out);  // load mprom
 	  ::sleep(1);
 	  thisCCB->hardReset();
 	}
@@ -3627,7 +3627,7 @@ private:
 	thisCCB->hardReset();
 	::sleep(1);
 	thisDMB->febpromuser(thisCFEBs[dmbNumber]);
-	thisDMB->epromload(thisCFEBs[dmbNumber].promDevice(),"../svf/cfeb_v4_r2.svf",1,out);  // load mprom
+	thisDMB->epromload(thisCFEBs[dmbNumber].promDevice(),CFEBFirmware_.toString().c_str(),1,out);  // load mprom
 	::sleep(1);
 	thisCCB->hardReset();
       }
@@ -5657,6 +5657,8 @@ private:
 	ALCTFirmware += "alct672mirrorrl.svf";
       } else if ( (alct->GetChamberType()).find("ME32") != string::npos ) {
 	ALCTFirmware += "alct384mirrorrl.svf";
+      } else if ( (alct->GetChamberType()).find("ME11") != string::npos ) {
+	ALCTFirmware += "alct288fp.svf";
       }
       //
       ALCTFirmware_ = ALCTFirmware;
@@ -6030,6 +6032,9 @@ private:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
+    std::string DMBFirmware = FirmwareDir_+"dmb/dmb6cntl_v18_r2.svf";
+    DMBFirmware_ = DMBFirmware;
+    //
     std::string DMBLoadFirmware =
       toolbox::toString("/%s/DMBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
     //
@@ -6039,6 +6044,9 @@ private:
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
+    //
+    std::string CFEBFirmware = FirmwareDir_+"cfeb/cfeb_v4_r2.svf";
+    CFEBFirmware_ = CFEBFirmware;
     //
     std::string CFEBLoadFirmware =
       toolbox::toString("/%s/CFEBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
