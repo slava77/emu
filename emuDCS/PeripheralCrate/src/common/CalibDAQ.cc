@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.38 2006/05/30 09:16:38 mey Exp $
+// $Id: CalibDAQ.cc,v 2.39 2006/05/30 13:13:01 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.39  2006/05/30 13:13:01  mey
+// UPdate
+//
 // Revision 2.38  2006/05/30 09:16:38  mey
 // Changed Threshold routine
 //
@@ -255,7 +258,8 @@ void CalibDAQ::pulseAllWires(){
     std::cout << "0x28= " << std::hex << ccb->ReadRegister(0x28) << std::endl;
     std::cout << "0x20= " << std::hex << ccb->ReadRegister(0x20) << std::endl;
     //
-    ::usleep(500000);
+    //::usleep(500000);
+    ::usleep(200);
     ccb->GenerateAlctAdbSync();	 
     ::usleep(500000);
     //
@@ -621,8 +625,8 @@ void CalibDAQ::ALCTThresholdScan() {
     usleep(100);
   }
   //
-  for(int thres=1; thres<30; thres++) {
-    for (int npulses=0; npulses<Npulses; npulses++) {
+  for (int npulses=0; npulses<Npulses; npulses++) {
+    for(int thres=1; thres<30; thres++) {      
       for(unsigned j = 0; j < myCrates.size(); j++) {
 	CCB * ccb = myCrates[j]->ccb();
 	ccb->ResetL1aCounter();
