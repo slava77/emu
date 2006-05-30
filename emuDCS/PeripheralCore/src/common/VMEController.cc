@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.21 2006/05/22 04:56:03 liu Exp $
+// $Id: VMEController.cc,v 2.22 2006/05/30 22:49:44 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.22  2006/05/30 22:49:44  liu
+// update
+//
 // Revision 2.21  2006/05/22 04:56:03  liu
 // update
 //
@@ -308,8 +311,11 @@ VMEModule* VMEController::getTheCurrentModule(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.21 2006/05/22 04:56:03 liu Exp $
+// $Id: VMEController.cc,v 2.22 2006/05/30 22:49:44 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.22  2006/05/30 22:49:44  liu
+// update
+//
 // Revision 2.21  2006/05/22 04:56:03  liu
 // update
 //
@@ -888,6 +894,22 @@ void VMEController::set_Timeout(int to)
   nwbuf=4;
   n=eth_write();
   std::cout << "VME Bus Timeout set to " << to << " microseconds" <<std::endl;
+  for(l=0;l<8000;l++)lcnt++;
+  return;
+}
+
+void VMEController::set_ErrorServer()
+{
+  // Set the controller's "Default Error Server" to the current MAC.
+  // In future firmware, hopefully this will be no longer necessary.
+  int n,l,lcnt;
+  wbuf[0]=0x00;
+  wbuf[1]=0x0b;
+  wbuf[2]=0x00;
+  wbuf[3]=0x04;
+  memcpy(wbuf+4, hw_source_addr, 6);
+  nwbuf=10;
+  n=eth_write();
   for(l=0;l<8000;l++)lcnt++;
   return;
 }

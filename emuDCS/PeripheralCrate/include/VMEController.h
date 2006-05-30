@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.13 2006/05/22 04:49:25 liu Exp $
+// $Id: VMEController.h,v 2.14 2006/05/30 22:49:17 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 2.14  2006/05/30 22:49:17  liu
+// update
+//
 // Revision 2.13  2006/05/22 04:49:25  liu
 // update
 //
@@ -133,8 +136,11 @@ private:
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.13 2006/05/22 04:49:25 liu Exp $
+// $Id: VMEController.h,v 2.14 2006/05/30 22:49:17 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 2.14  2006/05/30 22:49:17  liu
+// update
+//
 // Revision 2.13  2006/05/22 04:49:25  liu
 // update
 //
@@ -232,6 +238,7 @@ public:
   void set_Timeout(int to);
   void set_GrantTimeout(int to);
   void Debug(int dbg) { DEBUG=dbg; }
+  void set_ErrorServer();
   
 private:
   bool usedelay_;
@@ -297,7 +304,6 @@ private:
   void reload_FPGA();
   void get_macaddr(int port);
   void setuse();
-
 };
 
 #endif
