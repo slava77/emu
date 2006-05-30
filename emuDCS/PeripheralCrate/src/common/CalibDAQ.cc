@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.37 2006/05/30 07:22:20 mey Exp $
+// $Id: CalibDAQ.cc,v 2.38 2006/05/30 09:16:38 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.38  2006/05/30 09:16:38  mey
+// Changed Threshold routine
+//
 // Revision 2.37  2006/05/30 07:22:20  mey
 // UPdate
 //
@@ -252,9 +255,9 @@ void CalibDAQ::pulseAllWires(){
     std::cout << "0x28= " << std::hex << ccb->ReadRegister(0x28) << std::endl;
     std::cout << "0x20= " << std::hex << ccb->ReadRegister(0x20) << std::endl;
     //
-    ::usleep(200000);
+    ::usleep(500000);
     ccb->GenerateAlctAdbSync();	 
-    ::usleep(200000);
+    ::usleep(500000);
     //
   }
   //
@@ -634,7 +637,8 @@ void CalibDAQ::ALCTThresholdScan() {
 	  //
 	  ALCTController * alct = myTmbs[i]->alctController() ;
 	  //
-	  int nAFEBS = alct->nAfebs() ;
+	  //int nAFEBS = alct->nAfebs() ;
+	  int nAFEBS = alct->delayLines();
 	  std::cout << "nAFEBS = " << nAFEBS << std::endl;
 	  for(int afebs=0; afebs<nAFEBS; afebs++) {
 	    alct->SetThreshold(afebs,thres);	    
