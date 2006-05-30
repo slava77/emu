@@ -11,6 +11,7 @@ int main(int argc,char *argv[]){
    VMEController *osucc = new VMEController(0);
    int port=atoi(argv[1]);
    osucc->init(argv[2], port);
+   osucc->set_ErrorServer();
 //   osucc->Debug(100);
 
    if(osucc->exist(1))
