@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.33 2006/05/23 09:01:21 rakness Exp $
+// $Id: ALCTController.cc,v 2.34 2006/05/30 07:22:20 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.34  2006/05/30 07:22:20  mey
+// UPdate
+//
 // Revision 2.33  2006/05/23 09:01:21  rakness
 // Update
 //
@@ -1191,13 +1194,13 @@ void ALCTController::SetUpPulsing(){
   alct_read_test_pulse_stripmask(&slot,&StripMask);
   std::cout << " StripMask = " << std::hex << StripMask << std::endl;
   //
-  if (GetChamberType().find("ME11")!=std::string::npos) {
+  //if (GetChamberType().find("ME11")!=std::string::npos) {
     alct_set_test_pulse_stripmask(&slot,0x00);
     alct_set_test_pulse_groupmask(&slot,0xff);
-  } else {
-    alct_set_test_pulse_stripmask(&slot,0x3f);
-    alct_set_test_pulse_groupmask(&slot,0x00);
-  }
+    //} else {
+    //alct_set_test_pulse_stripmask(&slot,0x3f);
+    //alct_set_test_pulse_groupmask(&slot,0x00);
+    //}
   //
   alct_read_test_pulse_stripmask(&slot,&StripMask);
   std::cout << " StripMask = " << std::hex << StripMask << std::endl;
