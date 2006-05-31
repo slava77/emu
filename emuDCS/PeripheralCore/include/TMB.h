@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.41 2006/05/24 09:55:03 mey Exp $
+// $Id: TMB.h,v 2.42 2006/05/31 09:10:01 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 2.42  2006/05/31 09:10:01  rakness
+// Add GetMPCdelay
+//
 // Revision 2.41  2006/05/24 09:55:03  mey
 // Added crate counters
 //
@@ -335,6 +338,7 @@ public:
     int tmp[5] = { cfeb0delay_, cfeb1delay_, cfeb2delay_, cfeb3delay_, cfeb4delay_ };
     return tmp[CFEB]; 
   }
+  inline int  GetMPCdelay() { return mpc_delay_; }
   //
   //inline void SetStepMode(bool stepmode) { step_mode = stepmode ; }
   //

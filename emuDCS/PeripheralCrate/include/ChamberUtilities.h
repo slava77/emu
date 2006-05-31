@@ -80,6 +80,7 @@ public:
   inline int  GetALCTrxPhase() { return thisTMB->GetALCTrxPhase(); }
   inline int  GetALCTtxPhase() { return thisTMB->GetALCTtxPhase(); }
   inline int  GetCFEBrxPhase(int CFEB) {return thisTMB->GetCFEBrxPhase(CFEB); }
+  inline int  GetMPCdelay()    { return thisTMB->GetMPCdelay(); }
   //
   // The following are test results, not configuration data:
   inline int  GetALCTrxPhaseTest()         { return ALCTrxPhase_ ; }
