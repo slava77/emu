@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.14 2006/05/18 08:35:43 mey Exp $
+// $Id: ALCTController.h,v 2.15 2006/05/31 11:04:34 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.15  2006/05/31 11:04:34  mey
+// UPdate
+//
 // Revision 2.14  2006/05/18 08:35:43  mey
 // Update
 //
@@ -181,7 +184,7 @@ public:
   void SetConf(  unsigned cr[3], int );
   int  GetWGNumber();
   void SetUpRandomALCT();
-  void SetUpPulsing();
+  void SetUpPulsing(long int Amplitude = 0x3f);
   void packControlRegister(unsigned * cr) const;
   /// fills the relevant data members
   void unpackControlRegister(unsigned * cr);
