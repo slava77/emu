@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CSCParser.h,v 1.1 2006/03/27 09:31:14 mey Exp $
+// $Id: CSCParser.h,v 1.2 2006/05/31 12:37:26 mey Exp $
 // $Log: CSCParser.h,v $
+// Revision 1.2  2006/05/31 12:37:26  mey
+// Update
+//
 // Revision 1.1  2006/03/27 09:31:14  mey
 // Update
 //
@@ -27,6 +30,7 @@ public:
   
 protected:
   std::string chamberType;
+  std::string label;
   EmuParser parser_;
   Chamber * csc_;
   DAQMBParser daqmbParser_;
