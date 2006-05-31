@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.83 2006/05/29 15:25:36 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 2.84 2006/05/31 09:09:19 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -349,11 +349,11 @@ public:
     for (int i=0; i<9; i++) { DMBBoardID_[i] = "-2" ; TMBBoardID_[i] = "-2" ; RATBoardID_[i] = "-2" ;}
     //
     for(int i=0; i<9;i++) {
-      OutputStringDMBStatus[i] << "Output..." << std::endl;
-      OutputStringTMBStatus[i] << "Output..." << std::endl;
-      OutputDMBTests[i]        << "Output..." << std::endl;
-      OutputTMBTests[i]        << "Output..." << std::endl;
-      CrateTestsOutput[i]      << "Output..." << std::endl;
+      OutputStringDMBStatus[i] << "DMB-CFEB Status " << i << " output:" << std::endl;
+      OutputStringTMBStatus[i] << "TMB-RAT Status " << i << " output:" << std::endl;
+      OutputDMBTests[i]        << "DMB-CFEB Tests " << i << " output:" << std::endl;
+      OutputTMBTests[i]        << "TMB-RAT Tests " << i << " output:" << std::endl;
+      CrateTestsOutput[i]      << "Chamber-Crate Phases " << i << " output:" << std::endl;
     }
     //
     AutoRefreshTMBCounters_ = true ;
@@ -2943,6 +2943,12 @@ private:
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::pre();
+    *out << "MPC delay = " << MyTest[tmb].GetMPCdelayTest() 
+	 << " ("  << MyTest[tmb].GetMPCdelay()     << ") " 
+	 << std::endl;
+    *out << cgicc::pre();
     //
     std::string TMBL1aTiming =
       toolbox::toString("/%s/TMBL1aTiming",getApplicationDescriptor()->getURN().c_str());
