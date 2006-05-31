@@ -10,6 +10,7 @@
 #include "TMB.h"
 #include "CCB.h"
 #include "MPC.h"
+#include "RAT.h"
 #include "DDU.h"
 #include "ALCTController.h"
 
@@ -54,6 +55,13 @@ public:
   void InitSystem();
   void InjectMPCData() ;
   void ALCT_phase_analysis(int rxtxtiming[13][13]);
+  void RatTmbDelayScan();
+  void RpcRatDelayScan(int rpc);
+  //
+  // Move to function class ?
+  //
+  int window_analysis(int * data, const int length) ;
+  void bit_to_array(int data, int * array, const int size) ;
   //
   bool UseCosmic ;
   bool UsePulsing ;
@@ -111,6 +119,7 @@ private:
   CCB * thisCCB_ ;
   ALCTController *alct ;
   MPC * thisMPC;
+  RAT * thisRAT_;
   //
   int ALCTrxPhase_, ALCTtxPhase_;
   int TMBL1aTiming_;
@@ -122,6 +131,8 @@ private:
   int CFEBStripScan_[5][32];
   int ALCTWireScan_[112];
   int Npulses_;
+  int RpcRatDelay_[2];
+  int RatTmbDelay_;
   //
 };
 

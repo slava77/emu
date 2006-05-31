@@ -105,13 +105,9 @@ class TMBTester {
   void messageOK(std::string,bool);
   //
   // Maybe should be in CrateUtilities.cc?
-  void RatTmbDelayScan();
-  void RpcRatDelayScan(int);
-  void window_analysis(int *,const int);
   void computeBER(int);
   //
   //Some useful routines....
-  void bit_to_array(int,int *,const int);
   void RpcComputeParity(int);
   //
   //
