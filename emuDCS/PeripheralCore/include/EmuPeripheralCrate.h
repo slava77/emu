@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.87 2006/05/31 15:58:46 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.88 2006/05/31 16:36:35 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -108,6 +108,8 @@ protected:
   //
   xdata::String TestLogFile_;
   //
+  bool DisplayRatio_;
+  //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
   EmuController * MyController;
@@ -159,6 +161,7 @@ public:
     FirmwareDir_ = getenv("HOME");
     FirmwareDir_ += "/firmware/";
     //
+    DisplayRatio_ = true;
     MyController = 0;
     //thisTMB = 0;
     //thisDMB = 0;
@@ -177,6 +180,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::setRawConfFile, "setRawConfFile");
     xgi::bind(this,&EmuPeripheralCrate::UploadConfFile, "UploadConfFile");
     xgi::bind(this,&EmuPeripheralCrate::TMBStatus, "TMBStatus");
+    xgi::bind(this,&EmuPeripheralCrate::SetUnsetRatio, "SetUnsetRatio");
     xgi::bind(this,&EmuPeripheralCrate::DefineConfiguration, "DefineConfiguration");
     xgi::bind(this,&EmuPeripheralCrate::LogCrateTestsOutput, "LogCrateTestsOutput");
     //
@@ -1581,7 +1585,15 @@ private:
 	  *out <<cgicc::td();
 	  //
 	}
-	*out << tmbVector[tmb]->GetCounter(count) <<std::endl;
+	if (DisplayRatio_) {
+	  if ( tmbVector[tmb]->GetCounter(4) > 0 ) {
+	    *out << ((float)(tmbVector[tmb]->GetCounter(count))/(tmbVector[tmb]->GetCounter(4)));
+	  } else {
+	    *out << "-1";
+	  }	  
+	} else {
+	  *out << tmbVector[tmb]->GetCounter(count) <<std::endl;
+	}
 	*out <<cgicc::td();
       }
       //*out << cgicc::br();
@@ -1729,8 +1741,6 @@ private:
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     //
-    std::cout << "TMB counters" << std::endl;
-    //
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     //
     *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"1; URL=/"
@@ -1814,6 +1824,13 @@ private:
     //
     *out << cgicc::form().set("method","GET").set("action",ResetAllCounters) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Reset All Counters") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string SetUnsetRatio =
+      toolbox::toString("/%s/SetUnsetRatio",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",SetUnsetRatio) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Set/Unset Ratio Display") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     this->LaunchMonitor(in,out);
@@ -2464,6 +2481,19 @@ private:
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
+  }
+  //
+  void EmuPeripheralCrate::SetUnsetRatio(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    if ( DisplayRatio_ == false ) {
+      DisplayRatio_ = true;
+    } else {
+      DisplayRatio_ = false;
+    }
+      
+    //
   }
   //
   void EmuPeripheralCrate::ResetAllCounters(xgi::Input * in, xgi::Output * out ) 
