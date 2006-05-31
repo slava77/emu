@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.22 2006/05/30 22:49:44 liu Exp $
+// $Id: VMEController.cc,v 2.23 2006/05/31 04:55:07 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.23  2006/05/31 04:55:07  liu
+// Fixed bugs in initialization
+//
 // Revision 2.22  2006/05/30 22:49:44  liu
 // update
 //
@@ -311,8 +314,11 @@ VMEModule* VMEController::getTheCurrentModule(){
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.22 2006/05/30 22:49:44 liu Exp $
+// $Id: VMEController.cc,v 2.23 2006/05/31 04:55:07 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.23  2006/05/31 04:55:07  liu
+// Fixed bugs in initialization
+//
 // Revision 2.22  2006/05/30 22:49:44  liu
 // update
 //
@@ -457,6 +463,7 @@ void VMEController::init(string ipAddr, int port) {
   
   cout << "VMEController opened socket = " << socket << endl;
   cout << "VMEController is using eth" << port_ << endl;
+  enable_Reset();    
 }
 
 void VMEController::reset() {
@@ -568,7 +575,7 @@ int VMEController::do_schar(int open_or_close)
           exit(-1);
        }
        // eth_enableblock();
-       eth_reset();
+       eth_reset(schsocket);
        scharhandles[realport]=schsocket;
        scharcounts[realport]=0;
     }
@@ -578,7 +585,6 @@ int VMEController::do_schar(int open_or_close)
     }
     scharcounts[realport]++;
     get_macaddr(realport);
-    enable_Reset();    
     return schsocket;
   }
   else if(open_or_close==2)
@@ -725,13 +731,13 @@ void VMEController::flush_vme()
   //
 }
 
-int VMEController::eth_reset(void)
+int VMEController::eth_reset(int ethsocket)
 { 
-  if(ioctl(theSocket,SCHAR_RESET)==-1){
+  if(ioctl(ethsocket,SCHAR_RESET)==-1){
     std::cout << "ERROR in SCHAR_RESET" << std::endl;
+    return -1;
   }
-
-  return 0;
+  else return 0;
 }
 
 void VMEController::clear_error()
