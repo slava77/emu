@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.34 2006/05/30 07:22:20 mey Exp $
+// $Id: ALCTController.cc,v 2.35 2006/05/31 11:04:44 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.35  2006/05/31 11:04:44  mey
+// UPdate
+//
 // Revision 2.34  2006/05/30 07:22:20  mey
 // UPdate
 //
@@ -1173,11 +1176,11 @@ void ALCTController::GeneratePattern (int WG, int clear)
         }
 }
 //
-void ALCTController::SetUpPulsing(){
+void ALCTController::SetUpPulsing(long int Amplitude){
   //
   long int StripMask = 0x3f;
   long int PowerUp   = 1 ;
-  long int Amplitude = 0x3f;
+  //long int Amplitude = 0x3f;
   //
   int slot=tmb_->slot();
   //
