@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.86 2006/05/31 13:52:19 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.87 2006/05/31 15:58:46 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -278,6 +278,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::CalibrationALCTThresholdScan, "CalibrationALCTThresholdScan");
     xgi::bind(this,&EmuPeripheralCrate::LaunchMonitor, "LaunchMonitor");
     xgi::bind(this,&EmuPeripheralCrate::CrateTMBCounters, "CrateTMBCounters");
+    xgi::bind(this,&EmuPeripheralCrate::CrateDMBCounters, "CrateDMBCounters");
     xgi::bind(this,&EmuPeripheralCrate::CrateTMBCountersRight, "CrateTMBCountersRight");
     xgi::bind(this,&EmuPeripheralCrate::CrateStatus, "CrateStatus");
     xgi::bind(this,&EmuPeripheralCrate::CreateMonitorUnit, "CreateMonitorUnit");
@@ -464,6 +465,18 @@ public:
       *out << cgicc::form().set("method","GET").set("action",CrateTMBCounters).set("target","_blank") << std::endl ;
       *out << cgicc::input().set("type","submit")
 	.set("value","Crate TMB counters").set("name","CrateTMBCounters") << std::endl ;
+      *out << cgicc::form() << std::endl ;
+      //
+      *out << cgicc::td();
+      //
+      *out << cgicc::td();
+      //
+      std::string CrateDMBCounters =
+	toolbox::toString("/%s/CrateDMBCounters",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::form().set("method","GET").set("action",CrateDMBCounters).set("target","_blank") << std::endl ;
+      *out << cgicc::input().set("type","submit")
+	.set("value","Crate DMB counters").set("name","CrateDMBCounters") << std::endl ;
       *out << cgicc::form() << std::endl ;
       //
       *out << cgicc::td();
@@ -1579,6 +1592,134 @@ private:
     //
   }
   //
+  void EmuPeripheralCrate::CrateDMBCounters(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    cgicc::CgiEnvironment cgiEnvi(in);
+    //
+    std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+    //
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"1; URL=/"
+         <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+    //
+    *out << cgicc::table().set("border","1");
+    //
+    *out <<cgicc::td();
+    //
+    *out <<cgicc::td();
+    //
+    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+      //
+      dmbVector[dmb]->readtimingCounter();
+      dmbVector[dmb]->readtimingScope();
+      //
+      *out <<cgicc::td();
+      *out << "Slot = " <<dmbVector[dmb]->slot();
+      *out <<cgicc::td();
+      //
+    }
+    //
+    *out <<cgicc::tr();
+    //
+    *out <<cgicc::td();
+    *out << dmbVector[0]->CounterName(0);
+    *out <<cgicc::td();
+    //
+    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+      *out <<cgicc::td();
+      *out << dmbVector[dmb]->GetL1aLctCounter() <<std::endl;
+      *out <<cgicc::td();
+    }
+    *out <<cgicc::tr();
+    //
+    *out <<cgicc::td();
+    *out << dmbVector[0]->CounterName(1);
+    *out <<cgicc::td();
+    //
+    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+      *out <<cgicc::td();
+      *out << dmbVector[dmb]->GetCfebDavCounter() <<std::endl;
+      *out <<cgicc::td();
+    }
+    *out <<cgicc::tr();
+    //
+    *out <<cgicc::td();
+    *out << dmbVector[0]->CounterName(2);
+    *out <<cgicc::td();
+    //
+    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+      *out <<cgicc::td();
+      *out << dmbVector[dmb]->GetTmbDavCounter() <<std::endl;
+      *out <<cgicc::td();
+    }
+    *out <<cgicc::tr();
+    //
+    *out <<cgicc::td();
+    *out << dmbVector[0]->CounterName(3);
+    *out <<cgicc::td();
+    //
+    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+      *out <<cgicc::td();
+      *out << dmbVector[dmb]->GetTmbDavCounter() <<std::endl;
+      *out <<cgicc::td();
+    }
+    *out <<cgicc::tr();
+    //
+    *out <<cgicc::td();
+    *out << dmbVector[0]->CounterName(4);
+    *out <<cgicc::td();
+    //
+    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+      *out <<cgicc::td();
+      for( int i=4; i>-1; i--) *out << ((dmbVector[dmb]->GetL1aLctScope()>>i)&0x1) ;
+      *out <<cgicc::td();
+    }
+    *out <<cgicc::tr();
+    //
+    *out <<cgicc::tr();
+    *out <<cgicc::tr();
+    //
+    *out <<cgicc::td();
+    *out << dmbVector[0]->CounterName(5);
+    *out <<cgicc::td();
+    //
+    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+      *out <<cgicc::td();
+      for( int i=4; i>-1; i--) *out << ((dmbVector[dmb]->GetCfebDavScope()>>i)&0x1) ;
+      *out <<cgicc::td();
+    }
+    *out <<cgicc::tr();
+    //
+    *out <<cgicc::td();
+    *out << dmbVector[0]->CounterName(6);
+    *out <<cgicc::td();
+    //
+    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+      *out <<cgicc::td();
+      for( int i=4; i>-1; i--) *out << ((dmbVector[dmb]->GetTmbDavScope()>>i)&0x1) ;
+      *out <<cgicc::td();
+    }
+    *out <<cgicc::tr();
+    //
+    *out <<cgicc::td();
+    *out << dmbVector[0]->CounterName(7);
+    *out <<cgicc::td();
+    //
+    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+      *out <<cgicc::td();
+      for( int i=4; i>-1; i--) *out << ((dmbVector[dmb]->GetAlctDavScope()>>i)&0x1) ;
+      *out <<cgicc::td();
+    }
+    *out <<cgicc::tr();
+    //
+    *out << cgicc::table();
+    //
+  }
+  //
   void EmuPeripheralCrate::CrateTMBCounters(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -1587,6 +1728,8 @@ private:
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    std::cout << "TMB counters" << std::endl;
     //
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     //
@@ -1602,7 +1745,6 @@ private:
     *out << cgicc::frame().set("src",MonitorFrameLeft);
     *out << cgicc::frame().set("src",CrateTMBCountersRight);
     *out << cgicc::frameset() ;
-    //
     //
   }
   //
@@ -1695,7 +1837,7 @@ private:
     }
     //
     ChartData[Counter_].clear();
-      //
+    //
     *out << "Counter= " << Counter_ << std::endl;
     *out << cgicc::br();
     //
@@ -1704,9 +1846,9 @@ private:
       tmbVector[i]->RedirectOutput(out);
       tmbVector[i]->GetCounters();
       //
-      if ( tmbVector[i]->GetCounter(4)>0) {
-	ChartData[Counter_].push_back((float)(tmbVector[i]->GetCounter(Counter_))/(tmbVector[i]->GetCounter(4)));
-      } 	  
+      //if ( tmbVector[i]->GetCounter(4)>0) {
+      ChartData[Counter_].push_back((float)(tmbVector[i]->GetCounter(Counter_)));
+      //} 	  
       //
       if ( Counter_ == 0 ) {
 	if ( tmbVector[i]->GetCounter(0) > 0 ) {
@@ -2026,12 +2168,12 @@ private:
   void EmuPeripheralCrate::getData0(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='ALCT: CRC error' subcaption='Normalized' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+    *out << "<graph caption='ALCT: CRC error' subcaption='Normalized' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << std::endl;
     //
     std::cout << ChartData[0].size() << endl ;
-    for(unsigned int i=0;i<ChartData[0].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[0][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() <<"'"<< " value='" << ChartData[0][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2040,12 +2182,12 @@ private:
   void EmuPeripheralCrate::getData1(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='ALCT: LCT sent to TMB' subcaption='Normalized' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='ALCT: LCT sent to TMB' subcaption='Normalized' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[1].size() << endl ;
-    for(unsigned int i=0;i<ChartData[1].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[1][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[1][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2054,12 +2196,12 @@ private:
   void EmuPeripheralCrate::getData2(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='ALCT: LCT error' subcaption='Normalized' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='ALCT: LCT error' subcaption='Normalized' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[2].size() << endl ;
-    for(unsigned int i=0;i<ChartData[2].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[2][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2068,12 +2210,12 @@ private:
   void EmuPeripheralCrate::getData3(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='ALCT: L1A readout' subcaption='Normalized' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='ALCT: L1A readout' subcaption='Normalized' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[3].size() << endl ;
-    for(unsigned int i=0;i<ChartData[3].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[3][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[3][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2082,12 +2224,12 @@ private:
   void EmuPeripheralCrate::getData4(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='CLCT Pretrigger' subcaption='Normalized' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='CLCT Pretrigger' subcaption='Normalized' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[4].size() << endl ;
-    for(unsigned int i=0;i<ChartData[4].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[4][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[4][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2096,12 +2238,12 @@ private:
   void EmuPeripheralCrate::getData5(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='CLCT Pretrig but no wbuf' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='CLCT Pretrig but no wbuf' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[5].size() << endl ;
-    for(unsigned int i=0;i<ChartData[5].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[5][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[5][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2110,12 +2252,12 @@ private:
   void EmuPeripheralCrate::getData6(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='CLCT: Invalid pattern after drift 0' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='CLCT: Invalid pattern after drift 0' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[6].size() << endl ;
-    for(unsigned int i=0;i<ChartData[6].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[6][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[6][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2124,12 +2266,12 @@ private:
   void EmuPeripheralCrate::getData7(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='TMB matching rejected' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='TMB matching rejected' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[7].size() << endl ;
-    for(unsigned int i=0;i<ChartData[7].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[7][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[7][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2138,12 +2280,12 @@ private:
   void EmuPeripheralCrate::getData8(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='CLCT or ALCT or both triggered' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='CLCT or ALCT or both triggered' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[8].size() << endl ;
-    for(unsigned int i=0;i<ChartData[8].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[8][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[8][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2152,12 +2294,12 @@ private:
   void EmuPeripheralCrate::getData9(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='TMB: CLCT or ALCT or both trigger xmit MPC' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='TMB: CLCT or ALCT or both trigger xmit MPC' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[9].size() << endl ;
-    for(unsigned int i=0;i<ChartData[9].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[9][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[9][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2166,12 +2308,12 @@ private:
   void EmuPeripheralCrate::getData10(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='TMB: CLCT and ALCT matched in time' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='TMB: CLCT and ALCT matched in time' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[10].size() << endl ;
-    for(unsigned int i=0;i<ChartData[10].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[10][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[10][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2180,12 +2322,12 @@ private:
   void EmuPeripheralCrate::getData11(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='TMB: ALCT-only trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='TMB: ALCT-only trigger' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[11].size() << endl ;
-    for(unsigned int i=0;i<ChartData[11].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[11][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[11][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2194,12 +2336,12 @@ private:
   void EmuPeripheralCrate::getData12(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='CLCT-only trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='CLCT-only trigger' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[12].size() << endl ;
-    for(unsigned int i=0;i<ChartData[12].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[12][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[12][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2208,12 +2350,12 @@ private:
   void EmuPeripheralCrate::getData13(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='TMB: No trig pulse response' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='TMB: No trig pulse response' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
     std::cout << ChartData[13].size() << endl ;
-    for(unsigned int i=0;i<ChartData[13].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[13][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[13][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2222,11 +2364,11 @@ private:
   void EmuPeripheralCrate::getData14(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='TMB: No MPC transmission' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='TMB: No MPC transmission' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
-    for(unsigned int i=0;i<ChartData[14].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[14][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[14][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2235,11 +2377,11 @@ private:
   void EmuPeripheralCrate::getData15(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='No MPC response FF pulse' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='No MPC response FF pulse' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
-    for(unsigned int i=0;i<ChartData[15].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[15][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[15][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2248,11 +2390,11 @@ private:
   void EmuPeripheralCrate::getData16(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='MPC accepted LCT0' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='MPC accepted LCT0' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
-    for(unsigned int i=0;i<ChartData[16].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[16][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[16][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2261,11 +2403,11 @@ private:
   void EmuPeripheralCrate::getData17(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='MPC accepted LCT1' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='MPC accepted LCT1' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
-    for(unsigned int i=0;i<ChartData[17].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[17][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[17][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
       std::cout << output.str() << std::endl;
     }
@@ -2275,11 +2417,11 @@ private:
   void EmuPeripheralCrate::getData18(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='L1A received' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='L1A received' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
-    for(unsigned int i=0;i<ChartData[18].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[18][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[18][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2288,11 +2430,11 @@ private:
   void EmuPeripheralCrate::getData19(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='L1A: TMB triggered, TMB in L1A window' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='L1A: TMB triggered, TMB in L1A window' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
-    for(unsigned int i=0;i<ChartData[19].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[19][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[19][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2301,11 +2443,11 @@ private:
   void EmuPeripheralCrate::getData20(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='L1A: L1A received, no TMB in window' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='L1A: L1A received, no TMB in window' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
-    for(unsigned int i=0;i<ChartData[20].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[20][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[20][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
@@ -2314,11 +2456,11 @@ private:
   void EmuPeripheralCrate::getData21(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='Board' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
+    *out << "<graph caption='CLCT pre-trigger' subcaption='Default' xAxisName='TMB slot' yAxisName='Rate' numberPrefix='' showNames='1'>" << std::endl;
     //
-    for(unsigned int i=0;i<ChartData[21].size();i++) {
+    for(unsigned int i=0;i<tmbVector.size();i++) {
       ostringstream output;
-      output << "<set name='" << i <<"'"<< " value='" << ChartData[21][i] << "'" << " />" << std::endl;
+      output << "<set name='" << tmbVector[i]->slot() << "'"<< " value='" << ChartData[21][i] << "'" << " />" << std::endl;
       *out << output.str() << std::endl ;
     }
     *out << "</graph>" << std::endl;    
