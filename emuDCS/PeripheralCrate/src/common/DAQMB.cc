@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.59 2006/05/29 08:09:20 mey Exp $
+// $Id: DAQMB.cc,v 2.60 2006/05/31 15:58:46 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.60  2006/05/31 15:58:46  mey
+// Update
+//
 // Revision 2.59  2006/05/29 08:09:20  mey
 // Update
 //
@@ -2669,7 +2672,24 @@ void DAQMB::devdoReset(){
 /// used for emergency loading
   devdo(RESET,-1,cmd,0,sndbuf,rcvbuf,2);
 }
-
+//
+std::string DAQMB::CounterName(int counter){
+  //
+  std::string name = "NO counter found" ;
+  //
+  if ( counter == 0 ) name = "L1A to LCT delay";
+  if ( counter == 1 ) name = "CFEB DAV delay  ";
+  if ( counter == 2 ) name = "TMB DAV delay   ";
+  if ( counter == 3 ) name = "ALCT DAV delay  ";
+  if ( counter == 4 ) name = "L1A to LCT Scope";
+  if ( counter == 5 ) name = "CFEB DAV Scope  ";
+  if ( counter == 6 ) name = "TMB DAV Scope   ";
+  if ( counter == 7 ) name = "ALCT DAV Scope  ";
+  //
+  return name;
+  //
+}
+//
 void DAQMB::PrintCounters(){
   //
   readtimingCounter();

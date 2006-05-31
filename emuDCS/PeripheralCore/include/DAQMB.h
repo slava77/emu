@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.22 2006/05/29 08:09:20 mey Exp $
+// $Id: DAQMB.h,v 2.23 2006/05/31 15:58:46 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.23  2006/05/31 15:58:46  mey
+// Update
+//
 // Revision 2.22  2006/05/29 08:09:20  mey
 // Update
 //
@@ -133,6 +136,7 @@ public:
   void lowv_dump();
   void daqmb_adc_dump();
   void daqmb_promfpga_dump();
+  std::string CounterName(int);
   //
   // Tests
   void test3();
