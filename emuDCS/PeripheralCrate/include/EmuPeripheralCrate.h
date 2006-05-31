@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.85 2006/05/31 13:38:51 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.86 2006/05/31 13:52:19 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1538,22 +1538,28 @@ private:
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     //
-    for(int tmb=0; tmb<tmbVector.size(); tmb++) {
-      tmbVector[tmb]->GetCounters();
-    }
     //
     *out << cgicc::table().set("border","1");
+    //
+    *out <<cgicc::td();
+    //
+    *out <<cgicc::td();
+    //
+    for(int tmb=0; tmb<tmbVector.size(); tmb++) {
+      tmbVector[tmb]->GetCounters();
+      //
+      *out <<cgicc::td();
+      *out << "Slot = " <<tmbVector[tmb]->slot();
+      *out <<cgicc::td();
+      //
+    }
+    //
+    *out <<cgicc::tr();
     //
     for (int count=0; count<23; count++) {
       //*out <<cgicc::tr();
       for(int tmb=0; tmb<tmbVector.size(); tmb++) {
 	*out <<cgicc::td();
-	if(count ==0){
-	  *out << "Slot = " <<tmbVector[tmb]->slot();
-	  *out <<cgicc::td();
-	  //
-	  *out <<cgicc::td();
-	}
 	//
 	if(tmb==0) {
 	  *out << tmbVector[tmb]->CounterName(count) ;
