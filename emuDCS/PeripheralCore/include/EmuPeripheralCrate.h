@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.84 2006/05/31 09:09:19 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 2.85 2006/05/31 13:38:51 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1548,6 +1548,13 @@ private:
       //*out <<cgicc::tr();
       for(int tmb=0; tmb<tmbVector.size(); tmb++) {
 	*out <<cgicc::td();
+	if(count ==0){
+	  *out << "Slot = " <<tmbVector[tmb]->slot();
+	  *out <<cgicc::td();
+	  //
+	  *out <<cgicc::td();
+	}
+	//
 	if(tmb==0) {
 	  *out << tmbVector[tmb]->CounterName(count) ;
 	  *out <<cgicc::td();
