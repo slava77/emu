@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CSCParser.cc,v 1.2 2006/05/16 15:54:38 mey Exp $
+// $Id: CSCParser.cc,v 1.3 2006/05/31 12:37:26 mey Exp $
 // $Log: CSCParser.cc,v $
+// Revision 1.3  2006/05/31 12:37:26  mey
+// Update
+//
 // Revision 1.2  2006/05/16 15:54:38  mey
 // UPdate
 //
@@ -20,6 +23,7 @@ CSCParser::CSCParser(xercesc::DOMNode * pNode, int crateNumber)
 {
   parser_.parseNode(pNode);
   parser_.fillString("chamber_type", chamberType);
+  parser_.fillString("label", label);
   csc_ = new Chamber();
   theCrate = Singleton<CrateSetup>::instance()->crate(crateNumber);
   theCrate->AddChamber(csc_);
