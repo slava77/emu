@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.14 2006/05/30 22:49:17 liu Exp $
+// $Id: VMEController.h,v 2.15 2006/05/31 04:54:43 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 2.15  2006/05/31 04:54:43  liu
+// Fixed bugs in initialization
+//
 // Revision 2.14  2006/05/30 22:49:17  liu
 // update
 //
@@ -136,8 +139,11 @@ private:
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.14 2006/05/30 22:49:17 liu Exp $
+// $Id: VMEController.h,v 2.15 2006/05/31 04:54:43 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 2.15  2006/05/31 04:54:43  liu
+// Fixed bugs in initialization
+//
 // Revision 2.14  2006/05/30 22:49:17  liu
 // update
 //
@@ -296,7 +302,7 @@ private:
   void  daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int *buf,unsigned char *rcv);
   void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
   void dump_outpacket(int nvme);
-  int eth_reset(void);
+  int eth_reset(int ethsocket);
   int eth_read();
   int eth_write();
   void mrst_ff();
