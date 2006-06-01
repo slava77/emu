@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.88 2006/05/31 16:36:35 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.89 2006/06/01 16:05:37 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -274,6 +274,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::LogTestSummary, "LogTestSummary");
     xgi::bind(this,&EmuPeripheralCrate::LogTMBTestsOutput, "LogTMBTestsOutput");
     xgi::bind(this,&EmuPeripheralCrate::FindWinner, "FindWinner");
+    xgi::bind(this,&EmuPeripheralCrate::RatTmbTiming, "RatTmbTiming");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBTime, "CalibrationCFEBTime");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBSaturation, "CalibrationSaturation");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBCharge, "CalibrationCFEBCharge");
@@ -3135,6 +3136,22 @@ private:
 	 << std::endl;
     *out << cgicc::pre();
     //
+    std::string RatTmbTiming =
+      toolbox::toString("/%s/RatTmbTiming",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",RatTmbTiming) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","RAT TMB Timing") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::pre();
+    *out << "RAT TMB delay = " << MyTest[tmb].GetRatTmbDelayTest() 
+	 << std::endl;
+    *out << cgicc::pre();
+    //
     std::string TMBL1aTiming =
       toolbox::toString("/%s/TMBL1aTiming",getApplicationDescriptor()->getURN().c_str());
     //
@@ -3681,6 +3698,40 @@ private:
     //
     MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
     MyTest[tmb].FindWinner(2);
+    MyTest[tmb].RedirectOutput(&std::cout);
+    //
+    this->ChamberTests(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::RatTmbTiming(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cout << "RatTmbTiming" << endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "No tmb" << endl;
+    }
+    //
+    //DAQMB * thisDMB = dmbVector[dmb];
+    //TMB * thisTMB = tmbVector[tmb];
+    //
+    //MyTest.SetTMB(thisTMB);
+    //MyTest.SetCCB(thisCCB);
+    //MyTest.SetDMB(thisDMB);
+    //MyTest.SetMPC(thisMPC);
+    //
+    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RatTmbDelayScan();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
     this->ChamberTests(in,out);
@@ -5849,7 +5900,7 @@ private:
       } else if ( (alct->GetChamberType()).find("ME32") != string::npos ) {
 	ALCTFirmware += "alct384mirrorrl.svf";
       } else if ( (alct->GetChamberType()).find("ME11") != string::npos ) {
-	ALCTFirmware += "alct288fp.svf";
+	ALCTFirmware += "alct288fp_rl.svf";
       }
       //
       ALCTFirmware_ = ALCTFirmware;
@@ -6762,6 +6813,9 @@ private:
       LogFile << "mpc_delay " << std::setw(5) << i 
 	      << std::setw(5) << MyTest[i].GetMPCdelayTest()
 	      << std::endl;
+      LogFile << "rat_tmb_delay " << std::setw(5) << i 
+	      << std::setw(5) << MyTest[i].GetRatTmbDelayTest()
+	      << std::endl;
       LogFile << std::endl;
 
     }
@@ -7308,6 +7362,16 @@ private:
 	  instring >> line0 >> vectorid >> result;
 	  //
 	  MyTest[vectorid].SetMPCdelayTest(result);
+	}
+	//
+	if ( line.find("rat_tmb_delay") != string::npos ) {	  
+	  //
+	  int vectorid, result;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid >> result;
+	  //
+	  MyTest[vectorid].SetRatTmbDelayTest(result);
 	}
       }
     }
