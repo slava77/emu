@@ -232,7 +232,7 @@ int main() {
       //
       //
     case 20:
-      testTMB.RatTmbDelayScan();
+      //      testTMB.RatTmbDelayScan();
       break;
     case 21:
       myRat->ReadRatUser1();
@@ -249,7 +249,7 @@ int main() {
       std::cout << "scan RPC0 (0) or RPC1 (1)" << std::endl;
       std::cin >> rpc;
 
-      testTMB.RpcRatDelayScan(rpc);
+      //      testTMB.RpcRatDelayScan(rpc);
       break;
     case 25:
       std::cout << "Current RPC-RAT delay values..." << std::endl;
