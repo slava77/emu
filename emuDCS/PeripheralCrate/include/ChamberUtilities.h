@@ -74,7 +74,7 @@ public:
   int ALCTvpf;
   int beginning;
   //
-  inline void SetTMB(TMB* myTMB)   {thisTMB = myTMB; alct = myTMB->alctController() ;}
+  inline void SetTMB(TMB* myTMB)   {thisTMB = myTMB; alct = myTMB->alctController(); thisRAT_ = myTMB->getRAT();}
   inline TMB* GetTMB() { return thisTMB; }
   //
   inline void SetDMB(DAQMB* myDMB) {thisDMB = myDMB; }
@@ -95,11 +95,13 @@ public:
   inline int  GetALCTtxPhaseTest()         { return ALCTtxPhase_ ; }
   inline int  GetCFEBrxPhaseTest(int CFEB) { return CFEBrxPhase_[CFEB] ; }
   inline int  GetMPCdelayTest()            { return MPCdelay_ ; }
+  inline int  GetRatTmbDelayTest()            { return RatTmbDelay_ ; }
   //
   inline void SetALCTrxPhaseTest(int value) { ALCTrxPhase_ = value ; }
   inline void SetALCTtxPhaseTest(int value) { ALCTtxPhase_ = value ; }
   inline void SetCFEBrxPhaseTest(int CFEB, int value) { CFEBrxPhase_[CFEB] = value ; }
   inline void SetMPCdelayTest(int value)    { MPCdelay_ = value ; }
+  inline void  SetRatTmbDelayTest(int value) { RatTmbDelay_ = value ; }
   //
   inline int  GetCFEBStripScan(int CFEB, int Strip){ return CFEBStripScan_[CFEB][Strip]; }
   inline int  GetALCTWireScan(int Wire){ return ALCTWireScan_[Wire]; }
