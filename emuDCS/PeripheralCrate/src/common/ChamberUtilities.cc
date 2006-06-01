@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.30 2006/05/31 13:10:53 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.31 2006/06/01 16:05:00 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.31  2006/06/01 16:05:00  rakness
+// update
+//
 // Revision 1.30  2006/05/31 13:10:53  mey
 // Update
 //
@@ -2419,7 +2422,7 @@ int ChamberUtilities::window_analysis(int * data, const int length) {
       //
       average_channel[counter] = channel_ctr / denominator;
       //
-      int bestValue = (((int)(average_channel[counter]+0.5)) % 13);
+      bestValue = (((int)(average_channel[counter]+0.5)) % 13);
       //
       (*MyOutput_) << "=> BEST DELAY VALUE (window " << std::dec << counter << ") = "
 		   <<  bestValue  << " <=" << std::endl;
