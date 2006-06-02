@@ -220,7 +220,7 @@
 	      <xsl:sort select="attribute::class"/>
 	      <a class="contents">
 		<xsl:attribute name="href">#<xsl:value-of select="substring-after(../attribute::url,'http://')"/>.<xsl:value-of select="attribute::class"/>.<xsl:value-of select="attribute::instance"/></xsl:attribute>
-		<xsl:value-of select="attribute::class"/>
+		<xsl:value-of select="attribute::class"/><xsl:if test="attribute::instance">.<xsl:value-of select="attribute::instance"/></xsl:if>
 	      </a>
 		<xsl:value-of select="string(' ')"/>
 	    </xsl:for-each>
