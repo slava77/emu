@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.38 2006/05/23 09:01:21 rakness Exp $
+// $Id: CCB.cc,v 2.39 2006/06/02 07:48:12 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.39  2006/06/02 07:48:12  mey
+// Disable TTCrx hardreset
+//
 // Revision 2.38  2006/05/23 09:01:21  rakness
 // Update
 //
@@ -646,6 +649,8 @@ void CCB::HardResetTTCrx(){
   //
   do_vme(VME_WRITE,TTCrxReset,sndbuf,rcvbuf,NOW);
   //
+  ::sleep(1);
+  //
   setCCBMode(CCB::DLOG);
   //
 }
@@ -858,7 +863,7 @@ void CCB::hardReset() {
   
   ReadRegister(0x0);
 
-  HardResetTTCrx();
+  //HardResetTTCrx();
 
   sleep(1);
 
@@ -869,6 +874,7 @@ void CCB::hardReset() {
   prgall_bckpln();
 
   ReadRegister(0x0);
+
 
   //
   //fg note: these 10seconds are not necessary for new/old TMB
@@ -886,7 +892,7 @@ void CCB::hardReset() {
     (*MyOutput_) << "CCB: NOTE -- switching back to DLOG" << std::endl;
   };
 
-  ReadRegister(0x0);
+  std::cout << ReadRegister(0x0) << std::endl;
 
   reset_bckpln();
   //fg note: this 1second is not necessary
@@ -1033,12 +1039,13 @@ void CCB::configure() {
   else 
     std::cerr << "Error: Unknown CCB version ("<< mVersion << "). Unable to configure."<< std::endl;
 
+  std::cout << ReadRegister(0x0) << std::endl;
   hardReset();
-  ReadRegister(0x0);
+  std::cout << ReadRegister(0x0) << std::endl;
   rice_clk_setup();
-  ReadRegister(0x0);
+  std::cout << ReadRegister(0x0) << std::endl;
   disableL1();
-  ReadRegister(0x0);
+  std::cout << ReadRegister(0x0) << std::endl;
 }
 void CCB::SetL1aDelay(int l1adelay){
   //
