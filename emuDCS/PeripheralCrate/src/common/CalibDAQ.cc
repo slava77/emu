@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.39 2006/05/30 13:13:01 mey Exp $
+// $Id: CalibDAQ.cc,v 2.40 2006/06/03 19:31:04 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.40  2006/06/03 19:31:04  mey
+// UPdate
+//
 // Revision 2.39  2006/05/30 13:13:01  mey
 // UPdate
 //
@@ -259,9 +262,9 @@ void CalibDAQ::pulseAllWires(){
     std::cout << "0x20= " << std::hex << ccb->ReadRegister(0x20) << std::endl;
     //
     //::usleep(500000);
-    ::usleep(200);
+    ::usleep(2000);
     ccb->GenerateAlctAdbSync();	 
-    ::usleep(500000);
+    ::usleep(600000);
     //
   }
   //
