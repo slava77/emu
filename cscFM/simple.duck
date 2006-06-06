@@ -1,0 +1,7 @@
+KEY "simple" "0.0" ""
+FULL_PATH "/CSC/simple" "ichiro"
+
+GROUP "csc" "ichiro"
+RSC   "csc" "thisGroup" "http://localhost:8080/urn:rcms-fm:group=csc,configuration=simple,owner=ichiro"
+RSC_CONF   "http://localhost:8080/functionmanagers/cscFM.jar" "rcms.fm.app.csc.CSCFunctionManager"
+
