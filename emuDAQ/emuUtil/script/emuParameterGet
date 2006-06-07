@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# default values
+SERVERURL=emudaq02.cern.ch
+SERVERPORT=40200
+SERVERAPP=EmuDAQManager
+SERVERAPPINSTANCE=0
+VERBOSITY=0
+PARAMETER=stateName
+TYPE=string
+
+# user's options
+while [[ $1 = -* ]]; do
+    case $1 in 
+	-A ) SERVERAPP=$2
+	    shift ;;
+	-c ) CREDITS=$2
+	    shift ;;
+	-P ) PARAMETER=$2
+	    shift ;;
+	-T ) TYPE=$2
+	    shift ;;
+	-I ) SERVERAPPINSTANCE=$2
+	    shift ;;
+	-p ) SERVERPORT=$2
+	    shift ;;
+	-u ) SERVERURL=$2
+	    shift ;;
+	-v ) VERBOSITY=1 ;;
+	*  ) 
+	    echo 'Usage: '
+	    echo '------'
+	    echo '    emuParameterGet [-u url] [-p port]'
+	    echo '                    [-A application] [-I app_instance] [-P parameter_name] [-T parameter_type]'
+	    echo '                    [-v]'
+	    echo
+	    echo '  option   meaning                            default'
+	    echo '  ------   -------                            -------'
+	    echo '      -A   application                        EmuDAQManager'
+	    echo '      -P   parameter name                     stateName'
+	    echo '      -T   parameter type                     string'
+	    echo '      -h   print help                         do not print help'
+	    echo '      -I   server application instance        0'
+	    echo '      -p   port                               40200'
+	    echo '      -u   url                                emuslice06.cern.ch'
+	    echo '      -v   verbose                            not verbose'
+	    exit 1 ;;
+    esac
+    shift
+done
+
+HEADER="\"SOAPAction: urn:xdaq-application:class=$SERVERAPP,instance=$SERVERAPPINSTANCE\""
+
+MESSAGE="\"<soap-env:Envelope soap-env:encodingStyle=\\\"http://schemas.xmlsoap.org/soap/encoding/\\\" xmlns:soap-env=\\\"http://schemas.xmlsoap.org/soap/envelope/\\\" xmlns:xsd=\\\"http://www.w3.org/2001/XMLSchema\\\" xmlns:xsi=\\\"http://www.w3.org/2001/XMLSchema-instance\\\" xmlns:soapenc=\\\"http://schemas.xmlsoap.org/soap/encoding/\\\"><soap-env:Header/><soap-env:Body><xdaq:ParameterGet xmlns:xdaq=\\\"urn:xdaq-soap:3.0\\\"><$SERVERAPP:properties xmlns:$SERVERAPP=\\\"urn:xdaq-application:$SERVERAPP\\\" xsi:type=\\\"soapenc:Struct\\\"><$SERVERAPP:$PARAMETER xsi:type=\\\"xsd:$TYPE\\\"/></$SERVERAPP:properties></xdaq:ParameterGet></soap-env:Body></soap-env:Envelope>\""
+
+WRITEOUT=""
+if [[ $VERBOSITY = "1" ]]; then
+    WRITEOUT="--write-out \"\n\nGot %{size_download} bytes in total (%{size_header} in header) in %{time_total} s.\n\""
+    echo "Command:"
+    echo curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE
+    echo ""
+    echo "Reply:"
+fi
+
+eval curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE | sed -u 's/>\([^<>]\+\)<\//>[1;31m\1[0m<\//g'
+echo ""
