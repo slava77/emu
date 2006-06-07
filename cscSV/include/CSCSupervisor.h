@@ -59,7 +59,11 @@ public:
 
 private: // XDAQ parameters
 	xdata::Vector<xdata::String> config_keys_;
-	xdata::Vector<xdata::String> config_files_;
+	xdata::Vector<xdata::String> config_modes_;
+	xdata::Vector<xdata::String> modes_pc_;
+	xdata::Vector<xdata::String> files_pc_;
+	xdata::Vector<xdata::String> modes_fc_;
+	xdata::Vector<xdata::String> files_fc_;
 
 private:
 	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
@@ -74,13 +78,15 @@ private:
 			xoap::MessageReference message, xoap::MessageReference reply,
 			xdaq::ApplicationDescriptor *app);
 
-	string getRuntype(xgi::Input *in);
+	string getRunmode(xgi::Input *in);
 	string getRunNumber(xgi::Input *in);
 	string getNEvents(xgi::Input *in);
+	int modeToIndex(string mode);
 
+	string getConfigFilename(string type, string mode) const;
 	string trim(string orig) const;
 
-	string runtype_;
+	string runmode_;
 	string runnumber_;
 	string nevents_;
 

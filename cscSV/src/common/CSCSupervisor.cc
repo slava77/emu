@@ -27,10 +27,14 @@ static const unsigned int N_LOG_MESSAGES = 10;
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
 		EmuApplication(stub),
-		runtype_(""), runnumber_(""), nevents_(""), error_message_("")
+		runmode_(""), runnumber_(""), nevents_(""), error_message_("")
 {
 	getApplicationInfoSpace()->fireItemAvailable("configKeys", &config_keys_);
-	getApplicationInfoSpace()->fireItemAvailable("configFiles", &config_files_);
+	getApplicationInfoSpace()->fireItemAvailable("configModes", &config_modes_);
+	getApplicationInfoSpace()->fireItemAvailable("modesForPC", &modes_pc_);
+	getApplicationInfoSpace()->fireItemAvailable("filesForPC", &files_pc_);
+	getApplicationInfoSpace()->fireItemAvailable("modesForFC", &modes_fc_);
+	getApplicationInfoSpace()->fireItemAvailable("filesForFC", &files_fc_);
 
 	xgi::bind(this, &CSCSupervisor::webDefault,   "Default");
 	xgi::bind(this, &CSCSupervisor::webConfigure, "Configure");
@@ -139,16 +143,23 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 
 	int n_keys = config_keys_.size();
 
-	*out << "Peripheral Crate: " << endl;
-	*out << cgicc::select()
-			.set("name", "runtype")
-			.set("value", runtype_) << endl;
+	*out << "Run Type: " << endl;
+	*out << cgicc::select().set("name", "runtype") << endl;
+
+	int selected_index = modeToIndex(runmode_);
 
 	for (int i = 0; i < n_keys; ++i) {
-		*out << option()
-				.set("label", (string)config_keys_[i])
-				.set("value", trim((string)config_files_[i]))
-				<< (string)config_keys_[i] << option() << endl;
+		if (i == selected_index) {
+			*out << option()
+					.set("label", (string)config_keys_[i])
+					.set("value", (string)config_modes_[i])
+					.set("selected", "");
+		} else {
+			*out << option()
+					.set("label", (string)config_keys_[i])
+					.set("value", (string)config_modes_[i]);
+		}
+		*out << (string)config_keys_[i] << option() << endl;
 	}
 
 	*out << cgicc::select() << br() << endl;
@@ -204,11 +215,11 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
-	runtype_ = getRuntype(in);
+	runmode_ = getRunmode(in);
 	runnumber_ = getRunNumber(in);
 	nevents_ = getNEvents(in);
 
-	if (runtype_.empty()) { error_message_ += "Please select run type.\n"; }
+	if (runmode_.empty()) { error_message_ += "Please select run type.\n"; }
 	if (runnumber_.empty()) { error_message_ += "Please set run number.\n"; }
 	if (nevents_.empty()) { error_message_ += "Please set max # of events.\n"; }
 
@@ -259,7 +270,8 @@ void CSCSupervisor::webRedirect(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::configureAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	setParameter("EmuPeripheralCrate", "xmlFileName", "xsd:string", runtype_);
+	setParameter("EmuPeripheralCrate", "xmlFileName", "xsd:string",
+			trim(getConfigFilename("PC", runmode_)));
 	setParameter("EmuDAQManager", "runNumber", "xsd:unsignedLong", runnumber_);
 	setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:unsignedLong", nevents_);
 	sendCommand("Configure", "EmuFEDCrate");
@@ -427,19 +439,20 @@ void CSCSupervisor::analyzeReply(
 	return;
 }
 
-string CSCSupervisor::getRuntype(xgi::Input *in)
+string CSCSupervisor::getRunmode(xgi::Input *in)
 {
 	cgicc::Cgicc cgi(in);
-	string runtype;
+	string runmode;
 
 	form_iterator i = cgi.getElement("runtype");
 	if (i != cgi.getElements().end()) {
-		runtype = (*i).getValue();
+		runmode = (*i).getValue();
 	}
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "==== run type:" << runtype);
+	LOG4CPLUS_DEBUG(getApplicationLogger(),
+			"==== run type:" << modeToIndex(runmode) << ":" << runmode);
 
-	return runtype;
+	return runmode;
 }
 
 string CSCSupervisor::getRunNumber(xgi::Input *in)
@@ -470,6 +483,45 @@ string CSCSupervisor::getNEvents(xgi::Input *in)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "==== # of events:" << nevents);
 
 	return nevents;
+}
+
+int CSCSupervisor::modeToIndex(string mode)
+{
+	int index = 0;
+	for (unsigned int i = 0; i < config_modes_.size(); ++i) {
+		if (config_modes_[i] == mode) {
+			index = i;
+			break;
+		}
+	}
+
+	return index;
+}
+
+string CSCSupervisor::getConfigFilename(string type, string mode) const
+{
+	xdata::Vector<xdata::String> modes;
+	xdata::Vector<xdata::String> files;
+
+	if (type == "PC") {
+		modes = modes_pc_;
+		files = files_pc_;
+	} else if (type == "FC") {
+		modes = modes_fc_;
+		files = files_fc_;
+	} else {
+		return "";
+	}
+
+	string result = "";
+	for (unsigned int i = 0; i < modes.size(); ++i) {
+		if (modes[i] == mode) {
+			result = files[i];
+			break;
+		}
+	}
+
+	return result;
 }
 
 string CSCSupervisor::trim(string orig) const
