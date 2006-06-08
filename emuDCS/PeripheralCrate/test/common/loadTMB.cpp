@@ -17,7 +17,7 @@ int main(int argc,char **argv){
   // create VME Controller and Crate
   int crateId(0);
   string ipAddr("02:00:00:00:00:10");
-  int port(2);
+  int port(3);
   VMEController *dynatem = new VMEController(crateId);
   dynatem->init(ipAddr,port);
   Crate *crate = new Crate(crateId,dynatem);
@@ -29,8 +29,8 @@ int main(int argc,char **argv){
   ::sleep(1);
 
   // create TMB & ALCT
-  int tmbSlot(26);
-  string chamberType("ME21");
+  int tmbSlot(16);
+  string chamberType("ME31");
   TMB *tmb = new TMB(crateId,tmbSlot);
   //
   cout << "Read Register" << endl;
@@ -63,16 +63,18 @@ int main(int argc,char **argv){
   std::cout << " ALCT Fastcontrol ID " << chipID << std::endl;
 
 #if 1
-  //tmb->disableAllClocks();
+  tmb->disableAllClocks();
   int debugMode(0);
   int jch(5);
   printf("Programming...");
   //int status;
   //int status = alct->SVFLoad(&jch,"alctcrc384mirror.svf",debugMode);
-  int status = alct->SVFLoad(&jch,"../svf/tmb2005e.svf",debugMode);
+  int status = alct->SVFLoad(&jch,"../svf/tmb2005e_new.svf",debugMode);
   //int status = alct->SVFLoad(&jch,"../svf/alct672rl.svf",debugMode);
   //--int status = alct->NewSVFLoad(&jch,"alctcrc384mirror.svf",debugMode);
-  //tmb->enableAllClocks();
+  tmb->enableAllClocks();
+
+  ccb->configure();
 
   if (status >= 0){
     cout << "=== Programming finished"<< endl;
