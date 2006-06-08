@@ -43,11 +43,14 @@ class Emu_Farmer:
                           'EmuDAQManager'      : 'man',
                           'EmuPeripheralCrate' : 'pc' ,
                           'LTCControl'         : 'ltc',
+                          'EmuFEDCrate'        : 'fed',
+                          'EmuFCrateHyperDAQ'  : 'fed',
                           'CSCSupervisor'      : 'sv'   }
 
         # Dict of context sets grouped by target (context='host:port')
         self._contexts = { 'daq' : set(),
                            'man' : set(),
+                           'fed' : set(),
                            'pc'  : set(),
                            'ltc' : set(),
                            'sv'  : set(),
@@ -81,7 +84,6 @@ class Emu_Farmer:
             self.pickRelevantCommandLines()
             for ctxt,cmnd in self._relevantCommandLines.iteritems():
                 #print ctxt,'\n',commands.getoutput(cmnd) # doesn't stop when starting xdaq as it wants to read stdout...
-                #prettyContext = '[34m'+ctxt+'[0m'+'\t( '+self.listTargets(ctxt)+')'
                 tgts = '  ( '+self.listTargets(ctxt)+')'
                 prettyContext = (20-len(ctxt))*' '+'[34m'+ctxt+'[0m'+tgts+(20-len(tgts))*' '
                 if self._action == 'status':
@@ -93,11 +95,9 @@ class Emu_Farmer:
                 elif self._action == 'start':
                     f = popen2.popen4(cmnd)
                     logging.info(prettyContext+'starting')
-                    #print '%35s    starting' % (prettyContext)
-                else:
+                elif self._action == 'stop':
                     f = popen2.popen4(cmnd)
                     logging.info(prettyContext+'stopping')
-                    #print '%35s    stopping' % (prettyContext)
 
     def listTargets( self, context ):
         tgtList = ''
@@ -107,8 +107,8 @@ class Emu_Farmer:
         return tgtList
     
     def validateOptions( self ):
-        if self._action not in ['status','start','stop','reload']:
-            print '***** Error:',self._action,'is not a recognized action. Use [status|start|stop|reload]'
+        if self._action not in ['status','start','stop','restart','reload']:
+            print '***** Error:',self._action,'is not a recognized action. Use [status|start|stop|restart|reload]'
             print '      Type emuFarmer -h for help.'
             sys.exit(1)
         if self._logLevel not in ['DEBUG','INFO','WARN','ERROR','FATAL']:
@@ -363,8 +363,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # can we do that?
-    if action not in ['status','start','stop','reload']:
-        print '***** Error:',action,'is not a recognized action. Use [status|start|stop]'
+    if action not in ['status','start','stop','restart','reload']:
+        print '***** Error:',action,'is not a recognized action. Use [status|start|stop|restart|reload]'
         print '      Type emuFarmer -h for help.'
         sys.exit(1)
 
@@ -380,6 +380,16 @@ if __name__ == "__main__":
     if action == 'status': sys.exit(0)
     farmer.waitForThreads()
     if re.match('y',raw_input(action+'? [y|n] ')):
-        farmer.act( user,  action , targets, xdaq_root, logLevel )
-        print 'status:'
-        farmer.act( user, 'status', targets, xdaq_root, logLevel )
+        if action == 'restart':
+            farmer.act( user,   'stop', targets, xdaq_root, logLevel )
+            print 'status:'
+            farmer.act( user, 'status', targets, xdaq_root, logLevel )
+            farmer.waitForThreads()
+            print ''
+            farmer.act( user,  'start', targets, xdaq_root, logLevel )
+            print 'status:'
+            farmer.act( user, 'status', targets, xdaq_root, logLevel )
+        else:
+            farmer.act( user,  action , targets, xdaq_root, logLevel )
+            print 'status:'
+            farmer.act( user, 'status', targets, xdaq_root, logLevel )
