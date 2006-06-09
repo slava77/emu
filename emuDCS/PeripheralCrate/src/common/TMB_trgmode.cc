@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_trgmode.cc,v 2.8 2006/04/27 18:46:04 mey Exp $
+// $Id: TMB_trgmode.cc,v 2.9 2006/06/09 12:19:39 mey Exp $
 // $Log: TMB_trgmode.cc,v $
+// Revision 2.9  2006/06/09 12:19:39  mey
+// UPdate
+//
 // Revision 2.8  2006/04/27 18:46:04  mey
 // UPdate
 //
@@ -42,6 +45,7 @@
 //choice = 2 ALCT
 //choice = 3 SCINT
 //choice = 4 DMB
+//choice = 5 CLCT+ALCT
 
 //cable = 1 blue
 //cable = 2 black
@@ -105,7 +109,7 @@ void TMB::trgmode(int choice)
   //tmb_vme(VME_WRITE, lhc_cycle_adr,sndbuf,rcvbuf,NOW); // Maximum bxn
   sndbuf[0]=0x7c;
   sndbuf[1]=0x1f;
-  tmb_vme(VME_WRITE, cfeb_inj_adr,sndbuf,rcvbuf,NOW); //Mask CFEBs
+  //tmb_vme(VME_WRITE, cfeb_inj_adr,sndbuf,rcvbuf,NOW); //Mask CFEBs
   sndbuf[0]=0x01;
   sndbuf[1]=0x1b;
   //tmb_vme(VME_WRITE,0x86,sndbuf,rcvbuf,NOW); // don't touch
@@ -125,6 +129,11 @@ void TMB::trgmode(int choice)
     sndbuf[0]=0x00;
     sndbuf[1]=0x10; 
   }
+  if ( choice ==5 ){
+    sndbuf[0]=0x00;
+    sndbuf[1]=0x04; 
+  }
+  //
   printf("TRGMODE %x %x %x" , 0x68, sndbuf[0], sndbuf[1]); 
   tmb_vme(VME_WRITE,seq_trig_en_adr,sndbuf,rcvbuf,NOW); // Sequencer Trigger Source
 
@@ -176,10 +185,8 @@ void TMB::trgmode(int choice)
   setLogicAnalyzerToDataStream(false);
 
   //
-  // Change PHOS4 setting
-  //
-  //
-   printf (" Setting PHOS4 and slot depending settings on TMB slot .... %2d \n", theSlot);
+  
+  std::cout << " Setting slot depending settings on TMB slot .... " << theSlot <<std::endl;
 
   //L1A window size and pulse delay Chamber 1
    sndbuf[0]=l1a_window_size_ & 0x0f;
