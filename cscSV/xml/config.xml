@@ -27,10 +27,10 @@
         </modesForPC>
         <filesForPC soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
           <item soapenc:position="[0]" xsi:type="xsd:string">
-            /home/slice/configMe2.xml
+            /home/slice/config/configWinter2005ME2.xml
           </item>
           <item soapenc:position="[1]" xsi:type="xsd:string">
-            /home/slice/configMe3.xml
+            /home/slice/config/configWinter2005ME3.xml
           </item>
         </filesForPC>
         <modesForFC soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
