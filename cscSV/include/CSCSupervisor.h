@@ -101,7 +101,7 @@ private:
 
 	private:
 		xoap::MessageReference createStateSOAP(string klass);
-		string extractState(xoap::MessageReference message);
+		string extractState(xoap::MessageReference message, string klass);
 
 		CSCSupervisor *sv_;
 		vector<pair<xdaq::ApplicationDescriptor *, string> > table_;
