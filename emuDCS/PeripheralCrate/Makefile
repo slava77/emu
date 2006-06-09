@@ -130,10 +130,10 @@ TestExecutables= \
 	CrateTiming.cpp \
 	parsemain.cpp \
 	mpc2sp.cpp \
-	testtmbmain.cpp \
 	loadALCT.cpp \
 	loadTMB.cpp \
         resetcc.cpp \
+	testtmbmain.cpp \
         scancrate.cpp
 
 include $(XDAQ_ROOT)/config/Makefile.rules
