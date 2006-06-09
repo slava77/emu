@@ -16,7 +16,7 @@ int main(int argc,char **argv){
 
   // create VME Controller and Crate
   int crateId(0);
-  string ipAddr("02:00:00:00:00:03");
+  string ipAddr("02:00:00:00:00:10");
   int port(3);
   VMEController *dynatem = new VMEController(crateId);
   dynatem->init(ipAddr,port);
@@ -29,8 +29,8 @@ int main(int argc,char **argv){
   ::sleep(1);
 
   // create TMB & ALCT
-  int tmbSlot(16);
-  string chamberType("ME31");
+  int tmbSlot(4);
+  string chamberType("ME11");
   TMB *tmb = new TMB(crateId,tmbSlot);
   //
   cout << "Read Register" << endl;
@@ -70,7 +70,7 @@ int main(int argc,char **argv){
   printf("Programming...");
   //int status;
   //int status = alct->SVFLoad(&jch,"../svf/alct384mirrorrl.svf",debugMode);
-  int status = alct->SVFLoad(&jch,"../svf/alct288rl.svf",debugMode);
+  int status = alct->SVFLoad(&jch,"../svf/alct288fp_rl.svf",debugMode);
   tmb->enableAllClocks();
 
   if (status >= 0){
@@ -85,11 +85,14 @@ int main(int argc,char **argv){
   ccb->configure();
   ::sleep(2);
 
+  /*
+
   alct->alct_read_slowcontrol_id(&sc_id) ;
   std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
   alct->alct_fast_read_id(chipID);
   std::cout << " ALCT Fastcontrol ID " << chipID << std::endl;
 
+  */
 
 #endif
 

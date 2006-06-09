@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.89 2006/06/01 16:05:37 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 2.90 2006/06/09 11:37:50 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -3835,6 +3835,8 @@ private:
     }
     //
     std::cout << "Loading DMBNumber " <<dmbNumber << std::endl ;
+    *out << "Loading DMBNumber " <<dmbNumber ;
+    *out << cgicc::br();
     //
     cgicc::form_iterator name = cgi.getElement("dmb");
     //

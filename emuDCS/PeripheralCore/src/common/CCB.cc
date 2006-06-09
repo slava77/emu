@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.39 2006/06/02 07:48:12 mey Exp $
+// $Id: CCB.cc,v 2.40 2006/06/09 11:38:32 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.40  2006/06/09 11:38:32  mey
+// Update
+//
 // Revision 2.39  2006/06/02 07:48:12  mey
 // Disable TTCrx hardreset
 //
@@ -640,7 +643,7 @@ void CCB::HardResetTTCrx(){
   //
   // Go to FPGA mode
   //
-  setCCBMode(CCB::VMEFPGA);
+  setCCBMode(CCB::DLOG);
   //
   // Hard reset TTCrx....
   //
@@ -651,6 +654,10 @@ void CCB::HardResetTTCrx(){
   //
   ::sleep(1);
   //
+  do_vme(VME_WRITE,CSRB18,sndbuf,rcvbuf,NOW);
+
+  printf(" %x %x \n",rcvbuf[0],rcvbuf[1]);
+  //
   setCCBMode(CCB::DLOG);
   //
 }
@@ -659,14 +666,14 @@ void CCB::ReadTTCrxID(){
   //
   // Go to FPGA mode
   //
-  setCCBMode(CCB::VMEFPGA);
+  setCCBMode(CCB::DLOG);
   //
   // Hardreset TTCrx
   //
   sndbuf[0]=0x00; 
   sndbuf[1]=0x01;
   //
-  do_vme(VME_WRITE,TTCrxReset,sndbuf,rcvbuf,NOW);
+  //do_vme(VME_WRITE,TTCrxReset,sndbuf,rcvbuf,NOW);
   //
   // Wait some time
   usleep(60);
@@ -675,6 +682,9 @@ void CCB::ReadTTCrxID(){
   do_vme(VME_READ,CSRB18,sndbuf,rcvbuf,NOW);
   //
   printf("%02x%02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  //
+  setCCBMode(CCB::DLOG);
+  //
 }
 //
 int CCB::readI2C(){
@@ -863,9 +873,9 @@ void CCB::hardReset() {
   
   ReadRegister(0x0);
 
-  //HardResetTTCrx();
+  HardResetTTCrx();
 
-  sleep(1);
+  ReadTTCrxID();
 
   setCCBMode(CCB::VMEFPGA);
 
