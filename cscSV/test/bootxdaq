@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -xv
 
 ECHO=
 
@@ -76,6 +76,7 @@ stop() {
 RESULT=0
 
 command=$1; shift
+[[ $# -eq 1 ]] && CONFIG=$1
 
 case $command in
 check)   check;;
