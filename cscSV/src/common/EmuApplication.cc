@@ -47,7 +47,11 @@ void EmuApplication::fireEvent(string name) throw (xoap::exception::Exception)
 {
 	toolbox::Event::Reference event((new toolbox::Event(name, this)));
 
-	fsm_.fireEvent(event);
+	try {
+		fsm_.fireEvent(event);
+	} catch (toolbox::fsm::exception::Exception e) {
+		LOG4CPLUS_ERROR(getApplicationLogger(), e.message());
+	}
 }
 
 xoap::MessageReference EmuApplication::createReply(xoap::MessageReference message)
