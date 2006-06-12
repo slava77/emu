@@ -600,12 +600,6 @@ void CSCSupervisor::StateTable::webOutput(xgi::Output *out)
 xoap::MessageReference CSCSupervisor::StateTable::createStateSOAP(
 		string klass)
 {
-	string state_name = "State";
-
-	if (klass == "LTCControl") {
-		state_name = "stateName";
-	}
-
 	xoap::MessageReference message = xoap::createMessage();
 	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
 	envelope.addNamespaceDeclaration("xsi", NS_XSI);
@@ -615,7 +609,7 @@ xoap::MessageReference CSCSupervisor::StateTable::createStateSOAP(
 	xoap::SOAPName properties = envelope.createName(
 			"properties", klass, "urn:xdaq-application:" + klass);
 	xoap::SOAPName parameter = envelope.createName(
-			state_name, klass, "urn:xdaq-application:" + klass);
+			"stateName", klass, "urn:xdaq-application:" + klass);
 	xoap::SOAPName xsitype = envelope.createName("type", "xsi", NS_XSI);
 
 	xoap::SOAPElement properties_e = envelope.getBody()
@@ -631,16 +625,13 @@ xoap::MessageReference CSCSupervisor::StateTable::createStateSOAP(
 
 string CSCSupervisor::StateTable::extractState(xoap::MessageReference message, string klass)
 {
-	string state_name = "State";
-	if (klass == "LTCControl") { state_name = "stateName"; }
-
 	xoap::SOAPElement root = message->getSOAPPart()
 			.getEnvelope().getBody().getChildElements(
 			*(new xoap::SOAPName("ParameterGetResponse", "", "")))[0];
 	xoap::SOAPElement properties = root.getChildElements(
 			*(new xoap::SOAPName("properties", "", "")))[0];
 	xoap::SOAPElement state = properties.getChildElements(
-			*(new xoap::SOAPName(state_name, "", "")))[0];
+			*(new xoap::SOAPName("stateName", "", "")))[0];
 
 	return state.getValue();
 }
