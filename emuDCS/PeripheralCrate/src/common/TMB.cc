@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.64 2006/05/24 09:55:03 mey Exp $
+// $Id: TMB.cc,v 2.65 2006/06/12 12:47:17 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.65  2006/06/12 12:47:17  mey
+// Update
+//
 // Revision 2.64  2006/05/24 09:55:03  mey
 // Added crate counters
 //
@@ -3281,7 +3284,7 @@ void TMB::scan_rx_clock()
 }
 
 */
-
+/*
 void TMB::activecfeb()
 {
 
@@ -3309,7 +3312,7 @@ void TMB::activecfeb()
 //           0=NoDump/1=FullDump/2=LocalDump/3=NoDumpShortHdr/4=NoDumpNoHdr
 
 }
-
+*/
 void TMB::DumpAddress(int address){
   //
   tmb_vme(VME_READ,address,sndbuf,rcvbuf,NOW);
@@ -3347,13 +3350,9 @@ void TMB::toggle_l1req()
 
 }
 
-
+/*
 void TMB::trgmode_bprsq_dmb()
 {
-/* Old TMB:
-  sndbuf[0]=0x01;
-  sndbuf[1]=0x31;
-*/
   sndbuf[0]=0x00;
   sndbuf[1]=0x50;
   tmb_vme(VME_WRITE,0x32,sndbuf,rcvbuf,NOW); 
@@ -3367,7 +3366,7 @@ void TMB::trgmode_bprsq_dmb()
   sndbuf[1]=0x08; //b9
   tmb_vme(VME_WRITE,0x68,sndbuf,rcvbuf,NOW); 
 }
-
+*/
 
 
 

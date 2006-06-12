@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.40 2006/06/09 11:38:32 mey Exp $
+// $Id: CCB.cc,v 2.41 2006/06/12 12:47:17 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.41  2006/06/12 12:47:17  mey
+// Update
+//
 // Revision 2.40  2006/06/09 11:38:32  mey
 // Update
 //
@@ -654,9 +657,11 @@ void CCB::HardResetTTCrx(){
   //
   ::sleep(1);
   //
-  do_vme(VME_WRITE,CSRB18,sndbuf,rcvbuf,NOW);
-
-  printf(" %x %x \n",rcvbuf[0],rcvbuf[1]);
+  do_vme(VME_READ,CSRB18,sndbuf,rcvbuf,NOW);
+  //
+  printf("hardResetTTCrx. %x %x \n",rcvbuf[0],rcvbuf[1]);
+  //
+  if (rcvbuf[0]==0 and rcvbuf[1]==0 ) std::cout << "Failed TTCrxReset" <<std::endl;
   //
   setCCBMode(CCB::DLOG);
   //
@@ -673,15 +678,15 @@ void CCB::ReadTTCrxID(){
   sndbuf[0]=0x00; 
   sndbuf[1]=0x01;
   //
-  //do_vme(VME_WRITE,TTCrxReset,sndbuf,rcvbuf,NOW);
+  do_vme(VME_WRITE,TTCrxReset,sndbuf,rcvbuf,NOW);
   //
   // Wait some time
-  usleep(60);
+  ::sleep(1);
   //
   // Read TTCrx ID number
   do_vme(VME_READ,CSRB18,sndbuf,rcvbuf,NOW);
   //
-  printf("%02x%02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  printf("ReadTTCRxID.%02x%02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   //
   setCCBMode(CCB::DLOG);
   //
@@ -873,9 +878,7 @@ void CCB::hardReset() {
   
   ReadRegister(0x0);
 
-  HardResetTTCrx();
-
-  ReadTTCrxID();
+  //HardResetTTCrx();
 
   setCCBMode(CCB::VMEFPGA);
 
