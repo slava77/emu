@@ -18,6 +18,7 @@ EmuApplication::EmuApplication(xdaq::ApplicationStub *stub)
 
 	state_ = "";
 	getApplicationInfoSpace()->fireItemAvailable("State", &state_);
+	getApplicationInfoSpace()->fireItemAvailable("stateName", &state_);
 
 	LOG4CPLUS_INFO(getApplicationLogger(), "EmuApplication");
 }
