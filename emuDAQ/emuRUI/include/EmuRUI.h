@@ -104,17 +104,22 @@ private:
   };
   std::vector<Client*> clients_;
 
-  std::vector<EmuReader*>             deviceReaders_;	     // vector of device readers
-  unsigned int                        iCurrentDeviceReader_; // index of device reader currently active
-  xdata::UnsignedLong                 nInputDevices_;        // number of input devices
-  xdata::Vector<xdata::String>        inputDeviceNames_;     // vector of input device names (file path or board number)
+  EmuReader*                          deviceReader_;	     // device reader
+  xdata::String                       inputDeviceName_;      // input device name (file path or board number)
+  xdata::String                       hardwareMnemonic_;     // mnemonic name for the piece of hardware to read
+//   std::vector<EmuReader*>             deviceReaders_;	     // vector of device readers
+//   unsigned int                        iCurrentDeviceReader_; // index of device reader currently active
+//   xdata::UnsignedLong                 nInputDevices_;        // number of input devices
+//   xdata::Vector<xdata::String>        inputDeviceNames_;     // vector of input device names (file path or board number)
   xdata::String                       inputDeviceType_;      // spy, slink or file
   xdata::String                       inputDataFormat_;      // "DDU" or "DCC"
   int                                 inputDataFormatInt_;   // EmuReader::DDU or EmuReader::DCC
 
   void createFileWriters();
-  void createDeviceReaders();
-  void destroyDeviceReaders();
+  void createDeviceReader();
+  void destroyDeviceReader();
+//   void createDeviceReaders();
+//   void destroyDeviceReaders();
   void createServers();
   void destroyServers();
   bool createI2OServer( string clientName );
