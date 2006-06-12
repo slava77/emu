@@ -9,9 +9,14 @@ import rcms.fm.app.level1template.MyParameters;
 import rcms.statemachine.definition.Input;
 import rcms.fm.fw.StateEnteredEvent;
 import rcms.fm.fw.user.UserActionException;
+import rcms.fm.resource.QualifiedResourceContainerException;
+
+import rcms.util.logger.RCMSLogger;
 
 public class CSCEventHandler extends UserStateNotificationHandler {
 	
+	private RCMSLogger logger = new RCMSLogger(CSCEventHandler.class);
+
 	private CSCFunctionManager fm;
 	
 	public CSCEventHandler() throws rcms.fm.fw.EventHandlerException {
@@ -33,11 +38,11 @@ public class CSCEventHandler extends UserStateNotificationHandler {
 	}
 
 	public void configureAction(Object o) throws UserActionException {
-		genericAction(o, "Configuring", MyInputs.SETCONFIGURE);
+		xdaqCommandAction(o, "Configuring", MyInputs.SETCONFIGURE, "Configure");
 	}
 	
 	public void startAction(Object o) throws UserActionException {
-		genericAction(o, "Starting", MyInputs.SETSTART);
+		xdaqCommandAction(o, "Starting", MyInputs.SETSTART, "Enable");
 	}
 	
 	public void pauseAction(Object o) throws UserActionException {
@@ -49,7 +54,7 @@ public class CSCEventHandler extends UserStateNotificationHandler {
 	}
 	
 	public void haltAction(Object o) throws UserActionException {
-		genericAction(o, "Halting", MyInputs.SETHALT);
+		xdaqCommandAction(o, "Halting", MyInputs.SETHALT, "Halt");
 	}
 	
 	public void resetAction(Object o) throws UserActionException {
@@ -67,6 +72,26 @@ public class CSCEventHandler extends UserStateNotificationHandler {
 	private void genericAction(Object o, String message, Input input) {
 		if (o instanceof StateEnteredEvent) {
 			fm.getParameterSet().put(MyParameters.ACTION_MSG, message);
+			fm.fireEvent(input);
+		}
+	}
+
+	private void xdaqCommandAction(
+			Object o, String message, Input input, String command)
+			throws UserActionException {
+		if (o instanceof StateEnteredEvent) {
+			fm.getParameterSet().put(MyParameters.ACTION_MSG, message);
+
+			if (!fm.xdaqSupervisor.isEmpty()) {
+				try {
+					fm.xdaqSupervisor.execute(new Input(command));
+					logger.info(command + " executed.");
+				} catch (QualifiedResourceContainerException e) {
+					logger.error(command + " FAILED.", e);
+					throw new UserActionException(command + " FAILED.", e);
+				}
+			}
+
 			fm.fireEvent(input);
 		}
 	}
