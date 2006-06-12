@@ -479,16 +479,22 @@ throw (xgi::exception::Exception)
 
     *out << "<hr/>"                                                    << endl;
 
-    *out << " DAQ is in <a href=\"#states\">" <<  getDAQState()        << endl;
+    string daqState = getDAQState();
+    *out << " DAQ is in <a href=\"#states\">" << daqState              << endl;
     *out << "</a> state."                                              << endl;
-    *out << "<br/>"                                                    << endl;
-    *out << "<br/>"                                                    << endl;
 
 
     // Emu: display event number and max number of events
     string runNumber("unknown");
     string maxNumEvents("unknown");
-    getRunInfoFromTA( &runNumber, &maxNumEvents );
+    string configTime("unknown");
+    getRunInfoFromTA( &runNumber, &maxNumEvents, &configTime );
+
+    if ( daqState != "Halted" )
+      *out << " (Last configured at " << configTime << ")"             << endl;
+    *out << "<br/>"                                                    << endl;
+    *out << "<br/>"                                                    << endl;
+
     *out << "<table border=\"0\">"                                   << endl;
     *out << "<tr valign=\"top\">"                                    << endl;
     *out << "<td>"                                                   << endl;
@@ -768,14 +774,21 @@ throw (xgi::exception::Exception)
 
     *out << "<hr/>"                                                    << endl;
 
-    *out << " DAQ is in <a href=\"#states\">" <<  getDAQState()        << endl;
+    string daqState = getDAQState();
+    *out << " DAQ is in <a href=\"#states\">" << daqState              << endl;
     *out << "</a> state."                                              << endl;
-    *out << "<br/>"                                                    << endl;
-    *out << "<br/>"                                                    << endl;
 
+
+    // Emu: display event number and max number of events
     string runNumber("unknown");
     string maxNumEvents("unknown");
-    getRunInfoFromTA( &runNumber, &maxNumEvents );
+    string configTime("unknown");
+    getRunInfoFromTA( &runNumber, &maxNumEvents, &configTime );
+
+    if ( daqState != "Halted" )
+      *out << " (Last configured at " << configTime << ")"             << endl;
+    *out << "<br/>"                                                    << endl;
+    *out << "<br/>"                                                    << endl;
 
     if ( fsm_.getCurrentState() == 'H' ){
       *out << "Set run number: "                                     << endl;
@@ -826,14 +839,16 @@ throw (xgi::exception::Exception)
       *out << "<br>"                                                 << endl;
     }
     else{
-      *out << "Run number: " << runNumber                            << endl;
-      *out << "<br>"                                                 << endl;
-      *out << "Run type: " << runType_.toString()                    << endl;
-      *out << "<br>"                                                 << endl;
-      *out << "Maximum number of events: " << maxNumEvents           << endl;
-      *out << "<br>"                                                 << endl;
-      *out << "Build events: " << buildEvents_ .toString()           << endl;
-      *out << "<br>"                                                 << endl;
+      *out << "<table border=\"0\" rules=\"none\">"                  << endl;
+      *out << "  <tr><td>Run number:</td><td>" << runNumber;
+      *out << "</td></tr>"                                           << endl;
+      *out << "  <tr><td>Run type:</td><td>" << runType_.toString();
+      *out << "</td></tr>"                                           << endl;
+      *out << "  <tr><td>Maximum number of events:</td><td>" << maxNumEvents;
+      *out << "</td></tr>"                                           << endl;
+      *out << "  <tr><td>Build events:</td><td>" << buildEvents_ .toString();
+      *out << "</td></tr>"                                           << endl;
+      *out << "<table>"                                              << endl;
     }
 
 
@@ -859,6 +874,7 @@ throw (xgi::exception::Exception)
 	}
       
     *out << "</form>"                                                  << endl;
+    *out << "<br>"                                                     << endl;
     *out << "<br>"                                                     << endl;
 
     *out << "<table border=\"0\">"                                   << endl;
@@ -886,7 +902,7 @@ throw (xgi::exception::Exception)
 
 
 
-void EmuDAQManager::getRunInfoFromTA( string* runnum, string* maxevents ){
+void EmuDAQManager::getRunInfoFromTA( string* runnum, string* maxevents, string* configtime ){
     if ( taDescriptors_.size() ){
       if ( taDescriptors_.size() > 1 ){
 	LOG4CPLUS_WARN(logger_,"The embarassment of riches: " << taDescriptors_.size() <<
@@ -908,6 +924,15 @@ void EmuDAQManager::getRunInfoFromTA( string* runnum, string* maxevents ){
       catch(xcept::Exception e)
 	{
 	  LOG4CPLUS_ERROR(logger_,"Failed to get maximum number of events from TA0: " << 
+			  xcept::stdformat_exception_history(e) );
+	}
+      try
+	{
+	  *configtime = getScalarParam(taDescriptors_[0],"runStartTime","string");
+	}
+      catch(xcept::Exception e)
+	{
+	  LOG4CPLUS_ERROR(logger_,"Failed to get time of configuration from TA0: " << 
 			  xcept::stdformat_exception_history(e) );
 	}
     }
@@ -1485,13 +1510,18 @@ void EmuDAQManager::printStatesTable( xgi::Output *out )
       for ( s=allAppStates_.begin(); s!=allAppStates_.end(); ++s )
 	if ( *c == s->first->getContextDescriptor()->getURL() )
 	{
+	  stringstream appName;
+	  appName << s->first->getClassName() << s->first->getInstance();
+	  if ( s->first->getClassName() == "EmuRUI" &&
+	       hardwareMnemonics_.find( s->first->getInstance() ) != hardwareMnemonics_.end() )
+	    appName << "[" << hardwareMnemonics_[s->first->getInstance()] << "]";
 	  *out << "     <span align=\"center\" ";
 	  *out << "style=\"";
 	  *out << "background-color:" << bgcolor[s->second];
 	  *out << "; color:"          << color[s->second];
 	  *out << "; text-decoration:"<< decoration[s->second];
 	  *out << "\">";
-	  *out << " " << s->first->getClassName() << s->first->getInstance() << " ";
+	  *out << " " << appName.str() << " ";
 	  *out << "</span>" << endl;
       }
       *out << "  </td>"                                                 << endl;
@@ -3091,6 +3121,8 @@ vector< vector<string> > EmuDAQManager::getRUIEventCounts()
     try
     {
       name << "EmuRUI" << (*rui)->getInstance();
+      if ( hardwareMnemonics_.find( (*rui)->getInstance() ) != hardwareMnemonics_.end() )
+	name << "[" << hardwareMnemonics_[(*rui)->getInstance()] << "]";
       count = getScalarParam( (*rui), "nEventsRead", "unsignedLong" );
       href  = getHref( *rui );
     }
@@ -3199,7 +3231,7 @@ string EmuDAQManager::getDateTime(){
   struct tm *tm;
 
   time ( &t );
-  tm = localtime ( &t );
+  tm = gmtime ( &t );
 
   stringstream ss;
   ss << setfill('0') << setw(4) << tm->tm_year+1900 << "-"
@@ -3207,9 +3239,35 @@ string EmuDAQManager::getDateTime(){
      << setfill('0') << setw(2) << tm->tm_mday      << " "
      << setfill('0') << setw(2) << tm->tm_hour      << ":"
      << setfill('0') << setw(2) << tm->tm_min       << ":"
-     << setfill('0') << setw(2) << tm->tm_sec;
+     << setfill('0') << setw(2) << tm->tm_sec       << " UTC";
 
   return ss.str();
+}
+
+void EmuDAQManager::getMnemonicNames(){
+  // Loop over EmuRUIs querying their hardware's mnemonic names
+
+  hardwareMnemonics_.clear();
+
+  vector< xdaq::ApplicationDescriptor* >::iterator pos;
+  
+  for(pos = ruiDescriptors_.begin(); pos != ruiDescriptors_.end(); pos++)
+    {
+      stringstream app;
+      int instance = (*pos)->getInstance();
+      app << (*pos)->getClassName() << instance;
+      try
+	{
+	  hardwareMnemonics_[instance] = getScalarParam(*pos,"hardwareMnemonic","string");
+	  LOG4CPLUS_DEBUG(logger_,"Got mnemonic name from " + app.str() + ": " + hardwareMnemonics_[instance] );
+	}
+      catch(xcept::Exception e)
+	{
+	  LOG4CPLUS_ERROR(logger_,
+			  "Failed to get mnemonic name from " << app.str() << ": " 
+			  << xcept::stdformat_exception_history(e) );
+	}
+    }
 }
 
 // Supervisor-specific stuff
@@ -3279,6 +3337,17 @@ void EmuDAQManager::configureAction(toolbox::Event::Reference e)
       {
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		      "Failed to configure EmuDAQ", ex);
+      }
+
+    try
+      {
+	getMnemonicNames();
+      }
+    catch(xcept::Exception ex)
+      {
+	LOG4CPLUS_ERROR(logger_, 
+		       "Failed to get mnemonic names from EmuRUIs: " 
+		       << xcept::stdformat_exception_history(ex) );
       }
 
   LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());

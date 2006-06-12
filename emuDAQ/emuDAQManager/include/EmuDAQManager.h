@@ -225,7 +225,7 @@ private:
 			      vector< vector<string> >  counts ); // Emu
   string getDateTime();
   string ageOfPageClock();
-  void   getRunInfoFromTA( string* runnum, string* maxevents );
+  void   getRunInfoFromTA( string* runnum, string* maxevents, string* configtime );
   vector< pair<xdaq::ApplicationDescriptor*, string> > allAppStates_;
   set<string> contexts_; // all different contexts with apps controlled by EmuDAQManager
   void   createAllAppStatesVector();
@@ -233,6 +233,8 @@ private:
   string getDAQState();
   void   printStatesTable( xgi::Output *out )
     throw (xgi::exception::Exception);
+  void getMnemonicNames();
+  map<int,string> hardwareMnemonics_; // hardwareMnemonics[EmuRUI_instance]
 
     /**
      * Processes the form sent from the control web page.
