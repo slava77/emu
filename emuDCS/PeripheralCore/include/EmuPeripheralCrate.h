@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.90 2006/06/09 11:37:50 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.91 2006/06/12 18:31:47 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -3806,9 +3806,9 @@ private:
     //
     if (thisDMB) {
       //
-      char *out;
+      char *outp;
       //char *name = DMBFirmware_.toString().c_str() ;
-      thisDMB->epromload(MPROM,DMBFirmware_.toString().c_str(),1,out);  // load mprom
+      thisDMB->epromload(MPROM,DMBFirmware_.toString().c_str(),1,outp);  // load mprom
     }
     //
     ::sleep(2);
@@ -3855,23 +3855,21 @@ private:
     //
     if (thisDMB) {
       //
-      char *out;
-      //
       vector<CFEB> thisCFEBs = thisDMB->cfebs();
       if (dmbNumber == -1 ) {
 	for (unsigned int i=0; i<thisCFEBs.size(); i++) {
 	  thisCCB->hardReset();
 	  ::sleep(1);
-	  thisDMB->febpromuser(thisCFEBs[i]);
-	  thisDMB->epromload(thisCFEBs[i].promDevice(),CFEBFirmware_.toString().c_str(),1,out);  // load mprom
+	  char * outp = (char*) thisDMB->febpromuser(thisCFEBs[i]);
+	  thisDMB->epromload(thisCFEBs[i].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
 	  ::sleep(1);
 	  thisCCB->hardReset();
 	}
       } else {
 	thisCCB->hardReset();
 	::sleep(1);
-	thisDMB->febpromuser(thisCFEBs[dmbNumber]);
-	thisDMB->epromload(thisCFEBs[dmbNumber].promDevice(),CFEBFirmware_.toString().c_str(),1,out);  // load mprom
+	char * outp = (char*) thisDMB->febpromuser(thisCFEBs[dmbNumber]);
+	thisDMB->epromload(thisCFEBs[dmbNumber].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
 	::sleep(1);
 	thisCCB->hardReset();
       }
