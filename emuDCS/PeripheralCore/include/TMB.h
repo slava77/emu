@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.42 2006/05/31 09:10:01 rakness Exp $
+// $Id: TMB.h,v 2.43 2006/06/12 12:47:16 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.43  2006/06/12 12:47:16  mey
+// Update
+//
 // Revision 2.42  2006/05/31 09:10:01  rakness
 // Add GetMPCdelay
 //
@@ -216,7 +219,7 @@ public:
   void trgmode_bprsq_clct(int choice);
   void activecfeb();
   void toggle_l1req();
-  void trgmode_bprsq_dmb();
+  //void trgmode_bprsq_dmb();
   void firmwareVersion();
   void setLogicAnalyzerToDataStream(bool yesorno);
   //void tmb_PHOS4_alct(int time=0);

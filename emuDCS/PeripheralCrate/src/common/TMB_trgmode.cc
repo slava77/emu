@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_trgmode.cc,v 2.9 2006/06/09 12:19:39 mey Exp $
+// $Id: TMB_trgmode.cc,v 2.10 2006/06/12 12:47:17 mey Exp $
 // $Log: TMB_trgmode.cc,v $
+// Revision 2.10  2006/06/12 12:47:17  mey
+// Update
+//
 // Revision 2.9  2006/06/09 12:19:39  mey
 // UPdate
 //
@@ -107,31 +110,30 @@ void TMB::trgmode(int choice)
   //sndbuf[0]=0x03;
   //sndbuf[1]=0x9C;
   //tmb_vme(VME_WRITE, lhc_cycle_adr,sndbuf,rcvbuf,NOW); // Maximum bxn
-  sndbuf[0]=0x7c;
-  sndbuf[1]=0x1f;
+  //sndbuf[0]=0x7c;
+  //sndbuf[1]=0x1f;
   //tmb_vme(VME_WRITE, cfeb_inj_adr,sndbuf,rcvbuf,NOW); //Mask CFEBs
-  sndbuf[0]=0x01;
-  sndbuf[1]=0x1b;
-  //tmb_vme(VME_WRITE,0x86,sndbuf,rcvbuf,NOW); // don't touch
+  //sndbuf[0]=0x01;
+  //sndbuf[1]=0x1b;
+  //
+  tmb_vme(VME_READ,0x68,sndbuf,rcvbuf,NOW);
+  //
+  sndbuf[0]=(rcvbuf[0]&0xff);
+  //
   if ( choice ==1 ){
-    sndbuf[0]=0x00;
-    sndbuf[1]=0x01;
+    sndbuf[1]=(rcvbuf[1]&0x10)|0x01;
   }
   if ( choice ==2 ){
-    sndbuf[0]=0x00;
-    sndbuf[1]=0x02; 
+    sndbuf[1]=(rcvbuf[1]&0x10)|0x02; 
   }
   if ( choice ==3 ){
-    sndbuf[0]=0x00;
-    sndbuf[1]=0x20; 
+    sndbuf[1]=(rcvbuf[1]&0x10)|0x20; 
   }
   if ( choice ==4 ){
-    sndbuf[0]=0x00;
-    sndbuf[1]=0x10; 
+    sndbuf[1]=(rcvbuf[1]&0x10)|0x10; 
   }
   if ( choice ==5 ){
-    sndbuf[0]=0x00;
-    sndbuf[1]=0x04; 
+    sndbuf[1]=(rcvbuf[1]&0x10)|0x04; 
   }
   //
   printf("TRGMODE %x %x %x" , 0x68, sndbuf[0], sndbuf[1]); 
