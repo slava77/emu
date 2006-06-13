@@ -84,6 +84,10 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 xoap::MessageReference CSCSupervisor::onConfigure(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
+	runmode_ = (string)config_modes_[0];
+	runnumber_ = 99;
+	nevents_ = 1000;
+
 	fireEvent("Configure");
 
 	return createReply(message);
