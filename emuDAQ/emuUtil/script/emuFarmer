@@ -291,7 +291,7 @@ emuFarmer reloads drivers or launches/kills XDAQ executives specified in a XDAQ 
 
     Options:
         -c    Configuration file's absolute path or URL. (A "mandatory option".)
-        -a    Action [status|start|stop|reload] to take. Default is 'status'.
+        -a    Action [status|start|stop|restart|reload] to take. Default is 'status'.
               'status' prints the process state code reported by 'ps'. (See the ps man pages.)
               'reload' will (re)load the drivers in all nodes running EmuRUIs. Options -l and -t
               have no effect in 'reload'.
@@ -300,13 +300,14 @@ emuFarmer reloads drivers or launches/kills XDAQ executives specified in a XDAQ 
                daq         DAQ column
                ltc         LTCControl
                man         EmuDAQManager
+               fed         EmuFEDCrate or EmuFCrateHyperDAQ
                pc          EmuPeripheralCrate
                sv          CSCSupervisor
                all         any application
               E.g., man+daq will select all executives running DAQManager or DAQ column applications,
               all-ltc will select all executives except the one running LTCControl.
               Default is 'all'.
-        -u    User to run the executives on the remote hosts. Default is 'slice'.
+        -u    User to run the executives on the remote hosts. Default is $USER of the shell where emuFarmer is run.
         -X    XDAQ_ROOT on the remote hosts. Default is $XDAQ_ROOT of the shell where emuFarmer is run.
         -l    XDAQ executives' log level. Default is WARN.
         -h    Print this help.
@@ -327,7 +328,7 @@ if __name__ == "__main__":
     action         = 'status'
     targets        = 'all'
     logLevel       = 'WARN'
-    user           = 'slice'
+    user           = ''
     xdaq_root      = ''
     
     # user's command line options
@@ -347,6 +348,14 @@ if __name__ == "__main__":
         elif sys.argv[i] == '-h':
             printHelp()
             sys.exit(0)
+
+    # user must be known
+    if user == '' and 'USER' not in os.environ:
+        print '***** Error: No user specified. Please use the "-u <user>" option.'
+        print '      Type emuFarmer -h for help.'
+        sys.exit(1)
+    if user == '' and 'USER' in os.environ:
+        user = os.environ['USER']
 
     # XDAQ_ROOT must be known
     if xdaq_root == '' and 'XDAQ_ROOT' not in os.environ:
