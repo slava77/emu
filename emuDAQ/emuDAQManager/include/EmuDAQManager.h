@@ -155,7 +155,7 @@ private:
      * Exported read-only parameter specifying the current state of the
      * application.
      */
-    xdata::String stateName_;
+    // (Moved to EmuApplication)   xdata::String stateName_;
 
     /////////////////////////////////////////////////////
     // End of exported parameters for monitoring       //

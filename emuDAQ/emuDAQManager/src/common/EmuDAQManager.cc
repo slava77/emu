@@ -98,9 +98,6 @@ logger_(Logger::getInstance(generateLoggerName()))
     getAllAppDescriptors();
     createAllAppStatesVector();
 
-//     testConfigured_ = false;
-//     testStarted_    = false;
-
     // Bind web interface
     xgi::bind(this, &EmuDAQManager::css           , "styles.css");
     xgi::bind(this, &EmuDAQManager::defaultWebPage, "Default"   );
@@ -116,7 +113,7 @@ logger_(Logger::getInstance(generateLoggerName()))
     xoap::bind(this, &EmuDAQManager::onDisable,   "Disable",   XDAQ_NS_URI);
     xoap::bind(this, &EmuDAQManager::onHalt,      "Halt",      XDAQ_NS_URI);
     xoap::bind(this, &EmuDAQManager::onQuery,     "Query",     XDAQ_NS_URI);
-    
+
     fsm_.addState('H', "Halted",     this, &EmuDAQManager::stateChanged);
     fsm_.addState('C', "Configured", this, &EmuDAQManager::stateChanged);
     fsm_.addState('E', "Enabled",    this, &EmuDAQManager::stateChanged);
@@ -135,10 +132,6 @@ logger_(Logger::getInstance(generateLoggerName()))
     fsm_.setInitialState('H');
     fsm_.reset();
     
-    state_ = fsm_.getStateName(fsm_.getCurrentState());
-    
-
-
     LOG4CPLUS_INFO(logger_, "End of constructor");
 }
 
@@ -3077,10 +3070,6 @@ throw (xgi::exception::Exception)
 
 void EmuDAQManager::exportMonitoringParams(xdata::InfoSpace *s)
 {
-    stateName_ = "Enabled";
-
-    s->fireItemAvailable("stateName", &stateName_);
-
     // Emu:
     runNumber_         = 0;
     maxNumberOfEvents_ = 0;
