@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.91 2006/06/12 18:31:47 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.92 2006/06/14 12:30:47 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -630,7 +630,7 @@ private:
     //
     //MyController->init();
     //
-    //MyController->configure();
+    MyController->configure();
     //
     std::cout << "Received Message Enable" << std::endl ;
   }
@@ -3860,7 +3860,9 @@ private:
 	for (unsigned int i=0; i<thisCFEBs.size(); i++) {
 	  thisCCB->hardReset();
 	  ::sleep(1);
-	  char * outp = (char*) thisDMB->febpromuser(thisCFEBs[i]);
+	  unsigned short int dword[2];
+	  dword[0]=thisDMB->febpromuser(thisCFEBs[i]);
+	  char * outp=(char *)dword;   // recast dword
 	  thisDMB->epromload(thisCFEBs[i].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
 	  ::sleep(1);
 	  thisCCB->hardReset();
@@ -3868,7 +3870,9 @@ private:
       } else {
 	thisCCB->hardReset();
 	::sleep(1);
-	char * outp = (char*) thisDMB->febpromuser(thisCFEBs[dmbNumber]);
+	unsigned short int dword[2];
+	dword[0]=thisDMB->febpromuser(thisCFEBs[dmbNumber]);
+	char * outp=(char *)dword;   // recast dword
 	thisDMB->epromload(thisCFEBs[dmbNumber].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
 	::sleep(1);
 	thisCCB->hardReset();
