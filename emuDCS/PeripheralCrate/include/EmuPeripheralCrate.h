@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.93 2006/06/15 10:21:06 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.94 2006/06/15 11:06:43 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -4333,9 +4333,14 @@ private:
     *out << cgicc::input().set("type","submit")
       .set("value","Enable/Disable Debug") 
 	 << std::endl ;
-    *out << cgicc::form() << std::endl ;
     //
-    *out << thisCrate->vmeController()->GetDebug() ;
+    if ( thisCrate->vmeController()->GetDebug() == 0 ) {
+      *out << "Debug disabled";
+    } else {
+      *out << "Debug enabled";
+    }
+    //
+    *out << cgicc::form() << std::endl ;
     //
   }
   //
