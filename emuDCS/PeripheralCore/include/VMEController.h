@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.15 2006/05/31 04:54:43 liu Exp $
+// $Id: VMEController.h,v 2.16 2006/06/15 10:21:06 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.16  2006/06/15 10:21:06  mey
+// Update
+//
 // Revision 2.15  2006/05/31 04:54:43  liu
 // Fixed bugs in initialization
 //
@@ -139,8 +142,11 @@ private:
 #else
 
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.15 2006/05/31 04:54:43 liu Exp $
+// $Id: VMEController.h,v 2.16 2006/06/15 10:21:06 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.16  2006/06/15 10:21:06  mey
+// Update
+//
 // Revision 2.15  2006/05/31 04:54:43  liu
 // Fixed bugs in initialization
 //
@@ -244,6 +250,7 @@ public:
   void set_Timeout(int to);
   void set_GrantTimeout(int to);
   void Debug(int dbg) { DEBUG=dbg; }
+  int  GetDebug() { return DEBUG; }
   void set_ErrorServer();
   
 private:

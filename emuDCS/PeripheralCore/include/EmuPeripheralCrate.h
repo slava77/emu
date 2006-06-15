@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.92 2006/06/14 12:30:47 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.93 2006/06/15 10:21:06 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -52,6 +52,7 @@
 
 #include "PeripheralCrateParser.h"
 #include "EmuController.h"
+#include "VMEController.h"
 #include "Crate.h"
 #include "DAQMB.h"
 #include "TMB.h"
@@ -140,6 +141,7 @@ protected:
   std::string RunNumber_;
   std::string MPCBoardID_;
   std::string CCBBoardID_;
+  std::string ControllerBoardID_;
   std::string DMBBoardID_[9];
   std::string TMBBoardID_[9];
   std::string RATBoardID_[9];
@@ -207,6 +209,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::getData20, "getData20");
     xgi::bind(this,&EmuPeripheralCrate::getData21, "getData21");
     //
+    xgi::bind(this,&EmuPeripheralCrate::EnableDisableDebug, "EnableDisableDebug");
     xgi::bind(this,&EmuPeripheralCrate::LoadTMBFirmware, "LoadTMBFirmware");
     xgi::bind(this,&EmuPeripheralCrate::LoadALCTFirmware, "LoadALCTFirmware");
     xgi::bind(this,&EmuPeripheralCrate::ReadTMBRegister, "ReadTMBRegister");
@@ -222,6 +225,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::RATBoardID, "RATBoardID");
     xgi::bind(this,&EmuPeripheralCrate::CCBStatus, "CCBStatus");
     xgi::bind(this,&EmuPeripheralCrate::CCBUtils, "CCBUtils");
+    xgi::bind(this,&EmuPeripheralCrate::ControllerUtils, "ControllerUtils");
     xgi::bind(this,&EmuPeripheralCrate::MPCStatus, "MPCStatus");
     xgi::bind(this,&EmuPeripheralCrate::DMBTests, "DMBTests");
     xgi::bind(this,&EmuPeripheralCrate::DMBUtils, "DMBUtils");
@@ -269,6 +273,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::RunNumber, "RunNumber");
     xgi::bind(this,&EmuPeripheralCrate::MPCBoardID, "MPCBoardID");
     xgi::bind(this,&EmuPeripheralCrate::CCBBoardID, "CCBBoardID");
+    xgi::bind(this,&EmuPeripheralCrate::ControllerBoardID, "ControllerBoardID");
     xgi::bind(this,&EmuPeripheralCrate::LogDMBTestsOutput, "LogDMBTestsOutput");
     xgi::bind(this,&EmuPeripheralCrate::LogOutput, "LogOutput");
     xgi::bind(this,&EmuPeripheralCrate::LogTestSummary, "LogTestSummary");
@@ -352,6 +357,7 @@ public:
     RunNumber_= "0";
     MPCBoardID_ = "-2";
     CCBBoardID_ = "-2";
+    ControllerBoardID_ = "-2";
     for (int i=0; i<9; i++) { DMBBoardID_[i] = "-2" ; TMBBoardID_[i] = "-2" ; RATBoardID_[i] = "-2" ;}
     //
     for(int i=0; i<9;i++) {
@@ -992,12 +998,41 @@ private:
       //
       *out << cgicc::td();
       //
-      char Name[50] ;
-      std::string CCBBoardID =
-	toolbox::toString("/%s/CCBBoardID",getApplicationDescriptor()->getURN().c_str());
+      if(ii==1) {
+	//
+	char Name[50] ;
+	std::string ControllerBoardID =
+	  toolbox::toString("/%s/ControllerBoardID",getApplicationDescriptor()->getURN().c_str());
+	sprintf(Name,"Controller Status");
+	//
+	*out << cgicc::td();
+	*out << "Controller Board ID" ;
+	*out << cgicc::form().set("method","GET").set("action",ControllerBoardID) << std::endl ;
+	*out << cgicc::input().set("type","text").set("name","ControllerBoardID")
+	  .set("value",ControllerBoardID_) << std::endl ;
+	*out << cgicc::form() << std::endl ;
+	*out << cgicc::td();
+	//
+	*out << cgicc::td();
+	//
+	std::string ControllerUtils =
+	  toolbox::toString("/%s/ControllerUtils?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
+	//
+	*out << cgicc::a("Controller Utils").set("href",ControllerUtils) << endl;
+	//
+	*out << cgicc::td();
+	//
+      }
+      //
       int slot = thisCrate->ccb()->slot() ;
-      sprintf(Name,"CCB Status slot=%d",slot);
+      //
       if(slot == ii) {
+	//
+	char Name[50] ;
+	std::string CCBBoardID =
+	  toolbox::toString("/%s/CCBBoardID",getApplicationDescriptor()->getURN().c_str());
+	sprintf(Name,"CCB Status slot=%d",slot);
+	//
 	*out << cgicc::td();
 	*out << "CCB Board ID" ;
 	*out << cgicc::form().set("method","GET").set("action",CCBBoardID) << std::endl ;
@@ -1056,6 +1091,7 @@ private:
 	toolbox::toString("/%s/MPCBoardID",getApplicationDescriptor()->getURN().c_str());
       slot = -1;
       if ( thisMPC ) slot = thisCrate->mpc()->slot() ;
+      char Name[50] ;
       sprintf(Name,"MPC Status slot=%d",slot);
       if(slot == ii) {
 	//
@@ -2595,9 +2631,10 @@ private:
     //
     CCBBoardID_= cgi["CCBBoardID"]->getValue() ;
     //
-    this->Default(in,out);
+    this->CrateConfiguration(in,out);
     //
   }
+  //
   //
   void EmuPeripheralCrate::TmbMPCTest(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -2621,7 +2658,7 @@ private:
     //
     MPCBoardID_= cgi["MPCBoardID"]->getValue() ;
     //
-    this->Default(in,out);
+    this->CrateConfiguration(in,out);
     //
   }
   //
@@ -4266,6 +4303,57 @@ private:
     //
   }
   //
+  void EmuPeripheralCrate::ControllerBoardID(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    ControllerBoardID_= cgi["ControllerBoardID"]->getValue() ;
+    //
+    this->CrateConfiguration(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::ControllerUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //
+    char Name[50] ;
+    sprintf(Name,"Controller Utils slot=%d",thisCCB->slot());
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    *out << cgicc::title(Name) << std::endl;
+    //
+    std::string EnableDisableDebug =
+      toolbox::toString("/%s/EnableDisableDebug",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",EnableDisableDebug)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Enable/Disable Debug") 
+	 << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << thisCrate->vmeController()->GetDebug() ;
+    //
+  }
+  //
+  void EmuPeripheralCrate::EnableDisableDebug(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    if ( thisCrate->vmeController()->GetDebug() == 0 ) {
+      std::cout << "debug 1 " << std::endl;
+      thisCrate->vmeController()->Debug(1);
+    } else {
+      std::cout << "debug 0 " << std::endl;
+      thisCrate->vmeController()->Debug(0);
+    }
+    //
+    this->ControllerUtils(in,out);
+    //
+  }
+  //
   void EmuPeripheralCrate::CCBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
@@ -5240,7 +5328,7 @@ private:
     sprintf(buf,"DMBBoardID_%d",dmb);
     DMBBoardID_[dmb] = cgi[buf]->getValue();
     //
-    this->Default(in,out);
+    this->CrateConfiguration(in,out);
     //
     }
   //
@@ -5264,7 +5352,7 @@ private:
     sprintf(buf,"TMBBoardID_%d",tmb);
     TMBBoardID_[tmb] = cgi[buf]->getValue();
     //
-    this->Default(in,out);
+    this->CrateConfiguration(in,out);
     //
     }
   //
@@ -5288,7 +5376,7 @@ private:
     sprintf(buf,"RATBoardID_%d",rat);
     RATBoardID_[rat] = cgi[buf]->getValue();
     //
-    this->Default(in,out);
+    this->CrateConfiguration(in,out);
     //
     }
   //
@@ -7025,6 +7113,7 @@ private:
     //exit(1);
     //}
     //
+    thisCrate = crateVector[0];
     tmbVector = selector.tmbs(crateVector[0]);
     //
     CrateUtils MyCrateUtils;
