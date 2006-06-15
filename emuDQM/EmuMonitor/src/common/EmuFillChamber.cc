@@ -56,6 +56,8 @@ void EmuLocalPlotter::fill(const CSCEventData& data) {
 	<< "> Chamber ID = "<< ChamberID << " Crate ID = "<< crateID << " DMB ID = " << dmbID);
     }
   }
+  nDMBEvents[ChamberID]++;
+
   string CSCTag(Form("_CSC_%03d_%02d_", crateID, dmbID));
   //	Creating list of histograms for the particular chamber
   map<int, map<string,TH1*> >::iterator h_itr = histos.find(ChamberID);
@@ -97,6 +99,12 @@ void EmuLocalPlotter::fill(const CSCEventData& data) {
     hname = Form("hist/h%sCSC_Efficiency", CSCTag.c_str());
     //		Calculate efficiency of the DMB
     DMBEff = ((float)DMBEvent/(float)(nEvents)*100.0);
+
+//KK
+    DMBEff = (float(nDMBEvents[ChamberID])/float(nEvents)*100.0);
+    DMBEvent = nDMBEvents[ChamberID];
+//KKend
+
     if(nEvents > 0) {
       h[hname]->SetBinContent(2,DMBEff);
       h[hname]->SetBinContent(1,100.0);
@@ -283,7 +291,10 @@ void EmuLocalPlotter::fill(const CSCEventData& data) {
     float ALCTEvent = h[hname]->GetBinContent(3);
     hname = Form("hist/h%sCSC_Efficiency", CSCTag.c_str());
     if(nEvents > 0) {
-      h[hname]->SetBinContent(3, ((float)ALCTEvent/(float)(nEvents)*100.0));
+//KK
+    //h[hname]->SetBinContent(3, ((float)ALCTEvent/(float)(nEvents)*100.0));
+      h[hname]->SetBinContent(1, ((float)ALCTEvent/(float)(nDMBEvents[ChamberID])*100.0));
+//KKend
       h[hname]->SetEntries(nEvents);
     }
 
@@ -549,7 +560,10 @@ void EmuLocalPlotter::fill(const CSCEventData& data) {
     float CLCTEvent = h[hname]->GetBinContent(4);
     hname = Form("hist/h%sCSC_Efficiency", CSCTag.c_str());
     if(nEvents > 0) {
-      h[hname]->SetBinContent(4,((float)CLCTEvent/(float)(nEvents)*100.0));
+//KK
+//      h[hname]->SetBinContent(4,((float)CLCTEvent/(float)(nEvents)*100.0));
+      h[hname]->SetBinContent(2,((float)CLCTEvent/(float)(nDMBEvents[ChamberID])*100.0));
+//KKend
       h[hname]->SetEntries(nEvents);
     }
 
@@ -804,7 +818,10 @@ void EmuLocalPlotter::fill(const CSCEventData& data) {
 	float CFEBEvent = h[hname]->GetBinContent(5);
 	hname = Form("hist/h%sCSC_Efficiency", CSCTag.c_str());
 	if(nEvents > 0) {
-	  h[hname]->SetBinContent(5, ((float)CFEBEvent/(float)(nEvents)*100.0));
+//KK
+//	  h[hname]->SetBinContent(5, ((float)CFEBEvent/(float)(nEvents)*100.0));
+          h[hname]->SetBinContent(3, ((float)CFEBEvent/(float)(nDMBEvents[ChamberID])*100.0));
+//KKend
 	  h[hname]->SetEntries(nEvents);
 	}
 	CheckCFEB = false;
@@ -1042,6 +1059,7 @@ void EmuLocalPlotter::fill(const CSCEventData& data) {
 
   hname = Form("hist/h%sDMB_FEB_unpacked_vs_DAV", CSCTag.c_str());
   h[hname]->Fill(FEBdav,FEBunpacked);
+//  std::cout << "here" << endl;
 
 }
 

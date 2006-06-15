@@ -146,14 +146,16 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 	cnvtitle = cnvtitle + IDTextLong;
 	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),1,1);
 		hname = Form("hist/h%sCSC_Efficiency", ChamberID.Data());
-		h[hname] = new TH1F(TString(hname.c_str()), "", 4, 0, 4); // KK 5->4
+		h[hname] = new TH1F(TString(hname.c_str()), "", 3, 0, 3); // KK 5->3
 		h[hname]->SetYTitle("Efficiency (% of total number of events)");
 		h[hname]->SetMinimum(0.0);
-		///h[hname]->GetXaxis()->SetBinLabel(1,"DDU Events"); // KK
-		h[hname]->GetXaxis()->SetBinLabel(1,"DMB Found");     // KK 2->1
-		h[hname]->GetXaxis()->SetBinLabel(2,"ALCT Found");    // KK 3->2
-		h[hname]->GetXaxis()->SetBinLabel(3,"TMB Found");     // KK 4->3
-		h[hname]->GetXaxis()->SetBinLabel(4,"CFEB Found");    // KK 5->4
+//KK
+		///h[hname]->GetXaxis()->SetBinLabel(1,"DDU Events"); 
+		///h[hname]->GetXaxis()->SetBinLabel(1,"DMB Found");  
+		h[hname]->GetXaxis()->SetBinLabel(1,"ALCT Found");    
+		h[hname]->GetXaxis()->SetBinLabel(2,"TMB Found");     
+		h[hname]->GetXaxis()->SetBinLabel(3,"CFEB Found");    
+//KKend
 		h[hname]->SetFillColor(48);
 		h[hname]->SetOption("histtext");
 		cnv[cnvname]->cd(1);

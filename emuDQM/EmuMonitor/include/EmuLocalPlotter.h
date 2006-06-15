@@ -164,6 +164,9 @@ public:
 
 private:
   void createHTMLNavigation(std:: string path);  
+  void createTreeTemplate(std::string path);
+  void createTreeEngine(std::string path);
+  void createTreePage(std::string path);
 
   bool fListModified;
   string HistoFile;
@@ -177,6 +180,9 @@ private:
   int L1ANumber;
   int BXN;
   int nEvents;
+//KK
+  map<int,int> nDMBEvents;
+//KKend
   
   int DMBEvents;
   int ALCTEvents;
