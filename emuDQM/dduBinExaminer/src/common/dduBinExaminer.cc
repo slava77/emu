@@ -205,7 +205,7 @@ long dduBinExaminer::check(const unsigned short* &buffer, long length){
 			bERROR    |= 0x1;
 			fERROR[20] = true;
 			bERROR    |= 0x100000;
-			cerr<<"\nDDU Header Occurrence = "<<cntDDU_Headers;
+			cerr<<"\nDDU Header Occurrence = "<<cntDDU_Headers<<" Source ID: "<<(((buf_1[0]&0xFF00)>>8)|((buf_1[1]&0xF)<<8));
 			cerr<<"  ERROR 20 "<<sERROR[20]<<endl;
 		}
 
@@ -219,7 +219,7 @@ long dduBinExaminer::check(const unsigned short* &buffer, long length){
 				bERROR|=0x2;
 				fERROR[0] = true;
 				bERROR|=0x1;
-				cerr<<"\n\nDDU Header Occurrence = "<<cntDDU_Headers;
+				cerr<<"\n\nDDU Header Occurrence = "<<cntDDU_Headers<<" Source ID: "<<(((buf_1[0]&0xFF00)>>8)|((buf_1[1]&0xF)<<8));
 				cerr<<"  ERROR 1    "<<sERROR[1]<<endl;
 				fDDU_Header = false;
 
@@ -233,7 +233,7 @@ long dduBinExaminer::check(const unsigned short* &buffer, long length){
 					bCHAMB_ERR[currentChamber] |= 0x20;
 					fCHAMB_ERR[0].insert(currentChamber);
 					bCHAMB_ERR[currentChamber] |= 0x1;
-					cerr<<"\n\nDDU Header Occurrence = "<<cntDDU_Headers;
+					cerr<<"\n\nDDU Header Occurrence = "<<cntDDU_Headers<<" Source ID: "<<(((buf_1[0]&0xFF00)>>8)|((buf_1[1]&0xF)<<8));
 					cerr<<"  ERROR 5    "<<sERROR[5]<<endl;
 				}	// One of DMB Trailers is missing ( or both )
 				fDMB_Header  = false;
@@ -277,7 +277,7 @@ long dduBinExaminer::check(const unsigned short* &buffer, long length){
 			// == Counted extraneous words between last DDU Trailer and this DDU Header
 				fWARNING[0]=true;
 				bWARNING|=0x1;
-				cerr<<"\nDDU Header Occurrence = "<<cntDDU_Headers;
+				cerr<<"\nDDU Header Occurrence = "<<cntDDU_Headers<<" Source ID: "<<(((buf_1[0]&0xFF00)>>8)|((buf_1[1]&0xF)<<8));
 				cerr<<"  WARNING 0 "<<sWARNING[0]<<" "<<DDU_WordsSinceLastTrailer<<" extra 64-bit words"<<endl;
 			}
 
@@ -306,7 +306,7 @@ long dduBinExaminer::check(const unsigned short* &buffer, long length){
 			cntDDU_Headers++;
 			DDU_WordsSinceLastHeader=0; // Reset counter of DDU Words since last DDU Header
 			cout<<"\n----------------------------------------------------------"<<endl;
-			cout<<"DDU  Header Occurrence "<<cntDDU_Headers<<endl;
+			cout<<"DDU  Header Occurrence "<<cntDDU_Headers<<" Source ID: "<<(((buf_1[0]&0xFF00)>>8)|((buf_1[1]&0xF)<<8))<<endl;
 		}
 
 
