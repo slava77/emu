@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 2.9 2006/03/24 14:35:04 mey Exp $
+// $Id: Crate.cc,v 2.10 2006/06/15 16:38:41 rakness Exp $
 // $Log: Crate.cc,v $
+// Revision 2.10  2006/06/15 16:38:41  rakness
+// multiple slot firmware downloading
+//
 // Revision 2.9  2006/03/24 14:35:04  mey
 // Update
 //
@@ -50,7 +53,7 @@
 
 Crate::Crate(int number, VMEController * controller) : 
   theNumber(number),  
-  theModules(27),
+  theModules(28),
   theController(controller) 
 {
   theChambers.clear();

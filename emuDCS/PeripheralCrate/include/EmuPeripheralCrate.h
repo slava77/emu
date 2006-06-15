@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.94 2006/06/15 11:06:43 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.95 2006/06/15 16:38:25 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -122,13 +122,13 @@ protected:
   ALCTController *alct ;
   RAT * rat;
   MPC * thisMPC;
-  ChamberUtilities MyTest[9];
+  ChamberUtilities MyTest[10];
   CrateUtilities myCrateTest;
-  ostringstream CrateTestsOutput[9];
-  ostringstream OutputStringDMBStatus[9];
-  ostringstream OutputStringTMBStatus[9];
-  ostringstream OutputDMBTests[9];
-  ostringstream OutputTMBTests[9];
+  ostringstream CrateTestsOutput[10];
+  ostringstream OutputStringDMBStatus[10];
+  ostringstream OutputStringTMBStatus[10];
+  ostringstream OutputDMBTests[10];
+  ostringstream OutputTMBTests[10];
   std::vector <float> ChartData[100];
   //
   int TMBRegisterValue_;
@@ -142,9 +142,9 @@ protected:
   std::string MPCBoardID_;
   std::string CCBBoardID_;
   std::string ControllerBoardID_;
-  std::string DMBBoardID_[9];
-  std::string TMBBoardID_[9];
-  std::string RATBoardID_[9];
+  std::string DMBBoardID_[10];
+  std::string TMBBoardID_[10];
+  std::string RATBoardID_[10];
   int TMB_, DMB_,RAT_;
   int Counter_;
   bool AutoRefreshTMBCounters_;
@@ -988,7 +988,7 @@ private:
     //
     //*out << cgicc::body().set("bgcolor=yellow");
     //
-    for(int ii=1; ii<22; ii++) {
+    for(int ii=1; ii<28; ii++) {
       //
       *out << cgicc::table().set("border","1");
       //
@@ -3885,45 +3885,56 @@ private:
     }
     //
     DAQMB * thisDMB = dmbVector[dmb];
+    int mindmb = dmb;
+    int maxdmb = dmb+1;
+    if (thisDMB->slot() == 27) { //if DMB slot = 27, loop over each cfeb
+      mindmb = 0;
+      maxdmb = dmbVector.size()-1;
+    }
+    for (dmb=mindmb; dmb<maxdmb; dmb++) {
     //
-    cout << "CFEBLoadFirmware" << endl;
-    //
-    thisCCB->hardReset();
-    //
-    if (thisDMB) {
+      thisDMB = dmbVector[dmb];
       //
-      vector<CFEB> thisCFEBs = thisDMB->cfebs();
-      if (dmbNumber == -1 ) {
-	for (unsigned int i=0; i<thisCFEBs.size(); i++) {
+      cout << "CFEBLoadFirmware - DMB " << dmb << endl;
+      //
+      thisCCB->hardReset();
+      //
+      if (thisDMB) {
+	//
+	vector<CFEB> thisCFEBs = thisDMB->cfebs();
+	if (dmbNumber == -1 ) {
+	  for (unsigned int i=0; i<thisCFEBs.size(); i++) {
+	    std::cout << "loading CFEB firmware for DMB=" << dmb << " CFEB="<< i << std::endl;
+	    thisCCB->hardReset();
+	    ::sleep(1);
+	    unsigned short int dword[2];
+	    dword[0]=thisDMB->febpromuser(thisCFEBs[i]);
+	    char * outp=(char *)dword;   // recast dword
+	    thisDMB->epromload(thisCFEBs[i].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
+	    ::sleep(1);
+	    thisCCB->hardReset();
+	  }
+	} else {
+	  std::cout << "loading CFEB firmware for DMB=" << dmb << " CFEB="<< dmbNumber << std::endl;
 	  thisCCB->hardReset();
 	  ::sleep(1);
 	  unsigned short int dword[2];
-	  dword[0]=thisDMB->febpromuser(thisCFEBs[i]);
+	  dword[0]=thisDMB->febpromuser(thisCFEBs[dmbNumber]);
 	  char * outp=(char *)dword;   // recast dword
-	  thisDMB->epromload(thisCFEBs[i].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
+	  thisDMB->epromload(thisCFEBs[dmbNumber].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
 	  ::sleep(1);
 	  thisCCB->hardReset();
 	}
-      } else {
+	//
 	thisCCB->hardReset();
-	::sleep(1);
-	unsigned short int dword[2];
-	dword[0]=thisDMB->febpromuser(thisCFEBs[dmbNumber]);
-	char * outp=(char *)dword;   // recast dword
-	thisDMB->epromload(thisCFEBs[dmbNumber].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
-	::sleep(1);
-	thisCCB->hardReset();
+	//
       }
-      //
     }
-    //
-    thisCCB->hardReset();
     //
     this->DMBUtils(in,out);
     //
   }
   //
-
   void EmuPeripheralCrate::DMBTurnOn(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -5980,10 +5991,11 @@ private:
     //
     if (alct) {
       //
+      /*      
       std::string ALCTFirmware = FirmwareDir_+"alct/";
       //
       if ( (alct->GetChamberType()).find("ME22") != string::npos ) {
-	ALCTFirmware += "alct384rl.svf";
+      	ALCTFirmware += "alct384rl.svf";
       } else if ( (alct->GetChamberType()).find("ME12") != string::npos ) {
 	ALCTFirmware += "alct384rl.svf";
       } else if ( (alct->GetChamberType()).find("ME13") != string::npos ) {
@@ -6001,6 +6013,7 @@ private:
       }
       //
       ALCTFirmware_ = ALCTFirmware;
+*/
       //
       std::string LoadALCTFirmware =
 	toolbox::toString("/%s/LoadALCTFirmware",getApplicationDescriptor()->getURN().c_str());
@@ -6008,7 +6021,7 @@ private:
       *out << cgicc::form().set("method","GET").set("action",LoadALCTFirmware) << std::endl ;
       *out << cgicc::input().set("type","submit").set("value","Load ALCT Firmware") << std::endl ;
       sprintf(buf,"%d",tmb);
-      *out << ALCTFirmware_.toString() ;
+      //      *out << ALCTFirmware_.toString() ;
       *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
       *out << cgicc::form() << std::endl ;
       //
@@ -6185,43 +6198,77 @@ private:
     }
     //
     TMB * thisTMB = tmbVector[tmb];
-    //
-    alct = thisTMB->alctController();
-    if (!alct) {
-      std::cout << "No ALCT present" << std::endl;
-      return;
+    int mintmb = tmb;
+    int maxtmb = tmb+1;
+    if (thisTMB->slot() == 26) { //if TMB slot = 26, loop over each alct according to its type
+      mintmb = 0;
+      maxtmb = tmbVector.size()-1;
     }
+    std::cout << "Loading ALCT firmware from " << mintmb << " to " << maxtmb << std::endl;
+    for (tmb=mintmb; tmb<maxtmb; tmb++) {
+      thisTMB = tmbVector[tmb];
     //
-    thisCCB->hardReset();
-    //
-    int debugMode(0);
-    int jch(3);
-    //
-    ALCTIDRegister sc_id, chipID ;
-    //
-    printf("Reading IDs...") ;
-    //
-    alct->alct_read_slowcontrol_id(&sc_id) ;
-    std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
-    alct->alct_fast_read_id(chipID);
-    std::cout << " ALCT Fastcontrol ID " << chipID << std::endl;
-    //
-    thisTMB->disableAllClocks();
-    std::cout << "Programming..." << std::endl ;
-    //
-    int status = alct->SVFLoad(&jch,ALCTFirmware_.toString().c_str(),debugMode);
-    thisTMB->enableAllClocks();
-    //
-    if (status >= 0){
-      cout << "=== Programming finished"<< endl;
-      cout << "=== " << status << " Verify Errors  occured" << endl;
+      alct = thisTMB->alctController();
+      if (!alct) {
+	std::cout << "No ALCT present" << std::endl;
+	return;
+      }
+      std::string ALCTFirmware = FirmwareDir_+"alct/";
+      //
+      if ( (alct->GetChamberType()).find("ME22") != string::npos ) {
+	ALCTFirmware += "alct384rl.svf";
+      } else if ( (alct->GetChamberType()).find("ME12") != string::npos ) {
+	ALCTFirmware += "alct384rl.svf";
+      } else if ( (alct->GetChamberType()).find("ME13") != string::npos ) {
+	ALCTFirmware += "alct288rl.svf";
+      } else if ( (alct->GetChamberType()).find("ME21") != string::npos ) {
+	ALCTFirmware += "alct672rl.svf";
+      } else if ( (alct->GetChamberType()).find("ME41") != string::npos ) {
+	ALCTFirmware += "alct672rl.svf";
+      } else if ( (alct->GetChamberType()).find("ME31") != string::npos ) {
+	ALCTFirmware += "alct672mirrorrl.svf";
+      } else if ( (alct->GetChamberType()).find("ME32") != string::npos ) {
+	ALCTFirmware += "alct384mirrorrl.svf";
+      } else if ( (alct->GetChamberType()).find("ME11") != string::npos ) {
+	ALCTFirmware += "alct288fp_rl.svf";
+      }
+      //
+      ALCTFirmware_ = ALCTFirmware;
+      std::cout <<  "Programming ALCT firmware - slot " << thisTMB->slot() 
+		<< " with " << ALCTFirmware_.toString() 
+		<< std::endl;
+      //
+      thisCCB->hardReset();
+      //
+      int debugMode(0);
+      int jch(3);
+      //
+      ALCTIDRegister sc_id, chipID ;
+      //
+      printf("Reading IDs...") ;
+      //
+      alct->alct_read_slowcontrol_id(&sc_id) ;
+      std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
+      alct->alct_fast_read_id(chipID);
+      std::cout << " ALCT Fastcontrol ID " << chipID << std::endl;
+      //
+      thisTMB->disableAllClocks();
+      std::cout << "Programming..." << std::endl ;
+      //
+      int status = alct->SVFLoad(&jch,ALCTFirmware_.toString().c_str(),debugMode);
+      thisTMB->enableAllClocks();
+      //
+      if (status >= 0){
+	cout << "=== Programming finished"<< endl;
+	cout << "=== " << status << " Verify Errors  occured" << endl;
+      }
+      else{
+	cout << "=== Fatal Error. Exiting with " <<  status << endl;
+      }
+      //
+      thisCCB->hardReset();
+      //
     }
-    else{
-      cout << "=== Fatal Error. Exiting with " <<  status << endl;
-    }
-    //
-    thisCCB->hardReset();
-    //
     this->TMBUtils(in,out);
     //
   }
@@ -6824,6 +6871,8 @@ private:
     //
     LogFile << std::endl ;
     //
+    LogFile << "VCC     1 " << std::setw(5) << ControllerBoardID_ << std::endl;
+    //
     for (unsigned int i=0; i<tmbVector.size(); i++) {
       //
       LogFile << "TMB" << std::setw(5) << tmbVector[i]->slot() << std::setw(5) <<
@@ -7252,6 +7301,19 @@ private:
       //
       //
       if ( FoundXML ) { // Processed XML File
+	if ( line.find("VCC") != string::npos ) {	  
+	  //
+	  int slot, boardid;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> slot >> boardid;
+	  std::cout << "VCC.Setting " << slot << " " << boardid << std::endl ;
+	  //
+	  char buf[20];
+	  sprintf(buf,"%d",boardid);
+	  ControllerBoardID_ = buf;
+	}
+	//
 	if ( line.find("TMB ") != string::npos ) {	  
 	  //
 	  int slot, boardid, testResult[20], ratid;
