@@ -183,9 +183,9 @@ class Emu_Farmer:
             if self._action == 'start':
                 remoteCommand = '"(export XDAQ_ROOT='+self._xdaq_root+' && \$XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -h '+host+' -p '+port+' -l '+self._logLevel+' -c '+self._configFileName+' &> /dev/null &)"'
             elif self._action == 'stop':
-                remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ && /-c[ ]+"+self.escapeRegexpSpecialChar(self._configFileName)+"/ { print \$2 }' | xargs -r kill -9\""
+                remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$2 }' | xargs -r kill -9\""
             elif self._action == 'status':
-                remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ && /-c[ ]+"+self.escapeRegexpSpecialChar(self._configFileName)+"/ { print \$7 }'\""
+                remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$7 }'\""
 
             commandLine = 'ssh -2 -f '+self._user+'@'+host+' '+remoteCommand
             hostAndPort = host+':'+port
