@@ -7,13 +7,29 @@
 #include <iomanip>
 #include <iostream>
 
+#include "log4cplus/logger.h"
+#include "log4cplus/consoleappender.h"
+#include "log4cplus/helpers/appenderattachableimpl.h"
+#include "log4cplus/helpers/loglog.h"
+#include "log4cplus/helpers/pointer.h"
+#include "log4cplus/spi/loggingevent.h"
+
+using namespace log4cplus;
+using namespace log4cplus::helpers;
+using namespace log4cplus::spi;
+
 int main(int argc, char **argv) {
   
 //	For time performance	
 	long t0, t1;
 	t0 = time(0);
-  
-	EmuLocalPlotter plotter;
+	Logger logger = Logger::getRoot();  
+	// Initialize log system
+        logger.addAppender(new ConsoleAppender());
+	logger.setLogLevel(INFO_LOG_LEVEL);
+
+
+	EmuLocalPlotter plotter(logger);
 	plotter.book();
 
 	int NumberOfEvents = 20000;
@@ -54,6 +70,14 @@ int main(int argc, char **argv) {
 		i++;
 		short data = *((short *) ddu.data());
 		int status = 0;
+//KK
+                if( ddu.getErrorFlag()==EmuFileReader::Type2 ) status |= 0x8000;
+                if( ddu.getErrorFlag()==EmuFileReader::Type3 ) status |= 0x4000;
+                if( ddu.getErrorFlag()==EmuFileReader::Type4 ) status |= 0x2000;
+                if( ddu.getErrorFlag()==EmuFileReader::Type5 ) status |= 0x1000;
+                if( ddu.getErrorFlag()==EmuFileReader::Type6 ) status |= 0x0800;
+if(status) continue;
+//KKend
 		if ((i>=startEvent) && (i<=(startEvent+NumberOfEvents))) { 
 //			cout << hex << data << endl; 
 			plotter.fill((unsigned char*) ddu.data(), ddu.dataLength(), status);			
