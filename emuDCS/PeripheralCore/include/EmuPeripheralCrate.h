@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.95 2006/06/15 16:38:25 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 2.96 2006/06/16 10:00:23 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1599,7 +1599,7 @@ private:
     //
     *out <<cgicc::td();
     //
-    for(int tmb=0; tmb<tmbVector.size(); tmb++) {
+    for(unsigned int tmb=0; tmb<tmbVector.size(); tmb++) {
       tmbVector[tmb]->GetCounters();
       //
       *out <<cgicc::td();
@@ -1612,7 +1612,7 @@ private:
     //
     for (int count=0; count<23; count++) {
       //*out <<cgicc::tr();
-      for(int tmb=0; tmb<tmbVector.size(); tmb++) {
+      for(unsigned int tmb=0; tmb<tmbVector.size(); tmb++) {
 	*out <<cgicc::td();
 	//
 	if(tmb==0) {
@@ -1661,7 +1661,7 @@ private:
     //
     *out <<cgicc::td();
     //
-    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+    for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       //
       dmbVector[dmb]->readtimingCounter();
       dmbVector[dmb]->readtimingScope();
@@ -1678,7 +1678,7 @@ private:
     *out << dmbVector[0]->CounterName(0);
     *out <<cgicc::td();
     //
-    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+    for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       *out <<cgicc::td();
       *out << dmbVector[dmb]->GetL1aLctCounter() <<std::endl;
       *out <<cgicc::td();
@@ -1689,7 +1689,7 @@ private:
     *out << dmbVector[0]->CounterName(1);
     *out <<cgicc::td();
     //
-    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+    for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       *out <<cgicc::td();
       *out << dmbVector[dmb]->GetCfebDavCounter() <<std::endl;
       *out <<cgicc::td();
@@ -1700,7 +1700,7 @@ private:
     *out << dmbVector[0]->CounterName(2);
     *out <<cgicc::td();
     //
-    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+    for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       *out <<cgicc::td();
       *out << dmbVector[dmb]->GetTmbDavCounter() <<std::endl;
       *out <<cgicc::td();
@@ -1711,7 +1711,7 @@ private:
     *out << dmbVector[0]->CounterName(3);
     *out <<cgicc::td();
     //
-    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+    for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       *out <<cgicc::td();
       *out << dmbVector[dmb]->GetTmbDavCounter() <<std::endl;
       *out <<cgicc::td();
@@ -1722,7 +1722,7 @@ private:
     *out << dmbVector[0]->CounterName(4);
     *out <<cgicc::td();
     //
-    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+    for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       *out <<cgicc::td();
       for( int i=4; i>-1; i--) *out << ((dmbVector[dmb]->GetL1aLctScope()>>i)&0x1) ;
       *out <<cgicc::td();
@@ -1736,7 +1736,7 @@ private:
     *out << dmbVector[0]->CounterName(5);
     *out <<cgicc::td();
     //
-    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+    for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       *out <<cgicc::td();
       for( int i=4; i>-1; i--) *out << ((dmbVector[dmb]->GetCfebDavScope()>>i)&0x1) ;
       *out <<cgicc::td();
@@ -1747,7 +1747,7 @@ private:
     *out << dmbVector[0]->CounterName(6);
     *out <<cgicc::td();
     //
-    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+    for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       *out <<cgicc::td();
       for( int i=4; i>-1; i--) *out << ((dmbVector[dmb]->GetTmbDavScope()>>i)&0x1) ;
       *out <<cgicc::td();
@@ -1758,7 +1758,7 @@ private:
     *out << dmbVector[0]->CounterName(7);
     *out <<cgicc::td();
     //
-    for(int dmb=0; dmb<dmbVector.size(); dmb++) {
+    for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       *out <<cgicc::td();
       for( int i=4; i>-1; i--) *out << ((dmbVector[dmb]->GetAlctDavScope()>>i)&0x1) ;
       *out <<cgicc::td();
