@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.97 2006/06/16 13:05:24 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.98 2006/06/16 16:14:52 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -145,6 +145,7 @@ protected:
   std::string DMBBoardID_[10];
   std::string TMBBoardID_[10];
   std::string RATBoardID_[10];
+  int CFEBid_[10][5];
   int TMB_, DMB_,RAT_;
   int Counter_;
   bool AutoRefreshTMBCounters_;
@@ -359,6 +360,9 @@ public:
     CCBBoardID_ = "-2";
     ControllerBoardID_ = "-2";
     for (int i=0; i<9; i++) { DMBBoardID_[i] = "-2" ; TMBBoardID_[i] = "-2" ; RATBoardID_[i] = "-2" ;}
+    for (int i=0; i<9; i++) 
+      for (int j=0; j<5; j++)
+	CFEBid_[i][j] = -2;
     //
     for(int i=0; i<9;i++) {
       OutputStringDMBStatus[i] << "DMB-CFEB Status " << i << " output:" << std::endl;
@@ -3933,6 +3937,7 @@ private:
 	    ::sleep(1);
 	    unsigned short int dword[2];
 	    dword[0]=thisDMB->febpromuser(thisCFEBs[i]);
+	    CFEBid_[dmb][i] = dword[0];  // fill summary file with user ID value read from this CFEB
 	    char * outp=(char *)dword;   // recast dword
 	    thisDMB->epromload(thisCFEBs[i].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
 	    ::sleep(1);
@@ -3944,6 +3949,7 @@ private:
 	  ::sleep(1);
 	  unsigned short int dword[2];
 	  dword[0]=thisDMB->febpromuser(thisCFEBs[dmbNumber]);
+	  CFEBid_[dmb][dmbNumber] = dword[0];  // fill summary file with user ID value read from this CFEB
 	  char * outp=(char *)dword;   // recast dword
 	  thisDMB->epromload(thisCFEBs[dmbNumber].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
 	  ::sleep(1);
@@ -6897,7 +6903,7 @@ private:
     //
     LogFile << "VCC     1 " << std::setw(5) << ControllerBoardID_ << std::endl;
     //
-    for (unsigned int i=0; i<tmbVector.size(); i++) {
+    for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
       //
       LogFile << "TMB" << std::setw(5) << tmbVector[i]->slot() << std::setw(5) <<
 	TMBBoardID_[i] << std::setw(5) << RATBoardID_[i] <<std::setw(5) <<
@@ -6930,7 +6936,7 @@ private:
     for(int i=0; i<20; i++) LogFile << "-";
     LogFile << std::endl ;
     //
-    for (unsigned int i=0; i<dmbVector.size(); i++) {
+    for (unsigned int i=0; i<(dmbVector.size()<9?dmbVector.size():9) ; i++) {
       //
       LogFile << "DMB " << std::setw(5) << dmbVector[i]->slot() << std::setw(5) <<
 	DMBBoardID_[i] ;
@@ -6939,6 +6945,18 @@ private:
       //
     }
     //
+    LogFile << std::endl;
+    //
+    for (unsigned int dmbctr=0; dmbctr<(dmbVector.size()<9?dmbVector.size():9) ; dmbctr++) {
+      DAQMB * thisDMB = dmbVector[dmbctr];
+      vector<CFEB> thisCFEBs = thisDMB->cfebs();
+      for (unsigned int cfebctr=0; cfebctr<thisCFEBs.size(); cfebctr++) {
+	LogFile << "CFEBid " << std::setw(5) << dmbctr 
+		<< std::setw(5) << cfebctr 
+		<< std::setw(5) << CFEBid_[dmbctr][cfebctr] 
+		<< std::endl;
+      }
+    }
     LogFile << std::endl;
     //
     for(int i=0; i<20; i++) LogFile << "+";
@@ -6957,7 +6975,7 @@ private:
     for(int i=0; i<20; i++) LogFile << "-";
     LogFile << std::endl ;
 
-    for (unsigned int i=0; i<tmbVector.size(); i++) {
+    for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
       //
       LogFile << "cfeb0delay " << std::setw(5) << i 
 	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(0)
@@ -7443,7 +7461,9 @@ private:
 		   >> testResult[18] 
 		   >> testResult[19] ;
 	  //
-	  std::cout << "DMB.Setting " << nDMB << " " << boardid << " " << testResult[0] <<  " " << testResult[1] << std::endl ;
+	  std::cout << "DMB.Setting " << nDMB << " " << boardid 
+		    << "slot " << slot 
+		    << " " << testResult[0] <<  " " << testResult[1] << std::endl ;
 	  //
 	  char buf[20];
 	  sprintf(buf,"%d",boardid);
@@ -7454,6 +7474,21 @@ private:
 	  }
 	  //
 	  nDMB++;
+	  //
+	}
+	//
+	if ( line.find("CFEBid") != string::npos ) {
+	  //
+	  int vectorId, CFEBnum, cfebID;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorId >> CFEBnum >> cfebID;
+	  std::cout << "CFEB.Setting DMB " << vectorId 
+		    << " CFEB " << CFEBnum 
+		    << " -> ID number = " << cfebID 
+		    << std::endl ;
+	  //
+	  CFEBid_[vectorId][CFEBnum]=cfebID;
 	  //
 	}
 	//
