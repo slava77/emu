@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.96 2006/06/16 10:00:23 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.97 2006/06/16 13:05:24 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -620,13 +620,18 @@ private:
     //MyController->configure();
     //
     std::cout << "Configure" << std::endl ;
+    LOG4CPLUS_INFO(getApplicationLogger(), "Configure");
+    //
     std::cout << xmlFile_.toString() << std::endl;
+    LOG4CPLUS_INFO(getApplicationLogger(), xmlFile_.toString());
     //
     //sleep(3);
     //
     // reply to caller
     //
     std::cout << "Received Message Configure" << std::endl ;
+    LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Configure");
+    //
   }
 
   //
@@ -639,6 +644,7 @@ private:
     MyController->configure();
     //
     std::cout << "Received Message Enable" << std::endl ;
+    LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Enable");
   }
 
   //
@@ -647,6 +653,7 @@ private:
   {
     // do nothing
     std::cout << "Received Message Disable" << std::endl ;
+    LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Disable");
   }
 
   //
@@ -655,6 +662,7 @@ private:
   {
     // do nothing
     std::cout << "Received Message Halt" << std::endl ;
+    LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Halt");
   }
 
   //
@@ -682,12 +690,11 @@ private:
     //MyController->configure();
     //
     std::cout << "Configure" << std::endl ;
+    LOG4CPLUS_INFO(getApplicationLogger(), "Configure");
     //
     //sleep(3);
     //
     // reply to caller
-    //
-    std::cout << "Received Message Configure" << std::endl ;
     //
     //fireEvent("Configure");
     //
@@ -714,6 +721,7 @@ private:
     // reply to caller
     //
     std::cout << "Received Message Init" << std::endl ;
+    LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Init");
     //
     xoap::MessageReference reply = xoap::createMessage();
     xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
@@ -729,12 +737,13 @@ private:
     //enable();
     //
     std::cout << "Enable" << std::endl ;
+    LOG4CPLUS_INFO(getApplicationLogger(), "Enable");
     //
-    //sleep(3);
     //
     // reply to caller
     //
     std::cout << "Received Message Enable" << std::endl ;
+    LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Enable");
     //
     xoap::MessageReference reply = xoap::createMessage();
     xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
@@ -749,12 +758,14 @@ private:
     //disable();
     //
     std::cout << "Disable" << std::endl ;
+    LOG4CPLUS_INFO(getApplicationLogger(), "Disable");
     //
     ::sleep(3);
     //
     // reply to caller
     //
     std::cout << "Received Message Disable" << std::endl ;
+    LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Disable");
     //
     xoap::MessageReference reply = xoap::createMessage();
     xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
@@ -1888,6 +1899,7 @@ private:
       Counter_ = cgi["counter"]->getIntegerValue();
     } else {
       cout << "No counter" << endl;
+      LOG4CPLUS_INFO(getApplicationLogger(), "no counters");
     }
     //
     ChartData[Counter_].clear();
@@ -2555,6 +2567,7 @@ private:
     throw (xgi::exception::Exception)
   {
     cout << "Init System" << endl ;
+    LOG4CPLUS_INFO(getApplicationLogger(), "Init System");
     //
     MyController->configure();          // Init system
     //
@@ -2581,6 +2594,7 @@ private:
   {
     //
     cout << "Init Chamber" << endl ;
+    LOG4CPLUS_INFO(getApplicationLogger(), "Init Chamber");
     //
     cgicc::Cgicc cgi(in);
     //
@@ -2688,6 +2702,7 @@ private:
     //
     RunNumber_= cgi["RunNumber"]->getValue() ;
     std::cout << "RunNumber " << RunNumber_ << std::endl ;
+    LOG4CPLUS_INFO(getApplicationLogger(), "RunNumber");
     //
     this->Default(in,out);
   }
@@ -3337,6 +3352,7 @@ private:
   {
     //
     cout << "ALCTTiming" << endl;
+    LOG4CPLUS_INFO(getApplicationLogger(), "ALCTTiming");
     //
     cgicc::Cgicc cgi(in);
     //
@@ -3384,6 +3400,7 @@ private:
   {
     //
     cout << "Automatic" << endl;
+    LOG4CPLUS_INFO(getApplicationLogger(), "Automatic");
     //
     cgicc::Cgicc cgi(in);
     //
@@ -3431,6 +3448,7 @@ private:
   {
     //
     cout << "CFEBTiming" << endl;
+    LOG4CPLUS_INFO(getApplicationLogger(), "CFEBTiming");
     //
     cgicc::Cgicc cgi(in);
     //
@@ -3478,6 +3496,7 @@ private:
   {
     //
     cout << "TMBL1aTiming" << endl;
+    LOG4CPLUS_INFO(getApplicationLogger(), "TMBL1aTiming");
     //
     cgicc::Cgicc cgi(in);
     //
@@ -3523,6 +3542,7 @@ private:
   {
     //
     cout << "ALCTL1aTiming" << endl;
+    LOG4CPLUS_INFO(getApplicationLogger(), "ALCTL1aTiming");
     //
     cgicc::Cgicc cgi(in);
     //
@@ -3568,6 +3588,7 @@ private:
   {
     //
     cout << "ALCTvpf" << endl;
+    LOG4CPLUS_INFO(getApplicationLogger(), "ALCTvpf");
     //
     cgicc::Cgicc cgi(in);
     //
@@ -3611,6 +3632,7 @@ private:
   {
     //
     cout << "ALCTScan" << endl;
+    LOG4CPLUS_INFO(getApplicationLogger(), "ALCTScan");
     //
     cgicc::Cgicc cgi(in);
     //
@@ -3655,6 +3677,7 @@ private:
   {
     //
     cout << "CFEBScan" << endl;
+    LOG4CPLUS_INFO(getApplicationLogger(), "CFEBScan");
     //
     cgicc::Cgicc cgi(in);
     //
@@ -3700,6 +3723,7 @@ private:
   {
     //
     cout << "FindWinner" << endl;
+    LOG4CPLUS_INFO(getApplicationLogger(), "FindWinner");
     //
     cgicc::Cgicc cgi(in);
     //
