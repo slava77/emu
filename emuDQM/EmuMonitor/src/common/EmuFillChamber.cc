@@ -1,7 +1,7 @@
 #include "EmuLocalPlotter.h"
 
 //	Filling of chamber's histogram
-void EmuLocalPlotter::fill(const CSCEventData& data) {
+void EmuLocalPlotter::fill(const CSCEventData& data, int dduID=0) {
   stringstream stname;
   string hname;
   int i;
@@ -90,26 +90,27 @@ void EmuLocalPlotter::fill(const CSCEventData& data) {
 
     hname = Form("hist/h%sCSC_Rate", CSCTag.c_str());
     //		Set total number of events to first bin (just for academic purpose)
-    h[hname]->SetBinContent(1,nEvents);
+    // h[hname]->SetBinContent(1,nEvents);
     //		Add this DMB-event to second bin
-    h[hname]->Fill(1);
+    // h[hname]->Fill(1);
     //		Take total number of events correcponding to this particular DMB
-    DMBEvent = (float)(h[hname]->GetBinContent(2));
+    // DMBEvent = (float)(h[hname]->GetBinContent(2));
 
     hname = Form("hist/h%sCSC_Efficiency", CSCTag.c_str());
     //		Calculate efficiency of the DMB
-    DMBEff = ((float)DMBEvent/(float)(nEvents)*100.0);
+    // DMBEff = ((float)DMBEvent/(float)(nEvents)*100.0);
 
 //KK
     DMBEff = (float(nDMBEvents[ChamberID])/float(nEvents)*100.0);
     DMBEvent = nDMBEvents[ChamberID];
 //KKend
-
+    /*
     if(nEvents > 0) {
       h[hname]->SetBinContent(2,DMBEff);
       h[hname]->SetBinContent(1,100.0);
       h[hname]->SetEntries(nEvents);
     }
+    */
     if(DMBEff > 1.0) {
       if(debug_printout) LOG4CPLUS_DEBUG(logger_, "+++debug> ERROR: Chamber (ID=" << ChamberID  << ") has efficiency " 
 	<< DMBEff << " which is greater than 1");
@@ -277,9 +278,14 @@ void EmuLocalPlotter::fill(const CSCEventData& data) {
     alctsDatas.push_back( L1MuCSCAnodeLCT(alctHeader.alct1Word()) );
     //KK end
     */
-    vector<CSCALCTDigi> alctsDatas = alctHeader.ALCTDigis();
-    //		alctsDatas.push_back( CSCALCTDigi(alctHeader.alct0Word()) );
-    //                alctsDatas.push_back( CSCALCTDigi(alctHeader.alct1Word()) );
+    vector<CSCALCTDigi> alctsDatasTmp = alctHeader.ALCTDigis();
+    vector<CSCALCTDigi> alctsDatas;
+
+    for (int lct=0; lct<alctsDatasTmp.size(); lct++) {
+        if (alctsDatasTmp[lct].isValid())
+        alctsDatas.push_back(alctsDatasTmp[lct]);
+    }
+
 
 
 
@@ -454,9 +460,13 @@ void EmuLocalPlotter::fill(const CSCEventData& data) {
     alctsDatas.push_back( L1MuCSCAnodeLCT(alctHeader.alct1Word()) );
     //KK end
     */
-    vector<CSCALCTDigi> alctsDatas = alctHeader.ALCTDigis();
-    // alctsDatas.push_back( CSCALCTDigi(alctHeader.alct0Word()) );
-    // alctsDatas.push_back( CSCALCTDigi(alctHeader.alct1Word()) );
+    vector<CSCALCTDigi> alctsDatasTmp = alctHeader.ALCTDigis();
+    vector<CSCALCTDigi> alctsDatas;
+
+    for (int lct=0; lct<alctsDatasTmp.size(); lct++) {
+        if (alctsDatasTmp[lct].isValid())
+        alctsDatas.push_back(alctsDatasTmp[lct]);
+    }
 
 
     CSCTMBData tmbData = data.tmbData();
@@ -521,7 +531,13 @@ void EmuLocalPlotter::fill(const CSCEventData& data) {
        clctsDatas.push_back(clct1);
     */
 
-    vector<CSCCLCTDigi> clctsDatas = tmbHeader.CLCTDigis();
+    vector<CSCCLCTDigi> clctsDatasTmp = tmbHeader.CLCTDigis();
+    vector<CSCCLCTDigi> clctsDatas;
+
+    for (int lct=0; lct<clctsDatasTmp.size(); lct++) {    
+	if (clctsDatasTmp[lct].isValid())
+	clctsDatas.push_back(clctsDatasTmp[lct]);
+    }
 		
     /*
       CSCCLCTDigi clct0(tmbHeader.clct0Word());
@@ -718,7 +734,8 @@ void EmuLocalPlotter::fill(const CSCEventData& data) {
 	bool CheckLayerCLCT = true;
 	vector<CSCComparatorDigi> compOutData = clctData.comparatorDigis(nLayer);
 	for (vector<CSCComparatorDigi>:: iterator compOutDataItr = compOutData.begin(); compOutDataItr != compOutData.end(); ++compOutDataItr) {
-	  int hstrip = compOutDataItr->getStrip();
+		// =VB= Fix to get right hafstrip
+	  int hstrip = 2*compOutDataItr->getStrip()+compOutDataItr->getComparator();
 	  int tbin_clct = (int)compOutDataItr->getTimeBin();
 	  if(CheckLayerCLCT) {
 	    NumberOfLayersWithHitsInCLCT = NumberOfLayersWithHitsInCLCT + 1;
@@ -978,8 +995,8 @@ void EmuLocalPlotter::fill(const CSCEventData& data) {
     //		Number of Clusters Histograms
     hname = Form("hist/h%sCFEB_Number_of_Clusters_Ly_%d", CSCTag.c_str(), nLayer);
     if(Clus.size() != 0) h[hname]->Fill(Clus.size());
-
     for(unsigned int u=0;u<Clus.size();u++){
+	/*
       if(DebugCFEB) LOG4CPLUS_DEBUG(logger_, "Chamber: "<< ChamberID  << " Cluster: " << u+1
 		<< " Number of local Maximums " <<  Clus[u].localMax.size());
       for(unsigned int t=0;t<Clus[u].localMax.size();t++){
@@ -1005,6 +1022,7 @@ void EmuLocalPlotter::fill(const CSCEventData& data) {
 	  }
 	}
       }
+	
       Clus_Sum_Charge = 0.0;
       for(unsigned int k=0;k<Clus[u].ClusterPulseMapHeight.size();k++) {
 	if(DebugCFEB) LOG4CPLUS_DEBUG(logger_, "Strip: " << Clus[u].ClusterPulseMapHeight[k].channel_+1);
@@ -1012,13 +1030,6 @@ void EmuLocalPlotter::fill(const CSCEventData& data) {
 	//				hname = Form("Chamber_%d_Strip_Occupancy_Ly_%d", ChamberID, nLayer);
 	//				h[hname]->Fill(Clus[u].ClusterPulseMapHeight[k].channel_+1);
 
-	/*
-	if(DebugCFEB) {
-	  for(unsigned int n=0;n<16;n++){
-	    cout << " " << Clus[u].ClusterPulseMapHeight[k].height_[n];
-	  }
-	}
-	*/
 
 	for(unsigned int n=Clus[u].LFTBNDTime; n < Clus[u].IRTBNDTime; n++){
 	  Clus_Sum_Charge = Clus_Sum_Charge + Clus[u].ClusterPulseMapHeight[k].height_[n];
@@ -1034,6 +1045,7 @@ void EmuLocalPlotter::fill(const CSCEventData& data) {
 	  }
 	}
       }
+	*/
       //			Clusters Charge Histograms
       hname = Form("hist/h%sCFEB_Clusters_Charge_Ly_%d", CSCTag.c_str(), nLayer);
       h[hname]->Fill(Clus_Sum_Charge);

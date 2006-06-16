@@ -6,7 +6,7 @@
   <i2o:target class="EmuDisplayServer" instance="0" tid="30"/>
 </i2o:protocol>
 
-<xc:Context url="http://cms-hv02.phys.ufl.edu:44000">
+<xc:Context url="http://cms-dqm03.phys.ufl.edu:44000">
 
   <!-- Edit access rights in ${XDAQ_ROOT}/daq/xaccess/etc/htaccess -->
 
@@ -32,7 +32,9 @@
 	<readoutMode xsi:type="xsd:string">internal</readoutMode>
       <!-- The input devices [ file name | /dev/scharN | Slink board ]-->
       <inputDeviceType xsi:type="xsd:string">file</inputDeviceType>
-      <inputDeviceName xsi:type="xsd:string">/csc_data/RunNum1008Evs0to49999.bin</inputDeviceName>
+      <!-- <inputDeviceName xsi:type="xsd:string">/csc_data/RunNum1008Evs0to49999.bin</inputDeviceName> -->
+      <!-- <inputDeviceName xsi:type="xsd:string">/csc_data/RunNum1061Evs0to9999.bin</inputDeviceName> -->
+      <inputDeviceName xsi:type="xsd:string">/csc_data/RunNum028c.bin</inputDeviceName> 
       <!-- The data format [ DDU | DCC ] -->
       <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
       <!-- <committedPoolSize xsi:type="xsd:unsignedLong">100</committedPoolSize> -->
@@ -54,7 +56,8 @@
     </properties>
  </xc:Application>
  <xc:Module>/home/dqm/TriDAS/emu/emuDQM/EmuMonitor/lib/linux/x86/libEmuMonitor.so</xc:Module>
-  <xc:Application class="EmuDisplayServer" id="10" instance="0" network="local">
+
+  <xc:Application class="EmuDisplayServer" id="20" instance="0" network="local">
   <properties xmlns="urn:xdaq-application:EmuDisplayServer" xsi:type="soapenc:Struct">
   </properties>
   </xc:Application>

@@ -5,11 +5,28 @@
 #include <iomanip>
 #include <iostream>
 
+#include "log4cplus/logger.h"
+#include "log4cplus/consoleappender.h"
+#include "log4cplus/helpers/appenderattachableimpl.h"
+#include "log4cplus/helpers/loglog.h"
+#include "log4cplus/helpers/pointer.h"
+#include "log4cplus/spi/loggingevent.h"
+
+using namespace log4cplus;
+using namespace log4cplus::helpers;
+using namespace log4cplus::spi;
+
+
 int main(int argc, char **argv) {
   
 //	For time performance	
 	long t0, t1;
 	t0 = time(0);
+
+	Logger logger = Logger::getRoot();
+        // Initialize log system
+        logger.addAppender(new ConsoleAppender());
+        logger.setLogLevel(DEBUG_LOG_LEVEL);
   
 	EmuLocalPlotter plotter;
 	plotter.book();

@@ -11,8 +11,8 @@
 // RCS Current Revision Record
 //-----------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/include/ConsumerCanvas.hh,v $
-// $Revision: 1.2 $
-// $Date: 2006/03/09 00:17:06 $
+// $Revision: 1.3 $
+// $Date: 2006/06/16 20:58:02 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $
@@ -22,8 +22,8 @@
 #ifndef CONSUMERCANVAS_HH
 #define CONSUMERCANVAS_HH 1
 
-#define DEF_CANVAS_WIDTH 1024
-#define DEF_CANVAS_HEIGHT 768
+#define DEF_CANVAS_WIDTH 1280 
+#define DEF_CANVAS_HEIGHT 1024
 
 #include "TCanvas.h"
 

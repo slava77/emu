@@ -13,6 +13,7 @@
 #include "log4cplus/helpers/loglog.h"
 #include "log4cplus/helpers/pointer.h"
 #include "log4cplus/spi/loggingevent.h"
+#include "coloredlayout.h"
 
 using namespace log4cplus;
 using namespace log4cplus::helpers;
@@ -25,22 +26,24 @@ int main(int argc, char **argv) {
 	t0 = time(0);
 	Logger logger = Logger::getRoot();  
 	// Initialize log system
-        logger.addAppender(new ConsoleAppender());
-	logger.setLogLevel(INFO_LOG_LEVEL);
+        SharedAppenderPtr appender(new ConsoleAppender());
+	appender->setLayout( std::auto_ptr<Layout>(new SimpleColoredLayout()) );
+        logger.addAppender(appender);
+	logger.setLogLevel(DEBUG_LOG_LEVEL);
 
 
 	EmuLocalPlotter plotter(logger);
 	plotter.book();
 
-	int NumberOfEvents = 20000;
+	int NumberOfEvents = 1000000;
 	int startEvent = 0;
 	string datafile = "";
-  	string histofile = "dqm_stnd.root";
+  	string histofile = "dqm_results.root";
         // EmuFileReader ddu; //( inputDeviceName_.toString(), inputDataFormatInt_ );
 	// FileReaderDDU ddu;
-	// int dduCheckMask=0xFFFFDFFF;
+	int dduCheckMask=0xFFFFDFFF;
 	int binCheckMask=0xFFFFFFFF;
-	int dduCheckMask = 0x0;
+	// int dduCheckMask = 0x0;
 //	int binCheckMask = 0x0;
 	switch (argc) {
 		case 7: binCheckMask = atoi(argv[7]);	
@@ -51,7 +54,8 @@ int main(int argc, char **argv) {
 		case 2:	datafile = argv[1];
 		break;
 	}
-	
+
+	plotter.SetHistoFile(histofile.c_str());	
 	if (dduCheckMask >= 0) {
         	plotter.SetDDUCheckMask(dduCheckMask);
 	}
@@ -60,10 +64,12 @@ int main(int argc, char **argv) {
 	}
 	plotter.SetDDU2004(1);
 	
-	if(debug_printout) cout << "D**MonitorTest> Opening file " << datafile << " from event = " << startEvent << " to event = " << NumberOfEvents << endl;
+	if(debug_printout)  
+		LOG4CPLUS_WARN (logger,  "Opening file " << datafile << " from event = " << startEvent 
+			<< " to event = " << NumberOfEvents);
 	EmuFileReader ddu(datafile.c_str(), EmuReader::DDU);
 	ddu.open(datafile.c_str());
-	if(debug_printout) cout << "D**MonitorTest> File " << datafile << " is opened" << endl;
+	if(debug_printout)  LOG4CPLUS_WARN (logger, "File " << datafile << " is opened");
 	int i=0;
 
 	while (ddu.readNextEvent()) {
@@ -80,8 +86,12 @@ if(status) continue;
 //KKend
 		if ((i>=startEvent) && (i<=(startEvent+NumberOfEvents))) { 
 //			cout << hex << data << endl; 
-			plotter.fill((unsigned char*) ddu.data(), ddu.dataLength(), status);			
-			if(debug_printout) cout << "***debug>  Event#"<< dec << i<< " **** Buffer size: " << ddu.dataLength() << " bytes" << endl;
+			// plotter.fill((unsigned char*) ddu.data(), ddu.dataLength(), status);			
+			if(debug_printout) 
+			LOG4CPLUS_WARN (logger, "Event#"<< dec << i<< " **** Buffer size: " << ddu.dataLength() << " bytes");
+			plotter.fill((unsigned char*) ddu.data(), ddu.dataLength(), status);
+			if (i%20000 == 0)
+                                plotter.save(histofile.c_str());
 		}
 	
 		
@@ -90,10 +100,11 @@ if(status) continue;
 
 
 	t1 = time(0);
-        cout << "Total time: " << t1-t0 << endl;
+        LOG4CPLUS_WARN (logger, "Total time: " << t1-t0);
 
-	cout << "Events: " << i << endl;
+	LOG4CPLUS_WARN (logger, "Events: " << i);
 	plotter.save(histofile.c_str());
+	plotter.SaveImages("images", "png" , 1600, 1200);
 	ddu.close();
 
 	// delete plotter;
