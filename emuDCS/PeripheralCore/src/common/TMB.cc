@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.65 2006/06/12 12:47:17 mey Exp $
+// $Id: TMB.cc,v 2.66 2006/06/16 13:05:24 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.66  2006/06/16 13:05:24  mey
+// Got rid of Compiler switches
+//
 // Revision 2.65  2006/06/12 12:47:17  mey
 // Update
 //
@@ -1265,6 +1268,9 @@ void TMB::scope(int scp_arm,int scp_readout, int scp_channel) {
       printf("Waiting for scope to trigger %ld\n",i);
      }
      (*MyOutput_) << "Scope never triggered" << std::endl;
+     //
+     SendOutput("Scope never triggered");
+     //
      goto END;
      
      //Read back embedded scope data
