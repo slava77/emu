@@ -1022,7 +1022,7 @@ void EmuLocalPlotter::fill(const CSCEventData& data, int dduID=0) {
 	  }
 	}
       }
-	
+*/	
       Clus_Sum_Charge = 0.0;
       for(unsigned int k=0;k<Clus[u].ClusterPulseMapHeight.size();k++) {
 	if(DebugCFEB) LOG4CPLUS_DEBUG(logger_, "Strip: " << Clus[u].ClusterPulseMapHeight[k].channel_+1);
@@ -1033,6 +1033,7 @@ void EmuLocalPlotter::fill(const CSCEventData& data, int dduID=0) {
 
 	for(unsigned int n=Clus[u].LFTBNDTime; n < Clus[u].IRTBNDTime; n++){
 	  Clus_Sum_Charge = Clus_Sum_Charge + Clus[u].ClusterPulseMapHeight[k].height_[n];
+	/*
 	  //					SCA Cell Occupancy Histograms
 	  hname = Form("hist/h%sCFEB_SCA_Cell_Occupancy_Ly_%d", CSCTag.c_str(), nLayer);
 	  int SCA = SCABlockData[Clus[u].ClusterPulseMapHeight[k].channel_][n][nLayer-1];
@@ -1043,9 +1044,10 @@ void EmuLocalPlotter::fill(const CSCEventData& data, int dduID=0) {
 	    if(TmpTrigTime==0) NmbCell++;
 	    h[hname]->Fill(Clus[u].ClusterPulseMapHeight[k].channel_+1, NmbCell);
 	  }
+	*/
 	}
       }
-	*/
+	
       //			Clusters Charge Histograms
       hname = Form("hist/h%sCFEB_Clusters_Charge_Ly_%d", CSCTag.c_str(), nLayer);
       h[hname]->Fill(Clus_Sum_Charge);
