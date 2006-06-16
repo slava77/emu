@@ -29,6 +29,7 @@ Sources=\
         EmuSaveHistoFile.cc \
 	EmuSaveHistoImages.cc \
         EmuBookCommon.cc \
+	EmuBookDDU.cc \
         EmuBookChamber.cc \
         EmuFillCommon.cc \
         EmuFillChamber.cc \
@@ -61,7 +62,8 @@ IncludeDirs = $(XdaqIncludeDirs) \
 	$(XDAQ_ROOT)/$(Project)/emuDQM/EmuROOTDisplayServer/include \
 	$(XDAQ_ROOT)/$(Project)/emuDQM/EmuDisplayServer/include \
 	$(XDAQ_ROOT)/$(Project)/emuDAQ/DDUReadout/include \
-	$(XDAQ_ROOT)/$(Project)/emuDAQ/GenericRUI/include
+	$(XDAQ_ROOT)/$(Project)/emuDAQ/GenericRUI/include \
+	$(HOME)/cms/lcg/external/boost/1.33.1/slc3_ia32_gcc323/include/boost-1_33_1
 
 
 LibraryDirs = $(XdaqLibraryDirs) \

@@ -1159,7 +1159,7 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
 	}
 	consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
-
+/*
 	cnvtitle = "CFEB: SCA Cell Occupancy";
 	cnvname  = path_to_folder + IDTextShort + cnvtitle;
 	cnvtitle = cnvtitle + IDTextLong;
@@ -1193,7 +1193,7 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
 	}
 	consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
-
+*/
 	cnvtitle = "CFEB: Pedestals (First Sample)";
 	cnvname  = path_to_folder + IDTextShort + cnvtitle;
 	cnvtitle = cnvtitle + IDTextLong;
@@ -1297,7 +1297,7 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),3,2);
 	for (int nLayer=1; nLayer<=6; nLayer++) {
                 hname = Form("hist/h%sCFEB_Clusters_Charge_Ly_%d", ChamberID.Data(), nLayer);
-                h[hname] = new TH1F(TString(hname.c_str()), Form("Layer %d", nLayer), 100, 80, 12000);
+                h[hname] = new TH1F(TString(hname.c_str()), Form("Layer %d", nLayer), 100, 80, 3000);
                 h[hname]->SetXTitle("Clusters Charge (in ADC Chanels)");
                 h[hname]->SetYTitle("Number of Events");
                 h[hname]->SetFillColor(48);
@@ -1653,6 +1653,6 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 
  	fListModified = true;
 	canvases[id] = cnv;
-	save(HistoFile.c_str());
+	// save(HistoFile.c_str());
 	return h;
 }

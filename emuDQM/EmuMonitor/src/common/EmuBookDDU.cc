@@ -1,16 +1,19 @@
 #include "EmuLocalPlotter.h"
 
 //	Booking of common histograms
-map<string, TH1*> EmuLocalPlotter::book_common() {
+map<string, TH1*> EmuLocalPlotter::book_ddu(int dduID) {
 
 	string cnvname, cnvtitle;
-	map<string, ConsumerCanvas*> cnv;// = canvases[0];
+	map<string, ConsumerCanvas*> cnv = canvases[0];
 
 	string hname, htitle;
 	map<string, TPad*> pad;
-	map<string, TH1*> h;
+	map<string, TH1*> h = histos[0];
 
-	string path_to_folder = "";
+
+	string ID = Form("%04d", dduID&0xFFF);
+	string dir = Form("DDU_%s/", ID.c_str());
+	string path_to_folder = dir;
 
 	string  DDUHardwareErrorName[33];
 		DDUHardwareErrorName[0] = "Blank: 00";
@@ -50,30 +53,12 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 	if(debug_printout) LOG4CPLUS_INFO(logger_, 
 		// "D**EmuBookCommon> <<
 		"Booking new DDU Canvases");
-	if(folders) 	path_to_folder = "EMU/";
-
-        cnvtitle = "DDU: Source IDs";
-        cnvname = path_to_folder + cnvtitle;
-        cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),1,1);
-                hname = "hist/hDDU_Source_ID";
-                h[hname] = new TH1F(TString(hname.c_str()), "hDDU_Source_ID", 4096 ,  0 , 4096);
-                h[hname]->SetXTitle("DDU Source ID");
-                h[hname]->SetYTitle("# of Events");
-                h[hname]->SetFillColor(THistoFillColor);
-                h[hname]->SetOption("bar1text");
-                cnv[cnvname]->cd(1);
-                h[hname]->Draw();
-                consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
-        consinfo->addObject(TString(cnvname.c_str()),TString(""),0,cnv[cnvname]);
-        if(debug_printout) LOG4CPLUS_DEBUG(logger_,
-                // "D**EmuBookCommon> ">>
-                "Canvas " << cnvname << " is created");
-
+//	if(folders) 	path_to_folder = "EMU/";
 
 	cnvtitle = "DDU: Data Format Errors and Warnings in Tables";
 	cnvname = path_to_folder + cnvtitle;
 	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),3,1);
-		hname = "hist/hDDU_Readout_Errors";
+		hname = Form("hist/hDDU_%s_Readout_Errors", ID.c_str());
                 h[hname] = new TH2F(TString(hname.c_str()), "DDU RUI Readout Errors", 1, 0, 1, 16 ,0 ,16);
                 h[hname]->GetXaxis()->SetBinLabel(1, "Number of Events");
 		h[hname]->GetYaxis()->SetBinLabel(16,"DDU Trailer Missing (2 headers in a row)");
@@ -88,7 +73,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("e");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-		hname = "hist/hDDUBinCheck_Errors";
+		hname = Form("hist/hDDU_%s_BinCheck_Errors", ID.c_str());
 		h[hname] = new TH2F(TString(hname.c_str()), "DDU Data Format Errors", 1, 0, 1, bin_checker.nERRORS, 0, bin_checker.nERRORS);
         	h[hname]->GetXaxis()->SetBinLabel(1, "Number of events");
         	for (int i=0; i < bin_checker.nERRORS; i++)	h[hname]->GetYaxis()->SetBinLabel(i+1, bin_checker.errorName(i));
@@ -99,7 +84,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("e");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-		hname = "hist/hDDUBinCheck_Warnings";
+		hname = Form("hist/hDDU_%s_BinCheck_Warnings", ID.c_str());
                 h[hname] = new TH2F(TString(hname.c_str()), "DDU Data Format Warnings", 1, 0, 1, bin_checker.nWARNINGS, 0, bin_checker.nWARNINGS);
                 h[hname]->GetXaxis()->SetBinLabel(1, "Number of Events");
                 for (int i=0; i < bin_checker.nWARNINGS; i++)	h[hname]->GetYaxis()->SetBinLabel(i+1, bin_checker.warningName(i));
@@ -113,7 +98,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 	if(debug_printout) LOG4CPLUS_DEBUG(logger_,
 		// "D**EmuBookCommon> ">> 
 		"Canvas " << cnvname << " is created");
-
+/*
 	cnvtitle = "DDU: Unpacked DMBs";
 	cnvname = path_to_folder + cnvtitle;
 	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),1,1);
@@ -130,11 +115,11 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 	if(debug_printout) LOG4CPLUS_DEBUG(logger_,
 		// "D**EmuBookCommon> " << 
 		"Canvas " << cnvname << " is created");
-
+*/
 	cnvtitle = "DDU: L1A and BXN Counters";
 	cnvname = path_to_folder + cnvtitle;
 	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),1,2);
-		hname = "hist/hDDU_BXN";
+		hname = Form("hist/hDDU_%s_BXN", ID.c_str());
 		h[hname] = new TH1F(TString(hname.c_str()), "", 4096 ,  0 , 4096);
 		h[hname]->SetXTitle("BXN Counter Number");
 		h[hname]->SetYTitle("Number of Events");
@@ -145,7 +130,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("e");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-		hname = "hist/hDDU_L1A_Increment";
+		hname = Form("hist/hDDU_%s_L1A_Increment", ID.c_str());
 		h[hname] = new TH1F(TString(hname.c_str()), "Incremental change in DDU L1A number since previous event", 100 ,  0 , 100);
 		h[hname]->SetXTitle("L1A counter increment");
 		h[hname]->SetYTitle("Number of events");
@@ -156,19 +141,17 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("em");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 	consinfo->addObject(TString(cnvname.c_str()),TString(""),0,cnv[cnvname]);
-	if(debug_printout) LOG4CPLUS_DEBUG(logger_,
-		//"D**EmuBookCommon> 
-		"Canvas " << cnvname << " is created");
+	if(debug_printout) LOG4CPLUS_DEBUG(logger_,"D**EmuBookCommon> Canvas " << cnvname << " is created");
 
 	cnvtitle = "DDU: Connected and Active Inputs"; //KK +Connected and
 	cnvname = path_to_folder + cnvtitle;
 	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),1,2);
 //KK
-		hname = "hist/hDDU_DMB_Connected_Inputs_Rate";
+		hname = Form("hist/hDDU_%s_DMB_Connected_Inputs_Rate", ID.c_str());
 		h[hname] = new TH1F(TString(hname.c_str()), "hDDU_DMB_Connected_Inputs_Rate", 16 ,  0 , 16);
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-		hname = "hist/hDDU_DMB_Connected_Inputs";
+		hname = Form("hist/hDDU_%sDMB_Connected_Inputs", ID.c_str());
 		h[hname] = new TH1F(TString(hname.c_str()), "DDU Inputs connected to DMBs", 16 ,  0 , 16);
 		h[hname]->SetMinimum(0.0);
 		h[hname]->SetXTitle("DDU Inputs");
@@ -181,11 +164,11 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("e");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 //KK end
-		hname = "hist/hDDU_DMB_DAV_Header_Occupancy_Rate";
+		hname = Form("hist/hDDU_%s_DMB_DAV_Header_Occupancy_Rate", ID.c_str());
 		h[hname] = new TH1F(TString(hname.c_str()), "DMBs reporting DAV (data available) in Header", 16 ,  0 , 16);
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-		hname = "hist/hDDU_DMB_DAV_Header_Occupancy";
+		hname = Form("hist/hDDU_%s_DMB_DAV_Header_Occupancy", ID.c_str());
 		h[hname] = new TH1F(TString(hname.c_str()), "DMBs reporting DAV (data available) in Header", 16 ,  0 , 16);
 		h[hname]->SetMinimum(0.0);
 		h[hname]->SetXTitle("DMB position in DDU");
@@ -206,7 +189,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 	cnvtitle = "DDU: DMBs DAV and Unpacked vs DMBs Active";
 	cnvname = path_to_folder + cnvtitle;
 	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),1,3);
-		hname = "hist/hDDU_DMB_Active_Header_Count";
+		hname = Form("hist/hDDU_%s_DMB_Active_Header_Count", ID.c_str());
 		h[hname] = new TH1F(TString(hname.c_str()), "Number of active DMBs reporting DAV in Header", 16 ,  0 , 16);
 		h[hname]->SetXTitle("Counter of active DMBs from Header");
 		for(int i = 1; i<=16; i++) h[hname]->GetXaxis()->SetBinLabel(i,Form("%d",i-1));
@@ -218,7 +201,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("em");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-		hname = "hist/hDDU_DMB_DAV_Header_Count_vs_DMB_Active_Header_Count";
+		hname = Form("hist/hDDU_%s_DMB_DAV_Header_Count_vs_DMB_Active_Header_Count", ID.c_str());
 		h[hname] = new TH2F(TString(hname.c_str()), "DMB DAV Header Count vs DMB Active Header Count", 16, 0, 16, 16, 0, 16);
 		h[hname]->SetXTitle("Counter of active DMBs from Header");
 		for(int i = 1; i<=16; i++) h[hname]->GetXaxis()->SetBinLabel(i,Form("%d",i-1));
@@ -230,7 +213,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("e");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-		hname = "hist/hDDU_DMB_unpacked_vs_DAV";
+		hname = Form("hist/hDDU_%s_DMB_unpacked_vs_DAV", ID.c_str());
 		h[hname] = new TH2F(TString(hname.c_str()), "Number of unpacked DMBs vs. number of DMBs reporting DAV", 16 ,  0 , 16, 16, 0, 16);
 		h[hname]->SetXTitle("Counter of active DMBs from Header");
 		for(int i = 1; i<=16; i++) h[hname]->GetXaxis()->SetBinLabel(i,Form("%d",i-1));
@@ -249,7 +232,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 	cnvtitle = "DDU: Data Integrity Checks vs Event Number";
 	cnvname = path_to_folder + cnvtitle;
 	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),1,3);
-		hname = "hist/hDDU_Data_Format_Check_vs_nEvents";
+		hname = Form("hist/hDDU_%s_Data_Format_Check_vs_nEvents", ID.c_str());
 		h[hname] = new TH2F(TString(hname.c_str()), "Check DDU Data Format", 100000, 0, 100000, 3,  0 , 3);
 		h[hname]->GetYaxis()->SetBinLabel(1,"Format OK");
 		h[hname]->GetYaxis()->SetBinLabel(2,"Format Warning");
@@ -276,7 +259,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		pt8->Draw();
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-		hname = "hist/hDDU_Unpacking_Match_vs_nEvents";
+		hname = Form("hist/hDDU_%s_Unpacking_Match_vs_nEvents", ID.c_str());
 		h[hname] = new TH2F(TString(hname.c_str()), "Match: Unpacked DMBs and DMBs Reporting DAV", 100000, 0, 100000, 2, 0, 2);
 		h[hname]->GetYaxis()->SetBinLabel(1,"OK");
 		h[hname]->GetYaxis()->SetBinLabel(2,"Mismatch");
@@ -298,7 +281,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		pt2->Draw();
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-		hname = "hist/hDDU_L1A_Increment_vs_nEvents";
+		hname = Form("hist/hDDU_%s_L1A_Increment_vs_nEvents", ID.c_str());
 		h[hname] = new TH2F(TString(hname.c_str()), "Incremental L1A", 100000, 0, 100000, 3, 0, 3);
 		h[hname]->GetYaxis()->SetBinLabel(1,"Increment=0");
 		h[hname]->GetYaxis()->SetBinLabel(2,"Increment=1");
@@ -333,7 +316,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 	cnvtitle = "DDU: Error Status from DDU Trailer vs Event Number";
 	cnvname = path_to_folder + cnvtitle;
 	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),1,1);
-		hname = "hist/hDDU_Trailer_ErrorStat_vs_nEvents";
+		hname = Form("hist/hDDU_%s_Trailer_ErrorStat_vs_nEvents", ID.c_str());
 		h[hname] = new TH2F(TString(hname.c_str()), "", 100000,  0 , 100000, 32, 0, 32);
 		h[hname]->SetXTitle("Sequential event number as received by DQM");
 		for(int i=1; i<=32; i++) h[hname]->GetYaxis()->SetBinLabel(i, DDUHardwareErrorName[i].c_str());
@@ -351,7 +334,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 	cnvtitle = "DDU: Error Status from DDU Trailer";
 	cnvname = path_to_folder + cnvtitle;
 	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),2,1);
-		hname = "hist/hDDU_Trailer_ErrorStat_Table";
+		hname = Form("hist/hDDU_%sTrailer_ErrorStat_Table", ID.c_str());
 		h[hname] = new TH2F(TString(hname.c_str()), "DDU Trailer Status Error Table", 1,  0 , 1, 32, 0, 32);
 		h[hname]->GetXaxis()->SetBinLabel(1,"Number of events");
 		for(int i=1; i<=32; i++) h[hname]->GetYaxis()->SetBinLabel(i, DDUHardwareErrorName[i].c_str());
@@ -368,11 +351,11 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("e");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-		hname = "hist/hDDU_Trailer_ErrorStat_Rate";
+		hname = Form("hist/hDDU_%s_Trailer_ErrorStat_Rate", ID.c_str());
 		h[hname] = new TH1F(TString(hname.c_str()), "", 32,  0 , 32);
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-		hname = "hist/hDDU_Trailer_ErrorStat_Occupancy";
+		hname = Form("hist/hDDU_%s_Trailer_ErrorStat_Occupancy", ID.c_str());
 		h[hname] = new TH1F(TString(hname.c_str()), "DDU Trailer Status Error Frecuency", 32,  0 , 32);
 		h[hname]->SetMinimum(0.0);
 		h[hname]->SetYTitle("Frequency (%)");
@@ -396,7 +379,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 	cnvtitle = "DDU: Event Buffer Size and DDU Word Count";
 	cnvname = path_to_folder + cnvtitle;
 	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),1,2);
-		hname = "hist/hDDU_Buffer_Size";
+		hname = Form("hist/hDDU_%s_Buffer_Size", ID.c_str());
                 h[hname] = new TH1F(TString(hname.c_str()), "DDU Buffer Size", 128 ,0 ,65536 ); // 65536 = 2^16
                 h[hname]->SetXTitle("Buffer Size in bytes");
                 h[hname]->SetYTitle("Number of Events");
@@ -407,7 +390,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("emro");
                 consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-		hname = "hist/hDDU_Word_Count";
+		hname = Form("hist/hDDU_%s_Word_Count", ID.c_str());
 		h[hname] = new TH1F(TString(hname.c_str()), "DDU Word (64 bits) Count", 128,  0 , 8192); //8192 = 2^13
 		h[hname]->SetXTitle("Number of Words in DDU (from DDU Trailer)");
 		h[hname]->SetYTitle("Number of Events");
@@ -425,11 +408,11 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 	cnvtitle = "DDU: State of CSCs";
 	cnvname = path_to_folder + cnvtitle;
 	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),1,2);
-                hname = "hist/hDDU_CSC_Errors_Rate";
+                hname = Form("hist/hDDU_%s_CSC_Errors_Rate", ID.c_str());
                 h[hname] = new TH1F(TString(hname.c_str()), "", 15 ,  1 , 16);
                 consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-		hname = "hist/hDDU_CSC_Errors";
+		hname = Form("hist/hDDU_%s_CSC_Errors", ID.c_str());
                 h[hname] = new TH1F(TString(hname.c_str()), "Errors", 15 ,1 ,16);
                 h[hname]->SetXTitle("CSC");
 		for(int i = 1; i<=15; i++) h[hname]->GetXaxis()->SetBinLabel(i,Form("%d",i));
@@ -441,11 +424,11 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("emro");
                 consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-                hname = "hist/hDDU_CSC_Warnings_Rate";
+                hname = Form("hist/hDDU_%s_CSC_Warnings_Rate", ID.c_str());
                 h[hname] = new TH1F(TString(hname.c_str()), "", 15 ,  1 , 16);
                 consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-		hname = "hist/hDDU_CSC_Warnings";
+		hname = Form("hist/hDDU_%s_CSC_Warnings", ID.c_str());
 		h[hname] = new TH1F(TString(hname.c_str()), "Warnings", 15,  1 , 16);
 		h[hname]->SetXTitle("CSC");
 		for(int i = 1; i<=15; i++) h[hname]->GetXaxis()->SetBinLabel(i,Form("%d",i));
@@ -463,7 +446,8 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 //KK end
 
 	canvases[0] = cnv;
+	histos[0] = h;
 	fListModified = true;
-//	save(HistoFile.c_str());
+	// save(HistoFile.c_str());
 	return h;
 }

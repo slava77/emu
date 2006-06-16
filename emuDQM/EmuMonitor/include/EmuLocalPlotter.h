@@ -137,6 +137,7 @@ public:
   void SetDDU2004(int);
   // === Book Histograms
   void book();
+  map<string, TH1*> book_ddu(int);
   map<string, TH1*> book_chamber(int);
   map<string, TH1*> book_common();
   // map<int, map<string, TH1*> > histos;
@@ -145,7 +146,7 @@ public:
   //     data structures and calls the appropriate fill() routine below.
   virtual void fill(unsigned char * data, int dataSize, unsigned short errorStat);
   // === Fills histograms from unpacked data.i
-  virtual void fill(const CSCEventData & eventData);
+  virtual void fill(const CSCEventData & eventData, int);
 //TF
 //  void fillTF(unsigned char * data, int dataLength);
 //TFend

@@ -63,7 +63,7 @@ void EmuLocalPlotter::fill(unsigned char * data, int dataLength, unsigned short 
 					// "E**EmuFillCommon> event #" << dec << nEvents <<
 					"Filling histogram of Binary Error Status");
 				for(int i=0; i<bin_checker.nERRORS; i++) { // run over all errors
-					if( bin_checker.error(i) ) h["hist/hDDUBinCheck_Errors"]->Fill(0.,i);
+					if( bin_checker.error(i) ) h["hist/hDDU_BinCheck_Errors"]->Fill(0.,i);
 				}
 	       		}
 		}
@@ -84,7 +84,7 @@ void EmuLocalPlotter::fill(unsigned char * data, int dataLength, unsigned short 
 				"Filling histogram of Binary Warning Status");
 				for(int i=0; i<bin_checker.nWARNINGS; i++) { // run over all warnings
 
-					if( bin_checker.warning(i) ) h["hist/hDDUBinCheck_Warnings"]->Fill(0.,i);
+					if( bin_checker.warning(i) ) h["hist/hDDU_BinCheck_Warnings"]->Fill(0.,i);
 				}
 	       		}
 		}
@@ -144,9 +144,12 @@ void EmuLocalPlotter::fill(unsigned char * data, int dataLength, unsigned short 
 	CSCDDUHeader dduHeader;
 	CSCDDUTrailer dduTrailer;
 
+	int dduID=0;
+
 	if(unpack_ddu) {
 		dduHeader  = dduData.header();
 		dduTrailer = dduData.trailer();
+		dduID = dduHeader.source_id();
 		if(debug_printout) LOG4CPLUS_INFO(logger_, 
 			// "D**EmuFillCommon> event #" << dec << nEvents <<
 			"Start DDU unpacking");
@@ -154,6 +157,34 @@ void EmuLocalPlotter::fill(unsigned char * data, int dataLength, unsigned short 
 	else    if(debug_printout) LOG4CPLUS_INFO(logger_, 
 			// "D**EmuFillCommon> event #" << dec << nEvents <<
 			"DDU unpacking is skiped");
+
+	  if (fill_histo) {
+                if(debug_printout) LOG4CPLUS_INFO(logger_,
+                        // "D**EmuFillCommon> event #" << dec << nEvents <<
+                        "DDU Source ID = " << dduID);
+                h["hist/hDDU_Source_ID"]->Fill(dduID);
+        }
+
+/*
+	string dduIDstr = Form("%04d", dduID);
+	string searchStr = Form("hist/hDDU_%s_BXN", dduIDstr.c_str());
+	cout << searchStr << endl;
+	map<string,TH1*> dduhistos = histos[0];	
+	map<string,TH1*>::iterator h_itr = dduhistos.find(searchStr);
+	if (h_itr == dduhistos.end() || (dduhistos.size()==0)) {
+	    	// if(debug_printout) {
+	      		LOG4CPLUS_DEBUG(logger_,"D**EmuFillCommon> #" << dec << nEvents
+	        	<< " List of Histos for DDU_" << dduIDstr << " not found");
+    	    	// }
+    		if(fill_histo) {
+      		//	if(debug_printout) {
+        			LOG4CPLUS_DEBUG(logger_, "D**EmuFillCommon> #" << dec << nEvents
+                		<< " Creating of list of Histos for DDU_" << dduIDstr << " ...");
+      		//	}
+      			histos[0] = book_ddu(dduID);
+    	    	}
+  	}
+*/
 
 //	Check binary Error status at DDU Trailer
 	unsigned int trl_errorstat = 0x0;
@@ -204,9 +235,10 @@ void EmuLocalPlotter::fill(unsigned char * data, int dataLength, unsigned short 
 	if(unpack_ddu) {
 		L1ANumber = (int)(dduHeader.lvl1num());
 	}
-	if(debug_printout)  LOG4CPLUS_DEBUG(logger_, 
+	// if(debug_printout)  
+	LOG4CPLUS_DEBUG(logger_, 
 		//"D**EmuFillCommon> event #" << dec << nEvents <<
-		"DDU Header L1A Number = " << dec << L1ANumber);
+		"DDU Header L1A Number = " << dec << L1ANumber << ", Increment = " << (L1ANumber - L1ANumber_previous_event));
 	if(fill_histo) {
 		h["hist/hDDU_L1A_Increment"]->Fill(L1ANumber - L1ANumber_previous_event);
 		if(L1ANumber - L1ANumber_previous_event == 0) {
@@ -295,7 +327,7 @@ void EmuLocalPlotter::fill(unsigned char * data, int dataLength, unsigned short 
 				// "D**EmuFillCommon> event #" << dec << nEvents <<
 				"Found DMB " << dec << unpacked_dmb_cnt << ". Run unpacking procedure...");
 			}
-			fill(*chamberDataItr);
+			fill(*chamberDataItr, dduID);
 			if(debug_printout) {
 				LOG4CPLUS_INFO(logger_, 
 				// "D**EmuFillCommon> event #" << dec << nEvents <<
