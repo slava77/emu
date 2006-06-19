@@ -520,7 +520,7 @@ public:
     throw (xoap::exception::Exception);
   xoap::MessageReference onHalt(xoap::MessageReference message)
     throw (xoap::exception::Exception);
-  xoap::MessageReference onQuery(xoap::MessageReference message)
+  xoap::MessageReference onQueryDAQState(xoap::MessageReference message)
     throw (xoap::exception::Exception);
 
   // State transitions
