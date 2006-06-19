@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.17 2006/06/16 13:05:24 mey Exp $
+// $Id: VMEModule.cc,v 2.18 2006/06/19 14:17:58 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.18  2006/06/19 14:17:58  mey
+// Update
+//
 // Revision 2.17  2006/06/16 13:05:24  mey
 // Got rid of Compiler switches
 //
@@ -155,7 +158,7 @@ bool VMEModule::exist(){
 
 void VMEModule::SendOutput(std::string Output){
   //
-  log4cplus::Logger logger = log4cplus::Logger::getInstance("PC_Output");
+  log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuPeripheralCrate");
   LOG4CPLUS_DEBUG(logger,Output);
   //
 }
