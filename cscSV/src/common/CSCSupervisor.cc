@@ -23,6 +23,7 @@ XDAQ_INSTANTIATOR_IMPL(CSCSupervisor);
 
 static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
 static const unsigned int N_LOG_MESSAGES = 10;
+static const string STATE_UNKNOWN = "unknown";
 
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
@@ -274,49 +275,77 @@ void CSCSupervisor::webRedirect(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::configureAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	setParameter("EmuPeripheralCrate", "xmlFileName", "xsd:string",
-			trim(getConfigFilename("PC", runmode_)));
-	setParameter("EmuDAQManager", "runNumber", "xsd:unsignedLong", runnumber_);
-	setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:unsignedLong", nevents_);
-	sendCommand("Configure", "EmuFEDCrate");
-	sendCommand("Configure", "EmuPeripheralCrate");
-	sendCommand("Configure", "EmuDAQManager");
-	sendCommand("Configure", "LTCControl");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << "(begin)");
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
+	try {
+		setParameter("EmuPeripheralCrate", "xmlFileName", "xsd:string",
+				trim(getConfigFilename("PC", runmode_)));
+		setParameter("EmuDAQManager", "runNumber", "xsd:unsignedLong", runnumber_);
+		setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:unsignedLong", nevents_);
+		sendCommand("Configure", "EmuFEDCrate");
+		sendCommand("Configure", "EmuPeripheralCrate");
+		sendCommand("Configure", "EmuDAQManager");
+		sendCommand("Configure", "LTCControl");
+	} catch (xdaq::exception::Exception e) {
+		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+				"Failed to send a command", e);
+	}
+
+	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << "(end)");
 }
 
 void CSCSupervisor::enableAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	sendCommand("Enable", "EmuPeripheralCrate");
-	sendCommand("Enable", "EmuDAQManager");
-	sendCommand("Resynch", "LTCControl");
-	sendCommand("Enable", "LTCControl");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << "(begin)");
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
+	try {
+		sendCommand("Enable", "EmuPeripheralCrate");
+		sendCommand("Enable", "EmuDAQManager");
+		sendCommand("Resynch", "LTCControl");
+		sendCommand("Enable", "LTCControl");
+	} catch (xdaq::exception::Exception e) {
+		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+				"Failed to send a command", e);
+	}
+
+	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << "(end)");
 }
 
 void CSCSupervisor::disableAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	sendCommand("Halt", "LTCControl");
-	sendCommand("Disable", "EmuDAQManager");
-	sendCommand("Disable", "EmuPeripheralCrate");
-	sendCommand("Configure", "LTCControl");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << "(begin)");
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
+	try {
+		sendCommand("Halt", "LTCControl");
+		sendCommand("Disable", "EmuDAQManager");
+		sendCommand("Disable", "EmuPeripheralCrate");
+		sendCommand("Configure", "LTCControl");
+	} catch (xdaq::exception::Exception e) {
+		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+				"Failed to send a command", e);
+	}
+
+	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << "(end)");
 }
 
 void CSCSupervisor::haltAction(toolbox::Event::Reference e) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	sendCommand("Halt", "EmuFEDCrate");
-	sendCommand("Halt", "EmuPeripheralCrate");
-	sendCommand("Halt", "EmuDAQManager");
-	sendCommand("Halt", "LTCControl");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << "(begin)");
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
+	try {
+		sendCommand("Halt", "EmuFEDCrate");
+		sendCommand("Halt", "EmuPeripheralCrate");
+		sendCommand("Halt", "EmuDAQManager");
+		sendCommand("Halt", "LTCControl");
+	} catch (xdaq::exception::Exception e) {
+		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+				"Failed to send a command", e);
+	}
+
+	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << "(end)");
 }
 
 void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
@@ -326,6 +355,7 @@ void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 }
 
 void CSCSupervisor::sendCommand(string command, string klass)
+		throw (xdaq::exception::Exception)
 {
 	// find applications
 	vector<xdaq::ApplicationDescriptor *> apps;
@@ -343,6 +373,7 @@ void CSCSupervisor::sendCommand(string command, string klass)
 	// send the message one-by-one
 	vector<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
 	for (; i != apps.end(); ++i) {
+		// postSOAP() may throw an exception when failed.
 		reply = getApplicationContext()->postSOAP(message, *i);
 		analyzeReply(message, reply, *i);
 	}
@@ -572,10 +603,14 @@ void CSCSupervisor::StateTable::refresh()
 			message = createStateSOAP(klass);
 		}
 
-		reply = sv_->getApplicationContext()->postSOAP(message, i->first);
-		sv_->analyzeReply(message, reply, i->first);
+		try {
+			reply = sv_->getApplicationContext()->postSOAP(message, i->first);
+			sv_->analyzeReply(message, reply, i->first);
 
-		i->second = extractState(reply, klass);
+			i->second = extractState(reply, klass);
+		} catch (xdaq::exception::Exception e) {
+			i->second = STATE_UNKNOWN;
+		}
 	}
 }
 

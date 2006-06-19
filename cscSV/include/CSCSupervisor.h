@@ -69,7 +69,8 @@ private:
 	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 			throw (toolbox::fsm::exception::Exception);
 
-	void sendCommand(string command, string klass);
+	void sendCommand(string command, string klass)
+			throw (xdaq::exception::Exception);
 	xoap::MessageReference createCommandSOAP(string command);
 	void setParameter(string klass, string name, string type, string value);
 	xoap::MessageReference createParameterSetSOAP(
