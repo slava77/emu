@@ -7,7 +7,7 @@
 	<xc:Context url="http://localhost:40000">
 		<xc:Application class="Executive" id="0" network="local" resident="true">                       
 			<properties xmlns="urn:xdaq-application:Executive" xsi:type="soapenc:Struct">
-				<logUrl xsi:type="xsd:string">file:/home/ichiro/work/emu/cscsv/xdaq.log</logUrl>
+				<logUrl xsi:type="xsd:string">file:/home/ichiro/work/emu/cscsv/sv.log</logUrl>
 			</properties>
 		</xc:Application> 
 
