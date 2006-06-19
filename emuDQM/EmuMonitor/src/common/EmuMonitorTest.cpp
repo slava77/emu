@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
         SharedAppenderPtr appender(new ConsoleAppender());
 	appender->setLayout( std::auto_ptr<Layout>(new SimpleColoredLayout()) );
         logger.addAppender(appender);
-	logger.setLogLevel(DEBUG_LOG_LEVEL);
+	logger.setLogLevel(INFO_LOG_LEVEL);
 
 
 	EmuLocalPlotter plotter(logger);
