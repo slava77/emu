@@ -108,11 +108,11 @@ logger_(Logger::getInstance(generateLoggerName()))
     exportMonitoringParams(appInfoSpace_);
 
     // Supervisor-specific stuff:
-    xoap::bind(this, &EmuDAQManager::onConfigure, "Configure", XDAQ_NS_URI);
-    xoap::bind(this, &EmuDAQManager::onEnable,    "Enable",    XDAQ_NS_URI);
-    xoap::bind(this, &EmuDAQManager::onDisable,   "Disable",   XDAQ_NS_URI);
-    xoap::bind(this, &EmuDAQManager::onHalt,      "Halt",      XDAQ_NS_URI);
-    xoap::bind(this, &EmuDAQManager::onQuery,     "Query",     XDAQ_NS_URI);
+    xoap::bind(this, &EmuDAQManager::onConfigure,     "Configure",     XDAQ_NS_URI);
+    xoap::bind(this, &EmuDAQManager::onEnable,        "Enable",        XDAQ_NS_URI);
+    xoap::bind(this, &EmuDAQManager::onDisable,       "Disable",       XDAQ_NS_URI);
+    xoap::bind(this, &EmuDAQManager::onHalt,          "Halt",          XDAQ_NS_URI);
+    xoap::bind(this, &EmuDAQManager::onQueryDAQState, "QueryDAQState", XDAQ_NS_URI);
 
     fsm_.addState('H', "Halted",     this, &EmuDAQManager::stateChanged);
     fsm_.addState('C', "Configured", this, &EmuDAQManager::stateChanged);
@@ -3292,7 +3292,7 @@ xoap::MessageReference EmuDAQManager::onHalt(xoap::MessageReference message)
 	return createReply(message);
 }
 
-xoap::MessageReference EmuDAQManager::onQuery(xoap::MessageReference message)
+xoap::MessageReference EmuDAQManager::onQueryDAQState(xoap::MessageReference message)
   throw (xoap::exception::Exception)
 {
   xoap::MessageReference      reply = createReply(message);
