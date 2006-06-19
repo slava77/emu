@@ -88,7 +88,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("e");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-		hname = "hist/hDDUBinCheck_Errors";
+		hname = "hist/hDDU_BinCheck_Errors";
 		h[hname] = new TH2F(TString(hname.c_str()), "DDU Data Format Errors", 1, 0, 1, bin_checker.nERRORS, 0, bin_checker.nERRORS);
         	h[hname]->GetXaxis()->SetBinLabel(1, "Number of events");
         	for (int i=0; i < bin_checker.nERRORS; i++)	h[hname]->GetYaxis()->SetBinLabel(i+1, bin_checker.errorName(i));
@@ -99,7 +99,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		gStyle->SetOptStat("e");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
 
-		hname = "hist/hDDUBinCheck_Warnings";
+		hname = "hist/hDDU_BinCheck_Warnings";
                 h[hname] = new TH2F(TString(hname.c_str()), "DDU Data Format Warnings", 1, 0, 1, bin_checker.nWARNINGS, 0, bin_checker.nWARNINGS);
                 h[hname]->GetXaxis()->SetBinLabel(1, "Number of Events");
                 for (int i=0; i < bin_checker.nWARNINGS; i++)	h[hname]->GetYaxis()->SetBinLabel(i+1, bin_checker.warningName(i));

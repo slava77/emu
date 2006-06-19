@@ -75,7 +75,7 @@ void EmuLocalPlotter::SaveImages(std::string path, std::string format, int width
 		     << "<body>\n"
 		     << "<h2>Common DDU Canvases</h2><hr>\n" << endl;
 	
-	  tree_items << "            ['DDU', ''," << endl;
+	  tree_items << "            ['DDU', 'EMU'," << endl;
 
 
 	} else {
@@ -90,7 +90,8 @@ void EmuLocalPlotter::SaveImages(std::string path, std::string format, int width
 		     << "<meta http-equiv=\"refresh\" content=\"10; URL=canvases_"<<cscid<<".html\">\n"
 		     << "<body>\n"
 		     << "<h2>CSC crate" << crate << " slot" << slot <<" Canvases</h2><hr>\n" << endl;
-	  tree_items << "            ['CSC crate" << crate << " slot" << slot<<"', ''," << endl;
+	  tree_items << "            ['CSC crate" << crate << " slot" << slot
+			<< "', 'crate"<< crate << "/slot" << slot << "'," << endl;
 	}
 	for (map<string, ConsumerCanvas*>::iterator h_itr = itr->second.begin(); h_itr != itr->second.end(); ++h_itr) {
 	  /*
