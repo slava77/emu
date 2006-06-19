@@ -60,6 +60,14 @@
 			</properties>
 		</xc:Application>
 		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libCSCSupervisor.so</xc:Module>
+	</xc:Context>
+
+	<xc:Context url="http://localhost:40001">
+		<xc:Application class="Executive" id="0" network="local" resident="true">                       
+			<properties xmlns="urn:xdaq-application:Executive" xsi:type="soapenc:Struct">
+				<logUrl xsi:type="xsd:string">file:/home/ichiro/work/emu/cscsv/xdaq.log</logUrl>
+			</properties>
+		</xc:Application> 
 
 		<xc:Application class="EmuFEDCrate" id="20" instance="0" network="local"/>
 		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libEmuFEDCrate.so</xc:Module>

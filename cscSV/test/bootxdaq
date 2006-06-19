@@ -78,13 +78,18 @@ RESULT=0
 command=$1; shift
 [[ $# -eq 1 ]] && CONFIG=$1
 
-case $command in
-check)   check;;
-start)   start;;
-stop)    stop;;
-restart) stop; sleep 5; start;;
-*)       echo "Usage: bootxdaq {start|stop|restart|check} ..."
-esac
+for port in `grep 'Context url' $CONFIG | sed -e 's/^.*:\([0-9][0-9]*\).*$/\1/'`
+do
+	PORT=$port
+
+	case $command in
+	check)   check;;
+	start)   start;;
+	stop)    stop;;
+	restart) stop; sleep 5; start;;
+	*)       echo "Usage: bootxdaq {start|stop|restart|check} ..."
+	esac
+done
 
 exit $RESULT
 
