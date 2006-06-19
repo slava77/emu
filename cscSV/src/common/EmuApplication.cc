@@ -44,15 +44,12 @@ void EmuApplication::transitionFailed(toolbox::Event::Reference event)
 			<< " exception: " << failed.getException().what());
 }
 
-void EmuApplication::fireEvent(string name) throw (xoap::exception::Exception)
+void EmuApplication::fireEvent(string name)
+		throw (toolbox::fsm::exception::Exception)
 {
 	toolbox::Event::Reference event((new toolbox::Event(name, this)));
 
-	try {
-		fsm_.fireEvent(event);
-	} catch (toolbox::fsm::exception::Exception e) {
-		LOG4CPLUS_ERROR(getApplicationLogger(), e.message());
-	}
+	fsm_.fireEvent(event);
 }
 
 xoap::MessageReference EmuApplication::createReply(xoap::MessageReference message)
