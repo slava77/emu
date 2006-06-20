@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.66 2006/06/16 13:05:24 mey Exp $
+// $Id: TMB.cc,v 2.67 2006/06/20 13:18:17 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.67  2006/06/20 13:18:17  mey
+// Update
+//
 // Revision 2.66  2006/06/16 13:05:24  mey
 // Got rid of Compiler switches
 //
@@ -460,38 +463,18 @@ void TMB::init() {
 }
 //
 void TMB::configure() {
-  printf("Setting up trgmode CLCT TMB slot %2d\n", theSlot) ;
+  //
+  (*MyOutput_) << "Setting up trgmode CLCT TMB slot =" <<theSlot <<std::endl;
   trgmode(1);
-  printf("***Set TMB CSC ID to Slot_ID/2 = %d\n", theSlot/2);
+  (*MyOutput_) << "Set TMB CSC ID to Slot_ID/2 = " << theSlot/2 << std::endl;
   load_cscid();
   (*MyOutput_) << "Resetting counters" << std::endl;
   ResetCounters();
 }
 
-/*
-void TMB::lctrequestdelay(int dword)
-{
-  cmd[0]=VTX2_USR1;
-  sndbuf[0]=33;
-  theController->devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,LATER);
-  cmd[0]=VTX2_USR2;
-  sndbuf[0]=dword&0XFF;
-  sndbuf[1]=(dword>>8)&0xFF;
-  theController->devdo(MCTRL,6,cmd,16,sndbuf,rcvbuf,LATER);
-  cmd[0]=VTX2_USR1;
-  sndbuf[0]=0;
-  theController->devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,LATER);
-  cmd[0]=VTX2_BYPASS;
-  sndbuf[0]=0;
-  theController->devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,NOW);
-
-  printf("LCT Request  Delay are Set to %04x (Hex). \n",dword&0xFFFF);
-}
-*/
-
 void TMB::clear_i2c() {
   //
-  printf(" done so unstart state machine \n");
+  (*MyOutput_) << "Done so unstart state machine" << std::endl ;
   sndbuf[0]=0x8c;
   sndbuf[1]=0x33;
   tmb_vme(VME_WRITE,0x14,sndbuf,rcvbuf,NOW);

@@ -14,7 +14,7 @@ public:
   EMUjtag(TMB * );
   ~EMUjtag();
   //
-  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
+  //inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   //
   //--------------------------------------------------------
   //See EMU_JTAG_constants.h for the values of
@@ -57,7 +57,7 @@ protected:
   //
 private:
   //
-  std::ostream * MyOutput_ ;
+  //std::ostream * MyOutput_ ;
   TMB * tmb_ ;
   //
   int jtag_chain_;
