@@ -41,6 +41,8 @@ LTCControl::LTCControl(xdaq::ApplicationStub *stub)
 	fsm_.addStateTransition(
 			'S', 'S', "HardReset", this, &LTCControl::hardResetAction);
 	fsm_.addStateTransition(
+			'H', 'H', "Halt",      this, &LTCControl::haltAction);
+	fsm_.addStateTransition(
 			'R', 'H', "Halt",      this, &LTCControl::haltAction);
 	fsm_.addStateTransition(
 			'E', 'H', "Halt",      this, &LTCControl::haltAction);

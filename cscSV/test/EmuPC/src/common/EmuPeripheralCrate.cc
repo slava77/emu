@@ -32,6 +32,8 @@ EmuPeripheralCrate::EmuPeripheralCrate(xdaq::ApplicationStub *stub)
 	fsm_.addStateTransition(
 			'E', 'C', "Disable",   this, &EmuPeripheralCrate::disableAction);
 	fsm_.addStateTransition(
+			'H', 'H', "Halt",      this, &EmuPeripheralCrate::haltAction);
+	fsm_.addStateTransition(
 			'C', 'H', "Halt",      this, &EmuPeripheralCrate::haltAction);
 	fsm_.addStateTransition(
 			'E', 'H', "Halt",      this, &EmuPeripheralCrate::haltAction);
