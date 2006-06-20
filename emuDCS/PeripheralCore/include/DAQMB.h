@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.23 2006/05/31 15:58:46 mey Exp $
+// $Id: DAQMB.h,v 2.24 2006/06/20 13:37:45 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.24  2006/06/20 13:37:45  mey
+// Udpate
+//
 // Revision 2.23  2006/05/31 15:58:46  mey
 // Update
 //
@@ -84,6 +87,7 @@
 #include "VMEModule.h"
 #include "JTAG_constants.h"
 #include "CFEB.h"
+#include "EmuModule.h"
 /**
  * more documentation available for this class at
  * http://www.physics.ohio-state.edu/~cms/dmb/prog_man.pdf
@@ -91,7 +95,7 @@
  */
 
 
-class DAQMB: public VMEModule
+class DAQMB: public VMEModule, public EmuModule
 {
 public:
   //friend class DAQMBParser;

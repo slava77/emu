@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.cc,v 2.5 2006/05/19 15:13:32 mey Exp $
+// $Id: DAQMBParser.cc,v 2.6 2006/06/20 13:37:46 mey Exp $
 // $Log: DAQMBParser.cc,v $
+// Revision 2.6  2006/06/20 13:37:46  mey
+// Udpate
+//
 // Revision 2.5  2006/05/19 15:13:32  mey
 // UPDate
 //
@@ -111,7 +114,7 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, int crateNumber)
 	if (strcmp("CFEB",xercesc::XMLString::transcode(daughterNode->getNodeName()))==0){
 	  parser_.parseNode(daughterNode);
 	  if(parser_.fillInt("Number", number)){
-	    std::cout <<"CFEB" <<std::endl;
+	    daqmb_->SendOutput("CFEB");
 	    if ( number <5 ){
 	      CFEB cfeb(number);
 	      daqmb_->cfebs_.push_back(cfeb);
