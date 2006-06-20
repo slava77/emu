@@ -17,10 +17,6 @@ public class CSCFunctionManager extends MyFunctionManager {
 
 	XdaqApplicationContainer xdaqSupervisor = null;
 
-	public CSCFunctionManager() {
-		parameterSet.put("runType", "");
-	}
-
 	private void addParameters() {
 		parameterSet = MyParameters.LVL_ONE_PARAMETER_SET;
 	}
