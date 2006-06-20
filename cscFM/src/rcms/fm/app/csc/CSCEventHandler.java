@@ -6,6 +6,10 @@ import rcms.fm.app.level1template.MyStates;
 import rcms.fm.app.level1template.MyInputs;
 import rcms.fm.app.level1template.MyParameters;
 
+import rcms.fm.parameter.ParameterSet;
+import rcms.xdaqctl.XDAQParameter;
+import rcms.fm.resource.qualifiedresource.XdaqApplication;
+
 import rcms.statemachine.definition.Input;
 import rcms.fm.fw.StateEnteredEvent;
 import rcms.fm.fw.user.UserActionException;
@@ -18,7 +22,8 @@ public class CSCEventHandler extends UserStateNotificationHandler {
 	private RCMSLogger logger = new RCMSLogger(CSCEventHandler.class);
 
 	private CSCFunctionManager fm;
-	
+	private ParameterSet fmParameters;
+
 	public CSCEventHandler() throws rcms.fm.fw.EventHandlerException {
 		subscribeForEvents(StateEnteredEvent.class);
 		
@@ -37,8 +42,51 @@ public class CSCEventHandler extends UserStateNotificationHandler {
 		fm = (CSCFunctionManager)getUserFunctionManager();
 	}
 
+	public void initAction(Object o) throws UserActionException {
+		genericAction(o, "Initializing", MyInputs.SETHALT);
+
+		fmParameters = fm.getParameterSet();
+	}
+
 	public void configureAction(Object o) throws UserActionException {
-		xdaqCommandAction(o, "Configuring", MyInputs.SETCONFIGURE, "Configure");
+		if (o instanceof StateEnteredEvent) {
+			fm.getParameterSet().put(MyParameters.ACTION_MSG, "Configuring");
+
+			if (!fm.xdaqSupervisor.isEmpty()) {
+				/*
+				ParameterSet param = new ParameterSet();
+				param.put("RunType", fmParameters.get("RUN_TYPE"));
+				param.put("RunNumber", fmParameters.get("RUN_NUMBER"));
+
+				Input input = new Input("Configure");
+				input.setParameters(param);
+				*/
+
+				XDAQParameter param = null;
+				try {
+					param = ((XdaqApplication)
+							fm.xdaqSupervisor.getApplications().get(0))
+							.getXDAQParameter();
+
+					param.select(new String[] { "RunType", "RunNumber" });
+					param.setValue("RunType", fmParameters.get("RUN_TYPE"));
+					param.setValue("RunNumber", fmParameters.get("RUN_NUMBER"));
+					param.send();
+				} catch (Exception ignored) {}
+
+				Input input = new Input("Configure");
+
+				try {
+					fm.xdaqSupervisor.execute(input);
+					logger.info("Configure executed.");
+				} catch (QualifiedResourceContainerException e) {
+					logger.error("Configure FAILED.", e);
+					throw new UserActionException("Configure FAILED.", e);
+				}
+			}
+
+			fm.fireEvent(MyInputs.SETCONFIGURE);
+		}
 	}
 	
 	public void startAction(Object o) throws UserActionException {
@@ -63,10 +111,6 @@ public class CSCEventHandler extends UserStateNotificationHandler {
 	
 	public void recoverAction(Object o) throws UserActionException {
 		genericAction(o, "Recovering", MyInputs.SETINITIAL);
-	}
-
-	public void initAction(Object o) throws UserActionException {
-		genericAction(o, "Initializing", MyInputs.SETHALT);
 	}
 
 	private void genericAction(Object o, String message, Input input) {
