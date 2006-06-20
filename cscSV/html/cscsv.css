@@ -7,7 +7,7 @@ td.Configured {
 td.Enabled {
 	color: #ca2;
 }
-td.Error {
+td.Failed {
 	color: #c22;
 }
 /* vim: set sw=4 ts=4: */
