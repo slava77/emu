@@ -30,6 +30,8 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		EmuApplication(stub),
 		runmode_(""), runnumber_(""), nevents_(""), error_message_("")
 {
+	getApplicationInfoSpace()->fireItemAvailable("RunType", &x_runmode_);
+	getApplicationInfoSpace()->fireItemAvailable("RunNumber", &x_runnumber_);
 	getApplicationInfoSpace()->fireItemAvailable("configKeys", &config_keys_);
 	getApplicationInfoSpace()->fireItemAvailable("configModes", &config_modes_);
 	getApplicationInfoSpace()->fireItemAvailable("modesForPC", &modes_pc_);
@@ -87,8 +89,8 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 xoap::MessageReference CSCSupervisor::onConfigure(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
-	runmode_ = (string)config_modes_[0];
-	runnumber_ = 99;
+	runmode_ = x_runmode_;
+	runnumber_ = x_runnumber_.toString();
 	nevents_ = 1000;
 
 	fireEvent("Configure");
@@ -304,6 +306,8 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "runmode_: " << runmode_
+			<< " runnumber_: " << runnumber_ << " nevents_: " << nevents_);
 
 	try {
 		setParameter("EmuPeripheralCrate", "xmlFileName", "xsd:string",

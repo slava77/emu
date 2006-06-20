@@ -63,6 +63,8 @@ public:
 	void resetAction() throw (toolbox::fsm::exception::Exception);
 
 private: // XDAQ parameters
+	xdata::String x_runmode_;
+	xdata::UnsignedLong x_runnumber_;
 	xdata::Vector<xdata::String> config_keys_;
 	xdata::Vector<xdata::String> config_modes_;
 	xdata::Vector<xdata::String> modes_pc_;
