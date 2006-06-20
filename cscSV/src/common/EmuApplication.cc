@@ -16,7 +16,7 @@ EmuApplication::EmuApplication(xdaq::ApplicationStub *stub)
 {
 	fsm_.setFailedStateTransitionAction(this, &EmuApplication::transitionFailed);
 	fsm_.setFailedStateTransitionChanged(this, &EmuApplication::stateChanged);
-	fsm_.setStateName('F', "Failure");
+	fsm_.setStateName('F', "Failed");
 
 	state_ = "";
 	getApplicationInfoSpace()->fireItemAvailable("State", &state_);
