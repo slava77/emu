@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.31 2006/06/01 16:05:00 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.32 2006/06/20 10:03:11 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.32  2006/06/20 10:03:11  mey
+// Reduced dac setting
+//
 // Revision 1.31  2006/06/01 16:05:00  rakness
 // update
 //
@@ -1384,8 +1387,8 @@ void ChamberUtilities::LoadCFEB(int HalfStrip, int CLCTInputs, bool enableL1aEmu
   thisTMB->DisableCLCTInputs();
   thisTMB->SetCLCTPatternTrigger();
   //
-  thisDMB->set_comp_thresh(0.3);
-  thisDMB->set_dac(.5,0);
+  thisDMB->set_comp_thresh(0.1);
+  thisDMB->set_dac(.1,0);
   //
   if (HalfStrip == -1 ) HalfStrip = int(rand()*31./(RAND_MAX+1.0));
   //
