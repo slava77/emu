@@ -286,6 +286,9 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference e)
 		sendCommand("Configure", "EmuPeripheralCrate");
 		sendCommand("Configure", "EmuDAQManager");
 		sendCommand("Configure", "LTCControl");
+	} catch (xoap::exception::Exception e) {
+		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+				"SOAP fault was returned", e);
 	} catch (xdaq::exception::Exception e) {
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 				"Failed to send a command", e);
@@ -304,6 +307,9 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference e)
 		sendCommand("Enable", "EmuDAQManager");
 		sendCommand("Resynch", "LTCControl");
 		sendCommand("Enable", "LTCControl");
+	} catch (xoap::exception::Exception e) {
+		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+				"SOAP fault was returned", e);
 	} catch (xdaq::exception::Exception e) {
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 				"Failed to send a command", e);
@@ -322,6 +328,9 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference e)
 		sendCommand("Disable", "EmuDAQManager");
 		sendCommand("Disable", "EmuPeripheralCrate");
 		sendCommand("Configure", "LTCControl");
+	} catch (xoap::exception::Exception e) {
+		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+				"SOAP fault was returned", e);
 	} catch (xdaq::exception::Exception e) {
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 				"Failed to send a command", e);
@@ -340,6 +349,9 @@ void CSCSupervisor::haltAction(toolbox::Event::Reference e)
 		sendCommand("Halt", "EmuPeripheralCrate");
 		sendCommand("Halt", "EmuDAQManager");
 		sendCommand("Halt", "LTCControl");
+	} catch (xoap::exception::Exception e) {
+		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+				"SOAP fault was returned", e);
 	} catch (xdaq::exception::Exception e) {
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 				"Failed to send a command", e);
@@ -355,8 +367,12 @@ void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 }
 
 void CSCSupervisor::sendCommand(string command, string klass)
-		throw (xdaq::exception::Exception)
+		throw (xoap::exception::Exception, xdaq::exception::Exception)
 {
+	// Exceptions:
+	// xoap exceptions are thrown by analyzeReply() for SOAP faults.
+	// xdaq exceptions are thrown by postSOAP() for socket level errors.
+
 	// find applications
 	vector<xdaq::ApplicationDescriptor *> apps;
 	try {
@@ -375,6 +391,7 @@ void CSCSupervisor::sendCommand(string command, string klass)
 	for (; i != apps.end(); ++i) {
 		// postSOAP() may throw an exception when failed.
 		reply = getApplicationContext()->postSOAP(message, *i);
+
 		analyzeReply(message, reply, *i);
 	}
 }
@@ -470,6 +487,7 @@ void CSCSupervisor::analyzeReply(
 	error << reply_str << endl;
 
 	LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+	XCEPT_RAISE(xoap::exception::Exception, "SOAP fault: \n" + reply_str);
 
 	return;
 }

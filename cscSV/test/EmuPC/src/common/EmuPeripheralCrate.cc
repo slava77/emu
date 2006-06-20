@@ -48,6 +48,8 @@ xoap::MessageReference EmuPeripheralCrate::onConfigure(xoap::MessageReference me
 		throw (xoap::exception::Exception)
 {
 	fireEvent("Configure");
+	//fireEvent("Enable");
+	//XCEPT_RAISE(xoap::exception::Exception, "fault!!");
 
 	return createReply(message);
 }
