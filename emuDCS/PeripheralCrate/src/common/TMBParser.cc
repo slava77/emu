@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 2.12 2006/05/19 14:06:46 mey Exp $
+// $Id: TMBParser.cc,v 2.13 2006/06/20 12:34:10 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 2.13  2006/06/20 12:34:10  mey
+// Get Output
+//
 // Revision 2.12  2006/05/19 14:06:46  mey
 // Fixed ALCT parser
 //
@@ -61,6 +64,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, int crateNumber)
   } else {
     tmb_ = new TMB(crateNumber, slot);
     std::cout << "New TMB" << std::endl ;
+    tmb_->SendOutput("New TMB");
     //
     int delay;
     if ( parser_.fillInt("cfeb0delay",delay) ) {
