@@ -12,6 +12,8 @@
 EmuModule::EmuModule()
 {
   //
+  MyOutput_ = &std::cout ;
+  //
 }
 
 //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.43 2006/06/12 12:47:16 mey Exp $
+// $Id: TMB.h,v 2.44 2006/06/20 12:34:10 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.44  2006/06/20 12:34:10  mey
+// Get Output
+//
 // Revision 2.43  2006/06/12 12:47:16  mey
 // Update
 //
@@ -142,13 +145,14 @@
 #include <bitset>
 //#include "TMB_JTAG_constants.h"
 #include "EMUjtag.h"
+#include "EmuModule.h"
 
 class ALCTController;
 class TMBParser;
 class RAT;
 class AnodeChannel;
 
-class TMB : public VMEModule, public EMUjtag {
+class TMB : public VMEModule, public EMUjtag, public EmuModule {
 
 public:
   //
