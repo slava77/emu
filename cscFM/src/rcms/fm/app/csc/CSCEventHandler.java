@@ -58,7 +58,7 @@ public class CSCEventHandler extends UserStateNotificationHandler {
 	}
 	
 	public void resetAction(Object o) throws UserActionException {
-		genericAction(o, "Resetting", MyInputs.SETRESET);
+		xdaqCommandAction(o, "Resetting", MyInputs.SETRESET, "Reset");
 	}
 	
 	public void recoverAction(Object o) throws UserActionException {
