@@ -35,6 +35,8 @@ EmuDAQManager::EmuDAQManager(xdaq::ApplicationStub *stub)
 	fsm_.addStateTransition(
 			'E', 'C', "Disable",   this, &EmuDAQManager::disableAction);
 	fsm_.addStateTransition(
+			'H', 'H', "Halt",      this, &EmuDAQManager::haltAction);
+	fsm_.addStateTransition(
 			'C', 'H', "Halt",      this, &EmuDAQManager::haltAction);
 	fsm_.addStateTransition(
 			'E', 'H', "Halt",      this, &EmuDAQManager::haltAction);

@@ -22,6 +22,8 @@ EmuFEDCrate::EmuFEDCrate(xdaq::ApplicationStub *stub)
 	fsm_.addStateTransition(
 			'C', 'C', "Configure", this, &EmuFEDCrate::configureAction);
 	fsm_.addStateTransition(
+			'H', 'H', "Halt",      this, &EmuFEDCrate::haltAction);
+	fsm_.addStateTransition(
 			'C', 'H', "Halt",      this, &EmuFEDCrate::haltAction);
 
 	fsm_.setInitialState('H');
