@@ -42,11 +42,13 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	xgi::bind(this, &CSCSupervisor::webEnable,    "Enable");
 	xgi::bind(this, &CSCSupervisor::webDisable,   "Disable");
 	xgi::bind(this, &CSCSupervisor::webHalt,      "Halt");
+	xgi::bind(this, &CSCSupervisor::webReset,     "Reset");
 
 	xoap::bind(this, &CSCSupervisor::onConfigure, "Configure", XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onEnable,    "Enable",    XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onDisable,   "Disable",   XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onHalt,      "Halt",      XDAQ_NS_URI);
+	xoap::bind(this, &CSCSupervisor::onReset,     "Reset",     XDAQ_NS_URI);
 
 	fsm_.addState('H', "Halted",     this, &CSCSupervisor::stateChanged);
 	fsm_.addState('C', "Configured", this, &CSCSupervisor::stateChanged);
@@ -113,6 +115,15 @@ xoap::MessageReference CSCSupervisor::onDisable(xoap::MessageReference message)
 xoap::MessageReference CSCSupervisor::onHalt(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
+	fireEvent("Halt");
+
+	return createReply(message);
+}
+
+xoap::MessageReference CSCSupervisor::onReset(xoap::MessageReference message)
+		throw (xoap::exception::Exception)
+{
+	resetAction();
 	fireEvent("Halt");
 
 	return createReply(message);
@@ -208,7 +219,15 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 			.set("value", "Halt") << endl;
 	*out << form() << endl;
 
-	state_table_.webOutput(out);
+	*out << form().set("action",
+			"/" + getApplicationDescriptor()->getURN() + "/Reset") << endl;
+	*out << input().set("type", "submit")
+			.set("name", "command")
+			.set("value", "Reset") << endl;
+	*out << form() << endl;
+
+	// Application states
+	state_table_.webOutput(out, (string)state_);
 
 	*out << hr() << endl;
 
@@ -259,6 +278,15 @@ void CSCSupervisor::webHalt(xgi::Input *in, xgi::Output *out)
 	webRedirect(in, out);
 }
 
+void CSCSupervisor::webReset(xgi::Input *in, xgi::Output *out)
+		throw (xgi::exception::Exception)
+{
+	resetAction();
+	fireEvent("Halt");
+
+	webRedirect(in, out);
+}
+
 void CSCSupervisor::webRedirect(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
@@ -272,10 +300,10 @@ void CSCSupervisor::webRedirect(xgi::Input *in, xgi::Output *out)
 			url.substr(0, url.find("/" + in->getenv("PATH_INFO"))));
 }
 
-void CSCSupervisor::configureAction(toolbox::Event::Reference e) 
+void CSCSupervisor::configureAction(toolbox::Event::Reference evt) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << "(begin)");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
 
 	try {
 		setParameter("EmuPeripheralCrate", "xmlFileName", "xsd:string",
@@ -287,20 +315,24 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference e)
 		sendCommand("Configure", "EmuDAQManager");
 		sendCommand("Configure", "LTCControl");
 	} catch (xoap::exception::Exception e) {
+		LOG4CPLUS_ERROR(getApplicationLogger(),
+				"Exception in " << evt->type() << ": " << e.what());
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 				"SOAP fault was returned", e);
 	} catch (xdaq::exception::Exception e) {
+		LOG4CPLUS_ERROR(getApplicationLogger(),
+				"Exception in " << evt->type() << ": " << e.what());
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 				"Failed to send a command", e);
 	}
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << "(end)");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
 }
 
-void CSCSupervisor::enableAction(toolbox::Event::Reference e) 
+void CSCSupervisor::enableAction(toolbox::Event::Reference evt) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << "(begin)");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
 
 	try {
 		sendCommand("Enable", "EmuPeripheralCrate");
@@ -315,13 +347,13 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference e)
 				"Failed to send a command", e);
 	}
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << "(end)");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
 }
 
-void CSCSupervisor::disableAction(toolbox::Event::Reference e) 
+void CSCSupervisor::disableAction(toolbox::Event::Reference evt) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << "(begin)");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
 
 	try {
 		sendCommand("Halt", "LTCControl");
@@ -336,13 +368,13 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference e)
 				"Failed to send a command", e);
 	}
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << "(end)");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
 }
 
-void CSCSupervisor::haltAction(toolbox::Event::Reference e) 
+void CSCSupervisor::haltAction(toolbox::Event::Reference evt) 
 		throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << "(begin)");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
 
 	try {
 		sendCommand("Halt", "EmuFEDCrate");
@@ -357,7 +389,16 @@ void CSCSupervisor::haltAction(toolbox::Event::Reference e)
 				"Failed to send a command", e);
 	}
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), e->type() << "(end)");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
+}
+
+void CSCSupervisor::resetAction() throw (toolbox::fsm::exception::Exception)
+{
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "reset(begin)");
+
+	fsm_.reset();
+
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "reset(end)");
 }
 
 void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
@@ -632,12 +673,19 @@ void CSCSupervisor::StateTable::refresh()
 	}
 }
 
-void CSCSupervisor::StateTable::webOutput(xgi::Output *out)
+void CSCSupervisor::StateTable::webOutput(xgi::Output *out, string sv_state)
 		throw (xgi::exception::Exception)
 {
 	refresh();
 	*out << table() << tbody() << endl;
 
+	// My state
+	*out << tr();
+	*out << td() << "CSCSupervisor" << "(" << "0" << ")" << td();
+	*out << td().set("class", sv_state) << sv_state << td();
+	*out << tr() << endl;
+
+	// Applications
 	vector<pair<xdaq::ApplicationDescriptor *, string> >::iterator i =
 			table_.begin();
 	for (; i != table_.end(); ++i) {

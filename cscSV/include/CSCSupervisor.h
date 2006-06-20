@@ -32,6 +32,8 @@ public:
 			throw (xoap::exception::Exception);
 	xoap::MessageReference onHalt(xoap::MessageReference message)
 			throw (xoap::exception::Exception);
+	xoap::MessageReference onReset(xoap::MessageReference message)
+			throw (xoap::exception::Exception);
 
 	// HyperDAQ interface
 	void webDefault(xgi::Input *in, xgi::Output *out)
@@ -43,6 +45,8 @@ public:
 	void webDisable(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
 	void webHalt(xgi::Input *in, xgi::Output *out)
+			throw (xgi::exception::Exception);
+	void webReset(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
 	void webRedirect(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
@@ -56,6 +60,7 @@ public:
 			throw (toolbox::fsm::exception::Exception);
 	void haltAction(toolbox::Event::Reference e) 
 			throw (toolbox::fsm::exception::Exception);
+	void resetAction() throw (toolbox::fsm::exception::Exception);
 
 private: // XDAQ parameters
 	xdata::Vector<xdata::String> config_keys_;
@@ -98,7 +103,8 @@ private:
 	public:
 		void addApplication(CSCSupervisor *sv, string klass);
 		void refresh() ;
-		void webOutput(xgi::Output *out) throw (xgi::exception::Exception);
+		void webOutput(xgi::Output *out, string sv_state)
+				throw (xgi::exception::Exception);
 
 	private:
 		xoap::MessageReference createStateSOAP(string klass);
