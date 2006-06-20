@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.32 2006/06/20 10:03:11 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.33 2006/06/20 11:35:11 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.33  2006/06/20 11:35:11  rakness
+// output of cfebchamberscan
+//
 // Revision 1.32  2006/06/20 10:03:11  mey
 // Reduced dac setting
 //
@@ -1441,9 +1444,9 @@ void ChamberUtilities::CFEBChamberScan(){
       MuonsMaxHits[i][j] = 0;
     }
   //
-  int CLCTInputList[3] = {0x1,0xa,0x14};
+  int CLCTInputList[5] = {0x1,0x2,0x4,0x8,0x10};
   //
-  for (int List=0; List<3; List++){
+  for (int List=0; List<5; List++){
     //
     for (int Nmuons=0; Nmuons < Npulses_; Nmuons++){
       //
@@ -1478,15 +1481,15 @@ void ChamberUtilities::CFEBChamberScan(){
     }      
   }
   //
-  cout << endl;
-  cout << " Number of Muons seen " << endl;
+  (*MyOutput_) << endl;
+  (*MyOutput_) << " Number of Muons seen " << endl;
   //
   for (int CFEBs = 0; CFEBs<5; CFEBs++) {
-    cout << "CFEB Id="<<CFEBs<< " " ;
+    (*MyOutput_) << "CFEB Id="<<CFEBs<< " " ;
     for (int HalfStrip = 0; HalfStrip<MaxStrip; HalfStrip++) {
-      cout << setw(3) << Muons[CFEBs][HalfStrip] ;
+      (*MyOutput_) << setw(3) << Muons[CFEBs][HalfStrip] ;
     }
-    cout << endl;
+    (*MyOutput_) << endl;
   }
   //
   for (int i=0;i<5;i++) 
@@ -1494,16 +1497,16 @@ void ChamberUtilities::CFEBChamberScan(){
       CFEBStripScan_[i][j] = Muons[i][j];
     }
   //
-  cout << endl;
+  (*MyOutput_) << endl;
   //
-  cout << " Maximum number of hits " << endl;
+  (*MyOutput_) << " Maximum number of hits " << endl;
   //
   for (int CFEBs = 0; CFEBs<5; CFEBs++) {
-    cout << "CFEB Id="<<CFEBs<< " " ;
+    (*MyOutput_) << "CFEB Id="<<CFEBs<< " " ;
     for (int HalfStrip = 0; HalfStrip<MaxStrip; HalfStrip++) {
-      cout << setw(3) << MuonsMaxHits[CFEBs][HalfStrip] ;
+      (*MyOutput_) << setw(3) << MuonsMaxHits[CFEBs][HalfStrip] ;
     }
-    cout << endl;
+    (*MyOutput_) << endl;
   }
 }
 //
