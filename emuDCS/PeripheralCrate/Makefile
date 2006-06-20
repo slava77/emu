@@ -59,7 +59,8 @@ Sources=\
 	Chamber.cc \
 	ChamberUtilities.cc \
 	CSCParser.cc \
-	EMUjtag.cc 
+	EMUjtag.cc \
+	EmuModule.cc
 
 IncludeDirs = \
 	$(XDAQ_ROOT)/daq/toolbox/include \

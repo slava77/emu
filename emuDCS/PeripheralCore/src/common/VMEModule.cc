@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.18 2006/06/19 14:17:58 mey Exp $
+// $Id: VMEModule.cc,v 2.19 2006/06/20 12:25:37 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.19  2006/06/20 12:25:37  mey
+// Update
+//
 // Revision 2.18  2006/06/19 14:17:58  mey
 // Update
 //
@@ -156,9 +159,3 @@ bool VMEModule::exist(){
   return theController->exist( theSlot );
 }
 
-void VMEModule::SendOutput(std::string Output){
-  //
-  log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuPeripheralCrate");
-  LOG4CPLUS_DEBUG(logger,Output);
-  //
-}
