@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.99 2006/06/21 08:30:47 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.100 2006/06/21 08:59:41 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1496,19 +1496,34 @@ private:
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("Crate Status") << std::endl;
     //
-    thisCCB->setCCBMode(CCB::VMEFPGA);
-    thisCCB->WriteRegister(0x04,0x0001);  //Softreset
-    //
-    int read = (thisCCB->ReadRegister(0x2))&0xffff;
-    // 
     *out << cgicc::h3("Configuration done for Crate  ");
     *out << cgicc::br();
+    //
+    int ccbmode = (thisCCB->ReadRegister(0x0))&0x1;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
+    *out << "CCB Mode : ";
+    if(ccbmode == 1) {
+      *out << cgicc::span().set("style","color:green");
+      *out << " DLOG";
+      *out << cgicc::span();
+    } else {
+      *out << cgicc::span().set("style","color:red");
+      *out << " FPGA";
+      *out << cgicc::span();
+    }
+    *out << cgicc::br();
+    *out << cgicc::fieldset();
+    //
+    int read = (thisCCB->ReadRegister(0x2))&0xffff;
+    //
     *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
     *out << cgicc::span().set("style","color:blue");
     *out << "MPC slot = 14 cfg             " << (read&0x1);
     *out << cgicc::span();
-    *out << cgicc::fieldset();
     *out << cgicc::br();
+    //
+    *out << cgicc::fieldset();
     //
     *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
     //
@@ -1626,7 +1641,6 @@ private:
     *out << cgicc::br();
     //
     *out << cgicc::fieldset() ;
-    //
     //
   }
   //
