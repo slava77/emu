@@ -17,9 +17,9 @@ EmuModule::EmuModule()
 }
 
 //
-void EmuModule::SendOutput(std::string Output){
+void EmuModule::SendOutput(std::string Output, std::string MessageType){
   //
   log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuPeripheralCrate");
-  LOG4CPLUS_INFO(logger,Output);
+  if(MessageType=="INFO") LOG4CPLUS_INFO(logger,Output);
   //
 }
