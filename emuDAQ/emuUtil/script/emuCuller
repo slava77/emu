@@ -221,7 +221,7 @@ if __name__ == "__main__":
 
     # user's command line options
     for i in range(1,len(sys.argv)):
-        if sys.argv[i] == '-m':
+        if sys.argv[i] == '-c':
             completeConfigFileName = sys.argv[i+1]
         elif sys.argv[i] == '-n':
             newConfigFileName = sys.argv[i+1]
