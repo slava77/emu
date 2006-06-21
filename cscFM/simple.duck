@@ -1,5 +1,5 @@
 REPLACE
-kEY "simple" "0.0" ""
+KEY "simple" "0.0" ""
 FULL_PATH "/CSC/simple" "ichiro"
 
 GROUP "csc" "ichiro"
