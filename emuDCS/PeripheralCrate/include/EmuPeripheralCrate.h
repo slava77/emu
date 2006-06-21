@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.98 2006/06/16 16:14:52 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 2.99 2006/06/21 08:30:47 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1512,6 +1512,51 @@ private:
     //
     *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
     //
+    *out << "CCB  slot = 14 FPGA cfg       " << ((read>>12)&0x1);
+    //
+    if(((read>>12)&0x1) == 1) {
+      *out << cgicc::span().set("style","color:green");
+      *out << " (Done)";
+      *out << cgicc::span();
+    } else {
+      *out << cgicc::span().set("style","color:red");
+      *out << " (Failed)";
+      *out << cgicc::span();
+    }
+    //
+    *out << cgicc::br();
+    //
+    *out << "TTCrx ready                   " << ((read>>13)&0x1);
+    if(((read>>13)&0x1) == 1) {
+      *out << cgicc::span().set("style","color:green");
+      *out << " (Ready)";
+      *out << cgicc::span();
+    } else {
+      *out << cgicc::span().set("style","color:red");
+      *out << " (Not ready)";
+      *out << cgicc::span();
+    }
+    *out << cgicc::br();
+    //
+    *out << "QPLL ready                    " << ((read>>14)&0x1);
+    if(((read>>14)&0x1) == 1) {
+      *out << cgicc::span().set("style","color:green");
+      *out << " (Locked)";
+      *out << cgicc::span();
+    } else {
+      *out << cgicc::span().set("style","color:red");
+      *out << " (Not locked)";
+      *out << cgicc::span();
+    }
+    *out << cgicc::br();
+    //
+    *out << "All cfg                       " << ((read>>15)&0x1);
+    *out << cgicc::br();
+    //
+    *out << cgicc::fieldset() ;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
+    //
     *out << "ALCT slot = 02 cfg            " << ((read>>1)&0x1);
     *out << cgicc::br();
     *out << "ALCT slot = 04 cfg            " << ((read>>2)&0x1);
@@ -1582,21 +1627,6 @@ private:
     //
     *out << cgicc::fieldset() ;
     //
-    *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
-    //
-    *out << "CCB  slot = 14 cfg            " << ((read>>12)&0x1);
-    *out << cgicc::br();
-    //
-    *out << "TTCrx ready                   " << ((read>>13)&0x1);
-    *out << cgicc::br();
-    //
-    *out << "QPLL ready                    " << ((read>>14)&0x1);
-    *out << cgicc::br();
-    //
-    *out << "All cfg                       " << ((read>>15)&0x1);
-    *out << cgicc::br();
-    //
-    *out << cgicc::fieldset() ;
     //
   }
   //
