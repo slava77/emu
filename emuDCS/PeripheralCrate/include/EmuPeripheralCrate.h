@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.100 2006/06/21 08:59:41 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.101 2006/06/22 13:06:14 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1720,6 +1720,14 @@ private:
     //
     *out <<cgicc::td();
     //
+    vector<int> L1aLctCounter_(dmbVector.size());
+    vector<int> CfebDavCounter_(dmbVector.size());
+    //
+    for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
+      L1aLctCounter_[dmb]=0;
+      CfebDavCounter_[dmb]=0;
+    }
+    //
     for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       //
       dmbVector[dmb]->readtimingCounter();
@@ -1739,7 +1747,8 @@ private:
     //
     for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       *out <<cgicc::td();
-      *out << dmbVector[dmb]->GetL1aLctCounter() <<std::endl;
+      if ( dmbVector[dmb]->GetL1aLctCounter() > 0 ) L1aLctCounter_[dmb] = dmbVector[dmb]->GetL1aLctCounter();
+      *out << L1aLctCounter_[dmb] <<std::endl;
       *out <<cgicc::td();
     }
     *out <<cgicc::tr();
@@ -1750,7 +1759,8 @@ private:
     //
     for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       *out <<cgicc::td();
-      *out << dmbVector[dmb]->GetCfebDavCounter() <<std::endl;
+      if ( dmbVector[dmb]->GetCfebDavCounter() > 0 ) CfebDavCounter_[dmb] = dmbVector[dmb]->GetCfebDavCounter();
+      *out << CfebDavCounter_[dmb] <<std::endl;
       *out <<cgicc::td();
     }
     *out <<cgicc::tr();
@@ -1772,7 +1782,7 @@ private:
     //
     for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       *out <<cgicc::td();
-      *out << dmbVector[dmb]->GetTmbDavCounter() <<std::endl;
+      *out << dmbVector[dmb]->GetAlctDavCounter() <<std::endl;
       *out <<cgicc::td();
     }
     *out <<cgicc::tr();
@@ -3944,8 +3954,8 @@ private:
     }
     //
     std::cout << "Loading DMBNumber " <<dmbNumber << std::endl ;
-    *out << "Loading DMBNumber " <<dmbNumber ;
-    *out << cgicc::br();
+    //*out << "Loading DMBNumber " <<dmbNumber ;
+    //*out << cgicc::br();
     //
     cgicc::form_iterator name = cgi.getElement("dmb");
     //
@@ -3992,12 +4002,16 @@ private:
 	  thisCCB->hardReset();
 	  ::sleep(1);
 	  unsigned short int dword[2];
-	  dword[0]=thisDMB->febpromuser(thisCFEBs[dmbNumber]);
-	  CFEBid_[dmb][dmbNumber] = dword[0];  // fill summary file with user ID value read from this CFEB
-	  char * outp=(char *)dword;   // recast dword
-	  thisDMB->epromload(thisCFEBs[dmbNumber].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
-	  ::sleep(1);
-	  thisCCB->hardReset();
+	  for (unsigned int i=0; i<thisCFEBs.size(); i++) {
+	    if (thisCFEBs[i].number() == dmbNumber ) {
+	      dword[0]=thisDMB->febpromuser(thisCFEBs[i]);
+	      CFEBid_[dmb][i] = dword[0];  // fill summary file with user ID value read from this CFEB
+	      char * outp=(char *)dword;   // recast dword
+	      thisDMB->epromload(thisCFEBs[i].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
+	      ::sleep(1);
+	      thisCCB->hardReset();
+	    }
+	  }
 	}
 	//
 	thisCCB->hardReset();
@@ -6506,6 +6520,7 @@ private:
     *out << cgicc::form() << std::endl ;
     //
     std::string CFEBFirmware = FirmwareDir_+"cfeb/cfeb_v4_r2.svf";
+    //std::string CFEBFirmware = FirmwareDir_+"cfeb/cfeb_v3_r1.svf";
     CFEBFirmware_ = CFEBFirmware;
     //
     std::string CFEBLoadFirmware =
