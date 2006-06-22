@@ -2,19 +2,19 @@
 <xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
 
 
-    	<xc:Context url="http://emuslice06:4100">		
-                <xc:Application class="EmuFCrateSOAP" id="31" network="local">                 
-                  <properties xmlns="urn:xdaq-application:EmuFCrateSOAP" xsi:type="soapenc:Struct">
-                  <xmlFileName xsi:type="xsd:string">/home/slice/DAQKit/v3.4/TriDAS/emu/emuDCS/FEDCrate/xml/config.xml</xmlFileName>
+    	<xc:Context url="http://emuslice06:40100">		
+                <xc:Application class="EmuFCrateHyperDAQ" id="31" service="emufcratehyperdaq" network="local">                 
+                  <properties xmlns="urn:xdaq-application:EmuFCrateHyperDAQ" xsi:type="soapenc:Struct">
+                  <xmlFileName xsi:type="xsd:string">/home/slice/DAQKit/v3.6/TriDAS/emu/emuDCS/FEDCrate/xml/config.xml</xmlFileName>
                  </properties>
                  </xc:Application>	
-                <xc:Application class="EmuFCrateHyperDAQ" id="32" network="local"> 
+                <xc:Application class="EmuFCrateSOAP" id="32" service="emufcratesoap" network="local"> 
                   <properties xmlns="urn:xdaq-application:EmuFCrateSOAP" xsi:type="soapenc:Struct">
-                  <xmlFileName xsi:type="xsd:string">/home/slice/DAQKit/v3.4/TriDAS/emu/emuDCS/FEDCrate/xml/config.xml</xmlFileName>
+                  <xmlFileName xsi:type="xsd:string">/home/slice/DAQKit/v3.6/TriDAS/emu/emuDCS/FEDCrate/xml/config.xml</xmlFileName>
                  </properties>
                  </xc:Application>	
-                <xc:Module>/home/slice/DAQKit/v3.4/TriDAS/emu/cscSV/lib/linux/x86/libCSCSupervisor.so</xc:Module>
-        	<xc:Module>/home/slice/DAQKit/v3.4/TriDAS/emu/emuDCS/FEDCrate/lib/linux/x86/libEmuFEDCrate.so</xc:Module>        
+                <xc:Module>/home/slice/DAQKit/v3.6/TriDAS/emu/cscSV/lib/linux/x86/libCSCSupervisor.so</xc:Module>
+        	<xc:Module>/home/slice/DAQKit/v3.6/TriDAS/emu/emuDCS/FEDCrate/lib/linux/x86/libEmuFEDCrate.so</xc:Module>        
         </xc:Context>
 
 
