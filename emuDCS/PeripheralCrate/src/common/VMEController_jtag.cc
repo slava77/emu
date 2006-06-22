@@ -2,8 +2,11 @@
 #ifndef OSUcc
 
 //-----------------------------------------------------------------------
-// $Id: VMEController_jtag.cc,v 2.37 2006/05/10 23:59:25 liu Exp $
+// $Id: VMEController_jtag.cc,v 2.38 2006/06/22 22:55:39 liu Exp $
 // $Log: VMEController_jtag.cc,v $
+// Revision 2.38  2006/06/22 22:55:39  liu
+// add debug info
+//
 // Revision 2.37  2006/05/10 23:59:25  liu
 // Update for Production Controller with firmware 3.59
 //
@@ -775,7 +778,10 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
           irdsnd = 1 send immediately, read
           irdsnd = 2 send in buffer, no read
   */
-  // printf(" ENTERING devdo, dev: %d, ncmd: %d \n",dev, ncmd);
+   if (DEBUG) {
+      printf("devdo: dev=%d, ncmd=%d, nbuf=%d, irdsnd=%d, Cmd %02x %02x\n", 
+       dev, ncmd, nbuf, irdsnd, cmd[0]&0xff, cmd[1]&0xff);
+   }
   if(dev!=99){
   idev=geo[dev].jchan;
   }else{
@@ -1116,10 +1122,11 @@ unsigned short int *ptr_r;
  
 if(cnt==0)return;
 
-//printf("ENTERING scan:%d\n",reg);
+   if (DEBUG) {
+      printf("scan: reg=%d, cnt=%d, ird=%d, Send %02x %02x\n", reg, cnt, ird, snd[0]&0xff, snd[1]&0xff);
+   }
+
  cnt2=cnt-1;
- // printf(" ****** cnt cnt2 %d %d \n",cnt,cnt2);
- // printf(" reg ird %d %d \n",reg,ird);
  data=(unsigned short int *) snd;
 
  /* instr */
@@ -1143,7 +1150,7 @@ if(cnt==0)return;
    byte=cnt/16;
    bit=cnt-byte*16;
    // printf(" bit byte %d %d \n",bit,byte);
-   if(byte==0|(byte==1&bit==0)){
+   if(byte==0||(byte==1&&bit==0)){
      add_d=add_d&msk_clr;
      add_d=add_d|(cnt2<<8);
      ptr_d=(unsigned short int *)add_d; 
@@ -1178,7 +1185,7 @@ if(cnt==0)return;
   add_ds=add_ds&msk_clr;
   ptr_ds=(unsigned short int *)add_ds;
   for(i=0;i<byte-1;i++){
-    if(i==byte-2&bit==0){
+    if(i==(byte-2)&&bit==0){
       add_dt=add_dt&msk_clr;
       add_dt=add_dt|0x0f00;
       ptr_dt=(unsigned short int *)add_dt;
@@ -1653,8 +1660,6 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
  unsigned char *rcv2, bdata, *data, mytmp[MAXLINE];
  int buff_mode;
 
- int debug = 0;
-
  if(cnt<0 || reg<0 || reg>1)return;
  for(int i=0;i<MAXLINE;i++) mytmp[i] = 0;
  ptr=(unsigned short int *)add_ucla;
@@ -1668,7 +1673,7 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
  //if (ird==0) buff_mode=1;
  if (ird==2) buff_mode=1;
  //
-   if (debug) {
+   if (DEBUG) {
       printf("scan_alct: reg=%d, cnt=%d, ird=%d, Send %02x %02x\n", reg, cnt, ird, snd[0]&0xff, snd[1]&0xff);
    }
 
@@ -1775,8 +1780,8 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
          else
            { bdata >>= 1;     bit++; }
      }
-     if (debug) {
-        printf("   Output: ");
+     if (DEBUG>1) {
+        printf("scan_alct output: ");
         for(i=0; i<cnt8/8; i++) printf("%02X ", rcv2[i]);
         printf("\n");
      }
