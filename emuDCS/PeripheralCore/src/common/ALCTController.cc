@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.35 2006/05/31 11:04:44 mey Exp $
+// $Id: ALCTController.cc,v 2.36 2006/06/22 13:06:14 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.36  2006/06/22 13:06:14  mey
+// Update
+//
 // Revision 2.35  2006/05/31 11:04:44  mey
 // UPdate
 //
@@ -514,7 +517,7 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   alct_nph_thresh_(2),
   alct_nph_pattern_(3),
   alct_l1a_delay_(146),
-  alct_l1a_window_(5),
+  alct_l1a_window_(3),
   alct_l1a_internal_(0),
   alct_ccb_enable_(1),
   alct_l1a_offset_(1)

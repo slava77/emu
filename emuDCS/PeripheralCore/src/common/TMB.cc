@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.67 2006/06/20 13:18:17 mey Exp $
+// $Id: TMB.cc,v 2.68 2006/06/22 13:06:14 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.68  2006/06/22 13:06:14  mey
+// Update
+//
 // Revision 2.67  2006/06/20 13:18:17  mey
 // Update
 //
@@ -228,10 +231,10 @@ TMB::TMB(int newcrate, int slot) :
   cfeb4delay_(7),
   alct_tx_clock_delay_(0x00),
   alct_rx_clock_delay_(0x0a),
-  l1a_window_size_(5),
+  l1a_window_size_(3),
   l1adelay_(128),
   alct_match_window_size_(3),
-  alct_vpf_delay_(8),
+  alct_vpf_delay_(4),
   mpc_delay_(7),
   ALCT_input_(1),
   rpc_exists_(0xf),

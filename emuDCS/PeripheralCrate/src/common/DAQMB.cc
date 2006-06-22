@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.60 2006/05/31 15:58:46 mey Exp $
+// $Id: DAQMB.cc,v 2.61 2006/06/22 13:06:14 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.61  2006/06/22 13:06:14  mey
+// Update
+//
 // Revision 2.60  2006/05/31 15:58:46  mey
 // Update
 //
@@ -997,6 +1000,7 @@ unsigned int DAQMB::lowv_rdpwrreg()
 unsigned long int DAQMB::febpromuser(const CFEB & cfeb)
 {
   DEVTYPE dv = cfeb.promDevice();
+  printf("%d \n",dv);
   cmd[0]=PROM_USERCODE;
   sndbuf[0]=0xFF;
   sndbuf[1]=0xFF;
@@ -1653,6 +1657,8 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
   // 
   (*MyOutput_) << " epromload " << std::endl;
   (*MyOutput_) << " devnum    " << devnum << std::endl;
+  //
+  std::cout << " devnum    " << devnum << std::endl;
   //
   if(devnum==ALL){
     devnum=F1PROM;
