@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.45 2006/06/20 13:18:16 mey Exp $
+// $Id: TMB.h,v 2.46 2006/06/23 13:53:29 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.46  2006/06/23 13:53:29  mey
+// bug fix
+//
 // Revision 2.45  2006/06/20 13:18:16  mey
 // Update
 //
@@ -166,7 +169,7 @@ public:
   TMB(int newcrate, int slot);
   virtual ~TMB();
   //
-  //inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
+  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   //
   void WriteOutput(std::string);
   //
@@ -425,7 +428,7 @@ private:
   int devices_in_chain;
   //bool step_mode;
   //int bits_per_opcode[MAX_NUM_CHIPS];
-  //std::ostream * MyOutput_ ;
+  std::ostream * MyOutput_ ;
   int alct_tx_clock_delay_;
   int alct_rx_clock_delay_;
   int trigMB_dav_delay_;

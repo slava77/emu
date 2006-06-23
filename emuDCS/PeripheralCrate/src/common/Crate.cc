@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 2.11 2006/06/23 13:40:26 mey Exp $
+// $Id: Crate.cc,v 2.12 2006/06/23 13:53:29 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 2.12  2006/06/23 13:53:29  mey
+// bug fix
+//
 // Revision 2.11  2006/06/23 13:40:26  mey
 // Fixed bug
 //
@@ -59,6 +62,7 @@ Crate::Crate(int number, VMEController * controller) :
   theModules(28),
   theController(controller) 
 {
+  for(int i=0;i<theModules.size();i++) theModules[i] = 0;
   theChambers.clear();
   Singleton<CrateSetup>::instance()->addCrate(number, this);
 }
@@ -73,6 +77,7 @@ Crate::~Crate() {
 
 
 void Crate::addModule(VMEModule * module) {
+  if(theModules[module->slot()] != 0 ) delete theModules[module->slot()];
   theModules[module->slot()] = module;
 }
 
