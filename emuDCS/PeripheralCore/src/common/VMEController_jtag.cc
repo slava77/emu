@@ -193,40 +193,40 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
       daqmb_fifo(irdsnd,ififo,nbyte,(unsigned short int *)inbuf,(unsigned char *)outbuf);
       break;
 
- case 8: /* LOW VOLTAGE  Monitor write/read */
-      add_loww=vmeadd|msk08|msk_loww;
-      add_lowr=vmeadd|msk08|msk_lowr; 
-      add_lowwpr=vmeadd|msk08|msk_lowwpr;
-      add_lowrpr=vmeadd|msk08|msk_lowrpr;
-      add_lowrs=vmeadd|msk08|msk_lowrs; 
-      add_lowws=vmeadd|msk08|msk_lowws; 
-      lowvolt(cmd[0],cmd[1],outbuf);
-   break;
-
-case 10: /* buckeye shift flash memory */
-     /* cmd 00 initalize program process 
-        cmd 01 load in Buckeye pathern
-        cmd 02 program flash memory
-        cmd 03 read back flash memory
-        cmd 04 initialize buckeye */
- 
-      add_bucip=vmeadd|msk09|msk_bucip;
-      add_bucl=vmeadd|msk09|msk_bucl;
-      add_bucf=vmeadd|msk09|msk_bucf;
-      add_bucr=vmeadd|msk09|msk_bucr;
-      add_buci=vmeadd|msk09|msk_buci;
-      add_buce=vmeadd|msk09|msk_buce;
-      buckflash(cmd,inbuf,outbuf);
-      return;
-   break;
-
-   case 11:   /* RESET emergency VME PROM loading */ 
-     if(init==1){
-       feuse=0x99;
-       ife=99;
-       add_reset=vmeadd|msk0f;
-     }
-   break;
+  case 8: /* LOW VOLTAGE  Monitor write/read */
+    add_loww=vmeadd|msk08|msk_loww;
+    add_lowr=vmeadd|msk08|msk_lowr; 
+    add_lowwpr=vmeadd|msk08|msk_lowwpr;
+    add_lowrpr=vmeadd|msk08|msk_lowrpr;
+    add_lowrs=vmeadd|msk08|msk_lowrs; 
+    add_lowws=vmeadd|msk08|msk_lowws; 
+    lowvolt(cmd[0],cmd[1],outbuf);
+    break;
+    
+  case 10: /* buckeye shift flash memory */
+    /* cmd 00 initalize program process 
+       cmd 01 load in Buckeye pathern
+       cmd 02 program flash memory
+       cmd 03 read back flash memory
+       cmd 04 initialize buckeye */
+    
+    add_bucip=vmeadd|msk09|msk_bucip;
+    add_bucl=vmeadd|msk09|msk_bucl;
+    add_bucf=vmeadd|msk09|msk_bucf;
+    add_bucr=vmeadd|msk09|msk_bucr;
+    add_buci=vmeadd|msk09|msk_buci;
+    add_buce=vmeadd|msk09|msk_buce;
+    buckflash(cmd,inbuf,outbuf);
+    return;
+    break;
+    
+  case 11:   /* RESET emergency VME PROM loading */ 
+    if(init==1){
+      feuse=0x99;
+      ife=99;
+      add_reset=vmeadd|msk0f;
+    }
+    break;
 
   }
 
@@ -284,95 +284,95 @@ if(ncmd>0){
 }
 }
 
-switch(idev){
-    case 1:   /* jtag feboards */ 
-      if(ncmd==-99){sleep_vme(cmd);break;}    
-      if(ncmd<0){RestoreIdle();break;}
-      if(ncmd>0){
-      if(nbuf>0){
-        scan(INSTR_REG,cmd2,ncmd2,outbuf,0);
-      }else{
-        scan(INSTR_REG,cmd2,ncmd2,outbuf,irdsnd);
+ switch(idev){
+ case 1:   /* jtag feboards */ 
+   if(ncmd==-99){sleep_vme(cmd);break;}    
+   if(ncmd<0){RestoreIdle();break;}
+   if(ncmd>0){
+     if(nbuf>0){
+       scan(INSTR_REG,cmd2,ncmd2,outbuf,0);
+     }else{
+       scan(INSTR_REG,cmd2,ncmd2,outbuf,irdsnd);
+     }
+   }
+   if(nbuf>0)scan(DATA_REG,inbuf,nbuf2,outbuf,irdsnd);
+   if(irdsnd==1&&nbuf2%16!=0){
+     ishft=16-nbuf2%16;
+     temp=((outbuf[nbuf2/8+1]<<8)&0xff00)|(outbuf[nbuf2/8]&0xff);
+     temp=(temp>>ishft);
+     outbuf[nbuf2/8+1]=(temp&0xff00)>>8;
+     outbuf[nbuf2/8]=temp&0x00ff;
+   }
+   break;
+ case 2: /* jtag motherboard cntrl */ 
+   if(ncmd==-99){sleep_vme(cmd);break;}        
+   if(ncmd<0){RestoreIdle();break;}
+   if(ncmd>0){
+     if(nbuf>0){
+       scan(INSTR_REG,cmd2,ncmd2,outbuf,0);
+     }else{
+       scan(INSTR_REG,cmd2,ncmd2,outbuf,irdsnd);
+     }
+   }
+   if(nbuf>0)scan(DATA_REG,inbuf,nbuf2,outbuf,irdsnd);
+   if(irdsnd==1&&nbuf2%16!=0){
+     ishft=16-nbuf2%16;
+     temp=((outbuf[nbuf2/8+1]<<8)&0xff00)|(outbuf[nbuf2/8]&0xff);
+     temp=(temp>>ishft);
+     outbuf[nbuf2/8+1]=(temp&0xff00)>>8;
+     outbuf[nbuf2/8]=temp&0x00ff;
+   }
+   break;
+ case 3: /* jtag motherboard prom */
+   if(ncmd==-99){sleep_vme(cmd);break;}   
+   if(ncmd<0){RestoreIdle();break;}
+   if(ncmd>0&nbuf>0){
+     scan(INSTR_REG,cmd2,ncmd2,outbuf,0);
+   }else{
+     scan(INSTR_REG,cmd2,ncmd2,outbuf,irdsnd);
       }
-      }
-      if(nbuf>0)scan(DATA_REG,inbuf,nbuf2,outbuf,irdsnd);
-      if(irdsnd==1&&nbuf2%16!=0){
-        ishft=16-nbuf2%16;
-        temp=((outbuf[nbuf2/8+1]<<8)&0xff00)|(outbuf[nbuf2/8]&0xff);
-	temp=(temp>>ishft);
-        outbuf[nbuf2/8+1]=(temp&0xff00)>>8;
-        outbuf[nbuf2/8]=temp&0x00ff;
-       }
-    break;
-    case 2: /* jtag motherboard cntrl */ 
-      if(ncmd==-99){sleep_vme(cmd);break;}        
-      if(ncmd<0){RestoreIdle();break;}
-      if(ncmd>0){
-      if(nbuf>0){
-        scan(INSTR_REG,cmd2,ncmd2,outbuf,0);
-      }else{
-        scan(INSTR_REG,cmd2,ncmd2,outbuf,irdsnd);
-      }
-      }
-      if(nbuf>0)scan(DATA_REG,inbuf,nbuf2,outbuf,irdsnd);
-      if(irdsnd==1&&nbuf2%16!=0){
-        ishft=16-nbuf2%16;
-        temp=((outbuf[nbuf2/8+1]<<8)&0xff00)|(outbuf[nbuf2/8]&0xff);
-	temp=(temp>>ishft);
-        outbuf[nbuf2/8+1]=(temp&0xff00)>>8;
-        outbuf[nbuf2/8]=temp&0x00ff;
-       }
-    break;
-    case 3: /* jtag motherboard prom */
-      if(ncmd==-99){sleep_vme(cmd);break;}   
-      if(ncmd<0){RestoreIdle();break;}
-      if(ncmd>0&nbuf>0){
-        scan(INSTR_REG,cmd2,ncmd2,outbuf,0);
-      }else{
-        scan(INSTR_REG,cmd2,ncmd2,outbuf,irdsnd);
-      }
-      if(nbuf>0)scan(DATA_REG,inbuf,nbuf2,outbuf,irdsnd);
-      if(irdsnd==1&&nbuf2%16!=0){
-        ishft=16-nbuf2%16;
-        temp=((outbuf[nbuf2/8+1]<<8)&0xff00)|(outbuf[nbuf2/8]&0xff);
-	temp=(temp>>ishft);
-        outbuf[nbuf2/8+1]=(temp&0xff00)>>8;
-        outbuf[nbuf2/8]=temp&0x00ff;
-      }
-    break;
-    case 4: /* jtag vme-mthrbrd prom */
-      if(ncmd==-99){sleep_vme(cmd);break;}
-      if(ncmd<0){RestoreIdle();break;}
-      if(ncmd>0){
-      if(nbuf>0){
-        scan(INSTR_REG,cmd2,ncmd2,outbuf,0);
-      }else{
-        scan(INSTR_REG,cmd2,ncmd2,outbuf,irdsnd);
-      }
-      }
-      if(nbuf>0)scan(DATA_REG,inbuf,nbuf,outbuf,irdsnd);
-      if(irdsnd==1&&nbuf2%16!=0){
-        ishft=16-nbuf2%16;
-        temp=((outbuf[nbuf2/8+1]<<8)&0xff00)|(outbuf[nbuf2/8]&0xff);
-	temp=(temp>>ishft);
-        outbuf[nbuf2/8+1]=(temp&0xff00)>>8;
-        outbuf[nbuf2/8]=temp&0x00ff;
-      }
-    break;
-    case 11: /* reset vme  prom */
-      // printf(" reset vme prom ncmd2 %d %d nbuf2 %d \n",ncmd2,ncmd,nbuf2);     
-      if(ncmd==-99){sleep_vme(cmd);break;}
-      if(ncmd<0){RestoreIdle_reset();break;}
-      if(ncmd>0){
-      if(nbuf>0){
-        scan_reset(INSTR_REG,cmd,ncmd,outbuf,0);
-      }else{
-        scan_reset(INSTR_REG,cmd,ncmd,outbuf,irdsnd);
-      }
-      }
-      if(nbuf>0)scan_reset(DATA_REG,inbuf,nbuf,outbuf,irdsnd);
-    break;
-
+   if(nbuf>0)scan(DATA_REG,inbuf,nbuf2,outbuf,irdsnd);
+   if(irdsnd==1&&nbuf2%16!=0){
+     ishft=16-nbuf2%16;
+     temp=((outbuf[nbuf2/8+1]<<8)&0xff00)|(outbuf[nbuf2/8]&0xff);
+     temp=(temp>>ishft);
+     outbuf[nbuf2/8+1]=(temp&0xff00)>>8;
+     outbuf[nbuf2/8]=temp&0x00ff;
+   }
+   break;
+ case 4: /* jtag vme-mthrbrd prom */
+   if(ncmd==-99){sleep_vme(cmd);break;}
+   if(ncmd<0){RestoreIdle();break;}
+   if(ncmd>0){
+     if(nbuf>0){
+       scan(INSTR_REG,cmd2,ncmd2,outbuf,0);
+     }else{
+       scan(INSTR_REG,cmd2,ncmd2,outbuf,irdsnd);
+     }
+   }
+   if(nbuf>0)scan(DATA_REG,inbuf,nbuf,outbuf,irdsnd);
+   if(irdsnd==1&&nbuf2%16!=0){
+     ishft=16-nbuf2%16;
+     temp=((outbuf[nbuf2/8+1]<<8)&0xff00)|(outbuf[nbuf2/8]&0xff);
+     temp=(temp>>ishft);
+     outbuf[nbuf2/8+1]=(temp&0xff00)>>8;
+     outbuf[nbuf2/8]=temp&0x00ff;
+   }
+   break;
+ case 11: /* reset vme  prom */
+   // printf(" reset vme prom ncmd2 %d %d nbuf2 %d \n",ncmd2,ncmd,nbuf2);     
+   if(ncmd==-99){sleep_vme(cmd);break;}
+   if(ncmd<0){RestoreIdle_reset();break;}
+   if(ncmd>0){
+     if(nbuf>0){
+       scan_reset(INSTR_REG,cmd,ncmd,outbuf,0);
+     }else{
+       scan_reset(INSTR_REG,cmd,ncmd,outbuf,irdsnd);
+     }
+   }
+   if(nbuf>0)scan_reset(DATA_REG,inbuf,nbuf,outbuf,irdsnd);
+   break;
+   
 }
 }
 
@@ -439,12 +439,12 @@ if(cnt==0)return;
        // printf(" R %08x \n",ptr_r);
        vme_controller(2,ptr_r,tmp,rcv);
      }
-      return;
+     return;
    }
-  add_dh=add_dh&msk_clr;
-  add_dh=add_dh|0x0f00;
-  ptr_dh=(unsigned short int *)add_dh;
-  // printf(" 3 VME W: %08x %04x \n",ptr_dh,*data);
+   add_dh=add_dh&msk_clr;
+   add_dh=add_dh|0x0f00;
+   ptr_dh=(unsigned short int *)add_dh;
+   // printf(" 3 VME W: %08x %04x \n",ptr_dh,*data);
   vme_controller(1,ptr_dh,data,rcv);
   // x*ptr_dh=*data;
   data=data+1;
