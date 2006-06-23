@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.15 2006/05/31 11:04:34 mey Exp $
+// $Id: ALCTController.h,v 2.16 2006/06/23 13:40:25 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.16  2006/06/23 13:40:25  mey
+// Fixed bug
+//
 // Revision 2.15  2006/05/31 11:04:34  mey
 // UPdate
 //
@@ -614,7 +617,8 @@ public:
   int alct_send_empty_;
   int alct_bxc_offset_;
   int alct_drift_delay_;
-    std::string chamber_type_string_;
+  int alct_inject_;
+  std::string chamber_type_string_;
   
     /// this holds all the other non-congurable parameters.  It probably should disappear someday
     alct_params_type params_;

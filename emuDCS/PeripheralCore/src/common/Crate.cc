@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 2.10 2006/06/15 16:38:41 rakness Exp $
+// $Id: Crate.cc,v 2.11 2006/06/23 13:40:26 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 2.11  2006/06/23 13:40:26  mey
+// Fixed bug
+//
 // Revision 2.10  2006/06/15 16:38:41  rakness
 // multiple slot firmware downloading
 //
@@ -208,7 +211,10 @@ void Crate::configure() {
 
   for(unsigned i =0; i < myTmbs.size(); ++i) {
     ALCTController * alct = myTmbs[i]->alctController();
-    if(alct) alct->setup(1);
+    if(alct) {
+      std::cout << "alct # =" << i << std::endl;
+      alct->setup(1);
+    }
   }
   //
   std::vector<DAQMB*> myDmbs = this->daqmbs();
