@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.101 2006/06/22 13:06:14 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.102 2006/06/23 13:40:25 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -149,6 +149,11 @@ protected:
   int TMB_, DMB_,RAT_;
   int Counter_;
   bool AutoRefreshTMBCounters_;
+  //
+  vector<int> L1aLctCounter_;
+  vector<int> CfebDavCounter_;
+  vector<int> TmbDavCounter_;
+  vector<int> AlctDavCounter_;
   //
 public:
   //
@@ -351,6 +356,12 @@ public:
     xmlFile_     = 
       "config.xml" ;
     //
+    for(unsigned int dmb=0; dmb<9; dmb++) {
+      L1aLctCounter_.push_back(0);
+      CfebDavCounter_.push_back(0);
+      TmbDavCounter_.push_back(0);
+      AlctDavCounter_.push_back(0);
+    }
     //
     TMBRegisterValue_ = -1;
     CCBRegisterValue_ = -1;
@@ -1720,18 +1731,18 @@ private:
     //
     *out <<cgicc::td();
     //
-    vector<int> L1aLctCounter_(dmbVector.size());
-    vector<int> CfebDavCounter_(dmbVector.size());
     //
-    for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
-      L1aLctCounter_[dmb]=0;
-      CfebDavCounter_[dmb]=0;
+    //
+    for(unsigned int dmb=1; dmb<dmbVector.size(); dmb++) {
+      //
+      for( int iter=0; iter<10; iter++) {
+	dmbVector[dmb]->readtimingCounter();
+	dmbVector[dmb]->readtimingScope();
+	if( dmbVector[dmb]->GetL1aLctCounter() > 0 ) break;
+      }
     }
     //
     for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
-      //
-      dmbVector[dmb]->readtimingCounter();
-      dmbVector[dmb]->readtimingScope();
       //
       *out <<cgicc::td();
       *out << "Slot = " <<dmbVector[dmb]->slot();
@@ -1747,7 +1758,9 @@ private:
     //
     for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       *out <<cgicc::td();
-      if ( dmbVector[dmb]->GetL1aLctCounter() > 0 ) L1aLctCounter_[dmb] = dmbVector[dmb]->GetL1aLctCounter();
+      if ( dmbVector[dmb]->GetL1aLctCounter() > 0 ) {
+	L1aLctCounter_[dmb] = dmbVector[dmb]->GetL1aLctCounter();
+      }
       *out << L1aLctCounter_[dmb] <<std::endl;
       *out <<cgicc::td();
     }
@@ -1771,7 +1784,8 @@ private:
     //
     for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       *out <<cgicc::td();
-      *out << dmbVector[dmb]->GetTmbDavCounter() <<std::endl;
+      if ( dmbVector[dmb]->GetTmbDavCounter() > 0 ) TmbDavCounter_[dmb] = dmbVector[dmb]->GetTmbDavCounter();
+      *out << TmbDavCounter_[dmb] <<std::endl;
       *out <<cgicc::td();
     }
     *out <<cgicc::tr();
@@ -1782,7 +1796,8 @@ private:
     //
     for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       *out <<cgicc::td();
-      *out << dmbVector[dmb]->GetAlctDavCounter() <<std::endl;
+      if ( dmbVector[dmb]->GetAlctDavCounter() > 0 ) AlctDavCounter_[dmb] = dmbVector[dmb]->GetAlctDavCounter();
+      *out << AlctDavCounter_[dmb] <<std::endl;
       *out <<cgicc::td();
     }
     *out <<cgicc::tr();

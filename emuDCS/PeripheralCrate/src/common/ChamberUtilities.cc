@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.33 2006/06/20 11:35:11 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.34 2006/06/23 13:40:26 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.34  2006/06/23 13:40:26  mey
+// Fixed bug
+//
 // Revision 1.33  2006/06/20 11:35:11  rakness
 // output of cfebchamberscan
 //
@@ -1280,6 +1283,7 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
     thisDMB->PrintCounters();
     thisTMB->DecodeALCT();
     WordCount[l1a] = thisTMB->GetALCTWordCount();
+    if(thisTMB->GetALCTWordCount()==0 and (l1a>0) ) WordCount[l1a-1]=0;
     printf(" WordCount %d \n",thisTMB->GetALCTWordCount());
     //
   }

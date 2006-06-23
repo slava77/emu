@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.61 2006/06/22 13:06:14 mey Exp $
+// $Id: DAQMB.cc,v 2.62 2006/06/23 13:40:26 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.62  2006/06/23 13:40:26  mey
+// Fixed bug
+//
 // Revision 2.61  2006/06/22 13:06:14  mey
 // Update
 //
@@ -2738,6 +2741,7 @@ void DAQMB::PrintCounters(){
 
 void DAQMB::readtimingCounter()
 {
+  //
   //printf(" Entered READ_TIMING \n");
   //
   cmd[0]=VTX2_USR1;

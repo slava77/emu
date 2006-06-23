@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.cc,v 2.6 2006/06/20 13:37:46 mey Exp $
+// $Id: DAQMBParser.cc,v 2.7 2006/06/23 13:40:26 mey Exp $
 // $Log: DAQMBParser.cc,v $
+// Revision 2.7  2006/06/23 13:40:26  mey
+// Fixed bug
+//
 // Revision 2.6  2006/06/20 13:37:46  mey
 // Udpate
 //
@@ -44,6 +47,7 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, int crateNumber)
   if(slot == 0) {
     std::cerr << "No slot specified for DMB! " << std::endl;
   } else {
+    //
     daqmb_ = new DAQMB(crateNumber,slot);  
     //
     int delay;

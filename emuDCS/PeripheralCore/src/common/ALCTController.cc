@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.36 2006/06/22 13:06:14 mey Exp $
+// $Id: ALCTController.cc,v 2.37 2006/06/23 13:40:26 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.37  2006/06/23 13:40:26  mey
+// Fixed bug
+//
 // Revision 2.36  2006/06/22 13:06:14  mey
 // Update
 //
@@ -507,6 +510,7 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   fd(tmb_->slot()),
   delays_inited_(false),
   alct_trig_mode_(0),
+  alct_inject_(0),
   alct_ext_trig_en_(0),
   alct_fifo_mode_(1),
   alct_send_empty_(0),
@@ -1666,7 +1670,7 @@ void ALCTController::setCRfld(alct_params_type* p) {
     crParams_[0]  = (char*)&(alct_trig_mode_);
     crParams_[1]  = (char*)&(alct_ext_trig_en_);
     crParams_[2]  = (char*)&(alct_send_empty_);
-    crParams_[3]  = (char*)&(p->inject_test_pattern);
+    crParams_[3]  = (char*)&(alct_inject_);
     crParams_[4]  = (char*)&(alct_bxc_offset_);
     crParams_[5]  = (char*)&(alct_nph_thresh_);
     crParams_[6]  = (char*)&(alct_nph_pattern_);
@@ -1680,12 +1684,12 @@ void ALCTController::setCRfld(alct_params_type* p) {
     crParams_[14] = (char*)&(alct_l1a_offset_);
     crParams_[15] = (char*)&(alct_l1a_internal_);
     crParams_[16] = (char*)NULL;
-    crParams_[17] = (char*)&(p->bx_counter_offset);
+    crParams_[17] = (char*)NULL;
     crParams_[18] = (char*)&(alct_ccb_enable_);
-    crParams_[19] = (char*)&(p->alct_jtag_disable);
-    crParams_[20] = (char*)&(p->alct_test_pat_mode);
-    crParams_[21] = (char*)&(p->alct_accel_mu_mode);
-    crParams_[22] = (char*)&(p->alct_mask_all);
+    crParams_[19] = (char*)NULL;
+    crParams_[20] = (char*)NULL;
+    crParams_[21] = (char*)NULL;
+    crParams_[22] = (char*)NULL;
     crParams_[23] = (char*)NULL;
     crParams_[24] = (char*)NULL;
   }
