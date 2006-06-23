@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.102 2006/06/23 13:40:25 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.103 2006/06/23 14:24:32 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1733,7 +1733,7 @@ private:
     //
     //
     //
-    for(unsigned int dmb=1; dmb<dmbVector.size(); dmb++) {
+    for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       //
       for( int iter=0; iter<10; iter++) {
 	dmbVector[dmb]->readtimingCounter();
