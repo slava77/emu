@@ -12,7 +12,7 @@
 EmuModule::EmuModule()
 {
   //
-  MyOutput_ = &std::cout ;
+  //MyOutput_ = &std::cout ;
   //
 }
 
