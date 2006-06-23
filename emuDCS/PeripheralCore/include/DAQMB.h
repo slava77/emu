@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.24 2006/06/20 13:37:45 mey Exp $
+// $Id: DAQMB.h,v 2.25 2006/06/23 14:21:33 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.25  2006/06/23 14:21:33  mey
+// Moved public members
+//
 // Revision 2.24  2006/06/20 13:37:45  mey
 // Udpate
 //
@@ -316,43 +319,6 @@ public:
   unsigned long int unpack_ibrd() const;
   unsigned int unpack_ival() const;
 
-  /// CFEB Data Available delay adjustment (25ns per step); 
-  int feb_dav_delay_;
-  /// TMB Data Available delay adjustment (25ns per step); 
-  int tmb_dav_delay_; 
-  /// Accept window adjustment (25ns per step); 
-  int push_dav_delay_;
-  /// L1ACC latency relative to CLCT (25ns per step).   
-  int l1acc_dav_delay_;
-  int ALCT_dav_delay_;
-
-  /// Calibration LCT delay setting (25ns per step);
-  int calibration_LCT_delay_;
-  /// Calibration L1ACC delay setting (25ns per step); 
-  int calibration_l1acc_delay_;
-  /// Buckeye PULSE delay setting (6.25ns per step);  
-  int pulse_delay_;
-  /// Buckeye INJECT delay setting (6.25ns per step).
-  int inject_delay_;
-  /// in volts
-  float pul_dac_set_; 
-  /// in volts
-  float inj_dac_set_; 
-  /// in volts, comparator threshold
-  float set_comp_thresh_;
-
-  // apparently not used...
-  int feb_clock_delay_;
-  /// Comparator timing setting
-  int comp_timing_;
-  /// Comparator working mode setting
-  int comp_mode_;
-  /// Will adjust the number of time samples before the pulse, 
-  /// used as pedestals.
-  int pre_block_end_;
-  int cable_delay_;
-  int crate_id_;
-  int toogle_bxn_;
 
   typedef std::vector<CFEB>::iterator CFEBItr;
   std::vector<CFEB> cfebs_;
@@ -396,6 +362,44 @@ public:
   //
 
  private:
+  /// CFEB Data Available delay adjustment (25ns per step); 
+  int feb_dav_delay_;
+  /// TMB Data Available delay adjustment (25ns per step); 
+  int tmb_dav_delay_; 
+  /// Accept window adjustment (25ns per step); 
+  int push_dav_delay_;
+  /// L1ACC latency relative to CLCT (25ns per step).   
+  int l1acc_dav_delay_;
+
+  /// Calibration LCT delay setting (25ns per step);
+  int calibration_LCT_delay_;
+  /// Calibration L1ACC delay setting (25ns per step); 
+  int calibration_l1acc_delay_;
+  /// Buckeye PULSE delay setting (6.25ns per step);  
+  int pulse_delay_;
+  /// Buckeye INJECT delay setting (6.25ns per step).
+  int inject_delay_;
+  /// in volts
+  float pul_dac_set_; 
+  /// in volts
+  float inj_dac_set_; 
+  /// in volts, comparator threshold
+  float set_comp_thresh_;
+
+  // apparently not used...
+  int feb_clock_delay_;
+  /// Comparator timing setting
+  int comp_timing_;
+  /// Comparator working mode setting
+  int comp_mode_;
+  /// Will adjust the number of time samples before the pulse, 
+  /// used as pedestals.
+  int pre_block_end_;
+  int cable_delay_;
+  int crate_id_;
+  int toogle_bxn_;
+  int ALCT_dav_delay_;
+  //
   int shift_out[5][36];
   std::ostream * MyOutput_ ;
   int l1a_lct_counter_, cfeb_dav_counter_, tmb_dav_counter_, alct_dav_counter_ ;
