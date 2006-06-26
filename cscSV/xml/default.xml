@@ -8,38 +8,48 @@
     xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
 
   <!-- Supervisor -->
-  <xc:Context url="http://emudaq:40000">
-    <xc:Application class="CSCSupervisor" id="40" instance="0" network="tcp1">
+  <xc:Context url="http://emudaq02:40000">
+    <xc:Application class="CSCSupervisor" id="40" instance="0" network="local">
       <properties xmlns="urn:xdaq-application:CSCSupervisor" xsi:type="soapenc:Struct">
-        <configKeys soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
-          <item soapenc:position="[0]" xsi:type="xsd:string">Local ME2</item>
-          <item soapenc:position="[1]" xsi:type="xsd:string">Local ME3</item>
+        <configKeys soapenc:arrayType="xsd:ur-type[3]" xsi:type="soapenc:Array">
+          <item soapenc:position="[0]" xsi:type="xsd:string">Local ME1b</item>
+          <item soapenc:position="[1]" xsi:type="xsd:string">Local ME2</item>
+          <item soapenc:position="[2]" xsi:type="xsd:string">Local ME3</item>
         </configKeys>
-        <configModes soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
-          <item soapenc:position="[0]" xsi:type="xsd:string">me2</item>
-          <item soapenc:position="[1]" xsi:type="xsd:string">me3</item>
+        <configModes soapenc:arrayType="xsd:ur-type[3]" xsi:type="soapenc:Array">
+          <item soapenc:position="[0]" xsi:type="xsd:string">me1b</item>
+          <item soapenc:position="[1]" xsi:type="xsd:string">me2</item>
+          <item soapenc:position="[2]" xsi:type="xsd:string">me3</item>
         </configModes>
-        <modesForPC soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
-          <item soapenc:position="[0]" xsi:type="xsd:string">me2</item>
-          <item soapenc:position="[1]" xsi:type="xsd:string">me3</item>
+        <modesForPC soapenc:arrayType="xsd:ur-type[3]" xsi:type="soapenc:Array">
+          <item soapenc:position="[0]" xsi:type="xsd:string">me1b</item>
+          <item soapenc:position="[1]" xsi:type="xsd:string">me2</item>
+          <item soapenc:position="[2]" xsi:type="xsd:string">me3</item>
         </modesForPC>
-        <filesForPC soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
+        <filesForPC soapenc:arrayType="xsd:ur-type[3]" xsi:type="soapenc:Array">
           <item soapenc:position="[0]" xsi:type="xsd:string">
-            /home/slice/config/configWinter2005ME2.xml
+            /home/slice/config/configWinter2005ME1b.xml
           </item>
           <item soapenc:position="[1]" xsi:type="xsd:string">
+            /home/slice/config/configWinter2005ME2.xml
+          </item>
+          <item soapenc:position="[2]" xsi:type="xsd:string">
             /home/slice/config/configWinter2005ME3.xml
           </item>
         </filesForPC>
-        <modesForFC soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
-          <item soapenc:position="[0]" xsi:type="xsd:string">me2</item>
-          <item soapenc:position="[1]" xsi:type="xsd:string">me3</item>
+        <modesForFC soapenc:arrayType="xsd:ur-type[3]" xsi:type="soapenc:Array">
+          <item soapenc:position="[0]" xsi:type="xsd:string">me1b</item>
+          <item soapenc:position="[1]" xsi:type="xsd:string">me2</item>
+          <item soapenc:position="[2]" xsi:type="xsd:string">me3</item>
         </modesForFC>
-        <filesForFC soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
+        <filesForFC soapenc:arrayType="xsd:ur-type[3]" xsi:type="soapenc:Array">
           <item soapenc:position="[0]" xsi:type="xsd:string">
             http://cms.cern.ch:8080/config/EmuFED/global.xml
           </item>
           <item soapenc:position="[1]" xsi:type="xsd:string">
+            http://cms.cern.ch:8080/config/EmuFED/global.xml
+          </item>
+          <item soapenc:position="[2]" xsi:type="xsd:string">
             file:///config/EmuFED/local.xml
           </item>
         </filesForFC>
