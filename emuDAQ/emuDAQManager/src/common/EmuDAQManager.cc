@@ -131,6 +131,8 @@ logger_(Logger::getInstance(generateLoggerName()))
 
     fsm_.setInitialState('H');
     fsm_.reset();
+
+    state_ = fsm_.getStateName(fsm_.getCurrentState());
     
     LOG4CPLUS_INFO(logger_, "End of constructor");
 }
