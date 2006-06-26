@@ -40,7 +40,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
   defineFSM();
   defineWebSM();
 
-  bindI2Ocallbacks();
+  //bindI2Ocallbacks();
   bindSOAPcallbacks();
   bindCGIcallbacks();
   appTid_ = i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor());
@@ -480,6 +480,7 @@ void EmuMonitor::EnableAction(toolbox::Event::Reference e) throw (toolbox::fsm::
 //	configureReadout();
 	if (plotter_ != NULL) timer_->activate();
 	enableReadout();
+	bindI2Ocallbacks();
 }
 
 // == XGI Call back == //
@@ -661,26 +662,37 @@ void EmuMonitor::failurePage(xgi::Output * out, xgi::exception::Exception & e)  
 
 void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
   // Emu-specific stuff
-  I2O_EMU_DATA_MESSAGE_FRAME *msg =
-    (I2O_EMU_DATA_MESSAGE_FRAME*)bufRef->getDataLocation();
 
-  char *startOfPayload = (char*) bufRef->getDataLocation()
+  dataMessages_.push_back( bufRef );
+
+//   // Process the oldest message, i.e., the one at the front of the queue
+   toolbox::mem::Reference *oldestMessage = dataMessages_.front();
+
+  I2O_EMU_DATA_MESSAGE_FRAME *msg =
+    (I2O_EMU_DATA_MESSAGE_FRAME*)oldestMessage->getDataLocation();
+
+  char *startOfPayload = (char*) oldestMessage->getDataLocation()
     + sizeof(I2O_EMU_DATA_MESSAGE_FRAME);
 
-  unsigned long sizeOfPayload = bufRef->getDataSize()-sizeof(I2O_EMU_DATA_MESSAGE_FRAME);
+  unsigned long sizeOfPayload = oldestMessage->getDataSize()-sizeof(I2O_EMU_DATA_MESSAGE_FRAME);
+
+  unsigned long errorFlag = msg->errorFlag;
 
   LOG4CPLUS_INFO(getApplicationLogger(),
-                 "Received " << bufRef->getDataSize() <<
-                 " bytes of data of run " << msg->runNumber <<
+                 // "Received " << bufRef->getDataSize() <<
+                 "Received " << sizeOfPayload <<
+                 " bytes of event data of run " << msg->runNumber <<
+                 " errorFlag 0x"  << std::hex << msg->errorFlag << std::dec <<
                  " from " << serversClassName_.toString() <<
-                 " still holding " << msg->nEventCreditsHeld << " event credits.");
-
-  unsigned long errorFlag = 0;
+                 " still holding " << msg->nEventCreditsHeld << " event credits." <<
+		 " pool size " << dataMessages_.size());
 
   processEvent(reinterpret_cast<const char *>(startOfPayload), sizeOfPayload, errorFlag);
+//  usleep(2500);
 
   // Free the Emu data message
   bufRef->release();
+  dataMessages_.erase( dataMessages_.begin() );
 }
 
 // == Send an I2O token message to all servers == //
@@ -711,7 +723,7 @@ int EmuMonitor::sendDataRequest(unsigned long last)
           frame->prescalingFactor = prescalingFactor_;
 
           ref->setDataSize(frame->PvtMessageFrame.StdMessageFrame.MessageSize << 2);
-          LOG4CPLUS_DEBUG (getApplicationLogger(),
+          LOG4CPLUS_INFO (getApplicationLogger(),
                            "Sending credit to tid: " << frame->PvtMessageFrame.StdMessageFrame.TargetAddress
                            //                                   << ". maxFrameSize=" << maxFrameSize_
                            );
@@ -897,6 +909,7 @@ int EmuMonitor::svc()
       
       if (readoutMode_.toString() == "external") {
 	::sleep(1);
+	// usleep(500000);
 	if (!pool_->isHighThresholdExceeded())
 	  {
 	    // Stop if there is an error in sending

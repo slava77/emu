@@ -207,7 +207,9 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
 
   // == Memory pool for allocating messages for sending
   toolbox::mem::Pool* pool_;
-  
+ 
+  deque<toolbox::mem::Reference*> dataMessages_; // the queue of data messages waiting to be processed
+ 
   BSem applicationBSem_;
 
   // == Application state machine

@@ -6,7 +6,7 @@
   <i2o:target class="EmuDisplayServer" instance="0" tid="30"/>
 </i2o:protocol>
 
-<xc:Context url="http://cms-dqm03.phys.ufl.edu:44000">
+<xc:Context url="http://emuslice11.cern.ch:44000">
 
   <!-- Edit access rights in ${XDAQ_ROOT}/daq/xaccess/etc/htaccess -->
 
@@ -17,8 +17,8 @@
   <!-- Click on EmuDAQtester -> Control -> configure -> start -->
 
   <!-- EmuReadout replaces DDUReadout -->
-  <xc:Module>/home/dqm/TriDAS/emu/emuDAQ/emuReadout/lib/linux/x86/libEmuReadout.so</xc:Module>
-  <xc:Module>/home/dqm/TriDAS/emu/emuDAQ/DDUReadout/lib/linux/x86/libDDUReadout.so</xc:Module>
+  <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuReadout/lib/linux/x86/libEmuReadout.so</xc:Module>
+  <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/DDUReadout/lib/linux/x86/libDDUReadout.so</xc:Module>
 
 
   <!-- EmuDAQtester is a simple run control with a hyperDAQ interface -->
@@ -34,7 +34,7 @@
       <inputDeviceType xsi:type="xsd:string">file</inputDeviceType>
       <!-- <inputDeviceName xsi:type="xsd:string">/csc_data/RunNum1008Evs0to49999.bin</inputDeviceName> -->
       <!-- <inputDeviceName xsi:type="xsd:string">/csc_data/RunNum1061Evs0to9999.bin</inputDeviceName> -->
-      <inputDeviceName xsi:type="xsd:string">/csc_data/RunNum028c.bin</inputDeviceName> 
+      <inputDeviceName xsi:type="xsd:string">/csc_data/RunNum1061Evs0to9999.bin</inputDeviceName> 
       <!-- The data format [ DDU | DCC ] -->
       <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
       <!-- <committedPoolSize xsi:type="xsd:unsignedLong">100</committedPoolSize> -->
@@ -44,7 +44,7 @@
       <prescalingFactor xsi:type="xsd:unsignedLong">100</prescalingFactor>
       <!-- The name of the server -->
       <!-- <serversClassName xsi:type="xsd:string">EmuRUI</serversClassName> -->
-      <xmlCfgFile xsi:type="xsd:string">/home/dqm/TriDAS/emu/emuDQM/EmuMonitor/xml/EmuDQMBooking.xml</xmlCfgFile>
+      <xmlCfgFile xsi:type="xsd:string">${XDAQ_ROOT}/emu/emuDQM/EmuMonitor/xml/EmuDQMBooking.xml</xmlCfgFile>
       <outputROOTFile xsi:type="xsd:string">/csc_data/root/dqm.root</outputROOTFile>
       <outputImagesPath xsi:type="xsd:string">/csc_data/images</outputImagesPath>
       <useAltFileReader xsi:type="xsd:boolean">false</useAltFileReader>
@@ -55,13 +55,13 @@
 	-->
     </properties>
  </xc:Application>
- <xc:Module>/home/dqm/TriDAS/emu/emuDQM/EmuMonitor/lib/linux/x86/libEmuMonitor.so</xc:Module>
+ <xc:Module>${XDAQ_ROOT}/emu/emuDQM/EmuMonitor/lib/linux/x86/libEmuMonitor.so</xc:Module>
 
   <xc:Application class="EmuDisplayServer" id="20" instance="0" network="local">
   <properties xmlns="urn:xdaq-application:EmuDisplayServer" xsi:type="soapenc:Struct">
   </properties>
   </xc:Application>
-  <xc:Module>/home/dqm/TriDAS/emu/emuDQM/EmuDisplayServer/lib/linux/x86/libEmuDisplayServer.so</xc:Module>
+  <xc:Module>${XDAQ_ROOT}/emu/emuDQM/EmuDisplayServer/lib/linux/x86/libEmuDisplayServer.so</xc:Module>
 
 
 </xc:Context>
