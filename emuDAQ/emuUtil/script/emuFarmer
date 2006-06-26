@@ -11,22 +11,41 @@ import popen2
 import httplib
 import threading
 import logging
+import logging.handlers
+
+# for merging
+import datetime
+from Ft.Xml.Xslt import Processor
+from Ft.Xml import InputSource
+#from Ft.Lib.Uri import OsPathToUri
 
 #################
 class Emu_Farmer:
 #################
     
-    def __init__( self, configFileName ):
+    def __init__( self, configFileName, user, targets, xdaq_root, logLevel, dirForMerged ):
         self._configFileName = configFileName
-
         # The remote user
-        self._user = None
+        self._user                = user
+        self._target              = targets
+        self._xdaq_root           = xdaq_root
+        self._logLevel            = logLevel
+        self._mergedConfigFileDir = dirForMerged
 
+        # The content of the config XML file
+        self._configString = None
+        # The DOM document created from the config XML file
+        self._configDoc = None
+
+        # The local name and URL of the merged config file
+        self._mergedConfigFileName = ''
+        self._mergedConfigFileURL  = ''
+        # The DOM document created from the merged config XML file
+        self._mergedConfigDoc = None
+        
         # The XML reader
         self._reader = Sax2.Reader()
         
-        # The DOM document created from the config XML file
-        self._doc = None
 
         # Dict of all command lines
         self._commandLines = {} # { context : commandLine }
@@ -45,6 +64,7 @@ class Emu_Farmer:
                           'LTCControl'         : 'ltc',
                           'EmuFEDCrate'        : 'fed',
                           'EmuFCrateHyperDAQ'  : 'fed',
+                          'EmuMonitor'         : 'dqm',
                           'CSCSupervisor'      : 'sv'   }
 
         # Dict of context sets grouped by target (context='host:port')
@@ -54,20 +74,23 @@ class Emu_Farmer:
                            'pc'  : set(),
                            'ltc' : set(),
                            'sv'  : set(),
+                           'dqm' : set(),
                            'all' : set() }
 
         # List of ssh threads
         self._sshThreads = []
 
-    def act( self, user, action, targets, xdaq_root, logLevel ):
-        self._user        = user
-        self._action      = action
-        self._target      = targets
-        self._xdaq_root   = xdaq_root
-        self._logLevel    = logLevel
-
+        self._date_time = self.getDateAndTime()
+        
         self.validateOptions()
+        print self.listOptions()
+        fileLog.debug( self.listOptions() )
+
         self.getConfigFile()
+        self.mergeConfigFiles()
+
+    def act( self, action ):
+        self._action = action
 
         if self._action == 'reload':
             self.createReloadCommandLines()
@@ -82,22 +105,32 @@ class Emu_Farmer:
         else:
             self.createCommandLines()
             self.pickRelevantCommandLines()
+            if self._action == 'status':
+                print 'status (S: sleeping, R: running, "Scientific Linux" or nothing: no process found):'
+            if self._action == 'debug':
+                print "remote processes' standard output (see emuFarmer.log for details):"
             for ctxt,cmnd in self._relevantCommandLines.iteritems():
                 #print ctxt,'\n',commands.getoutput(cmnd) # doesn't stop when starting xdaq as it wants to read stdout...
                 tgts = '  ( '+self.listTargets(ctxt)+')'
                 prettyContext = (20-len(ctxt))*' '+'[34m'+ctxt+'[0m'+tgts+(20-len(tgts))*' '
-                if self._action == 'status':
-                    # gathering status info one-by-one is too slow; do it in parallel
+                # gathering status info one-by-one is too slow; do it in parallel
+                if self._action in [ 'status', 'debug' ]:
                     sshThread = AsyncSSH( prettyContext, cmnd )
                     sshThread.setName( ctxt )
                     self._sshThreads.append( sshThread )
                     sshThread.start()
                 elif self._action == 'start':
                     f = popen2.popen4(cmnd)
-                    logging.info(prettyContext+'starting')
+                    fileLog.debug(prettyContext+'starting:     '+cmnd)
+                    screenLog.info(prettyContext+'starting')
                 elif self._action == 'stop':
                     f = popen2.popen4(cmnd)
-                    logging.info(prettyContext+'stopping')
+                    fileLog.debug(prettyContext+'stopping:     '+cmnd)
+                    screenLog.info(prettyContext+'stopping')
+        # We must wait for the threads to finish,
+        # otherwise the main thread may exit and shut down the logger before
+        # the child threads have had a chance to write to the log file.
+        self.waitForThreads()
 
     def listTargets( self, context ):
         tgtList = ''
@@ -107,10 +140,6 @@ class Emu_Farmer:
         return tgtList
     
     def validateOptions( self ):
-        if self._action not in ['status','start','stop','restart','reload']:
-            print '***** Error:',self._action,'is not a recognized action. Use [status|start|stop|restart|reload]'
-            print '      Type emuFarmer -h for help.'
-            sys.exit(1)
         if self._logLevel not in ['DEBUG','INFO','WARN','ERROR','FATAL']:
             print '***** Error:',self._logLevel,'is not a valid log level. Use [DEBUG|INFO|WARN|ERROR|FATAL]'
             print '      Type emuFarmer -h for help.'
@@ -125,29 +154,101 @@ class Emu_Farmer:
             print '      Type emuFarmer -h for help.'
             sys.exit(1)
 
+    def listOptions( self ):
+        options  = '\n'
+        options += '        Config file name/URL  :\t' + self._configFileName      + '\n'
+        options += '        Dir for merged config :\t' + self._mergedConfigFileDir + '\n'
+        options += '        Target groups         :\t' + self._target              + '\n'
+        options += '        Log level             :\t' + self._logLevel            + '\n'
+        options += '        User                  :\t' + self._user                + '\n'
+        options += '        XDAQ_ROOT             :\t' + self._xdaq_root           + '\n'
+        return options
 
     def getConfigFile( self ):
-        m = re.match( 'http://(.+):(.+)', self._configFileName )
+        m = re.match( 'http://(.+?)/', self._configFileName )
         if m:
-            configFileURL  = m.group(1)
-            configFilePath = m.group(2)
-            conn           = httplib.HTTPConnection( configFileURL )
-            conn.request( "GET", configFilePath )
+            configFileHost = m.group(1)
+            conn           = httplib.HTTPConnection( configFileHost )
+            conn.request( "GET", self._configFileName )
             response = conn.getresponse()
-            if response.status <> OK:
+            if response.status <> httplib.OK:
                 print 'Failed to get ',self._configFileName, '\nReason: ',response.reason
                 sys.exit(1)
-            cf = response.read()
-            self._doc = self._reader.fromStream( StringIO.StringIO(cf) )
+            self._configString = response.read()
+            self._configDoc    = self._reader.fromStream( StringIO.StringIO( self._configString ) )
             return
         m = re.match( 'file://(.+)', self._configFileName )
         if m:
-            configFilePath = m.group(1)
-            configFile     = open( configFilePath, 'r' )
-            self._doc      = self._reader.fromStream( configFile )
+            configFilePath     = m.group(1)
+            configFile         = open( configFilePath, 'r' )
+            self._configString = configFile.read()
+            self._configDoc    = self._reader.fromStream( configFilePath )
             return
-        self._doc = self._reader.fromStream( self._configFileName )
+        configFile         = open( self._configFileName, 'r' )
+        self._configString = configFile.read()
+        self._configDoc    = self._reader.fromStream( self._configFileName )
 
+    def mergeConfigFiles( self ):
+        contexts = self._configDoc.getElementsByTagName('xc:Context')
+        filelist = self._configDoc.getElementsByTagName('EmuConfigFileList')
+        if len(contexts) != 0:
+            # this already seems to be the config file itself; no need to do anything
+            self._mergedConfigFileName = self._configFileName
+            self._mergedConfigFileURL  = self._configFileName
+            self._mergedConfigDoc      = self._configDoc
+            print '\nUsing[32m', self._mergedConfigFileURL,'[0m\n'
+            return
+        elif len(filelist) != 0:
+            self.nameMergedConfigFile()
+            merger                = Emu_Merger( self._configString )
+            mergedConfigString    = merger.getMergedConfig()
+            self._mergedConfigDoc = self._reader.fromStream( StringIO.StringIO( mergedConfigString ) )
+            print '\nWriting', self._mergedConfigFileName,'\n'
+            mergedFile = open( self._mergedConfigFileName, 'w' )
+            mergedFile.write( mergedConfigString )
+            mergedFile.close()
+            self.depositMergedConfigFile()
+            print 'Using  [35m', self._mergedConfigFileURL,'[0m\n'
+            return
+        else:
+            print '***** Error: Could find neither XDAQ executive contexts nor file list in',self._configFileName
+            print '      Type emuFarmer -h for help.'
+            sys.exit(1)
+
+    def getDateAndTime( self ):
+        dt = datetime.datetime.utcnow()
+        date_time  = str( dt.year   )
+        date_time += str( dt.month  ).zfill(2)
+        date_time += str( dt.day    ).zfill(2)
+        date_time += '_'
+        date_time += str( dt.hour   ).zfill(2)
+        date_time += str( dt.minute ).zfill(2)
+        date_time += str( dt.second ).zfill(2)
+        return date_time
+
+    def nameMergedConfigFile( self ):
+        self._mergedConfigFileName += 'EmuConfig_Merged_' + self._date_time + '_UTC.xml'
+        m = re.match('(.*)@(.*):(.*)',self._mergedConfigFileDir)
+        user = m.group(1)
+        host = m.group(2)
+        cdir = m.group(3)
+        if m == None:
+            print '***** Error:',self._mergedConfigFileDir,'is not a valid destination directory for the configuration file.'
+            print '      Type emuFarmer -h for help.'
+            sys.exit(1)
+        self._mergedConfigFileURL += 'http://' + host + '/' + user + '/' + cdir + '/' + self._mergedConfigFileName
+
+    def depositMergedConfigFile( self ):
+        mergedConfigFilePath = self._mergedConfigFileDir + '/' + self._mergedConfigFileName
+        print 'Copying merged configuration file to', mergedConfigFilePath, '\n'
+        # Some scp versions don't support option -2
+        scpCommand = 'scp -2 '+ self._mergedConfigFileName +' '+ self._mergedConfigFileDir + ' || { echo -n "Trying copying without option -2 ..."; scp '+ self._mergedConfigFileName +' '+ self._mergedConfigFileDir +' && echo " OK."; }'
+        fileLog.debug( scpCommand )
+        f = popen2.popen4( scpCommand )
+        scpStdOut = f[0].read()
+        print scpStdOut
+        fileLog.debug( scpStdOut )
+        
     def escapeRegexpSpecialChar( self, s ):
         ss = re.sub('\.','\.',s )
         ss = re.sub('\+','\+',ss)
@@ -155,7 +256,7 @@ class Emu_Farmer:
         return ss
 
     def createReloadCommandLines( self ):
-        contexts = self._doc.getElementsByTagName('xc:Context')
+        contexts = self._mergedConfigDoc.getElementsByTagName('xc:Context')
         for context in contexts:
             url = context.getAttributeNode('url').firstChild.data
             m = re.match('(http://)(.*):',url)
@@ -173,19 +274,28 @@ class Emu_Farmer:
 
 
     def createCommandLines( self ):
-        contexts = self._doc.getElementsByTagName('xc:Context')
+        contexts = self._mergedConfigDoc.getElementsByTagName('xc:Context')
         for context in contexts:
             url = context.getAttributeNode('url').firstChild.data
             m = re.match('(http://)(.*):([0-9]*$)',url)
             host = m.group(2)
             port = m.group(3)
 
+            remoteLogFile = 'emuFarmer_UTC_'+self._date_time+'_port_'+port+'.log'
+
             if self._action == 'start':
-                remoteCommand = '"(export XDAQ_ROOT='+self._xdaq_root+' && \$XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -h '+host+' -p '+port+' -l '+self._logLevel+' -c '+self._configFileName+' &> /dev/null &)"'
+                #remoteCommand = '"(export XDAQ_ROOT='+self._xdaq_root+' && \$XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -h '+host+' -p '+port+' -l '+self._logLevel+' -c '+self._mergedConfigFileURL+' &> /dev/null &)"'
+                # Redirect std error and output to a remoteLogFile.
+                # (When starting, we cannot wait for the std output of the ssh process
+                # as the remote shell won't exit unless xdaq crashes.)
+                remoteCommand = '"(export XDAQ_ROOT='+self._xdaq_root+' && \$XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -h '+host+' -p '+port+' -l '+self._logLevel+' -c '+self._mergedConfigFileURL+' &> '+remoteLogFile+' &)"'
             elif self._action == 'stop':
                 remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$2 }' | xargs -r kill -9\""
             elif self._action == 'status':
                 remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$7 }'\""
+            elif self._action == 'debug':
+                # Dump the remoteLogFile (the redirected std err/out of xdaq)
+                remoteCommand = "\"cat "+remoteLogFile+"\""
 
             commandLine = 'ssh -2 -f '+self._user+'@'+host+' '+remoteCommand
             hostAndPort = host+':'+port
@@ -241,7 +351,7 @@ class Emu_Farmer:
             
         relevantContexts = groupToAdd - groupToOmit
         if len( relevantContexts ) == 0:
-            print self._target,' corresponds to no context in ',self._configFileName
+            print self._target,' corresponds to no context in ',self._mergedConfigFileName
             print '      Type emuFarmer -h for help.'
             sys.exit(1)
         for rctxt in relevantContexts:
@@ -271,16 +381,73 @@ class AsyncSSH(threading.Thread):
         f = popen2.popen4(self._command)
         status = f[0].read() # this blocks when xdaq is being started
         if self._printAll:
-            logging.info(self._context+status)
+            fileLog.debug(self._context+status)
+            screenLog.info(self._context+status)
         else:
             st = re.split('\n',status)
             if len(st) >= 2:
+                fileLog.debug(self._context+status)
                 # print the last-but-one line (the last one is empty)
-                logging.info(self._context+st[-2])
+                screenLog.info(self._context+st[-2])
             else:
+                fileLog.debug(self._context+status)
                 # print the only line (must be empty...)
-                logging.info(self._context+st[-1])
+                screenLog.info(self._context+st[-1])
         f[0].close()
+
+#################
+class Emu_Merger:
+#################
+    
+    def __init__( self, configListString ):
+        # the URI in the next call is nothing but an id
+        self._source    = InputSource.DefaultFactory.fromString( configListString, "http://emudaq/config/EmuConfig.xml")
+        self._processor = Processor.Processor()
+        TRANSFORM       = """<?xml version="1.0" encoding="UTF-8"?>
+
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:i2o="http://xdaq.web.cern.ch/xdaq/xsd/2004/I2OConfiguration-30" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xp="http://xdaq.web.cern.ch/xdaq/xsd/2005/XMLProfile-10" xmlns:fn="http://www.w3.org/2005/02/xpath-functions">
+
+  <xsl:output method="xml" indent="yes"/> 
+
+  <xsl:template match="EmuConfigFileList">
+    <xsl:processing-instruction name="xml-stylesheet">type="text/xsl" href="EmuDAQConfig.xsl"</xsl:processing-instruction> 
+    <xc:Partition xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <xsl:call-template name="protocol"/>
+      <xsl:call-template name="contexts"/>
+    </xc:Partition>
+  </xsl:template>
+
+  <xsl:template name="protocol">
+    <!-- merge i2o:protocol elements from all files into one i2o:protocol element -->
+    <i2o:protocol xmlns:i2o="http://xdaq.web.cern.ch/xdaq/xsd/2004/I2OConfiguration-30">
+    <xsl:for-each select="uri">
+      <xsl:variable name="URI"><xsl:value-of select="."/></xsl:variable>
+      <xsl:for-each select="document($URI)/xc:Partition/i2o:protocol/i2o:target">
+	<xsl:copy-of select="."/>
+      </xsl:for-each>
+    </xsl:for-each>      
+    </i2o:protocol>
+  </xsl:template>
+
+  <xsl:template name="contexts">
+    <!-- collect all xc:Context elements from all files -->
+    <xsl:for-each select="uri">
+      <xsl:variable name="URI"><xsl:value-of select="."/></xsl:variable>
+      <xsl:for-each select="document($URI)/xc:Partition/xc:Context">
+	<xsl:copy-of select="."/>
+      </xsl:for-each>
+    </xsl:for-each>      
+  </xsl:template>
+
+</xsl:stylesheet>
+"""
+        # the URI in the next call is nothing but an id
+        transform = InputSource.DefaultFactory.fromString(TRANSFORM,
+                                                          "http://emudaq/config/EmuConfigAssembler.xsl")
+        self._processor.appendStylesheet( transform )
+      
+    def getMergedConfig( self ):
+        return self._processor.run( self._source )
 
 def printHelp():
     print """
@@ -289,20 +456,43 @@ emuFarmer reloads drivers or launches/kills XDAQ executives specified in a XDAQ 
     Usage:
         emuFarmer -c config_file [-u user] [-a action] [-t target_group] [-l log_level] [-X xdaq_root] [-h]
 
+        It logs to the standard error and $PWD/emuFarmer.log
+
+
     Options:
         -c    Configuration file's absolute path or URL. (A "mandatory option".)
+              Two configuration file formats are supported:
+                 1) Standard XDAQ configuration.
+                    The remote processes will be instructed to take this file from the same URL.
+                 2) A list of standard XDAQ configuration files, e.g.:
+                        <?xml version="1.0" encoding="UTF-8"?>
+                        <EmuConfigFileList>
+                          <uri>http://emudaq/EmuDAQ/xml/EmuDAQ_SliceTest.xml</uri>
+                          <uri>file:///home/slicedev/DAQKit/TriDAS/emu/cscSV/test/config.xml</uri>
+                        </EmuConfigFileList>
+                    The listed files will be merged into
+                    user@host:directory/EmuConfig_Merged_YYYYMMDD_hhmmss_UTC.xml
+                    and assumed to be accessible at
+                    http://host/user/directory/EmuConfig_Merged_YYYYMMDD_hhmmss_UTC.xml
+		    user@host:directory can be specified with the -d option.
+        -d    Destination directory for the merged configuration file.
+              Format: user@host:directory
+              The remote processes will be instructed to take the merged configuration from
+              http://host/user/directory
+              Default is user@emudaq:config (See option -u for 'user'.)
         -a    Action [status|start|stop|restart|reload] to take. Default is 'status'.
               'status' prints the process state code reported by 'ps'. (See the ps man pages.)
               'reload' will (re)load the drivers in all nodes running EmuRUIs. Options -l and -t
               have no effect in 'reload'.
         -t    Group(s) of targeted executives.
               Name        Executives running
-               daq         DAQ column
+               daq         DAQ column (EmuRUI, RU, BU, EVM, EmuTA or EmuFU)
                ltc         LTCControl
                man         EmuDAQManager
                fed         EmuFEDCrate or EmuFCrateHyperDAQ
                pc          EmuPeripheralCrate
                sv          CSCSupervisor
+               dqm         EmuMonitor
                all         any application
               E.g., man+daq will select all executives running DAQManager or DAQ column applications,
               all-ltc will select all executives except the one running LTCControl.
@@ -311,6 +501,7 @@ emuFarmer reloads drivers or launches/kills XDAQ executives specified in a XDAQ 
         -X    XDAQ_ROOT on the remote hosts. Default is $XDAQ_ROOT of the shell where emuFarmer is run.
         -l    XDAQ executives' log level. Default is WARN.
         -h    Print this help.
+
 
     Example:
         emuFarmer -a start -l INFO -c http://emudaq02/EmuDAQ/xml/EmuDAQ_SliceTest.xml
@@ -330,6 +521,7 @@ if __name__ == "__main__":
     logLevel       = 'WARN'
     user           = ''
     xdaq_root      = ''
+    #dirForMerged   = 'slice@emudaq:config'
     
     # user's command line options
     for i in range(1,len(sys.argv)):
@@ -345,6 +537,8 @@ if __name__ == "__main__":
             user = sys.argv[i+1]
         elif sys.argv[i] == '-X':
             xdaq_root = sys.argv[i+1]
+        elif sys.argv[i] == '-d':
+            dirForMerged = sys.argv[i+1]
         elif sys.argv[i] == '-h':
             printHelp()
             sys.exit(0)
@@ -354,8 +548,11 @@ if __name__ == "__main__":
         print '***** Error: No user specified. Please use the "-u <user>" option.'
         print '      Type emuFarmer -h for help.'
         sys.exit(1)
-    if user == '' and 'USER' in os.environ:
+    if user == '':
         user = os.environ['USER']
+
+    # now we can set the default destination directory for the merged configuration file
+    dirForMerged   = user+'@emudaq:config'
 
     # XDAQ_ROOT must be known
     if xdaq_root == '' and 'XDAQ_ROOT' not in os.environ:
@@ -371,34 +568,53 @@ if __name__ == "__main__":
         print '      Type emuFarmer -h for help.'
         sys.exit(1)
 
+    # we must have a destination directory for the merged configuration file
+    if dirForMerged == None:
+        print '***** Error: No destination directory specified for the merged configuration file.'
+        print '      Please use the "-d <user@host:dir>" option.'
+        print '      Type emuFarmer -h for help.'
+        sys.exit(1)
+
     # can we do that?
     if action not in ['status','start','stop','restart','reload']:
         print '***** Error:',action,'is not a recognized action. Use [status|start|stop|restart|reload]'
         print '      Type emuFarmer -h for help.'
         sys.exit(1)
 
+    # set up logger to screen and file too
+    logging.basicConfig(level=logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s %(message)s')
+
+    fileLogHandler = logging.handlers.RotatingFileHandler('emuFarmer.log','a',100000,2)
+    fileLogHandler.setFormatter(formatter)
+    fileLogHandler.setLevel(logging.DEBUG)
+    fileLog = logging.getLogger('fileLog')
+    fileLog.addHandler(fileLogHandler)
+    fileLog.propagate = False
+    
+    screenLogHandler = logging.StreamHandler()
+    screenLogHandler.setFormatter(formatter)
+    screenLogHandler.setLevel(logging.INFO)
+    screenLog = logging.getLogger('screenLog')
+    screenLog.addHandler(screenLogHandler)
+    screenLog.propagate = False
+
     # let's roll
-    logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s %(message)s')
-    farmer = Emu_Farmer( configFileName )
+    farmer = Emu_Farmer( configFileName, user, targets, xdaq_root, logLevel, dirForMerged )
     if action == 'reload':
-        farmer.act( user,  action , 'daq', xdaq_root, 'DEBUG' )
+        farmer.act( action )
         sys.exit(0)
-    print 'status (S: sleeping, R: running, "Scientific Linux" or nothing: no process found):'
-    farmer.act( user, 'status', targets, xdaq_root, logLevel )
+    farmer.act( 'status' )
     if action == 'status': sys.exit(0)
-    farmer.waitForThreads()
     if re.match('y',raw_input(action+'? [y|n] ')):
         if action == 'restart':
-            farmer.act( user,   'stop', targets, xdaq_root, logLevel )
-            print 'status:'
-            farmer.act( user, 'status', targets, xdaq_root, logLevel )
-            farmer.waitForThreads()
+            farmer.act( 'stop' )
+            farmer.act( 'status' )
             print ''
-            farmer.act( user,  'start', targets, xdaq_root, logLevel )
-            print 'status:'
-            farmer.act( user, 'status', targets, xdaq_root, logLevel )
+            farmer.act( 'start' )
+            farmer.act( 'status' )
         else:
-            farmer.act( user,  action , targets, xdaq_root, logLevel )
-            print 'status:'
-            farmer.act( user, 'status', targets, xdaq_root, logLevel )
+            farmer.act( action )
+            farmer.act( 'status' )
+        if action in [ 'start', 'restart' ]:
+            farmer.act( 'debug' )
