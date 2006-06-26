@@ -14,8 +14,9 @@ typedef struct _I2O_EMUMONITOR_CREDIT_MESSAGE_FRAME {
 
 typedef struct _I2O_EMU_DATA_MESSAGE_FRAME {
   I2O_PRIVATE_MESSAGE_FRAME PvtMessageFrame;
-  unsigned long runNumber;
-  unsigned long nEventCreditsHeld;
+  unsigned long  runNumber;
+  unsigned long  nEventCreditsHeld;
+  unsigned short errorFlag; // for DQM; filled by EmuRUI's server only
 } I2O_EMU_DATA_MESSAGE_FRAME, *PI2O_EMU_DATA_MESSAGE_FRAME;
 
 #endif

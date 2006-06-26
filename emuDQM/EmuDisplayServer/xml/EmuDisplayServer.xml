@@ -5,22 +5,13 @@
 		<!-- i2o:target context="http://lxcmd101:40000" id="10" tid="23"/ -->
 		<!-- i2o:target context="http://lxcmd102:40000" id="11" tid="24"/ -->
 	</i2o:protocol>
-	<xc:Context url="http://cms-dqm01:1972">
-		<xc:Endpoint protocol="tcp" service="i2o" hostname="10.227.89.104" port="30000" network="tcp1"/>
-		<xc:Application class="EmuDisplayServer" id="10" instance="0" network="tcp1">
+	<xc:Context url="http://cms-dqm03:1972">
+		<xc:Application class="EmuDisplayServer" id="23" instance="0" network="local">
 			<properties xmlns="urn:xdaq-application:EmuDisplayServer" xsi:type="soapenc:Struct">
 			</properties>
 		</xc:Application>
 		<!-- Application class="Monitor" targetAddr="40" instance="0" network="tcp1"/ -->
 		<!-- Module>/users/xdaq/TriDAS/daq/monitor/lib/linux/x86/libMonitor.so</urlApplication -->
-		<xc:Application class="PeerTransportTCP" id="20" network="tcp1">
-			<properties xmlns="urn:xdaq-application:PeerTransportTCP" xsi:type="soapenc:Struct">
-				<autoSize xsi:type="xsd:boolean">true</autoSize>
-				<maxPacketSize xsi:type="xsd:unsignedLong">4096</maxPacketSize>
-				<!-- poolName xsi:type="xsd:string">RoundtripSendPool</poolName -->
-			</properties>
-		</xc:Application>
-		<xc:Module>${XDAQ_ROOT}/daq/pt/tcp/lib/linux/x86/libpttcp.so</xc:Module>
 		<xc:Module>${XDAQ_ROOT}/emu/emuDQM/EmuDisplayServer/lib/linux/x86/libEmuDisplayServer.so</xc:Module>
 	</xc:Context>
 </xc:Partition>
