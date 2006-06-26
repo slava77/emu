@@ -105,6 +105,7 @@ private:
 	public:
 		void addApplication(CSCSupervisor *sv, string klass);
 		void refresh() ;
+		string getState(string klass, unsigned int instance);
 		void webOutput(xgi::Output *out, string sv_state)
 				throw (xgi::exception::Exception);
 

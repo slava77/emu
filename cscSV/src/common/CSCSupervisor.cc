@@ -310,10 +310,18 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 			<< " runnumber_: " << runnumber_ << " nevents_: " << nevents_);
 
 	try {
+		if (state_table_.getState("EmuDAQManager", 0) == "Configured") {
+			sendCommand("Halt", "EmuDAQManager");
+		}
+		if (state_table_.getState("LTCControl", 0) == "Ready") {
+			sendCommand("Halt", "LTCControl");
+		}
 		setParameter("EmuPeripheralCrate", "xmlFileName", "xsd:string",
 				trim(getConfigFilename("PC", runmode_)));
-		setParameter("EmuDAQManager", "runNumber", "xsd:unsignedLong", runnumber_);
-		setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:unsignedLong", nevents_);
+		setParameter("EmuDAQManager",
+				"runNumber", "xsd:unsignedLong", runnumber_);
+		setParameter("EmuDAQManager",
+				"maxNumberOfEvents", "xsd:unsignedLong", nevents_);
 		sendCommand("Configure", "EmuFCrateSOAP");
 		sendCommand("Configure", "EmuPeripheralCrate");
 		sendCommand("Configure", "EmuDAQManager");
@@ -339,6 +347,13 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
 
 	try {
+		if (state_table_.getState("EmuDAQManager", 0) == "Halted") {
+			setParameter("EmuDAQManager",
+					"runNumber", "xsd:unsignedLong", runnumber_);
+			setParameter("EmuDAQManager",
+					"maxNumberOfEvents", "xsd:unsignedLong", nevents_);
+			sendCommand("Configure", "EmuDAQManager");
+		}
 		sendCommand("Enable", "EmuPeripheralCrate");
 		sendCommand("Enable", "EmuDAQManager");
 		sendCommand("Enable", "LTCControl");
@@ -360,7 +375,7 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference evt)
 
 	try {
 		sendCommand("Halt", "LTCControl");
-		sendCommand("Disable", "EmuDAQManager");
+		sendCommand("Halt", "EmuDAQManager");
 		sendCommand("Disable", "EmuPeripheralCrate");
 		sendCommand("Configure", "LTCControl");
 	} catch (xoap::exception::Exception e) {
@@ -674,6 +689,23 @@ void CSCSupervisor::StateTable::refresh()
 			i->second = STATE_UNKNOWN;
 		}
 	}
+}
+
+string CSCSupervisor::StateTable::getState(string klass, unsigned int instance)
+{
+	string state = "";
+
+	vector<pair<xdaq::ApplicationDescriptor *, string> >::iterator i =
+			table_.begin();
+	for (; i != table_.end(); ++i) {
+		if (klass == i->first->getClassName()
+				&& instance == i->first->getInstance()) {
+			state = i->second;
+			break;
+		}
+	}
+
+	return state;
 }
 
 void CSCSupervisor::StateTable::webOutput(xgi::Output *out, string sv_state)
