@@ -1170,8 +1170,10 @@ throw (emuRUI::exception::Exception)
 }
 
 void EmuRUI::destroyDeviceReader(){
-  LOG4CPLUS_DEBUG(logger_, string("Destroying reader for ") + deviceReader_->getName() );
+  if ( deviceReader_ != NULL )
+    LOG4CPLUS_DEBUG(logger_, string("Destroying reader for ") + deviceReader_->getName() );
   delete deviceReader_;
+  deviceReader_ = NULL;
 }
 
 // void EmuRUI::destroyDeviceReaders(){
