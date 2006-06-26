@@ -19,7 +19,6 @@ EmuDAQManager::EmuDAQManager(xdaq::ApplicationStub *stub)
 
 	xoap::bind(this, &EmuDAQManager::onConfigure, "Configure", XDAQ_NS_URI);
 	xoap::bind(this, &EmuDAQManager::onEnable,    "Enable",    XDAQ_NS_URI);
-	xoap::bind(this, &EmuDAQManager::onDisable,   "Disable",   XDAQ_NS_URI);
 	xoap::bind(this, &EmuDAQManager::onHalt,      "Halt",      XDAQ_NS_URI);
 
 	fsm_.addState('H', "Halted",     this, &EmuDAQManager::stateChanged);
@@ -29,11 +28,7 @@ EmuDAQManager::EmuDAQManager(xdaq::ApplicationStub *stub)
 	fsm_.addStateTransition(
 			'H', 'C', "Configure", this, &EmuDAQManager::configureAction);
 	fsm_.addStateTransition(
-			'C', 'C', "Configure", this, &EmuDAQManager::configureAction);
-	fsm_.addStateTransition(
 			'C', 'E', "Enable",    this, &EmuDAQManager::enableAction);
-	fsm_.addStateTransition(
-			'E', 'C', "Disable",   this, &EmuDAQManager::disableAction);
 	fsm_.addStateTransition(
 			'H', 'H', "Halt",      this, &EmuDAQManager::haltAction);
 	fsm_.addStateTransition(
