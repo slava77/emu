@@ -76,7 +76,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 
 	state_ = fsm_.getStateName(fsm_.getCurrentState());
 
-	state_table_.addApplication(this, "EmuFEDCrate");
+	state_table_.addApplication(this, "EmuFCrateSOAP");
 	state_table_.addApplication(this, "EmuPeripheralCrate");
 	state_table_.addApplication(this, "EmuDAQManager");
 	state_table_.addApplication(this, "LTCControl");
@@ -314,7 +314,7 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 				trim(getConfigFilename("PC", runmode_)));
 		setParameter("EmuDAQManager", "runNumber", "xsd:unsignedLong", runnumber_);
 		setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:unsignedLong", nevents_);
-		sendCommand("Configure", "EmuFEDCrate");
+		sendCommand("Configure", "EmuFCrateSOAP");
 		sendCommand("Configure", "EmuPeripheralCrate");
 		sendCommand("Configure", "EmuDAQManager");
 		sendCommand("Configure", "LTCControl");
@@ -341,7 +341,6 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 	try {
 		sendCommand("Enable", "EmuPeripheralCrate");
 		sendCommand("Enable", "EmuDAQManager");
-		sendCommand("Resynch", "LTCControl");
 		sendCommand("Enable", "LTCControl");
 	} catch (xoap::exception::Exception e) {
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
@@ -381,7 +380,7 @@ void CSCSupervisor::haltAction(toolbox::Event::Reference evt)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
 
 	try {
-		sendCommand("Halt", "EmuFEDCrate");
+		sendCommand("Halt", "EmuFCrateSOAP");
 		sendCommand("Halt", "EmuPeripheralCrate");
 		sendCommand("Halt", "EmuDAQManager");
 		sendCommand("Halt", "LTCControl");
