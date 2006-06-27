@@ -18,6 +18,9 @@ EmuFileReader::EmuFileReader( std::string filename, int format, bool debug )
   bzero(file_buffer,sizeof(file_buffer));
   word_0=0; word_1=0; word_2=0;
   eventStatus = 0;
+  selectCriteria = Header|Trailer;
+  rejectCriteria = DDUoversize|FFFF|Unknown;
+  acceptCriteria = 0x3F; // Everything
 //KKend
 }
 
@@ -128,9 +131,18 @@ int EmuFileReader::readDDU(unsigned short*& buf) {
 } //readDDU
 */
 
+int EmuFileReader::readDDU(unsigned short*& buf) {
+	int size=0;
+        do {
+                if( (size = read(buf)) == 0 ) break;
+        } while( rejectCriteria&eventStatus || !(acceptCriteria&eventStatus) || (selectCriteria?selectCriteria!=eventStatus:0) );
+	usleep(5000);
+        return size;
+}
+
 //KK
 // #include <stdexcept>   // std::runtime_error
-int EmuFileReader::readDDU(unsigned short*& buf) {
+int EmuFileReader::read(unsigned short*& buf) {
 	// Check for abnormal situation
 	if( end>file_buffer_end || end<file_buffer ) throw ( std::runtime_error("Error reading file.") );
 	if( !theFileDescriptor ) throw ( std::runtime_error("No file is open.") );

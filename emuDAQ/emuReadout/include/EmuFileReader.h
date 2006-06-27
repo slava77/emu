@@ -18,6 +18,7 @@ protected:
 // moved to base class:  unsigned short  errorFlag;
   int             readDDU( unsigned short*& buf );
   int             readDCC( unsigned short*& buf );
+  int 		  read( unsigned short* &buf); // Just plain read function
 
 //KK
 private:
@@ -28,6 +29,7 @@ private:
 
 	unsigned long long *end, *file_buffer_end; // where stoped last time and where is end
 
+public:
 	enum {Header=1,Trailer=2,DDUoversize=4,FFFF=8,Unknown=16,EndOfStream=32};
 	enum {Type1=Header|Trailer, Type2=Header, Type3=Header|DDUoversize, Type4=Trailer, Type5=Unknown, Type6=Unknown|DDUoversize, Type7=FFFF}; // Andrey Korytov's notations
 
