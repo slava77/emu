@@ -10,7 +10,7 @@
     xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
 
   <!-- Supervisor -->
-  <xc:Context url="http://emudaq02:40000">
+  <xc:Context url="http://emudaq:40000">
     <xc:Application class="CSCSupervisor" id="40" instance="0" network="tcp1">
       <properties xmlns="urn:xdaq-application:CSCSupervisor" xsi:type="soapenc:Struct">
         <configKeys soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
@@ -51,7 +51,7 @@
   </xc:Context>
 
   <!-- Local DAQ -->
-  <xc:Context url="http://emudaq02:40200">
+  <xc:Context url="http://emudaq:40200">
     <xc:Application class="EmuDAQManager" id="12" instance="0" network="tcp1" />
   </xc:Context>
 
