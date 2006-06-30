@@ -22,8 +22,9 @@ private:
   toolbox::mem::Pool                         *pool_;
   xdata::UnsignedLong                        *poolSize_;    // committed memory pool size for data sent to client
   I2O_TID                                     clientTid_;
+  I2O_TID                                     tid_;
 
-  // Queue of data waitng to be sent. Each block carries one DDU's or DCC's one event
+  // Queue of data waiting to be sent. Each block carries one DDU's or DCC's one event
   deque<pair<toolbox::mem::Reference*,bool> > dataBlocks_;
 
   // The number of _events_ already in the queue of data waiting to be sent (=<dataBlocks_.size())
@@ -44,7 +45,7 @@ private:
 
 public:
   // clientName must be passed by value to make sure it remains unchanged here
-  // even after the it is modified in the parent app's info space
+  // even after it is modified in the parent app's info space
   EmuI2OServer( xdaq::Application                    *parentApp,
 		toolbox::exception::HandlerSignature *i2oExceptionHandler,
 		const string                          clientName,

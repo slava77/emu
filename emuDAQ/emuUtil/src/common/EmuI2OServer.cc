@@ -19,6 +19,7 @@ EmuI2OServer::EmuI2OServer( xdaq::Application                    *parentApp,
     i2oExceptionHandler_( i2oExceptionHandler ),
     poolSize_           (  dynamic_cast<xdata::UnsignedLong*>( poolSize ) )
 {
+  tid_ = i2o::utils::getAddressMap()->getTid(appDescriptor_);
   findClientTid();
 
   poolFactory_     = toolbox::mem::getMemoryPoolFactory();
@@ -254,11 +255,11 @@ void EmuI2OServer::fillBlock( toolbox::mem::Reference *bufRef,
     pvtMsg    = (I2O_PRIVATE_MESSAGE_FRAME*)blockAddr;
     block     = (I2O_EMU_DATA_MESSAGE_FRAME*)blockAddr;
 
-    stdMsg->MessageSize    = i2oMessageSize >> 2;
-    stdMsg->TargetAddress  = clientTid_;
-    stdMsg->Function       = I2O_PRIVATE_MESSAGE;
-    stdMsg->VersionOffset  = 0;
-    stdMsg->MsgFlags       = 0;  // Point-to-point
+    stdMsg->MessageSize      = i2oMessageSize >> 2;
+    stdMsg->InitiatorAddress = tid_;
+    stdMsg->Function         = I2O_PRIVATE_MESSAGE;
+    stdMsg->VersionOffset    = 0;
+    stdMsg->MsgFlags         = 0;  // Point-to-point
 
     pvtMsg->XFunctionCode  = I2O_EMUCLIENT_CODE;
     pvtMsg->OrganizationID = XDAQ_ORGANIZATION_ID;
