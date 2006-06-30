@@ -24,6 +24,9 @@ public class CSCEventHandler extends UserStateNotificationHandler {
 	private CSCFunctionManager fm;
 	private ParameterSet fmParameters;
 
+	private final static String DEFAULT_RUN_TYPE = "ME1b";
+	private final static String DEFAULT_RUN_NUMBER = "10";
+
 	public CSCEventHandler() throws rcms.fm.fw.EventHandlerException {
 		subscribeForEvents(StateEnteredEvent.class);
 		
@@ -69,7 +72,13 @@ public class CSCEventHandler extends UserStateNotificationHandler {
 							.getXDAQParameter();
 
 					param.select(new String[] { "RunType", "RunNumber" });
+					if (fmParameters.get("RUN_TYPE").equals("")) {
+						fmParameters.put("RUN_TYPE", DEFAULT_RUN_TYPE);
+					}
 					param.setValue("RunType", fmParameters.get("RUN_TYPE"));
+					if (fmParameters.get("RUN_NUMBER").equals("")) {
+						fmParameters.put("RUN_NUMBER", DEFAULT_RUN_NUMBER);
+					}
 					param.setValue("RunNumber", fmParameters.get("RUN_NUMBER"));
 					param.send();
 				} catch (Exception ignored) {}
