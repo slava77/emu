@@ -108,7 +108,8 @@ private:
 	unsigned long TMB_CRC;
 	bool checkCrcCFEB;
 	unsigned long CFEB_CRC;
-
+	bool checkCrcDDU;
+	unsigned long DDU_CRC;
 	//int headerDAV_Active; // Obsolete since 16.09.05
 
 public:
@@ -148,6 +149,7 @@ public:
 	void crcALCT(bool enable);
 	void crcTMB (bool enable);
 	void crcCFEB(bool enable);
+	void crcDDU (bool enable);
 
 	dduBinExaminer(void);
 	~dduBinExaminer(void){}
