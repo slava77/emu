@@ -114,8 +114,8 @@ dduBinExaminer::dduBinExaminer(void):nERRORS(25),nWARNINGS(5),sERROR(nERRORS),sW
 	sERROR_[0] = " Any errors: 00";
 	sERROR_[1] = " DDU Trailer Missing: 01";
 	sERROR_[2] = " DDU Header Missing: 02";
-	sERROR_[4] = " DDU Word Count Error: 04";
 	sERROR_[3] = " DDU CRC Error: 03";
+	sERROR_[4] = " DDU Word Count Error: 04";
 	sERROR_[5] = " DMB Trailer Missing: 05";
 	sERROR_[6] = " DMB Header Missing: 06";
 	sERROR_[7] = " ALCT Trailer Missing: 07";
@@ -939,10 +939,9 @@ long dduBinExaminer::check(const unsigned short* &buffer, long length){
 
 			DDU_CRC ^= 0x0000L;
 			if( DDU_CRC&0xFFFF != buf2[1] ){
-				///fERROR[3] = true;
-				///bERROR   |= 0x4;
-				cerr<<"\nDDU_CRC = "<<hex<<(DDU_CRC&0xFFFF)<<" != "<<buf2[1]<<endl;
-
+				fERROR[3] = true;
+				bERROR   |= 0x8;
+				//cerr<<"\nDDU_CRC = "<<hex<<(DDU_CRC&0xFFFF)<<" != "<<buf2[1]<<endl;
 			}
 
 
