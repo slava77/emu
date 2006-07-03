@@ -161,6 +161,11 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
 
   EmuMonitorTimerTask * timer_;
 
+  xdata::UnsignedLong   creditMsgsSent_;
+  xdata::UnsignedLong   eventsRequested_;
+  xdata::UnsignedLong   eventsReceived_;
+
+
   // == Total processed events counter
   xdata::UnsignedLong 	totalEvents_;
   // == Session processed events counter
@@ -189,7 +194,9 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   xdata::UnsignedLong 	committedPoolSize_;     
   // == Servers' class name
   xdata::String       	serversClassName_;
-  // == Send this meny event credits at a time
+  // == Server TIDs
+  xdata::Vector<xdata::UnsignedLong> serverTIDs_;
+  // == Send this many event credits at a time
   xdata::UnsignedLong 	nEventCredits_;
   // == Prescaling factor for data to be received
   xdata::UnsignedLong 	prescalingFactor_; 
