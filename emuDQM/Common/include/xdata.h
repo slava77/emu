@@ -7,6 +7,7 @@
 #include "xdata/Double.h"
 #include "xdata/Float.h"
 #include "xdata/String.h"
+#include "xdata/Vector.h"
 #include "xdata/Event.h"
 #include "xdata/ActionListener.h"
 
