@@ -14,6 +14,8 @@
 //	6) prints out the finals statistics of errors and warnings for the whole file
 //	7) produces a few histograms (ad hoc feature)
 //==============================================================================================
+// To compile: g++ -o dduBinExaminerTest dduBinExaminerTest.cpp -I../../include/ -L../../lib/linux/x86/ -ldduBinExaminer `root-config --cflags` `root-config --glibs`
+
 
 #include <iostream>
 #include <fstream>
@@ -96,6 +98,7 @@ int main(int argc, char **argv){
 	examiner.crcALCT(true);
 	examiner.crcTMB (true);
 	examiner.crcCFEB(true);
+	examiner.crcDDU (true);
 
 // For error's timelines
 	const int tlbinsize=100;
@@ -120,7 +123,7 @@ int main(int argc, char **argv){
 		{"help"      ,0, 0, 'h'}, {"statistic" ,0, 0, 's'}, {"error"    ,1, 0, 'e'},
 		{"warning"   ,1, 0, 'w'}, {"datafile"  ,1, 0, 'd'}, {"rootfile" ,1, 0, 'r'},
 		{"noALCTCRC" ,0, 0, 'n'}, {"noCFEBCRC" ,0, 0, 'n'}, {"noTMBCRC" ,0, 0, 'n'},
-		{0, 0, 0, 0}
+		{"noDDUCRC"  ,0, 0, 'n'}, {0, 0, 0, 0}
 	};
 	while (1) {
 		int index=0; char *tmp,*token; int errnum,warnnum; string tmpname;
@@ -138,6 +141,7 @@ int main(int argc, char **argv){
 				printf("--noALCTCRC                        disable ALCT CRC code\n");
 				printf("--noCFEBCRC                        disable CFEB CRC code\n");
 				printf("--noTMBCRC                         disable TMB CRC code\n");
+				printf("--noDDUCRC                         disable DDU CRC code\n");
 				printf("\nFirst two non-key arguments are considered to be 'datafile' and 'rootfile'");
 				printf("\n");
 				exit(0);
@@ -192,6 +196,8 @@ int main(int argc, char **argv){
 			examiner.crcTMB(false);
 		if( !strcmp("--noCFEBCRC",argv[arg]) )
 			examiner.crcCFEB(false);
+		if( !strcmp("--noDDUCRC",argv[arg]) )
+			examiner.crcDDU(false);
 	}
 
 	// == Open input data file
