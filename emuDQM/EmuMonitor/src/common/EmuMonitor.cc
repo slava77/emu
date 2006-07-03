@@ -477,6 +477,9 @@ void EmuMonitor::HaltAction(toolbox::Event::Reference e) throw (toolbox::fsm::ex
 void EmuMonitor::EnableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception )
 {
 	sessionEvents_=0;
+	creditMsgsSent_ = 0;
+	eventsRequested_ = 0;
+	eventsReceived_ = 0;
 //	configureReadout();
 	if (plotter_ != NULL) timer_->activate();
 	enableReadout();
@@ -568,11 +571,36 @@ void EmuMonitor::printParametersTable( xgi::Output * out ) throw (xgi::exception
   }
   *out 	<< "</table>" << std::endl;
 }
+/*
+string EmuMonitor::ageOfPageClock(){
+  stringstream ss;
+  ss << "<script type=\"text/javascript\">"                        << endl;
+  ss << "   ageOfPage=0"                                           << endl;
+  ss << "   function countSeconds(){"                              << endl;
+  ss << "      hours=Math.floor(ageOfPage/3600)"                   << endl;
+  ss << "      minutes=Math.floor(ageOfPage/60)%60"                << endl;
+  ss << "      age=\"\""                                           << endl;
+  ss << "      if (hours) age+=hours+\" h \""                      << endl;
+  ss << "      if (minutes) age+=minutes+\" m \""                  << endl;
+  ss << "      age+=ageOfPage%60+\" s \""                          << endl;
+  ss << "      document.getElementById('ageOfPage').innerHTML=age" << endl;
+  ss << "      ageOfPage=ageOfPage+1"                              << endl;
+  ss << "      setTimeout('countSeconds()',1000)"                  << endl;
+  ss << "   }"                                                     << endl;
+  ss << "</script>"                                                << endl;
+  return ss.str();
+}
 
+*/
 // == Web Navigation Pages == //
 void EmuMonitor::stateMachinePage( xgi::Output * out ) throw (xgi::exception::Exception)
 {
   *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+/*
+  if ( fsm_.getCurrentState() == 'E' ){
+     *out << "<meta http-equiv=\"Refresh\" content=\"5\">"              << endl;
+    }
+*/
   *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
 
   xgi::Utils::getPageHeader
@@ -664,6 +692,7 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
   // Emu-specific stuff
 
   dataMessages_.push_back( bufRef );
+  eventsReceived_++;
 
 //   // Process the oldest message, i.e., the one at the front of the queue
    toolbox::mem::Reference *oldestMessage = dataMessages_.front();
@@ -680,12 +709,13 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
 
   LOG4CPLUS_INFO(getApplicationLogger(),
                  // "Received " << bufRef->getDataSize() <<
-                 "Received " << sizeOfPayload <<
-                 " bytes of event data of run " << msg->runNumber <<
-                 " errorFlag 0x"  << std::hex << msg->errorFlag << std::dec <<
+                 "Received evt#" << eventsReceived_ << " (req: " << eventsRequested_ << ")" <<
+		  sizeOfPayload << " bytes, run " << msg->runNumber <<
+                 ", errorFlag 0x"  << std::hex << msg->errorFlag << std::dec <<
                  " from " << serversClassName_.toString() <<
-                 " still holding " << msg->nEventCreditsHeld << " event credits." <<
-		 " pool size " << dataMessages_.size());
+		 ":" << msg->PvtMessageFrame.StdMessageFrame.InitiatorAddress <<
+                 ", still holding " << msg->nEventCreditsHeld << " event credits, " <<
+		 "pool size " << dataMessages_.size());
 
   processEvent(reinterpret_cast<const char *>(startOfPayload), sizeOfPayload, errorFlag);
 //  usleep(2500);
@@ -693,14 +723,17 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
   // Free the Emu data message
   bufRef->release();
   dataMessages_.erase( dataMessages_.begin() );
+//  eventsReceived_++;
 }
 
 // == Send an I2O token message to all servers == //
 int EmuMonitor::sendDataRequest(unsigned long last)
 {
+//  creditMsgsSent += 1;
   for (unsigned int i = 0; i < dataservers_.size(); i++)
     {
-
+      creditMsgsSent_ ++;
+      eventsRequested_ = eventsRequested_ +  nEventCredits_;
       toolbox::mem::Reference * ref = 0;
       try
         {
@@ -724,7 +757,7 @@ int EmuMonitor::sendDataRequest(unsigned long last)
 
           ref->setDataSize(frame->PvtMessageFrame.StdMessageFrame.MessageSize << 2);
           LOG4CPLUS_INFO (getApplicationLogger(),
-                           "Sending credit to tid: " << frame->PvtMessageFrame.StdMessageFrame.TargetAddress
+                           "Sending credit #" << creditMsgsSent_ << " to tid: " << frame->PvtMessageFrame.StdMessageFrame.TargetAddress
                            //                                   << ". maxFrameSize=" << maxFrameSize_
                            );
           getApplicationContext()->postFrame(ref, this->getApplicationDescriptor(), dataservers_[i]);
@@ -907,9 +940,22 @@ int EmuMonitor::svc()
 
         }
       
-      if (readoutMode_.toString() == "external") {
-	::sleep(1);
+      unsigned long timeout = 3*1000000; // 5sec
+      unsigned long wait = 10000; // 10ms
+      unsigned long waittime = 0;
+      if (readoutMode_.toString() == "external") { 
+	// ::sleep(1);
 	// usleep(500000);
+	while ((eventsReceived_ < eventsRequested_) && ( waittime <= timeout )) {
+		usleep(wait);
+		waittime += wait;
+	} 
+	if (waittime >= timeout) {
+		LOG4CPLUS_WARN (getApplicationLogger(), toolbox::toString("Timeout waiting for events from server."));
+		LOG4CPLUS_WARN (getApplicationLogger(), "Missed " << (eventsRequested_ - eventsReceived_) << " events");
+		eventsRequested_ = eventsReceived_;
+	}
+	waittime = 0;
 	if (!pool_->isHighThresholdExceeded())
 	  {
 	    // Stop if there is an error in sending
