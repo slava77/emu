@@ -46,8 +46,8 @@ int main(int argc, char **argv) {
 	// int dduCheckMask = 0x0;
 //	int binCheckMask = 0x0;
 	switch (argc) {
-		case 7: binCheckMask = atoi(argv[7]);	
-		case 6: dduCheckMask = atoi(argv[6]);
+		case 7: binCheckMask = atoi(argv[6]);	
+		case 6: dduCheckMask = atoi(argv[5]);
 		case 5: startEvent = atoi(argv[4]);
 		case 4: histofile = argv[3];
 		case 3: NumberOfEvents = atoi(argv[2]);

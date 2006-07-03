@@ -41,7 +41,7 @@ void EmuLocalPlotter::fill(unsigned char * data, int dataLength, unsigned short 
 	if(check_bin_error){
 //KK
 		if(debug_printout) LOG4CPLUS_INFO(logger_,
-			"Start binary checking of buffer...");
+			"Start binary checking of buffer... mask=0x" << hex << binCheckMask);
 		const unsigned short *tmp = reinterpret_cast<const unsigned short *>(data);
 		if( bin_checker.check(tmp,dataLength/sizeof(short)) < 0 ){
 //			No ddu trailer found - force checker to summarize errors by adding artificial trailer
