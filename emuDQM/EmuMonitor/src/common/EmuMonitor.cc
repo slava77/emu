@@ -77,6 +77,8 @@ void EmuMonitor::initProperties()
   inputDeviceName_      = "";
   
   serversClassName_ 	= "EmuRUI";
+  serverTIDs_.clear();
+  // serverTIDs_.push_back(0);
   collectorsClassName_	= "EmuDisplayServer";
   collectorID_		= 0;
   transport_            = "i2o";
@@ -85,6 +87,7 @@ void EmuMonitor::initProperties()
   prescalingFactor_	= 100;
 
   useAltFileReader_	= false;
+  
 
   getApplicationInfoSpace()->fireItemAvailable("totalEvents",&totalEvents_);
   getApplicationInfoSpace()->fireItemAvailable("sessionEvents",&sessionEvents_);
@@ -96,6 +99,7 @@ void EmuMonitor::initProperties()
 
   getApplicationInfoSpace()->fireItemAvailable("committedPoolSize",&committedPoolSize_);
   getApplicationInfoSpace()->fireItemAvailable("serversClassName", &serversClassName_);
+  getApplicationInfoSpace()->fireItemAvailable("serverTIDs", &serverTIDs_);
   getApplicationInfoSpace()->fireItemAvailable("nEventCredits",    &nEventCredits_);
   getApplicationInfoSpace()->fireItemAvailable("prescalingFactor", &prescalingFactor_);
 
@@ -117,6 +121,7 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->addItemChangedListener ("collectorsClassName", this);
   getApplicationInfoSpace()->addItemChangedListener ("committedPoolSize",this);
   getApplicationInfoSpace()->addItemChangedListener ("serversClassName", this);
+  getApplicationInfoSpace()->addItemChangedListener ("serverTIDs", this);
   getApplicationInfoSpace()->addItemChangedListener ("nEventCredits",    this);
   getApplicationInfoSpace()->addItemChangedListener ("prescalingFactor", this);
   
@@ -304,6 +309,12 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
           LOG4CPLUS_INFO(getApplicationLogger(), "Data Servers Class Name : " << serversClassName_.toString());
 	  getDataServers(serversClassName_);
         }
+	else if ( item == "serverTIDs")
+        {
+          LOG4CPLUS_INFO(getApplicationLogger(), "List of Servers TIDs changed : ");
+          getDataServers(serversClassName_);
+        }
+
 	else if ( item == "collectorsClassName")
         {
           LOG4CPLUS_INFO(getApplicationLogger(), "Collectors Class Name : " << collectorsClassName_.toString());
@@ -393,7 +404,22 @@ void EmuMonitor::getDataServers(xdata::String className)
 	try
            {
 	     dataservers_.clear();
-             dataservers_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
+	     if (serverTIDs_.size() > 0) {
+             	std::vector<xdaq::ApplicationDescriptor*> tmpdataservers_;
+             	tmpdataservers_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
+	     	for (unsigned int i = 0; i<tmpdataservers_.size(); i++) {
+			for (unsigned int j = 0; j<serverTIDs_.size(); j++) {
+				if ((serverTIDs_.at(j) != xdata::UnsignedLong(0)) && (serverTIDs_.at(j) == xdata::UnsignedLong(i2o::utils::getAddressMap()->getTid(tmpdataservers_[i]))))
+					dataservers_.push_back(tmpdataservers_[i]);
+			}
+		}
+	     } else {
+		dataservers_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
+	     }
+	     if (dataservers_.size() == 0) {
+		LOG4CPLUS_ERROR (getApplicationLogger(),
+                               "No " << className.toString() << " Data Servers matching serverTIDs list found."); 
+	     }
              //hasSet_serversClassName_ = true;
             }
           catch (xdaq::exception::Exception& e)
@@ -565,7 +591,16 @@ void EmuMonitor::printParametersTable( xgi::Output * out ) throw (xgi::exception
     *out << "<tr>" << std::endl;
     *out << "<td>" << itr->first << "</td>" << std::endl;
     *out << "<td>" << itr->second->type() << "</td>" << std::endl;
-    *out << "<td>" << itr->second->toString() << "</td>" << std::endl;
+    if (itr->second->type() == "vector") {
+        *out << "<td>";
+	// =VB= !!! possible XDAQ bug: returns wrong pointer to xdata::Vector (+4 bytes offset) 
+	for (int i=0; i < reinterpret_cast<xdata::Vector<xdata::Serializable>* >((int)(itr->second)-4)->elements(); i++) {
+	   *out << reinterpret_cast<xdata::Vector<xdata::Serializable>*>((int)(itr->second)-4)->elementAt(i)->toString() << " ";
+	 }
+	*out << "</td>" << std::endl;
+    } else {
+       *out << "<td>" << itr->second->toString() << "</td>" << std::endl;
+    }
 
     *out << "</tr>" << std::endl;
   }

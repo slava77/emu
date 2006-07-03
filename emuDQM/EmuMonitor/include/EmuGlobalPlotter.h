@@ -13,9 +13,9 @@ public:
   void SetDDUCheckMask(unsigned int) {};
   void SetBinCheckMask(unsigned int) {};
   void SetDDU2004(int) {};
-  virtual bool isListModified() {};
+  virtual bool isListModified() {return false;};
   virtual void setListModified(bool flag) {};
-  virtual TConsumerInfo* getConsumerInfo() {};
+  virtual TConsumerInfo* getConsumerInfo() {return NULL;};
   /// books the histograms
   void book() {};
 
