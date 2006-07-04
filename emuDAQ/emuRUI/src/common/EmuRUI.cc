@@ -679,7 +679,7 @@ throw (emuRUI::exception::Exception)
 		      taDescriptors.size() << " emuTA instances found. Trying first one.");
     rn = getScalarParam(taDescriptors[0],"runNumber","unsignedLong");
     LOG4CPLUS_INFO(logger_, "Got run number from emuTA: " + rn );
-    mn = getScalarParam(taDescriptors[0],"maxNumTriggers","unsignedLong");
+    mn = getScalarParam(taDescriptors[0],"maxNumTriggers","integer");
     LOG4CPLUS_INFO(logger_, "Got maximum number of events from emuTA: " + mn );
     runStartTime_ = getScalarParam(taDescriptors[0],"runStartTime","string");
     LOG4CPLUS_INFO(logger_, "Got run start time from emuTA: " + runStartTime_.toString() );
@@ -693,7 +693,8 @@ throw (emuRUI::exception::Exception)
   srn >> irn;
   runNumber_ = irn;
 
-  unsigned int  imn(0);
+//   unsigned int  imn(0);
+  long  imn(0);
   istringstream smn(mn);
   smn >> imn;
   maxEvents_ = imn;
@@ -2389,14 +2390,14 @@ void EmuRUI::createFileWriters(){
 
 bool EmuRUI::continueConstructionOfSuperFrag()
   throw (emuRUI::exception::Exception)
-  // Version with sigle device
+  // Version with single device
 {
 
 //   bool keepRunning = true;
   unsigned int   nBytesRead = 0;
   unsigned short errorFlag  = 0;
 
-  if ( maxEvents_.value_ > 0 && nEventsRead_.value_ >= maxEvents_.value_ ) return false;
+  if ( maxEvents_.value_ >= 0 && nEventsRead_.value_ >= (unsigned long) maxEvents_.value_ ) return false;
 
   if (deviceReader_){
     try{

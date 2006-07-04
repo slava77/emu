@@ -13,6 +13,7 @@
 #include "xdata/include/xdata/InfoSpace.h"
 #include "xdata/include/xdata/String.h"
 #include "xdata/include/xdata/UnsignedLong.h"
+#include "xdata/include/xdata/Integer.h"
 #include "xdata/include/xdata/Vector.h"
 #include "EmuApplication.h"
 
@@ -212,7 +213,8 @@ private:
     throw (xgi::exception::Exception);
 
   xdata::UnsignedLong runNumber_;
-  xdata::UnsignedLong maxNumberOfEvents_;
+//   xdata::UnsignedLong maxNumberOfEvents_;
+  xdata::Integer maxNumberOfEvents_;
   xdata::Vector<xdata::String> runTypes_; // all possible run types
   xdata::String runType_; // the current run type
   xdata::Boolean buildEvents_;
