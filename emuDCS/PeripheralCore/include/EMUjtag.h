@@ -5,13 +5,14 @@
 #include "EMU_JTAG_constants.h"
 
 class TMB;
-
+class VMEModule;
 class EMUjtag 
 {
 public:
   //
   //EMUjtag();
   EMUjtag(TMB * );
+  EMUjtag(VMEModule * );
   ~EMUjtag();
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
@@ -62,6 +63,7 @@ private:
   //
   std::ostream * MyOutput_ ;
   TMB * tmb_ ;
+  VMEModule * module_;
   //
   int jtag_chain_;
   int devices_in_chain_;
