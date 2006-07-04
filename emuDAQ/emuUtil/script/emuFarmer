@@ -106,7 +106,7 @@ class Emu_Farmer:
             self.createCommandLines()
             self.pickRelevantCommandLines()
             if self._action == 'status':
-                print 'status (S: sleeping, R: running, "Scientific Linux" or nothing: no process found):'
+                print 'status (S: sleeping  |  R: running  |  *nothing*: no process found):'
             if self._action == 'debug':
                 print "remote processes' standard output (see emuFarmer.log for details):"
             for ctxt,cmnd in self._relevantCommandLines.iteritems():
@@ -292,7 +292,9 @@ class Emu_Farmer:
             elif self._action == 'stop':
                 remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$2 }' | xargs -r kill -9\""
             elif self._action == 'status':
-                remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$7 }'\""
+                #remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$7 }'\""
+                #remoteCommand = "\"ps -eo stat,pid,euser,lstart,command | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { printf(\\\"%3s  %5d   %10s   %3s %3s %2d %s\\\",\$1,\$2,\$3,\$4,\$5,\$6,\$7) }'\""
+                remoteCommand = "\"ps -eo stat,pid,euser,lstart,command | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$1,\\\"  ( process\t\\\",\$2,\\\"started by\\\",\$3,\\\"at\\\",\$4,\$5,\$6,\$7,\\\")\\\"}'\""
             elif self._action == 'debug':
                 # Dump the remoteLogFile (the redirected std err/out of xdaq)
                 remoteCommand = "\"cat "+remoteLogFile+"\""
