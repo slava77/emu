@@ -33,9 +33,9 @@
 
 
   <!-- DAQManager -->
-  <xc:Context url="http://emudaq02:40200">
+  <xc:Context url="http://emudaq:40200">
 
-    <xc:Endpoint protocol="tcp" service="i2o" hostname="emudaq02" port="40250" network="tcp1"/>
+    <xc:Endpoint protocol="tcp" service="i2o" hostname="emudaq" port="40250" network="tcp1"/>
     
     <xc:Module>${XDAQ_ROOT}/RunControl/tools/xdaq2rc/lib/linux/x86/libxdaq2rc.so</xc:Module>
 
@@ -83,9 +83,9 @@
   </xc:Context>
 
   <!-- EVM and EmuTA -->
-  <xc:Context url="http://emudaq02:40300">
+  <xc:Context url="http://emudaq:40300">
     
-    <xc:Endpoint protocol="tcp" service="i2o" hostname="emudaq02" port="40350" network="tcp1"/>
+    <xc:Endpoint protocol="tcp" service="i2o" hostname="emudaq" port="40350" network="tcp1"/>
     
     <xc:Module>${XDAQ_ROOT}/RunControl/tools/xdaq2rc/lib/linux/x86/libxdaq2rc.so</xc:Module>
 
@@ -107,7 +107,7 @@
     <xc:Application class="EmuTA" id="17" instance="0" network="tcp1">
       <properties xmlns="urn:xdaq-application:TA" xsi:type="soapenc:Struct">
 	<runNumber xsi:type="xsd:unsignedLong">57005</runNumber>
-	<maxNumTriggers xsi:type="xsd:unsignedLong">10000</maxNumTriggers>
+	<maxNumTriggers xsi:type="xsd:integer">10000</maxNumTriggers>
       </properties>
     </xc:Application>
     <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuTA/lib/linux/x86/libEmuTA.so</xc:Module>
@@ -116,9 +116,9 @@
 
 
   <!-- ME1a -->
-  <xc:Context url="http://emuslice12:40201">
+  <xc:Context url="http://emudaq01:40201">
     
-    <xc:Endpoint protocol="tcp" service="i2o" hostname="emuslice12" port="40251" network="tcp1"/>
+    <xc:Endpoint protocol="tcp" service="i2o" hostname="emudaq01" port="40251" network="tcp1"/>
     
     <xc:Module>${XDAQ_ROOT}/RunControl/tools/xdaq2rc/lib/linux/x86/libxdaq2rc.so</xc:Module>
 
@@ -161,6 +161,7 @@
 	<pathToBadEventsFile xsi:type="xsd:string">/data/tmp/localdaq</pathToBadEventsFile>
 	<ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong">200</ruiFileSizeInMegaBytes>
 	<clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+	  <item xsi:type="xsd:string" soapenc:position="[0]">EmuMonitor</item>
 	</clientsClassName>
       </properties>
     </xc:Application>
@@ -170,9 +171,9 @@
   
 
   <!-- ME2 -->
-  <xc:Context url="http://emuslice12:40301">
+  <xc:Context url="http://emudaq01:40301">
     
-    <xc:Endpoint protocol="tcp" service="i2o" hostname="emuslice12" port="40351" network="tcp1"/>
+    <xc:Endpoint protocol="tcp" service="i2o" hostname="emudaq01" port="40351" network="tcp1"/>
     
     <xc:Module>${XDAQ_ROOT}/RunControl/tools/xdaq2rc/lib/linux/x86/libxdaq2rc.so</xc:Module>
 
@@ -215,6 +216,7 @@
 	<pathToBadEventsFile xsi:type="xsd:string">/data/tmp/localdaq</pathToBadEventsFile>
 	<ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong">200</ruiFileSizeInMegaBytes>
 	<clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+	  <item xsi:type="xsd:string" soapenc:position="[0]">EmuMonitor</item>
 	</clientsClassName>
       </properties>
     </xc:Application>
@@ -270,6 +272,7 @@
 	<ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong">200</ruiFileSizeInMegaBytes>
 	<pathToBadEventsFile xsi:type="xsd:string">/data/tmp/localdaq</pathToBadEventsFile>
 	<clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+	  <item xsi:type="xsd:string" soapenc:position="[0]">EmuMonitor</item>
 	</clientsClassName>
       </properties>
     </xc:Application>
@@ -325,69 +328,13 @@
 	<ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong">200</ruiFileSizeInMegaBytes>
 	<pathToBadEventsFile xsi:type="xsd:string">/data/tmp/localdaq</pathToBadEventsFile>
 	<clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+	  <item xsi:type="xsd:string" soapenc:position="[0]">EmuMonitor</item>
 	</clientsClassName>
       </properties>
     </xc:Application>
     <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuRUI/lib/linux/x86/libEmuRUI.so</xc:Module>
     
   </xc:Context>
-
-  <xc:Context url="http://emupc:40010">		
-    <xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="tcp1">
-    </xc:Application>
-  </xc:Context>
-
-  <xc:Context url="http://emuttc:40110">
-    <xc:Application class="LTCControl" id="32" instance="0" network="tcp1"/>
-  </xc:Context>
-
-  <xc:Context url="http://emufed:40100">
-    <xc:Application class="EmuFEDCrate" id="31" instance="0" service="emufcratesoap" network="local">                 
-    </xc:Application>      
-    <xc:Application class="EmuFCrateHyperDAQ" id="32" instance="0" service="emufcratehyperdaq" network="local"> 
-    </xc:Application>      
-  </xc:Context>
-  
-  <xc:Context url="http://emudaq02:40000">
-    <xc:Application class="CSCSupervisor" id="40" instance="0" network="local">
-      <properties xmlns="urn:xdaq-application:CSCSupervisor" xsi:type="soapenc:Struct">
-	<configKeys soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
-	  <item soapenc:position="[0]" xsi:type="xsd:string">Local ME2</item>
-	  <item soapenc:position="[1]" xsi:type="xsd:string">Local ME3</item>
-	</configKeys>
-	<configModes soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
-	  <item soapenc:position="[0]" xsi:type="xsd:string">me2</item>
-	  <item soapenc:position="[1]" xsi:type="xsd:string">me3</item>
-	</configModes>
-	<modesForPC soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
-	  <item soapenc:position="[0]" xsi:type="xsd:string">me2</item>
-	  <item soapenc:position="[1]" xsi:type="xsd:string">me3</item>
-	</modesForPC>
-	<filesForPC soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
-	  <item soapenc:position="[0]" xsi:type="xsd:string">
-	    /home/slice/configMe2.xml
-	  </item>
-	  <item soapenc:position="[1]" xsi:type="xsd:string">
-	    /home/slice/configMe3.xml
-	  </item>
-	</filesForPC>
-	<modesForFC soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
-	  <item soapenc:position="[0]" xsi:type="xsd:string">me2</item>
-	  <item soapenc:position="[1]" xsi:type="xsd:string">me3</item>
-	</modesForFC>
-	<filesForFC soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
-	  <item soapenc:position="[0]" xsi:type="xsd:string">
-	    http://cms.cern.ch:8080/config/EmuFED/global.xml
-	  </item>
-	  <item soapenc:position="[1]" xsi:type="xsd:string">
-	    file:///config/EmuFED/local.xml
-	  </item>
-	</filesForFC>
-      </properties>
-    </xc:Application>
-    <xc:Module>${XDAQ_ROOT}/emu/cscSV/lib/linux/x86/libCSCSupervisor.so</xc:Module>
-  </xc:Context>
-  
   
 </xc:Partition>
   
