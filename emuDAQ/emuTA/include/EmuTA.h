@@ -18,6 +18,7 @@
 #include "xdata/include/xdata/InfoSpace.h"
 #include "xdata/include/xdata/String.h"
 #include "xdata/include/xdata/UnsignedLong.h"
+#include "xdata/include/xdata/Integer.h"
 
 
 using namespace std;
@@ -186,7 +187,7 @@ private:
   //
     xdata::String       runStartTime_;
     xdata::UnsignedLong runNumber_;
-    xdata::UnsignedLong maxNumTriggers_;
+    xdata::Integer      maxNumTriggers_;
 
 
     ////////////////////////////////////////////////////////

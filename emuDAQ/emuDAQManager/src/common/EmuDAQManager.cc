@@ -544,7 +544,9 @@ throw (xgi::exception::Exception)
     *out << "</tr>"                                                    << endl;
     *out << "<tr>"                                                     << endl;
     *out << "  <td>"                                                   << endl;
-    *out << "    " << maxNumEvents                                     << endl;
+    *out << "    " << maxNumEvents;
+    if ( maxNumEvents.find("-",0) != string::npos ) *out << " (unlimited)";
+    *out                                                               << endl;
     *out << "  </td>"                                                  << endl;
     *out << "</tr>"                                                    << endl;
     *out << "</table>"                                                 << endl;
@@ -812,7 +814,7 @@ throw (xgi::exception::Exception)
       *out << "</select>"                                            << endl;
       *out << "<br>"                                                 << endl;
 
-      *out << "Set maximum number of events: "                       << endl;
+      *out << "Set maximum number of events (-1 for unlimited): "    << endl;
       *out << "<input"                                               << endl;
       *out << " type=\"text\""                                       << endl;
       *out << " name=\"maxevents\""                                  << endl;
@@ -840,6 +842,7 @@ throw (xgi::exception::Exception)
       *out << "  <tr><td>Run type:</td><td>" << runType_.toString();
       *out << "</td></tr>"                                           << endl;
       *out << "  <tr><td>Maximum number of events:</td><td>" << maxNumEvents;
+      if ( maxNumEvents.find("-",0) != string::npos ) *out << " (unlimited)";
       *out << "</td></tr>"                                           << endl;
       *out << "  <tr><td>Build events:</td><td>" << buildEvents_ .toString();
       *out << "</td></tr>"                                           << endl;
@@ -914,7 +917,7 @@ void EmuDAQManager::getRunInfoFromTA( string* runnum, string* maxevents, string*
 	}
       try
 	{
-	  *maxevents = getScalarParam(taDescriptors_[0],"maxNumTriggers","unsignedLong");
+	  *maxevents = getScalarParam(taDescriptors_[0],"maxNumTriggers","integer");
 	}
       catch(xcept::Exception e)
 	{
@@ -939,9 +942,9 @@ void EmuDAQManager::getRunInfoFromTA( string* runnum, string* maxevents, string*
 int EmuDAQManager::purgeIntNumberString( string* s ){
   // Emu: purge string of all non-numeric characters
   int nCharactersErased = 0;
-  for ( string::size_type i = s->find_first_not_of("0123456789",0); 
+  for ( string::size_type i = s->find_first_not_of("-0123456789",0); 
 	i != string::npos; 
-	i = s->find_first_not_of("0123456789",i) ){
+	i = s->find_first_not_of("-0123456789",i) ){
     s->erase(i,1);
     nCharactersErased++;
   }
@@ -998,6 +1001,8 @@ throw (xgi::exception::Exception)
 	    purgeIntNumberString( &maxNumEvents );
 	    runNumber_.fromString( runNumber );
 	    maxNumberOfEvents_.fromString( maxNumEvents );
+	    LOG4CPLUS_INFO(logger_, "maxNumEvents: " + maxNumEvents );
+	    LOG4CPLUS_INFO(logger_, "maxNumberOfEvents_: " + maxNumberOfEvents_.toString() );
 
 	    fireEvent("Configure");
 	  }
@@ -1701,7 +1706,7 @@ void EmuDAQManager::configureTest()
 	}
       try
 	{
-	  setScalarParam(taDescriptors_[0],"maxNumTriggers","unsignedLong",maxNumEvents);
+	  setScalarParam(taDescriptors_[0],"maxNumTriggers","integer",maxNumEvents);
 	  LOG4CPLUS_INFO(logger_,"Set maximum number of events to " + maxNumEvents );
 	}
       catch(xcept::Exception e)

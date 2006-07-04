@@ -385,7 +385,8 @@ private:
     xdata::String       pathToDataOutFile_;    // the path to the file to write the data into (no file written if "")
     xdata::String       pathToBadEventsFile_;    // the path to the file to write the bad events into (no file written if "")
     xdata::UnsignedLong fileSizeInMegaBytes_;  // when the file size exceeds this, no more events will be written to it (no file written if <=0)
-    xdata::UnsignedLong maxEvents_;            // stop reading from DDU after this many events
+//     xdata::UnsignedLong maxEvents_;            // stop reading from DDU after this many events
+    xdata::Integer      maxEvents_;            // stop reading from DDU after this many events
     xdata::Boolean      passDataOnToRUBuilder_;// it true, data is sent to the event builder
     xdata::UnsignedLong runNumber_;            // run number to be obtained from TA
     xdata::String       runStartTime_;         // run start time to be included in the file name

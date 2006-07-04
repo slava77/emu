@@ -935,7 +935,11 @@ throw (emuTA::exception::Exception)
 
 
 //     for(i=0; i<n; i++)
-    for(i=0; i<n && eventNumber_<maxNumTriggers_+1; i++)
+//     for(i=0; i<n && eventNumber_<maxNumTriggers_+1; i++)
+    for(i=0; 
+	i<n && ( maxNumTriggers_.value_ < 0 || 
+		 eventNumber_.value_    < (unsigned long)(maxNumTriggers_.value_+1) ); 
+	i++)
     {
         bufRef = triggerGenerator_.generate
         (
