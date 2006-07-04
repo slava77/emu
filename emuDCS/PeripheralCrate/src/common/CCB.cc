@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.42 2006/07/04 09:38:14 mey Exp $
+// $Id: CCB.cc,v 2.43 2006/07/04 15:06:19 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.43  2006/07/04 15:06:19  mey
+// Fixed JTAG
+//
 // Revision 2.42  2006/07/04 09:38:14  mey
 // Update
 //
@@ -325,6 +328,7 @@ void CCB::prgall_bckpln()
   sndbuf[1]=0x00;
   do_vme(VME_WRITE,CRATE_HARD_RESET,sndbuf,rcvbuf,NOW);
   theController->end();
+  ::sleep(2);
 }
 //
 void CCB::reset_bckpln()

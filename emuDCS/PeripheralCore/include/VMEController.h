@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.17 2006/06/16 13:05:24 mey Exp $
+// $Id: VMEController.h,v 2.18 2006/07/04 15:06:18 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.18  2006/07/04 15:06:18  mey
+// Fixed JTAG
+//
 // Revision 2.17  2006/06/16 13:05:24  mey
 // Got rid of Compiler switches
 //
@@ -84,6 +87,7 @@ public:
   string ipAddress() const {return ipAddress_;}
   int port() const {return port_;}
 
+  inline void SetupJtagBaseAddress(int adr) { JtagBaseAddress_ = adr;}
   void start(int slot, int boardtype);
   void end();
 
@@ -155,6 +159,7 @@ private:
   int error_type;
   int error_count;
   int DEBUG;
+  int JtagBaseAddress_ ;
  
  // I like to keep them private. 
   void load_cdac(const char *snd);

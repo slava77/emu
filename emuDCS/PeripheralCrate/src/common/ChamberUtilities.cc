@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.34 2006/06/23 13:40:26 mey Exp $
+// $Id: ChamberUtilities.cc,v 1.35 2006/07/04 15:06:19 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.35  2006/07/04 15:06:19  mey
+// Fixed JTAG
+//
 // Revision 1.34  2006/06/23 13:40:26  mey
 // Fixed bug
 //
@@ -1942,7 +1945,7 @@ int ChamberUtilities::FindALCTvpf(){
   float RightTimeBin = 0;
   int   DataCounter  = 0;
   //
-  int MaxTimeBin   = 8;
+  int MaxTimeBin   = 10;
   //
   for (int i = 0; i < MaxTimeBin; i++){
     //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.62 2006/06/23 13:40:26 mey Exp $
+// $Id: DAQMB.cc,v 2.63 2006/07/04 15:06:19 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.63  2006/07/04 15:06:19  mey
+// Fixed JTAG
+//
 // Revision 2.62  2006/06/23 13:40:26  mey
 // Fixed bug
 //
@@ -1671,9 +1674,9 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
     devstp=devnum;
   }
   //
-#ifdef OSUcc
+  //#ifdef OSUcc
   theController->SetUseDelay(true);
-#endif OSUcc
+  //#endif OSUcc
   //
   for(int i=devnum;i<=devstp;i++){
     dv=(DEVTYPE)i;
@@ -1906,9 +1909,9 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
   //
   theController->send_last();
   //
-#ifdef OSUcc
+  //#ifdef OSUcc
   theController->SetUseDelay(false);
-#endif OSUcc
+  //#endif OSUcc
   //
   //sndbuf[0]=0x01;
   //sndbuf[1]=0x00;
@@ -2752,6 +2755,8 @@ void DAQMB::readtimingCounter()
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
   //
+  usleep(200);
+  //
   cmd[0]=VTX2_USR2;
   sndbuf[0]=0;
   sndbuf[1]=0;
@@ -2767,6 +2772,8 @@ void DAQMB::readtimingCounter()
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
   //
+  usleep(200);
+  //
 }
 
 void DAQMB::readtimingScope()
@@ -2780,6 +2787,8 @@ void DAQMB::readtimingScope()
   //
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+  //
+  usleep(200);
   //
   cmd[0]=VTX2_USR2;
   sndbuf[0]=0;
@@ -2796,6 +2805,8 @@ void DAQMB::readtimingScope()
   //
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+  //
+  usleep(200);
   //
 }
 //
