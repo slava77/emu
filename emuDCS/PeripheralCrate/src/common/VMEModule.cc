@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.19 2006/06/20 12:25:37 mey Exp $
+// $Id: VMEModule.cc,v 2.20 2006/07/04 15:29:31 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.20  2006/07/04 15:29:31  mey
+// Update
+//
 // Revision 2.19  2006/06/20 12:25:37  mey
 // Update
 //
@@ -158,4 +161,5 @@ VMEController* VMEModule::getTheController(){
 bool VMEModule::exist(){
   return theController->exist( theSlot );
 }
+
 

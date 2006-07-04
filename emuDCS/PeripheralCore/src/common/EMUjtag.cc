@@ -23,6 +23,13 @@ EMUjtag::EMUjtag(TMB * tmb) :
   //
 };
 //
+EMUjtag::EMUjtag(VMEModule * module) :
+  module_(module)
+{
+  //
+  //
+}
+//
 EMUjtag::~EMUjtag() {
   //
   //
