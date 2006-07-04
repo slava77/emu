@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.37 2006/06/23 13:40:26 mey Exp $
+// $Id: ALCTController.cc,v 2.38 2006/07/04 15:06:19 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.38  2006/07/04 15:06:19  mey
+// Fixed JTAG
+//
 // Revision 2.37  2006/06/23 13:40:26  mey
 // Fixed bug
 //
@@ -518,8 +521,8 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   alct_fifo_tbins_(8),
   alct_bxc_offset_(1),
   alct_drift_delay_(3),
-  alct_nph_thresh_(2),
-  alct_nph_pattern_(3),
+  alct_nph_thresh_(4),
+  alct_nph_pattern_(4),
   alct_l1a_delay_(146),
   alct_l1a_window_(3),
   alct_l1a_internal_(0),
@@ -4514,7 +4517,6 @@ int ALCTController::ReadIDCODE(){
   tmb_->scan(DATA_REG, sndbuf,32, rcvbuf , 1);
   tmb_->scan(-1, sndbuf,-1, rcvbuf , 0);
   //
-
   alct_end();
   //
   printf("%x %x %x %x %x %x %x %x\n",rcvbuf[7]&0xff,rcvbuf[6]&0xff,rcvbuf[5]&0xff,rcvbuf[4]&0xff,

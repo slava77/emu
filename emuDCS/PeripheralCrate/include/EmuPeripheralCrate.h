@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.103 2006/06/23 14:24:32 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.104 2006/07/04 15:06:18 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -6261,12 +6261,12 @@ private:
     //
     int debugMode(0);
     int jch(5);
-    string chamberType("ME21");
-    ALCTController *alct = new ALCTController(thisTMB,chamberType);
+    //string chamberType("ME21");
+    //ALCTController *alct = new ALCTController(thisTMB,chamberType);
     //
     thisTMB->disableAllClocks();
     printf("Programming...");
-    int status = alct->SVFLoad(&jch,TMBFirmware_.toString().c_str(),debugMode);
+    int status = thisTMB->SVFLoad(&jch,TMBFirmware_.toString().c_str(),debugMode);
     thisTMB->enableAllClocks();
     //
     if (status >= 0){

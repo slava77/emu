@@ -52,6 +52,9 @@ public:
 		   int start_from_MsbOrLsb);   // 0 => vector_of_bits[0] = LSB of "value_to_expand"
                                                //      vector_of_bits[number_of_bits] = MSB of "value_to_expand"
   //
+  void Parse(char *buf,int *Count,char **Word);
+  int  SVFLoad(int*, const char *, int);
+  //
 protected:
   //
   //

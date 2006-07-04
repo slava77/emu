@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.68 2006/06/22 13:06:14 mey Exp $
+// $Id: TMB.cc,v 2.69 2006/07/04 15:06:19 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.69  2006/07/04 15:06:19  mey
+// Fixed JTAG
+//
 // Revision 2.68  2006/06/22 13:06:14  mey
 // Update
 //
@@ -468,7 +471,7 @@ void TMB::init() {
 void TMB::configure() {
   //
   (*MyOutput_) << "Setting up trgmode CLCT TMB slot =" <<theSlot <<std::endl;
-  trgmode(1);
+  trgmode(5);
   (*MyOutput_) << "Set TMB CSC ID to Slot_ID/2 = " << theSlot/2 << std::endl;
   load_cscid();
   (*MyOutput_) << "Resetting counters" << std::endl;
@@ -3404,6 +3407,7 @@ void TMB::start() {
   (*MyOutput_) << "starting to talk to TMB, device " << ucla_ldev << std::endl;
 #endif
    // send the first signal
+  theController->SetupJtagBaseAddress(0x70000);
   VMEModule::start();
   theController->initDevice(ucla_ldev, 0);
   theController->goToScanLevel();

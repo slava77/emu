@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.24 2006/06/16 13:05:24 mey Exp $
+// $Id: VMEController.cc,v 2.25 2006/07/04 15:06:19 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.25  2006/07/04 15:06:19  mey
+// Fixed JTAG
+//
 // Revision 2.24  2006/06/16 13:05:24  mey
 // Got rid of Compiler switches
 //
@@ -135,6 +138,9 @@ VMEController::VMEController(int crate):
   DELAY2 = 0.016;
   DELAY3 = 16.384;
   //
+  JtagBaseAddress_ = 0x0;
+  add_ucla = -1;
+  //
   usedelay_ = false ;
 }
 
@@ -161,9 +167,9 @@ void VMEController::reset() {
 }
 
 void VMEController::start(int slot, int boardtype) {
-    board=boardtype;
-    vmeadd=slot<<19;
-    add_ucla=vmeadd|0x70000;
+  board=boardtype;
+  vmeadd=slot<<19;
+  add_ucla=vmeadd|JtagBaseAddress_;
 }
 
 void VMEController::end() {

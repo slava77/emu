@@ -514,64 +514,65 @@ if(cnt==0)return;
 void VMEController::initDevice(int idev, int feuse) {
   if(debugV)cout << "InitDevice " << idev << " " <<(int) feuse << endl;
   //cout << "InitDevice " << idev << " " <<(int) feuse << endl;
- char tmp[2]={0x00,0x00};
- unsigned short int tmp2[1];
-unsigned short int *ptrreg;
-//    vmeadd=0x00000000;
-
-    switch(idev){
-
-    case 1:
-      /* feboard */
-      break;
-      
-    case 2:
-      /* ALCT Fast Programming JTAG Chain */
-      pvme=0x0098;
-      break;
-      
-    case 3:
-      /* TMB Mezzanine FPGA +FPGA PROMS JTAG  */
-      // fprintf(fplog," tmb mezzanine called \n");
-      pvme=0x00b8;
-      break;
-      
-    case 4:
-      /* TMB User Proms JTAG CHAIN */
-      pvme=0x00d8;
-      break;
-
-    case 5:
-      /* TMB FPGA User JTAG chain */ //Seems crap
-      pvme=0x00f8;
-      break;
-      
-    case 6:
-      /* ALCT Slow User JTAG Chain */
-      pvme=0x0080;
-      break;
-      
-    case 7:
-      /* ALCT Slow Programming JTAG Chain */
-	 pvme=0x0088;
-      break;
-      
-    case 8:
-      /* ALCT Fast User JTAG chain */
-      pvme=0x0090;
+  char tmp[2]={0x00,0x00};
+  unsigned short int tmp2[1];
+  unsigned short int *ptrreg;
+  //    vmeadd=0x00000000;
+  
+  switch(idev){
+    
+  case 1:
+    pvme=0x0;
+    /* default device like MPC or CCB (no chain)*/
     break;
     
-    case 9:
-      /* ALCT Fast Programming JTAG chain */
-      pvme=0x0098;
-      break;
-
-    case 10:
-      /* RAT FPGA+PROMS */
-      pvme=0x00e8;
-      break;
-
-    }
+  case 2:
+    /* ALCT Fast Programming JTAG Chain */
+    pvme=0x0098;
+    break;
+    
+  case 3:
+    /* TMB Mezzanine FPGA +FPGA PROMS JTAG  */
+    // fprintf(fplog," tmb mezzanine called \n");
+    pvme=0x00b8;
+    break;
+    
+  case 4:
+    /* TMB User Proms JTAG CHAIN */
+    pvme=0x00d8;
+    break;
+    
+  case 5:
+    /* TMB FPGA User JTAG chain */ //Seems crap
+    pvme=0x00f8;
+    break;
+    
+  case 6:
+    /* ALCT Slow User JTAG Chain */
+    pvme=0x0080;
+    break;
+    
+  case 7:
+    /* ALCT Slow Programming JTAG Chain */
+    pvme=0x0088;
+    break;
+    
+  case 8:
+    /* ALCT Fast User JTAG chain */
+    pvme=0x0090;
+    break;
+    
+  case 9:
+    /* ALCT Fast Programming JTAG chain */
+    pvme=0x0098;
+    break;
+    
+  case 10:
+    /* RAT FPGA+PROMS */
+    pvme=0x00e8;
+    break;
+    //
+  }
 }
 
 
