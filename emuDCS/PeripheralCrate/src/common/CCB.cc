@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.41 2006/06/12 12:47:17 mey Exp $
+// $Id: CCB.cc,v 2.42 2006/07/04 09:38:14 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.42  2006/07/04 09:38:14  mey
+// Update
+//
 // Revision 2.41  2006/06/12 12:47:17  mey
 // Update
 //
@@ -678,6 +681,7 @@ void CCB::ReadTTCrxID(){
   sndbuf[0]=0x00; 
   sndbuf[1]=0x01;
   //
+  // Reset TTCrx
   do_vme(VME_WRITE,TTCrxReset,sndbuf,rcvbuf,NOW);
   //
   // Wait some time
