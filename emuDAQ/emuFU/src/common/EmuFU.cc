@@ -764,6 +764,8 @@ void EmuFU::bindFsmSoapCallbacks()
     xoap::bind(this, &EmuFU::processSoapFsmCmd, "Enable"   , XDAQ_NS_URI);
     xoap::bind(this, &EmuFU::processSoapFsmCmd, "Halt"     , XDAQ_NS_URI);
     xoap::bind(this, &EmuFU::processSoapFsmCmd, "Fail"     , XDAQ_NS_URI);
+
+    xoap::bind(this, &EmuFU::onReset,           "Reset"    , XDAQ_NS_URI);
 }
 
 void EmuFU::moveToFailedState(){ // Emu-specific
@@ -2831,6 +2833,37 @@ throw (emuFU::exception::Exception)
 
 }
 
+xoap::MessageReference EmuFU::onReset(xoap::MessageReference msg)
+  throw (xoap::exception::Exception)
+{
+  string cmdName = "";
+
+  try
+    {
+      cmdName = extractCmdNameFromSoapMsg(msg);
+    }
+  catch(xcept::Exception e)
+    {
+      string s = "Failed to extract command name from SOAP command message";
+      
+      LOG4CPLUS_ERROR(logger_,
+		      s << " : " << xcept::stdformat_exception_history(e));
+      XCEPT_RETHROW(xoap::exception::Exception, s, e);
+    }
+  
+  try{
+    fsm_.reset();
+  }
+  catch( toolbox::fsm::exception::Exception e ){
+    XCEPT_RETHROW(xoap::exception::Exception,
+		  "Failed to reset FSM: ", e);
+  }
+
+  toolbox::Event::Reference evtRef(new toolbox::Event("Halt", this));
+  fsm_.fireEvent( evtRef );
+  
+  return createFsmResponseMsg(cmdName, stateName_.toString());
+}
 
 /**
  * Provides the factory method for the instantiation of CLASS applications.
