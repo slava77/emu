@@ -1619,7 +1619,6 @@ throw (toolbox::fsm::exception::Exception)
         workLoopStarted_ = true;
     }
 
-
     // server loops
     for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
 	
@@ -1691,6 +1690,7 @@ throw (toolbox::fsm::exception::Exception)
 void EmuRUI::haltAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
 {
+
 //     vector<toolbox::mem::Reference*>::iterator pos;
     deque<toolbox::mem::Reference*>::iterator pos; // BK
     toolbox::mem::Reference *bufRef = 0;
@@ -2118,8 +2118,8 @@ bool EmuRUI::workLoopAction(toolbox::task::WorkLoop *wl)
 {
     try
     {
-      bool isToBeRescheduled = true;
-
+      bool isToBeRescheduled    = true;
+      int  pauseForOtherThreads = 0;
         applicationBSem_.take();
 
         toolbox::fsm::State state = fsm_.getCurrentState();
@@ -2130,17 +2130,20 @@ bool EmuRUI::workLoopAction(toolbox::task::WorkLoop *wl)
         case 'F': // Failed
 	  break;
         case 'R':  // Ready
-            break;
+	  break;
         case 'E':  // Enabled
-            isToBeRescheduled = processAndCommunicate();
-            break;
+	  pauseForOtherThreads = processAndCommunicate();
+	  isToBeRescheduled    = ( pauseForOtherThreads >= 0 );
+	  break;
         default:
-            // Should never get here
-            LOG4CPLUS_FATAL(logger_,
-                "EmuRUI" << instance_ << " is in an undefined state");
+	  // Should never get here
+	  LOG4CPLUS_FATAL(logger_,
+			  "EmuRUI" << instance_ << " is in an undefined state");
         }
 
         applicationBSem_.give();
+
+	if ( pauseForOtherThreads > 0 ) usleep( (unsigned int) pauseForOtherThreads );
 
         // Reschedule this action code
         return isToBeRescheduled;
@@ -2236,10 +2239,9 @@ void EmuRUI::addDataForClients( const int   runNumber,
 }
 
 
-bool EmuRUI::processAndCommunicate()
+int EmuRUI::processAndCommunicate()
 {
-    
-  bool keepRunning = true;
+  int pauseForOtherThreads = 0;
 
     if( blocksArePendingTransmission_ )
     {
@@ -2261,7 +2263,7 @@ bool EmuRUI::processAndCommunicate()
     {
         try
         {
-            keepRunning = continueConstructionOfSuperFrag();
+	  pauseForOtherThreads = continueConstructionOfSuperFrag();
         }
         catch(xcept::Exception e)
         {
@@ -2271,8 +2273,7 @@ bool EmuRUI::processAndCommunicate()
         }
     }
 
-
-  return keepRunning;
+  return pauseForOtherThreads;
 }
 
 // void EmuRUI::processAndCommunicate()
@@ -2388,16 +2389,20 @@ void EmuRUI::createFileWriters(){
 	  }
 }
 
-bool EmuRUI::continueConstructionOfSuperFrag()
+int EmuRUI::continueConstructionOfSuperFrag()
   throw (emuRUI::exception::Exception)
   // Version with single device
 {
 
-//   bool keepRunning = true;
+  // Possible return values
+  const int extraPauseForOtherThreads   = 5000; // [microsecond]
+  const int noExtraPauseForOtherThreads = 0;    // [microsecond]
+  const int notToBeRescheduled          = -1;
+
   unsigned int   nBytesRead = 0;
   unsigned short errorFlag  = 0;
 
-  if ( maxEvents_.value_ >= 0 && nEventsRead_.value_ >= (unsigned long) maxEvents_.value_ ) return false;
+  if ( maxEvents_.value_ >= 0 && nEventsRead_.value_ >= (unsigned long) maxEvents_.value_ ) return notToBeRescheduled;
 
   if (deviceReader_){
     try{
@@ -2414,8 +2419,14 @@ bool EmuRUI::continueConstructionOfSuperFrag()
       LOG4CPLUS_INFO(logger_, deviceReader_->getLogMessage());
   }
 
-  // No data ==> no business being here. Try to read again later.
-  if ( nBytesRead == 0 ) return true;
+  if ( nBytesRead == 0 ){
+    // No data ==> no business being here. Try to read again later.
+    // But in this case give the other threads a break 
+    // in case a 'Halt' FSM state transition needs to be fired.
+    // Otherwise they may have to wait a couple of seconds or 
+    // sometimes minutes (!) to take the semaphore...
+    return extraPauseForOtherThreads;
+  }
 
   errorFlag = deviceReader_->getErrorFlag();
 
@@ -2515,8 +2526,7 @@ bool EmuRUI::continueConstructionOfSuperFrag()
 
     }
   
-  return true;
-//   return keepRunning;
+  return noExtraPauseForOtherThreads;
 
 }
 
