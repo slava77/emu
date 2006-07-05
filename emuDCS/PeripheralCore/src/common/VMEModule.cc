@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.20 2006/07/04 15:29:31 mey Exp $
+// $Id: VMEModule.cc,v 2.21 2006/07/05 09:29:18 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.21  2006/07/05 09:29:18  mey
+// Update
+//
 // Revision 2.20  2006/07/04 15:29:31  mey
 // Update
 //
@@ -127,7 +130,7 @@ void VMEModule::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,
 
 void VMEModule::scan(int reg,const char *snd,int cnt,char *rcv,int ird) {
   theController->start( theSlot, boardType() );
-  if(boardType()==TMB_ENUM)
+  if(boardType()==TMB_ENUM || boardType()==MPC_ENUM)
     theController->scan_alct(reg, snd, cnt, rcv, ird);
   else
     theController->scan(reg, snd, cnt, rcv, ird);
