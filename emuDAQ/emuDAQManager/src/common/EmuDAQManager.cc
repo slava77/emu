@@ -112,6 +112,7 @@ logger_(Logger::getInstance(generateLoggerName()))
     xoap::bind(this, &EmuDAQManager::onEnable,        "Enable",        XDAQ_NS_URI);
     xoap::bind(this, &EmuDAQManager::onDisable,       "Disable",       XDAQ_NS_URI);
     xoap::bind(this, &EmuDAQManager::onHalt,          "Halt",          XDAQ_NS_URI);
+    xoap::bind(this, &EmuDAQManager::onReset,         "Reset",         XDAQ_NS_URI);
     xoap::bind(this, &EmuDAQManager::onQueryDAQState, "QueryDAQState", XDAQ_NS_URI);
 
     fsm_.addState('H', "Halted",     this, &EmuDAQManager::stateChanged);
@@ -391,8 +392,10 @@ throw (xgi::exception::Exception)
     *out << "<link type=\"text/css\" rel=\"stylesheet\"";
     *out << " href=\"/" << urn_ << "/styles.css\"/>"                   << endl;
     *out << "<title>"                                                  << endl;
-    *out << xmlClass_ << instance_ << " Version "
-        << EmuDAQManagerV::versions << endl;
+    *out << xmlClass_ << instance_                                     << endl;
+// 	 << " Version "
+//         << EmuDAQManagerV::versions 
+// 	 << endl;
     *out << "</title>"                                                 << endl;
     *out << ageOfPageClock();
     *out << "</head>"                                                  << endl;
@@ -411,31 +414,31 @@ throw (xgi::exception::Exception)
     *out << "     height=\"64\""                                       << endl;
     *out << "     border=\"\"/>"                                       << endl;
     *out << "    <b>"                                                  << endl;
-    *out << "      " << xmlClass_ << instance_ << " Version "
-	 << EmuDAQManagerV::versions << "  "
-	 << fsm_.getStateName(fsm_.getCurrentState())                  << endl;
+    *out << "      " << xmlClass_ << instance_ 
+// 	 << " Version " << EmuDAQManagerV::versions 
+	 << "  " << fsm_.getStateName(fsm_.getCurrentState())          << endl;
     *out << "    </b>"                                                 << endl;
     *out << "  </td>"                                                  << endl;
-    *out << "  <td class=\"app_links\">"                               << endl;
-    *out << "    EmuTA ";
-    printAppInstanceLinks(out, taDescriptors_);
-    *out << "<br/>"                                                    << endl;
-    *out << "    EVM ";
-    printAppInstanceLinks(out, evmDescriptors_);
-    *out << "<br/>"                                                    << endl;
-    *out << "    EmuRUI ";
-    printAppInstanceLinks(out, ruiDescriptors_);
-    *out << "<br/>"                                                    << endl;
-    *out << "    RU ";
-    printAppInstanceLinks(out, ruDescriptors_);
-    *out << "<br/>"                                                    << endl;
-    *out << "    BU ";
-    printAppInstanceLinks(out, buDescriptors_);
-    *out << "<br/>"                                                    << endl;
-    *out << "    EmuFU ";
-    printAppInstanceLinks(out, fuDescriptors_);
-    *out                                                               << endl;
-    *out << "  </td>"                                                  << endl;
+//     *out << "  <td class=\"app_links\">"                               << endl;
+//     *out << "    EmuTA ";
+//     printAppInstanceLinks(out, taDescriptors_);
+//     *out << "<br/>"                                                    << endl;
+//     *out << "    EVM ";
+//     printAppInstanceLinks(out, evmDescriptors_);
+//     *out << "<br/>"                                                    << endl;
+//     *out << "    EmuRUI ";
+//     printAppInstanceLinks(out, ruiDescriptors_);
+//     *out << "<br/>"                                                    << endl;
+//     *out << "    RU ";
+//     printAppInstanceLinks(out, ruDescriptors_);
+//     *out << "<br/>"                                                    << endl;
+//     *out << "    BU ";
+//     printAppInstanceLinks(out, buDescriptors_);
+//     *out << "<br/>"                                                    << endl;
+//     *out << "    EmuFU ";
+//     printAppInstanceLinks(out, fuDescriptors_);
+//     *out                                                               << endl;
+//     *out << "  </td>"                                                  << endl;
     *out << "  <td class=\"app_links\" align=\"center\" width=\"64\">" << endl;
     *out << "    <a href=\"/" << urn_ << "/control\">"                 << endl;
     *out << "      <img"                                               << endl;
@@ -465,12 +468,13 @@ throw (xgi::exception::Exception)
     *out << "    </a>"                                                 << endl;
     *out << "  </td>"                                                  << endl;
     *out << "</tr>"                                                    << endl;
+    *out << "<tr>"                                                     << endl;
+    *out << "  <td colspan=\"4\">"                                                   << endl;
+    *out << "    Updated at " <<  getDateTime()                        << endl;
+    *out << "    &#8212; <span id=\"ageOfPage\"></span> ago "          << endl;
+    *out << "  </td>"                                                  << endl;
+    *out << "</tr>"                                                    << endl;
     *out << "</table>"                                                 << endl;
-
-    *out << "<br/>"                                                    << endl;
-    *out << " Updated at " <<  getDateTime()                           << endl;
-    *out << " &#8212; <span id=\"ageOfPage\"></span> ago "             << endl;
-    *out << "<br/>"                                                    << endl;
 
     *out << "<hr/>"                                                    << endl;
 
@@ -480,9 +484,9 @@ throw (xgi::exception::Exception)
 
 
     // Emu: display event number and max number of events
-    string runNumber("unknown");
-    string maxNumEvents("unknown");
-    string configTime("unknown");
+    string runNumber("UNKNOWN");
+    string maxNumEvents("UNKNOWN");
+    string configTime("UNKNOWN");
     getRunInfoFromTA( &runNumber, &maxNumEvents, &configTime );
 
     if ( daqState != "Halted" )
@@ -727,9 +731,9 @@ throw (xgi::exception::Exception)
     *out << "     height=\"64\""                                       << endl;
     *out << "     border=\"\"/>"                                       << endl;
     *out << "    <b>"                                                  << endl;
-    *out << "      " << xmlClass_ << instance_ << " Version "
-	 << EmuDAQManagerV::versions << "  "
-	 << fsm_.getStateName(fsm_.getCurrentState())                  << endl;
+    *out << "      " << xmlClass_ << instance_ 
+// 	 << " Version " << EmuDAQManagerV::versions 
+	 << "  " << fsm_.getStateName(fsm_.getCurrentState())          << endl;
     *out << "    </b>"                                                 << endl;
     *out << "  </td>"                                                  << endl;
     *out << "  <td class=\"app_links\" align=\"center\" width=\"70\">" << endl;
@@ -762,12 +766,13 @@ throw (xgi::exception::Exception)
     *out << "    </a>"                                                 << endl;
     *out << "  </td>"                                                  << endl;
     *out << "</tr>"                                                    << endl;
+    *out << "<tr>"                                                     << endl;
+    *out << "  <td colspan=\"4\">"                                                   << endl;
+    *out << "    Updated at " <<  getDateTime()                        << endl;
+    *out << "    &#8212; <span id=\"ageOfPage\"></span> ago "          << endl;
+    *out << "  </td>"                                                  << endl;
+    *out << "</tr>"                                                    << endl;
     *out << "</table>"                                                 << endl;
-
-    *out << "<br/>"                                                    << endl;
-    *out << " Updated at " <<  getDateTime();
-    *out << " &#8212; <span id=\"ageOfPage\"></span> ago "             << endl;
-    *out << "<br/>"                                                    << endl;
 
     *out << "<hr/>"                                                    << endl;
 
@@ -777,9 +782,9 @@ throw (xgi::exception::Exception)
 
 
     // Emu: display event number and max number of events
-    string runNumber("unknown");
-    string maxNumEvents("unknown");
-    string configTime("unknown");
+    string runNumber("UNKNOWN");
+    string maxNumEvents("UNKNOWN");
+    string configTime("UNKNOWN");
     getRunInfoFromTA( &runNumber, &maxNumEvents, &configTime );
 
     if ( daqState != "Halted" )
@@ -850,7 +855,6 @@ throw (xgi::exception::Exception)
     }
 
 
-
       *out << "<input"                                               << endl;
       *out << " type=\"submit\""                                     << endl;
       *out << " name=\"command\""                                    << endl;
@@ -860,6 +864,8 @@ throw (xgi::exception::Exception)
 	*out << " value=\"stop\""                                    << endl;
       else if ( fsm_.getCurrentState() == 'C' )
 	*out << " value=\"start\""                                   << endl;
+      else if ( fsm_.getCurrentState() == 'F' )
+	*out << " value=\"reset\""                                   << endl;
       *out << "/>"                                                   << endl;
       
       if ( fsm_.getCurrentState() == 'C' )
@@ -1014,6 +1020,18 @@ throw (xgi::exception::Exception)
 		 ( fsm_.getCurrentState() == 'C' ||
 		   fsm_.getCurrentState() == 'E'    )    )
 	  {
+	    fireEvent("Halt");
+	  }
+        else if( cmdName == "reset" )
+	  {
+	    resetAction();
+	    try{
+	      fsm_.reset();
+	    }
+	    catch( toolbox::fsm::exception::Exception e ){
+	      XCEPT_RETHROW(xgi::exception::Exception,
+			    "Failed to reset FSM: ", e);
+	    }
 	    fireEvent("Halt");
 	  }
     }
@@ -1535,7 +1553,7 @@ void EmuDAQManager::printStatesTable( xgi::Output *out )
 
 
 
-// void EmuDAQManager::configureTest()
+// void EmuDAQManager::configureDAQ()
 // throw (emuDAQManager::exception::Exception)
 // {
 //     bool evmGenerateDummyTriggers   = taDescriptors_.size()  == 0;
@@ -1637,7 +1655,7 @@ void EmuDAQManager::printStatesTable( xgi::Output *out )
 //     }
 // }
 
-void EmuDAQManager::configureTest()
+void EmuDAQManager::configureDAQ()
   throw (emuDAQManager::exception::Exception)
 {
     bool evmGenerateDummyTriggers   = taDescriptors_.size()  == 0;
@@ -1767,7 +1785,7 @@ void EmuDAQManager::configureTest()
     }
 }
 
-void EmuDAQManager::startTest()
+void EmuDAQManager::startDAQ()
 throw (emuDAQManager::exception::Exception)
 {
     bool evmGenerateDummyTriggers   = taDescriptors_.size()  == 0;
@@ -2418,7 +2436,7 @@ throw (emuDAQManager::exception::Exception)
 }
 
 
-void EmuDAQManager::stopTest()
+void EmuDAQManager::stopDAQ()
 throw (emuDAQManager::exception::Exception)
 {
     // If imaginary FED builder was started
@@ -2470,6 +2488,88 @@ throw (emuDAQManager::exception::Exception)
         {
             XCEPT_RETHROW(emuDAQManager::exception::Exception,
                 "Failed to stop filter farm", e);
+        }
+    }
+}
+
+void EmuDAQManager::resetDAQ()
+throw (emuDAQManager::exception::Exception)
+{
+
+  // Reset EmuRUIs
+    if(ruiDescriptors_.size() > 0)
+    {
+        try
+        {
+            resetApps( ruiDescriptors_ );
+        }
+        catch(xcept::Exception e)
+        {
+            XCEPT_RETHROW(emuDAQManager::exception::Exception,
+                "Failed to reset EmuRUIs", e);
+        }
+    }
+
+    // Builder cannot be reset. Halt it instead.
+    try
+    {
+        stopRuBuilder();
+    }
+    catch(xcept::Exception e)
+    {
+        XCEPT_RETHROW(emuDAQManager::exception::Exception,
+            "Failed to stop RU builder", e);
+    }
+
+    // EmuTA cannot be reset. (Should it?) Halt it instead.
+    if(taDescriptors_.size() > 0)
+    {
+        try
+        {
+            stopTrigger();
+        }
+        catch(xcept::Exception e)
+        {
+            XCEPT_RETHROW(emuDAQManager::exception::Exception,
+                "Failed to stop trigger", e);
+        }
+    }
+
+
+  // Reset EmuFUs
+    if(fuDescriptors_.size() > 0)
+    {
+        try
+        {
+            resetApps( fuDescriptors_ );
+        }
+        catch(xcept::Exception e)
+        {
+            XCEPT_RETHROW(emuDAQManager::exception::Exception,
+                "Failed to reset EmuFUs", e);
+        }
+    }
+}
+
+void EmuDAQManager::resetApps( vector< xdaq::ApplicationDescriptor* > apps )
+  throw (emuDAQManager::exception::Exception){
+
+    for( vector< xdaq::ApplicationDescriptor* >::iterator pos = apps.begin(); pos != apps.end(); pos++)
+    {
+        try
+        {
+            sendFSMEventToApp("Reset", *pos);
+        }
+        catch(xcept::Exception e)
+        {
+            stringstream oss;
+            string       s;
+
+            oss << "Failed to reset ";
+            oss << (*pos)->getClassName() << (*pos)->getInstance();
+            s = oss.str();
+
+            XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
         }
     }
 }
@@ -3299,6 +3399,25 @@ xoap::MessageReference EmuDAQManager::onHalt(xoap::MessageReference message)
 	return createReply(message);
 }
 
+xoap::MessageReference EmuDAQManager::onReset(xoap::MessageReference message)
+		throw (xoap::exception::Exception)
+{
+
+  resetAction();
+
+  try{
+    fsm_.reset();
+  }
+  catch( toolbox::fsm::exception::Exception e ){
+    XCEPT_RETHROW(xoap::exception::Exception,
+		  "Failed to reset FSM: ", e);
+  }
+
+	fireEvent("Halt");
+
+	return createReply(message);
+}
+
 xoap::MessageReference EmuDAQManager::onQueryDAQState(xoap::MessageReference message)
   throw (xoap::exception::Exception)
 {
@@ -3327,7 +3446,7 @@ void EmuDAQManager::configureAction(toolbox::Event::Reference e)
 
     try
       {
-	configureTest();
+	configureDAQ();
       }
     catch(xcept::Exception ex)
       {
@@ -3355,7 +3474,7 @@ void EmuDAQManager::enableAction(toolbox::Event::Reference e)
 
     try
       {
-	startTest();
+	startDAQ();
       }
     catch(xcept::Exception ex)
       {
@@ -3380,7 +3499,7 @@ void EmuDAQManager::haltAction(toolbox::Event::Reference e)
 
     try
       {
-	stopTest();
+	stopDAQ();
       }
     catch(xcept::Exception ex)
       {
@@ -3398,7 +3517,7 @@ void EmuDAQManager::reConfigureAction(toolbox::Event::Reference e)
 
     try
       {
-	stopTest();
+	stopDAQ();
       }
     catch(xcept::Exception ex)
       {
@@ -3410,7 +3529,7 @@ void EmuDAQManager::reConfigureAction(toolbox::Event::Reference e)
 
     try
       {
-	configureTest();
+	configureDAQ();
       }
     catch(xcept::Exception ex)
       {
@@ -3428,6 +3547,23 @@ void EmuDAQManager::noAction(toolbox::Event::Reference e)
   LOG4CPLUS_WARN(getApplicationLogger(), e->type() 
 		 << " attempted when already " 
 		 << fsm_.getStateName(fsm_.getCurrentState()));
+}
+
+void EmuDAQManager::resetAction()
+		throw (toolbox::fsm::exception::Exception)
+{
+
+    try
+      {
+	resetDAQ();
+      }
+    catch(xcept::Exception ex)
+      {
+	stringstream ss;
+	ss << "Failed to reset EmuDAQ: " << xcept::stdformat_exception_history(ex);
+	XCEPT_RETHROW(toolbox::fsm::exception::Exception, ss.str(), ex);
+      }
+
 }
 
 void EmuDAQManager::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)

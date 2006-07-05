@@ -180,6 +180,8 @@ private:
 
   void getRunInfo() throw (emuRUI::exception::Exception);
 
+  xoap::MessageReference onReset(xoap::MessageReference msg)
+    throw (xoap::exception::Exception);
 
     /**
      * Pointer to the descriptor of the RUBuilderTester application.

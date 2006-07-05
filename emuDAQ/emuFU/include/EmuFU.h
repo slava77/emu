@@ -161,6 +161,8 @@ private:
     throw (emuFU::exception::Exception);
   void getRunInfo() throw (emuFU::exception::Exception);
 
+  xoap::MessageReference onReset(xoap::MessageReference msg)
+    throw (xoap::exception::Exception);
 
     /**
      * Pointer to the descriptor of the RUBuilderTester application.

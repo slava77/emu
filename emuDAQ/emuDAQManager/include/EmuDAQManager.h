@@ -324,11 +324,11 @@ private:
     void exportMonitoringParams(xdata::InfoSpace *s);
 
     /**
-     * Starts the test.
+     * Starts the DAQ.
      */
-    void configureTest()
+    void configureDAQ()
     throw (emuDAQManager::exception::Exception);
-    void startTest()
+    void startDAQ()
     throw (emuDAQManager::exception::Exception);
 
     /**
@@ -390,7 +390,7 @@ private:
     /**
      * Stops the test.
      */
-    void stopTest()
+    void stopDAQ()
     throw (emuDAQManager::exception::Exception);
 
     /**
@@ -415,6 +415,18 @@ private:
      * Stops the imaginary filter farm, i.e. the FUs.
      */
     void stopFilterFarm()
+    throw (emuDAQManager::exception::Exception);
+
+    /**
+     * Resets applications.
+     */
+    void resetApps( vector< xdaq::ApplicationDescriptor* > apps )
+    throw (emuDAQManager::exception::Exception);
+
+    /**
+     * Resets EmuRUIs and EmuFUs.
+     */
+    void resetDAQ()
     throw (emuDAQManager::exception::Exception);
 
     /**
@@ -522,6 +534,8 @@ public:
     throw (xoap::exception::Exception);
   xoap::MessageReference onHalt(xoap::MessageReference message)
     throw (xoap::exception::Exception);
+  xoap::MessageReference onReset(xoap::MessageReference message)
+    throw (xoap::exception::Exception);
   xoap::MessageReference onQueryDAQState(xoap::MessageReference message)
     throw (xoap::exception::Exception);
 
@@ -538,6 +552,8 @@ public:
   void reConfigureAction(toolbox::Event::Reference e)
     throw (toolbox::fsm::exception::Exception);
   void noAction(toolbox::Event::Reference e)
+    throw (toolbox::fsm::exception::Exception);
+  void resetAction()
     throw (toolbox::fsm::exception::Exception);
 
 private:
