@@ -624,7 +624,7 @@ private:
      * The behaviour of the EmuRUI when it is enabled.
      */
 /*     void processAndCommunicate(); */
-    bool processAndCommunicate(); //BK
+    int processAndCommunicate(); //BK
 
     /**
      * Tries to send the next super-fragment block to the RU.
@@ -639,7 +639,7 @@ private:
      * Continues the construction of the dummy super-fragment.
      */
 //     void continueConstructionOfSuperFrag()
-    bool continueConstructionOfSuperFrag()
+    int continueConstructionOfSuperFrag()
     throw (emuRUI::exception::Exception);
 
     /**
