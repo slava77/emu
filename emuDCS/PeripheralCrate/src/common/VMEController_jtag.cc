@@ -1061,17 +1061,163 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
      }
   }
 }
+//
+
+void VMEController::scan_mpc(int reg,const char *snd, int cnt, char *rcv,int ird)
+{
+  int i, j, k, bit, cnt8;
+  const unsigned short int TCK=(1<<7);
+  const unsigned short int TMS=(1<<6);
+  unsigned short int ival, d, dd;
+  unsigned short int *ptr;
+  unsigned char *rcv2, bdata, *data, mytmp[MAXLINE];
+  int buff_mode;
+  
+ if(cnt<0 || reg<0 || reg>1)return;
+ for(int i=0;i<MAXLINE;i++) mytmp[i] = 0;
+ ptr=(unsigned short int *)add_ucla;
+ rcv2=(unsigned char *)rcv;
+ data=(unsigned char *)snd;
+ 
+ //cout << "add_ucla = " << add_ucla << std::endl;
+ //cout << "TCK= " << TCK << std::endl;
+ //cout << "TMS= " << TMS << std::endl;
+
+// Jinghua Liu:
+// If more than 290 bits, can't put them into a single packet,
+// need better algorithm later......
+ buff_mode = (cnt>290)?3:1;
+ //if (ird==0) buff_mode=1;
+ if (ird==2) buff_mode=1;
+ //
+   if (DEBUG) {
+      printf("scan_alct: reg=%d, cnt=%d, ird=%d, Send %02x %02x\n", reg, cnt, ird, snd[0]&0xff, snd[1]&0xff);
+   }
+
+   //  reg=0: instruction
+   //  reg=1: data
+   //
+   // TLR
+
+   /*if (reg == 0) {
+     for(i=0; i<6; i++)
+       {
+	 d=pvme;
+	 d |= TMS;
+	 for(j=0;j<3;j++)
+	   {  
+	     // each shift needs 3 VME writes, the 2nd one with TCK on:
+	     dd=d;
+	     if(j==1) dd |= TCK;
+	     vme_controller(3,ptr,&dd,rcv);        
+	   }
+       }
+     //}
+     // End TLR
+     */
+   //
+   for(i=reg; i<6; i++)
+   {
+     d=pvme;
+     if(i>(reg+1) && i<4) d |=TMS;
+     for(j=0;j<3;j++)
+     {  
+        // each shift needs 3 VME writes, the 2nd one with TCK on:
+        dd=d;
+        if(j==1) dd |= TCK;
+	//std::cout << " dd = " << dd << std::endl;
+        vme_controller(1,ptr,&dd,rcv);        
+     }
+   }
+
+  // Loop to shift in/out bits
+  bit=0;
+  k=0;
+  bdata = data[k];
+  for(i=0;i<cnt;i++) 
+  {
+    ival = bdata&0x01;
+     bdata >>= 1;
+     bit++;
+     if(bit==8) 
+     { 
+        bit=0;
+        k++;
+        bdata = data[k];
+     }
+
+     if(ird){
+       // read out one bit, the last argument is just a dummy.
+       vme_controller(0,ptr,&dd,rcv);
+     }
+     
+     // data bit to write (ival) is in the lowest bit (TDI)
+     d=pvme|(ival<<5);
+     // at the last shift, we need set TMS=1
+     if(i==cnt-1) d |=TMS;
+     for(j=0;j<3;j++)
+     {
+        dd=d;
+        if(j==1) dd |= TCK;
+        // buff_mode could be either 3 (send and READ!!!) or 1 (buffered):
+	//std::cout << " dd = " << dd << std::endl;
+        vme_controller((j==2)?buff_mode:1,ptr,&dd,(char *)(mytmp+2*i));
+     }
+  }
+  
+  // printf("done loop\n");
+  // Now put the state machine into idle.
+  for(i=0; i<2; i++)
+  {
+     d=pvme;
+     if(i==0) d |=TMS;
+     for(j=0;j<3;j++)
+     {  
+        dd=d;
+        if(j==1) dd |= TCK;
+        // In the last VME WRITE send the packets. And READ back all data 
+        // in the case of fully buffered mode (buff_mode=1).
+        vme_controller((i==1 && j==2)?3:1,ptr,&dd,(char *)mytmp);        
+     }
+  }
+
+  if(ird)
+  {
+    // combine bits in mytmp[] into bytes in rcv[].
+    //  for(i=0; i<cnt*2; i++) printf("%02x ", mytmp[i]&0xff);
+    //  printf("\n");
+     bit=0; 
+     bdata=0; 
+     j=0;
+    // Use cnt8 instead of cnt, to make sure the bits are in right place.
+     cnt8 = 8*((cnt+7)/8);
+     for(i=0;i<cnt8;i++)
+     {
+         if(i<cnt) bdata |= mytmp[2*i+1] & 0x01;
+         if(bit==7)
+           { rcv2[j++]=bdata;  bit=0;  bdata=0; }
+         else
+           { bdata >>= 1;     bit++; }
+     }
+     if (DEBUG>1) {
+        printf("scan_mpc output: ");
+        for(i=0; i<cnt8/8; i++) printf("%02X ", rcv2[i]);
+        printf("\n");
+     }
+  }
+}
+
 
 
 void VMEController::RestoreIdle_alct()
 {
-int k;
-unsigned short int d[3];
-char tmp[2];
-unsigned short int *ptr;
-unsigned short int clkon={0x0004};
- ptr=(unsigned short int *)add_ucla;
- // fprintf(fplog," enter restore idle ucla %08x %04x \n",ptr,pvme);
+  int k;
+  unsigned short int d[3];
+  char tmp[2];
+  unsigned short int *ptr;
+  unsigned short int clkon=(1<<7);
+  ptr=(unsigned short int *)add_ucla;
+  // fprintf(fplog," enter restore idle ucla %08x %04x \n",ptr,pvme);
   d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;
   for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
   for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
@@ -1080,5 +1226,52 @@ unsigned short int clkon={0x0004};
   for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
   d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
   for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  //
+}
 
+void VMEController::RestoreIdle_mpc()
+{
+  int k;
+  unsigned short int d[3];
+  char tmp[2];
+  unsigned short int *ptr;
+  unsigned short int clkon=(1<<7);
+  const unsigned short int TMS=(1<<6);
+  ptr=(unsigned short int *)add_ucla;
+  // fprintf(fplog," enter restore idle ucla %08x %04x \n",ptr,pvme);
+  //
+  std::cout << "ptr="<<ptr<< " pvme= " <<pvme<< std::endl;
+  //
+  d[0]=TMS|pvme;d[1]=TMS|pvme|clkon;d[2]=TMS|pvme;
+  
+  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
+  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  //
+}
+
+
+void VMEController::RestoreReset_mpc()
+{
+  int k;
+  unsigned short int d[3];
+  char tmp[2];
+  unsigned short int *ptr;
+  unsigned short int clkon=(1<<7);
+  const unsigned short int TMS=(1<<6);
+  ptr=(unsigned short int *)add_ucla;
+  // fprintf(fplog," enter restore idle ucla %08x %04x \n",ptr,pvme);
+  d[0]=TMS|pvme;d[1]=TMS|pvme|clkon;d[2]=TMS|pvme;
+  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  //d[0]=0x0000|pvme;d[1]=0x0000|pvme|clkon;d[2]=0x0000|pvme;
+  //for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
+  //
 }

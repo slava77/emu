@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.21 2006/07/05 09:29:18 mey Exp $
+// $Id: VMEModule.cc,v 2.22 2006/07/06 07:31:48 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.22  2006/07/06 07:31:48  mey
+// MPC firmware loading added
+//
 // Revision 2.21  2006/07/05 09:29:18  mey
 // Update
 //
@@ -130,8 +133,10 @@ void VMEModule::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,
 
 void VMEModule::scan(int reg,const char *snd,int cnt,char *rcv,int ird) {
   theController->start( theSlot, boardType() );
-  if(boardType()==TMB_ENUM || boardType()==MPC_ENUM)
+  if(boardType()==TMB_ENUM )
     theController->scan_alct(reg, snd, cnt, rcv, ird);
+  else if (boardType()==MPC_ENUM )
+    theController->scan_mpc(reg, snd, cnt, rcv, ird);
   else
     theController->scan(reg, snd, cnt, rcv, ird);
 }
@@ -140,8 +145,14 @@ void VMEModule::RestoreIdle() {
   theController->start( theSlot, boardType() );
   if(boardType()==TMB_ENUM)
     theController->RestoreIdle_alct();
-  //else
-  //
+  if(boardType()==MPC_ENUM)
+    theController->RestoreIdle_mpc();
+}
+
+void VMEModule::RestoreReset() {
+  theController->start( theSlot, boardType() );
+  if(boardType()==MPC_ENUM)
+    theController->RestoreReset_mpc();
 }
 
 
