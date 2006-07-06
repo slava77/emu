@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.25 2006/07/06 07:31:48 mey Exp $
+// $Id: MPC.cc,v 2.26 2006/07/06 08:24:17 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.26  2006/07/06 08:24:17  mey
+// Bug fix
+//
 // Revision 2.25  2006/07/06 07:31:48  mey
 // MPC firmware loading added
 //
@@ -1103,7 +1106,7 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 		  {
 		    for(j=0;j<tirbytes;j++)
 		      {
-				  sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",(int *)&tirsmask[j]);
+			sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",(int *)&tirsmask[j]);
 		      }
 		  }
 		if(strcmp(Word[i],"TDO")==0)
@@ -1195,13 +1198,20 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 	    if (tdrbytes>0) {
 	      for (i=0;i<tdrbits;i++)
 		realsnd[(i+hdrbits+nbits)/8] |= (sndtdr[i/8] >> (i%8)) << ((i+hdrbits+nbits)%8);
-	    }
-	    
-	    if (db>6) {	printf("SDR Send Data:\n");
-	    for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++)
-	    printf("%02X",realsnd[i]);
-	    printf("\n");
-	    }
+	    }	    
+	    //
+	    {	
+	      printf("SDR Sent Data:\n");
+	      for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) 
+		printf("%02X",realsnd[i]);
+	      printf("\n");
+	      //
+	      printf("SDR Readback Data:\n");
+	      for (i=0; i< ((hdrbits+nbits+tdrbits)); i++) 
+		printf("%02X",rcv[i]);
+	      printf("\n");
+	    }		    
+	    //
 	    send_packages++ ;
 	    printf("%c[0m", '\033');
 	    printf("%c[1m", '\033');
@@ -1209,13 +1219,12 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 	    if ( send_packages == 1 )   {
 	      printf("%c7", '\033');
 	    }
-	  printf("%c8", '\033'); 
-	  printf(" Sending %d/%d ",send_packages,total_packages) ;
-	  printf("%c8", '\033'); 
-	  printf("%c[0m", '\033');
-	  if ( send_packages == total_packages ) printf("\n") ;
+	    printf("%c8", '\033'); 
+	    printf(" Sending %d/%d ",send_packages,total_packages) ;
+	    printf("%c8", '\033'); 
+	    printf("%c[0m", '\033');
+	    if ( send_packages == total_packages ) printf("\n") ;
 	  //
-	  this->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, 2); 
 	  this->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, 2); 
 	  //
 	  if (cmpflag==1)
@@ -1236,18 +1245,6 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 		rcv[nbytes-1-i] = rcv_tmp;		
 		}
 	      */
-	      if(db>6){	
-		printf("SDR Sent Data:\n");
-		for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) 
-		  printf("%02X",realsnd[i]);
-		printf("\n");
-		//
-		printf("SDR Readback Data:\n");
-		for (i=0; i< ((hdrbits+nbits+tdrbits)); i++) 
-		  printf("%02X",rcv[i]);
-		printf("\n");
-	      }	
-	      
 	      for(i=0;i<nbytes;i++)
 		{
 		  rcvword = rcv[i+(hdrbits/8)]+(((int)rcv[i+1+(hdrbits/8)])<<8);
@@ -1342,10 +1339,11 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 	    //
 	    this->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, 2); 
 	    //	   
-	    if(db>6){ 	printf("SIR Send Data:\n");
+	    { 	printf("SIR Send Data:\n");
 	    for (i=0; i< ((hirbits+nbits+tirbits-1)/8+1);  i++)
 	      printf("%02X",realsnd[i]);
 	    printf("\n");
+	    printf("Readback: \n");
 	    for (i=0; i< ((hirbits+nbits+tirbits));  i++)
 	      printf("%02X ",rcv[i]);
 	    printf("\n");
@@ -1410,13 +1408,13 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 	      if(strcmp(Word[2],"IDLE;")==0)
 		{
 		  cout << "STATE: goto reset idle state" << std::endl;
-		  //RestoreIdle();
+		  RestoreIdle();
 		} 
 	    }
 	  else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET;")==0))
 	    {
 	      cout << "STATE: goto reset state" << std::endl;
-	      //RestoreReset();
+	      RestoreReset();
 	    }
 	  else if(strcmp(Word[0],"TRST")==0)
 	    {
@@ -1446,7 +1444,7 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 void MPC::Parse(char *buf,int *Count,char **Word)
 {
 
-  //std::cout << buf << std::endl;
+  std::cout << buf << std::endl;
 
   *Word = buf;
   *Count = 0;
