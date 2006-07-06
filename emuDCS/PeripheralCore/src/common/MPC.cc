@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.24 2006/07/05 09:29:18 mey Exp $
+// $Id: MPC.cc,v 2.25 2006/07/06 07:31:48 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.25  2006/07/06 07:31:48  mey
+// MPC firmware loading added
+//
 // Revision 2.24  2006/07/05 09:29:18  mey
 // Update
 //
@@ -676,6 +679,7 @@ void MPC::firmwareVersion(){
   do_vme(1,CSR1,NULL, data, 1);
   
   int versionWord = (data[0]<<8) + (data[1]&0xFF);
+  std::cout << std::hex << versionWord << std::endl;
   int day   =  versionWord & 0x1F;
   int month = (versionWord >> 5   ) & 0xF;
   int year  = (versionWord >>(5+4)) + 2000;
@@ -800,7 +804,7 @@ void MPC::start() {
    // send the first signal
   theController->SetupJtagBaseAddress(0x0);
   VMEModule::start();
-  theController->initDevice(0, 0);
+  theController->initDevice(1, 0);
   theController->goToScanLevel();
 }
 
@@ -1123,6 +1127,7 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 	  // === Handling SDR ===
 	  else if(strcmp(Word[0],"SDR")==0)
 	    {
+	      //std::cout << "SDR" << std::endl;
 	      for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
 	      // cmpflag=1;    //disable the comparison for no TDO SDR
 	    sscanf(Word[1],"%d",&nbits);
@@ -1211,6 +1216,7 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 	  if ( send_packages == total_packages ) printf("\n") ;
 	  //
 	  this->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, 2); 
+	  this->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, 2); 
 	  //
 	  if (cmpflag==1)
 	    {     
@@ -1230,11 +1236,16 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 		rcv[nbytes-1-i] = rcv_tmp;		
 		}
 	      */
-	      if (db>4){	  	printf("SDR Readback Data:\n");
-	      //for(i=0;i<nbytes;i++) printf("%02X",rcv[i]);
-	      for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) 
-		printf("%02X",rcv[i]);
-	      printf("\n");
+	      if(db>6){	
+		printf("SDR Sent Data:\n");
+		for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) 
+		  printf("%02X",realsnd[i]);
+		printf("\n");
+		//
+		printf("SDR Readback Data:\n");
+		for (i=0; i< ((hdrbits+nbits+tdrbits)); i++) 
+		  printf("%02X",rcv[i]);
+		printf("\n");
 	      }	
 	      
 	      for(i=0;i<nbytes;i++)
@@ -1245,7 +1256,7 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 		  // if (((rcv[nbytes-1-i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
 		  if ((((rcvword&0xFF)^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
 		    {
-		      printf("1.read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
+		      //printf("1.read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
 		      errcntr++;
 		    }
 		}	
@@ -1329,15 +1340,17 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 		realsnd[(i+hirbits+nbits)/8] |= (sndtir[i/8] >> (i%8)) << ((i+hirbits+nbits)%8);
 	    }
 	    //
-	    this->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, 0); 
-	    //
-
-	    if (db>6) { 	printf("SIR Send Data:\n");
+	    this->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, 2); 
+	    //	   
+	    if(db>6){ 	printf("SIR Send Data:\n");
 	    for (i=0; i< ((hirbits+nbits+tirbits-1)/8+1);  i++)
 	      printf("%02X",realsnd[i]);
 	    printf("\n");
+	    for (i=0; i< ((hirbits+nbits+tirbits));  i++)
+	      printf("%02X ",rcv[i]);
+	    printf("\n");
 	    }
-	    //	  jtag_load_(&fd, &nframes, tms_pre_sir, sndbuf, rcvbuf, &step_mode);
+	    //
 	    if (cmpflag==1)
 	      {
 		/*               for(i=0;i<nbytes;i++)
@@ -1363,9 +1376,10 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 		
                 for(i=0;i<nbytes;i++)
 		  {
-		    rcvword = rcv[i+(hirbits/8)]+(((int)rcv[i+1+(hirbits/8)])<<8);
-		    rcvword = rcvword>>(hirbits%8);
-		    rcvword = rcv[i];
+		    rcvword = rcv[i+(hirbits/8)<<3]+(((int)rcv[i+1+(hirbits/8)])<<2)+(((int)rcv[i+2+(hirbits/8)])<<1)+(((int)rcv[i+3+(hirbits/8)]));
+		    printf("%02x %02x\n",rcv[i+(hirbits/8)],(((int)rcv[i+1+(hirbits/8)])<<8));
+		    printf("hirbits=%d %02x\n",hirbits,rcvword);
+		    //rcvword = rcv[i];
 		    // if (((rcv[nbytes-1-i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
 		    if ((((rcvword&0xFF)^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
 		      {
@@ -1373,7 +1387,6 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
                 	errcntr++;
 		      }
 		  }
-		
 	      }
 	    /*
 	      if (cmpflag==1)
@@ -1383,7 +1396,7 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 	      }
 	    */   
           }
-	// === Handling RUNTEST ===
+	  // === Handling RUNTEST ===
 	  else if(strcmp(Word[0],"RUNTEST")==0)
 	    {
 	      sscanf(Word[1],"%d",&pause);
@@ -1392,28 +1405,35 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 	      // InsertDelayJTAG(pause,MYMICROSECONDS);
 	    }
 	  // === Handling STATE ===
-	  else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0))
+	  else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0))
 	    {
-	      //          printf("STATE: goto reset idle state\n");
-	      // Put send STATE RESET here
-          }
-	  // === Handling TRST ===
+	      if(strcmp(Word[2],"IDLE;")==0)
+		{
+		  cout << "STATE: goto reset idle state" << std::endl;
+		  //RestoreIdle();
+		} 
+	    }
+	  else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET;")==0))
+	    {
+	      cout << "STATE: goto reset state" << std::endl;
+	      //RestoreReset();
+	    }
 	  else if(strcmp(Word[0],"TRST")==0)
 	    {
 	      //          printf("TRST\n");
-          }
-	// === Handling ENDIR ===
-        else if(strcmp(Word[0],"ENDIR")==0)
-	  {
-	    //          printf("ENDIR\n");
-          }
+	    }
+	  // === Handling ENDIR ===
+	  else if(strcmp(Word[0],"ENDIR")==0)
+	    {
+	      //          printf("ENDIR\n");
+	    }
 	  // === Handling ENDDR ===
 	  else if(strcmp(Word[0],"ENDDR")==0)
-	  {
+	    {
 	    //	   printf("ENDDR\n");
-          }
+	    }
 	}
-      }
+    }
   this->endDevice();
   fclose(dwnfp);
   return errcntr; 
@@ -1425,6 +1445,8 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 // ====
 void MPC::Parse(char *buf,int *Count,char **Word)
 {
+
+  //std::cout << buf << std::endl;
 
   *Word = buf;
   *Count = 0;

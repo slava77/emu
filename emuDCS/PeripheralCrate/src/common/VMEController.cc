@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.25 2006/07/04 15:06:19 mey Exp $
+// $Id: VMEController.cc,v 2.26 2006/07/06 07:31:48 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.26  2006/07/06 07:31:48  mey
+// MPC firmware loading added
+//
 // Revision 2.25  2006/07/04 15:06:19  mey
 // Fixed JTAG
 //
@@ -169,7 +172,10 @@ void VMEController::reset() {
 void VMEController::start(int slot, int boardtype) {
   board=boardtype;
   vmeadd=slot<<19;
+  //std::cout << "vmeadd="<<vmeadd<<std::endl;
+  //std::cout << "JtagBaseAddress_="<<JtagBaseAddress_<<std::endl;
   add_ucla=vmeadd|JtagBaseAddress_;
+  //std::cout << "add_ucla="<<add_ucla<<std::endl;
 }
 
 void VMEController::end() {

@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.16 2006/06/20 12:25:36 mey Exp $
+// $Id: VMEModule.h,v 2.17 2006/07/06 07:31:48 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.17  2006/07/06 07:31:48  mey
+// MPC firmware loading added
+//
 // Revision 2.16  2006/06/20 12:25:36  mey
 // Update
 //
@@ -97,6 +100,7 @@ protected:
    void devdo(DEVTYPE dev,int ncmd,const  char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
    void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
    void RestoreIdle();
+   void RestoreReset();
    void InitJTAG(int port);
    void CloseJTAG();
 

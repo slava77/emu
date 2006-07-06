@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.18 2006/07/04 15:06:18 mey Exp $
+// $Id: VMEController.h,v 2.19 2006/07/06 07:31:48 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.19  2006/07/06 07:31:48  mey
+// MPC firmware loading added
+//
 // Revision 2.18  2006/07/04 15:06:18  mey
 // Fixed JTAG
 //
@@ -105,7 +108,11 @@ public:
   void release_plev();
   void sdly();
   void RestoreIdle_alct();
+  void RestoreIdle_mpc();
+  void RestoreReset_mpc();
   void scan_alct(int reg, const char *snd, int cnt, char *rcv,int ird);
+  void scan_mpc(int reg, const char *snd, int cnt, char *rcv,int ird);
+  //
   bool SelfTest();
   bool exist(int slot);
   int error() const {return (error_count<<16)+error_type;}
