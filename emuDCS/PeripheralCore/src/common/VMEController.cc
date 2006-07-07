@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.26 2006/07/06 07:31:48 mey Exp $
+// $Id: VMEController.cc,v 2.27 2006/07/07 10:03:53 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.27  2006/07/07 10:03:53  mey
+// Update
+//
 // Revision 2.26  2006/07/06 07:31:48  mey
 // MPC firmware loading added
 //
@@ -311,7 +314,7 @@ void VMEController::release_plev(){
 
 int udelay(long int itim)
 {
-  usleep(500);
+  usleep(5000);
   std::cout << "Udelay..." << std::endl;
   std::cout << "Waiting...." << std::endl;
   std::cout << "udelay..." << itim << std::endl;
