@@ -1,5 +1,6 @@
 #include "EmuLocalPlotter.h"
 
+
 //	Booking of chamber's histogram
 map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 
@@ -1159,6 +1160,7 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
 	}
 	consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
+
 /*
 	cnvtitle = "CFEB: SCA Cell Occupancy";
 	cnvname  = path_to_folder + IDTextShort + cnvtitle;
@@ -1176,14 +1178,14 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
 	}
 	consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
-
+*/
 	cnvtitle = "CFEB: SCA Cell Peak";
 	cnvname  = path_to_folder + IDTextShort + cnvtitle;
 	cnvtitle = cnvtitle + IDTextLong;
 	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),3,2);
 	for (int nLayer=1; nLayer<=6; nLayer++) {
 		hname = Form("hist/h%sCFEB_SCA_Cell_Peak_Ly_%d", ChamberID.Data(), nLayer);
-		h[hname] = new TH2F(TString(hname.c_str()), Form("Layer %d", nLayer), 80, 0.0, 80.0, 96, 0.0, 96.0);
+		h[hname] = new TH2F(TString(hname.c_str()), Form("Layer %d", nLayer), 80, 0.0, 80.0, 16, 0.0, 16.0);
 		h[hname]->SetXTitle("Strip number");
 		h[hname]->SetYTitle("SCA Cell");
 		h[hname]->SetOption("col");
@@ -1193,7 +1195,7 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
 	}
 	consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
-*/
+
 	cnvtitle = "CFEB: Pedestals (First Sample)";
 	cnvname  = path_to_folder + IDTextShort + cnvtitle;
 	cnvtitle = cnvtitle + IDTextLong;
@@ -1236,6 +1238,18 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
                 gStyle->SetOptStat("e");
                 h[hname]->Draw();
                 consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
+/*                for (int nStrip=1; nStrip<=16; nStrip++) {
+                     hname = Form("hist/h%sCFEB_PedestalRMS_Sample_01_Ly%d_Strip%d",ChamberID.Data(),nLayer,nStrip);
+                     h[hname] = new TH1F(TString(hname.c_str()), Form("CFEB %s, Layer %d, Strip %d", ChamberID.Data(), nLayer, nStrip), 1000, 1.0, 1000.0);
+                     h[hname]->SetXTitle("Strip number");
+                     h[hname]->SetYTitle("Pedestal RMS Value (in ADC Chanels)");
+                     h[hname]->SetFillColor(48);
+                     cnv[cnvname]->cd(nLayer);
+                     gStyle->SetOptStat("e");
+                     h[hname]->Draw();
+                     consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
+                }
+*/
         }
         consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
 
@@ -1291,6 +1305,24 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
         }
         consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
 
+	cnvtitle = "CFEB: Cluster Duration";
+	cnvname  = path_to_folder + IDTextShort + cnvtitle;
+	cnvtitle = cnvtitle + IDTextLong;
+	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),3,2);
+	for (int nLayer=1; nLayer<=6; nLayer++) {
+                hname = Form("hist/h%sCFEB_Cluster_Duration_Ly_%d", ChamberID.Data(), nLayer);
+                h[hname] = new TH1F(TString(hname.c_str()), Form("Layer %d", nLayer), 17, -.5, 16.5);
+                h[hname]->SetXTitle("Cluster Duration");
+                h[hname]->SetYTitle("Number of Events");
+                h[hname]->SetFillColor(48);
+                cnv[cnvname]->cd(nLayer);
+                h[hname]->Draw();
+		gStyle->SetOptStat("em");
+                consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
+        }
+        consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
+
+  
 	cnvtitle = "CFEB: Clusters Charge";
 	cnvname  = path_to_folder + IDTextShort + cnvtitle;
 	cnvtitle = cnvtitle + IDTextLong;
@@ -1305,8 +1337,99 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
                 h[hname]->Draw();
 		gStyle->SetOptStat("em");
                 consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
+        }                               
+        consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
+
+	cnvtitle = "CFEB: Free SCA Cells.";
+	cnvname  = path_to_folder + IDTextShort + cnvtitle;
+	cnvtitle = cnvtitle + IDTextLong;
+	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),3,2);
+	for (int nCFEB=0; nCFEB<5; nCFEB++) {
+		hname = Form("hist/h%sCFEB%d_Free_SCA_Cells", ChamberID.Data(), nCFEB);
+		h[hname] = new TH1F(TString(hname.c_str()), Form("CFEB%d",nCFEB), 17, -1.0, 16.0);
+		h[hname]->SetXTitle("Free SCA Cells");
+		h[hname]->SetYTitle("Number of events");
+		h[hname]->SetFillColor(48);
+		h[hname]->GetXaxis()->SetBinLabel(1,"SCA FULL");
+		h[hname]->LabelsOption("v","X");
+		h[hname]->GetXaxis()->SetBinLabel(2,"0");
+		h[hname]->GetXaxis()->SetBinLabel(4,"2");
+		h[hname]->GetXaxis()->SetBinLabel(6,"4");
+		h[hname]->GetXaxis()->SetBinLabel(8,"6");
+		h[hname]->GetXaxis()->SetBinLabel(10,"8");
+		h[hname]->GetXaxis()->SetBinLabel(12,"10");
+		h[hname]->GetXaxis()->SetBinLabel(14,"12");
+		h[hname]->GetXaxis()->SetBinLabel(16,"14");
+//		h[hname]->SetOption("colz");
+		h[hname]->LabelsOption("h","X");
+		cnv[cnvname]->cd(nCFEB+1);
+		h[hname]->Draw();
+		gStyle->SetOptStat("e");
+		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
         }
         consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
+
+
+	cnvtitle = "CFEB: Number of SCA blocks locked by LCTs.";
+	cnvname  = path_to_folder + IDTextShort + cnvtitle;
+	cnvtitle = cnvtitle + IDTextLong;
+	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),3,2);
+	for (int nCFEB=0; nCFEB<5; nCFEB++) { 
+		hname = Form("hist/h%sCFEB%d_SCA_Blocks_Locked_by_LCTs", ChamberID.Data(), nCFEB);
+		h[hname] = new TH1F(TString(hname.c_str()), Form("CFEB%d",nCFEB), 18, -1.0, 17.0);
+		h[hname]->SetXTitle("SCA Blocks Locked by LCTs");
+		h[hname]->SetYTitle("Number of events");
+		h[hname]->SetFillColor(48);
+		h[hname]->GetXaxis()->SetBinLabel(1,"LCT PIPE EMPTY");
+		h[hname]->GetXaxis()->SetBinLabel(18,"LCT PIPE FULL");
+		h[hname]->LabelsOption("v","X");
+		h[hname]->GetXaxis()->SetBinLabel(2,"0");
+		h[hname]->GetXaxis()->SetBinLabel(4,"2");
+		h[hname]->GetXaxis()->SetBinLabel(6,"4");
+		h[hname]->GetXaxis()->SetBinLabel(8,"6");
+		h[hname]->GetXaxis()->SetBinLabel(10,"8");
+		h[hname]->GetXaxis()->SetBinLabel(12,"10");
+		h[hname]->GetXaxis()->SetBinLabel(14,"12");
+		h[hname]->GetXaxis()->SetBinLabel(16,"14");
+//		h[hname]->SetOption("colz");
+		h[hname]->LabelsOption("h","X");
+		cnv[cnvname]->cd(nCFEB+1);
+		h[hname]->Draw();
+		gStyle->SetOptStat("em");
+		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
+        }
+        consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
+ 
+
+	cnvtitle = "CFEB: Number of SCA blocks locked by LCTxL1.";
+	cnvname  = path_to_folder + IDTextShort + cnvtitle;
+	cnvtitle = cnvtitle + IDTextLong;
+	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),3,2);
+	for (int nCFEB=0; nCFEB<5; nCFEB++) {
+		hname = Form("hist/h%sCFEB%d_SCA_Blocks_Locked_by_LCTxL1", ChamberID.Data(), nCFEB);
+		h[hname] = new TH1F(TString(hname.c_str()), Form("CFEB%d",nCFEB), 33, -1.0, 32.0);
+		h[hname]->SetXTitle("SCA Blocks Locked by LCTxL1     ");
+		h[hname]->SetYTitle("Number of events");
+		h[hname]->SetFillColor(48);
+		h[hname]->GetXaxis()->SetBinLabel(1,"L1 PIPE EMPTY");
+		h[hname]->GetXaxis()->SetBinLabel(33,"L1 PIPE FULL");
+		h[hname]->LabelsOption("v","X");
+		h[hname]->GetXaxis()->SetBinLabel(2,"0");
+		h[hname]->GetXaxis()->SetBinLabel(7,"5");
+		h[hname]->GetXaxis()->SetBinLabel(12,"10");
+		h[hname]->GetXaxis()->SetBinLabel(17,"15");
+		h[hname]->GetXaxis()->SetBinLabel(22,"20");
+		h[hname]->GetXaxis()->SetBinLabel(27,"25");
+//		h[hname]->SetOption("colz");
+		h[hname]->LabelsOption("h","X");
+		cnv[cnvname]->cd(nCFEB+1);
+		h[hname]->Draw();
+		gStyle->SetOptStat("em");
+		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
+        }
+        consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
+
+
 
 //SYNC
 	if(debug_printout) 	LOG4CPLUS_INFO(logger_,// "D**EmuBookChamber> " << 

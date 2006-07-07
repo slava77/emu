@@ -1,4 +1,6 @@
 #include "EmuLocalPlotter.h"
+#include "CSCStripClusterFinder.h"
+#include <TF1.h>
 
 //	Filling of chamber's histogram
 void EmuLocalPlotter::fill(const CSCEventData& data, int dduID=0) {
@@ -793,7 +795,8 @@ void EmuLocalPlotter::fill(const CSCEventData& data, int dduID=0) {
   bool CheckCFEB = true;
   //--------------B
   float Clus_Sum_Charge;
-  int TrigTime, L1APhase, UnpackedTrigTime, LCTPhase, SCA_BLK, NmbTimeSamples, NmbCell;
+  int TrigTime, L1APhase, UnpackedTrigTime, LCTPhase, SCA_BLK, NmbTimeSamples, NmbCell, SCA_Nmb_FC;
+  int  FreeCells, LCT_Pipe_Empty, LCT_Pipe_Full, LCT_Pipe_Count, L1_Pipe_Empty, L1_Pipe_Full, Buffer_Count;
   //--------------E
 
   bool CheckThresholdStripInTheLayer[6][80];
@@ -863,6 +866,14 @@ void EmuLocalPlotter::fill(const CSCEventData& data, int dduID=0) {
 	  scaControllerWord[nCFEB][nSample][nLayer] = (timeSlice[nCFEB][nSample])->scaControllerWord(nLayer);
 	  TrigTime = (int)(scaControllerWord[nCFEB][nSample][nLayer]).trig_time;
 	  //--------------B
+          FreeCells = (timeSlice[nCFEB][nSample])->get_n_free_sca_blocks();
+          LCT_Pipe_Empty = (timeSlice[nCFEB][nSample])->get_lctpipe_empty();
+          LCT_Pipe_Full = (timeSlice[nCFEB][nSample])->get_lctpipe_full();
+          LCT_Pipe_Count = (timeSlice[nCFEB][nSample])->get_lctpipe_count();
+          L1_Pipe_Empty = (timeSlice[nCFEB][nSample])->get_l1pipe_empty();
+          L1_Pipe_Full = (timeSlice[nCFEB][nSample])->get_l1pipe_full();
+//          L1_Pipe_Count = (timeSlice[nCFEB][nSample])->get_L1A_number();
+          Buffer_Count = (timeSlice[nCFEB][nSample])->get_buffer_count();
 
 	  SCA_BLK  = (int)(scaControllerWord[nCFEB][nSample][nLayer]).sca_blk;
 	  //					LOG4CPLUS_DEBUG(logger_, "SCA BLOCK: Chamber="<<ChamberID<<" CFEB="<<nCFEB+1<<" TRIGTIME="<<TrigTime<<" TimeSlice="<<nSample+1<<" Layer="<<nLayer<<" SCA_BLK="<<SCA_BLK);
@@ -875,6 +886,25 @@ void EmuLocalPlotter::fill(const CSCEventData& data, int dduID=0) {
 	  //					SCA Block Occupancy Histograms
 	  hname = Form("hist/h%sCFEB%d_SCA_Block_Occupancy", CSCTag.c_str(), nCFEB);
 	  h[hname]->Fill(SCA_BLK);
+
+          //                                    Free SCA Cells
+          hname = Form("hist/h%sCFEB%d_Free_SCA_Cells", CSCTag.c_str(), nCFEB);
+          if (scaControllerWord[nCFEB][nSample][nLayer].sca_full == 1) h[hname]->Fill(-1);
+          h[hname]->Fill(FreeCells);
+
+          //                                    Number of SCA Blocks Locked by LCTs
+          hname = Form("hist/h%sCFEB%d_SCA_Blocks_Locked_by_LCTs", CSCTag.c_str(), nCFEB);
+          if (LCT_Pipe_Empty == 1) h[hname]->Fill(-0.5);
+          if (LCT_Pipe_Full == 1) h[hname]->Fill(16.5);
+          h[hname]->Fill(LCT_Pipe_Count);
+
+          //                                    Number of SCA Blocks Locked by LCTxL1
+          hname = Form("hist/h%sCFEB%d_SCA_Blocks_Locked_by_LCTxL1", CSCTag.c_str(), nCFEB);
+          if (L1_Pipe_Empty == 1) h[hname]->Fill(-0.5);
+          if (L1_Pipe_Full == 1) h[hname]->Fill(31.5);
+          h[hname]->Fill(Buffer_Count);
+
+
 	  //--------------E
 	  //					if(debug) LOG4CPLUS_DEBUG(logger_, "+++debug> nCFEB " << nCFEB << " nSample " << nSample << " nLayer " << nLayer << " TrigTime " << TrigTime);
 	  if(nSample == 0 && nLayer == 1) {
@@ -914,19 +944,35 @@ void EmuLocalPlotter::fill(const CSCEventData& data, int dduID=0) {
 	    ADC = (int) ((timeSample[nCFEB][nSample][nLayer][nStrip]->adcCounts)&0xFFF);
 	    if(DebugCFEB) LOG4CPLUS_DEBUG(logger_, " nStrip="<< dec << nStrip << " ADC=" << hex << ADC);
 	    OutOffRange = (int) ((timeSample[nCFEB][nSample][nLayer][nStrip]->adcOverflow)&0x1);
+	
 	    if(nSample == 0) { // nSample == 0
+	
 	      Pedestal[nCFEB][nLayer][nStrip] = ADC;
 	      if(DebugCFEB) LOG4CPLUS_DEBUG(logger_, " nStrip="<< dec << nStrip 
 		<< " Pedestal=" << hex << Pedestal[nCFEB][nLayer][nStrip]);
-	      hname = Form("hist/h%sCFEB_Pedestal(withEMV)_Sample_01_Ly%d", CSCTag.c_str(), nLayer);
-	      h[hname]->Fill((int)(nCFEB*16+nStrip), Pedestal[nCFEB][nLayer][nStrip]);
-	      hname = Form("hist/h%sCFEB_Pedestal(withRMS)_Sample_01_Ly%d", CSCTag.c_str(), nLayer);
-	      h[hname]->Fill((int)(nCFEB*16+nStrip), Pedestal[nCFEB][nLayer][nStrip]);
-	      PedestalError[nCFEB][nLayer][nStrip] = h[hname]->GetBinError(nCFEB*16+nStrip);
-	      hname = Form("hist/h%sCFEB_PedestalRMS_Sample_01_Ly%d",CSCTag.c_str(),nLayer);
-	      h[hname]->SetBinContent(nCFEB*16+nStrip,PedestalError[nCFEB][nLayer][nStrip]);
-	      h[hname]->SetBinError(nCFEB*16+nStrip,0.00000000001);
-	    }
+//--------------B
+/*
+              hname = Form("hist/h%sCFEB_PedestalRMS_Sample_01_Ly%d_Strip%d", CSCTag.c_str(), nLayer, nStrip);
+              h[hname]->Fill(Pedestal[nCFEB][nLayer][nStrip]);
+              int num_ent = h[hname]->GetEntries();
+              if ((num_ent % 100) == 0){
+                  h[hname]->Fit("gaus","Q");
+                  TF1 *gaus_f =  h[hname]->GetFunction("gaus");
+                  hname = Form("hist/h%sCFEB_PedestalRMS_Sample_01_Ly%d", CSCTag.c_str(), nLayer);
+                  h[hname]->SetBinContent(nCFEB*16+nStrip,gaus_f->GetParameter(2));
+                  h[hname]->SetBinError(nCFEB*16+nStrip,0.00000000001);
+              }
+*/
+//--------------E             
+/*            int ADC_tmp = (int) ((timeSample[nCFEB][nSample+1][nLayer][nStrip]->adcCounts)&0xFFF); 
+            hname = Form("hist/h%sCFEB_PedestalRMS_Sample_01_Ly%d",CSCTag.c_str(),nLayer);
+            if (abs(ADC-ADC_tmp) < 40){
+	        h[hname]->SetBinContent(nCFEB*16+nStrip,PedestalError[nCFEB][nLayer][nStrip]);
+	        h[hname]->SetBinError(nCFEB*16+nStrip,0.00000000001);
+	      }
+*/	      
+	     }
+	    
 	    if(OutOffRange == 1 && CheckOutOffRangeStripInTheLayer[nLayer][nCFEB*16+nStrip] == true) {
 	      hname = Form("hist/h%sCFEB_Out_Off_Range_Strips_Ly%d", CSCTag.c_str(), nLayer);
 	      h[hname]->Fill((int)(nCFEB*16+nStrip));
@@ -943,18 +989,36 @@ void EmuLocalPlotter::fill(const CSCEventData& data, int dduID=0) {
 		h[hname]->Fill((int)(nCFEB*16+nStrip));
 		CheckThresholdStripInTheLayer[nLayer][nCFEB*16+nStrip] = false;
 	      }
-	    }
-	    //--------------B
-	    if(ADC - Pedestal[nCFEB][nLayer][nStrip] > Threshold) {
-	      if(DebugCFEB) {
-		LOG4CPLUS_DEBUG(logger_, "Layer="<<nLayer<<" Strip="<<nCFEB*16+nStrip<<" Time="<<nSample
+//--------------B
+	      if(ADC - Pedestal[nCFEB][nLayer][nStrip] > Threshold) {
+	         if(DebugCFEB) {
+		    LOG4CPLUS_DEBUG(logger_, "Layer="<<nLayer<<" Strip="<<nCFEB*16+nStrip<<" Time="<<nSample
 			<< " ADC-PEDEST = "<<ADC - Pedestal[nCFEB][nLayer][nStrip]);
+	         }
+	         cscdata[nCFEB*16+nStrip-1][nSample][nLayer-1] = ADC - Pedestal[nCFEB][nLayer][nStrip];
 	      }
-	      cscdata[nCFEB*16+nStrip-1][nSample][nLayer-1] = ADC - Pedestal[nCFEB][nLayer][nStrip];
+//--------------E
 	    }
-	    //--------------E
+//--------------B
+	    if(nSample == 1) {
+	       int channel_threshold = 40;
+	       if (abs(ADC - Pedestal[nCFEB][nLayer][nStrip]) < channel_threshold){
+  	           hname = Form("hist/h%sCFEB_Pedestal(withEMV)_Sample_01_Ly%d", CSCTag.c_str(), nLayer);
+	           h[hname]->Fill((int)(nCFEB*16+nStrip), Pedestal[nCFEB][nLayer][nStrip]);
+	           
+	           hname = Form("hist/h%sCFEB_Pedestal(withRMS)_Sample_01_Ly%d", CSCTag.c_str(), nLayer);
+	           h[hname]->Fill((int)(nCFEB*16+nStrip), Pedestal[nCFEB][nLayer][nStrip]);
+	           
+	           PedestalError[nCFEB][nLayer][nStrip] = h[hname]->GetBinError(nCFEB*16+nStrip);
+	           
+                   hname = Form("hist/h%sCFEB_PedestalRMS_Sample_01_Ly%d",CSCTag.c_str(),nLayer);
+	           h[hname]->SetBinContent(nCFEB*16+nStrip,PedestalError[nCFEB][nLayer][nStrip]);
+	           h[hname]->SetBinError(nCFEB*16+nStrip,0.00000000001);	       
+	       }
+	    }
+//--------------E
 	  }
-	}
+	}                            
       }
     }
   }
@@ -994,7 +1058,7 @@ void EmuLocalPlotter::fill(const CSCEventData& data, int dduID=0) {
 	<<"  Number of Clusters="<<Clus.size()<<"      ***");
     //		Number of Clusters Histograms
     hname = Form("hist/h%sCFEB_Number_of_Clusters_Ly_%d", CSCTag.c_str(), nLayer);
-    if(Clus.size() != 0) h[hname]->Fill(Clus.size());
+    if(Clus.size() >= 0) h[hname]->Fill(Clus.size());
     for(unsigned int u=0;u<Clus.size();u++){
 	/*
       if(DebugCFEB) LOG4CPLUS_DEBUG(logger_, "Chamber: "<< ChamberID  << " Cluster: " << u+1
@@ -1055,6 +1119,11 @@ void EmuLocalPlotter::fill(const CSCEventData& data, int dduID=0) {
       //			Width of Clusters Histograms
       hname = Form("hist/h%sCFEB_Width_of_Clusters_Ly_%d", CSCTag.c_str(), nLayer);
       h[hname]->Fill(Clus[u].IRTBNDStrip - Clus[u].LFTBNDStrip+1);
+
+      //                        Cluster Duration Histograms
+      hname = Form("hist/h%sCFEB_Cluster_Duration_Ly_%d",  CSCTag.c_str(), nLayer);
+      h[hname]->Fill(Clus[u].IRTBNDTime - Clus[u].LFTBNDTime+1);
+
     }
     Clus.clear();
     delete ClusterFinder;
