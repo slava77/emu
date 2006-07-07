@@ -138,6 +138,7 @@ TestExecutables= \
         resetcc.cpp \
 	testtmbmain.cpp \
         scancrate.cpp \
-	loadMPC.cpp
+	loadMPC.cpp \
+	loadDMB.cpp
 
 include $(XDAQ_ROOT)/config/Makefile.rules
