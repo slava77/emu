@@ -20,8 +20,10 @@ int main(int argc,char **argv){
   int port(2);
   VMEController *dynatem = new VMEController(crateId);
   dynatem->init(ipAddr,port);
+  //
+  dynatem->reset();
   Crate *crate = new Crate(crateId,dynatem);
-
+  //
   // create CCB
   int ccbSlot(13);
   CCB *ccb = new CCB(crateId,ccbSlot,2004);
