@@ -216,4 +216,202 @@ const int RegSizeRatProm_PROMuserCode  =  32;
 const int RegSizeRatProm_PROMidCode    =  32;
 //
 //
+////-------------------------------////
+//     ALCTnew  constants            //
+////-------------------------------////
+//
+const int OFF           = 0;
+const int ON            = 1;
+//
+const int MAX_NUM_AFEBS = 42;
+const int MAX_NUM_LAYERS = 6;
+const int MAX_NUM_WIRES_PER_LAYER = 112;  // =672/6
+//
+////////////////////////////////////////
+// ADC channel/chip map
+////////////////////////////////////////
+const int afeb_adc_channel[MAX_NUM_AFEBS] = 
+  {1, 0,
+   10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,
+   10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,
+   0, 1, 2, 3, 4, 5, 6, 7, 8,
+   0, 1, 2, 3, 4, 5, 6, 7, 8};
+const int afeb_adc_chip[MAX_NUM_AFEBS] = 
+  {2, 2,
+   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+   3, 3, 3, 3, 3, 3, 3, 3, 3,
+   4, 4, 4, 4, 4, 4, 4, 4, 4}; 
+//
+const int Current1p8_adc_chip              = 2;
+const int Current3p3_adc_chip              = 2;
+const int Current5p5_1_adc_chip            = 2;
+const int Current5p5_2_adc_chip            = 2;
+const int Voltage1p8_adc_chip              = 2;
+const int Voltage3p3_adc_chip              = 2;
+const int Voltage5p5_1_adc_chip            = 2;
+const int Voltage5p5_2_adc_chip            = 2;
+const int Temperature_adc_chip             = 2;
+//
+const int Current1p8_adc_channel           = 2;
+const int Current3p3_adc_channel           = 3;
+const int Current5p5_1_adc_channel         = 4;
+const int Current5p5_2_adc_channel         = 5;
+const int Voltage1p8_adc_channel           = 6;
+const int Voltage3p3_adc_channel           = 7;
+const int Voltage5p5_1_adc_channel         = 8;
+const int Voltage5p5_2_adc_channel         = 9;
+const int Temperature_adc_channel          = 10;
+//
+//
+////////////////////////////////////////
+// DAC channel/chip map
+////////////////////////////////////////
+const int afeb_dac_channel[MAX_NUM_AFEBS] = 
+  {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 
+   0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+   0, 1, 2, 3, 4, 5, 6, 7, 8, 
+   0, 1, 2, 3, 4, 5, 6, 7, 8};
+const int afeb_dac_chip[MAX_NUM_AFEBS] = 
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+   2, 2, 2, 2, 2, 2, 2, 2, 2, 
+   3, 3, 3, 3, 3, 3, 3, 3, 3};
+//
+//
+////////////////////////////////////////
+// Control register bit-map:
+////////////////////////////////////////
+const int trigger_mode_bitlo               = 0;
+const int trigger_mode_bithi               = 1;
+//
+const int ext_trig_enable_bitlo            = 2;
+const int ext_trig_enable_bithi            = 2;
+//
+const int send_empty_bitlo                 = 3;
+const int send_empty_bithi                 = 3;
+//
+const int inject_bitlo                     = 4;
+const int inject_bithi                     = 4;
+//
+const int bxc_offset_bitlo                 = 5;
+const int bxc_offset_bithi                 = 12;
+//
+const int nph_thresh_bitlo                 = 13;
+const int nph_thresh_bithi                 = 15;
+//
+const int nph_pattern_bitlo                = 16;
+const int nph_pattern_bithi                = 18;
+//
+const int drift_delay_bitlo                = 19;
+const int drift_delay_bithi                = 20;
+//
+const int fifo_tbins_bitlo                 = 21;
+const int fifo_tbins_bithi                 = 25;
+//
+const int fifo_pretrig_bitlo               = 26;
+const int fifo_pretrig_bithi               = 30;
+//
+const int fifo_mode_bitlo                  = 31;
+const int fifo_mode_bithi                  = 32;
+//
+const int fifo_lastlct_bitlo               = 33;
+const int fifo_lastlct_bithi               = 35;
+//
+const int l1a_delay_bitlo                  = 36;
+const int l1a_delay_bithi                  = 43;
+//
+const int l1a_window_bitlo                 = 44;
+const int l1a_window_bithi                 = 47;
+//
+const int l1a_offset_bitlo                 = 48;
+const int l1a_offset_bithi                 = 51;
+//
+const int l1a_internal_bitlo               = 52;
+const int l1a_internal_bithi               = 52;
+//
+const int board_id_bitlo                   = 53;
+const int board_id_bithi                   = 55;
+//
+const int bxn_offset_bitlo                 = 56;
+const int bxn_offset_bithi                 = 59;
+//
+const int ccb_enable_bitlo                 = 60;
+const int ccb_enable_bithi                 = 60;
+//
+const int alct_jtag_ds_bitlo               = 61;
+const int alct_jtag_ds_bithi               = 61;
+//
+const int alct_tmode_bitlo                 = 62;
+const int alct_tmode_bithi                 = 63;
+//
+const int alct_amode_bitlo                 = 64;
+const int alct_amode_bithi                 = 65;
+//
+const int alct_mask_all_bitlo              = 66;
+const int alct_mask_all_bithi              = 66;
+//
+const int trigger_info_en_bitlo            = 67;
+const int trigger_info_en_bithi            = 67;
+//
+const int sn_select_bitlo                  = 68;
+const int sn_select_bithi                  = 68;
+//
+//
+////////////////////////////////////////
+// Delay-Line Control Register bit-map:
+////////////////////////////////////////
+const int delay_line_reset_bitlo           = 0;
+const int delay_line_reset_bithi           = 0;
+//
+const int delay_line_settst_bitlo          = 1;
+const int delay_line_settst_bithi          = 1;
+//
+const int delay_line_group_select_bitlo    = 2;
+// -> delay_line_group_select_bithi value dependent on ALCT type...
+//
+//
+/////////////////////////////////////////////////////
+// ASIC delay/pattern chip characteristics/bit-maps:
+/////////////////////////////////////////////////////
+const int NUMBER_OF_CHIPS_PER_GROUP        = 6;
+const int NUMBER_OF_LINES_PER_CHIP         = 16;
+//
+// Load 96 pattern values into 6 asic chips with the following maps for the layer and wiregroup
+const int asic_layer_map[NUMBER_OF_CHIPS_PER_GROUP*NUMBER_OF_LINES_PER_CHIP] =
+  {1, 1, 1, 1, 1, 1, 1, 1,
+   0, 0, 0, 0, 0, 0, 0, 0,
+   3, 3, 3, 3, 3, 3, 3, 3,
+   2, 2, 2, 2, 2, 2, 2, 2,
+   5, 5, 5, 5, 5, 5, 5, 5,
+   4, 4, 4, 4, 4, 4, 4, 4,
+   1, 1, 1, 1, 1, 1, 1, 1,
+   0, 0, 0, 0, 0, 0, 0, 0,
+   3, 3, 3, 3, 3, 3, 3, 3,
+   2, 2, 2, 2, 2, 2, 2, 2,
+   5, 5, 5, 5, 5, 5, 5, 5,
+   4, 4, 4, 4, 4, 4, 4, 4};
+const int asic_wiregroup_map[NUMBER_OF_CHIPS_PER_GROUP*NUMBER_OF_LINES_PER_CHIP] =
+  {7, 6, 5, 4, 3, 2, 1, 0,
+   0, 1, 2, 3, 4, 5, 6, 7,
+   7, 6, 5, 4, 3, 2, 1, 0,
+   0, 1, 2, 3, 4, 5, 6, 7,
+   7, 6, 5, 4, 3, 2, 1, 0,
+   0, 1, 2, 3, 4, 5, 6, 7,
+   15,14,13,12,11,10,9, 8,
+   8, 9,10,11,12,13,14,15,
+   15,14,13,12,11,10,9, 8,
+   8, 9,10,11,12,13,14,15,
+   15,14,13,12,11,10,9, 8,
+   8, 9,10,11,12,13,14,15};
+//
+const int asic_delay_value_bitlo           = 0;
+const int asic_delay_value_bithi           = 3;
+//
+const int asic_pattern_value_bitlo         = 4;
+const int asic_pattern_value_bithi         = 19;
+//
+const int NUMBER_OF_ASIC_BITS              = asic_pattern_value_bithi-asic_delay_value_bitlo+1;
+//
+//
 #endif
