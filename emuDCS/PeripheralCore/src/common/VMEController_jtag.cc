@@ -1208,14 +1208,14 @@ void VMEController::scan_mpc(int reg,const char *snd, int cnt, char *rcv,int ird
 }
 
 
-
+//
 void VMEController::RestoreIdle_alct()
 {
   int k;
   unsigned short int d[3];
   char tmp[2];
   unsigned short int *ptr;
-  unsigned short int clkon=(1<<7);
+  unsigned short int clkon=0x4;
   ptr=(unsigned short int *)add_ucla;
   // fprintf(fplog," enter restore idle ucla %08x %04x \n",ptr,pvme);
   d[0]=0x0002|pvme;d[1]=0x0002|pvme|clkon;d[2]=0x0002|pvme;
