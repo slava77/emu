@@ -1063,7 +1063,7 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
 }
 //
 
-void VMEController::scan_mpc(int reg,const char *snd, int cnt, char *rcv,int ird)
+void VMEController::scan_jtag(int reg,const char *snd, int cnt, char *rcv,int ird)
 {
   int i, j, k, bit, cnt8;
   const unsigned short int TCK=(1<<TCK_);
@@ -1193,16 +1193,16 @@ void VMEController::scan_mpc(int reg,const char *snd, int cnt, char *rcv,int ird
      cnt8 = 8*((cnt+7)/8);
      for(i=0;i<cnt8;i++)
      {
-         if(i<cnt) bdata |= mytmp[2*i+1] & 0x01;
-         if(bit==7)
-           { rcv2[j++]=bdata;  bit=0;  bdata=0; }
-         else
-           { bdata >>= 1;     bit++; }
+       if(i<cnt) bdata |= mytmp[2*i+1] & (1<<TDO_);
+       if(bit==7)
+	 { rcv2[j++]=bdata;  bit=0;  bdata=0; }
+       else
+	 { bdata >>= 1;     bit++; }
      }
      if (DEBUG>1) {
-        printf("scan_mpc output: ");
-        for(i=0; i<cnt8/8; i++) printf("%02X ", rcv2[i]);
-        printf("\n");
+       printf("scan_mpc output: ");
+       for(i=0; i<cnt8/8; i++) printf("%02X ", rcv2[i]);
+       printf("\n");
      }
   }
 }
@@ -1229,14 +1229,14 @@ void VMEController::RestoreIdle_alct()
   //
 }
 
-void VMEController::RestoreIdle_mpc()
+void VMEController::RestoreIdle_jtag()
 {
   int k;
   unsigned short int d[3];
   char tmp[2];
   unsigned short int *ptr;
-  unsigned short int clkon=(1<<7);
-  const unsigned short int TMS=(1<<6);
+  unsigned short int clkon=(1<<TCK_);
+  const unsigned short int TMS=(1<<TMS_);
   ptr=(unsigned short int *)add_ucla;
   // fprintf(fplog," enter restore idle ucla %08x %04x \n",ptr,pvme);
   //
@@ -1255,14 +1255,14 @@ void VMEController::RestoreIdle_mpc()
 }
 
 
-void VMEController::RestoreReset_mpc()
+void VMEController::RestoreReset_jtag()
 {
   int k;
   unsigned short int d[3];
   char tmp[2];
   unsigned short int *ptr;
-  unsigned short int clkon=(1<<7);
-  const unsigned short int TMS=(1<<6);
+  unsigned short int clkon=(1<<TCK_);
+  const unsigned short int TMS=(1<<TMS_);
   ptr=(unsigned short int *)add_ucla;
   // fprintf(fplog," enter restore idle ucla %08x %04x \n",ptr,pvme);
   d[0]=TMS|pvme;d[1]=TMS|pvme|clkon;d[2]=TMS|pvme;

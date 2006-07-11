@@ -17,14 +17,18 @@ int main(int argc,char **argv){
   // create VME Controller and Crate
   int crateId(0);
   string ipAddr("02:00:00:00:00:07");
-  int port(2);
+  int port(3);
   VMEController *dynatem = new VMEController(crateId);
+  dynatem->reset();
   dynatem->init(ipAddr,port);
   Crate *crate = new Crate(crateId,dynatem);
 
   // create CCB
   int ccbSlot(13);
   CCB *ccb = new CCB(crateId,ccbSlot,2004);
+  //
+  //::sleep(1);
+  //
   ccb->configure();
   ::sleep(1);
 
