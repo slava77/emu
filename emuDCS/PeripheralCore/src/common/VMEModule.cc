@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.22 2006/07/06 07:31:48 mey Exp $
+// $Id: VMEModule.cc,v 2.23 2006/07/11 09:31:12 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.23  2006/07/11 09:31:12  mey
+// Update
+//
 // Revision 2.22  2006/07/06 07:31:48  mey
 // MPC firmware loading added
 //
@@ -155,6 +158,16 @@ void VMEModule::RestoreReset() {
     theController->RestoreReset_mpc();
 }
 
+void VMEModule::SetupJtag() {
+  //
+  if(boardType()==MPC_ENUM){
+    theController->SetupJtagBaseAddress(0x0);
+    theController->SetupTCK(7);
+    theController->SetupTMS(6);
+    theController->SetupTDI(5);
+  }
+  //
+}
 
 void VMEModule::InitJTAG(int port) {
   theController->start( theSlot, boardType() );

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.26 2006/07/06 08:24:17 mey Exp $
+// $Id: MPC.cc,v 2.27 2006/07/11 09:31:12 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.27  2006/07/11 09:31:12  mey
+// Update
+//
 // Revision 2.26  2006/07/06 08:24:17  mey
 // Bug fix
 //
@@ -804,8 +807,8 @@ void MPC::start() {
 #ifdef debugV
   (*MyOutput_) << "starting to talk to TMB, device " << ucla_ldev << std::endl;
 #endif
-   // send the first signal
-  theController->SetupJtagBaseAddress(0x0);
+  // send the first signal
+  SetupJtag();
   VMEModule::start();
   theController->initDevice(1, 0);
   theController->goToScanLevel();
@@ -1444,7 +1447,7 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
 void MPC::Parse(char *buf,int *Count,char **Word)
 {
 
-  std::cout << buf << std::endl;
+  //std::cout << buf << std::endl;
 
   *Word = buf;
   *Count = 0;

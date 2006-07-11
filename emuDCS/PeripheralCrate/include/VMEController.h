@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.19 2006/07/06 07:31:48 mey Exp $
+// $Id: VMEController.h,v 2.20 2006/07/11 09:31:11 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.20  2006/07/11 09:31:11  mey
+// Update
+//
 // Revision 2.19  2006/07/06 07:31:48  mey
 // MPC firmware loading added
 //
@@ -91,6 +94,10 @@ public:
   int port() const {return port_;}
 
   inline void SetupJtagBaseAddress(int adr) { JtagBaseAddress_ = adr;}
+  inline void SetupTCK(int adr) { TCK_ = adr;}
+  inline void SetupTMS(int adr) { TMS_ = adr;}
+  inline void SetupTDI(int adr) { TDI_ = adr;}
+
   void start(int slot, int boardtype);
   void end();
 
@@ -167,6 +174,7 @@ private:
   int error_count;
   int DEBUG;
   int JtagBaseAddress_ ;
+  int TCK_, TMS_, TDI_;
  
  // I like to keep them private. 
   void load_cdac(const char *snd);
