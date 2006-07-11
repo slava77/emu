@@ -1066,8 +1066,8 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
 void VMEController::scan_mpc(int reg,const char *snd, int cnt, char *rcv,int ird)
 {
   int i, j, k, bit, cnt8;
-  const unsigned short int TCK=(1<<7);
-  const unsigned short int TMS=(1<<6);
+  const unsigned short int TCK=(1<<TCK_);
+  const unsigned short int TMS=(1<<TMS_);
   unsigned short int ival, d, dd;
   unsigned short int *ptr;
   unsigned char *rcv2, bdata, *data, mytmp[MAXLINE];
@@ -1152,7 +1152,7 @@ void VMEController::scan_mpc(int reg,const char *snd, int cnt, char *rcv,int ird
      }
      
      // data bit to write (ival) is in the lowest bit (TDI)
-     d=pvme|(ival<<5);
+     d=pvme|(ival<<TDI_);
      // at the last shift, we need set TMS=1
      if(i==cnt-1) d |=TMS;
      for(j=0;j<3;j++)

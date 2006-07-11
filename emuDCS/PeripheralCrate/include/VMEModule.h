@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.17 2006/07/06 07:31:48 mey Exp $
+// $Id: VMEModule.h,v 2.18 2006/07/11 09:31:11 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.18  2006/07/11 09:31:11  mey
+// Update
+//
 // Revision 2.17  2006/07/06 07:31:48  mey
 // MPC firmware loading added
 //
@@ -103,6 +106,7 @@ protected:
    void RestoreReset();
    void InitJTAG(int port);
    void CloseJTAG();
+   void SetupJtag();
 
    Crate * theCrate;
    VMEController * theController;

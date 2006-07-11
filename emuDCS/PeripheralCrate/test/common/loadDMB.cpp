@@ -32,7 +32,7 @@ int main(int argc,char **argv){
   //
   // create DMB
   //
-  int dmbSlot(27);
+  int dmbSlot(15);
   DAQMB *dmb = new DAQMB(crateId,dmbSlot);
   printf("DMB fpga user id                   : %x ", (int) dmb->mbfpgauser());
   //
