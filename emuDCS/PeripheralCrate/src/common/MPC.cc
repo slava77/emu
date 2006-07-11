@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.27 2006/07/11 09:31:12 mey Exp $
+// $Id: MPC.cc,v 2.28 2006/07/11 14:49:29 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.28  2006/07/11 14:49:29  mey
+// New Parser sturcture ready to go
+//
 // Revision 2.27  2006/07/11 09:31:12  mey
 // Update
 //
@@ -119,8 +122,6 @@ bool MPC::SelfTest() {
 }
 
 void MPC::configure() {
-  int btd;
-  int xfer_done[2];
   char data[2];
   char addr;
   
@@ -171,8 +172,6 @@ void MPC::configure() {
 }
 
 void MPC::read_fifo(char address, char * data) {
-  int xfer_done[2];
-  int btd; // comes from d360_bt_open(btd_p,devname_p,0);
   //data[0] = 0x00;
   //data[1] = 0x00;
   do_vme(1, address, NULL, data, 1); 
@@ -319,7 +318,6 @@ void MPC::read_csr0() {
 void MPC::SoftReset() {
   //
   char data[2];
-  int btd, xfer_done[2];
   //
   char addr =  CSR0;
   //
@@ -372,7 +370,7 @@ void MPC::executeCommand(std::string command) {
 }
 
 void MPC::enablePRBS(){
-  int btd, xfer_done[2];
+  //
   char data[2];
   char addr;
 
@@ -394,7 +392,7 @@ void MPC::enablePRBS(){
 }
 
 void MPC::disablePRBS(){
-  int btd, xfer_done[2];
+  //
   char data[2];
   char addr;
 
@@ -413,8 +411,8 @@ void MPC::initTestLinks(){
 
 //initialise!!! toggle CSR0 bits.
  (*MyOutput_) << "Initialising peripheral crate links for load FIFOs" << std::endl;
-
-  int btd, xfer_done[2];
+ //
+ //
   char data[2];
   char addr;
 
@@ -436,7 +434,7 @@ void MPC::initTestLinks(){
 
 void MPC::injectSP(){
 
-  int btd, xfer_done[2];
+  //
   char data[2];
   char addr;
 
@@ -509,7 +507,7 @@ void MPC::injectSP(char *injectDataFileName){
 // data file should have a set of 16 bit (4 hex character) words 
   
   
-  int btd, xfer_done[2];
+  //
   char data[2];
   char DataWord[4];//4 character hex string=16 bit word 
   int dataWordInt_fr1;// the above string "DataWord" converted -->int.::frame 1s
@@ -638,8 +636,8 @@ void MPC::setTLK2501TxMode(int mode){
   //      bits this should be specific to that bit using a mask.
 
   char addr =  CSR2; //addr=0x000ac;
-  int btd;
-  int xfer_done[2];
+  //int btd;
+  //int xfer_done[2];
   char data[2];
   //fg was this really the right way ... or, maybe, 
   //fg it should have been the other way around -- oh-oh.
@@ -663,9 +661,9 @@ void MPC::WriteRegister(int reg, int value){
 
 int MPC::ReadRegister(int reg){
   //
-  int btd;
-  char data[2];
-  unsigned long int addr;
+  //
+  //
+  //
   //
   // make sure we are in framed mode
   do_vme(VME_READ,reg,sndbuf,rcvbuf,NOW);
@@ -680,7 +678,7 @@ int MPC::ReadRegister(int reg){
 //
 void MPC::firmwareVersion(){
   /// report the firmware version
-  int btd, xfer_done[2];
+  //
   char data[2];
   do_vme(1,CSR1,NULL, data, 1);
   
@@ -698,8 +696,8 @@ void MPC::setSorterMode(){
   /// Switches the MPC to Sorter Mode while keeping the original sources intact.
   (*MyOutput_) << "MPC: switching to Sorter Mode" << std::endl;
   char addr =  CSR4;
-  int btd;
-  int xfer_done[2];
+  //
+  //
   char data[2];
   do_vme(1,addr, NULL,data,1);  
   //fg data[0]=data[0]&0xfe;
@@ -721,7 +719,7 @@ void MPC::setTransparentMode(unsigned int pattern){
 
   (*MyOutput_) << "MPC: switching to Transparent Mode. Source pattern = 0x" 
        << std::hex << pattern << std::dec << std::endl;
-  int btd, xfer_done[2];
+  //
   char data[2];
   char addr=CSR4;
 
@@ -748,8 +746,8 @@ void MPC::setTransparentMode(){
   /// Switches to Transparent Mode using whatever orginal source pattern
   /// was previously loaded.
   (*MyOutput_) << "MPC: switching to Transparent Mode. No new source pattern loaded" << std::endl;
-  int btd;
-  int xfer_done[2];
+  //
+  //
   char data[2];
   char addr = CSR4; 
   do_vme(1, addr, NULL, data, 1);
@@ -764,10 +762,10 @@ void MPC::setTransparentMode(){
 
 void MPC::setDelayFromTMB(unsigned char delays){
   /// Add single BX delays to each of the TMBs based on the delayPattern
-   (*MyOutput_) << "MPC: setting TMB-MPC delays. Delay pattern = 0x"
-	<< std::hex << (unsigned short)delays << std::dec << std::endl;
-  int btd;
-  int xfer_done[2];
+  (*MyOutput_) << "MPC: setting TMB-MPC delays. Delay pattern = 0x"
+	       << std::hex << (unsigned short)delays << std::dec << std::endl;
+  //
+  //
   char data[2];
   char addr = CSR5;
   //fg data[0] = delays;
@@ -780,7 +778,7 @@ void MPC::setDelayFromTMB(unsigned char delays){
 
 void MPC::interconnectTest(){
   char data[2];
-  int btd, xfer_done[2];
+  //
 
   // reset FPGA logic
   char addr = CSR0;
@@ -823,12 +821,12 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
   unsigned char sndhdr[MAXBUFSIZE],sndtdr[MAXBUFSIZE], sndhir[MAXBUFSIZE], sndtir[MAXBUFSIZE];
   unsigned char hdrsmask[MAXBUFSIZE],tdrsmask[MAXBUFSIZE], hirsmask[MAXBUFSIZE], tirsmask[MAXBUFSIZE];
   int rcvword;
-  FILE *dwnfp, *ftmptdi, *ftmpsmask;
+  FILE *dwnfp;
   char buf[MAXBUFSIZE], buf2[256];
   //  char buf[8192],buf2[256];
   char *Word[256],*lastn;
   const char *downfile;
-  char fStop;
+  //char fStop;
   int jchan;
   unsigned char sndvalue;
   fpos_t ftdi_pos, fsmask_pos;
@@ -840,7 +838,7 @@ int MPC::SVFLoad(int *jch, const char *fn, int db )
   static int count;
   // MvdM struct JTAG_BBitStruct   driver_data;
   // int jtag_chain[4] = {1, 0, 5, 4};
-  int jtag_chain_tmb[6] = {7, 6, 9, 8, 3, 1};
+  //int jtag_chain_tmb[6] = {7, 6, 9, 8, 3, 1};
   // === SIR Go through SelectDRScan->SelectIRScan->CaptureIR->ShiftIR  
   //char tms_pre_sir[4]={ 1, 1, 0, 0 }; 
   char tdi_pre_sir[4]={ 0, 0, 0, 0 };
