@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.23 2006/07/11 09:31:12 mey Exp $
+// $Id: VMEModule.cc,v 2.24 2006/07/11 12:46:43 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.24  2006/07/11 12:46:43  mey
+// UPdate
+//
 // Revision 2.23  2006/07/11 09:31:12  mey
 // Update
 //
@@ -137,9 +140,9 @@ void VMEModule::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,
 void VMEModule::scan(int reg,const char *snd,int cnt,char *rcv,int ird) {
   theController->start( theSlot, boardType() );
   if(boardType()==TMB_ENUM )
-    theController->scan_alct(reg, snd, cnt, rcv, ird);
+    theController->scan_jtag(reg, snd, cnt, rcv, ird);
   else if (boardType()==MPC_ENUM )
-    theController->scan_mpc(reg, snd, cnt, rcv, ird);
+    theController->scan_jtag(reg, snd, cnt, rcv, ird);
   else
     theController->scan(reg, snd, cnt, rcv, ird);
 }
@@ -149,22 +152,30 @@ void VMEModule::RestoreIdle() {
   if(boardType()==TMB_ENUM)
     theController->RestoreIdle_alct();
   if(boardType()==MPC_ENUM)
-    theController->RestoreIdle_mpc();
+    theController->RestoreIdle_jtag();
 }
 
 void VMEModule::RestoreReset() {
   theController->start( theSlot, boardType() );
   if(boardType()==MPC_ENUM)
-    theController->RestoreReset_mpc();
+    theController->RestoreReset_jtag();
 }
 
 void VMEModule::SetupJtag() {
   //
+  if(boardType()==TMB_ENUM){
+    theController->SetupJtagBaseAddress(0x70000);
+    theController->SetupTCK(2);
+    theController->SetupTMS(1);
+    theController->SetupTDI(0);
+    theController->SetupTDO(7);
+  }
   if(boardType()==MPC_ENUM){
     theController->SetupJtagBaseAddress(0x0);
     theController->SetupTCK(7);
     theController->SetupTMS(6);
     theController->SetupTDI(5);
+    theController->SetupTDO(0);
   }
   //
 }

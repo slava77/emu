@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.20 2006/07/11 09:31:11 mey Exp $
+// $Id: VMEController.h,v 2.21 2006/07/11 12:46:43 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.21  2006/07/11 12:46:43  mey
+// UPdate
+//
 // Revision 2.20  2006/07/11 09:31:11  mey
 // Update
 //
@@ -97,6 +100,7 @@ public:
   inline void SetupTCK(int adr) { TCK_ = adr;}
   inline void SetupTMS(int adr) { TMS_ = adr;}
   inline void SetupTDI(int adr) { TDI_ = adr;}
+  inline void SetupTDO(int adr) { TDO_ = adr;}
 
   void start(int slot, int boardtype);
   void end();
@@ -115,10 +119,10 @@ public:
   void release_plev();
   void sdly();
   void RestoreIdle_alct();
-  void RestoreIdle_mpc();
-  void RestoreReset_mpc();
+  void RestoreIdle_jtag();
+  void RestoreReset_jtag();
   void scan_alct(int reg, const char *snd, int cnt, char *rcv,int ird);
-  void scan_mpc(int reg, const char *snd, int cnt, char *rcv,int ird);
+  void scan_jtag(int reg, const char *snd, int cnt, char *rcv,int ird);
   //
   bool SelfTest();
   bool exist(int slot);
@@ -174,7 +178,7 @@ private:
   int error_count;
   int DEBUG;
   int JtagBaseAddress_ ;
-  int TCK_, TMS_, TDI_;
+  int TCK_, TMS_, TDI_, TDO_;
  
  // I like to keep them private. 
   void load_cdac(const char *snd);
