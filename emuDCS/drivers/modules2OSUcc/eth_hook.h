@@ -12,6 +12,7 @@
 #define SCHAR_IOCTL_BASE	0xbb
 #define SCHAR_RESET     	_IO(SCHAR_IOCTL_BASE, 0)
 #define SCHAR_END		_IOR(SCHAR_IOCTL_BASE, 1, 0)
+#define SCHAR_INQR		_IOR(SCHAR_IOCTL_BASE, 6, 0)
 
 #define DEBUG
 
@@ -25,7 +26,7 @@
         ----------------------------------------------------------------------
         The following implements an interruptible wait_event
         with a timeout.  This is used instead of the function
-        interruptible_sleep_on_timeout() which is susceptible
+        interruptible_sleep_on_timeout() since this is susceptible
         to race conditions.
         ----------------------------------------------------------------------
 */

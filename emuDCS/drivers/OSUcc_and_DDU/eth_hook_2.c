@@ -64,7 +64,7 @@ static int schar_open_2(struct inode *inode, struct file *file);
 static int schar_release_2(struct inode *inode, struct file *file);
 void schar_nail_pages (void *kernel_address, int size);
 void schar_unnail_pages (void *kernel_address, int size); 
-void schar_reset_2();
+void schar_reset_2(void);
 
 static struct file_operations schar_fops = {
       write: schar_write_2,
