@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.69 2006/07/04 15:06:19 mey Exp $
+// $Id: TMB.cc,v 2.70 2006/07/11 13:02:42 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.70  2006/07/11 13:02:42  mey
+// fixed bug
+//
 // Revision 2.69  2006/07/04 15:06:19  mey
 // Fixed JTAG
 //
@@ -3406,8 +3409,8 @@ void TMB::start() {
 #ifdef debugV
   (*MyOutput_) << "starting to talk to TMB, device " << ucla_ldev << std::endl;
 #endif
-   // send the first signal
-  theController->SetupJtagBaseAddress(0x70000);
+  // send the first signal
+  SetupJtag();
   VMEModule::start();
   theController->initDevice(ucla_ldev, 0);
   theController->goToScanLevel();
