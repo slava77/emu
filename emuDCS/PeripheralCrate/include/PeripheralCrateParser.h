@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.h,v 2.2 2006/03/30 13:55:38 mey Exp $
+// $Id: PeripheralCrateParser.h,v 2.3 2006/07/11 14:49:28 mey Exp $
 // $Log: PeripheralCrateParser.h,v $
+// Revision 2.3  2006/07/11 14:49:28  mey
+// New Parser sturcture ready to go
+//
 // Revision 2.2  2006/03/30 13:55:38  mey
 // Update
 //
@@ -25,7 +28,7 @@
 #include "MPCParser.h"
 #include "DDUParser.h"
 #include "CSCParser.h"
-
+#include "EmuParser.h"
 
 class PeripheralCrateParser {
 

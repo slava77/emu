@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.cc,v 2.6 2006/03/30 13:55:38 mey Exp $
+// $Id: VMEParser.cc,v 2.7 2006/07/11 14:49:29 mey Exp $
 // $Log: VMEParser.cc,v $
+// Revision 2.7  2006/07/11 14:49:29  mey
+// New Parser sturcture ready to go
+//
 // Revision 2.6  2006/03/30 13:55:38  mey
 // Update
 //
@@ -27,8 +30,10 @@
 VMEParser::VMEParser(xercesc::DOMNode * pNode, int number)
 {
   int port;
+  //MvdM new Parser std::string VMEaddress;
   std::string ipAddress;
   parser_.parseNode(pNode);
+  //MvdM new parser parser_.fillString("VMEaddress",VMEaddress); 
   parser_.fillString("ipAddress",ipAddress); 
   parser_.fillInt("port",port);
   

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.cc,v 2.7 2006/05/17 14:16:45 mey Exp $
+// $Id: PeripheralCrateParser.cc,v 2.8 2006/07/11 14:49:29 mey Exp $
 // $Log: PeripheralCrateParser.cc,v $
+// Revision 2.8  2006/07/11 14:49:29  mey
+// New Parser sturcture ready to go
+//
 // Revision 2.7  2006/05/17 14:16:45  mey
 // Update
 //
@@ -119,39 +122,41 @@ void PeripheralCrateParser::parseFile(const char* name){
 	    if (debug) std::cout <<"PeripheralCrateParser: pNode2=" << xercesc::XMLString::transcode(pNode2->getNodeName()) << std::endl;
 	    if (strcmp("PeripheralCrate",xercesc::XMLString::transcode(pNode2->getNodeName()))){
 	      std::cout << "PeripheralCrateParser: WARNING - Wrong EmuSystem Child Element <"
-		   << xercesc::XMLString::transcode(pNode2->getNodeName()) << ">, should be <PeripheralCrate>" << std::endl; 
+			<< xercesc::XMLString::transcode(pNode2->getNodeName()) << ">, should be <PeripheralCrate>" << std::endl; 
 	    }      
-
+	    
 	    xercesc::DOMNamedNodeMap * pAttributes = pNode2->getAttributes();
 #ifdef debugV
 	    int attrCount = pAttributes->getLength();
 	    std::cout << "  number of attributes = " << attrCount << std::endl;
 #endif
-
+	    
 	    xercesc::DOMNode * e = pAttributes->getNamedItem(xercesc::XMLString::transcode("Crate"));
 	    crateNumber = atoi(xercesc::XMLString::transcode(e->getNodeValue()));
 #ifdef debugV
 	    std::cout << "  crateNumber = " << crateNumber << std::endl;
 #endif
 	    
+  
+	    //MvdM new Parser ready vmeParser_ = VMEParser(pNode2, crateNumber);                       
+
 	    xercesc::DOMNode * pNode3 = pNode2->getFirstChild(); 
 	    if (pNode3==0) std::cout << " Bad element "<< std::endl;
-      
+	    
 	    while(pNode3) {
 	      // the node was really a board of the peripheral crate like DMB, TMB, etc.
 	      if (pNode3->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
 		if (debug) std::cout <<"  "<< xercesc::XMLString::transcode(pNode3->getNodeName()) << std::endl;
 	      }
-
+	      
 	      if (strcmp("VME",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
-		vmeParser_ = VMEParser(pNode3, crateNumber);                       
-		Crate * crate = vmeParser_.crate();
-		crateNumber = crate->number();  
+		 vmeParser_ = VMEParser(pNode3, crateNumber);                       
+		//Crate * crate = vmeParser_.crate();
+		//crateNumber = crate->number();  
 		//
 	      }
 	      
 	      if (strcmp("CSC",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
-		std::cout << "CSC" << std::endl;
 		cscParser_ = CSCParser(pNode3, crateNumber);
 	      }
 
@@ -160,7 +165,6 @@ void PeripheralCrateParser::parseFile(const char* name){
 	      }
 	
 	      if (strcmp("TMB",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
-		std::cout << "Parsing TMB" <<std::endl ;
 		tmbParser_ = TMBParser(pNode3, crateNumber);
 	      }
 	
@@ -172,9 +176,9 @@ void PeripheralCrateParser::parseFile(const char* name){
 		mpcParser_ = MPCParser(pNode3, crateNumber);
 	      }
 
-	      if (strcmp("DDU",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
-		dduParser_ = DDUParser(pNode3, crateNumber);       
-	      }
+	      //if (strcmp("DDU",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
+	      //dduParser_ = DDUParser(pNode3, crateNumber);       
+	      //}
        
 	      pNode3 = pNode3->getNextSibling();
       
