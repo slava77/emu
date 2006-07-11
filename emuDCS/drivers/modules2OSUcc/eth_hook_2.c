@@ -16,19 +16,17 @@
 #include <linux/sched.h>
 #include <linux/timer.h>	/* for timers */
 #include <linux/fs.h>		/* file modes and device registration */
+
 #include <linux/poll.h>		/* for poll */
-#include <linux/wrapper.h>	/* mem_map_reserve,mem_map_unreserve */
 #include <linux/proc_fs.h>
 #include <linux/sysctl.h>
 #include <linux/init.h>
 
-#include <linux/spinlock.h>
+// #include <linux/spinlock.h>
 
 #include <linux/netdevice.h>   // struct device and dev_xxx()
 #include <linux/etherdevice.h> // eth_xxx()
 
-#include <asm/io.h>
-#include <linux/bigphysarea.h>
 
 #include "eth_hook_2.h"
 
@@ -38,11 +36,8 @@ static char *schar_name = NULL;
 
 
 /* forward declarations for _fops */
-void get_event_2(void);
-int cleanup_exit2_2(void);
 void cleanup_module(void);
 int netif_rx_hook_2(struct sk_buff *skb);
-int init_module2_2(void);
 int init_module(void);
 
 static ssize_t schar_read_2(struct file *file, char *buf, size_t count, loff_t *offset); 
@@ -51,7 +46,7 @@ static int schar_ioctl_2(struct inode *inode, struct file *file, unsigned int cm
 static int schar_open_2(struct inode *inode, struct file *file);
 static int schar_release_2(struct inode *inode, struct file *file);
 
-static spinlock_t eth_lock2;
+// static spinlock_t eth_lock2;
 
 static struct file_operations schar_fops_2 = {
 	read: schar_read_2, 
@@ -62,10 +57,8 @@ static struct file_operations schar_fops_2 = {
 };
 
 
-
-
  static wait_queue_head_t schar_wq_2;
- static wait_queue_head_t  schar_poll_read_2;
+// static wait_queue_head_t  schar_poll_read_2;
 
 
 /* sysctl entries */
@@ -118,6 +111,7 @@ static int wakecond_2={0};
 static int ERROR_2={0};
 //Added by Jinghua Liu
 static int wakestatus_2=0;
+static int pack_drop_2=0;
 
 static unsigned long int proc_rpackets_2;
 static unsigned long int proc_rbytesL_2;
@@ -136,26 +130,6 @@ MODULE_PARM_DESC(schar_name, "Name of device");
 MODULE_DESCRIPTION("schar2, Sample character with ethernet hook");
 MODULE_AUTHOR("S. Durkin");
 
-int init_module2_2(void)
-{ 
-  pnt_ring_2=kmalloc(MMT_BUF_SIZE,GFP_KERNEL);
-  if (!pnt_ring_2)printk(KERN_INFO "failed kmalloc\n");
-  pack_left_2=0;
-  bufw_2=pnt_ring_2;
-  nbufw_2=0;
-  bufr_2=pnt_ring_2;
-  ERROR_2=0;
-  return 0;
-}
-
-
-int cleanup_exit2_2(void)
-{
-  kfree(pnt_ring_2);
-  return 0;
-}
-
-
 
 int netif_rx_hook_2(struct sk_buff *skb)
 { 
@@ -163,6 +137,13 @@ int netif_rx_hook_2(struct sk_buff *skb)
   unsigned long int flags;
   // spin_lock_irqsave(&eth_lock,flags);
 // write length to first word
+  if(nbufw_2+skb->len+16 > MMT_BUF_SIZE)
+    { printk(KERN_INFO "eth_hook: out of memory, incoming packet dropped! \n");
+      pack_drop_2++;
+      ERROR_2=1;
+      kfree_skb(skb);
+      return 1;
+    }
   *(int *)bufw_2=skb->len+14;
   bufw_2=bufw_2+2;
 // fill bigphys memory and increment counters
@@ -174,10 +155,12 @@ int netif_rx_hook_2(struct sk_buff *skb)
   bufw_2=bufw_2+skb->len+14; 
   pack_left_2++; 
  
+/* We don't want to see a catastrophe, do we?
   if(nbufw_2+9000> MMT_BUF_SIZE){
         printk(KERN_CRIT "LSD: Catastropic Error! Overwrote memory! \n"); 
     ERROR_2=1;
   }
+*/
   //   spin_unlock_irqrestore(&eth_lock,flags);
 // wake from blocking sleep
   if(wakecond_2==0&&pack_left_2>0){
@@ -200,55 +183,52 @@ int netif_rx_hook_2(struct sk_buff *skb)
 }
 
 
-/*
-
-int netif_rx_hook(struct sk_buff *skb)
-{
-  kfree_skb(skb);
-  return 1;
-}
-
-*/
-
 /* ********************* schar driver taken from Linux Programming ***********
    2nd Edition, Richard Stones, Neil Mathews           */
-
-
 
 
 static int schar_ioctl_2(struct inode *inode, struct file *file,
 		       unsigned int cmd, unsigned long arg)
 {
 
+/*    printk(KERN_INFO "ioctl: inside ioctl \n"); */
+
 	/* make sure that the command is really one of schar's */
-	if (_IOC_TYPE(cmd) != SCHAR_IOCTL_BASE)
-		return -ENOTTY;
+	if (_IOC_TYPE(cmd) != SCHAR_IOCTL_BASE) {
+           printk(KERN_INFO "ioctl: not valid \n");
+           return -ENOTTY;
+	}
 		
 	switch (cmd) {
 
 		case SCHAR_RESET: {
                   pack_left_2=0;
+                  pack_drop_2=0;
                   bufw_2=pnt_ring_2;
                   nbufw_2=0;
                   bufr_2=pnt_ring_2;
                   ERROR_2=0;
-		//  printk(KERN_INFO "ioct:l SCHAR_RESET \n");
+		  printk(KERN_INFO "ioctl: SCHAR_RESET \n");
 		return 0;
 		}
 
 		case SCHAR_END: { 
-                if(wakecond_2==0){
-                  endcond_2=1;
-                  wakecond_2=1; 
-   		  wake_up_interruptible(&schar_wq_2);
-//		  wake_up_interruptible(&schar_poll_read_2);
-                } 
+                  if(wakecond_2==0){
+                    endcond_2=1;
+                    wakecond_2=1; 
+   		    wake_up_interruptible(&schar_wq_2);
+//		    wake_up_interruptible(&schar_poll_read_2);
+                  } 
 		// printk(KERN_INFO "ioct:l SCHAR_END %d  \n",blocking); 
 	        return 0;
 		}
 
-
-		default: {
+                case SCHAR_INQR: {
+                return (pack_left_2 & 0xffff) | (endcond_2<<16)
+                         | (wakecond_2<<20) | (wakestatus_2<<24) | (ERROR_2<<28);
+               }
+                                                                       
+       		default: {
 		  // MSG("ioctl: no such command\n");
 			return -ENOTTY;
 		}
@@ -277,16 +257,18 @@ static int schar_read_proc_2(ctl_table *ctl, int write, struct file *file,
 		}
 		return 0;
 	}
-	len += sprintf(schar_proc_string_2, "GIGABIT DRIVER SIMPLE JTAG\n\n");
+	len += sprintf(schar_proc_string_2, "GIGABIT SIMPLE CHAR DRIVER\n\n");
 	len += sprintf(schar_proc_string_2+len, " LEFT TO READ: \n");
         len += sprintf(schar_proc_string_2+len," pack_left\t\t%d packets\n",pack_left_2); 
 	len += sprintf(schar_proc_string_2+len, " wakestatus_2\t\t%d\n",wakestatus_2);
 	len += sprintf(schar_proc_string_2+len, " wakecond_2\t\t%d\n",wakecond_2);
 	len += sprintf(schar_proc_string_2+len, " endcond_2\t\t%d\n",endcond_2);
+        len += sprintf(schar_proc_string_2+len, " error_2\t\t%d\n",ERROR_2);
 	len += sprintf(schar_proc_string_2+len, " RECEIVE: \n");
 	len += sprintf(schar_proc_string_2+len, "  recieve\t\t%ld packets\n",proc_rpackets_2);
         len += sprintf(schar_proc_string_2+len, "  receive    \t\t\t%02d%09ld bytes\n",proc_rbytesH_2,proc_rbytesL_2); 
         len += sprintf(schar_proc_string_2+len, "  memory  \t\t\t%09d bytes\n",MMT_BUF_SIZE);
+        len += sprintf(schar_proc_string_2+len, "  dropped \t\t%d packets\n",pack_drop_2);
  	len += sprintf(schar_proc_string_2+len, " TRANSMIT: \n");
         len += sprintf(schar_proc_string_2+len, "  transmit\t\t%ld packets\n",proc_tpackets_2);
         len += sprintf(schar_proc_string_2+len, "  transmit    \t\t\t%02d%09ld bytes\n\n",proc_tbytesH_2,proc_tbytesL_2); 
@@ -309,8 +291,8 @@ static ssize_t schar_read_2(struct file *file, char *buf, size_t count,
                 wakestatus_2=1;
 //		interruptible_sleep_on(&schar_wq_2);
 // Modified by Jinghua Liu. Don't use interruptible_sleep_on.
-// Set the timeout to 1000 for now.
-                wait_event_interruptible_timeout(schar_wq_2, pack_left_2, 1000);
+// Set the timeout to 6000 for now.
+                wait_event_interruptible_timeout(schar_wq_2, pack_left_2, 6000);
                 wakestatus_2=3;
 		if (signal_pending(current))return -EINTR;
   }
@@ -351,6 +333,7 @@ static ssize_t schar_read_2(struct file *file, char *buf, size_t count,
 static int schar_open_2(struct inode *inode, struct file *file)
 {
 	/* increment usage count */
+/*  printk(KERN_INFO "opening"); */
 	MOD_INC_USE_COUNT;
 	return 0;
 }
@@ -366,8 +349,21 @@ static int schar_release_2(struct inode *inode, struct file *file)
 int init_module(void)
 {
 	int res;
+	
+/* initialise static variables */
 
-        init_module2_2();
+     pnt_ring_2=kmalloc(MMT_BUF_SIZE,GFP_KERNEL);
+     if (!pnt_ring_2)
+     {  printk(KERN_INFO "failed kmalloc\n");
+        return -EFAULT;
+     }
+     pack_left_2=0;
+     pack_drop_2=0;
+     bufw_2=pnt_ring_2;
+     nbufw_2=0;
+     bufr_2=pnt_ring_2;
+     ERROR_2=0;
+
 	if (schar_name == NULL)
 		schar_name = "schar2";
 		
@@ -386,15 +382,15 @@ int init_module(void)
 	// schar_root_dir->child->de->fill_inode = &schar_fill_inode;
 	
         init_waitqueue_head(&schar_wq_2);
-        init_waitqueue_head(&schar_poll_read_2);
+        // init_waitqueue_head(&schar_poll_read_2);
 
 	return 0;
 }
 
 void cleanup_module(void)
 {
+        if(pnt_ring_2) kfree(pnt_ring_2);
 	/* unregister device and proc entry */
-  cleanup_exit2_2();
 	unregister_chrdev(SCHAR_MAJOR, "schar2");
 	if (schar_root_header_2)
 		unregister_sysctl_table(schar_root_header_2);
@@ -437,7 +433,7 @@ static ssize_t schar_write_2(struct file *file, const char *buf, size_t count,
                 
   err = -EMSGSIZE;
   if(len>dev->mtu+dev->hard_header_len)
-    {printk(KERN_INFO "len to large \n");goto out_unlock;}
+    {printk(KERN_INFO "len too large \n");goto out_unlock;}
      
   err = -ENOBUFS;
   //  skb = sock_wmalloc(sk, len+dev->hard_header_len+15, 0, GFP_KERNEL);
@@ -523,4 +519,3 @@ static ssize_t schar_write_2(struct file *file, const char *buf, size_t count,
       // kfree(sbuf);           
   return -EFAULT;
 }
-

@@ -16,19 +16,17 @@
 #include <linux/sched.h>
 #include <linux/timer.h>	/* for timers */
 #include <linux/fs.h>		/* file modes and device registration */
+
 #include <linux/poll.h>		/* for poll */
-#include <linux/wrapper.h>	/* mem_map_reserve,mem_map_unreserve */
 #include <linux/proc_fs.h>
 #include <linux/sysctl.h>
 #include <linux/init.h>
 
-#include <linux/spinlock.h>
+// #include <linux/spinlock.h>
 
 #include <linux/netdevice.h>   // struct device and dev_xxx()
 #include <linux/etherdevice.h> // eth_xxx()
 
-#include <asm/io.h>
-#include <linux/bigphysarea.h>
 
 #include "eth_hook.h"
 
@@ -38,11 +36,8 @@ static char *schar_name = NULL;
 
 
 /* forward declarations for _fops */
-void get_event(void);
-int cleanup_exit2(void);
 void cleanup_module(void);
 int netif_rx_hook(struct sk_buff *skb);
-int init_module2(void);
 int init_module(void);
 
 static ssize_t schar_read(struct file *file, char *buf, size_t count, loff_t *offset); 
@@ -51,7 +46,7 @@ static int schar_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
 static int schar_open(struct inode *inode, struct file *file);
 static int schar_release(struct inode *inode, struct file *file);
 
-static spinlock_t eth_lock;
+// static spinlock_t eth_lock;
 
 static struct file_operations schar_fops = {
 	read: schar_read, 
@@ -62,10 +57,8 @@ static struct file_operations schar_fops = {
 };
 
 
-
-
  static wait_queue_head_t schar_wq;
- static wait_queue_head_t  schar_poll_read;
+// static wait_queue_head_t  schar_poll_read;
 
 
 /* sysctl entries */
@@ -118,6 +111,7 @@ static int wakecond={0};
 static int ERROR={0};
 //Added by Jinghua Liu
 static int wakestatus=0;
+static int pack_drop=0;
 
 static unsigned long int proc_rpackets;
 static unsigned long int proc_rbytesL;
@@ -136,26 +130,6 @@ MODULE_PARM_DESC(schar_name, "Name of device");
 MODULE_DESCRIPTION("schar, Sample character with ethernet hook");
 MODULE_AUTHOR("S. Durkin");
 
-int init_module2(void)
-{ 
-  pnt_ring=kmalloc(MMT_BUF_SIZE,GFP_KERNEL);
-  if (!pnt_ring)printk(KERN_INFO "failed kmalloc\n");
-  pack_left=0;
-  bufw=pnt_ring;
-  nbufw=0;
-  bufr=pnt_ring;
-  ERROR=0;
-  return 0;
-}
-
-
-int cleanup_exit2(void)
-{
-  kfree(pnt_ring);
-  return 0;
-}
-
-
 
 int netif_rx_hook(struct sk_buff *skb)
 { 
@@ -163,6 +137,13 @@ int netif_rx_hook(struct sk_buff *skb)
   unsigned long int flags;
   // spin_lock_irqsave(&eth_lock,flags);
 // write length to first word
+  if(nbufw+skb->len+16 > MMT_BUF_SIZE)
+  { printk(KERN_INFO "eth_hook: out of memory, incoming packet dropped! \n");
+    pack_drop++;
+    ERROR=1;
+    kfree_skb(skb);
+    return 1;
+  }
   *(int *)bufw=skb->len+14;
   bufw=bufw+2;
 // fill bigphys memory and increment counters
@@ -173,10 +154,13 @@ int netif_rx_hook(struct sk_buff *skb)
   nbufw=nbufw+skb->len+16;
   bufw=bufw+skb->len+14; 
   pack_left=pack_left+1; 
+
+/* We don't want to see a catastrophe, do we?
   if(nbufw+9000> MMT_BUF_SIZE){
         printk(KERN_CRIT "LSD: Catastropic Error! Overwrote memory! \n"); 
     ERROR=1;
   }
+*/
   //   spin_unlock_irqrestore(&eth_lock,flags);
 // wake from blocking sleep
   if(wakecond==0&&pack_left>0){
@@ -199,39 +183,32 @@ int netif_rx_hook(struct sk_buff *skb)
 }
 
 
-/*
-
-int netif_rx_hook(struct sk_buff *skb)
-{
-  kfree_skb(skb);
-  return 1;
-}
-
-*/
-
 /* ********************* schar driver taken from Linux Programming ***********
    2nd Edition, Richard Stones, Neil Mathews           */
-
-
 
 
 static int schar_ioctl(struct inode *inode, struct file *file,
 		       unsigned int cmd, unsigned long arg)
 {
 
+/*    printk(KERN_INFO "ioctl: inside ioctl \n"); */
+
 	/* make sure that the command is really one of schar's */
-	if (_IOC_TYPE(cmd) != SCHAR_IOCTL_BASE)
-		return -ENOTTY;
+  if (_IOC_TYPE(cmd) != SCHAR_IOCTL_BASE){
+    printk(KERN_INFO "ioctl: not valid \n");
+    return -ENOTTY;
+  }
 		
 	switch (cmd) {
 
 		case SCHAR_RESET: {
                   pack_left=0;
+                  pack_drop=0;
                   bufw=pnt_ring;
                   nbufw=0;
                   bufr=pnt_ring;
                   ERROR=0;
-		//  printk(KERN_INFO "ioct:l SCHAR_RESET \n");
+		  printk(KERN_INFO "ioctl: SCHAR_RESET \n");
 		return 0;
 		}
 
@@ -246,6 +223,10 @@ static int schar_ioctl(struct inode *inode, struct file *file,
 	        return 0;
 		}
 
+                case SCHAR_INQR: {
+                return (pack_left & 0xffff) | (endcond<<16) 
+                       | (wakecond<<20) | (wakestatus<<24) | (ERROR<<28);
+                }
 
 		default: {
 		  // MSG("ioctl: no such command\n");
@@ -276,22 +257,23 @@ static int schar_read_proc(ctl_table *ctl, int write, struct file *file,
 		}
 		return 0;
 	}
-	len += sprintf(schar_proc_string, "GIGABIT DRIVER SIMPLE JTAG\n\n");
+	len += sprintf(schar_proc_string, "GIGABIT SIMPLE CHAR DRIVER\n\n");
 	len += sprintf(schar_proc_string+len, " LEFT TO READ: \n");
         len += sprintf(schar_proc_string+len," pack_left\t\t%d packets\n",pack_left); 
 	len += sprintf(schar_proc_string+len, " wakestatus\t\t%d\n",wakestatus);
 	len += sprintf(schar_proc_string+len, " wakecond\t\t%d\n",wakecond);
 	len += sprintf(schar_proc_string+len, " endcond\t\t%d\n",endcond);
+	len += sprintf(schar_proc_string+len, " error\t\t%d\n",ERROR);
 	len += sprintf(schar_proc_string+len, " RECEIVE: \n");
 	len += sprintf(schar_proc_string+len, "  recieve\t\t%ld packets\n",proc_rpackets);
         len += sprintf(schar_proc_string+len, "  receive    \t\t\t%02d%09ld bytes\n",proc_rbytesH,proc_rbytesL); 
         len += sprintf(schar_proc_string+len, "  memory  \t\t\t%09d bytes\n",MMT_BUF_SIZE);
+	len += sprintf(schar_proc_string+len, "  dropped \t\t%d packets\n",pack_drop);
  	len += sprintf(schar_proc_string+len, " TRANSMIT: \n");
         len += sprintf(schar_proc_string+len, "  transmit\t\t%ld packets \n",proc_tpackets);
         len += sprintf(schar_proc_string+len, "  transmit    \t\t\t%02d%09ld bytes\n\n",proc_tbytesH,proc_tbytesL); 
 	*lenp = len;
 	return proc_dostring(ctl, write, file, buffer, lenp);
-	
 	
 }
 
@@ -351,9 +333,11 @@ static ssize_t schar_read(struct file *file, char *buf, size_t count,
 static int schar_open(struct inode *inode, struct file *file)
 {
 	/* increment usage count */
+/*  printk(KERN_INFO "opening"); */
 	MOD_INC_USE_COUNT;
 	return 0;
 }
+
 static int schar_release(struct inode *inode, struct file *file)
 {
 	MOD_DEC_USE_COUNT;
@@ -365,7 +349,21 @@ static int schar_release(struct inode *inode, struct file *file)
 int init_module(void)
 {
 	int res;
-        init_module2();
+
+/* initialise static variables */
+
+     pnt_ring=kmalloc(MMT_BUF_SIZE,GFP_KERNEL);
+     if(!pnt_ring)
+     {  printk(KERN_INFO "failed kmalloc\n");
+        return -EFAULT;
+     }
+     pack_left=0;
+     pack_drop=0;
+     bufw=pnt_ring;
+     nbufw=0;
+     bufr=pnt_ring;
+     ERROR=0;
+
 	if (schar_name == NULL)
 		schar_name = "schar";
 		
@@ -384,16 +382,15 @@ int init_module(void)
 	// schar_root_dir->child->de->fill_inode = &schar_fill_inode;
 	
         init_waitqueue_head(&schar_wq);
-        init_waitqueue_head(&schar_poll_read);
-
+        // init_waitqueue_head(&schar_poll_read);
 
 	return 0;
 }
 
 void cleanup_module(void)
 {
+        if(pnt_ring) kfree(pnt_ring);
 	/* unregister device and proc entry */
-  cleanup_exit2();
 	unregister_chrdev(SCHAR_MAJOR, "schar");
 	if (schar_root_header)
 		unregister_sysctl_table(schar_root_header);
@@ -410,7 +407,6 @@ static ssize_t schar_write(struct file *file, const char *buf, size_t count,
   // char *sbuf;
   // char *pnt2;
   // unsigned char *addr;
-  // unsigned long int flags;
   int len;
   int err;
   int i;
@@ -422,9 +418,8 @@ static ssize_t schar_write(struct file *file, const char *buf, size_t count,
      the following line. Ben's controller cannot seem to 
      handle too many packets too close together! I am
      consulting Ben... */
-  // for(i=0;i<3000000;i++);
+  for(i=0;i<30000;i++);
   // sbuf=kmalloc(9000,GFP_KERNEL);
-  // spin_lock(&eth_lock);
   len=count;
   dev=dev_get_by_name("eth2");
   err=-ENODEV;
@@ -438,7 +433,7 @@ static ssize_t schar_write(struct file *file, const char *buf, size_t count,
                 
   err = -EMSGSIZE;
   if(len>dev->mtu+dev->hard_header_len)
-    {printk(KERN_INFO "len to large \n");goto out_unlock;}
+    {printk(KERN_INFO "len too large \n");goto out_unlock;}
      
   err = -ENOBUFS;
   //  skb = sock_wmalloc(sk, len+dev->hard_header_len+15, 0, GFP_KERNEL);
@@ -504,7 +499,7 @@ static ssize_t schar_write(struct file *file, const char *buf, size_t count,
 /*
 *      Now send it
 */
-   // spin_unlock(&eth_lock);     
+     
    dev_queue_xmit(skb);
    dev_put(dev); 
 
@@ -518,11 +513,9 @@ static ssize_t schar_write(struct file *file, const char *buf, size_t count,
    return count;
      
    out_free:
-   // printk(KERN_INFO " lost packet so let's quit \n");
    kfree_skb(skb);
    out_unlock:
      // if (dev)dev_put(dev);
       // kfree(sbuf);           
   return -EFAULT;
 }
-
