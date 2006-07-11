@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.70 2006/07/11 13:02:42 mey Exp $
+// $Id: TMB.cc,v 2.71 2006/07/11 13:23:15 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.71  2006/07/11 13:23:15  mey
+// Update
+//
 // Revision 2.70  2006/07/11 13:02:42  mey
 // fixed bug
 //
@@ -3372,19 +3375,19 @@ void TMB::firmwareVersion()
 {
   sndbuf[0]=0x00;
   sndbuf[1]=0x00;
-  tmb_vme(VME_READ,0x00,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_READ,vme_idreg0_adr,sndbuf,rcvbuf,NOW);
   printf(" TMB Version %02x%02x \n", rcvbuf[0]&0xff, rcvbuf[1]&0xff);
   sndbuf[0]=0x00;
   sndbuf[1]=0x00;
-  tmb_vme(VME_READ,0x02,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_READ,vme_idreg1_adr,sndbuf,rcvbuf,NOW);
   printf(" TMB month/date %02x/%02x \n", rcvbuf[0]&0xff, rcvbuf[1]&0xff);
   sndbuf[0]=0x00;
   sndbuf[1]=0x00;
-  tmb_vme(VME_READ,0x04,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_READ,vme_idreg2_adr,sndbuf,rcvbuf,NOW);
   printf(" TMB year %02x%02x \n", rcvbuf[0]&0xff, rcvbuf[1]&0xff);
   sndbuf[0]=0x00;
   sndbuf[1]=0x00;
-  tmb_vme(VME_READ,0x06,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_READ,vme_idreg3_adr,sndbuf,rcvbuf,NOW);
   printf(" TMB revision %02x%02x \n", rcvbuf[0]&0xff, rcvbuf[1]&0xff);
 }
 
@@ -3393,7 +3396,7 @@ void TMB::setLogicAnalyzerToDataStream(bool yesorno) {
   //Enable/Disable Logic Analyzer in data stream
   sndbuf[0]=0x00;
   sndbuf[1] = yesorno ? 0x38 : 0x18;
-  tmb_vme(VME_WRITE,0x98,sndbuf,rcvbuf,NOW); // Scope Readout
+  tmb_vme(VME_WRITE,scp_ctrl_adr,sndbuf,rcvbuf,NOW); // Scope Readout
 }
 
 
