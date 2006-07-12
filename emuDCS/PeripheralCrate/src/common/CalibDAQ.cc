@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.41 2006/07/12 12:07:11 mey Exp $
+// $Id: CalibDAQ.cc,v 2.42 2006/07/12 12:28:02 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.42  2006/07/12 12:28:02  mey
+// Update
+//
 // Revision 2.41  2006/07/12 12:07:11  mey
 // ALCT connectivity
 //
@@ -639,11 +642,14 @@ void CalibDAQ::ALCTThresholdScan() {
 	ccb->EnableL1aCounter();
 	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
 	for (unsigned i=0; i<myTmbs.size(); i++) {
-	  myTmbs[i]->alctController()->set_l1a_delay(83);
+	  myTmbs[i]->alctController()->SetL1aDelay(83);
 	  myTmbs[i]->lvl1_delay(70);
 	  //myTmbs[i]->ResetCounters();
-	  myTmbs[i]->alctController()->set_empty(0);
-	  myTmbs[i]->alctController()->set_l1a_internal(0);
+	  myTmbs[i]->alctController()->SetSendEmpty(0);
+	  myTmbs[i]->alctController()->SetL1aInternal(0);
+	  myTmbs[i]->alctController()->SetPretrigNumberOfLayers(1);
+	  myTmbs[i]->alctController()->SetPretrigNumberOfPattern(1);
+	  myTmbs[i]->alctController()->setConfig();
 	  //
 	  ALCTController * alct = myTmbs[i]->alctController() ;
 	  //
