@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.43 2006/07/04 15:06:19 mey Exp $
+// $Id: CCB.cc,v 2.44 2006/07/12 07:58:18 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.44  2006/07/12 07:58:18  mey
+// Update
+//
 // Revision 2.43  2006/07/04 15:06:19  mey
 // Fixed JTAG
 //
@@ -749,6 +752,14 @@ void CCB::writeI2C(int data){
   //
 }
 //
+void CCB::start() {
+  // send the first signal
+  SetupJtag();
+  VMEModule::start();
+  theController->initDevice(1, 0);
+  theController->goToScanLevel();
+}
+//
 void CCB::startI2C(){
   //
   sndbuf[0]=0x00;
@@ -1313,6 +1324,7 @@ void CCB::firmwareVersion(){
   /// report the firmware version
   do_vme(VME_READ,CSRB17,sndbuf,rcvbuf,NOW);  
   int versionWord = (rcvbuf[0]<<8) + (rcvbuf[1]&0xFF);
+  std::cout << std::hex << "Word=" << versionWord << std::endl;
   int day   =  versionWord & 0x1F;
   int month = (versionWord >> 5   ) & 0xF;
   int year  = (versionWord >>(5+4)) + 2000;

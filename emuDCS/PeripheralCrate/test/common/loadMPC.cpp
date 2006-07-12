@@ -42,7 +42,7 @@ int main(int argc,char **argv){
   printf("Programming...");
   //
   //int status = mpc->SVFLoad(&jch,"../svf/mpc_erase.svf",debugMode);
-  int status = mpc->SVFLoad(&jch,"../svf/mpc2004id2_042606.svf",debugMode);
+  int status = mpc->svfLoad(&jch,"../svf/mpc2004id2_042606.svf",debugMode);
   //
   ccb->configure();
   //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.16 2006/07/05 09:29:18 mey Exp $
+// $Id: MPC.h,v 2.17 2006/07/12 07:58:18 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.17  2006/07/12 07:58:18  mey
+// Update
+//
 // Revision 2.16  2006/07/05 09:29:18  mey
 // Update
 //
@@ -84,9 +87,6 @@ class MPC : public VMEModule {
   unsigned int boardType() const {return MPC_ENUM;} 
   //
   void start();
-  //
-  void Parse(char *buf,int *Count,char **Word);
-  int  SVFLoad(int*, const char *, int);
   //
   bool SelfTest();
   void configure();  
