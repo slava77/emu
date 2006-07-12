@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.38 2006/07/04 15:06:19 mey Exp $
+// $Id: ALCTController.cc,v 2.39 2006/07/12 12:07:11 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.39  2006/07/12 12:07:11  mey
+// ALCT connectivity
+//
 // Revision 2.38  2006/07/04 15:06:19  mey
 // Fixed JTAG
 //
@@ -1186,11 +1189,12 @@ void ALCTController::GeneratePattern (int WG, int clear)
         }
 }
 //
-void ALCTController::SetUpPulsing(long int Amplitude){
+void ALCTController::SetUpPulsing(long int Amplitude, int StripAfeb,long int stripMask){
   //
-  long int StripMask = 0x3f;
   long int PowerUp   = 1 ;
+  //
   //long int Amplitude = 0x3f;
+  long int StripMask;
   //
   int slot=tmb_->slot();
   //
@@ -1207,13 +1211,16 @@ void ALCTController::SetUpPulsing(long int Amplitude){
   alct_read_test_pulse_stripmask(&slot,&StripMask);
   std::cout << " StripMask = " << std::hex << StripMask << std::endl;
   //
-  //if (GetChamberType().find("ME11")!=std::string::npos) {
+  if(StripAfeb == 0 ) {
     alct_set_test_pulse_stripmask(&slot,0x00);
     alct_set_test_pulse_groupmask(&slot,0xff);
-    //} else {
-    //alct_set_test_pulse_stripmask(&slot,0x3f);
-    //alct_set_test_pulse_groupmask(&slot,0x00);
-    //}
+  }
+  else if (StripAfeb == 1 ) {
+    alct_set_test_pulse_stripmask(&slot,stripMask);
+    alct_set_test_pulse_groupmask(&slot,0x00);
+  } else {
+    std::cout << "ALCTcontroller.SetUpPulsing : Don't know this option" <<std::endl;
+  }
   //
   alct_read_test_pulse_stripmask(&slot,&StripMask);
   std::cout << " StripMask = " << std::hex << StripMask << std::endl;

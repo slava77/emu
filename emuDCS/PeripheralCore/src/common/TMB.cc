@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.71 2006/07/11 13:23:15 mey Exp $
+// $Id: TMB.cc,v 2.72 2006/07/12 12:07:11 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.72  2006/07/12 12:07:11  mey
+// ALCT connectivity
+//
 // Revision 2.71  2006/07/11 13:23:15  mey
 // Update
 //
@@ -2265,11 +2268,13 @@ void TMB::ResetALCTRAMAddress(){
    //Clear RAM address for next event
    //
    int adr, wr_data, rd_data;
+   int busy=0;
    //
    tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
-   while ( rcvbuf[1]&0x1 != 0 ){
+   while ( rcvbuf[1]&0x1 != 0 && busy < 20 ){
      (*MyOutput_) << "1.Waiting for busy to clear" <<std::endl;
-     tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
+     tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);
+     busy++;
    }
    //
    adr = alctfifo1_adr ;
