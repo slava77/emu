@@ -118,8 +118,9 @@ public:
     counter_ = 0;
 
     this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
-	timer_ = toolbox::task::getTimerFactory()->getTimer("MonitoringProducerTimer");
-	timer_->stop();
+    //
+    //timer_ = toolbox::task::getTimerFactory()->getTimer("MonitoringProducerTimer");
+    //timer_->stop();
     //
   }  
   //
