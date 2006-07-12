@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.21 2006/05/19 12:46:48 mey Exp $
+// $Id: CCB.h,v 2.22 2006/07/12 07:58:18 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.22  2006/07/12 07:58:18  mey
+// Update
+//
 // Revision 2.21  2006/05/19 12:46:48  mey
 // Update
 //
@@ -161,8 +164,9 @@ public:
   //
   /// mostly for GUIs
   void executeCommand(std::string command);
-  //friend class CCBParser;
-
+  //
+  void start();
+  //
   int TTC; 
   int CLK_INIT_FLAG; 
   int CCB_CSR1_SAV;

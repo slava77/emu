@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.18 2006/07/11 09:31:11 mey Exp $
+// $Id: VMEModule.h,v 2.19 2006/07/12 07:58:18 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.19  2006/07/12 07:58:18  mey
+// Update
+//
 // Revision 2.18  2006/07/11 09:31:11  mey
 // Update
 //
@@ -87,6 +90,9 @@ public:
   virtual bool SelfTest() = 0;
   virtual void init() = 0;
   virtual void configure() = 0;
+
+  void Parse(char *buf,int *Count,char **Word);
+  int  svfLoad(int*, const char *, int);
 
   VMEController* getTheController();
 
