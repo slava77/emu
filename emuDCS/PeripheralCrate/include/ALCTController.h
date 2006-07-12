@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.16 2006/06/23 13:40:25 mey Exp $
+// $Id: ALCTController.h,v 2.17 2006/07/12 12:07:11 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.17  2006/07/12 12:07:11  mey
+// ALCT connectivity
+//
 // Revision 2.16  2006/06/23 13:40:25  mey
 // Fixed bug
 //
@@ -187,7 +190,7 @@ public:
   void SetConf(  unsigned cr[3], int );
   int  GetWGNumber();
   void SetUpRandomALCT();
-  void SetUpPulsing(long int Amplitude = 0x3f);
+  void SetUpPulsing(long int Amplitude = 0x3f, int StripAfeb = 0, long int StripMask = 0x3f);
   void packControlRegister(unsigned * cr) const;
   /// fills the relevant data members
   void unpackControlRegister(unsigned * cr);
@@ -589,6 +592,8 @@ public:
   void SetPatternFile(std::string file){alctPatternFile = file;}
   void SetHotChannelFile(std::string file){alctHotChannelFile = file;}
   //
+  void setConfig();
+
   void set_l1a_delay(int delay);
   //
   protected:
@@ -668,7 +673,6 @@ public:
   /// makes crParams_ point to the relevant data fields
   void setCRfld(alct_params_type* params);
 
-  void setConfig();
 
 };
   

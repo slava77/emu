@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.104 2006/07/04 15:06:18 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.105 2006/07/12 12:07:11 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -292,6 +292,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBPedestal, "CalibrationCFEBPedestal");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationComparatorPulse, "CalibrationComparatorPulse");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationALCTThresholdScan, "CalibrationALCTThresholdScan");
+    xgi::bind(this,&EmuPeripheralCrate::CalibrationALCTConnectivity, "CalibrationALCTConnectivity");
     xgi::bind(this,&EmuPeripheralCrate::LaunchMonitor, "LaunchMonitor");
     xgi::bind(this,&EmuPeripheralCrate::CrateTMBCounters, "CrateTMBCounters");
     xgi::bind(this,&EmuPeripheralCrate::CrateDMBCounters, "CrateDMBCounters");
@@ -968,6 +969,12 @@ private:
     *out << cgicc::input().set("type","submit").set("value","Calibration ALCT : Threshold Scan") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
+    std::string CalibrationALCTConnectivity =
+      toolbox::toString("/%s/CalibrationALCTConnectivity",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CalibrationALCTConnectivity) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Calibration ALCT : Connectivity") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
     std::string CalibrationComparatorPulse =
       toolbox::toString("/%s/CalibrationComparatorPulse",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",CalibrationComparatorPulse) << std::endl ;
@@ -1406,6 +1413,18 @@ private:
     CalibDAQ calib;
     //
     calib.ALCTThresholdScan();
+    //
+    this->Default(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::CalibrationALCTConnectivity(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    CalibDAQ calib;
+    //
+    calib.ALCTConnectivity();
     //
     this->Default(in,out);
     //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.40 2006/06/03 19:31:04 mey Exp $
+// $Id: CalibDAQ.cc,v 2.41 2006/07/12 12:07:11 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.41  2006/07/12 12:07:11  mey
+// ALCT connectivity
+//
 // Revision 2.40  2006/06/03 19:31:04  mey
 // UPdate
 //
@@ -684,6 +687,84 @@ void CalibDAQ::ALCTThresholdScan() {
       }
       //
     }
+  }
+  //
+}
+//
+void CalibDAQ::ALCTConnectivity() { 
+  //
+  int counter    [300][9];
+  int counterC   [300][9];
+  int DMBCounter [300][9];
+  int DMBCounter0[300][9];
+  //
+  int nmin=0;
+  int nmax=200;
+  int Counter=0;
+  //
+  int Npulses = 10;
+  //
+  for(int i=0; i<300;i++) for(int j=0;j<9;j++) {
+    counter[i][j]     = 0;
+    counterC[i][j]     = 0;
+    DMBCounter[i][j]  = 0;
+    DMBCounter0[i][j] = 0;
+  }
+  //
+  std::vector<Crate*> myCrates = theSelector.crates();
+  //
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
+    //
+    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+    usleep(100);
+  }
+  //
+  for (int npulses=0; npulses<Npulses; npulses++) {
+    for(int layer=0; layer<6; layer++){
+      for(unsigned j = 0; j < myCrates.size(); j++) {
+	CCB * ccb = myCrates[j]->ccb();
+	ccb->ResetL1aCounter();
+	ccb->EnableL1aCounter();
+	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
+	for (unsigned i=0; i<myTmbs.size(); i++) {
+	  myTmbs[i]->alctController()->SetL1aDelay(83);
+	  myTmbs[i]->lvl1_delay(70);
+	  //myTmbs[i]->ResetCounters();
+	  myTmbs[i]->alctController()->SetSendEmpty(0);
+	  myTmbs[i]->alctController()->SetL1aInternal(0);
+	  myTmbs[i]->alctController()->SetPretrigNumberOfLayers(1);
+	  myTmbs[i]->alctController()->SetPretrigNumberOfPattern(1);
+	  myTmbs[i]->alctController()->setConfig();
+	  //
+	  ALCTController * alct = myTmbs[i]->alctController() ;
+	  //
+	  myTmbs[i]->alctController()->SetUpPulsing(0x3c,1,(1<<layer));
+	  myTmbs[i]->SetCLCTPatternTrigger();
+	}
+      }
+      //
+      pulseAllWires();
+      Counter++;
+      //
+      std::cout << "Event = " << Counter <<std::endl;
+      //
+      for(unsigned j = 0; j < myCrates.size(); j++) {
+	CCB * ccb = myCrates[j]->ccb();
+	//
+	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
+	std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
+	for (unsigned i=0; i<myTmbs.size(); i++) {
+	  myTmbs[i]->GetCounters();
+	  //
+	  myTmbs[i]->PrintCounters();
+	  //
+	}
+	for (unsigned i=0; i<myDmbs.size(); i++) {
+	  myDmbs[i]->PrintCounters();
+	}
+      }
+    }
+    //
   }
   //
 }

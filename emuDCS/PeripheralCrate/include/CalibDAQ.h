@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.h,v 2.11 2006/05/23 14:11:11 mey Exp $
+// $Id: CalibDAQ.h,v 2.12 2006/07/12 12:07:11 mey Exp $
 // $Log: CalibDAQ.h,v $
+// Revision 2.12  2006/07/12 12:07:11  mey
+// ALCT connectivity
+//
 // Revision 2.11  2006/05/23 14:11:11  mey
 // Update
 //
@@ -65,6 +68,7 @@ public:
   void FindL1aDelayComparator();
   void FindL1aDelayALCT();
   void ALCTThresholdScan();
+  void ALCTConnectivity();
 
   CrateSelector & selector() {return theSelector;}
 
