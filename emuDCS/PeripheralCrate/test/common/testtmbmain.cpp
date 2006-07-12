@@ -14,7 +14,6 @@
 #include "PeripheralCrateParser.h"
 #include "ChamberUtilities.h"
 #include "TMB_constants.h"
-#include "ALCTController.h"
 #include "ALCTnew.h"
 
 int  FindTMB_L1A_delay(int,int);
@@ -101,11 +100,10 @@ int main() {
   thisTMB = tmbVector[0];
   thisDMB = dmbVector[0];
   thisMPC = thisCrate->mpc();
-  DDU * thisDDU = thisCrate->ddu();
+  //  DDU * thisDDU = thisCrate->ddu();
   myRat = new RAT(thisTMB);
 
-  OldAlct = new ALCTController(thisTMB,"ME21");
-  NewAlct = new ALCTnew(thisTMB,"ME21");
+  NewAlct = new ALCTController(thisTMB,"ME21");
 
   // point the TMBTester to the classes we need:
   TMBTester testTMB;
@@ -200,12 +198,6 @@ int main() {
 	      << std::endl;
     std::cout << "190: Read standby register    191:Set standby                199:Set power-up standby register"
 	      << std::endl;
-    std::cout << std::endl;
-    //
-    std::cout << " .... Old ALCT .... " << std::endl;
-    std::cout << "900: Setup"
-	      << std::endl;
-    //
     std::cout << std::endl;
     //
     std::cout << "1000:Exit " << std::endl;
@@ -417,7 +409,7 @@ int main() {
       break;
       //
     case 100:
-      NewAlct->setup();
+      NewAlct->configure();
       break;
     case 101:
       NewAlct->ReadSlowControlId();
@@ -656,9 +648,6 @@ int main() {
       NewAlct->WriteStandbyRegister();      
       NewAlct->ReadStandbyRegister();
       NewAlct->PrintStandbyRegister();
-      break;
-    case 900:
-      OldAlct->setup(1);
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 
