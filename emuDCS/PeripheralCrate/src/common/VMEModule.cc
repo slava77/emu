@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.26 2006/07/13 15:46:37 mey Exp $
+// $Id: VMEModule.cc,v 2.27 2006/07/13 15:52:22 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.27  2006/07/13 15:52:22  mey
+// New Parser structure
+//
 // Revision 2.26  2006/07/13 15:46:37  mey
 // New Parser strurture
 //
@@ -82,7 +85,6 @@
 #include "VMEController.h"
 #include "Crate.h"
 #include "CrateSetup.h"
-#include "Singleton.h"
 #include <cmath>
 #include <string>
 #include <stdio.h>
@@ -104,10 +106,10 @@ VMEModule::VMEModule(Crate * theCrate, int newslot):
 {
   theCrate_ = theCrate;
   //
-  #ifdef debugV
-    cout << "creating VMEModule in crate " << theCrate->number() << endl;
-  #endif 
-    theController = theCrate->vmeController();
+#ifdef debugV
+  cout << "creating VMEModule in crate " << theCrate->number() << endl;
+#endif 
+  theController = theCrate->vmeController();
   theCrate->addModule(this);
 }
 

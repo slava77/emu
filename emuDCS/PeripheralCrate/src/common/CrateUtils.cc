@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateUtils.cc,v 1.3 2006/03/23 08:24:58 mey Exp $
+// $Id: CrateUtils.cc,v 1.4 2006/07/13 15:53:03 mey Exp $
 // $Log: CrateUtils.cc,v $
+// Revision 1.4  2006/07/13 15:53:03  mey
+// New Parser structure
+//
 // Revision 1.3  2006/03/23 08:24:58  mey
 // Update
 //
@@ -25,7 +28,6 @@
 #include "RAT.h"
 #include "Crate.h"
 #include "CrateSetup.h"
-#include "Singleton.h"
 #include "VMEController.h"
 #include "JTAG_constants.h"
 #include <string>
