@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.72 2006/07/12 12:07:11 mey Exp $
+// $Id: TMB.cc,v 2.73 2006/07/13 15:46:37 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.73  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.72  2006/07/12 12:07:11  mey
 // ALCT connectivity
 //
@@ -232,8 +235,8 @@
 // the VME addresses here are defined in
 // http://www-collider.physics.ucla.edu/cms/trigger/tmb2001/tmb2001_spec.pdf
 
-TMB::TMB(int newcrate, int slot) :
-  VMEModule(newcrate, slot),
+TMB::TMB(Crate * theCrate, int slot) :
+  VMEModule(theCrate, slot),
   EMUjtag(this),
   ucla_ldev(1),
   cfeb0delay_(7),
@@ -4108,7 +4111,7 @@ int TMB::tmb_enable_vme_commands(int flag_enable)
 
 
 std::ostream & operator<<(std::ostream & os, TMB & tmb) {
-  os << std::dec << "TMB: crate " << tmb.theCrate
+  os << std::dec << "TMB: crate " << tmb.theCrate_
      << " slot " << tmb.theSlot << "\n"
      << std::hex << "  cfeb delays (hex) " << tmb.cfeb0delay_ << " " 
      << tmb.cfeb1delay_ << " " << tmb.cfeb2delay_ << " " 

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCBParser.cc,v 2.2 2006/05/16 15:54:38 mey Exp $
+// $Id: CCBParser.cc,v 2.3 2006/07/13 15:46:37 mey Exp $
 // $Log: CCBParser.cc,v $
+// Revision 2.3  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.2  2006/05/16 15:54:38  mey
 // UPdate
 //
@@ -19,7 +22,7 @@
 #include "CCBParser.h"
 #include "CCB.h"
 
-CCBParser::CCBParser(xercesc::DOMNode *pNode, int crateNumber)
+CCBParser::CCBParser(xercesc::DOMNode *pNode, Crate * theCrate)
 {
   parser_.parseNode(pNode);
   parser_.fillInt("slot", slot);
@@ -27,7 +30,7 @@ CCBParser::CCBParser(xercesc::DOMNode *pNode, int crateNumber)
   // this should be removed after once all the old version is carefully
   // shredded :)
   parser_.fillInt("version", version);
-  ccb_ = new CCB(crateNumber, slot, version);
+  ccb_ = new CCB(theCrate, slot, version);
   int mode;
   if ( parser_.fillInt("TTCmode", mode) ) {
     ccb_->SetTTCmode(mode);

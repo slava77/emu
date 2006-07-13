@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.29 2006/07/12 07:58:18 mey Exp $
+// $Id: MPC.cc,v 2.30 2006/07/13 15:46:37 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.30  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.29  2006/07/12 07:58:18  mey
 // Update
 //
@@ -101,8 +104,8 @@
 #include "MPC.h"
 #include "VMEController.h"
 
-MPC::MPC(int newCrate, int slot) : VMEModule(newCrate, slot),
-				   TLK2501TxMode_(0), TransparentModeSources_(0), TMBDelayPattern_(0){
+MPC::MPC(Crate * theCrate, int slot) : VMEModule(theCrate, slot),
+				       TLK2501TxMode_(0), TransparentModeSources_(0), TMBDelayPattern_(0){
   std::cout << "MPC: module created in crate=" << this->crate() 
 	    << " slot=" << this->slot() << std::endl;
   MyOutput_ = &std::cout ;

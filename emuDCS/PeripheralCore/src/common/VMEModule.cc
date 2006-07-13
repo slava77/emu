@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.25 2006/07/12 07:58:18 mey Exp $
+// $Id: VMEModule.cc,v 2.26 2006/07/13 15:46:37 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 2.26  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.25  2006/07/12 07:58:18  mey
 // Update
 //
@@ -86,8 +89,6 @@
 #include <iostream>
 #include <unistd.h> // read and write
 
-#include <log4cplus/logger.h>
-
 #ifndef debugV //silent mode
 #define PRINT(x) 
 #define PRINTSTRING(x)  
@@ -98,14 +99,15 @@
 
 
 
-VMEModule::VMEModule(int newcrate, int newslot): 
-  theSlot(newslot)
+VMEModule::VMEModule(Crate * theCrate, int newslot): 
+  theSlot(newslot), csc_(0x0)
 {
-  theCrate = Singleton<CrateSetup>::instance()->crate(newcrate);
+  theCrate_ = theCrate;
+  //
   #ifdef debugV
     cout << "creating VMEModule in crate " << theCrate->number() << endl;
   #endif 
-  theController = theCrate->vmeController();
+    theController = theCrate->vmeController();
   theCrate->addModule(this);
 }
 

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.cc,v 2.7 2006/06/23 13:40:26 mey Exp $
+// $Id: DAQMBParser.cc,v 2.8 2006/07/13 15:46:37 mey Exp $
 // $Log: DAQMBParser.cc,v $
+// Revision 2.8  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.7  2006/06/23 13:40:26  mey
 // Fixed bug
 //
@@ -35,7 +38,7 @@
 
 #define debug false
 
-DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, int crateNumber)
+DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate)
 {
   //
   EmuParser parser_;
@@ -48,7 +51,7 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, int crateNumber)
     std::cerr << "No slot specified for DMB! " << std::endl;
   } else {
     //
-    daqmb_ = new DAQMB(crateNumber,slot);  
+    daqmb_ = new DAQMB(theCrate,slot);  
     //
     int delay;
     if ( parser_.fillInt("feb_dav_delay", delay)){
@@ -132,9 +135,7 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, int crateNumber)
     }
   }
 }
-
-
-
+//
 
 
 

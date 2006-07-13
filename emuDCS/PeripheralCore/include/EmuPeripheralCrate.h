@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.105 2006/07/12 12:07:11 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.106 2006/07/13 15:46:37 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -60,7 +60,6 @@
 #include "TMBTester.h"
 #include "CCB.h"
 #include "MPC.h"
-#include "DDU.h"
 #include "DAQMBTester.h"
 #include "TMBTester.h"
 #include "ALCTController.h"

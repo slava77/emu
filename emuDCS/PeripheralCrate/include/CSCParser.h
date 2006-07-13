@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CSCParser.h,v 1.2 2006/05/31 12:37:26 mey Exp $
+// $Id: CSCParser.h,v 1.3 2006/07/13 15:46:37 mey Exp $
 // $Log: CSCParser.h,v $
+// Revision 1.3  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 1.2  2006/05/31 12:37:26  mey
 // Update
 //
@@ -17,7 +20,6 @@
 
 #include "EmuParser.h"
 #include <xercesc/dom/DOM.hpp>
-#include "Chamber.h"
 #include "DAQMBParser.h"
 #include "TMBParser.h"
 #include "Crate.h"
@@ -26,7 +28,7 @@ class CSCParser
 {
 public:
   CSCParser(){}
-  explicit CSCParser(xercesc::DOMNode * pNode, int crateNumber);
+  explicit CSCParser(xercesc::DOMNode * , Crate * );
   
 protected:
   std::string chamberType;

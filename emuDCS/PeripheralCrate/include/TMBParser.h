@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.h,v 2.2 2006/07/11 15:00:38 mey Exp $
+// $Id: TMBParser.h,v 2.3 2006/07/13 15:46:37 mey Exp $
 // $Log: TMBParser.h,v $
+// Revision 2.3  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.2  2006/07/11 15:00:38  mey
 // Update
 //
@@ -19,22 +22,20 @@
 
 class TMB;
 class Chamber;
+class Crate;
 class TMBParser
 {
 public:
   TMBParser(){}
   ~TMBParser();
-  explicit TMBParser(xercesc::DOMNode * pNode, int crateNumber);
+  explicit TMBParser(xercesc::DOMNode * , Crate * );
   
   /// returns the last tmb parsed
   TMB * tmb() const {return tmb_;}
 
-  inline void SetCSC(Chamber * csc){csc_ = csc;}
-
 private:
   TMB * tmb_;
   EmuParser parser_;
-  Chamber * csc_;
 };
 
 #endif

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPCParser.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: MPCParser.h,v 2.1 2006/07/13 15:46:37 mey Exp $
 // $Log: MPCParser.h,v $
+// Revision 2.1  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
@@ -12,15 +15,12 @@
 #include <xercesc/dom/DOM.hpp>
 
 class MPC;
+class Crate;
 
-class MPCParser
-
-{
-
-
+class MPCParser{
 public:
   MPCParser(){}
-  explicit MPCParser(xercesc::DOMNode * pNode, int crateNumber);
+  explicit MPCParser(xercesc::DOMNode * , Crate * );
   
   /// returns the last one parsed
   MPC * mpc() const {return mpc_;} 

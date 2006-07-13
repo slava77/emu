@@ -11,7 +11,6 @@
 #include "CCB.h"
 #include "MPC.h"
 #include "RAT.h"
-#include "DDU.h"
 #include "ALCTController.h"
 
 class ChamberUtilities {

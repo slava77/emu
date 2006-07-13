@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CSCParser.cc,v 1.4 2006/07/11 15:00:39 mey Exp $
+// $Id: CSCParser.cc,v 1.5 2006/07/13 15:46:37 mey Exp $
 // $Log: CSCParser.cc,v $
+// Revision 1.5  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 1.4  2006/07/11 15:00:39  mey
 // Update
 //
@@ -19,16 +22,16 @@
 //
 //-----------------------------------------------------------------------
 #include "CSCParser.h"
-#include "Singleton.h"
 #include "CrateSetup.h"
+#include "Chamber.h"
 //
-CSCParser::CSCParser(xercesc::DOMNode * pNode, int crateNumber)
+CSCParser::CSCParser(xercesc::DOMNode * pNode, Crate * theCrate)
 {
   parser_.parseNode(pNode);
   parser_.fillString("chamber_type", chamberType);
   parser_.fillString("label", label);
   csc_ = new Chamber();
-  theCrate = Singleton<CrateSetup>::instance()->crate(crateNumber);
+  //
   theCrate->AddChamber(csc_);
   //
   std::cout << "Creating CSC Type=" << chamberType << std::endl;
@@ -41,14 +44,14 @@ CSCParser::CSCParser(xercesc::DOMNode * pNode, int crateNumber)
       std::cout << "PeripheralCrateParser: pNode1=" << xercesc::XMLString::transcode(pNode1->getNodeName()) << std::endl;
       //
       if (strcmp("DAQMB",xercesc::XMLString::transcode(pNode1->getNodeName()))==0) {  
-	daqmbParser_ = DAQMBParser(pNode1, crateNumber);
-	daqmbParser_.SetCSC(csc_);
+	daqmbParser_ = DAQMBParser(pNode1, theCrate);
+	(daqmbParser_.daqmb())->SetCSC(csc_);
 	csc_->SetDMB(daqmbParser_.daqmb());
       }
       //
       if (strcmp("TMB",xercesc::XMLString::transcode(pNode1->getNodeName()))==0) {  
-	tmbParser_ = TMBParser(pNode1, crateNumber);
-	tmbParser_.SetCSC(csc_);
+	tmbParser_ = TMBParser(pNode1, theCrate);
+	(tmbParser_.tmb())->SetCSC(csc_);
 	csc_->SetTMB(tmbParser_.tmb());
       }       
     }

@@ -16,7 +16,7 @@ int main(int argc,char **argv){
   int port(6050);
   VMEController *dynatem = new VMEController(crateId);
   dynatem->init(ipAddr,port);
-  Crate *crate = new Crate(crateId,dynatem);
+  //Crate *crate = new Crate(crateId,dynatem);
 
   // create MPC
   MPC *mpc = new MPC(0,12);

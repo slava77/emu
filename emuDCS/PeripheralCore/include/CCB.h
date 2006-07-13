@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.22 2006/07/12 07:58:18 mey Exp $
+// $Id: CCB.h,v 2.23 2006/07/13 15:46:37 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.23  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.22  2006/07/12 07:58:18  mey
 // Update
 //
@@ -80,7 +83,7 @@
 #include <bitset>
 
 class CCBParser;
-
+class Crate;
 
 class CCB: public VMEModule
 {
@@ -90,7 +93,7 @@ public:
   void WriteRegister(int,int);
   void firmwareVersion();
   void HardResetTTCrx();
-  CCB(int newcrate ,int slot, int version = 2004 );
+  CCB(Crate * ,int slot, int version = 2004 );
   virtual ~CCB();
 
   /// VMEModule type identifier

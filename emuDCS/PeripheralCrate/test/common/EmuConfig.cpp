@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuConfig.cpp,v 1.2 2006/02/01 21:03:23 mey Exp $
+// $Id: EmuConfig.cpp,v 1.3 2006/07/13 15:46:38 mey Exp $
 // $Log: EmuConfig.cpp,v $
+// Revision 1.3  2006/07/13 15:46:38  mey
+// New Parser strurture
+//
 // Revision 1.2  2006/02/01 21:03:23  mey
 // Got rid of TestBeam
 //
@@ -74,20 +77,20 @@ int main(int argc, char **argv)
     std::cin.getline(wait,1);
   }
 
-  std::cout << "Enabling EmuController" << std::endl;
-  emuController.enable();
-  std::cout << "EmuController enabled." << std::endl;
+  //std::cout << "Enabling EmuController" << std::endl;
+  //emuController.enable();
+  //std::cout << "EmuController enabled." << std::endl;
 
   // wait for the user to hit return-key before disabling
-  if (doInteractive){
-    std::cout << "Hit Return to continue ..." << std::endl;
-    char wait[10];
-    std::cin.getline(wait,1);
+  //if (doInteractive){
+  //std::cout << "Hit Return to continue ..." << std::endl;
+  //char wait[10];
+  //std::cin.getline(wait,1);
   
     // only do a disable in the interactive mode
-    emuController.disable();
-    std::cout<< "Finished EmuController disable" << std::endl;
-  }
+    //emuController.disable();
+    //std::cout<< "Finished EmuController disable" << std::endl;
+  //}
   
   return 0;
 }
