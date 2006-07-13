@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 2.15 2006/06/21 08:30:48 mey Exp $
+// $Id: TMBParser.cc,v 2.16 2006/07/13 15:46:37 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 2.16  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.15  2006/06/21 08:30:48  mey
 // Update
 //
@@ -59,7 +62,7 @@
 #include "ALCTController.h"
 #include "RAT.h"
 
-TMBParser::TMBParser(xercesc::DOMNode * pNode, int crateNumber)
+TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate)
 {
   parser_.parseNode(pNode);
 
@@ -68,8 +71,8 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, int crateNumber)
   if(slot == 0) {
     std::cerr << "No slot specified for TMB! " << std::endl;
   } else {
-    tmb_ = new TMB(crateNumber, slot);
-    //std::cout << "New TMB" << std::endl ;
+    tmb_ = new TMB(theCrate, slot);
+    //
     tmb_->SendOutput("New TMB");
     //
     int delay;

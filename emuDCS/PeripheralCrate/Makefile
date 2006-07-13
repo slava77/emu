@@ -34,16 +34,15 @@ Sources=\
 	CrateSetup.cc \
 	DAQMB.cc \
 	DAQMBParser.cc \
+	EmuSystemParser.cc \
 	DAQMBTester.cc \
-	DDU.cc \
-	DDUParser.cc \
 	elong.cc \
 	EmuParser.cc \
 	MPC.cc \
 	MPCParser.cc \
 	PeripheralCrateController.cc \
 	PeripheralCrateParser.cc \
-	TestBeamCrateController.cc \
+	EMUParser.cc \
 	EmuController.cc \
 	TMBTester.cc \
 	TMB.cc \
@@ -60,6 +59,7 @@ Sources=\
 	ChamberUtilities.cc \
 	CSCParser.cc \
 	EMUjtag.cc \
+	EmuSystem.cc \
 	EmuModule.cc
 
 IncludeDirs = \
@@ -106,7 +106,7 @@ TestLibraryDirs = \
         $(XDAQ_ROOT)/emu/emuDCS/PeripheralCrate/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
 UserCFlags  = 
-UserCCFlags = -DOSUcc 
+UserCCFlags = 
 UserDynamicLinkFlags =
 UserStaticLinkFlags =
 UserExecutableLinkFlags =
@@ -133,6 +133,7 @@ TestExecutables= \
 	CrateTiming.cpp \
 	parsemain.cpp \
 	mpc2sp.cpp \
+	ParserTester.cpp \
 	loadALCT.cpp \
 	loadTMB.cpp \
         resetcc.cpp \

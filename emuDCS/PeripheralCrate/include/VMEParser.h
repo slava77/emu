@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.h,v 2.3 2006/03/30 13:55:38 mey Exp $
+// $Id: VMEParser.h,v 2.4 2006/07/13 15:46:37 mey Exp $
 // $Log: VMEParser.h,v $
+// Revision 2.4  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.3  2006/03/30 13:55:38  mey
 // Update
 //
@@ -24,6 +27,7 @@
 
 class Crate;
 class VMEController;
+class EmuSystem;
 
 class VMEParser
 {
@@ -32,7 +36,7 @@ class VMEParser
 public:
   VMEParser(){}
   //~VMEParser();
-  explicit VMEParser(xercesc::DOMNode * pNode, int number);
+  explicit VMEParser(xercesc::DOMNode * , int , EmuSystem *);
 
   Crate *crate() const {return crate_;} 
   VMEController * controller() const {return controller_;}

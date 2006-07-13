@@ -5,11 +5,10 @@
 #include "TMB.h"
 #include "CCB.h"
 #include "MPC.h"
-#include "DDU.h"
 #include "ALCTController.h"
 #include "VMEController.h"
 #include "CrateSelector.h"
-
+#include "EmuSystem.h"
 using namespace std;
 
 int main(int argc,char **argv){
@@ -20,18 +19,19 @@ int main(int argc,char **argv){
   int port(2);
   VMEController *dynatem = new VMEController(crateId);
   dynatem->init(ipAddr,port);
-  Crate *crate = new Crate(crateId,dynatem);
+  EmuSystem * emuSystem = new EmuSystem();
+  Crate *crate = new Crate(crateId,dynatem,emuSystem);
 
   // create CCB
   int ccbSlot(13);
-  CCB *ccb = new CCB(crateId,ccbSlot,2004);
+  CCB *ccb = new CCB(crate,ccbSlot,2004);
   ccb->configure();
   ::sleep(1);
 
   // create TMB & ALCT
   int tmbSlot(4);
   string chamberType("ME31");
-  TMB *tmb = new TMB(crateId,tmbSlot);
+  TMB *tmb = new TMB(crate,tmbSlot);
   //
   cout << "Read Register" << endl;
   //tmb->ReadRegister(0x4);  

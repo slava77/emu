@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 2.17 2006/07/12 07:58:18 mey Exp $
+// $Id: MPC.h,v 2.18 2006/07/13 15:46:37 mey Exp $
 // $Log: MPC.h,v $
+// Revision 2.18  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.17  2006/07/12 07:58:18  mey
 // Update
 //
@@ -63,13 +66,14 @@
 #include <string>
 
 class MPCParser;
+class Crate;
 
 class MPC : public VMEModule {
  public:
   friend class MPCParser;
 
 
-  MPC(int newCrate, int slot);
+  MPC(Crate * , int slot);
   ~MPC();
   void firmwareVersion();
 

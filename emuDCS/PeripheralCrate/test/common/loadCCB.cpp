@@ -5,10 +5,10 @@
 #include "TMB.h"
 #include "CCB.h"
 #include "MPC.h"
-#include "DDU.h"
 #include "ALCTController.h"
 #include "VMEController.h"
 #include "CrateSelector.h"
+#include "EmuSystem.h"
 
 using namespace std;
 
@@ -21,11 +21,12 @@ int main(int argc,char **argv){
   VMEController *dynatem = new VMEController(crateId);
   dynatem->reset();
   dynatem->init(ipAddr,port);
-  Crate *crate = new Crate(crateId,dynatem);
+  EmuSystem * emuSystem = new EmuSystem();
+  Crate *crate = new Crate(crateId,dynatem,emuSystem);
 
   // create CCB
   int ccbSlot(13);
-  CCB *ccb = new CCB(crateId,ccbSlot,2004);
+  CCB *ccb = new CCB(crate,ccbSlot,2004);
   //
   //::sleep(1);
   //

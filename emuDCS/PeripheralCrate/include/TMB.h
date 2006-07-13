@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.46 2006/06/23 13:53:29 mey Exp $
+// $Id: TMB.h,v 2.47 2006/07/13 15:46:37 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.47  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.46  2006/06/23 13:53:29  mey
 // bug fix
 //
@@ -157,6 +160,7 @@ class ALCTController;
 class TMBParser;
 class RAT;
 class AnodeChannel;
+class Crate;
 
 class TMB : public VMEModule, public EMUjtag, public EmuModule {
 
@@ -166,7 +170,7 @@ public:
   //friend class TMBParser;
   friend class EMUjtag;
   //
-  TMB(int newcrate, int slot);
+  TMB(Crate * , int );
   virtual ~TMB();
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }

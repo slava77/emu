@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuController.cc,v 1.3 2006/02/15 22:39:57 mey Exp $
+// $Id: EmuController.cc,v 1.4 2006/07/13 15:46:37 mey Exp $
 // $Log: EmuController.cc,v $
+// Revision 1.4  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 1.3  2006/02/15 22:39:57  mey
 // UPdate
 //
@@ -52,10 +55,9 @@
 #include "DAQMB.h"
 #include "CCB.h"
 #include "TMB.h"
-#include "DDU.h"
 #include "MPC.h"
 #include "VMEController.h"
-#include "PeripheralCrateParser.h"
+#include "EMUParser.h"
 
 EmuController::EmuController(){
   // clear pointers
@@ -72,7 +74,7 @@ void EmuController::init(){
   //
   std::cout << "---- XML parser ----" << std::endl;
   std::cout << " Here parser " << std::endl;
-  PeripheralCrateParser parser;
+  EMUParser parser;
   std::cout << " Using file " << xmlFile_ << std::endl ;
   parser.parseFile(xmlFile_.c_str());
   //
@@ -89,7 +91,7 @@ void EmuController::configure() {
   std::vector<Crate*> myCrates = theSelector.crates();
   
   for(unsigned i = 0; i < myCrates.size(); ++i) {
-    myCrates[i]->configure();
+    if(myCrates[i]) myCrates[i]->configure();
   }
 }
 //
@@ -99,7 +101,7 @@ void  EmuController::enable() {
   std::vector<Crate*> myCrates = theSelector.crates();
   //
   for(unsigned i = 0; i < myCrates.size(); ++i) {
-    myCrates[i]->enable();
+    if(myCrates[i]) myCrates[i]->enable();
   }
   std::cout << "TAKING DATA" << std::endl;
 }
@@ -109,7 +111,7 @@ void EmuController::disable() {
   std::vector<Crate*> myCrates = theSelector.crates();
 
   for(unsigned i = 0; i < myCrates.size(); ++i) {
-    myCrates[i]->disable();
+    if(myCrates[i]) myCrates[i]->disable();
   }
 }
 //

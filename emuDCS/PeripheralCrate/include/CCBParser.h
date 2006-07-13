@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCBParser.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: CCBParser.h,v 2.1 2006/07/13 15:46:37 mey Exp $
 // $Log: CCBParser.h,v $
+// Revision 2.1  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
@@ -12,11 +15,12 @@
 #include <xercesc/dom/DOM.hpp>
 
 class CCB;
+class Crate;
 
 class CCBParser{
 public:
   CCBParser(){}
-  explicit CCBParser(xercesc::DOMNode * pNode, int crateNumber);
+  explicit CCBParser(xercesc::DOMNode * pNode, Crate * crate);
   /// returns the last ccb parsed
   CCB * ccb() const {return ccb_;}
 

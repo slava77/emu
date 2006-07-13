@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.25 2006/06/23 14:21:33 mey Exp $
+// $Id: DAQMB.h,v 2.26 2006/07/13 15:46:37 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.26  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.25  2006/06/23 14:21:33  mey
 // Moved public members
 //
@@ -91,12 +94,13 @@
 #include "JTAG_constants.h"
 #include "CFEB.h"
 #include "EmuModule.h"
+#include "Chamber.h"
 /**
  * more documentation available for this class at
  * http://www.physics.ohio-state.edu/~cms/dmb/prog_man.pdf
  * http://www.physics.ohio-state.edu/~cms/dmb/delayset.html
  */
-
+class Crate;
 
 class DAQMB: public VMEModule, public EmuModule
 {
@@ -105,10 +109,10 @@ public:
 
   // standard routines
   /// construct with all the standard CFEBs and BuckeyeChips
-  DAQMB(int newcrate, int slot) ;
+  DAQMB(Crate * , int slot) ;
   /// construct with a single CFEB, count from zero
-  DAQMB(int newcrate, int slot, int cfeb);
-  DAQMB(int newcrate, int slot, const std::vector<CFEB> & cfebs);
+  DAQMB(Crate * , int slot, int cfeb);
+  DAQMB(Crate * , int slot, const std::vector<CFEB> & cfebs);
   //
   virtual ~DAQMB();
   /// from the BOARDTYPE enum
@@ -118,6 +122,7 @@ public:
   std::vector<CFEB> cfebs() const {return cfebs_;}
 
 // DAQMB constants&resets
+
 
   void trigset2(int, int [] );
   void trgfire();
@@ -362,6 +367,7 @@ public:
   //
 
  private:
+  Chamber * csc_;
   /// CFEB Data Available delay adjustment (25ns per step); 
   int feb_dav_delay_;
   /// TMB Data Available delay adjustment (25ns per step); 

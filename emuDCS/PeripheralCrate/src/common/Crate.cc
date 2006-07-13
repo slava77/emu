@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 2.12 2006/06/23 13:53:29 mey Exp $
+// $Id: Crate.cc,v 2.13 2006/07/13 15:46:37 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 2.13  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.12  2006/06/23 13:53:29  mey
 // bug fix
 //
@@ -52,12 +55,11 @@
 #include "TMB.h"
 #include "MPC.h"
 #include "CCB.h"
-#include "DDU.h"
 #include "ALCTController.h"
 #include "ChamberUtilities.h"
 #include "Chamber.h"
 
-Crate::Crate(int number, VMEController * controller) : 
+Crate::Crate(int number, VMEController * controller, EmuSystem * emuSystem) : 
   theNumber(number),  
   theModules(28),
   theController(controller) 
@@ -171,18 +173,12 @@ MPC * Crate::mpc() const {
 }
 
 
-DDU * Crate::ddu() const {
-  return findBoard<DDU>();
-}
-//
 void Crate::enable() {
   //
   MPC * mpc = this->mpc();
-  DDU * ddu = this->ddu();
   CCB * ccb = this->ccb();
   //
   if(mpc) mpc->init();
-  if(ddu) ddu->dcntrl_reset();
   ccb->enable();
 }
 //
@@ -200,7 +196,6 @@ void Crate::configure() {
   //
   CCB * ccb = this->ccb();
   MPC * mpc = this->mpc();
-  DDU * ddu = this->ddu();
   //
   ccb->configure();
   //::sleep(1);
@@ -229,20 +224,14 @@ void Crate::configure() {
     myDmbs[i]->configure();
   }
   //  
-  std::cout << "cards " << ccb << " " << mpc << " " << ddu << std::endl;
   if(mpc) mpc->configure();
   //::sleep(1);
-  //
-  if(ddu) ddu->dcntrl_reset();
-  //::sleep(2);
-  //
 }
 //
 void Crate::init() {
   //
   CCB * ccb = this->ccb();
   MPC * mpc = this->mpc();
-  DDU * ddu = this->ddu();
   //
   ccb->init();
   //

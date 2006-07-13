@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.44 2006/07/12 07:58:18 mey Exp $
+// $Id: CCB.cc,v 2.45 2006/07/13 15:46:37 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.45  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.44  2006/07/12 07:58:18  mey
 // Update
 //
@@ -148,8 +151,8 @@
 #include <string>
 
 //
-CCB::CCB(int newcrate ,int slot, int version)
-: VMEModule(newcrate, slot), 
+CCB::CCB(Crate * theCrate ,int slot, int version)
+: VMEModule(theCrate, slot), 
   l1enabled_(false),
   mVersion(version),
   TTC(NO_TTC),

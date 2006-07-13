@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 1.10 2006/05/02 20:53:38 mey Exp $
+// $Id: CrateTiming.cpp,v 1.11 2006/07/13 15:46:38 mey Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 1.11  2006/07/13 15:46:38  mey
+// New Parser strurture
+//
 // Revision 1.10  2006/05/02 20:53:38  mey
 // UPdate
 //
@@ -220,7 +223,6 @@
 #include "CCB.h"
 #include "RAT.h"
 #include "MPC.h"
-#include "DDU.h"
 #include "ALCTController.h"
 #include "CrateSelector.h"
 #include "JTAG_constants.h"
@@ -431,7 +433,6 @@ int main(int argc,char **argv){
   if( tmbVector.size() ) thisTMB = tmbVector[0];
   if( dmbVector.size() ) thisDMB = dmbVector[0];
   thisMPC = thisCrate->mpc();
-  DDU * thisDDU = thisCrate->ddu();
   //
   ChamberUtilities util;
   util.SetCCB(thisCCB);

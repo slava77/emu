@@ -8,7 +8,6 @@
 #include "TMB.h"
 #include "CCB.h"
 #include "MPC.h"
-#include "DDU.h"
 #include "ALCTController.h"
 
 class Chamber {

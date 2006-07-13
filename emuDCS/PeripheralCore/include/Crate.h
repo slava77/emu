@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 2.5 2006/03/24 14:35:03 mey Exp $
+// $Id: Crate.h,v 2.6 2006/07/13 15:46:37 mey Exp $
 // $Log: Crate.h,v $
+// Revision 2.6  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.5  2006/03/24 14:35:03  mey
 // Update
 //
@@ -33,13 +36,13 @@ class DAQMB;
 class TMB;
 class CCB;
 class MPC;
-class DDU;
 class ChamberUtilities;
 class Chamber;
+class EmuSystem;
 
 class Crate {
 public:
-  Crate(int number, VMEController * controller);
+  Crate(int, VMEController *, EmuSystem *);
   ~Crate();
 
   int number() const {return theNumber;}
@@ -62,7 +65,6 @@ public:
   //
   CCB * ccb() const;
   MPC * mpc() const;
-  DDU * ddu() const;
   //
 private:
 

@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.19 2006/07/12 07:58:18 mey Exp $
+// $Id: VMEModule.h,v 2.20 2006/07/13 15:46:37 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.20  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.19  2006/07/12 07:58:18  mey
 // Update
 //
@@ -61,7 +64,11 @@
 #define VMEModule_h
 
 #include "Crate.h"
+
 class VMEController;
+class Chamber;
+class Crate;
+
 #include "JTAG_constants.h"
 
 class VMEModule
@@ -72,9 +79,9 @@ public:
    /// probably should make the user pass a Crate
    /// rather than a number
    /// automatically registers itself with the Crate
-   VMEModule(int crate, int slot);
+   VMEModule(Crate *, int );
    virtual ~VMEModule() {};
-   int crate() const {return theCrate->number();}
+   int crate() const {return theCrate_->number();}
    int slot() const {return theSlot;}
    bool exist();
    
@@ -96,6 +103,8 @@ public:
 
   VMEController* getTheController();
 
+  inline void SetCSC(Chamber * csc){csc_ = csc;}
+
 protected:
    /// used for calls to do_vme
    enum FCN { VME_READ=1, VME_WRITE=2 };
@@ -114,11 +123,12 @@ protected:
    void CloseJTAG();
    void SetupJtag();
 
-   Crate * theCrate;
+   Crate * theCrate_;
    VMEController * theController;
    int theSlot;
+   Chamber * csc_;
 
-      /// is this really needed?
+   /// is this really needed?
   char sndbuf[4096];
   char rcvbuf[4096];
   char rcvbuf2[4096];

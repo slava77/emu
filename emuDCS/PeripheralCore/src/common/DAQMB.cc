@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.63 2006/07/04 15:06:19 mey Exp $
+// $Id: DAQMB.cc,v 2.64 2006/07/13 15:46:37 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.64  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.63  2006/07/04 15:06:19  mey
 // Fixed JTAG
 //
@@ -233,8 +236,8 @@ const int DAQMB::chip_use[5][6] = {
 
 const int DAQMB::nchips[5] = {6,6,6,6,6};
 
-DAQMB::DAQMB(int newcrate,int newslot):
-  VMEModule(newcrate, newslot),
+DAQMB::DAQMB(Crate * theCrate,int newslot):
+  VMEModule(theCrate, newslot),
   feb_dav_delay_(24),tmb_dav_delay_(24), 
   push_dav_delay_(31), l1acc_dav_delay_(24), ALCT_dav_delay_(0),
   calibration_LCT_delay_(8), calibration_l1acc_delay_(22),
@@ -255,8 +258,8 @@ DAQMB::DAQMB(int newcrate,int newslot):
   //
 }
 
-DAQMB::DAQMB(int newcrate,int newslot,  int newcfeb):
-  VMEModule(newcrate, newslot)
+DAQMB::DAQMB(Crate * theCrate,int newslot,  int newcfeb):
+  VMEModule(theCrate, newslot)
 {
   MyOutput_ = &std::cout ;
   cfebs_.push_back(CFEB(newcfeb));
@@ -264,8 +267,8 @@ DAQMB::DAQMB(int newcrate,int newslot,  int newcfeb):
   for(int i=0;i<20;i++) TestStatus_[i]=-1;
 }
 
-DAQMB::DAQMB(int newcrate,int newslot, const std::vector<CFEB> & cfebs):
-  VMEModule(newcrate, newslot),
+DAQMB::DAQMB(Crate * theCrate,int newslot, const std::vector<CFEB> & cfebs):
+  VMEModule(theCrate, newslot),
   cfebs_(cfebs)
 {
   MyOutput_ = &std::cout ;

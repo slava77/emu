@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.h,v 2.3 2006/07/11 14:49:28 mey Exp $
+// $Id: PeripheralCrateParser.h,v 2.4 2006/07/13 15:46:37 mey Exp $
 // $Log: PeripheralCrateParser.h,v $
+// Revision 2.4  2006/07/13 15:46:37  mey
+// New Parser strurture
+//
 // Revision 2.3  2006/07/11 14:49:28  mey
 // New Parser sturcture ready to go
 //
@@ -26,36 +29,30 @@
 #include "VMEParser.h"
 #include "CCBParser.h"
 #include "MPCParser.h"
-#include "DDUParser.h"
 #include "CSCParser.h"
 #include "EmuParser.h"
+#include "EmuSystem.h"
 
 class PeripheralCrateParser {
 
 public:
+  //
   PeripheralCrateParser() {}
-  ~PeripheralCrateParser();
-
-  /** Parse the file
-      @param name File Name
-  */
-  void parseFile(const char* name);
-
+  explicit PeripheralCrateParser(xercesc::DOMNode * , EmuSystem * );
+  //
   DAQMBParser daqmbParser() const {return daqmbParser_;}
   TMBParser tmbParser()     const {return tmbParser_;}
   VMEParser vmeParser()     const {return vmeParser_;}
   CCBParser ccbParser()     const {return ccbParser_;}
   MPCParser mpcParser()     const {return mpcParser_;}
-  DDUParser dduParser()     const {return dduParser_;}
   CSCParser cscParser()     const {return cscParser_;}
-
+  //
 protected:
   DAQMBParser daqmbParser_;
   TMBParser tmbParser_;
   VMEParser vmeParser_;
   CCBParser ccbParser_;
   MPCParser mpcParser_;
-  DDUParser dduParser_;
   CSCParser cscParser_;
   int crateNumber;
 };
