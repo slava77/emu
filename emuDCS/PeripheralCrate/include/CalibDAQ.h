@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.h,v 2.12 2006/07/12 12:07:11 mey Exp $
+// $Id: CalibDAQ.h,v 2.13 2006/07/14 12:33:26 mey Exp $
 // $Log: CalibDAQ.h,v $
+// Revision 2.13  2006/07/14 12:33:26  mey
+// New XML structure
+//
 // Revision 2.12  2006/07/12 12:07:11  mey
 // ALCT connectivity
 //
@@ -51,8 +54,8 @@ class DAQMB;
 class Crate;
 
 class CalibDAQ {
-public:
-  CalibDAQ() {}
+ public:
+  CalibDAQ(EmuSystem * emuSystem);
   ~CalibDAQ() {}
   
   void loadConstants();

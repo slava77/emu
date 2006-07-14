@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.107 2006/07/14 11:45:49 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 2.108 2006/07/14 12:33:26 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -70,6 +70,7 @@
 #include "InfoSpace.h"
 #include "CrateUtilities.h"
 #include "CalibDAQ.h"
+#include "EmuSystem.h"
 //
 #ifdef STANDALONE
 #else
@@ -153,6 +154,8 @@ protected:
   vector<int> CfebDavCounter_;
   vector<int> TmbDavCounter_;
   vector<int> AlctDavCounter_;
+  //
+  EmuSystem * emuSystem_;
   //
 public:
   //
@@ -1409,7 +1412,7 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    CalibDAQ calib;
+    CalibDAQ calib(emuSystem_);
     //
     calib.ALCTThresholdScan();
     //
@@ -1421,7 +1424,7 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    CalibDAQ calib;
+    CalibDAQ calib(emuSystem_);
     //
     calib.ALCTConnectivity();
     //
@@ -1433,7 +1436,7 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    CalibDAQ calib;
+    CalibDAQ calib(emuSystem_);
     //
     calib.FindL1aDelayComparator();
     //
@@ -1445,7 +1448,7 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    CalibDAQ calib;
+    CalibDAQ calib(emuSystem_);
     //
     calib.FindL1aDelayALCT();
     //
@@ -1457,7 +1460,7 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    CalibDAQ calib;
+    CalibDAQ calib(emuSystem_);
     //
     calib.rateTest();
     //
@@ -1469,7 +1472,7 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    CalibDAQ calib;
+    CalibDAQ calib(emuSystem_);
     //
     calib.CFEBSaturation();
     //
@@ -1481,7 +1484,7 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    CalibDAQ calib;
+    CalibDAQ calib(emuSystem_);
     //
     calib.timeCFEB();
     //
@@ -1493,7 +1496,7 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    CalibDAQ calib;
+    CalibDAQ calib(emuSystem_);
     //
     calib.pulseComparatorPulse();
     //
@@ -1505,7 +1508,8 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    CalibDAQ calib;
+    CalibDAQ calib(emuSystem_);
+    //
     //calib.loadConstants();
     //
     //int nsleep, nstrip, tries;
@@ -7332,6 +7336,7 @@ private:
     //
     MyController->SetConfFile(xmlFile_.toString().c_str());
     MyController->init();
+    emuSystem_ = MyController->GetEmuSystem();
     //
     //-- Make sure that only one TMB in one crate is configured
     //
@@ -7351,6 +7356,11 @@ private:
     //
     CrateUtils MyCrateUtils;
     MyCrateUtils.SetCrate(crateVector[0]);
+    //
+    if ( ! crateVector[0] ) {
+      std::cout << "Crate doesn't exist" << std::endl;
+      assert(crateVector[0]);
+    }
     //
     tmbTestVector = MyCrateUtils.TMBTests();
     //

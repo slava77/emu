@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuController.h,v 1.1 2006/01/11 08:55:21 mey Exp $
+// $Id: EmuController.h,v 1.2 2006/07/14 12:33:26 mey Exp $
 // $Log: EmuController.h,v $
+// Revision 1.2  2006/07/14 12:33:26  mey
+// New XML structure
+//
 // Revision 1.1  2006/01/11 08:55:21  mey
 // UPdate
 //
@@ -31,6 +34,7 @@
 
 class CCB;
 class Crate;
+class EmuSystem;
 
 class EmuController {
 public:
@@ -47,6 +51,8 @@ public:
 
   inline void SetConfFile(std::string xmlFile) { xmlFile_ = xmlFile; }
 
+  inline EmuSystem * GetEmuSystem(){return emuSystem_;}
+
   CrateSelector & selector() {return theSelector;}
 
 protected:
@@ -54,6 +60,7 @@ protected:
 private:
   CrateSelector theSelector;
   std::string xmlFile_;
+  EmuSystem * emuSystem_;
 };
 
 #endif

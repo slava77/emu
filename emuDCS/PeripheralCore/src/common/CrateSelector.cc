@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateSelector.cc,v 2.1 2006/07/14 08:11:58 mey Exp $
+// $Id: CrateSelector.cc,v 2.2 2006/07/14 12:33:26 mey Exp $
 // $Log: CrateSelector.cc,v $
+// Revision 2.2  2006/07/14 12:33:26  mey
+// New XML structure
+//
 // Revision 2.1  2006/07/14 08:11:58  mey
 // Got rid of Singleton
 //
@@ -139,7 +142,8 @@ std::vector<TMB *> CrateSelector::tmbs() const {
 
 std::vector<TMB *> CrateSelector::tmbs(Crate * crate) const {
   std::vector<TMB *> result;
-  std::vector<TMB*> cards = crate->tmbs();
+  std::vector<TMB*> cards ;
+  if (crate) cards = crate->tmbs();
   for(unsigned itmb = 0; itmb < cards.size(); ++itmb) {
     if(theSelectedSlots.empty()) {
       result.push_back(cards[itmb]);
