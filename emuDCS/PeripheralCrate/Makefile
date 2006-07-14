@@ -40,7 +40,6 @@ Sources=\
 	EmuParser.cc \
 	MPC.cc \
 	MPCParser.cc \
-	PeripheralCrateController.cc \
 	PeripheralCrateParser.cc \
 	EMUParser.cc \
 	EmuController.cc \
