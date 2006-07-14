@@ -227,6 +227,9 @@ const int MAX_NUM_AFEBS = 42;
 const int MAX_NUM_LAYERS = 6;
 const int MAX_NUM_WIRES_PER_LAYER = 112;  // =672/6
 //
+// SetUpPulsing constants:
+const int PULSE_AFEBS      = 0;
+const int PULSE_LAYERS     = 1;
 ////////////////////////////////////////
 // ADC channel/chip map
 ////////////////////////////////////////
@@ -412,6 +415,22 @@ const int asic_pattern_value_bitlo         = 4;
 const int asic_pattern_value_bithi         = 19;
 //
 const int NUMBER_OF_ASIC_BITS              = asic_pattern_value_bithi-asic_delay_value_bitlo+1;
+//
+//
+/////////////////////////////////////////////////////
+// Trigger register constants
+/////////////////////////////////////////////////////
+// These sources of testpulse triggers are a combination of the bits [0-1] and [2-3]
+const int SELF                             = 0x3;
+const int ADB_SYNC                         = (0x1<<2);
+const int ADB_ASYNC                        = (0x2<<2);
+const int LEMO                             = (0x3<<2);
+//
+const int trigger_register_source_bitlo    = 0;
+const int trigger_register_source_bithi    = 3;
+//
+const int trigger_register_invert_bitlo    = 4;
+const int trigger_register_invert_bithi    = 4;
 //
 //
 #endif

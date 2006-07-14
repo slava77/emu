@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 2.14 2006/07/14 08:11:58 mey Exp $
+// $Id: Crate.cc,v 2.15 2006/07/14 11:46:31 rakness Exp $
 // $Log: Crate.cc,v $
+// Revision 2.15  2006/07/14 11:46:31  rakness
+// compiler switch possible for ALCTNEW
+//
 // Revision 2.14  2006/07/14 08:11:58  mey
 // Got rid of Singleton
 //
@@ -217,7 +220,11 @@ void Crate::configure() {
     ALCTController * alct = myTmbs[i]->alctController();
     if(alct) {
       std::cout << "alct # =" << i << std::endl;
+#ifndef ALCTNEW
       alct->setup(1);
+#else
+      alct->configure();
+#endif
     }
   }
   //

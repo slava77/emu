@@ -58,8 +58,7 @@ int main() {
 
   CCB *thisCCB ;
   DAQMB *thisDMB;
-  ALCTController *OldAlct;
-  ALCTnew * NewAlct;
+  ALCTController *alct;
   MPC *thisMPC;
   RAT *myRat;
 
@@ -103,7 +102,7 @@ int main() {
   //  DDU * thisDDU = thisCrate->ddu();
   myRat = new RAT(thisTMB);
 
-  NewAlct = new ALCTController(thisTMB,"ME21");
+  alct = new ALCTController(thisTMB,"ME21");
 
   // point the TMBTester to the classes we need:
   TMBTester testTMB;
@@ -409,33 +408,33 @@ int main() {
       break;
       //
     case 100:
-      NewAlct->configure();
+      alct->configure();
       break;
     case 101:
-      NewAlct->ReadSlowControlId();
-      NewAlct->PrintSlowControlId();
+      alct->ReadSlowControlId();
+      alct->PrintSlowControlId();
       break;
     case 102:
-      NewAlct->ReadFastControlId();
-      NewAlct->PrintFastControlId();
+      alct->ReadFastControlId();
+      alct->PrintFastControlId();
       break;
     case 110:
-      NewAlct->ReadAsicDelaysAndPatterns();
-      NewAlct->PrintAsicDelays();
+      alct->ReadAsicDelaysAndPatterns();
+      alct->PrintAsicDelays();
       break;
     case 111:
       std::cout << "afeb channel (0-41)" << std::endl;
       std::cin >> channel;
       std::cout << "delay value (0-15) " << std::endl;
       std::cin >> value;
-      NewAlct->SetAsicDelay(channel,value);
-      NewAlct->WriteAsicDelaysAndPatterns();
-      NewAlct->ReadAsicDelaysAndPatterns();
-      NewAlct->PrintAsicDelays();
+      alct->SetAsicDelay(channel,value);
+      alct->WriteAsicDelaysAndPatterns();
+      alct->ReadAsicDelaysAndPatterns();
+      alct->PrintAsicDelays();
       break;
     case 112:
-      NewAlct->ReadAsicDelaysAndPatterns();
-      NewAlct->PrintAsicPatterns();
+      alct->ReadAsicDelaysAndPatterns();
+      alct->PrintAsicPatterns();
       break;
     case 113:
       std::cout << "layer (0-5)" << std::endl;
@@ -444,76 +443,76 @@ int main() {
       std::cin >> channel;
       std::cout << "OFF (0) or ON (1) " << std::endl;
       std::cin >> value;
-      NewAlct->SetAsicPattern(layer,channel,value);
-      NewAlct->WriteAsicDelaysAndPatterns();
-      NewAlct->ReadAsicDelaysAndPatterns();
-      NewAlct->PrintAsicPatterns();
+      alct->SetAsicPattern(layer,channel,value);
+      alct->WriteAsicDelaysAndPatterns();
+      alct->ReadAsicDelaysAndPatterns();
+      alct->PrintAsicPatterns();
       break;
     case 114:
-      NewAlct->ReadDelayLineControlReg();
-      NewAlct->PrintDelayLineControlReg();
+      alct->ReadDelayLineControlReg();
+      alct->PrintDelayLineControlReg();
       break;
     case 119:
-      NewAlct->SetPowerUpAsicPatterns();
-      NewAlct->SetPowerUpAsicDelays();
-      NewAlct->WriteAsicDelaysAndPatterns();
-      NewAlct->ReadAsicDelaysAndPatterns();
-      NewAlct->PrintAsicDelays();
-      NewAlct->PrintAsicPatterns();
+      alct->SetPowerUpAsicPatterns();
+      alct->SetPowerUpAsicDelays();
+      alct->WriteAsicDelaysAndPatterns();
+      alct->ReadAsicDelaysAndPatterns();
+      alct->PrintAsicDelays();
+      alct->PrintAsicPatterns();
       break;
     case 120:
-      NewAlct->ReadConfigurationReg();
-      NewAlct->PrintConfigurationReg();      
+      alct->ReadConfigurationReg();
+      alct->PrintConfigurationReg();      
       break;
     case 121:
       std::cout << "trigger mode (1-3) " << std::endl;
       std::cin >> value;
-      NewAlct->SetTriggerMode(value);
-      NewAlct->WriteConfigurationReg();      
-      NewAlct->ReadConfigurationReg();
-      NewAlct->PrintConfigurationReg();
+      alct->SetTriggerMode(value);
+      alct->WriteConfigurationReg();      
+      alct->ReadConfigurationReg();
+      alct->PrintConfigurationReg();
       break;
     case 122:
       std::cout << "L1a Delay (0-255) " << std::endl;
       std::cin >> value;
-      NewAlct->SetL1aDelay(value);
-      NewAlct->WriteConfigurationReg();      
-      NewAlct->ReadConfigurationReg();
-      NewAlct->PrintConfigurationReg();
+      alct->SetL1aDelay(value);
+      alct->WriteConfigurationReg();      
+      alct->ReadConfigurationReg();
+      alct->PrintConfigurationReg();
       break;
     case 123:
       std::cout << "CCB enable (0-1) " << std::endl;
       std::cin >> value;
-      NewAlct->SetCcbEnable(value);
-      NewAlct->WriteConfigurationReg();      
-      NewAlct->ReadConfigurationReg();
-      NewAlct->PrintConfigurationReg();
+      alct->SetCcbEnable(value);
+      alct->WriteConfigurationReg();      
+      alct->ReadConfigurationReg();
+      alct->PrintConfigurationReg();
       break;
     case 124:
       std::cout << "Tmode (0-1) " << std::endl;
       std::cin >> value;
-      NewAlct->SetAlctTmode(value);
-      NewAlct->WriteConfigurationReg();      
-      NewAlct->ReadConfigurationReg();
-      NewAlct->PrintConfigurationReg();
+      alct->SetAlctTmode(value);
+      alct->WriteConfigurationReg();      
+      alct->ReadConfigurationReg();
+      alct->PrintConfigurationReg();
       break;
     case 125:
       std::cout << "Mask All (0-1) " << std::endl;
       std::cin >> value;
-      NewAlct->SetAlctMaskAll(value);
-      NewAlct->WriteConfigurationReg();      
-      NewAlct->ReadConfigurationReg();
-      NewAlct->PrintConfigurationReg();
+      alct->SetAlctMaskAll(value);
+      alct->WriteConfigurationReg();      
+      alct->ReadConfigurationReg();
+      alct->PrintConfigurationReg();
       break;
     case 129:
-      NewAlct->SetPowerUpConfigurationReg();
-      NewAlct->WriteConfigurationReg();      
-      NewAlct->ReadConfigurationReg();
-      NewAlct->PrintConfigurationReg();
+      alct->SetPowerUpConfigurationReg();
+      alct->WriteConfigurationReg();      
+      alct->ReadConfigurationReg();
+      alct->PrintConfigurationReg();
       break;
     case 130:
-      NewAlct->ReadHotChannelMask();
-      NewAlct->PrintHotChannelMask();      
+      alct->ReadHotChannelMask();
+      alct->PrintHotChannelMask();      
       break;
     case 131:
       std::cout << "Hot channel mask: Layer (1-6)" << std::endl;
@@ -522,132 +521,132 @@ int main() {
       std::cin >> channel;
       std::cout << "OFF (0) or ON (1) " << std::endl;
       std::cin >> value;
-      NewAlct->SetHotChannelMask(layer,channel,value);
-      NewAlct->WriteHotChannelMask();      
-      NewAlct->ReadHotChannelMask();
-      NewAlct->PrintHotChannelMask();
+      alct->SetHotChannelMask(layer,channel,value);
+      alct->WriteHotChannelMask();      
+      alct->ReadHotChannelMask();
+      alct->PrintHotChannelMask();
       break;
     case 139:
-      NewAlct->SetPowerUpHotChannelMask();
-      NewAlct->WriteHotChannelMask();      
-      NewAlct->ReadHotChannelMask();
-      NewAlct->PrintHotChannelMask();
+      alct->SetPowerUpHotChannelMask();
+      alct->WriteHotChannelMask();      
+      alct->ReadHotChannelMask();
+      alct->PrintHotChannelMask();
       break;
     case 140:
-      NewAlct->ReadTestpulsePowerSwitchReg();
-      NewAlct->PrintTestpulsePowerSwitchReg();
+      alct->ReadTestpulsePowerSwitchReg();
+      alct->PrintTestpulsePowerSwitchReg();
       break;
     case 141:
       std::cout << "Testpulse power switch ON (1) or OFF (0) " << std::endl;
       std::cin >> value;
-      NewAlct->SetTestpulsePowerSwitchReg(value);
-      NewAlct->WriteTestpulsePowerSwitchReg();      
-      NewAlct->ReadTestpulsePowerSwitchReg();
-      NewAlct->PrintTestpulsePowerSwitchReg();
+      alct->SetTestpulsePowerSwitchReg(value);
+      alct->WriteTestpulsePowerSwitchReg();      
+      alct->ReadTestpulsePowerSwitchReg();
+      alct->PrintTestpulsePowerSwitchReg();
       break;
     case 149:
-      NewAlct->SetPowerUpTestpulsePowerSwitchReg();
-      NewAlct->WriteTestpulsePowerSwitchReg();      
-      NewAlct->ReadTestpulsePowerSwitchReg();
-      NewAlct->PrintTestpulsePowerSwitchReg();
+      alct->SetPowerUpTestpulsePowerSwitchReg();
+      alct->WriteTestpulsePowerSwitchReg();      
+      alct->ReadTestpulsePowerSwitchReg();
+      alct->PrintTestpulsePowerSwitchReg();
       break;
     case 150:
       std::cout << "Testpulse amplitude software setting = " 
-		<< std::dec << NewAlct->GetTestpulseAmplitude() << std::endl;
+		<< std::dec << alct->GetTestpulseAmplitude() << std::endl;
       break;
     case 151:
       std::cout << "Testpulse amplitude (0-255)" << std::endl;
       std::cin >> value;
-      NewAlct->SetTestpulseAmplitude(value);
-      NewAlct->WriteTestpulseAmplitude();      
+      alct->SetTestpulseAmplitude(value);
+      alct->WriteTestpulseAmplitude();      
       std::cout << "Testpulse amplitude written.  The software setting = " 
-		<< std::dec << NewAlct->GetTestpulseAmplitude() << std::endl;
+		<< std::dec << alct->GetTestpulseAmplitude() << std::endl;
       break;
     case 159:
-      NewAlct->SetPowerUpTestpulseAmplitude();
-      NewAlct->WriteTestpulseAmplitude();      
+      alct->SetPowerUpTestpulseAmplitude();
+      alct->WriteTestpulseAmplitude();      
       std::cout << "Power-up testpulse amplitude written.  The software setting = " 
-		<< std::dec << NewAlct->GetTestpulseAmplitude() << std::endl;
+		<< std::dec << alct->GetTestpulseAmplitude() << std::endl;
       break;
     case 160:
-      NewAlct->ReadTestpulseGroupMask();
-      NewAlct->PrintTestpulseGroupMask();
+      alct->ReadTestpulseGroupMask();
+      alct->PrintTestpulseGroupMask();
       break;
     case 161:
       std::cout << "testpulse groupmask: group (0-6)" << std::endl;
       std::cin >> layer;
       std::cout << "OFF (0) or ON (1) " << std::endl;
       std::cin >> value;
-      NewAlct->SetTestpulseGroupMask(layer,value);
-      NewAlct->WriteTestpulseGroupMask();      
-      NewAlct->ReadTestpulseGroupMask();
-      NewAlct->PrintTestpulseGroupMask();
+      alct->SetTestpulseGroupMask(layer,value);
+      alct->WriteTestpulseGroupMask();      
+      alct->ReadTestpulseGroupMask();
+      alct->PrintTestpulseGroupMask();
       break;
     case 169:
-      NewAlct->SetPowerUpTestpulseGroupMask();
-      NewAlct->WriteTestpulseGroupMask();      
-      NewAlct->ReadTestpulseGroupMask();
-      NewAlct->PrintTestpulseGroupMask();
+      alct->SetPowerUpTestpulseGroupMask();
+      alct->WriteTestpulseGroupMask();      
+      alct->ReadTestpulseGroupMask();
+      alct->PrintTestpulseGroupMask();
       break;
     case 170:
-      NewAlct->ReadTestpulseStripMask();
-      NewAlct->PrintTestpulseStripMask();
+      alct->ReadTestpulseStripMask();
+      alct->PrintTestpulseStripMask();
       break;
     case 171:
       std::cout << "testpulse stripmask: strip (0-6)" << std::endl;
       std::cin >> layer;
       std::cout << "OFF (0) or ON (1) " << std::endl;
       std::cin >> value;
-      NewAlct->SetTestpulseStripMask(layer,value);
-      NewAlct->WriteTestpulseStripMask();      
-      NewAlct->ReadTestpulseStripMask();
-      NewAlct->PrintTestpulseStripMask();
+      alct->SetTestpulseStripMask(layer,value);
+      alct->WriteTestpulseStripMask();      
+      alct->ReadTestpulseStripMask();
+      alct->PrintTestpulseStripMask();
       break;
     case 179:
-      NewAlct->SetPowerUpTestpulseStripMask();
-      NewAlct->WriteTestpulseStripMask();      
-      NewAlct->ReadTestpulseStripMask();
-      NewAlct->PrintTestpulseStripMask();
+      alct->SetPowerUpTestpulseStripMask();
+      alct->WriteTestpulseStripMask();      
+      alct->ReadTestpulseStripMask();
+      alct->PrintTestpulseStripMask();
       break;
     case 180:
-      NewAlct->ReadAfebThresholds();
-      NewAlct->PrintAfebThresholds();
+      alct->ReadAfebThresholds();
+      alct->PrintAfebThresholds();
       break;
     case 181:
       std::cout << "threshold: AFEB (0-42)" << std::endl;
       std::cin >> layer;
       std::cout << "value (0-255) " << std::endl;
       std::cin >> value;
-      NewAlct->SetAfebThreshold(layer,value);
-      NewAlct->WriteAfebThresholds();      
-      NewAlct->ReadAfebThresholds();
-      NewAlct->PrintAfebThresholds();
+      alct->SetAfebThreshold(layer,value);
+      alct->WriteAfebThresholds();      
+      alct->ReadAfebThresholds();
+      alct->PrintAfebThresholds();
       break;
     case 189:
-      NewAlct->SetPowerUpAfebThresholds();
-      NewAlct->WriteAfebThresholds();      
-      NewAlct->ReadAfebThresholds();
-      NewAlct->PrintAfebThresholds();
+      alct->SetPowerUpAfebThresholds();
+      alct->WriteAfebThresholds();      
+      alct->ReadAfebThresholds();
+      alct->PrintAfebThresholds();
       break;
     case 190:
-      NewAlct->ReadStandbyRegister();
-      NewAlct->PrintStandbyRegister();
+      alct->ReadStandbyRegister();
+      alct->PrintStandbyRegister();
       break;
     case 191:
       std::cout << "standby register: AFEB (0-41)" << std::endl;
       std::cin >> layer;
       std::cout << "OFF (0) or ON (1) " << std::endl;
       std::cin >> value;
-      NewAlct->SetStandbyRegister(layer,value);
-      NewAlct->WriteStandbyRegister();      
-      NewAlct->ReadStandbyRegister();
-      NewAlct->PrintStandbyRegister();
+      alct->SetStandbyRegister(layer,value);
+      alct->WriteStandbyRegister();      
+      alct->ReadStandbyRegister();
+      alct->PrintStandbyRegister();
       break;
     case 199:
-      NewAlct->SetPowerUpStandbyRegister();
-      NewAlct->WriteStandbyRegister();      
-      NewAlct->ReadStandbyRegister();
-      NewAlct->PrintStandbyRegister();
+      alct->SetPowerUpStandbyRegister();
+      alct->WriteStandbyRegister();      
+      alct->ReadStandbyRegister();
+      alct->PrintStandbyRegister();
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 
