@@ -12,7 +12,7 @@
 //}
 //
 EMUjtag::EMUjtag(TMB * tmb) :
-  tmb_(tmb)
+  tmb_(tmb),debug_(0)
 {
   //
   std::cout << "Creating EMUjtag" << std::endl ;
@@ -22,13 +22,6 @@ EMUjtag::EMUjtag(TMB * tmb) :
   jtag_chain_ = -1;
   //
 };
-//
-EMUjtag::EMUjtag(VMEModule * module) :
-  module_(module)
-{
-  //
-  //
-}
 //
 EMUjtag::~EMUjtag() {
   //
@@ -61,14 +54,16 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
   chip_id_ = selected_chip;
   register_length_ = size_of_register;
 
-  (*MyOutput_) << "EMUjtag: Use " << std::dec << bits_in_opcode_[chip_id_] 
-	       << " bits to write opcode 0x" << std::hex << opcode 
-	       << " to chip " << std::dec << chip_id_ 
-	       << " on chain 0x" << std::hex << jtag_chain_
-	       << " -> use " << std::dec << register_length_ 
-	       << " bits tdi/tdo" << std::hex << std::endl;
-
-
+  if (debug_){    
+    (*MyOutput_) << "EMUjtag: Use " << std::dec << bits_in_opcode_[chip_id_] 
+		 << " bits to write opcode 0x" << std::hex << opcode 
+		 << " to chip " << std::dec << chip_id_ 
+		 << " on chain 0x" << std::hex << jtag_chain_
+		 << " -> use " << std::dec << register_length_ 
+		 << " bits tdi/tdo" << std::hex << std::endl;
+  }
+  
+  
   //** Clear the read data which was previously there:
   for (int i=0; i<MAX_NUM_FRAMES; i++) 
     shfDR_tdo_[i] = 0;
@@ -306,7 +301,9 @@ void EMUjtag::setup_jtag(int chain) {
   //start(N):
   //  - set the jtag chain for the boot register used in VMEController_jtag::scan(...)
 
-  std::cout << "setup_chain" << std::endl ;
+  if(debug_){
+    std::cout << "setup_chain" << std::endl ;
+  }
   
   jtag_chain_ = chain;
   devices_in_chain_ = 0;
@@ -355,8 +352,10 @@ void EMUjtag::setup_jtag(int chain) {
 
     tmb_->RestoreIdle();      //Valid JTAG chain:  bring the state machine to Run-Time Idle
 
-    (*MyOutput_) << "EMUjtag: JTAG chain " << std::hex << jtag_chain_ 
-		 << " has " << std::dec << devices_in_chain_ << " devices" << std::endl;
+    if(debug_){
+      (*MyOutput_) << "EMUjtag: JTAG chain " << std::hex << jtag_chain_ 
+		   << " has " << std::dec << devices_in_chain_ << " devices" << std::endl;
+    }
   }
 
   chip_id_ = MAX_NUM_DEVICES;
