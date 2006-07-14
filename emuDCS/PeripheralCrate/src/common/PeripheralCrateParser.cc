@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.cc,v 2.9 2006/07/13 15:46:37 mey Exp $
+// $Id: PeripheralCrateParser.cc,v 2.10 2006/07/14 12:33:26 mey Exp $
 // $Log: PeripheralCrateParser.cc,v $
+// Revision 2.10  2006/07/14 12:33:26  mey
+// New XML structure
+//
 // Revision 2.9  2006/07/13 15:46:37  mey
 // New Parser strurture
 //
@@ -59,39 +62,40 @@ PeripheralCrateParser::PeripheralCrateParser(xercesc::DOMNode *pNode,EmuSystem *
   //if (pNode2->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
       //
   xercesc::DOMNamedNodeMap * pAttributes = pNode->getAttributes();
-  xercesc::DOMNode * e = pAttributes->getNamedItem(xercesc::XMLString::transcode("Crate"));
+  xercesc::DOMNode * e = pAttributes->getNamedItem(xercesc::XMLString::transcode("crateID"));
   crateNumber = atoi(xercesc::XMLString::transcode(e->getNodeValue()));
+
+  Crate * crate = 0x0;
       
-  //MvdM new Parser ready vmeParser_ = VMEParser(pNode2, crateNumber);                       
+  vmeParser_ = VMEParser(pNode, crateNumber,emuSystem);                       
+  crate = vmeParser_.crate();
 	  
   xercesc::DOMNode * pNode3 = pNode->getFirstChild(); 
   if (pNode3==0) std::cout << " Bad element "<< std::endl;
   
-  Crate * crate = 0x0;
-
   while(pNode3) {
     // the node was really a board of the peripheral crate like DMB, TMB, etc.
     if (pNode3->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
       if (debug) std::cout <<"  "<< xercesc::XMLString::transcode(pNode3->getNodeName()) << std::endl;
     }
     //
-    if (strcmp("VME",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
-      vmeParser_ = VMEParser(pNode3, crateNumber,emuSystem);                       
-      crate = vmeParser_.crate();
-      //
-    }
+    //if (strcmp("VME",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
+    //vmeParser_ = VMEParser(pNode3, crateNumber,emuSystem);                       
+    //crate = vmeParser_.crate();
+    //
+    //}
     
     if (strcmp("CSC",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
       cscParser_ = CSCParser(pNode3, crate);
     }
     
-    if (strcmp("DAQMB",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
-      daqmbParser_ = DAQMBParser(pNode3, crate);
-    }
+    //if (strcmp("DAQMB",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
+    //daqmbParser_ = DAQMBParser(pNode3, crate);
+    //}
     
-    if (strcmp("TMB",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
-      tmbParser_ = TMBParser(pNode3, crate);
-    }
+    //if (strcmp("TMB",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
+    //tmbParser_ = TMBParser(pNode3, crate);
+    //}
     
     if (strcmp("CCB",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
       ccbParser_ = CCBParser(pNode3, crate);

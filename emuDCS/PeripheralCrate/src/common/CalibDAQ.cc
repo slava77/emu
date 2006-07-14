@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.43 2006/07/14 11:46:31 rakness Exp $
+// $Id: CalibDAQ.cc,v 2.44 2006/07/14 12:33:26 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.44  2006/07/14 12:33:26  mey
+// New XML structure
+//
 // Revision 2.43  2006/07/14 11:46:31  rakness
 // compiler switch possible for ALCTNEW
 //
@@ -145,6 +148,10 @@
 #include "CCB.h"
 #include "JTAG_constants.h"
 #include "ChamberUtilities.h"
+
+CalibDAQ::CalibDAQ(EmuSystem *emuSystem){
+  theSelector.SetEmuSystem(emuSystem);
+}
 
 void CalibDAQ::loadConstants() {
 
