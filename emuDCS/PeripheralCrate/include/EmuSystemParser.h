@@ -18,6 +18,7 @@ class EmuSystemParser{
  public:
   EmuSystemParser(){}
   explicit EmuSystemParser(xercesc::DOMNode * pNode);
+  inline EmuSystem * GetEmuSystem() { return emuSystem; }
   //
  private:
   EmuParser parser_;
@@ -27,8 +28,10 @@ class EmuSystemParser{
   CCBParser ccbParser_;
   MPCParser mpcParser_;
   CSCParser cscParser_;
-
+  //
   int crateNumber;
+  EmuSystem * emuSystem;
+  //
 };
 
 #endif

@@ -11,7 +11,7 @@ EmuSystemParser::EmuSystemParser(xercesc::DOMNode *pNode)
   //
   std::cout << "emuSystemParser" << std::endl;
   //
-  EmuSystem * emuSystem = new EmuSystem();
+  emuSystem = new EmuSystem();
   //
   xercesc::DOMNode * pNode1 = pNode->getFirstChild();
   while (pNode1) {

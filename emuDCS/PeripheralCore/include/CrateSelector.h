@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateSelector.h,v 2.0 2005/04/12 08:07:03 geurts Exp $
+// $Id: CrateSelector.h,v 2.1 2006/07/14 08:11:58 mey Exp $
 // $Log: CrateSelector.h,v $
+// Revision 2.1  2006/07/14 08:11:58  mey
+// Got rid of Singleton
+//
 // Revision 2.0  2005/04/12 08:07:03  geurts
 // *** empty log message ***
 //
@@ -11,17 +14,20 @@
 
 #include <vector>
 #include <string>
-
+#include "EmuSystem.h"
 
 class DAQMB;
 class CCB;
 class TMB;
 class Crate;
 
+
 class CrateSelector {
 public:
   CrateSelector();
   ~CrateSelector();
+
+  inline void SetEmuSystem(EmuSystem * emuSystem) {emuSystem_ = emuSystem;}
 
   /// lets you give the controller a list of
   /// which card slots you'd like to activate.
@@ -50,6 +56,9 @@ public:
 private:
   std::vector<int> theSelectedSlots;
   std::vector<int> theSelectedCrates;
+
+  EmuSystem * emuSystem_;
+
 };
 
 #endif

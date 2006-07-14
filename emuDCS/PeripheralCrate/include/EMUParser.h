@@ -23,6 +23,8 @@ public:
   */
   void parseFile(const char* name);
 
+  inline EmuSystem * GetEmuSystem(){return emuSystem;}
+
   DAQMBParser daqmbParser() const {return daqmbParser_;}
   TMBParser   tmbParser()     const {return tmbParser_;}
   VMEParser   vmeParser()     const {return vmeParser_;}
@@ -39,6 +41,7 @@ public:
   MPCParser mpcParser_;
   CSCParser cscParser_;
   int crateNumber;
+  EmuSystem * emuSystem;
 };
 
 #endif

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuController.cc,v 1.4 2006/07/13 15:46:37 mey Exp $
+// $Id: EmuController.cc,v 1.5 2006/07/14 08:11:58 mey Exp $
 // $Log: EmuController.cc,v $
+// Revision 1.5  2006/07/14 08:11:58  mey
+// Got rid of Singleton
+//
 // Revision 1.4  2006/07/13 15:46:37  mey
 // New Parser strurture
 //
@@ -78,6 +81,7 @@ void EmuController::init(){
   std::cout << " Using file " << xmlFile_ << std::endl ;
   parser.parseFile(xmlFile_.c_str());
   //
+  theSelector.SetEmuSystem(parser.GetEmuSystem());
   std::vector<Crate*> myCrates = theSelector.crates();
   //
   for(unsigned i = 0; i < myCrates.size(); ++i) {
