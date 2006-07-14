@@ -126,7 +126,6 @@ StaticLibrary= EmuPeripheralCrate
 
 Executables=
 TestExecutables= \
-        calibpulse.cpp \
 	slicetestconfig.cpp \
 	EmuConfig.cpp \
 	CrateTiming.cpp \
