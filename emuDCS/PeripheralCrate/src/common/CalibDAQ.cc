@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.42 2006/07/12 12:28:02 mey Exp $
+// $Id: CalibDAQ.cc,v 2.43 2006/07/14 11:46:31 rakness Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.43  2006/07/14 11:46:31  rakness
+// compiler switch possible for ALCTNEW
+//
 // Revision 2.42  2006/07/12 12:28:02  mey
 // Update
 //
@@ -544,6 +547,7 @@ void CalibDAQ::FindL1aDelayALCT() {
 	ccb->EnableL1aCounter();
 	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
 	for (unsigned i=0; i<myTmbs.size(); i++) {
+#ifndef ALCTNEW
 	  myTmbs[i]->alctController()->set_l1a_delay(delay);
 	  myTmbs[i]->lvl1_delay(delay);
 	  myTmbs[i]->ResetCounters();
@@ -551,6 +555,18 @@ void CalibDAQ::FindL1aDelayALCT() {
 	  myTmbs[i]->alctController()->set_l1a_internal(0);
 	  myTmbs[i]->alctController()->SetUpPulsing();
 	  myTmbs[i]->SetALCTPatternTrigger();
+#else
+	  myTmbs[i]->alctController()->ReadConfigurationReg();	  
+	  myTmbs[i]->alctController()->SetL1aDelay(delay);
+	  myTmbs[i]->lvl1_delay(delay);
+	  myTmbs[i]->ResetCounters();
+	  myTmbs[i]->alctController()->SetSendEmpty(0);
+	  myTmbs[i]->alctController()->SetL1aInternal(0);
+	  myTmbs[i]->alctController()->WriteConfigurationReg();
+	  //	  
+	  myTmbs[i]->alctController()->SetUpPulsing();
+	  myTmbs[i]->SetALCTPatternTrigger();
+#endif
 	}
       }
       //
@@ -642,6 +658,7 @@ void CalibDAQ::ALCTThresholdScan() {
 	ccb->EnableL1aCounter();
 	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
 	for (unsigned i=0; i<myTmbs.size(); i++) {
+#ifndef ALCTNEW	  
 	  myTmbs[i]->alctController()->SetL1aDelay(83);
 	  myTmbs[i]->lvl1_delay(70);
 	  //myTmbs[i]->ResetCounters();
@@ -662,6 +679,27 @@ void CalibDAQ::ALCTThresholdScan() {
 	  myTmbs[i]->alctController()->setThresholds();
 	  myTmbs[i]->alctController()->SetUpPulsing();
 	  myTmbs[i]->SetCLCTPatternTrigger();
+#else
+	  myTmbs[i]->alctController()->SetL1aDelay(83);
+	  myTmbs[i]->lvl1_delay(70);
+	  //myTmbs[i]->ResetCounters();
+	  myTmbs[i]->alctController()->SetSendEmpty(0);
+	  myTmbs[i]->alctController()->SetL1aInternal(0);
+	  myTmbs[i]->alctController()->SetPretrigNumberOfLayers(1);
+	  myTmbs[i]->alctController()->SetPretrigNumberOfPattern(1);
+	  myTmbs[i]->alctController()->WriteConfigurationReg();
+	  //
+	  ALCTController * alct = myTmbs[i]->alctController() ;
+	  //
+	  int nAFEBS = alct->GetNumberOfGroupsOfDelayChips();
+	  std::cout << "nAFEBS = " << nAFEBS << std::endl;
+	  for(int afebs=0; afebs<nAFEBS; afebs++) {
+	    alct->SetAfebThreshold(afebs,thres);	    
+	  }
+	  myTmbs[i]->alctController()->WriteAfebThresholds();
+	  myTmbs[i]->alctController()->SetUpPulsing();
+	  myTmbs[i]->SetCLCTPatternTrigger();
+#endif
 	}
       }
       //
@@ -733,6 +771,7 @@ void CalibDAQ::ALCTConnectivity() {
 	ccb->EnableL1aCounter();
 	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
 	for (unsigned i=0; i<myTmbs.size(); i++) {
+#ifndef ALCTNEW
 	  myTmbs[i]->alctController()->SetL1aDelay(83);
 	  myTmbs[i]->lvl1_delay(70);
 	  //myTmbs[i]->ResetCounters();
@@ -746,6 +785,21 @@ void CalibDAQ::ALCTConnectivity() {
 	  //
 	  myTmbs[i]->alctController()->SetUpPulsing(0x3c,1,(1<<layer));
 	  myTmbs[i]->SetCLCTPatternTrigger();
+#else
+	  myTmbs[i]->alctController()->SetL1aDelay(83);
+	  myTmbs[i]->lvl1_delay(70);
+	  //myTmbs[i]->ResetCounters();
+	  myTmbs[i]->alctController()->SetSendEmpty(0);
+	  myTmbs[i]->alctController()->SetL1aInternal(0);
+	  myTmbs[i]->alctController()->SetPretrigNumberOfLayers(1);
+	  myTmbs[i]->alctController()->SetPretrigNumberOfPattern(1);
+	  myTmbs[i]->alctController()->WriteConfigurationReg();
+	  //
+	  ALCTController * alct = myTmbs[i]->alctController() ;
+	  //
+	  myTmbs[i]->alctController()->SetUpPulsing(0x3c,PULSE_LAYERS,(1<<layer),ADB_SYNC);
+	  myTmbs[i]->SetCLCTPatternTrigger();
+#endif
 	}
       }
       //

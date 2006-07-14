@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 2.16 2006/07/13 15:46:37 mey Exp $
+// $Id: TMBParser.cc,v 2.17 2006/07/14 11:46:31 rakness Exp $
 // $Log: TMBParser.cc,v $
+// Revision 2.17  2006/07/14 11:46:31  rakness
+// compiler switch possible for ALCTNEW
+//
 // Revision 2.16  2006/07/13 15:46:37  mey
 // New Parser strurture
 //
@@ -197,6 +200,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate)
        	//alctParser_.fillInt("rpc_rat_delay", rat_->rat_tmb_delay_);
 	//ALCT
 	//
+#ifndef ALCTNEW
 	int mode;
        	if ( alctParser_.fillInt("trig_mode", mode) ) {
 	  alct_->SetTrigMode(mode);
@@ -278,6 +282,89 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate)
 	      //
 	    }
 	  }
+#else
+	int mode;
+       	if ( alctParser_.fillInt("trig_mode", mode) ) {
+	  alct_->SetTriggerMode(mode);
+	}
+	//
+	if ( alctParser_.fillInt("ext_trig_en", enable)) {
+	  alct_->SetExtTrigEnable(enable);
+	}
+	//
+	if ( alctParser_.fillInt("trig_info_en", enable)) {
+	  alct_->SetTriggerInfoEnable(enable);
+	}
+	if ( alctParser_.fillInt("l1a_internal", enable)) {
+	  alct_->SetL1aInternal(enable);
+	}
+	if ( alctParser_.fillInt("fifo_tbins", tbins) ) {
+	  alct_->SetFifoTbins(tbins);
+	}
+	if ( alctParser_.fillInt("fifo_pretrig", pretrig)) {
+	  alct_->SetFifoPretrig(pretrig);
+	}
+	if (alctParser_.fillInt("l1a_delay", delay)) {
+	  alct_->SetL1aDelay(delay);
+	}
+	if ( alctParser_.fillInt("l1a_offset",offset)) {
+	  alct_->SetL1aOffset(offset);
+	}
+	if (alctParser_.fillInt("l1a_window", size)) {
+	  alct_->SetL1aWindowSize(size);
+	}
+	int nph;
+	if ( alctParser_.fillInt("nph_thresh", nph)) {
+	  alct_->SetPretrigNumberOfLayers(nph);
+	}
+	if ( alctParser_.fillInt("nph_pattern", nph)){
+	  alct_->SetPretrigNumberOfPattern(nph);
+	}
+	if ( alctParser_.fillInt("ccb_enable", enable) ) {
+	  alct_->SetCcbEnable(enable);
+	}
+	if ( alctParser_.fillInt("inject_mode", mode)) {
+	  alct_->SetInjectMode(mode);
+	}
+	if ( alctParser_.fillInt("send_empty", enable)) {
+	  alct_->SetSendEmpty(enable);
+	}
+	if (alctParser_.fillInt("drift_delay", delay)) {
+	  alct_->SetDriftDelay(delay);
+	}
+	//	std::string file;
+	//	if ( alctParser_.fillString("alct_pattern_file", file)) {
+	//	  alct_->SetPatternFile(file);
+	//	}
+	//	if (alctParser_.fillString("alct_hotchannel_file", file)){
+	//	  alct_->SetHotChannelFile(file);
+	//	}
+	
+	int number, delay, threshold;
+	
+	xercesc::DOMNode * grandDaughterNode = daughterNode->getFirstChild();
+
+	while (grandDaughterNode) {
+	  if (grandDaughterNode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE and
+	      strcmp("AnodeChannel",xercesc::XMLString::transcode(grandDaughterNode->getNodeName()))==0){
+	    //
+	    std::string  nodeName = xercesc::XMLString::transcode(grandDaughterNode->getNodeName());
+	    //
+	    EmuParser anodeParser_;
+	    //
+	    anodeParser_.parseNode(grandDaughterNode);
+	    if(anodeParser_.fillInt("Number", number)){
+	      anodeParser_.fillInt("delay", delay);
+	      anodeParser_.fillInt("threshold", threshold);
+	      //
+	      alct_->SetAsicDelay(number-1,delay);
+	      //alct_->delays_[number-1] = delay;
+	      //alct_->thresholds_[number-1] = threshold;
+	      alct_->SetAfebThreshold(number-1,threshold);
+	      //
+	    }
+	  }
+#endif
 	  grandDaughterNode = grandDaughterNode->getNextSibling();
 	}
       }

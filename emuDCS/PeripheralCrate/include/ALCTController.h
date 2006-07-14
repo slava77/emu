@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.18 2006/07/12 15:06:49 rakness Exp $
+// $Id: ALCTController.h,v 2.19 2006/07/14 11:45:49 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.19  2006/07/14 11:45:49  rakness
+// compiler switch possible for ALCTNEW
+//
 // Revision 2.18  2006/07/12 15:06:49  rakness
 // option for cleaned up ALCT
 //
@@ -684,7 +687,9 @@ public:
 #endif
   
 #else
-
+//////////////////////////////////////////////////////////////////////////////////////
+//  From here to end is new ALCTController...
+//////////////////////////////////////////////////////////////////////////////////////
 #ifndef ALCTController_h
 #define ALCTController_h
 
@@ -692,7 +697,7 @@ public:
 #include "EMUjtag.h"
 
 class TMB;
-
+//
 class ALCTController : public EMUjtag {
 public:
   //
@@ -704,39 +709,60 @@ public:
   //
   /////////////////////////////////////////////////
   // The following are to translate the methods of 
-  // the old ALCTController to the methods here...
+  // the old ALCTController to the current methods, 
+  // and should eventually go away...
   /////////////////////////////////////////////////
-  inline void SetTrigMode(int mode) { SetTriggerMode(mode); }
-  inline void SetTrigInfoEnable(int enable) { SetTriggerInfoEnable(enable); }
-  inline void SetCCBEnable(int enable) { SetCcbEnable(enable); }
-  inline void SetAlctInjectMode(int mode) { SetInjectMode(mode); }
-  inline void set_l1a_delay(int delay) { SetL1aDelay(delay); }
-  inline void set_empty(int empty) { SetSendEmpty(empty); }
-  inline void set_l1a_internal(int internal) { SetL1aInternal(internal); }
-  inline void SetDelay(int AFEB, int delay) { SetAsicDelay(AFEB-1,delay); }
-  inline void SetThreshold(int AFEB, int threshold) { SetAfebThreshold(AFEB-1,threshold); }
-  inline void SetPatternFile(std::string dummy_file) { return; }
-  inline void SetHotChannelFile(std::string dummy_file) { return; }
-  inline void setup(int dummy) { configure(); }
-  inline void setThresholds() { WriteAfebThresholds(); }
+  //  inline void set_l1a_delay(int delay) { SetL1aDelay(delay); }
+  //  inline void set_empty(int empty) { SetSendEmpty(empty); }
+  //  inline void set_l1a_internal(int internal) { SetL1aInternal(internal); }
+  //  inline void SetTrigMode(int mode) { SetTriggerMode(mode); }
+  //  inline void SetTrigInfoEnable(int enable) { SetTriggerInfoEnable(enable); }
+  //  inline void SetCCBEnable(int enable) { SetCcbEnable(enable); }
+  //  inline void SetAlctInjectMode(int mode) { SetInjectMode(mode); }
+  //  inline void SetDelay(int AFEB, int delay) { SetAsicDelay(AFEB-1,delay); }
+  //  inline void SetThreshold(int AFEB, int threshold) { SetAfebThreshold(AFEB-1,threshold); }
+  //  inline void SetPatternFile(std::string dummy_file) { return; }
+  //  inline void SetHotChannelFile(std::string dummy_file) { return; }
+  //  inline void setup(int) { configure(); }
+  //  inline void setThresholds() { WriteAfebThresholds(); }
+  //  inline void setConfig() { WriteConfigurationReg(); }
+  //  inline int  delayLines() { return GetNumberOfGroupsOfDelayChips(); }
+  //  inline int  GetWGNumber() { return GetNumberOfChannelsInAlct(); }
+  //  inline int  alct_read_slowcontrol_id(ALCTIDRegister *) { ReadSlowControlId(); return GetSlowControlYear(); }
+  //  inline int  alct_fast_read_id(ALCTIDRegister &) { ReadFastControlId(); return GetFastControlYear(); }
+  //  inline int  NewSVFLoad(int *a,char *b,int c) { return SVFLoad(a,b,c); }  
+  //  int alct_set_delay(int,int);
+  //  void alct_write_hcmask(unsigned long *);
+  //  void alct_read_hcmask(unsigned long *) { ReadHotChannelMask(); PrintHotChannelMask(); }
+  //  void GetConf(unsigned*,int) { ReadConfigurationReg(); PrintConfigurationReg(); }
+  //  void SetConf(unsigned*cr,int) { SetL1aDelay((cr[1]>>4 & 0xff WriteConfigurationReg(); } 
+  //  void unpackControlRegister(unsigned*) { PrintConfigurationReg(); }
   //
-  //The following should be in applications, not in ALCTController....
-  void SetUpPulsing(long int Amplitude);
-  void SetUpPulsing();
   //
-  //
-  //////////////////////////////////////////////////////////
-  // Methods to set, control, and read values from ALCT...:
-  //////////////////////////////////////////////////////////
-  //
+  ///////////////////////////////////////////////////////////////////////////
+  //  Useful methods to use ALCTController:
+  ///////////////////////////////////////////////////////////////////////////
   void configure();
   //
+  inline std::string GetChamberType() { return chamber_type_string_; }
   inline int GetNumberOfAfebs() { return NumberOfAFEBs_; }
   inline int GetNumberOfGroupsOfDelayChips() { return NumberOfGroupsOfDelayChips_; }
   inline int GetNumberOfWireGroupsInChamber() { return NumberOfWireGroupsInChamber_; }
   inline int GetNumberOfChannelsPerLayer() { return NumberOfChannelsPerLayer_; }
   inline int GetNumberOfChannelsInAlct() { return NumberOfChannelsInAlct_; }
   //
+  void SetUpPulsing(int DAC_pulse_amplitude=255,     //DAC_pulse_amplitude=[0-255]
+		    int which_set=PULSE_AFEBS,       //which_set = [PULSE_LAYERS, PULSE_AFEBS]
+		    int strip_mask=0xff,             //mask of enabled layers/AFEBgroups (depending on previous argument) 
+  //                                                      -> bit = 1 = ON
+  //                                                             = 0 = OFF
+		    int source=ADB_SYNC);           //source = [OFF, ADB_SYNC, ADB_ASYNC, LEMO, SELF]
+  void SetUpRandomALCT();
+  //
+  //
+  ////////////////////////////
+  // Registers on the ALCT...
+  ////////////////////////////
   ///////////////////////
   //SLOW CONTROL ID
   ///////////////////////
@@ -792,11 +818,11 @@ public:
   void ReadTestpulseGroupMask();	      // fills software values with values read from ALCT	      
   //
   //////////////////////////////////////////////////////////////
-  //TESTPULSE STRIPMASK - which AFEB within the group is firing
+  //TESTPULSE STRIPMASK - which layer is firing
   //////////////////////////////////////////////////////////////
-  void SetTestpulseStripMask(int AFEBinGroup,     // AFEBinGroup = [0-5]
+  void SetTestpulseStripMask(int layer,           // layer = [0-5]
 			     int mask);           // mask = OFF or ON
-  int  GetTestpulseStripmask(int AFEBinGroup);    // AFEBinGroup = [0-5]
+  int  GetTestpulseStripmask(int layer);          // AFEBinGroup = [0-5]
   void SetPowerUpTestpulseStripMask();	   	  // sets software values to power-up values                  
   void PrintTestpulseStripMask();		  // print out software values				      
   // 
@@ -846,13 +872,21 @@ public:
   //
   void ReadFastControlId();   		   //fills software values with values read from ALCT	 
   //
-  //////////////////////////////
-  // CONFIGURATION REGISTER
-  //////////////////////////////
-  void SetPulseTrigger(int source);            //source = JTAG, ADB_SYNC, ADB_ASYNC, LEMO) = (0, 1, 2, 3)... or OFF
-  int  GetPulseTrigger();
+  ///////////////////////////////////////////////////////////////////////////////
+  // TESTPULSE TRIGGER REGISTER - specify which signal will fire the testpulse
+  //////////////////////////////////////////////////////////////////////////////
+  void SetPulseTriggerSource(int source);      //source = [OFF, ADB_SYNC, ADB_ASYNC, LEMO, SELF]
+  int  GetPulseTriggerSource();                //return value -> 0  = OFF
+  //                                                             3  = SELF
+  //                                                             4  = ADB_SYNC
+  //                                                             8  = ADB_ASYNC
+  //                                                             12 = LEMO
   //
-  void InvertPulse(int mask);                  //mask = ON = inverted, = OFF = non-inverted 
+  void SetInvertPulse(int mask);               //mask = [ON, OFF] 
+  int  GetInvertPulse();                       //return value -> 0 = not inverted
+  //                                                             1 = inverted 
+  //
+  void SetPowerUpTriggerRegister();	       // sets software values to power-up values                
   void PrintTriggerRegister();                 //print out software values				 
   //
   //
@@ -1040,6 +1074,12 @@ private:
   //////////////////////////////
   char fastcontrol_id_[RegSizeAlctFastFpga_RD_ID_REG/8+1];
   //
+  int trigger_reg_[RegSizeAlctFastFpga_WRT_TRIG_REG];
+  int pulse_trigger_source_;
+  int invert_pulse_;
+  void FillTriggerRegister_();
+  void DecodeTriggerRegister_();
+  //
   int delay_line_control_reg_[RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_672]; //make this as large as it could possibly be
   void SetDelayLineGroupSelect_(int group,           // 1 group = 6 AFEBs => [0-2] ALCT288, [0-4] ALCT384, [0-6] ALCT672
 				int mask);           // mask = ON or OFF
@@ -1093,7 +1133,6 @@ private:
   int hot_channel_mask_[RegSizeAlctFastFpga_RD_HOTCHAN_MASK_672];             //make this as large as it could possibly be
   //
 };
-
 #endif
 
 #endif

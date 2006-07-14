@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.40 2006/07/12 15:06:59 rakness Exp $
+// $Id: ALCTController.cc,v 2.41 2006/07/14 11:46:31 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.41  2006/07/14 11:46:31  rakness
+// compiler switch possible for ALCTNEW
+//
 // Revision 2.40  2006/07/12 15:06:59  rakness
 // option for cleaned up ALCT
 //
@@ -6014,7 +6017,9 @@ char *trim(char *str)
 }
 
 #else
-
+//////////////////////////////////////////////////////////////////////////////////////
+//  From here to end is new ALCTController...
+//////////////////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <iomanip>
 #include <unistd.h> // for sleep
@@ -6044,6 +6049,7 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   SetPowerUpStandbyRegister();
   //
   SetPowerUpDelayLineControlReg_();
+  SetPowerUpTriggerRegister();
   SetPowerUpAsicDelays();
   SetPowerUpAsicPatterns();
   SetPowerUpConfigurationReg();
@@ -6058,9 +6064,37 @@ ALCTController::~ALCTController() {
 //
 //
 ///////////////////////////////////////////////////////////////////
-// The following are applications, not module functions...
+// The following methods need to go away and be replaced with 
+// the simple routines defined here:
 ///////////////////////////////////////////////////////////////////
-void ALCTController::SetUpPulsing(long int Amplitude){
+//int ALCTController::alct_set_delay(int delay_line_number, int delay) {
+//  //
+//  std::cout << "OBSOLETE, please use SetAsicDelay(AFEB,delay) and WriteAsicDelaysAndPatterns()" << std::endl;
+//  //
+//  if (delay_line_number == -1) {
+//    for (int afeb=0; afeb<GetNumberOfAfebs(); afeb++) 
+//      SetAsicDelay(afeb,delay);
+//    WriteAsicDelaysAndPatterns();
+//    //
+//  } else {
+//    SetAsicDelay(delay_line_number,delay);
+//    WriteAsicDelaysAndPatterns();
+//  }
+//  return 0;
+//}
+//
+///////////////////////////////////////////////////////////////////
+// END:  The following methods need to go away and be replaced with 
+// the simple routines defined here:
+///////////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////////
+// Useful methods to use ALCTController...
+///////////////////////////////////////////////////////////////////
+void ALCTController::SetUpPulsing(int DAC_pulse_amplitude, 
+				  int which_set,
+				  int mask,
+				  int source){
   //
   //  long int StripMask = 0x3f;
   //  long int PowerUp   = 1 ;
@@ -6068,33 +6102,57 @@ void ALCTController::SetUpPulsing(long int Amplitude){
   //  int slot=tmb_->slot();
   //
   (*MyOutput_) << "Set up ALCT (slot " << tmb_->slot() 
-	       << ") for pulsing: Amplitude=" << std::dec << Amplitude << std::endl;
+	       << ") for pulsing: Amplitude=" << std::dec << DAC_pulse_amplitude << std::endl;
   //
   //  alct_set_test_pulse_powerup(&slot,0);
   SetTestpulsePowerSwitchReg(OFF);
   WriteTestpulsePowerSwitchReg();
   //
-  usleep(100);
+  //  usleep(100);   // included into WriteTestpulsePowerSwitchReg();
   //
   //  alct_set_test_pulse_amp(&slot,Amplitude);
-  SetTestpulseAmplitude(Amplitude);
+  SetTestpulseAmplitude(DAC_pulse_amplitude);
   WriteTestpulseAmplitude();
   //
-  usleep(100);
+  // usleep(100);    // included into WriteTestpulseAmplitude();
   //
   //  alct_read_test_pulse_stripmask(&slot,&StripMask);
   //  std::cout << " StripMask = " << std::hex << StripMask << std::endl;
   ReadTestpulseStripMask();
   PrintTestpulseStripMask();
   //
-  //  alct_set_test_pulse_stripmask(&slot,0x00);
-  for (int chip=0; chip<NUMBER_OF_CHIPS_PER_GROUP; chip++) 
-    SetTestpulseStripMask(chip,OFF);
-  WriteTestpulseStripMask();
+  //  if(StripAfeb == 0 ) {
+  //    alct_set_test_pulse_stripmask(&slot,0x00);
+  //    alct_set_test_pulse_groupmask(&slot,0xff);
+  //  }
+  //  else if (StripAfeb == 1 ) {
+  //    alct_set_test_pulse_stripmask(&slot,stripMask);
+  //    alct_set_test_pulse_groupmask(&slot,0x00);
+  //  } else {
+  //    std::cout << "ALCTcontroller.SetUpPulsing : Don't know this option" <<std::endl;
+  //  }
   //
-  //  alct_set_test_pulse_groupmask(&slot,0xff);
   for (int group=0; group<GetNumberOfGroupsOfDelayChips(); group++)
-    SetTestpulseGroupMask(group,ON);
+    SetTestpulseGroupMask(group,OFF);
+  for (int layer=0; layer<MAX_NUM_LAYERS; layer++) 
+    SetTestpulseStripMask(layer,OFF);
+  //
+  // Choose whether you are pulsing layers with teststrips or AFEBS in groups...
+  if (which_set==PULSE_AFEBS) {
+    for (int group=0; group<GetNumberOfGroupsOfDelayChips(); group++) {
+      int off_or_on = (mask >> group) & 0x1;
+      SetTestpulseGroupMask(group,off_or_on);    
+    }
+  } else if (which_set==PULSE_LAYERS) {
+    for (int layer=0; layer<MAX_NUM_LAYERS; layer++) {
+      int off_or_on = (mask >> layer) & 0x1;
+      SetTestpulseStripMask(layer,off_or_on);
+    }
+  } else {
+    std::cout << "ALCTcontroller SetUpPulsing : Set " << which_set 
+	      << " not available to pulse..." << std::endl;
+  }
+  WriteTestpulseStripMask();
   WriteTestpulseGroupMask();
   //
   //  alct_read_test_pulse_stripmask(&slot,&StripMask);
@@ -6104,33 +6162,90 @@ void ALCTController::SetUpPulsing(long int Amplitude){
   //
   //  alct_read_test_pulse_powerup(&slot,&PowerUp);
   //  std::cout << " PowerUp   = " << std::hex << PowerUp << std::dec << std::endl; //11July05 DM added dec
-  SetTestpulsePowerSwitchReg(ON);
-  WriteTestpulsePowerSwitchReg();
+  ReadTestpulsePowerSwitchReg();
+  PrintTestpulsePowerSwitchReg();
   //
-  alct_fire_test_pulse('s');
+  //  alct_fire_test_pulse('s');
+  SetPulseTriggerSource(source);
+  SetInvertPulse(OFF);
+  WriteTriggerRegister();
   //
-  usleep(100);
+  //  usleep(100);  // included into WriteTriggerRegister();
   //
   //  alct_set_test_pulse_powerup(&slot,1);
   SetTestpulsePowerSwitchReg(ON);
   WriteTestpulsePowerSwitchReg();
   //
-  usleep(100);
+  //  usleep(100); // included into WriteTestpulsePowerSwitchReg();
   //
   //  alct_read_test_pulse_powerup(&slot,&PowerUp);
   //  std::cout << " PowerUp   = " << std::hex << PowerUp << std::dec << std::endl; //11July05 DM added dec
   ReadTestpulsePowerSwitchReg();
   PrintTestpulsePowerSwitchReg();  
   //
-}
-//
-void ALCTController::SetUpPulsing(){
-  SetUpPulsing(0x3f);
   return;
 }
-///////////////////////////////////////////////////////////////////
-// END:  The following are applications, not module functions...
-///////////////////////////////////////////////////////////////////
+//
+//
+void ALCTController::SetUpRandomALCT(){
+  //
+  //  unsigned long HCmask[22];
+  //  unsigned long HCmask2[22];
+  //
+  //    for (int i=0; i< 22; i++) {
+  //    HCmask[i] = 0;
+  //    HCmask2[i] = 0;
+  //  }
+  //
+  //  int keyWG  = int(rand()/(RAND_MAX+0.01)*(GetWGNumber())/6/4);
+  //  int keyWG2 = (GetWGNumber())/6-keyWG;
+  //  int ChamberSection = GetWGNumber()/6;
+  int keyWG  = int(rand()/(RAND_MAX+0.01)*(GetNumberOfChannelsInAlct())/6/4);
+  int keyWG2 = (GetNumberOfChannelsInAlct())/6-keyWG;
+  //
+  printf("Injecting at %d and %d\n",keyWG,keyWG2);
+  //
+  //  for (int i=0; i< 22; i++) HCmask[i] = 0;
+  //  //
+  //  std::bitset<672> bits(*HCmask) ;
+  //  //
+  //  for (int i=0;i<672;i++){
+  //    if ( i%(GetWGNumber()/6) == keyWG ) bits.set(i);
+  //    if ( i%(GetWGNumber()/6) == (GetWGNumber())/6-keyWG ) bits.set(i);
+  //  }
+  //  //
+  //  std::bitset<32> Convert;
+  //  //
+  //  Convert.reset();
+  //  //
+  //  for (int i=0;i<(GetWGNumber());i++){
+  //    if ( bits.test(i) ) Convert.set(i%32);
+  //    if ( i%32 == 31 ) {
+  //      HCmask[i/32] = Convert.to_ulong();
+  //      Convert.reset();
+  //    }
+  //  }
+  //
+  //  alct_write_hcmask(HCmask);
+  //  for(int i=0; i<22; i++) std::cout << std::hex << HCmask[i] << std::endl;
+  //  alct_read_hcmask(HCmask);
+  //  std::cout << std::endl;
+  //  for(int i=0; i<22; i++) std::cout << std::hex << HCmask2[i] << std::endl;
+    for(int layer=1; layer<MAX_NUM_LAYERS; layer++) {
+      for(int channel=1; channel<=GetNumberOfChannelsInAlct()/6; channel++) {
+	if (channel==keyWG-1 || channel==keyWG2-1) {
+	  SetHotChannelMask(layer,channel,ON);
+	} else {
+	  SetHotChannelMask(layer,channel,OFF);
+	}
+      }
+    }
+    WriteHotChannelMask();
+    ReadHotChannelMask();
+    PrintHotChannelMask();
+  //
+  return;
+}
 //
 //
 void ALCTController::configure() {
@@ -6165,6 +6280,9 @@ void ALCTController::configure() {
   ReadFastControlId();
   PrintFastControlId();
   //
+  WriteTriggerRegister();
+  PrintTriggerRegister();
+  //
   WriteAsicDelaysAndPatterns();
   ReadAsicDelaysAndPatterns();
   PrintAsicDelays();
@@ -6180,6 +6298,10 @@ void ALCTController::configure() {
   //
   return;
 }
+///////////////////////////////////////////////////////////////////
+// END:  Useful methods to use ALCTController...
+///////////////////////////////////////////////////////////////////
+//
 ///////////////////////
 //SLOW CONTROL ID
 ///////////////////////
@@ -6230,9 +6352,9 @@ int ALCTController::GetSlowControlMonth() {
   return (slowcontrol_id_[4] & 0xff); 
 }
 //
-///////////////////////
-//TESTPULSE POWERSWITCH
-///////////////////////
+//////////////////////////////////
+//TESTPULSE POWERSWITCH REGISTER
+//////////////////////////////////
 void ALCTController::WriteTestpulsePowerSwitchReg() {
   (*MyOutput_) << "ALCT: WRITE testpulse POWERSWITCH" << std::endl;
   //
@@ -6242,6 +6364,8 @@ void ALCTController::WriteTestpulsePowerSwitchReg() {
 	      ALCT_SLOW_WRT_TESTPULSE_POWERDOWN,
 	      RegSizeAlctSlowFpga_WRT_TESTPULSE_POWERDOWN,
 	      &testpulse_power_setting_);
+  usleep(100);
+  //
   return;
 }
 //
@@ -6284,9 +6408,9 @@ void ALCTController::SetPowerUpTestpulsePowerSwitchReg() {
   return;
 }
 //
-///////////////////////
-//TESTPULSE AMPLITUDE
-///////////////////////
+////////////////////////////////
+//TESTPULSE AMPLITUDE REGISTER
+////////////////////////////////
 void ALCTController::WriteTestpulseAmplitude() {
   (*MyOutput_) << "ALCT: WRITE testpulse AMPLITUDE = " 
   	       << GetTestpulseAmplitude() << std::endl;
@@ -6307,6 +6431,8 @@ void ALCTController::WriteTestpulseAmplitude() {
 	      ALCT_SLOW_WRT_TESTPULSE_DAC,
 	      RegSizeAlctSlowFpga_WRT_TESTPULSE_DAC,
 	      dac);
+  usleep(100);
+  //
   return;
 }
 //
@@ -6333,9 +6459,9 @@ void ALCTController:: SetPowerUpTestpulseAmplitude() {
   return;
 }
 //
-///////////////////////
-//TESTPULSE GROUPMASK
-///////////////////////
+////////////////////////////////
+//TESTPULSE GROUPMASK REGISTER
+////////////////////////////////
 void ALCTController::WriteTestpulseGroupMask() {
   //
   (*MyOutput_) << "ALCT: WRITE testpulse GROUPMASK" << std::endl;
@@ -6384,7 +6510,7 @@ void ALCTController::SetTestpulseGroupMask(int group,
   //
   if (group < 0 || group >= GetNumberOfGroupsOfDelayChips()) {
     (*MyOutput_) << "SetTestpulseGroupMask: ERROR group value must be between 0 and " 
-		 << std::dec << GetNumberOfGroupsOfDelayChips-1 << std::endl;
+		 << std::dec << GetNumberOfGroupsOfDelayChips()-1 << std::endl;
     return;
   } 
   testpulse_groupmask_[group] = mask & 0x1;
@@ -6403,9 +6529,9 @@ void ALCTController::SetPowerUpTestpulseGroupMask() {
   return;
 }
 //
-///////////////////////
-//TESTPULSE STRIPMASK
-///////////////////////
+/////////////////////////////////
+//TESTPULSE STRIPMASK REGISTER
+/////////////////////////////////
 void ALCTController::WriteTestpulseStripMask() {
   //
   (*MyOutput_) << "ALCT: WRITE testpulse STRIPMASK" << std::endl;
@@ -6447,25 +6573,25 @@ void ALCTController::PrintTestpulseStripMask() {
   return;
 }
 //
-void ALCTController::SetTestpulseStripMask(int afeb,
+void ALCTController::SetTestpulseStripMask(int layer,
 					   int mask) {
   //
-  if (afeb < 0 || afeb >= NUMBER_OF_CHIPS_PER_GROUP) {
+  if (layer < 0 || layer >= MAX_NUM_LAYERS) {
     (*MyOutput_) << "SetTestpulseStripMask: ERROR AFEB value must be between 0 and " 
-		 << std::dec << NUMBER_OF_CHIPS_PER_GROUP-1 << std::endl;
+		 << std::dec << MAX_NUM_LAYERS-1 << std::endl;
     return;
   } 
   //
-  testpulse_stripmask_[afeb] = mask & 0x1;
+  testpulse_stripmask_[layer] = mask & 0x1;
   //
   return;
 }
 //
 int ALCTController::GetTestpulseStripmask(int afeb) {
   //
-  if (afeb < 0 || afeb >= NUMBER_OF_CHIPS_PER_GROUP) {
+  if (afeb < 0 || afeb >= MAX_NUM_LAYERS) {
     (*MyOutput_) << "GetTestpulseStripMask: ERROR AFEB value must be between 0 and " 
-		 << std::dec << NUMBER_OF_CHIPS_PER_GROUP-1 << std::endl;
+		 << std::dec << MAX_NUM_LAYERS-1 << std::endl;
     return 999;
   } 
   //
@@ -6474,7 +6600,7 @@ int ALCTController::GetTestpulseStripmask(int afeb) {
 //
 void ALCTController::SetPowerUpTestpulseStripMask() {
   //
-  for (int afeb=0; afeb<NUMBER_OF_CHIPS_PER_GROUP; afeb++)
+  for (int afeb=0; afeb<MAX_NUM_LAYERS; afeb++)
     SetTestpulseStripMask(afeb,OFF);
   //
   return;
@@ -6746,6 +6872,138 @@ int ALCTController::GetFastControlDay() {
 //
 int ALCTController::GetFastControlMonth() { 
   return (fastcontrol_id_[4] & 0xff); 
+}
+//
+////////////////////////////////
+// TESTPULSE TRIGGER REGISTER
+////////////////////////////////
+void ALCTController::WriteTriggerRegister() {
+  //
+  (*MyOutput_) << "ALCT: WRITE TRIGGER REGISTER" << std::endl;
+  //
+  FillTriggerRegister_();
+  //
+  setup_jtag(ChainAlctFastFpga);
+  //
+  ShfIR_ShfDR(ChipLocationAlctFastFpga,
+	      ALCT_FAST_WRT_TRIG_REG,
+	      RegSizeAlctFastFpga_WRT_TRIG_REG,
+	      trigger_reg_);
+  usleep(100);
+  //
+  return;
+}
+//
+void ALCTController::ReadTriggerRegister() {
+  //
+  for (int i=0; i<RegSizeAlctFastFpga_RD_TRIG_REG; i++)
+    trigger_reg_[i] = 0;
+  //
+  setup_jtag(ChainAlctFastFpga);
+  //
+  ShfIR_ShfDR(ChipLocationAlctFastFpga,
+	      ALCT_FAST_RD_TRIG_REG,
+	      RegSizeAlctFastFpga_RD_TRIG_REG);
+  //
+  int * register_pointer = GetDRtdo();
+  for (int i=0; i<RegSizeAlctFastFpga_RD_TRIG_REG; i++)
+    trigger_reg_[i] = *(register_pointer+i);
+  //
+  //Print out control register value in hex
+  //  int scaler_trigger_reg = bits_to_int(trigger_reg_,
+  //				       RegSizeAlctFastFpga_RD_TRIG_REG,
+  //				       LSBfirst);
+  //  (*MyOutput_) << "ALCT: READ TRIGGER REGISTER = " 
+  //  	       << std::hex << scaler_trigger_reg << std::dec << std::endl;
+
+  DecodeTriggerRegister_();
+  //
+  return;
+}
+//
+void ALCTController::SetPulseTriggerSource(int source) {
+  // Specify which signal will fire the testpulse
+  // N.B. The trigger source is a combination of the bits in [0-1] and [2-3]
+  //
+  pulse_trigger_source_ = source & 0xf;
+  //
+  return;
+}
+//
+void ALCTController::SetInvertPulse(int mask) {
+  // bit = 1 = invert
+  //     = 0 = not inverted
+  //
+  invert_pulse_ = mask & 0x1; 
+  //
+  return;
+}  
+//
+int ALCTController::GetPulseTriggerSource() {
+  //
+  return pulse_trigger_source_;
+}
+//
+int ALCTController::GetInvertPulse() {
+  //
+  return invert_pulse_; 
+}  
+//
+void ALCTController::DecodeTriggerRegister_() {
+  // ** Extract the trigger register's software values  **
+  // ** from the vector of bits trigger_reg_[]          **
+  //
+  int number_of_bits = trigger_register_source_bithi - trigger_register_source_bitlo + 1;  
+  pulse_trigger_source_ = bits_to_int(trigger_reg_+trigger_register_source_bitlo,
+				      number_of_bits,
+				      LSBfirst);
+  //
+  number_of_bits = trigger_register_invert_bithi - trigger_register_invert_bitlo + 1;  
+  invert_pulse_ = bits_to_int(trigger_reg_+trigger_register_invert_bitlo,
+			      number_of_bits,
+			      LSBfirst);
+  //
+  return;
+}
+//
+void ALCTController::FillTriggerRegister_() {
+  // ** Project the trigger register's software values  **
+  // ** into the vector of bits trigger_reg_[]          **
+  //
+  int_to_bits(pulse_trigger_source_,
+	      trigger_register_source_bithi - trigger_register_source_bitlo + 1,
+	      trigger_reg_ + trigger_register_source_bitlo,
+	      LSBfirst);
+  //
+  int_to_bits(invert_pulse_,
+	      trigger_register_invert_bithi - trigger_register_invert_bitlo + 1,
+	      trigger_reg_ + trigger_register_invert_bitlo,
+	      LSBfirst);
+  //
+  return;
+}
+//
+void ALCTController::PrintTriggerRegister() {
+  //
+  (*MyOutput_) << "ALCT Testpulse Trigger Register:" << std::endl;
+  (*MyOutput_) << "--------------------------------" << std::endl;
+  (*MyOutput_) << " trigger source = ";
+  if (pulse_trigger_source_ == SELF) (*MyOutput_) << "SELF" << std::endl;
+  if (pulse_trigger_source_ == ADB_SYNC) (*MyOutput_) << "ADB_SYNC" << std::endl;
+  if (pulse_trigger_source_ == ADB_ASYNC) (*MyOutput_) << "ADB_ASYNC" << std::endl;
+  if (pulse_trigger_source_ == LEMO) (*MyOutput_) << "LEMO" << std::endl;
+  //
+  (*MyOutput_) << " trigger invert =" << std::dec << invert_pulse_ << std::endl;
+  //
+  return;
+}
+//
+void ALCTController::SetPowerUpTriggerRegister(){
+  //
+  SetPulseTriggerSource(OFF);
+  SetInvertPulse(OFF);
+  //
+  return;
 }
 //
 ////////////////////////////////
@@ -7847,6 +8105,7 @@ void ALCTController::WriteHotChannelMask() {
   	      ALCT_FAST_WRT_HOTCHAN_MASK,
   	      RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_,
 	      hot_channel_mask_);
+  usleep(100);
   return;
 }
 //
@@ -7867,6 +8126,8 @@ void ALCTController::ReadHotChannelMask() {
   int * register_pointer = GetDRtdo();
   for (int i=0; i<RegSizeAlctFastFpga_RD_HOTCHAN_MASK_; i++)
     hot_channel_mask_[i] = *(register_pointer+i);
+  //
+  usleep(100);
   //
   //The read of the hot channel mask is destructive, so it needs to be reloaded:
   WriteHotChannelMask();
@@ -7929,7 +8190,7 @@ void ALCTController::SetHotChannelMask(int layer,
 }
 //
 int ALCTController::GetHotChannelMask(int layer,
-			       int channel) {
+				      int channel) {
   if (layer < 1 || layer > 6) {
     (*MyOutput_) << "SetHotChannelMask: layer " << layer 
 		 << "... must be between 1 and 6" << std::endl;

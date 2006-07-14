@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.106 2006/07/13 15:46:37 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.107 2006/07/14 11:45:49 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -3230,9 +3230,15 @@ private:
       *out << cgicc::form() << std::endl ;
       //
       cgicc::pre();
+#ifndef ALCTNEW
       for (int Wire = 0; Wire<(alct->GetWGNumber())/6; Wire++) {
 	*out << MyTest[tmb].GetALCTWireScan(Wire) ;
       }
+#else
+      for (int Wire = 0; Wire<(alct->GetNumberOfChannelsInAlct())/6; Wire++) {
+	*out << MyTest[tmb].GetALCTWireScan(Wire) ;
+      }
+#endif
       *out << cgicc::br();
       *out << std::endl;
       //
@@ -4291,6 +4297,7 @@ private:
     //
     *out << cgicc::legend("ALCT Status").set("style","color:blue") << cgicc::p() << std::endl ;
     //
+#ifndef ALCTNEW
     ALCTIDRegister sc_id ;
     int err = alct->alct_read_slowcontrol_id(&sc_id);
     *out <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
@@ -4301,6 +4308,27 @@ private:
     *out <<  " ALCT Fastcontrol ID " << sc_id << std::endl;
     //
     *out << cgicc::fieldset();
+#else
+    alct->ReadSlowControlId();
+    *out << "ALCT: Slow Control chip ID = " << std::hex << alct->GetSlowControlChipId()
+	 << " version " << alct->GetSlowControlVersionId()
+	 << ": day = " << alct->GetSlowControlDay()
+	 << ", month = " << alct->GetSlowControlMonth()
+	 << ", year = " << alct->GetSlowControlYear()
+	 << std::dec << std::endl;
+    //
+    *out << cgicc::br();
+    //
+    alct->ReadFastControlId();
+    *out << "ALCT: Fast Control chip ID = " << std::hex << alct->GetFastControlChipId()
+	       << " version " << alct->GetFastControlVersionId()
+	       << ": day = " << alct->GetFastControlDay()
+	       << ", month = " << alct->GetFastControlMonth()
+	       << ", year = " << alct->GetFastControlYear()
+	       << std::dec << std::endl;
+    //
+    *out << cgicc::fieldset();
+#endif
     //
   }
   //
@@ -6364,14 +6392,31 @@ private:
       int debugMode(0);
       int jch(3);
       //
-      ALCTIDRegister sc_id, chipID ;
-      //
       printf("Reading IDs...") ;
+      //
+#ifndef ALCTNEW
+      ALCTIDRegister sc_id, chipID ;
       //
       alct->alct_read_slowcontrol_id(&sc_id) ;
       std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
       alct->alct_fast_read_id(chipID);
       std::cout << " ALCT Fastcontrol ID " << chipID << std::endl;
+#else
+      alct->ReadSlowControlId();
+      std::cout << "ALCT: Slow Control chip ID = " << std::hex << alct->GetSlowControlChipId()
+		<< " version " << alct->GetSlowControlVersionId()
+		<< ": day = " << alct->GetSlowControlDay()
+		<< ", month = " << alct->GetSlowControlMonth()
+		<< ", year = " << alct->GetSlowControlYear()
+		<< std::dec << std::endl;
+      alct->ReadFastControlId();
+      std::cout << "ALCT: Fast Control chip ID = " << std::hex << alct->GetFastControlChipId()
+		<< " version " << alct->GetFastControlVersionId()
+		<< ": day = " << alct->GetFastControlDay()
+		<< ", month = " << alct->GetFastControlMonth()
+		<< ", year = " << alct->GetFastControlYear()
+		<< std::dec << std::endl;
+#endif
       //
       thisTMB->disableAllClocks();
       std::cout << "Programming..." << std::endl ;
