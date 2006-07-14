@@ -12,7 +12,7 @@
 //}
 //
 EMUjtag::EMUjtag(TMB * tmb) :
-  tmb_(tmb),debug_(0)
+  tmb_(tmb),debug_(false)
 {
   //
   std::cout << "Creating EMUjtag" << std::endl ;
