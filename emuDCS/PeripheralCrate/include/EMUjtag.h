@@ -62,7 +62,7 @@ private:
   std::ostream * MyOutput_ ;
   TMB * tmb_ ;
   //
-  int debug_;
+  bool debug_;
   int jtag_chain_;
   int devices_in_chain_;
   int bits_in_opcode_[MAX_NUM_DEVICES];
