@@ -5,7 +5,8 @@
 #include <iostream>
 #include <fstream>
 
-class CrateSetup;
+#include "CrateSetup.h"
+class Crate;
 
 class EmuSystem {
   //
@@ -14,9 +15,21 @@ class EmuSystem {
   EmuSystem();
   ~EmuSystem();
   //
+  inline Crate * crate(unsigned int i) {
+    return myCrateSetup_.crate(i);
+  }
+  //
+  inline std::vector<Crate *> crates() {
+    return myCrateSetup_.crates();
+  }
+  //
+  inline void addCrate(unsigned int i, Crate * crate){
+    myCrateSetup_.addCrate(i, crate); 
+  }
+  //
  private:
   //
-  CrateSetup myCrateSetup_();
+  CrateSetup myCrateSetup_;
   //
 };
 

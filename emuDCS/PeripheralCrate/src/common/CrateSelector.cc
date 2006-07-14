@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateSelector.cc,v 2.0 2005/04/12 08:07:05 geurts Exp $
+// $Id: CrateSelector.cc,v 2.1 2006/07/14 08:11:58 mey Exp $
 // $Log: CrateSelector.cc,v $
+// Revision 2.1  2006/07/14 08:11:58  mey
+// Got rid of Singleton
+//
 // Revision 2.0  2005/04/12 08:07:05  geurts
 // *** empty log message ***
 //
@@ -20,9 +23,7 @@
 #include "JTAG_constants.h"
 #include <string>
 
-
-
-CrateSelector::CrateSelector()
+CrateSelector::CrateSelector() : emuSystem_(0)
 {
 }
 
@@ -76,7 +77,10 @@ void CrateSelector::setCrate(std::string strCrate) {
 
 
 std::vector<Crate *> CrateSelector::crates() const {
-  std::vector<Crate *> allCrates = Singleton<CrateSetup>::instance()->crates();
+  //std::vector<Crate *> allCrates = Singleton<CrateSetup>::instance()->crates();
+  if (!emuSystem_) std::cout << "EmuSystem not defined" << std::endl;
+  std::vector<Crate *> allCrates = emuSystem_->crates();
+  std::cout << "Crates size = " << allCrates.size() << std::endl;
   std::vector<Crate *> result;
   if(theSelectedCrates.empty()) {
     result = allCrates;

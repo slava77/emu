@@ -74,8 +74,8 @@ void EMUParser::parseFile(const char* name){
       std::cout << std::hex << pNode1 << std::endl;
       if (pNode1->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
 	if (strcmp("EmuSystem",xercesc::XMLString::transcode(pNode1->getNodeName()))==0){
-	  std::cout << "Found EmuSystem" << std::endl;
 	  EmuSystemParser emuSystemParser = EmuSystemParser(pNode1);
+	  emuSystem = emuSystemParser.GetEmuSystem();
 	}
       }
       pNode1 = pNode1->getNextSibling();

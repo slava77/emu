@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 2.13 2006/07/13 15:46:37 mey Exp $
+// $Id: Crate.cc,v 2.14 2006/07/14 08:11:58 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 2.14  2006/07/14 08:11:58  mey
+// Got rid of Singleton
+//
 // Revision 2.13  2006/07/13 15:46:37  mey
 // New Parser strurture
 //
@@ -66,7 +69,8 @@ Crate::Crate(int number, VMEController * controller, EmuSystem * emuSystem) :
 {
   for(int i=0;i<theModules.size();i++) theModules[i] = 0;
   theChambers.clear();
-  Singleton<CrateSetup>::instance()->addCrate(number, this);
+  //Singleton<CrateSetup>::instance()->addCrate(number, this);
+  emuSystem->addCrate(number, this);
 }
 
 
