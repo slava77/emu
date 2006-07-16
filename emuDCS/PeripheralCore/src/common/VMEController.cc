@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.27 2006/07/07 10:03:53 mey Exp $
+// $Id: VMEController.cc,v 2.28 2006/07/16 04:15:37 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.28  2006/07/16 04:15:37  liu
+// update
+//
 // Revision 2.27  2006/07/07 10:03:53  mey
 // Update
 //
@@ -107,6 +110,7 @@
 #define SCHAR_BLOCKOFF		_IOR(SCHAR_IOCTL_BASE, 3, 0)
 #define SCHAR_DUMPON		_IOR(SCHAR_IOCTL_BASE, 4, 0)
 #define SCHAR_DUMPOFF		_IOR(SCHAR_IOCTL_BASE, 5, 0)
+#define SCHAR_INQR              _IOR(SCHAR_IOCTL_BASE, 6, 0)
 
 #define        Set_FF_VME 0x02
 #define       MRst_Ext_FF 0xE6
@@ -162,14 +166,14 @@ void VMEController::init(string ipAddr, int port) {
   
   cout << "VMEController opened socket = " << socket << endl;
   cout << "VMEController is using eth" << port_ << endl;
-  enable_Reset();    
+//  enable_Reset();    
 }
 
 void VMEController::reset() {
 //  mrst_ff();
 //  set_VME_mode();   
   reload_FPGA();  
-  enable_Reset();
+//  enable_Reset();
 }
 
 void VMEController::start(int slot, int boardtype) {
@@ -305,13 +309,6 @@ int VMEController::do_schar(int open_or_close)
   }
 }
 
-
-void VMEController::goToScanLevel(){
-}
-
-void VMEController::release_plev(){
-}
-
 int udelay(long int itim)
 {
   usleep(5000);
@@ -366,7 +363,7 @@ void VMEController::sdly()
 }
 
 
-void  VMEController::sleep_vme(const char *outbuf)   // in usecs (min 16 usec)
+void  VMEController::sleep_vme(const char *outbuf)   // time in usec
 {
 unsigned short int *time;
 unsigned long tmp_time;
@@ -381,26 +378,13 @@ unsigned short int *ptr;
        vme_controller(6,ptr,tmp2,tmp);
 }
 
-void  VMEController::sleep_vme2(unsigned short int time) // time in usec
+void  VMEController::sleep_vme(int time) // time in usec
 {
 unsigned long tmp_time;
 char tmp[1]={0x00};
 unsigned short int tmp2[2]={0,0};
 unsigned short int *ptr;
        tmp_time=time*1000+15; // in nsec
-       tmp_time >>= 4; // in 16 nsec
-       tmp2[0]=tmp_time & 0xffff;
-       tmp2[1]=(tmp_time >> 16) & 0xffff;
-       vme_controller(6,ptr,tmp2,tmp);
-}
-
-void  VMEController::long_sleep_vme2(float time)   // time in usec
-{
-unsigned long tmp_time;
-char tmp[1]={0x00};
-unsigned short int tmp2[2]={0,0};
-unsigned short int *ptr;
-       tmp_time=(int)(time*1000)+15; // in nsec
        tmp_time >>= 4; // in 16 nsec
        tmp2[0]=tmp_time & 0xffff;
        tmp2[1]=(tmp_time >> 16) & 0xffff;
@@ -682,6 +666,7 @@ int VMEController::eth_write()
            exit(1);
    }
    memcpy(msg, &ether_header, sizeof(ether_header));
+   nwritten = write(theSocket, (const void *)msg, msg_size);
    memcpy(msg + sizeof(ether_header), wbuf, nwbuf); 
 // Jinghua Liu to debug
    if(DEBUG>10)
@@ -689,9 +674,8 @@ int VMEController::eth_write()
      printf("ETH_WRITE****");
      for(i=0;i<msg_size;i++) printf("%02X ",msg[i]&0xff);
      printf("\n");
-     printf("Packet Length : %4d\n",((msg[12]&0xff)<<8)|(msg[13]&0xff));
+     printf("Packet written : %d\n", nwritten);
    }
-   nwritten = write(theSocket, (const void *)msg, msg_size);
    free(msg);
    return nwritten; 
 
@@ -749,7 +733,7 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
   // Jinghua Liu to debug
   if ( DEBUG ) {
     printf("vme_control: %02x %08x",irdwr, (unsigned long int)ptr);
-    if(irdwr==1 || irdwr==3) printf(" %04X",data[0]);
+    if(irdwr==1 || irdwr==3 || irdwr==6) printf(" %04X %04X", data[0], data[1]);
     printf("\n");
   }
   //
@@ -760,6 +744,9 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
     irdwr=3;
     goto Process;
   }
+
+  /* skip zero delay */
+  if(irdwr==6 && data[0]==0 && data[1]==0) return;
 
   ptrt=(unsigned long int)ptr;
   // Jinghua Liu:
@@ -820,12 +807,10 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
     if(data[1]) delay_type=5;
     wbuf[nwbuf+0]=delay_mask[delay_type];
     wbuf[nwbuf+1]=0x00;
-    if(delay_type<=3){
+    if(delay_type==2){
       wbuf[nwbuf+3]=(data[0]&0xff);
       wbuf[nwbuf+2]=(data[0]&0xff00)>>8;
       nwbuf=nwbuf+4;
-      if(delay_type==2)fpacket_delay=fpacket_delay+(*data)*DELAY2;
-      if(delay_type==3)fpacket_delay=fpacket_delay+(*data)*DELAY3;
     }else{
       wbuf[nwbuf+5]=(data[0]&0xff);
       wbuf[nwbuf+4]=(data[0]&0xff00)>>8;
@@ -833,6 +818,8 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
       wbuf[nwbuf+2]=(data[1]&0xff00)>>8;
       nwbuf=nwbuf+6;
     }
+    fpacket_delay=fpacket_delay+(data[0]+data[1]*65536)*DELAY2;
+//      if(delay_type==3)fpacket_delay=fpacket_delay+(*data)*DELAY3;
   } 
   /* write VME commands to vme */
  Process:
