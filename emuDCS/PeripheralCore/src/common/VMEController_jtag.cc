@@ -634,7 +634,7 @@ void VMEController::load_cdac(const char *snd)
   vme_controller(1,ptr,&data1,tmp);
  // x*ptr=data1;
  // printf(" one called now the other \n");
-  sleep_vme2(100);
+  sleep_vme(100);
   vme_controller(3,ptr,&data2,tmp);
   // x*ptr=data2;
  // printf(" exit cdac routine \n");
@@ -1275,3 +1275,10 @@ void VMEController::RestoreReset_jtag()
   //for(k=0;k<3;k++)vme_controller(3,ptr,d+k,tmp);
   //
 }
+
+void VMEController::goToScanLevel(){
+}
+
+void VMEController::release_plev(){
+}
+

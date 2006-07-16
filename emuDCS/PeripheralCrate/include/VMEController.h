@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.21 2006/07/11 12:46:43 mey Exp $
+// $Id: VMEController.h,v 2.22 2006/07/16 04:13:16 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 2.22  2006/07/16 04:13:16  liu
+// update
+//
 // Revision 2.21  2006/07/11 12:46:43  mey
 // UPdate
 //
@@ -124,6 +127,8 @@ public:
   void scan_alct(int reg, const char *snd, int cnt, char *rcv,int ird);
   void scan_jtag(int reg, const char *snd, int cnt, char *rcv,int ird);
   //
+  void  sleep_vme(const char *outbuf);   // time in usec
+  void  sleep_vme(int time); // time in usec
   bool SelfTest();
   bool exist(int slot);
   int error() const {return (error_count<<16)+error_type;}
@@ -186,9 +191,6 @@ private:
   void buckflash(const char *cmd,const char *inbuf,char *rcv);
   void lowvolt(int ichp,int ichn,char *rcv);
   void  scan_reset(int reg, const char *snd, int cnt2, char *rcv,int ird);
-  void  sleep_vme(const char *outbuf);   // in usecs (min 16 usec)
-  void  sleep_vme2(unsigned short int time); // time in usec
-  void  long_sleep_vme2(float time);   // time in usec
   void handshake_vme();
   void flush_vme();
   void  daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int *buf,unsigned char *rcv);
