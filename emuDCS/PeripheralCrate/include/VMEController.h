@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.22 2006/07/16 04:13:16 liu Exp $
+// $Id: VMEController.h,v 2.23 2006/07/16 04:55:17 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 2.23  2006/07/16 04:55:17  liu
+// update
+//
 // Revision 2.22  2006/07/16 04:13:16  liu
 // update
 //
@@ -133,6 +136,7 @@ public:
   bool exist(int slot);
   int error() const {return (error_count<<16)+error_type;}
   void clear_error();
+  void disable_errpkt();
   void enable_Reset();
   void disable_Reset();
   void set_Timeout(int to);
