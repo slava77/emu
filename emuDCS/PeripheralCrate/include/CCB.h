@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.23 2006/07/13 15:46:37 mey Exp $
+// $Id: CCB.h,v 2.24 2006/07/16 04:14:12 liu Exp $
 // $Log: CCB.h,v $
+// Revision 2.24  2006/07/16 04:14:12  liu
+// remove CCB2001 support, code cleanup
+//
 // Revision 2.23  2006/07/13 15:46:37  mey
 // New Parser strurture
 //
@@ -106,11 +109,9 @@ public:
 
   void pulse(int num_pulse,unsigned int pulse_delay, char vme);
   // these two call pulse for different VME addresses
-  void pulse(int num_pulse,unsigned int pulse_delay);
+  void pulse(int num_pulse=1,unsigned int pulse_delay=0xff);
   void inject(int num_pulse,unsigned int pulse_delay);
   void pedestal(int num_pulse,unsigned int pulse_delay);
-  void pulse(int Num_pulse,unsigned int * delays, char vme);
-  void pulse();
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   //
@@ -206,8 +207,6 @@ public:
   void soft_reset_mpc();
   void soft_reset_all();
 
-  int set_la1_delay(int delay);  // test stuff
-  int get_la1_delay(); // test stuff
   void DumpAddress(int);
 
   //code used by DCS
@@ -216,8 +215,6 @@ protected:
   int mCCBMode;
   enum TTCMode {NO_TTC=0, TTC_CLOCK=1, ALL_TTC=2};
 
-  void rice_clk_setup();
-  
 private:
   std::ostream * MyOutput_ ;
   //
@@ -254,21 +251,16 @@ private:
   static const unsigned int resetL1aCounter    = 0x94;
   static const unsigned int enableL1aCounter   = 0x96;
   //
+  static const unsigned int CRATE_HARD_RESET = 0x60;
+  static const unsigned int DMB_CFEB_CAL0 = 0x8a;
+  static const unsigned int DMB_CFEB_CAL1 = 0x8c;
+  static const unsigned int DMB_CFEB_CAL2 = 0x8e;
   // maybe these should be static, common to all CCBs?
   // I think this one really belongs in the DDU section...
   int BX_Orbit_;
   int SPS25ns_;
   int l1aDelay_;
 
-  //
-  unsigned int CSR1;
-  unsigned int CSR2;
-  unsigned int CSR5;
-  unsigned int RST_CCB_INT_LOG;
-  unsigned int CRATE_HARD_RESET;
-  unsigned int DMB_CFEB_CAL0;
-  unsigned int DMB_CFEB_CAL1;
-  unsigned int DMB_CFEB_CAL2;
   int TTCrxID_;
 
   bool l1enabled_;
