@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.28 2006/07/16 04:15:37 liu Exp $
+// $Id: VMEController.cc,v 2.29 2006/07/16 04:55:32 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.29  2006/07/16 04:55:32  liu
+// update
+//
 // Revision 2.28  2006/07/16 04:15:37  liu
 // update
 //
@@ -167,6 +170,7 @@ void VMEController::init(string ipAddr, int port) {
   cout << "VMEController opened socket = " << socket << endl;
   cout << "VMEController is using eth" << port_ << endl;
 //  enable_Reset();    
+  disable_errpkt();
 }
 
 void VMEController::reset() {
@@ -174,6 +178,7 @@ void VMEController::reset() {
 //  set_VME_mode();   
   reload_FPGA();  
 //  enable_Reset();
+  disable_errpkt();
 }
 
 void VMEController::start(int slot, int boardtype) {
@@ -541,6 +546,22 @@ bool VMEController::exist(int slot)
    clear_error();
    return v_return;
 }
+
+void VMEController::disable_errpkt()
+{
+  int n;
+  int l,lcnt;
+  wbuf[0]=0x00;
+  wbuf[1]=0x0F;
+  wbuf[2]=0x00;
+  wbuf[3]=0x10;
+  nwbuf=4;
+  n=eth_write();
+  std::cout << "Controller error packets disabled." << std::endl;
+  for(l=0;l<8000;l++)lcnt++;
+  return;
+}
+
 
 void VMEController::enable_Reset()
 {
