@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.108 2006/07/14 12:33:26 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.109 2006/07/17 10:42:11 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -145,6 +145,11 @@ protected:
   std::string DMBBoardID_[10];
   std::string TMBBoardID_[10];
   std::string RATBoardID_[10];
+  std::string CrateChassisID_;
+  std::string CrateRegulatorBoardID_;
+  std::string PeripheralCrateMotherBoardID_;
+  std::string ELMBID_;
+  std::string BackplaneID_;
   int CFEBid_[10][5];
   int TMB_, DMB_,RAT_;
   int Counter_;
@@ -282,6 +287,11 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::MPCBoardID, "MPCBoardID");
     xgi::bind(this,&EmuPeripheralCrate::CCBBoardID, "CCBBoardID");
     xgi::bind(this,&EmuPeripheralCrate::ControllerBoardID, "ControllerBoardID");
+    xgi::bind(this,&EmuPeripheralCrate::CrateChassisID, "CrateChassisID");
+    xgi::bind(this,&EmuPeripheralCrate::CrateRegulatorBoardID, "CrateRegulatorBoardID");
+    xgi::bind(this,&EmuPeripheralCrate::PeripheralCrateMotherBoardID, "PeripheralCrateMotherBoardID");
+    xgi::bind(this,&EmuPeripheralCrate::ELMBID, "ELMBID");
+    xgi::bind(this,&EmuPeripheralCrate::BackplaneID, "BackplaneID");
     xgi::bind(this,&EmuPeripheralCrate::LogDMBTestsOutput, "LogDMBTestsOutput");
     xgi::bind(this,&EmuPeripheralCrate::LogOutput, "LogOutput");
     xgi::bind(this,&EmuPeripheralCrate::LogTestSummary, "LogTestSummary");
@@ -377,6 +387,11 @@ public:
     for (int i=0; i<9; i++) 
       for (int j=0; j<5; j++)
 	CFEBid_[i][j] = -2;
+    CrateChassisID_ = "-2";
+    CrateRegulatorBoardID_ = "-2";
+    PeripheralCrateMotherBoardID_ = "-2";
+    ELMBID_ = "-2";
+    BackplaneID_ = "-2";
     //
     for(int i=0; i<9;i++) {
       OutputStringDMBStatus[i] << "DMB-CFEB Status " << i << " output:" << std::endl;
@@ -1063,6 +1078,7 @@ private:
       //
       if(slot == ii) {
 	//
+      //
 	char Name[50] ;
 	std::string CCBBoardID =
 	  toolbox::toString("/%s/CCBBoardID",getApplicationDescriptor()->getURN().c_str());
@@ -1119,7 +1135,6 @@ private:
 	*out << cgicc::td();
 	//
       }
-      //
       std::string MPCStatus =
 	toolbox::toString("/%s/MPCStatus",getApplicationDescriptor()->getURN().c_str());
       std::string MPCBoardID =
@@ -1401,7 +1416,60 @@ private:
 	//
 	  *out << cgicc::table();
 	  //
-	}
+    }
+    //
+    *out << cgicc::table().set("border","1");
+    //
+    std::string CrateChassisID =
+      toolbox::toString("/%s/CrateChassisID",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::td();
+    *out << "Crate Chassis ID" ;
+    *out << cgicc::form().set("method","GET").set("action",CrateChassisID) << std::endl ;
+    *out << cgicc::input().set("type","text").set("name","CrateChassisID")
+      .set("value",CrateChassisID_) << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string BackplaneID =
+      toolbox::toString("/%s/BackplaneID",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << "Backplane ID" ;
+    *out << cgicc::form().set("method","GET").set("action",BackplaneID) << std::endl ;
+    *out << cgicc::input().set("type","text").set("name","BackplaneID")
+      .set("value",BackplaneID_) << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string CrateRegulatorBoardID =
+      toolbox::toString("/%s/CrateRegulatorBoardID",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << "CRB ID" ;
+    *out << cgicc::form().set("method","GET").set("action",CrateRegulatorBoardID) << std::endl ;
+    *out << cgicc::input().set("type","text").set("name","CrateRegulatorBoardID")
+      .set("value",CrateRegulatorBoardID_) << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string PeripheralCrateMotherBoardID =
+      toolbox::toString("/%s/PeripheralCrateMotherBoardID",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << "PCMB ID" ;
+    *out << cgicc::form().set("method","GET").set("action",PeripheralCrateMotherBoardID) << std::endl ;
+    *out << cgicc::input().set("type","text").set("name","PeripheralCrateMotherBoardID")
+      .set("value",PeripheralCrateMotherBoardID_) << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string ELMBID =
+      toolbox::toString("/%s/ELMBID",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << "ELMB ID" ;
+    *out << cgicc::form().set("method","GET").set("action",ELMBID) << std::endl ;
+    *out << cgicc::input().set("type","text").set("name","ELMBID")
+      .set("value",ELMBID_) << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    *out << cgicc::td();
+    //
+    //
+    *out << cgicc::table();
+    //
 	//
 	//*out << cgicc::body();
 	*out << cgicc::fieldset();
@@ -4479,6 +4547,66 @@ private:
     //
   }
   //
+  void EmuPeripheralCrate::CrateChassisID(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    CrateChassisID_= cgi["CrateChassisID"]->getValue() ;
+    //
+    this->CrateConfiguration(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::CrateRegulatorBoardID(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    CrateRegulatorBoardID_= cgi["CrateRegulatorBoardID"]->getValue() ;
+    //
+    this->CrateConfiguration(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::PeripheralCrateMotherBoardID(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    PeripheralCrateMotherBoardID_= cgi["PeripheralCrateMotherBoardID"]->getValue() ;
+    //
+    this->CrateConfiguration(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::ELMBID(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    ELMBID_= cgi["ELMBID"]->getValue() ;
+    //
+    this->CrateConfiguration(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::BackplaneID(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    BackplaneID_= cgi["BackplaneID"]->getValue() ;
+    //
+    this->CrateConfiguration(in,out);
+    //
+  }
+  //
   void EmuPeripheralCrate::ControllerUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
@@ -7041,8 +7169,14 @@ private:
     LogFile << "XML File : " << xmlFile_.toString() << std::endl ;
     //
     LogFile << std::endl ;
+    LogFile << "Chassis " << std::setw(7) << CrateChassisID_ << std::endl;
+    LogFile << "Backplane " << std::setw(5) << BackplaneID_ << std::endl;
+    LogFile << "CRB " << std::setw(6) << CrateRegulatorBoardID_ << std::endl;
+    LogFile << "PCMB " << std::setw(5) << PeripheralCrateMotherBoardID_ << std::endl;
+    LogFile << "ELMB " << std::setw(5) << ELMBID_ << std::endl;
+    LogFile << std::endl ;
     //
-    LogFile << "VCC     1 " << std::setw(5) << ControllerBoardID_ << std::endl;
+    LogFile << "VCC    1" << std::setw(5) << ControllerBoardID_ << std::endl;
     //
     for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
       //
@@ -7490,6 +7624,71 @@ private:
       //
       //
       if ( FoundXML ) { // Processed XML File
+	if ( line.find("Chassis") != string::npos ) {	  
+	  //
+	  int ID;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> ID;
+	  std::cout << "Chassis.Setting " << ID << std::endl ;
+	  //
+	  char buf[20];
+	  sprintf(buf,"%d",ID);
+	  CrateChassisID_ = buf;
+	}
+	//
+	if ( line.find("Backplane") != string::npos ) {	  
+	  //
+	  int ID;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> ID;
+	  std::cout << "Backplane.Setting " << ID << std::endl ;
+	  //
+	  char buf[20];
+	  sprintf(buf,"%d",ID);
+	  BackplaneID_ = buf;
+	}
+	//
+	if ( line.find("CRB") != string::npos ) {	  
+	  //
+	  int ID;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> ID;
+	  std::cout << "CRB.Setting " << ID << std::endl ;
+	  //
+	  char buf[20];
+	  sprintf(buf,"%d",ID);
+	  CrateRegulatorBoardID_ = buf;
+	}
+	//
+	if ( line.find("PCMB") != string::npos ) {	  
+	  //
+	  int ID;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> ID;
+	  std::cout << "PCMB.Setting " << ID << std::endl ;
+	  //
+	  char buf[20];
+	  sprintf(buf,"%d",ID);
+	  PeripheralCrateMotherBoardID_ = buf;
+	}
+	//
+	if ( line.find("ELMB") != string::npos ) {	  
+	  //
+	  int ID;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> ID;
+	  std::cout << "ELMB.Setting " << ID << std::endl ;
+	  //
+	  char buf[20];
+	  sprintf(buf,"%d",ID);
+	  ELMBID_ = buf;
+	}
+	//
 	if ( line.find("VCC") != string::npos ) {	  
 	  //
 	  int slot, boardid;
