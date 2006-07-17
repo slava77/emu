@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.29 2006/07/16 04:55:32 liu Exp $
+// $Id: VMEController.cc,v 2.30 2006/07/17 17:06:39 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.30  2006/07/17 17:06:39  liu
+// fix typo
+//
 // Revision 2.29  2006/07/16 04:55:32  liu
 // update
 //
@@ -687,8 +690,8 @@ int VMEController::eth_write()
            exit(1);
    }
    memcpy(msg, &ether_header, sizeof(ether_header));
-   nwritten = write(theSocket, (const void *)msg, msg_size);
    memcpy(msg + sizeof(ether_header), wbuf, nwbuf); 
+   nwritten = write(theSocket, (const void *)msg, msg_size);
 // Jinghua Liu to debug
    if(DEBUG>10)
    {
