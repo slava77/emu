@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.109 2006/07/17 10:42:11 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 2.110 2006/07/17 11:58:51 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -305,6 +305,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::CalibrationComparatorPulse, "CalibrationComparatorPulse");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationALCTThresholdScan, "CalibrationALCTThresholdScan");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationALCTConnectivity, "CalibrationALCTConnectivity");
+    xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBConnectivity, "CalibrationCFEBConnectivity");
     xgi::bind(this,&EmuPeripheralCrate::LaunchMonitor, "LaunchMonitor");
     xgi::bind(this,&EmuPeripheralCrate::CrateTMBCounters, "CrateTMBCounters");
     xgi::bind(this,&EmuPeripheralCrate::CrateDMBCounters, "CrateDMBCounters");
@@ -992,6 +993,12 @@ private:
     *out << cgicc::input().set("type","submit").set("value","Calibration ALCT : Connectivity") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
+    std::string CalibrationCFEBConnectivity =
+      toolbox::toString("/%s/CalibrationCFEBConnectivity",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBConnectivity) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Calibration CFEB : Connectivity") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
     std::string CalibrationComparatorPulse =
       toolbox::toString("/%s/CalibrationComparatorPulse",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",CalibrationComparatorPulse) << std::endl ;
@@ -1495,6 +1502,18 @@ private:
     CalibDAQ calib(emuSystem_);
     //
     calib.ALCTConnectivity();
+    //
+    this->Default(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::CalibrationCFEBConnectivity(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    CalibDAQ calib(emuSystem_);
+    //
+    calib.CFEBConnectivity();
     //
     this->Default(in,out);
     //
