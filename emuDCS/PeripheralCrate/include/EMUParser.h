@@ -15,7 +15,7 @@
 class EMUParser {
 
 public:
-  EMUParser() {}
+  EMUParser();
   ~EMUParser();
 
   /** Parse the file

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuController.cc,v 1.6 2006/07/14 12:33:26 mey Exp $
+// $Id: EmuController.cc,v 1.7 2006/07/17 11:58:51 mey Exp $
 // $Log: EmuController.cc,v $
+// Revision 1.7  2006/07/17 11:58:51  mey
+// Included CFEB coonectivity calibration
+//
 // Revision 1.6  2006/07/14 12:33:26  mey
 // New XML structure
 //
@@ -65,7 +68,8 @@
 #include "VMEController.h"
 #include "EMUParser.h"
 
-EmuController::EmuController(){
+EmuController::EmuController():emuSystem_(0)
+{
   // clear pointers
   xmlFile_     = 
     "/afs/cern.ch/user/m/mey/scratch0/v3.2/TriDAS/emu/emuDCS/PeripheralCrate/config.xml" ;
@@ -85,7 +89,14 @@ void EmuController::init(){
   parser.parseFile(xmlFile_.c_str());
   //
   emuSystem_ = parser.GetEmuSystem();
-  theSelector.SetEmuSystem(emuSystem_);
+  if ( emuSystem_ ) {
+    std::cout << "Found Emusystem" << std::endl;
+    theSelector.SetEmuSystem(emuSystem_);
+  } else {
+    std::cout << "EmuController.Parsing failed" << std::endl;
+    return;
+  }
+  //
   std::vector<Crate*> myCrates = theSelector.crates();
   //
   for(unsigned i = 0; i < myCrates.size(); ++i) {

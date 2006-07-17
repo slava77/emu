@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.h,v 2.13 2006/07/14 12:33:26 mey Exp $
+// $Id: CalibDAQ.h,v 2.14 2006/07/17 11:56:05 mey Exp $
 // $Log: CalibDAQ.h,v $
+// Revision 2.14  2006/07/17 11:56:05  mey
+// Included CFEB coonectivity calibration
+//
 // Revision 2.13  2006/07/14 12:33:26  mey
 // New XML structure
 //
@@ -72,7 +75,8 @@ class CalibDAQ {
   void FindL1aDelayALCT();
   void ALCTThresholdScan();
   void ALCTConnectivity();
-
+  void CFEBConnectivity();
+  //
   CrateSelector & selector() {return theSelector;}
 
 
