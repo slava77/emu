@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.46 2006/07/16 04:15:20 liu Exp $
+// $Id: CCB.cc,v 2.47 2006/07/17 02:34:00 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 2.47  2006/07/17 02:34:00  liu
+// update
+//
 // Revision 2.46  2006/07/16 04:15:20  liu
 // remove CCB2001 support, code cleanup
 //
@@ -178,10 +181,6 @@ CCB::~CCB() {
 }
 
 void CCB::end() {
-  char rcvx[2];
-  char sndx[2];
-  //fg 0xff is a JTAG reset ... not sure what it does here.
-  do_vme(0xff,CSRB1,sndx,rcvx,NOW);
 }
 
 void CCB::pulse(int Num_pulse,unsigned int pulse_delay, char vme)
@@ -1069,6 +1068,10 @@ void CCB::cmd_source_to_vme(){
   sndbuf[1]=1;  // ??????????
   do_vme(VME_WRITE,0x20,sndbuf,rcvbuf,1);
 }
+
+#if 0
+////// commented out by Liu 2006-7-15
+////// seems no one using these *_csr2 functions
 //
 void CCB::hard_reset_all_csr2(){
 /// reload all fpga-s from eprom (CCB specification)
@@ -1240,7 +1243,7 @@ void CCB::hard_reset_mpc_csr2(){
   do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,1);
 }
 
-
+#endif
 
 void CCB::hard_reset_alct(){
 /// Hard ALCT reset: programming
