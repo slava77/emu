@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.20 2006/07/18 12:21:54 rakness Exp $
+// $Id: ALCTController.h,v 2.21 2006/07/18 12:24:30 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.21  2006/07/18 12:24:30  rakness
+// update
+//
 // Revision 2.20  2006/07/18 12:21:54  rakness
 // ALCT threshold scan with ALCTNEW
 //
@@ -709,38 +712,6 @@ public:
   ~ALCTController();
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
-  //
-  /////////////////////////////////////////////////
-  // The following are to translate the methods of 
-  // the old ALCTController to the current methods, 
-  // and should eventually go away...
-  /////////////////////////////////////////////////
-  //  inline void set_l1a_delay(int delay) { SetL1aDelay(delay); }
-  //  inline void set_empty(int empty) { SetSendEmpty(empty); }
-  //  inline void set_l1a_internal(int internal) { SetL1aInternal(internal); }
-  //  inline void SetTrigMode(int mode) { SetTriggerMode(mode); }
-  //  inline void SetTrigInfoEnable(int enable) { SetTriggerInfoEnable(enable); }
-  //  inline void SetCCBEnable(int enable) { SetCcbEnable(enable); }
-  //  inline void SetAlctInjectMode(int mode) { SetInjectMode(mode); }
-  //  inline void SetDelay(int AFEB, int delay) { SetAsicDelay(AFEB-1,delay); }
-  //  inline void SetThreshold(int AFEB, int threshold) { SetAfebThreshold(AFEB-1,threshold); }
-  //  inline void SetPatternFile(std::string dummy_file) { return; }
-  //  inline void SetHotChannelFile(std::string dummy_file) { return; }
-  //  inline void setup(int) { configure(); }
-  //  inline void setThresholds() { WriteAfebThresholds(); }
-  //  inline void setConfig() { WriteConfigurationReg(); }
-  //  inline int  delayLines() { return GetNumberOfGroupsOfDelayChips(); }
-  //  inline int  GetWGNumber() { return GetNumberOfChannelsInAlct(); }
-  //  inline int  alct_read_slowcontrol_id(ALCTIDRegister *) { ReadSlowControlId(); return GetSlowControlYear(); }
-  //  inline int  alct_fast_read_id(ALCTIDRegister &) { ReadFastControlId(); return GetFastControlYear(); }
-  //  inline int  NewSVFLoad(int *a,char *b,int c) { return SVFLoad(a,b,c); }  
-  //  int alct_set_delay(int,int);
-  //  void alct_write_hcmask(unsigned long *);
-  //  void alct_read_hcmask(unsigned long *) { ReadHotChannelMask(); PrintHotChannelMask(); }
-  //  void GetConf(unsigned*,int) { ReadConfigurationReg(); PrintConfigurationReg(); }
-  //  void SetConf(unsigned*cr,int) { SetL1aDelay((cr[1]>>4 & 0xff WriteConfigurationReg(); } 
-  //  void unpackControlRegister(unsigned*) { PrintConfigurationReg(); }
-  //
   //
   ///////////////////////////////////////////////////////////////////////////
   //  Useful methods to use ALCTController:
