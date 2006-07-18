@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.19 2006/07/14 11:45:49 rakness Exp $
+// $Id: ALCTController.h,v 2.20 2006/07/18 12:21:54 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.20  2006/07/18 12:21:54  rakness
+// ALCT threshold scan with ALCTNEW
+//
 // Revision 2.19  2006/07/14 11:45:49  rakness
 // compiler switch possible for ALCTNEW
 //
@@ -898,8 +901,17 @@ public:
   //////////////////////////////
   // The delay line control register is controlled within writing and Reading AfebDelays() and AfebPatterns(), below.
   // Here are methods to see the hardware and software configuration of the control register:
-  void ReadDelayLineControlReg();                //fills software values with values read from ALCT
+  void SetDelayLineSettst(int mask);                 // mask = ON or OFF
+  void SetDelayLineReset(int mask);                  // mask = ON or OFF
+  void SetDelayLineGroupSelect(int group,            // 1 group = 6 AFEBs => [0-2] ALCT288, [0-4] ALCT384, [0-6] ALCT672
+			       int mask);            // mask = ON or OFF
+  //
+  void SetPowerUpDelayLineControlReg();              //sets software values to default values  
   void PrintDelayLineControlReg();               //print out software values
+  //
+  //
+  void WriteDelayLineControlReg();                  //writes software values to configuration register
+  void ReadDelayLineControlReg();                //fills software values with values read from ALCT
   //
   //////////////////////////////
   // ASIC DELAYS and PATTERNS
@@ -1081,12 +1093,6 @@ private:
   void DecodeTriggerRegister_();
   //
   int delay_line_control_reg_[RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_672]; //make this as large as it could possibly be
-  void SetDelayLineGroupSelect_(int group,           // 1 group = 6 AFEBs => [0-2] ALCT288, [0-4] ALCT384, [0-6] ALCT672
-				int mask);           // mask = ON or OFF
-  void SetDelayLineSettst_(int mask);                // mask = ON or OFF
-  void SetDelayLineReset_(int mask);                 // mask = ON or OFF
-  void SetPowerUpDelayLineControlReg_();             //sets software values to default values  
-  void WriteDelayLineControlReg_();                  //writes software values to configuration register
   void DecodeDelayLineControlReg_();
   void FillDelayLineControlReg_();
   int delay_line_reset_;

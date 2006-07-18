@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.41 2006/07/14 11:46:31 rakness Exp $
+// $Id: ALCTController.cc,v 2.42 2006/07/18 12:21:55 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.42  2006/07/18 12:21:55  rakness
+// ALCT threshold scan with ALCTNEW
+//
 // Revision 2.41  2006/07/14 11:46:31  rakness
 // compiler switch possible for ALCTNEW
 //
@@ -6048,7 +6051,7 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   SetPowerUpAfebThresholds();
   SetPowerUpStandbyRegister();
   //
-  SetPowerUpDelayLineControlReg_();
+  SetPowerUpDelayLineControlReg();
   SetPowerUpTriggerRegister();
   SetPowerUpAsicDelays();
   SetPowerUpAsicPatterns();
@@ -6062,31 +6065,6 @@ ALCTController::~ALCTController() {
   //
 }
 //
-//
-///////////////////////////////////////////////////////////////////
-// The following methods need to go away and be replaced with 
-// the simple routines defined here:
-///////////////////////////////////////////////////////////////////
-//int ALCTController::alct_set_delay(int delay_line_number, int delay) {
-//  //
-//  std::cout << "OBSOLETE, please use SetAsicDelay(AFEB,delay) and WriteAsicDelaysAndPatterns()" << std::endl;
-//  //
-//  if (delay_line_number == -1) {
-//    for (int afeb=0; afeb<GetNumberOfAfebs(); afeb++) 
-//      SetAsicDelay(afeb,delay);
-//    WriteAsicDelaysAndPatterns();
-//    //
-//  } else {
-//    SetAsicDelay(delay_line_number,delay);
-//    WriteAsicDelaysAndPatterns();
-//  }
-//  return 0;
-//}
-//
-///////////////////////////////////////////////////////////////////
-// END:  The following methods need to go away and be replaced with 
-// the simple routines defined here:
-///////////////////////////////////////////////////////////////////
 //
 ///////////////////////////////////////////////////////////////////
 // Useful methods to use ALCTController...
@@ -6104,9 +6082,12 @@ void ALCTController::SetUpPulsing(int DAC_pulse_amplitude,
   (*MyOutput_) << "Set up ALCT (slot " << tmb_->slot() 
 	       << ") for pulsing: Amplitude=" << std::dec << DAC_pulse_amplitude << std::endl;
   //
+  //
   //  alct_set_test_pulse_powerup(&slot,0);
   SetTestpulsePowerSwitchReg(OFF);
   WriteTestpulsePowerSwitchReg();
+  ReadTestpulsePowerSwitchReg();
+  PrintTestpulsePowerSwitchReg();  
   //
   //  usleep(100);   // included into WriteTestpulsePowerSwitchReg();
   //
@@ -6118,8 +6099,8 @@ void ALCTController::SetUpPulsing(int DAC_pulse_amplitude,
   //
   //  alct_read_test_pulse_stripmask(&slot,&StripMask);
   //  std::cout << " StripMask = " << std::hex << StripMask << std::endl;
-  ReadTestpulseStripMask();
-  PrintTestpulseStripMask();
+  //  ReadTestpulseStripMask();
+  //  PrintTestpulseStripMask();
   //
   //  if(StripAfeb == 0 ) {
   //    alct_set_test_pulse_stripmask(&slot,0x00);
@@ -6152,23 +6133,25 @@ void ALCTController::SetUpPulsing(int DAC_pulse_amplitude,
     std::cout << "ALCTcontroller SetUpPulsing : Set " << which_set 
 	      << " not available to pulse..." << std::endl;
   }
-  WriteTestpulseStripMask();
   WriteTestpulseGroupMask();
+  ReadTestpulseGroupMask();
+  PrintTestpulseGroupMask();
   //
-  //  alct_read_test_pulse_stripmask(&slot,&StripMask);
-  //  std::cout << " StripMask = " << std::hex << StripMask << std::endl;
+  WriteTestpulseStripMask();
   ReadTestpulseStripMask();
   PrintTestpulseStripMask();
   //
   //  alct_read_test_pulse_powerup(&slot,&PowerUp);
   //  std::cout << " PowerUp   = " << std::hex << PowerUp << std::dec << std::endl; //11July05 DM added dec
-  ReadTestpulsePowerSwitchReg();
-  PrintTestpulsePowerSwitchReg();
+  //  ReadTestpulsePowerSwitchReg();
+  //  PrintTestpulsePowerSwitchReg();
   //
   //  alct_fire_test_pulse('s');
   SetPulseTriggerSource(source);
   SetInvertPulse(OFF);
   WriteTriggerRegister();
+  ReadTriggerRegister();
+  PrintTriggerRegister();
   //
   //  usleep(100);  // included into WriteTriggerRegister();
   //
@@ -6279,6 +6262,9 @@ void ALCTController::configure() {
   //
   ReadFastControlId();
   PrintFastControlId();
+  //
+  WriteDelayLineControlReg();
+  ReadDelayLineControlReg();
   //
   WriteTriggerRegister();
   PrintTriggerRegister();
@@ -6565,7 +6551,7 @@ void ALCTController::ReadTestpulseStripMask() {
 void ALCTController::PrintTestpulseStripMask() {
   //
   int testpulse_stripmask = bits_to_int(testpulse_stripmask_,
-					RegSizeAlctSlowFpga_WRT_TESTPULSE_GRP,
+					RegSizeAlctSlowFpga_WRT_TESTPULSE_STRIP,
 					LSBfirst);
   //
   (*MyOutput_) << "ALCT: testpulse stripmask = 0x" 
@@ -6735,8 +6721,8 @@ int ALCTController::read_adc_(int chip, int channel) {
 //
 void ALCTController::SetPowerUpAfebThresholds() {
   //
-  for (int afeb=0; afeb<GetNumberOfAfebs(); afeb++) 
-    SetAfebThreshold(afeb,128);
+  for (int afeb=0; afeb<MAX_NUM_AFEBS; afeb++) 
+    afeb_threshold_write_[afeb] = 128;
   //
   return;
 }
@@ -6754,6 +6740,7 @@ void ALCTController::WriteStandbyRegister() {
 	      ALCT_SLOW_WRT_STANDBY_REG,
 	      RegSizeAlctSlowFpga_WRT_STANDBY_REG,
 	      standby_register_);
+  usleep(100);
   return;
 }
 //
@@ -6819,7 +6806,7 @@ int ALCTController::GetStandbyRegister(int afebChannel) {
 void ALCTController::SetPowerUpStandbyRegister() {
   //
   for (int afeb=0; afeb<MAX_NUM_AFEBS; afeb++) 
-    SetStandbyRegister(afeb,OFF);
+    standby_register_[afeb] = ON;               // default for data taking
   //
   return;
 }
@@ -6988,6 +6975,7 @@ void ALCTController::PrintTriggerRegister() {
   (*MyOutput_) << "ALCT Testpulse Trigger Register:" << std::endl;
   (*MyOutput_) << "--------------------------------" << std::endl;
   (*MyOutput_) << " trigger source = ";
+  if (pulse_trigger_source_ == OFF) (*MyOutput_) << "OFF" << std::endl;
   if (pulse_trigger_source_ == SELF) (*MyOutput_) << "SELF" << std::endl;
   if (pulse_trigger_source_ == ADB_SYNC) (*MyOutput_) << "ADB_SYNC" << std::endl;
   if (pulse_trigger_source_ == ADB_ASYNC) (*MyOutput_) << "ADB_ASYNC" << std::endl;
@@ -7009,7 +6997,7 @@ void ALCTController::SetPowerUpTriggerRegister(){
 ////////////////////////////////
 // DELAY LINE CONTROL REGISTER
 ////////////////////////////////
-void ALCTController::WriteDelayLineControlReg_() {
+void ALCTController::WriteDelayLineControlReg() {
   //
   //  (*MyOutput_) << "ALCT: WRITE Delay Line CONTROL REGISTER" << std::endl;
   //
@@ -7040,19 +7028,19 @@ void ALCTController::ReadDelayLineControlReg() {
     delay_line_control_reg_[i] = *(register_pointer+i);
   //
   //Print out control register value in hex
-  //  int scaler_delay_line_control_reg = bits_to_int(delay_line_control_reg_,
-  //  						  RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_,
-  //  						  LSBfirst);
-  //  (*MyOutput_) << "ALCT: READ delay line CONTROL REGISTER = " 
-  //  	       << std::hex << scaler_delay_line_control_reg << std::dec << std::endl;
+  int scaler_delay_line_control_reg = bits_to_int(delay_line_control_reg_,
+    						  RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_,
+    						  LSBfirst);
+  (*MyOutput_) << "ALCT: READ delay line CONTROL REGISTER = " 
+    	       << std::hex << scaler_delay_line_control_reg << std::dec << std::endl;
 
   DecodeDelayLineControlReg_();
   //
   return;
 }
 //
-void ALCTController::SetDelayLineGroupSelect_(int group,
-				       int mask){
+void ALCTController::SetDelayLineGroupSelect(int group,
+					     int mask){
   // Specify which group of delay chips you are talking to
   // bit = 1 = not enabled
   //     = 0 = enabled
@@ -7070,7 +7058,7 @@ void ALCTController::SetDelayLineGroupSelect_(int group,
   return;
 }
 //
-void ALCTController::SetDelayLineSettst_(int mask) {
+void ALCTController::SetDelayLineSettst(int mask) {
   // bit = 1 = not enabled
   //     = 0 = enabled
   //
@@ -7078,7 +7066,7 @@ void ALCTController::SetDelayLineSettst_(int mask) {
   return;
 }  
 //
-void ALCTController::SetDelayLineReset_(int mask) { 
+void ALCTController::SetDelayLineReset(int mask) { 
   // bit = 1 = not enabled
   //     = 0 = enabled
   //
@@ -7141,12 +7129,12 @@ void ALCTController::PrintDelayLineControlReg() {
   return;
 }
 //
-void ALCTController::SetPowerUpDelayLineControlReg_(){
+void ALCTController::SetPowerUpDelayLineControlReg(){
   //
-  SetDelayLineReset_(OFF);
-  SetDelayLineSettst_(OFF);
+  SetDelayLineReset(OFF);
+  SetDelayLineSettst(ON);                 //default for data taking
   for (int group=0; group<7; group++) 
-    SetDelayLineGroupSelect_(group,OFF);
+    SetDelayLineGroupSelect(group,OFF);
   //
   return;
 }
@@ -7160,13 +7148,13 @@ void ALCTController::WriteAsicDelaysAndPatterns() {
 	       << GetNumberOfGroupsOfDelayChips() << " groups" 
 	       << std::endl;
   //
-  SetPowerUpDelayLineControlReg_();         // reset the control register values
-  WriteDelayLineControlReg_();
+  SetPowerUpDelayLineControlReg();         // reset the control register values
+  WriteDelayLineControlReg();
   //
   for (int group=0; group<GetNumberOfGroupsOfDelayChips(); group++) {
     // write values to one group of AFEBs at a time...
-    SetDelayLineGroupSelect_(group,ON);     
-    WriteDelayLineControlReg_();
+    SetDelayLineGroupSelect(group,ON);     
+    WriteDelayLineControlReg();
     //    ReadDelayLineControlReg();
     //    PrintDelayLineControlReg();
     //
@@ -7179,8 +7167,8 @@ void ALCTController::WriteAsicDelaysAndPatterns() {
 		RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES,
 		asic_delays_and_patterns_);
     //
-    SetDelayLineGroupSelect_(group,OFF);     
-    WriteDelayLineControlReg_();
+    SetDelayLineGroupSelect(group,OFF);     
+    WriteDelayLineControlReg();
   }
   //
   return;
@@ -7192,8 +7180,8 @@ void ALCTController::ReadAsicDelaysAndPatterns() {
 	       << GetNumberOfGroupsOfDelayChips() << " groups" 
 	       << std::endl;
   //
-  SetPowerUpDelayLineControlReg_();         // reset the control register values
-  WriteDelayLineControlReg_();
+  SetPowerUpDelayLineControlReg();         // reset the control register values
+  WriteDelayLineControlReg();
   //
   for (int group=0; group<GetNumberOfGroupsOfDelayChips(); group++) {
     //
@@ -7201,8 +7189,8 @@ void ALCTController::ReadAsicDelaysAndPatterns() {
       asic_delays_and_patterns_[i] = 0;
     //
     // get values from one group of AFEBs at a time...
-    SetDelayLineGroupSelect_(group,ON);     
-    WriteDelayLineControlReg_();
+    SetDelayLineGroupSelect(group,ON);     
+    WriteDelayLineControlReg();
     //    ReadDelayLineControlReg();
     //    PrintDelayLineControlReg();
     //
@@ -7219,8 +7207,8 @@ void ALCTController::ReadAsicDelaysAndPatterns() {
     //
     DecodeAsicDelaysAndPatterns_(group);
     //
-    SetDelayLineGroupSelect_(group,OFF);     
-    WriteDelayLineControlReg_();
+    SetDelayLineGroupSelect(group,OFF);     
+    WriteDelayLineControlReg();
   }
   //
   return;
@@ -7335,13 +7323,14 @@ int ALCTController::GetLayerFromAsicMap_(int asic_index) {
   return asic_layer_map[asic_index];
 }
 //
-int ALCTController::GetChannelFromAsicMap_(int group, int asic_index) {
+int ALCTController::GetChannelFromAsicMap_(int group, 
+					   int asic_index) {
   // Each asic map is the same, except shifted by 16 wires per 96-channel group:
   return asic_wiregroup_map[asic_index] + group*NUMBER_OF_LINES_PER_CHIP; 
 }
 //
 void ALCTController::SetAsicDelay(int afebChannel,
-			   int delay) {
+				  int delay) {
   if (delay<0 || delay > 15) {
     (*MyOutput_) << "SetAsicDelay: ERROR delay should be between 0 and 15" << std::endl;
     return;
@@ -7376,7 +7365,7 @@ int ALCTController::GetAsicDelay(int afebChannel) {
 void ALCTController::SetPowerUpAsicDelays() {
   //
   for (int afeb=0; afeb<MAX_NUM_AFEBS; afeb++)
-    SetAsicDelay(afeb,0);
+      asic_delay_[afeb] = 0;
   //
   return;
 }
@@ -7386,16 +7375,15 @@ void ALCTController::PrintAsicDelays() {
   (*MyOutput_) << "Asic delay values:" << std::endl;
   (*MyOutput_) << "AFEB   delay (2ns)" << std::endl;
   (*MyOutput_) << "----   -----------" << std::endl;
-  //  for (int afeb=0; afeb<GetNumberOfAfebs(); afeb++)
-  for (int afeb=0; afeb<MAX_NUM_AFEBS; afeb++)
+  for (int afeb=0; afeb<GetNumberOfAfebs(); afeb++)
     (*MyOutput_) << " " << std::dec << afeb << "     " << GetAsicDelay(afeb) << std::endl;
   //
   return;
 }
 //
 void ALCTController::SetAsicPattern(int layer,
-			     int channel,
-			     int on_or_off) {
+				    int channel,
+				    int on_or_off) {
   if (layer<0 || layer>=MAX_NUM_LAYERS) {
     (*MyOutput_) << "SetAsicPattern: layer " << std::dec << layer
 		 << " invalid ... must be between 0 and " << MAX_NUM_LAYERS-1 
@@ -7416,7 +7404,7 @@ void ALCTController::SetAsicPattern(int layer,
 }
 //
 int ALCTController::GetAsicPattern(int layer,
-			    int channel) {
+				   int channel) {
   if (layer<0 || layer>=MAX_NUM_LAYERS) {
     (*MyOutput_) << "GetAsicPattern: layer " << std::dec << layer
 		 << " invalid ... must be between 0 and " << MAX_NUM_LAYERS-1
@@ -7439,7 +7427,7 @@ void ALCTController::SetPowerUpAsicPatterns() {
   //
   for (int layer=0; layer<MAX_NUM_LAYERS; layer++)
     for (int channel=0; channel<MAX_NUM_WIRES_PER_LAYER; channel++)
-      SetAsicPattern(layer,channel,OFF);
+      asic_pattern_[layer][channel] = OFF;
   //
   return;
 }
@@ -8074,7 +8062,7 @@ void ALCTController::SetPowerUpConfigurationReg() {
   SetFifoTbins(7);
   SetFifoPretrig(1);
   SetFifoMode(1);
-  SetFifoLastLct(3);
+  SetFifoLastLct(0);          // default data taking
   SetL1aDelay(120);
   SetL1aWindowSize(3);
   SetL1aOffset(1);
@@ -8086,7 +8074,7 @@ void ALCTController::SetPowerUpConfigurationReg() {
   SetAlctTmode(0);
   SetAlctAmode(0);
   SetAlctMaskAll(0);
-  SetTriggerInfoEnable(1);
+  SetTriggerInfoEnable(0);    // default data taking
   SetSnSelect(0);
   //
   return;
@@ -8164,8 +8152,8 @@ void ALCTController::PrintHotChannelMask() {
 }
 //
 void ALCTController::SetHotChannelMask(int layer,
-				int channel,
-				int on_or_off) {
+				       int channel,
+				       int on_or_off) {
   if (layer < 1 || layer > 6) {
     (*MyOutput_) << "SetHotChannelMask: layer " << layer 
 		 << "... must be between 1 and 6" << std::endl;
