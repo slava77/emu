@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 2.17 2006/07/14 11:46:31 rakness Exp $
+// $Id: TMBParser.cc,v 2.18 2006/07/18 14:13:20 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 2.18  2006/07/18 14:13:20  mey
+// Update
+//
 // Revision 2.17  2006/07/14 11:46:31  rakness
 // compiler switch possible for ALCTNEW
 //
@@ -75,8 +78,6 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate)
     std::cerr << "No slot specified for TMB! " << std::endl;
   } else {
     tmb_ = new TMB(theCrate, slot);
-    //
-    tmb_->SendOutput("New TMB");
     //
     int delay;
     if ( parser_.fillInt("cfeb0delay",delay) ) {

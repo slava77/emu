@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 2.47 2006/07/13 15:46:37 mey Exp $
+// $Id: TMB.h,v 2.48 2006/07/18 14:10:11 mey Exp $
 // $Log: TMB.h,v $
+// Revision 2.48  2006/07/18 14:10:11  mey
+// Update
+//
 // Revision 2.47  2006/07/13 15:46:37  mey
 // New Parser strurture
 //
@@ -154,7 +157,7 @@
 #include <bitset>
 //#include "TMB_JTAG_constants.h"
 #include "EMUjtag.h"
-#include "EmuModule.h"
+//#include "EmuModule.h"
 
 class ALCTController;
 class TMBParser;
@@ -162,7 +165,7 @@ class RAT;
 class AnodeChannel;
 class Crate;
 
-class TMB : public VMEModule, public EMUjtag, public EmuModule {
+class TMB : public VMEModule, public EMUjtag {
 
 public:
   //
