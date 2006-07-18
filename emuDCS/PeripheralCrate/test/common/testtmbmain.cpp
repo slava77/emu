@@ -22,15 +22,11 @@ TMB *thisTMB ;
 int main() {
 
 
-  int dummy;
-  int L1adelay;
   int rpc;
   int delay;
   int trigger;
 
   // Test board OK:
-  bool AllOK = false;
-
   bool DateOK = false;
   bool TypeOK = false;
   bool VersionOK = false;
