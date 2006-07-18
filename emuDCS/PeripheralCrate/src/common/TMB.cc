@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.73 2006/07/13 15:46:37 mey Exp $
+// $Id: TMB.cc,v 2.74 2006/07/18 14:12:47 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.74  2006/07/18 14:12:47  mey
+// Update
+//
 // Revision 2.73  2006/07/13 15:46:37  mey
 // New Parser strurture
 //
@@ -228,6 +231,8 @@
 #include <unistd.h>
 #include <iostream>
 #include <cstdio>
+#include <sstream>
+
 #include "TMB_constants.h"
 #include "ALCTController.h"
 #include "RAT.h"
@@ -482,7 +487,10 @@ void TMB::init() {
 //
 void TMB::configure() {
   //
-  (*MyOutput_) << "Setting up trgmode CLCT TMB slot =" <<theSlot <<std::endl;
+  ostringstream dump;
+  dump << "Setting up trgmode CLCT TMB slot =" +  theSlot;
+  (*MyOutput_) << dump.str() << std::endl;
+  SendOutput(dump.str(),"INFO");
   trgmode(5);
   (*MyOutput_) << "Set TMB CSC ID to Slot_ID/2 = " << theSlot/2 << std::endl;
   load_cscid();

@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.20 2006/07/13 15:46:37 mey Exp $
+// $Id: VMEModule.h,v 2.21 2006/07/18 14:10:33 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 2.21  2006/07/18 14:10:33  mey
+// Update
+//
 // Revision 2.20  2006/07/13 15:46:37  mey
 // New Parser strurture
 //
@@ -64,14 +67,16 @@
 #define VMEModule_h
 
 #include "Crate.h"
+#include "EmuModule.h"
 
 class VMEController;
 class Chamber;
 class Crate;
+class EmuModule;
 
 #include "JTAG_constants.h"
 
-class VMEModule
+class VMEModule : public EmuModule
 {
 public:
    enum {MAXLINE = 70000};

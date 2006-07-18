@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.26 2006/07/13 15:46:37 mey Exp $
+// $Id: DAQMB.h,v 2.27 2006/07/18 14:09:33 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.27  2006/07/18 14:09:33  mey
+// Update
+//
 // Revision 2.26  2006/07/13 15:46:37  mey
 // New Parser strurture
 //
@@ -93,7 +96,6 @@
 #include "VMEModule.h"
 #include "JTAG_constants.h"
 #include "CFEB.h"
-#include "EmuModule.h"
 #include "Chamber.h"
 /**
  * more documentation available for this class at
@@ -102,7 +104,7 @@
  */
 class Crate;
 
-class DAQMB: public VMEModule, public EmuModule
+class DAQMB: public VMEModule
 {
 public:
   //friend class DAQMBParser;
