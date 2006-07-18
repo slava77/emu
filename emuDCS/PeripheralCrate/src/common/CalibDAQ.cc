@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.45 2006/07/17 11:56:19 mey Exp $
+// $Id: CalibDAQ.cc,v 2.46 2006/07/18 12:21:55 rakness Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.46  2006/07/18 12:21:55  rakness
+// ALCT threshold scan with ALCTNEW
+//
 // Revision 2.45  2006/07/17 11:56:19  mey
 // Included CFEB coonectivity calibration
 //
@@ -700,24 +703,31 @@ void CalibDAQ::ALCTThresholdScan() {
 	  myTmbs[i]->alctController()->SetUpPulsing();
 	  myTmbs[i]->SetCLCTPatternTrigger();
 #else
-	  myTmbs[i]->alctController()->SetL1aDelay(83);
 	  myTmbs[i]->lvl1_delay(70);
 	  //myTmbs[i]->ResetCounters();
-	  myTmbs[i]->alctController()->SetSendEmpty(0);
-	  myTmbs[i]->alctController()->SetL1aInternal(0);
-	  myTmbs[i]->alctController()->SetPretrigNumberOfLayers(1);
-	  myTmbs[i]->alctController()->SetPretrigNumberOfPattern(1);
-	  myTmbs[i]->alctController()->WriteConfigurationReg();
 	  //
 	  ALCTController * alct = myTmbs[i]->alctController() ;
 	  //
-	  int nAFEBS = alct->GetNumberOfGroupsOfDelayChips();
+	  alct->SetL1aDelay(83);
+	  alct->SetSendEmpty(0);
+	  alct->SetL1aInternal(0);
+	  alct->SetPretrigNumberOfLayers(1);
+	  alct->SetPretrigNumberOfPattern(1);
+	  alct->WriteConfigurationReg();
+	  alct->ReadConfigurationReg();
+	  alct->PrintConfigurationReg();
+	  //
+	  int nAFEBS = alct->GetNumberOfAfebs();
 	  std::cout << "nAFEBS = " << nAFEBS << std::endl;
 	  for(int afebs=0; afebs<nAFEBS; afebs++) {
 	    alct->SetAfebThreshold(afebs,thres);	    
 	  }
-	  myTmbs[i]->alctController()->WriteAfebThresholds();
-	  myTmbs[i]->alctController()->SetUpPulsing();
+	  alct->WriteAfebThresholds();
+	  alct->ReadAfebThresholds();
+	  alct->PrintAfebThresholds();
+	  //
+	  alct->SetUpPulsing();
+	  //
 	  myTmbs[i]->SetCLCTPatternTrigger();
 #endif
 	}
