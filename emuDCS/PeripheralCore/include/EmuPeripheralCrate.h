@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.110 2006/07/17 11:58:51 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.111 2006/07/18 11:41:32 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -416,8 +416,10 @@ public:
     std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
     //
     //if (getApplicationLogger().exists(getApplicationLogger().getName())) {
-      LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrate");
-      //}
+    //
+    LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrate ready");
+    //
+    //}
     //
     if ( MyController == 0 ) MyController = new EmuController();
     //
@@ -3681,49 +3683,49 @@ private:
   //
   void EmuPeripheralCrate::TMBL1aTiming(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
-  {
-    //
-    cout << "TMBL1aTiming" << endl;
-    LOG4CPLUS_INFO(getApplicationLogger(), "TMBL1aTiming");
-    //
-    cgicc::Cgicc cgi(in);
-    //
-    int tmb, dmb;
-    //
-    cgicc::form_iterator name = cgi.getElement("dmb");
-    //
-    if(name != cgi.getElements().end()) {
-      dmb = cgi["dmb"]->getIntegerValue();
-      cout << "DMB " << dmb << endl;
-      DMB_ = dmb;
-    } else {
-      cout << "No dmb" << endl;
-      dmb = DMB_;
+    {
+      //
+      cout << "TMBL1aTiming" << endl;
+      LOG4CPLUS_INFO(getApplicationLogger(), "TMBL1aTiming");
+      //
+      cgicc::Cgicc cgi(in);
+      //
+      int tmb, dmb;
+      //
+      cgicc::form_iterator name = cgi.getElement("dmb");
+      //
+      if(name != cgi.getElements().end()) {
+	dmb = cgi["dmb"]->getIntegerValue();
+	cout << "DMB " << dmb << endl;
+	DMB_ = dmb;
+      } else {
+	cout << "No dmb" << endl;
+	dmb = DMB_;
+      }
+      //
+      name = cgi.getElement("tmb");
+      //
+      if(name != cgi.getElements().end()) {
+	tmb = cgi["tmb"]->getIntegerValue();
+	cout << "TMB " << tmb << endl;
+	TMB_ = tmb;
+      } else {
+	cout << "No tmb" << endl;
+	tmb = TMB_;
+      }
+      //
+      //DAQMB * thisDMB = dmbVector[dmb];
+      //TMB * thisTMB = tmbVector[tmb];
+      //
+      //MyTest.SetTMB(thisTMB);
+      //MyTest.SetDMB(thisDMB);
+      //MyTest.SetCCB(thisCCB);
+      //
+      MyTest[tmb].FindTMB_L1A_delay(100,200);
+      //
+      this->ChamberTests(in,out);
+      //
     }
-    //
-    name = cgi.getElement("tmb");
-    //
-    if(name != cgi.getElements().end()) {
-      tmb = cgi["tmb"]->getIntegerValue();
-      cout << "TMB " << tmb << endl;
-      TMB_ = tmb;
-    } else {
-      cout << "No tmb" << endl;
-      tmb = TMB_;
-    }
-    //
-    //DAQMB * thisDMB = dmbVector[dmb];
-    //TMB * thisTMB = tmbVector[tmb];
-    //
-    //MyTest.SetTMB(thisTMB);
-    //MyTest.SetDMB(thisDMB);
-    //MyTest.SetCCB(thisCCB);
-    //
-    MyTest[tmb].FindTMB_L1A_delay(100,200);
-    //
-    this->ChamberTests(in,out);
-    //
-  }
   //
   void EmuPeripheralCrate::ALCTL1aTiming(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
