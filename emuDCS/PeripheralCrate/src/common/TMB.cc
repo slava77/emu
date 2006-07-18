@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 2.74 2006/07/18 14:12:47 mey Exp $
+// $Id: TMB.cc,v 2.75 2006/07/18 15:23:14 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 2.75  2006/07/18 15:23:14  mey
+// UPdate
+//
 // Revision 2.74  2006/07/18 14:12:47  mey
 // Update
 //
@@ -488,13 +491,17 @@ void TMB::init() {
 void TMB::configure() {
   //
   ostringstream dump;
-  dump << "Setting up trgmode CLCT TMB slot =" +  theSlot;
-  (*MyOutput_) << dump.str() << std::endl;
-  SendOutput(dump.str(),"INFO");
+  ostringstream dump2;
+  ostringstream dump3;
+  //
+  dump  << "TMB : configure() for TMB in slot = ";
+  dump2 << theSlot;
+  (*MyOutput_) << dump.str()+dump2.str() << std::endl;
+  SendOutput(dump.str()+dump2.str(),"INFO");
   trgmode(5);
-  (*MyOutput_) << "Set TMB CSC ID to Slot_ID/2 = " << theSlot/2 << std::endl;
+  //(*MyOutput_) << "Set TMB CSC ID to Slot_ID/2 = " << theSlot/2 << std::endl;
   load_cscid();
-  (*MyOutput_) << "Resetting counters" << std::endl;
+  //(*MyOutput_) << "Resetting counters" << std::endl;
   ResetCounters();
 }
 

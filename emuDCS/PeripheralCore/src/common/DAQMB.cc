@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.64 2006/07/13 15:46:37 mey Exp $
+// $Id: DAQMB.cc,v 2.65 2006/07/18 15:23:14 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.65  2006/07/18 15:23:14  mey
+// UPdate
+//
 // Revision 2.64  2006/07/13 15:46:37  mey
 // New Parser strurture
 //
@@ -202,6 +205,7 @@
 #include "DAQMB.h"
 #include "VMEController.h"
 #include <fstream>
+#include <sstream>
 #include <stdio.h>
 #include <cmath>
 #include <unistd.h>
@@ -300,7 +304,17 @@ void DAQMB::configure() {
   //
   (*MyOutput_) << std::endl;
   (*MyOutput_) << "CFEB size="<<cfebs_.size()<<std::endl;
+  //
+  ostringstream dump, dump2, dump3, dump4;
+  dump2 << (int)this->crate();
+  dump3 << (int)this->slot();
+  dump  << "DAQMB: configure() for crate = " ;
+  dump4 << " and slot = " ;
+  //
+  SendOutput(dump.str()+dump2.str()+dump4.str()+dump3.str(),"INFO");
+  //
   (*MyOutput_) << "DAQMB: configure() for crate " << this->crate() << " slot " << this->slot() << std::endl;
+  //
   int cal_delay_bits = (calibration_LCT_delay_ & 0xF)
      | (calibration_l1acc_delay_ & 0x1F) << 4
       | (pulse_delay_ & 0x1F) << 9

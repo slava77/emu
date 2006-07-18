@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.46 2006/07/18 12:21:55 rakness Exp $
+// $Id: CalibDAQ.cc,v 2.47 2006/07/18 15:23:31 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.47  2006/07/18 15:23:31  mey
+// UPdate
+//
 // Revision 2.46  2006/07/18 12:21:55  rakness
 // ALCT threshold scan with ALCTNEW
 //
@@ -393,6 +396,7 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep,int calT
       // set amplitude
       //
       myDmbs[i]->set_cal_dac(dac,dac);
+      myDmbs[i]->fxpreblkend(6); // Set pre block end to 6
       //myDmbs[i]->set_comp_thresh(thresh);
       //
       // set external pulser for strip # nstrip on all 6 chips
