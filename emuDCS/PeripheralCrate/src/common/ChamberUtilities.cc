@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.36 2006/07/14 11:46:31 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.37 2006/07/18 07:52:30 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.37  2006/07/18 07:52:30  rakness
+// ALCTTiming with ALCTNEW
+//
 // Revision 1.36  2006/07/14 11:46:31  rakness
 // compiler switch possible for ALCTNEW
 //
@@ -928,6 +931,10 @@ void ChamberUtilities::ALCTTiming(){
   alct->set_empty(1);
 #else
   alct->SetSendEmpty(1);
+  alct->WriteConfigurationReg();
+  // The next two lines are for diagnostic purposes:
+  alct->ReadConfigurationReg();
+  alct->PrintConfigurationReg();
 #endif
   //
   thisTMB->SetCLCTPatternTrigger();
@@ -1044,7 +1051,7 @@ void ChamberUtilities::ALCTTiming(){
 	//	//
 	//	alct->alct_write_hcmask(HCmask);
 	//	alct->alct_read_hcmask(HCmask);
-	for(int layer=1; layer<MAX_NUM_LAYERS; layer++) {
+	for(int layer=1; layer<=MAX_NUM_LAYERS; layer++) {
 	  for(int channel=1; channel<=(alct->GetNumberOfChannelsInAlct()/6); channel++) {
 	    if (channel==keyWG-1) {
 	      alct->SetHotChannelMask(layer,channel,ON);
@@ -1054,6 +1061,9 @@ void ChamberUtilities::ALCTTiming(){
 	  }
 	}
 	alct->WriteHotChannelMask();
+	// The next lines are for diagnostic purposes:
+	alct->ReadHotChannelMask();
+	alct->PrintHotChannelMask();
 #endif
 	//
 	/*
