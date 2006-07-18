@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.111 2006/07/18 11:41:32 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.112 2006/07/18 14:09:46 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -3854,7 +3854,8 @@ private:
     //MyTest.SetTMB(thisTMB);
     //MyTest.SetCCB(thisCCB);
     //
-    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    //MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RedirectOutput(&std::cout);
     MyTest[tmb].ALCTChamberScan();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
