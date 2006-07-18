@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 2.30 2006/07/13 15:46:37 mey Exp $
+// $Id: MPC.cc,v 2.31 2006/07/18 15:23:14 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 2.31  2006/07/18 15:23:14  mey
+// UPdate
+//
 // Revision 2.30  2006/07/13 15:46:37  mey
 // New Parser strurture
 //
@@ -132,6 +135,8 @@ void MPC::configure() {
   char addr;
   
   (*MyOutput_) << "MPC: initialize" << std::endl;
+
+  SendOutput("MPC : configure()","INFO");
 
   ReadRegister(CSR0);
 

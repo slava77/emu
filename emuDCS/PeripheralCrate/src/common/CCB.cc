@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.47 2006/07/17 02:34:00 liu Exp $
+// $Id: CCB.cc,v 2.48 2006/07/18 15:23:14 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.48  2006/07/18 15:23:14  mey
+// UPdate
+//
 // Revision 2.47  2006/07/17 02:34:00  liu
 // update
 //
@@ -810,18 +813,20 @@ void CCB::init() {
 
 void CCB::configure() {
   //
-    // Set the CCB mode  
-    setCCBMode((CCB2004Mode_t)mCCBMode);
-    // report firmware version
-    firmwareVersion();
-
+  SendOutput("CCB : configure()","INFO");
+  //
+  // Set the CCB mode  
+  setCCBMode((CCB2004Mode_t)mCCBMode);
+  // report firmware version
+  firmwareVersion();
+  
   std::cout << ReadRegister(0x0) << std::endl;
   hardReset();
   std::cout << ReadRegister(0x0) << std::endl;
-
-// this line from the old rice_clk_setup(), not sure if it's needed
+  
+  // this line from the old rice_clk_setup(), not sure if it's needed
   SetL1aDelay(l1aDelay_);
-
+  
   std::cout << ReadRegister(0x0) << std::endl;
   disableL1();
   std::cout << ReadRegister(0x0) << std::endl;

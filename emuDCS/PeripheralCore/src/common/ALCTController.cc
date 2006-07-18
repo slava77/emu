@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.42 2006/07/18 12:21:55 rakness Exp $
+// $Id: ALCTController.cc,v 2.43 2006/07/18 15:23:14 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.43  2006/07/18 15:23:14  mey
+// UPdate
+//
 // Revision 2.42  2006/07/18 12:21:55  rakness
 // ALCT threshold scan with ALCTNEW
 //
@@ -154,6 +157,7 @@
 #include <sys/ioctl.h>
 #include <cstdio>
 #include <iostream>
+#include <sstream>
 #include <unistd.h>
 #include <cmath>
 #include <string>
@@ -577,6 +581,12 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
 
 void ALCTController::setup(int choice)
 {
+  //
+  std::ostringstream dump;
+  dump << (int)tmb_->slot();
+  //
+  tmb_->SendOutput("ALCT : configure() in slot = "+dump.str(),"INFO");
+  //
   long value ;
   int err ;
   ALCTIDRegister sc_id, chipID ;
@@ -6024,6 +6034,7 @@ char *trim(char *str)
 //  From here to end is new ALCTController...
 //////////////////////////////////////////////////////////////////////////////////////
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 #include <unistd.h> // for sleep
 #include <vector>
@@ -6232,6 +6243,11 @@ void ALCTController::SetUpRandomALCT(){
 //
 //
 void ALCTController::configure() {
+  //
+  std::ostringstream dump;
+  dump << (int)tmb_->slot();
+  //
+  tmb_->SendOutput("ALCT : configure() in slot = "+dump.str(),"INFO");
   (*MyOutput_) << "Configure ALCT..." << std::endl;
   //
   ReadSlowControlId();
