@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.21 2006/07/18 12:24:30 rakness Exp $
+// $Id: ALCTController.h,v 2.22 2006/07/18 18:00:15 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.22  2006/07/18 18:00:15  rakness
+// clean up documentation
+//
 // Revision 2.21  2006/07/18 12:24:30  rakness
 // update
 //
@@ -716,7 +719,7 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   //  Useful methods to use ALCTController:
   ///////////////////////////////////////////////////////////////////////////
-  void configure();
+  void configure();                                  //writes software values to all registers on ALCT
   //
   inline std::string GetChamberType() { return chamber_type_string_; }
   inline int GetNumberOfAfebs() { return NumberOfAFEBs_; }
@@ -730,12 +733,13 @@ public:
 		    int strip_mask=0xff,             //mask of enabled layers/AFEBgroups (depending on previous argument) 
   //                                                      -> bit = 1 = ON
   //                                                             = 0 = OFF
-		    int source=ADB_SYNC);           //source = [OFF, ADB_SYNC, ADB_ASYNC, LEMO, SELF]
+		    int source=ADB_SYNC);            //source = [OFF, ADB_SYNC, ADB_ASYNC, LEMO, SELF]
+  //
   void SetUpRandomALCT();
   //
   //
   ////////////////////////////
-  // Registers on the ALCT...
+  // ALCT Registers...
   ////////////////////////////
   ///////////////////////
   //SLOW CONTROL ID
@@ -750,30 +754,32 @@ public:
   //
   void ReadSlowControlId();                      //fills software values with values read from ALCT
   //
-  ///////////////////////
+  //////////////////////////
   //TESTPULSE POWERSWITCH
-  ///////////////////////
+  //////////////////////////
   void SetTestpulsePowerSwitchReg(int powerswitch);      // powerswitch = OFF or ON
   int  GetTestpulsePowerSwitchReg();
-  void SetPowerUpTestpulsePowerSwitchReg();              //sets software values to power-up values            
+  //
+  void SetPowerUpTestpulsePowerSwitchReg();              //sets software values to data-taking values            
   void PrintTestpulsePowerSwitchReg();                   //print out software values				             
   //
   //
   void WriteTestpulsePowerSwitchReg();             //writes software values to testpulse power switch register
   void ReadTestpulsePowerSwitchReg();              //fills software values with values read from ALCT	      
   //
-  /////////////////////////////////////////////////////////////////////////////////////////
-  //TESTPULSE AMPLITUDE - 8-bit DAC controls amplitude of analog test pulse sent to AFEBs
-  /////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////
+  //TESTPULSE AMPLITUDE - amplitude of analog test pulse sent to AFEBs
+  ///////////////////////////////////////////////////////////////////////
   void SetTestpulseAmplitude(int dacvalue);        // Voltage = 2.5V * dacvalue/256
   int  GetTestpulseAmplitude();
-  void SetPowerUpTestpulseAmplitude();             // sets software values to power-up values
+  //
+  void SetPowerUpTestpulseAmplitude();             // sets software values to data-taking values
   //
   //
   void WriteTestpulseAmplitude();               // writes software values to testpulse amplitude register
   //
   ////////////////////////////////////////////////////////////////////////////////
-  //TESTPULSE GROUPMASK - which group of AFEB's are enabled for analog testpulse
+  //TESTPULSE GROUPMASK - which groups of AFEB's are enabled for analog testpulse
   ////////////////////////////////////////////////////////////////////////////////
   void SetTestpulseGroupMask(int group,      // group [0-6], where 0 = AFEB 00,01,02,12,13,14 
 			     //                                    1 = AFEB 03,04,05,15,16,17 
@@ -784,20 +790,22 @@ public:
 			     //                                    6 = 
 			     int mask);      // mask = OFF or ON
   int  GetTestpulseGroupMask(int group);     // group = [0-6]
-  void SetPowerUpTestpulseGroupMask();	     // sets software values to power-up values                  
+  //
+  void SetPowerUpTestpulseGroupMask();	     // sets software values to data-taking values                  
   void PrintTestpulseGroupMask();	     // print out software values				      
   //
   //
   void WriteTestpulseGroupMask();             // writes software values to testpulse group mask register
   void ReadTestpulseGroupMask();	      // fills software values with values read from ALCT	      
   //
-  //////////////////////////////////////////////////////////////
-  //TESTPULSE STRIPMASK - which layer is firing
-  //////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
+  //TESTPULSE STRIPMASK - which layers are enabled for analog testpulse
+  //////////////////////////////////////////////////////////////////////
   void SetTestpulseStripMask(int layer,           // layer = [0-5]
 			     int mask);           // mask = OFF or ON
-  int  GetTestpulseStripmask(int layer);          // AFEBinGroup = [0-5]
-  void SetPowerUpTestpulseStripMask();	   	  // sets software values to power-up values                  
+  int  GetTestpulseStripmask(int layer);          // layer = [0-5]
+  //
+  void SetPowerUpTestpulseStripMask();	   	  // sets software values to data-taking values                  
   void PrintTestpulseStripMask();		  // print out software values				      
   // 
   //
@@ -813,20 +821,22 @@ public:
   int   GetAfebThresholdDAC(int AFEB);                 // AFEB = [0 - GetNumberOfAfebs()-1]
   int   GetAfebThresholdADC(int AFEB);                 // AFEB = [0 - GetNumberOfAfebs()-1] (10-bit adc value)
   float GetAfebThresholdVolts(int AFEB);               // return voltage = 2.5V * adcValue/1023 
-  void  SetPowerUpAfebThresholds();		       //sets software values to power-up values                
+  //
+  void  SetPowerUpAfebThresholds();		       //sets software values to data-taking values                
   void  PrintAfebThresholds();			       //print out software values				 
   //
   //
   void  WriteAfebThresholds();                      //writes software values to threshold DACs
   void  ReadAfebThresholds();			    //fills software values with values read from ALCT ADC	 
   //
-  ////////////////////////
-  //STANDBY REGISTER
-  ////////////////////////
+  /////////////////////////////////////////////////
+  //STANDBY REGISTER - enable power for each AFEB
+  /////////////////////////////////////////////////
   void SetStandbyRegister(int AFEB,                   // AFEB = [0 - GetNumberOfAfebs()-1]
 			  int powerswitch);           // powerswitch = OFF or ON
   int  GetStandbyRegister(int AFEB);                  // AFEB = [0 - GetNumberOfAfebs()-1]
-  void SetPowerUpStandbyRegister();		      //sets software values to power-up values          
+  //
+  void SetPowerUpStandbyRegister();		      //sets software values to data-taking values          
   void PrintStandbyRegister();			      //print out software values				       
   //
   //
@@ -860,37 +870,38 @@ public:
   int  GetInvertPulse();                       //return value -> 0 = not inverted
   //                                                             1 = inverted 
   //
-  void SetPowerUpTriggerRegister();	       // sets software values to power-up values                
+  void SetPowerUpTriggerRegister();	       // sets software values to data-taking values                
   void PrintTriggerRegister();                 //print out software values				 
   //
   //
   void WriteTriggerRegister();                 //writes software values of pulse trigger source
   void ReadTriggerRegister();                  //fills software values with values read from ALCT
   //
-  //////////////////////////////
-  // DELAY LINE CONTROL REGISTER
-  //////////////////////////////
-  // The delay line control register is controlled within writing and Reading AfebDelays() and AfebPatterns(), below.
-  // Here are methods to see the hardware and software configuration of the control register:
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // DELAY LINE CONTROL REGISTER - Control which group of chips has its delays and patterns written/read
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////
   void SetDelayLineSettst(int mask);                 // mask = ON or OFF
+  //
   void SetDelayLineReset(int mask);                  // mask = ON or OFF
-  void SetDelayLineGroupSelect(int group,            // 1 group = 6 AFEBs => [0-2] ALCT288, [0-4] ALCT384, [0-6] ALCT672
+  //
+  void SetDelayLineGroupSelect(int group,            // group = [0 - (GetNumberOfGroupsOfDelayChips()-1)]
 			       int mask);            // mask = ON or OFF
   //
-  void SetPowerUpDelayLineControlReg();              //sets software values to default values  
-  void PrintDelayLineControlReg();               //print out software values
+  void SetPowerUpDelayLineControlReg();              //sets software values to data-taking values  
+  void PrintDelayLineControlReg();                   //print out software values
   //
   //
   void WriteDelayLineControlReg();                  //writes software values to configuration register
-  void ReadDelayLineControlReg();                //fills software values with values read from ALCT
+  void ReadDelayLineControlReg();                  //fills software values with values read from ALCT
   //
   //////////////////////////////
-  // ASIC DELAYS and PATTERNS
+  // ASIC DELAYS and PATTERNS 
   //////////////////////////////
   void SetAsicDelay(int AFEB,                        // AFEB= [0 - GetNumberOfAfebs()-1]
 		    int delay);                      // delay=[0-15] (~2ns steps)
   int  GetAsicDelay(int AFEB);                       // AFEB= [0 - GetNumberOfAfebs()-1]
-  void SetPowerUpAsicDelays();  		     // sets software values to power-up values                
+  //
+  void SetPowerUpAsicDelays();  		     // sets software values to data-taking values                
   void PrintAsicDelays();                            // print out software values
   //
   void SetAsicPattern(int layer,                     // layer=[0-5]
@@ -898,7 +909,8 @@ public:
 		      int mask);                     // mask= OFF or ON
   int  GetAsicPattern(int layer,                     // layer=[0-5]
 		      int channel);                  // channel=[0 - GetNumberOfChannelsPerLayer()-1] 
-  void SetPowerUpAsicPatterns();  		     // sets software values to power-up values                
+  //
+  void SetPowerUpAsicPatterns();  		     // sets software values to data-taking values                
   void PrintAsicPatterns();                          // print out software values
   //
   //
@@ -983,7 +995,7 @@ public:
   void SetSnSelect(int sn_select); 
   int  GetSnSelect(); 
   //
-  void SetPowerUpConfigurationReg();          //sets software values to default values
+  void SetPowerUpConfigurationReg();          //sets software values to data-taking values
   void PrintConfigurationReg();               //print out software values
   //
   //
@@ -998,7 +1010,8 @@ public:
   			  int mask);            // mask = OFF or ON
   int  GetHotChannelMask(int layer,             // layer = 1-6
   			 int channel);          // [1-48] for ALCT288, [1-64] for ALCT384, [1-112] for ALCT672
-  void SetPowerUpHotChannelMask();              // sets software values to default values
+  //
+  void SetPowerUpHotChannelMask();              // sets software values to data-taking values
   void PrintHotChannelMask();                   // prints out software values
   //
   //
