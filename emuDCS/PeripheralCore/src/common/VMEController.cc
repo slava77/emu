@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.31 2006/07/19 09:11:19 mey Exp $
+// $Id: VMEController.cc,v 2.32 2006/07/19 10:45:20 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.32  2006/07/19 10:45:20  mey
+// UPdate
+//
 // Revision 2.31  2006/07/19 09:11:19  mey
 // Update
 //
@@ -177,7 +180,7 @@ void VMEController::init(string ipAddr, int port) {
 
   cout << "VMEController opened socket = " << socket << endl;
   cout << "VMEController is using eth" << port_ << endl;
-  //enable_Reset();    
+  //enable_Reset(); //don't enable until SYSCLK is enabled by default.    
   write_CR();
   //
   disable_errpkt();
