@@ -453,8 +453,8 @@ void EmuDcs::catchFunction(int){
 int EmuDcs::safeExit(){
   // signal(SIGALRM,this->catchFunction);
   //fg  DAQMB *daqmb_loc = dynamic_cast<DAQMB *>(((VMEControllerdcs *) daqmb->getTheController())->getTheCurrentModule()); //
-  DAQMB *daqmb_loc = dynamic_cast<DAQMB *>(((VMEController *) daqmb->getTheController())->getTheCurrentModule()); //
-  if(daqmb_loc != 0) daqmb->getTheController()->end();
+  //DAQMB *daqmb_loc = dynamic_cast<DAQMB *>(((VMEController *) daqmb->getTheController())->getTheCurrentModule()); //
+  //if(daqmb_loc != 0) daqmb->getTheController()->end();
 
   return 1;
 

@@ -1,7 +1,8 @@
 #ifndef EmuDcs_h
 #define EmuDcs_h
 
-#include "PeripheralCrateController.h"
+//#include "PeripheralCrateController.h"
+#include "CrateSelector.h"
 
 //fg #include "VMEControllerdcs.h"
 #include "VMEController.h"
@@ -25,7 +26,7 @@ using namespace std;
 
 class DcsDimCommand;
 
-class EmuDcs : public PeripheralCrateController, public Task{
+class EmuDcs : public CrateSelector, public Task{
 
 
 public:
