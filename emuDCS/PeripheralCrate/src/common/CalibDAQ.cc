@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.47 2006/07/18 15:23:31 mey Exp $
+// $Id: CalibDAQ.cc,v 2.48 2006/07/19 09:09:57 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 2.48  2006/07/19 09:09:57  mey
+// Update
+//
 // Revision 2.47  2006/07/18 15:23:31  mey
 // UPdate
 //
@@ -780,7 +783,7 @@ void CalibDAQ::ALCTConnectivity() {
   int nmax=200;
   int Counter=0;
   //
-  int Npulses = 10;
+  int Npulses = 100;
   //
   for(int i=0; i<300;i++) for(int j=0;j<9;j++) {
     counter[i][j]     = 0;

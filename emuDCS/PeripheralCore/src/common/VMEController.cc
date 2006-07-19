@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.30 2006/07/17 17:06:39 liu Exp $
+// $Id: VMEController.cc,v 2.31 2006/07/19 09:11:19 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.31  2006/07/19 09:11:19  mey
+// Update
+//
 // Revision 2.30  2006/07/17 17:06:39  liu
 // fix typo
 //
@@ -170,10 +173,15 @@ void VMEController::init(string ipAddr, int port) {
   port_=port;
   theSocket=do_schar(1); // register a new schar device
   
+  //std::cout << "********** Init " << std::endl;
+
   cout << "VMEController opened socket = " << socket << endl;
   cout << "VMEController is using eth" << port_ << endl;
-//  enable_Reset();    
+  //enable_Reset();    
+  write_CR();
+  //
   disable_errpkt();
+  //
 }
 
 void VMEController::reset() {
@@ -595,6 +603,24 @@ void VMEController::disable_Reset()
   for(l=0;l<8000;l++)lcnt++;
   return;
 }
+
+void VMEController::write_CR()
+{
+  int n;
+  int l,lcnt;
+  wbuf[0]=0x00;
+  wbuf[1]=0x12;
+  wbuf[2]=0x20;
+  wbuf[3]=0x00;
+  wbuf[4]=0xED;
+  wbuf[5]=0x1F;
+  nwbuf=6;
+  n=eth_write();
+  std::cout << "WriteCR" << std::endl;
+  for(l=0;l<8000;l++)lcnt++;
+  return;
+}
+
 
 void VMEController::set_Timeout(int to)
 {
