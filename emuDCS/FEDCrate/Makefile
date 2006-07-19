@@ -103,7 +103,6 @@ DynamicLibrary= EmuFEDCrate
 StaticLibrary= EmuFEDCrate
 
 Executables=
-TestExecutables= \
-        main.cpp 
+TestExecutables=  
 
 include $(XDAQ_ROOT)/config/Makefile.rules
