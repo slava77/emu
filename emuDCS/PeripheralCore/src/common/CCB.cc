@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.48 2006/07/18 15:23:14 mey Exp $
+// $Id: CCB.cc,v 2.49 2006/07/19 09:37:59 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.49  2006/07/19 09:37:59  mey
+// Update
+//
 // Revision 2.48  2006/07/18 15:23:14  mey
 // UPdate
 //
@@ -657,7 +660,7 @@ void CCB::hardReset() {
   
   ReadRegister(0x0);
 
-  //HardResetTTCrx();
+  HardResetTTCrx();
 
   setCCBMode(CCB::VMEFPGA);
 
