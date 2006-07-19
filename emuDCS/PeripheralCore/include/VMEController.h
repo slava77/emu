@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.23 2006/07/16 04:55:17 liu Exp $
+// $Id: VMEController.h,v 2.24 2006/07/19 09:05:44 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.24  2006/07/19 09:05:44  mey
+// Added write_CR
+//
 // Revision 2.23  2006/07/16 04:55:17  liu
 // update
 //
@@ -138,6 +141,7 @@ public:
   void clear_error();
   void disable_errpkt();
   void enable_Reset();
+  void write_CR();
   void disable_Reset();
   void set_Timeout(int to);
   void set_GrantTimeout(int to);
