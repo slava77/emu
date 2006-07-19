@@ -38,7 +38,7 @@ bool  CRATE_CONFIGURED_NEEDED = false;
 
 
 /////#include <iostream>
-#include "PeripheralCrateController.h"
+//#include "PeripheralCrateController.h"
 //fg #include "VMEControllerdcs.h"
 #include "VMEController.h"
 ///////////#include "DAQMBdcs.h"
