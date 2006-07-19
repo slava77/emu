@@ -35,6 +35,10 @@ public:
   inline int * GetDRtdo() { return shfDR_tdo_ ; }
   inline int GetRegLength() { return register_length_ ; }
   //
+  void CompareBitByBit(int * write_vector,     // Compare the data in the first "length" bits
+		       int * read_vector,      // of "write_vector[]" with "read_vector[]"
+		       int length);           
+  //
   void packCharBuffer(int * bitVector, 
 		      int Nbits, 
 		      char * charVector);

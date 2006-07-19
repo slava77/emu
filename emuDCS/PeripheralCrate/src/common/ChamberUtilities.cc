@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.37 2006/07/18 07:52:30 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.38 2006/07/19 18:11:17 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.38  2006/07/19 18:11:17  rakness
+// Error checking on ALCTNEW
+//
 // Revision 1.37  2006/07/18 07:52:30  rakness
 // ALCTTiming with ALCTNEW
 //
@@ -933,7 +936,7 @@ void ChamberUtilities::ALCTTiming(){
   alct->SetSendEmpty(1);
   alct->WriteConfigurationReg();
   // The next two lines are for diagnostic purposes:
-  alct->ReadConfigurationReg();
+  //  alct->ReadConfigurationReg();
   alct->PrintConfigurationReg();
 #endif
   //
@@ -1062,7 +1065,7 @@ void ChamberUtilities::ALCTTiming(){
 	}
 	alct->WriteHotChannelMask();
 	// The next lines are for diagnostic purposes:
-	alct->ReadHotChannelMask();
+	//	alct->ReadHotChannelMask();
 	alct->PrintHotChannelMask();
 #endif
 	//

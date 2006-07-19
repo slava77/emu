@@ -5,6 +5,7 @@
 #include <unistd.h> // for sleep
 #include <vector>
 #include <string>
+#include <sstream>
 //
 #include "TMB.h"
 
@@ -32,7 +33,7 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
 			  const int opcode, 
 			  const int size_of_register, 
 			  const int * write_data) {
-
+  //
   //This member assumes you have run setup_jtag(int)...
   //This member sets up the tdi for shifting in "opcode" for ShfIR and then ShfDR.  
   //  
@@ -48,12 +49,12 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
 
   // N.B. JTAG instructions and data are loaded and readout in order
   //      starting with chipN, chipN-1, ... ,chip1, and ending with chip0
-
+  //
   if (jtag_chain_ < 0) return;
-
+  //
   chip_id_ = selected_chip;
   register_length_ = size_of_register;
-
+  //
   if (debug_){    
     (*MyOutput_) << "EMUjtag: Use " << std::dec << bits_in_opcode_[chip_id_] 
 		 << " bits to write opcode 0x" << std::hex << opcode 
@@ -62,12 +63,11 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
 		 << " -> use " << std::dec << register_length_ 
 		 << " bits tdi/tdo" << std::hex << std::endl;
   }
-  
-  
+  //
   //** Clear the read data which was previously there:
   for (int i=0; i<MAX_NUM_FRAMES; i++) 
     shfDR_tdo_[i] = 0;
-
+  //
   int tdi[MAX_NUM_FRAMES];
   char sndBuffer[MAX_BUFFER_SIZE], rcvBuffer[MAX_BUFFER_SIZE];
 
@@ -178,6 +178,7 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
 			  const int opcode, 
 			  const int size_of_register) {
   int all_zeros[MAX_NUM_FRAMES] = {};  // Shift in all 0's on tdi for read-only registers
+  //
   ShfIR_ShfDR(selected_chip,
 	      opcode,
 	      size_of_register,
@@ -361,6 +362,37 @@ void EMUjtag::setup_jtag(int chain) {
   chip_id_ = MAX_NUM_DEVICES;
   register_length_ = 0;
   
+  return;
+}
+//
+void EMUjtag::CompareBitByBit(int * write_vector,
+			      int * read_vector,
+			      int length) {
+  int error_counter=0;
+  //
+  for (int i=0; i<length; i++)
+    if (write_vector[i] != read_vector[i]) 
+      error_counter++;
+  //
+  if (error_counter != 0) {
+    //  Pack up the vectors into buffers of characters to send to the error output location:
+    std::ostringstream writedump;
+    char WriteBuffer[MAX_BUFFER_SIZE];
+    packCharBuffer(write_vector,length,WriteBuffer);
+    for (int i=(length/8)-1; i>=0; i--) 
+      writedump << std::hex << ((WriteBuffer[i] >> 4) & 0xf) << (WriteBuffer[i] & 0xf);  
+    //
+    std::ostringstream readdump;
+    char ReadBuffer[MAX_BUFFER_SIZE];
+    packCharBuffer(read_vector,length,ReadBuffer);
+    for (int i=(length/8)-1; i>=0; i--) 
+      readdump << std::hex << ((ReadBuffer[i] >> 4) & 0xf) << (ReadBuffer[i] & 0xf);  
+    //
+    std::ostringstream dump;
+    dump << "EMUjtag: JTAG READ ->" << readdump.str() << " does not equal WRITE->" << writedump.str();
+    //
+    tmb_->SendOutput(dump.str(),"ERROR");
+  }
   return;
 }
 //
