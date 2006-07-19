@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.22 2006/07/18 18:00:15 rakness Exp $
+// $Id: ALCTController.h,v 2.23 2006/07/19 18:11:17 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.23  2006/07/19 18:11:17  rakness
+// Error checking on ALCTNEW
+//
 // Revision 2.22  2006/07/18 18:00:15  rakness
 // clean up documentation
 //
@@ -737,6 +740,9 @@ public:
   //
   void SetUpRandomALCT();
   //
+  inline void SetCheckJtagWrite(bool check_write) { check_write_ = check_write; }   //Check if read values = write values
+  inline bool GetCheckJtagWrite() { return check_write_; }
+  //
   //
   ////////////////////////////
   // ALCT Registers...
@@ -757,21 +763,20 @@ public:
   //////////////////////////
   //TESTPULSE POWERSWITCH
   //////////////////////////
-  void SetTestpulsePowerSwitchReg(int powerswitch);      // powerswitch = OFF or ON
-  int  GetTestpulsePowerSwitchReg();
+  void SetTestpulsePowerSwitchReg(int powerswitch);      // set Write values -> powerswitch = OFF or ON
+  int  GetTestpulsePowerSwitchReg();                     // get Read values
   //
-  void SetPowerUpTestpulsePowerSwitchReg();              //sets software values to data-taking values            
-  void PrintTestpulsePowerSwitchReg();                   //print out software values				             
+  void SetPowerUpTestpulsePowerSwitchReg();              //sets Write values to data-taking defaults
+  void PrintTestpulsePowerSwitchReg();                   //print out Read values				             
   //
   //
-  void WriteTestpulsePowerSwitchReg();             //writes software values to testpulse power switch register
-  void ReadTestpulsePowerSwitchReg();              //fills software values with values read from ALCT	      
+  void WriteTestpulsePowerSwitchReg();             //writes Write values to ALCT
+  void ReadTestpulsePowerSwitchReg();              //fills Read values with values read from ALCT	      
   //
   ///////////////////////////////////////////////////////////////////////
   //TESTPULSE AMPLITUDE - amplitude of analog test pulse sent to AFEBs
   ///////////////////////////////////////////////////////////////////////
   void SetTestpulseAmplitude(int dacvalue);        // Voltage = 2.5V * dacvalue/256
-  int  GetTestpulseAmplitude();
   //
   void SetPowerUpTestpulseAmplitude();             // sets software values to data-taking values
   //
@@ -1026,6 +1031,9 @@ private:
   std::ostream * MyOutput_ ;
   TMB * tmb_ ;
   //
+  //
+  bool check_write_;
+  //
   // Things specific to the chamber-type: //
   void SetChamberCharacteristics_(std::string chamberType);
   std::string chamber_type_string_;  
@@ -1046,81 +1054,124 @@ private:
   int RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_;
   int RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_;
   //
-  //////////////////////////////
-  // Slow-control variables:  //
-  //////////////////////////////
-  char slowcontrol_id_[RegSizeAlctSlowFpga_RD_ID_REG/8+1];
+  //////////////////////////////////////////////////////
+  // vectors of bits for the slow-control registers:  //
+  //////////////////////////////////////////////////////
+  char read_slowcontrol_id_[RegSizeAlctSlowFpga_RD_ID_REG/8+1];
   //
-  int testpulse_power_setting_;
+  int write_testpulse_power_setting_;
+  int read_testpulse_power_setting_;
   //
-  int testpulse_amplitude_dacvalue_;
+  int write_testpulse_amplitude_dacvalue_;
   //
-  int testpulse_groupmask_[RegSizeAlctSlowFpga_WRT_TESTPULSE_GRP];
+  int write_testpulse_groupmask_[RegSizeAlctSlowFpga_WRT_TESTPULSE_GRP];
+  int read_testpulse_groupmask_[RegSizeAlctSlowFpga_RD_TESTPULSE_GRP];
   //
-  int testpulse_stripmask_[RegSizeAlctSlowFpga_WRT_TESTPULSE_STRIP];
+  int write_testpulse_stripmask_[RegSizeAlctSlowFpga_WRT_TESTPULSE_STRIP];
+  int read_testpulse_stripmask_[RegSizeAlctSlowFpga_RD_TESTPULSE_STRIP];
   //
   int read_adc_(int ADCchipNumber, int ADCchannel);
-  int afeb_threshold_write_[MAX_NUM_AFEBS];
-  int afeb_threshold_read_[MAX_NUM_AFEBS];
+  int write_afeb_threshold_[MAX_NUM_AFEBS];
+  int read_afeb_threshold_[MAX_NUM_AFEBS];
   //
-  int standby_register_[MAX_NUM_AFEBS];
+  int write_standby_register_[RegSizeAlctSlowFpga_WRT_STANDBY_REG];
+  int read_standby_register_[RegSizeAlctSlowFpga_RD_STANDBY_REG];
   //
-  //////////////////////////////
-  // Fast-control variables:  //
-  //////////////////////////////
-  char fastcontrol_id_[RegSizeAlctFastFpga_RD_ID_REG/8+1];
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // vectors of bits for the fast-control registers, variables in these registers, and methods to translate between the two... //
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  char read_fastcontrol_id_[RegSizeAlctFastFpga_RD_ID_REG/8+1];
   //
-  int trigger_reg_[RegSizeAlctFastFpga_WRT_TRIG_REG];
-  int pulse_trigger_source_;
-  int invert_pulse_;
+  int write_trigger_reg_[RegSizeAlctFastFpga_WRT_TRIG_REG];
+  int write_pulse_trigger_source_;
+  int write_invert_pulse_;
   void FillTriggerRegister_();
+  int read_trigger_reg_[RegSizeAlctFastFpga_RD_TRIG_REG];
+  int read_pulse_trigger_source_;
+  int read_invert_pulse_;
   void DecodeTriggerRegister_();
   //
-  int delay_line_control_reg_[RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_672]; //make this as large as it could possibly be
-  void DecodeDelayLineControlReg_();
+  int write_delay_line_control_reg_[RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_672]; //make this as large as it could possibly be
+  int write_delay_line_reset_;
+  int write_delay_line_settst_;
+  int write_delay_line_group_select_[RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_672-2]; //make this as large as it could possibly be
   void FillDelayLineControlReg_();
-  int delay_line_reset_;
-  int delay_line_settst_;
-  int delay_line_group_select_[RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_672-2]; //make this as large as it could possibly be
+  int read_delay_line_control_reg_[RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_672]; //make this as large as it could possibly be
+  int read_delay_line_reset_;
+  int read_delay_line_settst_;
+  int read_delay_line_group_select_[RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_672-2]; //make this as large as it could possibly be
+  void DecodeDelayLineControlReg_();
   //
-  void FillAsicDelaysAndPatterns_(int groupOfAfebs);     //each delay line has 6 AFEBs
-  void DecodeAsicDelaysAndPatterns_(int groupOfAfebs);     //each delay line has 6 AFEBs
+  int write_asic_delays_and_patterns_[RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES]; 
+  int write_asic_delay_[MAX_NUM_AFEBS];
+  int write_asic_pattern_[MAX_NUM_LAYERS][MAX_NUM_WIRES_PER_LAYER];
+  void FillAsicDelaysAndPatterns_(int groupOfAfebs);       //each delay line controls one group of 6 AFEBs
+  int read_asic_delays_and_patterns_[RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES];  // N.B. It is WRT since RD has one extra bit which is not used
+  int read_asic_delay_[MAX_NUM_AFEBS];
+  int read_asic_pattern_[MAX_NUM_LAYERS][MAX_NUM_WIRES_PER_LAYER];
+  void DecodeAsicDelaysAndPatterns_(int groupOfAfebs);     //each delay line controls one group of 6 AFEBs
+  void ReadAsicDelaysAndPatterns_(int groupOfAfebs);       //fills software values with values read from ALCT
   int GetLayerFromAsicMap_(int asic_index);
   int GetChannelFromAsicMap_(int groupOfAfebs, int asic_index);
-  int asic_delay_[MAX_NUM_AFEBS];
-  int asic_pattern_[MAX_NUM_LAYERS][MAX_NUM_WIRES_PER_LAYER];
-  int asic_delays_and_patterns_[RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES]; //use WRT, since first bit of RD is junk bit
   //
-  int config_reg_[RegSizeAlctFastFpga_RD_CONFIG_REG];
-  void DecodeConfigurationReg_();
+  int write_config_reg_[RegSizeAlctFastFpga_WRT_CONFIG_REG];
+  int write_trigger_mode_;
+  int write_ext_trig_enable_;
+  int write_send_empty_;
+  int write_inject_;
+  int write_bxc_offset_;
+  int write_nph_thresh_;
+  int write_nph_pattern_;
+  int write_drift_delay_;
+  int write_fifo_tbins_;
+  int write_fifo_pretrig_;
+  int write_fifo_mode_;
+  int write_fifo_lastlct_;
+  int write_l1a_delay_;
+  int write_l1a_window_;
+  int write_l1a_offset_;
+  int write_l1a_internal_;
+  int write_board_id_;
+  int write_bxn_offset_;
+  int write_ccb_enable_;
+  int write_alct_jtag_ds_;
+  int write_alct_tmode_;
+  int write_alct_amode_;
+  int write_alct_mask_all_;
+  int write_trigger_info_en_;
+  int write_sn_select_;
   void FillConfigurationReg_();
-  int trigger_mode_;
-  int ext_trig_enable_;
-  int send_empty_;
-  int inject_;
-  int bxc_offset_;
-  int nph_thresh_;
-  int nph_pattern_;
-  int drift_delay_;
-  int fifo_tbins_;
-  int fifo_pretrig_;
-  int fifo_mode_;
-  int fifo_lastlct_;
-  int l1a_delay_;
-  int l1a_window_;
-  int l1a_offset_;
-  int l1a_internal_;
-  int board_id_;
-  int bxn_offset_;
-  int ccb_enable_;
-  int alct_jtag_ds_;
-  int alct_tmode_;
-  int alct_amode_;
-  int alct_mask_all_;
-  int trigger_info_en_;
-  int sn_select_;
+  int read_config_reg_[RegSizeAlctFastFpga_RD_CONFIG_REG];
+  int read_trigger_mode_;
+  int read_ext_trig_enable_;
+  int read_send_empty_;
+  int read_inject_;
+  int read_bxc_offset_;
+  int read_nph_thresh_;
+  int read_nph_pattern_;
+  int read_drift_delay_;
+  int read_fifo_tbins_;
+  int read_fifo_pretrig_;
+  int read_fifo_mode_;
+  int read_fifo_lastlct_;
+  int read_l1a_delay_;
+  int read_l1a_window_;
+  int read_l1a_offset_;
+  int read_l1a_internal_;
+  int read_board_id_;
+  int read_bxn_offset_;
+  int read_ccb_enable_;
+  int read_alct_jtag_ds_;
+  int read_alct_tmode_;
+  int read_alct_amode_;
+  int read_alct_mask_all_;
+  int read_trigger_info_en_;
+  int read_sn_select_;
+  void DecodeConfigurationReg_();
   //
-  int hot_channel_mask_[RegSizeAlctFastFpga_RD_HOTCHAN_MASK_672];             //make this as large as it could possibly be
+  int write_hot_channel_mask_[RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_672];             //make this as large as it could possibly be
+  int read_hot_channel_mask_[RegSizeAlctFastFpga_RD_HOTCHAN_MASK_672];               //make this as large as it could possibly be
+  bool stop_read_;                                                          // need this to stop JTAG checking from going to infinite loop
   //
 };
 #endif
