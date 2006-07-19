@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.32 2006/07/19 10:45:20 mey Exp $
+// $Id: VMEController.cc,v 2.33 2006/07/19 15:23:58 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.33  2006/07/19 15:23:58  mey
+// UPdate
+//
 // Revision 2.32  2006/07/19 10:45:20  mey
 // UPdate
 //
@@ -181,7 +184,8 @@ void VMEController::init(string ipAddr, int port) {
   cout << "VMEController opened socket = " << socket << endl;
   cout << "VMEController is using eth" << port_ << endl;
   //enable_Reset(); //don't enable until SYSCLK is enabled by default.    
-  write_CR();
+  read_CR();
+  write_VME_CR();
   //
   disable_errpkt();
   //
@@ -607,7 +611,7 @@ void VMEController::disable_Reset()
   return;
 }
 
-void VMEController::write_CR()
+void VMEController::write_VME_CR()
 {
   int n;
   int l,lcnt;
@@ -615,11 +619,30 @@ void VMEController::write_CR()
   wbuf[1]=0x12;
   wbuf[2]=0x20;
   wbuf[3]=0x00;
-  wbuf[4]=0xED;
+  wbuf[4]=0x1D;
   wbuf[5]=0x1F;
   nwbuf=6;
   n=eth_write();
   std::cout << "WriteCR" << std::endl;
+  for(l=0;l<8000;l++)lcnt++;
+  return;
+}
+
+void VMEController::read_CR()
+{
+  int n;
+  int l,lcnt;
+  wbuf[0]=0x20;
+  wbuf[1]=0x0E;
+  nwbuf=2;
+  n=eth_write();
+  //
+  int size=eth_read();
+  //
+  printf("Read back size %d \n",size);
+  for(int i=0;i<size;i++) printf("%02X ",rbuf[i]&0xff);
+  printf("\n");
+  //
   for(l=0;l<8000;l++)lcnt++;
   return;
 }
