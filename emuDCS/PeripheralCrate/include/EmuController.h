@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuController.h,v 1.2 2006/07/14 12:33:26 mey Exp $
+// $Id: EmuController.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
 // $Log: EmuController.h,v $
+// Revision 3.0  2006/07/20 21:15:47  geurts
+// *** empty log message ***
+//
 // Revision 1.2  2006/07/14 12:33:26  mey
 // New XML structure
 //

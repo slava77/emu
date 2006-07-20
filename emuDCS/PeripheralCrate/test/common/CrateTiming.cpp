@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 1.12 2006/07/14 11:47:12 rakness Exp $
+// $Id: CrateTiming.cpp,v 3.0 2006/07/20 21:15:48 geurts Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 3.0  2006/07/20 21:15:48  geurts
+// *** empty log message ***
+//
 // Revision 1.12  2006/07/14 11:47:12  rakness
 // compiler switch possible for ALCTNEW
 //

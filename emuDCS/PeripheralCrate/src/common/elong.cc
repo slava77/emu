@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: elong.cc,v 2.1 2005/08/11 08:13:04 mey Exp $
+// $Id: elong.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
 // $Log: elong.cc,v $
+// Revision 3.0  2006/07/20 21:15:48  geurts
+// *** empty log message ***
+//
 // Revision 2.1  2005/08/11 08:13:04  mey
 // Update
 //

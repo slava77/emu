@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuParser.cc,v 2.3 2006/04/06 22:23:08 mey Exp $
+// $Id: EmuParser.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
 // $Log: EmuParser.cc,v $
+// Revision 3.0  2006/07/20 21:15:48  geurts
+// *** empty log message ***
+//
 // Revision 2.3  2006/04/06 22:23:08  mey
 // Update
 //

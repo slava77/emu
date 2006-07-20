@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DDU.h,v 2.4 2006/01/13 10:06:53 mey Exp $
+// $Id: DDU.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
 // $Log: DDU.h,v $
+// Revision 3.0  2006/07/20 21:15:47  geurts
+// *** empty log message ***
+//
 // Revision 2.4  2006/01/13 10:06:53  mey
 // Got rid of virtuals
 //

@@ -1,7 +1,10 @@
 
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.cc,v 1.2 2006/01/21 19:55:02 gilmore Exp $
+// $Id: FEDCrateParser.cc,v 3.0 2006/07/20 21:16:11 geurts Exp $
 // $Log: FEDCrateParser.cc,v $
+// Revision 3.0  2006/07/20 21:16:11  geurts
+// *** empty log message ***
+//
 // Revision 1.2  2006/01/21 19:55:02  gilmore
 // *** empty log message ***
 //

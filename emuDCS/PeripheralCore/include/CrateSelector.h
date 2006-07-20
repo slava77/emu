@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateSelector.h,v 2.1 2006/07/14 08:11:58 mey Exp $
+// $Id: CrateSelector.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
 // $Log: CrateSelector.h,v $
+// Revision 3.0  2006/07/20 21:15:47  geurts
+// *** empty log message ***
+//
 // Revision 2.1  2006/07/14 08:11:58  mey
 // Got rid of Singleton
 //

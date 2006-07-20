@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 2.21 2006/07/18 14:10:33 mey Exp $
+// $Id: VMEModule.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
 // $Log: VMEModule.h,v $
+// Revision 3.0  2006/07/20 21:15:47  geurts
+// *** empty log message ***
+//
 // Revision 2.21  2006/07/18 14:10:33  mey
 // Update
 //

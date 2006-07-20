@@ -1,4 +1,4 @@
-// $Id: EmuRunControlHyperDAQ.h,v 1.6 2006/03/07 09:22:57 mey Exp $
+// $Id: EmuRunControlHyperDAQ.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *

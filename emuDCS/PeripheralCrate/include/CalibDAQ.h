@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.h,v 2.14 2006/07/17 11:56:05 mey Exp $
+// $Id: CalibDAQ.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
 // $Log: CalibDAQ.h,v $
+// Revision 3.0  2006/07/20 21:15:47  geurts
+// *** empty log message ***
+//
 // Revision 2.14  2006/07/17 11:56:05  mey
 // Included CFEB coonectivity calibration
 //

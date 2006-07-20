@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTClasses.h,v 2.2 2006/02/07 22:49:25 mey Exp $
+// $Id: ALCTClasses.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
 // $Log: ALCTClasses.h,v $
+// Revision 3.0  2006/07/20 21:15:47  geurts
+// *** empty log message ***
+//
 // Revision 2.2  2006/02/07 22:49:25  mey
 // UPdate
 //

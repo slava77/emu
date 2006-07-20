@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateSelector.cc,v 2.2 2006/07/14 12:33:26 mey Exp $
+// $Id: CrateSelector.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
 // $Log: CrateSelector.cc,v $
+// Revision 3.0  2006/07/20 21:15:48  geurts
+// *** empty log message ***
+//
 // Revision 2.2  2006/07/14 12:33:26  mey
 // New XML structure
 //

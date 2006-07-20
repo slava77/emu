@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuFController.cc,v 1.3 2006/05/09 19:20:03 gilmore Exp $
+// $Id: EmuFController.cc,v 3.0 2006/07/20 21:16:11 geurts Exp $
 // $Log: EmuFController.cc,v $
+// Revision 3.0  2006/07/20 21:16:11  geurts
+// *** empty log message ***
+//
 // Revision 1.3  2006/05/09 19:20:03  gilmore
 // Fix for DCC configure function.
 //

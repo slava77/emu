@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.45 2006/07/20 11:07:59 rakness Exp $
+// $Id: ALCTController.cc,v 3.0 2006/07/20 21:15:47 geurts Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.0  2006/07/20 21:15:47  geurts
+// *** empty log message ***
+//
 // Revision 2.45  2006/07/20 11:07:59  rakness
 // make many functions private
 //

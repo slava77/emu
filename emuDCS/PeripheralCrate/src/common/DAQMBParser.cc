@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.cc,v 2.9 2006/07/18 14:12:03 mey Exp $
+// $Id: DAQMBParser.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
 // $Log: DAQMBParser.cc,v $
+// Revision 3.0  2006/07/20 21:15:48  geurts
+// *** empty log message ***
+//
 // Revision 2.9  2006/07/18 14:12:03  mey
 // Update
 //
