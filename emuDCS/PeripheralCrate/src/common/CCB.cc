@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.50 2006/07/20 09:49:55 mey Exp $
+// $Id: CCB.cc,v 2.51 2006/07/20 14:03:12 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.51  2006/07/20 14:03:12  mey
+// Update
+//
 // Revision 2.50  2006/07/20 09:49:55  mey
 // UPdate
 //
@@ -243,32 +246,34 @@ void CCB::pedestal(int Num_pulse,unsigned int pulse_delay)
   pulse(Num_pulse, pulse_delay, DMB_CFEB_CAL2);
 }
 
-void CCB::prgall_bckpln()
+void CCB::HardReset_crate()
 {
   /// Performs a Hard-Reset to all modules in the crate
   /// through a dedicated VME register (not FastControl)
-  setCCBMode(CCB::VMEFPGA);
+  //
   (*MyOutput_) << "CCB: hard reset" << std::endl;
+  setCCBMode(CCB::VMEFPGA);
   sndbuf[0]=0x00;
   sndbuf[1]=0x01;
   do_vme(VME_WRITE,CRATE_HARD_RESET,sndbuf,rcvbuf,NOW);
-  
   ::sleep(2);
-
   setCCBMode(CCB::DLOG);
 
 }
 //
-void CCB::reset_bckpln()
+void CCB::SoftReset_crate()
 {
   /// Reinitializes the FPGAs on DMB, TMB and MPC boards
   /// through a FastControl soft-reset.
+  //
   (*MyOutput_) << "CCB: soft reset" << std::endl;
+  setCCBMode(CCB::VMEFPGA);
   int i_ccb=0x1c;
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc;
   do_vme(VME_WRITE, CSRB2, sndbuf,rcvbuf,NOW);
   sleep(1);
+  setCCBMode(CCB::DLOG);
   
 }
 //
@@ -657,7 +662,7 @@ void CCB::hardReset() {
 
   // when in DLOG mode, briefly switch to FPGA mode so we can 
   // have the CCB issue the backplane reset. This is *only* for
-  // TestBeam purposes and only for the  prgall_bckpln function.
+  // TestBeam purposes and only for the  HardReset_crate function.
   bool switchedMode = false;
   if (mCCBMode == (CCB2004Mode_t)CCB::DLOG){
     setCCBMode(CCB::VMEFPGA);
@@ -673,7 +678,7 @@ void CCB::hardReset() {
 
   ReadRegister(0x0);
 
-  prgall_bckpln();
+  HardReset_crate();
 
   ReadRegister(0x0);
 
@@ -684,7 +689,7 @@ void CCB::hardReset() {
   //
   // sequence of 2nd hard reset with additional delays (Jianhui)
     sleep(2);
-    prgall_bckpln();
+    HardReset_crate();
     sleep(1); // could go down to ~100msec (Jianhui)
 
   if (switchedMode){
@@ -694,7 +699,7 @@ void CCB::hardReset() {
 
   std::cout << ReadRegister(0x0) << std::endl;
 
-  reset_bckpln();
+  SoftReset_crate();
   //fg note: this 1second is not necessary
   sleep(1);
   syncReset();
@@ -1017,8 +1022,8 @@ void CCB::disableTTCControl() {
 }
 //
 void CCB::executeCommand(std::string command) {
-  if(command=="Program Backplane") prgall_bckpln();
-  if(command=="Reset Backplane")   reset_bckpln();
+  if(command=="Program Backplane") HardReset_crate();
+  if(command=="Reset Backplane")   SoftReset_crate();
 
   if(command=="Enable L1")        enableL1();
   if(command=="Disable L1")       disableL1();

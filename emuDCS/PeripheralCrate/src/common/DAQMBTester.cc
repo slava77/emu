@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBTester.cc,v 2.4 2005/09/07 17:58:03 mey Exp $
+// $Id: DAQMBTester.cc,v 2.5 2006/07/20 14:03:12 mey Exp $
 // $Log: DAQMBTester.cc,v $
+// Revision 2.5  2006/07/20 14:03:12  mey
+// Update
+//
 // Revision 2.4  2005/09/07 17:58:03  mey
 // Upade
 //
@@ -83,7 +86,7 @@ void DAQMBTester::fifo()
 
   if(fakeBackPlane_) {
     for(int i=0;i<2;i++){
-      ccb_->reset_bckpln();
+      ccb_->SoftReset_crate();
       PRINTSTRING( reset CCB backplane);
       sleep(1);
     }
@@ -117,11 +120,11 @@ void DAQMBTester::bucktest() // will not be needed in final configuration
 void DAQMBTester::daqmb_init() // will not be needed in final configuration
 {
   
-  ccb_->prgall_bckpln();    // CCB:reprogram all FPGAs in Crate
-  std::cout<<"prgall_bckpln" << std::endl;    
+  ccb_->HardReset_crate();    // CCB:reprogram all FPGAs in Crate
+  std::cout<<"HardReset_crate" << std::endl;    
   sleep(1);
-  ccb_->reset_bckpln();     // CCB:reset all FPGAs in Crate
-  std::cout<<"reset_bckpln" << std::endl;
+  ccb_->SoftReset_crate();     // CCB:reset all FPGAs in Crate
+  std::cout<<"SoftReset_crate" << std::endl;
   sleep(1);
   //ccb_->rice_clk_setup();   // CCB:setup and start CCB backplane clocks
   //std::cout << "rice_clk_setup " << std::endl; 

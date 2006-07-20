@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuController.cc,v 1.7 2006/07/17 11:58:51 mey Exp $
+// $Id: EmuController.cc,v 1.8 2006/07/20 14:03:12 mey Exp $
 // $Log: EmuController.cc,v $
+// Revision 1.8  2006/07/20 14:03:12  mey
+// Update
+//
 // Revision 1.7  2006/07/17 11:58:51  mey
 // Included CFEB coonectivity calibration
 //
@@ -99,9 +102,9 @@ void EmuController::init(){
   //
   std::vector<Crate*> myCrates = theSelector.crates();
   //
-  for(unsigned i = 0; i < myCrates.size(); ++i) {
-    //myCrates[i]->init();
-  }
+  //for(unsigned i = 0; i < myCrates.size(); ++i) {
+  //myCrates[i]->init();
+  //}
 }
 //
 
@@ -113,7 +116,6 @@ void EmuController::configure() {
     if(myCrates[i]) myCrates[i]->configure();
   }
 }
-//
 //
 void  EmuController::enable() {
   //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 2.24 2006/07/16 04:14:12 liu Exp $
+// $Id: CCB.h,v 2.25 2006/07/20 14:03:11 mey Exp $
 // $Log: CCB.h,v $
+// Revision 2.25  2006/07/20 14:03:11  mey
+// Update
+//
 // Revision 2.24  2006/07/16 04:14:12  liu
 // remove CCB2001 support, code cleanup
 //
@@ -115,8 +118,8 @@ public:
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   //
-  void prgall_bckpln();
-  void reset_bckpln();
+  void HardReset_crate();
+  void SoftReset_crate();
   //
   bool SelfTest() ;
   void init() ;
