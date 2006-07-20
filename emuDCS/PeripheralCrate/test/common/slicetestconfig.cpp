@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: slicetestconfig.cpp,v 2.1 2006/02/01 20:58:02 mey Exp $
+// $Id: slicetestconfig.cpp,v 3.0 2006/07/20 21:15:48 geurts Exp $
 // $Log: slicetestconfig.cpp,v $
+// Revision 3.0  2006/07/20 21:15:48  geurts
+// *** empty log message ***
+//
 // Revision 2.1  2006/02/01 20:58:02  mey
 // Got rid of TestBeamController
 //

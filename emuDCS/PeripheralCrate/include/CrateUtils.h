@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateUtils.h,v 1.1 2006/02/01 18:41:20 mey Exp $
+// $Id: CrateUtils.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
 // $Log: CrateUtils.h,v $
+// Revision 3.0  2006/07/20 21:15:47  geurts
+// *** empty log message ***
+//
 // Revision 1.1  2006/02/01 18:41:20  mey
 // Update
 //

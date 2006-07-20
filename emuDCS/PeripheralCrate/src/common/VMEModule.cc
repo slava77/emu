@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 2.27 2006/07/13 15:52:22 mey Exp $
+// $Id: VMEModule.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.0  2006/07/20 21:15:48  geurts
+// *** empty log message ***
+//
 // Revision 2.27  2006/07/13 15:52:22  mey
 // New Parser structure
 //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateUtils.cc,v 1.4 2006/07/13 15:53:03 mey Exp $
+// $Id: CrateUtils.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
 // $Log: CrateUtils.cc,v $
+// Revision 3.0  2006/07/20 21:15:48  geurts
+// *** empty log message ***
+//
 // Revision 1.4  2006/07/13 15:53:03  mey
 // New Parser structure
 //

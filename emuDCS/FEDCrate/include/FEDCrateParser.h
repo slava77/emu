@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.h,v 1.2 2006/01/21 20:20:14 gilmore Exp $
+// $Id: FEDCrateParser.h,v 3.0 2006/07/20 21:16:10 geurts Exp $
 // $Log: FEDCrateParser.h,v $
+// Revision 3.0  2006/07/20 21:16:10  geurts
+// *** empty log message ***
+//
 // Revision 1.2  2006/01/21 20:20:14  gilmore
 // *** empty log message ***
 //

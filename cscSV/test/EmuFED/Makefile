@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2006/03/08 16:27:32 ichiro Exp $
+# $Id: Makefile,v 3.0 2006/07/20 21:18:22 geurts Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TestBeamCrateController.h,v 1.1 2006/01/21 20:21:36 gilmore Exp $
+// $Id: TestBeamCrateController.h,v 3.0 2006/07/20 21:16:10 geurts Exp $
 // $Log: TestBeamCrateController.h,v $
+// Revision 3.0  2006/07/20 21:16:10  geurts
+// *** empty log message ***
+//
 // Revision 1.1  2006/01/21 20:21:36  gilmore
 // *** empty log message ***
 //

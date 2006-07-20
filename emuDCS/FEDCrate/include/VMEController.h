@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 1.3 2006/01/27 15:57:34 gilmore Exp $
+// $Id: VMEController.h,v 3.0 2006/07/20 21:16:10 geurts Exp $
 // $Log: VMEController.h,v $
+// Revision 3.0  2006/07/20 21:16:10  geurts
+// *** empty log message ***
+//
 // Revision 1.3  2006/01/27 15:57:34  gilmore
 // *** empty log message ***
 //

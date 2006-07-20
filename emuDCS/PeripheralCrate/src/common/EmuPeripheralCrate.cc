@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.cc,v 2.1 2006/03/15 13:50:11 mey Exp $
+// $Id: EmuPeripheralCrate.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *

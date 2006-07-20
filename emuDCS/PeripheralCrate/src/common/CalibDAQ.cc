@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 2.48 2006/07/19 09:09:57 mey Exp $
+// $Id: CalibDAQ.cc,v 3.0 2006/07/20 21:15:47 geurts Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 3.0  2006/07/20 21:15:47  geurts
+// *** empty log message ***
+//
 // Revision 2.48  2006/07/19 09:09:57  mey
 // Update
 //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuConfig.cpp,v 1.3 2006/07/13 15:46:38 mey Exp $
+// $Id: EmuConfig.cpp,v 3.0 2006/07/20 21:15:48 geurts Exp $
 // $Log: EmuConfig.cpp,v $
+// Revision 3.0  2006/07/20 21:15:48  geurts
+// *** empty log message ***
+//
 // Revision 1.3  2006/07/13 15:46:38  mey
 // New Parser strurture
 //

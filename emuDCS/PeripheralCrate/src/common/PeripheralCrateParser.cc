@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.cc,v 2.11 2006/07/20 14:03:12 mey Exp $
+// $Id: PeripheralCrateParser.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
 // $Log: PeripheralCrateParser.cc,v $
+// Revision 3.0  2006/07/20 21:15:48  geurts
+// *** empty log message ***
+//
 // Revision 2.11  2006/07/20 14:03:12  mey
 // Update
 //

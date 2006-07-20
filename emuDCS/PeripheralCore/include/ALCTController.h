@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.25 2006/07/20 15:35:17 rakness Exp $
+// $Id: ALCTController.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.0  2006/07/20 21:15:47  geurts
+// *** empty log message ***
+//
 // Revision 2.25  2006/07/20 15:35:17  rakness
 // update documentation
 //

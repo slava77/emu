@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CSCParser.h,v 1.3 2006/07/13 15:46:37 mey Exp $
+// $Id: CSCParser.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
 // $Log: CSCParser.h,v $
+// Revision 3.0  2006/07/20 21:15:47  geurts
+// *** empty log message ***
+//
 // Revision 1.3  2006/07/13 15:46:37  mey
 // New Parser strurture
 //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 1.3 2006/03/24 14:35:04 mey Exp $
+// $Id: Chamber.cc,v 3.0 2006/07/20 21:15:47 geurts Exp $
 // $Log: Chamber.cc,v $
+// Revision 3.0  2006/07/20 21:15:47  geurts
+// *** empty log message ***
+//
 // Revision 1.3  2006/03/24 14:35:04  mey
 // Update
 //

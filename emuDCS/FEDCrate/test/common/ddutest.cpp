@@ -1,5 +1,8 @@
- // $Id: ddutest.cpp,v 1.1 2005/09/01 16:09:21 gilmore Exp $
+ // $Id: ddutest.cpp,v 3.0 2006/07/20 21:16:11 geurts Exp $
 // $Log: ddutest.cpp,v $
+// Revision 3.0  2006/07/20 21:16:11  geurts
+// *** empty log message ***
+//
 // Revision 1.1  2005/09/01 16:09:21  gilmore
 // *** empty log message ***
 //

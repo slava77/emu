@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB_jtag.cc,v 2.0 2005/04/12 08:07:05 geurts Exp $
+// $Id: DAQMB_jtag.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
 // $Log: DAQMB_jtag.cc,v $
+// Revision 3.0  2006/07/20 21:15:48  geurts
+// *** empty log message ***
+//
 // Revision 2.0  2005/04/12 08:07:05  geurts
 // *** empty log message ***
 //

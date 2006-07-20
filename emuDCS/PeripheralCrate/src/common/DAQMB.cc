@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.67 2006/07/20 11:48:39 mey Exp $
+// $Id: DAQMB.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.0  2006/07/20 21:15:48  geurts
+// *** empty log message ***
+//
 // Revision 2.67  2006/07/20 11:48:39  mey
 // Program SFM
 //

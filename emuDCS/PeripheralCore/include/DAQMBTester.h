@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBTester.h,v 2.2 2005/09/07 17:59:21 mey Exp $
+// $Id: DAQMBTester.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
 // $Log: DAQMBTester.h,v $
+// Revision 3.0  2006/07/20 21:15:47  geurts
+// *** empty log message ***
+//
 // Revision 2.2  2005/09/07 17:59:21  mey
 // Update
 //
