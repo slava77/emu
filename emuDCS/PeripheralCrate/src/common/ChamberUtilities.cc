@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.38 2006/07/19 18:11:17 rakness Exp $
+// $Id: ChamberUtilities.cc,v 1.39 2006/07/20 09:49:55 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.39  2006/07/20 09:49:55  mey
+// UPdate
+//
 // Revision 1.38  2006/07/19 18:11:17  rakness
 // Error checking on ALCTNEW
 //
@@ -1748,7 +1751,7 @@ void ChamberUtilities::LoadCFEB(int HalfStrip, int CLCTInputs, bool enableL1aEmu
   thisTMB->SetCLCTPatternTrigger();
   //
   thisDMB->set_comp_thresh(0.1);
-  thisDMB->set_dac(.1,0);
+  thisDMB->set_dac(0.5,0);
   //
   if (HalfStrip == -1 ) HalfStrip = int(rand()*31./(RAND_MAX+1.0));
   //
@@ -1762,7 +1765,7 @@ void ChamberUtilities::LoadCFEB(int HalfStrip, int CLCTInputs, bool enableL1aEmu
   //
   // Set the pattern
   //
-  thisDMB->trigsetx(hp);
+  thisDMB->trigsetx(hp,CLCTInputs);
   //
   thisTMB->EnableCLCTInputs(CLCTInputs);
   //

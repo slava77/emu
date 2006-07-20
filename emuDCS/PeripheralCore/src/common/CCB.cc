@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 2.49 2006/07/19 09:37:59 mey Exp $
+// $Id: CCB.cc,v 2.50 2006/07/20 09:49:55 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 2.50  2006/07/20 09:49:55  mey
+// UPdate
+//
 // Revision 2.49  2006/07/19 09:37:59  mey
 // Update
 //
@@ -244,12 +247,16 @@ void CCB::prgall_bckpln()
 {
   /// Performs a Hard-Reset to all modules in the crate
   /// through a dedicated VME register (not FastControl)
+  setCCBMode(CCB::VMEFPGA);
   (*MyOutput_) << "CCB: hard reset" << std::endl;
   sndbuf[0]=0x00;
-  sndbuf[1]=0x00;
+  sndbuf[1]=0x01;
   do_vme(VME_WRITE,CRATE_HARD_RESET,sndbuf,rcvbuf,NOW);
   
   ::sleep(2);
+
+  setCCBMode(CCB::DLOG);
+
 }
 //
 void CCB::reset_bckpln()

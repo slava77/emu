@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.25 2006/07/19 15:24:03 mey Exp $
+// $Id: VMEController.h,v 2.26 2006/07/20 09:49:55 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.26  2006/07/20 09:49:55  mey
+// UPdate
+//
 // Revision 2.25  2006/07/19 15:24:03  mey
 // UPdate
 //
@@ -213,9 +216,15 @@ private:
   int eth_write();
   void mrst_ff();
   void set_VME_mode();
+  void set_cnfg_dflt(int);
+  void save_cnfg_num(int);
   void reload_FPGA();
   void get_macaddr(int port);
   void setuse();
+  //
+  static const int Save_Cnfg_Num = 0x05;
+  static const int Set_Cnfg_Dflt = 0x09;
+  //
 };
 
 #endif

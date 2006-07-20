@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 2.27 2006/07/18 14:09:33 mey Exp $
+// $Id: DAQMB.h,v 2.28 2006/07/20 09:49:55 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 2.28  2006/07/20 09:49:55  mey
+// UPdate
+//
 // Revision 2.27  2006/07/18 14:09:33  mey
 // Update
 //
@@ -264,7 +267,7 @@ public:
   void inject(int Num_pulse,unsigned int pulse_delay);
   void halfset(int icrd,int ipln,int ihalf,int chan[][6][16]);
   void halfset(int icrd,int ipln,int ihalf);
-  void trigsetx(int *hp);
+  void trigsetx(int *hp,int CFEBInputs=0x1f);
   void chan2shift(int chan[][6][16]);
 
   // RPW stuff from external  really should be CFEB and board class
