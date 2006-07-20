@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.66 2006/07/20 09:49:55 mey Exp $
+// $Id: DAQMB.cc,v 2.67 2006/07/20 11:48:39 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.67  2006/07/20 11:48:39  mey
+// Program SFM
+//
 // Revision 2.66  2006/07/20 09:49:55  mey
 // UPdate
 //
@@ -367,9 +370,15 @@ void DAQMB::configure() {
    // As suggested by Valery Sitnik: switch all LVs on (computer-controlled)
    // (*MyOutput_) << "DAQMB: switching on LVs on LVMB" << endl; 
    lowv_onoff(0x3f);
+   //
+   // Load FLASH memory
+   //
+   WriteSFM();
+   //
 }
 //
 void DAQMB::load_strip() {
+  //
   cmd[0]=VTX2_USR1;
   sndbuf[0]=LOAD_STR;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
@@ -2590,39 +2599,39 @@ void DAQMB::trgfire()
 }
 
 void DAQMB::cbldly_trig(){
-          printf(" Trigger Once \n");
-         cmd[0]=VTX_USR1; 
-         sndbuf[0]=0x03;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_USR1;
-         sndbuf[0]=NOOP;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_BYPASS;
-         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  printf(" Trigger Once \n");
+  cmd[0]=VTX_USR1; 
+  sndbuf[0]=0x03;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 }
 
 void DAQMB::cbldly_phaseA(){
-         printf(" Detect Phase A \n");
-         cmd[0]=VTX_USR1; 
-         sndbuf[0]=0x1B;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_USR1;
-         sndbuf[0]=NOOP;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_BYPASS;
-         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  printf(" Detect Phase A \n");
+  cmd[0]=VTX_USR1; 
+  sndbuf[0]=0x1B;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 }
 
 void DAQMB::cbldly_phaseB(){
-         printf(" Detect Phase B \n");
-         cmd[0]=VTX_USR1; 
-         sndbuf[0]=0x1C;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_USR1;
-         sndbuf[0]=NOOP;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_BYPASS;
-         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  printf(" Detect Phase B \n");
+  cmd[0]=VTX_USR1; 
+  sndbuf[0]=0x1C;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 }
 
 void DAQMB::cbldly_loadfinedelay(){
@@ -2664,27 +2673,27 @@ void DAQMB::cbldly_wrtprotectSFM(){
 }
 
 void DAQMB::cbldly_loadmbidSFM(){
-	 printf(" Load DAQMB ID to SFM  \n");
-         cmd[0]=VTX_USR1; 
-         sndbuf[0]=0x16;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_USR1;
-         sndbuf[0]=NOOP;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_BYPASS;
-         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  printf(" Load DAQMB ID to SFM  \n");
+  cmd[0]=VTX_USR1; 
+  sndbuf[0]=0x16;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 }
 
 void DAQMB::cbldly_loadcfebdlySFM(){
-	 printf(" Load CFEB clock delay to SFM \n"); 
-         cmd[0]=VTX_USR1; 
-         sndbuf[0]=0x17;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_USR1;
-         sndbuf[0]=NOOP;
-         devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-         cmd[0]=VTX_BYPASS;
-         devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  printf(" Load CFEB clock delay to SFM \n"); 
+  cmd[0]=VTX_USR1; 
+  sndbuf[0]=0x17;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
 }
 
 void DAQMB::cbldly_refreshcfebdly(){
