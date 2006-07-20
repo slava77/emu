@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.114 2006/07/20 14:03:11 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.115 2006/07/20 14:24:24 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -423,13 +423,7 @@ public:
     //
     if ( MyController == 0 ) MyController = new EmuController();
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    //
-    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
-    //
-    *out << cgicc::title("EmuPeripheralCrate") << std::endl;
+    MyHeader(in,out,"EmuPeripheralCrate");
     //
     *out << cgicc::h1("EmuPeripheralCrate");
     *out << cgicc::br();
@@ -810,13 +804,22 @@ private:
     return reply;    
   }
   //
-  void EmuPeripheralCrate::CrateTests(xgi::Input * in, xgi::Output * out ) 
+  void EmuPeripheralCrate::MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) 
     throw (xgi::exception::Exception)
   {
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    *out << cgicc::title(title) << std::endl;
+    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
+    //
+  }
+  //
+  void EmuPeripheralCrate::CrateTests(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    MyHeader(in,out,"CrateTests");
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << cgicc::legend("Crate Tests").set("style","color:blue") ;
@@ -843,11 +846,7 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    //
-    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
+    MyHeader(in,out,"DefineCOnfiguration");
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
@@ -1614,9 +1613,7 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("Crate Status") << std::endl;
+    MyHeader(in,out,"CrateStatus");
     //
     *out << cgicc::h3("Configuration done for Crate  ");
     *out << cgicc::br();
@@ -3201,12 +3198,7 @@ private:
     char Name[50];
     sprintf(Name,"Chamber tests TMBslot=%d DMBslot=%d",thisTMB->slot(),thisDMB->slot());
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title(Name) << std::endl;
-    //
-    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
+    MyHeader(in,out,Name);
     //
     *out << cgicc::h1(Name);
     *out << cgicc::br();
@@ -4371,10 +4363,7 @@ private:
     //
     ALCTController * alct = tmbVector[tmb]->alctController();
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("ALCT status") << std::endl;
+    MyHeader(in,out,"ALCTStatus");
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
@@ -4434,10 +4423,7 @@ private:
     //
     RAT * rat = tmbVector[tmb]->getRAT();
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("RAT Status") << std::endl;
+    MyHeader(in,out,"RATStatus");
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
@@ -4475,10 +4461,7 @@ private:
     //
     DAQMB * thisDMB = dmbVector[dmb];
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("CFEB Status") << std::endl;
+    MyHeader(in,out,"CFEBStatus");
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
@@ -4523,13 +4506,11 @@ private:
   //
   void EmuPeripheralCrate::CCBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     char Name[50] ;
     sprintf(Name,"CCB Status slot=%d",thisCCB->slot());
     //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title(Name) << std::endl;
+    MyHeader(in,out,Name);
     //
     *out << cgicc::h1(Name);
     *out << cgicc::br();
@@ -4621,13 +4602,11 @@ private:
   //
   void EmuPeripheralCrate::ControllerUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     char Name[50] ;
     sprintf(Name,"Controller Utils slot=%d",thisCCB->slot());
     //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title(Name) << std::endl;
+    MyHeader(in,out,Name);
     //
     std::string EnableDisableDebug =
       toolbox::toString("/%s/EnableDisableDebug",getApplicationDescriptor()->getURN().c_str());
@@ -4665,13 +4644,11 @@ private:
   //
   void EmuPeripheralCrate::CCBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     char Name[50] ;
     sprintf(Name,"CCB Utils slot=%d",thisCCB->slot());
     //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title(Name) << std::endl;
+    MyHeader(in,out,Name);
     //
     *out << cgicc::h1(Name);
     *out << cgicc::br();
@@ -4704,13 +4681,11 @@ private:
   //
   void EmuPeripheralCrate::MPCStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     char Name[50] ;
     sprintf(Name,"MPC Status slot=%d",thisMPC->slot());
     //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title(Name) << std::endl;
+    MyHeader(in,out,Name);
     //
     *out << cgicc::h1(Name);
     *out << cgicc::br();
@@ -4749,13 +4724,7 @@ private:
     char Name[50];
     sprintf(Name,"TMB Tests slot=%d",thisTMB->slot());	  
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    //
-    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
-    //
-    *out << cgicc::title(Name) << std::endl;
+    MyHeader(in,out,Name);
     //
     *out << cgicc::h1(Name);
     *out << cgicc::br();
@@ -5495,10 +5464,7 @@ private:
       //
     }
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title(Name) << std::endl;
+    MyHeader(in,out,Name);
     //
     *out << cgicc::h1(Name);
     *out << cgicc::br();
@@ -5711,11 +5677,7 @@ private:
     char Name[50];
     sprintf(Name,"DMB Status slot=%d",thisDMB->slot());	
     //
-    //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title(Name) << std::endl;
+    MyHeader(in,out,Name);
     //
     *out << cgicc::h1(Name);
     *out << cgicc::br();
@@ -6252,12 +6214,7 @@ private:
     //
     alct = thisTMB->alctController();
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title(Name) << std::endl;
-    //
-    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
+    MyHeader(in,out,Name);
     //
     *out << cgicc::h1(Name);
     *out << cgicc::br();
@@ -6674,10 +6631,7 @@ private:
     char Name[50];
     sprintf(Name,"DMB Utils slot=%d",thisDMB->slot());
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title(Name) << std::endl;
+    MyHeader(in,out,Name);
     //
     *out << cgicc::h1(Name);
     *out << cgicc::br();
@@ -6785,13 +6739,7 @@ private:
     char Name[50];
     sprintf(Name,"DMB Tests slot=%d",thisDMB->slot());
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    //
-    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
-    //
-    *out << cgicc::title(Name) << std::endl;
+    MyHeader(in,out,Name);
     //
     *out << cgicc::h1(Name);
     *out << cgicc::br();
