@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 2.44 2006/07/19 18:11:17 rakness Exp $
+// $Id: ALCTController.cc,v 2.45 2006/07/20 11:07:59 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 2.45  2006/07/20 11:07:59  rakness
+// make many functions private
+//
 // Revision 2.44  2006/07/19 18:11:17  rakness
 // Error checking on ALCTNEW
 //
@@ -6058,15 +6061,15 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   tmb_ = tmb;
   SetChamberCharacteristics_(chamberType);
   //
-  SetPowerUpTestpulsePowerSwitchReg();
-  SetPowerUpTestpulseAmplitude();
-  SetPowerUpTestpulseGroupMask();
-  SetPowerUpTestpulseStripMask();
+  SetPowerUpTestpulsePowerSwitchReg_();
+  SetPowerUpTestpulseAmplitude_();
+  SetPowerUpTestpulseGroupMask_();
+  SetPowerUpTestpulseStripMask_();
   SetPowerUpAfebThresholds();
-  SetPowerUpStandbyRegister();
+  SetPowerUpStandbyRegister_();
   //
-  SetPowerUpDelayLineControlReg();
-  SetPowerUpTriggerRegister();
+  SetPowerUpDelayLineControlReg_();
+  SetPowerUpTriggerRegister_();
   SetPowerUpAsicDelays();
   SetPowerUpAsicPatterns();
   SetPowerUpConfigurationReg();
@@ -6101,22 +6104,22 @@ void ALCTController::SetUpPulsing(int DAC_pulse_amplitude,
   //
   //
   //  alct_set_test_pulse_powerup(&slot,0);
-  SetTestpulsePowerSwitchReg(OFF);
-  WriteTestpulsePowerSwitchReg();
-  PrintTestpulsePowerSwitchReg();  
+  SetTestpulsePowerSwitchReg_(OFF);
+  WriteTestpulsePowerSwitchReg_();
+  PrintTestpulsePowerSwitchReg_();  
   //
   //  usleep(100);   // included into WriteTestpulsePowerSwitchReg();
   //
   //  alct_set_test_pulse_amp(&slot,Amplitude);
-  SetTestpulseAmplitude(DAC_pulse_amplitude);
-  WriteTestpulseAmplitude();
+  SetTestpulseAmplitude_(DAC_pulse_amplitude);
+  WriteTestpulseAmplitude_();
   //
-  // usleep(100);    // included into WriteTestpulseAmplitude();
+  // usleep(100);    // included into WriteTestpulseAmplitude_();
   //
   //  alct_read_test_pulse_stripmask(&slot,&StripMask);
   //  std::cout << " StripMask = " << std::hex << StripMask << std::endl;
-  //  ReadTestpulseStripMask();
-  //  PrintTestpulseStripMask();
+  //  ReadTestpulseStripMask_();
+  //  PrintTestpulseStripMask_();
   //
   //  if(StripAfeb == 0 ) {
   //    alct_set_test_pulse_stripmask(&slot,0x00);
@@ -6130,30 +6133,30 @@ void ALCTController::SetUpPulsing(int DAC_pulse_amplitude,
   //  }
   //
   for (int group=0; group<GetNumberOfGroupsOfDelayChips(); group++)
-    SetTestpulseGroupMask(group,OFF);
+    SetTestpulseGroupMask_(group,OFF);
   for (int layer=0; layer<MAX_NUM_LAYERS; layer++) 
-    SetTestpulseStripMask(layer,OFF);
+    SetTestpulseStripMask_(layer,OFF);
   //
   // Choose whether you are pulsing layers with teststrips or AFEBS in groups...
   if (which_set==PULSE_AFEBS) {
     for (int group=0; group<GetNumberOfGroupsOfDelayChips(); group++) {
       int off_or_on = (mask >> group) & 0x1;
-      SetTestpulseGroupMask(group,off_or_on);    
+      SetTestpulseGroupMask_(group,off_or_on);    
     }
   } else if (which_set==PULSE_LAYERS) {
     for (int layer=0; layer<MAX_NUM_LAYERS; layer++) {
       int off_or_on = (mask >> layer) & 0x1;
-      SetTestpulseStripMask(layer,off_or_on);
+      SetTestpulseStripMask_(layer,off_or_on);
     }
   } else {
     std::cout << "ALCTcontroller SetUpPulsing : Set " << which_set 
 	      << " not available to pulse..." << std::endl;
   }
-  WriteTestpulseGroupMask();
-  PrintTestpulseGroupMask();
+  WriteTestpulseGroupMask_();
+  PrintTestpulseGroupMask_();
   //
-  WriteTestpulseStripMask();
-  PrintTestpulseStripMask();
+  WriteTestpulseStripMask_();
+  PrintTestpulseStripMask_();
   //
   //  alct_read_test_pulse_powerup(&slot,&PowerUp);
   //  std::cout << " PowerUp   = " << std::hex << PowerUp << std::dec << std::endl; //11July05 DM added dec
@@ -6161,22 +6164,22 @@ void ALCTController::SetUpPulsing(int DAC_pulse_amplitude,
   //  PrintTestpulsePowerSwitchReg();
   //
   //  alct_fire_test_pulse('s');
-  SetPulseTriggerSource(source);
-  SetInvertPulse(OFF);
-  WriteTriggerRegister();
-  PrintTriggerRegister();
+  SetPulseTriggerSource_(source);
+  SetInvertPulse_(OFF);
+  WriteTriggerRegister_();
+  PrintTriggerRegister_();
   //
   //  usleep(100);  // included into WriteTriggerRegister();
   //
   //  alct_set_test_pulse_powerup(&slot,1);
-  SetTestpulsePowerSwitchReg(ON);
-  WriteTestpulsePowerSwitchReg();
+  SetTestpulsePowerSwitchReg_(ON);
+  WriteTestpulsePowerSwitchReg_();
   //
   //  usleep(100); // included into WriteTestpulsePowerSwitchReg();
   //
   //  alct_read_test_pulse_powerup(&slot,&PowerUp);
   //  std::cout << " PowerUp   = " << std::hex << PowerUp << std::dec << std::endl; //11July05 DM added dec
-  PrintTestpulsePowerSwitchReg();  
+  PrintTestpulsePowerSwitchReg_();  
   //
   return;
 }
@@ -6254,33 +6257,33 @@ void ALCTController::configure() {
   ReadSlowControlId();
   PrintSlowControlId();
   //
-  WriteTestpulsePowerSwitchReg();
-  PrintTestpulsePowerSwitchReg();
+  WriteTestpulsePowerSwitchReg_();
+  PrintTestpulsePowerSwitchReg_();
   //
-  WriteTestpulseAmplitude();
+  WriteTestpulseAmplitude_();
   //
-  WriteTestpulseGroupMask();
-  PrintTestpulseGroupMask();
+  WriteTestpulseGroupMask_();
+  PrintTestpulseGroupMask_();
   //
-  WriteTestpulseStripMask();
-  PrintTestpulseStripMask();
+  WriteTestpulseStripMask_();
+  PrintTestpulseStripMask_();
   //
   WriteAfebThresholds();
   ReadAfebThresholds();
   PrintAfebThresholds();
   //    
-  WriteStandbyRegister();
-  PrintStandbyRegister();
+  WriteStandbyRegister_();
+  PrintStandbyRegister_();
   //
   //
   ReadFastControlId();
   PrintFastControlId();
   //
-  WriteDelayLineControlReg();
-  PrintDelayLineControlReg();
+  WriteDelayLineControlReg_();
+  PrintDelayLineControlReg_();
   //
-  WriteTriggerRegister();
-  PrintTriggerRegister();
+  WriteTriggerRegister_();
+  PrintTriggerRegister_();
   //
   WriteAsicDelaysAndPatterns();
   PrintAsicDelays();
@@ -6351,7 +6354,7 @@ int ALCTController::GetSlowControlMonth() {
 //////////////////////////////////
 //TESTPULSE POWERSWITCH REGISTER
 //////////////////////////////////
-void ALCTController::WriteTestpulsePowerSwitchReg() {
+void ALCTController::WriteTestpulsePowerSwitchReg_() {
   (*MyOutput_) << "ALCT: WRITE testpulse POWERSWITCH" << std::endl;
   //
   setup_jtag(ChainAlctSlowFpga);
@@ -6363,7 +6366,7 @@ void ALCTController::WriteTestpulsePowerSwitchReg() {
   usleep(100);
   //
   if ( GetCheckJtagWrite() ) {
-    ReadTestpulsePowerSwitchReg();
+    ReadTestpulsePowerSwitchReg_();
     CompareBitByBit(&write_testpulse_power_setting_,
 		    &read_testpulse_power_setting_,
 		    RegSizeAlctSlowFpga_WRT_TESTPULSE_POWERDOWN);
@@ -6372,7 +6375,7 @@ void ALCTController::WriteTestpulsePowerSwitchReg() {
   return;
 }
 //
-void ALCTController::ReadTestpulsePowerSwitchReg() {
+void ALCTController::ReadTestpulsePowerSwitchReg_() {
   //
   (*MyOutput_) << "ALCT: READ testpulse POWERSWITCH" << std::endl;
   //
@@ -6388,34 +6391,34 @@ void ALCTController::ReadTestpulsePowerSwitchReg() {
   return;
 }
 //
-void ALCTController::PrintTestpulsePowerSwitchReg() {
+void ALCTController::PrintTestpulsePowerSwitchReg_() {
   //
   (*MyOutput_) << "ALCT READ: Testpulse powerswitch = " << std::dec
-	       << GetTestpulsePowerSwitchReg() << std::endl;
+	       << GetTestpulsePowerSwitchReg_() << std::endl;
   return;
 }
 //
-void ALCTController::SetTestpulsePowerSwitchReg(int powerswitch) { 
+void ALCTController::SetTestpulsePowerSwitchReg_(int powerswitch) { 
   //
   write_testpulse_power_setting_ = powerswitch & 0x1; 
   return;
 }
 //
-int ALCTController::GetTestpulsePowerSwitchReg() { 
+int ALCTController::GetTestpulsePowerSwitchReg_() { 
   //
   return read_testpulse_power_setting_; 
 }
 //
-void ALCTController::SetPowerUpTestpulsePowerSwitchReg() { 
+void ALCTController::SetPowerUpTestpulsePowerSwitchReg_() { 
   //
-  SetTestpulsePowerSwitchReg(OFF); 
+  SetTestpulsePowerSwitchReg_(OFF); 
   return;
 }
 //
 ////////////////////////////////
 //TESTPULSE AMPLITUDE REGISTER
 ////////////////////////////////
-void ALCTController::WriteTestpulseAmplitude() {
+void ALCTController::WriteTestpulseAmplitude_() {
   (*MyOutput_) << "ALCT: WRITE testpulse AMPLITUDE = " 
   	       << write_testpulse_amplitude_dacvalue_ << std::endl;
   //
@@ -6440,7 +6443,7 @@ void ALCTController::WriteTestpulseAmplitude() {
   return;
 }
 //
-void ALCTController::SetTestpulseAmplitude(int dacvalue) {
+void ALCTController::SetTestpulseAmplitude_(int dacvalue) {
   // 8-bit DAC controls amplitude of analog test pulse sent to AFEBs
   //  Voltage = 2.5V * dacvalue/256
   //
@@ -6454,16 +6457,16 @@ void ALCTController::SetTestpulseAmplitude(int dacvalue) {
   return;
 }
 //
-void ALCTController:: SetPowerUpTestpulseAmplitude() { 
+void ALCTController:: SetPowerUpTestpulseAmplitude_() { 
   //
-  SetTestpulseAmplitude(0); 
+  SetTestpulseAmplitude_(0); 
   return;
 }
 //
 ////////////////////////////////
 //TESTPULSE GROUPMASK REGISTER
 ////////////////////////////////
-void ALCTController::WriteTestpulseGroupMask() {
+void ALCTController::WriteTestpulseGroupMask_() {
   //
   (*MyOutput_) << "ALCT: WRITE testpulse GROUPMASK" << std::endl;
   //
@@ -6475,7 +6478,7 @@ void ALCTController::WriteTestpulseGroupMask() {
 	      write_testpulse_groupmask_);
   //
   if ( GetCheckJtagWrite() ) {
-    ReadTestpulseGroupMask();
+    ReadTestpulseGroupMask_();
     CompareBitByBit(write_testpulse_groupmask_,
 		    read_testpulse_groupmask_,
 		    RegSizeAlctSlowFpga_WRT_TESTPULSE_GRP);
@@ -6484,7 +6487,7 @@ void ALCTController::WriteTestpulseGroupMask() {
   return;
 }
 //
-void ALCTController::ReadTestpulseGroupMask() {
+void ALCTController::ReadTestpulseGroupMask_() {
   //
   (*MyOutput_) << "ALCT: READ testpulse GROUPMASK" << std::endl;
   //
@@ -6501,7 +6504,7 @@ void ALCTController::ReadTestpulseGroupMask() {
   return;
 }
 //
-void ALCTController::PrintTestpulseGroupMask() {
+void ALCTController::PrintTestpulseGroupMask_() {
   //
   int testpulse_groupmask = bits_to_int(read_testpulse_groupmask_,
 					RegSizeAlctSlowFpga_RD_TESTPULSE_GRP,
@@ -6512,8 +6515,8 @@ void ALCTController::PrintTestpulseGroupMask() {
   return;
 }
 //
-void ALCTController::SetTestpulseGroupMask(int group,  
-					   int mask) { 
+void ALCTController::SetTestpulseGroupMask_(int group,  
+					    int mask) { 
   //
   // specify which groups of AFEBs are enabled for analog testpulsing
   //
@@ -6527,11 +6530,11 @@ void ALCTController::SetTestpulseGroupMask(int group,
   return;
 }
 //
-int ALCTController::GetTestpulseGroupMask(int group) {
+int ALCTController::GetTestpulseGroupMask_(int group) {
   return read_testpulse_groupmask_[group]; 
 }
 //
-void ALCTController::SetPowerUpTestpulseGroupMask() {
+void ALCTController::SetPowerUpTestpulseGroupMask_() {
   //
   for (int group=0; group<RegSizeAlctSlowFpga_WRT_TESTPULSE_GRP; group++)
     write_testpulse_groupmask_[group] = OFF;
@@ -6541,7 +6544,7 @@ void ALCTController::SetPowerUpTestpulseGroupMask() {
 /////////////////////////////////
 //TESTPULSE STRIPMASK REGISTER
 /////////////////////////////////
-void ALCTController::WriteTestpulseStripMask() {
+void ALCTController::WriteTestpulseStripMask_() {
   //
   (*MyOutput_) << "ALCT: WRITE testpulse STRIPMASK" << std::endl;
   //
@@ -6553,7 +6556,7 @@ void ALCTController::WriteTestpulseStripMask() {
 	      write_testpulse_stripmask_);
   //
   if ( GetCheckJtagWrite() ) {
-    ReadTestpulseStripMask();
+    ReadTestpulseStripMask_();
     CompareBitByBit(write_testpulse_stripmask_,
 		    read_testpulse_stripmask_,
 		    RegSizeAlctSlowFpga_WRT_TESTPULSE_STRIP);
@@ -6562,7 +6565,7 @@ void ALCTController::WriteTestpulseStripMask() {
   return;
 }
 //
-void ALCTController::ReadTestpulseStripMask() {
+void ALCTController::ReadTestpulseStripMask_() {
   //
   (*MyOutput_) << "ALCT: READ testpulse STRIPMASK" << std::endl;
   //
@@ -6579,7 +6582,7 @@ void ALCTController::ReadTestpulseStripMask() {
   return;
 }
 //
-void ALCTController::PrintTestpulseStripMask() {
+void ALCTController::PrintTestpulseStripMask_() {
   //
   int testpulse_stripmask = bits_to_int(read_testpulse_stripmask_,
 					RegSizeAlctSlowFpga_RD_TESTPULSE_STRIP,
@@ -6590,7 +6593,7 @@ void ALCTController::PrintTestpulseStripMask() {
   return;
 }
 //
-void ALCTController::SetTestpulseStripMask(int layer,
+void ALCTController::SetTestpulseStripMask_(int layer,
 					   int mask) {
   //
   if (layer < 0 || layer >= MAX_NUM_LAYERS) {
@@ -6604,7 +6607,7 @@ void ALCTController::SetTestpulseStripMask(int layer,
   return;
 }
 //
-int ALCTController::GetTestpulseStripmask(int afeb) {
+int ALCTController::GetTestpulseStripMask_(int afeb) {
   //
   if (afeb < 0 || afeb >= MAX_NUM_LAYERS) {
     (*MyOutput_) << "GetTestpulseStripMask: ERROR AFEB value must be between 0 and " 
@@ -6615,7 +6618,7 @@ int ALCTController::GetTestpulseStripmask(int afeb) {
   return read_testpulse_stripmask_[afeb]; 
 }
 //
-void ALCTController::SetPowerUpTestpulseStripMask() {
+void ALCTController::SetPowerUpTestpulseStripMask_() {
   //
   for (int afeb=0; afeb<MAX_NUM_LAYERS; afeb++)
     write_testpulse_stripmask_[afeb] = OFF;
@@ -6763,7 +6766,7 @@ void ALCTController::SetPowerUpAfebThresholds() {
 ////////////////////////
 //STANDBY REGISTER
 ////////////////////////
-void ALCTController::WriteStandbyRegister() {
+void ALCTController::WriteStandbyRegister_() {
   //
   (*MyOutput_) << "ALCT: WRITE standby register" << std::endl;
   //
@@ -6776,7 +6779,7 @@ void ALCTController::WriteStandbyRegister() {
   usleep(100);
   //
   if ( GetCheckJtagWrite() ) {
-    ReadStandbyRegister();
+    ReadStandbyRegister_();
     CompareBitByBit(write_standby_register_,
 		    read_standby_register_,
 		    RegSizeAlctSlowFpga_WRT_STANDBY_REG);
@@ -6785,7 +6788,7 @@ void ALCTController::WriteStandbyRegister() {
   return;
 }
 //
-void ALCTController::ReadStandbyRegister() {
+void ALCTController::ReadStandbyRegister_() {
   //
   (*MyOutput_) << "ALCT: READ Standby Register" << std::endl;
   //
@@ -6803,7 +6806,7 @@ void ALCTController::ReadStandbyRegister() {
   return;
 }
 //
-void ALCTController::PrintStandbyRegister() {
+void ALCTController::PrintStandbyRegister_() {
   //
   const int buffersize = RegSizeAlctSlowFpga_RD_STANDBY_REG/8;
   char tempBuffer[buffersize] = {};
@@ -6825,7 +6828,7 @@ void ALCTController::PrintStandbyRegister() {
   return;
 }
 //
-void ALCTController::SetStandbyRegister(int afebChannel, int powerswitch) {
+void ALCTController::SetStandbyRegister_(int afebChannel, int powerswitch) {
   //
   if (afebChannel >= GetNumberOfAfebs()) {
     (*MyOutput_) << "Set Standby Register: ALCT" << std::dec << GetNumberOfChannelsInAlct() 
@@ -6840,12 +6843,12 @@ void ALCTController::SetStandbyRegister(int afebChannel, int powerswitch) {
   return;
 }
 //
-int ALCTController::GetStandbyRegister(int afebChannel) {
+int ALCTController::GetStandbyRegister_(int afebChannel) {
   //
   return read_standby_register_[afebChannel]; 
 }
 //
-void ALCTController::SetPowerUpStandbyRegister() {
+void ALCTController::SetPowerUpStandbyRegister_() {
   //
   for (int afeb=0; afeb<MAX_NUM_AFEBS; afeb++) 
     write_standby_register_[afeb] = ON;               // default for data taking
@@ -6906,7 +6909,7 @@ int ALCTController::GetFastControlMonth() {
 ////////////////////////////////
 // TESTPULSE TRIGGER REGISTER
 ////////////////////////////////
-void ALCTController::WriteTriggerRegister() {
+void ALCTController::WriteTriggerRegister_() {
   //
   (*MyOutput_) << "ALCT: WRITE TRIGGER REGISTER" << std::endl;
   //
@@ -6921,7 +6924,7 @@ void ALCTController::WriteTriggerRegister() {
   usleep(100);
   //
   if ( GetCheckJtagWrite() ) {
-    ReadTriggerRegister();
+    ReadTriggerRegister_();
     CompareBitByBit(write_trigger_reg_,
 		    read_trigger_reg_,
 		    RegSizeAlctFastFpga_WRT_TRIG_REG);
@@ -6930,7 +6933,7 @@ void ALCTController::WriteTriggerRegister() {
   return;
 }
 //
-void ALCTController::ReadTriggerRegister() {
+void ALCTController::ReadTriggerRegister_() {
   //
   setup_jtag(ChainAlctFastFpga);
   //
@@ -6954,7 +6957,7 @@ void ALCTController::ReadTriggerRegister() {
   return;
 }
 //
-void ALCTController::SetPulseTriggerSource(int source) {
+void ALCTController::SetPulseTriggerSource_(int source) {
   // Specify which signal will fire the testpulse
   // N.B. The trigger source is a combination of the bits in [0-1] and [2-3]
   //
@@ -6963,7 +6966,7 @@ void ALCTController::SetPulseTriggerSource(int source) {
   return;
 }
 //
-void ALCTController::SetInvertPulse(int mask) {
+void ALCTController::SetInvertPulse_(int mask) {
   // bit = 1 = invert
   //     = 0 = not inverted
   //
@@ -6972,12 +6975,12 @@ void ALCTController::SetInvertPulse(int mask) {
   return;
 }  
 //
-int ALCTController::GetPulseTriggerSource() {
+int ALCTController::GetPulseTriggerSource_() {
   //
   return read_pulse_trigger_source_;
 }
 //
-int ALCTController::GetInvertPulse() {
+int ALCTController::GetInvertPulse_() {
   //
   return read_invert_pulse_; 
 }  
@@ -7016,7 +7019,7 @@ void ALCTController::FillTriggerRegister_() {
   return;
 }
 //
-void ALCTController::PrintTriggerRegister() {
+void ALCTController::PrintTriggerRegister_() {
   //
   (*MyOutput_) << "ALCT Testpulse Trigger Register:" << std::endl;
   (*MyOutput_) << "--------------------------------" << std::endl;
@@ -7032,10 +7035,10 @@ void ALCTController::PrintTriggerRegister() {
   return;
 }
 //
-void ALCTController::SetPowerUpTriggerRegister(){
+void ALCTController::SetPowerUpTriggerRegister_(){
   //
-  SetPulseTriggerSource(OFF);
-  SetInvertPulse(OFF);
+  SetPulseTriggerSource_(OFF);
+  SetInvertPulse_(OFF);
   //
   return;
 }
@@ -7043,7 +7046,7 @@ void ALCTController::SetPowerUpTriggerRegister(){
 ////////////////////////////////
 // DELAY LINE CONTROL REGISTER
 ////////////////////////////////
-void ALCTController::WriteDelayLineControlReg() {
+void ALCTController::WriteDelayLineControlReg_() {
   //
   //  (*MyOutput_) << "ALCT: WRITE Delay Line CONTROL REGISTER" << std::endl;
   //
@@ -7057,7 +7060,7 @@ void ALCTController::WriteDelayLineControlReg() {
 	      write_delay_line_control_reg_);
   //
   if ( GetCheckJtagWrite() ) {
-    ReadDelayLineControlReg();
+    ReadDelayLineControlReg_();
     CompareBitByBit(write_delay_line_control_reg_,
 		    read_delay_line_control_reg_,
 		    RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_);
@@ -7066,7 +7069,7 @@ void ALCTController::WriteDelayLineControlReg() {
   return;
 }
 //
-void ALCTController::ReadDelayLineControlReg() {
+void ALCTController::ReadDelayLineControlReg_() {
   //
   setup_jtag(ChainAlctFastFpga);
   //
@@ -7090,7 +7093,7 @@ void ALCTController::ReadDelayLineControlReg() {
   return;
 }
 //
-void ALCTController::SetDelayLineGroupSelect(int group,
+void ALCTController::SetDelayLineGroupSelect_(int group,
 					     int mask){
   // Specify which group of delay chips you are talking to
   // bit = 1 = not enabled
@@ -7109,7 +7112,7 @@ void ALCTController::SetDelayLineGroupSelect(int group,
   return;
 }
 //
-void ALCTController::SetDelayLineSettst(int mask) {
+void ALCTController::SetDelayLineSettst_(int mask) {
   // bit = 1 = not enabled
   //     = 0 = enabled
   //
@@ -7117,7 +7120,7 @@ void ALCTController::SetDelayLineSettst(int mask) {
   return;
 }  
 //
-void ALCTController::SetDelayLineReset(int mask) { 
+void ALCTController::SetDelayLineReset_(int mask) { 
   // bit = 1 = not enabled
   //     = 0 = enabled
   //
@@ -7166,7 +7169,7 @@ void ALCTController::FillDelayLineControlReg_() {
   return;
 }
 //
-void ALCTController::PrintDelayLineControlReg() {
+void ALCTController::PrintDelayLineControlReg_() {
   //
   (*MyOutput_) << "ALCT Delay Line Control Register:" << std::endl;
   (*MyOutput_) << "----------------------------------" << std::endl;
@@ -7180,12 +7183,12 @@ void ALCTController::PrintDelayLineControlReg() {
   return;
 }
 //
-void ALCTController::SetPowerUpDelayLineControlReg(){
+void ALCTController::SetPowerUpDelayLineControlReg_(){
   //
-  SetDelayLineReset(OFF);
-  SetDelayLineSettst(ON);                 //default for data taking
+  SetDelayLineReset_(OFF);
+  SetDelayLineSettst_(ON);                 //default for data taking
   for (int group=0; group<7; group++) 
-    SetDelayLineGroupSelect(group,OFF);
+    SetDelayLineGroupSelect_(group,OFF);
   //
   return;
 }
@@ -7199,13 +7202,13 @@ void ALCTController::WriteAsicDelaysAndPatterns() {
 	       << GetNumberOfGroupsOfDelayChips() << " groups" 
 	       << std::endl;
   //
-  SetPowerUpDelayLineControlReg();         // reset the control register values
+  SetPowerUpDelayLineControlReg_();         // reset the control register values
   //
   for (int group=0; group<GetNumberOfGroupsOfDelayChips(); group++) {
     // write values to one group of AFEBs at a time...
-    SetDelayLineGroupSelect(group,ON);     
-    WriteDelayLineControlReg();
-    //    PrintDelayLineControlReg();
+    SetDelayLineGroupSelect_(group,ON);     
+    WriteDelayLineControlReg_();
+    //    PrintDelayLineControlReg_();
     //
     FillAsicDelaysAndPatterns_(group);
     //
@@ -7223,8 +7226,8 @@ void ALCTController::WriteAsicDelaysAndPatterns() {
 		      RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES); 
     }
     //
-    SetDelayLineGroupSelect(group,OFF);     
-    WriteDelayLineControlReg();
+    SetDelayLineGroupSelect_(group,OFF);     
+    WriteDelayLineControlReg_();
   }
   //
   return;
@@ -7236,19 +7239,19 @@ void ALCTController::ReadAsicDelaysAndPatterns() {
 	       << GetNumberOfGroupsOfDelayChips() << " groups" 
 	       << std::endl;
   //
-  SetPowerUpDelayLineControlReg();         // reset the control register values
+  SetPowerUpDelayLineControlReg_();         // reset the control register values
   //
   for (int group=0; group<GetNumberOfGroupsOfDelayChips(); group++) {
     //
     // get values from one group of AFEBs at a time...
-    SetDelayLineGroupSelect(group,ON);     
-    WriteDelayLineControlReg();
-    //    PrintDelayLineControlReg();
+    SetDelayLineGroupSelect_(group,ON);     
+    WriteDelayLineControlReg_();
+    //    PrintDelayLineControlReg_();
     //
     ReadAsicDelaysAndPatterns_(group);
     //
-    SetDelayLineGroupSelect(group,OFF);     
-    WriteDelayLineControlReg();
+    SetDelayLineGroupSelect_(group,OFF);     
+    WriteDelayLineControlReg_();
   }
   //
   return;

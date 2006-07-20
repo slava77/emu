@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 2.23 2006/07/19 18:11:17 rakness Exp $
+// $Id: ALCTController.h,v 2.24 2006/07/20 11:07:59 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 2.24  2006/07/20 11:07:59  rakness
+// make many functions private
+//
 // Revision 2.23  2006/07/19 18:11:17  rakness
 // Error checking on ALCTNEW
 //
@@ -731,7 +734,7 @@ public:
   inline int GetNumberOfChannelsPerLayer() { return NumberOfChannelsPerLayer_; }
   inline int GetNumberOfChannelsInAlct() { return NumberOfChannelsInAlct_; }
   //
-  void SetUpPulsing(int DAC_pulse_amplitude=255,     //DAC_pulse_amplitude=[0-255]
+  void SetUpPulsing(int DAC_pulse_amplitude=255,     //DAC_pulse_amplitude = [0-255]
 		    int which_set=PULSE_AFEBS,       //which_set = [PULSE_LAYERS, PULSE_AFEBS]
 		    int strip_mask=0xff,             //mask of enabled layers/AFEBgroups (depending on previous argument) 
   //                                                      -> bit = 1 = ON
@@ -740,288 +743,177 @@ public:
   //
   void SetUpRandomALCT();
   //
-  inline void SetCheckJtagWrite(bool check_write) { check_write_ = check_write; }   //Check if read values = write values
+  inline void SetCheckJtagWrite(bool check_write) { check_write_ = check_write; }   //Check if read values = write values after Write commands
   inline bool GetCheckJtagWrite() { return check_write_; }
   //
   //
   ////////////////////////////
-  // ALCT Registers...
+  // Public ALCT Registers...
   ////////////////////////////
   ///////////////////////
   //SLOW CONTROL ID
   ///////////////////////
-  int  GetSlowControlChipId();    
-  int  GetSlowControlVersionId(); 
-  int  GetSlowControlYear();      
-  int  GetSlowControlDay();       
-  int  GetSlowControlMonth();     
-  void PrintSlowControlId();                     //print out software values
+  int  GetSlowControlChipId();             // get Read values
+  int  GetSlowControlVersionId();          // get Read values
+  int  GetSlowControlYear();               // get Read values
+  int  GetSlowControlDay();                // get Read values
+  int  GetSlowControlMonth();              // get Read values
+  void PrintSlowControlId();               // print out Read values
   //
+  void ReadSlowControlId();                // fills Read values with values read from ALCT
   //
-  void ReadSlowControlId();                      //fills software values with values read from ALCT
+  ///////////////////////
+  //FAST CONTROL ID
+  ///////////////////////
+  int  GetFastControlChipId();             // get Read values
+  int  GetFastControlVersionId();          // get Read values
+  int  GetFastControlYear();               // get Read values
+  int  GetFastControlDay();                // get Read values
+  int  GetFastControlMonth();              // get Read values
+  void PrintFastControlId();               // print out Read values				 
   //
-  //////////////////////////
-  //TESTPULSE POWERSWITCH
-  //////////////////////////
-  void SetTestpulsePowerSwitchReg(int powerswitch);      // set Write values -> powerswitch = OFF or ON
-  int  GetTestpulsePowerSwitchReg();                     // get Read values
-  //
-  void SetPowerUpTestpulsePowerSwitchReg();              //sets Write values to data-taking defaults
-  void PrintTestpulsePowerSwitchReg();                   //print out Read values				             
-  //
-  //
-  void WriteTestpulsePowerSwitchReg();             //writes Write values to ALCT
-  void ReadTestpulsePowerSwitchReg();              //fills Read values with values read from ALCT	      
-  //
-  ///////////////////////////////////////////////////////////////////////
-  //TESTPULSE AMPLITUDE - amplitude of analog test pulse sent to AFEBs
-  ///////////////////////////////////////////////////////////////////////
-  void SetTestpulseAmplitude(int dacvalue);        // Voltage = 2.5V * dacvalue/256
-  //
-  void SetPowerUpTestpulseAmplitude();             // sets software values to data-taking values
-  //
-  //
-  void WriteTestpulseAmplitude();               // writes software values to testpulse amplitude register
-  //
-  ////////////////////////////////////////////////////////////////////////////////
-  //TESTPULSE GROUPMASK - which groups of AFEB's are enabled for analog testpulse
-  ////////////////////////////////////////////////////////////////////////////////
-  void SetTestpulseGroupMask(int group,      // group [0-6], where 0 = AFEB 00,01,02,12,13,14 
-			     //                                    1 = AFEB 03,04,05,15,16,17 
-			     //                                    2 = AFEB 06,07,08,18,19,20 
-			     //                                    3 = AFEB 09,10,11,21,22,23 
-			     //                                    4 =                        
-			     //                                    5 =                        
-			     //                                    6 = 
-			     int mask);      // mask = OFF or ON
-  int  GetTestpulseGroupMask(int group);     // group = [0-6]
-  //
-  void SetPowerUpTestpulseGroupMask();	     // sets software values to data-taking values                  
-  void PrintTestpulseGroupMask();	     // print out software values				      
-  //
-  //
-  void WriteTestpulseGroupMask();             // writes software values to testpulse group mask register
-  void ReadTestpulseGroupMask();	      // fills software values with values read from ALCT	      
-  //
-  //////////////////////////////////////////////////////////////////////
-  //TESTPULSE STRIPMASK - which layers are enabled for analog testpulse
-  //////////////////////////////////////////////////////////////////////
-  void SetTestpulseStripMask(int layer,           // layer = [0-5]
-			     int mask);           // mask = OFF or ON
-  int  GetTestpulseStripmask(int layer);          // layer = [0-5]
-  //
-  void SetPowerUpTestpulseStripMask();	   	  // sets software values to data-taking values                  
-  void PrintTestpulseStripMask();		  // print out software values				      
-  // 
-  //
-  void WriteTestpulseStripMask();                 // writes software values to testpulse strip mask register
-  void ReadTestpulseStripMask();		  // fills software values with values read from ALCT	      
+  void ReadFastControlId();   		   // fills Read values with values read from ALCT	 
   //
   //////////////////
   //AFEB THRESHOLDS
   //////////////////
   // N.B. DAC is 8 bits, while ADC is 10 bits => write variable is different than read variable
-  void  SetAfebThreshold(int AFEB,                     // AFEB = [0 - GetNumberOfAfebs()-1]
-	 		 int dacValue);                // Voltage set = 2.5V * dacValue/256 (8-bit dac)
-  int   GetAfebThresholdDAC(int AFEB);                 // AFEB = [0 - GetNumberOfAfebs()-1]
-  int   GetAfebThresholdADC(int AFEB);                 // AFEB = [0 - GetNumberOfAfebs()-1] (10-bit adc value)
-  float GetAfebThresholdVolts(int AFEB);               // return voltage = 2.5V * adcValue/1023 
+  void  SetAfebThreshold(int AFEB,                     // set Write values -> AFEB = [0 - (GetNumberOfAfebs()-1)]
+	 		 int dacValue);                //                     Voltage set = 2.5V * dacValue/256 (8-bit dac)
+  int   GetAfebThresholdDAC(int AFEB);                 // get Read values -> AFEB = [0 - (GetNumberOfAfebs()-1)]
+  int   GetAfebThresholdADC(int AFEB);                 // get Read values -> AFEB = [0 - (GetNumberOfAfebs()-1)] (10-bit adc value)
+  float GetAfebThresholdVolts(int AFEB);               // get Read values -> return voltage = 2.5V * adcValue/1023 
   //
-  void  SetPowerUpAfebThresholds();		       //sets software values to data-taking values                
-  void  PrintAfebThresholds();			       //print out software values				 
-  //
-  //
-  void  WriteAfebThresholds();                      //writes software values to threshold DACs
-  void  ReadAfebThresholds();			    //fills software values with values read from ALCT ADC	 
-  //
-  /////////////////////////////////////////////////
-  //STANDBY REGISTER - enable power for each AFEB
-  /////////////////////////////////////////////////
-  void SetStandbyRegister(int AFEB,                   // AFEB = [0 - GetNumberOfAfebs()-1]
-			  int powerswitch);           // powerswitch = OFF or ON
-  int  GetStandbyRegister(int AFEB);                  // AFEB = [0 - GetNumberOfAfebs()-1]
-  //
-  void SetPowerUpStandbyRegister();		      //sets software values to data-taking values          
-  void PrintStandbyRegister();			      //print out software values				       
+  void  SetPowerUpAfebThresholds();		       // sets Write values to data-taking defaults                
+  void  PrintAfebThresholds();			       // print out Read values				 
   //
   //
-  void WriteStandbyRegister();                     //writes software values to AFEB standby register
-  void ReadStandbyRegister();			   //fills software values with values read from ALCT	 
-  //
-  ///////////////////////
-  //FAST CONTROL ID
-  ///////////////////////
-  int  GetFastControlChipId();
-  int  GetFastControlVersionId();
-  int  GetFastControlYear();     
-  int  GetFastControlDay();      
-  int  GetFastControlMonth();    
-  void PrintFastControlId();               //print out software values				 
-  //
-  //
-  void ReadFastControlId();   		   //fills software values with values read from ALCT	 
-  //
-  ///////////////////////////////////////////////////////////////////////////////
-  // TESTPULSE TRIGGER REGISTER - specify which signal will fire the testpulse
-  //////////////////////////////////////////////////////////////////////////////
-  void SetPulseTriggerSource(int source);      //source = [OFF, ADB_SYNC, ADB_ASYNC, LEMO, SELF]
-  int  GetPulseTriggerSource();                //return value -> 0  = OFF
-  //                                                             3  = SELF
-  //                                                             4  = ADB_SYNC
-  //                                                             8  = ADB_ASYNC
-  //                                                             12 = LEMO
-  //
-  void SetInvertPulse(int mask);               //mask = [ON, OFF] 
-  int  GetInvertPulse();                       //return value -> 0 = not inverted
-  //                                                             1 = inverted 
-  //
-  void SetPowerUpTriggerRegister();	       // sets software values to data-taking values                
-  void PrintTriggerRegister();                 //print out software values				 
-  //
-  //
-  void WriteTriggerRegister();                 //writes software values of pulse trigger source
-  void ReadTriggerRegister();                  //fills software values with values read from ALCT
-  //
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // DELAY LINE CONTROL REGISTER - Control which group of chips has its delays and patterns written/read
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
-  void SetDelayLineSettst(int mask);                 // mask = ON or OFF
-  //
-  void SetDelayLineReset(int mask);                  // mask = ON or OFF
-  //
-  void SetDelayLineGroupSelect(int group,            // group = [0 - (GetNumberOfGroupsOfDelayChips()-1)]
-			       int mask);            // mask = ON or OFF
-  //
-  void SetPowerUpDelayLineControlReg();              //sets software values to data-taking values  
-  void PrintDelayLineControlReg();                   //print out software values
-  //
-  //
-  void WriteDelayLineControlReg();                  //writes software values to configuration register
-  void ReadDelayLineControlReg();                  //fills software values with values read from ALCT
+  void  WriteAfebThresholds();                      // writes Write values to ALCT DAC
+  void  ReadAfebThresholds();			    // fills Read values with values read from ALCT ADC	 
   //
   //////////////////////////////
   // ASIC DELAYS and PATTERNS 
   //////////////////////////////
-  void SetAsicDelay(int AFEB,                        // AFEB= [0 - GetNumberOfAfebs()-1]
-		    int delay);                      // delay=[0-15] (~2ns steps)
-  int  GetAsicDelay(int AFEB);                       // AFEB= [0 - GetNumberOfAfebs()-1]
+  void SetAsicDelay(int AFEB,                        // set Write values -> AFEB = [0 - (GetNumberOfAfebs()-1)]
+		    int delay);                      //                    delay = [0-15] (~2ns steps)
+  int  GetAsicDelay(int AFEB);                       // get Read values -> AFEB = [0 - (GetNumberOfAfebs()-1)]
   //
-  void SetPowerUpAsicDelays();  		     // sets software values to data-taking values                
-  void PrintAsicDelays();                            // print out software values
+  void SetPowerUpAsicDelays();  		     // sets Write values to data-taking defaults
+  void PrintAsicDelays();                            // print out Read values
   //
-  void SetAsicPattern(int layer,                     // layer=[0-5]
-		      int channel,                   // channel=[0 - GetNumberOfChannelsPerLayer()-1] 
-		      int mask);                     // mask= OFF or ON
-  int  GetAsicPattern(int layer,                     // layer=[0-5]
-		      int channel);                  // channel=[0 - GetNumberOfChannelsPerLayer()-1] 
+  void SetAsicPattern(int layer,                     // set Write values -> layer = [0 - 5]
+		      int channel,                   //                   channel = [0 - (GetNumberOfChannelsPerLayer()-1)] 
+		      int mask);                     //                      mask = [OFF, ON]
+  int  GetAsicPattern(int layer,                     // get Read values -> layer = [0 - 5]
+		      int channel);                  //                  channel = [0 - (GetNumberOfChannelsPerLayer()-1)] 
   //
-  void SetPowerUpAsicPatterns();  		     // sets software values to data-taking values                
-  void PrintAsicPatterns();                          // print out software values
+  void SetPowerUpAsicPatterns();  		     // sets Write values to data-taking defaults                
+  void PrintAsicPatterns();                          // print out Read values
   //
   //
-  void WriteAsicDelaysAndPatterns();                 //writes software values of delays to AFEB delay lines
-  void ReadAsicDelaysAndPatterns();                  //fills software values with values read from ALCT
+  void WriteAsicDelaysAndPatterns();                 // writes Write values to ALCT
+  void ReadAsicDelaysAndPatterns();                  // fills Read values with values read from ALCT
   //
   //////////////////////////////
   // CONFIGURATION REGISTER
   //////////////////////////////
   void SetTriggerMode(int trigger_mode); 
-  int  GetTriggerMode(); 
+  int  GetTriggerMode();                             // get Read values
   //
   void SetExtTrigEnable(int ext_trig_enable); 
-  int  GetExtTrigEnable();
+  int  GetExtTrigEnable();                           // get Read values
   //
   void SetSendEmpty(int send_empty);
-  int  GetSendEmpty(); 
+  int  GetSendEmpty();                               // get Read values
   //
   void SetInjectMode(int inject); 
-  int  GetInjectMode(); 
+  int  GetInjectMode();                              // get Read values
   //
   void SetBxcOffset(int bxc_offset); 
-  int  GetBxcOffset(); 
+  int  GetBxcOffset();                               // get Read values
   //
   void SetPretrigNumberOfLayers(int nph_thresh); 
-  int  GetPretrigNumberOfLayers(); 
+  int  GetPretrigNumberOfLayers();                   // get Read values
   //
   void SetPretrigNumberOfPattern(int nph_pattern); 
-  int  GetPretrigNumberOfPattern(); 
+  int  GetPretrigNumberOfPattern();                  // get Read values
   //
   void SetDriftDelay(int drift_delay); 
-  int  GetDriftDelay(); 
+  int  GetDriftDelay();                              // get Read values
   //
   void SetFifoTbins(int fifo_tbins); 
-  int  GetFifoTbins(); 
+  int  GetFifoTbins();                               // get Read values
   //
   void SetFifoPretrig(int fifo_pretrig); 
-  int  GetFifoPretrig(); 
+  int  GetFifoPretrig();                             // get Read values
   //
   void SetFifoMode(int fifo_mode); 
-  int  GetFifoMode(); 
+  int  GetFifoMode();                                // get Read values
   //
   void SetFifoLastLct(int fifo_lastlct); 
-  int  GetFifoLastLct(); 
+  int  GetFifoLastLct();                             // get Read values
   //
   void SetL1aDelay(int l1a_delay); 
-  int  GetL1aDelay(); 
+  int  GetL1aDelay();                                // get Read values
   //
   void SetL1aWindowSize(int size); 
-  int  GetL1aWindowSize(); 
+  int  GetL1aWindowSize();                           // get Read values
   //
   void SetL1aOffset(int l1a_offset); 
-  int  GetL1aOffset(); 
+  int  GetL1aOffset();                               // get Read values
   //
   void SetL1aInternal(int l1a_internal); 
-  int  GetL1aInternal(); 
+  int  GetL1aInternal();                             // get Read values
   //
   void SetBoardId(int board_id); 
-  int  GetBoardId(); 
+  int  GetBoardId();                                 // get Read values
   //
   void SetBxnOffset(int bxn_offset); 
-  int  GetBxnOffset(); 
+  int  GetBxnOffset();                               // get Read values
   //
   void SetCcbEnable(int ccb_enable); 
-  int  GetCcbEnable(); 
+  int  GetCcbEnable();                               // get Read values
   //
   void SetAlctJtagDs(int alct_jtag_ds); 
-  int  GetAlctJtagDs(); 
+  int  GetAlctJtagDs();                              // get Read values
   //
   void SetAlctTmode(int alct_tmode); 
-  int  GetAlctTmode(); 
+  int  GetAlctTmode();                               // get Read values
   //
   void SetAlctAmode(int alct_amode); 
-  int  GetAlctAmode(); 
+  int  GetAlctAmode();                               // get Read values
   //
   void SetAlctMaskAll(int alct_mask_all); 
-  int  GetAlctMaskAll(); 
+  int  GetAlctMaskAll();                             // get Read values
   //
   void SetTriggerInfoEnable(int trigger_info_en); 
-  int  GetTriggerInfoEnable(); 
+  int  GetTriggerInfoEnable();                       // get Read values
   //
   void SetSnSelect(int sn_select); 
-  int  GetSnSelect(); 
+  int  GetSnSelect();                                // get Read values
   //
-  void SetPowerUpConfigurationReg();          //sets software values to data-taking values
-  void PrintConfigurationReg();               //print out software values
+  void SetPowerUpConfigurationReg();          // sets Write values to data-taking defaults
+  void PrintConfigurationReg();               // print out Read values
   //
   //
-  void WriteConfigurationReg();                  //writes software values to configuration register
-  void ReadConfigurationReg();                   //fills software values with values read from ALCT
+  void WriteConfigurationReg();            // writes Write values to ALCT
+  void ReadConfigurationReg();             // fills Read values with values read from ALCT
   //
   //////////////////////////////
   // HOT CHANNEL MASK
   //////////////////////////////
-  void  SetHotChannelMask(int layer,            // layer = 1-6
-  	 		  int channel,          // [1-48] for ALCT288, [1-64] for ALCT384, [1-112] for ALCT672
-  			  int mask);            // mask = OFF or ON
-  int  GetHotChannelMask(int layer,             // layer = 1-6
-  			 int channel);          // [1-48] for ALCT288, [1-64] for ALCT384, [1-112] for ALCT672
+  void  SetHotChannelMask(int layer,            // set Write values -> layer = [1 - 6]
+  	 		  int channel,          //                   channel = [1 - GetNumberOfChannelsPerLayer()]
+  			  int mask);            //                      mask = [OFF, ON]
+  int  GetHotChannelMask(int layer,             // get Read values -> layer = [1 - 6]
+  			 int channel);          //                  channel = [1 - GetNumberOfChannelsPerLayer()]
   //
-  void SetPowerUpHotChannelMask();              // sets software values to data-taking values
-  void PrintHotChannelMask();                   // prints out software values
+  void SetPowerUpHotChannelMask();              // sets Write values to data-taking defaults
+  void PrintHotChannelMask();                   // prints out Read values
   //
   //
-  void WriteHotChannelMask();               //writes software values to hot channel mask register
-  void ReadHotChannelMask();                //fills software values with values read from ALCT
+  void WriteHotChannelMask();               //writes Write values to ALCT
+  void ReadHotChannelMask();                //fills Read values with values read from ALCT
   //
 protected:
   //
@@ -1034,12 +926,17 @@ private:
   //
   bool check_write_;
   //
-  // Things specific to the chamber-type: //
+  //
+  ////////////////////////////////////////////////////////////////////
+  // Private variables specific to the chamber-type:                //
+  ////////////////////////////////////////////////////////////////////
   void SetChamberCharacteristics_(std::string chamberType);
   std::string chamber_type_string_;  
   int NumberOfWireGroupsInChamber_;
   //
-  // Things specific to the ALCT-type: //
+  ////////////////////////////////////////////////////////////////////
+  // Private variables specific to the ALCT-type:                   //
+  ////////////////////////////////////////////////////////////////////
   void SetAlctType_(int type);
   int NumberOfChannelsInAlct_;
   int NumberOfGroupsOfDelayChips_;
@@ -1055,62 +952,118 @@ private:
   int RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_;
   //
   //////////////////////////////////////////////////////
-  // vectors of bits for the slow-control registers:  //
+  // Slow-control registers private variables:        //
   //////////////////////////////////////////////////////
   char read_slowcontrol_id_[RegSizeAlctSlowFpga_RD_ID_REG/8+1];
   //
+  int write_afeb_threshold_[MAX_NUM_AFEBS];
+  int read_afeb_threshold_[MAX_NUM_AFEBS];
+  int read_adc_(int ADCchipNumber, int ADCchannel);
+  //
+  //////////////////////////
+  //TESTPULSE POWERSWITCH
+  //////////////////////////
   int write_testpulse_power_setting_;
   int read_testpulse_power_setting_;
   //
+  void SetTestpulsePowerSwitchReg_(int powerswitch);      // set Write values -> powerswitch = OFF or ON
+  int  GetTestpulsePowerSwitchReg_();                     // get Read values
+  //
+  void SetPowerUpTestpulsePowerSwitchReg_();              //sets Write values to data-taking defaults
+  void PrintTestpulsePowerSwitchReg_();                   //print out Read values				             
+  //
+  //
+  void WriteTestpulsePowerSwitchReg_();             //writes Write values to ALCT
+  void ReadTestpulsePowerSwitchReg_();              //fills Read values with values read from ALCT	      
+  //
+  ///////////////////////////////////////////////////////////////////////
+  //TESTPULSE AMPLITUDE - amplitude of analog test pulse sent to AFEBs
+  ///////////////////////////////////////////////////////////////////////
   int write_testpulse_amplitude_dacvalue_;
   //
+  void SetTestpulseAmplitude_(int dacvalue);        // set Write values -> Voltage = 2.5V * dacvalue/256
+  //
+  void SetPowerUpTestpulseAmplitude_();             // sets Write values to data-taking defaults
+  //
+  //
+  void WriteTestpulseAmplitude_();               // writes Write values to ALCT
+  //
+  ////////////////////////////////////////////////////////////////////////////////
+  //TESTPULSE GROUPMASK - which groups of AFEB's are enabled for analog testpulse
+  ////////////////////////////////////////////////////////////////////////////////
   int write_testpulse_groupmask_[RegSizeAlctSlowFpga_WRT_TESTPULSE_GRP];
   int read_testpulse_groupmask_[RegSizeAlctSlowFpga_RD_TESTPULSE_GRP];
   //
+  void SetTestpulseGroupMask_(int group,      // set Write values...
+			      //                 group [0-6], where 0 = AFEB 00,01,02,12,13,14 
+			      //                                    1 = AFEB 03,04,05,15,16,17 
+			      //                                    2 = AFEB 06,07,08,18,19,20 
+			      //                                    3 = AFEB 09,10,11,21,22,23 
+			      //                                    4 =                        
+			      //                                    5 =                        
+			      //                                    6 = 
+			      int mask);      // mask = OFF or ON
+  int  GetTestpulseGroupMask_(int group);     // get Read values -> group = [0-6]
+  //
+  void SetPowerUpTestpulseGroupMask_();	     // sets Write values to data-taking defaults                  
+  void PrintTestpulseGroupMask_();	     // print out Read values				      
+  //
+  //
+  void WriteTestpulseGroupMask_();         // writes Write values to ALCT
+  void ReadTestpulseGroupMask_();          // fills Read values with values read from ALCT	      
+  //
+  //////////////////////////////////////////////////////////////////////
+  //TESTPULSE STRIPMASK - which layers are enabled for analog testpulse
+  //////////////////////////////////////////////////////////////////////
   int write_testpulse_stripmask_[RegSizeAlctSlowFpga_WRT_TESTPULSE_STRIP];
   int read_testpulse_stripmask_[RegSizeAlctSlowFpga_RD_TESTPULSE_STRIP];
   //
-  int read_adc_(int ADCchipNumber, int ADCchannel);
-  int write_afeb_threshold_[MAX_NUM_AFEBS];
-  int read_afeb_threshold_[MAX_NUM_AFEBS];
+  void SetTestpulseStripMask_(int layer,           // set Write Values -> layer = [0-5]
+			      int mask);           //                      mask = OFF or ON
+  int  GetTestpulseStripMask_(int layer);          // get Read Values -> layer = [0-5]
   //
+  void SetPowerUpTestpulseStripMask_();	   	  // set Write values to data-taking defaults
+  void PrintTestpulseStripMask_();		  // print out Read values				      
+  // 
+  //
+  void WriteTestpulseStripMask_();            // writes Write values to ALCT
+  void ReadTestpulseStripMask_();             // fills Read values with values read from ALCT	      
+  //
+  /////////////////////////////////////////////////
+  //STANDBY REGISTER - enable power for each AFEB
+  /////////////////////////////////////////////////
   int write_standby_register_[RegSizeAlctSlowFpga_WRT_STANDBY_REG];
   int read_standby_register_[RegSizeAlctSlowFpga_RD_STANDBY_REG];
+  //
+  void SetStandbyRegister_(int AFEB,                   // set Write Values -> AFEB = [0 - GetNumberOfAfebs()-1]
+			   int powerswitch);           //                     powerswitch = OFF or ON
+  int  GetStandbyRegister_(int AFEB);                  // get Read Values -> AFEB = [0 - GetNumberOfAfebs()-1]
+  //
+  void SetPowerUpStandbyRegister_();		      // set Write values to data-taking defaults          
+  void PrintStandbyRegister_();			      // print out Read values				       
+  //
+  //
+  void WriteStandbyRegister_();               // writes Write values to ALCT
+  void ReadStandbyRegister_();		      // fills Read values with values read from ALCT	 
+  //
   //
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // vectors of bits for the fast-control registers, variables in these registers, and methods to translate between the two... //
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   char read_fastcontrol_id_[RegSizeAlctFastFpga_RD_ID_REG/8+1];
   //
-  int write_trigger_reg_[RegSizeAlctFastFpga_WRT_TRIG_REG];
-  int write_pulse_trigger_source_;
-  int write_invert_pulse_;
-  void FillTriggerRegister_();
-  int read_trigger_reg_[RegSizeAlctFastFpga_RD_TRIG_REG];
-  int read_pulse_trigger_source_;
-  int read_invert_pulse_;
-  void DecodeTriggerRegister_();
-  //
-  int write_delay_line_control_reg_[RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_672]; //make this as large as it could possibly be
-  int write_delay_line_reset_;
-  int write_delay_line_settst_;
-  int write_delay_line_group_select_[RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_672-2]; //make this as large as it could possibly be
-  void FillDelayLineControlReg_();
-  int read_delay_line_control_reg_[RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_672]; //make this as large as it could possibly be
-  int read_delay_line_reset_;
-  int read_delay_line_settst_;
-  int read_delay_line_group_select_[RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_672-2]; //make this as large as it could possibly be
-  void DecodeDelayLineControlReg_();
   //
   int write_asic_delays_and_patterns_[RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES]; 
   int write_asic_delay_[MAX_NUM_AFEBS];
   int write_asic_pattern_[MAX_NUM_LAYERS][MAX_NUM_WIRES_PER_LAYER];
   void FillAsicDelaysAndPatterns_(int groupOfAfebs);       //each delay line controls one group of 6 AFEBs
-  int read_asic_delays_and_patterns_[RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES];  // N.B. It is WRT since RD has one extra bit which is not used
+  //
+  int read_asic_delays_and_patterns_[RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES];  // N.B. It is WRT since RD has one extra bit which is not useful
   int read_asic_delay_[MAX_NUM_AFEBS];
   int read_asic_pattern_[MAX_NUM_LAYERS][MAX_NUM_WIRES_PER_LAYER];
   void DecodeAsicDelaysAndPatterns_(int groupOfAfebs);     //each delay line controls one group of 6 AFEBs
-  void ReadAsicDelaysAndPatterns_(int groupOfAfebs);       //fills software values with values read from ALCT
+  //
+  void ReadAsicDelaysAndPatterns_(int groupOfAfebs);       //fills Read values for this groupOfAfebs with values read from ALCT
   int GetLayerFromAsicMap_(int asic_index);
   int GetChannelFromAsicMap_(int groupOfAfebs, int asic_index);
   //
@@ -1141,6 +1094,7 @@ private:
   int write_trigger_info_en_;
   int write_sn_select_;
   void FillConfigurationReg_();
+  //
   int read_config_reg_[RegSizeAlctFastFpga_RD_CONFIG_REG];
   int read_trigger_mode_;
   int read_ext_trig_enable_;
@@ -1172,6 +1126,65 @@ private:
   int write_hot_channel_mask_[RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_672];             //make this as large as it could possibly be
   int read_hot_channel_mask_[RegSizeAlctFastFpga_RD_HOTCHAN_MASK_672];               //make this as large as it could possibly be
   bool stop_read_;                                                          // need this to stop JTAG checking from going to infinite loop
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+  // TESTPULSE TRIGGER REGISTER - specify which signal will fire the testpulse
+  //////////////////////////////////////////////////////////////////////////////
+  int write_trigger_reg_[RegSizeAlctFastFpga_WRT_TRIG_REG];
+  int write_pulse_trigger_source_;
+  int write_invert_pulse_;
+  void FillTriggerRegister_();
+  //
+  int read_trigger_reg_[RegSizeAlctFastFpga_RD_TRIG_REG];
+  int read_pulse_trigger_source_;
+  int read_invert_pulse_;
+  void DecodeTriggerRegister_();
+  //
+  void SetPulseTriggerSource_(int source);      // set Write value -> source = [OFF, ADB_SYNC, ADB_ASYNC, LEMO, SELF]
+  int  GetPulseTriggerSource_();                // get Read value -> return value -> 0  = OFF
+  //                                                                                 3  = SELF
+  //                                                                                 4  = ADB_SYNC
+  //                                                                                 8  = ADB_ASYNC
+  //                                                                                 12 = LEMO
+  void SetInvertPulse_(int mask);               //set Write value -> mask = [ON, OFF] 
+  int  GetInvertPulse_();                       //get Read value -> return value -> 0 = not inverted
+  //                                                                                1 = inverted 
+  //
+  void SetPowerUpTriggerRegister_();	       // sets Write values to data-taking defaults
+  void PrintTriggerRegister_();                // print out Read values				 
+  //
+  //
+  void WriteTriggerRegister_();                 //writes Write values to ALCT
+  void ReadTriggerRegister_();                  //fills Read values with values read from ALCT
+  //
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // DELAY LINE CONTROL REGISTER - Control which group of chips has its delays and patterns written/read
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////
+  int write_delay_line_control_reg_[RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_672]; //make this as large as it could possibly be
+  int write_delay_line_reset_;
+  int write_delay_line_settst_;
+  int write_delay_line_group_select_[RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_672-2]; //make this as large as it could possibly be
+  void FillDelayLineControlReg_();
+  //
+  int read_delay_line_control_reg_[RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_672]; //make this as large as it could possibly be
+  int read_delay_line_reset_;
+  int read_delay_line_settst_;
+  int read_delay_line_group_select_[RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_672-2]; //make this as large as it could possibly be
+  void DecodeDelayLineControlReg_();
+  //
+  void SetDelayLineSettst_(int mask);                 // set Write value -> mask = ON or OFF
+  //
+  void SetDelayLineReset_(int mask);                  // set Write value -> mask = ON or OFF
+  //
+  void SetDelayLineGroupSelect_(int group,            //set Write value -> group = [0 - (GetNumberOfGroupsOfDelayChips()-1)]
+				int mask);            //                    mask = ON or OFF
+  //
+  void SetPowerUpDelayLineControlReg_();              //sets Write values to data-taking defaults
+  void PrintDelayLineControlReg_();                   //print out Read values
+  //
+  //
+  void WriteDelayLineControlReg_();                  //writes Write values to ALCT
+  void ReadDelayLineControlReg_();                  //fills Read values with values read from ALCT
   //
 };
 #endif

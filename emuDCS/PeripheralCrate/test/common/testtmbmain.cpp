@@ -445,8 +445,8 @@ int main() {
       alct->PrintAsicPatterns();
       break;
     case 114:
-      alct->ReadDelayLineControlReg();
-      alct->PrintDelayLineControlReg();
+      //      alct->ReadDelayLineControlReg();
+      //      alct->PrintDelayLineControlReg();
       break;
     case 119:
       alct->SetPowerUpAsicPatterns();
@@ -529,80 +529,80 @@ int main() {
       alct->PrintHotChannelMask();
       break;
     case 140:
-      alct->ReadTestpulsePowerSwitchReg();
-      alct->PrintTestpulsePowerSwitchReg();
+      //      alct->ReadTestpulsePowerSwitchReg();
+      //      alct->PrintTestpulsePowerSwitchReg();
       break;
     case 141:
       std::cout << "Testpulse power switch ON (1) or OFF (0) " << std::endl;
       std::cin >> value;
-      alct->SetTestpulsePowerSwitchReg(value);
-      alct->WriteTestpulsePowerSwitchReg();      
-      alct->ReadTestpulsePowerSwitchReg();
-      alct->PrintTestpulsePowerSwitchReg();
+      //      alct->SetTestpulsePowerSwitchReg(value);
+      //      alct->WriteTestpulsePowerSwitchReg();      
+      //      alct->ReadTestpulsePowerSwitchReg();
+      //      alct->PrintTestpulsePowerSwitchReg();
       break;
     case 149:
-      alct->SetPowerUpTestpulsePowerSwitchReg();
-      alct->WriteTestpulsePowerSwitchReg();      
-      alct->ReadTestpulsePowerSwitchReg();
-      alct->PrintTestpulsePowerSwitchReg();
+      //      alct->SetPowerUpTestpulsePowerSwitchReg();
+      //      alct->WriteTestpulsePowerSwitchReg();      
+      //      alct->ReadTestpulsePowerSwitchReg();
+      //      alct->PrintTestpulsePowerSwitchReg();
       break;
     case 150:
-      std::cout << "Testpulse amplitude software setting = " 
-		<< std::dec << alct->GetTestpulseAmplitude() << std::endl;
+      //      std::cout << "Testpulse amplitude software setting = " 
+      //		<< std::dec << alct->GetTestpulseAmplitude() << std::endl;
       break;
     case 151:
       std::cout << "Testpulse amplitude (0-255)" << std::endl;
       std::cin >> value;
-      alct->SetTestpulseAmplitude(value);
-      alct->WriteTestpulseAmplitude();      
-      std::cout << "Testpulse amplitude written.  The software setting = " 
-		<< std::dec << alct->GetTestpulseAmplitude() << std::endl;
+      //      alct->SetTestpulseAmplitude(value);
+      //      alct->WriteTestpulseAmplitude();      
+      //      std::cout << "Testpulse amplitude written.  The software setting = " 
+      //		<< std::dec << alct->GetTestpulseAmplitude() << std::endl;
       break;
     case 159:
-      alct->SetPowerUpTestpulseAmplitude();
-      alct->WriteTestpulseAmplitude();      
-      std::cout << "Power-up testpulse amplitude written.  The software setting = " 
-		<< std::dec << alct->GetTestpulseAmplitude() << std::endl;
-      break;
+      //      alct->SetPowerUpTestpulseAmplitude();
+      //      alct->WriteTestpulseAmplitude();      
+      //      std::cout << "Power-up testpulse amplitude written.  The software setting = " 
+      //		<< std::dec << alct->GetTestpulseAmplitude() << std::endl;
+    //      break;
     case 160:
-      alct->ReadTestpulseGroupMask();
-      alct->PrintTestpulseGroupMask();
+      //      alct->ReadTestpulseGroupMask();
+      //      alct->PrintTestpulseGroupMask();
       break;
     case 161:
       std::cout << "testpulse groupmask: group (0-6)" << std::endl;
       std::cin >> layer;
       std::cout << "OFF (0) or ON (1) " << std::endl;
       std::cin >> value;
-      alct->SetTestpulseGroupMask(layer,value);
-      alct->WriteTestpulseGroupMask();      
-      alct->ReadTestpulseGroupMask();
-      alct->PrintTestpulseGroupMask();
+      //      alct->SetTestpulseGroupMask(layer,value);
+      //      alct->WriteTestpulseGroupMask();      
+      //      alct->ReadTestpulseGroupMask();
+      //      alct->PrintTestpulseGroupMask();
       break;
     case 169:
-      alct->SetPowerUpTestpulseGroupMask();
-      alct->WriteTestpulseGroupMask();      
-      alct->ReadTestpulseGroupMask();
-      alct->PrintTestpulseGroupMask();
+      //      alct->SetPowerUpTestpulseGroupMask();
+      //      alct->WriteTestpulseGroupMask();      
+      //      alct->ReadTestpulseGroupMask();
+      //      alct->PrintTestpulseGroupMask();
       break;
     case 170:
-      alct->ReadTestpulseStripMask();
-      alct->PrintTestpulseStripMask();
+      //      alct->ReadTestpulseStripMask();
+      //      alct->PrintTestpulseStripMask();
       break;
     case 171:
       std::cout << "testpulse stripmask: strip (0-6)" << std::endl;
       std::cin >> layer;
       std::cout << "OFF (0) or ON (1) " << std::endl;
       std::cin >> value;
-      alct->SetTestpulseStripMask(layer,value);
-      alct->WriteTestpulseStripMask();      
-      alct->ReadTestpulseStripMask();
-      alct->PrintTestpulseStripMask();
+      //      alct->SetTestpulseStripMask(layer,value);
+      //      alct->WriteTestpulseStripMask();      
+      //      alct->ReadTestpulseStripMask();
+      //      alct->PrintTestpulseStripMask();
       break;
     case 179:
-      alct->SetPowerUpTestpulseStripMask();
-      alct->WriteTestpulseStripMask();      
-      alct->ReadTestpulseStripMask();
-      alct->PrintTestpulseStripMask();
+      //      alct->SetPowerUpTestpulseStripMask();
+      //      alct->WriteTestpulseStripMask();      
+      //      alct->ReadTestpulseStripMask();
+      //      alct->PrintTestpulseStripMask();
       break;
     case 180:
       alct->ReadAfebThresholds();
@@ -625,24 +625,24 @@ int main() {
       alct->PrintAfebThresholds();
       break;
     case 190:
-      alct->ReadStandbyRegister();
-      alct->PrintStandbyRegister();
+      //      alct->ReadStandbyRegister();
+      //      alct->PrintStandbyRegister();
       break;
     case 191:
       std::cout << "standby register: AFEB (0-41)" << std::endl;
       std::cin >> layer;
       std::cout << "OFF (0) or ON (1) " << std::endl;
       std::cin >> value;
-      alct->SetStandbyRegister(layer,value);
-      alct->WriteStandbyRegister();      
-      alct->ReadStandbyRegister();
-      alct->PrintStandbyRegister();
+      //      alct->SetStandbyRegister(layer,value);
+      //      alct->WriteStandbyRegister();      
+      //      alct->ReadStandbyRegister();
+      //      alct->PrintStandbyRegister();
       break;
     case 199:
-      alct->SetPowerUpStandbyRegister();
-      alct->WriteStandbyRegister();      
-      alct->ReadStandbyRegister();
-      alct->PrintStandbyRegister();
+      //      alct->SetPowerUpStandbyRegister();
+      //      alct->WriteStandbyRegister();      
+      //      alct->ReadStandbyRegister();
+      //      alct->PrintStandbyRegister();
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 
