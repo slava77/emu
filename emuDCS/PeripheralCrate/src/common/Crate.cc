@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 2.15 2006/07/14 11:46:31 rakness Exp $
+// $Id: Crate.cc,v 2.16 2006/07/20 14:03:12 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 2.16  2006/07/20 14:03:12  mey
+// Update
+//
 // Revision 2.15  2006/07/14 11:46:31  rakness
 // compiler switch possible for ALCTNEW
 //
@@ -204,8 +207,9 @@ void Crate::configure() {
   CCB * ccb = this->ccb();
   MPC * mpc = this->mpc();
   //
+  theController->init();
+  //
   ccb->configure();
-  //::sleep(1);
   //
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myTmbs.size(); ++i) {

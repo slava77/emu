@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.cc,v 2.10 2006/07/14 12:33:26 mey Exp $
+// $Id: PeripheralCrateParser.cc,v 2.11 2006/07/20 14:03:12 mey Exp $
 // $Log: PeripheralCrateParser.cc,v $
+// Revision 2.11  2006/07/20 14:03:12  mey
+// Update
+//
 // Revision 2.10  2006/07/14 12:33:26  mey
 // New XML structure
 //
@@ -50,6 +53,7 @@
 #include "PeripheralCrateParser.h"
 
 #include "Crate.h"
+#include "VMEController.h"
 
 #define debug false
 
@@ -109,5 +113,7 @@ PeripheralCrateParser::PeripheralCrateParser(xercesc::DOMNode *pNode,EmuSystem *
     
   } // end of looping over boards (pNode3)
   std::cout <<"PeripheralCrateParser: finished looping over boards for crate #"<< crateNumber << std::endl; 
+  //Here init controller()
+  if(crate) vmeParser_.controller()->init();
 }
 

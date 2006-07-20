@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.113 2006/07/20 09:49:55 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.114 2006/07/20 14:03:11 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -3169,21 +3169,9 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    //*out << cgicc::HTTPHTMLHeader();
-    //
     cgicc::Cgicc cgi(in);
     //
-    const CgiEnvironment& env = cgi.getEnvironment();
-    //
-    std::string crateStr = env.getQueryString() ;
-    //
-    cout << crateStr << endl ;
-    //
     int tmb, dmb;
-    //
-    //sscanf(crateStr.c_str(),"tmb=%d,dmb=%d",&tmb,&dmb);
-    //
-    //cout << tmb << " " << dmb << endl;
     //
     cgicc::form_iterator name = cgi.getElement("dmb");
     //
@@ -3217,6 +3205,8 @@ private:
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title(Name) << std::endl;
+    //
+    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
     //
     *out << cgicc::h1(Name);
     *out << cgicc::br();
@@ -6657,7 +6647,7 @@ private:
     std::cout << "hardReset" << std::endl;
     //
     //thisCCB->hardReset();
-    thisCCB->prgall_bckpln();
+    thisCCB->HardReset_crate();
     //
     this->CCBUtils(in,out);
     //

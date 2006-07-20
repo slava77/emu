@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.34 2006/07/20 09:49:55 mey Exp $
+// $Id: VMEController.cc,v 2.35 2006/07/20 14:03:12 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.35  2006/07/20 14:03:12  mey
+// Update
+//
 // Revision 2.34  2006/07/20 09:49:55  mey
 // UPdate
 //
@@ -156,7 +159,7 @@
 
 VMEController::VMEController(int crate): 
  crate_(crate), indian(SWAP),  max_buff(0), tot_buff(0), 
- plev(1), idevo(0), error_type(0), error_count(0), DEBUG(0)
+ plev(1), idevo(0), error_type(0), error_count(0), DEBUG(0), port_(2)
 {
   //
   fpacket_delay = 0;
@@ -178,22 +181,29 @@ VMEController::~VMEController(){
 }
 
 void VMEController::init(string ipAddr, int port) {
-  ipAddress_=ipAddr;
+  ipAddress_= ipAddr;
   port_=port;
-  theSocket=do_schar(1); // register a new schar device
-  
-  //std::cout << "********** Init " << std::endl;
+  //
+  init();
+  //
+}
 
+void VMEController::init() {
+  //
+  SendOutput("VMEController : Init()","INFO");
+  //
+  theSocket=do_schar(1); // register a new schar device
+  //
   cout << "VMEController opened socket = " << socket << endl;
   cout << "VMEController is using eth" << port_ << endl;
   enable_Reset(); 
-  read_CR();
+  //read_CR();
   //
   // This writes the default VME CR we need and then stores it in the flash memory....
   write_VME_CR();
   save_cnfg_num(1);
   set_cnfg_dflt(1);
-  read_CR();
+  //read_CR();
   //
   disable_errpkt();
   //

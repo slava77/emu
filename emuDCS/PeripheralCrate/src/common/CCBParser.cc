@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCBParser.cc,v 2.3 2006/07/13 15:46:37 mey Exp $
+// $Id: CCBParser.cc,v 2.4 2006/07/20 14:03:12 mey Exp $
 // $Log: CCBParser.cc,v $
+// Revision 2.4  2006/07/20 14:03:12  mey
+// Update
+//
 // Revision 2.3  2006/07/13 15:46:37  mey
 // New Parser strurture
 //
@@ -48,7 +51,7 @@ CCBParser::CCBParser(xercesc::DOMNode *pNode, Crate * theCrate)
   }
   int delay;
   if (parser_.fillInt("l1aDelay", delay)){
-    ccb_->SetL1aDelay(delay);
+    ccb_->Setl1adelay(delay);
   }
   int ID;
   if (parser_.fillInt("TTCrxID", ID)){

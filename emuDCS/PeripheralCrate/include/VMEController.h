@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 2.26 2006/07/20 09:49:55 mey Exp $
+// $Id: VMEController.h,v 2.27 2006/07/20 14:03:11 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 2.27  2006/07/20 14:03:11  mey
+// Update
+//
 // Revision 2.26  2006/07/20 09:49:55  mey
 // UPdate
 //
@@ -83,6 +86,7 @@
 
 using namespace std;
 #include <vector>
+#include <string>
 #include <iostream>
 // class VMEModule;
 // class Crate;
@@ -93,7 +97,10 @@ using namespace std;
 #include <time.h>
 #include <sys/time.h>
 
-class VMEController {
+#include "EmuModule.h"
+
+class VMEController : public EmuModule
+{
 public:
   VMEController(int crate);
   ~VMEController();
@@ -102,8 +109,9 @@ public:
   enum {MAXLINE = 70000};
   
   void init(string ipAddr, int port);
+  void init();
   void reset();
-  int do_schar(int open_or_close);
+  int  do_schar(int open_or_close);
   void do_vme(char fcn, char vme,const char *snd,char *rcv, int wrt);
 
   void SetUseDelay(bool state){usedelay_ = state;}
@@ -155,11 +163,13 @@ public:
   void Debug(int dbg) { DEBUG=dbg; }
   int  GetDebug() { return DEBUG; }
   void set_ErrorServer();
+  inline void SetPort(int port) {port_=port;}
+  inline void SetVMEAddress(std::string address) {ipAddress_=address;}
   
 private:
   bool usedelay_;
   int theSocket;
-  string ipAddress_;
+  std::string ipAddress_;
   int port_;
   int crate_;
   sockaddr_in serv_addr;

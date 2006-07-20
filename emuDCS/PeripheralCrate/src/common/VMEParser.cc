@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.cc,v 2.9 2006/07/14 12:33:26 mey Exp $
+// $Id: VMEParser.cc,v 2.10 2006/07/20 14:03:12 mey Exp $
 // $Log: VMEParser.cc,v $
+// Revision 2.10  2006/07/20 14:03:12  mey
+// Update
+//
 // Revision 2.9  2006/07/14 12:33:26  mey
 // New XML structure
 //
@@ -46,10 +49,14 @@ VMEParser::VMEParser(xercesc::DOMNode * pNode, int number, EmuSystem * emuSystem
   
   controller_ = new VMEController(number); 
 
-// The following is just to show how it works. 
-// Must be moved to somewhere else. Jinghua Liu
-  controller_->init(VMEaddress, port);
+  // The following is just to show how it works. 
+  // Must be moved to somewhere else. Jinghua Liu
+  
+  //controller_->init(VMEaddress, port); //Moved to end of parsing
 
+  controller_->SetVMEAddress(VMEaddress);
+  controller_->SetPort(port);
+  
   crate_ = new Crate(number, controller_,emuSystem);
 }
 //VMEParser::~VMEParser(){
