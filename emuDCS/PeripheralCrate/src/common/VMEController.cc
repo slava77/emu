@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 2.33 2006/07/19 15:23:58 mey Exp $
+// $Id: VMEController.cc,v 2.34 2006/07/20 09:49:55 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 2.34  2006/07/20 09:49:55  mey
+// UPdate
+//
 // Revision 2.33  2006/07/19 15:23:58  mey
 // UPdate
 //
@@ -183,9 +186,14 @@ void VMEController::init(string ipAddr, int port) {
 
   cout << "VMEController opened socket = " << socket << endl;
   cout << "VMEController is using eth" << port_ << endl;
-  //enable_Reset(); //don't enable until SYSCLK is enabled by default.    
+  enable_Reset(); 
   read_CR();
+  //
+  // This writes the default VME CR we need and then stores it in the flash memory....
   write_VME_CR();
+  save_cnfg_num(1);
+  set_cnfg_dflt(1);
+  read_CR();
   //
   disable_errpkt();
   //
@@ -487,6 +495,32 @@ void VMEController::mrst_ff()
   std::cout << "Full reset of FIFO done." << std::endl;
   for(l=0;l<8000;l++)lcnt++;
   return;
+}
+
+void VMEController::save_cnfg_num(int cnum)
+{
+  int n,l,lcnt;
+  wbuf[0]=0x00;
+  wbuf[1]=Save_Cnfg_Num;
+  wbuf[2]=0x00;
+  wbuf[3]=(cnum&0x1f);  // cnum must be <= 20
+  nwbuf=4;
+  n=eth_write();
+  for(l=0;l<8000;l++)lcnt++;
+  return;
+}
+
+void VMEController::set_cnfg_dflt(int dflt)
+{
+  int n,l,lcnt;
+  wbuf[0]=0x00;
+  wbuf[1]=Set_Cnfg_Dflt;
+  wbuf[2]=0x00;
+  wbuf[3]=(dflt&0x1f);
+  nwbuf=4;
+  n=eth_write();
+  for(l=0;l<8000;l++)lcnt++;
+  return ;
 }
 
 void VMEController::set_VME_mode()

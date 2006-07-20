@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 2.65 2006/07/18 15:23:14 mey Exp $
+// $Id: DAQMB.cc,v 2.66 2006/07/20 09:49:55 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 2.66  2006/07/20 09:49:55  mey
+// UPdate
+//
 // Revision 2.65  2006/07/18 15:23:14  mey
 // UPdate
 //
@@ -736,7 +739,7 @@ void  DAQMB::halfset(int ifeb,int ipln,int ihalf)
 }
 
 //
-void DAQMB::trigsetx(int *hp)
+void DAQMB::trigsetx(int *hp, int CFEBInput)
 {
   //
   (*MyOutput_) << "DAQMB.trigsetx" << std::endl;
@@ -764,7 +767,7 @@ void DAQMB::trigsetx(int *hp)
   //
   for(k=0;k<5;k++){
      for(j=0;j<6;j++){
-	halfset(k,j,hp[j]+hs[j],chan);
+       if ( (CFEBInput>>k)&0x1 ) halfset(k,j,hp[j]+hs[j],chan);
      }
   }
   chan2shift(chan);

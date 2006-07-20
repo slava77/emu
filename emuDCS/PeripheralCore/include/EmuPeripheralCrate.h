@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 2.112 2006/07/18 14:09:46 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 2.113 2006/07/20 09:49:55 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -6656,7 +6656,8 @@ private:
     //
     std::cout << "hardReset" << std::endl;
     //
-    thisCCB->hardReset();
+    //thisCCB->hardReset();
+    thisCCB->prgall_bckpln();
     //
     this->CCBUtils(in,out);
     //

@@ -17,7 +17,7 @@ int main(int argc,char **argv){
   // create VME Controller and Crate
   int crateId(0);
   string ipAddr("02:00:00:00:00:07");
-  int port(2);
+  int port(3);
   VMEController *dynatem = new VMEController(crateId);
   dynatem->init(ipAddr,port);
   //
@@ -33,7 +33,7 @@ int main(int argc,char **argv){
   //
   // create DMB
   //
-  int dmbSlot(15);
+  int dmbSlot(25);
   DAQMB *dmb = new DAQMB(crate,dmbSlot);
   printf("DMB fpga user id                   : %x ", (int) dmb->mbfpgauser());
   //
