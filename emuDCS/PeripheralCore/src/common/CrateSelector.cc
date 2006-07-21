@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateSelector.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
+// $Id: CrateSelector.cc,v 3.1 2006/07/21 07:48:27 mey Exp $
 // $Log: CrateSelector.cc,v $
+// Revision 3.1  2006/07/21 07:48:27  mey
+// Cleaned up code.Got rid of include Singleton.h
+//
 // Revision 3.0  2006/07/20 21:15:48  geurts
 // *** empty log message ***
 //
@@ -24,7 +27,7 @@
 #include "TMB.h"
 #include "Crate.h"
 #include "CrateSetup.h"
-#include "Singleton.h"
+//#include "Singleton.h"
 #include "VMEController.h"
 #include "JTAG_constants.h"
 #include <string>
