@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: ChamberUtilities.cc,v 3.1 2006/07/22 16:13:02 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.1  2006/07/22 16:13:02  rakness
+// clean up RAT/add JTAG checking
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -2644,58 +2647,53 @@ void ChamberUtilities::RpcRatDelayScan(int rpc) {
   //                          [3]=free_tx0
   int write_data = 0x0002;
   thisTMB->WriteRegister(vme_ratctrl_adr,write_data);
-
-  thisRAT_->read_rpcrat_delay();                   //read initial delay values
-  int initial_delay = thisRAT_->GetRpcRatDelay();  //get values into local variable
-
+  //
+  thisRAT_->ReadRatUser1();                           //read initial delay values
+  int initial_delay = thisRAT_->GetRpcRatDelay(rpc);  //get values into local variable
+  //
   int delay;
-
+  //
   int parity_err_ctr[16] = {};
-
+  //
   for (delay = 0; delay<=12; delay++) {                             //steps of 2ns
     (*MyOutput_) << "set delay = " << delay 
 		 << " for RPC " << rpc
 		 << std::endl;
-    thisRAT_->set_rpcrat_delay(rpc,delay);
-
-    thisRAT_->read_rpcrat_delay();
-
+    thisRAT_->SetRpcRatDelay(rpc,delay);
+    thisRAT_->WriteRpcRatDelay();
+    thisRAT_->PrintRpcRatDelay();
+    //
     thisRAT_->reset_parity_error_counter();
-
+    //
     if (delay>0)
       (*MyOutput_) << "parity error for delay " << delay-1 
 		   << " = " << parity_err_ctr[delay-1]
 		   << std::endl;
-    
+    //
     ::sleep(1);                                                    //accumulate statistics
-
-    thisRAT_->read_rpc_parity_error_counter();
-    parity_err_ctr[delay] = thisRAT_->GetRpcParityErrorCounter(rpc);
+    //
+    thisRAT_->ReadRatUser1();
+    parity_err_ctr[delay] = thisRAT_->GetRatRpcParityErrorCounter(rpc);
   }
-
+  //
   (*MyOutput_) << "Putting inital delay values back..." << std::endl;
-  int value;
-
-  for (int putback=0; putback<4; putback++) {
-    value = (initial_delay >> 4*putback) & 0xf;    //parse delay values to reload
-    thisRAT_->set_rpcrat_delay(putback,value);
-  }
-
+  thisRAT_->SetRpcRatDelay(rpc,initial_delay);
+  thisRAT_->WriteRpcRatDelay();
+  //
   // ** print out results **
   (*MyOutput_) << "********************************" << std::endl;
   (*MyOutput_) << "**** RAT-RPC" << rpc << " delay results ****" << std::endl;
   (*MyOutput_) << "********************************" << std::endl;
   (*MyOutput_) << " delay    parity counter errors" << std::endl;
   (*MyOutput_) << "-------   ---------------------" << std::endl;
-
   for (delay = 0; delay <=12; delay++) {
     (*MyOutput_) << "   " << std::hex << delay;
     (*MyOutput_) << "               " << std::hex << parity_err_ctr[delay] 
 		 << std::endl;
   }
-
+  //
   RpcRatDelay_[rpc] = window_analysis(parity_err_ctr,13);
-
+  //
   return;
 }
 

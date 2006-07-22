@@ -205,10 +205,10 @@ const int NumberChipsRat               =   2;     //1 FPGA + 1 PROM
 //
 const int ChipLocationRatFpga          =   0;       
 const int OpcodeSizeRatFpga            =   5;
-const int RegSizeRatFpga_FPGAuser1    = 224;
-const int RegSizeRatFpga_FPGAuser2    =  32;
-const int RegSizeRatFpga_FPGAuserCode =  32;
-const int RegSizeRatFpga_FPGAidCode   =  32;
+const int RegSizeRatFpga_FPGAuser1     = 224;
+const int RegSizeRatFpga_FPGAuser2     =  32;
+const int RegSizeRatFpga_FPGAuserCode  =  32;
+const int RegSizeRatFpga_FPGAidCode    =  32;
 //
 const int ChipLocationRatProm          =   1;      
 const int OpcodeSizeRatProm            =   8;
@@ -217,11 +217,178 @@ const int RegSizeRatProm_PROMidCode    =  32;
 //
 //
 ////-------------------------------////
-//     ALCTnew  constants            //
+//     JTAG control constants        //
 ////-------------------------------////
-//
 const int OFF           = 0;
 const int ON            = 1;
+//
+//
+////-------------------------------////
+//     RAT constants                 //
+////-------------------------------////
+////////////////////////////////////////
+// User1 bit-map:
+////////////////////////////////////////
+const int read_rs_begin_bitlo                   = 0;
+const int read_rs_begin_bithi                   = 3;
+//
+const int read_rs_version_bitlo                 = 4;
+const int read_rs_version_bithi                 = 7;
+//
+const int read_rs_monthday_bitlo                = 8;
+const int read_rs_monthday_bithi                = 23;
+//
+const int read_rs_year_bitlo                    = 24;
+const int read_rs_year_bithi                    = 39;
+//
+const int read_rs_syncmode_bitlo                = 40;
+const int read_rs_syncmode_bithi                = 40;
+//
+const int read_rs_posneg_bitlo                  = 41;
+const int read_rs_posneg_bithi                  = 41;
+//
+const int read_rs_loop_bitlo                    = 42;
+const int read_rs_loop_bithi                    = 42;
+//
+const int read_rs_rpc_en_bitlo                  = 43;
+const int read_rs_rpc_en_bithi                  = 44;
+//
+const int read_rs_clk_active_bitlo              = 45;
+const int read_rs_clk_active_bithi              = 46;
+//
+const int read_rs_locked_tmb_bitlo              = 47;
+const int read_rs_locked_tmb_bithi              = 47;
+//
+const int read_rs_locked_rpc0_bitlo             = 48;
+const int read_rs_locked_rpc0_bithi             = 48;
+//
+const int read_rs_locked_rpc1_bitlo             = 49;
+const int read_rs_locked_rpc1_bithi             = 49;
+//
+const int read_rs_locklost_tmb_bitlo            = 50;
+const int read_rs_locklost_tmb_bithi            = 50;
+//
+const int read_rs_locklost_rpc0_bitlo           = 51;
+const int read_rs_locklost_rpc0_bithi           = 51;
+//
+const int read_rs_locklost_rpc1_bitlo           = 52;
+const int read_rs_locklost_rpc1_bithi           = 52;
+//
+const int read_rs_txok_bitlo                    = 53;
+const int read_rs_txok_bithi                    = 53;
+//
+const int read_rs_rxok_bitlo                    = 54;
+const int read_rs_rxok_bithi                    = 54;
+//
+const int read_rs_ntcrit_bitlo                  = 55;
+const int read_rs_ntcrit_bithi                  = 55;
+//
+const int read_rs_rpc_free_bitlo                = 56;
+const int read_rs_rpc_free_bithi                = 56;
+//
+const int read_rs_dsn_bitlo                     = 57;
+const int read_rs_dsn_bithi                     = 57;
+//
+const int read_rs_dddoe_wr_bitlo                = 58;
+const int read_rs_dddoe_wr_bithi                = 61;
+//
+const int read_rs_ddd_wr_bitlo                  = 62;
+const int read_rs_ddd_wr_bithi                  = 77;
+//
+const int read_rs_ddd_auto_bitlo                = 78;
+const int read_rs_ddd_auto_bithi                = 78;
+//
+const int read_rs_ddd_start_bitlo               = 79;
+const int read_rs_ddd_start_bithi               = 79;
+//
+const int read_rs_ddd_busy_bitlo                = 80;
+const int read_rs_ddd_busy_bithi                = 80;
+//
+const int read_rs_ddd_verify_ok_bitlo           = 81;
+const int read_rs_ddd_verify_ok_bithi           = 81;
+//
+const int read_rs_rpc0_parity_ok_bitlo          = 82;
+const int read_rs_rpc0_parity_ok_bithi          = 82;
+//
+const int read_rs_rpc1_parity_ok_bitlo          = 83;
+const int read_rs_rpc1_parity_ok_bithi          = 83;
+//
+const int read_rs_rpc0_cnt_perr_bitlo           = 84;
+const int read_rs_rpc0_cnt_perr_bithi           = 99;
+//
+const int read_rs_rpc1_cnt_perr_bitlo           = 100;
+const int read_rs_rpc1_cnt_perr_bithi           = 115;
+//
+const int read_rs_last_opcode_bitlo             = 116;
+const int read_rs_last_opcode_bithi             = 120;
+//
+const int read_rw_rpc_en_bitlo                  = 121;
+const int read_rw_rpc_en_bithi                  = 122;
+//
+const int read_rw_ddd_start_bitlo               = 123;
+const int read_rw_ddd_start_bithi               = 123;
+//
+const int read_rw_ddd_wr_bitlo                  = 124;
+const int read_rw_ddd_wr_bithi                  = 139;
+//
+const int read_rw_dddoe_wr_bitlo                = 140;
+const int read_rw_dddoe_wr_bithi                = 143;
+//
+const int read_rw_perr_reset_bitlo              = 144;
+const int read_rw_perr_reset_bithi              = 144;
+//
+const int read_rw_parity_odd_bitlo              = 145;
+const int read_rw_parity_odd_bithi              = 145;
+//
+const int read_rw_perr_ignore_bitlo             = 146;
+const int read_rw_perr_ignore_bithi             = 146;
+//
+const int read_rw_rpc_future_bitlo              = 147;
+const int read_rw_rpc_future_bithi              = 152;
+//
+const int read_rs_rpc0_pdata_bitlo              = 153;
+const int read_rs_rpc0_pdata_bithi              = 171;
+//
+const int read_rs_rpc1_pdata_bitlo              = 172;
+const int read_rs_rpc1_pdata_bithi              = 190;
+//
+const int read_rs_unused_bitlo                  = 191;
+const int read_rs_unused_bithi                  = 219;
+//
+const int read_rs_end_bitlo                     = 220;
+const int read_rs_end_bithi                     = 223;
+//
+////////////////////////////////////////
+// User2 bit-map:
+////////////////////////////////////////
+const int write_rw_rpc_en_bitlo                  = 0;
+const int write_rw_rpc_en_bithi                  = 1;
+//
+const int write_rw_ddd_start_bitlo               = 2;
+const int write_rw_ddd_start_bithi               = 2;
+//
+const int write_rw_ddd_wr_bitlo                  = 3;
+const int write_rw_ddd_wr_bithi                  = 18;
+//
+const int write_rw_dddoe_wr_bitlo                = 19;
+const int write_rw_dddoe_wr_bithi                = 22;
+//
+const int write_rw_perr_reset_bitlo              = 23;
+const int write_rw_perr_reset_bithi              = 23;
+//
+const int write_rw_parity_odd_bitlo              = 24;
+const int write_rw_parity_odd_bithi              = 24;
+//
+const int write_rw_perr_ignore_bitlo             = 25;
+const int write_rw_perr_ignore_bithi             = 25;
+//
+const int write_rw_rpc_future_bitlo              = 26;
+const int write_rw_rpc_future_bithi              = 31;
+//
+//
+////-------------------------------////
+//     ALCTnew  constants            //
+////-------------------------------////
 //
 const int MAX_NUM_AFEBS = 42;
 const int MAX_NUM_LAYERS = 6;

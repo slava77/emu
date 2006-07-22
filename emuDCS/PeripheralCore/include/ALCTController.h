@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: ALCTController.h,v 3.1 2006/07/22 16:12:36 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.1  2006/07/22 16:12:36  rakness
+// clean up RAT/add JTAG checking
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -749,8 +752,6 @@ public:
   //
   void SetUpRandomALCT();
   //
-  inline void SetCheckJtagWrite(bool check_write) { check_write_ = check_write; }   //Check if read values = write values after Write commands
-  inline bool GetCheckJtagWrite() { return check_write_; }
   //
   //
   ////////////////////////////
@@ -991,9 +992,6 @@ private:
   //
   std::ostream * MyOutput_ ;
   TMB * tmb_ ;
-  //
-  //
-  bool check_write_;
   //
   //
   ////////////////////////////////////////////////////////////////////

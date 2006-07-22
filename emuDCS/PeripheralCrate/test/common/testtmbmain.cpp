@@ -14,7 +14,6 @@
 #include "PeripheralCrateParser.h"
 #include "ChamberUtilities.h"
 #include "TMB_constants.h"
-#include "ALCTnew.h"
 
 int  FindTMB_L1A_delay(int,int);
 TMB *thisTMB ;
@@ -270,18 +269,20 @@ int main() {
       //
     case 21:
       myRat->ReadRatUser1();
-      myRat->decodeRATUser1();
+      myRat->PrintRatUser1();
       break;
     case 22:
-      myRat->ReadRatUser2();
-      myRat->decodeRATUser2();
+      //      myRat->ReadRatUser2();
+      //      myRat->decodeRATUser2();
       break;
     case 23:
-      myRat->read_rpcrat_delay();
+      myRat->ReadRatUser1();
+      myRat->PrintRpcRatDelay();
       break;
     case 25:
       std::cout << "Current RPC-RAT delay values..." << std::endl;
-      myRat->read_rpcrat_delay();
+      myRat->ReadRatUser1();
+      myRat->PrintRpcRatDelay();
 
       std::cout << "set RPC0 (0) or RPC1 (1)" << std::endl;
       std::cin >> rpc;
@@ -289,13 +290,15 @@ int main() {
       std::cout << "set delay (0-15)" << std::endl;
       std::cin >> delay;
 
-      myRat->set_rpcrat_delay(rpc,delay);
+      myRat->SetRpcRatDelay(rpc,delay);
+      myRat->WriteRpcRatDelay();
+      myRat->PrintRpcRatDelay();
       break;
     case 26:
       myRat->reset_parity_error_counter();
       break;
     case 27:
-      myRat->read_rpc_data();
+      //      myRat->read_rpc_data();
       break;
     case 29:
       myRat->ReadRatUserCode();
@@ -316,16 +319,20 @@ int main() {
       myRat->set_rattmb_delay(delay);
       break;
     case 33:
-      myRat->set_perr_ignore();
+      myRat->SetRatParityErrorIgnore(ON);
+      myRat->configure();      
       break;
     case 34:
-      myRat->unset_perr_ignore();
+      myRat->SetRatParityErrorIgnore(OFF);
+      myRat->configure();      
       break;
     case 35:
-      myRat->use_parity_odd();
+      myRat->SetRatParityOdd(ON);
+      myRat->configure();
       break;
     case 36:
-      myRat->use_parity_even();
+      myRat->SetRatParityOdd(OFF);
+      myRat->configure();
       break;
     case 37:
       std::cout << "compute parity for RPC0 (0) or RPC1 (1)" << std::endl;
