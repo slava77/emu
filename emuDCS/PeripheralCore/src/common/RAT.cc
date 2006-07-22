@@ -18,6 +18,10 @@ RAT::RAT(TMB * tmb) :
 {
   //
   tmb_ = tmb;
+  //
+  SetPowerUpUser2Register_();
+  SetCheckJtagWrite(true);
+  //
   MyOutput_ = &std::cout ;
   //
 };
@@ -27,7 +31,16 @@ RAT::~RAT() {
   //
 }
 //
-void RAT::rpc_fpga_finished() {
+void RAT::configure() {
+  //
+  WriteRatUser2_();
+  //
+  PrintRatUser1();
+  //
+  return;
+}
+//
+void RAT::rpc_fpga_finished_() {
   // Test if the RPC FPGA is finished
 
   int rpc_done = 0;
@@ -50,58 +63,90 @@ void RAT::rpc_fpga_finished() {
   return;
 }
 //
+///////////////////////////////////
+// user and ID codes...
+///////////////////////////////////
 void RAT::ReadRatIdCode(){
+  //
   (*MyOutput_) << "RAT: Read RAT ID Codes" << std::endl;
   //
-  rpc_fpga_finished();
+  rpc_fpga_finished_();
   //
   setup_jtag(ChainRat);
   //
   ShfIR_ShfDR(ChipLocationRatFpga,
 	      FPGAidCode,
 	      RegSizeRatFpga_FPGAidCode);
-  rat_idcode_[0] = bits_to_int(GetDRtdo(),GetRegLength(),LSBfirst);
+  rat_idcode_[0] = bits_to_int(GetDRtdo(),
+			       GetRegLength(),
+			       LSBfirst);
   //
   //
   ShfIR_ShfDR(ChipLocationRatProm,
 	      PROMidCode,
 	      RegSizeRatProm_PROMidCode);
-  rat_idcode_[1] = bits_to_int(GetDRtdo(),GetRegLength(),LSBfirst);
   //
-  (*MyOutput_) << "RAT FPGA ID code = " << rat_idcode_[0] << std::endl;
-  (*MyOutput_) << "RAT PROM ID code = " << rat_idcode_[1] << std::endl;
+  rat_idcode_[1] = bits_to_int(GetDRtdo(),
+			       GetRegLength(),
+			       LSBfirst);
+  //
+  (*MyOutput_) << "RAT FPGA ID code = " << rat_idcode_[ChipLocationRatFpga] << std::endl;
+  (*MyOutput_) << "RAT PROM ID code = " << rat_idcode_[ChipLocationRatProm] << std::endl;
   //
   return;
 }
 //
+int RAT::GetRatIdCode(int device) {
+  // 
+  return rat_idcode_[device] ; 
+}
+//
+//
 void RAT::ReadRatUserCode(){
+  //
   (*MyOutput_) << "RAT: Read RAT User Codes" << std::endl;
   //
-  rpc_fpga_finished();
+  rpc_fpga_finished_();
   //
   setup_jtag(ChainRat);
   //
   ShfIR_ShfDR(ChipLocationRatFpga,
 	      FPGAuserCode,
 	      RegSizeRatFpga_FPGAuserCode);
-  rat_usercode_[0] = bits_to_int(GetDRtdo(),GetRegLength(),LSBfirst);
+  //
+  rat_usercode_[ChipLocationRatFpga] = bits_to_int(GetDRtdo(),
+						   GetRegLength(),
+						   LSBfirst);
   //
   //
   ShfIR_ShfDR(ChipLocationRatProm,
 	      PROMuserCode,
 	      RegSizeRatProm_PROMuserCode);
-  rat_usercode_[1] = bits_to_int(GetDRtdo(),GetRegLength(),LSBfirst);
   //
-  (*MyOutput_) << "RAT FPGA User code = " << rat_usercode_[0] << std::endl;
-  (*MyOutput_) << "RAT PROM User code = " << rat_usercode_[1] << std::endl;
+  rat_usercode_[ChipLocationRatProm] = bits_to_int(GetDRtdo(),
+						   GetRegLength(),
+						   LSBfirst);
+  //
+  (*MyOutput_) << "RAT FPGA User code = " << rat_usercode_[ChipLocationRatFpga] << std::endl;
+  (*MyOutput_) << "RAT PROM User code = " << rat_usercode_[ChipLocationRatProm] << std::endl;
   //
   return;
 }
 //
+int RAT::GetRatUserCode(int device) { 
+  //
+  return rat_usercode_[device] ; 
+}
+//
+//
+/////////////////////////////////////
+// User1 Register (read register):
+/////////////////////////////////////
 void RAT::ReadRatUser1(){
+  //
   (*MyOutput_) << "RAT: Read RAT USER1 JTAG (status register)" << std::endl;
   //
-  rpc_fpga_finished();
+  rpc_fpga_finished_();
   //
   //clear user1_value_
   for (int i=0; i<MAX_NUM_FRAMES; i++) 
@@ -125,440 +170,508 @@ void RAT::ReadRatUser1(){
   char rat_user1[rat_user1_length_/8];
   packCharBuffer(user1_value_,rat_user1_length_,rat_user1);
   //
-  (*MyOutput_) << "RAT USER1 = ";
+  (*MyOutput_) << "RAT USER1 = " << std::hex;
   for (int counter=(rat_user1_length_/8)-1; counter>=0; counter--) 
     (*MyOutput_) << ((rat_user1[counter] >> 4) & 0xf) << (rat_user1[counter] & 0xf);
   (*MyOutput_) << std::endl;
   //
-  //  decodeRATUser1();
+  decodeRATUser1_();
   //
   return;
 }
 //
-void RAT::decodeRATUser1() {
+void RAT::decodeRATUser1_() {
   // ** parse the bit array from the USER1 data register
-  // ** to print it out in a human readable form
-  int counter=0;
-  int i;
+  //  
+  read_rs_begin_ = bits_to_int(user1_value_ + read_rs_begin_bitlo,
+			       read_rs_begin_bithi - read_rs_begin_bitlo + 1,
+			       LSBfirst);
   //
-  int rs_begin_array[4];
-  for (i=0;i<4;i++) 
-    rs_begin_array[i] = user1_value_[counter++];
-  int rs_begin = bits_to_int(rs_begin_array,4,LSBfirst);
-  (*MyOutput_) << "Begin marker = " << rs_begin << std::endl;
+  read_rs_version_ = bits_to_int(user1_value_ + read_rs_version_bitlo,
+				 read_rs_version_bithi - read_rs_version_bitlo + 1,
+				 LSBfirst);
   //
-  int rs_version_array[4];
-  for (i=0;i<4;i++) 
-    rs_version_array[i] = user1_value_[counter++];
-  int rs_version = bits_to_int(rs_version_array,4,LSBfirst);
-  (*MyOutput_) << "Version ID = " << rs_version << std::endl;
+  read_rs_monthday_ = bits_to_int(user1_value_ + read_rs_monthday_bitlo,
+				  read_rs_monthday_bithi - read_rs_monthday_bitlo + 1,
+				  LSBfirst);
   //
-  int rs_monthday_array[16];
-  for (i=0;i<16;i++) 
-    rs_monthday_array[i] = user1_value_[counter++];
-  int rs_monthday = bits_to_int(rs_monthday_array,16,LSBfirst);
-  (*MyOutput_) << "Version Month/Day = " << rs_monthday << std::endl;
+  read_rs_year_ = bits_to_int(user1_value_ + read_rs_year_bitlo,
+			      read_rs_year_bithi - read_rs_year_bitlo + 1,			 
+			      LSBfirst);
   //
-  int rs_year_array[16];
-  for (i=0;i<16;i++) 
-    rs_year_array[i] = user1_value_[counter++];
-  int rs_year = bits_to_int(rs_year_array,16,LSBfirst);
-  (*MyOutput_) << "Version Year = " << rs_year << std::endl;
+  read_rs_syncmode_ = bits_to_int(user1_value_ + read_rs_syncmode_bitlo,
+				  read_rs_syncmode_bithi - read_rs_syncmode_bitlo + 1,			 
+				  LSBfirst);
   //
-  int rs_syncmode = user1_value_[counter++];
-  (*MyOutput_) << "1-> 80MHz sync mode = " << rs_syncmode << std::endl;
+  read_rs_posneg_ = bits_to_int(user1_value_ + read_rs_posneg_bitlo,
+				read_rs_posneg_bithi - read_rs_posneg_bitlo + 1,			 
+				LSBfirst);
   //
-  int rs_posneg = user1_value_[counter++];
-  (*MyOutput_) << "1-> Latch 40MHz RPC data on posedge = " << rs_posneg << std::endl;
+  read_rs_loop_ = bits_to_int(user1_value_ + read_rs_loop_bitlo,
+			      read_rs_loop_bithi - read_rs_loop_bitlo + 1,			 
+			      LSBfirst);
   //
-  int rs_loop = user1_value_[counter++];
-  (*MyOutput_) << "1-> Loopback mode = " << rs_loop << std::endl;
+  read_rs_rpc_en_ = bits_to_int(user1_value_ + read_rs_rpc_en_bitlo,
+				read_rs_rpc_en_bithi - read_rs_rpc_en_bitlo + 1,			 
+				LSBfirst);
   //
-  int rs_rpc_en_array[2];
-  for (i=0;i<2;i++) 
-    rs_rpc_en_array[i] = user1_value_[counter++];
-  int rs_rpc_en = bits_to_int(rs_rpc_en_array,2,LSBfirst);
-  (*MyOutput_) << "RPC driver enabled = " << rs_rpc_en << std::endl;
+  read_rs_clk_active_ = bits_to_int(user1_value_ + read_rs_clk_active_bitlo,
+				    read_rs_clk_active_bithi - read_rs_clk_active_bitlo + 1,			 
+				    LSBfirst);
   //
-  int rs_clk_active_array[2];
-  for (i=0;i<2;i++) 
-    rs_clk_active_array[i] = user1_value_[counter++];
-  int rs_clk_active = bits_to_int(rs_clk_active_array,2,LSBfirst);
-  (*MyOutput_) << "RPC direct clock status = " << rs_clk_active << std::endl;
+  read_rs_locked_tmb_ = bits_to_int(user1_value_ + read_rs_locked_tmb_bitlo,
+				    read_rs_locked_tmb_bithi - read_rs_locked_tmb_bitlo + 1,			 
+				    LSBfirst);
   //
-  int rs_locked_tmb = user1_value_[counter++];
-  (*MyOutput_) << "TMB DLL locked = " << rs_locked_tmb << std::endl;
+  read_rs_locked_rpc0_ = bits_to_int(user1_value_ + read_rs_locked_rpc0_bitlo,
+				     read_rs_locked_rpc0_bithi - read_rs_locked_rpc0_bitlo + 1,			 
+				     LSBfirst);
   //
-  int rs_locked_rpc0 = user1_value_[counter++];
-  (*MyOutput_) << "RPC0 DLL locked = " << rs_locked_rpc0 << std::endl;
+  read_rs_locked_rpc1_ = bits_to_int(user1_value_ + read_rs_locked_rpc1_bitlo,
+				     read_rs_locked_rpc1_bithi - read_rs_locked_rpc1_bitlo + 1,			 
+				     LSBfirst);
   //
-  int rs_locked_rpc1 = user1_value_[counter++];
-  (*MyOutput_) << "RPC1 DLL locked = " << rs_locked_rpc1 << std::endl;
+  read_rs_locklost_tmb_ = bits_to_int(user1_value_ + read_rs_locklost_tmb_bitlo, 
+				      read_rs_locklost_tmb_bithi - read_rs_locklost_tmb_bitlo + 1,			 
+				      LSBfirst);
   //
-  int rs_locklost_tmb = user1_value_[counter++];
-  (*MyOutput_) << "TMB DLL lost lock = " << rs_locklost_tmb << std::endl;
+  read_rs_locklost_rpc0_ = bits_to_int(user1_value_ + read_rs_locklost_rpc0_bitlo, 
+				       read_rs_locklost_rpc0_bithi - read_rs_locklost_rpc0_bitlo + 1,			 
+				       LSBfirst);
   //
-  int rs_locklost_rpc0 = user1_value_[counter++];
-  (*MyOutput_) << "RPC0 DLL lost lock = " << rs_locklost_rpc0 << std::endl;
+  read_rs_locklost_rpc1_ = bits_to_int(user1_value_ + read_rs_locklost_rpc1_bitlo, 
+				       read_rs_locklost_rpc1_bithi - read_rs_locklost_rpc1_bitlo + 1,			 
+				       LSBfirst);
   //
-  int rs_locklost_rpc1 = user1_value_[counter++];
-  (*MyOutput_) << "RPC1 DLL lost lock = " << rs_locklost_rpc1 << std::endl;
+  read_rs_txok_ = bits_to_int(user1_value_ + read_rs_txok_bitlo, 
+			      read_rs_txok_bithi - read_rs_txok_bitlo + 1,			 
+			      LSBfirst);
   //
-  int rs_txok = user1_value_[counter++];
-  (*MyOutput_) << "ALCT TX OK = " << rs_txok << std::endl;
+  read_rs_rxok_ = bits_to_int(user1_value_ + read_rs_rxok_bitlo, 
+			      read_rs_rxok_bithi - read_rs_rxok_bitlo + 1,			 
+			      LSBfirst);
   //
-  int rs_rxok = user1_value_[counter++];
-  (*MyOutput_) << "ALCT RX OK = " << rs_rxok << std::endl;
+  read_rs_ntcrit_ = bits_to_int(user1_value_ + read_rs_ntcrit_bitlo, 
+				read_rs_ntcrit_bithi - read_rs_ntcrit_bitlo + 1,			 
+				LSBfirst);
   //
-  int rs_ntcrit = user1_value_[counter++];
-  (*MyOutput_) << "Over Temperature Threshold = " << rs_ntcrit << std::endl;
+  read_rs_rpc_free_ = bits_to_int(user1_value_ + read_rs_rpc_free_bitlo, 
+				  read_rs_rpc_free_bithi - read_rs_rpc_free_bitlo + 1,			 
+				  LSBfirst);
   //
-  int rs_rpc_free = user1_value_[counter++];
-  (*MyOutput_) << "rpc_free0 from TMB = " << rs_rpc_free << std::endl;
+  read_rs_dsn_ = bits_to_int(user1_value_ + read_rs_dsn_bitlo, 
+			     read_rs_dsn_bithi - read_rs_dsn_bitlo + 1,			 
+			     LSBfirst);
   //
-  int rs_dsn = user1_value_[counter++];
-  (*MyOutput_) << "rpc_dsn to TMB = " << rs_dsn << std::endl;
+  read_rs_dddoe_wr_ = bits_to_int(user1_value_ + read_rs_dddoe_wr_bitlo,
+				  read_rs_dddoe_wr_bithi - read_rs_dddoe_wr_bitlo + 1,			 
+				  LSBfirst);
   //
-  int rs_dddoe_wr_array[4];
-  for (i=0;i<4;i++) 
-    rs_dddoe_wr_array[i] = user1_value_[counter++];
-  int rs_dddoe_wr = bits_to_int(rs_dddoe_wr_array,4,LSBfirst);
-  (*MyOutput_) << "DDD status:  output enables = " << rs_dddoe_wr << std::endl;
+  read_rs_ddd_wr_ = bits_to_int(user1_value_ + read_rs_ddd_wr_bitlo,
+				read_rs_ddd_wr_bithi - read_rs_ddd_wr_bitlo + 1,			 
+				LSBfirst);
+  for (int rpc=0; rpc<4; rpc++)
+    read_rpc_rat_delay_[rpc] = (read_rs_ddd_wr_ >> rpc*4) & 0xf;
   //
-  int rs_ddd_wr_array[16];
-  for (i=0;i<16;i++) 
-    rs_ddd_wr_array[i] = user1_value_[counter++];
-  int rs_ddd_wr = bits_to_int(rs_ddd_wr_array,16,LSBfirst);
-  (*MyOutput_) << "DDD status:  delay values = " << rs_ddd_wr << std::endl;
+  read_rs_ddd_auto_ = bits_to_int(user1_value_ + read_rs_ddd_auto_bitlo, 
+				  read_rs_ddd_auto_bithi - read_rs_ddd_auto_bitlo + 1,			 
+				  LSBfirst);
   //
-  int rs_ddd_auto = user1_value_[counter++];
-  (*MyOutput_) << "1-> start DDD on power-up = " << rs_ddd_auto << std::endl;
+  read_rs_ddd_start_ = bits_to_int(user1_value_ + read_rs_ddd_start_bitlo, 
+				   read_rs_ddd_start_bithi - read_rs_ddd_start_bitlo + 1,			 
+				   LSBfirst);
   //
-  int rs_ddd_start = user1_value_[counter++];
-  (*MyOutput_) << "DDD status: start ddd machine  = " << rs_ddd_start << std::endl;
+  read_rs_ddd_busy_ = bits_to_int(user1_value_ + read_rs_ddd_busy_bitlo, 
+				  read_rs_ddd_busy_bithi - read_rs_ddd_busy_bitlo + 1,			 
+				  LSBfirst);
   //
-  int rs_ddd_busy = user1_value_[counter++];
-  (*MyOutput_) << "DDD status: state machine busy = " << rs_ddd_busy << std::endl;
+  read_rs_ddd_verify_ok_ = bits_to_int(user1_value_ + read_rs_ddd_verify_ok_bitlo, 
+				       read_rs_ddd_verify_ok_bithi - read_rs_ddd_verify_ok_bitlo + 1,			 
+				       LSBfirst);
   //
-  int rs_ddd_verify_ok = user1_value_[counter++];
-  (*MyOutput_) << "DDD status: data readback OK = " << rs_ddd_verify_ok << std::endl;
+  read_rs_rpc0_parity_ok_ = bits_to_int(user1_value_ + read_rs_rpc0_parity_ok_bitlo, 
+					read_rs_rpc0_parity_ok_bithi - read_rs_rpc0_parity_ok_bitlo + 1,
+					LSBfirst);
   //
-  int rs_rpc0_parity_ok = user1_value_[counter++];
-  (*MyOutput_) << "RPC0 parity OK currently = " << rs_rpc0_parity_ok << std::endl;
+  read_rs_rpc1_parity_ok_ = bits_to_int(user1_value_ + read_rs_rpc1_parity_ok_bitlo, 
+					read_rs_rpc1_parity_ok_bithi - read_rs_rpc1_parity_ok_bitlo + 1,
+					LSBfirst);
   //
-  int rs_rpc1_parity_ok = user1_value_[counter++];
-  (*MyOutput_) << "RPC1 parity OK currently = " << rs_rpc1_parity_ok << std::endl;
+  read_rs_rpc0_cnt_perr_ = bits_to_int(user1_value_ + read_rs_rpc0_cnt_perr_bitlo,
+				       read_rs_rpc0_cnt_perr_bithi - read_rs_rpc0_cnt_perr_bitlo + 1,			 
+				       LSBfirst);
   //
-  int rs_rpc0_cnt_perr_array[16];
-  for (i=0;i<16;i++) 
-    rs_rpc0_cnt_perr_array[i] = user1_value_[counter++];
-  int rs_rpc0_cnt_perr = bits_to_int(rs_rpc0_cnt_perr_array,16,LSBfirst);
-  (*MyOutput_) << "RPC0 parity error counter = " << rs_rpc0_cnt_perr << std::endl;
+  read_rs_rpc1_cnt_perr_ = bits_to_int(user1_value_ + read_rs_rpc1_cnt_perr_bitlo,
+				       read_rs_rpc1_cnt_perr_bithi - read_rs_rpc1_cnt_perr_bitlo + 1,			 
+				       LSBfirst);
   //
-  int rs_rpc1_cnt_perr_array[16];
-  for (i=0;i<16;i++) 
-    rs_rpc1_cnt_perr_array[i] = user1_value_[counter++];
-  int rs_rpc1_cnt_perr = bits_to_int(rs_rpc1_cnt_perr_array,16,LSBfirst);
-  (*MyOutput_) << "RPC1 parity error counter = " << rs_rpc1_cnt_perr << std::endl;
+  read_rs_last_opcode_ = bits_to_int(user1_value_ + read_rs_last_opcode_bitlo,
+				     read_rs_last_opcode_bithi - read_rs_last_opcode_bitlo + 1,			 
+				     LSBfirst);
   //
-  int rs_last_opcode_array[5];
-  for (i=0;i<5;i++) 
-    rs_last_opcode_array[i] = user1_value_[counter++];
-  int rs_last_opcode = bits_to_int(rs_last_opcode_array,5,LSBfirst);
-  (*MyOutput_) << "Last firmware TAP cmd opcode = " << rs_last_opcode << std::endl;
+  read_rw_rpc_en_ = bits_to_int(user1_value_ + read_rw_rpc_en_bitlo,
+				read_rw_rpc_en_bithi - read_rw_rpc_en_bitlo + 1,			 
+				LSBfirst);
   //
-  int rw_rpc_en_array[2];
-  for (i=0;i<2;i++) 
-    rw_rpc_en_array[i] = user1_value_[counter++];
-  int rw_rpc_en = bits_to_int(rw_rpc_en_array,2,LSBfirst);
-  (*MyOutput_) << "rw_rpc_en = " << rw_rpc_en << std::endl;
+  read_rw_ddd_start_ = bits_to_int(user1_value_ + read_rw_ddd_start_bitlo, 
+				   read_rw_ddd_start_bithi - read_rw_ddd_start_bitlo + 1,			 
+				   LSBfirst);
   //
-  int rw_ddd_start = user1_value_[counter++];
-  (*MyOutput_) << "rw_ddd_start  = " << rw_ddd_start << std::endl;
+  read_rw_ddd_wr_ = bits_to_int(user1_value_ + read_rw_ddd_wr_bitlo,
+				read_rw_ddd_wr_bithi - read_rw_ddd_wr_bitlo + 1,			 
+				LSBfirst);
   //
-  int rw_ddd_wr_array[16];
-  for (i=0;i<16;i++) 
-    rw_ddd_wr_array[i] = user1_value_[counter++];
-  int rw_ddd_wr = bits_to_int(rw_ddd_wr_array,16,LSBfirst);
-  (*MyOutput_) << "rw_ddd_wr = " << rw_ddd_wr << std::endl;
+  read_rw_dddoe_wr_ = bits_to_int(user1_value_ + read_rw_dddoe_wr_bitlo,
+				  read_rw_dddoe_wr_bithi - read_rw_dddoe_wr_bitlo + 1,			 
+				  LSBfirst);
   //
-  int rw_dddoe_wr_array[4];
-  for (i=0;i<4;i++) 
-    rw_dddoe_wr_array[i] = user1_value_[counter++];
-  int rw_dddoe_wr = bits_to_int(rw_dddoe_wr_array,4,LSBfirst);
-  (*MyOutput_) << "rw_dddoe_wr = " << rw_dddoe_wr << std::endl;
+  read_rw_perr_reset_ = bits_to_int(user1_value_ + read_rw_perr_reset_bitlo, 
+				    read_rw_perr_reset_bithi - read_rw_perr_reset_bitlo + 1,			 
+				    LSBfirst);
   //
-  int rw_perr_reset = user1_value_[counter++];
-  (*MyOutput_) << "rw_perr_reset = " << rw_perr_reset << std::endl;
+  read_rw_parity_odd_ = bits_to_int(user1_value_ + read_rw_parity_odd_bitlo, 
+				    read_rw_parity_odd_bithi - read_rw_parity_odd_bitlo + 1,			 
+				    LSBfirst);
   //
-  int rw_parity_odd = user1_value_[counter++];
-  (*MyOutput_) << "rw_parity_odd = " << rw_parity_odd << std::endl;
+  read_rw_perr_ignore_ = bits_to_int(user1_value_ + read_rw_perr_ignore_bitlo, 
+				     read_rw_perr_ignore_bithi - read_rw_perr_ignore_bitlo + 1,			 
+				     LSBfirst);
   //
-  int rw_perr_ignore = user1_value_[counter++];
-  (*MyOutput_) << "rw_perr_ignore = " << rw_perr_ignore << std::endl;
+  read_rw_rpc_future_ = bits_to_int(user1_value_ + read_rw_rpc_future_bitlo,
+				    read_rw_rpc_future_bithi - read_rw_rpc_future_bitlo + 1,			 
+				    LSBfirst);
   //
-  int rw_rpc_future_array[6];
-  for (i=0;i<6;i++) 
-    rw_rpc_future_array[i] = user1_value_[counter++];
-  int rw_rpc_future = bits_to_int(rw_rpc_future_array,6,LSBfirst);
-  (*MyOutput_) << "rw_rpc_future = " << rw_rpc_future << std::endl;
+  read_rs_rpc0_pdata_ = bits_to_int(user1_value_ + read_rs_rpc0_pdata_bitlo,
+				    read_rs_rpc0_pdata_bithi - read_rs_rpc0_pdata_bitlo + 1,			 
+				    LSBfirst);
   //
-  int rs_rpc0_pdata_array[19];
-  for (i=0;i<19;i++) 
-    rs_rpc0_pdata_array[i] = user1_value_[counter++];
-  int rs_rpc0_pdata = bits_to_int(rs_rpc0_pdata_array,19,LSBfirst);
-  (*MyOutput_) << "RPC0 data (includes 16 pad bits + 3bxn) = " << rs_rpc0_pdata << std::endl;
+  read_rs_rpc1_pdata_ = bits_to_int(user1_value_ + read_rs_rpc1_pdata_bitlo,
+				    read_rs_rpc1_pdata_bithi - read_rs_rpc1_pdata_bitlo + 1,			 
+				    LSBfirst);
   //
-  int rs_rpc1_pdata_array[19];
-  for (i=0;i<19;i++) 
-    rs_rpc1_pdata_array[i] = user1_value_[counter++];
-  int rs_rpc1_pdata = bits_to_int(rs_rpc1_pdata_array,19,LSBfirst);
-  (*MyOutput_) << "RPC1 data (includes 16 pad bits + 3bxn) = " << rs_rpc1_pdata << std::endl;
+  read_rs_unused_ = bits_to_int(user1_value_ + read_rs_unused_bitlo,
+				read_rs_unused_bithi - read_rs_unused_bitlo + 1,			 
+				LSBfirst);
   //
-  int rs_unused_array[29];
-  for (i=0;i<29;i++) 
-    rs_unused_array[i] = user1_value_[counter++];
-  int rs_unused = bits_to_int(rs_unused_array,29,LSBfirst);
-  (*MyOutput_) << "Unused bits = " << rs_unused << std::endl;
+  read_rs_end_ = bits_to_int(user1_value_ + read_rs_end_bitlo,
+			     read_rs_end_bithi - read_rs_end_bitlo + 1,			 
+			     LSBfirst);
+  return;
+}
+//
+void RAT::PrintRatUser1() {
   //
-  int rs_end_array[4];
-  for (i=0;i<4;i++) 
-    rs_end_array[i] = user1_value_[counter++];
-  int rs_end = bits_to_int(rs_end_array,4,LSBfirst);
-  (*MyOutput_) << "End marker = " << rs_end << std::endl;
+  (*MyOutput_) << std::hex;
+  (*MyOutput_) << "Begin marker = " << read_rs_begin_ << std::endl;
+  (*MyOutput_) << "Version ID = " << read_rs_version_ << std::endl;
+  (*MyOutput_) << "Version Month/Day = " << read_rs_monthday_ << std::endl;
+  (*MyOutput_) << "Version Year = " << read_rs_year_ << std::endl;
+  (*MyOutput_) << "1-> 80MHz sync mode = " << read_rs_syncmode_ << std::endl;
+  (*MyOutput_) << "1-> Latch 40MHz RPC data on posedge = " << read_rs_posneg_ << std::endl;
+  (*MyOutput_) << "1-> Loopback mode = " << read_rs_loop_ << std::endl;
+  (*MyOutput_) << "RPC driver enabled = " << read_rs_rpc_en_ << std::endl;
+  (*MyOutput_) << "RPC direct clock status = " << read_rs_clk_active_ << std::endl;
+  (*MyOutput_) << "TMB DLL locked = " << read_rs_locked_tmb_ << std::endl;
+  (*MyOutput_) << "RPC0 DLL locked = " << read_rs_locked_rpc0_ << std::endl;
+  (*MyOutput_) << "RPC1 DLL locked = " << read_rs_locked_rpc1_ << std::endl;
+  (*MyOutput_) << "TMB DLL lost lock = " << read_rs_locklost_tmb_ << std::endl;
+  (*MyOutput_) << "RPC0 DLL lost lock = " << read_rs_locklost_rpc0_ << std::endl;
+  (*MyOutput_) << "RPC1 DLL lost lock = " << read_rs_locklost_rpc1_ << std::endl;
+  (*MyOutput_) << "ALCT TX OK = " << read_rs_txok_ << std::endl;
+  (*MyOutput_) << "ALCT RX OK = " << read_rs_rxok_ << std::endl;
+  (*MyOutput_) << "Over Temperature Threshold = " << read_rs_ntcrit_ << std::endl;
+  (*MyOutput_) << "rpc_free0 from TMB = " << read_rs_rpc_free_ << std::endl;
+  (*MyOutput_) << "rpc_dsn to TMB = " << read_rs_dsn_ << std::endl;
+  (*MyOutput_) << "DDD status:  output enables = " << read_rs_dddoe_wr_ << std::endl;
+  (*MyOutput_) << "DDD status:  delay values = " << read_rs_ddd_wr_ << std::endl;
+  (*MyOutput_) << "1-> start DDD on power-up = " << read_rs_ddd_auto_ << std::endl;
+  (*MyOutput_) << "DDD status: start ddd machine  = " << read_rs_ddd_start_ << std::endl;
+  (*MyOutput_) << "DDD status: state machine busy = " << read_rs_ddd_busy_ << std::endl;
+  (*MyOutput_) << "DDD status: data readback OK = " << read_rs_ddd_verify_ok_ << std::endl;
+  (*MyOutput_) << "RPC0 parity OK currently = " << read_rs_rpc0_parity_ok_ << std::endl;
+  (*MyOutput_) << "RPC1 parity OK currently = " << read_rs_rpc1_parity_ok_ << std::endl;
+  (*MyOutput_) << "RPC0 parity error counter = " << read_rs_rpc0_cnt_perr_ << std::endl;
+  (*MyOutput_) << "RPC1 parity error counter = " << read_rs_rpc1_cnt_perr_ << std::endl;
+  (*MyOutput_) << "Last firmware TAP cmd opcode = " << read_rs_last_opcode_ << std::endl;
+  (*MyOutput_) << "read_rw_rpc_en = " << read_rw_rpc_en_ << std::endl;
+  (*MyOutput_) << "read_rw_ddd_start  = " << read_rw_ddd_start_ << std::endl;
+  (*MyOutput_) << "read_rw_ddd_wr = " << read_rw_ddd_wr_ << std::endl;
+  (*MyOutput_) << "read_rw_dddoe_wr = " << read_rw_dddoe_wr_ << std::endl;
+  (*MyOutput_) << "read_rw_perr_reset = " << read_rw_perr_reset_ << std::endl;
+  (*MyOutput_) << "read_rw_parity_odd = " << read_rw_parity_odd_ << std::endl;
+  (*MyOutput_) << "read_rw_perr_ignore = " << read_rw_perr_ignore_ << std::endl;
+  (*MyOutput_) << "read_rw_rpc_future = " << read_rw_rpc_future_ << std::endl;
+  (*MyOutput_) << "RPC0 data (includes 16 pad bits + 3bxn) = " << read_rs_rpc0_pdata_ << std::endl;
+  (*MyOutput_) << "RPC1 data (includes 16 pad bits + 3bxn) = " << read_rs_rpc1_pdata_ << std::endl;
+  (*MyOutput_) << "Unused bits = " << read_rs_unused_ << std::endl;
+  (*MyOutput_) << "End marker = " << read_rs_end_ << std::endl;
   //
   return;
 }
 //
-void RAT::ReadRatUser2(){
-  (*MyOutput_) << "RAT: Read RAT USER2 JTAG (control register)" << std::endl;
+int RAT::GetRpcRatDelay(int rpc) { 
   //
-  rpc_fpga_finished();
+  if ( rpc<0 || rpc>1 ) {
+    (*MyOutput_) << "SetRpcRatDelay ERROR: RPC " << rpc << " does not exist" << std::endl;
+    return 999;
+  }
   //
-  //clear user2_value_
-  for (int i=0; i<MAX_NUM_FRAMES; i++) 
-    user2_value_[i] = 0;
+  return read_rpc_rat_delay_[rpc];
+} 
+int RAT::GetRatRpcParityErrorCounter(int rpc) { 
   //
-  setup_jtag(ChainRat);
+  if (rpc==0) {
+    return read_rs_rpc0_cnt_perr_; 
+  } else if (rpc==1) {
+    return read_rs_rpc1_cnt_perr_; 
+  } else {
+    (*MyOutput_) << "GetRatRpcParityErrorCounter ERROR: RPC " << rpc << " does not exist" << std::endl;
+    return -1;
+  }
   //
-  ShfIR_ShfDR(ChipLocationRatFpga,
-	      FPGAuser2,
-	      RegSizeRatFpga_FPGAuser2);
-  //
-  //Fill user2_ information:
-  rat_user2_length_ = GetRegLength();
-  int * user2_pointer = GetDRtdo();
-  //
-  for (int i=0; i<rat_user2_length_; i++) 
-    user2_value_[i] = *(user2_pointer+i);
-  //
-  //  (*MyOutput_) << "user2_value_ = ";
-  //  for (int i=rat_user2_length_-1; i>=0; i--) (*MyOutput_) << user2_value_[i];
-  //  (*MyOutput_) << std::endl;
-  //
-  //Put data back into User2 (readout was destructive)
-  int rsd[rat_user2_length_];
-  //
-  for (int i=0; i<rat_user2_length_; i++) 
-    rsd[i] = user2_value_[i];
-  //
-  ShfIR_ShfDR(ChipLocationRatFpga,
-	      FPGAuser2,
-	      RegSizeRatFpga_FPGAuser2,
-	      rsd);
-  //
-  //Print out the USER2 value from right (first bit out) to left (last bit out):
-  char rat_user2[rat_user2_length_/8];
-  packCharBuffer(user2_value_,rat_user2_length_,rat_user2);
-  //
-  (*MyOutput_) << "RAT USER2 = ";
-  for (int counter=(rat_user2_length_/8)-1; counter>=0; counter--) 
-    (*MyOutput_) << ((rat_user2[counter] >> 4) & 0xf) << (rat_user2[counter] & 0xf);
-  (*MyOutput_) << std::endl;
-  //
-  //  decodeRATUser2();
-  //
-  return;
 }
 //
-void RAT::decodeRATUser2() {
-  // ** parse the bit array from the USER2 data register
-  // ** to print it out in a human readable form
-  int i;
-  int counter = 0;
+int RAT::GetRatRpcParityOk(int rpc) {
   //
-  int ws_rpc_en_array[2];
-  for (i=0;i<2;i++) 
-    ws_rpc_en_array[i] = user2_value_[counter++];
-  int ws_rpc_en = bits_to_int(ws_rpc_en_array,2,LSBfirst);
+  if (rpc==0) {
+    return read_rs_rpc0_parity_ok_; 
+  } else if (rpc==1) {
+    return read_rs_rpc1_parity_ok_; 
+  } else {
+    (*MyOutput_) << "GetRatRpcParityOk ERROR: RPC " << rpc << " does not exist" << std::endl;
+    return -1;
+  }
   //
-  int ws_ddd_start = user2_value_[counter++];
-  //
-  int ws_ddd_wr_array[16];
-  for (i=0;i<16;i++) 
-    ws_ddd_wr_array[i] = user2_value_[counter++];
-  int ws_ddd_wr = bits_to_int(ws_ddd_wr_array,16,LSBfirst);
-  //
-  int ws_dddoe_wr_array[4];
-  for (i=0;i<4;i++) 
-    ws_dddoe_wr_array[i] = user2_value_[counter++];
-  int ws_dddoe_wr = bits_to_int(ws_dddoe_wr_array,4,LSBfirst);
-  //
-  int ws_perr_reset = user2_value_[counter++];
-  //
-  int ws_parity_odd = user2_value_[counter++];
-  //
-  int ws_perr_ignore = user2_value_[counter++];
-  //
-  int ws_rpc_future_array[6];
-  for (i=0;i<6;i++) 
-    ws_rpc_future_array[i] = user2_value_[counter++];
-  int ws_rpc_future = bits_to_int(ws_rpc_future_array,6,LSBfirst);
-  //
-  (*MyOutput_) << "ws_rpc_en = " << ws_rpc_en << std::endl;
-  (*MyOutput_) << "ws_ddd_start  = " << ws_ddd_start << std::endl;
-  (*MyOutput_) << "ws_ddd_wr = " << ws_ddd_wr << std::endl;
-  (*MyOutput_) << "ws_dddoe_wr = " << ws_dddoe_wr << std::endl;
-  (*MyOutput_) << "ws_perr_reset = " << ws_perr_reset << std::endl;
-  (*MyOutput_) << "ws_parity_odd = " << ws_parity_odd << std::endl;
-  (*MyOutput_) << "ws_perr_ignore = " << ws_perr_ignore << std::endl;
-  (*MyOutput_) << "ws_rpc_future = " << ws_rpc_future << std::endl;
-  //
-  return;
 }
 //
-void RAT::WriteRatUser2_(int * data_in){
+int RAT::GetRatRpcPdata(int rpc) {
+  //
+  if (rpc==0) {
+    return read_rs_rpc0_pdata_; 
+  } else if (rpc==1) {
+    return read_rs_rpc1_pdata_; 
+  } else {
+    (*MyOutput_) << "GetRatRpcPdata ERROR: RPC " << rpc << " does not exist" << std::endl;
+    return -1;
+  }
+  //
+}
+//
+//
+////////////////////////////////////////
+// User2 Register (control register):
+////////////////////////////////////////
+void RAT::WriteRatUser2_(){
+  //
   (*MyOutput_) << "RAT: Write RAT USER2 JTAG (control register)" << std::endl;
   //
-  rpc_fpga_finished();
+  rpc_fpga_finished_();
+  //
+  FillRatUser2_();
   //
   setup_jtag(ChainRat);
   //	       
   ShfIR_ShfDR(ChipLocationRatFpga,
 	      FPGAuser2,
 	      RegSizeRatFpga_FPGAuser2,
-	      data_in);
+	      user2_value_);
+  //
+  if (GetCheckJtagWrite()) {
+    // There is a copy of the User2 register embedded in the read-only User1 register:
+    ReadRatUser1();
+    CompareBitByBit(user2_value_,
+		    user1_value_ + read_rw_rpc_en_bitlo,
+		    RegSizeRatFpga_FPGAuser2);
+  }
   //
   return;
 }
 //
 //
-void RAT::set_rpcrat_delay(int rpc,int delay) {
+void RAT::FillRatUser2_() {
+  // ** fill the bit array for the USER2 data register
   //
-  if ( rpc==0 || rpc==1 ) {
-    if (delay >= 0 && delay <=12 ) {
-      (*MyOutput_) << "Set RPC " << rpc << " delay = " << std::hex << delay << std::endl;
-    } else {
-      (*MyOutput_) << "only delay values 0-12 allowed" << std::endl;      
-      return;
-    }
-  } else {
-    (*MyOutput_) << "RPC " << rpc << " does not exist" << std::endl;
+  int_to_bits(write_rw_rpc_en_,
+	      write_rw_rpc_en_bithi - write_rw_rpc_en_bitlo + 1,
+	      user2_value_ + write_rw_rpc_en_bitlo,
+	      LSBfirst);
+  //
+  int_to_bits(write_rw_ddd_start_,
+	      write_rw_ddd_start_bithi - write_rw_ddd_start_bitlo + 1,
+	      user2_value_ + write_rw_ddd_start_bitlo,
+	      LSBfirst);
+  //
+  for (int rpc=0; rpc<4; rpc++)
+    int_to_bits(write_rpc_rat_delay_[rpc],
+		4,
+		user2_value_ + write_rw_ddd_wr_bitlo + 4*rpc,		
+		LSBfirst);
+  //
+  int_to_bits(write_rw_dddoe_wr_,
+	      write_rw_dddoe_wr_bithi - write_rw_dddoe_wr_bitlo + 1,
+	      user2_value_ + write_rw_dddoe_wr_bitlo,
+	      LSBfirst);
+  //
+  int_to_bits(write_rw_perr_reset_,
+	      write_rw_perr_reset_bithi - write_rw_perr_reset_bitlo + 1,
+	      user2_value_ + write_rw_perr_reset_bitlo,
+	      LSBfirst);
+  //
+  int_to_bits(write_rw_parity_odd_,
+	      write_rw_parity_odd_bithi - write_rw_parity_odd_bitlo + 1,
+	      user2_value_ + write_rw_parity_odd_bitlo,
+	      LSBfirst);
+  //
+  int_to_bits(write_rw_perr_ignore_,
+	      write_rw_perr_ignore_bithi - write_rw_perr_ignore_bitlo + 1,
+	      user2_value_ + write_rw_perr_ignore_bitlo,
+	      LSBfirst);
+  //
+  int_to_bits(write_rw_rpc_future_,
+	      write_rw_rpc_future_bithi - write_rw_rpc_future_bitlo + 1,
+	      user2_value_ + write_rw_rpc_future_bitlo,
+	      LSBfirst);
+  //
+  return;
+}
+//
+void RAT::SetRatRpcEnable_(int enable) { 
+  //
+  write_rw_rpc_en_ = enable & 0x3;
+  return; 
+} 
+//              
+void RAT::SetRat3dStart_(int on_or_off) { 
+  //
+  write_rw_ddd_start_ = on_or_off & 0x1;
+  return; 
+}
+//
+void RAT::SetRpcRatDelay(int rpc, int delay) { 
+  //
+  if ( rpc<0 || rpc>1 ) {
+    (*MyOutput_) << "SetRpcRatDelay ERROR: RPC " << rpc << " does not exist" << std::endl;
     return;
   }
   //
-  ReadRatUser2();               // get the current user2_value_
-  //
-  delay &= 0x000f;              //strip off extraneous bits
-  //
-  int lowbit =  2 + rpc*4;      //lowest position of delay bit to set
-  int highbit = lowbit+4;       //highest position of delay bit to set
-  //
-  int rsd[MAX_NUM_FRAMES];
-  int bitcount = 0;
-  //
-  // ** Set the new RAT USER2 bits. ** 
-  // ** Bits which are unchanged need to be explicitly put back**
-  for (int i=0; i<rat_user2_length_; i++) {
-    rsd[i]=user2_value_[i];
-    if (i==2) 
-      rsd[i] = 0;                            // unstart state machine
-    if (i>lowbit && i<=highbit ) {
-      rsd[i] = (delay >> bitcount++) & 0x1;  // new delay values
-    }
+  if (delay<0 || delay>12 ) {
+    (*MyOutput_) << "SetRpcRatDelay ERROR:  only delay values 0-12 allowed" << std::endl;      
+    return;
   }
-  WriteRatUser2_(rsd);
+  //
+  write_rpc_rat_delay_[rpc] = delay & 0xf;
+  return;
+} 
+//
+void RAT::SetRat3dOutputEnable_(int enable) { 
+  //
+  write_rw_dddoe_wr_ = enable & 0xf; 
+  return;
+} 
+//            
+void RAT::SetRatParityErrorReset_(int on_or_off) { 
+  //
+  write_rw_perr_reset_ = on_or_off & 0x1;
+  return; 
+}    
+//
+void RAT::SetRatParityOdd(int on_or_off) { 
+  //
+  write_rw_parity_odd_ = on_or_off & 0x1;
+  return;
+} 
+//          
+void RAT::SetRatParityErrorIgnore(int on_or_off) { 
+  //
+  write_rw_perr_ignore_ = on_or_off & 0x1; 
+  return;
+}  
+//
+void RAT::SetRatRpcFuture_(int dummy) { 
+  //
+  write_rw_rpc_future_ = dummy & 0x3f; 
+  return; 
+}               
+//
+void RAT::SetPowerUpUser2Register_() {
+  //
+  SetRatRpcEnable_(3);
+  SetRat3dStart_(OFF);
+  //
+  write_rpc_rat_delay_[0] = 3;
+  write_rpc_rat_delay_[1] = 3;
+  write_rpc_rat_delay_[2] = 0;
+  write_rpc_rat_delay_[3] = 0;
+  //
+  SetRat3dOutputEnable_(3);             
+  SetRatParityErrorReset_(OFF);
+  SetRatParityOdd(ON);
+  SetRatParityErrorIgnore(OFF);
+  SetRatRpcFuture_(0);
+  //
+  return;
+}
+//
+void RAT::WriteRpcRatDelay() {
+  //
+  // unstart state machine at the same time as delay values are set:
+  SetRat3dStart_(OFF);
+  WriteRatUser2_();
+  //
   //
   // **Check that the DDD state machine went idle...**
-  int ddd_busy = 1;
-  while (ddd_busy != 0) {
+  while (GetRat3dBusy() != 0) {
     ReadRatUser1();
-    ddd_busy = user1_value_[80] & 0x1;
-
-    if (ddd_busy != 0) {
+    //
+    if (GetRat3dBusy() != 0) {
       (*MyOutput_) << "ERROR: State machine stuck busy" << std::endl;
       ::sleep(1);
     }
   }
   //
   // **Start DDD state machine...**
-  rsd[2] = 0x1;                         //keep all the other tdi data the same...
-  WriteRatUser2_(rsd);
+  SetRat3dStart_(ON);
+  WriteRatUser2_();
   //
   // **Check that the DDD state machine went busy...**
-  ddd_busy = 0;
-  while (ddd_busy != 1) {
+  while (GetRat3dBusy() != 1) {
     ReadRatUser1();
-    ddd_busy = user1_value_[80] & 0x1;
     //
-    if (ddd_busy != 1) {
+    if (GetRat3dBusy() != 1) {
       (*MyOutput_) << "ERROR: State machine did not go busy" << std::endl;
       ::sleep(1);
     }
   }
   //
   // **Unstart DDD state machine again...**
-  rsd[2] = 0x0;
-  WriteRatUser2_(rsd);
+  SetRat3dStart_(OFF);
+  WriteRatUser2_();
   //
   // **Check that the DDD state machine is not busy...**
-  ddd_busy = 1;
-  while (ddd_busy != 0) {
+  while (GetRat3dBusy() != 0) {
     ReadRatUser1();
-    ddd_busy = user1_value_[80] & 0x1;
     //
-    if (ddd_busy != 0) {
+    if (GetRat3dBusy() != 0) {
       (*MyOutput_) << "ERROR: State machine is busy" << std::endl;
       ::sleep(1);
     }
   }
   //
   // **Check that the data made it OK...**
-  int ddd_verify = user1_value_[81] & 0x1;
-  //
-  if (ddd_verify != 1) {
+  if (GetRat3dVerifyOk() != 1) {
     (*MyOutput_) << "ERROR: DDD data not verified" << std::endl;
     ::sleep(1);
   }
   //
-  // ** Print out the delay values for the RAT ddd chip: **
-  read_rpcrat_delay();
+  //  PrintRpcRatDelay();
   //
   return;
 }
 //
-void RAT::read_rpcrat_delay(){
-  (*MyOutput_) << "RAT: Read RPC-RAT delays" << std::endl;
-  //
-  ReadRatUser1();             //get the current USER1 values
-  //
-  int i;
-  //
-  int delays[16];
-  int offset = 62;
-  int bit = 0;
-  for (i=offset; i<(offset+16); i++) 
-    delays[bit++] = user1_value_[i];
-  //
-  rpc_rat_delay_ = bits_to_int(delays,16,LSBfirst);
-  (*MyOutput_) << "rpc_rat_delay_ = " << std::hex << rpc_rat_delay_ << std::endl;
-  //
-  int ddd_delay[4];
-  for (i=0; i<4; i++) 
-    ddd_delay[i] = (rpc_rat_delay_ >> i*4) & 0xf;
-  //
-  (*MyOutput_) << "RPC0 = " << std::hex << ddd_delay[0] << std::endl;
-  (*MyOutput_) << "RPC1 = " << std::hex << ddd_delay[1] << std::endl;
+void RAT::PrintRpcRatDelay(){
+  (*MyOutput_) << "RAT: Read RPC-RAT delays:" << std::endl;
+  (*MyOutput_) << "RPC0 = " << std::hex << GetRpcRatDelay(0) << std::endl;
+  (*MyOutput_) << "RPC1 = " << std::hex << GetRpcRatDelay(1) << std::endl;
   (*MyOutput_) << "RPC2 = NOT USED" << std::endl;
   (*MyOutput_) << "RPC3 = NOT USED" << std::endl;
   //
@@ -585,169 +698,14 @@ void RAT::read_rattmb_delay() {
   return;
 }
 //
-void RAT::set_perr_ignore(){
-  (*MyOutput_) 
-    << "RAT: Ignore All 1's and all 1's data words in parity error counter" 
-    << std::endl;
-  //
-  ReadRatUser2();                           // get the current user2_value_
-  //
-  int rsd[rat_user2_length_];
-  //
-  // ** Set the new RAT USER2 bits. ** 
-  // ** Bits which are unchanged need to be explicitly put back**
-  for (int i=0; i<rat_user2_length_; i++) {
-    rsd[i]=user2_value_[i];
-    if (i==25) 
-      rsd[i] = 1;                            // set perr_ignore bit
-  }
-  WriteRatUser2_(rsd);
-  //
-  return;
-}
-//
-void RAT::unset_perr_ignore(){
-  (*MyOutput_) 
-    << "RAT: DO NOT ignore all 1's and all 1's data words in parity error counter" 
-    << std::endl;
-  //
-  ReadRatUser2();                           // get the current user2_value_
-  //
-  int rsd[rat_user2_length_];
-  //
-  // ** Set the new RAT USER2 bits. ** 
-  // ** Bits which are unchanged need to be explicitly put back**
-  for (int i=0; i<rat_user2_length_; i++) {
-    rsd[i]=user2_value_[i];
-    if (i==25) 
-      rsd[i] = 0;                            // set perr_ignore bit
-  }
-  WriteRatUser2_(rsd);
-  //
-  return;
-}
-//
-void RAT::use_parity_odd() {
-  (*MyOutput_) 
-    << "RAT: Use odd parity in parity error counter" 
-    << std::endl;
-  //
-  ReadRatUser2();                           // get the current user2_value_
-  //
-  int rsd[rat_user2_length_];
-  //
-  // ** Set the new RAT USER2 bits. ** 
-  // ** Bits which are unchanged need to be explicitly put back**
-  for (int i=0; i<rat_user2_length_; i++) {
-    rsd[i]=user2_value_[i];
-    if (i==24) 
-      rsd[i] = 1;                            // set parity odd bit
-  }
-  WriteRatUser2_(rsd);
-  //
-  return;
-}
-//
-void RAT::use_parity_even() {
-  (*MyOutput_) 
-    << "RAT: Use even parity in parity error counter" 
-    << std::endl;
-  //
-  ReadRatUser2();                           // get the current user2_value_
-  //
-  int rsd[rat_user2_length_];
-  //
-  // ** Set the new RAT USER2 bits. ** 
-  // ** Bits which are unchanged need to be explicitly put back**
-  for (int i=0; i<rat_user2_length_; i++) {
-    rsd[i]=user2_value_[i];
-    if (i==24) 
-      rsd[i] = 0;                            // set parity even bit
-  }
-  WriteRatUser2_(rsd);
-  //
-  return;
-}
-//
-void RAT::ReadRpcParity() {
-  (*MyOutput_) 
-    << "RAT: Determine parity used in parity error counter" 
-    << std::endl;
-  //
-  ReadRatUser2();                           // get the current user2_value_
-  //
-  rpc_parity_used_ = user2_value_[24]; 
-  //
-  return;
-}
-//
 void RAT::reset_parity_error_counter() {
   (*MyOutput_) << "RAT: Reset RPC parity error counter" << std::endl;
   //
-  ReadRatUser2();                           // get the current user2_value_
+  SetRatParityErrorReset_(ON);              // assert parity reset
+  WriteRatUser2_();
   //
-  int rsd[rat_user2_length_];
-  //
-  // ** Set the new RAT USER2 bits. ** 
-  // ** Bits which are unchanged need to be explicitly put back**
-  for (int i=0; i<rat_user2_length_; i++) {
-    rsd[i]=user2_value_[i];
-    if (i==23) 
-      rsd[i] = 1;                            // assert parity reset
-  }
-  WriteRatUser2_(rsd);
-  //
-  rsd[23] = 0;                               // de-assert parity reset
-  WriteRatUser2_(rsd);
-  //
-  return;
-}
-//
-void RAT::read_rpc_parity_error_counter() {
-  (*MyOutput_) << "RAT: Read RPC parity error counter" << std::endl;
-  //
-  ReadRatUser1();                                   //get the current USER1 value
-  //
-  int counter_array[2][16];
-  for (int rpc=0; rpc<2; rpc++) {
-    for (int i=0;i<16;i++) {
-      counter_array[rpc][i] = user1_value_[84+16*rpc+i];
-      rpc_parity_err_ctr_[rpc] = bits_to_int(counter_array[rpc],16,LSBfirst);
-    }
-    (*MyOutput_) << "RPC " << rpc 
-		 << " Parity error counter = " << rpc_parity_err_ctr_[rpc] 
-		 << std::endl;  
-  }
-  //
-  return;
-}
-//
-void RAT::read_rpc_data() {
-  (*MyOutput_) << "RAT: Read RPC data" << std::endl;
-
-  ReadRatUser1();                                   //get the current USER1 value
-  //
-  int bit;
-  int data_array[2][19];
-  //
-  for (int rpc=0; rpc<2; rpc++) {
-    for (bit=0;bit<19;bit++) {
-      data_array[rpc][bit] = user1_value_[153+19*rpc+bit];
-      rpc_data_[rpc] = bits_to_int(data_array[rpc],19,LSBfirst);
-      rpc_parity_ok_[rpc] = user1_value_[82+rpc];
-    }
-    //** Count how many ones are in the word... **
-    //** Whether the count is even or odd should be correlated with the rpc_parity_ok_[] bit **
-    int counter = 0;
-    for (bit=0;bit<19;bit++) 
-      counter += (rpc_data_[rpc] >> bit) & 0x1;
-    //
-    (*MyOutput_) << "RPC " << rpc 
-		 << " Data = " << rpc_data_[rpc] 
-		 << " number of bits = " << counter 
-		 << " -> Parity ok = " << rpc_parity_ok_[rpc] 
-		 << std::endl;
-  }
+  SetRatParityErrorReset_(OFF);             // de-assert parity reset
+  WriteRatUser2_();
   //
   return;
 }

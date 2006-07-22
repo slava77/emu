@@ -55,6 +55,10 @@ public:
 		   int start_from_MsbOrLsb);   // 0 => vector_of_bits[0] = LSB of "value_to_expand"
                                                //      vector_of_bits[number_of_bits] = MSB of "value_to_expand"
   //
+  //Check if read values = write values after Write commands:
+  inline void SetCheckJtagWrite(bool check_write) { check_write_ = check_write; }   
+  inline bool GetCheckJtagWrite() { return check_write_; }
+  //
   void Parse(char *buf,int *Count,char **Word);
   int  SVFLoad(int*, const char *, int);
   //
@@ -65,6 +69,8 @@ private:
   //
   std::ostream * MyOutput_ ;
   TMB * tmb_ ;
+  //
+  bool check_write_;
   //
   bool debug_;
   int jtag_chain_;

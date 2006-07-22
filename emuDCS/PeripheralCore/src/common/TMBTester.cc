@@ -806,21 +806,18 @@ bool TMBTester::test3d3444(){
 bool TMBTester::testALCTtxrx(){
   (*MyOutput_) << "TMBTester: Testing ALCT tx/rx cables connection to RAT" << std::endl;
   bool testOK = false;
-
+  //
   rat_->ReadRatUser1();
-  int * user1 = rat_->GetRatUser1();
-
-  int txval = user1[53];
-  int rxval = user1[54];
-
-  bool testTx = compareValues("ALCT tx",txval,0x1,true);
-  bool testRx = compareValues("ALCT rx",rxval,0x1,true);
-
+  //
+  //
+  bool testTx = compareValues("ALCT tx",rat_->GetRatTxOk(),0x1,true);
+  bool testRx = compareValues("ALCT rx",rat_->GetRatRxOk(),0x1,true);
+  //
   testOK = (testTx &&
 	    testRx );
-
+  //
   messageOK("ALCT tx/rx cables plugged in",testOK);
-
+  //
   ResultTestALCTtxrx_ = testOK ;
   return testOK;
 }
@@ -828,16 +825,13 @@ bool TMBTester::testALCTtxrx(){
 bool TMBTester::testRATtemper(){
   (*MyOutput_) << "TMBTester: Testing RAT temperature threshold bit" << std::endl;
   bool testOK = false;
-
+  //
   rat_->ReadRatUser1();
-  int * user1 = rat_->GetRatUser1();
-
-  int temperval = user1[55];
-
-  testOK = compareValues("RAT Temperature bit",temperval,0x1,true);
-
+  //
+  testOK = compareValues("RAT Temperature bit",rat_->GetRatCriticalTempBit(),0x1,true);
+  //
   messageOK("RAT Temperature bit",testOK);
-
+  //
   ResultTestRATtemper_ = testOK ;
   return testOK;
 }
@@ -845,46 +839,46 @@ bool TMBTester::testRATtemper(){
 bool TMBTester::testRATidCodes(){
   (*MyOutput_) << "TMBTester: Testing RAT ID codes" << std::endl;
   bool testOK = false;
-
+  //
   rat_->ReadRatIdCode();
-  int * idcodes = rat_->GetRatIdCode();
-
-  bool FPGAidOK = compareValues("RAT FPGA ID code",idcodes[0],0x20a10093,true);
-
+  //
+  int fpgaidcode = rat_->GetRatIdCode(ChipLocationRatFpga);
+  //
+  bool FPGAidOK = compareValues("RAT FPGA ID code",fpgaidcode,0x20a10093,true);
+  //
+  //
   // RAT PROM id can be 5034093 or 5024093....
-  idcodes[1] &= 0xfffeffff;
-  bool PROMidOK = compareValues("RAT PROM ID code",idcodes[1],0x05024093,true);
-
+  int promidcode = rat_->GetRatIdCode(ChipLocationRatProm) & 0xfffeffff;
+  //
+  bool PROMidOK = compareValues("RAT PROM ID code",promidcode,0x05024093,true);
+  //
   testOK = (FPGAidOK &&
 	    PROMidOK );
-
+  //
   messageOK("RAT ID codes",testOK);
-
+  //
   ResultTestRATidCodes_ = testOK ;
   return testOK;
 }
 
 bool TMBTester::testRATuserCodes(){
   (*MyOutput_) << "TMBTester: Testing RAT User codes" << std::endl;
+  //
+  // Apparently the user id code is not being entered on the RAT prom when it is programmed.
+  // This is OK, since the only thing that actually matters is the FPGA user code, which 
+  // tells what the date of the firmware is....
+  //
   bool testOK = false;
-
+  //
   rat_->ReadRatUserCode();
-  int * usercodes = rat_->GetRatUserCode();
-
-  int fpgauser = usercodes[0] & 0xffffffff;
-  //  int promuser = usercodes[1] & 0xffffffff;
-
+  //
+  int fpgauser = rat_->GetRatUserCode(ChipLocationRatFpga) & 0xffffffff;
+  //
   bool FPGAuserOK = compareValues("RAT FPGA user code",fpgauser,0x02232006,true);
-  // Apparently the user id code is not being entered on the RAT when it is programmed.
-  // Should be OK, since the only thing that actually matters is the FPGA user code,
-  // which tells what the date of the firmware is....
-  //  bool PROMuserOK = compareValues("RAT PROM user code",promuser,0x02232006,true);
-
-  testOK = (FPGAuserOK);// &&
-    //	    PROMuserOK );
-
+  testOK = (FPGAuserOK);
+  //
   messageOK("RAT User codes",testOK);
-
+  //
   ResultTestRATuserCodes_ = testOK ;
   return testOK;
 }
@@ -1100,21 +1094,21 @@ void TMBTester::RpcComputeParity(int rpc) {
   tmb_->WriteRegister(vme_ratctrl_adr,write_data);
 
   // find out if the parity error counter is using even or odd parity...
-  rat_->ReadRpcParity();
-  int parity_used = rat_->GetRpcParityUsed();   // = 1 if odd, 0 if even
-
+  rat_->ReadRatUser1();
+  int parity_used = rat_->GetRatParityOdd();   // = 1 if odd, 0 if even
+  //
   int data,parity_ok;
   int counter,bxn;
   int evenodd;
   int total_counts[8] = {};
   int parity_match[8] = {};
-
+  //
   for (int event=0;event<100;event++) {
     // get data and parity_ok for this RPC event:
-    rat_->read_rpc_data();
-    data = rat_->GetRpcData(rpc);
-    parity_ok = rat_->GetRpcParityOK(rpc);
-
+    rat_->ReadRatUser1();
+    data = rat_->GetRatRpcPdata(rpc);
+    parity_ok = rat_->GetRatRpcParityOk(rpc);
+    //
     // count number of 1's
     counter = 0;
     for (int bit=0;bit<19;bit++) 
@@ -1159,34 +1153,34 @@ void TMBTester::RpcComputeParity(int rpc) {
 void TMBTester::computeBER(int rpc){
   // compute the bit error rate from the RPC->RAT 
   // based on the parity bit counter
-
+  //
   const float rate = 40e+6;    //data coming in at 40MHz
   const float numbits = 15;    //RPC sending 12 bits of random data+2bxn+parity bit
   const int sleepval = 60;     //seconds between each read
-
+  //
   float numberRpcs;
-
+  //
   if (rpc == 0 || rpc == 1) numberRpcs = 1.;
   if (rpc == 2) numberRpcs = 2;
-
+  //
   rat_->reset_parity_error_counter();
-
+  //
   float difference = 0;
   int errors = 0;
   float BER;
-
+  //
   int countzeros;
   int datazero = 0;
   int rpcData[2];
-
+  //
   while (errors == 0) {
     ::sleep(sleepval);
-
+    //
     //** Check that the data being sent isn't all 0's or all 1's...**
-    rat_->read_rpc_data();
+    rat_->ReadRatUser1();
     for (int i=0; i<2; i++)
-      rpcData[i] = rat_->GetRpcData(i);
-    
+      rpcData[i] = rat_->GetRatRpcPdata(i);
+    //
     countzeros = 0;
     for (int i=0;i<16;i++) {
       if (rpc == 2) {
@@ -1196,38 +1190,37 @@ void TMBTester::computeBER(int rpc){
 	countzeros += (rpcData[rpc] >> i) & 0x1;
       }
     }
-    
+    //
     if ( (countzeros % 16) == 0 ) {
       datazero++; 
     } else {
       datazero = 0;
     }
-    
-    rat_->read_rpc_parity_error_counter();
+    //    
     if (rpc == 2) {
-      errors += rat_->GetRpcParityErrorCounter(0);
-      errors += rat_->GetRpcParityErrorCounter(1);
+      errors += rat_->GetRatRpcParityErrorCounter(0);
+      errors += rat_->GetRatRpcParityErrorCounter(1);
     } else {
-      errors += rat_->GetRpcParityErrorCounter(rpc);
+      errors += rat_->GetRatRpcParityErrorCounter(rpc);
     }
-    
+    //
     difference += (float) sleepval;
-
+    //
     (*MyOutput_) << "Error count = " << std::dec << errors 
 		 << " in " << difference << " seconds..."
 		 << std::endl;
-
+    //
     BER = 1./(numberRpcs * rate * numbits * difference);
-
+    //
     if (datazero < 20) {
       (*MyOutput_) << "Bit Error Rate = " << BER << std::endl; 
     } else {
       (*MyOutput_) << "RPC's are sending bad data... STOP" << std::endl; 
       break;
     }
-
+    //
   }
-
+  //
   return;
 }
 //

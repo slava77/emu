@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: EmuPeripheralCrate.h,v 3.1 2006/07/22 16:12:36 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -4435,7 +4435,7 @@ private:
     *out << cgicc::pre();
     rat->RedirectOutput(out);
     rat->ReadRatUser1();
-    rat->decodeRATUser1();
+    rat->PrintRatUser1();
     rat->RedirectOutput(&std::cout);
     *out << cgicc::pre();
     //
