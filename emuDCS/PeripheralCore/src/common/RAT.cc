@@ -20,6 +20,8 @@ RAT::RAT(TMB * tmb) :
   tmb_ = tmb;
   //
   SetPowerUpUser2Register_();
+  SetRatTmbDelay(9);
+  //
   SetCheckJtagWrite(true);
   //
   MyOutput_ = &std::cout ;
@@ -33,35 +35,16 @@ RAT::~RAT() {
 //
 void RAT::configure() {
   //
-  WriteRatUser2_();
+  WriteRpcRatDelay();
+  if (GetCheckJtagWrite())
+    PrintRatUser1();
   //
-  PrintRatUser1();
+  // The following should probably go in TMB configure, since it is actually a delay on the TMB:
+  WriteRatTmbDelay();
   //
   return;
 }
 //
-void RAT::rpc_fpga_finished_() {
-  // Test if the RPC FPGA is finished
-
-  int rpc_done = 0;
-  int read_data;
-  int counter = 0;
-  while (!rpc_done) {
-    read_data = tmb_->ReadRegister(rpc_cfg_adr);
-    rpc_done = (read_data >> 14) & 0x1;
-    counter++;
-    if (counter % 1000 == 0) 
-      (*MyOutput_) << "Waiting for RPC FPGA to be finished...";
-    if (counter > 100000) {
-      (*MyOutput_) << "RAT must not be plugged in..." << std::endl;
-      (*MyOutput_) << "**********************************" << std::endl;
-      (*MyOutput_) << "**** RAT is not going to work ****" << std::endl;
-      (*MyOutput_) << "**********************************" << std::endl;
-      rpc_done = 1;
-    }
-  }
-  return;
-}
 //
 ///////////////////////////////////
 // user and ID codes...
@@ -69,8 +52,6 @@ void RAT::rpc_fpga_finished_() {
 void RAT::ReadRatIdCode(){
   //
   (*MyOutput_) << "RAT: Read RAT ID Codes" << std::endl;
-  //
-  rpc_fpga_finished_();
   //
   setup_jtag(ChainRat);
   //
@@ -105,8 +86,6 @@ int RAT::GetRatIdCode(int device) {
 void RAT::ReadRatUserCode(){
   //
   (*MyOutput_) << "RAT: Read RAT User Codes" << std::endl;
-  //
-  rpc_fpga_finished_();
   //
   setup_jtag(ChainRat);
   //
@@ -145,8 +124,6 @@ int RAT::GetRatUserCode(int device) {
 void RAT::ReadRatUser1(){
   //
   (*MyOutput_) << "RAT: Read RAT USER1 JTAG (status register)" << std::endl;
-  //
-  rpc_fpga_finished_();
   //
   //clear user1_value_
   for (int i=0; i<MAX_NUM_FRAMES; i++) 
@@ -232,15 +209,15 @@ void RAT::decodeRATUser1_() {
 				     LSBfirst);
   //
   read_rs_locklost_tmb_ = bits_to_int(user1_value_ + read_rs_locklost_tmb_bitlo, 
-				      read_rs_locklost_tmb_bithi - read_rs_locklost_tmb_bitlo + 1,			 
+				      read_rs_locklost_tmb_bithi - read_rs_locklost_tmb_bitlo + 1, 
 				      LSBfirst);
   //
   read_rs_locklost_rpc0_ = bits_to_int(user1_value_ + read_rs_locklost_rpc0_bitlo, 
-				       read_rs_locklost_rpc0_bithi - read_rs_locklost_rpc0_bitlo + 1,			 
+				       read_rs_locklost_rpc0_bithi - read_rs_locklost_rpc0_bitlo + 1,
 				       LSBfirst);
   //
   read_rs_locklost_rpc1_ = bits_to_int(user1_value_ + read_rs_locklost_rpc1_bitlo, 
-				       read_rs_locklost_rpc1_bithi - read_rs_locklost_rpc1_bitlo + 1,			 
+				       read_rs_locklost_rpc1_bithi - read_rs_locklost_rpc1_bitlo + 1,
 				       LSBfirst);
   //
   read_rs_txok_ = bits_to_int(user1_value_ + read_rs_txok_bitlo, 
@@ -286,7 +263,7 @@ void RAT::decodeRATUser1_() {
 				  LSBfirst);
   //
   read_rs_ddd_verify_ok_ = bits_to_int(user1_value_ + read_rs_ddd_verify_ok_bitlo, 
-				       read_rs_ddd_verify_ok_bithi - read_rs_ddd_verify_ok_bitlo + 1,			 
+				       read_rs_ddd_verify_ok_bithi - read_rs_ddd_verify_ok_bitlo + 1,
 				       LSBfirst);
   //
   read_rs_rpc0_parity_ok_ = bits_to_int(user1_value_ + read_rs_rpc0_parity_ok_bitlo, 
@@ -298,15 +275,15 @@ void RAT::decodeRATUser1_() {
 					LSBfirst);
   //
   read_rs_rpc0_cnt_perr_ = bits_to_int(user1_value_ + read_rs_rpc0_cnt_perr_bitlo,
-				       read_rs_rpc0_cnt_perr_bithi - read_rs_rpc0_cnt_perr_bitlo + 1,			 
+				       read_rs_rpc0_cnt_perr_bithi - read_rs_rpc0_cnt_perr_bitlo + 1,
 				       LSBfirst);
   //
   read_rs_rpc1_cnt_perr_ = bits_to_int(user1_value_ + read_rs_rpc1_cnt_perr_bitlo,
-				       read_rs_rpc1_cnt_perr_bithi - read_rs_rpc1_cnt_perr_bitlo + 1,			 
+				       read_rs_rpc1_cnt_perr_bithi - read_rs_rpc1_cnt_perr_bitlo + 1,
 				       LSBfirst);
   //
   read_rs_last_opcode_ = bits_to_int(user1_value_ + read_rs_last_opcode_bitlo,
-				     read_rs_last_opcode_bithi - read_rs_last_opcode_bitlo + 1,			 
+				     read_rs_last_opcode_bithi - read_rs_last_opcode_bitlo + 1,
 				     LSBfirst);
   //
   read_rw_rpc_en_ = bits_to_int(user1_value_ + read_rw_rpc_en_bitlo,
@@ -409,15 +386,20 @@ void RAT::PrintRatUser1() {
   return;
 }
 //
-int RAT::GetRpcRatDelay(int rpc) { 
+//
+///////////////////////////////////////////////////////////////////////////////////
+//  here is a selection of useful values to be gotten from the User1 register...
+///////////////////////////////////////////////////////////////////////////////////
+int RAT::GetRat3dBusy_() {
   //
-  if ( rpc<0 || rpc>1 ) {
-    (*MyOutput_) << "SetRpcRatDelay ERROR: RPC " << rpc << " does not exist" << std::endl;
-    return 999;
-  }
+  return read_rs_ddd_busy_;
+}
+//
+int RAT::GetRat3dVerifyOk_() {
   //
-  return read_rpc_rat_delay_[rpc];
-} 
+  return read_rs_ddd_verify_ok_;
+}
+//
 int RAT::GetRatRpcParityErrorCounter(int rpc) { 
   //
   if (rpc==0) {
@@ -428,7 +410,6 @@ int RAT::GetRatRpcParityErrorCounter(int rpc) {
     (*MyOutput_) << "GetRatRpcParityErrorCounter ERROR: RPC " << rpc << " does not exist" << std::endl;
     return -1;
   }
-  //
 }
 //
 int RAT::GetRatRpcParityOk(int rpc) {
@@ -441,7 +422,6 @@ int RAT::GetRatRpcParityOk(int rpc) {
     (*MyOutput_) << "GetRatRpcParityOk ERROR: RPC " << rpc << " does not exist" << std::endl;
     return -1;
   }
-  //
 }
 //
 int RAT::GetRatRpcPdata(int rpc) {
@@ -454,7 +434,26 @@ int RAT::GetRatRpcPdata(int rpc) {
     (*MyOutput_) << "GetRatRpcPdata ERROR: RPC " << rpc << " does not exist" << std::endl;
     return -1;
   }
+}
+//
+int RAT::GetRatTxOk() {
   //
+  return read_rs_txok_;
+}
+//
+int RAT::GetRatRxOk() {
+  //
+  return read_rs_rxok_;
+}
+//
+int RAT::GetRatCriticalTempBit() {
+  //
+  return read_rs_ntcrit_;
+}  
+//
+int RAT::GetRatParityOdd() {
+  //
+  return read_rw_parity_odd_;
 }
 //
 //
@@ -464,8 +463,6 @@ int RAT::GetRatRpcPdata(int rpc) {
 void RAT::WriteRatUser2_(){
   //
   (*MyOutput_) << "RAT: Write RAT USER2 JTAG (control register)" << std::endl;
-  //
-  rpc_fpga_finished_();
   //
   FillRatUser2_();
   //
@@ -477,7 +474,8 @@ void RAT::WriteRatUser2_(){
 	      user2_value_);
   //
   if (GetCheckJtagWrite()) {
-    // There is a copy of the User2 register embedded in the read-only User1 register:
+    // Compare the write values into the User2 register with a copy of the 
+    // values which are embedded into the read-only User1 register
     ReadRatUser1();
     CompareBitByBit(user2_value_,
 		    user1_value_ + read_rw_rpc_en_bitlo,
@@ -547,22 +545,6 @@ void RAT::SetRat3dStart_(int on_or_off) {
   return; 
 }
 //
-void RAT::SetRpcRatDelay(int rpc, int delay) { 
-  //
-  if ( rpc<0 || rpc>1 ) {
-    (*MyOutput_) << "SetRpcRatDelay ERROR: RPC " << rpc << " does not exist" << std::endl;
-    return;
-  }
-  //
-  if (delay<0 || delay>12 ) {
-    (*MyOutput_) << "SetRpcRatDelay ERROR:  only delay values 0-12 allowed" << std::endl;      
-    return;
-  }
-  //
-  write_rpc_rat_delay_[rpc] = delay & 0xf;
-  return;
-} 
-//
 void RAT::SetRat3dOutputEnable_(int enable) { 
   //
   write_rw_dddoe_wr_ = enable & 0xf; 
@@ -575,13 +557,13 @@ void RAT::SetRatParityErrorReset_(int on_or_off) {
   return; 
 }    
 //
-void RAT::SetRatParityOdd(int on_or_off) { 
+void RAT::SetRatParityOdd_(int on_or_off) { 
   //
   write_rw_parity_odd_ = on_or_off & 0x1;
   return;
 } 
 //          
-void RAT::SetRatParityErrorIgnore(int on_or_off) { 
+void RAT::SetRatParityErrorIgnore_(int on_or_off) { 
   //
   write_rw_perr_ignore_ = on_or_off & 0x1; 
   return;
@@ -598,69 +580,78 @@ void RAT::SetPowerUpUser2Register_() {
   SetRatRpcEnable_(3);
   SetRat3dStart_(OFF);
   //
-  write_rpc_rat_delay_[0] = 3;
-  write_rpc_rat_delay_[1] = 3;
-  write_rpc_rat_delay_[2] = 0;
-  write_rpc_rat_delay_[3] = 0;
+  SetRpcRatDelay(0,3);
+  SetRpcRatDelay(1,3);
+  write_rpc_rat_delay_[2] = 0;    //since the set function has a requirement that the RPC exists,
+  write_rpc_rat_delay_[3] = 0;    //set these last two values by hand...
   //
   SetRat3dOutputEnable_(3);             
   SetRatParityErrorReset_(OFF);
-  SetRatParityOdd(ON);
-  SetRatParityErrorIgnore(OFF);
+  SetRatParityOdd_(ON);
+  SetRatParityErrorIgnore_(OFF);
   SetRatRpcFuture_(0);
   //
   return;
 }
 //
+//
+//---------------------------------
+// RPC-RAT phase:
+//---------------------------------
 void RAT::WriteRpcRatDelay() {
   //
-  // unstart state machine at the same time as delay values are set:
+  // Unstart state machine at the same time as delay values are set:
   SetRat3dStart_(OFF);
   WriteRatUser2_();
   //
-  //
-  // **Check that the DDD state machine went idle...**
-  while (GetRat3dBusy() != 0) {
-    ReadRatUser1();
-    //
-    if (GetRat3dBusy() != 0) {
-      (*MyOutput_) << "ERROR: State machine stuck busy" << std::endl;
-      ::sleep(1);
+  // Check that the DDD state machine went idle:
+  if (GetCheckJtagWrite()) {
+    while (GetRat3dBusy_() != 0) {
+      ReadRatUser1();
+      //
+      if (GetRat3dBusy_() != 0) {
+	(*MyOutput_) << "ERROR: State machine stuck busy" << std::endl;
+	::sleep(1);
+      }
     }
   }
   //
-  // **Start DDD state machine...**
+  // Start DDD state machine to push the delay values in:
   SetRat3dStart_(ON);
   WriteRatUser2_();
   //
-  // **Check that the DDD state machine went busy...**
-  while (GetRat3dBusy() != 1) {
-    ReadRatUser1();
-    //
-    if (GetRat3dBusy() != 1) {
-      (*MyOutput_) << "ERROR: State machine did not go busy" << std::endl;
-      ::sleep(1);
+  // Check that the DDD state machine went busy:
+  if (GetCheckJtagWrite()) {
+    while (GetRat3dBusy_() != 1) {
+      ReadRatUser1();
+      //
+      if (GetRat3dBusy_() != 1) {
+	(*MyOutput_) << "ERROR: State machine did not go busy" << std::endl;
+	::sleep(1);
+      }
     }
   }
   //
-  // **Unstart DDD state machine again...**
+  // Unstart DDD state machine:
   SetRat3dStart_(OFF);
   WriteRatUser2_();
   //
-  // **Check that the DDD state machine is not busy...**
-  while (GetRat3dBusy() != 0) {
-    ReadRatUser1();
+  // Check that the DDD state machine is not busy:
+  if (GetCheckJtagWrite()) {
+    while (GetRat3dBusy_() != 0) {
+      ReadRatUser1();
+      //
+      if (GetRat3dBusy_() != 0) {
+	(*MyOutput_) << "ERROR: State machine is busy" << std::endl;
+	::sleep(1);
+      }
+    }
     //
-    if (GetRat3dBusy() != 0) {
-      (*MyOutput_) << "ERROR: State machine is busy" << std::endl;
+    // Check that the data made it OK:
+    if (GetRat3dVerifyOk_() != 1) {
+      (*MyOutput_) << "ERROR: DDD data not verified" << std::endl;
       ::sleep(1);
     }
-  }
-  //
-  // **Check that the data made it OK...**
-  if (GetRat3dVerifyOk() != 1) {
-    (*MyOutput_) << "ERROR: DDD data not verified" << std::endl;
-    ::sleep(1);
   }
   //
   //  PrintRpcRatDelay();
@@ -672,32 +663,84 @@ void RAT::PrintRpcRatDelay(){
   (*MyOutput_) << "RAT: Read RPC-RAT delays:" << std::endl;
   (*MyOutput_) << "RPC0 = " << std::hex << GetRpcRatDelay(0) << std::endl;
   (*MyOutput_) << "RPC1 = " << std::hex << GetRpcRatDelay(1) << std::endl;
-  (*MyOutput_) << "RPC2 = NOT USED" << std::endl;
-  (*MyOutput_) << "RPC3 = NOT USED" << std::endl;
   //
   return;
 }
 //
-void RAT::set_rattmb_delay(int delay) {
+void RAT::SetRpcRatDelay(int rpc, int delay) { 
+  //
+  if ( rpc<0 || rpc>1 ) {
+    (*MyOutput_) << "SetRpcRatDelay ERROR: RPC " << rpc << " does not exist" << std::endl;
+    return;
+  }
+  //
+  if (delay<0 || delay>12 ) {
+    (*MyOutput_) << "SetRpcRatDelay ERROR:  only delay values 0-12 allowed" << std::endl;      
+    return;
+  }
+  //
+  write_rpc_rat_delay_[rpc] = delay & 0xf;
+  return;
+} 
+//
+int RAT::GetRpcRatDelay(int rpc) { 
+  //
+  if ( rpc<0 || rpc>1 ) {
+    (*MyOutput_) << "SetRpcRatDelay ERROR: RPC " << rpc << " does not exist" << std::endl;
+    return 999;
+  }
+  //
+  return read_rpc_rat_delay_[rpc];
+} 
+//
+//
+//---------------------------------
+// RAT-TMB phase:
+//---------------------------------
+void RAT::WriteRatTmbDelay() {
+  //
+  tmb_->tmb_clk_delays(write_rat_tmb_delay_,8);
+  //
+  return;
+}
+//
+void RAT::ReadRatTmbDelay() {
+  //
+  read_rat_tmb_delay_ = tmb_->tmb_read_delays(8);
+  //
+  // PrintRatTmbDelay();
+  //
+  return;
+}
+//
+void RAT::SetRatTmbDelay(int delay) {
   //
   if (delay < 0 || delay >15 ) {
     (*MyOutput_) << "only delay values 0-15 allowed" << std::endl;      
     return;
   }
   //
-  tmb_->tmb_clk_delays(delay,8);
+  write_rat_tmb_delay_ = delay;
   //
   return;
 }
 //
-void RAT::read_rattmb_delay() {
-  rat_tmb_delay_ = tmb_->tmb_read_delays(8);
+int RAT::GetRatTmbDelay() { 
   //
-  (*MyOutput_) << "RAT-TMB delay = " << std::hex << rat_tmb_delay_ << std::endl;      
-  //
-  return;
+  return read_rat_tmb_delay_ ; 
 }
 //
+void RAT::PrintRatTmbDelay() {
+  //
+    (*MyOutput_) << "RAT-TMB delay = " << std::hex 
+		 << GetRatTmbDelay() << std::endl;      
+    return;
+}
+//
+//
+////////////////////////////////////////////
+// Other useful methods:
+////////////////////////////////////////////
 void RAT::reset_parity_error_counter() {
   (*MyOutput_) << "RAT: Reset RPC parity error counter" << std::endl;
   //

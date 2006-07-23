@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.1 2006/07/22 16:13:02 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.2 2006/07/23 14:04:06 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.2  2006/07/23 14:04:06  rakness
+// encapsulate RAT, update configure()
+//
 // Revision 3.1  2006/07/22 16:13:02  rakness
 // clean up RAT/add JTAG checking
 //
@@ -2550,7 +2553,7 @@ void ChamberUtilities::RatTmbDelayScan(){
   thisTMB->WriteRegister(rpc_inj_adr,write_data);
 
   //Initial delay values:
-  thisRAT_->read_rattmb_delay();
+  thisRAT_->ReadRatTmbDelay();
   int rpc_delay_default = thisRAT_->GetRatTmbDelay();
 
   int irat;
@@ -2574,7 +2577,8 @@ void ChamberUtilities::RatTmbDelayScan(){
       count_bad=0;
 
       // ** write the delay to the RPC **
-      thisRAT_->set_rattmb_delay(ddd_delay);
+      thisRAT_->SetRatTmbDelay(ddd_delay);
+      thisRAT_->WriteRatTmbDelay();
 
       // ** read RAT 80MHz demux registers**
       for (irat=0; irat<=3; irat++) {
@@ -2613,7 +2617,8 @@ void ChamberUtilities::RatTmbDelayScan(){
 
   // Put RPC delay back to initial values:
   (*MyOutput_) << "Putting delay values back to " << rpc_delay_default << std::endl;
-  thisTMB->tmb_clk_delays(rpc_delay_default,8);
+  thisRAT_->SetRatTmbDelay(rpc_delay_default);
+  thisRAT_->WriteRatTmbDelay();
 
   // ** Take TMB out of sync mode **
   write_data = 0x0002;
