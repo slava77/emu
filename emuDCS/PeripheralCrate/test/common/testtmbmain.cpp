@@ -307,31 +307,36 @@ int main() {
       myRat->ReadRatIdCode();
       break;
     case 31:
-      myRat->read_rattmb_delay();
+      myRat->ReadRatTmbDelay();
+      myRat->PrintRatTmbDelay();
       break;
     case 32:
       std::cout << "Current RAT-TMB delay value..." << std::endl;
-      myRat->read_rattmb_delay();
+      myRat->ReadRatTmbDelay();
+      myRat->PrintRatTmbDelay();
 
       std::cout << "set delay (0-15)" << std::endl;
       std::cin >> delay;
 
-      myRat->set_rattmb_delay(delay);
+      myRat->SetRatTmbDelay(delay);
+      myRat->WriteRatTmbDelay();
+      myRat->ReadRatTmbDelay();
+      myRat->PrintRatTmbDelay();      
       break;
     case 33:
-      myRat->SetRatParityErrorIgnore(ON);
+      //      myRat->SetRatParityErrorIgnore(ON);
       myRat->configure();      
       break;
     case 34:
-      myRat->SetRatParityErrorIgnore(OFF);
+      //      myRat->SetRatParityErrorIgnore(OFF);
       myRat->configure();      
       break;
     case 35:
-      myRat->SetRatParityOdd(ON);
+      //myRat->SetRatParityOdd(ON);
       myRat->configure();
       break;
     case 36:
-      myRat->SetRatParityOdd(OFF);
+      //myRat->SetRatParityOdd(OFF);
       myRat->configure();
       break;
     case 37:
