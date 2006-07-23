@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.1 2006/07/22 16:12:36 rakness Exp $
+// $Id: ALCTController.h,v 3.2 2006/07/23 15:42:50 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.2  2006/07/23 15:42:50  rakness
+// index Hot Channel Mask from 0
+//
 // Revision 3.1  2006/07/22 16:12:36  rakness
 // clean up RAT/add JTAG checking
 //
@@ -972,11 +975,11 @@ public:
   //////////////////////////////
   // HOT CHANNEL MASK
   //////////////////////////////
-  void  SetHotChannelMask(int layer,                 // set Write values -> layer = [1-6]
-  	 		  int channel,               //                   channel = [1-GetNumberOfChannelsPerLayer()]
+  void  SetHotChannelMask(int layer,                 // set Write values -> layer = [0-5]
+  	 		  int channel,               //                   channel = [0 - (GetNumberOfChannelsPerLayer()-1)]
   			  int mask);                 //                      mask = [OFF, ON]
-  int  GetHotChannelMask(int layer,                  // get Read values -> layer = [1-6]
-  			 int channel);               //                  channel = [1-GetNumberOfChannelsPerLayer()]
+  int  GetHotChannelMask(int layer,                  // get Read values -> layer = [0-5]
+  			 int channel);               //                  channel = [0- (GetNumberOfChannelsPerLayer()-1)]
   //
   void SetPowerUpHotChannelMask();                   // sets Write values to data-taking defaults
   void PrintHotChannelMask();                        // prints out Read values
