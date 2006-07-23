@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.2 2006/07/23 14:04:06 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.3 2006/07/23 15:42:51 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.3  2006/07/23 15:42:51  rakness
+// index Hot Channel Mask from 0
+//
 // Revision 3.2  2006/07/23 14:04:06  rakness
 // encapsulate RAT, update configure()
 //
@@ -678,9 +681,9 @@ void ChamberUtilities::ALCTChamberScan(){
 	printf("%c[0m", '\033'); 
 	(*MyOutput_) << endl;
 	//
-	for(int layer=1; layer<MAX_NUM_LAYERS; layer++) {
-	  for(int channel=1; channel<=(alct->GetNumberOfChannelsInAlct())/6; channel++) {
-	    if (channel==keyWG-1) {
+	for(int layer=0; layer<MAX_NUM_LAYERS; layer++) {
+	  for(int channel=0; channel<(alct->GetNumberOfChannelsInAlct())/6; channel++) {
+	    if (channel==keyWG) {
 	      alct->SetHotChannelMask(layer,channel,ON);
 	    } else {
 	      alct->SetHotChannelMask(layer,channel,OFF);
@@ -689,7 +692,6 @@ void ChamberUtilities::ALCTChamberScan(){
 	}
 	//
 	alct->WriteHotChannelMask();
-	alct->ReadHotChannelMask();
 	alct->PrintHotChannelMask();	
 	//
 	PulseTestStrips();
@@ -865,9 +867,9 @@ void ChamberUtilities::ALCTScanDelays(){
       //
       //      alct->alct_write_hcmask(HCmask);
       //      alct->alct_read_hcmask(HCmask);
-      for(int layer=1; layer<MAX_NUM_LAYERS; layer++) {
-	for(int channel=1; channel<=(alct->GetNumberOfChannelsInAlct()/6); channel++) {
-	  if (channel==keyWG-1) {
+      for(int layer=0; layer<MAX_NUM_LAYERS; layer++) {
+	for(int channel=0; channel<(alct->GetNumberOfChannelsInAlct()/6); channel++) {
+	  if (channel==keyWG) {
 	    alct->SetHotChannelMask(layer,channel,ON);
 	  } else {
 	    alct->SetHotChannelMask(layer,channel,OFF);
@@ -876,7 +878,6 @@ void ChamberUtilities::ALCTScanDelays(){
       }
       //
       alct->WriteHotChannelMask();
-      alct->ReadHotChannelMask();
       alct->PrintHotChannelMask();	
       //
       //      cout << alct->alct_set_delay(-1,DelaySetting) << endl ; // Set all delays
@@ -1066,9 +1067,9 @@ void ChamberUtilities::ALCTTiming(){
 	//	//
 	//	alct->alct_write_hcmask(HCmask);
 	//	alct->alct_read_hcmask(HCmask);
-	for(int layer=1; layer<=MAX_NUM_LAYERS; layer++) {
-	  for(int channel=1; channel<=(alct->GetNumberOfChannelsInAlct()/6); channel++) {
-	    if (channel==keyWG-1) {
+	for(int layer=0; layer<MAX_NUM_LAYERS; layer++) {
+	  for(int channel=0; channel<(alct->GetNumberOfChannelsInAlct()/6); channel++) {
+	    if (channel==keyWG) {
 	      alct->SetHotChannelMask(layer,channel,ON);
 	    } else {
 	      alct->SetHotChannelMask(layer,channel,OFF);
@@ -1076,8 +1077,6 @@ void ChamberUtilities::ALCTTiming(){
 	  }
 	}
 	alct->WriteHotChannelMask();
-	// The next lines are for diagnostic purposes:
-	//	alct->ReadHotChannelMask();
 	alct->PrintHotChannelMask();
 #endif
 	//
@@ -1502,7 +1501,6 @@ int ChamberUtilities::FindBestL1aAlct(){
   //  unsigned cr[3];
   //  //
   //  alct->GetConf(cr,1);
-  alct->ReadConfigurationReg();
   //
   int minlimit = 0;
   int maxlimit = 150;
@@ -1542,9 +1540,9 @@ int ChamberUtilities::FindBestL1aAlct(){
     //    alct->alct_write_hcmask(HCmask);
     //    alct->alct_read_hcmask(HCmask);
     //
-    for(int layer=1; layer<MAX_NUM_LAYERS; layer++) {
-      for(int channel=1; channel<=(alct->GetNumberOfChannelsInAlct())/6; channel++) {
-	if (channel==keyWG-1) {
+    for(int layer=0; layer<MAX_NUM_LAYERS; layer++) {
+      for(int channel=0; channel<(alct->GetNumberOfChannelsInAlct())/6; channel++) {
+	if (channel==keyWG) {
 	  alct->SetHotChannelMask(layer,channel,ON);
 	} else {
 	  alct->SetHotChannelMask(layer,channel,OFF);
@@ -1552,7 +1550,6 @@ int ChamberUtilities::FindBestL1aAlct(){
       }
     }
     alct->WriteHotChannelMask();
-    alct->ReadHotChannelMask();
     alct->PrintHotChannelMask();
     //
     //    cr[1] = (cr[1] & 0xfffff00f) | ((l1a&0xff)<<4) ;
@@ -1560,7 +1557,6 @@ int ChamberUtilities::FindBestL1aAlct(){
     //    alct->unpackControlRegister(cr);
     alct->SetL1aDelay(l1a);
     alct->WriteConfigurationReg();
-    alct->ReadConfigurationReg();
     alct->PrintConfigurationReg();
     //
 #endif

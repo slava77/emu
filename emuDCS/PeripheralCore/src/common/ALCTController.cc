@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: ALCTController.cc,v 3.1 2006/07/23 15:42:51 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.1  2006/07/23 15:42:51  rakness
+// index Hot Channel Mask from 0
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -6232,9 +6235,9 @@ void ALCTController::SetUpRandomALCT(){
   //  alct_read_hcmask(HCmask);
   //  std::cout << std::endl;
   //  for(int i=0; i<22; i++) std::cout << std::hex << HCmask2[i] << std::endl;
-    for(int layer=1; layer<MAX_NUM_LAYERS; layer++) {
-      for(int channel=1; channel<=GetNumberOfChannelsInAlct()/6; channel++) {
-	if (channel==keyWG-1 || channel==keyWG2-1) {
+    for(int layer=0; layer<MAX_NUM_LAYERS; layer++) {
+      for(int channel=0; channel<GetNumberOfChannelsInAlct()/6; channel++) {
+	if (channel==keyWG || channel==keyWG2) {
 	  SetHotChannelMask(layer,channel,ON);
 	} else {
 	  SetHotChannelMask(layer,channel,OFF);
@@ -8267,7 +8270,7 @@ void ALCTController::PrintHotChannelMask() {
   (*MyOutput_) << "READ Hot Channel Mask for ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 	       << " (from right to left):" << std::endl;
   //
-  for (int layer=6; layer>0; layer--) {
+  for (int layer=5; layer>=0; layer--) {
     (*MyOutput_) << "Layer " << std::dec << layer << " -> ";    
     for (int layer_counter=GetNumberOfChannelsPerLayer()/8; layer_counter>0; layer_counter--) {
       //      (*MyOutput_) << "char_counter " << std::dec << char_counter << " -> ";    
@@ -8284,23 +8287,24 @@ void ALCTController::PrintHotChannelMask() {
 void ALCTController::SetHotChannelMask(int layer,
 				       int channel,
 				       int on_or_off) {
-  if (layer < 1 || layer > 6) {
+  if (layer < 0 || layer >= MAX_NUM_LAYERS) {
     (*MyOutput_) << "SetHotChannelMask: layer " << layer 
-		 << "... must be between 1 and 6" << std::endl;
+		 << "... must be between 0 and " << MAX_NUM_LAYERS-1 
+		 << std::endl;
     (*MyOutput_) << "Hot Channel Mask Unchanged" << std::endl;
     return;
   }
-  if (channel < 1 || channel > GetNumberOfChannelsPerLayer()) {
+  if (channel < 0 || channel >= GetNumberOfChannelsPerLayer()) {
     (*MyOutput_) << "SetHotChannelMask: ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 		 << "-> channel " << std::dec << channel 
-		 << " invalid ... must be between 1 and " << std::dec << GetNumberOfChannelsPerLayer() 
+		 << " invalid ... must be between 0 and " << std::dec << GetNumberOfChannelsPerLayer()-1
 		 << std::endl;
     (*MyOutput_) << "Hot Channel Mask Unchanged" << std::endl;
     return;
   }
   //
   //index in hot channel mask is determined by layer number and channel number within the layer:
-  int index = (layer-1) * GetNumberOfChannelsPerLayer() + channel - 1;
+  int index = layer * GetNumberOfChannelsPerLayer() + channel;
   //
   write_hot_channel_mask_[index] = on_or_off;
   //
