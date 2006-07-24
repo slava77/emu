@@ -482,7 +482,7 @@ bool TMBTester::testPROMpath(){
   int prom_clk[2],prom_oe[2],prom_nce[2];
   int prom_src;
 
-  int pat_expect;
+  int pat_expect1, pat_expect2;
   bool temptest=true;
 
   for (iprom=0; iprom<=1; iprom++) {
@@ -515,17 +515,31 @@ bool TMBTester::testPROMpath(){
     for (prom_adr=0; prom_adr<=9; prom_adr++) {
       read_data = tmb_->ReadRegister(vme_prom_adr) & 0xff;
 
-      pat_expect = 0xff;
+      // there are two possible patterns we could get:
       if (prom_adr==0) {
-	if (iprom == 0) pat_expect = 0xab;
-	if (iprom == 1) pat_expect = 0xcd;
+	if (iprom == 0) pat_expect1 = 0xab;
+	if (iprom == 1) pat_expect1 = 0xcd;
       } else if (prom_adr==9) {
-	if (iprom == 0) pat_expect = 0xee;
-	if (iprom == 1) pat_expect = 0xbb;
+	if (iprom == 0) pat_expect1 = 0xee;
+	if (iprom == 1) pat_expect1 = 0xbb;
       } else {
-	pat_expect = 1 << (prom_adr-1);
+	pat_expect1 = 1 << (prom_adr-1);
       }
-      temptest &= compareValues("data = expected",read_data,pat_expect,true);
+      if (prom_adr==0) pat_expect2=0x59;
+      if (prom_adr==1) pat_expect2=0x6f;
+      if (prom_adr==2) pat_expect2=0x75;
+      if (prom_adr==3) pat_expect2=0x72;
+      if (prom_adr==4) pat_expect2=0x20;
+      if (prom_adr==5) pat_expect2=0x6d;
+      if (prom_adr==6) pat_expect2=0x6f;
+      if (prom_adr==7) pat_expect2=0x74;
+      if (prom_adr==8) pat_expect2=0x68;
+      if (prom_adr==9) pat_expect2=0x65;
+      if (read_data==pat_expect2) {
+	temptest &= compareValues("data = expected",read_data,pat_expect2,true);
+      } else {
+	temptest &= compareValues("data = expected",read_data,pat_expect1,true);
+      }
 
       // ** Toggle the clock to advance the address **
       prom_clk[iprom]=1;
