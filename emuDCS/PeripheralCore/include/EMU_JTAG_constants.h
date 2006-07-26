@@ -1,24 +1,37 @@
 #ifndef EMU_JTAG_constants_h
 #define EMU_JTAG_constants_h
 //
-const int MAX_NUM_FRAMES  =            1000;       //Maximum number of frames in an i/o cycle
-const int MAX_BUFFER_SIZE =MAX_NUM_FRAMES/8;       //Maximum number of buffers in JTAG cycle
+////-------------------------------////
+//     Control constants             //
+////-------------------------------////
+const int OFF           = 0;
+const int ON            = 1;
 //
-const int MAX_NUM_DEVICES =               5;       //Maximum number of devices on any one chain
-//
-// bits_to_int/int_to_bits specification...
+//////////////////////////////////////////////////////
+/// bits_to_int/int_to_bits specification 
+//////////////////////////////////////////////////////
 const int LSBfirst        =               0;
 const int MSBfirst        =               1;
 //
-// Some constants for VMEController_jtag::scan_alct....
+//////////////////////////////////////////////////////
+// Constants for VMEController_jtag::scan_alct     
+//////////////////////////////////////////////////////
 const int INSTR_REGISTER  =               0;       //write to Instruction Register
 const int DATA_REGISTER   =               1;       //write to Data Register
 const int NO_READ_BACK    =               0;       //do not read TDO
 const int READ_BACK       =               1;       //read TDO and pack into buffer
 //
 //
+////-------------------------------////
+//   JTAG configuration constants    //
+////-------------------------------////
+const int MAX_NUM_FRAMES  =            1000;       //Maximum number of frames in an i/o cycle
+const int MAX_BUFFER_SIZE =MAX_NUM_FRAMES/8;       //Maximum number of buffers in JTAG cycle
+//
+const int MAX_NUM_DEVICES =               5;       //Maximum number of devices on any one chain
+//
 ////////////////////////////////////////////////////
-// ALCT Slow FPGA configuration register opcodes:
+// ALCT Slow FPGA opcodes:
 ////////////////////////////////////////////////////
 const int ALCT_SLOW_RD_ID_REG              =   00;
 const int ALCT_SLOW_RESET_THRESH_DAC       =   01;
@@ -51,7 +64,7 @@ const int ALCT_SLOW_RD_TESTPULSE_POWERDOWN =  047;
 const int ALCT_SLOW_BYPASS                 =  077;
 //
 ////////////////////////////////////////////////////
-// ALCT Fast FPGA configuration register opcodes:
+// ALCT Fast FPGA opcodes:
 ////////////////////////////////////////////////////
 const int ALCT_FAST_RD_ID_REG              =   0x0;
 const int ALCT_FAST_RD_HOTCHAN_MASK        =   0x1;
@@ -82,11 +95,10 @@ const int FPGAuser2              = 0x03;
 const int FPGAuserCode           = 0x08;
 const int FPGAidCode             = 0x09;
 //
-//
-////-------------------------------//
-// JTAG chains and characteristics //
-////-------------------------------////
-const int ChainAlctSlowFpga       = 0x0;       //ALCT "slow-control" FPGA registers             
+////////////////////////////////////////////////////
+// ALCT "slow-control" FPGA chain characteristics
+////////////////////////////////////////////////////
+const int ChainAlctSlowFpga       = 0x0;       
 const int NumberChipsAlctSlowFpga =   1;
 //
 const int ChipLocationAlctSlowFpga=   0;
@@ -122,9 +134,10 @@ const int RegSizeAlctSlowFpga_WRT_TESTPULSE_POWERDOWN=  1;
 const int RegSizeAlctSlowFpga_RD_TESTPULSE_POWERDOWN =  1;
 const int RegSizeAlctSlowFpga_BYPASS                 =  1;
 //
-//
-////-------------------------------////
-const int ChainAlctSlowProm        = 0x1;       //ALCT "slow-control" PROM           
+////////////////////////////////////////////////////
+// ALCT "slow-control" PROM chain characteristics            
+////////////////////////////////////////////////////
+const int ChainAlctSlowProm        = 0x1;
 const int NumberChipsAlctSlowProm  =   3;
 //
 const int ChipLocationAlctSlowProm0=   0;
@@ -132,9 +145,10 @@ const int ChipLocationAlctSlowProm1=   1;
 const int ChipLocationAlctSlowProm2=   2;
 const int OpcodeSizeAlctSlowProm   =   8;
 //
-//
-////-------------------------------////
-const int ChainAlctFastFpga       = 0x2;       //ALCT Mezzanine FPGA registers     
+////////////////////////////////////////////////////
+// ALCT "fast-control" FPGA chain characteristics
+////////////////////////////////////////////////////
+const int ChainAlctFastFpga       = 0x2;
 const int NumberChipsAlctFastFpga =   1;
 //
 const int ChipLocationAlctFastFpga=   0;
@@ -152,7 +166,7 @@ const int RegSizeAlctFastFpga_WRT_TRIG_REG              =    5;
 const int RegSizeAlctFastFpga_RD_CONFIG_REG             =   69;
 const int RegSizeAlctFastFpga_WRT_CONFIG_REG            =   69;
 const int RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES      =  120;
-const int RegSizeAlctFastFpga_RD_ASIC_DELAY_LINES       =  121;
+const int RegSizeAlctFastFpga_RD_ASIC_DELAY_LINES       =  121;   //first bit of this register is junk
 const int RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_288 =  168;
 const int RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_384 =  224;
 const int RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_672 =  392;
@@ -167,14 +181,16 @@ const int RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_384=    6;
 const int RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_672=    9;
 const int RegSizeAlctFastFpga_BYPASS                    =    1;
 //
-//
-////-------------------------------////
+////////////////////////////////////////////////////
+// ALCT "fast-control" PROM chain characteristics            
+////////////////////////////////////////////////////
 const int ChainAlctFastProm             = 0x3;      //ALCT Mezzanine PROM
 const int NumberChipsAlctFastProm       =   1;
 //
-//
-////-------------------------------////
-const int ChainTmbMezz                  = 0x4;      //TMB Mezzanine FPGA+PROMs   
+////////////////////////////////////////////////////
+// TMB mezzanine chain characteristics            
+////////////////////////////////////////////////////
+const int ChainTmbMezz                  = 0x4;      
 const int NumberChipsTmbMezz            =   5;      //1 FPGA + 4 PROMs
 //
 const int ChipLocationTmbMezzFpga       =   0;
@@ -188,9 +204,10 @@ const int ChipLocationTmbMezzProm3      =   4;
 const int OpcodeSizeTmbMezzProm         =   8;
 const int RegSizeTmbMezzProm_PROMidCode =  32;
 //
-//
-////-------------------------------////
-const int ChainTmbUser                  = 0x8;      //TMB User PROMs             
+////////////////////////////////////////////////////
+// TMB user PROM chain characteristics            
+////////////////////////////////////////////////////
+const int ChainTmbUser                  = 0x8;
 const int NumberChipsTmbUser            =   2;
 //
 const int ChipLocationTmbUserProm0      =   0;
@@ -198,9 +215,10 @@ const int ChipLocationTmbUserProm1      =   1;
 const int OpcodeSizeTmbUserProm         =   8;
 const int RegSizeTmbUserProm_PROMidCode =  32;
 //
-//
-////-------------------------------////
-const int ChainRat                     = 0xd;     //RAT FPGA+PROMs             
+////////////////////////////////////////////////////
+// RAT chain characteristics            
+////////////////////////////////////////////////////
+const int ChainRat                     = 0xd; 
 const int NumberChipsRat               =   2;     //1 FPGA + 1 PROM
 //
 const int ChipLocationRatFpga          =   0;       
@@ -214,13 +232,6 @@ const int ChipLocationRatProm          =   1;
 const int OpcodeSizeRatProm            =   8;
 const int RegSizeRatProm_PROMuserCode  =  32;
 const int RegSizeRatProm_PROMidCode    =  32;
-//
-//
-////-------------------------------////
-//     JTAG control constants        //
-////-------------------------------////
-const int OFF           = 0;
-const int ON            = 1;
 //
 //
 ////-------------------------------////
@@ -387,16 +398,18 @@ const int write_rw_rpc_future_bithi              = 31;
 //
 //
 ////-------------------------------////
-//     ALCTnew  constants            //
+//     ALCT constants                //
 ////-------------------------------////
-//
 const int MAX_NUM_AFEBS = 42;
 const int MAX_NUM_LAYERS = 6;
 const int MAX_NUM_WIRES_PER_LAYER = 112;  // =672/6
 //
+////////////////////////////////////////
 // SetUpPulsing constants:
+////////////////////////////////////////
 const int PULSE_AFEBS      = 0;
 const int PULSE_LAYERS     = 1;
+//
 ////////////////////////////////////////
 // ADC channel/chip map
 ////////////////////////////////////////
@@ -433,7 +446,6 @@ const int Voltage5p5_1_adc_channel         = 8;
 const int Voltage5p5_2_adc_channel         = 9;
 const int Temperature_adc_channel          = 10;
 //
-//
 ////////////////////////////////////////
 // DAC channel/chip map
 ////////////////////////////////////////
@@ -447,7 +459,6 @@ const int afeb_dac_chip[MAX_NUM_AFEBS] =
    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
    2, 2, 2, 2, 2, 2, 2, 2, 2, 
    3, 3, 3, 3, 3, 3, 3, 3, 3};
-//
 //
 ////////////////////////////////////////
 // Control register bit-map:
@@ -540,7 +551,6 @@ const int delay_line_settst_bithi          = 1;
 const int delay_line_group_select_bitlo    = 2;
 // -> delay_line_group_select_bithi value dependent on ALCT type...
 //
-//
 /////////////////////////////////////////////////////
 // ASIC delay/pattern chip characteristics/bit-maps:
 /////////////////////////////////////////////////////
@@ -583,7 +593,6 @@ const int asic_pattern_value_bithi         = 19;
 //
 const int NUMBER_OF_ASIC_BITS              = asic_pattern_value_bithi-asic_delay_value_bitlo+1;
 //
-//
 /////////////////////////////////////////////////////
 // Trigger register constants
 /////////////////////////////////////////////////////
@@ -598,6 +607,47 @@ const int trigger_register_source_bithi    = 3;
 //
 const int trigger_register_invert_bitlo    = 4;
 const int trigger_register_invert_bithi    = 4;
+//
+//
+////-------------------------------////
+//     XSVF constants                //
+////-------------------------------////
+const int SIZE_OF_PROM                     = 256;                   
+const int NUMBER_OF_BITS_PER_ADDRESS       = 8;                   //each address corresponds to 1 byte of information
+const int NUMBER_OF_BITS_PER_BLOCK         = 2048;
+const int NUMBER_OF_ADDRESSES_PER_BLOCK    = NUMBER_OF_BITS_PER_BLOCK / NUMBER_OF_BITS_PER_ADDRESS;  
+const int TOTAL_NUMBER_OF_ADDRESSES        = SIZE_OF_PROM * 1024 / NUMBER_OF_BITS_PER_ADDRESS;  //256 "kilo"bits of information
+const int TOTAL_NUMBER_OF_BLOCKS           = SIZE_OF_PROM * 1024 / NUMBER_OF_BITS_PER_BLOCK;
+//
+const int MAX_XSVF_IMAGE_NUMBER            = SIZE_OF_PROM*1024;        
+//const int MAX_XSVF_IMAGE_NUMBER            = 13*1024*1024;        //needed for tmb mezzanine proms
+////////////////////////////////////
+// XSVF commands:
+////////////////////////////////////
+const int XCOMPLETE                        = 0x00;
+const int XTDOMASK                         = 0x01;
+const int XSIR                             = 0x02;
+const int XSDR                             = 0x03;
+const int XRUNTEST                         = 0x04;
+const int XUNDEFINED5                      = 0x05;
+const int XUNDEFINED6                      = 0x06;
+const int XREPEAT                          = 0x07;
+const int XSDRSIZE                         = 0x08;
+const int XSDRTDO                          = 0x09;
+const int XSETSDRMASK                      = 0x0a;
+const int XSDRINC                          = 0x0b;
+const int XSDRB                            = 0x0c;
+const int XSDRC                            = 0x0d;
+const int XSDRE                            = 0x0e;
+const int XSDRTDOB                         = 0x0f;
+const int XSDRTDOC                         = 0x10;
+const int XSDRTDOE                         = 0x11;
+const int XSTATE                           = 0x12;
+const int XENDIR                           = 0x13;
+const int XENDDR                           = 0x14;
+const int XSIR2                            = 0x15;
+const int XCOMMENT                         = 0x16;
+
 //
 //
 #endif

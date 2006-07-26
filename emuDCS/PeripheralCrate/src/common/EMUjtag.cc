@@ -5,6 +5,7 @@
 #include <unistd.h> // for sleep
 #include <vector>
 #include <string>
+#include <fstream>
 #include <sstream>
 //
 #include "TMB.h"
@@ -20,6 +21,9 @@ EMUjtag::EMUjtag(TMB * tmb) :
   //
   MyOutput_ = &std::cout ;
   //
+  SetXsvfFilename("tempfilename");
+  prom_file_ok_ = false;
+  //
   jtag_chain_ = -1;
   //
 };
@@ -27,6 +31,95 @@ EMUjtag::EMUjtag(TMB * tmb) :
 EMUjtag::~EMUjtag() {
   //
   //
+}
+//
+//////////////////////////////////////////////////////////////////////////////////////////////
+// Use EMUjtag to shift data into Instruction Registers and into (and out of) Data Registers
+//////////////////////////////////////////////////////////////////////////////////////////////
+void EMUjtag::setup_jtag(int chain) {
+  //
+  //This member sets the following characteristics:
+  //  - which JTAG chain you are looking at
+  //  - how many chips are on the chain
+  //  - the number of bits in each chip's opcode
+  //  - chip_id_ to dummy value (in excess of possible number of devices on chain)
+  //  - register length to zero 
+  //start(N):
+  //  - set the jtag chain for the boot register used in VMEController_jtag::scan(...)
+  //
+  if(debug_){
+    std::cout << "setup_chain" << std::endl ;
+  }
+  //
+  jtag_chain_ = chain;
+  devices_in_chain_ = 0;
+  for (int device=0; device<MAX_NUM_DEVICES; device++)
+    bits_in_opcode_[device] = 0;
+  //
+  if (jtag_chain_ == ChainAlctSlowFpga) {
+    //
+    devices_in_chain_ = NumberChipsAlctSlowFpga; 
+    bits_in_opcode_[0] = OpcodeSizeAlctSlowFpga;
+    tmb_->start(6);
+    //
+  } else if (jtag_chain_ == ChainAlctSlowProm) {
+    //
+    devices_in_chain_ = NumberChipsAlctSlowProm;
+    bits_in_opcode_[0] = OpcodeSizeAlctSlowProm;
+    bits_in_opcode_[1] = OpcodeSizeAlctSlowProm;
+    bits_in_opcode_[2] = OpcodeSizeAlctSlowProm;
+    tmb_->start(7);
+    //
+  } else if (jtag_chain_ == ChainAlctFastFpga) {
+    //
+    devices_in_chain_ = NumberChipsAlctFastFpga; 
+    bits_in_opcode_[0] = OpcodeSizeAlctFastFpga;
+    tmb_->start(8);
+    //
+  } else if (jtag_chain_ == ChainTmbMezz) { 
+    //
+    devices_in_chain_ = NumberChipsTmbMezz;
+    bits_in_opcode_[0] = OpcodeSizeTmbMezzFpga;
+    bits_in_opcode_[1] = OpcodeSizeTmbMezzProm;
+    bits_in_opcode_[2] = OpcodeSizeTmbMezzProm;
+    bits_in_opcode_[3] = OpcodeSizeTmbMezzProm;
+    bits_in_opcode_[4] = OpcodeSizeTmbMezzProm;
+    tmb_->start(3);
+    //
+  } else if (jtag_chain_ == ChainTmbUser) { 
+    //
+    devices_in_chain_ = NumberChipsTmbUser;
+    bits_in_opcode_[0] = OpcodeSizeTmbUserProm;
+    bits_in_opcode_[1] = OpcodeSizeTmbUserProm;
+    tmb_->start(4);
+    //
+  } else if (jtag_chain_ == ChainRat) {
+    //
+    devices_in_chain_ = NumberChipsRat;
+    bits_in_opcode_[0] = OpcodeSizeRatFpga;
+    bits_in_opcode_[1] = OpcodeSizeRatProm;
+    tmb_->start(10);
+    //
+  }
+  //
+  if (devices_in_chain_ == 0) {
+    (*MyOutput_) << "EMUjtag: Unsupported JTAG chain " << jtag_chain_ <<std::endl;
+    jtag_chain_ = -1;
+    ::sleep(5);    
+  }  else {
+    //
+    tmb_->RestoreIdle();      //Valid JTAG chain:  bring the state machine to Run-Time Idle
+    //
+    if(debug_){
+      (*MyOutput_) << "EMUjtag: JTAG chain " << std::hex << jtag_chain_ 
+		   << " has " << std::dec << devices_in_chain_ << " devices" << std::endl;
+    }
+  }
+  //
+  chip_id_ = MAX_NUM_DEVICES;
+  register_length_ = 0;
+  //
+  return;
 }
 //
 void EMUjtag::ShfIR_ShfDR(const int selected_chip, 
@@ -46,7 +139,7 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
   //   out on tdo is "size_of_register".
   //3) The data which is shifted out of the data register is put into 
   //   the int array "shfDR_tdo_" (also one bit per index).   
-
+  //
   // N.B. JTAG instructions and data are loaded and readout in order
   //      starting with chipN, chipN-1, ... ,chip1, and ending with chip0
   //
@@ -70,21 +163,21 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
   //
   int tdi[MAX_NUM_FRAMES];
   char sndBuffer[MAX_BUFFER_SIZE], rcvBuffer[MAX_BUFFER_SIZE];
-
+  //
   // ** Clean buffers:
   for (int i=0; i<MAX_BUFFER_SIZE; i++) {
     sndBuffer[i] = 0;
     rcvBuffer[i] = 0;
   }
   int iframe = 0;                              //reset frame counter
-
+  //
   // ** Construct opcode for the selected chip (all but chip_id are BYPASS = all 1's),
   int idevice, ichip, ibit;
   int bit;
   for (idevice=0; idevice<devices_in_chain_; idevice++) {          //loop over all the chips in this chain
-
+    //
     ichip = devices_in_chain_ - idevice - 1;                       //chip order in chain is reversed
-
+    //
     for (ibit=0; ibit<bits_in_opcode_[ichip]; ibit++) {            //up to the number of bits in this chip's opcode
       bit = 1;                                                     //BYPASS
       if (ichip == chip_id_)                                       //this is the chip we want
@@ -92,23 +185,23 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
       tdi[iframe++]=bit;
     }
   }
-
+  //
   //  (*MyOutput_) << "There are " << std::dec << iframe << " frames to send..." << std::endl;
-
+  //
   if (iframe > MAX_NUM_FRAMES) 
     (*MyOutput_) << "EMUjtag: ShfIR_ShfDR IR ERROR: Too many frames -> " << iframe << std::endl;
-
+  //
   //pack tdi into an array of char so scan can handle it:
   packCharBuffer(tdi,iframe,sndBuffer);
-
+  //
   //  (*MyOutput_) << "sndBuffer to ShfIR=";
   //  for (int i=iframe/8; i>=0; i--) 
   //    (*MyOutput_) << " " << std::hex << (sndBuffer[i]&0xff); 
   //  (*MyOutput_) << std::endl;
-  
+  //
   tmb_->scan(INSTR_REGISTER, sndBuffer, iframe, rcvBuffer, NO_READ_BACK);
-
-
+  //
+  //
   // ** Second JTAG operation is to shift out the data register...
   // **Clean buffers**
   for (int i=0; i<MAX_BUFFER_SIZE; i++) {
@@ -116,14 +209,14 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
     rcvBuffer[i] = 0;
   }
   iframe = 0;                              //reset frame counter
-
+  //
   // ** Set up TMS to shift in the data bits for this chip, BYPASS code for others **
   int offset;
-
+  //
   for (idevice=0; idevice<devices_in_chain_; idevice++) {  // loop over all of the chips in this chain
-
+    //
     ichip = devices_in_chain_ - idevice - 1;               // chip order in chain is reversed
-
+    //
     if (ichip == chip_id_) {                               // this is the chip we want
       offset = iframe;                                     // here is the beginning of the data
       for (ibit=0; ibit<register_length_; ibit++)          // up to the number of bits specified for this register
@@ -132,45 +225,44 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
       tdi[iframe++] = 0;                                   // No data goes out to bypass regs
     }
   }
-
+  //
   if (iframe > MAX_NUM_FRAMES) 
     (*MyOutput_) << "EMUjtag: ShfIR_ShfDR DR ERROR: Too many frames -> " << iframe << std::endl;
-
+  //
   //pack tdi into an array of char so scan can handle it:
   packCharBuffer(tdi,iframe,sndBuffer);
-
+  //
   //  (*MyOutput_) << "write_data  = ";
   //  for (int i=register_length_-1; i>=0; i--)
   //    (*MyOutput_) << write_data[i];
   //  (*MyOutput_) << std::endl;
-
+  //
   //  (*MyOutput_) << "TDI into DR = ";
   //  for (int i=iframe-1; i>=0; i--)
   //    (*MyOutput_) << tdi[i];
   //  (*MyOutput_) << std::endl;
-
+  //
   //  (*MyOutput_) << "sndBuffer to ShfDR=";
   //  for (int i=iframe/8; i>=0; i--) 
   //    (*MyOutput_) << ((sndBuffer[i] >> 4) & 0xf) << (sndBuffer[i] & 0xf);  
   //  (*MyOutput_) << std::endl;
-  
+  //
   tmb_->scan(DATA_REGISTER, sndBuffer, iframe, rcvBuffer, READ_BACK);
-
-
+  //
   // ** copy relevant section of tdo to data array **
   unpackCharBuffer(rcvBuffer,register_length_,offset,shfDR_tdo_);
-
+  //
   //  (*MyOutput_) << "TDO from DR = ";
   //  for (int i=register_length_-1; i>=0; i--)
   //    (*MyOutput_) << shfDR_tdo_[i];
   //  (*MyOutput_) << std::endl;
-
+  //
   //  char tempBuffer[MAX_BUFFER_SIZE];
   //  packCharBuffer(shfDR_tdo_,register_length_,tempBuffer);
   //  for (int i=(register_length_/8)-1; i>=0; i--) 
   //    (*MyOutput_) << ((tempBuffer[i] >> 4) & 0xf) << (tempBuffer[i] & 0xf);  
   //  (*MyOutput_) << std::endl;
-
+  //
   return;
 }
 //
@@ -186,185 +278,9 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
   return;
 }
 //
-void EMUjtag::packCharBuffer(int * bitVector, 
-			     int Nbits, 
-			     char * charVector) {
-
-  // pack array of bits in "bitVector" (of size "Nbits") into an array 
-  // of char "charVector"...
-  // charVector is packed such that the index reads from right to left, i.e., 
-  // bitVector[0]     = LSB of charVector[0]
-  // bitVector[Nbits] = MSB of charVector[Nbits/8]
-
-  for (int i=0; i<Nbits/8; i++) {
-    charVector[i] = 0;
-  }
-
-  int bufferbit = 0;
-  int bufferctr = 0;
-  for (int bit=0; bit<Nbits; bit++) {
-    if (bufferbit==8) {                                  //end of this character in charVector
-      bufferctr++;                                       //increment the number of characters in charVector
-      bufferbit = 0;                                     //reset character filling
-    }
-    charVector[bufferctr] |= ((bitVector[bit]&0xff) << bufferbit);          //fill the charVector
-    bufferbit++;
-  }
- return; 
-}
-//
-void EMUjtag::unpackCharBuffer(char * buffer, 
-			       int length, 
-			       int firstBit, 
-			       int * bitVector) {
-  // project specific bits from "buffer" into array of bits "bitVector" 
-  // project "length" bits beginning at "firstBit" (counting from LSB)
-  // In other words, "buffer" is unpacked such that: 
-  // counting from LSB, the "firstBit" bit of "buffer" = bitVector[0]  
-  // counting from LSB, the "firstBit+length" bit of "buffer" = bitVector[length-1] 
-
-
-  int k=0;
-  int ival;
-
-  int bit=0;
-  int bufferctr=0;
-  char data;
-  data = buffer[bufferctr];
-  for(int i=0; i < firstBit+length; i++) {
-    ival = data & 0x01;
-    data >>= 1;
-    bit++;
-    if(bit==8) { 
-      bit=0;
-      bufferctr++;
-      data = buffer[bufferctr];
-    }
-    if (i>=firstBit) bitVector[k++]=ival;      //This is the data to keep
-  }
-
-  return;
-}
-//
-int EMUjtag::bits_to_int(int * bits,
-			 int length,
-			 int MsbOrLsb) {
-  //convert vector of "bits" into an integer
-  // MsbOrLsb = 0 for LSB first -> bits[0] = LSB of integer, bits[length] = MSB of integer
-  //          = 1 for MSB first -> bits[0] = MSB of integer, bits[length] = LSB of integer
-  //
-  if (length>32) {
-    (*MyOutput_) << "bits_to_int ERROR: Too many bits -> " << length << std::endl;
-    return 0;
-  }
-  //
-  int ibit;
-  int value = 0;
-  if (MsbOrLsb == 0) {       // Translate LSB first    
-    for (ibit=0; ibit<length; ibit++) 
-      value |= ((bits[ibit]&0x1) << ibit);
-  } else {                   // Translate MSB first
-    for (ibit=0; ibit<length; ibit++) 
-      value |= ((bits[length-ibit-1]&0x1) << ibit);
-  }
-  //
-  //    (*MyOutput_) << "value = " << std::hex << value << std::endl;
-  return value;
-}
-//
-void EMUjtag::int_to_bits(int value,
-			  int length,
-			  int * bits,
-			  int MsbOrLsb) {
-  //expand integer "value" into first "length" slots of the vector of "bits"
-  // MsbOrLsb = 0 for LSB first -> bits[0] = LSB of "value", bits[length] = MSB of "value"
-  //          = 1 for MSB first -> bits[length] = LSB of "value", bits[0] = MSB of "value"
-  //
-  for (int ibit=0; ibit<length; ibit++) {
-    if (MsbOrLsb == 0) {       // Translate LSB first    
-      bits[ibit] = (value >> ibit) & 0x1;
-    } else {                   // Translate MSB first
-      bits[ibit] = (value >>(length-ibit-1)) & 0x1;
-    }
-    //    (*MyOutput_) << "bits[" << ibit << "] = " << bits[ibit] << std::endl;
-  }
-  return;
-}
-//
-void EMUjtag::setup_jtag(int chain) {
-
-  //This member sets the following characteristics:
-  //  - which JTAG chain you are looking at
-  //  - how many chips are on the chain
-  //  - the number of bits in each chip's opcode
-  //  - chip_id_ to dummy value (in excess of possible number of devices on chain)
-  //  - register length to zero 
-  //start(N):
-  //  - set the jtag chain for the boot register used in VMEController_jtag::scan(...)
-
-  if(debug_){
-    std::cout << "setup_chain" << std::endl ;
-  }
-  
-  jtag_chain_ = chain;
-  devices_in_chain_ = 0;
-  for (int device=0; device<MAX_NUM_DEVICES; device++)
-    bits_in_opcode_[device] = 0;
-
-  if (jtag_chain_ == ChainAlctSlowFpga) {
-    devices_in_chain_ = NumberChipsAlctSlowFpga; 
-    bits_in_opcode_[0] = OpcodeSizeAlctSlowFpga;
-    tmb_->start(6);
-  } else if (jtag_chain_ == ChainAlctSlowProm) {
-    devices_in_chain_ = NumberChipsAlctSlowProm;
-    bits_in_opcode_[0] = OpcodeSizeAlctSlowProm;
-    bits_in_opcode_[1] = OpcodeSizeAlctSlowProm;
-    bits_in_opcode_[2] = OpcodeSizeAlctSlowProm;
-    tmb_->start(7);
-  } else if (jtag_chain_ == ChainAlctFastFpga) {
-    devices_in_chain_ = NumberChipsAlctFastFpga; 
-    bits_in_opcode_[0] = OpcodeSizeAlctFastFpga;
-    tmb_->start(8);
-  } else if (jtag_chain_ == ChainTmbMezz) { 
-    devices_in_chain_ = NumberChipsTmbMezz;
-    bits_in_opcode_[0] = OpcodeSizeTmbMezzFpga;
-    bits_in_opcode_[1] = OpcodeSizeTmbMezzProm;
-    bits_in_opcode_[2] = OpcodeSizeTmbMezzProm;
-    bits_in_opcode_[3] = OpcodeSizeTmbMezzProm;
-    bits_in_opcode_[4] = OpcodeSizeTmbMezzProm;
-    tmb_->start(3);
-  } else if (jtag_chain_ == ChainTmbUser) { 
-    devices_in_chain_ = NumberChipsTmbUser;
-    bits_in_opcode_[0] = OpcodeSizeTmbUserProm;
-    bits_in_opcode_[1] = OpcodeSizeTmbUserProm;
-    tmb_->start(4);
-  } else if (jtag_chain_ == ChainRat) {
-    devices_in_chain_ = NumberChipsRat;
-    bits_in_opcode_[0] = OpcodeSizeRatFpga;
-    bits_in_opcode_[1] = OpcodeSizeRatProm;
-    tmb_->start(10);
-  }
-
-  if (devices_in_chain_ == 0) {
-    (*MyOutput_) << "EMUjtag: Unsupported JTAG chain " << jtag_chain_ <<std::endl;
-    jtag_chain_ = -1;
-    ::sleep(5);    
-  }  else {
-
-    tmb_->RestoreIdle();      //Valid JTAG chain:  bring the state machine to Run-Time Idle
-
-    if(debug_){
-      (*MyOutput_) << "EMUjtag: JTAG chain " << std::hex << jtag_chain_ 
-		   << " has " << std::dec << devices_in_chain_ << " devices" << std::endl;
-    }
-  }
-
-  chip_id_ = MAX_NUM_DEVICES;
-  register_length_ = 0;
-  
-  return;
-}
-//
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Check if JTAG read values = JTAG write values:
+///////////////////////////////////////////////////////////////////////////////////////////////////
 void EMUjtag::CompareBitByBit(int * write_vector,
 			      int * read_vector,
 			      int length) {
@@ -396,6 +312,403 @@ void EMUjtag::CompareBitByBit(int * write_vector,
   return;
 }
 //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Useful functions to convert one type into another type
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void EMUjtag::packCharBuffer(int * bitVector, 
+			     int Nbits, 
+			     char * charVector) {
+  // pack array of bits in "bitVector" (of size "Nbits") into an array 
+  // of char "charVector"...
+  // charVector is packed such that the index reads from right to left, i.e., 
+  // bitVector[0]     = LSB of charVector[0]
+  // bitVector[Nbits] = MSB of charVector[Nbits/8]
+  //
+  for (int i=0; i<Nbits/8; i++) 
+    charVector[i] = 0;
+  //
+  int bufferbit = 0;
+  int bufferctr = 0;
+  for (int bit=0; bit<Nbits; bit++) {
+    if (bufferbit==8) {                                  //end of this character in charVector
+      bufferctr++;                                       //increment the number of characters in charVector
+      bufferbit = 0;                                     //reset character filling
+    }
+    charVector[bufferctr] |= ((bitVector[bit]&0xff) << bufferbit);          //fill the charVector
+    bufferbit++;
+  }
+ return; 
+}
+//
+void EMUjtag::unpackCharBuffer(char * buffer, 
+			       int length, 
+			       int firstBit, 
+			       int * bitVector) {
+  // project specific bits from "buffer" into array of bits "bitVector" 
+  // project "length" bits beginning at "firstBit" (counting from LSB)
+  // In other words, "buffer" is unpacked such that: 
+  // counting from LSB, the "firstBit" bit of "buffer" = bitVector[0]  
+  // counting from LSB, the "firstBit+length" bit of "buffer" = bitVector[length-1] 
+  //
+  int k=0;
+  int ival;
+  //
+  int bit=0;
+  int bufferctr=0;
+  char data;
+  data = buffer[bufferctr];
+  for(int i=0; i < firstBit+length; i++) {
+    ival = data & 0x01;
+    data >>= 1;
+    bit++;
+    if(bit==8) { 
+      bit=0;
+      bufferctr++;
+      data = buffer[bufferctr];
+    }
+    if (i>=firstBit) bitVector[k++]=ival;      //This is the data to keep
+  }
+  //
+  return;
+}
+//
+int EMUjtag::bits_to_int(int * bits,
+			 int length,
+			 int MsbOrLsb) {
+  //convert vector of "bits" into an integer
+  // MsbOrLsb = 0 for LSB first -> bits[0] = LSB of integer, bits[length] = MSB of integer
+  //          = 1 for MSB first -> bits[0] = MSB of integer, bits[length] = LSB of integer
+  //
+  if (length>32) {
+    (*MyOutput_) << "bits_to_int ERROR: Too many bits -> " << length << std::endl;
+    return 0;
+  }
+  //
+  int ibit;
+  int value = 0;
+  if (MsbOrLsb == 0) {       // Translate LSB first    
+    for (ibit=0; ibit<length; ibit++) 
+      value |= ((bits[ibit]&0x1) << ibit);
+  } else {                   // Translate MSB first
+    for (ibit=0; ibit<length; ibit++) 
+      value |= ((bits[length-ibit-1]&0x1) << ibit);
+  }
+  //
+  //    (*MyOutput_) << "value = " << std::hex << value << std::endl;
+  //
+  return value;
+}
+//
+void EMUjtag::int_to_bits(int value,
+			  int length,
+			  int * bits,
+			  int MsbOrLsb) {
+  // expand integer "value" into first "length" slots of the vector of "bits"
+  // MsbOrLsb = 0 for LSB first -> bits[0] = LSB of "value", bits[length] = MSB of "value"
+  //          = 1 for MSB first -> bits[length] = LSB of "value", bits[0] = MSB of "value"
+  //
+  for (int ibit=0; ibit<length; ibit++) {
+    if (MsbOrLsb == 0) {       // Translate LSB first    
+      bits[ibit] = (value >> ibit) & 0x1;
+    } else {                   // Translate MSB first
+      bits[ibit] = (value >>(length-ibit-1)) & 0x1;
+    }
+    //    (*MyOutput_) << "bits[" << ibit << "] = " << bits[ibit] << std::endl;
+  }
+  //
+  return;
+}
+//
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// XSVF programming.....
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//----------------------------------//
+// prom image file create/read
+//----------------------------------//
+void EMUjtag::CreateUserPromFile() {
+  //
+  (*MyOutput_) << "EMUjtag:  Creating user prom image file" << std::endl;
+  //
+  // Create the data which are shifted out by the user prom
+  //
+  //  N.B. depending on the header/trailer in the blocks as required by the TMB,   
+  //       we need a maximum here which corresponds with the size of the prom....
+  int data_count=TOTAL_NUMBER_OF_ADDRESSES - TOTAL_NUMBER_OF_BLOCKS*3;
+  int data_to_prom[data_count];
+  //
+  //*******************************//
+  // dummy data:  walking ones...
+  for (int address=0; address<data_count; address++) 
+    data_to_prom[address] = 1 << (address%8);
+  // end dummy data
+  //*******************************//
+  //
+  InsertBlockBoundaries_(data_to_prom,data_count);
+  //
+  WritePromDataToDisk_();
+  //
+  return;
+}
+//
+void EMUjtag::InsertBlockBoundaries_(int * data_to_go_into_prom,
+				     int number_of_data_words_to_go_into_prom) {
+  // clear the ascii prom image
+  for (int i=0; i<TOTAL_NUMBER_OF_ADDRESSES; i++) 
+    SetUserPromImage_(i,0);
+  //
+  // Fill the ascii prom image with the desired data.
+  // Each block has a header and trailer which needs to be 
+  // inserted into the stream...
+  //
+  // N.B. This needs to have real header/trailer as required by TMB firmware in order to work....
+  int address_counter = 0;
+  int block_counter = 0;
+  for (int i=0; i<number_of_data_words_to_go_into_prom; i++) {
+    //
+    // data:
+    SetUserPromImage_(address_counter++,data_to_go_into_prom[i]);
+    //
+    // block trailer:
+    if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == (NUMBER_OF_ADDRESSES_PER_BLOCK-3) )
+      SetUserPromImage_(address_counter++,block_counter++);
+    //
+    if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == (NUMBER_OF_ADDRESSES_PER_BLOCK-2) )
+      SetUserPromImage_(address_counter++,0xab);
+    //
+    if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == (NUMBER_OF_ADDRESSES_PER_BLOCK-1) )
+      SetUserPromImage_(address_counter++,0xcd);
+    //
+  }
+  //
+  return;
+}
+//
+void EMUjtag::ReadUserPromFile() {
+  //
+  (*MyOutput_) << "EMUjtag:  Reading user prom image file..." << std::endl;
+  //
+  for (int address=0; address<TOTAL_NUMBER_OF_ADDRESSES; address++)
+    read_ascii_prom_image_[address]=0;
+  //
+  ReadPromDataFromDisk_();
+  return;
+}
+//
+int EMUjtag::GetUserPromImage(int address) {
+  //
+  if (address >= TOTAL_NUMBER_OF_ADDRESSES) {
+    (*MyOutput_) << "GetUserPromImage ERROR: address " << address 
+		 << " out of range...  should be between 0 and " << TOTAL_NUMBER_OF_ADDRESSES-1 
+		 << std::endl;
+    return 999;
+  }
+  //
+  return read_ascii_prom_image_[address];
+}
+//
+void EMUjtag::SetUserPromImage_(int address,
+				int value) {
+  //
+  if (address >= TOTAL_NUMBER_OF_ADDRESSES) {
+    (*MyOutput_) << "SetUserPromImage ERROR: address " << address 
+		 << " out of range...  should be between 0 and " << TOTAL_NUMBER_OF_ADDRESSES-1 
+		 << std::endl;
+    return;
+  }
+  //
+  if (value > 0xff) {
+    (*MyOutput_) << "SetUserPromImage ERROR: value " << value 
+		 << " is too large...  should be between 0 and 255" 
+		 << std::endl;
+    return;
+  }
+  // 
+  write_ascii_prom_image_[address] = value & 0xff;
+  //
+  return;
+}
+//
+void EMUjtag::WritePromDataToDisk_() {
+  //
+  //prom image file is a human-readable file with format AAAA DD -> AAAA=address, DD=prom data
+  //
+  (*MyOutput_) << "EMUjtag: Write file " << filename_dat_ << " to disk" << std::endl;
+  //
+  std::ofstream file_to_write;
+  file_to_write.open(filename_dat_.c_str());
+  //
+  for (int index=0; index<TOTAL_NUMBER_OF_ADDRESSES; index++) 
+    file_to_write << std::hex 
+		  << std::setw(5) << index                     
+		  << std::setw(3) << write_ascii_prom_image_[index]
+		  << std::endl;
+  //
+  file_to_write.close();
+  return;
+}
+//
+void EMUjtag::ReadPromDataFromDisk_() {
+  //
+  (*MyOutput_) << "EMUjtag: Read file " << filename_dat_ << " from disk" << std::endl;
+  //
+  std::ifstream file_to_read;
+  file_to_read.open(filename_dat_.c_str());
+  //
+  if ( file_to_read.is_open() ) {
+    prom_file_ok_ = true;
+    while ( file_to_read.good() ) {
+      //
+      //prom image file has format AAAA DD -> AAAA=address, DD=prom data
+      //
+      std::string line;
+      std::getline(file_to_read,line);
+      //
+      std::istringstream instring(line);
+      //
+      int index_value, image_value;
+      instring >> std::hex >> index_value >> image_value;
+      //
+      //      std::cout << "line " << std::dec << index_value 
+      //		<< ", image = " << image_value
+      //		<< std::endl;
+      //
+      read_ascii_prom_image_[index_value] = image_value;
+    } 
+  } else {
+    prom_file_ok_ = false;
+    (*MyOutput_) << "EMUjtag:  ERROR Prom data file " << filename_dat_ 
+		 << " does not exist.  Please create it" << std::endl;
+  }
+  //
+  file_to_read.close();
+  return;
+}
+//
+//----------------------------------//
+// XSVF file create/read
+//----------------------------------//
+void EMUjtag::CreateXsvfFile() {
+  //
+  (*MyOutput_) << "EMUjtag:  Creating XSVF file..." << std::endl;
+  //
+  for (int i=0; i<MAX_XSVF_IMAGE_NUMBER; i++) 
+    write_xsvf_image_[i] = 0;
+  //
+  ReadUserPromFile();
+  //
+  if ( !prom_file_ok_ ) return;
+  //
+  // For the moment just put in dummy data....
+  number_of_write_bytes_ = MAX_XSVF_IMAGE_NUMBER;
+  for (int i=0; i<number_of_write_bytes_; i++) 
+    write_xsvf_image_[i] = (char)(i%256);
+  //
+  WriteXsvfDataToDisk_();
+  //
+  return;
+}
+//
+void EMUjtag::ReadXsvfFile(bool create_logfile) {
+  //
+  (*MyOutput_) << "EMUjtag:  Reading XSVF file..." << std::endl;
+  //
+  for (int i=0; i<MAX_XSVF_IMAGE_NUMBER; i++) 
+    read_xsvf_image_[i]=0; 
+  //
+  ReadXsvfDataFromDisk_();
+  //
+  std::ofstream Logfile;
+  //
+  if (create_logfile) {
+    Logfile.open(filename_log_.c_str());        
+    //
+    Logfile << "Logfile for file " << filename_xsvf_ << std::endl;
+    Logfile << "Number of bytes = " << number_of_read_bytes_ << std::endl;
+  }
+  //
+  for (int counter=0; counter<number_of_read_bytes_; counter++) {
+    
+  }
+  //
+  if (create_logfile) {
+    Logfile.close();
+  }
+  //
+  return;
+}
+//
+void EMUjtag::ReadXsvfFile() {
+  //
+  // Default is no logfile written:
+  ReadXsvfFile(false);
+  //
+  return;
+}
+//
+void EMUjtag::WriteXsvfDataToDisk_() {
+  //
+  (*MyOutput_) << "EMUjtag: Write file " << filename_xsvf_ << " to disk" << std::endl;
+  //
+  std::ofstream file_to_write;
+  file_to_write.open(filename_xsvf_.c_str(),
+		     std::ios::binary);        
+  //
+  for (int index=0; index<number_of_write_bytes_; index++) 
+      file_to_write << write_xsvf_image_[index];
+  //
+  file_to_write.close();
+  //
+  return;
+}
+//
+void EMUjtag::ReadXsvfDataFromDisk_() {
+  //
+  (*MyOutput_) << "EMUjtag: Read file " << filename_xsvf_ << " from disk" << std::endl;
+  //
+  std::ifstream file_to_read;
+  file_to_read.open(filename_xsvf_.c_str(),
+		    std::ifstream::binary);     //xsvf file is binary
+  //
+  int byte_counter=0;
+  while ( file_to_read.good() ) 
+    read_xsvf_image_[byte_counter++] = file_to_read.get();
+  //
+  number_of_read_bytes_ = --byte_counter;
+  //
+  //  for (int i=200; i<300; i++) 
+  //    std::cout << "read_xsvf_image_[" << std::dec << i 
+  //	      << "] = " << read_xsvf_image_[i] << std::endl;
+  //
+  file_to_read.close();
+  //
+  return;
+}
+//
+//
+//////////////////////////////////////////
+// File-handling tools
+//////////////////////////////////////////
+void EMUjtag::SetXsvfFilename(std::string filename) {
+  //
+  filename_dat_ = AddTrailer_(filename,"dat");  
+  filename_xsvf_ = AddTrailer_(filename,"xsvf");  
+  filename_log_ = AddTrailer_(filename,"log");  
+  //
+  return;
+}
+//
+std::string EMUjtag::AddTrailer_(std::string filename,
+				 std::string trailer) {
+  //
+  std::string extendedfile = filename+"."+trailer;
+  return extendedfile;
+}
+//
+//
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+// SVF programming:
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 int EMUjtag::SVFLoad(int *jch, const char *fn, int db )
 {
   int MAXBUFSIZE=8200;
