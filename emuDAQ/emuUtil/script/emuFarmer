@@ -106,9 +106,9 @@ class Emu_Farmer:
             self.createCommandLines()
             self.pickRelevantCommandLines()
             if self._action == 'status':
-                print 'status (S: sleeping  |  R: running  |  *nothing*: no process found):'
+                print '----------------------- status (S: sleeping  |  R: running  |  *nothing*: no process found):'
             if self._action == 'debug':
-                print "remote processes' standard output (see emuFarmer.log for details):"
+                print "----------------------- remote processes' standard output (see ./emuFarmer.log for details):"
             for ctxt,cmnd in self._relevantCommandLines.iteritems():
                 #print ctxt,'\n',commands.getoutput(cmnd) # doesn't stop when starting xdaq as it wants to read stdout...
                 tgts = '  ( '+self.listTargets(ctxt)+')'
@@ -456,7 +456,7 @@ def printHelp():
 emuFarmer reloads drivers or launches/kills XDAQ executives specified in a XDAQ XML configuration file.
 
     Usage:
-        emuFarmer -c config_file [-u user] [-a action] [-t target_group] [-l log_level] [-X xdaq_root] [-h]
+        emuFarmer -c config_file [-u user] [-a action] [-t target_group] [-l log_level] [-X xdaq_root] [-d merged_config_destination] [-h]
 
         It logs to the standard error and $PWD/emuFarmer.log
 
@@ -481,7 +481,7 @@ emuFarmer reloads drivers or launches/kills XDAQ executives specified in a XDAQ 
               Format: user@host:directory
               The remote processes will be instructed to take the merged configuration from
               http://host/user/directory
-              Default is user@emudaq:config (See option -u for 'user'.)
+              Default is user@emuslice10:config (See option -u for 'user'.)
         -a    Action [status|start|stop|restart|reload] to take. Default is 'status'.
               'status' prints the process state code reported by 'ps'. (See the ps man pages.)
               'reload' will (re)load the drivers in all nodes running EmuRUIs. Options -l and -t
@@ -523,7 +523,7 @@ if __name__ == "__main__":
     logLevel       = 'WARN'
     user           = ''
     xdaq_root      = ''
-    #dirForMerged   = 'slice@emudaq:config'
+    dirForMerged   =  None
     
     # user's command line options
     for i in range(1,len(sys.argv)):
@@ -554,7 +554,8 @@ if __name__ == "__main__":
         user = os.environ['USER']
 
     # now we can set the default destination directory for the merged configuration file
-    dirForMerged   = user+'@emudaq:config'
+    if dirForMerged == None:
+        dirForMerged = user+'@emuslice10:config'
 
     # XDAQ_ROOT must be known
     if xdaq_root == '' and 'XDAQ_ROOT' not in os.environ:
@@ -608,7 +609,7 @@ if __name__ == "__main__":
         sys.exit(0)
     farmer.act( 'status' )
     if action == 'status': sys.exit(0)
-    if re.match('y',raw_input(action+'? [y|n] ')):
+    if re.match('y',raw_input('----------------------- '+action+'? [y|n] ')):
         if action == 'restart':
             farmer.act( 'stop' )
             farmer.act( 'status' )
