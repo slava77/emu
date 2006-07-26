@@ -138,17 +138,17 @@ int main() {
     std::cout << " 70:RAT User codes             71:TMB U76 bus-hold chip"
               << std::endl;
     std::cout << std::endl;
-    std::cout << " 21:Read RAT USER1             22:Read RAT USER2" 
+    std::cout << " 21:Read RAT USER1" 
 	      << std::endl;
     std::cout << " 23:read RAT-RPC delay         25:Set RAT-RPC delay" 
 	      << std::endl;
-    std::cout << " 26:reset RPC parity error ctr 27:Read RPC data"
+    std::cout << " 26:reset RPC parity error ctr"
 	      << std::endl;
     std::cout << " 29:Read RAT Usercodes         30:Read RAT IDcodes            31:Read TMB-RAT delay"
 	      << std::endl;
-    std::cout << " 32:Set TMB-RAT Delay          33:Parity err ignore all 1s,0s 34:Parity error don't ignore all 1s,0s"
+    std::cout << " 32:Set TMB-RAT Delay          "
 	      << std::endl;
-    std::cout << " 35:Use odd parity             36:Use even parity             37:Test parity bit computation"
+    std::cout << " 37:Test parity bit computation"
 	      << std::endl;
     //
     std::cout << std::endl;
@@ -167,7 +167,7 @@ int main() {
 	      << std::endl;
     std::cout << "110: Read asic delays         111:Set asic delays            112: Read asic patterns"
 	      << std::endl;
-    std::cout << "113:Set asic patterns         114: Read delay line ctrl reg "
+    std::cout << "113:Set asic patterns"
 	      << std::endl;
     std::cout << "119:Set power-up dly/patt "
 	      << std::endl;
@@ -179,21 +179,17 @@ int main() {
 	      << std::endl;
     std::cout << "130: Read hot channel mask    131:Set hot channel mask       139:Set power-up hot channel mask"
 	      << std::endl;
-    //
-    std::cout << "140: Read testpulse power     141:Set testpulse power switch 149:Set power-up testpulsepower switch"
-	      << std::endl;
-    std::cout << "150: Read testpulse amplitude 151:Set testpulse amplitude    159:Set power-up testpulsepower amplitude"
-	      << std::endl;
-    std::cout << "160: Read testpulse groupmask 161:Set testpulse groupmask    169:Set power-up testpulse groupmask"
-	      << std::endl;
-    std::cout << "170: Read testpulse stripmask 171:Set testpulse stripmask    179:Set power-up testpulse stripmask"
-	      << std::endl;
     std::cout << "180: Read AFEB thresholds     181:Set AFEB threshold         189:Set power-up AFEB thresholds"
-	      << std::endl;
-    std::cout << "190: Read standby register    191:Set standby                199:Set power-up standby register"
 	      << std::endl;
     std::cout << std::endl;
     //
+    std::cout << "XSVF file handling" << std::endl;
+    std::cout << "200: Write data file          201:Read data file"
+	      << std::endl;
+    std::cout << "300: Write xsvf file          301:Read xsvf file"
+	      << std::endl;
+    //
+    std::cout << std::endl;
     std::cout << "1000:Exit " << std::endl;
     std::cout << " menu choice? (Default = 999)" << std::endl;
     std::cin >> Menu;
@@ -271,10 +267,6 @@ int main() {
       myRat->ReadRatUser1();
       myRat->PrintRatUser1();
       break;
-    case 22:
-      //      myRat->ReadRatUser2();
-      //      myRat->decodeRATUser2();
-      break;
     case 23:
       myRat->ReadRatUser1();
       myRat->PrintRpcRatDelay();
@@ -296,9 +288,6 @@ int main() {
       break;
     case 26:
       myRat->reset_parity_error_counter();
-      break;
-    case 27:
-      //      myRat->read_rpc_data();
       break;
     case 29:
       myRat->ReadRatUserCode();
@@ -322,22 +311,6 @@ int main() {
       myRat->WriteRatTmbDelay();
       myRat->ReadRatTmbDelay();
       myRat->PrintRatTmbDelay();      
-      break;
-    case 33:
-      //      myRat->SetRatParityErrorIgnore(ON);
-      myRat->configure();      
-      break;
-    case 34:
-      //      myRat->SetRatParityErrorIgnore(OFF);
-      myRat->configure();      
-      break;
-    case 35:
-      //myRat->SetRatParityOdd(ON);
-      myRat->configure();
-      break;
-    case 36:
-      //myRat->SetRatParityOdd(OFF);
-      myRat->configure();
       break;
     case 37:
       std::cout << "compute parity for RPC0 (0) or RPC1 (1)" << std::endl;
@@ -456,10 +429,6 @@ int main() {
       alct->ReadAsicDelaysAndPatterns();
       alct->PrintAsicPatterns();
       break;
-    case 114:
-      //      alct->ReadDelayLineControlReg();
-      //      alct->PrintDelayLineControlReg();
-      break;
     case 119:
       alct->SetPowerUpAsicPatterns();
       alct->SetPowerUpAsicDelays();
@@ -540,82 +509,6 @@ int main() {
       alct->ReadHotChannelMask();
       alct->PrintHotChannelMask();
       break;
-    case 140:
-      //      alct->ReadTestpulsePowerSwitchReg();
-      //      alct->PrintTestpulsePowerSwitchReg();
-      break;
-    case 141:
-      std::cout << "Testpulse power switch ON (1) or OFF (0) " << std::endl;
-      std::cin >> value;
-      //      alct->SetTestpulsePowerSwitchReg(value);
-      //      alct->WriteTestpulsePowerSwitchReg();      
-      //      alct->ReadTestpulsePowerSwitchReg();
-      //      alct->PrintTestpulsePowerSwitchReg();
-      break;
-    case 149:
-      //      alct->SetPowerUpTestpulsePowerSwitchReg();
-      //      alct->WriteTestpulsePowerSwitchReg();      
-      //      alct->ReadTestpulsePowerSwitchReg();
-      //      alct->PrintTestpulsePowerSwitchReg();
-      break;
-    case 150:
-      //      std::cout << "Testpulse amplitude software setting = " 
-      //		<< std::dec << alct->GetTestpulseAmplitude() << std::endl;
-      break;
-    case 151:
-      std::cout << "Testpulse amplitude (0-255)" << std::endl;
-      std::cin >> value;
-      //      alct->SetTestpulseAmplitude(value);
-      //      alct->WriteTestpulseAmplitude();      
-      //      std::cout << "Testpulse amplitude written.  The software setting = " 
-      //		<< std::dec << alct->GetTestpulseAmplitude() << std::endl;
-      break;
-    case 159:
-      //      alct->SetPowerUpTestpulseAmplitude();
-      //      alct->WriteTestpulseAmplitude();      
-      //      std::cout << "Power-up testpulse amplitude written.  The software setting = " 
-      //		<< std::dec << alct->GetTestpulseAmplitude() << std::endl;
-    //      break;
-    case 160:
-      //      alct->ReadTestpulseGroupMask();
-      //      alct->PrintTestpulseGroupMask();
-      break;
-    case 161:
-      std::cout << "testpulse groupmask: group (0-6)" << std::endl;
-      std::cin >> layer;
-      std::cout << "OFF (0) or ON (1) " << std::endl;
-      std::cin >> value;
-      //      alct->SetTestpulseGroupMask(layer,value);
-      //      alct->WriteTestpulseGroupMask();      
-      //      alct->ReadTestpulseGroupMask();
-      //      alct->PrintTestpulseGroupMask();
-      break;
-    case 169:
-      //      alct->SetPowerUpTestpulseGroupMask();
-      //      alct->WriteTestpulseGroupMask();      
-      //      alct->ReadTestpulseGroupMask();
-      //      alct->PrintTestpulseGroupMask();
-      break;
-    case 170:
-      //      alct->ReadTestpulseStripMask();
-      //      alct->PrintTestpulseStripMask();
-      break;
-    case 171:
-      std::cout << "testpulse stripmask: strip (0-6)" << std::endl;
-      std::cin >> layer;
-      std::cout << "OFF (0) or ON (1) " << std::endl;
-      std::cin >> value;
-      //      alct->SetTestpulseStripMask(layer,value);
-      //      alct->WriteTestpulseStripMask();      
-      //      alct->ReadTestpulseStripMask();
-      //      alct->PrintTestpulseStripMask();
-      break;
-    case 179:
-      //      alct->SetPowerUpTestpulseStripMask();
-      //      alct->WriteTestpulseStripMask();      
-      //      alct->ReadTestpulseStripMask();
-      //      alct->PrintTestpulseStripMask();
-      break;
     case 180:
       alct->ReadAfebThresholds();
       alct->PrintAfebThresholds();
@@ -636,25 +529,27 @@ int main() {
       alct->ReadAfebThresholds();
       alct->PrintAfebThresholds();
       break;
-    case 190:
-      //      alct->ReadStandbyRegister();
-      //      alct->PrintStandbyRegister();
+    case 200:
+      alct->SetXsvfFilename("ItWorks");
+      alct->CreateUserPromFile();
       break;
-    case 191:
-      std::cout << "standby register: AFEB (0-41)" << std::endl;
-      std::cin >> layer;
-      std::cout << "OFF (0) or ON (1) " << std::endl;
+    case 201:      
+      alct->SetXsvfFilename("ItWorks");
+      alct->ReadUserPromFile();
+      std::cout << "address (0-32767) " << std::endl;
       std::cin >> value;
-      //      alct->SetStandbyRegister(layer,value);
-      //      alct->WriteStandbyRegister();      
-      //      alct->ReadStandbyRegister();
-      //      alct->PrintStandbyRegister();
+      std::cout << "address " << std::hex << value 
+		<< " = " << alct->GetUserPromImage(value) 
+		<< std::endl;
       break;
-    case 199:
-      //      alct->SetPowerUpStandbyRegister();
-      //      alct->WriteStandbyRegister();      
-      //      alct->ReadStandbyRegister();
-      //      alct->PrintStandbyRegister();
+    case 300:      
+      //      alct->SetXsvfFilename("userprom0_256_dev");
+      alct->SetXsvfFilename("DoesitWork");
+      alct->CreateXsvfFile();
+      break;
+    case 301:      
+      alct->SetXsvfFilename("userprom0_256_dev");
+      alct->ReadXsvfFile(true);
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 
