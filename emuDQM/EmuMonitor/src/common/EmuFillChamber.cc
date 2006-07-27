@@ -150,11 +150,16 @@ void EmuLocalPlotter::fill(const CSCEventData& data, int dduID=0) {
       while( chamber != checkerErrors.end() ){
 	string cscname(Form("_CSC_%d_%d_", (chamber->first>>4) & 0xFF, chamber->first & 0xF)); 
 	hname = Form("hist/h%sBinCheck_ErrorStat_Table", cscname.c_str());
-	for(int bit=5; bit<19; bit++)
+	for(int bit=5; bit<19; bit++){
+///KK it should be:
+///	for(int bit=5; bit<24; bit++){
+///	  if( bit==19 || bit==20 ) continue;
+///But I don't know where booking is now.
 	  if( chamber->second & (1<<bit) )
 	    if( histos[chamber->first].find(hname) != histos[chamber->first].end() )
 	      histos[chamber->first][hname]->Fill(0.,bit-5);
 	    else LOG4CPLUS_DEBUG(logger_," Error: unknown histogram "<<hname);
+	  }
 	chamber++;
       }
       map<int,long> checkerWarnings  = bin_checker.warningsDetailed();

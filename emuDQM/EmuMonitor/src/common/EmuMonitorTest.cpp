@@ -42,7 +42,8 @@ int main(int argc, char **argv) {
         // EmuFileReader ddu; //( inputDeviceName_.toString(), inputDataFormatInt_ );
 	// FileReaderDDU ddu;
 	int dduCheckMask=0xFFFFDFFF;
-	int binCheckMask=0xFFFFFFFF;
+	//int binCheckMask=0xFFFFFFFF;
+	int binCheckMask=0xDFCB7BF6;
 	// int dduCheckMask = 0x0;
 //	int binCheckMask = 0x0;
 	switch (argc) {
