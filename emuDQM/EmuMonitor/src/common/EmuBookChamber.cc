@@ -807,7 +807,7 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 		h[hname] = new TH2F(TString(hname.c_str()), Form("Layer = %d",nLayer), 160, 0, 160, 32, 0, 32);
 		h[hname]->SetXTitle("Cathode HalfStrip");
                 h[hname]->SetYTitle("Time Bin");
-		h[hname]->SetOption("col");
+		h[hname]->SetOption("colz");
 		cnv[cnvname]->cd(nLayer);
 		h[hname]->Draw();
 		gStyle->SetOptStat("e");
