@@ -548,7 +548,7 @@ int main() {
       alct->CreateXsvfFile();
       break;
     case 301:      
-      alct->SetXsvfFilename("userprom0_256_dev");
+      alct->SetXsvfFilename("userprom1_256_dev");
       alct->ReadXsvfFile(true);
       break;
     default:
