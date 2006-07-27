@@ -104,7 +104,7 @@ void EmuLocalPlotter::fill(const CSCEventData& data, int dduID=0) {
 
 //KK
     DMBEff = (float(nDMBEvents[ChamberID])/float(nEvents)*100.0);
-    DMBEvent = nDMBEvents[ChamberID];
+    DMBEvent = (float)nDMBEvents[ChamberID];
 //KKend
     /*
     if(nEvents > 0) {
@@ -432,9 +432,16 @@ void EmuLocalPlotter::fill(const CSCEventData& data, int dduID=0) {
 	  hname = Form("hist/h%sALCT_Ly%d_Rate", CSCTag.c_str(), nLayer);
 	  h[hname]->Fill(wg);
 	  int number_wg = (int)(h[hname]->GetBinContent(wg+1));
+	  Double_t Number_of_entries_ALCT = h[hname]->GetEntries();
 
 	  hname = Form("hist/h%sALCT_Ly%d_Efficiency", CSCTag.c_str(), nLayer);
-	  h[hname]->SetBinContent(wg+1,((float)number_wg)/((float)DMBEvent)*100.0);
+	  h[hname]->SetBinContent(wg+1,((float)number_wg));
+	    if((Double_t)(nDMBEvents[ChamberID]) > 0.0) {
+		h[hname]->SetNormFactor(100.0*Number_of_entries_ALCT/(Double_t)(nDMBEvents[ChamberID]));
+	    } else {
+	    	h[hname]->SetNormFactor(100.0);
+	    }
+	    h[hname]->SetEntries(nDMBEvents[ChamberID]);
 	}
 	if(wg != wg_previous) {
 	  NumberOfWireGroupsWithHitsInALCT = NumberOfWireGroupsWithHitsInALCT + 1;
@@ -759,9 +766,16 @@ void EmuLocalPlotter::fill(const CSCEventData& data, int dduID=0) {
 	    h[hname]->Fill(hstrip);
 
 	    int number_hstrip = (int)(h[hname]->GetBinContent(hstrip+1));
+	    Double_t Number_of_entries_CLCT = h[hname]->GetEntries();
+	    
 	    hname = Form("hist/h%sCLCT_Ly%d_Efficiency",CSCTag.c_str(), nLayer);
-	    h[hname]->SetBinContent(hstrip+1,((float)number_hstrip)/((float)DMBEvent)*100.0);
-	    h[hname]->SetEntries(DMBEvent);
+	    h[hname]->SetBinContent(hstrip+1,(float)number_hstrip);
+	    if((Double_t)(nDMBEvents[ChamberID]) > 0.0) {
+		h[hname]->SetNormFactor(100.0*Number_of_entries_CLCT/(Double_t)(nDMBEvents[ChamberID]));
+	    } else {
+	    	h[hname]->SetNormFactor(100.0);
+	    }
+	    h[hname]->SetEntries(nDMBEvents[ChamberID]);
 	  }
 	  if(hstrip != hstrip_previous) {
 	    NumberOfHalfStripsWithHitsInCLCT = NumberOfHalfStripsWithHitsInCLCT + 1;

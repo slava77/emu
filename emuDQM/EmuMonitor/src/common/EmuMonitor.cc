@@ -486,6 +486,11 @@ void EmuMonitor::ConfigureAction(toolbox::Event::Reference e) throw (toolbox::fs
     		}
 	
 	plotter_->book();
+    		if (binCheckMask_ >= xdata::UnsignedLong(0)) {
+			LOG4CPLUS_INFO (getApplicationLogger(), 
+			"plotter::binCheckMask: 0x" << std::hex << binCheckMask_.value_);
+      			plotter_->SetBinCheckMask(binCheckMask_);
+		}
  	}
 	if (plotterSaveTimer_>xdata::Integer(0)) {
               timer_->setTimer(plotterSaveTimer_);

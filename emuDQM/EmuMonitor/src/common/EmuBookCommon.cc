@@ -14,7 +14,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 
 	string  DDUHardwareErrorName[33];
 		DDUHardwareErrorName[0] = "Blank: 00";
-		DDUHardwareErrorName[1] = "CFEB CRC Error: 01";
+		DDUHardwareErrorName[1] = "CFEB CRC Error (test common): 01";
 		DDUHardwareErrorName[2] = "DMB-DDU L1A Mismatch: 02";
 		DDUHardwareErrorName[3] = "Lost/New Fibers: 03";
 		DDUHardwareErrorName[4] = "INPUT FIFO Full: 04";

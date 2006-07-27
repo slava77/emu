@@ -21,12 +21,14 @@ void EmuPlotter::setParameters()
 	L1ANumber = 0;
 	BXN = 0;
 	dduCheckMask = 0xFFFFFFFF;
-	binCheckMask = 0xFFFFFFFF;
+	//binCheckMask = 0xFFFFFFFF;
+	binCheckMask = 0xDFCB7BF6;
         bin_checker.output1().hide();
         bin_checker.output2().hide();
         bin_checker.crcALCT(true);
         bin_checker.crcTMB (true);
         bin_checker.crcCFEB(true);
+        bin_checker.crcDDU (true);
 }
 
 void EmuPlotter::clearMECollection(std::map<std::string, EmuMonitoringObject*> & collection) 
