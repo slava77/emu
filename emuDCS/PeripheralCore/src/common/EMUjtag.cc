@@ -432,15 +432,65 @@ void EMUjtag::CreateUserPromFile() {
   //
   // Create the data which are shifted out by the user prom
   //
-  //  N.B. depending on the header/trailer in the blocks as required by the TMB,   
-  //       we need a maximum here which corresponds with the size of the prom....
-  int data_count=TOTAL_NUMBER_OF_ADDRESSES - TOTAL_NUMBER_OF_BLOCKS*3;
-  int data_to_prom[data_count];
-  //
   //*******************************//
   // dummy data:  walking ones...
-  for (int address=0; address<data_count; address++) 
+  //  N.B. depending on the header/trailer in the blocks as required by the TMB,   
+  //       we need a maximum here which corresponds with the size of the prom....
+  int data_count=285;
+  int data_to_prom[data_count];
+  //
+  for (int address=0; address<data_count; address++) {
     data_to_prom[address] = 1 << (address%8);
+    if (address==0) data_to_prom[address] = (int)'C';
+    if (address==1) data_to_prom[address] = (int)'a';
+    if (address==2) data_to_prom[address] = (int)'n';
+    if (address==3) data_to_prom[address] = (int)' ';
+    if (address==4) data_to_prom[address] = (int)'y';
+    if (address==5) data_to_prom[address] = (int)'o';
+    if (address==6) data_to_prom[address] = (int)'u';
+    if (address==7) data_to_prom[address] = (int)' ';
+    if (address==8) data_to_prom[address] = (int)'r';
+    if (address==9) data_to_prom[address] = (int)'e';
+    if (address==10) data_to_prom[address] = (int)'a';
+    if (address==11) data_to_prom[address] = (int)'d';
+    if (address==12) data_to_prom[address] = (int)' ';
+    if (address==13) data_to_prom[address] = (int)'m';
+    if (address==14) data_to_prom[address] = (int)'e';
+    if (address==15) data_to_prom[address] = (int)'?';
+    //
+    if (address==253) data_to_prom[address] = (int)'H';
+    if (address==254) data_to_prom[address] = (int)'e';
+    if (address==255) data_to_prom[address] = (int)'r';
+    if (address==256) data_to_prom[address] = (int)'e';
+    if (address==257) data_to_prom[address] = (int)' ';
+    if (address==258) data_to_prom[address] = (int)'i';
+    if (address==259) data_to_prom[address] = (int)'s';
+    if (address==260) data_to_prom[address] = (int)' ';
+    if (address==261) data_to_prom[address] = (int)'t';
+    if (address==262) data_to_prom[address] = (int)'h';
+    if (address==263) data_to_prom[address] = (int)'e';
+    if (address==264) data_to_prom[address] = (int)' ';
+    if (address==265) data_to_prom[address] = (int)'s';
+    if (address==266) data_to_prom[address] = (int)'e';
+    if (address==267) data_to_prom[address] = (int)'c';
+    if (address==268) data_to_prom[address] = (int)'o';
+    if (address==269) data_to_prom[address] = (int)'n';
+    if (address==270) data_to_prom[address] = (int)'d';
+    if (address==271) data_to_prom[address] = (int)' ';
+    if (address==272) data_to_prom[address] = (int)'b';
+    if (address==273) data_to_prom[address] = (int)'l';
+    if (address==274) data_to_prom[address] = (int)'o';
+    if (address==275) data_to_prom[address] = (int)'c';
+    if (address==276) data_to_prom[address] = (int)'k';
+    if (address==277) data_to_prom[address] = (int)' ';
+    if (address==278) data_to_prom[address] = (int)'o';
+    if (address==279) data_to_prom[address] = (int)'f';
+    if (address==280) data_to_prom[address] = (int)' ';
+    if (address==281) data_to_prom[address] = (int)'d';
+    if (address==282) data_to_prom[address] = (int)'a';
+    if (address==283) data_to_prom[address] = (int)'t';
+    if (address==284) data_to_prom[address] = (int)'a';
+  }
   // end dummy data
   //*******************************//
   //
@@ -461,23 +511,36 @@ void EMUjtag::InsertBlockBoundaries_(int * data_to_go_into_prom,
   // Each block has a header and trailer which needs to be 
   // inserted into the stream...
   //
-  // N.B. This needs to have real header/trailer as required by TMB firmware in order to work....
-  int address_counter = 0;
   int block_counter = 0;
-  for (int i=0; i<number_of_data_words_to_go_into_prom; i++) {
+  int data_counter = 0;
+  int address_counter = 0;
+  while (address_counter < TOTAL_NUMBER_OF_ADDRESSES) {
+    //
+    int previous_address = address_counter;
+    //
+    // block header goes here:
     //
     // data:
-    SetUserPromImage_(address_counter++,data_to_go_into_prom[i]);
+    if ( data_counter < number_of_data_words_to_go_into_prom)
+      SetUserPromImage_(address_counter++,
+			data_to_go_into_prom[data_counter++]);
     //
     // block trailer:
-    if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == (NUMBER_OF_ADDRESSES_PER_BLOCK-3) )
-      SetUserPromImage_(address_counter++,block_counter++);
+    if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == 
+	 (NUMBER_OF_ADDRESSES_PER_BLOCK-3) )
+      SetUserPromImage_(address_counter++,
+			block_counter++);
     //
-    if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == (NUMBER_OF_ADDRESSES_PER_BLOCK-2) )
-      SetUserPromImage_(address_counter++,0xab);
+    if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == 
+	 (NUMBER_OF_ADDRESSES_PER_BLOCK-2) )
+      SetUserPromImage_(address_counter++,
+			0xab);
     //
     if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == (NUMBER_OF_ADDRESSES_PER_BLOCK-1) )
-      SetUserPromImage_(address_counter++,0xcd);
+      SetUserPromImage_(address_counter++,
+			0xcd);
+    //
+    if (address_counter == previous_address) address_counter++; 
     //
   }
   //
@@ -486,12 +549,65 @@ void EMUjtag::InsertBlockBoundaries_(int * data_to_go_into_prom,
 //
 void EMUjtag::ReadUserPromFile() {
   //
-  (*MyOutput_) << "EMUjtag:  Reading user prom image file..." << std::endl;
+  (*MyOutput_) << "EMUjtag:  READ user prom image file " << filename_dat_ << std::endl;
   //
   for (int address=0; address<TOTAL_NUMBER_OF_ADDRESSES; address++)
     read_ascii_prom_image_[address]=0;
   //
-  ReadPromDataFromDisk_();
+  std::ifstream Readfile;
+  Readfile.open(filename_dat_.c_str());
+  //
+  if ( Readfile.is_open() ) {
+    //
+    prom_file_ok_ = true;
+    //
+    while ( Readfile.good() ) {
+      //
+      // prom image file has format AAAA DD -> AAAA=address, DD=prom data
+      //
+      std::string line;
+      std::getline(Readfile,line);
+      //
+      std::istringstream instring(line);
+      //
+      int index_value, image_value;
+      instring >> std::hex >> index_value >> image_value;
+      //
+      //      std::cout << "line " << std::dec << index_value 
+      //		<< ", image = " << image_value
+      //		<< std::endl;
+      //
+      read_ascii_prom_image_[index_value] = image_value;
+    } 
+  } else {
+    //
+    prom_file_ok_ = false;
+    //
+    (*MyOutput_) << "EMUjtag:  ERROR Prom data file " << filename_dat_ 
+		 << " does not exist.  Please create it..." << std::endl;
+  }
+  //
+  Readfile.close();
+  //
+  return;
+}
+//
+void EMUjtag::WritePromDataToDisk_() {
+  //
+  // prom image file has format AAAA DD -> AAAA=address, DD=prom data
+  //
+  (*MyOutput_) << "EMUjtag: Write file " << filename_dat_ << " to disk" << std::endl;
+  //
+  std::ofstream file_to_write;
+  file_to_write.open(filename_dat_.c_str());
+  //
+  for (int index=0; index<TOTAL_NUMBER_OF_ADDRESSES; index++) 
+    file_to_write << std::hex 
+		  << std::setw(5) << index                     
+		  << std::setw(3) << write_ascii_prom_image_[index]
+		  << std::endl;
+  //
+  file_to_write.close();
   return;
 }
 //
@@ -529,61 +645,6 @@ void EMUjtag::SetUserPromImage_(int address,
   return;
 }
 //
-void EMUjtag::WritePromDataToDisk_() {
-  //
-  //prom image file is a human-readable file with format AAAA DD -> AAAA=address, DD=prom data
-  //
-  (*MyOutput_) << "EMUjtag: Write file " << filename_dat_ << " to disk" << std::endl;
-  //
-  std::ofstream file_to_write;
-  file_to_write.open(filename_dat_.c_str());
-  //
-  for (int index=0; index<TOTAL_NUMBER_OF_ADDRESSES; index++) 
-    file_to_write << std::hex 
-		  << std::setw(5) << index                     
-		  << std::setw(3) << write_ascii_prom_image_[index]
-		  << std::endl;
-  //
-  file_to_write.close();
-  return;
-}
-//
-void EMUjtag::ReadPromDataFromDisk_() {
-  //
-  (*MyOutput_) << "EMUjtag: Read file " << filename_dat_ << " from disk" << std::endl;
-  //
-  std::ifstream file_to_read;
-  file_to_read.open(filename_dat_.c_str());
-  //
-  if ( file_to_read.is_open() ) {
-    prom_file_ok_ = true;
-    while ( file_to_read.good() ) {
-      //
-      //prom image file has format AAAA DD -> AAAA=address, DD=prom data
-      //
-      std::string line;
-      std::getline(file_to_read,line);
-      //
-      std::istringstream instring(line);
-      //
-      int index_value, image_value;
-      instring >> std::hex >> index_value >> image_value;
-      //
-      //      std::cout << "line " << std::dec << index_value 
-      //		<< ", image = " << image_value
-      //		<< std::endl;
-      //
-      read_ascii_prom_image_[index_value] = image_value;
-    } 
-  } else {
-    prom_file_ok_ = false;
-    (*MyOutput_) << "EMUjtag:  ERROR Prom data file " << filename_dat_ 
-		 << " does not exist.  Please create it" << std::endl;
-  }
-  //
-  file_to_read.close();
-  return;
-}
 //
 //----------------------------------//
 // XSVF file create/read
@@ -597,58 +658,24 @@ void EMUjtag::CreateXsvfFile() {
   //
   ReadUserPromFile();
   //
-  if ( !prom_file_ok_ ) return;
+  if ( !prom_file_ok_ ) {
+    (*MyOutput_) << "EMUjtag:  Not creating XSVF file..." << std::endl;
+    return;
+  }
   //
   // For the moment just put in dummy data....
   number_of_write_bytes_ = MAX_XSVF_IMAGE_NUMBER;
   for (int i=0; i<number_of_write_bytes_; i++) 
-    write_xsvf_image_[i] = (char)(i%256);
+    SetWriteXsvfImage_(i,i%256);
   //
   WriteXsvfDataToDisk_();
   //
   return;
 }
 //
-void EMUjtag::ReadXsvfFile(bool create_logfile) {
-  //
-  (*MyOutput_) << "EMUjtag:  Reading XSVF file..." << std::endl;
-  //
-  for (int i=0; i<MAX_XSVF_IMAGE_NUMBER; i++) 
-    read_xsvf_image_[i]=0; 
-  //
-  ReadXsvfDataFromDisk_();
-  //
-  std::ofstream Logfile;
-  //
-  if (create_logfile) {
-    Logfile.open(filename_log_.c_str());        
-    //
-    Logfile << "Logfile for file " << filename_xsvf_ << std::endl;
-    Logfile << "Number of bytes = " << number_of_read_bytes_ << std::endl;
-  }
-  //
-  for (int counter=0; counter<number_of_read_bytes_; counter++) {
-    
-  }
-  //
-  if (create_logfile) {
-    Logfile.close();
-  }
-  //
-  return;
-}
-//
-void EMUjtag::ReadXsvfFile() {
-  //
-  // Default is no logfile written:
-  ReadXsvfFile(false);
-  //
-  return;
-}
-//
 void EMUjtag::WriteXsvfDataToDisk_() {
   //
-  (*MyOutput_) << "EMUjtag: Write file " << filename_xsvf_ << " to disk" << std::endl;
+  (*MyOutput_) << "EMUjtag: Write XSVF file " << filename_xsvf_ << " to disk" << std::endl;
   //
   std::ofstream file_to_write;
   file_to_write.open(filename_xsvf_.c_str(),
@@ -662,17 +689,28 @@ void EMUjtag::WriteXsvfDataToDisk_() {
   return;
 }
 //
-void EMUjtag::ReadXsvfDataFromDisk_() {
+void EMUjtag::ReadXsvfFile() {
   //
-  (*MyOutput_) << "EMUjtag: Read file " << filename_xsvf_ << " from disk" << std::endl;
+  // Default is no logfile written:
+  ReadXsvfFile(false);
   //
-  std::ifstream file_to_read;
-  file_to_read.open(filename_xsvf_.c_str(),
+  return;
+}
+//
+void EMUjtag::ReadXsvfFile(bool create_logfile) {
+  //
+  (*MyOutput_) << "EMUjtag:  Read XSVF file " << filename_xsvf_ << " from disk" << std::endl;
+  //
+  for (int i=0; i<MAX_XSVF_IMAGE_NUMBER; i++) 
+    read_xsvf_image_[i]=0; 
+  //
+  std::ifstream Readfile;
+  Readfile.open(filename_xsvf_.c_str(),
 		    std::ifstream::binary);     //xsvf file is binary
   //
   int byte_counter=0;
-  while ( file_to_read.good() ) 
-    read_xsvf_image_[byte_counter++] = file_to_read.get();
+  while ( Readfile.good() ) 
+    read_xsvf_image_[byte_counter++] = Readfile.get();
   //
   number_of_read_bytes_ = --byte_counter;
   //
@@ -680,9 +718,264 @@ void EMUjtag::ReadXsvfDataFromDisk_() {
   //    std::cout << "read_xsvf_image_[" << std::dec << i 
   //	      << "] = " << read_xsvf_image_[i] << std::endl;
   //
-  file_to_read.close();
+  Readfile.close();
+  //
+  //
+  if (create_logfile) 
+    Logfile_.open(filename_log_.c_str());        
+  //
+  Logfile_ << "Logfile for file " << filename_xsvf_ << std::endl;
+  Logfile_ << "Number of bytes = " << number_of_read_bytes_ << std::endl;
+  //
+  //  for (int byte=0; byte<number_of_read_bytes_; byte++) {
+  //    int value = GetReadXsvfImage_(byte) & 0xff;
+  //    Logfile_ << std::hex << ( (value>>4)&0xf ) << (value&0xf) << " ";
+  //    if ( (byte+1)%10 == 0) 
+  //      Logfile_ << std::endl;
+  //  }
+  //  Logfile_ << std::endl;
+  //
+  DecodeXsvfImage_();
+  //
+  if (create_logfile)
+    Logfile_.close();
   //
   return;
+}
+//
+void EMUjtag::ParseXCOMPLETE_() {
+  //
+  if (NumberOfCommands_[XCOMPLETE] > 1) {
+    (*MyOutput_) << "EMUjtag: XCOMPLETE ERROR multiple eof's reached..." << std::endl;
+    image_counter_ = MAX_XSVF_IMAGE_NUMBER;
+    return;
+  }
+  //
+  Logfile_ << "XCOMPLETE -> End of XSVF file reached" << std::endl;
+  return;
+}
+//
+void EMUjtag::ParseXTDOMASK_() {
+  //
+  for (int byte=0; byte<MAX_BYTES_TDO; byte++) 
+    tdomask_[byte] = 0;
+  //
+  int number_of_bytes = (xdr_length_-1)/8 + 1;
+  //
+  if (number_of_bytes > MAX_BYTES_TDO) {
+    (*MyOutput_) << "EMUjtag: XTDOMASK ERROR number of tdo bytes " << number_of_bytes 
+		 << " greater than " << MAX_BYTES_TDO << std::endl;
+    image_counter_=MAX_XSVF_IMAGE_NUMBER;
+    return;
+  }
+  //
+  for (int byte=0; byte<number_of_bytes; byte++) 
+    tdomask_[byte] = GetReadXsvfImage_(image_counter_++) & 0xff;
+      //
+  Logfile_ << "XTDOMASK -> " << xdr_length_ << " bits, mask =";
+  for (int byte=0; byte<number_of_bytes; byte++)
+    Logfile_ << std::hex << ( (tdomask_[byte]>>4) & 0xf) << (tdomask_[byte] & 0xf);
+  Logfile_ << std::endl;
+  //
+  return;
+}
+//
+void EMUjtag::ParseXSIR_() {
+  //
+  for (int byte=0; byte<MAX_BYTES_TDI; byte++) 
+    tdivalue_[byte] = 0;
+  //
+  int number_of_bits = GetReadXsvfImage_(image_counter_++) & 0xff;
+  int number_of_bytes = (number_of_bits-1)/8+1;
+  //
+  for (int byte=0; byte<number_of_bytes; byte++) 
+    tdivalue_[byte] = GetReadXsvfImage_(image_counter_++) & 0xff;
+  //
+  Logfile_ << "XSIR -> " << number_of_bits << " bits, TDI value =";
+  for (int byte=0; byte<number_of_bytes; byte++)
+    Logfile_ << std::hex << ( (tdivalue_[byte]>>4) & 0xf) << (tdivalue_[byte] & 0xf);
+  Logfile_ << std::endl;
+  //
+  return;
+}
+//
+void EMUjtag::ParseXRUNTEST_() {
+  //
+  //pack 4 bytes to give the length of the pause
+  //
+  int xruntest_time = 0;
+  for (int i=3; i>=0; i--) 
+    xruntest_time |= ( (GetReadXsvfImage_(image_counter_++)&0xff) << 8*i);
+  //
+  Logfile_ << "XRUNTEST -> time = " << std::dec << xruntest_time << " uSec " <<  std::endl;      
+  return;
+}
+//
+void EMUjtag::ParseXREPEAT_() {
+  //
+  int number_of_times = GetReadXsvfImage_(image_counter_++) & 0xff;
+  //
+  Logfile_ << "XREPEAT -> " << number_of_times << " times" << std::endl;
+  return;
+}
+//
+void EMUjtag::ParseXSDRSIZE_() {
+  //
+  //pack 4 bytes to give the length of the data register
+  //
+  xdr_length_ = 0;
+  for (int i=3; i>=0; i--) 
+    xdr_length_ |= ( (GetReadXsvfImage_(image_counter_++)&0xff) << 8*i);
+  //
+  Logfile_ << "XSDRSIZE -> length = " << std::dec << xdr_length_ << std::endl;      
+  return;
+}
+//
+void EMUjtag::ParseXSDRTDO_() {
+  //
+  for (int byte=0; byte<MAX_BYTES_TDI; byte++) 
+    tdivalue_[byte] = 0;
+  //
+  int number_of_bytes = (xdr_length_-1)/8 + 1;
+  //
+  if (number_of_bytes > MAX_BYTES_TDI) {
+    (*MyOutput_) << "EMUjtag: XSDRTDO ERROR number of tdi bytes " << number_of_bytes 
+		 << " greater than " << MAX_BYTES_TDI << std::endl;
+    image_counter_=MAX_XSVF_IMAGE_NUMBER;
+    return;
+  }
+  //
+  for (int byte=0; byte<number_of_bytes; byte++)
+    tdivalue_[byte] = GetReadXsvfImage_(image_counter_++) & 0xff;
+      //
+  Logfile_ << "XSDRTDO -> " << std::dec << xdr_length_ << " bits, TDI value =";
+  for (int byte=0; byte<number_of_bytes; byte++)
+    Logfile_ << std::hex 
+	     << ( (tdivalue_[byte]>>4) & 0xf ) 
+	     << (tdivalue_[byte] & 0xf);
+  Logfile_ << std::endl;
+  //
+  for (int byte=0; byte<MAX_BYTES_TDO; byte++) 
+    tdoexpected_[byte] = 0;
+  //
+  if (number_of_bytes > MAX_BYTES_TDO) {
+    (*MyOutput_) << "EMUjtag: XSDRTDO ERROR number of expected tdo bytes " << number_of_bytes 
+		 << " greater than " << MAX_BYTES_TDO << std::endl;
+    image_counter_=MAX_XSVF_IMAGE_NUMBER;
+    return;
+  }
+  //
+  for (int byte=0; byte<number_of_bytes; byte++)
+    tdoexpected_[byte] = GetReadXsvfImage_(image_counter_++) & 0xff;
+      //
+  Logfile_ << "XSDRTDO -> " << std::dec << xdr_length_ << " bits, TDO expected =";
+  for (int byte=0; byte<number_of_bytes; byte++)
+    Logfile_ << std::hex 
+	     << ( (tdoexpected_[byte]>>4) & 0xf ) 
+	     << (tdoexpected_[byte] & 0xf);
+  Logfile_ << std::endl;
+  //
+  return;
+}
+//
+void EMUjtag::ParseXSTATE_() {
+  int state = GetReadXsvfImage_(image_counter_++) & 0xff;
+  //
+  if (state == 0) {
+    Logfile_ << "XSTATE -> TLR" << std::endl;
+  } else if (state == 1) {
+    Logfile_ << "XSTATE -> RTI" << std::endl;
+  } else {
+    Logfile_ << "XSTATE -> ???" << std::endl;
+  }
+  return;
+}
+//
+void EMUjtag::DecodeXsvfImage_() {
+  //
+  for (int i=0; i<NUMBER_OF_DIFFERENT_XSVF_COMMANDS; i++)
+    NumberOfCommands_[i] = 0;
+  //
+  image_counter_ = 0;
+  //
+  while (image_counter_ < number_of_read_bytes_) {
+    //
+    int command = GetReadXsvfImage_(image_counter_++);
+    //
+    if (command > NUMBER_OF_DIFFERENT_XSVF_COMMANDS) {
+      (*MyOutput_) << "EMUjtag: ERROR DecodeXsvfImage_ command = " 
+		   << std::hex << command << " out of range" << std::endl;
+      return;
+    }
+    NumberOfCommands_[command]++;
+    //
+    switch (command) {
+      //
+    case XCOMPLETE:
+      ParseXCOMPLETE_();
+      break;
+      //
+    case XTDOMASK:
+      ParseXTDOMASK_();
+      break;
+      //
+    case XSIR:
+      ParseXSIR_();
+      break;
+      //
+    case XRUNTEST:
+      ParseXRUNTEST_();
+      break;
+      //
+    case XREPEAT:
+      ParseXREPEAT_();
+      break;
+      //
+    case XSDRSIZE:
+      ParseXSDRSIZE_();
+      break;
+      //
+    case XSDRTDO:
+      ParseXSDRTDO_();
+      break;
+      //
+    case XSTATE:
+      ParseXSTATE_();
+      break;
+      //
+    default:
+      (*MyOutput_) << "EMUjtag: ERROR DecodeXsvfImage_ unknown command = " 
+		   << std::hex << command << std::endl;
+      break;
+    }
+  }
+  //
+  return;
+}
+//
+int EMUjtag::GetReadXsvfImage_(int address) {
+  //
+  if (address >= MAX_XSVF_IMAGE_NUMBER) {
+    (*MyOutput_) << "GetReadXsvfImage ERROR: address " << address 
+		 << " out of range...  should be between 0 and " << MAX_XSVF_IMAGE_NUMBER-1 
+		 << std::endl;
+    return 0;
+  }
+  //
+  return read_xsvf_image_[address]; 
+}
+//
+void EMUjtag::SetWriteXsvfImage_(int address, int value) {
+  //
+  if (address >= MAX_XSVF_IMAGE_NUMBER) {
+    (*MyOutput_) << "SetReadXsvfImage ERROR: address " << address 
+		 << " out of range...  should be between 0 and " << MAX_XSVF_IMAGE_NUMBER-1 
+		 << std::endl;
+    return;
+  }
+  //
+  write_xsvf_image_[address] = (char) (value & 0xff);
+  return; 
 }
 //
 //

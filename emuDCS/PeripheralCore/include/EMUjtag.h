@@ -2,6 +2,7 @@
 #define EMUjtag_h
 
 #include <string>
+#include <fstream>
 #include "EMU_JTAG_constants.h"
 
 class TMB;
@@ -96,7 +97,6 @@ public:
   void ReadXsvfFile(bool create_logfile);     //read XSVF file from disk
   void ReadXsvfFile();                        //no argument given => no logfile created
   //
-  int GetXsvfImage(int address);
   ////////////////////////////////////////////////////////////////////////
   // SVF programming:
   ////////////////////////////////////////////////////////////////////////
@@ -142,6 +142,8 @@ private:
   std::string AddTrailer_(std::string filename,
 			  std::string trailer);
   //
+  std::ofstream Logfile_;
+  //
   //-------------------
   // prom image stuff
   //-------------------
@@ -152,19 +154,40 @@ private:
 			      int number_of_data_words_to_go_into_prom);
   void SetUserPromImage_(int address, int value);                 
   void WritePromDataToDisk_();
-  void ReadPromDataFromDisk_();
   //
   bool prom_file_ok_;
+  //
   //-------------------
   // xsvf file stuff
   //-------------------
-  char read_xsvf_image_[MAX_XSVF_IMAGE_NUMBER];
+  int read_xsvf_image_[MAX_XSVF_IMAGE_NUMBER];
   char write_xsvf_image_[MAX_XSVF_IMAGE_NUMBER];
   int number_of_write_bytes_;
   int number_of_read_bytes_;
   //
+  void SetWriteXsvfImage_(int address,int value);
   void WriteXsvfDataToDisk_();
-  void ReadXsvfDataFromDisk_();
+  //
+  int  GetReadXsvfImage_(int address);
+  //
+  void DecodeXsvfImage_();
+  int image_counter_;
+  //
+  void ParseXCOMPLETE_();
+  void ParseXTDOMASK_();
+  void ParseXSIR_();
+  void ParseXRUNTEST_();
+  void ParseXREPEAT_();
+  void ParseXSDRSIZE_();
+  void ParseXSDRTDO_();
+  void ParseXSTATE_();
+  //
+  int NumberOfCommands_[NUMBER_OF_DIFFERENT_XSVF_COMMANDS];
+  int xdr_length_;
+  int tdomask_[MAX_BYTES_TDO];
+  int tdoexpected_[MAX_BYTES_TDO];
+  int tdivalue_[MAX_BYTES_TDI];
+  //
   //
 };
 

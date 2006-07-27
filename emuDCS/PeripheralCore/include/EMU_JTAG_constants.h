@@ -624,6 +624,8 @@ const int MAX_XSVF_IMAGE_NUMBER            = SIZE_OF_PROM*1024;
 ////////////////////////////////////
 // XSVF commands:
 ////////////////////////////////////
+const int NUMBER_OF_DIFFERENT_XSVF_COMMANDS= 23;
+//
 const int XCOMPLETE                        = 0x00;
 const int XTDOMASK                         = 0x01;
 const int XSIR                             = 0x02;
@@ -647,7 +649,11 @@ const int XENDIR                           = 0x13;
 const int XENDDR                           = 0x14;
 const int XSIR2                            = 0x15;
 const int XCOMMENT                         = 0x16;
-
+//
+const int MAX_BITS_TDO                     = 4097;     //4096 for one chip + 1 to bypass
+const int MAX_BYTES_TDO                    = MAX_BITS_TDO/8 + 1;    
+const int MAX_BITS_TDI                     = 4097;     //4096 for one chip + 1 to bypass
+const int MAX_BYTES_TDI                    = MAX_BITS_TDI/8 + 1;    
 //
 //
 #endif
