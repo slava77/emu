@@ -294,7 +294,7 @@ class Emu_Farmer:
             elif self._action == 'status':
                 #remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$7 }'\""
                 #remoteCommand = "\"ps -eo stat,pid,euser,lstart,command | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { printf(\\\"%3s  %5d   %10s   %3s %3s %2d %s\\\",\$1,\$2,\$3,\$4,\$5,\$6,\$7) }'\""
-                remoteCommand = "\"ps -eo stat,pid,euser,lstart,command | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$1,\\\"  ( process\t\\\",\$2,\\\"started by\\\",\$3,\\\"at\\\",\$4,\$5,\$6,\$7,\\\")\\\"}'\""
+                remoteCommand = "\"ps -eo stat,pid,euser,lstart,command | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$1,\\\"  ( process\\\",\$2,\\\"\tstarted by\\\",\$3,\\\"at\\\",\$4,\$5,\$6,\$7,\\\")\\\"}'\""
             elif self._action == 'debug':
                 # Dump the remoteLogFile (the redirected std err/out of xdaq)
                 remoteCommand = "\"cat "+remoteLogFile+"\""
@@ -498,7 +498,7 @@ emuFarmer reloads drivers or launches/kills XDAQ executives specified in a XDAQ 
                all         any application
               E.g., man+daq will select all executives running DAQManager or DAQ column applications,
               all-ltc will select all executives except the one running LTCControl.
-              Default is 'all'.
+              Default is 'daq+man+sv', i.e., the DAQ column, the DAQManager and the CSCSupervisor.
         -u    User to run the executives on the remote hosts. Default is $USER of the shell where emuFarmer is run.
         -X    XDAQ_ROOT on the remote hosts. Default is $XDAQ_ROOT of the shell where emuFarmer is run.
         -l    XDAQ executives' log level. Default is WARN.
@@ -519,7 +519,7 @@ if __name__ == "__main__":
     # default arguments
     configFileName =  None
     action         = 'status'
-    targets        = 'all'
+    targets        = 'daq+man+sv'
     logLevel       = 'WARN'
     user           = ''
     xdaq_root      = ''
