@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.1 2006/07/21 07:48:27 mey Exp $
+// $Id: Crate.cc,v 3.2 2006/08/01 09:47:38 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 3.2  2006/08/01 09:47:38  mey
+// Update
+//
 // Revision 3.1  2006/07/21 07:48:27  mey
 // Cleaned up code.Got rid of include Singleton.h
 //
@@ -220,13 +223,7 @@ void Crate::configure() {
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myTmbs.size(); ++i) {
     myTmbs[i]->configure();
-  }
-  //
-  //::sleep(1);
-  //
-  printf("############### Now setup \n");
-
-  for(unsigned i =0; i < myTmbs.size(); ++i) {
+    //
     ALCTController * alct = myTmbs[i]->alctController();
     if(alct) {
       std::cout << "alct # =" << i << std::endl;
@@ -235,7 +232,9 @@ void Crate::configure() {
 #else
       alct->configure();
 #endif
+      //
     }
+    //
   }
   //
   std::vector<DAQMB*> myDmbs = this->daqmbs();
@@ -245,6 +244,11 @@ void Crate::configure() {
     myDmbs[i]->configure();
   }
   //  
+  //for(unsigned i =0; i < myTmbs.size(); ++i) {
+  //
+  //}
+  //}
+  //
   if(mpc) mpc->configure();
   //::sleep(1);
 }
