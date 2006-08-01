@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.1 2006/07/22 16:12:36 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 3.2 2006/08/01 13:48:32 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -5482,9 +5482,9 @@ private:
 	    (thisTMB->FirmwareDate()&0xff), 
 	    (thisTMB->FirmwareYear()&0xffff)  );
     //
-    if ( ((thisTMB->FirmwareDate()>>8)&0xff) ==  0x03 &&
-	 ((thisTMB->FirmwareDate()&0xff))    ==  0x17 &&
-	 ((thisTMB->FirmwareYear()&0xffff))  == 0x2006 ) {
+    if ( ((thisTMB->FirmwareDate()>>8)&0xff) ==  0x05 &&
+	 ((thisTMB->FirmwareDate()&0xff))    ==  0x25 &&
+	 ((thisTMB->FirmwareYear()&0xffff))  ==  0x2006 ) {
       *out << cgicc::span().set("style","color:green");
       *out << buf;
       *out << cgicc::span();
