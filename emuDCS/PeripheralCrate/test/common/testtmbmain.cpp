@@ -531,12 +531,12 @@ int main() {
       break;
     case 200:
       //alct->SetXsvfFilename("userprom0_256_dev");
-      alct->SetXsvfFilename("dummy_data_alctprom");
+      alct->SetXsvfFilename("dummy_data");
       alct->CreateUserPromFile();
       break;
     case 201:      
       //alct->SetXsvfFilename("userprom1_256_dev");
-      alct->SetXsvfFilename("dummy_data_alctprom");
+      alct->SetXsvfFilename("dummy_data");
       if ( alct->ReadUserPromFile() ) {
 	std::cout << "address (0-32767) " << std::endl;
 	std::cin >> value;
@@ -549,12 +549,12 @@ int main() {
       break;
     case 300:
       alct->SetWhichUserProm(ChipLocationTmbUserPromALCT);
-      alct->SetXsvfFilename("dummy_data_alctprom");
+      alct->SetXsvfFilename("dummy_data");
       alct->CreateXsvfFile();
       break;
     case 301:      
-      //alct->SetXsvfFilename("userprom1_256_dev");
-      alct->SetXsvfFilename("dummy_data_alctprom");
+      //alct->SetXsvfFilename("userprom0_256_dev");
+      alct->SetXsvfFilename("dummy_data");
       alct->ReadXsvfFile(true);
       break;
     default:
