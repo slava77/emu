@@ -25,10 +25,10 @@ const int READ_BACK       =               1;       //read TDO and pack into buff
 ////-------------------------------////
 //   JTAG configuration constants    //
 ////-------------------------------////
-const int MAX_NUM_FRAMES  =            1000;       //Maximum number of frames in an i/o cycle
-const int MAX_BUFFER_SIZE =MAX_NUM_FRAMES/8;       //Maximum number of buffers in JTAG cycle
+const int MAX_NUM_FRAMES  =              5000;       //Maximum number of frames in an i/o cycle = 4096 + 4 bits bypass
+const int MAX_BUFFER_SIZE =MAX_NUM_FRAMES/8+1;       //Maximum number of buffers in JTAG cycle
 //
-const int MAX_NUM_DEVICES =               5;       //Maximum number of devices on any one chain
+const int MAX_NUM_DEVICES =                 5;       //Maximum number of devices on any one chain
 //
 ////////////////////////////////////////////////////
 // ALCT Slow FPGA opcodes:
@@ -210,8 +210,8 @@ const int RegSizeTmbMezzProm_PROMidCode =  32;
 const int ChainTmbUser                  = 0x8;
 const int NumberChipsTmbUser            =   2;
 //
-const int ChipLocationTmbUserProm0      =   0;
-const int ChipLocationTmbUserProm1      =   1;
+const int ChipLocationTmbUserPromTMB    =   0;
+const int ChipLocationTmbUserPromALCT   =   1;
 const int OpcodeSizeTmbUserProm         =   8;
 const int RegSizeTmbUserProm_PROMidCode =  32;
 //
@@ -650,10 +650,8 @@ const int XENDDR                           = 0x14;
 const int XSIR2                            = 0x15;
 const int XCOMMENT                         = 0x16;
 //
-const int MAX_BITS_TDO                     = 4097;     //4096 for one chip + 1 to bypass
-const int MAX_BYTES_TDO                    = MAX_BITS_TDO/8 + 1;    
-const int MAX_BITS_TDI                     = 4097;     //4096 for one chip + 1 to bypass
-const int MAX_BYTES_TDI                    = MAX_BITS_TDI/8 + 1;    
+const int TLR                              = 0;
+const int RTI                              = 1;
 //
 //
 #endif

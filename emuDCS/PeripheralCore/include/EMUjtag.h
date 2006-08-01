@@ -16,6 +16,11 @@ public:
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   //
+  /////////////////////////////////////////////////////////////////////////////
+  // set up your JTAG stuff correctly:
+  /////////////////////////////////////////////////////////////////////////////
+  void setup_jtag(int JTAGchain);
+  //
   //////////////////////////////////////////////////////////////////////////////////////////////
   // Use EMUjtag to shift data into Instruction Registers and into (and out of) Data Registers
   //////////////////////////////////////////////////////////////////////////////////////////////
@@ -25,9 +30,6 @@ public:
   //    - opcode
   //    - length_of_register
   // for following methods:
-  //
-  void setup_jtag(int JTAGchain);
-  //
   void ShfIR_ShfDR(const int selected_chip,
 		   const int opcode,
 		   const int length_of_register,
@@ -37,7 +39,7 @@ public:
 		   const int opcode,
 		   const int length_of_register); //drop tdi argument for read-only registers
   //
-  inline int * GetDRtdo() { return shfDR_tdo_ ; }
+  inline int * GetDRtdo() { return tdo_in_bits_ ; }
   inline int GetRegLength() { return register_length_ ; }
   //
   //
@@ -62,7 +64,7 @@ public:
   //
   void unpackCharBuffer(char * vector_of_char, // turn a vector of characters into a vector of bits
 			int length,            // length of vector of bits
-			int firstBit,          // first bit to begin (i.e., bitVector[0] = (buffer>>firstBit)
+			int firstBit,          // first bit to begin (i.e., vector_of_bits[0] = (vector_of_char>>firstBit)
 			int * vector_of_bits);
   //
   int bits_to_int(int * vector_of_bits,        // convert a vector of bits into an integer
@@ -85,17 +87,21 @@ public:
   //------------------------------------------------
   // prom image 
   //------------------------------------------------
-  void CreateUserPromFile();                      //create Prom Image File with configuration data
-  void ReadUserPromFile();                        //read Prom Image File from disk
+  void CreateUserPromFile();                        //create Prom Image File with configuration data
+  bool ReadUserPromFile();                          //read Prom Image File from disk
   //
-  int GetUserPromImage(int address);              //address=[0 - (TOTAL_NUMBER_OF_ADDRESSES-1)]
+  int GetUserPromImage(int address);                //address=[0 - (TOTAL_NUMBER_OF_ADDRESSES-1)]
   //------------------------------------------------
   // XSVF image
   //------------------------------------------------
-  void CreateXsvfFile();                      //creates XSVF file from Prom Image File
+  void SetWhichUserProm(int device);          //device = [ChipLocationTmbUserPromTMB, ChipLocationTmbUserPromALCT]
+  int  GetWhichUserProm();
+  //
+  void CreateXsvfFile();                      //creates XSVF file from Prom Image File for GetWhichUserProm()
   //
   void ReadXsvfFile(bool create_logfile);     //read XSVF file from disk
   void ReadXsvfFile();                        //no argument given => no logfile created
+  //
   //
   ////////////////////////////////////////////////////////////////////////
   // SVF programming:
@@ -117,6 +123,10 @@ private:
   /////////////////////////////////
   // setup private values:
   /////////////////////////////////
+  void SetWriteToDevice_(bool communicate);
+  bool GetWriteToDevice_();
+  bool write_to_device_;
+  //
   int jtag_chain_;
   int devices_in_chain_;
   //
@@ -124,10 +134,20 @@ private:
   /////////////////////////////////
   // ShfIR_ShfDR private values:
   /////////////////////////////////
+  void ShfIR_(const int selected_chip, 
+	      const int opcode);
+  void ShfDR_(const int selected_chip, 
+	      const int size_of_register, 
+	      const int * write_data);
+  //
   int bits_in_opcode_[MAX_NUM_DEVICES];
   int chip_id_;
   int register_length_;
-  int shfDR_tdo_[MAX_NUM_FRAMES];
+  int tdi_in_bits_[MAX_NUM_FRAMES];
+  int tdo_in_bits_[MAX_NUM_FRAMES];
+  char tdi_in_bytes_[MAX_BUFFER_SIZE];
+  char tdo_in_bytes_[MAX_BUFFER_SIZE];
+  char tdo_mask_in_bytes_[MAX_BUFFER_SIZE];
   //
   ////////////////////////////
   // XSVF private values:
@@ -155,24 +175,38 @@ private:
   void SetUserPromImage_(int address, int value);                 
   void WritePromDataToDisk_();
   //
-  bool prom_file_ok_;
   //
   //-------------------
   // xsvf file stuff
   //-------------------
-  int read_xsvf_image_[MAX_XSVF_IMAGE_NUMBER];
+  int image_counter_;
+  int xdr_length_;
+  //
+  int which_user_prom_;
   char write_xsvf_image_[MAX_XSVF_IMAGE_NUMBER];
   int number_of_write_bytes_;
-  int number_of_read_bytes_;
   //
   void SetWriteXsvfImage_(int address,int value);
-  void WriteXsvfDataToDisk_();
+  bool CreateXsvfImage_();
+  void WriteXCOMPLETE_();
+  void WriteXTDOMASK_();
+  void WriteXSIR_(int opcode);
+  int  SumOpcodeBits_();
+  void WriteXRUNTEST_(int length_of_time);         //length of time = pause in microseconds
+  void WriteXREPEAT_(int number_of_times);
+  void WriteXSDRSIZE_();
+  void WriteXSDRTDO_();
+  void WriteXSTATE_(int state);                    //state = [TLR, RTI]
+  //
+  void WriteXsvfImageToDisk_();
+  //
+  //
+  int read_xsvf_image_[MAX_XSVF_IMAGE_NUMBER];
+  int number_of_read_bytes_;
   //
   int  GetReadXsvfImage_(int address);
   //
   void DecodeXsvfImage_();
-  int image_counter_;
-  //
   void ParseXCOMPLETE_();
   void ParseXTDOMASK_();
   void ParseXSIR_();
@@ -183,10 +217,6 @@ private:
   void ParseXSTATE_();
   //
   int NumberOfCommands_[NUMBER_OF_DIFFERENT_XSVF_COMMANDS];
-  int xdr_length_;
-  int tdomask_[MAX_BYTES_TDO];
-  int tdoexpected_[MAX_BYTES_TDO];
-  int tdivalue_[MAX_BYTES_TDI];
   //
   //
 };
