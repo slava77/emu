@@ -86,6 +86,18 @@ const int ALCT_FAST_BYPASS                 =  0x1f;
 ////////////////////////////////////////////////////
 const int PROMidCode             = 0xFE;
 const int PROMuserCode           = 0xFD;
+const int PROMbypass             = 0xFF;
+const int PROMwriteData          = 0xED;
+const int PROMverifyData         = 0xEF;
+const int PROMunknownOpcode0A    = 0x0A;
+const int PROMunknownOpcodeE2    = 0xE2;
+const int PROMunknownOpcodeE6    = 0xE6;
+const int PROMunknownOpcodeE8    = 0xE8;
+const int PROMunknownOpcodeEA    = 0xEA;
+const int PROMunknownOpcodeEB    = 0xEB;
+const int PROMunknownOpcodeEC    = 0xEC;
+const int PROMunknownOpcodeF0    = 0xF0;
+const int PROMunknownOpcodeF3    = 0xF3;
 //
 ////////////////////////////////////////////////////
 // FPGA opcodes:
@@ -207,13 +219,23 @@ const int RegSizeTmbMezzProm_PROMidCode =  32;
 ////////////////////////////////////////////////////
 // TMB user PROM chain characteristics            
 ////////////////////////////////////////////////////
-const int ChainTmbUser                  = 0x8;
-const int NumberChipsTmbUser            =   2;
+const int ChainTmbUser                           =  0x8;
+const int NumberChipsTmbUser                     =    2;
 //
-const int ChipLocationTmbUserPromTMB    =   0;
-const int ChipLocationTmbUserPromALCT   =   1;
-const int OpcodeSizeTmbUserProm         =   8;
-const int RegSizeTmbUserProm_PROMidCode =  32;
+const int ChipLocationTmbUserPromTMB             =    0;
+const int ChipLocationTmbUserPromALCT            =    1;
+const int OpcodeSizeTmbUserProm                  =    8;
+//
+const int RegSizeTmbUserProm_PROMidCode          =   32;
+const int RegSizeTmbUserProm_PROMuserCode        =   32;
+const int RegSizeTmbUserProm_PROMwriteData       = 2048;
+const int RegSizeTmbUserProm_PROMverifyData      = 4096;
+const int RegSizeTmbUserProm_PROMbypass          =    1;
+const int RegSizeTmbUserProm_PROMunknownOpcodeE2 =    6;
+const int RegSizeTmbUserProm_PROMunknownOpcodeE6 =   32;
+const int RegSizeTmbUserProm_PROMunknownOpcodeE8 =    6;
+const int RegSizeTmbUserProm_PROMunknownOpcodeEB =   16;
+const int RegSizeTmbUserProm_PROMunknownOpcodeF3 =    6;
 //
 ////////////////////////////////////////////////////
 // RAT chain characteristics            
@@ -614,7 +636,7 @@ const int trigger_register_invert_bithi    = 4;
 ////-------------------------------////
 const int SIZE_OF_PROM                     = 256;                   
 const int NUMBER_OF_BITS_PER_ADDRESS       = 8;                   //each address corresponds to 1 byte of information
-const int NUMBER_OF_BITS_PER_BLOCK         = 2048;
+const int NUMBER_OF_BITS_PER_BLOCK         = RegSizeTmbUserProm_PROMwriteData;
 const int NUMBER_OF_ADDRESSES_PER_BLOCK    = NUMBER_OF_BITS_PER_BLOCK / NUMBER_OF_BITS_PER_ADDRESS;  
 const int TOTAL_NUMBER_OF_ADDRESSES        = SIZE_OF_PROM * 1024 / NUMBER_OF_BITS_PER_ADDRESS;  //256 "kilo"bits of information
 const int TOTAL_NUMBER_OF_BLOCKS           = SIZE_OF_PROM * 1024 / NUMBER_OF_BITS_PER_BLOCK;
@@ -652,6 +674,14 @@ const int XCOMMENT                         = 0x16;
 //
 const int TLR                              = 0;
 const int RTI                              = 1;
+//
+/////////////////////////////////////////////
+// masks and commands for prom programming:
+/////////////////////////////////////////////
+const int PROM_ID_256k                     = 0x05022093;
+const int MASK_TO_TREAT_512k_LIKE_256k     = 0xfffeefff;
+const int PROMunknownOpcodeE8_tdi          = 0x34;
+const int PROMunknownOpcodeEB_tdi          = 0x1;
 //
 //
 #endif

@@ -9,6 +9,10 @@ class TMB;
 class EMUjtag 
 {
 public:
+  // *****************************************************************************************
+  // ** N.B. In this class, the data arrays are ordered such that the least significant bit **
+  // ** (array index 0) is the first bit which is shifted into or out of the JTAG chain.    **
+  // *****************************************************************************************
   //
   //EMUjtag();
   EMUjtag(TMB * );
@@ -30,6 +34,7 @@ public:
   //    - opcode
   //    - length_of_register
   // for following methods:
+  //
   void ShfIR_ShfDR(const int selected_chip,
 		   const int opcode,
 		   const int length_of_register,
@@ -39,7 +44,7 @@ public:
 		   const int opcode,
 		   const int length_of_register); //drop tdi argument for read-only registers
   //
-  inline int * GetDRtdo() { return tdo_in_bits_ ; }
+  inline int * GetDRtdo() { return chip_tdo_in_bits_ ; }
   inline int GetRegLength() { return register_length_ ; }
   //
   //
@@ -143,10 +148,13 @@ private:
   int bits_in_opcode_[MAX_NUM_DEVICES];
   int chip_id_;
   int register_length_;
-  int tdi_in_bits_[MAX_NUM_FRAMES];
-  int tdo_in_bits_[MAX_NUM_FRAMES];
-  char tdi_in_bytes_[MAX_BUFFER_SIZE];
-  char tdo_in_bytes_[MAX_BUFFER_SIZE];
+  // The following are ordered such that:
+  //    - LSB of byte index = 0 = first bit which is shifted in/out
+  //    - bit index = 0 = first bit which is shifted in/out
+  int tdi_in_bits_[MAX_NUM_FRAMES];        // -> tdi for full chain (including bypass bits)
+  int chip_tdo_in_bits_[MAX_NUM_FRAMES];   // -> tdo only for chip we are interested in
+  char tdi_in_bytes_[MAX_BUFFER_SIZE];     // -> tdi for full chain (including bypass bits)
+  char tdo_in_bytes_[MAX_BUFFER_SIZE];     // -> tdo for full chain (including bypass bits)
   char tdo_mask_in_bytes_[MAX_BUFFER_SIZE];
   //
   ////////////////////////////
@@ -167,6 +175,7 @@ private:
   //-------------------
   // prom image stuff
   //-------------------
+  int address_counter_;
   int read_ascii_prom_image_[TOTAL_NUMBER_OF_ADDRESSES];
   int write_ascii_prom_image_[TOTAL_NUMBER_OF_ADDRESSES];
   //
@@ -186,19 +195,28 @@ private:
   char write_xsvf_image_[MAX_XSVF_IMAGE_NUMBER];
   int number_of_write_bytes_;
   //
-  void SetWriteXsvfImage_(int address,int value);
   bool CreateXsvfImage_();
+  void WritePreambleIntoXsvfImage_();
+  void WritePromImageIntoXsvfImage_();
+  void WriteInterimBetweenImageAndVerifyIntoXsvfImage_();
+  void WritePromImageIntoXsvfVerify_();
+  void WritePostambleIntoXsvfImage_();
+  void WriteXsvfImageToDisk_();
+  //
+  void SetWriteXsvfImage_(int address,int value);
   void WriteXCOMPLETE_();
-  void WriteXTDOMASK_();
+  void WriteXTDOMASK_(int number_of_bits_in_mask,
+		      int * vector_of_bits_for_mask);
   void WriteXSIR_(int opcode);
   int  SumOpcodeBits_();
   void WriteXRUNTEST_(int length_of_time);         //length of time = pause in microseconds
   void WriteXREPEAT_(int number_of_times);
-  void WriteXSDRSIZE_();
-  void WriteXSDRTDO_();
+  void WriteXSDRSIZE_(int number_of_bits_in_data_register);
+  void WriteXSDRTDO_(int number_of_bits_in_data_register,
+		     int * tdi_bits,
+		     int * tdo_expected_bits);
   void WriteXSTATE_(int state);                    //state = [TLR, RTI]
   //
-  void WriteXsvfImageToDisk_();
   //
   //
   int read_xsvf_image_[MAX_XSVF_IMAGE_NUMBER];
