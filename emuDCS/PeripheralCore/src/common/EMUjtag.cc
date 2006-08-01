@@ -21,9 +21,10 @@ EMUjtag::EMUjtag(TMB * tmb) :
   //
   MyOutput_ = &std::cout ;
   //
-  SetXsvfFilename("tempfilename");
-  prom_file_ok_ = false;
+  SetXsvfFilename("dummy");
+  which_user_prom_ = -1;
   //
+  SetWriteToDevice_(true);
   jtag_chain_ = -1;
   //
 };
@@ -32,17 +33,28 @@ EMUjtag::~EMUjtag() {
   //
   //
 }
+//////////////////////////////////////////////////////////////////////////////////////////////
+// Set up your JTAG interface
+//////////////////////////////////////////////////////////////////////////////////////////////
+void EMUjtag::SetWriteToDevice_(bool communicate) {
+  //
+  // Enable communication with the physical device:
+  //
+  write_to_device_ = communicate;
+  return;
+}
 //
-//////////////////////////////////////////////////////////////////////////////////////////////
-// Use EMUjtag to shift data into Instruction Registers and into (and out of) Data Registers
-//////////////////////////////////////////////////////////////////////////////////////////////
+bool EMUjtag::GetWriteToDevice_() {
+  //
+  return write_to_device_;
+}
+//
 void EMUjtag::setup_jtag(int chain) {
   //
   //This member sets the following characteristics:
   //  - which JTAG chain you are looking at
   //  - how many chips are on the chain
   //  - the number of bits in each chip's opcode
-  //  - chip_id_ to dummy value (in excess of possible number of devices on chain)
   //  - register length to zero 
   //start(N):
   //  - set the jtag chain for the boot register used in VMEController_jtag::scan(...)
@@ -60,7 +72,7 @@ void EMUjtag::setup_jtag(int chain) {
     //
     devices_in_chain_ = NumberChipsAlctSlowFpga; 
     bits_in_opcode_[0] = OpcodeSizeAlctSlowFpga;
-    tmb_->start(6);
+    if (GetWriteToDevice_()) tmb_->start(6);
     //
   } else if (jtag_chain_ == ChainAlctSlowProm) {
     //
@@ -68,13 +80,13 @@ void EMUjtag::setup_jtag(int chain) {
     bits_in_opcode_[0] = OpcodeSizeAlctSlowProm;
     bits_in_opcode_[1] = OpcodeSizeAlctSlowProm;
     bits_in_opcode_[2] = OpcodeSizeAlctSlowProm;
-    tmb_->start(7);
+    if (GetWriteToDevice_()) tmb_->start(7);
     //
   } else if (jtag_chain_ == ChainAlctFastFpga) {
     //
     devices_in_chain_ = NumberChipsAlctFastFpga; 
     bits_in_opcode_[0] = OpcodeSizeAlctFastFpga;
-    tmb_->start(8);
+    if (GetWriteToDevice_()) tmb_->start(8);
     //
   } else if (jtag_chain_ == ChainTmbMezz) { 
     //
@@ -84,21 +96,21 @@ void EMUjtag::setup_jtag(int chain) {
     bits_in_opcode_[2] = OpcodeSizeTmbMezzProm;
     bits_in_opcode_[3] = OpcodeSizeTmbMezzProm;
     bits_in_opcode_[4] = OpcodeSizeTmbMezzProm;
-    tmb_->start(3);
+    if (GetWriteToDevice_()) tmb_->start(3);
     //
   } else if (jtag_chain_ == ChainTmbUser) { 
     //
     devices_in_chain_ = NumberChipsTmbUser;
     bits_in_opcode_[0] = OpcodeSizeTmbUserProm;
     bits_in_opcode_[1] = OpcodeSizeTmbUserProm;
-    tmb_->start(4);
+    if (GetWriteToDevice_()) tmb_->start(4);
     //
   } else if (jtag_chain_ == ChainRat) {
     //
     devices_in_chain_ = NumberChipsRat;
     bits_in_opcode_[0] = OpcodeSizeRatFpga;
     bits_in_opcode_[1] = OpcodeSizeRatProm;
-    tmb_->start(10);
+    if (GetWriteToDevice_()) tmb_->start(10);
     //
   }
   //
@@ -108,7 +120,7 @@ void EMUjtag::setup_jtag(int chain) {
     ::sleep(5);    
   }  else {
     //
-    tmb_->RestoreIdle();      //Valid JTAG chain:  bring the state machine to Run-Time Idle
+    if (GetWriteToDevice_()) tmb_->RestoreIdle();      //Valid JTAG chain:  bring the state machine to Run-Time Idle
     //
     if(debug_){
       (*MyOutput_) << "EMUjtag: JTAG chain " << std::hex << jtag_chain_ 
@@ -116,8 +128,174 @@ void EMUjtag::setup_jtag(int chain) {
     }
   }
   //
-  chip_id_ = MAX_NUM_DEVICES;
   register_length_ = 0;
+  //
+  return;
+}
+//
+//
+//////////////////////////////////////////////////////////////////////////////////////////////
+// Use EMUjtag to shift data into Instruction Registers and into (and out of) Data Registers
+//////////////////////////////////////////////////////////////////////////////////////////////
+void EMUjtag::ShfIR_(const int selected_chip, 
+		     const int opcode) {
+  //
+  // This function sets up the bits of the "opcode" to write to the Instruction 
+  // Register for the "selected_chip" on jtag_chain_ (setup_jtag()).  
+  //
+  // N.B. JTAG instructions and data are loaded and readout in order
+  //      starting with chipN, chipN-1, ... ,chip1, and ending with chip0
+  //
+  if (debug_){    
+    (*MyOutput_) << "EMUjtag: ShfIR -> Use " << std::dec << bits_in_opcode_[selected_chip] 
+		 << " bits to write opcode 0x" << std::hex << opcode 
+		 << " to chip " << std::dec << selected_chip 
+		 << " on chain 0x" << std::hex << jtag_chain_ << std::endl;
+  }
+  //
+  // Have you run setup_jtag?
+  if (jtag_chain_ < 0) return;
+  //
+  //** Clear the bit buffers:
+  for (int i=0; i<MAX_NUM_FRAMES; i++) {
+    tdi_in_bits_[i] = 0;
+    tdo_in_bits_[i] = 0;
+  }
+  //
+  // **Clear the byte buffers**
+  for (int i=0; i<MAX_BUFFER_SIZE; i++) {
+    tdi_in_bytes_[i] = 0;
+    tdo_in_bytes_[i] = 0;
+  }
+  //
+  int iframe = 0;                              //reset frame counter
+  //
+  // ** Construct opcode for the selected chip (all but chip_id are BYPASS = all 1's),
+  for (int idevice=0; idevice<devices_in_chain_; idevice++) {          //loop over all the chips in this chain
+    //
+    int ichip = devices_in_chain_ - idevice - 1;                       //chip order in chain is reversed
+    //
+    for (int ibit=0; ibit<bits_in_opcode_[ichip]; ibit++) {            //up to the number of bits in this chip's opcode
+      int bit = 1;                                                     //BYPASS
+      if (ichip == selected_chip)                                  //this is the chip we want
+	bit = (opcode >> ibit) & 0x1;                              //extract bit from opcode
+      tdi_in_bits_[iframe++]=bit;
+    }
+  }
+  //
+  //  (*MyOutput_) << "There are " << std::dec << iframe << " frames to send..." << std::endl;
+  //
+  if (iframe > MAX_NUM_FRAMES) 
+    (*MyOutput_) << "EMUjtag: ShfIR ERROR: Too many frames -> " << iframe << std::endl;
+  //
+  //pack tdi into an array of char so scan can handle it:
+  packCharBuffer(tdi_in_bits_,iframe,tdi_in_bytes_);
+  //
+  //  (*MyOutput_) << "tdi bytes to ShfIR=";
+  //  for (int i=iframe/8; i>=0; i--) 
+  //    (*MyOutput_) << " " << std::hex << (tdi_in_bytes_[i]&0xff); 
+  //  (*MyOutput_) << std::endl;
+  //
+  if (GetWriteToDevice_()) tmb_->scan(INSTR_REGISTER, tdi_in_bytes_, iframe, tdo_in_bytes_, NO_READ_BACK);
+  //
+  return;
+}
+//
+void EMUjtag::ShfDR_(const int selected_chip, 
+		     const int size_of_register, 
+		     const int * write_data) {
+  //
+  // This function shifts in "write_data" on tdi to the Data Register 
+  // (one bit per index).  Clearly one bit per index is not very memory 
+  // efficient, but it allows for easy manipulation by the user.  For 
+  // read-only JTAG, this array should be all zeros.  The number of bits 
+  // shifted in on tdi or out on tdo is "size_of_register".
+  //
+  // The data which is shifted out of the data register is put into the 
+  // array "tdo_in_bits_" (also one bit per index).   
+  //
+  // N.B. JTAG instructions and data are loaded and readout in order
+  //      starting with chipN, chipN-1, ... ,chip1, and ending with chip0
+  //
+  //Have you run setup_jtag?
+  //
+  if (jtag_chain_ < 0) return;
+  //
+  register_length_ = size_of_register;
+  //
+  if (debug_){    
+    (*MyOutput_) << "EMUjtag: ShfDR -> Write data to chip " << std::dec << selected_chip 
+		 << " on chain 0x" << std::hex << jtag_chain_
+		 << " using " << std::dec << register_length_ 
+		 << " bits tdi/tdo" << std::hex << std::endl;
+  }
+  //
+  //** Clear the bit buffers:
+  for (int i=0; i<MAX_NUM_FRAMES; i++) {
+    tdi_in_bits_[i] = 0;
+    tdo_in_bits_[i] = 0;
+  }
+  //
+  // **Clear the byte buffers**
+  for (int i=0; i<MAX_BUFFER_SIZE; i++) {
+    tdi_in_bytes_[i] = 0;
+    tdo_in_bytes_[i] = 0;
+  }
+  //
+  int iframe = 0;                              //reset frame counter
+  //
+  // ** Shift in the data bits for the selected chip, BYPASS code for others **
+  int offset;
+  //
+  for (int idevice=0; idevice<devices_in_chain_; idevice++) {  // loop over all of the chips in this chain
+    //
+    int ichip = devices_in_chain_ - idevice - 1;               // chip order in chain is reversed
+    //
+    if (ichip == selected_chip) {                              // this is the chip we want
+      offset = iframe;                                         // here is the beginning of the data
+      for (int ibit=0; ibit<register_length_; ibit++)          // up to the number of bits specified for this register
+	tdi_in_bits_[iframe++] = write_data[ibit];             // Shift in the data for TDI
+    } else {                                                   // bypass register is one frame      
+      tdi_in_bits_[iframe++] = 0;                              // No data goes out to bypass regs
+    }
+  }
+  //
+  if (iframe > MAX_NUM_FRAMES) 
+    (*MyOutput_) << "EMUjtag: ShfDR ERROR: Too many frames -> " << iframe << std::endl;
+  //
+  //pack tdi into an array of char so scan can handle it:
+  packCharBuffer(tdi_in_bits_,iframe,tdi_in_bytes_);
+  //
+  //  (*MyOutput_) << "write_data  = ";
+  //  for (int i=register_length_-1; i>=0; i--)
+  //    (*MyOutput_) << write_data[i];
+  //  (*MyOutput_) << std::endl;
+  //
+  //  (*MyOutput_) << "TDI in bits into DR = ";
+  //  for (int i=iframe-1; i>=0; i--)
+  //    (*MyOutput_) << tdi_in_bits_[i];
+  //  (*MyOutput_) << std::endl;
+  //
+  //  (*MyOutput_) << "TDI in bytes into DR=";
+  //  for (int i=iframe/8; i>=0; i--) 
+  //    (*MyOutput_) << ((tdi_in_bytes_[i] >> 4) & 0xf) << (tdi_in_bytes_[i] & 0xf);  
+  //  (*MyOutput_) << std::endl;
+  //
+  if (GetWriteToDevice_()) tmb_->scan(DATA_REGISTER, tdi_in_bytes_, iframe, tdo_in_bytes_, READ_BACK);
+  //
+  // ** copy relevant section of tdo to data array **
+  unpackCharBuffer(tdo_in_bytes_,register_length_,offset,tdo_in_bits_);
+  //
+  //  (*MyOutput_) << "TDO from DR = ";
+  //  for (int i=register_length_-1; i>=0; i--)
+  //    (*MyOutput_) << tdo_in_bits_[i];
+  //  (*MyOutput_) << std::endl;
+  //
+  //  char tempBuffer[MAX_BUFFER_SIZE];
+  //  packCharBuffer(tdo_in_bits_,register_length_,tempBuffer);
+  //  for (int i=(register_length_/8)-1; i>=0; i--) 
+  //    (*MyOutput_) << ((tempBuffer[i] >> 4) & 0xf) << (tempBuffer[i] & 0xf);  
+  //  (*MyOutput_) << std::endl;
   //
   return;
 }
@@ -127,141 +305,14 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
 			  const int size_of_register, 
 			  const int * write_data) {
   //
-  //This member assumes you have run setup_jtag(int)...
-  //This member sets up the tdi for shifting in "opcode" for ShfIR and then ShfDR.  
-  //  
-  //1) The "opcode" is written to the Instruction Register for "selected_chip"
-  //   on jtag_chain_ (setup_jtag()).  
-  //2) Shift in "write_data" on tdi into the Data Register (one bit per index).
-  //   Clearly one bit per index is not very memory efficient, but it 
-  //   allows for easy manipulation by the user.  For read-only JTAG, 
-  //   this array should be all zeros.  The number of bits shifted in on tdi or
-  //   out on tdo is "size_of_register".
-  //3) The data which is shifted out of the data register is put into 
-  //   the int array "shfDR_tdo_" (also one bit per index).   
+  // Enable communication with the physical device:
+  SetWriteToDevice_(true);
   //
-  // N.B. JTAG instructions and data are loaded and readout in order
-  //      starting with chipN, chipN-1, ... ,chip1, and ending with chip0
-  //
-  if (jtag_chain_ < 0) return;
-  //
-  chip_id_ = selected_chip;
-  register_length_ = size_of_register;
-  //
-  if (debug_){    
-    (*MyOutput_) << "EMUjtag: Use " << std::dec << bits_in_opcode_[chip_id_] 
-		 << " bits to write opcode 0x" << std::hex << opcode 
-		 << " to chip " << std::dec << chip_id_ 
-		 << " on chain 0x" << std::hex << jtag_chain_
-		 << " -> use " << std::dec << register_length_ 
-		 << " bits tdi/tdo" << std::hex << std::endl;
-  }
-  //
-  //** Clear the read data which was previously there:
-  for (int i=0; i<MAX_NUM_FRAMES; i++) 
-    shfDR_tdo_[i] = 0;
-  //
-  int tdi[MAX_NUM_FRAMES];
-  char sndBuffer[MAX_BUFFER_SIZE], rcvBuffer[MAX_BUFFER_SIZE];
-  //
-  // ** Clean buffers:
-  for (int i=0; i<MAX_BUFFER_SIZE; i++) {
-    sndBuffer[i] = 0;
-    rcvBuffer[i] = 0;
-  }
-  int iframe = 0;                              //reset frame counter
-  //
-  // ** Construct opcode for the selected chip (all but chip_id are BYPASS = all 1's),
-  int idevice, ichip, ibit;
-  int bit;
-  for (idevice=0; idevice<devices_in_chain_; idevice++) {          //loop over all the chips in this chain
-    //
-    ichip = devices_in_chain_ - idevice - 1;                       //chip order in chain is reversed
-    //
-    for (ibit=0; ibit<bits_in_opcode_[ichip]; ibit++) {            //up to the number of bits in this chip's opcode
-      bit = 1;                                                     //BYPASS
-      if (ichip == chip_id_)                                       //this is the chip we want
-	bit = (opcode >> ibit) & 0x1;                              //extract bit from opcode
-      tdi[iframe++]=bit;
-    }
-  }
-  //
-  //  (*MyOutput_) << "There are " << std::dec << iframe << " frames to send..." << std::endl;
-  //
-  if (iframe > MAX_NUM_FRAMES) 
-    (*MyOutput_) << "EMUjtag: ShfIR_ShfDR IR ERROR: Too many frames -> " << iframe << std::endl;
-  //
-  //pack tdi into an array of char so scan can handle it:
-  packCharBuffer(tdi,iframe,sndBuffer);
-  //
-  //  (*MyOutput_) << "sndBuffer to ShfIR=";
-  //  for (int i=iframe/8; i>=0; i--) 
-  //    (*MyOutput_) << " " << std::hex << (sndBuffer[i]&0xff); 
-  //  (*MyOutput_) << std::endl;
-  //
-  tmb_->scan(INSTR_REGISTER, sndBuffer, iframe, rcvBuffer, NO_READ_BACK);
-  //
+  // ** First JTAG operation is to shift in the opcode to the instruction register...
+  ShfIR_(selected_chip,opcode);
   //
   // ** Second JTAG operation is to shift out the data register...
-  // **Clean buffers**
-  for (int i=0; i<MAX_BUFFER_SIZE; i++) {
-    sndBuffer[i] = 0;
-    rcvBuffer[i] = 0;
-  }
-  iframe = 0;                              //reset frame counter
-  //
-  // ** Set up TMS to shift in the data bits for this chip, BYPASS code for others **
-  int offset;
-  //
-  for (idevice=0; idevice<devices_in_chain_; idevice++) {  // loop over all of the chips in this chain
-    //
-    ichip = devices_in_chain_ - idevice - 1;               // chip order in chain is reversed
-    //
-    if (ichip == chip_id_) {                               // this is the chip we want
-      offset = iframe;                                     // here is the beginning of the data
-      for (ibit=0; ibit<register_length_; ibit++)          // up to the number of bits specified for this register
-	tdi[iframe++] = write_data[ibit];                  // Shift in the data for TDI
-    } else {                                               // bypass register is one frame      
-      tdi[iframe++] = 0;                                   // No data goes out to bypass regs
-    }
-  }
-  //
-  if (iframe > MAX_NUM_FRAMES) 
-    (*MyOutput_) << "EMUjtag: ShfIR_ShfDR DR ERROR: Too many frames -> " << iframe << std::endl;
-  //
-  //pack tdi into an array of char so scan can handle it:
-  packCharBuffer(tdi,iframe,sndBuffer);
-  //
-  //  (*MyOutput_) << "write_data  = ";
-  //  for (int i=register_length_-1; i>=0; i--)
-  //    (*MyOutput_) << write_data[i];
-  //  (*MyOutput_) << std::endl;
-  //
-  //  (*MyOutput_) << "TDI into DR = ";
-  //  for (int i=iframe-1; i>=0; i--)
-  //    (*MyOutput_) << tdi[i];
-  //  (*MyOutput_) << std::endl;
-  //
-  //  (*MyOutput_) << "sndBuffer to ShfDR=";
-  //  for (int i=iframe/8; i>=0; i--) 
-  //    (*MyOutput_) << ((sndBuffer[i] >> 4) & 0xf) << (sndBuffer[i] & 0xf);  
-  //  (*MyOutput_) << std::endl;
-  //
-  tmb_->scan(DATA_REGISTER, sndBuffer, iframe, rcvBuffer, READ_BACK);
-  //
-  // ** copy relevant section of tdo to data array **
-  unpackCharBuffer(rcvBuffer,register_length_,offset,shfDR_tdo_);
-  //
-  //  (*MyOutput_) << "TDO from DR = ";
-  //  for (int i=register_length_-1; i>=0; i--)
-  //    (*MyOutput_) << shfDR_tdo_[i];
-  //  (*MyOutput_) << std::endl;
-  //
-  //  char tempBuffer[MAX_BUFFER_SIZE];
-  //  packCharBuffer(shfDR_tdo_,register_length_,tempBuffer);
-  //  for (int i=(register_length_/8)-1; i>=0; i--) 
-  //    (*MyOutput_) << ((tempBuffer[i] >> 4) & 0xf) << (tempBuffer[i] & 0xf);  
-  //  (*MyOutput_) << std::endl;
+  ShfDR_(selected_chip,size_of_register,write_data);
   //
   return;
 }
@@ -277,6 +328,7 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
 	      all_zeros);
   return;
 }
+//
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Check if JTAG read values = JTAG write values:
@@ -441,16 +493,16 @@ void EMUjtag::CreateUserPromFile() {
   //
   for (int address=0; address<data_count; address++) {
     data_to_prom[address] = 1 << (address%8);
-    if (address==0) data_to_prom[address] = (int)'C';
-    if (address==1) data_to_prom[address] = (int)'a';
-    if (address==2) data_to_prom[address] = (int)'n';
-    if (address==3) data_to_prom[address] = (int)' ';
-    if (address==4) data_to_prom[address] = (int)'y';
-    if (address==5) data_to_prom[address] = (int)'o';
-    if (address==6) data_to_prom[address] = (int)'u';
-    if (address==7) data_to_prom[address] = (int)' ';
-    if (address==8) data_to_prom[address] = (int)'r';
-    if (address==9) data_to_prom[address] = (int)'e';
+    if (address==0)  data_to_prom[address] = (int)'C';
+    if (address==1)  data_to_prom[address] = (int)'a';
+    if (address==2)  data_to_prom[address] = (int)'n';
+    if (address==3)  data_to_prom[address] = (int)' ';
+    if (address==4)  data_to_prom[address] = (int)'y';
+    if (address==5)  data_to_prom[address] = (int)'o';
+    if (address==6)  data_to_prom[address] = (int)'u';
+    if (address==7)  data_to_prom[address] = (int)' ';
+    if (address==8)  data_to_prom[address] = (int)'r';
+    if (address==9)  data_to_prom[address] = (int)'e';
     if (address==10) data_to_prom[address] = (int)'a';
     if (address==11) data_to_prom[address] = (int)'d';
     if (address==12) data_to_prom[address] = (int)' ';
@@ -505,7 +557,7 @@ void EMUjtag::InsertBlockBoundaries_(int * data_to_go_into_prom,
 				     int number_of_data_words_to_go_into_prom) {
   // clear the ascii prom image
   for (int i=0; i<TOTAL_NUMBER_OF_ADDRESSES; i++) 
-    SetUserPromImage_(i,0);
+    SetUserPromImage_(i,0xff);
   //
   // Fill the ascii prom image with the desired data.
   // Each block has a header and trailer which needs to be 
@@ -547,7 +599,7 @@ void EMUjtag::InsertBlockBoundaries_(int * data_to_go_into_prom,
   return;
 }
 //
-void EMUjtag::ReadUserPromFile() {
+bool EMUjtag::ReadUserPromFile() {
   //
   (*MyOutput_) << "EMUjtag:  READ user prom image file " << filename_dat_ << std::endl;
   //
@@ -558,8 +610,6 @@ void EMUjtag::ReadUserPromFile() {
   Readfile.open(filename_dat_.c_str());
   //
   if ( Readfile.is_open() ) {
-    //
-    prom_file_ok_ = true;
     //
     while ( Readfile.good() ) {
       //
@@ -579,17 +629,17 @@ void EMUjtag::ReadUserPromFile() {
       //
       read_ascii_prom_image_[index_value] = image_value;
     } 
-  } else {
     //
-    prom_file_ok_ = false;
+  } else {
     //
     (*MyOutput_) << "EMUjtag:  ERROR Prom data file " << filename_dat_ 
 		 << " does not exist.  Please create it..." << std::endl;
+    return false;
   }
   //
   Readfile.close();
   //
-  return;
+  return true;
 }
 //
 void EMUjtag::WritePromDataToDisk_() {
@@ -649,31 +699,132 @@ void EMUjtag::SetUserPromImage_(int address,
 //----------------------------------//
 // XSVF file create/read
 //----------------------------------//
+void EMUjtag::SetWhichUserProm(int device) {
+  //
+  // Which User prom are you writing the xsvf file for?
+  //
+  which_user_prom_ = device;
+  return;
+}
+//
+int EMUjtag::GetWhichUserProm() {
+  //
+  return which_user_prom_;
+}
+//
 void EMUjtag::CreateXsvfFile() {
   //
-  (*MyOutput_) << "EMUjtag:  Creating XSVF file..." << std::endl;
+  (*MyOutput_) << "EMUjtag:  Creating XSVF file for user prom " 
+	       << std::dec << GetWhichUserProm() << std::endl;
   //
-  for (int i=0; i<MAX_XSVF_IMAGE_NUMBER; i++) 
-    write_xsvf_image_[i] = 0;
-  //
-  ReadUserPromFile();
-  //
-  if ( !prom_file_ok_ ) {
-    (*MyOutput_) << "EMUjtag:  Not creating XSVF file..." << std::endl;
+  if ( !ReadUserPromFile() ) {
+    (*MyOutput_) << "EMUjtag:  prom image file not OK... Not creating XSVF file..." << std::endl;
     return;
   }
   //
-  // For the moment just put in dummy data....
-  number_of_write_bytes_ = MAX_XSVF_IMAGE_NUMBER;
-  for (int i=0; i<number_of_write_bytes_; i++) 
-    SetWriteXsvfImage_(i,i%256);
+  // Don't write to a physical device, you are writing to a file:
+  SetWriteToDevice_(false);
   //
-  WriteXsvfDataToDisk_();
+  if ( !CreateXsvfImage_() ) {
+    (*MyOutput_) << "EMUjtag:  xsvf image creation not OK... Not creating XSVF file..." << std::endl;
+    return;
+  }
+  //
+  WriteXsvfImageToDisk_();
   //
   return;
 }
 //
-void EMUjtag::WriteXsvfDataToDisk_() {
+bool EMUjtag::CreateXsvfImage_() {
+  //
+  // Clear the XSVF image:
+  image_counter_ = 0;
+  while (image_counter_ < MAX_XSVF_IMAGE_NUMBER) 
+    SetWriteXsvfImage_(image_counter_++,0); 
+  //
+  // Reset the byte counter:
+  image_counter_ = 0;
+  //
+  // Are we writing to a valid user prom?
+  if (GetWhichUserProm() != ChipLocationTmbUserPromTMB && 
+      GetWhichUserProm() != ChipLocationTmbUserPromALCT) {
+    (*MyOutput_) << "EMUjtag:  ERROR User Prom " << std::dec << GetWhichUserProm()
+		 << "does not exist... SetWhichUserProm to a valid user prom" << std::endl;
+    return false;
+  }
+  // Here is the protocol to download the xsvf program into the 2 user proms...
+  setup_jtag(ChainTmbUser);
+  //
+  WriteXREPEAT_(0);
+  WriteXSTATE_(TLR);
+  WriteXSTATE_(RTI);
+  WriteXRUNTEST_(0);
+  WriteXSIR_(PROMidCode);
+  //
+  number_of_write_bytes_ = image_counter_;
+  return true;                   // xsvf image creation OK
+}
+//
+void EMUjtag::WriteXSIR_(int opcode) {
+  //
+  // First character = command:
+  SetWriteXsvfImage_(image_counter_++,XSIR);
+  //  
+  // Second character = total number of bits:
+  int number_of_bits = SumOpcodeBits_();
+  SetWriteXsvfImage_(image_counter_++,number_of_bits);
+  //
+  // Setup opcodes with bypass bits appropriately set:
+  ShfIR_(GetWhichUserProm(),opcode);
+  //
+  int number_of_bytes = (number_of_bits-1)/8+1;
+  //
+  // FLIP the bytes as they go into the XSVF file:
+  for (int byte=number_of_bytes-1; byte>=0; byte--)
+    SetWriteXsvfImage_(image_counter_++,tdi_in_bytes_[byte]);  
+  //
+  return;
+}
+//
+int EMUjtag::SumOpcodeBits_() {
+  //
+  int total_bits = 0;
+  //
+  for (int idevice=0; idevice<devices_in_chain_; idevice++) 
+    total_bits += bits_in_opcode_[idevice];
+  //
+  return total_bits;
+}
+//
+void EMUjtag::WriteXRUNTEST_(int length_of_time) {
+  //
+  SetWriteXsvfImage_(image_counter_++,XRUNTEST);  
+  //
+  for (int i=0; i<4; i++) {
+    int value = (length_of_time >> i*8) & 0xff;
+    SetWriteXsvfImage_(image_counter_++,value);  
+  }
+  //
+  return;
+}
+//
+void EMUjtag::WriteXREPEAT_(int number_of_times) {
+  //
+  SetWriteXsvfImage_(image_counter_++,XREPEAT);
+  SetWriteXsvfImage_(image_counter_++,number_of_times);
+  //
+  return;
+}
+//
+void EMUjtag::WriteXSTATE_(int state) {
+  //
+  SetWriteXsvfImage_(image_counter_++,XSTATE);
+  SetWriteXsvfImage_(image_counter_++,state);
+  //
+  return;
+}
+//
+void EMUjtag::WriteXsvfImageToDisk_() {
   //
   (*MyOutput_) << "EMUjtag: Write XSVF file " << filename_xsvf_ << " to disk" << std::endl;
   //
@@ -730,12 +881,45 @@ void EMUjtag::ReadXsvfFile(bool create_logfile) {
   //  for (int byte=0; byte<number_of_read_bytes_; byte++) {
   //    int value = GetReadXsvfImage_(byte) & 0xff;
   //    Logfile_ << std::hex << ( (value>>4)&0xf ) << (value&0xf) << " ";
-  //    if ( (byte+1)%10 == 0) 
+  //    if ( (byte+1)%20 == 0) 
   //      Logfile_ << std::endl;
   //  }
   //  Logfile_ << std::endl;
   //
   DecodeXsvfImage_();
+  //
+  Logfile_ << std::endl;
+  Logfile_ << "Summary statistics: " << std::endl;
+  Logfile_ << "--------------------------" << std::endl;
+  Logfile_ << " XCOMPLETE   -> " << std::setw(4) << std::dec << NumberOfCommands_[XCOMPLETE] << " times" << std::endl;
+  Logfile_ << " XTDOMASK    -> " << std::setw(4) << std::dec << NumberOfCommands_[XTDOMASK] << " times" << std::endl;
+  Logfile_ << " XSIR        -> " << std::setw(4) << std::dec << NumberOfCommands_[XSIR] << " times" << std::endl;
+  Logfile_ << " XSDR        -> " << std::setw(4) << std::dec << NumberOfCommands_[XSDR] << " times" << std::endl;
+  Logfile_ << " XRUNTEST    -> " << std::setw(4) << std::dec << NumberOfCommands_[XRUNTEST] << " times" << std::endl;
+  Logfile_ << " XUNDEFINED5 -> " << std::setw(4) << std::dec << NumberOfCommands_[XUNDEFINED5] << " times" << std::endl;
+  Logfile_ << " XUNDEFINED6 -> " << std::setw(4) << std::dec << NumberOfCommands_[XUNDEFINED6] << " times" << std::endl;
+  Logfile_ << " XREPEAT     -> " << std::setw(4) << std::dec << NumberOfCommands_[XREPEAT] << " times" << std::endl;
+  Logfile_ << " XSDRSIZE    -> " << std::setw(4) << std::dec << NumberOfCommands_[XSDRSIZE] << " times" << std::endl;
+  Logfile_ << " XSDRTDO     -> " << std::setw(4) << std::dec << NumberOfCommands_[XSDRTDO] << " times" << std::endl;
+  Logfile_ << " XSETSDRMASK -> " << std::setw(4) << std::dec << NumberOfCommands_[XSETSDRMASK] << " times" << std::endl;
+  Logfile_ << " XSDRINC     -> " << std::setw(4) << std::dec << NumberOfCommands_[XSDRINC] << " times" << std::endl;
+  Logfile_ << " XSDRB       -> " << std::setw(4) << std::dec << NumberOfCommands_[XSDRB] << " times" << std::endl;
+  Logfile_ << " XSDRC       -> " << std::setw(4) << std::dec << NumberOfCommands_[XSDRC] << " times" << std::endl;
+  Logfile_ << " XSDRE       -> " << std::setw(4) << std::dec << NumberOfCommands_[XSDRE] << " times" << std::endl;
+  Logfile_ << " XSDRTDOB    -> " << std::setw(4) << std::dec << NumberOfCommands_[XSDRTDOB] << " times" << std::endl;
+  Logfile_ << " XSDRTDOC    -> " << std::setw(4) << std::dec << NumberOfCommands_[XSDRTDOC] << " times" << std::endl;
+  Logfile_ << " XSDRTDOE    -> " << std::setw(4) << std::dec << NumberOfCommands_[XSDRTDOE] << " times" << std::endl;
+  Logfile_ << " XSTATE      -> " << std::setw(4) << std::dec << NumberOfCommands_[XSTATE] << " times" << std::endl;
+  Logfile_ << " XENDIR      -> " << std::setw(4) << std::dec << NumberOfCommands_[XENDIR] << " times" << std::endl;
+  Logfile_ << " XENDDR      -> " << std::setw(4) << std::dec << NumberOfCommands_[XENDDR] << " times" << std::endl;
+  Logfile_ << " XSIR2       -> " << std::setw(4) << std::dec << NumberOfCommands_[XSIR2] << " times" << std::endl;
+  Logfile_ << " XCOMMENT    -> " << std::setw(4) << std::dec << NumberOfCommands_[XCOMMENT] << " times" << std::endl;
+  Logfile_ << " --------------------- " << std::endl;
+  int total_commands = 0;
+  for (int i=0; i<NUMBER_OF_DIFFERENT_XSVF_COMMANDS; i++)
+    total_commands += NumberOfCommands_[i];
+  Logfile_ << " total number-> " << std::setw(4) << std::dec << total_commands << std::endl;
+
   //
   if (create_logfile)
     Logfile_.close();
@@ -757,24 +941,24 @@ void EMUjtag::ParseXCOMPLETE_() {
 //
 void EMUjtag::ParseXTDOMASK_() {
   //
-  for (int byte=0; byte<MAX_BYTES_TDO; byte++) 
-    tdomask_[byte] = 0;
+  for (int byte=0; byte<MAX_BUFFER_SIZE; byte++) 
+    tdo_mask_in_bytes_[byte] = 0;
   //
   int number_of_bytes = (xdr_length_-1)/8 + 1;
   //
-  if (number_of_bytes > MAX_BYTES_TDO) {
+  if (number_of_bytes > MAX_BUFFER_SIZE) {
     (*MyOutput_) << "EMUjtag: XTDOMASK ERROR number of tdo bytes " << number_of_bytes 
-		 << " greater than " << MAX_BYTES_TDO << std::endl;
+		 << " greater than " << MAX_BUFFER_SIZE << std::endl;
     image_counter_=MAX_XSVF_IMAGE_NUMBER;
     return;
   }
   //
   for (int byte=0; byte<number_of_bytes; byte++) 
-    tdomask_[byte] = GetReadXsvfImage_(image_counter_++) & 0xff;
+    tdo_mask_in_bytes_[byte] = GetReadXsvfImage_(image_counter_++) & 0xff;
       //
-  Logfile_ << "XTDOMASK -> " << xdr_length_ << " bits, mask =";
-  for (int byte=0; byte<number_of_bytes; byte++)
-    Logfile_ << std::hex << ( (tdomask_[byte]>>4) & 0xf) << (tdomask_[byte] & 0xf);
+  Logfile_ << "XTDOMASK -> " << std::setw(6) << xdr_length_ << " bits, mask =         ";
+  for (int byte=0; byte<number_of_bytes;  byte++)
+    Logfile_ << std::hex << ( (tdo_mask_in_bytes_[byte]>>4) & 0xf) << (tdo_mask_in_bytes_[byte] & 0xf);
   Logfile_ << std::endl;
   //
   return;
@@ -782,18 +966,18 @@ void EMUjtag::ParseXTDOMASK_() {
 //
 void EMUjtag::ParseXSIR_() {
   //
-  for (int byte=0; byte<MAX_BYTES_TDI; byte++) 
-    tdivalue_[byte] = 0;
+  for (int byte=0; byte<MAX_BUFFER_SIZE; byte++) 
+    tdi_in_bytes_[byte] = 0;
   //
   int number_of_bits = GetReadXsvfImage_(image_counter_++) & 0xff;
   int number_of_bytes = (number_of_bits-1)/8+1;
   //
   for (int byte=0; byte<number_of_bytes; byte++) 
-    tdivalue_[byte] = GetReadXsvfImage_(image_counter_++) & 0xff;
+    tdi_in_bytes_[byte] = GetReadXsvfImage_(image_counter_++) & 0xff;
   //
-  Logfile_ << "XSIR -> " << number_of_bits << " bits, TDI value =";
+  Logfile_ << "XSIR ->     " << std::setw(6) << std::dec << number_of_bits << " bits, TDI value =    ";
   for (int byte=0; byte<number_of_bytes; byte++)
-    Logfile_ << std::hex << ( (tdivalue_[byte]>>4) & 0xf) << (tdivalue_[byte] & 0xf);
+    Logfile_ << std::hex << ( (tdi_in_bytes_[byte]>>4) & 0xf) << (tdi_in_bytes_[byte] & 0xf);
   Logfile_ << std::endl;
   //
   return;
@@ -807,7 +991,7 @@ void EMUjtag::ParseXRUNTEST_() {
   for (int i=3; i>=0; i--) 
     xruntest_time |= ( (GetReadXsvfImage_(image_counter_++)&0xff) << 8*i);
   //
-  Logfile_ << "XRUNTEST -> time = " << std::dec << xruntest_time << " uSec " <<  std::endl;      
+  Logfile_ << "XRUNTEST -> " << std::setw(8) << std::dec << xruntest_time << " uSec " <<  std::endl;      
   return;
 }
 //
@@ -815,7 +999,7 @@ void EMUjtag::ParseXREPEAT_() {
   //
   int number_of_times = GetReadXsvfImage_(image_counter_++) & 0xff;
   //
-  Logfile_ << "XREPEAT -> " << number_of_times << " times" << std::endl;
+  Logfile_ << "XREPEAT ->  " << std::setw(6) << std::dec << number_of_times << " times" << std::endl;
   return;
 }
 //
@@ -827,52 +1011,52 @@ void EMUjtag::ParseXSDRSIZE_() {
   for (int i=3; i>=0; i--) 
     xdr_length_ |= ( (GetReadXsvfImage_(image_counter_++)&0xff) << 8*i);
   //
-  Logfile_ << "XSDRSIZE -> length = " << std::dec << xdr_length_ << std::endl;      
+  Logfile_ << "XSDRSIZE -> " << std::setw(6) << std::dec << xdr_length_ << " bits" << std::endl;      
   return;
 }
 //
 void EMUjtag::ParseXSDRTDO_() {
   //
-  for (int byte=0; byte<MAX_BYTES_TDI; byte++) 
-    tdivalue_[byte] = 0;
+  for (int byte=0; byte<MAX_BUFFER_SIZE; byte++) 
+    tdi_in_bytes_[byte] = 0;
   //
   int number_of_bytes = (xdr_length_-1)/8 + 1;
   //
-  if (number_of_bytes > MAX_BYTES_TDI) {
+  if (number_of_bytes > MAX_BUFFER_SIZE) {
     (*MyOutput_) << "EMUjtag: XSDRTDO ERROR number of tdi bytes " << number_of_bytes 
-		 << " greater than " << MAX_BYTES_TDI << std::endl;
+		 << " greater than " << MAX_BUFFER_SIZE << std::endl;
     image_counter_=MAX_XSVF_IMAGE_NUMBER;
     return;
   }
   //
   for (int byte=0; byte<number_of_bytes; byte++)
-    tdivalue_[byte] = GetReadXsvfImage_(image_counter_++) & 0xff;
+    tdi_in_bytes_[byte] = GetReadXsvfImage_(image_counter_++) & 0xff;
       //
-  Logfile_ << "XSDRTDO -> " << std::dec << xdr_length_ << " bits, TDI value =";
+  Logfile_ << "XSDRTDO ->  " << std::setw(6) << std::dec << xdr_length_ << " bits, TDI value =    ";
   for (int byte=0; byte<number_of_bytes; byte++)
     Logfile_ << std::hex 
-	     << ( (tdivalue_[byte]>>4) & 0xf ) 
-	     << (tdivalue_[byte] & 0xf);
+	     << ( (tdi_in_bytes_[byte]>>4) & 0xf ) 
+	     << (tdi_in_bytes_[byte] & 0xf);
   Logfile_ << std::endl;
   //
-  for (int byte=0; byte<MAX_BYTES_TDO; byte++) 
-    tdoexpected_[byte] = 0;
+  for (int byte=0; byte<MAX_BUFFER_SIZE; byte++) 
+    tdo_in_bytes_[byte] = 0;
   //
-  if (number_of_bytes > MAX_BYTES_TDO) {
+  if (number_of_bytes > MAX_BUFFER_SIZE) {
     (*MyOutput_) << "EMUjtag: XSDRTDO ERROR number of expected tdo bytes " << number_of_bytes 
-		 << " greater than " << MAX_BYTES_TDO << std::endl;
+		 << " greater than " << MAX_BUFFER_SIZE << std::endl;
     image_counter_=MAX_XSVF_IMAGE_NUMBER;
     return;
   }
   //
   for (int byte=0; byte<number_of_bytes; byte++)
-    tdoexpected_[byte] = GetReadXsvfImage_(image_counter_++) & 0xff;
-      //
-  Logfile_ << "XSDRTDO -> " << std::dec << xdr_length_ << " bits, TDO expected =";
+    tdo_in_bytes_[byte] = GetReadXsvfImage_(image_counter_++) & 0xff;
+  //
+  Logfile_ << "XSDRTDO ->  " << std::setw(6) << std::dec << xdr_length_ << " bits, TDO expected = ";
   for (int byte=0; byte<number_of_bytes; byte++)
     Logfile_ << std::hex 
-	     << ( (tdoexpected_[byte]>>4) & 0xf ) 
-	     << (tdoexpected_[byte] & 0xf);
+	     << ( (tdo_in_bytes_[byte]>>4) & 0xf ) 
+	     << (tdo_in_bytes_[byte] & 0xf);
   Logfile_ << std::endl;
   //
   return;
@@ -882,11 +1066,11 @@ void EMUjtag::ParseXSTATE_() {
   int state = GetReadXsvfImage_(image_counter_++) & 0xff;
   //
   if (state == 0) {
-    Logfile_ << "XSTATE -> TLR" << std::endl;
+    Logfile_ << "XSTATE ->    TLR" << std::endl;
   } else if (state == 1) {
-    Logfile_ << "XSTATE -> RTI" << std::endl;
+    Logfile_ << "XSTATE ->    RTI" << std::endl;
   } else {
-    Logfile_ << "XSTATE -> ???" << std::endl;
+    Logfile_ << "XSTATE ->    ???" << std::endl;
   }
   return;
 }
