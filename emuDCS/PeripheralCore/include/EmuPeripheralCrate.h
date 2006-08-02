@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.2 2006/08/01 13:48:32 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.3 2006/08/02 13:12:31 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -176,7 +176,7 @@ public:
     FirmwareDir_ = getenv("HOME");
     FirmwareDir_ += "/firmware/";
     //
-    DisplayRatio_ = true;
+    DisplayRatio_ = false;
     MyController = 0;
     //thisTMB = 0;
     //thisDMB = 0;
@@ -1801,8 +1801,8 @@ private:
 	  //
 	}
 	if (DisplayRatio_) {
-	  if ( tmbVector[tmb]->GetCounter(4) > 0 ) {
-	    *out << ((float)(tmbVector[tmb]->GetCounter(count))/(tmbVector[tmb]->GetCounter(4)));
+	  if ( tmbVector[tmb]->GetCounter(16) > 0 ) {
+	    *out << ((float)(tmbVector[tmb]->GetCounter(count))/(tmbVector[tmb]->GetCounter(16)));
 	  } else {
 	    *out << "-1";
 	  }	  
