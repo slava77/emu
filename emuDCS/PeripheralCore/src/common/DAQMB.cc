@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.1 2006/08/02 12:24:28 mey Exp $
+// $Id: DAQMB.cc,v 3.2 2006/08/02 14:44:20 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.2  2006/08/02 14:44:20  mey
+// Fixed downloading
+//
 // Revision 3.1  2006/08/02 12:24:28  mey
 // Added LctL1aDelay
 //
@@ -1910,7 +1913,7 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
         else if(strcmp(Word[0],"RUNTEST")==0){
           sscanf(Word[1],"%d",&pause);
 	  printf("RUNTEST = %d\n",pause);
-	  //usleep(pause);
+	  usleep(pause+100);
 	  /*   ipd=83*pause;
           // sleep(1);
           t1=(double) clock()/(double) CLOCKS_PER_SEC;
@@ -1919,17 +1922,17 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
 	  //  if(pause>1000)printf("pause = %f s  while erasing\n",t2-t1); */
 	  //          for (i=0;i<pause/100;i++)
 	  //  devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
-          pause=pause/2;
-          if (pause>65535) {
-            sndbuf[0]=255;
-            sndbuf[1]=255;
-            for (int looppause=0;looppause<pause/65536;looppause++) devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,0);
-            pause=65535;
-	  }
-          sndbuf[0]=pause-(pause/256)*256;
-          sndbuf[1]=pause/256;
+          //pause=pause/2;
+          //if (pause>65535) {
+	  //sndbuf[0]=255;
+	  //sndbuf[1]=255;
+	  //for (int looppause=0;looppause<pause/65536;looppause++) devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,0);
+	  //pause=65535;
+	  //}
+          //sndbuf[0]=pause-(pause/256)*256;
+          //sndbuf[1]=pause/256;
 	  // printf(" sndbuf %d %d %d \n",sndbuf[1],sndbuf[0],pause);
-          devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,2);
+          //devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,2);
           // printf(" send sleep \n");  
 	  /* printf("pause      %d us\n",pause);*/
 	  //#ifdef OSUcc
