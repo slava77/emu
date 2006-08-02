@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: DAQMB.h,v 3.1 2006/08/02 12:24:55 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.1  2006/08/02 12:24:55  mey
+// Added LctL1aDelay
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -265,6 +268,7 @@ public:
   void SetInjectorDac(float value){inj_dac_set_=value;}
   void SetCompThresh(float value){set_comp_thresh_=value;}
   //
+  void LctL1aDelay(int);
   void toggle_pedestal();
   void pulse(int Num_pulse,unsigned int pulse_delay);
   void inject(int Num_pulse,unsigned int pulse_delay);
