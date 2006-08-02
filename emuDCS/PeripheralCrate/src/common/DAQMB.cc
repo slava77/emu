@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
+// $Id: DAQMB.cc,v 3.1 2006/08/02 12:24:28 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.1  2006/08/02 12:24:28  mey
+// Added LctL1aDelay
+//
 // Revision 3.0  2006/07/20 21:15:48  geurts
 // *** empty log message ***
 //
@@ -510,6 +513,23 @@ void DAQMB::fxpreblkend(int dword)
     //  default preblkend is state 5
     sndbuf[0]=dword&0x0F; 
     devdo(dv,5,cmd,4,sndbuf,rcvbuf,0);
+    cmd[0]=VTX_BYPASS;
+    sndbuf[0]=0;
+    devdo(dv,5,cmd,0,sndbuf,rcvbuf,2);
+  }
+}
+
+void DAQMB::LctL1aDelay(int dword)
+{
+  for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
+    DEVTYPE dv = cfebs_[icfeb].scamDevice();
+    cmd[0]=VTX_USR1;
+    sndbuf[0]=LCTL1ADELAY;
+    devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+    cmd[0]=VTX_USR2;
+    //  default preblkend is state 5
+    sndbuf[0]=dword&0x03; 
+    devdo(dv,5,cmd,2,sndbuf,rcvbuf,0);
     cmd[0]=VTX_BYPASS;
     sndbuf[0]=0;
     devdo(dv,5,cmd,0,sndbuf,rcvbuf,2);
