@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: JTAG_constants.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: JTAG_constants.h,v 3.1 2006/08/02 13:13:45 mey Exp $
 // $Log: JTAG_constants.h,v $
+// Revision 3.1  2006/08/02 13:13:45  mey
+// Update
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -111,6 +114,7 @@ enum DEVTYPE{ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,F1PROM,F2PROM,F3PROM,F4PROM,F5PROM
 #define STATUS_CS 2
 #define STATUS_S 3
 #define COMP_DAC   4
+#define LCTL1ADELAY 5
 #define PREBLKEND  8
 #define COMP_MODE  9
 #define CHIP_MASK 10
