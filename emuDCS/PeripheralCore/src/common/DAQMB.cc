@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.2 2006/08/02 14:44:20 mey Exp $
+// $Id: DAQMB.cc,v 3.3 2006/08/03 18:50:49 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.3  2006/08/03 18:50:49  mey
+// Replaced sleep with ::sleep
+//
 // Revision 3.2  2006/08/02 14:44:20  mey
 // Fixed downloading
 //
@@ -1695,7 +1698,7 @@ void DAQMB::buckflash_erase()
   cmd[0]=5;
   devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,1); 
   (*MyOutput_) << " Wait for 10 Seconds for Flash Memory to finish " << std::endl;
-  sleep(10);  // 10 seconds are required after erase
+  ::sleep(10);  // 10 seconds are required after erase
   //
 }
 
@@ -3084,7 +3087,7 @@ void DAQMB::WriteSFM(){
   SFMWriteProtect();
   // Write
   ProgramSFM();
-  sleep(2);
+  ::sleep(2);
   // Disable
   SFMWriteProtect();
   //
@@ -3746,7 +3749,7 @@ int DAQMB::test5()
     lowv_onoff(c);
     lowv_rdpwrreg(); 
     (*MyOutput_) << " power register " << ival << std::endl;
-    sleep(1);
+    ::sleep(1);
     itog=itog+1;
     if(itog==2)itog=0;
     /* these are the adcs connected to the power register */
@@ -4013,7 +4016,7 @@ int DAQMB::test10()
   SFMWriteProtect();
   // Write
   ProgramSFM();
-  sleep(2);
+  ::sleep(2);
   // Disable
   SFMWriteProtect();
   //
@@ -4059,18 +4062,18 @@ int  DAQMB::test11()
    //
    buckflash_load(vshift);
    printf(" Sleep after buckflash Load \n");
-   sleep(1);
+   ::sleep(1);
    //
    buckflash_pflash();
    printf(" Sleep after buckflash program \n");
-   sleep(5);
+   ::sleep(5);
    //
    buckflash_init();
-   sleep(1);
+   ::sleep(1);
    //
    buckflash_init();         //add an extra init
    printf(" Sleep after buckeye init \n");
-   sleep(2);
+   ::sleep(2);
    //
    buck_shift_out();
    for(int brd=0;brd<5;brd++){

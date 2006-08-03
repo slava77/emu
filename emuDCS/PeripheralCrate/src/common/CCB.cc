@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: CCB.cc,v 3.1 2006/08/03 18:50:49 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 3.1  2006/08/03 18:50:49  mey
+// Replaced sleep with ::sleep
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -275,7 +278,7 @@ void CCB::SoftReset_crate()
   sndbuf[0]=0x00;
   sndbuf[1]=(i_ccb<<2)&0xfc;
   do_vme(VME_WRITE, CSRB2, sndbuf,rcvbuf,NOW);
-  sleep(1);
+  ::sleep(1);
   setCCBMode(CCB::DLOG);
   
 }
@@ -691,9 +694,9 @@ void CCB::hardReset() {
   //fg sleep(10);
   //
   // sequence of 2nd hard reset with additional delays (Jianhui)
-    sleep(2);
+  ::sleep(2);
     HardReset_crate();
-    sleep(1); // could go down to ~100msec (Jianhui)
+    ::sleep(1); // could go down to ~100msec (Jianhui)
 
   if (switchedMode){
     setCCBMode(CCB::DLOG);
@@ -704,10 +707,10 @@ void CCB::hardReset() {
 
   SoftReset_crate();
   //fg note: this 1second is not necessary
-  sleep(1);
+  ::sleep(1);
   syncReset();
   //fg note: *keep* this 1second!
-  sleep(1);
+  ::sleep(1);
   
 }
 

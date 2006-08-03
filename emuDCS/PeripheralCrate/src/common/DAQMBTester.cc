@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBTester.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
+// $Id: DAQMBTester.cc,v 3.1 2006/08/03 18:50:49 mey Exp $
 // $Log: DAQMBTester.cc,v $
+// Revision 3.1  2006/08/03 18:50:49  mey
+// Replaced sleep with ::sleep
+//
 // Revision 3.0  2006/07/20 21:15:48  geurts
 // *** empty log message ***
 //
@@ -91,7 +94,7 @@ void DAQMBTester::fifo()
     for(int i=0;i<2;i++){
       ccb_->SoftReset_crate();
       PRINTSTRING( reset CCB backplane);
-      sleep(1);
+      ::sleep(1);
     }
   }
 
@@ -125,10 +128,10 @@ void DAQMBTester::daqmb_init() // will not be needed in final configuration
   
   ccb_->HardReset_crate();    // CCB:reprogram all FPGAs in Crate
   std::cout<<"HardReset_crate" << std::endl;    
-  sleep(1);
+  ::sleep(1);
   ccb_->SoftReset_crate();     // CCB:reset all FPGAs in Crate
   std::cout<<"SoftReset_crate" << std::endl;
-  sleep(1);
+  ::sleep(1);
   //ccb_->rice_clk_setup();   // CCB:setup and start CCB backplane clocks
   //std::cout << "rice_clk_setup " << std::endl; 
   daqmb_->setcrateid(123);   // DAQMB:crate id for data stream no convention yet
@@ -147,7 +150,7 @@ void DAQMBTester::daqmb_init() // will not be needed in final configuration
   std::cout<<"set_comp_mode" << std::endl;
   daqmb_->set_comp_thresh(0.050); //DAQMB: set comparator thresholds to 50 mV
   std::cout<<"set_comp_thresh" << std::endl;
-  sleep(1);
+  ::sleep(1);
 // shift buckeyes into normal mode    
   daqmb_->shift_all(NORM_RUN);
   daqmb_->buck_shift(); //DAQMB: shift the buckeyes

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
+// $Id: TMB.cc,v 3.1 2006/08/03 18:50:49 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 3.1  2006/08/03 18:50:49  mey
+// Replaced sleep with ::sleep
+//
 // Revision 3.0  2006/07/20 21:15:48  geurts
 // *** empty log message ***
 //
@@ -2153,7 +2156,7 @@ void TMB::ALCTRawhits(){
   tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
   */
   //
-  sleep(2);
+  ::sleep(2);
   //
   //while ( 1 < 2 ) {
     //
@@ -2358,7 +2361,7 @@ void TMB::TMBRawhits(){
    sndbuf[1] = wr_data & 0x00ff ;
    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
    //
-   sleep(2);
+   ::sleep(2);
    //
    // Read forever
    //
@@ -4270,7 +4273,7 @@ void TMB::tmb_PHOS4_alct(int time)
        word_count3[j][k] = (((rcvbuf[0]&0x1f)<<8) | (rcvbuf[1]&0xfc))>>2 ;
        sndbuf[0] = 0;
        sndbuf[1] = 0;
-       sleep(time); //fg wait <time> to collect significant statistics
+       ::sleep(time); //fg wait <time> to collect significant statistics
        tmb_vme(VME_READ,0x3E,sndbuf,rcvbuf,NOW);
        word_count4[j][k] = (((rcvbuf[0]&0x1f)<<8) | (rcvbuf[1]&0xfc))>>2 ;
        //       
@@ -5525,7 +5528,7 @@ int iloop;
   if((rcvbuf[1]&0x80)!=0x80){
     printf(" *** check state machine2 %02x %02x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
     printf(" tmb_clk_delays: something is wrong. Can NOT be verified \n");
-    sleep(100);
+    ::sleep(100);
   }
 
   /* removed for new TMB delay chip

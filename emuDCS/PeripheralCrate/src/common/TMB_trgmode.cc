@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_trgmode.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
+// $Id: TMB_trgmode.cc,v 3.1 2006/08/03 18:50:49 mey Exp $
 // $Log: TMB_trgmode.cc,v $
+// Revision 3.1  2006/08/03 18:50:49  mey
+// Replaced sleep with ::sleep
+//
 // Revision 3.0  2006/07/20 21:15:48  geurts
 // *** empty log message ***
 //
@@ -210,7 +213,7 @@ void TMB::trgmode(int choice)
    printf("Setting address 0x86 to %x %x\n",sndbuf[0]&0xff,sndbuf[1]&0xff);
    tmb_vme(VME_WRITE,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Write Trigger conf
 
-   sleep(1);
+   ::sleep(1);
 
    std::cout << "Setting up delay chips for TMB version " << version_ << std::endl;
    if(version_ == "2004") {
