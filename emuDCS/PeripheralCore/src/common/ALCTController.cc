@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.2 2006/08/03 18:50:49 mey Exp $
+// $Id: ALCTController.cc,v 3.3 2006/08/03 19:00:48 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.3  2006/08/03 19:00:48  mey
+// Trigger on 1/1
+//
 // Revision 3.2  2006/08/03 18:50:49  mey
 // Replaced sleep with ::sleep
 //
@@ -554,8 +557,8 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   alct_fifo_tbins_(8),
   alct_bxc_offset_(1),
   alct_drift_delay_(3),
-  alct_nph_thresh_(4),
-  alct_nph_pattern_(4),
+  alct_nph_thresh_(1),
+  alct_nph_pattern_(1),
   alct_l1a_delay_(146),
   alct_l1a_window_(3),
   alct_l1a_internal_(0),
