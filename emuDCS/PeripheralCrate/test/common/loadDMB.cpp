@@ -27,7 +27,7 @@ int main(int argc,char **argv){
   //
   // create CCB
   int ccbSlot(13);
-  CCB *ccb = new CCB(crate,ccbSlot,2004);
+  CCB *ccb = new CCB(crate,ccbSlot);
   ccb->configure();
   ::sleep(1);
   //

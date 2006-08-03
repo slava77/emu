@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.1 2006/08/03 18:50:49 mey Exp $
+// $Id: CCB.cc,v 3.2 2006/08/03 18:59:13 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 3.2  2006/08/03 18:59:13  mey
+// Got rid of version number
+//
 // Revision 3.1  2006/08/03 18:50:49  mey
 // Replaced sleep with ::sleep
 //
@@ -175,7 +178,7 @@
 #include <string>
 
 //
-CCB::CCB(Crate * theCrate ,int slot, int version)
+CCB::CCB(Crate * theCrate ,int slot)
 : VMEModule(theCrate, slot), 
   l1enabled_(false),
   TTC(NO_TTC),
