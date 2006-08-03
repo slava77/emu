@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.5 2006/08/03 22:15:22 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.6 2006/08/03 22:19:47 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -4084,7 +4084,7 @@ private:
     DAQMB * thisDMB = dmbVector[dmb];
     int mindmb = dmb;
     int maxdmb = dmb+1;
-    if (thisDMB->slot() == 27) { //if DMB slot = 27, loop over each cfeb
+    if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each cfeb
       mindmb = 0;
       maxdmb = dmbVector.size()-1;
     }
