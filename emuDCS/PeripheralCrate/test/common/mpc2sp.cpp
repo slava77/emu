@@ -24,7 +24,7 @@ int main(int argc,char **argv){
   mpc->init();
 
   // create CCb
-  CCB *ccb = new CCB(0,13, 2004);
+  CCB *ccb = new CCB(0,13);
   ccb->firmwareVersion();
   ccb->hardReset();
 

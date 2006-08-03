@@ -16,7 +16,7 @@ int main(int argc,char **argv){
 
   // create VME Controller and Crate
   int crateId(0);
-  string ipAddr("02:00:00:00:00:07");
+  string ipAddr("02:00:00:00:00:1a");
   int port(3);
   VMEController *dynatem = new VMEController(crateId);
   dynatem->reset();
@@ -26,7 +26,7 @@ int main(int argc,char **argv){
 
   // create CCB
   int ccbSlot(13);
-  CCB *ccb = new CCB(crate,ccbSlot,2004);
+  CCB *ccb = new CCB(crate,ccbSlot);
   //
   //::sleep(1);
   //
@@ -43,7 +43,7 @@ int main(int argc,char **argv){
   printf("Programming...");
   //
   //int status = mpc->SVFLoad(&jch,"../svf/mpc_erase.svf",debugMode);
-  int status = mpc->svfLoad(&jch,"../svf/mpc2004id2_042606.svf",debugMode);
+  int status = mpc->svfLoad(&jch,"/home/slice/firmware/mpc2004id2_042606.svf",debugMode);
   //
   ccb->configure();
   //

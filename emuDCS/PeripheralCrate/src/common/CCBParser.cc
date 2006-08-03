@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCBParser.cc,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: CCBParser.cc,v 3.1 2006/08/03 18:59:13 mey Exp $
 // $Log: CCBParser.cc,v $
+// Revision 3.1  2006/08/03 18:59:13  mey
+// Got rid of version number
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -35,8 +38,8 @@ CCBParser::CCBParser(xercesc::DOMNode *pNode, Crate * theCrate)
   // temporarily allow the CCB version to be passed to the constructor
   // this should be removed after once all the old version is carefully
   // shredded :)
-  parser_.fillInt("version", version);
-  ccb_ = new CCB(theCrate, slot, version);
+  //parser_.fillInt("version", version);
+  ccb_ = new CCB(theCrate, slot);
   int mode;
   if ( parser_.fillInt("TTCmode", mode) ) {
     ccb_->SetTTCmode(mode);

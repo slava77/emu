@@ -16,7 +16,7 @@ int main(int argc,char **argv){
 
   // create VME Controller and Crate
   int crateId(0);
-  string ipAddr("02:00:00:00:00:05");
+  string ipAddr("02:00:00:00:00:0f");
   int port(3);
   VMEController *dynatem = new VMEController(crateId);
   dynatem->init(ipAddr,port);
@@ -25,13 +25,13 @@ int main(int argc,char **argv){
 
   // create CCB
   int ccbSlot(13);
-  CCB *ccb = new CCB(crate,ccbSlot,2004);
+  CCB *ccb = new CCB(crate,ccbSlot);
   ccb->configure();
   ::sleep(1);
 
   // create TMB & ALCT
-  int tmbSlot(2);
-  string chamberType("ME11");
+  int tmbSlot(18);
+  string chamberType("ME13");
   TMB *tmb = new TMB(crate,tmbSlot);
   //
   cout << "Read Register" << endl;
@@ -77,7 +77,7 @@ int main(int argc,char **argv){
   printf("Programming...");
   //int status;
   //int status = alct->SVFLoad(&jch,"../svf/alct384mirrorrl.svf",debugMode);
-  int status = alct->SVFLoad(&jch,"../svf/alct672rl.svf",debugMode);
+  int status = alct->SVFLoad(&jch,"/home/slice/firmware/alct288rl.svf",debugMode);
   tmb->enableAllClocks();
 
   if (status >= 0){

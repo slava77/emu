@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: CCB.h,v 3.1 2006/08/03 18:59:13 mey Exp $
 // $Log: CCB.h,v $
+// Revision 3.1  2006/08/03 18:59:13  mey
+// Got rid of version number
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -102,7 +105,7 @@ public:
   void WriteRegister(int,int);
   void firmwareVersion();
   void HardResetTTCrx();
-  CCB(Crate * ,int slot, int version = 2004 );
+  CCB(Crate * ,int slot);
   virtual ~CCB();
 
   /// VMEModule type identifier
