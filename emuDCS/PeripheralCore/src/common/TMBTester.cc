@@ -68,37 +68,37 @@ bool TMBTester::runAllTests() {
   //  readreg4();
 
   bool bootRegOK = testBootRegister();
-  dummy = sleep(1);
+  dummy = ::sleep(1);
   //  bool VMEfpgaDataRegOK = testVMEfpgaDataRegister();
   //  dummy = sleep(1);
   bool DateOK = testFirmwareDate();
-  dummy = sleep(1);
+  dummy = ::sleep(1);
   bool TypeOK = testFirmwareType();
-  dummy = sleep(1);
+  dummy = ::sleep(1);
   bool VersionOK = testFirmwareVersion();
-  dummy = sleep(1);
+  dummy = ::sleep(1);
   bool RevCodeOK = testFirmwareRevCode();
-  dummy = sleep(1);
+  dummy = ::sleep(1);
   bool MezzIdOK = testMezzId();
-  dummy = sleep(1);
+  dummy = ::sleep(1);
   bool PROMidOK = testPROMid();
-  dummy = sleep(1);
+  dummy = ::sleep(1);
   bool PROMpathOK = testPROMpath();
-  dummy = sleep(1);
+  dummy = ::sleep(1);
   bool dsnOK = testDSN();
-  dummy = sleep(1);
+  dummy = ::sleep(1);
   bool adcOK = testADC();
-  dummy = sleep(1);
+  dummy = ::sleep(1);
   bool is3d3444OK = test3d3444();
-  dummy = sleep(1);
+  dummy = ::sleep(1);
   //  bool isALCTtxrxOK = testALCTtxrx();
   //  dummy = sleep(1);
   bool isRATtemperOK = testRATtemper();
-  dummy = sleep(1);
+  dummy = ::sleep(1);
   bool isRATidCodesOK = testRATidCodes();
-  dummy = sleep(1);
+  dummy = ::sleep(1);
   bool isRATuserCodesOK = testRATuserCodes();
-  dummy = sleep(1);
+  dummy = ::sleep(1);
   bool isU76OK = testU76chip();
 
   (*MyOutput_) << "TMBTester Full Test Summary:" << std::endl;
@@ -218,7 +218,7 @@ bool TMBTester::testHardReset(){
   dummy = tmb_->tmb_set_boot_reg(write_data);   //de-assert hard reset
 
   (*MyOutput_) << "waiting for TMB to reload..." << std::endl;
-  dummy = sleep(5);                             
+  dummy = ::sleep(5);                             
 
   dummy = tmb_->tmb_get_boot_reg(&read_data);   //check for FPGA not ready
   read_data &= 0x4000;                          // remove bits beside "FPGA ready"

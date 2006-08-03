@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.3 2006/07/23 15:42:51 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.4 2006/08/03 18:50:49 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.4  2006/08/03 18:50:49  mey
+// Replaced sleep with ::sleep
+//
 // Revision 3.3  2006/07/23 15:42:51  rakness
 // index Hot Channel Mask from 0
 //
@@ -258,7 +261,7 @@ int ChamberUtilities::AdjustL1aLctDMB(){
   //
   for( int l1a=90; l1a<110; l1a++) {
     thisCCB_->SetL1aDelay(l1a);
-    sleep(2);
+    ::sleep(2);
     thisDMB->readtimingCounter();
     Counter = thisDMB->GetL1aLctCounter() ;
     printf(" ************ L1a lct counter l1a=%d Counter=%d \n ",l1a,Counter);
@@ -1634,7 +1637,7 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
 #endif
     thisTMB->ResetCounters();
     thisTMB->ResetALCTRAMAddress();
-    sleep(1);
+    ::sleep(1);
     thisTMB->GetCounters();
     //
     cout << endl;
@@ -1905,7 +1908,7 @@ int ChamberUtilities::TMBL1aTiming(int enableInternalL1a){
     for (int Nmuons=0; Nmuons<nmuons; Nmuons++){
       while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
       thisTMB->ResetRAMAddress();
-      if ( UseCosmic ) sleep(2);
+      if ( UseCosmic ) ::sleep(2);
       if ( UsePulsing) PulseCFEB(delay%16,0xa);
       wordcounts[delay] += thisTMB->GetWordCount();
       thisTMB->GetCounters();
@@ -2218,7 +2221,7 @@ int ChamberUtilities::FindWinner(int npulses=10){
       PulseCFEB(-1,0xa);
     }
 
-    if (UseCosmic)  sleep(2);
+    if (UseCosmic)  ::sleep(2);
     //
     thisTMB->DataSendMPC();
     //
@@ -2314,7 +2317,7 @@ int ChamberUtilities::FindALCTvpf(){
     thisTMB->ResetCounters();      // reset counters
     //thisCCB_->startTrigger();     // 2 commands to get trigger going
     //thisCCB_->bx0();
-    sleep(2);                      // accumulate statistics
+    ::sleep(2);                      // accumulate statistics
     //thisCCB_->stopTrigger();      // stop trigger
     thisTMB->GetCounters();        // read counter values
     //
@@ -2367,7 +2370,7 @@ int ChamberUtilities::FindTMB_L1A_delay( int idelay_min, int idelay_max ){
     //if (useCCB) thisCCB_->startTrigger();     // 2 commands to get trigger going
     //if (useCCB) thisCCB_->bx0();
     cout << endl << "TMB_l1adelay=" << i << ":" << endl;
-    sleep(1);                   // accumulate statistics
+    ::sleep(1);                   // accumulate statistics
     //if (useCCB) thisCCB_->stopTrigger();      // stop trigger
     thisTMB->GetCounters();      // read counter values
     

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.1 2006/07/23 15:42:51 rakness Exp $
+// $Id: ALCTController.cc,v 3.2 2006/08/03 18:50:49 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.2  2006/08/03 18:50:49  mey
+// Replaced sleep with ::sleep
+//
 // Revision 3.1  2006/07/23 15:42:51  rakness
 // index Hot Channel Mask from 0
 //
@@ -4714,7 +4717,7 @@ int ALCTController::NewSVFLoad(int *jch, char *fn, int db ){
 	   int time;
 	   sscanf(runtest,"%s %d %s",inst,&time,inst2);
 	   printf("Time to wait %d\n",time);
-	   sleep((time/1000000)+1);
+	   ::sleep((time/1000000)+1);
 	   printf("%c7", '\033');
 	}
 	if ( (smask  = strstr(buf,"SMASK")) ) {
