@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_trgmode.cc,v 3.1 2006/08/03 18:50:49 mey Exp $
+// $Id: TMB_trgmode.cc,v 3.2 2006/08/03 19:01:29 mey Exp $
 // $Log: TMB_trgmode.cc,v $
+// Revision 3.2  2006/08/03 19:01:29  mey
+// Update
+//
 // Revision 3.1  2006/08/03 18:50:49  mey
 // Replaced sleep with ::sleep
 //
@@ -201,6 +204,14 @@ void TMB::trgmode(int choice)
    sndbuf[1]=l1adelay_ & 0xff;
    printf("TRGMODE %x %x %x" , seq_l1a_adr, sndbuf[0], sndbuf[1]);
    tmb_vme(VME_WRITE,seq_l1a_adr,sndbuf,rcvbuf,NOW); // L1A delay
+
+   // Only allow matched
+   //tmb_vme(VME_READ, tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
+   //
+   //sndbuf[0] = rcvbuf[0] & (0xff);
+   //sndbuf[1] = rcvbuf[1] & (0xf3);
+   //
+   //tmb_vme(VME_WRITE,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
 
    // Read Trigger conf
    tmb_vme(VME_READ,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
