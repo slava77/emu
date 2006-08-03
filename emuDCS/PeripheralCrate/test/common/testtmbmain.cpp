@@ -188,6 +188,8 @@ int main() {
 	      << std::endl;
     std::cout << "300: Write xsvf file          301:Read xsvf file"
 	      << std::endl;
+    std::cout << "400: Program user prom"
+	      << std::endl;
     //
     std::cout << std::endl;
     std::cout << "1000:Exit " << std::endl;
@@ -556,6 +558,10 @@ int main() {
       //alct->SetXsvfFilename("userprom0_256_dev");
       alct->SetXsvfFilename("dummy_data");
       alct->ReadXsvfFile(true);
+      break;
+    case 400:
+      alct->SetXsvfFilename("dummy_data");
+      alct->ProgramProm();
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 

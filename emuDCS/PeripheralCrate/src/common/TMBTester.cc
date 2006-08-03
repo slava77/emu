@@ -456,8 +456,12 @@ bool TMBTester::testPROMid(){
   bool testSameID = compareValues("ID 0 = ID 1",userProm0IdCode,userProm1IdCode,true);
   //
   // We require:  PROM's to be one of the 3, above (i.e. lsb of bytes 3 and 4 don't matter)...
-  bool testPROMUserId0 = compareValues("User PROM 0 ID code",(userProm0IdCode&0xfffeefff),0x05022093,true);  
-  bool testPROMUserId1 = compareValues("User PROM 1 ID code",(userProm1IdCode&0xfffeefff),0x05022093,true);  
+  bool testPROMUserId0 = compareValues("User PROM 0 ID code",
+				       (userProm0IdCode & MASK_TO_TREAT_512k_LIKE_256k),
+				       PROM_ID_256k,true);  
+  bool testPROMUserId1 = compareValues("User PROM 1 ID code",
+				       (userProm1IdCode & MASK_TO_TREAT_512k_LIKE_256k),
+				       PROM_ID_256k,true);  
   //
   testOK = (testSameID &&
 	    testPROMUserId0 &&

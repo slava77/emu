@@ -38,14 +38,14 @@ public:
   void ShfIR_ShfDR(const int selected_chip,
 		   const int opcode,
 		   const int length_of_register,
-		   const int * tdi_to_shift_in);  //1 bit per index
+		   const int * tdi_to_shift_in);  //1 bit per index, see comment above for bit ordering
   //
   void ShfIR_ShfDR(const int selected_chip,
 		   const int opcode,
 		   const int length_of_register); //drop tdi argument for read-only registers
   //
-  inline int * GetDRtdo() { return chip_tdo_in_bits_ ; }
-  inline int GetRegLength() { return register_length_ ; }
+  inline int * GetDRtdo() { return chip_tdo_in_bits_ ; }  //this is tdo only for "selected_chip"
+  inline int GetRegLength() { return register_length_ ; } //this is the register length for the "opcode" of "selected chip"
   //
   //
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,22 +90,28 @@ public:
   void SetXsvfFilename(std::string filename);       //set the base filename by which the rest of the filenames are referred to
   //
   //------------------------------------------------
-  // prom image 
+  // prom image file handling
   //------------------------------------------------
   void CreateUserPromFile();                        //create Prom Image File with configuration data
   bool ReadUserPromFile();                          //read Prom Image File from disk
   //
   int GetUserPromImage(int address);                //address=[0 - (TOTAL_NUMBER_OF_ADDRESSES-1)]
+  //
   //------------------------------------------------
-  // XSVF image
+  // XSVF file handling
   //------------------------------------------------
-  void SetWhichUserProm(int device);          //device = [ChipLocationTmbUserPromTMB, ChipLocationTmbUserPromALCT]
+  void SetWhichUserProm(int device);      //device = [ChipLocationTmbUserPromTMB, ChipLocationTmbUserPromALCT]
   int  GetWhichUserProm();
   //
-  void CreateXsvfFile();                      //creates XSVF file from Prom Image File for GetWhichUserProm()
+  void CreateXsvfFile();                    //creates XSVF file from Prom Image File for GetWhichUserProm()
   //
-  void ReadXsvfFile(bool create_logfile);     //read XSVF file from disk
-  void ReadXsvfFile();                        //no argument given => no logfile created
+  void ReadXsvfFile(bool create_logfile);   //read XSVF file from disk
+  void ReadXsvfFile();                      // ...no argument given => no logfile created
+  //
+  //------------------------------------------------
+  // Program prom with XSVF file
+  //------------------------------------------------  
+  void ProgramProm();
   //
   //
   ////////////////////////////////////////////////////////////////////////
@@ -148,7 +154,7 @@ private:
   int bits_in_opcode_[MAX_NUM_DEVICES];
   int chip_id_;
   int register_length_;
-  // The following are ordered such that:
+  // As noted at the top of the header file, the following are ordered such that:
   //    - LSB of byte index = 0 = first bit which is shifted in/out
   //    - bit index = 0 = first bit which is shifted in/out
   int tdi_in_bits_[MAX_NUM_FRAMES];        // -> tdi for full chain (including bypass bits)
@@ -175,7 +181,6 @@ private:
   //-------------------
   // prom image stuff
   //-------------------
-  int address_counter_;
   int read_ascii_prom_image_[TOTAL_NUMBER_OF_ADDRESSES];
   int write_ascii_prom_image_[TOTAL_NUMBER_OF_ADDRESSES];
   //
@@ -186,14 +191,15 @@ private:
   //
   //
   //-------------------
-  // xsvf file stuff
+  // write xsvf file 
   //-------------------
-  int image_counter_;
-  int xdr_length_;
-  //
   int which_user_prom_;
+  //
+  int image_counter_;
   char write_xsvf_image_[MAX_XSVF_IMAGE_NUMBER];
   int number_of_write_bytes_;
+  //
+  int xdr_length_;
   //
   bool CreateXsvfImage_();
   void WritePreambleIntoXsvfImage_();
@@ -218,10 +224,14 @@ private:
   void WriteXSTATE_(int state);                    //state = [TLR, RTI]
   //
   //
-  //
+  //-------------------
+  // read xsvf file 
+  //-------------------
   int read_xsvf_image_[MAX_XSVF_IMAGE_NUMBER];
   int number_of_read_bytes_;
   //
+  void ReadXsvfFile_(bool create_logfile);
+  //		     
   int  GetReadXsvfImage_(int address);
   //
   void DecodeXsvfImage_();
@@ -235,6 +245,10 @@ private:
   void ParseXSTATE_();
   //
   int NumberOfCommands_[NUMBER_OF_DIFFERENT_XSVF_COMMANDS];
+  //
+  //-------------------
+  // program_prom 
+  //-------------------
   //
   //
 };
