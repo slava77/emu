@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.4 2006/08/02 14:44:56 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.5 2006/08/03 22:15:22 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -4101,7 +4101,9 @@ private:
 	vector<CFEB> thisCFEBs = thisDMB->cfebs();
 	if (dmbNumber == -1 ) {
 	  for (unsigned int i=0; i<thisCFEBs.size(); i++) {
-	    std::cout << "loading CFEB firmware for DMB=" << dmb << " CFEB="<< i << std::endl;
+	    ostringstream dum;
+	    dum << "loading CFEB firmware for DMB=" << dmb << " CFEB="<< i << std::endl;
+	    LOG4CPLUS_INFO(getApplicationLogger(), dum.str());
 	    thisCCB->hardReset();
 	    ::sleep(1);
 	    unsigned short int dword[2];
