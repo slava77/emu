@@ -1,11 +1,8 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.0 2006/07/20 21:16:11 geurts Exp $
+// $Id: VMEController.cc,v 3.1 2006/08/04 20:28:27 gilmore Exp $
 // $Log: VMEController.cc,v $
-// Revision 3.0  2006/07/20 21:16:11  geurts
-// *** empty log message ***
-//
-// Revision 1.4  2006/02/09 19:52:52  gilmore
-// *** empty log message ***
+// Revision 3.1  2006/08/04 20:28:27  gilmore
+// Added Logserver feature to EmuFEDVME Interrupt handler.
 //
 // Revision 1.25  2004/07/22 18:52:38  tfcvs
 // added accessor functions for DCS integration
@@ -24,14 +21,15 @@
 #include <errno.h>
 #include <string.h>
 
-
-
 #include <unistd.h>
 
 #include <pthread.h>
 #include "CAENVMElib.h"
 #include "CAENVMEtypes.h"
 #include "vmeIRQ.h"
+#include <log4cplus/logger.h>
+#include <xdaq/Application.h>
+
 
 #define DELAY2 0.016
 #define DELAY3 16.384
@@ -177,6 +175,7 @@ long unsigned int pttr;
               5 loop back 
               6 delay
 */
+// LOG4CPLUS_INFO(getApplicationLogger(), " EmuFEDVME: Inside controller");
  pttr=(long unsigned int)ptr;
  if(irdwr==0){
    CAEN_read(pttr,(unsigned short int *)rdata);
@@ -219,8 +218,15 @@ unsigned long mask=0x00000001;
 int ierr;
 unsigned int ERR,SYNC,FMM,SLOT,NUM_ERR,NUM_SYNC;
 unsigned int status;
-
+char buf[300];
+//  ,buf0[50],buf1[50],buf2[50],buf3[50],buf4[50];
  locdata=(struct IRQData *)threadarg;
+ int crate=locdata->threadid;
+ // log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFCrateHyperDAQ");
+ log4cplus::Logger logger = log4cplus::Logger::getInstance("EmuFEDVME");
+ // log4cplus::Logger logger = log4cplus::Logger::getApplicationLogger();
+ //  LOG4CPLUS_INFO(getApplicationLogger(), " EmuFEDVME: Interrupt detected");
+
  LOOP:
     BHandle=locdata->Handle;
     CAENVME_IRQEnable(BHandle,mask);
@@ -235,17 +241,43 @@ unsigned int status;
 
     Data[0]=0x00;Data[1]=0x00;
     CAENVME_IACKCycle(BHandle,IRQLevel,Data,DW);
-    printf(" IRQ vector %02x%02x \n",Data[1]&0xff,Data[0]&0xff);
+    //    printf(" IRQ vector %02x%02x \n",Data[1]&0xff,Data[0]&0xff);
     ERR=0;SYNC=0;FMM=0;SLOT=0;NUM_ERR=0;
     locdata->count++;
-    if(Data[1]&0x80)ERR=1;
-    if(Data[1]&0x40)SYNC=1;
-    if(Data[1]&0x20)FMM=1;
+    if(Data[1]&0x80)ERR=1;  // DDU Board Error set
+    if(Data[1]&0x40)SYNC=1; // DDU Board SyncErr set
+    if(Data[1]&0x20)FMM=1;  // FMM Error or SyncErr set
     SLOT=Data[1]&0x1f;
-    NUM_ERR=((Data[0]>>4)&0x0f);
-    NUM_SYNC=(Data[0]&0x0f); 
+    NUM_ERR=((Data[0]>>4)&0x0f); // # CSCs on DDU with Error set
+    NUM_SYNC=(Data[0]&0x0f);     // # CSCs on DDU with SyncErr set
+// JRG, need Crate number here:
+    sprintf(buf," ** EmuFEDVME: Interrupt detected for Crate/Slot %d/%d, 0x%02x%02x ** ",crate,SLOT,Data[1]&0xff,Data[0]&0xff);
+    printf("%s\n",buf);
+    //    printf(" ** EmuFEDVME: Interrupt detected for Crate/Slot %d/%d, 0x%02x%02x ** \n",crate,SLOT,Data[1]&0xff,Data[0]&0xff);
+    // orig.  LOG4CPLUS_INFO(getApplicationLogger(), " EmuFEDVME: Interrupt detected");
+    //    LOG4CPLUS_INFO(logger, " EmuFEDVME: Interrupt detected");
+    LOG4CPLUS_ERROR(logger,buf);
+    if(Data[1]&0xe0){
+      printf(" ** EmuFEDVME: ");
+      sprintf(buf," ** EmuFEDVME: ");
+      if(ERR){
+	printf("  DDU has Error");
+	strcat(buf,"  DDU has Error");
+      }
+      if(SYNC){
+	printf("  DDU Lost Sync");
+	strcat(buf,"  DDU Lost Sync");
+      }
+      if(ERR){
+	printf("  FMM Reset requested");
+	strcat(buf,"  FMM Reset requested");
+      }
+      printf("\n");
+      //      LOG4CPLUS_ERROR(logger,buf << endl);
+      LOG4CPLUS_ERROR(logger,buf);
+    }
     locdata->count_fmm=NUM_ERR;
-    printf(" ERR %d SYNC %d FMM %d SLOT %d NUM_ERR %d NUM_SYNC %d\n",ERR,SYNC,FMM,SLOT,NUM_ERR,NUM_SYNC); 
+    //    printf(" ERR %d SYNC %d FMM %d SLOT %d NUM_ERR %d NUM_SYNC %d\n",ERR,SYNC,FMM,SLOT,NUM_ERR,NUM_SYNC); 
     locdata->last_ddu=SLOT;
     locdata->last_errs[0]=ERR;
     locdata->last_errs[1]=SYNC;
@@ -256,15 +288,20 @@ unsigned int status;
     // Address=0x001b4000;
     Address=0x00034000|((SLOT<<19)&0x00f80000);
     Data[0]=0xFF;Data[1]=0xFF;
+// JRG, get CSC_Stat: 16-bit word for which CSCs have a problem
     CAENVME_ReadCycle(BHandle,Address,Data,AM,DW);
     status=((Data[1]<<8)&0x7f00)|(Data[0]&0xff);
-    printf(" CSC_Status %02x%02x \n",Data[1]&0xff,Data[0]&0xff);
+    printf(" ** EmuFEDVME:   %d CSCs w/Error, %d w/SyncErr. CSCtroubleFlags 0x%02x%02x\n",NUM_ERR,NUM_SYNC,Data[1],Data[0]);
+    sprintf(buf," ** EmuFEDVME:   %d CSCs w/Error, %d w/SyncErr. CSCtroubleFlags 0x%02x%02x\n",NUM_ERR,NUM_SYNC,Data[1],Data[0]);
+    //    printf(" CSC_Status %02x%02x \n",Data[1]&0xff,Data[0]&0xff);
+    LOG4CPLUS_INFO(logger,buf << endl);
     locdata->last_status=status;
     goto LOOP;
  ENDR: 
     printf(" call pthread_exit \n");
     pthread_exit(NULL);
 }
+
 
 void VMEController::irq_pthread_start(int crate)
 {
