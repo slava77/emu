@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.6 2006/08/03 22:19:47 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.7 2006/08/04 15:49:58 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -4056,6 +4056,8 @@ private:
   void EmuPeripheralCrate::CFEBLoadFirmware(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
+    //
+    LOG4CPLUS_INFO(getApplicationLogger(),"Started CFEB firmware download");
     //
     cgicc::Cgicc cgi(in);
     //

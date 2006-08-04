@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.2 2006/08/03 18:59:13 mey Exp $
+// $Id: CCB.cc,v 3.3 2006/08/04 15:49:58 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 3.3  2006/08/04 15:49:58  mey
+// Update
+//
 // Revision 3.2  2006/08/03 18:59:13  mey
 // Got rid of version number
 //
@@ -185,7 +188,7 @@ CCB::CCB(Crate * theCrate ,int slot)
   CLK_INIT_FLAG(0),
   BX_Orbit_(924),
   SPS25ns_(0),
-  TTCrxID_(0x010e),
+  TTCrxID_(-1),
   l1aDelay_(0),
   mDebug(false),
   mCCBMode(CCB::DLOG)
@@ -362,7 +365,7 @@ void CCB::DumpAddress(int address) {
   printf("CCB.Dump %x %x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   //
 }
-
+//
 std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   //
   if (TTCrxID_ == -1) {
@@ -458,6 +461,97 @@ std::bitset<8> CCB::ReadTTCrxReg(const unsigned short registerAdd){
   return data;
   //
 }
+//
+void CCB::WriteTTCrxReg(const unsigned short registerAdd,int value){
+  //
+  if (TTCrxID_ == -1) {
+    (*MyOutput_) << "WriteTTCrxReg.No TTCrxID" << std::endl;
+    return;
+  }
+  //
+  std::bitset<7> pointerRegAddress(TTCrxID_*2);
+  std::bitset<7> DataRegAddress(TTCrxID_*2+1);
+  std::bitset<8> regAddress(registerAdd);
+  //
+  //(*MyOutput_) << " " << pointerRegAddress << " " << DataRegAddress << " " << regAddress << std::endl ;
+  //
+  // start I2C
+  //
+  startI2C();
+  //
+  do_vme(VME_READ,CSRA1,sndbuf,rcvbuf,NOW);    
+  //
+  // write address of the pointer  register
+  for( int i(6); i>=0; --i) {
+    writeI2C(pointerRegAddress[i]);
+  }
+  //
+  writeI2C(0); // write bit 0 (write) = 0
+  //
+  readI2C();
+  //
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x04; 
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  //
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x02; 
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  //
+  for( int i(7); i>=0; --i) {
+    writeI2C(regAddress[i]);
+  }
+  //
+  readI2C() ;
+  //
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x06; 
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  //
+  stopI2C();
+  //
+  // start condition
+  startI2C();
+  //
+  //
+  // write address of the data  register (pointer + 1)
+  for( int i(6); i>=0; --i) {
+    writeI2C(DataRegAddress[i]);
+  }
+  //
+  writeI2C(0); // write bit 0 (write) = 1
+  //
+  readI2C();
+  //
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x04; 
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  //
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x02; 
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  //
+  bitset<8> inputreadBackDataBit(value);
+  // 
+  // Write data
+  for(int i(7); i>=0; --i) {
+    writeI2C(inputreadBackDataBit[i]);
+  }      
+  //(*MyOutput_) << std::endl;
+  //
+  readI2C() ;
+  //
+  sndbuf[0]=0x00;
+  sndbuf[1]=0x06 ; 
+  do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);    
+  //
+  // stop condition
+  stopI2C();
+  //
+  return;
+  //
+}
+//
 void CCB::HardResetTTCrx(){
   //
   // Go to FPGA mode

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.3 2006/08/03 18:50:49 mey Exp $
+// $Id: DAQMB.cc,v 3.4 2006/08/04 15:49:58 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.4  2006/08/04 15:49:58  mey
+// Update
+//
 // Revision 3.3  2006/08/03 18:50:49  mey
 // Replaced sleep with ::sleep
 //
@@ -1915,7 +1918,7 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
         }
         else if(strcmp(Word[0],"RUNTEST")==0){
           sscanf(Word[1],"%d",&pause);
-	  printf("RUNTEST = %d\n",pause);
+	  //printf("RUNTEST = %d\n",pause);
 	  usleep(pause+100);
 	  /*   ipd=83*pause;
           // sleep(1);
@@ -1943,7 +1946,7 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
 	  //#endif OSUcc
         }
         else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0)){
-	   printf("goto reset idle state\n"); 
+	  //printf("goto reset idle state\n"); 
 	   devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
 	   //#ifdef OSUcc
 	   //theController->flush_vme();

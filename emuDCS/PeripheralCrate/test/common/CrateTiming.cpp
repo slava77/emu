@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 3.0 2006/07/20 21:15:48 geurts Exp $
+// $Id: CrateTiming.cpp,v 3.1 2006/08/04 15:49:59 mey Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 3.1  2006/08/04 15:49:59  mey
+// Update
+//
 // Revision 3.0  2006/07/20 21:15:48  geurts
 // *** empty log message ***
 //
@@ -343,6 +346,7 @@ int main(int argc,char **argv){
   bool doWriteSFM(false);
   bool doReadTTCrxID(false);
   bool doReadTTCrxRegs(false);
+  bool doWriteTTCrxRegs(false);
   bool dodaqmb_promfpga_dump(false);
   bool dodaqmb_adc_dump(false);
   bool dodaqmb_lowv_dump(false);
@@ -545,6 +549,7 @@ int main(int argc,char **argv){
        cout << " 58:LoadCFEBFirmware     59:doCrazyCrate          60:DumpTTCrxRegs     " << std::endl;
        cout << " 61:DecodeALCT           62:Chambers              63:ReadRATUser1      " <<std::endl;
        cout << " 64:ReadCCBTTCCommand    65:CCBCLCTexterTrigger   66:DMB11             " << std::endl;
+       cout << " 67:WriteTTCrxReg" << std::endl;
        //
        printf("%c[01;36m", '\033');
        cout << "What do you want to do today ?"<< endl;
@@ -603,6 +608,7 @@ int main(int argc,char **argv){
        doWriteSFM            = false;
        doReadTTCrxID         = false;
        doReadTTCrxRegs       = false;
+       doWriteTTCrxRegs      = false;
        dodaqmb_promfpga_dump = false;
        dodaqmb_adc_dump      = false;
        dodaqmb_lowv_dump     = false;
@@ -687,7 +693,8 @@ int main(int argc,char **argv){
        if ( Menu == 64) doReadCCBTTCCommand    = true ;
        if ( Menu == 65) doCCBCLCTexternTrigger = true ;
        if ( Menu == 66) doDMB11 = true ;
-       if ( Menu  > 66 | Menu < -2) 
+       if ( Menu == 67) doWriteTTCrxRegs        = true ;
+       if ( Menu  > 67 | Menu < -2) 
 	 cout << "Invalid menu choice, try again." << endl << endl;
        //
     }
@@ -853,6 +860,18 @@ int main(int argc,char **argv){
       //
       thisTMB->DecodeALCT();
       std::cout << "ALCT WordCount  "  << thisTMB->GetALCTWordCount() <<std::endl;
+      //
+    }
+    //
+    if(doWriteTTCrxRegs) {
+      //
+      int reg, value;
+      std::cout << "Reg?" << std::endl;
+      std::cin >> reg;
+      std::cout << "Value?" << std::endl;
+      std::cin >> value;
+      //
+      thisCCB->WriteTTCrxReg(reg,value);
       //
     }
     //
