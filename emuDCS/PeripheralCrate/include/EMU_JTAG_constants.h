@@ -25,7 +25,7 @@ const int READ_BACK       =               1;       //read TDO and pack into buff
 ////-------------------------------////
 //   JTAG configuration constants    //
 ////-------------------------------////
-const int MAX_NUM_FRAMES  =              5000;       //Maximum number of frames in an i/o cycle = 4096 + 4 bits bypass
+const int MAX_NUM_FRAMES  =              8196;       //Maximum number of frames in an i/o cycle for TMB
 const int MAX_BUFFER_SIZE =MAX_NUM_FRAMES/8+1;       //Maximum number of buffers in JTAG cycle
 //
 const int MAX_NUM_DEVICES =                 5;       //Maximum number of devices on any one chain
@@ -89,13 +89,13 @@ const int PROMuserCode           = 0xFD;
 const int PROMbypass             = 0xFF;
 const int PROMwriteData          = 0xED;
 const int PROMverifyData         = 0xEF;
+const int PROMerase              = 0xEC;
 const int PROMunknownOpcode0A    = 0x0A;
 const int PROMunknownOpcodeE2    = 0xE2;
 const int PROMunknownOpcodeE6    = 0xE6;
 const int PROMunknownOpcodeE8    = 0xE8;
 const int PROMunknownOpcodeEA    = 0xEA;
 const int PROMunknownOpcodeEB    = 0xEB;
-const int PROMunknownOpcodeEC    = 0xEC;
 const int PROMunknownOpcodeF0    = 0xF0;
 const int PROMunknownOpcodeF3    = 0xF3;
 //
@@ -634,15 +634,18 @@ const int trigger_register_invert_bithi    = 4;
 ////-------------------------------////
 //     XSVF constants                //
 ////-------------------------------////
+// 256Kbit prom contains information arranged in 128 blocks of 2048 bits per block.
+// So "K" = 1024....
+//                                                                           
 const int SIZE_OF_PROM                     = 256;                   
 const int NUMBER_OF_BITS_PER_ADDRESS       = 8;                   //each address corresponds to 1 byte of information
 const int NUMBER_OF_BITS_PER_BLOCK         = RegSizeTmbUserProm_PROMwriteData;
 const int NUMBER_OF_ADDRESSES_PER_BLOCK    = NUMBER_OF_BITS_PER_BLOCK / NUMBER_OF_BITS_PER_ADDRESS;  
-const int TOTAL_NUMBER_OF_ADDRESSES        = SIZE_OF_PROM * 1024 / NUMBER_OF_BITS_PER_ADDRESS;  //256 "kilo"bits of information
+const int TOTAL_NUMBER_OF_ADDRESSES        = SIZE_OF_PROM * 1024 / NUMBER_OF_BITS_PER_ADDRESS;  
 const int TOTAL_NUMBER_OF_BLOCKS           = SIZE_OF_PROM * 1024 / NUMBER_OF_BITS_PER_BLOCK;
 //
-const int MAX_XSVF_IMAGE_NUMBER            = SIZE_OF_PROM*1024;        
-//const int MAX_XSVF_IMAGE_NUMBER            = 13*1024*1024;        //needed for tmb mezzanine proms
+//const int MAX_XSVF_IMAGE_NUMBER            = SIZE_OF_PROM*1024;        
+const int MAX_XSVF_IMAGE_NUMBER            = 13*1024*1024;        //needed for tmb mezzanine proms
 ////////////////////////////////////
 // XSVF commands:
 ////////////////////////////////////
