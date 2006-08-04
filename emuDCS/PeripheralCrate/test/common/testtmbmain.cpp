@@ -188,7 +188,7 @@ int main() {
 	      << std::endl;
     std::cout << "300: Write xsvf file          301:Read xsvf file"
 	      << std::endl;
-    std::cout << "400: Program user prom"
+    std::cout << "400: Program user prom        401:Verify user prom           402:Program TMB"
 	      << std::endl;
     //
     std::cout << std::endl;
@@ -557,11 +557,22 @@ int main() {
     case 301:      
       //alct->SetXsvfFilename("userprom0_256_dev");
       alct->SetXsvfFilename("dummy_data");
+      //      alct->SetXsvfFilename("tmb2005e_28july2006");
       alct->ReadXsvfFile(true);
       break;
     case 400:
+      alct->SetWhichUserProm(ChipLocationTmbUserPromALCT);
       alct->SetXsvfFilename("dummy_data");
-      alct->ProgramProm();
+      alct->ProgramUserProm();
+      break;
+    case 401:
+      alct->SetWhichUserProm(ChipLocationTmbUserPromALCT);
+      alct->SetXsvfFilename("dummy_data");
+      alct->VerifyUserProm();
+      break;
+    case 402:
+      alct->SetXsvfFilename("tmb2005e_28july2006_noverify");
+      alct->ProgramTMBProms();
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 

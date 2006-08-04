@@ -109,9 +109,14 @@ public:
   void ReadXsvfFile();                      // ...no argument given => no logfile created
   //
   //------------------------------------------------
-  // Program prom with XSVF file
+  // Program user prom with XSVF file
   //------------------------------------------------  
-  void ProgramProm();
+  void ProgramUserProm();
+  //
+  void VerifyUserProm();
+  void ClockOutPromProgram();
+  //
+  void ProgramTMBProms();
   //
   //
   ////////////////////////////////////////////////////////////////////////
@@ -140,6 +145,7 @@ private:
   //
   int jtag_chain_;
   int devices_in_chain_;
+  int max_xsvf_image_number_;
   //
   //
   /////////////////////////////////
@@ -199,8 +205,6 @@ private:
   char write_xsvf_image_[MAX_XSVF_IMAGE_NUMBER];
   int number_of_write_bytes_;
   //
-  int xdr_length_;
-  //
   bool CreateXsvfImage_();
   void WritePreambleIntoXsvfImage_();
   void WritePromImageIntoXsvfImage_();
@@ -249,6 +253,13 @@ private:
   //-------------------
   // program_prom 
   //-------------------
+  int clocked_out_prom_image_[TOTAL_NUMBER_OF_ADDRESSES];
+  //
+  int verify_error_;
+  //
+  int xdr_length_;
+  int xruntest_time_;
+  int xrepeat_times_;
   //
   //
 };
