@@ -109,7 +109,7 @@ public:
     //
     //
     xmlFile_     = 
-      "/home/fastdducaen/v3.2/TriDAS/emu/emuDCS/FEDCrate/xml/config.xml" ;
+      "/home/fastdducaen/v3.4/TriDAS/emu/emuDCS/FEDCrate/xml/config.xml" ;
     //
     Operator_ = "Name...";
     for (int i=0; i<9; i++) { DDUBoardID_[i] = "-1" ; DCCBoardID_[i] = "-1" ; }
@@ -121,7 +121,13 @@ public:
 
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
-    //
+/* JRG, Logger stuff to add:
+    // if (getApplicationLogger().exists(getApplicationLogger().getName())) {
+*/
+    LOG4CPLUS_INFO(getApplicationLogger(), " EmuFEDVME: server startup" << endl);
+    std::string LoggerName = getApplicationLogger().getName() ;
+    std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
+
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
@@ -595,7 +601,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
   {
     unsigned long int idcode,uscode;
     unsigned long int tidcode[8]={0x2124a093,0x31266093,0x31266093,0x05036093,0x05036093,0x05036093,0x05036093,0x05036093};
-    unsigned long int tuscode[8]={0xcf033a01,0xdf022a02,0xdf022a02,0xb0016a04,0xc033dd99,0xc133dd99,0xd0022a02,0xd1022a02};
+    unsigned long int tuscode[8]={0xcf036a01,0xdf022a03,0xdf022a03,0xb0017a01,0xc036dd99,0xc136dd99,0xd0022a03,0xd1022a03};
 // JRG, 5-->3, 6-->4, 7-->5, 3-->6, 4-->7  --done
     //
     printf(" entered DDUFirmware \n");
@@ -636,7 +642,9 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     *out << std::endl;
     *out << cgicc::legend(buf).set("style","color:blue") << std::endl ;
 
+    string xmltext="";
     for(int i=0;i<8;i++){ 
+      xmltext="data/ddu_config/";
       printf(" LOOP: %d \n",i);
       j=i;
       *out << cgicc::span().set("style","color:black");
@@ -661,10 +669,12 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	if(i==4){
 	  sprintf(buf,"dduprom0 ");
 	  j=6;
+	  xmltext="http://www.physics.ohio-state.edu/~cms/firmwares/ddu5ctrl_0.svf";
 	}
 	if(i==5){
 	  sprintf(buf,"dduprom1 ");
 	  j=7;
+	  xmltext="http://www.physics.ohio-state.edu/~cms/firmwares/ddu5ctrl_1.svf";
 	}
 // JRG, 5-->3, 6-->4, 7-->5, 3-->6, 4-->7  --done
 
@@ -746,8 +756,23 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	std::string dduloadfirmware =
 	  toolbox::toString("/%s/DDULoadFirmware",getApplicationDescriptor()->getURN().c_str());
 	//
+
+/*  JRG, try to put a default value in text field--no good
+	*out << cgicc::form()
+	  .set("method","POST")
+	  .set("action",dduloadfirmware)
+	  .set("name","textdata")
+	  .set("size","10")
+	  .set("enctype","multipart/form-data")
+	  .set("value",xmltext) << std::endl;
+	*out << cgicc::input().set("type","file")
+	  .set("name","DDULoadSVF")
+	  .set("size","50") << std::endl;
+*/
+/*  Orig: */
 	*out << cgicc::form().set("method","POST")
 	  .set("enctype","multipart/form-data")
+//	  .set("value",xmltext)
 	  .set("action",dduloadfirmware) << std::endl;;	
 	//.set("enctype","multipart/form-data")
 	*out << cgicc::input().set("type","file")
@@ -3315,9 +3340,10 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
     cgicc::form_iterator name = cgi.getElement("ddu");
     //
     int ddu;
+    unsigned int FEDVME_CSCstat=0;
     if(name != cgi.getElements().end()) {
       ddu = cgi["ddu"]->getIntegerValue();
-      //  cout << "DDU inside " << ddu << endl;
+      //      cout << "DDU inside " << ddu << endl;
       DDU_ = ddu;
     }else{
       ddu=DDU_;
@@ -3329,9 +3355,13 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
       timer=0;
       for(int i=0;i<(int)dduVector.size();i++){
 	thisDDU=dduVector[i];
-        int slot=thisDDU->slot();
+	int slot=thisDDU->slot();
         if(slot<21){
-	  if(thisDDU->vmepara_CSCstat()!=0x0000)irqprob=1;
+	  FEDVME_CSCstat=thisDDU->vmepara_CSCstat();
+	  if(FEDVME_CSCstat!=0x0000){
+	    irqprob=1;
+	    //	    printf(" ** EmuFEDVME: Interrupt was set for Slot %d, CSCstat=0x%04x ** \n",slot,FEDVME_CSCstat);
+	  }
         }
       }
     }
@@ -3354,13 +3384,12 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
     *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
     *out << std::endl;
 
-
-
     if(ddu!=99){
-    //
-    *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
-    if(thisDDU->irq_tester(0,0)!=0||irqprob!=0){ 
-    *out << img().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/redlight.gif") << std::endl;
+      *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
+      unsigned int FEDVME_int=thisDDU->irq_tester(0,0);
+      if(FEDVME_int!=0 || irqprob!=0){ 
+	*out << img().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/redlight.gif") << std::endl;
+	//	LOG4CPLUS_INFO(getApplicationLogger(), " EmuFEDVME: Interrupt xx detected");
     /* 
 S. Durkin kludge
 
@@ -3373,58 +3402,60 @@ one must then recompile the libcgicc.so library
 
     //*out << embed().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/siren.wav").set("hidden","true").set("autostart","true").set("loop","true") << std::endl;
 
-    *out << br() << std::endl;
-   *out << cgicc::span().set("style","font-size: 25pt;color:red;background-color:yellow;");
-    long int xtimer=timer;
-    long int xsec=xtimer%60;
-    xtimer=(xtimer-xsec)/60;
-    long int xmin=xtimer%60;
-    long int xhr=(xtimer-xmin)/60;
-    sprintf(buf,"%02ld:%02ld:%02ld",xhr,xmin,xsec);
-    *out << buf << std::endl;
-    *out << cgicc::span() << std::endl;
+	*out << br() << std::endl;
+	*out << cgicc::span().set("style","font-size: 25pt;color:red;background-color:yellow;");
+	long int xtimer=timer;
+	long int xsec=xtimer%60;
+	xtimer=(xtimer-xsec)/60;
+	long int xmin=xtimer%60;
+	long int xhr=(xtimer-xmin)/60;
+	sprintf(buf,"%02ld:%02ld:%02ld",xhr,xmin,xsec);
+	*out << buf << std::endl;
+	*out << cgicc::span() << std::endl;
 
-    if(thisDDU->irq_tester(0,0)!=0){
-      *out << cgicc::span().set("style","font-size: 20pt;color:red");
-      sprintf(buf," Failure in Crate %d Slot %d Status %04x",thisDDU->irq_tester(0,1),thisDDU->irq_tester(0,2),thisDDU->irq_tester(0,3));
-    }else{ 
-     *out << cgicc::span().set("style","font-size: 20pt;color:red");
-      sprintf(buf," DDUs have Interrupted previously");
-    } 
-    *out << buf << std::endl;
-    }else{ 
-    *out << cgicc::span().set("style","color:green");
-    *out << "Time without interrupt" << std::endl;
-    *out << cgicc::span() << std::endl;
-    *out << cgicc::span().set("style","font-size: 25pt;color:blue;background-color:black;");
-    //  printf(" timer %ld start %d irq_start \n",timer,irq_start[0]);
-    long int xtimer=timer;
-    long int xsec=xtimer%60;
-    xtimer=(xtimer-xsec)/60;
-    long int xmin=xtimer%60;
-    long int xhr=(xtimer-xmin)/60;
-    timer=timer+2;
-    sprintf(buf,"%02ld:%02ld:%02ld",xhr,xmin,xsec);
-    *out << buf << std::endl;
-    }
-    *out << cgicc::span() << std::endl;
-    std::string irqtester =
-    toolbox::toString("/%s/IRQTester",getApplicationDescriptor()->getURN().c_str());
+	if(FEDVME_int!=0){
+	  //	  printf(" ** EmuFEDVME: Interrupt detected, 0x%04x ** \n",FEDVME_int);
+	  *out << cgicc::span().set("style","font-size: 20pt;color:red");
+	  //	  printf(" ** EmuFEDVME: Failure in Crate %d, Slot %d, Status %04x **\n",thisDDU->irq_tester(0,1),thisDDU->irq_tester(0,2),thisDDU->irq_tester(0,3));
+	  sprintf(buf,"  Failure in Crate %d Slot %d Status %04x",thisDDU->irq_tester(0,1),thisDDU->irq_tester(0,2),thisDDU->irq_tester(0,3));
+	  //	LOG4CPLUS_INFO(getApplicationLogger(), buf);
+	}else{ 
+	  *out << cgicc::span().set("style","font-size: 20pt;color:red");
+	  sprintf(buf," DDUs have Interrupted previously");
+	} 
+	*out << buf << std::endl;
+      }else{ 
+	*out << cgicc::span().set("style","color:green");
+	*out << "Time without interrupt" << std::endl;
+	*out << cgicc::span() << std::endl;
+	*out << cgicc::span().set("style","font-size: 25pt;color:blue;background-color:black;");
+	//  printf(" timer %ld start %d irq_start \n",timer,irq_start[0]);
+	long int xtimer=timer;
+	long int xsec=xtimer%60;
+	xtimer=(xtimer-xsec)/60;
+	long int xmin=xtimer%60;
+	long int xhr=(xtimer-xmin)/60;
+	timer=timer+2;
+	sprintf(buf,"%02ld:%02ld:%02ld",xhr,xmin,xsec);
+	*out << buf << std::endl;
+      }
+      *out << cgicc::span() << std::endl;
+      std::string irqtester =
+	toolbox::toString("/%s/IRQTester",getApplicationDescriptor()->getURN().c_str());
 
-    *out << cgicc::fieldset() << std::endl;
-    *out << cgicc::body() << std::endl;
+      *out << cgicc::fieldset() << std::endl;
+      *out << cgicc::body() << std::endl;
     }else{
-           VMEController *theController=thisCrate->vmeController();
-           theController->irq_pthread_end(0); 
-    *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
-    *out << std::endl;
-    *out << " VME IRQ Interrupt has been disabled \n"; 
-    *out << cgicc::fieldset() << std::endl;
-    *out << cgicc::body() << std::endl;
-
+      VMEController *theController=thisCrate->vmeController();
+      theController->irq_pthread_end(0); 
+      *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
+      *out << std::endl;
+      *out << " VME IRQ Interrupt has been disabled \n"; 
+      *out << cgicc::fieldset() << std::endl;
+      *out << cgicc::body() << std::endl;
     }
     *out << cgicc::html() << std::endl;
-}  
+}
 
 
 void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out ) 

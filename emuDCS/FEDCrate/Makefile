@@ -52,11 +52,12 @@ IncludeDirs = \
 	$(XDAQ_ROOT)/daq/extern/i2o/include/i2o \
 	$(XDAQ_ROOT)/daq/extern/i2o/include/i2o/shared \
 	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
+	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include/log4cplus/ \
 	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
 	$(DCSDIR)/include \
 	$(XDAQ_ROOT)/daq/xgi/include \
-	$(DIMDIR)/dim  \
-        $(XDAQ_ROOT)/emu/cscSV/include 
+	$(DIMDIR)/dim \
+	$(XDAQ_ROOT)/emu/cscSV/include
 
 LibraryDirs = \
 	$(XDAQ_ROOT)/daq/xdata/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
@@ -77,10 +78,11 @@ TestLibraryDirs = \
 	$(XDAQ_ROOT)/daq/extern/log4cplus/xmlappender/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
 	$(XDAQ_ROOT)/daq/extern/log4cplus/udpappender/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
 	$(XDAQ_ROOT)/daq/extern/mimetic/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
+	$(XDAQ_ROOT)/daq/xdaq/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
 	$(DIMDIR)/$(XDAQ_OS) \
 	$(DCSDIR)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
         $(XDAQ_ROOT)/emu/emuDCS/FEDCrate/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-	$(XDAQ_ROOT)/emu/cscSV/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib 
+	$(XDAQ_ROOT)/emu/cscSV/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib
 
 UserCFlags  = 
 UserCCFlags = -DOSUcc -fPIC -DLINUX  -s
