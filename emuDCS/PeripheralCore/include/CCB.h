@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.1 2006/08/03 18:59:13 mey Exp $
+// $Id: CCB.h,v 3.2 2006/08/04 15:49:58 mey Exp $
 // $Log: CCB.h,v $
+// Revision 3.2  2006/08/04 15:49:58  mey
+// Update
+//
 // Revision 3.1  2006/08/03 18:59:13  mey
 // Got rid of version number
 //
@@ -170,6 +173,7 @@ public:
   void CCBStartTrigger();
   void ReadTTCrxID();
   std::bitset<8> ReadTTCrxReg(const unsigned short);
+  void WriteTTCrxReg(const unsigned short,int);
   int  readI2C();
   void startI2C();
   void stopI2C();
