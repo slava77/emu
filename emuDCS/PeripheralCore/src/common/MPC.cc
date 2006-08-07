@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
+// $Id: MPC.cc,v 3.1 2006/08/07 14:14:10 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 3.1  2006/08/07 14:14:10  mey
+// Added BoardId
+//
 // Revision 3.0  2006/07/20 21:15:48  geurts
 // *** empty log message ***
 //
@@ -111,7 +114,9 @@
 #include "VMEController.h"
 
 MPC::MPC(Crate * theCrate, int slot) : VMEModule(theCrate, slot),
-				       TLK2501TxMode_(0), TransparentModeSources_(0), TMBDelayPattern_(0){
+				       TLK2501TxMode_(0), TransparentModeSources_(0), TMBDelayPattern_(0),
+				       BoardId_(0)
+{
   std::cout << "MPC: module created in crate=" << this->crate() 
 	    << " slot=" << this->slot() << std::endl;
   MyOutput_ = &std::cout ;
@@ -143,29 +148,12 @@ void MPC::configure() {
 
   ReadRegister(CSR0);
 
-  (*MyOutput_) << "MPC: turn off Resets" <<std::endl;
   addr = CSR0;
-  data[1]=0x10;
-  data[0]=0x4a;
+  data[1]=0x10|((BoardId_&0xf)<<1);
+  data[0]=0x4a|((BoardId_&0x30)>>2);
   do_vme(2, addr, data, NULL, 1);
 
   ReadRegister(CSR0);
-
-  (*MyOutput_) << "MPC: logic reset" << std::endl;
-  data[1]=0x12;
-  data[0]=0x4a;
-  do_vme(2, addr, data, NULL, 1);
-
-  ReadRegister(CSR0);
-
-  (*MyOutput_) << "MPC: end logic Reset" << std::endl;
-  data[1]=0x10;
-  data[0]=0x4a;
-  do_vme(2, addr, data, NULL, 1);
-
-  ReadRegister(CSR0);
-
-  //read_csr0();
 
   (*MyOutput_) << "MPC: set default serializer TX mode ..." << std::endl;
   setTLK2501TxMode(TLK2501TxMode_);
