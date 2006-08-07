@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: MPC.h,v 3.1 2006/08/07 14:14:11 mey Exp $
 // $Log: MPC.h,v $
+// Revision 3.1  2006/08/07 14:14:11  mey
+// Added BoardId
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -120,6 +123,8 @@ class MPC : public VMEModule {
 
   void SoftReset() ;
 
+  inline void SetBoardID(int value){BoardId_ = value;}
+
   /// used by GUIs
   void executeCommand(std::string command);
 
@@ -181,6 +186,7 @@ class MPC : public VMEModule {
   std::vector<unsigned long int> FIFOBLct2;
   //
   std::ostream * MyOutput_ ;
+  int BoardId_;
   int TLK2501TxMode_;
   int TransparentModeSources_;
   int TMBDelayPattern_;

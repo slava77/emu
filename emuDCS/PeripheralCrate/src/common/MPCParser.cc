@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPCParser.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
+// $Id: MPCParser.cc,v 3.1 2006/08/07 14:14:10 mey Exp $
 // $Log: MPCParser.cc,v $
+// Revision 3.1  2006/08/07 14:14:10  mey
+// Added BoardId
+//
 // Revision 3.0  2006/07/20 21:15:48  geurts
 // *** empty log message ***
 //
@@ -23,6 +26,12 @@ MPCParser::MPCParser(xercesc::DOMNode * pNode, Crate * theCrate)
   parser_.fillInt("serializermode",mpc_->TLK2501TxMode_);
   parser_.fillInt("TransparentMode",mpc_->TransparentModeSources_);
   parser_.fillInt("TMBdelays",mpc_->TMBDelayPattern_);
+  //
+  int value;
+  if(parser_.fillInt("BoardID",value)){
+    mpc_->SetBoardID(value);
+  }
+  //
 }
 
 
