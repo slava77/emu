@@ -186,9 +186,11 @@ int main() {
     std::cout << "XSVF file handling" << std::endl;
     std::cout << "200: Write data file          201:Read data file"
 	      << std::endl;
-    std::cout << "300: Write xsvf file          301:Read xsvf file"
+    std::cout << "300: Write xsvf files         301:Read xsvf file"
 	      << std::endl;
-    std::cout << "400: Program user prom        401:Verify user prom           402:Program TMB"
+    std::cout << "400: Program user proms       401:Verify user prom           402:Program TMB"
+	      << std::endl;
+    std::cout << "500: Check state machine        "
 	      << std::endl;
     //
     std::cout << std::endl;
@@ -550,19 +552,28 @@ int main() {
       }
       break;
     case 300:
+      alct->SetWhichUserProm(ChipLocationTmbUserPromTMB);
+      alct->SetXsvfFilename("prom0_default");
+      alct->CreateXsvfFile();
+      //
       alct->SetWhichUserProm(ChipLocationTmbUserPromALCT);
-      alct->SetXsvfFilename("dummy_data");
+      alct->SetXsvfFilename("prom1_default");
       alct->CreateXsvfFile();
       break;
     case 301:      
       //alct->SetXsvfFilename("userprom0_256_dev");
-      alct->SetXsvfFilename("dummy_data");
+      //      alct->SetXsvfFilename("dummy_data");
       //      alct->SetXsvfFilename("tmb2005e_28july2006");
+      alct->SetXsvfFilename("prom0_default");
       alct->ReadXsvfFile(true);
       break;
     case 400:
+      alct->SetWhichUserProm(ChipLocationTmbUserPromTMB);
+      alct->SetXsvfFilename("prom0_default");
+      alct->ProgramUserProm();
+      //
       alct->SetWhichUserProm(ChipLocationTmbUserPromALCT);
-      alct->SetXsvfFilename("dummy_data");
+      alct->SetXsvfFilename("prom1_default");
       alct->ProgramUserProm();
       break;
     case 401:
@@ -573,6 +584,11 @@ int main() {
     case 402:
       alct->SetXsvfFilename("tmb2005e_28july2006_noverify");
       alct->ProgramTMBProms();
+      break;
+    case 500:
+      testTMB.reset();      
+      alct->CheckVMEStateMachine();
+      alct->CheckJTAGStateMachine();
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 

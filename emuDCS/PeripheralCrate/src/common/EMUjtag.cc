@@ -519,64 +519,59 @@ void EMUjtag::CreateUserPromFile() {
   // dummy data:  walking ones...
   //  N.B. depending on the header/trailer in the blocks as required by the TMB,   
   //       we need a maximum here which corresponds with the size of the prom....
-  int data_count=TOTAL_NUMBER_OF_ADDRESSES;
-  int data_to_prom[data_count];
+  data_word_count_=300;
+  int data_to_prom[data_word_count_];
   //
-  for (int address_counter=0; address_counter<data_count; address_counter++) {
+  for (int address_counter=0; address_counter<data_word_count_; address_counter++) {
     data_to_prom[address_counter] = 1 << (address_counter%8);
   }
   // end dummy data
   //*******************************//
   //
-  InsertBlockBoundaries_(data_to_prom,data_count);
+  InsertHeaderAndTrailer_(data_to_prom);
   //
   WritePromDataToDisk_();
   //
   return;
 }
 //
-void EMUjtag::InsertBlockBoundaries_(int * data_to_go_into_prom,
-				     int number_of_data_words_to_go_into_prom) {
+void EMUjtag::InsertHeaderAndTrailer_(int * data_to_go_into_prom) {
   // clear the ascii prom image
   for (int address_counter=0; address_counter<TOTAL_NUMBER_OF_ADDRESSES; address_counter++) 
     SetUserPromImage_(address_counter,0xff);
   //
   // Fill the ascii prom image with the desired data.
-  // Each block has a header and trailer which needs to be 
+  // Each block has a trailer which needs to be 
   // inserted into the stream...
   //
-  int block_counter = 0;
+  //  int block_counter = 0;
   int data_counter = 0;
   int address_counter = 0;
-  while (address_counter < TOTAL_NUMBER_OF_ADDRESSES) {
-    //
-    int previous_address = address_counter;
+  while ( data_counter < data_word_count_) {
     //
     // block header goes here:
     //
     // data:
-    if ( data_counter < number_of_data_words_to_go_into_prom)
-      SetUserPromImage_(address_counter++,
-			data_to_go_into_prom[data_counter++]);
+    SetUserPromImage_(address_counter++,
+		      data_to_go_into_prom[data_counter++]);
     //
-    // block trailer:
-    if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == 
-	 (NUMBER_OF_ADDRESSES_PER_BLOCK-3) )
-      SetUserPromImage_(address_counter++,
-			block_counter++);
+    // block trailer (I don't think we need this...):
+    //    if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == 
+    //	 (NUMBER_OF_ADDRESSES_PER_BLOCK-3) )
+    //      SetUserPromImage_(address_counter++,
+    //			block_counter++);
     //
-    if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == 
-	 (NUMBER_OF_ADDRESSES_PER_BLOCK-2) )
-      SetUserPromImage_(address_counter++,
-			0xab);
+    //    if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == 
+    //	 (NUMBER_OF_ADDRESSES_PER_BLOCK-2) )
+    //      SetUserPromImage_(address_counter++,
+    //			0xab);
     //
-    if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == (NUMBER_OF_ADDRESSES_PER_BLOCK-1) )
-      SetUserPromImage_(address_counter++,
-			0xcd);
-    //
-    if (address_counter == previous_address) address_counter++; 
-    //
+    //    if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == (NUMBER_OF_ADDRESSES_PER_BLOCK-1) )
+    //      SetUserPromImage_(address_counter++,
+    //			0xcd);
   }
+  //
+  prom_image_word_count_ = address_counter;  
   //
   return;
 }
@@ -586,7 +581,9 @@ bool EMUjtag::ReadUserPromFile() {
   (*MyOutput_) << "EMUjtag:  READ user prom image file " << filename_dat_ << std::endl;
   //
   for (int address=0; address<TOTAL_NUMBER_OF_ADDRESSES; address++) 
-    read_ascii_prom_image_[address]=0;
+    read_ascii_prom_image_[address]=0xff;
+  //
+  int index_value;
   //
   std::ifstream Readfile;
   Readfile.open(filename_dat_.c_str());
@@ -602,7 +599,7 @@ bool EMUjtag::ReadUserPromFile() {
       //
       std::istringstream instring(line);
       //
-      int index_value, image_value;
+      int image_value;
       instring >> std::hex >> index_value >> image_value;
       //
       read_ascii_prom_image_[index_value] = image_value;
@@ -621,6 +618,7 @@ bool EMUjtag::ReadUserPromFile() {
   }
   //
   Readfile.close();
+  prom_image_word_count_ = index_value+1;
   //
   return true;
 }
@@ -631,8 +629,10 @@ void EMUjtag::WritePromDataToDisk_() {
   //
   std::ofstream file_to_write;
   file_to_write.open(filename_dat_.c_str());
+  // 
+  // need to include index=prom_image_word_count_ in order to have 0xff be the last word in the file...
   //
-  for (int index=0; index<TOTAL_NUMBER_OF_ADDRESSES; index++) {
+  for (int index=0; index<=prom_image_word_count_; index++) {
     //
     // prom image file has format AAAA DD -> AAAA=address, DD=prom data
     //
@@ -748,7 +748,7 @@ bool EMUjtag::CreateXsvfImage_() {
   WriteInterimBetweenImageAndVerifyIntoXsvfImage_();
   //
   // Insert the prom image into the verification structure...
-  //WritePromImageIntoXsvfVerify_();
+  WritePromImageIntoXsvfVerify_();
   //
   // Postamble to finish programming the user prom:
   WritePostambleIntoXsvfImage_();
@@ -789,34 +789,34 @@ void EMUjtag::WritePreambleIntoXsvfImage_() {
 		tdo_expected);
   //
   WriteXRUNTEST_(110000);
-  WriteXSIR_(PROMunknownOpcodeF0);
+  WriteXSIR_(PROMconLd);
   //
   WriteXRUNTEST_(0);
   WriteXSIR_(PROMbypass);
   WriteXSTATE_(TLR);
   //
-  WriteXSIR_(PROMunknownOpcodeE8);
-  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMunknownOpcodeE8);
-  WriteXTDOMASK_(RegSizeTmbUserProm_PROMunknownOpcodeE8,
+  WriteXSIR_(PROMispen);
+  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMispen);
+  WriteXTDOMASK_(RegSizeTmbUserProm_PROMispen,
 		 all_zeros);
   int_to_bits(0x34,
-	      RegSizeTmbUserProm_PROMunknownOpcodeE8,
+	      RegSizeTmbUserProm_PROMispen,
 	      tdi_in,
 	      LSBfirst);
-  WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeE8,
+  WriteXSDRTDO_(RegSizeTmbUserProm_PROMispen,
 		tdi_in,
 		all_zeros);
   //
-  WriteXSIR_(PROMunknownOpcodeEB);
+  WriteXSIR_(PROMaddress);
   WriteXRUNTEST_(2);
-  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMunknownOpcodeEB);
-  WriteXTDOMASK_(RegSizeTmbUserProm_PROMunknownOpcodeEB,
+  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMaddress);
+  WriteXTDOMASK_(RegSizeTmbUserProm_PROMaddress,
 		 all_zeros);
   int_to_bits(0x1,
-	      RegSizeTmbUserProm_PROMunknownOpcodeEB,
+	      RegSizeTmbUserProm_PROMaddress,
 	      tdi_in,
 	      LSBfirst);
-  WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeEB,
+  WriteXSDRTDO_(RegSizeTmbUserProm_PROMaddress,
 		tdi_in,
 		all_zeros);
   //
@@ -824,20 +824,20 @@ void EMUjtag::WritePreambleIntoXsvfImage_() {
   WriteXSIR_(PROMerase);
   //
   WriteXRUNTEST_(110000);
-  WriteXSIR_(PROMunknownOpcodeF0);
+  WriteXSIR_(PROMconLd);
   //
   WriteXSTATE_(TLR);
   //
   WriteXRUNTEST_(0);
-  WriteXSIR_(PROMunknownOpcodeE8);
-  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMunknownOpcodeE8);
-  WriteXTDOMASK_(RegSizeTmbUserProm_PROMunknownOpcodeE8,
+  WriteXSIR_(PROMispen);
+  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMispen);
+  WriteXTDOMASK_(RegSizeTmbUserProm_PROMispen,
 		 all_zeros);
   int_to_bits(0x34,
-	      RegSizeTmbUserProm_PROMunknownOpcodeE8,
+	      RegSizeTmbUserProm_PROMispen,
 	      tdi_in,
 	      LSBfirst);
-  WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeE8,
+  WriteXSDRTDO_(RegSizeTmbUserProm_PROMispen,
 		tdi_in,
 		all_zeros);
   //
@@ -852,10 +852,10 @@ void EMUjtag::WritePromImageIntoXsvfImage_() {
   int address_counter = 0;
   for (int block_counter=0; block_counter<TOTAL_NUMBER_OF_BLOCKS; block_counter++) {
     //
-    WriteXSIR_(PROMwriteData);
+    WriteXSIR_(PROMwriteData0);
     WriteXRUNTEST_(2);
-    WriteXSDRSIZE_(RegSizeTmbUserProm_PROMwriteData);    
-    WriteXTDOMASK_(RegSizeTmbUserProm_PROMwriteData,
+    WriteXSDRSIZE_(RegSizeTmbUserProm_PROMwriteData0);    
+    WriteXTDOMASK_(RegSizeTmbUserProm_PROMwriteData0,
 		   all_zeros);
     //
     // Fill the tdi written to the prom with the prom image data:
@@ -875,26 +875,26 @@ void EMUjtag::WritePromImageIntoXsvfImage_() {
 		     NUMBER_OF_BITS_PER_BLOCK,
 		     0,
 		     tdi_in);
-    WriteXSDRTDO_(RegSizeTmbUserProm_PROMwriteData,
+    WriteXSDRTDO_(RegSizeTmbUserProm_PROMwriteData0,
 		  tdi_in,
 		  all_zeros);
     //
     WriteXRUNTEST_(0);
-    WriteXSIR_(PROMunknownOpcodeEB);
+    WriteXSIR_(PROMaddress);
     WriteXRUNTEST_(2);
-    WriteXSDRSIZE_(RegSizeTmbUserProm_PROMunknownOpcodeEB);
-    WriteXTDOMASK_(RegSizeTmbUserProm_PROMunknownOpcodeEB,
+    WriteXSDRSIZE_(RegSizeTmbUserProm_PROMaddress);
+    WriteXTDOMASK_(RegSizeTmbUserProm_PROMaddress,
 		   all_zeros);
     int_to_bits( (block_counter<<5) ,
-		 RegSizeTmbUserProm_PROMunknownOpcodeEB,
+		 RegSizeTmbUserProm_PROMaddress,
 		 tdi_in,
 		 LSBfirst);
-    WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeEB,
+    WriteXSDRTDO_(RegSizeTmbUserProm_PROMaddress,
 		  tdi_in,
 		  all_zeros);
     //
     WriteXRUNTEST_(14001);
-    WriteXSIR_(PROMunknownOpcodeEA);
+    WriteXSIR_(PROMprogram);
     //
     WriteXRUNTEST_(0);
   }
@@ -907,45 +907,45 @@ void EMUjtag::WriteInterimBetweenImageAndVerifyIntoXsvfImage_() {
   int all_zeros[MAX_NUM_FRAMES] = {}; 
   int tdi_in[MAX_NUM_FRAMES] = {}; 
   //
-  WriteXSIR_(PROMunknownOpcodeEB);
+  WriteXSIR_(PROMaddress);
   WriteXRUNTEST_(1);
   int_to_bits(1,
-	      RegSizeTmbUserProm_PROMunknownOpcodeEB,
+	      RegSizeTmbUserProm_PROMaddress,
 	      tdi_in,
 	      LSBfirst);
-  WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeEB,
+  WriteXSDRTDO_(RegSizeTmbUserProm_PROMaddress,
 		tdi_in,
 		all_zeros);
   //
   WriteXRUNTEST_(37000);
-  WriteXSIR_(PROMunknownOpcode0A);
+  WriteXSIR_(PROMsErase);
   //
   WriteXRUNTEST_(110000);
-  WriteXSIR_(PROMunknownOpcodeF0);
+  WriteXSIR_(PROMconLd);
   //
   WriteXRUNTEST_(0);
-  WriteXSIR_(PROMunknownOpcodeE8);
-  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMunknownOpcodeE8);
-  WriteXTDOMASK_(RegSizeTmbUserProm_PROMunknownOpcodeE8,
+  WriteXSIR_(PROMispen);
+  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMispen);
+  WriteXTDOMASK_(RegSizeTmbUserProm_PROMispen,
 		 all_zeros);
   int_to_bits(0x34,
-	      RegSizeTmbUserProm_PROMunknownOpcodeE8,
+	      RegSizeTmbUserProm_PROMispen,
 	      tdi_in,
 	      LSBfirst);
-  WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeE8,
+  WriteXSDRTDO_(RegSizeTmbUserProm_PROMispen,
 		tdi_in,
 		all_zeros);
   //
   WriteXRUNTEST_(110000);
-  WriteXSIR_(PROMunknownOpcodeF0);
+  WriteXSIR_(PROMconLd);
   //
   WriteXRUNTEST_(0);
-  WriteXSIR_(PROMunknownOpcodeE8);
+  WriteXSIR_(PROMispen);
   int_to_bits(0x34,
-	      RegSizeTmbUserProm_PROMunknownOpcodeE8,
+	      RegSizeTmbUserProm_PROMispen,
 	      tdi_in,
 	      LSBfirst);
-  WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeE8,
+  WriteXSDRTDO_(RegSizeTmbUserProm_PROMispen,
 		tdi_in,
 		all_zeros);
   //
@@ -964,28 +964,28 @@ void EMUjtag::WritePromImageIntoXsvfVerify_() {
   int address_counter = 0;
   for (int block_counter=0; block_counter<TOTAL_NUMBER_OF_BLOCKS/2; block_counter++) {
     //
-    WriteXSIR_(PROMunknownOpcodeEB);
+    WriteXSIR_(PROMaddress);
     WriteXRUNTEST_(2);
-    WriteXSDRSIZE_(RegSizeTmbUserProm_PROMunknownOpcodeEB);
-    WriteXTDOMASK_(RegSizeTmbUserProm_PROMunknownOpcodeEB,
+    WriteXSDRSIZE_(RegSizeTmbUserProm_PROMaddress);
+    WriteXTDOMASK_(RegSizeTmbUserProm_PROMaddress,
 		   all_zeros);
     int_to_bits( (block_counter<<6) ,
-		 RegSizeTmbUserProm_PROMunknownOpcodeEB,
+		 RegSizeTmbUserProm_PROMaddress,
 		 tdi_in,
 		 LSBfirst);
-    WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeEB,
+    WriteXSDRTDO_(RegSizeTmbUserProm_PROMaddress,
 		  tdi_in,
 		  all_zeros);
     WriteXRUNTEST_(51);
     //
-    WriteXSIR_(PROMverifyData);
-    WriteXSDRSIZE_(RegSizeTmbUserProm_PROMverifyData);    
-    WriteXTDOMASK_(RegSizeTmbUserProm_PROMverifyData,
+    WriteXSIR_(PROMverifyData0);
+    WriteXSDRSIZE_(RegSizeTmbUserProm_PROMverifyData0);    
+    WriteXTDOMASK_(RegSizeTmbUserProm_PROMverifyData0,
 		   all_ones);
     //
     // Fill the tdo expected with the prom image data in blocks twice as large...
     //
-    const int number_of_addresses_per_verify_block=RegSizeTmbUserProm_PROMverifyData/NUMBER_OF_BITS_PER_ADDRESS;
+    const int number_of_addresses_per_verify_block=RegSizeTmbUserProm_PROMverifyData0/NUMBER_OF_BITS_PER_ADDRESS;
     char character_buffer[number_of_addresses_per_verify_block];
     //
     for (int address_within_block=0; address_within_block<number_of_addresses_per_verify_block; address_within_block++) {
@@ -999,10 +999,10 @@ void EMUjtag::WritePromImageIntoXsvfVerify_() {
     }
     // unpack the character buffer we filled with prom data into a bit-vector like all other jtag arrays....
     unpackCharBuffer(character_buffer,
-		     RegSizeTmbUserProm_PROMverifyData,
+		     RegSizeTmbUserProm_PROMverifyData0,
 		     0,
 		     tdo_expected);
-    WriteXSDRTDO_(RegSizeTmbUserProm_PROMverifyData,
+    WriteXSDRTDO_(RegSizeTmbUserProm_PROMverifyData0,
 		  all_zeros,
 		  tdo_expected);
     //
@@ -1030,31 +1030,31 @@ void EMUjtag::WritePostambleIntoXsvfImage_() {
   int tdi_in[MAX_NUM_FRAMES] = {}; 
   int tdo_expected[MAX_NUM_FRAMES] = {}; 
   //
-  WriteXSIR_(PROMunknownOpcodeF0);
+  WriteXSIR_(PROMconLd);
   WriteXRUNTEST_(0);
   //
-  WriteXSIR_(PROMunknownOpcodeE8);
-  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMunknownOpcodeE8);
-  WriteXTDOMASK_(RegSizeTmbUserProm_PROMunknownOpcodeE8,
+  WriteXSIR_(PROMispen);
+  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMispen);
+  WriteXTDOMASK_(RegSizeTmbUserProm_PROMispen,
 		 all_zeros);
   int_to_bits(0x34,
-	      RegSizeTmbUserProm_PROMunknownOpcodeE8,
+	      RegSizeTmbUserProm_PROMispen,
 	      tdi_in,
 	      LSBfirst);
-  WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeE8,
+  WriteXSDRTDO_(RegSizeTmbUserProm_PROMispen,
 		tdi_in,
 		all_zeros);
   //
-  WriteXSIR_(PROMunknownOpcodeEB);
+  WriteXSIR_(PROMaddress);
   WriteXRUNTEST_(2);
-  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMunknownOpcodeEB);
-  WriteXTDOMASK_(RegSizeTmbUserProm_PROMunknownOpcodeEB,
+  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMaddress);
+  WriteXTDOMASK_(RegSizeTmbUserProm_PROMaddress,
 		 all_zeros);
   int_to_bits(0x4000,
-	      RegSizeTmbUserProm_PROMunknownOpcodeEB,
+	      RegSizeTmbUserProm_PROMaddress,
 	      tdi_in,
 	      LSBfirst);
-  WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeEB,
+  WriteXSDRTDO_(RegSizeTmbUserProm_PROMaddress,
 		tdi_in,
 		all_zeros);
   WriteXRUNTEST_(0);
@@ -1107,108 +1107,108 @@ void EMUjtag::WritePostambleIntoXsvfImage_() {
 		all_zeros);
   WriteXRUNTEST_(14001);
   //
-  WriteXSIR_(PROMunknownOpcodeEA);
+  WriteXSIR_(PROMprogram);
   WriteXRUNTEST_(50);
   //
-  WriteXSIR_(PROMunknownOpcodeE6);
-  WriteXTDOMASK_(RegSizeTmbUserProm_PROMunknownOpcodeE6,
+  WriteXSIR_(PROMusercodeData);
+  WriteXTDOMASK_(RegSizeTmbUserProm_PROMusercodeData,
 		 all_ones);
   int_to_bits(date_in_hex,
-	      RegSizeTmbUserProm_PROMunknownOpcodeE6,
+	      RegSizeTmbUserProm_PROMusercodeData,
 	      tdo_expected,
 	      LSBfirst);
-  WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeE6,
+  WriteXSDRTDO_(RegSizeTmbUserProm_PROMusercodeData,
 		all_zeros,
 		tdo_expected);
   WriteXRUNTEST_(110000);
   //
   //
-  WriteXSIR_(PROMunknownOpcodeF0);
+  WriteXSIR_(PROMconLd);
   WriteXRUNTEST_(0);
   //
-  WriteXSIR_(PROMunknownOpcodeE8);
-  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMunknownOpcodeE8);
-  WriteXTDOMASK_(RegSizeTmbUserProm_PROMunknownOpcodeE8,
+  WriteXSIR_(PROMispen);
+  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMispen);
+  WriteXTDOMASK_(RegSizeTmbUserProm_PROMispen,
 		 all_zeros);
   int_to_bits(0x34,
-	      RegSizeTmbUserProm_PROMunknownOpcodeE8,
+	      RegSizeTmbUserProm_PROMispen,
 	      tdi_in,
 	      LSBfirst);
-  WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeE8,
+  WriteXSDRTDO_(RegSizeTmbUserProm_PROMispen,
 		tdi_in,
 		all_zeros);
   //
-  WriteXSIR_(PROMunknownOpcodeE8);
+  WriteXSIR_(PROMispen);
   int_to_bits(0x34,
-	      RegSizeTmbUserProm_PROMunknownOpcodeE8,
+	      RegSizeTmbUserProm_PROMispen,
 	      tdi_in,
 	      LSBfirst);
-  WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeE8,
+  WriteXSDRTDO_(RegSizeTmbUserProm_PROMispen,
 		tdi_in,
 		all_zeros);
   //
-  WriteXSIR_(PROMunknownOpcodeEB);
+  WriteXSIR_(PROMaddress);
   WriteXRUNTEST_(2);
-  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMunknownOpcodeEB);
-  WriteXTDOMASK_(RegSizeTmbUserProm_PROMunknownOpcodeEB,
+  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMaddress);
+  WriteXTDOMASK_(RegSizeTmbUserProm_PROMaddress,
 		 all_zeros);
   int_to_bits(0x4000,
-	      RegSizeTmbUserProm_PROMunknownOpcodeEB,
+	      RegSizeTmbUserProm_PROMaddress,
 	      tdi_in,
 	      LSBfirst);
-  WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeEB,
+  WriteXSDRTDO_(RegSizeTmbUserProm_PROMaddress,
 		tdi_in,
 		all_zeros);
   WriteXRUNTEST_(0);
   //
-  WriteXSIR_(PROMunknownOpcodeF3);
-  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMunknownOpcodeF3);
-  WriteXTDOMASK_(RegSizeTmbUserProm_PROMunknownOpcodeF3,
+  WriteXSIR_(PROMwriteData3);
+  WriteXSDRSIZE_(RegSizeTmbUserProm_PROMwriteData3);
+  WriteXTDOMASK_(RegSizeTmbUserProm_PROMwriteData3,
 		 all_zeros);
   int_to_bits(0x3d,
-	      RegSizeTmbUserProm_PROMunknownOpcodeF3,
+	      RegSizeTmbUserProm_PROMwriteData3,
 	      tdi_in,
 	      LSBfirst);
-  WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeF3,
+  WriteXSDRTDO_(RegSizeTmbUserProm_PROMwriteData3,
 		tdi_in,
 		all_zeros);
   WriteXRUNTEST_(14001);
   //
-  WriteXSIR_(PROMunknownOpcodeEA);
+  WriteXSIR_(PROMprogram);
   WriteXRUNTEST_(51);
   //
-  WriteXSIR_(PROMunknownOpcodeE2);
-  WriteXTDOMASK_(RegSizeTmbUserProm_PROMunknownOpcodeE2,
+  WriteXSIR_(PROMverifyData3);
+  WriteXTDOMASK_(RegSizeTmbUserProm_PROMverifyData3,
 		 all_zeros);
   int_to_bits(0x3d,
-	      RegSizeTmbUserProm_PROMunknownOpcodeE2,
+	      RegSizeTmbUserProm_PROMverifyData3,
 	      tdi_in,
 	      LSBfirst);
   int_to_bits(0x3d,
-	      RegSizeTmbUserProm_PROMunknownOpcodeE2,
+	      RegSizeTmbUserProm_PROMverifyData3,
 	      tdo_expected,
 	      LSBfirst);
-  WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeE2,
+  WriteXSDRTDO_(RegSizeTmbUserProm_PROMverifyData3,
 		tdi_in,
 		tdo_expected);
   WriteXRUNTEST_(110000);
   //
-  WriteXSIR_(PROMunknownOpcodeF0);
+  WriteXSIR_(PROMconLd);
   WriteXRUNTEST_(0);
   //
-  WriteXSIR_(PROMunknownOpcodeE8);
-  WriteXTDOMASK_(RegSizeTmbUserProm_PROMunknownOpcodeE8,
+  WriteXSIR_(PROMispen);
+  WriteXTDOMASK_(RegSizeTmbUserProm_PROMispen,
 		 all_zeros);
   int_to_bits(0x34,
-	      RegSizeTmbUserProm_PROMunknownOpcodeE8,
+	      RegSizeTmbUserProm_PROMispen,
 	      tdi_in,
 	      LSBfirst);
-  WriteXSDRTDO_(RegSizeTmbUserProm_PROMunknownOpcodeE8,
+  WriteXSDRTDO_(RegSizeTmbUserProm_PROMispen,
 		tdi_in,
 		all_zeros);
   WriteXRUNTEST_(110000);
   //
-  WriteXSIR_(PROMunknownOpcodeF0);
+  WriteXSIR_(PROMconLd);
   //
   WriteXREPEAT_(0);
   WriteXREPEAT_(32);
@@ -1404,7 +1404,7 @@ void EMUjtag::WriteXSTATE_(int state) {
 //
 void EMUjtag::WriteXsvfImageToDisk_() {
   //
-  (*MyOutput_) << "EMUjtag: Write XSVF file " << filename_xsvf_ << " to disk" << std::endl;
+  (*MyOutput_) << "EMUjtag:  Write XSVF file " << filename_xsvf_ << " to disk" << std::endl;
   //
   std::ofstream file_to_write;
   file_to_write.open(filename_xsvf_.c_str(),
@@ -1547,9 +1547,12 @@ void EMUjtag::DecodeXsvfImage_() {
     command_counter++;
     //
     if ( GetWriteToDevice_() ) 
-      if (command_counter % 100 == 0) 
-	(*MyOutput_) << "Programmed " << std::dec 
-		     << image_counter_ << "/" << number_of_read_bytes_ << " bytes" << std::endl;
+      if (command_counter % 100 == 0) {
+	float percent_programmed = 100.* (float)image_counter_ / (float)number_of_read_bytes_;
+	//
+	(*MyOutput_) << "Programmed " << std::fixed << percent_programmed 
+		     << "% of " << std::dec << number_of_read_bytes_ << " bytes" << std::endl;
+      }
     //
     if (command > NUMBER_OF_DIFFERENT_XSVF_COMMANDS) {
       (*MyOutput_) << "EMUjtag: ERROR DecodeXsvfImage_ command = " 
@@ -1907,7 +1910,7 @@ void EMUjtag::SetWriteXsvfImage_(int address, int value) {
 //----------------------------------//
 void EMUjtag::ProgramUserProm() {
   //
-  (*MyOutput_) << "EMUjtag: Programming User Prom..." << std::endl;
+  (*MyOutput_) << "EMUjtag:  Programming User Prom..." << std::endl;
   //
   verify_error_ = 0;
   //
@@ -1926,10 +1929,12 @@ void EMUjtag::ProgramUserProm() {
   //
   int time_elapsed = endtime - starttime;
   //
-  (*MyOutput_) << "EMUjtag: Programming complete in " 
-	       << std::dec << time_elapsed << " seconds" << std::endl;
+  (*MyOutput_) << "EMUjtag:  Programmed " << std::dec <<   number_of_read_bytes_ 
+	       << " bytes in " << std::dec << time_elapsed << " seconds" << std::endl;
   (*MyOutput_) << "... Number of verify errors = " 
 	       << std::dec << verify_error_ << std::endl;  
+  //
+  int dummy = tmb_->tmb_set_boot_reg(0);
   //
   return;
 }
@@ -1946,7 +1951,7 @@ void EMUjtag::VerifyUserProm() {
   //
   ClockOutPromProgram();
   //
-  for (int address=0; address<TOTAL_NUMBER_OF_ADDRESSES; address++) {
+  for (int address=0; address<=prom_image_word_count_; address++) {
     if ( clocked_out_prom_image_[address] != GetUserPromImage(address) ) {
       (*MyOutput_) << "EMUjtag: ERROR address " << std::hex << address << std::endl;
       (*MyOutput_) << " -> prom image in file = " << std::hex << GetUserPromImage(address) << std::endl;
@@ -1955,7 +1960,7 @@ void EMUjtag::VerifyUserProm() {
     }
   }
   //
-  (*MyOutput_) << "EMUjtag:  Number of verify errors = " << std::dec << verify_error_ << std::endl;
+  //  (*MyOutput_) << "EMUjtag:  Number of verify errors = " << std::dec << verify_error_ << std::endl;
   //
   return;
 }
@@ -2065,6 +2070,127 @@ void EMUjtag::ProgramTMBProms() {
 	       << std::dec << time_elapsed << " seconds" << std::endl;
   (*MyOutput_) << "... Number of verify errors = " 
 	       << std::dec << verify_error_ << std::endl;  
+  //
+  return;
+}
+//
+void EMUjtag::CheckVMEStateMachine() {
+  //
+  const unsigned long int vme_statemachine_0_adr = 0x0000DA;
+  const unsigned long int vme_statemachine_1_adr = 0x0000DC;
+  const unsigned long int vme_statemachine_2_adr = 0x0000DE;
+  const unsigned long int vme_statemachine_3_adr = 0x0000E0;
+  //
+  int read_data = tmb_->ReadRegister(vme_statemachine_0_adr);
+  //
+  int vme_state_machine_start       = (read_data >> 0) & 0x1;
+  int vme_state_machine_sreset      = (read_data >> 1) & 0x1;
+  int vme_state_machine_autostart   = (read_data >> 2) & 0x1;
+  int vme_state_machine_busy        = (read_data >> 3) & 0x1;
+  int vme_state_machine_aborted     = (read_data >> 4) & 0x1;
+  int vme_state_machine_cksum_ok    = (read_data >> 5) & 0x1;
+  int vme_state_machine_wdcnt_ok    = (read_data >> 6) & 0x1;
+  int vme_state_machine_jtag_auto   = (read_data >> 7) & 0x1;
+  int vme_state_machine_vme_ready   = (read_data >> 8) & 0x1;
+  int vme_state_machine_ok          = (read_data >> 9) & 0x1;
+  //  int vme_state_machine_unassigned0 = (read_data >>10) & 0x3;
+  int vme_state_machine_throttle    = (read_data >>12) & 0xf;
+  //
+  int vme_state_machine_word_count  = tmb_->ReadRegister(vme_statemachine_1_adr);
+  //
+  read_data = tmb_->ReadRegister(vme_statemachine_2_adr);
+  //
+  int vme_state_machine_check_sum   = (read_data >> 0) & 0xff;
+  //
+  int vme_state_machine_error_missing_header_start    = (read_data >> 8) & 0x1;
+  int vme_state_machine_error_missing_header_end      = (read_data >> 9) & 0x1;
+  int vme_state_machine_error_missing_data_end_marker = (read_data >>10) & 0x1;
+  int vme_state_machine_error_missing_trailer_end     = (read_data >>11) & 0x1;
+  int vme_state_machine_error_word_count_overflow     = (read_data >>12) & 0x1;
+  //
+  int vme_state_machine_number_of_vme_writes       = tmb_->ReadRegister(vme_statemachine_3_adr);
+  //
+  (*MyOutput_) << "VME prom state machine status: " << std::endl;
+  (*MyOutput_) << "-------------------------------" << std::endl;
+  (*MyOutput_) << " start            = " << std::hex << vme_state_machine_start << std::endl;
+  (*MyOutput_) << " sreset           = " << std::hex << vme_state_machine_sreset << std::endl;
+  (*MyOutput_) << " autostart        = " << std::hex << vme_state_machine_autostart << std::endl;
+  (*MyOutput_) << " busy             = " << std::hex << vme_state_machine_busy << std::endl;
+  (*MyOutput_) << " aborted          = " << std::hex << vme_state_machine_aborted << std::endl;
+  (*MyOutput_) << " check sum OK     = " << std::hex << vme_state_machine_cksum_ok << std::endl;
+  (*MyOutput_) << " word count OK    = " << std::hex << vme_state_machine_wdcnt_ok << std::endl;
+  (*MyOutput_) << " JTAG auto        = " << std::hex << vme_state_machine_jtag_auto << std::endl;
+  (*MyOutput_) << " VME ready        = " << std::hex << vme_state_machine_vme_ready << std::endl;
+  (*MyOutput_) << " state machine OK = " << std::hex << vme_state_machine_ok << std::endl;
+  (*MyOutput_) << " throttle         = 0x" << std::hex << vme_state_machine_throttle << std::endl;
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << " word count = 0x" << std::hex << vme_state_machine_word_count << std::endl;
+  (*MyOutput_) << " check sum  = 0x" << std::hex << vme_state_machine_check_sum << std::endl;
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << " missing header start    = " << std::hex << vme_state_machine_error_missing_header_start << std::endl;
+  (*MyOutput_) << " missing header end      = " << std::hex << vme_state_machine_error_missing_header_end << std::endl;
+  (*MyOutput_) << " missing data end marker = " << std::hex << vme_state_machine_error_missing_data_end_marker << std::endl;
+  (*MyOutput_) << " missing trailer end     = " << std::hex << vme_state_machine_error_missing_trailer_end << std::endl;
+  (*MyOutput_) << " word count overflow     = " << std::hex << vme_state_machine_error_word_count_overflow << std::endl;
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << " Number of VME writes    = 0x" << std::hex << vme_state_machine_number_of_vme_writes << std::endl;
+  //
+  return;
+}
+void EMUjtag::CheckJTAGStateMachine() {
+  //
+  unsigned short int BootData;
+  int dummy = tmb_->tmb_get_boot_reg(&BootData);
+  (*MyOutput_) << "Boot contents = " << std::hex << BootData << std::endl;
+
+  //
+  const unsigned long int jtag_statemachine_0_adr = 0x0000D4;
+  const unsigned long int jtag_statemachine_1_adr = 0x0000D6;
+  const unsigned long int jtag_statemachine_2_adr = 0x0000D8;
+  //
+  int read_data = tmb_->ReadRegister(jtag_statemachine_0_adr);
+  int jtag_state_machine_start       = (read_data >> 0) & 0x1;
+  int jtag_state_machine_sreset      = (read_data >> 1) & 0x1;
+  int jtag_state_machine_autostart   = (read_data >> 2) & 0x1;
+  int jtag_state_machine_busy        = (read_data >> 3) & 0x1;
+  int jtag_state_machine_aborted     = (read_data >> 4) & 0x1;
+  int jtag_state_machine_cksum_ok    = (read_data >> 5) & 0x1;
+  int jtag_state_machine_wdcnt_ok    = (read_data >> 6) & 0x1;
+  int jtag_state_machine_tck_fpga_ok = (read_data >> 7) & 0x1;
+  int jtag_state_machine_vme_ready   = (read_data >> 8) & 0x1;
+  int jtag_state_machine_ok          = (read_data >> 9) & 0x1;
+  int jtag_state_machine_oe          = (read_data >>10) & 0x1;
+  //  int jtag_state_machine_unassigned0 = (read_data >>11) & 0x1;
+  int jtag_state_machine_throttle    = (read_data >>12) & 0xf;
+  //
+  int jtag_state_machine_word_count  = tmb_->ReadRegister(jtag_statemachine_1_adr);
+  //
+  read_data = tmb_->ReadRegister(jtag_statemachine_2_adr);
+  //
+  int jtag_state_machine_check_sum   = (read_data >> 0) & 0xff;
+  //
+  int jtag_state_machine_tck_fpga    = (read_data >> 8) & 0xf;
+  //
+  (*MyOutput_) << "JTAG prom state machine status: " << std::endl;
+  (*MyOutput_) << "-------------------------------" << std::endl;
+  (*MyOutput_) << " prom start vme   = " << std::hex << jtag_state_machine_start << std::endl;
+  (*MyOutput_) << " sreset           = " << std::hex << jtag_state_machine_sreset << std::endl;
+  (*MyOutput_) << " autostart        = " << std::hex << jtag_state_machine_autostart << std::endl;
+  (*MyOutput_) << " busy             = " << std::hex << jtag_state_machine_busy << std::endl;
+  (*MyOutput_) << " aborted          = " << std::hex << jtag_state_machine_aborted << std::endl;
+  (*MyOutput_) << " check sum OK     = " << std::hex << jtag_state_machine_cksum_ok << std::endl;
+  (*MyOutput_) << " word count OK    = " << std::hex << jtag_state_machine_wdcnt_ok << std::endl;
+  (*MyOutput_) << " tck FPGA OK      = " << std::hex << jtag_state_machine_tck_fpga_ok << std::endl;
+  (*MyOutput_) << " VME ready        = " << std::hex << jtag_state_machine_vme_ready << std::endl;
+  (*MyOutput_) << " state machine OK = " << std::hex << jtag_state_machine_ok << std::endl;
+  (*MyOutput_) << " throttle         = 0x" << std::hex << jtag_state_machine_throttle << std::endl;
+  (*MyOutput_) << " jtag oe          = " << std::hex << jtag_state_machine_oe << std::endl;
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << " word count = 0x" << std::hex << jtag_state_machine_word_count << std::endl;
+  (*MyOutput_) << " check sum  = 0x" << std::hex << jtag_state_machine_check_sum << std::endl;
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << " tck_fpga   = 0x" << std::hex << jtag_state_machine_tck_fpga << std::endl;
+  //
   //
   return;
 }

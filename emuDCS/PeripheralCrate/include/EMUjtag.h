@@ -118,6 +118,12 @@ public:
   //
   void ProgramTMBProms();
   //
+  //------------------------------------------------
+  // Check operation of user proms after hard reset
+  //------------------------------------------------  
+  void CheckVMEStateMachine();
+  void CheckJTAGStateMachine();
+  //
   //
   ////////////////////////////////////////////////////////////////////////
   // SVF programming:
@@ -190,8 +196,10 @@ private:
   int read_ascii_prom_image_[TOTAL_NUMBER_OF_ADDRESSES];
   int write_ascii_prom_image_[TOTAL_NUMBER_OF_ADDRESSES];
   //
-  void InsertBlockBoundaries_(int * data_to_go_into_prom, 
-			      int number_of_data_words_to_go_into_prom);
+  int data_word_count_;
+  int prom_image_word_count_;
+  //
+  void InsertHeaderAndTrailer_(int * data_to_go_into_prom);
   void SetUserPromImage_(int address, int value);                 
   void WritePromDataToDisk_();
   //
