@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.3 2006/08/04 15:49:58 mey Exp $
+// $Id: CCB.cc,v 3.4 2006/08/07 13:31:29 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 3.4  2006/08/07 13:31:29  mey
+// Added TTCrx coarse delay
+//
 // Revision 3.3  2006/08/04 15:49:58  mey
 // Update
 //
@@ -191,7 +194,8 @@ CCB::CCB(Crate * theCrate ,int slot)
   TTCrxID_(-1),
   l1aDelay_(0),
   mDebug(false),
-  mCCBMode(CCB::DLOG)
+  mCCBMode(CCB::DLOG),
+  TTCrxCoarseDelay_(0)
 {
   MyOutput_ = &std::cout ;
     
@@ -928,6 +932,77 @@ void CCB::init() {
   //
   //
 }
+void CCB::PrintTTCrxRegs(){
+  //
+  std::cout << "Register 0 " ;
+  std::cout << ReadTTCrxReg(0);
+  std::cout << std::endl;
+  //
+  std::cout << "Register 1 " ;
+  std::cout << ReadTTCrxReg(1);
+  std::cout << std::endl;
+      //
+  std::cout << "Register 2 " ;
+  std::cout << ReadTTCrxReg(2);
+  std::cout << std::endl;
+  //
+  std::cout << "Register 3 " ;
+  std::cout << ReadTTCrxReg(3);
+  std::cout << std::endl;
+  //
+  std::cout << "Register 8 " ;
+  std::cout << ReadTTCrxReg(8);
+  std::cout << std::endl;
+  //
+  std::cout << "Register 9 " ;
+  std::cout << ReadTTCrxReg(9);
+  std::cout << std::endl;
+  //
+  std::cout << "Register 10 " ;
+  std::cout << ReadTTCrxReg(10);
+  std::cout << std::endl;
+  //
+  std::cout << "Register 11 " ;
+  std::cout << ReadTTCrxReg(11);
+  std::cout << std::endl;
+  //
+  std::cout << "Register 19 " ;
+  std::cout << ReadTTCrxReg(19);
+  std::cout << std::endl;
+  //
+  std::cout << "Register 20 " ;
+  std::cout << ReadTTCrxReg(20);
+  std::cout << std::endl;
+  //
+  std::cout << "Register 21 " ;
+  std::cout << ReadTTCrxReg(21);
+  std::cout << std::endl;
+  //
+  std::cout << "Register 22 " ;
+  std::cout << ReadTTCrxReg(22);
+  std::cout << std::endl;
+  //
+  std::cout << "Register 24 " ;
+  std::cout << ReadTTCrxReg(24);
+  std::cout << std::endl;
+  //
+  std::cout << "Register 25 " ;
+  std::cout << ReadTTCrxReg(25);
+  std::cout << std::endl;
+  //
+  std::cout << "Register 26 " ;
+  std::cout << ReadTTCrxReg(26);
+  std::cout << std::endl;
+      //
+  std::cout << "Register 27 " ;
+  std::cout << ReadTTCrxReg(27);
+  std::cout << std::endl;
+  //
+  std::cout << "Register 28 " ;
+  std::cout << ReadTTCrxReg(28);
+  std::cout << std::endl;
+  //
+}
 
 void CCB::configure() {
   //
@@ -948,6 +1023,18 @@ void CCB::configure() {
   std::cout << ReadRegister(0x0) << std::endl;
   disableL1();
   std::cout << ReadRegister(0x0) << std::endl;
+  //
+  // Download coarse delay to TTCrx
+  //
+  PrintTTCrxRegs();
+  int delay = ((TTCrxCoarseDelay_&0xf)<<4) + (TTCrxCoarseDelay_&0xf);
+  WriteTTCrxReg(2,delay);
+  //
+  std::cout << std::endl;
+  //
+  PrintTTCrxRegs();
+  setCCBMode(CCB::DLOG);
+  //
 }
 
 void CCB::SetL1aDelay(int l1adelay){

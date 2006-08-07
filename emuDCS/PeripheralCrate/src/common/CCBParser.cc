@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCBParser.cc,v 3.1 2006/08/03 18:59:13 mey Exp $
+// $Id: CCBParser.cc,v 3.2 2006/08/07 13:31:29 mey Exp $
 // $Log: CCBParser.cc,v $
+// Revision 3.2  2006/08/07 13:31:29  mey
+// Added TTCrx coarse delay
+//
 // Revision 3.1  2006/08/03 18:59:13  mey
 // Got rid of version number
 //
@@ -62,6 +65,9 @@ CCBParser::CCBParser(xercesc::DOMNode *pNode, Crate * theCrate)
   int ID;
   if (parser_.fillInt("TTCrxID", ID)){
     ccb_->SetTTCrxID(ID);
+  }
+  if (parser_.fillInt("TTCrxCoarseDelay", delay)){
+    ccb_->SetTTCrxCoarseDelay(delay);
   }
 }
 
