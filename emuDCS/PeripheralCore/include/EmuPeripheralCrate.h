@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.7 2006/08/04 15:49:58 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.8 2006/08/07 14:43:33 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1638,7 +1638,7 @@ private:
     //
     *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
     *out << cgicc::span().set("style","color:blue");
-    *out << "MPC slot = 14 cfg             " << (read&0x1);
+    *out << "MPC slot = 12 cfg             " << (read&0x1);
     *out << cgicc::span();
     *out << cgicc::br();
     //
@@ -1646,7 +1646,7 @@ private:
     //
     *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
     //
-    *out << "CCB  slot = 14 FPGA cfg       " << ((read>>12)&0x1);
+    *out << "CCB  slot = 13 FPGA cfg       " << ((read>>12)&0x1);
     //
     if(((read>>12)&0x1) == 1) {
       *out << cgicc::span().set("style","color:green");
@@ -1714,13 +1714,13 @@ private:
     //
     *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
     //
-    *out << "TMB  slot =  2 cfg            " << ((read>>10)&0x1);
+    *out << "TMB  slot = 02 cfg            " << ((read>>10)&0x1);
     *out << cgicc::br();
-    *out << "TMB  slot =  4 cfg            " << ((read>>11)&0x1);
+    *out << "TMB  slot = 04 cfg            " << ((read>>11)&0x1);
     *out << cgicc::br();
-    *out << "TMB  slot =  6 cfg            " << ((read>>12)&0x1);
+    *out << "TMB  slot = 06 cfg            " << ((read>>12)&0x1);
     *out << cgicc::br();
-    *out << "TMB  slot =  8 cfg            " << ((read>>13)&0x1);
+    *out << "TMB  slot = 08 cfg            " << ((read>>13)&0x1);
     *out << cgicc::br();
     *out << "TMB  slot = 10 cfg            " << ((read>>14)&0x1);
     *out << cgicc::br();
@@ -1740,23 +1740,23 @@ private:
     //
     *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
     //
-    *out << "DMB  slot = 02 cfg            " << ((read>>3)&0x1);
+    *out << "DMB  slot = 03 cfg            " << ((read>>3)&0x1);
     *out << cgicc::br();
-    *out << "DMB  slot = 04 cfg            " << ((read>>4)&0x1);
+    *out << "DMB  slot = 05 cfg            " << ((read>>4)&0x1);
     *out << cgicc::br();
-    *out << "DMB  slot = 06 cfg            " << ((read>>5)&0x1);
+    *out << "DMB  slot = 07 cfg            " << ((read>>5)&0x1);
     *out << cgicc::br();
-    *out << "DMB  slot = 08 cfg            " << ((read>>6)&0x1);
+    *out << "DMB  slot = 09 cfg            " << ((read>>6)&0x1);
     *out << cgicc::br();
-    *out << "DMB  slot = 10 cfg            " << ((read>>7)&0x1);
+    *out << "DMB  slot = 11 cfg            " << ((read>>7)&0x1);
     *out << cgicc::br();
-    *out << "DMB  slot = 14 cfg            " << ((read>>8)&0x1);
+    *out << "DMB  slot = 15 cfg            " << ((read>>8)&0x1);
     *out << cgicc::br();
-    *out << "DMB  slot = 16 cfg            " << ((read>>9)&0x1);
+    *out << "DMB  slot = 17 cfg            " << ((read>>9)&0x1);
     *out << cgicc::br();
-    *out << "DMB  slot = 18 cfg            " << ((read>>10)&0x1);
+    *out << "DMB  slot = 19 cfg            " << ((read>>10)&0x1);
     *out << cgicc::br();
-    *out << "DMB  slot = 20 cfg            " << ((read>>11)&0x1);
+    *out << "DMB  slot = 21 cfg            " << ((read>>11)&0x1);
     *out << cgicc::br();
     //
     *out << cgicc::fieldset() ;
