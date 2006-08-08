@@ -742,13 +742,18 @@ bool EMUjtag::CreateXsvfImage_() {
   // Preamble needed to program the user prom:
   WritePreambleIntoXsvfImage_();
   //
-  // Insert the prom image into the programming structure...
+  // Insert the prom image into the programming structure:
   WritePromImageIntoXsvfImage_();
   //
   WriteInterimBetweenImageAndVerifyIntoXsvfImage_();
   //
-  // Insert the prom image into the verification structure...
+  // Insert the prom image into the verification structure:
+  // N.B. We remove this step, because a faster way to verify 
+  // the program is to clock it out with VME using 
+  // ClockOutPromProgram()...
+  //
   WritePromImageIntoXsvfVerify_();
+  //
   //
   // Postamble to finish programming the user prom:
   WritePostambleIntoXsvfImage_();
@@ -820,7 +825,9 @@ void EMUjtag::WritePreambleIntoXsvfImage_() {
 		tdi_in,
 		all_zeros);
   //
-  WriteXRUNTEST_(15000001);
+  // Reduce the time for clearing the small (256K) prom from 15 seconds (default value from Xilinx to 1...
+  //  WriteXRUNTEST_(15000001);
+  WriteXRUNTEST_(1000001);
   WriteXSIR_(PROMerase);
   //
   WriteXRUNTEST_(110000);
@@ -851,6 +858,9 @@ void EMUjtag::WritePromImageIntoXsvfImage_() {
   //
   int address_counter = 0;
   for (int block_counter=0; block_counter<TOTAL_NUMBER_OF_BLOCKS; block_counter++) {
+    //
+    // Break out of the loop if you don't have any more data to write:
+    if (address_counter > prom_image_word_count_) break;
     //
     WriteXSIR_(PROMwriteData0);
     WriteXRUNTEST_(2);
@@ -963,6 +973,9 @@ void EMUjtag::WritePromImageIntoXsvfVerify_() {
   //
   int address_counter = 0;
   for (int block_counter=0; block_counter<TOTAL_NUMBER_OF_BLOCKS/2; block_counter++) {
+    //
+    // Break out of the loop if you don't have any more data to verify:
+    if (address_counter > prom_image_word_count_) break;
     //
     WriteXSIR_(PROMaddress);
     WriteXRUNTEST_(2);
@@ -1550,7 +1563,7 @@ void EMUjtag::DecodeXsvfImage_() {
       if (command_counter % 100 == 0) {
 	float percent_programmed = 100.* (float)image_counter_ / (float)number_of_read_bytes_;
 	//
-	(*MyOutput_) << "Programmed " << std::fixed << percent_programmed 
+	(*MyOutput_) << "Programmed " << std::setprecision(1) << std::fixed << percent_programmed 
 		     << "% of " << std::dec << number_of_read_bytes_ << " bytes" << std::endl;
       }
     //
@@ -1794,16 +1807,24 @@ void EMUjtag::ParseXSDRTDO_() {
   //
   if ( GetWriteToDevice_() ) {
     //
-    if(debug_){
-      //
+    if(debug_)
       (*MyOutput_) << "XSDRTDO  ->  " << std::setw(6) << std::dec << xdr_length_ << " bits: " << std::endl;
-      //
-    }
+    //
     // On the data register:  shift in the TDI and shift out the TDO 
-    tmb_->scan(DATA_REGISTER, tdi_in_bytes_, xdr_length_, tdo_in_bytes_, READ_BACK);
+    //
+    // if the tdo mask == 0, we don't care what is read back out on tdo, so don't read it back...
+    bool read_back_tdo = false;
+    for (int byte=number_of_bytes-1; byte>=0; byte--) 
+      if (tdo_mask_in_bytes_[byte] != 0) 
+	read_back_tdo = true;
+    //
+    if (read_back_tdo) {
+      tmb_->scan(DATA_REGISTER, tdi_in_bytes_, xdr_length_, tdo_in_bytes_, READ_BACK);
+    } else {
+      tmb_->scan(DATA_REGISTER, tdi_in_bytes_, xdr_length_, tdo_in_bytes_, NO_READ_BACK);
+    }
     //
     if(debug_){
-      //
       (*MyOutput_) << " expect    = ";
       for (int byte=number_of_bytes-1; byte>=0; byte--) 
 	(*MyOutput_) << std::hex 
@@ -1920,10 +1941,13 @@ void EMUjtag::ProgramUserProm() {
   //
   setup_jtag(ChainTmbUser);
   //
+  // If you want to verify with JTAG, need to read in the prom image file...
+  ReadUserPromFile();
+  //
   // Default when programming prom is to write a logfile:
   ReadXsvfFile_(true);
   //
-  VerifyUserProm();
+  //  VerifyUserProm();
   //
   time_t endtime = time (NULL);
   //
@@ -1933,8 +1957,6 @@ void EMUjtag::ProgramUserProm() {
 	       << " bytes in " << std::dec << time_elapsed << " seconds" << std::endl;
   (*MyOutput_) << "... Number of verify errors = " 
 	       << std::dec << verify_error_ << std::endl;  
-  //
-  int dummy = tmb_->tmb_set_boot_reg(0);
   //
   return;
 }
@@ -1951,7 +1973,10 @@ void EMUjtag::VerifyUserProm() {
   //
   ClockOutPromProgram();
   //
-  for (int address=0; address<=prom_image_word_count_; address++) {
+  for (int address=0; address<prom_image_word_count_+10; address++) {
+    //    (*MyOutput_) << "EMUjtag: For address " << std::hex << address << std::endl;
+    //    (*MyOutput_) << " -> prom image in file = " << std::hex << GetUserPromImage(address) << std::endl;
+    //    (*MyOutput_) << " -> prom image in prom = " << std::hex << clocked_out_prom_image_[address] << std::endl;
     if ( clocked_out_prom_image_[address] != GetUserPromImage(address) ) {
       (*MyOutput_) << "EMUjtag: ERROR address " << std::hex << address << std::endl;
       (*MyOutput_) << " -> prom image in file = " << std::hex << GetUserPromImage(address) << std::endl;
@@ -2139,11 +2164,6 @@ void EMUjtag::CheckVMEStateMachine() {
 }
 void EMUjtag::CheckJTAGStateMachine() {
   //
-  unsigned short int BootData;
-  int dummy = tmb_->tmb_get_boot_reg(&BootData);
-  (*MyOutput_) << "Boot contents = " << std::hex << BootData << std::endl;
-
-  //
   const unsigned long int jtag_statemachine_0_adr = 0x0000D4;
   const unsigned long int jtag_statemachine_1_adr = 0x0000D6;
   const unsigned long int jtag_statemachine_2_adr = 0x0000D8;
@@ -2166,6 +2186,8 @@ void EMUjtag::CheckJTAGStateMachine() {
   int jtag_state_machine_word_count  = tmb_->ReadRegister(jtag_statemachine_1_adr);
   //
   read_data = tmb_->ReadRegister(jtag_statemachine_2_adr);
+  //
+  //  std::cout << "JTAG statemachine 2 address data = " << std::hex << read_data << std::endl;
   //
   int jtag_state_machine_check_sum   = (read_data >> 0) & 0xff;
   //
