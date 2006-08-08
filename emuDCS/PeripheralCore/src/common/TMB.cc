@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.1 2006/08/03 18:50:49 mey Exp $
+// $Id: TMB.cc,v 3.2 2006/08/08 19:23:08 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 3.2  2006/08/08 19:23:08  mey
+// Included Jtag sources
+//
 // Revision 3.1  2006/08/03 18:50:49  mey
 // Replaced sleep with ::sleep
 //
@@ -3438,9 +3441,9 @@ void TMB::tmb_vme(char fcn, char vme,
 
 
 void TMB::start() {
-#ifdef debugV
+  //
   (*MyOutput_) << "starting to talk to TMB, device " << ucla_ldev << std::endl;
-#endif
+  //
   // send the first signal
   SetupJtag();
   VMEModule::start();
@@ -3449,13 +3452,17 @@ void TMB::start() {
 }
 
 
-void TMB::start(int idev) {
+void TMB::start(int idev,int JtagSource) {
+  //
+  VMEModule::SetJtagSource(JtagSource);
+  //
   if(idev != ucla_ldev) {
     endDevice();
     ucla_ldev = idev;
   }
   //theController->start(this);
   start();
+  //
 }
 
 
