@@ -45,6 +45,7 @@ EMUjtag::~EMUjtag() {
 void EMUjtag::setup_jtag(int chain) {
   //
   //This member sets the following characteristics:
+  //  - gives control of the JTAG chain to the FPGA
   //  - which JTAG chain you are looking at
   //  - how many chips are on the chain
   //  - the number of bits in each chip's opcode
@@ -55,7 +56,7 @@ void EMUjtag::setup_jtag(int chain) {
   if(debug_){
     std::cout << "setup_chain" << std::endl ;
   }
-  //
+  // change the source of the JTAG chain via the bootstrap register:
   tmb_->tmb_set_boot_reg(0);
   //
   jtag_chain_ = chain;
@@ -380,17 +381,20 @@ void EMUjtag::CompareBitByBit(int * write_vector,
     std::ostringstream writedump;
     char WriteBuffer[MAX_BUFFER_SIZE];
     packCharBuffer(write_vector,length,WriteBuffer);
-    for (int i=(length/8)-1; i>=0; i--) 
+    for (int i=(length-1)/8; i>=0; i--) 
       writedump << std::hex << ((WriteBuffer[i] >> 4) & 0xf) << (WriteBuffer[i] & 0xf);  
     //
     std::ostringstream readdump;
     char ReadBuffer[MAX_BUFFER_SIZE];
     packCharBuffer(read_vector,length,ReadBuffer);
-    for (int i=(length/8)-1; i>=0; i--) 
+    for (int i=(length-1)/8; i>=0; i--) 
       readdump << std::hex << ((ReadBuffer[i] >> 4) & 0xf) << (ReadBuffer[i] & 0xf);  
     //
     std::ostringstream dump;
     dump << "EMUjtag: JTAG READ ->" << readdump.str() << " does not equal WRITE->" << writedump.str();
+    //
+    (*MyOutput_) << "EMUjtag: JTAG READ ->" << readdump.str() 
+		 << " does not equal WRITE->" << writedump.str() << std::endl;
     //
     tmb_->SendOutput(dump.str(),"ERROR");
   }
@@ -750,9 +754,9 @@ bool EMUjtag::CreateXsvfImage_() {
   WriteInterimBetweenImageAndVerifyIntoXsvfImage_();
   //
   // Insert the prom image into the verification structure:
-  // N.B. We remove this step, because a faster way to verify 
-  // the program is to clock it out with VME using 
-  // ClockOutPromProgram()...
+  // N.B. it appears this method to verify is faster than
+  // clocking it out with VME using ClockOutPromProgram(),
+  // at least for small data files....
   //
   WritePromImageIntoXsvfVerify_();
   //
