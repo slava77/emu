@@ -518,9 +518,6 @@ const int fifo_pretrig_bithi               = 30;
 const int fifo_mode_bitlo                  = 31;
 const int fifo_mode_bithi                  = 32;
 //
-const int fifo_lastlct_bitlo               = 33;
-const int fifo_lastlct_bithi               = 35;
-//
 const int l1a_delay_bitlo                  = 36;
 const int l1a_delay_bithi                  = 43;
 //
@@ -536,23 +533,11 @@ const int l1a_internal_bithi               = 52;
 const int board_id_bitlo                   = 53;
 const int board_id_bithi                   = 55;
 //
-const int bxn_offset_bitlo                 = 56;
-const int bxn_offset_bithi                 = 59;
-//
 const int ccb_enable_bitlo                 = 60;
 const int ccb_enable_bithi                 = 60;
 //
-const int alct_jtag_ds_bitlo               = 61;
-const int alct_jtag_ds_bithi               = 61;
-//
-const int alct_tmode_bitlo                 = 62;
-const int alct_tmode_bithi                 = 63;
-//
 const int alct_amode_bitlo                 = 64;
 const int alct_amode_bithi                 = 65;
-//
-const int alct_mask_all_bitlo              = 66;
-const int alct_mask_all_bithi              = 66;
 //
 const int trigger_info_en_bitlo            = 67;
 const int trigger_info_en_bithi            = 67;

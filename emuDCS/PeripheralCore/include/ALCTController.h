@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.2 2006/07/23 15:42:50 rakness Exp $
+// $Id: ALCTController.h,v 3.3 2006/08/08 16:38:27 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.3  2006/08/08 16:38:27  rakness
+// ALCTnew: remove parameters not supported in firmware
+//
 // Revision 3.2  2006/07/23 15:42:50  rakness
 // index Hot Channel Mask from 0
 //
@@ -890,11 +893,6 @@ public:
   int  GetFifoMode();                               // get Read values
   //
   //
-  void SetFifoLastLct(int fifo_lastlct);            // set Write values...
-  //                       fifo_lastlct = [0-3] -> which chip to readout (defunct parameter)
-  int  GetFifoLastLct();                            // get Read values
-  //
-  //
   void SetL1aDelay(int l1a_delay);                  // set Write values...
   //                       l1a_delay = [0-255] -> number of bunch crossings (after the LCT) of the leading edge of the l1a window 
   int  GetL1aDelay();                               // get Read values
@@ -921,24 +919,9 @@ public:
   int  GetBoardId();                                // get Read values
   //
   //
-  void SetBxnOffset(int bxn_offset);                // set Write values...
-  //                       bxn_offset = [] -> undocumented parameter
-  int  GetBxnOffset();                              // get Read values
-  //
-  //
   void SetCcbEnable(int ccb_enable);                // set Write values...
   //                       ccb_enable = [] -> undocumented parameter
   int  GetCcbEnable();                              // get Read values
-  //
-  //
-  void SetAlctJtagDs(int alct_jtag_ds);             // set Write values...
-  //                       alct_jtag_ds = [] -> undocumented parameter
-  int  GetAlctJtagDs();                             // get Read values
-  //
-  //
-  void SetAlctTmode(int alct_tmode);                // set Write values...
-  //                       alct_tmode = [] -> undocumented parameter
-  int  GetAlctTmode();                              // get Read values
   //
   //
   void SetAlctAmode(int alct_amode);                // set Write values...
@@ -946,11 +929,6 @@ public:
   //                                             0,1 = prefer Collision muon mode
   //                                             2,3 = prefer Accelerator muon mode
   int  GetAlctAmode();                              // get Read values
-  //
-  //
-  void SetAlctMaskAll(int alct_mask_all);           // set Write values...
-  //                       alct_mask_all = [] -> undocumented parameter
-  int  GetAlctMaskAll();                            // get Read values
   //
   //
   void SetTriggerInfoEnable(int trigger_info_en);   // set Write values...
@@ -1149,18 +1127,13 @@ private:
   int write_fifo_tbins_;
   int write_fifo_pretrig_;
   int write_fifo_mode_;
-  int write_fifo_lastlct_;
   int write_l1a_delay_;
   int write_l1a_window_;
   int write_l1a_offset_;
   int write_l1a_internal_;
   int write_board_id_;
-  int write_bxn_offset_;
   int write_ccb_enable_;
-  int write_alct_jtag_ds_;
-  int write_alct_tmode_;
   int write_alct_amode_;
-  int write_alct_mask_all_;
   int write_trigger_info_en_;
   int write_sn_select_;
   void FillConfigurationReg_();
@@ -1177,18 +1150,13 @@ private:
   int read_fifo_tbins_;
   int read_fifo_pretrig_;
   int read_fifo_mode_;
-  int read_fifo_lastlct_;
   int read_l1a_delay_;
   int read_l1a_window_;
   int read_l1a_offset_;
   int read_l1a_internal_;
   int read_board_id_;
-  int read_bxn_offset_;
   int read_ccb_enable_;
-  int read_alct_jtag_ds_;
-  int read_alct_tmode_;
   int read_alct_amode_;
-  int read_alct_mask_all_;
   int read_trigger_info_en_;
   int read_sn_select_;
   void DecodeConfigurationReg_();
