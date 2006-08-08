@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: TMB.h,v 3.1 2006/08/08 19:23:08 mey Exp $
 // $Log: TMB.h,v $
+// Revision 3.1  2006/08/08 19:23:08  mey
+// Included Jtag sources
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -189,7 +192,7 @@ public:
   void start();
   void end();
   /// ALCTs need to go to lower scan level, whatever that means
-  void start(int idev);
+  void start(int,int jtagSource=jtagSourceBoot);
   /// does start(1)
   void tmb_vme(char fcn, char vme, const char *snd,char *rcv, int wrt);      
   int  GetWordCount();

@@ -669,5 +669,7 @@ const int RTI                              = 1;
 const int PROM_ID_256k                     = 0x05022093;
 const int MASK_TO_TREAT_512k_LIKE_256k     = 0xfffeefff;
 //
+const int jtagSourceBoot = 0;
+const int jtagSourceFPGA = 1;
 //
 #endif

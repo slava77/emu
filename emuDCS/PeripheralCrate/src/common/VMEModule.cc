@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.2 2006/08/08 15:44:38 mey Exp $
+// $Id: VMEModule.cc,v 3.3 2006/08/08 19:23:08 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.3  2006/08/08 19:23:08  mey
+// Included Jtag sources
+//
 // Revision 3.2  2006/08/08 15:44:38  mey
 // Went back to bootstrap
 //
@@ -183,8 +186,11 @@ void VMEModule::RestoreReset() {
 void VMEModule::SetupJtag() {
   //
   if(boardType()==TMB_ENUM){
-    theController->SetupJtagBaseAddress(0x70000);
-    //theController->SetupJtagBaseAddress(0x10);
+    if ( JtagSource_ == 1 ) {
+      theController->SetupJtagBaseAddress(0x10);
+    }else {
+      theController->SetupJtagBaseAddress(0x70000);
+    }
     theController->SetupTCK(2);
     theController->SetupTMS(1);
     theController->SetupTDI(0);

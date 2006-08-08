@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.8 2006/08/07 14:43:33 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.9 2006/08/08 19:23:08 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -71,6 +71,8 @@
 #include "CrateUtilities.h"
 #include "CalibDAQ.h"
 #include "EmuSystem.h"
+//
+//#include "chartdir.h"
 //
 #ifdef STANDALONE
 #else
@@ -307,6 +309,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::CalibrationALCTConnectivity, "CalibrationALCTConnectivity");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBConnectivity, "CalibrationCFEBConnectivity");
     xgi::bind(this,&EmuPeripheralCrate::LaunchMonitor, "LaunchMonitor");
+    xgi::bind(this,&EmuPeripheralCrate::MonitorTMBTrigger, "MonitorTMBTrigger");
     xgi::bind(this,&EmuPeripheralCrate::CrateTMBCounters, "CrateTMBCounters");
     xgi::bind(this,&EmuPeripheralCrate::CrateDMBCounters, "CrateDMBCounters");
     xgi::bind(this,&EmuPeripheralCrate::CrateTMBCountersRight, "CrateTMBCountersRight");
@@ -947,11 +950,7 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    //
-    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
+    MyHeader(in,out,"CalibrationRuns");
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << cgicc::legend("Calibration Runs").set("style","color:blue") ;
@@ -1031,11 +1030,7 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    //
-    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
+    MyHeader(in,out,"CrateConfiguration");
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:#00FF00");
     //*out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial");
@@ -1231,6 +1226,7 @@ private:
 	  *out << cgicc::form() << std::endl ;
 	  *out << cgicc::td();
 	  //
+	  //
 	  sprintf(Name,"TMB Status slot=%d",tmbVector[i]->slot());	
 	  *out << cgicc::td();
 	  if ( TMBBoardID_[i].find("-1") == string::npos ) {
@@ -1242,9 +1238,16 @@ private:
 	    //*out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
 	    //*out << cgicc::form() << std::endl ;
 	    //
+	    std::string MonitorTMBTrigger =
+	      toolbox::toString("/%s/MonitorTMBTrigger?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
+	    *out << cgicc::a("Monitor TMB trigger").set("href",MonitorTMBTrigger) << endl;
+	    //
+	    *out << cgicc::td();
+	    //
+	    *out << cgicc::td();
+	    //
 	    std::string TMBStatus =
 	      toolbox::toString("/%s/TMBStatus?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
-	    //
 	    *out << cgicc::a("TMB Status").set("href",TMBStatus) << endl;
 	    //
 	  }
@@ -1323,11 +1326,11 @@ private:
 	      }
 	      *out << cgicc::td();
 	    }
-	      }
+	  }
 	  //
 	}
       }
-	  //
+      //
       std::string DMBStatus;
       std::string DMBTests;
       std::string DMBUtils;
@@ -2063,6 +2066,13 @@ private:
     *out << cgicc::form() << std::endl ;
     //
     this->LaunchMonitor(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::MonitorTMBTrigger(xgi::Input * in, xgi::Output * out) 
+    throw (xgi::exception::Exception){
+    //
+    
     //
   }
   //
