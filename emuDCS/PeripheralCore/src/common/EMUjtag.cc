@@ -56,6 +56,8 @@ void EMUjtag::setup_jtag(int chain) {
     std::cout << "setup_chain" << std::endl ;
   }
   //
+  tmb_->tmb_set_boot_reg(0);
+  //
   jtag_chain_ = chain;
   devices_in_chain_ = 0;
   //
