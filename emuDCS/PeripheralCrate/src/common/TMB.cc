@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.2 2006/08/08 19:23:08 mey Exp $
+// $Id: TMB.cc,v 3.3 2006/08/08 19:40:00 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 3.3  2006/08/08 19:40:00  mey
+// Fixed bug
+//
 // Revision 3.2  2006/08/08 19:23:08  mey
 // Included Jtag sources
 //
@@ -3442,7 +3445,7 @@ void TMB::tmb_vme(char fcn, char vme,
 
 void TMB::start() {
   //
-  (*MyOutput_) << "starting to talk to TMB, device " << ucla_ldev << std::endl;
+  //(*MyOutput_) << "starting to talk to TMB, device " << ucla_ldev << std::endl;
   //
   // send the first signal
   SetupJtag();
