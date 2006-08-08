@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.1 2006/08/08 14:48:42 rakness Exp $
+// $Id: VMEModule.cc,v 3.2 2006/08/08 15:44:38 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.2  2006/08/08 15:44:38  mey
+// Went back to bootstrap
+//
 // Revision 3.1  2006/08/08 14:48:42  rakness
 // give TMB JTAG chains to FPGA
 //
@@ -180,8 +183,8 @@ void VMEModule::RestoreReset() {
 void VMEModule::SetupJtag() {
   //
   if(boardType()==TMB_ENUM){
-    //theController->SetupJtagBaseAddress(0x70000);
-    theController->SetupJtagBaseAddress(0x10);
+    theController->SetupJtagBaseAddress(0x70000);
+    //theController->SetupJtagBaseAddress(0x10);
     theController->SetupTCK(2);
     theController->SetupTMS(1);
     theController->SetupTDI(0);
