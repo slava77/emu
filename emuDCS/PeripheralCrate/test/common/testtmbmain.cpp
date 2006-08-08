@@ -167,15 +167,11 @@ int main() {
 	      << std::endl;
     std::cout << "110: Read asic delays         111:Set asic delays            112: Read asic patterns"
 	      << std::endl;
-    std::cout << "113:Set asic patterns"
-	      << std::endl;
-    std::cout << "119:Set power-up dly/patt "
+    std::cout << "113:Set asic patterns         119:Set power-up dly/patt "
 	      << std::endl;
     std::cout << "120: Read configuration reg   121:Set Trigger Mode           122:Set L1a delay"
 	      << std::endl;
-    std::cout << "123: Set CCB enable           124:Set alct tmode             125:Set Mask all"
-	      << std::endl;
-    std::cout << "129:Set power-up configuration register"
+    std::cout << "123: Set CCB enable           129:Set power-up configuration register"
 	      << std::endl;
     std::cout << "130: Read hot channel mask    131:Set hot channel mask       139:Set power-up hot channel mask"
 	      << std::endl;
@@ -465,22 +461,6 @@ int main() {
       std::cout << "CCB enable (0-1) " << std::endl;
       std::cin >> value;
       alct->SetCcbEnable(value);
-      alct->WriteConfigurationReg();      
-      alct->ReadConfigurationReg();
-      alct->PrintConfigurationReg();
-      break;
-    case 124:
-      std::cout << "Tmode (0-1) " << std::endl;
-      std::cin >> value;
-      alct->SetAlctTmode(value);
-      alct->WriteConfigurationReg();      
-      alct->ReadConfigurationReg();
-      alct->PrintConfigurationReg();
-      break;
-    case 125:
-      std::cout << "Mask All (0-1) " << std::endl;
-      std::cin >> value;
-      alct->SetAlctMaskAll(value);
       alct->WriteConfigurationReg();      
       alct->ReadConfigurationReg();
       alct->PrintConfigurationReg();

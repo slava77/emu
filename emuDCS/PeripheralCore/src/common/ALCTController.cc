@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.4 2006/08/04 15:49:58 mey Exp $
+// $Id: ALCTController.cc,v 3.5 2006/08/08 16:38:27 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.5  2006/08/08 16:38:27  rakness
+// ALCTnew: remove parameters not supported in firmware
+//
 // Revision 3.4  2006/08/04 15:49:58  mey
 // Update
 //
@@ -7619,8 +7622,6 @@ void ALCTController::PrintConfigurationReg() {
 	       << GetFifoPretrig() << std::endl;
   (*MyOutput_) << "fifo_mode_       = " << std::dec
 	       << GetFifoMode() << std::endl;
-  (*MyOutput_) << "fifo_lastlct_    = " << std::dec
-	       << GetFifoLastLct() << std::endl;
   (*MyOutput_) << "l1a_delay_       = " << std::dec 
 	       << GetL1aDelay() << " = 0x" << std::hex
 	       << GetL1aDelay() << std::endl;
@@ -7632,18 +7633,10 @@ void ALCTController::PrintConfigurationReg() {
 	       << GetL1aInternal() << std::endl;
   (*MyOutput_) << "board_id_        = " << std::dec
 	       << GetBoardId() << std::endl;
-  (*MyOutput_) << "bxn_offset_      = " << std::dec
-	       << GetBxnOffset() << std::endl;
   (*MyOutput_) << "ccb_enable_      = " << std::dec
 	       << GetCcbEnable() << std::endl;
-  (*MyOutput_) << "alct_jtag_ds_    = " << std::dec
-	       << GetAlctJtagDs() << std::endl;
-  (*MyOutput_) << "alct_tmode_      = " << std::dec
-	       << GetAlctTmode() << std::endl;
   (*MyOutput_) << "alct_amode_      = " << std::dec
 	       << GetAlctAmode() << std::endl;
-  (*MyOutput_) << "alct_mask_all_   = " << std::dec
-	       << GetAlctMaskAll() << std::endl;
   (*MyOutput_) << "trigger_info_en_ = " << std::dec
 	       << GetTriggerInfoEnable() << std::endl;
   (*MyOutput_) << "sn_select_       = " << std::dec
@@ -7772,17 +7765,6 @@ int ALCTController::GetFifoMode() {
   return read_fifo_mode_; 
 }
 //
-void ALCTController::SetFifoLastLct(int fifo_lastlct) { 
-  //
-  write_fifo_lastlct_ = fifo_lastlct; 
-  return;
-}
-//
-int ALCTController::GetFifoLastLct() { 
-  //
-  return read_fifo_lastlct_; 
-}
-//
 void ALCTController::SetL1aDelay(int l1a_delay) { 
   //
   write_l1a_delay_ = l1a_delay; 
@@ -7837,17 +7819,6 @@ int ALCTController::GetBoardId() {
   return read_board_id_; 
 }
 //
-void ALCTController::SetBxnOffset(int bxn_offset) { 
-  //
-  write_bxn_offset_ = bxn_offset; 
-  return;
-}
-//
-int ALCTController::GetBxnOffset() { 
-  //
-  return read_bxn_offset_; 
-}
-//
 void ALCTController::SetCcbEnable(int ccb_enable) { 
   //
   write_ccb_enable_ = ccb_enable; 
@@ -7859,27 +7830,6 @@ int ALCTController::GetCcbEnable() {
   return read_ccb_enable_; 
 }
 //
-void ALCTController::SetAlctJtagDs(int alct_jtag_ds) { 
-  //
-  write_alct_jtag_ds_ = alct_jtag_ds; 
-  return;
-}
-int ALCTController::GetAlctJtagDs() { 
-  //
-  return read_alct_jtag_ds_; 
-}
-//
-void ALCTController::SetAlctTmode(int alct_tmode) { 
-  //
-  write_alct_tmode_ = alct_tmode; 
-  return;
-}
-//
-int ALCTController::GetAlctTmode() { 
-  //
-  return read_alct_tmode_; 
-}
-//
 void ALCTController::SetAlctAmode(int alct_amode) { 
   //
   write_alct_amode_ = alct_amode; 
@@ -7889,16 +7839,6 @@ void ALCTController::SetAlctAmode(int alct_amode) {
 int ALCTController::GetAlctAmode() { 
   //
   return read_alct_amode_; 
-}
-//
-void ALCTController::SetAlctMaskAll(int alct_mask_all) { 
-  //
-  write_alct_mask_all_ = alct_mask_all; 
-  return;
-}
-int ALCTController::GetAlctMaskAll() { 
-  //
-  return read_alct_mask_all_; 
 }
 //
 void ALCTController::SetTriggerInfoEnable(int trigger_info_en) { 
@@ -7980,11 +7920,6 @@ void ALCTController::DecodeConfigurationReg_(){
 				number_of_bits,
 				LSBfirst);
   //
-  number_of_bits = fifo_lastlct_bithi - fifo_lastlct_bitlo + 1;
-  read_fifo_lastlct_ = bits_to_int(read_config_reg_+fifo_lastlct_bitlo,
-				   number_of_bits,
-				   LSBfirst);
-  //
   number_of_bits = l1a_delay_bithi - l1a_delay_bitlo + 1;
   read_l1a_delay_ = bits_to_int(read_config_reg_+l1a_delay_bitlo,
 				number_of_bits,
@@ -8010,23 +7945,8 @@ void ALCTController::DecodeConfigurationReg_(){
 			       number_of_bits,
 			       LSBfirst);
   //
-  number_of_bits = bxn_offset_bithi - bxn_offset_bitlo + 1;
-  read_bxn_offset_ = bits_to_int(read_config_reg_+bxn_offset_bitlo,
-				 number_of_bits,
-				 LSBfirst);
-  //
   number_of_bits = ccb_enable_bithi - ccb_enable_bitlo + 1;
   read_ccb_enable_ = bits_to_int(read_config_reg_+ccb_enable_bitlo,
-				 number_of_bits,
-				 LSBfirst);
-  //
-  number_of_bits = alct_jtag_ds_bithi - alct_jtag_ds_bitlo + 1;
-  read_alct_jtag_ds_ = bits_to_int(read_config_reg_+alct_jtag_ds_bitlo,
-				   number_of_bits,
-				   LSBfirst);
-  //
-  number_of_bits = alct_tmode_bithi - alct_tmode_bitlo + 1;
-  read_alct_tmode_ = bits_to_int(read_config_reg_+alct_tmode_bitlo,
 				 number_of_bits,
 				 LSBfirst);
   //
@@ -8034,11 +7954,6 @@ void ALCTController::DecodeConfigurationReg_(){
   read_alct_amode_ = bits_to_int(read_config_reg_+alct_amode_bitlo,
 				 number_of_bits,
 				 LSBfirst);
-  //
-  number_of_bits = alct_mask_all_bithi - alct_mask_all_bitlo + 1;
-  read_alct_mask_all_ = bits_to_int(read_config_reg_+alct_mask_all_bitlo,
-				    number_of_bits,
-				    LSBfirst);
   //
   number_of_bits = trigger_info_en_bithi - trigger_info_en_bitlo + 1;
   read_trigger_info_en_ = bits_to_int(read_config_reg_+trigger_info_en_bitlo,
@@ -8112,11 +8027,6 @@ void ALCTController::FillConfigurationReg_(){
 	      write_config_reg_+fifo_mode_bitlo,
 	      LSBfirst);
   //
-  int_to_bits(write_fifo_lastlct_,
-	      fifo_lastlct_bithi-fifo_lastlct_bitlo+1,
-	      write_config_reg_+fifo_lastlct_bitlo,
-	      LSBfirst);
-  //
   int_to_bits(write_l1a_delay_,
 	      l1a_delay_bithi-l1a_delay_bitlo+1,
 	      write_config_reg_+l1a_delay_bitlo,
@@ -8142,34 +8052,14 @@ void ALCTController::FillConfigurationReg_(){
 	      write_config_reg_+board_id_bitlo,
 	      LSBfirst);
   //
-  int_to_bits(write_bxn_offset_,
-	      bxn_offset_bithi-bxn_offset_bitlo+1,
-	      write_config_reg_+bxn_offset_bitlo,
-	      LSBfirst);
-  //
   int_to_bits(write_ccb_enable_,
 	      ccb_enable_bithi-ccb_enable_bitlo+1,
 	      write_config_reg_+ccb_enable_bitlo,
 	      LSBfirst);
   //
-  int_to_bits(write_alct_jtag_ds_,
-	      alct_jtag_ds_bithi-alct_jtag_ds_bitlo+1,
-	      write_config_reg_+alct_jtag_ds_bitlo,
-	      LSBfirst);
-  //
-  int_to_bits(write_alct_tmode_,
-	      alct_tmode_bithi-alct_tmode_bitlo+1,
-	      write_config_reg_+alct_tmode_bitlo,
-	      LSBfirst);
-  //
   int_to_bits(write_alct_amode_,
 	      alct_amode_bithi-alct_amode_bitlo+1,
 	      write_config_reg_+alct_amode_bitlo,
-	      LSBfirst);
-  //
-  int_to_bits(write_alct_mask_all_,
-	      alct_mask_all_bithi-alct_mask_all_bitlo+1,
-	      write_config_reg_+alct_mask_all_bitlo,
 	      LSBfirst);
   //
   int_to_bits(write_trigger_info_en_,
@@ -8186,6 +8076,10 @@ void ALCTController::FillConfigurationReg_(){
 //
 void ALCTController::SetPowerUpConfigurationReg() {
   //
+  // For bits which are not explicitly set by the methods below, set them to 0:
+  for (int i=0; i<RegSizeAlctFastFpga_WRT_CONFIG_REG; i++)
+    write_config_reg_[i] = 0;
+  //
   SetTriggerMode(0);
   SetExtTrigEnable(0);
   SetSendEmpty(0);
@@ -8197,18 +8091,18 @@ void ALCTController::SetPowerUpConfigurationReg() {
   SetFifoTbins(7);
   SetFifoPretrig(1);
   SetFifoMode(1);
-  SetFifoLastLct(0);          // default data taking
+  //  SetFifoLastLct(0); ->      no longer supported
   SetL1aDelay(120);
   SetL1aWindowSize(3);
   SetL1aOffset(1);
   SetL1aInternal(0);
   SetBoardId(5);
-  SetBxnOffset(0);
+  //  SetBxnOffset(0);   ->      no longer supported
   SetCcbEnable(0);
-  SetAlctJtagDs(1);
-  SetAlctTmode(0);
+  //  SetAlctJtagDs(1);  ->      no longer supported
+  //  SetAlctTmode(0);   ->      no longer supported
   SetAlctAmode(0);
-  SetAlctMaskAll(0);
+  //  SetAlctMaskAll(0); ->      no longer supported
   SetTriggerInfoEnable(0);    // default data taking
   SetSnSelect(0);
   //
