@@ -534,12 +534,10 @@ int main() {
       alct->PrintAfebThresholds();
       break;
     case 200:
-      //alct->SetXsvfFilename("userprom0_256_dev");
       alct->SetXsvfFilename("dummy_data");
       alct->CreateUserPromFile();
       break;
     case 201:      
-      //alct->SetXsvfFilename("userprom1_256_dev");
       alct->SetXsvfFilename("dummy_data");
       if ( alct->ReadUserPromFile() ) {
 	std::cout << "address (0-32767) " << std::endl;
@@ -561,9 +559,6 @@ int main() {
       alct->CreateXsvfFile();
       break;
     case 301:      
-      //alct->SetXsvfFilename("userprom0_256_dev");
-      //      alct->SetXsvfFilename("dummy_data");
-      //      alct->SetXsvfFilename("tmb2005e_28july2006");
       alct->SetXsvfFilename("prom0_test");
       alct->ReadXsvfFile(true);
       alct->SetXsvfFilename("prom1_test");
@@ -589,15 +584,11 @@ int main() {
       break;
     case 500:
       unsigned short int BootData;
-      thisTMB->tmb_set_boot_reg(0);
-      //thisTMB->tmb_set_boot_reg(0xc080);
       layer = thisTMB->tmb_get_boot_reg(&BootData);
       std::cout << "Boot contents before = " << std::hex << BootData << std::endl;
       testTMB.reset();      
       alct->CheckVMEStateMachine();
       alct->CheckJTAGStateMachine();
-      layer = thisTMB->tmb_get_boot_reg(&BootData);
-      std::cout << "Boot contents after = " << std::hex << BootData << std::endl;
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 
