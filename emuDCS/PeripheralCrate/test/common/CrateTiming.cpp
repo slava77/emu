@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 3.1 2006/08/04 15:49:59 mey Exp $
+// $Id: CrateTiming.cpp,v 3.2 2006/08/09 11:57:47 mey Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 3.2  2006/08/09 11:57:47  mey
+// Got rid of version
+//
 // Revision 3.1  2006/08/04 15:49:59  mey
 // Update
 //
@@ -1905,10 +1908,10 @@ int main(int argc,char **argv){
  outhere:
 
   // identify TMB
-  cout << dec; // restore to decimal printing ...
-  cout << "Hello, i am TMB in crate "<< thisTMB->crate()
-       << " at slot "<< thisTMB->slot() 
-       << " version " << thisTMB->version_ << endl;
+  //cout << dec; // restore to decimal printing ...
+  //cout << "Hello, i am TMB in crate "<< thisTMB->crate()
+  //   << " at slot "<< thisTMB->slot() 
+  //   << " version " << thisTMB->version_ << endl;
 
   // scan ALCT-TMB timing
   //if (doPHOS4alct){

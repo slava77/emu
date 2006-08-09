@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.4 2006/08/09 09:39:47 mey Exp $
+// $Id: TMB.cc,v 3.5 2006/08/09 11:57:04 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 3.5  2006/08/09 11:57:04  mey
+// Got rid of version
+//
 // Revision 3.4  2006/08/09 09:39:47  mey
 // Moved TMB_trgmode to TMB.cc
 //
@@ -4562,7 +4565,7 @@ void TMB::trgmode(int choice)
   //sndbuf[0]=0x01;
   //sndbuf[1]=0x1b;
   //
-  tmb_vme(VME_READ,0x68,sndbuf,rcvbuf,NOW);
+  tmb_vme(VME_READ,seq_trig_en_adr,sndbuf,rcvbuf,NOW);
   //
   sndbuf[0]=(rcvbuf[0]&0xff);
   //
@@ -4582,18 +4585,23 @@ void TMB::trgmode(int choice)
     sndbuf[1]=(rcvbuf[1]&0x10)|0x04; 
   }
   //
-  printf("TRGMODE %x %x %x" , 0x68, sndbuf[0], sndbuf[1]); 
+  ostringstream dump;
+  dump << "TMB. tiggermode " << std::hex << sndbuf[0] << " " <<  sndbuf[1] ;
+  //
+  (*MyOutput_) << dump.str() <<std::endl;
+  SendOutput(dump.str(),"INFO");
+  //printf("TRGMODE %x %x %x" , seq_trig_en_adr, sndbuf[0], sndbuf[1]); 
   tmb_vme(VME_WRITE,seq_trig_en_adr,sndbuf,rcvbuf,NOW); // Sequencer Trigger Source
 
-//ALCT match window size and pulse delay settings ...
+  //ALCT match window size and pulse delay settings ...
   sndbuf[0] = mpc_tx_delay_ & 0xf;
   sndbuf[1] = alct_match_window_size_ * 16 + alct_vpf_delay_;
-  printf("TRGMODE %x %x %x \n" , 0xb2, sndbuf[0], sndbuf[1]);
+  //printf("TRGMODE %x %x %x \n" , 0xb2, sndbuf[0], sndbuf[1]);
   tmb_vme(VME_WRITE,tmbtim_adr,sndbuf,rcvbuf,NOW); // ALCT delay
   //
   // l1a and bxn offsets 
   //
-  printf(" **********  Setting bxn to %d l1a to %d \n",bxn_offset_,l1a_offset_);
+  //printf(" **********  Setting bxn to %d l1a to %d \n",bxn_offset_,l1a_offset_);
   sndbuf[0] = (bxn_offset_>>4)&0xff ;
   sndbuf[1] = (l1a_offset_&0xf) | ((bxn_offset_&0xf)<<4);
   tmb_vme(VME_WRITE,seq_offset_adr,sndbuf,rcvbuf,NOW); // Sequencer Counter Offset
@@ -4603,7 +4611,7 @@ void TMB::trgmode(int choice)
   //tmb_vme(VME_WRITE,0xac,sndbuf,rcvbuf,NOW); // Trigger Modifier
 
   
-//Pattern Thresholds (di/half/valid)
+  //Pattern Thresholds (di/half/valid)
   //sndbuf[0]=0x4d;  // 3/3/3
   //sndbuf[1]=0xb5;
   //sndbuf[0]=0x45;  // 3/3/1
@@ -4631,63 +4639,64 @@ void TMB::trgmode(int choice)
   }
 
   setLogicAnalyzerToDataStream(false);
-
+  
   //
   
   std::cout << " Setting slot depending settings on TMB slot .... " << theSlot <<std::endl;
-
+  
   //L1A window size and pulse delay Chamber 1
-   sndbuf[0]=l1a_window_size_ & 0x0f;
-   sndbuf[1]=l1adelay_ & 0xff;
-   printf("TRGMODE %x %x %x" , seq_l1a_adr, sndbuf[0], sndbuf[1]);
-   tmb_vme(VME_WRITE,seq_l1a_adr,sndbuf,rcvbuf,NOW); // L1A delay
-
-   // Only allow matched
-   //tmb_vme(VME_READ, tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
-   //
-   //sndbuf[0] = rcvbuf[0] & (0xff);
-   //sndbuf[1] = rcvbuf[1] & (0xf3);
-   //
-   //tmb_vme(VME_WRITE,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
-
-   // Read Trigger conf
-   tmb_vme(VME_READ,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
-   //
-   printf("**********MPC delay %d \n",mpc_delay_);
-   //
-   printf("Reading address 0x86 to %x %x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
-   sndbuf[0] = (rcvbuf[0] & 0xfe | (mpc_delay_ & 0x8)>>3) & 0xff;
-   sndbuf[1] = (rcvbuf[1] & 0x1f | (mpc_delay_ & 0x7)<<5) & 0xff;
-   printf("Setting address 0x86 to %x %x\n",sndbuf[0]&0xff,sndbuf[1]&0xff);
-   tmb_vme(VME_WRITE,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Write Trigger conf
-
-   ::sleep(1);
-
-   std::cout << "Setting up delay chips for TMB version " << version_ << std::endl;
-   if(version_ == "2004") {
-     setupNewDelayChips();
-   } else {
-     setupOldDelayChips();
-   }
-
+  sndbuf[0]=l1a_window_size_ & 0x0f;
+  sndbuf[1]=l1adelay_ & 0xff;
+  printf("TRGMODE %x %x %x" , seq_l1a_adr, sndbuf[0], sndbuf[1]);
+  tmb_vme(VME_WRITE,seq_l1a_adr,sndbuf,rcvbuf,NOW); // L1A delay
+  
+  // Only allow matched
+  //tmb_vme(VME_READ, tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
+  //
+  //sndbuf[0] = rcvbuf[0] & (0xff);
+  //sndbuf[1] = rcvbuf[1] & (0xf3);
+  //
+  //tmb_vme(VME_WRITE,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
+  
+  // Read Trigger conf
+  //
+  tmb_vme(VME_READ,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
+  //
+  printf("**********MPC delay %d \n",mpc_delay_);
+  //
+  printf("Reading address 0x86 to %x %x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  sndbuf[0] = (rcvbuf[0] & 0xfe | (mpc_delay_ & 0x8)>>3) & 0xff;
+  sndbuf[1] = (rcvbuf[1] & 0x1f | (mpc_delay_ & 0x7)<<5) & 0xff;
+  printf("Setting address 0x86 to %x %x\n",sndbuf[0]&0xff,sndbuf[1]&0xff);
+  tmb_vme(VME_WRITE,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Write Trigger conf
+  
+  usleep(200);
+  
+  //(*MyOutput_) << "Setting up delay chips for TMB version " << version_ << std::endl;
+  //if(version_ == "2004") {
+  setupNewDelayChips();
+  //} else {
+  //setupOldDelayChips();
+  //}
+  
   //enable CCB input after VME programming
   sndbuf[0]=0;
   sndbuf[1]=0;
-  tmb_vme(VME_READ,0x2a,sndbuf,rcvbuf,NOW); //Read CCB Config
+  tmb_vme(VME_READ,ccb_cfg_adr,sndbuf,rcvbuf,NOW); //Read CCB Config
   sndbuf[0]=rcvbuf[0];
   sndbuf[1]=(rcvbuf[1] & 0xfe);
   //
-  printf("TRGMODE %x %x %x" , 0x2a, sndbuf[0], sndbuf[1]);
+  //printf("TRGMODE %x %x %x" , 0x2a, sndbuf[0], sndbuf[1]);
   //
-  tmb_vme(VME_WRITE,0x2a,sndbuf,rcvbuf,NOW); //Write back, enable CCB
-
-  tmb_vme(VME_READ,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
+  tmb_vme(VME_WRITE,ccb_cfg_adr,sndbuf,rcvbuf,NOW);  //Write back, enable CCB
   //
-  printf("Reading address 0x86 to %x %x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  //tmb_vme(VME_READ,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
   //
-  ::sleep(1);
+  //printf("Reading address 0x86 to %x %x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   //
-  std::cout <<"enable CLCT Input " << enableCLCTInputs_ << std::endl;
+  usleep(200);
+  //
+  //std::cout <<"enable CLCT Input " << enableCLCTInputs_ << std::endl;
   //
   EnableCLCTInputs(enableCLCTInputs_);
   //
@@ -4763,11 +4772,11 @@ void TMB::setupOldDelayChips() {
 
 void TMB::tmb_clk_delays(unsigned short int time,int cfeb_id) {
   //
-  if(version_ == "2001") {
-    old_clk_delays(time, cfeb_id);
-  } else {
-    new_clk_delays(time, cfeb_id);
-  }
+  //if(version_ == "2001") {
+  //old_clk_delays(time, cfeb_id);
+  //} else {
+  new_clk_delays(time, cfeb_id);
+  //}
   //
 }
 
