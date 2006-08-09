@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.3 2006/08/08 19:23:08 mey Exp $
+// $Id: VMEModule.cc,v 3.4 2006/08/09 09:32:39 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.4  2006/08/09 09:32:39  mey
+// Included EMUjtag into VMEModule
+//
 // Revision 3.3  2006/08/08 19:23:08  mey
 // Included Jtag sources
 //
@@ -102,6 +105,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <unistd.h> // read and write
+#include "EMU_JTAG_constants.h"
 
 #ifndef debugV //silent mode
 #define PRINT(x) 
@@ -186,7 +190,7 @@ void VMEModule::RestoreReset() {
 void VMEModule::SetupJtag() {
   //
   if(boardType()==TMB_ENUM){
-    if ( JtagSource_ == 1 ) {
+    if ( JtagSource_ == jtagSourceFPGA ) {
       theController->SetupJtagBaseAddress(0x10);
     }else {
       theController->SetupJtagBaseAddress(0x70000);
