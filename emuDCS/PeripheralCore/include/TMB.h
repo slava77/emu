@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.1 2006/08/08 19:23:08 mey Exp $
+// $Id: TMB.h,v 3.2 2006/08/09 11:57:04 mey Exp $
 // $Log: TMB.h,v $
+// Revision 3.2  2006/08/09 11:57:04  mey
+// Got rid of version
+//
 // Revision 3.1  2006/08/08 19:23:08  mey
 // Included Jtag sources
 //
@@ -381,7 +384,7 @@ public:
   void SetL1aWindowSize(int delay) {l1a_window_size_ = delay;}
   void SetAlctMatchWindowSize(int size) {alct_match_window_size_ = size;}
   void SetAlctVpfDelay(int delay){alct_vpf_delay_ = delay;}
-  void SetVersion(std::string version) {version_ = version;}
+  //void SetVersion(std::string version) {version_ = version;}
   void SetMpcDelay(int delay) {mpc_delay_= delay;}
   void SetAlctInput(int input) {ALCT_input_ = input;}
   void SetRpcExist(int exist) {rpc_exists_ = exist;}
@@ -419,7 +422,7 @@ public:
   FILE *pfile;
   FILE *pfile2;
   int ucla_ldev;
-  std::string version_;
+  //std::string version_;
   //
 protected:
   /// for PHOS4 chips, v2001

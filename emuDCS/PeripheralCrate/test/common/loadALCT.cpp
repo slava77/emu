@@ -37,7 +37,7 @@ int main(int argc,char **argv){
   cout << "Read Register" << endl;
   tmb->ReadRegister(0x4);  
   //
-  tmb->version_="2004";
+  //tmb->version_="2004";
   cout << "Creating ALCT..." << endl;
   ALCTController *alct = new ALCTController(tmb,chamberType);
   cout << "Done..." << endl;

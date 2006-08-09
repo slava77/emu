@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
+// $Id: TMBParser.cc,v 3.1 2006/08/09 11:57:04 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.1  2006/08/09 11:57:04  mey
+// Got rid of version
+//
 // Revision 3.0  2006/07/20 21:15:48  geurts
 // *** empty log message ***
 //
@@ -119,10 +122,10 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate)
     if ( parser_.fillInt("alct_vpf_delay", delay) ) {
       tmb_->SetAlctVpfDelay(delay);
     }
-    std::string version;
-    if ( parser_.fillString("version", version) ) {
-      tmb_->SetVersion(version);
-    }
+    //std::string version;
+    //if ( parser_.fillString("version", version) ) {
+    //tmb_->SetVersion(version);
+    //}
     if ( parser_.fillInt("mpc_delay", delay) ) {
       tmb_->SetMpcDelay(delay);
     }
