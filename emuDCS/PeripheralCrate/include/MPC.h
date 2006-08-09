@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 3.1 2006/08/07 14:14:11 mey Exp $
+// $Id: MPC.h,v 3.2 2006/08/09 11:56:23 mey Exp $
 // $Log: MPC.h,v $
+// Revision 3.2  2006/08/09 11:56:23  mey
+// Got rid of friend classes in MPCParser
+//
 // Revision 3.1  2006/08/07 14:14:11  mey
 // Added BoardId
 //
@@ -76,7 +79,7 @@ class Crate;
 
 class MPC : public VMEModule {
  public:
-  friend class MPCParser;
+  //friend class MPCParser;
 
 
   MPC(Crate * , int slot);
@@ -124,7 +127,10 @@ class MPC : public VMEModule {
   void SoftReset() ;
 
   inline void SetBoardID(int value){BoardId_ = value;}
-
+  inline void SetTMBDelays(int value){TMBDelayPattern_ = value;}
+  inline void SetTransparentMode(int value){TransparentModeSources_ = value;}
+  inline void SetTLK2501TxMode(int value){TLK2501TxMode_ = value;}
+  
   /// used by GUIs
   void executeCommand(std::string command);
 
