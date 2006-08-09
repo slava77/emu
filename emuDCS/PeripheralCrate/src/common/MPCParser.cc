@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPCParser.cc,v 3.1 2006/08/07 14:14:10 mey Exp $
+// $Id: MPCParser.cc,v 3.2 2006/08/09 11:56:23 mey Exp $
 // $Log: MPCParser.cc,v $
+// Revision 3.2  2006/08/09 11:56:23  mey
+// Got rid of friend classes in MPCParser
+//
 // Revision 3.1  2006/08/07 14:14:10  mey
 // Added BoardId
 //
@@ -23,11 +26,21 @@ MPCParser::MPCParser(xercesc::DOMNode * pNode, Crate * theCrate)
   parser_.parseNode(pNode);
   parser_.fillInt("slot", slot);
   mpc_ = new MPC(theCrate, slot);
-  parser_.fillInt("serializermode",mpc_->TLK2501TxMode_);
-  parser_.fillInt("TransparentMode",mpc_->TransparentModeSources_);
-  parser_.fillInt("TMBdelays",mpc_->TMBDelayPattern_);
   //
   int value;
+  //
+  if(parser_.fillInt("serializermode",value)){
+    mpc_->SetTLK2501TxMode(value);
+  }
+  //
+  if ( parser_.fillInt("TransparentMode",value)){
+    mpc_->SetTransparentMode(value);
+  }
+  //
+  if(parser_.fillInt("TMBdelays",value)){
+    mpc_->SetTMBDelays(value);
+  }
+  //
   if(parser_.fillInt("BoardID",value)){
     mpc_->SetBoardID(value);
   }
