@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.4 2006/08/03 18:50:49 mey Exp $
+// $Id: ChamberUtilities.cc,v 3.5 2006/08/10 15:46:30 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.5  2006/08/10 15:46:30  mey
+// UPdate
+//
 // Revision 3.4  2006/08/03 18:50:49  mey
 // Replaced sleep with ::sleep
 //
@@ -2369,7 +2372,7 @@ int ChamberUtilities::FindTMB_L1A_delay( int idelay_min, int idelay_max ){
     thisTMB->ResetCounters();    // reset counters
     //if (useCCB) thisCCB_->startTrigger();     // 2 commands to get trigger going
     //if (useCCB) thisCCB_->bx0();
-    cout << endl << "TMB_l1adelay=" << i << ":" << endl;
+    cout << endl << "TMB_l1adelay=" << std::dec << i << ":" << endl;
     ::sleep(1);                   // accumulate statistics
     //if (useCCB) thisCCB_->stopTrigger();      // stop trigger
     thisTMB->GetCounters();      // read counter values

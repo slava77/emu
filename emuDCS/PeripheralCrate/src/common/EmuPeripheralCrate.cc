@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
+// $Id: EmuPeripheralCrate.cc,v 3.1 2006/08/10 15:46:30 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -11,7 +11,6 @@
  *************************************************************************/
 
 #include "EmuPeripheralCrate.h"
-
 //
 // provides factory method for instantion of HellWorld application
 //
