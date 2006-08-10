@@ -56,6 +56,7 @@ using namespace std;
 class EmuFCrateHyperDAQ: public xdaq::Application 
 {
 private:
+  int reload;
   //
 protected:
   //
@@ -79,10 +80,8 @@ protected:
   int irqprob;
   //
 public:
-  //
   EmuFCrateHyperDAQ(xdaq::ApplicationStub * s): xdaq::Application(s) 
   {	
-    //
     xgi::bind(this,&EmuFCrateHyperDAQ::Default, "Default");
     xgi::bind(this,&EmuFCrateHyperDAQ::setConfFile, "setConfFile");
     xgi::bind(this,&EmuFCrateHyperDAQ::setRawConfFile, "setRawConfFile");
@@ -96,6 +95,7 @@ public:
     xgi::bind(this,&EmuFCrateHyperDAQ::DDUTextLoad, "DDUTextLoad");
     xgi::bind(this,&EmuFCrateHyperDAQ::DDULoadFirmware,"DDULoadFirmware");
     xgi::bind(this,&EmuFCrateHyperDAQ::VMEIntIRQ,"VMEIntIRQ");
+    xgi::bind(this,&EmuFCrateHyperDAQ::LoadXMLconf,"LoadXMLconf");
     xgi::bind(this,&EmuFCrateHyperDAQ::DCCFirmware,"DCCFirmware");
     xgi::bind(this,&EmuFCrateHyperDAQ::DCCLoadFirmware,"DCCLoadFirmware"); 
     xgi::bind(this,&EmuFCrateHyperDAQ::DCCFirmwareReset,"DCCFirmwareReset");
@@ -103,21 +103,15 @@ public:
     xgi::bind(this,&EmuFCrateHyperDAQ::DCCTextLoad, "DCCTextLoad");
     xgi::bind(this,&EmuFCrateHyperDAQ::IRQTester,"IRQTester");
     xgi::bind(this,&EmuFCrateHyperDAQ::DDUVoltMon,"DDUVoltMon");
-    //
+
     myParameter_ =  0;
     irqprob=0;
-    //
-    //
+
     xmlFile_     = 
       "/home/fastdducaen/v3.4/TriDAS/emu/emuDCS/FEDCrate/xml/config.xml" ;
-    //
     Operator_ = "Name...";
     for (int i=0; i<9; i++) { DDUBoardID_[i] = "-1" ; DCCBoardID_[i] = "-1" ; }
-    //
-    this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName",&xmlFile_);
-    //
-  }
-  //
+    this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName",&xmlFile_);  }
 
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
@@ -138,7 +132,22 @@ public:
     *out << img() << std::endl;
     *out << cgicc::br();
 
-    if (dduVector.size()==0 && dccVector.size()==0) {
+//    int reload=0;
+
+/* JRG, This cgicc line causes crash, but required to access XML tag data?
+    cgicc::Cgicc cgi(in);
+
+    cout << endl << "  JRGdebug: checking for Reload" << endl;
+    cgicc::form_iterator name = cgi.getElement("Reload");
+    if(name != cgi.getElements().end()) {
+      reload = cgi["Reload"]->getIntegerValue();
+    }else{
+      reload=0;
+    }
+*/
+//    cout << "  JRGdebug: Reload value = " << reload << endl;
+
+    if (reload>0||(dduVector.size()==0 && dccVector.size()==0)) {
       std::string method =
 	toolbox::toString("/%s/setConfFile",getApplicationDescriptor()->getURN().c_str());
       *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
@@ -185,12 +194,7 @@ public:
       *out << std::endl;
       *out << cgicc::fieldset() << std::endl;
 
-      //JRG, move to End      *out << cgicc::body() << std::endl; 
     } else if (dduVector.size()>0 || dccVector.size()>0) {
-      //	std::string DDUBoardID ;
-      //        char Name[50] ;
-      //JRG, No Need?      *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg");
-
       *out << br() << std::endl;
       *out << br() << std::endl;
 
@@ -273,8 +277,6 @@ public:
 	  printf(" %s \n",buf);      
           *out << buf; 
           if(slot<=21){
-            // float adc1=thisDDU->adcplus(1,5);
-            // float adc2=thisDDU->adcplus(1,7);
             unsigned short int status=thisDDU->vmepara_CSCstat();
             unsigned short int DDU_FMM=((thisDDU->vmepara_status()>>8)&0x000F);
             int brdnum,iblink=0;
@@ -331,7 +333,6 @@ public:
           sprintf(buf,"%d",i);
           *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu") << std::endl;
 	  *out << cgicc::form() << br() << std::endl;
-//	  *out << cgicc::form() << std::endl;
           if(slot<=21){
 	    std::string ddufpga =
 	      toolbox::toString("/%s/DDUFpga",getApplicationDescriptor()->getURN().c_str());
@@ -379,7 +380,6 @@ public:
 	    *out << cgicc::form() << std::endl;
           } 
           *out << cgicc::tr() << std::endl; 
-	  //          *out << cgicc::table() << cgicc::div() << std::endl;
           *out << cgicc::table() << std::endl;
         }
         *out << cgicc::fieldset() << std::endl;
@@ -390,7 +390,7 @@ public:
 
         printf(" dccVector.size() %d \n",dduVector.size());
 	for (int i=0; i<(int)dccVector.size(); i++) {
-         *out << cgicc::table().set("border","0").set("rules","none").set("frame","void"); 
+	  *out << cgicc::table().set("border","0").set("rules","none").set("frame","void"); 
           *out << cgicc::tr();
           thisDCC=dccVector[i];
 	  int slot = thisDCC->slot();
@@ -408,7 +408,6 @@ public:
 	      *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
             }else{
 	      *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
-	      //	      *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
             }
             sprintf(buf,"Status H:%04X L:%04X ",statush,statusl);
             *out << buf; 
@@ -423,33 +422,55 @@ public:
 	  *out << cgicc::form().set("method","GET").set("action",dccfirmware)
 	    .set("target","_blank") << std::endl;
 	  *out << cgicc::input().set("type","submit").set("value","Firmware")<<std::endl;     
-         sprintf(buf,"%d",i);
+	  sprintf(buf,"%d",i);
           *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dcc") << std::endl;
 	  *out << cgicc::form() << std::endl;
           if(slot<=21){
-          std::string dcccommands =
-          toolbox::toString("/%s/DCCCommands",getApplicationDescriptor()->getURN().c_str());
-	  *out << cgicc::form().set("method","GET").set("action",dcccommands)
-		.set("target","_blank") << std::endl;
-	  *out << cgicc::input().set("type","submit").set("value","Commands") << std::endl;  
-          sprintf(buf,"%d",i);
-          *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dcc") << std::endl;
-          *out << cgicc::form() << std::endl;
+	    std::string dcccommands =
+	      toolbox::toString("/%s/DCCCommands",getApplicationDescriptor()->getURN().c_str());
+	    *out << cgicc::form().set("method","GET").set("action",dcccommands)
+	      .set("target","_blank") << std::endl;
+	    *out << cgicc::input().set("type","submit").set("value","Commands") << std::endl;  
+	    sprintf(buf,"%d",i);
+	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dcc") << std::endl;
+	    *out << cgicc::form() << std::endl;
           }
-          *out << cgicc::tr() << std::endl; 
-	  //          *out << cgicc::table() << cgicc::div() << std::endl;
+          *out << cgicc::tr() << std::endl;
           *out << cgicc::table() << std::endl;
         }
         *out << cgicc::fieldset() << std::endl;
 
+// JRG, inside end of "normal" DDU/DCC Control top-level page
+//   --add "Go to XML Reload" button here for Martin:
+	*out << "<blockquote> &nbsp; &nbsp; </blockquote>" << std::endl;
+	*out << "<P> &nbsp; <P> &nbsp; <P> &nbsp; <P> &nbsp; <P> &nbsp;" << std::endl;
+	*out << hr();
+    std::string loadxmlconf =
+      toolbox::toString("/%s/LoadXMLconf",getApplicationDescriptor()->getURN().c_str());
+    std::string defurl =
+      toolbox::toString("/%s/",getApplicationDescriptor()->getURN().c_str());
+    //    cout<<endl<<"  JRGdebug: loadxmlconf string="<<loadxmlconf<<endl;
+    *out << cgicc::form().set("method","POST").set("action",loadxmlconf) << std::endl;
+    *out << "<center> <font color=red>  EXPERT ONLY! </font>" << std::endl;
+    *out << "Reload " << std::endl;
+    //    *out << "Reload XML Config: " << std::endl;
+//  JRG, for now Reload value below not used
+    *out << cgicc::input().set("type","hidden")
+      .set("name","Reload")
+      .set("value","1");
+    *out << std::endl;
+    *out << cgicc::input().set("type","submit").set("value","XMLconfig") << std::endl;
+    *out << "<font color=red>  EXPERT ONLY! </font> </center>" << cgicc::form() << std::endl;
+
+
     }
+
+    reload=0;
     *out << cgicc::body() << std::endl; 
     *out << cgicc::html() << std::endl;    
 }
 
   
-  //
-   //
 void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
@@ -602,8 +623,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     unsigned long int idcode,uscode;
     unsigned long int tidcode[8]={0x2124a093,0x31266093,0x31266093,0x05036093,0x05036093,0x05036093,0x05036093,0x05036093};
     unsigned long int tuscode[8]={0xcf036a01,0xdf022a03,0xdf022a03,0xb0017a01,0xc036dd99,0xc136dd99,0xd0022a03,0xd1022a03};
-// JRG, 5-->3, 6-->4, 7-->5, 3-->6, 4-->7  --done
-    //
+
     printf(" entered DDUFirmware \n");
     cgicc::Cgicc cgi(in);
     printf(" initialize env \n");
@@ -676,7 +696,6 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	  j=7;
 	  xmltext="http://www.physics.ohio-state.edu/~cms/firmwares/ddu5ctrl_1.svf";
 	}
-// JRG, 5-->3, 6-->4, 7-->5, 3-->6, 4-->7  --done
 
 	printf(" %s ",buf);
 	*out << buf << cgicc::span() << std::endl;
@@ -751,7 +770,6 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
       }
       *out << br() << std::endl;
       printf(" now boxes \n");
-// JRG, 5-->3, 6-->4, 7-->5, 3-->6, 4-->7  --done
       if(i>=3&&i<8){
 	std::string dduloadfirmware =
 	  toolbox::toString("/%s/DDULoadFirmware",getApplicationDescriptor()->getURN().c_str());
@@ -1184,7 +1202,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	*out << hr();
       }
       if(i==227){
-	sprintf(buf,"Toggle DDU Cal-Pulse==L1A (default True): ");
+	sprintf(buf,"Toggle DDU 'CFEB Calib-Pulse==L1A' feature (default False): ");
 	sprintf(buf2," EXPERT ONLY! ");
 	icond=2;
 // JRG, do better later: move to VMEpara and use bit3 of Fake L1A Reg.
@@ -1264,7 +1282,6 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	sprintf(buf3," ");
 	sprintf(buf4," ");
       }
-// JRGhere
 
       if(i==228||i==227||i==222||i==223||i==226){
 	std::string ddutextload =
@@ -1331,7 +1348,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
       *out << buf8 << cgicc::span();
 
 
-      if(i==228||i==227||i==222||i==223||i==226){  //JRG, def. SET button properties
+      if(i==228||i==227||i==222||i==223||i==226){
 	string xmltext="";
 	if(i==222)xmltext="f7fff";
 	if(i==223)xmltext="deb";
@@ -1979,7 +1996,6 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	sprintf(buf2," EXPERT ONLY! ");
 	icond=2;
       }
-// JRGhere
 
       if(i==321){
          std::string ddutextload =
@@ -2419,7 +2435,6 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	sprintf(buf2," EXPERT ONLY! ");
 	icond=2;
       }
-// JRGhere
 
       if(i==421){
          std::string ddutextload =
@@ -3667,6 +3682,26 @@ void EmuFCrateHyperDAQ::DCCLoadFirmware(xgi::Input * in, xgi::Output * out )
 }  
 
 
+void EmuFCrateHyperDAQ::LoadXMLconf(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+{
+    printf(" enter: LoadXMLconf \n");
+    cgicc::Cgicc cgi(in);
+    const CgiEnvironment& env = cgi.getEnvironment();
+    //    string URLname = cgi["DefURL"]->getValue() ; 
+    //    cout << "  should go to this URL: " << URLname  << endl ;
+    printf(" dduVector.size() %d \n",dduVector.size());
+    printf(" dccVector.size() %d \n",dccVector.size());
+    //    dduVector.size()=0;  // How to set these to zero?!?
+    //    dccVector.size()=0;  // Then go to   this->Default(in.out);
+    reload=1;
+
+    std::string loadxmlconf =
+      toolbox::toString("/%s/",getApplicationDescriptor()->getURN().c_str());
+    //    cout<<endl<<"  JRGdebug: LoadXMLconf string="<<loadxmlconf<<endl;
+    this->Default(in,out);
+}
+
 void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
@@ -3692,7 +3727,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
     *out << cgicc::title("DCC Comands Web Form") << std::endl;
     *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg");
 
-    char buf[300],buf2[300] ;
+    char buf[300],buf2[300],buf3[300];
     sprintf(buf,"DCC Commands VME  Slot %d",thisDCC->slot());
     *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
     *out << std::endl;
@@ -3700,6 +3735,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
 
     for(int i=100;i<107;i++){
       thisDCC->CAEN_err_reset();
+      sprintf(buf3," ");
       if(i==100){
            unsigned short int statush=thisDCC->mctrl_stath();
            unsigned short int statusl=thisDCC->mctrl_statl();
@@ -3719,12 +3755,14 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
            sprintf(buf,"Set FIFOs Used:");
 	   sprintf(buf2," %04X ",(fifouse&0x7ff));
 	   //           sprintf(buf2," ");
+	   sprintf(buf3,"<font size=-1> (selects which DDUs must be processed by DCC)</font>");
       }
       if(i==104){
            unsigned short int ttccmd=thisDCC->mctrl_rd_ttccmd();
            sprintf(buf,"TTC Command:");
 	   sprintf(buf2," %04X ",(ttccmd>>2)&0x3f);
 	   //           sprintf(buf2," ");
+	   sprintf(buf3,"<font size=-1> (only works when TTC fiber input to DCC is disabled)</font>");
       }
       if(i==105){
            unsigned short int fifouse=thisDCC->mctrl_rd_fifoinuse();
@@ -3740,7 +3778,9 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
       if(i>100){
          std::string dcctextload =
 	 toolbox::toString("/%s/DCCTextLoad",getApplicationDescriptor()->getURN().c_str());
-         *out << cgicc::form().set("method","GET").set("action",dcctextload) << std::endl;
+         *out << cgicc::form().set("method","GET").set("action",dcctextload)
+	   //	   .set("style","margin-bottom: 0") 
+	      << std::endl;
       }
       *out << cgicc::span().set("style","color:black");
       *out << buf << cgicc::span();
@@ -3778,7 +3818,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","dcc");
 	sprintf(buf,"%d",i);
 	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","val");
-	*out << cgicc::form() << std::endl;
+	*out << buf3 << cgicc::form() << std::endl;
       }else{
 	*out << br() << std::endl;
       }
