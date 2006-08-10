@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.3 2006/08/07 13:31:29 mey Exp $
+// $Id: CCB.h,v 3.4 2006/08/10 15:46:30 mey Exp $
 // $Log: CCB.h,v $
+// Revision 3.4  2006/08/10 15:46:30  mey
+// UPdate
+//
 // Revision 3.3  2006/08/07 13:31:29  mey
 // Added TTCrx coarse delay
 //
@@ -146,6 +149,7 @@ public:
   inline void Setl1adelay(int delay) {l1aDelay_ = delay;}
   inline void SetTTCrxID(int ID)     {TTCrxID_  = ID;}
   inline void SetTTCrxCoarseDelay(int delay)     {TTCrxCoarseDelay_  = delay;}
+  inline void SetTTCrxFineDelay(int delay)     {TTCrxFineDelay_  = delay;}
   //
   void PrintTTCrxRegs();
   bool l1Enabled() const {return l1enabled_;}
@@ -278,10 +282,11 @@ private:
   int BX_Orbit_;
   int SPS25ns_;
   int l1aDelay_;
-
+  //
   int TTCrxID_;
   int TTCrxCoarseDelay_;
-
+  int TTCrxFineDelay_;
+  //
   bool l1enabled_;
   int mVersion; // CCB version number (2001,2004)
   bool mDebug;

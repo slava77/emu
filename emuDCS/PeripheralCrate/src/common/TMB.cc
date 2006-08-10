@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.5 2006/08/09 11:57:04 mey Exp $
+// $Id: TMB.cc,v 3.6 2006/08/10 15:46:30 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 3.6  2006/08/10 15:46:30  mey
+// UPdate
+//
 // Revision 3.5  2006/08/09 11:57:04  mey
 // Got rid of version
 //
@@ -275,7 +278,7 @@ TMB::TMB(Crate * theCrate, int slot) :
   l1a_window_size_(3),
   l1adelay_(128),
   alct_match_window_size_(3),
-  alct_vpf_delay_(4),
+  alct_vpf_delay_(6),
   mpc_delay_(7),
   ALCT_input_(1),
   rpc_exists_(0xf),
@@ -4667,6 +4670,11 @@ void TMB::trgmode(int choice)
   printf("Reading address 0x86 to %x %x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   sndbuf[0] = (rcvbuf[0] & 0xfe | (mpc_delay_ & 0x8)>>3) & 0xff;
   sndbuf[1] = (rcvbuf[1] & 0x1f | (mpc_delay_ & 0x7)<<5) & 0xff;
+  //
+  if ( choice == 5 ) {
+    sndbuf[1] = (sndbuf[1]&0xf3) | (0x10); 
+  }
+  //
   printf("Setting address 0x86 to %x %x\n",sndbuf[0]&0xff,sndbuf[1]&0xff);
   tmb_vme(VME_WRITE,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Write Trigger conf
   
@@ -4701,6 +4709,9 @@ void TMB::trgmode(int choice)
   EnableCLCTInputs(enableCLCTInputs_);
   //
   if ( disableCLCTInputs_ ) DisableCLCTInputs();
+  //
+  tmb_vme(VME_READ,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
+  printf("Reading address 0x86 to %x %x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   //
 }
 

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.4 2006/08/07 13:31:29 mey Exp $
+// $Id: CCB.cc,v 3.5 2006/08/10 15:46:30 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 3.5  2006/08/10 15:46:30  mey
+// UPdate
+//
 // Revision 3.4  2006/08/07 13:31:29  mey
 // Added TTCrx coarse delay
 //
@@ -195,7 +198,8 @@ CCB::CCB(Crate * theCrate ,int slot)
   l1aDelay_(0),
   mDebug(false),
   mCCBMode(CCB::DLOG),
-  TTCrxCoarseDelay_(0)
+  TTCrxCoarseDelay_(0),
+  TTCrxFineDelay_(0)
 {
   MyOutput_ = &std::cout ;
     
@@ -1027,8 +1031,15 @@ void CCB::configure() {
   // Download coarse delay to TTCrx
   //
   PrintTTCrxRegs();
+  //
   int delay = ((TTCrxCoarseDelay_&0xf)<<4) + (TTCrxCoarseDelay_&0xf);
   WriteTTCrxReg(2,delay);
+  //
+  // Download fine delay to TTCrx
+  //
+  delay = (TTCrxFineDelay_&0xff);
+  WriteTTCrxReg(0,delay);
+  WriteTTCrxReg(1,delay);
   //
   std::cout << std::endl;
   //

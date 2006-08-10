@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.9 2006/08/08 19:23:08 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.10 2006/08/10 15:46:30 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -71,8 +71,6 @@
 #include "CrateUtilities.h"
 #include "CalibDAQ.h"
 #include "EmuSystem.h"
-//
-//#include "chartdir.h"
 //
 #ifdef STANDALONE
 #else
@@ -2072,7 +2070,6 @@ private:
   void EmuPeripheralCrate::MonitorTMBTrigger(xgi::Input * in, xgi::Output * out) 
     throw (xgi::exception::Exception){
     //
-    
     //
   }
   //
