@@ -157,7 +157,7 @@ int main() {
 	      << std::endl;
     std::cout << " 93:TMB Raw hits dump          94:Print counters              95:Reset counters"
 	      << std::endl;
-    std::cout << " 96:Who triggered TMB?"
+    std::cout << " 96:Who triggered TMB?         97:Dump all TMB registers"
 	      << std::endl;
     //
     std::cout << std::endl;
@@ -167,11 +167,11 @@ int main() {
 	      << std::endl;
     std::cout << "110: Read asic delays         111:Set asic delays            112: Read asic patterns"
 	      << std::endl;
-    std::cout << "113:Set asic patterns         119:Set power-up dly/patt "
+    std::cout << "113: Set asic patterns        119:Set power-up dly/patt "
 	      << std::endl;
     std::cout << "120: Read configuration reg   121:Set Trigger Mode           122:Set L1a delay"
 	      << std::endl;
-    std::cout << "123: Set CCB enable           129:Set power-up configuration register"
+    std::cout << "123: Set CCB enable           129:Set power-up config. reg."
 	      << std::endl;
     std::cout << "130: Read hot channel mask    131:Set hot channel mask       139:Set power-up hot channel mask"
 	      << std::endl;
@@ -180,11 +180,15 @@ int main() {
     std::cout << std::endl;
     //
     std::cout << "XSVF file handling" << std::endl;
-    std::cout << "200: Write data file          201:Read data file"
+    std::cout << "200: Configure TMB            201:Configure TMB/write prom"
+	      << std::endl;
+    std::cout << "202: Configure ALCT           203:Configure ALCT/write prom"
 	      << std::endl;
     std::cout << "300: Write xsvf files         301:Read xsvf file"
 	      << std::endl;
-    std::cout << "400: Program user proms       401:Verify user prom           402:Program TMB"
+    std::cout << "400: Program user proms       401:Check user prom programs   402:Program TMB"
+	      << std::endl;
+    std::cout << "403: Prog. proms w/walking 1s "
 	      << std::endl;
     std::cout << "500: Check state machine        "
 	      << std::endl;
@@ -387,6 +391,18 @@ int main() {
       std::cout << "TMB trigger source = " << std::hex 
 		<< thisTMB->ReadRegister(seq_trig_src_adr) << std::endl;
       break;
+    case 97:
+      for (int i=0; i<0xe6; i+=2) {
+	int k = thisTMB->ReadRegister(i);
+	std::cout << "VME address " << std::hex 
+		  << ( (i>> 4) & 0xf ) 
+		  << ( (i>> 0) & 0xf ) << " = " 
+		  << ( (k>>12) & 0xf )
+		  << ( (k>> 8) & 0xf )
+		  << ( (k>> 4) & 0xf )
+		  << ( (k>> 0) & 0xf ) << std::endl;
+      }
+      break;
       //
     case 100:
       alct->configure();
@@ -514,61 +530,71 @@ int main() {
       alct->PrintAfebThresholds();
       break;
     case 200:
-      alct->SetXsvfFilename("dummy_data");
-      alct->CreateUserPromFile();
+      thisTMB->configure();
       break;
     case 201:      
-      alct->SetXsvfFilename("dummy_data");
-      if ( alct->ReadUserPromFile() ) {
-	std::cout << "address (0-32767) " << std::endl;
-	std::cin >> value;
-	std::cout << "address " << std::hex << value 
-		  << " = " << alct->GetUserPromImage(value) 
-		  << std::endl;
-      } else {
-	
-      }
+      thisTMB->SetFillUserPromWithVmeWrites(true);
+      thisTMB->configure();
+      break;
+    case 202:
+      alct->configure();
+      break;
+    case 203:
+      std::cout << "not yet working.... " << std::endl;
       break;
     case 300:
-      alct->SetWhichUserProm(ChipLocationTmbUserPromTMB);
-      alct->SetXsvfFilename("prom0_test");
-      alct->CreateXsvfFile();
+      thisTMB->SetWhichUserProm(ChipLocationTmbUserPromTMB);
+      thisTMB->SetXsvfFilename("TMB_user_prom_data");
+      thisTMB->CreateXsvfFile();
       //
-      alct->SetWhichUserProm(ChipLocationTmbUserPromALCT);
-      alct->SetXsvfFilename("prom1_test");
-      alct->CreateXsvfFile();
+      thisTMB->SetWhichUserProm(ChipLocationTmbUserPromALCT);
+      thisTMB->SetXsvfFilename("ALCT_user_prom_data");
+      thisTMB->CreateXsvfFile();
       break;
     case 301:      
-      alct->SetXsvfFilename("prom0_test");
-      alct->ReadXsvfFile(true);
-      alct->SetXsvfFilename("prom1_test");
-      alct->ReadXsvfFile(true);
+      thisTMB->SetXsvfFilename("TMB_user_prom_data");
+      thisTMB->ReadXsvfFile(true);
+      thisTMB->SetXsvfFilename("ALCT_user_prom_data");
+      thisTMB->ReadXsvfFile(true);
       break;
     case 400:
-      alct->SetWhichUserProm(ChipLocationTmbUserPromTMB);
-      alct->SetXsvfFilename("prom0_test");
-      alct->ProgramUserProm();
+      thisTMB->SetXsvfFilename("TMB_user_prom_data");
+      thisTMB->ProgramUserProm();
       //
-      alct->SetWhichUserProm(ChipLocationTmbUserPromALCT);
-      alct->SetXsvfFilename("prom1_test");
-      alct->ProgramUserProm();
+      thisTMB->SetXsvfFilename("ALCT_user_prom_data");
+      thisTMB->ProgramUserProm();
       break;
     case 401:
-      alct->SetWhichUserProm(ChipLocationTmbUserPromALCT);
-      alct->SetXsvfFilename("dummy_data");
-      alct->VerifyUserProm();
+      thisTMB->SetWhichUserProm(ChipLocationTmbUserPromTMB);
+      thisTMB->SetXsvfFilename("TMB_user_prom_data");
+      thisTMB->CheckUserProm();
+      //
+      thisTMB->SetWhichUserProm(ChipLocationTmbUserPromALCT);
+      thisTMB->SetXsvfFilename("ALCT_user_prom_data");
+      thisTMB->CheckUserProm();
       break;
     case 402:
-      alct->SetXsvfFilename("tmb2005e_28july2006_noverify");
-      alct->ProgramTMBProms();
+      thisTMB->SetXsvfFilename("tmb2005e_28july2006_noverify");
+      thisTMB->ProgramTMBProms();
+      break;
+    case 403:
+      thisTMB->SetWhichUserProm(ChipLocationTmbUserPromTMB);
+      thisTMB->SetXsvfFilename("prom0_passtest");
+      thisTMB->ProgramUserProm();
+      thisTMB->CheckUserProm();
+      //
+      thisTMB->SetWhichUserProm(ChipLocationTmbUserPromALCT);
+      thisTMB->SetXsvfFilename("prom1_passtest");
+      thisTMB->ProgramUserProm();
+      thisTMB->CheckUserProm();
       break;
     case 500:
       unsigned short int BootData;
-      layer = thisTMB->tmb_get_boot_reg(&BootData);
+      thisTMB->tmb_get_boot_reg(&BootData);
       std::cout << "Boot contents before = " << std::hex << BootData << std::endl;
       testTMB.reset();      
-      alct->CheckVMEStateMachine();
-      alct->CheckJTAGStateMachine();
+      thisTMB->CheckVMEStateMachine();
+      thisTMB->CheckJTAGStateMachine();
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 

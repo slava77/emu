@@ -87,36 +87,40 @@ public:
   ////////////////////////////////////////////////////////////////////////
   // XSVF programming:
   ////////////////////////////////////////////////////////////////////////
-  void SetXsvfFilename(std::string filename);       //set the base filename by which the rest of the filenames are referred to
+  void SetXsvfFilename(std::string filename);       //set the base filename for xsvf file handling
+  //                                                  -> filename.dat  = prom image file in format AAAA DD (address, data)
+  //                                                  -> filename.xsvf = binary file which gets shifted into prom with JTAG
+  //                                                  -> filename.log  = ascii file which gets shifted into prom with JTAG
   //
-  //------------------------------------------------
-  // prom image file handling
-  //------------------------------------------------
-  void CreateUserPromFile();                        //create Prom Image File with configuration data
-  bool ReadUserPromFile();                          //read Prom Image File from disk
+  void SetWhichUserProm(int device);                //device = [ChipLocationTmbUserPromTMB, ChipLocationTmbUserPromALCT]
+  int  GetWhichUserProm();
   //
-  int GetUserPromImage(int address);                //address=[0 - (TOTAL_NUMBER_OF_ADDRESSES-1)]
+  //--------------------------------------------------------------
+  // prom image file handling -> configuration data for the prom
+  //--------------------------------------------------------------
+  void CreateUserPromFile();                        //create filename.dat
+  bool ReadUserPromFile();                          //read filename.dat from disk
+  //
+  int GetUserPromImage(int address);                // address=[0 - (TOTAL_NUMBER_OF_ADDRESSES-1)]
   //
   //------------------------------------------------
   // XSVF file handling
   //------------------------------------------------
-  void SetWhichUserProm(int device);      //device = [ChipLocationTmbUserPromTMB, ChipLocationTmbUserPromALCT]
-  int  GetWhichUserProm();
+  void CreateXsvfFile();                    //creates filename.xsvf from filename.dat 
+  //                                        // ----> IMPORTANT:  need to specify the prom with SetWhichUserProm(device)
   //
-  void CreateXsvfFile();                    //creates XSVF file from Prom Image File for GetWhichUserProm()
-  //
-  void ReadXsvfFile(bool create_logfile);   //read XSVF file from disk
+  void ReadXsvfFile(bool create_logfile);   //read filename.xsvf from disk
   void ReadXsvfFile();                      // ...no argument given => no logfile created
   //
   //------------------------------------------------
-  // Program user prom with XSVF file
+  // Program proms with XSVF file
   //------------------------------------------------  
-  void ProgramUserProm();
+  void ProgramUserProm();                             //program user proms with filename.xsvf 
+  void ProgramTMBProms();                             //program TMB mezzanine proms with filename.xsvf 
   //
-  void VerifyUserProm();
-  void ClockOutPromProgram();
+  void CheckUserProm();                               //compare program in SetWhichUserProm(device) with filename.dat 
   //
-  void ProgramTMBProms();
+  inline int GetNumberOfVerifyErrors() { return verify_error_; }
   //
   //------------------------------------------------
   // Check operation of user proms after hard reset
@@ -198,6 +202,8 @@ private:
   //
   int data_word_count_;
   int prom_image_word_count_;
+  int ComputeCheckSum_(int begin_address,     //compute the checksum for begin_address<=address<=end_address
+		       int end_address);       
   //
   void InsertHeaderAndTrailer_(int * data_to_go_into_prom);
   void SetUserPromImage_(int address, int value);                 
@@ -261,8 +267,6 @@ private:
   //-------------------
   // program_prom 
   //-------------------
-  int clocked_out_prom_image_[TOTAL_NUMBER_OF_ADDRESSES];
-  //
   int verify_error_;
   //
   int xdr_length_;

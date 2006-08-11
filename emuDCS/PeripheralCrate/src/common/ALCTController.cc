@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.5 2006/08/08 16:38:27 rakness Exp $
+// $Id: ALCTController.cc,v 3.6 2006/08/11 16:23:33 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.6  2006/08/11 16:23:33  rakness
+// able to write TMB user prom from configure()
+//
 // Revision 3.5  2006/08/08 16:38:27  rakness
 // ALCTnew: remove parameters not supported in firmware
 //
@@ -8362,8 +8365,8 @@ void ALCTController::SetAlctType_(int type) {
     //
   } else {
     //
-    NumberOfAFEBs_ = NumberOfWireGroupsInChamber_ / NUMBER_OF_LINES_PER_CHIP;
-    NumberOfChannelsPerLayer_ = NumberOfChannelsInAlct_ / MAX_NUM_LAYERS;
+    NumberOfAFEBs_ = NumberOfChannelsInAlct_ / NUMBER_OF_LINES_PER_CHIP;
+    NumberOfChannelsPerLayer_ = NumberOfWireGroupsInChamber_ / MAX_NUM_LAYERS;
     //
     (*MyOutput_) << "........................ ALCT type = " << std::dec << NumberOfChannelsInAlct_ << std::endl; 
     (*MyOutput_) << ".. Number of groups of delay chips =  " << NumberOfGroupsOfDelayChips_ << std::endl; 

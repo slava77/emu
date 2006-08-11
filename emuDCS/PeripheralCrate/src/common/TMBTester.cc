@@ -478,47 +478,22 @@ bool TMBTester::testPROMid(){
 
 bool TMBTester::testPROMpath(){
   (*MyOutput_) << "TMBTester: Checking User PROM Data Path" << std::endl;
-
+  //
   bool testOK = false;
-  int write_data,read_data;
-
-  int iprom,jprom,prom_adr;
-  int prom_clk[2],prom_oe[2],prom_nce[2];
-  int prom_src;
-
+  //
   int pat_expect1, pat_expect2;
+  //
   bool temptest=true;
-
-  for (iprom=0; iprom<=1; iprom++) {
-    jprom = (iprom+1) % 2;
-
-  // **enable one prom and disable the other, since they share the onboard led bus**
-
-    prom_clk[iprom]=0;    //enable this one
-    prom_oe[iprom] =1;
-    prom_nce[iprom]=0;
-
-    prom_clk[jprom]=0;    //disable this one
-    prom_oe[jprom] =0;
-    prom_nce[jprom]=1;
-    
-    prom_src=1;
-
-    write_data = 
-      (prom_src   <<14) |        //0=on-board led, 1=enabled PROM
-      (prom_nce[1]<<13) |        //PROM 1 /chip_enable
-      (prom_oe[1] <<12) |        //PROM 1 output enable
-      (prom_clk[1]<<11) |        //PROM 1 clock
-      (prom_nce[0]<<10) |        //PROM 0 /chip_enable
-      (prom_oe[0] << 9) |        //PROM 0 output enable
-      (prom_clk[0]<< 8);         //PROM 0 clock
-    
-    tmb_->WriteRegister(vme_prom_adr,write_data);
-
+  //
+  for (int iprom=0; iprom<=1; iprom++) {
+    //
+    tmb_->ClockOutPromProgram(iprom,10);
+    //
     // **Read the data from the selected PROM **
-    for (prom_adr=0; prom_adr<=9; prom_adr++) {
-      read_data = tmb_->ReadRegister(vme_prom_adr) & 0xff;
-
+    for (int prom_adr=0; prom_adr<=9; prom_adr++) {
+      //
+      int read_data = tmb_->GetClockedOutPromImage(prom_adr);
+      //
       // there are two possible patterns we could get:
       if (prom_adr==0) {
 	if (iprom == 0) pat_expect1 = 0xab;
@@ -544,53 +519,10 @@ bool TMBTester::testPROMpath(){
       } else {
 	temptest &= compareValues("data = expected",read_data,pat_expect1,true);
       }
-
-      // ** Toggle the clock to advance the address **
-      prom_clk[iprom]=1;
-      write_data = 
-	(prom_src   <<14) |        //0=on-board led, 1=enabled PROM
-	(prom_nce[1]<<13) |        //PROM 1 /chip_enable
-	(prom_oe[1] <<12) |        //PROM 1 output enable
-	(prom_clk[1]<<11) |        //PROM 1 clock
-	(prom_nce[0]<<10) |        //PROM 0 /chip_enable
-	(prom_oe[0] << 9) |        //PROM 0 output enable
-	(prom_clk[0]<< 8);         //PROM 0 clock
-      tmb_->WriteRegister(vme_prom_adr,write_data);
-
-      prom_clk[iprom]=0;
-      write_data = 
-	(prom_src   <<14) |        //0=on-board led, 1=enabled PROM
-	(prom_nce[1]<<13) |        //PROM 1 /chip_enable
-	(prom_oe[1] <<12) |        //PROM 1 output enable
-	(prom_clk[1]<<11) |        //PROM 1 clock
-	(prom_nce[0]<<10) |        //PROM 0 /chip_enable
-	(prom_oe[0] << 9) |        //PROM 0 output enable
-	(prom_clk[0]<< 8);         //PROM 0 clock
-      tmb_->WriteRegister(vme_prom_adr,write_data);
-    
     }
-
-    // ** Turn PROMs off **
-    prom_clk[iprom]=0;    //disable this one
-    prom_oe[iprom] =0;
-    prom_nce[iprom]=1;
-    
-    prom_src=0;
-
-    write_data = 
-      (prom_src   <<14) |        //0=on-board led, 1=enabled PROM
-      (prom_nce[1]<<13) |        //PROM 1 /chip_enable
-      (prom_oe[1] <<12) |        //PROM 1 output enable
-      (prom_clk[1]<<11) |        //PROM 1 clock
-      (prom_nce[0]<<10) |        //PROM 0 /chip_enable
-      (prom_oe[0] << 9) |        //PROM 0 output enable
-      (prom_clk[0]<< 8);         //PROM 0 clock
-    
-    tmb_->WriteRegister(vme_prom_adr,write_data);
   }
-
   testOK = temptest;
-
+  //
   messageOK("PROM path",testOK);
   //int dummy = sleep(3);
   //

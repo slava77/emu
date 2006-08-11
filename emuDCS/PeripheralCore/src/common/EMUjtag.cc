@@ -50,14 +50,19 @@ void EMUjtag::setup_jtag(int chain) {
   //  - how many chips are on the chain
   //  - the number of bits in each chip's opcode
   //  - register length to zero 
-  //start(N):
-  //  - set the jtag chain for the boot register used in VMEController_jtag::scan(...)
+  //start(N,source):
+  //  - set the jtag chain through the TMB using the jtagSourceBoot or jtagSourceFPGA
   //
   if(debug_){
     std::cout << "setup_chain" << std::endl ;
   }
-  // change the source of the JTAG chain via the bootstrap register:
-  tmb_->tmb_set_boot_reg(0);
+  // set the bit on the bootstrap register to set the source of the JTAG chain to the the FPGA:
+  // If start(N,source) is called with source=jtagSourceBoot, this call will override this setting here...
+  if (GetWriteToDevice_()) {
+    short unsigned int BootReg;
+    tmb_->tmb_get_boot_reg(&BootReg);
+    tmb_->tmb_set_boot_reg(BootReg & 0xff7f);
+  }
   //
   jtag_chain_ = chain;
   devices_in_chain_ = 0;
@@ -69,7 +74,7 @@ void EMUjtag::setup_jtag(int chain) {
     //
     devices_in_chain_ = NumberChipsAlctSlowFpga; 
     bits_in_opcode_[0] = OpcodeSizeAlctSlowFpga;
-    if (GetWriteToDevice_()) tmb_->start(6);
+    if (GetWriteToDevice_()) tmb_->start(6,jtagSourceFPGA);
     //
   } else if (jtag_chain_ == ChainAlctSlowProm) {
     //
@@ -77,13 +82,13 @@ void EMUjtag::setup_jtag(int chain) {
     bits_in_opcode_[0] = OpcodeSizeAlctSlowProm;
     bits_in_opcode_[1] = OpcodeSizeAlctSlowProm;
     bits_in_opcode_[2] = OpcodeSizeAlctSlowProm;
-    if (GetWriteToDevice_()) tmb_->start(7);
+    if (GetWriteToDevice_()) tmb_->start(7,jtagSourceFPGA);
     //
   } else if (jtag_chain_ == ChainAlctFastFpga) {
     //
     devices_in_chain_ = NumberChipsAlctFastFpga; 
     bits_in_opcode_[0] = OpcodeSizeAlctFastFpga;
-    if (GetWriteToDevice_()) tmb_->start(8);
+    if (GetWriteToDevice_()) tmb_->start(8,jtagSourceFPGA);
     //
   } else if (jtag_chain_ == ChainTmbMezz) { 
     //
@@ -93,21 +98,21 @@ void EMUjtag::setup_jtag(int chain) {
     bits_in_opcode_[2] = OpcodeSizeTmbMezzProm;
     bits_in_opcode_[3] = OpcodeSizeTmbMezzProm;
     bits_in_opcode_[4] = OpcodeSizeTmbMezzProm;
-    if (GetWriteToDevice_()) tmb_->start(3);
+    if (GetWriteToDevice_()) tmb_->start(3,jtagSourceFPGA);
     //
   } else if (jtag_chain_ == ChainTmbUser) { 
     //
     devices_in_chain_ = NumberChipsTmbUser;
     bits_in_opcode_[0] = OpcodeSizeTmbUserProm;
     bits_in_opcode_[1] = OpcodeSizeTmbUserProm;
-    if (GetWriteToDevice_()) tmb_->start(4);
+    if (GetWriteToDevice_()) tmb_->start(4,jtagSourceFPGA);
     //
   } else if (jtag_chain_ == ChainRat) {
     //
     devices_in_chain_ = NumberChipsRat;
     bits_in_opcode_[0] = OpcodeSizeRatFpga;
     bits_in_opcode_[1] = OpcodeSizeRatProm;
-    if (GetWriteToDevice_()) tmb_->start(10);
+    if (GetWriteToDevice_()) tmb_->start(10,jtagSourceFPGA);
     //
   }
   //
@@ -519,20 +524,38 @@ void EMUjtag::CreateUserPromFile() {
   //
   (*MyOutput_) << "EMUjtag:  Creating user prom image file" << std::endl;
   //
-  // Create the data which are shifted out by the user prom
+  // Create the data which is loaded to the TMB or ALCT
   //
-  //*******************************//
-  // dummy data:  walking ones...
-  //  N.B. depending on the header/trailer in the blocks as required by the TMB,   
-  //       we need a maximum here which corresponds with the size of the prom....
-  data_word_count_=300;
-  int data_to_prom[data_word_count_];
+  int data_to_prom[TOTAL_NUMBER_OF_ADDRESSES];
+  int address_counter = 0;
   //
-  for (int address_counter=0; address_counter<data_word_count_; address_counter++) {
-    data_to_prom[address_counter] = 1 << (address_counter%8);
+  if (GetWhichUserProm() == ChipLocationTmbUserPromTMB) {
+    //
+    // VME state machine on TMB requires the data to be written into the prom in the following format:
+    //
+    for (int data_counter=0; data_counter<tmb_->GetNumberOfVmeWrites(); data_counter++) {
+      data_to_prom[address_counter++] = (int) tmb_->GetConfigVmeAddress(data_counter);
+      data_to_prom[address_counter++] = 0x00;
+      data_to_prom[address_counter++] = 0x00;
+      data_to_prom[address_counter++] = (int) tmb_->GetConfigDataLsb(data_counter);
+      data_to_prom[address_counter++] = (int) tmb_->GetConfigDataMsb(data_counter);
+    }
+    //
+  } else if (GetWhichUserProm() == ChipLocationTmbUserPromALCT) {
+    //
+    // JTAG state machine on TMB requires the data to be written into the prom in the following format:
+    //
+    for (int data_counter=0; data_counter<tmb_->GetNumberOfVmeWrites(); data_counter++) 
+      data_to_prom[address_counter++] = (int) (tmb_->GetConfigDataLsb(data_counter) & 0x7f);
+    //
+  } else {
+    (*MyOutput_) << "EMUjtag:  CreateUserPromFile ERROR User Prom " << std::dec << GetWhichUserProm()
+		 << "does not exist... SetWhichUserProm to a valid user prom" << std::endl;
+    return;
+    //
   }
-  // end dummy data
-  //*******************************//
+  //
+  data_word_count_ = address_counter;
   //
   InsertHeaderAndTrailer_(data_to_prom);
   //
@@ -542,44 +565,200 @@ void EMUjtag::CreateUserPromFile() {
 }
 //
 void EMUjtag::InsertHeaderAndTrailer_(int * data_to_go_into_prom) {
-  // clear the ascii prom image
+  //
+  // Fill the ascii prom image with the desired data....
+  //
+  // clear the ascii prom image:
   for (int address_counter=0; address_counter<TOTAL_NUMBER_OF_ADDRESSES; address_counter++) 
     SetUserPromImage_(address_counter,0xff);
   //
-  // Fill the ascii prom image with the desired data.
-  // Each block has a trailer which needs to be 
-  // inserted into the stream...
+  // Need the date information to time stamp the header
   //
-  //  int block_counter = 0;
-  int data_counter = 0;
+  time_t rawtime;
+  struct tm * timeinfo;
+  //
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
+  //
+  int month_counting_from_one = timeinfo->tm_mon + 1;
+  int day = timeinfo->tm_mday;
+  int yearAD = timeinfo->tm_year + 1900;
+  //
+  //  std::cout << "Month = " << month_counting_from_one << std::endl;
+  //  std::cout << "Day = " << day << std::endl;
+  //  std::cout << "Year = " << yearAD << std::endl;
+  //
+  int tens_digit_month_counting_from_one = month_counting_from_one / 10;
+  int ones_digit_month_counting_from_one = month_counting_from_one % 10;
+  int month_in_hex = ( (tens_digit_month_counting_from_one & 0xf) << 4 ) | (ones_digit_month_counting_from_one & 0xf);
+  //
+  int tens_digit_day = day / 10;
+  int ones_digit_day = day % 10;
+  int day_in_hex = ( (tens_digit_day & 0xf) << 4 ) | (ones_digit_day & 0xf);
+  //
+  int thousands_digit_yearAD = yearAD / 1000;
+  int hundreds_digit_yearAD = (yearAD / 100) % 10;
+  int msb_year_in_hex = ( (thousands_digit_yearAD & 0xf) << 4 ) | (hundreds_digit_yearAD & 0xf);
+  //
+  int tens_digit_yearAD = (yearAD / 10) % 10;
+  int ones_digit_yearAD = yearAD % 10;
+  int lsb_year_in_hex = ( (tens_digit_yearAD & 0xf) << 4 ) | (ones_digit_yearAD & 0xf);
+  //
   int address_counter = 0;
-  while ( data_counter < data_word_count_) {
+  //
+  //
+  // Header:
+  if (GetWhichUserProm() == ChipLocationTmbUserPromTMB) {
     //
-    // block header goes here:
-    //
-    // data:
     SetUserPromImage_(address_counter++,
-		      data_to_go_into_prom[data_counter++]);
+		      0xBC);              // Begin CLCT header marker, if missing state machine stops
+    address_counter++;                    // these two values are the total word count, to be 
+    address_counter++;                    // filled in at the end....
+    SetUserPromImage_(address_counter++,
+		      month_in_hex);      // date
+    SetUserPromImage_(address_counter++,
+		      day_in_hex);        // date
+    SetUserPromImage_(address_counter++,
+		      lsb_year_in_hex);   // date
+    SetUserPromImage_(address_counter++,
+		      msb_year_in_hex);   // date
+    int version = 1;                      // needs to come from database or xml
+    SetUserPromImage_(address_counter++,
+		      version);           //version
+    int option1 = 0xaa;
+    int option2 = 0x55;
+    SetUserPromImage_(address_counter++,
+		      option1);           // future
+    SetUserPromImage_(address_counter++,
+		      option2);           // future
+    SetUserPromImage_(address_counter++,
+		      option1);           // future
+    SetUserPromImage_(address_counter++,
+		      option2);           // future
+    SetUserPromImage_(address_counter++,
+		      option1);           // future
+    SetUserPromImage_(address_counter++,
+		      option2);
+    SetUserPromImage_(address_counter++,
+		      option1);
+    SetUserPromImage_(address_counter++,
+		      0xEC);               //end of header marker
     //
-    // block trailer (I don't think we need this...):
-    //    if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == 
-    //	 (NUMBER_OF_ADDRESSES_PER_BLOCK-3) )
-    //      SetUserPromImage_(address_counter++,
-    //			block_counter++);
+  } else if (GetWhichUserProm() == ChipLocationTmbUserPromALCT) {
     //
-    //    if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == 
-    //	 (NUMBER_OF_ADDRESSES_PER_BLOCK-2) )
-    //      SetUserPromImage_(address_counter++,
-    //			0xab);
-    //
-    //    if ( (address_counter%NUMBER_OF_ADDRESSES_PER_BLOCK) == (NUMBER_OF_ADDRESSES_PER_BLOCK-1) )
-    //      SetUserPromImage_(address_counter++,
-    //			0xcd);
+    SetUserPromImage_(address_counter++,
+		      0xBA);                // Begin ALCT header marker, if missing state machine stops
+    SetUserPromImage_(address_counter++,
+		      0x83);                // need to get type of ALCT from data...
+    SetUserPromImage_(address_counter++,
+		      0x88);                // need to get type of ALCT from data...
+    SetUserPromImage_(address_counter++,
+		      0x84);                // need to get type of ALCT from data...
+    SetUserPromImage_(address_counter++,
+		      0x80 | tens_digit_month_counting_from_one); //date
+    SetUserPromImage_(address_counter++,
+		      0x80 | ones_digit_month_counting_from_one); //date
+    SetUserPromImage_(address_counter++,
+		      0x80 | tens_digit_day);                     //date
+    SetUserPromImage_(address_counter++,
+		      0x80 | ones_digit_day);                     //date
+    SetUserPromImage_(address_counter++,
+		      0x80 | thousands_digit_yearAD);             //date
+    SetUserPromImage_(address_counter++,
+		      0x80 | hundreds_digit_yearAD);              //date
+    SetUserPromImage_(address_counter++,
+		      0x80 | tens_digit_yearAD);                  //date
+    SetUserPromImage_(address_counter++,
+		      0x80 | ones_digit_yearAD);                  //date
+    int version = 1;                      // needs to come from database or xml
+    SetUserPromImage_(address_counter++,
+		      0x80 | version);           //version
+    int future = 0;                     
+    SetUserPromImage_(address_counter++,
+		      0x80 | future);            //future use
+    SetUserPromImage_(address_counter++,
+		      0x80 | future);            //future use
+    SetUserPromImage_(address_counter++,
+		      0xAA);                     //ALCT end of header marker
   }
   //
-  prom_image_word_count_ = address_counter;  
+  //
+  // Data:
+  int data_counter = 0;
+  while ( data_counter < data_word_count_) 
+    SetUserPromImage_(address_counter++,
+		      data_to_go_into_prom[data_counter++]);
+  //
+  //
+  // Trailer:
+  if (GetWhichUserProm() == ChipLocationTmbUserPromTMB) {
+    //
+    SetUserPromImage_(address_counter++,
+		      0xFC);               //end of data marker    
+    //
+    address_counter++;                     //checksum
+    //
+    SetUserPromImage_(address_counter++,
+		      0xFF);               //end of data marker    
+    //
+  } else if (GetWhichUserProm() == ChipLocationTmbUserPromALCT) {
+    //
+    SetUserPromImage_(address_counter++,
+		      0xFA);               //end of data marker    
+    // 
+    // Add the (partial) word count to the ALCT header:
+    int word_count = address_counter;
+    int thousands_digit_wordcount = word_count / 1000;
+    SetUserPromImage_(address_counter++,
+		      0x80 | thousands_digit_wordcount);     // word count
+    int hundreds_digit_wordcount = (word_count / 100) % 10;
+    SetUserPromImage_(address_counter++,
+		      0x80 | hundreds_digit_wordcount);     // word count
+    int tens_digit_wordcount = (word_count / 10) % 10;
+    SetUserPromImage_(address_counter++,
+		      0x80 | tens_digit_wordcount);         // word count
+    int ones_digit_wordcount = word_count % 10;
+    SetUserPromImage_(address_counter++,
+		      0x80 | ones_digit_wordcount);         // word count
+   
+  }
+  //
+  // Total number of words in prom image:
+  prom_image_word_count_ = address_counter;
+  //
+  // Put in the total number of bits and checksum:
+  if (GetWhichUserProm() == ChipLocationTmbUserPromTMB ) {
+    //
+    SetUserPromImage_( 1,
+		       (prom_image_word_count_ >> 0) & 0xff );
+    //
+    SetUserPromImage_( 2,
+		       (prom_image_word_count_ >> 8) & 0xff );
+    //
+    int begin_address = 0;
+    int end_address = prom_image_word_count_ - 3;
+    int check_sum = ComputeCheckSum_(begin_address,
+				     end_address);
+    //    std::cout << "check sum from " << std::hex << begin_address << " to " << end_address 
+    //	      << " = " << check_sum << std::endl;
+    SetUserPromImage_( (prom_image_word_count_ - 2),
+		       check_sum );
+		       
+  }
   //
   return;
+}
+//
+int EMUjtag::ComputeCheckSum_(int begin_address,
+			      int end_address) {
+  int check_sum = 0;
+  //
+  for (int address=begin_address; address<=end_address; address++) {
+    check_sum += write_ascii_prom_image_[address];
+    check_sum &= 0xff;
+  }
+  //
+  return check_sum;
 }
 //
 bool EMUjtag::ReadUserPromFile() {
@@ -638,7 +817,7 @@ void EMUjtag::WritePromDataToDisk_() {
   // 
   // need to include index=prom_image_word_count_ in order to have 0xff be the last word in the file...
   //
-  for (int index=0; index<=prom_image_word_count_; index++) {
+  for (int index=0; index<prom_image_word_count_; index++) {
     //
     // prom image file has format AAAA DD -> AAAA=address, DD=prom data
     //
@@ -681,8 +860,8 @@ void EMUjtag::SetUserPromImage_(int address,
   }
   //
   if (value > 0xff) {
-    (*MyOutput_) << "SetUserPromImage ERROR: value " << value 
-		 << " is too large...  should be between 0 and 255" 
+    (*MyOutput_) << "SetUserPromImage ERROR: address " << std::hex << address 
+		 << " value " << value << " is too large...  should be between 0 and 255" 
 		 << std::endl;
     return;
   }
@@ -754,11 +933,10 @@ bool EMUjtag::CreateXsvfImage_() {
   WriteInterimBetweenImageAndVerifyIntoXsvfImage_();
   //
   // Insert the prom image into the verification structure:
-  // N.B. it appears this method to verify is faster than
-  // clocking it out with VME using ClockOutPromProgram(),
-  // at least for small data files....
-  //
-  WritePromImageIntoXsvfVerify_();
+  // N.B. Remove this step from writing the user prom xsvf files,
+  //      since we can use CheckUserProm() to check the program versus
+  //      the data file....
+  //  WritePromImageIntoXsvfVerify_();
   //
   //
   // Postamble to finish programming the user prom:
@@ -1947,133 +2125,68 @@ void EMUjtag::ProgramUserProm() {
   //
   setup_jtag(ChainTmbUser);
   //
-  // If you want to verify with JTAG, need to read in the prom image file...
-  ReadUserPromFile();
-  //
   // Default when programming prom is to write a logfile:
   ReadXsvfFile_(true);
-  //
-  //  VerifyUserProm();
   //
   time_t endtime = time (NULL);
   //
   int time_elapsed = endtime - starttime;
   //
   (*MyOutput_) << "EMUjtag:  Programmed " << std::dec <<   number_of_read_bytes_ 
-	       << " bytes in " << std::dec << time_elapsed << " seconds" << std::endl;
-  (*MyOutput_) << "... Number of verify errors = " 
-	       << std::dec << verify_error_ << std::endl;  
+	       << " bytes in " << std::dec << time_elapsed << " seconds " << std::endl;
   //
   return;
 }
 //
-void EMUjtag::VerifyUserProm() {
+void EMUjtag::CheckUserProm() {
   //
   (*MyOutput_) << "EMUjtag:  Compare user prom file " << filename_dat_ 
 	       << " with program in prom " << GetWhichUserProm() << "... " << std::endl;
+  //
+  verify_error_ = 0;
   //
   if ( !ReadUserPromFile() ) {
     (*MyOutput_) << "EMUjtag: ERROR VerifyUserProm prom file " << filename_dat_ << " does not exist..." << std::endl;
     return;
   }
   //
-  ClockOutPromProgram();
+  tmb_->ClockOutPromProgram(GetWhichUserProm(),prom_image_word_count_);
   //
-  for (int address=0; address<prom_image_word_count_+10; address++) {
+  bool date_changed = false;
+  //
+  for (int address=0; address<prom_image_word_count_; address++) {
     //    (*MyOutput_) << "EMUjtag: For address " << std::hex << address << std::endl;
     //    (*MyOutput_) << " -> prom image in file = " << std::hex << GetUserPromImage(address) << std::endl;
-    //    (*MyOutput_) << " -> prom image in prom = " << std::hex << clocked_out_prom_image_[address] << std::endl;
-    if ( clocked_out_prom_image_[address] != GetUserPromImage(address) ) {
-      (*MyOutput_) << "EMUjtag: ERROR address " << std::hex << address << std::endl;
-      (*MyOutput_) << " -> prom image in file = " << std::hex << GetUserPromImage(address) << std::endl;
-      (*MyOutput_) << " -> prom image in prom = " << std::hex << clocked_out_prom_image_[address] << std::endl;
-      verify_error_++;
+    //    (*MyOutput_) << " -> prom image in prom = " << std::hex << tmb_->GetClockedOutPromImage(address) << std::endl;
+    if ( tmb_->GetClockedOutPromImage(address) != GetUserPromImage(address) ) {
+      if (address == 0x03 || address == 0x04 || address == 0x05 || address == 0x06) {
+	date_changed = true;
+      } else {
+	(*MyOutput_) << "EMUjtag: ERROR address " << std::hex << address << std::endl;
+	(*MyOutput_) << " -> prom image in file = " << std::hex << GetUserPromImage(address) << std::endl;
+	(*MyOutput_) << " -> prom image in prom = " << std::hex << tmb_->GetClockedOutPromImage(address) << std::endl;
+	verify_error_++;
+      }
     }
   }
   //
-  //  (*MyOutput_) << "EMUjtag:  Number of verify errors = " << std::dec << verify_error_ << std::endl;
-  //
-  return;
-}
-//
-void EMUjtag::ClockOutPromProgram() {
-  //
-  (*MyOutput_) << "EMUjtag:  Clock out program in prom " << GetWhichUserProm() << "... " << std::endl;
-  //
-  int enabledProm = GetWhichUserProm();
-  int disabledProm = (enabledProm + 1) % 2;
-  //
-  int prom_clk[2];
-  int prom_oe[2];
-  int prom_nce[2];
-  //
-  prom_clk[enabledProm]=0;    
-  prom_oe[enabledProm] =1;     //enable this prom in vme register
-  prom_nce[enabledProm]=0;
-  //
-  prom_clk[disabledProm]=0;    
-  prom_oe[disabledProm] =0;    //disable this prom in vme register
-  prom_nce[disabledProm]=1;
-  //
-  int prom_src=1;
-  //
-  int write_data = 
-    (prom_src   <<14) |        //0=on-board led, 1=enabled PROM
-    (prom_nce[1]<<13) |        //PROM 1 /chip_enable
-    (prom_oe[1] <<12) |        //PROM 1 output enable
-    (prom_clk[1]<<11) |        //PROM 1 clock
-    (prom_nce[0]<<10) |        //PROM 0 /chip_enable
-    (prom_oe[0] << 9) |        //PROM 0 output enable
-    (prom_clk[0]<< 8);         //PROM 0 clock
-  
-  tmb_->WriteRegister(vme_prom_adr,write_data);
-
-  // **Read the data from the selected PROM **
-  for (int prom_adr=0; prom_adr<TOTAL_NUMBER_OF_ADDRESSES; prom_adr++) {
-    //
-    clocked_out_prom_image_[prom_adr] = (tmb_->ReadRegister(vme_prom_adr) & 0xff);
-    //
-    // ** Toggle the clock to advance the address **
-    prom_clk[enabledProm]=1;
-    write_data = 
-      (prom_src   <<14) |        //0=on-board led, 1=enabled PROM
-      (prom_nce[1]<<13) |        //PROM 1 /chip_enable
-      (prom_oe[1] <<12) |        //PROM 1 output enable
-      (prom_clk[1]<<11) |        //PROM 1 clock
-      (prom_nce[0]<<10) |        //PROM 0 /chip_enable
-      (prom_oe[0] << 9) |        //PROM 0 output enable
-      (prom_clk[0]<< 8);         //PROM 0 clock
-    tmb_->WriteRegister(vme_prom_adr,write_data);
-    //
-    prom_clk[enabledProm]=0;
-    write_data = 
-      (prom_src   <<14) |        //0=on-board led, 1=enabled PROM
-      (prom_nce[1]<<13) |        //PROM 1 /chip_enable
-      (prom_oe[1] <<12) |        //PROM 1 output enable
-      (prom_clk[1]<<11) |        //PROM 1 clock
-      (prom_nce[0]<<10) |        //PROM 0 /chip_enable
-      (prom_oe[0] << 9) |        //PROM 0 output enable
-      (prom_clk[0]<< 8);         //PROM 0 clock
-    tmb_->WriteRegister(vme_prom_adr,write_data);  
+  if (GetNumberOfVerifyErrors() == 0 && date_changed) {
+    (*MyOutput_) << "Current configuration same as that loaded on " 
+		 << std::hex << (( tmb_->GetClockedOutPromImage(0x04) >> 4) & 0xf)
+		 << std::hex << (( tmb_->GetClockedOutPromImage(0x04) >> 0) & 0xf)
+		 << "."
+		 << std::hex << (( tmb_->GetClockedOutPromImage(0x03) >> 4) & 0xf)
+		 << std::hex << (( tmb_->GetClockedOutPromImage(0x03) >> 0) & 0xf)
+		 << "."
+		 << std::hex << (( tmb_->GetClockedOutPromImage(0x06) >> 4) & 0xf)
+		 << std::hex << (( tmb_->GetClockedOutPromImage(0x06) >> 0) & 0xf)
+		 << std::hex << (( tmb_->GetClockedOutPromImage(0x05) >> 4) & 0xf)
+		 << std::hex << (( tmb_->GetClockedOutPromImage(0x05) >> 0) & 0xf) 
+		 << std::endl;
+  } else {
+    (*MyOutput_) << "EMUjtag:  Number of verify errors = " 
+		 << std::dec << GetNumberOfVerifyErrors() << std::endl;
   }
-  //
-  // ** Turn PROMs off **
-  prom_clk[enabledProm]=0;    //disable this one
-  prom_oe[enabledProm] =0;
-  prom_nce[enabledProm]=1;
-  //
-  prom_src=0;
-  //
-  write_data = 
-    (prom_src   <<14) |        //0=on-board led, 1=enabled PROM
-    (prom_nce[1]<<13) |        //PROM 1 /chip_enable
-    (prom_oe[1] <<12) |        //PROM 1 output enable
-    (prom_clk[1]<<11) |        //PROM 1 clock
-    (prom_nce[0]<<10) |        //PROM 0 /chip_enable
-    (prom_oe[0] << 9) |        //PROM 0 output enable
-    (prom_clk[0]<< 8);         //PROM 0 clock
-  
-  tmb_->WriteRegister(vme_prom_adr,write_data);
   //
   return;
 }
@@ -2098,9 +2211,9 @@ void EMUjtag::ProgramTMBProms() {
   int time_elapsed = endtime - starttime;
   //
   (*MyOutput_) << "EMUjtag: TMB Programming complete in " 
-	       << std::dec << time_elapsed << " seconds" << std::endl;
-  (*MyOutput_) << "... Number of verify errors = " 
-	       << std::dec << verify_error_ << std::endl;  
+	       << std::dec << time_elapsed << " seconds with "
+	       << std::dec << GetNumberOfVerifyErrors() << " errors" 
+	       << std::endl;  
   //
   return;
 }
