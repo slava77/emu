@@ -46,7 +46,6 @@ Sources=\
 	TMBTester.cc \
 	TMB.cc \
 	TMBParser.cc \
-	TMB_trgmode.cc \
 	VMEController.cc \
 	VMEController_jtag.cc \
 	VMEModule.cc \
