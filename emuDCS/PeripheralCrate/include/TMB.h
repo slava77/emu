@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.2 2006/08/09 11:57:04 mey Exp $
+// $Id: TMB.h,v 3.3 2006/08/11 16:23:33 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.3  2006/08/11 16:23:33  rakness
+// able to write TMB user prom from configure()
+//
 // Revision 3.2  2006/08/09 11:57:04  mey
 // Got rid of version
 //
@@ -417,6 +420,15 @@ public:
   inline int GetTMBuserProm0IdCode() { return tmb_idcode_[5]; }
   inline int GetTMBuserProm1IdCode() { return tmb_idcode_[6]; }
   //
+  inline void SetFillUserPromWithVmeWrites(bool YesOrNo) { fill_user_prom_with_vme_writes_ = YesOrNo; }
+  inline bool GetFillUserPromWithVmeWrites() { return fill_user_prom_with_vme_writes_; }
+  inline int  GetNumberOfVmeWrites() { return config_data_lsb_.size(); }    //this vector will be filled for TMB and ALCT user proms
+  char GetConfigVmeAddress(int data_counter);
+  char GetConfigDataLsb(int data_counter);
+  char GetConfigDataMsb(int data_counter);
+  void ClockOutPromProgram(int prom,int number_of_addresses);
+  inline int GetClockedOutPromImage(int address) { return clocked_out_prom_image_.at(address); }
+  //
 public:
   //
   FILE *pfile;
@@ -496,6 +508,12 @@ private:
   int alct1_amu_;
   int alct1_second_key_;
   int alct1_second_bxn_;
+  //
+  bool fill_user_prom_with_vme_writes_;
+  std::vector<char> config_vme_address_;
+  std::vector<char> config_data_lsb_;
+  std::vector<char> config_data_msb_;
+  std::vector<int> clocked_out_prom_image_;
   //
 };
 

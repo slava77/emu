@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.6 2006/08/10 15:46:30 mey Exp $
+// $Id: TMB.cc,v 3.7 2006/08/11 16:23:33 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.7  2006/08/11 16:23:33  rakness
+// able to write TMB user prom from configure()
+//
 // Revision 3.6  2006/08/10 15:46:30  mey
 // UPdate
 //
@@ -292,7 +295,8 @@ TMB::TMB(Crate * theCrate, int slot) :
   enableCLCTInputs_(0x1f),
   alctController_(0),
   rat_(0),
-  bxn_offset_(0)
+  bxn_offset_(0),
+  fill_user_prom_with_vme_writes_(false)
 {
   //
   //jtag_address = -1;
@@ -511,6 +515,10 @@ void TMB::init() {
 //
 void TMB::configure() {
   //
+  config_vme_address_.clear();
+  config_data_lsb_.clear();
+  config_data_msb_.clear();
+  //
   ostringstream dump;
   ostringstream dump2;
   ostringstream dump3;
@@ -524,6 +532,22 @@ void TMB::configure() {
   load_cscid();
   //(*MyOutput_) << "Resetting counters" << std::endl;
   ResetCounters();
+  //
+  if ( GetFillUserPromWithVmeWrites() ) {
+    //
+    SetXsvfFilename("TMB_user_prom_data");
+    SetWhichUserProm(ChipLocationTmbUserPromTMB);
+    CreateUserPromFile();
+    SetFillUserPromWithVmeWrites(false);    //give VME back to the user
+    //
+    CheckUserProm(); 
+    //
+    while ( GetNumberOfVerifyErrors() != 0 ) {
+      CreateXsvfFile();
+      ProgramUserProm();
+      CheckUserProm();
+    }
+  }
 }
 
 void TMB::clear_i2c() {
@@ -3448,7 +3472,19 @@ void TMB::setLogicAnalyzerToDataStream(bool yesorno) {
 void TMB::tmb_vme(char fcn, char vme,
                   const char *snd,char *rcv, int wrt) {
   start(1);
-  do_vme(fcn, vme, snd, rcv, wrt);
+  //
+  if ( GetFillUserPromWithVmeWrites() && 
+       (fcn == VME_WRITE) ) {
+    //  Fill user prom data file with VME write commands
+    config_vme_address_.push_back(vme);
+    config_data_lsb_.push_back(snd[1]);
+    config_data_msb_.push_back(snd[0]);
+    //
+  } else {
+    //
+    do_vme(fcn, vme, snd, rcv, wrt);
+    //
+  }
 }
 
 
@@ -6174,5 +6210,132 @@ int TMB::smb_io(int smb_adr, int cmd, int module) {
   //  (*MyOutput_) << "Temperature = " << std::dec << data << " deg C" << std::endl;
 
   return data;
+}
+//
+char TMB::GetConfigVmeAddress(int data_counter) {
+  // The following few lines aren't necessary, as the at(address) function 
+  // should throw an exception, rather than access crap memory
+  //
+  if ( data_counter >= config_vme_address_.size() ) {
+    (*MyOutput_) << "TMB:  Configure VME data counter " << std::dec << data_counter 
+		 << " >= maximum value " << config_vme_address_.size() << std::endl;
+    return 0;
+  }
+  return config_vme_address_.at(data_counter);
+}
+//
+char TMB::GetConfigDataLsb(int data_counter) {
+  // The following few lines aren't necessary, as the at(address) function 
+  // should throw an exception, rather than access crap memory
+  //
+  if ( data_counter >= config_data_lsb_.size() ) {
+    (*MyOutput_) << "TMB:  Configure data LSB counter " << std::dec << data_counter 
+  		 << " >= maximum value " << config_data_lsb_.size() << std::endl;
+    return 0;
+  }
+  return config_data_lsb_.at(data_counter);
+}
+//
+char TMB::GetConfigDataMsb(int data_counter) {
+  // The following few lines aren't necessary, as the at(address) function 
+  // should throw an exception, rather than access crap memory
+  //
+  if ( data_counter >= config_data_msb_.size() ) {
+    (*MyOutput_) << "TMB:  Configure data MSB counter " << std::dec << data_counter 
+		 << " >= maximum value " << config_data_msb_.size() << std::endl;
+    return 0;
+  }
+  return config_data_msb_.at(data_counter);
+}
+//
+void TMB::ClockOutPromProgram(int prom,
+			      int number_of_addresses) {
+  //
+  clocked_out_prom_image_.clear();    
+  //
+  int enabledProm = prom;
+  int disabledProm = (enabledProm + 1) % 2;
+  //
+  (*MyOutput_) << "TMB:  Clock out 0x" << std::hex << number_of_addresses 
+	       << " addresses from user PROM " << enabledProm << "... " << std::endl;
+  //
+  int prom_clk[2];
+  int prom_oe[2];
+  int prom_nce[2];
+  //
+  prom_clk[enabledProm]=0;    
+  prom_oe[enabledProm] =1;     //enable this prom in vme register
+  prom_nce[enabledProm]=0;
+  //
+  prom_clk[disabledProm]=0;    
+  prom_oe[disabledProm] =0;    //disable this prom in vme register
+  prom_nce[disabledProm]=1;
+  //
+  int prom_src=1;
+  //
+  int write_data = 
+    (prom_src   <<14) |        //0=on-board led, 1=enabled PROM
+    (prom_nce[1]<<13) |        //PROM 1 /chip_enable
+    (prom_oe[1] <<12) |        //PROM 1 output enable
+    (prom_clk[1]<<11) |        //PROM 1 clock
+    (prom_nce[0]<<10) |        //PROM 0 /chip_enable
+    (prom_oe[0] << 9) |        //PROM 0 output enable
+    (prom_clk[0]<< 8);         //PROM 0 clock
+  //
+  WriteRegister(vme_prom_adr,write_data);
+  //
+  // **Read the data from the selected PROM **
+  for (int prom_adr=0; prom_adr<number_of_addresses; prom_adr++) {
+    //
+    clocked_out_prom_image_.push_back(ReadRegister(vme_prom_adr) & 0xff);
+    //    (*MyOutput_) << "VME address " << std::hex << vme_prom_adr
+    //		 << ", read prom " << enabledProm 
+    //      		 << ", address " << prom_adr 
+    //    		 << ", data = " << clocked_out_prom_image_[prom_adr] 
+    //    		 << std::endl;
+    //
+    // ** Toggle the clock to advance the address **
+    prom_clk[enabledProm]=1;
+    write_data = 
+      (prom_src   <<14) |        //0=on-board led, 1=enabled PROM
+      (prom_nce[1]<<13) |        //PROM 1 /chip_enable
+      (prom_oe[1] <<12) |        //PROM 1 output enable
+      (prom_clk[1]<<11) |        //PROM 1 clock
+      (prom_nce[0]<<10) |        //PROM 0 /chip_enable
+      (prom_oe[0] << 9) |        //PROM 0 output enable
+      (prom_clk[0]<< 8);         //PROM 0 clock
+    WriteRegister(vme_prom_adr,write_data);
+    //
+    prom_clk[enabledProm]=0;
+    write_data = 
+      (prom_src   <<14) |        //0=on-board led, 1=enabled PROM
+      (prom_nce[1]<<13) |        //PROM 1 /chip_enable
+      (prom_oe[1] <<12) |        //PROM 1 output enable
+      (prom_clk[1]<<11) |        //PROM 1 clock
+      (prom_nce[0]<<10) |        //PROM 0 /chip_enable
+      (prom_oe[0] << 9) |        //PROM 0 output enable
+      (prom_clk[0]<< 8);         //PROM 0 clock
+    WriteRegister(vme_prom_adr,write_data);  
+  }
+  //
+  // ** Turn PROMs off **
+  prom_clk[enabledProm]=0;    //disable this one
+  prom_oe[enabledProm] =0;
+  prom_nce[enabledProm]=1;
+  //
+  prom_src=0;
+  //
+  write_data = 
+    (prom_src   <<14) |        //0=on-board led, 1=enabled PROM
+    (prom_nce[1]<<13) |        //PROM 1 /chip_enable
+    (prom_oe[1] <<12) |        //PROM 1 output enable
+    (prom_clk[1]<<11) |        //PROM 1 clock
+    (prom_nce[0]<<10) |        //PROM 0 /chip_enable
+    (prom_oe[0] << 9) |        //PROM 0 output enable
+    (prom_clk[0]<< 8);         //PROM 0 clock
+  
+  WriteRegister(vme_prom_adr,write_data);
+  //
+  return;
 }
 //
