@@ -104,6 +104,9 @@ if(status) continue;
         LOG4CPLUS_WARN (logger, "Total time: " << t1-t0);
 
 	LOG4CPLUS_WARN (logger, "Events: " << i);
+	plotter.testHistos("tests.log");
+	plotter.saveHistosBookingToXML("emuDQMBooking.xml");
+	plotter.saveCanvasesBookingToXML("emuDQMCanvases.xml");
 	plotter.save(histofile.c_str());
 	plotter.SaveImages("images", "png" , 1600, 1200);
 	ddu.close();

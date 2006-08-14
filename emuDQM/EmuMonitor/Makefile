@@ -27,7 +27,10 @@ Sources=\
         EmuMonitorV.cc \
 	EmuLocalPlotter.cc \
         EmuSaveHistoFile.cc \
+	EmuSaveCanvasesBookingToXML.cc \
+	EmuSaveHistosBookingToXML.cc \
 	EmuSaveHistoImages.cc \
+	EmuTestsHistos.cc \
         EmuBookCommon.cc \
 	EmuBookDDU.cc \
         EmuBookChamber.cc \
@@ -37,7 +40,8 @@ Sources=\
         CSCStripClusterFinder.cc \
         CSCStripClusterFitData.cc \
         CSCStripCluster.cc \
-        ClusterLocalMax.cc
+        ClusterLocalMax.cc \
+	XMLUtils.cc
 
 
 Executables = EmuMonitorTest.cpp MonitorTest.cpp
@@ -46,24 +50,26 @@ TestLibraries = xerces-c
 TestExecutables = xmlExample.cpp 
 
 ExternalObjects = \
-	$(CMSSW)/src/EventFilter/CSCRawToDigi/test/libCSCRawToDigi.a \
-        $(CMSSW)/src/DataFormats/CSCDigi/test/libCSCDigi.a \
+	$(XDAQ_ROOT)/$(Project)/emuDQM/CMSSWLibs/lib/libCSCRawToDigi.a \
+	$(XDAQ_ROOT)/$(Project)/emuDQM/CMSSWLibs/lib/libCSCDigi.a \
+	$(XDAQ_ROOT)/$(Project)/emuDQM/CMSSWLibs/lib/libQualityTests.a \
 	$(XDAQ_ROOT)/$(Project)/emuDQM/dduBinExaminer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libdduBinExaminer.a \
 	$(XDAQ_ROOT)/$(Project)/emuDQM/EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a 
 	# $(XDAQ_ROOT)/$(Project)/emuDAQ/DDUReadout/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libDDUReadout.a 
 
 IncludeDirs = $(XdaqIncludeDirs) \
+	$(XDAQ_ROOT)/$(Project)/emuDQM/CMSSWLibs \
 	$(XDAQ_ROOT)/$(Project)/$(Package)/../Common/include \
 	$(XDAQ_ROOT)/$(Project)/emuDQM/dduBinExaminer/include \
 	$(XDAQ_ROOT)/$(Project)/emuDAQ/emuReadout/include \
 	$(XDAQ_ROOT)/$(Project)/emuDAQ/emuReadout/ORCA \
-	$(CMSSW)/src \
+	$(CMSSW) \
 	$(XDAQ_ROOT)/$(Project) \
 	$(XDAQ_ROOT)/$(Project)/emuDQM/EmuROOTDisplayServer/include \
 	$(XDAQ_ROOT)/$(Project)/emuDQM/EmuDisplayServer/include \
 	$(XDAQ_ROOT)/$(Project)/emuDAQ/DDUReadout/include \
 	$(XDAQ_ROOT)/$(Project)/emuDAQ/GenericRUI/include \
-	$(HOME)/cms/lcg/external/boost/1.33.1/slc3_ia32_gcc323/include/boost-1_33_1
+	$(BOOST)
 
 
 LibraryDirs = $(XdaqLibraryDirs) \
@@ -74,10 +80,10 @@ LibraryDirs = $(XdaqLibraryDirs) \
 UserSourcePath = 
 
 UserCFlags = $(ROOTCFLAGS)
-UserCCFlags = $(ROOTCFLAGS)
-UserDynamicLinkFlags = $(ROOTLIBS)
-UserStaticLinkFlags =
-UserExecutableLinkFlags += $(ROOTCFLAGS)
+UserCCFlags = $(ROOTCFLAGS) 
+UserDynamicLinkFlags = $(ROOTLIBS) 
+UserStaticLinkFlags = 
+UserExecutableLinkFlags += $(ROOTCFLAGS) 
 
 # These libraries can be platform specific and
 # potentially need conditional processing
