@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.7 2006/08/14 13:45:12 rakness Exp $
+// $Id: ALCTController.cc,v 3.8 2006/08/14 16:47:40 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.8  2006/08/14 16:47:40  mey
+// Fixed ME1/3 bug
+//
 // Revision 3.7  2006/08/14 13:45:12  rakness
 // upgrade ALCTnew to accomodate ALCT 192/576
 //
@@ -498,11 +501,14 @@ chamb_type chamb_table[7] =
 {
         { ALCTController::ME11, ALCT288, 288}, // ME 1/1
         { ALCTController::ME12, ALCT384, 384}, // ME 1/2
-        { ALCTController::ME13, ALCT288, 192}, // ME 1/3
+        { ALCTController::ME13, ALCT288, 288}, // ME 1/3
+	//        { ALCTController::ME13, ALCT288, 192}, // ME 1/3
         { ALCTController::ME21, ALCT672, 672}, // ME 2/1
         { ALCTController::ME22, ALCT384, 384}, // ME 2/234
-        { ALCTController::ME31, ALCT672, 576}, // ME 3/1
-        { ALCTController::ME41, ALCT672, 576}, // ME 4/1
+        //{ ALCTController::ME31, ALCT672, 576}, // ME 3/1
+        //{ ALCTController::ME41, ALCT672, 576}, // ME 4/1
+        { ALCTController::ME31, ALCT672, 672}, // ME 3/1
+        { ALCTController::ME41, ALCT672, 672}, // ME 4/1
 };
 
 
