@@ -19,6 +19,7 @@
 #include <sstream>
 
 // == CMSSW Section
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "EventFilter/CSCRawToDigi/interface/CSCEventData.h"
 #include "EventFilter/CSCRawToDigi/interface/CSCALCTHeader.h"
 #include "EventFilter/CSCRawToDigi/interface/CSCALCTTrailer.h"
@@ -158,6 +159,9 @@ public:
 
   // static void saveproc(int sig);
   virtual void save(const char *filename);
+  virtual void testHistos(const char *filename);
+  virtual void saveHistosBookingToXML(const char *filename);
+  virtual void saveCanvasesBookingToXML(const char *filename);
   
   virtual unsigned int bin_check(unsigned char * data, int dataSize);
 

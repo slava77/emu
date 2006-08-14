@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include "TH1.h"
+#include "TObject.h"
+
 #include "TConsumerInfo.hh"
 #include "ConsumerCanvas.hh"
 

@@ -20,13 +20,14 @@ EmuLocalPlotter::EmuLocalPlotter()
   logger_(Logger::getInstance("EmuLocalPlotter"))
 {
   // EmuLocalPlotter::debug = false;
-//KK
+//KK	
 	bin_checker.output1().hide();
 	bin_checker.output2().hide();
 	bin_checker.crcALCT(true);
 	bin_checker.crcTMB (true);
 	bin_checker.crcCFEB(true);
 //KK end
+  edm::logger = logger_;
 }
 
 EmuLocalPlotter::EmuLocalPlotter(Logger logger)
@@ -52,6 +53,7 @@ EmuLocalPlotter::EmuLocalPlotter(Logger logger)
         bin_checker.crcTMB (true);
         bin_checker.crcCFEB(true);
 //KK end
+  edm::logger = logger_;
 }
 
 
