@@ -1,4 +1,4 @@
-// $Id: EmuRunControlHyperDAQ.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: EmuRunControlHyperDAQ.h,v 3.1 2006/08/14 16:48:10 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -57,6 +57,9 @@ public:
     xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageInitXRelay, "SendSOAPMessageInitXRelay");
     xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageConfigureXRelay, "SendSOAPMessageConfigureXRelay");
     xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageOpenFile, "SendSOAPMessageOpenFile");
+    xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageConnectTStore, "SendSOAPMessageConnectTStore");
+    //xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageDisconnectTStore, "SendSOAPMessageDisconnectTStore");
+    xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageQueryTStore, "SendSOAPMessageQueryTStore");
     //
   }  
   //
@@ -76,7 +79,7 @@ public:
 	 << cgicc::p() << std::endl ;
     //
     std::vector<xdaq::ApplicationDescriptor * >  descriptor =
-      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuCrateSOAP");
+      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
     //
     //
     vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
@@ -142,6 +145,22 @@ public:
     *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageOpenFile) << std::endl ;
     *out << cgicc::input().set("type","submit")
       .set("value","Send SOAP message : Open File") << std::endl ;
+    *out << cgicc::form();
+    //
+    std::string methodSOAPMessageConnectTStore =
+      toolbox::toString("/%s/SendSOAPMessageConnectTStore",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageConnectTStore) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Send SOAP message : Connect TStore") << std::endl ;
+    *out << cgicc::form();
+    //
+    std::string methodSOAPMessageQueryTStore =
+      toolbox::toString("/%s/SendSOAPMessageQueryTStore",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageQueryTStore) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Send SOAP message : Query TStore") << std::endl ;
     *out << cgicc::form();
     //
   }
@@ -236,6 +255,86 @@ public:
 		XCEPT_RETHROW (xgi::exception::Exception, "Cannot relay message", e);
       }
   }
+  //
+  void EmuRunControlHyperDAQ::SendSOAPMessageConnectTStore(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      std::cout << "Send SOAP message connect tstore" <<std::endl;
+      //
+      xoap::MessageReference msg = xoap::createMessage();
+      try {
+	xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
+	xoap::SOAPName msgName = envelope.createName( "connect", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
+	xoap::SOAPElement queryElement = envelope.getBody().addBodyElement ( msgName );
+	
+	xoap::SOAPName id = envelope.createName("id", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
+	queryElement.addAttribute(id, "myTStore");
+	xoap::SOAPName passwordName = envelope.createName("password", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
+	queryElement.addAttribute(passwordName, "alct2_emu");       
+      }
+      catch(xoap::exception::Exception& e) {
+	std::cout << "Got exception 1" <<std::endl;
+      }
+      
+      try {
+	xdaq::ApplicationDescriptor * tstoreDescriptor = getApplicationContext()->getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),400);
+	xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, tstoreDescriptor);
+	//
+	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	if (body.hasFault()) {
+	  std::cout << "No connection to TStore" <<std::endl;
+	}
+      } 
+      catch (xdaq::exception::Exception& e) {
+	std::cout << "Didn't find TStore" <<std::endl;
+      }
+      //
+      this->Default(in,out);      
+      //
+    }
+  //
+  void EmuRunControlHyperDAQ::SendSOAPMessageQueryTStore(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      std::cout <<"Send SOAP query" << std::endl;
+      //
+      xoap::MessageReference msg = xoap::createMessage();
+      try {
+  	xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
+  	xoap::SOAPName msgName = envelope.createName( "query", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
+  	xoap::SOAPElement queryElement = envelope.getBody().addBodyElement ( msgName );
+	//
+  	xoap::SOAPName id = envelope.createName("id", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
+  	queryElement.addAttribute(id, "myTStore");
+	//
+	//add the parameters to the message
+	queryElement.addNamespaceDeclaration("sql",  "urn:tstore-view-SQL");
+	xoap::SOAPName property = envelope.createName("name", "sql","urn:tstore-view-SQL");
+	queryElement.addAttribute(property, "simple");
+      }
+      catch(xoap::exception::Exception& e) {
+	std::cout << "Got exception 1" << std::endl;
+      }
+      
+      try {
+	xdaq::ApplicationDescriptor * tstoreDescriptor = getApplicationContext()->getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),400);
+	xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, tstoreDescriptor);
+	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	if (body.hasFault()) {
+	  std::cout << "Wrong query" << std::endl;
+	} else {
+	  std::cout <<"Good query" << std::endl;
+	}
+      } 
+      catch (xdaq::exception::Exception& e) {
+	std::cout << "Didn't find TStore" << std::endl;
+      }
+      //
+      this->Default(in,out);      
+      //
+    }
   //
   void EmuRunControlHyperDAQ::SendSOAPMessageOpenFile(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
