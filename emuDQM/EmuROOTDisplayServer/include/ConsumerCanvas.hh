@@ -11,8 +11,8 @@
 // RCS Current Revision Record
 //-----------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/include/ConsumerCanvas.hh,v $
-// $Revision: 1.3 $
-// $Date: 2006/06/16 20:58:02 $
+// $Revision: 1.4 $
+// $Date: 2006/08/14 13:29:17 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $
@@ -43,11 +43,16 @@ public:
   virtual void Divide(Int_t nx = 1, Int_t ny = 1, Float_t xmargin = 0.005, Float_t ymargin = 0.005, 
 		      Int_t color = 0);
   virtual TPad* GetPad(Int_t subpadnumber = 0);
+  int GetNumPads() const { return _n;}
+  int GetNumPadsX() const { return _nx;}
+  int GetNumPadsY() const { return _ny;}
 private:
   TPad** _pads;
   TPaveLabel *_title,*_counter;
   TConsumerInfo *_info;
   int _n;
+  int _nx;
+  int _ny;
 };
 
 #endif
