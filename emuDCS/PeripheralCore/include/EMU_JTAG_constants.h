@@ -167,11 +167,15 @@ const int ChipLocationAlctFastFpga=   0;
 const int OpcodeSizeAlctFastFpga  =   5;
 //
 const int RegSizeAlctFastFpga_RD_ID_REG                 =   40;
+const int RegSizeAlctFastFpga_RD_HOTCHAN_MASK_192       =  192;
 const int RegSizeAlctFastFpga_RD_HOTCHAN_MASK_288       =  288;
 const int RegSizeAlctFastFpga_RD_HOTCHAN_MASK_384       =  384;
+const int RegSizeAlctFastFpga_RD_HOTCHAN_MASK_576       =  576;
 const int RegSizeAlctFastFpga_RD_HOTCHAN_MASK_672       =  672;
+const int RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_192      =  192;
 const int RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_288      =  288;
 const int RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_384      =  384;
+const int RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_576      =  576;
 const int RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_672      =  672;
 const int RegSizeAlctFastFpga_RD_TRIG_REG               =    5;
 const int RegSizeAlctFastFpga_WRT_TRIG_REG              =    5;
@@ -179,17 +183,25 @@ const int RegSizeAlctFastFpga_RD_CONFIG_REG             =   69;
 const int RegSizeAlctFastFpga_WRT_CONFIG_REG            =   69;
 const int RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES      =  120;
 const int RegSizeAlctFastFpga_RD_ASIC_DELAY_LINES       =  121;   //first bit of this register is junk
+const int RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_192 =  112;
 const int RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_288 =  168;
 const int RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_384 =  224;
+const int RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_576 =  336;
 const int RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_672 =  392;
+const int RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_192=  112;
 const int RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_288=  168;
 const int RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_384=  224;
+const int RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_576=  336;
 const int RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_672=  392;
+const int RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_192 =    5;
 const int RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_288 =    5;
 const int RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_384 =    6;
+const int RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_576 =    9;
 const int RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_672 =    9;
+const int RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_192=    5;
 const int RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_288=    5;
 const int RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_384=    6;
+const int RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_576=    9;
 const int RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_672=    9;
 const int RegSizeAlctFastFpga_BYPASS                    =    1;
 //
@@ -422,9 +434,68 @@ const int write_rw_rpc_future_bithi              = 31;
 ////-------------------------------////
 //     ALCT constants                //
 ////-------------------------------////
+const int NUMBER_OF_WIRE_GROUPS_ME11   = 288;
+const int FAST_CONTROL_ALCT_TYPE_ME11  = 288;
+const int SLOW_CONTROL_ALCT_TYPE_ME11  = 288;
+//   
+const int NUMBER_OF_WIRE_GROUPS_ME12   = 384;
+const int FAST_CONTROL_ALCT_TYPE_ME12  = 384;
+const int SLOW_CONTROL_ALCT_TYPE_ME12  = 384;
+//
+const int NUMBER_OF_WIRE_GROUPS_ME13   = 192;
+const int FAST_CONTROL_ALCT_TYPE_ME13  = 192;
+const int SLOW_CONTROL_ALCT_TYPE_ME13  = 288;
+//
+const int NUMBER_OF_WIRE_GROUPS_ME21   = 672;
+const int FAST_CONTROL_ALCT_TYPE_ME21  = 672;
+const int SLOW_CONTROL_ALCT_TYPE_ME21  = 672;
+//
+const int NUMBER_OF_WIRE_GROUPS_ME22   = 384;
+const int FAST_CONTROL_ALCT_TYPE_ME22  = 384;
+const int SLOW_CONTROL_ALCT_TYPE_ME22  = 384;
+//
+const int NUMBER_OF_WIRE_GROUPS_ME31   = 576;
+const int FAST_CONTROL_ALCT_TYPE_ME31  = 576;
+const int SLOW_CONTROL_ALCT_TYPE_ME31  = 672;
+//
+const int NUMBER_OF_WIRE_GROUPS_ME32   = 384;
+const int FAST_CONTROL_ALCT_TYPE_ME32  = 384;
+const int SLOW_CONTROL_ALCT_TYPE_ME32  = 384;
+//
+const int NUMBER_OF_WIRE_GROUPS_ME41   = 576;
+const int FAST_CONTROL_ALCT_TYPE_ME41  = 576;
+const int SLOW_CONTROL_ALCT_TYPE_ME41  = 672;
+//
+const int NUMBER_OF_WIRE_GROUPS_ME42   = 384;
+const int FAST_CONTROL_ALCT_TYPE_ME42  = 384;
+const int SLOW_CONTROL_ALCT_TYPE_ME42  = 384;
+//
+const int NUMBER_OF_GROUPS_OF_DELAY_CHIPS_192   = RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_192 - 2; 
+const int NUMBER_OF_GROUPS_OF_DELAY_CHIPS_288   = RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_288 - 2; 
+const int NUMBER_OF_GROUPS_OF_DELAY_CHIPS_384   = RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_384 - 2; 
+const int NUMBER_OF_GROUPS_OF_DELAY_CHIPS_576   = RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_576 - 2; 
+const int NUMBER_OF_GROUPS_OF_DELAY_CHIPS_672   = RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_672 - 2; 
+//
+const int NUMBER_OF_AFEBS_288 = 18;   //=288/16
+const int LO_AFEB_INDEX_288   =  0;   
+const int HI_AFEB_INDEX_288   = 17;   
+//
+const int NUMBER_OF_AFEBS_384 = 24;   //=384/16
+const int LO_AFEB_INDEX_384   =  0;   
+const int HI_AFEB_INDEX_384   = 23;   
+//
+const int NUMBER_OF_AFEBS_576 = 42;   //=672/16
+const int LO_AFEB_INDEX_576   =  6;   
+const int HI_AFEB_INDEX_576   = 41;   
+//
+const int NUMBER_OF_AFEBS_672 = 42;   //=672/16
+const int LO_AFEB_INDEX_672   =  0;   
+const int HI_AFEB_INDEX_672   = 41;   
+//
 const int MAX_NUM_AFEBS = 42;
 const int MAX_NUM_LAYERS = 6;
 const int MAX_NUM_WIRES_PER_LAYER = 112;  // =672/6
+//
 //
 ////////////////////////////////////////
 // SetUpPulsing constants:

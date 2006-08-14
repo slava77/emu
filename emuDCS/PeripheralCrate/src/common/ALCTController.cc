@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.6 2006/08/11 16:23:33 rakness Exp $
+// $Id: ALCTController.cc,v 3.7 2006/08/14 13:45:12 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.7  2006/08/14 13:45:12  rakness
+// upgrade ALCTnew to accomodate ALCT 192/576
+//
 // Revision 3.6  2006/08/11 16:23:33  rakness
 // able to write TMB user prom from configure()
 //
@@ -6615,10 +6618,10 @@ void ALCTController::PrintTestpulseStripMask_() {
 }
 //
 void ALCTController::SetTestpulseStripMask_(int layer,
-					   int mask) {
+					    int mask) {
   //
   if (layer < 0 || layer >= MAX_NUM_LAYERS) {
-    (*MyOutput_) << "SetTestpulseStripMask: ERROR AFEB value must be between 0 and " 
+    (*MyOutput_) << "SetTestpulseStripMask: ERROR layer number must be between 0 and " 
 		 << std::dec << MAX_NUM_LAYERS-1 << std::endl;
     return;
   } 
@@ -6628,21 +6631,21 @@ void ALCTController::SetTestpulseStripMask_(int layer,
   return;
 }
 //
-int ALCTController::GetTestpulseStripMask_(int afeb) {
+int ALCTController::GetTestpulseStripMask_(int layer) {
   //
-  if (afeb < 0 || afeb >= MAX_NUM_LAYERS) {
-    (*MyOutput_) << "GetTestpulseStripMask: ERROR AFEB value must be between 0 and " 
+  if (layer < 0 || layer >= MAX_NUM_LAYERS) {
+    (*MyOutput_) << "GetTestpulseStripMask: ERROR layer number must be between 0 and " 
 		 << std::dec << MAX_NUM_LAYERS-1 << std::endl;
     return 999;
   } 
   //
-  return read_testpulse_stripmask_[afeb]; 
+  return read_testpulse_stripmask_[layer]; 
 }
 //
 void ALCTController::SetPowerUpTestpulseStripMask_() {
   //
-  for (int afeb=0; afeb<MAX_NUM_LAYERS; afeb++)
-    write_testpulse_stripmask_[afeb] = OFF;
+  for (int layer=0; layer<MAX_NUM_LAYERS; layer++)
+    write_testpulse_stripmask_[layer] = OFF;
   //
   return;
 }
@@ -6654,7 +6657,7 @@ void ALCTController::WriteAfebThresholds() {
   //
   (*MyOutput_) << "ALCT: WRITE afeb THRESHOLDS " << std::endl;
   //
-  for (int afebChannel=0; afebChannel<GetNumberOfAfebs(); afebChannel++) {
+  for (int afebChannel=GetLowestAfebIndex(); afebChannel<=GetHighestAfebIndex(); afebChannel++) {
     //
     // Mapping of AFEB channel picks chip through the opcode...
     int opcode = ALCT_SLOW_WRT_THRESH_DAC0 + afeb_dac_chip[afebChannel];
@@ -6685,7 +6688,7 @@ void ALCTController::ReadAfebThresholds() {
   //
   (*MyOutput_) << "ALCT: READ afeb THRESHOLDS " << std::endl;
   //
-  for (int afeb=0; afeb<GetNumberOfAfebs(); afeb++)
+  for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++)
     read_afeb_threshold_[afeb] = read_adc_(afeb_adc_chip[afeb],afeb_adc_channel[afeb]);
   //
   return;
@@ -6693,7 +6696,7 @@ void ALCTController::ReadAfebThresholds() {
 //
 void ALCTController::PrintAfebThresholds() {
   //
-  for (int afeb=0; afeb<GetNumberOfAfebs(); afeb++) 
+  for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++) 
     (*MyOutput_) << "Afeb " << std::dec << afeb
 		 << " write threshold DAC = " << GetAfebThresholdDAC(afeb)
 		 << " -> threshold ADC = " << GetAfebThresholdADC(afeb)
@@ -6711,10 +6714,11 @@ void ALCTController::SetAfebThreshold(int afebChannel, int dacvalue) {
     return;
   } 
   //
-  if (afebChannel >= GetNumberOfAfebs()) {
+  if ( afebChannel<GetLowestAfebIndex() || afebChannel>GetHighestAfebIndex()) {
     (*MyOutput_) << "SetAfebThreshold: ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 		 << "-> channel " << std::dec << afebChannel
-		 << " invalid ... must be between 0 and " << std::dec << GetNumberOfAfebs()-1 
+		 << " invalid ... must be between " << std::dec << GetLowestAfebIndex() 
+		 << " and " << std::dec << GetHighestAfebIndex() 
 		 << std::endl;
     return;
   } 
@@ -6849,12 +6853,14 @@ void ALCTController::PrintStandbyRegister_() {
   return;
 }
 //
-void ALCTController::SetStandbyRegister_(int afebChannel, int powerswitch) {
+void ALCTController::SetStandbyRegister_(int afebChannel, 
+					 int powerswitch) {
   //
-  if (afebChannel >= GetNumberOfAfebs()) {
+  if ( afebChannel<GetLowestAfebIndex() || afebChannel>GetHighestAfebIndex()) {
     (*MyOutput_) << "Set Standby Register: ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 		 << "-> channel " << std::dec << afebChannel
-		 << " invalid ... must be between 0 and " << std::dec << GetNumberOfAfebs()-1 
+		 << " invalid ... must be between " << std::dec << GetLowestAfebIndex() 
+		 << " and " << std::dec << GetHighestAfebIndex() 
 		 << std::endl;
     return;
   } 
@@ -7115,7 +7121,7 @@ void ALCTController::ReadDelayLineControlReg_() {
 }
 //
 void ALCTController::SetDelayLineGroupSelect_(int group,
-					     int mask){
+					      int mask){
   // Specify which group of delay chips you are talking to
   // bit = 1 = not enabled
   //     = 0 = enabled
@@ -7209,7 +7215,7 @@ void ALCTController::SetPowerUpDelayLineControlReg_(){
   SetDelayLineReset_(OFF);
   SetDelayLineSettst_(ON);                 //default for data taking
   for (int group=0; group<7; group++) 
-    SetDelayLineGroupSelect_(group,OFF);
+    write_delay_line_group_select_[group] = ~OFF & 0x1;
   //
   return;
 }
@@ -7423,10 +7429,11 @@ void ALCTController::SetAsicDelay(int afebChannel,
     return;
   } 
   //
-  if (afebChannel >= GetNumberOfAfebs()) {
+  if ( afebChannel<GetLowestAfebIndex() || afebChannel>GetHighestAfebIndex() ) {
     (*MyOutput_) << "SetAsicDelay: ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 		 << "-> channel " << std::dec << afebChannel
-		 << " invalid ... must be between 0 and " << std::dec << GetNumberOfAfebs()-1 
+		 << " invalid ... must be between " << std::dec << GetLowestAfebIndex() 
+		 << " and " << std::dec << GetHighestAfebIndex() 
 		 << std::endl;
     return;
   } 
@@ -7438,10 +7445,12 @@ void ALCTController::SetAsicDelay(int afebChannel,
 }
 //
 int ALCTController::GetAsicDelay(int afebChannel) {
-  if (afebChannel >= GetNumberOfAfebs()) {
+  //
+  if ( afebChannel<GetLowestAfebIndex() || afebChannel>GetHighestAfebIndex() ) {
     (*MyOutput_) << "GetAsicDelay: ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 		 << "-> channel " << std::dec << afebChannel
-		 << " invalid ... must be between 0 and " << std::dec << GetNumberOfAfebs()-1 
+		 << " invalid ... must be between " << std::dec << GetLowestAfebIndex() 
+		 << " and " << std::dec << GetHighestAfebIndex() 
 		 << std::endl;
     return 999;
   } 
@@ -7462,7 +7471,7 @@ void ALCTController::PrintAsicDelays() {
   (*MyOutput_) << "Asic delay values:" << std::endl;
   (*MyOutput_) << "AFEB   delay (2ns)" << std::endl;
   (*MyOutput_) << "----   -----------" << std::endl;
-  for (int afeb=0; afeb<GetNumberOfAfebs(); afeb++)
+  for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++)
     (*MyOutput_) << " " << std::dec << afeb << "     " << GetAsicDelay(afeb) << std::endl;
   //
   return;
@@ -7530,7 +7539,7 @@ void ALCTController::PrintAsicPatterns() {
   (*MyOutput_) << "READ Asic pattern for ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 	       << " (from right to left):" << std::endl;
   //
-  for (int layer=5; layer>=0; layer--) {
+  for (int layer=MAX_NUM_LAYERS-1; layer>=0; layer--) {
     (*MyOutput_) << "Layer " << std::dec << layer << " -> ";    
     //
     for (int char_counter=(GetNumberOfChannelsPerLayer()/8)-1; char_counter>=0; char_counter--) {
@@ -8219,21 +8228,21 @@ void ALCTController::SetHotChannelMask(int layer,
 //
 int ALCTController::GetHotChannelMask(int layer,
 				      int channel) {
-  if (layer < 1 || layer > 6) {
+  if (layer < 0 || layer >= MAX_NUM_LAYERS) {
     (*MyOutput_) << "SetHotChannelMask: layer " << layer 
-		 << "... must be between 1 and 6" << std::endl;
+		 << "... must be between 0 and " << MAX_NUM_LAYERS-1 << std::endl;
     return -1;
   }
-  if (channel < 1 || channel > GetNumberOfChannelsPerLayer()) {
+  if (channel < 0 || channel >= GetNumberOfChannelsPerLayer()) {
     (*MyOutput_) << "SetHotChannelMask: ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 		 << "-> channel " << std::dec << channel 
-		 << " invalid ... must be between 1 and " << std::dec << GetNumberOfChannelsPerLayer() 
+		 << " invalid ... must be between 0 and " << std::dec << GetNumberOfChannelsPerLayer()-1 
 		 << std::endl;
     return -1;
   }
   //
   //index in hot channel mask is determined by layer number and channel number within the layer:
-  int index = (layer-1) * GetNumberOfChannelsPerLayer() + channel - 1;
+  int index = layer * GetNumberOfChannelsPerLayer() + channel;
   //
   return read_hot_channel_mask_[index];
 }
@@ -8253,45 +8262,89 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
   //
   chamber_type_string_ = chamberType;
   NumberOfWireGroupsInChamber_ = 0;
+  NumberOfChannelsPerLayer_ = 0;
   //
   (*MyOutput_) << "Chamber is " << chamber_type_string_ << "->" << std::endl;
   //
   if (chamber_type_string_ == "ME11") {
-    NumberOfWireGroupsInChamber_ = 288;
-    SetAlctType_(288);
+    //
+    NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME11;
+    SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME11);
+    SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME11);
+    //
   } else if (chamber_type_string_ == "ME12") {
-    NumberOfWireGroupsInChamber_ = 384;
-    SetAlctType_(384);
+    //
+    NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME12;
+    SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME12);
+    SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME12);
+    //
   } else if (chamber_type_string_ == "ME13") {
-    NumberOfWireGroupsInChamber_ = 192;
-    SetAlctType_(288);
+    //
+    NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME13;
+    SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME13);
+    SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME13);
+    //
   } else if (chamber_type_string_ == "ME21") {
-    NumberOfWireGroupsInChamber_ = 672;
-    SetAlctType_(672);
+    //
+    NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME21;
+    SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME21);
+    SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME21);
+    //
   } else if (chamber_type_string_ == "ME22") {
-    NumberOfWireGroupsInChamber_ = 384;
-    SetAlctType_(384);
+    //
+    NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME22;
+    SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME22);
+    SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME22);
+    //
   } else if (chamber_type_string_ == "ME31") {
-    NumberOfWireGroupsInChamber_ = 576;
-    SetAlctType_(672);
+    //
+    NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME31;
+    SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME31);
+    SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME31);
+    //
   } else if (chamber_type_string_ == "ME32") {
-    NumberOfWireGroupsInChamber_ = 384;
-    SetAlctType_(384);
+    //
+    NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME32;
+    SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME32);
+    SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME32);
+    //
   } else if (chamber_type_string_ == "ME41") {
-    NumberOfWireGroupsInChamber_ = 576;
-    SetAlctType_(672);
+    //
+    NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME41;
+    SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME41);
+    SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME41);
+    //
   } else if (chamber_type_string_ == "ME42") {
-    NumberOfWireGroupsInChamber_ = 384;
-    SetAlctType_(384);
+    //
+    NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME42;
+    SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME42);
+    SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME42);
+    //
   }
   //
-  (*MyOutput_) << ". Number of Wire Groups in chamber = " << NumberOfWireGroupsInChamber_ 
-	       << std::hex << std::endl;
+  if (NumberOfChannelsInAlct_ == 0) {
+    //
+    (*MyOutput_) << "ALCTController: ERROR Invalid ALCT type " << chamber_type_string_ << std::endl;
+    //
+  } else {
+    //
+    NumberOfChannelsPerLayer_ = GetNumberOfWireGroupsInChamber() / MAX_NUM_LAYERS;
+    //
+    (*MyOutput_) << "........................ ALCT type = " << std::dec << GetNumberOfChannelsInAlct() << std::endl; 
+    (*MyOutput_) << "............ Number of Wire Groups = " << std::dec << GetNumberOfWireGroupsInChamber() << std::endl; 
+    (*MyOutput_) << "........ Number of Wires per layer = " << GetNumberOfChannelsPerLayer() << std::endl;
+    (*MyOutput_) << ".. Number of groups of delay chips =  " << GetNumberOfGroupsOfDelayChips() << std::endl; 
+    (*MyOutput_) << ".................. Number of AFEBs = " << GetNumberOfAfebs() << std::endl;
+    (*MyOutput_) << "........... Enabled AFEBs count from  " << GetLowestAfebIndex() << " to " << GetHighestAfebIndex() << std::endl;
+  }
   //
   return;
 }
 //
-void ALCTController::SetAlctType_(int type) {
+void ALCTController::SetFastControlAlctType_(int type_of_fast_control_alct) {
+  //
+  NumberOfChannelsInAlct_ = type_of_fast_control_alct;
+  NumberOfGroupsOfDelayChips_ = 0;
   //
   RegSizeAlctFastFpga_RD_HOTCHAN_MASK_ = 0;
   RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_ = 0;
@@ -8300,12 +8353,24 @@ void ALCTController::SetAlctType_(int type) {
   RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_ = 0;
   RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_ = 0;
   //
-  NumberOfChannelsInAlct_ = type;
-  NumberOfGroupsOfDelayChips_ = 0;
-  NumberOfAFEBs_ = 0;
-  NumberOfChannelsPerLayer_ = 0;
-  //
-  if (NumberOfChannelsInAlct_ == 288) {
+  if (NumberOfChannelsInAlct_ == 192) {
+    //
+    RegSizeAlctFastFpga_RD_HOTCHAN_MASK_ = 
+      RegSizeAlctFastFpga_RD_HOTCHAN_MASK_192; 
+    RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_ = 
+      RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_192;
+    RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_ = 
+      RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_192; 
+    RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_ =
+      RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_192; 
+    RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_ =
+      RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_192; 
+    RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_ =
+      RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_192; 
+    //
+    NumberOfGroupsOfDelayChips_ = NUMBER_OF_GROUPS_OF_DELAY_CHIPS_192;
+    //
+  } else if (NumberOfChannelsInAlct_ == 288) {
     //
     RegSizeAlctFastFpga_RD_HOTCHAN_MASK_ = 
       RegSizeAlctFastFpga_RD_HOTCHAN_MASK_288; 
@@ -8320,7 +8385,7 @@ void ALCTController::SetAlctType_(int type) {
     RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_ =
       RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_288; 
     //
-    NumberOfGroupsOfDelayChips_ = 3;
+    NumberOfGroupsOfDelayChips_ = NUMBER_OF_GROUPS_OF_DELAY_CHIPS_288;
     //
   } else if (NumberOfChannelsInAlct_ == 384) {
     //
@@ -8337,7 +8402,24 @@ void ALCTController::SetAlctType_(int type) {
     RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_ =
       RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_384; 
     //
-    NumberOfGroupsOfDelayChips_ = 4;    
+    NumberOfGroupsOfDelayChips_ = NUMBER_OF_GROUPS_OF_DELAY_CHIPS_384;
+    //
+  } else if (NumberOfChannelsInAlct_ == 576) {
+    //
+    RegSizeAlctFastFpga_RD_HOTCHAN_MASK_ = 
+      RegSizeAlctFastFpga_RD_HOTCHAN_MASK_576; 
+    RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_ = 
+      RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_576;
+    RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_ = 
+      RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_576; 
+    RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_ =
+      RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_576; 
+    RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_ =
+      RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_576; 
+    RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_ =
+      RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_576; 
+    //
+    NumberOfGroupsOfDelayChips_ = NUMBER_OF_GROUPS_OF_DELAY_CHIPS_576;
     //
   } else if (NumberOfChannelsInAlct_ == 672) {
     //
@@ -8354,24 +8436,37 @@ void ALCTController::SetAlctType_(int type) {
     RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_ =
       RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_672; 
     //
-    NumberOfGroupsOfDelayChips_ = 7;
+    NumberOfGroupsOfDelayChips_ = NUMBER_OF_GROUPS_OF_DELAY_CHIPS_672;
+    //
   }
   //
   if (NumberOfGroupsOfDelayChips_ == 0) {
     //
     (*MyOutput_) << "ALCTController: ERROR Invalid ALCT type " 
-		 << std::dec << type << std::endl;
+		 << std::dec << type_of_fast_control_alct << std::endl;
     NumberOfChannelsInAlct_ = 0;
-    //
-  } else {
-    //
-    NumberOfAFEBs_ = NumberOfChannelsInAlct_ / NUMBER_OF_LINES_PER_CHIP;
-    NumberOfChannelsPerLayer_ = NumberOfWireGroupsInChamber_ / MAX_NUM_LAYERS;
-    //
-    (*MyOutput_) << "........................ ALCT type = " << std::dec << NumberOfChannelsInAlct_ << std::endl; 
-    (*MyOutput_) << ".. Number of groups of delay chips =  " << NumberOfGroupsOfDelayChips_ << std::endl; 
-    (*MyOutput_) << ".................. Number of AFEBs = " << NumberOfAFEBs_ << std::endl;
-  }
+  } 
+  //
+  return;
+}
+void ALCTController::SetSlowControlAlctType_(int type_of_slow_control_alct) {
+  //
+  // As far as the slow control FPGA is concerned, the number of AFEBs 
+  // is tied to the number of asic chips physically on the board, which 
+  // is not necessarily the Fast Control ALCT type, or the number of
+  // wire groups in the chamber...:
+  //
+  NumberOfAFEBs_ = type_of_slow_control_alct / NUMBER_OF_LINES_PER_CHIP;
+  //
+  // If wanted, we can disable the lowest numbered AFEBs from being controlled by the
+  // user by enabling the following lower afeb index:
+  //lowest_afeb_index_ = GetNumberOfAfebs() - GetNumberOfChannelsInAlct() / NUMBER_OF_LINES_PER_CHIP;
+  //
+  // Here we enable the expert to control these afebs, even though they are not connected
+  // to any wires....:
+  lowest_afeb_index_ = 0;
+  //
+  highest_afeb_index_ = GetNumberOfAfebs() - 1;
   //
   return;
 }
