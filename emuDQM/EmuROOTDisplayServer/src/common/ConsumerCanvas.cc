@@ -11,8 +11,8 @@
 // RCS Current Revision Record
 //-----------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/src/common/ConsumerCanvas.cc,v $
-// $Revision: 1.2 $
-// $Date: 2006/03/09 00:17:06 $
+// $Revision: 1.3 $
+// $Date: 2006/08/14 13:29:18 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $
@@ -82,7 +82,9 @@ void ConsumerCanvas::Divide(Int_t nx, Int_t ny, Float_t xmargin, Float_t ymargin
   _pads = new TPad*[nx*ny];
   
   _n = 0;
-  
+  _nx = nx;
+  _ny = ny;
+ 
   for( iy=0 ; iy < ny ; ++iy) 
     {
       y2 = 0.95 - iy*dy - ymargin;
