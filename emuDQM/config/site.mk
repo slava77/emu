@@ -8,10 +8,13 @@
 #  Author: Holger Stoeck
 #  Modifications:
 #
-#  $Id: site.mk,v 1.1 2006/03/15 13:30:32 barvic Exp $
+#  $Id: site.mk,v 1.2 2006/08/14 13:23:10 barvic Exp $
 #
 #  Revision History
 #  $Log: site.mk,v $
+#  Revision 1.2  2006/08/14 13:23:10  barvic
+#  config changes for emuDQM
+#
 #  Revision 1.1  2006/03/15 13:30:32  barvic
 #  build files changes
 #
@@ -35,9 +38,12 @@
 # 
 #
 #################################################################
+
+
 EMU_ROOT = $(HOME)
 ORCA_DIR = $(HOME)/ORCA
-CMSSW	 = $(HOME)/CMSSW
+CMSSW	 = $(HOME)/CMSSW/src
+BOOST    = $(HOME)/cms/lcg/external/boost/1.33.1/slc3_ia32_gcc323/include/boost-1_33_1
 XDAQDIR    = $(XDAQ_DIR)
 XERDIR     = $(XER_DIR)
 HALDIR     = $(HAL_DIR)
