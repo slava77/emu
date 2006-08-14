@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.3 2006/08/08 16:38:27 rakness Exp $
+// $Id: ALCTController.h,v 3.4 2006/08/14 13:45:11 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.4  2006/08/14 13:45:11  rakness
+// upgrade ALCTnew to accomodate ALCT 192/576
+//
 // Revision 3.3  2006/08/08 16:38:27  rakness
 // ALCTnew: remove parameters not supported in firmware
 //
@@ -748,6 +751,8 @@ public:
   inline int GetNumberOfWireGroupsInChamber() { return NumberOfWireGroupsInChamber_; }
   inline int GetNumberOfChannelsPerLayer() { return NumberOfChannelsPerLayer_; }
   inline int GetNumberOfChannelsInAlct() { return NumberOfChannelsInAlct_; }
+  inline int GetLowestAfebIndex() { return lowest_afeb_index_; }
+  inline int GetHighestAfebIndex() { return highest_afeb_index_; }
   //
   void SetUpPulsing(int DAC_pulse_amplitude=255,     //DAC_pulse_amplitude = [0-255]
 		    int which_set=PULSE_AFEBS,       //which_set = [PULSE_LAYERS, PULSE_AFEBS]
@@ -981,23 +986,25 @@ private:
   void SetChamberCharacteristics_(std::string chamberType);
   std::string chamber_type_string_;  
   int NumberOfWireGroupsInChamber_;
+  int NumberOfChannelsPerLayer_;
   //
   ////////////////////////////////////////////////////////////////////
   // Private variables specific to the ALCT-type:                   //
   ////////////////////////////////////////////////////////////////////
-  void SetAlctType_(int type);
+  void SetFastControlAlctType_(int type_of_fast_control_alct);
   int NumberOfChannelsInAlct_;
   int NumberOfGroupsOfDelayChips_;
-  int NumberOfChipsPerGroup_;
-  int NumberOfLinesPerChip_;
-  int NumberOfAFEBs_;
-  int NumberOfChannelsPerLayer_;
   int RegSizeAlctFastFpga_RD_HOTCHAN_MASK_;
   int RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_;
   int RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_;
   int RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_;
   int RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_;
   int RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_;
+  //
+  void SetSlowControlAlctType_(int type_of_slow_control_alct);
+  int NumberOfAFEBs_;
+  int lowest_afeb_index_;
+  int highest_afeb_index_;
   //
   //////////////////////////////////////////////////////
   // Slow-control registers private variables:        //
