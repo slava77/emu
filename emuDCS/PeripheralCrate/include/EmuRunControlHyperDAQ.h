@@ -1,4 +1,4 @@
-// $Id: EmuRunControlHyperDAQ.h,v 3.2 2006/08/15 15:59:45 mey Exp $
+// $Id: EmuRunControlHyperDAQ.h,v 3.3 2006/08/15 16:22:56 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -134,6 +134,8 @@ public:
     //
     *out << cgicc::fieldset() ;
     //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    //
     std::string methodSOAPMessageInit =
       toolbox::toString("/%s/SendSOAPMessageInitXRelay",getApplicationDescriptor()->getURN().c_str());
     //
@@ -159,6 +161,10 @@ public:
       .set("value","Send SOAP message : Open File") << std::endl ;
     *out << cgicc::form();
     //
+    *out << cgicc::fieldset();
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    //
     std::string methodSOAPMessageConnectTStore =
       toolbox::toString("/%s/SendSOAPMessageConnectTStore",getApplicationDescriptor()->getURN().c_str());
     //
@@ -182,6 +188,8 @@ public:
     *out << cgicc::input().set("type","submit")
       .set("value","Send SOAP message : Query TStore") << std::endl ;
     *out << cgicc::form();
+    //
+    *out << cgicc::fieldset() ;
     //
   }
   //
