@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.10 2006/08/15 08:38:21 mey Exp $
+// $Id: ALCTController.cc,v 3.11 2006/08/15 14:16:50 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.11  2006/08/15 14:16:50  rakness
+// add collision mask reg/clean up configure output
+//
 // Revision 3.10  2006/08/15 08:38:21  mey
 // UPdate
 //
@@ -6088,7 +6091,7 @@ char *trim(char *str)
 //
 //
 ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
-  EMUjtag(tmb)
+  EMUjtag(tmb),debug_(false)
 {
   //
   MyOutput_ = &std::cout ;
@@ -6110,6 +6113,7 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   SetPowerUpAsicPatterns();
   SetPowerUpConfigurationReg();
   SetPowerUpHotChannelMask();
+  SetPowerUpCollisionPatternMask();
   //
   SetCheckJtagWrite(true);
   stop_read_ = false;
@@ -6288,21 +6292,29 @@ void ALCTController::configure() {
   dump << (int)tmb_->slot();
   //
   tmb_->SendOutput("ALCT : configure() in slot = "+dump.str(),"INFO");
-  (*MyOutput_) << "Configure ALCT..." << std::endl;
+  //
+  (*MyOutput_) << "Configuring ALCT" << std::dec << GetNumberOfChannelsInAlct() << "..." << std::endl; 
+  (*MyOutput_) << "............ Number of Wire Groups = " << std::dec << GetNumberOfWireGroupsInChamber() << std::endl; 
+  (*MyOutput_) << "........ Number of Wires per layer = " << GetNumberOfChannelsPerLayer() << std::endl;
+  (*MyOutput_) << ".. Number of groups of delay chips =  " << GetNumberOfGroupsOfDelayChips() << std::endl; 
+  (*MyOutput_) << "Number of collision pattern groups = " << GetNumberOfCollisionPatternGroups() << std::endl;
+  (*MyOutput_) << ".................. Number of AFEBs = " << GetNumberOfAfebs() << std::endl;
+  (*MyOutput_) << "........... Enabled AFEBs count from  " << GetLowestAfebIndex() << " to " << GetHighestAfebIndex() << std::endl;
   //
   ReadSlowControlId();
   PrintSlowControlId();
   //
   WriteTestpulsePowerSwitchReg_();
-  PrintTestpulsePowerSwitchReg_();
+  //  PrintTestpulsePowerSwitchReg_();
   //
   WriteTestpulseAmplitude_();
+  //  PrintTestpulseAmplitude_();
   //
   WriteTestpulseGroupMask_();
-  PrintTestpulseGroupMask_();
+  //  PrintTestpulseGroupMask_();
   //
   WriteTestpulseStripMask_();
-  PrintTestpulseStripMask_();
+  //  PrintTestpulseStripMask_();
   //
   WriteAfebThresholds();
   ReadAfebThresholds();
@@ -6316,20 +6328,23 @@ void ALCTController::configure() {
   PrintFastControlId();
   //
   WriteDelayLineControlReg_();
-  PrintDelayLineControlReg_();
+  //  PrintDelayLineControlReg_();
   //
   WriteTriggerRegister_();
-  PrintTriggerRegister_();
+  //  PrintTriggerRegister_();
   //
   WriteAsicDelaysAndPatterns();
   PrintAsicDelays();
-  PrintAsicPatterns();
+  //  PrintAsicPatterns();
   //
   WriteConfigurationReg();
   PrintConfigurationReg();
   //
   WriteHotChannelMask();
   PrintHotChannelMask();
+  //
+  WriteCollisionPatternMask();
+  //  PrintCollisionPatternMask();
   //
   return;
 }
@@ -6342,7 +6357,8 @@ void ALCTController::configure() {
 ///////////////////////
 void ALCTController::ReadSlowControlId() {
   //
-  (*MyOutput_) << "ALCT: READ slow control ID " << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: READ slow control ID " << std::endl;
   //
   setup_jtag(ChainAlctSlowFpga);
   //
@@ -6358,7 +6374,7 @@ void ALCTController::ReadSlowControlId() {
 //
 void ALCTController::PrintSlowControlId() {
   //
-  (*MyOutput_) << "ALCT READ: Slow Control chip ID = " << std::hex << GetSlowControlChipId()
+  (*MyOutput_) << "ALCT: Slow Control chip ID = " << std::hex << GetSlowControlChipId()
 	       << " version " << GetSlowControlVersionId()
 	       << ": day = " << GetSlowControlDay()
 	       << ", month = " << GetSlowControlMonth()
@@ -6391,7 +6407,8 @@ int ALCTController::GetSlowControlMonth() {
 //TESTPULSE POWERSWITCH REGISTER
 //////////////////////////////////
 void ALCTController::WriteTestpulsePowerSwitchReg_() {
-  (*MyOutput_) << "ALCT: WRITE testpulse POWERSWITCH" << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: WRITE testpulse POWERSWITCH " << write_testpulse_power_setting_ << std::endl;
   //
   setup_jtag(ChainAlctSlowFpga);
   //
@@ -6399,6 +6416,7 @@ void ALCTController::WriteTestpulsePowerSwitchReg_() {
 	      ALCT_SLOW_WRT_TESTPULSE_POWERDOWN,
 	      RegSizeAlctSlowFpga_WRT_TESTPULSE_POWERDOWN,
 	      &write_testpulse_power_setting_);
+  //
   usleep(100);
   //
   if ( GetCheckJtagWrite() ) {
@@ -6413,7 +6431,8 @@ void ALCTController::WriteTestpulsePowerSwitchReg_() {
 //
 void ALCTController::ReadTestpulsePowerSwitchReg_() {
   //
-  (*MyOutput_) << "ALCT: READ testpulse POWERSWITCH" << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: READ testpulse POWERSWITCH" << std::endl;
   //
   setup_jtag(ChainAlctSlowFpga);
   //
@@ -6455,8 +6474,9 @@ void ALCTController::SetPowerUpTestpulsePowerSwitchReg_() {
 //TESTPULSE AMPLITUDE REGISTER
 ////////////////////////////////
 void ALCTController::WriteTestpulseAmplitude_() {
-  (*MyOutput_) << "ALCT: WRITE testpulse AMPLITUDE = " 
-  	       << write_testpulse_amplitude_dacvalue_ << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: WRITE testpulse AMPLITUDE = " 
+		 << write_testpulse_amplitude_dacvalue_ << std::endl;
   //
   int dac[RegSizeAlctSlowFpga_WRT_TESTPULSE_DAC] = {};
   //
@@ -6475,6 +6495,13 @@ void ALCTController::WriteTestpulseAmplitude_() {
 	      RegSizeAlctSlowFpga_WRT_TESTPULSE_DAC,
 	      dac);
   usleep(100);
+  //
+  return;
+}
+//
+void ALCTController::PrintTestpulseAmplitude_() {
+  //
+  (*MyOutput_) << "ALCT: testpulse AMPLITUDE = " << write_testpulse_amplitude_dacvalue_ << std::endl;
   //
   return;
 }
@@ -6504,7 +6531,8 @@ void ALCTController:: SetPowerUpTestpulseAmplitude_() {
 ////////////////////////////////
 void ALCTController::WriteTestpulseGroupMask_() {
   //
-  (*MyOutput_) << "ALCT: WRITE testpulse GROUPMASK" << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: WRITE testpulse GROUPMASK" << std::endl;
   //
   setup_jtag(ChainAlctSlowFpga);
   //
@@ -6525,7 +6553,8 @@ void ALCTController::WriteTestpulseGroupMask_() {
 //
 void ALCTController::ReadTestpulseGroupMask_() {
   //
-  (*MyOutput_) << "ALCT: READ testpulse GROUPMASK" << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: READ testpulse GROUPMASK" << std::endl;
   //
   setup_jtag(ChainAlctSlowFpga);
   //
@@ -6582,7 +6611,8 @@ void ALCTController::SetPowerUpTestpulseGroupMask_() {
 /////////////////////////////////
 void ALCTController::WriteTestpulseStripMask_() {
   //
-  (*MyOutput_) << "ALCT: WRITE testpulse STRIPMASK" << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: WRITE testpulse STRIPMASK" << std::endl;
   //
   setup_jtag(ChainAlctSlowFpga);
   //
@@ -6603,7 +6633,8 @@ void ALCTController::WriteTestpulseStripMask_() {
 //
 void ALCTController::ReadTestpulseStripMask_() {
   //
-  (*MyOutput_) << "ALCT: READ testpulse STRIPMASK" << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: READ testpulse STRIPMASK" << std::endl;
   //
   setup_jtag(ChainAlctSlowFpga);
   //
@@ -6667,7 +6698,8 @@ void ALCTController::SetPowerUpTestpulseStripMask_() {
 //////////////////
 void ALCTController::WriteAfebThresholds() {
   //
-  (*MyOutput_) << "ALCT: WRITE afeb THRESHOLDS " << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: WRITE afeb THRESHOLDS " << std::endl;
   //
   for (int afebChannel=GetLowestAfebIndex(); afebChannel<=GetHighestAfebIndex(); afebChannel++) {
     //
@@ -6698,7 +6730,8 @@ void ALCTController::WriteAfebThresholds() {
 //
 void ALCTController::ReadAfebThresholds() {
   //
-  (*MyOutput_) << "ALCT: READ afeb THRESHOLDS " << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: READ afeb THRESHOLDS " << std::endl;
   //
   for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++)
     read_afeb_threshold_[afeb] = read_adc_(afeb_adc_chip[afeb],afeb_adc_channel[afeb]);
@@ -6709,11 +6742,12 @@ void ALCTController::ReadAfebThresholds() {
 void ALCTController::PrintAfebThresholds() {
   //
   for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++) 
-    (*MyOutput_) << "Afeb " << std::dec << afeb
-		 << " write threshold DAC = " << GetAfebThresholdDAC(afeb)
-		 << " -> threshold ADC = " << GetAfebThresholdADC(afeb)
-		 << " = " << GetAfebThresholdVolts(afeb) << " V" 
+    (*MyOutput_) << "AFEB " << std::dec << afeb
+		 << " threshold = " << GetAfebThresholdDAC(afeb)
 		 << std::endl;
+  //		 << " -> read threshold ADC = " << GetAfebThresholdADC(afeb)
+  //		 << " = " << GetAfebThresholdVolts(afeb) << " V" 
+  //		 << std::endl;
   return;
 }
 //
@@ -6805,7 +6839,8 @@ void ALCTController::SetPowerUpAfebThresholds() {
 ////////////////////////
 void ALCTController::WriteStandbyRegister_() {
   //
-  (*MyOutput_) << "ALCT: WRITE standby register" << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: WRITE standby register" << std::endl;
   //
   setup_jtag(ChainAlctSlowFpga);  
   //
@@ -6827,7 +6862,8 @@ void ALCTController::WriteStandbyRegister_() {
 //
 void ALCTController::ReadStandbyRegister_() {
   //
-  (*MyOutput_) << "ALCT: READ Standby Register" << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: READ Standby Register" << std::endl;
   //
   setup_jtag(ChainAlctSlowFpga);  
   //
@@ -6851,7 +6887,7 @@ void ALCTController::PrintStandbyRegister_() {
 		 RegSizeAlctSlowFpga_RD_STANDBY_REG,
 		 tempBuffer);
   //
-  (*MyOutput_) << "ALCT READ: Standby Register (right to left)= ";
+  (*MyOutput_) << "ALCT: Standby Register (right to left)= ";
   for (int i=buffersize; i>=0; i--) {
     if (i == buffersize) {
       (*MyOutput_) << std::hex << (tempBuffer[i] & 0x03) << " ";  //register is 42 bits long
@@ -6900,7 +6936,8 @@ void ALCTController::SetPowerUpStandbyRegister_() {
 //////////////////////////////
 void ALCTController::ReadFastControlId() {
   //
-  (*MyOutput_) << "ALCT: READ fast control ID " << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: READ fast control ID " << std::endl;
   //
   setup_jtag(ChainAlctFastFpga);
   //
@@ -6916,7 +6953,7 @@ void ALCTController::ReadFastControlId() {
 //
 void ALCTController::PrintFastControlId() {
   //
-  (*MyOutput_) << "ALCT READ: Fast Control chip ID = " << std::hex << GetFastControlChipId()
+  (*MyOutput_) << "ALCT: Fast Control chip ID = " << std::hex << GetFastControlChipId()
 	       << " version " << GetFastControlVersionId()
 	       << ": day = " << GetFastControlDay()
 	       << ", month = " << GetFastControlMonth()
@@ -6950,7 +6987,8 @@ int ALCTController::GetFastControlMonth() {
 ////////////////////////////////
 void ALCTController::WriteTriggerRegister_() {
   //
-  (*MyOutput_) << "ALCT: WRITE TRIGGER REGISTER" << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: WRITE TRIGGER REGISTER" << std::endl;
   //
   FillTriggerRegister_();
   //
@@ -6985,12 +7023,14 @@ void ALCTController::ReadTriggerRegister_() {
     read_trigger_reg_[i] = *(register_pointer+i);
   //
   //Print out control register value in hex
-  //  int scaler_trigger_reg = bits_to_int(trigger_reg_,
-  //				       RegSizeAlctFastFpga_RD_TRIG_REG,
-  //				       LSBfirst);
-  //  (*MyOutput_) << "ALCT: READ TRIGGER REGISTER = " 
-  //  	       << std::hex << scaler_trigger_reg << std::dec << std::endl;
-
+  if (debug_) {
+    int scaler_trigger_reg = bits_to_int(read_trigger_reg_,
+					 RegSizeAlctFastFpga_RD_TRIG_REG,
+					 LSBfirst);
+    (*MyOutput_) << "ALCT: READ TRIGGER REGISTER = " 
+		 << std::hex << scaler_trigger_reg << std::dec << std::endl;
+  }
+  //
   DecodeTriggerRegister_();
   //
   return;
@@ -7237,9 +7277,10 @@ void ALCTController::SetPowerUpDelayLineControlReg_(){
 ////////////////////////////////
 void ALCTController::WriteAsicDelaysAndPatterns() {
   //
-  (*MyOutput_) << "ALCT: WRITE asic DELAYS and PATTERNS for " 
-	       << GetNumberOfGroupsOfDelayChips() << " groups" 
-	       << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: WRITE asic DELAYS and PATTERNS for " 
+		 << GetNumberOfGroupsOfDelayChips() << " groups" 
+		 << std::endl;
   //
   SetPowerUpDelayLineControlReg_();         // reset the control register values
   //
@@ -7274,9 +7315,10 @@ void ALCTController::WriteAsicDelaysAndPatterns() {
 //
 void ALCTController::ReadAsicDelaysAndPatterns() {
   //
-  (*MyOutput_) << "ALCT: READ asic DELAYS and PATTERNS for " 
-	       << GetNumberOfGroupsOfDelayChips() << " groups" 
-	       << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: READ asic DELAYS and PATTERNS for " 
+		 << GetNumberOfGroupsOfDelayChips() << " groups" 
+		 << std::endl;
   //
   SetPowerUpDelayLineControlReg_();         // reset the control register values
   //
@@ -7299,7 +7341,8 @@ void ALCTController::ReadAsicDelaysAndPatterns() {
 void ALCTController::ReadAsicDelaysAndPatterns_(int group) {
   //N.B. Before using this method, you should already have selected the right
   // delay line control register values
-  (*MyOutput_) << "ALCT: READ asic DELAYS and PATTERNS for group " << group << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: READ asic DELAYS and PATTERNS for group " << group << std::endl;
   //
   setup_jtag(ChainAlctFastFpga);
   //
@@ -7480,7 +7523,7 @@ void ALCTController::SetPowerUpAsicDelays() {
 //
 void ALCTController::PrintAsicDelays() {
   //
-  (*MyOutput_) << "Asic delay values:" << std::endl;
+  (*MyOutput_) << "ASIC delay values:" << std::endl;
   (*MyOutput_) << "AFEB   delay (2ns)" << std::endl;
   (*MyOutput_) << "----   -----------" << std::endl;
   for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++)
@@ -7570,7 +7613,8 @@ void ALCTController::PrintAsicPatterns() {
 ////////////////////////////////
 void ALCTController::WriteConfigurationReg() {
   //
-  (*MyOutput_) << "ALCT: WRITE Configuration Register" << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: WRITE Configuration Register" << std::endl;
   //
   FillConfigurationReg_();
   //
@@ -7603,20 +7647,23 @@ void ALCTController::ReadConfigurationReg() {
   for (int i=0; i<RegSizeAlctFastFpga_RD_CONFIG_REG; i++)
     read_config_reg_[i] = *(register_pointer+i);
   //
-  //Print out configuration register in hex...
-  char configuration_register[RegSizeAlctFastFpga_RD_CONFIG_REG/8];
-  packCharBuffer(read_config_reg_,
-		 RegSizeAlctFastFpga_RD_CONFIG_REG,
-		 configuration_register);
-  //
-  (*MyOutput_) << "ALCT READ: configuration register = 0x";
-  for (int counter=RegSizeAlctFastFpga_RD_CONFIG_REG/8; counter>=0; counter--) 
-    (*MyOutput_) << std::hex
-		 << ((configuration_register[counter] >> 4) & 0xf) 
-		 << (configuration_register[counter] & 0xf);
-  (*MyOutput_) << std::endl;
+  if (debug_) {
+    //Print out configuration register in hex...
+    char configuration_register[RegSizeAlctFastFpga_RD_CONFIG_REG/8];
+    packCharBuffer(read_config_reg_,
+		   RegSizeAlctFastFpga_RD_CONFIG_REG,
+		   configuration_register);
+    //
+    (*MyOutput_) << "ALCT READ: configuration register = 0x";
+    for (int counter=RegSizeAlctFastFpga_RD_CONFIG_REG/8; counter>=0; counter--) 
+      (*MyOutput_) << std::hex
+		   << ((configuration_register[counter] >> 4) & 0xf) 
+		   << (configuration_register[counter] & 0xf);
+    (*MyOutput_) << std::endl;
+  }
   //
   DecodeConfigurationReg_();
+  //
   return;
 }
 //
@@ -8138,7 +8185,8 @@ void ALCTController::SetPowerUpConfigurationReg() {
 //////////////////////////////
 void ALCTController::WriteHotChannelMask() {
   //
-  (*MyOutput_) << "ALCT: WRITE hot channel mask" << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: WRITE hot channel mask" << std::endl;
   //
   setup_jtag(ChainAlctFastFpga);
   //
@@ -8161,7 +8209,8 @@ void ALCTController::WriteHotChannelMask() {
 //
 void ALCTController::ReadHotChannelMask() {
   //
-  (*MyOutput_) << "ALCT: READ hot channel mask (destructive), so write it back in:" << std::endl;
+  if (debug_)
+    (*MyOutput_) << "ALCT: READ hot channel mask (destructive), so write it back in:" << std::endl;
   //
   setup_jtag(ChainAlctFastFpga);
   //
@@ -8194,7 +8243,7 @@ void ALCTController::PrintHotChannelMask() {
   //
   int char_counter = RegSizeAlctFastFpga_RD_HOTCHAN_MASK_/8 - 1;
   //
-  (*MyOutput_) << "READ Hot Channel Mask for ALCT" << std::dec << GetNumberOfChannelsInAlct() 
+  (*MyOutput_) << "ALCT: Hot Channel Mask for ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 	       << " (from right to left):" << std::endl;
   //
   for (int layer=5; layer>=0; layer--) {
@@ -8263,6 +8312,158 @@ void ALCTController::SetPowerUpHotChannelMask() {
   //
   for (int channel=0; channel<RegSizeAlctFastFpga_RD_HOTCHAN_MASK_672; channel++)
     write_hot_channel_mask_[channel] = ON;
+  //
+  return;
+}
+//
+//////////////////////////////
+// COLLISION PATTERN MASK
+//////////////////////////////
+void ALCTController::WriteCollisionPatternMask() {
+  //
+  if (debug_)
+    (*MyOutput_) << "ALCT: WRITE Collision Pattern mask" << std::endl;
+  //
+  setup_jtag(ChainAlctFastFpga);
+  //
+  ShfIR_ShfDR(ChipLocationAlctFastFpga,
+  	      ALCT_FAST_WRT_COLLISION_MASK_REG,
+  	      RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_,
+	      write_collision_pattern_mask_reg_);
+  //
+  if ( GetCheckJtagWrite() && !stop_read_) {
+    ReadCollisionPatternMask();
+    CompareBitByBit(write_collision_pattern_mask_reg_,
+		    read_collision_pattern_mask_reg_,
+		    RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_);
+    stop_read_ = false;
+  }
+  //
+  return;
+}
+//
+void ALCTController::ReadCollisionPatternMask() {
+  //
+  if (debug_)
+    (*MyOutput_) << "ALCT: READ Collision Pattern mask (destructive), so write it back in:" << std::endl;
+  //
+  setup_jtag(ChainAlctFastFpga);
+  //
+  ShfIR_ShfDR(ChipLocationAlctFastFpga,
+	      ALCT_FAST_RD_COLLISION_MASK_REG,
+	      RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_);
+  //
+  int * register_pointer = GetDRtdo();
+  for (int i=0; i<RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_; i++)
+    read_collision_pattern_mask_reg_[i] = *(register_pointer+i);
+  //
+  //The read of the collision register is destructive, so it needs to be reloaded:
+  // avoid going into an infinite loop...
+  stop_read_ = true;
+  WriteCollisionPatternMask();
+  //
+  return;
+}
+//
+void ALCTController::PrintCollisionPatternMask() {
+  // Print out collision pattern mask for each wiregroup 
+  // for pattern A and pattern B
+  //
+  (*MyOutput_) << "READ Collision Pattern Mask for ALCT" << std::dec << GetNumberOfChannelsInAlct() << "..." << std::endl;
+  //
+  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
+    int bit_counter = 0;
+    int lo_wire_group_index = group*NUMBER_OF_WIREGROUPS_PER_COLLISION_PATTERN_GROUP;
+    int hi_wire_group_index = ( (group+1)*NUMBER_OF_WIREGROUPS_PER_COLLISION_PATTERN_GROUP ) - 1;
+    (*MyOutput_) << "Group " << std::dec << group 
+		 << ", covering wire groups " << std::dec << lo_wire_group_index 
+		 << " to " << hi_wire_group_index << " -> pattern A: " 
+		 << std::endl;
+    (*MyOutput_) << "    " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
+		 << std::endl;
+    (*MyOutput_) << "    " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
+		 << std::endl;
+    (*MyOutput_) << "    " << GetCollisionPatternMask(group,bit_counter++) << std::endl;
+    (*MyOutput_) << "  " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
+		 << std::endl;
+    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
+		 << std::endl;
+    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
+		 << std::endl;
+    //
+    (*MyOutput_) << "Group " << std::dec << group 
+		 << ", covering wire groups " << std::dec << lo_wire_group_index 
+		 << " to " << hi_wire_group_index << " -> pattern B: " 
+		 << std::endl;
+    (*MyOutput_) << "    " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
+		 << std::endl;
+    (*MyOutput_) << "    " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
+		 << std::endl;
+    (*MyOutput_) << "    " << GetCollisionPatternMask(group,bit_counter++) << std::endl;
+    (*MyOutput_) << "  " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
+		 << std::endl;
+    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
+		 << std::endl;
+    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
+		 << std::endl;
+  }
+  return;
+}
+//
+void ALCTController::SetCollisionPatternMask(int group,
+					     int bitInEnvelope,
+					     int on_or_off) {
+  if ( group < 0 || group >= GetNumberOfCollisionPatternGroups() ) {
+    (*MyOutput_) << "SetCollisionPatternMask: ALCT" << std::dec << GetNumberOfChannelsInAlct()  
+		 << "-> group " << group
+		 << "... must be between 0 and " << GetNumberOfCollisionPatternGroups() 
+		 << std::endl;
+    (*MyOutput_) << "Collision Pattern Mask Unchanged" << std::endl;
+    return;
+  }
+  if ( bitInEnvelope < 0 || bitInEnvelope >= NUMBER_OF_BITS_IN_COLLISION_MASK_PER_GROUP ) {
+    (*MyOutput_) << "SetCollisionPatternMask: ERROR bit " << std::dec << bitInEnvelope 
+		 << " invalid ... must be between 0 and " << std::dec << NUMBER_OF_BITS_IN_COLLISION_MASK_PER_GROUP-1
+		 << std::endl;
+    (*MyOutput_) << "Collision Pattern Mask Unchanged" << std::endl;
+    return;
+  }
+  //
+  //index in Collision Pattern mask is determined by group and whether it is the mask for pattern A or B:
+  int index = group * NUMBER_OF_BITS_IN_COLLISION_MASK_PER_GROUP + bitInEnvelope;
+  //
+  write_collision_pattern_mask_reg_[index] = on_or_off & 0x1;
+  //
+  return;
+}
+//
+int ALCTController::GetCollisionPatternMask(int group,
+					    int bitInEnvelope) {
+  if ( group < 0 || group >= GetNumberOfCollisionPatternGroups() ) {
+    (*MyOutput_) << "GetCollisionPatternMask: ERROR ALCT" << std::dec << GetNumberOfChannelsInAlct()  
+		 << "-> group " << group
+		 << " invalid ... must be between 0 and " << GetNumberOfCollisionPatternGroups() 
+		 << std::endl;
+    return -1;
+  }
+  if ( bitInEnvelope < 0 || bitInEnvelope >= NUMBER_OF_BITS_IN_COLLISION_MASK_PER_GROUP ) {
+    (*MyOutput_) << "GetCollisionPatternMask: ERROR bit " << std::dec << bitInEnvelope 
+		 << " invalid ... must be between 0 and " << std::dec << NUMBER_OF_BITS_IN_COLLISION_MASK_PER_GROUP-1
+		 << std::endl;
+    return -1;
+  }
+  //
+  //index in Collision Pattern mask is determined by group:
+  int index = group * NUMBER_OF_BITS_IN_COLLISION_MASK_PER_GROUP + bitInEnvelope;
+  //
+  return read_collision_pattern_mask_reg_[index];
+}
+//
+//
+void ALCTController::SetPowerUpCollisionPatternMask() {
+  //
+  for (int channel=0; channel<RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_672; channel++)
+    write_collision_pattern_mask_reg_[channel] = ON;
   //
   return;
 }
@@ -8346,6 +8547,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     (*MyOutput_) << "............ Number of Wire Groups = " << std::dec << GetNumberOfWireGroupsInChamber() << std::endl; 
     (*MyOutput_) << "........ Number of Wires per layer = " << GetNumberOfChannelsPerLayer() << std::endl;
     (*MyOutput_) << ".. Number of groups of delay chips =  " << GetNumberOfGroupsOfDelayChips() << std::endl; 
+    (*MyOutput_) << "Number of collision pattern groups = " << GetNumberOfCollisionPatternGroups() << std::endl;
     (*MyOutput_) << ".................. Number of AFEBs = " << GetNumberOfAfebs() << std::endl;
     (*MyOutput_) << "........... Enabled AFEBs count from  " << GetLowestAfebIndex() << " to " << GetHighestAfebIndex() << std::endl;
   }
@@ -8451,6 +8653,8 @@ void ALCTController::SetFastControlAlctType_(int type_of_fast_control_alct) {
     NumberOfGroupsOfDelayChips_ = NUMBER_OF_GROUPS_OF_DELAY_CHIPS_672;
     //
   }
+  //
+  NumberOfCollisionPatternGroups_ = type_of_fast_control_alct / MAX_NUM_LAYERS / 8;
   //
   if (NumberOfGroupsOfDelayChips_ == 0) {
     //
