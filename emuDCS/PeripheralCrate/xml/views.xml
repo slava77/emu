@@ -1,0 +1,19 @@
+<tstore:configuration xmlns:tstore="urn:xdaq-tstore:1.0" xmlns:sql="urn:tstore-view-SQL">
+	<tstore:view id="myTStore">
+		<tstore:maptype source="unsigned long" target="INTEGER" />
+		<tstore:maptype source="unsigned long" column="REALLY*" />
+
+		<tstore:maptype source="string" target="TIMESTAMP WITH TIME ZONE" column="L{0,4}TZ" format="DD-Mon-YYYY HH24:MI:SSXFF4 + TZH"/>
+		<tstore:maptype source="string" target="TIMESTAMP"/>
+		<tstore:connection dbname="devdb10" username="cms_alct"/>
+
+
+<sql:query name="myTest">
+               <sql:table name="EMU_CONFIG">
+               </sql:table>
+</sql:query>
+
+</tstore:view>
+
+</tstore:configuration>
+
