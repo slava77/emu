@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.8 2006/08/14 16:47:40 mey Exp $
+// $Id: ALCTController.cc,v 3.9 2006/08/15 08:21:43 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.9  2006/08/15 08:21:43  mey
+// Moved pretrig
+//
 // Revision 3.8  2006/08/14 16:47:40  mey
 // Fixed ME1/3 bug
 //
@@ -571,7 +574,7 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   alct_ext_trig_en_(0),
   alct_fifo_mode_(1),
   alct_send_empty_(0),
-  alct_fifo_pretrig_(7),
+  alct_fifo_pretrig_(8),
   alct_fifo_tbins_(10),
   alct_bxc_offset_(1),
   alct_drift_delay_(3),
