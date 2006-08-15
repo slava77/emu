@@ -22,8 +22,6 @@
 
 #include "vme_cmd.h"
 
-int pows(int n,int m);
-
 #define debugV 0
 
 /* register 1-7 special commands 0x10-rs 0x11-w feb power 0x12-r febpower */
@@ -250,9 +248,9 @@ if(ncmd>0){
        for(k=0;k<pcmd;k++){
        ppnt=ppnt+1;
        if(((tmp[0]>>k)&0x01)!=0){
-         if(ppnt<9){pow2=pows(2,ppnt-1);cmd2[0]=cmd2[0]+pow2;
+         if(ppnt<9){pow2=1<<(ppnt-1);cmd2[0]=cmd2[0]+pow2;
 	 /*printf(" k cmd %d %02x %d %d \n",k,cmd2[0],ppnt,pow2); */}
-         if(ppnt>8){pow2=pows(2,ppnt-9);cmd2[1]=cmd2[1]+pow2;} 
+         if(ppnt>8){pow2=1<<(ppnt-9);cmd2[1]=cmd2[1]+pow2;} 
        }
      }
    }
@@ -573,14 +571,6 @@ void VMEController::initDevice(int idev, int feuse) {
     break;
     //
   }
-}
-
-
-int pows(int n,int m)
-{int l,i;
-l=1;
- for(i=0;i<m;i++)l=l*n;
-return l;
 }
 
 
@@ -940,12 +930,11 @@ void VMEController::scan_alct(int reg,const char *snd, int cnt, char *rcv,int ir
  rcv2=(unsigned char *)rcv;
  data=(unsigned char *)snd;
 
-// Jinghua Liu:
-// If more than 290 bits, can't put them into a single packet,
-// need better algorithm later......
- buff_mode = (cnt>290)?3:1;
- //if (ird==0) buff_mode=1;
- if (ird==2) buff_mode=1;
+// Jinghua Liu on Aug-15-2006:
+// With the updated vme_controller() fucntion, it's now safe to
+// buffer many VME commands, including cross jumbo packet READs.
+ buff_mode = 1;
+
  //
    if (DEBUG) {
       printf("scan_alct: reg=%d, cnt=%d, ird=%d, Send %02x %02x\n", reg, cnt, ird, snd[0]&0xff, snd[1]&0xff);
@@ -1083,12 +1072,11 @@ void VMEController::scan_jtag(int reg,const char *snd, int cnt, char *rcv,int ir
  //cout << "TCK= " << TCK << std::endl;
  //cout << "TMS= " << TMS << std::endl;
 
-// Jinghua Liu:
-// If more than 290 bits, can't put them into a single packet,
-// need better algorithm later......
- buff_mode = (cnt>290)?3:1;
- //if (ird==0) buff_mode=1;
- if (ird==2) buff_mode=1;
+// Jinghua Liu on Aug-15-2006: 
+// With the updated vme_controller() fucntion, it's now safe to
+// buffer all VME commands, including cross jumbo packet READs.
+ buff_mode = 1;
+
  //
    if (DEBUG) {
       printf("scan_alct: reg=%d, cnt=%d, ird=%d, Send %02x %02x\n", reg, cnt, ird, snd[0]&0xff, snd[1]&0xff);
