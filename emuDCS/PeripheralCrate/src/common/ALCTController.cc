@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.9 2006/08/15 08:21:43 mey Exp $
+// $Id: ALCTController.cc,v 3.10 2006/08/15 08:38:21 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.10  2006/08/15 08:38:21  mey
+// UPdate
+//
 // Revision 3.9  2006/08/15 08:21:43  mey
 // Moved pretrig
 //
@@ -8107,19 +8110,19 @@ void ALCTController::SetPowerUpConfigurationReg() {
   SetInjectMode(0);
   SetBxcOffset(1);
   SetPretrigNumberOfLayers(2);
-  SetPretrigNumberOfPattern(4);
+  SetPretrigNumberOfPattern(2);
   SetDriftDelay(3);
-  SetFifoTbins(7);
-  SetFifoPretrig(1);
+  SetFifoTbins(10);
+  SetFifoPretrig(8);
   SetFifoMode(1);
   //  SetFifoLastLct(0); ->      no longer supported
-  SetL1aDelay(120);
+  SetL1aDelay(146);
   SetL1aWindowSize(3);
   SetL1aOffset(1);
   SetL1aInternal(0);
   SetBoardId(5);
   //  SetBxnOffset(0);   ->      no longer supported
-  SetCcbEnable(0);
+  SetCcbEnable(1);
   //  SetAlctJtagDs(1);  ->      no longer supported
   //  SetAlctTmode(0);   ->      no longer supported
   SetAlctAmode(0);
