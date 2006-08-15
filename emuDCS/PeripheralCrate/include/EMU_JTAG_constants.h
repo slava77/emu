@@ -480,22 +480,6 @@ const int NUMBER_OF_GROUPS_OF_DELAY_CHIPS_384   = RegSizeAlctFastFpga_WRT_DELAYL
 const int NUMBER_OF_GROUPS_OF_DELAY_CHIPS_576   = RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_576 - 2; 
 const int NUMBER_OF_GROUPS_OF_DELAY_CHIPS_672   = RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_672 - 2; 
 //
-const int NUMBER_OF_AFEBS_288 = 18;   //=288/16
-const int LO_AFEB_INDEX_288   =  0;   
-const int HI_AFEB_INDEX_288   = 17;   
-//
-const int NUMBER_OF_AFEBS_384 = 24;   //=384/16
-const int LO_AFEB_INDEX_384   =  0;   
-const int HI_AFEB_INDEX_384   = 23;   
-//
-const int NUMBER_OF_AFEBS_576 = 42;   //=672/16
-const int LO_AFEB_INDEX_576   =  6;   
-const int HI_AFEB_INDEX_576   = 41;   
-//
-const int NUMBER_OF_AFEBS_672 = 42;   //=672/16
-const int LO_AFEB_INDEX_672   =  0;   
-const int HI_AFEB_INDEX_672   = 41;   
-//
 const int MAX_NUM_AFEBS = 42;
 const int MAX_NUM_LAYERS = 6;
 const int MAX_NUM_WIRES_PER_LAYER = 112;  // =672/6
@@ -689,6 +673,13 @@ const int trigger_register_source_bithi    = 3;
 //
 const int trigger_register_invert_bitlo    = 4;
 const int trigger_register_invert_bithi    = 4;
+//
+//
+/////////////////////////////////////////////////////
+// Collision mask constants
+/////////////////////////////////////////////////////
+const int NUMBER_OF_BITS_IN_COLLISION_MASK_PER_GROUP = 28;
+const int NUMBER_OF_WIREGROUPS_PER_COLLISION_PATTERN_GROUP = 8;
 //
 //
 ////-------------------------------////

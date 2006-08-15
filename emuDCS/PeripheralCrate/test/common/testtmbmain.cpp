@@ -177,6 +177,8 @@ int main() {
 	      << std::endl;
     std::cout << "180: Read AFEB thresholds     181:Set AFEB threshold         189:Set power-up AFEB thresholds"
 	      << std::endl;
+    std::cout << "190: Read collision pattern   191:Set collision pattern      199:Set power-up collision pattern mask"
+	      << std::endl;
     std::cout << std::endl;
     //
     std::cout << "XSVF file handling" << std::endl;
@@ -528,6 +530,28 @@ int main() {
       alct->WriteAfebThresholds();      
       alct->ReadAfebThresholds();
       alct->PrintAfebThresholds();
+      break;
+    case 190:
+      alct->ReadCollisionPatternMask();
+      alct->PrintCollisionPatternMask();
+      break;
+    case 191:
+      std::cout << "Group: (0-13)" << std::endl;
+      std::cin >> layer;
+      std::cout << "Bit: (0-27)" << std::endl;
+      std::cin >> channel;
+      std::cout << "on/off (1/0) " << std::endl;
+      std::cin >> value;
+      alct->SetCollisionPatternMask(layer,channel,value);
+      alct->WriteCollisionPatternMask();      
+      alct->ReadCollisionPatternMask();
+      alct->PrintCollisionPatternMask();
+      break;
+    case 199:
+      alct->SetPowerUpCollisionPatternMask();
+      alct->WriteCollisionPatternMask();      
+      alct->ReadCollisionPatternMask();
+      alct->PrintCollisionPatternMask();
       break;
     case 200:
       thisTMB->configure();

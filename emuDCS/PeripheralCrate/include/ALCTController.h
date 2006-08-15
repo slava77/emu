@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.4 2006/08/14 13:45:11 rakness Exp $
+// $Id: ALCTController.h,v 3.5 2006/08/15 14:16:49 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.5  2006/08/15 14:16:49  rakness
+// add collision mask reg/clean up configure output
+//
 // Revision 3.4  2006/08/14 13:45:11  rakness
 // upgrade ALCTnew to accomodate ALCT 192/576
 //
@@ -753,6 +756,7 @@ public:
   inline int GetNumberOfChannelsInAlct() { return NumberOfChannelsInAlct_; }
   inline int GetLowestAfebIndex() { return lowest_afeb_index_; }
   inline int GetHighestAfebIndex() { return highest_afeb_index_; }
+  inline int GetNumberOfCollisionPatternGroups() { return NumberOfCollisionPatternGroups_; }
   //
   void SetUpPulsing(int DAC_pulse_amplitude=255,     //DAC_pulse_amplitude = [0-255]
 		    int which_set=PULSE_AFEBS,       //which_set = [PULSE_LAYERS, PULSE_AFEBS]
@@ -971,6 +975,23 @@ public:
   void WriteHotChannelMask();                   //writes Write values to ALCT
   void ReadHotChannelMask();                    //fills Read values with values read from ALCT
   //
+  //
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // COLLISION PATTERN MASK - Collision mask is set for 8 wiregroups at a time, e.g. group 0 = wires[0-7]
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////
+  void SetCollisionPatternMask(int group,                   // set Write values -> group = [0 - (GetNumberOfCollisionPatternGroups()-1)]
+			       int bitInEnvelope,           //                     bitInEnvelope = [0 - (NUMBER_OF_BITS_IN_COLLISION_MASK-1)]
+			       int on_or_off);              //                     on_or_off = [ON, OFF]
+  int  GetCollisionPatternMask(int group,                   // get Read values -> group = [0 - (GetNumberOfCollisionPatternGroups()-1)]
+			       int bitInEnvelope);          //                    bitInEnvelope = [0 - (NUMBER_OF_BITS_IN_COLLISION_MASK-1)]
+  //
+  void SetPowerUpCollisionPatternMask();               // sets Write values to data-taking defaults
+  void PrintCollisionPatternMask();                    // prints out Read values
+  //
+  //
+  void WriteCollisionPatternMask();                    //writes Write values to ALCT
+  void ReadCollisionPatternMask();                     //fills Read values with values read from ALCT
+  //
 protected:
   //
   //
@@ -978,6 +999,7 @@ private:
   //
   std::ostream * MyOutput_ ;
   TMB * tmb_ ;
+  bool debug_;
   //
   //
   ////////////////////////////////////////////////////////////////////
@@ -994,6 +1016,7 @@ private:
   void SetFastControlAlctType_(int type_of_fast_control_alct);
   int NumberOfChannelsInAlct_;
   int NumberOfGroupsOfDelayChips_;
+  int NumberOfCollisionPatternGroups_; 
   int RegSizeAlctFastFpga_RD_HOTCHAN_MASK_;
   int RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_;
   int RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_;
@@ -1039,6 +1062,7 @@ private:
   void SetTestpulseAmplitude_(int dacvalue);        // set Write values -> Voltage = 2.5V * dacvalue/256
   //
   void SetPowerUpTestpulseAmplitude_();             // sets Write values to data-taking defaults
+  void PrintTestpulseAmplitude_();
   //
   //
   void WriteTestpulseAmplitude_();               // writes Write values to ALCT
@@ -1172,6 +1196,9 @@ private:
   int read_hot_channel_mask_[RegSizeAlctFastFpga_RD_HOTCHAN_MASK_672];               //make this as large as it could possibly be
   bool stop_read_;                                                          // need this to stop JTAG checking from going to infinite loop
   //
+  int write_collision_pattern_mask_reg_[RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_672]; //make this as large as it could possibly be
+  int read_collision_pattern_mask_reg_[RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_672];  //make this as large as it could possibly be
+  //
   ///////////////////////////////////////////////////////////////////////////////
   // TESTPULSE TRIGGER REGISTER - specify which signal will fire the testpulse
   //////////////////////////////////////////////////////////////////////////////
@@ -1226,7 +1253,6 @@ private:
   //
   void SetPowerUpDelayLineControlReg_();              //sets Write values to data-taking defaults
   void PrintDelayLineControlReg_();                   //print out Read values
-  //
   //
   void WriteDelayLineControlReg_();                  //writes Write values to ALCT
   void ReadDelayLineControlReg_();                  //fills Read values with values read from ALCT
