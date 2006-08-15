@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: VMEController.h,v 3.1 2006/08/15 22:29:26 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 3.1  2006/08/15 22:29:26  liu
+// update LARGE READ
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -186,7 +189,8 @@ private:
   int nwbuf;
   char rbuf[9000];
   int nrbuf;
-
+  char spebuff[10240];
+  
   int max_buff;
   int tot_buff;
   /// previous fe used
@@ -218,10 +222,10 @@ private:
   void vme_adc(int ichp,int ichn,char *rcv);
   void buckflash(const char *cmd,const char *inbuf,char *rcv);
   void lowvolt(int ichp,int ichn,char *rcv);
-  void  scan_reset(int reg, const char *snd, int cnt2, char *rcv,int ird);
+  void scan_reset(int reg, const char *snd, int cnt2, char *rcv,int ird);
   void handshake_vme();
   void flush_vme();
-  void  daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int *buf,unsigned char *rcv);
+  void daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int *buf,unsigned char *rcv);
   void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
   void dump_outpacket(int nvme);
   int eth_reset(int ethsocket);

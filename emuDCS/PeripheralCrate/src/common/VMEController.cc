@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
+// $Id: VMEController.cc,v 3.1 2006/08/15 22:28:50 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.1  2006/08/15 22:28:50  liu
+// update LARGE READ
+//
 // Revision 3.0  2006/07/20 21:15:48  geurts
 // *** empty log message ***
 //
@@ -596,7 +599,7 @@ bool VMEController::SelfTest()
 
 bool VMEController::exist(int slot)
 { 
-   char tmp[2]={0, 0};
+   unsigned char tmp[2]={0, 0};
    bool v_return;
    unsigned short int tmp2[1]={0x0000}, *ptr;
 
@@ -606,10 +609,16 @@ bool VMEController::exist(int slot)
    if(slot%2==1 && slot!=13) add_ptr += 0x6024;
 
    ptr=(unsigned short int *)add_ptr;
-   vme_controller(2,ptr,tmp2,tmp);
+   vme_controller(2,ptr,tmp2,(char *)tmp);
+   if(DEBUG) printf("read back: %02X%02X\n", tmp[1]&0xff, tmp[0]&0xff);
+/*
    v_return=!error_count;
    clear_error();
    return v_return;
+*/
+   // When the controller's infor packet disabled, this is the only way,
+   // it may not be always reliable though.
+   return !(tmp[0]==0xAD && tmp[1]==0xBA);
 }
 
 void VMEController::disable_errpkt()
@@ -812,8 +821,8 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
      1 bufwrite 
      2 bufread snd  
      3 bufwrite snd 
-     4 flush to VME
-     5 loop back 
+     4 flush to VME (disabled)
+     5 loop back (disabled)
      6 delay
   */
   
@@ -826,9 +835,8 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
   const char delay_mask[8]={0,1,2,3,4,5,6,7};
   const char broadcast_addr[6]={0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
-  static unsigned short int LRG_read_flag=0;
-  static unsigned short int LRG_read_pnt=0;
-  static unsigned short int LRG_read_flag2=0;
+  int LRG_read_flag;
+  static unsigned int LRG_read_pnt=0;
 
   static int nvme;
   static int nread=0;
@@ -846,27 +854,42 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
   int size,nwrtn;
   int i;
   unsigned long int ptrt;
+
   static int istrt=0;  
+
 /* initialize */
   if(istrt==0){
     nwbuf=4;
     nvme=0;
     istrt=1;
   }
+ 
   // Jinghua Liu to debug
   if ( DEBUG ) {
-    printf("vme_control: %02x %08x",irdwr, (unsigned long int)ptr);
-    if(irdwr==1 || irdwr==3 || irdwr==6) printf(" %04X %04X", data[0], data[1]);
+    if(irdwr==6) 
+      printf("vme_control: %02x %04x%04x", irdwr, data[1], data[0]);
+    else
+    {
+      printf("vme_control: %02x %08x",irdwr, (unsigned long int)ptr);
+      if(irdwr==1 || irdwr==3) printf(" %04X",data[0]);
+    }
     printf("\n");
   }
   //
-  /* flush to vme */
-  if(irdwr==4){      
-    // printf(" flush to vme \n");
-    if(nvme==0)return;
-    irdwr=3;
-    goto Process;
-  }
+  /* flush to vme: disabled
+     1. If we know what's in the buffer, then "flush to vme"
+        is, at the best, a lazy approach. It only acts as a cover-up 
+        for some serious bugs in the code because the buffer 
+        should never be left unattended.
+     2. If we don't know what's in the buffer, then sending the buffer 
+        to vme is reckless.
+  */
+  if(irdwr==4) return;
+
+
+  // LOOP back to/from Controller , disabled.
+  // if(irdwr==5) {wbuf[0]=ACNLG_LOOP;wbuf[1]=LOOP_CNTRL;irdwr=2;}
+  if(irdwr==5) return;
 
   /* skip zero delay */
   if(irdwr==6 && data[0]==0 && data[1]==0) return;
@@ -883,13 +906,17 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
   // wbuf[0]=ACNLG;
   wbuf[0]=0x00;
   wbuf[1]=VME_CMDS;
-  // LOOP back to/from Controller
-  if(irdwr==5){/* printf(" controller loop back \n"); */ wbuf[0]=ACNLG_LOOP;wbuf[1]=LOOP_CNTRL;irdwr=2;}
+
   wbuf[nwbuf+0]=0x00;
+
   // VME Read/Write 
-  
-  if(irdwr==0||irdwr==2){wbuf[nwbuf+1]=a_mask[ATYPE]|r_mask|ts_mask[TSIZE]|tt_mask[TTYPE];nread=nread+ts_size[TSIZE];}
-  if(irdwr==1||irdwr==3){wbuf[nwbuf+1]=a_mask[ATYPE]|w_mask|ts_mask[TSIZE]|tt_mask[TTYPE];} 
+  if(irdwr==0||irdwr==2) {
+     wbuf[nwbuf+1]=a_mask[ATYPE]|r_mask|ts_mask[TSIZE]|tt_mask[TTYPE];
+     nread=nread+ts_size[TSIZE];
+  }
+  if(irdwr==1||irdwr==3) {
+     wbuf[nwbuf+1]=a_mask[ATYPE]|w_mask|ts_mask[TSIZE]|tt_mask[TTYPE];
+  } 
   if(irdwr<=3){
     wbuf[nwbuf+2]=0x00;
     // Jinghua Liu: 
@@ -909,20 +936,8 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
     // end byte swap
     if(irdwr==1||irdwr==3)nwbuf=nwbuf+8;
     if(irdwr==0||irdwr==2)nwbuf=nwbuf+6;   
-    /* check for overflow */
-    LRG_read_flag2=0;
-    if(nwbuf>MAX_DATA){
-      // printf(" nwbuf %d MAX_DATA %d \n",nwbuf,MAX_DATA);
-      LRG_read_flag2=1;
-       if(irdwr==1)irdwr=3;
-       if(irdwr==0)irdwr=2;
-       if(LRG_read_flag==0){
-         LRG_read_flag=1;    // turn on large read
-         LRG_read_pnt=0;
-         // printf(" large read flag on \n");
-       }
-    }
   } 
+
   // delay
   if(irdwr==6){
     // only use delay type 2 and 5 (in 16 ns)
@@ -942,15 +957,26 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
       nwbuf=nwbuf+6;
     }
     fpacket_delay=fpacket_delay+(data[0]+data[1]*65536)*DELAY2;
-//      if(delay_type==3)fpacket_delay=fpacket_delay+(*data)*DELAY3;
+    //  if(delay_type==3)fpacket_delay=fpacket_delay+(*data)*DELAY3;
+    irdwr=1;  // delay always acts like a buffered WRITE command.
   } 
+
+    /* check for overflow */
+    LRG_read_flag=0;
+    if(nwbuf>MAX_DATA && (irdwr==1 || irdwr==0)){
+       if(DEBUG){
+          printf("Jumbo packet limit reached: %d, forced sending\n", nwbuf);
+       }
+       if(nread>0) LRG_read_flag=1;
+       irdwr += 2;
+    }
+
   /* write VME commands to vme */
- Process:
+
   if(irdwr==2||irdwr==3){
-    if(nread>0&&wbuf[1]!=0x1f)wbuf[0]=ACNLG;
+    if(nread>0) wbuf[0]=ACNLG;
     wbuf[2]=(nvme&0xff00)>>8;
     wbuf[3]=nvme&0xff;
-    if(PACKETOUTDUMP!=0)dump_outpacket(nvme);
     nwrtn=eth_write();
     //
     packet_delay=fpacket_delay+1;
@@ -974,8 +1000,18 @@ READETH:
     nrbuf=nread;
     size=eth_read();
     if(size<10)
-         {  printf(" no data read back \n");
-            system("cat /proc/sys/dev/schar/0");
+         {  printf(" ERROR: no data read back \n\n");
+            int schar_status=ioctl(theSocket,SCHAR_INQR);
+            if(schar_status!=-1) {
+              printf("   schar driver status:\n");
+              printf("      pack_left\t\t%d\n", schar_status&0xffff);
+              printf("      end_cond\t\t%d\n", (schar_status>>16)&0xf);
+              printf("      wake_cond\t\t%d\n", (schar_status>>20)&0xf);
+              printf("      wake_stat\t\t%d\n", (schar_status>>24)&0xf);
+              printf("      err_count\t\t%d\n", (schar_status>>28)&0xf);
+            } else {
+              printf(" failed to inquire schar driver status\n");
+            }
             exit(0);
          }
 // Jinghua Liu to debug
@@ -1018,31 +1054,42 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
              error_type=(r_datat[0]&0xf0)>>4;
              if(error_type==0) error_type=16;
              error_count++;
-             if(DEBUG) fprintf(stderr, "Error packet: type: %d\n", return_type);
+             if(DEBUG) printf("Error packet: type: %d\n", return_type);
 //
 // Need to discard all error packets!
-// In the case of multuple VME commands in one packet, it can be
+// In the case of multiple VME commands in one packet, it can be
 // very complicated. Have to deal with that later. Jinghua Liu 5/5/2006.
 //
              goto READETH;
           }
           else
-            fprintf(stderr, "Error: wrong return data type: %d \n", return_type);
+             printf("Error: wrong return data type: %d \n", return_type);
           return;
        }
 
-
-// Jinghua Liu: add the byte swap back:
-    for(i=0;i<r_num;i++){rcv[2*i+LRG_read_pnt]=r_datat[2*i+1];rcv[2*i+1+LRG_read_pnt]=r_datat[2*i];}
-//    for(i=0;i<r_num;i++){rcv[2*i+LRG_read_pnt]=r_datat[2*i];rcv[2*i+1+LRG_read_pnt]=r_datat[2*i+1];}
-//end byte swap
-
-    if(LRG_read_flag==1)LRG_read_pnt=LRG_read_pnt+2+2*r_num-2;
-  ENDL: 
-    if(LRG_read_flag2==0){
-      LRG_read_flag=0;     // turn off large read
-      LRG_read_pnt=0;
-      // printf(" large read flag off %d \n",nwbuf);
+    if(LRG_read_flag>0) 
+    {  // forced read, store the data in the special buffer
+// Jinghua Liu: byte swap!!!
+       for(i=0;i<r_num;i++)
+       {  spebuff[2*i+LRG_read_pnt]=r_datat[2*i+1];
+          spebuff[2*i+1+LRG_read_pnt]=r_datat[2*i];
+       }
+       LRG_read_pnt += 2*r_num;  //data in special buffer
+       if(DEBUG){
+           printf("LARGE READ: %d bytes stored in the special buffer\n", 2*r_num);
+       }
+    }
+    else 
+    {  // normal read, first check the speciall buffer, then from VME
+       if(LRG_read_pnt)
+       {  memcpy(rcv, spebuff, LRG_read_pnt);
+       }
+// Jinghua Liu: byte swap!!!
+       for(i=0;i<r_num;i++)
+       {  rcv[2*i+LRG_read_pnt]=r_datat[2*i+1];
+          rcv[2*i+1+LRG_read_pnt]=r_datat[2*i];
+       }
+       LRG_read_pnt=0;   // after normal read, always turn off LARGE_read
     }
     nread=0;
   }
