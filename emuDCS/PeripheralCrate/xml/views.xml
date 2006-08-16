@@ -8,8 +8,13 @@
 		<tstore:connection dbname="devdb10" username="cms_alct"/>
 
 
-<sql:query name="myTest">
+<sql:query name="myTable1">
                <sql:table name="EMU_CONFIG">
+               </sql:table>
+</sql:query>
+
+<sql:query name="myTable2">
+               <sql:table name="PERIPH_CRATE">
                </sql:table>
 </sql:query>
 
