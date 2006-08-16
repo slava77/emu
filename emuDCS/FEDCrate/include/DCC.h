@@ -42,6 +42,7 @@ public:
   void mctrl_reg(char *c);
   unsigned short int  mctrl_stath();
   unsigned short int  mctrl_statl();
+  unsigned short int  mctrl_ratemon(int address);
   unsigned short int  mctrl_rd_fifoinuse();
   unsigned short int  mctrl_rd_ttccmd();
   void mctrl_ttccmd(unsigned short int ctcc);
