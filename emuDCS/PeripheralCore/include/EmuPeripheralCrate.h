@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.10 2006/08/10 15:46:30 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.11 2006/08/16 16:45:40 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -130,6 +130,8 @@ protected:
   ostringstream OutputDMBTests[10];
   ostringstream OutputTMBTests[10];
   std::vector <float> ChartData[100];
+  int TMBTriggerAlct0Key[200][9];
+  int TMBTriggerAlct1Key[200][9];
   //
   int TMBRegisterValue_;
   int CCBRegisterValue_;
@@ -159,6 +161,8 @@ protected:
   vector<int> CfebDavCounter_;
   vector<int> TmbDavCounter_;
   vector<int> AlctDavCounter_;
+  //
+  
   //
   EmuSystem * emuSystem_;
   //
@@ -221,6 +225,8 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::getData19, "getData19");
     xgi::bind(this,&EmuPeripheralCrate::getData20, "getData20");
     xgi::bind(this,&EmuPeripheralCrate::getData21, "getData21");
+    xgi::bind(this,&EmuPeripheralCrate::getDataTMBTriggerAlct0Key, "getDataTMBTriggerAlct0Key");
+    xgi::bind(this,&EmuPeripheralCrate::getDataTMBTriggerAlct1Key, "getDataTMBTriggerAlct1Key");
     //
     xgi::bind(this,&EmuPeripheralCrate::EnableDisableDebug, "EnableDisableDebug");
     xgi::bind(this,&EmuPeripheralCrate::LoadTMBFirmware, "LoadTMBFirmware");
@@ -2022,9 +2028,7 @@ private:
   void EmuPeripheralCrate::MonitorFrameRight(xgi::Input * in, xgi::Output * out) 
     throw (xgi::exception::Exception){
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    MyHeader(in,out,"Monitor");
     //
     for(int counter=0; counter<22; counter++) {
       //
@@ -2070,6 +2074,92 @@ private:
   void EmuPeripheralCrate::MonitorTMBTrigger(xgi::Input * in, xgi::Output * out) 
     throw (xgi::exception::Exception){
     //
+    //MyHeader(in,out,"MonitorTMBTrigger");
+    //
+    cgicc::CgiEnvironment cgiEnvi(in);
+    //
+    std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+    //
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"2; URL=/"
+         <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+    } else {
+      cout << "Not tmb" << endl ;
+    }
+    //
+    TMB * thisTMB = tmbVector[tmb];
+    //
+    int oldValue=0;
+    //
+    for(int loop=0; loop<1000; loop++){
+      //
+      thisTMB->DecodeALCT();
+      //
+      ::usleep(100);
+      //
+      if ( thisTMB->GetAlct0FirstKey() != oldValue ) {
+	oldValue = thisTMB->GetAlct0FirstKey();
+	if(thisTMB->GetAlct0FirstKey()>0) TMBTriggerAlct0Key[thisTMB->GetAlct0FirstKey()][tmb]++;
+	if(thisTMB->GetAlct1SecondKey()>1)TMBTriggerAlct1Key[thisTMB->GetAlct1SecondKey()][tmb]++;
+      }
+      //
+    }
+    //
+    this->MonitorTMBTriggerDisplay(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::MonitorTMBTriggerDisplay(xgi::Input * in, xgi::Output * out) 
+    throw (xgi::exception::Exception){
+    //
+    //MyHeader(in,out,"MonitorTMBTrigger");
+    //
+    *out << "<HTML>" <<std::endl;
+    *out << "<BODY bgcolor=\"#FFFFFF\">" <<std::endl;
+    *out << "<OBJECT classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0\" WIDTH=\"565\" HEIGHT=\"420\" id=\"FC_2_3_Column3D\">" <<std::endl;
+    *out << "<PARAM NAME=movie VALUE=\"/daq/extern/FusionCharts/Charts/FC_2_3_Column3D.swf\">" <<std::endl;
+    //
+    ostringstream output;
+    output << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData" << "TMBTriggerAlct0Key" << "&chartWidth=565&chartHeight=420"<<"\">"<<std::endl;
+    //
+    //std::cout << output.str() << std::endl;
+    *out << output.str() << std::endl ;
+    *out << "<PARAM NAME=quality VALUE=high>" << std::endl ;
+    *out << "<PARAM NAME=bgcolor VALUE=#FFFFFF>" << std::endl ;
+    //
+    ostringstream output2;
+    output2 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_Column3D.swf\" FlashVars=\"&dataURL=getData"<< "TMBTriggerAlct0Key"<<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_Column3D\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
+    //
+    *out << output2.str() << std::endl;
+    //
+    *out << "</OBJECT>" << std::endl;
+    //
+    *out << "<OBJECT classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0\" WIDTH=\"565\" HEIGHT=\"420\" id=\"FC_2_3_Column3D\">" <<std::endl;
+    *out << "<PARAM NAME=movie VALUE=\"/daq/extern/FusionCharts/Charts/FC_2_3_Column3D.swf\">" <<std::endl;
+    //
+    ostringstream output3;
+    output3 << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData" << "TMBTriggerAlct1Key" << "&chartWidth=565&chartHeight=420"<<"\">"<<std::endl;
+    //
+    //std::cout << output.str() << std::endl;
+    *out << output3.str() << std::endl ;
+    *out << "<PARAM NAME=quality VALUE=high>" << std::endl ;
+    *out << "<PARAM NAME=bgcolor VALUE=#FFFFFF>" << std::endl ;
+    //
+    ostringstream output4;
+    output4 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_Column3D.swf\" FlashVars=\"&dataURL=getData"<< "TMBTriggerAlct1Key"<<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_Column3D\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
+    //
+    *out << output4.str() << std::endl;
+    //
+    *out << "</OBJECT>" << std::endl;
+    //
+    *out << "</BODY>" << std::endl;
+    *out << "</HTML>" << std::endl;
     //
   }
   //
@@ -2418,6 +2508,34 @@ private:
     *out << "</HTML>" << std::endl;
     //
   }
+  //
+  void EmuPeripheralCrate::getDataTMBTriggerAlct0Key(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+    {
+      //
+      *out << "<graph caption='ALCT0 key wire group' subcaption='' xAxisName='ALCT0 wire group' yAxisName='Event' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+      //
+      for(unsigned int i=0;i<200;i++) {
+	ostringstream output;
+	output << "<set name='" << i <<"'"<< " value='" << TMBTriggerAlct0Key[i][0] << "'" << " />" << std::endl;
+	*out << output.str() << std::endl ;
+	//std::cout << output.str() << std::endl ;
+      }
+      *out << "</graph>" << std::endl;    
+    }
+  //
+  void EmuPeripheralCrate::getDataTMBTriggerAlct1Key(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+    {
+      //
+      *out << "<graph caption='ALCT1 key wire group' subcaption='' xAxisName='ALCT1 wire group' yAxisName='Event' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+      //
+      for(unsigned int i=0;i<200;i++) {
+	ostringstream output;
+	output << "<set name='" << i <<"'"<< " value='" << TMBTriggerAlct1Key[i][0] << "'" << " />" << std::endl;
+	*out << output.str() << std::endl ;
+	//std::cout << output.str() << std::endl ;
+      }
+      *out << "</graph>" << std::endl;    
+    }
   //
   void EmuPeripheralCrate::getData0(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {

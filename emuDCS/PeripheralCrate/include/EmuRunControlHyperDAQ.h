@@ -1,4 +1,4 @@
-// $Id: EmuRunControlHyperDAQ.h,v 3.3 2006/08/15 16:22:56 mey Exp $
+// $Id: EmuRunControlHyperDAQ.h,v 3.4 2006/08/16 16:46:06 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -383,7 +383,7 @@ public:
 	//add the parameters to the message
 	queryElement.addNamespaceDeclaration("sql",  "urn:tstore-view-SQL");
 	xoap::SOAPName property = envelope.createName("name", "sql","urn:tstore-view-SQL");
-	queryElement.addAttribute(property, "myTest");
+	queryElement.addAttribute(property, "myTable1");
       }
       catch(xoap::exception::Exception& e) {
 	std::cout << "Got exception 1" << std::endl;
