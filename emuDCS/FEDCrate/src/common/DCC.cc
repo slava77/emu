@@ -225,6 +225,20 @@ unsigned short int rcvr=0;
      return rcvr;
 }
 
+unsigned short int DCC::mctrl_ratemon(int vaddress)
+{
+unsigned short int rcvr=0;
+     cmd[0]=0x01;  // fcn 0x00-write 0x01-read
+     cmd[1]=(0x10) + (vaddress&0x0f);  // vme add
+     cmd[2]=0xff;  // data h
+     cmd[3]=0xff;  // data l
+     devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
+     printf(" Data rate %02x %02x \n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
+     rcvr=((rcvbuf[1]<<8)&0xff00)|(rcvbuf[0]&0x00ff);
+     return rcvr;
+}
+
+
 void DCC::mctrl_ttccmd(unsigned short int ctcc)
 {
 unsigned short int tmp;

@@ -622,7 +622,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
   {
     unsigned long int idcode,uscode;
     unsigned long int tidcode[8]={0x2124a093,0x31266093,0x31266093,0x05036093,0x05036093,0x05036093,0x05036093,0x05036093};
-    unsigned long int tuscode[8]={0xcf036a01,0xdf022a03,0xdf022a03,0xb0017a01,0xc036dd99,0xc136dd99,0xd0022a03,0xd1022a03};
+    unsigned long int tuscode[8]={0xcf036a02,0xdf022a03,0xdf022a03,0xb0017a01,0xc036dd99,0xc136dd99,0xd0022a03,0xd1022a03};
 
     printf(" entered DDUFirmware \n");
     cgicc::Cgicc cgi(in);
@@ -3732,8 +3732,8 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
     *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
     *out << std::endl;
     *out << cgicc::legend(buf).set("style","color:blue")  << std::endl;
-
-    for(int i=100;i<107;i++){
+    int igu;
+    for(int i=100;i<108;i++){
       thisDCC->CAEN_err_reset();
       sprintf(buf3," ");
       if(i==100){
@@ -3741,6 +3741,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
            unsigned short int statusl=thisDCC->mctrl_statl();
            sprintf(buf,"Status:");
            sprintf(buf2," H: %04X L: %04X ",statush,statusl);
+           
       }
       if(i==101){
            sprintf(buf,"BX Reset:");
@@ -3775,7 +3776,15 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
            sprintf(buf2," ");
       }
 
-      if(i>100){
+      if (i==107) {
+	   sprintf(buf,"Date rate:");
+	   unsigned short int status[12];
+	   for (igu=0;igu<12;igu++)
+	     status[igu]=thisDCC->mctrl_ratemon(igu);
+             sprintf(buf2,"slink0: %04x DDUs: %04x %04x %04x %04x %04x Slink1: %04x DDUs: %04x %04x %04x %04x %04x",status[0], status[1], status[2], status[3], status[4], status[5], status[6], status[7], status[8], status[9], status[10], status[11]);
+      }
+
+      if(i>100 && i<107){
          std::string dcctextload =
 	 toolbox::toString("/%s/DCCTextLoad",getApplicationDescriptor()->getURN().c_str());
          *out << cgicc::form().set("method","GET").set("action",dcctextload)
@@ -3791,7 +3800,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
       }
       *out << buf2;
       *out << cgicc::span();
-      if(i>100){
+      if(i>100&&i!=107){
 	string xmltext="";
 	if(i==103) {
 	  //int readback=thisDCC->mctrl_rd_fifoinuse();
