@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
+// $Id: PeripheralCrateParser.cc,v 3.1 2006/08/17 15:02:31 mey Exp $
 // $Log: PeripheralCrateParser.cc,v $
+// Revision 3.1  2006/08/17 15:02:31  mey
+// Modified Parser to accept globals
+//
 // Revision 3.0  2006/07/20 21:15:48  geurts
 // *** empty log message ***
 //
@@ -62,12 +65,19 @@
 
 //xercesc::XercesDOMParser *parser;
 
-PeripheralCrateParser::PeripheralCrateParser(xercesc::DOMNode *pNode,EmuSystem * emuSystem){ 
+PeripheralCrateParser::PeripheralCrateParser(xercesc::DOMNode *pNode,EmuSystem * emuSystem,xercesc::DOMNode *pNodeGlobal){ 
   //
   //xercesc::DOMNode * pNode2 = pNode->getFirstChild();
   //while (pNode2) {
   //if (pNode2->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
-      //
+  //
+  std::cout << "Periph...........!!!!!" <<std::endl;
+  std::cout << pNodeGlobal << std::endl;
+  //
+  if(pNodeGlobal) {
+    std::cout << "Peri...........!!!!!" <<std::endl;
+  }
+  //
   xercesc::DOMNamedNodeMap * pAttributes = pNode->getAttributes();
   xercesc::DOMNode * e = pAttributes->getNamedItem(xercesc::XMLString::transcode("crateID"));
   crateNumber = atoi(xercesc::XMLString::transcode(e->getNodeValue()));
@@ -93,7 +103,7 @@ PeripheralCrateParser::PeripheralCrateParser(xercesc::DOMNode *pNode,EmuSystem *
     //}
     
     if (strcmp("CSC",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  
-      cscParser_ = CSCParser(pNode3, crate);
+      cscParser_ = CSCParser(pNode3, crate,pNodeGlobal);
     }
     
     //if (strcmp("DAQMB",xercesc::XMLString::transcode(pNode3->getNodeName()))==0) {  

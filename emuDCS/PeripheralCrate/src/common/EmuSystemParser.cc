@@ -12,13 +12,21 @@ EmuSystemParser::EmuSystemParser(xercesc::DOMNode *pNode)
   std::cout << "emuSystemParser" << std::endl;
   //
   emuSystem = new EmuSystem();
+  xercesc::DOMNode * pNodeGlobal = 0x0;
   //
   xercesc::DOMNode * pNode1 = pNode->getFirstChild();
   while (pNode1) {
     if (pNode1->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) {
+      if (strcmp("Global",xercesc::XMLString::transcode(pNode1->getNodeName()))==0){
+	std::cout << "Found Global" << std::endl;
+	//
+	pNodeGlobal = pNode1->cloneNode(true);
+	//
+      }
+      //
       if (strcmp("PeripheralCrate",xercesc::XMLString::transcode(pNode1->getNodeName()))==0){
 	std::cout << "Found PeripheralCrate" << std::endl;
-	PeripheralCrateParser parser = PeripheralCrateParser(pNode1,emuSystem);
+	PeripheralCrateParser parser = PeripheralCrateParser(pNode1,emuSystem,pNodeGlobal);
       }
     }
     pNode1 = pNode1->getNextSibling();
