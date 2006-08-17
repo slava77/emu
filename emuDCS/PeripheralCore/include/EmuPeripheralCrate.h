@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.11 2006/08/16 16:45:40 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.12 2006/08/17 09:07:17 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -110,6 +110,7 @@ protected:
   xdata::String TestLogFile_;
   //
   bool DisplayRatio_;
+  bool AutoRefresh_;
   //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
@@ -155,7 +156,6 @@ protected:
   int CFEBid_[10][5];
   int TMB_, DMB_,RAT_;
   int Counter_;
-  bool AutoRefreshTMBCounters_;
   //
   vector<int> L1aLctCounter_;
   vector<int> CfebDavCounter_;
@@ -181,6 +181,7 @@ public:
     FirmwareDir_ += "/firmware/";
     //
     DisplayRatio_ = false;
+    AutoRefresh_  = true;
     MyController = 0;
     //thisTMB = 0;
     //thisDMB = 0;
@@ -200,6 +201,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::UploadConfFile, "UploadConfFile");
     xgi::bind(this,&EmuPeripheralCrate::TMBStatus, "TMBStatus");
     xgi::bind(this,&EmuPeripheralCrate::SetUnsetRatio, "SetUnsetRatio");
+    xgi::bind(this,&EmuPeripheralCrate::SetUnsetAutoRefresh, "SetUnsetAutoRefresh");
     xgi::bind(this,&EmuPeripheralCrate::DefineConfiguration, "DefineConfiguration");
     xgi::bind(this,&EmuPeripheralCrate::LogCrateTestsOutput, "LogCrateTestsOutput");
     //
@@ -408,8 +410,6 @@ public:
       OutputTMBTests[i]        << "TMB-RAT Tests " << i << " output:" << std::endl;
       CrateTestsOutput[i]      << "Chamber-Crate Phases " << i << " output:" << std::endl;
     }
-    //
-    AutoRefreshTMBCounters_ = true ;
     //
     this->getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
     this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
@@ -1774,55 +1774,65 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    ostringstream output;
+    output << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
+    output << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     //
+    cgicc::CgiEnvironment cgiEnvi(in);
+    std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     //
-    *out << cgicc::table().set("border","1");
+    if (AutoRefresh_) {
+      *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"1; URL=/"
+	   <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+    }
     //
-    *out <<cgicc::td();
+    output << cgicc::table().set("border","1");
     //
-    *out <<cgicc::td();
+    output <<cgicc::td();
+    //
+    output <<cgicc::td();
     //
     for(unsigned int tmb=0; tmb<tmbVector.size(); tmb++) {
       tmbVector[tmb]->GetCounters();
       //
-      *out <<cgicc::td();
-      *out << "Slot = " <<tmbVector[tmb]->slot();
-      *out <<cgicc::td();
+      output <<cgicc::td();
+      output << "Slot = " <<tmbVector[tmb]->slot();
+      output <<cgicc::td();
       //
     }
     //
-    *out <<cgicc::tr();
+    output <<cgicc::tr();
     //
     for (int count=0; count<23; count++) {
-      //*out <<cgicc::tr();
+      //output <<cgicc::tr();
       for(unsigned int tmb=0; tmb<tmbVector.size(); tmb++) {
-	*out <<cgicc::td();
+	output <<cgicc::td();
 	//
 	if(tmb==0) {
-	  *out << tmbVector[tmb]->CounterName(count) ;
-	  *out <<cgicc::td();
+	  output << tmbVector[tmb]->CounterName(count) ;
+	  output <<cgicc::td();
 	  //
-	  *out <<cgicc::td();
+	  output <<cgicc::td();
 	  //
 	}
 	if (DisplayRatio_) {
 	  if ( tmbVector[tmb]->GetCounter(16) > 0 ) {
-	    *out << ((float)(tmbVector[tmb]->GetCounter(count))/(tmbVector[tmb]->GetCounter(16)));
+	    output << ((float)(tmbVector[tmb]->GetCounter(count))/(tmbVector[tmb]->GetCounter(16)));
 	  } else {
-	    *out << "-1";
+	    output << "-1";
 	  }	  
 	} else {
-	  *out << tmbVector[tmb]->GetCounter(count) <<std::endl;
+	  output << tmbVector[tmb]->GetCounter(count) <<std::endl;
 	}
-	*out <<cgicc::td();
+	output <<cgicc::td();
       }
-      //*out << cgicc::br();
-      *out <<cgicc::tr();
+      //output << cgicc::br();
+      output <<cgicc::tr();
     }
     //
-    *out << cgicc::table();
+    output << cgicc::table();
+    //
+    *out << output.str()<<std::endl;
     //
   }
   //
@@ -1977,10 +1987,7 @@ private:
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     //
-    std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     //
-    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"1; URL=/"
-         <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
     //
     std::string MonitorFrameLeft =
       toolbox::toString("/%s/MonitorFrameLeft",getApplicationDescriptor()->getURN().c_str());
@@ -2065,6 +2072,13 @@ private:
     //
     *out << cgicc::form().set("method","GET").set("action",SetUnsetRatio) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Set/Unset Ratio Display") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string SetUnsetAutoRefresh =
+      toolbox::toString("/%s/SetUnsetAutoRefresh",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",SetUnsetAutoRefresh) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Set/Unset AutoRefresh") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     this->LaunchMonitor(in,out);
@@ -2847,7 +2861,22 @@ private:
     } else {
       DisplayRatio_ = false;
     }
-      
+    //
+    this->MonitorFrameLeft(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::SetUnsetAutoRefresh(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+    {
+    //
+    if ( AutoRefresh_ == false ) {
+      AutoRefresh_ = true;
+    } else {
+      AutoRefresh_ = false;
+    }      
+    //
+    this->MonitorFrameLeft(in,out);
     //
   }
   //
@@ -4309,13 +4338,6 @@ private:
       tmb = cgi["tmb"]->getIntegerValue();
       cout << "TMB " << tmb << endl;
       TMB_ = tmb;
-    }
-    //
-    name = cgi.getElement("AutoRefreshOn");
-    //
-    if(name != cgi.getElements().end()) {
-      std::cout << "auto refresh on" <<std::endl ;
-      AutoRefreshTMBCounters_ = true;
     }
     //
     TMB * thisTMB = tmbVector[tmb];
@@ -6429,7 +6451,6 @@ private:
     //
     *out << cgicc::form().set("method","GET").set("action",TMBPrintCounters) ;
     *out << cgicc::input().set("type","submit").set("value","TMB Print Counters") ;
-    //*out << cgicc::input().set("type","submit").set("value","AutoRefresh On").set("name","AutoRefreshOn") ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() ;
