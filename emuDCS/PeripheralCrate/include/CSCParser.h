@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CSCParser.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: CSCParser.h,v 3.1 2006/08/17 15:01:31 mey Exp $
 // $Log: CSCParser.h,v $
+// Revision 3.1  2006/08/17 15:01:31  mey
+// Modified Parser to accept globals
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -31,7 +34,7 @@ class CSCParser
 {
 public:
   CSCParser(){}
-  explicit CSCParser(xercesc::DOMNode * , Crate * );
+  explicit CSCParser(xercesc::DOMNode * , Crate *,xercesc::DOMNode * );
   
 protected:
   std::string chamberType;

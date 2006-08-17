@@ -1,4 +1,4 @@
-// $Id: EmuRunControlHyperDAQ.h,v 3.4 2006/08/16 16:46:06 mey Exp $
+// $Id: EmuRunControlHyperDAQ.h,v 3.5 2006/08/17 15:02:31 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -311,7 +311,7 @@ public:
 	//
 	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
 	if (body.hasFault()) {
-	  std::cout << "No connection to TStore" <<std::endl;
+	  std::cout << "No connection to TStore. " << body.getFault().getFaultString() << std::endl;
 	}
       } 
       catch (xdaq::exception::Exception& e) {

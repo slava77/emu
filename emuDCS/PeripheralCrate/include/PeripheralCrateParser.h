@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: PeripheralCrateParser.h,v 3.1 2006/08/17 15:01:31 mey Exp $
 // $Log: PeripheralCrateParser.h,v $
+// Revision 3.1  2006/08/17 15:01:31  mey
+// Modified Parser to accept globals
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -41,7 +44,7 @@ class PeripheralCrateParser {
 public:
   //
   PeripheralCrateParser() {}
-  explicit PeripheralCrateParser(xercesc::DOMNode * , EmuSystem * );
+  explicit PeripheralCrateParser(xercesc::DOMNode * , EmuSystem *, xercesc::DOMNode * );
   //
   DAQMBParser daqmbParser() const {return daqmbParser_;}
   TMBParser tmbParser()     const {return tmbParser_;}

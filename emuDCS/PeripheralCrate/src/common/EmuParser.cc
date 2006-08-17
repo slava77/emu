@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuParser.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
+// $Id: EmuParser.cc,v 3.1 2006/08/17 15:02:31 mey Exp $
 // $Log: EmuParser.cc,v $
+// Revision 3.1  2006/08/17 15:02:31  mey
+// Modified Parser to accept globals
+//
 // Revision 3.0  2006/07/20 21:15:48  geurts
 // *** empty log message ***
 //
@@ -25,9 +28,9 @@
 void EmuParser::parseNode(xercesc::DOMNode * pNode) {
   pAttributes_ = pNode->getAttributes();
   size_ = pAttributes_->getLength();
-  #ifdef debugV
+#ifdef debugV
   std::cout << "   number of attributes = " << size_ << std::endl;
-  #endif
+#endif
 }
 
 bool EmuParser::fillInt(std::string item, int & target) {

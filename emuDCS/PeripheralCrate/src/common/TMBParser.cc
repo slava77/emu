@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.1 2006/08/09 11:57:04 mey Exp $
+// $Id: TMBParser.cc,v 3.2 2006/08/17 15:03:16 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.2  2006/08/17 15:03:16  mey
+// Modified Parser to accept globals
+//
 // Revision 3.1  2006/08/09 11:57:04  mey
 // Got rid of version
 //
@@ -74,8 +77,12 @@
 #include "ALCTController.h"
 #include "RAT.h"
 
-TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate)
+TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate,xercesc::DOMNode * pNodeGlobal)
 {
+  if (pNodeGlobal) {
+    parserGlobal_.parseNode(pNodeGlobal);
+  }
+
   parser_.parseNode(pNode);
 
   int slot = 0;
@@ -239,7 +246,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate)
 	  alct_->SetL1aWindowSize(size);
 	}
 	int nph;
-	if ( alctParser_.fillInt("nph_thresh", nph)) {
+	if ( parserGlobal_.fillInt("nph_thresh", nph) ){
 	  alct_->SetPretrigNumberOfLayers(nph);
 	}
 	if ( alctParser_.fillInt("nph_pattern", nph)){
@@ -321,8 +328,13 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate)
 	  alct_->SetL1aWindowSize(size);
 	}
 	int nph;
-	if ( alctParser_.fillInt("nph_thresh", nph)) {
+	if ( alctParser_.fillInt("nph_thresh", nph) ){
 	  alct_->SetPretrigNumberOfLayers(nph);
+	}
+	if (pNodeGlobal){
+	  if ( parserGlobal_.fillInt("nph_thresh", nph) ){
+	    alct_->SetPretrigNumberOfLayers(nph);
+	  }
 	}
 	if ( alctParser_.fillInt("nph_pattern", nph)){
 	  alct_->SetPretrigNumberOfPattern(nph);

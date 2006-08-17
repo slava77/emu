@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CSCParser.cc,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: CSCParser.cc,v 3.1 2006/08/17 15:01:31 mey Exp $
 // $Log: CSCParser.cc,v $
+// Revision 3.1  2006/08/17 15:01:31  mey
+// Modified Parser to accept globals
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -28,7 +31,7 @@
 #include "CrateSetup.h"
 #include "Chamber.h"
 //
-CSCParser::CSCParser(xercesc::DOMNode * pNode, Crate * theCrate)
+CSCParser::CSCParser(xercesc::DOMNode * pNode, Crate * theCrate, xercesc::DOMNode * pNodeGlobal)
 {
   parser_.parseNode(pNode);
   parser_.fillString("chamber_type", chamberType);
@@ -53,7 +56,7 @@ CSCParser::CSCParser(xercesc::DOMNode * pNode, Crate * theCrate)
       }
       //
       if (strcmp("TMB",xercesc::XMLString::transcode(pNode1->getNodeName()))==0) {  
-	tmbParser_ = TMBParser(pNode1, theCrate);
+	tmbParser_ = TMBParser(pNode1, theCrate,pNodeGlobal);
 	(tmbParser_.tmb())->SetCSC(csc_);
 	csc_->SetTMB(tmbParser_.tmb());
       }       
