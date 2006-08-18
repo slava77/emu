@@ -98,7 +98,9 @@ void EMUjtag::setup_jtag(int chain) {
     bits_in_opcode_[2] = OpcodeSizeTmbMezzProm;
     bits_in_opcode_[3] = OpcodeSizeTmbMezzProm;
     bits_in_opcode_[4] = OpcodeSizeTmbMezzProm;
-    if (GetWriteToDevice_()) tmb_->start(3,jtagSourceFPGA);
+    // For programming the TMB mezzanine proms, we want to use the bootstrap register 
+    // After the TMB has been programmed, the FPGA can control the JTAG chain....
+    if (GetWriteToDevice_()) tmb_->start(3,jtagSourceBoot);
     //
   } else if (jtag_chain_ == ChainTmbUser) { 
     //
@@ -2193,26 +2195,30 @@ void EMUjtag::CheckUserProm() {
 //
 void EMUjtag::ProgramTMBProms() {
   //
-  (*MyOutput_) << "EMUjtag: Programming TMB Proms..." << std::endl;
+  // N.B. we assume there is no JTAG verify done when programming the proms....
   //
-  verify_error_ = 0;
+  (*MyOutput_) << "EMUjtag: Programming TMB Proms..." << std::endl;
   //
   time_t starttime = time (NULL);
   //
   SetWriteToDevice_(true);
   //
+  // Select the JTAG chain (puts the bootstrap register in control of the JTAG chain)
   setup_jtag(ChainTmbMezz);
   //
   // Default when programming prom is to write a logfile:
   ReadXsvfFile_(true);
+  //
+  short unsigned int BootReg;
+  tmb_->tmb_get_boot_reg(&BootReg);
+  tmb_->tmb_set_boot_reg(BootReg & 0xff7f);     //give the JTAG chain back to the FPGA 
   //
   time_t endtime = time (NULL);
   //
   int time_elapsed = endtime - starttime;
   //
   (*MyOutput_) << "EMUjtag: TMB Programming complete in " 
-	       << std::dec << time_elapsed << " seconds with "
-	       << std::dec << GetNumberOfVerifyErrors() << " errors" 
+	       << std::dec << time_elapsed << " seconds"
 	       << std::endl;  
   //
   return;
@@ -2756,7 +2762,8 @@ int EMUjtag::SVFLoad(int *jch, const char *fn, int db )
 	  printf("%c[0m", '\033');
 	  if ( send_packages == total_packages ) printf("\n") ;
 	  //
-	  tmb_->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, 2); 
+	  //	  tmb_->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, 2); 
+	  tmb_->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, READ_BACK); 
 	  //
 	  if (cmpflag==1)
 	    {     
@@ -2875,7 +2882,8 @@ int EMUjtag::SVFLoad(int *jch, const char *fn, int db )
 		realsnd[(i+hirbits+nbits)/8] |= (sndtir[i/8] >> (i%8)) << ((i+hirbits+nbits)%8);
 	    }
 	    //
-	    tmb_->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, 0); 
+	    //	    tmb_->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, 0); 
+	    tmb_->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, NO_READ_BACK); 
 	    //
 
 	    if (db>6) { 	printf("SIR Send Data:\n");

@@ -598,8 +598,16 @@ int main() {
       thisTMB->CheckUserProm();
       break;
     case 402:
-      thisTMB->SetXsvfFilename("tmb2005e_28july2006_noverify");
+      testTMB.reset();
+      //
+      ::sleep(5);
+      //
+      thisTMB->SetXsvfFilename("tmb17mar2006_noverify");
       thisTMB->ProgramTMBProms();
+      //
+      ::sleep(5);
+      //
+      testTMB.reset();
       break;
     case 403:
       thisTMB->SetWhichUserProm(ChipLocationTmbUserPromTMB);
