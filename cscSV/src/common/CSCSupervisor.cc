@@ -91,7 +91,7 @@ xoap::MessageReference CSCSupervisor::onConfigure(xoap::MessageReference message
 {
 	runmode_ = x_runmode_;
 	runnumber_ = x_runnumber_.toString();
-	nevents_ = 1000;
+	nevents_ = "9999";
 
 	fireEvent("Configure");
 
