@@ -1,8 +1,8 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.1 2006/08/15 22:28:50 liu Exp $
+// $Id: VMEController.cc,v 3.2 2006/08/21 20:34:36 liu Exp $
 // $Log: VMEController.cc,v $
-// Revision 3.1  2006/08/15 22:28:50  liu
-// update LARGE READ
+// Revision 3.2  2006/08/21 20:34:36  liu
+// update
 //
 // Revision 3.0  2006/07/20 21:15:48  geurts
 // *** empty log message ***
@@ -967,7 +967,7 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
        if(DEBUG){
           printf("Jumbo packet limit reached: %d, forced sending\n", nwbuf);
        }
-       if(nread>0) LRG_read_flag=1;
+       LRG_read_flag=1;  // flag for forced sending
        irdwr += 2;
     }
 
@@ -990,11 +990,15 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
     //
     nwbuf=4;
     nvme=0;
-  }
+
+  /* for normal READ/WRITE, need copy the data out of the spebuff. */
+
+  if(LRG_read_flag==0 && LRG_read_pnt>0)
+     memcpy(rcv, spebuff, LRG_read_pnt);
+   
+  /* read back bytes from vme if needed */
  
- /* read back bytes from vme */
- 
-  if((irdwr==2||irdwr==3)&&nread>0){
+  if(nread>0){
     clear_error();
 READETH:
     nrbuf=nread;
@@ -1055,16 +1059,17 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
              if(error_type==0) error_type=16;
              error_count++;
              if(DEBUG) printf("Error packet: type: %d\n", return_type);
+          }
+          else
+          {
+             printf("Error: wrong return data type: %d \n", return_type);
+          }
 //
 // Need to discard all error packets!
 // In the case of multiple VME commands in one packet, it can be
 // very complicated. Have to deal with that later. Jinghua Liu 5/5/2006.
 //
-             goto READETH;
-          }
-          else
-             printf("Error: wrong return data type: %d \n", return_type);
-          return;
+          goto READETH;
        }
 
     if(LRG_read_flag>0) 
@@ -1080,19 +1085,21 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
        }
     }
     else 
-    {  // normal read, first check the speciall buffer, then from VME
-       if(LRG_read_pnt)
-       {  memcpy(rcv, spebuff, LRG_read_pnt);
-       }
+    {  // normal read
 // Jinghua Liu: byte swap!!!
        for(i=0;i<r_num;i++)
        {  rcv[2*i+LRG_read_pnt]=r_datat[2*i+1];
           rcv[2*i+1+LRG_read_pnt]=r_datat[2*i];
        }
-       LRG_read_pnt=0;   // after normal read, always turn off LARGE_read
     }
     nread=0;
   }
+
+  // after normal READ/WRITE, always turn off LARGE_read
+  if(LRG_read_flag==0) LRG_read_pnt=0;   
+
+  }
+
 }
 
 /* dump specific to A24/1/0 for now */

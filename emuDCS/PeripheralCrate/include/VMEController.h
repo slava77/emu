@@ -1,8 +1,8 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.1 2006/08/15 22:29:26 liu Exp $
+// $Id: VMEController.h,v 3.2 2006/08/21 20:34:21 liu Exp $
 // $Log: VMEController.h,v $
-// Revision 3.1  2006/08/15 22:29:26  liu
-// update LARGE READ
+// Revision 3.2  2006/08/21 20:34:21  liu
+// update
 //
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
@@ -189,7 +189,7 @@ private:
   int nwbuf;
   char rbuf[9000];
   int nrbuf;
-  char spebuff[10240];
+  char spebuff[MAXLINE];
   
   int max_buff;
   int tot_buff;
