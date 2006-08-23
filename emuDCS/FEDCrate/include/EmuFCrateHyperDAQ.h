@@ -3733,7 +3733,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
     *out << std::endl;
     *out << cgicc::legend(buf).set("style","color:blue")  << std::endl;
     int igu;
-    for(int i=100;i<108;i++){
+    for(int i=100;i<109;i++){
       thisDCC->CAEN_err_reset();
       sprintf(buf3," ");
       if(i==100){
@@ -3777,12 +3777,26 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
       }
 
       if (i==107) {
-	   sprintf(buf,"Date rate:");
-	   unsigned short int status[12];
-	   for (igu=0;igu<12;igu++)
+	   sprintf(buf,"Date Rate Slink0:");
+	   unsigned short int status[6];
+	   int dr[6];
+	   for (igu=0;igu<6;igu++) {
 	     status[igu]=thisDCC->mctrl_ratemon(igu);
-             sprintf(buf2,"slink0: %04x DDUs: %04x %04x %04x %04x %04x Slink1: %04x DDUs: %04x %04x %04x %04x %04x",status[0], status[1], status[2], status[3], status[4], status[5], status[6], status[7], status[8], status[9], status[10], status[11]);
+	     dr[igu]=((status[igu]&0x3fff)<<(((status[igu]>>14)&0x3)*4));
+	   }
+           sprintf(buf2," %d  ddu3: %d  ddu13: %d  ddu4: %d  ddu12 %d  ddu5: %d",dr[0],dr[1],dr[2],dr[3],dr[4],dr[5]);
       }
+      if (i==108) {
+	sprintf(buf,"Date Rate Slink1:");
+	unsigned short int status[6];
+	int dr[6];
+	for (igu=6;igu<12;igu++) {
+	  status[igu-6]=thisDCC->mctrl_ratemon(igu);
+	  dr[igu-6]=((status[igu-6]&0x3fff)<<(((status[igu-6]>>14)&0x3)*4));
+	}
+	sprintf(buf2," %d  ddu11: %d  ddu6: %d  ddu10: %d  ddu7: %d  ddu9: %d",dr[0],dr[1],dr[2],dr[3],dr[4],dr[5]);
+      }
+
 
       if(i>100 && i<107){
          std::string dcctextload =
@@ -3800,7 +3814,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
       }
       *out << buf2;
       *out << cgicc::span();
-      if(i>100&&i!=107){
+      if(i>100&&i<107){
 	string xmltext="";
 	if(i==103) {
 	  //int readback=thisDCC->mctrl_rd_fifoinuse();
