@@ -75,6 +75,7 @@ protected:
   std::string Operator_;
   std::string DDUBoardID_[9];
   std::string DCCBoardID_[9];
+  int DCC_ratemon[50][12],DCC_ratemon_cnt,DCC_ratemon_ch;
   int DDU_, DCC_;
   long int timer,ltime;
   int irqprob;
@@ -103,7 +104,9 @@ public:
     xgi::bind(this,&EmuFCrateHyperDAQ::DCCTextLoad, "DCCTextLoad");
     xgi::bind(this,&EmuFCrateHyperDAQ::IRQTester,"IRQTester");
     xgi::bind(this,&EmuFCrateHyperDAQ::DDUVoltMon,"DDUVoltMon");
-
+    xgi::bind(this,&EmuFCrateHyperDAQ::DCCRateMon,"DCCRateMon");
+    xgi::bind(this,&EmuFCrateHyperDAQ::getDataDCCRate0,"getDataDCCRate0");
+    xgi::bind(this,&EmuFCrateHyperDAQ::getDataDCCRate1,"getDataDCCRate1");
     myParameter_ =  0;
     irqprob=0;
 
@@ -111,7 +114,14 @@ public:
       "/home/fastdducaen/v3.4/TriDAS/emu/emuDCS/FEDCrate/xml/config.xml" ;
     Operator_ = "Name...";
     for (int i=0; i<9; i++) { DDUBoardID_[i] = "-1" ; DCCBoardID_[i] = "-1" ; }
-    this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName",&xmlFile_);  }
+    this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName",&xmlFile_);
+    for(int i=0;i<12;i++){
+      for(int j=0;j<50;j++){
+	DCC_ratemon[j][i]=i+1;
+      }
+    }
+    DCC_ratemon_cnt=0;
+  }
 
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
@@ -260,6 +270,15 @@ public:
         *out << cgicc::input().set("type","submit")
 	  .set("value","Start Volt/Temp Monitor") << std::endl;
          *out << cgicc::form() << std::endl ;
+
+       	 std::string dccratemon =
+	   toolbox::toString("/%s/DCCRateMon",getApplicationDescriptor()->getURN().c_str());
+         *out << cgicc::form().set("method","GET").set("action",dccratemon)
+	   .set("target","_blank") << std::endl;
+	 *out << cgicc::input().set("type","submit")
+	   .set("value","Start DCC Rate Monitor") << std::endl;
+	   *out << cgicc::form() << std::endl ; 
+
 
         *out << cgicc::fieldset() << std::endl;
         *out << cgicc::br() << std::endl;
@@ -3388,7 +3407,7 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << meta().set("http-equiv","refresh").set("content","2") << std::endl;
+    *out << meta().set("http-equiv","refresh").set("content","5") << std::endl;
     *out << cgicc::title("VMEIRQ Web Form") << std::endl;
     //  
     *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg") << std::endl;
@@ -4092,6 +4111,140 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
 }
 
 
+void EmuFCrateHyperDAQ::DCCRateMon(xgi::Input * in, xgi::Output * out )
+     throw (xgi::exception::Exception)
+{
+    cgicc::CgiEnvironment cgiEnvi(in);
+    std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
+    //
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"30; URL=/"
+         <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+ 
+
+  //
+  *out << "<HTML>" <<std::endl;
+  *out << "<BODY bgcolor=\"#FFFFFF\">" <<std::endl;
+ 
+    thisDCC=dccVector[0];
+    unsigned short int status[12];
+                                            
+    for(int igu=0;igu<12;igu++) {
+      status[igu]=thisDCC->mctrl_ratemon(igu);
+      DCC_ratemon[DCC_ratemon_cnt][igu]=((status[igu]&0x3fff)<<(((status[igu]>>14)&0x3)*4));
+    }
+    DCC_ratemon_cnt=DCC_ratemon_cnt+1;
+    if(DCC_ratemon_cnt>49)DCC_ratemon_cnt=0;
+    for(int igu=0;igu<12;igu++) {
+      DCC_ratemon[DCC_ratemon_cnt%50][igu]=0;
+      DCC_ratemon[(DCC_ratemon_cnt+1)%50][igu]=0;
+    }
+ 
+    *out << "<OBJECT classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0\" WIDTH=\"565\" HEIGHT=\"420\" id=\"FC_2_3_MSLine\">" <<std::endl;
+    *out << "<PARAM NAME=movie VALUE=\"/daq/extern/FusionCharts/Charts/FC_2_3_MSLine.swf\">" <<std::endl;
+    ostringstream output;
+    output << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getDataDCCRate0" << "&chartWidth=565&chartHeight=420"<<"\">"<<std::endl;
+    *out << output.str() << std::endl ;
+    *out << "<PARAM NAME=quality VALUE=high>" << std::endl ;
+    *out << "<PARAM NAME=bgcolor VALUE=#FFFFFF>" << std::endl ;
+    //
+    ostringstream output2;
+    output2 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_MSLine.swf\" FlashVars=\"&dataURL=getData"<< "DCCRate0"<<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_MSLine\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
+    //
+    *out << output2.str() << std::endl;
+    *out << "</OBJECT>" << std::endl;
+
+    *out << "<OBJECT classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0\" WIDTH=\"565\" HEIGHT=\"420\" id=\"FC_2_3_MSLine\">" <<std::endl;
+    *out << "<PARAM NAME=movie VALUE=\"/daq/extern/FusionCharts/Charts/FC_2_3_MSLine.swf\">" <<std::endl;
+    ostringstream output3;
+    output3 << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getDataDCCRate1" << "&chartWidth=565&chartHeight=420"<<"\">"<<std::endl;
+    *out << output3.str() << std::endl ;
+    *out << "<PARAM NAME=quality VALUE=high>" << std::endl ;
+    *out << "<PARAM NAME=bgcolor VALUE=#FFFFFF>" << std::endl ;
+    //
+    ostringstream output4;
+    output4 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_MSLine.swf\" FlashVars=\"&dataURL=getData"<< "DCCRate1"<<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_MSLine\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
+    //
+    *out << output4.str() << std::endl;
+    *out << "</OBJECT>" << std::endl;
+ 
+
+
+
+    *out << "</BODY>" << std::endl;
+    *out << "</HTML>" << std::endl;
+ 
+}
+
+  void EmuFCrateHyperDAQ::getDataDCCRate0(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+    {
+      //
+      *out << "<graph caption='DCC S-Link 0' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+      //      *out << "<graph caption='DCC FPGA 0' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+      //std::cout << "<graph caption='DCC FPGA 0' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+      *out << "<categories>" << std::endl;
+      //std::cout << "<categories>" << std::endl;
+      for(int i=0;i<50;i++){
+        *out << "<category name='"<<i<<"' hoverText='' />" << std::endl;
+        //std::cout << "<category name='"<<i<<"' hoverText='' />" << std::endl;
+      }
+      *out << "</categories>" <<std::endl;
+      //std::cout << "</categories>" <<std::endl;
+      for(int ch=0;ch<6;ch++){
+      if(ch==0)*out << "<dataset seriesName='S-Link 0 ' color='0080C0' showValues='0'>" <<std::endl;
+      if(ch==1)*out << "<dataset seriesName='Slot 3 DDU ' color='008040' showValues='0'>" <<std::endl;
+      if(ch==2)*out << "<dataset seriesName='Slot 13 DDU ' color='800080' showValues='0'>" <<std::endl;
+      if(ch==3)*out << "<dataset seriesName='Slot 4 DDU ' color='FF8040' showValues='0'>" <<std::endl;
+      if(ch==4)*out << "<dataset seriesName='Slot 12 DDU ' color='FFF000' showValues='0'>" <<std::endl;
+      if(ch==5)*out << "<dataset seriesName='Slot 5 DDU ' color='FF0080' showValues='0'>" <<std::endl;
+      for(unsigned int i=0;i<50;i++) {
+        ostringstream output;
+	// output << "<set name='" << ch <<"'"<< " value='" << DCC_ratemon[i][ch] << "'" << " />" << std::endl;
+	output << "<set value='" << DCC_ratemon[i][ch] << "'" << " />" << std::endl;
+        *out << output.str() << std::endl ;
+	//std::cout << output.str() << std::endl ;
+      }
+      *out << "</dataset>"<<std::endl;
+      //std::cout << "</dataset>"<<std::endl;
+      }
+      *out << "</graph>" << std::endl;
+      //std::cout << "</graph>" << std::endl;
+    }
+ 
+   void EmuFCrateHyperDAQ::getDataDCCRate1(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+    {
+      //
+      *out << "<graph caption='DCC S-Link 1' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+      //      *out << "<graph caption='DCC FPGA 1' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+      //std::cout << "<graph caption='DCC FPGA 0' subcaption='' xAxisName='time' yAxisName='Rate' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+      *out << "<categories>" << std::endl;
+      //std::cout << "<categories>" << std::endl;
+      for(int i=0;i<50;i++){
+        *out << "<category name='"<<i<<"' hoverText='' />" << std::endl;
+        //std::cout << "<category name='"<<i<<"' hoverText='' />" << std::endl;
+      }
+      *out << "</categories>" <<std::endl;
+      //std::cout << "</categories>" <<std::endl;
+      for(int ch=6;ch<12;ch++){
+      if(ch==6)*out << "<dataset seriesName='S-Link 1 ' color='0080C0' showValues='0'>" <<std::endl;
+      if(ch==7)*out << "<dataset seriesName='Slot 11 DDU ' color='008040' showValues='0'>" <<std::endl;
+      if(ch==8)*out << "<dataset seriesName='Slot 6 DDU ' color='800080' showValues='0'>" <<std::endl;
+      if(ch==9)*out << "<dataset seriesName='Slot 10 DDU ' color='FF8040' showValues='0'>" <<std::endl;
+      if(ch==10)*out << "<dataset seriesName=' Slot 7 DDU ' color='FFF000' showValues='0'>" <<std::endl;
+      if(ch==11)*out << "<dataset seriesName='DDU Slot 9 DDU ' color='FF0080' showValues='0'>" <<std::endl;
+      for(unsigned int i=0;i<50;i++) {
+        ostringstream output;
+	// output << "<set name='" << ch <<"'"<< " value='" << DCC_ratemon[i][ch] << "'" << " />" << std::endl;
+	output << "<set value='" << DCC_ratemon[i][ch] << "'" << " />" << std::endl;
+        *out << output.str() << std::endl ;
+	//std::cout << output.str() << std::endl ;
+      }
+      *out << "</dataset>"<<std::endl;
+      //std::cout << "</dataset>"<<std::endl;
+      }
+      *out << "</graph>" << std::endl;
+      //std::cout << "</graph>" << std::endl;
+    }
+ 
 
 
 };
