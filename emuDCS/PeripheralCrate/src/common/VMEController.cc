@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.2 2006/08/21 20:34:36 liu Exp $
+// $Id: VMEController.cc,v 3.3 2006/08/25 03:11:33 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.3  2006/08/25 03:11:33  liu
+// update
+//
 // Revision 3.2  2006/08/21 20:34:36  liu
 // update
 //
@@ -874,6 +877,7 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
       if(irdwr==1 || irdwr==3) printf(" %04X",data[0]);
     }
     printf("\n");
+    fflush(NULL);
   }
   //
   /* flush to vme: disabled
@@ -1016,6 +1020,7 @@ READETH:
             } else {
               printf(" failed to inquire schar driver status\n");
             }
+            fflush(NULL);
             exit(0);
          }
 // Jinghua Liu to debug
