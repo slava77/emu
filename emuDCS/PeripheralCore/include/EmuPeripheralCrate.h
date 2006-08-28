@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.12 2006/08/17 09:07:17 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.13 2006/08/28 09:15:43 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1860,11 +1860,11 @@ private:
     //
     for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
       //
-      for( int iter=0; iter<10; iter++) {
+      //for( int iter=0; iter<10; iter++) {
 	dmbVector[dmb]->readtimingCounter();
 	dmbVector[dmb]->readtimingScope();
-	if( dmbVector[dmb]->GetL1aLctCounter() > 0 ) break;
-      }
+	//if( dmbVector[dmb]->GetL1aLctCounter() > 0 ) break;
+	//}
     }
     //
     for(unsigned int dmb=0; dmb<dmbVector.size(); dmb++) {
@@ -3857,7 +3857,7 @@ private:
       //MyTest.SetDMB(thisDMB);
       //MyTest.SetCCB(thisCCB);
       //
-      MyTest[tmb].FindTMB_L1A_delay(100,200);
+      MyTest[tmb].FindTMB_L1A_delay(130,140);
       //
       this->ChamberTests(in,out);
       //
@@ -6630,7 +6630,7 @@ private:
       } else if ( (alct->GetChamberType()).find("ME32") != string::npos ) {
 	ALCTFirmware += "alct384mirrorrl.svf";
       } else if ( (alct->GetChamberType()).find("ME11") != string::npos ) {
-	ALCTFirmware += "alct288fp_rl.svf";
+	ALCTFirmware += "alct288bp_rl.svf";
       }
       //
       ALCTFirmware_ = ALCTFirmware;
