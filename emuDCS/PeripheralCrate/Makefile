@@ -17,8 +17,8 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 Project=emu
 Package=emuDCS/PeripheralCrate
 
-DependentLibraryDirs = $(XDAQ_ROOT)/emu/cscSV/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
-DependentLibraries = CSCSupervisor
+#DependentLibraryDirs = $(XDAQ_ROOT)/emu/cscSV/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+#DependentLibraries = CSCSupervisor
 
 Sources=\
 	ALCTController.cc \
@@ -51,13 +51,14 @@ Sources=\
 	VMEModule.cc \
 	VMEParser.cc \
 	EmuPeripheralCrate.cc  \
-	EmuRunControlHyperDAQ.cc  \
+	EmuPeripheralCrateManager.cc  \
 	CrateUtilities.cc \
 	Chamber.cc \
 	ChamberUtilities.cc \
 	CSCParser.cc \
 	EMUjtag.cc \
 	EmuSystem.cc \
+	EmuApplication.cc \
 	EmuModule.cc
 
 IncludeDirs = \
@@ -76,8 +77,7 @@ IncludeDirs = \
 	$(XDAQ_ROOT)/daq/extern/i2o/include/i2o/shared \
 	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
 	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
-	$(XDAQ_ROOT)/daq/xgi/include \
-	$(XDAQ_ROOT)/emu/cscSV/include
+	$(XDAQ_ROOT)/daq/xgi/include 
 
 LibraryDirs = \
 	$(XDAQ_ROOT)/daq/xdata/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
@@ -88,8 +88,7 @@ LibraryDirs = \
 	$(XDAQ_ROOT)/daq/pt/tcp/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
 	$(XDAQ_ROOT)/daq/toolbox/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
 	$(XDAQ_ROOT)/daq/xoap/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-	$(XDAQ_ROOT)/daq/pt/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-        $(XDAQ_ROOT)/emu/cscSV/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+	$(XDAQ_ROOT)/daq/pt/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) 
 
 TestLibraryDirs = \
 	$(XDAQ_ROOT)/daq/xdata/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
@@ -104,7 +103,7 @@ TestLibraryDirs = \
         $(XDAQ_ROOT)/emu/emuDCS/PeripheralCrate/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
 UserCFlags  = 
-UserCCFlags =
+UserCCFlags = -DALCTNEW
 UserDynamicLinkFlags =
 UserStaticLinkFlags =
 UserExecutableLinkFlags =
@@ -112,10 +111,10 @@ UserExecutableLinkFlags =
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries = xerces-c xdaq xdata log4cplus toolbox xoap cgicc xcept xgi peer CSCSupervisor
+Libraries = xerces-c xdaq xdata log4cplus toolbox xoap cgicc xcept xgi peer
 TestLibraries = xerces-c xdaq xdata log4cplus toolbox xoap cgicc xcept xgi peer \
                 mimetic xmlappender udpappender asyncresolv\
-	        EmuPeripheralCrate CSCSupervisor
+	        EmuPeripheralCrate
 
 #
 # Compile the source files and create a shared library

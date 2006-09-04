@@ -2,7 +2,7 @@
 <xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
 
     	<xc:Context url="http://emuslice08:2923">		
-                <xc:Application class="EmuRunControlHyperDAQ" id="60" instance="0" network="local">
+                <xc:Application class="EmuPeripheralCrateManager" id="60" instance="0" network="local">
 
                 </xc:Application>
                 <xc:Module>${XDAQ_ROOT}/emu/cscSV/lib/linux/x86/libCSCSupervisor.so</xc:Module>
