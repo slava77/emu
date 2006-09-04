@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.13 2006/08/28 09:15:43 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.14 2006/09/04 08:29:43 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -111,6 +111,7 @@ protected:
   //
   bool DisplayRatio_;
   bool AutoRefresh_;
+  int MenuMonitor_;
   //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
@@ -131,8 +132,10 @@ protected:
   ostringstream OutputDMBTests[10];
   ostringstream OutputTMBTests[10];
   std::vector <float> ChartData[100];
-  int TMBTriggerAlct0Key[200][9];
-  int TMBTriggerAlct1Key[200][9];
+  int TMBTriggerAlct0Key[120][9];
+  int TMBTriggerAlct1Key[120][9];
+  int TMBTriggerClct0keyHalfStrip[120][9];
+  int TMBTriggerClct1keyHalfStrip[120][9];
   //
   int TMBRegisterValue_;
   int CCBRegisterValue_;
@@ -156,6 +159,7 @@ protected:
   int CFEBid_[10][5];
   int TMB_, DMB_,RAT_;
   int Counter_;
+  int nTrigger_;
   //
   vector<int> L1aLctCounter_;
   vector<int> CfebDavCounter_;
@@ -189,6 +193,8 @@ public:
     thisMPC = 0;
     rat = 0;
     alct = 0;
+    nTrigger_ = 1000;
+    MenuMonitor_ = 2;
     //
     xgi::bind(this,&EmuPeripheralCrate::Default, "Default");
     xgi::bind(this,&EmuPeripheralCrate::setConfFile, "setConfFile");
@@ -229,6 +235,8 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::getData21, "getData21");
     xgi::bind(this,&EmuPeripheralCrate::getDataTMBTriggerAlct0Key, "getDataTMBTriggerAlct0Key");
     xgi::bind(this,&EmuPeripheralCrate::getDataTMBTriggerAlct1Key, "getDataTMBTriggerAlct1Key");
+    xgi::bind(this,&EmuPeripheralCrate::getDataTMBTriggerAlct0Key, "getDataTMBTriggerClct0Key");
+    xgi::bind(this,&EmuPeripheralCrate::getDataTMBTriggerAlct1Key, "getDataTMBTriggerClct1Key");
     //
     xgi::bind(this,&EmuPeripheralCrate::EnableDisableDebug, "EnableDisableDebug");
     xgi::bind(this,&EmuPeripheralCrate::LoadTMBFirmware, "LoadTMBFirmware");
@@ -316,6 +324,8 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBConnectivity, "CalibrationCFEBConnectivity");
     xgi::bind(this,&EmuPeripheralCrate::LaunchMonitor, "LaunchMonitor");
     xgi::bind(this,&EmuPeripheralCrate::MonitorTMBTrigger, "MonitorTMBTrigger");
+    xgi::bind(this,&EmuPeripheralCrate::MenuMonitorTMBTrigger, "MenuMonitorTMBTrigger");
+    xgi::bind(this,&EmuPeripheralCrate::MonitorTMBTriggerAlctKey, "MonitorTMBTriggerAlctKey");
     xgi::bind(this,&EmuPeripheralCrate::CrateTMBCounters, "CrateTMBCounters");
     xgi::bind(this,&EmuPeripheralCrate::CrateDMBCounters, "CrateDMBCounters");
     xgi::bind(this,&EmuPeripheralCrate::CrateTMBCountersRight, "CrateTMBCountersRight");
@@ -710,7 +720,7 @@ private:
   }
 
 #endif // ! STANDALONE
-  //
+  /*
   xoap::MessageReference Configure (xoap::MessageReference msg) throw (xoap::exception::Exception)
   {
     //
@@ -810,7 +820,7 @@ private:
     //xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
     return reply;    
   }
-  //
+  */
   void EmuPeripheralCrate::MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) 
     throw (xgi::exception::Exception)
   {
@@ -1987,8 +1997,6 @@ private:
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eFrames) << std::endl;
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     //
-    //
-    //
     std::string MonitorFrameLeft =
       toolbox::toString("/%s/MonitorFrameLeft",getApplicationDescriptor()->getURN().c_str());
     std::string CrateTMBCountersRight =
@@ -2088,14 +2096,43 @@ private:
   void EmuPeripheralCrate::MonitorTMBTrigger(xgi::Input * in, xgi::Output * out) 
     throw (xgi::exception::Exception){
     //
-    //MyHeader(in,out,"MonitorTMBTrigger");
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+    } else {
+      cout << "Not tmb" << endl ;
+    }
+    //
+    //
+    std::string MenuMonitorTMBTrigger =
+      toolbox::toString("/%s/MenuMonitorTMBTrigger",getApplicationDescriptor()->getURN().c_str());
+    //
+    std::string MonitorTMBTriggerAlctKey =
+      toolbox::toString("/%s/MonitorTMBTriggerAlctKey?tmb=",getApplicationDescriptor()->getURN().c_str(),tmb);
+    //
+    *out << cgicc::frameset().set("cols","200,*");
+    *out << cgicc::frame().set("src",MenuMonitorTMBTrigger);
+    *out << cgicc::frame().set("src",MonitorTMBTriggerAlctKey);
+    *out << cgicc::frameset() ;
+    //
+  }
+  //
+  void EmuPeripheralCrate::MenuMonitorTMBTrigger(xgi::Input * in, xgi::Output * out) 
+    throw (xgi::exception::Exception){
+  }
+  //
+  void EmuPeripheralCrate::MonitorTMBTriggerAlctKey(xgi::Input * in, xgi::Output * out) 
+    throw (xgi::exception::Exception){
     //
     cgicc::CgiEnvironment cgiEnvi(in);
     //
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     //
-    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"2; URL=/"
-         <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+    //*out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"2; URL=/"
+    //<<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
     //
     cgicc::Cgicc cgi(in);
     //
@@ -2111,28 +2148,22 @@ private:
     //
     int oldValue=0;
     //
-    for(int loop=0; loop<1000; loop++){
+    for(int loop=0; loop<nTrigger_; loop++){
       //
       thisTMB->DecodeALCT();
+      thisTMB->DecodeCLCT();
       //
       ::usleep(100);
       //
       if ( thisTMB->GetAlct0FirstKey() != oldValue ) {
 	oldValue = thisTMB->GetAlct0FirstKey();
-	if(thisTMB->GetAlct0FirstKey()>0) TMBTriggerAlct0Key[thisTMB->GetAlct0FirstKey()][tmb]++;
-	if(thisTMB->GetAlct1SecondKey()>1)TMBTriggerAlct1Key[thisTMB->GetAlct1SecondKey()][tmb]++;
+	if(thisTMB->GetAlct0FirstKey()>0     ) TMBTriggerAlct0Key[thisTMB->GetAlct0FirstKey()][tmb]++;
+	if(thisTMB->GetAlct1SecondKey()>0    ) TMBTriggerAlct1Key[thisTMB->GetAlct1SecondKey()][tmb]++;
+	if(thisTMB->GetCLCT0keyHalfStrip()>0 ) TMBTriggerClct0keyHalfStrip[thisTMB->GetCLCT0keyHalfStrip()][tmb]++;
+	if(thisTMB->GetCLCT1keyHalfStrip()>0 ) TMBTriggerClct1keyHalfStrip[thisTMB->GetCLCT1keyHalfStrip()][tmb]++;
       }
       //
     }
-    //
-    this->MonitorTMBTriggerDisplay(in,out);
-    //
-  }
-  //
-  void EmuPeripheralCrate::MonitorTMBTriggerDisplay(xgi::Input * in, xgi::Output * out) 
-    throw (xgi::exception::Exception){
-    //
-    //MyHeader(in,out,"MonitorTMBTrigger");
     //
     *out << "<HTML>" <<std::endl;
     *out << "<BODY bgcolor=\"#FFFFFF\">" <<std::endl;
@@ -2140,7 +2171,14 @@ private:
     *out << "<PARAM NAME=movie VALUE=\"/daq/extern/FusionCharts/Charts/FC_2_3_Column3D.swf\">" <<std::endl;
     //
     ostringstream output;
-    output << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData" << "TMBTriggerAlct0Key" << "&chartWidth=565&chartHeight=420"<<"\">"<<std::endl;
+    //
+    if (MenuMonitor_ == 1 ) {
+      output << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData" << "TMBTriggerAlct0Key?tmb="<<tmb << "&chartWidth=565&chartHeight=420"<<"\">"<<std::endl;
+    }
+    //
+    if (MenuMonitor_ == 2 ) {
+      output << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData" << "TMBTriggerClct0Key?tmb="<<tmb << "&chartWidth=565&chartHeight=420"<<"\">"<<std::endl;
+    }
     //
     //std::cout << output.str() << std::endl;
     *out << output.str() << std::endl ;
@@ -2148,7 +2186,13 @@ private:
     *out << "<PARAM NAME=bgcolor VALUE=#FFFFFF>" << std::endl ;
     //
     ostringstream output2;
-    output2 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_Column3D.swf\" FlashVars=\"&dataURL=getData"<< "TMBTriggerAlct0Key"<<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_Column3D\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
+    if (MenuMonitor_ == 1 ) {
+      output2 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_Column3D.swf\" FlashVars=\"&dataURL=getData"<< "TMBTriggerAlct0Key?tmb="<<tmb<<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_Column3D\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
+    }
+    //
+    if (MenuMonitor_ == 2 ) {
+      output2 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_Column3D.swf\" FlashVars=\"&dataURL=getData"<< "TMBTriggerClct0Key?tmb="<<tmb<<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_Column3D\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
+    }
     //
     *out << output2.str() << std::endl;
     //
@@ -2158,7 +2202,13 @@ private:
     *out << "<PARAM NAME=movie VALUE=\"/daq/extern/FusionCharts/Charts/FC_2_3_Column3D.swf\">" <<std::endl;
     //
     ostringstream output3;
-    output3 << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData" << "TMBTriggerAlct1Key" << "&chartWidth=565&chartHeight=420"<<"\">"<<std::endl;
+    if(MenuMonitor_ == 1 ){
+      output3 << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData" << "TMBTriggerAlct1Key?tmb=" << tmb<<"&chartWidth=565&chartHeight=420"<<"\">"<<std::endl;
+    }
+    //
+    if(MenuMonitor_ == 2 ){
+      output3 << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData" << "TMBTriggerClct1Key?tmb=" << tmb<<"&chartWidth=565&chartHeight=420"<<"\">"<<std::endl;
+    }
     //
     //std::cout << output.str() << std::endl;
     *out << output3.str() << std::endl ;
@@ -2166,7 +2216,13 @@ private:
     *out << "<PARAM NAME=bgcolor VALUE=#FFFFFF>" << std::endl ;
     //
     ostringstream output4;
-    output4 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_Column3D.swf\" FlashVars=\"&dataURL=getData"<< "TMBTriggerAlct1Key"<<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_Column3D\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
+    if(MenuMonitor_==1) {
+      output4 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_Column3D.swf\" FlashVars=\"&dataURL=getData"<< "TMBTriggerAlct1Key?tmb="<<tmb<<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_Column3D\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
+    }
+    //
+    if(MenuMonitor_==2) {
+      output4 << "<EMBED src=\"/daq/extern/FusionCharts/Charts/FC_2_3_Column3D.swf\" FlashVars=\"&dataURL=getData"<< "TMBTriggerClct1Key?tmb="<<tmb<<"\" quality=high bgcolor=#FFFFFF WIDTH=\"565\" HEIGHT=\"420\" NAME=\"FC_2_3_Column3D\" TYPE=\"application/x-shockwave-flash\" PLUGINSPAGE=\"http://www.macromedia.com/go/getflashplayer\"></EMBED>" << std::endl;
+    }
     //
     *out << output4.str() << std::endl;
     //
@@ -2502,7 +2558,6 @@ private:
     *out << "<OBJECT classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\" codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0\" WIDTH=\"565\" HEIGHT=\"420\" id=\"FC_2_3_Bar2D\">" <<std::endl;
     *out << "<PARAM NAME=movie VALUE=\"/daq/extern/FusionCharts/Charts/FC_2_3_Bar2D.swf\">" <<std::endl;
     //
-    //*out << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData\">"<<std::endl;
     ostringstream output;
     output << "<PARAM NAME=\"FlashVars\" VALUE=\"&dataURL=getData" << counter <<"\">"<<std::endl;
     //
@@ -2523,30 +2578,116 @@ private:
     //
   }
   //
-  void EmuPeripheralCrate::getDataTMBTriggerAlct0Key(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  void EmuPeripheralCrate::getDataTMBTriggerAlct0Key(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
     {
+      //
+      cgicc::Cgicc cgi(in);
+      //
+      cgicc::form_iterator name = cgi.getElement("tmb");
+      int tmb;
+      if(name != cgi.getElements().end()) {
+	tmb = cgi["tmb"]->getIntegerValue();
+      } else {
+	cout << "Not tmb" << endl ;
+      }
       //
       *out << "<graph caption='ALCT0 key wire group' subcaption='' xAxisName='ALCT0 wire group' yAxisName='Event' numberPrefix='' showNames='1' animation='0'>" << std::endl;
       //
-      for(unsigned int i=0;i<200;i++) {
+      for(unsigned int i=0;i<120;i++) {
 	ostringstream output;
-	output << "<set name='" << i <<"'"<< " value='" << TMBTriggerAlct0Key[i][0] << "'" << " />" << std::endl;
+	if(i%10==0) {
+	  output << "<set name='" << i <<"'"<< " value='" << TMBTriggerAlct0Key[i][tmb] << "'" << " />" << std::endl;
+	} else {
+	  output << "<set name=''"<< " value='" << TMBTriggerAlct0Key[i][tmb] << "'" << " />" << std::endl;
+	}
 	*out << output.str() << std::endl ;
 	//std::cout << output.str() << std::endl ;
       }
       *out << "</graph>" << std::endl;    
     }
   //
-  void EmuPeripheralCrate::getDataTMBTriggerAlct1Key(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  void EmuPeripheralCrate::getDataTMBTriggerAlct1Key(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
     {
+      //
+      cgicc::Cgicc cgi(in);
+      //
+      cgicc::form_iterator name = cgi.getElement("tmb");
+      int tmb;
+      if(name != cgi.getElements().end()) {
+	tmb = cgi["tmb"]->getIntegerValue();
+      } else {
+	cout << "Not tmb" << endl ;
+      }
       //
       *out << "<graph caption='ALCT1 key wire group' subcaption='' xAxisName='ALCT1 wire group' yAxisName='Event' numberPrefix='' showNames='1' animation='0'>" << std::endl;
       //
-      for(unsigned int i=0;i<200;i++) {
+      for(unsigned int i=0;i<120;i++) {
 	ostringstream output;
-	output << "<set name='" << i <<"'"<< " value='" << TMBTriggerAlct1Key[i][0] << "'" << " />" << std::endl;
+	if(i%10==0) {
+	  output << "<set name='" << i <<"'"<< " value='" << TMBTriggerAlct1Key[i][tmb] << "'" << " />" << std::endl;
+	} else {
+	  output << "<set name=''"<< " value='" << TMBTriggerAlct1Key[i][tmb] << "'" << " />" << std::endl;
+	}
+	*out << output.str() << std::endl ;
+      }
+      *out << "</graph>" << std::endl;    
+    }
+  //
+  void EmuPeripheralCrate::getDataTMBTriggerClct0Key(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      cgicc::Cgicc cgi(in);
+      //
+      cgicc::form_iterator name = cgi.getElement("tmb");
+      int tmb;
+      if(name != cgi.getElements().end()) {
+	tmb = cgi["tmb"]->getIntegerValue();
+      } else {
+	cout << "Not tmb" << endl ;
+      }
+      //
+      *out << "<graph caption='CLCT0 key wire group' subcaption='' xAxisName='CLCT0 key HalfStrip' yAxisName='Event' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+      //
+      for(unsigned int i=0;i<120;i++) {
+	ostringstream output;
+	if(i%10==0) {
+	  output << "<set name='" << i <<"'"<< " value='" << TMBTriggerClct0keyHalfStrip[i][tmb] << "'" << " />" << std::endl;
+	} else {
+	  output << "<set name=''"<< " value='" << TMBTriggerClct0keyHalfStrip[i][tmb] << "'" << " />" << std::endl;
+	}
 	*out << output.str() << std::endl ;
 	//std::cout << output.str() << std::endl ;
+      }
+      *out << "</graph>" << std::endl;    
+    }
+  //
+  void EmuPeripheralCrate::getDataTMBTriggerClct1Key(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      cgicc::Cgicc cgi(in);
+      //
+      cgicc::form_iterator name = cgi.getElement("tmb");
+      int tmb;
+      if(name != cgi.getElements().end()) {
+	tmb = cgi["tmb"]->getIntegerValue();
+      } else {
+	cout << "Not tmb" << endl ;
+      }
+      //
+      *out << "<graph caption='ALCT1 key wire group' subcaption='' xAxisName='CLCT1 key HalfStrip' yAxisName='Event' numberPrefix='' showNames='1' animation='0'>" << std::endl;
+      //
+      for(unsigned int i=0;i<120;i++) {
+	ostringstream output;
+	if(i%10==0) {
+	  output << "<set name='" << i <<"'"<< " value='" << TMBTriggerClct1keyHalfStrip[i][tmb] << "'" << " />" << std::endl;
+	} else {
+	  output << "<set name=''"<< " value='" << TMBTriggerClct1keyHalfStrip[i][tmb] << "'" << " />" << std::endl;
+	}
+	*out << output.str() << std::endl ;
       }
       *out << "</graph>" << std::endl;    
     }
