@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.1 2006/09/04 09:48:24 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.2 2006/09/04 10:06:01 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -47,11 +47,13 @@
 #include <xdata/UnsignedLong.h>
 #include <xdata/Table.h>
 
+#include "EmuApplication.h"
 
 using namespace cgicc;
 using namespace std;
 
-class EmuPeripheralCrateManager: public xdaq::Application
+//class EmuPeripheralCrateManager: public xdaq::Application
+class EmuPeripheralCrateManager: public EmuApplication
 {
   
 public:
@@ -60,7 +62,8 @@ public:
 
   xdata::UnsignedLong runNumber_;
   
-  EmuPeripheralCrateManager(xdaq::ApplicationStub * s): xdaq::Application(s) 
+  //EmuPeripheralCrateManager(xdaq::ApplicationStub * s): xdaq::Application(s) 
+  EmuPeripheralCrateManager(xdaq::ApplicationStub * s): EmuApplication(s)
   {	
     //
     // Bind SOAP callback
