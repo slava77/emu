@@ -1,4 +1,4 @@
-// $Id: EmuRunControlHyperDAQ.h,v 3.5 2006/08/17 15:02:31 mey Exp $
+// $Id: EmuRunControlHyperDAQ.h,v 3.6 2006/09/04 08:30:14 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -57,6 +57,8 @@ class EmuRunControlHyperDAQ: public xdaq::Application
 public:
   
   XDAQ_INSTANTIATOR();
+
+  xdata::UnsignedLong runNumber_;
   
   EmuRunControlHyperDAQ(xdaq::ApplicationStub * s): xdaq::Application(s) 
   {	
@@ -68,20 +70,27 @@ public:
     xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageInit, "SendSOAPMessageInit");
     xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageInitXRelay, "SendSOAPMessageInitXRelay");
     xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageConfigureXRelay, "SendSOAPMessageConfigureXRelay");
-    xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageOpenFile, "SendSOAPMessageOpenFile");
+    //xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageOpenFile, "SendSOAPMessageOpenFile");
     xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageConnectTStore, "SendSOAPMessageConnectTStore");
     xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageDisconnectTStore, "SendSOAPMessageDisconnectTStore");
     xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageQueryTStore, "SendSOAPMessageQueryTStore");
+    xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageConfigureLTC, "SendSOAPMessageConfigureLTC");
+    xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageJobControlExecuteCommand, 
+	      "SendSOAPMessageJobControlExecuteCommand");
+    xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageQueryLTC, "SendSOAPMessageQueryLTC");
+    xgi::bind(this,&EmuRunControlHyperDAQ::SendSOAPMessageQueryLTC, "SendSOAPMessageQueryJobControl");
     //
   }  
   //
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //*out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("EmuRunControlHyperDAQ") << std::endl;
+    //*out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //*out << cgicc::title("EmuRunControlHyperDAQ") << std::endl;
+    //
+    MyHeader(in,out,"EmuRunControlHyperDAQ");
     //
     *out << cgicc::h1("EmuRunControlHyperDAQ") << std::endl ;
     //
@@ -103,6 +112,34 @@ public:
 	*out << url << " " << std::endl;
 	std::string urn = (*itDescriptor)->getURN();  	
 	*out << urn << std::endl;
+	//
+	xoap::MessageReference reply;
+	//
+	bool failed = false ;
+	//
+	try{
+	  xoap::MessageReference msg   = QueryPeripheralCrateInfoSpace();
+	  reply = getApplicationContext()->postSOAP(msg, (*itDescriptor));
+	}
+	//
+	catch (xdaq::exception::Exception& e) 
+	  {
+	    *out << cgicc::span().set("style","color:red");
+	    *out << "(Not running)"<<std::endl;
+	    *out << cgicc::span();
+	    failed = true;
+	  }
+	//
+	if(!failed) {
+	  xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	  if (body.hasFault()) {
+	    std::cout << "No connection. " << body.getFault().getFaultString() << std::endl;
+	  } else {
+	    *out << cgicc::span().set("style","color:green");
+	    *out << "(" << extractState(reply) << ")";
+	    *out << cgicc::span();
+	  }
+	}
 	//
 	*out << cgicc::br();
 	//
@@ -136,6 +173,143 @@ public:
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     //
+    *out << cgicc::legend("TStore in Configuration file").set("style","color:blue") 
+	 << cgicc::p() << std::endl ;
+    //
+    std::vector<xdaq::ApplicationDescriptor * >  descriptorTStore =
+      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("TStore");
+    //
+    vector <xdaq::ApplicationDescriptor *>::iterator itDescriptorTStore;
+    for ( itDescriptorTStore = descriptorTStore.begin(); itDescriptorTStore != descriptorTStore.end(); itDescriptorTStore++ ) 
+      {
+	std::string classNameStr = (*itDescriptorTStore)->getClassName();
+	*out << classNameStr << " " << std::endl ;
+	std::string url = (*itDescriptorTStore)->getContextDescriptor()->getURL();
+	*out << url << " " << std::endl;
+	std::string urn = (*itDescriptorTStore)->getURN();  	
+	*out << urn << std::endl;
+	//
+	*out << cgicc::br();
+	//
+      }    
+    //
+    *out << cgicc::fieldset() ;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    //
+    *out << cgicc::legend("JobControl in Configuration file").set("style","color:blue") 
+	 << cgicc::p() << std::endl ;
+    //
+    std::vector<xdaq::ApplicationDescriptor * >  descriptorJobControl =
+      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("JobControl");
+    //
+    vector <xdaq::ApplicationDescriptor *>::iterator itDescriptorJobControl;
+    for ( itDescriptorJobControl = descriptorJobControl.begin(); itDescriptorJobControl != descriptorJobControl.end(); itDescriptorJobControl++ ) 
+      {
+	std::string classNameStr = (*itDescriptorJobControl)->getClassName();
+	*out << classNameStr << " " << std::endl ;
+	std::string url = (*itDescriptorJobControl)->getContextDescriptor()->getURL();
+	*out << url << " " << std::endl;
+	std::string urn = (*itDescriptorJobControl)->getURN();  	
+	*out << urn << std::endl;
+	//
+	xoap::MessageReference reply;
+	//
+	bool failed = false ;
+	//
+	try{
+	  xoap::MessageReference msg   = QueryJobControlInfoSpace();
+	  reply = getApplicationContext()->postSOAP(msg, (*itDescriptorJobControl));
+	}
+	//
+	catch (xdaq::exception::Exception& e) 
+	  {
+	    *out << cgicc::span().set("style","color:red");
+	    *out << "(Not running)"<<std::endl;
+	    *out << cgicc::span();
+	    failed = true;
+	  }
+	//
+	if(!failed) {
+	  xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	  if (body.hasFault()) {
+	    std::cout << "No connection. " << body.getFault().getFaultString() << std::endl;
+	  } else {
+	    *out << cgicc::span().set("style","color:green");
+	    *out << "(" << extractState(reply) << ")";
+	    *out << cgicc::span();
+	    //
+	    *out << cgicc::br();
+	    //
+	  }
+	}
+	//
+	*out << cgicc::br();
+	//
+      }    
+    //
+    *out << cgicc::fieldset() ;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    //
+    *out << cgicc::legend("LTCControl in Configuration file").set("style","color:blue") 
+	 << cgicc::p() << std::endl ;
+    //
+    std::vector<xdaq::ApplicationDescriptor * >  descriptorLTCControl =
+      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("LTCControl");
+    //
+    vector <xdaq::ApplicationDescriptor *>::iterator itDescriptorLTCControl;
+    for ( itDescriptorLTCControl = descriptorLTCControl.begin(); 
+	  itDescriptorLTCControl != descriptorLTCControl.end(); itDescriptorLTCControl++ ) 
+      {
+	//
+	std::string classNameStr = (*itDescriptorLTCControl)->getClassName();
+	*out << classNameStr << " " << std::endl ;
+	std::string url = (*itDescriptorLTCControl)->getContextDescriptor()->getURL();
+	*out << url << " " << std::endl;
+	std::string urn = (*itDescriptorLTCControl)->getURN();  	
+	*out << urn << std::endl;
+	//
+	xoap::MessageReference reply;
+	//
+	bool failed = false ;
+	//
+	try{
+	  xoap::MessageReference msg   = QueryLTCInfoSpace();
+	  reply = getApplicationContext()->postSOAP(msg, (*itDescriptorLTCControl));
+	}
+	//
+	catch (xdaq::exception::Exception& e) 
+	  {
+	    *out << cgicc::span().set("style","color:red");
+	    *out << "(Not running)"<<std::endl;
+	    *out << cgicc::span();
+	    failed = true;
+	  }
+	//
+	if(!failed) {
+	  xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	  if (body.hasFault()) {
+	    std::cout << "No connection. " << body.getFault().getFaultString() << std::endl;
+	  } else {
+	    *out << cgicc::span().set("style","color:green");
+	    *out << "(" << extractState(reply) << ")";
+	    *out << cgicc::span();
+	    //
+	    *out << cgicc::br();
+	    *out << "Run number = " << extractRunNumber(reply) << std::endl;
+	    //
+	  }
+	}
+	//
+	*out << cgicc::br();
+	//
+      }    
+    //
+    *out << cgicc::fieldset() ;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    /*
     std::string methodSOAPMessageInit =
       toolbox::toString("/%s/SendSOAPMessageInitXRelay",getApplicationDescriptor()->getURN().c_str());
     //
@@ -143,7 +317,7 @@ public:
     *out << cgicc::input().set("type","submit")
       .set("value","Send SOAP message : Init Crate") << std::endl ;
     *out << cgicc::form();
-    //
+    */
     //
     std::string methodSOAPMessageConfigure =
       toolbox::toString("/%s/SendSOAPMessageConfigureXRelay",getApplicationDescriptor()->getURN().c_str());
@@ -152,7 +326,7 @@ public:
     *out << cgicc::input().set("type","submit")
       .set("value","Send SOAP message : Configure Crate") << std::endl ;
     *out << cgicc::form();
-    //
+    /*
     std::string methodSOAPMessageOpenFile =
       toolbox::toString("/%s/SendSOAPMessageOpenFile",getApplicationDescriptor()->getURN().c_str());
     //
@@ -160,7 +334,7 @@ public:
     *out << cgicc::input().set("type","submit")
       .set("value","Send SOAP message : Open File") << std::endl ;
     *out << cgicc::form();
-    //
+    */
     *out << cgicc::fieldset();
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
@@ -191,9 +365,143 @@ public:
     //
     *out << cgicc::fieldset() ;
     //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    //
+    std::string methodSOAPMessageConfigureLTC =
+      toolbox::toString("/%s/SendSOAPMessageConfigureLTC",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageConfigureLTC) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Send SOAP message : Configure LTC") << std::endl ;
+    *out << cgicc::form();
+    //
+    std::string methodSOAPMessageQueryLTC =
+      toolbox::toString("/%s/SendSOAPMessageQueryLTC",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageQueryLTC) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Send SOAP message : Query LTC InfoSpace") << std::endl ;
+    *out << cgicc::form();
+    //
+    *out << cgicc::fieldset() ;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    //
+    std::string methodSOAPMessageJobControlExecuteCommand =
+      toolbox::toString("/%s/SendSOAPMessageJobControlExecuteCommand",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageJobControlExecuteCommand) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Send SOAP message : JobControl Execute Command") << std::endl ;
+    *out << cgicc::form();
+    //
+    *out << cgicc::fieldset() ;
+    //
   }
   //
+  void EmuRunControlHyperDAQ::MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) 
+    throw (xgi::exception::Exception)
+    {
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    *out << cgicc::title(title) << std::endl;
+    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
+    //
+  }
+  //
+  //
+  string EmuRunControlHyperDAQ::extractState(xoap::MessageReference message)
+    {
+      xoap::SOAPElement root = message->getSOAPPart()
+	.getEnvelope().getBody().getChildElements(*(new xoap::SOAPName("ParameterGetResponse", "", "")))[0];
+      xoap::SOAPElement properties = root.getChildElements(*(new xoap::SOAPName("properties", "", "")))[0];
+      xoap::SOAPElement state = properties.getChildElements(*(new xoap::SOAPName("stateName", "", "")))[0];
+      
+      return state.getValue();
+    }
+  //
+  string EmuRunControlHyperDAQ::extractRunNumber(xoap::MessageReference message)
+    {
+      xoap::SOAPElement root = message->getSOAPPart()
+	.getEnvelope().getBody().getChildElements(*(new xoap::SOAPName("ParameterGetResponse", "", "")))[0];
+      xoap::SOAPElement properties = root.getChildElements(*(new xoap::SOAPName("properties", "", "")))[0];
+      xoap::SOAPElement state = properties.getChildElements(*(new xoap::SOAPName("RunNumber", "", "")))[0];
+      
+      return state.getValue();
+    }
+  // 
   // Create a XRelay SOAP Message
+  //
+  xoap::MessageReference QueryLTCInfoSpace()
+    {
+      xoap::MessageReference message = xoap::createMessage();
+      xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+      envelope.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
+      
+      xoap::SOAPName command = envelope.createName("ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
+      xoap::SOAPName properties = envelope.createName("properties", "LTCControl", "urn:xdaq-application:LTCControl");
+      xoap::SOAPName parameter  = envelope.createName("stateName", "LTCControl", "urn:xdaq-application:LTCControl");
+      xoap::SOAPName parameter2 = envelope.createName("RunNumber", "LTCControl", "urn:xdaq-application:LTCControl");
+      xoap::SOAPName xsitype    = envelope.createName("type", "xsi", "http://www.w3.org/2001/XMLSchema-instance");
+      
+      xoap::SOAPElement properties_e = envelope.getBody()
+	.addBodyElement(command)
+	.addChildElement(properties);
+      properties_e.addAttribute(xsitype, "soapenc:Struct");
+      
+      xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
+      parameter_e.addAttribute(xsitype, "xsd:string");
+
+      xoap::SOAPElement parameter_e2 = properties_e.addChildElement(parameter2);
+      parameter_e2.addAttribute(xsitype, "xsd:unsignedLong");      
+
+      return message;
+    }
+  //
+  xoap::MessageReference QueryPeripheralCrateInfoSpace()
+    {
+      xoap::MessageReference message = xoap::createMessage();
+      xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+      envelope.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
+      
+      xoap::SOAPName command = envelope.createName("ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
+      xoap::SOAPName properties = envelope.createName("properties", "EmuPeripheralCrate", "urn:xdaq-application:EmuPeripheralCrate");
+      xoap::SOAPName parameter  = envelope.createName("stateName", "EmuPeripheralCrate", "urn:xdaq-application:EmuPeripheralCrate");
+      xoap::SOAPName xsitype    = envelope.createName("type", "xsi", "http://www.w3.org/2001/XMLSchema-instance");
+      
+      xoap::SOAPElement properties_e = envelope.getBody()
+	.addBodyElement(command)
+	.addChildElement(properties);
+      properties_e.addAttribute(xsitype, "soapenc:Struct");
+      
+      xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
+      parameter_e.addAttribute(xsitype, "xsd:string");
+
+      return message;
+    }
+  //
+  xoap::MessageReference QueryJobControlInfoSpace()
+    {
+      xoap::MessageReference message = xoap::createMessage();
+      xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+      envelope.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
+      
+      xoap::SOAPName command = envelope.createName("ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
+      xoap::SOAPName properties = envelope.createName("properties", "JobControl", "urn:xdaq-application:JobControl");
+      xoap::SOAPName parameter  = envelope.createName("stateName", "JobControl", "urn:xdaq-application:JobControl");
+      xoap::SOAPName xsitype    = envelope.createName("type", "xsi", "http://www.w3.org/2001/XMLSchema-instance");
+      
+      xoap::SOAPElement properties_e = envelope.getBody()
+	.addBodyElement(command)
+	.addChildElement(properties);
+      properties_e.addAttribute(xsitype, "soapenc:Struct");
+      
+      xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
+      parameter_e.addAttribute(xsitype, "xsd:string");
+
+      return message;
+    }
   //
   xoap::MessageReference createXRelayMessage(const std::string & command, std::vector<xdaq::ApplicationDescriptor * > descriptor )
   {
@@ -276,7 +584,10 @@ public:
 	  getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),4);
 	
 	xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, xrelay);
-	
+	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	if (body.hasFault()) {
+	  std::cout << "No connection. " << body.getFault().getFaultString() << std::endl;
+	}
       } 
     catch (xdaq::exception::Exception& e) 
       {
@@ -460,7 +771,7 @@ public:
     }
     *out << cgicc::table();
   }
-  // 
+  /*
   void EmuRunControlHyperDAQ::SendSOAPMessageOpenFile(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -488,6 +799,116 @@ public:
     this->Default(in,out);
     //
   }
+  */
+  void EmuRunControlHyperDAQ::SendSOAPMessageConfigureLTC(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      std::cout << "SendSOAPMessage Configure LTC" << std::endl;
+      //
+      xoap::MessageReference msg = xoap::createMessage();
+      xoap::SOAPPart soap = msg->getSOAPPart();
+      xoap::SOAPEnvelope envelope = soap.getEnvelope();
+      xoap::SOAPBody body = envelope.getBody();
+      xoap::SOAPName command = envelope.createName("Configure","xdaq", "urn:xdaq-soap:3.0");
+      body.addBodyElement(command);
+      //
+      try
+	{	
+	  xdaq::ApplicationDescriptor * d = 
+	    getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("LTCControl", 0);
+	  xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
+	  xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	  reply->writeTo(std::cout);
+	  std::cout << std::endl;
+	  if (body.hasFault()) {
+	    std::cout << "Fault = " << body.getFault().getFaultString() << std::endl;
+	  }
+	  //
+	} 
+      catch (xdaq::exception::Exception& e)
+	{
+	  XCEPT_RETHROW (xgi::exception::Exception, "Cannot send message", e);	      	
+	}
+      //
+      this->Default(in,out);
+      //
+    }
+  //
+  void EmuRunControlHyperDAQ::SendSOAPMessageJobControlExecuteCommand(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      std::cout << "SendSOAPMessage JobControl executeCommand" << std::endl;
+      //
+      xoap::MessageReference msg = xoap::createMessage();
+      xoap::SOAPPart soap = msg->getSOAPPart();
+      xoap::SOAPEnvelope envelope = soap.getEnvelope();
+      xoap::SOAPBody body = envelope.getBody();
+      xoap::SOAPName command = envelope.createName("executeCommand","xdaq", "urn:xdaq-soap:3.0");
+      xoap::SOAPName user     = envelope.createName("user", "", "http://www.w3.org/2001/XMLSchema-instance");
+      xoap::SOAPName execPath = envelope.createName("execPath", "", "http://www.w3.org/2001/XMLSchema-instance");
+      xoap::SOAPBodyElement itm = body.addBodyElement(command);
+      itm.addAttribute(execPath,"/home/meydev/DAQkit/3.9/TriDAS/daq/xdaq/bin/linux/x86/xdaq.exe");
+      itm.addAttribute(user,"mey");
+      //
+      try
+	{
+	  //
+	  msg->writeTo(std::cout);
+	  std::cout << std::endl;
+	  //
+	  xdaq::ApplicationDescriptor * d = 
+	    getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("JobControl",0);
+	  std::cout << d << std::endl;
+	  xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
+	  xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	  reply->writeTo(std::cout);
+	  std::cout << std::endl;
+	  if (body.hasFault()) {
+	    std::cout << "Fault = " << body.getFault().getFaultString() << std::endl;
+	  }
+	  //
+	} 
+      catch (xdaq::exception::Exception& e)
+	{
+	  XCEPT_RETHROW (xgi::exception::Exception, "Cannot send message", e);	      	
+	}
+      //
+      this->Default(in,out);
+      //
+    }
+  //
+  void EmuRunControlHyperDAQ::SendSOAPMessageQueryLTC(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      std::cout << "SendSOAPMessage Query LTC" << std::endl;
+      //
+      xoap::MessageReference queryLTC = QueryLTCInfoSpace();
+      //
+      try
+	{	
+	  xdaq::ApplicationDescriptor * d = 
+	    getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("LTCControl", 0);
+	  xoap::MessageReference reply    = getApplicationContext()->postSOAP(queryLTC, d);
+	  xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	  std::cout << "Reply" << std::endl;
+	  reply->writeTo(std::cout);
+	  std::cout << std::endl;
+	  if (body.hasFault()) {
+	    std::cout << "Fault = " << body.getFault().getFaultString() << std::endl;
+	  }
+	  //
+	} 
+      catch (xdaq::exception::Exception& e)
+	{
+	  XCEPT_RETHROW (xgi::exception::Exception, "Cannot send message", e);	      	
+	}
+      //
+      this->Default(in,out);
+      //
+    }
   //
   void EmuRunControlHyperDAQ::SendSOAPMessageInit(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -505,11 +926,11 @@ public:
     try
       {	
 	xdaq::ApplicationDescriptor * d = 
-	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuCrateSOAP", 0);
+	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuPeripheralCrate", 0);
 	xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
 	//
 	d = 
-	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuCrateSOAP", 1);
+	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuPeripheralCrate", 1);
 	reply    = getApplicationContext()->postSOAP(msg, d);
       } 
     catch (xdaq::exception::Exception& e)
@@ -525,8 +946,14 @@ public:
     throw (xgi::exception::Exception)
   {
     //
+    std::cout << "SendSOAPMessageInitXRelay" <<std::endl;
+    //
     std::vector<xdaq::ApplicationDescriptor * >  descriptors =
-      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuCrateSOAP");
+      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
+    //
+    std::cout << "SendSOAPMessageInitXRelay 2" <<std::endl;
+    //
+    std::cout << "Size = " << descriptors.size() << std::endl;
     //
     xoap::MessageReference configure = createXRelayMessage("Init", descriptors);
     //
@@ -541,7 +968,7 @@ public:
   {
     //
     std::vector<xdaq::ApplicationDescriptor * >  descriptors =
-      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuCrateSOAP");
+      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
     //
     xoap::MessageReference configure = createXRelayMessage("Configure", descriptors);
     //
@@ -567,11 +994,11 @@ public:
     try
       {	
 	xdaq::ApplicationDescriptor * d = 
-	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuCrateSOAP", 0);
+	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuPeripheralCrate", 0);
 	xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
 	//
 	d = 
-	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuCrateSOAP", 1);
+	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuPeripheralCrate", 1);
 	reply    = getApplicationContext()->postSOAP(msg, d);
 	//
       } 
