@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.14 2006/09/04 08:29:43 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.15 2006/09/04 11:56:23 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -72,19 +72,19 @@
 #include "CalibDAQ.h"
 #include "EmuSystem.h"
 //
-#ifdef STANDALONE
-#else
+//#ifdef STANDALONE
+//#else
 #include "EmuApplication.h"
-#endif
+//#endif
 
 using namespace cgicc;
 using namespace std;
 
-#ifdef STANDALONE
-class EmuPeripheralCrate: public xdaq::Application 
-#else
+//#ifdef STANDALONE
+//class EmuPeripheralCrate: public xdaq::Application 
+//#else
 class EmuPeripheralCrate: public EmuApplication
-#endif
+//#endif
 {
   //
 protected:
@@ -174,11 +174,11 @@ public:
   //
   XDAQ_INSTANTIATOR();
   //
-#ifdef STANDALONE
-  EmuPeripheralCrate(xdaq::ApplicationStub * s): xdaq::Application(s) 
-#else
+  //#ifdef STANDALONE
+  //EmuPeripheralCrate(xdaq::ApplicationStub * s): xdaq::Application(s) 
+  //#else
   EmuPeripheralCrate(xdaq::ApplicationStub * s): EmuApplication(s)
-#endif
+    //#endif
   {	
     //
     FirmwareDir_ = getenv("HOME");
@@ -335,7 +335,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::MonitorFrameRight, "MonitorFrameRight");
     xgi::bind(this,&EmuPeripheralCrate::ResetAllCounters, "ResetAllCounters");
     //
-#ifndef STANDALONE
+    //#ifndef STANDALONE
     //
     // State machine definition
     //
@@ -376,7 +376,7 @@ public:
     state_ = fsm_.getStateName(fsm_.getCurrentState());
     //
 
-#endif // ! STANDALONE    
+    //#endif // ! STANDALONE    
     //
     //xoap::bind(this, &EmuPeripheralCrate::onMessage, "onMessage", XDAQ_NS_URI );    
     //xoap::bind(this, &EmuPeripheralCrate::Configure, "Configure", XDAQ_NS_URI );    
@@ -612,7 +612,7 @@ public:
   //
 private:
   //
-#ifndef STANDALONE
+  //#ifndef STANDALONE
   //
   // SOAP Callback  
   //
@@ -719,7 +719,7 @@ private:
     EmuApplication::stateChanged(fsm);
   }
 
-#endif // ! STANDALONE
+  //#endif // ! STANDALONE
   /*
   xoap::MessageReference Configure (xoap::MessageReference msg) throw (xoap::exception::Exception)
   {

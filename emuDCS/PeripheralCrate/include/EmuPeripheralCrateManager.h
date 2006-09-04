@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.2 2006/09/04 10:06:01 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.3 2006/09/04 11:56:24 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -70,10 +70,7 @@ public:
     //
     xgi::bind(this,&EmuPeripheralCrateManager::Default, "Default");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageConfigure, "SendSOAPMessageConfigure");
-    xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageInit, "SendSOAPMessageInit");
-    xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageInitXRelay, "SendSOAPMessageInitXRelay");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageConfigureXRelay, "SendSOAPMessageConfigureXRelay");
-    //xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageOpenFile, "SendSOAPMessageOpenFile");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageConnectTStore, "SendSOAPMessageConnectTStore");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageDisconnectTStore, "SendSOAPMessageDisconnectTStore");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryTStore, "SendSOAPMessageQueryTStore");
@@ -83,6 +80,41 @@ public:
 	      "SendSOAPMessageJobControlExecuteCommand");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryLTC, "SendSOAPMessageQueryLTC");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryLTC, "SendSOAPMessageQueryJobControl");
+    //
+    // SOAP call-back functions, which relays to *Action method.
+    xoap::bind(this, &EmuPeripheralCrateManager::onConfigure, "Configure", XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrateManager::onEnable,    "Enable",    XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrateManager::onDisable,   "Disable",   XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrateManager::onHalt,      "Halt",      XDAQ_NS_URI);
+    //
+    // fsm_ is defined in EmuApplication
+    fsm_.addState('H', "Halted",     this, &EmuPeripheralCrateManager::stateChanged);
+    fsm_.addState('C', "Configured", this, &EmuPeripheralCrateManager::stateChanged);
+    fsm_.addState('E', "Enabled",    this, &EmuPeripheralCrateManager::stateChanged);
+    //
+    fsm_.addStateTransition(
+      'H', 'C', "Configure", this, &EmuPeripheralCrateManager::configureAction);
+    fsm_.addStateTransition(
+      'C', 'C', "Configure", this, &EmuPeripheralCrateManager::configureAction);
+    fsm_.addStateTransition(
+      'C', 'E', "Enable",    this, &EmuPeripheralCrateManager::enableAction);
+    fsm_.addStateTransition(
+      'E', 'E', "Enable",    this, &EmuPeripheralCrateManager::enableAction);
+    fsm_.addStateTransition(
+      'E', 'C', "Disable",   this, &EmuPeripheralCrateManager::disableAction);
+    fsm_.addStateTransition(
+      'C', 'H', "Halt",      this, &EmuPeripheralCrateManager::haltAction);
+    fsm_.addStateTransition(
+      'E', 'H', "Halt",      this, &EmuPeripheralCrateManager::haltAction);
+    fsm_.addStateTransition(
+      'H', 'H', "Halt",      this, &EmuPeripheralCrateManager::haltAction);
+
+    fsm_.setInitialState('H');
+    fsm_.reset();
+    
+    //
+    // state_ is defined in EmuApplication
+    state_ = fsm_.getStateName(fsm_.getCurrentState());
     //
   }  
   //
@@ -411,6 +443,44 @@ public:
     //
   }
   //
+  void EmuPeripheralCrateManager::configureAction(toolbox::Event::Reference e) 
+    throw (toolbox::fsm::exception::Exception)
+  {
+    //
+    LOG4CPLUS_INFO(getApplicationLogger(), "Recieved Message Configure");
+    //
+  }
+
+  //
+  void EmuPeripheralCrateManager::enableAction(toolbox::Event::Reference e) 
+    throw (toolbox::fsm::exception::Exception)
+  {
+    //
+    LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Enable");
+    //
+  }
+
+  //
+  void EmuPeripheralCrateManager::disableAction(toolbox::Event::Reference e) 
+    throw (toolbox::fsm::exception::Exception)
+  {
+    LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Disable");
+  }
+
+  //
+  void EmuPeripheralCrateManager::haltAction(toolbox::Event::Reference e) 
+    throw (toolbox::fsm::exception::Exception)
+  {
+    LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Halt");
+  }
+
+  //
+  void EmuPeripheralCrateManager::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
+    throw (toolbox::fsm::exception::Exception)
+  {
+    EmuApplication::stateChanged(fsm);
+  }
+  //
   void EmuPeripheralCrateManager::MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) 
     throw (xgi::exception::Exception)
     {
@@ -514,6 +584,37 @@ public:
 
       return message;
     }
+  //
+  xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    fireEvent("Configure");
+
+    return createReply(message);
+  }
+
+  //
+  xoap::MessageReference EmuPeripheralCrateManager::onEnable (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    fireEvent("Enable");
+
+    return createReply(message);
+  }
+
+  //
+  xoap::MessageReference EmuPeripheralCrateManager::onDisable (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    fireEvent("Disable");
+
+    return createReply(message);
+  }
+
+  //
+  xoap::MessageReference EmuPeripheralCrateManager::onHalt (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    fireEvent("Halt");
+
+    return createReply(message);
+  }
   //
   xoap::MessageReference createXRelayMessage(const std::string & command, std::vector<xdaq::ApplicationDescriptor * > descriptor )
   {
@@ -960,59 +1061,6 @@ public:
       //
     }
   //
-  void EmuPeripheralCrateManager::SendSOAPMessageInit(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-    //
-    std::cout << "SendSOAPMessage Init" << std::endl;
-    //
-    xoap::MessageReference msg = xoap::createMessage();
-    xoap::SOAPPart soap = msg->getSOAPPart();
-    xoap::SOAPEnvelope envelope = soap.getEnvelope();
-    xoap::SOAPBody body = envelope.getBody();
-    xoap::SOAPName command = envelope.createName("Init","xdaq", "urn:xdaq-soap:3.0");
-    body.addBodyElement(command);
-    //
-    try
-      {	
-	xdaq::ApplicationDescriptor * d = 
-	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuPeripheralCrate", 0);
-	xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
-	//
-	d = 
-	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuPeripheralCrate", 1);
-	reply    = getApplicationContext()->postSOAP(msg, d);
-      } 
-    catch (xdaq::exception::Exception& e)
-      {
-	XCEPT_RETHROW (xgi::exception::Exception, "Cannot send message", e);	      	
-      }
-    //
-    this->Default(in,out);
-    //
-  }
-  //
-  void EmuPeripheralCrateManager::SendSOAPMessageInitXRelay(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-    //
-    std::cout << "SendSOAPMessageInitXRelay" <<std::endl;
-    //
-    std::vector<xdaq::ApplicationDescriptor * >  descriptors =
-      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
-    //
-    std::cout << "SendSOAPMessageInitXRelay 2" <<std::endl;
-    //
-    std::cout << "Size = " << descriptors.size() << std::endl;
-    //
-    xoap::MessageReference configure = createXRelayMessage("Init", descriptors);
-    //
-    this->relayMessage(configure);
-    // 
-    this->Default(in,out);
-    //
-  }
-  //
   void EmuPeripheralCrateManager::SendSOAPMessageConfigureXRelay(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -1043,13 +1091,14 @@ public:
     //
     try
       {	
-	xdaq::ApplicationDescriptor * d = 
-	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuPeripheralCrate", 0);
-	xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
+	std::vector<xdaq::ApplicationDescriptor * >  descriptors =
+	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
 	//
-	d = 
-	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuPeripheralCrate", 1);
-	reply    = getApplicationContext()->postSOAP(msg, d);
+	vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
+	for ( itDescriptor = descriptors.begin(); itDescriptor != descriptors.end(); itDescriptor++ ) 
+	  {
+	    xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, (*itDescriptor));
+	  }    
 	//
       } 
     catch (xdaq::exception::Exception& e)
