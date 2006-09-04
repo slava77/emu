@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.3 2006/09/04 11:56:24 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.4 2006/09/04 16:14:58 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -128,7 +128,7 @@ public:
     //
     MyHeader(in,out,"EmuPeripheralCrateManager");
     //
-    *out << cgicc::h1("EmuPeripheralCrateManager") << std::endl ;
+    //*out << cgicc::h1("EmuPeripheralCrateManager") << std::endl ;
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     //
@@ -488,7 +488,7 @@ public:
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title(title) << std::endl;
-    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
+    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << h2(title) << std::endl;
     //
   }
   //
@@ -689,23 +689,29 @@ public:
   void EmuPeripheralCrateManager::relayMessage (xoap::MessageReference msg) throw (xgi::exception::Exception)
   {
     // Retrieve the list of applications expecting this command and build the XRelay header
-    
+    xoap::MessageReference reply;
     try 
       {	
 	// Get the Xrelay application descriptor and post the message:
 	xdaq::ApplicationDescriptor * xrelay = getApplicationContext()->
 	  getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),4);
 	
-	xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, xrelay);
+	reply = getApplicationContext()->postSOAP(msg, xrelay);
 	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
 	if (body.hasFault()) {
 	  std::cout << "No connection. " << body.getFault().getFaultString() << std::endl;
+	} else {
+	  reply->writeTo(std::cout);
+	  std::cout << std::endl;
 	}
       } 
     catch (xdaq::exception::Exception& e) 
       {
 	XCEPT_RETHROW (xgi::exception::Exception, "Cannot relay message", e);
       }
+    //
+    std::cout << "Finish relayMessage" << std::endl;
+    //
   }
   //
   void EmuPeripheralCrateManager::SendSOAPMessageConnectTStore(xgi::Input * in, xgi::Output * out ) 
@@ -996,7 +1002,7 @@ public:
       xoap::SOAPPart soap = msg->getSOAPPart();
       xoap::SOAPEnvelope envelope = soap.getEnvelope();
       xoap::SOAPBody body = envelope.getBody();
-      xoap::SOAPName command = envelope.createName("executeCommand","xdaq", "urn:xdaq-soap:3.0");
+      xoap::SOAPName command  = envelope.createName("executeCommand","xdaq", "urn:xdaq-soap:3.0");
       xoap::SOAPName user     = envelope.createName("user", "", "http://www.w3.org/2001/XMLSchema-instance");
       xoap::SOAPName execPath = envelope.createName("execPath", "", "http://www.w3.org/2001/XMLSchema-instance");
       xoap::SOAPBodyElement itm = body.addBodyElement(command);
@@ -1065,10 +1071,14 @@ public:
     throw (xgi::exception::Exception)
   {
     //
+    std::cout << "SendSOAPMessageConfigure XRelay" << std::endl;
+    //
     std::vector<xdaq::ApplicationDescriptor * >  descriptors =
       getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
     //
     xoap::MessageReference configure = createXRelayMessage("Configure", descriptors);
+    //
+    std::cout << "out of configure" << std::endl;
     //
     this->relayMessage(configure);
     //
