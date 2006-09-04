@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.15 2006/09/04 11:56:23 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.16 2006/09/04 16:14:55 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -622,6 +622,7 @@ private:
     fireEvent("Configure");
 
     return createReply(message);
+
   }
 
   //
