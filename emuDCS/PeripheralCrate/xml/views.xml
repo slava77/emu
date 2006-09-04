@@ -9,7 +9,7 @@
 
 
 <sql:query name="myTable1">
-               <sql:table name="EMU_CONFIG">
+               <sql:table name="AFEB_CONF">
                </sql:table>
 </sql:query>
 
