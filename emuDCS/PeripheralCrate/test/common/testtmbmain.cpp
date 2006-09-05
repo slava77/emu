@@ -95,9 +95,9 @@ int main() {
   thisDMB = dmbVector[0];
   thisMPC = thisCrate->mpc();
   //  DDU * thisDDU = thisCrate->ddu();
-  myRat = new RAT(thisTMB);
+  myRat = thisTMB->getRAT();
 
-  alct = new ALCTController(thisTMB,"ME21");
+  alct = thisTMB->alctController();
 
   // point the TMBTester to the classes we need:
   TMBTester testTMB;
@@ -557,14 +557,15 @@ int main() {
       thisTMB->configure();
       break;
     case 201:      
-      thisTMB->SetFillUserPromWithVmeWrites(true);
+      thisTMB->SetFillVmeWriteVecs(true);
       thisTMB->configure();
       break;
     case 202:
       alct->configure();
       break;
     case 203:
-      std::cout << "not yet working.... " << std::endl;
+      alct->SetFillVmeWriteVecs(true);
+      alct->configure();
       break;
     case 300:
       thisTMB->SetWhichUserProm(ChipLocationTmbUserPromTMB);

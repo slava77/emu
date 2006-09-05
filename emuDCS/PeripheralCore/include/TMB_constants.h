@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: TMB_constants.h,v 3.1 2006/09/05 10:13:17 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.1  2006/09/05 10:13:17  rakness
+// ALCT configure from prom
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -291,4 +294,25 @@ struct tmb_id_regs
   unsigned short int fpga_type; // Xilinx FPGA Type XCV1000E (BCD)
 
 };
-
+//
+const int number_of_allowed_configuration_addresses = 18;
+const int allowed_configuration_addresses[number_of_allowed_configuration_addresses] = {
+  rpc_cfg_adr,          //0xb6 enable RPC 
+  vme_ratctrl_adr,      //0x1e add 1/2-cycle to RPC latching
+  vme_loopbk_adr,       //0x0e enable ALCT LVDS rx/tx
+  ccb_trig_adr,         //0x2c configure request l1a from CCB 
+  seq_fifo_adr,         //0x72 sequencer fifo configuration
+  seq_trig_en_adr,      //0x68 sequencer trigger source configuration
+  tmbtim_adr,           //0xb2 ALCT*CLCT coincidence timing 
+  seq_offset_adr,       //0x76 TMB sequencer counter offsets
+  seq_clct_adr,         //0x70 CLCT sequencer configuration
+  scp_ctrl_adr,         //0x98 Sequencer readout mode ([5]=1 insert in DMB data), RAM bank to read
+  seq_l1a_adr,          //0x74 Sequencer-L1A configuration
+  tmb_trig_adr,         //0x86 TMB trigger configuration/MPC accept, delays
+  vme_ddd1_adr,         //0x18 delays: CFEB0, DCC, MPC, TMB1
+  vme_ddd2_adr,         //0x1a delays: CFEB4, CFEB3, CFEB2, CFEB1
+  vme_ddd0_adr,         //0x16 delays: RPCtx, DMBtx, ALCTrx, ALCTtx
+  cfeb_inj_adr,         //0x42 enable CFEB inputs, RAM read/write
+  seq_id_adr,           //0x63 board, csc ID 
+  vme_usr_jtag_adr      //0x10 ALCT JTAG address
+};

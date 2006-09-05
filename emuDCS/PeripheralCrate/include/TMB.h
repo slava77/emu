@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.3 2006/08/11 16:23:33 rakness Exp $
+// $Id: TMB.h,v 3.4 2006/09/05 10:13:17 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.4  2006/09/05 10:13:17  rakness
+// ALCT configure from prom
+//
 // Revision 3.3  2006/08/11 16:23:33  rakness
 // able to write TMB user prom from configure()
 //
@@ -420,12 +423,15 @@ public:
   inline int GetTMBuserProm0IdCode() { return tmb_idcode_[5]; }
   inline int GetTMBuserProm1IdCode() { return tmb_idcode_[6]; }
   //
-  inline void SetFillUserPromWithVmeWrites(bool YesOrNo) { fill_user_prom_with_vme_writes_ = YesOrNo; }
-  inline bool GetFillUserPromWithVmeWrites() { return fill_user_prom_with_vme_writes_; }
-  inline int  GetNumberOfVmeWrites() { return config_data_lsb_.size(); }    //this vector will be filled for TMB and ALCT user proms
-  char GetConfigVmeAddress(int data_counter);
-  char GetConfigDataLsb(int data_counter);
-  char GetConfigDataMsb(int data_counter);
+  void OkVmeWrite(char vme_address);                    // allowed to write this address into user prom?
+  void ClearVmeWriteVecs();                             
+  void SetFillVmeWriteVecs(bool fill_vectors_or_not);   // put the vme information into vectors to put into user prom?
+  bool GetFillVmeWriteVecs();
+  int GetNumberOfVmeWrites();                           // how many vme writes go into the user prom?
+  int GetVecVmeAddress(int data_counter);               // vme write information
+  int GetVecDataLsb(int data_counter);                  // vme write information
+  int GetVecDataMsb(int data_counter);                  // vme write information
+  //
   void ClockOutPromProgram(int prom,int number_of_addresses);
   inline int GetClockedOutPromImage(int address) { return clocked_out_prom_image_.at(address); }
   //
@@ -509,10 +515,6 @@ private:
   int alct1_second_key_;
   int alct1_second_bxn_;
   //
-  bool fill_user_prom_with_vme_writes_;
-  std::vector<char> config_vme_address_;
-  std::vector<char> config_data_lsb_;
-  std::vector<char> config_data_msb_;
   std::vector<int> clocked_out_prom_image_;
   //
 };
