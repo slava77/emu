@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.16 2006/09/04 16:14:55 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.17 2006/09/05 16:13:23 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -7716,13 +7716,18 @@ private:
     //parser.parseFile(xmlFile_.toString().c_str());
     //
     if ( MyController != 0 ) {
+      std::cout << "Delete existing controller" << std::endl;
       delete MyController ;
     }
     //
     MyController = new EmuController();
+    std::cout<<"Creat new controller" << std::endl;
     //
     MyController->SetConfFile(xmlFile_.toString().c_str());
     MyController->init();
+    //
+    std::cout << "Done init" << std::endl;
+    //
     emuSystem_ = MyController->GetEmuSystem();
     //
     //-- Make sure that only one TMB in one crate is configured

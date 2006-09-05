@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CSCParser.cc,v 3.1 2006/08/17 15:01:31 mey Exp $
+// $Id: CSCParser.cc,v 3.2 2006/09/05 16:14:14 mey Exp $
 // $Log: CSCParser.cc,v $
+// Revision 3.2  2006/09/05 16:14:14  mey
+// Update
+//
 // Revision 3.1  2006/08/17 15:01:31  mey
 // Modified Parser to accept globals
 //
@@ -56,9 +59,11 @@ CSCParser::CSCParser(xercesc::DOMNode * pNode, Crate * theCrate, xercesc::DOMNod
       }
       //
       if (strcmp("TMB",xercesc::XMLString::transcode(pNode1->getNodeName()))==0) {  
+	std::cout << "TMBparser..." <<std::endl;
 	tmbParser_ = TMBParser(pNode1, theCrate,pNodeGlobal);
 	(tmbParser_.tmb())->SetCSC(csc_);
 	csc_->SetTMB(tmbParser_.tmb());
+	std::cout << "Out TMBparser..." <<std::endl;
       }       
     }
     pNode1 = pNode1->getNextSibling();

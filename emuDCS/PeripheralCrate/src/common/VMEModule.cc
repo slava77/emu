@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.4 2006/08/09 09:32:39 mey Exp $
+// $Id: VMEModule.cc,v 3.5 2006/09/05 16:14:43 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.5  2006/09/05 16:14:43  mey
+// Update
+//
 // Revision 3.4  2006/08/09 09:32:39  mey
 // Included EMUjtag into VMEModule
 //
@@ -122,11 +125,16 @@ VMEModule::VMEModule(Crate * theCrate, int newslot):
 {
   theCrate_ = theCrate;
   //
+  cout << "creating VMEModule in crate " << theCrate->number() << endl;
+  //
 #ifdef debugV
   cout << "creating VMEModule in crate " << theCrate->number() << endl;
 #endif 
   theController = theCrate->vmeController();
   theCrate->addModule(this);
+  //
+  cout << "Done VMEModule in crate " << theCrate->number() << endl;
+  //
 }
 
 

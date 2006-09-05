@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.4 2006/09/04 16:14:58 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.5 2006/09/05 16:13:27 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -360,7 +360,7 @@ public:
     //
     *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageConfigure) << std::endl ;
     *out << cgicc::input().set("type","submit")
-      .set("value","Send SOAP message : Configure Crate") << std::endl ;
+      .set("value","Send SOAP message : Configure Crates") << std::endl ;
     *out << cgicc::form();
     /*
     std::string methodSOAPMessageOpenFile =
@@ -447,7 +447,7 @@ public:
     throw (toolbox::fsm::exception::Exception)
   {
     //
-    LOG4CPLUS_INFO(getApplicationLogger(), "Recieved Message Configure");
+    LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Configure");
     //
   }
 
@@ -588,8 +588,11 @@ public:
   xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception)
   {
     fireEvent("Configure");
-
+    //
+    SendSOAPMessageConfigureXRelaySimple();
+    //
     return createReply(message);
+    //
   }
 
   //
@@ -992,22 +995,42 @@ public:
       //
     }
   //
-  void EmuPeripheralCrateManager::SendSOAPMessageJobControlExecuteCommand(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
+  xoap::MessageReference ExecuteCommandMessage()
     {
-      //
-      std::cout << "SendSOAPMessage JobControl executeCommand" << std::endl;
-      //
       xoap::MessageReference msg = xoap::createMessage();
       xoap::SOAPPart soap = msg->getSOAPPart();
       xoap::SOAPEnvelope envelope = soap.getEnvelope();
       xoap::SOAPBody body = envelope.getBody();
       xoap::SOAPName command  = envelope.createName("executeCommand","xdaq", "urn:xdaq-soap:3.0");
       xoap::SOAPName user     = envelope.createName("user", "", "http://www.w3.org/2001/XMLSchema-instance");
+      xoap::SOAPName argv     = envelope.createName("argv", "", "http://www.w3.org/2001/XMLSchema-instance");
       xoap::SOAPName execPath = envelope.createName("execPath", "", "http://www.w3.org/2001/XMLSchema-instance");
+      //
+      xoap::SOAPName ldLibraryPath = envelope.createName("LD_LIBRARY_PATH", "", "http://www.w3.org/2001/XMLSchema-instance");
+      xoap::SOAPName xdaqRoot = envelope.createName("XDAQ_ROOT", "", "http://www.w3.org/2001/XMLSchema-instance");
+      xoap::SOAPName home = envelope.createName("HOME", "", "http://www.w3.org/2001/XMLSchema-instance");
+      xoap::SOAPName environment = envelope.createName("EnvironmentVariable","","http://www.w3.org/2001/XMLSchema-instance");
+      //
       xoap::SOAPBodyElement itm = body.addBodyElement(command);
       itm.addAttribute(execPath,"/home/meydev/DAQkit/3.9/TriDAS/daq/xdaq/bin/linux/x86/xdaq.exe");
-      itm.addAttribute(user,"mey");
+      itm.addAttribute(user,"meydev");
+      itm.addAttribute(argv,"-p 2924 -c /home/meydev/DAQkit/3.9/TriDAS/emu/emuDCS/PeripheralCrate/xml/EmuCluster.xml");
+      xoap::SOAPElement itm2 = itm.addChildElement(environment);
+      itm2.addAttribute(home,"/home/meydev");
+      itm2.addAttribute(xdaqRoot,"/home/meydev/DAQkit/3.9/TriDAS");
+      itm2.addAttribute(ldLibraryPath,"/home/meydev/DAQkit/3.9/TriDAS/emu/emuDCS/PeripheralCrate/lib/linux/x86:/lib/linux/x86:/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/extern/xerces/linuxx86/lib:/home/meydev/DAQkit/3.9/TriDAS/daq/exter:/home/meydev/DAQkit/3.9/TriDAS/daq/xdaq/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/xdata/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/extern/log4cplus/linuxx86/lib:/home/meydev/DAQkit/3.9/TriDAS/daq/toolbox/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/xoap/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/extern/cgicc/linuxx86/lib:/home/meydev/DAQkit/3.9/TriDAS/daq/xcept/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/xgi/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/pt/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/extern/mimetic/linuxx86/lib:/home/meydev/DAQkit/3.9/TriDAS/daq/extern/log4cplus/xmlappender/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/extern/log4cplus/udpappender/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/pt/soap/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/pt/tcp/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/emu/extern/dim/linuxx86/linux:/home/meydev/DAQkit/3.9/TriDAS/emu/emuDCS/e2p/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/emu/cscSV/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/extern/asyncresolv/linuxx86/lib:/home/meydev/DAQkit/3.9/TriDAS/daq/extern/oracle/linuxx86");
+      //
+      return msg;
+      //
+    }
+  //
+  void EmuPeripheralCrateManager::SendSOAPMessageJobControlExecuteCommand(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      std::cout << "SendSOAPMessage JobControl executeCommand" << std::endl;
+      //
+      xoap::MessageReference msg = ExecuteCommandMessage();
       //
       try
 	{
@@ -1067,20 +1090,24 @@ public:
       //
     }
   //
-  void EmuPeripheralCrateManager::SendSOAPMessageConfigureXRelay(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-    //
-    std::cout << "SendSOAPMessageConfigure XRelay" << std::endl;
+  void EmuPeripheralCrateManager::SendSOAPMessageConfigureXRelaySimple(){
     //
     std::vector<xdaq::ApplicationDescriptor * >  descriptors =
       getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
     //
     xoap::MessageReference configure = createXRelayMessage("Configure", descriptors);
     //
-    std::cout << "out of configure" << std::endl;
-    //
     this->relayMessage(configure);
+    //
+  }
+  //
+  void EmuPeripheralCrateManager::SendSOAPMessageConfigureXRelay(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    std::cout << "SendSOAPMessageConfigure XRelay" << std::endl;
+    //
+    SendSOAPMessageConfigureXRelaySimple();
     //
     this->Default(in,out);
     //
