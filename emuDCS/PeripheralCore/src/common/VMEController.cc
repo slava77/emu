@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.3 2006/08/25 03:11:33 liu Exp $
+// $Id: VMEController.cc,v 3.4 2006/09/05 10:13:18 rakness Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.4  2006/09/05 10:13:18  rakness
+// ALCT configure from prom
+//
 // Revision 3.3  2006/08/25 03:11:33  liu
 // update
 //
@@ -168,7 +171,8 @@
 
 VMEController::VMEController(int crate): 
  crate_(crate), indian(SWAP),  max_buff(0), tot_buff(0), 
- plev(1), idevo(0), error_type(0), error_count(0), DEBUG(0), port_(2)
+ plev(1), idevo(0), error_type(0), error_count(0), DEBUG(0), port_(2),
+ fill_write_vme_vectors_(false), ok_vme_write_(false)
 {
   //
   fpacket_delay = 0;
@@ -816,8 +820,7 @@ int VMEController::eth_write()
 
 }
 //
-//
-void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv)
+void VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv)
 {
   /* irdwr:   
      0 bufread
@@ -1137,4 +1140,41 @@ int nwbuft,nwbufto,i;
  }
 }
 */
-
+//
+void VMEController::Clear_VmeWriteVecs() {
+  //
+  write_vme_address_.clear();
+  write_data_lsb_.clear();
+  write_data_msb_.clear();
+  //
+  return;
+}
+//
+void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv) {
+  //
+  int address = ( (int)ptr ) & 0xff;
+  //
+  if ( Get_FillVmeWriteVecs()     && 
+       (irdwr == 1 || irdwr == 3) &&
+       Get_OkVmeWriteAddress() ) {
+    //    std::cout << "CTL address, data = " << std::hex 
+    //    	      << address                 << " " 
+    //    	      << (int)( (data[0]>>12) & 0xf )
+    //    	      << (int)( (data[0]>> 8) & 0xf )
+    //    	      << (int)( (data[0]>> 4) & 0xf )
+    //    	      << (int)(  data[0]     & 0xf ) 
+    //	      << std::endl;
+    write_vme_address_.push_back( address );
+    write_data_lsb_.push_back( (data[0] & 0xff) );
+    write_data_msb_.push_back( ((data[0]>>8) & 0xff) );
+    //    ::sleep(1);
+    //    
+  } else {
+    //
+    VME_controller(irdwr,ptr,data,rcv);
+    //
+  }
+  return;
+  //
+}
+//

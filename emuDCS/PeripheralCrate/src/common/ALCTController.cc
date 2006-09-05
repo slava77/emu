@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.11 2006/08/15 14:16:50 rakness Exp $
+// $Id: ALCTController.cc,v 3.12 2006/09/05 10:13:17 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.12  2006/09/05 10:13:17  rakness
+// ALCT configure from prom
+//
 // Revision 3.11  2006/08/15 14:16:50  rakness
 // add collision mask reg/clean up configure output
 //
@@ -6091,7 +6094,7 @@ char *trim(char *str)
 //
 //
 ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
-  EMUjtag(tmb),debug_(false)
+  EMUjtag(tmb),debug_(0)
 {
   //
   MyOutput_ = &std::cout ;
@@ -6116,7 +6119,6 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   SetPowerUpCollisionPatternMask();
   //
   SetCheckJtagWrite(true);
-  stop_read_ = false;
   //
 }
 //
@@ -6285,13 +6287,18 @@ void ALCTController::SetUpRandomALCT(){
   return;
 }
 //
-//
 void ALCTController::configure() {
   //
   std::ostringstream dump;
   dump << (int)tmb_->slot();
   //
   tmb_->SendOutput("ALCT : configure() in slot = "+dump.str(),"INFO");
+  //
+  ReadSlowControlId();
+  PrintSlowControlId();
+  //
+  ReadFastControlId();
+  PrintFastControlId();
   //
   (*MyOutput_) << "Configuring ALCT" << std::dec << GetNumberOfChannelsInAlct() << "..." << std::endl; 
   (*MyOutput_) << "............ Number of Wire Groups = " << std::dec << GetNumberOfWireGroupsInChamber() << std::endl; 
@@ -6301,52 +6308,115 @@ void ALCTController::configure() {
   (*MyOutput_) << ".................. Number of AFEBs = " << GetNumberOfAfebs() << std::endl;
   (*MyOutput_) << "........... Enabled AFEBs count from  " << GetLowestAfebIndex() << " to " << GetHighestAfebIndex() << std::endl;
   //
-  ReadSlowControlId();
-  PrintSlowControlId();
-  //
-  WriteTestpulsePowerSwitchReg_();
-  //  PrintTestpulsePowerSwitchReg_();
-  //
-  WriteTestpulseAmplitude_();
-  //  PrintTestpulseAmplitude_();
-  //
-  WriteTestpulseGroupMask_();
-  //  PrintTestpulseGroupMask_();
-  //
-  WriteTestpulseStripMask_();
-  //  PrintTestpulseStripMask_();
+  if ( GetFillVmeWriteVecs() ) {       //fill the user prom with configuration data 
+    SetCheckJtagWrite(false);          //disable JTAG checking:  i.e., only want jtag writes in user prom
+    ClearVmeWriteVecs();
+  }
   //
   WriteAfebThresholds();
-  ReadAfebThresholds();
-  PrintAfebThresholds();
+  if ( GetCheckJtagWrite() ) {    
+    ReadAfebThresholds();
+    PrintAfebThresholds();
+  }
   //    
   WriteStandbyRegister_();
-  PrintStandbyRegister_();
-  //
-  //
-  ReadFastControlId();
-  PrintFastControlId();
-  //
-  WriteDelayLineControlReg_();
-  //  PrintDelayLineControlReg_();
-  //
-  WriteTriggerRegister_();
-  //  PrintTriggerRegister_();
+  if ( GetCheckJtagWrite() ) {
+    PrintStandbyRegister_();
+  }
   //
   WriteAsicDelaysAndPatterns();
-  PrintAsicDelays();
-  //  PrintAsicPatterns();
+  if ( GetCheckJtagWrite() ) {
+    PrintAsicDelays();
+    if (debug_) {
+      PrintAsicPatterns();
+    }
+  }
   //
   WriteConfigurationReg();
-  PrintConfigurationReg();
+  if ( GetCheckJtagWrite() ) {
+    PrintConfigurationReg();
+  }
   //
   WriteHotChannelMask();
-  PrintHotChannelMask();
+  if ( GetCheckJtagWrite() ) {
+    PrintHotChannelMask();
+  }
   //
   WriteCollisionPatternMask();
-  //  PrintCollisionPatternMask();
+  if (debug_) {
+    if ( GetCheckJtagWrite() ) {
+      PrintCollisionPatternMask();
+    }
+  }
+  //
+  // The following are ALCT registers which should not be changed in the configuration...
+  //
+  //  WriteTestpulsePowerSwitchReg_();
+  //  if ( GetCheckJtagWrite() ) 
+  //    PrintTestpulsePowerSwitchReg_();
+  //
+  //  WriteTestpulseAmplitude_();
+  //  if ( GetCheckJtagWrite() ) 
+  //    PrintTestpulseAmplitude_();
+  //
+  //  WriteTestpulseGroupMask_();
+  //  if ( GetCheckJtagWrite() ) 
+  //    PrintTestpulseGroupMask_();
+  //
+  //  WriteTestpulseStripMask_();
+  //  if ( GetCheckJtagWrite() ) 
+  //    PrintTestpulseStripMask_();
+  //
+  //  WriteDelayLineControlReg_();
+  //  if ( GetCheckJtagWrite() ) 
+  //    PrintDelayLineControlReg_();
+  //
+  //  WriteTriggerRegister_();
+  //  if ( GetCheckJtagWrite() ) 
+  //    PrintTriggerRegister_();
+  //
+  SetCheckJtagWrite(true);                //re-enable the checking of JTAG writes (default)
+  //
+  if ( GetFillVmeWriteVecs() ) {          //put the configuration data into the prom
+    //
+    SetXsvfFilename("ALCT_user_prom_data");
+    SetWhichUserProm(ChipLocationTmbUserPromALCT);
+    CreateUserPromFile();
+    //
+    CheckUserProm(); 
+    //
+    while ( GetNumberOfVerifyErrors() != 0 ) {
+      CreateXsvfFile();
+      ProgramUserProm();
+      CheckUserProm();
+    }
+  }
+  //
+  SetFillVmeWriteVecs(false);       //give VME back to the user (default)
   //
   return;
+}
+//
+void ALCTController::SetFillVmeWriteVecs(bool fill_vectors_or_not) {
+  //
+  tmb_->SetFillVmeWriteVecs(fill_vectors_or_not);
+  //
+  return;
+  //
+}
+//
+bool ALCTController::GetFillVmeWriteVecs() {
+  //
+  return tmb_->GetFillVmeWriteVecs();
+  //
+}
+//
+void ALCTController::ClearVmeWriteVecs() {
+  //
+  tmb_->ClearVmeWriteVecs();
+  //
+  return;
+  //
 }
 ///////////////////////////////////////////////////////////////////
 // END:  Useful methods to use ALCTController...
@@ -6420,6 +6490,10 @@ void ALCTController::WriteTestpulsePowerSwitchReg_() {
   usleep(100);
   //
   if ( GetCheckJtagWrite() ) {
+    //
+    if (debug_)
+      (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
+    //
     ReadTestpulsePowerSwitchReg_();
     CompareBitByBit(&write_testpulse_power_setting_,
 		    &read_testpulse_power_setting_,
@@ -6542,6 +6616,10 @@ void ALCTController::WriteTestpulseGroupMask_() {
 	      write_testpulse_groupmask_);
   //
   if ( GetCheckJtagWrite() ) {
+    //
+    if (debug_)
+      (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
+    //
     ReadTestpulseGroupMask_();
     CompareBitByBit(write_testpulse_groupmask_,
 		    read_testpulse_groupmask_,
@@ -6622,6 +6700,10 @@ void ALCTController::WriteTestpulseStripMask_() {
 	      write_testpulse_stripmask_);
   //
   if ( GetCheckJtagWrite() ) {
+    //
+    if (debug_)
+      (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
+    //
     ReadTestpulseStripMask_();
     CompareBitByBit(write_testpulse_stripmask_,
 		    read_testpulse_stripmask_,
@@ -6709,7 +6791,10 @@ void ALCTController::WriteAfebThresholds() {
     // ..... and the DAC channel through TDI:
     int data_to_send = 
       ( (afeb_dac_channel[afebChannel]<<8) & 0xf00 ) | GetAfebThresholdDAC(afebChannel) & 0xff;
-    //  (*MyOutput_) << "Data to send = " << data_to_send << std::endl;
+    if (debug_)
+      (*MyOutput_) << "Channel " << std::dec << afebChannel 
+		   << " -> Data to send = " << std::hex << data_to_send 
+		   << std::dec << std::endl;
     //
     int vector_of_data[RegSizeAlctSlowFpga_WRT_THRESH_DAC0] = {}; //all DAC's have same size register
     //
@@ -6742,12 +6827,12 @@ void ALCTController::ReadAfebThresholds() {
 void ALCTController::PrintAfebThresholds() {
   //
   for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++) 
-    (*MyOutput_) << "AFEB " << std::dec << afeb
-		 << " threshold = " << GetAfebThresholdDAC(afeb)
-		 << std::endl;
-  //		 << " -> read threshold ADC = " << GetAfebThresholdADC(afeb)
-  //		 << " = " << GetAfebThresholdVolts(afeb) << " V" 
-  //		 << std::endl;
+    (*MyOutput_) << "AFEB " << std::setw(2) << std::dec << afeb
+		 << " write threshold DAC = " << std::setw(3) << GetAfebThresholdDAC(afeb)
+      //		 << std::endl;
+  		 << " -> read threshold ADC = " << GetAfebThresholdADC(afeb)
+  		 << " = " << std::setprecision(3) << std::fixed << GetAfebThresholdVolts(afeb) << " V" 
+  		 << std::endl;
   return;
 }
 //
@@ -6812,7 +6897,7 @@ int ALCTController::read_adc_(int chip, int channel) {
 	      address);
   //
   // Give adc time to receive address:
-  ::usleep(100);
+  ::usleep(200);
   //
   //   -> Second time to get the data on tdo
   ShfIR_ShfDR(ChipLocationAlctSlowFpga,
@@ -6829,7 +6914,8 @@ int ALCTController::read_adc_(int chip, int channel) {
 void ALCTController::SetPowerUpAfebThresholds() {
   //
   for (int afeb=0; afeb<MAX_NUM_AFEBS; afeb++) 
-    write_afeb_threshold_[afeb] = 128;
+    //    write_afeb_threshold_[afeb] = 128;
+    write_afeb_threshold_[afeb] = 10;
   //
   return;
 }
@@ -6851,6 +6937,10 @@ void ALCTController::WriteStandbyRegister_() {
   usleep(100);
   //
   if ( GetCheckJtagWrite() ) {
+    //
+    if (debug_)
+      (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
+    //
     ReadStandbyRegister_();
     CompareBitByBit(write_standby_register_,
 		    read_standby_register_,
@@ -7001,6 +7091,10 @@ void ALCTController::WriteTriggerRegister_() {
   usleep(100);
   //
   if ( GetCheckJtagWrite() ) {
+    //
+    if (debug_)
+      (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
+    //
     ReadTriggerRegister_();
     CompareBitByBit(write_trigger_reg_,
 		    read_trigger_reg_,
@@ -7127,7 +7221,8 @@ void ALCTController::SetPowerUpTriggerRegister_(){
 ////////////////////////////////
 void ALCTController::WriteDelayLineControlReg_() {
   //
-  //  (*MyOutput_) << "ALCT: WRITE Delay Line CONTROL REGISTER" << std::endl;
+  if ( debug_>4 )
+    (*MyOutput_) << "ALCT: WRITE Delay Line CONTROL REGISTER" << std::endl;
   //
   FillDelayLineControlReg_();
   //
@@ -7139,6 +7234,10 @@ void ALCTController::WriteDelayLineControlReg_() {
 	      write_delay_line_control_reg_);
   //
   if ( GetCheckJtagWrite() ) {
+    //
+    if ( debug_>4 )
+      (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
+    //
     ReadDelayLineControlReg_();
     CompareBitByBit(write_delay_line_control_reg_,
 		    read_delay_line_control_reg_,
@@ -7161,11 +7260,13 @@ void ALCTController::ReadDelayLineControlReg_() {
     read_delay_line_control_reg_[i] = *(register_pointer+i);
   //
   //Print out control register value in hex
-  //  int scaler_delay_line_control_reg = bits_to_int(read_delay_line_control_reg_,
-  //    						  RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_,
-  //    						  LSBfirst);
-  //  (*MyOutput_) << "ALCT READ: delay line CONTROL REGISTER = " 
-  //    	       << std::hex << scaler_delay_line_control_reg << std::dec << std::endl;
+  if ( debug_>4 ) {
+    int scaler_delay_line_control_reg = bits_to_int(read_delay_line_control_reg_,
+						    RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_,
+						    LSBfirst);
+    (*MyOutput_) << "ALCT READ: delay line CONTROL REGISTER = " 
+		 << std::hex << scaler_delay_line_control_reg << std::dec << std::endl;
+  }
   //
   DecodeDelayLineControlReg_();
   //
@@ -7284,31 +7385,79 @@ void ALCTController::WriteAsicDelaysAndPatterns() {
   //
   SetPowerUpDelayLineControlReg_();         // reset the control register values
   //
-  for (int group=0; group<GetNumberOfGroupsOfDelayChips(); group++) {
-    // write values to one group of AFEBs at a time...
-    SetDelayLineGroupSelect_(group,ON);     
-    WriteDelayLineControlReg_();
-    //    PrintDelayLineControlReg_();
+  for (int group=0; group<GetNumberOfGroupsOfDelayChips(); group++) 
+    WriteAsicDelaysAndPatterns_(group);
+  //
+  return;
+}
+//
+void ALCTController::WriteAsicDelaysAndPatterns_(int group) {
+  //
+  if (debug_)
+    (*MyOutput_) << "ALCT: WRITE asic DELAYS and PATTERNS for group " << group << std::endl;
+  //
+  // write values to one group of AFEBs at a time...
+  //
+  SetDelayLineGroupSelect_(group,ON);     
+  WriteDelayLineControlReg_();
+  //    PrintDelayLineControlReg_();
+  //
+  FillAsicDelaysAndPatterns_(group);
+  //
+  setup_jtag(ChainAlctFastFpga);
+  //
+  ShfIR_ShfDR(ChipLocationAlctFastFpga,
+	      ALCT_FAST_WRT_ASIC_DELAY_LINES,
+	      RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES,
+	      write_asic_delays_and_patterns_);
+  //
+  if ( GetCheckJtagWrite() ) {
     //
-    FillAsicDelaysAndPatterns_(group);
+    if (debug_)
+      (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
     //
-    setup_jtag(ChainAlctFastFpga);
-    //
-    ShfIR_ShfDR(ChipLocationAlctFastFpga,
-		ALCT_FAST_WRT_ASIC_DELAY_LINES,
-		RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES,
-		write_asic_delays_and_patterns_);
-    //
-    if ( GetCheckJtagWrite() ) {
-      ReadAsicDelaysAndPatterns_(group);
-      CompareBitByBit(write_asic_delays_and_patterns_,           
-		      read_asic_delays_and_patterns_,            
-		      RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES); 
-    }
-    //
-    SetDelayLineGroupSelect_(group,OFF);     
-    WriteDelayLineControlReg_();
+    ReadAsicDelaysAndPatterns_(group);
+    CompareBitByBit(write_asic_delays_and_patterns_,           
+		    read_asic_delays_and_patterns_,            
+		    RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES); 
   }
+  //
+  SetDelayLineGroupSelect_(group,OFF);     
+  WriteDelayLineControlReg_();
+  //
+  return;
+}
+//
+void ALCTController::ReadAsicDelaysAndPatterns_(int group) {
+  //
+  //N.B. Before using this method, you should already have selected the right
+  // delay line control register values
+  //
+  if (debug_)
+    (*MyOutput_) << "ALCT: READ asic DELAYS and PATTERNS for group " << group << std::endl;
+  //
+  setup_jtag(ChainAlctFastFpga);
+  //
+  ShfIR_ShfDR(ChipLocationAlctFastFpga,
+	      ALCT_FAST_RD_ASIC_DELAY_LINES,
+	      RegSizeAlctFastFpga_RD_ASIC_DELAY_LINES);
+
+  //The first bit of the read register is junk--the data we want starts at index=1
+  int * register_pointer = GetDRtdo();
+  for (int i=1; i<RegSizeAlctFastFpga_RD_ASIC_DELAY_LINES; i++)  
+    read_asic_delays_and_patterns_[i-1] = *(register_pointer+i);
+  //
+  //The read of the asics delay and pattern register is destructive, so it needs to be reloaded:
+  //
+  if (debug_)
+    (*MyOutput_) << "ALCT: READ asic DELAYS and PATTERNS destructive... writing it back in... " << std::endl;
+  //
+  ShfIR_ShfDR(ChipLocationAlctFastFpga,
+	      ALCT_FAST_WRT_ASIC_DELAY_LINES,
+	      RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES,
+	      read_asic_delays_and_patterns_);
+  //
+  DecodeAsicDelaysAndPatterns_(group);
   //
   return;
 }
@@ -7338,45 +7487,25 @@ void ALCTController::ReadAsicDelaysAndPatterns() {
   return;
 }
 //
-void ALCTController::ReadAsicDelaysAndPatterns_(int group) {
-  //N.B. Before using this method, you should already have selected the right
-  // delay line control register values
-  if (debug_)
-    (*MyOutput_) << "ALCT: READ asic DELAYS and PATTERNS for group " << group << std::endl;
-  //
-  setup_jtag(ChainAlctFastFpga);
-  //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-	      ALCT_FAST_RD_ASIC_DELAY_LINES,
-	      RegSizeAlctFastFpga_RD_ASIC_DELAY_LINES);
-
-  //The first bit of the read register is junk--the data we want starts at index=1
-  int * register_pointer = GetDRtdo();
-  for (int i=1; i<RegSizeAlctFastFpga_RD_ASIC_DELAY_LINES; i++)  
-    read_asic_delays_and_patterns_[i-1] = *(register_pointer+i);
-  //
-  DecodeAsicDelaysAndPatterns_(group);
-  //
-  return;
-}
-//
 void ALCTController::DecodeAsicDelaysAndPatterns_(int group) {
   // ** Extract the ASIC delays and pattern software values for 6 afebs and               **
   // ** corresponding channels from the vector of bits read_asic_delays_and_patterns_[]   **
   //
   //print out values read to screen:
-  //  char values_read[RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES/8];
-  //  packCharBuffer(read_asic_delays_and_patterns_,
-  //  		 RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES,
-  //  		 values_read);
-  //  (*MyOutput_) << "Read values:  group" << group << "-> asic_delays_and_patterns = ";
-  //  for (int char_counter=RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES/8-1; char_counter>=0; char_counter--) {
-  //    //      (*MyOutput_) << "char_counter " << std::dec << char_counter << " -> ";    
-  //    (*MyOutput_) << std::hex
-  //		 << ((values_read[char_counter] >> 4) & 0xf) 
-  //		 << (values_read[char_counter] & 0xf) << " ";
-  //  }
-  //  (*MyOutput_) << std::endl;
+  if (debug_) {
+    char values_read[RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES/8];
+    packCharBuffer(read_asic_delays_and_patterns_,
+		   RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES,
+		   values_read);
+    (*MyOutput_) << "Read values:  group" << group << "-> asic_delays_and_patterns = ";
+    for (int char_counter=RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES/8-1; char_counter>=0; char_counter--) {
+      //      (*MyOutput_) << "char_counter " << std::dec << char_counter << " -> ";    
+      (*MyOutput_) << std::hex
+		   << ((values_read[char_counter] >> 4) & 0xf) 
+		   << (values_read[char_counter] & 0xf) << " ";
+    }
+    (*MyOutput_) << std::endl;
+  }
   //    
   int minimum_afeb_in_group=group*NUMBER_OF_CHIPS_PER_GROUP;
   int maximum_afeb_in_group=(group+1)*NUMBER_OF_CHIPS_PER_GROUP;
@@ -7451,18 +7580,20 @@ void ALCTController::FillAsicDelaysAndPatterns_(int group) {
     afeb_counter++;
   }
   //print out values written to screen:
-  //  char values_written[RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES/8];
-  //  packCharBuffer(write_asic_delays_and_patterns_,
-  //  		 RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES,
-  //  		 values_written);
-  //  (*MyOutput_) << "To write:  group" << group << "-> asic_delays_and_patterns = ";
-  //  for (int char_counter=RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES/8-1; char_counter>=0; char_counter--) {
-  //    //      (*MyOutput_) << "char_counter " << std::dec << char_counter << " -> ";    
-  //    (*MyOutput_) << std::hex
-  //		 << ((values_written[char_counter] >> 4) & 0xf) 
-  //		 << (values_written[char_counter] & 0xf) << " ";
-  //  }
-  //  (*MyOutput_) << std::endl;
+  if (debug_) {
+    char values_written[RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES/8];
+    packCharBuffer(write_asic_delays_and_patterns_,
+		   RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES,
+		   values_written);
+    (*MyOutput_) << "To write:  group" << group << "-> asic_delays_and_patterns = ";
+    for (int char_counter=RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES/8-1; char_counter>=0; char_counter--) {
+      //      (*MyOutput_) << "char_counter " << std::dec << char_counter << " -> ";    
+      (*MyOutput_) << std::hex
+		   << ((values_written[char_counter] >> 4) & 0xf) 
+		   << (values_written[char_counter] & 0xf) << " ";
+    }
+    (*MyOutput_) << std::endl;
+  }
   //
   return;
 }
@@ -7516,7 +7647,7 @@ int ALCTController::GetAsicDelay(int afebChannel) {
 void ALCTController::SetPowerUpAsicDelays() {
   //
   for (int afeb=0; afeb<MAX_NUM_AFEBS; afeb++)
-      write_asic_delay_[afeb] = 0;
+      write_asic_delay_[afeb] = 10;
   //
   return;
 }
@@ -7626,6 +7757,10 @@ void ALCTController::WriteConfigurationReg() {
 	      write_config_reg_);
   //
   if ( GetCheckJtagWrite() ) {
+    //
+    if (debug_)
+      (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
+    //
     ReadConfigurationReg();
     CompareBitByBit(write_config_reg_,
 		    read_config_reg_,
@@ -8196,12 +8331,15 @@ void ALCTController::WriteHotChannelMask() {
 	      write_hot_channel_mask_);
   usleep(100);
   //
-  if ( GetCheckJtagWrite() && !stop_read_) {
+  if ( GetCheckJtagWrite() ) {
+    //
+    if (debug_)
+      (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
+    //
     ReadHotChannelMask();
     CompareBitByBit(write_hot_channel_mask_,
 		    read_hot_channel_mask_,
 		    RegSizeAlctFastFpga_RD_HOTCHAN_MASK_);
-    stop_read_ = false;
   }
   //
   return;
@@ -8210,7 +8348,7 @@ void ALCTController::WriteHotChannelMask() {
 void ALCTController::ReadHotChannelMask() {
   //
   if (debug_)
-    (*MyOutput_) << "ALCT: READ hot channel mask (destructive), so write it back in:" << std::endl;
+    (*MyOutput_) << "ALCT: READ hot channel mask" << std::endl;
   //
   setup_jtag(ChainAlctFastFpga);
   //
@@ -8225,9 +8363,16 @@ void ALCTController::ReadHotChannelMask() {
   usleep(100);
   //
   //The read of the hot channel mask is destructive, so it needs to be reloaded:
-  // avoid going into an infinite loop...
-  stop_read_ = true;
-  WriteHotChannelMask();
+  //
+  if (debug_)
+    (*MyOutput_) << "ALCT: READ Hot Channel Mask destructive... writing it back in... " << std::endl;
+  //
+  ShfIR_ShfDR(ChipLocationAlctFastFpga,
+  	      ALCT_FAST_WRT_HOTCHAN_MASK,
+  	      RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_,
+	      read_hot_channel_mask_);
+  //
+  usleep(100);
   //
   return;
 }
@@ -8331,12 +8476,15 @@ void ALCTController::WriteCollisionPatternMask() {
   	      RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_,
 	      write_collision_pattern_mask_reg_);
   //
-  if ( GetCheckJtagWrite() && !stop_read_) {
+  if ( GetCheckJtagWrite() ) {
+    //
+    if (debug_)
+      (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
+    //
     ReadCollisionPatternMask();
     CompareBitByBit(write_collision_pattern_mask_reg_,
 		    read_collision_pattern_mask_reg_,
 		    RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_);
-    stop_read_ = false;
   }
   //
   return;
@@ -8345,7 +8493,7 @@ void ALCTController::WriteCollisionPatternMask() {
 void ALCTController::ReadCollisionPatternMask() {
   //
   if (debug_)
-    (*MyOutput_) << "ALCT: READ Collision Pattern mask (destructive), so write it back in:" << std::endl;
+    (*MyOutput_) << "ALCT: READ Collision Pattern mask" << std::endl;
   //
   setup_jtag(ChainAlctFastFpga);
   //
@@ -8358,9 +8506,14 @@ void ALCTController::ReadCollisionPatternMask() {
     read_collision_pattern_mask_reg_[i] = *(register_pointer+i);
   //
   //The read of the collision register is destructive, so it needs to be reloaded:
-  // avoid going into an infinite loop...
-  stop_read_ = true;
-  WriteCollisionPatternMask();
+  //
+  if (debug_)
+    (*MyOutput_) << "ALCT: READ Collision Pattern Mask destructive... writing it back in... " << std::endl;
+  //
+  ShfIR_ShfDR(ChipLocationAlctFastFpga,
+  	      ALCT_FAST_WRT_COLLISION_MASK_REG,
+  	      RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_,
+	      read_collision_pattern_mask_reg_);
   //
   return;
 }

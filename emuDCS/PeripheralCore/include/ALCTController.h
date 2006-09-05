@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.5 2006/08/15 14:16:49 rakness Exp $
+// $Id: ALCTController.h,v 3.6 2006/09/05 10:13:16 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.6  2006/09/05 10:13:16  rakness
+// ALCT configure from prom
+//
 // Revision 3.5  2006/08/15 14:16:49  rakness
 // add collision mask reg/clean up configure output
 //
@@ -747,6 +750,9 @@ public:
   //  Useful methods to use ALCTController:
   ///////////////////////////////////////////////////////////////////////////
   void configure();                                  //writes software values to all registers on ALCT
+  void SetFillVmeWriteVecs(bool fill_vectors_or_not);//writes software values to user prom
+  bool GetFillVmeWriteVecs();
+  void ClearVmeWriteVecs();
   //
   inline std::string GetChamberType() { return chamber_type_string_; }
   inline int GetNumberOfAfebs() { return NumberOfAFEBs_; }
@@ -766,7 +772,6 @@ public:
 		    int source=ADB_SYNC);            //source = [OFF, ADB_SYNC, ADB_ASYNC, LEMO, SELF]
   //
   void SetUpRandomALCT();
-  //
   //
   //
   ////////////////////////////
@@ -999,7 +1004,7 @@ private:
   //
   std::ostream * MyOutput_ ;
   TMB * tmb_ ;
-  bool debug_;
+  int debug_;
   //
   //
   ////////////////////////////////////////////////////////////////////
@@ -1142,6 +1147,7 @@ private:
   int read_asic_pattern_[MAX_NUM_LAYERS][MAX_NUM_WIRES_PER_LAYER];
   void DecodeAsicDelaysAndPatterns_(int groupOfAfebs);     //each delay line controls one group of 6 AFEBs
   //
+  void WriteAsicDelaysAndPatterns_(int groupOfAfebs);      //writes Write values for this groupOfAfebs to ALCT
   void ReadAsicDelaysAndPatterns_(int groupOfAfebs);       //fills Read values for this groupOfAfebs with values read from ALCT
   int GetLayerFromAsicMap_(int asic_index);
   int GetChannelFromAsicMap_(int groupOfAfebs, int asic_index);
@@ -1194,7 +1200,6 @@ private:
   //
   int write_hot_channel_mask_[RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_672];             //make this as large as it could possibly be
   int read_hot_channel_mask_[RegSizeAlctFastFpga_RD_HOTCHAN_MASK_672];               //make this as large as it could possibly be
-  bool stop_read_;                                                          // need this to stop JTAG checking from going to infinite loop
   //
   int write_collision_pattern_mask_reg_[RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_672]; //make this as large as it could possibly be
   int read_collision_pattern_mask_reg_[RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_672];  //make this as large as it could possibly be

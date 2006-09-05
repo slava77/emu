@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.7 2006/08/11 16:23:33 rakness Exp $
+// $Id: TMB.cc,v 3.8 2006/09/05 10:13:17 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.8  2006/09/05 10:13:17  rakness
+// ALCT configure from prom
+//
 // Revision 3.7  2006/08/11 16:23:33  rakness
 // able to write TMB user prom from configure()
 //
@@ -295,8 +298,7 @@ TMB::TMB(Crate * theCrate, int slot) :
   enableCLCTInputs_(0x1f),
   alctController_(0),
   rat_(0),
-  bxn_offset_(0),
-  fill_user_prom_with_vme_writes_(false)
+  bxn_offset_(0)
 {
   //
   //jtag_address = -1;
@@ -515,9 +517,7 @@ void TMB::init() {
 //
 void TMB::configure() {
   //
-  config_vme_address_.clear();
-  config_data_lsb_.clear();
-  config_data_msb_.clear();
+  ClearVmeWriteVecs();
   //
   ostringstream dump;
   ostringstream dump2;
@@ -533,21 +533,23 @@ void TMB::configure() {
   //(*MyOutput_) << "Resetting counters" << std::endl;
   ResetCounters();
   //
-  if ( GetFillUserPromWithVmeWrites() ) {
+  if ( GetFillVmeWriteVecs() ) {     //put the configuration data into the prom
     //
     SetXsvfFilename("TMB_user_prom_data");
     SetWhichUserProm(ChipLocationTmbUserPromTMB);
     CreateUserPromFile();
-    SetFillUserPromWithVmeWrites(false);    //give VME back to the user
     //
     CheckUserProm(); 
-    //
+    //    
     while ( GetNumberOfVerifyErrors() != 0 ) {
       CreateXsvfFile();
       ProgramUserProm();
       CheckUserProm();
     }
   }
+  //
+  SetFillVmeWriteVecs(false);        //give VME back to the user (default)
+  //
 }
 
 void TMB::clear_i2c() {
@@ -3471,20 +3473,9 @@ void TMB::setLogicAnalyzerToDataStream(bool yesorno) {
 
 void TMB::tmb_vme(char fcn, char vme,
                   const char *snd,char *rcv, int wrt) {
+  OkVmeWrite(vme);  
   start(1);
-  //
-  if ( GetFillUserPromWithVmeWrites() && 
-       (fcn == VME_WRITE) ) {
-    //  Fill user prom data file with VME write commands
-    config_vme_address_.push_back(vme);
-    config_data_lsb_.push_back(snd[1]);
-    config_data_msb_.push_back(snd[0]);
-    //
-  } else {
-    //
-    do_vme(fcn, vme, snd, rcv, wrt);
-    //
-  }
+  do_vme(fcn, vme, snd, rcv, wrt);
 }
 
 
@@ -4555,7 +4546,7 @@ void TMB::trgmode(int choice)
   sndbuf[0]=0;
   sndbuf[1]=0;
   tmb_vme(VME_WRITE, vme_ratctrl_adr ,sndbuf,rcvbuf, NOW); 
-  
+
   // Read address back
   tmb_vme(VME_READ, vme_loopbk_adr ,sndbuf,rcvbuf, NOW); 
   sndbuf[0]=rcvbuf[0];
@@ -4761,7 +4752,7 @@ void TMB::setupNewDelayChips() {
    sndbuf[1]=((cfeb2delay_<<4)&0xF0)|(cfeb1delay_&0x0F);
    sndbuf[0]=((cfeb0delay_<<4)&0xF0);
    sndbuf[1]=0x00;
-   tmb_vme(0x02,0x18,sndbuf,rcvbuf,1);  // CFEB0 DDD setting
+   //   tmb_vme(0x02,0x18,sndbuf,rcvbuf,1);  // CFEB0 DDD setting
    sndbuf[0]=((cfeb4delay_<<4)&0xF0)|(cfeb3delay_&0x0F);
    sndbuf[1]=((cfeb2delay_<<4)&0xF0)|(cfeb1delay_&0x0F);
    tmb_vme(0x02,0x1A,sndbuf,rcvbuf,1);  // CFEB1-4 DDD setting
@@ -6212,42 +6203,6 @@ int TMB::smb_io(int smb_adr, int cmd, int module) {
   return data;
 }
 //
-char TMB::GetConfigVmeAddress(int data_counter) {
-  // The following few lines aren't necessary, as the at(address) function 
-  // should throw an exception, rather than access crap memory
-  //
-  if ( data_counter >= config_vme_address_.size() ) {
-    (*MyOutput_) << "TMB:  Configure VME data counter " << std::dec << data_counter 
-		 << " >= maximum value " << config_vme_address_.size() << std::endl;
-    return 0;
-  }
-  return config_vme_address_.at(data_counter);
-}
-//
-char TMB::GetConfigDataLsb(int data_counter) {
-  // The following few lines aren't necessary, as the at(address) function 
-  // should throw an exception, rather than access crap memory
-  //
-  if ( data_counter >= config_data_lsb_.size() ) {
-    (*MyOutput_) << "TMB:  Configure data LSB counter " << std::dec << data_counter 
-  		 << " >= maximum value " << config_data_lsb_.size() << std::endl;
-    return 0;
-  }
-  return config_data_lsb_.at(data_counter);
-}
-//
-char TMB::GetConfigDataMsb(int data_counter) {
-  // The following few lines aren't necessary, as the at(address) function 
-  // should throw an exception, rather than access crap memory
-  //
-  if ( data_counter >= config_data_msb_.size() ) {
-    (*MyOutput_) << "TMB:  Configure data MSB counter " << std::dec << data_counter 
-		 << " >= maximum value " << config_data_msb_.size() << std::endl;
-    return 0;
-  }
-  return config_data_msb_.at(data_counter);
-}
-//
 void TMB::ClockOutPromProgram(int prom,
 			      int number_of_addresses) {
   //
@@ -6339,3 +6294,62 @@ void TMB::ClockOutPromProgram(int prom,
   return;
 }
 //
+void TMB::ClearVmeWriteVecs() {
+  //
+  theController->Clear_VmeWriteVecs();
+  //
+  return;
+}
+//
+void TMB::SetFillVmeWriteVecs(bool fill_vectors_or_not) {
+  //
+  theController->Set_FillVmeWriteVecs(fill_vectors_or_not);
+  //
+  return;
+}
+//
+bool TMB::GetFillVmeWriteVecs() {
+  //
+  return theController->Get_FillVmeWriteVecs();
+  //
+}
+//
+int TMB::GetNumberOfVmeWrites() { 
+  //
+  return theController->Get_NumberOfVmeWrites(); 
+  //
+}
+//
+int TMB::GetVecVmeAddress(int data_counter) { 
+  //
+  return theController->Get_VecVmeAddress(data_counter); 
+  //
+}
+//
+int TMB::GetVecDataLsb(int data_counter) { 
+  //
+  return theController->Get_VecDataLsb(data_counter); 
+  //
+}
+int TMB::GetVecDataMsb(int data_counter) { 
+  //
+  return theController->Get_VecDataMsb(data_counter); 
+  //
+}
+//
+void TMB::OkVmeWrite(char vme) {
+  //
+  theController->Set_OkVmeWriteAddress(false);
+  //
+  // Allow writes from user prom only to specific VME addresses:
+  for (int index=0; index<number_of_allowed_configuration_addresses; index++) {
+    //
+    if ( vme == (char) (allowed_configuration_addresses[index] & 0xff) ) {
+      theController->Set_OkVmeWriteAddress(true);      
+      break;
+    }
+    //
+  } 
+  //
+  return;
+}

@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.2 2006/08/21 20:34:21 liu Exp $
+// $Id: VMEController.h,v 3.3 2006/09/05 10:13:17 rakness Exp $
 // $Log: VMEController.h,v $
+// Revision 3.3  2006/09/05 10:13:17  rakness
+// ALCT configure from prom
+//
 // Revision 3.2  2006/08/21 20:34:21  liu
 // update
 //
@@ -171,7 +174,20 @@ public:
   void set_ErrorServer();
   inline void SetPort(int port) {port_=port;}
   inline void SetVMEAddress(std::string address) {ipAddress_=address;}
-  
+  //
+  //
+  inline void Set_OkVmeWriteAddress(bool address_ok) { ok_vme_write_ = address_ok; }
+  inline bool Get_OkVmeWriteAddress() { return ok_vme_write_; }
+  //
+  inline void Set_FillVmeWriteVecs(bool fill_vectors_or_not) { fill_write_vme_vectors_ = fill_vectors_or_not; }
+  inline bool Get_FillVmeWriteVecs() { return fill_write_vme_vectors_; }
+  //
+  void Clear_VmeWriteVecs();
+  inline unsigned short int Get_VecVmeAddress(int data_counter) { return write_vme_address_.at(data_counter); }
+  inline unsigned short int Get_VecDataLsb(int data_counter) { return write_data_lsb_.at(data_counter); }
+  inline unsigned short int Get_VecDataMsb(int data_counter) { return write_data_msb_.at(data_counter); }
+  inline int  Get_NumberOfVmeWrites() { return write_data_lsb_.size(); } 
+  //
 private:
   bool usedelay_;
   int theSocket;
@@ -227,6 +243,7 @@ private:
   void flush_vme();
   void daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int *buf,unsigned char *rcv);
   void vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
+  void VME_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv);
   void dump_outpacket(int nvme);
   int eth_reset(int ethsocket);
   int eth_read();
@@ -241,6 +258,13 @@ private:
   //
   static const int Save_Cnfg_Num = 0x05;
   static const int Set_Cnfg_Dflt = 0x09;
+  //
+  bool ok_vme_write_;
+  //
+  bool fill_write_vme_vectors_;
+  std::vector<int> write_vme_address_;
+  std::vector<int> write_data_lsb_;
+  std::vector<int> write_data_msb_;
   //
 };
 

@@ -346,6 +346,9 @@ void EMUjtag::ShfIR_ShfDR(const int selected_chip,
 			  const int size_of_register, 
 			  const int * write_data) {
   //
+  // Enable ability to fill user prom with data:
+  tmb_->OkVmeWrite(vme_usr_jtag_adr);    
+  //
   // Enable communication with the physical device:
   SetWriteToDevice_(true);
   //
@@ -536,11 +539,11 @@ void EMUjtag::CreateUserPromFile() {
     // VME state machine on TMB requires the data to be written into the prom in the following format:
     //
     for (int data_counter=0; data_counter<tmb_->GetNumberOfVmeWrites(); data_counter++) {
-      data_to_prom[address_counter++] = (int) tmb_->GetConfigVmeAddress(data_counter);
+      data_to_prom[address_counter++] = tmb_->GetVecVmeAddress(data_counter);
       data_to_prom[address_counter++] = 0x00;
       data_to_prom[address_counter++] = 0x00;
-      data_to_prom[address_counter++] = (int) tmb_->GetConfigDataLsb(data_counter);
-      data_to_prom[address_counter++] = (int) tmb_->GetConfigDataMsb(data_counter);
+      data_to_prom[address_counter++] = tmb_->GetVecDataLsb(data_counter);
+      data_to_prom[address_counter++] = tmb_->GetVecDataMsb(data_counter);
     }
     //
   } else if (GetWhichUserProm() == ChipLocationTmbUserPromALCT) {
@@ -548,7 +551,7 @@ void EMUjtag::CreateUserPromFile() {
     // JTAG state machine on TMB requires the data to be written into the prom in the following format:
     //
     for (int data_counter=0; data_counter<tmb_->GetNumberOfVmeWrites(); data_counter++) 
-      data_to_prom[address_counter++] = (int) (tmb_->GetConfigDataLsb(data_counter) & 0x7f);
+      data_to_prom[address_counter++] = (int) (tmb_->GetVecDataLsb(data_counter) & 0x7f);
     //
   } else {
     (*MyOutput_) << "EMUjtag:  CreateUserPromFile ERROR User Prom " << std::dec << GetWhichUserProm()
@@ -585,10 +588,6 @@ void EMUjtag::InsertHeaderAndTrailer_(int * data_to_go_into_prom) {
   int month_counting_from_one = timeinfo->tm_mon + 1;
   int day = timeinfo->tm_mday;
   int yearAD = timeinfo->tm_year + 1900;
-  //
-  //  std::cout << "Month = " << month_counting_from_one << std::endl;
-  //  std::cout << "Day = " << day << std::endl;
-  //  std::cout << "Year = " << yearAD << std::endl;
   //
   int tens_digit_month_counting_from_one = month_counting_from_one / 10;
   int ones_digit_month_counting_from_one = month_counting_from_one % 10;
@@ -689,7 +688,7 @@ void EMUjtag::InsertHeaderAndTrailer_(int * data_to_go_into_prom) {
   int data_counter = 0;
   while ( data_counter < data_word_count_) 
     SetUserPromImage_(address_counter++,
-		      data_to_go_into_prom[data_counter++]);
+  		      data_to_go_into_prom[data_counter++]);
   //
   //
   // Trailer:
@@ -705,24 +704,42 @@ void EMUjtag::InsertHeaderAndTrailer_(int * data_to_go_into_prom) {
     //
   } else if (GetWhichUserProm() == ChipLocationTmbUserPromALCT) {
     //
+    // Include a write to the TMB FPGA JTAG chain so that 
+    // TMB can verify correct operation of the JTAG state machine:
+    //
+    SetUserPromImage_(address_counter++,
+		      0x60);               //jtag chain = C, tck lo
+    //
+    SetUserPromImage_(address_counter++,
+		      0x64);               //jtag chain = C, tck hi
+    //
     SetUserPromImage_(address_counter++,
 		      0xFA);               //end of data marker    
     // 
-    // Add the (partial) word count to the ALCT header:
+    // Add the word count to the ALCT trailer:
     int word_count = address_counter;
-    int thousands_digit_wordcount = word_count / 1000;
     SetUserPromImage_(address_counter++,
-		      0x80 | thousands_digit_wordcount);     // word count
-    int hundreds_digit_wordcount = (word_count / 100) % 10;
+		      0xC0 | ((word_count >> 12) & 0xf) );
     SetUserPromImage_(address_counter++,
-		      0x80 | hundreds_digit_wordcount);     // word count
-    int tens_digit_wordcount = (word_count / 10) % 10;
+		      0xC0 | ((word_count >>  8) & 0xf) );
     SetUserPromImage_(address_counter++,
-		      0x80 | tens_digit_wordcount);         // word count
-    int ones_digit_wordcount = word_count % 10;
+		      0xC0 | ((word_count >>  4) & 0xf) );
     SetUserPromImage_(address_counter++,
-		      0x80 | ones_digit_wordcount);         // word count
-   
+		      0xC0 | ((word_count >>  0) & 0xf) );
+    //
+    int begin_address = 0;
+    int end_address = address_counter - 1;
+    int check_sum = ComputeCheckSum_(begin_address,
+				     end_address);
+    //
+    SetUserPromImage_(address_counter++,
+		      0xC0 | ((check_sum >> 4) & 0xf) );             
+    //
+    SetUserPromImage_(address_counter++,
+		      0xC0 | ((check_sum >> 0) & 0xf) );             
+    //
+    SetUserPromImage_(address_counter++,
+		      0xFF);               // end of data marker
   }
   //
   // Total number of words in prom image:
@@ -741,12 +758,10 @@ void EMUjtag::InsertHeaderAndTrailer_(int * data_to_go_into_prom) {
     int end_address = prom_image_word_count_ - 3;
     int check_sum = ComputeCheckSum_(begin_address,
 				     end_address);
-    //    std::cout << "check sum from " << std::hex << begin_address << " to " << end_address 
-    //	      << " = " << check_sum << std::endl;
+    //
     SetUserPromImage_( (prom_image_word_count_ - 2),
-		       check_sum );
-		       
-  }
+		       check_sum );	       
+  } 
   //
   return;
 }
@@ -2164,9 +2179,11 @@ void EMUjtag::CheckUserProm() {
       if (address == 0x03 || address == 0x04 || address == 0x05 || address == 0x06) {
 	date_changed = true;
       } else {
-	(*MyOutput_) << "EMUjtag: ERROR address " << std::hex << address << std::endl;
-	(*MyOutput_) << " -> prom image in file = " << std::hex << GetUserPromImage(address) << std::endl;
-	(*MyOutput_) << " -> prom image in prom = " << std::hex << tmb_->GetClockedOutPromImage(address) << std::endl;
+	if (debug_) {
+	  (*MyOutput_) << "EMUjtag: ERROR address " << std::hex << address << std::endl;
+	  (*MyOutput_) << " -> prom image in file = " << std::hex << GetUserPromImage(address) << std::endl;
+	  (*MyOutput_) << " -> prom image in prom = " << std::hex << tmb_->GetClockedOutPromImage(address) << std::endl;
+	}
 	verify_error_++;
       }
     }
