@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.6 2006/09/06 12:37:33 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.7 2006/09/06 15:03:12 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1044,7 +1044,7 @@ public:
       itm.addAttribute(execPath,"/home/meydev/DAQkit/3.9/TriDAS/daq/xdaq/bin/linux/x86/xdaq.exe");
       itm.addAttribute(user,"meydev");
       ostringstream dummy;
-      dummy << "-p " << port << " -c /home/meydev/DAQkit/3.9/TriDAS/emu/emuDCS/PeripheralCrate/xml/EmuCluster.xml";
+      dummy << "-p " << port << " -c /home/cscpc/DAQkit/v3.9/TriDAS/emu/emuDCS/PeripheralCrate/xml/EmuCluster.xml";
       itm.addAttribute(argv,dummy.str());
       xoap::SOAPElement itm2 = itm.addChildElement(environment);
       itm2.addAttribute(home,"/home/meydev");
