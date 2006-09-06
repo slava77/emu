@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.5 2006/09/05 16:13:27 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.6 2006/09/06 12:37:33 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -12,6 +12,17 @@
 
 #ifndef _EmuPeripheralCrateManager_h_
 #define _EmuPeripheralCrateManager_h_
+
+#include <string>
+#include <vector>
+#include <stdexcept>
+#include <iostream>
+#include<unistd.h> // for sleep()
+#include <sstream>
+#include <cstdlib>
+#include <iomanip>
+#include <time.h>
+
 
 #include "xgi/Utils.h"
 #include "xgi/Method.h"
@@ -78,6 +89,8 @@ public:
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageExecuteSequence, "SendSOAPMessageExecuteSequence");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageJobControlExecuteCommand, 
 	      "SendSOAPMessageJobControlExecuteCommand");
+    xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageJobControlkillAll, 
+	      "SendSOAPMessageJobControlkillAll");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryLTC, "SendSOAPMessageQueryLTC");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryLTC, "SendSOAPMessageQueryJobControl");
     //
@@ -437,6 +450,22 @@ public:
     *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageJobControlExecuteCommand) << std::endl ;
     *out << cgicc::input().set("type","submit")
       .set("value","Send SOAP message : JobControl Execute Command") << std::endl ;
+    *out << cgicc::form();
+    /*
+    std::string methodSOAPMessageJobControlStartAllProc =
+      toolbox::toString("/%s/SendSOAPMessageJobControlStartAll",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageJobControlStartAll) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Send SOAP message : JobControl Start All proc for EmuPeripheralCrate") << std::endl ;
+    *out << cgicc::form();
+    */
+    std::string methodSOAPMessageJobControlkillAll =
+      toolbox::toString("/%s/SendSOAPMessageJobControlkillAll",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageJobControlkillAll) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Send SOAP message : JobControl kill All proc") << std::endl ;
     *out << cgicc::form();
     //
     *out << cgicc::fieldset() ;
@@ -995,7 +1024,7 @@ public:
       //
     }
   //
-  xoap::MessageReference ExecuteCommandMessage()
+  xoap::MessageReference ExecuteCommandMessage(std::string port)
     {
       xoap::MessageReference msg = xoap::createMessage();
       xoap::SOAPPart soap = msg->getSOAPPart();
@@ -1014,11 +1043,27 @@ public:
       xoap::SOAPBodyElement itm = body.addBodyElement(command);
       itm.addAttribute(execPath,"/home/meydev/DAQkit/3.9/TriDAS/daq/xdaq/bin/linux/x86/xdaq.exe");
       itm.addAttribute(user,"meydev");
-      itm.addAttribute(argv,"-p 2924 -c /home/meydev/DAQkit/3.9/TriDAS/emu/emuDCS/PeripheralCrate/xml/EmuCluster.xml");
+      ostringstream dummy;
+      dummy << "-p " << port << " -c /home/meydev/DAQkit/3.9/TriDAS/emu/emuDCS/PeripheralCrate/xml/EmuCluster.xml";
+      itm.addAttribute(argv,dummy.str());
       xoap::SOAPElement itm2 = itm.addChildElement(environment);
       itm2.addAttribute(home,"/home/meydev");
       itm2.addAttribute(xdaqRoot,"/home/meydev/DAQkit/3.9/TriDAS");
       itm2.addAttribute(ldLibraryPath,"/home/meydev/DAQkit/3.9/TriDAS/emu/emuDCS/PeripheralCrate/lib/linux/x86:/lib/linux/x86:/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/extern/xerces/linuxx86/lib:/home/meydev/DAQkit/3.9/TriDAS/daq/exter:/home/meydev/DAQkit/3.9/TriDAS/daq/xdaq/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/xdata/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/extern/log4cplus/linuxx86/lib:/home/meydev/DAQkit/3.9/TriDAS/daq/toolbox/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/xoap/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/extern/cgicc/linuxx86/lib:/home/meydev/DAQkit/3.9/TriDAS/daq/xcept/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/xgi/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/pt/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/extern/mimetic/linuxx86/lib:/home/meydev/DAQkit/3.9/TriDAS/daq/extern/log4cplus/xmlappender/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/extern/log4cplus/udpappender/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/pt/soap/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/pt/tcp/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/emu/extern/dim/linuxx86/linux:/home/meydev/DAQkit/3.9/TriDAS/emu/emuDCS/e2p/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/emu/cscSV/lib/linux/x86:/home/meydev/DAQkit/3.9/TriDAS/daq/extern/asyncresolv/linuxx86/lib:/home/meydev/DAQkit/3.9/TriDAS/daq/extern/oracle/linuxx86");
+      //
+      return msg;
+      //
+    }
+  //
+  xoap::MessageReference killAllMessage()
+    {
+      xoap::MessageReference msg = xoap::createMessage();
+      xoap::SOAPPart soap = msg->getSOAPPart();
+      xoap::SOAPEnvelope envelope = soap.getEnvelope();
+      xoap::SOAPBody body = envelope.getBody();
+      xoap::SOAPName command  = envelope.createName("killAll","xdaq", "urn:xdaq-soap:3.0");
+      //
+      xoap::SOAPBodyElement itm = body.addBodyElement(command);
       //
       return msg;
       //
@@ -1030,7 +1075,61 @@ public:
       //
       std::cout << "SendSOAPMessage JobControl executeCommand" << std::endl;
       //
-      xoap::MessageReference msg = ExecuteCommandMessage();
+      std::vector<xdaq::ApplicationDescriptor * >  descriptor =
+	getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
+      //
+      vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
+      for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) 
+	{
+	  std::string url = (*itDescriptor)->getContextDescriptor()->getURL();
+	  std::cout << url << std::endl;
+	  //
+	  int index = url.find_last_of(":");
+	  //
+	  if (  index != string::npos ) {
+	    //	    
+	    std::string port = url.substr(index+1);
+	    //
+	    xoap::MessageReference msg = ExecuteCommandMessage(port);
+	    //
+	    try
+	      {
+		//
+		msg->writeTo(std::cout);
+		std::cout << std::endl;
+		//
+		xdaq::ApplicationDescriptor * d = 
+		  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("JobControl",0);
+		std::cout << d << std::endl;
+		xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
+		xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+		reply->writeTo(std::cout);
+		std::cout << std::endl;
+		if (body.hasFault()) {
+		  std::cout << "Fault = " << body.getFault().getFaultString() << std::endl;
+		}
+		//
+	      } 
+	    catch (xdaq::exception::Exception& e)
+	      {
+		XCEPT_RETHROW (xgi::exception::Exception, "Cannot send message", e);	      	
+	      }
+	    //
+	  }
+	  //
+	}
+      //
+      this->Default(in,out);
+      //
+    }
+  //
+  void EmuPeripheralCrateManager::SendSOAPMessageJobControlkillAll(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      std::cout << "SendSOAPMessage JobControl killAll" << std::endl;
+      //
+      xoap::MessageReference msg = killAllMessage();
       //
       try
 	{

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: CalibDAQ.cc,v 3.1 2006/09/06 12:38:18 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 3.1  2006/09/06 12:38:18  mey
+// Update
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -189,7 +192,6 @@ void CalibDAQ::loadConstants(Crate * crate) {
     myDmbs[i]->restoreMotherboardIdle();
     myDmbs[i]->configure();
   }
-
 }
 //
 void CalibDAQ::rateTest() {
@@ -363,8 +365,6 @@ void CalibDAQ::pedestalCFEB() {
   int counter = 0;
   int nevents = 1000;
   //
-  //std::vector<Crate*> myCrates = theSelector.crates();
-  //
   for (int events = 0; events<nevents; events++) {
     pulseAllDMBs(ntim, -1, dac, nsleep,0);  
     counter++;
@@ -373,22 +373,14 @@ void CalibDAQ::pedestalCFEB() {
   }
 }  
 //
-void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep,int calType) { 
-  //
-  //injects identical pulse to all dmbs
-  //in all crates one crate at a time          
-  //disable TMBs and ALCts
+void CalibDAQ::pulseAllDMBsPre(int ntim, int nstrip, float dac, int nsleep,int calType) { 
   //
   int chip,ch,brd;
   std::vector<Crate*> myCrates = theSelector.crates();
   //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
     //
-    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
-    usleep(100);
-    //
-    CCB * ccb = myCrates[j]->ccb();
-    std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
+    std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
     std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
     //
     for (unsigned i=0; i<myTmbs.size(); i++) {
@@ -420,17 +412,17 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep,int calT
       myDmbs[i]->set_cal_tim_pulse(ntim);   
       //
     }
+  }
+}
+//
+void CalibDAQ::pulseAllDMBsPost(int ntim, int nstrip, float dac, int nsleep,int calType) { 
+  //
+  std::vector<Crate*> myCrates = theSelector.crates();
+  //
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
     //
-    ::usleep(100000);
-    //
-    std::cout << "Sending pulse" <<std::endl;
-    if(calType==2){
-      ccb->pedestal(1,0xff);
-    } else {
-      ccb->pulse(1, 0xff);//pulse all dmbs in this crate
-    }
-    //
-    ::usleep(100000);
+    std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
+    std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
     //
     for(unsigned i =0; i < myDmbs.size(); ++i) {
       std::cout << "Slot " << myDmbs[i]->slot();
@@ -446,6 +438,38 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep,int calT
     }
     //
   }
+}
+//
+void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep,int calType) { 
+  //
+  //injects identical pulse to all dmbs
+  //in all crates one crate at a time          
+  //disable TMBs and ALCts
+  //
+  pulseAllDMBsPre(ntim, nstrip, dac, nsleep,calType);
+  //
+  std::vector<Crate*> myCrates = theSelector.crates();
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
+    //
+    CCB * ccb = myCrates[j]->ccb();
+    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+    //
+    ::usleep(100000);
+    //
+    std::cout << "Sending pulse" <<std::endl;
+    //
+    if(calType==2){
+      ccb->pedestal(1,0xff);
+    } else {
+      ccb->pulse(1, 0xff);//pulse all dmbs in this crate
+    }
+    //
+    ::usleep(100000);
+    //
+  }
+  //
+  pulseAllDMBsPost(ntim, nstrip, dac, nsleep,calType);
+  //
 }
 //
 void CalibDAQ::injectComparator(int ntim, int nstrip, float dac, int nsleep, float thresh) { 
