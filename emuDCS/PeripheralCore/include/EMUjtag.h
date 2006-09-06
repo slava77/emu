@@ -1,6 +1,7 @@
 #ifndef EMUjtag_h
 #define EMUjtag_h
 
+#include <vector>
 #include <string>
 #include <fstream>
 #include "EMU_JTAG_constants.h"
@@ -87,10 +88,13 @@ public:
   ////////////////////////////////////////////////////////////////////////
   // XSVF programming:
   ////////////////////////////////////////////////////////////////////////
-  void SetXsvfFilename(std::string filename);       //set the base filename for xsvf file handling
+  void SetXsvfFilename(std::string filename);       //set the base filename for xsvf file handling 
+  //                                                  N.B.  If this method is not called, no files will be written...
   //                                                  -> filename.dat  = prom image file in format AAAA DD (address, data)
   //                                                  -> filename.xsvf = binary file which gets shifted into prom with JTAG
   //                                                  -> filename.log  = ascii file which gets shifted into prom with JTAG
+  //
+  void ClearXsvfFilename();                         //remove file handling--should be called after the file-handling of SetXsvfFilename is finished
   //
   void SetWhichUserProm(int device);                //device = [ChipLocationTmbUserPromTMB, ChipLocationTmbUserPromALCT]
   int  GetWhichUserProm();
@@ -102,6 +106,14 @@ public:
   bool ReadUserPromFile();                          //read filename.dat from disk
   //
   int GetUserPromImage(int address);                // address=[0 - (TOTAL_NUMBER_OF_ADDRESSES-1)]
+  //
+  inline void SetAlctTypeForProm(int type) { alct_type_for_prom_ = type; }
+  inline int  GetAlctTypeForProm() { return alct_type_for_prom_; }
+  //
+  std::vector<int> TmbUserVmeAddress;
+  std::vector<int> TmbUserDataLsb;
+  std::vector<int> TmbUserDataMsb;
+  std::vector<int> AlctUserDataLsb;
   //
   //------------------------------------------------
   // XSVF file handling
@@ -185,6 +197,8 @@ private:
   //----------------------
   // file stuff
   //----------------------
+  bool file_io_;
+  //
   std::string filename_dat_;
   std::string filename_xsvf_;
   std::string filename_log_;
@@ -209,6 +223,7 @@ private:
   void SetUserPromImage_(int address, int value);                 
   void WritePromDataToDisk_();
   //
+  int alct_type_for_prom_;
   //
   //-------------------
   // write xsvf file 

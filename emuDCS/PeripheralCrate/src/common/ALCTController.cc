@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.12 2006/09/05 10:13:17 rakness Exp $
+// $Id: ALCTController.cc,v 3.13 2006/09/06 12:38:10 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.13  2006/09/06 12:38:10  rakness
+// correct time stamp/copy vectors for user prom
+//
 // Revision 3.12  2006/09/05 10:13:17  rakness
 // ALCT configure from prom
 //
@@ -6379,7 +6382,6 @@ void ALCTController::configure() {
   //
   if ( GetFillVmeWriteVecs() ) {          //put the configuration data into the prom
     //
-    SetXsvfFilename("ALCT_user_prom_data");
     SetWhichUserProm(ChipLocationTmbUserPromALCT);
     CreateUserPromFile();
     //
@@ -8695,6 +8697,8 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
   } else {
     //
     NumberOfChannelsPerLayer_ = GetNumberOfWireGroupsInChamber() / MAX_NUM_LAYERS;
+    //
+    SetAlctTypeForProm(GetNumberOfChannelsInAlct());
     //
     (*MyOutput_) << "........................ ALCT type = " << std::dec << GetNumberOfChannelsInAlct() << std::endl; 
     (*MyOutput_) << "............ Number of Wire Groups = " << std::dec << GetNumberOfWireGroupsInChamber() << std::endl; 

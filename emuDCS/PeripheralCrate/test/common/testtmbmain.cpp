@@ -568,35 +568,47 @@ int main() {
       alct->configure();
       break;
     case 300:
+      thisTMB->SetXsvfFilename("prom0_passtest");
       thisTMB->SetWhichUserProm(ChipLocationTmbUserPromTMB);
-      thisTMB->SetXsvfFilename("TMB_user_prom_data");
       thisTMB->CreateXsvfFile();
       //
+      thisTMB->SetXsvfFilename("prom1_passtest");
       thisTMB->SetWhichUserProm(ChipLocationTmbUserPromALCT);
-      thisTMB->SetXsvfFilename("ALCT_user_prom_data");
       thisTMB->CreateXsvfFile();
+      //
+      thisTMB->ClearXsvfFilename();
+      //
       break;
     case 301:      
-      thisTMB->SetXsvfFilename("TMB_user_prom_data");
+      thisTMB->SetXsvfFilename("prom0_passtest");
       thisTMB->ReadXsvfFile(true);
-      thisTMB->SetXsvfFilename("ALCT_user_prom_data");
+      thisTMB->SetXsvfFilename("prom1_passtest");
       thisTMB->ReadXsvfFile(true);
+      //
+      thisTMB->ClearXsvfFilename();
+      //
       break;
     case 400:
-      thisTMB->SetXsvfFilename("TMB_user_prom_data");
+      thisTMB->SetXsvfFilename("prom0_passtest");
       thisTMB->ProgramUserProm();
       //
-      thisTMB->SetXsvfFilename("ALCT_user_prom_data");
+      thisTMB->SetXsvfFilename("prom1_passtest");
       thisTMB->ProgramUserProm();
+      //
+      thisTMB->ClearXsvfFilename();
+      //
       break;
     case 401:
+      thisTMB->SetXsvfFilename("prom0_passtest");
       thisTMB->SetWhichUserProm(ChipLocationTmbUserPromTMB);
-      thisTMB->SetXsvfFilename("TMB_user_prom_data");
       thisTMB->CheckUserProm();
       //
+      thisTMB->SetXsvfFilename("prom1_passtest");
       thisTMB->SetWhichUserProm(ChipLocationTmbUserPromALCT);
-      thisTMB->SetXsvfFilename("ALCT_user_prom_data");
       thisTMB->CheckUserProm();
+      //
+      thisTMB->ClearXsvfFilename();
+      //
       break;
     case 402:
       testTMB.reset();
@@ -609,6 +621,9 @@ int main() {
       ::sleep(5);
       //
       testTMB.reset();
+      //
+      thisTMB->ClearXsvfFilename();
+      //
       break;
     case 403:
       thisTMB->SetWhichUserProm(ChipLocationTmbUserPromTMB);
@@ -620,6 +635,9 @@ int main() {
       thisTMB->SetXsvfFilename("prom1_passtest");
       thisTMB->ProgramUserProm();
       thisTMB->CheckUserProm();
+      //
+      thisTMB->ClearXsvfFilename();
+      //
       break;
     case 500:
       unsigned short int BootData;

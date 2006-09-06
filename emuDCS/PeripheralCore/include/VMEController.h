@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.3 2006/09/05 10:13:17 rakness Exp $
+// $Id: VMEController.h,v 3.4 2006/09/06 12:38:10 rakness Exp $
 // $Log: VMEController.h,v $
+// Revision 3.4  2006/09/06 12:38:10  rakness
+// correct time stamp/copy vectors for user prom
+//
 // Revision 3.3  2006/09/05 10:13:17  rakness
 // ALCT configure from prom
 //
@@ -183,10 +186,9 @@ public:
   inline bool Get_FillVmeWriteVecs() { return fill_write_vme_vectors_; }
   //
   void Clear_VmeWriteVecs();
-  inline unsigned short int Get_VecVmeAddress(int data_counter) { return write_vme_address_.at(data_counter); }
-  inline unsigned short int Get_VecDataLsb(int data_counter) { return write_data_lsb_.at(data_counter); }
-  inline unsigned short int Get_VecDataMsb(int data_counter) { return write_data_msb_.at(data_counter); }
-  inline int  Get_NumberOfVmeWrites() { return write_data_lsb_.size(); } 
+  inline std::vector<int> Get_VecVmeAddress() { return write_vme_address_; }
+  inline std::vector<int> Get_VecDataLsb() { return write_data_lsb_; }
+  inline std::vector<int> Get_VecDataMsb() { return write_data_msb_; }
   //
 private:
   bool usedelay_;

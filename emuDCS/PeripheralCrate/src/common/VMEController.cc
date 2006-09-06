@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.4 2006/09/05 10:13:18 rakness Exp $
+// $Id: VMEController.cc,v 3.5 2006/09/06 12:38:11 rakness Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.5  2006/09/06 12:38:11  rakness
+// correct time stamp/copy vectors for user prom
+//
 // Revision 3.4  2006/09/05 10:13:18  rakness
 // ALCT configure from prom
 //
@@ -1154,7 +1157,7 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
   //
   int address = ( (int)ptr ) & 0xff;
   //
-  if ( Get_FillVmeWriteVecs()     && 
+  if ( Get_FillVmeWriteVecs()     &&  
        (irdwr == 1 || irdwr == 3) &&
        Get_OkVmeWriteAddress() ) {
     //    std::cout << "CTL address, data = " << std::hex 
@@ -1168,12 +1171,11 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
     write_data_lsb_.push_back( (data[0] & 0xff) );
     write_data_msb_.push_back( ((data[0]>>8) & 0xff) );
     //    ::sleep(1);
-    //    
-  } else {
     //
-    VME_controller(irdwr,ptr,data,rcv);
-    //
-  }
+  }    
+  //
+  VME_controller(irdwr,ptr,data,rcv); 
+  //
   return;
   //
 }

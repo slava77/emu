@@ -28,10 +28,13 @@ EMUjtag::EMUjtag(TMB * tmb) :
   //
   // Defaults for prom programming
   SetXsvfFilename("dummy");
+  file_io_ = false;
   which_user_prom_ = -1;
   xdr_length_ = 0;
   xruntest_time_ = 0;
   xrepeat_times_ = 0;
+  //
+  alct_type_for_prom_ = 0;
   //
 };
 //
@@ -142,6 +145,17 @@ void EMUjtag::SetXsvfFilename(std::string filename) {
   filename_dat_ = AddTrailer_(filename,"dat");  
   filename_xsvf_ = AddTrailer_(filename,"xsvf");  
   filename_log_ = AddTrailer_(filename,"log");  
+  //
+  file_io_ = true;
+  //
+  return;
+}
+//
+void EMUjtag::ClearXsvfFilename() {
+  //
+  SetXsvfFilename("dummy");
+  //
+  file_io_ = false;
   //
   return;
 }
@@ -538,20 +552,26 @@ void EMUjtag::CreateUserPromFile() {
     //
     // VME state machine on TMB requires the data to be written into the prom in the following format:
     //
-    for (int data_counter=0; data_counter<tmb_->GetNumberOfVmeWrites(); data_counter++) {
-      data_to_prom[address_counter++] = tmb_->GetVecVmeAddress(data_counter);
+    TmbUserVmeAddress = tmb_->GetVecVmeAddress();
+    TmbUserDataLsb = tmb_->GetVecDataLsb();
+    TmbUserDataMsb = tmb_->GetVecDataMsb();
+    //
+    for (int data_counter=0; data_counter<TmbUserVmeAddress.size(); data_counter++) {
+      data_to_prom[address_counter++] = TmbUserVmeAddress.at(data_counter);
       data_to_prom[address_counter++] = 0x00;
       data_to_prom[address_counter++] = 0x00;
-      data_to_prom[address_counter++] = tmb_->GetVecDataLsb(data_counter);
-      data_to_prom[address_counter++] = tmb_->GetVecDataMsb(data_counter);
+      data_to_prom[address_counter++] = TmbUserDataLsb.at(data_counter);
+      data_to_prom[address_counter++] = TmbUserDataMsb.at(data_counter);
     }
     //
   } else if (GetWhichUserProm() == ChipLocationTmbUserPromALCT) {
     //
     // JTAG state machine on TMB requires the data to be written into the prom in the following format:
     //
-    for (int data_counter=0; data_counter<tmb_->GetNumberOfVmeWrites(); data_counter++) 
-      data_to_prom[address_counter++] = (int) (tmb_->GetVecDataLsb(data_counter) & 0x7f);
+    AlctUserDataLsb = tmb_->GetVecDataLsb();
+    //
+    for (int data_counter=0; data_counter<AlctUserDataLsb.size(); data_counter++) 
+      data_to_prom[address_counter++] = (int) (AlctUserDataLsb.at(data_counter) & 0x7f);
     //
   } else {
     (*MyOutput_) << "EMUjtag:  CreateUserPromFile ERROR User Prom " << std::dec << GetWhichUserProm()
@@ -564,7 +584,8 @@ void EMUjtag::CreateUserPromFile() {
   //
   InsertHeaderAndTrailer_(data_to_prom);
   //
-  WritePromDataToDisk_();
+  if (file_io_)
+    WritePromDataToDisk_();
   //
   return;
 }
@@ -649,12 +670,17 @@ void EMUjtag::InsertHeaderAndTrailer_(int * data_to_go_into_prom) {
     //
     SetUserPromImage_(address_counter++,
 		      0xBA);                // Begin ALCT header marker, if missing state machine stops
+    //
+    int hundreds_digit_alct_type = GetAlctTypeForProm() / 100;
+    int tens_digit_alct_type     = GetAlctTypeForProm() / 10 % 10;
+    int ones_digit_alct_type     = GetAlctTypeForProm() % 10;
     SetUserPromImage_(address_counter++,
-		      0x83);                // need to get type of ALCT from data...
+		      0x80 | (hundreds_digit_alct_type & 0xf) ); 
     SetUserPromImage_(address_counter++,
-		      0x88);                // need to get type of ALCT from data...
+		      0x80 | (tens_digit_alct_type & 0xf) ); 
     SetUserPromImage_(address_counter++,
-		      0x84);                // need to get type of ALCT from data...
+		      0x80 | (ones_digit_alct_type & 0xf) );
+    // 
     SetUserPromImage_(address_counter++,
 		      0x80 | tens_digit_month_counting_from_one); //date
     SetUserPromImage_(address_counter++,
@@ -780,47 +806,58 @@ int EMUjtag::ComputeCheckSum_(int begin_address,
 //
 bool EMUjtag::ReadUserPromFile() {
   //
-  (*MyOutput_) << "EMUjtag:  READ user prom image file " << filename_dat_ << std::endl;
-  //
+  // Clear the read_ascii_prom_image_ vector:
   for (int address=0; address<TOTAL_NUMBER_OF_ADDRESSES; address++) 
     read_ascii_prom_image_[address]=0xff;
   //
-  int index_value;
-  //
-  std::ifstream Readfile;
-  Readfile.open(filename_dat_.c_str());
-  //
-  if ( Readfile.is_open() ) {
+  if (file_io_) {
+    (*MyOutput_) << "EMUjtag:  READ user prom image file " << filename_dat_ << std::endl;
     //
-    while ( Readfile.good() ) {
+    int index_value;
+    //
+    std::ifstream Readfile;
+    Readfile.open(filename_dat_.c_str());
+    //
+    if ( Readfile.is_open() ) {
       //
-      // prom image file has format AAAA DD -> AAAA=address, DD=prom data
+      while ( Readfile.good() ) {
+	//
+	// prom image file has format AAAA DD -> AAAA=address, DD=prom data
+	//
+	std::string line;
+	std::getline(Readfile,line);
+	//
+	std::istringstream instring(line);
+	//
+	int image_value;
+	instring >> std::hex >> index_value >> image_value;
+	//
+	read_ascii_prom_image_[index_value] = image_value;
+	//
+	//      std::cout << "line " << std::dec << index_value 
+	//       		<< ", image = 0x" << std::hex <<  GetUserPromImage(index_value)
+	//      		<< std::endl;
+	//      ::sleep(1);
+      } 
       //
-      std::string line;
-      std::getline(Readfile,line);
+    } else {
       //
-      std::istringstream instring(line);
-      //
-      int image_value;
-      instring >> std::hex >> index_value >> image_value;
-      //
-      read_ascii_prom_image_[index_value] = image_value;
-      //
-      //      std::cout << "line " << std::dec << index_value 
-      //       		<< ", image = 0x" << std::hex <<  GetUserPromImage(index_value)
-      //      		<< std::endl;
-      //      ::sleep(1);
-    } 
+      (*MyOutput_) << "EMUjtag:  ERROR Prom data file " << filename_dat_ 
+		   << " does not exist.  Please create it..." << std::endl;
+      return false;
+    }
+    //
+    Readfile.close();
+    prom_image_word_count_ = index_value+1;
     //
   } else {
     //
-    (*MyOutput_) << "EMUjtag:  ERROR Prom data file " << filename_dat_ 
-		 << " does not exist.  Please create it..." << std::endl;
-    return false;
+    (*MyOutput_) << "EMUjtag:  READ internal user prom image vector" << std::endl;
+    //
+    for (int address=0; address<prom_image_word_count_; address++) 
+      read_ascii_prom_image_[address] = write_ascii_prom_image_[address];
+    //
   }
-  //
-  Readfile.close();
-  prom_image_word_count_ = index_value+1;
   //
   return true;
 }
@@ -910,7 +947,8 @@ void EMUjtag::CreateXsvfFile() {
     return;
   }
   //
-  WriteXsvfImageToDisk_();
+  if (file_io_)
+    WriteXsvfImageToDisk_();
   //
   // Go back to default jtag mode:
   SetWriteToDevice_(true);
@@ -1659,27 +1697,37 @@ void EMUjtag::ReadXsvfFile(bool create_logfile) {
 //
 void EMUjtag::ReadXsvfFile_(bool create_logfile) {
   //
-  (*MyOutput_) << "EMUjtag:  Read XSVF file " << filename_xsvf_ << " from disk" << std::endl;
-  //
   for (int i=0; i<MAX_XSVF_IMAGE_NUMBER; i++) 
     read_xsvf_image_[i]=0; 
   //
-  std::ifstream Readfile;
-  Readfile.open(filename_xsvf_.c_str(),
-		    std::ifstream::binary);     //xsvf file is binary
-  //
-  int byte_counter=0;
-  while ( Readfile.good() ) 
-    read_xsvf_image_[byte_counter++] = Readfile.get();
-  //
-  number_of_read_bytes_ = --byte_counter;
-  //
-  //  for (int i=200; i<300; i++) 
-  //    std::cout << "read_xsvf_image_[" << std::dec << i 
-  //	      << "] = " << read_xsvf_image_[i] << std::endl;
-  //
-  Readfile.close();
-  //
+  if (file_io_) {
+    (*MyOutput_) << "EMUjtag:  Read XSVF file " << filename_xsvf_ << " from disk" << std::endl;
+    //
+    std::ifstream Readfile;
+    Readfile.open(filename_xsvf_.c_str(),
+		  std::ifstream::binary);     //xsvf file is binary
+    //
+    int byte_counter=0;
+    while ( Readfile.good() ) 
+      read_xsvf_image_[byte_counter++] = Readfile.get();
+    //
+    number_of_read_bytes_ = --byte_counter;
+    //
+    //  for (int i=200; i<300; i++) 
+    //    std::cout << "read_xsvf_image_[" << std::dec << i 
+    //	      << "] = " << read_xsvf_image_[i] << std::endl;
+    //
+    Readfile.close();
+  } else {
+    //
+    (*MyOutput_) << "EMUjtag:  Read internal XSVF image" << std::endl;
+    //
+    for (int i=0; i<number_of_write_bytes_; i++) 
+      read_xsvf_image_[i] = write_xsvf_image_[i]; 
+    //
+    number_of_read_bytes_ = number_of_write_bytes_ ;
+    //
+  }
   //
   if (create_logfile) 
     Logfile_.open(filename_log_.c_str());        
@@ -2142,8 +2190,8 @@ void EMUjtag::ProgramUserProm() {
   //
   setup_jtag(ChainTmbUser);
   //
-  // Default when programming prom is to write a logfile:
-  ReadXsvfFile_(true);
+  // default is not to write out a logfile (assume no access to disk....
+  ReadXsvfFile_(false);
   //
   time_t endtime = time (NULL);
   //
@@ -2157,8 +2205,8 @@ void EMUjtag::ProgramUserProm() {
 //
 void EMUjtag::CheckUserProm() {
   //
-  (*MyOutput_) << "EMUjtag:  Compare user prom file " << filename_dat_ 
-	       << " with program in prom " << GetWhichUserProm() << "... " << std::endl;
+  (*MyOutput_) << "EMUjtag:  Compare user prom image with program in prom " 
+	       << GetWhichUserProm() << "... " << std::endl;
   //
   verify_error_ = 0;
   //
@@ -2176,32 +2224,72 @@ void EMUjtag::CheckUserProm() {
     //    (*MyOutput_) << " -> prom image in file = " << std::hex << GetUserPromImage(address) << std::endl;
     //    (*MyOutput_) << " -> prom image in prom = " << std::hex << tmb_->GetClockedOutPromImage(address) << std::endl;
     if ( tmb_->GetClockedOutPromImage(address) != GetUserPromImage(address) ) {
-      if (address == 0x03 || address == 0x04 || address == 0x05 || address == 0x06) {
+      //
+      //stuff which is irrelevant if it is all that changes for the user proms...
+      //
+      if ( ( (GetWhichUserProm() == ChipLocationTmbUserPromTMB) &&  
+	     (address == 0x03 ||    //month in "hex-ascii"
+	      address == 0x04 ||    //day in "hex-ascii"
+	      address == 0x05 ||    //tens-ones digits of year in hex-ascii
+	      address == 0x06 ||    //thousands-hundreds digits of year in hex-ascii
+	      address == prom_image_word_count_ - 2) ) //checksum (going to change if date changes...)
+	   ||  
+	   ( (GetWhichUserProm() == ChipLocationTmbUserPromALCT) &&
+	     (address == 0x04 ||    //tens digit month hex-ascii
+	      address == 0x05 ||    //ones digit month hex-ascii
+	      address == 0x06 ||    //tens digit day hex-ascii
+	      address == 0x07 ||    //ones digit day hex-ascii
+	      address == 0x08 ||    //thousands digit year hex-ascii
+	      address == 0x09 ||    //hundreds digit year hex-ascii
+	      address == 0x0a ||    //tens digit year hex-ascii
+	      address == 0x0b ||    //ones digit year hex-ascii
+	      address == prom_image_word_count_ - 3 || //checksum (going to change if date changes...)
+	      address == prom_image_word_count_ - 2) ) //checksum (going to change if date changes...)
+	   ) {
+	//
 	date_changed = true;
+	//
       } else {
-	if (debug_) {
+	//	if (debug_) {
 	  (*MyOutput_) << "EMUjtag: ERROR address " << std::hex << address << std::endl;
 	  (*MyOutput_) << " -> prom image in file = " << std::hex << GetUserPromImage(address) << std::endl;
 	  (*MyOutput_) << " -> prom image in prom = " << std::hex << tmb_->GetClockedOutPromImage(address) << std::endl;
-	}
+	  ::sleep(1);
+	  //	}
 	verify_error_++;
       }
     }
   }
   //
   if (GetNumberOfVerifyErrors() == 0 && date_changed) {
-    (*MyOutput_) << "Current configuration same as that loaded on " 
-		 << std::hex << (( tmb_->GetClockedOutPromImage(0x04) >> 4) & 0xf)
-		 << std::hex << (( tmb_->GetClockedOutPromImage(0x04) >> 0) & 0xf)
-		 << "."
-		 << std::hex << (( tmb_->GetClockedOutPromImage(0x03) >> 4) & 0xf)
-		 << std::hex << (( tmb_->GetClockedOutPromImage(0x03) >> 0) & 0xf)
-		 << "."
-		 << std::hex << (( tmb_->GetClockedOutPromImage(0x06) >> 4) & 0xf)
-		 << std::hex << (( tmb_->GetClockedOutPromImage(0x06) >> 0) & 0xf)
-		 << std::hex << (( tmb_->GetClockedOutPromImage(0x05) >> 4) & 0xf)
-		 << std::hex << (( tmb_->GetClockedOutPromImage(0x05) >> 0) & 0xf) 
-		 << std::endl;
+    if (GetWhichUserProm() == ChipLocationTmbUserPromTMB) {
+      (*MyOutput_) << "TMB configuration same as that loaded on " 
+		   << std::hex << (( tmb_->GetClockedOutPromImage(0x04) >> 4) & 0xf)
+		   << std::hex << (( tmb_->GetClockedOutPromImage(0x04) >> 0) & 0xf)
+		   << "."
+		   << std::hex << (( tmb_->GetClockedOutPromImage(0x03) >> 4) & 0xf)
+		   << std::hex << (( tmb_->GetClockedOutPromImage(0x03) >> 0) & 0xf)
+		   << "."
+		   << std::hex << (( tmb_->GetClockedOutPromImage(0x06) >> 4) & 0xf)
+		   << std::hex << (( tmb_->GetClockedOutPromImage(0x06) >> 0) & 0xf)
+		   << std::hex << (( tmb_->GetClockedOutPromImage(0x05) >> 4) & 0xf)
+		   << std::hex << (( tmb_->GetClockedOutPromImage(0x05) >> 0) & 0xf) 
+		   << std::endl; 
+    } else if (GetWhichUserProm() == ChipLocationTmbUserPromALCT) {
+      (*MyOutput_) << "ALCT configuration same as that loaded on " 
+		   << std::hex << (( tmb_->GetClockedOutPromImage(0x06) >> 0) & 0xf)
+		   << std::hex << (( tmb_->GetClockedOutPromImage(0x07) >> 0) & 0xf)
+		   << "."
+		   << std::hex << (( tmb_->GetClockedOutPromImage(0x04) >> 0) & 0xf)
+		   << std::hex << (( tmb_->GetClockedOutPromImage(0x05) >> 0) & 0xf)
+		   << "."
+		   << std::hex << (( tmb_->GetClockedOutPromImage(0x08) >> 0) & 0xf)
+		   << std::hex << (( tmb_->GetClockedOutPromImage(0x09) >> 0) & 0xf)
+		   << std::hex << (( tmb_->GetClockedOutPromImage(0x0a) >> 0) & 0xf)
+		   << std::hex << (( tmb_->GetClockedOutPromImage(0x0b) >> 0) & 0xf) 
+		   << std::endl; 
+    }
+    
   } else {
     (*MyOutput_) << "EMUjtag:  Number of verify errors = " 
 		 << std::dec << GetNumberOfVerifyErrors() << std::endl;
