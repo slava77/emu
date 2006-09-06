@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.7 2006/09/06 15:03:12 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.8 2006/09/06 16:16:46 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -87,8 +87,8 @@ public:
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryTStore, "SendSOAPMessageQueryTStore");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageConfigureLTC, "SendSOAPMessageConfigureLTC");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageExecuteSequence, "SendSOAPMessageExecuteSequence");
-    xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageJobControlExecuteCommand, 
-	      "SendSOAPMessageJobControlExecuteCommand");
+    xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageJobControlStartAllEmuperipheralCrate, 
+	      "SendSOAPMessageJobControlStartAllEmuperipheralCrate");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageJobControlkillAll, 
 	      "SendSOAPMessageJobControlkillAll");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryLTC, "SendSOAPMessageQueryLTC");
@@ -288,7 +288,7 @@ public:
 	    *out << "(" << extractState(reply) << ")";
 	    *out << cgicc::span();
 	    //
-	    *out << cgicc::br();
+	    //*out << cgicc::br();
 	    //
 	  }
 	}
@@ -444,12 +444,12 @@ public:
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     //
-    std::string methodSOAPMessageJobControlExecuteCommand =
-      toolbox::toString("/%s/SendSOAPMessageJobControlExecuteCommand",getApplicationDescriptor()->getURN().c_str());
+    std::string methodSOAPMessageJobControlStartAllEmuperipheralCrate =
+      toolbox::toString("/%s/SendSOAPMessageJobControlStartAllEmuperipheralCrate",getApplicationDescriptor()->getURN().c_str());
     //
-    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageJobControlExecuteCommand) << std::endl ;
+    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageJobControlStartAllEmuperipheralCrate) << std::endl ;
     *out << cgicc::input().set("type","submit")
-      .set("value","Send SOAP message : JobControl Execute Command") << std::endl ;
+      .set("value","Send SOAP message : JobControl Start All EmuPeripheralCrate") << std::endl ;
     *out << cgicc::form();
     /*
     std::string methodSOAPMessageJobControlStartAllProc =
@@ -1069,7 +1069,7 @@ public:
       //
     }
   //
-  void EmuPeripheralCrateManager::SendSOAPMessageJobControlExecuteCommand(xgi::Input * in, xgi::Output * out ) 
+  void EmuPeripheralCrateManager::SendSOAPMessageJobControlStartAllEmuperipheralCrate(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
     {
       //
