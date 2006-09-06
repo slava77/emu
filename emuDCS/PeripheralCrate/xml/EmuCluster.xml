@@ -1,11 +1,10 @@
 <?xml version='1.0'?>
 <xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
 
-    	<xc:Context url="http://emupc:2923">		
+    	<xc:Context url="http://emupc:40010">		
                 <xc:Application class="EmuPeripheralCrateManager" id="60" instance="0" network="local">
 
                 </xc:Application>
-                <xc:Module>${XDAQ_ROOT}/emu/cscSV/lib/linux/x86/libCSCSupervisor.so</xc:Module>
         	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
 
                 <xc:Application class="TStore" id="400"  network="local">
@@ -21,48 +20,44 @@
 	        <xc:Module>${XDAQ_ROOT}/daq/tstore/tstore/lib/linux/x86/libTStore.so</xc:Module>
         </xc:Context>
 
-    	<xc:Context url="http://emupc:2924">		
+    	<xc:Context url="http://emupc:40011">		
                 <xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="local">
                  <properties xmlns="urn:xdaq-application:EmuCrateHyperDAQ" xsi:type="soapenc:Struct">
                   <runNumber xsi:type="xsd:unsignedLong">57005</runNumber>
                   <xmlFileName xsi:type="xsd:string">/home/slice/config/configWinter2005ME1a.xml</xmlFileName>
                  </properties>
                 </xc:Application>
-                <xc:Module>${XDAQ_ROOT}/emu/cscSV/lib/linux/x86/libCSCSupervisor.so</xc:Module>
         	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
         </xc:Context>
 
 
-    	<xc:Context url="http://emupc:2925">		
+    	<xc:Context url="http://emupc:40012">		
                 <xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="local">
                  <properties xmlns="urn:xdaq-application:EmuCrateHyperDAQ" xsi:type="soapenc:Struct">
                   <runNumber xsi:type="xsd:unsignedLong">57005</runNumber>
                   <xmlFileName xsi:type="xsd:string">/home/slice/config/configWinter2005ME1b.xml</xmlFileName>
                  </properties>
                 </xc:Application>
-                <xc:Module>${XDAQ_ROOT}/emu/cscSV/lib/linux/x86/libCSCSupervisor.so</xc:Module>
         	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
         </xc:Context>
 
-    	<xc:Context url="http://emupc:2926">		
+    	<xc:Context url="http://emupc:40013">		
                 <xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="local">
                  <properties xmlns="urn:xdaq-application:EmuCrateHyperDAQ" xsi:type="soapenc:Struct">
                   <runNumber xsi:type="xsd:unsignedLong">57005</runNumber>
                   <xmlFileName xsi:type="xsd:string">/home/slice/config/configWinter2005ME2.xml</xmlFileName>
                  </properties>
                 </xc:Application>
-                <xc:Module>${XDAQ_ROOT}/emu/cscSV/lib/linux/x86/libCSCSupervisor.so</xc:Module>
         	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
         </xc:Context>
 
-    	<xc:Context url="http://emupc:2927">		
+    	<xc:Context url="http://emupc:40014">		
                 <xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="local">
                  <properties xmlns="urn:xdaq-application:EmuCrateHyperDAQ" xsi:type="soapenc:Struct">
                   <runNumber xsi:type="xsd:unsignedLong">57005</runNumber>
                   <xmlFileName xsi:type="xsd:string">/home/slice/config/configWinter2005ME3.xml</xmlFileName>
                  </properties>
                 </xc:Application>
-                <xc:Module>${XDAQ_ROOT}/emu/cscSV/lib/linux/x86/libCSCSupervisor.so</xc:Module>
         	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
         </xc:Context>
 
