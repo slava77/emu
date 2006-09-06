@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuFController.cc,v 3.0 2006/07/20 21:16:11 geurts Exp $
+// $Id: EmuFController.cc,v 3.1 2006/09/06 15:43:50 gilmore Exp $
 // $Log: EmuFController.cc,v $
+// Revision 3.1  2006/09/06 15:43:50  gilmore
+// Improved Config and interrupt features.
+//
 // Revision 3.0  2006/07/20 21:16:11  geurts
 // *** empty log message ***
 //
@@ -39,6 +42,17 @@ void EmuFController::init(){
   std::cout << " Using file " << xmlFile_ << std::endl ;
   parser.parseFile(xmlFile_.c_str());
   //
+
+/*  Need to add for Soap Init?
+  printf(" EmuFController::init:  theController->vmeirq_start_ %d, now irq+pthread_end \n", theController->vmeirq_start_);
+  theController->irq_pthread_end(crate);
+//  How to set  irqprob=0 ?
+  if(theController->vmeirq_start_==1){
+    printf(" EmuFController::init: theController->vmeirq_start_ %d, now irq+pthread_start \n", theController->vmeirq_start_);
+    theController->irq_pthread_start(crate);
+  }
+*/
+
 }
 
 void EmuFController::configure() {
