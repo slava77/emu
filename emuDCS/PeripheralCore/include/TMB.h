@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.4 2006/09/05 10:13:17 rakness Exp $
+// $Id: TMB.h,v 3.5 2006/09/06 12:38:10 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.5  2006/09/06 12:38:10  rakness
+// correct time stamp/copy vectors for user prom
+//
 // Revision 3.4  2006/09/05 10:13:17  rakness
 // ALCT configure from prom
 //
@@ -427,10 +430,9 @@ public:
   void ClearVmeWriteVecs();                             
   void SetFillVmeWriteVecs(bool fill_vectors_or_not);   // put the vme information into vectors to put into user prom?
   bool GetFillVmeWriteVecs();
-  int GetNumberOfVmeWrites();                           // how many vme writes go into the user prom?
-  int GetVecVmeAddress(int data_counter);               // vme write information
-  int GetVecDataLsb(int data_counter);                  // vme write information
-  int GetVecDataMsb(int data_counter);                  // vme write information
+  std::vector<int> GetVecVmeAddress();               // vme write information
+  std::vector<int> GetVecDataLsb();                  // vme write information
+  std::vector<int> GetVecDataMsb();                  // vme write information
   //
   void ClockOutPromProgram(int prom,int number_of_addresses);
   inline int GetClockedOutPromImage(int address) { return clocked_out_prom_image_.at(address); }

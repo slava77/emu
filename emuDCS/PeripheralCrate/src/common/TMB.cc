@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.8 2006/09/05 10:13:17 rakness Exp $
+// $Id: TMB.cc,v 3.9 2006/09/06 12:38:11 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.9  2006/09/06 12:38:11  rakness
+// correct time stamp/copy vectors for user prom
+//
 // Revision 3.8  2006/09/05 10:13:17  rakness
 // ALCT configure from prom
 //
@@ -535,7 +538,6 @@ void TMB::configure() {
   //
   if ( GetFillVmeWriteVecs() ) {     //put the configuration data into the prom
     //
-    SetXsvfFilename("TMB_user_prom_data");
     SetWhichUserProm(ChipLocationTmbUserPromTMB);
     CreateUserPromFile();
     //
@@ -6314,26 +6316,20 @@ bool TMB::GetFillVmeWriteVecs() {
   //
 }
 //
-int TMB::GetNumberOfVmeWrites() { 
+std::vector<int> TMB::GetVecVmeAddress() { 
   //
-  return theController->Get_NumberOfVmeWrites(); 
-  //
-}
-//
-int TMB::GetVecVmeAddress(int data_counter) { 
-  //
-  return theController->Get_VecVmeAddress(data_counter); 
+  return theController->Get_VecVmeAddress(); 
   //
 }
 //
-int TMB::GetVecDataLsb(int data_counter) { 
+std::vector<int> TMB::GetVecDataLsb() { 
   //
-  return theController->Get_VecDataLsb(data_counter); 
+  return theController->Get_VecDataLsb(); 
   //
 }
-int TMB::GetVecDataMsb(int data_counter) { 
+std::vector<int> TMB::GetVecDataMsb() { 
   //
-  return theController->Get_VecDataMsb(data_counter); 
+  return theController->Get_VecDataMsb(); 
   //
 }
 //
