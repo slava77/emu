@@ -49,6 +49,8 @@
 #include "EmuFController.h"
 
 extern int irq_start[4];
+extern int irqprob;
+extern long int timer,xtimer;
 
 using namespace cgicc;
 using namespace std;
@@ -57,6 +59,9 @@ class EmuFCrateHyperDAQ: public xdaq::Application
 {
 private:
   int reload;
+  //  int irqprob;
+  //  long int timer,xtimer;
+  long int ltime;
   //
 protected:
   //
@@ -77,8 +82,6 @@ protected:
   std::string DCCBoardID_[9];
   int DCC_ratemon[50][12],DCC_ratemon_cnt,DCC_ratemon_ch;
   int DDU_, DCC_;
-  long int timer,ltime;
-  int irqprob;
   //
 public:
   EmuFCrateHyperDAQ(xdaq::ApplicationStub * s): xdaq::Application(s) 
@@ -108,7 +111,7 @@ public:
     xgi::bind(this,&EmuFCrateHyperDAQ::getDataDCCRate0,"getDataDCCRate0");
     xgi::bind(this,&EmuFCrateHyperDAQ::getDataDCCRate1,"getDataDCCRate1");
     myParameter_ =  0;
-    irqprob=0;
+    //    irqprob=0;
 
     xmlFile_     = 
       "/home/fastdducaen/v3.4/TriDAS/emu/emuDCS/FEDCrate/xml/config.xml" ;
@@ -125,6 +128,7 @@ public:
 
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
+
 /* JRG, Logger stuff to add:
     // if (getApplicationLogger().exists(getApplicationLogger().getName())) {
 */
@@ -164,6 +168,7 @@ public:
       *out << std::endl;
       *out << cgicc::legend("Upload Configuration...").set("style","color:blue") 
 	   << std::endl ;
+
       *out << cgicc::form().set("method","POST").set("action",method) << std::endl ;
       *out << cgicc::input().set("type","text")
 	.set("name","xmlFilename")
@@ -171,9 +176,13 @@ public:
 	.set("ENCTYPE","multipart/form-data")
 	.set("value",xmlFile_);
       *out << std::endl;
-      *out << cgicc::input().set("type","submit")
-	.set("value","Set configuration file local") << std::endl ;
-      *out << cgicc::form() << std::endl ;
+      *out << cgicc::input().set("type","submit").set("name","buttonid")
+	.set("value","Normal Init & Config") << std::endl;
+// JRG Note: buttonid="Init Only" is critical string, do not change
+      *out << cgicc::input().set("type","submit").set("name","buttonid")
+	.set("value","Init Only") << std::endl;
+      *out << cgicc::form() << std::endl;
+
       //
       // Upload file...
       //
@@ -307,6 +316,7 @@ public:
 
             if(DDU_FMM==4){    // Busy
 	      *out << cgicc::span().set("style","color:orange;background-color:#dddddd;");
+	      irqprob=1;
             }
             else if(DDU_FMM==1){    // Warn, near full: reduce trigger rate
 	      *out << cgicc::span().set("style","color:blue;background-color:#dddddd;");
@@ -317,6 +327,7 @@ public:
             }
             else if(DDU_FMM==2 || DDU_FMM==0xC){     // Error or Sync
 	      *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
+	      irqprob=1;
 	    }
 	    else{  // Not Defined
 	      *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
@@ -356,12 +367,14 @@ public:
 	    std::string ddufpga =
 	      toolbox::toString("/%s/DDUFpga",getApplicationDescriptor()->getURN().c_str());
 	    *out << " &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp ";
+
 	    *out << cgicc::form().set("method","GET").set("action",ddufpga)
 	      .set("target","_blank") << std::endl;
 	    *out << cgicc::input().set("type","submit").set("value","DDUFPGA") << std::endl;  
 	    sprintf(buf,"%d",i);
 	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu") << std::endl;
 	    *out << cgicc::form() << std::endl;
+
 	    std::string infpga0 =
 	      toolbox::toString("/%s/INFpga0",getApplicationDescriptor()->getURN().c_str());
 	    *out << cgicc::form().set("method","GET").set("action",infpga0)
@@ -505,9 +518,6 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	TextFile.close();
 	//
 	xmlFile_ = "MyTextConfigurationFile.xml" ;
-	//
-	//Configuring();
-	//
 	cout << "Out setRawConfFile" << endl ;
 	//
 	this->Default(in,out);
@@ -518,9 +528,16 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
       }
   }
   //
-  void EmuFCrateHyperDAQ::Configuring(){
-    //
-    std::cout << "Configuring " << std::endl ;
+
+  void EmuFCrateHyperDAQ::Configuring(int SkipConfig){
+/*
+    cgicc::Cgicc cgi(in);
+    const CgiEnvironment& env = cgi.getEnvironment();
+    std::string crateStr = env.getQueryString() ;
+    //    cout << crateStr << endl ;
+*/
+
+    std::cout << "Configuring: SkipConfig=" << SkipConfig << std::endl ;
     //
     //-- parse XML file
     //
@@ -533,36 +550,21 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     //-- Make sure that only one TMB in one crate is configured
     CrateSelector selector = tbController.selector();
     vector<Crate*> crateVector = selector.crates();
-    //
-    //if (crateVector.size() > 1){
-    //cerr << "Error: only one PeripheralCrate allowed" << endl;
-    //exit(1);
-    //}
-    //
     dduVector = selector.ddus(crateVector[0]);
-    //if (tmbVector.size() > 1){
-    //cerr << "Error: only one TMB in xml file allowed" << endl ;
-    //exit(1);
-    //}
-    //
     dccVector = selector.dccs(crateVector[0]);
-    //if (dmbVector.size() > 1){
-    //cerr << "Error: only one DMB in xml file allowed" << endl;
-    //exit(1);
-    //} 
-    //
-    //-- get pointers to CCB, TMB and DMB
-    //
-     thisCrate = crateVector[0];
-     thisCrate->configure(0);
+    thisCrate = crateVector[0];
+    timer=0;
+    xtimer=0;
+    irqprob=0;
+
+// LSD, Make these optional with buttons
+// JRG, only start/reset the IRQ handler:
+    if(SkipConfig>0)thisCrate->init(0);
+
+// JRG, download setup to all boards, then start/reset the IRQ handler:
+     if(SkipConfig==0)thisCrate->configure(0);
  
-     //thisTMB = tmbVector[0];
-     //thisDMB = dmbVector[0];
-     //
-     //DDU * thisDDU = thisCrate->ddu();
-     //if(thisTMB) alct = thisTMB->alctController();
-     //
-    std::cout << "Done" << std::endl ;
+    std::cout << "EmuFCrateHyperDAQ::Configuring  >done< " << std::endl ;
   }
   //
 
@@ -574,23 +576,26 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	//
 	cgicc::Cgicc cgi(in);
 	//
+
+	int SkipConfig=0;
+	std::string Bid;
+	SkipConfig=0;
+	cgicc::form_iterator name = cgi.getElement("buttonid");
+	if(name != cgi.getElements().end()) {
+	  Bid = cgi["buttonid"]->getValue();
+	  if(Bid=="Init Only")SkipConfig=1;
+	}
+	std::cout << "setConfFile: ButtonID=" << Bid << ".   SkipConfig=" << SkipConfig << std::endl ;
+
 	const_file_iterator file;
 	file = cgi.getFile("xmlFileName");
-	//
 	cout << "GetFiles string" << endl ;
-	//
 	if(file != cgi.getFiles().end()) (*file).writeToStream(cout);
-	//
 	string XMLname = cgi["xmlFileName"]->getValue() ; 
-	//
 	cout << XMLname  << endl ;
-	//
 	xmlFile_ = XMLname ;
-	//
-	Configuring();
-	//
+	Configuring(SkipConfig);
 	this->Default(in,out);
-	//
       }
     catch (const std::exception & e )
       {
@@ -600,40 +605,29 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 
   void EmuFCrateHyperDAQ::UploadConfFile(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
-  {
+ {
     try
       {
-	//
 	cout << "UploadConfFileUpload" << endl ;
-	//
 	cgicc::Cgicc cgi(in);
-	//
 	const_file_iterator file;
 	file = cgi.getFile("xmlFileNameUpload");
-	//
 	cout << "GetFiles" << endl ;
-	//
 	if(file != cgi.getFiles().end()) {
 	  ofstream TextFile ;
 	  TextFile.open("MyTextConfigurationFile.xml");
 	  (*file).writeToStream(TextFile);
 	  TextFile.close();
 	}
-	//
 	xmlFile_ = "MyTextConfigurationFile.xml" ;
-	//
-	Configuring();
-	//
+	Configuring(0);
 	cout << "UploadConfFile done" << endl ;
-	//
 	this->Default(in,out);
-	//
       }
     catch (const std::exception & e )
       {
 	//XECPT_RAISE(xgi::exception::Exception, e.what());
       }
-  
 }
 
   void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out ) 
@@ -646,16 +640,12 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     printf(" entered DDUFirmware \n");
     cgicc::Cgicc cgi(in);
     printf(" initialize env \n");
-    //
     const CgiEnvironment& env = cgi.getEnvironment();
-    //
     printf(" getQueryString \n");
     std::string crateStr = env.getQueryString() ;
-    //
     cout << crateStr << endl ; 
 
     cgicc::form_iterator name = cgi.getElement("ddu");
-    //
     int ddu;
     if(name != cgi.getElements().end()) {
       ddu = cgi["ddu"]->getIntegerValue();
@@ -1867,6 +1857,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	if(thisDDU->infpga_code0&0xff00)icond=2;
 	sprintf(buf3," &nbsp &nbsp L1A Mismatch, Fiber[7-0]:");
 	sprintf(buf4," %02X ",(thisDDU->infpga_code0&0x00ff));
+	if(thisDDU->infpga_code0&0x00ff)icond2=1;
       }
       if(i==306){
 	thisDDU->infpga_RxErr(INFPGA0);
@@ -2309,6 +2300,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	if(thisDDU->infpga_code0&0xff00)icond=2;
 	sprintf(buf3," &nbsp &nbsp L1A Mismatch, Fiber[14-8]:");
 	sprintf(buf4," %02X ",(thisDDU->infpga_code0&0x00ff));
+	if(thisDDU->infpga_code0&0x00ff)icond2=1;
       }
       if(i==406){
 	thisDDU->infpga_RxErr(INFPGA1);
@@ -2969,7 +2961,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	*out << buf << buf2;
 	*out << cgicc::span();
 
-	sprintf(buf2,"<blockquote><font size=-1 color=black face=arial> slot=%d &nbsp &nbsp ",((~stat)&0x003F));
+	sprintf(buf2,"<blockquote><font size=-1 color=black face=arial> slot=%d &nbsp &nbsp ",((~stat)&0x001F));
 	*out << buf2;
 	if(stat&0x0080) *out << " VME DLL-2 Not Locked &nbsp ";
 	if(stat&0x0040) *out << " VME DLL-1 Not Locked &nbsp ";
@@ -3375,6 +3367,7 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
     //
     int ddu;
     unsigned int FEDVME_CSCstat=0;
+    long int xsec,xmin,xhr;
     if(name != cgi.getElements().end()) {
       ddu = cgi["ddu"]->getIntegerValue();
       //      cout << "DDU inside " << ddu << endl;
@@ -3383,26 +3376,32 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
       ddu=DDU_;
     }
 
-    if(irq_start[0]==0){
+    if(irq_start[0]==0){   // if IRQ service is not active then start it up
       VMEController *theController=thisCrate->vmeController();
       theController->irq_pthread_start(0);
+// only get cleared if VMEirq service is started via Button:
       timer=0;
+      xtimer=0;
+      irqprob=0;  // bad idea?
+      printf(" <--DEBUG-->  VMEIntIRQ, pt0: timer & irqprob set to zero <----> \n");
       for(int i=0;i<(int)dduVector.size();i++){
 	thisDDU=dduVector[i];
 	int slot=thisDDU->slot();
         if(slot<21){
 	  FEDVME_CSCstat=thisDDU->vmepara_CSCstat();
 	  if(FEDVME_CSCstat!=0x0000){
+// only gets set if there's a previous problem at VMEirq service startup:
 	    irqprob=1;
+	    printf(" <--DEBUG-->  VMEIntIRQ, pt1: irqprob set to 1 <----> \n");
 	    //	    printf(" ** EmuFEDVME: Interrupt was set for Slot %d, CSCstat=0x%04x ** \n",slot,FEDVME_CSCstat);
 	  }
         }
       }
     }
 
+
     thisDDU = dduVector[0];
- 
-   //   printf(" set up web page \n");
+    //   printf(" set up web page \n");
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
@@ -3418,10 +3417,13 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
     *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
     *out << std::endl;
 
+// JRG new:
     if(ddu!=99){
       *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
       unsigned int FEDVME_int=thisDDU->irq_tester(0,0);
+      int FEDVMEslot=thisDDU->irq_tester(0,2);
       if(FEDVME_int!=0 || irqprob!=0){ 
+	printf(" <--DEBUG-->  VMEIntIRQ, pt2: DDUslot=%d   FEDVMEint=%04xh   irqprob=%d <----> \n",FEDVMEslot,FEDVME_int,irqprob);
 	*out << img().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/redlight.gif") << std::endl;
 	//	LOG4CPLUS_INFO(getApplicationLogger(), " EmuFEDVME: Interrupt xx detected");
     /* 
@@ -3438,40 +3440,64 @@ one must then recompile the libcgicc.so library
 
 	*out << br() << std::endl;
 	*out << cgicc::span().set("style","font-size: 25pt;color:red;background-color:yellow;");
+
+/*
 	long int xtimer=timer;
 	long int xsec=xtimer%60;
 	xtimer=(xtimer-xsec)/60;
 	long int xmin=xtimer%60;
 	long int xhr=(xtimer-xmin)/60;
+*/
+//	xtimer=timer;
+	timer=xtimer;
+	xsec=timer%60;
+	timer=(timer-xsec)/60;
+	xmin=timer%60;
+	xhr=(timer-xmin)/60;
+	timer=0;
+	printf(" <--DEBUG-->  VMEIntIRQ, pt5: timer set to zero, xtimer=%d <----> \n",xtimer);
+
 	sprintf(buf,"%02ld:%02ld:%02ld",xhr,xmin,xsec);
 	*out << buf << std::endl;
 	*out << cgicc::span() << std::endl;
 
 	if(FEDVME_int!=0){
+	printf(" <--DEBUG-->  VMEIntIRQ, pt3: DDUslot=%d   FEDVMEint=%04xh <----> \n",FEDVMEslot,FEDVME_int);
 	  //	  printf(" ** EmuFEDVME: Interrupt detected, 0x%04x ** \n",FEDVME_int);
 	  *out << cgicc::span().set("style","font-size: 20pt;color:red");
-	  //	  printf(" ** EmuFEDVME: Failure in Crate %d, Slot %d, Status %04x **\n",thisDDU->irq_tester(0,1),thisDDU->irq_tester(0,2),thisDDU->irq_tester(0,3));
-	  sprintf(buf,"  Failure in Crate %d Slot %d Status %04x",thisDDU->irq_tester(0,1),thisDDU->irq_tester(0,2),thisDDU->irq_tester(0,3));
+	  printf("     *** EmuFEDVME: Failure in Crate %d, Slot %d:  Status %04xh ***\n",thisDDU->irq_tester(0,1),thisDDU->irq_tester(0,2),thisDDU->irq_tester(0,3));
+	  sprintf(buf,"  Failure in Crate %d, Slot %d:  Status %04xh",thisDDU->irq_tester(0,1),thisDDU->irq_tester(0,2),thisDDU->irq_tester(0,3));
 	  //	LOG4CPLUS_INFO(getApplicationLogger(), buf);
-	}else{ 
+	}else{
+	  printf(" <--DEBUG-->  VMEIntIRQ, pt4: DDUslot=%d   FEDVMEint=%04xh   irqprob=%d <----> \n",FEDVMEslot,FEDVME_int,irqprob);
 	  *out << cgicc::span().set("style","font-size: 20pt;color:red");
-	  sprintf(buf," DDUs have Interrupted previously");
-	} 
+	  sprintf(buf," DDUs set Interrupt previously, still in error state");
+	}
 	*out << buf << std::endl;
       }else{ 
 	*out << cgicc::span().set("style","color:green");
 	*out << "Time without interrupt" << std::endl;
 	*out << cgicc::span() << std::endl;
-	*out << cgicc::span().set("style","font-size: 25pt;color:blue;background-color:black;");
+	*out << cgicc::span().set("style","font-size: 25pt;color:white;background-color:black;");
 	//  printf(" timer %ld start %d irq_start \n",timer,irq_start[0]);
+
+/*
 	long int xtimer=timer;
 	long int xsec=xtimer%60;
 	xtimer=(xtimer-xsec)/60;
 	long int xmin=xtimer%60;
 	long int xhr=(xtimer-xmin)/60;
-	timer=timer+2;
+*/
+	xtimer=timer;
+	xsec=xtimer%60;
+	xtimer=(xtimer-xsec)/60;
+	xmin=xtimer%60;
+	xhr=(xtimer-xmin)/60;
+
 	sprintf(buf,"%02ld:%02ld:%02ld",xhr,xmin,xsec);
 	*out << buf << std::endl;
+	timer=timer+2;
+	xtimer=timer;
       }
       *out << cgicc::span() << std::endl;
       std::string irqtester =
@@ -3706,7 +3732,7 @@ void EmuFCrateHyperDAQ::LoadXMLconf(xgi::Input * in, xgi::Output * out )
 {
     printf(" enter: LoadXMLconf \n");
     cgicc::Cgicc cgi(in);
-    const CgiEnvironment& env = cgi.getEnvironment();
+    //    const CgiEnvironment& env = cgi.getEnvironment();
     //    string URLname = cgi["DefURL"]->getValue() ; 
     //    cout << "  should go to this URL: " << URLname  << endl ;
     printf(" dduVector.size() %d \n",dduVector.size());

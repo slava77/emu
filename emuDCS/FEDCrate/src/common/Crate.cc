@@ -6,6 +6,8 @@
 #include "DDU.h"
 #include "DCC.h"
 
+int irqprob;
+long int timer,xtimer;
 
 Crate::Crate(int number, VMEController * controller) : 
   theNumber(number),  
@@ -60,7 +62,7 @@ void Crate::disable() {
 }
 //
 void Crate::configure(int crate) {
-  //
+// JRG, downloads to all boards, then starts the IRQ handler.
   printf(" ********   Crate::configure is called %d \n",crate);
   std::vector<DDU*> myDdus = this->ddus();
   for(unsigned i =0; i < myDdus.size(); ++i) {
@@ -70,13 +72,41 @@ void Crate::configure(int crate) {
   for(unsigned i =0; i < myDccs.size(); ++i) {
     myDccs[i]->configure(); 
   } 
-  printf(" theController->vmeirq_start_ %d \n", theController->vmeirq_start_);
+
+// LSD, move IRQ start to Init phase:
+// JRG, we probably want to keep IRQ clear/reset here (End, then Start):
+  printf(" Crate::configure: theController->vmeirq_start_=%d.  Calling irq+pthread_end \n", theController->vmeirq_start_);
+  theController->irq_pthread_end(crate);
+  irqprob=0;
+  timer=0;
+  xtimer=0;
+
+  if(theController->vmeirq_start_==1){
+    printf(" Crate::configure: theController->vmeirq_start_ %d, now irq+pthread_start \n", theController->vmeirq_start_);
+    theController->irq_pthread_start(crate);
+  }
+/*
   if(theController->vmeirq_start_==1){
     theController->irq_pthread_start(crate);
   }else{
     theController->irq_pthread_end(crate);
   } 
+*/
 }
+
+void Crate::init(int crate) {
+// JRG, only starts the IRQ handler!
+  printf(" Crate::init: theController->vmeirq_start_=%d.  Calling irq+pthread_end \n", theController->vmeirq_start_);
+  theController->irq_pthread_end(crate);
+  irqprob=0;
+  timer=0;
+  xtimer=0;
+  if(theController->vmeirq_start_==1){
+    printf(" Crate::init: theController->vmeirq_start_ %d, now irq+pthread_start \n", theController->vmeirq_start_);
+    theController->irq_pthread_start(crate);
+  }
+}
+
 
 int Crate::irqtest(int crate,int ival)
 {

@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.1 2006/08/04 20:28:27 gilmore Exp $
+// $Id: VMEController.cc,v 3.2 2006/09/06 15:43:50 gilmore Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.2  2006/09/06 15:43:50  gilmore
+// Improved Config and interrupt features.
+//
 // Revision 3.1  2006/08/04 20:28:27  gilmore
 // Added Logserver feature to EmuFEDVME Interrupt handler.
 //
@@ -232,6 +235,7 @@ char buf[300];
     CAENVME_IRQEnable(BHandle,mask);
 
     ierr=CAENVME_IRQWait(BHandle,mask,5000); 
+    printf("IRQ_Int Looped again... \n");
     // printf("CAENVME_IRQWait: %d %d \n",locdata->exit,ierr);
     if(locdata->exit==1)goto ENDR;
     if(ierr!=0)goto LOOP;
@@ -258,8 +262,8 @@ char buf[300];
     //    LOG4CPLUS_INFO(logger, " EmuFEDVME: Interrupt detected");
     LOG4CPLUS_ERROR(logger,buf);
     if(Data[1]&0xe0){
-      printf(" ** EmuFEDVME: ");
-      sprintf(buf," ** EmuFEDVME: ");
+      printf(" ** EmuFEDVME %d/%d: ",crate,SLOT);
+      sprintf(buf," ** EmuFEDVME %d/%d: ",crate,SLOT);
       if(ERR){
 	printf("  DDU has Error");
 	strcat(buf,"  DDU has Error");
@@ -287,18 +291,19 @@ char buf[300];
 
     // Address=0x001b4000;
     Address=0x00034000|((SLOT<<19)&0x00f80000);
-    Data[0]=0xFF;Data[1]=0xFF;
+    Data[0]=0xFF;
+    Data[1]=0xFF;
 // JRG, get CSC_Stat: 16-bit word for which CSCs have a problem
     CAENVME_ReadCycle(BHandle,Address,Data,AM,DW);
-    status=((Data[1]<<8)&0x7f00)|(Data[0]&0xff);
-    printf(" ** EmuFEDVME:   %d CSCs w/Error, %d w/SyncErr. CSCtroubleFlags 0x%02x%02x\n",NUM_ERR,NUM_SYNC,Data[1],Data[0]);
-    sprintf(buf," ** EmuFEDVME:   %d CSCs w/Error, %d w/SyncErr. CSCtroubleFlags 0x%02x%02x\n",NUM_ERR,NUM_SYNC,Data[1],Data[0]);
+    status=((Data[1]<<8)&0xff00)|(Data[0]&0xff);
+    printf(" ** EmuFEDVME %d/%d:   %d CSCs w/Error, %d w/SyncErr. CSCtroubleFlags 0x%02x%02x\n",crate,SLOT,NUM_ERR,NUM_SYNC,Data[1],Data[0]);
+    sprintf(buf," ** EmuFEDVME %d/%d:   %d CSCs w/Error, %d w/SyncErr. CSCtroubleFlags 0x%02x%02x\n",crate,SLOT,NUM_ERR,NUM_SYNC,Data[1],Data[0]);
     //    printf(" CSC_Status %02x%02x \n",Data[1]&0xff,Data[0]&0xff);
     LOG4CPLUS_INFO(logger,buf << endl);
     locdata->last_status=status;
     goto LOOP;
  ENDR: 
-    printf(" call pthread_exit \n");
+    printf(" IRQ_Int call pthread_exit \n");
     pthread_exit(NULL);
 }
 
@@ -354,10 +359,14 @@ void VMEController::irq_pthread_end(int crate)
 unsigned long mask=0x00000001;
   CAENVME_IRQDisable(theBHandle,mask);
   if(irq_start[crate]==1){
-      irqdata[crate].exit=1;
-      irq_start[crate]=0;
-      //   pthread_exit(NULL);
-      pthread_cancel(threads[crate]);
+    printf(" about to end pthreads \n");
+    irqdata[crate].exit=1;
+    irq_start[crate]=0;
+    //   pthread_exit(NULL);
+    pthread_cancel(threads[crate]);
+    printf("Interrupt handler sleeping for 6 seconds.... \n");
+    usleep(6000000);
+    //    sleep(6);
   }
 }
 
