@@ -1,0 +1,4549 @@
+#***************************************************************************************************************************
+#----------------------------------------------------- AFS Section ---------------------------------------------------------
+#***************************************************************************************************************************
+
+elsah=(DESCRIPTION= 
+              (ADDRESS= 
+                 (PROTOCOL=TCP)  
+                 (HOST=elsah.cern.ch)
+                 (PORT=1521)        
+              )                    
+         (CONNECT_DATA=           
+                 (SID=SAH))      
+         ) 
+laserdb=(DESCRIPTION=
+          (FAILOVER=on)
+          (LOAD_BALANCE=off)
+          (ADDRESS_LIST=
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=laserdb01.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=laserdb02.cern.ch)
+                (PORT=1521)
+            )
+          )
+          (CONNECT_DATA=
+              (SERVICE_NAME=TCRDB)
+              (FAILOVER_MODE=
+                 (TYPE=SELECT)
+                 (METHOD=BASIC)
+              )
+          )
+        )
+stcsamdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=stcsam-db-gpn.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=CSAM))
+        )
+
+egee101t =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = lxfs6113.cern.ch)(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVICE_NAME = egee101t.cern.ch)
+    )
+  )
+
+egee102d =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = lxfs5502.cern.ch)(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVICE_NAME = egee102d.cern.ch)
+    )
+  )
+
+
+#---------------- pdb -----------------
+atlas=(DESCRIPTION=
+           (ADDRESS_LIST=
+           (FAILOVER=on)
+           (LOAD_BALANCE=off)
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sundb07.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sundb08.cern.ch)
+                (PORT=1521)
+            )
+           )
+           (CONNECT_DATA=
+              (SERVER=DEDICATED)
+              (SERVICE_NAME=pdb01)
+              (FAILOVER_MODE=
+                 (TYPE=SELECT)
+                 (METHOD=BASIC)
+              )
+           )
+       )
+lhcb=(DESCRIPTION=
+          (ADDRESS_LIST=
+            (FAILOVER=on)
+            (LOAD_BALANCE=off)
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sundb07.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sundb08.cern.ch)
+                (PORT=1521)
+            )
+           )
+           (CONNECT_DATA=
+              (SERVER=DEDICATED)
+              (SERVICE_NAME=pdb01)
+              (FAILOVER_MODE=
+                 (TYPE=SELECT)
+                 (METHOD=BASIC)
+              )
+           )
+       )
+cms=(DESCRIPTION=
+          (ADDRESS_LIST=
+            (FAILOVER=on)
+            (LOAD_BALANCE=off)
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sundb08.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sundb07.cern.ch)
+                (PORT=1521)
+            )
+           )
+           (CONNECT_DATA=
+              (SERVER=DEDICATED)
+              (SERVICE_NAME=pdb01)
+              (FAILOVER_MODE=
+                 (TYPE=SELECT)
+                 (METHOD=BASIC)
+              )
+           )
+       )
+alice=(DESCRIPTION=
+           (ADDRESS_LIST=
+            (FAILOVER=on)
+            (LOAD_BALANCE=off)
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sundb08.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sundb07.cern.ch)
+                (PORT=1521)
+            )
+           )
+           (CONNECT_DATA=
+              (SERVER=DEDICATED)
+              (SERVICE_NAME=pdb01)
+              (FAILOVER_MODE=
+                 (TYPE=SELECT)
+                 (METHOD=BASIC)
+              )
+           )
+       )
+
+#--------------------------------------
+
+lhclog,lhclogdb=(DESCRIPTION=
+            (FAILOVER=on)
+            (LOAD_BALANCE=off)
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sunlhclog01.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sunlhclog02.cern.ch)
+                (PORT=1521)
+            )
+           (CONNECT_DATA=
+              (SERVICE_NAME=LHCLOGDB)
+              (FAILOVER_MODE=
+                 (TYPE=SELECT)
+                 (METHOD=BASIC)
+              )
+           )
+       )
+
+lhclog02=(DESCRIPTION=
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sunlhclog02.cern.ch)
+                (PORT=1521)
+            )
+           (CONNECT_DATA=
+              (SERVICE_NAME=LHCLOGDB)
+              )
+           )
+
+measdb,acc_settings_db=(DESCRIPTION=
+            (FAILOVER=on)
+            (LOAD_BALANCE=off)
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sunlhclog02.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sunlhclog01.cern.ch)
+                (PORT=1521)
+            )
+           (CONNECT_DATA=
+              (SERVICE_NAME=LHCLOGDB)
+              (FAILOVER_MODE=
+                 (TYPE=SELECT)
+                 (METHOD=BASIC)
+              )
+           )
+       )
+
+zoradb=(DESCRIPTION=
+            (FAILOVER=on)
+            (LOAD_BALANCE=off)
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=tcrsc02.cern.ch)
+                (PORT=1522)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=tcrsc01.cern.ch)
+                (PORT=1522)
+            )
+           (CONNECT_DATA=
+              (SERVICE_NAME=ZORADB)
+              (FAILOVER_MODE=
+                 (TYPE=SELECT)
+                 (METHOD=BASIC)
+              )
+           )
+     )
+
+timdb=(DESCRIPTION=
+            (FAILOVER=on)
+            (LOAD_BALANCE=off)
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=tcrsc01.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=tcrsc02.cern.ch)
+                (PORT=1521)
+            )
+           (CONNECT_DATA=
+              (SERVICE_NAME=TCRDB)
+              (FAILOVER_MODE=
+                 (TYPE=SELECT)
+                 (METHOD=BASIC)
+              )
+           )
+       )
+tcr01=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=tcrsc01.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=TCR01))
+        )
+tcr02=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=tcrsc02.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=TCR02))
+        )
+em4db=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sundb05.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=rls1))
+        )
+c2k_old=(DESCRIPTION=
+       (ADDRESS=(PROTOCOL=TCP)
+                (HOST=cristaldb01.cern.ch)
+                (PORT=1521)
+        )
+
+       (CONNECT_DATA=(SID=c2k)
+       )
+     )
+alicet.cern.ch =
+      (DESCRIPTION =
+        (LOAD_BALANCE = on)
+        (failover = on)
+        (ADDRESS_LIST =
+          (ADDRESS = (PROTOCOL = TCP)(HOST = sundb07.cern.ch)(PORT = 1521))
+          (ADDRESS = (PROTOCOL = TCP)(HOST = sundb08.cern.ch)(PORT = 1521))
+        )
+        (CONNECT_DATA =
+          (SERVER = DEDICATED)
+          (SERVICE_NAME = alicet)
+        )
+      )
+comptst1=(DESCRIPTION=
+      (ADDRESS=
+         (PROTOCOL=TCP)
+         (HOST=lxshare084d.cern.ch)
+         (PORT=1521)
+      )
+     (CONNECT_DATA=
+      (SERVICE_NAME= comptst1))
+       )
+compdb1=(DESCRIPTION=
+      (ADDRESS=
+         (PROTOCOL=TCP)
+         (HOST=compassdb01.cern.ch)
+         (PORT=1521)
+      )
+     (CONNECT_DATA=
+      (SERVICE_NAME= compdb1))
+       )
+compdb2=(DESCRIPTION=
+      (ADDRESS=
+         (PROTOCOL=TCP)
+         (HOST=compassdb02.cern.ch)
+         (PORT=1521)
+      )
+     (CONNECT_DATA=
+      (SERVICE_NAME= compdb2))
+       )
+compdb3=(DESCRIPTION=
+ 		(ADDRESS= 
+ 		   (PROTOCOL=TCP)
+ 		   (HOST=compassdb03.cern.ch)
+ 		   (PORT=1521)
+ 		)
+ 	(CONNECT_DATA=
+ 		(SERVICE_NAME = compdb3))
+   	)
+compdb4=(DESCRIPTION=
+ 		(ADDRESS= 
+ 		   (PROTOCOL=TCP)
+ 		   (HOST=compassdb04.cern.ch)
+ 		   (PORT=1521)
+ 		)
+ 	(CONNECT_DATA=
+ 		(SERVICE_NAME = compdb4))
+   	)
+compdb5=(DESCRIPTION=
+ 		(ADDRESS= 
+ 		   (PROTOCOL=TCP)
+ 		   (HOST=compassdb05.cern.ch)
+ 		   (PORT=1521)
+ 		)
+ 	(CONNECT_DATA=
+ 		(SERVICE_NAME = compdb5))
+   	)
+compdb6=(DESCRIPTION=
+ 		(ADDRESS= 
+ 		   (PROTOCOL=TCP)
+ 		   (HOST=compassdb06.cern.ch)
+ 		   (PORT=1521)
+ 		)
+ 	(CONNECT_DATA=
+ 		(SERVICE_NAME = compdb6))
+   	)
+compdb7=(DESCRIPTION=
+       		(ADDRESS=	
+			(PROTOCOL=TCP)
+			(HOST=compassdb07.cern.ch)
+			(PORT=1521)
+		)
+        (CONNECT_DATA=(SID=compdb7))
+ 	)
+compdb8=(DESCRIPTION=
+                (ADDRESS=
+                        (PROTOCOL=TCP)
+                        (HOST=compassdb08.cern.ch)
+                        (PORT=1521)
+                 )
+         (CONNECT_DATA=(SID=compdb8))
+         )
+compdb9=(DESCRIPTION=
+          (ADDRESS=(PROTOCOL=TCP)
+                   (HOST=compassdb09.cern.ch)
+                   (PORT=1521)
+          )
+          (CONNECT_DATA=(SID=compdb9)
+          )
+        )
+harpdb1 =
+   (DESCRIPTION =
+     (ADDRESS_LIST =
+       (ADDRESS = (PROTOCOL = TCP)(HOST = harpdb01.cern.ch)(PORT = 1521))
+     )
+     (CONNECT_DATA =
+       ( SERVICE_NAME = harpdb1 )
+     )
+   )
+harpdb2 =
+   (DESCRIPTION =
+     (ADDRESS_LIST =
+       (ADDRESS = (PROTOCOL = TCP)(HOST = harpdb02.cern.ch)(PORT = 1521))
+     )
+     (CONNECT_DATA =
+       ( SERVICE_NAME = harpdb2 )
+     )
+   )
+lemon_a=(DESCRIPTION=
+             (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lemondb1.cern.ch)
+                (PORT=1521)
+              )
+         (CONNECT_DATA=
+                 (SID=LEMON_A))
+         )
+lemon_c=(DESCRIPTION=
+             (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lemondb2.cern.ch)
+                (PORT=1521)
+              )
+         (CONNECT_DATA=
+                 (SID=LEMON_C))
+         ) 
+lemon=
+   (DESCRIPTION =
+     (FAILOVER=on)
+     (LOAD_BALANCE=off)
+     (ADDRESS_LIST =
+        (ADDRESS =
+         (PROTOCOL = TCP)
+         (Host = lemondb1.cern.ch)
+         (Port = 1521)
+       )
+       (ADDRESS =
+         (PROTOCOL = TCP)
+         (Host = lemondb2.cern.ch)
+         (Port = 1521)
+       )
+     )
+     (CONNECT_DATA =
+       (SERVICE_NAME=lemon.cern.ch)
+       (FAILOVER_MODE=
+         (TYPE=SELECT)
+         (METHOD=BASIC)
+       )
+     )
+   )
+lemondev=(DESCRIPTION=
+             (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lemondev01.cern.ch)
+                (PORT=1521)
+              )
+         (CONNECT_DATA=
+                 (SID=LEMONDEV))
+         )
+condb9itest,9itest01=(DESCRIPTION=
+             (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sundb05.cern.ch)
+                (PORT=1521)
+             )
+        (CONNECT_DATA=
+                (SID=D9))
+        )
+rmandb=(DESCRIPTION=
+             (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sundb05.cern.ch)
+                (PORT=1521)
+             )
+        (CONNECT_DATA=
+                (SID=RMAN))
+        )
+oemrep=(DESCRIPTION=
+             (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=dbsun01.cern.ch)
+                (PORT=1525)
+             )
+        (CONNECT_DATA=
+                (SID=OEM))
+        )
+spslog,spsdbmeas,dbslco,tzdbmeas,tzdbprod=(DESCRIPTION=
+             (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sunslps.cern.ch)
+                (PORT=1521)
+             )
+        (CONNECT_DATA=
+                (SID=SPS))
+        )
+oratcr=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sundbst1.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=TCR))
+        )
+accessdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sundbst1.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=TCR))
+        )
+strings2,mtadb,smadb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=dblhcias.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=STR))
+        )
+castor,castornsdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=castornsdb01.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=CASTOR))
+        )
+
+#---------------- Castor New Stager --------------
+castor11g=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lxfsra2603.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=test2))
+        )
+castorstager,castor2stgdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=castorsgdb01.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=CASTORSG))
+        )
+old_castordlf=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lxfsrk5507.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=CASTORDLF))
+        )
+castordlf,castor2dlfdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=castordlfdb01.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=CASTORDLF))
+        )
+c2sc4stgdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lxfsra2401.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=CASTORSG))
+        )
+c2sc4dlfdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lxfsra2402.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=CASTORDLF))
+        )
+c2alicestgdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lxfsrk4302.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=C2ALISTG))
+        )
+c2alicedlfdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lxfsrk4303.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=C2ALIDLF))
+        )
+c2cmsstgdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lxfsra2601.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=C2CMSSTG))
+        )
+c2cmsdlfdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lxfsra2602.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=C2CMSDLF))
+        )
+c2lhcbdlfdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lxfsra2606.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=LHCBDLF))
+        )
+c2lhcbstgdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lxfsra2605.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=LHCBSG))
+        )
+c2atlasstgdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lxfsra2607.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=ATLASSG))
+        )
+c2atlasdlfdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lxfsra2604.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=ATLASDLF))
+        )
+c2srmdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lxfsra2607.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=SRM))
+        )
+castordg=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=castordgdb01.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=CASTORDG))
+        )
+
+#-------------------- CSTP ------------------------
+# 20040824 EDP,EG  castor Prod entries
+# 20041006 EDP add new castor Prod entry
+castor_dlfdb=(DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = lxshare179d.cern.ch)(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVICE_NAME = CSTP)
+    )
+  )
+castor_rhdb=(DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = lxshare179d.cern.ch)(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVICE_NAME = CSTP)
+    )
+  )
+castor_maindb=(DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = lxshare179d.cern.ch)(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVICE_NAME = CSTP)
+    )
+  )
+castor_archivedb=(DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = lxshare179d.cern.ch)(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVICE_NAME = CSTP)
+    )
+  )
+castor_vmgrdb=(DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = lxshare179d.cern.ch)(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVICE_NAME = CSTP)
+    )
+  )
+castor_dev=(DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = lxshare179d.cern.ch)(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVICE_NAME = CSTP)
+    )
+  )
+
+
+c2teststgdb,tcastor2_stagerdb=
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = itrac02-v)(PORT = 1521))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = itrac07-v)(PORT = 1521))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = CASTORstager)
+    )
+  )
+
+c2testdlfdb,tcastor2_dlfdb=
+ (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = lxfsrk328)(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVICE_NAME = CDLF)
+    )
+  )
+
+
+cmstrack=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=x5oracle.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=CMSTRACK))
+        )
+chorusdb,edmsdb-test,edbt=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=oraedmstest.cern.ch)
+                (PORT=1525)
+        )
+        (CONNECT_DATA=
+                (SID=CHORUS)
+        )
+        )
+#sldev=(DESCRIPTION=
+#        (ADDRESS=
+#                (PROTOCOL=tcp)
+#                (HOST=orasldev.cern.ch)
+#                (PORT=1524)
+#        )
+#        (CONNECT_DATA=
+#                (SID=sldev)
+#        )
+#        )
+csdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=suncsdb.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=CS)
+        )
+        )
+hacsdb,newcsdb=(DESCRIPTION=
+            (FAILOVER=on)
+            (LOAD_BALANCE=off)
+            (ADDRESS_LIST=
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=csdbsc01.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=csdbsc02.cern.ch)
+                (PORT=1521)
+            )
+            )
+           (CONNECT_DATA=
+              (SERVICE_NAME=CSDB)
+              (FAILOVER_MODE=
+                 (TYPE=SELECT)
+                 (METHOD=BASIC)
+              )
+           )
+        )
+cryo=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=sunlhcacr.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=CRYO)
+        )
+        )
+secdb=(DESCRIPTION=
+             (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=secdb1.cern.ch)
+                (PORT=1521)
+             )
+        (CONNECT_DATA=
+                (SID=SEC))
+        )
+secdb3=(DESCRIPTION=
+             (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lxfs5514.cern.ch)
+                (PORT=1521)
+             )
+        (CONNECT_DATA=
+                (SID=SEC))
+        )
+idsdb,nstdb,secdb2=(DESCRIPTION=
+             (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=lxfs5552.cern.ch)
+                (PORT=1521)
+             )
+        (CONNECT_DATA=
+                (SID=SEC))
+        )
+dbabco,dbpsco=(DESCRIPTION=
+             (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sunslps.cern.ch)
+                (PORT=1521)
+             )
+        (CONNECT_DATA=
+                (SID=dbco))
+        )
+rmdy_HOST=(DESCRIPTION=
+          (ADDRESS_LIST=
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=dbsc12.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=dbs13.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=dbsc11.cern.ch)
+                (PORT=1521)
+            )
+          )
+          (CONNECT_DATA=
+                (SERVICE_NAME=PDB.WORLD)
+          )
+        )
+rman_cerndb1=(DESCRIPTION=
+          (FAILOVER=on)
+          (LOAD_BALANCE=off)
+          (ADDRESS_LIST=
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=orapdb2.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=orapdb1.cern.ch)
+                (PORT=1521)
+            )
+          )
+          (CONNECT_DATA=
+              (SERVICE_NAME=PDB.WORLD)
+              (FAILOVER_MODE=
+                 (TYPE=SELECT)
+                 (METHOD=BASIC)
+              )
+          )
+        )
+castorstager_test=(DESCRIPTION=
+          (FAILOVER=on)
+          (LOAD_BALANCE=off)
+          (ADDRESS_LIST=
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=itrac02.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=itrac07.cern.ch)
+                (PORT=1521)
+            )
+          )
+          (CONNECT_DATA=
+              (SERVICE_NAME=CASTORstager)
+              (FAILOVER_MODE=
+                 (TYPE=SELECT)
+                 (METHOD=BASIC)
+              )
+          )
+        )
+cerndb1,jacowdb=(DESCRIPTION=
+          (FAILOVER=on)
+          (LOAD_BALANCE=off)
+          (ADDRESS_LIST=
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=orapdb1.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=orapdb2.cern.ch)
+                (PORT=1521)
+            )
+          )
+          (CONNECT_DATA=
+              (SERVICE_NAME=PDB.WORLD)
+              (FAILOVER_MODE=
+                 (TYPE=SELECT)
+                 (METHOD=BASIC)
+              )
+          )
+        )
+accdb,rmdy=(DESCRIPTION=
+          (FAILOVER=on)
+          (LOAD_BALANCE=off)
+          (ADDRESS_LIST=
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=orapdb2.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=orapdb1.cern.ch)
+                (PORT=1521)
+            )
+          )
+          (CONNECT_DATA=
+              (SERVICE_NAME=PDB.WORLD)
+              (FAILOVER_MODE=
+                 (TYPE=SELECT)
+                 (METHOD=BASIC)
+              )
+          )
+        )
+cerndb1_SID,jacowdb_SID=(DESCRIPTION=
+          (ADDRESS_LIST=
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=orapdb1.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=orapdb2.cern.ch)
+                (PORT=1521)
+            )
+          )
+          (CONNECT_DATA=
+                (SID=PDB)
+          )
+        )
+accdb_SID=(DESCRIPTION=
+          (ADDRESS_LIST=
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=orapdb2.cern.ch)
+                (PORT=1521)
+            )
+            (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=orapdb1.cern.ch)
+                (PORT=1521)
+            )
+          )
+          (CONNECT_DATA=
+                (SID=PDB)
+          )
+      )
+casedb,edmsdb-pilot=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=oracase.cern.ch)
+                (PORT=1520)
+        )
+        (CONNECT_DATA=
+                (SID=C))
+        )
+devdb10=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=oradev10.cern.ch)
+                (PORT=10520)
+        )
+        (CONNECT_DATA=
+                (SID=D10))
+        )
+susidb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=dbsusi01.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=SUSI))
+        )
+smartdb-prod,smartdb-dev,smartdb-backup,edmsdb-dev,edmsdbdev,sldev,devdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=oradev.cern.ch)
+                (PORT=10521)
+        )
+        (CONNECT_DATA=
+                (SID=D))
+        )
+# 20030414 edmsdb-training EG
+edmsdb-training,edmsdb-train= (DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=oraedmstrain.cern.ch)
+                (PORT=1526)
+        )
+        (CONNECT_DATA=
+                (SID=EDMSDBT)
+        )
+        )
+alarmdwh=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sunalarm.cern.ch)
+                (PORT=1523)
+        )
+        (CONNECT_DATA=
+                (SID=DWH))
+        )
+trainingdb,traindb=(DESCRIPTION=
+         (ADDRESS=
+                 (PROTOCOL=TCP)
+                 (HOST=sundb06.cern.ch)
+                 (PORT=1522)
+          )
+          (CONNECT_DATA=
+                  (SID=TRAINING))
+          )
+abb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=hpabb22.cern.ch)
+                (PORT=1526)
+        )
+        (CONNECT_DATA=
+                (SID=advantdb))
+        )
+# EDMSDB on the PDB June 24th 1999
+edmsdb1,edb,edmsdb,cdddb= 
+  (DESCRIPTION =
+    (FAILOVER=on)
+    (LOAD_BALANCE=off)
+    (ADDRESS_LIST =
+      (ADDRESS =
+        (PROTOCOL = TCP)
+        (Host = oraedms1.cern.ch)
+        (Port = 1521)
+      )
+      (ADDRESS =
+        (PROTOCOL = TCP)
+        (Host = oraedms2.cern.ch)
+        (Port = 1521)
+      )
+    )
+    (CONNECT_DATA =
+      (SERVICE_NAME=PDB.WORLD)
+      (FAILOVER_MODE=
+        (TYPE=SELECT)
+        (METHOD=BASIC)
+      )
+    )
+  )
+edmsdb2=
+  (DESCRIPTION =
+    (FAILOVER=on)
+    (LOAD_BALANCE=off)
+    (ADDRESS_LIST =
+      (ADDRESS =
+        (PROTOCOL = TCP)
+        (Host = oraedms2.cern.ch)
+        (Port = 1521)
+      )
+      (ADDRESS =
+        (PROTOCOL = TCP)
+        (Host = oraedms1.cern.ch)
+        (Port = 1521)
+      )
+    )
+    (CONNECT_DATA =
+      (SERVICE_NAME=PDB.WORLD)
+      (FAILOVER_MODE=
+        (TYPE=SELECT)
+        (METHOD=BASIC)
+      )
+    )
+  )
+rfdb,lepdbmeas,sllog,leplog=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=dblhcias.cern.ch)
+                (PORT=1522)
+        )
+        (CONNECT_DATA=
+                (SID=RF)
+        )
+        )
+amsdb=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=oraams.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=AMS))
+        )
+##############################################
+#  HR connect string points to HR11i on missu
+##############################################
+hr_tcp=(DESCRIPTION=
+         (ADDRESS=
+                 (PROTOCOL=tcp)
+                 (HOST=hr11idb)
+                 (PORT=1561)
+         )
+         (CONNECT_DATA=
+                 (SID=HR11i)
+         )
+         )
+hr=(DESCRIPTION=
+         (ADDRESS=
+                 (PROTOCOL=tcp)
+                 (HOST=hr11idb)
+                 (PORT=1561)
+         )
+         (CONNECT_DATA=
+                 (SID=HR11i)
+         )
+         )
+###########################
+#  FOUND Database on missh
+###########################
+found_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=founddb)
+                (PORT=1523)
+        )
+        (CONNECT_DATA=
+                (SID=FOUND)
+        )
+        )
+found=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=founddb)
+                (PORT=1523)
+        )
+        (CONNECT_DATA=
+                (SID=FOUND)
+        )
+        )
+found_test=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=foundtestdb)
+                (PORT=1525)
+        )
+        (CONNECT_DATA=
+                (SID=FOUND))
+        )
+############################
+# DESFOUND Database on missa
+############################
+
+desfound_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=desfounddb)
+                (PORT=1528)
+        )
+        (CONNECT_DATA=
+                (SID=DESFOUND))
+        )
+
+desfound=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=desfounddb)
+                (PORT=1528)
+        )
+        (CONNECT_DATA=
+               (SID=DESFOUND))
+        )
+###########################
+# BHT Database moved to HRT
+###########################
+bht_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=hrtdb)
+                (PORT=1559)
+        )
+        (CONNECT_DATA=
+                (SID=HRT))
+        )
+bht=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=hrtdb)
+                (PORT=1559)
+        )
+        (CONNECT_DATA=
+                (SID=HRT))
+        )
+###########################
+# STORES Database on missn
+###########################
+stores_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=storesdb)
+                (PORT=1522)
+        )
+        (CONNECT_DATA=
+                (SID=STORES)
+        )
+        )
+stores=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=storesdb)
+                (PORT=1522)
+        )
+        (CONNECT_DATA=
+                (SID=STORES)
+        )
+        )
+###################################
+# HRT Database on cluster in BHT db
+###################################
+hrt_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=hrtdb)
+                (PORT=1559)
+        )
+        (CONNECT_DATA=
+                (SID=HRT))
+        )
+hrt=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=hrtdb)
+                (PORT=1559)
+        )
+        (CONNECT_DATA=
+                (SID=HRT))
+        )
+
+###########################
+# ARS Database on missh
+###########################
+ars_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=arsdb)
+                (PORT=1524)
+        )
+        (CONNECT_DATA=
+                (SID=ARS))
+        )
+ars=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=arsdb)
+                (PORT=1524)
+        )
+        (CONNECT_DATA=
+                (SID=ARS))
+        )
+
+###########################
+# WAPPS Database on missl
+###########################
+wapps_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=wappsdb)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=WAPPS))
+        )
+wapps=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=wappsdb)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=WAPPS))
+        )
+
+###########################
+# CL Database on missl
+###########################
+cl_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=cldb)
+                (PORT=1524)
+        )
+        (CONNECT_DATA=
+                (SID=CL))
+        )
+cl=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=cldb)
+                (PORT=1524)
+        )
+        (CONNECT_DATA=
+                (SID=CL))
+        )
+
+##########################
+# ORACLE 8 case database
+# Designer2000 2.1
+# CASE8 Database on missc
+###########################
+case8_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=case8db)
+                (PORT=1526)
+        )
+        (CONNECT_DATA=
+                (SID=CASE8))
+        )
+case8=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=case8db)
+                (PORT=1526)
+        )
+        (CONNECT_DATA=
+               (SID=CASE8))
+        )
+
+###########################
+# BAANIV Database on misst
+###########################
+baaniv=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=baanivdb)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=BAANIV))
+        )
+baaniv_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=baanivdb)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=BAANIV))
+        )
+edh_test=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=edhtestdb)
+                (PORT=1544)
+        )
+        (CONNECT_DATA=
+                (SID=EDH))
+        )
+edh_test2=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=edhtest2db)
+                (PORT=1566)
+        )
+        (CONNECT_DATA=
+                (SID=EDH_T2))
+        )
+edh_reg=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=lxmiss)
+                (PORT=1551)
+        )
+        (CONNECT_DATA=
+                (SID=EDH))
+        )
+hrt_test=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=hrttestdb)
+                (PORT=1523)
+        )
+        (CONNECT_DATA=
+                (SID=HRT))
+        )
+# 10gR2 HRT test on AISDB on missr1n4 linux
+hrt_dev=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=missr1n4)
+                (PORT=1546)
+        )
+        (CONNECT_DATA=
+                (SID=AISDB))
+        )
+# 10gR2 CET test on CETDB on missr1n3 linux
+cet_dev=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=missr1n3)
+                (PORT=1548)
+        )
+        (CONNECT_DATA=
+                (SID=CETDB))
+        )
+
+wapps_test=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=wappstestdb.cern.ch)
+                (PORT=1556)
+        )
+        (CONNECT_DATA=
+                (SID=WAPPS))
+        )
+edhwf_test=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=edhwftestdb)
+                (PORT=1545)
+        )
+        (CONNECT_DATA=
+                (SID=EDHWF))
+        )
+edhwf_eval=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=edhwfevaldb)
+                (PORT=1550)
+        )
+        (CONNECT_DATA=
+                (SID=EDHWF))
+        )
+
+#####################################
+#  WCERN database
+#####################################
+wcern=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=wcerndb)
+                (PORT=1531)
+        )
+        (CONNECT_DATA=
+                (SID=WCERN))
+        )
+
+wcern_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=wcerndb)
+                (PORT=1531)
+        )
+        (CONNECT_DATA=
+                (SID=WCERN))
+        )
+
+
+####################################
+# HR11i Dev & Test Database on missu
+####################################
+hr11i_devold=(DESCRIPTION=
+         (ADDRESS=
+                 (PROTOCOL=tcp)
+                 (HOST=missl.cern.ch)
+                 (PORT=1562)
+         )
+         (CONNECT_DATA=
+                 (SID=HR11I))
+         )
+
+hr_dev=(DESCRIPTION=
+         (ADDRESS=
+                 (PROTOCOL=tcp)
+                 (HOST=missg.cern.ch)
+                 (PORT=10710)
+         )
+         (CONNECT_DATA=
+                 (SID=HR_D))
+         )
+
+################################################
+#  HR connect string points to HR11i on missu
+################################################
+hr11i_tcp=(DESCRIPTION=
+         (ADDRESS=
+                 (PROTOCOL=tcp)
+                 (HOST=hr11idb)
+                 (PORT=1561)
+         )
+         (CONNECT_DATA=
+                 (SID=HR11I))
+         )
+hr11i=(DESCRIPTION=
+         (ADDRESS=
+                 (PROTOCOL=tcp)
+                 (HOST=hr11idb)
+                 (PORT=1561)
+         )
+         (CONNECT_DATA=
+                 (SID=HR11I))
+         )
+###########################
+# PPT Database on missv
+###########################
+ppt_tcp=(DESCRIPTION=
+         (ADDRESS=
+                 (PROTOCOL=tcp)
+                 (HOST=pptdb) 
+                 (PORT=1558)
+          )
+          (CONNECT_DATA=
+                  (SID=PPT))
+          )
+ppt=(DESCRIPTION=
+         (ADDRESS=
+                 (PROTOCOL=tcp)
+                 (HOST=pptdb)
+                 (PORT=1558)
+          )
+          (CONNECT_DATA=
+                  (SID=PPT))
+          )
+###########################
+# CET Database on missv
+###########################
+cet_tcp=(DESCRIPTION=
+         (ADDRESS=
+                 (PROTOCOL=tcp)
+                 (HOST=cetdb)
+                 (PORT=1557)
+         )
+         (CONNECT_DATA=
+                 (SID=CET))
+         )
+cet=(DESCRIPTION=
+         (ADDRESS=
+                 (PROTOCOL=tcp)
+                 (HOST=cetdb)
+                 (PORT=1557)
+         )
+         (CONNECT_DATA=
+                 (SID=CET))
+         )
+
+###########################
+# IMEDIA Database on missr
+###########################
+imedia_tcp=(DESCRIPTION=
+         (ADDRESS=
+                 (PROTOCOL=tcp)
+                 (HOST=imediadb.cern.ch)
+                 (PORT=1552)
+         )
+         (CONNECT_DATA=
+                 (SID=IMEDIA))
+         )
+imedia=(DESCRIPTION=
+         (ADDRESS=
+                 (PROTOCOL=tcp)
+                 (HOST=imediadb.cern.ch)
+                 (PORT=1552)
+         )
+         (CONNECT_DATA=
+                 (SID=IMEDIA))
+         )
+
+
+###################################
+# PDM cluster - March 2003
+###################################
+
+pdb01 =
+   (DESCRIPTION =
+     (ADDRESS_LIST =
+       (FAILOVER = ON)
+       (LOAD_BALANCE = ON)
+       (ADDRESS = (PROTOCOL = TCP)(HOST = sundb07.cern.ch)(PORT = 1521))
+       (ADDRESS = (PROTOCOL = TCP)(HOST = sundb08.cern.ch)(PORT = 1521))
+     )
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = pdb01)
+     )
+   )
+
+pdb01-1 =
+   (DESCRIPTION =
+     (ADDRESS_LIST =
+       (ADDRESS = (PROTOCOL = TCP)(HOST = sundb07.cern.ch)(PORT = 1521))
+     )
+     (CONNECT_DATA =
+       ( SERVICE_NAME = pdb01 )
+       ( INSTANCE_NAME = pdb01-1 )
+     )
+   )
+
+pdb01-2 =
+   (DESCRIPTION =
+     (ADDRESS_LIST =
+       (ADDRESS = (PROTOCOL = TCP)(HOST = sundb08.cern.ch)(PORT = 1521))
+     )
+     (CONNECT_DATA =
+       ( SERVICE_NAME = pdb01 )
+       ( INSTANCE_NAME = pdb01-2 )
+     )
+   )
+
+#############################################
+
+copvss=(DESCRIPTION=
+     (ADDRESS_LIST =
+         (ADDRESS=
+                 (PROTOCOL=tcp)
+                 (HOST=lxb0766.cern.ch)
+                 (PORT=1521)
+         ))
+         (CONNECT_DATA=
+                 (SID=COPVSS))
+         )
+
+des6i_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=des6idb)
+                (PORT=1540)
+        )
+        (CONNECT_DATA=
+                (SID=DES6I))
+        )
+des6i=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=des6idb)
+                (PORT=1540)
+        )
+        (CONNECT_DATA=
+               (SID=DES6I))
+        )
+
+########################
+# RLS streams tests
+########################
+
+strmtestr1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lxfs5591.cern.ch)(PORT = 1521))
+    (CONNECT_DATA =
+      (SID = rls1)
+    )
+  )
+
+strmtest =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lxshare084d.cern.ch)(PORT = 1521))
+    (CONNECT_DATA =
+      (SID = rls1)
+    )
+  )
+
+RLS1.CERN.CH =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lxfs5591.cern.ch)(PORT = 1521))
+    (CONNECT_DATA =
+      (SID = rls1)
+    )
+  )
+
+#######################
+# PhyDBs LFC 10g (manjo 20050207)
+#######################
+LFC=(DESCRIPTION=
+      (ADDRESS=(PROTOCOL=TCP)(HOST=lxfs6023.cern.ch)(PORT=1521))
+      (CONNECT_DATA=(SID=LFC))
+)
+
+ALICESG =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = pdbalice.cern.ch)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVICE_NAME = alicesg.cern.ch)
+    )
+  )
+
+# manjo 20050301
+rls1=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=rlsproddb.cern.ch)
+                (PORT=1521)
+        )
+      (CONNECT_DATA=
+               (SID=rls1)
+      )
+    )
+
+rls1hs=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=rlsproddbhs.cern.ch)
+                (PORT=1521)
+        )
+      (CONNECT_DATA=
+               (SID=rls1)
+      )
+    )
+
+
+#***************************************************************************************************************************
+#----------------------------------------------------- MIS Section ---------------------------------------------------------
+#***************************************************************************************************************************
+
+#####################################################################
+# PUT HERE all  SQL*NET Version 1 remote connections defs
+#####################################################################
+#
+# SPECIAL connections
+#
+# reports is the reports server entry for the CFU reports on missb
+# reports = (ADDRESS=(PROTOCOL=tcp)(HOST=missb)(PORT=1949))
+Rep6i_missf=(ADDRESS=(PROTOCOL=tcp)(HOST=missf)(PORT=1950))
+Rep6i_missi=(ADDRESS=(PROTOCOL=tcp)(HOST=missi)(PORT=1950))
+reportsha-webapps = (ADDRESS=(PROTOCOL=tcp)(HOST=ha-webapps)(PORT=1949))
+reports25ha-webapps = (ADDRESS=(PROTOCOL=tcp)(HOST=ha-webapps)(PORT=1950))
+rep60_hr11i_missu = (ADDRESS=(PROTOCOL=tcp)(HOST=missu)(PORT=1950))
+rep60_hr11i_missl = (ADDRESS=(PROTOCOL=tcp)(HOST=missl)(PORT=1950))
+Rep6i_ha-webapps=(ADDRESS=(PROTOCOL=tcp)(HOST=ha-webapps)(PORT=1951))
+
+#####################################################
+# OLAP listener
+#####################################################
+extproc_connection_data =
+       (DESCRIPTION =
+            (ADDRESS = (PROTOCOL = IPC)(KEY = extproc_key))
+            (CONNECT_DATA = (SID = extproc_agent))
+)
+
+#####################################################################
+#       !!!!  THIS  PART  MUST  BE CHANGED  !!!!!!
+#
+#  PUT HERE  Local host machine IPC connections defs
+#  OR DELETE  inappropriate lines if necessary
+#####################################################################
+
+edh_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=EDH)
+        )
+        (CONNECT_DATA=
+                (SID=EDH))
+        )
+
+edhwf_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=EDHWF)
+        )
+        (CONNECT_DATA=
+                (SID=EDHWF))
+        )
+
+cet_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=CET)
+        )
+        (CONNECT_DATA=
+                (SID=CET))
+        )
+
+ppt_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=PPT)
+        )
+        (CONNECT_DATA=
+                (SID=PPT))
+        )
+
+stores_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=STORES)
+        )
+        (CONNECT_DATA=
+                (SID=STORES))
+        )
+
+found_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=FOUND)
+        )
+        (CONNECT_DATA=
+                (SID=FOUND))
+        )
+
+hrt_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=HRT)
+        )
+        (CONNECT_DATA=
+                (SID=HRT))
+        )
+
+ars_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=ARS)
+        )
+        (CONNECT_DATA=
+                (SID=ARS))
+        )
+
+histo_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=HISTO)
+        )
+        (CONNECT_DATA=
+                (SID=HISTO))
+        )
+
+oraedi_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=ORAEDI)
+        )
+        (CONNECT_DATA=
+                (SID=ORAEDI))
+        )
+
+editest_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=EDITEST)
+        )
+        (CONNECT_DATA=
+                (SID=EDITEST))
+        )
+
+wapps_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=WAPPS)
+        )
+        (CONNECT_DATA=
+                (SID=WAPPS))
+        )
+
+cl_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=CL)
+        )
+        (CONNECT_DATA=
+                (SID=CL))
+        )
+
+baaniv_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=BAANIV)
+        )
+        (CONNECT_DATA=
+                (SID=BAANIV))
+        )
+
+case8_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=CASE8)
+        )
+        (CONNECT_DATA=
+                (SID=CASE8))
+        )
+
+des6i_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=DES6I)
+        )
+        (CONNECT_DATA=
+                (SID=DES6I))
+        )
+
+wcern_ipc=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=WCERN)
+        )
+        (CONNECT_DATA=
+                (SID=WCERN))
+        )
+
+imedia1=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=imedia1)
+        )
+        (CONNECT_DATA=
+                (SID=WAPPS))
+        )
+
+imedia2=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=ipc)
+                (KEY=imedia2)
+        )
+        (CONNECT_DATA=
+                (SID=IMEDIA))
+        )
+
+# This alias is hardcoded in HR11i application
+
+extproc_connection_data =
+          (DESCRIPTION=
+              (ADDRESS_LIST = 
+                  (ADDRESS=(PROTOCOL=IPC)(KEY=EXTPROCVIS11i))
+              )
+              (CONNECT_DATA=
+                  (SID=PLSExtProc)
+                  (PRESENTATION = RO)
+              )
+          )
+
+#####################################################################
+#  PUT HERE Common to all AIS PROD servers TCP Remote connections defs
+#####################################################################
+
+###########################
+# EDH Database on misso
+###########################
+
+edh_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=edhdb)
+                (PORT=1554)
+        )
+        (CONNECT_DATA=
+                (SID=EDH))
+        )
+
+edh=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=edhdb)
+                (PORT=1554)
+        )
+        (CONNECT_DATA=
+                (SID=EDH))
+        )
+
+###########################
+# EDHWF Database on misso
+###########################
+
+edhwf_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=edhwfdb)
+                (PORT=1555)
+        )
+        (CONNECT_DATA=
+                (SID=EDHWF))
+        )
+
+edhwf=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=edhwfdb)
+                (PORT=1555)
+        )
+        (CONNECT_DATA=
+                (SID=EDHWF))
+        )
+
+###########################
+# ERT Database on missa
+###########################
+
+ert_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=ertdb)
+                (PORT=1543)
+        )
+        (CONNECT_DATA=
+                (SID=ERT))
+        )
+
+ert=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=ertdb)
+                (PORT=1543)
+        )
+        (CONNECT_DATA=
+               (SID=ERT))
+        )
+
+###########################
+# HISTO Database on missr
+###########################
+
+histo_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=histodb)
+                (PORT=1542)
+        )
+        (CONNECT_DATA=
+                (SID=HISTO))
+        )
+
+histo=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=histodb)
+                (PORT=1542)
+        )
+        (CONNECT_DATA=
+                (SID=HISTO))
+        )
+
+###########################
+# ORAEDI Database on sunasedi
+###########################
+
+oraedi_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=oraedidb.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=ORAEDI))
+        )
+
+oraedi=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=oraedidb.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=ORAEDI))
+        )
+
+#############################################
+# hack for fourmis application in order to connect to wcern
+#############################################
+
+oas_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=wcerndb)
+                (PORT=1531)
+        )
+        (CONNECT_DATA=
+                (SID=WCERN))
+        )
+
+oas=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=wcerndb)
+                (PORT=1531)
+        )
+        (CONNECT_DATA=
+               (SID=WCERN))
+        )
+
+#####################################
+#  PAYREF database
+#####################################
+
+payref=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST= payrefdb)
+                (PORT=1560)
+        )
+        (CONNECT_DATA=
+                (SID=PAYREF))
+        )
+
+payref_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST= payrefdb)
+                (PORT=1560)
+        )
+        (CONNECT_DATA=
+                (SID=PAYREF))
+        )
+
+#####################################
+#  PAYTEST database
+#####################################
+
+paytest=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST= paytestdb)
+                (PORT=1565)
+        )
+        (CONNECT_DATA=
+                (SID=PAYTEST))
+        )
+
+paytest_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST= paytestdb)
+                (PORT=1565)
+        )
+        (CONNECT_DATA=
+                (SID=PAYTEST))
+        )
+
+#####################################
+#  PAYPROD database
+#####################################
+
+payprod=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST= payproddb)
+                (PORT=1541)
+        )
+        (CONNECT_DATA=
+                (SID=PAYPROD))
+        )
+
+payprod_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST= payproddb)
+                (PORT=1541)
+        )
+        (CONNECT_DATA=
+                (SID=PAYPROD))
+        )
+
+#####################################################################
+#  PUT HERE  all NON AIS remote servers TCP connections defs
+#####################################################################
+
+em10db=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=emrep10gdb)
+                (PORT=1537)
+        )
+        (CONNECT_DATA=
+                (SID=emrep10g))
+        )
+
+emrep10g_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=emrep10gdb)
+                (PORT=1537)
+        )
+        (CONNECT_DATA=
+                (SID=emrep10g))
+        )
+
+oldem10db=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=TCP)
+                (HOST=sundb05.cern.ch)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=emrep10g))
+        )
+
+
+#####################################################################
+#  PUT HERE  all AIS  TEST databases remote TCP connections defs
+#####################################################################
+
+des6i_test=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=des6itestdb)
+                (PORT=1536)
+        )
+        (CONNECT_DATA=
+                (SID=DES6I_T))
+        )
+
+desfound_test=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=missi)
+                (PORT=1564)
+        )
+        (CONNECT_DATA=
+                (SID=DESFOUND))
+        )
+
+rmantest_tcp=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=rmantestdb)
+                (PORT=1547)
+        )
+        (CONNECT_DATA=
+                (SID=RMAN_T))
+        )
+
+
+
+cet_test=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=cettestdb)
+                (PORT=1534)
+        )
+        (CONNECT_DATA=
+                (SID=CET))
+        )
+
+ert_test=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=erttestdb)
+                (PORT=1539)
+        )
+        (CONNECT_DATA=
+                (SID=ERT))
+        )
+
+
+wcern_dev=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=wcerndevdb)
+                (PORT=1538)
+        )
+        (CONNECT_DATA=
+                (SID=WCERN))
+        )
+
+wcrnarch_dev=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=wcerndevdb)
+                (PORT=1567)
+        )
+        (CONNECT_DATA=
+                (SID=WCRNARCH))
+        )
+
+imedia_test=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=imediatestdb)
+                (PORT=1549)
+        )
+        (CONNECT_DATA=
+                (SID=IMEDIA))
+        )
+
+ppt_test=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=ppttestdb)
+                (PORT=1535)
+        )
+        (CONNECT_DATA=
+                (SID=PPT))
+        )
+
+ppt_dev=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=missm)
+                (PORT=1553)
+        )
+        (CONNECT_DATA=
+                (SID=PPT))
+        )
+
+
+####################################
+# HR11i  Test Database on misse
+####################################
+hr11i_test=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=hr11itestdb)
+                (PORT=1563)
+        )
+        (CONNECT_DATA=
+                (SID=HR11I))
+        )
+
+#############################
+#  STORES database on missi
+#############################
+
+stores_test=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=storestestdb)
+                (PORT=1533)
+        )
+        (CONNECT_DATA=
+                (SID=STORES))
+        )
+
+#####################################
+#  PAYDEV database on missi
+#####################################
+
+paydev_tcp, hrinst_test=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST= paydevdb)
+                (PORT=1570)
+        )
+        (CONNECT_DATA=
+                (SID=PAYDEV))
+        )
+
+#############################
+#  BAANIV test database on missi
+#############################
+
+baaniv_test=(DESCRIPTION=
+        (ADDRESS=
+                (PROTOCOL=tcp)
+                (HOST=baanivtestdb)
+                (PORT=1521)
+        )
+        (CONNECT_DATA=
+                (SID=BAANIV))
+        )
+
+EXTPROC_CONNECTION_DATA.CERN.CH =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC))
+    )
+    (CONNECT_DATA =
+      (SID = PLSExtProc)
+      (PRESENTATION = RO)
+    )
+  )
+
+
+# Marta Jakubowska 20050415
+COPVSS10 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = copvss10.cern.ch)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = copvss10.cern.ch)
+    )
+  )
+
+ORCON =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = oracms.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = ORCON)
+    )
+  )
+
+OMDS =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = oracms.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = OMDS)
+    )
+  )
+
+
+# Marta Jakubowska 20050429
+COOLPROD =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = atlascool1.cern.ch)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = COOLPROD.cern.ch)
+    )
+  )
+
+# Marta Jakubowska 20050429
+COOLDEV =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = atlascool2.cern.ch)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = COOLDEV.cern.ch)
+    )
+  )
+
+# Marta Jakubowska 20050503
+GRID1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = grid1.cern.ch)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = GRID1.cern.ch)
+      (SERVICE_NAME = lfc.cern.ch)
+    )
+  )
+
+# Miguel Anjo 20050914
+GRID8 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = grid8.cern.ch)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = GRID8.cern.ch)
+      (SERVICE_NAME = fts-pilot.cern.ch)
+      (SERVICE_NAME = voms-pilot.cern.ch)
+    )
+  )
+
+# Marta Jakubowska 20050610
+ecalh4db =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = pccmsecdb.cern.ch)(PORT = 1521))
+    (CONNECT_DATA =
+      (SID=ecalh4db)
+    )
+  )
+
+test10r1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lxfsrk287.cern.ch)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = test10r1)
+    )
+  )
+
+test10r2 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lxfsrk287.cern.ch)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = test10r2)
+    )
+  )
+
+
+# LCGR - Miguel Anjo 20051005. Added 2 nodes,  by Luca 03-03-2006, 13-06-06 Luca changed port  ################
+LCGR =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = itrac13-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = itrac14-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = itrac03-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = itrac04-v)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lcgr.cern.ch)
+      (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+LCGR2 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = itrac14-v)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lcgr.cern.ch)
+      (INSTANCE_NAME = lcgr2)
+    )
+  )
+
+LCGR1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = itrac13-v)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lcgr.cern.ch)
+      (INSTANCE_NAME = lcgr1)
+    )
+  )
+
+LCGR3 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = itrac03-v)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lcgr.cern.ch)
+      (INSTANCE_NAME = lcgr3)
+    )
+  )
+
+LCGR4 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = itrac04-v)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lcgr.cern.ch)
+      (INSTANCE_NAME = lcgr4)
+    )
+  )
+
+lcg_fts =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = lcg_fts.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+lcg_fts_w =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = lcg_fts_w.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+
+lcg_lfc =
+   (DESCRIPTION =
+     (LOAD_BALANCE = yes)
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr4-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr3-v.cern.ch)(PORT = 10121))
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = lcg_lfc.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+  ) 
+
+lcg_gridview =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = no)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = lcg_gridview.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+lcg_same =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = lcg_same.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+
+lcg_fcr =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = lcg_fcr.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+lcg_shiva =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = lcg_shiva.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+lcg_voms =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr4-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = lcgr3-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = no)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = lcg_voms.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# END LCGR #####################################
+
+# Miguel Anjo 20050621 - lhcbrac - 20060606, luca changed to 10121
+
+LHCBR =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lhcbr.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+LHCBR2 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr2-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lhcbr.cern.ch)
+      (INSTANCE_NAME = lhcbr2)
+    )
+  )
+
+LHCBR1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr1-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lhcbr.cern.ch)
+      (INSTANCE_NAME = lhcbr1)
+    )
+  )
+
+LHCBR3 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr3-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lhcbr.cern.ch)
+      (INSTANCE_NAME = lhcbr3)
+    )
+  )
+
+LHCBR4 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr4-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lhcbr.cern.ch)
+      (INSTANCE_NAME = lhcbr4)
+    )
+  )
+
+LHCB_BOOKKEEPING =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr3-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr1-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr2-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr4-v)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lhcb_bookkeeping.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+LHCB_BOOKKEEPING_NEW =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr2-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr1-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr3-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr4-v)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lhcb_bookkeeping_new.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+LHCB_COOL =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr1-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr2-v)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lhcb_cool.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+LHCB_ECAL =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr1-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr4-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr2-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr3-v)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lhcb_ecal.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+LHCB_RICHHPD =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr1-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr4-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr2-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr3-v)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lhcb_richhpd.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+LHCB_SCANBOOK =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr1-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr4-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr2-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr3-v)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lhcb_scanbook.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+LHCB_MUON_PNPI =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr1-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr4-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr2-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr3-v)(PORT = 10121))
+    (LOAD_BALANCE = no)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lhcb_muon_pnpi.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+LHCB_MUON_MWPC =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr1-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr4-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr2-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr3-v)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lhcb_muon_mwpc.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+LHCB_MUON_CONTROL =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr4-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr2-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr1-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr3-v)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lhcb_muon_control.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+
+LHCB_INTEGRATION =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr1-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr4-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr2-v)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr3-v)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lhcb_integration.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+# ###########################################
+
+# Miguel Anjo 20050621 - cmsrac
+CMSR =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cmsr)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMSR1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cmsr)
+      (INSTANCE_NAME = cmsr1)
+    )
+  )
+
+CMSR2 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cmsr)
+      (INSTANCE_NAME = cmsr2)
+    )
+  )
+
+CMSR3 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cmsr)
+      (INSTANCE_NAME = cmsr3)
+    )
+  )
+
+CMSR4 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cmsr)
+      (INSTANCE_NAME = cmsr4)
+    )
+  )
+
+cms_phedex =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = cms_phedex)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+cms_transfermgmt =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = cms_transfermgmt)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+cms_transfermgmt_sc =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = cms_transfermgmt_sc)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+cms_transfermgmt_test =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_transfermgmt_test)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+cms_dashboard =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = cms_dashboard)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+cms_sstracker =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = cms_sstracker)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+
+# Luca 20051005 - Aliases for I.Vorobiev
+CMS_ALCT =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_alct)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_EMU_CERN =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_emu_cern)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+
+CMS_EMU_FAST =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_emu_fast)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_EMU_HV =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_emu_hv)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_CSC =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_csc)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_ANODE_BOARDS =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_anode_boards)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+# Luca 20051011 - aliases for F. Glege
+
+CMS_DAQ_HDWR =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+     (SERVICE_NAME = cms_daq_hdwr)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_DAQ_CONFDB =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+     (SERVICE_NAME = cms_daq_confdb)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_INTEGRATION =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_integration)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_FRL_SLINK =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_frl_slink)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+# Luca 20051014 - aliases for D.Vintache
+CMS_TEC_AACHEN =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_tec_aachen)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_TEC_LYON =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_tec_lyon)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_TESTBEAM=
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_testbeam)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_TIB=
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_tib)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_TOB=
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_tob)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_TRACK_DAMIEN=
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_track_damien)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+##
+# CMS_ECAL_DCS for Guenther Dissertori
+
+CMS_ECAL_DCS = 
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_ecal_dcs)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+##
+
+CMS_HCL = 
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_hcl)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_PXL =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_pxl)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_ORCOFF =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_cond)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_ORCOFF_VAL =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_cond_val)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_MB_PROD =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_mb_prod)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_DBS_MCPROD_GLOBAL =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_dbs_mcprod_global)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_DBS_MCPROD_LOCAL =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_dbs_mcprod_local)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_DBS =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_dbs)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_ECALHCAL_H2_COND =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_cond)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_PVSS =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_pvss)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+CMS_c2k =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_c2k)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+c2k=(DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = cmsr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = cms_c2k)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+
+# Marta Jakubowska-Sobczak 20050627 - lhcb_bookkeeping on lhcbrac
+LHCB_BOOKKEEPING_RAC =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lhcbr2-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lhcb_bookkeeping.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+# LCG_GRIDVIEW =
+#  (DESCRIPTION =
+#    (ADDRESS = (PROTOCOL = TCP)(HOST = grid4.cern.ch)(PORT = 1521))
+#    (CONNECT_DATA = 
+#      (SERVER = DEDICATED)
+#      (SERVICE_NAME = lcg_gridview.cern.ch)
+#    )
+#  )
+
+# Jacek Wojcieszuk 20050704 - integration RAC
+INTR =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = intr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = intr2-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = intr.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+INTR2 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = intr2-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = intr.cern.ch)
+      (INSTANCE_NAME = intr2)
+    )
+  )
+
+INTR1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = intr1-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = intr.cern.ch)
+      (INSTANCE_NAME = intr1)
+    )
+  )
+
+INTR_NLB=(DESCRIPTION=
+           (ADDRESS_LIST=
+           (FAILOVER=on)
+           (LOAD_BALANCE=off)
+            (ADDRESS= (PROTOCOL=TCP) (HOST=intr1-v.cern.ch) (PORT=10121))
+            (ADDRESS= (PROTOCOL=TCP) (HOST=intr2-v.cern.ch) (PORT=10121))
+           )
+           (CONNECT_DATA=
+              (SERVER=DEDICATED)
+              (SERVICE_NAME=intr_nlb.cern.ch)
+              (FAILOVER_MODE= (TYPE=SELECT) (METHOD=BASIC)
+              )
+           )
+       )
+
+# Luca 20050825 - modified atlasrac config - 20060607 modified to port 10121
+ATLR =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = atlr.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+ATLR4 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = atlr.cern.ch)
+      (INSTANCE_NAME = atlr4)
+    )
+  )
+
+ATLR3 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = atlr.cern.ch)
+      (INSTANCE_NAME = atlr3)
+    )
+  )
+
+ATLR2 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = atlr.cern.ch)
+      (INSTANCE_NAME = atlr2)
+    )
+  )
+
+ATLR1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = atlr.cern.ch)
+      (INSTANCE_NAME = atlr1)
+    )
+  )
+
+# Luca 27-10-05
+
+
+ATLAS_INTEGRATION =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = atlas_integration.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+   )
+  )
+
+
+atlas_muon_ec_align =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_muon_ec_align.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+atlas_authdb =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_authdb.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# DG 20060323
+atlas_atlog =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_atlog.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# DG 20050912
+atlas_prodsys =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = off)
+     (FAILOVER = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_prodsys.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# DG 20050915
+atlas_dd =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (FAILOVER = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_dd.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# DG 20050915
+atlas_muoncert =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = off)
+     (FAILOVER = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_muoncert.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+atlas_muoncert_dblink =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = off)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_muoncert.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# DG 20051005
+atlas_muon =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = off)
+     (FAILOVER = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_muon.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# DG 20051005
+atlas_tags =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = off)
+     (FAILOVER = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_tags.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# DG 20051005
+atlas_da =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = off)
+     (FAILOVER = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_da.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# DG 20051005
+atlas_t0 =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = off)
+     (FAILOVER = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_t0.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+
+# DG 20051117
+atlas_muoncsc =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = on)
+     (FAILOVER = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_muoncsc.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# DG 20051117
+atlas_trt =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = on)
+     (FAILOVER = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_trt.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# DG 20051117
+atlas_largfr =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = on)
+     (FAILOVER = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_largfr.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# DG 20051117
+atlas_largus =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = on)
+     (FAILOVER = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_largus.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# DG 20051117
+atlas_larcalib =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = on)
+     (FAILOVER = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_larcalib.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+
+atlas_coolprod =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = no)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_coolprod.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# Luca 02032006
+atlas_htmldb =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = no)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_htmldb.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# Luca 09052006
+atlas_config =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = no)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_config.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# DG 20060516
+atlas_pvssprod =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = no)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_pvssprod.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# DG 20060516
+atlas_oksprod =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = no)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_oksprod.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# JW 20060615
+atlas_dashboard =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = no)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_dashboard.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# JW 20060724
+atlas_dcs =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = no)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_dcs.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+
+# end atlasrac config
+
+# Secondary integration RAC config
+
+int2r =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = int2r1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = int2r2-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = int2r.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+int2r2 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int2r2-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int2r.cern.ch)
+      (INSTANCE_NAME = int2r2)
+    )
+  )
+
+int2r1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int2r1-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int2r.cern.ch)
+      (INSTANCE_NAME = int2r1)
+    )
+  )
+
+INT2R_LB =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int2r1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int2r2-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int2r_lb.cern.ch)
+      (FAILOVER_MODE =
+        (TYPE = SELECT) (METHOD = BASIC) (RETRIES = 180) (DELAY = 5))
+    )
+  )
+                                                                                                                                             
+INT2R_NOLB =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int2r1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int2r2-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = no)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int2r_nolb.cern.ch)
+      (FAILOVER_MODE =
+        (TYPE = SELECT) (METHOD = BASIC) (RETRIES = 180) (DELAY = 5))
+    )
+  )
+
+CMS_ORCOFF_INT2R =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int2r1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int2r2-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int2r_lb.cern.ch)
+      (FAILOVER_MODE =
+        (TYPE = SELECT) (METHOD = BASIC) (RETRIES = 180) (DELAY = 5))
+    )
+  )
+
+int3r =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = int3r1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = int3r2-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = int3r.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+int3r2 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int3r2-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int3r.cern.ch)
+      (INSTANCE_NAME = int3r2)
+    )
+  )
+
+int3r1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int3r1-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int3r.cern.ch)
+      (INSTANCE_NAME = int3r1)
+    )
+  )
+
+INT3R_LB =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int3r1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int3r2-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int3r_lb.cern.ch)
+      (FAILOVER_MODE = (TYPE = SELECT) (METHOD = BASIC) (RETRIES = 180) (DELAY = 5))
+    )
+  )
+
+INT3R_NOLB =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int3r1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int3r2-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = no)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int3r_nolb.cern.ch)
+      (FAILOVER_MODE = (TYPE = SELECT) (METHOD = BASIC) (RETRIES = 180) (DELAY = 5))
+    )
+  )
+
+LCG_CERT_SAM =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int3r1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int3r2-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = lcg_cert_sam.cern.ch)
+      (FAILOVER_MODE = (TYPE = SELECT) (METHOD = BASIC) (RETRIES = 180) (DELAY = 5))
+    )
+  )
+
+
+int4r =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = int4r1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = int4r2-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = int4r.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+int4r2 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int4r2-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int4r.cern.ch)
+      (INSTANCE_NAME = int4r2)
+    )
+  )
+
+int4r1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = int4r1-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int4r.cern.ch)
+      (INSTANCE_NAME = int4r1)
+    )
+  )
+
+int4r_lb =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = int4r1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = int4r2-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = int4r_lb.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+# int5r Luca 28-4
+
+int5r =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = itrac45-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = itrac46-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = itrac47-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = itrac48-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = itrac39-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = itrac40-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = int5r.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+int5r6 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = itrac40-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int5r.cern.ch)
+      (INSTANCE_NAME = int5r6)
+    )
+  )
+
+int5r5 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = itrac39-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int5r.cern.ch)
+      (INSTANCE_NAME = int5r5)
+    )
+  )
+
+
+int5r4 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = itrac48-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int5r.cern.ch)
+      (INSTANCE_NAME = int5r4)
+    )
+  )
+
+int5r3 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = itrac47-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int5r.cern.ch)
+      (INSTANCE_NAME = int5r3)
+    )
+  )
+
+int5r2 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = itrac46-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int5r.cern.ch)
+      (INSTANCE_NAME = int5r2)
+    )
+  )
+
+int5r1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = itrac45-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = int5r.cern.ch)
+      (INSTANCE_NAME = int5r1)
+    )
+  )
+
+# Dawid - OID test instances
+oid1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = oidtest1.cern.ch)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = oid1.cern.ch)
+    )
+  )
+
+
+oid1.cern.ch =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = oidtest1.cern.ch)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = oid1.cern.ch)
+    )
+  )
+
+oid2 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = oidtest2.cern.ch)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = oid2.cern.ch)
+    )
+  )
+
+oid2.cern.ch =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = oidtest2.cern.ch)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = oid2.cern.ch)
+    )
+  )
+# end OID test instances
+
+atlas_muon_rpc =
+   (DESCRIPTION =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = atlr4-v.cern.ch)(PORT = 10121))
+     (LOAD_BALANCE = yes)
+     (CONNECT_DATA =
+       (SERVER = DEDICATED)
+       (SERVICE_NAME = atlas_muon_rpc.cern.ch)
+       (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+     )
+   )
+
+TESTDGM2 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lxfsrk5508.cern.ch)(PORT = 1522))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = testdgm2)
+    )
+  )
+
+TESTDGM1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = lxfsrk328.cern.ch)(PORT = 1522))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = testdgm1)
+    )
+  )
+
+ATONR,ATONR.CERN.CH = 
+   (DESCRIPTION = 
+      (ADDRESS = (PROTOCOL=TCP)(HOST=atonr1-v.cern.ch)(PORT = 10121))
+      (ADDRESS = (PROTOCOL=TCP)(HOST=atonr2-v.cern.ch)(PORT = 10121))
+      (LOAD_BALANCE = yes)
+      (CONNECT_DATA = 
+         (SERVER = DEDICATED)
+         (SERVICE_NAME = atonr.cern.ch)
+         (FAILOVER_MODE=(TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+      )
+   )
+
+ATONR1 = 
+   (DESCRIPTION = 
+      (ADDRESS = (PROTOCOL=TCP)(HOST=atonr1-v.cern.ch)(PORT = 10121))
+      (CONNECT_DATA = 
+         (SERVER = DEDICATED)
+         (SERVICE_NAME = atonr.cern.ch)
+         (INSTANCE_NAME = atonr1)
+      )
+   )
+
+ATONR2 = 
+   (DESCRIPTION = 
+      (ADDRESS = (PROTOCOL=TCP)(HOST=atonr2-v.cern.ch)(PORT = 10121))
+      (CONNECT_DATA = 
+         (SERVER = DEDICATED)
+         (SERVICE_NAME = atonr.cern.ch)
+         (INSTANCE_NAME = atonr2)
+      )
+   )
+
+ATONR_COOL = 
+   (DESCRIPTION = 
+      (ADDRESS = (PROTOCOL=TCP)(HOST=atonr1-v.cern.ch)(PORT = 10121))
+      (ADDRESS = (PROTOCOL=TCP)(HOST=atonr2-v.cern.ch)(PORT = 10121))
+      (LOAD_BALANCE = yes)
+      (FAILOVER=yes)
+      (CONNECT_DATA = 
+         (SERVER = DEDICATED)
+         (SERVICE_NAME = atlas_cool.cern.ch)
+         (FAILOVER_MODE=(TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+      )
+   )
+
+# Luca 2-3-06 test1 rac 10.2.0.2
+
+test1_LB,test1r=
+  (DESCRIPTION =
+    (ADDRESS_LIST = 
+     (ADDRESS = (PROTOCOL = TCP)(HOST = itrac25-v.cern.ch)(PORT = 10121)) 
+     (ADDRESS = (PROTOCOL = TCP)(HOST = itrac26-v.cern.ch)(PORT = 10121)) 
+    )
+    (CONNECT_DATA = (SERVICE_NAME = test1.cern.ch)(SERVER = DEDICATED) 
+                    (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15)))
+  )
+
+test1_shsrv=
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = itrac25-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = itrac26-v.cern.ch)(PORT = 10121))
+    )
+    (CONNECT_DATA = (SERVICE_NAME = test1_shsrv.cern.ch)(SERVER = SHARED)
+                    (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15)))
+  )
+
+test11=
+  (DESCRIPTION =
+    (ADDRESS_LIST = 
+     (ADDRESS = (PROTOCOL = TCP)(HOST = itrac25-v.cern.ch)(PORT = 10121)) 
+    )
+    (CONNECT_DATA = (SERVICE_NAME = test1.cern.ch)(INSTANCE_NAME=test11)(SERVER = DEDICATED))
+  )
+
+test12=
+  (DESCRIPTION =
+    (ADDRESS_LIST = 
+     (ADDRESS = (PROTOCOL = TCP)(HOST = itrac26-v.cern.ch)(PORT = 10121)) 
+    )
+    (CONNECT_DATA = (SERVICE_NAME = test1.cern.ch)(INSTANCE_NAME=test12)(SERVER = DEDICATED))
+  )
+
+# Luca 17-02-2006 compassrac
+compr=
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = compr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = compr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = compr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = compr4-v.cern.ch)(PORT = 10121))
+    )
+    (CONNECT_DATA = (SERVICE_NAME = compr.cern.ch)(SERVER = DEDICATED)
+                    (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15)))
+  )
+
+compr1=
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = compr1-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA = (SERVICE_NAME = compr.cern.ch)(INSTANCE_NAME=compr1)(SERVER = DEDICATED))
+  )
+compr2=
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = compr2-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA = (SERVICE_NAME = compr.cern.ch)(INSTANCE_NAME=compr2)(SERVER = DEDICATED))
+  )
+compr3=
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = compr3-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA = (SERVICE_NAME = compr.cern.ch)(INSTANCE_NAME=compr3)(SERVER = DEDICATED))
+  )
+compr4=
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = compr4-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA = (SERVICE_NAME = compr.cern.ch)(INSTANCE_NAME=compr4)(SERVER = DEDICATED))
+  )
+
+comp_raw=
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = compr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = compr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = compr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = compr4-v.cern.ch)(PORT = 10121))
+    )
+    (CONNECT_DATA = (SERVICE_NAME = comp_raw.cern.ch)(SERVER = DEDICATED)
+                    (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15)))
+  )
+
+comp_dst=
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = compr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = compr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = compr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = compr4-v.cern.ch)(PORT = 10121))
+    )
+    (CONNECT_DATA = (SERVICE_NAME = comp_dst.cern.ch)(SERVER = DEDICATED)
+                    (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15)))
+  )
+
+comp_analysis=
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+     (ADDRESS = (PROTOCOL = TCP)(HOST = compr1-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = compr2-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = compr3-v.cern.ch)(PORT = 10121))
+     (ADDRESS = (PROTOCOL = TCP)(HOST = compr4-v.cern.ch)(PORT = 10121))
+    )
+    (CONNECT_DATA = (SERVICE_NAME = comp_analysis.cern.ch)(SERVER = DEDICATED)
+                    (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15)))
+  )
+
+# Luca 12-04-2006 3D rac    
+
+d3r =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = d3r1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = d3r2-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA = (SERVICE_NAME = d3r.cern.ch)(SERVER = DEDICATED)
+                    (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+d3r2 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = d3r2-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED) (SERVICE_NAME = d3r.cern.ch) (INSTANCE_NAME = d3r2)
+    )
+  )
+
+d3r1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = d3r1-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED) (SERVICE_NAME = d3r.cern.ch) (INSTANCE_NAME = d3r1)
+    )
+  )
+
+# Jacek 12-04-2006 PDB rac
+
+pdbr =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = pdbr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = pdbr2-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA = (SERVICE_NAME = pdbr.cern.ch)(SERVER = DEDICATED)
+                    (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+pdbr2 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = pdbr2-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED) (SERVICE_NAME = pdbr.cern.ch) (INSTANCE_NAME = pdbr2)
+    )
+  )
+
+pdbr1 =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = pdbr1-v.cern.ch)(PORT = 10121))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED) (SERVICE_NAME = pdbr.cern.ch) (INSTANCE_NAME = pdbr1)
+    )
+  )
+
+pdb_htmldb =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = pdbr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = pdbr2-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA = (SERVICE_NAME = pdb_htmldb.cern.ch)(SERVER = DEDICATED)
+                    (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+aleph_prod_scanbook =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = pdbr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = pdbr2-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA = (SERVICE_NAME = aleph_prod_scanbook.cern.ch)(SERVER = DEDICATED)
+                    (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+alice_dcdb =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = pdbr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = pdbr2-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA = (SERVICE_NAME = alice_dcdb.cern.ch)(SERVER = DEDICATED)
+                    (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+# Luca 10-Jul-06
+harpr =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = pdbr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = pdbr2-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA = (SERVICE_NAME = harpr.cern.ch)(SERVER = DEDICATED)
+                    (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+# Jacek 25-Jul-06
+totem_integration =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = pdbr1-v.cern.ch)(PORT = 10121))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = pdbr2-v.cern.ch)(PORT = 10121))
+    (LOAD_BALANCE = yes)
+    (CONNECT_DATA = (SERVICE_NAME = totem_integration.cern.ch)(SERVER = DEDICATED)
+                    (FAILOVER_MODE = (TYPE = SELECT)(METHOD = BASIC)(RETRIES = 200)(DELAY = 15))
+    )
+  )
+
+
