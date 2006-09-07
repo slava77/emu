@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.17 2006/09/05 16:13:23 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.18 2006/09/07 16:30:03 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -6036,7 +6036,7 @@ private:
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << endl ;
     //
-    *out << cgicc::legend("Voltages & Temperatures").set("style","color:blue") 
+    *out << cgicc::legend("Voltages, Temperatures, & Currents").set("style","color:blue") 
 	 << cgicc::p() << std::endl ;
     //
     *out << cgicc::table().set("border","1");
@@ -6475,6 +6475,265 @@ private:
     }
     *out << buf ;
     *out << cgicc::span() ;
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
+    //
+    *out << cgicc::br();
+    //
+    // DMB currents:
+    //
+    *out << cgicc::table().set("border","1");
+    //
+    *out << cgicc::td();
+    sprintf(buf,"CFEB1 3.3 A = %3.2f ",(value=thisDMB->lowv_adc(1,0))/1000.);
+    if ( value/1000. < 3.3*(0.95) ||
+	 value/1000. > 3.3*(1.05) ) {	 
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    sprintf(buf,"CFEB1 5.0 A = %3.2f ",(value=thisDMB->lowv_adc(1,1))/1000.);
+    if ( value/1000. < 5.0*0.95 ||
+	 value/1000. > 5.0*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    sprintf(buf,"CFEB1 6.0 A = %3.2f ",(value=thisDMB->lowv_adc(1,2))/1000.);
+    if ( value/1000. < 6.0*0.95 ||
+	 value/1000. > 6.0*1.05  ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
+    //
+    *out << cgicc::table().set("border","1");
+    //
+    *out << cgicc::td();
+    sprintf(buf,"CFEB2 3.3 A = %3.2f ",(value=thisDMB->lowv_adc(1,3))/1000.);
+    if ( value/1000. < 3.3*0.95 ||
+	 value/1000. > 3.3*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");      
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    sprintf(buf,"CFEB2 5.0 A = %3.2f ",(value=thisDMB->lowv_adc(1,4))/1000.);
+    if ( value/1000. < 5.0*0.95 ||
+	 value/1000. > 5.0*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");      
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    sprintf(buf,"CFEB2 6.0 A = %3.2f ",(value=thisDMB->lowv_adc(1,5))/1000.);
+    if ( value/1000. < 6.0*0.95 ||
+	 value/1000. > 6.0*1.95 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");      
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
+    //
+    *out << cgicc::table().set("border","1");
+    *out << cgicc::td();
+    sprintf(buf,"CFEB3 3.3 A = %3.2f ",(value=thisDMB->lowv_adc(1,6))/1000.);
+    if ( value/1000. < 3.3*0.95 ||
+	 value/1000. > 3.3*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");      
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+      //
+    *out << cgicc::td();
+    sprintf(buf,"CFEB3 5.0 A = %3.2f ",(value=thisDMB->lowv_adc(1,7))/1000.);
+    if (  value/1000. < 5.0*0.95 ||
+	  value/1000. > 5.0*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");      
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    sprintf(buf,"CFEB3 6.0 A = %3.2f ",(value=thisDMB->lowv_adc(2,0))/1000.);
+    if ( value/1000. < 6.0*0.95 ||
+	 value/1000. > 6.0*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");      
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
+    //
+    *out << cgicc::table().set("border","1");
+    //
+    *out << cgicc::td();
+    sprintf(buf,"CFEB4 3.3 A = %3.2f ",(value=thisDMB->lowv_adc(2,1))/1000.);
+    if ( value/1000. < 3.3*0.95 ||
+	 value/1000. > 3.3*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");      
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    sprintf(buf,"CFEB4 5.0 A = %3.2f ",(value=thisDMB->lowv_adc(2,2))/1000.);
+    if ( value/1000. < 5.0*0.95 ||
+	 value/1000. > 5.0*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");  
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    sprintf(buf,"CFEB4 6.0 A = %3.2f ",(value=thisDMB->lowv_adc(2,3))/1000.);
+    if ( value/1000. < 6.0*0.95 ||
+	 value/1000. > 6.0*1.05 ){
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");  
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
+    //
+    *out << cgicc::table().set("border","1");
+    //
+    *out << cgicc::td();
+    sprintf(buf,"CFEB5 3.3 A = %3.2f ",(value=thisDMB->lowv_adc(2,4))/1000.);
+    if ( value/1000. < 3.3*0.95 ||
+	 value/1000. > 3.3*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");  
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    sprintf(buf,"CFEB5 5.0 A = %3.2f ",(value=thisDMB->lowv_adc(2,5))/1000.);
+    if ( value/1000. < 5.0*0.95 ||
+	 value/1000. > 5.0*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");  
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    sprintf(buf,"CFEB5 6.0 A = %3.2f ",(value=thisDMB->lowv_adc(2,6))/1000.);
+    if ( value/1000. < 6.0*0.95 ||
+	 value/1000. > 6.0*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");  
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
+    //
+    // ALCT currents
+    //
+    *out << cgicc::br();
+    //
+    *out << cgicc::table().set("border","1");
+    //
+    *out << cgicc::td();
+    sprintf(buf,"ALCT  3.3 A = %3.2f ",(value=thisDMB->lowv_adc(2,7))/1000.);
+    if ( value/1000. < 3.3*0.95 ||
+	 value/1000. > 3.3*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");  
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    sprintf(buf,"ALCT  1.8 A = %3.2f ",(value=thisDMB->lowv_adc(3,0))/1000.);
+    if ( value/1000. < 1.8*0.95 ||
+	 value/1000. > 1.8*1.95 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");  
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    sprintf(buf,"ALCT  5.5 A B = %3.2f ",(value=thisDMB->lowv_adc(3,1))/1000.);
+    if ( value/1000. < 5.5*0.95 ||
+	 value/1000. > 5.5*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");  
+    }
+    *out << buf ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    sprintf(buf,"ALCT  5.5 A A = %3.2f ",(value=thisDMB->lowv_adc(3,2))/1000.);
+    if ( value/1000. < 5.5*0.95 ||
+	 value/1000. > 5.5*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");  
+    }
+    *out << buf ;
+    *out << cgicc::span();
     *out << cgicc::td();
     //
     *out << cgicc::table();
