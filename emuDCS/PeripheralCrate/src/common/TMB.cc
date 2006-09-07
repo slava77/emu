@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.9 2006/09/06 12:38:11 rakness Exp $
+// $Id: TMB.cc,v 3.10 2006/09/07 15:23:05 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.10  2006/09/07 15:23:05  rakness
+// pull programming back into EMUjtag
+//
 // Revision 3.9  2006/09/06 12:38:11  rakness
 // correct time stamp/copy vectors for user prom
 //
@@ -536,19 +539,8 @@ void TMB::configure() {
   //(*MyOutput_) << "Resetting counters" << std::endl;
   ResetCounters();
   //
-  if ( GetFillVmeWriteVecs() ) {     //put the configuration data into the prom
-    //
-    SetWhichUserProm(ChipLocationTmbUserPromTMB);
-    CreateUserPromFile();
-    //
-    CheckUserProm(); 
-    //    
-    while ( GetNumberOfVerifyErrors() != 0 ) {
-      CreateXsvfFile();
-      ProgramUserProm();
-      CheckUserProm();
-    }
-  }
+  if ( GetFillVmeWriteVecs() )      
+    CheckAndProgramProm(ChipLocationTmbUserPromTMB);
   //
   SetFillVmeWriteVecs(false);        //give VME back to the user (default)
   //

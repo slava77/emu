@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.13 2006/09/06 12:38:10 rakness Exp $
+// $Id: ALCTController.cc,v 3.14 2006/09/07 15:23:04 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.14  2006/09/07 15:23:04  rakness
+// pull programming back into EMUjtag
+//
 // Revision 3.13  2006/09/06 12:38:10  rakness
 // correct time stamp/copy vectors for user prom
 //
@@ -6380,21 +6383,10 @@ void ALCTController::configure() {
   //
   SetCheckJtagWrite(true);                //re-enable the checking of JTAG writes (default)
   //
-  if ( GetFillVmeWriteVecs() ) {          //put the configuration data into the prom
-    //
-    SetWhichUserProm(ChipLocationTmbUserPromALCT);
-    CreateUserPromFile();
-    //
-    CheckUserProm(); 
-    //
-    while ( GetNumberOfVerifyErrors() != 0 ) {
-      CreateXsvfFile();
-      ProgramUserProm();
-      CheckUserProm();
-    }
-  }
+  if ( GetFillVmeWriteVecs() ) 
+    CheckAndProgramProm(ChipLocationTmbUserPromALCT);
   //
-  SetFillVmeWriteVecs(false);       //give VME back to the user (default)
+  SetFillVmeWriteVecs(false);        //give VME back to the user (default)
   //
   return;
 }
