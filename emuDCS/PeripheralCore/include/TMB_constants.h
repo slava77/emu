@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.1 2006/09/05 10:13:17 rakness Exp $
+// $Id: TMB_constants.h,v 3.2 2006/09/07 14:55:38 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.2  2006/09/07 14:55:38  rakness
+// mask out read-only bits in userproms
+//
 // Revision 3.1  2006/09/05 10:13:17  rakness
 // ALCT configure from prom
 //
@@ -147,6 +150,22 @@ static const unsigned long int  scp_trig_adr       = 0x0000CE;
 //
 static const unsigned long int  cnt_ctrl_adr       = 0x0000D0;
 static const unsigned long int  cnt_rdata_adr      = 0x0000D2;
+//
+static const unsigned long int  jtag_sm_ctrl_adr   = 0x0000D4;
+static const unsigned long int  jtag_sm_wdcnt_adr  = 0x0000D6;
+static const unsigned long int  jtag_sm_cksum_adr  = 0x0000D8;
+static const unsigned long int  vme_sm_ctrl_adr    = 0x0000DA;
+static const unsigned long int  vme_sm_wdcnt_adr   = 0x0000DC;
+static const unsigned long int  vme_sm_cksum_adr   = 0x0000DE;
+static const unsigned long int  num_vme_sm_adr_adr = 0x0000E0;
+static const unsigned long int  vme_wrt_dat_ck_adr = 0x0000E2;
+//
+static const unsigned long int  rat_3d_sm_ctrl_adr = 0x0000E4;
+static const unsigned long int  rat_3d_delays_adr  = 0x0000E6;
+static const unsigned long int  uptime_adr         = 0x0000E8;
+static const unsigned long int  tmb_stat_adr       = 0x0000EA;
+static const unsigned long int  bxn_clct_adr       = 0x0000EC;
+static const unsigned long int  bxn_alct_adr       = 0x0000EE;
 //
 // this comes from alct_routines2/tmb_vme_reg.h
 #define TMB_ADR_BOOT            0x70000 // Hardware Bootstrap Register
@@ -295,7 +314,7 @@ struct tmb_id_regs
 
 };
 //
-const int number_of_allowed_configuration_addresses = 18;
+const int number_of_allowed_configuration_addresses = 19;
 const int allowed_configuration_addresses[number_of_allowed_configuration_addresses] = {
   rpc_cfg_adr,          //0xb6 enable RPC 
   vme_ratctrl_adr,      //0x1e add 1/2-cycle to RPC latching
@@ -313,6 +332,32 @@ const int allowed_configuration_addresses[number_of_allowed_configuration_addres
   vme_ddd2_adr,         //0x1a delays: CFEB4, CFEB3, CFEB2, CFEB1
   vme_ddd0_adr,         //0x16 delays: RPCtx, DMBtx, ALCTrx, ALCTtx
   cfeb_inj_adr,         //0x42 enable CFEB inputs, RAM read/write
-  seq_id_adr,           //0x63 board, csc ID 
-  vme_usr_jtag_adr      //0x10 ALCT JTAG address
+  seq_id_adr,           //0x6E board, csc ID 
+  vme_usr_jtag_adr,     //0x10 ALCT JTAG address
+  alct_inj_adr          //0x32 ALCT Injector Control
+};
+//
+// bits within addresses which are allowed to be set in configuration prom
+// N.B. One-to-one correspondance with addresses, above...
+const int allowed_configuration_mask[number_of_allowed_configuration_addresses] = {
+  0x01ff,               //0xb6:  disable sync-mode, read-only bits 
+  0x0002,               //0x1e:  enable only add 1/2-cycle to RPC latching
+  0x000c,               //0x0e:  enable only ALCT LVDS rx/tx
+  0xff7f,               //0x2c:  disable unassigned 
+  0x1fff,               //0x72:  disable unassigned
+  0x83ff,               //0x68:  disable individual CFEB control from this register
+  //                             -> See TMB documentation first before controlling CFEBs through this register...
+  0x0fff,               //0xb2:  disable unassigned
+  0xffff,               //0x76:
+  0xffff,               //0x70:
+  0xff3f,               //0x98:  disable read-only bits
+  0x0fff,               //0x74:  disable generate internal L1, read-only bits
+  0x67ff,               //0x86:  disable unassigned, read-only bits
+  0xffff,               //0x18:
+  0xffff,               //0x1a:
+  0xffff,               //0x16:
+  0xffff,               //0x42:
+  0x1fff,               //0x6E:  disable unassigned bits
+  0x007f,               //0x10:  disable TDO, unassigned bits
+  0x00ff                //0x32:  disable unassigned bits
 };
