@@ -557,19 +557,19 @@ int main() {
       thisTMB->configure();
       break;
     case 201:      
-      thisTMB->SetXsvfFilename("prom0_example");
+      //      thisTMB->SetXsvfFilename("prom0_example");
       thisTMB->SetFillVmeWriteVecs(true);
       thisTMB->configure();
-      thisTMB->ClearXsvfFilename();
+      //      thisTMB->ClearXsvfFilename();
       break;
     case 202:
       alct->configure();
       break;
     case 203:
-      alct->SetXsvfFilename("prom1_example");
+      //      alct->SetXsvfFilename("prom1_example");
       alct->SetFillVmeWriteVecs(true);
       alct->configure();
-      alct->ClearXsvfFilename();
+      //      alct->ClearXsvfFilename();
       break;
     case 300:
       thisTMB->SetXsvfFilename("prom0_passtest");

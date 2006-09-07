@@ -536,6 +536,26 @@ void EMUjtag::int_to_bits(int value,
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // XSVF programming.....
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+void EMUjtag::CheckAndProgramProm(int which_prom) {
+  //
+  // This method assumes you have:
+  //  a) SetFillVmeWriteVecs(true);
+  //  b) written to the registers you want to be configured...
+  //
+  SetWhichUserProm(which_prom);
+  CreateUserPromFile();
+  //
+  CheckUserProm();          //is the prom already programmed with this configuration?
+  //    
+  while ( GetNumberOfVerifyErrors() != 0 ) { 
+    CreateXsvfFile();
+    ProgramUserProm();
+    CheckUserProm();
+  }
+  //
+  return;
+}
+
 //----------------------------------//
 // prom image file create/read
 //----------------------------------//
