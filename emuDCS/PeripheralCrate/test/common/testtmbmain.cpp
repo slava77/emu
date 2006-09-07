@@ -557,10 +557,10 @@ int main() {
       thisTMB->configure();
       break;
     case 201:      
-      //      thisTMB->SetXsvfFilename("prom0_example");
+      thisTMB->SetXsvfFilename("prom0_example");
       thisTMB->SetFillVmeWriteVecs(true);
       thisTMB->configure();
-      //      thisTMB->ClearXsvfFilename();
+      thisTMB->ClearXsvfFilename();
       break;
     case 202:
       alct->configure();
@@ -650,6 +650,12 @@ int main() {
       testTMB.reset();      
       thisTMB->CheckVMEStateMachine();
       thisTMB->CheckJTAGStateMachine();
+      std::cout << "Raw hits header = 0x" << std::hex << thisTMB->ReadRegister(tmb_stat_adr) << std::endl;
+      break;
+    case 501:
+      thisTMB->SetWhichUserProm(ChipLocationTmbUserPromTMB);
+      thisTMB->SetXsvfFilename("prom0_example");
+      thisTMB->CompareUserPromRegisters();
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 
