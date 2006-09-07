@@ -545,7 +545,7 @@ void EMUjtag::CreateUserPromFile() {
   //
   // Create the data which is loaded to the TMB or ALCT
   //
-  int data_to_prom[TOTAL_NUMBER_OF_ADDRESSES];
+  int data_to_prom[TOTAL_NUMBER_OF_ADDRESSES] = {};
   int address_counter = 0;
   //
   if (GetWhichUserProm() == ChipLocationTmbUserPromTMB) {
@@ -560,8 +560,15 @@ void EMUjtag::CreateUserPromFile() {
       data_to_prom[address_counter++] = TmbUserVmeAddress.at(data_counter);
       data_to_prom[address_counter++] = 0x00;
       data_to_prom[address_counter++] = 0x00;
-      data_to_prom[address_counter++] = TmbUserDataLsb.at(data_counter);
-      data_to_prom[address_counter++] = TmbUserDataMsb.at(data_counter);
+      int mask = 0;
+      for (int i=0; i<number_of_allowed_configuration_addresses; i++) {
+	if ( TmbUserVmeAddress.at(data_counter) == allowed_configuration_addresses[i] ) {
+	  mask = allowed_configuration_mask[i];
+	  break;
+	}
+      }
+      data_to_prom[address_counter++] = TmbUserDataLsb.at(data_counter) & (mask & 0xff);
+      data_to_prom[address_counter++] = TmbUserDataMsb.at(data_counter) & ( (mask >> 8) & 0xff );
     }
     //
   } else if (GetWhichUserProm() == ChipLocationTmbUserPromALCT) {
@@ -720,6 +727,17 @@ void EMUjtag::InsertHeaderAndTrailer_(int * data_to_go_into_prom) {
   // Trailer:
   if (GetWhichUserProm() == ChipLocationTmbUserPromTMB) {
     //
+    SetUserPromImage_(address_counter++,
+		      vme_wrt_dat_ck_adr & 0xFF);
+    SetUserPromImage_(address_counter++,
+		      0x00);
+    SetUserPromImage_(address_counter++,
+		      0x00);
+    SetUserPromImage_(address_counter++,
+		      0xAA);
+    SetUserPromImage_(address_counter++,
+		      0x55);
+
     SetUserPromImage_(address_counter++,
 		      0xFC);               //end of data marker    
     //
@@ -2251,10 +2269,9 @@ void EMUjtag::CheckUserProm() {
 	//
       } else {
 	//	if (debug_) {
-	  (*MyOutput_) << "EMUjtag: ERROR address " << std::hex << address << std::endl;
-	  (*MyOutput_) << " -> prom image in file = " << std::hex << GetUserPromImage(address) << std::endl;
-	  (*MyOutput_) << " -> prom image in prom = " << std::hex << tmb_->GetClockedOutPromImage(address) << std::endl;
-	  ::sleep(1);
+	  (*MyOutput_) << "EMUjtag: WARNING address 0x" << std::hex << address;
+	  (*MyOutput_) << " to change from 0x" << std::hex << tmb_->GetClockedOutPromImage(address) 
+		       << " -> 0x" << std::hex << GetUserPromImage(address) << std::endl;
 	  //	}
 	verify_error_++;
       }
@@ -2293,6 +2310,8 @@ void EMUjtag::CheckUserProm() {
   } else {
     (*MyOutput_) << "EMUjtag:  Number of verify errors = " 
 		 << std::dec << GetNumberOfVerifyErrors() << std::endl;
+    if ( GetNumberOfVerifyErrors() > 0 ) 
+      ::sleep(5);
   }
   //
   return;
@@ -2331,12 +2350,7 @@ void EMUjtag::ProgramTMBProms() {
 //
 void EMUjtag::CheckVMEStateMachine() {
   //
-  const unsigned long int vme_statemachine_0_adr = 0x0000DA;
-  const unsigned long int vme_statemachine_1_adr = 0x0000DC;
-  const unsigned long int vme_statemachine_2_adr = 0x0000DE;
-  const unsigned long int vme_statemachine_3_adr = 0x0000E0;
-  //
-  int read_data = tmb_->ReadRegister(vme_statemachine_0_adr);
+  int read_data = tmb_->ReadRegister(vme_sm_ctrl_adr);
   //
   int vme_state_machine_start       = (read_data >> 0) & 0x1;
   int vme_state_machine_sreset      = (read_data >> 1) & 0x1;
@@ -2348,12 +2362,13 @@ void EMUjtag::CheckVMEStateMachine() {
   int vme_state_machine_jtag_auto   = (read_data >> 7) & 0x1;
   int vme_state_machine_vme_ready   = (read_data >> 8) & 0x1;
   int vme_state_machine_ok          = (read_data >> 9) & 0x1;
-  //  int vme_state_machine_unassigned0 = (read_data >>10) & 0x3;
+  int vme_state_machine_path_ok     = (read_data >>10) & 0x1;
+  //  int vme_state_machine_unassigned0 = (read_data >>11) & 0x1;
   int vme_state_machine_throttle    = (read_data >>12) & 0xf;
   //
-  int vme_state_machine_word_count  = tmb_->ReadRegister(vme_statemachine_1_adr);
+  int vme_state_machine_word_count  = tmb_->ReadRegister(vme_sm_wdcnt_adr);
   //
-  read_data = tmb_->ReadRegister(vme_statemachine_2_adr);
+  read_data = tmb_->ReadRegister(vme_sm_cksum_adr);
   //
   int vme_state_machine_check_sum   = (read_data >> 0) & 0xff;
   //
@@ -2363,7 +2378,7 @@ void EMUjtag::CheckVMEStateMachine() {
   int vme_state_machine_error_missing_trailer_end     = (read_data >>11) & 0x1;
   int vme_state_machine_error_word_count_overflow     = (read_data >>12) & 0x1;
   //
-  int vme_state_machine_number_of_vme_writes       = tmb_->ReadRegister(vme_statemachine_3_adr);
+  int vme_state_machine_number_of_vme_writes       = tmb_->ReadRegister(num_vme_sm_adr_adr);
   //
   (*MyOutput_) << "VME prom state machine status: " << std::endl;
   (*MyOutput_) << "-------------------------------" << std::endl;
@@ -2377,6 +2392,7 @@ void EMUjtag::CheckVMEStateMachine() {
   (*MyOutput_) << " JTAG auto        = " << std::hex << vme_state_machine_jtag_auto << std::endl;
   (*MyOutput_) << " VME ready        = " << std::hex << vme_state_machine_vme_ready << std::endl;
   (*MyOutput_) << " state machine OK = " << std::hex << vme_state_machine_ok << std::endl;
+  (*MyOutput_) << " path OK          = " << std::hex << vme_state_machine_path_ok << std::endl;
   (*MyOutput_) << " throttle         = 0x" << std::hex << vme_state_machine_throttle << std::endl;
   (*MyOutput_) << std::endl;
   (*MyOutput_) << " word count = 0x" << std::hex << vme_state_machine_word_count << std::endl;
@@ -2394,11 +2410,7 @@ void EMUjtag::CheckVMEStateMachine() {
 }
 void EMUjtag::CheckJTAGStateMachine() {
   //
-  const unsigned long int jtag_statemachine_0_adr = 0x0000D4;
-  const unsigned long int jtag_statemachine_1_adr = 0x0000D6;
-  const unsigned long int jtag_statemachine_2_adr = 0x0000D8;
-  //
-  int read_data = tmb_->ReadRegister(jtag_statemachine_0_adr);
+  int read_data = tmb_->ReadRegister(jtag_sm_ctrl_adr);
   int jtag_state_machine_start       = (read_data >> 0) & 0x1;
   int jtag_state_machine_sreset      = (read_data >> 1) & 0x1;
   int jtag_state_machine_autostart   = (read_data >> 2) & 0x1;
@@ -2413,9 +2425,9 @@ void EMUjtag::CheckJTAGStateMachine() {
   //  int jtag_state_machine_unassigned0 = (read_data >>11) & 0x1;
   int jtag_state_machine_throttle    = (read_data >>12) & 0xf;
   //
-  int jtag_state_machine_word_count  = tmb_->ReadRegister(jtag_statemachine_1_adr);
+  int jtag_state_machine_word_count  = tmb_->ReadRegister(jtag_sm_wdcnt_adr);
   //
-  read_data = tmb_->ReadRegister(jtag_statemachine_2_adr);
+  read_data = tmb_->ReadRegister(jtag_sm_cksum_adr);
   //
   //  std::cout << "JTAG statemachine 2 address data = " << std::hex << read_data << std::endl;
   //

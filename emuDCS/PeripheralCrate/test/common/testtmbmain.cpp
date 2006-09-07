@@ -394,7 +394,7 @@ int main() {
 		<< thisTMB->ReadRegister(seq_trig_src_adr) << std::endl;
       break;
     case 97:
-      for (int i=0; i<0xe6; i+=2) {
+      for (int i=0; i<0xf0; i+=2) {
 	int k = thisTMB->ReadRegister(i);
 	std::cout << "VME address " << std::hex 
 		  << ( (i>> 4) & 0xf ) 
@@ -557,15 +557,19 @@ int main() {
       thisTMB->configure();
       break;
     case 201:      
+      thisTMB->SetXsvfFilename("prom0_example");
       thisTMB->SetFillVmeWriteVecs(true);
       thisTMB->configure();
+      thisTMB->ClearXsvfFilename();
       break;
     case 202:
       alct->configure();
       break;
     case 203:
+      alct->SetXsvfFilename("prom1_example");
       alct->SetFillVmeWriteVecs(true);
       alct->configure();
+      alct->ClearXsvfFilename();
       break;
     case 300:
       thisTMB->SetXsvfFilename("prom0_passtest");
