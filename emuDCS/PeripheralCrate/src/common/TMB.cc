@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.10 2006/09/07 15:23:05 rakness Exp $
+// $Id: TMB.cc,v 3.11 2006/09/08 00:06:32 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 3.11  2006/09/08 00:06:32  mey
+// UPdate
+//
 // Revision 3.10  2006/09/07 15:23:05  rakness
 // pull programming back into EMUjtag
 //
@@ -310,6 +313,8 @@ TMB::TMB(Crate * theCrate, int slot) :
   //jtag_address = -1;
   //jtag_chain = -1;
   //step_mode = false;
+  //
+  std::cout << "Inside TMB" << std::endl;
   //
   MyOutput_ = &std::cout ;
   (*MyOutput_) << "TMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
@@ -2290,8 +2295,8 @@ void TMB::ALCTRawhits(){
       printf("ALCT CRC doesn't agree \n");
     } else {
       printf("ALCT CRC does    agree \n");
-	 }
-    
+    }
+    //
   }
   
   alct_data.clear();
