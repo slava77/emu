@@ -536,6 +536,16 @@ void EMUjtag::int_to_bits(int value,
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // XSVF programming.....
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+void EMUjtag::CompareUserPromRegisters() {
+  //
+  ReadUserPromFile();
+  //
+  std::cout << "Not yet working..." << std::endl;
+  //  ParseUserPromFile();
+  //
+  return;
+}
+//
 void EMUjtag::CheckAndProgramProm(int which_prom) {
   //
   // This method assumes you have:
