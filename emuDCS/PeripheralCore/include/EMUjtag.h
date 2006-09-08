@@ -88,6 +88,9 @@ public:
   ////////////////////////////////////////////////////////////////////////
   // XSVF programming:
   ////////////////////////////////////////////////////////////////////////
+  void CheckAndProgramProm(int which_prom);         //
+  void CompareUserPromRegisters();
+  //
   void SetXsvfFilename(std::string filename);       //set the base filename for xsvf file handling 
   //                                                  N.B.  If this method is not called, no files will be written...
   //                                                  -> filename.dat  = prom image file in format AAAA DD (address, data)
