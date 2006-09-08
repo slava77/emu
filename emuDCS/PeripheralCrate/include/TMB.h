@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.5 2006/09/06 12:38:10 rakness Exp $
+// $Id: TMB.h,v 3.6 2006/09/08 00:06:11 mey Exp $
 // $Log: TMB.h,v $
+// Revision 3.6  2006/09/08 00:06:11  mey
+// UPdate
+//
 // Revision 3.5  2006/09/06 12:38:10  rakness
 // correct time stamp/copy vectors for user prom
 //
@@ -183,7 +186,7 @@ class RAT;
 class AnodeChannel;
 class Crate;
 
-class TMB : public VMEModule, public EMUjtag {
+class TMB :  public EMUjtag , public VMEModule {
 
 public:
   //
