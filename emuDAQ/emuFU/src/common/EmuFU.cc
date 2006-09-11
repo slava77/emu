@@ -266,7 +266,7 @@ xoap::MessageReference EmuFU::processSOAPClientCreditMsg( xoap::MessageReference
 	if ( !reply.isNull() ){ 
 // 	  string rs;
 // 	  reply->writeTo(rs);
-	  LOG4CPLUS_DEBUG(logger_, string("***** Sending data to non-XDAQ SOAP client *****") );// << endl << rs << endl );
+	  LOG4CPLUS_INFO(logger_, "Sent data to external SOAP client " << name );
 	}
       }
       break;
