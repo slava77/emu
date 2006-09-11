@@ -88,8 +88,7 @@ public:
   ////////////////////////////////////////////////////////////////////////
   // XSVF programming:
   ////////////////////////////////////////////////////////////////////////
-  void CheckAndProgramProm(int which_prom);         //
-  void CompareUserPromRegisters();
+  void CheckAndProgramProm(int which_prom);         //which_prom = [ChipLocationTmbUserPromTMB, ChipLocationTmbUserPromALCT]
   //
   void SetXsvfFilename(std::string filename);       //set the base filename for xsvf file handling 
   //                                                  N.B.  If this method is not called, no files will be written...
