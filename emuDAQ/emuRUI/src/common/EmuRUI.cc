@@ -146,7 +146,7 @@ string EmuRUI::generateLoggerName()
 
 string EmuRUI::extractParametersFromSOAPClientCreditMsg
 (
-    xoap::MessageReference msg, int& credits, int& prescaling 
+    xoap::MessageReference msg, unsigned int& instance, int& credits, int& prescaling 
 )
 throw (emuRUI::exception::Exception)
 {
@@ -165,15 +165,24 @@ throw (emuRUI::exception::Exception)
 // 	}
 	DOMNode *parameterNode = findNode(parameterList, "clientName");
         string clientName      = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
+        parameterNode = findNode(parameterList, "clientInstance");
+        string clientInstance  = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
         parameterNode = findNode(parameterList, "nEventCredits");
         string sc              = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
 	parameterNode          = findNode(parameterList, "prescalingFactor");
         string sp              = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
 
         LOG4CPLUS_DEBUG(logger_, 
-			"Received from "          << clientName << 
+			"Received from "          << clientName <<
+			" instance "              << clientInstance <<
 			" nEventCredits = "       << sc << 
 			", prescalingFactor = 1/" << sp );
+
+	istringstream ssi(clientInstance);
+	int ci;
+	ssi >> ci;
+	if ( ci >= 0 ) instance = ci;
+	else LOG4CPLUS_ERROR(logger_, "Instance of SOAP client " << clientName << "is negative." );
 
 	istringstream ssc(sc);
 	int ic;
@@ -204,13 +213,14 @@ xoap::MessageReference EmuRUI::processSOAPClientCreditMsg( xoap::MessageReferenc
 {
   xoap::MessageReference reply;
 
+  unsigned int instance = 0;
   int credits = 0, prescaling = 1;
-  string name = extractParametersFromSOAPClientCreditMsg( msg, credits, prescaling );
+  string name = extractParametersFromSOAPClientCreditMsg( msg, instance, credits, prescaling );
 
   // Find out who sent this and add the credits to its corresponding server
   bool knownClient = false;
   for ( std::vector<Client*>::iterator c=clients_.begin(); c!=clients_.end(); ++c ){
-    if ( (*c)->name->toString() == name ){
+    if ( (*c)->name->toString() == name && (*c)->instance->value_ == instance ){
       knownClient = true;
       (*c)->server->addCredits( credits, prescaling );
       // If client descriptor is not known (non-XDAQ client), send data now:
@@ -228,10 +238,10 @@ xoap::MessageReference EmuRUI::processSOAPClientCreditMsg( xoap::MessageReferenc
 
   // If this client is not yet known, create a new (non-persistent) server for it...
   if ( !knownClient ){
-    if ( createSOAPServer( name, false ) ){
+    if ( createSOAPServer( name, instance, false ) ){
       // ... and if successfully created, add credits
       for ( std::vector<Client*>::iterator c=clients_.begin(); c!=clients_.end(); ++c ){
-	if ( (*c)->server->getClientName() == name ){
+	if ( (*c)->server->getClientName() == name && (*c)->server->getClientInstance() == instance ){
 	  (*c)->server->addCredits( credits, prescaling );
 	  break;
 	}
@@ -302,13 +312,13 @@ xoap::MessageReference EmuRUI::onSOAPClientCreditMsg( xoap::MessageReference msg
   catch(xcept::Exception e)
     {
       LOG4CPLUS_ERROR(logger_,
-		      "Failed to process client credit message : "
+		      "Failed to process SOAP client credit message : "
 		      << stdformat_exception_history(e));
     }
   catch(...)
     {
       LOG4CPLUS_ERROR(logger_,
-		      "Failed to process client credit message : Unknown exception");
+		      "Failed to process SOAP client credit message : Unknown exception");
     }
   
   
@@ -364,13 +374,13 @@ void EmuRUI::onI2OClientCreditMsg(toolbox::mem::Reference *bufRef)
     catch(xcept::Exception e)
     {
         LOG4CPLUS_ERROR(logger_,
-            "Failed to process client credit message : "
+            "Failed to process I2O client credit message : "
              << stdformat_exception_history(e));
     }
     catch(...)
     {
         LOG4CPLUS_ERROR(logger_,
-            "Failed to process client credit message : Unknown exception");
+            "Failed to process I2O client credit message : Unknown exception");
     }
 
     // Free the client's event credit message
@@ -923,6 +933,7 @@ vector< pair<string, xdata::Serializable*> > EmuRUI::initAndGetStdConfigParams()
 
     for( unsigned int iClient=0; iClient<maxClients_; ++iClient ) {
       clientName_.push_back("");
+      clientInstance_.push_back(0);
       clientProtocol_.push_back("I2O");
       clientPoolSize_.push_back(0x100000); // 1MB
       prescaling_.push_back(0);
@@ -930,6 +941,8 @@ vector< pair<string, xdata::Serializable*> > EmuRUI::initAndGetStdConfigParams()
     }
     params.push_back(pair<string,xdata::Serializable *> 
 		     ("clientsClassName", &clientName_));
+    params.push_back(pair<string,xdata::Serializable *> 
+		     ("clientsInstance", &clientInstance_));
     params.push_back(pair<string,xdata::Serializable *> 
 		     ("clientsProtocol", &clientProtocol_));
     params.push_back(pair<string,xdata::Serializable *> 
@@ -1327,16 +1340,18 @@ void EmuRUI::destroyServers(){
   clients_.clear();
 }
 
-bool EmuRUI::createI2OServer( string clientName ){
+bool EmuRUI::createI2OServer( string clientName, unsigned int clientInstance  ){
   bool created = false;
   unsigned int iClient = clients_.size();
   if ( iClient < maxClients_ ){
-    *(dynamic_cast<xdata::String*> ( clientName_.elementAt( iClient )     )) = clientName;
-    *(dynamic_cast<xdata::String*> ( clientProtocol_.elementAt( iClient ) )) = "I2O";
-    *(dynamic_cast<xdata::Boolean*>( clientPersists_.elementAt( iClient ) )) = true;
+    *(dynamic_cast<xdata::String*>       ( clientName_.elementAt( iClient )     )) = clientName;
+    *(dynamic_cast<xdata::UnsignedLong*> ( clientInstance_.elementAt( iClient ) )) = clientInstance;
+    *(dynamic_cast<xdata::String*>       ( clientProtocol_.elementAt( iClient ) )) = "I2O";
+    *(dynamic_cast<xdata::Boolean*>      ( clientPersists_.elementAt( iClient ) )) = true;
     EmuI2OServer* s = new EmuI2OServer( this,
 					i2oExceptionHandler_,
 					clientName_.elementAt(iClient)->toString(),
+					clientInstance,
 					clientPoolSize_.elementAt(iClient),
 					prescaling_.elementAt(iClient),
 					onRequest_.elementAt(iClient),
@@ -1344,6 +1359,7 @@ bool EmuRUI::createI2OServer( string clientName ){
 					&logger_ );
 
     clients_.push_back( new Client( clientName_.elementAt(iClient),
+				    clientInstance_.elementAt(iClient),
 				    clientPersists_.elementAt(iClient),
 				    clientPoolSize_.elementAt(iClient),
 				    prescaling_.elementAt(iClient),
@@ -1355,15 +1371,17 @@ bool EmuRUI::createI2OServer( string clientName ){
   return created;
 }
 
-bool EmuRUI::createSOAPServer( string clientName, bool persistent ){
+bool EmuRUI::createSOAPServer( string clientName,  unsigned int clientInstance, bool persistent ){
   bool created = false;
   unsigned int iClient = clients_.size();
   if ( iClient < maxClients_ ){
-    *(dynamic_cast<xdata::String*> (     clientName_.elementAt( iClient ) )) = clientName;
-    *(dynamic_cast<xdata::String*> ( clientProtocol_.elementAt( iClient ) )) = "SOAP";
-    *(dynamic_cast<xdata::Boolean*>( clientPersists_.elementAt( iClient ) )) = persistent;
+    *(dynamic_cast<xdata::String*>       (     clientName_.elementAt( iClient ) )) = clientName;
+    *(dynamic_cast<xdata::UnsignedLong*> ( clientInstance_.elementAt( iClient ) )) = clientInstance;
+    *(dynamic_cast<xdata::String*>       ( clientProtocol_.elementAt( iClient ) )) = "SOAP";
+    *(dynamic_cast<xdata::Boolean*>      ( clientPersists_.elementAt( iClient ) )) = persistent;
     EmuSOAPServer* s = new EmuSOAPServer( this,
 					  clientName_.elementAt(iClient)->toString(),
+					  clientInstance,
 					  clientPersists_.elementAt(iClient),
 					  prescaling_.elementAt(iClient),
 					  onRequest_.elementAt(iClient),
@@ -1371,6 +1389,7 @@ bool EmuRUI::createSOAPServer( string clientName, bool persistent ){
 					  &logger_ );
     
     clients_.push_back( new Client( clientName_.elementAt(iClient),
+				    clientInstance_.elementAt(iClient),
 				    clientPersists_.elementAt(iClient),
 				    clientPoolSize_.elementAt(iClient),
 				    prescaling_.elementAt(iClient),
@@ -1391,22 +1410,27 @@ void EmuRUI::createServers(){
     xdata::Boolean *persists = dynamic_cast<xdata::Boolean*>( clientPersists_.elementAt(iClient) );
     // (Re)create it only if it has a name and is not a temporary server created on the fly
     if ( clientName_.elementAt(iClient)->toString() != "" && persists->value_ ){
+      unsigned int clientInstance = 
+	(dynamic_cast<xdata::UnsignedLong*> ( clientInstance_.elementAt( iClient ) ))->value_;
       LOG4CPLUS_INFO(logger_,
-		     clientName_.elementAt(iClient)->toString() + 
+		     clientName_.elementAt(iClient)->toString() << clientInstance << 
 		     "\'s server being created" );
       if ( clientProtocol_.elementAt(iClient)->toString() == "I2O" )
-	createI2OServer( clientName_.elementAt(iClient)->toString() );
+	createI2OServer( clientName_.elementAt(iClient)->toString(), clientInstance );
       else if ( clientProtocol_.elementAt(iClient)->toString() == "SOAP" )
-	createSOAPServer( clientName_.elementAt(iClient)->toString() );
+	createSOAPServer( clientName_.elementAt(iClient)->toString(), clientInstance );
       else
 	LOG4CPLUS_ERROR(logger_, "Unknown protocol \"" <<
 			clientProtocol_.elementAt(iClient)->toString() << 
 			"\" for client " <<
 			clientName_.elementAt(iClient)->toString() << 
+			" instance " <<
+			clientInstance <<
 			". Please use \"I2O\" or \"SOAP\".");
     }
   }
 }
+
 
 void EmuRUI::configureAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)

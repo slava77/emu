@@ -3,6 +3,7 @@
 
 EmuServer::EmuServer( xdaq::Application                    *parentApp,
 		      const string                          clientName,
+		      const unsigned int                    clientInstance,
 		      xdata::Serializable                  *prescaling,
 		      xdata::Serializable                  *onRequest,
 		      xdata::Serializable                  *creditsHeld,
@@ -10,6 +11,7 @@ EmuServer::EmuServer( xdaq::Application                    *parentApp,
   throw( xcept::Exception )
   :parentApp_                    (  parentApp ),
    clientName_                   (  clientName ),
+   clientInstance_               (  clientInstance ),
    prescaling_                   (  dynamic_cast<xdata::UnsignedLong*>( prescaling  ) ),
    sendDataOnRequestOnly_        (  dynamic_cast<xdata::Boolean*>     ( onRequest   ) ),
    nEventCreditsHeld_            (  dynamic_cast<xdata::UnsignedLong*>( creditsHeld ) ),
@@ -32,7 +34,7 @@ string EmuServer::createName(){
   oss << parentApp_->getApplicationDescriptor()->getClassName()
       << parentApp_->getApplicationDescriptor()->getInstance()
       << "-to-"
-      << clientName_;
+      << clientName_ << clientInstance_;
 
   return oss.str();
 }
@@ -42,12 +44,15 @@ void EmuServer::findClientDescriptor()
   try
     {
       clientDescriptor_ =
-	appGroup_->getApplicationDescriptor( clientName_, 0 );
+	appGroup_->getApplicationDescriptor( clientName_, clientInstance_ );
     }
   catch(xcept::Exception e)
     {
       clientDescriptor_ = 0;
-      LOG4CPLUS_WARN(logger_, name_ << " server could not find its client " << clientName_ );
+      LOG4CPLUS_WARN(logger_, 
+		     name_ << 
+		     " server could not find its client " << clientName_ <<
+		     " instance "<< clientInstance_ );
     }
 }
 

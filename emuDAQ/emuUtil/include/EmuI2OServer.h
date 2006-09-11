@@ -49,6 +49,7 @@ public:
   EmuI2OServer( xdaq::Application                    *parentApp,
 		toolbox::exception::HandlerSignature *i2oExceptionHandler,
 		const string                          clientName,
+		const unsigned int                    clientInstance,
 		xdata::Serializable                  *poolSize,
 		xdata::Serializable                  *prescaling,
 		xdata::Serializable                  *onRequest,
