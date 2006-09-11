@@ -1,4 +1,4 @@
-// $Id: EmuClient.cc,v 3.3 2006/03/23 22:17:40 banicz Exp $
+// $Id: EmuClient.cc,v 3.4 2006/09/11 12:16:54 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -270,16 +270,18 @@ void EmuClient::emuDataMsg(toolbox::mem::Reference *bufRef){
 		 << std::hex << setfill('0') << msg->errorFlag );
 
   // Send it to the end of the queue
-  dataMessages_.push_back( bufRef );
+//   dataMessages_.push_back( bufRef );
 
 //   // Process the oldest message, i.e., the one at the front of the queue
 //   toolbox::mem::Reference *oldestMessage = dataMessages_.front();
 //   printMessageReceived( oldestMessage );
 
   // Free the memory taken by the oldest message...
-  bufRef->release();
+//   oldestMessage->release();
   // ...and dismiss it from the queue
-  dataMessages_.erase( dataMessages_.begin() );
+//   dataMessages_.erase( dataMessages_.begin() );
+
+  bufRef->release();
 
 }
 
