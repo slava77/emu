@@ -45,10 +45,11 @@ private:
     throw( xoap::exception::Exception );
 
 public:
-  // clientName must be passed by value to make sure it remains unchanged here
-  // even after the it is modified in the parent app's info space
+  // clientName and clientInstance must be passed by value to make sure they remain unchanged here
+  // even after they are modified in the parent app's info space
   EmuSOAPServer( xdaq::Application                    *parentApp,
 		 const string                          clientName,
+		 const unsigned int                    clientInstance,
 		 xdata::Serializable                  *persists,
 		 xdata::Serializable                  *prescaling,
 		 xdata::Serializable                  *onRequest,

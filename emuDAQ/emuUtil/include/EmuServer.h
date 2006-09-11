@@ -38,6 +38,7 @@ protected:
   xdaq::ApplicationGroup                     *appGroup_;
 
   string                                      clientName_;
+  unsigned int                                clientInstance_;
   xdaq::ApplicationDescriptor                *clientDescriptor_;
 
 
@@ -59,6 +60,7 @@ public:
   // even after the it is modified in the parent app's info space
   EmuServer( xdaq::Application                    *parentApp,
 	     const string                          clientName,
+	     const unsigned int                    clientInstance,
 	     xdata::Serializable                  *prescaling,
 	     xdata::Serializable                  *onRequest,
 	     xdata::Serializable                  *creditsHeld,
@@ -66,6 +68,7 @@ public:
     throw( xcept::Exception );
   virtual ~EmuServer(){}
   string getClientName(){ return clientName_; }
+  unsigned int getClientInstance(){ return clientInstance_; }
   xdaq::ApplicationDescriptor* getClientDescriptor(){ return clientDescriptor_; }
   virtual unsigned long getClientTid()=0;
   void   addCredits( const int nCredits, const int prescaling );

@@ -60,6 +60,7 @@ private:
   static const unsigned int maxClients_ = 5; // max possible number of clients
 
   xdata::Vector<xdata::String>       clientName_;
+  xdata::Vector<xdata::UnsignedLong> clientInstance_;
   xdata::Vector<xdata::Boolean>      clientPersists_; // whether its server needs to be (re)created on config
   xdata::Vector<xdata::String>       clientProtocol_;
   xdata::Vector<xdata::UnsignedLong> clientPoolSize_;
@@ -68,6 +69,7 @@ private:
   xdata::Vector<xdata::UnsignedLong> creditsHeld_;
   struct Client {
     xdata::String                  *name;
+    xdata::UnsignedLong            *instance;
     xdata::Boolean                 *persists;
     xdata::UnsignedLong            *poolSize;
     xdata::UnsignedLong            *prescaling;
@@ -79,6 +81,7 @@ private:
     bool                            workLoopStarted;
     toolbox::task::ActionSignature *workLoopActionSignature;
     Client( xdata::Serializable*            n=NULL,
+	    xdata::Serializable*            i=NULL,
 	    xdata::Serializable*            e=NULL,
 	    xdata::Serializable*            s=NULL,
 	    xdata::Serializable*            p=NULL,
@@ -90,6 +93,7 @@ private:
 	    bool                            wls=false,
 	    toolbox::task::ActionSignature* wla=NULL   ){
       name                    = dynamic_cast<xdata::String*>      ( n );
+      instance                = dynamic_cast<xdata::UnsignedLong*>( i );
       persists                = dynamic_cast<xdata::Boolean*>     ( e );
       poolSize                = dynamic_cast<xdata::UnsignedLong*>( s );
       prescaling              = dynamic_cast<xdata::UnsignedLong*>( p );
@@ -122,12 +126,12 @@ private:
 //   void destroyDeviceReaders();
   void createServers();
   void destroyServers();
-  bool createI2OServer( string clientName );
-  bool createSOAPServer( string clientName, bool persistent=true );
+  bool createI2OServer( string clientName, unsigned int clientInstance );
+  bool createSOAPServer( string clientName, unsigned int clientInstance, bool persistent=true );
   void onI2OClientCreditMsg(toolbox::mem::Reference *bufRef);
   xoap::MessageReference onSOAPClientCreditMsg( xoap::MessageReference msg )
     throw (xoap::exception::Exception);
-  string extractParametersFromSOAPClientCreditMsg( xoap::MessageReference msg, int& credits, int& prescaling )
+  string extractParametersFromSOAPClientCreditMsg( xoap::MessageReference msg, unsigned int& instance, int& credits, int& prescaling )
     throw (emuRUI::exception::Exception);
   xoap::MessageReference processSOAPClientCreditMsg( xoap::MessageReference msg )
     throw( emuRUI::exception::Exception );

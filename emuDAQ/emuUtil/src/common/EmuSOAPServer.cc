@@ -8,6 +8,7 @@
 
 EmuSOAPServer::EmuSOAPServer( xdaq::Application                    *parentApp,
 			      const string                          clientName,
+			      const unsigned int                    clientInstance,
 			      xdata::Serializable                  *persists,
 			      xdata::Serializable                  *prescaling,
 			      xdata::Serializable                  *onRequest,
@@ -16,6 +17,7 @@ EmuSOAPServer::EmuSOAPServer( xdaq::Application                    *parentApp,
   throw( xcept::Exception )
   : EmuServer( parentApp,
 	       clientName,
+	       clientInstance,
 	       prescaling,
 	       onRequest,
 	       creditsHeld,

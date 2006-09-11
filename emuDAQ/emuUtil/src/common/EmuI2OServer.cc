@@ -4,6 +4,7 @@
 EmuI2OServer::EmuI2OServer( xdaq::Application                    *parentApp,
 			    toolbox::exception::HandlerSignature *i2oExceptionHandler,
 			    const string                          clientName,
+			    const unsigned int                    clientInstance,
 			    xdata::Serializable                  *poolSize,
 			    xdata::Serializable                  *prescaling,
 			    xdata::Serializable                  *onRequest,
@@ -12,6 +13,7 @@ EmuI2OServer::EmuI2OServer( xdaq::Application                    *parentApp,
   throw( xcept::Exception )
   : EmuServer           ( parentApp,
 			  clientName,
+			  clientInstance,
 			  prescaling,
 			  onRequest,
 			  creditsHeld,
@@ -257,6 +259,7 @@ void EmuI2OServer::fillBlock( toolbox::mem::Reference *bufRef,
 
     stdMsg->MessageSize      = i2oMessageSize >> 2;
     stdMsg->InitiatorAddress = tid_;
+    stdMsg->TargetAddress    = clientTid_;
     stdMsg->Function         = I2O_PRIVATE_MESSAGE;
     stdMsg->VersionOffset    = 0;
     stdMsg->MsgFlags         = 0;  // Point-to-point
