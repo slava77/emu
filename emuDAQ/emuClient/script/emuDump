@@ -52,11 +52,11 @@ while [[ $1 = -* ]]; do
 	    echo
 	    echo 'Example:'
 	    echo '--------'
-	    echo '  Send a request for one event to EmuFU running on emuslice02,'
+	    echo '  Send a request for one event to instance 0 of EmuRUI running on emuslice02,'
 	    echo '  listening on port 40000:'
-	    echo '      emuDump -a EmuFU -u emuslice02.cern.ch -p 40000'
+	    echo '      emuDump -a EmuRUI -u emuslice02.cern.ch -p 40000'
 	    echo '  Then get that event, and send no more event credits:'
-	    echo '      emuDump -a EmuFU -u emuslice02.cern.ch -p 40000 -c 0'
+	    echo '      emuDump -a EmuRUI -u emuslice02.cern.ch -p 40000 -c 0'
 	    exit 1 ;;
 	-i ) SERVERAPPINSTANCE=$2
 	    shift ;;
@@ -92,7 +92,7 @@ done
 
 HEADER="\"SOAPAction: urn:xdaq-application:class=$SERVERAPP,instance=$SERVERAPPINSTANCE\""
 
-MESSAGE="\"<soap-env:Envelope soap-env:encodingStyle=\\\"http://schemas.xmlsoap.org/soap/encoding/\\\" xmlns:soap-env=\\\"http://schemas.xmlsoap.org/soap/envelope/\\\" xmlns:xsd=\\\"http://www.w3.org/1999/XMLSchema\\\" xmlns:xsi=\\\"http://www.w3.org/1999/XMLSchema-instance\\\"><soap-env:Header/><soap-env:Body><xdaq:onClientCreditMessage soap-env:encodingStyle=\\\"http://schemas.xmlsoap.org/soap/encoding/\\\" xmlns:xdaq=\\\"urn:xdaq-soap:3.0\\\"><clientName xsi:type=\\\"xsd:string\\\">$CLIENTNAME</clientName><nEventCredits xsi:type=\\\"xsd:int\\\">$CREDITS</nEventCredits><prescalingFactor xsi:type=\\\"xsd:int\\\">$PRESCALINGFACTOR</prescalingFactor></xdaq:onClientCreditMessage></soap-env:Body></soap-env:Envelope>\""
+MESSAGE="\"<soap-env:Envelope soap-env:encodingStyle=\\\"http://schemas.xmlsoap.org/soap/encoding/\\\" xmlns:soap-env=\\\"http://schemas.xmlsoap.org/soap/envelope/\\\" xmlns:xsd=\\\"http://www.w3.org/1999/XMLSchema\\\" xmlns:xsi=\\\"http://www.w3.org/1999/XMLSchema-instance\\\"><soap-env:Header/><soap-env:Body><xdaq:onClientCreditMessage soap-env:encodingStyle=\\\"http://schemas.xmlsoap.org/soap/encoding/\\\" xmlns:xdaq=\\\"urn:xdaq-soap:3.0\\\"><clientName xsi:type=\\\"xsd:string\\\">$CLIENTNAME</clientName><clientInstance xsi:type=\\\"xsd:string\\\">0</clientInstance><nEventCredits xsi:type=\\\"xsd:int\\\">$CREDITS</nEventCredits><prescalingFactor xsi:type=\\\"xsd:int\\\">$PRESCALINGFACTOR</prescalingFactor></xdaq:onClientCreditMessage></soap-env:Body></soap-env:Envelope>\""
 
 WRITEOUT=""
 if [[ $VERBOSITY = "1" ]]; then
