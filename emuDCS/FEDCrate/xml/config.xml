@@ -23,12 +23,12 @@
        gbe_prescale="0"
        vmeirq_start="0" >
     </DDU>
-<!-- TF-->
+<!-- TF
     <DDU slot="20"
        gbe_prescale="0"
        vmeirq_start="0" >
     </DDU>
-
+-->
     <!--DCC slot="8" 
         fifoinuse="c9" >
     </DCC-->
