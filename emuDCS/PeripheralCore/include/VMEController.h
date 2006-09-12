@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.4 2006/09/06 12:38:10 rakness Exp $
+// $Id: VMEController.h,v 3.5 2006/09/12 15:50:01 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 3.5  2006/09/12 15:50:01  mey
+// New software changes to DMB abd CFEB
+//
 // Revision 3.4  2006/09/06 12:38:10  rakness
 // correct time stamp/copy vectors for user prom
 //
@@ -238,7 +241,8 @@ private:
  // I like to keep them private. 
   void load_cdac(const char *snd);
   void vme_adc(int ichp,int ichn,char *rcv);
-  void buckflash(const char *cmd,const char *inbuf,char *rcv);
+  //void buckflash(const char *cmd,const char *inbuf,char *rcv);
+  void buckflash(const char *cmd,int nbuf,const char *inbuf,char *rcv);
   void lowvolt(int ichp,int ichn,char *rcv);
   void scan_reset(int reg, const char *snd, int cnt2, char *rcv,int ird);
   void handshake_vme();

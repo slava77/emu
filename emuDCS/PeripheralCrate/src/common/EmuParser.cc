@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuParser.cc,v 3.1 2006/08/17 15:02:31 mey Exp $
+// $Id: EmuParser.cc,v 3.2 2006/09/12 15:50:01 mey Exp $
 // $Log: EmuParser.cc,v $
+// Revision 3.2  2006/09/12 15:50:01  mey
+// New software changes to DMB abd CFEB
+//
 // Revision 3.1  2006/08/17 15:02:31  mey
 // Modified Parser to accept globals
 //
@@ -49,6 +52,24 @@ bool EmuParser::fillInt(std::string item, int & target) {
   }
   return found;  
 }
+
+bool EmuParser::fillIntX(std::string item, int & target) {
+  bool found=false;
+  int value; 
+  XMLCh * name = xercesc::XMLString::transcode(item.c_str());
+  xercesc::DOMAttr * pAttributeNode = (xercesc::DOMAttr*) pAttributes_->getNamedItem(name);
+  if(pAttributeNode) {
+    int err = sscanf(xercesc::XMLString::transcode(pAttributeNode->getNodeValue()), "%x", &value);
+    if (err==0) std::cerr << "ERRORS in parsing!!!" << item << " code " << err << std::endl;
+    target = value;
+    found = true;
+#ifdef debugV
+    std::cout << "  " << item << " = " << target << std::endl;
+#endif
+  }
+  return found;  
+}
+
 
 
 bool EmuParser::fillString(std::string item, std::string & target) {

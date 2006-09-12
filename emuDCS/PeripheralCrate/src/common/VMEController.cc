@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.5 2006/09/06 12:38:11 rakness Exp $
+// $Id: VMEController.cc,v 3.6 2006/09/12 15:50:01 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.6  2006/09/12 15:50:01  mey
+// New software changes to DMB abd CFEB
+//
 // Revision 3.5  2006/09/06 12:38:11  rakness
 // correct time stamp/copy vectors for user prom
 //
@@ -369,9 +372,9 @@ int VMEController::do_schar(int open_or_close)
 int udelay(long int itim)
 {
   usleep(5000);
-  std::cout << "Udelay..." << std::endl;
-  std::cout << "Waiting...." << std::endl;
-  std::cout << "udelay..." << itim << std::endl;
+  //std::cout << "Udelay..." << std::endl;
+  //std::cout << "Waiting...." << std::endl;
+  //std::cout << "udelay..." << itim << std::endl;
   usleep(itim*10);
   //
   struct  timeval tp;
@@ -991,7 +994,7 @@ void VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sh
     //
     packet_delay=fpacket_delay+1;
     packet_delay=packet_delay+15; 
-    if ( usedelay_ ) udelay(packet_delay);
+    //if ( usedelay_ ) udelay(packet_delay);
     //
     fpacket_delay=0.0;
     packet_delay=0;

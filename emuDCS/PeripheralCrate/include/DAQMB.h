@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.1 2006/08/02 12:24:55 mey Exp $
+// $Id: DAQMB.h,v 3.2 2006/09/12 15:50:01 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.2  2006/09/12 15:50:01  mey
+// New software changes to DMB abd CFEB
+//
 // Revision 3.1  2006/08/02 12:24:55  mey
 // Added LctL1aDelay
 //
@@ -174,8 +177,11 @@ public:
   int  memchk(DEVTYPE);
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
-  
   //
+  void dmb_readstatus();
+  void cfebs_readstatus();
+  void setxlatency(int dword);
+  // 
   void SFMWriteProtect();
   void LoadCFEBDelaySFM();
   void LoadDMBIdSFM();
@@ -233,7 +239,14 @@ public:
   void buckflash_load(char *fshift);
   void buckflash_read(char *rshift);
   void buckflash_pflash(); 
-  void buckflash_erase(); 
+  void buckflash_erase();
+  int  Fill_BUCK_FLASH_contents(char * buf);
+  void jtag_buckflash_engine(int nbuf,char *buf,int n,int t,int d);
+  void jtag_buckflash_engine2(int nbuf,char *buf,int n,int *val);
+  void buckflash_dump(int nbuf,char *buf);
+  void buckflash_load2(int nbytes,char *fshift);
+  void buckflash_read2(int nbytes,char *rshift);
+  //
   void preamp_initx();
 // DAQMB program proms (electronics experts only)
   void epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum);
@@ -268,6 +281,12 @@ public:
   void SetInjectorDac(float value){inj_dac_set_=value;}
   void SetCompThresh(float value){set_comp_thresh_=value;}
   //
+  void SetCompModeCfeb(int cfeb, int value){comp_mode_cfeb_[cfeb]=value;}
+  void SetCompTimingCfeb(int cfeb, int value){comp_timing_cfeb_[cfeb]=value;}
+  void SetCompThresholdsCfeb(int cfeb, float value){comp_thresh_cfeb_[cfeb]=value;}
+  void SetPreBlockEndCfeb(int cfeb, int value){pre_block_end_cfeb_[cfeb]=value;}
+  void SetL1aExtraCfeb(int cfeb, int value){L1A_extra_cfeb_[cfeb]=value;}
+  //
   void LctL1aDelay(int);
   void toggle_pedestal();
   void pulse(int Num_pulse,unsigned int pulse_delay);
@@ -279,11 +298,6 @@ public:
 
   // RPW stuff from external  really should be CFEB and board class
   // Buckeye shift variables
-  int shift_array[5][6][16];
-  static const int nchips[5];
-  static const int chip_use[5][6];
-  static const int layers[6];
-
   // RPW utilities
   // rtrig
   void toggle_rndmtrg_start();
@@ -378,7 +392,20 @@ public:
   }
   //
 
+  int shift_array[5][6][16];
+
+  inline void SetShiftArray(int cfeb, int chip, int chan, int value){
+    shift_array_[cfeb][chip][chan] = value;
+  }
+
  private:
+
+  int shift_array_[5][6][16];
+  static const int nchips[5];
+  static const int chip_use[5][6];
+  static const int layers[6];
+
+
   Chamber * csc_;
   /// CFEB Data Available delay adjustment (25ns per step); 
   int feb_dav_delay_;
@@ -403,7 +430,6 @@ public:
   float inj_dac_set_; 
   /// in volts, comparator threshold
   float set_comp_thresh_;
-
   // apparently not used...
   int feb_clock_delay_;
   /// Comparator timing setting
@@ -417,6 +443,14 @@ public:
   int crate_id_;
   int toogle_bxn_;
   int ALCT_dav_delay_;
+  //
+  int cfeb_clk_delay_;
+  int xlatency_;
+  int comp_mode_cfeb_[5];
+  int comp_timing_cfeb_[5];
+  int pre_block_end_cfeb_[5];
+  int L1A_extra_cfeb_[5];
+  float comp_thresh_cfeb_[5];
   //
   int shift_out[5][36];
   std::ostream * MyOutput_ ;

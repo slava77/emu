@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
+// $Id: DAQMBParser.cc,v 3.1 2006/09/12 15:50:01 mey Exp $
 // $Log: DAQMBParser.cc,v $
+// Revision 3.1  2006/09/12 15:50:01  mey
+// New software changes to DMB abd CFEB
+//
 // Revision 3.0  2006/07/20 21:15:48  geurts
 // *** empty log message ***
 //
@@ -119,6 +122,7 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate)
     }
     //
     int number=0;   
+    int kill_chip[6]={0x0000,0x0000,0x0000,0x0000,0x0000,0x0000};
     
     xercesc::DOMNode * daughterNode = pNode->getFirstChild();
 
@@ -130,6 +134,58 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate)
 	    //daqmb_->SendOutput("CFEB");
 	    if ( number <5 ){
 	      CFEB cfeb(number);
+	      //
+	      //parser_.fillInt("comp_mode",daqmb_->comp_mode_cfeb_[number]);
+	      //
+	      int ivalue;
+	      if ( parser_.fillInt("comp_mode",ivalue)){
+		daqmb_->SetCompModeCfeb(number,ivalue);
+	      }
+	      //
+	      //parser_.fillInt("comp_timing", daqmb_->comp_timing_cfeb_[number]);
+	      //
+	      if ( parser_.fillInt("comp_timing",ivalue)){
+		daqmb_->SetCompTimingCfeb(number,ivalue);
+	      }
+	      //
+	      //parser_.fillFloat("comp_thresh", daqmb_->comp_thresh_cfeb_[number]);
+	      //
+	      int fvalue;
+	      if ( parser_.fillInt("comp_timing",fvalue)){
+		daqmb_->SetCompThresholdsCfeb(number,fvalue);
+	      }
+	      //
+	      //parser_.fillInt("pre_block_end", daqmb_->pre_block_end_cfeb_[number]);
+	      //
+	      if ( parser_.fillInt("pre_block_end",ivalue)){
+		daqmb_->SetPreBlockEndCfeb(number,ivalue);
+	      }
+	      //parser_.fillInt("L1A_extra", daqmb_->L1A_extra_cfeb_[number]);
+	      //
+	      if ( parser_.fillInt("L1A_extra",ivalue)){
+		daqmb_->SetL1aExtraCfeb(number,ivalue);
+	      }
+	      //
+	      parser_.fillIntX("kill_chip0",kill_chip[0]);
+	      parser_.fillIntX("kill_chip1",kill_chip[1]);
+	      parser_.fillIntX("kill_chip2",kill_chip[2]);
+	      parser_.fillIntX("kill_chip3",kill_chip[3]);
+	      parser_.fillIntX("kill_chip4",kill_chip[4]);
+	      parser_.fillIntX("kill_chip5",kill_chip[5]);
+	      //
+	      for(int chip=0;chip<6;chip++){
+		for(int chan=0;chan<16;chan++){
+		  unsigned short int mask=(1<<chan);
+		  if((mask&kill_chip[chip])==0x0000){
+		    //daqmb_->shift_array_[number][5-chip][chan]=NORM_RUN;
+		    daqmb_->SetShiftArray(number,5-chip,chan,NORM_RUN);
+		  }else{
+		    //daqmb_->shift_array_[number][5-chip][chan]=KILL_CHAN;
+		    daqmb_->SetShiftArray(number,5-chip,chan,KILL_CHAN);
+		  }
+		}
+	      } 	      
+	      //
 	      daqmb_->cfebs_.push_back(cfeb);
 	    } else {
 	      std::cout << "ERROR: CFEB range 0-4" <<std::endl;
