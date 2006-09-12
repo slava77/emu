@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.4 2006/08/04 15:49:58 mey Exp $
+// $Id: DAQMB.cc,v 3.5 2006/09/12 15:50:01 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.5  2006/09/12 15:50:01  mey
+// New software changes to DMB abd CFEB
+//
 // Revision 3.4  2006/08/04 15:49:58  mey
 // Update
 //
@@ -268,12 +271,21 @@ DAQMB::DAQMB(Crate * theCrate,int newslot):
   calibration_LCT_delay_(8), calibration_l1acc_delay_(22),
   pulse_delay_(15), inject_delay_(15),
   pul_dac_set_(1.0), inj_dac_set_(1.0),
-  set_comp_thresh_(0.06), feb_clock_delay_(0),
+  set_comp_thresh_(0.03), feb_clock_delay_(0),
   comp_timing_(2), comp_mode_(2), pre_block_end_(7),
   l1a_lct_counter_(-1), cfeb_dav_counter_(-1), 
   tmb_dav_counter_(-1), alct_dav_counter_(-1), cable_delay_(0), 
-  crate_id_(0xfe), toogle_bxn_(1)
+  crate_id_(0xfe), toogle_bxn_(1), cfeb_clk_delay_(15), xlatency_(2)
 {
+  //
+  for (int cfeb=0; cfeb<5; cfeb++) {
+    comp_mode_cfeb_[cfeb]   = 2;
+    comp_timing_cfeb_[cfeb] = 2;
+    comp_thresh_cfeb_[cfeb] = 0.03;
+    pre_block_end_cfeb_[cfeb] = 7;
+    L1A_extra_cfeb_[cfeb] = 0;
+  }
+  //
   MyOutput_ = &std::cout ;
   cfebs_.clear();
   std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
@@ -373,11 +385,17 @@ void DAQMB::configure() {
    set_cal_dac(inj_dac_set_, pul_dac_set_);
    load_strip(); //enable..disable CFEBs
    //
+   (*MyOutput_) << "Set crate id " << crate_id_ << std::endl ;
+   setcrateid(crate_id_);
+   //
+   (*MyOutput_) << "Set crate id " << crate_id_ << std::endl ;
+   setxlatency(xlatency_);
+   //
+   (*MyOutput_) << "Set cfeb clk delay " << cfeb_clk_delay_ << std::endl ;
+   setfebdelay(cfeb_clk_delay_);
+   //
    (*MyOutput_) << "Set cable delay " << cable_delay_ << std::endl ;
    setcbldly(cable_delay_);
-   //
-   //(*MyOutput_) << "&&&&&&&&&&&&&&&& Set crate id " << crate_id_ << std::endl ;
-   setcrateid(crate_id_);
    //
    (*MyOutput_) << "Toogle bxn " << crate_id_ << std::endl ;
    if (toogle_bxn_) ToogleBXN();
@@ -389,6 +407,18 @@ void DAQMB::configure() {
    // Load FLASH memory
    //
    WriteSFM();
+   //
+   // Now buckflash
+   //
+   char * flash_content=(char *)malloc(500);
+   int n_byts = Fill_BUCK_FLASH_contents(flash_content);
+   buckflash_erase();
+   buckflash_load2(n_byts,flash_content);
+   sleep(2);
+   buckflash_pflash();
+   sleep(5);
+   buckflash_init();
+   sleep(1); 
    //
 }
 //
@@ -1001,8 +1031,192 @@ float DAQMB::adc16(int ichp,int ichn){
   return cval;
 }
 
-/* Thermometers */
 
+void DAQMB::dmb_readstatus()
+{
+
+  int i;
+
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=10;    //F10 read DMB6CNTL status
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+
+  cmd[0]=VTX2_USR2;
+  for (i=0;i<10;i++)  sndbuf[i]=0;
+
+  devdo(MCTRL,6,cmd,80,sndbuf,rcvbuf,1);
+  /* DMB6CNTL status: bit[14:7]: L1A buffer length
+                      bit[19:15]: CFEB_DAV_ERROR
+                      bit[26:20]: FIFO_EMPTY: 1 means empty
+                      bit[33:27]: FIFO_Full: 1 means full
+                      bit[40:34]: FIFO_HF: 1 means less than half_full
+                      bit[47:41]: FIFO_PAE: 1 means more than PAE words
+  */
+  i=((rcvbuf[1]<<1)&0xfe)+((rcvbuf[0]>>7)&0x01); 
+  printf(" L1A buffer length: %02x",i); printf("h \n");
+  i=((rcvbuf[2]<<1)&0x1e)+((rcvbuf[1]>>7)&0x01); 
+  printf(" DAV Error: %02x",i); printf("h \n");
+  i=((rcvbuf[3]<<4)&0x70)+((rcvbuf[2]>>4)&0x0f); 
+  printf(" FIFO Empty: %02x",i); printf("h   1 means empty \n");
+  i=((rcvbuf[4]<<5)&0x60)+((rcvbuf[3]>>3)&0x1f); 
+  printf(" FIFO Full: %02x",i); printf("h   1 means full\n");
+  i=((rcvbuf[5]<<6)&0x40)+((rcvbuf[4]>>2)&0x03f); 
+  printf(" FIFO half_full: %02x",i); printf("h 1 means less than half_full\n");
+  i=(rcvbuf[5]>>1)&0x7f; 
+  printf(" FIFO PAE: %03x",i); printf("h  1 means more than PAE words\n");
+  printf(" GUs new 32 bits: %02x%02x%02x%02x\n",rcvbuf[9]&0xff,rcvbuf[8]&0xff,rcvbuf[7]&0xff,rcvbuf[6]&0xff);
+
+  i=((rcvbuf[6]>>2)&0x3f)+((rcvbuf[7]<<6)&0xc0); 
+  printf(" Cable_Delay: %02xh \n",i);
+  i=((rcvbuf[7]>>2)&0x3f)+((rcvbuf[8]<<6)&0x40); 
+  printf(" Crate ID: %02xh \n",i);
+  i=((rcvbuf[8]>>1)&0x1f); 
+  printf(" FEB_Delay: %02xh \n",i);
+  i=((rcvbuf[8]>>6)&0x03); 
+  printf(" Extra L1A latency: %02xh \n",i);
+
+  cmd[0]=VTX2_BYPASS;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
+
+}
+
+void DAQMB::cfebs_readstatus()
+{
+ int i,nwrds;
+ char febbuf[5][3];
+ int iuse[5]={0,0,0,0,0};
+
+  std::cout << "DAQMB: cfebs_readstatus" << std::endl;
+  for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
+    DEVTYPE dv = cfebs_[icfeb].scamDevice();
+    int idv=(int)(dv-F1SCAM); 
+    iuse[idv]=1;
+    febbuf[idv][0]='\0';
+    febbuf[idv][1]='\0';
+    febbuf[idv][2]='\0';
+    if(iuse[idv]==1){
+      cmd[0]=VTX2_USR1;
+      sndbuf[0]=STATUS_CS;
+      devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+      cmd[0]=VTX2_BYPASS;
+      devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
+      cmd[0]=VTX2_USR2;
+      sndbuf[0]=0;
+      sndbuf[1]=0;
+      sndbuf[2]=0;
+      devdo(dv,5,cmd,20,sndbuf,rcvbuf,1);
+      febbuf[idv][0]=rcvbuf[0];
+      febbuf[idv][1]=rcvbuf[1];
+      febbuf[idv][2]=rcvbuf[2];
+      printf(" SCA rcvbuf *** %02x %02x %02x \n",rcvbuf[0]&0xFF,rcvbuf[1]&0xFF,rcvbuf[2]&0xFF);
+      cmd[0]=VTX2_BYPASS;
+      devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
+    }
+  }
+  printf("Boards in use              ");
+  for(i=0;i<5;i++){
+    if(iuse[i]==1){
+      printf("  :  %d",i+1);
+    }
+  }
+  printf("\n");
+  printf("# Words in LCT FIFO        ");
+  for(i=0;i<5;i++){
+    if(iuse[i]==1){
+      nwrds=febbuf[i][0]&0xF;
+      printf("  : %2.2d",nwrds);
+    }
+  }
+  printf("\n");
+  printf("LCT FIFO Empty             ");
+  for(i=0;i<5;i++){
+    if(iuse[i]==1){
+      printf("  :  %d",(~febbuf[i][1]>>2)&1);
+    }
+  }
+  printf("\n");
+  printf("LCT FIFO full              ");
+  for(i=0;i<5;i++){
+    if(iuse[i]==1){
+      printf("  :  %d",(febbuf[i][0]>>4)&1);
+    }
+  }
+  printf("\n");
+  printf("# Words in L1Acc FIFO      ");
+  for(i=0;i<5;i++){
+    if(iuse[i]==1){
+      nwrds=febbuf[i][0]>>5&0x7;
+      nwrds=nwrds|(febbuf[i][1]&1)<<3;
+      printf("  : %2.2d",nwrds);
+    }
+  }
+  printf("\n");
+  printf("L1Acc FIFO Empty           ");
+  for(i=0;i<5;i++){
+    if(iuse[i]==1){
+      printf("  :  %d",(febbuf[i][1]>>3)&1);
+    }
+  }
+  printf("\n");
+  printf("L1Acc FIFO Full            ");
+  for(i=0;i<5;i++){
+    if(iuse[i]==1){
+      printf("  :  %d",febbuf[i][1]>>1&1);
+    }
+  }
+  printf("\n");
+  printf("Pop FIFO1                  ");
+  for(i=0;i<5;i++){
+    if(iuse[i]==1){
+      printf("  :  %d",(febbuf[i][1]>>4)&1);
+    }
+  }
+  printf("\n");
+  printf("Push to CPLD               ");
+  for(i=0;i<5;i++){
+    if(iuse[i]==1){
+      printf("  :  %d",(febbuf[i][1]>>5)&1);
+    }
+  }
+  printf("\n");
+  printf("SCA Overwrite              ");
+  for(i=0;i<5;i++){
+    if(iuse[i]==1){
+      printf("  :  %d",(febbuf[i][1]>>6)&1);
+    }
+  }
+  printf("\n");
+  printf("Busy (taking data)         ");
+  for(i=0;i<5;i++){
+    if(iuse[i]==1){
+      printf("  :  %d",(febbuf[i][1]>>7)&1);
+    }
+  }
+  printf("\n");
+}
+
+void DAQMB::setxlatency(int dword)
+{
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=40;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR2;
+  sndbuf[0]=dword&0X03; 
+  sndbuf[1]=(dword>>8)&0xFF;
+  sndbuf[2]=(dword>>16)&0xFF;
+  devdo(MCTRL,6,cmd,2,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=0;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_BYPASS;
+  sndbuf[0]=0;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+}
+
+
+/* Thermometers */
 
 float DAQMB::readthermx(int feb)
 {
@@ -1166,7 +1380,13 @@ DEVTYPE dv;
       cmd[0]=PROM_BYPASS;
       sndbuf[0]=0;
       devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
+
+      std::cout << std::hex << ibrd << " " << rcvbuf[0] 
+		<< " " << rcvbuf[1]<< " " 
+		<< rcvbuf[2] << " " << rcvbuf[3] << std::endl;
+
       return ibrd;
+
 }
 
 unsigned long int  DAQMB::mbpromid(int prom)
@@ -1662,14 +1882,37 @@ void DAQMB::buckflash_load(char *fshift)
  //The exact number needed is 295.
 }
 
+void DAQMB::buckflash_load2(int nbytes,char *fshift)
+{
+ cmd[0]=0;
+ devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,0); // initialize programming
+ for(int i=0;i<nbytes;i++)sndbuf[i]=fshift[i];
+ cmd[0]=1;
+ devdo(BUCSHF,1,cmd,nbytes*8,sndbuf,rcvbuf,0); // load buckeye pattern
+ //The exact number needed is nbits.
+}
+
+
 void DAQMB::buckflash_read(char *rshift)
 {
  cmd[0]=0;
  devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,1); // initialize programming 
  cmd[0]=3;
- devdo(BUCSHF,1,cmd,0,sndbuf,rshift,1); 
+ //used to be devdo(BUCSHF,1,cmd,0,sndbuf,rshift,1); 
+ devdo(BUCSHF,1,cmd,295*8,sndbuf,rshift,1); 
  /* return 296 bits */
 }
+
+void DAQMB::buckflash_read2(int nbytes,char *rshift)
+{
+  printf("entered buckflash_read2 \n");
+  cmd[0]=0;
+  devdo(BUCSHF,1,cmd,0,sndbuf,rcvbuf,1); // initialize programming
+  cmd[0]=3;
+  devdo(BUCSHF,1,cmd,nbytes*8,sndbuf,rshift,1);
+  /* return bits */
+}
+
 
 void DAQMB::buckflash_pflash()
 {
@@ -1705,9 +1948,295 @@ void DAQMB::buckflash_erase()
   //
 }
 
+int DAQMB::Fill_BUCK_FLASH_contents(char * flash_content)
+{
+  //
+  //int  *flash_bytsiz_p;
+  //char *flash_content;
+  //
+  //flash_bytsiz_p=(int *)malloc(8);
+  //flash_content=(char *)malloc(500);
+  //
+  int tms;
+  int tdo[5];
+  char tbits[6]={0x01,0x02,0x04,0x08,0x10,0x20};
+
+  int flash_bytsiz=0;
+
+  // fill buckeye shift
+ 
+  printf(" buckeye shift \n");
+  for(int chip=0;chip<6;chip++){
+    for(int chan=0;chan<16;chan++){
+      for(int bit=0;bit<3;bit++){
+        tms=0;
+        flash_content[flash_bytsiz]=tms;
+        for(int cfeb=0;cfeb<5;cfeb++){
+          tdo[cfeb]=0x00;
+          if(shift_array[cfeb][chip][16-chan-1]&(1<<bit))tdo[cfeb]=tbits[cfeb+1];; 
+          flash_content[flash_bytsiz]=flash_content[flash_bytsiz]|tdo[cfeb];
+        }
+        buckflash_dump(flash_bytsiz,flash_content);
+        flash_bytsiz=flash_bytsiz+1;
+      }
+    }
+  }
+
+  // fill 5 bit flash end word;
+  
+  printf("buck shift end \n");
+  int tmd_end_word=3;
+  for(int bit=0;bit<5;bit++){
+    tms=0;
+    if(tmd_end_word&(1<<bit))tms=1;
+    flash_content[flash_bytsiz]=tms; 
+    buckflash_dump(flash_bytsiz,flash_content);
+    flash_bytsiz=flash_bytsiz+1;
+  }
+
+  // now jtag stuff
+
+  int ninstr=4;
+  int instr_t=3;
+  int instr_d=0;
+
+  int ndata=4;
+  int data_t=3;
+  int data_d=0;
+
+  int nusr1=5;
+  int usr1_t=0;
+  int usr1_d=2;
+
+  int nbypass=8;
+  int bypass_t=0x0080;
+  int bypass_d=0x00ff;
+
+  int nusr2=5;
+  int usr2_t=0;
+  int usr2_d=3;
+
+  int nf7=8;
+  int f7_t=0;
+  int f7_d=7;
+
+  int nxtra=1;
+  int xtra_t=1;
+  int xtra_d=0;   
+
+  int nladc=8;
+  int ladc_t=0;
+  int ladc_d=4;
+
+  int neoi=1;
+  int eoi_t=1;
+  int eoi_d=0;
+
+  int nidle=3;
+  int idle_t=1;
+  int idle_d=0;
+
+  printf(" instr \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,ninstr,instr_t,instr_d);
+  flash_bytsiz=flash_bytsiz+ninstr;
+
+  printf(" usr1 \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,nusr1,usr1_t,usr1_d);
+  flash_bytsiz=flash_bytsiz+nusr1;
+
+  printf(" prom_bypass \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,nbypass,bypass_t,bypass_d);
+  flash_bytsiz=flash_bytsiz+nbypass;
+
+  printf(" instr \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,ninstr,instr_t,instr_d);
+  flash_bytsiz=flash_bytsiz+ninstr;
+
+  printf(" f7 \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,nf7,f7_t,f7_d);
+  flash_bytsiz=flash_bytsiz+nf7;
+
+  printf(" xtra bit \n"); 
+  jtag_buckflash_engine(flash_bytsiz,flash_content,nxtra,xtra_t,xtra_d);
+  flash_bytsiz=flash_bytsiz+nxtra;
+
+  printf(" end of instr \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,neoi,eoi_t,eoi_d);
+  flash_bytsiz=flash_bytsiz+neoi;
+
+  printf(" instr \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,ninstr,instr_t,instr_d);
+  flash_bytsiz=flash_bytsiz+ninstr;
+
+  printf(" usr2 \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,nusr2,usr2_t,usr2_d);
+  flash_bytsiz=flash_bytsiz+nusr2;
+
+  printf(" prom_bypass \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,nbypass,bypass_t,bypass_d);
+  flash_bytsiz=flash_bytsiz+nbypass;
+
+  printf(" data \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,ndata,data_t,data_d);
+  flash_bytsiz=flash_bytsiz+ndata;
+
+  printf(" comp mode ");
+  for(int cfeb=0;cfeb<5;cfeb++)printf(" %d",comp_mode_cfeb_[cfeb]);
+  printf("\n");
+  jtag_buckflash_engine2(flash_bytsiz,flash_content,2,comp_mode_cfeb_);
+  flash_bytsiz=flash_bytsiz+2;
+
+  printf(" comp timing "); 
+  for(int cfeb=0;cfeb<5;cfeb++)printf(" %d",comp_timing_cfeb_[cfeb]);
+  printf("\n");
+  jtag_buckflash_engine2(flash_bytsiz,flash_content,3,comp_timing_cfeb_);
+  flash_bytsiz=flash_bytsiz+3;
+
+  printf(" preblockend ");  
+  for(int cfeb=0;cfeb<5;cfeb++)printf(" %d",pre_block_end_cfeb_[cfeb]);
+  printf("\n");
+  jtag_buckflash_engine2(flash_bytsiz,flash_content,4,pre_block_end_cfeb_);
+  flash_bytsiz=flash_bytsiz+4;
+
+  printf("L1A extra latency ");
+  for(int cfeb=0;cfeb<5;cfeb++)printf(" %d",L1A_extra_cfeb_[cfeb]);
+  printf("\n");
+  jtag_buckflash_engine2(flash_bytsiz,flash_content,2,L1A_extra_cfeb_);
+  flash_bytsiz=flash_bytsiz+2;
+
+  printf(" xtra bit \n"); 
+  jtag_buckflash_engine(flash_bytsiz,flash_content,nxtra,xtra_t,xtra_d);
+  flash_bytsiz=flash_bytsiz+nxtra;
+
+  printf(" xtra bit \n"); 
+  jtag_buckflash_engine(flash_bytsiz,flash_content,nxtra,xtra_t,xtra_d);
+  flash_bytsiz=flash_bytsiz+nxtra;
+
+  printf(" instr \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,ninstr,instr_t,instr_d);
+  flash_bytsiz=flash_bytsiz+ninstr;
+
+  printf(" usr1 \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,nusr1,usr1_t,usr1_d);
+  flash_bytsiz=flash_bytsiz+nusr1;
+
+  printf(" prom_bypass \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,nbypass,bypass_t,bypass_d);
+  flash_bytsiz=flash_bytsiz+nbypass;
+
+  printf(" instr \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,ninstr,instr_t,instr_d);
+  flash_bytsiz=flash_bytsiz+ninstr;
+
+  printf(" F4 \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,nladc,ladc_t,ladc_d);
+  flash_bytsiz=flash_bytsiz+nladc;
+
+  printf(" xtra bit \n"); 
+  jtag_buckflash_engine(flash_bytsiz,flash_content,nxtra,xtra_t,xtra_d);
+  flash_bytsiz=flash_bytsiz+nxtra;
+
+  printf(" end of instr \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,neoi,eoi_t,eoi_d);
+  flash_bytsiz=flash_bytsiz+neoi;
+
+  printf(" instr \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,ninstr,instr_t,instr_d);
+  flash_bytsiz=flash_bytsiz+ninstr;
+
+  printf(" usr2 \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,nusr2,usr2_t,usr2_d);
+  flash_bytsiz=flash_bytsiz+nusr2;
+
+  printf(" prom_bypass \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,nbypass,bypass_t,bypass_d);
+  flash_bytsiz=flash_bytsiz+nbypass;
+
+  printf(" instr \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,ninstr,instr_t,instr_d);
+  flash_bytsiz=flash_bytsiz+ninstr;
+
+  int thresh[5];
+  for(int cfeb=0;cfeb<5;cfeb++){
+   char dt[2];
+   int dthresh=int(4095*((3.5-comp_thresh_cfeb_[cfeb])/3.5)); 
+   dt[0]=0;
+   dt[1]=0;
+   for(int i=0;i<8;i++){
+     dt[0]|=((dthresh>>(i+7))&1)<<(7-i);
+     dt[1]|=((dthresh>>i)&1)<<(6-i);
+   }
+   dt[0]=((dt[1]<<7)&0x80) + ((dt[0]>>1)&0x7f);
+   dt[1]=dt[1]>>1;
+   thresh[cfeb]=((dt[1]<<8)&0xff00)|(dt[0]&0x00ff);
+  }
+
+  printf(" comp_thresh:");
+  for(int cfeb=0;cfeb<5;cfeb++)printf(" %7.3f",comp_thresh_cfeb_[cfeb]);
+  printf("\n");
+  jtag_buckflash_engine2(flash_bytsiz,flash_content,15,thresh);
+  flash_bytsiz=flash_bytsiz+15;
+
+  printf(" xtra bit \n"); 
+  jtag_buckflash_engine(flash_bytsiz,flash_content,nxtra,xtra_t,xtra_d);
+  flash_bytsiz=flash_bytsiz+nxtra;
+
+  printf(" idle mode \n");
+  jtag_buckflash_engine(flash_bytsiz,flash_content,nidle,idle_t,idle_d);
+  flash_bytsiz=flash_bytsiz+nidle;
+  //flash_bytsiz_p[0]=flash_bytsiz;
+  printf(" total number of bytes %d \n",flash_bytsiz);
+  return flash_bytsiz;
+}
+
+void DAQMB::jtag_buckflash_engine(int nbuf,char *buf,int n,int t,int d)
+{
+  int tms;
+  int tdo[5];
+  char tbits[6]={0x01,0x02,0x04,0x08,0x10,0x20};
+  int tbuf=nbuf;
+  for(int i=0;i<n;i++){
+    tms=0;
+    if(t&(1<<i))tms=tbits[0];
+    for(int cfeb=0;cfeb<5;cfeb++){
+      tdo[cfeb]=0; 
+      if(d&(1<<i))tdo[cfeb]=tbits[cfeb+1];
+    }
+    buf[tbuf]=tms|tdo[0]|tdo[1]|tdo[2]|tdo[3]|tdo[4];
+    buckflash_dump(tbuf,buf);
+    tbuf=tbuf+1;
+  }
+}
+
+void DAQMB::jtag_buckflash_engine2(int nbuf,char *buf,int n,int *val)
+{
+  int tms;
+  int tdo[5];
+  char tbits[6]={0x01,0x02,0x04,0x08,0x10,0x20};
+  int tbuf=nbuf;
+  for(int i=0;i<n;i++){
+    tms=0;
+    for(int cfeb=0;cfeb<5;cfeb++){
+      tdo[cfeb]=0; 
+      if(val[cfeb]&(1<<i))tdo[cfeb]=tbits[cfeb+1];
+    }
+    buf[tbuf]=tms|tdo[0]|tdo[1]|tdo[2]|tdo[3]|tdo[4];
+    buckflash_dump(tbuf,buf);
+    tbuf=tbuf+1;
+  }
+}
+
+void DAQMB::buckflash_dump(int nbuf,char *buf)
+{
+  int d[8]={0,0,0,0,0,0,0,0};
+  for(int i=0;i<8;i++){
+    if(buf[nbuf]&(1<<i))d[i]=1;
+  }
+  printf(" %03d %1d %1d %1d %1d %1d %1d %1d %1d \n",nbuf,d[0],d[1],d[2],d[3],d[4],d[5],d[6],d[7]);
+}
+
 
 // DAQMB program proms
-
 
 void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum)
 {
@@ -1723,9 +2252,9 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
   int nowrit=0;
   // 
   (*MyOutput_) << " epromload " << std::endl;
-  (*MyOutput_) << " devnum    " << devnum << std::endl;
+  (*MyOutput_) << " devnum    " << std::dec << devnum << std::endl;
   //
-  std::cout << " devnum    " << devnum << std::endl;
+  (*MyOutput_) << "FileName   " << downfile << std::endl;
   //
   if(devnum==ALL){
     devnum=F1PROM;
@@ -1757,7 +2286,7 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
     float percent;
     while (fgets(buf,256,dwnfp) != NULL)  {
       percent = (float)line/(float)nlines;
-      printf("<   > Processed line %d of %d (%.1f%%)\r",line,nlines,percent*100.0);
+      if((line%100)==0) printf("<   > Processed line %d of %d (%.1f%%)\r",line,nlines,percent*100.0);
       fflush(stdout);
       if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
 	//  printf("%s",buf);
@@ -1809,7 +2338,10 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
 	     //}
 	     if(nowrit==1&&cbrdnum[0]!=0) {
 	       tstusr=0;
-	       snd[0]=cbrdnum[0];
+               snd[0]=cbrdnum[0];
+	       snd[1]=cbrdnum[1];
+	       snd[2]=cbrdnum[2]; 
+	       snd[3]=cbrdnum[3];
 	     }
 	     if(nowrit==1){
 	       //  printf(" snd %02x %02x %02x %02x \n",snd[0],snd[1],snd[2],snd[3]);
@@ -3090,7 +3622,7 @@ void DAQMB::WriteSFM(){
   SFMWriteProtect();
   // Write
   ProgramSFM();
-  ::sleep(2);
+  ::sleep(1);
   // Disable
   SFMWriteProtect();
   //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuParser.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: EmuParser.h,v 3.1 2006/09/12 15:50:01 mey Exp $
 // $Log: EmuParser.h,v $
+// Revision 3.1  2006/09/12 15:50:01  mey
+// New software changes to DMB abd CFEB
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -29,6 +32,7 @@ public:
 
   void parseNode(xercesc::DOMNode * pNode);
   bool fillInt(std::string item, int & target);
+  bool fillIntX(std::string item, int & target);
   bool fillFloat(std::string item, float & target);
   bool fillString(std::string item, std::string & target);
      

@@ -49,7 +49,7 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
           irdsnd = 1 send immediately, read
           irdsnd = 2 send in buffer, no read
   */
-   if (DEBUG) {
+  if (DEBUG) {
       printf("devdo: dev=%d, ncmd=%d, nbuf=%d, irdsnd=%d, Cmd %02x %02x\n", 
        dev, ncmd, nbuf, irdsnd, cmd[0]&0xff, cmd[1]&0xff);
    }
@@ -214,7 +214,7 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
     add_bucr=vmeadd|msk09|msk_bucr;
     add_buci=vmeadd|msk09|msk_buci;
     add_buce=vmeadd|msk09|msk_buce;
-    buckflash(cmd,inbuf,outbuf);
+    buckflash(cmd,nbuf,inbuf,outbuf);
     return;
     break;
     
@@ -669,6 +669,73 @@ void VMEController::vme_adc(int ichp,int ichn,char *rcv)
       // print(" adc read %08x %02x %02x\n",ptr,rbuf[1]&0xff,rbuf[0]&0xff);
 }
 
+void VMEController::buckflash(const char *cmd,int nbuf,const char *inbuf,char *rcv)
+{
+ unsigned short int *ptr;
+ unsigned short int tmp[1];
+ unsigned short int data[2];
+ char *line2;
+ int n,m,nleft,i;
+ //printf(" entering buckflash cmd %d  \n",cmd[0);
+
+ if(cmd[0]==0){
+   ptr=(unsigned short int *)add_bucip;
+   // fprintf(fplog," VME W: %08x %04x \n",ptr,cmd[1]);
+   tmp[0]=cmd[1];
+   vme_controller(3,ptr,tmp,rcv);    // *ptr=cmd[1];
+   return;
+ }
+ if(cmd[0]==2){
+   ptr=(unsigned short int *)add_bucf;
+   // fprintf(fplog," VME W: %08x %04x \n",ptr,cmd[1]);
+   tmp[0]=cmd[1];
+   vme_controller(3,ptr,tmp,rcv);    // *ptr=cmd[1];
+   return;
+ }
+ if(cmd[0]==4){
+   ptr=(unsigned short int *)add_buci; 
+   // fprintf(fplog," VME W: %08x %04x \n",ptr,cmd[1])
+   tmp[0]=cmd[1]; 
+   vme_controller(3,ptr,tmp,rcv);    // *ptr=cmd[1];
+   return;
+ }
+ if(cmd[0]==5){
+   ptr=(unsigned short int *)add_buce; 
+   // fprintf(fplog," VME W: %08x %04x \n",ptr,cmd[1])
+   tmp[0]=cmd[1]; 
+   vme_controller(3,ptr,tmp,rcv);    // *ptr=cmd[1];
+   return;
+ }
+ if(cmd[0]==1){
+   ptr=(unsigned short int *)add_bucl;
+   for(i=0;i<(nbuf/8)-1;i++){ 
+     line2=(char *)inbuf+i-1;
+     // data=(unsigned short int *)line2;
+     // data[0]=((line2[0]<<8)&0xff00)|(line2[1]&0x00ff);
+     data[0]=line2[1]&0x00ff;
+     printf(" TOVME %d %04x \n",i,data[0]);
+     vme_controller(1,ptr,data,rcv);    
+   }
+     line2=(char *)inbuf+(nbuf/8)-1;
+     //  data=(unsigned short int *)line2;
+     // data[0]=((line2[0]<<8)&0xff00)|(line2[1]&0x00ff);
+     data[0]=line2[1]&0x00ff;
+     printf(" TOVME %d %04x \n",(nbuf/8)-1,data[0]);
+     vme_controller(3,ptr,data,rcv);    
+   return;
+ }
+ if(cmd[0]==3){
+   //  fprintf(fplog," buckflash about to read \n");
+   ptr=(unsigned short int *)add_bucr;
+   for(i=0;i<nbuf/8;i++){
+     vme_controller(0,ptr,tmp,rcv);    
+   }
+   vme_controller(2,ptr,tmp,rcv);    
+   return;
+ }
+}
+
+/*
 void VMEController::buckflash(const char *cmd,const char *inbuf,char *rcv)
 {
  unsigned short int *ptr;
@@ -730,7 +797,7 @@ void VMEController::buckflash(const char *cmd,const char *inbuf,char *rcv)
  }
 }
 
-//
+*/
 
 void VMEController::lowvolt(int ichp,int ichn,char *rcv)
 {

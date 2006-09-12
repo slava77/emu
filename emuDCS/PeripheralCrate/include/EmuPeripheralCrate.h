@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.18 2006/09/07 16:30:03 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 3.19 2006/09/12 15:50:01 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -103,6 +103,7 @@ protected:
   //
   xdata::String TMBFirmware_;
   xdata::String DMBFirmware_;
+  xdata::String DMBVmeFirmware_;
   xdata::String ALCTFirmware_;
   xdata::String CFEBFirmware_;
   std::string FirmwareDir_ ;
@@ -259,6 +260,8 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::DMBTests, "DMBTests");
     xgi::bind(this,&EmuPeripheralCrate::DMBUtils, "DMBUtils");
     xgi::bind(this,&EmuPeripheralCrate::DMBLoadFirmware, "DMBLoadFirmware");
+    xgi::bind(this,&EmuPeripheralCrate::DMBVmeLoadFirmware, "DMBVmeLoadFirmware");
+    xgi::bind(this,&EmuPeripheralCrate::DMBVmeLoadFirmwareEmergency, "DMBVmeLoadFirmwareEmergency");
     xgi::bind(this,&EmuPeripheralCrate::CFEBLoadFirmware, "CFEBLoadFirmware");
     xgi::bind(this,&EmuPeripheralCrate::CFEBStatus, "CFEBStatus");
     xgi::bind(this,&EmuPeripheralCrate::ALCTStatus, "ALCTStatus");
@@ -4349,6 +4352,86 @@ private:
     //
   }
   //
+  void EmuPeripheralCrate::DMBVmeLoadFirmware(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
+    //
+    DAQMB * thisDMB = dmbVector[dmb];
+    //
+    cout << "DMBVmeLoadFirmware" << endl;
+    //
+    thisCCB->hardReset();
+    //
+    ::sleep(2);
+    //
+    if (thisDMB) {
+      //
+      unsigned short int dword[2];
+      dword[0]=thisDMB->mbpromuser(0);
+      // dword[0] = 0x01bd;
+      // dword[1] = 0xff00;  to manually change the DMB ID.
+      char * outp=(char *)dword;   // recast dword
+      thisDMB->epromload(VPROM,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
+    }
+    //
+    ::sleep(2);
+    //
+    thisCCB->hardReset();
+    //
+    this->DMBUtils(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::DMBVmeLoadFirmwareEmergency(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
+    //
+    DAQMB * thisDMB = dmbVector[dmb];
+    //
+    cout << "DMBVmeLoadFirmware" << endl;
+    //
+    thisCCB->hardReset();
+    //
+    ::sleep(2);
+    //
+    if (thisDMB) {
+      //
+      unsigned short int dword[2];
+      dword[0]=0;
+      char * outp=(char *)dword;  
+      thisDMB->epromload(RESET,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
+    }
+    //
+    ::sleep(2);
+    //
+    thisCCB->hardReset();
+    //
+    this->DMBUtils(in,out);
+    //
+  }
+  //
   void EmuPeripheralCrate::CFEBLoadFirmware(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -7234,8 +7317,10 @@ private:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    std::string DMBFirmware = FirmwareDir_+"dmb/dmb6cntl_v18_r2.svf";
+    std::string DMBFirmware = FirmwareDir_+"dmb/dmb6cntl_v19_r4.svf";
     DMBFirmware_ = DMBFirmware;
+    std::string DMBVmeFirmware = FirmwareDir_+"dmb/dmb6vme_v9_r4.svf";
+    DMBVmeFirmware_ = DMBVmeFirmware;
     //
     std::string DMBLoadFirmware =
       toolbox::toString("/%s/DMBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
@@ -7243,6 +7328,26 @@ private:
     *out << cgicc::form().set("method","GET").set("action",DMBLoadFirmware)
 	 << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","DMB Load Firmware") << std::endl ;
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string DMBVmeLoadFirmware =
+      toolbox::toString("/%s/DMBVmeLoadFirmware",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",DMBVmeLoadFirmware)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","DMB Vme Load Firmware") << std::endl ;
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string DMBVmeLoadFirmwareEmergency =
+      toolbox::toString("/%s/DMBVmeLoadFirmwareEmergency",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",DMBVmeLoadFirmwareEmergency)
+	 << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","DMB Vme Load Firmware (Emergengy)") << std::endl ;
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
