@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.11 2006/09/08 00:06:32 mey Exp $
+// $Id: TMB.cc,v 3.12 2006/09/13 14:13:32 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 3.12  2006/09/13 14:13:32  mey
+// Update
+//
 // Revision 3.11  2006/09/08 00:06:32  mey
 // UPdate
 //
@@ -3485,7 +3488,7 @@ void TMB::start() {
   // send the first signal
   SetupJtag();
   VMEModule::start();
-  theController->initDevice(ucla_ldev, 0);
+  theController->initDevice(ucla_ldev);
   theController->goToScanLevel();
 }
 
@@ -4178,14 +4181,32 @@ int TMB::tmb_enable_vme_commands(int flag_enable)
 
 std::ostream & operator<<(std::ostream & os, TMB & tmb) {
   os << std::dec << "TMB: crate " << tmb.theCrate_
-     << " slot " << tmb.theSlot << "\n"
-     << std::hex << "  cfeb delays (hex) " << tmb.cfeb0delay_ << " " 
+     << " slot " << tmb.theSlot << std::endl
+     << std::hex 
+     << "  cfeb delays (hex) " << tmb.cfeb0delay_ << " " 
      << tmb.cfeb1delay_ << " " << tmb.cfeb2delay_ << " " 
-     << tmb.cfeb3delay_ << " " << tmb.cfeb4delay_ << "\n"
+     << tmb.cfeb3delay_ << " " << tmb.cfeb4delay_ << std::endl
      << " rx, tx clock delays " << tmb.alct_rx_clock_delay_ 
      << " " << tmb.alct_tx_clock_delay_ << std::endl
-     << "alct delay " << tmb.alct_vpf_delay_ 
-     << "window size " << tmb.alct_match_window_size_ << std::dec << std::endl;
+     << "l1a window size " << tmb.l1a_window_size_ << std::endl
+     << "l1a delay " << tmb.l1adelay_ << std::endl
+     << "window size " << tmb.alct_match_window_size_ << std::endl
+     << "alct vpf delay " << tmb.alct_vpf_delay_  << std::endl
+     << "mpc delay  " << tmb.mpc_delay_ << std::endl
+     << "ALCT_input " << tmb.ALCT_input_ << std::endl
+     << "rpc_exists " << tmb.rpc_exists_ << std::endl
+     << "fifo_mode  " << tmb.fifo_mode_ << std::endl
+     << "fifo_tbins " << tmb.fifo_tbins_ << std::endl
+     << "fifo_pretrig " << tmb.fifo_pretrig_ << std::endl
+     << "alct_clear " << tmb.alct_clear_ << std::endl
+     << "mpc_tx_delay " << tmb.mpc_tx_delay_ << std::endl
+     << "l1a_offset " << tmb.l1a_offset_ << std::endl
+     << "disableCLCTInputs " << tmb.disableCLCTInputs_ << std::endl
+     << "enableCLCTInputs " << tmb.enableCLCTInputs_ << std::endl
+     << "alctController_ " << tmb.alctController_ << std::endl
+     << "rat_ " << tmb.rat_ << std::endl
+     << "bxn_offset_ " << tmb.bxn_offset_ << std::endl
+     << std::dec << std::endl;
   return os;
 }
 

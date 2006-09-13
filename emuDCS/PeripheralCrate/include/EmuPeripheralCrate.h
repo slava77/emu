@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.19 2006/09/12 15:50:01 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.20 2006/09/13 14:13:32 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -318,6 +318,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::FindWinner, "FindWinner");
     xgi::bind(this,&EmuPeripheralCrate::RatTmbTiming, "RatTmbTiming");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBTime, "CalibrationCFEBTime");
+    xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBTimeTest, "CalibrationCFEBTimeTest");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBSaturation, "CalibrationSaturation");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBCharge, "CalibrationCFEBCharge");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBPedestal, "CalibrationCFEBPedestal");
@@ -979,6 +980,12 @@ private:
     *out << cgicc::input().set("type","submit").set("value","Calibration Strips : CFEB time spread") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
+    std::string CalibrationCFEBTimeTest =
+      toolbox::toString("/%s/CalibrationCFEBTimeTest",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBTimeTest) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Calibration Strips : CFEB time spread (test)") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
     std::string CalibrationCFEBCharge =
       toolbox::toString("/%s/CalibrationCFEBCharge",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBCharge) << std::endl ;
@@ -1596,6 +1603,18 @@ private:
     CalibDAQ calib(emuSystem_);
     //
     calib.timeCFEB();
+    //
+    this->Default(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::CalibrationCFEBTimeTest(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    CalibDAQ calib(emuSystem_);
+    //
+    calib.timeCFEBtest();
     //
     this->Default(in,out);
     //
@@ -4876,6 +4895,9 @@ private:
     }
     //
     *out << cgicc::fieldset();
+    //
+    thisDMB->cfebs_readstatus();
+    //
     *out << std::endl;
     //
   }
@@ -6824,6 +6846,8 @@ private:
     *out << cgicc::fieldset();
     *out << std::endl;
     //
+    thisDMB->dmb_readstatus();
+    //
   }
   //
   void EmuPeripheralCrate::TMBUtils(xgi::Input * in, xgi::Output * out ) 
@@ -7352,7 +7376,7 @@ private:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    std::string CFEBFirmware = FirmwareDir_+"cfeb/cfeb_v5_r4.svf";
+    std::string CFEBFirmware = FirmwareDir_+"cfeb/cfeb_v6_r3.svf";
     //std::string CFEBFirmware = FirmwareDir_+"cfeb/cfeb_v3_r1.svf";
     CFEBFirmware_ = CFEBFirmware;
     //

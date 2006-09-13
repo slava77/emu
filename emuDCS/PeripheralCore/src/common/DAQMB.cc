@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.5 2006/09/12 15:50:01 mey Exp $
+// $Id: DAQMB.cc,v 3.6 2006/09/13 14:13:32 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.6  2006/09/13 14:13:32  mey
+// Update
+//
 // Revision 3.5  2006/09/12 15:50:01  mey
 // New software changes to DMB abd CFEB
 //
@@ -275,7 +278,7 @@ DAQMB::DAQMB(Crate * theCrate,int newslot):
   comp_timing_(2), comp_mode_(2), pre_block_end_(7),
   l1a_lct_counter_(-1), cfeb_dav_counter_(-1), 
   tmb_dav_counter_(-1), alct_dav_counter_(-1), cable_delay_(0), 
-  crate_id_(0xfe), toogle_bxn_(1), cfeb_clk_delay_(15), xlatency_(2)
+  crate_id_(0xfe), toogle_bxn_(1), cfeb_clk_delay_(15), xlatency_(1)
 {
   //
   for (int cfeb=0; cfeb<5; cfeb++) {
@@ -383,7 +386,7 @@ void DAQMB::configure() {
    (*MyOutput_) << "doing set_cal_dac " << inj_dac_set_ << " " 
 	<<  pul_dac_set_ << std::endl;
    set_cal_dac(inj_dac_set_, pul_dac_set_);
-   load_strip(); //enable..disable CFEBs
+   enable_cfeb(); //enable..disable CFEBs
    //
    (*MyOutput_) << "Set crate id " << crate_id_ << std::endl ;
    setcrateid(crate_id_);
@@ -422,21 +425,19 @@ void DAQMB::configure() {
    //
 }
 //
-void DAQMB::load_strip() {
+void DAQMB::enable_cfeb() {
   //
   cmd[0]=VTX2_USR1;
   sndbuf[0]=LOAD_STR;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_USR2;
-  int j=0;
-  //
-  //for(i=0;i<5;i++){if(dp->iuse[i]==1)j=j+k;k=k*2;}
+  int cfebs=0;
   //
   for(unsigned i = 0; i < cfebs_.size(); ++i) {
-    j += (int) pow(2.0, cfebs_[i].number()); 
+    cfebs += (int) pow(2.0, cfebs_[i].number()); 
   }
-  printf("Trigger Strips set to %02X LOAD_STR is %d\n",j,LOAD_STR);
-  sndbuf[0]=j;
+  std::cout << "Trigger CFEBs set to = " << cfebs << std::endl;
+  sndbuf[0]=cfebs;
   devdo(MCTRL,6,cmd,5,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_BYPASS;
   sndbuf[0]=0;
@@ -545,6 +546,7 @@ void DAQMB::fxpreblkend(int dword)
 {
   for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
     DEVTYPE dv = cfebs_[icfeb].scamDevice();
+    std::cout << "Setting dv= " << dv << " to " << std::dec << dword << std::endl;
     cmd[0]=VTX_USR1;
     sndbuf[0]=PREBLKEND;
     devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
@@ -558,7 +560,7 @@ void DAQMB::fxpreblkend(int dword)
   }
 }
 
-void DAQMB::LctL1aDelay(int dword)
+void DAQMB::LctL1aDelay(int dword) // Set cfeb latency (0=2.9us,1=3.3us,2=3.7us,3=4.1us)
 {
   for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
     DEVTYPE dv = cfebs_[icfeb].scamDevice();
@@ -566,7 +568,7 @@ void DAQMB::LctL1aDelay(int dword)
     sndbuf[0]=LCTL1ADELAY;
     devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
     cmd[0]=VTX_USR2;
-    //  default preblkend is state 5
+    // 
     sndbuf[0]=dword&0x03; 
     devdo(dv,5,cmd,2,sndbuf,rcvbuf,0);
     cmd[0]=VTX_BYPASS;
@@ -1034,18 +1036,18 @@ float DAQMB::adc16(int ichp,int ichn){
 
 void DAQMB::dmb_readstatus()
 {
-
+  //
   int i;
-
+  //
   cmd[0]=VTX2_USR1;
   sndbuf[0]=10;    //F10 read DMB6CNTL status
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
-
+  //
   cmd[0]=VTX2_USR2;
   for (i=0;i<10;i++)  sndbuf[i]=0;
-
+  //
   devdo(MCTRL,6,cmd,80,sndbuf,rcvbuf,1);
   /* DMB6CNTL status: bit[14:7]: L1A buffer length
                       bit[19:15]: CFEB_DAV_ERROR
@@ -1085,8 +1087,10 @@ void DAQMB::dmb_readstatus()
 void DAQMB::cfebs_readstatus()
 {
  int i,nwrds;
- char febbuf[5][3];
+ char febbuf[5][4];
  int iuse[5]={0,0,0,0,0};
+
+ fxpreblkend(13);
 
   std::cout << "DAQMB: cfebs_readstatus" << std::endl;
   for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
@@ -1096,7 +1100,9 @@ void DAQMB::cfebs_readstatus()
     febbuf[idv][0]='\0';
     febbuf[idv][1]='\0';
     febbuf[idv][2]='\0';
+    febbuf[idv][3]='\0';
     if(iuse[idv]==1){
+      std::cout << " dv= " << dv << " STATUS_CS " << STATUS_CS << std::endl;
       cmd[0]=VTX2_USR1;
       sndbuf[0]=STATUS_CS;
       devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
@@ -1106,11 +1112,12 @@ void DAQMB::cfebs_readstatus()
       sndbuf[0]=0;
       sndbuf[1]=0;
       sndbuf[2]=0;
-      devdo(dv,5,cmd,20,sndbuf,rcvbuf,1);
+      devdo(dv,5,cmd,32,sndbuf,rcvbuf,1);
       febbuf[idv][0]=rcvbuf[0];
       febbuf[idv][1]=rcvbuf[1];
       febbuf[idv][2]=rcvbuf[2];
-      printf(" SCA rcvbuf *** %02x %02x %02x \n",rcvbuf[0]&0xFF,rcvbuf[1]&0xFF,rcvbuf[2]&0xFF);
+      febbuf[idv][3]=rcvbuf[3];
+      printf(" SCA rcvbuf *** %02x %02x %02x %02x \n",rcvbuf[0]&0xFF,rcvbuf[1]&0xFF,rcvbuf[2]&0xFF,rcvbuf[3]&0xFF);
       cmd[0]=VTX2_BYPASS;
       devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
     }
@@ -1195,6 +1202,33 @@ void DAQMB::cfebs_readstatus()
     }
   }
   printf("\n");
+  printf("Comparator Mode             ");
+  for(i=0;i<5;i++){
+    if(iuse[i]==1){
+      printf("  :  %d",(febbuf[i][2])&0x03);
+    }
+  }
+  printf("\n");
+  printf("Comparator Timing           ");
+  for(i=0;i<5;i++){
+    if(iuse[i]==1){
+      printf("  :  %d",(febbuf[i][2]>>2)&0x07);
+    }
+  }
+  printf("\n");
+  printf("Pre_block_end               ");
+  for(i=0;i<5;i++){
+    if(iuse[i]==1){
+      printf("  :  %d",((febbuf[i][2]>>5)&0x07) + ((febbuf[i][3]&0x01)<<3));
+    }
+  }
+  printf("\n");
+  printf("Extern_L1A_delay            ");
+  for(i=0;i<5;i++){
+    if(iuse[i]==1){
+      printf("  :  %d",(febbuf[i][3]>>1)&0x03);
+    }
+  }
 }
 
 void DAQMB::setxlatency(int dword)
@@ -1522,6 +1556,9 @@ char shft_bits[6][6];
       cmd[0]=VTX_BYPASS;
       devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
   }
+  //
+  ::usleep(100);
+  //
 }
 
 void DAQMB::buck_shift_out()
@@ -3166,30 +3203,6 @@ void DAQMB::cbldly_trig(){
   printf(" Trigger Once \n");
   cmd[0]=VTX_USR1; 
   sndbuf[0]=0x03;
-  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_USR1;
-  sndbuf[0]=NOOP;
-  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_BYPASS;
-  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
-}
-
-void DAQMB::cbldly_phaseA(){
-  printf(" Detect Phase A \n");
-  cmd[0]=VTX_USR1; 
-  sndbuf[0]=0x1B;
-  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_USR1;
-  sndbuf[0]=NOOP;
-  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
-  cmd[0]=VTX_BYPASS;
-  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
-}
-
-void DAQMB::cbldly_phaseB(){
-  printf(" Detect Phase B \n");
-  cmd[0]=VTX_USR1; 
-  sndbuf[0]=0x1C;
   devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX_USR1;
   sndbuf[0]=NOOP;

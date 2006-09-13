@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.1 2006/08/07 14:14:10 mey Exp $
+// $Id: MPC.cc,v 3.2 2006/09/13 14:13:32 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 3.2  2006/09/13 14:13:32  mey
+// Update
+//
 // Revision 3.1  2006/08/07 14:14:10  mey
 // Added BoardId
 //
@@ -810,7 +813,7 @@ void MPC::start() {
   // send the first signal
   SetupJtag();
   VMEModule::start();
-  theController->initDevice(1, 0);
+  theController->initDevice(1);
   theController->goToScanLevel();
 }
 
