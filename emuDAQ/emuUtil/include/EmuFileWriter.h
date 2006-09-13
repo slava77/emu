@@ -18,6 +18,7 @@ private:
   string        runStartTime_;
   string        runType_;
   unsigned int  runNumber_;
+  bool          isBookedRunNumber_; // whether or not this run number was booked in the database
   unsigned int  bytesInFileCounter_;
   unsigned int  eventsInFileCounter_;
   unsigned int  filesInRunCounter_;
@@ -26,17 +27,33 @@ private:
   string        fileName_;
   std::fstream *fs_;
 
+//   string nameFile(){
+//     ostringstream fileNameStream;
+//     fileNameStream << pathToFile_        << "/";
+//     fileNameStream << runStartTime_      << "_";
+//     fileNameStream.fill('0');
+//     fileNameStream.width(6);
+//     fileNameStream << runNumber_         << "_";
+//     fileNameStream.width(3);
+//     fileNameStream << filesInRunCounter_ << "_";
+//     fileNameStream << application_       << "_";
+//     fileNameStream << runType_           << ".bin";
+//     return fileNameStream.str();
+//   }
+
   string nameFile(){
     ostringstream fileNameStream;
-    fileNameStream << pathToFile_        << "/";
-    fileNameStream << runStartTime_      << "_";
+    fileNameStream << pathToFile_        << "/csc_";
     fileNameStream.fill('0');
-    fileNameStream.width(6);
+    fileNameStream.width(8);
     fileNameStream << runNumber_         << "_";
-    fileNameStream.width(3);
-    fileNameStream << filesInRunCounter_ << "_";
     fileNameStream << application_       << "_";
-    fileNameStream << runType_           << ".bin";
+    fileNameStream << runType_           << "_";
+    fileNameStream.width(3);
+    fileNameStream << filesInRunCounter_;
+    // Insert start time to make sure the name will be unique if it's not a booked run number:
+    if ( !isBookedRunNumber_ ) fileNameStream << "_" << runStartTime_;
+    fileNameStream << ".raw";
     return fileNameStream.str();
   }
 
@@ -86,6 +103,7 @@ public:
     ,runStartTime_        ("")
     ,runType_             ("")
     ,runNumber_           (0)
+    ,isBookedRunNumber_   (false)
     ,bytesInFileCounter_  (0)
     ,eventsInFileCounter_ (0)
     ,filesInRunCounter_   (0)
@@ -98,8 +116,12 @@ public:
 
   ~EmuFileWriter(){ delete fs_; }
 
-  void startNewRun( const int runNumber, const string runStartTime, const string runType ){
+  void startNewRun( const int runNumber, 
+		    const bool isBookedRunNumber, 
+		    const string runStartTime, 
+		    const string runType ){
     runNumber_          = runNumber;
+    isBookedRunNumber_  = isBookedRunNumber;
     runStartTime_       = runStartTime;
     runType_            = runType;
     bytesInRunCounter_  = 0;
