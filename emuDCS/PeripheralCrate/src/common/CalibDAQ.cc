@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 3.1 2006/09/06 12:38:18 mey Exp $
+// $Id: CalibDAQ.cc,v 3.2 2006/09/13 14:13:32 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 3.2  2006/09/13 14:13:32  mey
+// Update
+//
 // Revision 3.1  2006/09/06 12:38:18  mey
 // Update
 //
@@ -330,6 +333,88 @@ void CalibDAQ::timeCFEB() {
 	"  strip = " << i <<
 	"  ntim = " << ntim <<
 	"  event  = " << counter << std::endl;
+    }
+  }
+  //
+}
+//
+void CalibDAQ::timeCFEBtest() { 
+  //
+  float dac;
+  int counter=0;
+  int nsleep = 100;  
+  dac = 1.0;
+  //
+  std::cout << "timeCFEBtest" << std::endl;
+  //
+  // setup the TMB and CCB
+  std::vector<Crate*> myCrates = theSelector.crates();
+  //
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
+    //
+    std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
+    std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
+    //
+    for (unsigned i=0; i<myTmbs.size(); i++) {
+      myTmbs[i]->DisableCLCTInputs();
+      std::cout << "Disabling inputs for slot " << myTmbs[i]->slot() << std::endl;
+      myTmbs[i]->DisableALCTInputs();
+    }
+  }
+  //
+    //
+  for (int nstrip=0;nstrip<16;nstrip++) {  
+    //
+    for(unsigned j = 0; j < myCrates.size(); ++j) {
+      //
+      std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
+      //
+      for(unsigned i =0; i < myDmbs.size(); ++i) {
+	//
+	// set amplitude
+	//
+	myDmbs[i]->set_cal_dac(dac,dac);
+	myDmbs[i]->fxpreblkend(6); // Set pre block end to 6
+	//myDmbs[i]->set_comp_thresh(thresh);
+	//
+	// set external pulser for strip # nstrip on all 6 chips
+	for(int brd=0;brd<5;brd++){
+	  for(int chip=0;chip<6;chip++){
+	    for(int ch=0;ch<16;ch++){
+	      myDmbs[i]->shift_array[brd][chip][ch]=NORM_RUN;
+	    }
+	    if ( nstrip != -1 ) myDmbs[i]->shift_array[brd][chip][nstrip]=EXT_CAP;
+	  }
+	}
+	//
+	myDmbs[i]->buck_shift();
+      }
+    }
+    //
+    //
+    for (int ntim=0;ntim<20;ntim++) {
+      //
+      for(unsigned j = 0; j < myCrates.size(); ++j) {
+	//
+	std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
+	//
+	for(unsigned i =0; i < myDmbs.size(); ++i) {
+	  myDmbs[i]->set_cal_tim_pulse(ntim);
+	}
+	//
+	CCB * ccb = myCrates[j]->ccb();
+	(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+	//
+	::usleep(100000);
+	//
+	std::cout << "Sending pulse" <<std::endl;
+	//
+	ccb->pulse(1, 0xff);//pulse all dmbs in this crate
+	//
+	::usleep(100000);
+	//
+      }
+      //
     }
   }
   //

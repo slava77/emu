@@ -509,8 +509,8 @@ if(cnt==0)return;
  }
 }
 
-void VMEController::initDevice(int idev, int feuse) {
-  if(debugV)cout << "InitDevice " << idev << " " <<(int) feuse << endl;
+void VMEController::initDevice(int idev) {
+  //if(debugV)cout << "InitDevice " << idev << " " <<(int) feuse << endl;
   //cout << "InitDevice " << idev << " " <<(int) feuse << endl;
   char tmp[2]={0x00,0x00};
   unsigned short int tmp2[1];

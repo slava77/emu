@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.5 2006/09/12 15:50:01 mey Exp $
+// $Id: VMEController.h,v 3.6 2006/09/13 14:13:32 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 3.6  2006/09/13 14:13:32  mey
+// Update
+//
 // Revision 3.5  2006/09/12 15:50:01  mey
 // New software changes to DMB abd CFEB
 //
@@ -147,7 +150,7 @@ public:
   /// JTAG stuff
   void devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
   void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
-  void initDevice(int idev, int feuse);
+  void initDevice(int idev);
   void RestoreIdle();
   void InitJTAG(int port);
   void CloseJTAG();

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.5 2006/08/10 15:46:30 mey Exp $
+// $Id: CCB.cc,v 3.6 2006/09/13 14:13:32 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 3.6  2006/09/13 14:13:32  mey
+// Update
+//
 // Revision 3.5  2006/08/10 15:46:30  mey
 // UPdate
 //
@@ -664,7 +667,7 @@ void CCB::start() {
   // send the first signal
   SetupJtag();
   VMEModule::start();
-  theController->initDevice(1, 0);
+  theController->initDevice(1);
   theController->goToScanLevel();
 }
 //

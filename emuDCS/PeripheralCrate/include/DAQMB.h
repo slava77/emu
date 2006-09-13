@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.2 2006/09/12 15:50:01 mey Exp $
+// $Id: DAQMB.h,v 3.3 2006/09/13 14:13:32 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.3  2006/09/13 14:13:32  mey
+// Update
+//
 // Revision 3.2  2006/09/12 15:50:01  mey
 // New software changes to DMB abd CFEB
 //
@@ -140,7 +143,7 @@ public:
 
   void trigset2(int, int [] );
   void trgfire();
-  void load_strip();
+  void enable_cfeb();
   void setcrateid(int dword);
   void setfebdelay(int dword);
   void setcaldelay(int dword);
