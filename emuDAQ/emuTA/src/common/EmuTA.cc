@@ -307,10 +307,13 @@ vector< pair<string, xdata::Serializable*> > EmuTA::initAndGetStdConfigParams()
 
     // Emu specific
     runStartTime_ = "YYMMDD_hhmmss_UTC";
+    isBookedRunNumber_ = false;
     params.push_back(pair<string,xdata::Serializable *>
         ("runStartTime", &runStartTime_));
     params.push_back(pair<string,xdata::Serializable *>
         ("runNumber", &runNumber_));
+    params.push_back(pair<string,xdata::Serializable *>
+        ("isBookedRunNumber", &isBookedRunNumber_));
     params.push_back(pair<string,xdata::Serializable *>
         ("maxNumTriggers", &maxNumTriggers_));
 

@@ -1124,7 +1124,10 @@ throw (toolbox::fsm::exception::Exception)
       fileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), app.str(), &logger_ );
     }
     try{
-      if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_, runStartTime_, runType_ );
+      if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_, 
+						   isBookedRunNumber_.value_,
+						   runStartTime_, 
+						   runType_ );
     }
     catch(string e){
       LOG4CPLUS_FATAL( logger_, e );
@@ -2813,6 +2816,7 @@ void EmuFU::getRunInfo()
 throw (emuFU::exception::Exception)
 {
   runNumber_    = 0;
+  isBookedRunNumber_ = false;
   runStartTime_ = "YYMMDD_hhmmss_UTC";
 
   vector< xdaq::ApplicationDescriptor* > taDescriptors;
@@ -2831,12 +2835,15 @@ throw (emuFU::exception::Exception)
 
   string rn="";
   string mn="";
+  string br="";
   if ( taDescriptors.size() >= 1 ){
     if ( taDescriptors.size() > 1 )
       LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
 		      taDescriptors.size() << " emuTA instances found. Trying first one.");
     rn = getScalarParam(taDescriptors[0],"runNumber","unsignedLong");
     LOG4CPLUS_INFO(logger_, "Got run number from emuTA: " + rn );
+    br = getScalarParam(taDescriptors[0],"isBookedRunNumber","boolean");
+    LOG4CPLUS_INFO(logger_, "Got info on run booking from emuTA: " + br );
     runStartTime_ = getScalarParam(taDescriptors[0],"runStartTime","string");
     LOG4CPLUS_INFO(logger_, "Got run start time from emuTA: " + runStartTime_.toString() );
   }
@@ -2848,6 +2855,8 @@ throw (emuFU::exception::Exception)
   istringstream srn(rn);
   srn >> irn;
   runNumber_ = irn;
+
+  isBookedRunNumber_ = ( br == "true" );
 
   taDescriptors.clear();
 

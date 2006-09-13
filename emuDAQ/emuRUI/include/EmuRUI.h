@@ -395,6 +395,7 @@ private:
     xdata::Integer      maxEvents_;            // stop reading from DDU after this many events
     xdata::Boolean      passDataOnToRUBuilder_;// it true, data is sent to the event builder
     xdata::UnsignedLong runNumber_;            // run number to be obtained from TA
+    xdata::Boolean      isBookedRunNumber_;    // whether or not this run number was booked in the database
     xdata::String       runStartTime_;         // run start time to be included in the file name
     xdata::String       runType_;              // run type to be included in the file name
 

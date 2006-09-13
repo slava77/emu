@@ -664,6 +664,7 @@ void EmuRUI::getRunInfo()
 throw (emuRUI::exception::Exception)
 {
   runNumber_    = 0;
+  isBookedRunNumber_ = false;
   runStartTime_ = "YYMMDD_hhmmss_UTC";
   maxEvents_    = 0;
 
@@ -683,6 +684,7 @@ throw (emuRUI::exception::Exception)
 
   string rn="";
   string mn="";
+  string br="";
   if ( taDescriptors.size() >= 1 ){
     if ( taDescriptors.size() > 1 )
       LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
@@ -691,6 +693,8 @@ throw (emuRUI::exception::Exception)
     LOG4CPLUS_INFO(logger_, "Got run number from emuTA: " + rn );
     mn = getScalarParam(taDescriptors[0],"maxNumTriggers","integer");
     LOG4CPLUS_INFO(logger_, "Got maximum number of events from emuTA: " + mn );
+    br = getScalarParam(taDescriptors[0],"isBookedRunNumber","boolean");
+    LOG4CPLUS_INFO(logger_, "Got info on run booking from emuTA: " + br );
     runStartTime_ = getScalarParam(taDescriptors[0],"runStartTime","string");
     LOG4CPLUS_INFO(logger_, "Got run start time from emuTA: " + runStartTime_.toString() );
   }
@@ -702,6 +706,8 @@ throw (emuRUI::exception::Exception)
   istringstream srn(rn);
   srn >> irn;
   runNumber_ = irn;
+
+  isBookedRunNumber_ = ( br == "true" );
 
 //   unsigned int  imn(0);
   long  imn(0);
@@ -2389,7 +2395,10 @@ void EmuRUI::createFileWriters(){
 	      fileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), app.str(), &logger_ );
 	    }
 	  try{
-	    if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_, runStartTime_, runType_ );
+	    if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_, 
+							 isBookedRunNumber_.value_,
+							 runStartTime_, 
+							 runType_ );
 	  }
 	  catch(string e){
 	    LOG4CPLUS_FATAL( logger_, e );
@@ -2406,7 +2415,10 @@ void EmuRUI::createFileWriters(){
 	    }
 	  if ( badEventsFileWriter_ ){
 	    try{
-	      badEventsFileWriter_->startNewRun( runNumber_.value_, runStartTime_, string("BadEvents") );
+	      badEventsFileWriter_->startNewRun( runNumber_.value_, 
+						 isBookedRunNumber_.value_, 
+						 runStartTime_, 
+						 string("BadEvents") );
 	    }
 	    catch(string e){
 	      LOG4CPLUS_ERROR( logger_, e );

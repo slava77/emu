@@ -187,6 +187,7 @@ private:
   //
     xdata::String       runStartTime_;
     xdata::UnsignedLong runNumber_;
+    xdata::Boolean      isBookedRunNumber_;
     xdata::Integer      maxNumTriggers_;
 
 
