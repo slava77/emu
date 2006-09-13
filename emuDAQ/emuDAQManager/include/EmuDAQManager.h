@@ -15,6 +15,7 @@
 #include "xdata/include/xdata/UnsignedLong.h"
 #include "xdata/include/xdata/Integer.h"
 #include "xdata/include/xdata/Vector.h"
+#include "emu/emuDAQ/emuUtil/include/EmuRunInfo.h"
 #include "EmuApplication.h"
 
 #include <string>
@@ -212,8 +213,19 @@ private:
     void controlWebPage(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
 
+  EmuRunInfo *runInfo_; // communicates with run database
+
+  xdata::String runDbBookingCommand_; // e.g. "java -jar runnumberbooker.jar"
+  xdata::String runDbWritingCommand_; // e.g. "java -jar runinfowriter.jar"
+  xdata::String runDbAddress_;        // e.g. "dbc:oracle:thin:@oracms.cern.ch:10121:omds"
+  xdata::String runDbUserName_;       // e.g. "rs_csc"
+  xdata::String runDbPassword_;       // e.e. "mickey2mouse"
+  void bookRunNumber();
+  void updateRunInfoDb();
+  bool isBookedRunNumber_;
+
   xdata::UnsignedLong runNumber_;
-//   xdata::UnsignedLong maxNumberOfEvents_;
+  xdata::UnsignedLong runSequenceNumber_;
   xdata::Integer maxNumberOfEvents_;
   xdata::Vector<xdata::String> runTypes_; // all possible run types
   xdata::String runType_; // the current run type
@@ -228,6 +240,7 @@ private:
   string getDateTime();
   string ageOfPageClock();
   void   getRunInfoFromTA( string* runnum, string* maxevents, string* configtime );
+  string reformatConfigTime( string configtime );
   vector< pair<xdaq::ApplicationDescriptor*, string> > allAppStates_;
   set<string> contexts_; // all different contexts with apps controlled by EmuDAQManager
   void   createAllAppStatesVector();
@@ -319,9 +332,9 @@ private:
     throw (xgi::exception::Exception);
 
     /**
-     * Exports the parameters responsible for showing monitoring information.
+     * Exports the parameters.
      */
-    void exportMonitoringParams(xdata::InfoSpace *s);
+    void exportParams(xdata::InfoSpace *s);
 
     /**
      * Starts the DAQ.

@@ -30,8 +30,8 @@ throw (xdaq::exception::Exception) :
 // xdaq::WebApplication(s),
 EmuApplication(s),
 
-logger_(Logger::getInstance(generateLoggerName()))
-
+logger_(Logger::getInstance(generateLoggerName())),
+runInfo_(0)
 {
     i2oAddressMap_ = i2o::utils::getAddressMap();
     poolFactory_   = toolbox::mem::getMemoryPoolFactory();
@@ -105,7 +105,7 @@ logger_(Logger::getInstance(generateLoggerName()))
     xgi::bind(this, &EmuDAQManager::machineReadableWebPage,
         "MachineReadable");
 
-    exportMonitoringParams(appInfoSpace_);
+    exportParams(appInfoSpace_);
 
     // Supervisor-specific stuff:
     xoap::bind(this, &EmuDAQManager::onConfigure,     "Configure",     XDAQ_NS_URI);
@@ -840,9 +840,11 @@ throw (xgi::exception::Exception)
       *out << "/>  "                                                 << endl;
       *out << "<br>"                                                 << endl;
     }
-    else{
+    else{ // in a state other than halted
       *out << "<table border=\"0\" rules=\"none\">"                  << endl;
       *out << "  <tr><td>Run number:</td><td>" << runNumber;
+      if ( isBookedRunNumber_ ) *out << " (booked)";
+      else *out << " (<span style=\"font-weight: bold; color:#ff0000;\">not</span> booked)";
       *out << "</td></tr>"                                           << endl;
       *out << "  <tr><td>Run type:</td><td>" << runType_.toString();
       *out << "</td></tr>"                                           << endl;
@@ -933,6 +935,7 @@ void EmuDAQManager::getRunInfoFromTA( string* runnum, string* maxevents, string*
       try
 	{
 	  *configtime = getScalarParam(taDescriptors_[0],"runStartTime","string");
+	  *configtime = reformatConfigTime( *configtime );
 	}
       catch(xcept::Exception e)
 	{
@@ -1721,6 +1724,16 @@ void EmuDAQManager::configureDAQ()
 	{
 	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
 			"Failed to set run number to "  + runNumber, e);
+	}
+      try
+	{
+	  setScalarParam(taDescriptors_[0],"isBookedRunNumber","boolean",string(isBookedRunNumber_?"true":"false"));
+	  LOG4CPLUS_INFO(logger_,string("Set isBookedRunNumber to ") + string(isBookedRunNumber_?"true.":"false.") );
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			string("Failed to set isBookedRunNumber to ") + string(isBookedRunNumber_?"true.":"false."), e);
 	}
       try
 	{
@@ -3175,9 +3188,21 @@ throw (xgi::exception::Exception)
 }
 
 
-void EmuDAQManager::exportMonitoringParams(xdata::InfoSpace *s)
+void EmuDAQManager::exportParams(xdata::InfoSpace *s)
 {
     // Emu:
+  runDbBookingCommand_ = "java -jar runnumberbooker.jar";
+  runDbWritingCommand_ = "java -jar runinfowriter.jar";
+  runDbAddress_        = "dbc:oracle:thin:@oracms.cern.ch:10121:omds";
+  runDbUserName_       = "rs_csc";
+  runDbPassword_       = "mickey2mouse";
+  s->fireItemAvailable( "runDbBookingCommand", &runDbBookingCommand_ );
+  s->fireItemAvailable( "runDbWritingCommand", &runDbWritingCommand_ );
+  s->fireItemAvailable( "runDbAddress",        &runDbAddress_        );
+  s->fireItemAvailable( "runDbUserName",       &runDbUserName_       );
+  s->fireItemAvailable( "runDbPassword",       &runDbPassword_       );
+
+
     runNumber_         = 0;
     maxNumberOfEvents_ = 0;
     runType_           = "Monitor";
@@ -3366,6 +3391,144 @@ void EmuDAQManager::getMnemonicNames(){
     }
 }
 
+string EmuDAQManager::reformatConfigTime( string configtime ){
+  // reformat from YYMMDD_hhmmss_UTC to YYYY-MM-DD hh:mm:ss UTC
+  string reformatted("");
+  reformatted += "20";
+  reformatted += configtime.substr(0,2);
+  reformatted += "-";
+  reformatted += configtime.substr(2,2);
+  reformatted += "-";
+  reformatted += configtime.substr(4,2);
+  reformatted += " ";
+  reformatted += configtime.substr(7,2);
+  reformatted += ":";
+  reformatted += configtime.substr(9,2);
+  reformatted += ":";
+  reformatted += configtime.substr(11,2);
+  reformatted += " UTC";
+  return reformatted;
+}
+
+void EmuDAQManager::bookRunNumber(){
+
+  isBookedRunNumber_ = false;
+
+  // Don't book debug runs:
+  if ( runType_.toString() == "Debug" ) return;
+  
+  // Just in case it's left over from the previuos run:
+  if ( runInfo_ ) delete runInfo_; 
+
+  runInfo_ = EmuRunInfo::Instance( runDbBookingCommand_.toString(),
+				   runDbWritingCommand_.toString(),
+				   runDbAddress_.toString(),
+				   runDbUserName_.toString(),
+				   runDbPassword_.toString() );
+
+  string sequence = "CSC:" + runType_.toString();
+
+  LOG4CPLUS_INFO(logger_, runDbUserName_.toString() << " is booking run number with " <<
+		 runDbBookingCommand_.toString() << " at " <<
+		 runDbAddress_.toString()  << " for " << sequence );
+
+  bool success = runInfo_->bookRunNumber( sequence );
+
+  if ( success ){
+    isBookedRunNumber_ = true;
+    runNumber_         = runInfo_->runNumber();
+    runSequenceNumber_ = runInfo_->runSequenceNumber();
+    LOG4CPLUS_INFO(logger_, "Booked run rumber " << runNumber_.toString() <<
+		   " (" << sequence << " " << runSequenceNumber_.toString() << ")");
+  }
+  else LOG4CPLUS_ERROR(logger_,
+		       "Failed to book run number: " 
+		       <<  runInfo_->errorMessage()
+		       << "| Falling back to run number " << runNumber_.value_ 
+		       << " specified by user." );
+}
+
+void EmuDAQManager::updateRunInfoDb(){
+
+  if ( isBookedRunNumber_ ){
+
+    bool success = false;
+    string name, value, nameSpace;
+
+    string configTime("UNKNOWN");
+    try
+      {
+	configTime = getScalarParam(taDescriptors_[0],"runStartTime","string");
+	configTime = reformatConfigTime( configTime );
+      }
+    catch(xcept::Exception e)
+      {
+	LOG4CPLUS_ERROR(logger_,"Failed to get time of configuration from TA0: " << 
+			xcept::stdformat_exception_history(e) );
+      }
+    nameSpace = "time";
+    name      = "start";
+    value     = configTime;
+    success = runInfo_->writeRunInfo( name, value, nameSpace );
+    if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+				   nameSpace << ":" << name << " = " << value ); }
+    else          { LOG4CPLUS_ERROR(logger_,
+				    "Failed to write " << nameSpace << ":" << name << 
+				    " to run database " << runDbAddress_.toString() ); }
+
+    
+    nameSpace = "time";
+    name      = "stop";
+    value     = getDateTime();
+    success = runInfo_->writeRunInfo( name, value, nameSpace );
+    if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+				   nameSpace << ":" << name << " = " << value ); }
+    else          { LOG4CPLUS_ERROR(logger_,
+				    "Failed to write " << nameSpace << ":" << name << 
+				    " to run database " << runDbAddress_.toString() ); }
+
+    vector< vector<string> > counts = getRUIEventCounts();
+    int nRUIs = counts.size();
+    nameSpace = "events";
+    for ( int rui=0; rui<nRUIs; ++rui ){
+      name  = counts.at(rui).at(1);
+      value = counts.at(rui).at(2);
+      success = runInfo_->writeRunInfo( name, value, nameSpace );
+      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+				     nameSpace << ":" << name << " = " << value ); }
+      else          { LOG4CPLUS_ERROR(logger_,
+				      "Failed to write " << nameSpace << ":" << name << 
+				      " to run database " << runDbAddress_.toString() ); }
+    }
+    
+    counts = getFUEventCounts();
+    if ( counts.size() > 0 ){
+      int nFUs = counts.size()-1; // the last element is the sum of all FUs' event counts
+      nameSpace = "events";
+      name      = "EmuFU";
+      value     = counts.at(nFUs).at(2); // the last element is the sum of all FUs' event counts
+      success = runInfo_->writeRunInfo( name, value, nameSpace );
+      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+				     nameSpace << ":" << name << " = " << value ); }
+      else          { LOG4CPLUS_ERROR(logger_,
+				      "Failed to write " << nameSpace << ":" << name << 
+				      " to run database " << runDbAddress_.toString() ); }
+    }
+
+//     nameSpace = "user";
+//     name      = "comment";
+//     value     = userComment;
+//     success = runInfo_->writeRunInfo( name, value, nameSpace );
+//     if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+// 				   nameSpace << ":" << name << " = " << value ); }
+//     else          { LOG4CPLUS_ERROR(logger_,
+// 				    "Failed to write " << nameSpace << ":" << name << 
+// 				    " to run database " << runDbAddress_.toString() ); }
+  }
+  else LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
+}
+
+
 // Supervisor-specific stuff
 xoap::MessageReference EmuDAQManager::onConfigure(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
@@ -3446,6 +3609,17 @@ void EmuDAQManager::configureAction(toolbox::Event::Reference e)
 
     try
       {
+	bookRunNumber();
+      }
+    catch(...)
+      {
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to book run number. Falling back to run number " 
+			<< runNumber_.value_ << " specified by user." );
+      }
+
+    try
+      {
 	configureDAQ();
       }
     catch(xcept::Exception ex)
@@ -3497,6 +3671,16 @@ void EmuDAQManager::haltAction(toolbox::Event::Reference e)
 		throw (toolbox::fsm::exception::Exception)
 {
 
+    try
+      {
+	updateRunInfoDb();
+      }
+    catch(...)
+      {
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to book run number. Falling back to run number " 
+			<< runNumber_.value_ << " specified by user." );
+      }
     try
       {
 	stopDAQ();
