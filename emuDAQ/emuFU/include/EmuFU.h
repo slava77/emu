@@ -306,6 +306,7 @@ private:
     xdata::String       pathToDataOutFile_;   // the path to the file to write the data into (no file written if "")
     xdata::UnsignedLong fileSizeInMegaBytes_; // when the file size exceeds this, no more events will be written to it (no file written if <=0)
     xdata::UnsignedLong runNumber_;           // run number to be obtained from TA
+    xdata::Boolean      isBookedRunNumber_;    // whether or not this run number was booked in the database
     xdata::String       runStartTime_;        // run start time to be included in the file name
     xdata::String       runType_;             // run type to be included in the file name
 
