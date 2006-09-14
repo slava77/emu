@@ -22,8 +22,22 @@
          alct_vpf_delay="6"
          mpc_delay="7"
          mpc_tx_delay="0"
+         fifo_pretrig="7"
+         fifo_tbins="12"
          version="2004">
        <ALCT chamber_type="ME21"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
              l1a_delay="147">
           <AnodeChannel Number="1" delay="10" threshold="10"> </AnodeChannel>     
           <AnodeChannel Number="2" delay="10" threshold="10"> </AnodeChannel>  
@@ -113,8 +127,22 @@
          alct_vpf_delay="6"
          mpc_delay="8"
          mpc_tx_delay="1"
+         fifo_pretrig="7"
+         fifo_tbins="12"
          version="2004">
        <ALCT chamber_type="ME21"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
              l1a_delay="146">
           <AnodeChannel Number="1" delay="10" threshold="21"> </AnodeChannel>     
           <AnodeChannel Number="2" delay="10" threshold="15"> </AnodeChannel>  
@@ -189,7 +217,7 @@
     </CSC>
 
 <!-- ME+2/1/16 chamber -->
-    <!--CSC label="ME+2/1/16">
+    <CSC label="ME+2/1/16">
     <TMB slot="6" 
          cfeb0delay="4"  
          cfeb1delay="3" 
@@ -204,8 +232,22 @@
          alct_vpf_delay="6"
          mpc_delay="7"
          mpc_tx_delay="0"
+         fifo_pretrig="7"
+         fifo_tbins="12"
          version="2004">
        <ALCT chamber_type="ME21"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
              l1a_delay="145">
           <AnodeChannel Number="1" delay="10" threshold="9"> </AnodeChannel>     
           <AnodeChannel Number="2" delay="10" threshold="10"> </AnodeChannel>  
@@ -277,7 +319,7 @@
        <CFEB Number="1"> </CFEB>
        <CFEB Number="0"> </CFEB>
     </DAQMB>
-    </CSC-->
+    </CSC>
 
 <!-- ME+2/2/27 chamber -->
     <CSC label="ME+2/2/27">
@@ -295,8 +337,22 @@
          alct_vpf_delay="6"
          mpc_delay="7"
          mpc_tx_delay="0"
+         fifo_pretrig="7"
+         fifo_tbins="12"
          version="2004">
        <ALCT chamber_type="ME22"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
              l1a_delay="146">
           <AnodeChannel Number="1" delay="10" threshold="11"> </AnodeChannel>     
           <AnodeChannel Number="2" delay="10" threshold="11"> </AnodeChannel>  
@@ -367,8 +423,22 @@
          alct_vpf_delay="6"
          mpc_delay="8"
          mpc_tx_delay="1"
+         fifo_pretrig="7"
+         fifo_tbins="12"
          version="2004">
        <ALCT chamber_type="ME22"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
              l1a_delay="147">
           <AnodeChannel Number="1" delay="10" threshold="5"> </AnodeChannel>     
           <AnodeChannel Number="2" delay="10" threshold="11"> </AnodeChannel>  
@@ -439,8 +509,22 @@
          alct_vpf_delay="6"
          mpc_delay="7"
          mpc_tx_delay="0"
+         fifo_pretrig="7"
+         fifo_tbins="12"
          version="2004">
        <ALCT chamber_type="ME22"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
              l1a_delay="146">
           <AnodeChannel Number="1" delay="10" threshold="16"> </AnodeChannel>     
           <AnodeChannel Number="2" delay="10" threshold="10"> </AnodeChannel>  
@@ -512,8 +596,22 @@
          alct_vpf_delay="6"
          mpc_delay="7"
          mpc_tx_delay="0"
+         fifo_pretrig="7"
+         fifo_tbins="12"
          version="2004">
        <ALCT chamber_type="ME22"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
              l1a_delay="145"> 
           <AnodeChannel Number="1" delay="10" threshold="8"> </AnodeChannel>     
           <AnodeChannel Number="2" delay="10" threshold="13"> </AnodeChannel>  
@@ -585,8 +683,22 @@
          alct_vpf_delay="6"
          mpc_delay="7"
          mpc_tx_delay="0"
+         fifo_pretrig="7"
+         fifo_tbins="12"
          version="2004">
        <ALCT chamber_type="ME22"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
              l1a_delay="145"> 
           <AnodeChannel Number="1" delay="10" threshold="7"> </AnodeChannel>     
           <AnodeChannel Number="2" delay="10" threshold="16"> </AnodeChannel>  
@@ -658,8 +770,22 @@
          alct_vpf_delay="6"
          mpc_delay="7"
          mpc_tx_delay="0"
+         fifo_pretrig="7"
+         fifo_tbins="12"
          version="2004">
        <ALCT chamber_type="ME22"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
              l1a_delay="146"> 
           <AnodeChannel Number="1" delay="10" threshold="13"> </AnodeChannel>     
           <AnodeChannel Number="2" delay="10" threshold="14"> </AnodeChannel>  
