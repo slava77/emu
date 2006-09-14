@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.20 2006/09/13 14:13:32 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.21 2006/09/14 09:12:28 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -7376,7 +7376,7 @@ private:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    std::string CFEBFirmware = FirmwareDir_+"cfeb/cfeb_v6_r3.svf";
+    std::string CFEBFirmware = FirmwareDir_+"cfeb/cfeb_v6_r2.svf";
     //std::string CFEBFirmware = FirmwareDir_+"cfeb/cfeb_v3_r1.svf";
     CFEBFirmware_ = CFEBFirmware;
     //

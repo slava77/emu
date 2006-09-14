@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.6 2006/09/13 14:13:32 mey Exp $
+// $Id: DAQMB.cc,v 3.7 2006/09/14 09:10:06 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.7  2006/09/14 09:10:06  mey
+// UPdate
+//
 // Revision 3.6  2006/09/13 14:13:32  mey
 // Update
 //
@@ -286,7 +289,7 @@ DAQMB::DAQMB(Crate * theCrate,int newslot):
     comp_timing_cfeb_[cfeb] = 2;
     comp_thresh_cfeb_[cfeb] = 0.03;
     pre_block_end_cfeb_[cfeb] = 7;
-    L1A_extra_cfeb_[cfeb] = 0;
+    L1A_extra_cfeb_[cfeb] = xlatency_;
   }
   //
   MyOutput_ = &std::cout ;
@@ -393,6 +396,7 @@ void DAQMB::configure() {
    //
    (*MyOutput_) << "Set crate id " << crate_id_ << std::endl ;
    setxlatency(xlatency_);
+   LctL1aDelay(xlatency_);
    //
    (*MyOutput_) << "Set cfeb clk delay " << cfeb_clk_delay_ << std::endl ;
    setfebdelay(cfeb_clk_delay_);
@@ -412,7 +416,7 @@ void DAQMB::configure() {
    WriteSFM();
    //
    // Now buckflash
-   //
+   /*
    char * flash_content=(char *)malloc(500);
    int n_byts = Fill_BUCK_FLASH_contents(flash_content);
    buckflash_erase();
@@ -422,7 +426,7 @@ void DAQMB::configure() {
    sleep(5);
    buckflash_init();
    sleep(1); 
-   //
+   */
 }
 //
 void DAQMB::enable_cfeb() {
@@ -1102,22 +1106,36 @@ void DAQMB::cfebs_readstatus()
     febbuf[idv][2]='\0';
     febbuf[idv][3]='\0';
     if(iuse[idv]==1){
-      std::cout << " dv= " << dv << " STATUS_CS " << STATUS_CS << std::endl;
+      std::cout << " dv= " << dv << " STATUS_S " << STATUS_S << std::endl;
       cmd[0]=VTX2_USR1;
-      sndbuf[0]=STATUS_CS;
+      sndbuf[0]=STATUS_S;
       devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
-      cmd[0]=VTX2_BYPASS;
-      devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
+      //      cmd[0]=VTX2_BYPASS;
+      //      devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
       cmd[0]=VTX2_USR2;
-      sndbuf[0]=0;
-      sndbuf[1]=0;
-      sndbuf[2]=0;
+      sndbuf[0]=0xd5;
+      sndbuf[1]=0xee;
+      sndbuf[2]=0xdf;
+      sndbuf[3]=0xba;
       devdo(dv,5,cmd,32,sndbuf,rcvbuf,1);
       febbuf[idv][0]=rcvbuf[0];
       febbuf[idv][1]=rcvbuf[1];
       febbuf[idv][2]=rcvbuf[2];
       febbuf[idv][3]=rcvbuf[3];
       printf(" SCA rcvbuf *** %02x %02x %02x %02x \n",rcvbuf[0]&0xFF,rcvbuf[1]&0xFF,rcvbuf[2]&0xFF,rcvbuf[3]&0xFF);
+
+      // The following should return "BADFEED5"
+      /*      cmd[0]=VTX2_USR1;
+      sndbuf[0]=5-STATUS_CS;
+      devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+      cmd[0]=VTX2_USR2;
+      sndbuf[0]=0xd5;
+      sndbuf[1]=0xee;
+      sndbuf[2]=0xdf;
+      sndbuf[3]=0xba;
+      devdo(dv,5,cmd,32,sndbuf,rcvbuf,1);
+      printf(" SCA rcvbuf shift *** %02x %02x %02x %02x \n",rcvbuf[3]&0xFF,rcvbuf[2]&0xFF,rcvbuf[1]&0xFF,rcvbuf[0]&0xFF);    */
+
       cmd[0]=VTX2_BYPASS;
       devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
     }
@@ -1223,12 +1241,13 @@ void DAQMB::cfebs_readstatus()
     }
   }
   printf("\n");
-  printf("Extern_L1A_delay            ");
+  printf("Extra_L1A_delay             ");
   for(i=0;i<5;i++){
     if(iuse[i]==1){
       printf("  :  %d",(febbuf[i][3]>>1)&0x03);
     }
   }
+  printf("\n");
 }
 
 void DAQMB::setxlatency(int dword)
@@ -3640,7 +3659,9 @@ void DAQMB::WriteSFM(){
   SFMWriteProtect();
   //
 }
+//
 
+//
 void DAQMB::PrintCounters(int user_option){
   //
   (*MyOutput_) << "Enter 1 for simple print-out" << std::endl;
