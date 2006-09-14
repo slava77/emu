@@ -481,7 +481,7 @@ emuFarmer reloads drivers or launches/kills XDAQ executives specified in a XDAQ 
               Format: user@host:directory
               The remote processes will be instructed to take the merged configuration from
               http://host/user/directory
-              Default is user@emuslice10:config (See option -u for 'user'.)
+              Default is user@emudaq:config (See option -u for 'user'.)
         -a    Action [status|start|stop|restart|reload] to take. Default is 'status'.
               'status' prints the process state code reported by 'ps'. (See the ps man pages.)
               'reload' will (re)load the drivers in all nodes running EmuRUIs. Options -l and -t
@@ -555,7 +555,7 @@ if __name__ == "__main__":
 
     # now we can set the default destination directory for the merged configuration file
     if dirForMerged == None:
-        dirForMerged = user+'@emuslice10:config'
+        dirForMerged = user+'@emudaq:config'
 
     # XDAQ_ROOT must be known
     if xdaq_root == '' and 'XDAQ_ROOT' not in os.environ:
