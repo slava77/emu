@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.12 2006/09/13 14:13:32 mey Exp $
+// $Id: TMB.cc,v 3.13 2006/09/14 11:47:57 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 3.13  2006/09/14 11:47:57  mey
+// update
+//
 // Revision 3.12  2006/09/13 14:13:32  mey
 // Update
 //
@@ -302,7 +305,7 @@ TMB::TMB(Crate * theCrate, int slot) :
   rpc_exists_(0xf),
   fifo_mode_(1),
   fifo_tbins_(7),
-  fifo_pretrig_(2),
+  fifo_pretrig_(4),
   alct_clear_(0),
   mpc_tx_delay_(0),
   l1a_offset_(0),
