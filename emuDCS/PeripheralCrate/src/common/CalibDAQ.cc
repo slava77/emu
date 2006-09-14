@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 3.2 2006/09/13 14:13:32 mey Exp $
+// $Id: CalibDAQ.cc,v 3.3 2006/09/14 09:11:34 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 3.3  2006/09/14 09:11:34  mey
+// Update
+//
 // Revision 3.2  2006/09/13 14:13:32  mey
 // Update
 //
@@ -405,13 +408,13 @@ void CalibDAQ::timeCFEBtest() {
 	CCB * ccb = myCrates[j]->ccb();
 	(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
 	//
-	::usleep(100000);
+	::usleep(1000);
 	//
 	std::cout << "Sending pulse" <<std::endl;
 	//
 	ccb->pulse(1, 0xff);//pulse all dmbs in this crate
 	//
-	::usleep(100000);
+	::usleep(1000);
 	//
       }
       //

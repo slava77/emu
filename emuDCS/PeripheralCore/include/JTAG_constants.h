@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: JTAG_constants.h,v 3.1 2006/08/02 13:13:45 mey Exp $
+// $Id: JTAG_constants.h,v 3.2 2006/09/14 09:12:03 mey Exp $
 // $Log: JTAG_constants.h,v $
+// Revision 3.2  2006/09/14 09:12:03  mey
+// Update
+//
 // Revision 3.1  2006/08/02 13:13:45  mey
 // Update
 //
@@ -111,8 +114,8 @@ enum DEVTYPE{ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,F1PROM,F2PROM,F3PROM,F4PROM,F5PROM
 /* SCAM-FPGA modes (Virtex FPGA) */
 #define NORM_MODE  0
 #define RESET_MODE 1
-#define STATUS_CS 2
-#define STATUS_S 3
+#define STATUS_CS 2  //Just shift, no update
+#define STATUS_S 3   //Update and shift
 #define COMP_DAC   4
 #define LCTL1ADELAY 5
 #define PREBLKEND  8
