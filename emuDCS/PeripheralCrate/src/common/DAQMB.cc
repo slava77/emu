@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.8 2006/09/15 06:47:36 mey Exp $
+// $Id: DAQMB.cc,v 3.9 2006/09/15 06:50:39 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.9  2006/09/15 06:50:39  mey
+// Update
+//
 // Revision 3.8  2006/09/15 06:47:36  mey
 // Update
 //
@@ -3634,7 +3637,7 @@ void DAQMB::setcbldly(int dword)
   sndbuf[0]=0;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
   //
-  printf(" Cable delay Set to %02X. \n",dword&0x3F);
+  printf(" Cable delay Set to %02X. \n",dword&0xFF);
   //
   // Update
   //
