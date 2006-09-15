@@ -145,8 +145,8 @@ class Emu_Farmer:
             print '      Type emuFarmer -h for help.'
             sys.exit(1)
         for g in re.split('[+\-]',self._target):
-            if g not in self._contexts:
-                print '***** Error:',g,'is not a valid target group. Use',self._contexts.keys()
+            if g not in self._contexts and g.find(':') <= 0:
+                print '***** Error:',g,'is not a valid target group or context. Use',self._contexts.keys(),' and/or \'host:port\''
                 print '      Type emuFarmer -h for help.'
                 sys.exit(1)
         if len(self._xdaq_root) == 0:
@@ -327,7 +327,7 @@ class Emu_Farmer:
         groupToAdd  = set()
         groupToOmit = set()
         # parse the string of specified targets
-        target = self._target+' '
+        target = self._target+' ' # add space for safety
         sign = '+'
         t = ''
         for i in range(len(target)):
@@ -336,8 +336,11 @@ class Emu_Farmer:
                     if self._contexts.has_key(t):
                         if sign == '+': groupToAdd  = groupToAdd  | self._contexts[t]
                         else          : groupToOmit = groupToOmit | self._contexts[t]
+                    elif t.find(':') > 0:
+                        if sign == '+': groupToAdd.add( t )
+                        else          : groupToOmit.add( t )
                     else:
-                        print '***** Error: ',t,' is not a recognized target group'
+                        print '***** Error: ',t,' is not a recognized target group or context (host:port)'
                 sign = self._target[i]
                 t = ''
             elif i == len(self._target):
@@ -345,13 +348,19 @@ class Emu_Farmer:
                     if self._contexts.has_key(t):
                         if sign == '+': groupToAdd  = groupToAdd  | self._contexts[t]
                         else          : groupToOmit = groupToOmit | self._contexts[t]
+                    elif t.find(':') > 0:
+                        if sign == '+': groupToAdd.add( t )
+                        else          : groupToOmit.add( t )
                     else:
-                        print '***** Error: ',t,' is not a recognized target group'
+                        print '***** Error: ',t,' is not a recognized target group or context (host:port)'
                 t = ''
             else:
                 t += self._target[i]
             
         relevantContexts = groupToAdd - groupToOmit
+        #print 'add\n',groupToAdd
+        #print 'omit\n',groupToOmit
+        #print 'add-omit\n',relevantContexts
         if len( relevantContexts ) == 0:
             print self._target,' corresponds to no context in ',self._mergedConfigFileName
             print '      Type emuFarmer -h for help.'
@@ -486,18 +495,19 @@ emuFarmer reloads drivers or launches/kills XDAQ executives specified in a XDAQ 
               'status' prints the process state code reported by 'ps'. (See the ps man pages.)
               'reload' will (re)load the drivers in all nodes running EmuRUIs. Options -l and -t
               have no effect in 'reload'.
-        -t    Group(s) of targeted executives.
-              Name        Executives running
-               daq         DAQ column (EmuRUI, RU, BU, EVM, EmuTA or EmuFU)
-               ltc         LTCControl
-               man         EmuDAQManager
-               fed         EmuFEDCrate or EmuFCrateHyperDAQ
-               pc          EmuPeripheralCrate
-               sv          CSCSupervisor
-               dqm         EmuMonitor
-               all         any application
+        -t    Targeted executives (host:port) and/or group(s) of targeted executives.
+              Group name   Executives running
+               daq           DAQ column (any of EmuRUI, RU, BU, EVM, EmuTA or EmuFU)
+               ltc           LTCControl
+               man           EmuDAQManager
+               fed           EmuFEDCrate or EmuFCrateHyperDAQ
+               pc            EmuPeripheralCrate
+               sv            CSCSupervisor
+               dqm           EmuMonitor
+               all           any application
               E.g., man+daq will select all executives running DAQManager or DAQ column applications,
-              all-ltc will select all executives except the one running LTCControl.
+              all-ltc will select all executives except the one running LTCControl,
+              daq-emudaq01:40201 will select all executives running DAQ column applications except emudaq01:40201.
               Default is 'daq+man+sv', i.e., the DAQ column, the DAQManager and the CSCSupervisor.
         -u    User to run the executives on the remote hosts. Default is $USER of the shell where emuFarmer is run.
         -X    XDAQ_ROOT on the remote hosts. Default is $XDAQ_ROOT of the shell where emuFarmer is run.
@@ -506,7 +516,7 @@ emuFarmer reloads drivers or launches/kills XDAQ executives specified in a XDAQ 
 
 
     Example:
-        emuFarmer -a start -l INFO -c http://emudaq02/EmuDAQ/xml/EmuDAQ_SliceTest.xml
+        emuFarmer -l INFO -c http://emudaq/cscdaq/config/EmuDAQ/EmuDAQ_SliceTest.xml -a start
     """
 
 if __name__ == "__main__":
