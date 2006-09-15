@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.7 2006/09/14 09:10:06 mey Exp $
+// $Id: DAQMB.cc,v 3.8 2006/09/15 06:47:36 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.8  2006/09/15 06:47:36  mey
+// Update
+//
 // Revision 3.7  2006/09/14 09:10:06  mey
 // UPdate
 //
@@ -278,17 +281,17 @@ DAQMB::DAQMB(Crate * theCrate,int newslot):
   pulse_delay_(15), inject_delay_(15),
   pul_dac_set_(1.0), inj_dac_set_(1.0),
   set_comp_thresh_(0.03), feb_clock_delay_(0),
-  comp_timing_(2), comp_mode_(2), pre_block_end_(7),
+  comp_timing_(1), comp_mode_(2), pre_block_end_(7),
   l1a_lct_counter_(-1), cfeb_dav_counter_(-1), 
   tmb_dav_counter_(-1), alct_dav_counter_(-1), cable_delay_(0), 
   crate_id_(0xfe), toogle_bxn_(1), cfeb_clk_delay_(15), xlatency_(1)
 {
   //
   for (int cfeb=0; cfeb<5; cfeb++) {
-    comp_mode_cfeb_[cfeb]   = 2;
-    comp_timing_cfeb_[cfeb] = 2;
-    comp_thresh_cfeb_[cfeb] = 0.03;
-    pre_block_end_cfeb_[cfeb] = 7;
+    comp_mode_cfeb_[cfeb]   = comp_mode_;
+    comp_timing_cfeb_[cfeb] = comp_timing_;
+    comp_thresh_cfeb_[cfeb] = set_comp_thresh_;
+    pre_block_end_cfeb_[cfeb] = pre_block_end_;
     L1A_extra_cfeb_[cfeb] = xlatency_;
   }
   //
