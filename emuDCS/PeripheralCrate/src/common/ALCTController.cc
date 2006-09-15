@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.14 2006/09/07 15:23:04 rakness Exp $
+// $Id: ALCTController.cc,v 3.15 2006/09/15 07:50:41 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.15  2006/09/15 07:50:41  rakness
+// dump config registers
+//
 // Revision 3.14  2006/09/07 15:23:04  rakness
 // pull programming back into EMUjtag
 //
@@ -593,8 +596,8 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   alct_fifo_tbins_(10),
   alct_bxc_offset_(1),
   alct_drift_delay_(3),
-  alct_nph_thresh_(2),
-  alct_nph_pattern_(2),
+  alct_nph_thresh_(4),
+  alct_nph_pattern_(4),
   alct_l1a_delay_(146),
   alct_l1a_window_(3),
   alct_l1a_internal_(0),
@@ -6295,6 +6298,8 @@ void ALCTController::SetUpRandomALCT(){
 //
 void ALCTController::configure() {
   //
+  SetFillVmeWriteVecs(true);
+  //
   std::ostringstream dump;
   dump << (int)tmb_->slot();
   //
@@ -6387,6 +6392,46 @@ void ALCTController::configure() {
     CheckAndProgramProm(ChipLocationTmbUserPromALCT);
   //
   SetFillVmeWriteVecs(false);        //give VME back to the user (default)
+  //
+  return;
+}
+//
+void ALCTController::ReadCurrentConfiguration() {
+  //
+  (*MyOutput_) << "ALCT READ configuration in slot " <<  (int)tmb_->slot() << std::endl;
+  //
+  ReadSlowControlId();
+  PrintSlowControlId();
+  //
+  ReadFastControlId();
+  PrintFastControlId();
+  //
+  (*MyOutput_) << "........................ ALCT type = " << std::dec << GetNumberOfChannelsInAlct() << std::endl; 
+  (*MyOutput_) << "............ Number of Wire Groups = " << std::dec << GetNumberOfWireGroupsInChamber() << std::endl; 
+  (*MyOutput_) << "........ Number of Wires per layer = " << GetNumberOfChannelsPerLayer() << std::endl;
+  (*MyOutput_) << ".. Number of groups of delay chips =  " << GetNumberOfGroupsOfDelayChips() << std::endl; 
+  (*MyOutput_) << "Number of collision pattern groups = " << GetNumberOfCollisionPatternGroups() << std::endl;
+  (*MyOutput_) << ".................. Number of AFEBs = " << GetNumberOfAfebs() << std::endl;
+  (*MyOutput_) << "........... Enabled AFEBs count from  " << GetLowestAfebIndex() << " to " << GetHighestAfebIndex() << std::endl;
+  //
+  ReadAfebThresholds();
+  PrintAfebThresholds();
+  //    
+  ReadStandbyRegister_();
+  PrintStandbyRegister_();
+
+  ReadAsicDelaysAndPatterns();
+  PrintAsicDelays();
+  PrintAsicPatterns();
+  //
+  ReadConfigurationReg();
+  PrintConfigurationReg();
+  //
+  ReadHotChannelMask();
+  PrintHotChannelMask();
+  //
+  ReadCollisionPatternMask();
+  PrintCollisionPatternMask();
   //
   return;
 }
@@ -8285,8 +8330,8 @@ void ALCTController::SetPowerUpConfigurationReg() {
   SetSendEmpty(0);
   SetInjectMode(0);
   SetBxcOffset(1);
-  SetPretrigNumberOfLayers(2);
-  SetPretrigNumberOfPattern(2);
+  SetPretrigNumberOfLayers(4);
+  SetPretrigNumberOfPattern(4);
   SetDriftDelay(3);
   SetFifoTbins(10);
   SetFifoPretrig(8);
@@ -8518,42 +8563,181 @@ void ALCTController::PrintCollisionPatternMask() {
   //
   (*MyOutput_) << "READ Collision Pattern Mask for ALCT" << std::dec << GetNumberOfChannelsInAlct() << "..." << std::endl;
   //
+  (*MyOutput_) << "Wire Groups 0 to " << GetNumberOfCollisionPatternGroups() << " -> Pattern A:" << std::endl;
+  //
+  int bit_counter=0;
+  //
   for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
-    int bit_counter = 0;
     int lo_wire_group_index = group*NUMBER_OF_WIREGROUPS_PER_COLLISION_PATTERN_GROUP;
     int hi_wire_group_index = ( (group+1)*NUMBER_OF_WIREGROUPS_PER_COLLISION_PATTERN_GROUP ) - 1;
-    (*MyOutput_) << "Group " << std::dec << group 
-		 << ", covering wire groups " << std::dec << lo_wire_group_index 
-		 << " to " << hi_wire_group_index << " -> pattern A: " 
-		 << std::endl;
-    (*MyOutput_) << "    " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
-		 << std::endl;
-    (*MyOutput_) << "    " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
-		 << std::endl;
-    (*MyOutput_) << "    " << GetCollisionPatternMask(group,bit_counter++) << std::endl;
-    (*MyOutput_) << "  " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
-		 << std::endl;
-    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
-		 << std::endl;
-    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
-		 << std::endl;
-    //
-    (*MyOutput_) << "Group " << std::dec << group 
-		 << ", covering wire groups " << std::dec << lo_wire_group_index 
-		 << " to " << hi_wire_group_index << " -> pattern B: " 
-		 << std::endl;
-    (*MyOutput_) << "    " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
-		 << std::endl;
-    (*MyOutput_) << "    " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
-		 << std::endl;
-    (*MyOutput_) << "    " << GetCollisionPatternMask(group,bit_counter++) << std::endl;
-    (*MyOutput_) << "  " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
-		 << std::endl;
-    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
-		 << std::endl;
-    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) << " " << GetCollisionPatternMask(group,bit_counter++) 
-		 << std::endl;
+    (*MyOutput_) << "[" << std::dec << std::setw(3) << lo_wire_group_index 
+		 << "," << std::dec << std::setw(3) << hi_wire_group_index << "]";
   }
+  (*MyOutput_) << std::endl;
+  //
+  int bit_counter0 = bit_counter++;
+  int bit_counter1 = bit_counter++;
+  int bit_counter2 = bit_counter++;
+  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
+    if (group == 0) {
+      (*MyOutput_) << "    ";
+    } else { 
+      (*MyOutput_) << "    ";
+    }
+    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2); 
+  }
+  (*MyOutput_) << std::endl;
+  //
+  //
+  bit_counter0 = bit_counter++;
+  bit_counter1 = bit_counter++;
+  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
+    if (group == 0) {
+      (*MyOutput_) << "    ";
+    } else { 
+      (*MyOutput_) << "      ";
+    }
+    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1);
+  }
+  (*MyOutput_) << std::endl;
+  //
+  //
+  bit_counter0 = bit_counter++;
+  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
+    if (group == 0) {
+      (*MyOutput_) << "    ";
+    } else { 
+      (*MyOutput_) << "        ";
+    }
+    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0);
+  }
+  (*MyOutput_) << std::endl;
+  //
+  //
+  bit_counter0 = bit_counter++;
+  bit_counter1 = bit_counter++;
+  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
+    if (group == 0) {
+      (*MyOutput_) << "  ";
+    } else {
+      (*MyOutput_) << "      ";
+    }
+    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1); 
+  }
+  (*MyOutput_) << std::endl;
+  //
+  //
+  bit_counter0 = bit_counter++;
+  bit_counter1 = bit_counter++;
+  bit_counter2 = bit_counter++;
+  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
+    if (group != 0) {
+      (*MyOutput_) << "    ";
+    }
+    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2);
+  }
+  (*MyOutput_) << std::endl;
+  //
+  //
+  bit_counter0 = bit_counter++;
+  bit_counter1 = bit_counter++;
+  bit_counter2 = bit_counter++;
+  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
+    if (group != 0) {
+      (*MyOutput_) << "    ";
+    }
+    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2);
+  }
+  (*MyOutput_) << std::endl;
+  //
+  //
+  //
+  // Pattern B is not supported in the low-latency ALCT firmware...  But if it were, here would be its print-out:
+  //  (*MyOutput_) << "Wire Groups 0 to " << GetNumberOfCollisionPatternGroups() << " -> Pattern B:" << std::endl;
+  //  //
+  //  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
+  //    int lo_wire_group_index = group*NUMBER_OF_WIREGROUPS_PER_COLLISION_PATTERN_GROUP;
+  //    int hi_wire_group_index = ( (group+1)*NUMBER_OF_WIREGROUPS_PER_COLLISION_PATTERN_GROUP ) - 1;
+  //    (*MyOutput_) << "[" << std::dec << std::setw(3) << lo_wire_group_index 
+  //		 << "," << std::dec << std::setw(3) << hi_wire_group_index << "]";
+  //  }
+  //  (*MyOutput_) << std::endl;
+  //  //
+  //  bit_counter0 = bit_counter++;
+  //  bit_counter1 = bit_counter++;
+  //  bit_counter2 = bit_counter++;
+  //  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
+  //    if (group == 0) {
+  //      (*MyOutput_) << "    ";
+  //    } else { 
+  //      (*MyOutput_) << "    ";
+  //    }
+  //    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2); 
+  //  }
+  //  (*MyOutput_) << std::endl;
+  //  //
+  //  //
+  //  bit_counter0 = bit_counter++;
+  //  bit_counter1 = bit_counter++;
+  //  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
+  //    if (group == 0) {
+  //      (*MyOutput_) << "    ";
+  //    } else { 
+  //      (*MyOutput_) << "      ";
+  //    }
+  //    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1);
+  //  }
+  //  (*MyOutput_) << std::endl;
+  //  //
+  //  //
+  //  bit_counter0 = bit_counter++;
+  //  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
+  //    if (group == 0) {
+  //      (*MyOutput_) << "    ";
+  //    } else { 
+  //      (*MyOutput_) << "        ";
+  //    }
+  //    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0);
+  //  }
+  //  (*MyOutput_) << std::endl;
+  //  //
+  //  //
+  //  bit_counter0 = bit_counter++;
+  //  bit_counter1 = bit_counter++;
+  //  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
+  //    if (group == 0) {
+  //      (*MyOutput_) << "  ";
+  //    } else {
+  //      (*MyOutput_) << "      ";
+  //    }
+  //    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1); 
+  //  }
+  //  (*MyOutput_) << std::endl;
+  //  //
+  //  //
+  //  bit_counter0 = bit_counter++;
+  //  bit_counter1 = bit_counter++;
+  //  bit_counter2 = bit_counter++;
+  //  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
+  //    if (group != 0) {
+  //      (*MyOutput_) << "    ";
+  //    }
+  //    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2);
+  //  }
+  //  (*MyOutput_) << std::endl;
+  //  //
+  //  //
+  //  bit_counter0 = bit_counter++;
+  //  bit_counter1 = bit_counter++;
+  //  bit_counter2 = bit_counter++;
+  //  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
+  //    if (group != 0) {
+  //      (*MyOutput_) << "    ";
+  //    }
+  //    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2);
+  //  }
+  //  (*MyOutput_) << std::endl;
+  //
   return;
 }
 //

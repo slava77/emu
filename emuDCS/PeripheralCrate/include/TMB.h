@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.6 2006/09/08 00:06:11 mey Exp $
+// $Id: TMB.h,v 3.7 2006/09/15 07:50:41 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.7  2006/09/15 07:50:41  rakness
+// dump config registers
+//
 // Revision 3.6  2006/09/08 00:06:11  mey
 // UPdate
 //
@@ -439,6 +442,8 @@ public:
   //
   void ClockOutPromProgram(int prom,int number_of_addresses);
   inline int GetClockedOutPromImage(int address) { return clocked_out_prom_image_.at(address); }
+  //
+  void ReadCurrentConfiguration();
   //
 public:
   //

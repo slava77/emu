@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.13 2006/09/14 11:47:57 mey Exp $
+// $Id: TMB.cc,v 3.14 2006/09/15 07:50:41 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.14  2006/09/15 07:50:41  rakness
+// dump config registers
+//
 // Revision 3.13  2006/09/14 11:47:57  mey
 // update
 //
@@ -534,6 +537,7 @@ void TMB::init() {
 //
 void TMB::configure() {
   //
+  SetFillVmeWriteVecs(true);
   ClearVmeWriteVecs();
   //
   ostringstream dump;
@@ -6368,5 +6372,27 @@ void TMB::OkVmeWrite(char vme) {
     //
   } 
   //
+  return;
+}
+//
+void TMB::ReadCurrentConfiguration() {
+  //
+  (*MyOutput_) << "TMB READ configuration in slot = " << (int) slot() << std::endl;
+  //
+  (*MyOutput_) << "addr    data" << std::endl;
+  (*MyOutput_) << "====   ======" << std::endl;
+  for (int index=0; index<number_of_allowed_configuration_addresses; index++) {
+    std::cout << "0x" << std::hex
+	      << ((allowed_configuration_addresses[index] >> 4) & 0xf) 
+	      << ((allowed_configuration_addresses[index] >> 0) & 0xf);
+    std::cout << "   ";
+    int read_data = ReadRegister(allowed_configuration_addresses[index]);
+    std::cout << "0x" << std::hex  
+	      << ((read_data >>12) & 0xf) 
+	      << ((read_data >> 8) & 0xf) 
+	      << ((read_data >> 4) & 0xf) 
+	      << ((read_data >> 0) & 0xf);
+    std::cout << std::endl;			     
+  }
   return;
 }

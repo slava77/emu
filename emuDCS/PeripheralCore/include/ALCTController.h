@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.6 2006/09/05 10:13:16 rakness Exp $
+// $Id: ALCTController.h,v 3.7 2006/09/15 07:50:40 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.7  2006/09/15 07:50:40  rakness
+// dump config registers
+//
 // Revision 3.6  2006/09/05 10:13:16  rakness
 // ALCT configure from prom
 //
@@ -750,6 +753,8 @@ public:
   //  Useful methods to use ALCTController:
   ///////////////////////////////////////////////////////////////////////////
   void configure();                                  //writes software values to all registers on ALCT
+  void ReadCurrentConfiguration();                   //Read and print out current configuration
+  //
   void SetFillVmeWriteVecs(bool fill_vectors_or_not);//writes software values to user prom
   bool GetFillVmeWriteVecs();
   void ClearVmeWriteVecs();

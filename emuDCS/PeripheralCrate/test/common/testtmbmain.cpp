@@ -123,36 +123,30 @@ int main() {
 	      << std::endl;
     std::cout << "  1:Run All Tests, or singly test one of the following... " 
               << std::endl;
-    std::cout << "  2:Boot Register               3:TMB Hard Reset               4:VME FPGA data reg" 
+    std::cout << "  2:Boot Register               3:TMB Hard Reset              4:VME FPGA data reg" 
               << std::endl; 
-    std::cout << "  5:Slot                        6:Firmware Date                7:Firmware Type"
+    std::cout << "  5:Slot                        6:Firmware Date               7:Firmware Type"
               << std::endl;
-    std::cout << "  8:Firmware Version            9:Firmware Rev Code           10:JTAG chains"
+    std::cout << "  8:Firmware Version            9:Firmware Rev Code          10:JTAG chains"
               << std::endl;
-    std::cout << " 11:Mezzanine ID               12:PROM ID                     13:PROM Path"
+    std::cout << " 11:Mezzanine ID               12:PROM ID                    13:PROM Path"
               << std::endl;
-    std::cout << " 14:Digital Serial Numbers     15:Voltages, Currents, Temps   16:3d3444 status"
+    std::cout << " 14:Digital Serial Numbers     15:Voltages, Currents, Temps  16:3d3444 status"
               << std::endl;
-    std::cout << " 17:ALCT TX/RX cables          18:RAT temperature OK          19:RAT ID codes"
+    std::cout << " 17:ALCT TX/RX cables          18:RAT temperature OK         19:RAT ID codes"
               << std::endl;
     std::cout << " 70:RAT User codes             71:TMB U76 bus-hold chip"
               << std::endl;
+    //
     std::cout << std::endl;
-    std::cout << " 21:Read RAT USER1" 
+    std::cout << " 21:Read RAT USER1             23:read RAT-RPC delay         25:Set RAT-RPC delay" 
 	      << std::endl;
-    std::cout << " 23:read RAT-RPC delay         25:Set RAT-RPC delay" 
+    std::cout << " 26:reset RPC parity error ctr 29:Read RAT Usercodes         30:Read RAT IDcodes" 
 	      << std::endl;
-    std::cout << " 26:reset RPC parity error ctr"
-	      << std::endl;
-    std::cout << " 29:Read RAT Usercodes         30:Read RAT IDcodes            31:Read TMB-RAT delay"
-	      << std::endl;
-    std::cout << " 32:Set TMB-RAT Delay          "
-	      << std::endl;
-    std::cout << " 37:Test parity bit computation"
+    std::cout << " 31:Read TMB-RAT delay         32:Set TMB-RAT Delay          37:Test parity bit computation"
 	      << std::endl;
     //
     std::cout << std::endl;
-    //
     std::cout << " 90:enable PC->CLCTex from TTC 91:Read scope                  92:TTC command received" 
 	      << std::endl;
     std::cout << " 93:TMB Raw hits dump          94:Print counters              95:Reset counters"
@@ -161,9 +155,7 @@ int main() {
 	      << std::endl;
     //
     std::cout << std::endl;
-    //
-    std::cout << " .... New ALCT .... " << std::endl;
-    std::cout << "100: Setup                    101:Read slow control ID       102:Read fast control ID"
+    std::cout << "100: Setup ALCT               101:Read ALCT slow control ID  102: Read ALCT fast control ID"
 	      << std::endl;
     std::cout << "110: Read asic delays         111:Set asic delays            112: Read asic patterns"
 	      << std::endl;
@@ -179,20 +171,17 @@ int main() {
 	      << std::endl;
     std::cout << "190: Read collision pattern   191:Set collision pattern      199:Set power-up collision pattern mask"
 	      << std::endl;
-    std::cout << std::endl;
     //
-    std::cout << "XSVF file handling" << std::endl;
-    std::cout << "200: Configure TMB            201:Configure TMB/write prom"
+    std::cout << std::endl;
+    std::cout << "200:Configure TMB             201: Configure TMB/write prom  202: Configure ALCT "
 	      << std::endl;
-    std::cout << "202: Configure ALCT           203:Configure ALCT/write prom"
+    std::cout << "203:Configure ALCT/write prom 300: Write xsvf files          301: Read xsvf file"
 	      << std::endl;
-    std::cout << "300: Write xsvf files         301:Read xsvf file"
+    std::cout << "400:Program user proms        401: Check user prom programs  402: Program TMB"
 	      << std::endl;
-    std::cout << "400: Program user proms       401:Check user prom programs   402:Program TMB"
+    std::cout << "403:Prog. proms w/walking 1s  500: Check state machine       501: Read TMB config registers"
 	      << std::endl;
-    std::cout << "403: Prog. proms w/walking 1s "
-	      << std::endl;
-    std::cout << "500: Check state machine        "
+    std::cout << "502:Read ALCT config regs    "
 	      << std::endl;
     //
     std::cout << std::endl;
@@ -653,9 +642,10 @@ int main() {
       std::cout << "Raw hits header = 0x" << std::hex << thisTMB->ReadRegister(tmb_stat_adr) << std::endl;
       break;
     case 501:
-      thisTMB->SetWhichUserProm(ChipLocationTmbUserPromTMB);
-      thisTMB->SetXsvfFilename("prom0_example");
-      thisTMB->CompareUserPromRegisters();
+      thisTMB->ReadCurrentConfiguration();
+      break;
+    case 502:
+      alct->ReadCurrentConfiguration();
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 
