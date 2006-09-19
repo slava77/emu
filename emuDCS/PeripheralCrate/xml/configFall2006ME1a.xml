@@ -1,0 +1,775 @@
+
+<EmuSystem>
+
+<!-- start of 1st crate -->
+  <PeripheralCrate crateID="0"  VMEaddress="02:00:00:00:00:0f" port="3">
+
+<!-- ME+1/1/27 chamber -->
+   <CSC label="ME+1/1/27">
+    <DAQMB slot="3" 
+           feb_dav_delay="23" 
+           tmb_dav_delay="26" 
+           push_dav_delay="31"
+           l1acc_dav_delay="24" 
+           ALCT_dav_delay="1" 
+           calibration_LCT_delay="8" 
+           calibration_l1acc_delay="22" 
+           pulse_delay="15" 
+           inject_delay="15" 
+           pul_dac_set="1.0" 
+           inj_dac_set="1.0" 
+           set_comp_thresh="0.03" 
+           feb_clock_delay="31" 
+           comp_mode="2" 
+           comp_timing="1" 
+           cable_delay= "64"
+           crate_id="3"
+           pre_block_end="7">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   
+    <TMB slot="2" 
+         cfeb0delay="9"  
+         cfeb1delay="10" 
+         cfeb2delay="11"  
+         cfeb3delay="10" 
+         cfeb4delay="10"
+         l1adelay="137"
+         l1a_window_size="3"
+         alct_tx_clock_delay="8"
+         alct_rx_clock_delay="11" 
+         alct_match_window_size="3" 
+         alct_vpf_delay="6"
+         mpc_delay="7"
+         mpc_tx_delay="0"
+         fifo_pretrig="7"
+         fifo_tbins="12"
+         version="2004">
+       <ALCT chamber_type="ME11"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
+             l1a_delay="146">
+          <AnodeChannel Number="1" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="2" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="3" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="4" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="5" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="6" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="7" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="8" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="9" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="10" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="11" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="12" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="13" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="14" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="15" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="16" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="17" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="18" delay="10" threshold="10"> </AnodeChannel>  
+       </ALCT>      
+    </TMB>
+   </CSC>
+
+<!-- ME+1/1/28 chamber -->
+   <CSC label="ME+1/1/28">
+    <DAQMB slot="5" 
+           feb_dav_delay="23" 
+           tmb_dav_delay="26" 
+           push_dav_delay="31"
+           l1acc_dav_delay="24" 
+           ALCT_dav_delay="1" 
+           calibration_LCT_delay="8" 
+           calibration_l1acc_delay="22" 
+           pulse_delay="15" 
+           inject_delay="15" 
+           pul_dac_set="1.0" 
+           inj_dac_set="1.0" 
+           set_comp_thresh="0.03" 
+           feb_clock_delay="31" 
+           comp_mode="2" 
+           comp_timing="1" 
+           cable_delay= "64"
+           crate_id="3"
+           pre_block_end="7">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   
+    <TMB slot="4" 
+         cfeb0delay="6"  
+         cfeb1delay="7" 
+         cfeb2delay="6"  
+         cfeb3delay="6" 
+         cfeb4delay="9"
+         l1adelay="137"
+         l1a_window_size="3"
+         alct_tx_clock_delay="4"
+         alct_rx_clock_delay="7" 
+         alct_match_window_size="3" 
+         alct_vpf_delay="6"
+         mpc_delay="7"
+         mpc_tx_delay="0"
+         fifo_pretrig="7"
+         fifo_tbins="12"
+         version="2004">
+       <ALCT chamber_type="ME11"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
+             l1a_delay="147">
+          <AnodeChannel Number="1" delay="10" threshold="15"> </AnodeChannel>     
+          <AnodeChannel Number="2" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="3" delay="10" threshold="6"> </AnodeChannel>     
+          <AnodeChannel Number="4" delay="10" threshold="5"> </AnodeChannel>     
+          <AnodeChannel Number="5" delay="10" threshold="13"> </AnodeChannel>     
+          <AnodeChannel Number="6" delay="10" threshold="5"> </AnodeChannel>  
+          <AnodeChannel Number="7" delay="10" threshold="8"> </AnodeChannel>     
+          <AnodeChannel Number="8" delay="10" threshold="13"> </AnodeChannel>     
+          <AnodeChannel Number="9" delay="10" threshold="14"> </AnodeChannel>     
+          <AnodeChannel Number="10" delay="10" threshold="13"> </AnodeChannel>  
+          <AnodeChannel Number="11" delay="10" threshold="11"> </AnodeChannel>     
+          <AnodeChannel Number="12" delay="10" threshold="16"> </AnodeChannel>     
+          <AnodeChannel Number="13" delay="10" threshold="8"> </AnodeChannel>     
+          <AnodeChannel Number="14" delay="10" threshold="7"> </AnodeChannel>  
+          <AnodeChannel Number="15" delay="10" threshold="13"> </AnodeChannel>     
+          <AnodeChannel Number="16" delay="10" threshold="13"> </AnodeChannel>     
+          <AnodeChannel Number="17" delay="10" threshold="13"> </AnodeChannel>     
+          <AnodeChannel Number="18" delay="10" threshold="14"> </AnodeChannel>  
+       </ALCT>      
+    </TMB>
+   </CSC>
+
+<!-- ME+1/1/29 chamber -->
+   <CSC label="ME+1/1/29">
+    <TMB slot="6" 
+         cfeb0delay="2"  
+         cfeb1delay="1" 
+         cfeb2delay="2"  
+         cfeb3delay="2" 
+         cfeb4delay="3"
+         l1adelay="137"
+         l1a_window_size="3"
+         alct_tx_clock_delay="1"
+         alct_rx_clock_delay="4" 
+         alct_match_window_size="3" 
+         alct_vpf_delay="6"
+         mpc_delay="7"
+         mpc_tx_delay="0"
+         fifo_pretrig="7"
+         fifo_tbins="12"
+         version="2004">
+       <ALCT chamber_type="ME11"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
+             l1a_delay="148">
+          <AnodeChannel Number="1" delay="10" threshold="14"> </AnodeChannel>     
+          <AnodeChannel Number="2" delay="10" threshold="15"> </AnodeChannel>  
+          <AnodeChannel Number="3" delay="10" threshold="8"> </AnodeChannel>     
+          <AnodeChannel Number="4" delay="10" threshold="11"> </AnodeChannel>     
+          <AnodeChannel Number="5" delay="10" threshold="14"> </AnodeChannel>     
+          <AnodeChannel Number="6" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="7" delay="10" threshold="17"> </AnodeChannel>     
+          <AnodeChannel Number="8" delay="10" threshold="11"> </AnodeChannel>     
+          <AnodeChannel Number="9" delay="10" threshold="16"> </AnodeChannel>     
+          <AnodeChannel Number="10" delay="10" threshold="17"> </AnodeChannel>  
+          <AnodeChannel Number="11" delay="10" threshold="13"> </AnodeChannel>     
+          <AnodeChannel Number="12" delay="10" threshold="12"> </AnodeChannel>     
+          <AnodeChannel Number="13" delay="10" threshold="13"> </AnodeChannel>     
+          <AnodeChannel Number="14" delay="10" threshold="14"> </AnodeChannel>  
+          <AnodeChannel Number="15" delay="10" threshold="7"> </AnodeChannel>     
+          <AnodeChannel Number="16" delay="10" threshold="15"> </AnodeChannel>     
+          <AnodeChannel Number="17" delay="10" threshold="9"> </AnodeChannel>     
+          <AnodeChannel Number="18" delay="10" threshold="11"> </AnodeChannel>  
+       </ALCT>      
+    </TMB>
+
+    <DAQMB slot="7" 
+           feb_dav_delay="23" 
+           tmb_dav_delay="26" 
+           push_dav_delay="31"
+           l1acc_dav_delay="24" 
+           ALCT_dav_delay="1" 
+           calibration_LCT_delay="8" 
+           calibration_l1acc_delay="22" 
+           pulse_delay="15" 
+           inject_delay="15" 
+           pul_dac_set="1.0" 
+           inj_dac_set="1.0" 
+           set_comp_thresh="0.03" 
+           feb_clock_delay="31" 
+           comp_mode="2" 
+           comp_timing="1" 
+           cable_delay= "64"
+           crate_id="3"
+           pre_block_end="7">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   </CSC>
+
+<!-- ME+1/2/27 chamber -->
+   <!--CSC label="ME+1/2/27">
+    <DAQMB slot="9" 
+           feb_dav_delay="23" 
+           tmb_dav_delay="26" 
+           push_dav_delay="31"
+           l1acc_dav_delay="24" 
+           ALCT_dav_delay="1" 
+           calibration_LCT_delay="8" 
+           calibration_l1acc_delay="22" 
+           pulse_delay="15" 
+           inject_delay="15" 
+           pul_dac_set="1.0" 
+           inj_dac_set="1.0" 
+           set_comp_thresh="0.03" 
+           feb_clock_delay="31" 
+           comp_mode="2" 
+           comp_timing="1" 
+           cable_delay= "64"
+           crate_id="3"
+           pre_block_end="9">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   
+    <TMB slot="8" 
+         cfeb0delay="1"  
+         cfeb1delay="0" 
+         cfeb2delay="1"  
+         cfeb3delay="0" 
+         cfeb4delay="2"
+         l1adelay="137"
+         l1a_window_size="3"
+         alct_tx_clock_delay="0"
+         alct_rx_clock_delay="2" 
+         alct_match_window_size="3" 
+         alct_vpf_delay="6"
+         mpc_delay="7"
+         mpc_tx_delay="0"
+         fifo_pretrig="7"
+         fifo_tbins="12"
+         version="2004">
+       <ALCT chamber_type="ME12"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
+             l1a_delay="147">
+          <AnodeChannel Number="1" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="2" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="3" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="4" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="5" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="6" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="7" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="8" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="9" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="10" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="11" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="12" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="13" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="14" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="15" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="16" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="17" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="18" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="19" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="20" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="21" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="22" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="23" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="24" delay="10" threshold="10"> </AnodeChannel>  
+       </ALCT>      
+    </TMB>
+   </CSC>
+-->
+
+<!-- ME+1/2/28 chamber -->
+   <CSC label="ME+1/2/28">
+    <DAQMB slot="11" 
+           feb_dav_delay="23" 
+           tmb_dav_delay="26" 
+           push_dav_delay="31"
+           l1acc_dav_delay="24" 
+           ALCT_dav_delay="1" 
+           calibration_LCT_delay="8" 
+           calibration_l1acc_delay="22" 
+           pulse_delay="15" 
+           inject_delay="15" 
+           pul_dac_set="1.0" 
+           inj_dac_set="1.0" 
+           set_comp_thresh="0.03" 
+           feb_clock_delay="31" 
+           comp_mode="2" 
+           comp_timing="1" 
+           cable_delay= "64"
+           crate_id="3"
+           pre_block_end="8">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   
+    <TMB slot="10" 
+         cfeb0delay="2"  
+         cfeb1delay="2" 
+         cfeb2delay="2"  
+         cfeb3delay="2" 
+         cfeb4delay="3"
+         l1adelay="137"
+         l1a_window_size="3"
+         alct_tx_clock_delay="8"
+         alct_rx_clock_delay="12" 
+         alct_match_window_size="3" 
+         alct_vpf_delay="6"
+         mpc_delay="7"
+         mpc_tx_delay="0"
+         fifo_pretrig="7"
+         fifo_tbins="12"
+         version="2004">
+       <ALCT chamber_type="ME12"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
+             l1a_delay="146">
+          <AnodeChannel Number="1" delay="10" threshold="14"> </AnodeChannel>     
+          <AnodeChannel Number="2" delay="10" threshold="5"> </AnodeChannel>  
+          <AnodeChannel Number="3" delay="10" threshold="7"> </AnodeChannel>     
+          <AnodeChannel Number="4" delay="10" threshold="12"> </AnodeChannel>     
+          <AnodeChannel Number="5" delay="10" threshold="7"> </AnodeChannel>     
+          <AnodeChannel Number="6" delay="10" threshold="8"> </AnodeChannel>  
+          <AnodeChannel Number="7" delay="10" threshold="8"> </AnodeChannel>     
+          <AnodeChannel Number="8" delay="10" threshold="8"> </AnodeChannel>     
+          <AnodeChannel Number="9" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="10" delay="10" threshold="11"> </AnodeChannel>  
+          <AnodeChannel Number="11" delay="10" threshold="8"> </AnodeChannel>     
+          <AnodeChannel Number="12" delay="10" threshold="8"> </AnodeChannel>     
+          <AnodeChannel Number="13" delay="10" threshold="6"> </AnodeChannel>     
+          <AnodeChannel Number="14" delay="10" threshold="8"> </AnodeChannel>  
+          <AnodeChannel Number="15" delay="10" threshold="12"> </AnodeChannel>     
+          <AnodeChannel Number="16" delay="10" threshold="17"> </AnodeChannel>     
+          <AnodeChannel Number="17" delay="10" threshold="12"> </AnodeChannel>     
+          <AnodeChannel Number="18" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="19" delay="10" threshold="9"> </AnodeChannel>     
+          <AnodeChannel Number="20" delay="10" threshold="7"> </AnodeChannel>  
+          <AnodeChannel Number="21" delay="10" threshold="12"> </AnodeChannel>     
+          <AnodeChannel Number="22" delay="10" threshold="11"> </AnodeChannel>     
+          <AnodeChannel Number="23" delay="10" threshold="7"> </AnodeChannel>     
+          <AnodeChannel Number="24" delay="10" threshold="10"> </AnodeChannel>  
+       </ALCT>      
+    </TMB>
+   </CSC>
+
+<!-- ME+1/2/29 chamber -->
+    <CSC label="ME+1/2/29">
+    <DAQMB slot="15" 
+           feb_dav_delay="23" 
+           tmb_dav_delay="26" 
+           push_dav_delay="31"
+           l1acc_dav_delay="24" 
+           ALCT_dav_delay="1" 
+           calibration_LCT_delay="8" 
+           calibration_l1acc_delay="22" 
+           pulse_delay="15" 
+           inject_delay="15" 
+           pul_dac_set="1.0" 
+           inj_dac_set="1.0" 
+           set_comp_thresh="0.03" 
+           feb_clock_delay="31" 
+           comp_mode="2" 
+           comp_timing="1" 
+           cable_delay= "64"
+           crate_id="3"
+           pre_block_end="9">
+       <CFEB Number="4"> </CFEB>
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   
+    <TMB slot="14" 
+         cfeb0delay="10"  
+         cfeb1delay="10" 
+         cfeb2delay="10"  
+         cfeb3delay="10" 
+         cfeb4delay="11"
+         l1adelay="137"
+         l1a_window_size="3"
+         alct_tx_clock_delay="0"
+         alct_rx_clock_delay="2" 
+         alct_match_window_size="3" 
+         alct_vpf_delay="6"
+         mpc_delay="7"
+         mpc_tx_delay="0"
+         fifo_pretrig="7"
+         fifo_tbins="12"
+         version="2004">
+       <ALCT chamber_type="ME12"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
+             l1a_delay="146">
+          <AnodeChannel Number="1" delay="10" threshold="8"> </AnodeChannel>     
+          <AnodeChannel Number="2" delay="10" threshold="6"> </AnodeChannel>  
+          <AnodeChannel Number="3" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="4" delay="10" threshold="13"> </AnodeChannel>     
+          <AnodeChannel Number="5" delay="10" threshold="5"> </AnodeChannel>     
+          <AnodeChannel Number="6" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="7" delay="10" threshold="12"> </AnodeChannel>     
+          <AnodeChannel Number="8" delay="10" threshold="6"> </AnodeChannel>     
+          <AnodeChannel Number="9" delay="10" threshold="9"> </AnodeChannel>     
+          <AnodeChannel Number="10" delay="10" threshold="11"> </AnodeChannel>  
+          <AnodeChannel Number="11" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="12" delay="10" threshold="7"> </AnodeChannel>     
+          <AnodeChannel Number="13" delay="10" threshold="9"> </AnodeChannel>     
+          <AnodeChannel Number="14" delay="10" threshold="12"> </AnodeChannel>  
+          <AnodeChannel Number="15" delay="10" threshold="11"> </AnodeChannel>     
+          <AnodeChannel Number="16" delay="10" threshold="11"> </AnodeChannel>     
+          <AnodeChannel Number="17" delay="10" threshold="11"> </AnodeChannel>     
+          <AnodeChannel Number="18" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="19" delay="10" threshold="5"> </AnodeChannel>     
+          <AnodeChannel Number="20" delay="10" threshold="8"> </AnodeChannel>  
+          <AnodeChannel Number="21" delay="10" threshold="15"> </AnodeChannel>     
+          <AnodeChannel Number="22" delay="10" threshold="11"> </AnodeChannel>     
+          <AnodeChannel Number="23" delay="10" threshold="3"> </AnodeChannel>     
+          <AnodeChannel Number="24" delay="10" threshold="11"> </AnodeChannel>  
+       </ALCT>      
+    </TMB>
+   </CSC>
+
+<!-- ME+1/3/27 chamber -->
+   <CSC label="ME+1/3/27">
+    <DAQMB slot="17" 
+           feb_dav_delay="23" 
+           tmb_dav_delay="26" 
+           push_dav_delay="31"
+           l1acc_dav_delay="24" 
+           ALCT_dav_delay="1" 
+           calibration_LCT_delay="8" 
+           calibration_l1acc_delay="22" 
+           pulse_delay="15" 
+           inject_delay="15" 
+           pul_dac_set="1.0" 
+           inj_dac_set="1.0" 
+           set_comp_thresh="0.03" 
+           feb_clock_delay="31" 
+           comp_mode="2" 
+           comp_timing="1" 
+           cable_delay= "64"
+           crate_id="3"
+           pre_block_end="8">
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   
+    <TMB slot="16" 
+         cfeb0delay="11"  
+         cfeb1delay="11" 
+         cfeb2delay="11"  
+         cfeb3delay="11" 
+         cfeb4delay="1"
+         l1adelay="137"
+         l1a_window_size="3"
+         alct_tx_clock_delay="0"
+         alct_rx_clock_delay="2" 
+         alct_match_window_size="3" 
+         alct_vpf_delay="6"
+         mpc_delay="7"
+         mpc_tx_delay="0"
+         enableCLCTInputs="15"
+         fifo_pretrig="7"
+         fifo_tbins="12"
+         version="2004">
+       <ALCT chamber_type="ME13"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
+             l1a_delay="146">
+          <AnodeChannel Number="1" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="2" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="3" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="4" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="5" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="6" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="7" delay="10" threshold="4"> </AnodeChannel>     
+          <AnodeChannel Number="8" delay="10" threshold="5"> </AnodeChannel>     
+          <AnodeChannel Number="9" delay="10" threshold="6"> </AnodeChannel>     
+          <AnodeChannel Number="10" delay="10" threshold="5"> </AnodeChannel>  
+          <AnodeChannel Number="11" delay="10" threshold="7"> </AnodeChannel>     
+          <AnodeChannel Number="12" delay="10" threshold="9"> </AnodeChannel>     
+          <AnodeChannel Number="13" delay="10" threshold="4"> </AnodeChannel>     
+          <AnodeChannel Number="14" delay="10" threshold="6"> </AnodeChannel>  
+          <AnodeChannel Number="15" delay="10" threshold="1"> </AnodeChannel>     
+          <AnodeChannel Number="16" delay="10" threshold="7"> </AnodeChannel>     
+          <AnodeChannel Number="17" delay="10" threshold="8"> </AnodeChannel>     
+          <AnodeChannel Number="18" delay="10" threshold="9"> </AnodeChannel>  
+       </ALCT>      
+    </TMB>
+   </CSC>
+
+<!-- ME+1/3/28 chamber -->
+   <CSC label="ME+1/3/28">
+    <DAQMB slot="19" 
+           feb_dav_delay="23" 
+           tmb_dav_delay="26" 
+           push_dav_delay="31"
+           l1acc_dav_delay="24" 
+           ALCT_dav_delay="1" 
+           calibration_LCT_delay="8" 
+           calibration_l1acc_delay="22" 
+           pulse_delay="15" 
+           inject_delay="15" 
+           pul_dac_set="1.0" 
+           inj_dac_set="1.0" 
+           set_comp_thresh="0.03" 
+           feb_clock_delay="31" 
+           comp_mode="2" 
+           comp_timing="1" 
+           cable_delay= "64"
+           crate_id="3"
+           pre_block_end="9">
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   
+    <TMB slot="18" 
+         cfeb0delay="9"  
+         cfeb1delay="7" 
+         cfeb2delay="7"  
+         cfeb3delay="7" 
+         cfeb4delay="1"
+         l1adelay="137"
+         l1a_window_size="3"
+         alct_tx_clock_delay="11"
+         alct_rx_clock_delay="0" 
+         alct_match_window_size="3" 
+         alct_vpf_delay="6"
+         mpc_delay="7"
+         mpc_tx_delay="0"
+         enableCLCTInputs="15"
+         fifo_pretrig="7"
+         fifo_tbins="12"
+         version="2004">
+       <ALCT chamber_type="ME13"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
+             l1a_delay="145">
+          <AnodeChannel Number="1" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="2" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="3" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="4" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="5" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="6" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="7" delay="10" threshold="8"> </AnodeChannel>     
+          <AnodeChannel Number="8" delay="10" threshold="8"> </AnodeChannel>     
+          <AnodeChannel Number="9" delay="10" threshold="11"> </AnodeChannel>     
+          <AnodeChannel Number="10" delay="10" threshold="5"> </AnodeChannel>  
+          <AnodeChannel Number="11" delay="10" threshold="5"> </AnodeChannel>     
+          <AnodeChannel Number="12" delay="10" threshold="11"> </AnodeChannel>     
+          <AnodeChannel Number="13" delay="10" threshold="8"> </AnodeChannel>     
+          <AnodeChannel Number="14" delay="10" threshold="9"> </AnodeChannel>  
+          <AnodeChannel Number="15" delay="10" threshold="9"> </AnodeChannel>     
+          <AnodeChannel Number="16" delay="10" threshold="8"> </AnodeChannel>     
+          <AnodeChannel Number="17" delay="10" threshold="2"> </AnodeChannel>     
+          <AnodeChannel Number="18" delay="10" threshold="9"> </AnodeChannel>  
+       </ALCT>      
+    </TMB>
+   </CSC>
+
+<!-- ME+1/3/29 chamber -->
+   <CSC label="ME+1/3/29">
+    <DAQMB slot="21" 
+           feb_dav_delay="23" 
+           tmb_dav_delay="26" 
+           push_dav_delay="31"
+           l1acc_dav_delay="24" 
+           ALCT_dav_delay="1" 
+           calibration_LCT_delay="8" 
+           calibration_l1acc_delay="22" 
+           pulse_delay="15" 
+           inject_delay="15" 
+           pul_dac_set="1.0" 
+           inj_dac_set="1.0" 
+           set_comp_thresh="0.03" 
+           feb_clock_delay="31" 
+           comp_mode="2" 
+           comp_timing="1" 
+           cable_delay= "80"
+           crate_id="3"
+           pre_block_end="9">
+       <CFEB Number="3"> </CFEB>
+       <CFEB Number="2"> </CFEB>
+       <CFEB Number="1"> </CFEB>
+       <CFEB Number="0"> </CFEB>
+    </DAQMB>
+   
+    <TMB slot="20" 
+         cfeb0delay="3"  
+         cfeb1delay="4" 
+         cfeb2delay="5"  
+         cfeb3delay="4" 
+         cfeb4delay="0"
+         l1adelay="137"
+         l1a_window_size="3"
+         alct_tx_clock_delay="3"
+         alct_rx_clock_delay="4" 
+         alct_match_window_size="3" 
+         alct_vpf_delay="6"
+         mpc_delay="7"
+         mpc_tx_delay="0"
+         enableCLCTInputs="15"
+         fifo_pretrig="7"
+         fifo_tbins="12"
+         version="2004">
+       <ALCT chamber_type="ME13"
+             alct_pattern_file=""
+             trig_mode="0"
+             ext_trig_en="0"
+             trig_info_en="0"
+             fifo_pretrig="8"
+             l1a_internal="0"
+             fifo_tbins="10"
+             l1a_offset="1"
+             l1a_window="3"
+             nph_thresh="4"
+             nph_pattern="4"
+             ccb_enable="1"
+             l1a_delay="145">
+          <AnodeChannel Number="1" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="2" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="3" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="4" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="5" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="6" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="7" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="8" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="9" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="10" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="11" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="12" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="13" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="14" delay="10" threshold="10"> </AnodeChannel>  
+          <AnodeChannel Number="15" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="16" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="17" delay="10" threshold="10"> </AnodeChannel>     
+          <AnodeChannel Number="18" delay="10" threshold="10"> </AnodeChannel>  
+       </ALCT>      
+    </TMB>
+   </CSC>
+
+    <CCB slot="13" 
+         TTCrxID="61"
+         TTCrxCoarseDelay="6"
+         version="2004" 
+         CCBmode="2"
+         TTCmode="2" 
+         BX_Orbit="924" 
+         SPS25ns="0" 
+         l1aDelay="0">
+    </CCB>
+
+    <MPC slot="12"
+         BoardID="3"
+         TransparentMode="0"
+         serializermode="0">
+    </MPC>    
+
+
+  </PeripheralCrate>
+
+</EmuSystem>
