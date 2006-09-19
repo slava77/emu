@@ -181,7 +181,7 @@ int main() {
 	      << std::endl;
     std::cout << "403:Prog. proms w/walking 1s  500: Check state machine       501: Read TMB config registers"
 	      << std::endl;
-    std::cout << "502:Read ALCT config regs    "
+    std::cout << "502:Read ALCT config regs     503: StartTriggers TMB"
 	      << std::endl;
     //
     std::cout << std::endl;
@@ -633,9 +633,6 @@ int main() {
       //
       break;
     case 500:
-      unsigned short int BootData;
-      thisTMB->tmb_get_boot_reg(&BootData);
-      std::cout << "Boot contents before = " << std::hex << BootData << std::endl;
       testTMB.reset();      
       thisTMB->CheckVMEStateMachine();
       thisTMB->CheckJTAGStateMachine();
@@ -646,6 +643,9 @@ int main() {
       break;
     case 502:
       alct->ReadCurrentConfiguration();
+      break;
+    case 503:
+      thisTMB->StartTTC();
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 
