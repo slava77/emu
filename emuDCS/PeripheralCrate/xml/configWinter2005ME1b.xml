@@ -343,7 +343,7 @@
            tmb_dav_delay="26" 
            push_dav_delay="31"
            l1acc_dav_delay="24" 
-           ALCT_dav_delay="2" 
+           ALCT_dav_delay="3" 
            calibration_LCT_delay="8" 
            calibration_l1acc_delay="22" 
            pulse_delay="15" 
@@ -675,7 +675,7 @@
 <!-- ME1/3/32 chamber -->
    <CSC label="ME+1/3/32">
     <DAQMB slot="21" 
-           feb_dav_delay="25" 
+           feb_dav_delay="26" 
            tmb_dav_delay="26" 
            push_dav_delay="31"
            l1acc_dav_delay="24" 
