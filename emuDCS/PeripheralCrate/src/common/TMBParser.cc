@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.3 2006/09/13 14:13:33 mey Exp $
+// $Id: TMBParser.cc,v 3.4 2006/09/19 14:32:45 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.4  2006/09/19 14:32:45  mey
+// Update
+//
 // Revision 3.3  2006/09/13 14:13:33  mey
 // Update
 //
@@ -82,6 +85,7 @@
 
 TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate,xercesc::DOMNode * pNodeGlobal)
 {
+
   if (pNodeGlobal) {
     parserGlobal_.parseNode(pNodeGlobal);
   }
@@ -90,10 +94,14 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate,xercesc::DOMNode
 
   int slot = 0;
   parser_.fillInt("slot", slot);
+  std::cout << "Inside TMBParser..."<<std::endl;
   if(slot == 0) {
     std::cerr << "No slot specified for TMB! " << std::endl;
   } else {
+    //
+    std::cout << "Creating TMB" <<std::endl;
     tmb_ = new TMB(theCrate, slot);
+    std::cout << "Leaving  TMB" <<std::endl;
     //
     int delay;
     if ( parser_.fillInt("cfeb0delay",delay) ) {
@@ -296,6 +304,9 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate,xercesc::DOMNode
 	    }
 	  }
 #else
+	  //
+	  std::cout << "Here1" << std::endl;
+	  //
 	int mode;
        	if ( alctParser_.fillInt("trig_mode", mode) ) {
 	  alct_->SetTriggerMode(mode);
@@ -388,7 +399,8 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate,xercesc::DOMNode
       }
       daughterNode = daughterNode->getNextSibling();
     }
-  }
+    }
+    std::cout << "Done TMBparser" << std::endl;
   #ifdef debugV  
     std::cout << "finished TMBParsing" << std::endl;
   #endif
