@@ -27,7 +27,7 @@
          version="2004">
        <ALCT chamber_type="ME21"
              alct_pattern_file=""
-             trig_mode="0"
+             trig_mode="2"
              ext_trig_en="0"
              trig_info_en="0"
              fifo_pretrig="8"
@@ -132,7 +132,7 @@
          version="2004">
        <ALCT chamber_type="ME21"
              alct_pattern_file=""
-             trig_mode="0"
+             trig_mode="2"
              ext_trig_en="0"
              trig_info_en="0"
              fifo_pretrig="8"
@@ -237,7 +237,7 @@
          version="2004">
        <ALCT chamber_type="ME21"
              alct_pattern_file=""
-             trig_mode="0"
+             trig_mode="2"
              ext_trig_en="0"
              trig_info_en="0"
              fifo_pretrig="8"
@@ -342,7 +342,7 @@
          version="2004">
        <ALCT chamber_type="ME22"
              alct_pattern_file=""
-             trig_mode="0"
+             trig_mode="2"
              ext_trig_en="0"
              trig_info_en="0"
              fifo_pretrig="8"
@@ -429,7 +429,7 @@
          version="2004">
        <ALCT chamber_type="ME22"
              alct_pattern_file=""
-             trig_mode="0"
+             trig_mode="2"
              ext_trig_en="0"
              trig_info_en="0"
              fifo_pretrig="8"
@@ -516,7 +516,7 @@
          version="2004">
        <ALCT chamber_type="ME22"
              alct_pattern_file=""
-             trig_mode="0"
+             trig_mode="2"
              ext_trig_en="0"
              trig_info_en="0"
              fifo_pretrig="8"
@@ -603,7 +603,7 @@
          version="2004">
        <ALCT chamber_type="ME22"
              alct_pattern_file=""
-             trig_mode="0"
+             trig_mode="2"
              ext_trig_en="0"
              trig_info_en="0"
              fifo_pretrig="8"
@@ -690,7 +690,7 @@
          version="2004">
        <ALCT chamber_type="ME22"
              alct_pattern_file=""
-             trig_mode="0"
+             trig_mode="2"
              ext_trig_en="0"
              trig_info_en="0"
              fifo_pretrig="8"
@@ -777,7 +777,7 @@
          version="2004">
        <ALCT chamber_type="ME22"
              alct_pattern_file=""
-             trig_mode="0"
+             trig_mode="2"
              ext_trig_en="0"
              trig_info_en="0"
              fifo_pretrig="8"
