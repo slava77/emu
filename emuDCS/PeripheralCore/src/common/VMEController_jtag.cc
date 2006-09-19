@@ -713,14 +713,14 @@ void VMEController::buckflash(const char *cmd,int nbuf,const char *inbuf,char *r
      // data=(unsigned short int *)line2;
      // data[0]=((line2[0]<<8)&0xff00)|(line2[1]&0x00ff);
      data[0]=line2[1]&0x00ff;
-     printf(" TOVME %d %04x \n",i,data[0]);
+     //printf(" TOVME %d %04x \n",i,data[0]);
      vme_controller(1,ptr,data,rcv);    
    }
      line2=(char *)inbuf+(nbuf/8)-1;
      //  data=(unsigned short int *)line2;
      // data[0]=((line2[0]<<8)&0xff00)|(line2[1]&0x00ff);
      data[0]=line2[1]&0x00ff;
-     printf(" TOVME %d %04x \n",(nbuf/8)-1,data[0]);
+     //printf(" TOVME %d %04x \n",(nbuf/8)-1,data[0]);
      vme_controller(3,ptr,data,rcv);    
    return;
  }

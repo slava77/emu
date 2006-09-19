@@ -2289,9 +2289,9 @@ void EMUjtag::CheckUserProm() {
 	//
       } else {
 	//	if (debug_) {
-	  (*MyOutput_) << "EMUjtag: WARNING address 0x" << std::hex << address;
-	  (*MyOutput_) << " to change from 0x" << std::hex << tmb_->GetClockedOutPromImage(address) 
-		       << " -> 0x" << std::hex << GetUserPromImage(address) << std::endl;
+	//(*MyOutput_) << "EMUjtag: WARNING address 0x" << std::hex << address;
+	//(*MyOutput_) << " to change from 0x" << std::hex << tmb_->GetClockedOutPromImage(address) 
+	//       << " -> 0x" << std::hex << GetUserPromImage(address) << std::endl;
 	  //	}
 	verify_error_++;
       }
