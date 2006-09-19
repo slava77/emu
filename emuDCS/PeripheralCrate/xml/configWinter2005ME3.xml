@@ -301,7 +301,7 @@
            tmb_dav_delay="26" 
            push_dav_delay="31"
            l1acc_dav_delay="24" 
-           ALCT_dav_delay="3" 
+           ALCT_dav_delay="2" 
            calibration_LCT_delay="8" 
            calibration_l1acc_delay="22" 
            pulse_delay="15" 
@@ -645,7 +645,7 @@
     </TMB>
 
     <DAQMB slot="17" 
-           feb_dav_delay="26" 
+           feb_dav_delay="25" 
            tmb_dav_delay="26" 
            push_dav_delay="31"
            l1acc_dav_delay="24" 
@@ -733,7 +733,7 @@
     </TMB>
 
     <DAQMB slot="19" 
-           feb_dav_delay="26" 
+           feb_dav_delay="25" 
            tmb_dav_delay="26" 
            push_dav_delay="31"
            l1acc_dav_delay="24" 
@@ -820,7 +820,7 @@
     </TMB>
 
     <DAQMB slot="21" 
-           feb_dav_delay="26" 
+           feb_dav_delay="25" 
            tmb_dav_delay="26" 
            push_dav_delay="31"
            l1acc_dav_delay="24" 
