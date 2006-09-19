@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.3 2006/09/13 14:13:32 mey Exp $
+// $Id: DAQMB.h,v 3.4 2006/09/19 08:16:52 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.4  2006/09/19 08:16:52  mey
+// UPdate
+//
 // Revision 3.3  2006/09/13 14:13:32  mey
 // Update
 //
@@ -181,7 +184,7 @@ public:
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
   //
-  void dmb_readstatus();
+  void dmb_readstatus(char [10]);
   void cfebs_readstatus();
   void setxlatency(int dword);
   // 
@@ -273,12 +276,13 @@ public:
   void SetCalibrationL1aDelay(int delay){calibration_l1acc_delay_ = delay;}
   void SetPulseDelay(int delay){pulse_delay_ = delay;}
   void SetInjectDelay(int delay){inject_delay_ = delay;}
-  void SetFebClockDelay(int delay){feb_clock_delay_ = delay;}
+  //void SetFebClockDelay(int delay){feb_clock_delay_ = delay;}
   void SetCompMode(int mode){comp_mode_ = mode;}
   void SetCompTiming(int delay){comp_timing_ = delay;}
   void SetPreBlockEnd(int delay){pre_block_end_ = delay;}
   void SetCableDelay(int delay){cable_delay_ = delay;}
   void SetCrateId(int id){crate_id_ = id;}
+  void SetCfebClkDelay(int delay){cfeb_clk_delay_ = delay;}
   //
   void SetPulseDac(float value){pul_dac_set_= value;}
   void SetInjectorDac(float value){inj_dac_set_=value;}
@@ -407,6 +411,7 @@ public:
   static const int nchips[5];
   static const int chip_use[5][6];
   static const int layers[6];
+  char febstat_[5][4];
 
 
   Chamber * csc_;
@@ -433,8 +438,6 @@ public:
   float inj_dac_set_; 
   /// in volts, comparator threshold
   float set_comp_thresh_;
-  // apparently not used...
-  int feb_clock_delay_;
   /// Comparator timing setting
   int comp_timing_;
   /// Comparator working mode setting
@@ -446,6 +449,8 @@ public:
   int crate_id_;
   int toogle_bxn_;
   int ALCT_dav_delay_;
+  //
+  int CableDelay_, CrateID_, CfebClkDelay_, XLatency_;
   //
   int cfeb_clk_delay_;
   int xlatency_;

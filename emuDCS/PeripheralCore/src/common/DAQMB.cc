@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.9 2006/09/15 06:50:39 mey Exp $
+// $Id: DAQMB.cc,v 3.10 2006/09/19 08:16:52 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.10  2006/09/19 08:16:52  mey
+// UPdate
+//
 // Revision 3.9  2006/09/15 06:50:39  mey
 // Update
 //
@@ -283,7 +286,7 @@ DAQMB::DAQMB(Crate * theCrate,int newslot):
   calibration_LCT_delay_(8), calibration_l1acc_delay_(22),
   pulse_delay_(15), inject_delay_(15),
   pul_dac_set_(1.0), inj_dac_set_(1.0),
-  set_comp_thresh_(0.03), feb_clock_delay_(0),
+  set_comp_thresh_(0.03),
   comp_timing_(1), comp_mode_(2), pre_block_end_(7),
   l1a_lct_counter_(-1), cfeb_dav_counter_(-1), 
   tmb_dav_counter_(-1), alct_dav_counter_(-1), cable_delay_(0), 
@@ -345,6 +348,7 @@ bool DAQMB::SelfTest(){
   return 0;
 }
 
+/*
 void DAQMB::configure() {
   //
   (*MyOutput_) << std::endl;
@@ -419,10 +423,10 @@ void DAQMB::configure() {
    //
    // Load FLASH memory
    //
-   WriteSFM();
+   //WriteSFM();
    //
    // Now buckflash
-   /*
+   //
    char * flash_content=(char *)malloc(500);
    int n_byts = Fill_BUCK_FLASH_contents(flash_content);
    buckflash_erase();
@@ -432,7 +436,159 @@ void DAQMB::configure() {
    sleep(5);
    buckflash_init();
    sleep(1); 
-   */
+//
+}
+*/
+//
+void DAQMB::configure() {
+   //
+  std::cout << std::endl;
+   //
+   // As suggested by Valery Sitnik: switch all LVs on (computer-controlled)
+   // (*MyOutput_) << "DAQMB: switching on LVs on LVMB" << endl; 
+   lowv_onoff(0x3f);
+   ::sleep(2);
+   calctrl_fifomrst();
+   ::sleep(1);
+   (*MyOutput_) << "Toogle bxn " << crate_id_ << std::endl ;
+   if (toogle_bxn_) ToogleBXN();
+
+   //
+   //(*MyOutput_) << std::endl;
+   (*MyOutput_) << "CFEB size="<<cfebs_.size()<<std::endl;
+  //
+  ostringstream dump, dump2, dump3, dump4;
+  dump2 << (int)this->crate();
+  dump3 << (int)this->slot();
+  dump  << "DAQMB: configure() for crate = " ;
+  dump4 << " and slot = " ;
+  //
+  SendOutput(dump.str()+dump2.str()+dump4.str()+dump3.str(),"INFO");
+  //
+  (*MyOutput_) << "DAQMB: configure() for crate " << this->crate() << " slot " << this->slot() << std::endl;
+  //
+
+  //***Do this setting only for calibration ****
+  int cal_delay_bits = (calibration_LCT_delay_ & 0xF)
+     | (calibration_l1acc_delay_ & 0x1F) << 4
+      | (pulse_delay_ & 0x1F) << 9
+      | (inject_delay_ & 0x1F) << 14;
+   (*MyOutput_) << "DAQMB:configure: caldelay " << std::hex << cal_delay_bits << std::dec << std::endl;
+   setcaldelay(cal_delay_bits);
+   (*MyOutput_) << "doing set_cal_dac " << inj_dac_set_ << " " 
+	<<  pul_dac_set_ << std::endl;
+   set_cal_dac(inj_dac_set_, pul_dac_set_);
+   //
+
+   //*** Do this setting only for older DMB firmware (V18 or older)
+   int dav_delay_bits = (feb_dav_delay_    & 0x1F)
+      | (tmb_dav_delay_ & 0X1F) << 5
+      | (push_dav_delay_   & 0x1F) << 10
+      | (l1acc_dav_delay_  & 0x3F) << 15
+      | (ALCT_dav_delay_   & 0x1F) << 21;
+   (*MyOutput_) << "doing setdavdelay " << dav_delay_bits << std::endl;
+   setdavdelay(dav_delay_bits);
+   //
+
+   // *** This part is for Buck_Flash (Parallel Memory) *****
+   int comp_mode_bits = (comp_mode_ & 3) | ((comp_timing_ & 7) << 2);
+   //
+   cfebs_readstatus();
+   bool cfebmatch=true;
+   //check the comp_timing, comp_mode, Pre_block_end and Extr_l1A latency setting
+   for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
+     //for (int lfeb=0;lfeb<5;lfeb++) {
+     //if (iuse[lfeb]==1) {
+     //
+     for (int y=0; y<4; y++) printf("%2x \n",(febstat_[lfeb][y]&0xff));
+     //
+     std::cout << "<>" << comp_mode_bits << " " << pre_block_end_ << " " << xlatency_ << std::endl;
+     //
+     std::cout << "Match &&&&&&&&&&& " << cfebmatch << std::endl;
+     //
+     std::cout << "1 " << ((febstat_[lfeb][2])&0x1f) << std::endl;
+     std::cout << "2 " << (((febstat_[lfeb][2]>>5)&0x07)+((febstat_[lfeb][3]&0x01)<<3)) << std::endl;
+     std::cout << "3 " << ((febstat_[lfeb][3]>>1)&0x03) << std::endl;
+     //
+     if ((((febstat_[lfeb][2])&0x1f)!=comp_mode_bits) ||
+	 ((((febstat_[lfeb][2]>>5)&0x07)+((febstat_[lfeb][3]&0x01)<<3))!=pre_block_end_)||
+	 (((febstat_[lfeb][3]>>1)&0x03)!=xlatency_)) cfebmatch=false;
+   //}
+   }
+   //
+   enable_cfeb(); //enable..disable CFEBs
+   //
+   //check the comp_dac setting
+   float compthresh[5];
+   //
+   std::cout << "Match &&&&&&&&&&& " << cfebmatch << std::endl;
+   //
+   for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++)compthresh[lfeb]=adcplus(2,lfeb);
+   //
+   (*MyOutput_) << "doing set_comp_thresh " << set_comp_thresh_ << std::endl;
+   set_comp_thresh(set_comp_thresh_);
+   (*MyOutput_) << "doing preamp_initx() " << std::endl;
+   //  If the comparator threshold setting is more than 5mV off, re-program the BuckFlash
+   //for (int lfeb=0;lfeb<5;lfeb++)
+   for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
+     std::cout << "****************** thresh " << compthresh[lfeb] << " " << adcplus(2,lfeb) << std::endl;
+     if((abs(compthresh[lfeb]-adcplus(2,lfeb))>5.)) cfebmatch=false;
+   }
+
+   if (!cfebmatch) {
+     //
+     (*MyOutput_) << "doing fxpreblkend " << pre_block_end_ << std::endl;
+     fxpreblkend(pre_block_end_);
+     //
+     (*MyOutput_) << "doing set_comp_mode " << comp_mode_bits << std::endl;
+     (*MyOutput_) << comp_mode_ << " " << comp_timing_ << std::endl;
+     set_comp_mode(comp_mode_bits);
+     //   preamp_initx();
+
+     //
+
+     char * flash_content=(char *)malloc(500);
+     int n_byts = Fill_BUCK_FLASH_contents(flash_content);
+     buckflash_erase();
+     buckflash_load2(n_byts,flash_content);
+     sleep(2);
+     buckflash_pflash();
+     sleep(5);
+     buckflash_init();
+     sleep(1); 
+
+     //
+
+   }
+
+
+   // ***  This part is related to the SFM (Serial Flash Memory) ****
+   //
+   // Readout the Current setting on DMB
+   char dmbstatus[10];
+   dmb_readstatus(dmbstatus);
+   //check the DMB setting with the current setup
+   if (((CableDelay_)!=cable_delay_)||
+       ((CrateID_)!=crate_id_)||
+       ((CfebClkDelay_)!=cfeb_clk_delay_)||
+       ((XLatency_)!=xlatency_) ) {
+     //
+     (*MyOutput_) << "Set crate id " << crate_id_ << std::endl ;
+     setcrateid(crate_id_);
+     //
+     setxlatency(xlatency_);
+     LctL1aDelay(xlatency_);
+     //
+     (*MyOutput_) << "Set cfeb clk delay " << cfeb_clk_delay_ << std::endl ;
+     setfebdelay(cfeb_clk_delay_);
+     //
+     (*MyOutput_) << "Set cable delay " << cable_delay_ << std::endl ;
+     setcbldly(cable_delay_);
+     //
+     // Load FLASH memory
+     WriteSFM();
+   }
+
 }
 //
 void DAQMB::enable_cfeb() {
@@ -1044,7 +1200,7 @@ float DAQMB::adc16(int ichp,int ichn){
 }
 
 
-void DAQMB::dmb_readstatus()
+void DAQMB::dmb_readstatus(char status[10])
 {
   //
   int i;
@@ -1059,6 +1215,8 @@ void DAQMB::dmb_readstatus()
   for (i=0;i<10;i++)  sndbuf[i]=0;
   //
   devdo(MCTRL,6,cmd,80,sndbuf,rcvbuf,1);
+  status = rcvbuf;
+  //
   /* DMB6CNTL status: bit[14:7]: L1A buffer length
                       bit[19:15]: CFEB_DAV_ERROR
                       bit[26:20]: FIFO_EMPTY: 1 means empty
@@ -1080,14 +1238,14 @@ void DAQMB::dmb_readstatus()
   printf(" FIFO PAE: %03x",i); printf("h  1 means more than PAE words\n");
   printf(" GUs new 32 bits: %02x%02x%02x%02x\n",rcvbuf[9]&0xff,rcvbuf[8]&0xff,rcvbuf[7]&0xff,rcvbuf[6]&0xff);
 
-  i=((rcvbuf[6]>>2)&0x3f)+((rcvbuf[7]<<6)&0xc0); 
-  printf(" Cable_Delay: %02xh \n",i);
-  i=((rcvbuf[7]>>2)&0x3f)+((rcvbuf[8]<<6)&0x40); 
-  printf(" Crate ID: %02xh \n",i);
-  i=((rcvbuf[8]>>1)&0x1f); 
-  printf(" FEB_Delay: %02xh \n",i);
-  i=((rcvbuf[8]>>6)&0x03); 
-  printf(" Extra L1A latency: %02xh \n",i);
+  CableDelay_ =((rcvbuf[6]>>2)&0x3f)+((rcvbuf[7]<<6)&0xc0); 
+  printf(" Cable_Delay: %02xh \n",CableDelay_);
+  CrateID_=((rcvbuf[7]>>2)&0x3f)+((rcvbuf[8]<<6)&0x40); 
+  printf(" Crate ID: %02xh \n",CrateID_);
+  CfebClkDelay_=((rcvbuf[8]>>1)&0x1f); 
+  printf(" FEB_Delay: %02xh \n",CfebClkDelay_);
+  XLatency_=((rcvbuf[8]>>6)&0x03); 
+  printf(" Extra L1A latency: %02xh \n",XLatency_);
 
   cmd[0]=VTX2_BYPASS;
   devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,0);
@@ -1098,20 +1256,20 @@ void DAQMB::cfebs_readstatus()
 {
  int i,nwrds;
  char febbuf[5][4];
- int iuse[5]={0,0,0,0,0};
+ //int iuse[5]={0,0,0,0,0};
 
- fxpreblkend(13);
+ //fxpreblkend(13);
 
   std::cout << "DAQMB: cfebs_readstatus" << std::endl;
   for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
     DEVTYPE dv = cfebs_[icfeb].scamDevice();
     int idv=(int)(dv-F1SCAM); 
-    iuse[idv]=1;
+    //iuse[idv]=1;
     febbuf[idv][0]='\0';
     febbuf[idv][1]='\0';
     febbuf[idv][2]='\0';
     febbuf[idv][3]='\0';
-    if(iuse[idv]==1){
+    //if(iuse[idv]==1){
       std::cout << " dv= " << dv << " STATUS_S " << STATUS_S << std::endl;
       cmd[0]=VTX2_USR1;
       sndbuf[0]=STATUS_S;
@@ -1124,10 +1282,17 @@ void DAQMB::cfebs_readstatus()
       sndbuf[2]=0xdf;
       sndbuf[3]=0xba;
       devdo(dv,5,cmd,32,sndbuf,rcvbuf,1);
+      //
       febbuf[idv][0]=rcvbuf[0];
       febbuf[idv][1]=rcvbuf[1];
       febbuf[idv][2]=rcvbuf[2];
       febbuf[idv][3]=rcvbuf[3];
+      //
+      febstat_[idv][0]=rcvbuf[0]&0xff;
+      febstat_[idv][1]=rcvbuf[1]&0xff;
+      febstat_[idv][2]=rcvbuf[2]&0xff;
+      febstat_[idv][3]=rcvbuf[3]&0xff;
+      //
       printf(" SCA rcvbuf *** %02x %02x %02x %02x \n",rcvbuf[0]&0xFF,rcvbuf[1]&0xFF,rcvbuf[2]&0xFF,rcvbuf[3]&0xFF);
 
       // The following should return "BADFEED5"
@@ -1144,114 +1309,114 @@ void DAQMB::cfebs_readstatus()
 
       cmd[0]=VTX2_BYPASS;
       devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
-    }
+      //}
   }
   printf("Boards in use              ");
   for(i=0;i<5;i++){
-    if(iuse[i]==1){
+    //if(iuse[i]==1){
       printf("  :  %d",i+1);
-    }
+      //}
   }
   printf("\n");
   printf("# Words in LCT FIFO        ");
   for(i=0;i<5;i++){
-    if(iuse[i]==1){
+    //if(iuse[i]==1){
       nwrds=febbuf[i][0]&0xF;
       printf("  : %2.2d",nwrds);
-    }
+      //}
   }
   printf("\n");
   printf("LCT FIFO Empty             ");
   for(i=0;i<5;i++){
-    if(iuse[i]==1){
+    //if(iuse[i]==1){
       printf("  :  %d",(~febbuf[i][1]>>2)&1);
-    }
+      //}
   }
   printf("\n");
   printf("LCT FIFO full              ");
   for(i=0;i<5;i++){
-    if(iuse[i]==1){
+    //if(iuse[i]==1){
       printf("  :  %d",(febbuf[i][0]>>4)&1);
-    }
+      //}
   }
   printf("\n");
   printf("# Words in L1Acc FIFO      ");
   for(i=0;i<5;i++){
-    if(iuse[i]==1){
+    //if(iuse[i]==1){
       nwrds=febbuf[i][0]>>5&0x7;
       nwrds=nwrds|(febbuf[i][1]&1)<<3;
       printf("  : %2.2d",nwrds);
-    }
+      //}
   }
   printf("\n");
   printf("L1Acc FIFO Empty           ");
   for(i=0;i<5;i++){
-    if(iuse[i]==1){
+    //if(iuse[i]==1){
       printf("  :  %d",(febbuf[i][1]>>3)&1);
-    }
+      //}
   }
   printf("\n");
   printf("L1Acc FIFO Full            ");
   for(i=0;i<5;i++){
-    if(iuse[i]==1){
+    //if(iuse[i]==1){
       printf("  :  %d",febbuf[i][1]>>1&1);
-    }
+      //}
   }
   printf("\n");
   printf("Pop FIFO1                  ");
   for(i=0;i<5;i++){
-    if(iuse[i]==1){
+    //if(iuse[i]==1){
       printf("  :  %d",(febbuf[i][1]>>4)&1);
-    }
+      //}
   }
   printf("\n");
   printf("Push to CPLD               ");
   for(i=0;i<5;i++){
-    if(iuse[i]==1){
+    //if(iuse[i]==1){
       printf("  :  %d",(febbuf[i][1]>>5)&1);
-    }
+      //}
   }
   printf("\n");
   printf("SCA Overwrite              ");
   for(i=0;i<5;i++){
-    if(iuse[i]==1){
+    //if(iuse[i]==1){
       printf("  :  %d",(febbuf[i][1]>>6)&1);
-    }
+      //}
   }
   printf("\n");
   printf("Busy (taking data)         ");
   for(i=0;i<5;i++){
-    if(iuse[i]==1){
+    //if(iuse[i]==1){
       printf("  :  %d",(febbuf[i][1]>>7)&1);
-    }
+      //}
   }
   printf("\n");
   printf("Comparator Mode             ");
   for(i=0;i<5;i++){
-    if(iuse[i]==1){
+    //if(iuse[i]==1){
       printf("  :  %d",(febbuf[i][2])&0x03);
-    }
+      //}
   }
   printf("\n");
   printf("Comparator Timing           ");
   for(i=0;i<5;i++){
-    if(iuse[i]==1){
+    //if(iuse[i]==1){
       printf("  :  %d",(febbuf[i][2]>>2)&0x07);
-    }
+      //}
   }
   printf("\n");
   printf("Pre_block_end               ");
   for(i=0;i<5;i++){
-    if(iuse[i]==1){
+    //if(iuse[i]==1){
       printf("  :  %d",((febbuf[i][2]>>5)&0x07) + ((febbuf[i][3]&0x01)<<3));
-    }
+      //}
   }
   printf("\n");
   printf("Extra_L1A_delay             ");
   for(i=0;i<5;i++){
-    if(iuse[i]==1){
+    //if(iuse[i]==1){
       printf("  :  %d",(febbuf[i][3]>>1)&0x03);
-    }
+      //}
   }
   printf("\n");
 }
