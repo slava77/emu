@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.cc,v 3.1 2006/09/12 15:50:01 mey Exp $
+// $Id: DAQMBParser.cc,v 3.2 2006/09/19 08:16:52 mey Exp $
 // $Log: DAQMBParser.cc,v $
+// Revision 3.2  2006/09/19 08:16:52  mey
+// UPdate
+//
 // Revision 3.1  2006/09/12 15:50:01  mey
 // New software changes to DMB abd CFEB
 //
@@ -99,19 +102,23 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate)
     }
     if(parser_.fillFloat("set_comp_thresh", value)){
       daqmb_->SetCompThresh(value);
+      for(int cfeb=0; cfeb<5; cfeb++) daqmb_->SetCompThresholdsCfeb(cfeb,value);
     }
-    if(parser_.fillInt("feb_clock_delay", delay)){
-      daqmb_->SetFebClockDelay(delay);
-    }
+    //if(parser_.fillInt("feb_clock_delay", delay)){
+    //daqmb_->SetFebClockDelay(delay);
+    //}
     int mode;
     if(parser_.fillInt("comp_mode", mode)){
       daqmb_->SetCompMode(mode);
+      for(int cfeb=0; cfeb<5; cfeb++) daqmb_->SetCompModeCfeb(cfeb,mode);
     }
     if(parser_.fillInt("comp_timing", delay)){
       daqmb_->SetCompTiming(delay);
+      for(int cfeb=0; cfeb<5; cfeb++) daqmb_->SetCompTimingCfeb(cfeb,delay);
     }
     if(parser_.fillInt("pre_block_end", delay)){
       daqmb_->SetPreBlockEnd(delay);
+      for(int cfeb=0; cfeb<5; cfeb++) daqmb_->SetPreBlockEndCfeb(cfeb,delay);
     }
     if(parser_.fillInt("cable_delay", delay)){
       daqmb_->SetCableDelay(delay);
@@ -119,6 +126,9 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate)
     int id;
     if(parser_.fillInt("crate_id",id)){
       daqmb_->SetCrateId(id);
+    }
+    if ( parser_.fillInt("feb_clock_delay",delay)){
+      daqmb_->SetCfebClkDelay(delay);
     }
     //
     int number=0;   
