@@ -2475,6 +2475,9 @@ void EMUjtag::CheckJTAGStateMachine() {
   (*MyOutput_) << std::endl;
   (*MyOutput_) << " tck_fpga   = 0x" << std::hex << jtag_state_machine_tck_fpga << std::endl;
   //
+  unsigned short int BootData;
+  tmb_->tmb_get_boot_reg(&BootData);
+  std::cout << "Boot Register = " << std::hex << BootData << std::endl;
   //
   return;
 }
