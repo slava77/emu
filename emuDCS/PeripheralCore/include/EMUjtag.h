@@ -136,12 +136,6 @@ public:
   //
   inline int GetNumberOfVerifyErrors() { return verify_error_; }
   //
-  //------------------------------------------------
-  // Check operation of user proms after hard reset
-  //------------------------------------------------  
-  void CheckVMEStateMachine();
-  void CheckJTAGStateMachine();
-  //
   //
   ////////////////////////////////////////////////////////////////////////
   // SVF programming:

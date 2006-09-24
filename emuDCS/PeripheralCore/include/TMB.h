@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.7 2006/09/15 07:50:41 rakness Exp $
+// $Id: TMB.h,v 3.8 2006/09/24 13:34:37 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.8  2006/09/24 13:34:37  rakness
+// decode configuration registers
+//
 // Revision 3.7  2006/09/15 07:50:41  rakness
 // dump config registers
 //
@@ -444,6 +447,10 @@ public:
   inline int GetClockedOutPromImage(int address) { return clocked_out_prom_image_.at(address); }
   //
   void ReadCurrentConfiguration();
+  void DecodeConfigurationData(int address, int data);
+  void CheckVMEStateMachine();
+  void CheckJTAGStateMachine();
+  void CheckRawHitsHeader();
   //
 public:
   //
