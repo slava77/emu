@@ -2408,7 +2408,7 @@ int EMUjtag::SVFLoad(int *jch, const char *fn, int db )
   static int count;
   // MvdM struct JTAG_BBitStruct   driver_data;
   // int jtag_chain[4] = {1, 0, 5, 4};
-  int jtag_chain_tmb[6] = {7, 6, 9, 8, 3, 1};
+  int jtag_chain_tmb[7] = {7, 6, 9, 8, 3, 1, 10};
   // === SIR Go through SelectDRScan->SelectIRScan->CaptureIR->ShiftIR  
   //char tms_pre_sir[4]={ 1, 1, 0, 0 }; 
   char tdi_pre_sir[4]={ 0, 0, 0, 0 };

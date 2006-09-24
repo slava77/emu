@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.23 2006/09/24 15:32:55 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 3.24 2006/09/24 16:19:15 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -104,6 +104,7 @@ protected:
   xdata::String TMBFirmware_;
   xdata::String DMBFirmware_;
   xdata::String DMBVmeFirmware_;
+  xdata::String RATFirmware_;
   xdata::String ALCTFirmware_;
   xdata::String CFEBFirmware_;
   std::string FirmwareDir_ ;
@@ -242,6 +243,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::EnableDisableDebug, "EnableDisableDebug");
     xgi::bind(this,&EmuPeripheralCrate::LoadTMBFirmware, "LoadTMBFirmware");
     xgi::bind(this,&EmuPeripheralCrate::LoadALCTFirmware, "LoadALCTFirmware");
+    xgi::bind(this,&EmuPeripheralCrate::LoadRATFirmware, "LoadRATFirmware");
     xgi::bind(this,&EmuPeripheralCrate::ReadTMBRegister, "ReadTMBRegister");
     xgi::bind(this,&EmuPeripheralCrate::ReadCCBRegister, "ReadCCBRegister");
     xgi::bind(this,&EmuPeripheralCrate::HardReset, "HardReset");
@@ -6897,6 +6899,7 @@ private:
     sprintf(Name,"TMB Utils slot=%d",thisTMB->slot());
     //
     alct = thisTMB->alctController();
+    rat = thisTMB->getRAT();
     //
     MyHeader(in,out,Name);
     //
@@ -6957,6 +6960,23 @@ private:
       sprintf(buf,"%d",tmb);
       //      *out << ALCTFirmware_.toString() ;
       *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+      *out << cgicc::form() << std::endl ;
+      //
+    }
+    //
+    if (rat) {
+      //
+      std::string RATFirmware = FirmwareDir_+"rat/05sep2006_rat_noverify.svf";
+      RATFirmware_ = RATFirmware;
+      //
+      std::string LoadRATFirmware =
+	toolbox::toString("/%s/LoadRATFirmware",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::form().set("method","GET").set("action",LoadRATFirmware) << std::endl ;
+      *out << cgicc::input().set("type","submit").set("value","Load RAT Firmware") << std::endl ;
+      sprintf(buf,"%d",tmb);
+      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+      *out << RATFirmware_.toString() ;
       *out << cgicc::form() << std::endl ;
       //
     }
@@ -7244,6 +7264,56 @@ private:
       thisCCB->hardReset();
       //
     }
+    this->TMBUtils(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::LoadRATFirmware(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "Not tmb" << endl ;
+      tmb = TMB_;
+    }
+    //
+    TMB * thisTMB = tmbVector[tmb];
+    //
+    std::cout << "Loading RAT firmware " << std::endl;
+    //
+    rat = thisTMB->getRAT();
+    if (!rat) {
+      std::cout << "No RAT present" << std::endl;
+      return;
+    }
+    thisCCB->hardReset();
+    //
+    int debugMode(0);
+    int jch(7);
+    //
+    thisTMB->disableAllClocks();
+    printf("Programming...");
+    int status = rat->SVFLoad(&jch,RATFirmware_.toString().c_str(),debugMode);
+    thisTMB->enableAllClocks();
+    //
+    if (status >= 0){
+      cout << "=== Programming finished"<< endl;
+      cout << "=== " << status << " Verify Errors  occured" << endl;
+    }
+    else{
+      cout << "=== Fatal Error. Exiting with " <<  status << endl;
+    }
+    //
+    thisCCB->hardReset();
+    //
     this->TMBUtils(in,out);
     //
   }
