@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.7 2006/09/15 07:50:40 rakness Exp $
+// $Id: ALCTController.h,v 3.8 2006/09/24 15:32:54 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.8  2006/09/24 15:32:54  rakness
+// read new alct fast control register
+//
 // Revision 3.7  2006/09/15 07:50:40  rakness
 // dump config registers
 //
@@ -797,12 +800,14 @@ public:
   ///////////////////////
   //FAST CONTROL ID
   ///////////////////////
-  int  GetFastControlChipId();                         // get Read values
-  int  GetFastControlVersionId();                      // get Read values
+  int  GetFastControlRegularMirrorType();              // get Read values for ALCT firmware type
+  int  GetFastControlBackwardForwardType();            // get Read values for ALCT firmware type (ME11)
+  int  GetFastControlNegativePositiveType();           // get Read values for ALCT firmware type (ME11)
+  int  GetFastControlAlctType();                       // get Read values for ALCT firmware type
   int  GetFastControlYear();                           // get Read values
   int  GetFastControlDay();                            // get Read values
   int  GetFastControlMonth();                          // get Read values
-  void PrintFastControlId();                           // print out Read values				 
+  void PrintFastControlId();                   // print out Read values				 
   //
   void ReadFastControlId();   	                  //fills Read values with values read from ALCT	 
   //
@@ -1139,7 +1144,16 @@ private:
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // vectors of bits for the fast-control registers, variables in these registers, and methods to translate between the two... //
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  char read_fastcontrol_id_[RegSizeAlctFastFpga_RD_ID_REG/8+1];
+  int read_fastcontrol_id_[RegSizeAlctFastFpga_RD_ID_REG];
+  void DecodeFastControlId_();
+  //
+  int fastcontrol_regular_mirror_;
+  int fastcontrol_backward_forward_;
+  int fastcontrol_negative_positive_;
+  int fastcontrol_alct_type_;
+  int fastcontrol_firmware_year_;
+  int fastcontrol_firmware_day_;
+  int fastcontrol_firmware_month_;
   //
   //
   int write_asic_delays_and_patterns_[RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES]; 

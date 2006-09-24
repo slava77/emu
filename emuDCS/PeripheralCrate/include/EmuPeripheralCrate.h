@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.22 2006/09/19 08:16:52 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.23 2006/09/24 15:32:55 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -4788,12 +4788,37 @@ private:
     *out << cgicc::br();
     //
     alct->ReadFastControlId();
-    *out << "ALCT: Fast Control chip ID = " << std::hex << alct->GetFastControlChipId()
-	       << " version " << alct->GetFastControlVersionId()
-	       << ": day = " << alct->GetFastControlDay()
-	       << ", month = " << alct->GetFastControlMonth()
-	       << ", year = " << alct->GetFastControlYear()
-	       << std::dec << std::endl;
+    *out << "ALCT Fast Control firmware type: ";
+    if ( alct->GetFastControlAlctType() == FIRMWARE_TYPE_288 ) {
+      *out << "288, ";
+    } else if ( alct->GetFastControlAlctType() == FIRMWARE_TYPE_384 ) {
+      *out << "384, ";
+    } else if ( alct->GetFastControlAlctType() == FIRMWARE_TYPE_672 ) {
+      *out << "672, ";
+    } else {
+      *out << "unknown, ";
+    }
+    if ( alct->GetFastControlRegularMirrorType() == REGULAR_FIRMWARE_TYPE ) {
+      *out << "non-mirrored, ";
+    } else  if ( alct->GetFastControlRegularMirrorType() == MIRROR_FIRMWARE_TYPE ) {
+      *out << "mirrored, ";
+    } else {
+      *out << "unknown, ";
+    }
+    //
+    //      if ( alct->GetFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE ) {
+    //	std::cout << "backward, ";
+    //      } else if ( alct->GetFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE ) {
+    //	std::cout << "forward, ";
+    //      }
+    //      if ( alct->GetFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE ) {
+    //	std::cout << "negative, ";
+    //      } else if ( alct->GetFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
+    //	std::cout << "positive, ";
+    //      }
+    *out << "day = " << std::hex << alct->GetFastControlDay();
+    *out << ", month = " << std::hex << alct->GetFastControlMonth();
+    *out << ", year = " << std::hex << alct->GetFastControlYear() << std::dec << std::endl; 
     //
     *out << cgicc::fieldset();
 #endif
@@ -7169,12 +7194,37 @@ private:
 		<< ", year = " << alct->GetSlowControlYear()
 		<< std::dec << std::endl;
       alct->ReadFastControlId();
-      std::cout << "ALCT: Fast Control chip ID = " << std::hex << alct->GetFastControlChipId()
-		<< " version " << alct->GetFastControlVersionId()
-		<< ": day = " << alct->GetFastControlDay()
-		<< ", month = " << alct->GetFastControlMonth()
-		<< ", year = " << alct->GetFastControlYear()
-		<< std::dec << std::endl;
+      std::cout << "ALCT Fast Control firmware type: ";
+      if ( alct->GetFastControlAlctType() == FIRMWARE_TYPE_288 ) {
+	std::cout << "288, ";
+      } else if ( alct->GetFastControlAlctType() == FIRMWARE_TYPE_384 ) {
+	std::cout << "384, ";
+      } else if ( alct->GetFastControlAlctType() == FIRMWARE_TYPE_672 ) {
+	std::cout << "672, ";
+      } else {
+	std::cout << "unknown, ";
+      }
+      if ( alct->GetFastControlRegularMirrorType() == REGULAR_FIRMWARE_TYPE ) {
+      	std::cout << "non-mirrored, ";
+      } else  if ( alct->GetFastControlRegularMirrorType() == MIRROR_FIRMWARE_TYPE ) {
+      	std::cout << "mirrored, ";
+      } else {
+      	std::cout << "unknown, ";
+      }
+      //      if ( alct->GetFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE ) {
+      //	std::cout << "backward, ";
+      //      } else if ( alct->GetFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE ) {
+      //	std::cout << "forward, ";
+      //      }
+      //      if ( alct->GetFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE ) {
+      //	std::cout << "negative, ";
+      //      } else if ( alct->GetFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
+      //	std::cout << "positive, ";
+      //      }
+      std::cout << "day = " << std::hex << alct->GetFastControlDay();
+      std::cout << ", month = " << std::hex << alct->GetFastControlMonth();
+      std::cout << ", year = " << std::hex << alct->GetFastControlYear() << std::dec << std::endl; 
+      //
 #endif
       //
       thisTMB->disableAllClocks();
