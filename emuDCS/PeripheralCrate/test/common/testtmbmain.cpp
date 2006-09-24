@@ -633,10 +633,9 @@ int main() {
       //
       break;
     case 500:
-      testTMB.reset();      
       thisTMB->CheckVMEStateMachine();
       thisTMB->CheckJTAGStateMachine();
-      std::cout << "Raw hits header = 0x" << std::hex << thisTMB->ReadRegister(tmb_stat_adr) << std::endl;
+      thisTMB->CheckRawHitsHeader();
       break;
     case 501:
       thisTMB->ReadCurrentConfiguration();

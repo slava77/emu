@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.2 2006/09/07 14:55:38 rakness Exp $
+// $Id: TMB_constants.h,v 3.3 2006/09/24 13:34:37 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.3  2006/09/24 13:34:37  rakness
+// decode configuration registers
+//
 // Revision 3.2  2006/09/07 14:55:38  rakness
 // mask out read-only bits in userproms
 //
@@ -314,7 +317,7 @@ struct tmb_id_regs
 
 };
 //
-const int number_of_allowed_configuration_addresses = 19;
+const int number_of_allowed_configuration_addresses = 21;
 const int allowed_configuration_addresses[number_of_allowed_configuration_addresses] = {
   rpc_cfg_adr,          //0xb6 enable RPC 
   vme_ratctrl_adr,      //0x1e add 1/2-cycle to RPC latching
@@ -334,7 +337,9 @@ const int allowed_configuration_addresses[number_of_allowed_configuration_addres
   cfeb_inj_adr,         //0x42 enable CFEB inputs, RAM read/write
   seq_id_adr,           //0x6E board, csc ID 
   vme_usr_jtag_adr,     //0x10 ALCT JTAG address
-  alct_inj_adr          //0x32 ALCT Injector Control
+  alct_inj_adr,         //0x32 ALCT Injector Control
+  seq_trig_dly2_adr,    //0x6A Sequencer Trigger source delays
+  seqmod_adr            //0xAC Sequencer Trigger modifiers
 };
 //
 // bits within addresses which are allowed to be set in configuration prom
@@ -359,5 +364,7 @@ const int allowed_configuration_mask[number_of_allowed_configuration_addresses] 
   0xffff,               //0x42:
   0x1fff,               //0x6E:  disable unassigned bits
   0x007f,               //0x10:  disable TDO, unassigned bits
-  0x00ff                //0x32:  disable unassigned bits
+  0x0001,               //0x32:  disable injector control bits
+  0xffff,               //0x6A:
+  0x01df                //0xAC:  disable random LCT enable, pulses outside of L1a window, scintillator functions
 };

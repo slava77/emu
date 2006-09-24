@@ -2288,11 +2288,11 @@ void EMUjtag::CheckUserProm() {
 	date_changed = true;
 	//
       } else {
-	//	if (debug_) {
-	//(*MyOutput_) << "EMUjtag: WARNING address 0x" << std::hex << address;
-	//(*MyOutput_) << " to change from 0x" << std::hex << tmb_->GetClockedOutPromImage(address) 
-	//       << " -> 0x" << std::hex << GetUserPromImage(address) << std::endl;
-	  //	}
+	if (debug_) {
+	  (*MyOutput_) << "EMUjtag: WARNING address 0x" << std::hex << address;
+	  (*MyOutput_) << " to change from 0x" << std::hex << tmb_->GetClockedOutPromImage(address) 
+		       << " -> 0x" << std::hex << GetUserPromImage(address) << std::endl;
+	}
 	verify_error_++;
       }
     }
@@ -2331,7 +2331,7 @@ void EMUjtag::CheckUserProm() {
     (*MyOutput_) << "EMUjtag:  Number of verify errors = " 
 		 << std::dec << GetNumberOfVerifyErrors() << std::endl;
     if ( GetNumberOfVerifyErrors() > 0 ) 
-      ::sleep(5);
+      ::sleep(1);
   }
   //
   return;
@@ -2364,120 +2364,6 @@ void EMUjtag::ProgramTMBProms() {
   (*MyOutput_) << "EMUjtag: TMB Programming complete in " 
 	       << std::dec << time_elapsed << " seconds"
 	       << std::endl;  
-  //
-  return;
-}
-//
-void EMUjtag::CheckVMEStateMachine() {
-  //
-  int read_data = tmb_->ReadRegister(vme_sm_ctrl_adr);
-  //
-  int vme_state_machine_start       = (read_data >> 0) & 0x1;
-  int vme_state_machine_sreset      = (read_data >> 1) & 0x1;
-  int vme_state_machine_autostart   = (read_data >> 2) & 0x1;
-  int vme_state_machine_busy        = (read_data >> 3) & 0x1;
-  int vme_state_machine_aborted     = (read_data >> 4) & 0x1;
-  int vme_state_machine_cksum_ok    = (read_data >> 5) & 0x1;
-  int vme_state_machine_wdcnt_ok    = (read_data >> 6) & 0x1;
-  int vme_state_machine_jtag_auto   = (read_data >> 7) & 0x1;
-  int vme_state_machine_vme_ready   = (read_data >> 8) & 0x1;
-  int vme_state_machine_ok          = (read_data >> 9) & 0x1;
-  int vme_state_machine_path_ok     = (read_data >>10) & 0x1;
-  //  int vme_state_machine_unassigned0 = (read_data >>11) & 0x1;
-  int vme_state_machine_throttle    = (read_data >>12) & 0xf;
-  //
-  int vme_state_machine_word_count  = tmb_->ReadRegister(vme_sm_wdcnt_adr);
-  //
-  read_data = tmb_->ReadRegister(vme_sm_cksum_adr);
-  //
-  int vme_state_machine_check_sum   = (read_data >> 0) & 0xff;
-  //
-  int vme_state_machine_error_missing_header_start    = (read_data >> 8) & 0x1;
-  int vme_state_machine_error_missing_header_end      = (read_data >> 9) & 0x1;
-  int vme_state_machine_error_missing_data_end_marker = (read_data >>10) & 0x1;
-  int vme_state_machine_error_missing_trailer_end     = (read_data >>11) & 0x1;
-  int vme_state_machine_error_word_count_overflow     = (read_data >>12) & 0x1;
-  //
-  int vme_state_machine_number_of_vme_writes       = tmb_->ReadRegister(num_vme_sm_adr_adr);
-  //
-  (*MyOutput_) << "VME prom state machine status: " << std::endl;
-  (*MyOutput_) << "-------------------------------" << std::endl;
-  (*MyOutput_) << " start            = " << std::hex << vme_state_machine_start << std::endl;
-  (*MyOutput_) << " sreset           = " << std::hex << vme_state_machine_sreset << std::endl;
-  (*MyOutput_) << " autostart        = " << std::hex << vme_state_machine_autostart << std::endl;
-  (*MyOutput_) << " busy             = " << std::hex << vme_state_machine_busy << std::endl;
-  (*MyOutput_) << " aborted          = " << std::hex << vme_state_machine_aborted << std::endl;
-  (*MyOutput_) << " check sum OK     = " << std::hex << vme_state_machine_cksum_ok << std::endl;
-  (*MyOutput_) << " word count OK    = " << std::hex << vme_state_machine_wdcnt_ok << std::endl;
-  (*MyOutput_) << " JTAG auto        = " << std::hex << vme_state_machine_jtag_auto << std::endl;
-  (*MyOutput_) << " VME ready        = " << std::hex << vme_state_machine_vme_ready << std::endl;
-  (*MyOutput_) << " state machine OK = " << std::hex << vme_state_machine_ok << std::endl;
-  (*MyOutput_) << " path OK          = " << std::hex << vme_state_machine_path_ok << std::endl;
-  (*MyOutput_) << " throttle         = 0x" << std::hex << vme_state_machine_throttle << std::endl;
-  (*MyOutput_) << std::endl;
-  (*MyOutput_) << " word count = 0x" << std::hex << vme_state_machine_word_count << std::endl;
-  (*MyOutput_) << " check sum  = 0x" << std::hex << vme_state_machine_check_sum << std::endl;
-  (*MyOutput_) << std::endl;
-  (*MyOutput_) << " missing header start    = " << std::hex << vme_state_machine_error_missing_header_start << std::endl;
-  (*MyOutput_) << " missing header end      = " << std::hex << vme_state_machine_error_missing_header_end << std::endl;
-  (*MyOutput_) << " missing data end marker = " << std::hex << vme_state_machine_error_missing_data_end_marker << std::endl;
-  (*MyOutput_) << " missing trailer end     = " << std::hex << vme_state_machine_error_missing_trailer_end << std::endl;
-  (*MyOutput_) << " word count overflow     = " << std::hex << vme_state_machine_error_word_count_overflow << std::endl;
-  (*MyOutput_) << std::endl;
-  (*MyOutput_) << " Number of VME writes    = 0x" << std::hex << vme_state_machine_number_of_vme_writes << std::endl;
-  //
-  return;
-}
-void EMUjtag::CheckJTAGStateMachine() {
-  //
-  int read_data = tmb_->ReadRegister(jtag_sm_ctrl_adr);
-  int jtag_state_machine_start       = (read_data >> 0) & 0x1;
-  int jtag_state_machine_sreset      = (read_data >> 1) & 0x1;
-  int jtag_state_machine_autostart   = (read_data >> 2) & 0x1;
-  int jtag_state_machine_busy        = (read_data >> 3) & 0x1;
-  int jtag_state_machine_aborted     = (read_data >> 4) & 0x1;
-  int jtag_state_machine_cksum_ok    = (read_data >> 5) & 0x1;
-  int jtag_state_machine_wdcnt_ok    = (read_data >> 6) & 0x1;
-  int jtag_state_machine_tck_fpga_ok = (read_data >> 7) & 0x1;
-  int jtag_state_machine_vme_ready   = (read_data >> 8) & 0x1;
-  int jtag_state_machine_ok          = (read_data >> 9) & 0x1;
-  int jtag_state_machine_oe          = (read_data >>10) & 0x1;
-  //  int jtag_state_machine_unassigned0 = (read_data >>11) & 0x1;
-  int jtag_state_machine_throttle    = (read_data >>12) & 0xf;
-  //
-  int jtag_state_machine_word_count  = tmb_->ReadRegister(jtag_sm_wdcnt_adr);
-  //
-  read_data = tmb_->ReadRegister(jtag_sm_cksum_adr);
-  //
-  //  std::cout << "JTAG statemachine 2 address data = " << std::hex << read_data << std::endl;
-  //
-  int jtag_state_machine_check_sum   = (read_data >> 0) & 0xff;
-  //
-  int jtag_state_machine_tck_fpga    = (read_data >> 8) & 0xf;
-  //
-  (*MyOutput_) << "JTAG prom state machine status: " << std::endl;
-  (*MyOutput_) << "-------------------------------" << std::endl;
-  (*MyOutput_) << " prom start vme   = " << std::hex << jtag_state_machine_start << std::endl;
-  (*MyOutput_) << " sreset           = " << std::hex << jtag_state_machine_sreset << std::endl;
-  (*MyOutput_) << " autostart        = " << std::hex << jtag_state_machine_autostart << std::endl;
-  (*MyOutput_) << " busy             = " << std::hex << jtag_state_machine_busy << std::endl;
-  (*MyOutput_) << " aborted          = " << std::hex << jtag_state_machine_aborted << std::endl;
-  (*MyOutput_) << " check sum OK     = " << std::hex << jtag_state_machine_cksum_ok << std::endl;
-  (*MyOutput_) << " word count OK    = " << std::hex << jtag_state_machine_wdcnt_ok << std::endl;
-  (*MyOutput_) << " tck FPGA OK      = " << std::hex << jtag_state_machine_tck_fpga_ok << std::endl;
-  (*MyOutput_) << " VME ready        = " << std::hex << jtag_state_machine_vme_ready << std::endl;
-  (*MyOutput_) << " state machine OK = " << std::hex << jtag_state_machine_ok << std::endl;
-  (*MyOutput_) << " throttle         = 0x" << std::hex << jtag_state_machine_throttle << std::endl;
-  (*MyOutput_) << " jtag oe          = " << std::hex << jtag_state_machine_oe << std::endl;
-  (*MyOutput_) << std::endl;
-  (*MyOutput_) << " word count = 0x" << std::hex << jtag_state_machine_word_count << std::endl;
-  (*MyOutput_) << " check sum  = 0x" << std::hex << jtag_state_machine_check_sum << std::endl;
-  (*MyOutput_) << std::endl;
-  (*MyOutput_) << " tck_fpga   = 0x" << std::hex << jtag_state_machine_tck_fpga << std::endl;
-  //
-  unsigned short int BootData;
-  tmb_->tmb_get_boot_reg(&BootData);
-  std::cout << "Boot Register = " << std::hex << BootData << std::endl;
   //
   return;
 }
