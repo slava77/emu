@@ -466,8 +466,10 @@ const int NUMBER_OF_WIRE_GROUPS_ME32   = 384;
 const int FAST_CONTROL_ALCT_TYPE_ME32  = 384;
 const int SLOW_CONTROL_ALCT_TYPE_ME32  = 384;
 //
-const int NUMBER_OF_WIRE_GROUPS_ME41   = 576; //remember.....
-const int FAST_CONTROL_ALCT_TYPE_ME41  = 576;
+//const int NUMBER_OF_WIRE_GROUPS_ME41   = 576; //until new firmware
+//const int FAST_CONTROL_ALCT_TYPE_ME41  = 576;
+const int NUMBER_OF_WIRE_GROUPS_ME41   = 672; //until new firmware
+const int FAST_CONTROL_ALCT_TYPE_ME41  = 672;
 const int SLOW_CONTROL_ALCT_TYPE_ME41  = 672;
 //
 const int NUMBER_OF_WIRE_GROUPS_ME42   = 384;
@@ -658,6 +660,46 @@ const int asic_pattern_value_bitlo         = 4;
 const int asic_pattern_value_bithi         = 19;
 //
 const int NUMBER_OF_ASIC_BITS              = asic_pattern_value_bithi-asic_delay_value_bitlo+1;
+//
+//
+////////////////////////////////////////
+// Fast Control ID register bit-map:
+////////////////////////////////////////
+const int fastcontrol_regular_mirror_bitlo       = 0;
+const int fastcontrol_regular_mirror_bithi       = 0;
+//
+const int fastcontrol_backward_forward_bitlo     = 1;
+const int fastcontrol_backward_forward_bithi     = 1;
+//
+const int fastcontrol_negative_positive_bitlo    = 2;
+const int fastcontrol_negative_positive_bithi    = 2;
+//
+const int fastcontrol_alct_type_bitlo            = 4;
+const int fastcontrol_alct_type_bithi            = 7;
+//
+const int fastcontrol_firmware_year_bitlo        = 8;
+const int fastcontrol_firmware_year_bithi        =23;
+//
+const int fastcontrol_firmware_day_bitlo         =24;
+const int fastcontrol_firmware_day_bithi         =31;
+//
+const int fastcontrol_firmware_month_bitlo       =32;
+const int fastcontrol_firmware_month_bithi       =39;
+//
+// Constants to decode:
+const int REGULAR_FIRMWARE_TYPE                  = 0;
+const int MIRROR_FIRMWARE_TYPE                   = 1;
+//
+const int BACKWARD_FIRMWARE_TYPE                 = 0;
+const int FORWARD_FIRMWARE_TYPE                  = 1;
+//
+const int NEGATIVE_FIRMWARE_TYPE                 = 0;
+const int POSITIVE_FIRMWARE_TYPE                 = 1;
+//
+const int FIRMWARE_TYPE_288                      = 2;
+const int FIRMWARE_TYPE_384                      = 3;
+const int FIRMWARE_TYPE_672                      = 6;
+//
 //
 /////////////////////////////////////////////////////
 // Trigger register constants

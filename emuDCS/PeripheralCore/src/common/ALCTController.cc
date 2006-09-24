@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.15 2006/09/15 07:50:41 rakness Exp $
+// $Id: ALCTController.cc,v 3.16 2006/09/24 15:32:55 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.16  2006/09/24 15:32:55  rakness
+// read new alct fast control register
+//
 // Revision 3.15  2006/09/15 07:50:41  rakness
 // dump config registers
 //
@@ -7074,41 +7077,132 @@ void ALCTController::ReadFastControlId() {
 	      ALCT_FAST_RD_ID_REG,
 	      RegSizeAlctFastFpga_RD_ID_REG);
   //
-  packCharBuffer(GetDRtdo(),
-		 GetRegLength(),
-		 read_fastcontrol_id_);
+  int * fast_control_id_reg_pointer = GetDRtdo();
+  //
+  for (int i=0; i<RegSizeAlctFastFpga_RD_ID_REG; i++)
+    read_fastcontrol_id_[i] = *(fast_control_id_reg_pointer+i);
+  //
+  DecodeFastControlId_();
+  //
   return;
 }
 //
 void ALCTController::PrintFastControlId() {
   //
-  (*MyOutput_) << "ALCT: Fast Control chip ID = " << std::hex << GetFastControlChipId()
-	       << " version " << GetFastControlVersionId()
-	       << ": day = " << GetFastControlDay()
-	       << ", month = " << GetFastControlMonth()
-	       << ", year = " << GetFastControlYear()
-	       << std::dec << std::endl; 
+  (*MyOutput_) << chamber_type_string_ << " ALCT Fast Control firmware type: ";
+  // 
+  if ( GetFastControlAlctType() == FIRMWARE_TYPE_288 ) {
+    (*MyOutput_) << "288, ";
+  } else if ( GetFastControlAlctType() == FIRMWARE_TYPE_384 ) {
+    (*MyOutput_) << "384, ";
+  } else if ( GetFastControlAlctType() == FIRMWARE_TYPE_672 ) {
+    (*MyOutput_) << "672, ";
+  } else {
+    (*MyOutput_) << "unknown, ";
+  }
+  // 
+  if ( GetFastControlRegularMirrorType() == REGULAR_FIRMWARE_TYPE ) {
+    (*MyOutput_) << "non-mirrored, ";
+  } else  if ( GetFastControlRegularMirrorType() == MIRROR_FIRMWARE_TYPE ) {
+    (*MyOutput_) << "mirrored, ";
+  } else {
+    (*MyOutput_) << "unknown, ";
+  }
+  //
+  if (chamber_type_string_ == "ME11") {
+    if ( GetFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE ) {
+      (*MyOutput_) << "backward, ";
+    } else if ( GetFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE ) {
+      (*MyOutput_) << "forward, ";
+    }
+    if ( GetFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE ) {
+      (*MyOutput_) << "negative, ";
+    } else if ( GetFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
+      (*MyOutput_) << "positive, ";
+    }
+  }
+  //
+  (*MyOutput_) << "day = " << std::hex << GetFastControlDay();
+  (*MyOutput_) << ", month = " << std::hex << GetFastControlMonth();
+  (*MyOutput_) << ", year = " << std::hex << GetFastControlYear() << std::dec << std::endl; 
+  //
   return;
 }
 //
-int ALCTController::GetFastControlChipId() { 
-  return (read_fastcontrol_id_[0] & 0xf); 
+void ALCTController::DecodeFastControlId_() {
+  // ** Extract the Fast Control ID's software values  **
+  // ** from the vector of bits read_fastcontrol_id_[]          **
+  //
+  int number_of_bits = fastcontrol_regular_mirror_bithi - fastcontrol_regular_mirror_bitlo + 1;  
+  fastcontrol_regular_mirror_ = bits_to_int(read_fastcontrol_id_+fastcontrol_regular_mirror_bitlo,
+					    number_of_bits,
+					    LSBfirst);
+  //
+  number_of_bits = fastcontrol_backward_forward_bithi - fastcontrol_backward_forward_bitlo + 1;  
+  fastcontrol_backward_forward_ = bits_to_int(read_fastcontrol_id_+fastcontrol_backward_forward_bitlo,
+					      number_of_bits,
+					      LSBfirst);
+  //
+  number_of_bits = fastcontrol_negative_positive_bithi - fastcontrol_negative_positive_bitlo + 1;  
+  fastcontrol_negative_positive_ = bits_to_int(read_fastcontrol_id_+fastcontrol_negative_positive_bitlo,
+					       number_of_bits,
+					       LSBfirst);
+  //
+  number_of_bits = fastcontrol_alct_type_bithi - fastcontrol_alct_type_bitlo + 1;  
+  fastcontrol_alct_type_ = bits_to_int(read_fastcontrol_id_+fastcontrol_alct_type_bitlo,
+				       number_of_bits,
+				       LSBfirst);
+  //
+  number_of_bits = fastcontrol_firmware_year_bithi - fastcontrol_firmware_year_bitlo + 1;  
+  fastcontrol_firmware_year_ = bits_to_int(read_fastcontrol_id_+fastcontrol_firmware_year_bitlo,
+					   number_of_bits,
+					   LSBfirst);
+  //
+  number_of_bits = fastcontrol_firmware_day_bithi - fastcontrol_firmware_day_bitlo + 1;  
+  fastcontrol_firmware_day_ = bits_to_int(read_fastcontrol_id_+fastcontrol_firmware_day_bitlo,
+					  number_of_bits,
+					  LSBfirst);
+  //
+  number_of_bits = fastcontrol_firmware_month_bithi - fastcontrol_firmware_month_bitlo + 1;  
+  fastcontrol_firmware_month_ = bits_to_int(read_fastcontrol_id_+fastcontrol_firmware_month_bitlo,
+					    number_of_bits,
+					    LSBfirst);
+  
+  return;
 }
 //
-int ALCTController::GetFastControlVersionId() { 
-  return ((read_fastcontrol_id_[0]>>4) & 0xf); 
+int ALCTController::GetFastControlRegularMirrorType() { 
+  return fastcontrol_regular_mirror_; 
+}
+//
+int ALCTController::GetFastControlBackwardForwardType() { 
+  return fastcontrol_backward_forward_; 
+}
+//
+int ALCTController::GetFastControlNegativePositiveType() { 
+  return fastcontrol_negative_positive_; 
+}
+//
+int ALCTController::GetFastControlAlctType() { 
+  return fastcontrol_alct_type_; 
 }
 //
 int ALCTController::GetFastControlYear() { 
-  return ((read_fastcontrol_id_[2]<<8) | read_fastcontrol_id_[1]&0xff); 
+  //
+  return fastcontrol_firmware_year_;
+    //((read_fastcontrol_id_[2]<<8) | read_fastcontrol_id_[1]&0xff); 
 }
 //
 int ALCTController::GetFastControlDay() { 
-  return (read_fastcontrol_id_[3] & 0xff); 
+  //
+  return fastcontrol_firmware_day_;
+    //(read_fastcontrol_id_[3] & 0xff); 
 }
 //
 int ALCTController::GetFastControlMonth() { 
-  return (read_fastcontrol_id_[4] & 0xff); 
+  //
+  return fastcontrol_firmware_month_;
+    //(read_fastcontrol_id_[4] & 0xff); 
 }
 //
 ////////////////////////////////
