@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.4 2006/08/10 15:46:30 mey Exp $
+// $Id: CCB.h,v 3.5 2006/09/27 16:44:36 mey Exp $
 // $Log: CCB.h,v $
+// Revision 3.5  2006/09/27 16:44:36  mey
+// UPdate
+//
 // Revision 3.4  2006/08/10 15:46:30  mey
 // UPdate
 //
@@ -230,6 +233,8 @@ public:
   void soft_reset_all();
 
   void DumpAddress(int);
+
+  friend std::ostream & operator<<(std::ostream & os, CCB & ccb);
 
   //code used by DCS
 
