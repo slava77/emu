@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 3.2 2006/08/09 11:56:23 mey Exp $
+// $Id: MPC.h,v 3.3 2006/09/27 16:50:50 mey Exp $
 // $Log: MPC.h,v $
+// Revision 3.3  2006/09/27 16:50:50  mey
+// Update
+//
 // Revision 3.2  2006/08/09 11:56:23  mey
 // Got rid of friend classes in MPCParser
 //
@@ -100,6 +103,8 @@ class MPC : public VMEModule {
   unsigned int boardType() const {return MPC_ENUM;} 
   //
   void start();
+  //
+  friend std::ostream & operator<<(std::ostream & os, MPC & ccb);
   //
   bool SelfTest();
   void configure();  
