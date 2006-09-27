@@ -16,6 +16,7 @@
 #include "xdata/include/xdata/Integer.h"
 #include "xdata/include/xdata/Vector.h"
 #include "emu/emuDAQ/emuUtil/include/EmuRunInfo.h"
+#include "emu/emuDAQ/emuUtil/include/EmuELog.h"
 #include "EmuApplication.h"
 
 #include <string>
@@ -213,13 +214,21 @@ private:
     void controlWebPage(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
 
+
+  xdata::String curlCommand_;         // the curl command's full path
+  xdata::String curlCookies_;         // file for cookies
+  xdata::String CMSUserFile_;         // file that contains the username:password for CMS user
+  xdata::String eLogUserFile_;        // file that contains the username:password for eLog user
+  xdata::String eLogURL_;             // eLog's URL 
+
   EmuRunInfo *runInfo_; // communicates with run database
 
   xdata::String runDbBookingCommand_; // e.g. "java -jar runnumberbooker.jar"
   xdata::String runDbWritingCommand_; // e.g. "java -jar runinfowriter.jar"
   xdata::String runDbAddress_;        // e.g. "dbc:oracle:thin:@oracms.cern.ch:10121:omds"
   xdata::String runDbUserName_;       // e.g. "rs_csc"
-  xdata::String runDbPassword_;       // e.e. "mickey2mouse"
+  xdata::String runDbPassword_;       // e.g. "mickey2mouse"
+  xdata::String runDbUserFile_;       // file that contains the username:password for run db user
   void bookRunNumber();
   void updateRunInfoDb();
   bool isBookedRunNumber_;

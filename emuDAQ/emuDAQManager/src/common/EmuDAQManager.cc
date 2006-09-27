@@ -3191,16 +3191,30 @@ throw (xgi::exception::Exception)
 void EmuDAQManager::exportParams(xdata::InfoSpace *s)
 {
     // Emu:
+  curlCommand_  = "curl";
+  curlCookies_  = ".curlCookies";
+  CMSUserFile_  = "";
+  eLogUserFile_ = "";
+  eLogURL_      = "";
+
+  s->fireItemAvailable( "curlCommand",  &curlCommand_  );
+  s->fireItemAvailable( "curlCookies", 	&curlCookies_  );
+  s->fireItemAvailable( "CMSUserFile", 	&CMSUserFile_  );
+  s->fireItemAvailable( "eLogUserFile",	&eLogUserFile_ );
+  s->fireItemAvailable( "eLogURL",     	&eLogURL_      );
+
   runDbBookingCommand_ = "java -jar runnumberbooker.jar";
   runDbWritingCommand_ = "java -jar runinfowriter.jar";
   runDbAddress_        = "dbc:oracle:thin:@oracms.cern.ch:10121:omds";
   runDbUserName_       = "rs_csc";
   runDbPassword_       = "mickey2mouse";
+  runDbUserFile_       = "";
   s->fireItemAvailable( "runDbBookingCommand", &runDbBookingCommand_ );
   s->fireItemAvailable( "runDbWritingCommand", &runDbWritingCommand_ );
   s->fireItemAvailable( "runDbAddress",        &runDbAddress_        );
   s->fireItemAvailable( "runDbUserName",       &runDbUserName_       );
   s->fireItemAvailable( "runDbPassword",       &runDbPassword_       );
+  s->fireItemAvailable( "runDbUserFile",       &runDbUserFile_       );
 
 
     runNumber_         = 0;
@@ -3449,8 +3463,14 @@ void EmuDAQManager::bookRunNumber(){
 }
 
 void EmuDAQManager::updateRunInfoDb(){
+  // Update run info db and post to eLog as well
 
   if ( isBookedRunNumber_ ){
+
+    stringstream subjectToELog;
+    stringstream messageToELog;
+    subjectToELog << "Emu local run " << runNumber_.value_;
+    messageToELog << "Emu local run " << runNumber_.value_ << " ";
 
     bool success = false;
     string name, value, nameSpace;
@@ -3466,6 +3486,7 @@ void EmuDAQManager::updateRunInfoDb(){
 	LOG4CPLUS_ERROR(logger_,"Failed to get time of configuration from TA0: " << 
 			xcept::stdformat_exception_history(e) );
       }
+    messageToELog << "Started " << configTime << " ";
     nameSpace = "time";
     name      = "start";
     value     = configTime;
@@ -3480,6 +3501,7 @@ void EmuDAQManager::updateRunInfoDb(){
     nameSpace = "time";
     name      = "stop";
     value     = getDateTime();
+    messageToELog << "Stopped " << value << " ";
     success = runInfo_->writeRunInfo( name, value, nameSpace );
     if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				   nameSpace << ":" << name << " = " << value ); }
@@ -3493,6 +3515,7 @@ void EmuDAQManager::updateRunInfoDb(){
     for ( int rui=0; rui<nRUIs; ++rui ){
       name  = counts.at(rui).at(1);
       value = counts.at(rui).at(2);
+      messageToELog << name << " " << value << " ";
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value ); }
@@ -3507,6 +3530,7 @@ void EmuDAQManager::updateRunInfoDb(){
       nameSpace = "events";
       name      = "EmuFU";
       value     = counts.at(nFUs).at(2); // the last element is the sum of all FUs' event counts
+      messageToELog << name << " " << value << " ";
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value ); }
@@ -3524,6 +3548,28 @@ void EmuDAQManager::updateRunInfoDb(){
 //     else          { LOG4CPLUS_ERROR(logger_,
 // 				    "Failed to write " << nameSpace << ":" << name << 
 // 				    " to run database " << runDbAddress_.toString() ); }
+
+
+    // Post to eLog:
+    EmuELog *eel;
+    try
+      {
+	eel = new EmuELog(curlCommand_.toString(),
+			  curlCookies_.toString(),
+			  CMSUserFile_.toString(),
+			  eLogUserFile_.toString(),
+			  eLogURL_.toString());
+      }
+    catch( string e ){
+      LOG4CPLUS_ERROR(logger_, e);
+      eel = 0;
+    }
+    if ( eel ) {
+      LOG4CPLUS_INFO(logger_, "Posting to eLog: \nSubject: " << subjectToELog.str() << "Body: \n" << messageToELog.str() );
+      eel->postMessage( subjectToELog.str(), messageToELog.str() );
+    }
+    delete eel;
+    
   }
   else LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
 }
