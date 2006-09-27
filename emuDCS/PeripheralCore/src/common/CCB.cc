@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.6 2006/09/13 14:13:32 mey Exp $
+// $Id: CCB.cc,v 3.7 2006/09/27 16:44:27 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 3.7  2006/09/27 16:44:27  mey
+// UPdate
+//
 // Revision 3.6  2006/09/13 14:13:32  mey
 // Update
 //
@@ -217,6 +220,20 @@ CCB::~CCB() {
 
 void CCB::end() {
 }
+
+std::ostream & operator<<(std::ostream & os, CCB & ccb) {
+  os << std::dec << "l1enabled_ " << ccb.l1enabled_ << std::endl
+     << "TTC " << ccb.TTC << std::endl
+     << "CLK_INIT_FLAG " << ccb.CLK_INIT_FLAG << std::endl
+     << "BX_Orbit_ " << ccb.BX_Orbit_ << std::endl
+     << "SPS25ns_ " << ccb.SPS25ns_ << std::endl
+     << "TTCrxID_ " << ccb.TTCrxID_ << std::endl
+     << "l1aDelay_ " << ccb.l1aDelay_ << std::endl
+     << "mDebug " << ccb.mDebug << std::endl
+     << "mCCBMode " << ccb.mCCBMode << std::endl
+     << "TTCrxCoarseDelay_ " << ccb.TTCrxCoarseDelay_ << std::endl
+     << "TTCrxFineDelay_ " << ccb.TTCrxFineDelay_ << std::endl;
+    }
 
 void CCB::pulse(int Num_pulse,unsigned int pulse_delay, char vme)
 {
