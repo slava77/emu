@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.11 2006/09/27 16:18:59 mey Exp $
+// $Id: DAQMB.cc,v 3.12 2006/09/27 16:28:46 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.12  2006/09/27 16:28:46  mey
+// UPdate
+//
 // Revision 3.11  2006/09/27 16:18:59  mey
 // UPdate
 //
@@ -453,7 +456,21 @@ std::ostream & operator<<(std::ostream & os, DAQMB & daqmb) {
      << "calibration_l1acc_delay_ " << daqmb.calibration_l1acc_delay_ << std::endl
      << "pulse_delay_ " << daqmb.pulse_delay_ << std::endl
      << "inject_delay_ " <<daqmb.inject_delay_ << std::endl
-     << "pul_dac_set_  " << daqmb.pul_dac_set_ << std::endl;
+     << "pul_dac_set_  " << daqmb.pul_dac_set_ << std::endl
+     << "inj_dac_set_ " << daqmb.inj_dac_set_ << std::endl
+     << "set_comp_thresh_ " << daqmb.set_comp_thresh_ << std::endl
+     << "comp_timing_ " << daqmb.comp_timing_ << std::endl
+     << "comp_mode_ " << daqmb.comp_mode_ << std::endl
+     << "pre_block_end_ " << daqmb.pre_block_end_ << std::endl
+     << "l1a_lct_counter_ " << daqmb.l1a_lct_counter_ << std::endl
+     << "cfeb_dav_counter_ " << daqmb.cfeb_dav_counter_ << std::endl
+     << "tmb_dav_counter_ " << daqmb.tmb_dav_counter_ << std::endl
+     << "alct_dav_counter_ " << daqmb.alct_dav_counter_ << std::endl
+     << "cable_delay_ "<<daqmb.cable_delay_ << std::endl
+     << "crate_id_ " << daqmb.crate_id_ << std::endl
+     << "toogle_bxn_ " << daqmb.toogle_bxn_ << std::endl
+     << "cfeb_clk_delay_ " << daqmb.cfeb_clk_delay_ << std::endl
+     << "xlatency_ " << daqmb.xlatency_ << std::endl;
   return os;
 }
 //
