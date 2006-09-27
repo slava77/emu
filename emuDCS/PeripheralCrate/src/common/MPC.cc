@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.2 2006/09/13 14:13:32 mey Exp $
+// $Id: MPC.cc,v 3.3 2006/09/27 16:50:43 mey Exp $
 // $Log: MPC.cc,v $
+// Revision 3.3  2006/09/27 16:50:43  mey
+// Update
+//
 // Revision 3.2  2006/09/13 14:13:32  mey
 // Update
 //
@@ -140,6 +143,13 @@ bool MPC::SelfTest() {
   return 0;
   //
 }
+
+std::ostream & operator<<(std::ostream & os, MPC & mpc) {
+  os << std::dec << "TLK2501TxMode_ " << mpc.TLK2501TxMode_ << std::endl
+     << "TransparentModeSources_ " << mpc.TransparentModeSources_ << std::endl
+     << "TMBDelayPattern_ " << mpc.TMBDelayPattern_ << std::endl
+     << "BoardID_ " << mpc.BoardId_ << std::endl;
+    }
 
 void MPC::configure() {
   char data[2];
