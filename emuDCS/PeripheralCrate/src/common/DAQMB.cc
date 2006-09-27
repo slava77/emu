@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.10 2006/09/19 08:16:52 mey Exp $
+// $Id: DAQMB.cc,v 3.11 2006/09/27 16:18:59 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.11  2006/09/27 16:18:59  mey
+// UPdate
+//
 // Revision 3.10  2006/09/19 08:16:52  mey
 // UPdate
 //
@@ -439,6 +442,20 @@ void DAQMB::configure() {
 //
 }
 */
+//
+std::ostream & operator<<(std::ostream & os, DAQMB & daqmb) {
+  os << std::dec << "feb_dav_delay " << daqmb.feb_dav_delay_ << std::endl
+     << "tmb_dav_delay " << daqmb.tmb_dav_delay_ << std::endl
+     << "push_dav_delay " << daqmb.push_dav_delay_ << std::endl
+     << "l1acc_dav_delay " << daqmb.l1acc_dav_delay_ << std::endl
+     << "ALCT_dav_delay " << daqmb.ALCT_dav_delay_ << std::endl
+     << "calibration_LCT_delay_ " << daqmb.calibration_LCT_delay_ << std::endl
+     << "calibration_l1acc_delay_ " << daqmb.calibration_l1acc_delay_ << std::endl
+     << "pulse_delay_ " << daqmb.pulse_delay_ << std::endl
+     << "inject_delay_ " <<daqmb.inject_delay_ << std::endl
+     << "pul_dac_set_  " << daqmb.pul_dac_set_ << std::endl;
+  return os;
+}
 //
 void DAQMB::configure() {
    //
