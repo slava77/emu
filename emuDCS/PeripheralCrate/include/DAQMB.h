@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.4 2006/09/19 08:16:52 mey Exp $
+// $Id: DAQMB.h,v 3.5 2006/09/27 16:19:08 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.5  2006/09/27 16:19:08  mey
+// UPdate
+//
 // Revision 3.4  2006/09/19 08:16:52  mey
 // UPdate
 //
@@ -143,6 +146,7 @@ public:
 
 // DAQMB constants&resets
 
+  friend std::ostream & operator<<(std::ostream & os, DAQMB & daqmb);
 
   void trigset2(int, int [] );
   void trgfire();
