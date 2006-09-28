@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.15 2006/09/24 13:34:39 rakness Exp $
+// $Id: TMB.cc,v 3.16 2006/09/28 12:52:35 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 3.16  2006/09/28 12:52:35  mey
+// Update
+//
 // Revision 3.15  2006/09/24 13:34:39  rakness
 // decode configuration registers
 //
@@ -540,7 +543,7 @@ void TMB::init() {
 //
 void TMB::configure() {
   //
-  SetFillVmeWriteVecs(true);
+  SetFillVmeWriteVecs(false);
   ClearVmeWriteVecs();
   //
   ostringstream dump;

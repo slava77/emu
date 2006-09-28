@@ -252,7 +252,7 @@
 <!-- ME+1/2/30 chamber -->
    <CSC label="ME+1/2/30">
     <DAQMB slot="9" 
-           feb_dav_delay="23" 
+           feb_dav_delay="24" 
            tmb_dav_delay="26" 
            push_dav_delay="31"
            l1acc_dav_delay="24" 
@@ -424,7 +424,7 @@
    </CSC>
 
 <!-- ME+1/2/32 chamber -->
-   <!--CSC label="ME+1/2/32">
+   <CSC label="ME+1/2/32">
     <DAQMB slot="15" 
            feb_dav_delay="24" 
            tmb_dav_delay="26" 
@@ -481,7 +481,7 @@
              nph_thresh="4"
              nph_pattern="4"
              ccb_enable="1"
-             l1a_delay="148">
+             l1a_delay="146">
           <AnodeChannel Number="1" delay="10" threshold="10"> </AnodeChannel>     
           <AnodeChannel Number="2" delay="10" threshold="11"> </AnodeChannel>  
           <AnodeChannel Number="3" delay="10" threshold="11"> </AnodeChannel>     
@@ -508,7 +508,7 @@
           <AnodeChannel Number="24" delay="10" threshold="7"> </AnodeChannel>  
        </ALCT>      
     </TMB>
-   </CSC-->
+   </CSC>
 
 <!-- ME+1/3/30 chamber -->
    <CSC label="ME+1/3/30">
@@ -675,7 +675,7 @@
 <!-- ME1/3/32 chamber -->
    <CSC label="ME+1/3/32">
     <DAQMB slot="21" 
-           feb_dav_delay="26" 
+           feb_dav_delay="24" 
            tmb_dav_delay="26" 
            push_dav_delay="31"
            l1acc_dav_delay="24" 

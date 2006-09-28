@@ -248,7 +248,7 @@
    </CSC>
 
 <!-- ME+1/2/27 chamber -->
-   <!--CSC label="ME+1/2/27">
+   <CSC label="ME+1/2/27">
     <DAQMB slot="9" 
            feb_dav_delay="23" 
            tmb_dav_delay="26" 
@@ -333,7 +333,6 @@
        </ALCT>      
     </TMB>
    </CSC>
--->
 
 <!-- ME+1/2/28 chamber -->
    <CSC label="ME+1/2/28">
