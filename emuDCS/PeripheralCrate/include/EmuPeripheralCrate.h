@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.24 2006/09/24 16:19:15 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 3.25 2006/09/28 12:52:33 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -360,7 +360,7 @@ public:
     fsm_.addStateTransition(
       'H', 'C', "Configure", this, &EmuPeripheralCrate::configureAction);
     fsm_.addStateTransition(
-      'C', 'C', "Configure", this, &EmuPeripheralCrate::configureAction);
+      'C', 'C', "Configure", this, &EmuPeripheralCrate::reConfigureAction);
     fsm_.addStateTransition(
       'C', 'E', "Enable",    this, &EmuPeripheralCrate::enableAction);
     fsm_.addStateTransition(
@@ -667,7 +667,7 @@ private:
     //
     //MyController->SetConfFile(xmlFile_);
     //
-    Configuring();
+    ConfigureInit();
     //
     //MyController->init(); // For CSCSupervisor
     //
@@ -686,8 +686,20 @@ private:
     std::cout << "Received Message Configure" << std::endl ;
     LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Configure");
     //
+    std::cout << "Done!" << std::endl;
+    //
   }
-
+  //
+  void EmuPeripheralCrate::reConfigureAction(toolbox::Event::Reference e) 
+    throw (toolbox::fsm::exception::Exception)
+  {
+    //
+    MyController->configure();
+    //
+    std::cout << "reConfigure" << std::endl ;
+    LOG4CPLUS_INFO(getApplicationLogger(), "reConfigure");
+    //
+  }
   //
   void EmuPeripheralCrate::enableAction(toolbox::Event::Reference e) 
     throw (toolbox::fsm::exception::Exception)
@@ -695,7 +707,7 @@ private:
     //
     //MyController->init();
     //
-    MyController->configure();
+    //MyController->configure();
     //
     std::cout << "Received Message Enable" << std::endl ;
     LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Enable");
@@ -8198,8 +8210,6 @@ private:
 	//
 	xmlFile_ = "MyTextConfigurationFile.xml" ;
 	//
-	//Configuring();
-	//
 	cout << "Out setRawConfFile" << endl ;
 	//
 	this->Default(in,out);
@@ -8208,6 +8218,14 @@ private:
       {
 	//XECPT_RAISE(xgi::exception::Exception, e.what());
       }
+  }
+  //
+  void EmuPeripheralCrate::ConfigureInit(){
+    //
+    Configuring();
+    //
+    MyController->configure();
+    //
   }
   //
   void EmuPeripheralCrate::Configuring(){
@@ -8234,7 +8252,7 @@ private:
     MyController->SetConfFile(xmlFile_.toString().c_str());
     MyController->init();
     //
-    std::cout << "Done init" << std::endl;
+    std::cout << "&&&&&&&&&& Done init" << std::endl;
     //
     emuSystem_ = MyController->GetEmuSystem();
     //

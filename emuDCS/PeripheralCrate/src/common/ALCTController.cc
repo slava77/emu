@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.16 2006/09/24 15:32:55 rakness Exp $
+// $Id: ALCTController.cc,v 3.17 2006/09/28 12:52:34 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.17  2006/09/28 12:52:34  mey
+// Update
+//
 // Revision 3.16  2006/09/24 15:32:55  rakness
 // read new alct fast control register
 //
@@ -6301,7 +6304,7 @@ void ALCTController::SetUpRandomALCT(){
 //
 void ALCTController::configure() {
   //
-  SetFillVmeWriteVecs(true);
+  SetFillVmeWriteVecs(false);
   //
   std::ostringstream dump;
   dump << (int)tmb_->slot();

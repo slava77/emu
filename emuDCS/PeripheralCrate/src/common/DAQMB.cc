@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.12 2006/09/27 16:28:46 mey Exp $
+// $Id: DAQMB.cc,v 3.13 2006/09/28 12:52:35 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.13  2006/09/28 12:52:35  mey
+// Update
+//
 // Revision 3.12  2006/09/27 16:28:46  mey
 // UPdate
 //
@@ -580,7 +583,7 @@ void DAQMB::configure() {
      //   preamp_initx();
 
      //
-
+     /*
      char * flash_content=(char *)malloc(500);
      int n_byts = Fill_BUCK_FLASH_contents(flash_content);
      buckflash_erase();
@@ -590,7 +593,7 @@ void DAQMB::configure() {
      sleep(5);
      buckflash_init();
      sleep(1); 
-
+     */
      //
 
    }
@@ -620,7 +623,7 @@ void DAQMB::configure() {
      setcbldly(cable_delay_);
      //
      // Load FLASH memory
-     WriteSFM();
+     //WriteSFM();
    }
 
 }
