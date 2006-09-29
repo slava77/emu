@@ -113,7 +113,7 @@ public:
     // Login:
     //
     string command = curlCommand_;
-    command += " ";
+    command += " -u ";
     command += CMSUser_;
     command += ":";
     command += CMSPassword_;
@@ -141,11 +141,11 @@ public:
     // Post:
     //
     command = curlCommand_;
-    command += " ";
+    command += " -u ";
     command += CMSUser_;
     command += ":";
     command += CMSPassword_;
-    command += " -F cmd=Submit -F Author=\"emu\" -F Type=\"EMU Local DAQ runs\" -F Subject=\"";
+    command += " -F cmd=Submit -F Author=\"emu\" -F Type=\"EMU Local DAQ runs\" -F encoding=\"HTML\" -F Subject=\"";
     command += subject;
     command += "\" -F Text=\"";
     command += body;
@@ -168,7 +168,7 @@ public:
     // Logout:
     //
     command = curlCommand_;
-    command += " ";
+    command += " -u ";
     command += CMSUser_;
     command += ":";
     command += CMSPassword_;
@@ -192,6 +192,9 @@ public:
 
   }
   
+  string eLogUser(){ return eLogUser_; }
+  string eLogPassword(){ return eLogPassword_; }
+  string CMSUser(){ return CMSUser_; }
   string errorMessage(){ return errorMessage_; }
 };
 
