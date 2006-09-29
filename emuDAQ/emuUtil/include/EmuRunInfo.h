@@ -6,6 +6,7 @@
 #include <iterator>
 // #include <iostream>
 #include <sstream>
+#include <fstream>
 
 using namespace std;
 using namespace redi;
@@ -24,7 +25,9 @@ private:
 
   string  bookingCommand_;
   string  writingCommand_;
+  string  dbUserFile_;
   string  dbAddress_;
+
   string  dbUser_;
   string  dbPassword_;
   string  user_;
@@ -49,31 +52,31 @@ protected:
 //   EmuRunInfo();
   EmuRunInfo( string bookingCommand, 
 	      string writingCommand, 
-	      string dbAddress, 
-	      string dbUser, 
-	      string dbPassword ):
+	      string dbUserFile, 
+	      string dbAddress ):
     bookingCommand_  (bookingCommand),
     writingCommand_  (writingCommand),
+    dbUserFile_      (dbUserFile    ),
     dbAddress_       (dbAddress     ),
-    dbUser_          (dbUser        ),
-    dbPassword_      (dbPassword    ),
+    dbUser_          (""            ),
+    dbPassword_      (""            ),
     runNumber_       (0             ),
     runNumberString_ (""            ),
     errorMessage_    (""            )
   {
     findOutWhoIAm();
+    getDbUserData();
   }
 
 public:
 
   static EmuRunInfo* Instance( string bookingCommand, 
 			       string writingCommand, 
-			       string dbAddress, 
-			       string dbUser, 
-			       string dbPassword ){
+			       string dbUserFile, 
+			       string dbAddress ){
     
     if ( instance_ == 0 )  // is it the first call?
-      instance_ = new EmuRunInfo( bookingCommand, writingCommand, dbAddress, dbUser, dbPassword ); // create sole instance
+      instance_ = new EmuRunInfo( bookingCommand, writingCommand, dbUserFile, dbAddress ); // create sole instance
 
     return instance_; // address of sole instance
 
@@ -87,6 +90,31 @@ public:
 
     ipstream who("whoami");
     while (who >> user_);
+
+  }
+
+  void getDbUserData(){
+    
+    fstream fs;
+    fs.open( dbUserFile_.c_str(), ios::in );
+    if ( fs.is_open() ){
+      string userAndPasswd;
+      fs >> userAndPasswd;
+      string::size_type loc = userAndPasswd.find(":");
+      if ( loc == string::npos ){
+	stringstream oss;
+	oss << dbUserFile_ << " contains no username:password. ==> No run number database access.";
+	throw oss.str();
+      }
+      dbUser_     = userAndPasswd.substr( 0, loc );
+      dbPassword_ = userAndPasswd.substr( loc+1 );
+      fs.close();
+    }
+    else{
+      stringstream oss;
+      oss << "Could not open " << dbUserFile_ << " for reading. ==> No run number database access.";
+      throw oss.str();
+    }
 
   }
 
