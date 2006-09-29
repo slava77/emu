@@ -226,11 +226,10 @@ private:
   xdata::String runDbBookingCommand_; // e.g. "java -jar runnumberbooker.jar"
   xdata::String runDbWritingCommand_; // e.g. "java -jar runinfowriter.jar"
   xdata::String runDbAddress_;        // e.g. "dbc:oracle:thin:@oracms.cern.ch:10121:omds"
-  xdata::String runDbUserName_;       // e.g. "rs_csc"
-  xdata::String runDbPassword_;       // e.g. "mickey2mouse"
   xdata::String runDbUserFile_;       // file that contains the username:password for run db user
   void bookRunNumber();
-  void updateRunInfoDb();
+  void updateRunInfoDb( bool postToELogToo );
+  void postToELog( string subject, string body );
   bool isBookedRunNumber_;
 
   xdata::UnsignedLong runNumber_;
