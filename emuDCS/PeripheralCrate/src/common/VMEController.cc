@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.6 2006/09/12 15:50:01 mey Exp $
+// $Id: VMEController.cc,v 3.7 2006/10/02 12:59:40 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.7  2006/10/02 12:59:40  mey
+// UPdate
+//
 // Revision 3.6  2006/09/12 15:50:01  mey
 // New software changes to DMB abd CFEB
 //
@@ -1054,7 +1057,7 @@ printf("To %02X:%02X:%02X:%02X:%02X:%02X, need %02X:%02X:%02X:%02X:%02X:%02X\n",
 radd_to[0],radd_to[1],radd_to[2],radd_to[3],radd_to[4],radd_to[5],
 hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_source_addr[4],hw_source_addr[5]);
 
-          goto READETH;
+ goto READETH; //disable for broadcast MvdM
         }
       nbytet=(unsigned char *)rbuf+12;
       r_nbyte=((nbytet[0]<<8)&0xff00)|(nbytet[1]&0xff);
