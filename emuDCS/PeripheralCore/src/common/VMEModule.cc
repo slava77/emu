@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.5 2006/09/05 16:14:43 mey Exp $
+// $Id: VMEModule.cc,v 3.6 2006/10/02 12:58:34 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.6  2006/10/02 12:58:34  mey
+// Update
+//
 // Revision 3.5  2006/09/05 16:14:43  mey
 // Update
 //
@@ -179,6 +182,11 @@ void VMEModule::scan(int reg,const char *snd,int cnt,char *rcv,int ird) {
     theController->scan_jtag(reg, snd, cnt, rcv, ird);
   else
     theController->scan(reg, snd, cnt, rcv, ird);
+}
+
+void VMEModule::scan_reset(int reg,const char *snd,int cnt,char *rcv,int ird) {
+  theController->start( theSlot, boardType());
+  theController->scan_reset(reg, snd, cnt, rcv, ird);
 }
 
 void VMEModule::RestoreIdle() {
