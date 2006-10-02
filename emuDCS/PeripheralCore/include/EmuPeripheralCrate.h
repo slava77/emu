@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.25 2006/09/28 12:52:33 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.26 2006/10/02 18:19:14 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1356,6 +1356,8 @@ private:
 		  toolbox::toString("/%s/ChamberTests?tmb=%d&dmb=%d",getApplicationDescriptor()->getURN().c_str(),i,iii);
 		//
 		*out << cgicc::a(Name).set("href",ChamberTests) << endl;
+		//
+		std::cout << "Creating ChamberUtils i="<<i<<std::endl;
 		//
 		MyTest[i].SetTMB(tmbVector[i]);
 		MyTest[i].SetDMB(dmbVector[iii]);
@@ -6925,7 +6927,7 @@ private:
     //
     *out << cgicc::legend("TMB Utils").set("style","color:blue") ;
     //
-    std::string TMBFirmware = FirmwareDir_+"tmb/tmb17mar2006.svf";
+    std::string TMBFirmware = FirmwareDir_+"tmb/tmb2005e09052006.svf";
     TMBFirmware_ = TMBFirmware;
     //
     std::string LoadTMBFirmware =
@@ -7126,10 +7128,10 @@ private:
     //string chamberType("ME21");
     //ALCTController *alct = new ALCTController(thisTMB,chamberType);
     //
-    thisTMB->disableAllClocks();
+    //thisTMB->disableAllClocks();
     printf("Programming...");
     int status = thisTMB->SVFLoad(&jch,TMBFirmware_.toString().c_str(),debugMode);
-    thisTMB->enableAllClocks();
+    //thisTMB->enableAllClocks();
     //
     if (status >= 0){
       cout << "=== Programming finished"<< endl;
@@ -7475,7 +7477,7 @@ private:
     //
     std::string DMBFirmware = FirmwareDir_+"dmb/dmb6cntl_v19_r5.svf";
     DMBFirmware_ = DMBFirmware;
-    std::string DMBVmeFirmware = FirmwareDir_+"dmb/dmb6vme_v9_r4.svf";
+    std::string DMBVmeFirmware = FirmwareDir_+"dmb/dmb6vme_v10_r1.svf";
     DMBVmeFirmware_ = DMBVmeFirmware;
     //
     std::string DMBLoadFirmware =
