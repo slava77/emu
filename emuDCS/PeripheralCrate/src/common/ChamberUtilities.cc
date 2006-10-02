@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.5 2006/08/10 15:46:30 mey Exp $
+// $Id: ChamberUtilities.cc,v 3.6 2006/10/02 13:45:31 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.6  2006/10/02 13:45:31  mey
+// Update
+//
 // Revision 3.5  2006/08/10 15:46:30  mey
 // UPdate
 //
@@ -282,6 +285,10 @@ void ChamberUtilities::CCBStartTrigger(){
   //printf("CCB %x \n",thisCCB_);
   //printf("MPC %x \n",thisMPC);
   //
+  if (!thisCCB_) {
+    std::cout << "CCB doesn't exist" << std::endl;
+    return;
+  }
   thisCCB_->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
   thisCCB_->startTrigger();
   thisCCB_->bc0(); 
