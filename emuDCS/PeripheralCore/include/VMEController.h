@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.6 2006/09/13 14:13:32 mey Exp $
+// $Id: VMEController.h,v 3.7 2006/10/02 18:18:33 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 3.7  2006/10/02 18:18:33  mey
+// UPdate
+//
 // Revision 3.6  2006/09/13 14:13:32  mey
 // Update
 //
@@ -150,6 +153,8 @@ public:
   /// JTAG stuff
   void devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd);
   void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
+  void scan_reset(int reg, const char *snd, int cnt2, char *rcv,int ird);
+  //
   void initDevice(int idev);
   void RestoreIdle();
   void InitJTAG(int port);
@@ -247,7 +252,6 @@ private:
   //void buckflash(const char *cmd,const char *inbuf,char *rcv);
   void buckflash(const char *cmd,int nbuf,const char *inbuf,char *rcv);
   void lowvolt(int ichp,int ichn,char *rcv);
-  void scan_reset(int reg, const char *snd, int cnt2, char *rcv,int ird);
   void handshake_vme();
   void flush_vme();
   void daqmb_fifo(int irdwr,int ififo,int nbyte,unsigned short int *buf,unsigned char *rcv);

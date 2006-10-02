@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 3.1 2006/08/08 19:23:08 mey Exp $
+// $Id: VMEModule.h,v 3.2 2006/10/02 18:18:25 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 3.2  2006/10/02 18:18:25  mey
+// UPdate
+//
 // Revision 3.1  2006/08/08 19:23:08  mey
 // Included Jtag sources
 //
@@ -134,6 +137,7 @@ protected:
   void devdo(DEVTYPE dev,int ncmd,const  char *cmd,int nbuf,
 	     const char *inbuf,char *outbuf,int irdsnd);
   void scan(int reg,const char *snd,int cnt2,char *rcv,int ird);
+  void scan_reset(int reg,const char *snd,int cnt2,char *rcv,int ird);
   void RestoreIdle();
   void RestoreReset();
   void InitJTAG(int port);
