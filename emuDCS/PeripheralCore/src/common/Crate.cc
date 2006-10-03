@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.3 2006/10/03 07:36:02 mey Exp $
+// $Id: Crate.cc,v 3.4 2006/10/03 08:15:45 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 3.4  2006/10/03 08:15:45  mey
+// Update
+//
 // Revision 3.3  2006/10/03 07:36:02  mey
 // UPdate
 //
@@ -234,9 +237,7 @@ void Crate::DumpConfiguration() {
     ALCTController * alct = myTmbs[i]->alctController();
     if (alct) {
       std::cout << "ALCTController " << std::endl;
-      std::ostringstream config;
-      alct->PrintConfigurationReg(&config);
-      std::cout << config.str() << std::endl;
+      std::cout << (*alct) << std::endl;
     }
     //
   }
