@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.8 2006/09/06 16:16:46 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.9 2006/10/03 15:31:42 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -41,6 +41,7 @@
 #include "xoap/SOAPEnvelope.h"
 #include "xoap/SOAPBody.h"
 #include "xoap/Method.h"
+#include "xoap/domutils.h"
 
 #include "cgicc/CgiDefs.h"
 #include "cgicc/Cgicc.h"
@@ -72,6 +73,7 @@ public:
   XDAQ_INSTANTIATOR();
 
   xdata::UnsignedLong runNumber_;
+  std::string ConnectionID_;
   
   //EmuPeripheralCrateManager(xdaq::ApplicationStub * s): xdaq::Application(s) 
   EmuPeripheralCrateManager(xdaq::ApplicationStub * s): EmuApplication(s)
@@ -148,11 +150,11 @@ public:
     *out << cgicc::legend("Crates in Configuration file").set("style","color:blue") 
 	 << cgicc::p() << std::endl ;
     //
-    std::vector<xdaq::ApplicationDescriptor * >  descriptor =
-      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
+    std::set<xdaq::ApplicationDescriptor * >  descriptor =
+      getApplicationContext()->getDefaultZone()->getApplicationDescriptors("EmuPeripheralCrate");
     //
     //
-    vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
+    std::set<xdaq::ApplicationDescriptor *>::iterator itDescriptor;
     for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) 
       {
 	std::string classNameStr = (*itDescriptor)->getClassName();
@@ -201,10 +203,10 @@ public:
     *out << cgicc::legend("XRelays in Configuration file").set("style","color:blue") 
 	 << cgicc::p() << std::endl ;
     //
-    std::vector<xdaq::ApplicationDescriptor * >  descriptorXRelay =
-      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("XRelay");
+    std::set<xdaq::ApplicationDescriptor * >  descriptorXRelay =
+      getApplicationContext()->getDefaultZone()->getApplicationDescriptors("XRelay");
     //
-    vector <xdaq::ApplicationDescriptor *>::iterator itDescriptorXRelay;
+    std::set<xdaq::ApplicationDescriptor *>::iterator itDescriptorXRelay;
     for ( itDescriptorXRelay = descriptorXRelay.begin(); itDescriptorXRelay != descriptorXRelay.end(); itDescriptorXRelay++ ) 
       {
 	std::string classNameStr = (*itDescriptorXRelay)->getClassName();
@@ -225,10 +227,10 @@ public:
     *out << cgicc::legend("TStore in Configuration file").set("style","color:blue") 
 	 << cgicc::p() << std::endl ;
     //
-    std::vector<xdaq::ApplicationDescriptor * >  descriptorTStore =
-      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("TStore");
+    std::set<xdaq::ApplicationDescriptor * >  descriptorTStore =
+      getApplicationContext()->getDefaultZone()->getApplicationDescriptors("TStore");
     //
-    vector <xdaq::ApplicationDescriptor *>::iterator itDescriptorTStore;
+    std::set<xdaq::ApplicationDescriptor *>::iterator itDescriptorTStore;
     for ( itDescriptorTStore = descriptorTStore.begin(); itDescriptorTStore != descriptorTStore.end(); itDescriptorTStore++ ) 
       {
 	std::string classNameStr = (*itDescriptorTStore)->getClassName();
@@ -249,10 +251,10 @@ public:
     *out << cgicc::legend("JobControl in Configuration file").set("style","color:blue") 
 	 << cgicc::p() << std::endl ;
     //
-    std::vector<xdaq::ApplicationDescriptor * >  descriptorJobControl =
-      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("JobControl");
+    std::set<xdaq::ApplicationDescriptor * >  descriptorJobControl =
+      getApplicationContext()->getDefaultZone()->getApplicationDescriptors("JobControl");
     //
-    vector <xdaq::ApplicationDescriptor *>::iterator itDescriptorJobControl;
+    std::set<xdaq::ApplicationDescriptor *>::iterator itDescriptorJobControl;
     for ( itDescriptorJobControl = descriptorJobControl.begin(); itDescriptorJobControl != descriptorJobControl.end(); itDescriptorJobControl++ ) 
       {
 	std::string classNameStr = (*itDescriptorJobControl)->getClassName();
@@ -304,10 +306,10 @@ public:
     *out << cgicc::legend("LTCControl in Configuration file").set("style","color:blue") 
 	 << cgicc::p() << std::endl ;
     //
-    std::vector<xdaq::ApplicationDescriptor * >  descriptorLTCControl =
-      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("LTCControl");
+    std::set<xdaq::ApplicationDescriptor * >  descriptorLTCControl =
+      getApplicationContext()->getDefaultZone()->getApplicationDescriptors("LTCControl");
     //
-    vector <xdaq::ApplicationDescriptor *>::iterator itDescriptorLTCControl;
+    std::set<xdaq::ApplicationDescriptor *>::iterator itDescriptorLTCControl;
     for ( itDescriptorLTCControl = descriptorLTCControl.begin(); 
 	  itDescriptorLTCControl != descriptorLTCControl.end(); itDescriptorLTCControl++ ) 
       {
@@ -648,7 +650,7 @@ public:
     return createReply(message);
   }
   //
-  xoap::MessageReference createXRelayMessage(const std::string & command, std::vector<xdaq::ApplicationDescriptor * > descriptor )
+  xoap::MessageReference createXRelayMessage(const std::string & command, std::set<xdaq::ApplicationDescriptor * > descriptor )
   {
     // Build a SOAP msg with the Xrelay header:
     xoap::MessageReference msg  = xoap::createMessage();
@@ -671,14 +673,14 @@ public:
     std::string childNode = "to";
     // Send to all the destinations:
     //
-    std::vector<xdaq::ApplicationDescriptor * >  descriptorsXrelays =
-      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("XRelay");
+    std::set<xdaq::ApplicationDescriptor * >  descriptorsXrelays =
+      getApplicationContext()->getDefaultZone()->getApplicationDescriptors("XRelay");
     //
     std::cout << "descriptorXrelays size = " << descriptorsXrelays.size() << std::endl;
     //
     int location = -1;
     //
-    vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
+    std::set<xdaq::ApplicationDescriptor *>::iterator itDescriptor;
     for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) 
       {
 	//
@@ -689,9 +691,12 @@ public:
 	std::string url = (*itDescriptor)->getContextDescriptor()->getURL();
 	std::string urn = (*itDescriptor)->getURN();  	
 	//
-	int XRelaySize = descriptorsXrelays.size();
-	std::string urlXRelay = (*descriptorsXrelays.at(location%XRelaySize)).getContextDescriptor()->getURL();
-	std::string urnXRelay = (*descriptorsXrelays.at(location%XRelaySize)).getURN();
+	std::string urlXRelay = (*itDescriptor)->getContextDescriptor()->getURL();
+	std::string urnXRelay = (*itDescriptor)->getURN();  	
+	//
+	//int XRelaySize = descriptorsXrelays.size();
+	//std::string urlXRelay = (*itDescriptor).getContextDescriptor()->getURL();
+	//std::string urnXRelay = (*itDescriptor).getURN();
 	//
 	xoap::SOAPName toName = envelope.createName(childNode, prefix, " ");
 	xoap::SOAPElement childElement = relayElement.addChildElement(toName);
@@ -726,7 +731,7 @@ public:
       {	
 	// Get the Xrelay application descriptor and post the message:
 	xdaq::ApplicationDescriptor * xrelay = getApplicationContext()->
-	  getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),4);
+	  getDefaultZone()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),4);
 	
 	reply = getApplicationContext()->postSOAP(msg, xrelay);
 	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
@@ -759,7 +764,7 @@ public:
 	xoap::SOAPElement queryElement = envelope.getBody().addBodyElement ( msgName );
 	
 	xoap::SOAPName id = envelope.createName("id", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
-	queryElement.addAttribute(id, "myTStore");
+	queryElement.addAttribute(id, "urn:tstore-view-Nested:myTStore");
 	xoap::SOAPName passwordName = envelope.createName("password", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
 	queryElement.addAttribute(passwordName, "alct2_emu");       
       }
@@ -768,12 +773,18 @@ public:
       }
       
       try {
-	xdaq::ApplicationDescriptor * tstoreDescriptor = getApplicationContext()->getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),400);
+	xdaq::ApplicationDescriptor * tstoreDescriptor = 
+	  getApplicationContext()->getDefaultZone()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),400);
 	xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, tstoreDescriptor);
 	//
 	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
 	if (body.hasFault()) {
 	  std::cout << "No connection to TStore. " << body.getFault().getFaultString() << std::endl;
+	} else {
+	  DOMNode *connectResponse=getNodeNamed(reply,"connectResponse");
+	  ConnectionID_=xoap::getNodeAttribute(connectResponse,"connectionID");
+	  //store connectionID somewhere so that it can be used for other messages
+	  std::cout << "ConnectionID=" << ConnectionID_ << std::endl;
 	}
       } 
       catch (xdaq::exception::Exception& e) {
@@ -784,6 +795,23 @@ public:
       //
     }
   //
+  //
+  DOMNode * EmuPeripheralCrateManager::getNodeNamed(xoap::MessageReference msg,const std::string &nodeName) throw (xcept::Exception) {
+    xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
+    xoap::SOAPBody body = envelope.getBody();
+    DOMNode* node = body.getDOMNode();
+    DOMNodeList* bodyList = node->getChildNodes();
+    for (unsigned int itemIndex = 0; itemIndex < bodyList->getLength(); itemIndex++) {
+      DOMNode* child = bodyList->item(itemIndex);
+      if (child->getNodeType() == DOMNode::ELEMENT_NODE) {
+	if (xoap::XMLCh2String(child->getLocalName()) == nodeName) {
+	  return child;
+	}
+      }
+    }
+    XCEPT_RAISE(xcept::Exception,"No node named "+nodeName);
+  }
+  // 
   void EmuPeripheralCrateManager::SendSOAPMessageDisconnectTStore(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
     {
@@ -806,7 +834,7 @@ public:
       }
       
       try {
-	xdaq::ApplicationDescriptor * tstoreDescriptor = getApplicationContext()->getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),400);
+	xdaq::ApplicationDescriptor * tstoreDescriptor = getApplicationContext()->getDefaultZone()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),400);
 	xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, tstoreDescriptor);
 	//
 	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
@@ -839,20 +867,23 @@ public:
   	xoap::SOAPName msgName = envelope.createName( "query", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
   	xoap::SOAPElement queryElement = envelope.getBody().addBodyElement ( msgName );
 	//
-  	xoap::SOAPName id = envelope.createName("id", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
-  	queryElement.addAttribute(id, "myTStore");
+  	xoap::SOAPName id = envelope.createName("connectionID", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
+  	queryElement.addAttribute(id, ConnectionID_);
 	//
 	//add the parameters to the message
-	queryElement.addNamespaceDeclaration("sql",  "urn:tstore-view-SQL");
-	xoap::SOAPName property = envelope.createName("name", "sql","urn:tstore-view-SQL");
-	queryElement.addAttribute(property, "myTable1");
+	queryElement.addNamespaceDeclaration("nested",  "urn:tstore-view-Nested");
+	xoap::SOAPName property = envelope.createName("table", "nested","urn:tstore-view-Nested");
+	queryElement.addAttribute(property, "PERIPH_CRATE");
       }
       catch(xoap::exception::Exception& e) {
 	std::cout << "Got exception 1" << std::endl;
       }
-      
+      //
       try {
-	xdaq::ApplicationDescriptor * tstoreDescriptor = getApplicationContext()->getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),400);
+	xdaq::ApplicationDescriptor * tstoreDescriptor = 
+	  getApplicationContext()->getDefaultZone()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),400);
+	//
+	msg->writeTo(std::cout);
 	//
 	xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, tstoreDescriptor);
 	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
@@ -877,7 +908,7 @@ public:
 		    {
 		      xdata::exdr::Serializer serializer;
 		      serializer.import(&table, &inBuffer );
-		      OutputTable(out,table);
+		      outputTable(out,table);
 		    }
 		  catch(xdata::exception::Exception & e )
 		    {
@@ -901,6 +932,39 @@ public:
       //
     }
   //
+  void EmuPeripheralCrateManager::outputTable(xgi::Output * out,xdata::Table &results) {
+    //this uses raw HTML tags because cgicc can't handle any nested tags, which makes it pretty much useless
+    std::vector<std::string> columns=results.getColumns();
+    vector<std::string>::iterator columnIterator;
+    *out << results.getRowCount() << " rows";
+    *out << "<table border=\"2\">";
+    *out << "<tr>";
+    for(columnIterator=columns.begin(); columnIterator!=columns.end(); columnIterator++) {
+      *out << "<td>" << *columnIterator << " (" << results.getColumnType(*columnIterator) << ")" << "</td>";
+      std::cout << *columnIterator << " (" << results.getColumnType(*columnIterator) << ")" << std::endl;
+    }
+    *out << "</tr>";
+    unsigned long rowIndex;
+    for (rowIndex=0;rowIndex<results.getRowCount();rowIndex++ ) {
+      *out << "<tr>";
+      for(columnIterator=columns.begin(); columnIterator!=columns.end(); columnIterator++) {
+	*out << "<td>";
+	if (results.getColumnType(*columnIterator)=="table") {
+	  outputTable(out,*static_cast<xdata::Table *>(results.getValueAt(rowIndex,*columnIterator)));
+	} else {
+	  *out << results.getValueAt(rowIndex,*columnIterator)->toString();
+	  std::cout << results.getValueAt(rowIndex,*columnIterator)->toString();
+	}
+	*out << "</td>";
+	std::cout << std::endl;
+	
+      }
+      *out << "</tr>";
+      std::cout << std::endl;
+    }
+    *out << "</table>";
+  }
+  /*
   void EmuPeripheralCrateManager::OutputTable(xgi::Output * out,xdata::Table &results) {
     std::vector<std::string> columns=results.getColumns();
     vector<std::string>::iterator columnIterator;
@@ -922,6 +986,7 @@ public:
     }
     *out << cgicc::table();
   }
+  */
   /*
   void EmuPeripheralCrateManager::SendSOAPMessageOpenFile(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -939,7 +1004,7 @@ public:
     try
       {	
 	xdaq::ApplicationDescriptor * d = 
-	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("DDUHyperDAQ",0);
+	  getApplicationContext()->getDefaultZone()->getApplicationDescriptor("DDUHyperDAQ",0);
 	xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
       } 
     catch (xdaq::exception::Exception& e)
@@ -967,7 +1032,7 @@ public:
       try
 	{	
 	  xdaq::ApplicationDescriptor * d = 
-	    getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("LTCControl", 0);
+	    getApplicationContext()->getDefaultZone()->getApplicationDescriptor("LTCControl", 0);
 	  xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
 	  xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
 	  reply->writeTo(std::cout);
@@ -1004,7 +1069,7 @@ public:
       try
 	{	
 	  xdaq::ApplicationDescriptor * d = 
-	    getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("LTCControl", 0);
+	    getApplicationContext()->getDefaultZone()->getApplicationDescriptor("LTCControl", 0);
 	  xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
 	  xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
 	  std::cout << std::endl;
@@ -1075,10 +1140,10 @@ public:
       //
       std::cout << "SendSOAPMessage JobControl executeCommand" << std::endl;
       //
-      std::vector<xdaq::ApplicationDescriptor * >  descriptor =
-	getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
+      std::set<xdaq::ApplicationDescriptor * >  descriptor =
+	getApplicationContext()->getDefaultZone()->getApplicationDescriptors("EmuPeripheralCrate");
       //
-      vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
+      std::set<xdaq::ApplicationDescriptor *>::iterator itDescriptor;
       for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) 
 	{
 	  std::string url = (*itDescriptor)->getContextDescriptor()->getURL();
@@ -1099,7 +1164,7 @@ public:
 		std::cout << std::endl;
 		//
 		xdaq::ApplicationDescriptor * d = 
-		  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("JobControl",0);
+		  getApplicationContext()->getDefaultZone()->getApplicationDescriptor("JobControl",0);
 		std::cout << d << std::endl;
 		xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
 		xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
@@ -1138,7 +1203,7 @@ public:
 	  std::cout << std::endl;
 	  //
 	  xdaq::ApplicationDescriptor * d = 
-	    getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("JobControl",0);
+	    getApplicationContext()->getDefaultZone()->getApplicationDescriptor("JobControl",0);
 	  std::cout << d << std::endl;
 	  xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
 	  xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
@@ -1169,7 +1234,7 @@ public:
       try
 	{	
 	  xdaq::ApplicationDescriptor * d = 
-	    getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("LTCControl", 0);
+	    getApplicationContext()->getDefaultZone()->getApplicationDescriptor("LTCControl", 0);
 	  xoap::MessageReference reply    = getApplicationContext()->postSOAP(queryLTC, d);
 	  xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
 	  std::cout << "Reply" << std::endl;
@@ -1191,8 +1256,8 @@ public:
   //
   void EmuPeripheralCrateManager::SendSOAPMessageConfigureXRelaySimple(){
     //
-    std::vector<xdaq::ApplicationDescriptor * >  descriptors =
-      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
+    std::set<xdaq::ApplicationDescriptor * >  descriptors =
+      getApplicationContext()->getDefaultZone()->getApplicationDescriptors("EmuPeripheralCrate");
     //
     xoap::MessageReference configure = createXRelayMessage("Configure", descriptors);
     //
@@ -1227,10 +1292,10 @@ public:
     //
     try
       {	
-	std::vector<xdaq::ApplicationDescriptor * >  descriptors =
-	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
+	std::set<xdaq::ApplicationDescriptor * >  descriptors =
+	  getApplicationContext()->getDefaultZone()->getApplicationDescriptors("EmuPeripheralCrate");
 	//
-	vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
+	std::set<xdaq::ApplicationDescriptor *>::iterator itDescriptor;
 	for ( itDescriptor = descriptors.begin(); itDescriptor != descriptors.end(); itDescriptor++ ) 
 	  {
 	    xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, (*itDescriptor));
