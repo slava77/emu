@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.30 2006/10/03 12:50:50 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.31 2006/10/03 15:31:24 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -26,6 +26,7 @@
 #include <time.h>
 
 #include "xdaq/Application.h"
+#include "xdaq/Zone.h"
 #include "xdaq/ApplicationGroup.h"
 #include "xdaq/ApplicationContext.h"
 #include "xdaq/ApplicationStub.h"
@@ -83,7 +84,7 @@ using namespace std;
 //#ifdef STANDALONE
 //class EmuPeripheralCrate: public xdaq::Application 
 //#else
-class EmuPeripheralCrate: public EmuApplication
+class EmuPeripheralCrate: public EmuApplication, xdata::ActionListener
 //#endif
 {
   //
@@ -110,6 +111,7 @@ protected:
   std::string FirmwareDir_ ;
   //
   xdata::String TestLogFile_;
+  xdata::String myCounter_;
   //
   bool DisplayRatio_;
   bool AutoRefresh_;
@@ -181,7 +183,7 @@ public:
   //#else
   EmuPeripheralCrate(xdaq::ApplicationStub * s): EmuApplication(s)
     //#endif
-  {	
+    {	
     //
     FirmwareDir_ = getenv("HOME");
     FirmwareDir_ += "/firmware/";
@@ -432,14 +434,35 @@ public:
     this->getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
     this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
     //
-  }
+    // Create/Retrieve an infospace
+    xdata::InfoSpace * is =xdata::InfoSpace::get("urn:xdaq-monitorable:EmuPeripheralCrateData");
+    //
+    is->fireItemAvailable("myCounter", &myCounter_);
+    // attach listener to myCounter_ to detect retrieval event
+    is->addItemRetrieveListener ("myCounter", this);
+    //
+    }
+  //
+  void actionPerformed (xdata::Event& e)  
+     {
+       if (e.type() == "ItemRetrieveEvent")
+	 {
+	   xdata::InfoSpace * is = xdata::InfoSpace::get("urn:xdaq-monitorable:EmuPeripheralCrateData");
+	   is->lock();
+	   std::string item = dynamic_cast<xdata::ItemRetrieveEvent&>(e).itemName();
+	   if ( item == "myCounter")
+	     myCounter_ = "meydev:Done" ;
+	     std::cout << "Getting myCounter" << std::endl;
+	   is->unlock();
+	 }
+     }     
   //
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
-  {
-    //
-    std::string LoggerName = getApplicationLogger().getName() ;
-    std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
-    //
+    {
+      //
+      std::string LoggerName = getApplicationLogger().getName() ;
+      std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
+      //
     //if (getApplicationLogger().exists(getApplicationLogger().getName())) {
     //
     LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrate ready");
