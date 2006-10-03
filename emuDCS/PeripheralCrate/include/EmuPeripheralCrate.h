@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.27 2006/10/03 08:16:09 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.28 2006/10/03 12:09:02 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -6956,7 +6956,7 @@ private:
     //
     *out << cgicc::legend("TMB Utils").set("style","color:blue") ;
     //
-    std::string TMBFirmware = FirmwareDir_+"tmb/tmb2005e09052006.svf";
+    std::string TMBFirmware = FirmwareDir_+"tmb/tmb09052005.svf";
     TMBFirmware_ = TMBFirmware;
     //
     std::string LoadTMBFirmware =
@@ -7009,7 +7009,7 @@ private:
     //
     if (rat) {
       //
-      std::string RATFirmware = FirmwareDir_+"rat/05sep2006_rat_noverify.svf";
+      std::string RATFirmware = FirmwareDir_+"rat/rat09052006.svf";
       RATFirmware_ = RATFirmware;
       //
       std::string LoadRATFirmware =
