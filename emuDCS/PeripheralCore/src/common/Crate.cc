@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.2 2006/08/01 09:47:38 mey Exp $
+// $Id: Crate.cc,v 3.3 2006/10/03 07:36:02 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 3.3  2006/10/03 07:36:02  mey
+// UPdate
+//
 // Revision 3.2  2006/08/01 09:47:38  mey
 // Update
 //
@@ -65,6 +68,10 @@
 //-----------------------------------------------------------------------
 #include "Crate.h"
 #include <unistd.h> // for sleep
+#include <iostream>
+#include <sstream>
+#include <vector> 
+#include <string.h> 
 #include "VMEModule.h"
 #include "VMEController.h"
 #include "CrateSetup.h"
@@ -208,6 +215,37 @@ void Crate::disable() {
   ccb->disable();
   //::sleep(1);
   std::cout << "data taking disabled " << std::endl;
+  //
+}
+//
+void Crate::DumpConfiguration() {
+  //
+  CCB * ccb = this->ccb();
+  MPC * mpc = this->mpc();
+  //
+  if (ccb) std::cout << (*ccb) << std::endl;
+  if (mpc) std::cout << (*mpc) << std::endl;
+  //
+  std::vector<TMB*> myTmbs = this->tmbs();
+  for(unsigned i =0; i < myTmbs.size(); ++i) {
+    std::cout << "TMB = " << i << std::endl;
+    std::cout << (*myTmbs[i]) << std::endl;
+    //
+    ALCTController * alct = myTmbs[i]->alctController();
+    if (alct) {
+      std::cout << "ALCTController " << std::endl;
+      std::ostringstream config;
+      alct->PrintConfigurationReg(&config);
+      std::cout << config.str() << std::endl;
+    }
+    //
+  }
+  //
+  std::vector<DAQMB*> myDmbs = this->daqmbs();
+  for(unsigned i =0; i < myDmbs.size(); ++i) {
+    std::cout << "DAQMB = " << i << std::endl;
+    std::cout << (*myDmbs[i]) << std::endl;
+  }
   //
 }
 //
