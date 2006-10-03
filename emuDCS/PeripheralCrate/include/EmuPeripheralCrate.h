@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.26 2006/10/02 18:19:14 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.27 2006/10/03 08:16:09 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -336,6 +336,8 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::CrateDMBCounters, "CrateDMBCounters");
     xgi::bind(this,&EmuPeripheralCrate::CrateTMBCountersRight, "CrateTMBCountersRight");
     xgi::bind(this,&EmuPeripheralCrate::CrateStatus, "CrateStatus");
+    xgi::bind(this,&EmuPeripheralCrate::CrateXUtils, "CrateXUtils");
+    xgi::bind(this,&EmuPeripheralCrate::CrateDumpConfiguration, "CrateDumpConfiguration");
     xgi::bind(this,&EmuPeripheralCrate::CreateMonitorUnit, "CreateMonitorUnit");
     xgi::bind(this,&EmuPeripheralCrate::MonitorFrameLeft, "MonitorFrameLeft");
     xgi::bind(this,&EmuPeripheralCrate::MonitorFrameRight, "MonitorFrameRight");
@@ -483,6 +485,11 @@ public:
 	  toolbox::toString("/%s/CrateConfiguration",getApplicationDescriptor()->getURN().c_str());
 	//
 	*out << cgicc::a("[Crate Configuration]").set("href",CrateConfiguration) << endl;
+	//
+	std::string CrateXUtils =
+	  toolbox::toString("/%s/CrateXUtils",getApplicationDescriptor()->getURN().c_str());
+	//
+	*out << cgicc::a("[Crate Utils]").set("href",CrateXUtils) << endl;
 	//
 	std::string CrateTests =
 	  toolbox::toString("/%s/CrateTests",getApplicationDescriptor()->getURN().c_str());
@@ -1662,6 +1669,28 @@ private:
     calib.pedestalCFEB();
     //
     this->Default(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::CrateXUtils(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    std::string CrateDumpConfiguration =
+      toolbox::toString("/%s/CrateDumpConfiguration",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",CrateDumpConfiguration) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Dump Crate Configuration").set("name","CrateDumpConfiguration") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+  }
+  //
+  void EmuPeripheralCrate::CrateDumpConfiguration(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    thisCrate->DumpConfiguration();
     //
   }
   //

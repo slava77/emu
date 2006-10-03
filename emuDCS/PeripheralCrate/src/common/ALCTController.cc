@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.18 2006/10/03 07:36:02 mey Exp $
+// $Id: ALCTController.cc,v 3.19 2006/10/03 08:15:37 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.19  2006/10/03 08:15:37  mey
+// Update
+//
 // Revision 3.18  2006/10/03 07:36:02  mey
 // UPdate
 //
@@ -6148,7 +6151,26 @@ ALCTController::~ALCTController() {
 //
 std::ostream & operator<<(std::ostream & os, ALCTController & alct) {
   //
-  os << std::dec << std::endl;
+  os << std::dec << "ALCTcontroller " << std::endl
+     << "Trigger mode " << alct.write_trigger_mode_ << std::endl
+     << "Ext trigger enable " << alct.write_ext_trig_enable_ << std::endl
+     << "Trigger Info enable " << alct.write_trigger_info_en_ << std::endl
+     << "L1a internal " << alct.write_l1a_internal_ << std::endl
+     << "Fifo tbins " << alct.write_fifo_tbins_ << std::endl
+     << "Fifo pretrig " << alct.write_fifo_pretrig_ << std::endl
+     << "L1a delay " << alct.write_l1a_delay_ << std::endl
+     << "L1a offset " << alct.write_l1a_offset_ << std::endl
+     << "L1a window " << alct.write_l1a_window_ << std::endl
+     << "Nph threshold " << alct.write_nph_thresh_ << std::endl
+     << "Nph pattern " << alct.write_nph_pattern_ << std::endl
+     << "CCB enable " << alct.write_ccb_enable_ << std::endl
+     << "Inject mode " << alct.write_inject_ << std::endl
+     << "Send empty " << alct.write_send_empty_ << std::endl
+     << "Drift delay " << alct.write_drift_delay_ << std::endl;
+  for(int afeb=alct.GetLowestAfebIndex(); afeb<alct.GetHighestAfebIndex(); afeb++){
+    os << "Afeb = " << afeb << " Threshold = " << alct.write_afeb_threshold_[afeb] 
+       << " Delay = " << alct.write_asic_delay_[afeb] << std::endl;
+  }
   //
   return os;
   //
