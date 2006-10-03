@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.17 2006/09/28 12:52:34 mey Exp $
+// $Id: ALCTController.cc,v 3.18 2006/10/03 07:36:02 mey Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.18  2006/10/03 07:36:02  mey
+// UPdate
+//
 // Revision 3.17  2006/09/28 12:52:34  mey
 // Update
 //
@@ -6102,6 +6105,7 @@ char *trim(char *str)
 #include <unistd.h> // for sleep
 #include <vector>
 #include <string>
+#include <cstdlib>
 //
 #include "ALCTController.h"
 #include "EMUjtag.h"
@@ -6142,6 +6146,13 @@ ALCTController::~ALCTController() {
   //
 }
 //
+std::ostream & operator<<(std::ostream & os, ALCTController & alct) {
+  //
+  os << std::dec << std::endl;
+  //
+  return os;
+  //
+}
 //
 ///////////////////////////////////////////////////////////////////
 // Useful methods to use ALCTController...
@@ -7938,54 +7949,60 @@ void ALCTController::ReadConfigurationReg() {
   return;
 }
 //
-void ALCTController::PrintConfigurationReg() {
+void ALCTController::PrintConfigurationReg(std::ostream * configOut) {
   //
-  (*MyOutput_) << "ALCT configuration register:" << std::endl;
-  (*MyOutput_) << "----------------------------" << std::endl;
-  (*MyOutput_) << "trigger_mode_    = " << std::dec 
+  (*configOut) << "ALCT configuration register:" << std::endl;
+  (*configOut) << "----------------------------" << std::endl;
+  (*configOut) << "trigger_mode_    = " << std::dec 
 	       << GetTriggerMode() << std::endl;
-  (*MyOutput_) << "ext_trig_enable_ = " << std::dec 
+  (*configOut) << "ext_trig_enable_ = " << std::dec 
 	       << GetExtTrigEnable() << std::endl;
-  (*MyOutput_) << "send_empty_      = " << std::dec 
+  (*configOut) << "send_empty_      = " << std::dec 
 	       << GetSendEmpty() << std::endl;
-  (*MyOutput_) << "inject_          = " << std::dec 
+  (*configOut) << "inject_          = " << std::dec 
 	       << GetInjectMode() << std::endl;
-  (*MyOutput_) << "bxc_offset_      = " << std::dec 
+  (*configOut) << "bxc_offset_      = " << std::dec 
 	       << GetBxcOffset() << std::endl;
-  (*MyOutput_) << "nph_thresh_      = " << std::dec 
+  (*configOut) << "nph_thresh_      = " << std::dec 
 	       << GetPretrigNumberOfLayers() << std::endl;
-  (*MyOutput_) << "nph_pattern_     = " << std::dec 
+  (*configOut) << "nph_pattern_     = " << std::dec 
 	       << GetPretrigNumberOfPattern() << std::endl;
-  (*MyOutput_) << "drift_delay_     = " << std::dec
+  (*configOut) << "drift_delay_     = " << std::dec
 	       << GetDriftDelay() << std::endl;
-  (*MyOutput_) << "fifo_tbins_      = " << std::dec 
+  (*configOut) << "fifo_tbins_      = " << std::dec 
 	       << GetFifoTbins() << std::endl;
-  (*MyOutput_) << "fifo_pretrig_    = " << std::dec 
+  (*configOut) << "fifo_pretrig_    = " << std::dec 
 	       << GetFifoPretrig() << std::endl;
-  (*MyOutput_) << "fifo_mode_       = " << std::dec
+  (*configOut) << "fifo_mode_       = " << std::dec
 	       << GetFifoMode() << std::endl;
-  (*MyOutput_) << "l1a_delay_       = " << std::dec 
+  (*configOut) << "l1a_delay_       = " << std::dec 
 	       << GetL1aDelay() << " = 0x" << std::hex
 	       << GetL1aDelay() << std::endl;
-  (*MyOutput_) << "l1a_window_      = " << std::dec
+  (*configOut) << "l1a_window_      = " << std::dec
 	       << GetL1aWindowSize() << std::endl;
-  (*MyOutput_) << "l1a_offset_      = " << std::dec
+  (*configOut) << "l1a_offset_      = " << std::dec
 	       << GetL1aOffset() << std::endl;
-  (*MyOutput_) << "l1a_internal_    = " << std::dec
+  (*configOut) << "l1a_internal_    = " << std::dec
 	       << GetL1aInternal() << std::endl;
-  (*MyOutput_) << "board_id_        = " << std::dec
+  (*configOut) << "board_id_        = " << std::dec
 	       << GetBoardId() << std::endl;
-  (*MyOutput_) << "ccb_enable_      = " << std::dec
+  (*configOut) << "ccb_enable_      = " << std::dec
 	       << GetCcbEnable() << std::endl;
-  (*MyOutput_) << "alct_amode_      = " << std::dec
+  (*configOut) << "alct_amode_      = " << std::dec
 	       << GetAlctAmode() << std::endl;
-  (*MyOutput_) << "trigger_info_en_ = " << std::dec
+  (*configOut) << "trigger_info_en_ = " << std::dec
 	       << GetTriggerInfoEnable() << std::endl;
-  (*MyOutput_) << "sn_select_       = " << std::dec
+  (*configOut) << "sn_select_       = " << std::dec
 	       << GetSnSelect() << std::endl;  
-  return;
 }
 //
+void ALCTController::PrintConfigurationReg() {
+  //
+  PrintConfigurationReg(&std::cout);
+  //
+}
+//
+
 void ALCTController::SetTriggerMode(int trigger_mode) { 
   //
   write_trigger_mode_ = trigger_mode; 

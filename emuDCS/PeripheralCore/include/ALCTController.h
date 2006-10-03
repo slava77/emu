@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.8 2006/09/24 15:32:54 rakness Exp $
+// $Id: ALCTController.h,v 3.9 2006/10/03 07:36:01 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.9  2006/10/03 07:36:01  mey
+// UPdate
+//
 // Revision 3.8  2006/09/24 15:32:54  rakness
 // read new alct fast control register
 //
@@ -762,6 +765,8 @@ public:
   bool GetFillVmeWriteVecs();
   void ClearVmeWriteVecs();
   //
+  friend std::ostream & operator<<(std::ostream & os, ALCTController & alct);
+  //
   inline std::string GetChamberType() { return chamber_type_string_; }
   inline int GetNumberOfAfebs() { return NumberOfAFEBs_; }
   inline int GetNumberOfGroupsOfDelayChips() { return NumberOfGroupsOfDelayChips_; }
@@ -968,7 +973,8 @@ public:
   //
   //
   void SetPowerUpConfigurationReg();                // sets Write values to data-taking defaults
-  void PrintConfigurationReg();                     // print out Read values
+  void PrintConfigurationReg(std::ostream *);   // print out Read values
+  void PrintConfigurationReg();   // print out Read values
   //
   //
   void WriteConfigurationReg();                 //writes Write values to ALCT

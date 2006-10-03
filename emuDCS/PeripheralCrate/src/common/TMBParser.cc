@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.4 2006/09/19 14:32:45 mey Exp $
+// $Id: TMBParser.cc,v 3.5 2006/10/03 07:39:16 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.5  2006/10/03 07:39:16  mey
+// UPdate
+//
 // Revision 3.4  2006/09/19 14:32:45  mey
 // Update
 //
@@ -305,13 +308,11 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate,xercesc::DOMNode
 	  }
 #else
 	  //
-	  std::cout << "Here1" << std::endl;
+	  int mode;
+	  if ( alctParser_.fillInt("trig_mode", mode) ) {
+	    alct_->SetTriggerMode(mode);
+	  }
 	  //
-	int mode;
-       	if ( alctParser_.fillInt("trig_mode", mode) ) {
-	  alct_->SetTriggerMode(mode);
-	}
-	//
 	if ( alctParser_.fillInt("ext_trig_en", enable)) {
 	  alct_->SetExtTrigEnable(enable);
 	}
