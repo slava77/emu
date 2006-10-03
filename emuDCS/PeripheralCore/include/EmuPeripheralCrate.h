@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.29 2006/10/03 12:41:03 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.30 2006/10/03 12:50:50 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -4949,14 +4949,14 @@ private:
 	      (int)thisDMB->febpromuser(*cfebItr),
 	      (int)thisDMB->febfpgauser(*cfebItr));
       //
-      if ( thisDMB->febfpgauser(*cfebItr) == 0xcfeba042 ) {
+      if ( thisDMB->febfpgauser(*cfebItr) == 0xcfeda062 ) {
 	*out << cgicc::span().set("style","color:green");
 	*out << buf;
 	*out << cgicc::span();
       } else {
 	*out << cgicc::span().set("style","color:red");
 	*out << buf;
-	*out << " (Should be 0xcfeba042) ";
+	*out << " (Should be 0xcfeda062) ";
 	*out << cgicc::span();
       }
       //
@@ -6186,7 +6186,7 @@ private:
     *out << cgicc::br();
       //
     sprintf(buf,"DMB fpga user id                   : %x ", (int) thisDMB->mbfpgauser());
-    if ( thisDMB->mbfpgauser() == 0x48547182 ) {
+    if ( thisDMB->mbfpgauser() == 0x48547195 ) {
 	*out << cgicc::span().set("style","color:green");
 	*out << buf;
 	*out << cgicc::span();
