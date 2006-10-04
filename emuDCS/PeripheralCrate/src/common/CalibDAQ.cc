@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 3.3 2006/09/14 09:11:34 mey Exp $
+// $Id: CalibDAQ.cc,v 3.4 2006/10/04 14:23:56 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 3.4  2006/10/04 14:23:56  mey
+// UPdate
+//
 // Revision 3.3  2006/09/14 09:11:34  mey
 // Update
 //
@@ -206,6 +209,8 @@ void CalibDAQ::rateTest() {
   int counter = 0;
   float dac;
   //
+  pulseAllDMBsInit();
+  //
   std::vector<Crate*> myCrates = theSelector.crates();
   //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
@@ -214,42 +219,12 @@ void CalibDAQ::rateTest() {
     std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
     std::vector<TMB*> myTmbs   = theSelector.tmbs(myCrates[j]);
     //
-    for (unsigned i=0; i<myTmbs.size(); i++) {
-      myTmbs[i]->DisableCLCTInputs();
-      std::cout << "Disabling inputs for slot " << myTmbs[i]->slot() << std::endl;
-      myTmbs[i]->DisableALCTInputs();
-    }
-    //
     for (nstrip=0;nstrip<16;nstrip++) {  
       for (int j=0; j<10; j++) {
 	dac=0.2+0.2*j;
 	//
-	for(unsigned i =0; i < myDmbs.size(); ++i) {
-	  myDmbs[i]->set_cal_dac(dac,dac);
-	}
-	for(unsigned i =0; i < myDmbs.size(); ++i) {    
-	  for(brd=0;brd<5;brd++){
-	    for(chip=0;chip<6;chip++){
-	      for(ch=0;ch<16;ch++){
-		myDmbs[i]->shift_array[brd][chip][ch]=NORM_RUN;
-	      }
-	      myDmbs[i]->shift_array[brd][chip][nstrip]=EXT_CAP;
-	    }
-	  }
-	  myDmbs[i]->buck_shift();
-	}
-	//
-	::usleep(100000);
-	//
 	for (int tries=0;tries<20; tries++){
-          counter++;
-	  std::cout << "dac = " << dac <<
-	    "  strip = " << nstrip << 
-	    "  try = " << tries << 
-	    "  event  = " << counter << std::endl;
-	  ::usleep(200000);
-	  ccb->pulse(1, 0xff);//pulse all dmbs in this crate
-	  ::usleep(200000);
+	  pulseAllDMBs(0,nstrip,dac,0);
 	}
 	//
       } //end of loop by strips
@@ -328,6 +303,8 @@ void CalibDAQ::timeCFEB() {
   int nsleep = 100;  
   dac = 1.0;
   //
+  pulseAllDMBsInit();  
+  //
   for (int i=0;i<16;i++) {  
     for (int ntim=0;ntim<20;ntim++) {
       pulseAllDMBs(ntim, i, dac, nsleep);  
@@ -365,7 +342,7 @@ void CalibDAQ::timeCFEBtest() {
     }
   }
   //
-    //
+  //
   for (int nstrip=0;nstrip<16;nstrip++) {  
     //
     for(unsigned j = 0; j < myCrates.size(); ++j) {
@@ -377,7 +354,7 @@ void CalibDAQ::timeCFEBtest() {
 	// set amplitude
 	//
 	myDmbs[i]->set_cal_dac(dac,dac);
-	myDmbs[i]->fxpreblkend(6); // Set pre block end to 6
+	//myDmbs[i]->fxpreblkend(6); // Set pre block end to 6
 	//myDmbs[i]->set_comp_thresh(thresh);
 	//
 	// set external pulser for strip # nstrip on all 6 chips
@@ -429,9 +406,11 @@ void CalibDAQ::CFEBSaturation() {
   int counter=0;
   int nsleep = 100;  
   //
+  pulseAllDMBsInit();
+  //
   for (int nstrip=0;nstrip<16;nstrip++) {  
     for (int j=0; j<24; j++) {
-      dac=0.2+0.2*j;
+      dac=3.0+0.2*j;
       for (int ntim=0;ntim<20;ntim++) {	  
 	pulseAllDMBs(1, nstrip, dac, nsleep);  
 	counter++;
@@ -453,6 +432,8 @@ void CalibDAQ::pedestalCFEB() {
   int counter = 0;
   int nevents = 1000;
   //
+  pulseAllDMBsInit();
+  //
   for (int events = 0; events<nevents; events++) {
     pulseAllDMBs(ntim, -1, dac, nsleep,0);  
     counter++;
@@ -471,18 +452,12 @@ void CalibDAQ::pulseAllDMBsPre(int ntim, int nstrip, float dac, int nsleep,int c
     std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
     std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
     //
-    for (unsigned i=0; i<myTmbs.size(); i++) {
-      myTmbs[i]->DisableCLCTInputs();
-      std::cout << "Disabling inputs for slot " << myTmbs[i]->slot() << std::endl;
-      myTmbs[i]->DisableALCTInputs();
-    }
-    //
     for(unsigned i =0; i < myDmbs.size(); ++i) {
       //
       // set amplitude
       //
       myDmbs[i]->set_cal_dac(dac,dac);
-      myDmbs[i]->fxpreblkend(6); // Set pre block end to 6
+      //myDmbs[i]->fxpreblkend(6); // Set pre block end to 6
       //myDmbs[i]->set_comp_thresh(thresh);
       //
       // set external pulser for strip # nstrip on all 6 chips
@@ -496,10 +471,38 @@ void CalibDAQ::pulseAllDMBsPre(int ntim, int nstrip, float dac, int nsleep,int c
       }
       //
       myDmbs[i]->buck_shift();
+    }
+  }
+  //
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
+    //
+    std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
+    std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
+    //
+    for(unsigned i =0; i < myDmbs.size(); ++i) {
       //
       myDmbs[i]->set_cal_tim_pulse(ntim);   
       //
     }
+  }
+}
+//
+void CalibDAQ::pulseAllDMBsInit() { 
+  //
+  int chip,ch,brd;
+  std::vector<Crate*> myCrates = theSelector.crates();
+  //
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
+    //
+    std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
+    std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
+    //
+    for (unsigned i=0; i<myTmbs.size(); i++) {
+      myTmbs[i]->DisableCLCTInputs();
+      std::cout << "Disabling inputs for slot " << myTmbs[i]->slot() << std::endl;
+      myTmbs[i]->DisableALCTInputs();
+    }
+    //
   }
 }
 //
@@ -542,7 +545,7 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep,int calT
     CCB * ccb = myCrates[j]->ccb();
     (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
     //
-    ::usleep(100000);
+    ::usleep(1000);
     //
     std::cout << "Sending pulse" <<std::endl;
     //
@@ -552,11 +555,11 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep,int calT
       ccb->pulse(1, 0xff);//pulse all dmbs in this crate
     }
     //
-    ::usleep(100000);
+    ::usleep(1000);
     //
   }
   //
-  pulseAllDMBsPost(ntim, nstrip, dac, nsleep,calType);
+  //pulseAllDMBsPost(ntim, nstrip, dac, nsleep,calType);
   //
 }
 //

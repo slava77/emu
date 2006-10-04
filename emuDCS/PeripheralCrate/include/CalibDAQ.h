@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.h,v 3.2 2006/09/13 14:13:32 mey Exp $
+// $Id: CalibDAQ.h,v 3.3 2006/10/04 14:24:03 mey Exp $
 // $Log: CalibDAQ.h,v $
+// Revision 3.3  2006/10/04 14:24:03  mey
+// UPdate
+//
 // Revision 3.2  2006/09/13 14:13:32  mey
 // Update
 //
@@ -76,6 +79,7 @@ class CalibDAQ {
   void loadConstants(Crate * crate);   
   void pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep, int calType=0);
   void pulseAllDMBsPre(int ntim, int nstrip, float dac, int nsleep, int calType=0);
+  void pulseAllDMBsInit();
   void pulseAllDMBsPost(int ntim, int nstrip, float dac, int nsleep, int calType=0);
   void injectComparator(int ntim, int nstrip, float dac, int nsleep, float thresh=0.03);
   void pedestalCFEB();
