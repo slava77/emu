@@ -1,8 +1,8 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.2 2006/09/06 15:43:50 gilmore Exp $
+// $Id: VMEController.cc,v 3.3 2006/10/04 03:00:25 gilmore Exp $
 // $Log: VMEController.cc,v $
-// Revision 3.2  2006/09/06 15:43:50  gilmore
-// Improved Config and interrupt features.
+// Revision 3.3  2006/10/04 03:00:25  gilmore
+// Removed some debug lines.
 //
 // Revision 3.1  2006/08/04 20:28:27  gilmore
 // Added Logserver feature to EmuFEDVME Interrupt handler.
@@ -235,7 +235,7 @@ char buf[300];
     CAENVME_IRQEnable(BHandle,mask);
 
     ierr=CAENVME_IRQWait(BHandle,mask,5000); 
-    printf("IRQ_Int Looped again... \n");
+    // JRG, should show every ~5sec:   printf("IRQ_Int Looped again... \n");
     // printf("CAENVME_IRQWait: %d %d \n",locdata->exit,ierr);
     if(locdata->exit==1)goto ENDR;
     if(ierr!=0)goto LOOP;
