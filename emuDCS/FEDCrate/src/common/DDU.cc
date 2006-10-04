@@ -278,9 +278,9 @@ unsigned long int code;
   sndbuf[4]=0x00;
   sndbuf[5]=0x00;
   devdo(DDUFPGA,10,cmd,40,sndbuf,rcvbuf,1);
-  printf(" FIFO-B Status [14-0]:  "); //bit15 is always set high, ignore
-  code=((0x00ff&rcvbuf[0])|((0x007f&rcvbuf[1])<<8))&0x00007fff;
-  for(j=14;j>=0;j--){
+  printf(" FIFO-B Status [15-0]:  "); // old: bit15 was always set high
+  code=((0x00ff&rcvbuf[0])|((0x00ff&rcvbuf[1])<<8))&0x0000ffff;
+  for(j=15;j>=0;j--){
     printf("%1ld",(code>>j)&0x00000001);
     if(j==10)printf("/");
     if(j==14)printf(".");
@@ -288,7 +288,7 @@ unsigned long int code;
   }
   printf(",  Hex code %04lx\n",code);
   printf("                    EmptyFIFOs/AlmostFullFIFOs\n");
-  shft2in=(((0xff&rcvbuf[3])<<8)|(0xfe&rcvbuf[2])); 
+  shft2in=(((0xff&rcvbuf[3])<<8)|(0xff&rcvbuf[2])); 
   ddu_code0=code;
   ddu_shift0=shft2in;
 
