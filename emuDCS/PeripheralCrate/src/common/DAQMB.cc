@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.14 2006/10/02 18:17:55 mey Exp $
+// $Id: DAQMB.cc,v 3.15 2006/10/05 07:49:42 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.15  2006/10/05 07:49:42  mey
+// UPdate
+//
 // Revision 3.14  2006/10/02 18:17:55  mey
 // UPdate
 //
@@ -1698,6 +1701,7 @@ unsigned long int  DAQMB::mbfpgaid()
   //
   unsigned long int ibrd;
   //
+  ibrd=0;
   DEVTYPE dv=MCTRL;
   cmd[0]=VTX2_IDCODE;
   sndbuf[0]=0xFF;
@@ -1712,7 +1716,30 @@ unsigned long int  DAQMB::mbfpgaid()
   devdo(dv,6,cmd,0,sndbuf,rcvbuf,0);
   return ibrd;
 }
-
+//
+void DAQMB::vmefpgaid()
+{
+  //
+  int fwyear, fwmonth, fwday, fwvers, fwrv;
+  //
+  cmd[0]=1;
+  cmd[1]=0;
+  devdo(DEVSTATUS,4,cmd,0,sndbuf,rcvbuf,1);
+  //
+  fwvers=((rcvbuf[1]<<4)&0xff0)+((rcvbuf[0]>>4)&0xf);
+  fwrv=(rcvbuf[0]&0xf);
+  cout <<" DMB VME FPGA firmware Ver. "<< hex <<fwvers<<" Rev.: "<<fwrv<<'\n';
+  //
+  cmd[0]=1; 
+  cmd[1]=1;
+  devdo(DEVSTATUS,4,cmd,0,sndbuf,rcvbuf,1);
+  cout <<" Register1 rcv[0,1] "<<hex<<(rcvbuf[0]&0xff)<<' '<<hex<<(rcvbuf[1]&0xff)<<'\n';
+  fwyear=(rcvbuf[0]&0x3f);
+  fwmonth=((rcvbuf[1]>>4)&0xf);
+  fwday=((rcvbuf[1]<<2)&0x1c)+((rcvbuf[0]>>6)&0x3);
+  cout <<" Date code: Month "<<fwmonth<<" Day "<<fwday<<" Year "<<fwyear<<'\n';
+  //
+}
 //
 // DAQMB calibrate
 //

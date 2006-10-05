@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.31 2006/10/03 15:31:24 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.32 2006/10/05 07:49:41 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -26,7 +26,7 @@
 #include <time.h>
 
 #include "xdaq/Application.h"
-#include "xdaq/Zone.h"
+//#include "xdaq/Zone.h"
 #include "xdaq/ApplicationGroup.h"
 #include "xdaq/ApplicationContext.h"
 #include "xdaq/ApplicationStub.h"
@@ -6187,6 +6187,8 @@ private:
     *out << cgicc::legend("DMB IDs").set("style","color:blue") << cgicc::p() << std::endl ;
     //
     *out << cgicc::pre();
+    //
+    thisDMB->vmefpgaid();
     //
     sprintf(buf,"DMB prom VME->Motherboard          : %08x ",(int)thisDMB->mbpromuser(0));
     *out << buf ;
