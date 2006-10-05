@@ -1753,11 +1753,7 @@ throw (toolbox::fsm::exception::Exception)
       delete badEventsFileWriter_;
       badEventsFileWriter_ = NULL;
     }
-    for ( std::vector<Client*>::iterator c=clients_.begin(); c!=clients_.end(); ++c ){
-      (*c)->workLoopStarted = false;
-    }
 
-    workLoopStarted_  = false;
 }
 
 
@@ -2159,9 +2155,10 @@ bool EmuRUI::workLoopAction(toolbox::task::WorkLoop *wl)
         switch(state)
         {
         case 'H':  // Halted
-        case 'F': // Failed
-	  break;
+        case 'F':  // Failed
         case 'R':  // Ready
+	  // Pause or else this thread will hog the CPU like an idle loop.
+	  pauseForOtherThreads = 5000;
 	  break;
         case 'E':  // Enabled
 	  pauseForOtherThreads = processAndCommunicate();
@@ -2212,6 +2209,7 @@ bool EmuRUI::serverLoopAction(toolbox::task::WorkLoop *wl)
     try
     {
       bool isToBeRescheduled = true;
+      int  pauseForOtherThreads = 0;
 
       applicationBSem_.take();
 
@@ -2220,10 +2218,11 @@ bool EmuRUI::serverLoopAction(toolbox::task::WorkLoop *wl)
         switch(state)
         {
         case 'H':  // Halted
-        case 'F': // Failed
-	  break;
+        case 'F':  // Failed
         case 'R':  // Ready
-            break;
+	  // Pause or else this thread will hog the CPU like an idle loop.
+	  pauseForOtherThreads = 5000;
+	  break;
         case 'E':  // Enabled
 	  // Find out from which work loop we dropped in here
 	  for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
@@ -2241,6 +2240,8 @@ bool EmuRUI::serverLoopAction(toolbox::task::WorkLoop *wl)
         }
 
 	applicationBSem_.give();
+
+	if ( pauseForOtherThreads > 0 ) usleep( (unsigned int) pauseForOtherThreads );
 
         // Reschedule this action code
         return isToBeRescheduled;
