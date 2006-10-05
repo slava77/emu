@@ -23,12 +23,13 @@ from Ft.Xml import InputSource
 class Emu_Farmer:
 #################
     
-    def __init__( self, configFileName, user, targets, xdaq_root, logLevel, dirForMerged ):
+    #def __init__( self, configFileName, user, targets, xdaq_root, logLevel, dirForMerged ):
+    def __init__( self, configFileName, user, targets, logLevel, dirForMerged ):
         self._configFileName = configFileName
         # The remote user
         self._user                = user
         self._target              = targets
-        self._xdaq_root           = xdaq_root
+        #self._xdaq_root           = xdaq_root
         self._logLevel            = logLevel
         self._mergedConfigFileDir = dirForMerged
 
@@ -65,6 +66,7 @@ class Emu_Farmer:
                           'EmuFEDCrate'        : 'fed',
                           'EmuFCrateHyperDAQ'  : 'fed',
                           'EmuMonitor'         : 'dqm',
+                          'EmuDisplayClient'   : 'dqm',
                           'CSCSupervisor'      : 'sv'   }
 
         # Dict of context sets grouped by target (context='host:port')
@@ -95,7 +97,7 @@ class Emu_Farmer:
         if self._action == 'reload':
             self.createReloadCommandLines()
             for host,cmnd in self._commandLines.iteritems():
-                prettyContext = (20-len(host))*' '+'[34m'+host+'[0m'+20*' '
+                prettyContext = (25-len(host))*' '+'[34m'+host+'[0m'+20*' '
                 #print prettyContext
                 #print host, cmnd
                 sshThread = AsyncSSH( prettyContext, cmnd, True )
@@ -106,16 +108,21 @@ class Emu_Farmer:
             self.createCommandLines()
             self.pickRelevantCommandLines()
             if self._action == 'status':
-                print '----------------------- status (S: sleeping  |  R: running  |  *nothing*: no process found):'
+                print '----------------------- status ( S: sleeping  |  R: running  |  *nothing*: no process found ):'
             if self._action == 'debug':
-                print "----------------------- remote processes' standard output (see ./emuFarmer.log for details):"
+                print "----------------------- remote processes' standard output:"
             for ctxt,cmnd in self._relevantCommandLines.iteritems():
                 #print ctxt,'\n',commands.getoutput(cmnd) # doesn't stop when starting xdaq as it wants to read stdout...
                 tgts = '  ( '+self.listTargets(ctxt)+')'
-                prettyContext = (20-len(ctxt))*' '+'[34m'+ctxt+'[0m'+tgts+(20-len(tgts))*' '
+                prettyContext = (25-len(ctxt))*' '+'[34m'+ctxt+'[0m'+tgts+(15-len(tgts))*' '
                 # gathering status info one-by-one is too slow; do it in parallel
-                if self._action in [ 'status', 'debug' ]:
+                if self._action == 'status':
                     sshThread = AsyncSSH( prettyContext, cmnd )
+                    sshThread.setName( ctxt )
+                    self._sshThreads.append( sshThread )
+                    sshThread.start()
+                elif self._action == 'debug':
+                    sshThread = AsyncSSH( prettyContext, cmnd, True )
                     sshThread.setName( ctxt )
                     self._sshThreads.append( sshThread )
                     sshThread.start()
@@ -149,10 +156,10 @@ class Emu_Farmer:
                 print '***** Error:',g,'is not a valid target group or context. Use',self._contexts.keys(),' and/or \'host:port\''
                 print '      Type emuFarmer -h for help.'
                 sys.exit(1)
-        if len(self._xdaq_root) == 0:
-            print '***** Error: XDAQ_ROOT for remote hosts not specified. Use -X <xdaq_root>'
-            print '      Type emuFarmer -h for help.'
-            sys.exit(1)
+        #if len(self._xdaq_root) == 0:
+        #    print '***** Error: XDAQ_ROOT for remote hosts not specified. Use -X <xdaq_root>'
+        #    print '      Type emuFarmer -h for help.'
+        #    sys.exit(1)
 
     def listOptions( self ):
         options  = '\n'
@@ -161,7 +168,7 @@ class Emu_Farmer:
         options += '        Target groups         :\t' + self._target              + '\n'
         options += '        Log level             :\t' + self._logLevel            + '\n'
         options += '        User                  :\t' + self._user                + '\n'
-        options += '        XDAQ_ROOT             :\t' + self._xdaq_root           + '\n'
+        #options += '        XDAQ_ROOT             :\t' + self._xdaq_root           + '\n'
         return options
 
     def getConfigFile( self ):
@@ -261,7 +268,8 @@ class Emu_Farmer:
             url = context.getAttributeNode('url').firstChild.data
             m = re.match('(http://)(.*):',url)
             host = m.group(2)
-            remoteCommand = '"(export XDAQ_ROOT='+self._xdaq_root+' && \$XDAQ_ROOT/emu/emuDAQ/drivers/bigphysarea_xxxx/bin/emuLoadDDUs)"'
+            #remoteCommand = '"(export XDAQ_ROOT='+self._xdaq_root+' && \$XDAQ_ROOT/emu/emuDAQ/drivers/bigphysarea_xxxx/bin/emuLoadDDUs)"'
+            remoteCommand = '"(source .bash_profile && \$XDAQ_ROOT/emu/emuDAQ/drivers/bigphysarea_xxxx/bin/emuLoadDDUs)"'
             commandLine = 'ssh -2 -f '+self._user+'@'+host+' '+remoteCommand
 
             # add this command to the self._commandLines only if this host runs EmuRUI(s)
@@ -284,17 +292,16 @@ class Emu_Farmer:
             remoteLogFile = 'emuFarmer_UTC_'+self._date_time+'_port_'+port+'.log'
 
             if self._action == 'start':
-                #remoteCommand = '"(export XDAQ_ROOT='+self._xdaq_root+' && \$XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -h '+host+' -p '+port+' -l '+self._logLevel+' -c '+self._mergedConfigFileURL+' &> /dev/null &)"'
                 # Redirect std error and output to a remoteLogFile.
                 # (When starting, we cannot wait for the std output of the ssh process
                 # as the remote shell won't exit unless xdaq crashes.)
-                remoteCommand = '"(export XDAQ_ROOT='+self._xdaq_root+' && \$XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -h '+host+' -p '+port+' -l '+self._logLevel+' -c '+self._mergedConfigFileURL+' &> '+remoteLogFile+' &)"'
+                remoteCommand = '"(source .bash_profile && \$XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -h '+host+' -p '+port+' -l '+self._logLevel+' -c '+self._mergedConfigFileURL+' &> '+remoteLogFile+' &)"'
             elif self._action == 'stop':
-                remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$2 }' | xargs -r kill -9\""
+                #remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$2 }' | xargs -r kill -9\""
+                remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-p[ ]*"+port+"/ { print \$2 }' | xargs -r kill -9\""
             elif self._action == 'status':
                 #remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$7 }'\""
-                #remoteCommand = "\"ps -eo stat,pid,euser,lstart,command | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { printf(\\\"%3s  %5d   %10s   %3s %3s %2d %s\\\",\$1,\$2,\$3,\$4,\$5,\$6,\$7) }'\""
-                remoteCommand = "\"ps -eo stat,pid,euser,lstart,command | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$1,\\\"  ( process\\\",\$2,\\\"\tstarted by\\\",\$3,\\\"at\\\",\$4,\$5,\$6,\$7,\\\")\\\"}'\""
+                remoteCommand = "\"ps -eo stat,pid,euser,lstart,command | gawk '!/gawk/ && /xdaq\.exe/ && /-p[ ]*"+port+"/ { print \$1,\\\"  ( process\\\",\$2,\\\"\tstarted by\\\",\$3,\\\"at\\\",\$4,\$5,\$6,\$7,\\\")\\\"}'\"" # Make sure to change AsyncSSH.run accordingly if the output format is changed here.
             elif self._action == 'debug':
                 # Dump the remoteLogFile (the redirected std err/out of xdaq)
                 remoteCommand = "\"cat "+remoteLogFile+"\""
@@ -388,22 +395,19 @@ class AsyncSSH(threading.Thread):
         self._printAll = printAll
         
     def run(self):
-        report = ''
         f = popen2.popen4(self._command)
-        status = f[0].read() # this blocks when xdaq is being started
+        commandOutput = f[0].read() # this blocks when xdaq is being started
         if self._printAll:
-            fileLog.debug(self._context+status)
-            screenLog.info(self._context+status)
+            fileLog.debug(self._context+commandOutput)
+            screenLog.info(self._context+commandOutput)
         else:
-            st = re.split('\n',status)
-            if len(st) >= 2:
-                fileLog.debug(self._context+status)
-                # print the last-but-one line (the last one is empty)
-                screenLog.info(self._context+st[-2])
-            else:
-                fileLog.debug(self._context+status)
-                # print the only line (must be empty...)
-                screenLog.info(self._context+st[-1])
+            fileLog.debug(self._context+commandOutput)
+            # Find and print the status report line (if any) on the screen
+            status = ''
+            for line in re.split('\n',commandOutput):
+                if re.match('.*\( process.*started by.*',line):
+                    status = line
+            screenLog.info(self._context+status)
         f[0].close()
 
 #################
@@ -465,7 +469,7 @@ def printHelp():
 emuFarmer reloads drivers or launches/kills XDAQ executives specified in a XDAQ XML configuration file.
 
     Usage:
-        emuFarmer -c config_file [-u user] [-a action] [-t target_group] [-l log_level] [-X xdaq_root] [-d merged_config_destination] [-h]
+        emuFarmer -c config_file [-u user] [-a action] [-t target_group] [-l log_level] [-d merged_config_destination] [-h] [-v]
 
         It logs to the standard error and $PWD/emuFarmer.log
 
@@ -490,7 +494,7 @@ emuFarmer reloads drivers or launches/kills XDAQ executives specified in a XDAQ 
               Format: user@host:directory
               The remote processes will be instructed to take the merged configuration from
               http://host/user/directory
-              Default is user@emudaq:config (See option -u for 'user'.)
+              Default is cscdaq@emudaq:config
         -a    Action [status|start|stop|restart|reload] to take. Default is 'status'.
               'status' prints the process state code reported by 'ps'. (See the ps man pages.)
               'reload' will (re)load the drivers in all nodes running EmuRUIs. Options -l and -t
@@ -510,8 +514,8 @@ emuFarmer reloads drivers or launches/kills XDAQ executives specified in a XDAQ 
               daq-emudaq01:40201 will select all executives running DAQ column applications except emudaq01:40201.
               Default is 'daq+man+sv', i.e., the DAQ column, the DAQManager and the CSCSupervisor.
         -u    User to run the executives on the remote hosts. Default is $USER of the shell where emuFarmer is run.
-        -X    XDAQ_ROOT on the remote hosts. Default is $XDAQ_ROOT of the shell where emuFarmer is run.
         -l    XDAQ executives' log level. Default is WARN.
+        -v    Verbose mode. (Prints remote processes' stdout and stderr on start.) Default is non-verbose mode.
         -h    Print this help.
 
 
@@ -532,8 +536,9 @@ if __name__ == "__main__":
     targets        = 'daq+man+sv'
     logLevel       = 'WARN'
     user           = ''
-    xdaq_root      = ''
+    #xdaq_root      = ''
     dirForMerged   =  None
+    verbose        =  False
     
     # user's command line options
     for i in range(1,len(sys.argv)):
@@ -547,10 +552,12 @@ if __name__ == "__main__":
             logLevel = sys.argv[i+1]
         elif sys.argv[i] == '-u':
             user = sys.argv[i+1]
-        elif sys.argv[i] == '-X':
-            xdaq_root = sys.argv[i+1]
+        #elif sys.argv[i] == '-X':
+        #    xdaq_root = sys.argv[i+1]
         elif sys.argv[i] == '-d':
             dirForMerged = sys.argv[i+1]
+        elif sys.argv[i] == '-v':
+            verbose = True
         elif sys.argv[i] == '-h':
             printHelp()
             sys.exit(0)
@@ -565,15 +572,16 @@ if __name__ == "__main__":
 
     # now we can set the default destination directory for the merged configuration file
     if dirForMerged == None:
-        dirForMerged = user+'@emudaq:config'
+        #dirForMerged = user+'@emudaq:config'
+        dirForMerged = 'cscdaq@emudaq:config'
 
-    # XDAQ_ROOT must be known
-    if xdaq_root == '' and 'XDAQ_ROOT' not in os.environ:
-        print '***** Error: No XDAQ_ROOT specified or set. Please use the "-X <xdaq_root>" option.'
-        print '      Type emuFarmer -h for help.'
-        sys.exit(1)
-    if xdaq_root == '' and 'XDAQ_ROOT' in os.environ:
-        xdaq_root  = os.environ['XDAQ_ROOT']
+    ## XDAQ_ROOT must be known
+    #if xdaq_root == '' and 'XDAQ_ROOT' not in os.environ:
+    #    print '***** Error: No XDAQ_ROOT specified or set. Please use the "-X <xdaq_root>" option.'
+    #    print '      Type emuFarmer -h for help.'
+    #    sys.exit(1)
+    #if xdaq_root == '' and 'XDAQ_ROOT' in os.environ:
+    #    xdaq_root  = os.environ['XDAQ_ROOT']
 
     # we must have a config file
     if configFileName == None:
@@ -613,7 +621,8 @@ if __name__ == "__main__":
     screenLog.propagate = False
 
     # let's roll
-    farmer = Emu_Farmer( configFileName, user, targets, xdaq_root, logLevel, dirForMerged )
+    #farmer = Emu_Farmer( configFileName, user, targets, xdaq_root, logLevel, dirForMerged )
+    farmer = Emu_Farmer( configFileName, user, targets, logLevel, dirForMerged )
     if action == 'reload':
         farmer.act( action )
         sys.exit(0)
@@ -629,5 +638,5 @@ if __name__ == "__main__":
         else:
             farmer.act( action )
             farmer.act( 'status' )
-        if action in [ 'start', 'restart' ]:
+        if verbose and action in [ 'start', 'restart' ]:
             farmer.act( 'debug' )
