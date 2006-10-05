@@ -325,7 +325,7 @@
 	  <tr>
 	    <th class="app" rowspan="4">
 	      <a class="app">
-		<xsl:attribute name="href"><xsl:value-of select="../attribute::url"/>/urn:xdaq-application:lid=<xsl:value-of select="attribute::id"/></xsl:attribute>
+		<xsl:attribute name="href"><xsl:value-of select="../attribute::url"/>/urn:xdaq-application:lid=<xsl:value-of select="attribute::id"/>/</xsl:attribute>
 		<xsl:value-of select="attribute::class"/>
 	      </a>
 	    </th>
