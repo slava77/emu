@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.7 2006/10/05 07:49:41 mey Exp $
+// $Id: DAQMB.h,v 3.8 2006/10/05 08:20:06 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.8  2006/10/05 08:20:06  mey
+// UPdate
+//
 // Revision 3.7  2006/10/05 07:49:41  mey
 // UPdate
 //
@@ -417,14 +420,22 @@ public:
     shift_array_[cfeb][chip][chan] = value;
   }
 
- private:
+  inline int GetFirmwareYear(){ return fwyear_; }
+  inline int GetFirmwareMonth(){ return fwmonth_; }
+  inline int GetFirmwareDay(){ return fwday_; }
+  inline int GetFirmwareVersion(){ return fwvers_; }
+  inline int GetFirmwareRevision(){ return fwrv_; }
 
+ private:
+  //
   int shift_array_[5][6][16];
   static const int nchips[5];
   static const int chip_use[5][6];
   static const int layers[6];
   char febstat_[5][4];
-
+  //
+  
+  int fwyear_, fwmonth_, fwday_, fwvers_, fwrv_;
 
   Chamber * csc_;
   /// CFEB Data Available delay adjustment (25ns per step); 

@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.32 2006/10/05 07:49:41 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.33 2006/10/05 08:20:08 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -6189,6 +6189,11 @@ private:
     *out << cgicc::pre();
     //
     thisDMB->vmefpgaid();
+    sprintf(buf,"DMB vme FPGA : Version %d Revision %d Day %d Month %d Year %d",
+	    (int)thisDMB->GetFirmwareVersion(),(int)thisDMB->GetFirmwareRevision(),
+	    (int)thisDMB->GetFirmwareDay(),(int)thisDMB->GetFirmwareMonth(),(int)thisDMB->GetFirmwareYear());
+    *out << buf ;
+    *out << cgicc::br();
     //
     sprintf(buf,"DMB prom VME->Motherboard          : %08x ",(int)thisDMB->mbpromuser(0));
     *out << buf ;
@@ -7531,7 +7536,7 @@ private:
     //
     std::string DMBFirmware = FirmwareDir_+"dmb/dmb6cntl_v20_r4.svf";
     DMBFirmware_ = DMBFirmware;
-    std::string DMBVmeFirmware = FirmwareDir_+"dmb/dmb6vme_v10_r1.svf";
+    std::string DMBVmeFirmware = FirmwareDir_+"dmb/dmb6vme_v10_r2.svf";
     DMBVmeFirmware_ = DMBVmeFirmware;
     //
     std::string DMBLoadFirmware =
