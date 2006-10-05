@@ -3474,6 +3474,10 @@ void EmuDAQManager::bookRunNumber(){
 void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
   // Update run info db and post to eLog as well
 
+  // Don't write about debug runs:
+  if ( runType_.toString() == "Debug" ) return;
+
+  // If it's not a debug run, it should normally have been booked. Inform the user that it somehow wasn't.
   if ( !isBookedRunNumber_ ) LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
 
     stringstream subjectToELog;
