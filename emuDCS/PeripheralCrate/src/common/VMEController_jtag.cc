@@ -200,6 +200,21 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
     add_lowws=vmeadd|msk08|msk_lowws; 
     lowvolt(cmd[0],cmd[1],outbuf);
     break;
+
+  case 9:  // DAQMB VME FPGA register access
+    add_vmefpga=vmeadd|msk00;
+    if (cmd[0]==0x01) {  //read
+      add_vmefpga=add_vmefpga+((cmd[1]<<2)&0xfc);
+      //
+      unsigned short int * ptr;
+      ptr=(unsigned short int *)add_vmefpga;
+      //
+      unsigned short int testdata[2];
+      testdata[0]=0; testdata[1]=0;
+      vme_controller(2,ptr,testdata,outbuf);
+    }
+    break;
+
     
   case 10: /* buckeye shift flash memory */
     /* cmd 00 initalize program process 

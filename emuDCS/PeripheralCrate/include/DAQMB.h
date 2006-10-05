@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.6 2006/10/02 13:44:58 mey Exp $
+// $Id: DAQMB.h,v 3.7 2006/10/05 07:49:41 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.7  2006/10/05 07:49:41  mey
+// UPdate
+//
 // Revision 3.6  2006/10/02 13:44:58  mey
 // Update
 //
@@ -244,6 +247,7 @@ public:
   unsigned long int mbpromid(int prom);
   unsigned long int mbfpgauser();
   unsigned long int mbfpgaid();
+  void vmefpgaid();
 // DAQMB fifo write and reads
   void wrtfifo(int fifo,int nsndfifo,char* sndfifo);
   void readfifo(int fifo,int nrcvfifo,char* rcvfifo);
