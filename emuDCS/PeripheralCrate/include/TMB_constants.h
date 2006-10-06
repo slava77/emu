@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.3 2006/09/24 13:34:37 rakness Exp $
+// $Id: TMB_constants.h,v 3.4 2006/10/06 12:15:39 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.4  2006/10/06 12:15:39  rakness
+// expand xml file
+//
 // Revision 3.3  2006/09/24 13:34:37  rakness
 // decode configuration registers
 //
@@ -317,7 +320,7 @@ struct tmb_id_regs
 
 };
 //
-const int number_of_allowed_configuration_addresses = 21;
+const int number_of_allowed_configuration_addresses = 22;
 const int allowed_configuration_addresses[number_of_allowed_configuration_addresses] = {
   rpc_cfg_adr,          //0xb6 enable RPC 
   vme_ratctrl_adr,      //0x1e add 1/2-cycle to RPC latching
@@ -333,7 +336,8 @@ const int allowed_configuration_addresses[number_of_allowed_configuration_addres
   tmb_trig_adr,         //0x86 TMB trigger configuration/MPC accept, delays
   vme_ddd1_adr,         //0x18 delays: CFEB0, DCC, MPC, TMB1
   vme_ddd2_adr,         //0x1a delays: CFEB4, CFEB3, CFEB2, CFEB1
-  vme_ddd0_adr,         //0x16 delays: RPCtx, DMBtx, ALCTrx, ALCTtx
+  vme_ddd0_adr,         //0x16 delays: RAT/TMBrx, DMBtx, ALCTrx, ALCTtx
+  rat_3d_delays_adr,    //0xE6 delays: RPC0/RATrx, RPC1/RATrx
   cfeb_inj_adr,         //0x42 enable CFEB inputs, RAM read/write
   seq_id_adr,           //0x6E board, csc ID 
   vme_usr_jtag_adr,     //0x10 ALCT JTAG address
@@ -361,6 +365,7 @@ const int allowed_configuration_mask[number_of_allowed_configuration_addresses] 
   0xffff,               //0x18:
   0xffff,               //0x1a:
   0xffff,               //0x16:
+  0x00ff,               //0xE6:  disable unused bits (RPC2/RAT, RPC3/RAT)
   0xffff,               //0x42:
   0x1fff,               //0x6E:  disable unassigned bits
   0x007f,               //0x10:  disable TDO, unassigned bits
@@ -368,3 +373,10 @@ const int allowed_configuration_mask[number_of_allowed_configuration_addresses] 
   0xffff,               //0x6A:
   0x01df                //0xAC:  disable random LCT enable, pulses outside of L1a window, scintillator functions
 };
+//
+// TMB trigger modes:
+const int CLCT_trigger                    =  1;
+const int ALCT_trigger                    =  2;
+const int Scintillator_trigger            =  3;
+const int DMB_trigger                     =  4;
+const int ALCT_CLCT_coincidence_trigger   =  5;

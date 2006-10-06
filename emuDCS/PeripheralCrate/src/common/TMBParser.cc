@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.5 2006/10/03 07:39:16 mey Exp $
+// $Id: TMBParser.cc,v 3.6 2006/10/06 12:15:40 rakness Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.6  2006/10/06 12:15:40  rakness
+// expand xml file
+//
 // Revision 3.5  2006/10/03 07:39:16  mey
 // UPdate
 //
@@ -198,6 +201,55 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate,xercesc::DOMNode
     if ( parser_.fillInt("enableCLCTInputs",enable)) {
       tmb_->SetEnableCLCTInputs(enable);
     }
+    int trgmode;
+    if ( parser_.fillInt("trgmode",trgmode)) {               //add
+      tmb_->SetTrgMode(trgmode);
+    }
+    //
+    int rpc_bxn_offset;
+    if ( parser_.fillInt("rpc_bxn_offset",rpc_bxn_offset)) { //add
+      tmb_->SetRpcBxnOffset(rpc_bxn_offset);
+    }
+    //
+    int shift_rpc;
+    if ( parser_.fillInt("shift_rpc",shift_rpc)) {           //add
+      tmb_->SetShiftRpc(shift_rpc);
+    }
+    //
+    int request_l1a;
+    if ( parser_.fillInt("request_l1a",request_l1a)) {       //add
+      tmb_->SetRequestL1a(request_l1a);
+    }
+    //
+    int hs_pretrig_thresh;
+    if ( parser_.fillInt("hs_pretrig_thresh",hs_pretrig_thresh)) { //add
+      tmb_->SetHsPretrigThresh(hs_pretrig_thresh);
+    }
+    //
+    int ds_pretrig_thresh;
+    if ( parser_.fillInt("ds_pretrig_thresh",ds_pretrig_thresh)) { //add
+      tmb_->SetDsPretrigThresh(ds_pretrig_thresh);
+    }
+    //
+    int min_hits_pattern;
+    if ( parser_.fillInt("min_hits_pattern",min_hits_pattern)) { //add
+      tmb_->SetMinHitsPattern(min_hits_pattern);
+    }
+    //
+    int dmb_tx_delay;
+    if ( parser_.fillInt("dmb_tx_delay",dmb_tx_delay)) {  //add
+      tmb_->SetDmbTxDelay(dmb_tx_delay);
+    }
+    //
+    int rat_tmb_delay;
+    if ( parser_.fillInt("rat_tmb_delay",rat_tmb_delay)) {  //add
+      tmb_->SetRatTmbDelay(rat_tmb_delay);
+    }
+    //
+    int rpc0_rat_delay;
+    if ( parser_.fillInt("rpc0_rat_delay",rpc0_rat_delay)) {  //add
+      tmb_->SetRpc0RatDelay(rpc0_rat_delay);
+    }
     //
     xercesc::DOMNode * daughterNode = pNode->getFirstChild();
     while(daughterNode) {
@@ -361,6 +413,12 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate,xercesc::DOMNode
 	}
 	if (alctParser_.fillInt("drift_delay", delay)) {
 	  alct_->SetDriftDelay(delay);
+	}
+	if (alctParser_.fillInt("amode", mode)) {    //add
+	  alct_->SetAlctAmode(mode);
+	}
+	if (alctParser_.fillInt("bxc_offset", offset)) {    //add
+	  alct_->SetBxcOffset(offset);
 	}
 	//	std::string file;
 	//	if ( alctParser_.fillString("alct_pattern_file", file)) {

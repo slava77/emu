@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.9 2006/10/03 07:36:01 mey Exp $
+// $Id: ALCTController.h,v 3.10 2006/10/06 12:15:38 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.10  2006/10/06 12:15:38  rakness
+// expand xml file
+//
 // Revision 3.9  2006/10/03 07:36:01  mey
 // UPdate
 //
@@ -754,6 +757,7 @@ public:
   ~ALCTController();
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
+  inline void RedirectConfigOutput(std::ostream * Output) { configOut_ = Output ; }
   //
   ///////////////////////////////////////////////////////////////////////////
   //  Useful methods to use ALCTController:
@@ -973,8 +977,7 @@ public:
   //
   //
   void SetPowerUpConfigurationReg();                // sets Write values to data-taking defaults
-  void PrintConfigurationReg(std::ostream *);   // print out Read values
-  void PrintConfigurationReg();   // print out Read values
+  void PrintConfigurationReg();                     // print out Read values
   //
   //
   void WriteConfigurationReg();                 //writes Write values to ALCT
@@ -1019,6 +1022,7 @@ protected:
 private:
   //
   std::ostream * MyOutput_ ;
+  std::ostream * configOut_ ;
   TMB * tmb_ ;
   int debug_;
   //

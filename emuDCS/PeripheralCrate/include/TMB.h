@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.8 2006/09/24 13:34:37 rakness Exp $
+// $Id: TMB.h,v 3.9 2006/10/06 12:15:39 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.9  2006/10/06 12:15:39  rakness
+// expand xml file
+//
 // Revision 3.8  2006/09/24 13:34:37  rakness
 // decode configuration registers
 //
@@ -204,6 +207,7 @@ public:
   virtual ~TMB();
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
+  inline void RedirectConfigOutput(std::ostream * Output) { configOut_ = Output ; }
   //
   void WriteOutput(std::string);
   //
@@ -418,6 +422,17 @@ public:
   void SetAlct(ALCTController* alct){alctController_ = alct;}
   void SetRat(RAT* rat){rat_ = rat;}
   //
+  inline void SetTrgMode(int trgmode){ trgmode_ = trgmode; }
+  inline void SetRpcBxnOffset(int rpc_bxn_offset){ rpc_bxn_offset_ = rpc_bxn_offset; }
+  inline void SetShiftRpc(int shift_rpc){ shift_rpc_ = shift_rpc; }
+  inline void SetRequestL1a(int request_l1a){ request_l1a_ = request_l1a; }
+  inline void SetHsPretrigThresh(int hs_pretrig_thresh){ hs_pretrig_thresh_ = hs_pretrig_thresh; }
+  inline void SetDsPretrigThresh(int ds_pretrig_thresh){ ds_pretrig_thresh_ = ds_pretrig_thresh; }
+  inline void SetMinHitsPattern(int min_hits_pattern){ min_hits_pattern_ = min_hits_pattern; }
+  inline void SetDmbTxDelay(int dmb_tx_delay){ dmb_tx_delay_ = dmb_tx_delay; }
+  inline void SetRatTmbDelay(int rat_tmb_delay){ rat_tmb_delay_ = rat_tmb_delay; }
+  inline void SetRpc0RatDelay(int rpc0_rat_delay){ rpc0_rat_delay_ = rpc0_rat_delay; }
+  //
   inline std::vector<unsigned long int> GetInjectedLct0() { return InjectedLct0 ; }
   inline std::vector<unsigned long int> GetInjectedLct1() { return InjectedLct1 ; }
   //
@@ -480,6 +495,7 @@ private:
   //bool step_mode;
   //int bits_per_opcode[MAX_NUM_CHIPS];
   std::ostream * MyOutput_ ;
+  std::ostream * configOut_ ;
   int alct_tx_clock_delay_;
   int alct_rx_clock_delay_;
   int trigMB_dav_delay_;
@@ -507,6 +523,17 @@ private:
   int disableCLCTInputs_;
   int enableCLCTInputs_;
   int mpc_tx_delay_;
+  //
+  int trgmode_;                  //
+  int rpc_bxn_offset_;
+  int shift_rpc_;
+  int request_l1a_;
+  int hs_pretrig_thresh_;
+  int ds_pretrig_thresh_;
+  int min_hits_pattern_;
+  int dmb_tx_delay_;
+  int rat_tmb_delay_;
+  int rpc0_rat_delay_;
   //
   std::vector<unsigned long int> InjectedLct0;
   std::vector<unsigned long int> InjectedLct1;
