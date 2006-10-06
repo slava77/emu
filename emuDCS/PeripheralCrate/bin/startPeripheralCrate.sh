@@ -24,4 +24,4 @@ nohup $XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -p 40014 -c xml/EmuCluster.xml -
 nohup $XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -p 40010 -c xml/EmuCluster.xml -l INFO >& /tmp/xdaq40010.log &
 #
 ~/startLoggingServer.sh
-#
+
