@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <iomanip>
 #include <unistd.h> 
 #include <string>
@@ -188,6 +189,8 @@ int main() {
     std::cout << "1000:Exit " << std::endl;
     std::cout << " menu choice? (Default = 999)" << std::endl;
     std::cin >> Menu;
+
+    std::ofstream outputfile;
 
     switch (Menu) {
     case 0:
@@ -546,10 +549,10 @@ int main() {
       thisTMB->configure();
       break;
     case 201:      
-      thisTMB->SetXsvfFilename("prom0_example");
+      //      thisTMB->SetXsvfFilename("prom0_example");
       thisTMB->SetFillVmeWriteVecs(true);
       thisTMB->configure();
-      thisTMB->ClearXsvfFilename();
+      //      thisTMB->ClearXsvfFilename();
       break;
     case 202:
       alct->configure();
@@ -638,10 +641,16 @@ int main() {
       thisTMB->CheckRawHitsHeader();
       break;
     case 501:
+      outputfile.open("TMBconfiguration.txt");
+      thisTMB->RedirectConfigOutput(&outputfile);
       thisTMB->ReadCurrentConfiguration();
+      outputfile.close();
       break;
     case 502:
+      outputfile.open("ALCTconfiguration.txt");
+      alct->RedirectConfigOutput(&outputfile);
       alct->ReadCurrentConfiguration();
+      outputfile.close();
       break;
     case 503:
       thisTMB->StartTTC();
