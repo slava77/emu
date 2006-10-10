@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.16 2006/10/05 08:20:10 mey Exp $
+// $Id: DAQMB.cc,v 3.17 2006/10/10 11:10:09 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.17  2006/10/10 11:10:09  mey
+// Update
+//
 // Revision 3.16  2006/10/05 08:20:10  mey
 // UPdate
 //
@@ -365,98 +368,6 @@ void DAQMB::init(){
 bool DAQMB::SelfTest(){
   return 0;
 }
-
-/*
-void DAQMB::configure() {
-  //
-  (*MyOutput_) << std::endl;
-  (*MyOutput_) << "CFEB size="<<cfebs_.size()<<std::endl;
-  //
-  ostringstream dump, dump2, dump3, dump4;
-  dump2 << (int)this->crate();
-  dump3 << (int)this->slot();
-  dump  << "DAQMB: configure() for crate = " ;
-  dump4 << " and slot = " ;
-  //
-  SendOutput(dump.str()+dump2.str()+dump4.str()+dump3.str(),"INFO");
-  //
-  (*MyOutput_) << "DAQMB: configure() for crate " << this->crate() << " slot " << this->slot() << std::endl;
-  //
-  int cal_delay_bits = (calibration_LCT_delay_ & 0xF)
-     | (calibration_l1acc_delay_ & 0x1F) << 4
-      | (pulse_delay_ & 0x1F) << 9
-      | (inject_delay_ & 0x1F) << 14;
-   (*MyOutput_) << "DAQMB:configure: caldelay " << std::hex << cal_delay_bits << std::dec << std::endl;
-   setcaldelay(cal_delay_bits);
-   //
-   int dav_delay_bits = (feb_dav_delay_    & 0x1F)
-      | (tmb_dav_delay_ & 0X1F) << 5
-      | (push_dav_delay_   & 0x1F) << 10
-      | (l1acc_dav_delay_  & 0x3F) << 15
-      | (ALCT_dav_delay_   & 0x1F) << 21;
-   (*MyOutput_) << "doing setdavdelay " << dav_delay_bits << std::endl;
-   setdavdelay(dav_delay_bits);
-   //
-   (*MyOutput_) << "doing fxpreblkend " << pre_block_end_ << std::endl;
-   fxpreblkend(pre_block_end_);
-   calctrl_fifomrst();
-   //
-   int comp_mode_bits = (comp_mode_ & 3) | ((comp_timing_ & 7) << 2);
-   (*MyOutput_) << "doing set_comp_mode " << comp_mode_bits << std::endl;
-   (*MyOutput_) << comp_mode_ << " " << comp_timing_ << std::endl;
-   set_comp_mode(comp_mode_bits);
-   //
-   //fg where did these lines come from ...????
-   //fg usleep(100);
-   //fg set_comp_mode(comp_mode_bits);
-   //
-   (*MyOutput_) << "doing set_comp_thresh " << set_comp_thresh_ << std::endl;
-   set_comp_thresh(set_comp_thresh_);
-   (*MyOutput_) << "doing preamp_initx() " << std::endl;
-   preamp_initx();
-   (*MyOutput_) << "doing set_cal_dac " << inj_dac_set_ << " " 
-	<<  pul_dac_set_ << std::endl;
-   set_cal_dac(inj_dac_set_, pul_dac_set_);
-   enable_cfeb(); //enable..disable CFEBs
-   //
-   (*MyOutput_) << "Set crate id " << crate_id_ << std::endl ;
-   setcrateid(crate_id_);
-   //
-   (*MyOutput_) << "Set crate id " << crate_id_ << std::endl ;
-   setxlatency(xlatency_);
-   LctL1aDelay(xlatency_);
-   //
-   (*MyOutput_) << "Set cfeb clk delay " << cfeb_clk_delay_ << std::endl ;
-   setfebdelay(cfeb_clk_delay_);
-   //
-   (*MyOutput_) << "Set cable delay " << cable_delay_ << std::endl ;
-   setcbldly(cable_delay_);
-   //
-   (*MyOutput_) << "Toogle bxn " << crate_id_ << std::endl ;
-   if (toogle_bxn_) ToogleBXN();
-   //
-   // As suggested by Valery Sitnik: switch all LVs on (computer-controlled)
-   // (*MyOutput_) << "DAQMB: switching on LVs on LVMB" << endl; 
-   lowv_onoff(0x3f);
-   //
-   // Load FLASH memory
-   //
-   //WriteSFM();
-   //
-   // Now buckflash
-   //
-   char * flash_content=(char *)malloc(500);
-   int n_byts = Fill_BUCK_FLASH_contents(flash_content);
-   buckflash_erase();
-   buckflash_load2(n_byts,flash_content);
-   sleep(2);
-   buckflash_pflash();
-   sleep(5);
-   buckflash_init();
-   sleep(1); 
-//
-}
-*/
 //
 std::ostream & operator<<(std::ostream & os, DAQMB & daqmb) {
   os << std::dec << "feb_dav_delay " << daqmb.feb_dav_delay_ << std::endl
@@ -775,19 +686,25 @@ void DAQMB::fxpreblkend(int dword)
 void DAQMB::LctL1aDelay(int dword) // Set cfeb latency (0=2.9us,1=3.3us,2=3.7us,3=4.1us)
 {
   for(unsigned icfeb = 0; icfeb < cfebs_.size(); ++icfeb) {
-    DEVTYPE dv = cfebs_[icfeb].scamDevice();
-    cmd[0]=VTX_USR1;
-    sndbuf[0]=LCTL1ADELAY;
-    devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
-    cmd[0]=VTX_USR2;
-    // 
-    sndbuf[0]=dword&0x03; 
-    devdo(dv,5,cmd,2,sndbuf,rcvbuf,0);
-    cmd[0]=VTX_BYPASS;
-    sndbuf[0]=0;
-    devdo(dv,5,cmd,0,sndbuf,rcvbuf,2);
+    LctL1aDelay(dword,icfeb);
   }
 }
+
+void DAQMB::LctL1aDelay(int dword,unsigned icfeb) // Set cfeb latency (0=2.9us,1=3.3us,2=3.7us,3=4.1us)
+{
+  DEVTYPE dv = cfebs_[icfeb].scamDevice();
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=LCTL1ADELAY;
+  devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR2;
+  // 
+  sndbuf[0]=dword&0x03; 
+  devdo(dv,5,cmd,2,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  sndbuf[0]=0;
+  devdo(dv,5,cmd,0,sndbuf,rcvbuf,2);
+}
+
 
 void DAQMB::calctrl_fifomrst()
 {
@@ -1816,7 +1733,7 @@ char shft_bits[6][6];
       devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
   }
   //
-  ::usleep(100);
+  ::usleep(200);
   //
 }
 
@@ -1999,6 +1916,9 @@ void DAQMB::set_cal_tim_pulse(int ntim)
   dword=(CAL_DEF_DELAY)&0x1ff;
   dword=dword|((ntim&0x1f)<<9); 
   setcaldelay(dword);
+  //
+  usleep(100);
+  //
 
 }
 
@@ -2580,7 +2500,9 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
     float percent;
     while (fgets(buf,256,dwnfp) != NULL)  {
       percent = (float)line/(float)nlines;
-      if((line%100)==0) printf("<   > Processed line %d of %d (%.1f%%)\r",line,nlines,percent*100.0);
+      if((line%100)==0) {
+	printf("<   > Processed line %d of %d (%.1f%%)\r",line,nlines,percent*100.0);
+      }
       fflush(stdout);
       if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
 	//  printf("%s",buf);
@@ -2749,7 +2671,7 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
 	    usleep(pause+100);
 	  } else {
 	    if((geo[dv].jchan==11)){
-	      usleep(pause*30+100);
+	      usleep(pause*200+100);
 	    } else {
 	      usleep(pause+100);
 	    }
@@ -2818,7 +2740,7 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
 void DAQMB::epromloadOld(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum)
 {
   //
-  std::cout << "Ner epromload" << std::endl;
+  std::cout << "New epromload" << std::endl;
   //
   char snd[1024],expect[1024],rmask[1024],smask[1024],cmpbuf[1024];
   DEVTYPE devstp,dv;

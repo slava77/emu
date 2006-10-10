@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.7 2006/09/27 16:44:27 mey Exp $
+// $Id: CCB.cc,v 3.8 2006/10/10 11:10:09 mey Exp $
 // $Log: CCB.cc,v $
+// Revision 3.8  2006/10/10 11:10:09  mey
+// Update
+//
 // Revision 3.7  2006/09/27 16:44:27  mey
 // UPdate
 //
@@ -1050,7 +1053,7 @@ void CCB::configure() {
   //
   // Download coarse delay to TTCrx
   //
-  PrintTTCrxRegs();
+  //PrintTTCrxRegs();
   //
   int delay = ((TTCrxCoarseDelay_&0xf)<<4) + (TTCrxCoarseDelay_&0xf);
   WriteTTCrxReg(2,delay);
@@ -1063,7 +1066,7 @@ void CCB::configure() {
   //
   std::cout << std::endl;
   //
-  PrintTTCrxRegs();
+  //PrintTTCrxRegs();
   setCCBMode(CCB::DLOG);
   //
 }

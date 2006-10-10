@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.6 2006/10/02 13:45:31 mey Exp $
+// $Id: ChamberUtilities.cc,v 3.7 2006/10/10 11:10:09 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.7  2006/10/10 11:10:09  mey
+// Update
+//
 // Revision 3.6  2006/10/02 13:45:31  mey
 // Update
 //
@@ -2327,7 +2330,7 @@ int ChamberUtilities::FindALCTvpf(){
     thisTMB->ResetCounters();      // reset counters
     //thisCCB_->startTrigger();     // 2 commands to get trigger going
     //thisCCB_->bx0();
-    ::sleep(2);                      // accumulate statistics
+    ::sleep(5);                      // accumulate statistics
     //thisCCB_->stopTrigger();      // stop trigger
     thisTMB->GetCounters();        // read counter values
     //
@@ -2380,7 +2383,7 @@ int ChamberUtilities::FindTMB_L1A_delay( int idelay_min, int idelay_max ){
     //if (useCCB) thisCCB_->startTrigger();     // 2 commands to get trigger going
     //if (useCCB) thisCCB_->bx0();
     cout << endl << "TMB_l1adelay=" << std::dec << i << ":" << endl;
-    ::sleep(1);                   // accumulate statistics
+    ::sleep(5);                   // accumulate statistics
     //if (useCCB) thisCCB_->stopTrigger();      // stop trigger
     thisTMB->GetCounters();      // read counter values
     

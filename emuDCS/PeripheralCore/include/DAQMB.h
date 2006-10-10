@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.8 2006/10/05 08:20:06 mey Exp $
+// $Id: DAQMB.h,v 3.9 2006/10/10 11:10:07 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.9  2006/10/10 11:10:07  mey
+// Update
+//
 // Revision 3.8  2006/10/05 08:20:06  mey
 // UPdate
 //
@@ -298,6 +301,7 @@ public:
   void SetCableDelay(int delay){cable_delay_ = delay;}
   void SetCrateId(int id){crate_id_ = id;}
   void SetCfebClkDelay(int delay){cfeb_clk_delay_ = delay;}
+  void SetxLatency(int latency){xlatency_ = latency;}
   //
   void SetPulseDac(float value){pul_dac_set_= value;}
   void SetInjectorDac(float value){inj_dac_set_=value;}
@@ -310,6 +314,7 @@ public:
   void SetL1aExtraCfeb(int cfeb, int value){L1A_extra_cfeb_[cfeb]=value;}
   //
   void LctL1aDelay(int);
+  void LctL1aDelay(int,unsigned);
   void toggle_pedestal();
   void pulse(int Num_pulse,unsigned int pulse_delay);
   void inject(int Num_pulse,unsigned int pulse_delay);
