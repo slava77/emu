@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.9 2006/10/06 12:15:39 rakness Exp $
+// $Id: TMB.h,v 3.10 2006/10/10 15:34:58 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.10  2006/10/10 15:34:58  rakness
+// check TMB/ALCT configuration vs xml
+//
 // Revision 3.9  2006/10/06 12:15:39  rakness
 // expand xml file
 //
@@ -462,10 +465,20 @@ public:
   inline int GetClockedOutPromImage(int address) { return clocked_out_prom_image_.at(address); }
   //
   void ReadCurrentConfiguration();
+  bool CheckCurrentConfiguration();
   void DecodeConfigurationData(int address, int data);
   void CheckVMEStateMachine();
   void CheckJTAGStateMachine();
   void CheckRawHitsHeader();
+  //
+  bool compareValues(std::string typeOfTest,
+		     int read_val,
+		     int write_val,
+		     bool equalOrNot);
+  bool compareValues(std::string typeOfTest,
+		     float read_val,
+		     float write_val,
+		     float tolerance);
   //
 public:
   //
@@ -560,6 +573,100 @@ private:
   int alct1_second_bxn_;
   //
   std::vector<int> clocked_out_prom_image_;
+  //
+  // values decoded from the configuration registers:
+  int read_rpc_exists_;
+  int read_rpc_read_enable_;
+  int read_rpc_bxn_offset_;
+  int read_shift_rpc_;
+  int read_enable_alct_rx_;
+  int read_enable_alct_tx_;
+  int read_ALCT_input_;
+  int read_alct_ext_trig_l1aen_;
+  int read_clct_ext_trig_l1aen_;
+  int read_request_l1a_;
+  int read_alct_ext_trig_vme_;
+  int read_clct_ext_trig_vme_;
+  int read_ext_trig_both_;
+  int read_ccb_allow_bypass_;
+  int read_l1a_delay_vme_;
+  int read_fifo_mode_;
+  int read_fifo_tbins_;
+  int read_fifo_pretrig_;
+  int read_clct_pat_trig_en_;
+  int read_alct_pat_trig_en_;
+  int read_match_pat_trig_en_;
+  int read_adb_ext_trig_en_;
+  int read_dmb_ext_trig_en_;
+  int read_clct_ext_trig_en_;
+  int read_alct_ext_trig_en_;
+  int read_vme_ext_trig_en_;
+  int read_ext_trig_inject_;
+  int read_all_cfeb_active_;
+  int read_cfebs_enabled_;
+  int read_cfeb_enable_source_;
+  int read_alct_vpf_delay_;
+  int read_alct_match_window_size_;
+  int read_mpc_tx_delay_;
+  int read_l1a_offset_;
+  int read_bxn_offset_;
+  int read_triad_persist_;
+  int read_hs_pretrig_thresh_;
+  int read_ds_pretrig_thresh_;
+  int read_min_hits_pattern_;
+  int read_drift_delay_;
+  int read_pretrigger_halt_;
+  int read_seq_readmode_in_dmb_;
+  int read_l1adelay_;
+  int read_l1a_window_size_;
+  int read_tmb_sync_err_enable_;
+  int read_tmb_allow_clct_;
+  int read_tmb_allow_match_;
+  int read_mpc_delay_;
+  int read_mpc_sel_ttc_bx0_;
+  int read_mpc_idle_blank_;
+  int read_tmb1_phase_;
+  int read_mpc_phase_;
+  int read_dcc_phase_;
+  int read_cfeb0delay_;
+  int read_cfeb1delay_;
+  int read_cfeb2delay_;
+  int read_cfeb3delay_;
+  int read_cfeb4delay_;
+  int read_alct_tx_clock_delay_;
+  int read_alct_rx_clock_delay_;
+  int read_dmb_tx_delay_;
+  int read_rat_tmb_delay_;
+  int read_rpc0_rat_delay_;
+  int read_rpc1_rat_phase_;
+  int read_rpc2_rat_phase_;
+  int read_rpc3_rat_phase_;
+  int read_enableCLCTInputs_;
+  int read_cfeb_ram_sel_;
+  int read_cfeb_inj_en_sel_;
+  int read_start_pattern_inj_;
+  int read_tmb_slot_;
+  int read_csc_id_;
+  int read_run_id_;
+  int read_alct_clear_;
+  int read_alct_trig_width_;
+  int read_alct_pretrig_delay_;
+  int read_alct_pattern_delay_;
+  int read_adb_ext_trig_delay_;
+  int read_clct_flush_delay_;
+  int read_clct_turbo_;
+  int read_ranlct_enable_;
+  int read_wrt_buf_required_;
+  int read_valid_clct_required_;
+  int read_l1a_allow_match_;
+  int read_l1a_allow_notmb_;
+  int read_l1a_allow_nol1a_;
+  int read_l1a_allow_alct_only_;
+  int read_scint_veto_clr_;
+  //
+  int read_trgmode_;
+  int read_CLCTtrigger_setting_;
+  int read_ALCTCLCTtrigger_setting_;
   //
 };
 
