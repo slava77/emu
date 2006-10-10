@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.33 2006/10/05 08:20:08 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.34 2006/10/10 11:10:08 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -4089,7 +4089,7 @@ private:
       //MyTest.SetDMB(thisDMB);
       //MyTest.SetCCB(thisCCB);
       //
-      MyTest[tmb].FindTMB_L1A_delay(130,140);
+      MyTest[tmb].FindTMB_L1A_delay(150,180);
       //
       this->ChamberTests(in,out);
       //
@@ -4135,7 +4135,7 @@ private:
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetCCB(thisCCB);
     //
-    MyTest[tmb].FindALCT_L1A_delay(130,160);
+    MyTest[tmb].FindALCT_L1A_delay(130,170);
     //
     this->ChamberTests(in,out);
     //
@@ -4455,26 +4455,33 @@ private:
     }
     //
     DAQMB * thisDMB = dmbVector[dmb];
-    //
     cout << "DMBVmeLoadFirmware" << endl;
     //
-    thisCCB->hardReset();
-    //
-    ::sleep(2);
-    //
-    if (thisDMB) {
-      //
-      unsigned short int dword[2];
-      dword[0]=thisDMB->mbpromuser(0);
-      // dword[0] = 0x01bd;
-      // dword[1] = 0xff00;  to manually change the DMB ID.
-      char * outp=(char *)dword;   // recast dword
-      thisDMB->epromload(VPROM,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
+    int mindmb = dmb;
+    int maxdmb = dmb+1;
+    if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each dmb
+      mindmb = 0;
+      maxdmb = dmbVector.size()-1;
     }
-    //
-    ::sleep(2);
-    //
-    thisCCB->hardReset();
+    for (dmb=mindmb; dmb<maxdmb; dmb++) {
+      //
+      thisCCB->hardReset();
+      //
+      thisDMB = dmbVector[dmb];
+      //
+      if (thisDMB) {
+	//
+	unsigned short int dword[2];
+	dword[0]=thisDMB->mbpromuser(0);
+	// dword[0] = 0x01bd;
+	// dword[1] = 0xff00;  to manually change the DMB ID.
+	char * outp=(char *)dword;   // recast dword
+	thisDMB->epromload(VPROM,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
+      }
+      //
+      thisCCB->hardReset();
+      //
+    }
     //
     this->DMBUtils(in,out);
     //
@@ -4497,7 +4504,8 @@ private:
     //
     DAQMB * thisDMB = dmbVector[dmb];
     //
-    cout << "DMBVmeLoadFirmware" << endl;
+    cout << "DMB Vme Load Firmware Emergency" << endl;
+    LOG4CPLUS_INFO(getApplicationLogger(),"Started DMB Vme Load Firmware Emergency");
     //
     thisCCB->hardReset();
     //
@@ -4557,7 +4565,7 @@ private:
       maxdmb = dmbVector.size()-1;
     }
     for (dmb=mindmb; dmb<maxdmb; dmb++) {
-    //
+      //
       thisDMB = dmbVector[dmb];
       //
       cout << "CFEBLoadFirmware - DMB " << dmb << endl;
@@ -4847,8 +4855,8 @@ private:
 #else
     alct->ReadSlowControlId();
     *out << "ALCT: Slow Control chip ID = " << std::hex << alct->GetSlowControlChipId()
-	 << " version " << alct->GetSlowControlVersionId()
-	 << ": day = " << alct->GetSlowControlDay()
+	 << " version " << std::hex << alct->GetSlowControlVersionId()
+	 << ": day = " << std::dec << alct->GetSlowControlDay()
 	 << ", month = " << alct->GetSlowControlMonth()
 	 << ", year = " << alct->GetSlowControlYear()
 	 << std::dec << std::endl;

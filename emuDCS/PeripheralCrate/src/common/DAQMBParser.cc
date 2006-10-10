@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.cc,v 3.2 2006/09/19 08:16:52 mey Exp $
+// $Id: DAQMBParser.cc,v 3.3 2006/10/10 11:10:09 mey Exp $
 // $Log: DAQMBParser.cc,v $
+// Revision 3.3  2006/10/10 11:10:09  mey
+// Update
+//
 // Revision 3.2  2006/09/19 08:16:52  mey
 // UPdate
 //
@@ -129,6 +132,9 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate)
     }
     if ( parser_.fillInt("feb_clock_delay",delay)){
       daqmb_->SetCfebClkDelay(delay);
+    }
+    if ( parser_.fillInt("xLatency",delay)){
+      daqmb_->SetxLatency(delay);
     }
     //
     int number=0;   

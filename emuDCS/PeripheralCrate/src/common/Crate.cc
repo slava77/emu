@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.4 2006/10/03 08:15:45 mey Exp $
+// $Id: Crate.cc,v 3.5 2006/10/10 11:10:09 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 3.5  2006/10/10 11:10:09  mey
+// Update
+//
 // Revision 3.4  2006/10/03 08:15:45  mey
 // Update
 //
@@ -259,6 +262,8 @@ void Crate::configure() {
   //
   ccb->configure();
   //
+  if(mpc) mpc->configure();
+  //
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myTmbs.size(); ++i) {
     myTmbs[i]->configure();
@@ -288,7 +293,6 @@ void Crate::configure() {
   //}
   //}
   //
-  if(mpc) mpc->configure();
   //::sleep(1);
 }
 //
