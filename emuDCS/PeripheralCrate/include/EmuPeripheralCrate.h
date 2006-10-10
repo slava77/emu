@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.34 2006/10/10 11:10:08 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.35 2006/10/10 16:17:08 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -73,6 +73,8 @@
 #include "CalibDAQ.h"
 #include "EmuSystem.h"
 //
+#include "EmuELog.h"
+//
 //#ifdef STANDALONE
 //#else
 #include "EmuApplication.h"
@@ -109,6 +111,12 @@ protected:
   xdata::String ALCTFirmware_;
   xdata::String CFEBFirmware_;
   std::string FirmwareDir_ ;
+  //
+  xdata::String curlCommand_;         // the curl command's full path
+  xdata::String curlCookies_;         // file for cookies
+  xdata::String CMSUserFile_;         // file that contains the username:password for CMS user
+  xdata::String eLogUserFile_;        // file that contains the username:password for eLog user
+  xdata::String eLogURL_;             // eLog's URL 
   //
   xdata::String TestLogFile_;
   xdata::String myCounter_;
@@ -333,7 +341,9 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::LaunchMonitor, "LaunchMonitor");
     xgi::bind(this,&EmuPeripheralCrate::MonitorTMBTrigger, "MonitorTMBTrigger");
     xgi::bind(this,&EmuPeripheralCrate::MenuMonitorTMBTrigger, "MenuMonitorTMBTrigger");
-    xgi::bind(this,&EmuPeripheralCrate::MonitorTMBTriggerAlctKey, "MonitorTMBTriggerAlctKey");
+    xgi::bind(this,&EmuPeripheralCrate::AlctKey, "AlctKey");
+    xgi::bind(this,&EmuPeripheralCrate::ClctKey, "ClctKey");
+    xgi::bind(this,&EmuPeripheralCrate::MonitorTMBTriggerDisplay, "MonitorTMBTriggerDisplay");
     xgi::bind(this,&EmuPeripheralCrate::CrateTMBCounters, "CrateTMBCounters");
     xgi::bind(this,&EmuPeripheralCrate::CrateDMBCounters, "CrateDMBCounters");
     xgi::bind(this,&EmuPeripheralCrate::CrateTMBCountersRight, "CrateTMBCountersRight");
@@ -433,6 +443,18 @@ public:
     //
     this->getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
     this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
+    //
+    curlCommand_  = "curl -v";
+    curlCookies_  = ".curlCookies";
+    CMSUserFile_  = "/home/meydev/.CMSUserFile";
+    eLogUserFile_ = ".eLogUserFile";
+    eLogURL_      = "https://cmsdaq.cern.ch/elog/CSC";
+    //
+    this->getApplicationInfoSpace()->fireItemAvailable( "curlCommand",  &curlCommand_  );
+    this->getApplicationInfoSpace()->fireItemAvailable( "curlCookies", 	&curlCookies_  );
+    this->getApplicationInfoSpace()->fireItemAvailable( "CMSUserFile", 	&CMSUserFile_  );
+    this->getApplicationInfoSpace()->fireItemAvailable( "eLogUserFile",	&eLogUserFile_ );
+    this->getApplicationInfoSpace()->fireItemAvailable( "eLogURL",     	&eLogURL_      );
     //
     // Create/Retrieve an infospace
     xdata::InfoSpace * is =xdata::InfoSpace::get("urn:xdaq-monitorable:EmuPeripheralCrateData");
@@ -731,6 +753,31 @@ private:
     //
   }
   //
+  void EmuPeripheralCrate::postToELog( string subject, string body ){
+    // Post to eLog:
+    //
+    std::cout << "Post to elog" << std::endl;
+    //
+    EmuELog *eel;
+    try
+      {
+	eel = new EmuELog(curlCommand_.toString(),
+			  curlCookies_.toString(),
+			  CMSUserFile_.toString(),
+			  eLogUserFile_.toString(),
+			  eLogURL_.toString());
+      }
+    catch( string e ){
+      eel = 0;
+      std::cout << "failed " << e << std::endl;
+    }
+    if ( eel ) {
+      std::cout << "PostToElog" << std::endl;
+      eel->postMessage( subject, body );
+    }
+    delete eel;
+  }
+  // 
   void EmuPeripheralCrate::enableAction(toolbox::Event::Reference e) 
     throw (toolbox::fsm::exception::Exception)
   {
@@ -2201,21 +2248,54 @@ private:
     std::string MenuMonitorTMBTrigger =
       toolbox::toString("/%s/MenuMonitorTMBTrigger",getApplicationDescriptor()->getURN().c_str());
     //
-    std::string MonitorTMBTriggerAlctKey =
-      toolbox::toString("/%s/MonitorTMBTriggerAlctKey?tmb=",getApplicationDescriptor()->getURN().c_str(),tmb);
+    std::string MonitorTMBTriggerDisplay =
+      toolbox::toString("/%s/MonitorTMBTriggerDisplay?tmb=",getApplicationDescriptor()->getURN().c_str(),tmb);
     //
     *out << cgicc::frameset().set("cols","200,*");
     *out << cgicc::frame().set("src",MenuMonitorTMBTrigger);
-    *out << cgicc::frame().set("src",MonitorTMBTriggerAlctKey);
+    *out << cgicc::frame().set("src",MonitorTMBTriggerDisplay);
     *out << cgicc::frameset() ;
     //
   }
   //
   void EmuPeripheralCrate::MenuMonitorTMBTrigger(xgi::Input * in, xgi::Output * out) 
     throw (xgi::exception::Exception){
+    //
+    std::string AlctKey =
+      toolbox::toString("/%s/AlctKey",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",AlctKey) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Alct key") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string ClctKey =
+      toolbox::toString("/%s/ClctKey",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",ClctKey) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Clct key") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
   }
   //
-  void EmuPeripheralCrate::MonitorTMBTriggerAlctKey(xgi::Input * in, xgi::Output * out) 
+  void EmuPeripheralCrate::AlctKey(xgi::Input * in, xgi::Output * out) 
+    throw (xgi::exception::Exception){
+    //
+    MenuMonitor_ = 2;
+    //
+    this->MenuMonitorTMBTrigger(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::ClctKey(xgi::Input * in, xgi::Output * out) 
+    throw (xgi::exception::Exception){
+    //
+    MenuMonitor_ = 1;
+    //
+    this->MenuMonitorTMBTrigger(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::MonitorTMBTriggerDisplay(xgi::Input * in, xgi::Output * out) 
     throw (xgi::exception::Exception){
     //
     cgicc::CgiEnvironment cgiEnvi(in);
@@ -3135,6 +3215,10 @@ private:
   {
     cout << "Init System" << endl ;
     LOG4CPLUS_INFO(getApplicationLogger(), "Init System");
+    //
+    postToELog("Test","Test");
+    //
+    return;
     //
     MyController->configure();          // Init system
     //
