@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.10 2006/10/06 12:15:38 rakness Exp $
+// $Id: ALCTController.h,v 3.11 2006/10/10 15:34:58 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.11  2006/10/10 15:34:58  rakness
+// check TMB/ALCT configuration vs xml
+//
 // Revision 3.10  2006/10/06 12:15:38  rakness
 // expand xml file
 //
@@ -764,6 +767,7 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   void configure();                                  //writes software values to all registers on ALCT
   void ReadCurrentConfiguration();                   //Read and print out current configuration
+  bool CheckCurrentConfiguration();                  //Check the read values against the write values
   //
   void SetFillVmeWriteVecs(bool fill_vectors_or_not);//writes software values to user prom
   bool GetFillVmeWriteVecs();

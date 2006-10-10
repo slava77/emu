@@ -182,7 +182,9 @@ int main() {
 	      << std::endl;
     std::cout << "403:Prog. proms w/walking 1s  500: Check state machine       501: Read TMB config registers"
 	      << std::endl;
-    std::cout << "502:Read ALCT config regs     503: StartTriggers TMB"
+    std::cout << "502:Read ALCT config regs     503: StartTriggers TMB         504: Check TMB config registers"
+	      << std::endl;
+    std::cout << "505:Check ALCT config regs"
 	      << std::endl;
     //
     std::cout << std::endl;
@@ -654,6 +656,16 @@ int main() {
       break;
     case 503:
       thisTMB->StartTTC();
+      break;
+    case 504:
+      std::cout << "Check TMB configuration with xml file = "
+		<< thisTMB->CheckCurrentConfiguration() 
+		<< std::endl;
+      break;
+    case 505:
+      std::cout << "Check configuration with xml file = "
+		<< alct->CheckCurrentConfiguration() 
+		<< std::endl;
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.20 2006/10/06 12:15:39 rakness Exp $
+// $Id: ALCTController.cc,v 3.21 2006/10/10 15:34:58 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.21  2006/10/10 15:34:58  rakness
+// check TMB/ALCT configuration vs xml
+//
 // Revision 3.20  2006/10/06 12:15:39  rakness
 // expand xml file
 //
@@ -6160,9 +6163,11 @@ std::ostream & operator<<(std::ostream & os, ALCTController & alct) {
      << "Trigger mode " << alct.write_trigger_mode_ << std::endl
      << "Ext trigger enable " << alct.write_ext_trig_enable_ << std::endl
      << "Trigger Info enable " << alct.write_trigger_info_en_ << std::endl
+     << "Send empty " << alct.write_send_empty_ << std::endl
      << "L1a internal " << alct.write_l1a_internal_ << std::endl
      << "Fifo tbins " << alct.write_fifo_tbins_ << std::endl
      << "Fifo pretrig " << alct.write_fifo_pretrig_ << std::endl
+     << "Fifo write mode " << alct.write_fifo_mode_ << std::endl
      << "L1a delay " << alct.write_l1a_delay_ << std::endl
      << "L1a offset " << alct.write_l1a_offset_ << std::endl
      << "L1a window " << alct.write_l1a_window_ << std::endl
@@ -6171,7 +6176,11 @@ std::ostream & operator<<(std::ostream & os, ALCTController & alct) {
      << "CCB enable " << alct.write_ccb_enable_ << std::endl
      << "Inject mode " << alct.write_inject_ << std::endl
      << "Send empty " << alct.write_send_empty_ << std::endl
-     << "Drift delay " << alct.write_drift_delay_ << std::endl;
+     << "Drift delay " << alct.write_drift_delay_ << std::endl
+     << "BXC offset " << alct.write_bxc_offset_ << std::endl
+     << "Board ID " << alct.write_board_id_ << std::endl
+     << "Amode " << alct.write_alct_amode_ << std::endl
+     << "Serial Number Select " << alct.write_sn_select_ << std::endl;
   for(int afeb=alct.GetLowestAfebIndex(); afeb<alct.GetHighestAfebIndex(); afeb++){
     os << "Afeb = " << afeb << " Threshold = " << alct.write_afeb_threshold_[afeb] 
        << " Delay = " << alct.write_asic_delay_[afeb] << std::endl;
@@ -6342,7 +6351,7 @@ void ALCTController::SetUpRandomALCT(){
 //
 void ALCTController::configure() {
   //
-  SetFillVmeWriteVecs(false);
+  //  SetFillVmeWriteVecs(true);
   //
   std::ostringstream dump;
   dump << (int)tmb_->slot();
@@ -6478,6 +6487,172 @@ void ALCTController::ReadCurrentConfiguration() {
   PrintCollisionPatternMask();
   //
   return;
+}
+//
+bool ALCTController::CheckCurrentConfiguration() {
+  //
+  bool config_ok = true;
+  //
+  (*configOut_) << "ALCT: CHECK configuration in slot " <<  (int)tmb_->slot() << std::endl;
+  //
+  ReadCurrentConfiguration();  //fill the read values in the software
+  //
+  for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++) {
+    // to compare write and read thresholds, we need to compare an 8-bit dac 
+    // with a 10-bit adc, with an offset:
+    float offset = 24.;
+    float slope = 4.;     
+    float dac_converted_to_adc = write_afeb_threshold_[afeb]*slope + offset;    
+    //
+    // set the tolerance so the adc is within +/- 3 adc counts of the set value  
+    // at low dac values (<~30), this is approximately the precision of the dac/adc
+    float threshold = 4. / dac_converted_to_adc;
+    //
+    config_ok &= tmb_->compareValues("AFEB thresholds",
+				     (float) read_afeb_threshold_[afeb],
+				     dac_converted_to_adc,
+				     threshold);
+  }
+  //    
+  for (int i=0; i<RegSizeAlctSlowFpga_WRT_STANDBY_REG; i++)
+    config_ok &= tmb_->compareValues("ALCT Standby Register",
+				     read_standby_register_[i],
+				     write_standby_register_[i],
+				     true);
+  //
+  for (int layer=0; layer<MAX_NUM_LAYERS; layer++) 
+    for (int channel=0; channel<GetNumberOfChannelsPerLayer(); channel++) 
+      config_ok &= tmb_->compareValues("ALCT ASIC Pattern",
+				       read_asic_pattern_[layer][channel],
+				       write_asic_pattern_[layer][channel],
+				       true);
+  //
+  for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++)
+    config_ok &= tmb_->compareValues("AFEB Delays",
+				     read_asic_delay_[afeb],
+				     write_asic_delay_[afeb],
+				     true);
+  //
+  config_ok &= tmb_->compareValues("ALCT Trigger Mode",
+				   read_trigger_mode_,
+				   write_trigger_mode_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT Ext trig enable",
+				   read_ext_trig_enable_,
+				   write_ext_trig_enable_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT Send Empty",
+				   read_send_empty_,
+				   write_send_empty_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT Inject Mode",
+				   read_inject_,
+				   write_inject_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT BXC offset",
+				   read_bxc_offset_,
+				   write_bxc_offset_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT Pretrig number of layers",
+				   read_nph_thresh_,
+				   write_nph_thresh_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT Pattern number of layers",
+				   read_nph_pattern_,
+				   write_nph_pattern_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT drift delay",
+				   read_drift_delay_,
+				   write_drift_delay_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT Number of FIFO tbins",
+				   read_fifo_tbins_,
+				   write_fifo_tbins_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT FIFO pretrig",
+				   read_fifo_pretrig_,
+				   write_fifo_pretrig_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT FIFO mode",
+				   read_fifo_mode_,
+				   write_fifo_mode_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT L1a delay",
+				   read_l1a_delay_,
+				   write_l1a_delay_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT L1a window size",
+				   read_l1a_window_,
+				   write_l1a_window_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT L1a counter offset",
+				   read_l1a_offset_,
+				   write_l1a_offset_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT L1a internally generated",
+				   read_l1a_internal_,
+				   write_l1a_internal_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT Board ID",
+				   read_board_id_,
+				   write_board_id_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT CCB enable",
+				   read_ccb_enable_,
+				   write_ccb_enable_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT Amode",
+				   read_alct_amode_,
+				   write_alct_amode_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT trigger info enable",
+				   read_trigger_info_en_,
+				   write_trigger_info_en_,
+				   true);
+  //
+  config_ok &= tmb_->compareValues("ALCT Serial Number select",
+				   read_sn_select_,
+				   write_sn_select_,
+				   true);
+  //
+  for (int layer=0; layer<MAX_NUM_LAYERS; layer++) 
+    for (int channel=0; channel<GetNumberOfChannelsPerLayer(); channel++) {
+      int index = layer * GetNumberOfChannelsPerLayer() + channel;
+      config_ok &= tmb_->compareValues("ALCT Hot Channel Mask",
+				       read_hot_channel_mask_[index],
+				       write_hot_channel_mask_[index],
+				       true);      
+    }
+  //
+  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) 
+    for (int bitInEnvelope=0; bitInEnvelope<NUMBER_OF_BITS_IN_COLLISION_MASK_PER_GROUP; bitInEnvelope++) {
+      int index = group * NUMBER_OF_BITS_IN_COLLISION_MASK_PER_GROUP + bitInEnvelope;
+      config_ok &= tmb_->compareValues("ALCT Collision Pattern Mask",
+				       read_collision_pattern_mask_reg_[index],
+				       write_collision_pattern_mask_reg_[index],
+				       true);      
+      
+    }
+  //
+  return config_ok;
 }
 //
 void ALCTController::SetFillVmeWriteVecs(bool fill_vectors_or_not) {

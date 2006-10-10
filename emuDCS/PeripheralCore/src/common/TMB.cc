@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.17 2006/10/06 12:15:40 rakness Exp $
+// $Id: TMB.cc,v 3.18 2006/10/10 15:34:58 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.18  2006/10/10 15:34:58  rakness
+// check TMB/ALCT configuration vs xml
+//
 // Revision 3.17  2006/10/06 12:15:40  rakness
 // expand xml file
 //
@@ -557,7 +560,7 @@ void TMB::init() {
 //
 void TMB::configure() {
   //
-  SetFillVmeWriteVecs(false);
+  //  SetFillVmeWriteVecs(true);
   ClearVmeWriteVecs();
   //
   ostringstream dump;
@@ -4217,7 +4220,7 @@ std::ostream & operator<<(std::ostream & os, TMB & tmb) {
      << " " << tmb.alct_tx_clock_delay_ << std::endl
      << "l1a window size " << tmb.l1a_window_size_ << std::endl
      << "l1a delay " << tmb.l1adelay_ << std::endl
-     << "window size " << tmb.alct_match_window_size_ << std::endl
+     << "match window size " << tmb.alct_match_window_size_ << std::endl
      << "alct vpf delay " << tmb.alct_vpf_delay_  << std::endl
      << "mpc delay  " << tmb.mpc_delay_ << std::endl
      << "ALCT_input " << tmb.ALCT_input_ << std::endl
@@ -4233,6 +4236,16 @@ std::ostream & operator<<(std::ostream & os, TMB & tmb) {
      << "alctController_ " << tmb.alctController_ << std::endl
      << "rat_ " << tmb.rat_ << std::endl
      << "bxn_offset_ " << tmb.bxn_offset_ << std::endl
+     << "trgmode_ " << tmb.trgmode_ << std::endl
+     << "rpc_bxn_offset_ " << tmb.rpc_bxn_offset_ << std::endl
+     << "shift_rpc_ " << tmb.shift_rpc_ << std::endl
+     << "request_l1a_ " << tmb.request_l1a_ << std::endl
+     << "hs_pretrig_thresh_ " << tmb.hs_pretrig_thresh_ << std::endl
+     << "ds_pretrig_thresh_ " << tmb.ds_pretrig_thresh_ << std::endl
+     << "min_hits_pattern_ " << tmb.min_hits_pattern_ << std::endl
+     << "dmb_tx_delay_ " << tmb.dmb_tx_delay_ << std::endl
+     << "rat_tmb_delay_ " << tmb.rat_tmb_delay_ << std::endl
+     << "rpc0_rat_delay_ " << tmb.rpc0_rat_delay_ << std::endl
      << std::dec << std::endl;
   return os;
 }
@@ -6444,6 +6457,178 @@ void TMB::OkVmeWrite(char vme) {
   return;
 }
 //
+bool TMB::CheckCurrentConfiguration() {
+  //
+  bool config_ok = true;
+  //
+  (*configOut_) << "TMB: CHECK configuration in slot " << (int) slot() << std::endl;
+  //
+  ReadCurrentConfiguration();    // fill the read values in the software
+  //
+  config_ok &= compareValues("TMB-CFEB 0 phase",
+			     read_cfeb0delay_,
+			     cfeb0delay_,
+			     true);
+  //
+  config_ok &= compareValues("TMB-CFEB 1 phase",
+			     read_cfeb1delay_,
+			     cfeb1delay_,
+			     true);
+  //
+  config_ok &= compareValues("TMB-CFEB 2 phase",
+			     read_cfeb2delay_,
+			     cfeb2delay_,
+			     true);
+  //
+  config_ok &= compareValues("TMB-CFEB 3 phase",
+			     read_cfeb3delay_,
+			     cfeb3delay_,
+			     true);
+  //
+  config_ok &= compareValues("TMB-CFEB 4 phase",
+			     read_cfeb4delay_,
+			     cfeb4delay_,
+			     true);
+  //
+  config_ok &= compareValues("TMB-ALCT rx phase",
+			     read_alct_rx_clock_delay_,
+			     alct_rx_clock_delay_,
+			     true);
+  //
+  config_ok &= compareValues("TMB-ALCT tx phase",
+			     read_alct_tx_clock_delay_,
+			     alct_tx_clock_delay_,
+			     true);
+  //
+  config_ok &= compareValues("TMB L1a window size",
+			     read_l1a_window_size_,
+			     l1a_window_size_,
+			     true);
+  //
+  config_ok &= compareValues("TMB L1a delay",
+			     read_l1adelay_,
+			     l1adelay_,
+			     true);
+  //
+  config_ok &= compareValues("ALCT-CLCT match window size",
+			     read_alct_match_window_size_,
+			     alct_match_window_size_,
+			     true);
+  //
+  config_ok &= compareValues("ALCT valid pattern flag delay",
+			     read_alct_vpf_delay_,
+			     alct_vpf_delay_,
+			     true);
+  //
+  config_ok &= compareValues("MPC rx delay",
+			     read_mpc_delay_,
+			     mpc_delay_,
+			     true);
+  //
+  config_ok &= compareValues("ALCT input",
+			     read_ALCT_input_,
+			     ALCT_input_,
+			     true);
+  //
+  config_ok &= compareValues("RPC exists",
+			     read_rpc_exists_,
+			     rpc_exists_,
+			     true);
+  //
+  config_ok &= compareValues("CLCT fifo mode",
+			     read_fifo_mode_,
+			     fifo_mode_,
+			     true);
+  //
+  config_ok &= compareValues("CLCT fifo Tbins",
+			     read_fifo_tbins_,
+			     fifo_tbins_,
+			     true);
+  //
+  config_ok &= compareValues("CLCT fifo pretrig",
+			     read_fifo_pretrig_,
+			     fifo_pretrig_,
+			     true);
+  //
+  config_ok &= compareValues("ALCT disable",
+			     read_alct_clear_,
+			     alct_clear_,
+			     true);
+  //
+  config_ok &= compareValues("MPC tx delay",
+			     read_mpc_tx_delay_,
+			     mpc_tx_delay_,
+			     true);
+  //
+  config_ok &= compareValues("TMB L1a counter preset",
+			     read_l1a_offset_,
+			     l1a_offset_,
+			     true);
+  //
+  config_ok &= compareValues("Enable CLCT Inputs",
+			     read_enableCLCTInputs_,
+			     enableCLCTInputs_,
+			     true);
+  //
+  config_ok &= compareValues("Bunch Crossing offset",
+			     read_bxn_offset_,
+			     bxn_offset_,
+			     true);
+  //
+  config_ok &= compareValues("Trigger mode",
+			     read_trgmode_,
+			     trgmode_,
+			     true);
+  //
+  config_ok &= compareValues("RPC Bunch Crossing offset",
+			     read_rpc_bxn_offset_,
+			     rpc_bxn_offset_,
+			     true);
+  //
+  config_ok &= compareValues("Shift RPC 1/2 phase",
+			     read_shift_rpc_,
+			     shift_rpc_,
+			     true);
+  //
+  config_ok &= compareValues("Request L1a from CCB",
+			     read_request_l1a_,
+			     request_l1a_,
+			     true);
+  //
+  config_ok &= compareValues("CLCT 1/2-strip pretrig threshold",
+			     read_hs_pretrig_thresh_,
+			     hs_pretrig_thresh_,
+			     true);
+  //
+  config_ok &= compareValues("CLCT di-strip pretrig threshold",
+			     read_ds_pretrig_thresh_,
+			     ds_pretrig_thresh_,
+			     true);
+  //
+  config_ok &= compareValues("CLCT minimum hits pattern",
+			     read_min_hits_pattern_,
+			     min_hits_pattern_,
+			     true);
+  //
+  config_ok &= compareValues("TMB-DMB tx phase",
+			     read_dmb_tx_delay_,
+			     dmb_tx_delay_,
+			     true);
+  //
+  config_ok &= compareValues("TMB-RAT phase",
+			     read_rat_tmb_delay_,
+			     rat_tmb_delay_,
+			     true);
+  //
+  config_ok &= compareValues("RAT-RPC0 phase",
+			     read_rpc0_rat_delay_,
+			     rpc0_rat_delay_,
+			     true);
+  //
+  //
+  return config_ok;
+}
+//
 void TMB::ReadCurrentConfiguration() {
   //
   (*configOut_) << "TMB READ configuration in slot = " << (int) slot() << std::endl;
@@ -6500,452 +6685,462 @@ void TMB::DecodeConfigurationData(int address, int data) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> RPC configuration register" << std::endl;
     //
-    int rpc_exists      = (data >> 0) & 0xf;
+    read_rpc_exists_      = (data >> 0) & 0xf;
     (*configOut_) << "        RPC exists      = 0x" 
-		 << std::hex << rpc_exists << std::endl;
-    int rpc_read_enable = (data >> 4) & 0x1;
+		 << std::hex << read_rpc_exists_ << std::endl;
+    read_rpc_read_enable_ = (data >> 4) & 0x1;
     (*configOut_) << "        RPC read enable = " 
-		 << std::hex << rpc_read_enable << std::endl;
-    int rpc_bxn_offset  = (data >> 5) & 0xf;
+		 << std::hex << read_rpc_read_enable_ << std::endl;
+    read_rpc_bxn_offset_  = (data >> 5) & 0xf;
     (*configOut_) << "        RPC BXN offset  = " 
-		 << std::dec << rpc_bxn_offset << std::endl;
+		 << std::dec << read_rpc_bxn_offset_ << std::endl;
     //
   } else if ( address == vme_ratctrl_adr ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> RAT control register" << std::endl;
     //
-    int rpc_shift       = (data >> 1) & 0x1;
+    read_shift_rpc_       = (data >> 1) & 0x1;
     (*configOut_) << "        RPC shift 1/2 cycle = " 
-		 << std::hex << rpc_shift << std::endl;
+		 << std::hex << read_shift_rpc_ << std::endl;
     //
   } else if ( address == vme_loopbk_adr  ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Loopback register" << std::endl;
     //
-    int enable_alct_rx  = (data >> 2) & 0x1;
+    read_enable_alct_rx_  = (data >> 2) & 0x1;
     (*configOut_) << "        ALCT enable LVDS rx = " 
-		 << std::hex << enable_alct_rx << std::endl;
+		 << std::hex << read_enable_alct_rx_ << std::endl;
     //
-    int enable_alct_tx  = (data >> 3) & 0x1;
+    read_enable_alct_tx_  = (data >> 3) & 0x1;
     (*configOut_) << "        ALCT enable LVDS tx = " 
-		 << std::hex << enable_alct_tx << std::endl;
+		 << std::hex << read_enable_alct_tx_ << std::endl;
+    //
+    read_ALCT_input_ = read_enable_alct_tx_ & read_enable_alct_rx_;
     //
   } else if ( address == ccb_trig_adr    ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> CCB trigger configuration register" << std::endl;
     //
-    int alct_ext_trig_l1aen  = (data >> 0) & 0x1;
+    read_alct_ext_trig_l1aen_  = (data >> 0) & 0x1;
     (*configOut_) << "        Request CCB L1a on ALCT ext trig      = "
-		 << std::hex << alct_ext_trig_l1aen << std::endl;
+		 << std::hex << read_alct_ext_trig_l1aen_ << std::endl;
     //
-    int clct_ext_trig_l1aen  = (data >> 1) & 0x1;
+    read_clct_ext_trig_l1aen_  = (data >> 1) & 0x1;
     (*configOut_) << "        Request CCB L1a on CLCT ext trig      = " 
-		 << std::hex << clct_ext_trig_l1aen << std::endl;
+		 << std::hex << read_clct_ext_trig_l1aen_ << std::endl;
     //
-    int seq_trig_l1aen       = (data >> 2) & 0x1;
+    read_request_l1a_       = (data >> 2) & 0x1;
     (*configOut_) << "        Request CCB L1a on seq trig           = " 
-		 << std::hex << seq_trig_l1aen << std::endl;
+		 << std::hex << read_request_l1a_ << std::endl;
     //
-    int alct_ext_trig_vme    = (data >> 3) & 0x1;
+    read_alct_ext_trig_vme_    = (data >> 3) & 0x1;
     (*configOut_) << "        Fire ALCT ext trig one-shot           = " 
-		 << std::hex << alct_ext_trig_vme << std::endl;
+		 << std::hex << read_alct_ext_trig_vme_ << std::endl;
     //
-    int clct_ext_trig_vme    = (data >> 4) & 0x1;
+    read_clct_ext_trig_vme_    = (data >> 4) & 0x1;
     (*configOut_) << "        Fire CLCT ext trig one-shot           = " 
-		 << std::hex << clct_ext_trig_vme << std::endl;
+		 << std::hex << read_clct_ext_trig_vme_ << std::endl;
     //
-    int ext_trig_both        = (data >> 5) & 0x1;
+    read_ext_trig_both_        = (data >> 5) & 0x1;
     (*configOut_) << "        CLCText fire ALCT + ALCText fire CLCT = " 
-		 << std::hex << ext_trig_both << std::endl;
+		 << std::hex << read_ext_trig_both_ << std::endl;
     //
-    int ccb_allow_bypass     = (data >> 6) & 0x1;
+    read_ccb_allow_bypass_     = (data >> 6) & 0x1;
     (*configOut_) << "        allow CLCTextCCB when ccb_ignore_rx=1 = " 
-		 << std::hex << ccb_allow_bypass << std::endl;
+		 << std::hex << read_ccb_allow_bypass_ << std::endl;
     //
-    int l1a_delay_vme        = (data >> 8) & 0xff;
+    read_l1a_delay_vme_        = (data >> 8) & 0xff;
     (*configOut_) << "        Internal L1A delay (VME)              = " 
-		 << std::dec << l1a_delay_vme << std::endl;
+		 << std::dec << read_l1a_delay_vme_ << std::endl;
     //
   } else if ( address == seq_fifo_adr    ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Sequencer FIFO configuration register" << std::endl;
     //
-    int fifo_mode            = (data >> 0) & 0x7;
+    read_fifo_mode_            = (data >> 0) & 0x7;
     (*configOut_) << "        Fifo_mode                            = " 
-		 << std::dec << fifo_mode << " = ";
-    if (fifo_mode == 0) {
+		 << std::dec << read_fifo_mode_ << " = ";
+    if (read_fifo_mode_ == 0) {
       (*configOut_) << "no    CFEB raw hits, full  header";
-    } else if (fifo_mode == 1) {
+    } else if (read_fifo_mode_ == 1) {
       (*configOut_) << "all   CFEB raw hits, full  header";
-    } else if (fifo_mode == 2) {
+    } else if (read_fifo_mode_ == 2) {
       (*configOut_) << "local CFEB raw hits, full  header";
-    } else if (fifo_mode == 3) {
+    } else if (read_fifo_mode_ == 3) {
       (*configOut_) << "no    CFEB raw hits, short header";
-    } else if (fifo_mode == 4) {
+    } else if (read_fifo_mode_ == 4) {
       (*configOut_) << "no    CFEB raw hits, no    header";
     } else {
       (*configOut_) << "unknown fifo_mode...";
     }
     (*configOut_) << std::endl;
     //
-    int fifo_tbins           = (data >> 3) & 0x1f;
+    read_fifo_tbins_           = (data >> 3) & 0x1f;
     (*configOut_) << "        Number FIFO time bins read out       = " 
-		 << std::dec << fifo_tbins << std::endl;
+		 << std::dec << read_fifo_tbins_ << std::endl;
     //
-    int fifo_pretrig         = (data >> 8) & 0x1f;
+    read_fifo_pretrig_         = (data >> 8) & 0x1f;
     (*configOut_) << "        Number FIFO time bins before pretrig = " 
-		 << std::dec << fifo_pretrig << std::endl;
+		 << std::dec << read_fifo_pretrig_ << std::endl;
     //
   } else if ( address == seq_trig_en_adr ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Sequencer trigger source enable register" << std::endl;
     //
-    int clct_pat_trig_en         = (data >> 0) & 0x1;
+    read_clct_pat_trig_en_         = (data >> 0) & 0x1;
     (*configOut_) << "        CLCT pattern trigger            = " 
-		 << std::hex << clct_pat_trig_en << std::endl;
+		 << std::hex << read_clct_pat_trig_en_ << std::endl;
     //
-    int alct_pat_trig_en         = (data >> 1) & 0x1;
+    read_alct_pat_trig_en_         = (data >> 1) & 0x1;
     (*configOut_) << "        ALCT pattern trigger            = " 
-		 << std::hex << alct_pat_trig_en << std::endl;
+		 << std::hex << read_alct_pat_trig_en_ << std::endl;
     //
-    int match_pat_trig_en        = (data >> 2) & 0x1;
+    read_match_pat_trig_en_        = (data >> 2) & 0x1;
     (*configOut_) << "        ALCT*CLCT pattern trigger       = " 
-		 << std::hex << match_pat_trig_en << std::endl;
+		 << std::hex << read_match_pat_trig_en_ << std::endl;
     //
-    int adb_ext_trig_en          = (data >> 3) & 0x1;
+    read_adb_ext_trig_en_          = (data >> 3) & 0x1;
     (*configOut_) << "        ADB external trigger            = " 
-		 << std::hex << adb_ext_trig_en << std::endl;
+		 << std::hex << read_adb_ext_trig_en_ << std::endl;
     //
-    int dmb_ext_trig_en          = (data >> 4) & 0x1;
+    read_dmb_ext_trig_en_          = (data >> 4) & 0x1;
     (*configOut_) << "        DMB external trigger            = " 
-		 << std::hex << dmb_ext_trig_en << std::endl;
+		 << std::hex << read_dmb_ext_trig_en_ << std::endl;
     //
-    int clct_ext_trig_en         = (data >> 5) & 0x1;
+    read_clct_ext_trig_en_         = (data >> 5) & 0x1;
     (*configOut_) << "        CLCT external (scint) trigger   = " 
-		 << std::hex << clct_ext_trig_en << std::endl;
+		 << std::hex << read_clct_ext_trig_en_ << std::endl;
     //
-    int alct_ext_trig_en         = (data >> 6) & 0x1;
+    read_alct_ext_trig_en_         = (data >> 6) & 0x1;
     (*configOut_) << "        ALCT external trigger           = " 
-		 << std::hex << alct_ext_trig_en << std::endl;
+		 << std::hex << read_alct_ext_trig_en_ << std::endl;
     //
-    int vme_ext_trig_en         = (data >> 7) & 0x1;
+    read_vme_ext_trig_en_         = (data >> 7) & 0x1;
     (*configOut_) << "        VME external trigger            = " 
-		 << std::hex << vme_ext_trig_en << std::endl;
+		 << std::hex << read_vme_ext_trig_en_ << std::endl;
     //
-    int ext_trig_inject         = (data >> 8) & 0x1;
+    read_ext_trig_inject_         = (data >> 8) & 0x1;
     (*configOut_) << "        CLCT ext trig fire pat injector = " 
-		 << std::hex << ext_trig_inject << std::endl;
+		 << std::hex << read_ext_trig_inject_ << std::endl;
     //
-    int all_cfeb_active         = (data >> 9) & 0x1;
+    read_all_cfeb_active_         = (data >> 9) & 0x1;
     (*configOut_) << "        all CFEBs active                = " 
-		 << std::hex << all_cfeb_active << std::endl;
+		 << std::hex << read_all_cfeb_active_ << std::endl;
     //
-    int cfebs_enabled           = (data >>10) & 0x1f;
+    read_cfebs_enabled_           = (data >>10) & 0x1f;
     (*configOut_) << "        CFEBs enabled                   = 0x" 
-		 << std::hex << cfebs_enabled << std::endl;
+		 << std::hex << read_cfebs_enabled_ << std::endl;
     //
-    int cfeb_enable_source      = (data >>15) & 0x1;
+    read_cfeb_enable_source_      = (data >>15) & 0x1;
     (*configOut_) << "        enable CFEBS through VME 0x42   = " 
-		 << std::hex << cfeb_enable_source << std::endl;
+		 << std::hex << read_cfeb_enable_source_ << std::endl;
     //    
   } else if ( address == tmbtim_adr      ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> ALCT*CLCT timing register" << std::endl;
     //
-    int alct_delay         = (data >> 0) & 0xf;
+    read_alct_vpf_delay_         = (data >> 0) & 0xf;
     (*configOut_) << "        ALCT Valid Pattern Flag delay = " 
-		 << std::dec << alct_delay << std::endl;
+		 << std::dec << read_alct_vpf_delay_ << std::endl;
     //
-    int match_window_width = (data >> 4) & 0xf;
+    read_alct_match_window_size_ = (data >> 4) & 0xf;
     (*configOut_) << "        ALCT*CLCT match window width  = " 
-		 << std::dec << match_window_width << std::endl;
+		 << std::dec << read_alct_match_window_size_ << std::endl;
     //
-    int mpc_transmit_delay = (data >> 8) & 0xf;
+    read_mpc_tx_delay_ = (data >> 8) & 0xf;
     (*configOut_) << "        LCT transmit to MPC delay     = " 
-		 << std::dec << mpc_transmit_delay << std::endl;
+		 << std::dec << read_mpc_tx_delay_ << std::endl;
     //
   } else if ( address == seq_offset_adr  ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Sequencer counter offset register" << std::endl;
     //
-    int l1a_counter_preset     = (data >> 0) & 0xf;
+    read_l1a_offset_     = (data >> 0) & 0xf;
     (*configOut_) << "        l1a Counter Preset value = " 
-		 << std::dec << l1a_counter_preset << std::endl;
+		 << std::dec << read_l1a_offset_ << std::endl;
     //
-    int bxn_offset             = (data >> 4) & 0xfff;
+    read_bxn_offset_             = (data >> 4) & 0xfff;
     (*configOut_) << "        BXN offset at reset      = " 
-		 << std::dec << bxn_offset << std::endl;
+		 << std::dec << read_bxn_offset_ << std::endl;
     //    
   } else if ( address == seq_clct_adr    ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Sequencer CLCT configuration register" << std::endl;
     //
-    int triad_persist     = (data >> 0) & 0xf;
+    read_triad_persist_     = (data >> 0) & 0xf;
     (*configOut_) << "        Triad 1-shot persistence          = 0x" 
-		 << std::hex << triad_persist << std::endl;
+		 << std::hex << read_triad_persist_ << std::endl;
     //
-    int hs_thresh         = (data >> 4) & 0x7;
+    read_hs_pretrig_thresh_         = (data >> 4) & 0x7;
     (*configOut_) << "        1/2-strip pretrig thresh          = " 
-		 << std::dec << hs_thresh << std::endl;
+		 << std::dec << read_hs_pretrig_thresh_ << std::endl;
     //
-    int ds_thresh         = (data >> 7) & 0x7;
+    read_ds_pretrig_thresh_         = (data >> 7) & 0x7;
     (*configOut_) << "        di-strip pretrig thresh           = " 
-		 << std::dec << ds_thresh << std::endl;
+		 << std::dec << read_ds_pretrig_thresh_ << std::endl;
     //
-    int nph_pattern       = (data >> 10) & 0x7;
+    read_min_hits_pattern_       = (data >> 10) & 0x7;
     (*configOut_) << "        min hits for valid pattern        = " 
-		 << std::dec << nph_pattern << std::endl;
+		 << std::dec << read_min_hits_pattern_ << std::endl;
     //
-    int drift_delay       = (data >> 13) & 0x3;
+    read_drift_delay_       = (data >> 13) & 0x3;
     (*configOut_) << "        drift delay                       = " 
-		 << std::dec << drift_delay << std::endl;
+		 << std::dec << read_drift_delay_ << std::endl;
     //
-    int pretrigger_halt   = (data >> 15) & 0x1;
+    read_pretrigger_halt_   = (data >> 15) & 0x1;
     (*configOut_) << "        pretrigger then halt until unhalt = " 
-		 << std::hex << pretrigger_halt << std::endl;
+		 << std::hex << read_pretrigger_halt_ << std::endl;
     //
   } else if ( address == scp_ctrl_adr    ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Scope control register..." << std::endl;
     //
-    int seq_readmode_in_dmb   = (data >> 5) & 0x1;
+    read_seq_readmode_in_dmb_   = (data >> 5) & 0x1;
     (*configOut_) << "        Insert sequencer readout mode in DMB data  = " 
-		 << std::hex << seq_readmode_in_dmb << std::endl;
+		 << std::hex << read_seq_readmode_in_dmb_ << std::endl;
     //
   } else if ( address == seq_l1a_adr     ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Sequencer L1A configuration register..." << std::endl;
     //
-    int l1a_delay   = (data >> 0) & 0xff;
+    read_l1adelay_   = (data >> 0) & 0xff;
     (*configOut_) << "        L1a delay from pretrig status output  = " 
-		 << std::dec << l1a_delay << std::endl;
+		 << std::dec << read_l1adelay_ << std::endl;
     //
-    int l1a_accept_window   = (data >> 8) & 0xf;
+    read_l1a_window_size_   = (data >> 8) & 0xf;
     (*configOut_) << "        L1a accept window width               = " 
-		 << std::dec << l1a_accept_window << std::endl;
+		 << std::dec << read_l1a_window_size_ << std::endl;
     //
   } else if ( address == tmb_trig_adr    ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> TMB trigger, MPC accept register..." << std::endl;
     //
-    int tmb_sync_err_enable   = (data >> 0) & 0x3;
+    read_tmb_sync_err_enable_   = (data >> 0) & 0x3;
     (*configOut_) << "        Allow sync_err to MPC for either muon        = " 
-		 << std::hex << tmb_sync_err_enable << std::endl;
+		 << std::hex << read_tmb_sync_err_enable_ << std::endl;
     //
     // N.B. according to TMB documentation, an ALCT only L1a is not used in current version...
     //
-    int tmb_allow_clct        = (data >> 3) & 0x1;
+    read_tmb_allow_clct_        = (data >> 3) & 0x1;
     (*configOut_) << "        Allow CLCT only L1a                          = " 
-		 << std::hex << tmb_allow_clct << std::endl;
+		 << std::hex << read_tmb_allow_clct_ << std::endl;
     //
-    int tmb_allow_match        = (data >> 4) & 0x1;
+    read_tmb_allow_match_        = (data >> 4) & 0x1;
     (*configOut_) << "        Allow ALCT*CLCT match pre-trigger            = " 
-		 << std::hex << tmb_allow_match << std::endl;
+		 << std::hex << read_tmb_allow_match_ << std::endl;
     //
-    int mpc_rx_delay           = (data >> 5) & 0xf;
+    read_mpc_delay_           = (data >> 5) & 0xf;
     (*configOut_) << "        MPC rx delay                                 = " 
-		 << std::dec << mpc_rx_delay << std::endl;
+		 << std::dec << read_mpc_delay_ << std::endl;
     //
-    int mpc_sel_ttc_bx0        = (data >>13) & 0x1;
+    read_mpc_sel_ttc_bx0_        = (data >>13) & 0x1;
     (*configOut_) << "        MPC gets bx0 from TTC                        = " 
-		 << std::dec << mpc_sel_ttc_bx0 << std::endl;
+		 << std::dec << read_mpc_sel_ttc_bx0_ << std::endl;
     //
-    int mpc_idle_blank         = (data >>14) & 0x1;
+    read_mpc_idle_blank_         = (data >>14) & 0x1;
     (*configOut_) << "        blank MPC data and bx0 except when triggered = " 
-		 << std::hex << mpc_sel_ttc_bx0 << std::endl;
+		 << std::hex << read_mpc_idle_blank_ << std::endl;
     //
   } else if ( address == vme_ddd1_adr    ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Clock phase delay register:" << std::endl;
     //
-    int tmb1_phase   = (data >> 0) & 0xf;
+    read_tmb1_phase_   = (data >> 0) & 0xf;
     (*configOut_) << "        TMB 1 phase                             = " 
-		 << std::dec << tmb1_phase << std::endl;
+		 << std::dec << read_tmb1_phase_ << std::endl;
     //
-    int mpc_phase   = (data >> 4) & 0xf;
+    read_mpc_phase_   = (data >> 4) & 0xf;
     (*configOut_) << "        MPC phase                               = " 
-		 << std::dec << mpc_phase << std::endl;
+		 << std::dec << read_mpc_phase_ << std::endl;
     //
-    int dcc_phase   = (data >> 8) & 0xf;
+    read_dcc_phase_   = (data >> 8) & 0xf;
     (*configOut_) << "        DCC (cfeb duty cycle correction) phase  = " 
-		 << std::dec << dcc_phase << std::endl;
+		 << std::dec << read_dcc_phase_ << std::endl;
     //
-    int cfeb0_phase   = (data >>12) & 0xf;
+    read_cfeb0delay_   = (data >>12) & 0xf;
     (*configOut_) << "        CFEB 0 phase                            = " 
-		 << std::dec << cfeb0_phase << std::endl;
+		 << std::dec << read_cfeb0delay_ << std::endl;
     //
   } else if ( address == vme_ddd2_adr    ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Clock phase delay register:" << std::endl;
     //
-    int cfeb1_phase   = (data >> 0) & 0xf;
+    read_cfeb1delay_   = (data >> 0) & 0xf;
     (*configOut_) << "        CFEB 1 phase = " 
-		 << std::dec << cfeb1_phase << std::endl;
+		 << std::dec << read_cfeb1delay_ << std::endl;
     //
-    int cfeb2_phase   = (data >> 4) & 0xf;
+    read_cfeb2delay_   = (data >> 4) & 0xf;
     (*configOut_) << "        CFEB 2 phase = " 
-		 << std::dec << cfeb2_phase << std::endl;
+		 << std::dec << read_cfeb2delay_ << std::endl;
     //
-    int cfeb3_phase   = (data >> 8) & 0xf;
+    read_cfeb3delay_   = (data >> 8) & 0xf;
     (*configOut_) << "        CFEB 3 phase = " 
-		 << std::dec << cfeb3_phase << std::endl;
+		 << std::dec << read_cfeb3delay_ << std::endl;
     //
-    int cfeb4_phase   = (data >>12) & 0xf;
+    read_cfeb4delay_   = (data >>12) & 0xf;
     (*configOut_) << "        CFEB 4 phase = " 
-		 << std::dec << cfeb4_phase << std::endl;
+		 << std::dec << read_cfeb4delay_ << std::endl;
     //
   } else if ( address == vme_ddd0_adr    ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Clock phase delay register:" << std::endl;
     //
-    int alct_tx_phase   = (data >> 0) & 0xf;
+    read_alct_tx_clock_delay_   = (data >> 0) & 0xf;
     (*configOut_) << "        ALCT tx phase = " 
-		 << std::dec << alct_tx_phase << std::endl;
+		 << std::dec << read_alct_tx_clock_delay_ << std::endl;
     //
-    int alct_rx_phase   = (data >> 4) & 0xf;
+    read_alct_rx_clock_delay_   = (data >> 4) & 0xf;
     (*configOut_) << "        ALCT rx phase = " 
-		 << std::dec << alct_rx_phase << std::endl;
+		 << std::dec << read_alct_rx_clock_delay_ << std::endl;
     //
-    int dmb_tx_phase   = (data >> 8) & 0xf;
+    read_dmb_tx_delay_   = (data >> 8) & 0xf;
     (*configOut_) << "        DMB tx phase  = " 
-		 << std::dec << dmb_tx_phase << std::endl;
+		 << std::dec << read_dmb_tx_delay_ << std::endl;
     //
-    int rpc_tx_phase   = (data >>12) & 0xf;
-    (*configOut_) << "        RPC tx phase  = " 
-		 << std::dec << rpc_tx_phase << std::endl;
+    read_rat_tmb_delay_   = (data >>12) & 0xf;
+    (*configOut_) << "        RAT-TMB phase  = " 
+		 << std::dec << read_rat_tmb_delay_ << std::endl;
     //
   } else if ( address == rat_3d_delays_adr) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> RPC/RAT phase delay register:" << std::endl;
     //
-    int rpc0_rat_phase   = (data >> 0) & 0xf;
+    read_rpc0_rat_delay_   = (data >> 0) & 0xf;
     (*configOut_) << "        RPC0/RAT rx phase          = " 
-		 << std::dec << rpc0_rat_phase << std::endl;
+		 << std::dec << read_rpc0_rat_delay_ << std::endl;
     //
-    int rpc1_rat_phase   = (data >> 4) & 0xf;
+    read_rpc1_rat_phase_   = (data >> 4) & 0xf;
     (*configOut_) << "        RPC1/RAT rx phase          = " 
-		 << std::dec << rpc1_rat_phase << std::endl;
+		 << std::dec << read_rpc1_rat_phase_ << std::endl;
     //
-    int rpc2_rat_phase   = (data >> 8) & 0xf;
+    read_rpc2_rat_phase_   = (data >> 8) & 0xf;
     (*configOut_) << "        RPC2/RAT rx phase (unused) = " 
-		 << std::dec << rpc2_rat_phase << std::endl;
+		 << std::dec << read_rpc2_rat_phase_ << std::endl;
     //
-    int rpc3_rat_phase   = (data >>12) & 0xf;
+    read_rpc3_rat_phase_   = (data >>12) & 0xf;
     (*configOut_) << "        RPC3/RAT rx phase (unused) = " 
-		 << std::dec << rpc3_rat_phase << std::endl;
+		 << std::dec << read_rpc3_rat_phase_ << std::endl;
     //
   } else if ( address == cfeb_inj_adr    ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> CFEB injector control register:" << std::endl;
     //
-    int cfeb_en_mask   = (data >> 0) & 0x1f;
+    read_enableCLCTInputs_   = (data >> 0) & 0x1f;
     (*configOut_) << "        CFEB enable mask                = 0x" 
-		 << std::hex << cfeb_en_mask << std::endl;
+		 << std::hex << read_enableCLCTInputs_ << std::endl;
     //
-    int cfeb_ram_sel   = (data >> 5) & 0x1f;
+    read_cfeb_ram_sel_   = (data >> 5) & 0x1f;
     (*configOut_) << "        select CFEB for RAM read/write  = 0x" 
-		 << std::hex << cfeb_ram_sel << std::endl;
+		 << std::hex << read_cfeb_ram_sel_ << std::endl;
     //
-    int cfeb_inj_en_sel   = (data >> 10) & 0x1f;
+    read_cfeb_inj_en_sel_   = (data >> 10) & 0x1f;
     (*configOut_) << "        CFEB enable injector mask       = 0x" 
-		 << std::hex << cfeb_inj_en_sel << std::endl;
+		 << std::hex << read_cfeb_inj_en_sel_ << std::endl;
     //
-    int start_pattern_inj   = (data >> 15) & 0x1;
+    read_start_pattern_inj_   = (data >> 15) & 0x1;
     (*configOut_) << "        start pattern injector          = " 
-		 << std::hex << start_pattern_inj << std::endl;
+		 << std::hex << read_start_pattern_inj_ << std::endl;
     //
   } else if ( address == seq_id_adr      ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> ID register" << std::endl;
     //
-    int tmb_slot = (data >> 0) & 0x1f;
+    read_tmb_slot_ = (data >> 0) & 0x1f;
     (*configOut_) << "        TMB slot = " 
-		 << std::dec << tmb_slot << std::endl;
+		 << std::dec << read_tmb_slot_ << std::endl;
     //
-    int csc_id     = (data >> 5) & 0xf;
+    read_csc_id_     = (data >> 5) & 0xf;
     (*configOut_) << "        CSC ID   = " 
-		 << std::dec << csc_id << std::endl;
+		 << std::dec << read_csc_id_ << std::endl;
     //
-    int run_id     = (data >> 9) & 0xf;
+    read_run_id_     = (data >> 9) & 0xf;
     (*configOut_) << "        Run ID   = " 
-		 << std::dec << run_id << std::endl;
+		 << std::dec << read_run_id_ << std::endl;
     //
 
   } else if ( address == alct_inj_adr    ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> ALCT injector control register" << std::endl;
     //
-    int alct_clear   = (data >> 0) & 0x1;
+    read_alct_clear_   = (data >> 0) & 0x1;
     (*configOut_) << "        disable ALCT = " 
-		 << std::hex << alct_clear << std::endl;
+		 << std::hex << read_alct_clear_ << std::endl;
     //
   } else if ( address == seq_trig_dly2_adr    ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Sequencer trigger source delays register" << std::endl;
     //
-    int alct_trig_width   = (data >> 0) & 0xf;
+    read_alct_trig_width_   = (data >> 0) & 0xf;
     (*configOut_) << "        ALCTCLCT Pretrigger window width    = " 
-		 << std::dec << alct_trig_width << std::endl;
+		 << std::dec << read_alct_trig_width_ << std::endl;
     //
-    int alct_pretrig_delay   = (data >> 4) & 0xf;
+    read_alct_pretrig_delay_   = (data >> 4) & 0xf;
     (*configOut_) << "        ALCT Pretrigger delay for ALCT*CLCT = " 
-		 << std::dec << alct_pretrig_delay << std::endl;
+		 << std::dec << read_alct_pretrig_delay_ << std::endl;
     //
-    int alct_pattern_delay   = (data >> 8) & 0xf;
+    read_alct_pattern_delay_   = (data >> 8) & 0xf;
     (*configOut_) << "        ALCT Pattern delay                  = " 
-		 << std::dec << alct_pattern_delay << std::endl;
+		 << std::dec << read_alct_pattern_delay_ << std::endl;
     //
-    int adb_ext_trig_delay   = (data >>12) & 0xf;
+    read_adb_ext_trig_delay_   = (data >>12) & 0xf;
     (*configOut_) << "        ADB External Trig delay             = " 
-		 << std::dec << adb_ext_trig_delay << std::endl;
+		 << std::dec << read_adb_ext_trig_delay_ << std::endl;
     //
   } else if ( address == seqmod_adr    ) {
     //
     (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Sequencer trigger modifier register" << std::endl;
     //
-    int clct_flush_delay     = (data >> 0) & 0xf;
+    read_clct_flush_delay_     = (data >> 0) & 0xf;
     (*configOut_) << "        Trigger seq flush state timer                   = " 
-		 << std::dec << clct_flush_delay << std::endl;
+		 << std::dec << read_clct_flush_delay_ << std::endl;
     //
-    int clct_turbo           = (data >> 4) & 0x1;
+    read_clct_turbo_           = (data >> 4) & 0x1;
     (*configOut_) << "        Disable raw hits (turbo mode)                   = " 
-		 << std::hex << clct_turbo << std::endl;
+		 << std::hex << read_clct_turbo_ << std::endl;
     //
-    int ranlct_enable        = (data >> 5) & 0x1;
+    read_ranlct_enable_        = (data >> 5) & 0x1;
     (*configOut_) << "        Enable OSU random LCT generator                 = " 
-		 << std::hex << ranlct_enable << std::endl;
+		 << std::hex << read_ranlct_enable_ << std::endl;
     //
-    int wrt_buf_required        = (data >> 6) & 0x1;
+    read_wrt_buf_required_        = (data >> 6) & 0x1;
     (*configOut_) << "        Require wr_buffer available to pretrigger       = " 
-		 << std::hex << wrt_buf_required << std::endl;
+		 << std::hex << read_wrt_buf_required_ << std::endl;
     //
-    int valid_clct_required        = (data >> 7) & 0x1;
+    read_valid_clct_required_        = (data >> 7) & 0x1;
     (*configOut_) << "        Require valid CLCT after drift delay            = " 
-		 << std::hex << valid_clct_required << std::endl;
+		 << std::hex << read_valid_clct_required_ << std::endl;
     //
-    int l1a_allow_match        = (data >> 8) & 0x1;
+    read_l1a_allow_match_        = (data >> 8) & 0x1;
     (*configOut_) << "        Allow tmb trig pulse in L1a window              = " 
-		 << std::hex << l1a_allow_match << std::endl;
+		 << std::hex << read_l1a_allow_match_ << std::endl;
     //
-    int l1a_allow_notmb        = (data >> 9) & 0x1;
+    read_l1a_allow_notmb_        = (data >> 9) & 0x1;
     (*configOut_) << "        Allow no TMB trig pulse in L1a window           = " 
-		 << std::hex << l1a_allow_notmb << std::endl;
+		 << std::hex << read_l1a_allow_notmb_ << std::endl;
     //
-    int l1a_allow_nol1a        = (data >>10) & 0x1;
+    read_l1a_allow_nol1a_        = (data >>10) & 0x1;
     (*configOut_) << "        Allow readout TMB trig pulse outside L1a window = " 
-		 << std::hex << l1a_allow_nol1a << std::endl;
+		 << std::hex << read_l1a_allow_nol1a_ << std::endl;
     //
-    int l1a_allow_alct_only        = (data >>11) & 0x1;
+    read_l1a_allow_alct_only_        = (data >>11) & 0x1;
     (*configOut_) << "        Allow ALCT-only events to readout at L1a        = " 
-		 << std::hex << l1a_allow_alct_only << std::endl;
+		 << std::hex << read_l1a_allow_alct_only_ << std::endl;
     //
-    int scint_veto_clr        = (data >>12) & 0x1;
+    read_scint_veto_clr_        = (data >>12) & 0x1;
     (*configOut_) << "        Clear scintillator veto                         = " 
-		 << std::hex << scint_veto_clr << std::endl;
+		 << std::hex << read_scint_veto_clr_ << std::endl;
     //
   } else {
     (*configOut_) << "-> Address 0x" << std::hex << address << " unknown..." << std::endl;
   }
+  //
+  // combinations of bits which say which trgmode_ we are using....
+  //
+  read_CLCTtrigger_setting_ = read_tmb_allow_clct_ & read_clct_pat_trig_en_;
+  read_ALCTCLCTtrigger_setting_ = read_tmb_allow_match_ & read_match_pat_trig_en_;
+  if (read_CLCTtrigger_setting_) read_trgmode_ = CLCT_trigger;
+  if (read_ALCTCLCTtrigger_setting_) read_trgmode_ = ALCT_CLCT_coincidence_trigger;
+  //
   return;
 }
 //
@@ -7074,3 +7269,102 @@ void TMB::CheckRawHitsHeader() {
   //
   return;
 }
+//
+bool TMB::compareValues(std::string TypeOfTest, 
+			int testval, 
+			int compareval,
+			bool equal) {
+  //
+  // test if "testval" is equivalent to the expected value: "compareval"
+  // return depends on if you wanted them to be "equal"
+  //
+  //(*MyOutput_) << "compareValues:  " << TypeOfTest << " -> ";
+  //
+  if (equal) {
+    if (testval == compareval) {
+      //      (*MyOutput_) << "PASS = 0x" << std::hex << compareval << std::endl;
+      return true;
+    } else {
+      std::ostringstream dump;
+      dump << "compareValues:  FAIL! ";
+      dump << TypeOfTest 
+	   << " -> expected value = 0x" << std::hex << compareval
+	   << ", returned value = 0x" << std:: hex << testval
+	   << std::endl;
+      //
+      (*MyOutput_) << "compareValues:  FAIL! ";
+      (*MyOutput_) << TypeOfTest 
+		   << " -> expected value = 0x" << std::hex << compareval
+		   << ", returned value = 0x" << std:: hex << testval
+		   << std::endl;
+      //
+      SendOutput(dump.str(),"ERROR");
+      return false;
+    }
+  } else {
+    if (testval != compareval) {
+      //      (*MyOutput_) << "PASS -> 0x" << std::hex << testval 
+      //                   << " not equal to 0x" <<std::hex << compareval 
+      //		   << std::endl;
+      return true;
+    } else {
+      std::ostringstream dump;
+      dump << "compareValues:  FAIL! ";
+      dump << TypeOfTest 
+	   << " expected = returned = 0x" << std::hex << testval
+	   << std::endl;
+      //
+      (*MyOutput_) << "compareValues:  FAIL! ";
+      (*MyOutput_) << TypeOfTest 
+		   << " expected = returned = 0x" << std::hex << testval
+		   << std::endl;
+      //
+      SendOutput(dump.str(),"ERROR");
+      return false;
+    }
+  }
+}
+//
+bool TMB::compareValues(std::string TypeOfTest, 
+			float testval, 
+			float compareval,
+			float tolerance) {
+  //
+  // test if "testval" is within "tolerance" of "compareval"...
+  //
+  //  (*MyOutput_) << "compareValues tolerance:  " << TypeOfTest << " -> ";
+  //
+  float err = (testval - compareval)/compareval;
+  //
+  float fractolerance = tolerance*compareval;
+  //
+  if (fabs(err)>tolerance) {
+      std::ostringstream dump;
+      dump << "FAIL!" << std::endl;
+      dump << TypeOfTest 
+	   << " expected = " << compareval 
+	   << ", returned = " << testval
+	   << " outside of tolerance "<< fractolerance
+	   << std::endl;
+      //
+      (*MyOutput_) << "FAIL!" << std::endl;
+      (*MyOutput_) << TypeOfTest 
+		   << " expected = " << compareval 
+		   << ", returned = " << testval
+		   << " outside of tolerance "<< fractolerance
+		   << std::endl;
+      //
+      SendOutput(dump.str(),"ERROR");
+      return false;
+  } else {
+    //      (*MyOutput_) << "PASS!" << std::endl;
+    //      (*MyOutput_) << TypeOfTest 
+    //		<< " value = " << testval
+    //		<< " within "<< fractolerance
+    //		<< " of " << compareval
+    //		<< std::endl;
+      return true;
+  }
+  //
+}
+//
