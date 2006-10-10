@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.5 2006/10/10 11:10:09 mey Exp $
+// $Id: Crate.cc,v 3.6 2006/10/10 14:08:08 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 3.6  2006/10/10 14:08:08  mey
+// UPdate
+//
 // Revision 3.5  2006/10/10 11:10:09  mey
 // Update
 //
@@ -266,16 +269,20 @@ void Crate::configure() {
   //
   std::vector<TMB*> myTmbs = this->tmbs();
   for(unsigned i =0; i < myTmbs.size(); ++i) {
-    myTmbs[i]->configure();
-    //
-    ALCTController * alct = myTmbs[i]->alctController();
-    if(alct) {
-      std::cout << "alct # =" << i << std::endl;
+    if (myTmbs[i]->slot()<22){
+      //
+      myTmbs[i]->configure();
+      //
+      ALCTController * alct = myTmbs[i]->alctController();
+      if(alct) {
+	std::cout << "alct # =" << i << std::endl;
 #ifndef ALCTNEW
-      alct->setup(1);
+	alct->setup(1);
 #else
-      alct->configure();
+	alct->configure();
 #endif
+	//
+      }
       //
     }
     //
@@ -283,17 +290,13 @@ void Crate::configure() {
   //
   std::vector<DAQMB*> myDmbs = this->daqmbs();
   for(unsigned i =0; i < myDmbs.size(); ++i) {
-    myDmbs[i]->restoreCFEBIdle();
-    myDmbs[i]->restoreMotherboardIdle();
-    myDmbs[i]->configure();
-  }
+    if (myDmbs[i]->slot()<22){
+      myDmbs[i]->restoreCFEBIdle();
+      myDmbs[i]->restoreMotherboardIdle();
+      myDmbs[i]->configure();
+    }
+    }
   //  
-  //for(unsigned i =0; i < myTmbs.size(); ++i) {
-  //
-  //}
-  //}
-  //
-  //::sleep(1);
 }
 //
 void Crate::init() {
