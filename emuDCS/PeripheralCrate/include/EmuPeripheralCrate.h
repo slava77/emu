@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.35 2006/10/10 16:17:08 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.36 2006/10/12 17:48:03 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -205,7 +205,7 @@ public:
     thisMPC = 0;
     rat = 0;
     alct = 0;
-    nTrigger_ = 1000;
+    nTrigger_ = 10;
     MenuMonitor_ = 2;
     //
     xgi::bind(this,&EmuPeripheralCrate::Default, "Default");
