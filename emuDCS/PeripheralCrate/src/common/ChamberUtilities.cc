@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.7 2006/10/10 11:10:09 mey Exp $
+// $Id: ChamberUtilities.cc,v 3.8 2006/10/12 17:52:13 mey Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.8  2006/10/12 17:52:13  mey
+// Update
+//
 // Revision 3.7  2006/10/10 11:10:09  mey
 // Update
 //
@@ -1650,7 +1653,7 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
 #endif
     thisTMB->ResetCounters();
     thisTMB->ResetALCTRAMAddress();
-    ::sleep(1);
+    ::sleep(3);
     thisTMB->GetCounters();
     //
     cout << endl;

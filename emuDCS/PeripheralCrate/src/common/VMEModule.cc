@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.6 2006/10/02 12:58:34 mey Exp $
+// $Id: VMEModule.cc,v 3.7 2006/10/12 17:52:13 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.7  2006/10/12 17:52:13  mey
+// Update
+//
 // Revision 3.6  2006/10/02 12:58:34  mey
 // Update
 //
@@ -168,6 +171,7 @@ void VMEModule::do_vme(char fcn, char vme,
 void VMEModule::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,
                      const char *inbuf,char *outbuf,int irdsnd) {
   //printf("VMEModule::devdo\n");
+  //std::cout << "VMEModule. Setting slot=" << theSlot << std::endl;
   theController->start( theSlot, boardType() );
   theController->devdo(dev, ncmd, cmd, nbuf, inbuf, outbuf, irdsnd);
 }

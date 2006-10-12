@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.17 2006/10/10 11:10:09 mey Exp $
+// $Id: DAQMB.cc,v 3.18 2006/10/12 17:52:13 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.18  2006/10/12 17:52:13  mey
+// Update
+//
 // Revision 3.17  2006/10/10 11:10:09  mey
 // Update
 //
@@ -484,13 +487,17 @@ void DAQMB::configure() {
    //
    (*MyOutput_) << "doing set_comp_thresh " << set_comp_thresh_ << std::endl;
    set_comp_thresh(set_comp_thresh_);
-   (*MyOutput_) << "doing preamp_initx() " << std::endl;
+   //(*MyOutput_) << "doing preamp_initx() " << std::endl;
+   preamp_initx();
+     
    //  If the comparator threshold setting is more than 5mV off, re-program the BuckFlash
    //for (int lfeb=0;lfeb<5;lfeb++)
    for(unsigned lfeb=0; lfeb<cfebs_.size();lfeb++){
      std::cout << "****************** thresh " << compthresh[lfeb] << " " << adcplus(2,lfeb) << std::endl;
      if((abs(compthresh[lfeb]-adcplus(2,lfeb))>5.)) cfebmatch=false;
    }
+
+   cfebmatch = false;
 
    if (!cfebmatch) {
      //
@@ -500,7 +507,6 @@ void DAQMB::configure() {
      (*MyOutput_) << "doing set_comp_mode " << comp_mode_bits << std::endl;
      (*MyOutput_) << comp_mode_ << " " << comp_timing_ << std::endl;
      set_comp_mode(comp_mode_bits);
-     //   preamp_initx();
 
      //
      /*
@@ -1908,13 +1914,17 @@ int i,j,nchips2;
 }
 
 
-void DAQMB::set_cal_tim_pulse(int ntim)
-
+void DAQMB::set_cal_tim_pulse(int itim)
 {
-  //(*MyOutput_)<< "setting pulse timing to " << ntim << std::endl;  
+  //
+  (*MyOutput_)<< "setting pulse timing to " << itim << std::endl; 
+  int cal_delay_bits = (calibration_LCT_delay_ & 0xF)
+    | (calibration_l1acc_delay_ & 0x1F) << 4
+    | (itim & 0x1F) << 9
+    | (inject_delay_ & 0x1F) << 14;
   int dword;
-  dword=(CAL_DEF_DELAY)&0x1ff;
-  dword=dword|((ntim&0x1f)<<9); 
+  dword=(cal_delay_bits)&0xfffff;
+  //
   setcaldelay(dword);
   //
   usleep(100);
@@ -1926,8 +1936,12 @@ void DAQMB::set_cal_tim_pulse(int ntim)
 void DAQMB::set_cal_tim_inject(int ntim)
 {
   (*MyOutput_)<< "setting inject timing to " << ntim << std::endl;
+  int cal_delay_bits = (calibration_LCT_delay_ & 0xF)
+    | (calibration_l1acc_delay_ & 0x1F) << 4
+    | (pulse_delay_ & 0x1F) << 9
+    | (inject_delay_ & 0x1F) << 14;
   int dword;
-  dword=(CAL_DEF_DELAY)&0x3fff;
+  dword=(cal_delay_bits)&0x3fff;
   dword=dword|((ntim&0x1f)<<14);
   setcaldelay(dword);
 }
@@ -2452,7 +2466,7 @@ void DAQMB::buckflash_dump(int nbuf,char *buf)
 
 // DAQMB program proms
 
-void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum)
+void DAQMB::epromloadOld(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum)
 {
   char snd[1024],expect[1024],rmask[1024],smask[1024],cmpbuf[1024];
   DEVTYPE devstp,dv;
@@ -2737,7 +2751,7 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
   //
 }
 
-void DAQMB::epromloadOld(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum)
+void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum)
 {
   //
   std::cout << "New epromload" << std::endl;

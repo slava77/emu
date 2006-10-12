@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 3.4 2006/10/04 14:23:56 mey Exp $
+// $Id: CalibDAQ.cc,v 3.5 2006/10/12 17:52:12 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 3.5  2006/10/12 17:52:12  mey
+// Update
+//
 // Revision 3.4  2006/10/04 14:23:56  mey
 // UPdate
 //
@@ -224,7 +227,7 @@ void CalibDAQ::rateTest() {
 	dac=0.2+0.2*j;
 	//
 	for (int tries=0;tries<20; tries++){
-	  pulseAllDMBs(0,nstrip,dac,0);
+	  pulseAllDMBs(-1,nstrip,dac,0);
 	}
 	//
       } //end of loop by strips
@@ -378,9 +381,12 @@ void CalibDAQ::timeCFEBtest() {
 	//
 	std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
 	//
-	for(unsigned i =0; i < myDmbs.size(); ++i) {
+	for(unsigned i=0; i < myDmbs.size(); ++i) {
+	  std::cout << "Dmbs i="<< i << std::endl;
+	  std::cout << "Dmbs slot="<< myDmbs[i]->slot() << std::endl;
 	  myDmbs[i]->set_cal_tim_pulse(ntim);
 	}
+	::usleep(1000);
 	//
 	CCB * ccb = myCrates[j]->ccb();
 	(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
@@ -426,7 +432,7 @@ void CalibDAQ::CFEBSaturation() {
 //
 void CalibDAQ::pedestalCFEB() { 
   //
-  int ntim = 1;
+  //
   float dac = 0.01;
   int nsleep(100);
   int counter = 0;
@@ -435,7 +441,7 @@ void CalibDAQ::pedestalCFEB() {
   pulseAllDMBsInit();
   //
   for (int events = 0; events<nevents; events++) {
-    pulseAllDMBs(ntim, -1, dac, nsleep,0);  
+    pulseAllDMBs(-1, -1, dac, nsleep,0);  
     counter++;
     std::cout << "dac = " << dac <<
       "  event  = " << counter << std::endl;
@@ -481,7 +487,7 @@ void CalibDAQ::pulseAllDMBsPre(int ntim, int nstrip, float dac, int nsleep,int c
     //
     for(unsigned i =0; i < myDmbs.size(); ++i) {
       //
-      myDmbs[i]->set_cal_tim_pulse(ntim);   
+      if (ntim!=-1) myDmbs[i]->set_cal_tim_pulse(ntim);   
       //
     }
   }

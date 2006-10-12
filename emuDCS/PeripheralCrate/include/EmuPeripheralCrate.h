@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.36 2006/10/12 17:48:03 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.37 2006/10/12 17:51:52 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -4219,7 +4219,7 @@ private:
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetCCB(thisCCB);
     //
-    MyTest[tmb].FindALCT_L1A_delay(130,170);
+    MyTest[tmb].FindALCT_L1A_delay(150,170);
     //
     this->ChamberTests(in,out);
     //
@@ -5064,14 +5064,14 @@ private:
 	      (int)thisDMB->febpromuser(*cfebItr),
 	      (int)thisDMB->febfpgauser(*cfebItr));
       //
-      if ( thisDMB->febfpgauser(*cfebItr) == 0xcfeda062 ) {
+      if ( thisDMB->febfpgauser(*cfebItr) == 0xcfeda071 ) {
 	*out << cgicc::span().set("style","color:green");
 	*out << buf;
 	*out << cgicc::span();
       } else {
 	*out << cgicc::span().set("style","color:red");
 	*out << buf;
-	*out << " (Should be 0xcfeda062) ";
+	*out << " (Should be 0xcfeda071) ";
 	*out << cgicc::span();
       }
       //
@@ -6281,7 +6281,7 @@ private:
     *out << cgicc::pre();
     //
     thisDMB->vmefpgaid();
-    sprintf(buf,"DMB vme FPGA : Version %d Revision %d Day %d Month %d Year %d",
+    sprintf(buf,"DMB vme FPGA : Version %d Revision %x Day %d Month %d Year %d",
 	    (int)thisDMB->GetFirmwareVersion(),(int)thisDMB->GetFirmwareRevision(),
 	    (int)thisDMB->GetFirmwareDay(),(int)thisDMB->GetFirmwareMonth(),(int)thisDMB->GetFirmwareYear());
     *out << buf ;
@@ -6308,7 +6308,7 @@ private:
     *out << cgicc::br();
       //
     sprintf(buf,"DMB fpga user id                   : %x ", (int) thisDMB->mbfpgauser());
-    if ( thisDMB->mbfpgauser() == 0x48547195 ) {
+    if ( thisDMB->mbfpgauser() == 0x48547204 ) {
 	*out << cgicc::span().set("style","color:green");
 	*out << buf;
 	*out << cgicc::span();

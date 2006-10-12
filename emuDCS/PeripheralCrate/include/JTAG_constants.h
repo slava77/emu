@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: JTAG_constants.h,v 3.2 2006/09/14 09:12:03 mey Exp $
+// $Id: JTAG_constants.h,v 3.3 2006/10/12 17:51:54 mey Exp $
 // $Log: JTAG_constants.h,v $
+// Revision 3.3  2006/10/12 17:51:54  mey
+// Update
+//
 // Revision 3.2  2006/09/14 09:12:03  mey
 // Update
 //
@@ -49,11 +52,11 @@ enum DEVTYPE{ALLMUX=-3,ALLSCAM=-2,ALL=-1,NONE,F1PROM,F2PROM,F3PROM,F4PROM,F5PROM
 
 /* Default delays */
 
-#define CAL_DEF_DELAY 0x3df68
-#define FEB_DEF_DELAY 0x15
-#define DAV_DEF_DELAY 0xc6254
-#define PRE_DEF_DELAY 7
-#define COMPMODE_DEF 0x0A
+//#define CAL_DEF_DELAY 0x3df68
+//#define FEB_DEF_DELAY 0x15
+//#define DAV_DEF_DELAY 0xc6254
+//#define PRE_DEF_DELAY 7
+//#define COMPMODE_DEF 0x0A
 
 /* JTAG instructions */
 #define EXT_TEST 0x00
