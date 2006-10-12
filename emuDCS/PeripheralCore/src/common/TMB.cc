@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.18 2006/10/10 15:34:58 rakness Exp $
+// $Id: TMB.cc,v 3.19 2006/10/12 15:56:02 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.19  2006/10/12 15:56:02  rakness
+// cleaned up configuration checking for ALCT/TMB
+//
 // Revision 3.18  2006/10/10 15:34:58  rakness
 // check TMB/ALCT configuration vs xml
 //
@@ -567,7 +570,7 @@ void TMB::configure() {
   ostringstream dump2;
   ostringstream dump3;
   //
-  dump  << "TMB : configure() for TMB in slot = ";
+  dump  << "TMB : configuring in slot = ";
   dump2 << theSlot;
   (*MyOutput_) << dump.str()+dump2.str() << std::endl;
   SendOutput(dump.str()+dump2.str(),"INFO");
@@ -581,6 +584,12 @@ void TMB::configure() {
     CheckAndProgramProm(ChipLocationTmbUserPromTMB);
   //
   SetFillVmeWriteVecs(false);        //give VME back to the user (default)
+  //
+  if ( CheckCurrentConfiguration() ) {
+    (*MyOutput_) << "TMB slot " << (int) slot() << " configuration check OK" << std::endl;
+  } else {
+    (*MyOutput_) << "TMB slot " << (int) slot() << " configuration check FAIL" << std::endl;
+  }
   //
 }
 
@@ -3030,19 +3039,19 @@ void TMB::load_cscid()
   } else {
     i=(theSlot/2-1)&0x000f;
   }
-  printf(" I am in CSC Slot %d \n",theSlot);
+  //  printf(" I am in CSC Slot %d \n",theSlot);
   sndbuf[0]=0;
   sndbuf[1]=0;
   tmb_vme(VME_READ,0x6e,sndbuf,rcvbuf,NOW);
-  printf(" read CSC %02x %02x from TMB\n",rcvbuf[0]&0x00ff,rcvbuf[1]&0x00ff );
+  //  printf(" read CSC %02x %02x from TMB\n",rcvbuf[0]&0x00ff,rcvbuf[1]&0x00ff );
 
   sndbuf[0]=( (rcvbuf[0]&0x00fe) | ((i>>3)&0x1)) & 0x00ff;
   sndbuf[1]=( (rcvbuf[1]&0x001f) | ((i<<5)&0xe0)) & 0x00ff;
-  printf(" write CSC ID %02x %02x to TMB\n",sndbuf[0]&0x00ff,sndbuf[1]&0x00ff);
+  //  printf(" write CSC ID %02x %02x to TMB\n",sndbuf[0]&0x00ff,sndbuf[1]&0x00ff);
   tmb_vme(VME_WRITE,0x6e,sndbuf,rcvbuf,NOW);
 
   tmb_vme(VME_READ,0x6e,sndbuf,rcvbuf,NOW);
-  printf(" read %02x %02x CSC from TMB \n",rcvbuf[0]&0x00ff,rcvbuf[1]&0x00ff );
+  //  printf(" read %02x %02x CSC from TMB \n",rcvbuf[0]&0x00ff,rcvbuf[1]&0x00ff );
 }
 
 
@@ -4616,8 +4625,8 @@ void TMB::trgmode(int choice)
   tmb_vme(VME_READ, vme_loopbk_adr ,sndbuf,rcvbuf, NOW); 
   sndbuf[0]=rcvbuf[0];
   sndbuf[1]=rcvbuf[1] & 0xfb | (ALCT_input_ << 2) ;
-  printf(" ALCT_input %d \n",ALCT_input_);
-  printf(" Setting ALCT input to %x %x \n",sndbuf[0],sndbuf[1]);
+  //  printf(" ALCT_input %d \n",ALCT_input_);
+  //  printf(" Setting ALCT input to %x %x \n",sndbuf[0],sndbuf[1]);
   // Change address
   tmb_vme(VME_WRITE, vme_loopbk_adr ,sndbuf,rcvbuf, NOW); 
 
@@ -4626,20 +4635,20 @@ void TMB::trgmode(int choice)
   sndbuf[0]=rcvbuf[0];
   //  sndbuf[1]=0;
   sndbuf[1]=(rcvbuf[1] & 0xfb) | ((request_l1a_ & 0x1) << 2);
-  printf(" Disabling L1a_request %x %x \n",sndbuf[0],sndbuf[1]);
+  //  printf(" Disabling L1a_request %x %x \n",sndbuf[0],sndbuf[1]);
   // Change address
   tmb_vme(VME_WRITE, ccb_trig_adr ,sndbuf,rcvbuf, NOW); 
 
 
   // Read address back
   tmb_vme(VME_READ, seq_fifo_adr ,sndbuf,rcvbuf, NOW);
-  printf(" ^^^ fifo_pretrig_ %d \n",fifo_pretrig_);
-  printf(" ^^^ fifo_mode_ %d \n",fifo_mode_);
-  printf(" ^^^ fifo_tbins_ %d \n",fifo_tbins_);
+  //  printf(" ^^^ fifo_pretrig_ %d \n",fifo_pretrig_);
+  //  printf(" ^^^ fifo_mode_ %d \n",fifo_mode_);
+  //  printf(" ^^^ fifo_tbins_ %d \n",fifo_tbins_);
   sndbuf[0]= (fifo_pretrig_ & 0x1f) ;
   sndbuf[1]= (fifo_mode_ & 0x7) | ((fifo_tbins_ & 0x1f) << 3); 
-  printf(" -------------- Reading 0x72 %x %x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
-  printf(" -------------- Writing 0x72 %x %x \n",sndbuf[0]&0xff,sndbuf[1]&0xff);
+  //  printf(" -------------- Reading 0x72 %x %x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  //  printf(" -------------- Writing 0x72 %x %x \n",sndbuf[0]&0xff,sndbuf[1]&0xff);
   // Change address
   tmb_vme(VME_WRITE, seq_fifo_adr ,sndbuf,rcvbuf, NOW); 
   
@@ -4683,9 +4692,9 @@ void TMB::trgmode(int choice)
   }
   //
   ostringstream dump;
-  dump << "TMB. tiggermode " << std::hex << sndbuf[0] << " " <<  sndbuf[1] ;
+  dump << "TMB. triggermode " << std::hex << (int) (sndbuf[0]&0xff) << " " <<  (int) (sndbuf[1]&0xff) ;
   //
-  (*MyOutput_) << dump.str() <<std::endl;
+  //  (*MyOutput_) << dump.str() <<std::endl;
   SendOutput(dump.str(),"INFO");
   //printf("TRGMODE %x %x %x" , seq_trig_en_adr, sndbuf[0], sndbuf[1]); 
   tmb_vme(VME_WRITE,seq_trig_en_adr,sndbuf,rcvbuf,NOW); // Sequencer Trigger Source
@@ -4740,7 +4749,7 @@ void TMB::trgmode(int choice)
   sndbuf[1] = (rcvbuf[1] & 0x0f) |
     ( (ds_pretrig_thresh_ & 0x1) << 7) |
     ( (hs_pretrig_thresh_ & 0x7) << 4);
-  printf("TRGMODE %x %x %x" , seq_clct_adr, sndbuf[0], sndbuf[1]);
+  //  printf("TRGMODE %x %x %x" , seq_clct_adr, sndbuf[0], sndbuf[1]);
   // Change address
   tmb_vme(VME_WRITE,seq_clct_adr,sndbuf,rcvbuf,NOW); // Sequencer CLCT Conf.
   //
@@ -4752,14 +4761,14 @@ void TMB::trgmode(int choice)
   
   //
   
-  std::cout << " Setting slot depending settings on TMB slot .... " << theSlot <<std::endl;
+  //  std::cout << " Setting slot depending settings on TMB slot .... " << theSlot <<std::endl;
   
   //L1A window size and pulse delay Chamber 1
   // Read address back
   tmb_vme(VME_READ,seq_l1a_adr,sndbuf,rcvbuf,NOW); // L1A delay
   sndbuf[0]=(rcvbuf[0] & 0xf0) | l1a_window_size_ & 0x0f;
   sndbuf[1]=l1adelay_ & 0xff;
-  printf("TRGMODE %x %x %x" , seq_l1a_adr, sndbuf[0], sndbuf[1]);
+  //  printf("TRGMODE %x %x %x" , seq_l1a_adr, sndbuf[0], sndbuf[1]);
   // Change address
   tmb_vme(VME_WRITE,seq_l1a_adr,sndbuf,rcvbuf,NOW); // L1A delay
   
@@ -4775,9 +4784,9 @@ void TMB::trgmode(int choice)
   //
   tmb_vme(VME_READ,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
   //
-  printf("**********MPC delay %d \n",mpc_delay_);
+  //  printf("**********MPC delay %d \n",mpc_delay_);
   //
-  printf("Reading address 0x86 to %x %x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  //  printf("Reading address 0x86 to %x %x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   sndbuf[0] = (rcvbuf[0] & 0xfe | (mpc_delay_ & 0x8)>>3) & 0xff;
   sndbuf[1] = (rcvbuf[1] & 0x1f | (mpc_delay_ & 0x7)<<5) & 0xff;
   //
@@ -4787,7 +4796,7 @@ void TMB::trgmode(int choice)
     sndbuf[1] = (sndbuf[1]&0xf3) | (0x18); 
   }
   //
-  printf("Setting address 0x86 to %x %x\n",sndbuf[0]&0xff,sndbuf[1]&0xff);
+  //  printf("Setting address 0x86 to %x %x\n",sndbuf[0]&0xff,sndbuf[1]&0xff);
   tmb_vme(VME_WRITE,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Write Trigger conf
   
   usleep(200);
@@ -4823,13 +4832,13 @@ void TMB::trgmode(int choice)
   if ( disableCLCTInputs_ ) DisableCLCTInputs();
   //
   tmb_vme(VME_READ,tmb_trig_adr,sndbuf,rcvbuf,NOW); // Trigger conf
-  printf("Reading address 0x86 to %x %x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  //  printf("Reading address 0x86 to %x %x\n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   //
 }
 
 
 void TMB::setupNewDelayChips() {
-   std::cout << "setting up new TMB delay chips" << std::endl;
+  //   std::cout << "setting up new TMB delay chips" << std::endl;
    sndbuf[0]=((cfeb0delay_<<4)&0xF0);   //DCC (CFEB duty cycle correction) unused
    sndbuf[1]=0x00;                      //TMB1, MPC clock unused
    tmb_vme(0x02,0x18,sndbuf,rcvbuf,1);  // CFEB0 DDD setting
@@ -6461,9 +6470,12 @@ bool TMB::CheckCurrentConfiguration() {
   //
   bool config_ok = true;
   //
-  (*configOut_) << "TMB: CHECK configuration in slot " << (int) slot() << std::endl;
-  //
   ReadCurrentConfiguration();    // fill the read values in the software
+  //
+  config_ok &= compareValues("Boot register control JTAG chain",
+			     boot_register_control_jtag_chain_,
+			     0,
+			     true);
   //
   config_ok &= compareValues("TMB-CFEB 0 phase",
 			     read_cfeb0delay_,
@@ -6625,51 +6637,50 @@ bool TMB::CheckCurrentConfiguration() {
 			     rpc0_rat_delay_,
 			     true);
   //
+  std::ostringstream dump;
+  dump << "TMB slot " << (int) slot() << ": configuration check -> ";
+  (*configOut_) << "TMB slot " << (int) slot() << ": configuration -> ";
+  //
+  if ( config_ok ) {
+    dump << "OK" << std::endl;
+    (*configOut_) << "OK" << std::endl;
+    SendOutput(dump.str(),"INFO");
+  } else {
+    dump << "FAIL <-" << std::endl;
+    (*configOut_) << "FAIL <-" << std::endl;
+    SendOutput(dump.str(),"ERROR");
+  }
   //
   return config_ok;
 }
 //
 void TMB::ReadCurrentConfiguration() {
   //
-  (*configOut_) << "TMB READ configuration in slot = " << (int) slot() << std::endl;
-  //
-  int date=FirmwareDate();
-  int year=FirmwareYear();
-  //
-  (*configOut_) << "-> Firmware date: " << std::hex 
-	       << ((date >> 12) & 0xf)
-	       << ((date >>  8) & 0xf)
-	       << ((date >>  4) & 0xf)
-	       << ((date >>  0) & 0xf)
-	       << ((year >> 12) & 0xf)
-	       << ((year >>  8) & 0xf)
-	       << ((year >>  4) & 0xf)
-	       << ((year >>  0) & 0xf) 
-	       << std::endl;
+  read_firmware_date_ = FirmwareDate();
+  read_firmware_year_ = FirmwareYear();
   //
   unsigned short int BootData;
   tmb_get_boot_reg(&BootData);
-  (*configOut_) << "Boot Register data = 0x" << std::hex << BootData << std::endl;
-  int boot_control_jtag_chain = (BootData << 7) & 0x1;
-  (*configOut_) << "Boot Register controls JTAG chain = " << std::hex << boot_control_jtag_chain << std::endl;
+  //  (*configOut_) << "Boot Register data = 0x" << std::hex << BootData << std::endl;
+  boot_register_control_jtag_chain_ = (BootData << 7) & 0x1;
   //
-  (*configOut_) << "addr    data" << std::endl;
-  (*configOut_) << "====   ======" << std::endl;
+  //  (*configOut_) << "addr    data" << std::endl;
+  //  (*configOut_) << "====   ======" << std::endl;
   //
   int config_data[number_of_allowed_configuration_addresses];
   for (int index=0; index<number_of_allowed_configuration_addresses; index++) {
-    if (allowed_configuration_addresses[index] != vme_usr_jtag_adr) {
-      (*configOut_) << "0x" << std::hex
-		   << ((allowed_configuration_addresses[index] >> 4) & 0xf) 
-		   << ((allowed_configuration_addresses[index] >> 0) & 0xf);
-      (*configOut_) << "   ";
+    if (allowed_configuration_addresses[index] != vme_usr_jtag_adr) {  // skip the user jtag register
+      //      (*configOut_) << "0x" << std::hex
+      //		   << ((allowed_configuration_addresses[index] >> 4) & 0xf) 
+      //		   << ((allowed_configuration_addresses[index] >> 0) & 0xf);
+      //      (*configOut_) << "   ";
       config_data[index] = ReadRegister(allowed_configuration_addresses[index]);
-      (*configOut_) << "0x" << std::hex  
-		   << ((config_data[index] >>12) & 0xf) 
-		   << ((config_data[index] >> 8) & 0xf) 
-		   << ((config_data[index] >> 4) & 0xf) 
-		   << ((config_data[index] >> 0) & 0xf);
-      (*configOut_) << std::endl;		
+      //      (*configOut_) << "0x" << std::hex  
+      //		   << ((config_data[index] >>12) & 0xf) 
+      //		   << ((config_data[index] >> 8) & 0xf) 
+      //		   << ((config_data[index] >> 4) & 0xf) 
+      //		   << ((config_data[index] >> 0) & 0xf);
+      //      (*configOut_) << std::endl;		
       DecodeConfigurationData(allowed_configuration_addresses[index],
 			      config_data[index]);
     }
@@ -6679,467 +6690,719 @@ void TMB::ReadCurrentConfiguration() {
   return;
 }
 //
+void TMB::PrintCurrentConfiguration() {
+  //
+  (*configOut_) << "TMB READ configuration in slot = " << (int) slot() << std::endl;
+  //
+  (*configOut_) << "-> Firmware date: " << std::hex 
+	       << ((read_firmware_date_ >> 12) & 0xf)
+	       << ((read_firmware_date_ >>  8) & 0xf)
+	       << ((read_firmware_date_ >>  4) & 0xf)
+	       << ((read_firmware_date_ >>  0) & 0xf)
+	       << ((read_firmware_year_ >> 12) & 0xf)
+	       << ((read_firmware_year_ >>  8) & 0xf)
+	       << ((read_firmware_year_ >>  4) & 0xf)
+	       << ((read_firmware_year_ >>  0) & 0xf) 
+	       << std::endl;
+  //
+  (*configOut_) << "Boot Register controls JTAG chain = " 
+		<< std::hex << boot_register_control_jtag_chain_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (rpc_cfg_adr & 0xff) 
+		<< " -> RPC configuration register" << std::endl;
+  (*configOut_) << "        RPC exists      = 0x" 
+		<< std::hex << read_rpc_exists_ << std::endl;
+  (*configOut_) << "        RPC read enable = " 
+		<< std::hex << read_rpc_read_enable_ << std::endl;
+  (*configOut_) << "        RPC BXN offset  = " 
+		<< std::dec << read_rpc_bxn_offset_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (vme_ratctrl_adr & 0xff) 
+		<< " -> RAT control register" << std::endl;
+  (*configOut_) << "        RPC shift 1/2 cycle = " 
+		<< std::hex << read_shift_rpc_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (vme_loopbk_adr & 0xff) 
+		<< " -> Loopback register" << std::endl;
+  (*configOut_) << "        ALCT enable LVDS rx = " 
+		<< std::hex << read_enable_alct_rx_ << std::endl;
+  (*configOut_) << "        ALCT enable LVDS tx = " 
+		<< std::hex << read_enable_alct_tx_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (ccb_trig_adr & 0xff) 
+		<< " -> CCB trigger configuration register" << std::endl;
+  (*configOut_) << "        Request CCB L1a on ALCT ext trig      = "
+		<< std::hex << read_alct_ext_trig_l1aen_ << std::endl;
+  (*configOut_) << "        Request CCB L1a on CLCT ext trig      = " 
+		<< std::hex << read_clct_ext_trig_l1aen_ << std::endl;
+  (*configOut_) << "        Request CCB L1a on seq trig           = " 
+		<< std::hex << read_request_l1a_ << std::endl;
+  (*configOut_) << "        Fire ALCT ext trig one-shot           = " 
+		<< std::hex << read_alct_ext_trig_vme_ << std::endl;
+  (*configOut_) << "        Fire CLCT ext trig one-shot           = " 
+		<< std::hex << read_clct_ext_trig_vme_ << std::endl;
+  (*configOut_) << "        CLCText fire ALCT + ALCText fire CLCT = " 
+		<< std::hex << read_ext_trig_both_ << std::endl;
+  (*configOut_) << "        allow CLCTextCCB when ccb_ignore_rx=1 = " 
+		<< std::hex << read_ccb_allow_bypass_ << std::endl;
+  (*configOut_) << "        Internal L1A delay (VME)              = " 
+		<< std::dec << read_internal_l1a_delay_vme_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (seq_fifo_adr & 0xff) 
+		<< " -> Sequencer FIFO configuration register" << std::endl;
+  (*configOut_) << "        Fifo_mode                            = " 
+		<< std::dec << read_fifo_mode_ << " = ";
+  if (read_fifo_mode_ == 0) {
+    (*configOut_) << "no    CFEB raw hits, full  header";
+  } else if (read_fifo_mode_ == 1) {
+    (*configOut_) << "all   CFEB raw hits, full  header";
+  } else if (read_fifo_mode_ == 2) {
+    (*configOut_) << "local CFEB raw hits, full  header";
+  } else if (read_fifo_mode_ == 3) {
+    (*configOut_) << "no    CFEB raw hits, short header";
+  } else if (read_fifo_mode_ == 4) {
+    (*configOut_) << "no    CFEB raw hits, no    header";
+  } else {
+    (*configOut_) << "unknown fifo_mode...";
+  }
+  (*configOut_) << std::endl;
+  (*configOut_) << "        Number FIFO time bins read out       = " 
+		<< std::dec << read_fifo_tbins_ << std::endl;
+  (*configOut_) << "        Number FIFO time bins before pretrig = " 
+		<< std::dec << read_fifo_pretrig_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (seq_trig_en_adr & 0xff) 
+		<< " -> Sequencer trigger source enable register" << std::endl;
+  (*configOut_) << "        CLCT pattern trigger            = " 
+		<< std::hex << read_clct_pat_trig_en_ << std::endl;
+  (*configOut_) << "        ALCT pattern trigger            = " 
+		<< std::hex << read_alct_pat_trig_en_ << std::endl;
+  (*configOut_) << "        ALCT*CLCT pattern trigger       = " 
+		<< std::hex << read_match_pat_trig_en_ << std::endl;
+  (*configOut_) << "        ADB external trigger            = " 
+		<< std::hex << read_adb_ext_trig_en_ << std::endl;
+  (*configOut_) << "        DMB external trigger            = " 
+		<< std::hex << read_dmb_ext_trig_en_ << std::endl;
+  (*configOut_) << "        CLCT external (scint) trigger   = " 
+		<< std::hex << read_clct_ext_trig_en_ << std::endl;
+  (*configOut_) << "        ALCT external trigger           = " 
+		<< std::hex << read_alct_ext_trig_en_ << std::endl;
+  (*configOut_) << "        VME external trigger            = " 
+		<< std::hex << read_vme_ext_trig_en_ << std::endl;
+  (*configOut_) << "        CLCT ext trig fire pat injector = " 
+		<< std::hex << read_ext_trig_inject_ << std::endl;
+  (*configOut_) << "        all CFEBs active                = " 
+		<< std::hex << read_all_cfeb_active_ << std::endl;
+  (*configOut_) << "        CFEBs enabled                   = 0x" 
+		<< std::hex << read_cfebs_enabled_ << std::endl;
+  (*configOut_) << "        enable CFEBS through VME 0x42   = " 
+		<< std::hex << read_cfeb_enable_source_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (tmbtim_adr & 0xff) 
+		<< " -> ALCT*CLCT timing register" << std::endl;
+  (*configOut_) << "        ALCT Valid Pattern Flag delay = " 
+		<< std::dec << read_alct_vpf_delay_ << std::endl;
+  (*configOut_) << "        ALCT*CLCT match window width  = " 
+		<< std::dec << read_alct_match_window_size_ << std::endl;
+  (*configOut_) << "        LCT transmit to MPC delay     = " 
+		<< std::dec << read_mpc_tx_delay_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (seq_offset_adr & 0xff) 
+		<< " -> Sequencer counter offset register" << std::endl;
+  (*configOut_) << "        l1a Counter Preset value = " 
+		<< std::dec << read_l1a_offset_ << std::endl;
+  (*configOut_) << "        BXN offset at reset      = " 
+		<< std::dec << read_bxn_offset_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (seq_clct_adr & 0xff) 
+		<< " -> Sequencer CLCT configuration register" << std::endl;
+  (*configOut_) << "        Triad 1-shot persistence          = 0x" 
+		<< std::hex << read_triad_persist_ << std::endl;
+  (*configOut_) << "        1/2-strip pretrig thresh          = " 
+		<< std::dec << read_hs_pretrig_thresh_ << std::endl;
+  (*configOut_) << "        di-strip pretrig thresh           = " 
+		<< std::dec << read_ds_pretrig_thresh_ << std::endl;
+  (*configOut_) << "        min hits for valid pattern        = " 
+		<< std::dec << read_min_hits_pattern_ << std::endl;
+  (*configOut_) << "        drift delay                       = " 
+		<< std::dec << read_drift_delay_ << std::endl;
+  (*configOut_) << "        pretrigger then halt until unhalt = " 
+		<< std::hex << read_pretrigger_halt_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (scp_ctrl_adr & 0xff) 
+		<< " -> Scope control register..." << std::endl;
+  (*configOut_) << "        Insert sequencer readout mode in DMB data  = " 
+		<< std::hex << read_seq_readmode_in_dmb_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (seq_l1a_adr & 0xff) 
+		<< " -> Sequencer L1A configuration register..." << std::endl;
+  (*configOut_) << "        L1a delay from pretrig status output  = " 
+		<< std::dec << read_l1adelay_ << std::endl;
+  (*configOut_) << "        L1a accept window width               = " 
+		<< std::dec << read_l1a_window_size_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (tmb_trig_adr & 0xff) 
+		<< " -> TMB trigger, MPC accept register..." << std::endl;
+  (*configOut_) << "        Allow sync_err to MPC for either muon        = " 
+		<< std::hex << read_tmb_sync_err_enable_ << std::endl;
+  (*configOut_) << "        Allow CLCT only L1a                          = " 
+		<< std::hex << read_tmb_allow_clct_ << std::endl;
+  (*configOut_) << "        Allow ALCT*CLCT match pre-trigger            = " 
+		<< std::hex << read_tmb_allow_match_ << std::endl;
+  (*configOut_) << "        MPC rx delay                                 = " 
+		<< std::dec << read_mpc_delay_ << std::endl;
+  (*configOut_) << "        MPC gets bx0 from TTC                        = " 
+		<< std::dec << read_mpc_sel_ttc_bx0_ << std::endl;
+  (*configOut_) << "        blank MPC data and bx0 except when triggered = " 
+		<< std::hex << read_mpc_idle_blank_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (vme_ddd1_adr & 0xff) 
+		<< " -> Clock phase delay register:" << std::endl;
+  (*configOut_) << "        TMB 1 phase                             = " 
+		<< std::dec << read_tmb1_phase_ << std::endl;
+  (*configOut_) << "        MPC phase                               = " 
+		<< std::dec << read_mpc_phase_ << std::endl;
+  (*configOut_) << "        DCC (cfeb duty cycle correction) phase  = " 
+		<< std::dec << read_dcc_phase_ << std::endl;
+  (*configOut_) << "        CFEB 0 phase                            = " 
+		<< std::dec << read_cfeb0delay_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (vme_ddd2_adr & 0xff) 
+		<< " -> Clock phase delay register:" << std::endl;
+  (*configOut_) << "        CFEB 1 phase = " 
+		<< std::dec << read_cfeb1delay_ << std::endl;
+  (*configOut_) << "        CFEB 2 phase = " 
+		<< std::dec << read_cfeb2delay_ << std::endl;
+  (*configOut_) << "        CFEB 3 phase = " 
+		<< std::dec << read_cfeb3delay_ << std::endl;
+  (*configOut_) << "        CFEB 4 phase = " 
+		<< std::dec << read_cfeb4delay_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (vme_ddd0_adr & 0xff) 
+		<< " -> Clock phase delay register:" << std::endl;
+  (*configOut_) << "        ALCT tx phase = " 
+		<< std::dec << read_alct_tx_clock_delay_ << std::endl;
+  (*configOut_) << "        ALCT rx phase = " 
+		<< std::dec << read_alct_rx_clock_delay_ << std::endl;
+  (*configOut_) << "        DMB tx phase  = " 
+		<< std::dec << read_dmb_tx_delay_ << std::endl;
+  (*configOut_) << "        RAT-TMB phase  = " 
+		<< std::dec << read_rat_tmb_delay_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (rat_3d_delays_adr & 0xff) 
+		<< " -> RPC/RAT phase delay register:" << std::endl;
+  (*configOut_) << "        RPC0/RAT rx phase          = " 
+		<< std::dec << read_rpc0_rat_delay_ << std::endl;
+  (*configOut_) << "        RPC1/RAT rx phase          = " 
+		<< std::dec << read_rpc1_rat_delay_ << std::endl;
+  (*configOut_) << "        RPC2/RAT rx phase (unused) = " 
+		<< std::dec << read_rpc2_rat_delay_ << std::endl;
+  (*configOut_) << "        RPC3/RAT rx phase (unused) = " 
+		<< std::dec << read_rpc3_rat_delay_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (cfeb_inj_adr & 0xff) 
+		<< " -> CFEB injector control register:" << std::endl;
+  (*configOut_) << "        CFEB enable mask                = 0x" 
+		<< std::hex << read_enableCLCTInputs_ << std::endl;
+  (*configOut_) << "        select CFEB for RAM read/write  = 0x" 
+		<< std::hex << read_cfeb_ram_sel_ << std::endl;
+  (*configOut_) << "        CFEB enable injector mask       = 0x" 
+		<< std::hex << read_cfeb_inj_en_sel_ << std::endl;
+  (*configOut_) << "        start pattern injector          = " 
+		<< std::hex << read_start_pattern_inj_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (seq_id_adr & 0xff) 
+		<< " -> ID register" << std::endl;
+  (*configOut_) << "        TMB slot = " 
+		<< std::dec << read_tmb_slot_ << std::endl;
+  (*configOut_) << "        CSC ID   = " 
+		<< std::dec << read_csc_id_ << std::endl;
+  (*configOut_) << "        Run ID   = " 
+		<< std::dec << read_run_id_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (alct_inj_adr & 0xff) 
+		<< " -> ALCT injector control register" << std::endl;
+  (*configOut_) << "        disable ALCT = " 
+		<< std::hex << read_alct_clear_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (seq_trig_dly2_adr & 0xff) 
+		<< " -> Sequencer trigger source delays register" << std::endl;
+  (*configOut_) << "        ALCTCLCT Pretrigger window width    = " 
+		<< std::dec << read_alct_trig_width_ << std::endl;
+  (*configOut_) << "        ALCT Pretrigger delay for ALCT*CLCT = " 
+		<< std::dec << read_alct_pretrig_delay_ << std::endl;
+  (*configOut_) << "        ALCT Pattern delay                  = " 
+		<< std::dec << read_alct_pattern_delay_ << std::endl;
+  (*configOut_) << "        ADB External Trig delay             = " 
+		<< std::dec << read_adb_ext_trig_delay_ << std::endl;
+  //
+  (*configOut_) << std::hex << "0x" << (seqmod_adr &0xff) 
+		<< " -> Sequencer trigger modifier register" << std::endl;
+  (*configOut_) << "        Trigger seq flush state timer                   = " 
+		<< std::dec << read_clct_flush_delay_ << std::endl;
+  (*configOut_) << "        Disable raw hits (turbo mode)                   = " 
+		<< std::hex << read_clct_turbo_ << std::endl;
+  (*configOut_) << "        Enable OSU random LCT generator                 = " 
+		<< std::hex << read_ranlct_enable_ << std::endl;
+  (*configOut_) << "        Require wr_buffer available to pretrigger       = " 
+		<< std::hex << read_wrt_buf_required_ << std::endl;
+  (*configOut_) << "        Require valid CLCT after drift delay            = " 
+		<< std::hex << read_valid_clct_required_ << std::endl;
+  (*configOut_) << "        Allow tmb trig pulse in L1a window              = " 
+		<< std::hex << read_l1a_allow_match_ << std::endl;
+  (*configOut_) << "        Allow no TMB trig pulse in L1a window           = " 
+		<< std::hex << read_l1a_allow_notmb_ << std::endl;
+  (*configOut_) << "        Allow readout TMB trig pulse outside L1a window = " 
+		<< std::hex << read_l1a_allow_nol1a_ << std::endl;
+  (*configOut_) << "        Allow ALCT-only events to readout at L1a        = " 
+		<< std::hex << read_l1a_allow_alct_only_ << std::endl;
+  (*configOut_) << "        Clear scintillator veto                         = " 
+		<< std::hex << read_scint_veto_clr_ << std::endl;
+    //
+  return;
+}
+//
+int TMB::makemask(int bitlo, int bithi) {
+  // make a mask of the right size for the number of bits...
+  int mask = 0;
+  for (int bit=bitlo; bit<=bithi; bit++) {
+    mask <<= 1;
+    mask |= 1;
+  }
+  return mask;
+}
+//
 void TMB::DecodeConfigurationData(int address, int data) {
   //
-  if ( address == rpc_cfg_adr ) {
+  int address_mask = 0xff;  // only the last 8 bits are important for the TMB vme addresses
+  //
+  if ( (address & address_mask) == (rpc_cfg_adr & address_mask) ) {
     //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> RPC configuration register" << std::endl;
+    read_rpc_exists_      = 
+      (data >> rpc_exists_bitlo) &
+      makemask(rpc_exists_bitlo,
+	       rpc_exists_bithi);
+    read_rpc_read_enable_ = 
+      (data >> rpc_read_enable_bitlo) &
+      makemask(rpc_read_enable_bitlo,
+	       rpc_read_enable_bithi);
+    read_rpc_bxn_offset_  = 
+      (data >> rpc_bxn_offset_bitlo) &
+      makemask(rpc_bxn_offset_bitlo,
+	       rpc_bxn_offset_bithi);
     //
-    read_rpc_exists_      = (data >> 0) & 0xf;
-    (*configOut_) << "        RPC exists      = 0x" 
-		 << std::hex << read_rpc_exists_ << std::endl;
-    read_rpc_read_enable_ = (data >> 4) & 0x1;
-    (*configOut_) << "        RPC read enable = " 
-		 << std::hex << read_rpc_read_enable_ << std::endl;
-    read_rpc_bxn_offset_  = (data >> 5) & 0xf;
-    (*configOut_) << "        RPC BXN offset  = " 
-		 << std::dec << read_rpc_bxn_offset_ << std::endl;
+  } else if ( (address & address_mask) == (vme_ratctrl_adr & address_mask) ) {
     //
-  } else if ( address == vme_ratctrl_adr ) {
+    read_shift_rpc_ = 
+      (data >> shift_rpc_bitlo) & 
+      makemask(shift_rpc_bitlo,
+	       shift_rpc_bithi);
+
     //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> RAT control register" << std::endl;
+  } else if ( (address & address_mask) == (vme_loopbk_adr & address_mask) ) {
     //
-    read_shift_rpc_       = (data >> 1) & 0x1;
-    (*configOut_) << "        RPC shift 1/2 cycle = " 
-		 << std::hex << read_shift_rpc_ << std::endl;
-    //
-  } else if ( address == vme_loopbk_adr  ) {
-    //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Loopback register" << std::endl;
-    //
-    read_enable_alct_rx_  = (data >> 2) & 0x1;
-    (*configOut_) << "        ALCT enable LVDS rx = " 
-		 << std::hex << read_enable_alct_rx_ << std::endl;
-    //
-    read_enable_alct_tx_  = (data >> 3) & 0x1;
-    (*configOut_) << "        ALCT enable LVDS tx = " 
-		 << std::hex << read_enable_alct_tx_ << std::endl;
-    //
+    read_enable_alct_rx_ = 
+      (data >> enable_alct_rx_bitlo) & 
+      makemask(enable_alct_rx_bitlo,
+	       enable_alct_rx_bithi);
+    read_enable_alct_tx_ = 
+      (data >> enable_alct_tx_bitlo) & 
+      makemask(enable_alct_tx_bitlo,
+	       enable_alct_tx_bithi);
     read_ALCT_input_ = read_enable_alct_tx_ & read_enable_alct_rx_;
     //
-  } else if ( address == ccb_trig_adr    ) {
+  } else if ( (address & address_mask) == (ccb_trig_adr & address_mask) ) {
     //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> CCB trigger configuration register" << std::endl;
+    read_alct_ext_trig_l1aen_ = 
+      (data >> alct_ext_trig_l1aen_bitlo) & 
+      makemask(alct_ext_trig_l1aen_bitlo,
+	       alct_ext_trig_l1aen_bithi);
+    read_clct_ext_trig_l1aen_ = 
+      (data >> clct_ext_trig_l1aen_bitlo) & 
+      makemask(clct_ext_trig_l1aen_bitlo,
+	       clct_ext_trig_l1aen_bithi);
+    read_request_l1a_ = 
+      (data >> request_l1a_bitlo) & 
+      makemask(request_l1a_bitlo,
+	       request_l1a_bithi);
+    read_alct_ext_trig_vme_ = 
+      (data >> alct_ext_trig_vme_bitlo) & 
+      makemask(alct_ext_trig_vme_bitlo,
+	       alct_ext_trig_vme_bithi);
+    read_clct_ext_trig_vme_ = 
+      (data >> clct_ext_trig_vme_bitlo) & 
+      makemask(clct_ext_trig_vme_bitlo,
+	       clct_ext_trig_vme_bithi);
+    read_ext_trig_both_ = 
+      (data >> ext_trig_both_bitlo) & 
+      makemask(ext_trig_both_bitlo,
+	       ext_trig_both_bithi);
+    read_ccb_allow_bypass_ = 
+      (data >> ccb_allow_bypass_bitlo) & 
+      makemask(ccb_allow_bypass_bitlo,
+	       ccb_allow_bypass_bithi);
+    read_internal_l1a_delay_vme_ = 
+      (data >> internal_l1a_delay_vme_bitlo) & 
+      makemask(internal_l1a_delay_vme_bitlo,
+	       internal_l1a_delay_vme_bithi);
     //
-    read_alct_ext_trig_l1aen_  = (data >> 0) & 0x1;
-    (*configOut_) << "        Request CCB L1a on ALCT ext trig      = "
-		 << std::hex << read_alct_ext_trig_l1aen_ << std::endl;
+  } else if ( (address & address_mask) == (seq_fifo_adr & address_mask) ) {
     //
-    read_clct_ext_trig_l1aen_  = (data >> 1) & 0x1;
-    (*configOut_) << "        Request CCB L1a on CLCT ext trig      = " 
-		 << std::hex << read_clct_ext_trig_l1aen_ << std::endl;
+    read_fifo_mode_ = 
+      (data >> fifo_mode_bitlo) & 
+      makemask(fifo_mode_bitlo,
+	       fifo_mode_bithi);
+    read_fifo_tbins_ = 
+      (data >> fifo_tbins_bitlo) & 
+      makemask(fifo_tbins_bitlo,
+	       fifo_tbins_bithi);
+    read_fifo_pretrig_ = 
+      (data >> fifo_pretrig_bitlo) & 
+      makemask(fifo_pretrig_bitlo,
+	       fifo_pretrig_bithi);
     //
-    read_request_l1a_       = (data >> 2) & 0x1;
-    (*configOut_) << "        Request CCB L1a on seq trig           = " 
-		 << std::hex << read_request_l1a_ << std::endl;
+  } else if ( (address & address_mask) == (seq_trig_en_adr & address_mask) ) {
     //
-    read_alct_ext_trig_vme_    = (data >> 3) & 0x1;
-    (*configOut_) << "        Fire ALCT ext trig one-shot           = " 
-		 << std::hex << read_alct_ext_trig_vme_ << std::endl;
-    //
-    read_clct_ext_trig_vme_    = (data >> 4) & 0x1;
-    (*configOut_) << "        Fire CLCT ext trig one-shot           = " 
-		 << std::hex << read_clct_ext_trig_vme_ << std::endl;
-    //
-    read_ext_trig_both_        = (data >> 5) & 0x1;
-    (*configOut_) << "        CLCText fire ALCT + ALCText fire CLCT = " 
-		 << std::hex << read_ext_trig_both_ << std::endl;
-    //
-    read_ccb_allow_bypass_     = (data >> 6) & 0x1;
-    (*configOut_) << "        allow CLCTextCCB when ccb_ignore_rx=1 = " 
-		 << std::hex << read_ccb_allow_bypass_ << std::endl;
-    //
-    read_l1a_delay_vme_        = (data >> 8) & 0xff;
-    (*configOut_) << "        Internal L1A delay (VME)              = " 
-		 << std::dec << read_l1a_delay_vme_ << std::endl;
-    //
-  } else if ( address == seq_fifo_adr    ) {
-    //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Sequencer FIFO configuration register" << std::endl;
-    //
-    read_fifo_mode_            = (data >> 0) & 0x7;
-    (*configOut_) << "        Fifo_mode                            = " 
-		 << std::dec << read_fifo_mode_ << " = ";
-    if (read_fifo_mode_ == 0) {
-      (*configOut_) << "no    CFEB raw hits, full  header";
-    } else if (read_fifo_mode_ == 1) {
-      (*configOut_) << "all   CFEB raw hits, full  header";
-    } else if (read_fifo_mode_ == 2) {
-      (*configOut_) << "local CFEB raw hits, full  header";
-    } else if (read_fifo_mode_ == 3) {
-      (*configOut_) << "no    CFEB raw hits, short header";
-    } else if (read_fifo_mode_ == 4) {
-      (*configOut_) << "no    CFEB raw hits, no    header";
-    } else {
-      (*configOut_) << "unknown fifo_mode...";
-    }
-    (*configOut_) << std::endl;
-    //
-    read_fifo_tbins_           = (data >> 3) & 0x1f;
-    (*configOut_) << "        Number FIFO time bins read out       = " 
-		 << std::dec << read_fifo_tbins_ << std::endl;
-    //
-    read_fifo_pretrig_         = (data >> 8) & 0x1f;
-    (*configOut_) << "        Number FIFO time bins before pretrig = " 
-		 << std::dec << read_fifo_pretrig_ << std::endl;
-    //
-  } else if ( address == seq_trig_en_adr ) {
-    //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Sequencer trigger source enable register" << std::endl;
-    //
-    read_clct_pat_trig_en_         = (data >> 0) & 0x1;
-    (*configOut_) << "        CLCT pattern trigger            = " 
-		 << std::hex << read_clct_pat_trig_en_ << std::endl;
-    //
-    read_alct_pat_trig_en_         = (data >> 1) & 0x1;
-    (*configOut_) << "        ALCT pattern trigger            = " 
-		 << std::hex << read_alct_pat_trig_en_ << std::endl;
-    //
-    read_match_pat_trig_en_        = (data >> 2) & 0x1;
-    (*configOut_) << "        ALCT*CLCT pattern trigger       = " 
-		 << std::hex << read_match_pat_trig_en_ << std::endl;
-    //
-    read_adb_ext_trig_en_          = (data >> 3) & 0x1;
-    (*configOut_) << "        ADB external trigger            = " 
-		 << std::hex << read_adb_ext_trig_en_ << std::endl;
-    //
-    read_dmb_ext_trig_en_          = (data >> 4) & 0x1;
-    (*configOut_) << "        DMB external trigger            = " 
-		 << std::hex << read_dmb_ext_trig_en_ << std::endl;
-    //
-    read_clct_ext_trig_en_         = (data >> 5) & 0x1;
-    (*configOut_) << "        CLCT external (scint) trigger   = " 
-		 << std::hex << read_clct_ext_trig_en_ << std::endl;
-    //
-    read_alct_ext_trig_en_         = (data >> 6) & 0x1;
-    (*configOut_) << "        ALCT external trigger           = " 
-		 << std::hex << read_alct_ext_trig_en_ << std::endl;
-    //
-    read_vme_ext_trig_en_         = (data >> 7) & 0x1;
-    (*configOut_) << "        VME external trigger            = " 
-		 << std::hex << read_vme_ext_trig_en_ << std::endl;
-    //
-    read_ext_trig_inject_         = (data >> 8) & 0x1;
-    (*configOut_) << "        CLCT ext trig fire pat injector = " 
-		 << std::hex << read_ext_trig_inject_ << std::endl;
-    //
-    read_all_cfeb_active_         = (data >> 9) & 0x1;
-    (*configOut_) << "        all CFEBs active                = " 
-		 << std::hex << read_all_cfeb_active_ << std::endl;
-    //
-    read_cfebs_enabled_           = (data >>10) & 0x1f;
-    (*configOut_) << "        CFEBs enabled                   = 0x" 
-		 << std::hex << read_cfebs_enabled_ << std::endl;
-    //
-    read_cfeb_enable_source_      = (data >>15) & 0x1;
-    (*configOut_) << "        enable CFEBS through VME 0x42   = " 
-		 << std::hex << read_cfeb_enable_source_ << std::endl;
+    read_clct_pat_trig_en_ = 
+      (data >> clct_pat_trig_en_bitlo) & 
+      makemask(clct_pat_trig_en_bitlo,
+	       clct_pat_trig_en_bithi);
+    read_alct_pat_trig_en_ = 
+      (data >> alct_pat_trig_en_bitlo) & 
+      makemask(alct_pat_trig_en_bitlo,
+	       alct_pat_trig_en_bithi);
+    read_match_pat_trig_en_ = 
+      (data >> match_pat_trig_en_bitlo) & 
+      makemask(match_pat_trig_en_bitlo,
+	       match_pat_trig_en_bithi);
+    read_adb_ext_trig_en_ = 
+      (data >> adb_ext_trig_en_bitlo) & 
+      makemask(adb_ext_trig_en_bitlo,
+	       adb_ext_trig_en_bithi);
+    read_dmb_ext_trig_en_ = 
+      (data >> dmb_ext_trig_en_bitlo) & 
+      makemask(dmb_ext_trig_en_bitlo,
+	       dmb_ext_trig_en_bithi);
+    read_clct_ext_trig_en_ = 
+      (data >> clct_ext_trig_en_bitlo) & 
+      makemask(clct_ext_trig_en_bitlo,
+	       clct_ext_trig_en_bithi);
+    read_alct_ext_trig_en_ = 
+      (data >> alct_ext_trig_en_bitlo) & 
+      makemask(alct_ext_trig_en_bitlo,
+	       alct_ext_trig_en_bithi);
+    read_vme_ext_trig_en_ = 
+      (data >> vme_ext_trig_en_bitlo) & 
+      makemask(vme_ext_trig_en_bitlo,
+	       vme_ext_trig_en_bithi);
+    read_ext_trig_inject_ = 
+      (data >> ext_trig_inject_bitlo) & 
+      makemask(ext_trig_inject_bitlo,
+	       ext_trig_inject_bithi);
+    read_all_cfeb_active_ = 
+      (data >> all_cfeb_active_bitlo) & 
+      makemask(all_cfeb_active_bitlo,
+	       all_cfeb_active_bithi);
+    read_cfebs_enabled_ = 
+      (data >> cfebs_enabled_bitlo) & 
+      makemask(cfebs_enabled_bitlo,
+	       cfebs_enabled_bithi);
+    read_cfeb_enable_source_ = 
+      (data >> cfeb_enable_source_bitlo) & 
+      makemask(cfeb_enable_source_bitlo,
+	       cfeb_enable_source_bithi);
     //    
-  } else if ( address == tmbtim_adr      ) {
+  } else if ( (address & address_mask) == (tmbtim_adr & address_mask) ) {
     //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> ALCT*CLCT timing register" << std::endl;
+    read_alct_vpf_delay_ = 
+      (data >> alct_vpf_delay_bitlo) & 
+      makemask(alct_vpf_delay_bitlo,
+	       alct_vpf_delay_bithi);
+    read_alct_match_window_size_ = 
+      (data >> alct_match_window_size_bitlo) & 
+      makemask(alct_match_window_size_bitlo,
+	       alct_match_window_size_bithi);
+    read_mpc_tx_delay_ = 
+      (data >> mpc_tx_delay_bitlo) & 
+      makemask(mpc_tx_delay_bitlo,
+	       mpc_tx_delay_bithi);
     //
-    read_alct_vpf_delay_         = (data >> 0) & 0xf;
-    (*configOut_) << "        ALCT Valid Pattern Flag delay = " 
-		 << std::dec << read_alct_vpf_delay_ << std::endl;
+  } else if ( (address & address_mask) == (seq_offset_adr & address_mask) ) {
     //
-    read_alct_match_window_size_ = (data >> 4) & 0xf;
-    (*configOut_) << "        ALCT*CLCT match window width  = " 
-		 << std::dec << read_alct_match_window_size_ << std::endl;
-    //
-    read_mpc_tx_delay_ = (data >> 8) & 0xf;
-    (*configOut_) << "        LCT transmit to MPC delay     = " 
-		 << std::dec << read_mpc_tx_delay_ << std::endl;
-    //
-  } else if ( address == seq_offset_adr  ) {
-    //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Sequencer counter offset register" << std::endl;
-    //
-    read_l1a_offset_     = (data >> 0) & 0xf;
-    (*configOut_) << "        l1a Counter Preset value = " 
-		 << std::dec << read_l1a_offset_ << std::endl;
-    //
-    read_bxn_offset_             = (data >> 4) & 0xfff;
-    (*configOut_) << "        BXN offset at reset      = " 
-		 << std::dec << read_bxn_offset_ << std::endl;
+    read_l1a_offset_ = 
+      (data >> l1a_offset_bitlo) & 
+      makemask(l1a_offset_bitlo,
+	       l1a_offset_bithi);
+    read_bxn_offset_ = 
+      (data >> bxn_offset_bitlo) & 
+      makemask(bxn_offset_bitlo,
+	       bxn_offset_bithi);
     //    
-  } else if ( address == seq_clct_adr    ) {
+  } else if ( (address & address_mask) == (seq_clct_adr & address_mask) ) {
     //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Sequencer CLCT configuration register" << std::endl;
+    read_triad_persist_ = 
+      (data >> triad_persist_bitlo) & 
+      makemask(triad_persist_bitlo,
+	       triad_persist_bithi);
+    read_hs_pretrig_thresh_ = 
+      (data >> hs_pretrig_thresh_bitlo) & 
+      makemask(hs_pretrig_thresh_bitlo,
+	       hs_pretrig_thresh_bithi);
+    read_ds_pretrig_thresh_ = 
+      (data >> ds_pretrig_thresh_bitlo) & 
+      makemask(ds_pretrig_thresh_bitlo,
+	       ds_pretrig_thresh_bithi);
+    read_min_hits_pattern_ = 
+      (data >> min_hits_pattern_bitlo) & 
+      makemask(min_hits_pattern_bitlo,
+	       min_hits_pattern_bithi);
+    read_drift_delay_ = 
+      (data >> drift_delay_bitlo) & 
+      makemask(drift_delay_bitlo,
+	       drift_delay_bithi);
+    read_pretrigger_halt_ = 
+      (data >> pretrigger_halt_bitlo) & 
+      makemask(pretrigger_halt_bitlo,
+	       pretrigger_halt_bithi);
     //
-    read_triad_persist_     = (data >> 0) & 0xf;
-    (*configOut_) << "        Triad 1-shot persistence          = 0x" 
-		 << std::hex << read_triad_persist_ << std::endl;
+  } else if ( (address & address_mask) == (scp_ctrl_adr & address_mask) ) {
     //
-    read_hs_pretrig_thresh_         = (data >> 4) & 0x7;
-    (*configOut_) << "        1/2-strip pretrig thresh          = " 
-		 << std::dec << read_hs_pretrig_thresh_ << std::endl;
+    read_seq_readmode_in_dmb_ = 
+      (data >> seq_readmode_in_dmb_bitlo) & 
+      makemask(seq_readmode_in_dmb_bitlo,
+	       seq_readmode_in_dmb_bithi);
     //
-    read_ds_pretrig_thresh_         = (data >> 7) & 0x7;
-    (*configOut_) << "        di-strip pretrig thresh           = " 
-		 << std::dec << read_ds_pretrig_thresh_ << std::endl;
+  } else if ( (address & address_mask) == (seq_l1a_adr & address_mask) ) {
     //
-    read_min_hits_pattern_       = (data >> 10) & 0x7;
-    (*configOut_) << "        min hits for valid pattern        = " 
-		 << std::dec << read_min_hits_pattern_ << std::endl;
+    read_l1adelay_ = 
+      (data >> l1adelay_bitlo) & 
+      makemask(l1adelay_bitlo,
+	       l1adelay_bithi);
+    read_l1a_window_size_ = 
+      (data >> l1a_window_size_bitlo) & 
+      makemask(l1a_window_size_bitlo,
+	       l1a_window_size_bithi);
     //
-    read_drift_delay_       = (data >> 13) & 0x3;
-    (*configOut_) << "        drift delay                       = " 
-		 << std::dec << read_drift_delay_ << std::endl;
+  } else if ( (address & address_mask) == (tmb_trig_adr & address_mask) ) {
     //
-    read_pretrigger_halt_   = (data >> 15) & 0x1;
-    (*configOut_) << "        pretrigger then halt until unhalt = " 
-		 << std::hex << read_pretrigger_halt_ << std::endl;
-    //
-  } else if ( address == scp_ctrl_adr    ) {
-    //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Scope control register..." << std::endl;
-    //
-    read_seq_readmode_in_dmb_   = (data >> 5) & 0x1;
-    (*configOut_) << "        Insert sequencer readout mode in DMB data  = " 
-		 << std::hex << read_seq_readmode_in_dmb_ << std::endl;
-    //
-  } else if ( address == seq_l1a_adr     ) {
-    //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Sequencer L1A configuration register..." << std::endl;
-    //
-    read_l1adelay_   = (data >> 0) & 0xff;
-    (*configOut_) << "        L1a delay from pretrig status output  = " 
-		 << std::dec << read_l1adelay_ << std::endl;
-    //
-    read_l1a_window_size_   = (data >> 8) & 0xf;
-    (*configOut_) << "        L1a accept window width               = " 
-		 << std::dec << read_l1a_window_size_ << std::endl;
-    //
-  } else if ( address == tmb_trig_adr    ) {
-    //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> TMB trigger, MPC accept register..." << std::endl;
-    //
-    read_tmb_sync_err_enable_   = (data >> 0) & 0x3;
-    (*configOut_) << "        Allow sync_err to MPC for either muon        = " 
-		 << std::hex << read_tmb_sync_err_enable_ << std::endl;
+    read_tmb_sync_err_enable_ = 
+      (data >> tmb_sync_err_enable_bitlo) & 
+      makemask(tmb_sync_err_enable_bitlo,
+	       tmb_sync_err_enable_bithi);
     //
     // N.B. according to TMB documentation, an ALCT only L1a is not used in current version...
     //
-    read_tmb_allow_clct_        = (data >> 3) & 0x1;
-    (*configOut_) << "        Allow CLCT only L1a                          = " 
-		 << std::hex << read_tmb_allow_clct_ << std::endl;
+    read_tmb_allow_clct_ = 
+      (data >> tmb_allow_clct_bitlo) & 
+      makemask(tmb_allow_clct_bitlo,
+	       tmb_allow_clct_bithi);
+    read_tmb_allow_match_ = 
+      (data >> tmb_allow_match_bitlo) & 
+      makemask(tmb_allow_match_bitlo,
+	       tmb_allow_match_bithi);
+    read_mpc_delay_ = 
+      (data >> mpc_delay_bitlo) & 
+      makemask(mpc_delay_bitlo,
+	       mpc_delay_bithi);
+    read_mpc_sel_ttc_bx0_ = 
+      (data >> mpc_sel_ttc_bx0_bitlo) & 
+      makemask(mpc_sel_ttc_bx0_bitlo,
+	       mpc_sel_ttc_bx0_bithi);
+    read_mpc_idle_blank_ = 
+      (data >> mpc_idle_blank_bitlo) & 
+      makemask(mpc_idle_blank_bitlo,
+	       mpc_idle_blank_bithi);
     //
-    read_tmb_allow_match_        = (data >> 4) & 0x1;
-    (*configOut_) << "        Allow ALCT*CLCT match pre-trigger            = " 
-		 << std::hex << read_tmb_allow_match_ << std::endl;
+  } else if ( (address & address_mask) == (vme_ddd1_adr & address_mask) ) {
     //
-    read_mpc_delay_           = (data >> 5) & 0xf;
-    (*configOut_) << "        MPC rx delay                                 = " 
-		 << std::dec << read_mpc_delay_ << std::endl;
+    read_tmb1_phase_ = 
+      (data >> tmb1_phase_bitlo) & 
+      makemask(tmb1_phase_bitlo,
+	       tmb1_phase_bithi);
+    read_mpc_phase_ = 
+      (data >> mpc_phase_bitlo) & 
+      makemask(mpc_phase_bitlo,
+	       mpc_phase_bithi);
+    read_dcc_phase_ = 
+      (data >> dcc_phase_bitlo) & 
+      makemask(dcc_phase_bitlo,
+	       dcc_phase_bithi);
+    read_cfeb0delay_ = 
+      (data >> cfeb0delay_bitlo) & 
+      makemask(cfeb0delay_bitlo,
+	       cfeb0delay_bithi);
     //
-    read_mpc_sel_ttc_bx0_        = (data >>13) & 0x1;
-    (*configOut_) << "        MPC gets bx0 from TTC                        = " 
-		 << std::dec << read_mpc_sel_ttc_bx0_ << std::endl;
+  } else if ( (address & address_mask) == (vme_ddd2_adr & address_mask) ) {
     //
-    read_mpc_idle_blank_         = (data >>14) & 0x1;
-    (*configOut_) << "        blank MPC data and bx0 except when triggered = " 
-		 << std::hex << read_mpc_idle_blank_ << std::endl;
+    read_cfeb1delay_ = 
+      (data >> cfeb1delay_bitlo) & 
+      makemask(cfeb1delay_bitlo,
+	       cfeb1delay_bithi);
+    read_cfeb2delay_ = 
+      (data >> cfeb2delay_bitlo) & 
+      makemask(cfeb2delay_bitlo,
+	       cfeb2delay_bithi);
+    read_cfeb3delay_ = 
+      (data >> cfeb3delay_bitlo) & 
+      makemask(cfeb3delay_bitlo,
+	       cfeb3delay_bithi);
+    read_cfeb4delay_ = 
+      (data >> cfeb4delay_bitlo) & 
+      makemask(cfeb4delay_bitlo,
+	       cfeb4delay_bithi);
     //
-  } else if ( address == vme_ddd1_adr    ) {
+  } else if ( (address & address_mask) == (vme_ddd0_adr & address_mask) ) {
     //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Clock phase delay register:" << std::endl;
+    read_alct_tx_clock_delay_ = 
+      (data >> alct_tx_clock_delay_bitlo) & 
+      makemask(alct_tx_clock_delay_bitlo,
+	       alct_tx_clock_delay_bithi);
+    read_alct_rx_clock_delay_ = 
+      (data >> alct_rx_clock_delay_bitlo) & 
+      makemask(alct_rx_clock_delay_bitlo,
+	       alct_rx_clock_delay_bithi);
+    read_dmb_tx_delay_ = 
+      (data >> dmb_tx_delay_bitlo) & 
+      makemask(dmb_tx_delay_bitlo,
+	       dmb_tx_delay_bithi);
+    read_rat_tmb_delay_ = 
+      (data >> rat_tmb_delay_bitlo) & 
+      makemask(rat_tmb_delay_bitlo,
+	       rat_tmb_delay_bithi);
     //
-    read_tmb1_phase_   = (data >> 0) & 0xf;
-    (*configOut_) << "        TMB 1 phase                             = " 
-		 << std::dec << read_tmb1_phase_ << std::endl;
+  } else if ( (address & address_mask) == (rat_3d_delays_adr & address_mask) ) {
     //
-    read_mpc_phase_   = (data >> 4) & 0xf;
-    (*configOut_) << "        MPC phase                               = " 
-		 << std::dec << read_mpc_phase_ << std::endl;
+    read_rpc0_rat_delay_ = 
+      (data >> rpc0_rat_delay_bitlo) & 
+      makemask(rpc0_rat_delay_bitlo,
+	       rpc0_rat_delay_bithi);
+    read_rpc1_rat_delay_ = 
+      (data >> rpc1_rat_delay_bitlo) & 
+      makemask(rpc1_rat_delay_bitlo,
+	       rpc1_rat_delay_bithi);
+    read_rpc2_rat_delay_ = 
+      (data >> rpc2_rat_delay_bitlo) & 
+      makemask(rpc2_rat_delay_bitlo,
+	       rpc2_rat_delay_bithi);
+    read_rpc3_rat_delay_ = 
+      (data >> rpc3_rat_delay_bitlo) & 
+      makemask(rpc3_rat_delay_bitlo,
+	       rpc3_rat_delay_bithi);
     //
-    read_dcc_phase_   = (data >> 8) & 0xf;
-    (*configOut_) << "        DCC (cfeb duty cycle correction) phase  = " 
-		 << std::dec << read_dcc_phase_ << std::endl;
+  } else if ( (address & address_mask) == (cfeb_inj_adr & address_mask) ) {
     //
-    read_cfeb0delay_   = (data >>12) & 0xf;
-    (*configOut_) << "        CFEB 0 phase                            = " 
-		 << std::dec << read_cfeb0delay_ << std::endl;
+    read_enableCLCTInputs_ = 
+      (data >> enableCLCTInputs_bitlo) & 
+      makemask(enableCLCTInputs_bitlo,
+	       enableCLCTInputs_bithi);
+    read_cfeb_ram_sel_ = 
+      (data >> cfeb_ram_sel_bitlo) & 
+      makemask(cfeb_ram_sel_bitlo,
+	       cfeb_ram_sel_bithi);
+    read_cfeb_inj_en_sel_ = 
+      (data >> cfeb_inj_en_sel_bitlo) & 
+      makemask(cfeb_inj_en_sel_bitlo,
+	       cfeb_inj_en_sel_bithi);
+    read_start_pattern_inj_ = 
+      (data >> start_pattern_inj_bitlo) & 
+      makemask(start_pattern_inj_bitlo,
+	       start_pattern_inj_bithi);
     //
-  } else if ( address == vme_ddd2_adr    ) {
+  } else if ( (address & address_mask) == (seq_id_adr & address_mask) ) {
     //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Clock phase delay register:" << std::endl;
+    read_tmb_slot_ = 
+      (data >> tmb_slot_bitlo) & 
+      makemask(tmb_slot_bitlo,
+	       tmb_slot_bithi);
+    read_csc_id_ = 
+      (data >> csc_id_bitlo) & 
+      makemask(csc_id_bitlo,
+	       csc_id_bithi);
+    read_run_id_ = 
+      (data >> run_id_bitlo) & 
+      makemask(run_id_bitlo,
+	       run_id_bithi);
     //
-    read_cfeb1delay_   = (data >> 0) & 0xf;
-    (*configOut_) << "        CFEB 1 phase = " 
-		 << std::dec << read_cfeb1delay_ << std::endl;
+  } else if ( (address & address_mask) == (alct_inj_adr & address_mask) ) {
     //
-    read_cfeb2delay_   = (data >> 4) & 0xf;
-    (*configOut_) << "        CFEB 2 phase = " 
-		 << std::dec << read_cfeb2delay_ << std::endl;
+    read_alct_clear_ = 
+      (data >> alct_clear_bitlo) & 
+      makemask(alct_clear_bitlo,
+	       alct_clear_bithi);
     //
-    read_cfeb3delay_   = (data >> 8) & 0xf;
-    (*configOut_) << "        CFEB 3 phase = " 
-		 << std::dec << read_cfeb3delay_ << std::endl;
+  } else if ( (address & address_mask) == (seq_trig_dly2_adr & address_mask) ) {
     //
-    read_cfeb4delay_   = (data >>12) & 0xf;
-    (*configOut_) << "        CFEB 4 phase = " 
-		 << std::dec << read_cfeb4delay_ << std::endl;
+    read_alct_trig_width_ = 
+      (data >> alct_trig_width_bitlo) & 
+      makemask(alct_trig_width_bitlo,
+	       alct_trig_width_bithi);
+    read_alct_pretrig_delay_ = 
+      (data >> alct_pretrig_delay_bitlo) & 
+      makemask(alct_pretrig_delay_bitlo,
+	       alct_pretrig_delay_bithi);
+    read_alct_pattern_delay_ = 
+      (data >> alct_pattern_delay_bitlo) & 
+      makemask(alct_pattern_delay_bitlo,
+	       alct_pattern_delay_bithi);
+    read_adb_ext_trig_delay_ = 
+      (data >> adb_ext_trig_delay_bitlo) & 
+      makemask(adb_ext_trig_delay_bitlo,
+	       adb_ext_trig_delay_bithi);
     //
-  } else if ( address == vme_ddd0_adr    ) {
+  } else if ( (address & address_mask) == (seqmod_adr & address_mask) ) {
     //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Clock phase delay register:" << std::endl;
+    read_clct_flush_delay_ = 
+      (data >> clct_flush_delay_bitlo) & 
+      makemask(clct_flush_delay_bitlo,
+	       clct_flush_delay_bithi);
+    read_clct_turbo_ = 
+      (data >> clct_turbo_bitlo) & 
+      makemask(clct_turbo_bitlo,
+	       clct_turbo_bithi);
+    read_ranlct_enable_ = 
+      (data >> ranlct_enable_bitlo) & 
+      makemask(ranlct_enable_bitlo,
+	       ranlct_enable_bithi);
+    read_wrt_buf_required_ = 
+      (data >> wrt_buf_required_bitlo) & 
+      makemask(wrt_buf_required_bitlo,
+	       wrt_buf_required_bithi);
+    read_valid_clct_required_ = 
+      (data >> valid_clct_required_bitlo) & 
+      makemask(valid_clct_required_bitlo,
+	       valid_clct_required_bithi);
+    read_l1a_allow_match_ = 
+      (data >> l1a_allow_match_bitlo) & 
+      makemask(l1a_allow_match_bitlo,
+	       l1a_allow_match_bithi);
+    read_l1a_allow_notmb_ = 
+      (data >> l1a_allow_notmb_bitlo) & 
+      makemask(l1a_allow_notmb_bitlo,
+	       l1a_allow_notmb_bithi);
+    read_l1a_allow_nol1a_ = 
+      (data >> l1a_allow_nol1a_bitlo) & 
+      makemask(l1a_allow_nol1a_bitlo,
+	       l1a_allow_nol1a_bithi);
+    read_l1a_allow_alct_only_ = 
+      (data >> l1a_allow_alct_only_bitlo) & 
+      makemask(l1a_allow_alct_only_bitlo,
+	       l1a_allow_alct_only_bithi);
+    read_scint_veto_clr_ = 
+      (data >> scint_veto_clr_bitlo) & 
+      makemask(scint_veto_clr_bitlo,
+	       scint_veto_clr_bithi);
     //
-    read_alct_tx_clock_delay_   = (data >> 0) & 0xf;
-    (*configOut_) << "        ALCT tx phase = " 
-		 << std::dec << read_alct_tx_clock_delay_ << std::endl;
-    //
-    read_alct_rx_clock_delay_   = (data >> 4) & 0xf;
-    (*configOut_) << "        ALCT rx phase = " 
-		 << std::dec << read_alct_rx_clock_delay_ << std::endl;
-    //
-    read_dmb_tx_delay_   = (data >> 8) & 0xf;
-    (*configOut_) << "        DMB tx phase  = " 
-		 << std::dec << read_dmb_tx_delay_ << std::endl;
-    //
-    read_rat_tmb_delay_   = (data >>12) & 0xf;
-    (*configOut_) << "        RAT-TMB phase  = " 
-		 << std::dec << read_rat_tmb_delay_ << std::endl;
-    //
-  } else if ( address == rat_3d_delays_adr) {
-    //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> RPC/RAT phase delay register:" << std::endl;
-    //
-    read_rpc0_rat_delay_   = (data >> 0) & 0xf;
-    (*configOut_) << "        RPC0/RAT rx phase          = " 
-		 << std::dec << read_rpc0_rat_delay_ << std::endl;
-    //
-    read_rpc1_rat_phase_   = (data >> 4) & 0xf;
-    (*configOut_) << "        RPC1/RAT rx phase          = " 
-		 << std::dec << read_rpc1_rat_phase_ << std::endl;
-    //
-    read_rpc2_rat_phase_   = (data >> 8) & 0xf;
-    (*configOut_) << "        RPC2/RAT rx phase (unused) = " 
-		 << std::dec << read_rpc2_rat_phase_ << std::endl;
-    //
-    read_rpc3_rat_phase_   = (data >>12) & 0xf;
-    (*configOut_) << "        RPC3/RAT rx phase (unused) = " 
-		 << std::dec << read_rpc3_rat_phase_ << std::endl;
-    //
-  } else if ( address == cfeb_inj_adr    ) {
-    //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> CFEB injector control register:" << std::endl;
-    //
-    read_enableCLCTInputs_   = (data >> 0) & 0x1f;
-    (*configOut_) << "        CFEB enable mask                = 0x" 
-		 << std::hex << read_enableCLCTInputs_ << std::endl;
-    //
-    read_cfeb_ram_sel_   = (data >> 5) & 0x1f;
-    (*configOut_) << "        select CFEB for RAM read/write  = 0x" 
-		 << std::hex << read_cfeb_ram_sel_ << std::endl;
-    //
-    read_cfeb_inj_en_sel_   = (data >> 10) & 0x1f;
-    (*configOut_) << "        CFEB enable injector mask       = 0x" 
-		 << std::hex << read_cfeb_inj_en_sel_ << std::endl;
-    //
-    read_start_pattern_inj_   = (data >> 15) & 0x1;
-    (*configOut_) << "        start pattern injector          = " 
-		 << std::hex << read_start_pattern_inj_ << std::endl;
-    //
-  } else if ( address == seq_id_adr      ) {
-    //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> ID register" << std::endl;
-    //
-    read_tmb_slot_ = (data >> 0) & 0x1f;
-    (*configOut_) << "        TMB slot = " 
-		 << std::dec << read_tmb_slot_ << std::endl;
-    //
-    read_csc_id_     = (data >> 5) & 0xf;
-    (*configOut_) << "        CSC ID   = " 
-		 << std::dec << read_csc_id_ << std::endl;
-    //
-    read_run_id_     = (data >> 9) & 0xf;
-    (*configOut_) << "        Run ID   = " 
-		 << std::dec << read_run_id_ << std::endl;
-    //
-
-  } else if ( address == alct_inj_adr    ) {
-    //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> ALCT injector control register" << std::endl;
-    //
-    read_alct_clear_   = (data >> 0) & 0x1;
-    (*configOut_) << "        disable ALCT = " 
-		 << std::hex << read_alct_clear_ << std::endl;
-    //
-  } else if ( address == seq_trig_dly2_adr    ) {
-    //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Sequencer trigger source delays register" << std::endl;
-    //
-    read_alct_trig_width_   = (data >> 0) & 0xf;
-    (*configOut_) << "        ALCTCLCT Pretrigger window width    = " 
-		 << std::dec << read_alct_trig_width_ << std::endl;
-    //
-    read_alct_pretrig_delay_   = (data >> 4) & 0xf;
-    (*configOut_) << "        ALCT Pretrigger delay for ALCT*CLCT = " 
-		 << std::dec << read_alct_pretrig_delay_ << std::endl;
-    //
-    read_alct_pattern_delay_   = (data >> 8) & 0xf;
-    (*configOut_) << "        ALCT Pattern delay                  = " 
-		 << std::dec << read_alct_pattern_delay_ << std::endl;
-    //
-    read_adb_ext_trig_delay_   = (data >>12) & 0xf;
-    (*configOut_) << "        ADB External Trig delay             = " 
-		 << std::dec << read_adb_ext_trig_delay_ << std::endl;
-    //
-  } else if ( address == seqmod_adr    ) {
-    //
-    (*configOut_) << std::hex << "0x" << (address&0xff) << " -> Sequencer trigger modifier register" << std::endl;
-    //
-    read_clct_flush_delay_     = (data >> 0) & 0xf;
-    (*configOut_) << "        Trigger seq flush state timer                   = " 
-		 << std::dec << read_clct_flush_delay_ << std::endl;
-    //
-    read_clct_turbo_           = (data >> 4) & 0x1;
-    (*configOut_) << "        Disable raw hits (turbo mode)                   = " 
-		 << std::hex << read_clct_turbo_ << std::endl;
-    //
-    read_ranlct_enable_        = (data >> 5) & 0x1;
-    (*configOut_) << "        Enable OSU random LCT generator                 = " 
-		 << std::hex << read_ranlct_enable_ << std::endl;
-    //
-    read_wrt_buf_required_        = (data >> 6) & 0x1;
-    (*configOut_) << "        Require wr_buffer available to pretrigger       = " 
-		 << std::hex << read_wrt_buf_required_ << std::endl;
-    //
-    read_valid_clct_required_        = (data >> 7) & 0x1;
-    (*configOut_) << "        Require valid CLCT after drift delay            = " 
-		 << std::hex << read_valid_clct_required_ << std::endl;
-    //
-    read_l1a_allow_match_        = (data >> 8) & 0x1;
-    (*configOut_) << "        Allow tmb trig pulse in L1a window              = " 
-		 << std::hex << read_l1a_allow_match_ << std::endl;
-    //
-    read_l1a_allow_notmb_        = (data >> 9) & 0x1;
-    (*configOut_) << "        Allow no TMB trig pulse in L1a window           = " 
-		 << std::hex << read_l1a_allow_notmb_ << std::endl;
-    //
-    read_l1a_allow_nol1a_        = (data >>10) & 0x1;
-    (*configOut_) << "        Allow readout TMB trig pulse outside L1a window = " 
-		 << std::hex << read_l1a_allow_nol1a_ << std::endl;
-    //
-    read_l1a_allow_alct_only_        = (data >>11) & 0x1;
-    (*configOut_) << "        Allow ALCT-only events to readout at L1a        = " 
-		 << std::hex << read_l1a_allow_alct_only_ << std::endl;
-    //
-    read_scint_veto_clr_        = (data >>12) & 0x1;
-    (*configOut_) << "        Clear scintillator veto                         = " 
-		 << std::hex << read_scint_veto_clr_ << std::endl;
-    //
-  } else {
-    (*configOut_) << "-> Address 0x" << std::hex << address << " unknown..." << std::endl;
   }
   //
   // combinations of bits which say which trgmode_ we are using....
   //
-  read_CLCTtrigger_setting_ = read_tmb_allow_clct_ & read_clct_pat_trig_en_;
+  read_CLCTtrigger_setting_     = read_tmb_allow_clct_  & read_clct_pat_trig_en_;
   read_ALCTCLCTtrigger_setting_ = read_tmb_allow_match_ & read_match_pat_trig_en_;
-  if (read_CLCTtrigger_setting_) read_trgmode_ = CLCT_trigger;
-  if (read_ALCTCLCTtrigger_setting_) read_trgmode_ = ALCT_CLCT_coincidence_trigger;
+  //
+  if (read_CLCTtrigger_setting_) 
+    read_trgmode_ = CLCT_trigger;
+  if (read_ALCTCLCTtrigger_setting_) 
+    read_trgmode_ = ALCT_CLCT_coincidence_trigger;
   //
   return;
 }
@@ -7340,14 +7603,14 @@ bool TMB::compareValues(std::string TypeOfTest,
   //
   if (fabs(err)>tolerance) {
       std::ostringstream dump;
-      dump << "FAIL!" << std::endl;
+      dump << "compareValues:  FAIL! ";
       dump << TypeOfTest 
 	   << " expected = " << compareval 
 	   << ", returned = " << testval
 	   << " outside of tolerance "<< fractolerance
 	   << std::endl;
       //
-      (*MyOutput_) << "FAIL!" << std::endl;
+      (*MyOutput_) << "compareValues:  FAIL! ";
       (*MyOutput_) << TypeOfTest 
 		   << " expected = " << compareval 
 		   << ", returned = " << testval

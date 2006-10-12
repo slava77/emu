@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.21 2006/10/10 15:34:58 rakness Exp $
+// $Id: ALCTController.cc,v 3.22 2006/10/12 15:56:02 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.22  2006/10/12 15:56:02  rakness
+// cleaned up configuration checking for ALCT/TMB
+//
 // Revision 3.21  2006/10/10 15:34:58  rakness
 // check TMB/ALCT configuration vs xml
 //
@@ -6351,92 +6354,56 @@ void ALCTController::SetUpRandomALCT(){
 //
 void ALCTController::configure() {
   //
-  //  SetFillVmeWriteVecs(true);
+  SetCheckJtagWrite(false);          //in this method we only want to write data...
+  //                                 //the settings will be verified with CheckCurrentConfiguration()
+  //  SetFillVmeWriteVecs(true);     //fill the user prom with JTAG data?
+  ClearVmeWriteVecs();
   //
   std::ostringstream dump;
-  dump << (int)tmb_->slot();
   //
-  tmb_->SendOutput("ALCT : configure() in slot = "+dump.str(),"INFO");
+  dump << "ALCT : configuring in slot = " << std::dec << (int) tmb_->slot();
   //
-  ReadSlowControlId();
-  PrintSlowControlId();
-  //
-  ReadFastControlId();
-  PrintFastControlId();
-  //
-  (*MyOutput_) << "Configuring ALCT" << std::dec << GetNumberOfChannelsInAlct() << "..." << std::endl; 
-  (*MyOutput_) << "............ Number of Wire Groups = " << std::dec << GetNumberOfWireGroupsInChamber() << std::endl; 
-  (*MyOutput_) << "........ Number of Wires per layer = " << GetNumberOfChannelsPerLayer() << std::endl;
-  (*MyOutput_) << ".. Number of groups of delay chips =  " << GetNumberOfGroupsOfDelayChips() << std::endl; 
-  (*MyOutput_) << "Number of collision pattern groups = " << GetNumberOfCollisionPatternGroups() << std::endl;
-  (*MyOutput_) << ".................. Number of AFEBs = " << GetNumberOfAfebs() << std::endl;
-  (*MyOutput_) << "........... Enabled AFEBs count from  " << GetLowestAfebIndex() << " to " << GetHighestAfebIndex() << std::endl;
-  //
-  if ( GetFillVmeWriteVecs() ) {       //fill the user prom with configuration data 
-    SetCheckJtagWrite(false);          //disable JTAG checking:  i.e., only want jtag writes in user prom
-    ClearVmeWriteVecs();
-  }
+  (*MyOutput_) << dump.str() << std::endl;
+  tmb_->SendOutput(dump.str(),"INFO");
   //
   WriteAfebThresholds();
-  if ( GetCheckJtagWrite() ) {    
-    ReadAfebThresholds();
-    PrintAfebThresholds();
-  }
+  //    ReadAfebThresholds();
+  //    PrintAfebThresholds();
   //    
   WriteStandbyRegister_();
-  if ( GetCheckJtagWrite() ) {
-    PrintStandbyRegister_();
-  }
+  //    PrintStandbyRegister_();
   //
   WriteAsicDelaysAndPatterns();
-  if ( GetCheckJtagWrite() ) {
-    PrintAsicDelays();
-    if (debug_) {
-      PrintAsicPatterns();
-    }
-  }
+  //    PrintAsicDelays();
+  //      PrintAsicPatterns();
   //
   WriteConfigurationReg();
-  if ( GetCheckJtagWrite() ) {
-    PrintConfigurationReg();
-  }
+  //    PrintConfigurationReg();
   //
   WriteHotChannelMask();
-  if ( GetCheckJtagWrite() ) {
-    PrintHotChannelMask();
-  }
+  //    PrintHotChannelMask();
   //
   WriteCollisionPatternMask();
-  if (debug_) {
-    if ( GetCheckJtagWrite() ) {
-      PrintCollisionPatternMask();
-    }
-  }
+  //      PrintCollisionPatternMask();
   //
   // The following are ALCT registers which should not be changed in the configuration...
   //
   //  WriteTestpulsePowerSwitchReg_();
-  //  if ( GetCheckJtagWrite() ) 
   //    PrintTestpulsePowerSwitchReg_();
   //
   //  WriteTestpulseAmplitude_();
-  //  if ( GetCheckJtagWrite() ) 
   //    PrintTestpulseAmplitude_();
   //
   //  WriteTestpulseGroupMask_();
-  //  if ( GetCheckJtagWrite() ) 
   //    PrintTestpulseGroupMask_();
   //
   //  WriteTestpulseStripMask_();
-  //  if ( GetCheckJtagWrite() ) 
   //    PrintTestpulseStripMask_();
   //
   //  WriteDelayLineControlReg_();
-  //  if ( GetCheckJtagWrite() ) 
   //    PrintDelayLineControlReg_();
   //
   //  WriteTriggerRegister_();
-  //  if ( GetCheckJtagWrite() ) 
   //    PrintTriggerRegister_();
   //
   SetCheckJtagWrite(true);                //re-enable the checking of JTAG writes (default)
@@ -6446,45 +6413,71 @@ void ALCTController::configure() {
   //
   SetFillVmeWriteVecs(false);        //give VME back to the user (default)
   //
+  if ( CheckCurrentConfiguration() ) {
+    (*MyOutput_) << "ALCT slot " << (int) tmb_->slot() << " configuration check OK" << std::endl;
+  } else {
+    (*MyOutput_) << "ALCT slot " << (int) tmb_->slot() << " configuration check FAIL" << std::endl;
+  }
+  //
+  return;
+}
+//
+void ALCTController::PrintCurrentConfiguration() {
+  //
+  (*configOut_) << "ALCT configuration in slot " <<  (int)tmb_->slot() << std::endl;
+  //
+  PrintSlowControlId();
+  //
+  PrintFastControlId();
+  //
+  (*configOut_) << "........................ ALCT type = " 
+		<< std::dec << GetNumberOfChannelsInAlct() << std::endl; 
+  (*configOut_) << "............ Number of Wire Groups = " 
+		<< std::dec << GetNumberOfWireGroupsInChamber() << std::endl; 
+  (*configOut_) << "........ Number of Wires per layer = " 
+		<< GetNumberOfChannelsPerLayer() << std::endl;
+  (*configOut_) << ".. Number of groups of delay chips =  " 
+		<< GetNumberOfGroupsOfDelayChips() << std::endl; 
+  (*configOut_) << "Number of collision pattern groups = " 
+		<< GetNumberOfCollisionPatternGroups() << std::endl;
+  (*configOut_) << ".................. Number of AFEBs = " 
+		<< GetNumberOfAfebs() << std::endl;
+  (*configOut_) << "........... Enabled AFEBs count from  " 
+		<< GetLowestAfebIndex() << " to " << GetHighestAfebIndex() << std::endl;
+  //
+  PrintAfebThresholds();
+  //
+  PrintStandbyRegister_();
+  //
+  PrintAsicDelays();
+  PrintAsicPatterns();
+  //
+  PrintConfigurationReg();
+  //
+  PrintHotChannelMask();
+  //
+  PrintCollisionPatternMask();
+  //
   return;
 }
 //
 void ALCTController::ReadCurrentConfiguration() {
   //
-  (*configOut_) << "ALCT READ configuration in slot " <<  (int)tmb_->slot() << std::endl;
-  //
   ReadSlowControlId();
-  PrintSlowControlId();
   //
   ReadFastControlId();
-  PrintFastControlId();
-  //
-  (*configOut_) << "........................ ALCT type = " << std::dec << GetNumberOfChannelsInAlct() << std::endl; 
-  (*configOut_) << "............ Number of Wire Groups = " << std::dec << GetNumberOfWireGroupsInChamber() << std::endl; 
-  (*configOut_) << "........ Number of Wires per layer = " << GetNumberOfChannelsPerLayer() << std::endl;
-  (*configOut_) << ".. Number of groups of delay chips =  " << GetNumberOfGroupsOfDelayChips() << std::endl; 
-  (*configOut_) << "Number of collision pattern groups = " << GetNumberOfCollisionPatternGroups() << std::endl;
-  (*configOut_) << ".................. Number of AFEBs = " << GetNumberOfAfebs() << std::endl;
-  (*configOut_) << "........... Enabled AFEBs count from  " << GetLowestAfebIndex() << " to " << GetHighestAfebIndex() << std::endl;
   //
   ReadAfebThresholds();
-  PrintAfebThresholds();
   //    
   ReadStandbyRegister_();
-  PrintStandbyRegister_();
-
+  //
   ReadAsicDelaysAndPatterns();
-  PrintAsicDelays();
-  PrintAsicPatterns();
   //
   ReadConfigurationReg();
-  PrintConfigurationReg();
   //
   ReadHotChannelMask();
-  PrintHotChannelMask();
   //
   ReadCollisionPatternMask();
-  PrintCollisionPatternMask();
   //
   return;
 }
@@ -6492,8 +6485,6 @@ void ALCTController::ReadCurrentConfiguration() {
 bool ALCTController::CheckCurrentConfiguration() {
   //
   bool config_ok = true;
-  //
-  (*configOut_) << "ALCT: CHECK configuration in slot " <<  (int)tmb_->slot() << std::endl;
   //
   ReadCurrentConfiguration();  //fill the read values in the software
   //
@@ -6508,30 +6499,42 @@ bool ALCTController::CheckCurrentConfiguration() {
     // at low dac values (<~30), this is approximately the precision of the dac/adc
     float threshold = 4. / dac_converted_to_adc;
     //
-    config_ok &= tmb_->compareValues("AFEB thresholds",
+    std::ostringstream tested_value;
+    tested_value << "AFEB threshold AnodeChannel Number " << (afeb+1);
+    config_ok &= tmb_->compareValues(tested_value.str(),
 				     (float) read_afeb_threshold_[afeb],
 				     dac_converted_to_adc,
 				     threshold);
   }
   //    
-  for (int i=0; i<RegSizeAlctSlowFpga_WRT_STANDBY_REG; i++)
-    config_ok &= tmb_->compareValues("ALCT Standby Register",
+  for (int i=0; i<RegSizeAlctSlowFpga_WRT_STANDBY_REG; i++) {
+    std::ostringstream tested_value;
+    tested_value << "ALCT Standby Register channel " << i;
+    config_ok &= tmb_->compareValues(tested_value.str(),
 				     read_standby_register_[i],
 				     write_standby_register_[i],
 				     true);
+  }
   //
-  for (int layer=0; layer<MAX_NUM_LAYERS; layer++) 
-    for (int channel=0; channel<GetNumberOfChannelsPerLayer(); channel++) 
-      config_ok &= tmb_->compareValues("ALCT ASIC Pattern",
+  for (int layer=0; layer<MAX_NUM_LAYERS; layer++) {
+    for (int channel=0; channel<GetNumberOfChannelsPerLayer(); channel++) {
+      std::ostringstream tested_value;
+      tested_value << "ASIC Pattern Layer " << layer << " Channel " << channel;
+      config_ok &= tmb_->compareValues(tested_value.str(),
 				       read_asic_pattern_[layer][channel],
 				       write_asic_pattern_[layer][channel],
 				       true);
+    }
+  }
   //
-  for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++)
-    config_ok &= tmb_->compareValues("AFEB Delays",
+  for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++) {
+    std::ostringstream tested_value;
+    tested_value << "AFEB delay AnodeChannel Number " << (afeb+1);
+    config_ok &= tmb_->compareValues(tested_value.str(),
 				     read_asic_delay_[afeb],
 				     write_asic_delay_[afeb],
 				     true);
+  }
   //
   config_ok &= tmb_->compareValues("ALCT Trigger Mode",
 				   read_trigger_mode_,
@@ -6636,7 +6639,9 @@ bool ALCTController::CheckCurrentConfiguration() {
   for (int layer=0; layer<MAX_NUM_LAYERS; layer++) 
     for (int channel=0; channel<GetNumberOfChannelsPerLayer(); channel++) {
       int index = layer * GetNumberOfChannelsPerLayer() + channel;
-      config_ok &= tmb_->compareValues("ALCT Hot Channel Mask",
+      std::ostringstream tested_value;
+      tested_value << "ALCT Hot Channel Mask Layer " << layer << " Channel " << channel;
+      config_ok &= tmb_->compareValues(tested_value.str(),
 				       read_hot_channel_mask_[index],
 				       write_hot_channel_mask_[index],
 				       true);      
@@ -6645,12 +6650,28 @@ bool ALCTController::CheckCurrentConfiguration() {
   for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) 
     for (int bitInEnvelope=0; bitInEnvelope<NUMBER_OF_BITS_IN_COLLISION_MASK_PER_GROUP; bitInEnvelope++) {
       int index = group * NUMBER_OF_BITS_IN_COLLISION_MASK_PER_GROUP + bitInEnvelope;
-      config_ok &= tmb_->compareValues("ALCT Collision Pattern Mask",
+      std::ostringstream tested_value;
+      tested_value << "ALCT Collision Pattern Mask Group " << group << " Bit " << bitInEnvelope;
+      config_ok &= tmb_->compareValues(tested_value.str(),
 				       read_collision_pattern_mask_reg_[index],
 				       write_collision_pattern_mask_reg_[index],
 				       true);      
       
     }
+  //
+  std::ostringstream dump;
+  dump << "ALCT slot " << (int) tmb_->slot() << ": configuration check -> ";
+  (*configOut_) << "ALCT slot " << (int) tmb_->slot() << ": configuration -> ";
+  //
+  if ( config_ok ) {
+    dump << "OK" << std::endl;
+    (*configOut_) << "OK" << std::endl;
+    tmb_->SendOutput(dump.str(),"INFO");
+  } else {
+    dump << "FAIL <-" << std::endl;
+    (*configOut_) << "FAIL <-" << std::endl;
+    tmb_->SendOutput(dump.str(),"ERROR");
+  }
   //
   return config_ok;
 }
@@ -8454,23 +8475,23 @@ void ALCTController::DecodeConfigurationReg_(){
 				  number_of_bits,
 				  LSBfirst);
   //
-  number_of_bits = drift_delay_bithi - drift_delay_bitlo + 1;
-  read_drift_delay_ = bits_to_int(read_config_reg_+drift_delay_bitlo,
+  number_of_bits = alct_drift_delay_bithi - alct_drift_delay_bitlo + 1;
+  read_drift_delay_ = bits_to_int(read_config_reg_+alct_drift_delay_bitlo,
 				  number_of_bits,
 				  LSBfirst);
   //
-  number_of_bits = fifo_tbins_bithi - fifo_tbins_bitlo + 1;
-  read_fifo_tbins_ = bits_to_int(read_config_reg_+fifo_tbins_bitlo,
+  number_of_bits = alct_fifo_tbins_bithi - alct_fifo_tbins_bitlo + 1;
+  read_fifo_tbins_ = bits_to_int(read_config_reg_+alct_fifo_tbins_bitlo,
 				 number_of_bits,
 				 LSBfirst);
   //
-  number_of_bits = fifo_pretrig_bithi - fifo_pretrig_bitlo + 1;
-  read_fifo_pretrig_ = bits_to_int(read_config_reg_+fifo_pretrig_bitlo,
+  number_of_bits = alct_fifo_pretrig_bithi - alct_fifo_pretrig_bitlo + 1;
+  read_fifo_pretrig_ = bits_to_int(read_config_reg_+alct_fifo_pretrig_bitlo,
 				   number_of_bits,
 				   LSBfirst);
   //
-  number_of_bits = fifo_mode_bithi - fifo_mode_bitlo + 1;
-  read_fifo_mode_ = bits_to_int(read_config_reg_+fifo_mode_bitlo,
+  number_of_bits = alct_fifo_mode_bithi - alct_fifo_mode_bitlo + 1;
+  read_fifo_mode_ = bits_to_int(read_config_reg_+alct_fifo_mode_bitlo,
 				number_of_bits,
 				LSBfirst);
   //
@@ -8484,8 +8505,8 @@ void ALCTController::DecodeConfigurationReg_(){
 				 number_of_bits,
 				 LSBfirst);
   //
-  number_of_bits = l1a_offset_bithi - l1a_offset_bitlo + 1;
-  read_l1a_offset_ = bits_to_int(read_config_reg_+l1a_offset_bitlo,
+  number_of_bits = alct_l1a_offset_bithi - alct_l1a_offset_bitlo + 1;
+  read_l1a_offset_ = bits_to_int(read_config_reg_+alct_l1a_offset_bitlo,
 				 number_of_bits,
 				 LSBfirst);
   //
@@ -8562,23 +8583,23 @@ void ALCTController::FillConfigurationReg_(){
 	      LSBfirst);
   //
   int_to_bits(write_drift_delay_,
-	      drift_delay_bithi-drift_delay_bitlo+1,
-	      write_config_reg_+drift_delay_bitlo,
+	      alct_drift_delay_bithi-alct_drift_delay_bitlo+1,
+	      write_config_reg_+alct_drift_delay_bitlo,
 	      LSBfirst);
   //
   int_to_bits(write_fifo_tbins_,
-	      fifo_tbins_bithi-fifo_tbins_bitlo+1,
-	      write_config_reg_+fifo_tbins_bitlo,
+	      alct_fifo_tbins_bithi-alct_fifo_tbins_bitlo+1,
+	      write_config_reg_+alct_fifo_tbins_bitlo,
 	      LSBfirst);
   //
   int_to_bits(write_fifo_pretrig_,
-	      fifo_pretrig_bithi-fifo_pretrig_bitlo+1,
-	      write_config_reg_+fifo_pretrig_bitlo,
+	      alct_fifo_pretrig_bithi-alct_fifo_pretrig_bitlo+1,
+	      write_config_reg_+alct_fifo_pretrig_bitlo,
 	      LSBfirst);
   //
   int_to_bits(write_fifo_mode_,
-	      fifo_mode_bithi-fifo_mode_bitlo+1,
-	      write_config_reg_+fifo_mode_bitlo,
+	      alct_fifo_mode_bithi-alct_fifo_mode_bitlo+1,
+	      write_config_reg_+alct_fifo_mode_bitlo,
 	      LSBfirst);
   //
   int_to_bits(write_l1a_delay_,
@@ -8592,8 +8613,8 @@ void ALCTController::FillConfigurationReg_(){
 	      LSBfirst);
   //
   int_to_bits(write_l1a_offset_,
-	      l1a_offset_bithi-l1a_offset_bitlo+1,
-	      write_config_reg_+l1a_offset_bitlo,
+	      alct_l1a_offset_bithi-alct_l1a_offset_bitlo+1,
+	      write_config_reg_+alct_l1a_offset_bitlo,
 	      LSBfirst);
   //
   int_to_bits(write_l1a_internal_,

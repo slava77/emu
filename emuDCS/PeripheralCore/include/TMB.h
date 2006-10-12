@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.10 2006/10/10 15:34:58 rakness Exp $
+// $Id: TMB.h,v 3.11 2006/10/12 15:56:00 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.11  2006/10/12 15:56:00  rakness
+// cleaned up configuration checking for ALCT/TMB
+//
 // Revision 3.10  2006/10/10 15:34:58  rakness
 // check TMB/ALCT configuration vs xml
 //
@@ -465,11 +468,14 @@ public:
   inline int GetClockedOutPromImage(int address) { return clocked_out_prom_image_.at(address); }
   //
   void ReadCurrentConfiguration();
+  void PrintCurrentConfiguration();
   bool CheckCurrentConfiguration();
   void DecodeConfigurationData(int address, int data);
   void CheckVMEStateMachine();
   void CheckJTAGStateMachine();
   void CheckRawHitsHeader();
+  //
+  int makemask(int lo_bit, int hi_bit);
   //
   bool compareValues(std::string typeOfTest,
 		     int read_val,
@@ -511,10 +517,6 @@ private:
   std::ostream * configOut_ ;
   int alct_tx_clock_delay_;
   int alct_rx_clock_delay_;
-  int trigMB_dav_delay_;
-  int ALCT_dav_delay_; 
-  int push_dav_delay_;
-  int l1acc_dav_delay_;
   int cfeb0delay_;
   int cfeb1delay_;
   int cfeb2delay_;
@@ -575,6 +577,9 @@ private:
   std::vector<int> clocked_out_prom_image_;
   //
   // values decoded from the configuration registers:
+  int read_firmware_date_;
+  int boot_register_control_jtag_chain_;
+  int read_firmware_year_;
   int read_rpc_exists_;
   int read_rpc_read_enable_;
   int read_rpc_bxn_offset_;
@@ -589,7 +594,7 @@ private:
   int read_clct_ext_trig_vme_;
   int read_ext_trig_both_;
   int read_ccb_allow_bypass_;
-  int read_l1a_delay_vme_;
+  int read_internal_l1a_delay_vme_;
   int read_fifo_mode_;
   int read_fifo_tbins_;
   int read_fifo_pretrig_;
@@ -638,9 +643,9 @@ private:
   int read_dmb_tx_delay_;
   int read_rat_tmb_delay_;
   int read_rpc0_rat_delay_;
-  int read_rpc1_rat_phase_;
-  int read_rpc2_rat_phase_;
-  int read_rpc3_rat_phase_;
+  int read_rpc1_rat_delay_;
+  int read_rpc2_rat_delay_;
+  int read_rpc3_rat_delay_;
   int read_enableCLCTInputs_;
   int read_cfeb_ram_sel_;
   int read_cfeb_inj_en_sel_;

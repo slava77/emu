@@ -643,27 +643,31 @@ int main() {
       thisTMB->CheckRawHitsHeader();
       break;
     case 501:
+      thisTMB->ReadCurrentConfiguration();
       outputfile.open("TMBconfiguration.txt");
       thisTMB->RedirectConfigOutput(&outputfile);
-      thisTMB->ReadCurrentConfiguration();
+      thisTMB->PrintCurrentConfiguration();
       outputfile.close();
+      thisTMB->RedirectConfigOutput(&std::cout);
       break;
     case 502:
+      alct->ReadCurrentConfiguration();
       outputfile.open("ALCTconfiguration.txt");
       alct->RedirectConfigOutput(&outputfile);
-      alct->ReadCurrentConfiguration();
+      alct->PrintCurrentConfiguration();
       outputfile.close();
+      alct->RedirectConfigOutput(&std::cout);
       break;
     case 503:
       thisTMB->StartTTC();
       break;
     case 504:
-      std::cout << "Check TMB configuration with xml file = "
+      std::cout << "Check TMB configuration vs xml file = "
 		<< thisTMB->CheckCurrentConfiguration() 
 		<< std::endl;
       break;
     case 505:
-      std::cout << "Check configuration with xml file = "
+      std::cout << "Check ALCT configuration vs xml file = "
 		<< alct->CheckCurrentConfiguration() 
 		<< std::endl;
       break;
