@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.7 2006/10/02 12:59:40 mey Exp $
+// $Id: VMEController.cc,v 3.8 2006/10/12 17:52:13 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.8  2006/10/12 17:52:13  mey
+// Update
+//
 // Revision 3.7  2006/10/02 12:59:40  mey
 // UPdate
 //
@@ -242,7 +245,8 @@ void VMEController::reset() {
 void VMEController::start(int slot, int boardtype) {
   board=boardtype;
   vmeadd=slot<<19;
-  //std::cout << "vmeadd="<<vmeadd<<std::endl;
+  //std::cout << "Start.vmeadd="<<std::hex<<vmeadd<<std::endl;
+  //std::cout << "Start.boardtype="<<boardtype<<std::endl;
   //std::cout << "JtagBaseAddress_="<<JtagBaseAddress_<<std::endl;
   add_ucla=vmeadd|JtagBaseAddress_;
   //std::cout << "add_ucla="<<add_ucla<<std::endl;
@@ -915,7 +919,10 @@ void VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sh
   // VME address higher than 0xC00000 is for broadcasting,
   // READ is not allowed in the software. 
   if((irdwr==0 || irdwr==2) && ptrt >= 0xC00000) return;
-     
+
+  //printf("vme_control: %02x %08x ",irdwr, (unsigned long int)ptr);
+  //printf(" %02x %04x%04x\n", irdwr, data[1], data[0]);
+
   /*  fill buffer  */
   nvme=nvme+1;
  //  VME command function code

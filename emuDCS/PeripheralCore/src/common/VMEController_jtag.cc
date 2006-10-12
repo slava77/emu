@@ -44,6 +44,8 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
   int nbyte;
   unsigned short int ishft,temp;
 
+  //std::cout << "devdo.vmeadd="<<std::hex<<vmeadd<<std::endl;
+
   /* irdsnd for jtag
           irdsnd = 0 send immediately, no read
           irdsnd = 1 send immediately, read
@@ -63,11 +65,12 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
 
   //printf(" ENTERING devdo, idev idevo dev %d %d %d \n",idev,idevo,dev);
   /****** check we have same old device otherwise we need to initialize */
-  init=0;
-    if(idev!=idevo){
-       init=1;
-       //  printf(" idev idevo %d %d plev %d \n",idev,idevo,plev);
-    }
+  init=1;
+  //
+  //if(idev!=idevo){
+  //   init=1;
+  //  printf(" idev idevo %d %d plev %d \n",idev,idevo,plev);
+  //}
     if(idev==1){
       if(dev==1||dev==7)feuse=0x01;
       if(dev==2||dev==8)feuse=0x02;
@@ -84,6 +87,8 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
   //  printf(" about to initialize plev idve devo init %d %d %d %d \n",plev,idev,idevo,init);
 /************  JTAG initialize ******************/
 /************  immediate instruction nonJTAG ****/
+
+  //std::cout << "init=" << init << " idev=" << idev << std::endl;
 
   switch(idev){
 
@@ -239,6 +244,9 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
     break;
 
   }
+
+  //std::cout << "devdo.add_r="<<std::hex<<add_r<<std::endl;
+  //std::cout << "devdo.add_i="<<std::hex<<add_i<<std::endl;
 
 /**********  end initialize ***********************/
 /**********  send the JTAG data ************************/ 
@@ -413,6 +421,10 @@ if(cnt==0)return;
  data=(unsigned short int *) snd;
 
  /* instr */
+
+ //std::cout << "scan.vmeadd="<<std::hex<<vmeadd<<std::endl;
+ //std::cout << "scan.add_r="<<std::hex<<add_r<<std::endl;
+ //std::cout << "scan.add_i="<<std::hex<<add_i<<std::endl;
 
  if(reg==0){
    add_i=add_i&msk_clr;
