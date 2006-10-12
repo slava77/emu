@@ -567,17 +567,17 @@ const int nph_thresh_bithi                 = 15;
 const int nph_pattern_bitlo                = 16;
 const int nph_pattern_bithi                = 18;
 //
-const int drift_delay_bitlo                = 19;
-const int drift_delay_bithi                = 20;
+const int alct_drift_delay_bitlo           = 19;
+const int alct_drift_delay_bithi           = 20;
 //
-const int fifo_tbins_bitlo                 = 21;
-const int fifo_tbins_bithi                 = 25;
+const int alct_fifo_tbins_bitlo            = 21;
+const int alct_fifo_tbins_bithi            = 25;
 //
-const int fifo_pretrig_bitlo               = 26;
-const int fifo_pretrig_bithi               = 30;
+const int alct_fifo_pretrig_bitlo          = 26;
+const int alct_fifo_pretrig_bithi          = 30;
 //
-const int fifo_mode_bitlo                  = 31;
-const int fifo_mode_bithi                  = 32;
+const int alct_fifo_mode_bitlo             = 31;
+const int alct_fifo_mode_bithi             = 32;
 //
 const int l1a_delay_bitlo                  = 36;
 const int l1a_delay_bithi                  = 43;
@@ -585,8 +585,8 @@ const int l1a_delay_bithi                  = 43;
 const int l1a_window_bitlo                 = 44;
 const int l1a_window_bithi                 = 47;
 //
-const int l1a_offset_bitlo                 = 48;
-const int l1a_offset_bithi                 = 51;
+const int alct_l1a_offset_bitlo            = 48;
+const int alct_l1a_offset_bithi            = 51;
 //
 const int l1a_internal_bitlo               = 52;
 const int l1a_internal_bithi               = 52;

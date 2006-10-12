@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.4 2006/10/06 12:15:39 rakness Exp $
+// $Id: TMB_constants.h,v 3.5 2006/10/12 15:56:01 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.5  2006/10/12 15:56:01  rakness
+// cleaned up configuration checking for ALCT/TMB
+//
 // Revision 3.4  2006/10/06 12:15:39  rakness
 // expand xml file
 //
@@ -380,3 +383,464 @@ const int ALCT_trigger                    =  2;
 const int Scintillator_trigger            =  3;
 const int DMB_trigger                     =  4;
 const int ALCT_CLCT_coincidence_trigger   =  5;
+//
+// Bit mappings for VME registers:
+const int rpc_exists_vmereg            =  rpc_cfg_adr;
+const int rpc_exists_bitlo             =  0;
+const int rpc_exists_bithi             =  3;
+const int rpc_exists_default           =  0xF;
+//
+const int rpc_read_enable_vmereg       =  rpc_cfg_adr;
+const int rpc_read_enable_bitlo        =  4;
+const int rpc_read_enable_bithi        =  4;
+const int rpc_read_enable_default      =  1;
+//
+const int rpc_bxn_offset_vmereg        =  rpc_cfg_adr;
+const int rpc_bxn_offset_bitlo         =  5;
+const int rpc_bxn_offset_bithi         =  8;
+const int rpc_bxn_offset_default       =  0;
+//
+//
+const int shift_rpc_vmereg             =  vme_ratctrl_adr;
+const int shift_rpc_bitlo              =  1;
+const int shift_rpc_bithi              =  1;
+const int shift_rpc_default            =  0;
+//
+//
+const int enable_alct_rx_vmereg        =  vme_loopbk_adr;
+const int enable_alct_rx_bitlo         =  2;
+const int enable_alct_rx_bithi         =  2;
+const int enable_alct_rx_default       =  1;
+//
+const int enable_alct_tx_vmereg        =  vme_loopbk_adr;
+const int enable_alct_tx_bitlo         =  3;
+const int enable_alct_tx_bithi         =  3;
+const int enable_alct_tx_default       =  1;
+//
+//
+const int alct_ext_trig_l1aen_vmereg   =  ccb_trig_adr;
+const int alct_ext_trig_l1aen_bitlo    =  0;
+const int alct_ext_trig_l1aen_bithi    =  0;
+const int alct_ext_trig_l1aen_default  =  0;
+//
+const int clct_ext_trig_l1aen_vmereg   =  ccb_trig_adr;
+const int clct_ext_trig_l1aen_bitlo    =  1;
+const int clct_ext_trig_l1aen_bithi    =  1;
+const int clct_ext_trig_l1aen_default  =  0;
+//
+const int request_l1a_vmereg           =  ccb_trig_adr;
+const int request_l1a_bitlo            =  2;
+const int request_l1a_bithi            =  2;
+const int request_l1a_default          =  1;
+//
+const int alct_ext_trig_vme_vmereg     =  ccb_trig_adr;
+const int alct_ext_trig_vme_bitlo      =  3;
+const int alct_ext_trig_vme_bithi      =  3;
+const int alct_ext_trig_vme_default    =  0;
+//
+const int clct_ext_trig_vme_vmereg     =  ccb_trig_adr;
+const int clct_ext_trig_vme_bitlo      =  4;
+const int clct_ext_trig_vme_bithi      =  4;
+const int clct_ext_trig_vme_default    =  0;
+//
+const int ext_trig_both_vmereg         =  ccb_trig_adr;
+const int ext_trig_both_bitlo          =  5;
+const int ext_trig_both_bithi          =  5;
+const int ext_trig_both_default        =  0;
+//
+const int ccb_allow_bypass_vmereg      =  ccb_trig_adr;
+const int ccb_allow_bypass_bitlo       =  6;
+const int ccb_allow_bypass_bithi       =  6;
+const int ccb_allow_bypass_default     =  0;
+//
+const int internal_l1a_delay_vme_vmereg=  ccb_trig_adr;
+const int internal_l1a_delay_vme_bitlo =  8;
+const int internal_l1a_delay_vme_bithi =  15;
+const int internal_l1a_delay_vme_default= 0x72;
+//
+//
+const int fifo_mode_vmereg             =  seq_fifo_adr;
+const int fifo_mode_bitlo              =  0;
+const int fifo_mode_bithi              =  2;
+const int fifo_mode_default            =  1;
+//
+const int fifo_tbins_vmereg            =  seq_fifo_adr;
+const int fifo_tbins_bitlo             =  3;
+const int fifo_tbins_bithi             =  7;
+const int fifo_tbins_default           =  7;
+//
+const int fifo_pretrig_vmereg          =  seq_fifo_adr;
+const int fifo_pretrig_bitlo           =  8;
+const int fifo_pretrig_bithi           =  12;
+const int fifo_pretrig_default         =  2;
+//
+//
+const int clct_pat_trig_en_vmereg      =  seq_trig_en_adr;
+const int clct_pat_trig_en_bitlo       =  0;
+const int clct_pat_trig_en_bithi       =  0;
+const int clct_pat_trig_en_default     =  1;
+//
+const int alct_pat_trig_en_vmereg      =  seq_trig_en_adr;
+const int alct_pat_trig_en_bitlo       =  1;
+const int alct_pat_trig_en_bithi       =  1;
+const int alct_pat_trig_en_default     =  0;
+//
+const int match_pat_trig_en_vmereg     =  seq_trig_en_adr;
+const int match_pat_trig_en_bitlo      =  2;
+const int match_pat_trig_en_bithi      =  2;
+const int match_pat_trig_en_default    =  0;
+//
+const int adb_ext_trig_en_vmereg       =  seq_trig_en_adr;
+const int adb_ext_trig_en_bitlo        =  3;
+const int adb_ext_trig_en_bithi        =  3;
+const int adb_ext_trig_en_default      =  0;
+//
+const int dmb_ext_trig_en_vmereg       =  seq_trig_en_adr;
+const int dmb_ext_trig_en_bitlo        =  4;
+const int dmb_ext_trig_en_bithi        =  4;
+const int dmb_ext_trig_en_default      =  0;
+//
+const int clct_ext_trig_en_vmereg      =  seq_trig_en_adr;
+const int clct_ext_trig_en_bitlo       =  5;
+const int clct_ext_trig_en_bithi       =  5;
+const int clct_ext_trig_en_default     =  0;
+//
+const int alct_ext_trig_en_vmereg      =  seq_trig_en_adr;
+const int alct_ext_trig_en_bitlo       =  6;
+const int alct_ext_trig_en_bithi       =  6;
+const int alct_ext_trig_en_default     =  0;
+//
+const int vme_ext_trig_en_vmereg       =  seq_trig_en_adr;
+const int vme_ext_trig_en_bitlo        =  7;
+const int vme_ext_trig_en_bithi        =  7;
+const int vme_ext_trig_en_default      =  0;
+//
+const int ext_trig_inject_vmereg       =  seq_trig_en_adr;
+const int ext_trig_inject_bitlo        =  8;
+const int ext_trig_inject_bithi        =  8;
+const int ext_trig_inject_default      =  0;
+//
+const int all_cfeb_active_vmereg       =  seq_trig_en_adr;
+const int all_cfeb_active_bitlo        =  9;
+const int all_cfeb_active_bithi        =  9;
+const int all_cfeb_active_default      =  0;
+//
+const int cfebs_enabled_vmereg         =  seq_trig_en_adr;
+const int cfebs_enabled_bitlo          =  10;
+const int cfebs_enabled_bithi          =  14;
+const int cfebs_enabled_default        =  0x1f;
+//
+const int cfeb_enable_source_vmereg    =  seq_trig_en_adr;
+const int cfeb_enable_source_bitlo     =  15;
+const int cfeb_enable_source_bithi     =  15;
+const int cfeb_enable_source_default   =  1;
+//
+//
+const int alct_vpf_delay_vmereg        =  tmbtim_adr;
+const int alct_vpf_delay_bitlo         =  0;
+const int alct_vpf_delay_bithi         =  3;
+const int alct_vpf_delay_default       =  1;
+//
+const int alct_match_window_size_vmereg=  tmbtim_adr;
+const int alct_match_window_size_bitlo =  4;
+const int alct_match_window_size_bithi =  7;
+const int alct_match_window_size_default= 3;
+//
+const int mpc_tx_delay_vmereg          =  tmbtim_adr;
+const int mpc_tx_delay_bitlo           =  8;
+const int mpc_tx_delay_bithi           =  11;
+const int mpc_tx_delay_default         =  0;
+//
+//
+const int l1a_offset_vmereg            =  seq_offset_adr;
+const int l1a_offset_bitlo             =  0;
+const int l1a_offset_bithi             =  3;
+const int l1a_offset_default           =  0;
+//
+const int bxn_offset_vmereg            =  seq_offset_adr;
+const int bxn_offset_bitlo             =  4;
+const int bxn_offset_bithi             =  15;
+const int bxn_offset_default           =  0;
+//
+//
+const int triad_persist_vmereg         =  seq_clct_adr;
+const int triad_persist_bitlo          =  0;
+const int triad_persist_bithi          =  3;
+const int triad_persist_default        =  5;
+//
+const int hs_pretrig_thresh_vmereg     =  seq_clct_adr;
+const int hs_pretrig_thresh_bitlo      =  4;
+const int hs_pretrig_thresh_bithi      =  6;
+const int hs_pretrig_thresh_default    =  4;
+//
+const int ds_pretrig_thresh_vmereg     =  seq_clct_adr;
+const int ds_pretrig_thresh_bitlo      =  7;
+const int ds_pretrig_thresh_bithi      =  9;
+const int ds_pretrig_thresh_default    =  4;
+//
+const int min_hits_pattern_vmereg      =  seq_clct_adr;
+const int min_hits_pattern_bitlo       =  10;
+const int min_hits_pattern_bithi       =  12;
+const int min_hits_pattern_default     =  4;
+//
+const int drift_delay_vmereg           =  seq_clct_adr;
+const int drift_delay_bitlo            =  13;
+const int drift_delay_bithi            =  14;
+const int drift_delay_default          =  2;
+//
+const int pretrigger_halt_vmereg       =  seq_clct_adr;
+const int pretrigger_halt_bitlo        =  15;
+const int pretrigger_halt_bithi        =  15;
+const int pretrigger_halt_default      =  0;
+//
+//
+const int seq_readmode_in_dmb_vmereg   =  scp_ctrl_adr;
+const int seq_readmode_in_dmb_bitlo    =  5;
+const int seq_readmode_in_dmb_bithi    =  5;
+const int seq_readmode_in_dmb_default  =  0;
+//
+//
+const int l1adelay_vmereg              =  seq_l1a_adr;
+const int l1adelay_bitlo               =  0;
+const int l1adelay_bithi               =  7;
+const int l1adelay_default             =  128;
+//
+const int l1a_window_size_vmereg       =  seq_l1a_adr;
+const int l1a_window_size_bitlo        =  8;
+const int l1a_window_size_bithi        =  11;
+const int l1a_window_size_default      =  3;
+//
+//
+const int tmb_sync_err_enable_vmereg   =  tmb_trig_adr;
+const int tmb_sync_err_enable_bitlo    =  0;
+const int tmb_sync_err_enable_bithi    =  1;
+const int tmb_sync_err_enable_default  =  0x3;
+//
+const int tmb_allow_clct_vmereg        =  tmb_trig_adr;
+const int tmb_allow_clct_bitlo         =  3;
+const int tmb_allow_clct_bithi         =  3;
+const int tmb_allow_clct_default       =  1;
+//
+const int tmb_allow_match_vmereg       =  tmb_trig_adr;
+const int tmb_allow_match_bitlo        =  4;
+const int tmb_allow_match_bithi        =  4;
+const int tmb_allow_match_default      =  1;
+//
+const int mpc_delay_vmereg             =  tmb_trig_adr;
+const int mpc_delay_bitlo              =  5;
+const int mpc_delay_bithi              =  8;
+const int mpc_delay_default            =  7;
+//
+const int mpc_sel_ttc_bx0_vmereg       =  tmb_trig_adr;
+const int mpc_sel_ttc_bx0_bitlo        =  13;
+const int mpc_sel_ttc_bx0_bithi        =  13;
+const int mpc_sel_ttc_bx0_default      =  1;
+//
+const int mpc_idle_blank_vmereg        =  tmb_trig_adr;
+const int mpc_idle_blank_bitlo         =  14;
+const int mpc_idle_blank_bithi         =  14;
+const int mpc_idle_blank_default       =  0;
+//
+//
+const int tmb1_phase_vmereg            =  vme_ddd1_adr;
+const int tmb1_phase_bitlo             =  0;
+const int tmb1_phase_bithi             =  3;
+const int tmb1_phase_default           =  0;
+//
+const int mpc_phase_vmereg             =  vme_ddd1_adr;
+const int mpc_phase_bitlo              =  4;
+const int mpc_phase_bithi              =  7;
+const int mpc_phase_default            =  0;
+//
+const int dcc_phase_vmereg             =  vme_ddd1_adr;
+const int dcc_phase_bitlo              =  8;
+const int dcc_phase_bithi              =  11;
+const int dcc_phase_default            =  0;
+//
+const int cfeb0delay_vmereg            =  vme_ddd1_adr;
+const int cfeb0delay_bitlo             =  12;
+const int cfeb0delay_bithi             =  15;
+const int cfeb0delay_default           =  7;
+//
+//
+const int cfeb1delay_vmereg            =  vme_ddd2_adr;
+const int cfeb1delay_bitlo             =  0;
+const int cfeb1delay_bithi             =  3;
+const int cfeb1delay_default           =  7;
+//
+const int cfeb2delay_vmereg            =  vme_ddd2_adr;
+const int cfeb2delay_bitlo             =  4;
+const int cfeb2delay_bithi             =  7;
+const int cfeb2delay_default           =  7;
+//
+const int cfeb3delay_vmereg            =  vme_ddd2_adr;
+const int cfeb3delay_bitlo             =  8;
+const int cfeb3delay_bithi             =  11;
+const int cfeb3delay_default           =  7;
+//
+const int cfeb4delay_vmereg            =  vme_ddd2_adr;
+const int cfeb4delay_bitlo             =  12;
+const int cfeb4delay_bithi             =  15;
+const int cfeb4delay_default           =  7;
+//
+//
+const int alct_tx_clock_delay_vmereg   =  vme_ddd0_adr;
+const int alct_tx_clock_delay_bitlo    =  0;
+const int alct_tx_clock_delay_bithi    =  3;
+const int alct_tx_clock_delay_default  =  8;
+//
+const int alct_rx_clock_delay_vmereg   =  vme_ddd0_adr;
+const int alct_rx_clock_delay_bitlo    =  4;
+const int alct_rx_clock_delay_bithi    =  7;
+const int alct_rx_clock_delay_default  =  1;
+//
+const int dmb_tx_delay_vmereg          =  vme_ddd0_adr;
+const int dmb_tx_delay_bitlo           =  8;
+const int dmb_tx_delay_bithi           =  11;
+const int dmb_tx_delay_default         =  2;
+//
+const int rat_tmb_delay_vmereg         =  vme_ddd0_adr;
+const int rat_tmb_delay_bitlo          =  12;
+const int rat_tmb_delay_bithi          =  15;
+const int rat_tmb_delay_default        =  0;
+//
+//
+const int rpc0_rat_delay_vmereg        =  rat_3d_delays_adr;
+const int rpc0_rat_delay_bitlo         =  0;
+const int rpc0_rat_delay_bithi         =  3;
+const int rpc0_rat_delay_default       =  3;
+//
+const int rpc1_rat_delay_vmereg        =  rat_3d_delays_adr;
+const int rpc1_rat_delay_bitlo         =  4;
+const int rpc1_rat_delay_bithi         =  7;
+const int rpc1_rat_delay_default       =  3;
+//
+const int rpc2_rat_delay_vmereg        =  rat_3d_delays_adr;
+const int rpc2_rat_delay_bitlo         =  8;
+const int rpc2_rat_delay_bithi         =  11;
+const int rpc2_rat_delay_default       =  0;
+//
+const int rpc3_rat_delay_vmereg        =  rat_3d_delays_adr;
+const int rpc3_rat_delay_bitlo         =  12;
+const int rpc3_rat_delay_bithi         =  15;
+const int rpc3_rat_delay_default       =  0;
+//
+//
+const int enableCLCTInputs_vmereg      =  cfeb_inj_adr;
+const int enableCLCTInputs_bitlo       =  0;
+const int enableCLCTInputs_bithi       =  4;
+const int enableCLCTInputs_default     =  0x1f;
+//
+const int cfeb_ram_sel_vmereg          =  cfeb_inj_adr;
+const int cfeb_ram_sel_bitlo           =  5;
+const int cfeb_ram_sel_bithi           =  9;
+const int cfeb_ram_sel_default         =  0;
+//
+const int cfeb_inj_en_sel_vmereg       =  cfeb_inj_adr;
+const int cfeb_inj_en_sel_bitlo        =  10;
+const int cfeb_inj_en_sel_bithi        =  14;
+const int cfeb_inj_en_sel_default      =  0x1f;
+//
+const int start_pattern_inj_vmereg     =  cfeb_inj_adr;
+const int start_pattern_inj_bitlo      =  15;
+const int start_pattern_inj_bithi      =  15;
+const int start_pattern_inj_default    =  0;
+//
+//
+const int tmb_slot_vmereg              =  seq_id_adr;
+const int tmb_slot_bitlo               =  0;
+const int tmb_slot_bithi               =  4;
+const int tmb_slot_default             =  21;
+//
+const int csc_id_vmereg                =  seq_id_adr;
+const int csc_id_bitlo                 =  5;
+const int csc_id_bithi                 =  8;
+const int csc_id_default               =  5;
+//
+const int run_id_vmereg                =  seq_id_adr;
+const int run_id_bitlo                 =  9;
+const int run_id_bithi                 =  12;
+const int run_id_default               =  0;
+//
+//
+const int alct_clear_vmereg            =  alct_inj_adr;
+const int alct_clear_bitlo             =  0;
+const int alct_clear_bithi             =  0;
+const int alct_clear_default           =  0;
+//
+//
+const int alct_trig_width_vmereg       =  seq_trig_dly2_adr;
+const int alct_trig_width_bitlo        =  0;
+const int alct_trig_width_bithi        =  3;
+const int alct_trig_width_default      =  3;
+//
+const int alct_pretrig_delay_vmereg    =  seq_trig_dly2_adr;
+const int alct_pretrig_delay_bitlo     =  4;
+const int alct_pretrig_delay_bithi     =  7;
+const int alct_pretrig_delay_default   =  0;
+//
+const int alct_pattern_delay_vmereg    =  seq_trig_dly2_adr;
+const int alct_pattern_delay_bitlo     =  8;
+const int alct_pattern_delay_bithi     =  11;
+const int alct_pattern_delay_default   =  0;
+//
+const int adb_ext_trig_delay_vmereg    =  seq_trig_dly2_adr;
+const int adb_ext_trig_delay_bitlo     =  12;
+const int adb_ext_trig_delay_bithi     =  15;
+const int adb_ext_trig_delay_default   =  1;
+//
+//
+const int clct_flush_delay_vmereg      =  seqmod_adr;
+const int clct_flush_delay_bitlo       =  0;
+const int clct_flush_delay_bithi       =  3;
+const int clct_flush_delay_default     =  1;
+//
+const int clct_turbo_vmereg            =  seqmod_adr;
+const int clct_turbo_bitlo             =  4;
+const int clct_turbo_bithi             =  4;
+const int clct_turbo_default           =  0;
+//
+const int ranlct_enable_vmereg         =  seqmod_adr;
+const int ranlct_enable_bitlo          =  5;
+const int ranlct_enable_bithi          =  5;
+const int ranlct_enable_default        =  0;
+//
+const int wrt_buf_required_vmereg      =  seqmod_adr;
+const int wrt_buf_required_bitlo       =  6;
+const int wrt_buf_required_bithi       =  6;
+const int wrt_buf_required_default     =  1;
+//
+const int valid_clct_required_vmereg   =  seqmod_adr;
+const int valid_clct_required_bitlo    =  7;
+const int valid_clct_required_bithi    =  7;
+const int valid_clct_required_default  =  1;
+//
+const int l1a_allow_match_vmereg       =  seqmod_adr;
+const int l1a_allow_match_bitlo        =  8;
+const int l1a_allow_match_bithi        =  8;
+const int l1a_allow_match_default      =  1;
+//
+const int l1a_allow_notmb_vmereg       =  seqmod_adr;
+const int l1a_allow_notmb_bitlo        =  9;
+const int l1a_allow_notmb_bithi        =  9;
+const int l1a_allow_notmb_default      =  0;
+//
+const int l1a_allow_nol1a_vmereg       =  seqmod_adr;
+const int l1a_allow_nol1a_bitlo        =  10;
+const int l1a_allow_nol1a_bithi        =  10;
+const int l1a_allow_nol1a_default      =  0;
+//
+const int l1a_allow_alct_only_vmereg   =  seqmod_adr;
+const int l1a_allow_alct_only_bitlo    =  11;
+const int l1a_allow_alct_only_bithi    =  11;
+const int l1a_allow_alct_only_default  =  0;
+//
+const int scint_veto_clr_vmereg        =  seqmod_adr;
+const int scint_veto_clr_bitlo         =  12;
+const int scint_veto_clr_bithi         =  12;
+const int scint_veto_clr_default       =  0;
+//
+//
+
+
+
