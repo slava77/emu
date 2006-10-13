@@ -108,7 +108,7 @@ public:
   }
 
 
-  bool postMessage( string subject, string body ){
+  bool postMessage( string subject, string body, vector<string> *attachments=0 ){
 
     // TODO: try to find out whether or not posting was successful
 
@@ -157,7 +157,11 @@ public:
     command += subject;
     command += "\" -F Text=\"";
     command += body;
-    command += "\" -F suppress=1 -b ";
+    command += "\"";
+    if ( attachments )
+      for ( vector<string>::iterator attm = attachments->begin(); attm != attachments->end(); ++attm )
+	command += " -F attfile=@" + *attm;
+    command += " -F suppress=1 -b ";
     command += curlCookies_;
     command += " ";
     command += eLogURL_;
