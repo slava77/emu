@@ -636,7 +636,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
   {
     unsigned long int idcode,uscode;
     unsigned long int tidcode[8]={0x2124a093,0x31266093,0x31266093,0x05036093,0x05036093,0x05036093,0x05036093,0x05036093};
-    unsigned long int tuscode[8]={0xcf038a02,0xdf023a01,0xdf023a01,0xb0017a01,0xc038dd99,0xc138dd99,0xd0023a01,0xd1023a01};
+    unsigned long int tuscode[8]={0xcf038a03,0xdf023a01,0xdf023a01,0xb0017a01,0xc038dd99,0xc138dd99,0xd0023a01,0xd1023a01};
 
     printf(" entered DDUFirmware \n");
     cgicc::Cgicc cgi(in);
@@ -1787,8 +1787,8 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
   unsigned long int i0trap[8];
   unsigned long int i1trap[8];
   unsigned long int i0stat,i1stat,ddustat,erastat;
-  short int igot_i0,igot_i1,solved,iFill;
-  igot_i0=0;  igot_i1=0;  solved=0;  iFill=0;
+  short int igot_i0,igot_i1,solved,iFill,iTimeout;
+  igot_i0=0;  igot_i1=0;  solved=0;  iFill=0;  iTimeout=0;
   *out << "DDU Diagnosis results:" << std::endl;
   CSCstat=thisDDU->vmepara_CSCstat();
   thisDDU->ddu_fpgastat();  // Begin Global DDUstatus check
@@ -1799,12 +1799,12 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
   i0stat=((0xffff&thisDDU->infpga_code1)<<16)|(0xffff&thisDDU->infpga_code0);
   //  sprintf(buf,"infpga0 32-bit Status: %08lXh ",i0stat);
   //  *out << buf << std::endl;
-  if(i0stat&0x04000000){            // DLL Error?
+  if(i0stat&0x04000000){            // DLL Error
     *out << "**DLLerror detected on InFPGA0** " << std::endl;
     if((i0stat&0x00000800)>0)*out << "  ^^^probable cause of Gt-Rx errors " << std::endl;
     solved=1;
   }
-  else if(i0stat&0x00000004){       // Fiber Change?
+  else if(i0stat&0x00000004){       // Fiber Change
     thisDDU->infpga_CheckFiber(INFPGA0);
     sprintf(buf,"**Fiber Connection error detected for DDUinput[7:0]=0x%02x** ",(thisDDU->infpga_code0&0xff00)>>8);
     *out << buf << std::endl;
@@ -1812,23 +1812,26 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
     else if((i0stat&0x00000130)>0)*out << "  ^^^probable cause of SpecialWord/Xmit errors " << std::endl;
     solved=1;
   }
-  else if((i0stat&0x00000800)>0){   // GT-Rx Error?
+  else if((i0stat&0x00000800)>0){   // GT-Rx Error
     thisDDU->infpga_RxErr(INFPGA0);
     sprintf(buf," *GT-Rx Error for DDUinput[7:0]=0x%02x* ",(thisDDU->infpga_code0&0xff00)>>8);
     *out << buf << std::endl;
     if((i0stat&0x00000130)>0)*out << "  ^^^probable cause of SpecialWord/Xmit errors " << std::endl;
     solved=1;
   }
-  else if((lcode[1]&0x00010000)>0&&(i0stat&0x00880000)>0){  // DMB-Full?
+  else if((lcode[1]&0x00010000)>0&&(i0stat&0x00880000)>0){  // DMB-Full
     thisDDU->infpga_DMBwarn(INFPGA0);
     sprintf(buf," *confirmed DMB Full for DDUinput[7:0]=0x%02x* ",(thisDDU->infpga_code0&0xff00)>>8);
     *out << buf << std::endl;
-    if((i0stat&0x00000130)>0)*out << "  ^^^probable cause of SpecialWord/Xmit errors  " << std::endl;
+    if((lcode[0]&0x00040000)>0&&(lcode[2]&0x00001c00)==0)*out << " ^^^DMB Full FIFO for ALCT " << std::endl;
+    else if((lcode[0]&0x00080000)>0&&(lcode[2]&0x0000001c)==0)*out << " ^^^DMB Full FIFO for TMB " << std::endl;
+    else *out << " ^^^DMB Full FIFO, probably for CFEB " << std::endl;
+    if((i0stat&0x00000130)>0)*out << "       --probable cause of SpecialWord/Xmit errors  " << std::endl;
     solved=1;
   }
 
 
-  thisDDU->infpgastat(INFPGA1);  // Begin Global InFPGA1 check
+  thisDDU->infpgastat(INFPGA1);  // Begin InFPGA1 check, repeat from InFPGA0^^
   i1stat=((0xffff&thisDDU->infpga_code1)<<16)|(0xffff&thisDDU->infpga_code0);
   //  sprintf(buf2,"infpga1 32-bit Status: %08lXh ",i1stat);
   //  *out << buf << std::endl;
@@ -1856,7 +1859,10 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
     thisDDU->infpga_DMBwarn(INFPGA1);
     sprintf(buf," *confirmed DMB Full for DDUinput[14:8]=0x%02x* ",(thisDDU->infpga_code0&0x7f00)>>8);
     *out << buf << std::endl;
-    if((i1stat&0x00000130)>0)*out << "  ^^^probable cause of SpecialWord/Xmit errors " << std::endl;
+    if((lcode[0]&0x00040000)>0&&(lcode[2]&0x00001c00)==0)*out << " ^^^DMB Full FIFO for ALCT " << std::endl;
+    else if((lcode[0]&0x00080000)>0&&(lcode[2]&0x0000001c)==0)*out << " ^^^DMB Full FIFO for TMB " << std::endl;
+    else *out << " ^^^DMB Full FIFO, probably for CFEB " << std::endl;
+    if((i1stat&0x00000130)>0)*out << "       --probable cause of SpecialWord/Xmit errors " << std::endl;
     solved=1;
   }
   //  ^^^^ InFPGA big-problem analysis solved it? ^^^^
@@ -1885,9 +1891,21 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
     thisDDU->ddu_rddmberr();
     sprintf(buf,"    ^^^Error on DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
     *out << buf << std::endl;
+
+// Note: if ALCT Timeout on DMB then LIE, CRC & WC errors are likely from
+//       overrun to TMB trail; look for lcode-LIE caused by bad/missTrigTrail.
+//    If DMB end-timeout causes 64-bit misalignment then maybe check that too.
+    solved=1;
+    iTimeout=1;
+    if((lcode[0]&0x00040000)>0&&(lcode[1]&0x00080000)>0)*out << " ^^^DMB Timeout for ALCT " << std::endl;
+    else if((lcode[0]&0x00080000)>0&&(lcode[1]&0x00080000)>0)*out << " ^^^DMB Timeout for TMB " << std::endl;
+    else if((lcode[0]&0x00000800)==0)*out << " ^^^DMB Timeout, probably for CFEB " << std::endl;
+    else{
+      *out << " ^^^DMB Timeout w/64-bit misalignment, possibly from CFEB " << std::endl;
+      solved=0;
+    }
     if((i0stat&0x0000e000)>0)*out << "       --probable cause of problems on InFPGA0 " << std::endl;
     if((i1stat&0x0000e000)>0)*out << "       --probable cause of problems on InFPGA1 " << std::endl;
-    solved=1;
   }
   else if((lcode[2]&0x0C000000)>0||(lcode[1]&0x00020000)>0){  // DDU FIFO Transfer/C-code Error
     *out << "**DDU FIFO Transfer error detected** " << std::endl;
@@ -1899,8 +1917,8 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
   }
 
 // InCtrlErr at CritErr point:
-  if(solved<1&&((lcode[0]&0x00400000)>0)){ // InCtrlErr & NotDDUfullFIFO?
-    *out << "-debug> inside 3>" << std::endl;
+  if(solved<1&&((lcode[0]&0x00400000)>0)){ // InCtrlErr & NotDDUfullFIFO
+    //    *out << "-debug> inside 3>" << std::endl;
     if((i0stat|i1stat)&0x40000000){    // Filler=64bit-misalign
       if((i0stat&0x40000000)>0){       //   for InFPGA0
 	iFill=1;
@@ -1920,7 +1938,7 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
     }
 // If InCtrlErr and not solved, get InTrap registers
     if(i0stat&0x00008000){
-      *out << "-debug> inside 4>" << std::endl;
+      //      *out << "-debug> inside 4>" << std::endl;
       thisDDU->infpga_trap(INFPGA0);
       i0trap[5]=thisDDU->fpga_lcode[5];
       i0trap[4]=thisDDU->fpga_lcode[4];
@@ -1943,33 +1961,34 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
   }
 
 
-//  if((solved<1&&(iFill>0||(lcode[0]&0x00000010)>0){  // Fill or MultiXmitErr
   if(solved<1&&iFill>0){  //  check for cause of misalignment early
-    if(lcode[0]&0x80000001)*out << "  ^^^possible that DMB may have caused 64-bit Align Error" << std::endl;  // LCT/DAV(lcode[0]31), DMBL1A(lcode[0]1)
+    if(lcode[0]&0x80000002)*out << "  ^^^possible that DMB may have caused 64-bit Align Error" << std::endl;  // LCT/DAV(lcode[0]31), DMBL1A(lcode[0]1)
     else if((lcode[2]&0x00000c00)>0||(lcode[0]&0x00040000)>0){  // ALCTerr
-      *out << "  ^^^possible that ALCT may have caused 64-bit Align Error" << std::endl;
-      if(lcode[0]&0x00020000)*out << "    ^^probable ALCT Wordcount mismatch" << std::endl;
-      if(lcode[0]&0x00000020)*out << "    ^^probable ALCT CRC mismatch" << std::endl;
       thisDDU->ddu_rdalcterr();
+      *out << "  ^^^possible that ALCT may have caused 64-bit Align Error" << std::endl;
+      if((lcode[1]&0x00080000)>0&&(lcode[0]&0x00040000)>0)*out << "    ^^probable ALCT Trail word problem" << std::endl;
+      else if(lcode[0]&0x00000020)*out << "    ^^probable ALCT CRC mismatch" << std::endl;
+      else if(lcode[0]&0x00020000)*out << "    ^^probable ALCT Wordcount mismatch" << std::endl;
       if((thisDDU->ddu_code0)&0x7fff){
 	sprintf(buf,"      ^^ALCT Errors from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
 	*out << buf << std::endl;
       }
     }
     else if((lcode[2]&0x0000000c)>0||(lcode[0]&0x00080000)>0){  // TMBerr
-      *out << "  ^^^possible that TMB may have caused 64-bit Align Error" << std::endl;
-      if(lcode[0]&0x00020000)*out << "    ^^probable TMB Wordcount mismatch" << std::endl;
-      if(lcode[0]&0x00000020)*out << "    ^^probable TMB CRC mismatch" << std::endl;
       thisDDU->ddu_rdtmberr();
+      *out << "  ^^^possible that TMB may have caused 64-bit Align Error" << std::endl;
+      if((lcode[1]&0x00080000)>0&&(lcode[0]&0x00080000)>0)*out << "    ^^probable TMB Trail word problem" << std::endl;
+      else if(lcode[0]&0x00000020)*out << "    ^^probable TMB CRC mismatch" << std::endl;
+      else if(lcode[0]&0x00020000)*out << "    ^^probable TMB Wordcount mismatch" << std::endl;
       if((thisDDU->ddu_code0)&0x7fff){
 	sprintf(buf,"      ^^TMB Errors from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
 	*out << buf << std::endl;
       }
     }
-    else if(lcode[1]&0x00080000){  // TrgTrail error
-      *out << "  ^^^probable that a ALCT or TMB caused 64-bit Align Error" << std::endl;
-      *out << "    ^^Trigger Trail word problem" << std::endl;
+    else if(lcode[1]&0x00080000){  // TrgTrail error, maybe never get this one
       thisDDU->ddu_rdalcterr();
+      *out << "  ^^^probable that ALCT or TMB caused 64-bit Align Error" << std::endl;
+      *out << "    ^^Trigger Trail word problem" << std::endl;
       if((thisDDU->ddu_code0)&0x7fff){
 	sprintf(buf,"      ^^ALCT Errors from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
 	*out << buf << std::endl;
@@ -1998,15 +2017,18 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
       sprintf(buf,"      ^^CSC Errors from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
       *out << buf << std::endl;
     }
-// else check for LID+cause, else LIE+cause?
+    if(iTimeout>0){
+      if(lcode[1]&0x00008000)*out << "  ^^^Timeout at DMB caused 64-bit Align Error" << std::endl;
+      solved=1;
+    }
   }
 
 // If InCtrlErr, determine what happened at CritErr point:
 //        Timeout/StuckDat/MultXmit/MemErr/MultL1A
   if(solved<1&&((lcode[0]&0x00400000)>0)){
-    *out << "-debug> inside 5>" << std::endl;
+    //    *out << "-debug> inside 5>" << std::endl;
     if(igot_i0>0){  // got_i0trap;
-      *out << "-debug> inside 6>" << std::endl;
+      //      *out << "-debug> inside 6>" << std::endl;
       if((i0trap[0]&0x00000040)>0){
 	if((i0trap[3]&0x00ff0000)>0)sprintf(buf," *Start Timeout for DDUinput[7:0] = 0x%02lx* ",((i0trap[3]>>16)&0x000000ff));
 	else if((i0trap[4]&0x0000ffff)>0)sprintf(buf," *End Timeout for DDUinput[7:0] = 0x%02lx* ",((i0trap[4]>>8)|i0trap[4])&0x000000ff);
@@ -2014,14 +2036,13 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
 	if(iFill==1||iFill==3)*out << "  ^^^may have caused 64-bit Align Error for InFPGA0" << std::endl;
 	solved=1;
       }
-      else if((i0trap[0]&0x00000080)>0){
-	//	sprintf(buf," *StuckData for InFPGA0* ");
+      else if((i0trap[0]&0x00000080)>0){  // StuckData
 	sprintf(buf," *StuckData error for DDUinput[7:0] = 0x%02lx* ",((i0trap[2]>>24)&0x000000ff));
 	*out << buf << std::endl;
 	if(iFill==1||iFill==3)*out << "  ^^^may have caused 64-bit Align Error for InFPGA0" << std::endl;
 	solved=1;
       }
-      else if((i0trap[0]&0x00000010)>0){
+      else if((i0trap[0]&0x00000010)>0){  // Multi-Xmit error
 	thisDDU->infpga_XmitErr(INFPGA0);
 	sprintf(buf," *Multiple SpecialWord bit-errors for DDUinput[7:0]=0x%02x* ",(thisDDU->infpga_code0&0x00ff));
 	if(iFill==1||iFill==3)sprintf(buf," *Extra or Missing 16-bit words for DDUinput[7:0]=0x%02x* ",(thisDDU->infpga_code0&0x00ff));
@@ -2031,8 +2052,7 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
 	if(iFill==1||iFill==3)*out << "  ^^^probably related to 64-bit Align Error for InFPGA0" << std::endl;
 	solved=1;
       }
-      else if((i0trap[0]&0x00000008)>0){
-	//	sprintf(buf," *Memory Full error for InFPGA0* ");
+      else if((i0trap[0]&0x00000008)>0){  // InFPGA0 Memory Full
 	if((i0trap[0]&0x00040000)>0){
 	  sprintf(buf," *Memory error for DDU InRD0* ");
 	  *out << buf << std::endl;
@@ -2066,7 +2086,7 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
       }
     }
     if(igot_i1>0){  // got_i1trap;
-      *out << "-debug> inside 7>" << std::endl;
+      //      *out << "-debug> inside 7>" << std::endl;
       if((i1trap[0]&0x00000040)>0){
 	if((i1trap[3]&0x007f0000)>0)sprintf(buf," *Start Timeout for DDUinput[14:8] = 0x%02lx* ",((i1trap[3]>>16)&0x0000007f));
 	else if((i1trap[4]&0x00007f7f)>0)sprintf(buf," *End Timeout for DDUinput[14:8] = 0x%02lx* ",((i1trap[4]>>8)|i1trap[4])&0x0000007f);
@@ -2074,14 +2094,13 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
 	if(iFill>1)*out << "  ^^^may have caused 64-bit Align Error for InFPGA1" << std::endl;
 	solved=1;
       }
-      else if((i1trap[0]&0x00000080)>0){
-	//	sprintf(buf," *StuckData for InFPGA1* ");
+      else if((i1trap[0]&0x00000080)>0){  // StuckData
 	sprintf(buf," *StuckData error for DDUinput[14:8] = 0x%02lx* ",((i1trap[2]>>24)&0x0000007f));
 	*out << buf << std::endl;
 	if(iFill>1)*out << "  ^^^may have caused 64-bit Align Error for InFPGA1" << std::endl;
 	solved=1;
       }
-      else if((i1trap[0]&0x00000010)>0){
+      else if((i1trap[0]&0x00000010)>0){  // Multi-Xmit error
 	thisDDU->infpga_XmitErr(INFPGA1);
 	sprintf(buf," *Multiple SpecialWord bit-errors for DDUinput[14:8]=0x%02x* ",(thisDDU->infpga_code0&0x007f));
 	if(iFill>1)sprintf(buf," *Extra or Missing 16-bit words for DDUinput[14:8]=0x%02x* ",(thisDDU->infpga_code0&0x007f));
@@ -2091,8 +2110,7 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
 	if(iFill>1)*out << "  ^^^probably related to 64-bit Align Error for InFPGA1" << std::endl;
 	solved=1;
       }
-      else if((i1trap[0]&0x00000008)>0){
-	//	sprintf(buf," *Memory Full error for InFPGA1* ");
+      else if((i1trap[0]&0x00000008)>0){  // InFPGA1 Memory Full
 	if((i1trap[0]&0x00040000)>0){
 	  sprintf(buf," *Memory error for DDU InRD2* ");
 	  *out << buf << std::endl;
@@ -2128,8 +2146,7 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
     if(solved<1&&iFill<1)*out << "  InFPGAs are not related to the cause of the problem" << std::endl;
   }
 
-
-// what if it's not InFPGA related?
+// if it's not InFPGA related:
   if(solved<1){
     if((lcode[0]&0x4000000A)==8 && (lcode[1]&0x00004000)==0){  // DDU Buff ovfl
       *out << "**DDU FIFO Full** " << std::endl;
@@ -2228,7 +2245,7 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
       *out << " " << std::endl;
     }
     else if(lcode[0]&0x00000100){  // LIE error, not critical
-      *out << " *Small corruption problem detected, DDU Lost in Event*" << std::endl;
+      *out << " *Small data corruption problem detected, DDU Lost in Event*" << std::endl;
       if(lcode[1]&0x00080000)*out << "   Missed Trig Trail";
       if(lcode[1]&0x00040000)*out << "   Bad 1st DMBhdr";
       if(lcode[1]&0x10000000)*out << "   2nd DMBhdr 1st";
@@ -2242,6 +2259,7 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
       if(lcode[2]&0x00000800)*out << "   CRCerr";
       if(lcode[2]&0x00001000)*out << "   L1A mismatch";
       if(lcode[2]&0x00000400)*out << "   WordCountErr";
+      if((lcode[2]&0x00001c00)==0)*out << "   ALCT problem on DMB, likely Full FIFO, maybe Timeout";
       *out << "* " << std::endl;
       sprintf(buf,"    ^^^Detected Error from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
       *out << buf << std::endl;
@@ -2253,19 +2271,19 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
       if(lcode[2]&0x00000008)*out << "   CRCerr";
       if(lcode[2]&0x00000010)*out << "   L1A mismatch";
       if(lcode[2]&0x00000004)*out << "   WordCountErr";
+      if((lcode[2]&0x0000001c)==0)*out << "   TMB problem on DMB, Timeout or Full FIFO";
       *out << "* " << std::endl;
       sprintf(buf,"    ^^^Detected Error from DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
       *out << buf << std::endl;
       //      solved=1;
     }
 
-    if(lcode[1]&0x00004000){  // Mult-L1A error:
-//                        DMB(hdr/tr), TMB or ALCT combined & accumulated
+    if((lcode[1]&0x00004000)>0||(lcode[0]&0x00000008)>0){  // Mult-L1A error:
+//        confirmed CFEB L1err; DMB(hdr/tr), TMB or ALCT combined & accumulated
       thisDDU->ddu_rddmberr();
       *out << " *Cause was Multiple L1A errors* " << std::endl;
       if((lcode[0]&0x90400fff)==0x0000000a&&(lcode[4]&0x00008000)>0){
 	sprintf(buf,"  ^^^DDU C-code L1A error, Ext.FIFO[3:0]=0x%01lx* ",(lcode[3]>>20)&0x0000000f);  // TrgL1 & DMBtrL1 not involved
-//	*out << "  ^^^DDU C-code L1A error " << std::endl;  // TrgL1 & DMBtrL1 not involved
 	*out << buf << std::endl;
 	solved=1;
       }
@@ -2282,7 +2300,7 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
 	}
 	solved=2;
       }
-      else if((lcode[0]&0x0000000a)>0){
+      else if((lcode[0]&0x00000002)>0){
 	*out << "  ^^^Likely caused by DMB L1A Mismatch, other errors too " << std::endl;  // other things wrong too
 	if(lcode[3]&0x00f00000){
 	  sprintf(buf,"   ^^errors found for Ext.FIFO[3:0]=0x%01lx* ",(lcode[3]>>20)&0x0000000f);
@@ -2306,12 +2324,18 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
 	thisDDU->ddu_rdalcterr();
 	if(lcode[2]&0x00001000)*out << "   ^^ALCT L1A Mismatch " << std::endl;
 	else if(lcode[0]&0x00040000)*out << "   ^^ALCT errors present " << std::endl;
-	if((thisDDU->ddu_code0)&0x7fff)sprintf(buf,"    ^ALCT errors found for DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
+	if((thisDDU->ddu_code0)&0x7fff){
+	  sprintf(buf,"    ^ALCT errors found for DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
+	  *out << buf << std::endl;
+	}
 
 	thisDDU->ddu_rdtmberr();
 	if(lcode[2]&0x00000010)*out << "   ^^TMB L1A Mismatch " << std::endl;
 	else if(lcode[0]&0x00080000)*out << "   ^^TMB errors present " << std::endl;
-	if((thisDDU->ddu_code0)&0x7fff)sprintf(buf,"    ^TMB errors found for DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
+	if((thisDDU->ddu_code0)&0x7fff){
+	  sprintf(buf,"    ^TMB errors found for DDUinput[14:0]=0x%04x ",(thisDDU->ddu_code0)&0x7fff);
+	  *out << buf << std::endl;
+	}
       }
     }
 
@@ -2323,10 +2347,9 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
   }
 
 /*
- Are all DMBerr critical problems covered?
  Are all DDU critical problems covered?
    --if SPWD/Mxmit (esp. from stat) check for ALCT/TMB errors (from lcode)
-Ideas:
+Ideas (firmware & software):
   -FILLed does not Solve...want to see if lost/offset TrgTrail caused it
      -> check for Fill combined with others: .not.C-codeErr (lcode[2]27:26)!
          distinguish DMB Trail/CRC error from CFEB/CRC error?
@@ -3447,13 +3470,13 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	sprintf(buf2," %04X ",thisDDU->vmepara_rd_inreg2());
       }
       if(i==512){
-	*out << br() << " <font color=blue> Set SPY Rate (bits 2:0); set Ignore DCC Wait (bit 3) <br>  Rate 0-7 will transmit 1 event out of 1,8,32,128,1024,8192,32768,never</font>" << br() << std::endl;
+	*out << br() << " <font color=blue> Set SPY Rate (bits 2:0); set Ignore DCC/S-Link Wait (bit 3) <br>  Rate 0-7 will transmit 1 event out of 1,8,32,128,1024,8192,32768,never</font>" << br() << std::endl;
 	//	*out << br() << " <font color=blue> Select 0-7 for SPY rate = 1 per 1,8,32,128,1024,8192,32768,never</font>" << br() << std::endl;
 	sprintf(buf,"GbE Prescale*:");
 	sprintf(buf2," %04X <font color=red> EXPERT ONLY! </font> ",thisDDU->vmepara_rd_GbEprescale());
       }
       if(i==513){
-	sprintf(buf,"Toggle DCC_wait Enable:");
+	sprintf(buf,"Toggle DCC Wait/Backpressure Enable:");
 	sprintf(buf2," <font color=red> EXPERT ONLY! </font> ");
       }
       if(i==514){
