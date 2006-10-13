@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.37 2006/10/12 17:51:52 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.38 2006/10/13 09:19:22 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -3216,9 +3216,9 @@ private:
     cout << "Init System" << endl ;
     LOG4CPLUS_INFO(getApplicationLogger(), "Init System");
     //
-    postToELog("Test","Test");
+    //postToELog("Test","Test");
     //
-    return;
+    //return;
     //
     MyController->configure();          // Init system
     //
@@ -4591,9 +4591,8 @@ private:
     cout << "DMB Vme Load Firmware Emergency" << endl;
     LOG4CPLUS_INFO(getApplicationLogger(),"Started DMB Vme Load Firmware Emergency");
     //
-    thisCCB->hardReset();
-    //
-    ::sleep(2);
+    //    thisCCB->hardReset();
+    //    ::sleep(2);
     //
     if (thisDMB) {
       //
@@ -4603,7 +4602,7 @@ private:
       thisDMB->epromload(RESET,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
     }
     //
-    ::sleep(2);
+    ::sleep(3);
     //
     thisCCB->hardReset();
     //
