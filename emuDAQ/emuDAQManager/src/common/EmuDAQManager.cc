@@ -408,7 +408,7 @@ throw (xgi::exception::Exception)
     *out << "<link type=\"text/css\" rel=\"stylesheet\"";
     *out << " href=\"/" << urn_ << "/styles.css\"/>"                   << endl;
     *out << "<title>"                                                  << endl;
-    *out << "Emu Local DAQ " << daqState                               << endl;
+    *out << "Local DAQ " << daqState                                   << endl;
 //     *out << xmlClass_ << instance_                                     << endl;
 // 	 << " Version "
 //         << EmuDAQManagerV::versions 
@@ -3173,6 +3173,8 @@ void EmuDAQManager::exportParams(xdata::InfoSpace *s)
   s->fireItemAvailable( "eLogUserFile",	&eLogUserFile_ );
   s->fireItemAvailable( "eLogURL",     	&eLogURL_      );
 
+  s->fireItemAvailable( "peripheralCrateConfigFiles", &peripheralCrateConfigFiles_ );
+
   runDbBookingCommand_ = "java -jar runnumberbooker.jar";
   runDbWritingCommand_ = "java -jar runinfowriter.jar";
   runDbAddress_        = "dbc:oracle:thin:@oracms.cern.ch:10121:omds";
@@ -3195,6 +3197,9 @@ void EmuDAQManager::exportParams(xdata::InfoSpace *s)
     controlDQM_ = true;
     s->fireItemAvailable("controlDQM",&controlDQM_);
 
+    daqState_ = "UNKNOWN";
+    s->fireItemAvailable("daqState",&daqState_);
+    s->addItemRetrieveListener("daqState",this);
 }
 
 
@@ -3557,11 +3562,17 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
     messageToELog << "</td></tr></table>";
 
 
-    if ( postToELogToo ) postToELog( subjectToELog.str(), messageToELog.str() );
-    
+    if ( postToELogToo ){
+      vector<string> attachments;
+      for ( int i=0; i<peripheralCrateConfigFiles_.elements(); ++i ){
+	xdata::String* f = dynamic_cast<xdata::String*>(peripheralCrateConfigFiles_.elementAt(i));
+	attachments.push_back( f->toString() );
+      }
+      postToELog( subjectToELog.str(), messageToELog.str(), &attachments );
+    }
 }
 
-void EmuDAQManager::postToELog( string subject, string body ){
+void EmuDAQManager::postToELog( string subject, string body, vector<string> *attachments ){
   // Post to eLog:
   EmuELog *eel;
   try
@@ -3577,12 +3588,17 @@ void EmuDAQManager::postToELog( string subject, string body ){
     eel = 0;
   }
   if ( eel ) {
+    string attachmentList;
+    if ( attachments )
+      for ( vector<string>::iterator attm = attachments->begin(); attm != attachments->end(); ++attm )
+	attachmentList += *attm + "\n";
     LOG4CPLUS_INFO(logger_, 
 		   "Posting to eLog address " << eLogURL_.toString() << 
 		   " as user " << eel->eLogUser() << " (" << eel->CMSUser() << ") " <<
 		   ":\nSubject: " << subject << 
-		   "\nBody:\n" << body );
-    eel->postMessage( subject, body );
+		   "\nBody:\n" << body <<
+		   "\nAttachments:\n" << attachmentList );
+    eel->postMessage( subject, body, attachments );
   }
   delete eel;
 }
@@ -3853,6 +3869,21 @@ void EmuDAQManager::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 	EmuApplication::stateChanged(fsm);
 }
 
+void EmuDAQManager::actionPerformed(xdata::Event & received )
+{
+  // implementation of virtual method of class xdata::ActionListener
+
+  xdata::ItemEvent& e = dynamic_cast<xdata::ItemEvent&>(received);
+  
+  if ( e.itemName() == "daqState" ) daqState_ = getDAQState();
+
+//   LOG4CPLUS_INFO(logger_, 
+// 		 "Received an InfoSpace event" <<
+// 		 " Event type: " << e.type() <<
+// 		 " Event name: " << e.itemName() <<
+// 		 " Serializable: " << std::hex << e.item() << std::dec <<
+// 		 " Type of serializable: " << e.item()->type() );
+}
 
 
 /**
