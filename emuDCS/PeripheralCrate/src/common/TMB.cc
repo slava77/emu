@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.19 2006/10/12 15:56:02 rakness Exp $
+// $Id: TMB.cc,v 3.20 2006/10/13 15:34:39 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.20  2006/10/13 15:34:39  rakness
+// add mpc_phase
+//
 // Revision 3.19  2006/10/12 15:56:02  rakness
 // cleaned up configuration checking for ALCT/TMB
 //
@@ -341,7 +344,8 @@ TMB::TMB(Crate * theCrate, int slot) :
   min_hits_pattern_(1),   
   dmb_tx_delay_(5),
   rat_tmb_delay_(9),
-  rpc0_rat_delay_(3)      
+  rpc0_rat_delay_(3),
+  mpc_phase_(0)
 {
   //
   //jtag_address = -1;
@@ -4255,6 +4259,7 @@ std::ostream & operator<<(std::ostream & os, TMB & tmb) {
      << "dmb_tx_delay_ " << tmb.dmb_tx_delay_ << std::endl
      << "rat_tmb_delay_ " << tmb.rat_tmb_delay_ << std::endl
      << "rpc0_rat_delay_ " << tmb.rpc0_rat_delay_ << std::endl
+     << "mpc_phase_ " << tmb.mpc_phase_ << std::endl
      << std::dec << std::endl;
   return os;
 }
@@ -4840,7 +4845,7 @@ void TMB::trgmode(int choice)
 void TMB::setupNewDelayChips() {
   //   std::cout << "setting up new TMB delay chips" << std::endl;
    sndbuf[0]=((cfeb0delay_<<4)&0xF0);   //DCC (CFEB duty cycle correction) unused
-   sndbuf[1]=0x00;                      //TMB1, MPC clock unused
+   sndbuf[1]=((mpc_phase_<<4)&0xF0);                      //TMB1, MPC clock unused
    tmb_vme(0x02,0x18,sndbuf,rcvbuf,1);  // CFEB0 DDD setting
    sndbuf[0]=((cfeb4delay_<<4)&0xF0)|(cfeb3delay_&0x0F);
    sndbuf[1]=((cfeb2delay_<<4)&0xF0)|(cfeb1delay_&0x0F);
@@ -6635,6 +6640,11 @@ bool TMB::CheckCurrentConfiguration() {
   config_ok &= compareValues("RAT-RPC0 phase",
 			     read_rpc0_rat_delay_,
 			     rpc0_rat_delay_,
+			     true);
+  //
+  config_ok &= compareValues("MPC phase",
+			     read_mpc_phase_,
+			     mpc_phase_,
 			     true);
   //
   std::ostringstream dump;
