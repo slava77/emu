@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.22 2006/10/12 15:56:02 rakness Exp $
+// $Id: ALCTController.cc,v 3.23 2006/10/13 15:20:46 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.23  2006/10/13 15:20:46  rakness
+// Update for ME13 and ME31
+//
 // Revision 3.22  2006/10/12 15:56:02  rakness
 // cleaned up configuration checking for ALCT/TMB
 //
@@ -6184,7 +6187,7 @@ std::ostream & operator<<(std::ostream & os, ALCTController & alct) {
      << "Board ID " << alct.write_board_id_ << std::endl
      << "Amode " << alct.write_alct_amode_ << std::endl
      << "Serial Number Select " << alct.write_sn_select_ << std::endl;
-  for(int afeb=alct.GetLowestAfebIndex(); afeb<alct.GetHighestAfebIndex(); afeb++){
+  for(int afeb=alct.GetLowestAfebIndex(); afeb<=alct.GetHighestAfebIndex(); afeb++){
     os << "Afeb = " << afeb << " Threshold = " << alct.write_afeb_threshold_[afeb] 
        << " Delay = " << alct.write_asic_delay_[afeb] << std::endl;
   }
@@ -6497,7 +6500,7 @@ bool ALCTController::CheckCurrentConfiguration() {
     //
     // set the tolerance so the adc is within +/- 3 adc counts of the set value  
     // at low dac values (<~30), this is approximately the precision of the dac/adc
-    float threshold = 4. / dac_converted_to_adc;
+    float threshold = 6. / dac_converted_to_adc;
     //
     std::ostringstream tested_value;
     tested_value << "AFEB threshold AnodeChannel Number " << (afeb+1);
@@ -7124,11 +7127,10 @@ void ALCTController::SetAfebThreshold(int afebChannel, int dacvalue) {
     return;
   } 
   //
-  if ( afebChannel<GetLowestAfebIndex() || afebChannel>GetHighestAfebIndex()) {
+  if ( afebChannel<0 || afebChannel>GetHighestAfebIndex()) {    // allow user to set values in software even if AFEB is not on
     (*MyOutput_) << "SetAfebThreshold: ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 		 << "-> channel " << std::dec << afebChannel
-		 << " invalid ... must be between " << std::dec << GetLowestAfebIndex() 
-		 << " and " << std::dec << GetHighestAfebIndex() 
+		 << " invalid ... must be between 0 and " << std::dec << GetHighestAfebIndex() 
 		 << std::endl;
     return;
   } 
@@ -7276,7 +7278,7 @@ void ALCTController::SetStandbyRegister_(int afebChannel,
   if ( afebChannel<GetLowestAfebIndex() || afebChannel>GetHighestAfebIndex()) {
     (*MyOutput_) << "Set Standby Register: ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 		 << "-> channel " << std::dec << afebChannel
-		 << " invalid ... must be between " << std::dec << GetLowestAfebIndex() 
+		 << " invalid ... must be between 0" << std::dec << GetLowestAfebIndex() 
 		 << " and " << std::dec << GetHighestAfebIndex() 
 		 << std::endl;
     return;
@@ -7295,7 +7297,11 @@ int ALCTController::GetStandbyRegister_(int afebChannel) {
 void ALCTController::SetPowerUpStandbyRegister_() {
   //
   for (int afeb=0; afeb<MAX_NUM_AFEBS; afeb++) 
-    write_standby_register_[afeb] = ON;               // should change in firmware
+    write_standby_register_[afeb] = OFF;         // turn unused AFEBs off
+  //
+  for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++) 
+    SetStandbyRegister_(afeb,ON); 
+
   //
   return;
 }
@@ -7985,11 +7991,10 @@ void ALCTController::SetAsicDelay(int afebChannel,
     return;
   } 
   //
-  if ( afebChannel<GetLowestAfebIndex() || afebChannel>GetHighestAfebIndex() ) {
+  if ( afebChannel<0 || afebChannel>GetHighestAfebIndex() ) {  //allow user to set delays on AFEBs which are off
     (*MyOutput_) << "SetAsicDelay: ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 		 << "-> channel " << std::dec << afebChannel
-		 << " invalid ... must be between " << std::dec << GetLowestAfebIndex() 
-		 << " and " << std::dec << GetHighestAfebIndex() 
+		 << " invalid ... must be between 0 and " << std::dec << GetHighestAfebIndex() 
 		 << std::endl;
     return;
   } 
@@ -9202,7 +9207,8 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     //
   } else {
     //
-    NumberOfChannelsPerLayer_ = GetNumberOfWireGroupsInChamber() / MAX_NUM_LAYERS;
+    //the number of channels per layer depends on the ALCT type, not the physical number of channels in the layer:
+    NumberOfChannelsPerLayer_ = GetNumberOfChannelsInAlct() / MAX_NUM_LAYERS;  
     //
     SetAlctTypeForProm(GetNumberOfChannelsInAlct());
     //
@@ -9339,11 +9345,11 @@ void ALCTController::SetSlowControlAlctType_(int type_of_slow_control_alct) {
   //
   // If wanted, we can disable the lowest numbered AFEBs from being controlled by the
   // user by enabling the following lower afeb index:
-  //lowest_afeb_index_ = GetNumberOfAfebs() - GetNumberOfChannelsInAlct() / NUMBER_OF_LINES_PER_CHIP;
+  lowest_afeb_index_ = GetNumberOfAfebs() - GetNumberOfWireGroupsInChamber() / NUMBER_OF_LINES_PER_CHIP;
   //
   // Here we enable the expert to control these afebs, even though they are not connected
   // to any wires....:
-  lowest_afeb_index_ = 0;
+  //lowest_afeb_index_ = 0;
   //
   highest_afeb_index_ = GetNumberOfAfebs() - 1;
   //

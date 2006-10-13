@@ -442,10 +442,9 @@ const int NUMBER_OF_WIRE_GROUPS_ME12   = 384;
 const int FAST_CONTROL_ALCT_TYPE_ME12  = 384;
 const int SLOW_CONTROL_ALCT_TYPE_ME12  = 384;
 //
-//const int NUMBER_OF_WIRE_GROUPS_ME13   = 192; //until new firmware
-//const int FAST_CONTROL_ALCT_TYPE_ME13  = 192;
-const int NUMBER_OF_WIRE_GROUPS_ME13   = 288;
-const int FAST_CONTROL_ALCT_TYPE_ME13  = 288;
+const int NUMBER_OF_WIRE_GROUPS_ME13   = 192; 
+//const int FAST_CONTROL_ALCT_TYPE_ME13  = 192; 
+const int FAST_CONTROL_ALCT_TYPE_ME13  = 288;  //until new firmware
 const int SLOW_CONTROL_ALCT_TYPE_ME13  = 288;
 //
 const int NUMBER_OF_WIRE_GROUPS_ME21   = 672;
@@ -456,20 +455,18 @@ const int NUMBER_OF_WIRE_GROUPS_ME22   = 384;
 const int FAST_CONTROL_ALCT_TYPE_ME22  = 384;
 const int SLOW_CONTROL_ALCT_TYPE_ME22  = 384;
 //
-//const int NUMBER_OF_WIRE_GROUPS_ME31   = 576; //until new firmware
-//const int FAST_CONTROL_ALCT_TYPE_ME31  = 576;
-const int NUMBER_OF_WIRE_GROUPS_ME31   = 672;
-const int FAST_CONTROL_ALCT_TYPE_ME31  = 672;
+const int NUMBER_OF_WIRE_GROUPS_ME31   = 576;
+//const int FAST_CONTROL_ALCT_TYPE_ME31  = 576; 
+const int FAST_CONTROL_ALCT_TYPE_ME31  = 672;  //until new firmware
 const int SLOW_CONTROL_ALCT_TYPE_ME31  = 672;
 //
 const int NUMBER_OF_WIRE_GROUPS_ME32   = 384;
 const int FAST_CONTROL_ALCT_TYPE_ME32  = 384;
 const int SLOW_CONTROL_ALCT_TYPE_ME32  = 384;
 //
-//const int NUMBER_OF_WIRE_GROUPS_ME41   = 576; //until new firmware
-//const int FAST_CONTROL_ALCT_TYPE_ME41  = 576;
-const int NUMBER_OF_WIRE_GROUPS_ME41   = 672; //until new firmware
-const int FAST_CONTROL_ALCT_TYPE_ME41  = 672;
+const int NUMBER_OF_WIRE_GROUPS_ME41   = 576; 
+//const int FAST_CONTROL_ALCT_TYPE_ME41  = 576; 
+const int FAST_CONTROL_ALCT_TYPE_ME41  = 672;  //until new firmware
 const int SLOW_CONTROL_ALCT_TYPE_ME41  = 672;
 //
 const int NUMBER_OF_WIRE_GROUPS_ME42   = 384;
