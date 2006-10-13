@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.11 2006/10/12 15:56:00 rakness Exp $
+// $Id: TMB.h,v 3.12 2006/10/13 15:34:38 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.12  2006/10/13 15:34:38  rakness
+// add mpc_phase
+//
 // Revision 3.11  2006/10/12 15:56:00  rakness
 // cleaned up configuration checking for ALCT/TMB
 //
@@ -438,6 +441,7 @@ public:
   inline void SetDmbTxDelay(int dmb_tx_delay){ dmb_tx_delay_ = dmb_tx_delay; }
   inline void SetRatTmbDelay(int rat_tmb_delay){ rat_tmb_delay_ = rat_tmb_delay; }
   inline void SetRpc0RatDelay(int rpc0_rat_delay){ rpc0_rat_delay_ = rpc0_rat_delay; }
+  inline void SetMpcPhase(int mpc_phase){ mpc_phase_ = mpc_phase; }
   //
   inline std::vector<unsigned long int> GetInjectedLct0() { return InjectedLct0 ; }
   inline std::vector<unsigned long int> GetInjectedLct1() { return InjectedLct1 ; }
@@ -549,6 +553,7 @@ private:
   int dmb_tx_delay_;
   int rat_tmb_delay_;
   int rpc0_rat_delay_;
+  int mpc_phase_;
   //
   std::vector<unsigned long int> InjectedLct0;
   std::vector<unsigned long int> InjectedLct1;
