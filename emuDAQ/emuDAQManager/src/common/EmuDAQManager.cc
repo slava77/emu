@@ -237,6 +237,20 @@ void EmuDAQManager::getAllAppDescriptors()
             "Failed to get application descriptors for class EmuFU"
             << " : " << xcept::stdformat_exception_history(e));
     }
+
+    try
+    {
+        dqmMonitorDescriptors_ = getAppDescriptors(appGroup_, "EmuMonitor");
+    }
+    catch(emuDAQManager::exception::Exception e)
+    {
+        dqmMonitorDescriptors_.clear();
+
+        // Log only a warning as EmuMonitorss may not exist
+        LOG4CPLUS_WARN(logger_,
+            "Failed to get application descriptors for class EmuMonitor"
+            << " : " << xcept::stdformat_exception_history(e));
+    }
 }
 
 
@@ -385,6 +399,8 @@ throw (xgi::exception::Exception)
 void EmuDAQManager::defaultWebPage(xgi::Input *in, xgi::Output *out)
 throw (xgi::exception::Exception)
 {
+    string daqState = getDAQState();
+
     *out << "<html>"                                                   << endl;
 
     *out << "<head>"                                                   << endl;
@@ -392,7 +408,8 @@ throw (xgi::exception::Exception)
     *out << "<link type=\"text/css\" rel=\"stylesheet\"";
     *out << " href=\"/" << urn_ << "/styles.css\"/>"                   << endl;
     *out << "<title>"                                                  << endl;
-    *out << xmlClass_ << instance_                                     << endl;
+    *out << "Emu Local DAQ " << daqState                               << endl;
+//     *out << xmlClass_ << instance_                                     << endl;
 // 	 << " Version "
 //         << EmuDAQManagerV::versions 
 // 	 << endl;
@@ -478,7 +495,6 @@ throw (xgi::exception::Exception)
 
     *out << "<hr/>"                                                    << endl;
 
-    string daqState = getDAQState();
     *out << " DAQ is in <a href=\"#states\">" << daqState              << endl;
     *out << "</a> state."                                              << endl;
 
@@ -577,9 +593,14 @@ throw (xgi::exception::Exception)
     // Emu end: display RUIs' and FUs' event counts
 
     *out << "<br/>"                                                    << endl;
-    printStatesTable( out );
+    printStatesTable( out, daqContexts_, daqAppStates_ );
+    *out << "<br/>"                                                    << endl;
+    *out << "<br/>"                                                    << endl;
+    queryAppStates( dqmAppStates_ );
+    printStatesTable( out, dqmContexts_, dqmAppStates_ );
     *out << "<br/>"                                                    << endl;
 
+    if ( buildEvents_.value_ ){
     vector< vector< pair<string,string> > > evmStats=getStats(evmDescriptors_);
     vector< vector< pair<string,string> > > ruStats =getStats(ruDescriptors_);
     vector< vector< pair<string,string> > > buStats =getStats(buDescriptors_);
@@ -654,6 +675,8 @@ throw (xgi::exception::Exception)
 
     *out << "<br>"                                                     << endl;
 
+    }// if ( buildEvents_.value_ )
+
     *out << "</form>"                                                  << endl;
     *out << "</body>"                                                  << endl;
 
@@ -701,6 +724,8 @@ throw (xgi::exception::Exception)
 {
     processControlForm(in);
 
+    string daqState = getDAQState();
+
     *out << "<html>"                                                   << endl;
 
     *out << "<head>"                                                   << endl;
@@ -711,8 +736,9 @@ throw (xgi::exception::Exception)
     *out << "<link type=\"text/css\" rel=\"stylesheet\"";
     *out << " href=\"/" << urn_ << "/styles.css\"/>"                   << endl;
     *out << "<title>"                                                  << endl;
-    *out << xmlClass_ << instance_ << " Version " << EmuDAQManagerV::versions
-        << " CONTROL" << endl;
+    *out << "Emu Local DAQ " << daqState                               << endl;
+//     *out << xmlClass_ << instance_ << " Version " << EmuDAQManagerV::versions
+//         << " CONTROL" << endl;
     *out << "</title>"                                                 << endl;
     *out << ageOfPageClock();
     *out << "</head>"                                                  << endl;
@@ -776,7 +802,6 @@ throw (xgi::exception::Exception)
 
     *out << "<hr/>"                                                    << endl;
 
-    string daqState = getDAQState();
     *out << " DAQ is in <a href=\"#states\">" << daqState              << endl;
     *out << "</a> state."                                              << endl;
 
@@ -899,7 +924,10 @@ throw (xgi::exception::Exception)
 
     *out << "<br/>"                                                    << endl;
     *out << "<br/>"                                                    << endl;
-    printStatesTable( out );
+    printStatesTable( out, daqContexts_, daqAppStates_ );
+    *out << "<br/>"                                                    << endl;
+    queryAppStates( dqmAppStates_ );
+    printStatesTable( out, dqmContexts_, dqmAppStates_ );
 
     *out << "</body>"                                                  << endl;
 
@@ -1405,6 +1433,11 @@ vector< pair<string,string> > EmuDAQManager::getStats
 }
 
 void EmuDAQManager::createAllAppStatesVector(){
+  //
+  // DAQ
+  //
+  daqAppStates_.clear();
+  daqContexts_.clear();
   vector<xdaq::ApplicationDescriptor*> allApps;
   allApps.insert( allApps.end(), evmDescriptors_.begin(), evmDescriptors_.end() );
   allApps.insert( allApps.end(), buDescriptors_ .begin(), buDescriptors_ .end() );
@@ -1414,15 +1447,27 @@ void EmuDAQManager::createAllAppStatesVector(){
   allApps.insert( allApps.end(), fuDescriptors_ .begin(), fuDescriptors_ .end() );
   vector<xdaq::ApplicationDescriptor*>::iterator a;
   for ( a=allApps.begin(); a!=allApps.end(); ++a ){
-    allAppStates_.push_back( make_pair( *a, string("UNKNOWN") ) );
+    daqAppStates_.push_back( make_pair( *a, string("UNKNOWN") ) );
     // Collect different contexts too
-    contexts_.insert( (*a)->getContextDescriptor()->getURL() );
+    daqContexts_.insert( (*a)->getContextDescriptor()->getURL() );
+  }
+  //
+  // DQM
+  //
+  dqmAppStates_.clear();
+  dqmContexts_.clear();
+  for ( a=dqmMonitorDescriptors_.begin(); a!=dqmMonitorDescriptors_.end(); ++a ){
+    dqmAppStates_.push_back( make_pair( *a, string("UNKNOWN") ) );
+    // Collect different contexts too
+    dqmContexts_.insert( (*a)->getContextDescriptor()->getURL() );
   }
 }
 
-void EmuDAQManager::queryAllAppStates(){
+
+
+void EmuDAQManager::queryAppStates( vector< pair<xdaq::ApplicationDescriptor*, string> > &appStates ){
   vector< pair<xdaq::ApplicationDescriptor*, string> >::iterator as;
-  for ( as=allAppStates_.begin(); as!=allAppStates_.end(); ++as ){
+  for ( as=appStates.begin(); as!=appStates.end(); ++as ){
     string s;
     try
       {
@@ -1439,7 +1484,8 @@ void EmuDAQManager::queryAllAppStates(){
 }
 
 string EmuDAQManager::getDAQState(){
-  queryAllAppStates();
+//   queryAllAppStates();
+  queryAppStates( daqAppStates_ );
 
   // Combine states:
   // If one is failed, the combined state will also be failed.
@@ -1448,13 +1494,13 @@ string EmuDAQManager::getDAQState(){
   string combinedState("UNKNOWN");
   vector< pair<xdaq::ApplicationDescriptor*, string> >::iterator s;
   // First check if any failed:
-  for ( s=allAppStates_.begin(); s!=allAppStates_.end(); ++s )
+  for ( s=daqAppStates_.begin(); s!=daqAppStates_.end(); ++s )
     if ( s->second == "Failed" ){
       combinedState = s->second;
       return combinedState;
     }
   // If none failed:
-  for ( s=allAppStates_.begin(); s!=allAppStates_.end(); ++s ){
+  for ( s=daqAppStates_.begin(); s!=daqAppStates_.end(); ++s ){
     if ( s->second == "UNKNOWN" ){
       combinedState = s->second;
       break;
@@ -1471,7 +1517,9 @@ string EmuDAQManager::getDAQState(){
 }
 
 
-void EmuDAQManager::printStatesTable( xgi::Output *out )
+void EmuDAQManager::printStatesTable( xgi::Output *out,
+				      set<string> &contexts,
+				      vector< pair<xdaq::ApplicationDescriptor*, string> > &appStates  )
   throw (xgi::exception::Exception)
 {
   map<string, string> bgcolor;
@@ -1517,7 +1565,7 @@ void EmuDAQManager::printStatesTable( xgi::Output *out )
   *out << "</tr>"                                                        << endl;
 
   set<string>::iterator c;
-  for ( c=contexts_.begin(); c!=contexts_.end(); ++c ){
+  for ( c=contexts.begin(); c!=contexts.end(); ++c ){
     {
 
       *out << "<tr>"                                                    << endl;
@@ -1528,7 +1576,7 @@ void EmuDAQManager::printStatesTable( xgi::Output *out )
       
       *out << "  <td>"                                                  << endl;
       vector< pair<xdaq::ApplicationDescriptor*, string> >::iterator s;
-      for ( s=allAppStates_.begin(); s!=allAppStates_.end(); ++s )
+      for ( s=appStates.begin(); s!=appStates.end(); ++s )
 	if ( *c == s->first->getContextDescriptor()->getURL() )
 	{
 	  stringstream appName;
@@ -1553,110 +1601,6 @@ void EmuDAQManager::printStatesTable( xgi::Output *out )
   *out << "</table>"                                                    << endl;
 }
 
-
-
-
-// void EmuDAQManager::configureDAQ()
-// throw (emuDAQManager::exception::Exception)
-// {
-//     bool evmGenerateDummyTriggers   = taDescriptors_.size()  == 0;
-//     bool rusGenerateDummySuperFrags = ruiDescriptors_.size() == 0;
-//     bool busDropEvents              = fuDescriptors_.size()  == 0;
-
-
-//     try
-//     {
-//         checkThereIsARuBuilder();
-//     }
-//     catch(xcept::Exception e)
-//     {
-//         XCEPT_RETHROW(emuDAQManager::exception::Exception,
-//             "Not enough applications to make a RU builder", e);
-//     }
-
-//     try
-//     {
-//         setEVMGenerateDummyTriggers(evmGenerateDummyTriggers);
-//     }
-//     catch(xcept::Exception e)
-//     {
-//         XCEPT_RETHROW(emuDAQManager::exception::Exception,
-//             "Failed to tell EVM whether or not to generate dummy triggers", e);
-//     }
-
-//     try
-//     {
-//         setRUsGenerateDummySuperFrags(rusGenerateDummySuperFrags);
-//     }
-//     catch(xcept::Exception e)
-//     {
-//         XCEPT_RETHROW(emuDAQManager::exception::Exception,
-//          "Failed to tell RUs whether or not to generate dummy super-fragments",
-//          e);
-//     }
-
-//     try
-//     {
-//         setBUsDropEvents(busDropEvents);
-//     }
-//     catch(xcept::Exception e)
-//     {
-//         XCEPT_RETHROW(emuDAQManager::exception::Exception,
-//             "Failed to tell BUs whether or not drop events", e);
-//     }
-
-//     // If the TA is present then start it as an imaginary trigger
-//     if(taDescriptors_.size() > 0)
-//     {
-//         try
-//         {
-//             configureTrigger();
-//         }
-//         catch(xcept::Exception e)
-//         {
-//             XCEPT_RETHROW(emuDAQManager::exception::Exception,
-//                 "Failed to configure trigger", e);
-//         }
-//     }
-
-// //     try
-// //     {
-// //         startRuBuilder();
-// //     }
-// //     catch(xcept::Exception e)
-// //     {
-// //         XCEPT_RETHROW(emuDAQManager::exception::Exception,
-// //             "Failed to start RU builder", e);
-// //     }
-
-//     // If RUIs are present then start them as an imaginary FED builder
-//     if(ruiDescriptors_.size() > 0)
-//     {
-//         try
-//         {
-//             configureFedBuilder();
-//         }
-//         catch(xcept::Exception e)
-//         {
-//             XCEPT_RETHROW(emuDAQManager::exception::Exception,
-//                 "Failed to configure FED builder", e);
-//         }
-//     }
-
-//     // If FUs are present then start them as an imafinary filter farm
-//     if(fuDescriptors_.size() > 0)
-//     {
-//         try
-//         {
-//             configureFilterFarm();
-//         }
-//         catch(xcept::Exception e)
-//         {
-//             XCEPT_RETHROW(emuDAQManager::exception::Exception,
-//                 "Failed to configure filter farm", e);
-//         }
-//     }
-// }
 
 void EmuDAQManager::configureDAQ()
   throw (emuDAQManager::exception::Exception)
@@ -1797,6 +1741,7 @@ void EmuDAQManager::configureDAQ()
         }
     }
 }
+
 
 void EmuDAQManager::startDAQ()
 throw (emuDAQManager::exception::Exception)
@@ -2504,6 +2449,31 @@ throw (emuDAQManager::exception::Exception)
         }
     }
 }
+
+void EmuDAQManager::controlDQM( const string action )
+  throw (emuDAQManager::exception::Exception)
+{
+  // EmuMonitors of DQM
+  vector< xdaq::ApplicationDescriptor* >::iterator mon;
+  for( mon = dqmMonitorDescriptors_.begin(); mon != dqmMonitorDescriptors_.end(); ++mon ){
+
+    try
+      {
+	sendFSMEventToApp(action, *mon);
+      }
+    catch(xcept::Exception e)
+      {
+	stringstream oss;
+	
+	oss << "Failed to " << action << " ";
+	oss << (*mon)->getClassName() << (*mon)->getInstance();
+	
+	XCEPT_RETHROW(emuDAQManager::exception::Exception, oss.str(), e);
+      }
+  }
+ 
+}
+
 
 void EmuDAQManager::resetDAQ()
 throw (emuDAQManager::exception::Exception)
@@ -3221,6 +3191,10 @@ void EmuDAQManager::exportParams(xdata::InfoSpace *s)
     s->fireItemAvailable("runType",           &runType_          );
     s->fireItemAvailable("runTypes",          &runTypes_         );
     s->fireItemAvailable("buildEvents",       &buildEvents_      );
+
+    controlDQM_ = true;
+    s->fireItemAvailable("controlDQM",&controlDQM_);
+
 }
 
 
@@ -3251,7 +3225,7 @@ vector< vector<string> > EmuDAQManager::getRUIEventCounts()
     string       href;
     try
     {
-      name << "EmuRUI" << (*rui)->getInstance();
+      name << "EmuRUI" << setfill('0') << setw(2) << (*rui)->getInstance();
       if ( hardwareMnemonics_.find( (*rui)->getInstance() ) != hardwareMnemonics_.end() )
 	name << "[" << hardwareMnemonics_[(*rui)->getInstance()] << "]";
       count = getScalarParam( (*rui), "nEventsRead", "unsignedLong" );
@@ -3290,7 +3264,7 @@ vector< vector<string> > EmuDAQManager::getFUEventCounts()
     try
     {
       href  = getHref( *fu );
-      name << "EmuFU" << (*fu)->getInstance();
+      name << "EmuFU" << setfill('0') << setw(2) << (*fu)->getInstance();
       count = getScalarParam( (*fu), "nbEventsProcessed", "unsignedLong" );
       ss << count;
       ss >> nProcessed;
@@ -3692,6 +3666,8 @@ void EmuDAQManager::configureAction(toolbox::Event::Reference e)
         throw (toolbox::fsm::exception::Exception)
 {   
 
+    createAllAppStatesVector();
+
     try
       {
 	bookRunNumber();
@@ -3712,6 +3688,18 @@ void EmuDAQManager::configureAction(toolbox::Event::Reference e)
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		      "Failed to configure EmuDAQ", ex);
       }
+
+    if ( controlDQM_.value_ ){
+      try
+	{
+	  controlDQM( "Configure" );
+	}
+      catch(xcept::Exception ex)
+	{
+	  XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+			"Failed to configure the EmuMonitors of DQM", ex);
+	}
+    }
 
     try
       {
@@ -3740,6 +3728,18 @@ void EmuDAQManager::enableAction(toolbox::Event::Reference e)
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 		      "Failed to configure EmuDAQ", ex);
       }
+
+    if ( controlDQM_.value_ ){
+      try
+	{
+	  controlDQM( "Enable" );
+	}
+      catch(xcept::Exception ex)
+	{
+	  XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+			"Failed to configure the EmuMonitors of DQM", ex);
+	}
+    }
 
     LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
@@ -3776,6 +3776,18 @@ void EmuDAQManager::haltAction(toolbox::Event::Reference e)
 	ss << "Failed to stop EmuDAQ: " << xcept::stdformat_exception_history(ex);
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception, ss.str(), ex);
       }
+
+    if ( controlDQM_.value_ ){
+      try
+	{
+	  controlDQM( "Halt" );
+	}
+      catch(xcept::Exception ex)
+	{
+	  XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+			"Failed to configure the EmuMonitors of DQM", ex);
+	}
+    }
 
     LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }

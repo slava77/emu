@@ -249,15 +249,25 @@ private:
   string ageOfPageClock();
   void   getRunInfoFromTA( string* runnum, string* maxevents, string* configtime );
   string reformatConfigTime( string configtime );
-  vector< pair<xdaq::ApplicationDescriptor*, string> > allAppStates_;
-  set<string> contexts_; // all different contexts with apps controlled by EmuDAQManager
+  vector< pair<xdaq::ApplicationDescriptor*, string> > daqAppStates_;
+  set<string> daqContexts_; // all different DAQ contexts with apps controlled by EmuDAQManager
   void   createAllAppStatesVector();
-  void   queryAllAppStates();
+  void   queryAppStates( vector< pair<xdaq::ApplicationDescriptor*, string> > &appStates );
   string getDAQState();
-  void   printStatesTable( xgi::Output *out )
+  void   printStatesTable( xgi::Output *out,
+			   set<string> &contexts,
+			   vector< pair<xdaq::ApplicationDescriptor*, string> > &appStates )
     throw (xgi::exception::Exception);
   void getMnemonicNames();
   map<int,string> hardwareMnemonics_; // hardwareMnemonics[EmuRUI_instance]
+
+
+  vector< xdaq::ApplicationDescriptor* > dqmMonitorDescriptors_;
+  set<string> dqmContexts_; // all different DQM contexts with apps controlled by EmuDAQManager
+  vector< pair<xdaq::ApplicationDescriptor*, string> > dqmAppStates_;
+  xdata::Boolean controlDQM_;
+  void controlDQM( const string action )
+    throw (emuDAQManager::exception::Exception);
 
     /**
      * Processes the form sent from the control web page.
