@@ -18,6 +18,7 @@
 #include "emu/emuDAQ/emuUtil/include/EmuRunInfo.h"
 #include "emu/emuDAQ/emuUtil/include/EmuELog.h"
 #include "EmuApplication.h"
+#include "xdata/ItemEvent.h"
 
 #include <string>
 
@@ -30,7 +31,8 @@ using namespace std;
 class EmuDAQManager :
 // public xdaq::WebApplication,
 public EmuApplication,
-public sentinel::Listener
+public sentinel::Listener,
+public xdata::ActionListener
 {
 public:
 
@@ -229,8 +231,10 @@ private:
   xdata::String runDbUserFile_;       // file that contains the username:password for run db user
   void bookRunNumber();
   void updateRunInfoDb( bool postToELogToo );
-  void postToELog( string subject, string body );
+  void postToELog( string subject, string body, vector<string> *attachments=0 );
   bool isBookedRunNumber_;
+
+  xdata::Vector<xdata::String> peripheralCrateConfigFiles_; // files to be attached to elog post
 
   xdata::UnsignedLong runNumber_;
   xdata::UnsignedLong runSequenceNumber_;
@@ -238,6 +242,7 @@ private:
   xdata::Vector<xdata::String> runTypes_; // all possible run types
   xdata::String runType_; // the current run type
   xdata::Boolean buildEvents_;
+  xdata::String daqState_; // the combined state of the DAQ applications
   int stringToInt( const string* const s );
   int purgeIntNumberString( string* s ); // Emu
   vector< vector<string> > getRUIEventCounts(); // Emu
@@ -268,6 +273,8 @@ private:
   xdata::Boolean controlDQM_;
   void controlDQM( const string action )
     throw (emuDAQManager::exception::Exception);
+
+  virtual void actionPerformed(xdata::Event & received ); // inherited from xdata::ActionListener
 
     /**
      * Processes the form sent from the control web page.
