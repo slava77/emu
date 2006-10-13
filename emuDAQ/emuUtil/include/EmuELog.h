@@ -18,18 +18,19 @@ class EmuELog{
 
 private:
 
-  string  curlCommand_;
-  string  curlCookies_;
+  string curlCommand_;
+  string curlCookies_;
 
-  string  CMSUserFile_;
-  string  eLogUserFile_;
+  string CMSUserFile_;
+  string eLogUserFile_;
 
-  string  eLogURL_;
+  string eLogURL_;
 
-  string  eLogUser_;
-  string  eLogPassword_;
-  string  CMSUser_;
-  string  CMSPassword_;
+  string eLogUser_;
+  string eLogPassword_;
+  string eLogAuthor_;
+  string CMSUser_;
+  string CMSPassword_;
 
   string errorMessage_;
 
@@ -82,16 +83,20 @@ public:
     fstream fs;
     fs.open( eLogUserFile_.c_str(), ios::in );
     if ( fs.is_open() ){
-      string userAndPasswd;
-      fs >> userAndPasswd;
-      string::size_type loc = userAndPasswd.find(":");
-      if ( loc == string::npos ){
+      const int bufSize = 100;
+      char buf[bufSize];
+      fs.getline( buf, bufSize );
+      string userData( buf );
+      string::size_type first  = userData.find_first_of(":");
+      string::size_type second = userData.find_first_of(":",first+1);
+      if ( first == string::npos || first == 0 || second == 0 || first == second || second == userData.size()-1 ){
 	stringstream oss;
-	oss << eLogUserFile_ << " contains no username:password. No elog entry will be posted.";
+	oss << eLogUserFile_ << " contains no username:password:author. No elog entry will be posted.";
 	throw oss.str();
       }
-      eLogUser_     = userAndPasswd.substr( 0, loc );
-      eLogPassword_ = userAndPasswd.substr( loc+1 );
+      eLogUser_     = userData.substr( 0       , first  );
+      eLogPassword_ = userData.substr( first+1 , second );
+      eLogAuthor_   = userData.substr( second+1         );
       fs.close();
     }
     else{
@@ -101,6 +106,7 @@ public:
     }
 
   }
+
 
   bool postMessage( string subject, string body ){
 
@@ -145,7 +151,9 @@ public:
     command += CMSUser_;
     command += ":";
     command += CMSPassword_;
-    command += " -F cmd=Submit -F Author=\"emu\" -F Type=\"EMU Local DAQ runs\" -F encoding=\"HTML\" -F Subject=\"";
+    command += " -F cmd=Submit -F Author=\"";
+    command += eLogAuthor_;
+    command += "\" -F Type=\"EMU Local DAQ runs\" -F encoding=\"HTML\" -F Subject=\"";
     command += subject;
     command += "\" -F Text=\"";
     command += body;
