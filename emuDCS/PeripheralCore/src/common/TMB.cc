@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.20 2006/10/13 15:34:39 rakness Exp $
+// $Id: TMB.cc,v 3.21 2006/10/14 10:09:08 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 3.21  2006/10/14 10:09:08  mey
+// UPdate
+//
 // Revision 3.20  2006/10/13 15:34:39  rakness
 // add mpc_phase
 //
@@ -4697,7 +4700,7 @@ void TMB::trgmode(int choice)
   }
   //
   ostringstream dump;
-  dump << "TMB. triggermode " << std::hex << (int) (sndbuf[0]&0xff) << " " <<  (int) (sndbuf[1]&0xff) ;
+  //dump << "TMB. triggermode " << std::hex << (int) (sndbuf[0]&0xff) << " " <<  (int) (sndbuf[1]&0xff) ;
   //
   //  (*MyOutput_) << dump.str() <<std::endl;
   SendOutput(dump.str(),"INFO");
