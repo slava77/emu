@@ -592,13 +592,18 @@ throw (xgi::exception::Exception)
     *out << "</table>"                                               << endl;
     // Emu end: display RUIs' and FUs' event counts
 
-    *out << "<br/>"                                                    << endl;
-    printStatesTable( out, daqContexts_, daqAppStates_ );
-    *out << "<br/>"                                                    << endl;
-    *out << "<br/>"                                                    << endl;
+    *out << "<table border=\"0\">"                                   << endl;
+    *out << "<tr valign=\"top\">"                                    << endl;
+    *out << "<td>"                                                   << endl;
+    printStatesTable( out, "DAQ applications", daqContexts_, daqAppStates_ );
+    *out << "</td>"                                                   << endl;
+    *out << "<td width=\"16\"/>"                                      << endl;
+    *out << "<td>"                                                   << endl;
     queryAppStates( dqmAppStates_ );
-    printStatesTable( out, dqmContexts_, dqmAppStates_ );
-    *out << "<br/>"                                                    << endl;
+    printStatesTable( out, "DQM applications", dqmContexts_, dqmAppStates_ );
+    *out << "</td>"                                                   << endl;
+    *out << "</tr>"                                                   << endl;
+    *out << "</table>"                                               << endl;
 
     if ( buildEvents_.value_ ){
     vector< vector< pair<string,string> > > evmStats=getStats(evmDescriptors_);
@@ -904,6 +909,15 @@ throw (xgi::exception::Exception)
 	  *out << "/>"                                                   << endl;
 	}
       
+      *out << "<input"                                               << endl;
+      *out << " type=\"checkbox\""                                   << endl;
+      *out << " name=\"controldqm\""                                << endl;
+      *out << " title=\"If checked, DQM's state will be changed too.\""  << endl;
+      *out << " alt=\"control dqm\""                                << endl;
+      if ( controlDQM_.value_ ) *out << " checked"                  << endl;
+      *out << "/>  "                                                 << endl;
+      *out << " DQM too"                                             << endl;
+
     *out << "</form>"                                                  << endl;
     *out << "<br>"                                                     << endl;
     *out << "<br>"                                                     << endl;
@@ -924,10 +938,19 @@ throw (xgi::exception::Exception)
 
     *out << "<br/>"                                                    << endl;
     *out << "<br/>"                                                    << endl;
-    printStatesTable( out, daqContexts_, daqAppStates_ );
-    *out << "<br/>"                                                    << endl;
+
+    *out << "<table border=\"0\">"                                   << endl;
+    *out << "<tr valign=\"top\">"                                    << endl;
+    *out << "<td>"                                                   << endl;
+    printStatesTable( out, "DAQ applications", daqContexts_, daqAppStates_ );
+    *out << "</td>"                                                   << endl;
+    *out << "<td width=\"16\"/>"                                      << endl;
+    *out << "<td>"                                                   << endl;
     queryAppStates( dqmAppStates_ );
-    printStatesTable( out, dqmContexts_, dqmAppStates_ );
+    printStatesTable( out, "DQM applications", dqmContexts_, dqmAppStates_ );
+    *out << "</td>"                                                   << endl;
+    *out << "</tr>"                                                   << endl;
+    *out << "</table>"                                               << endl;
 
     *out << "</body>"                                                  << endl;
 
@@ -1000,9 +1023,20 @@ void EmuDAQManager::processControlForm(xgi::Input *in)
 throw (xgi::exception::Exception)
 {
     cgicc::Cgicc         cgi(in);
-    cgicc::form_iterator cmdElement    = cgi.getElement("command");
+
+    std::vector<cgicc::FormEntry> fev = cgi.getElements();
+    std::vector<cgicc::FormEntry>::iterator fe;
+
+    // Check if DQM needs controlling
+    // Apparently the query string does not even include the checkbox element if it's not checked...
+    controlDQM_ = false;
+    for ( fe=fev.begin(); fe!=fev.end(); ++ fe )
+      if ( fe->getName() == "controldqm" && fe->getValue() == "on" ) 
+	controlDQM_ = true;
+
 
     // If there is a command from the html form
+    cgicc::form_iterator cmdElement    = cgi.getElement("command");
     if(cmdElement != cgi.getElements().end())
     {
         string cmdName = (*cmdElement).getValue();
@@ -1010,8 +1044,6 @@ throw (xgi::exception::Exception)
 // 	if ( (cmdName == "configure") && fsm_.getCurrentState() == 'H' )
 	if ( (cmdName == "configure") )
 	  {
-	    std::vector<cgicc::FormEntry> fev = cgi.getElements();
-	    std::vector<cgicc::FormEntry>::iterator fe;
 	    // Emu: run type will be queried by EmuRUI's and EmuFU's
 	    for ( fe=fev.begin(); fe!=fev.end(); ++ fe )
 	      if ( fe->getName() == "runtype" ){
@@ -1518,6 +1550,7 @@ string EmuDAQManager::getDAQState(){
 
 
 void EmuDAQManager::printStatesTable( xgi::Output *out,
+				      string title,
 				      set<string> &contexts,
 				      vector< pair<xdaq::ApplicationDescriptor*, string> > &appStates  )
   throw (xgi::exception::Exception)
@@ -1547,10 +1580,13 @@ void EmuDAQManager::printStatesTable( xgi::Output *out,
   *out << "<table frame=\"void\" rules=\"rows|cols\" class=\"params\">"  << endl;
   
   *out << "<tr>"                                                         << endl;
-  *out << "  <th>"                                                       << endl;
-  *out << "     States' color code: "                                    << endl;
+  *out << "  <th colspan=2 align=\"center\">"                            << endl;
+  *out << title                                                          << endl;
   *out << "  </th>"                                                      << endl;
-  *out << "  <th>"                                                       << endl;
+  *out << "</tr>"                                                         << endl;
+  *out << "<tr>"                                                         << endl;
+  *out << "  <th colspan=2 align=\"center\">"                            << endl;
+  *out << "     Color code: "                                            << endl;
   map<string, string>::iterator col;
   for ( col=color.begin(); col!=color.end(); ++col ){
     *out << "     <span align=\"center\" ";
@@ -3860,6 +3896,19 @@ void EmuDAQManager::resetAction()
 	ss << "Failed to reset EmuDAQ: " << xcept::stdformat_exception_history(ex);
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception, ss.str(), ex);
       }
+
+    if ( controlDQM_.value_ ){
+      // DQM's EmuMonitors cannot be reset. Halt them instead.
+      try
+	{
+	  controlDQM( "Halt" );
+	}
+      catch(xcept::Exception ex)
+	{
+	  XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+			"Failed to configure the EmuMonitors of DQM", ex);
+	}
+    }
 
 }
 
