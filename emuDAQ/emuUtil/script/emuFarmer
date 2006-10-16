@@ -79,6 +79,15 @@ class Emu_Farmer:
                            'dqm' : set(),
                            'all' : set() }
 
+        # Dict of users
+        self._users = { 'daq' : 'cscdaq',
+                        'man' : 'cscdaq',
+                        'fed' : 'cscdaq',
+                        'pc'  : 'cscpc' ,
+                        'ltc' : 'cscdaq',
+                        'sv'  : 'cscdaq',
+                        'dqm' : 'cscdqm' }
+
         # List of ssh threads
         self._sshThreads = []
 
@@ -167,7 +176,10 @@ class Emu_Farmer:
         options += '        Dir for merged config :\t' + self._mergedConfigFileDir + '\n'
         options += '        Target groups         :\t' + self._target              + '\n'
         options += '        Log level             :\t' + self._logLevel            + '\n'
-        options += '        User                  :\t' + self._user                + '\n'
+        if self._user == '':
+            options += '        User                  :\tcscdaq for DAQ, cscdqm for DQM executives\n'
+        else:
+            options += '        User                  :\t' + self._user                + '\n'
         #options += '        XDAQ_ROOT             :\t' + self._xdaq_root           + '\n'
         return options
 
@@ -270,7 +282,7 @@ class Emu_Farmer:
             host = m.group(2)
             #remoteCommand = '"(export XDAQ_ROOT='+self._xdaq_root+' && \$XDAQ_ROOT/emu/emuDAQ/drivers/bigphysarea_xxxx/bin/emuLoadDDUs)"'
             remoteCommand = '"(source .bash_profile && \$XDAQ_ROOT/emu/emuDAQ/drivers/bigphysarea_xxxx/bin/emuLoadDDUs)"'
-            commandLine = 'ssh -2 -f '+self._user+'@'+host+' '+remoteCommand
+            commandLine = 'ssh -2 -f '+self._users['daq']+'@'+host+' '+remoteCommand
 
             # add this command to the self._commandLines only if this host runs EmuRUI(s)
             self._contexts['all'].add(host)
@@ -306,11 +318,12 @@ class Emu_Farmer:
                 # Dump the remoteLogFile (the redirected std err/out of xdaq)
                 remoteCommand = "\"cat "+remoteLogFile+"\""
 
-            commandLine = 'ssh -2 -f '+self._user+'@'+host+' '+remoteCommand
+            #commandLine = 'ssh -2 -f '+self._user+'@'+host+' '+remoteCommand
             hostAndPort = host+':'+port
-            self._commandLines[hostAndPort] = commandLine
+            #self._commandLines[hostAndPort] = commandLine
             
-            # put this command in the appropriate target set(s)
+            # put this context (hostAndPort) in the appropriate target set(s) and find user
+            user = ''
             self._contexts['all'].add(hostAndPort)
             apps = context.getElementsByTagName('xc:Application')
             for app in apps:
@@ -319,6 +332,19 @@ class Emu_Farmer:
                     target = self._targets[klass]
                     self._contexts[target].add(hostAndPort)
                     #print hostAndPort,' added to ',target
+                    if self._user != '':
+                        user = self._user
+                    else:
+                        user = self._users[target]
+
+            if user == '':
+                print '***** Error: no user to act on', hostAndPort
+                print '      Type emuFarmer -h for help.'
+                sys.exit(1)
+            else:
+                #commandLine = 'ssh -2 -f '+user+'@'+host+' '+remoteCommand
+                commandLine = 'ssh -2 '+user+'@'+host+' '+remoteCommand
+                self._commandLines[hostAndPort] = commandLine
 
         #print '\nGrouping of contexts:'
         #for tgt,ctxt in self._contexts.iteritems():
@@ -475,7 +501,8 @@ emuFarmer reloads drivers or launches/kills XDAQ executives specified in a XDAQ 
 
 
     Options:
-        -c    Configuration file's absolute path or URL. (A "mandatory option".)
+        -c    Configuration file's absolute path or URL. 
+              Default is http://emudaq/cscdaq/config/EmuConfig.xml
               Two configuration file formats are supported:
                  1) Standard XDAQ configuration.
                     The remote processes will be instructed to take this file from the same URL.
@@ -507,13 +534,14 @@ emuFarmer reloads drivers or launches/kills XDAQ executives specified in a XDAQ 
                fed           EmuFEDCrate or EmuFCrateHyperDAQ
                pc            EmuPeripheralCrate
                sv            CSCSupervisor
-               dqm           EmuMonitor
+               dqm           EmuMonitor or EmuDisplayClient
                all           any application
               E.g., man+daq will select all executives running DAQManager or DAQ column applications,
               all-ltc will select all executives except the one running LTCControl,
               daq-emudaq01:40201 will select all executives running DAQ column applications except emudaq01:40201.
-              Default is 'daq+man+sv', i.e., the DAQ column, the DAQManager and the CSCSupervisor.
-        -u    User to run the executives on the remote hosts. Default is $USER of the shell where emuFarmer is run.
+              Default is 'daq+man', i.e., the DAQ column and the DAQManager.
+        -u    User to run the executives on the remote hosts.
+              Default is cscdaq for DAQ applications, and cscdqm for DQM applications.
         -l    XDAQ executives' log level. Default is WARN.
         -v    Verbose mode. (Prints remote processes' stdout and stderr on start.) Default is non-verbose mode.
         -h    Print this help.
@@ -531,9 +559,9 @@ if __name__ == "__main__":
         sys.exit(0)
 
     # default arguments
-    configFileName =  None
+    configFileName = 'http://emudaq/cscdaq/config/EmuConfig.xml'
     action         = 'status'
-    targets        = 'daq+man+sv'
+    targets        = 'daq+man'
     logLevel       = 'WARN'
     user           = ''
     #xdaq_root      = ''
@@ -563,12 +591,12 @@ if __name__ == "__main__":
             sys.exit(0)
 
     # user must be known
-    if user == '' and 'USER' not in os.environ:
-        print '***** Error: No user specified. Please use the "-u <user>" option.'
-        print '      Type emuFarmer -h for help.'
-        sys.exit(1)
-    if user == '':
-        user = os.environ['USER']
+    #if user == '' and 'USER' not in os.environ:
+    #    print '***** Error: No user specified. Please use the "-u <user>" option.'
+    #    print '      Type emuFarmer -h for help.'
+    #    sys.exit(1)
+    #if user == '':
+    #    user = os.environ['USER']
 
     # now we can set the default destination directory for the merged configuration file
     if dirForMerged == None:
