@@ -119,7 +119,7 @@ void EmuI2OServer::addData( const int            runNumber,
 	if ( nEvents % prescaling_->value_ == 0 ){
 	  if( !pool_->isHighThresholdExceeded() )
 	    isToBeSent = true;
-	  else  LOG4CPLUS_WARN(logger_, name_ << " memory pool's high threshold exceeded.");
+// 	  else  LOG4CPLUS_WARN(logger_, name_ << " memory pool's high threshold exceeded.");
 	}
       }
     }
@@ -127,7 +127,7 @@ void EmuI2OServer::addData( const int            runNumber,
       if ( nEvents % prescaling_->value_ == 0 ){
 	if( !pool_->isHighThresholdExceeded() )
 	  isToBeSent = true;
-	else LOG4CPLUS_WARN(logger_, name_ << " memory pool's high threshold exceeded.");
+// 	else LOG4CPLUS_WARN(logger_, name_ << " memory pool's high threshold exceeded.");
       }
     }
 
