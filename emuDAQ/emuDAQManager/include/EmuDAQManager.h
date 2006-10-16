@@ -260,6 +260,7 @@ private:
   void   queryAppStates( vector< pair<xdaq::ApplicationDescriptor*, string> > &appStates );
   string getDAQState();
   void   printStatesTable( xgi::Output *out,
+			   string title,
 			   set<string> &contexts,
 			   vector< pair<xdaq::ApplicationDescriptor*, string> > &appStates )
     throw (xgi::exception::Exception);
