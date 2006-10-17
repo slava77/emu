@@ -435,6 +435,9 @@ public:
             thisDDU->CAEN_err_reset();
             unsigned short int statush=thisDCC->mctrl_stath();
             unsigned short int statusl=thisDCC->mctrl_statl();
+	    //
+	    std::string status;
+	    /*
             if(thisDCC->CAEN_err()!=0){
 	      *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");              
             }else if(statush==0x0000&&statusl==0x0000){
@@ -442,8 +445,47 @@ public:
             }else{
 	      *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
             }
+	    */
+	    if((statush&0xc000)!=0x0)
+	      {
+		*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
+		status ="(Out of Sync)";
+	      } else {
+		*out << cgicc::span().set("style","color:green;background-color:#dddddd;");
+		status ="(OK)";
+	      }
+	    //
+	    /*
+	    // New DCC firmware
+	    //
+	    std::cout << "status ............. " << std::hex << (statush&0xf000) << std::endl;
+	    //
+	    //
+	    if((statush&0xf000)==0x2000)
+	    {
+	    *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
+	    status ="(Ready)";
+	    } else if((statush&0xf000)==0x4000)
+	    {
+	    *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");              
+	    status ="(Warning)";
+	    } else if((statush&0xf000)==0x8000 || (statush&0xf000)==0x3000 )
+	    {
+	    *out << cgicc::span().set("style","color:red;background-color:#dddddd;");              
+	    status ="(Out of sync or error)";
+	    } else if((statush&0xf000)==0x1000)
+	    {
+	    *out << cgicc::span().set("style","color:blue;background-color:#dddddd;");              
+	    status ="(Busy)";
+	    } else 
+	    {
+	    *out << cgicc::span().set("style","color:black;background-color:#dddddd;");              
+	    status ="(CAEN error)";
+	    }
+	    */
+	    //
             sprintf(buf,"Status H:%04X L:%04X ",statush,statusl);
-            *out << buf; 
+            *out << buf << " " << status ; 
             *out << cgicc::span()<< std::endl;
           }else{
 	    sprintf(buf,"Crate Broadcast");
