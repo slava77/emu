@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.10 2006/10/03 15:40:03 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.11 2006/10/17 07:44:51 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -82,6 +82,8 @@ public:
     xgi::bind(this,&EmuPeripheralCrateManager::Default, "Default");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageConfigure, "SendSOAPMessageConfigure");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageConfigureXRelay, "SendSOAPMessageConfigureXRelay");
+    xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageCalibrationCfebTimeXRelay, 
+	      "SendSOAPMessageCalibrationCfebTimeXRelay");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageConnectTStore, "SendSOAPMessageConnectTStore");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageDisconnectTStore, "SendSOAPMessageDisconnectTStore");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryTStore, "SendSOAPMessageQueryTStore");
@@ -134,14 +136,7 @@ public:
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    //*out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    //*out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    //*out << cgicc::title("EmuPeripheralCrateManager") << std::endl;
-    //
     MyHeader(in,out,"EmuPeripheralCrateManager");
-    //
-    //*out << cgicc::h1("EmuPeripheralCrateManager") << std::endl ;
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     //
@@ -150,7 +145,6 @@ public:
     //
     std::vector<xdaq::ApplicationDescriptor * >  descriptor =
       getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
-    //
     //
     vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
     for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) 
@@ -375,6 +369,15 @@ public:
     *out << cgicc::input().set("type","submit")
       .set("value","Send SOAP message : Configure Crates") << std::endl ;
     *out << cgicc::form();
+    //
+    std::string methodSOAPMessageCalibrationTimeCfeb =
+      toolbox::toString("/%s/SendSOAPMessageCalibrationCfebTimeXRelay",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageCalibrationTimeCfeb) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Send SOAP message : Calibration Time Cfeb") << std::endl ;
+    *out << cgicc::form();
+    //
     /*
     std::string methodSOAPMessageOpenFile =
       toolbox::toString("/%s/SendSOAPMessageOpenFile",getApplicationDescriptor()->getURN().c_str());
@@ -472,6 +475,58 @@ public:
     //
   }
   //
+  void EmuPeripheralCrateManager::CheckEmuperipheralCrate(xgi::Input * in, xgi::Output * out ){
+    //
+    MyHeader(in,out,"CheckEmuperipheralCrate");
+    //
+    std::vector<xdaq::ApplicationDescriptor * >  descriptor =
+      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
+    //
+    //
+    vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
+    for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) 
+      {
+	std::string classNameStr = (*itDescriptor)->getClassName();
+	*out << classNameStr << " " << std::endl ;
+	std::string url = (*itDescriptor)->getContextDescriptor()->getURL();
+	*out << url << " " << std::endl;
+	std::string urn = (*itDescriptor)->getURN();  	
+	*out << urn << std::endl;
+	//
+	xoap::MessageReference reply;
+	//
+	bool failed = false ;
+	//
+	try{
+	  xoap::MessageReference msg   = QueryPeripheralCrateInfoSpace();
+	  reply = getApplicationContext()->postSOAP(msg, (*itDescriptor));
+	}
+	//
+	catch (xdaq::exception::Exception& e) 
+	  {
+	    *out << cgicc::span().set("style","color:red");
+	    *out << "(Not running)"<<std::endl;
+	    *out << cgicc::span();
+	    failed = true;
+	  }
+	//
+	if(!failed) {
+	  xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	  if (body.hasFault()) {
+	    std::cout << "No connection. " << body.getFault().getFaultString() << std::endl;
+	  } else {
+	    *out << cgicc::span().set("style","color:green");
+	    *out << "(" << extractState(reply) << ")";
+	    *out << cgicc::span();
+	  }
+	}
+	//
+	*out << cgicc::br();
+	//
+      }    
+    //
+  }
+  //
   void EmuPeripheralCrateManager::configureAction(toolbox::Event::Reference e) 
     throw (toolbox::fsm::exception::Exception)
   {
@@ -514,12 +569,14 @@ public:
     throw (xgi::exception::Exception)
     {
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title(title) << std::endl;
-    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << h2(title) << std::endl;
-    //
-  }
+      *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+      *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+      //*out << cgicc::title(title) << std::endl;
+      //*out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << h2(title) << std::endl;
+      //
+      xgi::Utils::getPageHeader(out,title,"","","");
+      //
+    }
   //
   //
   string EmuPeripheralCrateManager::extractState(xoap::MessageReference message)
@@ -616,9 +673,10 @@ public:
   //
   xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception)
   {
+    //
     fireEvent("Configure");
     //
-    SendSOAPMessageConfigureXRelaySimple();
+    SendSOAPMessageXRelaySimple("Configure");
     //
     return createReply(message);
     //
@@ -746,7 +804,7 @@ public:
     //
   }
   //
-  void EmuPeripheralCrateManager::SendSOAPMessageConnectTStore(xgi::Input * in, xgi::Output * out ) 
+  void EmuPeripheralCrateManager::SendSOAPMessageConnectTStore(xgi::Input * in, xgi::Output * out) 
     throw (xgi::exception::Exception)
     {
       //
@@ -1020,7 +1078,8 @@ public:
 	  XCEPT_RETHROW (xgi::exception::Exception, "Cannot send message", e);	      	
 	}
       //
-      this->Default(in,out);
+      //this->Default(in,out);
+      this->SendSOAPMessageExecuteSequence(in,out);
       //
     }
   //
@@ -1189,12 +1248,12 @@ public:
       //
     }
   //
-  void EmuPeripheralCrateManager::SendSOAPMessageConfigureXRelaySimple(){
+  void EmuPeripheralCrateManager::SendSOAPMessageXRelaySimple(std::string command){
     //
     std::vector<xdaq::ApplicationDescriptor * >  descriptors =
       getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
     //
-    xoap::MessageReference configure = createXRelayMessage("Configure", descriptors);
+    xoap::MessageReference configure = createXRelayMessage(command, descriptors);
     //
     this->relayMessage(configure);
     //
@@ -1202,15 +1261,23 @@ public:
   //
   void EmuPeripheralCrateManager::SendSOAPMessageConfigureXRelay(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
-  {
-    //
-    std::cout << "SendSOAPMessageConfigure XRelay" << std::endl;
-    //
-    SendSOAPMessageConfigureXRelaySimple();
-    //
-    this->Default(in,out);
-    //
-  }
+    {
+      //
+      SendSOAPMessageXRelaySimple("Configure");
+      //
+      this->Default(in,out);
+      //
+    }
+  //
+  void EmuPeripheralCrateManager::SendSOAPMessageCalibrationCfebTimeXRelay(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      SendSOAPMessageXRelaySimple("CalibrationCfebTime");
+      //
+      this->Default(in,out);
+      //
+    }
   //
   void EmuPeripheralCrateManager::SendSOAPMessageConfigure(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)

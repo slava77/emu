@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.38 2006/10/13 09:19:22 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.39 2006/10/17 07:44:45 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -205,7 +205,7 @@ public:
     thisMPC = 0;
     rat = 0;
     alct = 0;
-    nTrigger_ = 10;
+    nTrigger_ = 100;
     MenuMonitor_ = 2;
     //
     xgi::bind(this,&EmuPeripheralCrate::Default, "Default");
@@ -365,6 +365,8 @@ public:
     xoap::bind(this, &EmuPeripheralCrate::onEnable,    "Enable",    XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrate::onDisable,   "Disable",   XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrate::onHalt,      "Halt",      XDAQ_NS_URI);
+    //
+    xoap::bind(this, &EmuPeripheralCrate::onCalibrationCfebTime,"CalibrationCfebTime",XDAQ_NS_URI);
     //
     // fsm_ is defined in EmuApplication
     fsm_.addState('H', "Halted",     this, &EmuPeripheralCrate::stateChanged);
@@ -675,6 +677,14 @@ private:
   // SOAP Callback  
   //
   //
+  xoap::MessageReference EmuPeripheralCrate::onCalibrationCfebTime (xoap::MessageReference message) throw (xoap::exception::Exception)
+    {
+      //
+      std::cout << "Calibration Cfeb Time" << std::endl;
+      //
+      return createReply(message);
+    }
+  //
   xoap::MessageReference EmuPeripheralCrate::onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception)
   {
     fireEvent("Configure");
@@ -923,8 +933,10 @@ private:
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title(title) << std::endl;
-    *out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
+    //*out << cgicc::title(title) << std::endl;
+    //*out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
+    //
+    xgi::Utils::getPageHeader(out,title,"","","");
     //
   }
   //
@@ -2315,6 +2327,8 @@ private:
       cout << "Not tmb" << endl ;
     }
     //
+    std::cout << "MenuMonitor " << MenuMonitor_ << std::endl;
+    //
     TMB * thisTMB = tmbVector[tmb];
     //
     int oldValue=0;
@@ -2335,6 +2349,8 @@ private:
       }
       //
     }
+    //
+    std::cout << "MenuMonitor " << MenuMonitor_ << std::endl;
     //
     *out << "<HTML>" <<std::endl;
     *out << "<BODY bgcolor=\"#FFFFFF\">" <<std::endl;
