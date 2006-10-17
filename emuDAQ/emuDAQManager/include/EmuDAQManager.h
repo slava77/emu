@@ -216,6 +216,18 @@ private:
     void controlWebPage(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
 
+  void commentWebPage(xgi::Input *in, xgi::Output *out)
+    throw (xgi::exception::Exception);
+  void processCommentForm(xgi::Input *in)
+    throw (xgi::exception::Exception);
+  void commandWebPage(xgi::Input *in, xgi::Output *out)
+    throw (xgi::exception::Exception);
+  void printUserComments( xgi::Output *out );
+  string textToHtml( const string text );
+
+  string comments_;        // The comments entered by the user.
+  string globalRunNumber_; // The global run number entered by the user.
+  bool   badRun_;          // User's judgement on the run.
 
   xdata::String curlCommand_;         // the curl command's full path
   xdata::String curlCookies_;         // file for cookies
@@ -281,7 +293,7 @@ private:
     /**
      * Processes the form sent from the control web page.
      */
-    void processControlForm(xgi::Input *in)
+    void processCommandForm(xgi::Input *in)
     throw (xgi::exception::Exception);
 
     /**
