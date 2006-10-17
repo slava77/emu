@@ -67,10 +67,10 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
   /****** check we have same old device otherwise we need to initialize */
   init=1;
   //
-  //if(idev!=idevo){
-  //   init=1;
-  //  printf(" idev idevo %d %d plev %d \n",idev,idevo,plev);
-  //}
+  //  if(idev!=idevo){
+  //    init=1;
+  //    printf(" idev idevo %d %d plev %d \n",idev,idevo,plev);
+  //  }
     if(idev==1){
       if(dev==1||dev==7)feuse=0x01;
       if(dev==2||dev==8)feuse=0x02;
@@ -1000,8 +1000,9 @@ unsigned short int *ptrreg;
  ptrreg=(unsigned short int *) add_sw;
  tmp2[0]=feuse;
  vme_controller(3,ptrreg,tmp2,tmp);
+ usleep(10000);
  // x*ptrreg=feuse;
- //  printf(" setuse %08x %04x \n",ptrreg,feuse&0xffff);
+  printf(" setuse %08x %04x \n",ptrreg,feuse&0xffff);
 }
 
 
