@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.11 2006/10/17 07:44:51 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.12 2006/10/17 07:53:02 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1261,13 +1261,19 @@ public:
   //
   void EmuPeripheralCrateManager::SendSOAPMessageConfigureXRelay(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
-    {
-      //
-      SendSOAPMessageXRelaySimple("Configure");
-      //
-      this->Default(in,out);
-      //
-    }
+  {
+    //
+    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+    //
+    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
+    *out << "SendSOAPMessageConfigure XRelay" << std::endl;
+    //
+    SendSOAPMessageXRelaySimple("Configure");
+    //
+    this->Default(in,out);
+    //
+  }
   //
   void EmuPeripheralCrateManager::SendSOAPMessageCalibrationCfebTimeXRelay(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
