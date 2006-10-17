@@ -495,9 +495,7 @@ throw (xgi::exception::Exception)
 
     *out << "<hr/>"                                                    << endl;
 
-    *out << " DAQ is in <a href=\"#states\">" << daqState              << endl;
-    *out << "</a> state."                                              << endl;
-
+    printDAQState( out, daqState );
 
     // Emu: display event number and max number of events
     string runNumber("UNKNOWN");
@@ -807,8 +805,7 @@ throw (xgi::exception::Exception)
 
     *out << "<hr/>"                                                    << endl;
 
-    *out << " DAQ is in <a href=\"#states\">" << daqState              << endl;
-    *out << "</a> state."                                              << endl;
+    printDAQState( out, daqState );
 
 
     // Emu: display event number and max number of events
@@ -908,7 +905,7 @@ throw (xgi::exception::Exception)
 	  *out << " value=\"stop\""                                      << endl;
 	  *out << "/>"                                                   << endl;
 	}
-      
+
       *out << "<input"                                               << endl;
       *out << " type=\"checkbox\""                                   << endl;
       *out << " name=\"controldqm\""                                << endl;
@@ -1029,11 +1026,11 @@ throw (xgi::exception::Exception)
 
     // Check if DQM needs controlling
     // Apparently the query string does not even include the checkbox element if it's not checked...
-    controlDQM_ = false;
     for ( fe=fev.begin(); fe!=fev.end(); ++ fe )
-      if ( fe->getName() == "controldqm" && fe->getValue() == "on" ) 
+      if ( fe->getName() == "controldqm" && fe->getValue() == "on" ){
 	controlDQM_ = true;
-
+	break;
+      }
 
     // If there is a command from the html form
     cgicc::form_iterator cmdElement    = cgi.getElement("command");
@@ -1057,10 +1054,11 @@ throw (xgi::exception::Exception)
 	      }
 	    // Emu: buildEvents will be queried by EmuRUI's
 	    // Apparently the query string does not even include the checkbox element if it's not checked...
-	    buildEvents_ = false;
 	    for ( fe=fev.begin(); fe!=fev.end(); ++ fe )
-	      if ( fe->getName() == "buildevents" && fe->getValue() == "on" ) 
+	      if ( fe->getName() == "buildevents" && fe->getValue() == "on" ){
 		buildEvents_ = true;
+		break;
+	      }
 	    // Emu: set run number in emuTA to the value given by the user on the control page
 	    cgicc::form_iterator runNumElement = cgi.getElement("runnumber");
 	    cgicc::form_iterator maxEvtElement = cgi.getElement("maxevents");
@@ -1546,6 +1544,40 @@ string EmuDAQManager::getDAQState(){
     }
   }
   return combinedState;
+}
+
+void EmuDAQManager::printDAQState( xgi::Output *out, string state ){
+  map<string, string> bgcolor;
+  bgcolor["Halted" ] = "#ff0000";
+  bgcolor["Ready"  ] = "#ffff00";
+  bgcolor["Enabled"] = "#00ff00";
+  bgcolor["Failed" ] = "#000000";
+  bgcolor["UNKNOWN"] = "#888888";
+
+  map<string, string> color;
+  color["Halted" ] = "#000000";
+  color["Ready"  ] = "#000000";
+  color["Enabled"] = "#000000";
+  color["Failed" ] = "#ffffff";
+  color["UNKNOWN"] = "#ffffff";
+
+  map<string, string> decoration;
+  decoration["Halted" ] = "none";
+  decoration["Ready"  ] = "none";
+  decoration["Enabled"] = "none";
+  decoration["Failed" ] = "blink";
+  decoration["UNKNOWN"] = "none";
+
+  *out << " DAQ is in <a href=\"#states\">";
+  *out << "<span align=\"center\" ";
+  *out << "style=\"";
+  *out << "background-color:" << bgcolor[state];
+  *out << "; color:"          << color[state];
+  *out << "; text-decoration:"<< decoration[state];
+  *out << "\">";
+  *out << " " << state << " ";
+  *out << "</span>";
+  *out << "</a> state."                                              << endl;
 }
 
 
@@ -3224,6 +3256,7 @@ void EmuDAQManager::exportParams(xdata::InfoSpace *s)
     runNumber_         = 0;
     maxNumberOfEvents_ = 0;
     runType_           = "Monitor";
+    buildEvents_       = false;
     s->fireItemAvailable("runNumber",         &runNumber_        );
     s->fireItemAvailable("maxNumberOfEvents", &maxNumberOfEvents_);
     s->fireItemAvailable("runType",           &runType_          );

@@ -266,6 +266,7 @@ private:
     throw (xgi::exception::Exception);
   void getMnemonicNames();
   map<int,string> hardwareMnemonics_; // hardwareMnemonics[EmuRUI_instance]
+  void printDAQState( xgi::Output *out, string state );
 
 
   vector< xdaq::ApplicationDescriptor* > dqmMonitorDescriptors_;
