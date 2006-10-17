@@ -102,10 +102,16 @@ runInfo_(0)
     xgi::bind(this, &EmuDAQManager::css           , "styles.css");
     xgi::bind(this, &EmuDAQManager::defaultWebPage, "Default"   );
     xgi::bind(this, &EmuDAQManager::controlWebPage, "control"   );
+    xgi::bind(this, &EmuDAQManager::commandWebPage, "command"   );
+    xgi::bind(this, &EmuDAQManager::commentWebPage, "comment"   );
     xgi::bind(this, &EmuDAQManager::machineReadableWebPage,
         "MachineReadable");
 
     exportParams(appInfoSpace_);
+
+    comments_        = "";
+    globalRunNumber_ = "";
+    badRun_          = false;
 
     // Supervisor-specific stuff:
     xoap::bind(this, &EmuDAQManager::onConfigure,     "Configure",     XDAQ_NS_URI);
@@ -436,28 +442,8 @@ throw (xgi::exception::Exception)
 	 << "  " << fsm_.getStateName(fsm_.getCurrentState())          << endl;
     *out << "    </b>"                                                 << endl;
     *out << "  </td>"                                                  << endl;
-//     *out << "  <td class=\"app_links\">"                               << endl;
-//     *out << "    EmuTA ";
-//     printAppInstanceLinks(out, taDescriptors_);
-//     *out << "<br/>"                                                    << endl;
-//     *out << "    EVM ";
-//     printAppInstanceLinks(out, evmDescriptors_);
-//     *out << "<br/>"                                                    << endl;
-//     *out << "    EmuRUI ";
-//     printAppInstanceLinks(out, ruiDescriptors_);
-//     *out << "<br/>"                                                    << endl;
-//     *out << "    RU ";
-//     printAppInstanceLinks(out, ruDescriptors_);
-//     *out << "<br/>"                                                    << endl;
-//     *out << "    BU ";
-//     printAppInstanceLinks(out, buDescriptors_);
-//     *out << "<br/>"                                                    << endl;
-//     *out << "    EmuFU ";
-//     printAppInstanceLinks(out, fuDescriptors_);
-//     *out                                                               << endl;
-//     *out << "  </td>"                                                  << endl;
     *out << "  <td class=\"app_links\" align=\"center\" width=\"64\">" << endl;
-    *out << "    <a href=\"/" << urn_ << "/control\">"                 << endl;
+    *out << "    <a href=\"/" << urn_ << "/control\" target=\"_top\">" << endl;
     *out << "      <img"                                               << endl;
     *out << "   src=\"/emu/emuDAQ/emuDAQManager/images/ctrl64x64.gif\"" << endl;
     *out << "       alt=\"Control\""                                   << endl;
@@ -465,14 +451,14 @@ throw (xgi::exception::Exception)
     *out << "       height=\"64\""                                     << endl;
     *out << "       border=\"\"/>"                                     << endl;
     *out << "    </a>"                                                 << endl;
-    *out << "    <a href=\"/" << urn_ << "/control\">"                 << endl;
+    *out << "    <a href=\"/" << urn_ << "/control\" target=\"_top\">" << endl;
     *out << "      Control"                                            << endl;
     *out << "    </a>"                                                 << endl;
     *out << "  </td>"                                                  << endl;
     *out << "  <td width=\"32\">"                                      << endl;
     *out << "  </td>"                                                  << endl;
     *out << "  <td class=\"app_links\" align=\"center\" width=\"70\">" << endl;
-    *out << "    <a href=\"/urn:xdaq-application:lid=3\">"             << endl;
+    *out << "    <a href=\"/urn:xdaq-application:lid=3\" target=\"_top\">"<< endl;
     *out << "      <img"                                               << endl;
     *out << "       src=\"/daq/xdaq/hyperdaq/images/HyperDAQ.jpg\""    << endl;
     *out << "       alt=\"HyperDAQ\""                                  << endl;
@@ -480,13 +466,13 @@ throw (xgi::exception::Exception)
     *out << "       height=\"64\""                                     << endl;
     *out << "       border=\"\"/>"                                     << endl;
     *out << "    </a>"                                                 << endl;
-    *out << "    <a href=\"/urn:xdaq-application:lid=3\">"             << endl;
+    *out << "    <a href=\"/urn:xdaq-application:lid=3\" target=\"_top\">"<< endl;
     *out << "      HyperDAQ"                                           << endl;
     *out << "    </a>"                                                 << endl;
     *out << "  </td>"                                                  << endl;
     *out << "</tr>"                                                    << endl;
     *out << "<tr>"                                                     << endl;
-    *out << "  <td colspan=\"4\">"                                                   << endl;
+    *out << "  <td colspan=\"4\">"                                     << endl;
     *out << "    Updated at " <<  getDateTime()                        << endl;
     *out << "    &#8212; <span id=\"ageOfPage\"></span> ago "          << endl;
     *out << "  </td>"                                                  << endl;
@@ -527,9 +513,8 @@ throw (xgi::exception::Exception)
     *out << "</tr>"                                                    << endl;
     *out << "</table>"                                                 << endl;
 
-    *out << "<td width=\"64\">"                                      << endl;
     *out << "</td>"                                                  << endl;
-    *out << "</td>"                                                  << endl;
+    *out << "<td width=\"32\"/>"                                     << endl;
     *out << "<td>"                                                   << endl;
 
     *out << "<table frame=\"void\" rules=\"rows\" class=\"params\">"   << endl;
@@ -547,9 +532,8 @@ throw (xgi::exception::Exception)
     *out << "</tr>"                                                    << endl;
     *out << "</table>"                                                 << endl;
 
-    *out << "<td width=\"64\">"                                      << endl;
     *out << "</td>"                                                  << endl;
-    *out << "</td>"                                                  << endl;
+    *out << "<td width=\"32\"/>"                                     << endl;
     *out << "<td>"                                                   << endl;
 
     *out << "<table frame=\"void\" rules=\"rows\" class=\"params\">"   << endl;
@@ -565,6 +549,44 @@ throw (xgi::exception::Exception)
     *out << "    " << maxNumEvents;
     if ( maxNumEvents.find("-",0) != string::npos ) *out << " (unlimited)";
     *out                                                               << endl;
+    *out << "  </td>"                                                  << endl;
+    *out << "</tr>"                                                    << endl;
+    *out << "</table>"                                                 << endl;
+
+    *out << "</td>"                                                  << endl;
+    *out << "<td width=\"32\"/>"                                     << endl;
+    *out << "<td>"                                                   << endl;
+
+    *out << "<table frame=\"void\" rules=\"rows\" class=\"params\">" << endl;
+    *out << "<tr>"                                                     << endl;
+    *out << "  <th align=\"center\">"                                  << endl;
+    *out << "    <b>"                                                  << endl;
+    *out << "      Global run number"                                  << endl;
+    *out << "    </b>"                                                 << endl;
+    *out << "  </th>"                                                  << endl;
+    *out << "</tr>"                                                    << endl;
+    *out << "<tr>"                                                     << endl;
+    *out << "  <td>"                                                   << endl;
+    *out << "    " << globalRunNumber_                                 << endl;
+    *out << "  </td>"                                                  << endl;
+    *out << "</tr>"                                                    << endl;
+    *out << "</table>"                                                 << endl;
+
+    *out << "</td>"                                                  << endl;
+    *out << "<td width=\"32\"/>"                                     << endl;
+    *out << "<td>"                                                   << endl;
+
+    *out << "<table frame=\"void\" rules=\"rows\" class=\"params\">" << endl;
+    *out << "<tr>"                                                     << endl;
+    *out << "  <th align=\"center\">"                                  << endl;
+    *out << "    <b>"                                                  << endl;
+    *out << "      Comments"                                           << endl;
+    *out << "    </b>"                                                 << endl;
+    *out << "  </th>"                                                  << endl;
+    *out << "</tr>"                                                    << endl;
+    *out << "<tr>"                                                     << endl;
+    *out << "  <td>"                                                   << endl;
+    *out << "    " << comments_                                        << endl;
     *out << "  </td>"                                                  << endl;
     *out << "</tr>"                                                    << endl;
     *out << "</table>"                                                 << endl;
@@ -725,7 +747,140 @@ string EmuDAQManager::ageOfPageClock(){
 void EmuDAQManager::controlWebPage(xgi::Input *in, xgi::Output *out)
 throw (xgi::exception::Exception)
 {
-    processControlForm(in);
+  *out << "<html>"                                                   << endl;
+  *out << "<head>"                                                   << endl;
+  *out << "<title>"                                                  << endl;
+  *out << "Emu Local DAQ "                                           << endl;
+  *out << "</title>"                                                 << endl;
+  *out << "</head>"                                                  << endl;
+  *out << "<frameset rows=\"90%, *\">"                               << endl;
+  *out << "  <frame src=\"command\"/>"                               << endl;
+  *out << "  <frame src=\"comment\"/>"                               << endl;
+  *out << "</frameset>"                                              << endl;
+  *out << "</html>"                                                  << endl;
+}
+
+void EmuDAQManager::printUserComments( xgi::Output *out ){
+  *out << "<table border=\"0\" rules=\"none\">"                  << endl;
+  *out << "  <tr><td>Global run number:</td><td>" << globalRunNumber_;
+  *out << "</td></tr>"                                           << endl;
+  *out << "  <tr><td>Bad run:</td><td>" << 
+    ( badRun_? "<span style=\"font-weight: bold; color:#ff0000;\">true</span>" : "false" ) ;
+  *out << "</td></tr>"                                           << endl;
+  *out << "  <tr><td>Comments:</td><td>" << comments_;
+  *out << "</td></tr>"                                           << endl;
+  *out << "</table>"                                             << endl;
+}
+
+string EmuDAQManager::textToHtml( const string text ){
+  // Just replace new line and carriage return with <br/>
+  string html = text;
+  string::size_type index = 0;
+  while ( ( index = html.find_first_of( "\n" ) ) != string::npos )
+    html.replace( index, 1, "<br/>" );
+  while ( ( index = html.find_first_of( "\r" ) ) != string::npos )
+    html.replace( index, 1, "<br/>" );
+  return html;
+}
+
+void EmuDAQManager::commentWebPage(xgi::Input *in, xgi::Output *out)
+throw (xgi::exception::Exception)
+{
+  processCommentForm(in);
+
+  *out << "<html>"                                                   << endl;
+
+  *out << "<head>"                                                   << endl;
+  *out << "<title>"                                                  << endl;
+  *out << "Comments"                                                 << endl;
+  *out << "</title>"                                                 << endl;
+  *out << "</head>"                                                  << endl;
+
+  *out << "<body>"                                                   << endl;
+  *out << "<form method=\"get\" action=\"/" << urn_ << "/comment\">" << endl;
+
+  *out << "<table border=\"0\" width=\"100%\">"                      << endl;
+  *out << "<tr>"                                                     << endl;
+
+  *out << "  <td align=\"left\">"                                    << endl;
+  *out << "Comments: "                                               << endl;
+  *out << "<input"                                                   << endl;
+  *out << " type=\"text\""                                           << endl;
+  *out << " name=\"comments\""                                       << endl;
+  *out << " title=\"Your comments. (One-liners only.)\""             << endl;
+  *out << " alt=\"your comments\""                                   << endl;
+  *out << " value=\"" << comments_ << "\""                           << endl;
+  *out << " size=\"40\""                                             << endl;
+  *out << "/>  "                                                     << endl;
+  *out << "  </td>"                                                  << endl;
+
+  *out << "  <td align=\"left\">"                                    << endl;
+  *out << "Global run number: "                                      << endl;
+  *out << "<input"                                                   << endl;
+  *out << " type=\"text\""                                           << endl;
+  *out << " name=\"globalrunnumber\""                                << endl;
+  *out << " title=\"The number of the global run in parallel.\""     << endl;
+  *out << " alt=\"global run number\""                               << endl;
+  *out << " value=\"" << globalRunNumber_ << "\""                    << endl;
+  *out << " size=\"8\""                                              << endl;
+  *out << "/>  "                                                     << endl;
+  *out << "  </td>"                                                  << endl;
+
+  *out << "  <td align=\"left\">"                                    << endl;
+  *out << " Bad run:"                                                << endl;
+  *out << "<input"                                                   << endl;
+  *out << " type=\"checkbox\""                                       << endl;
+  *out << " name=\"badrun\""                                         << endl;
+  *out << " title=\"Check if this run is to be ignored.\""           << endl;
+  *out << " alt=\"bad run\""                                         << endl;
+  if ( badRun_ ) *out << " checked"                                  << endl;
+  *out << "/>"                                                       << endl;
+  *out << "  </td>"                                                  << endl;
+
+  *out << "  <td align=\"right\">"                                   << endl;
+  *out << "<input"                                                   << endl;
+  *out << " type=\"submit\""                                         << endl;
+  *out << " name=\"refresh\""                                        << endl;
+  *out << " title=\"Refresh comments. They will be saved when the run is stopped.\""<< endl;
+  *out << " value=\"refresh\""                                       << endl;
+  *out << "/>"                                                       << endl;
+  *out << "  </td>"                                                  << endl;
+
+  *out << "<tr>"                                                     << endl;
+  *out << "</table>"                                                 << endl;
+
+  *out << "</form>"                                                  << endl;
+
+  *out << "</body>"                                                  << endl;
+
+  *out << "</html>"                                                  << endl;
+}
+
+void EmuDAQManager::processCommentForm(xgi::Input *in)
+throw (xgi::exception::Exception)
+{
+    cgicc::Cgicc         cgi(in);
+
+    std::vector<cgicc::FormEntry> fev = cgi.getElements();
+    std::vector<cgicc::FormEntry>::iterator fe;
+
+    badRun_ = false;
+    for ( fe=fev.begin(); fe!=fev.end(); ++ fe ){
+      // Apparently the query string does not even include the checkbox element if it's not checked...
+      if ( fe->getName() == "badrun" && fe->getValue() == "on" ) 
+	badRun_ = true;
+      if ( fe->getName() == "globalrunnumber" )
+	globalRunNumber_ = fe->getValue();
+      if ( fe->getName() == "comments" )
+	comments_ = fe->getValue();
+    }
+
+}
+
+void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
+  throw (xgi::exception::Exception)
+{
+    processCommandForm(in);
 
     string daqState = getDAQState();
 
@@ -747,7 +902,7 @@ throw (xgi::exception::Exception)
     *out << "</head>"                                                  << endl;
 
     *out << "<body onload=\"countSeconds()\">"                         << endl;
-    *out << "<form method=\"get\" action=\"/" << urn_ << "/control\">" << endl;
+    *out << "<form method=\"get\" action=\"/" << urn_ << "/command\">" << endl;
 
     *out << "<table border=\"0\" width=\"100%\">"                      << endl;
     *out << "<tr>"                                                     << endl;
@@ -766,7 +921,7 @@ throw (xgi::exception::Exception)
     *out << "    </b>"                                                 << endl;
     *out << "  </td>"                                                  << endl;
     *out << "  <td class=\"app_links\" align=\"center\" width=\"70\">" << endl;
-    *out << "    <a href=\"/urn:xdaq-application:lid=3\">"             << endl;
+    *out << "    <a href=\"/urn:xdaq-application:lid=3\" target=\"_top\">"             << endl;
     *out << "      <img"                                               << endl;
     *out << "       src=\"/daq/xdaq/hyperdaq/images/HyperDAQ.jpg\""    << endl;
     *out << "       alt=\"HyperDAQ\""                                  << endl;
@@ -774,14 +929,14 @@ throw (xgi::exception::Exception)
     *out << "       height=\"64\""                                     << endl;
     *out << "       border=\"\"/>"                                     << endl;
     *out << "    </a>"                                                 << endl;
-    *out << "    <a href=\"/urn:xdaq-application:lid=3\">"             << endl;
+    *out << "    <a href=\"/urn:xdaq-application:lid=3\" target=\"_top\">"             << endl;
     *out << "      HyperDAQ"                                           << endl;
     *out << "    </a>"                                                 << endl;
     *out << "  </td>"                                                  << endl;
     *out << "  <td width=\"32\">"                                      << endl;
     *out << "  </td>"                                                  << endl;
     *out << "  <td class=\"app_links\" align=\"center\" width=\"64\">" << endl;
-    *out << "    <a href=\"/" << urn_ << "/\">"                        << endl;
+    *out << "    <a href=\"/" << urn_ << "/\" target=\"_top\">"                        << endl;
     *out << "      <img"                                               << endl;
     *out << "       src=";
     *out << "\"/emu/emuDAQ/emuDAQManager/images/EmuDAQManager64x64.gif\""     << endl;
@@ -790,7 +945,7 @@ throw (xgi::exception::Exception)
     *out << "       height=\"64\""                                     << endl;
     *out << "       border=\"\"/>"                                     << endl;
     *out << "    </a>"                                                 << endl;
-    *out << "    <a href=\"/" << urn_ << "/\">"                        << endl;
+    *out << "    <a href=\"/" << urn_ << "/\" target=\"_top\">"                        << endl;
     *out << "      Main"                                               << endl;
     *out << "    </a>"                                                 << endl;
     *out << "  </td>"                                                  << endl;
@@ -815,7 +970,7 @@ throw (xgi::exception::Exception)
     getRunInfoFromTA( &runNumber, &maxNumEvents, &configTime );
 
     if ( daqState != "Halted" )
-      *out << " (Last configured at " << configTime << ")"             << endl;
+      *out << " (Configured at " << configTime << ")"             << endl;
     *out << "<br/>"                                                    << endl;
     *out << "<br/>"                                                    << endl;
 
@@ -868,6 +1023,10 @@ throw (xgi::exception::Exception)
       *out << "<br>"                                                 << endl;
     }
     else{ // in a state other than halted
+      *out << "<table border=\"0\" rules=\"none\" width=\"100%\">"   << endl;
+      *out << "<tr>"                                                 << endl;
+
+      *out << "<td align=\"left\">"                                  << endl;
       *out << "<table border=\"0\" rules=\"none\">"                  << endl;
       *out << "  <tr><td>Run number:</td><td>" << runNumber;
       if ( isBookedRunNumber_ ) *out << " (booked)";
@@ -880,7 +1039,15 @@ throw (xgi::exception::Exception)
       *out << "</td></tr>"                                           << endl;
       *out << "  <tr><td>Build events:</td><td>" << buildEvents_ .toString();
       *out << "</td></tr>"                                           << endl;
-      *out << "<table>"                                              << endl;
+      *out << "</table>"                                             << endl;
+      *out << "</td>"                                                << endl;
+
+      *out << "<td width=\"32\"/>"                                   << endl;
+
+      *out << "<td align=\"right\">"                                 << endl;
+      printUserComments( out );
+      *out << "</td>"                                                << endl;
+      *out << "</table>"                                             << endl;
     }
 
 
@@ -1016,7 +1183,7 @@ int EmuDAQManager::stringToInt( const string* const s ){
   return i;
 }
 
-void EmuDAQManager::processControlForm(xgi::Input *in)
+void EmuDAQManager::processCommandForm(xgi::Input *in)
 throw (xgi::exception::Exception)
 {
     cgicc::Cgicc         cgi(in);
@@ -1026,6 +1193,7 @@ throw (xgi::exception::Exception)
 
     // Check if DQM needs controlling
     // Apparently the query string does not even include the checkbox element if it's not checked...
+    controlDQM_ = false;
     for ( fe=fev.begin(); fe!=fev.end(); ++ fe )
       if ( fe->getName() == "controldqm" && fe->getValue() == "on" ){
 	controlDQM_ = true;
@@ -1054,6 +1222,7 @@ throw (xgi::exception::Exception)
 	      }
 	    // Emu: buildEvents will be queried by EmuRUI's
 	    // Apparently the query string does not even include the checkbox element if it's not checked...
+	    buildEvents_ = false;
 	    for ( fe=fev.begin(); fe!=fev.end(); ++ fe )
 	      if ( fe->getName() == "buildevents" && fe->getValue() == "on" ){
 		buildEvents_ = true;
@@ -1677,6 +1846,9 @@ void EmuDAQManager::configureDAQ()
     bool rusGenerateDummySuperFrags = ruiDescriptors_.size() == 0;
     bool busDropEvents              = fuDescriptors_.size()  == 0;
 
+    comments_        = "";
+    globalRunNumber_ = "";
+    badRun_          = false;
 
     try
     {
@@ -3530,12 +3702,14 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
 
     stringstream subjectToELog;
     subjectToELog << "Emu local run " << runNumber_.value_
-		  << " (" << runType_.value_ << ")";
+		  << " (" << runType_.value_ << ")" << ( badRun_? " is bad" : "" );
 
     stringstream messageToELog;
     messageToELog << " <b>Emu local run</b><br/><br/>"; // Attention: Body must not start with html tag (elog feature...)
     messageToELog << "<table>";
     messageToELog << "<tr><td bgcolor=\"#dddddd\">run number</td><td>" << runNumber_.value_ << "</td></tr>";
+    messageToELog << "<tr><td bgcolor=\"#dddddd\">bad run</td><td>" << ( badRun_? "true" : "false" ) << "</td></tr>";
+    messageToELog << "<tr><td bgcolor=\"#dddddd\">global run number</td><td>" << globalRunNumber_ << "</td></tr>";
 
     bool success = false;
     string name, value, nameSpace;
@@ -3607,6 +3781,7 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
       }
     }
 
+    messageToELog << "<tr><td bgcolor=\"#dddddd\">comments</td><td>" << textToHtml(comments_) << "</td></tr>";
 
     messageToELog << "<tr><td bgcolor=\"#dddddd\">events read</td><td><table>";
     counts.clear();
