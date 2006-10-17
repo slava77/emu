@@ -307,10 +307,13 @@ class Emu_Farmer:
                 # Redirect std error and output to a remoteLogFile.
                 # (When starting, we cannot wait for the std output of the ssh process
                 # as the remote shell won't exit unless xdaq crashes.)
-                remoteCommand = '"(source .bash_profile && \$XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -h '+host+' -p '+port+' -l '+self._logLevel+' -c '+self._mergedConfigFileURL+' &> '+remoteLogFile+' &)"'
+                #remoteCommand = '"(source .bash_profile && \$XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -h '+host+' -p '+port+' -l '+self._logLevel+' -c '+self._mergedConfigFileURL+' &> '+remoteLogFile+' &)"'
+                # Remove parentheses: one shell less
+                remoteCommand = '"source .bash_profile && \$XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -h '+host+' -p '+port+' -l '+self._logLevel+' -c '+self._mergedConfigFileURL+' &> '+remoteLogFile+' &"'
             elif self._action == 'stop':
-                #remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$2 }' | xargs -r kill -9\""
-                remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-p[ ]*"+port+"/ { print \$2 }' | xargs -r kill -9\""
+                #remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-p[ ]*"+port+"/ { print \$2 }' | xargs -r kill -9\""
+                # Exit remote process explicitly to allow the ssh process to terminate:
+                remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-p[ ]*"+port+"/ { print \$2 }' | xargs -r kill -9 ; exit\""
             elif self._action == 'status':
                 #remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$7 }'\""
                 remoteCommand = "\"ps -eo stat,pid,euser,lstart,command | gawk '!/gawk/ && /xdaq\.exe/ && /-p[ ]*"+port+"/ { print \$1,\\\"  ( process\\\",\$2,\\\"\tstarted by\\\",\$3,\\\"at\\\",\$4,\$5,\$6,\$7,\\\")\\\"}'\"" # Make sure to change AsyncSSH.run accordingly if the output format is changed here.
@@ -318,9 +321,7 @@ class Emu_Farmer:
                 # Dump the remoteLogFile (the redirected std err/out of xdaq)
                 remoteCommand = "\"cat "+remoteLogFile+"\""
 
-            #commandLine = 'ssh -2 -f '+self._user+'@'+host+' '+remoteCommand
             hostAndPort = host+':'+port
-            #self._commandLines[hostAndPort] = commandLine
             
             # put this context (hostAndPort) in the appropriate target set(s) and find user
             user = ''
@@ -343,6 +344,7 @@ class Emu_Farmer:
                 sys.exit(1)
             else:
                 #commandLine = 'ssh -2 -f '+user+'@'+host+' '+remoteCommand
+                # Option -f doesn't seem to make much difference here
                 commandLine = 'ssh -2 '+user+'@'+host+' '+remoteCommand
                 self._commandLines[hostAndPort] = commandLine
 
