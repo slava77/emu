@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 3.5 2006/10/12 17:52:12 mey Exp $
+// $Id: CalibDAQ.cc,v 3.6 2006/10/18 15:50:56 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 3.6  2006/10/18 15:50:56  mey
+// UPdate
+//
 // Revision 3.5  2006/10/12 17:52:12  mey
 // Update
 //
@@ -406,6 +409,152 @@ void CalibDAQ::timeCFEBtest() {
   //
 }
 //
+void CalibDAQ::gainCFEBtest() { 
+  //
+  float dac;
+  int counter=0;
+  int nsleep = 100;  
+  dac = 1.0;
+  //
+  std::cout << "CFEB Gain test" << std::endl;
+  //
+  // setup the TMB and CCB
+  std::vector<Crate*> myCrates = theSelector.crates();
+  //
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
+    //
+    std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
+    std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
+    //
+    for (unsigned i=0; i<myTmbs.size(); i++) {
+      myTmbs[i]->DisableCLCTInputs();
+      std::cout << "Disabling inputs for slot " << myTmbs[i]->slot() << std::endl;
+      myTmbs[i]->DisableALCTInputs();
+    }
+  }
+  //
+  //
+  for (int nstrip=0;nstrip<16;nstrip++) {  
+    //
+    for(unsigned j = 0; j < myCrates.size(); ++j) {
+      //
+      std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
+      //
+      for(unsigned i =0; i < myDmbs.size(); ++i) {
+	//
+	// set amplitude
+	//
+	//	myDmbs[i]->set_cal_time_pulse(pulse_delay_);
+	for(int brd=0;brd<5;brd++){
+	  for(int chip=0;chip<6;chip++){
+	    for(int ch=0;ch<16;ch++){
+	      myDmbs[i]->shift_array[brd][chip][ch]=NORM_RUN;
+	    }
+	    if ( nstrip != -1 ) myDmbs[i]->shift_array[brd][chip][nstrip]=EXT_CAP;
+	  }
+	}
+	//
+	myDmbs[i]->buck_shift();
+      }
+    }
+    //
+    //
+    for (int ngain=0;ngain<10;ngain++) {
+      dac= 0.2 + 0.2*ngain;
+      //
+      for(unsigned j = 0; j < myCrates.size(); ++j) {
+	//
+	std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
+	//
+	for(unsigned i=0; i < myDmbs.size(); ++i) {
+	  std::cout << "Dmbs i="<< i << std::endl;
+	  std::cout << "Dmbs slot="<< myDmbs[i]->slot() << std::endl;
+ 	  myDmbs[i]->set_cal_dac(dac,dac);
+	}
+	::usleep(1000);
+	//
+	CCB * ccb = myCrates[j]->ccb();
+	(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+	//
+	::usleep(1000);
+	//
+	for (int jpulse=0;jpulse<20;jpulse++)
+	{ std::cout << "Sending pulse" <<std::endl;
+	//
+	  ccb->pulse(1, 0xff);//pulse all dmbs in this crate
+	//
+	  ::usleep(10000);
+	}
+	//
+      }
+      //
+    }
+  }
+  //
+}
+//
+void CalibDAQ::pedestalCFEBtest() { 
+  //
+  float dac;
+  int counter=0;
+  int nsleep = 100;  
+  dac = 1.0;
+  //
+  std::cout << "CFEB Pedestal" << std::endl;
+  //
+  // setup the TMB and CCB
+  std::vector<Crate*> myCrates = theSelector.crates();
+  //
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
+    //
+    std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
+    std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
+    //
+    for (unsigned i=0; i<myTmbs.size(); i++) {
+      myTmbs[i]->DisableCLCTInputs();
+      std::cout << "Disabling inputs for slot " << myTmbs[i]->slot() << std::endl;
+      myTmbs[i]->DisableALCTInputs();
+    }
+  }
+  //
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
+    //
+    std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
+    //
+    for(unsigned i =0; i < myDmbs.size(); ++i) {
+      for(int brd=0;brd<5;brd++){
+	for(int chip=0;chip<6;chip++){
+	  for(int ch=0;ch<16;ch++){
+	    myDmbs[i]->shift_array[brd][chip][ch]=NORM_RUN;
+	  }
+	}
+      }
+	//
+      myDmbs[i]->buck_shift();
+      myDmbs[i]->set_cal_dac(0.0,0.0);
+    }
+    //
+  ::usleep(1000);
+    //
+    CCB * ccb = myCrates[j]->ccb();
+    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+    //
+    ::usleep(1000);
+    //
+  }
+  //
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
+    CCB * ccb = myCrates[j]->ccb();
+    for (int jpulse=0;jpulse<1000;jpulse++)
+      { std::cout << "Sending pulse" <<std::endl;
+      //
+      ccb->pulse(1, 0xff);//pulse all dmbs in this crate
+      //
+      ::usleep(10000);
+      }
+  }
+}
+
 void CalibDAQ::CFEBSaturation() { 
   //
   float dac;
