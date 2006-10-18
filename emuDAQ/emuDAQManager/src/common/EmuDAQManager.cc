@@ -807,7 +807,7 @@ throw (xgi::exception::Exception)
   *out << "<input"                                                   << endl;
   *out << " type=\"text\""                                           << endl;
   *out << " name=\"comments\""                                       << endl;
-  *out << " title=\"Your comments. (One-liners only.)\""             << endl;
+  *out << " title=\"Your comment. (A one-liner only.)\""             << endl;
   *out << " alt=\"your comments\""                                   << endl;
   *out << " value=\"" << comments_ << "\""                           << endl;
   *out << " size=\"40\""                                             << endl;
@@ -3704,12 +3704,17 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
     subjectToELog << "Emu local run " << runNumber_.value_
 		  << " (" << runType_.value_ << ")" << ( badRun_? " is bad" : "" );
 
-    stringstream messageToELog;
-    messageToELog << " <b>Emu local run</b><br/><br/>"; // Attention: Body must not start with html tag (elog feature...)
-    messageToELog << "<table>";
-    messageToELog << "<tr><td bgcolor=\"#dddddd\">run number</td><td>" << runNumber_.value_ << "</td></tr>";
-    messageToELog << "<tr><td bgcolor=\"#dddddd\">bad run</td><td>" << ( badRun_? "true" : "false" ) << "</td></tr>";
-    messageToELog << "<tr><td bgcolor=\"#dddddd\">global run number</td><td>" << globalRunNumber_ << "</td></tr>";
+    stringstream htmlMessageToELog;
+    htmlMessageToELog << " <b>Emu local run</b><br/><br/>"; // Attention: Body must not start with html tag (elog feature...)
+    htmlMessageToELog << "<table>";
+    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">run number</td><td>" << runNumber_.value_ << "</td></tr>";
+    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">bad run</td><td>" << ( badRun_? "true" : "false" ) << "</td></tr>";
+    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">global run number</td><td>" << globalRunNumber_ << "</td></tr>";
+
+//     stringstream textMessageToELog;
+//     textMessageToELog << "Run number " << runNumber_.value_ << ", ";
+//     textMessageToELog << ( badRun_? "bad" : "good" ) << " run, " ;
+//     textMessageToELog << "Global run number " << globalRunNumber_ << ", ";
 
     bool success = false;
     string name, value, nameSpace;
@@ -3717,8 +3722,9 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
     nameSpace = "run";
     name      = "type";
     value     = runType_.value_;
-    messageToELog << "<tr><td bgcolor=\"#dddddd\">run type</td><td>" << runType_.value_ << "</td></tr>";
-    if ( isBookedRunNumber_ ){
+    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">run type</td><td>" << runType_.value_ << "</td></tr>";
+//     textMessageToELog << "Run type " << runType_.value_ << ", ";
+   if ( isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value ); }
@@ -3738,7 +3744,8 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
 	LOG4CPLUS_ERROR(logger_,"Failed to get time of configuration from TA0: " << 
 			xcept::stdformat_exception_history(e) );
       }
-    messageToELog << "<tr><td bgcolor=\"#dddddd\">start time</td><td>" << configTime << "</td></tr>";
+    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">start time</td><td>" << configTime << "</td></tr>";
+//     textMessageToELog << "Start time " << configTime << ", ";
     nameSpace = "time";
     name      = "start";
     value     = configTime;
@@ -3754,7 +3761,8 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
     nameSpace = "time";
     name      = "stop";
     value     = getDateTime();
-    messageToELog << "<tr><td bgcolor=\"#dddddd\">stop time</td><td>" << value << "</td></tr>";
+    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">stop time</td><td>" << value << "</td></tr>";
+//     textMessageToELog << "Stop time " << value << ", ";
     if ( isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -3764,13 +3772,16 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
 				      " to run database " << runDbAddress_.toString() ); }
     }
 
+    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">comments</td><td>" << textToHtml(comments_) << "</td></tr>";
+
     vector< vector<string> > counts = getFUEventCounts();
     if ( counts.size() > 0 ){
       int nFUs = counts.size()-1; // the last element is the sum of all FUs' event counts
       nameSpace = "events";
       name      = "EmuFU";
       value     = counts.at(nFUs).at(2); // the last element is the sum of all FUs' event counts
-      messageToELog << "<tr><td bgcolor=\"#dddddd\">events built</td><td>" << value << "</td></tr>";
+      htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">events built</td><td>" << value << "</td></tr>";
+//       textMessageToELog << value << " events built, ";
       if ( isBookedRunNumber_ ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
 	if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -3781,9 +3792,7 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
       }
     }
 
-    messageToELog << "<tr><td bgcolor=\"#dddddd\">comments</td><td>" << textToHtml(comments_) << "</td></tr>";
-
-    messageToELog << "<tr><td bgcolor=\"#dddddd\">events read</td><td><table>";
+    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">events read</td><td><table>";
     counts.clear();
     counts = getRUIEventCounts();
     int nRUIs = counts.size();
@@ -3791,7 +3800,8 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
     for ( int rui=0; rui<nRUIs; ++rui ){
       name  = counts.at(rui).at(1);
       value = counts.at(rui).at(2);
-      messageToELog << "<tr><td bgcolor=\"#eeeeee\">" << name << "</td><td align=\"right\">" << value << "</td></tr>";
+      htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << name << "</td><td align=\"right\">" << value << "</td></tr>";
+//       textMessageToELog << name << " " << value << ", ";
       if ( isBookedRunNumber_ ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
 	if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
@@ -3801,10 +3811,11 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
 					" to run database " << runDbAddress_.toString() ); }
       }
     }
-    messageToELog << "</table>";
+    htmlMessageToELog << "</table>";
 
-    messageToELog << "</td></tr></table>";
+    htmlMessageToELog << "</td></tr></table>";
 
+//     textMessageToELog << comments_;
 
     if ( postToELogToo ){
       vector<string> attachments;
@@ -3812,7 +3823,8 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
 	xdata::String* f = dynamic_cast<xdata::String*>(peripheralCrateConfigFiles_.elementAt(i));
 	attachments.push_back( f->toString() );
       }
-      postToELog( subjectToELog.str(), messageToELog.str(), &attachments );
+      postToELog( subjectToELog.str(), htmlMessageToELog.str(), &attachments );
+//       postToELog( subjectToELog.str(), textMessageToELog.str(), &attachments );
     }
 }
 
