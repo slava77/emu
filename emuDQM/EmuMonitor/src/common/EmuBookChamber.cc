@@ -142,73 +142,114 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 	consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()), 0,cnv[cnvname]);
 //KK end
 
-	cnvtitle = "CSC: Data Block Finding Efficiency";
-	cnvname  = path_to_folder + IDTextShort + cnvtitle;
-	cnvtitle = cnvtitle + IDTextLong;
-	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),1,1);
-		hname = Form("hist/h%sCSC_Efficiency", ChamberID.Data());
-		h[hname] = new TH1F(TString(hname.c_str()), "", 3, 0, 3); // KK 5->3
-		h[hname]->SetYTitle("Efficiency (% of total number of events)");
-		h[hname]->SetMinimum(0.0);
-//KK
-		///h[hname]->GetXaxis()->SetBinLabel(1,"DDU Events"); 
-		///h[hname]->GetXaxis()->SetBinLabel(1,"DMB Found");  
-		h[hname]->GetXaxis()->SetBinLabel(1,"ALCT Found");    
-		h[hname]->GetXaxis()->SetBinLabel(2,"TMB Found");     
-		h[hname]->GetXaxis()->SetBinLabel(3,"CFEB Found");    
-//KKend
-		h[hname]->SetFillColor(48);
-		h[hname]->SetOption("histtext");
-		cnv[cnvname]->cd(1);
-		h[hname]->Draw();
-		gStyle->SetOptStat("e");
-		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
-
-		hname = Form("hist/h%sCSC_Rate",ChamberID.Data());
-		h[hname] = new TH1F(TString(hname.c_str()), "", 5, 0, 5);
-		h[hname]->SetYTitle("Efficiency");
-		h[hname]->GetXaxis()->SetBinLabel(1,"DDU Events");
-		h[hname]->GetXaxis()->SetBinLabel(2,"DMB Found");
-		h[hname]->GetXaxis()->SetBinLabel(3,"ALCT Found");
-		h[hname]->GetXaxis()->SetBinLabel(4,"CLCT Found");
-		h[hname]->GetXaxis()->SetBinLabel(5,"CFEB Found");
-		h[hname]->SetFillColor(48);
-		h[hname]->SetOption("histtext");
-		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
-	consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
-
 //DMBs
-	if(debug_printout) 	LOG4CPLUS_INFO(logger_,
-		// "D**EmuBookChamber> " <<
-		"CSC " << CrateID << ":" << DMBID << "> " <<
-		"Booking New DMB Canvases...");
-	if(folders) 		path_to_folder = "DMB/";
+	if(debug_printout) LOG4CPLUS_INFO(logger_, "CSC " << CrateID << ":" << DMBID << "> " << "Booking New DMB Canvases...");
+	if(folders) path_to_folder = "DMB/";
 
 	cnvtitle = "DMB: FEBs DAV and Unpacked";
 	cnvname  = path_to_folder + IDTextShort + cnvtitle;
 	cnvtitle = cnvtitle + IDTextLong;
-	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),1,2);
-		hname = Form("hist/h%sDMB_FEB_DAV",ChamberID.Data());
-		h[hname] = new TH1F(TString(hname.c_str()), "Boards DAV Statistics", 8,  0 , 8);
+	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),2,2);
+		hname = Form("hist/h%sDMB_FEB_DAV_Efficiency", ChamberID.Data());
+		h[hname] = new TH1F(TString(hname.c_str()), "FEBs Data Available (DAV) Efficiency", 3, 0, 3);
+		h[hname]->SetXTitle("Data available in FEB");
+		h[hname]->SetYTitle("Efficiency (% of total number of events)");
+		h[hname]->GetXaxis()->SetBinLabel(1,"ALCT");    
+		h[hname]->GetXaxis()->SetBinLabel(2,"TMB");
+		h[hname]->GetXaxis()->SetBinLabel(3,"CFEB");
 		h[hname]->SetMinimum(0.0);
-		h[hname]->SetXTitle("Number of FEBs (ALCT+CLCT+CFEBs) DAV");
-		for(int i = 1; i<=8; i++) h[hname]->GetXaxis()->SetBinLabel(i,Form("%d",i-1));
-		h[hname]->SetYTitle("Number of Events");
 		h[hname]->SetFillColor(48);
-		h[hname]->SetOption("hist");
+		h[hname]->SetOption("histtext");
 		cnv[cnvname]->cd(1);
 		h[hname]->Draw();
 		gStyle->SetOptStat("e");
 		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
 
-		hname = Form("hist/h%sDMB_FEB_unpacked_vs_DAV", ChamberID.Data());
-		h[hname] = new TH2F(TString(hname.c_str()), "DMB Unpacked FEBs vs FEBs DAV", 8,  0 , 8, 8, 0, 8);
-		h[hname]->SetXTitle("Number of FEBs DAV");
-		for(int i = 1; i<=8; i++) h[hname]->GetXaxis()->SetBinLabel(i,Form("%d",i-1));
-		h[hname]->SetYTitle("Number of FEBs Unpacked");
-		for(int i = 1; i<=8; i++) h[hname]->GetXaxis()->SetBinLabel(i,Form("%d",i-1));
+		hname = Form("hist/h%sDMB_FEB_DAV_Rate",ChamberID.Data());
+		h[hname] = new TH1F(TString(hname.c_str()), "FEBs Data Available (DAV) Rate", 3, 0, 3);
+		h[hname]->SetXTitle("Data available in FEB");
+		h[hname]->SetYTitle("Number of events");
+		h[hname]->GetXaxis()->SetBinLabel(1,"ALCT");    
+		h[hname]->GetXaxis()->SetBinLabel(2,"TMB");
+		h[hname]->GetXaxis()->SetBinLabel(3,"CFEB");
+		h[hname]->SetFillColor(48);
+		h[hname]->SetOption("histtext");
+		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
+		
+		hname = Form("hist/h%sDMB_FEB_Unpacked_vs_DAV", ChamberID.Data());
+		h[hname] = new TH2F(TString(hname.c_str()), "FEBs Unpacked vs DAV", 3, 0, 3, 2, 0, 2);
+		h[hname]->SetXTitle("Data available in FEB");
+		h[hname]->GetXaxis()->SetBinLabel(1,"ALCT");    
+		h[hname]->GetXaxis()->SetBinLabel(2,"TMB");
+		h[hname]->GetXaxis()->SetBinLabel(3,"CFEB");
+		h[hname]->GetYaxis()->SetBinLabel(1,"Unpacked");    
+		h[hname]->GetYaxis()->SetBinLabel(2,"Not Unpacked");
 		h[hname]->SetOption("textcolz");
-		cnv[cnvname]->cd(2,1,1);
+		cnv[cnvname]->cd(3,1,1);
+		h[hname]->Draw();
+		gStyle->SetOptStat("e");
+		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
+		
+//		hname = Form("hist/h%sDMB_FEB_DAV",ChamberID.Data());
+		hname = Form("hist/h%sDMB_FEB_Combinations_DAV_Efficiency",ChamberID.Data());
+		h[hname] = new TH1F(TString(hname.c_str()), "FEBs Combinations DAV Efficiency", 8, 0, 8);
+		h[hname]->SetXTitle("Data available in FEBs Combinations");
+		h[hname]->SetYTitle("Efficiency (% of total number of events)");
+		h[hname]->GetXaxis()->SetBinLabel(1,"nothing");
+		h[hname]->GetXaxis()->SetBinLabel(2,"ALCT only");
+		h[hname]->GetXaxis()->SetBinLabel(3,"TMB only");
+		h[hname]->GetXaxis()->SetBinLabel(4,"CFEB only");
+		h[hname]->GetXaxis()->SetBinLabel(5,"ALCT+TMB");    
+		h[hname]->GetXaxis()->SetBinLabel(6,"ALCT+CFEB");
+		h[hname]->GetXaxis()->SetBinLabel(7,"TMB+CFEB");
+		h[hname]->GetXaxis()->SetBinLabel(8,"ALCT+TMB+CFEB");    
+		h[hname]->SetMinimum(0.0);
+		h[hname]->SetFillColor(48);
+		h[hname]->SetOption("hist");
+		cnv[cnvname]->cd(2);
+		h[hname]->Draw();
+		gStyle->SetOptStat("e");
+		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
+
+		hname = Form("hist/h%sDMB_FEB_Combinations_DAV_Rate",ChamberID.Data());
+		h[hname] = new TH1F(TString(hname.c_str()), "FEBs Combinations DAV Rate", 8, 0, 8);
+		h[hname]->SetXTitle("Data available in FEBs Combinations");
+		h[hname]->SetYTitle("Number of events");
+		h[hname]->GetXaxis()->SetBinLabel(1,"nothing");
+		h[hname]->GetXaxis()->SetBinLabel(2,"ALCT only");
+		h[hname]->GetXaxis()->SetBinLabel(3,"TMB only");
+		h[hname]->GetXaxis()->SetBinLabel(4,"CFEB only");
+		h[hname]->GetXaxis()->SetBinLabel(5,"ALCT+TMB");    
+		h[hname]->GetXaxis()->SetBinLabel(6,"ALCT+CFEB");
+		h[hname]->GetXaxis()->SetBinLabel(7,"TMB+CFEB");
+		h[hname]->GetXaxis()->SetBinLabel(8,"ALCT+TMB+CFEB");    
+		h[hname]->SetFillColor(48);
+		h[hname]->SetOption("hist");
+		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
+
+//		hname = Form("hist/h%sDMB_FEB_unpacked_vs_DAV", ChamberID.Data());
+		hname = Form("hist/h%sDMB_FEB_Combinations_Unpacked_vs_DAV",ChamberID.Data());
+		h[hname] = new TH2F(TString(hname.c_str()), "FEBs Combibations Unpacked vs DAV", 8, 0, 8, 8, 0, 8);
+		h[hname]->SetXTitle("Data available in FEBs Combinations");
+		h[hname]->GetXaxis()->SetBinLabel(1,"nothing");
+		h[hname]->GetXaxis()->SetBinLabel(2,"ALCT only");
+		h[hname]->GetXaxis()->SetBinLabel(3,"TMB only");
+		h[hname]->GetXaxis()->SetBinLabel(4,"CFEB only");
+		h[hname]->GetXaxis()->SetBinLabel(5,"ALCT+TMB");    
+		h[hname]->GetXaxis()->SetBinLabel(6,"ALCT+CFEB");
+		h[hname]->GetXaxis()->SetBinLabel(7,"TMB+CFEB");
+		h[hname]->GetXaxis()->SetBinLabel(8,"ALCT+TMB+CFEB");
+		h[hname]->SetYTitle("Unpacked FEBs Combinations");
+		h[hname]->GetYaxis()->SetBinLabel(1,"nothing");
+		h[hname]->GetYaxis()->SetBinLabel(2,"ALCT only");
+		h[hname]->GetYaxis()->SetBinLabel(3,"TMB only");
+		h[hname]->GetYaxis()->SetBinLabel(4,"CFEB only");
+		h[hname]->GetYaxis()->SetBinLabel(5,"ALCT+TMB");    
+		h[hname]->GetYaxis()->SetBinLabel(6,"ALCT+CFEB");
+		h[hname]->GetYaxis()->SetBinLabel(7,"TMB+CFEB");
+		h[hname]->GetYaxis()->SetBinLabel(8,"ALCT+TMB+CFEB");
+		h[hname]->SetOption("textcolz");
+		cnv[cnvname]->cd(4,1,1);
 		h[hname]->Draw();
 		gStyle->SetOptStat("e");
 		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
@@ -734,6 +775,21 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
                 h[hname]->Draw();
 		gStyle->SetOptStat("e");
                 consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
+	consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
+
+	cnvtitle = "TMB: ALCT0 KeyWiregroup vs CLCT0 Key DiStrip";
+	cnvname  = path_to_folder + IDTextShort + cnvtitle;
+	cnvtitle = cnvtitle + IDTextLong;
+	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),1,1);
+		hname = Form("hist/h%sCLCT0_KeyDiStrip_vs_ALCT0_KeyWiregroup", ChamberID.Data());
+		h[hname] = new TH2F(TString(hname.c_str()), "", 112, 0, 112, 40, 0, 160);
+                h[hname]->SetXTitle("ALCT0 KeyWiregroup");
+                h[hname]->SetYTitle("CLCT0 KeyDiStrip");
+                h[hname]->SetOption("colz");
+                cnv[cnvname]->cd(1);
+		h[hname]->Draw();
+		gStyle->SetOptStat("e");
+		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
 	consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
 
 //TMB - CLCTs
