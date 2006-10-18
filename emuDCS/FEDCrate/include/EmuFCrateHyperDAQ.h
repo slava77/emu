@@ -678,7 +678,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
   {
     unsigned long int idcode,uscode;
     unsigned long int tidcode[8]={0x2124a093,0x31266093,0x31266093,0x05036093,0x05036093,0x05036093,0x05036093,0x05036093};
-    unsigned long int tuscode[8]={0xcf038a03,0xdf023a01,0xdf023a01,0xb0017a01,0xc038dd99,0xc138dd99,0xd0023a01,0xd1023a01};
+    unsigned long int tuscode[8]={0xcf038a04,0xdf023a01,0xdf023a01,0xb0017a01,0xc038dd99,0xc138dd99,0xd0023a01,0xd1023a01};
 
     printf(" entered DDUFirmware \n");
     cgicc::Cgicc cgi(in);
@@ -1447,7 +1447,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
       }else if(i==201&&(stat&0x0000f000)>0){
         *out << "<blockquote><font size=-1 color=red face=arial>";
 	if((stat&0xF0000000)>0){
-	  if((0x80000000&stat)>0) *out << " DMB DAV/LCT/MOVLP Mismatch &nbsp ";
+	  if((0x80000000&stat)>0) *out << " DMB LCT/DAV/MOVLP Mismatch &nbsp ";
 	  if((0x40000000&stat)>0) *out << " CFEB L1A Mismatch &nbsp ";
 	  if((0x20000000&stat)>0) *out << " <font color=blue>DDUsawNoGoodDMB-CRCs</font> &nbsp ";
 	  if((0x10000000&stat)>0) *out << " CFEB Count Mismatch";
@@ -1463,8 +1463,9 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	if((stat&0x00F00000)>0){
 	  if((0x00800000&stat)>0) *out << " <font color=blue>Special-word voted-bit warning</font> &nbsp ";
 	  if((0x00400000&stat)>0) *out << " InRDctrl Error &nbsp ";
-	  if((0x00200000&stat)>0) *out << " <font color=blue>DAQ Stop set</font> &nbsp ";
-	  if((0x00100000&stat)>0) *out << " <font color=blue>DAQ Not Ready</font>";
+	  if((0x00200000&stat)>0) *out << " <font color=blue>DAQ Stop bit set</font> &nbsp ";
+	  if((0x00100000&stat)>0) *out << " <font color=blue>DAQ says Not Ready</font>";
+	  if((0x00300000&stat)==0x00200000) *out << " <font color=blue>DAQ Applied Backpressure</font>";
 	  if(0x000fffff&stat) *out << br();
 	}
 	if((stat&0x000F0000)>0){
@@ -1485,9 +1486,9 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	  if(0x00000fff&stat) *out << br();
 	}
 	if((stat&0x00000F00)>0){
-	  if((0x00000800&stat)>0) *out << " <font color=blue>RX Error</font> &nbsp ";
+	  if((0x00000800&stat)>0) *out << " <font color=blue>64-bit Alignment Error</font> &nbsp ";
 	  if((0x00000400&stat)>0) *out << " <font color=blue>DDU Control DLL Error (recent)</font> &nbsp ";
-	  if((0x00000200&stat)>0) *out << " <font color=orange>DMB Error</font> &nbsp ";
+	  if((0x00000200&stat)>0) *out << " <font color=orange>DMB Error in event</font> &nbsp ";
 	  if((0x00000100&stat)>0) *out << " <font color=orange>Lost In Event Error</font>";
 	  if(0x000000ff&stat) *out << br();
 	}
@@ -1499,10 +1500,10 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	  if(0x0000000f&stat) *out << br();
 	}
 	if((stat&0x0000000F)>0){
-	  if((0x00000008&stat)>0) *out << " Sync Lost occurred (FIFO Full or L1A Error) &nbsp ";
+	  if((0x00000008&stat)>0) *out << " Lost Sync occurred (FIFO Full or L1A Error) &nbsp ";
 	  if((0x00000004&stat)>0) *out << " Fiber/FIFO Connection Error occurred &nbsp ";
 	  if((0x00000002&stat)>0) *out << " <font color=orange>Single L1A Mismatch</font> &nbsp ";
-	  if((0x00000001&stat)>0) *out << " <font color=orange>CFEB CRC Error</font>";
+	  if((0x00000001&stat)>0) *out << " <font color=orange>DMB or CFEB CRC Error</font>";
 	}
         *out << "</font></blockquote>";
 
