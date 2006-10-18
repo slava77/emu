@@ -95,7 +95,7 @@ public:
 	throw oss.str();
       }
       eLogUser_     = userData.substr( 0       , first  );
-      eLogPassword_ = userData.substr( first+1 , second );
+      eLogPassword_ = userData.substr( first+1 , second-first-1 );
       eLogAuthor_   = userData.substr( second+1         );
       fs.close();
     }
