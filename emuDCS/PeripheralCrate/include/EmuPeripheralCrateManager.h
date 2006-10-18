@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.12 2006/10/17 07:53:02 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.13 2006/10/18 15:51:57 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -475,13 +475,14 @@ public:
     //
   }
   //
-  void EmuPeripheralCrateManager::CheckEmuperipheralCrate(xgi::Input * in, xgi::Output * out ){
+  void EmuPeripheralCrateManager::CheckEmuperipheralCrateConfigured(xgi::Input * in, xgi::Output * out ){
     //
-    MyHeader(in,out,"CheckEmuperipheralCrate");
+    MyHeader(in,out,"CheckEmuperipheralCrate configured");
+    //
+    int Configured = 0;
     //
     std::vector<xdaq::ApplicationDescriptor * >  descriptor =
       getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
-    //
     //
     vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
     for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) 
@@ -1078,8 +1079,8 @@ public:
 	  XCEPT_RETHROW (xgi::exception::Exception, "Cannot send message", e);	      	
 	}
       //
-      //this->Default(in,out);
-      this->SendSOAPMessageExecuteSequence(in,out);
+      this->Default(in,out);
+      //this->SendSOAPMessageExecuteSequence(in,out);
       //
     }
   //

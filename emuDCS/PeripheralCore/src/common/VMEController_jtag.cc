@@ -1000,9 +1000,9 @@ unsigned short int *ptrreg;
  ptrreg=(unsigned short int *) add_sw;
  tmp2[0]=feuse;
  vme_controller(3,ptrreg,tmp2,tmp);
- usleep(10000);
+ usleep(1000);
  // x*ptrreg=feuse;
-  printf(" setuse %08x %04x \n",ptrreg,feuse&0xffff);
+ //printf(" setuse %08x %04x \n",ptrreg,feuse&0xffff);
 }
 
 
