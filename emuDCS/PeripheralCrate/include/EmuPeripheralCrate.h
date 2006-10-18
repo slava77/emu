@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.40 2006/10/18 15:51:51 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.41 2006/10/18 16:08:28 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -497,8 +497,8 @@ public:
     //
     MyHeader(in,out,"EmuPeripheralCrate");
     //
-    *out << cgicc::h1("EmuPeripheralCrate");
-    *out << cgicc::br();
+    //*out << cgicc::h1("EmuPeripheralCrate");
+    //*out << cgicc::br();
     //
     //std::cout << "The xmlfile is " << xmlFile_.toString() << std::endl;
     //
@@ -971,7 +971,7 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    MyHeader(in,out,"DefineCOnfiguration");
+    MyHeader(in,out,"Define Configuration");
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
@@ -1759,6 +1759,8 @@ private:
     throw (xgi::exception::Exception)
   {
     //
+    MyHeader(in,out,"Crate Utils");
+    //
     std::string CrateDumpConfiguration =
       toolbox::toString("/%s/CrateDumpConfiguration",getApplicationDescriptor()->getURN().c_str());
     //
@@ -1781,7 +1783,7 @@ private:
     throw (xgi::exception::Exception)
   {
     //
-    MyHeader(in,out,"CrateStatus");
+    MyHeader(in,out,"Crate Status");
     //
     *out << cgicc::h3("Configuration done for Crate  ");
     *out << cgicc::br();
@@ -3687,8 +3689,8 @@ private:
     //
     MyHeader(in,out,Name);
     //
-    *out << cgicc::h1(Name);
-    *out << cgicc::br();
+    //*out << cgicc::h1(Name);
+    //*out << cgicc::br();
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
@@ -5325,8 +5327,8 @@ private:
     //
     MyHeader(in,out,Name);
     //
-    *out << cgicc::h1(Name);
-    *out << cgicc::br();
+    //*out << cgicc::h1(Name);
+    //*out << cgicc::br();
     //
     alct = thisTMB->alctController();
     //
@@ -6065,8 +6067,8 @@ private:
     //
     MyHeader(in,out,Name);
     //
-    *out << cgicc::h1(Name);
-    *out << cgicc::br();
+    //*out << cgicc::h1(Name);
+    //*out << cgicc::br();
     //
     char buf[200] ;
     //
@@ -6278,8 +6280,8 @@ private:
     //
     MyHeader(in,out,Name);
     //
-    *out << cgicc::h1(Name);
-    *out << cgicc::br();
+    //*out << cgicc::h1(Name);
+    //*out << cgicc::br();
     //
     char buf[200] ;
     //
@@ -7084,8 +7086,8 @@ private:
     //
     MyHeader(in,out,Name);
     //
-    *out << cgicc::h1(Name);
-    *out << cgicc::br();
+    //*out << cgicc::h1(Name);
+    //*out << cgicc::br();
     //
     char buf[200] ;
     //
@@ -7724,8 +7726,8 @@ private:
     //
     MyHeader(in,out,Name);
     //
-    *out << cgicc::h1(Name);
-    *out << cgicc::br();
+    //*out << cgicc::h1(Name);
+    //*out << cgicc::br();
     //
     char buf[200] ;
     //
