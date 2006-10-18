@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 	EmuLocalPlotter plotter(logger);
 	plotter.book();
 
-	int NumberOfEvents = 10000000;
+	int NumberOfEvents = 200;
 	int startEvent = 0;
 	string datafile = "";
   	string histofile = "dqm_results.root";

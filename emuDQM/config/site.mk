@@ -8,10 +8,14 @@
 #  Author: Holger Stoeck
 #  Modifications:
 #
-#  $Id: site.mk,v 1.2 2006/08/14 13:23:10 barvic Exp $
+#  $Id: site.mk,v 1.3 2006/10/18 17:09:53 pakhotin Exp $
 #
 #  Revision History
 #  $Log: site.mk,v $
+#  Revision 1.3  2006/10/18 17:09:53  pakhotin
+#
+#  Definitions of errors from DDU trailer were updated. Some histograms were updated.
+#
 #  Revision 1.2  2006/08/14 13:23:10  barvic
 #  config changes for emuDQM
 #
@@ -42,8 +46,8 @@
 
 EMU_ROOT = $(HOME)
 ORCA_DIR = $(HOME)/ORCA
-CMSSW	 = $(HOME)/CMSSW/src
-BOOST    = $(HOME)/cms/lcg/external/boost/1.33.1/slc3_ia32_gcc323/include/boost-1_33_1
+CMSSW	 = $(HOME)/local/CMSSW/src
+BOOST    = $(HOME)/local/cms/lcg/external/boost/1.33.1/slc3_ia32_gcc323/include/boost-1_33_1
 XDAQDIR    = $(XDAQ_DIR)
 XERDIR     = $(XER_DIR)
 HALDIR     = $(HAL_DIR)

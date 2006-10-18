@@ -14,19 +14,19 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 
 	string  DDUHardwareErrorName[33];
 		DDUHardwareErrorName[0] = "Blank: 00";
-		DDUHardwareErrorName[1] = "CFEB CRC Error (test common): 01";
-		DDUHardwareErrorName[2] = "DMB-DDU L1A Mismatch: 02";
-		DDUHardwareErrorName[3] = "Lost/New Fibers: 03";
-		DDUHardwareErrorName[4] = "INPUT FIFO Full: 04";
+		DDUHardwareErrorName[1] = "DMB or CFEB CRC error: 01";
+		DDUHardwareErrorName[2] = "DMB or CFEB L1A Match error: 02";
+		DDUHardwareErrorName[3] = "Fiber Connection changed: 03";
+		DDUHardwareErrorName[4] = "Sync Lost was detected by DDU: 04";
 		DDUHardwareErrorName[5] = "Two Single Bit-Vote Errors: 05";
-		DDUHardwareErrorName[6] = "Multiple Bit-Vote Error: 06";
+		DDUHardwareErrorName[6] = "TMB or ALCT CRC error: 06";
 		DDUHardwareErrorName[7] = "Timeout Error: 07";
-		DDUHardwareErrorName[8] = "Extra Control Words: 08";
-		DDUHardwareErrorName[9] = "Missing Control Words: 09";
-		DDUHardwareErrorName[10] = "CFEB Lost Samples: 10";
-		DDUHardwareErrorName[11] = "Control FPGA Clock-DLL Error: 11";
-		DDUHardwareErrorName[12] = "Hardware Bit-Vote Errors: 12";
-		DDUHardwareErrorName[13] = "INPUT FIFO Near Full: 13";
+		DDUHardwareErrorName[8] = "Lost CSC End of Data occurred: 08";
+		DDUHardwareErrorName[9] = "Lost Control word in event: 09";
+		DDUHardwareErrorName[10] = "CSC Error detected: 10";
+		DDUHardwareErrorName[11] = "DDU Clock-DLL error: 11";
+		DDUHardwareErrorName[12] = "64-bit alignment error: 12";
+		DDUHardwareErrorName[13] = "DAQ FIFO Near Full: 13";
 		DDUHardwareErrorName[14] = "DDU Single Event Warning: 14";
 		DDUHardwareErrorName[15] = "DDU Single Event Error: 15";
 		DDUHardwareErrorName[16] = "DDU Critical Error: 16";
@@ -36,16 +36,18 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		DDUHardwareErrorName[20] = "TMB Error: 20";
 		DDUHardwareErrorName[21] = "S-Link Not Ready: 21";
 		DDUHardwareErrorName[22] = "S-Link Full Bit Present: 22";
-		DDUHardwareErrorName[23] = "Local DAQ FPGA Clock-DLL Error: 23";
+		DDUHardwareErrorName[23] = "DDU Input Detected error: 23";
 		DDUHardwareErrorName[24] = "One Single Bit-Vote Error: 24";
 		DDUHardwareErrorName[25] = "No Live Fibers: 25";
 		DDUHardwareErrorName[26] = "Data Stuck in FIFO: 26";
 		DDUHardwareErrorName[27] = "L1A-FIFO Full: 27";
 		DDUHardwareErrorName[28] = "Wrong First Word: 28";
-		DDUHardwareErrorName[29] = "Local DAQ Fiber Error: 29";
-		DDUHardwareErrorName[30] = "Local DAQ FIFO Near Full: 30";
-		DDUHardwareErrorName[31] = "Local DAQ FIFO Full: 31";
-		DDUHardwareErrorName[32] = "DDU Output Constricted: 32";
+		DDUHardwareErrorName[29] = "CFEB Count Error occurred: 29";
+		DDUHardwareErrorName[30] = "No Good DMB CRC: 30";
+		DDUHardwareErrorName[31] = "DDU-CFEB L1 Number Mismatch occurred: 31";
+//		DDUHardwareErrorName[31] = "DDU-CFEB L1 Number Mismatch occurred: 31";
+		DDUHardwareErrorName[32] = "CSC LCT/DAV Mismatch occurred: 32";
+		
 //DDU
 	if(debug_printout) LOG4CPLUS_INFO(logger_, 
 		// "D**EmuBookCommon> <<
@@ -339,7 +341,8 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		for(int i=1; i<=32; i++) h[hname]->GetYaxis()->SetBinLabel(i, DDUHardwareErrorName[i].c_str());
 		h[hname]->SetOption("col");
 		cnv[cnvname]->cd(1,1,1);
-		gPad->SetLeftMargin(0.35);
+		gPad->SetLeftMargin(0.45);
+		gPad->SetRightMargin(0.0);
 		h[hname]->Draw();
 		gStyle->SetOptStat("e");
 		consinfo->addObject(TString(hname.c_str()), TString(""), 0, h[hname]);
@@ -357,7 +360,7 @@ map<string, TH1*> EmuLocalPlotter::book_common() {
 		for(int i=1; i<=32; i++) h[hname]->GetYaxis()->SetBinLabel(i, DDUHardwareErrorName[i].c_str());
 		h[hname]->SetOption("textcolz");
 		pad[hname] = new TPad("pad1", "pad1",0.005,0,0.625,0.945);
-		pad[hname]->SetLeftMargin(0.5);
+		pad[hname]->SetLeftMargin(0.6);
 		pad[hname]->SetRightMargin(0.0);
 		pad[hname]->SetFillColor(0);
 		pad[hname]->SetGridy(1);
