@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.39 2006/10/17 07:44:45 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.40 2006/10/18 15:51:51 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1683,7 +1683,8 @@ private:
     //
     CalibDAQ calib(emuSystem_);
     //
-    calib.rateTest();
+    //calib.rateTest();
+    calib.gainCFEBtest();
     //
     this->Default(in,out);
     //
@@ -1748,7 +1749,7 @@ private:
     //int nsleep, nstrip, tries;
     //float dac;
     //
-    calib.pedestalCFEB();
+    calib.pedestalCFEBtest();
     //
     this->Default(in,out);
     //
@@ -4835,7 +4836,7 @@ private:
     //
     TMB * thisTMB = tmbVector[tmb];
     thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
-    thisTMB->scope(1,0,0);
+    thisTMB->scope(1,0,29);
     thisTMB->RedirectOutput(&std::cout);
     //
     this->TMBUtils(in,out);
@@ -7093,7 +7094,8 @@ private:
     //
     *out << cgicc::legend("TMB Utils").set("style","color:blue") ;
     //
-    std::string TMBFirmware = FirmwareDir_+"tmb/tmb09052005.svf";
+    //std::string TMBFirmware = FirmwareDir_+"tmb/tmb09052005.svf";
+    std::string TMBFirmware = FirmwareDir_+"tmb/tmb10162006.svf";
     TMBFirmware_ = TMBFirmware;
     //
     std::string LoadTMBFirmware =
@@ -7428,14 +7430,15 @@ private:
 #endif
       //
       thisTMB->disableAllClocks();
-      std::cout << "Programming..." << std::endl ;
+      LOG4CPLUS_INFO(getApplicationLogger(), "Programming ALCT");
       //
       int status = alct->SVFLoad(&jch,ALCTFirmware_.toString().c_str(),debugMode);
       thisTMB->enableAllClocks();
       //
       if (status >= 0){
-	cout << "=== Programming finished"<< endl;
-	cout << "=== " << status << " Verify Errors  occured" << endl;
+	LOG4CPLUS_INFO(getApplicationLogger(), "Programming ALCT finished");
+	//cout << "=== Programming finished"<< endl;
+	//cout << "=== " << status << " Verify Errors  occured" << endl;
       }
       else{
 	cout << "=== Fatal Error. Exiting with " <<  status << endl;
