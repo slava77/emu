@@ -1,0 +1,54 @@
+<?xml version='1.0'?>
+<?xml-stylesheet type="text/xsl" href="EmuDAQConfig.xsl"?>
+<xc:Partition xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+<i2o:protocol xmlns:i2o="http://xdaq.web.cern.ch/xdaq/xsd/2004/I2OConfiguration-30">
+  <!-- <i2o:target class="EmuDisplayServer" instance="0" tid="19"/> -->
+  <i2o:target class="EmuMonitor"     instance="0" tid="20"/>
+
+  <i2o:target class="EmuMonitor"     instance="1" tid="21"/>
+  <i2o:target class="EmuMonitor"     instance="2" tid="22"/>
+  <i2o:target class="EmuMonitor"     instance="3" tid="23"/>
+
+  <i2o:target class="EmuDisplayClient" instance="0" tid="100"/>
+</i2o:protocol>
+
+<xc:Context url="http://cms-dqm03.phys.ufl.edu:1972">
+ <xc:Application class="EmuMonitor" id="20" instance="0" network="local">
+ </xc:Application>
+</xc:Context>
+
+<xc:Context url="http://cms-dqm03.phys.ufl.edu:1973">
+ <xc:Application class="EmuMonitor" id="23" instance="3" network="local">
+ </xc:Application> 
+</xc:Context>
+
+<xc:Context url="http://cms-dqm03.phys.ufl.edu:1974">
+ <xc:Application class="EmuMonitor" id="21" instance="1" network="local">
+ </xc:Application>
+</xc:Context>
+
+<xc:Context url="http://cms-dqm03.phys.ufl.edu:1975">
+ <xc:Application class="EmuMonitor" id="22" instance="2" network="local">
+ </xc:Application>
+</xc:Context>
+
+<xc:Context url="http://cms-dqm03.phys.ufl.edu:1971">
+<!--
+  <xc:Application class="EmuDisplayServer" id="19" instance="0" network="local">
+  <properties xmlns="urn:xdaq-application:EmuDisplayServer" xsi:type="soapenc:Struct">
+  </properties>
+  </xc:Application>
+  <xc:Module>http://cms-dqm03.phys.ufl.edu/xdaq/emu/emuDQM/EmuDisplayServer/lib/linux/x86/libEmuDisplayServer.so</xc:Module>
+-->
+  <xc:Application class="EmuDisplayClient" id="100" instance="0" network="local">
+   <properties xmlns="urn:xdaq-application:EmuDisplayClient" xsi:type="soapenc:Struct">
+   </properties>
+  </xc:Application>
+  <!-- <xc:Module>${XDAQ_ROOT}/emu/emuDQM/emuDisplayClient/lib/linux/x86/libemuDisplayClient.so</xc:Module> -->
+  <xc:Module>${XDAQ_ROOT}/emu/emuDQM/emuDisplayClient/lib/linux/x86/libemuDisplayClient.so</xc:Module>
+
+
+</xc:Context>
+
+</xc:Partition>

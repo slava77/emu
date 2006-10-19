@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
+	<i2o:protocol xmlns:i2o="http://xdaq.web.cern.ch/xdaq/xsd/2004/I2OConfiguration-30">
+		<i2o:target class="EmuDisplayClient" instance="0" tid="24"/>
+	</i2o:protocol>
+	<xc:Context url="http://cms-dqm03:1972">
+		<xc:Application class="EmuDisplayClient" id="24" instance="0" network="local">
+			<properties xmlns="urn:xdaq-application:EmuDisplayClient" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${XDAQ_ROOT}/emu/emuDQM/emuDisplayClient/lib/linux/x86/libemuDisplayClient.so</xc:Module>
+	</xc:Context>
+</xc:Partition>
