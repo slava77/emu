@@ -57,6 +57,13 @@ private:
     return fileNameStream.str();
   }
 
+  string markerFileName(){
+    // The name of the 0 length file indicating that the data file is closed.
+    // Replace .raw with .is_closed
+    string markerFile = nameFile();
+    return markerFile.substr( 0, markerFile.size()-3 ) + "is_closed";
+  }
+
   void open(){
     fileName_ = nameFile();
     fs_->open(fileName_.c_str(), ios::out | ios::binary);
@@ -88,7 +95,7 @@ private:
       LOG4CPLUS_ERROR( logger_, fileName_ << " could not be closed.");
     }
     else{
-      fs_->open((fileName_+"_is_closed").c_str(), ios::out );
+      fs_->open( markerFileName().c_str(), ios::out );
       fs_->close();
     }
   }
@@ -191,7 +198,7 @@ public:
     else{
       LOG4CPLUS_INFO( logger_, "Deleted empty file " << fileName_ );
       // Delete the status file too
-      ::remove( (fileName_+"_is_closed").c_str() );
+      ::remove( markerFileName().c_str() );
     }
   }
 
