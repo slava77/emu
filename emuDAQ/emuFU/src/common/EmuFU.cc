@@ -1123,16 +1123,18 @@ throw (toolbox::fsm::exception::Exception)
       app << instance_;
       fileWriter_ = new EmuFileWriter( 1000000*fileSizeInMegaBytes_, pathToDataOutFile_.toString(), app.str(), &logger_ );
     }
-    try{
-      if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_, 
-						   isBookedRunNumber_.value_,
-						   runStartTime_, 
-						   runType_ );
-    }
-    catch(string e){
-      LOG4CPLUS_FATAL( logger_, e );
-      moveToFailedState();
-    }
+
+
+//     try{ // Do this in processDataBlock when the first event is processed. Then if no events ==> no file opened.
+//       if ( fileWriter_ ) fileWriter_->startNewRun( runNumber_.value_, 
+// 						   isBookedRunNumber_.value_,
+// 						   runStartTime_, 
+// 						   runType_ );
+//     }
+//     catch(string e){
+//       LOG4CPLUS_FATAL( logger_, e );
+//       moveToFailedState();
+//     }
     
     destroyServers();
     createServers();
@@ -1760,19 +1762,21 @@ throw (emuFU::exception::Exception)
     if( superFragmentIsFirstOfEvent && blockIsFirstOfSuperFragment ) // trigger block
       {
 	tc         = (SliceTestTriggerChunk*) startOfPayload;
-// 	runNumber_ = tc->runNumber;
+
 	if ( fileWriter_ )
 	  {
-// 	    if ( fileWriter_->getRunNumber() != tc->runNumber ) // new run number
-// 	      {
-// 		try{
-// 		  fileWriter_->startNewRun( tc->runNumber );
-// 		}
-// 		catch(string e){
-// 		  LOG4CPLUS_FATAL( logger_, e );
-// 		  moveToFailedState();
-// 		}
-// 	      }
+	    if ( nbEventsProcessed_.value_ == 0 ){
+	      try{
+		fileWriter_->startNewRun( runNumber_.value_, 
+					  isBookedRunNumber_.value_,
+					  runStartTime_, 
+					  runType_ );
+	      }
+	      catch(string e){
+		LOG4CPLUS_FATAL( logger_, e );
+		moveToFailedState();
+	      }
+	    }
 	    try{
 	      fileWriter_->startNewEvent();
 	    }
