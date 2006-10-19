@@ -34,8 +34,8 @@ public:
         int width=DEFAULT_CANVAS_WIDTH,
         int height=DEFAULT_CANVAS_HEIGHT) = 0;
   virtual void SaveHistos() = 0;
-  virtual void SetDDUCheckMask(unsigned int) = 0;
-  virtual void SetBinCheckMask(unsigned int) = 0;
+  virtual void SetDDUCheckMask(unsigned long) = 0;
+  virtual void SetBinCheckMask(unsigned long) = 0;
   virtual void SetDDU2004(int) = 0;
   virtual void book() = 0;
   virtual void fill(unsigned char * data, int dataSize, unsigned short errorStat) = 0;

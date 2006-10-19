@@ -123,7 +123,7 @@ void EmuLocalPlotter::fill(unsigned char * data, int dataLength, unsigned short 
 		EventDenied = true;
 	}
 //	Accept or deny event according to Binary Error and binCheckMask
-	if ((BinaryErrorStatus & 0xDFCB7BF6)>0) {
+	if ((BinaryErrorStatus & binCheckMask)>0) {
 		if (error_printout) LOG4CPLUS_WARN(logger_, 
 			// "E**EmuFillCommon> event #" << dec << nEvents <<
 			"Event skiped because of Binary Error");

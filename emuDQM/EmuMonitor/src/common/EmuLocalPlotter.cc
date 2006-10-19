@@ -81,11 +81,11 @@ void EmuLocalPlotter::SaveHistos() {
 }
 
 
-void EmuLocalPlotter::SetDDUCheckMask(unsigned int mask) {
+void EmuLocalPlotter::SetDDUCheckMask(unsigned long mask) {
         dduCheckMask = mask;
 }
 
-void EmuLocalPlotter::SetBinCheckMask(unsigned int mask) {
+void EmuLocalPlotter::SetBinCheckMask(unsigned long mask) {
         binCheckMask = mask;
 }
 

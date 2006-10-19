@@ -133,8 +133,8 @@ public:
         std::string format=DEFAULT_IMAGE_FORMAT,
         int width=DEFAULT_CANVAS_WIDTH,
         int height=DEFAULT_CANVAS_HEIGHT);
-  void SetDDUCheckMask(unsigned int);
-  void SetBinCheckMask(unsigned int);
+  void SetDDUCheckMask(unsigned long);
+  void SetBinCheckMask(unsigned long);
   void SetDDU2004(int);
   // === Book Histograms
   void book();
