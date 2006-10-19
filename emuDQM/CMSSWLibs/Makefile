@@ -53,6 +53,8 @@ SRCS_QLTY     = $(SRCQLTY_PATH)/Comp2RefChi2ROOT.cc \
 	$(SRCQLTY_PATH)/RuleAllContentAlongDiagonal.cc \
 	$(SRCQLTY_PATH)/RuleAllContentWithinFixedRange.cc \
 	$(SRCQLTY_PATH)/RuleAllContentWithinFloatingRange.cc \
+	$(SRCQLTY_PATH)/RuleCSC01.cc \
+        $(SRCQLTY_PATH)/RuleFixedFlatOccupancy1d.cc \
 	$(SRCQLTY_PATH)/RuleFlatOccupancy1d.cc
 OBJS_QLTY      = $(addprefix $(ODIR)/, $(notdir $(SRCS_QLTY:%.cc=%.o)))
 
@@ -67,6 +69,7 @@ $(ODIR)/%.o: $(QLTY)/src/%.cc $(QLTY)/interface/%.h
 	$(CXX) -c $(CXXFLAGS) $(DEFINES) $(ROOTCFLAGS) $(INCLUDES) $< -o $@
 
 all: libs 
+_all: all
 
 libs: $(LDIR)/libCSCDigi.a $(LDIR)/libCSCDigi.so $(LDIR)/libCSCRawToDigi.a $(LDIR)/libCSCRawToDigi.so $(LDIR)/libQualityTests.a $(LDIR)/libQualityTests.so
 
