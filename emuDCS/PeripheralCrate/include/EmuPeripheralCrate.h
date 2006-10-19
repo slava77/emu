@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.42 2006/10/19 09:42:03 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 3.43 2006/10/19 13:01:07 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -329,6 +329,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::LogTMBTestsOutput, "LogTMBTestsOutput");
     xgi::bind(this,&EmuPeripheralCrate::FindWinner, "FindWinner");
     xgi::bind(this,&EmuPeripheralCrate::RatTmbTiming, "RatTmbTiming");
+    xgi::bind(this,&EmuPeripheralCrate::RpcRatTiming, "RpcRatTiming");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBTime, "CalibrationCFEBTime");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBTimeTest, "CalibrationCFEBTimeTest");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBSaturation, "CalibrationSaturation");
@@ -3859,6 +3860,22 @@ private:
 	 << std::endl;
     *out << cgicc::pre();
     //
+    std::string RpcRatTiming =
+      toolbox::toString("/%s/RpcRatTiming",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",RpcRatTiming) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","RPC-RAT Timing") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::pre();
+    *out << "RPC RAT delay = " << MyTest[tmb].GetRpcRatDelayTest() 
+	 << std::endl;
+    *out << cgicc::pre();
+    //
     std::string TMBL1aTiming =
       toolbox::toString("/%s/TMBL1aTiming",getApplicationDescriptor()->getURN().c_str());
     //
@@ -4449,6 +4466,32 @@ private:
     //
     MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
     MyTest[tmb].RatTmbDelayScan();
+    MyTest[tmb].RedirectOutput(&std::cout);
+    //
+    this->ChamberTests(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::RpcRatTiming(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cout << "RpcRatTiming" << endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    } else {
+      cout << "No tmb" << endl;
+    }
+    //
+    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RpcRatDelayScan();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
     this->ChamberTests(in,out);
