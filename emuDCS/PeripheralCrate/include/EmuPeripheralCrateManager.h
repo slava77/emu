@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.13 2006/10/18 15:51:57 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.14 2006/10/19 10:17:25 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -82,8 +82,8 @@ public:
     xgi::bind(this,&EmuPeripheralCrateManager::Default, "Default");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageConfigure, "SendSOAPMessageConfigure");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageConfigureXRelay, "SendSOAPMessageConfigureXRelay");
-    xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageCalibrationCfebTimeXRelay, 
-	      "SendSOAPMessageCalibrationCfebTimeXRelay");
+    xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageCalibrationXRelay, 
+	      "SendSOAPMessageCalibrationXRelay");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageConnectTStore, "SendSOAPMessageConnectTStore");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageDisconnectTStore, "SendSOAPMessageDisconnectTStore");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryTStore, "SendSOAPMessageQueryTStore");
@@ -370,12 +370,12 @@ public:
       .set("value","Send SOAP message : Configure Crates") << std::endl ;
     *out << cgicc::form();
     //
-    std::string methodSOAPMessageCalibrationTimeCfeb =
-      toolbox::toString("/%s/SendSOAPMessageCalibrationCfebTimeXRelay",getApplicationDescriptor()->getURN().c_str());
+    std::string methodSOAPMessageCalibration =
+      toolbox::toString("/%s/SendSOAPMessageCalibrationXRelay",getApplicationDescriptor()->getURN().c_str());
     //
-    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageCalibrationTimeCfeb) << std::endl ;
+    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageCalibration) << std::endl ;
     *out << cgicc::input().set("type","submit")
-      .set("value","Send SOAP message : Calibration Time Cfeb") << std::endl ;
+      .set("value","Send SOAP message : Calibration") << std::endl ;
     *out << cgicc::form();
     //
     /*
@@ -767,13 +767,15 @@ public:
     // Create body
     //
     xoap::SOAPBody body = envelope.getBody();
-    xoap::SOAPName cmd = envelope.createName(command,"xdaq","urn:xdaq-soap:3.0");
+    xoap::SOAPName cmd  = envelope.createName(command,"xdaq","urn:xdaq-soap:3.0");
+    xoap::SOAPName att  = envelope.createName("Setting");
+    //xoap::SOAPElement queryElement = envelope.getBody(cmd);
     body.addBodyElement(cmd);
-    
+    //
     msg->writeTo(std::cout);
-	
+    //
     return msg;
-    
+    //
   }
   
   // Post XRelay SOAP message to XRelay application
@@ -816,7 +818,7 @@ public:
 	xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
 	xoap::SOAPName msgName = envelope.createName( "connect", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
 	xoap::SOAPElement queryElement = envelope.getBody().addBodyElement ( msgName );
-	
+	//
 	xoap::SOAPName id = envelope.createName("id", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
 	queryElement.addAttribute(id, "myTStore");
 	xoap::SOAPName passwordName = envelope.createName("password", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
@@ -1264,23 +1266,17 @@ public:
     throw (xgi::exception::Exception)
   {
     //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    //
-    *out << "SendSOAPMessageConfigure XRelay" << std::endl;
-    //
     SendSOAPMessageXRelaySimple("Configure");
     //
     this->Default(in,out);
     //
   }
   //
-  void EmuPeripheralCrateManager::SendSOAPMessageCalibrationCfebTimeXRelay(xgi::Input * in, xgi::Output * out ) 
+  void EmuPeripheralCrateManager::SendSOAPMessageCalibrationXRelay(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
     {
       //
-      SendSOAPMessageXRelaySimple("CalibrationCfebTime");
+      SendSOAPMessageXRelaySimple("Calibration");
       //
       this->Default(in,out);
       //
