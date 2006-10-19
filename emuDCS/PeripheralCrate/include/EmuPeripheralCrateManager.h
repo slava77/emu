@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.14 2006/10/19 10:17:25 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.15 2006/10/19 14:21:10 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -95,6 +95,7 @@ public:
 	      "SendSOAPMessageJobControlkillAll");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryLTC, "SendSOAPMessageQueryLTC");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryLTC, "SendSOAPMessageQueryJobControl");
+    xgi::bind(this,&EmuPeripheralCrateManager::CheckEmuPeripheralCrateCalibrationState, "CheckEmuPeripheralCrateCalibrationState");
     //
     // SOAP call-back functions, which relays to *Action method.
     xoap::bind(this, &EmuPeripheralCrateManager::onConfigure, "Configure", XDAQ_NS_URI);
@@ -218,7 +219,7 @@ public:
     //
     *out << cgicc::legend("TStore in Configuration file").set("style","color:blue") 
 	 << cgicc::p() << std::endl ;
-    //
+    /*
     std::vector<xdaq::ApplicationDescriptor * >  descriptorTStore =
       getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("TStore");
     //
@@ -235,7 +236,7 @@ public:
 	*out << cgicc::br();
 	//
       }    
-    //
+    */
     *out << cgicc::fieldset() ;
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
@@ -378,6 +379,14 @@ public:
       .set("value","Send SOAP message : Calibration") << std::endl ;
     *out << cgicc::form();
     //
+    std::string CheckCalibrationState =
+      toolbox::toString("/%s/CheckEmuPeripheralCrateCalibrationState",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",CheckCalibrationState) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Check Calibration State") << std::endl ;
+    *out << cgicc::form();
+    //
     /*
     std::string methodSOAPMessageOpenFile =
       toolbox::toString("/%s/SendSOAPMessageOpenFile",getApplicationDescriptor()->getURN().c_str());
@@ -475,11 +484,9 @@ public:
     //
   }
   //
-  void EmuPeripheralCrateManager::CheckEmuperipheralCrateConfigured(xgi::Input * in, xgi::Output * out ){
+  void EmuPeripheralCrateManager::CheckEmuPeripheralCrateState(xgi::Input * in, xgi::Output * out ){
     //
-    MyHeader(in,out,"CheckEmuperipheralCrate configured");
-    //
-    int Configured = 0;
+    MyHeader(in,out,"CheckEmuperipheralCrate state");
     //
     std::vector<xdaq::ApplicationDescriptor * >  descriptor =
       getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
@@ -518,6 +525,58 @@ public:
 	  } else {
 	    *out << cgicc::span().set("style","color:green");
 	    *out << "(" << extractState(reply) << ")";
+	    *out << cgicc::span();
+	  }
+	}
+	//
+	*out << cgicc::br();
+	//
+      }    
+    //
+  }
+  //
+  void EmuPeripheralCrateManager::CheckEmuPeripheralCrateCalibrationState(xgi::Input * in, xgi::Output * out ){
+    //
+    MyHeader(in,out,"Check EmuperipheralCrate Calibration State");
+    //
+    std::vector<xdaq::ApplicationDescriptor * >  descriptor =
+      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
+    //
+    vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
+    for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) 
+      {
+	std::string classNameStr = (*itDescriptor)->getClassName();
+	*out << classNameStr << " " << std::endl ;
+	std::string url = (*itDescriptor)->getContextDescriptor()->getURL();
+	*out << url << " " << std::endl;
+	std::string urn = (*itDescriptor)->getURN();  	
+	*out << urn << std::endl;
+	//
+	xoap::MessageReference reply;
+	//
+	bool failed = false ;
+	//
+	try{
+	  xoap::MessageReference msg   = QueryPeripheralCrateInfoSpace();
+	  reply = getApplicationContext()->postSOAP(msg, (*itDescriptor));
+	}
+	//
+	catch (xdaq::exception::Exception& e) 
+	  {
+	    *out << cgicc::span().set("style","color:red");
+	    *out << "(Not running)"<<std::endl;
+	    *out << cgicc::span();
+	    failed = true;
+	  }
+	//
+	if(!failed) {
+	  xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	  if (body.hasFault()) {
+	    std::cout << "No connection. " << body.getFault().getFaultString() << std::endl;
+	  } else {
+	    *out << cgicc::span().set("style","color:green");
+	    reply->writeTo(std::cout);
+	    *out << "(" << extractCalibrationState(reply) << ")";
 	    *out << cgicc::span();
 	  }
 	}
@@ -579,9 +638,20 @@ public:
       //
     }
   //
+  string EmuPeripheralCrateManager::extractCalibrationState(xoap::MessageReference message)
+    {
+      LOG4CPLUS_INFO(getApplicationLogger(), "extractCalibrationState");
+      xoap::SOAPElement root = message->getSOAPPart()
+	.getEnvelope().getBody().getChildElements(*(new xoap::SOAPName("ParameterGetResponse", "", "")))[0];
+      xoap::SOAPElement properties = root.getChildElements(*(new xoap::SOAPName("properties", "", "")))[0];
+      xoap::SOAPElement state = properties.getChildElements(*(new xoap::SOAPName("CalibrationState", "", "")))[0];
+      //
+      return state.getValue();
+    }
   //
   string EmuPeripheralCrateManager::extractState(xoap::MessageReference message)
     {
+      LOG4CPLUS_INFO(getApplicationLogger(), "extractState");
       xoap::SOAPElement root = message->getSOAPPart()
 	.getEnvelope().getBody().getChildElements(*(new xoap::SOAPName("ParameterGetResponse", "", "")))[0];
       xoap::SOAPElement properties = root.getChildElements(*(new xoap::SOAPName("properties", "", "")))[0];
@@ -636,7 +706,8 @@ public:
       
       xoap::SOAPName command = envelope.createName("ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
       xoap::SOAPName properties = envelope.createName("properties", "EmuPeripheralCrate", "urn:xdaq-application:EmuPeripheralCrate");
-      xoap::SOAPName parameter  = envelope.createName("stateName", "EmuPeripheralCrate", "urn:xdaq-application:EmuPeripheralCrate");
+      xoap::SOAPName parameter   = envelope.createName("stateName", "EmuPeripheralCrate", "urn:xdaq-application:EmuPeripheralCrate");
+      xoap::SOAPName parameter2  = envelope.createName("CalibrationState", "EmuPeripheralCrate", "urn:xdaq-application:EmuPeripheralCrate");
       xoap::SOAPName xsitype    = envelope.createName("type", "xsi", "http://www.w3.org/2001/XMLSchema-instance");
       
       xoap::SOAPElement properties_e = envelope.getBody()
@@ -645,6 +716,9 @@ public:
       properties_e.addAttribute(xsitype, "soapenc:Struct");
       
       xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
+      parameter_e.addAttribute(xsitype, "xsd:string");
+
+      parameter_e = properties_e.addChildElement(parameter2);
       parameter_e.addAttribute(xsitype, "xsd:string");
 
       return message;
@@ -677,7 +751,7 @@ public:
     //
     fireEvent("Configure");
     //
-    SendSOAPMessageXRelaySimple("Configure");
+    SendSOAPMessageXRelaySimple("Configure","");
     //
     return createReply(message);
     //
@@ -707,10 +781,11 @@ public:
     return createReply(message);
   }
   //
-  xoap::MessageReference createXRelayMessage(const std::string & command, std::vector<xdaq::ApplicationDescriptor * > descriptor )
-  {
-    // Build a SOAP msg with the Xrelay header:
-    xoap::MessageReference msg  = xoap::createMessage();
+  xoap::MessageReference createXRelayMessage(const std::string & command, const std::string & setting,
+					     std::vector<xdaq::ApplicationDescriptor * > descriptor )
+    {
+      // Build a SOAP msg with the Xrelay header:
+      xoap::MessageReference msg  = xoap::createMessage();
     //
     std::string topNode = "relay";
     std::string prefix = "xr";
@@ -768,9 +843,13 @@ public:
     //
     xoap::SOAPBody body = envelope.getBody();
     xoap::SOAPName cmd  = envelope.createName(command,"xdaq","urn:xdaq-soap:3.0");
-    xoap::SOAPName att  = envelope.createName("Setting");
-    //xoap::SOAPElement queryElement = envelope.getBody(cmd);
-    body.addBodyElement(cmd);
+    xoap::SOAPElement queryElement = body.addBodyElement(cmd);
+    //
+    if(setting != "" ) {
+      xoap::SOAPName att  = envelope.createName("Setting");
+      queryElement.addAttribute(att,setting);
+    }
+    //
     //
     msg->writeTo(std::cout);
     //
@@ -1251,12 +1330,12 @@ public:
       //
     }
   //
-  void EmuPeripheralCrateManager::SendSOAPMessageXRelaySimple(std::string command){
+  void EmuPeripheralCrateManager::SendSOAPMessageXRelaySimple(std::string command,std::string setting){
     //
     std::vector<xdaq::ApplicationDescriptor * >  descriptors =
       getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
     //
-    xoap::MessageReference configure = createXRelayMessage(command, descriptors);
+    xoap::MessageReference configure = createXRelayMessage(command,setting,descriptors);
     //
     this->relayMessage(configure);
     //
@@ -1266,7 +1345,7 @@ public:
     throw (xgi::exception::Exception)
   {
     //
-    SendSOAPMessageXRelaySimple("Configure");
+    SendSOAPMessageXRelaySimple("Configure","");
     //
     this->Default(in,out);
     //
@@ -1276,7 +1355,11 @@ public:
     throw (xgi::exception::Exception)
     {
       //
-      SendSOAPMessageXRelaySimple("Calibration");
+      SendSOAPMessageXRelaySimple("Calibration","Reset Now");
+      //
+      for (int i=0; i<20; i++) {
+	SendSOAPMessageXRelaySimple("Calibration","Next Setting");
+      }
       //
       this->Default(in,out);
       //
