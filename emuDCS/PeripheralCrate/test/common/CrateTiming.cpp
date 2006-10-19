@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 3.2 2006/08/09 11:57:47 mey Exp $
+// $Id: CrateTiming.cpp,v 3.3 2006/10/19 09:42:04 rakness Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 3.3  2006/10/19 09:42:04  rakness
+// remove old ALCTController
+//
 // Revision 3.2  2006/08/09 11:57:47  mey
 // Got rid of version
 //
@@ -731,16 +734,6 @@ int main(int argc,char **argv){
 	printf("No ALCT\n") ; 
       }
       //
-#ifndef ALCTNEW
-      ALCTIDRegister sc_id, chipID ;
-      //
-      printf("Reading IDs...") ;
-      //
-      alct->alct_read_slowcontrol_id(&sc_id) ;
-      std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
-      alct->alct_fast_read_id(chipID);
-      std::cout << " ALCT Fastcontrol ID " << chipID << std::endl;
-#else
       printf("Reading IDs...") ;
       //
       //      alct->alct_read_slowcontrol_id(&sc_id) ;
@@ -751,7 +744,6 @@ int main(int argc,char **argv){
       //      std::cout << " ALCT Fastcontrol ID " << chipID << std::endl;
       alct->ReadFastControlId() ;
       alct->PrintFastControlId() ;
-#endif
       //
       thisTMB->disableAllClocks();
       int debugMode(0);
@@ -1654,52 +1646,6 @@ int main(int argc,char **argv){
       //tbController.DcsDisable();
       //
 
-#ifndef ALCTNEW
-      int err;
-      ALCTIDRegister sc_id, chipID ;
-      long readval;
-      //for (int i=0; i<0xff; i++) {
-      //alct->alct_set_thresh(4, i);
-	//alct->alct_read_thresh(3,&readval);
-	//printf("ReadBack AFEB : %d = %d \n",3,readval);
-	//alct->alct_read_thresh(4,&readval);
-	//alct->alct_read_thresh(5,&readval);
-	//printf("ReadBack AFEB : %d = %d \n",5,readval);
-      //}
-      //}
-      
-      ///
-      err = alct->alct_read_slowcontrol_id(&sc_id) ;
-      std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
-
-      alct->alct_fast_read_id(chipID);
-      std::cout << "ALCT alct_fast_read_id " << chipID << std::endl;
-      //
-      unsigned cr[3];
-      //
-      printf("FastControl SelfTest\n");
-      printf ("\nalct_fast_self_test returned %ld\n", alct->alct_fast_self_test ((long int*)NULL,(unsigned long)1));
-      //
-      printf("SlowControl SelfTest\n");
-      long code;
-      int slot = thisTMB->slot();
-      printf ("\nalct_slow_self_test returned %ld\n", alct->alct_slow_self_test (&slot, &code));
-      printf ("code %d \n",code);
-      /*
-      printf("Number of afebs %d \n",alct->nAfebs());
-      int val = 10 ;
-      for (int i=0; i<alct->nAfebs(); i++) {
-	alct->alct_set_thresh(i, val);
-	printf("Setting thresh to %d \n",val);
-	alct->alct_read_thresh(i,&readval);
-	printf("ReadBack AFEB : %d = %d \n",i,readval);
-      }
-      */
-      //
-      //alct->setup(1);
-      //
-      //tbController.DcsEnable();
-#else
       //      int err;
       //      ALCTIDRegister sc_id, chipID ;
       //      long readval;
@@ -1732,7 +1678,6 @@ int main(int argc,char **argv){
       //      printf ("\nalct_slow_self_test returned %ld\n", alct->alct_slow_self_test (&slot, &code));
       //      printf ("code %d \n",code);
       alct->configure();
-#endif
     }
 
     if (doCCBFPGA) {
@@ -1751,10 +1696,6 @@ int main(int argc,char **argv){
 
     if (doDumpFifo){
       //tbController.DcsDisable();
-#ifndef ALCTNEW
-      if (alct) alct->DumpFifo();
-#else
-#endif
       //tbController.DcsEnable();
     }
 
@@ -1858,14 +1799,10 @@ int main(int argc,char **argv){
   if (doReadIDCODE) {
     //tbController.DcsDisable();
     cout << "Read IDCODE" << endl;
-#ifndef ALCTNEW
-    alct->ReadIDCODE();
-#else
     alct->ReadSlowControlId();
     alct->PrintSlowControlId();
     alct->ReadFastControlId();
     alct->PrintFastControlId();
-#endif
     //tbController.DcsEnable();
   }
     
@@ -2138,19 +2075,11 @@ void Automatic(){
     //
     ALCT_L1a_delay_pulse += 5;
     // 
-#ifndef ALCTNEW
-    unsigned cr[3];
-    alct->GetConf(cr,1);
-    cr[1] = (cr[1] & 0xfffff00f) | ((ALCT_L1a_delay_pulse&0xff)<<4) ;
-    alct->SetConf(cr,1);
-    alct->unpackControlRegister(cr);
-#else
     alct->ReadConfigurationReg();
     alct->SetL1aDelay(ALCT_L1a_delay_pulse);
     alct->WriteConfigurationReg();
-    alct->ReadConfigurationReg();
+    //    alct->ReadConfigurationReg();
     alct->PrintConfigurationReg();
-#endif
     //
     ALCTTiming(ALCTRXphase,ALCTTXphase);
     //
@@ -2278,19 +2207,11 @@ void Automatic(){
   //
   // Now set L1a ALCT delay
   //
-#ifndef ALCTNEW
-  unsigned cr[3];
-  alct->GetConf(cr,1);
-  cr[1] = (cr[1] & 0xfffff00f) | ((ALCT_L1a_delay&0xff)<<4) ;
-  alct->SetConf(cr,1);
-  alct->unpackControlRegister(cr);
-#else
   alct->ReadConfigurationReg();
   alct->SetL1aDelay(ALCT_L1a_delay);
   alct->WriteConfigurationReg();
-  alct->ReadConfigurationReg();
+  //  alct->ReadConfigurationReg();
   alct->PrintConfigurationReg();
-#endif
   //
   ALCTvpf = FindALCTvpf(); // Use data for this
   //
@@ -2319,151 +2240,11 @@ void Automatic(){
 void ALCTSVFLoad(){
   int jch = 3;
   char* filename="/home/fastcosmic/Erase.svf";
-#ifndef ALCTNEW
-  alct->NewSVFLoad(&jch,filename,10);
-#else
   alct->SVFLoad(&jch,filename,10);
-#endif
 }
 //
 void ALCTChamberScanning(){
    //
-#ifndef ALCTNEW
-   unsigned long HCmask[22];
-   unsigned long HCmask2[22];
-   //
-   int NPulses = 1;
-   int chamberResult[112];
-   int chamberResult2[112];
-   int InJected[112];
-   //
-   thisTMB->SetALCTPatternTrigger();
-   //
-   for ( int keyWG=0; keyWG<112; keyWG++) chamberResult[keyWG] = 0;
-   for ( int keyWG=0; keyWG<112; keyWG++) chamberResult2[keyWG] = 0;
-   for ( int keyWG=0; keyWG<112; keyWG++) InJected[keyWG] = 0;
-   //
-   for (int Ninject=0; Ninject<NPulses; Ninject++){
-      //
-      for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) {
-	 //
-	cout << endl;
-	printf("%c[01;43m", '\033');
-	cout << "Injecting in WG = " << dec << keyWG ;
-	printf("%c[0m", '\033'); 
-	cout << endl;
-	//
-	 for (int i=0; i<22; i++) {
-	   HCmask[i] = 0;
-	   HCmask2[i] = 0;
-	 }
-	 //
-	 bitset<672> bits(*HCmask) ;
-	 //
-	 for (int i=0;i<672;i++){
-	   if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
-	   //if ( i%(alct->GetWGNumber()/6) == (alct->GetWGNumber())/6-keyWG ) bits.set(i);
-	 }
-	 //
-	 bitset<32> Convert;
-	 //
-	 Convert.reset();
-	 //
-	 for (int i=0;i<(alct->GetWGNumber());i++){
-	   if ( bits.test(i) ) Convert.set(i%32);
-	   if ( i%32 == 31 ) {
-	     HCmask[i/32] = Convert.to_ulong();
-	     //printf(" Convert %d %d \n",i,Convert.to_ulong());
-	     Convert.reset();
-	   }
-	 }
-	 /*
-	 for (int i=0; i<12; i++) {
-	   //if ( i%2 == 0 ) {
-	       if (keyWG<32) {
-		 //HCmask[i] = 0x1<<keyWG;
-	       } else {
-		 //HCmask[i] = 0x1<<(keyWG-32);
-	       }
-	       //} else {
-	       //if (keyWG<32) {
-	       // HCmask[i] = 0x1<<(keyWG) ;
-	       //} else {
-	       // HCmask[i] = 0x1<<(keyWG-32);
-	       //}
-	       //}
-	 }
-	 */
-	 //for (int i=0; i<22; i++ ) {
-	 //printf(" %x %x \n",HCmask[i],HCmask2[i]);
-	 //}
-	 //
-	 alct->alct_write_hcmask(HCmask);
-	 alct->alct_read_hcmask(HCmask);
-	 /*
-	 for (int i=0; i<12; i++ ) {
-	    if (i == 0 ) cout << "Layer 0 " ;
-	    for(int j=0; j<32; j++ ) 
-	       if (((HCmask[i]>>j)&0x1) == 0 ) {
-		  cout <<"-";
-	       } else {
-		  printf("%c[01;44m", '\033');	 
-		  cout <<"|";
-		  printf("%c[0m", '\033'); 
-	       }
-	    if ((i+1)%2 == 0 ) {
-	       cout << endl;
-	       if (i+1<12) cout << "Layer " << (i+1)/2 << " ";
-	    }
-	 }
-	 */
-	 //
-	 printf("\n");
-	 for (int i=0; i<(alct->GetWGNumber()); i++) {
-	   if ( i%(alct->GetWGNumber()/6) == 0 ) printf("\n");
-	   if (bits.test(i)) {
-	     printf("|");
-	   } else {
-	     printf("-");
-	   }
-	 }
-	 //
-	 cout << endl;
-	 //
-	 PulseTestStrips();
-	 //
-	 thisTMB->DecodeALCT();
-	 //
-	 printf("Wordcount %x \n",thisTMB->GetALCTWordCount());
-	 //
-	 if ( thisTMB->GetAlct0FirstKey()  == keyWG && thisTMB->GetAlct0Quality() >= 1 ) 
-	    chamberResult[keyWG]++;
-	 //
-	 if ( thisTMB->GetAlct1SecondKey() == keyWG && thisTMB->GetAlct1Quality() >= 1 ) 
-	    chamberResult2[keyWG]++;
-	 //
-	 InJected[keyWG]++;
-	 //
-      }
-   }
-   cout << endl;
-   cout << "Wire" << endl;
-   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << keyWG/100 ;
-   cout << endl;
-   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << ((keyWG/10)%10) ;
-   cout << endl;
-   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << keyWG%10 ;
-   cout << endl;
-   cout << "InJected" << endl;
-   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << InJected[keyWG] ;
-   cout << endl;
-   cout << "CFEBChamberResult" << endl;
-   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << chamberResult[keyWG] ;
-   cout << endl;
-   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << chamberResult2[keyWG] ;
-   cout << endl;
-   printf("%c[0m", '\033'); 
-#else
    //   unsigned long HCmask[22];
    //   unsigned long HCmask2[22];
    //
@@ -2583,62 +2364,10 @@ void ALCTChamberScanning(){
    for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) cout << chamberResult2[keyWG] ;
    cout << endl;
    printf("%c[0m", '\033'); 
-#endif
 }
 //
 void ALCTScanDelays(){
   //
-#ifndef ALCTNEW
-  unsigned long HCmask[22];
-  int CountDelay[20];
-  int alct0_quality = 0;
-  int alct1_quality = 0;
-  int alct0_bxn = 0;
-  int alct1_bxn = 0;
-  int alct0_key = 0;
-  int alct1_key = 0;
-  //
-  for (int i=0; i< 22; i++) HCmask[i] = 0;
-  for (int i=0; i< 20; i++) CountDelay[i] = 0;
-  //
-  thisTMB->SetALCTPatternTrigger();
-  //
-  for ( int nloop=0; nloop<20; nloop++){
-    for ( int DelaySetting=0; DelaySetting<20; DelaySetting++){
-      //
-      int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6);
-      int ChamberSection = alct->GetWGNumber()/6;
-      //
-      cout << endl ;
-      cout << "Injecting at " << dec << keyWG << endl;
-      //
-      for (int i=0; i< 22; i++) HCmask[i] = 0;
-      //
-      bitset<672> bits(*HCmask) ;
-      //
-      for (int i=0;i<672;i++){
-	if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
-      }
-      //
-      bitset<32> Convert;
-      //
-      Convert.reset();
-      //
-      for (int i=0;i<(alct->GetWGNumber());i++){
-	if ( bits.test(i) ) Convert.set(i%32);
-	if ( i%32 == 31 ) {
-	  HCmask[i/32] = Convert.to_ulong();
-	  Convert.reset();
-	}
-      }
-      //
-      printf("\n");
-      //
-      alct->alct_write_hcmask(HCmask);
-      alct->alct_read_hcmask(HCmask);
-      //
-      cout << alct->alct_set_delay(-1,DelaySetting) << endl ; // Set all delays
-#else
       //  unsigned long HCmask[22];
   int CountDelay[20];
   int alct0_quality = 0;
@@ -2703,7 +2432,6 @@ void ALCTScanDelays(){
       for (int afeb=0; afeb<alct->GetNumberOfAfebs(); afeb++) 
 	alct->SetAsicDelay(afeb,DelaySetting);
       alct->WriteAsicDelaysAndPatterns();
-#endif
       //
       PulseTestStrips();
       printf("Decode ALCT\n");
@@ -2760,11 +2488,7 @@ void ALCTTiming( int & RXphase, int & TXphase ){
    int alct0_key = 0;
    int alct1_key = 0;
    //
-#ifndef ALCTNEW
-   alct->set_empty(1);
-#else
    alct->SetSendEmpty(1);
-#endif
    //
    thisTMB->SetALCTPatternTrigger();
    //
@@ -2776,92 +2500,6 @@ void ALCTTiming( int & RXphase, int & TXphase ){
      }
    }
    //
-#ifndef ALCTNEW
-   unsigned long HCmask[22];
-   //
-   for (int i=0; i< 22; i++) HCmask[i] = 0;
-   //
-   for (j=0;j<maxTimeBins;j++){
-      for (k=0;k<maxTimeBins;k++) {
-	//
-	int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6/4);
-	int keyWG2 = (alct->GetWGNumber())/6-keyWG;
-	int ChamberSection = alct->GetWGNumber()/6;
-	printf("Injecting at %d \n",keyWG);
-	//
-	for (int i=0; i< 22; i++) HCmask[i] = 0;
-	//
-	bitset<672> bits(*HCmask) ;
-	//
-	for (int i=0;i<672;i++){
-	  if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
-	  if ( i%(alct->GetWGNumber()/6) == (alct->GetWGNumber())/6-keyWG ) bits.set(i);
-	}
-	//
-	bitset<32> Convert;
-	//
-	Convert.reset();
-	//
-	for (int i=0;i<(alct->GetWGNumber());i++){
-	  if ( bits.test(i) ) Convert.set(i%32);
-	  if ( i%32 == 31 ) {
-	    HCmask[i/32] = Convert.to_ulong();
-	    //printf(" Convert %d %d \n",i,Convert.to_ulong());
-	    Convert.reset();
-	  }
-	}
-	//
-	/*
-	  for (int i=0; i<(alct->GetWGNumber()/32); i++) {
-	  if ( i%2 == 0 ) {
-	  if (keyWG<ChamberSection) {
-	  HCmask[i] = 0x1<<keyWG;
-	  } else {
-	  HCmask[i] = 0x1<<(keyWG-ChamberSection);
-	  }
-	  } else {
-	  if (keyWG<ChamberSection) {
-	  HCmask[i] = 0x1<<(keyWG) ;
-	  } else {
-	  HCmask[i] = 0x1<<(keyWG-ChamberSection);
-	  }
-	  }
-	  }
-	*/
-	//for (int i=0;i<22;i++) {
-	//
-	//printf(" %02x ",HCmask[i]);
-	//
-	//if ( i%((alct->GetWGNumber())/8/6+1) == 0 ) printf("\n");
-	//
-	//}
-	//
-	printf("\n");
-	//
-	alct->alct_write_hcmask(HCmask);
-	alct->alct_read_hcmask(HCmask);
-	/*
-	  for (int i=0; i<(alct->GetWGNumber())/32; i++ ) {
-	  if (i == 0 ) cout << "Layer 0 " ;
-	  for(int j=0; j<ChamberSection; j++ ) 
-	  if (((HCmask[i]>>j)&0x1) == 0 ) {
-	  cout <<"-";
-	  } else {
-	  printf("%c[01;44m", '\033');	 
-	  cout <<"|";
-	  printf("%c[0m", '\033'); 
-	  }
-	  if ((i+1)%2 == 0 ) {
-	  cout << endl;
-	  if (i+1<(alct->GetWGNumber())/32) cout << "Layer " << (i+1)/2 << " ";
-	  }
-	  }
-	  cout << endl;
-	*/
-#else
-	//   unsigned long HCmask[22];
-	//   //
-	//   for (int i=0; i< 22; i++) HCmask[i] = 0;
    //
    for (j=0;j<maxTimeBins;j++){
       for (k=0;k<maxTimeBins;k++) {
@@ -2874,30 +2512,6 @@ void ALCTTiming( int & RXphase, int & TXphase ){
 	int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
 	printf("Injecting at %d \n",keyWG);
 	//
-	//	for (int i=0; i< 22; i++) HCmask[i] = 0;
-	//	//
-	//	bitset<672> bits(*HCmask) ;
-	//	//
-	//	for (int i=0;i<672;i++){
-	//	  if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
-	//	  if ( i%(alct->GetWGNumber()/6) == (alct->GetWGNumber())/6-keyWG ) bits.set(i);
-	//	}
-	//	//
-	//	bitset<32> Convert;
-	//	//
-	//	Convert.reset();
-	//	//
-	//	for (int i=0;i<(alct->GetWGNumber());i++){
-	//	  if ( bits.test(i) ) Convert.set(i%32);
-	//	  if ( i%32 == 31 ) {
-	//	    HCmask[i/32] = Convert.to_ulong();
-	//	    //printf(" Convert %d %d \n",i,Convert.to_ulong());
-	//	    Convert.reset();
-	//	  }
-	//	}
-	//
-	//	alct->alct_write_hcmask(HCmask);
-	//	alct->alct_read_hcmask(HCmask);
 	for(int layer=1; layer<MAX_NUM_LAYERS; layer++) {
 	  for(int channel=1; channel<=(alct->GetNumberOfChannelsInAlct())/6; channel++) {
 	    if (channel==keyWG-1 || channel==keyWG2-1) {
@@ -2908,7 +2522,6 @@ void ALCTTiming( int & RXphase, int & TXphase ){
 	  }
 	}
 	alct->WriteHotChannelMask();
-#endif
 	//
 	//while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
 	//
@@ -3241,15 +2854,7 @@ int FindBestL1aAlct(){
   int WordCount[200];
   for (int i=0; i<200; i++) WordCount[i] = 0;
   //
-#ifndef ALCTNEW
-  //unsigned cr[3]  = {0x80fc5fc0, 0x20a03786, 0x8}; // default conf register
-  //
-  unsigned cr[3];
-  //
-  alct->GetConf(cr,1);
-#else
   alct->ReadConfigurationReg();
-#endif
   //
   int minlimit = 0;
   int maxlimit = 100;
@@ -3260,41 +2865,6 @@ int FindBestL1aAlct(){
     //
     //while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
     //
-#ifndef ALCTNEW
-    int keyWG          = int((rand()/(RAND_MAX+0.01))*(alct->GetWGNumber())/6./2.);
-    int ChamberSection = alct->GetWGNumber()/6;
-    //
-    printf("\n");
-    printf("-----> Injecting at %d \n",keyWG);
-    //
-    for (int i=0; i<22; i++) HCmask[i] = 0;
-    //
-    bitset<672> bits(*HCmask) ;
-    //
-    for (int i=0;i<672;i++){
-      if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
-      //if ( i%(alct->GetWGNumber()/6) == (alct->GetWGNumber())/6-keyWG ) bits.set(i);
-    }
-    //
-    bitset<32> Convert;
-    //
-    Convert.reset();
-    //
-    for (int ii=0;ii<(alct->GetWGNumber());ii++){
-      if ( bits.test(ii) ) Convert.set(ii%32);
-      if ( ii%32 == 31 ) {
-	HCmask[ii/32] = Convert.to_ulong();
-	Convert.reset();
-      }
-    }
-    //
-    alct->alct_write_hcmask(HCmask);
-    alct->alct_read_hcmask(HCmask);
-    //
-    cr[1] = (cr[1] & 0xfffff00f) | ((l1a&0xff)<<4) ;
-    alct->SetConf(cr,1);
-    alct->unpackControlRegister(cr);
-#else
     //    int keyWG          = int((rand()/(RAND_MAX+0.01))*(alct->GetWGNumber())/6./2.);
     //    int ChamberSection = alct->GetWGNumber()/6;
     int keyWG          = int((rand()/(RAND_MAX+0.01))*(alct->GetNumberOfChannelsInAlct())/6./2.);
@@ -3344,7 +2914,6 @@ int FindBestL1aAlct(){
     alct->WriteConfigurationReg();
     alct->ReadConfigurationReg();
     alct->PrintConfigurationReg();
-#endif
     thisTMB->ResetALCTRAMAddress();
     PulseTestStrips();
     thisTMB->DecodeALCT();
@@ -3389,27 +2958,17 @@ int FindALCT_L1A_delay(int minlimit, int maxlimit){
   //
   unsigned cr[3];
   //
-#ifndef ALCTNEW
-  alct->GetConf(cr,1);
-#else
   alct->ReadConfigurationReg();
-#endif
   //
   int WordCount[200];
   for (int i=0; i<200; i++) WordCount[i] = 0;
   //
   for (int l1a=minlimit; l1a<maxlimit+1; l1a++) {
     //
-#ifndef ALCTNEW
-    cr[1] = (cr[1] & 0xfffff00f) | ((l1a&0xff)<<4) ;
-    alct->SetConf(cr,1);
-    alct->unpackControlRegister(cr);
-#else
     alct->SetL1aDelay(l1a);
     alct->WriteConfigurationReg();
     alct->ReadConfigurationReg();
     alct->PrintConfigurationReg();    
-#endif
     thisTMB->ResetCounters();
     thisTMB->ResetALCTRAMAddress();
     ::sleep(6);
@@ -3518,30 +3077,7 @@ void PulseTestStrips(){
 	printf("Init \n");
 	//
 	//
-#ifndef ALCTNEW
-	alct->alct_set_test_pulse_amp(&slot,Amplitude);
-	//
-	alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
-	cout << " StripMask = " << hex << StripMask << endl;
-	//
-	//old alct->alct_set_test_pulse_stripmask(&slot,0x3f);
-	//old alct->alct_set_test_pulse_groupmask(&slot,0xff);
-	//
-	alct->alct_set_test_pulse_stripmask(&slot,0xff);
-	alct->alct_set_test_pulse_groupmask(&slot,0x00);
-	//
-	alct->alct_read_test_pulse_stripmask(&slot,&StripMask);
-	cout << " StripMask = " << hex << StripMask << endl;
-	//
-	alct->alct_read_test_pulse_powerup(&slot,&PowerUp);
-	cout << " PowerUp   = " << hex << PowerUp << dec << endl; //11July05 DM added dec
-	//
-	alct->alct_fire_test_pulse('A');
-	//
-	alct->alct_set_test_pulse_powerup(&slot,1);
-#else
 	alct->SetUpPulsing(Amplitude,PULSE_LAYERS,0xff,ADB_ASYNC);
-#endif
 	//
 	beginning = 1;
 	//

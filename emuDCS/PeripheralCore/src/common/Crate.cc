@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.6 2006/10/10 14:08:08 mey Exp $
+// $Id: Crate.cc,v 3.7 2006/10/19 09:42:03 rakness Exp $
 // $Log: Crate.cc,v $
+// Revision 3.7  2006/10/19 09:42:03  rakness
+// remove old ALCTController
+//
 // Revision 3.6  2006/10/10 14:08:08  mey
 // UPdate
 //
@@ -276,11 +279,7 @@ void Crate::configure() {
       ALCTController * alct = myTmbs[i]->alctController();
       if(alct) {
 	std::cout << "alct # =" << i << std::endl;
-#ifndef ALCTNEW
-	alct->setup(1);
-#else
 	alct->configure();
-#endif
 	//
       }
       //

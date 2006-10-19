@@ -54,21 +54,10 @@ int main(int argc,char **argv){
   //alct->setup(1);
   //::sleep(1);
 
-#ifndef ALCTNEW
-  ALCTIDRegister sc_id, chipID ;
-
-  printf("Reading IDs...") ;
-
-  //alct->alct_read_slowcontrol_id(&sc_id) ;
-  //std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
-  //alct->alct_fast_read_id(chipID);
-  //std::cout << " ALCT Fastcontrol ID " << chipID << std::endl;
-#else
   alct->ReadSlowControlId();
   alct->PrintSlowControlId();
   alct->ReadFastControlId();
   alct->PrintFastControlId();
-#endif
 
 #if 1
   tmb->disableAllClocks();
