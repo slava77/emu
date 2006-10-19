@@ -3,7 +3,7 @@
 # This is the TriDAS/daq/xoap Package Makefile
 #
 ##
-#include $(XDAQ_ROOT)/config/compdef.mk
+include ../config/compdef.mk
 include ../config/xdaq.mk
 include ../config/site.mk
 
