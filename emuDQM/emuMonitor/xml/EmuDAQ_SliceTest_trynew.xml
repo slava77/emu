@@ -1,0 +1,338 @@
+<?xml version='1.0'?>
+<?xml-stylesheet type="text/xsl" href="EmuDAQConfig.xsl"?>
+
+<!-- Edit access rights in ${XDAQ_ROOT}/daq/xaccess/etc/htaccess -->
+
+<xc:Partition xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  
+  <i2o:protocol xmlns:i2o="http://xdaq.web.cern.ch/xdaq/xsd/2004/I2OConfiguration-30">
+    <!-- emuslice12 -->
+    <i2o:target class="EVM"    instance="0" tid="1000"/>
+    <i2o:target class="EmuTA"  instance="0" tid="1001"/>
+    <!-- emuslice12 -->
+    <i2o:target class="RU"     instance="0" tid="1010"/>
+    <i2o:target class="BU"     instance="0" tid="1011"/>
+    <i2o:target class="EmuFU"  instance="0" tid="1012"/>
+    <i2o:target class="EmuRUI" instance="0" tid="1013"/>
+    <!-- emuslice12 -->
+    <i2o:target class="RU"     instance="1" tid="1015"/>
+    <i2o:target class="BU"     instance="1" tid="1016"/>
+    <i2o:target class="EmuFU"  instance="1" tid="1017"/>
+    <i2o:target class="EmuRUI" instance="1" tid="1018"/>
+    <!-- emudaq02 -->
+    <i2o:target class="RU"     instance="2" tid="1020"/>
+    <i2o:target class="BU"     instance="2" tid="1021"/>
+    <i2o:target class="EmuFU"  instance="2" tid="1022"/>
+    <i2o:target class="EmuRUI" instance="2" tid="1023"/>
+    <!-- emudaq02 -->
+    <i2o:target class="RU"     instance="3" tid="1025"/>
+    <i2o:target class="BU"     instance="3" tid="1026"/>
+    <i2o:target class="EmuFU"  instance="3" tid="1027"/>
+    <i2o:target class="EmuRUI" instance="3" tid="1028"/>
+  </i2o:protocol>
+
+
+
+  <!-- emuslice12 -->
+  <xc:Context url="http://emuslice12:40200">
+
+    <xc:Endpoint protocol="tcp" service="i2o" hostname="emuslice12" port="40250" network="tcp1"/>
+    
+    <xc:Application class="PeerTransportTCP" id="21" network="tcp1">
+      <properties xmlns="urn:xdaq-application:PeerTransportTCP" xsi:type="soapenc:Struct">
+	<autoSize xsi:type="xsd:boolean">true</autoSize>
+	<maxPacketSize xsi:type="xsd:unsignedLong">65536</maxPacketSize>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/daq/pt/tcp/lib/linux/x86/libpttcp.so</xc:Module>
+
+    <xc:Module>${XDAQ_ROOT}/emu/cscSV/lib/linux/x86/libCSCSupervisor.so</xc:Module>
+
+    <xc:Application class="EmuDAQManager" id="12" instance="0" network="tcp1">
+      <properties xmlns="urn:xdaq-application:EVM" xsi:type="soapenc:Struct">
+	<runTypes xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[22]">
+          <item xsi:type="xsd:string" soapenc:position="[0]" >Monitor</item>
+          <item xsi:type="xsd:string" soapenc:position="[1]" >SCA_Pedestals</item>
+          <item xsi:type="xsd:string" soapenc:position="[2]" >Comparator_Thresh</item>
+          <item xsi:type="xsd:string" soapenc:position="[3]" >Comparator_Spread</item>
+          <item xsi:type="xsd:string" soapenc:position="[4]" >Comparator_LeftRight</item>
+          <item xsi:type="xsd:string" soapenc:position="[5]" >Comparator_TimeOffset</item>
+          <item xsi:type="xsd:string" soapenc:position="[6]" >Comparator_Rate</item>
+          <item xsi:type="xsd:string" soapenc:position="[7]" >CFEB_Saturation</item>
+          <item xsi:type="xsd:string" soapenc:position="[8]" >CFEB_Connectivity</item>
+          <item xsi:type="xsd:string" soapenc:position="[9]" >CFEB_CompLogic</item>
+          <item xsi:type="xsd:string" soapenc:position="[10]">CFEB_CompThreshDAC</item>
+          <item xsi:type="xsd:string" soapenc:position="[11]">CFEB_PulseDAC</item>
+          <item xsi:type="xsd:string" soapenc:position="[12]">CFEB_NoiseMatrix</item>
+          <item xsi:type="xsd:string" soapenc:position="[13]">CFEB_Crosstalk</item>
+          <item xsi:type="xsd:string" soapenc:position="[14]">CFEB_Gains</item>
+          <item xsi:type="xsd:string" soapenc:position="[15]">AFEB_DAC</item>
+          <item xsi:type="xsd:string" soapenc:position="[16]">AFEB_TimeDelay</item>
+          <item xsi:type="xsd:string" soapenc:position="[17]">AFEB_NoiseRate</item>
+          <item xsi:type="xsd:string" soapenc:position="[18]">AFEB_Connectivity</item>
+          <item xsi:type="xsd:string" soapenc:position="[19]">AFEB_ALCT</item>
+          <item xsi:type="xsd:string" soapenc:position="[20]">AFEB_Pulse</item>
+          <item xsi:type="xsd:string" soapenc:position="[21]">Debug</item>
+	</runTypes>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuDAQManager/lib/linux/x86/libEmuDAQManager.so</xc:Module>
+
+  </xc:Context>
+
+  <!-- emuslice12 -->
+  <xc:Context url="http://emuslice12:40300">
+    
+    <xc:Endpoint protocol="tcp" service="i2o" hostname="emuslice12" port="40350" network="tcp1"/>
+    
+    <xc:Module>$XDAQ_ROOT/RunControl/tools/xdaq2rc/lib/linux/x86/libxdaq2rc.so</xc:Module>
+
+    <xc:Application class="PeerTransportTCP" id="21" network="tcp1">
+      <properties xmlns="urn:xdaq-application:PeerTransportTCP" xsi:type="soapenc:Struct">
+	<autoSize xsi:type="xsd:boolean">true</autoSize>
+	<maxPacketSize xsi:type="xsd:unsignedLong">65536</maxPacketSize>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/daq/pt/tcp/lib/linux/x86/libpttcp.so</xc:Module>
+
+    <xc:Application class="EVM" id="13" instance="0" network="tcp1">
+      <properties xmlns="urn:xdaq-application:EVM" xsi:type="soapenc:Struct">
+	<taClass xsi:type="xsd:string">EmuTA</taClass>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/daq/evb/evm/lib/linux/x86/libEVM.so</xc:Module>
+    
+    <xc:Application class="EmuTA" id="17" instance="0" network="tcp1">
+      <properties xmlns="urn:xdaq-application:TA" xsi:type="soapenc:Struct">
+	<runNumber xsi:type="xsd:unsignedLong">57005</runNumber>
+	<maxNumTriggers xsi:type="xsd:unsignedLong">10000</maxNumTriggers>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuTA/lib/linux/x86/libEmuTA.so</xc:Module>
+
+  </xc:Context>
+
+
+  <!-- emuslice12 -->
+  <xc:Context url="http://emuslice12:40201">
+    
+    <xc:Endpoint protocol="tcp" service="i2o" hostname="emuslice12" port="40251" network="tcp1"/>
+    
+    <xc:Module>$XDAQ_ROOT/RunControl/tools/xdaq2rc/lib/linux/x86/libxdaq2rc.so</xc:Module>
+
+    <xc:Application class="PeerTransportTCP" id="21" network="tcp1">
+      <properties xmlns="urn:xdaq-application:PeerTransportTCP" xsi:type="soapenc:Struct">
+	<autoSize xsi:type="xsd:boolean">true</autoSize>
+	<maxPacketSize xsi:type="xsd:unsignedLong">65536</maxPacketSize>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/daq/pt/tcp/lib/linux/x86/libpttcp.so</xc:Module>
+
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuReadout/lib/linux/x86/libEmuReadout.so</xc:Module>
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuUtil/lib/linux/x86/libEmuServer.so</xc:Module>
+    
+    <xc:Application class="RU" id="14" instance="0" network="tcp1"/>
+    <xc:Module>${XDAQ_ROOT}/daq/evb/ru/lib/linux/x86/libRU.so</xc:Module>
+    
+    <xc:Application class="BU" id="15" instance="0" network="tcp1"/>
+    <xc:Module>${XDAQ_ROOT}/daq/evb/bu/lib/linux/x86/libBU.so</xc:Module>
+    
+    <xc:Application class="EmuFU" id="16" instance="0" network="tcp1">
+      <properties xmlns="urn:xdaq-application:FU" xsi:type="soapenc:Struct">
+	<buInstNb xsi:type="xsd:unsignedLong">0</buInstNb>
+	<pathToDataOutFile xsi:type="xsd:string">/data/tmp/localdaq</pathToDataOutFile>
+	<fileSizeInMegaBytes xsi:type="xsd:unsignedLong">100</fileSizeInMegaBytes>
+	<clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+	</clientsClassName>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuFU/lib/linux/x86/libEmuFU.so</xc:Module>
+    
+    <xc:Application class="EmuRUI" id="18" instance="0" network="tcp1">
+      <properties xmlns="urn:xdaq-application:RUI" xsi:type="soapenc:Struct">
+	<passDataOnToRUBuilder xsi:type="xsd:boolean">false</passDataOnToRUBuilder>
+	<inputDeviceType xsi:type="xsd:string">spy</inputDeviceType>
+	<inputDeviceNames xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+          <item xsi:type="xsd:string" soapenc:position="[0]">/dev/schar2</item>
+	</inputDeviceNames>
+	<inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
+	<pathToRUIDataOutFile xsi:type="xsd:string">/data/tmp/localdaq</pathToRUIDataOutFile>
+	<pathToBadEventsFile xsi:type="xsd:string">/data/tmp/localdaq</pathToBadEventsFile>
+	<ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong">100</ruiFileSizeInMegaBytes>
+	<clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+	</clientsClassName>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuRUI/lib/linux/x86/libEmuRUI.so</xc:Module>
+    
+  </xc:Context>
+  
+
+  <!-- emuslice12 -->
+  <xc:Context url="http://emuslice12:40301">
+    
+    <xc:Endpoint protocol="tcp" service="i2o" hostname="emuslice12" port="40351" network="tcp1"/>
+    
+    <xc:Module>$XDAQ_ROOT/RunControl/tools/xdaq2rc/lib/linux/x86/libxdaq2rc.so</xc:Module>
+
+    <xc:Application class="PeerTransportTCP" id="21" network="tcp1">
+      <properties xmlns="urn:xdaq-application:PeerTransportTCP" xsi:type="soapenc:Struct">
+	<autoSize xsi:type="xsd:boolean">true</autoSize>
+	<maxPacketSize xsi:type="xsd:unsignedLong">65536</maxPacketSize>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/daq/pt/tcp/lib/linux/x86/libpttcp.so</xc:Module>
+
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuReadout/lib/linux/x86/libEmuReadout.so</xc:Module>
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuUtil/lib/linux/x86/libEmuServer.so</xc:Module>
+    
+    <xc:Application class="RU" id="14" instance="1" network="tcp1"/>
+    <xc:Module>${XDAQ_ROOT}/daq/evb/ru/lib/linux/x86/libRU.so</xc:Module>
+    
+    <xc:Application class="BU" id="15" instance="1" network="tcp1"/>
+    <xc:Module>${XDAQ_ROOT}/daq/evb/bu/lib/linux/x86/libBU.so</xc:Module>
+    
+    <xc:Application class="EmuFU" id="16" instance="1" network="tcp1">
+      <properties xmlns="urn:xdaq-application:FU" xsi:type="soapenc:Struct">
+	<buInstNb xsi:type="xsd:unsignedLong">1</buInstNb>
+	<pathToDataOutFile xsi:type="xsd:string">/data/tmp/localdaq</pathToDataOutFile>
+	<fileSizeInMegaBytes xsi:type="xsd:unsignedLong">100</fileSizeInMegaBytes>
+	<clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+	</clientsClassName>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuFU/lib/linux/x86/libEmuFU.so</xc:Module>
+    
+    <xc:Application class="EmuRUI" id="18" instance="1" network="tcp1">
+      <properties xmlns="urn:xdaq-application:RUI" xsi:type="soapenc:Struct">
+	<passDataOnToRUBuilder xsi:type="xsd:boolean">false</passDataOnToRUBuilder>
+	<inputDeviceType xsi:type="xsd:string">spy</inputDeviceType>
+	<inputDeviceNames xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+          <item xsi:type="xsd:string" soapenc:position="[0]">/dev/schar3</item>
+	</inputDeviceNames>
+	<inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
+	<pathToRUIDataOutFile xsi:type="xsd:string">/data/tmp/localdaq</pathToRUIDataOutFile>
+	<pathToBadEventsFile xsi:type="xsd:string">/data/tmp/localdaq</pathToBadEventsFile>
+	<ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong">100</ruiFileSizeInMegaBytes>
+	<clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+	</clientsClassName>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuRUI/lib/linux/x86/libEmuRUI.so</xc:Module>
+    
+  </xc:Context>
+
+
+
+  <!-- emudaq02 -->
+  <xc:Context url="http://emudaq02:40202">
+    
+    <xc:Endpoint protocol="tcp" service="i2o" hostname="emudaq02" port="40252" network="tcp1"/>
+
+    <xc:Module>$XDAQ_ROOT/RunControl/tools/xdaq2rc/lib/linux/x86/libxdaq2rc.so</xc:Module>
+
+    <xc:Application class="PeerTransportTCP" id="20" network="tcp1">
+      <properties xmlns="urn:xdaq-application:PeerTransportTCP" xsi:type="soapenc:Struct">
+	<autoSize xsi:type="xsd:boolean">true</autoSize>
+	<maxPacketSize xsi:type="xsd:unsignedLong">65536</maxPacketSize>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/daq/pt/tcp/lib/linux/x86/libpttcp.so</xc:Module>
+    
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuReadout/lib/linux/x86/libEmuReadout.so</xc:Module>
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuUtil/lib/linux/x86/libEmuServer.so</xc:Module>
+    
+    <xc:Application class="RU" id="14" instance="2" network="tcp1"/>
+    <xc:Module>${XDAQ_ROOT}/daq/evb/ru/lib/linux/x86/libRU.so</xc:Module>
+    
+    <xc:Application class="BU" id="15" instance="2" network="tcp1"/>
+    <xc:Module>${XDAQ_ROOT}/daq/evb/bu/lib/linux/x86/libBU.so</xc:Module>
+    
+    <xc:Application class="EmuFU" id="16" instance="2" network="tcp1">
+      <properties xmlns="urn:xdaq-application:FU" xsi:type="soapenc:Struct">
+	<buInstNb xsi:type="xsd:unsignedLong">2</buInstNb>
+	<pathToDataOutFile xsi:type="xsd:string">/data/tmp/localdaq</pathToDataOutFile>
+	<fileSizeInMegaBytes xsi:type="xsd:unsignedLong">100</fileSizeInMegaBytes>
+	<clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+	</clientsClassName>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuFU/lib/linux/x86/libEmuFU.so</xc:Module>
+    
+    <xc:Application class="EmuRUI" id="18" instance="2" network="tcp1">
+      <properties xmlns="urn:xdaq-application:RUI" xsi:type="soapenc:Struct">
+	<passDataOnToRUBuilder xsi:type="xsd:boolean">false</passDataOnToRUBuilder>
+	<inputDeviceType xsi:type="xsd:string">spy</inputDeviceType>
+	<inputDeviceNames xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+	  <item xsi:type="xsd:string" soapenc:position="[0]">/dev/schar3</item>
+	</inputDeviceNames>
+	<inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
+	<pathToRUIDataOutFile xsi:type="xsd:string">/data/tmp/localdaq</pathToRUIDataOutFile>
+	<ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong">100</ruiFileSizeInMegaBytes>
+	<pathToBadEventsFile xsi:type="xsd:string">/data/tmp/localdaq</pathToBadEventsFile>
+	<clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+	</clientsClassName>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuRUI/lib/linux/x86/libEmuRUI.so</xc:Module>
+    
+  </xc:Context>
+
+
+  <!-- emudaq02 -->
+  <xc:Context url="http://emudaq02:40302">
+    
+    <xc:Endpoint protocol="tcp" service="i2o" hostname="emudaq02" port="40352" network="tcp1"/>
+
+    <xc:Module>$XDAQ_ROOT/RunControl/tools/xdaq2rc/lib/linux/x86/libxdaq2rc.so</xc:Module>
+
+    <xc:Application class="PeerTransportTCP" id="20" network="tcp1">
+      <properties xmlns="urn:xdaq-application:PeerTransportTCP" xsi:type="soapenc:Struct">
+	<autoSize xsi:type="xsd:boolean">true</autoSize>
+	<maxPacketSize xsi:type="xsd:unsignedLong">65536</maxPacketSize>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/daq/pt/tcp/lib/linux/x86/libpttcp.so</xc:Module>
+    
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuReadout/lib/linux/x86/libEmuReadout.so</xc:Module>
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuUtil/lib/linux/x86/libEmuServer.so</xc:Module>
+
+    <xc:Application class="RU" id="14" instance="3" network="tcp1"/>
+    <xc:Module>${XDAQ_ROOT}/daq/evb/ru/lib/linux/x86/libRU.so</xc:Module>
+    
+    <xc:Application class="BU" id="15" instance="3" network="tcp1"/>
+    <xc:Module>${XDAQ_ROOT}/daq/evb/bu/lib/linux/x86/libBU.so</xc:Module>
+    
+    <xc:Application class="EmuFU" id="16" instance="3" network="tcp1">
+      <properties xmlns="urn:xdaq-application:FU" xsi:type="soapenc:Struct">
+	<buInstNb xsi:type="xsd:unsignedLong">3</buInstNb>
+	<pathToDataOutFile xsi:type="xsd:string">/data/tmp/localdaq</pathToDataOutFile>
+	<fileSizeInMegaBytes xsi:type="xsd:unsignedLong">100</fileSizeInMegaBytes>
+	<clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+	</clientsClassName>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuFU/lib/linux/x86/libEmuFU.so</xc:Module>
+    
+    
+    <xc:Application class="EmuRUI" id="18" instance="3" network="tcp1">
+      <properties xmlns="urn:xdaq-application:RUI" xsi:type="soapenc:Struct">
+	<passDataOnToRUBuilder xsi:type="xsd:boolean">false</passDataOnToRUBuilder>
+	<inputDeviceType xsi:type="xsd:string">spy</inputDeviceType>
+	<inputDeviceNames xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+	  <item xsi:type="xsd:string" soapenc:position="[0]">/dev/schar2</item>
+	</inputDeviceNames>
+	<inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
+	<pathToRUIDataOutFile xsi:type="xsd:string">/data/tmp/localdaq</pathToRUIDataOutFile>
+	<ruiFileSizeInMegaBytes xsi:type="xsd:unsignedLong">100</ruiFileSizeInMegaBytes>
+	<pathToBadEventsFile xsi:type="xsd:string">/data/tmp/localdaq</pathToBadEventsFile>
+	<clientsClassName xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+	</clientsClassName>
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuRUI/lib/linux/x86/libEmuRUI.so</xc:Module>
+    
+  </xc:Context>
+
+  
+</xc:Partition>
