@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.41 2006/10/18 16:08:28 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.42 2006/10/19 09:42:03 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -3794,15 +3794,9 @@ private:
       *out << cgicc::form() << std::endl ;
       //
       cgicc::pre();
-#ifndef ALCTNEW
-      for (int Wire = 0; Wire<(alct->GetWGNumber())/6; Wire++) {
-	*out << MyTest[tmb].GetALCTWireScan(Wire) ;
-      }
-#else
       for (int Wire = 0; Wire<(alct->GetNumberOfChannelsInAlct())/6; Wire++) {
 	*out << MyTest[tmb].GetALCTWireScan(Wire) ;
       }
-#endif
       *out << cgicc::br();
       *out << std::endl;
       //
@@ -4943,18 +4937,6 @@ private:
     //
     *out << cgicc::legend("ALCT Status").set("style","color:blue") << cgicc::p() << std::endl ;
     //
-#ifndef ALCTNEW
-    ALCTIDRegister sc_id ;
-    int err = alct->alct_read_slowcontrol_id(&sc_id);
-    *out <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
-    //
-    *out << cgicc::br();
-    //
-    err = alct->alct_fast_read_id(sc_id);
-    *out <<  " ALCT Fastcontrol ID " << sc_id << std::endl;
-    //
-    *out << cgicc::fieldset();
-#else
     alct->ReadSlowControlId();
     *out << "ALCT: Slow Control chip ID = " << std::hex << alct->GetSlowControlChipId()
 	 << " version " << std::hex << alct->GetSlowControlVersionId()
@@ -4999,7 +4981,6 @@ private:
     *out << ", year = " << std::hex << alct->GetFastControlYear() << std::dec << std::endl; 
     //
     *out << cgicc::fieldset();
-#endif
     //
   }
   //
@@ -7382,14 +7363,6 @@ private:
       //
       printf("Reading IDs...") ;
       //
-#ifndef ALCTNEW
-      ALCTIDRegister sc_id, chipID ;
-      //
-      alct->alct_read_slowcontrol_id(&sc_id) ;
-      std::cout <<  " ALCT Slowcontrol ID " << sc_id << std::endl;
-      alct->alct_fast_read_id(chipID);
-      std::cout << " ALCT Fastcontrol ID " << chipID << std::endl;
-#else
       alct->ReadSlowControlId();
       std::cout << "ALCT: Slow Control chip ID = " << std::hex << alct->GetSlowControlChipId()
 		<< " version " << alct->GetSlowControlVersionId()
@@ -7428,8 +7401,6 @@ private:
       std::cout << "day = " << std::hex << alct->GetFastControlDay();
       std::cout << ", month = " << std::hex << alct->GetFastControlMonth();
       std::cout << ", year = " << std::hex << alct->GetFastControlYear() << std::dec << std::endl; 
-      //
-#endif
       //
       thisTMB->disableAllClocks();
       LOG4CPLUS_INFO(getApplicationLogger(), "Programming ALCT");

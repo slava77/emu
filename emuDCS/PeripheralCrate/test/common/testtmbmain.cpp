@@ -643,9 +643,9 @@ int main() {
       thisTMB->CheckRawHitsHeader();
       break;
     case 501:
-      thisTMB->ReadCurrentConfiguration();
       outputfile.open("TMBconfiguration.txt");
       thisTMB->RedirectConfigOutput(&outputfile);
+      thisTMB->ReadCurrentConfiguration();
       thisTMB->PrintCurrentConfiguration();
       outputfile.close();
       thisTMB->RedirectConfigOutput(&std::cout);

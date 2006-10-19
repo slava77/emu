@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.7 2006/10/13 15:34:39 rakness Exp $
+// $Id: TMBParser.cc,v 3.8 2006/10/19 09:42:03 rakness Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.8  2006/10/19 09:42:03  rakness
+// remove old ALCTController
+//
 // Revision 3.7  2006/10/13 15:34:39  rakness
 // add mpc_phase
 //
@@ -284,95 +287,12 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate,xercesc::DOMNode
        	//alctParser_.fillInt("rpc_rat_delay", rat_->rat_tmb_delay_);
 	//ALCT
 	//
-#ifndef ALCTNEW
+	//
 	int mode;
-       	if ( alctParser_.fillInt("trig_mode", mode) ) {
-	  alct_->SetTrigMode(mode);
+	if ( alctParser_.fillInt("trig_mode", mode) ) {
+	  alct_->SetTriggerMode(mode);
 	}
 	//
-	if ( alctParser_.fillInt("ext_trig_en", enable)) {
-	  alct_->SetExtTrigEnable(enable);
-	}
-	//
-	if ( alctParser_.fillInt("trig_info_en", enable)) {
-	  alct_->SetTrigInfoEnable(enable);
-	}
-	if ( alctParser_.fillInt("l1a_internal", enable)) {
-	  alct_->SetL1aInternal(enable);
-	}
-	if ( alctParser_.fillInt("fifo_tbins", tbins) ) {
-	  alct_->SetFifoTbins(tbins);
-	}
-	if ( alctParser_.fillInt("fifo_pretrig", pretrig)) {
-	  alct_->SetFifoPretrig(pretrig);
-	}
-	if (alctParser_.fillInt("l1a_delay", delay)) {
-	  alct_->SetL1aDelay(delay);
-	}
-	if ( alctParser_.fillInt("l1a_offset",offset)) {
-	  alct_->SetL1aOffset(offset);
-	}
-	if (alctParser_.fillInt("l1a_window", size)) {
-	  alct_->SetL1aWindowSize(size);
-	}
-	int nph;
-	if ( parserGlobal_.fillInt("nph_thresh", nph) ){
-	  alct_->SetPretrigNumberOfLayers(nph);
-	}
-	if ( alctParser_.fillInt("nph_pattern", nph)){
-	  alct_->SetPretrigNumberOfPattern(nph);
-	}
-	if ( alctParser_.fillInt("ccb_enable", enable) ) {
-	  alct_->SetCCBEnable(enable);
-	}
-	if ( alctParser_.fillInt("inject_mode", mode)) {
-	  alct_->SetAlctInjectMode(mode);
-	}
-	if ( alctParser_.fillInt("send_empty", enable)) {
-	  alct_->SetSendEmpty(enable);
-	}
-	if (alctParser_.fillInt("drift_delay", delay)) {
-	  alct_->SetDriftDelay(delay);
-	}
-	std::string file;
-	if ( alctParser_.fillString("alct_pattern_file", file)) {
-	  alct_->SetPatternFile(file);
-	}
-	if (alctParser_.fillString("alct_hotchannel_file", file)){
-	  alct_->SetHotChannelFile(file);
-	}
-	
-	int number, delay, threshold;
-	
-	xercesc::DOMNode * grandDaughterNode = daughterNode->getFirstChild();
-
-	while (grandDaughterNode) {
-	  if (grandDaughterNode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE and
-	      strcmp("AnodeChannel",xercesc::XMLString::transcode(grandDaughterNode->getNodeName()))==0){
-	    //
-	    std::string  nodeName = xercesc::XMLString::transcode(grandDaughterNode->getNodeName());
-	    //
-	    EmuParser anodeParser_;
-	    //
-	    anodeParser_.parseNode(grandDaughterNode);
-	    if(anodeParser_.fillInt("Number", number)){
-	      anodeParser_.fillInt("delay", delay);
-	      anodeParser_.fillInt("threshold", threshold);
-	      //
-	      alct_->SetDelay(number-1,delay);
-	      //alct_->delays_[number-1] = delay;
-	      //alct_->thresholds_[number-1] = threshold;
-	      alct_->SetThreshold(number-1,threshold);
-	      //
-	    }
-	  }
-#else
-	  //
-	  int mode;
-	  if ( alctParser_.fillInt("trig_mode", mode) ) {
-	    alct_->SetTriggerMode(mode);
-	  }
-	  //
 	if ( alctParser_.fillInt("ext_trig_en", enable)) {
 	  alct_->SetExtTrigEnable(enable);
 	}
@@ -460,7 +380,6 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate,xercesc::DOMNode
 	      //
 	    }
 	  }
-#endif
 	  grandDaughterNode = grandDaughterNode->getNextSibling();
 	}
       }

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.8 2006/10/12 17:52:13 mey Exp $
+// $Id: ChamberUtilities.cc,v 3.9 2006/10/19 09:42:03 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.9  2006/10/19 09:42:03  rakness
+// remove old ALCTController
+//
 // Revision 3.8  2006/10/12 17:52:13  mey
 // Update
 //
@@ -218,11 +221,7 @@ void ChamberUtilities::InitStartSystem(){
   if (thisTMB) thisTMB->configure();
   if (thisDMB) thisDMB->configure();
   if (thisMPC) thisMPC->configure();
-#ifndef ALCTNEW
-  if (alct)    alct->setup(1);
-#else
   if (alct)    alct->configure();
-#endif
   //
   if (thisTMB) thisTMB->StartTTC();
   if (thisTMB) thisTMB->EnableL1aRequest();
@@ -240,11 +239,7 @@ void ChamberUtilities::InitSystem(){
   if (thisTMB) thisTMB->configure();
   if (thisDMB) thisDMB->configure();
   if (thisMPC) thisMPC->configure();
-#ifndef ALCTNEW
-  if (alct)    alct->setup(1);
-#else
   if (alct)    alct->configure();
-#endif
   //
   thisCCB_->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
   //
@@ -526,316 +521,90 @@ void ChamberUtilities::Automatic(){
 void ChamberUtilities::ALCTSVFLoad(){
   int jch = 3;
   char* filename="/home/fastcosmic/Erase.svf";
-#ifndef ALCTNEW
-  alct->NewSVFLoad(&jch,filename,10);
-#else
   alct->SVFLoad(&jch,filename,10);
-#endif
 }
 //
 void ChamberUtilities::ALCTChamberScan(){
-   //
-#ifndef ALCTNEW
-   unsigned long HCmask[22];
-   unsigned long HCmask2[22];
-   //
-   int NPulses = 1;
-   int chamberResult[112];
-   int chamberResult2[112];
-   int InJected[112];
-   //
-   (*MyOutput_) << " *** New ************* " << std::endl ;
-   //
-   thisTMB->SetALCTPatternTrigger();
-   //
-   for ( int keyWG=0; keyWG<112; keyWG++) chamberResult[keyWG] = 0;
-   for ( int keyWG=0; keyWG<112; keyWG++) chamberResult2[keyWG] = 0;
-   for ( int keyWG=0; keyWG<112; keyWG++) InJected[keyWG] = 0;
-   //
-   for (int Ninject=0; Ninject<NPulses; Ninject++){
-      //
-      for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) {
-	 //
-	(*MyOutput_) << std::endl;
-	printf("%c[01;43m", '\033');
-	(*MyOutput_) << "Injecting in WG = " << dec << keyWG ;
-	printf("%c[0m", '\033'); 
-	(*MyOutput_) << endl;
-	//
-	 for (int i=0; i<22; i++) {
-	   HCmask[i] = 0;
-	   HCmask2[i] = 0;
-	 }
-	 //
-	 bitset<672> bits(*HCmask) ;
-	 //
-	 for (int i=0;i<672;i++){
-	   if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
-	   //if ( i%(alct->GetWGNumber()/6) == (alct->GetWGNumber())/6-keyWG ) bits.set(i);
-	 }
-	 //
-	 bitset<32> Convert;
-	 //
-	 Convert.reset();
-	 //
-	 for (int i=0;i<(alct->GetWGNumber());i++){
-	   if ( bits.test(i) ) Convert.set(i%32);
-	   if ( i%32 == 31 ) {
-	     HCmask[i/32] = Convert.to_ulong();
-	     //printf(" Convert %d %d \n",i,Convert.to_ulong());
-	     Convert.reset();
-	   }
-	 }
-	 /*
-	 for (int i=0; i<12; i++) {
-	   //if ( i%2 == 0 ) {
-	       if (keyWG<32) {
-		 //HCmask[i] = 0x1<<keyWG;
-	       } else {
-		 //HCmask[i] = 0x1<<(keyWG-32);
-	       }
-	       //} else {
-	       //if (keyWG<32) {
-	       // HCmask[i] = 0x1<<(keyWG) ;
-	       //} else {
-	       // HCmask[i] = 0x1<<(keyWG-32);
-	       //}
-	       //}
-	 }
-	 */
-	 //for (int i=0; i<22; i++ ) {
-	 //printf(" %x %x \n",HCmask[i],HCmask2[i]);
-	 //}
-	 //
-	 alct->alct_write_hcmask(HCmask);
-	 alct->alct_read_hcmask(HCmask);
-	 /*
-	 for (int i=0; i<12; i++ ) {
-	    if (i == 0 ) cout << "Layer 0 " ;
-	    for(int j=0; j<32; j++ ) 
-	       if (((HCmask[i]>>j)&0x1) == 0 ) {
-		  cout <<"-";
-	       } else {
-		  printf("%c[01;44m", '\033');	 
-		  cout <<"|";
-		  printf("%c[0m", '\033'); 
-	       }
-	    if ((i+1)%2 == 0 ) {
-	       cout << endl;
-	       if (i+1<12) cout << "Layer " << (i+1)/2 << " ";
-	    }
-	 }
-	 */
-	 //
-	 printf("\n");
-	 for (int i=0; i<(alct->GetWGNumber()); i++) {
-	   if ( i%(alct->GetWGNumber()/6) == 0 ) printf("\n");
-	   if (bits.test(i)) {
-	     printf("|");
-	   } else {
-	     printf("-");
-	   }
-	 }
-	 //
-	 cout << endl;
-	 //
-	 PulseTestStrips();
-	 //
-	 thisTMB->DecodeALCT();
-	 //
-	 printf("Wordcount %x \n",thisTMB->GetALCTWordCount());
-	 //
-	 if ( thisTMB->GetAlct0FirstKey()  == keyWG && thisTMB->GetAlct0Quality() >= 1 ) 
-	    chamberResult[keyWG]++;
-	 //
-	 if ( thisTMB->GetAlct1SecondKey() == keyWG && thisTMB->GetAlct1Quality() >= 1 ) 
-	    chamberResult2[keyWG]++;
-	 //
-	 InJected[keyWG]++;
-	 //
-      }
-   }
-   cout << endl;
-   cout << "Wire" << endl;
-   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << keyWG/100 ;
-   cout << endl;
-   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << ((keyWG/10)%10) ;
-   cout << endl;
-   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << keyWG%10 ;
-   cout << endl;
-   cout << "InJected" << endl;
-   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << InJected[keyWG] ;
-   cout << endl;
-   cout << "ALCTChamberResult" << endl;
-   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << chamberResult[keyWG] ;
-   cout << endl;
-   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) cout << chamberResult2[keyWG] ;
-   cout << endl;
-   printf("%c[0m", '\033'); 
-   //
-   for (int keyWG=0; keyWG<(alct->GetWGNumber())/6; keyWG++) ALCTWireScan_[keyWG] = chamberResult[keyWG];
-
-#else
-
-   int NPulses = 1;
-   int chamberResult[MAX_NUM_WIRES_PER_LAYER];
-   int chamberResult2[MAX_NUM_WIRES_PER_LAYER];
-   int InJected[MAX_NUM_WIRES_PER_LAYER];
-   //
-   (*MyOutput_) << " *** New ************* " << std::endl ;
-   //
-   thisTMB->SetALCTPatternTrigger();
-   //
-   for ( int keyWG=0; keyWG<MAX_NUM_WIRES_PER_LAYER; keyWG++) chamberResult[keyWG] = 0;
-   for ( int keyWG=0; keyWG<MAX_NUM_WIRES_PER_LAYER; keyWG++) chamberResult2[keyWG] = 0;
-   for ( int keyWG=0; keyWG<MAX_NUM_WIRES_PER_LAYER; keyWG++) InJected[keyWG] = 0;
-   //
-   for (int Ninject=0; Ninject<NPulses; Ninject++){
-      //
-      for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) {
-	 //
-	(*MyOutput_) << std::endl;
-	printf("%c[01;43m", '\033');
-	(*MyOutput_) << "Injecting in WG = " << dec << keyWG ;
-	printf("%c[0m", '\033'); 
-	(*MyOutput_) << endl;
-	//
-	for(int layer=0; layer<MAX_NUM_LAYERS; layer++) {
-	  for(int channel=0; channel<(alct->GetNumberOfChannelsInAlct())/6; channel++) {
-	    if (channel==keyWG) {
-	      alct->SetHotChannelMask(layer,channel,ON);
-	    } else {
-	      alct->SetHotChannelMask(layer,channel,OFF);
-	    }
-	  }
-	}
-	//
-	alct->WriteHotChannelMask();
-	alct->PrintHotChannelMask();	
-	//
-	PulseTestStrips();
-	//
-	thisTMB->DecodeALCT();
-	//
-	printf("Wordcount %x \n",thisTMB->GetALCTWordCount());
-	//
-	if ( thisTMB->GetAlct0FirstKey()  == keyWG && thisTMB->GetAlct0Quality() >= 1 ) 
-	  chamberResult[keyWG]++;
-	//
-	if ( thisTMB->GetAlct1SecondKey() == keyWG && thisTMB->GetAlct1Quality() >= 1 ) 
-	  chamberResult2[keyWG]++;
-	//
-	InJected[keyWG]++;
-	//
-      }
-   }
-   cout << endl;
-   cout << "Wire" << endl;
-   for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) cout << keyWG/100 ;
-   cout << endl;
-   for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) cout << ((keyWG/10)%10) ;
-   cout << endl;
-   for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) cout << keyWG%10 ;
-   cout << endl;
-   cout << "InJected" << endl;
-   for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) cout << InJected[keyWG] ;
-   cout << endl;
-   cout << "ALCTChamberResult" << endl;
-   for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) cout << chamberResult[keyWG] ;
-   cout << endl;
-   for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) cout << chamberResult2[keyWG] ;
-   cout << endl;
-   printf("%c[0m", '\033'); 
-   //
-   for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) ALCTWireScan_[keyWG] = chamberResult[keyWG];
-#endif
-   //
-}
-//
-void ChamberUtilities::ALCTScanDelays(){
-
-#ifndef ALCTNEW
   //
-  unsigned long HCmask[22];
-  int CountDelay[20];
-  int alct0_quality = 0;
-  int alct1_quality = 0;
-  int alct0_bxn = 0;
-  int alct1_bxn = 0;
-  int alct0_key = 0;
-  int alct1_key = 0;
+  // Set up for this test:
+  alct->SetTriggerMode(0);
+  alct->WriteConfigurationReg();
   //
-  for (int i=0; i< 22; i++) HCmask[i] = 0;
-  for (int i=0; i< 20; i++) CountDelay[i] = 0;
+  int NPulses = 1;
+  int chamberResult[MAX_NUM_WIRES_PER_LAYER];
+  int chamberResult2[MAX_NUM_WIRES_PER_LAYER];
+  int InJected[MAX_NUM_WIRES_PER_LAYER];
+  //
+  (*MyOutput_) << " *** New ************* " << std::endl ;
   //
   thisTMB->SetALCTPatternTrigger();
   //
-  for ( int nloop=0; nloop<20; nloop++){
-    for ( int DelaySetting=0; DelaySetting<20; DelaySetting++){
+  for ( int keyWG=0; keyWG<MAX_NUM_WIRES_PER_LAYER; keyWG++) chamberResult[keyWG] = 0;
+  for ( int keyWG=0; keyWG<MAX_NUM_WIRES_PER_LAYER; keyWG++) chamberResult2[keyWG] = 0;
+  for ( int keyWG=0; keyWG<MAX_NUM_WIRES_PER_LAYER; keyWG++) InJected[keyWG] = 0;
+  //
+  for (int Ninject=0; Ninject<NPulses; Ninject++){
+    //
+    for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) {
       //
-      int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6);
-      int ChamberSection = alct->GetWGNumber()/6;
+      (*MyOutput_) << std::endl;
+      printf("%c[01;43m", '\033');
+      (*MyOutput_) << "Injecting in WG = " << dec << keyWG ;
+      printf("%c[0m", '\033'); 
+      (*MyOutput_) << endl;
       //
-      cout << endl ;
-      cout << "Injecting at " << dec << keyWG << endl;
-      //
-      for (int i=0; i< 22; i++) HCmask[i] = 0;
-      //
-      bitset<672> bits(*HCmask) ;
-      //
-      for (int i=0;i<672;i++){
-	if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
-      }
-      //
-      bitset<32> Convert;
-      //
-      Convert.reset();
-      //
-      for (int i=0;i<(alct->GetWGNumber());i++){
-	if ( bits.test(i) ) Convert.set(i%32);
-	if ( i%32 == 31 ) {
-	  HCmask[i/32] = Convert.to_ulong();
-	  Convert.reset();
+      for(int layer=0; layer<MAX_NUM_LAYERS; layer++) {
+	for(int channel=0; channel<(alct->GetNumberOfChannelsInAlct())/6; channel++) {
+	  if (channel==keyWG) {
+	    alct->SetHotChannelMask(layer,channel,ON);
+	  } else {
+	    alct->SetHotChannelMask(layer,channel,OFF);
+	  }
 	}
       }
       //
-      printf("\n");
-      //
-      alct->alct_write_hcmask(HCmask);
-      alct->alct_read_hcmask(HCmask);
-      //
-      cout << alct->alct_set_delay(-1,DelaySetting) << endl ; // Set all delays
+      alct->WriteHotChannelMask();
+      alct->PrintHotChannelMask();	
       //
       PulseTestStrips();
-      printf("Decode ALCT\n");
+      //
       thisTMB->DecodeALCT();
-      printf("After Decode ALCT\n");
       //
-      // Now analize
+      printf("Wordcount %x \n",thisTMB->GetALCTWordCount());
       //
-      if ( (thisTMB->GetAlct0Quality()   != alct0_quality) ||
-	   (thisTMB->GetAlct1Quality()   != alct1_quality) ||
-	   (thisTMB->GetAlct0FirstBxn()  != alct0_bxn) ||
-	   (thisTMB->GetAlct1SecondBxn() != alct1_bxn) ||
-	   (thisTMB->GetAlct0FirstKey()  != alct0_bxn) ||
-	   (thisTMB->GetAlct1SecondKey() != alct1_bxn) ) {
-	//
-	alct0_quality     = thisTMB->GetAlct0Quality();
-	alct1_quality     = thisTMB->GetAlct1Quality();
-	alct0_bxn         = thisTMB->GetAlct0FirstBxn();
-	alct1_bxn         = thisTMB->GetAlct1SecondBxn();
-	alct0_key         = thisTMB->GetAlct0FirstKey();
-	alct1_key         = thisTMB->GetAlct1SecondKey();
-	//
-	if ( alct0_quality == 3 && alct0_key == keyWG &&
-	     alct1_quality == 3 && alct1_key == keyWG ) CountDelay[DelaySetting]++ ;
-	//
-      }
+      if ( thisTMB->GetAlct0FirstKey()  == keyWG && thisTMB->GetAlct0Quality() >= 1 ) 
+	chamberResult[keyWG]++;
+      //
+      if ( thisTMB->GetAlct1SecondKey() == keyWG && thisTMB->GetAlct1Quality() >= 1 ) 
+	chamberResult2[keyWG]++;
+      //
+      InJected[keyWG]++;
       //
     }
   }
-
-#else
+  cout << endl;
+  cout << "Wire" << endl;
+  for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) cout << keyWG/100 ;
+  cout << endl;
+  for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) cout << ((keyWG/10)%10) ;
+  cout << endl;
+  for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) cout << keyWG%10 ;
+  cout << endl;
+  cout << "InJected" << endl;
+  for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) cout << InJected[keyWG] ;
+  cout << endl;
+  cout << "ALCTChamberResult" << endl;
+  for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) cout << chamberResult[keyWG] ;
+  cout << endl;
+  for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) cout << chamberResult2[keyWG] ;
+  cout << endl;
+  printf("%c[0m", '\033'); 
+  //
+  for (int keyWG=0; keyWG<(alct->GetNumberOfChannelsInAlct())/6; keyWG++) ALCTWireScan_[keyWG] = chamberResult[keyWG];
+  //
+}
+//
+void ChamberUtilities::ALCTScanDelays(){
 
   //  unsigned long HCmask[22];
   int CountDelay[20];
@@ -932,9 +701,6 @@ void ChamberUtilities::ALCTScanDelays(){
       //
     }
   }
-
-#endif
-
   //
   for ( int DelaySetting=0; DelaySetting < 20; DelaySetting++ ) cout << CountDelay[DelaySetting] << " " ;
   //
@@ -962,18 +728,15 @@ void ChamberUtilities::ALCTTiming(){
   int alct0_key = 0;
   int alct1_key = 0;
   //
-#ifndef ALCTNEW
-  alct->set_empty(1);
-#else
+  //
+  // set up for this test
   alct->SetSendEmpty(1);
   alct->WriteConfigurationReg();
-  // The next two lines are for diagnostic purposes:
-  //  alct->ReadConfigurationReg();
   alct->PrintConfigurationReg();
-#endif
   //
   thisTMB->SetCLCTPatternTrigger();
   thisTMB->DisableCLCTInputs();
+  //
   //
   for (j=0;j<maxTimeBins;j++){
     for (k=0;k<maxTimeBins;k++) {
@@ -992,70 +755,6 @@ void ChamberUtilities::ALCTTiming(){
    for (j=0;j<maxTimeBins;j++){
       for (k=0;k<maxTimeBins;k++) {
 	//
-#ifndef ALCTNEW
-	int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6/4);
-	int keyWG2 = (alct->GetWGNumber())/6-keyWG;
-	int ChamberSection = alct->GetWGNumber()/6;
-	//
-	(*MyOutput_) << std::endl;
-	(*MyOutput_) << "*******************" << std::endl;
-	(*MyOutput_) << "Injecting at " << dec << keyWG << std::endl;
-	//
-	for (int i=0; i< 22; i++) HCmask[i] = 0;
-	//
-	bitset<672> bits(*HCmask) ;
-	//
-	for (int i=0;i<672;i++){
-	  if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
-	  //if ( i%(alct->GetWGNumber()/6) == (alct->GetWGNumber())/6-keyWG ) bits.set(i);
-	}
-	//
-	bitset<32> Convert;
-	//
-	Convert.reset();
-	//
-	for (int i=0;i<(alct->GetWGNumber());i++){
-	  if ( bits.test(i) ) Convert.set(i%32);
-	  if ( i%32 == 31 ) {
-	    HCmask[i/32] = Convert.to_ulong();
-	    //printf(" Convert %d %d \n",i,Convert.to_ulong());
-	    Convert.reset();
-	  }
-	}
-	//
-	/*
-	  for (int i=0; i<(alct->GetWGNumber()/32); i++) {
-	  if ( i%2 == 0 ) {
-	  if (keyWG<ChamberSection) {
-	  HCmask[i] = 0x1<<keyWG;
-	  } else {
-	  HCmask[i] = 0x1<<(keyWG-ChamberSection);
-	  }
-	  } else {
-	  if (keyWG<ChamberSection) {
-	  HCmask[i] = 0x1<<(keyWG) ;
-	  } else {
-	  HCmask[i] = 0x1<<(keyWG-ChamberSection);
-	  }
-	  }
-	  }
-	*/
-	//for (int i=0;i<22;i++) {
-	//
-	//printf(" %02x ",HCmask[i]);
-	//
-	//if ( i%((alct->GetWGNumber())/8/6+1) == 0 ) printf("\n");
-	//
-	//}
-	//
-	(*MyOutput_) << std::endl ;
-	//
-	alct->alct_write_hcmask(HCmask);
-	alct->alct_read_hcmask(HCmask);
-#else
-	//	int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6/4);
-	//	int keyWG2 = (alct->GetWGNumber())/6-keyWG;
-	//	int ChamberSection = alct->GetWGNumber()/6;
 	int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetNumberOfChannelsInAlct())/6/4);
 	int keyWG2 = (alct->GetNumberOfChannelsInAlct())/6-keyWG;
 	int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
@@ -1064,28 +763,6 @@ void ChamberUtilities::ALCTTiming(){
 	(*MyOutput_) << "*******************" << std::endl;
 	(*MyOutput_) << "Injecting at " << dec << keyWG << std::endl;
 	//
-	//	for (int i=0; i< 22; i++) HCmask[i] = 0;
-	//	//
-	//	bitset<672> bits(*HCmask) ;
-	//	//
-	//	for (int i=0;i<672;i++){
-	//	  if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
-	//	}
-	//	//
-	//	bitset<32> Convert;
-	//	//
-	//	Convert.reset();
-	//	//
-	//	for (int i=0;i<(alct->GetWGNumber());i++){
-	//	  if ( bits.test(i) ) Convert.set(i%32);
-	//	  if ( i%32 == 31 ) {
-	//	    HCmask[i/32] = Convert.to_ulong();
-	//	    Convert.reset();
-	//	  }
-	//	}
-	//	//
-	//	alct->alct_write_hcmask(HCmask);
-	//	alct->alct_read_hcmask(HCmask);
 	for(int layer=0; layer<MAX_NUM_LAYERS; layer++) {
 	  for(int channel=0; channel<(alct->GetNumberOfChannelsInAlct()/6); channel++) {
 	    if (channel==keyWG) {
@@ -1097,7 +774,6 @@ void ChamberUtilities::ALCTTiming(){
 	}
 	alct->WriteHotChannelMask();
 	alct->PrintHotChannelMask();
-#endif
 	//
 	/*
 	  for (int i=0; i<(alct->GetWGNumber())/32; i++ ) {
@@ -1411,103 +1087,8 @@ int ChamberUtilities::FindBestL1aAlct(){
   // Now find the best L1a_delay value for the ALCT
   //
   //thisTMB->SetALCTPatternTrigger();
-#ifndef ALCTNEW
-  unsigned long HCmask[22];
-  /*
-  int keyWG = 16;
-  for (int i=0; i<12; i++) {
-    if ( i%2 == 0 ) {
-      if (keyWG<32) {
-	HCmask[i] = 0x1<<keyWG;
-      } else {
-	HCmask[i] = 0x1<<(keyWG-32);
-      }
-    } else {
-      if (keyWG<32) {
-	HCmask[i] = 0x1<<(keyWG) ;
-      } else {
-	HCmask[i] = 0x1<<(keyWG-32);
-      }
-    }
-  }
-  */
-  /*
-  for (int i=0; i<12; i++ ) {
-    if (i == 0 ) cout << "Layer 0 " ;
-    for(int j=0; j<32; j++ ) 
-      if (((HCmask[i]>>j)&0x1) == 0 ) {
-	cout <<"-";
-      } else {
-	printf("%c[01;44m", '\033');	 
-	cout <<"|";
-	printf("%c[0m", '\033'); 
-      }
-    if ((i+1)%2 == 0 ) {
-      cout << endl;
-      if (i+1<12) cout << "Layer " << (i+1)/2 << " ";
-    }
-  }
-  cout << endl;
-  */
   //
-  int WordCount[200], DMBCount[200];
-  for (int i=0; i<200; i++) {
-    WordCount[i] = 0; 
-    DMBCount[i]=0;
-  }
-  //
-  //unsigned cr[3]  = {0x80fc5fc0, 0x20a03786, 0x8}; // default conf register
-  //
-  unsigned cr[3];
-  //
-  //alct->set_l1a_internal(1);
-  //
-  alct->GetConf(cr,1);
-  //
-  int minlimit = 0;
-  int maxlimit = 150;
-  //
-  for (int l1a=minlimit; l1a<maxlimit; l1a++) {
-    //
-    //while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
-    //
-    int keyWG          = int((rand()/(RAND_MAX+0.01))*(alct->GetWGNumber())/6./2.);
-    int ChamberSection = alct->GetWGNumber()/6;
-    //
-    printf("\n");
-    printf("-----> Injecting at %d \n",keyWG);
-    //
-    for (int i=0; i<22; i++) HCmask[i] = 0;
-    //
-    bitset<672> bits(*HCmask) ;
-    //
-    for (int i=0;i<672;i++){
-      if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
-      //if ( i%(alct->GetWGNumber()/6) == (alct->GetWGNumber())/6-keyWG ) bits.set(i);
-    }
-    //
-    bitset<32> Convert;
-    //
-    Convert.reset();
-    //
-    for (int ii=0;ii<(alct->GetWGNumber());ii++){
-      if ( bits.test(ii) ) Convert.set(ii%32);
-      if ( ii%32 == 31 ) {
-	HCmask[ii/32] = Convert.to_ulong();
-	Convert.reset();
-      }
-    }
-    //
-    alct->alct_write_hcmask(HCmask);
-    alct->alct_read_hcmask(HCmask);
-    //
-    cr[1] = (cr[1] & 0xfffff00f) | ((l1a&0xff)<<4) ;
-    alct->SetConf(cr,1);
-    alct->unpackControlRegister(cr);
-    //
-#else
-    //
-    //  unsigned long HCmask[22];
+  //  unsigned long HCmask[22];
   int WordCount[200], DMBCount[200];
   for (int i=0; i<200; i++) {
     WordCount[i] = 0; 
@@ -1535,30 +1116,6 @@ int ChamberUtilities::FindBestL1aAlct(){
     //
     printf("\n");
     printf("-----> Injecting at %d \n",keyWG);
-    //
-    //    for (int i=0; i<22; i++) HCmask[i] = 0;
-    //    //
-    //    bitset<672> bits(*HCmask) ;
-    //    //
-    //    for (int i=0;i<672;i++){
-    //      if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
-    //    }
-    //    //
-    //    bitset<32> Convert;
-    //    //
-    //    Convert.reset();
-    //    //
-    //    for (int ii=0;ii<(alct->GetWGNumber());ii++){
-    //      if ( bits.test(ii) ) Convert.set(ii%32);
-    //      if ( ii%32 == 31 ) {
-    //	HCmask[ii/32] = Convert.to_ulong();
-    //	Convert.reset();
-    //      }
-    //    }
-    //    //
-    //    alct->alct_write_hcmask(HCmask);
-    //    alct->alct_read_hcmask(HCmask);
-    //
     for(int layer=0; layer<MAX_NUM_LAYERS; layer++) {
       for(int channel=0; channel<(alct->GetNumberOfChannelsInAlct())/6; channel++) {
 	if (channel==keyWG) {
@@ -1571,14 +1128,10 @@ int ChamberUtilities::FindBestL1aAlct(){
     alct->WriteHotChannelMask();
     alct->PrintHotChannelMask();
     //
-    //    cr[1] = (cr[1] & 0xfffff00f) | ((l1a&0xff)<<4) ;
-    //    alct->SetConf(cr,1);
-    //    alct->unpackControlRegister(cr);
     alct->SetL1aDelay(l1a);
     alct->WriteConfigurationReg();
     alct->PrintConfigurationReg();
     //
-#endif
     //
     thisTMB->ResetALCTRAMAddress();
     PulseTestStrips();
@@ -1628,29 +1181,15 @@ int ChamberUtilities::FindBestL1aAlct(){
 //
 int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
   //
-  unsigned cr[3];
-  //
-#ifndef ALCTNEW
-  alct->GetConf(cr,1);
-#else
-  alct->ReadConfigurationReg();
-#endif
-  //
   int WordCount[200];
   for (int i=0; i<200; i++) WordCount[i] = 0;
   //
   for (int l1a=minlimit; l1a<maxlimit+1; l1a++) {
     //
-#ifndef ALCTNEW
-    cr[1] = (cr[1] & 0xfffff00f) | ((l1a&0xff)<<4) ;
-    alct->SetConf(cr,1);
-    alct->unpackControlRegister(cr);
-#else
     alct->SetL1aDelay(l1a);
     alct->WriteConfigurationReg();
     alct->ReadConfigurationReg();
     alct->PrintConfigurationReg();
-#endif
     thisTMB->ResetCounters();
     thisTMB->ResetALCTRAMAddress();
     ::sleep(3);
@@ -1735,7 +1274,9 @@ void ChamberUtilities::PulseTestStrips(int delay){
       //
       thisTMB->DisableCLCTInputs();
       //
-      alct->SetUpPulsing();
+      int amplitude = 255;
+      int strip_mask = 0xff;
+      alct->SetUpPulsing(amplitude,PULSE_AFEBS,strip_mask,ADB_ASYNC);
       //
       beginning = 1;
       //
