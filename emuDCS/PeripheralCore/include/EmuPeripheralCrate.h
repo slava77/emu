@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.43 2006/10/19 13:01:07 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 3.44 2006/10/19 13:39:31 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -4981,47 +4981,18 @@ private:
     *out << cgicc::legend("ALCT Status").set("style","color:blue") << cgicc::p() << std::endl ;
     //
     alct->ReadSlowControlId();
-    *out << "ALCT: Slow Control chip ID = " << std::hex << alct->GetSlowControlChipId()
-	 << " version " << std::hex << alct->GetSlowControlVersionId()
-	 << ": day = " << std::dec << alct->GetSlowControlDay()
-	 << ", month = " << alct->GetSlowControlMonth()
-	 << ", year = " << alct->GetSlowControlYear()
-	 << std::dec << std::endl;
+    //
+    alct->RedirectConfigOutput(out);
+    alct->PrintSlowControlId();
+    alct->RedirectConfigOutput(&std::cout);
     //
     *out << cgicc::br();
     //
     alct->ReadFastControlId();
-    *out << "ALCT Fast Control firmware type: ";
-    if ( alct->GetFastControlAlctType() == FIRMWARE_TYPE_288 ) {
-      *out << "288, ";
-    } else if ( alct->GetFastControlAlctType() == FIRMWARE_TYPE_384 ) {
-      *out << "384, ";
-    } else if ( alct->GetFastControlAlctType() == FIRMWARE_TYPE_672 ) {
-      *out << "672, ";
-    } else {
-      *out << "unknown, ";
-    }
-    if ( alct->GetFastControlRegularMirrorType() == REGULAR_FIRMWARE_TYPE ) {
-      *out << "non-mirrored, ";
-    } else  if ( alct->GetFastControlRegularMirrorType() == MIRROR_FIRMWARE_TYPE ) {
-      *out << "mirrored, ";
-    } else {
-      *out << "unknown, ";
-    }
     //
-    //      if ( alct->GetFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE ) {
-    //	std::cout << "backward, ";
-    //      } else if ( alct->GetFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE ) {
-    //	std::cout << "forward, ";
-    //      }
-    //      if ( alct->GetFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE ) {
-    //	std::cout << "negative, ";
-    //      } else if ( alct->GetFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
-    //	std::cout << "positive, ";
-    //      }
-    *out << "day = " << std::hex << alct->GetFastControlDay();
-    *out << ", month = " << std::hex << alct->GetFastControlMonth();
-    *out << ", year = " << std::hex << alct->GetFastControlYear() << std::dec << std::endl; 
+    alct->RedirectConfigOutput(out);
+    alct->PrintFastControlId();
+    alct->RedirectConfigOutput(&std::cout);
     //
     *out << cgicc::fieldset();
     //
@@ -7407,43 +7378,10 @@ private:
       printf("Reading IDs...") ;
       //
       alct->ReadSlowControlId();
-      std::cout << "ALCT: Slow Control chip ID = " << std::hex << alct->GetSlowControlChipId()
-		<< " version " << alct->GetSlowControlVersionId()
-		<< ": day = " << alct->GetSlowControlDay()
-		<< ", month = " << alct->GetSlowControlMonth()
-		<< ", year = " << alct->GetSlowControlYear()
-		<< std::dec << std::endl;
+      alct->PrintSlowControlId();
+      //
       alct->ReadFastControlId();
-      std::cout << "ALCT Fast Control firmware type: ";
-      if ( alct->GetFastControlAlctType() == FIRMWARE_TYPE_288 ) {
-	std::cout << "288, ";
-      } else if ( alct->GetFastControlAlctType() == FIRMWARE_TYPE_384 ) {
-	std::cout << "384, ";
-      } else if ( alct->GetFastControlAlctType() == FIRMWARE_TYPE_672 ) {
-	std::cout << "672, ";
-      } else {
-	std::cout << "unknown, ";
-      }
-      if ( alct->GetFastControlRegularMirrorType() == REGULAR_FIRMWARE_TYPE ) {
-      	std::cout << "non-mirrored, ";
-      } else  if ( alct->GetFastControlRegularMirrorType() == MIRROR_FIRMWARE_TYPE ) {
-      	std::cout << "mirrored, ";
-      } else {
-      	std::cout << "unknown, ";
-      }
-      //      if ( alct->GetFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE ) {
-      //	std::cout << "backward, ";
-      //      } else if ( alct->GetFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE ) {
-      //	std::cout << "forward, ";
-      //      }
-      //      if ( alct->GetFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE ) {
-      //	std::cout << "negative, ";
-      //      } else if ( alct->GetFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
-      //	std::cout << "positive, ";
-      //      }
-      std::cout << "day = " << std::hex << alct->GetFastControlDay();
-      std::cout << ", month = " << std::hex << alct->GetFastControlMonth();
-      std::cout << ", year = " << std::hex << alct->GetFastControlYear() << std::dec << std::endl; 
+      alct->PrintFastControlId();
       //
       thisTMB->disableAllClocks();
       LOG4CPLUS_INFO(getApplicationLogger(), "Programming ALCT");

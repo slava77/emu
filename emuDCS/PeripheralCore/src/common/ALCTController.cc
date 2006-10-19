@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.24 2006/10/19 09:42:03 rakness Exp $
+// $Id: ALCTController.cc,v 3.25 2006/10/19 13:39:31 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.25  2006/10/19 13:39:31  rakness
+// ALCT tags fixed
+//
 // Revision 3.24  2006/10/19 09:42:03  rakness
 // remove old ALCTController
 //
@@ -845,9 +848,10 @@ void ALCTController::ReadSlowControlId() {
 //
 void ALCTController::PrintSlowControlId() {
   //
-  (*configOut_) << "ALCT: Slow Control chip ID = " << std::hex << GetSlowControlChipId()
+  (*configOut_) << "ALCT: " << chamber_type_string_ 
+		<< " Slow Control chip ID = " << std::hex << GetSlowControlChipId()
 	       << " version " << GetSlowControlVersionId()
-	       << ": day = " << GetSlowControlDay()
+		<< ": day = " << GetSlowControlDay()
 	       << ", month = " << GetSlowControlMonth()
 	       << ", year = " << GetSlowControlYear()
 	       << std::dec << std::endl; 
@@ -1451,7 +1455,7 @@ void ALCTController::ReadFastControlId() {
 //
 void ALCTController::PrintFastControlId() {
   //
-  (*configOut_) << chamber_type_string_ << " ALCT Fast Control firmware type: ";
+  (*configOut_) << "ALCT: " << chamber_type_string_ << " Fast Control firmware type: ";
   // 
   if ( GetFastControlAlctType() == FIRMWARE_TYPE_288 ) {
     (*configOut_) << "288, ";
