@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.44 2006/10/19 13:39:31 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 3.45 2006/10/19 14:21:05 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -103,6 +103,7 @@ protected:
   xdata::UnsignedLong maxNumTriggers_;
   //
   xdata::String xmlFile_;
+  xdata::String CalibrationState_;
   //
   xdata::String TMBFirmware_;
   xdata::String DMBFirmware_;
@@ -367,7 +368,7 @@ public:
     xoap::bind(this, &EmuPeripheralCrate::onDisable,   "Disable",   XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrate::onHalt,      "Halt",      XDAQ_NS_URI);
     //
-    xoap::bind(this, &EmuPeripheralCrate::onCalibrationCfebTime,"CalibrationCfebTime",XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrate::onCalibration,"Calibration",XDAQ_NS_URI);
     //
     // fsm_ is defined in EmuApplication
     fsm_.addState('H', "Halted",     this, &EmuPeripheralCrate::stateChanged);
@@ -422,7 +423,8 @@ public:
     TMBRegisterValue_ = -1;
     CCBRegisterValue_ = -1;
     Operator_ = "Operator";
-    RunNumber_= "0";
+    RunNumber_= "-1";
+    CalibrationState_ = "None";
     MPCBoardID_ = "-2";
     CCBBoardID_ = "-2";
     ControllerBoardID_ = "-2";
@@ -446,6 +448,7 @@ public:
     //
     this->getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
     this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
+    this->getApplicationInfoSpace()->fireItemAvailable("CalibrationState", &CalibrationState_);
     //
     curlCommand_  = "curl -v";
     curlCookies_  = ".curlCookies";
@@ -678,10 +681,31 @@ private:
   // SOAP Callback  
   //
   //
-  xoap::MessageReference EmuPeripheralCrate::onCalibrationCfebTime (xoap::MessageReference message) throw (xoap::exception::Exception)
+  xoap::MessageReference EmuPeripheralCrate::onCalibration(xoap::MessageReference message) throw (xoap::exception::Exception)
     {
       //
-      std::cout << "Calibration Cfeb Time" << std::endl;
+      LOG4CPLUS_INFO(getApplicationLogger(), "Calibration");
+      //
+      ostringstream test;
+      message->writeTo(test);
+      //
+      string setting = extractCalibrationSetting(message);
+      //
+      //LOG4CPLUS_INFO(getApplicationLogger(), test.str());
+      //LOG4CPLUS_INFO(getApplicationLogger(), "Next");
+      LOG4CPLUS_INFO(getApplicationLogger(), setting);
+      //LOG4CPLUS_INFO(getApplicationLogger(), "Done");
+      //
+      //
+      CalibrationState_ = "Busy";
+      //
+      // Do something
+      //
+      LOG4CPLUS_INFO(getApplicationLogger(), setting);
+      //
+      ::sleep(3);
+      //
+      CalibrationState_ = setting;
       //
       return createReply(message);
     }
@@ -2301,6 +2325,29 @@ private:
     this->MenuMonitorTMBTrigger(in,out);
     //
   }
+  //
+  std::string EmuPeripheralCrate::extractCalibrationSetting(xoap::MessageReference message)
+    {
+      xoap::SOAPElement root = message->getSOAPPart()
+	.getEnvelope().getBody();
+      xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+      xoap::SOAPName cali     = envelope.createName("Calibration");
+      xoap::SOAPName setting  = envelope.createName("Setting");
+      //
+      std::vector <xoap::SOAPElement> childElements = root.getChildElements(cali);
+      //
+      std::ostringstream output;
+      //
+      //output << childElements.size() ;
+      //
+      for (int i=0; i<childElements.size(); i++) {
+	output << childElements[i].getAttributeValue(setting);
+      }
+      //
+      return output.str();
+      //
+    }
+  //
   //
   void EmuPeripheralCrate::ClctKey(xgi::Input * in, xgi::Output * out) 
     throw (xgi::exception::Exception){
