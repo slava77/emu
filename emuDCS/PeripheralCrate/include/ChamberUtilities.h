@@ -55,6 +55,7 @@ public:
   void InjectMPCData() ;
   void ALCT_phase_analysis(int rxtxtiming[13][13]);
   void RatTmbDelayScan();
+  void RpcRatDelayScan();       //rpc=0
   void RpcRatDelayScan(int rpc);
   //
   // Move to function class ?
@@ -95,6 +96,8 @@ public:
   inline int  GetCFEBrxPhaseTest(int CFEB) { return CFEBrxPhase_[CFEB] ; }
   inline int  GetMPCdelayTest()            { return MPCdelay_ ; }
   inline int  GetRatTmbDelayTest()            { return RatTmbDelay_ ; }
+  inline int  GetRpcRatDelayTest()         { return GetRpcRatDelayTest(0); }
+  inline int  GetRpcRatDelayTest(int rpc)  { return RpcRatDelay_[rpc] ; }
   //
   inline void SetALCTrxPhaseTest(int value) { ALCTrxPhase_ = value ; }
   inline void SetALCTtxPhaseTest(int value) { ALCTtxPhase_ = value ; }

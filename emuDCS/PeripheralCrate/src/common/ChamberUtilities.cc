@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.9 2006/10/19 09:42:03 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.10 2006/10/19 13:01:07 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.10  2006/10/19 13:01:07  rakness
+// RPC-RAT delay scan in hyperDAQ
+//
 // Revision 3.9  2006/10/19 09:42:03  rakness
 // remove old ALCTController
 //
@@ -2079,12 +2082,15 @@ void ChamberUtilities::RatTmbDelayScan(){
   int ddd_delay;
   int rpc_bad[16] = {};
 
-  //Put RAT into correct mode [0]=sync-mode -> sends a fixed data pattern to TMB to be analyzed
-  //                          [1]=posneg    -> inserts 12.5ns (1/2-cycle) delay in RPC data path
-  //                                           to improve syncing to rising edge of TMB clock
-  //                          [2]=loop_tmb
-  //                          [3]=free_tx0
-  write_data = 0x0003;
+  //Put RAT into sync mode for test [0]=sync-mode -> sends a fixed data pattern to TMB to be analyzed
+  //                                [1]=posneg    -> inserts 12.5ns (1/2-cycle) delay in RPC data path
+  //                                                 to improve syncing to rising edge of TMB clock
+  //                                [2]=loop_tmb
+  //                                [3]=free_tx0
+  //
+  int initial_data = thisTMB->ReadRegister(vme_ratctrl_adr);
+  //
+  write_data = initial_data & 0xfffe | 0x0001;
   thisTMB->WriteRegister(vme_ratctrl_adr,write_data);
 
   //here are the arrays of bits we expect from sync mode:
@@ -2109,8 +2115,8 @@ void ChamberUtilities::RatTmbDelayScan(){
   thisTMB->WriteRegister(rpc_inj_adr,write_data);
 
   //Initial delay values:
-  thisRAT_->ReadRatTmbDelay();
-  int rpc_delay_default = thisRAT_->GetRatTmbDelay();
+  //  thisRAT_->ReadRatTmbDelay();
+  //  int rpc_delay_default = thisRAT_->GetRatTmbDelay();
 
   int irat;
 
@@ -2126,8 +2132,8 @@ void ChamberUtilities::RatTmbDelayScan(){
   //step through ddd_delay
   for (pass=0; pass<=1000; pass++) { //collect statistics
 
-    if ( (pass % 100) == 0 ) 
-      (*MyOutput_) << "Pass = " << std::dec << pass << std::endl;
+    //    if ( (pass % 100) == 0 ) 
+    //      (*MyOutput_) << "Pass = " << std::dec << pass << std::endl;
 
     for (ddd_delay=0; ddd_delay<16; ddd_delay++) {
       count_bad=0;
@@ -2172,13 +2178,13 @@ void ChamberUtilities::RatTmbDelayScan(){
   }
 
   // Put RPC delay back to initial values:
-  (*MyOutput_) << "Putting delay values back to " << rpc_delay_default << std::endl;
-  thisRAT_->SetRatTmbDelay(rpc_delay_default);
-  thisRAT_->WriteRatTmbDelay();
+  //  (*MyOutput_) << "Putting delay values back to " << rpc_delay_default << std::endl;
+  //  thisRAT_->SetRatTmbDelay(rpc_delay_default);
+  //  thisRAT_->WriteRatTmbDelay();
 
   // ** Take TMB out of sync mode **
-  write_data = 0x0002;
-  thisTMB->WriteRegister(vme_ratctrl_adr,write_data);
+  //  write_data = 0x0002;
+  thisTMB->WriteRegister(vme_ratctrl_adr,initial_data);
 
   int rpc_delay;
 
@@ -2198,6 +2204,13 @@ void ChamberUtilities::RatTmbDelayScan(){
 
   return;
 }
+//
+void ChamberUtilities::RpcRatDelayScan() {
+  //
+  RpcRatDelayScan(0);
+  return;
+}
+//
 void ChamberUtilities::RpcRatDelayScan(int rpc) {
   //** Find optimal rpc_rat_clock delay = phasing between RPC[rpc] and RAT **
 
@@ -2206,44 +2219,46 @@ void ChamberUtilities::RpcRatDelayScan(int rpc) {
   //                                           to improve syncing to rising edge of TMB clock
   //                          [2]=loop_tmb
   //                          [3]=free_tx0
-  int write_data = 0x0002;
-  thisTMB->WriteRegister(vme_ratctrl_adr,write_data);
+  //  int write_data = 0x0002;
+  //  thisTMB->WriteRegister(vme_ratctrl_adr,write_data);
   //
-  thisRAT_->ReadRatUser1();                           //read initial delay values
-  int initial_delay = thisRAT_->GetRpcRatDelay(rpc);  //get values into local variable
+  (*MyOutput_) << "Performing RPC" << rpc << "-RAT delay scan..." << std::endl;;
+  //
+  //  thisRAT_->ReadRatUser1();                           //read initial delay values
+  //  int initial_delay = thisRAT_->GetRpcRatDelay(rpc);  //get values into local variable
   //
   int delay;
   //
   int parity_err_ctr[16] = {};
   //
   for (delay = 0; delay<=12; delay++) {                             //steps of 2ns
-    (*MyOutput_) << "set delay = " << delay 
-		 << " for RPC " << rpc
-		 << std::endl;
+    //    (*MyOutput_) << "set delay = " << delay 
+    //		 << " for RPC " << rpc
+    //		 << std::endl;
     thisRAT_->SetRpcRatDelay(rpc,delay);
     thisRAT_->WriteRpcRatDelay();
     thisRAT_->PrintRpcRatDelay();
     //
     thisRAT_->reset_parity_error_counter();
     //
-    if (delay>0)
-      (*MyOutput_) << "parity error for delay " << delay-1 
-		   << " = " << parity_err_ctr[delay-1]
-		   << std::endl;
-    //
     ::sleep(1);                                                    //accumulate statistics
     //
     thisRAT_->ReadRatUser1();
     parity_err_ctr[delay] = thisRAT_->GetRatRpcParityErrorCounter(rpc);
+    //
+    //    (*MyOutput_) << "parity error for delay " << delay 
+    //		     << " = " << parity_err_ctr[delay]
+    //		 << std::endl;
+    //
   }
   //
-  (*MyOutput_) << "Putting inital delay values back..." << std::endl;
-  thisRAT_->SetRpcRatDelay(rpc,initial_delay);
-  thisRAT_->WriteRpcRatDelay();
+  //  (*MyOutput_) << "Putting inital delay value = " << initial_delay << " back..." << std::endl;
+  //  thisRAT_->SetRpcRatDelay(rpc,initial_delay);
+  //  thisRAT_->WriteRpcRatDelay();
   //
   // ** print out results **
   (*MyOutput_) << "********************************" << std::endl;
-  (*MyOutput_) << "**** RAT-RPC" << rpc << " delay results ****" << std::endl;
+  (*MyOutput_) << "**** RPC" << rpc << "-RAT delay results ****" << std::endl;
   (*MyOutput_) << "********************************" << std::endl;
   (*MyOutput_) << " delay    parity counter errors" << std::endl;
   (*MyOutput_) << "-------   ---------------------" << std::endl;
@@ -2287,6 +2302,8 @@ int ChamberUtilities::window_analysis(int * data, const int length) {
   if (begin_channel < 0) {
     (*MyOutput_) << std::endl;
     (*MyOutput_) << "Scan is all 0's:  Something is wrong... "<< std::endl;
+    (*MyOutput_) << "-----------------------------------------------" << std::endl;
+    (*MyOutput_) << std::endl;
     return 999;
   }
 
@@ -2313,6 +2330,8 @@ int ChamberUtilities::window_analysis(int * data, const int length) {
   if (window_counter < 0) {
     (*MyOutput_) << std::endl;
     (*MyOutput_) << "No windows with counts above count_threshold.  Something is wrong... "<< std::endl;
+    (*MyOutput_) << "-----------------------------------------------" << std::endl;
+    (*MyOutput_) << std::endl;
     return 999;
   }    
 
@@ -2357,6 +2376,8 @@ int ChamberUtilities::window_analysis(int * data, const int length) {
     }
   }
   (*MyOutput_) << "-----------------------------------------------" << std::endl;
+  (*MyOutput_) << std::endl;
+  //
   return bestValue;
 }
 //
