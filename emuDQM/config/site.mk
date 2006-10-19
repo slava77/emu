@@ -8,10 +8,13 @@
 #  Author: Holger Stoeck
 #  Modifications:
 #
-#  $Id: site.mk,v 1.3 2006/10/18 17:09:53 pakhotin Exp $
+#  $Id: site.mk,v 1.4 2006/10/19 20:12:24 barvic Exp $
 #
 #  Revision History
 #  $Log: site.mk,v $
+#  Revision 1.4  2006/10/19 20:12:24  barvic
+#  changed default path to BOOST libs to /usr/include. boost and boost-devel RPMs should be installed
+#
 #  Revision 1.3  2006/10/18 17:09:53  pakhotin
 #
 #  Definitions of errors from DDU trailer were updated. Some histograms were updated.
@@ -46,8 +49,8 @@
 
 EMU_ROOT = $(HOME)
 ORCA_DIR = $(HOME)/ORCA
-CMSSW	 = $(HOME)/local/CMSSW/src
-BOOST    = $(HOME)/local/cms/lcg/external/boost/1.33.1/slc3_ia32_gcc323/include/boost-1_33_1
+CMSSW	 = $(HOME)/CMSSW/src
+BOOST    = /usr/include
 XDAQDIR    = $(XDAQ_DIR)
 XERDIR     = $(XER_DIR)
 HALDIR     = $(HAL_DIR)
