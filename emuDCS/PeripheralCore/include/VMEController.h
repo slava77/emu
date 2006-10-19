@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.7 2006/10/02 18:18:33 mey Exp $
+// $Id: VMEController.h,v 3.8 2006/10/19 10:17:25 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 3.8  2006/10/19 10:17:25  mey
+// Update
+//
 // Revision 3.7  2006/10/02 18:18:33  mey
 // UPdate
 //
@@ -228,7 +231,7 @@ private:
   /// if it's not reset when we're done with JTAG,
   /// the Dynatem will hang.
   int plev;
-  int idevo;
+  int idevo, vmeaddo;
   int board; //board type
   unsigned long add_ucla; // current VME address for JTAG
   unsigned long vmeadd; // current VME base address for the module
