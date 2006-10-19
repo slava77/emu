@@ -8,5 +8,6 @@
 #include "toolbox/exception/Handler.h"
 #include "toolbox/net/URN.h"
 #include "toolbox/fsm/FiniteStateMachine.h"
+#include "toolbox/PerformanceMeter.h"
 
 #endif

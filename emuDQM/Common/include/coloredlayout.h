@@ -15,21 +15,21 @@
 
 #include <vector>
 
-#define GRAY    "\e[30;40m"
-#define RED     "\e[31;40m"
-#define GREEN   "\e[32;40m"
-#define YELLOW  "\e[33;40m"
-#define BLUE    "\e[34;40m"
-#define MAGENTA "\e[35;40m"
-#define CYAN    "\e[36;40m"
-#define WHITE   "\e[37;40m"
-#define NORM    "\e[0m"
+#define CL_GRAY    "\e[30;40m"
+#define CL_RED     "\e[31;40m"
+#define CL_GREEN   "\e[32;40m"
+#define CL_YELLOW  "\e[33;40m"
+#define CL_BLUE    "\e[34;40m"
+#define CL_MAGENTA "\e[35;40m"
+#define CL_CYAN    "\e[36;40m"
+#define CL_WHITE   "\e[37;40m"
+#define CL_NORM    "\e[0m"
 
-#define INFO    GREEN
-#define WARN    YELLOW
-#define DEBUG   WHITE
-#define ERROR   RED
-#define FATAL   RED
+#define MSG_INFO    CL_GREEN
+#define MSG_WARN    CL_YELLOW
+#define MSG_DEBUG   CL_WHITE
+#define MSG_ERROR   CL_RED
+#define MSG_FATAL   CL_RED
 
 using namespace std;
 // using namespace log4cplus;
@@ -76,7 +76,7 @@ namespace log4cplus {
 		output << event.getTimestamp().getFormattedTime(dateFormat, use_gmtime) << "| "
            	<< colormap[event.getLogLevel()] << llmCache.toString(event.getLogLevel())
            	<< LOG4CPLUS_TEXT(" - ")
-           	<< event.getMessage() << NORM
+           	<< event.getMessage() << CL_NORM
            	<< LOG4CPLUS_TEXT("\n");
 	}
 
@@ -89,11 +89,11 @@ namespace log4cplus {
 	{
 		colormap.clear();
 		colormap[OFF_LOG_LEVEL]="";
-		colormap[FATAL_LOG_LEVEL]=FATAL;
-		colormap[ERROR_LOG_LEVEL]=ERROR;
-		colormap[WARN_LOG_LEVEL]=WARN;
-		colormap[INFO_LOG_LEVEL]=INFO;
-		colormap[DEBUG_LOG_LEVEL]=DEBUG;
+		colormap[FATAL_LOG_LEVEL]=MSG_FATAL;
+		colormap[ERROR_LOG_LEVEL]=MSG_ERROR;
+		colormap[WARN_LOG_LEVEL]=MSG_WARN;
+		colormap[INFO_LOG_LEVEL]=MSG_INFO;
+		colormap[DEBUG_LOG_LEVEL]=MSG_DEBUG;
 		colormap[TRACE_LOG_LEVEL]="";
 		colormap[ALL_LOG_LEVEL]="";
 		colormap[NOT_SET_LOG_LEVEL]="";
