@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.45 2006/10/19 14:21:05 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.46 2006/10/20 10:01:24 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -686,14 +686,14 @@ private:
       //
       LOG4CPLUS_INFO(getApplicationLogger(), "Calibration");
       //
-      ostringstream test;
-      message->writeTo(test);
+      //ostringstream test;
+      //message->writeTo(test);
       //
       string setting = extractCalibrationSetting(message);
       //
       //LOG4CPLUS_INFO(getApplicationLogger(), test.str());
       //LOG4CPLUS_INFO(getApplicationLogger(), "Next");
-      LOG4CPLUS_INFO(getApplicationLogger(), setting);
+      //LOG4CPLUS_INFO(getApplicationLogger(), setting);
       //LOG4CPLUS_INFO(getApplicationLogger(), "Done");
       //
       //
@@ -703,7 +703,7 @@ private:
       //
       LOG4CPLUS_INFO(getApplicationLogger(), setting);
       //
-      ::sleep(3);
+      ::sleep(1);
       //
       CalibrationState_ = setting;
       //
@@ -958,10 +958,12 @@ private:
     //
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+    //
     //*out << cgicc::title(title) << std::endl;
     //*out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << std::endl;
     //
-    xgi::Utils::getPageHeader(out,title,"","","");
+    std::string myUrn = getApplicationDescriptor()->getURN().c_str();
+    xgi::Utils::getPageHeader(out,title,myUrn,"","");
     //
   }
   //

@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.15 2006/10/19 14:21:10 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.16 2006/10/20 10:01:25 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -535,6 +535,53 @@ public:
     //
   }
   //
+  int EmuPeripheralCrateManager::CompareEmuPeripheralCrateCalibrationState(std::string state_compare){
+    //
+    int compare =0;
+    //
+    std::vector<xdaq::ApplicationDescriptor * >  descriptor =
+      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
+    //
+    vector <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
+    for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) 
+      {
+	//
+	std::string classNameStr = (*itDescriptor)->getClassName();
+	std::string url = (*itDescriptor)->getContextDescriptor()->getURL();
+	std::string urn = (*itDescriptor)->getURN();  	
+	//
+	xoap::MessageReference reply;
+	//
+	bool failed = false ;
+	//
+	try{
+	  xoap::MessageReference msg   = QueryPeripheralCrateInfoSpace();
+	  reply = getApplicationContext()->postSOAP(msg, (*itDescriptor));
+	}
+	//
+	catch (xdaq::exception::Exception& e) 
+	  {
+	    failed = true;
+	  }
+	//
+	if(!failed) {
+	  xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	  if (body.hasFault()) {
+	    std::cout << "No connection. " << body.getFault().getFaultString() << std::endl;
+	  } else {
+	    //reply->writeTo(std::cout);
+	    std::string state = extractCalibrationState(reply); 
+	    std::cout << "States " << state << " " << state_compare << std::endl;
+	    if ( state == state_compare ) compare++;
+	  }
+	}
+	//
+      }    
+    //
+    return compare;
+    //
+  }
+  //
   void EmuPeripheralCrateManager::CheckEmuPeripheralCrateCalibrationState(xgi::Input * in, xgi::Output * out ){
     //
     MyHeader(in,out,"Check EmuperipheralCrate Calibration State");
@@ -576,7 +623,8 @@ public:
 	  } else {
 	    *out << cgicc::span().set("style","color:green");
 	    reply->writeTo(std::cout);
-	    *out << "(" << extractCalibrationState(reply) << ")";
+	    std::string state = extractCalibrationState(reply); 
+	    *out << "(" <<  state << ")";
 	    *out << cgicc::span();
 	  }
 	}
@@ -631,16 +679,23 @@ public:
     //
       *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
       *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+      //
       //*out << cgicc::title(title) << std::endl;
       //*out << "<a href=\"/\"><img border=\"0\" src=\"/daq/xgi/images/XDAQLogo.gif\" title=\"XDAQ\" alt=\"\" style=\"width: 145px; height: 89px;\"></a>" << h2(title) << std::endl;
       //
-      xgi::Utils::getPageHeader(out,title,"","","");
+      cgicc::Cgicc cgi(in);
+      //
+      const CgiEnvironment& env = cgi.getEnvironment();
+      //
+      std::string myUrl = getApplicationDescriptor()->getContextDescriptor()->getURL();
+      std::string myUrn = getApplicationDescriptor()->getURN();
+      xgi::Utils::getPageHeader(out,title,myUrl,myUrn,"");
       //
     }
   //
   string EmuPeripheralCrateManager::extractCalibrationState(xoap::MessageReference message)
     {
-      LOG4CPLUS_INFO(getApplicationLogger(), "extractCalibrationState");
+      //LOG4CPLUS_INFO(getApplicationLogger(), "extractCalibrationState");
       xoap::SOAPElement root = message->getSOAPPart()
 	.getEnvelope().getBody().getChildElements(*(new xoap::SOAPName("ParameterGetResponse", "", "")))[0];
       xoap::SOAPElement properties = root.getChildElements(*(new xoap::SOAPName("properties", "", "")))[0];
@@ -651,7 +706,7 @@ public:
   //
   string EmuPeripheralCrateManager::extractState(xoap::MessageReference message)
     {
-      LOG4CPLUS_INFO(getApplicationLogger(), "extractState");
+      //LOG4CPLUS_INFO(getApplicationLogger(), "extractState");
       xoap::SOAPElement root = message->getSOAPPart()
 	.getEnvelope().getBody().getChildElements(*(new xoap::SOAPName("ParameterGetResponse", "", "")))[0];
       xoap::SOAPElement properties = root.getChildElements(*(new xoap::SOAPName("properties", "", "")))[0];
@@ -851,7 +906,7 @@ public:
     }
     //
     //
-    msg->writeTo(std::cout);
+    //msg->writeTo(std::cout);
     //
     return msg;
     //
@@ -1358,7 +1413,16 @@ public:
       SendSOAPMessageXRelaySimple("Calibration","Reset Now");
       //
       for (int i=0; i<20; i++) {
-	SendSOAPMessageXRelaySimple("Calibration","Next Setting");
+	int compare = -1;
+	ostringstream output;      
+	output << "Next Setting " << i ;
+	SendSOAPMessageXRelaySimple("Calibration",output.str());
+	while (compare!=2){
+	  compare = CompareEmuPeripheralCrateCalibrationState(output.str());
+	  ostringstream compare_string;
+	  compare_string << "compare " <<  compare << std::endl;
+	  LOG4CPLUS_INFO(getApplicationLogger(), compare_string.str());
+	}
       }
       //
       this->Default(in,out);
