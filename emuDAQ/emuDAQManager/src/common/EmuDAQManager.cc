@@ -2703,12 +2703,17 @@ void EmuDAQManager::controlDQM( const string action )
       }
     catch(xcept::Exception e)
       {
-	stringstream oss;
+// 	stringstream oss;
 	
-	oss << "Failed to " << action << " ";
-	oss << (*mon)->getClassName() << (*mon)->getInstance();
+// 	oss << "Failed to " << action << " ";
+// 	oss << (*mon)->getClassName() << (*mon)->getInstance();
 	
-	XCEPT_RETHROW(emuDAQManager::exception::Exception, oss.str(), e);
+// 	XCEPT_RETHROW(emuDAQManager::exception::Exception, oss.str(), e);
+
+	// Don't raise exception here. Go on to try to deal with the others.
+	LOG4CPLUS_ERROR(logger_, "Failed to " << action << " " 
+			<< (*mon)->getClassName() << (*mon)->getInstance() << " "
+			<< xcept::stdformat_exception_history(e));
       }
   }
  
@@ -4009,7 +4014,7 @@ void EmuDAQManager::enableAction(toolbox::Event::Reference e)
       catch(xcept::Exception ex)
 	{
 	  XCEPT_RETHROW(toolbox::fsm::exception::Exception,
-			"Failed to configure the EmuMonitors of DQM", ex);
+			"Failed to enable the EmuMonitors of DQM", ex);
 	}
     }
 
@@ -4057,7 +4062,7 @@ void EmuDAQManager::haltAction(toolbox::Event::Reference e)
       catch(xcept::Exception ex)
 	{
 	  XCEPT_RETHROW(toolbox::fsm::exception::Exception,
-			"Failed to configure the EmuMonitors of DQM", ex);
+			"Failed to halt the EmuMonitors of DQM", ex);
 	}
     }
 
