@@ -65,25 +65,26 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
 
   //printf(" ENTERING devdo, idev idevo dev %d %d %d \n",idev,idevo,dev);
   /****** check we have same old device otherwise we need to initialize */
-  init=1;
+  init=0;
   //
-  //  if(idev!=idevo){
-  //    init=1;
-  //    printf(" idev idevo %d %d plev %d \n",idev,idevo,plev);
-  //  }
-    if(idev==1){
-      if(dev==1||dev==7)feuse=0x01;
-      if(dev==2||dev==8)feuse=0x02;
-      if(dev==3||dev==9)feuse=0x04;
-      if(dev==4||dev==10)feuse=0x08;
-      if(dev==5||dev==11)feuse=0x10;
-      if(dev==6||dev==12)feuse=0x1F;
-      //  printf(" feuse %d \n",feuse);
-      if(feuseo!=feuse)init=1;
-      feuseo=feuse;
-    }
+  if(idev!=idevo or vmeadd != vmeaddo ){
+    init=1;
+  }
+  //
+  if(idev==1){
+    if(dev==1||dev==7)feuse=0x01;
+    if(dev==2||dev==8)feuse=0x02;
+    if(dev==3||dev==9)feuse=0x04;
+    if(dev==4||dev==10)feuse=0x08;
+    if(dev==5||dev==11)feuse=0x10;
+    if(dev==6||dev==12)feuse=0x1F;
+    if(feuseo!=feuse)init=1;
+    feuseo=feuse;
+  }
+  //
   idevo=idev;
-
+  vmeaddo = vmeadd;
+  //
   //  printf(" about to initialize plev idve devo init %d %d %d %d \n",plev,idev,idevo,init);
 /************  JTAG initialize ******************/
 /************  immediate instruction nonJTAG ****/
@@ -93,42 +94,41 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
   switch(idev){
 
    case 1:  /* JTAG feboard */
-  /* send down 1 level */
-     if(init==1){ 
-      ife=1;
-    //  fprintf(fplog," init feboard %d \n",feuse);
-      add_i=vmeadd|msk01|msk_i;
-      add_d=vmeadd|msk01|msk_d;
-      add_dh=vmeadd|msk01|msk_dh;
-      add_ds=vmeadd|msk01|msk_ds;
-      add_dt=vmeadd|msk01|msk_dt;
-      add_rst=vmeadd|msk01|msk_rst;
-      add_sw=vmeadd|msk01|msk_sw;
-      add_sr=vmeadd|msk01|msk_sr;
-      add_r=vmeadd|msk01|msk_r;
-      setuse();
+     /* send down 1 level */
+     ife=1;
+     add_i=vmeadd|msk01|msk_i;
+     add_d=vmeadd|msk01|msk_d;
+     add_dh=vmeadd|msk01|msk_dh;
+     add_ds=vmeadd|msk01|msk_ds;
+     add_dt=vmeadd|msk01|msk_dt;
+     add_rst=vmeadd|msk01|msk_rst;
+     add_sw=vmeadd|msk01|msk_sw;
+     add_sr=vmeadd|msk01|msk_sr;
+     add_r=vmeadd|msk01|msk_r;
+     if(init==1){        
+       setuse();
      }
-   break;
-
+     break;
+     
    case 2:   /* JTAG motherboard control */ 
-     if(init==1){
-      feuse=0xff;
-      ife=0; 
+     //if(init==1){
+     feuse=0xff;
+     ife=0; 
       //  fprintf(fplog," init daqmb controller \n");
-      add_i=vmeadd|msk02|msk_i;
-      add_d=vmeadd|msk02|msk_d;
-      add_dh=vmeadd|msk02|msk_dh;
-      add_ds=vmeadd|msk02|msk_ds;
-      add_dt=vmeadd|msk02|msk_dt;
-      add_rst=vmeadd|msk02|msk_rst;
-      add_sw=vmeadd|msk02|msk_sw;
-      add_sr=vmeadd|msk02|msk_sr;
-      add_r=vmeadd|msk02|msk_r;
-     }
+     add_i=vmeadd|msk02|msk_i;
+     add_d=vmeadd|msk02|msk_d;
+     add_dh=vmeadd|msk02|msk_dh;
+     add_ds=vmeadd|msk02|msk_ds;
+     add_dt=vmeadd|msk02|msk_dt;
+     add_rst=vmeadd|msk02|msk_rst;
+     add_sw=vmeadd|msk02|msk_sw;
+     add_sr=vmeadd|msk02|msk_sr;
+     add_r=vmeadd|msk02|msk_r;
+      //}
    break;
 
    case 3:   /* JTAG motherboard prom */ 
-     if(init==1){
+     //if(init==1){
       ife=0;
       // printf(" init daqmb prom \n");
       add_i=vmeadd|msk03|msk_i;
@@ -140,11 +140,11 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
       add_sw=vmeadd|msk03|msk_sw;
       add_sr=vmeadd|msk03|msk_sr;
       add_r=vmeadd|msk03|msk_r;    
-     }
+      //}
    break;
 
   case 4:   /* JTAG vme-motherboard prom */
-    if(init==1){
+    //if(init==1){
      feuse=0xff;
      ife=0;
      // printf(" init daqmb vme prom \n");
@@ -157,7 +157,7 @@ void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const ch
      add_sw=vmeadd|msk04|msk_sw;
      add_sr=vmeadd|msk04|msk_sr;
      add_r=vmeadd|msk04|msk_r;    
-    }
+     //}
    break;
 
   case 5: /* DAC calibration CDAC */
