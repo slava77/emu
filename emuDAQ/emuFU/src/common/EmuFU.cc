@@ -1789,7 +1789,13 @@ throw (emuFU::exception::Exception)
 
     if ( fileWriter_ )
       {
-	fileWriter_->writeData( startOfPayload, sizeOfPayload );
+	try{
+	  fileWriter_->writeData( startOfPayload, sizeOfPayload );
+	}
+	catch(string e){
+	  LOG4CPLUS_FATAL( logger_, e );
+	  moveToFailedState();
+	}
       }
 
     addDataForClients( runNumber_.value_,

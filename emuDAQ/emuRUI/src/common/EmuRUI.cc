@@ -2529,7 +2529,13 @@ int EmuRUI::continueConstructionOfSuperFrag()
 	  LOG4CPLUS_FATAL( logger_, e );
 	  moveToFailedState();
 	}
-	fileWriter_->writeData( data, dataLength );
+	try{
+	  fileWriter_->writeData( data, dataLength );
+	}
+	catch(string e){
+	  LOG4CPLUS_FATAL( logger_, e );
+	  moveToFailedState();
+	}
       }
     if ( badEventsFileWriter_ )
       {
@@ -2540,7 +2546,15 @@ int EmuRUI::continueConstructionOfSuperFrag()
 	  LOG4CPLUS_ERROR( logger_, e );
 	  // Don't moveToFailedState, bad events file is not worth stopping the run for.
 	}
-	if ( badData ) badEventsFileWriter_->writeData( data, dataLength );
+	if ( badData ){
+	  try{
+	    badEventsFileWriter_->writeData( data, dataLength );
+	  }
+	  catch(string e){
+	    LOG4CPLUS_ERROR( logger_, e );
+	    // Don't moveToFailedState, bad events file is not worth stopping the run for.
+	  }
+	}
       }
 
     // Store this data to be sent to clients (if any)
