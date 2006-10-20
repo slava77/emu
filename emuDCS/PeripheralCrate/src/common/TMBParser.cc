@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.8 2006/10/19 09:42:03 rakness Exp $
+// $Id: TMBParser.cc,v 3.9 2006/10/20 13:09:54 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.9  2006/10/20 13:09:54  mey
+// UPdate
+//
 // Revision 3.8  2006/10/19 09:42:03  rakness
 // remove old ALCTController
 //
@@ -283,8 +286,12 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate,xercesc::DOMNode
 	RAT * rat_ = new RAT(tmb_);
 	tmb_->SetAlct(alct_); //store alct_ pointer in tmb_
 	tmb_->SetRat(rat_); //store rat_  in tmb_
+	//
 	//RAT
-       	//alctParser_.fillInt("rpc_rat_delay", rat_->rat_tmb_delay_);
+       	if(alctParser_.fillInt("rpc0_rat_delay",delay)){
+	  rat_->SetRpcRatDelay(0,delay);
+	}
+	//
 	//ALCT
 	//
 	//
@@ -385,11 +392,11 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate,xercesc::DOMNode
       }
       daughterNode = daughterNode->getNextSibling();
     }
-    }
-    std::cout << "Done TMBparser" << std::endl;
-  #ifdef debugV  
-    std::cout << "finished TMBParsing" << std::endl;
-  #endif
+  }
+  std::cout << "Done TMBparser" << std::endl;
+#ifdef debugV  
+  std::cout << "finished TMBParsing" << std::endl;
+#endif
 }
 TMBParser::~TMBParser(){
   //  delete tmb_;

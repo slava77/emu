@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.7 2006/10/19 09:42:03 rakness Exp $
+// $Id: Crate.cc,v 3.8 2006/10/20 13:09:44 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 3.8  2006/10/20 13:09:44  mey
+// UPdate
+//
 // Revision 3.7  2006/10/19 09:42:03  rakness
 // remove old ALCTController
 //
@@ -92,6 +95,7 @@
 #include "TMB.h"
 #include "MPC.h"
 #include "CCB.h"
+#include "RAT.h"
 #include "ALCTController.h"
 #include "ChamberUtilities.h"
 #include "Chamber.h"
@@ -153,31 +157,6 @@ std::vector<ChamberUtilities> Crate::chamberUtilsMatch() const {
 std::vector<Chamber*> Crate::chambers() const {
   //
   return theChambers;
-  //
-}
-//
-std::vector<Chamber> Crate::chambersMatch() const {
-  //
-  std::vector<DAQMB *> dmbVector = daqmbs();
-  std::vector<TMB *>   tmbVector = tmbs();
-  std::vector<Chamber>   result;
-  //
-  for( int i=0; i< dmbVector.size(); i++) {
-      for( int j=0; j< tmbVector.size(); j++) {
-	//
-	if ( (tmbVector[j]->slot()+1) == (dmbVector[i]->slot()) ) {
-	  Chamber chamber ;
-	  chamber.SetTMB(tmbVector[j]);
-	  chamber.SetDMB(dmbVector[i]);
-	  chamber.SetMPC(this->mpc());
-	  chamber.SetCCB(this->ccb());
-	  result.push_back(chamber);
-	}
-	//
-      }
-  }
-  //
-  return result;
   //
 }
 //
@@ -280,6 +259,13 @@ void Crate::configure() {
       if(alct) {
 	std::cout << "alct # =" << i << std::endl;
 	alct->configure();
+	//
+      }
+      //
+      RAT * rat = myTmbs[i]->getRAT();
+      if(rat) {
+	//
+	rat->configure();
 	//
       }
       //
