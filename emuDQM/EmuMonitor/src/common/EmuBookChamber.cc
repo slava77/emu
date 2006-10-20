@@ -142,6 +142,38 @@ map<string, TH1*> EmuLocalPlotter::book_chamber(int id) {
 	consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()), 0,cnv[cnvname]);
 //KK end
 
+// Should be removed after MTCC because this canvas is moved to "DMB: FEBs DAV and Unpacked"
+	cnvtitle = "CSC: Data Block Finding Efficiency";
+	cnvname  = path_to_folder + IDTextShort + cnvtitle;
+	cnvtitle = cnvtitle + IDTextLong;
+	cnv[cnvname] = new ConsumerCanvas(cnvname.c_str(),cnvname.c_str(),cnvtitle.c_str(),1,1);
+		hname = Form("hist/h%sCSC_Efficiency", ChamberID.Data());
+		h[hname] = new TH1F(TString(hname.c_str()), "", 3, 0, 3); // KK 5->3
+		h[hname]->SetYTitle("Efficiency (% of total number of events)");
+		h[hname]->SetMinimum(0.0);
+		h[hname]->GetXaxis()->SetBinLabel(1,"ALCT Found");    
+		h[hname]->GetXaxis()->SetBinLabel(2,"TMB Found");     
+		h[hname]->GetXaxis()->SetBinLabel(3,"CFEB Found");    
+		h[hname]->SetFillColor(48);
+		h[hname]->SetOption("histtext");
+		cnv[cnvname]->cd(1);
+		h[hname]->Draw();
+		gStyle->SetOptStat("e");
+		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
+
+		hname = Form("hist/h%sCSC_Rate",ChamberID.Data());
+		h[hname] = new TH1F(TString(hname.c_str()), "", 5, 0, 5);
+		h[hname]->SetYTitle("Efficiency");
+		h[hname]->GetXaxis()->SetBinLabel(1,"DDU Events");
+		h[hname]->GetXaxis()->SetBinLabel(2,"DMB Found");
+		h[hname]->GetXaxis()->SetBinLabel(3,"ALCT Found");
+		h[hname]->GetXaxis()->SetBinLabel(4,"CLCT Found");
+		h[hname]->GetXaxis()->SetBinLabel(5,"CFEB Found");
+		h[hname]->SetFillColor(48);
+		h[hname]->SetOption("histtext");
+		consinfo->addObject(TString(hname.c_str()), TString(dir.c_str()), 0, h[hname]);
+	consinfo->addObject(TString(cnvname.c_str()),TString(dir.c_str()),0,cnv[cnvname]);
+
 //DMBs
 	if(debug_printout) LOG4CPLUS_INFO(logger_, "CSC " << CrateID << ":" << DMBID << "> " << "Booking New DMB Canvases...");
 	if(folders) path_to_folder = "DMB/";
