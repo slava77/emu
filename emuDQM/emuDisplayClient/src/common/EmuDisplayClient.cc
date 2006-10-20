@@ -777,6 +777,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestObjectsL
   xoap::SOAPElement command = body.addBodyElement(commandName );
     
   std::map<std::string, std::list<std::string> > bmap;
+  bmap.clear();
   // Get reply from DQM node and populate TConsumerInfo list
   try
     {
@@ -850,6 +851,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestObjectsL
     }
   catch (xdaq::exception::Exception& e)
     {
+	return bmap;
       // handle exception
     }
 
@@ -870,6 +872,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestCanvases
   xoap::SOAPElement command = body.addBodyElement(commandName );
     
   std::map<std::string, std::list<std::string> > bmap;
+  bmap.clear();
   // Get reply from DQM node and populate TConsumerInfo list
   try
     {
@@ -932,6 +935,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestCanvases
     }
   catch (xdaq::exception::Exception& e)
     {
+	return bmap;
       // handle exception
     }
 
@@ -1017,10 +1021,11 @@ TMessage* EmuDisplayClient::requestObjects(xdata::Integer nodeaddr, std::string 
 	  errmsg += fault.getFaultString();
 	  XCEPT_RAISE(xoap::exception::Exception, errmsg);
 	} else { 
-          LOG4CPLUS_INFO (getApplicationLogger(), "Received requestObjects reply from " << d->getClassName() << " ID" << d->getLocalId());
+          LOG4CPLUS_INFO (getApplicationLogger(), "Received requestObjects reply from " << d->getClassName() << " ID" << d->getLocalId());	  
 	  std::list<xoap::AttachmentPart*> attachments = reply->getAttachments();
 	  std::list<xoap::AttachmentPart*>::iterator iter;
-
+	  if (attachments.size() == 0) LOG4CPLUS_WARN (getApplicationLogger(), "Received empty object " << folder << "/" << objname);
+	  
 	  for (iter = attachments.begin(); iter != attachments.end(); iter++)
 	    {
 	      int size = (*iter)->getSize();
@@ -1042,6 +1047,7 @@ TMessage* EmuDisplayClient::requestObjects(xdata::Integer nodeaddr, std::string 
     } 
   catch (xdaq::exception::Exception& e)
     {
+	return buf;
       // handle exception
     }	
   
@@ -1098,6 +1104,7 @@ TMessage* EmuDisplayClient::requestCanvas(xdata::Integer nodeaddr, std::string f
           LOG4CPLUS_INFO (getApplicationLogger(), "Received requestCanvas: \"" << folder << "/" << objname << "\" reply from " << d->getClassName() << " ID" << d->getLocalId());
 	  std::list<xoap::AttachmentPart*> attachments = reply->getAttachments();
 	  std::list<xoap::AttachmentPart*>::iterator iter;
+	  if (attachments.size() == 0) LOG4CPLUS_WARN (getApplicationLogger(), "Received empty object " << folder << "/" << objname);
 
 	  for (iter = attachments.begin(); iter != attachments.end(); iter++)
 	    {
@@ -1115,6 +1122,7 @@ TMessage* EmuDisplayClient::requestCanvas(xdata::Integer nodeaddr, std::string f
     } 
   catch (xdaq::exception::Exception& e)
     {
+	return buf;
       // handle exception
     }	
   
