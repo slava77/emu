@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.46 2006/10/20 10:01:24 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.47 2006/10/20 13:25:30 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -158,6 +158,7 @@ protected:
   Crate *thisCrate;
   std::string Operator_;
   std::string RunNumber_;
+  std::string CalibrationCfebTimeEvent_;
   std::string MPCBoardID_;
   std::string CCBBoardID_;
   std::string ControllerBoardID_;
@@ -715,7 +716,6 @@ private:
     fireEvent("Configure");
 
     return createReply(message);
-
   }
 
   //

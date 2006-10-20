@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.16 2006/10/20 10:01:25 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.17 2006/10/20 13:25:30 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1401,6 +1401,8 @@ public:
   {
     //
     SendSOAPMessageXRelaySimple("Configure","");
+    //
+    ::sleep(5);
     //
     this->Default(in,out);
     //
