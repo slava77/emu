@@ -112,6 +112,7 @@ public:
   string GetXMLCanvasesCfgFile() const {return xmlCanvasesCfgFile;}
    
   bool isListModified() { return fListModified;};
+  bool isBusy() { return fBusy;};
   void setListModified(bool flag) { fListModified = flag;};
   bool isMEvalid(ME_List&, string, EmuMonitoringObject* & );
   map<string, ME_List >  GetMEs() { return MEs;};
@@ -169,6 +170,7 @@ private:
   bool fSaveHistos;
   int SaveTimer;
   int fStopTimer;
+  bool fBusy;
 
   
   string xmlHistosBookingCfgFile;
