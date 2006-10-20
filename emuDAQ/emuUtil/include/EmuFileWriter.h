@@ -139,8 +139,11 @@ public:
   void writeData( const char* buf, const int nBytes ){ 
     fs_->write(buf, nBytes);
     if ( fs_->fail() ){
-      LOG4CPLUS_ERROR( logger_, "Error writing to " << fileName_ );
-      fs_->clear();
+//       LOG4CPLUS_ERROR( logger_, "Error writing to " << fileName_ );
+//       fs_->clear();
+      stringstream oss;
+      oss << "Error writing to " << fileName_;
+      throw oss.str();
     }
     else{
       bytesInFileCounter_ += nBytes;
