@@ -35,21 +35,16 @@ int main(int argc, char **argv) {
 	EmuLocalPlotter plotter(logger);
 	plotter.book();
 
-<<<<<<< EmuMonitorTest.cpp
 //	int NumberOfEvents = 200;
 	int NumberOfEvents = 100000000;
-=======
-	int NumberOfEvents = 10000000;
->>>>>>> 1.12
 	int startEvent = 0;
 	string datafile = "";
   	string histofile = "dqm_results.root";
         // EmuFileReader ddu; //( inputDeviceName_.toString(), inputDataFormatInt_ );
 	// FileReaderDDU ddu;
-	unsigned long dduCheckMask=0xFFFFDFFF;
+	int dduCheckMask=0xFFFFDFFF;
 	//int binCheckMask=0xFFFFFFFF;
-	// int binCheckMask=0xDFCB7BF6;
-        unsigned long binCheckMask=0xDFFB7BF6;
+	int binCheckMask=0xDFCB7BF6;
 	// int dduCheckMask = 0x0;
 //	int binCheckMask = 0x0;
 	switch (argc) {
