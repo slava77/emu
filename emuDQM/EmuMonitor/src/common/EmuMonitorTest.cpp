@@ -35,7 +35,12 @@ int main(int argc, char **argv) {
 	EmuLocalPlotter plotter(logger);
 	plotter.book();
 
+<<<<<<< EmuMonitorTest.cpp
+//	int NumberOfEvents = 200;
+	int NumberOfEvents = 100000000;
+=======
 	int NumberOfEvents = 10000000;
+>>>>>>> 1.12
 	int startEvent = 0;
 	string datafile = "";
   	string histofile = "dqm_results.root";
@@ -109,7 +114,7 @@ if(status) continue;
 	plotter.saveHistosBookingToXML("emuDQMBooking.xml");
 	plotter.saveCanvasesBookingToXML("emuDQMCanvases.xml");
 	plotter.save(histofile.c_str());
-	plotter.SaveImages("images", "png" , 1600, 1200);
+//	plotter.SaveImages("images", "png" , 1600, 1200);
 	ddu.close();
 
 	// delete plotter;
