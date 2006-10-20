@@ -275,7 +275,7 @@
       <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
       <committedPoolSize xsi:type="xsd:unsignedLong">100</committedPoolSize>
       <!-- Ask the server to send nEventCredits events -->
-      <nEventCredits xsi:type="xsd:unsignedLong">10</nEventCredits>
+      <nEventCredits xsi:type="xsd:unsignedLong">100</nEventCredits>
       <!-- Ask the server to wait prescalingFactor events before sending another -->
       <prescalingFactor xsi:type="xsd:unsignedLong">1</prescalingFactor>
       <!-- The name of the server -->
@@ -330,7 +330,7 @@
       <inputDataFormat xsi:type="xsd:string">DDU</inputDataFormat>
       <committedPoolSize xsi:type="xsd:unsignedLong">100</committedPoolSize>
       <!-- Ask the server to send nEventCredits events -->
-      <nEventCredits xsi:type="xsd:unsignedLong">10</nEventCredits>
+      <nEventCredits xsi:type="xsd:unsignedLong">100</nEventCredits>
       <!-- Ask the server to wait prescalingFactor events before sending another -->
       <prescalingFactor xsi:type="xsd:unsignedLong">1</prescalingFactor>
       <!-- The name of the server -->

@@ -38,6 +38,7 @@ xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference nod
 
   if (plotter_ != NULL) {
 
+    while (plotter_->isBusy()) usleep(100000); 
     map<string, ME_List> MEs = plotter_->GetMEs();
 
     for (map<string, ME_List >::iterator itr = MEs.begin();
@@ -86,7 +87,8 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
     } else {
       if (plotter_ != NULL) 
 	{
-	   map<string, ME_List > MEs = plotter_->GetMEs();
+	  while (plotter_->isBusy()) usleep(100000);
+	  map<string, ME_List > MEs = plotter_->GetMEs();
           xoap::SOAPName cmdTag = envelope.createName("requestObjects","xdaq", "urn:xdaq-soap:3.0");
 	  vector<xoap::SOAPElement> content = rb.getChildElements (cmdTag);
 	  for (std::vector<xoap::SOAPElement>::iterator n_itr = content.begin();
@@ -165,7 +167,7 @@ xoap::MessageReference EmuMonitor::requestCanvasesList(xoap::MessageReference no
   xoap::SOAPName histodirName = envelope.createName("Branch", "", "");
 
   if (plotter_ != NULL) {
-
+    while (plotter_->isBusy()) usleep(100000);
     map<string, MECanvases_List> MECanvases = plotter_->GetMECanvases();
 
     for (map<string, MECanvases_List >::iterator itr = MECanvases.begin();
@@ -215,6 +217,7 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
     } else {
       if (plotter_ != NULL) 
 	{
+	  while (plotter_->isBusy()) usleep(100000);
 	  map<string, ME_List > MEs = plotter_->GetMEs();
 	  map<string, MECanvases_List > MECanvases = plotter_->GetMECanvases();
           xoap::SOAPName cmdTag = envelope.createName("requestCanvas","xdaq", "urn:xdaq-soap:3.0");

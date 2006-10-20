@@ -14,8 +14,10 @@ void EmuPlotter::processEvent(const char * data, int dataSize, unsigned long err
   // == Check and book global node specific histos
   if (MEs.size() == 0 || ((itr = MEs.find(nodeTag)) == MEs.end())) {
     LOG4CPLUS_INFO(logger_, " List of MEs for " << nodeTag << " not found. Booking...")
+      fBusy = true;
       MEs[nodeTag] = bookCommon(nodeNumber);
       MECanvases[nodeTag] = bookCommonCanvases(nodeNumber);
+      fBusy = false;
     printMECollection(MEs[nodeTag]);
   }
 	
@@ -133,8 +135,10 @@ void EmuPlotter::processEvent(const char * data, int dataSize, unsigned long err
 
   if (MEs.size() == 0 || ((itr = MEs.find(dduTag)) == MEs.end())) {
     LOG4CPLUS_INFO(logger_, " List of MEs for " << dduTag << " not found. Booking...")
+      fBusy = true;
       MEs[dduTag] = bookDDU(dduID);
       MECanvases[dduTag] = bookDDUCanvases(dduID);
+      fBusy = false;
     printMECollection(MEs[dduTag]);
   }
 

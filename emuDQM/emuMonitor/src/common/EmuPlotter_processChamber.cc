@@ -14,6 +14,14 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 		    "Nonzero pointer. DMB data are available for unpacking"); //KK is->are
   }
   int FEBunpacked = 0;
+  int alct_unpacked = 0;
+  int tmb_unpacked  = 0;
+  int cfeb_unpacked = 0;
+
+  int alct_keywg = -1;
+  int clct_kewdistrip = -1;
+	  
+
   EmuMonitoringObject* mo = NULL;
 
   //	DMB Found
@@ -53,9 +61,11 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 		   "List of Histos for " << cscTag <<  " not found");
     LOG4CPLUS_INFO(logger_, 
 		   "Booking Histos for " << cscTag);
+    fBusy = true;
     MEs[cscTag] = bookChamber(ChamberID);
     MECanvases[cscTag] = bookChamberCanvases(ChamberID);
     printMECollection(MEs[cscTag]);
+    fBusy = false;
   }
 
   ME_List& nodeME = MEs[nodeTag];
@@ -207,6 +217,63 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     mo->SetEntries((int)DMBEvent);
   }
 
+  //      Get FEBs Data Available Info
+  int alct_dav  = dmbHeader.nalct();
+  int tmb_dav   = dmbHeader.nclct();
+  int cfeb_dav2 = 0;
+  for (int i=0; i<5; i++) cfeb_dav2 = cfeb_dav2 + (int)((dmbHeader.cfebAvailable()>>i) & 0x1);
+
+  //      Fill Hisogram for FEB DAV Efficiency
+
+  if ((alct_dav  > 0) && (isMEvalid(cscME, "DMB_FEB_DAV_Rate", mo))) {
+    mo->Fill(0.0);
+    float alct_dav_number   = mo->GetBinContent(1);
+    if (isMEvalid(cscME, "DMB_FEB_DAV_Efficiency", mo)) {
+      mo->SetBinContent(1, ((float)alct_dav_number/(float)(nDMBEvents[cscTag])*100.0));
+      mo->SetEntries(nDMBEvents[cscTag]);
+    }
+  }
+
+  if ((tmb_dav   > 0) && (isMEvalid(cscME, "DMB_FEB_DAV_Rate", mo))) {
+    mo->Fill(1.0);
+    float tmb_dav_number    = mo->GetBinContent(2);
+    if (isMEvalid(cscME, "DMB_FEB_DAV_Efficiency", mo)) {
+      mo->SetBinContent(2, ((float)tmb_dav_number/(float)(nDMBEvents[cscTag])*100.0));
+      mo->SetEntries(nDMBEvents[cscTag]);
+    }
+  }
+
+
+  if ((cfeb_dav2 > 0) && (isMEvalid(cscME, "DMB_FEB_DAV_Rate", mo))) {
+    mo->Fill(2.0);
+    float cfeb_dav2_number = mo->GetBinContent(3);
+    if (isMEvalid(cscME, "DMB_FEB_DAV_Efficiency", mo)) {
+      mo->SetBinContent(3, ((float)cfeb_dav2_number/(float)(nDMBEvents[cscTag])*100.0));
+      mo->SetEntries(nDMBEvents[cscTag]);
+    }
+  }
+
+  float feb_combination_dav = -1.0;
+  //      Fill Hisogram for Different Combinations of FEB DAV Efficiency
+  if (isMEvalid(cscME, "DMB_FEB_Combinations_DAV_Rate", mo)) {
+    if(alct_dav == 0 && tmb_dav == 0 && cfeb_dav2 == 0) feb_combination_dav = 0.0;
+    if(alct_dav >  0 && tmb_dav == 0 && cfeb_dav2 == 0) feb_combination_dav = 1.0;
+    if(alct_dav == 0 && tmb_dav >  0 && cfeb_dav2 == 0) feb_combination_dav = 2.0;
+    if(alct_dav == 0 && tmb_dav == 0 && cfeb_dav2 >  0) feb_combination_dav = 3.0;
+    if(alct_dav >  0 && tmb_dav >  0 && cfeb_dav2 == 0) feb_combination_dav = 4.0;
+    if(alct_dav >  0 && tmb_dav == 0 && cfeb_dav2 >  0) feb_combination_dav = 5.0;
+    if(alct_dav == 0 && tmb_dav >  0 && cfeb_dav2 >  0) feb_combination_dav = 6.0;
+    if(alct_dav >  0 && tmb_dav >  0 && cfeb_dav2 >  0) feb_combination_dav = 7.0;
+    mo->Fill(feb_combination_dav);
+    float feb_combination_dav_number = mo->GetBinContent((int)(feb_combination_dav+1.0));
+    if (isMEvalid(cscME, "DMB_FEB_Combinations_DAV_Efficiency",mo)) {
+      mo->SetBinContent((int)(feb_combination_dav+1.0), ((float)feb_combination_dav_number/(float)(nDMBEvents[cscTag])*100.0));
+      mo->SetEntries(nDMBEvents[cscTag]);
+    }
+  }
+
+
+
   //ALCT Found
   if (data.nalct()) {
     CSCALCTHeader alctHeader = data.alctHeader();
@@ -221,6 +288,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     }
 
     FEBunpacked = FEBunpacked +1;
+    alct_unpacked = 1;
 
     //          Set number of ALCT-events to third bin
     if (isMEvalid(cscME, "CSC_Rate", mo)) { 
@@ -236,6 +304,11 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	}
       }
     }
+
+    if ((alct_dav >0) && (isMEvalid(cscME, "DMB_FEB_Unpacked_vs_DAV", mo))) {
+	mo->Fill(0.0, 0.0);
+    }
+
 
     if (isMEvalid(cscME, "ALCT_L1A", mo)) mo->Fill((int)(alctHeader.L1Acc()));
 
@@ -284,6 +357,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
     for (unsigned int lct=0; lct<alctsDatas.size(); lct++) {
       if (isMEvalid(cscME, Form("ALCT%d_KeyWG", lct), mo)) mo->Fill(alctsDatas[lct].getKeyWG());
+      if(lct == 0) alct_keywg  = alctsDatas[lct].getKeyWG();
 
       int alct_dtime = (int)(alctsDatas[lct].getBX()-(alctHeader.BXNCount()&0x1F));
       if (isMEvalid(cscME, Form("ALCT%d_dTime", lct), mo)) {
@@ -346,7 +420,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
           NumberOfLayersWithHitsInALCT = NumberOfLayersWithHitsInALCT + 1;
           CheckLayerALCT = false;
         }
-	for (int n=0; n < tbins.size(); n++) {
+	for (unsigned int n=0; n < tbins.size(); n++) {
 	tbin = tbins[n];
         if(wg != wg_previous || (tbin != tbin_previous + 1 && tbin != tbin_previous - 1) ) {
           if (isMEvalid(cscME, Form("ALCTTime_Ly%d", nLayer), mo)) mo->Fill(wg, tbin);
@@ -385,6 +459,10 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       int nALCT = (int)mo->GetBinContent(1);
       if (isMEvalid(cscME, "ALCT_Number_Efficiency", mo)) mo->SetBinContent(1, (float)(nALCT)/(float)(DMBEvent)*100.0);
     }
+    if ((alct_dav  > 0) && (isMEvalid(cscME, "DMB_FEB_Unpacked_vs_DAV", mo))) {
+      mo->Fill(0.0, 1.0);
+    }
+
   }
 
   //ALCT and CLCT coinsidence
@@ -444,6 +522,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     CSCCLCTData clctData = data.clctData();
 
     FEBunpacked = FEBunpacked +1;
+    tmb_unpacked = 1;
 
     if (isMEvalid(cscME, "ALCT_Match_Time", mo)) mo->Fill(tmbHeader.ALCTMatchTime());
 
@@ -456,6 +535,10 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
     if (isMEvalid(cscME, "LCT0_Match_BXN_Difference", mo)) mo->Fill(tmbHeader.Bxn0Diff());
     if (isMEvalid(cscME, "LCT1_Match_BXN_Difference", mo)) mo->Fill(tmbHeader.Bxn1Diff());
+
+    if ((tmb_dav  > 0) && (isMEvalid(cscME, "DMB_FEB_Unpacked_vs_DAV", mo))) {
+      mo->Fill(1.0, 0.0);
+    }
 
     //          Set number of CLCT-events to forth bin
     if (isMEvalid(cscME, "CSC_Rate", mo)) {
@@ -580,6 +663,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       } else { // DiStrip Type
 
         if (isMEvalid(cscME,  Form("CLCT%d_KeyDiStrip", lct), mo)) mo->Fill(clctsDatas[lct].getKeyStrip());
+	
+	if(lct == 0) clct_kewdistrip = clctsDatas[lct].getKeyStrip();
 
 	if (isMEvalid(cscME,  Form("CLCT%d_dTime_vs_DiStrip", lct), mo)) {
 	  if(clct_dtime < -2) mo->Fill((int)(clctsDatas[lct].getKeyStrip()), clct_dtime + 4);
@@ -671,6 +756,9 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       mo->Fill(0);
       int nCLCT = (int)mo->GetBinContent(1);
       if (isMEvalid(cscME, "CLCT_Number", mo)) mo->SetBinContent(1, (float)(nCLCT)/(float)(DMBEvent)*100.0);
+    }    
+    if ((tmb_dav  > 0) && (isMEvalid(cscME, "DMB_FEB_Unpacked_vs_DAV", mo))) {
+      mo->Fill(1.0, 1.0);
     }
   }
 
@@ -725,6 +813,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       //                        CFEB Found
       FEBunpacked = FEBunpacked +1; // Increment number of unpacked FED
       NumberOfUnpackedCFEBs = NumberOfUnpackedCFEBs + 1; // Increment number of unpaked CFEB
+      cfeb_unpacked = 1;
       if(CheckCFEB == true){
         if (isMEvalid(cscME, "CSC_Rate", mo)) {
 	  mo->Fill(4);
@@ -735,6 +824,10 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	      mo->getObject()->SetEntries(nEvents);
 	    }
 	  }
+	}
+
+	if ((cfeb_dav2  > 0) && (isMEvalid(cscME, "DMB_FEB_Unpacked_vs_DAV", mo))) {
+	  mo->Fill(2.0, 0.0);
 	}
         CheckCFEB = false;
       }
@@ -1035,6 +1128,26 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   }
   //--------------E
 
+  //      Fill Hisogram for Different Combinations of FEBs Unpacked vs DAV
+  if (isMEvalid(cscME, "DMB_FEB_Combinations_Unpacked_vs_DAV", mo)) {
+    float feb_combination_unpacked = -1.0;
+    if(alct_unpacked == 0 && tmb_unpacked == 0 && cfeb_unpacked == 0) feb_combination_unpacked = 0.0;
+    if(alct_unpacked >  0 && tmb_unpacked == 0 && cfeb_unpacked == 0) feb_combination_unpacked = 1.0;
+    if(alct_unpacked == 0 && tmb_unpacked >  0 && cfeb_unpacked == 0) feb_combination_unpacked = 2.0;
+    if(alct_unpacked == 0 && tmb_unpacked == 0 && cfeb_unpacked >  0) feb_combination_unpacked = 3.0;
+    if(alct_unpacked >  0 && tmb_unpacked >  0 && cfeb_unpacked == 0) feb_combination_unpacked = 4.0;
+    if(alct_unpacked >  0 && tmb_unpacked == 0 && cfeb_unpacked >  0) feb_combination_unpacked = 5.0;
+    if(alct_unpacked == 0 && tmb_unpacked >  0 && cfeb_unpacked >  0) feb_combination_unpacked = 6.0;
+    if(alct_unpacked >  0 && tmb_unpacked >  0 && cfeb_unpacked >  0) feb_combination_unpacked = 7.0;
+    mo->Fill(feb_combination_dav, feb_combination_unpacked);
+  }
+
+  if((clct_kewdistrip > -1 && alct_keywg > -1) && (isMEvalid(cscME, "CLCT0_KeyDiStrip_vs_ALCT0_KeyWiregroup", mo))) {
+    mo->Fill(alct_keywg, clct_kewdistrip);
+  }
+
+
+  /*
   // Fill Histogram with number of unpacked datas
   int tmb_dav = dmbHeader.nclct();
   int alct_dav = dmbHeader.nalct();
@@ -1042,8 +1155,10 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   for (int i=0; i<5; i++)  cfeb_dav2 = cfeb_dav2 + (int)((dmbHeader.cfebAvailable()>>i) & 0x1);
   int FEBdav = cfeb_dav2+alct_dav+tmb_dav;
 
+
   if (isMEvalid(cscME, "DMB_FEB_DAV" , mo)) mo->Fill(FEBdav);
   if (isMEvalid(cscME, "DMB_FEB_unpacked_vs_DAV" , mo)) mo->Fill(FEBdav,FEBunpacked);
+  */
 }
 
 

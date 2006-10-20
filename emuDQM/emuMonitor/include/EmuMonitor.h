@@ -112,6 +112,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   void ConfigureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
   void EnableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception );
   void HaltAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception );
+  void InvalidAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception );
 
   // Web callback functions
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -119,6 +120,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   void Configure(xgi::Input * in ) throw (xgi::exception::Exception);
   void Enable(xgi::Input * in ) throw (xgi::exception::Exception);
   void Halt(xgi::Input * in ) throw (xgi::exception::Exception);
+  void InvalidWebAction(xgi::Input * in ) throw (xgi::exception::Exception);
   void stateMachinePage( xgi::Output * out ) throw (xgi::exception::Exception);
   void failurePage(xgi::Output * out, xgi::exception::Exception & e)  throw (xgi::exception::Exception);
 
