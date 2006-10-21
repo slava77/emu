@@ -40,7 +40,7 @@ void RAT::configure() {
     PrintRatUser1();
   //
   // The following should probably go in TMB configure, since it is actually a delay on the TMB:
-  WriteRatTmbDelay();
+  //  WriteRatTmbDelay();
   //
   return;
 }
@@ -106,8 +106,8 @@ void RAT::ReadRatUserCode(){
 						   GetRegLength(),
 						   LSBfirst);
   //
-  (*MyOutput_) << "RAT FPGA User code = " << rat_usercode_[ChipLocationRatFpga] << std::endl;
-  (*MyOutput_) << "RAT PROM User code = " << rat_usercode_[ChipLocationRatProm] << std::endl;
+  (*MyOutput_) << "RAT FPGA User code = " << std::hex << rat_usercode_[ChipLocationRatFpga] << std::endl;
+  (*MyOutput_) << "RAT PROM User code = " << std::hex << rat_usercode_[ChipLocationRatProm] << std::endl;
   //
   return;
 }

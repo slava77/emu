@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.25 2006/10/19 13:39:31 rakness Exp $
+// $Id: ALCTController.cc,v 3.26 2006/10/21 09:40:46 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.26  2006/10/21 09:40:46  rakness
+// src/common/ALCTController.cc
+//
 // Revision 3.25  2006/10/19 13:39:31  rakness
 // ALCT tags fixed
 //
@@ -2019,7 +2022,7 @@ void ALCTController::DecodeAsicDelaysAndPatterns_(int group) {
     int number_of_bits = asic_delay_value_bithi - asic_delay_value_bitlo + 1;
     int delay_value = bits_to_int(read_asic_delays_and_patterns_+minimum_delay_bit,
 				  number_of_bits,
-				  LSBfirst);
+				  MSBfirst);
     //
     read_asic_delay_[afeb] = delay_value;
     //
@@ -2059,7 +2062,7 @@ void ALCTController::FillAsicDelaysAndPatterns_(int group) {
     int_to_bits(write_asic_delay_[afeb],
 		asic_delay_value_bithi-asic_delay_value_bitlo+1,
 		write_asic_delays_and_patterns_+minimum_delay_bit,
-		LSBfirst);
+		MSBfirst);
     //
     //location of pattern value bits for this afeb:
     int minimum_pattern_bit = afeb_counter * NUMBER_OF_ASIC_BITS + asic_pattern_value_bitlo;

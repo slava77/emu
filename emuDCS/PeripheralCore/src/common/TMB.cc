@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.21 2006/10/14 10:09:08 mey Exp $
+// $Id: TMB.cc,v 3.22 2006/10/21 09:40:46 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.22  2006/10/21 09:40:46  rakness
+// src/common/ALCTController.cc
+//
 // Revision 3.21  2006/10/14 10:09:08  mey
 // UPdate
 //
@@ -4864,10 +4867,6 @@ void TMB::setupNewDelayChips() {
    sndbuf[1]=((alct_rx_clock_delay_<<4)&0xF0)|(alct_tx_clock_delay_&0x0F);
    tmb_vme(0x02,0x16,sndbuf,rcvbuf,1);
    //
-   sndbuf[0]=0x00;                     // RPC1, RPC2, RPC3 unused
-   sndbuf[1]=(rpc0_rat_delay_&0x0F);
-   tmb_vme(0x02,0xE6,sndbuf,rcvbuf,1);
-   //
    sndbuf[0]=0x00;
    sndbuf[1]=0x20;
    tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); // PHOS4 state machine
@@ -4877,6 +4876,47 @@ void TMB::setupNewDelayChips() {
    sndbuf[0]=0x00;
    sndbuf[1]=0x20;
    tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); // PHOS4 state machine
+   //
+   ::usleep(500);
+   //
+   int read_data = ReadRegister(rat_3d_sm_ctrl_adr);
+   int write_data = (read_data & 0xfffe) | 0x0;       // stop state machine
+   WriteRegister(rat_3d_sm_ctrl_adr,write_data);
+   //
+   // Write in the values to the RAT register:
+   write_data = rpc0_rat_delay_ & 0xF;
+   WriteRegister(rat_3d_delays_adr,write_data);
+   std::cout << "writing data to RAT 3d3444 = " << write_data << std::endl;   
+   //
+   read_data = ReadRegister(rat_3d_sm_ctrl_adr);
+   write_data = (read_data & 0xfffe) | 0x1;       // start state machine
+   WriteRegister(rat_3d_sm_ctrl_adr,write_data);
+   //
+   ::usleep(100);
+   //
+   int busy = (ReadRegister(rat_3d_sm_ctrl_adr) >> 6) & 0x1;
+   std::cout << "after starting state machine, busy = " << busy << std::endl;   
+   //
+   while ( (ReadRegister(rat_3d_sm_ctrl_adr)>>6) & 0x1 != 1 ) {
+     std::cout << "TMB-RAT: State machine not busy!" << std::endl;
+   }
+   //
+   read_data = ReadRegister(rat_3d_sm_ctrl_adr);
+   write_data = (read_data & 0xfffe) | 0x0;       // stop state machine
+   WriteRegister(rat_3d_sm_ctrl_adr,write_data);
+   //
+   busy = (ReadRegister(rat_3d_sm_ctrl_adr) >> 6) & 0x1;
+   int verify = (ReadRegister(rat_3d_sm_ctrl_adr) >> 7) & 0x1;
+   std::cout << "after stopping state machine, busy = " << busy 
+	     << ", verify ok = " << verify << std::endl;   
+   //
+   //   while ( !( (ReadRegister(rat_3d_sm_ctrl_adr)>>6) & 0x1) ) {
+   //     std::cout << "TMB-RAT: State machine still busy!" << std::endl;
+   //   }
+   //
+   //   if ( (ReadRegister(rat_3d_sm_ctrl_adr)>>7) & 0x1 ) {
+   //     std::cout << "TMB-RAT: RPC RAT delay verify OK..." << std::endl;
+   //   }
 }
 
 
