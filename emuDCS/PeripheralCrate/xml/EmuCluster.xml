@@ -72,6 +72,16 @@
                 </xc:Application>
         </xc:Context>
 
+    	<xc:Context url="http://emulab02:1971">		
+                <xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="local">
+                 <properties xmlns="urn:xdaq-application:EmuCrateHyperDAQ" xsi:type="soapenc:Struct">
+                  <runNumber xsi:type="xsd:unsignedLong">57005</runNumber>
+                  <xmlFileName xsi:type="xsd:string">/home/raknessdev/xml/bat904.xml</xmlFileName>
+                 </properties>
+                </xc:Application>
+                <xc:Module>${XDAQ_ROOT}/emu/cscSV/lib/linux/x86/libCSCSupervisor.so</xc:Module>
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
+        </xc:Context>
 
 </xc:Partition>
 

@@ -51,6 +51,8 @@ int main() {
   int Menu = 999;
 
   int value,channel,layer;
+  int write_data, read_data;
+  int busy, verify;
 
   CCB *thisCCB ;
   DAQMB *thisDMB;
@@ -145,6 +147,8 @@ int main() {
     std::cout << " 26:reset RPC parity error ctr 29:Read RAT Usercodes         30:Read RAT IDcodes" 
 	      << std::endl;
     std::cout << " 31:Read TMB-RAT delay         32:Set TMB-RAT Delay          37:Test parity bit computation"
+	      << std::endl;
+    std::cout << " 38:Test RAT values from TMB"
 	      << std::endl;
     //
     std::cout << std::endl;
@@ -317,6 +321,56 @@ int main() {
       std::cin >> rpc;
 
       testTMB.RpcComputeParity(rpc);
+      break;
+    case 38:
+      std::cout << "RPC-RAT delay read from JTAG..." << std::endl;
+      myRat->ReadRatUser1();
+      myRat->PrintRpcRatDelay();
+      //
+      read_data = thisTMB->ReadRegister(rat_3d_sm_ctrl_adr);
+      write_data = (read_data & 0xfffe) | 0x0;       // stop state machine
+      std::cout << "Stop state machine:  Write 0x" << std::hex << write_data 
+		<< " to TMB address = " << rat_3d_sm_ctrl_adr << std::endl;
+      thisTMB->WriteRegister(rat_3d_sm_ctrl_adr,write_data);
+      //
+      write_data = 5 & 0xF;
+      thisTMB->WriteRegister(rat_3d_delays_adr,write_data);
+      std::cout << "Write RPC-RAT delay of 5 to TMB:  Write 0x" << std::hex << write_data 
+		<< " to TMB address = " << rat_3d_delays_adr << std::endl;
+      //
+      read_data = thisTMB->ReadRegister(rat_3d_sm_ctrl_adr);
+      write_data = (read_data & 0xfffe) | 0x1;       // start state machine
+      std::cout << "Start state machine:  Write 0x" << std::hex << write_data 
+		<< " to TMB address = " << rat_3d_sm_ctrl_adr << std::endl;
+      thisTMB->WriteRegister(rat_3d_sm_ctrl_adr,write_data);
+      //
+      std::cout << "... wait 100usec ... " << std::endl;
+      ::usleep(100);
+      //
+      read_data = thisTMB->ReadRegister(rat_3d_sm_ctrl_adr);
+      busy = (read_data >> 6) & 0x1;
+      std::cout << "Check state machine after starting:  read 0x" << std::hex << read_data 
+		<< " from TMB address = " << rat_3d_sm_ctrl_adr << std::endl;
+      std::cout << "... => busy = " << busy << std::endl;   
+      //
+      read_data = thisTMB->ReadRegister(rat_3d_sm_ctrl_adr);
+      write_data = (read_data & 0xfffe) | 0x0;       // stop state machine
+      std::cout << "Stop state machine:  Write 0x" << std::hex << write_data 
+		<< " to TMB address = " << rat_3d_sm_ctrl_adr << std::endl;
+      thisTMB->WriteRegister(rat_3d_sm_ctrl_adr,write_data);
+      //
+      read_data = thisTMB->ReadRegister(rat_3d_sm_ctrl_adr);
+      busy = (read_data >> 6) & 0x1;
+      verify = (read_data >> 7) & 0x1;
+      std::cout << "Check state machine after starting:  read 0x" << std::hex << read_data 
+		<< " from TMB address = " << rat_3d_sm_ctrl_adr << std::endl;
+      std::cout << "... => busy = " << busy 
+		<< ", verify ok = " << verify << std::endl;   
+      //
+      std::cout << "RPC-RAT delay read from JTAG..." << std::endl;
+      myRat->ReadRatUser1();
+      myRat->PrintRpcRatDelay();
+      //
       break;
       //
       //
