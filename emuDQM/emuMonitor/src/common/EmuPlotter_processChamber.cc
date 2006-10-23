@@ -306,7 +306,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     }
 
     if ((alct_dav >0) && (isMEvalid(cscME, "DMB_FEB_Unpacked_vs_DAV", mo))) {
-	mo->Fill(0.0, 0.0);
+      mo->Fill(0.0, 0.0);
     }
 
 
@@ -421,31 +421,31 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
           CheckLayerALCT = false;
         }
 	for (unsigned int n=0; n < tbins.size(); n++) {
-	tbin = tbins[n];
-        if(wg != wg_previous || (tbin != tbin_previous + 1 && tbin != tbin_previous - 1) ) {
-          if (isMEvalid(cscME, Form("ALCTTime_Ly%d", nLayer), mo)) mo->Fill(wg, tbin);
-          if (isMEvalid(cscME, Form("ALCTTime_Ly%d_Profile", nLayer), mo)) mo->Fill(wg, tbin);
-          if (isMEvalid(cscME, Form("ALCT_Ly%d_Rate", nLayer), mo)) { 
-	    mo->Fill(wg);
-	    int number_wg = (int)(mo->GetBinContent(wg+1));
-	    Double_t Number_of_entries_ALCT = mo->getObject()->GetEntries();
-	    if (isMEvalid(cscME, Form("ALCT_Ly%d_Efficiency", nLayer), mo)) {
-	      mo->SetBinContent(wg+1,((float)number_wg));
-	      if((Double_t)(nDMBEvents[cscTag]) > 0.0) {
-		mo->getObject()->SetNormFactor(100.0*Number_of_entries_ALCT/(Double_t)(nDMBEvents[cscTag]));
-	      } else {
-		mo->getObject()->SetNormFactor(100.0);
+	  tbin = tbins[n];
+	  if(wg != wg_previous || (tbin != tbin_previous + 1 && tbin != tbin_previous - 1) ) {
+	    if (isMEvalid(cscME, Form("ALCTTime_Ly%d", nLayer), mo)) mo->Fill(wg, tbin);
+	    if (isMEvalid(cscME, Form("ALCTTime_Ly%d_Profile", nLayer), mo)) mo->Fill(wg, tbin);
+	    if (isMEvalid(cscME, Form("ALCT_Ly%d_Rate", nLayer), mo)) { 
+	      mo->Fill(wg);
+	      int number_wg = (int)(mo->GetBinContent(wg+1));
+	      Double_t Number_of_entries_ALCT = mo->getObject()->GetEntries();
+	      if (isMEvalid(cscME, Form("ALCT_Ly%d_Efficiency", nLayer), mo)) {
+		mo->SetBinContent(wg+1,((float)number_wg));
+		if((Double_t)(nDMBEvents[cscTag]) > 0.0) {
+		  mo->getObject()->SetNormFactor(100.0*Number_of_entries_ALCT/(Double_t)(nDMBEvents[cscTag]));
+		} else {
+		  mo->getObject()->SetNormFactor(100.0);
+		}
+		mo->SetEntries(nDMBEvents[cscTag]);
 	      }
-	      mo->SetEntries(nDMBEvents[cscTag]);
 	    }
 	  }
-        }
-        if(wg != wg_previous) {
-          NumberOfWireGroupsWithHitsInALCT = NumberOfWireGroupsWithHitsInALCT + 1;
-        }
+	  if(wg != wg_previous) {
+	    NumberOfWireGroupsWithHitsInALCT = NumberOfWireGroupsWithHitsInALCT + 1;
+	  }
 
-        wg_previous   = wg;
-        tbin_previous = tbin;
+	  wg_previous   = wg;
+	  tbin_previous = tbin;
         }
       }
     }
@@ -778,7 +778,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   //--------------B
   float Clus_Sum_Charge;
   int TrigTime, L1APhase, UnpackedTrigTime, LCTPhase, SCA_BLK, NmbTimeSamples;
-    // int NmbCell, SCA_Nmb_FC;
+  // int NmbCell, SCA_Nmb_FC;
   int  FreeCells, LCT_Pipe_Empty, LCT_Pipe_Full, LCT_Pipe_Count, L1_Pipe_Empty, L1_Pipe_Full, Buffer_Count;
   //--------------E
 
@@ -849,7 +849,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       EmuMonitoringObject* mo_CFEB_SCA_Blocks_Locked_by_LCTxL1;
       isMEvalid(cscME, Form("CFEB%d_SCA_Blocks_Locked_by_LCTxL1", nCFEB), mo_CFEB_SCA_Blocks_Locked_by_LCTxL1);
       
-       // LOG4CPLUS_DEBUG(logger_, " nSample = " << nSample);
+      // LOG4CPLUS_DEBUG(logger_, " nSample = " << nSample);
 
       for(int nLayer = 1; nLayer <= N_Layers; ++nLayer) {
 	//  =VB= Optimizations for faster histogram object access
@@ -1049,8 +1049,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
 		  // if (isMEvalid(cscME, Form("CFEB_PedestalRMS_Sample_01_Ly%d", nLayer), mo)) {
 		  if (mo_CFEB_PedestalRMS_Sample) {
-		     mo_CFEB_PedestalRMS_Sample->SetBinContent(nCFEB*16+nStrip,PedestalError[nCFEB][nLayer][nStrip]);
-		     mo_CFEB_PedestalRMS_Sample->getObject()->SetBinError(nCFEB*16+nStrip,0.00000000001);
+		    mo_CFEB_PedestalRMS_Sample->SetBinContent(nCFEB*16+nStrip,PedestalError[nCFEB][nLayer][nStrip]);
+		    mo_CFEB_PedestalRMS_Sample->getObject()->SetBinError(nCFEB*16+nStrip,0.00000000001);
 		  }
 		}
 	      }
