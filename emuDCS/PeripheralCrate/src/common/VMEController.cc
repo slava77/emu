@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.8 2006/10/12 17:52:13 mey Exp $
+// $Id: VMEController.cc,v 3.9 2006/10/23 09:08:39 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.9  2006/10/23 09:08:39  mey
+// UPdate
+//
 // Revision 3.8  2006/10/12 17:52:13  mey
 // Update
 //
@@ -422,27 +425,27 @@ int udelay(long int itim)
 
 void VMEController::sdly()
 {
-  unsigned char tmp[1]={0x00};
+  char tmp[1]={0x00};
   unsigned short int tmp2[2]={0,0};
   unsigned short int *ptr;
   tmp2[0]=50;  // 50x16=800ns delay
- //       vme_controller(6,ptr,tmp2,tmp);
+  vme_controller(6,ptr,tmp2,tmp);
 }
 
 
 void  VMEController::sleep_vme(const char *outbuf)   // time in usec
 {
-unsigned short int *time;
-unsigned long tmp_time;
-char tmp[1]={0x00};
-unsigned short int tmp2[2]={0,0};
-unsigned short int *ptr;
-       time = (unsigned short int *) outbuf;
-       tmp_time=time[0]*1000+15; // in nsec
-       tmp_time >>= 4; // in 16 nsec
-       tmp2[0]=tmp_time & 0xffff;
-       tmp2[1]=(tmp_time >> 16) & 0xffff;
-       vme_controller(6,ptr,tmp2,tmp);
+  unsigned short int *time;
+  unsigned long tmp_time;
+  char tmp[1]={0x00};
+  unsigned short int tmp2[2]={0,0};
+  unsigned short int *ptr;
+  time = (unsigned short int *) outbuf;
+  tmp_time=time[0]*1000+15; // in nsec
+  tmp_time >>= 4; // in 16 nsec
+  tmp2[0]=tmp_time & 0xffff;
+  tmp2[1]=(tmp_time >> 16) & 0xffff;
+  vme_controller(6,ptr,tmp2,tmp);
 }
 
 void  VMEController::sleep_vme(int time) // time in usec
@@ -883,6 +886,10 @@ void VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sh
     istrt=1;
   }
  
+
+  //printf("vme_control: %02x %08x %04x \n",irdwr, (unsigned long int)ptr, data[0]);
+
+
   // Jinghua Liu to debug
   if ( DEBUG ) {
     if(irdwr==6) 
