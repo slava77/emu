@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.47 2006/10/20 13:25:30 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.48 2006/10/23 12:17:33 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -191,6 +191,7 @@ public:
   //#ifdef STANDALONE
   //EmuPeripheralCrate(xdaq::ApplicationStub * s): xdaq::Application(s) 
   //#else
+  //
   EmuPeripheralCrate(xdaq::ApplicationStub * s): EmuApplication(s)
     //#endif
     {	
@@ -358,11 +359,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::MonitorFrameRight, "MonitorFrameRight");
     xgi::bind(this,&EmuPeripheralCrate::ResetAllCounters, "ResetAllCounters");
     //
-    //#ifndef STANDALONE
     //
-    // State machine definition
-    //
-
     // SOAP call-back functions, which relays to *Action method.
     xoap::bind(this, &EmuPeripheralCrate::onConfigure, "Configure", XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrate::onEnable,    "Enable",    XDAQ_NS_URI);
@@ -377,37 +374,27 @@ public:
     fsm_.addState('E', "Enabled",    this, &EmuPeripheralCrate::stateChanged);
     //
     fsm_.addStateTransition(
-      'H', 'C', "Configure", this, &EmuPeripheralCrate::configureAction);
+			    'H', 'C', "Configure", this, &EmuPeripheralCrate::configureAction);
     fsm_.addStateTransition(
-      'C', 'C', "Configure", this, &EmuPeripheralCrate::reConfigureAction);
+			    'C', 'C', "Configure", this, &EmuPeripheralCrate::reConfigureAction);
     fsm_.addStateTransition(
-      'C', 'E', "Enable",    this, &EmuPeripheralCrate::enableAction);
+			    'C', 'E', "Enable",    this, &EmuPeripheralCrate::enableAction);
     fsm_.addStateTransition(
-      'E', 'E', "Enable",    this, &EmuPeripheralCrate::enableAction);
+			    'E', 'E', "Enable",    this, &EmuPeripheralCrate::enableAction);
     fsm_.addStateTransition(
-      'E', 'C', "Disable",   this, &EmuPeripheralCrate::disableAction);
+			    'E', 'C', "Disable",   this, &EmuPeripheralCrate::disableAction);
     fsm_.addStateTransition(
-      'C', 'H', "Halt",      this, &EmuPeripheralCrate::haltAction);
+			    'C', 'H', "Halt",      this, &EmuPeripheralCrate::haltAction);
     fsm_.addStateTransition(
-      'E', 'H', "Halt",      this, &EmuPeripheralCrate::haltAction);
+			    'E', 'H', "Halt",      this, &EmuPeripheralCrate::haltAction);
     fsm_.addStateTransition(
-      'H', 'H', "Halt",      this, &EmuPeripheralCrate::haltAction);
-
+			    'H', 'H', "Halt",      this, &EmuPeripheralCrate::haltAction);
+    //
     fsm_.setInitialState('H');
-    fsm_.reset();
-
+    fsm_.reset();    
     //
     // state_ is defined in EmuApplication
     state_ = fsm_.getStateName(fsm_.getCurrentState());
-    //
-
-    //#endif // ! STANDALONE    
-    //
-    //xoap::bind(this, &EmuPeripheralCrate::onMessage, "onMessage", XDAQ_NS_URI );    
-    //xoap::bind(this, &EmuPeripheralCrate::Configure, "Configure", XDAQ_NS_URI );    
-    //xoap::bind(this, &EmuPeripheralCrate::Init, "Init", XDAQ_NS_URI );    
-    //xoap::bind(this, &EmuPeripheralCrate::Enable, "Enable", XDAQ_NS_URI );    
-    //xoap::bind(this, &EmuPeripheralCrate::Disable, "Disable", XDAQ_NS_URI );    
     //
     myParameter_ =  0;
     //
@@ -713,8 +700,9 @@ private:
   //
   xoap::MessageReference EmuPeripheralCrate::onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception)
   {
+    //
     fireEvent("Configure");
-
+    //
     return createReply(message);
   }
 
@@ -746,19 +734,7 @@ private:
     throw (toolbox::fsm::exception::Exception)
   {
     //
-    //if ( MyController != 0 ) {
-    //delete MyController ;
-    //}
-    //
-    //MyController = new EmuController();
-    //
-    //MyController->SetConfFile(xmlFile_);
-    //
     ConfigureInit();
-    //
-    //MyController->init(); // For CSCSupervisor
-    //
-    //MyController->configure();
     //
     std::cout << "Configure" << std::endl ;
     LOG4CPLUS_INFO(getApplicationLogger(), "Configure");
@@ -766,14 +742,18 @@ private:
     std::cout << xmlFile_.toString() << std::endl;
     LOG4CPLUS_INFO(getApplicationLogger(), xmlFile_.toString());
     //
-    //sleep(3);
-    //
-    // reply to caller
-    //
     std::cout << "Received Message Configure" << std::endl ;
     LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Configure");
     //
     std::cout << "Done!" << std::endl;
+    //
+  }
+  //
+  void EmuPeripheralCrate::configureFail(toolbox::Event::Reference e) 
+    throw (toolbox::fsm::exception::Exception)
+    {
+    //
+    LOG4CPLUS_INFO(getApplicationLogger(), "Failed");
     //
   }
   //
@@ -815,7 +795,7 @@ private:
   // 
   void EmuPeripheralCrate::enableAction(toolbox::Event::Reference e) 
     throw (toolbox::fsm::exception::Exception)
-  {
+    {
     //
     //MyController->init();
     //
@@ -828,12 +808,11 @@ private:
   //
   void EmuPeripheralCrate::disableAction(toolbox::Event::Reference e) 
     throw (toolbox::fsm::exception::Exception)
-  {
-    // do nothing
-    std::cout << "Received Message Disable" << std::endl ;
-    LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Disable");
-  }
-
+    {
+      // do nothing
+      std::cout << "Received Message Disable" << std::endl ;
+      LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Disable");
+    }  
   //
   void EmuPeripheralCrate::haltAction(toolbox::Event::Reference e) 
     throw (toolbox::fsm::exception::Exception)
@@ -841,117 +820,14 @@ private:
     // do nothing
     std::cout << "Received Message Halt" << std::endl ;
     LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Halt");
-  }
-
+  }  
   //
   void EmuPeripheralCrate::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
     throw (toolbox::fsm::exception::Exception)
-  {
-    EmuApplication::stateChanged(fsm);
-  }
-
-  //#endif // ! STANDALONE
-  /*
-  xoap::MessageReference Configure (xoap::MessageReference msg) throw (xoap::exception::Exception)
-  {
-    //
-    if ( MyController != 0 ) {
-      delete MyController ;
+    {
+      EmuApplication::stateChanged(fsm);
     }
-    //
-    MyController = new EmuController();
-    //
-    MyController->SetConfFile(xmlFile_);
-    //
-    //MyController->init(); // For CSCSupervisor
-    //
-    //MyController->configure();
-    //
-    std::cout << "Configure" << std::endl ;
-    LOG4CPLUS_INFO(getApplicationLogger(), "Configure");
-    //
-    //sleep(3);
-    //
-    // reply to caller
-    //
-    //fireEvent("Configure");
-    //
-    xoap::MessageReference reply = xoap::createMessage();
-    xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
-    xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
-    //xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
-    return reply;    
-  }
   //
-  xoap::MessageReference Init (xoap::MessageReference msg) throw (xoap::exception::Exception)
-  {
-    //
-    if ( MyController != 0 ) {
-      delete MyController ;
-    }
-    //
-    MyController = new EmuController();
-    //
-    MyController->SetConfFile(xmlFile_);
-    //
-    MyController->init();
-    //
-    // reply to caller
-    //
-    std::cout << "Received Message Init" << std::endl ;
-    LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Init");
-    //
-    xoap::MessageReference reply = xoap::createMessage();
-    xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
-    xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
-    //xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
-    return reply;
-    
-  }
-  //
-  xoap::MessageReference Enable (xoap::MessageReference msg) throw (xoap::exception::Exception)
-  {
-    //
-    //enable();
-    //
-    std::cout << "Enable" << std::endl ;
-    LOG4CPLUS_INFO(getApplicationLogger(), "Enable");
-    //
-    //
-    // reply to caller
-    //
-    std::cout << "Received Message Enable" << std::endl ;
-    LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Enable");
-    //
-    xoap::MessageReference reply = xoap::createMessage();
-    xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
-    xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
-    //xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
-    return reply;    
-  }
-  //
-  xoap::MessageReference Disable (xoap::MessageReference msg) throw (xoap::exception::Exception)
-  {
-    //
-    //disable();
-    //
-    std::cout << "Disable" << std::endl ;
-    LOG4CPLUS_INFO(getApplicationLogger(), "Disable");
-    //
-    ::sleep(3);
-    //
-    // reply to caller
-    //
-    std::cout << "Received Message Disable" << std::endl ;
-    LOG4CPLUS_INFO(getApplicationLogger(), "Received Message Disable");
-    //
-    xoap::MessageReference reply = xoap::createMessage();
-    xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
-    xoap::SOAPName responseName = envelope.createName( "onMessageResponse", "xdaq", XDAQ_NS_URI);
-    //xoap::SOAPBodyElement e = envelope.getBody().addBodyElement ( responseName );
-    return reply;    
-  }
-  */
   void EmuPeripheralCrate::MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) 
     throw (xgi::exception::Exception)
   {
@@ -1021,8 +897,6 @@ private:
     *out << cgicc::input().set("type","submit")
       .set("value","Set configuration file local") << std::endl ;
     *out << cgicc::form() << std::endl ;
-    //
-    //
     //
     // Upload file...
     //
@@ -1183,76 +1057,76 @@ private:
   //
   void EmuPeripheralCrate::CrateConfiguration(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
-  {
-    //
-    MyHeader(in,out,"CrateConfiguration");
-    //
-    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:#00FF00");
-    //*out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial");
-    *out << std::endl;
-    //
-    *out << cgicc::legend("Crate Configuration...").set("style","color:blue") << 
-      cgicc::p() << std::endl ;
-    //
-    //*out << cgicc::body().set("bgcolor=yellow");
-    //
-    for(int ii=1; ii<28; ii++) {
+    {
       //
-      *out << cgicc::table().set("border","1");
+      MyHeader(in,out,"CrateConfiguration");
       //
-      *out << cgicc::td();
+      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial; background-color:#00FF00");
+      //*out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial");
+      *out << std::endl;
+      //
+      *out << cgicc::legend("Crate Configuration...").set("style","color:blue") << 
+	cgicc::p() << std::endl ;
+      //
+      //*out << cgicc::body().set("bgcolor=yellow");
+      //
+      for(int ii=1; ii<28; ii++) {
+	//
+	*out << cgicc::table().set("border","1");
+	//
+	*out << cgicc::td();
+	//
+	*out << "Slot " << setfill('0') << setw(2) << dec << ii << endl;
+	//
+	*out << cgicc::td();
+      //
+	if(ii==1) {
 	  //
-      *out << "Slot " << setfill('0') << setw(2) << dec << ii << endl;
-      //
-      *out << cgicc::td();
-      //
-      if(ii==1) {
+	  char Name[50] ;
+	  std::string ControllerBoardID =
+	    toolbox::toString("/%s/ControllerBoardID",getApplicationDescriptor()->getURN().c_str());
+	  sprintf(Name,"Controller Status");
+	  //
+	  *out << cgicc::td();
+	  *out << "Controller Board ID" ;
+	  *out << cgicc::form().set("method","GET").set("action",ControllerBoardID) << std::endl ;
+	  *out << cgicc::input().set("type","text").set("name","ControllerBoardID")
+	    .set("value",ControllerBoardID_) << std::endl ;
+	  *out << cgicc::form() << std::endl ;
+	  *out << cgicc::td();
+	  //
+	  *out << cgicc::td();
+	  //
+	  std::string ControllerUtils =
+	    toolbox::toString("/%s/ControllerUtils?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
+	  //
+	  *out << cgicc::a("Controller Utils").set("href",ControllerUtils) << endl;
+	  //
+	  *out << cgicc::td();
+	  //
+	}
 	//
-	char Name[50] ;
-	std::string ControllerBoardID =
-	  toolbox::toString("/%s/ControllerBoardID",getApplicationDescriptor()->getURN().c_str());
-	sprintf(Name,"Controller Status");
+	int slot = thisCrate->ccb()->slot() ;
 	//
-	*out << cgicc::td();
-	*out << "Controller Board ID" ;
-	*out << cgicc::form().set("method","GET").set("action",ControllerBoardID) << std::endl ;
-	*out << cgicc::input().set("type","text").set("name","ControllerBoardID")
-	  .set("value",ControllerBoardID_) << std::endl ;
-	*out << cgicc::form() << std::endl ;
-	*out << cgicc::td();
-	//
-	*out << cgicc::td();
-	//
-	std::string ControllerUtils =
-	  toolbox::toString("/%s/ControllerUtils?ccb=%d",getApplicationDescriptor()->getURN().c_str(),ii);
-	//
-	*out << cgicc::a("Controller Utils").set("href",ControllerUtils) << endl;
-	//
-	*out << cgicc::td();
-	//
-      }
-      //
-      int slot = thisCrate->ccb()->slot() ;
-      //
-      if(slot == ii) {
-	//
-      //
-	char Name[50] ;
-	std::string CCBBoardID =
-	  toolbox::toString("/%s/CCBBoardID",getApplicationDescriptor()->getURN().c_str());
-	sprintf(Name,"CCB Status slot=%d",slot);
-	//
-	*out << cgicc::td();
-	*out << "CCB Board ID" ;
-	*out << cgicc::form().set("method","GET").set("action",CCBBoardID) << std::endl ;
-	*out << cgicc::input().set("type","text").set("name","CCBBoardID")
-	  .set("value",CCBBoardID_) << std::endl ;
-	*out << cgicc::form() << std::endl ;
-	*out << cgicc::td();
-	//
-	*out << cgicc::td();
-	//
-	if ( CCBBoardID_.find("-1") == string::npos ) {
+	if(slot == ii) {
+	  //
+	  //
+	  char Name[50] ;
+	  std::string CCBBoardID =
+	    toolbox::toString("/%s/CCBBoardID",getApplicationDescriptor()->getURN().c_str());
+	  sprintf(Name,"CCB Status slot=%d",slot);
+	  //
+	  *out << cgicc::td();
+	  *out << "CCB Board ID" ;
+	  *out << cgicc::form().set("method","GET").set("action",CCBBoardID) << std::endl ;
+	  *out << cgicc::input().set("type","text").set("name","CCBBoardID")
+	    .set("value",CCBBoardID_) << std::endl ;
+	  *out << cgicc::form() << std::endl ;
+	  *out << cgicc::td();
+	  //
+	  *out << cgicc::td();
+	  //
+	  if ( CCBBoardID_.find("-1") == string::npos ) {
 	  //
 	  //*out << cgicc::form().set("method","GET").set("action",CCBStatus)
 	  //.set("target","_blank") << std::endl ;
@@ -1473,7 +1347,7 @@ private:
 		//
 		*out << cgicc::a(Name).set("href",ChamberTests) << endl;
 		//
-		std::cout << "Creating ChamberUtils i="<<i<<std::endl;
+		//std::cout << "Creating ChamberUtils i="<<i<<std::endl;
 		//
 		MyTest[i].SetTMB(tmbVector[i]);
 		MyTest[i].SetDMB(dmbVector[iii]);
@@ -1582,17 +1456,17 @@ private:
 	//
 	//*out<< cgicc::br() ;
 	//
-	  *out << cgicc::table();
-	  //
-    }
-    //
-    *out << cgicc::table().set("border","1");
-    //
-    std::string CrateChassisID =
-      toolbox::toString("/%s/CrateChassisID",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::td();
-    *out << "Crate Chassis ID" ;
+      *out << cgicc::table();
+      //
+      }
+      //
+      *out << cgicc::table().set("border","1");
+      //
+      std::string CrateChassisID =
+	toolbox::toString("/%s/CrateChassisID",getApplicationDescriptor()->getURN().c_str());
+      //
+      *out << cgicc::td();
+      *out << "Crate Chassis ID" ;
     *out << cgicc::form().set("method","GET").set("action",CrateChassisID) << std::endl ;
     *out << cgicc::input().set("type","text").set("name","CrateChassisID")
       .set("value",CrateChassisID_) << std::endl ;
@@ -3290,6 +3164,8 @@ private:
     //return;
     //
     MyController->configure();          // Init system
+    //
+    //fireEvent("Configure");
     //
     cgicc::Cgicc cgi(in);
     //
@@ -8396,15 +8272,16 @@ private:
   //
   void EmuPeripheralCrate::ConfigureInit(){
     //
-    Configuring();
-    //
-    MyController->configure();
+    if( Configuring() )
+      {
+	MyController->configure();
+      }
     //
   }
   //
-  void EmuPeripheralCrate::Configuring(){
+  bool EmuPeripheralCrate::Configuring(){
     //
-    std::cout << "Configuring " << std::endl ;
+    LOG4CPLUS_INFO(getApplicationLogger(),"Configuring");
     //
     //-- parse XML file
     //
@@ -8416,17 +8293,28 @@ private:
     //parser.parseFile(xmlFile_.toString().c_str());
     //
     if ( MyController != 0 ) {
-      std::cout << "Delete existing controller" << std::endl;
+      LOG4CPLUS_INFO(getApplicationLogger(), "Delete existing controller");
       delete MyController ;
     }
     //
     MyController = new EmuController();
-    std::cout<<"Creat new controller" << std::endl;
+    //
+    // Check if filename exists
+    //
+    if(xmlFile_.toString().find("http") == string::npos) {
+      std::ifstream filename(xmlFile_.toString().c_str());
+      if(filename.is_open()) {
+	filename.close();
+      }
+      else {
+	LOG4CPLUS_ERROR(getApplicationLogger(), "Filename doesn't exist");
+	XCEPT_RAISE (toolbox::fsm::exception::Exception, "Filename doesn't exist");
+	return false;
+      }
+    }
     //
     MyController->SetConfFile(xmlFile_.toString().c_str());
     MyController->init();
-    //
-    std::cout << "&&&&&&&&&& Done init" << std::endl;
     //
     emuSystem_ = MyController->GetEmuSystem();
     //
@@ -8435,13 +8323,7 @@ private:
     CrateSelector selector = MyController->selector();
     vector<Crate*> crateVector = selector.crates();
     //
-    if (crateVector.size() > 1 ) std::cout << "Warning...this configuration file has more than one crate" 
-					   << std::endl;
-    //
-    //if (crateVector.size() > 1){
-    //cerr << "Error: only one PeripheralCrate allowed" << endl;
-    //exit(1);
-    //}
+    if (crateVector.size() > 1 ) LOG4CPLUS_ERROR(getApplicationLogger(),"Warning...this configuration file has more than one crate");
     //
     thisCrate = crateVector[0];
     tmbVector = selector.tmbs(crateVector[0]);
