@@ -130,6 +130,10 @@ void EmuPlotter::processEvent(const char * data, int dataSize, unsigned long err
   CSCDDUTrailer dduTrailer = dduData.trailer();
   
   dduID = dduHeader.source_id();
+  
+  if (isMEvalid(nodeME, "Source_ID", mo)) mo->Fill(dduID);
+
+
 
   string dduTag = Form("DDU_%d",dduID);
 

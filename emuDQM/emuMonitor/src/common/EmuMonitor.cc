@@ -194,11 +194,11 @@ void EmuMonitor::defineFSM()
   fsm_.addState ('R', "Ready");
   fsm_.addState ('E', "Enabled");
   fsm_.addStateTransition ('H','R', "Configure", this, &EmuMonitor::ConfigureAction);
-  // fsm_.addStateTransition ('H','E', "Enable", this, &EmuMonitor::InvalidAction);
-  // fsm_.addStateTransition ('R','R', "Enable", this, &EmuMonitor::InvalidAction);
+  fsm_.addStateTransition ('H','E', "Enable", this, &EmuMonitor::EnableAction);
+  fsm_.addStateTransition ('R','R', "Configure", this, &EmuMonitor::noAction);
   fsm_.addStateTransition ('R','E', "Enable", this, &EmuMonitor::EnableAction);
-  // fsm_.addStateTransition ('E','E', "Enable", this, &EmuMonitor::InvalidAction);
-  // fsm_.addStateTransition ('E','R', "Configure", this, &EmuMonitor::InvalidAction);
+  fsm_.addStateTransition ('E','E', "Enable", this, &EmuMonitor::noAction);
+  fsm_.addStateTransition ('E','R', "Configure", this, &EmuMonitor::ConfigureAction);
   fsm_.addStateTransition ('R','H', "Halt", this, &EmuMonitor::HaltAction);
   fsm_.addStateTransition ('E','H', "Halt", this, &EmuMonitor::HaltAction);
   fsm_.addStateTransition ('H','H', "Halt", this, &EmuMonitor::HaltAction);
@@ -594,31 +594,49 @@ void EmuMonitor::getCollectors(xdata::String className)
 
 void EmuMonitor::ConfigureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception)
 {
-  // !! EmuMonitor or EmuRUI tid?
+  LOG4CPLUS_WARN(getApplicationLogger(), e->type() << " from "
+                 << fsm_.getStateName(fsm_.getCurrentState()));
+  doStop();
+  doConfigure();
+}
+
+void EmuMonitor::doStop()
+{
+  if (plotter_ != NULL && isReadoutActive) timer_->kill();
+  disableReadout();
+  pmeter_->init(200);
+  pmeterCSC_->init(200);
+
+}
+
+void EmuMonitor::doConfigure()
+{
+   // !! EmuMonitor or EmuRUI tid?
   appTid_ = i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor());
   /*
     if (xmlCfgFile_ != "" && plotter_ != NULL) plotter_->setXMLCfgFile(xmlCfgFile_.toString());
     if (plotter_ != NULL) plotter_->book(appTid_);
   */
+
   setupPlotter();
   if (plotter_ != NULL) {
     timer_->setPlotter(plotter_);
     if (outputROOTFile_.toString().length()) {
       LOG4CPLUS_INFO (getApplicationLogger(),
-		      "plotter::outputROOTFile: 0x" << outputROOTFile_.toString());
+                      "plotter::outputROOTFile: 0x" << outputROOTFile_.toString());
       plotter_->setHistoFile(outputROOTFile_);
     }
     if (dduCheckMask_ >= xdata::UnsignedLong(0)) {
       LOG4CPLUS_INFO (getApplicationLogger(),
-		      "plotter::dduCheckMask: 0x" << std::hex << dduCheckMask_.value_);
+                      "plotter::dduCheckMask: 0x" << std::hex << dduCheckMask_.value_);
       plotter_->setDDUCheckMask(dduCheckMask_);
     }
     if (binCheckMask_ >= xdata::UnsignedLong(0)) {
-      LOG4CPLUS_INFO (getApplicationLogger(), 
-		      "plotter::binCheckMask: 0x" << std::hex << binCheckMask_.value_);
+      LOG4CPLUS_INFO (getApplicationLogger(),
+                      "plotter::binCheckMask: 0x" << std::hex << binCheckMask_.value_);
       plotter_->setBinCheckMask(binCheckMask_);
     }
-	
+
     plotter_->book();
   }
   if (plotterSaveTimer_>xdata::Integer(0)) {
@@ -626,17 +644,10 @@ void EmuMonitor::ConfigureAction(toolbox::Event::Reference e) throw (toolbox::fs
   }
 
   configureReadout();
+
 }
 
-void EmuMonitor::HaltAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception )
-{
-  if (plotter_ != NULL && isReadoutActive) timer_->kill();
-  disableReadout();
-  pmeter_->init(200);
-  pmeterCSC_->init(200);
-}
-
-void EmuMonitor::EnableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception )
+void  EmuMonitor::doStart()
 {
   sessionEvents_=0;
   creditMsgsSent_ = 0;
@@ -644,7 +655,7 @@ void EmuMonitor::EnableAction(toolbox::Event::Reference e) throw (toolbox::fsm::
   eventsReceived_ = 0;
   cscUnpacked_ = 0;
   runNumber_ = 0;
-  //	configureReadout();
+  //    configureReadout();
   if (plotter_ != NULL) timer_->activate();
   enableReadout();
   pmeter_->init(200);
@@ -652,9 +663,27 @@ void EmuMonitor::EnableAction(toolbox::Event::Reference e) throw (toolbox::fsm::
   bindI2Ocallbacks();
 }
 
-void EmuMonitor::InvalidAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception )
+void EmuMonitor::HaltAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception )
 {
-  LOG4CPLUS_WARN(getApplicationLogger(),"Invalid FSM transition. Ignored");	
+  LOG4CPLUS_WARN(getApplicationLogger(), e->type() << " from "
+                 << fsm_.getStateName(fsm_.getCurrentState()));
+  doStop();
+}
+
+void EmuMonitor::EnableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception )
+{
+  LOG4CPLUS_WARN(getApplicationLogger(), e->type() << " from " 
+                 << fsm_.getStateName(fsm_.getCurrentState()));
+  if (fsm_.getCurrentState() == 'H') doConfigure();
+  doStart();
+}
+
+void EmuMonitor::noAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception )
+{
+  LOG4CPLUS_WARN(getApplicationLogger(), "Attempt of invalid FSM state change to " <<  e->type()
+                 << " from "
+                 << fsm_.getStateName(fsm_.getCurrentState()) << ". Ignored.");
+  fsm_.setInitialState(fsm_.getCurrentState());
 }
 
 // == XGI Call back == //
