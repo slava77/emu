@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.48 2006/10/23 12:17:33 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.49 2006/10/23 13:18:06 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -212,6 +212,7 @@ public:
     MenuMonitor_ = 2;
     //
     xgi::bind(this,&EmuPeripheralCrate::Default, "Default");
+    xgi::bind(this,&EmuPeripheralCrate::MainPage, "MainPage");
     xgi::bind(this,&EmuPeripheralCrate::setConfFile, "setConfFile");
     xgi::bind(this,&EmuPeripheralCrate::getTestLogFile, "getTestLogFile");
     xgi::bind(this,&EmuPeripheralCrate::getTestLogFileUpload, "getTestLogFileUpload");
@@ -475,10 +476,15 @@ public:
   //
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
     {
-      //
-      std::string LoggerName = getApplicationLogger().getName() ;
-      std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
-      //
+      *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/"
+	   <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<endl;
+    }
+  //
+  void EmuPeripheralCrate::MainPage(xgi::Input * in, xgi::Output * out ){
+    //
+    std::string LoggerName = getApplicationLogger().getName() ;
+    std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
+    //
     //if (getApplicationLogger().exists(getApplicationLogger().getName())) {
     //
     LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrate ready");
@@ -488,6 +494,7 @@ public:
     if ( MyController == 0 ) MyController = new EmuController();
     //
     MyHeader(in,out,"EmuPeripheralCrate");
+    //
     //
     //*out << cgicc::h1("EmuPeripheralCrate");
     //*out << cgicc::br();

@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.18 2006/10/23 12:17:37 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.19 2006/10/23 13:18:11 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -81,6 +81,7 @@ public:
     // Bind SOAP callback
     //
     xgi::bind(this,&EmuPeripheralCrateManager::Default, "Default");
+    xgi::bind(this,&EmuPeripheralCrateManager::MainPage, "MainPage");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageConfigure, "SendSOAPMessageConfigure");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageConfigureXRelay, "SendSOAPMessageConfigureXRelay");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageCalibrationXRelay, 
@@ -137,7 +138,13 @@ public:
   }  
   //
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
-  {
+    {
+      *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/"
+	   <<getApplicationDescriptor()->getURN()<<"/"<<"MainPage"<<"\">" <<endl;
+    }
+  //
+  void EmuPeripheralCrateManager::MainPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+    {
     //
     MyHeader(in,out,"EmuPeripheralCrateManager");
     //
