@@ -290,6 +290,17 @@ private:
 
   virtual void actionPerformed(xdata::Event & received ); // inherited from xdata::ActionListener
 
+  // Parameters to obtain from TTCciControl
+  xdata::String TTCci_ClockSource_;
+  xdata::String TTCci_OrbitSource_;
+  xdata::String TTCci_TriggerSource_;
+  xdata::String TTCci_BGOSource_;
+  // Parameters to obtain from TF_hyperDAQ
+  xdata::String TF_triggerMode_;
+  void getTriggerSources();
+  void getTriggerMode();
+
+
     /**
      * Processes the form sent from the control web page.
      */
