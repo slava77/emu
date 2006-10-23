@@ -436,11 +436,15 @@ throw (xgi::exception::Exception)
     *out << "     width=\"64\""                                        << endl;
     *out << "     height=\"64\""                                       << endl;
     *out << "     border=\"\"/>"                                       << endl;
+    *out << "  </td>"                                                  << endl;
+    *out << "  <td>"                                                  << endl;
     *out << "    <b>"                                                  << endl;
     *out << "      " << xmlClass_ << instance_ 
 // 	 << " Version " << EmuDAQManagerV::versions 
 	 << "  " << fsm_.getStateName(fsm_.getCurrentState())          << endl;
     *out << "    </b>"                                                 << endl;
+    *out << "    <br/>Updated at " <<  getDateTime()                   << endl;
+    *out << "    &#8212; <span id=\"ageOfPage\"></span> ago "          << endl;
     *out << "  </td>"                                                  << endl;
     *out << "  <td class=\"app_links\" align=\"center\" width=\"64\">" << endl;
     *out << "    <a href=\"/" << urn_ << "/control\" target=\"_top\">" << endl;
@@ -471,12 +475,12 @@ throw (xgi::exception::Exception)
     *out << "    </a>"                                                 << endl;
     *out << "  </td>"                                                  << endl;
     *out << "</tr>"                                                    << endl;
-    *out << "<tr>"                                                     << endl;
-    *out << "  <td colspan=\"4\">"                                     << endl;
-    *out << "    Updated at " <<  getDateTime()                        << endl;
-    *out << "    &#8212; <span id=\"ageOfPage\"></span> ago "          << endl;
-    *out << "  </td>"                                                  << endl;
-    *out << "</tr>"                                                    << endl;
+//     *out << "<tr>"                                                     << endl;
+//     *out << "  <td colspan=\"4\">"                                     << endl;
+//     *out << "    Updated at " <<  getDateTime()                        << endl;
+//     *out << "    &#8212; <span id=\"ageOfPage\"></span> ago "          << endl;
+//     *out << "  </td>"                                                  << endl;
+//     *out << "</tr>"                                                    << endl;
     *out << "</table>"                                                 << endl;
 
     *out << "<hr/>"                                                    << endl;
@@ -914,11 +918,15 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
     *out << "     width=\"64\""                                        << endl;
     *out << "     height=\"64\""                                       << endl;
     *out << "     border=\"\"/>"                                       << endl;
+    *out << "  </td>"                                                  << endl;
+    *out << "  <td>"                                                  << endl;
     *out << "    <b>"                                                  << endl;
     *out << "      " << xmlClass_ << instance_ 
 // 	 << " Version " << EmuDAQManagerV::versions 
 	 << "  " << fsm_.getStateName(fsm_.getCurrentState())          << endl;
     *out << "    </b>"                                                 << endl;
+    *out << "    <br/>Updated at " <<  getDateTime()                   << endl;
+    *out << "    &#8212; <span id=\"ageOfPage\"></span> ago "          << endl;
     *out << "  </td>"                                                  << endl;
     *out << "  <td class=\"app_links\" align=\"center\" width=\"70\">" << endl;
     *out << "    <a href=\"/urn:xdaq-application:lid=3\" target=\"_top\">"             << endl;
@@ -948,12 +956,6 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
     *out << "    <a href=\"/" << urn_ << "/\" target=\"_top\">"                        << endl;
     *out << "      Main"                                               << endl;
     *out << "    </a>"                                                 << endl;
-    *out << "  </td>"                                                  << endl;
-    *out << "</tr>"                                                    << endl;
-    *out << "<tr>"                                                     << endl;
-    *out << "  <td colspan=\"4\">"                                                   << endl;
-    *out << "    Updated at " <<  getDateTime()                        << endl;
-    *out << "    &#8212; <span id=\"ageOfPage\"></span> ago "          << endl;
     *out << "  </td>"                                                  << endl;
     *out << "</tr>"                                                    << endl;
     *out << "</table>"                                                 << endl;
@@ -1063,7 +1065,8 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
       else if ( fsm_.getCurrentState() == 'F' )
 	*out << " value=\"reset\""                                   << endl;
       *out << "/>"                                                   << endl;
-      
+
+      // In case the user has changed his mind, allow him to halt from 'configured' state.
       if ( fsm_.getCurrentState() == 'C' )
 	{
 	  *out << "<input"                                               << endl;
@@ -1072,6 +1075,20 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
 	  *out << " value=\"stop\""                                      << endl;
 	  *out << "/>"                                                   << endl;
 	}
+
+      // If DAQ is in "Failed" state, but EmuDAQManager isn't, place a reset button
+      // (if EmuDAQManager is in 'failed' state, we should already have one).
+      // Also, if EmuDAQManager is in "Halted" state, but DAQ is not (because EmuDAQManager 
+      // was restarted, for example), allow DAQ to be reset. 
+      if ( ( fsm_.getCurrentState() != 'F' && daqState == "Failed" ) ||
+	   ( fsm_.getCurrentState() == 'H' && daqState != "Halted" ) ){
+	  *out << "<input"                                               << endl;
+	  *out << " type=\"submit\""                                     << endl;
+	  *out << " name=\"command\""                                    << endl;
+	  *out << " value=\"reset\""                                     << endl;
+	  *out << "/>"                                                   << endl;
+      }
+      
 
       *out << "<input"                                               << endl;
       *out << " type=\"checkbox\""                                   << endl;
@@ -1163,6 +1180,78 @@ void EmuDAQManager::getRunInfoFromTA( string* runnum, string* maxevents, string*
     }
 }
 
+void EmuDAQManager::getTriggerSources()
+  // Gets the trigger sources from TTCci
+{
+  TTCci_ClockSource_   = "UNKNOWN";
+  TTCci_OrbitSource_   = "UNKNOWN";
+  TTCci_TriggerSource_ = "UNKNOWN";
+  TTCci_BGOSource_     = "UNKNOWN";
+
+  vector< xdaq::ApplicationDescriptor* > appDescriptors;
+  try
+    {
+      appDescriptors = getAppDescriptors(appGroup_, "TTCciControl");
+    }
+  catch(xcept::Exception e)
+    {
+      appDescriptors.clear();
+      LOG4CPLUS_ERROR(logger_,
+		      "Failed to get application descriptors for class TTCciControl: "
+		      << stdformat_exception_history(e));
+    }
+
+  if ( appDescriptors.size() >= 1 ){
+    if ( appDescriptors.size() > 1 )
+      LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
+		      appDescriptors.size() << 
+		      " TTCciControl instances found. Trying first one.");
+    TTCci_ClockSource_   = getScalarParam(appDescriptors[0],"ClockSource"  ,"string");
+    TTCci_OrbitSource_   = getScalarParam(appDescriptors[0],"OrbitSource"  ,"string");
+    TTCci_TriggerSource_ = getScalarParam(appDescriptors[0],"TriggerSource","string");
+    TTCci_BGOSource_     = getScalarParam(appDescriptors[0],"BGOSource"    ,"string");
+    LOG4CPLUS_INFO(logger_, "Got trigger sources  from TTCciControl:" 
+		   << " ClockSource: "   << TTCci_ClockSource_.toString()
+		   << " OrbitSource: "   << TTCci_OrbitSource_.toString()
+		   << " TriggerSource: " << TTCci_TriggerSource_.toString()
+		   << " BGOSource: "     << TTCci_BGOSource_.toString() );
+  }
+  else{
+    LOG4CPLUS_ERROR(logger_, "Did not find TTCciControl. ==> Trigger sources are unknown.");
+  }
+}
+
+void EmuDAQManager::getTriggerMode()
+  // Gets the trigger mode from TF_hyperDAQ
+{
+  TF_triggerMode_ = "UNKNOWN";
+
+  vector< xdaq::ApplicationDescriptor* > appDescriptors;
+  try
+    {
+      appDescriptors = getAppDescriptors(appGroup_, "TF_hyperDAQ");
+    }
+  catch(xcept::Exception e)
+    {
+      appDescriptors.clear();
+      LOG4CPLUS_ERROR(logger_,
+		      "Failed to get application descriptors for class TF_hyperDAQ"
+		      << stdformat_exception_history(e));
+    }
+
+  if ( appDescriptors.size() >= 1 ){
+    if ( appDescriptors.size() > 1 )
+      LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
+		      appDescriptors.size() << " TF_hyperDAQ instances found. Trying first one.");
+    TF_triggerMode_ = getScalarParam(appDescriptors[0],"triggerMode","string");
+    LOG4CPLUS_INFO(logger_, "Got trigger mode from TF_hyperDAQ: " 
+		   << TF_triggerMode_.toString() );
+  }
+  else{
+    LOG4CPLUS_ERROR(logger_, "Did not find TF_hyperDAQ. ==> Trigger mode is unknown.");
+  }
+}
+
 int EmuDAQManager::purgeIntNumberString( string* s ){
   // Emu: purge string of all non-numeric characters
   int nCharactersErased = 0;
@@ -1246,9 +1335,10 @@ throw (xgi::exception::Exception)
 	  {
 	    fireEvent("Enable");
 	  }
-        else if( ( cmdName == "stop"                ) && 
-		 ( fsm_.getCurrentState() == 'C' ||
-		   fsm_.getCurrentState() == 'E'    )    )
+        else if( cmdName == "stop"
+		 && ( fsm_.getCurrentState() == 'C' ||
+		      fsm_.getCurrentState() == 'E'    )
+		 )
 	  {
 	    fireEvent("Halt");
 	  }
@@ -1897,6 +1987,7 @@ void EmuDAQManager::configureDAQ()
 	LOG4CPLUS_WARN(logger_,"The embarassment of riches: " << taDescriptors_.size() <<
 		       " TA instances found. Will use TA0.");
       }
+      // move to enableAction START
       string runNumber    = runNumber_.toString();
       string maxNumEvents = maxNumberOfEvents_.toString();
       try
@@ -1929,6 +2020,7 @@ void EmuDAQManager::configureDAQ()
 	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
 			"Failed to set maximum number of events to "  + maxNumEvents, e);
 	}
+      // move to enableAction END
         try
         {
             configureTrigger();
@@ -3440,6 +3532,22 @@ void EmuDAQManager::exportParams(xdata::InfoSpace *s)
     s->fireItemAvailable("runTypes",          &runTypes_         );
     s->fireItemAvailable("buildEvents",       &buildEvents_      );
 
+
+  // Parameters to obtain from TTCciControl
+  TTCci_ClockSource_   = "UNKNOWN";
+  TTCci_OrbitSource_   = "UNKNOWN";
+  TTCci_TriggerSource_ = "UNKNOWN";
+  TTCci_BGOSource_     = "UNKNOWN";
+  s->fireItemAvailable("TTCci_ClockSource",   &TTCci_ClockSource_);
+  s->fireItemAvailable("TTCci_OrbitSource",   &TTCci_OrbitSource_);
+  s->fireItemAvailable("TTCci_TriggerSource", &TTCci_TriggerSource_);
+  s->fireItemAvailable("TTCci_BGOSource",     &TTCci_BGOSource_);
+
+  // Parameters to obtain from TF_hyperDAQ
+  TF_triggerMode_ = "UNKNOWN";
+  s->fireItemAvailable("TF_triggerMode", &TF_triggerMode_);
+
+
     controlDQM_ = true;
     s->fireItemAvailable("controlDQM",&controlDQM_);
 
@@ -3778,6 +3886,26 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
     }
 
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">comments</td><td>" << textToHtml(comments_) << "</td></tr>";
+
+    getTriggerMode();
+    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">Track Finder</td>";
+    htmlMessageToELog << "<td><table>";
+    htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "trigger mode" << "</td><td align=\"right\">" 
+		      << TF_triggerMode_.toString() << "</td></tr>";
+    htmlMessageToELog << "</table></td></tr>";
+
+    getTriggerSources();
+    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">TTCci</td>";
+    htmlMessageToELog << "<td><table>";
+    htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "clock source"   << "</td><td align=\"right\">" 
+		      << TTCci_ClockSource_.toString()   << "</td></tr>";
+    htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "orbit source"   << "</td><td align=\"right\">" 
+		      << TTCci_OrbitSource_.toString()   << "</td></tr>";
+    htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "trigger source" << "</td><td align=\"right\">" 
+		      << TTCci_TriggerSource_.toString() << "</td></tr>";
+    htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "BGO source"     << "</td><td align=\"right\">" 
+		      << TTCci_BGOSource_.toString()     << "</td></tr>";
+    htmlMessageToELog << "</table></td></tr>";
 
     vector< vector<string> > counts = getFUEventCounts();
     if ( counts.size() > 0 ){
