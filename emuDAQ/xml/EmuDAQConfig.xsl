@@ -304,7 +304,7 @@
 	  <xsl:attribute name="rowspan">
 	    <xsl:value-of select="count(child::xc:Application)+count(child::xc:Endpoint)+count(child::xc:Module)+1"/>
 	  </xsl:attribute> 
-	  <a class="context">
+	  <a class="context" target="_blank">
 	    <xsl:attribute name="href"><xsl:value-of select="attribute::url"/></xsl:attribute>
 	    <xsl:value-of select="substring-after(attribute::url,'http://')"/>
 	  </a>
@@ -324,7 +324,7 @@
 	<table class="app">
 	  <tr>
 	    <th class="app" rowspan="4">
-	      <a class="app">
+	      <a class="app" target="_blank">
 		<xsl:attribute name="href"><xsl:value-of select="../attribute::url"/>/urn:xdaq-application:lid=<xsl:value-of select="attribute::id"/>/</xsl:attribute>
 		<xsl:value-of select="attribute::class"/>
 	      </a>
@@ -507,7 +507,7 @@
 	    </xsl:when>
 	    <xsl:otherwise>
 	      <th class="prop">
-		<a class="prop">
+		<a class="prop" target="_blank">
 		  <xsl:attribute name="href"><xsl:value-of select="ancestor::xc:Context/attribute::url"/>/urn:xdaq-application:lid=<xsl:value-of select="ancestor::xc:Application/attribute::id"/>/ParameterQuery</xsl:attribute>
 		  <xsl:value-of select="name()"/>
 		</a>
@@ -521,7 +521,7 @@
 	    <xsl:otherwise>
 	      <td class="prop"><xsl:value-of select="substring-after(attribute::xsi:type,'xsd:')"/></td>
 	      <td class="prop" style="text-align:right; font-weight:bold" width="100%">
-		<a class="prop">
+		<a class="prop" target="_blank">
 		  <xsl:attribute name="href"><xsl:value-of select="ancestor::xc:Context/attribute::url"/>/urn:xdaq-application:lid=3/editProperties?lid=<xsl:value-of select="ancestor::xc:Application/attribute::id"/></xsl:attribute>
 		  <xsl:value-of select="."/>
 		</a>
