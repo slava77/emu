@@ -1898,7 +1898,7 @@ void EmuDAQManager::printStatesTable( xgi::Output *out,
       *out << "<tr>"                                                    << endl;
 
       *out << "  <th>"                                                  << endl;
-      *out << "    <a href=\"" << *c << "\">" << c->substr(7) << "</a>" << endl;
+      *out << "    <a href=\"" << *c << "\" target=\"_blank\">" << c->substr(7) << "</a>" << endl;
       *out << "  </th>"                                                 << endl;
       
       *out << "  <td>"                                                  << endl;
@@ -3677,7 +3677,7 @@ void EmuDAQManager::printEventCountsTable
     {
         *out << "<tr>"                                                 << endl;
         *out << "  <td align=\"left\">"                                               << endl;
-	*out << "      <a href=\"" <<counts[row][0] << "\">"           << endl;
+	*out << "      <a href=\"" <<counts[row][0] << "\" target=\"_blank\">"        << endl;
         *out <<             counts[row][1]                             << endl;
 	*out << "      </a>"                                           << endl;
         *out << "  </td>"                                              << endl;
