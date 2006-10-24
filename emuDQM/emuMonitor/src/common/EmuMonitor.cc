@@ -80,6 +80,7 @@ void EmuMonitor::initProperties()
 
   LOG4CPLUS_DEBUG(this->getApplicationLogger(),"initProperties called");
 
+  sTimeout = 3;
   plotterSaveTimer_ = 120;
   outputROOTFile_ = "";
   outputImagesPath_ = ""; 
@@ -116,6 +117,7 @@ void EmuMonitor::initProperties()
 
   useAltFileReader_	= false;
   stateName_		= "";
+  fSaveROOTFile_	= false;
 
   getApplicationInfoSpace()->fireItemAvailable("totalEvents",&totalEvents_);
   getApplicationInfoSpace()->fireItemAvailable("sessionEvents",&sessionEvents_);
@@ -145,6 +147,7 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->fireItemAvailable("xmlCanvasesCfgFile",&xmlCanvasesCfgFile_);
   getApplicationInfoSpace()->fireItemAvailable("plotterSaveTimer",&plotterSaveTimer_);
   getApplicationInfoSpace()->fireItemAvailable("outputROOTFile",&outputROOTFile_);
+  getApplicationInfoSpace()->fireItemAvailable("fSaveROOTFile",&fSaveROOTFile_);
   getApplicationInfoSpace()->fireItemAvailable("outputImagesPath",&outputImagesPath_);
   getApplicationInfoSpace()->fireItemAvailable("dduCheckMask",&dduCheckMask_);
   getApplicationInfoSpace()->fireItemAvailable("binCheckMask",&binCheckMask_);
@@ -170,6 +173,7 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->addItemChangedListener ("xmlCfgFile", this);
   getApplicationInfoSpace()->addItemChangedListener ("xmlCanvasesCfgFile", this);
   getApplicationInfoSpace()->addItemChangedListener ("outputROOTFile", this);
+  getApplicationInfoSpace()->addItemChangedListener ("fSaveROOTFile", this);
   getApplicationInfoSpace()->addItemChangedListener ("plotterSaveTimer", this);
   getApplicationInfoSpace()->addItemChangedListener ("dduCheckMask", this);
   getApplicationInfoSpace()->addItemChangedListener ("binCheckMask", this);
@@ -532,6 +536,40 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
     }
 }
 
+std::string EmuMonitor::getROOTFileName() 
+{
+   std::string histofile="dqm_results.root";
+   std::string path=outputROOTFile_;
+   if (path.rfind("/") != string::npos) {
+      path = path.substr(0, path.rfind("/")+1);
+   } else path="";
+   
+   if (readoutMode_.toString() == "internal") {
+	if (inputDeviceName_.toString().rfind(".") != string::npos) {
+                histofile = inputDeviceName_.toString();
+                if (histofile.rfind("/") != string::npos)
+                        histofile.erase(0, histofile.rfind("/")+1);
+                if (histofile.rfind(".") != string::npos)
+                	histofile.erase(histofile.rfind("."), histofile.size());
+        }
+   }
+   if (readoutMode_.toString() == "external") {
+        if (serversClassName_.toString() != "") { 
+		std::ostringstream st;
+		st.clear();
+		st << "OnlineRun_" << runNumber_ << "_" << serversClassName_.toString();
+		for (unsigned int i =0; i<dataservers_.size(); i++) {
+			st << "_" << dataservers_[i]->getInstance();
+		}
+		histofile = st.str();
+	}
+   }
+
+   
+   
+   return (path+histofile+".root");
+}
+
 // == Get Application Descriptors for specified Data Server class name == //
 void EmuMonitor::getDataServers(xdata::String className) 
 {
@@ -594,15 +632,31 @@ void EmuMonitor::getCollectors(xdata::String className)
 
 void EmuMonitor::ConfigureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception)
 {
+  //  doStop();
+  doConfigure();
   LOG4CPLUS_WARN(getApplicationLogger(), e->type() << " from "
                  << fsm_.getStateName(fsm_.getCurrentState()));
-  doStop();
-  doConfigure();
 }
 
 void EmuMonitor::doStop()
 {
-  if (plotter_ != NULL && isReadoutActive) timer_->kill();
+  if (plotter_ != NULL && isReadoutActive) { 
+        if (timer_ != NULL && timer_->isActive())
+		timer_->kill();
+	if (fSaveROOTFile_ == xdata::Boolean(true)) {
+		if (timer_ != NULL) {
+			timer_->setPlotter(plotter_);
+			timer_->setROOTFileName(getROOTFileName());
+			if (plotterSaveTimer_>xdata::Integer(0)) {
+			    timer_->setTimer(plotterSaveTimer_);
+  			}
+			timer_->activate();
+
+		}
+	      
+	//	plotter_->saveToROOTFile(getROOTFileName());
+	}
+  }
   disableReadout();
   pmeter_->init(200);
   pmeterCSC_->init(200);
@@ -611,16 +665,21 @@ void EmuMonitor::doStop()
 
 void EmuMonitor::doConfigure()
 {
+  disableReadout();
+  pmeter_->init(200);
+  pmeterCSC_->init(200);
    // !! EmuMonitor or EmuRUI tid?
   appTid_ = i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor());
   /*
     if (xmlCfgFile_ != "" && plotter_ != NULL) plotter_->setXMLCfgFile(xmlCfgFile_.toString());
     if (plotter_ != NULL) plotter_->book(appTid_);
   */
+  if (timer_ != NULL && timer_->isActive())
+                timer_->kill();
 
   setupPlotter();
   if (plotter_ != NULL) {
-    timer_->setPlotter(plotter_);
+    // timer_->setPlotter(plotter_);
     if (outputROOTFile_.toString().length()) {
       LOG4CPLUS_INFO (getApplicationLogger(),
                       "plotter::outputROOTFile: 0x" << outputROOTFile_.toString());
@@ -639,10 +698,11 @@ void EmuMonitor::doConfigure()
 
     plotter_->book();
   }
+/*
   if (plotterSaveTimer_>xdata::Integer(0)) {
     timer_->setTimer(plotterSaveTimer_);
   }
-
+*/
   configureReadout();
 
 }
@@ -656,7 +716,9 @@ void  EmuMonitor::doStart()
   cscUnpacked_ = 0;
   runNumber_ = 0;
   //    configureReadout();
-  if (plotter_ != NULL) timer_->activate();
+  // if (plotter_ != NULL) timer_->activate();
+  if (timer_ != NULL && timer_->isActive())
+                timer_->kill();
   enableReadout();
   pmeter_->init(200);
   pmeterCSC_->init(200);
@@ -665,17 +727,17 @@ void  EmuMonitor::doStart()
 
 void EmuMonitor::HaltAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception )
 {
+  doStop();
   LOG4CPLUS_WARN(getApplicationLogger(), e->type() << " from "
                  << fsm_.getStateName(fsm_.getCurrentState()));
-  doStop();
 }
 
 void EmuMonitor::EnableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception )
 {
-  LOG4CPLUS_WARN(getApplicationLogger(), e->type() << " from " 
-                 << fsm_.getStateName(fsm_.getCurrentState()));
   if (fsm_.getCurrentState() == 'H') doConfigure();
   doStart();
+  LOG4CPLUS_WARN(getApplicationLogger(), e->type() << " from " 
+                 << fsm_.getStateName(fsm_.getCurrentState()));
 }
 
 void EmuMonitor::noAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception )

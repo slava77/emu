@@ -37,9 +37,17 @@ xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference nod
   xoap::SOAPName histodirName = envelope.createName("Branch", "", "");
 
   if (plotter_ != NULL) {
-
+	
     int tout=0;
-    while ((plotter_->isBusy()) && (tout <30)) {usleep(100000); tout++; }; 
+    while ((plotter_->isBusy()) && (tout <sTimeout*2)) {
+      usleep(500000); tout++;
+    };
+    if (tout==sTimeout*2) {
+      LOG4CPLUS_WARN (getApplicationLogger(), "Plotter is still busy after " << sTimeout << " secs");
+      return msg;
+    }
+
+
     map<string, ME_List> MEs = plotter_->GetMEs();
 
     for (map<string, ME_List >::iterator itr = MEs.begin();
@@ -53,7 +61,7 @@ xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference nod
 	xoap::SOAPElement histoElement = histodirElement.addChildElement(histoName);
 	histoElement.addTextNode(hname);
 
-//	LOG4CPLUS_INFO(getApplicationLogger(),
+	//	LOG4CPLUS_INFO(getApplicationLogger(),
 	//	       "ME: " << itr->first << "/" << h_itr->second->getFullName() << " size: " << sizeof(*(h_itr->second->getObject())));
 
       }
@@ -89,7 +97,14 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
       if (plotter_ != NULL) 
 	{
 	  int tout=0;
-          while ((plotter_->isBusy()) && (tout <30)) {usleep(100000); tout++; };
+          while ((plotter_->isBusy()) && (tout <sTimeout*2)) {
+	    usleep(500000); tout++;
+          };
+          if (tout==sTimeout*2) { 
+	    LOG4CPLUS_WARN (getApplicationLogger(), "Plotter is still busy after " << sTimeout << " secs");
+	    return msg;
+	  }
+
 	  map<string, ME_List > MEs = plotter_->GetMEs();
           xoap::SOAPName cmdTag = envelope.createName("requestObjects","xdaq", "urn:xdaq-soap:3.0");
 	  vector<xoap::SOAPElement> content = rb.getChildElements (cmdTag);
@@ -170,7 +185,14 @@ xoap::MessageReference EmuMonitor::requestCanvasesList(xoap::MessageReference no
 
   if (plotter_ != NULL) {
     int tout=0;
-    while ((plotter_->isBusy()) && (tout <30)) {usleep(100000); tout++; };
+    while ((plotter_->isBusy()) && (tout <sTimeout*2)) {
+      usleep(500000); tout++;
+    };
+    if (tout==sTimeout*2) {
+      LOG4CPLUS_WARN (getApplicationLogger(), "Plotter is still busy after " << sTimeout << " secs");
+      return msg;
+    }
+
     map<string, MECanvases_List> MECanvases = plotter_->GetMECanvases();
 
     for (map<string, MECanvases_List >::iterator itr = MECanvases.begin();
@@ -205,8 +227,9 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
   xoap::SOAPBody body = envelope.getBody();
   xoap::SOAPName commandName = envelope.createName("requestCanvas","xdaq", "urn:xdaq-soap:3.0");
   xoap::SOAPElement command = body.addBodyElement(commandName );
+  //  xoap::SOAPName statusName = envelope.createName("Status", "", "");
+  //  xoap::SOAPElement statusElement = command.addChildElement(statusName);
   xdata::Integer localTid(i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor()));
-
   xoap::SOAPName monitorName = envelope.createName("DQMNode", "", "");
   xoap::SOAPElement monitorElement = command.addChildElement(monitorName);
   monitorElement.addTextNode(localTid.toString());
@@ -221,7 +244,13 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
       if (plotter_ != NULL) 
 	{
 	  int tout=0;
-          while ((plotter_->isBusy()) && (tout <30)) {usleep(100000); tout++; };
+          while ((plotter_->isBusy()) && (tout <sTimeout*2)) {
+	    usleep(500000); tout++; 
+	  };
+	  if (tout==sTimeout*2) { 
+	    LOG4CPLUS_WARN (getApplicationLogger(), "Plotter is still busy after " << sTimeout << " secs");
+	    return msg;
+	  }
 	  map<string, ME_List > MEs = plotter_->GetMEs();
 	  map<string, MECanvases_List > MECanvases = plotter_->GetMECanvases();
           xoap::SOAPName cmdTag = envelope.createName("requestCanvas","xdaq", "urn:xdaq-soap:3.0");

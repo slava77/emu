@@ -57,28 +57,46 @@ class EmuMonitorTimerTask: public Task
 
 public:
    EmuMonitorTimerTask(): Task("EmuMonitorTimerTask") {
+        timerDelay=60;
+        plotter = NULL;
+	fname = "";
+	fActive= false;
+        }
+   EmuMonitorTimerTask(std::string name): Task("EmuMonitorTimerTask"), fname(name) {
         timerDelay=120;
         plotter = NULL;
+	fActive=false;
         }
-  ~EmuMonitorTimerTask() { plotter = NULL;}
+  ~EmuMonitorTimerTask() { }
 
    void setTimer(int delay) { timerDelay = delay;}
    void setPlotter(EmuPlotter* pl) {plotter = pl;}
+   void setROOTFileName(std::string name) {fname=name;};
+   bool isActive() const {return fActive;};
 
    int svc() {
+	fActive=true;
+	if (plotter != NULL) plotter->saveToROOTFile(fname);
+
+	/*
         while (1) {
                 sleep(timerDelay);
                 if (timerDelay && plotter) {
                 //      sleep(timerDelay);
                 //        cout << "++++++++++++ Saving Histos ++++++++++++" << endl;
-                        plotter->saveHistos();
+                //         plotter->saveHistos();
+			plotter->saveToROOTFile(fname);
                 }
         }
+	*/
+	fActive=false;
         return 0;
    }
 
 private:
+	bool fActive;
         int timerDelay;
+	std::string fname;
         EmuPlotter * plotter;
 
 };
@@ -139,6 +157,8 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   xoap::MessageReference requestCanvasesList (xoap::MessageReference msg) throw (xoap::exception::Exception);
   xoap::MessageReference requestCanvas (xoap::MessageReference msg) throw (xoap::exception::Exception); 
 
+  // Construct ROOT output file name
+  std::string getROOTFileName();
   
  private:
   
@@ -174,6 +194,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   xdata::Integer plotterSaveTimer_;
   xdata::UnsignedLong binCheckMask_;
   xdata::UnsignedLong dduCheckMask_;
+  xdata::Boolean fSaveROOTFile_;
 
 
 
@@ -255,6 +276,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   // == Web dialog state machine
   xgi::WSM wsm_;
 
+  int sTimeout; // Timeout (in secs) waiting for plotter's busy flag to clear
   int appTid_;
   bool isReadoutActive;
 };
