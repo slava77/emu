@@ -485,7 +485,15 @@ void EmuDisplayClient::getImagePage (xgi::Input * in, xgi::Output * out)  throw 
     delete histo;
   */
   // TMessage* msgbuf = requestObjects(nodeID, folderName, objectName);
-  
+ 
+  xdaq::ApplicationDescriptor* d = i2o::utils::getAddressMap()->getApplicationDescriptor(nodeID);
+  std::string state =  emu::dqm::getScalarParam(getApplicationContext(), d,"stateName","string"); 
+  if (state=="") {
+    *out << "<h3>ERROR: " << d->getClassName() <<"-" << d->getInstance() << " node is not available</h3>" << std::endl;
+//    *out << cgicc::h3("ERROR: Object is not available right now.") << std::endl;
+    *out << cgicc::html();
+    return;
+  } 
   TMessage* msgbuf = requestCanvas(nodeID, folderName, objectName,w, h);
   if (msgbuf != NULL) {
     msgbuf->Reset();
