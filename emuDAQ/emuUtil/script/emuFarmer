@@ -67,6 +67,8 @@ class Emu_Farmer:
                           'EmuFCrateHyperDAQ'  : 'fed',
                           'EmuMonitor'         : 'dqm',
                           'EmuDisplayClient'   : 'dqm',
+                          'TF_hyperDAQ'        : 'tf',
+                          'TTCciControl'       : 'tf',
                           'CSCSupervisor'      : 'sv'   }
 
         # Dict of context sets grouped by target (context='host:port')
@@ -75,6 +77,7 @@ class Emu_Farmer:
                            'fed' : set(),
                            'pc'  : set(),
                            'ltc' : set(),
+                           'tf'  : set(),
                            'sv'  : set(),
                            'dqm' : set(),
                            'all' : set() }
@@ -85,8 +88,19 @@ class Emu_Farmer:
                         'fed' : 'cscdaq',
                         'pc'  : 'cscpc' ,
                         'ltc' : 'cscdaq',
+                        'tf'  : 'cscdaq',
                         'sv'  : 'cscdaq',
                         'dqm' : 'cscdqm' }
+
+        # Dict of log levels
+        self._logLevels = { 'daq' : 'WARN',
+                            'man' : 'WARN',
+                            'fed' : 'WARN',
+                            'pc'  : 'WARN',
+                            'ltc' : 'WARN',
+                            'tf'  : 'WARN',
+                            'sv'  : 'WARN',
+                            'dqm' : 'ERROR' }
 
         # List of ssh threads
         self._sshThreads = []
@@ -156,7 +170,7 @@ class Emu_Farmer:
         return tgtList
     
     def validateOptions( self ):
-        if self._logLevel not in ['DEBUG','INFO','WARN','ERROR','FATAL']:
+        if self._logLevel not in ['DEBUG','INFO','WARN','ERROR','FATAL','']:
             print '***** Error:',self._logLevel,'is not a valid log level. Use [DEBUG|INFO|WARN|ERROR|FATAL]'
             print '      Type emuFarmer -h for help.'
             sys.exit(1)
@@ -175,7 +189,10 @@ class Emu_Farmer:
         options += '        Config file name/URL  :\t' + self._configFileName      + '\n'
         options += '        Dir for merged config :\t' + self._mergedConfigFileDir + '\n'
         options += '        Target groups         :\t' + self._target              + '\n'
-        options += '        Log level             :\t' + self._logLevel            + '\n'
+        if self._logLevel == '':
+            options += '        Log level             :\tWARN for DAQ, ERROR for DQM executives\n'
+        else:
+            options += '        Log level             :\t' + self._logLevel            + '\n'
         if self._user == '':
             options += '        User                  :\tcscdaq for DAQ, cscdqm for DQM executives\n'
         else:
@@ -303,28 +320,11 @@ class Emu_Farmer:
 
             remoteLogFile = 'emuFarmer_UTC_'+self._date_time+'_port_'+port+'.log'
 
-            if self._action == 'start':
-                # Redirect std error and output to a remoteLogFile.
-                # (When starting, we cannot wait for the std output of the ssh process
-                # as the remote shell won't exit unless xdaq crashes.)
-                #remoteCommand = '"(source .bash_profile && \$XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -h '+host+' -p '+port+' -l '+self._logLevel+' -c '+self._mergedConfigFileURL+' &> '+remoteLogFile+' &)"'
-                # Remove parentheses: one shell less
-                remoteCommand = '"source .bash_profile && \$XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -h '+host+' -p '+port+' -l '+self._logLevel+' -c '+self._mergedConfigFileURL+' &> '+remoteLogFile+' &"'
-            elif self._action == 'stop':
-                #remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-p[ ]*"+port+"/ { print \$2 }' | xargs -r kill -9\""
-                # Exit remote process explicitly to allow the ssh process to terminate:
-                remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-p[ ]*"+port+"/ { print \$2 }' | xargs -r kill -9 ; exit\""
-            elif self._action == 'status':
-                #remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$7 }'\""
-                remoteCommand = "\"ps -eo stat,pid,euser,lstart,command | gawk '!/gawk/ && /xdaq\.exe/ && /-p[ ]*"+port+"/ { print \$1,\\\"  ( process\\\",\$2,\\\"\tstarted by\\\",\$3,\\\"at\\\",\$4,\$5,\$6,\$7,\\\")\\\"}'\"" # Make sure to change AsyncSSH.run accordingly if the output format is changed here.
-            elif self._action == 'debug':
-                # Dump the remoteLogFile (the redirected std err/out of xdaq)
-                remoteCommand = "\"cat "+remoteLogFile+"\""
-
             hostAndPort = host+':'+port
             
-            # put this context (hostAndPort) in the appropriate target set(s) and find user
-            user = ''
+            # put this context (hostAndPort) in the appropriate target set(s) and find user and log level
+            user     = ''
+            logLevel = ''
             self._contexts['all'].add(hostAndPort)
             apps = context.getElementsByTagName('xc:Application')
             for app in apps:
@@ -337,9 +337,35 @@ class Emu_Farmer:
                         user = self._user
                     else:
                         user = self._users[target]
+                    if self._logLevel != '':
+                        logLevel = self._logLevel
+                    else:
+                        logLevel = self._logLevels[target]
+
+            if self._action == 'start':
+                # Redirect std error and output to a remoteLogFile.
+                # (When starting, we cannot wait for the std output of the ssh process
+                # as the remote shell won't exit unless xdaq crashes.)
+                #remoteCommand = '"(source .bash_profile && \$XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -h '+host+' -p '+port+' -l '+self._logLevel+' -c '+self._mergedConfigFileURL+' &> '+remoteLogFile+' &)"'
+                # Remove parentheses: one shell less
+                remoteCommand = '"source .bash_profile && \$XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.sh -h '+host+' -p '+port+' -l '+logLevel+' -c '+self._mergedConfigFileURL+' &> '+remoteLogFile+' &"'
+            elif self._action == 'stop':
+                #remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-p[ ]*"+port+"/ { print \$2 }' | xargs -r kill -9\""
+                # Exit remote process explicitly to allow the ssh process to terminate:
+                remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-p[ ]*"+port+"/ { print \$2 }' | xargs -r kill -9 ; exit\""
+            elif self._action == 'status':
+                #remoteCommand = "\"ps -e j | gawk '!/gawk/ && /xdaq\.exe/ && /-h[ ]+"+self.escapeRegexpSpecialChar(host)+"/ && /-p[ ]+"+port+"/ { print \$7 }'\""
+                remoteCommand = "\"ps -eo stat,pid,euser,lstart,command | gawk '!/gawk/ && /xdaq\.exe/ && /-p[ ]*"+port+"/ { print \$1,\\\"  ( process\\\",\$2,\\\"\tstarted by\\\",\$3,\\\"at\\\",\$4,\$5,\$6,\$7,\\\")\\\"}'\"" # Make sure to change AsyncSSH.run accordingly if the output format is changed here.
+            elif self._action == 'debug':
+                # Dump the remoteLogFile (the redirected std err/out of xdaq)
+                remoteCommand = "\"cat "+remoteLogFile+"\""
 
             if user == '':
                 print '***** Error: no user to act on', hostAndPort
+                print '      Type emuFarmer -h for help.'
+                sys.exit(1)
+            elif logLevel == '':
+                print '***** Error: no log level specified for', hostAndPort
                 print '      Type emuFarmer -h for help.'
                 sys.exit(1)
             else:
@@ -564,7 +590,7 @@ if __name__ == "__main__":
     configFileName = 'http://emudaq/cscdaq/config/EmuConfig.xml'
     action         = 'status'
     targets        = 'daq+man'
-    logLevel       = 'WARN'
+    logLevel       = ''
     user           = ''
     #xdaq_root      = ''
     dirForMerged   =  None
