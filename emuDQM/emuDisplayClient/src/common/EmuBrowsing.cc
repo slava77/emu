@@ -1,7 +1,5 @@
 #include "EmuDisplayClient.h"
 
-
-
 void EmuDisplayClient::createTreeItems(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
   std::string runName ="DQM";
@@ -10,30 +8,29 @@ void EmuDisplayClient::createTreeItems(xgi::Input * in, xgi::Output * out ) thro
   url += getApplicationDescriptor()->getURN();
   url += "/getImage";
 
-
-
   *out << "var TREE_ITEMS = [\n['"<< runName << "','getEMUSystemView',"<< endl;
   for (int i=0; i<monitors_.size(); i++) {
 
-    //std::string state =  emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"stateName","string");
-    // if (state == "") state = "Unknown";
+    std::string state =  emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"stateName","string");
+    
     *out <<"    ['" << monitors_[i]->getClassName() <<"-" << monitors_[i]->getInstance()  
-      //<< ": [<b>" << state << "</b>]" 
 	 <<"', '" 
 	 << monitors_[i]->getContextDescriptor()->getURL()+"/"+monitors_[i]->getURN() <<"'," << std::endl;
-    std::map<std::string, std::list<std::string> > bmap = requestCanvasesList(monitors_[i]);
-    std::map<std::string, std::list<std::string> >::iterator itr;
+    if (state != "") {
+      std::map<std::string, std::list<std::string> > bmap = requestCanvasesList(monitors_[i]);
+      std::map<std::string, std::list<std::string> >::iterator itr;
     
-    for (itr = bmap.begin(); itr != bmap.end(); ++itr) {
-      *out << "    ['" << itr->first << "',''," << std::endl;
-      std::list<std::string>::iterator i_itr;
-      for (i_itr = itr->second.begin(); i_itr != itr->second.end(); ++i_itr) {
-	*out << "     ['" << *i_itr << "', 'getImage?nodeID="<< monitors_[i]->getLocalId()
-	     << "&folderName=" << itr->first 
-	     << "&objectName="<< *i_itr 
-	     << "&autoUpdate=on']," << std::endl;
+      for (itr = bmap.begin(); itr != bmap.end(); ++itr) {
+	*out << "    ['" << itr->first << "',''," << std::endl;
+	std::list<std::string>::iterator i_itr;
+	for (i_itr = itr->second.begin(); i_itr != itr->second.end(); ++i_itr) {
+	  *out << "     ['" << *i_itr << "', 'getImage?nodeID="<< monitors_[i]->getLocalId()
+	       << "&folderName=" << itr->first 
+	       << "&objectName="<< *i_itr 
+	       << "&autoUpdate=on']," << std::endl;
+	}
+	*out << "    ],\n" << std::endl;
       }
-      *out << "    ],\n" << std::endl;
       
     }
     *out << "    ],\n" << std::endl;
@@ -42,103 +39,103 @@ void EmuDisplayClient::createTreeItems(xgi::Input * in, xgi::Output * out ) thro
 
   /*
    *out << "var TREE_ITEMS = [\n" 
-	<< "    ['RunNumber" << runNumber << "', 'getImage?objectName=test'," << endl;
-  *out << "                    ['Histo','getImage?objectName=Histo']," << endl;
-  */
+   << "    ['RunNumber" << runNumber << "', 'getImage?objectName=test'," << endl;
+   *out << "                    ['Histo','getImage?objectName=Histo']," << endl;
+   */
   
   /*
-  for (map<int, map<string, ConsumerCanvas*> >::iterator itr = canvases.begin(); itr != canvases.end(); ++itr) {
+    for (map<int, map<string, ConsumerCanvas*> >::iterator itr = canvases.begin(); itr != canvases.end(); ++itr) {
     int id = itr->first;
     if (id != SLIDES_ID) 
-      {
-	if (id == 0) {
-	  folders_nav << "<a href=\"canvases_common.html\" target=\"canvases_list\">Common DDU</a><br>\n"<< endl;
-	  canvas_nav.open((path+"/canvases_common.html").c_str());
-	  canvas_nav << "<html>\n"
-		     << "<meta http-equiv=\"refresh\" content=\"10; URL=canvases_common.html\">\n"
-		     << "<body>\n"
-		     << "<h2>Common DDU Canvases</h2><hr>\n" << endl;
+    {
+    if (id == 0) {
+    folders_nav << "<a href=\"canvases_common.html\" target=\"canvases_list\">Common DDU</a><br>\n"<< endl;
+    canvas_nav.open((path+"/canvases_common.html").c_str());
+    canvas_nav << "<html>\n"
+    << "<meta http-equiv=\"refresh\" content=\"10; URL=canvases_common.html\">\n"
+    << "<body>\n"
+    << "<h2>Common DDU Canvases</h2><hr>\n" << endl;
 	
-	  tree_items << "            ['DDU', 'EMU'," << endl;
+    tree_items << "            ['DDU', 'EMU'," << endl;
 
 
-	} else {
-	  int crate = (int)((id>>4) & 0xFF);
-	  int slot =  (int)(id & 0xF);
-	  string cscid = (Form("csc_%d_%d", crate, slot));
-	  folders_nav << "<a href=\"canvases_" << cscid
-		      << ".html\" target=\"canvases_list\">CSC crate" << crate << " slot" << slot << "</a><br>\n"<<endl;
+    } else {
+    int crate = (int)((id>>4) & 0xFF);
+    int slot =  (int)(id & 0xF);
+    string cscid = (Form("csc_%d_%d", crate, slot));
+    folders_nav << "<a href=\"canvases_" << cscid
+    << ".html\" target=\"canvases_list\">CSC crate" << crate << " slot" << slot << "</a><br>\n"<<endl;
 
-	  canvas_nav.open((path+"/canvases_"+cscid+".html").c_str());	
-	  canvas_nav << "<html>\n"
-		     << "<meta http-equiv=\"refresh\" content=\"10; URL=canvases_"<<cscid<<".html\">\n"
-		     << "<body>\n"
-		     << "<h2>CSC crate" << crate << " slot" << slot <<" Canvases</h2><hr>\n" << endl;
-	  tree_items << "            ['CSC crate" << crate << " slot" << slot
-			<< "', 'crate"<< crate << "/slot" << slot << "'," << endl;
-	}
-	for (map<string, ConsumerCanvas*>::iterator h_itr = itr->second.begin(); h_itr != itr->second.end(); ++h_itr) {
-	  if( strncmp(h_itr->second->ClassName(),"TCanvas",7) ) continue;
-	  TObject *obj = h_itr->second;
+    canvas_nav.open((path+"/canvases_"+cscid+".html").c_str());	
+    canvas_nav << "<html>\n"
+    << "<meta http-equiv=\"refresh\" content=\"10; URL=canvases_"<<cscid<<".html\">\n"
+    << "<body>\n"
+    << "<h2>CSC crate" << crate << " slot" << slot <<" Canvases</h2><hr>\n" << endl;
+    tree_items << "            ['CSC crate" << crate << " slot" << slot
+    << "', 'crate"<< crate << "/slot" << slot << "'," << endl;
+    }
+    for (map<string, ConsumerCanvas*>::iterator h_itr = itr->second.begin(); h_itr != itr->second.end(); ++h_itr) {
+    if( strncmp(h_itr->second->ClassName(),"TCanvas",7) ) continue;
+    TObject *obj = h_itr->second;
 
-	  TString objPath(obj->GetName()), basename, dirname, fullPath, relPath;
-	  Ssiz_t pos=0;
-	  if( (pos = objPath.Last('/')) >=0 ){
-	    basename = objPath(pos+1,objPath.Length()-pos-1);
-	    dirname  = objPath(0,pos);
+    TString objPath(obj->GetName()), basename, dirname, fullPath, relPath;
+    Ssiz_t pos=0;
+    if( (pos = objPath.Last('/')) >=0 ){
+    basename = objPath(pos+1,objPath.Length()-pos-1);
+    dirname  = objPath(0,pos);
 
-	  } else basename = objPath;
-	  pos=0;
-	  while(
-		basename[pos]=='1' ||
-		basename[pos]=='2' ||
-		basename[pos]=='3' ||
-		basename[pos]=='4' ||
-		basename[pos]=='5' ||
-		basename[pos]=='6' ||
-		basename[pos]=='7' ||
-		basename[pos]=='8' ||
-		basename[pos]=='9' ||
-		basename[pos]=='0' ||
-		basename[pos]=='_' ) pos++;
+    } else basename = objPath;
+    pos=0;
+    while(
+    basename[pos]=='1' ||
+    basename[pos]=='2' ||
+    basename[pos]=='3' ||
+    basename[pos]=='4' ||
+    basename[pos]=='5' ||
+    basename[pos]=='6' ||
+    basename[pos]=='7' ||
+    basename[pos]=='8' ||
+    basename[pos]=='9' ||
+    basename[pos]=='0' ||
+    basename[pos]=='_' ) pos++;
 
-	  if( pos > 0 ){
-	    TString location = basename(0,pos).Data();
-	    Ssiz_t space = location.First('_');
-	    TString sCrate(location(0,space));
-	    int crate = atoi(sCrate.Data());
-	    TString sSlot(location(space+1,pos-space-1));
-	    int slot  = atoi(sSlot.Data());
-	    relPath = Form("crate%d/slot%d/%s", crate,slot,dirname.Data());
-	    fullPath = Form("%s/%s",path.c_str(), relPath.Data());
-	  } else {
-	    relPath = dirname.Data();
-	    fullPath = Form("%s/%s", path.c_str(),dirname.Data());
-	  }
-	  TString command = Form("mkdir -p %s",fullPath.Data());
-	  gSystem->Exec(command.Data());
-	  ((TCanvas*)obj)->SetCanvasSize(width, height);
-	  ((TCanvas*)obj)->SetWindowSize(width, height);
-	  obj->Draw();
+    if( pos > 0 ){
+    TString location = basename(0,pos).Data();
+    Ssiz_t space = location.First('_');
+    TString sCrate(location(0,space));
+    int crate = atoi(sCrate.Data());
+    TString sSlot(location(space+1,pos-space-1));
+    int slot  = atoi(sSlot.Data());
+    relPath = Form("crate%d/slot%d/%s", crate,slot,dirname.Data());
+    fullPath = Form("%s/%s",path.c_str(), relPath.Data());
+    } else {
+    relPath = dirname.Data();
+    fullPath = Form("%s/%s", path.c_str(),dirname.Data());
+    }
+    TString command = Form("mkdir -p %s",fullPath.Data());
+    gSystem->Exec(command.Data());
+    ((TCanvas*)obj)->SetCanvasSize(width, height);
+    ((TCanvas*)obj)->SetWindowSize(width, height);
+    obj->Draw();
 
-	  imgfile = Form("%s/%s.%s", fullPath.Data(), basename(pos,basename.Length()-pos).Data(), format.c_str());
-	  LOG4CPLUS_INFO(logger_, imgfile.Data());
-	  ((TCanvas*)obj)->Print(imgfile.Data());
-	  TString relfilename  = Form("%s/%s.%s", relPath.Data(), basename(pos,basename.Length()-pos).Data(), format.c_str()); 
-	  canvas_nav << "<a href=\"" << relfilename << "\" target=\"imageout\">" << obj->GetName() << "</a><br>\n" << endl;
-	  // delete obj;
-	  tree_items << "                    ['"<< basename(pos,basename.Length()-pos).Data() << "','" << relfilename <<"']," << endl;
-	  // tree_items << "                    ['"<< obj->GetName() << "','" << relfilename <<"']," << endl;
-	}
-	canvas_nav << "</body>\n</html>\n" << endl;;
-	canvas_nav.clear();
-	canvas_nav.close();
-	tree_items << "            ]," << endl;
-      }
-  }
+    imgfile = Form("%s/%s.%s", fullPath.Data(), basename(pos,basename.Length()-pos).Data(), format.c_str());
+    LOG4CPLUS_INFO(logger_, imgfile.Data());
+    ((TCanvas*)obj)->Print(imgfile.Data());
+    TString relfilename  = Form("%s/%s.%s", relPath.Data(), basename(pos,basename.Length()-pos).Data(), format.c_str()); 
+    canvas_nav << "<a href=\"" << relfilename << "\" target=\"imageout\">" << obj->GetName() << "</a><br>\n" << endl;
+    // delete obj;
+    tree_items << "                    ['"<< basename(pos,basename.Length()-pos).Data() << "','" << relfilename <<"']," << endl;
+    // tree_items << "                    ['"<< obj->GetName() << "','" << relfilename <<"']," << endl;
+    }
+    canvas_nav << "</body>\n</html>\n" << endl;;
+    canvas_nav.clear();
+    canvas_nav.close();
+    tree_items << "            ]," << endl;
+    }
+    }
   
-  *out << "    ],\n"
-  */
+    *out << "    ],\n"
+    */
   *out << "],];" << std::endl;
 
 
