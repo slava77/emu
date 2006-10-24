@@ -66,6 +66,13 @@ int main(int argc, char **argv) {
 			histofile.erase(0, histofile.rfind("/")+1);
 		histofile = histofile.replace(histofile.find(".bin"), 4, ".root");
 	}
+        if (datafile.find(".raw") != string::npos) {
+                histofile = datafile;
+                if (histofile.rfind("/") != string::npos)
+                        histofile.erase(0, histofile.rfind("/")+1);
+                histofile = histofile.replace(histofile.find(".raw"), 4, ".root");
+        }
+
 
 	plotter.setHistoFile(histofile.c_str());	
 	if (dduCheckMask >= 0) {
