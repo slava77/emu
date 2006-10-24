@@ -20,13 +20,13 @@
 
 
 /*
-#include "TBuffer.h"
-#include "TMessage.h"
-#include "TObject.h"
-#include "TH1F.h"
-#include "TH1.h"
-#include "TCanvas.h"
-#include "THStack.h"
+  #include "TBuffer.h"
+  #include "TMessage.h"
+  #include "TObject.h"
+  #include "TH1F.h"
+  #include "TH1.h"
+  #include "TCanvas.h"
+  #include "THStack.h"
 */  
 using namespace std;
 
@@ -35,7 +35,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
   EmuDisplayClient::EmuDisplayClient(xdaq::ApplicationStub* stub)
   throw (xdaq::exception::Exception)
     : xdaq::WebApplication(stub),
-    monitorClass_("EmuMonitor")
+      monitorClass_("EmuMonitor")
 {
 
   errorHandler_ = toolbox::exception::bind (this, &EmuDisplayClient::onError, "onError");
@@ -84,7 +84,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
 
   // === Initialize ROOT system
   if (!gApplication)
-      TApplication::CreateApplication();
+    TApplication::CreateApplication();
  
   gStyle->SetPalette(1,0);
 }
@@ -145,12 +145,12 @@ bool EmuDisplayClient::onError ( xcept::Exception& ex, void * context )
 // == Run Control requests current parameter values == //
 void EmuDisplayClient::actionPerformed (xdata::Event& e)
 {
-    if (e.type() == "ItemChangedEvent")
+  if (e.type() == "ItemChangedEvent")
     {
-        std::string item = dynamic_cast<xdata::ItemChangedEvent&>(e).itemName();
-        // std::cout << item << std::endl;
+      std::string item = dynamic_cast<xdata::ItemChangedEvent&>(e).itemName();
+      // std::cout << item << std::endl;
 
-        if ( item == "monitorClass")
+      if ( item == "monitorClass")
         {
           LOG4CPLUS_INFO(getApplicationLogger(), "monitor Class : " << monitorClass_.toString());
 	  monitors_.clear();
@@ -218,25 +218,25 @@ string ageOfPageClock(){
 string autoResizeAction(int width, int height) {
   stringstream ss;
   ss << "<script type=\"text/javascript\">"
-       << "window.onresize= alertSize;\n"
-       << "function alertSize() {\n"
-       << "var myWidth = " << width << ", myHeight = " << height << ";\n"
-       << "if( typeof( window.innerWidth ) == \'number\' ) {\n"
-       << "//Non-IE\n"
-       << "myWidth = window.innerWidth-16;\n"
-       << "myHeight = window.innerHeight-16;\n"
-       << "} else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {\n"
-       << "//IE 6+ in 'standards compliant mode'\n"
-       << "myWidth = document.documentElement.clientWidth-20;\n"
-       << "myHeight = document.documentElement.clientHeight-20;\n"
-       << "} else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {\n"
-       << "//IE 4 compatible\n"
-       << "myWidth = document.body.clientWidth-20;\n"
-       << "myHeight = document.body.clientHeight-20;}\n"
-       << "document.params.imageWidth.value = myWidth-20; "
-       << "document.params.imageHeight.value = myHeight-100;"
-       << "document.params.submit();}\n" 
-       << "</script>\n";
+     << "window.onresize= alertSize;\n"
+     << "function alertSize() {\n"
+     << "var myWidth = " << width << ", myHeight = " << height << ";\n"
+     << "if( typeof( window.innerWidth ) == \'number\' ) {\n"
+     << "//Non-IE\n"
+     << "myWidth = window.innerWidth-16;\n"
+     << "myHeight = window.innerHeight-16;\n"
+     << "} else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {\n"
+     << "//IE 6+ in 'standards compliant mode'\n"
+     << "myWidth = document.documentElement.clientWidth-20;\n"
+     << "myHeight = document.documentElement.clientHeight-20;\n"
+     << "} else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {\n"
+     << "//IE 4 compatible\n"
+     << "myWidth = document.body.clientWidth-20;\n"
+     << "myHeight = document.body.clientHeight-20;}\n"
+     << "document.params.imageWidth.value = myWidth-20; "
+     << "document.params.imageHeight.value = myHeight-100;"
+     << "document.params.submit();}\n" 
+     << "</script>\n";
   return ss.str();
 }
 
@@ -284,70 +284,70 @@ std::string getCSCStatusColor(std::string cscname) {
 
 string generateCSCTable() 
 {
-   std::stringstream ss;
-   ss << cgicc::table().set("border","1")
-     .set("cellspacing","0").set("cellpadding","0");
+  std::stringstream ss;
+  ss << cgicc::table().set("border","1")
+    .set("cellspacing","0").set("cellpadding","0");
    
-   std::vector<std::pair<string, int> > types;
-   types.push_back(std::make_pair("ME+4/2",36));
-   types.push_back(std::make_pair("ME+4/1",18));
-   types.push_back(std::make_pair("ME+3/2",36));
-   types.push_back(std::make_pair("ME+3/1",18));
+  std::vector<std::pair<string, int> > types;
+  types.push_back(std::make_pair("ME+4/2",36));
+  types.push_back(std::make_pair("ME+4/1",18));
+  types.push_back(std::make_pair("ME+3/2",36));
+  types.push_back(std::make_pair("ME+3/1",18));
    
-   types.push_back(std::make_pair("ME+2/2",36));
-   types.push_back(std::make_pair("ME+2/1",18));
-   types.push_back(std::make_pair("ME+1/3",36));
-   types.push_back(std::make_pair("ME+1/2",36));
-   types.push_back(std::make_pair("ME+1/1",36));
-   types.push_back(std::make_pair("ME-1/1",36));
-   types.push_back(std::make_pair("ME-1/2",36));
-   types.push_back(std::make_pair("ME-1/3",36));
-   types.push_back(std::make_pair("ME-2/1",18));
-   types.push_back(std::make_pair("ME-2/2",36));
-   types.push_back(std::make_pair("ME-3/1",18));
-   types.push_back(std::make_pair("ME-3/2",36));
-   types.push_back(std::make_pair("ME-4/1",18));
-   types.push_back(std::make_pair("ME-4/2",36));
+  types.push_back(std::make_pair("ME+2/2",36));
+  types.push_back(std::make_pair("ME+2/1",18));
+  types.push_back(std::make_pair("ME+1/3",36));
+  types.push_back(std::make_pair("ME+1/2",36));
+  types.push_back(std::make_pair("ME+1/1",36));
+  types.push_back(std::make_pair("ME-1/1",36));
+  types.push_back(std::make_pair("ME-1/2",36));
+  types.push_back(std::make_pair("ME-1/3",36));
+  types.push_back(std::make_pair("ME-2/1",18));
+  types.push_back(std::make_pair("ME-2/2",36));
+  types.push_back(std::make_pair("ME-3/1",18));
+  types.push_back(std::make_pair("ME-3/2",36));
+  types.push_back(std::make_pair("ME-4/1",18));
+  types.push_back(std::make_pair("ME-4/2",36));
    
-   string cscname =  "";
-   string csclink =  "";
-   string cscbgcolor = "#d0d0d0";
+  string cscname =  "";
+  string csclink =  "";
+  string cscbgcolor = "#d0d0d0";
 
-   for (int i=0; i<9; i++) {
-     ss << cgicc::tr();
-     if (i==0) ss << cgicc::td("ME+").set("rowspan", "9").set("id","ME+").set("width","50").set("class","me") << "\n";
-     ss << cgicc::td(types.at(i).first).set("id", types.at(i).first).set("width","80").set("class","me_type") << "\n";
-     for (int j=1; j<=types.at(i).second; j++) { 
-       cscname =  types.at(i).first+"/"+xdata::Integer(j).toString();
-       csclink = getCSCStatusLink(cscname);
-       cscbgcolor = getCSCStatusColor(cscname);
+  for (int i=0; i<9; i++) {
+    ss << cgicc::tr();
+    if (i==0) ss << cgicc::td("ME+").set("rowspan", "9").set("id","ME+").set("width","50").set("class","me") << "\n";
+    ss << cgicc::td(types.at(i).first).set("id", types.at(i).first).set("width","80").set("class","me_type") << "\n";
+    for (int j=1; j<=types.at(i).second; j++) { 
+      cscname =  types.at(i).first+"/"+xdata::Integer(j).toString();
+      csclink = getCSCStatusLink(cscname);
+      cscbgcolor = getCSCStatusColor(cscname);
        
-       // if (types.at(i).second ==18) {
-       // ss << cgicc::td(csclink).set("id", cscname).set("colspan","2").set("bgcolor",cscbgcolor) << "\n";
-       //} else {
-	 ss << cgicc::td(csclink).set("id", cscname).set("width","30").set("bgcolor",cscbgcolor) << "\n";
-	 // }
-     }
-     ss << cgicc::tr();
-   }
-   for (int i=9; i<18; i++) {
-     ss << cgicc::tr();
-     if (i==9) ss << cgicc::td("ME-").set("rowspan", "9").set("id","ME-").set("class","me") << "\n";
-     ss << cgicc::td(types.at(i).first).set("id", types.at(i).first).set("class","me_type") << "\n";
-     for (int j=1; j<=types.at(i).second; j++) {
-       cscname =  types.at(i).first+"/"+xdata::Integer(j).toString();
-       csclink = getCSCStatusLink(cscname);
-       cscbgcolor = getCSCStatusColor(cscname);
-       //if (types.at(i).second ==18) {
-       //	 ss << cgicc::td(csclink).set("id",cscname).set("colspan","2").set("bgcolor",cscbgcolor) << "\n";
-       //} else {
-	 ss << cgicc::td(csclink).set("id", cscname).set("bgcolor",cscbgcolor) << "\n";
-	 //}
-     }
-     ss << cgicc::tr();
-   }
-   ss << cgicc::table() << std::endl;
-   return ss.str();
+      // if (types.at(i).second ==18) {
+      // ss << cgicc::td(csclink).set("id", cscname).set("colspan","2").set("bgcolor",cscbgcolor) << "\n";
+      //} else {
+      ss << cgicc::td(csclink).set("id", cscname).set("width","30").set("bgcolor",cscbgcolor) << "\n";
+      // }
+    }
+    ss << cgicc::tr();
+  }
+  for (int i=9; i<18; i++) {
+    ss << cgicc::tr();
+    if (i==9) ss << cgicc::td("ME-").set("rowspan", "9").set("id","ME-").set("class","me") << "\n";
+    ss << cgicc::td(types.at(i).first).set("id", types.at(i).first).set("class","me_type") << "\n";
+    for (int j=1; j<=types.at(i).second; j++) {
+      cscname =  types.at(i).first+"/"+xdata::Integer(j).toString();
+      csclink = getCSCStatusLink(cscname);
+      cscbgcolor = getCSCStatusColor(cscname);
+      //if (types.at(i).second ==18) {
+      //	 ss << cgicc::td(csclink).set("id",cscname).set("colspan","2").set("bgcolor",cscbgcolor) << "\n";
+      //} else {
+      ss << cgicc::td(csclink).set("id", cscname).set("bgcolor",cscbgcolor) << "\n";
+      //}
+    }
+    ss << cgicc::tr();
+  }
+  ss << cgicc::table() << std::endl;
+  return ss.str();
 }
 
 void EmuDisplayClient::getEMUSystemViewPage (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
@@ -451,11 +451,11 @@ void EmuDisplayClient::getImagePage (xgi::Input * in, xgi::Output * out)  throw 
   url += getApplicationDescriptor()->getURN();
   url += "/getImage";
 
-   *out << "<body onload=\"countSeconds()\">" << std::endl;
+  *out << "<body onload=\"countSeconds()\">" << std::endl;
   *out << cgicc::form().set("name","params").set("method","get").set("action", url).set("enctype","multipart/form-data") << std::endl;
   *out << "Image Width:" << cgicc::input().set("type", "text").set("size","4").set("name", "imageWidth").set("value", xdata::Integer(w).toString() ).set("onchange","textchanged()");
   *out << "Height:" <<  cgicc::input().set("type", "text").set("size","4").set("name", "imageHeight").set("value", xdata::Integer(h).toString()).set("onchange","textchanged()") 
-    << std::endl;
+       << std::endl;
   // *out << "AutoUpdate:" <<  cgicc::input().set("type", "checkbox").set("name", "autoUpdate");
   *out << "  Update Interval(sec):" <<  cgicc::input().set("type", "text").set("size","4").set("name", "updateRate").set("value",xdata::Integer(updateRate).toString());
   if (autoUpdate)
@@ -472,18 +472,18 @@ void EmuDisplayClient::getImagePage (xgi::Input * in, xgi::Output * out)  throw 
 
   //   *out << cgicc::h2(objectName) << std::endl;
   *out << cgicc::h4("Object: \"/node"+(xdata::Integer(nodeID)).toString() + "/"+ folderName + "/" + objectName + "\""
-       + " (Updated at " + xgi::Utils::getCurrentTime()+ "&#8212; <span id=\"ageOfPage\"></span> ago)")<< std::endl;
+		    + " (Updated at " + xgi::Utils::getCurrentTime()+ "&#8212; <span id=\"ageOfPage\"></span> ago)")<< std::endl;
   //  *out << "&#8212; <span id=\"ageOfPage\"></span> ago " << std::endl;
-   /*
-  TH1* histo = new TH1F(objectName.c_str(),objectName.c_str(),100,0,100);
-  ConsumerCanvas* canvas = new ConsumerCanvas(objectName.c_str(), objectName.c_str(),objectName.c_str(),1,1, atoi(w.c_str()), atoi(h.c_str()));
-  canvas->cd(1);
-  histo->Draw();
-  canvas->Print(string("images/"+imgname).c_str());
-        *out << cgicc::img().set("src", imgurl).set("alt",imgname) << std::endl;
-  delete canvas;
-  delete histo;
-   */
+  /*
+    TH1* histo = new TH1F(objectName.c_str(),objectName.c_str(),100,0,100);
+    ConsumerCanvas* canvas = new ConsumerCanvas(objectName.c_str(), objectName.c_str(),objectName.c_str(),1,1, atoi(w.c_str()), atoi(h.c_str()));
+    canvas->cd(1);
+    histo->Draw();
+    canvas->Print(string("images/"+imgname).c_str());
+    *out << cgicc::img().set("src", imgurl).set("alt",imgname) << std::endl;
+    delete canvas;
+    delete histo;
+  */
   // TMessage* msgbuf = requestObjects(nodeID, folderName, objectName);
   
   TMessage* msgbuf = requestCanvas(nodeID, folderName, objectName,w, h);
@@ -500,7 +500,7 @@ void EmuDisplayClient::getImagePage (xgi::Input * in, xgi::Output * out)  throw 
         // if (!imgSize) {
 	//   *out << cgicc::img().set("src", imgurl).set("alt",imgname).set("width","100%").set("height","95%") << std::endl;
         //} else {
-  	   *out << cgicc::img().set("src", imgurl).set("alt",imgname) << std::endl;
+	*out << cgicc::img().set("src", imgurl).set("alt",imgname) << std::endl;
         // }
 	delete canvas;
       }
@@ -510,14 +510,17 @@ void EmuDisplayClient::getImagePage (xgi::Input * in, xgi::Output * out)  throw 
         //if (!imgSize) {
 	//  *out << cgicc::img().set("src", imgurl).set("alt",imgname).set("width","100%").set("height","95%") << std::endl;
 	//} else {
-	  *out << cgicc::img().set("src", imgurl).set("alt",imgname) << std::endl;
+	*out << cgicc::img().set("src", imgurl).set("alt",imgname) << std::endl;
         //}	
 	// *out << cgicc::img().set("src", imgurl).set("width", w).set("height", h).set("alt",imgname) << std::endl;
 
       }
     }
+    delete msgbuf;
+  } else {
+    *out << cgicc::h3("ERROR: Object is not available right now.") << std::endl;
   }
-  delete msgbuf;
+
   
   *out << cgicc::html();
   
@@ -555,11 +558,11 @@ void EmuDisplayClient::headerPage (xgi::Input * in, xgi::Output * out)  throw (x
   *out << cgicc::table().set("border","1")
     .set("cellspacing","0").set("cellpadding","0");
   *out << cgicc::th("Node").set("width","80") << cgicc::th("State") << cgicc::th("Run Number") 
-	<< cgicc::th("Events").set("width","60") << cgicc::th("Rate (Evt/s)").set("width","60") 
-	<< cgicc::th("Unpacked CSCs").set("width","60") <<  cgicc::th("Unpack Rate (CSCs/s)").set("width","80") 
+       << cgicc::th("Events").set("width","60") << cgicc::th("Rate (Evt/s)").set("width","60") 
+       << cgicc::th("Unpacked CSCs").set("width","60") <<  cgicc::th("Unpack Rate (CSCs/s)").set("width","80") 
        << cgicc::th("Readout Mode").set("width","60") << cgicc::th("Data Source").set("width","60")
        << cgicc::th("Last event timestamp")
-      /* << cgicc::th("Bandwidth").set("width","60")  << cgicc::th("Latency").set("width","60") */
+    /* << cgicc::th("Bandwidth").set("width","60")  << cgicc::th("Latency").set("width","60") */
        <<  std::endl;
   if (!monitors_.empty()) {
     //    *out << cgicc::b("Monitors List:")<<cgicc::br() << std::endl;    
@@ -569,6 +572,21 @@ void EmuDisplayClient::headerPage (xgi::Input * in, xgi::Output * out)  throw (x
       st << monitors_[i]->getClassName() << "-" << monitors_[i]->getInstance();
       std::string applink = monitors_[i]->getContextDescriptor()->getURL()+"/"+monitors_[i]->getURN();
       std::string state =  emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"stateName","string");
+      
+      if (state == "") { 
+	state = "Unknown/Dead";
+	*out << cgicc::tr();
+        *out << cgicc::td("<a href="+applink+" target=frameset>"+st.str()+"</a>" )
+	     << cgicc::td(state) << std::endl;
+        *out << cgicc::tr() << std::endl;
+	continue;
+      }
+      else {
+        std::string stateChangeTime = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"stateChangeTime","string");
+        state += " at " + stateChangeTime;
+      }
+
+      
       std::string runNumber   = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"runNumber","unsignedLong");
       std::string events = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"sessionEvents","unsignedLong");
       std::string dataRate   = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"dataRate","string");
@@ -584,16 +602,7 @@ void EmuDisplayClient::headerPage (xgi::Input * in, xgi::Output * out)  throw (x
         dataSource   = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"serversClassName","string");
       }
       
-      //      std::string dataBw   = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"dataBw","string");
-      //std::string dataLatency   = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"dataLatency","string");
-      if (state == "") { state = "Unknown";}
-      else {
-	std::string stateChangeTime = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"stateChangeTime","string");
-	state += " at " + stateChangeTime;
-      }
       *out << cgicc::tr();
-      // std::string link = cgicc::a(st.str()).set("href",applink).set("target", "frameset");
-      
       *out << cgicc::td("<a href="+applink+" target=frameset>"+st.str()+"</a>" )
 	   << cgicc::td(state) << cgicc::td(runNumber) << cgicc::td(events) << cgicc::td(dataRate) 
 	   << cgicc::td(cscUnpacked) << cgicc::td(cscRate) << cgicc::td(readoutMode) << cgicc::td(dataSource) 
@@ -684,22 +693,22 @@ void EmuDisplayClient::stateMachinePage( xgi::Output * out ) throw (xgi::excepti
   *out << "<tr>" << std::endl;
   std::set<std::string>::iterator i;
   for ( i = allInputs.begin(); i != allInputs.end(); i++)
-    {
-      *out << "<td>";
-      *out << cgicc::form().set("method","get").set("action", url).set("enctype","multipart/form-data") << std::endl;
+  {
+  *out << "<td>";
+  *out << cgicc::form().set("method","get").set("action", url).set("enctype","multipart/form-data") << std::endl;
 
-      if ( possibleInputs.find(*i) != possibleInputs.end() )
-	{
-	  *out << cgicc::input().set("type", "submit").set("name", "StateInput").set("value", (*i) );
-	}
-      else
-	{
-	  *out << cgicc::input() .set("type", "submit").set("name", "StateInput").set("value", (*i) ).set("disabled", "true");
-	}
+  if ( possibleInputs.find(*i) != possibleInputs.end() )
+  {
+  *out << cgicc::input().set("type", "submit").set("name", "StateInput").set("value", (*i) );
+  }
+  else
+  {
+  *out << cgicc::input() .set("type", "submit").set("name", "StateInput").set("value", (*i) ).set("disabled", "true");
+  }
 
-      *out << cgicc::form();
-      *out << "</td>" << std::endl;
-    }
+  *out << cgicc::form();
+  *out << "</td>" << std::endl;
+  }
   *out << "</tr>" << std::endl;
   *out << "</table>" << std::endl;
   //
@@ -829,17 +838,17 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestObjectsL
 		  olist.push_back(o_itr->getValue());
 		  // Problem with duplicates search
 		
-		      string value = o_itr->getValue();
-		      /*
-		      int pos = value.rfind("/",value.size());
-		      if (pos != string::npos) {
-			string name = value.substr(pos+1,value.size());
-			string path = dir+"/"+value.substr(0, pos);
-			cout << "path:" << path << " name:" << name << endl;
-		      }
-		      */
-		      // std::cout << dir << "/" << value << std:: endl;
-		      olist.sort();
+		  string value = o_itr->getValue();
+		  /*
+		    int pos = value.rfind("/",value.size());
+		    if (pos != string::npos) {
+		    string name = value.substr(pos+1,value.size());
+		    string path = dir+"/"+value.substr(0, pos);
+		    cout << "path:" << path << " name:" << name << endl;
+		    }
+		  */
+		  // std::cout << dir << "/" << value << std:: endl;
+		  olist.sort();
 
 		}
 		bmap[b_itr->getValue()] = olist;
@@ -851,7 +860,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestObjectsL
     }
   catch (xdaq::exception::Exception& e)
     {
-	return bmap;
+      return bmap;
       // handle exception
     }
 
@@ -922,8 +931,8 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestCanvases
 		for (vector<xoap::SOAPElement>::iterator o_itr = objElement.begin();
 		     o_itr != objElement.end(); ++o_itr ) {
 		  olist.push_back(o_itr->getValue());
-			      string value = o_itr->getValue();
-			      olist.sort();
+		  string value = o_itr->getValue();
+		  olist.sort();
 
 		}
 		bmap[b_itr->getValue()] = olist;
@@ -935,7 +944,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestCanvases
     }
   catch (xdaq::exception::Exception& e)
     {
-	return bmap;
+      return bmap;
       // handle exception
     }
 
@@ -1047,7 +1056,7 @@ TMessage* EmuDisplayClient::requestObjects(xdata::Integer nodeaddr, std::string 
     } 
   catch (xdaq::exception::Exception& e)
     {
-	return buf;
+      return buf;
       // handle exception
     }	
   
@@ -1089,9 +1098,9 @@ TMessage* EmuDisplayClient::requestCanvas(xdata::Integer nodeaddr, std::string f
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, d);
       xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
       /*
-    std::cout << std::endl;
-    reply->writeTo(cout);
-    std::cout << endl;
+	std::cout << std::endl;
+	reply->writeTo(cout);
+	std::cout << endl;
       */
 
       if (rb.hasFault() )
@@ -1113,16 +1122,16 @@ TMessage* EmuDisplayClient::requestCanvas(xdata::Integer nodeaddr, std::string f
 	      if (buf != NULL) {
 		delete buf;
 	      }
-	  	buf = new TMessage(kMESS_OBJECT);
-		buf->Reset();
-		buf->WriteBuf(content, size);
+	      buf = new TMessage(kMESS_OBJECT);
+	      buf->Reset();
+	      buf->WriteBuf(content, size);
 
 	    }
 	}
     } 
   catch (xdaq::exception::Exception& e)
     {
-	return buf;
+      return buf;
       // handle exception
     }	
   
