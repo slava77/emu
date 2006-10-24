@@ -17,8 +17,8 @@ void EmuPlotter::processEvent(const char * data, int dataSize, unsigned long err
       fBusy = true;
       MEs[nodeTag] = bookCommon(nodeNumber);
       MECanvases[nodeTag] = bookCommonCanvases(nodeNumber);
+      printMECollection(MEs[nodeTag]);
       fBusy = false;
-    printMECollection(MEs[nodeTag]);
   }
 	
   nodeME = MEs[nodeTag];
@@ -142,8 +142,8 @@ void EmuPlotter::processEvent(const char * data, int dataSize, unsigned long err
       fBusy = true;
       MEs[dduTag] = bookDDU(dduID);
       MECanvases[dduTag] = bookDDUCanvases(dduID);
+      printMECollection(MEs[dduTag]);
       fBusy = false;
-    printMECollection(MEs[dduTag]);
   }
 
   ME_List& dduME = MEs[dduTag];
