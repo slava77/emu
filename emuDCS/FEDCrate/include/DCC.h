@@ -29,7 +29,8 @@ public:
 
   void configure();
 
-   // DCC commands 
+  // DCC commands 
+  void TTCrxReset();
   unsigned long int inprom_userid();
   unsigned long int mprom_userid();
   unsigned long int inprom_chipid();

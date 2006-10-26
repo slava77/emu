@@ -143,6 +143,12 @@ enum DEVTYPE dv;
       return ibrd;
 }
 
+void DCC::TTCrxReset(){
+  cmd[0]=0x00;
+  cmd[1]=0x5A;
+  devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,0);
+  usleep(10000);
+}
 
 
 void DCC::mctrl_bxr()
