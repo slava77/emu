@@ -1,5 +1,6 @@
 //-----------------------------------------------------------------------
 #include <iostream>
+#include <fstream>
 #include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/framework/XMLPScanToken.hpp>
 #include <xercesc/dom/DOM.hpp>
@@ -22,6 +23,7 @@ EMUParser::~EMUParser(){
 }
 
 void EMUParser::parseFile(const char* name){ 
+  //
   /// Initialize XML4C system
   try{
     xercesc::XMLPlatformUtils::Initialize();
@@ -109,6 +111,5 @@ void EMUParser::parseFile(const char* name){
   //  The DOM document and its contents are reference counted, and need
   //  no explicit deletion.
   //
-  
 }
 
