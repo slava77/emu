@@ -40,7 +40,7 @@ void RAT::configure() {
     PrintRatUser1();
   //
   // The following should probably go in TMB configure, since it is actually a delay on the TMB:
-  WriteRatTmbDelay();
+  //  WriteRatTmbDelay();
   //
   return;
 }
