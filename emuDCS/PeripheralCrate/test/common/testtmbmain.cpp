@@ -148,7 +148,7 @@ int main() {
 	      << std::endl;
     std::cout << " 31:Read TMB-RAT delay         32:Set TMB-RAT Delay          37:Test parity bit computation"
 	      << std::endl;
-    std::cout << " 38:Test RAT values from TMB"
+    std::cout << " 38:Test RAT values from TMB   39:configure RAT"
 	      << std::endl;
     //
     std::cout << std::endl;
@@ -371,6 +371,10 @@ int main() {
       myRat->ReadRatUser1();
       myRat->PrintRpcRatDelay();
       //
+      break;
+      //
+    case 39:
+      myRat->configure();
       break;
       //
       //
