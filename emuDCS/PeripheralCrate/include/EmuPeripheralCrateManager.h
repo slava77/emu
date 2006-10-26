@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.19 2006/10/23 13:18:11 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.20 2006/10/26 10:34:46 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -153,6 +153,8 @@ public:
     *out << cgicc::legend("Crates in Configuration file").set("style","color:blue") 
 	 << cgicc::p() << std::endl ;
     //
+    LOG4CPLUS_INFO(getApplicationLogger(), "Main Page");
+    //
     std::vector<xdaq::ApplicationDescriptor * >  descriptor =
       getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
     //
@@ -200,6 +202,8 @@ public:
     //
     *out << cgicc::fieldset() ;
     //
+    LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrate");
+    //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     //
     *out << cgicc::legend("XRelays in Configuration file").set("style","color:blue") 
@@ -224,11 +228,13 @@ public:
     //
     *out << cgicc::fieldset() ;
     //
+    LOG4CPLUS_INFO(getApplicationLogger(), "XRelay");
+    //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     //
     *out << cgicc::legend("TStore in Configuration file").set("style","color:blue") 
 	 << cgicc::p() << std::endl ;
-    /*
+    //
     std::vector<xdaq::ApplicationDescriptor * >  descriptorTStore =
       getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("TStore");
     //
@@ -245,8 +251,10 @@ public:
 	*out << cgicc::br();
 	//
       }    
-    */
+    //
     *out << cgicc::fieldset() ;
+    //
+    LOG4CPLUS_INFO(getApplicationLogger(), "TStore");
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     //
@@ -304,18 +312,21 @@ public:
     //
     *out << cgicc::fieldset() ;
     //
+    LOG4CPLUS_INFO(getApplicationLogger(), "JobControl");
+    //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     //
     *out << cgicc::legend("LTCControl in Configuration file").set("style","color:blue") 
 	 << cgicc::p() << std::endl ;
     //
-    std::vector<xdaq::ApplicationDescriptor * >  descriptorLTCControl =
-      getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("LTCControl");
-    //
-    vector <xdaq::ApplicationDescriptor *>::iterator itDescriptorLTCControl;
-    for ( itDescriptorLTCControl = descriptorLTCControl.begin(); 
-	  itDescriptorLTCControl != descriptorLTCControl.end(); itDescriptorLTCControl++ ) 
-      {
+    try{
+      std::vector<xdaq::ApplicationDescriptor * >  descriptorLTCControl =
+	getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("LTCControl");
+      //
+      vector <xdaq::ApplicationDescriptor *>::iterator itDescriptorLTCControl;
+      for ( itDescriptorLTCControl = descriptorLTCControl.begin(); 
+	    itDescriptorLTCControl != descriptorLTCControl.end(); itDescriptorLTCControl++ ) 
+	{
 	//
 	std::string classNameStr = (*itDescriptorLTCControl)->getClassName();
 	*out << classNameStr << " " << std::endl ;
@@ -358,9 +369,16 @@ public:
 	//
 	*out << cgicc::br();
 	//
-      }    
+	}   
+    } 
+    catch (xdaq::exception::Exception& e) 
+      {
+	LOG4CPLUS_INFO(getApplicationLogger(), "LTCControl not in XML file");	
+      }
     //
     *out << cgicc::fieldset() ;
+    //
+    LOG4CPLUS_INFO(getApplicationLogger(), "LTCControl");
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     /*

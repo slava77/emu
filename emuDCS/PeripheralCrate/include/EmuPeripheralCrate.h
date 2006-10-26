@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.49 2006/10/23 13:18:06 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.50 2006/10/26 10:34:42 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -345,6 +345,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBConnectivity, "CalibrationCFEBConnectivity");
     xgi::bind(this,&EmuPeripheralCrate::LaunchMonitor, "LaunchMonitor");
     xgi::bind(this,&EmuPeripheralCrate::MonitorTMBTrigger, "MonitorTMBTrigger");
+    xgi::bind(this,&EmuPeripheralCrate::MonitorTMBTriggerRedirect, "MonitorTMBTriggerRedirect");
     xgi::bind(this,&EmuPeripheralCrate::MenuMonitorTMBTrigger, "MenuMonitorTMBTrigger");
     xgi::bind(this,&EmuPeripheralCrate::AlctKey, "AlctKey");
     xgi::bind(this,&EmuPeripheralCrate::ClctKey, "ClctKey");
@@ -2157,6 +2158,17 @@ private:
   void EmuPeripheralCrate::MonitorTMBTrigger(xgi::Input * in, xgi::Output * out) 
     throw (xgi::exception::Exception){
     //
+    cgicc::CgiEnvironment cgiEnvi(in);
+    std::string Page="MonitorTMBTriggerRedirect?"+cgiEnvi.getQueryString();
+    //
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"0; URL=/"
+	 <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+    //
+  }
+  //
+  void EmuPeripheralCrate::MonitorTMBTriggerRedirect(xgi::Input * in, xgi::Output * out) 
+    throw (xgi::exception::Exception){
+    //
     cgicc::Cgicc cgi(in);
     //
     cgicc::form_iterator name = cgi.getElement("tmb");
@@ -2197,6 +2209,8 @@ private:
     *out << cgicc::form().set("method","GET").set("action",ClctKey) << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","Clct key") << std::endl ;
     *out << cgicc::form() << std::endl ;
+    //
+    *out << "Menu " << MenuMonitor_ << std::endl;
     //
   }
   //
@@ -2248,8 +2262,8 @@ private:
     //
     std::string Page=cgiEnvi.getPathInfo()+"?"+cgiEnvi.getQueryString();
     //
-    //*out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"2; URL=/"
-    //<<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
+    *out << "<meta HTTP-EQUIV=\"Refresh\" CONTENT=\"2; URL=/"
+	 <<getApplicationDescriptor()->getURN()<<"/"<<Page<<"\">" <<endl;
     //
     cgicc::Cgicc cgi(in);
     //
