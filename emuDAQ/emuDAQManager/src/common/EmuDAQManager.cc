@@ -1067,7 +1067,10 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
       *out << "/>"                                                   << endl;
 
       // In case the user has changed his mind, allow him to halt from 'configured' state.
-      if ( fsm_.getCurrentState() == 'C' )
+      // Also, if EmuDAQManager is in "Halted" state, but DAQ is not (because EmuDAQManager 
+      // was restarted, for example), allow DAQ to be stopped. 
+      if ( fsm_.getCurrentState() == 'C' ||
+	   ( fsm_.getCurrentState() == 'H' && daqState != "Halted" ) )
 	{
 	  *out << "<input"                                               << endl;
 	  *out << " type=\"submit\""                                     << endl;
@@ -1078,10 +1081,7 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
 
       // If DAQ is in "Failed" state, but EmuDAQManager isn't, place a reset button
       // (if EmuDAQManager is in 'failed' state, we should already have one).
-      // Also, if EmuDAQManager is in "Halted" state, but DAQ is not (because EmuDAQManager 
-      // was restarted, for example), allow DAQ to be reset. 
-      if ( ( fsm_.getCurrentState() != 'F' && daqState == "Failed" ) ||
-	   ( fsm_.getCurrentState() == 'H' && daqState != "Halted" ) ){
+      if ( fsm_.getCurrentState() != 'F' && daqState == "Failed" ){
 	  *out << "<input"                                               << endl;
 	  *out << " type=\"submit\""                                     << endl;
 	  *out << " name=\"command\""                                    << endl;
