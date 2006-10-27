@@ -30,14 +30,28 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		EmuApplication(stub),
 		runmode_(""), runnumber_(""), nevents_(""), error_message_("")
 {
-	getApplicationInfoSpace()->fireItemAvailable("RunType", &x_runmode_);
-	getApplicationInfoSpace()->fireItemAvailable("RunNumber", &x_runnumber_);
-	getApplicationInfoSpace()->fireItemAvailable("configKeys", &config_keys_);
-	getApplicationInfoSpace()->fireItemAvailable("configModes", &config_modes_);
-	getApplicationInfoSpace()->fireItemAvailable("modesForPC", &modes_pc_);
-	getApplicationInfoSpace()->fireItemAvailable("filesForPC", &files_pc_);
-	getApplicationInfoSpace()->fireItemAvailable("modesForFC", &modes_fc_);
-	getApplicationInfoSpace()->fireItemAvailable("filesForFC", &files_fc_);
+	daq_mode_ = "";
+	trigger_config_ = "";
+	ttc_source_ = "";
+
+	daq_descr_ = NULL;
+	tf_descr_ = NULL;
+	ttc_descr_ = NULL;
+
+	xdata::InfoSpace *i = getApplicationInfoSpace();
+	i->fireItemAvailable("DAQMode", &daq_mode_);
+	i->fireItemAvailable("TriggerConfig", &trigger_config_);
+	i->fireItemAvailable("TTCSource", &ttc_source_);
+
+	i->fireItemAvailable("RunType", &x_runmode_);
+	i->fireItemAvailable("RunNumber", &x_runnumber_);
+
+	i->fireItemAvailable("configKeys", &config_keys_);
+	i->fireItemAvailable("configModes", &config_modes_);
+	i->fireItemAvailable("modesForPC", &modes_pc_);
+	i->fireItemAvailable("filesForPC", &files_pc_);
+	i->fireItemAvailable("modesForFC", &modes_fc_);
+	i->fireItemAvailable("filesForFC", &files_fc_);
 
 	xgi::bind(this, &CSCSupervisor::webDefault,   "Default");
 	xgi::bind(this, &CSCSupervisor::webConfigure, "Configure");
@@ -228,11 +242,17 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 			.set("value", "Reset") << endl;
 	*out << form() << endl;
 
+	// Configuration parameters
+	refreshConfigParameters();
+	*out << "Mode of DAQManager: " << daq_mode_.toString() << br() << endl;
+	*out << "TF configuration: " << trigger_config_.toString() << br() << endl;
+	*out << "TTCci inputs(Clock:Orbit:Trig:BGo): " << ttc_source_.toString() << br() << endl;
+
 	// Application states
+	*out << hr() << endl;
 	state_table_.webOutput(out, (string)state_);
 
 	*out << hr() << endl;
-
 	last_log_.webOutput(out);
 
 	*out << body() << html() << endl;
@@ -326,6 +346,9 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		sendCommand("Configure", "EmuPeripheralCrate");
 		sendCommand("Configure", "EmuDAQManager");
 		sendCommand("Configure", "LTCControl");
+
+		refreshConfigParameters();
+
 	} catch (xoap::exception::Exception e) {
 		LOG4CPLUS_ERROR(getApplicationLogger(),
 				"Exception in " << evt->type() << ": " << e.what());
@@ -518,6 +541,62 @@ xoap::MessageReference CSCSupervisor::createParameterSetSOAP(
 	return message;
 }
 
+xoap::MessageReference CSCSupervisor::createParameterGetSOAP(
+		string klass, string name, string type)
+{
+	xoap::MessageReference message = xoap::createMessage();
+	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+	envelope.addNamespaceDeclaration("xsi", NS_XSI);
+
+	xoap::SOAPName command = envelope.createName(
+			"ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
+	xoap::SOAPName properties = envelope.createName(
+			"properties", klass, "urn:xdaq-application:" + klass);
+	xoap::SOAPName parameter = envelope.createName(
+			name, klass, "urn:xdaq-application:" + klass);
+	xoap::SOAPName xsitype = envelope.createName("type", "xsi", NS_XSI);
+
+	xoap::SOAPElement properties_e = envelope.getBody()
+			.addBodyElement(command)
+			.addChildElement(properties);
+	properties_e.addAttribute(xsitype, "soapenc:Struct");
+
+	xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
+	parameter_e.addAttribute(xsitype, type);
+	parameter_e.addTextNode("");
+
+	return message;
+}
+
+xoap::MessageReference CSCSupervisor::createParameterGetSOAP2(
+		string klass, int length, string names[], string types[])
+{
+	xoap::MessageReference message = xoap::createMessage();
+	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+	envelope.addNamespaceDeclaration("xsi", NS_XSI);
+
+	xoap::SOAPName command = envelope.createName(
+			"ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
+	xoap::SOAPName properties = envelope.createName(
+			"properties", klass, "urn:xdaq-application:" + klass);
+	xoap::SOAPName xsitype = envelope.createName("type", "xsi", NS_XSI);
+
+	xoap::SOAPElement properties_e = envelope.getBody()
+			.addBodyElement(command)
+			.addChildElement(properties);
+	properties_e.addAttribute(xsitype, "soapenc:Struct");
+
+	for (int i = 0; i < length; ++i) {
+		xoap::SOAPName parameter = envelope.createName(
+				names[i], klass, "urn:xdaq-application:" + klass);
+		xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
+		parameter_e.addAttribute(xsitype, types[i]);
+		parameter_e.addTextNode("");
+	}
+
+	return message;
+}
+
 void CSCSupervisor::analyzeReply(
 		xoap::MessageReference message, xoap::MessageReference reply,
 		xdaq::ApplicationDescriptor *app)
@@ -549,6 +628,27 @@ void CSCSupervisor::analyzeReply(
 	XCEPT_RAISE(xoap::exception::Exception, "SOAP fault: \n" + reply_str);
 
 	return;
+}
+
+string CSCSupervisor::extractParameter(
+		xoap::MessageReference message, string name)
+{
+	xoap::SOAPElement root = message->getSOAPPart()
+			.getEnvelope().getBody().getChildElements(
+			*(new xoap::SOAPName("ParameterGetResponse", "", "")))[0];
+	xoap::SOAPElement properties = root.getChildElements(
+			*(new xoap::SOAPName("properties", "", "")))[0];
+	xoap::SOAPElement parameter = properties.getChildElements(
+			*(new xoap::SOAPName(name, "", "")))[0];
+
+	return parameter.getValue();
+}
+
+void CSCSupervisor::refreshConfigParameters()
+{
+	daq_mode_ = getDAQMode();
+	trigger_config_ = getTFConfig();
+	ttc_source_ = getTTCciSource();
 }
 
 string CSCSupervisor::getRunmode(xgi::Input *in)
@@ -644,6 +744,88 @@ string CSCSupervisor::trim(string orig) const
 	s.erase(s.find_last_not_of(" \t\n") + 1);
 
 	return s;
+}
+
+string CSCSupervisor::getDAQMode()
+{
+	if (daq_descr_ == NULL) {
+		daq_descr_ = getApplicationContext()->getApplicationGroup()
+				->getApplicationDescriptor("EmuDAQManager", 0);
+		daq_param_ = createParameterGetSOAP(
+				"EmuDAQManager", "globalMode", "xsd:boolean");
+	}
+
+	string result = "";
+
+	xoap::MessageReference reply;
+	try {
+		reply = getApplicationContext()->postSOAP(daq_param_, daq_descr_);
+
+		result = extractParameter(reply, "globalMode");
+	} catch (xdaq::exception::Exception e) {
+		result = "Unknown";
+	}
+
+	return result;
+}
+
+string CSCSupervisor::getTFConfig()
+{
+	if (tf_descr_ == NULL) {
+		tf_descr_ = getApplicationContext()->getApplicationGroup()
+				->getApplicationDescriptor("TF_hyperDAQ", 0);
+		tf_param_ = createParameterGetSOAP(
+				"TF_hyperDAQ", "triggerMode", "xsd:string");
+	}
+
+	string result = "";
+
+	xoap::MessageReference reply;
+	try {
+		reply = getApplicationContext()->postSOAP(tf_param_, tf_descr_);
+
+		result = extractParameter(reply, "triggerMode");
+	} catch (xdaq::exception::Exception e) {
+		result = "Unknown";
+	}
+
+	return result;
+}
+
+string CSCSupervisor::getTTCciSource()
+{
+	if (ttc_descr_ == NULL) {
+		ttc_descr_ = getApplicationContext()->getApplicationGroup()
+				->getApplicationDescriptor("TTCciControl", 0);
+
+		string names[4], types[4];
+		names[0] = "ClockSource";
+		names[1] = "OrbitSource";
+		names[2] = "TriggerSource";
+		names[3] = "BGOSource";
+		for (int i = 0; i < 4; ++i) {
+			types[i] = "xsd:string";
+		}
+
+		ttc_param_ = createParameterGetSOAP2(
+				"TTCciControl", 4, names, types);
+	}
+
+	string result = "";
+
+	xoap::MessageReference reply;
+	try {
+		reply = getApplicationContext()->postSOAP(ttc_param_, ttc_descr_);
+
+		result = extractParameter(reply, "ClockSource");
+		result += ":" + extractParameter(reply, "OrbitSource");
+		result += ":" + extractParameter(reply, "TriggerSource");
+		result += ":" + extractParameter(reply, "BGOSource");
+	} catch (xdaq::exception::Exception e) {
+		result = "Unknown";
+	}
+
+	return result;
 }
 
 void CSCSupervisor::StateTable::addApplication(CSCSupervisor *sv, string klass)
@@ -808,4 +990,4 @@ void CSCSupervisor::LastLog::webOutput(xgi::Output *out)
 }
 
 // End of file
-// vim: set ai sw=4 ts=4:
+// vim: set sw=4 ts=4:
