@@ -18,7 +18,7 @@ foo> cd ~/work
 foo> export CVSROOT=:pserver:anonymous@cmscvs.cern.ch:/cvs_server/repositories/TriDAS
 foo> cvs login
 ...
-foo> cvs co -r Release-1_4 -d cscSV TriDAS/emu/cscSV
+foo> cvs co -r Release-1_5 -d cscSV TriDAS/emu/cscSV
 
 == 2. Build and run
 
