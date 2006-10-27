@@ -1,4 +1,4 @@
-# $Id: Makefile.rules,v 3.0 2006/07/20 21:18:22 geurts Exp $
+# $Id: Makefile.rules,v 3.1 2006/10/27 14:34:52 ichiro Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -100,8 +100,8 @@ PackageTargetDir 	= $(PackageSourceDir)/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 PackageIncludeDirs	= $(SourceDir)/include/$(XDAQ_OS) $(SourceDir)/include $(IncludeDirs)
 endif
 
-LibInstallDir   	= $(XDAQ_ROOT)/$(Project)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
-BinInstallDir   	= $(XDAQ_ROOT)/$(Project)/bin/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+LibInstallDir   	= $(XDAQ_ROOT)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+BinInstallDir   	= $(XDAQ_ROOT)/bin/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 TargetDir		= $(SourceDir)
 LibDir			= $(XDAQ_ROOT)/$(Project)/$(Package)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 BinDir			= $(XDAQ_ROOT)/$(Project)/$(Package)/bin/$(XDAQ_OS)/$(XDAQ_PLATFORM)

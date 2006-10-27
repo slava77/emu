@@ -5,12 +5,6 @@
 		xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
 		xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
 	<xc:Context url="http://localhost:40000">
-		<xc:Application class="Executive" id="0" network="local" resident="true">                       
-			<properties xmlns="urn:xdaq-application:Executive" xsi:type="soapenc:Struct">
-				<logUrl xsi:type="xsd:string">file:/home/ichiro/work/emu/cscsv/sv.log</logUrl>
-			</properties>
-		</xc:Application> 
-
 		<xc:Application class="CSCSupervisor" id="40" instance="0" network="local">
 			<properties xmlns="urn:xdaq-application:CSCSupervisor" xsi:type="soapenc:Struct">
 				<configKeys soapenc:arrayType="xsd:ur-type[4]" xsi:type="soapenc:Array">
@@ -59,28 +53,28 @@
 				</filesForFC>
 			</properties>
 		</xc:Application>
-		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libCSCSupervisor.so</xc:Module>
+		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libCSCSupervisor.so</xc:Module>
 	</xc:Context>
 
 	<xc:Context url="http://localhost:40001">
-		<xc:Application class="Executive" id="0" network="local" resident="true">                       
-			<properties xmlns="urn:xdaq-application:Executive" xsi:type="soapenc:Struct">
-				<logUrl xsi:type="xsd:string">file:/home/ichiro/work/emu/cscsv/xdaq.log</logUrl>
-			</properties>
-		</xc:Application> 
-
 		<xc:Application class="EmuFEDCrate" id="20" instance="0" network="local"/>
-		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libEmuFEDCrate.so</xc:Module>
+		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libEmuFEDCrate.so</xc:Module>
 
 		<xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="local"/>
 		<xc:Application class="EmuPeripheralCrate" id="31" instance="1" network="local"/>
-		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>
+		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>
+
+		<xc:Application class="TF_hyperDAQ" id="50" instance="0" network="local"/>
+		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libTF_hyperDAQ.so</xc:Module>
 
 		<xc:Application class="EmuDAQManager" id="80" instance="0" network="local"/>
-		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libEmuDAQManager.so</xc:Module>
+		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libEmuDAQManager.so</xc:Module>
 
 		<xc:Application class="LTCControl" id="90" instance="0" network="local"/>
-		<xc:Module>$XDAQ_ROOT/daq/lib/linux/x86/libLTCControl.so</xc:Module>
+		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libLTCControl.so</xc:Module>
+
+		<xc:Application class="TTCciControl" id="91" instance="0" network="local"/>
+		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libTTCciControl.so</xc:Module>
 	</xc:Context>
 </xc:Partition>
-<!-- vim: set ai sw=2 ts=2: -->
+<!-- vim: set sw=2 ts=2: -->
