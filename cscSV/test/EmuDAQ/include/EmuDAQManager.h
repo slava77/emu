@@ -4,6 +4,7 @@
 #include "EmuApplication.h"
 
 #include "xdata/UnsignedLong.h"
+#include "xdata/Boolean.h"
 #include "toolbox/fsm/FiniteStateMachine.h"
 
 class EmuDAQManager : public EmuApplication
@@ -39,7 +40,8 @@ private:
 
 	xdata::UnsignedLong run_number_;
 	xdata::UnsignedLong max_n_events_;
+	xdata::Boolean mode_;
 };
 
 #endif  // ifndef __EMU_DAQ_MANAGER_H__
-// vim: set ai sw=4 ts=4:
+// vim: set sw=4 ts=4:
