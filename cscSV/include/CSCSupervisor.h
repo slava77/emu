@@ -71,6 +71,9 @@ private: // XDAQ parameters
 	xdata::Vector<xdata::String> files_pc_;
 	xdata::Vector<xdata::String> modes_fc_;
 	xdata::Vector<xdata::String> files_fc_;
+	xdata::String daq_mode_;
+	xdata::String trigger_config_;
+	xdata::String ttc_source_;
 
 private:
 	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
@@ -78,13 +81,20 @@ private:
 
 	void sendCommand(string command, string klass)
 			throw (xoap::exception::Exception, xdaq::exception::Exception);
+
 	xoap::MessageReference createCommandSOAP(string command);
 	void setParameter(string klass, string name, string type, string value);
 	xoap::MessageReference createParameterSetSOAP(
 	        string klass, string name, string type, string value);
+	xoap::MessageReference createParameterGetSOAP(
+	        string klass, string name, string type);
+	xoap::MessageReference createParameterGetSOAP2(
+	        string klass, int length, string names[], string types[]);
 	void analyzeReply(
 			xoap::MessageReference message, xoap::MessageReference reply,
 			xdaq::ApplicationDescriptor *app);
+	string extractParameter(xoap::MessageReference message, string name);
+	void refreshConfigParameters();
 
 	string getRunmode(xgi::Input *in);
 	string getRunNumber(xgi::Input *in);
@@ -93,6 +103,13 @@ private:
 
 	string getConfigFilename(string type, string mode) const;
 	string trim(string orig) const;
+
+	xdaq::ApplicationDescriptor *daq_descr_, *tf_descr_, *ttc_descr_;
+	xoap::MessageReference daq_param_, tf_param_, ttc_param_;
+
+	string getDAQMode();
+	string getTFConfig();
+	string getTTCciSource();
 
 	string runmode_;
 	string runnumber_;
