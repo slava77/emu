@@ -11,8 +11,9 @@ public:
   EmuSLinkReader( int boardIndex, int format, bool debug=false );
   ~EmuSLinkReader();
   void            open();
-  void            close();
+//   void            enable(){}
   int             reset();
+  void            close();
   int             chunkSize();
 
 protected:
