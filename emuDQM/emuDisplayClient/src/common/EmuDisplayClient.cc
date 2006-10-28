@@ -35,7 +35,8 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
   EmuDisplayClient::EmuDisplayClient(xdaq::ApplicationStub* stub)
   throw (xdaq::exception::Exception)
     : xdaq::WebApplication(stub),
-      monitorClass_("EmuMonitor")
+      monitorClass_("EmuMonitor"),
+      iconsURL_("http://cms-dqm03.phys.ufl.edu/dqm/results/")
 {
 
   errorHandler_ = toolbox::exception::bind (this, &EmuDisplayClient::onError, "onError");
@@ -81,6 +82,8 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
 
   getApplicationInfoSpace()->fireItemAvailable("monitorClass",&monitorClass_);
   getApplicationInfoSpace()->addItemChangedListener ("monitorClass", this);
+  getApplicationInfoSpace()->fireItemAvailable("iconsURL",&iconsURL_);
+  getApplicationInfoSpace()->addItemChangedListener ("iconsURL", this);
 
   // === Initialize ROOT system
   if (!gApplication)

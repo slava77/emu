@@ -87,6 +87,7 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   std::vector<xdaq::ApplicationDescriptor*> monitors_;
 
   xdata::String monitorClass_;
+  xdata::String iconsURL_;
 
 
 };
