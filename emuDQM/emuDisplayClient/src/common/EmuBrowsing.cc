@@ -225,7 +225,7 @@ void EmuDisplayClient::createTreeEngine(xgi::Input * in, xgi::Output * out ) thr
 
 void EmuDisplayClient::createTreeTemplate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
-  std::string treebase = "http://www.phys.ufl.edu/~barashko/dqm/";
+  std::string treebase = iconsURL_.toString();// "http://cms-dqm03.phys.ufl.edu/dqm/results/";
 
   *out  << "var TREE_TPL = {\n"
         << "'target'  : 'frameset',\n" // name of the frame links will be opened in
