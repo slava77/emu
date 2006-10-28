@@ -9,6 +9,7 @@ public:
   EmuFileReader( std::string filename, int format, bool debug=false );
   ~EmuFileReader();
   void            open( std::string filename );
+  virtual void    resetAndEnable(){}
   void            close();
 
 protected:

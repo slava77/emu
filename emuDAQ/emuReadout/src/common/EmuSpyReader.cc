@@ -12,13 +12,33 @@
 #include "eth_hook_2.h"
 #include <stdexcept>   // std::runtime_error
 
+// DEBUG START
+#include <iomanip>
+// DEBUG END
+
 EmuSpyReader::EmuSpyReader( std::string filename, int format, bool debug )
   : EmuReader( filename, format, debug ),
     theFileDescriptor( -1 )
+// DEBUG START
+    ,ec(100)
+// DEBUG END
 {
   open( filename );
-  reset();
-  enableBlock();
+  // MOVED TO enable() START
+//   reset();
+//   enableBlock();
+  // MOVED TO enable() END
+//   enable();
+// DEBUG START
+  visitCount =  0;
+  oversizedCount =  0;
+  pmissingCount =  0;
+  loopOverwriteCount =  0;
+  bufferOverwriteCount =  0;
+  packetsCount =  0;
+  timeoutCount =  0;
+  endEventCount = 0;
+// DEBUG END
 }
 
 EmuSpyReader::~EmuSpyReader(){
@@ -161,6 +181,13 @@ int EmuSpyReader::chunkSize() {
   return 8976; //9000;
 }
 
+void EmuSpyReader::resetAndEnable(){
+  theLogMessage = "";
+  reset();
+  enableBlock();
+  theDeviceIsResetAndEnabled = true;
+}
+
 // int EmuSpyReader::readDDU(unsigned short **buf) {
 int EmuSpyReader::readDDU(unsigned short*& buf) {
   theLogMessage = "";
@@ -238,9 +265,62 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
   pmissing_prev=0;
   packets=0;
                                                                                 
+//   while (true){
+//     buf_pnt_kern=*(unsigned long int *)(buf_start+BIGPHYS_PAGES_2*PAGE_SIZE-TAILPOS);
+//     if(iloop>100000){timeout=1; break;}
+//     // printf(" %ld %ld \n",buf_pnt,buf_pnt_kern);
+//     if(buf_pnt==buf_pnt_kern){for (j=0;j<5000;j++); iloop++; continue;}
+//     iloop=0;
+//     ring_loop_kern= *(unsigned short int *)(ring_start+ring_pnt*RING_ENTRY_LENGTH);
+//     pmissing=ring_loop_kern&0x8000;
+//     end_event=ring_loop_kern&0x4000;
+//     ring_loop_kern=ring_loop_kern&0x3fff;
+//     length=*(unsigned short int *)(ring_start+ring_pnt*RING_ENTRY_LENGTH+4);
+//     //cout<<length<<"\n"; //fg
+//     ring_loop_kern2=*(unsigned short int *)ring_start;
+//     ring_loop_kern2=0x3fff&ring_loop_kern2;
+
+//     if((ring_loop_kern2!=ring_loop)&&(buf_pnt<=buf_pnt_kern)){
+//       overwrite=1;
+//       if ( theDebugMode ) std::cout << "EmuSpyReader::readDDU:  BUFFER OVERWRITE" << std::endl; 
+//       theLogMessage = theName+": buffer overwrite.";
+//       break;
+//     }
+//     if(ring_loop_kern!=ring_loop){
+//       overwrite=1;
+//       if ( theDebugMode ) std::cout << "EmuSpyReader::readDDU: LOOP OVERWRITE" << std::endl;
+//       theLogMessage = theName+": loop overwrite.";
+//       break;
+//     }
+//     if(packets==0){
+//       buf_data=buf_start+buf_pnt;
+//     }
+//     len=len+length;
+
+//     if(pmissing!=0&packets!=0){
+//       len=len-length;
+//       pmissing_prev=1;
+//       break;
+//     }
+
+//     buf_pnt=buf_pnt+length;
+//     ring_pnt=ring_pnt+1;
+//     //    if((buf_pnt > buf_end)||(ring_pnt>=ring_size)){
+//     if (((end_event==0x4000)&&(buf_pnt>buf_eend))||(buf_pnt > buf_end)||(ring_pnt>=ring_size)){
+//       ring_pnt=0;
+//       ring_loop=ring_loop+1;
+//       buf_pnt=0;
+//     }
+//     packets=packets+1;
+//     if(len>MAXEVENT_2) break;
+//     if(pmissing!=0) break;
+//     if(end_event==0x4000) break;
+//   }
+
+  // DEBUG START                         
   while (true){
     buf_pnt_kern=*(unsigned long int *)(buf_start+BIGPHYS_PAGES_2*PAGE_SIZE-TAILPOS);
-    if(iloop>100000){timeout=1; break;}
+    if(iloop>100000){timeout=1; timeoutCount++; break;}
     // printf(" %ld %ld \n",buf_pnt,buf_pnt_kern);
     if(buf_pnt==buf_pnt_kern){for (j=0;j<5000;j++); iloop++; continue;}
     iloop=0;
@@ -257,12 +337,14 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
       overwrite=1;
       if ( theDebugMode ) std::cout << "EmuSpyReader::readDDU:  BUFFER OVERWRITE" << std::endl; 
       theLogMessage = theName+": buffer overwrite.";
+      bufferOverwriteCount++;
       break;
     }
     if(ring_loop_kern!=ring_loop){
       overwrite=1;
       if ( theDebugMode ) std::cout << "EmuSpyReader::readDDU: LOOP OVERWRITE" << std::endl;
       theLogMessage = theName+": loop overwrite.";
+      loopOverwriteCount++;
       break;
     }
     if(packets==0){
@@ -273,6 +355,7 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
     if(pmissing!=0&packets!=0){
       len=len-length;
       pmissing_prev=1;
+      packetsCount++;
       break;
     }
 
@@ -285,10 +368,26 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
       buf_pnt=0;
     }
     packets=packets+1;
-    if(len>MAXEVENT_2) break;
-    if(pmissing!=0) break;
-    if(end_event==0x4000) break;
+    if(len>MAXEVENT_2) {oversizedCount++; break;}
+    if(pmissing!=0) {pmissingCount++; break;}
+    if(end_event==0x4000) {endEventCount++; break;}
   }
+  visitCount++;
+  if ( ec.timeIsUp() ){
+    std::cout << " v:" << std::setw(10) << visitCount
+	      << " o:" << std::setw(10) << oversizedCount
+	      << " m:" << std::setw(10) << pmissingCount
+	      << " b:" << std::setw(10) << bufferOverwriteCount
+	      << " l:" << std::setw(10) << loopOverwriteCount
+	      << " p:" << std::setw(10) << packetsCount
+	      << " t:" << std::setw(10) << timeoutCount
+	      << " e:" << std::setw(10) << endEventCount
+	      << " s:" << std::setw(10) << len 
+	      << std::endl;
+    std::cout << std::flush;
+  }
+  // DEBUG END                                                                  
+
 
 //   if ( timeout ) std::cerr << "EmuSpyReader::readDDU timed out. Event length: " << len << " b" << std::endl;
 

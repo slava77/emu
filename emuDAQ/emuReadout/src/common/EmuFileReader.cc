@@ -12,6 +12,7 @@ EmuFileReader::EmuFileReader( std::string filename, int format, bool debug )
 {
 //   theFile = new std::ifstream();
   open( filename );
+  theDeviceIsResetAndEnabled = true; // file reader won't need resetting and enabling
 //KK
   end = (file_buffer_end = file_buffer + sizeof(file_buffer)/sizeof(unsigned long long));
   bzero(raw_event,  sizeof(raw_event)  );

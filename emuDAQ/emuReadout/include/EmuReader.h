@@ -20,6 +20,7 @@ protected:
   unsigned int    theErrorCount; // counts consequitive read errors
   unsigned short  theErrorFlag;  // for DQM
   std::string     theLogMessage; // in case anybody is interested...
+  bool            theDeviceIsResetAndEnabled; // to know whether it is already reset and enabled
 
 public:
   enum { DDU, DCC };
@@ -28,7 +29,8 @@ public:
     : theName      ( name   ),
       theFormat    ( format ),
       theDebugMode ( debug  ),
-      theErrorCount( 0      )
+      theErrorCount( 0      ),
+      theDeviceIsResetAndEnabled( false )
   {}
 
   virtual ~EmuReader(){}
@@ -56,6 +58,7 @@ public:
   int          readNextEvent();
   int          eventNumber();
 
+  bool         isResetAndEnabled(){ return theDeviceIsResetAndEnabled; }
   char*        data()            { return (char*) theBuffer; }
   int          dataLength()      { return theDataLength;     } // in bytes
   void         setDebug( bool d ){ theDebugMode = d;         }
@@ -64,6 +67,7 @@ public:
   unsigned short getErrorFlag()  { return theErrorFlag;      }
   std::string  getLogMessage()   { return theLogMessage;     }
 
+  virtual void resetAndEnable()=0;
   virtual int  readDDU( unsigned short*& buf )=0;
   virtual int  readDCC( unsigned short*& buf )=0;
 };

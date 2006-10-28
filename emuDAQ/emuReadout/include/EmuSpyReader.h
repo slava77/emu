@@ -3,12 +3,42 @@
 
 #include "EmuReader.h"
 
+// DEBUG START
+#include <iomanip>
+#include <sys/times.h>
+class EmuClock{
+  clock_t period_;
+  clock_t start_;
+  clock_t stop_;
+  struct tms dummy_;
+  
+public:
+  EmuClock( clock_t period ) :
+    period_( period )
+  {
+    start_ = times( &dummy_ );
+  }
+  
+  bool timeIsUp(){
+    stop_ = times( &dummy_ );
+    if ( stop_ > start_ + period_ ) {
+      std::cout << std::setw(10) << stop_ ;
+      start_ = stop_;
+      return true;
+    }
+    return false;
+  }
+  
+};
+// DEBUG END
+
 class EmuSpyReader : public EmuReader
 {
 public:
   EmuSpyReader( std::string filename, int format, bool debug=false );
   ~EmuSpyReader();
   void open( std::string filename );
+  virtual void resetAndEnable();
   void close();
   int  reset();
   int  enableBlock();
@@ -42,10 +72,23 @@ protected:
 
   char *tail_start;
 
+// DEBUG START
+  int visitCount;
+  int oversizedCount; 
+  int pmissingCount; 
+  int loopOverwriteCount; 
+  int bufferOverwriteCount; 
+  int packetsCount; 
+  int timeoutCount; 
+  int endEventCount;
+  EmuClock ec;
+// DEBUG END
+
 //   int   readDDU(unsigned short **buf);
 //   int   readDCC(unsigned short **buf);
   int   readDDU(unsigned short*& buf);
   int   readDCC(unsigned short*& buf);
+
 };
 
 #endif  // ifndef __EMU_SPY_READER_H__
