@@ -1246,8 +1246,8 @@ void EmuRUI::createDeviceReader(){
 	  << " reader for "      << inputDeviceName_.toString()
 	  << ": "                << e.what();
       LOG4CPLUS_FATAL(logger_, oss.str());
-	
-      XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
+      moveToFailedState();
+//       XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
     catch(...){
       stringstream oss;
@@ -1255,7 +1255,8 @@ void EmuRUI::createDeviceReader(){
 	  << " reader for "      << inputDeviceName_.toString()
 	  << ": unknown exception.";
       LOG4CPLUS_FATAL(logger_, oss.str());
-      XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
+      moveToFailedState();
+//       XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
 
     if ( deviceReader_->getLogMessage().length() > 0 )
@@ -1496,6 +1497,8 @@ throw (toolbox::fsm::exception::Exception)
     createDeviceReader();
 //     destroyDeviceReaders();
 //     createDeviceReaders();
+
+    workLoopStarted_ = false; // make sure work loop action will be (re)submitted in case it's no longer rescheduled
 
     // Just in case there's a writer, terminate it in an orderly fashion
     if ( fileWriter_ )
@@ -2444,6 +2447,36 @@ int EmuRUI::continueConstructionOfSuperFrag()
   if ( maxEvents_.value_ >= 0 && nEventsRead_.value_ >= (unsigned long) maxEvents_.value_ ) return notToBeRescheduled;
 
   if (deviceReader_){
+
+    // Prepare to read the first first event if we have not yet done so:
+    if ( nEventsRead_ == (unsigned long) 0 && ! deviceReader_->isResetAndEnabled() ){
+      try{
+	deviceReader_->resetAndEnable();
+      }
+      catch(std::runtime_error e){
+	
+	stringstream oss;
+	oss << "Failed to reset and/or enable " << inputDeviceType_.toString()
+	    << " reader for "      << inputDeviceName_.toString()
+	    << ": "                << e.what();
+	LOG4CPLUS_FATAL(logger_, oss.str());
+	moveToFailedState();
+	// 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
+      }
+      catch(...){
+	stringstream oss;
+	oss << "Failed to reset and/or enable " << inputDeviceType_.toString()
+	    << " reader for "      << inputDeviceName_.toString()
+	    << ": unknown exception.";
+	LOG4CPLUS_FATAL(logger_, oss.str());
+	moveToFailedState();
+	// 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
+      }
+      if ( deviceReader_->getLogMessage().length() > 0 )
+	LOG4CPLUS_INFO(logger_, deviceReader_->getLogMessage());
+    } // if ( nEventsRead_ == (unsigned long) 0 )
+    
+    // See if there's something to read and then read it:
     try{
       nBytesRead = deviceReader_->readNextEvent();
     }
