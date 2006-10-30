@@ -2,6 +2,9 @@ package rcms.fm.app.csc;
 
 import rcms.fm.fw.user.UserStateNotificationHandler;
 
+import java.util.Properties;
+import java.io.*;
+
 import rcms.fm.app.level1template.MyStates;
 import rcms.fm.app.level1template.MyInputs;
 import rcms.fm.app.level1template.MyParameters;
@@ -16,6 +19,7 @@ import rcms.fm.fw.user.UserActionException;
 import rcms.fm.resource.QualifiedResourceContainerException;
 
 import rcms.util.logger.RCMSLogger;
+import rcms.utilities.runinfo.*;
 
 public class CSCEventHandler extends UserStateNotificationHandler {
 	
@@ -26,6 +30,30 @@ public class CSCEventHandler extends UserStateNotificationHandler {
 
 	private final static String DEFAULT_RUN_TYPE = "ME1b";
 	private final static String DEFAULT_RUN_NUMBER = "10";
+
+	private RunInfoConnector runInfoConnector;
+
+	class CSCConfig {
+		public String daqMode, tfConfig, ttcSource;
+		private XDAQParameter svParameter = null;
+
+		public void update() throws Exception {
+			if (svParameter == null) {
+				svParameter = ((XdaqApplication)
+						fm.xdaqSupervisor.getApplications().get(0))
+						.getXDAQParameter();
+				svParameter.select(
+						new String[] {"DAQMode", "TriggerConfig", "TTCSource"});
+			}
+
+			svParameter.get();
+
+			daqMode = svParameter.getValue("DAQMode");
+			tfConfig = svParameter.getValue("TriggerConfig");
+			ttcSource = svParameter.getValue("TTCSource");
+		}
+	}
+	CSCConfig cscConfig = new CSCConfig();
 
 	public CSCEventHandler() throws rcms.fm.fw.EventHandlerException {
 		subscribeForEvents(StateEnteredEvent.class);
@@ -43,6 +71,31 @@ public class CSCEventHandler extends UserStateNotificationHandler {
 
 	public void init() throws rcms.fm.fw.EventHandlerException {
 		fm = (CSCFunctionManager)getUserFunctionManager();
+
+		String dbURL = null;
+
+		Properties p = new Properties();
+		try {
+			p.load(new FileInputStream(
+					System.getProperties().getProperty("catalina.home") +
+					"/webapps/ROOT/functionmanagers/cscfm.properties"));
+
+			dbURL = p.getProperty("cscfm.runinfodb.url");
+		} catch (Exception ignored) {}
+
+		if (dbURL != null) {
+			try {
+				runInfoConnector = new RunInfoConnector(dbURL,
+						p.getProperty("cscfm.runinfodb.user"),
+						p.getProperty("cscfm.runinfodb.passwd"));
+			} catch (Exception e) {
+				System.err.println(
+						"==== Failed to connect to the run info DB: " + dbURL);
+				e.printStackTrace();
+			}
+		} else {
+			runInfoConnector = fm.getRunInfoConnector();
+		}
 	}
 
 	public void initAction(Object o) throws UserActionException {
@@ -56,15 +109,6 @@ public class CSCEventHandler extends UserStateNotificationHandler {
 			fm.getParameterSet().put(MyParameters.ACTION_MSG, "Configuring");
 
 			if (!fm.xdaqSupervisor.isEmpty()) {
-				/*
-				ParameterSet param = new ParameterSet();
-				param.put("RunType", fmParameters.get("RUN_TYPE"));
-				param.put("RunNumber", fmParameters.get("RUN_NUMBER"));
-
-				Input input = new Input("Configure");
-				input.setParameters(param);
-				*/
-
 				XDAQParameter param = null;
 				try {
 					param = ((XdaqApplication)
@@ -97,11 +141,41 @@ public class CSCEventHandler extends UserStateNotificationHandler {
 			fm.fireEvent(MyInputs.SETCONFIGURE);
 		}
 	}
-	
+
 	public void startAction(Object o) throws UserActionException {
-		xdaqCommandAction(o, "Starting", MyInputs.SETSTART, "Enable");
+		if (o instanceof StateEnteredEvent) {
+			fm.getParameterSet().put(MyParameters.ACTION_MSG, "Starting");
+
+			// Enable the supervisor
+			if (!fm.xdaqSupervisor.isEmpty()) {
+				try {
+					fm.xdaqSupervisor.execute(new Input("Enable"));
+					logger.info("Enable" + " executed.");
+				} catch (QualifiedResourceContainerException e) {
+					logger.error("Enable" + " FAILED.", e);
+					throw new UserActionException("Enable" + " FAILED.", e);
+				}
+			}
+
+			// Store CSC run information to the DB
+			try {
+				cscConfig.update();
+				RunInfo i = new RunInfo(runInfoConnector,
+						new Integer(fmParameters.get("RUN_NUMBER")));
+				i.setNameSpace("CMS.CSC");
+
+				i.publishRunInfo("DAQ.mode", cscConfig.daqMode);
+				i.publishRunInfo("TF.config", cscConfig.tfConfig);
+				i.publishRunInfo("TTC.source", cscConfig.ttcSource);
+			} catch (Exception e) {
+				logger.error("Enable" + " FAILED.", e);
+				throw new UserActionException("Enable" + " FAILED.", e);
+			}
+
+			fm.fireEvent(MyInputs.SETSTART);
+		}
 	}
-	
+
 	public void pauseAction(Object o) throws UserActionException {
 		genericAction(o, "Pausing", MyInputs.SETPAUSE);
 	}
