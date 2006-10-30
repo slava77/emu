@@ -999,7 +999,10 @@ unsigned short int *ptrreg;
 
  ptrreg=(unsigned short int *) add_sw;
  tmp2[0]=feuse;
+ for (int iloop=0;iloop<30;iloop++) sdly();
+ usleep(1000);
  vme_controller(3,ptrreg,tmp2,tmp);
+ for (int iloop=0;iloop<30;iloop++) sdly();
  usleep(1000);
  // x*ptrreg=feuse;
  //printf(" setuse %08x %04x \n",ptrreg,feuse&0xffff);
