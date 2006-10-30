@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.50 2006/10/26 10:34:42 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.51 2006/10/30 15:54:26 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -2237,7 +2237,7 @@ private:
       //
       //output << childElements.size() ;
       //
-      for (int i=0; i<childElements.size(); i++) {
+      for (unsigned int i=0; i<childElements.size(); i++) {
 	output << childElements[i].getAttributeValue(setting);
       }
       //

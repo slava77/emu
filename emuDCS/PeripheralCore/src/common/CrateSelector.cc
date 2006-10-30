@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateSelector.cc,v 3.1 2006/07/21 07:48:27 mey Exp $
+// $Id: CrateSelector.cc,v 3.2 2006/10/30 15:56:55 mey Exp $
 // $Log: CrateSelector.cc,v $
+// Revision 3.2  2006/10/30 15:56:55  mey
+// Update
+//
 // Revision 3.1  2006/07/21 07:48:27  mey
 // Cleaned up code.Got rid of include Singleton.h
 //
@@ -89,7 +92,7 @@ std::vector<Crate *> CrateSelector::crates() const {
   //std::vector<Crate *> allCrates = Singleton<CrateSetup>::instance()->crates();
   if (!emuSystem_) std::cout << "EmuSystem not defined" << std::endl;
   std::vector<Crate *> allCrates = emuSystem_->crates();
-  std::cout << "Crates size = " << allCrates.size() << std::endl;
+  //std::cout << "Crates size = " << allCrates.size() << std::endl;
   std::vector<Crate *> result;
   if(theSelectedCrates.empty()) {
     result = allCrates;

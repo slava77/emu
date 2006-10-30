@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.8 2006/10/20 13:09:44 mey Exp $
+// $Id: Crate.cc,v 3.9 2006/10/30 15:56:42 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 3.9  2006/10/30 15:56:42  mey
+// Update
+//
 // Revision 3.8  2006/10/20 13:09:44  mey
 // UPdate
 //
@@ -103,12 +106,14 @@
 Crate::Crate(int number, VMEController * controller, EmuSystem * emuSystem) : 
   theNumber(number),  
   theModules(28),
-  theController(controller) 
+  theController(controller),
+  label_("label")
 {
   for(int i=0;i<theModules.size();i++) theModules[i] = 0;
   theChambers.clear();
-  //Singleton<CrateSetup>::instance()->addCrate(number, this);
-  emuSystem->addCrate(number, this);
+  //
+  //emuSystem->addCrate(number, this);
+  emuSystem->addCrate(this);
 }
 
 

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.5 2006/09/27 16:44:36 mey Exp $
+// $Id: CCB.h,v 3.6 2006/10/30 15:53:19 mey Exp $
 // $Log: CCB.h,v $
+// Revision 3.6  2006/10/30 15:53:19  mey
+// Update
+//
 // Revision 3.5  2006/09/27 16:44:36  mey
 // UPdate
 //
@@ -113,7 +116,7 @@ class CCB: public VMEModule
 {
 public:
   void SetL1aDelay(int);
-  int ReadRegister(int);
+  int  ReadRegister(int);
   void WriteRegister(int,int);
   void firmwareVersion();
   void HardResetTTCrx();
@@ -146,12 +149,26 @@ public:
   void FireCCBMpcInjector();
   //
   inline void SetTTCmode(int mode)   {TTC       = mode;}
+  inline int  GetTTCmode()   {return TTC;}
+  //
   inline void SetCCBmode(int mode)   {mCCBMode  = mode;}
+  inline int  GetCCBmode()   {return mCCBMode;}
+  //
   inline void SetBxOrbit(int orbit)  {BX_Orbit_ = orbit;}
+  inline int  GetBxOrbit()  { return BX_Orbit_ ;}
+  //
   inline void SetSPS25ns(int delay)  {SPS25ns_  = delay;}
+  inline int  GetSPS25ns()           {return SPS25ns_;}
+  //
   inline void Setl1adelay(int delay) {l1aDelay_ = delay;}
+  inline int  Getl1adelay() {return l1aDelay_;}
+  //
   inline void SetTTCrxID(int ID)     {TTCrxID_  = ID;}
-  inline void SetTTCrxCoarseDelay(int delay)     {TTCrxCoarseDelay_  = delay;}
+  inline int  GetTTCrxID(){return TTCrxID_;}
+  //
+  inline void SetTTCrxCoarseDelay(int delay) {TTCrxCoarseDelay_  = delay;}
+  inline int  GetTTCrxCoarseDelay(){return TTCrxCoarseDelay_;}
+  //
   inline void SetTTCrxFineDelay(int delay)     {TTCrxFineDelay_  = delay;}
   //
   void PrintTTCrxRegs();

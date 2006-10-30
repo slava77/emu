@@ -27,6 +27,10 @@ class EmuSystem {
     myCrateSetup_.addCrate(i, crate); 
   }
   //
+  inline void addCrate(Crate * crate){
+    myCrateSetup_.addCrate(crate); 
+  }
+  //
  private:
   //
   CrateSetup myCrateSetup_;

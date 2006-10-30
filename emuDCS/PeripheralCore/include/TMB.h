@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.12 2006/10/13 15:34:38 rakness Exp $
+// $Id: TMB.h,v 3.13 2006/10/30 15:55:43 mey Exp $
 // $Log: TMB.h,v $
+// Revision 3.13  2006/10/30 15:55:43  mey
+// Update
+//
 // Revision 3.12  2006/10/13 15:34:38  rakness
 // add mpc_phase
 //
@@ -204,7 +207,7 @@ class RAT;
 class AnodeChannel;
 class Crate;
 
-class TMB :  public EMUjtag , public VMEModule {
+class TMB :  public VMEModule, public EMUjtag {
 
 public:
   //
