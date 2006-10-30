@@ -2,11 +2,13 @@
 #include <iomanip>
 #include <unistd.h> 
 #include <string>
+#include <sstream>
 //
 #include "CrateUtilities.h"
 #include "MPC.h"
 #include "TMB.h"
 #include "CCB.h"
+#include "VMEController.h"
 //
 using namespace std;
 //
@@ -21,6 +23,109 @@ CrateUtilities::CrateUtilities() : myCrate_(0), MpcTMBTestResult(-1)
 CrateUtilities::~CrateUtilities(){
   //
   std::cout << "Destructor" << std::endl ;
+  //
+}
+//
+void CrateUtilities::DumpTstoreTables(){
+  //
+  for( unsigned int periph_entry=0; 
+       periph_entry<periph.size(); periph_entry++){
+    std::cout << periph[periph_entry] << std::endl;
+  }
+  //
+}
+//
+void CrateUtilities::CreateTstoreTables(){
+  //
+  //
+  CCB * myCCB = myCrate_->ccb();
+  MPC * myMPC = myCrate_->mpc();
+  //
+  std::ostringstream output;
+  //
+  output.str("");
+  output << myCCB->GetBxOrbit();
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << myCCB->GetCCBmode();
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << myCCB->slot();
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << "2004" ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << "21" ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << "20/06/2004" ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << "v5" ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << myCrate_->number() ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << myCrate_->GetLabel() ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << myCCB->Getl1adelay() ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << myMPC->GetBoardID() ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << myMPC->slot() ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << ((myCrate_->number())+1) ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << myCrate_->vmeController()->port() ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << myMPC->GetSerializerMode() ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << myCCB->GetSPS25ns() ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << myMPC->GetTransparentMode() ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << myCCB->GetTTCmode() ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << myCCB->GetTTCrxCoarseDelay() ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << myCCB->GetTTCrxID() ;
+  periph.push_back(output.str());
+  //
+  output.str("");
+  output << myCrate_->vmeController()->GetVMEAddress() ;
+  periph.push_back(output.str());
   //
 }
 //

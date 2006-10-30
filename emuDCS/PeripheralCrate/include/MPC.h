@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 3.3 2006/09/27 16:50:50 mey Exp $
+// $Id: MPC.h,v 3.4 2006/10/30 15:55:01 mey Exp $
 // $Log: MPC.h,v $
+// Revision 3.4  2006/10/30 15:55:01  mey
+// Update
+//
 // Revision 3.3  2006/09/27 16:50:50  mey
 // Update
 //
@@ -130,12 +133,18 @@ class MPC : public VMEModule {
   void setTLK2501TxMode(int);
 
   void SoftReset() ;
-
+  //
   inline void SetBoardID(int value){BoardId_ = value;}
+  inline int  GetBoardID(){return BoardId_;}
+  //
   inline void SetTMBDelays(int value){TMBDelayPattern_ = value;}
+  //
   inline void SetTransparentMode(int value){TransparentModeSources_ = value;}
+  inline int  GetTransparentMode(){return TransparentModeSources_;}
+  //
   inline void SetTLK2501TxMode(int value){TLK2501TxMode_ = value;}
-  
+  inline int  GetSerializerMode(){return TLK2501TxMode_;}
+  //
   /// used by GUIs
   void executeCommand(std::string command);
 

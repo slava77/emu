@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 3.1 2006/10/03 07:36:01 mey Exp $
+// $Id: Crate.h,v 3.2 2006/10/30 15:53:39 mey Exp $
 // $Log: Crate.h,v $
+// Revision 3.2  2006/10/30 15:53:39  mey
+// Update
+//
 // Revision 3.1  2006/10/03 07:36:01  mey
 // UPdate
 //
@@ -61,6 +64,7 @@ public:
   void AddChamber(Chamber * chamber);
 
   void DumpConfiguration();
+  std::string GetLabel() {return label_;}
 
   VMEController * vmeController() const {return theController;}
 
@@ -86,6 +90,7 @@ private:
   }
 
   int theNumber;
+  std::string label_;
   /// indexed by slot 
   std::vector<VMEModule *> theModules;
   std::vector<Chamber *> theChambers;

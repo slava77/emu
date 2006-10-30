@@ -19,12 +19,19 @@ public:
   inline int  GetMpcTMBTestResult() { return MpcTMBTestResult; }
   inline void SetMpcTMBTestResult(int result) { MpcTMBTestResult = result; }
   void MpcTMBTest(int);
+  void CreateTstoreTables();
+  void DumpTstoreTables();
   //
+  inline std::vector<std::string> CrateUtilities::GetPeriphTable(){
+    return periph;
+  }
+// 
 private:
   //
   int MpcTMBTestResult;
   CrateSelector theSelector;
   Crate * myCrate_;
+  std::vector<std::string> periph;
   //
 };
 

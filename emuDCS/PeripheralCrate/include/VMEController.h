@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.8 2006/10/19 10:17:25 mey Exp $
+// $Id: VMEController.h,v 3.9 2006/10/30 15:56:05 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 3.9  2006/10/30 15:56:05  mey
+// Update
+//
 // Revision 3.8  2006/10/19 10:17:25  mey
 // Update
 //
@@ -191,6 +194,7 @@ public:
   void set_ErrorServer();
   inline void SetPort(int port) {port_=port;}
   inline void SetVMEAddress(std::string address) {ipAddress_=address;}
+  inline std::string GetVMEAddress(){return ipAddress_;}
   //
   //
   inline void Set_OkVmeWriteAddress(bool address_ok) { ok_vme_write_ = address_ok; }

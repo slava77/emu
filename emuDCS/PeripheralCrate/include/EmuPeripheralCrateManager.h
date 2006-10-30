@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.20 2006/10/26 10:34:46 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.21 2006/10/30 15:54:30 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -59,6 +59,9 @@
 #include <xdata/Table.h>
 
 #include "EmuApplication.h"
+#include "EmuController.h"
+#include "Crate.h"
+#include "CrateUtilities.h"
 
 using namespace cgicc;
 using namespace std;
@@ -73,7 +76,8 @@ public:
   
   xdata::UnsignedLong runNumber_;
   xdata::String ConfigureState_;
-  
+  xdata::Table table_;                            
+
   //EmuPeripheralCrateManager(xdaq::ApplicationStub * s): xdaq::Application(s) 
   EmuPeripheralCrateManager(xdaq::ApplicationStub * s): EmuApplication(s)
   {	
@@ -89,6 +93,11 @@ public:
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageConnectTStore, "SendSOAPMessageConnectTStore");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageDisconnectTStore, "SendSOAPMessageDisconnectTStore");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryTStore, "SendSOAPMessageQueryTStore");
+    xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageDefinitionTStore, "SendSOAPMessageDefinitionTStore");
+    xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageInsertTStore, "SendSOAPMessageInsertTStore");
+    xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageDeleteTStore, "SendSOAPMessageDeleteTStore");
+    xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageClearTStore, "SendSOAPMessageClearTStore");
+    xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageUpdateTStore, "SendSOAPMessageUpdateTStore");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageConfigureLTC, "SendSOAPMessageConfigureLTC");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageExecuteSequence, "SendSOAPMessageExecuteSequence");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageJobControlStartAllEmuperipheralCrate, 
@@ -98,6 +107,8 @@ public:
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryLTC, "SendSOAPMessageQueryLTC");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryLTC, "SendSOAPMessageQueryJobControl");
     xgi::bind(this,&EmuPeripheralCrateManager::CheckEmuPeripheralCrateCalibrationState, "CheckEmuPeripheralCrateCalibrationState");
+    //
+    xgi::bind(this,&EmuPeripheralCrateManager::UploadDB, "UpLoadDB");
     //
     // SOAP call-back functions, which relays to *Action method.
     xoap::bind(this, &EmuPeripheralCrateManager::onConfigure, "Configure", XDAQ_NS_URI);
@@ -431,6 +442,18 @@ public:
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     //
+    std::string UploadDB =
+      toolbox::toString("/%s/UpLoadDB",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",UploadDB) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Upload DB") << std::endl ;
+    *out << cgicc::form();
+    //
+    *out << cgicc::fieldset();
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    //
     std::string methodSOAPMessageConnectTStore =
       toolbox::toString("/%s/SendSOAPMessageConnectTStore",getApplicationDescriptor()->getURN().c_str());
     //
@@ -453,6 +476,46 @@ public:
     *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageQueryTStore) << std::endl ;
     *out << cgicc::input().set("type","submit")
       .set("value","Send SOAP message : Query TStore") << std::endl ;
+    *out << cgicc::form();
+    //
+    std::string methodSOAPMessageDefinitionTStore =
+      toolbox::toString("/%s/SendSOAPMessageDefinitionTStore",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageDefinitionTStore) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Send SOAP message : Definition TStore") << std::endl ;
+    *out << cgicc::form();
+    //
+    std::string methodSOAPMessageInsertTStore =
+      toolbox::toString("/%s/SendSOAPMessageInsertTStore",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageInsertTStore) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Send SOAP message : Insert TStore") << std::endl ;
+    *out << cgicc::form();
+    //
+    std::string methodSOAPMessageDeleteTStore =
+      toolbox::toString("/%s/SendSOAPMessageDeleteTStore",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageDeleteTStore) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Send SOAP message : Delete TStore") << std::endl ;
+    *out << cgicc::form();
+    //
+    std::string methodSOAPMessageClearTStore =
+      toolbox::toString("/%s/SendSOAPMessageClearTStore",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageClearTStore) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Send SOAP message : Clear TStore") << std::endl ;
+    *out << cgicc::form();
+    //
+    std::string methodSOAPMessageUpdateTStore =
+      toolbox::toString("/%s/SendSOAPMessageUpdateTStore",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",methodSOAPMessageUpdateTStore) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Send SOAP message : Update TStore") << std::endl ;
     *out << cgicc::form();
     //
     *out << cgicc::fieldset() ;
@@ -610,6 +673,81 @@ public:
       }    
     //
     return compare;
+    //
+  }
+  //
+  void EmuPeripheralCrateManager::UploadDB(xgi::Input * in, xgi::Output * out ){
+    //
+    MyHeader(in,out,"Upload DB");
+    //
+    EmuController myController;
+    myController.SetConfFile("/home/meydev/test.conf");
+    myController.init();
+    //
+    std::vector<Crate*> myCrates = (myController.selector()).crates();
+    //
+    for(unsigned int crate=0; crate<myCrates.size();crate++){
+      //
+      CrateUtilities crateUtility;
+      crateUtility.SetCrate(myCrates[crate]);
+      crateUtility.CreateTstoreTables();
+      crateUtility.DumpTstoreTables();
+      std::vector <std::string> PeriphTable = crateUtility.GetPeriphTable();
+      //
+      this->SendSOAPMessageConnectTStore(in,out);
+      this->SendSOAPMessageDefinitionTStore(in,out);
+      //
+      AddRow(0,table_,PeriphTable);
+      //
+      //OutputTable(in,out,table_);
+      //
+      this->SendSOAPMessageInsertTStore(in,out);
+      //
+    }
+    //
+  }
+  //
+  void EmuPeripheralCrateManager::AddRow(int Row,xdata::Table & table, std::vector<std::string> NewColumn){
+    //
+    int Column=0;
+    std::vector<std::string> columns=table.getColumns();
+    vector<std::string>::iterator columnIterator;
+    for(columnIterator=columns.begin(); columnIterator!=columns.end(); columnIterator++,Column++) {
+      string columnType=table.getColumnType(*columnIterator);
+      xdata::Serializable *xdataValue=NULL;
+      string columnName = (*columnIterator);
+      //
+      int test=1;
+      if (columnType=="string") {
+	xdataValue=new xdata::String(NewColumn[Column]); 
+      } else if (columnType=="int") {
+	istringstream input(NewColumn[Column]);
+	int out;
+	input >> out;
+	xdataValue=new xdata::Integer(out); 
+      } else if (columnType=="float") {
+	istringstream input(NewColumn[Column]);
+	float out;
+	input >> out;
+	xdataValue=new xdata::Float(out); 
+      } else if (columnType=="double") {
+	istringstream input(NewColumn[Column]);
+	double out;
+	input >> out;
+	xdataValue=new xdata::Double(out);
+      } else if (columnType=="bool") {
+	istringstream input(NewColumn[Column]);
+	bool out;
+	input >> out;
+	xdataValue= new xdata::Boolean(out);
+      }
+      if (xdataValue) {
+	//
+	table.setValueAt(Row,*columnIterator,*xdataValue);
+	//delete xdataValue;
+      }
+      //
+    } 
     //
   }
   //
@@ -1033,7 +1171,8 @@ public:
 	xoap::SOAPName id = envelope.createName("id", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
 	queryElement.addAttribute(id, "myTStore");
 	xoap::SOAPName passwordName = envelope.createName("password", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
-	queryElement.addAttribute(passwordName, "alct2_emu");       
+	//queryElement.addAttribute(passwordName, "alct2_emu");       
+	queryElement.addAttribute(passwordName, "config_emu_pass");       
       }
       catch(xoap::exception::Exception& e) {
 	std::cout << "Got exception 1" <<std::endl;
@@ -1124,7 +1263,8 @@ public:
       }
       
       try {
-	xdaq::ApplicationDescriptor * tstoreDescriptor = getApplicationContext()->getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),400);
+	xdaq::ApplicationDescriptor * tstoreDescriptor = 
+	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),400);
 	//
 	xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, tstoreDescriptor);
 	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
@@ -1144,12 +1284,11 @@ public:
 		  std::string contentEncoding = (*j)->getContentEncoding();
 		  std::string contentId = (*j)->getContentId();
 		  //
-		  xdata::Table table;                            
 		  try 
 		    {
 		      xdata::exdr::Serializer serializer;
-		      serializer.import(&table, &inBuffer );
-		      OutputTable(out,table);
+		      serializer.import(&table_, &inBuffer );
+		      OutputTable(in,out,table_);
 		    }
 		  catch(xdata::exception::Exception & e )
 		    {
@@ -1169,11 +1308,336 @@ public:
 	std::cout << "Didn't find TStore" << std::endl;
       }
       //
-      this->Default(in,out);      
+      //this->Default(in,out);      
       //
     }
   //
-  void EmuPeripheralCrateManager::OutputTable(xgi::Output * out,xdata::Table &results) {
+  void EmuPeripheralCrateManager::SendSOAPMessageDefinitionTStore(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      std::cout <<"Send SOAP definition" << std::endl;
+      //
+      *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+      //
+      *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+      *out << cgicc::title("EmuPeripheralCrateManager") << std::endl;
+      //
+      xoap::MessageReference msg = xoap::createMessage();
+      try {
+  	xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
+  	xoap::SOAPName msgName = envelope.createName( "definition", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
+  	xoap::SOAPElement queryElement = envelope.getBody().addBodyElement ( msgName );
+	//
+  	xoap::SOAPName id = envelope.createName("id", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
+  	queryElement.addAttribute(id, "myTStore");
+	//
+	//add the parameters to the message
+	queryElement.addNamespaceDeclaration("sql",  "urn:tstore-view-SQL");
+	xoap::SOAPName property = envelope.createName("name", "sql","urn:tstore-view-SQL");
+	queryElement.addAttribute(property, "myTable1");
+      }
+      catch(xoap::exception::Exception& e) {
+	std::cout << "Got exception 1" << std::endl;
+      }
+      
+      try {
+	xdaq::ApplicationDescriptor * tstoreDescriptor = 
+	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),400);
+	//
+	xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, tstoreDescriptor);
+	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	if (body.hasFault()) {
+	  std::cout << "Wrong definition " << body.getFault().getFaultString() << std::endl;
+	} else {
+	  std::cout <<"Good definitiion " << std::endl;
+	  //
+	  std::list<xoap::AttachmentPart*> attachments = reply->getAttachments();
+	  //
+	  std::list<xoap::AttachmentPart*>::iterator j;
+	  for ( j = attachments.begin(); j != attachments.end(); j++ )
+	    {//
+	      if ((*j)->getContentType() == "application/xdata+table")
+		{
+		  xdata::exdr::FixedSizeInputStreamBuffer inBuffer((*j)->getContent(),(*j)->getSize());
+		  std::string contentEncoding = (*j)->getContentEncoding();
+		  std::string contentId = (*j)->getContentId();
+		  //
+		  try 
+		    {
+		      xdata::exdr::Serializer serializer;
+		      serializer.import(&table_, &inBuffer );
+		      OutputTable(in,out,table_);
+		    }
+		  catch(xdata::exception::Exception & e )
+		    {
+		      // failed to import table
+		      std::cout << "Failed to import table" << std::endl;
+		    }
+		}
+	      else
+		{
+		  // unknown attachment type 
+		  std::cout << "Unknown attachment type" <<std::endl;
+		}
+	    }
+	}
+      }
+      catch (xdaq::exception::Exception& e) {
+	std::cout << "Didn't find TStore" << std::endl;
+      }
+      //
+      //this->Default(in,out);      
+      //
+    }
+  //
+  std::string EmuPeripheralCrateManager::MIMETypeFromXdataType(std::string xdataType) {
+    std::replace(xdataType.begin(),xdataType.end(),' ','+');
+    return "application/xdata+"+xdataType;
+  }
+  // 
+  void EmuPeripheralCrateManager::addAttachment(xoap::MessageReference message,xdata::Serializable &data,std::string contentId) {
+    xdata::exdr::AutoSizeOutputStreamBuffer outBuffer;
+    xdata::exdr::Serializer serializer;
+    serializer.exportAll( &data, &outBuffer );
+    xoap::AttachmentPart * attachment = message->createAttachmentPart(outBuffer.getBuffer(), outBuffer.tellp(),MIMETypeFromXdataType(data.type()));
+    attachment->setContentEncoding("exdr");
+    //attachment->setContentId(contentId);
+    message->addAttachmentPart(attachment);
+  }
+  // 
+  void EmuPeripheralCrateManager::SendSOAPMessageInsertTStore(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      std::cout << table_.getRowCount() << std::endl;
+      //SetRandomDataTable(table_,0);
+      //
+      OutputTable(in,out,table_);
+      //
+      std::cout <<"Send SOAP insert" << std::endl;
+      //
+      xoap::MessageReference msg = xoap::createMessage();
+      try {
+  	xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
+  	xoap::SOAPName msgName = envelope.createName( "insert", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
+  	xoap::SOAPElement queryElement = envelope.getBody().addBodyElement ( msgName );
+	//
+  	xoap::SOAPName id = envelope.createName("id", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
+  	queryElement.addAttribute(id, "myTStore");
+	//
+	//add the parameters to the message
+	queryElement.addNamespaceDeclaration("sql",  "urn:tstore-view-SQL");
+	xoap::SOAPName property = envelope.createName("name", "sql","urn:tstore-view-SQL");
+	queryElement.addAttribute(property, "myTable1");
+      }
+      catch(xoap::exception::Exception& e) {
+	std::cout << "Got exception 1" << std::endl;
+      }
+      //
+      try {
+	addAttachment(msg,table_,"");
+	xdaq::ApplicationDescriptor * tstoreDescriptor = 
+	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),400);
+	//
+	xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, tstoreDescriptor);
+	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	if (body.hasFault()) {
+	  std::cout << "Wrong Insert. " << body.getFault().getFaultString() << std::endl;
+	} else {
+	  std::cout <<"Good Insert" << std::endl;
+	  //
+	}
+      }
+      catch (xdaq::exception::Exception& e) {
+	std::cout << "Didn't find TStore" << std::endl;
+      }
+      //
+      //this->Default(in,out);
+      //
+    }
+  //
+  void EmuPeripheralCrateManager::SendSOAPMessageDeleteTStore(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      std::cout <<"Send SOAP insert" << std::endl;
+      //
+      xoap::MessageReference msg = xoap::createMessage();
+      try {
+  	xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
+  	xoap::SOAPName msgName = envelope.createName( "delete", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
+  	xoap::SOAPElement queryElement = envelope.getBody().addBodyElement ( msgName );
+	//
+  	xoap::SOAPName id = envelope.createName("id", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
+  	queryElement.addAttribute(id, "myTStore");
+	//
+	//add the parameters to the message
+	queryElement.addNamespaceDeclaration("sql",  "urn:tstore-view-SQL");
+	xoap::SOAPName property = envelope.createName("name", "sql","urn:tstore-view-SQL");
+	queryElement.addAttribute(property, "myTable1");
+      }
+      catch(xoap::exception::Exception& e) {
+	std::cout << "Got exception 1" << std::endl;
+      }
+      //
+      try {
+	xdaq::ApplicationDescriptor * tstoreDescriptor = 
+	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),400);
+	//
+	xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, tstoreDescriptor);
+	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	if (body.hasFault()) {
+	  std::cout << "Wrong Delete " << body.getFault().getFaultString() << std::endl;
+	} else {
+	  std::cout <<"Good Delete" << std::endl;
+	  //
+	}
+      }
+      catch (xdaq::exception::Exception& e) {
+	std::cout << "Didn't find TStore" << std::endl;
+      }
+      //
+      this->Default(in,out);
+      //
+    }
+  //
+  void EmuPeripheralCrateManager::SendSOAPMessageClearTStore(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      std::cout <<"Send SOAP insert" << std::endl;
+      //
+      xoap::MessageReference msg = xoap::createMessage();
+      try {
+  	xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
+  	xoap::SOAPName msgName = envelope.createName( "drop", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
+  	xoap::SOAPElement queryElement = envelope.getBody().addBodyElement ( msgName );
+	//
+  	xoap::SOAPName id = envelope.createName("id", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
+  	queryElement.addAttribute(id, "myTStore");
+	//
+	//add the parameters to the message
+	queryElement.addNamespaceDeclaration("sql",  "urn:tstore-view-SQL");
+	xoap::SOAPName property = envelope.createName("name", "sql","urn:tstore-view-SQL");
+	queryElement.addAttribute(property, "myTable1");
+      }
+      catch(xoap::exception::Exception& e) {
+	std::cout << "Got exception 1" << std::endl;
+      }
+      //
+      try {
+	xdaq::ApplicationDescriptor * tstoreDescriptor = 
+	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),400);
+	//
+	xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, tstoreDescriptor);
+	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	if (body.hasFault()) {
+	  std::cout << "Wrong Clear " << body.getFault().getFaultString() << std::endl;
+	} else {
+	  std::cout <<"Good Clear" << std::endl;
+	  //
+	}
+      }
+      catch (xdaq::exception::Exception& e) {
+	std::cout << "Didn't find TStore" << std::endl;
+      }
+      //
+      this->Default(in,out);
+      //
+    }
+  //
+  void EmuPeripheralCrateManager::SendSOAPMessageUpdateTStore(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      std::cout << table_.getRowCount() << std::endl;
+      SetRandomDataTable(table_,1);
+      //
+      OutputTable(in,out,table_);
+      //
+      std::cout <<"Send SOAP update" << std::endl;
+      //
+      xoap::MessageReference msg = xoap::createMessage();
+      try {
+  	xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
+  	xoap::SOAPName msgName = envelope.createName( "update", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
+  	xoap::SOAPElement queryElement = envelope.getBody().addBodyElement ( msgName );
+	//
+  	xoap::SOAPName id = envelope.createName("id", "tstore", "http://xdaq.web.cern.ch/xdaq/xsd/2006/tstore-10.xsd");
+  	queryElement.addAttribute(id, "myTStore");
+	//
+	//add the parameters to the message
+	queryElement.addNamespaceDeclaration("sql",  "urn:tstore-view-SQL");
+	xoap::SOAPName property = envelope.createName("name", "sql","urn:tstore-view-SQL");
+	queryElement.addAttribute(property, "myTable1");
+      }
+      catch(xoap::exception::Exception& e) {
+	std::cout << "Got exception 1" << std::endl;
+      }
+      //
+      try {
+	addAttachment(msg,table_,"");
+	xdaq::ApplicationDescriptor * tstoreDescriptor = 
+	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),400);
+	//
+	xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, tstoreDescriptor);
+	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+	if (body.hasFault()) {
+	  std::cout << "Wrong Update " << body.getFault().getFaultString() << std::endl;
+	} else {
+	  std::cout <<"Good Update" << std::endl;
+	  //
+	}
+      }
+      catch (xdaq::exception::Exception& e) {
+	std::cout << "Didn't find TStore" << std::endl;
+      }
+      //
+      //this->Default(in,out);
+      //
+    }
+  //
+  void EmuPeripheralCrateManager::SetRandomDataTable(xdata::Table & table,int Row){
+    //
+    int columnIndex=1;
+    if(Row == -1 ) int Row = table.getRowCount();
+    std::vector<std::string> columns=table.getColumns();
+    vector<std::string>::iterator columnIterator;
+    for(columnIterator=columns.begin(); columnIterator!=columns.end(); columnIterator++,columnIndex++) {
+      string columnType=table.getColumnType(*columnIterator);
+      xdata::Serializable *xdataValue=NULL;
+      string columnName = (*columnIterator);
+      if( columnName.find("KEY") == string::npos) {
+	if (columnType=="string" /*&& (*columnIterator)!="SOMETIME"*/) {
+	  char letters[] = "aaaaaaaaabbccddddeeeeeeeeeeeeffggghhiiiiiiiiijklmmnnnnnnooooooooppqrrrrrrssssttttttuuuuvvwwxyyz??";
+	  random_shuffle(letters, letters+strlen(letters));
+	  xdataValue=new xdata::String(string(letters,7)); //voila, a full rack of English Scrabble tiles.
+	  //xdataValue=new xdata::String("MyTestNenwnwwn"); //voila, a full rack of English Scrabble tiles.
+	} else if (columnType=="int") {
+	  xdataValue=new xdata::Integer(rand()%42000);
+	} else if (columnType=="float") {
+	  //xdataValue=new xdata::Float(20.);
+	  xdataValue=new xdata::Float(((rand())%42000)/(float)10000);
+	} else if (columnType=="double") {
+	xdataValue=new xdata::Double((rand()%42000)/(double)1000000);
+	} else if (columnType=="bool") {
+	  xdataValue= new xdata::Boolean(rand()%2);
+	}
+	if (xdataValue) {
+	  //
+	  //table.setValueAt(table.getRowCount(),*columnIterator,*xdataValue);
+	  table.setValueAt(Row,*columnIterator,*xdataValue);
+	  delete xdataValue;
+	}
+      }
+    }    
+  }
+  //
+  void EmuPeripheralCrateManager::OutputTable(xgi::Input * in, xgi::Output * out,xdata::Table &results) {
+    //
+    MyHeader(in,out,"Table");
+    //
     std::vector<std::string> columns=results.getColumns();
     vector<std::string>::iterator columnIterator;
     *out << results.getRowCount() << " rows";
