@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.3 2006/09/27 16:50:43 mey Exp $
+// $Id: MPC.cc,v 3.4 2006/10/30 10:02:10 rakness Exp $
 // $Log: MPC.cc,v $
+// Revision 3.4  2006/10/30 10:02:10  rakness
+// Update
+//
 // Revision 3.3  2006/09/27 16:50:43  mey
 // Update
 //
@@ -676,10 +679,6 @@ void MPC::WriteRegister(int reg, int value){
 
 int MPC::ReadRegister(int reg){
   //
-  //
-  //
-  //
-  //
   // make sure we are in framed mode
   do_vme(VME_READ,reg,sndbuf,rcvbuf,NOW);
   //
@@ -748,12 +747,15 @@ void MPC::setTransparentMode(unsigned int pattern){
   }
 
   // upload the pattern
-  //fg data[0]=pattern;
-  //fg data[1]=0;
-  //fg andersom, slimpy
-  data[1]=pattern>>8;   // MSB
-  data[0]=pattern&0xff; // LSB
-  do_vme(2, addr, data, NULL, 1);
+  //
+  data[0]=(pattern>>8)&0xff;   // MSB
+  data[1]=pattern&0xff; // LSB
+  do_vme(VME_WRITE, addr, data, NULL, 1);
+  //
+  (*MyOutput_) << "Reading back..." << std::endl;
+  //
+  ReadRegister(CSR1);
+  ReadRegister(CSR4);
 }
 
 
