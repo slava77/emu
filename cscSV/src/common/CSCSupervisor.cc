@@ -380,6 +380,9 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 		sendCommand("Enable", "EmuPeripheralCrate");
 		sendCommand("Enable", "EmuDAQManager");
 		sendCommand("Enable", "LTCControl");
+
+		refreshConfigParameters();
+
 	} catch (xoap::exception::Exception e) {
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 				"SOAP fault was returned", e);
