@@ -22,6 +22,12 @@
 		<pathelement location="${fm.deploy.dir}/${l1fm.jar}" />
 	</path>
 
+	<target name="foo">
+		<javac srcdir="." destdir="." includes="foo.java" debug="true">
+			<classpath refid="base.path" />
+		</javac>
+	</target>
+
 	<target name="compile">
 		<mkdir dir="${build.dir}" />
 		<javac srcdir="${src.dir}" destdir="${build.dir}" debug="true">
@@ -50,6 +56,7 @@
 	<target name="deploy" depends="jar">
 		<mkdir dir="${fm.deploy.dir}" />
 		<copy file="${lib.dir}/${package.name}.jar" todir="${fm.deploy.dir}" />
+		<copy file="cscfm.properties" todir="${fm.deploy.dir}" />
 	</target>
 </project>
 
