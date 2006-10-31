@@ -765,6 +765,7 @@ string CSCSupervisor::getDAQMode()
 		reply = getApplicationContext()->postSOAP(daq_param_, daq_descr_);
 
 		result = extractParameter(reply, "globalMode");
+		result = (result == "true") ? "global" : "local";
 	} catch (xdaq::exception::Exception e) {
 		result = "Unknown";
 	}
