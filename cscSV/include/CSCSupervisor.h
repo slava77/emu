@@ -106,10 +106,12 @@ private:
 
 	xdaq::ApplicationDescriptor *daq_descr_, *tf_descr_, *ttc_descr_;
 	xoap::MessageReference daq_param_, tf_param_, ttc_param_;
+	xoap::MessageReference daq_state_param_;
 
 	string getDAQMode();
 	string getTFConfig();
 	string getTTCciSource();
+	string getLocalDAQState();
 
 	string runmode_;
 	string runnumber_;
