@@ -5,6 +5,7 @@
 
 #include "xdata/UnsignedLong.h"
 #include "xdata/Boolean.h"
+#include "xdata/String.h"
 #include "toolbox/fsm/FiniteStateMachine.h"
 
 class EmuDAQManager : public EmuApplication
@@ -41,6 +42,7 @@ private:
 	xdata::UnsignedLong run_number_;
 	xdata::UnsignedLong max_n_events_;
 	xdata::Boolean mode_;
+	xdata::String daq_state_;
 };
 
 #endif  // ifndef __EMU_DAQ_MANAGER_H__

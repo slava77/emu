@@ -14,10 +14,12 @@ EmuDAQManager::EmuDAQManager(xdaq::ApplicationStub *stub)
 	run_number_ = 0;
 	max_n_events_ = 0;
 	mode_ = true;
+	daq_state_ = "Unknown";
 
 	getApplicationInfoSpace()->fireItemAvailable("runNumber", &run_number_);
 	getApplicationInfoSpace()->fireItemAvailable("maxNumberOfEvents", &max_n_events_);
 	getApplicationInfoSpace()->fireItemAvailable("globalMode", &mode_);
+	getApplicationInfoSpace()->fireItemAvailable("daqState", &daq_state_);
 
 	xoap::bind(this, &EmuDAQManager::onConfigure, "Configure", XDAQ_NS_URI);
 	xoap::bind(this, &EmuDAQManager::onEnable,    "Enable",    XDAQ_NS_URI);
@@ -105,8 +107,10 @@ void EmuDAQManager::haltAction(toolbox::Event::Reference e)
 void EmuDAQManager::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
         throw (toolbox::fsm::exception::Exception)
 {
+	daq_state_ = state_;
+
 	EmuApplication::stateChanged(fsm);
 }
 
 // End of file
-// vim: set ai sw=4 ts=4:
+// vim: set sw=4 ts=4:
