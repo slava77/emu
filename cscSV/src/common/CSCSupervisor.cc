@@ -248,6 +248,8 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << "TF configuration: " << trigger_config_.toString() << br() << endl;
 	*out << "TTCci inputs(Clock:Orbit:Trig:BGo): " << ttc_source_.toString() << br() << endl;
 
+	*out << "Local DAQ state: " << getLocalDAQState() << br() << endl;
+
 	// Application states
 	*out << hr() << endl;
 	state_table_.webOutput(out, (string)state_);
@@ -756,6 +758,8 @@ string CSCSupervisor::getDAQMode()
 				->getApplicationDescriptor("EmuDAQManager", 0);
 		daq_param_ = createParameterGetSOAP(
 				"EmuDAQManager", "globalMode", "xsd:boolean");
+		daq_state_param_ = createParameterGetSOAP(
+				"EmuDAQManager", "daqState", "xsd:string");
 	}
 
 	string result = "";
@@ -827,6 +831,26 @@ string CSCSupervisor::getTTCciSource()
 		result += ":" + extractParameter(reply, "BGOSource");
 	} catch (xdaq::exception::Exception e) {
 		result = "Unknown";
+	}
+
+	return result;
+}
+
+string CSCSupervisor::getLocalDAQState()
+{
+	string result = "";
+
+	if (daq_descr_ != NULL) {
+
+		xoap::MessageReference reply;
+		try {
+			reply = getApplicationContext()->postSOAP(
+					daq_state_param_, daq_descr_);
+
+			result = extractParameter(reply, "daqState");
+		} catch (xdaq::exception::Exception e) {
+			result = "Unknown";
+		}
 	}
 
 	return result;
