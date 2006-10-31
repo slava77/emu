@@ -1,4 +1,4 @@
-# $Id: Makefile,v 3.0 2006/07/20 21:18:21 geurts Exp $
+# $Id: Makefile,v 3.1 2006/10/31 13:01:34 ichiro Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -30,7 +30,7 @@ Sources = \
 	EmuDAQManager.cc \
 	EmuDAQManagerV.cc
 
-DependentLibraryDirs = $(XDAQ_ROOT)/daq/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+DependentLibraryDirs = $(XDAQ_ROOT)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 DependentLibraries = CSCSupervisor
 EMU_APP_DIR = ../..
 
