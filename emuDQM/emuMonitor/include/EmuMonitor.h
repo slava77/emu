@@ -34,6 +34,9 @@
 #include "EmuPlotter.h"
 
 #include "TMessage.h"
+
+#include "EmuDQM_AppParameters.h"
+#include "EmuDQM_SOAPCommands.h"
 /*
 #include "EmuPlotterInterface.h"
 #include "EmuLocalPlotter.h"
@@ -206,6 +209,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   xdata::String		stateName_;
   xdata::String		stateChangeTime_;
   xdata::String		lastEventTime_;
+  xdata::UnsignedLong   nDAQEvents_;
 
 
   // == Total processed events counter

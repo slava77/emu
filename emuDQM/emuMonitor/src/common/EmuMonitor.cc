@@ -156,6 +156,7 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->fireItemAvailable("stateName",&stateName_);
   getApplicationInfoSpace()->fireItemAvailable("stateChangeTime",&stateChangeTime_);
   getApplicationInfoSpace()->fireItemAvailable("lastEventTime",&lastEventTime_);
+  getApplicationInfoSpace()->fireItemAvailable("nDAQEvents",&nDAQEvents_);
 
   getApplicationInfoSpace()->addItemChangedListener ("readoutMode", this);
   getApplicationInfoSpace()->addItemChangedListener ("transport", this);
@@ -187,6 +188,7 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->addItemRetrieveListener ("dataRate", this);
   getApplicationInfoSpace()->addItemRetrieveListener ("stateName", this);
   getApplicationInfoSpace()->addItemRetrieveListener ("cscRate", this);
+  getApplicationInfoSpace()->addItemRetrieveListener ("nDAQEvents", this);
 
 };
 
@@ -408,6 +410,15 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
 	  stateName_ = wsm_.getStateName(wsm_.getCurrentState());
           // LOG4CPLUS_INFO(getApplicationLogger(), "State: " << stateName_.toString());
         }
+      else if ( item == "nDAQEvents")
+        {
+	  for (unsigned int i=0; i<dataservers_.size(); i++) {
+	      xdata::UnsignedLong count;
+	      count.fromString(emu::dqm::getScalarParam(getApplicationContext(), dataservers_[i],"nEventsRead","unsignedLong")); 
+	      nDAQEvents_ = nDAQEvents_ + count;	
+          }
+        }
+
 
     };
   if (e.type() == "ItemChangedEvent")
