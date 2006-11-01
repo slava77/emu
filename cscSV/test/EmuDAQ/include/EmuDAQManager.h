@@ -41,7 +41,7 @@ private:
 
 	xdata::UnsignedLong run_number_;
 	xdata::UnsignedLong max_n_events_;
-	xdata::Boolean mode_;
+	xdata::Boolean mode_, configured_global_;
 	xdata::String daq_state_;
 };
 
