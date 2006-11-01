@@ -469,6 +469,10 @@ void CSCSupervisor::sendCommand(string command, string klass)
 		return; // Do nothing if the target doesn't exist
 	}
 
+	if (klass == "EmuDAQManager" && !isDAQManagerControlled(command)) {
+		return;  // Do nothing if EmuDAQManager is not under control.
+	}
+
 	// prepare a SOAP message
 	xoap::MessageReference message = createCommandSOAP(command);
 	xoap::MessageReference reply;
@@ -758,6 +762,8 @@ string CSCSupervisor::getDAQMode()
 				->getApplicationDescriptor("EmuDAQManager", 0);
 		daq_param_ = createParameterGetSOAP(
 				"EmuDAQManager", "globalMode", "xsd:boolean");
+		daq_configured_param_ = createParameterGetSOAP(
+				"EmuDAQManager", "configuredInGlobalMode", "xsd:boolean");
 		daq_state_param_ = createParameterGetSOAP(
 				"EmuDAQManager", "daqState", "xsd:string");
 	}
@@ -836,12 +842,30 @@ string CSCSupervisor::getTTCciSource()
 	return result;
 }
 
+bool CSCSupervisor::isDAQConfiguredInGlobal()
+{
+	string result = "";
+
+	if (daq_descr_ != NULL) {
+		xoap::MessageReference reply;
+		try {
+			reply = getApplicationContext()->postSOAP(
+					daq_configured_param_, daq_descr_);
+
+			result = extractParameter(reply, "configuredInGlobalMode");
+		} catch (xdaq::exception::Exception e) {
+			result = "Unknown";
+		}
+	}
+
+	return result == "true";
+}
+
 string CSCSupervisor::getLocalDAQState()
 {
 	string result = "";
 
 	if (daq_descr_ != NULL) {
-
 		xoap::MessageReference reply;
 		try {
 			reply = getApplicationContext()->postSOAP(
@@ -854,6 +878,15 @@ string CSCSupervisor::getLocalDAQState()
 	}
 
 	return result;
+}
+
+bool CSCSupervisor::isDAQManagerControlled(string command)
+{
+	if (getDAQMode() != "global") { return false; }
+
+	if (command != "Configure" && !isDAQConfiguredInGlobal()) { return false; }
+
+	return true;
 }
 
 void CSCSupervisor::StateTable::addApplication(CSCSupervisor *sv, string klass)
