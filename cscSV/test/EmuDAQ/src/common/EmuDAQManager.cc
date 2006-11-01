@@ -14,11 +14,13 @@ EmuDAQManager::EmuDAQManager(xdaq::ApplicationStub *stub)
 	run_number_ = 0;
 	max_n_events_ = 0;
 	mode_ = true;
+	configured_global_ = false;
 	daq_state_ = "Unknown";
 
 	getApplicationInfoSpace()->fireItemAvailable("runNumber", &run_number_);
 	getApplicationInfoSpace()->fireItemAvailable("maxNumberOfEvents", &max_n_events_);
 	getApplicationInfoSpace()->fireItemAvailable("globalMode", &mode_);
+	getApplicationInfoSpace()->fireItemAvailable("configuredInGlobalMode", &configured_global_);
 	getApplicationInfoSpace()->fireItemAvailable("daqState", &daq_state_);
 
 	xoap::bind(this, &EmuDAQManager::onConfigure, "Configure", XDAQ_NS_URI);
