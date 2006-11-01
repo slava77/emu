@@ -100,6 +100,7 @@ void EmuMonitor::initProperties()
   totalEvents_ 		= 0;
   sessionEvents_ 	= 0;
   readoutMode_ 		= "internal";
+  nDAQEvents_		= 0;
 
   inputDataFormat_      = "DDU";
   inputDeviceType_	= "file";
@@ -412,6 +413,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
         }
       else if ( item == "nDAQEvents")
         {
+	  nDAQEvents_ = 0;
 	  for (unsigned int i=0; i<dataservers_.size(); i++) {
 	      xdata::UnsignedLong count;
 	      count.fromString(emu::dqm::getScalarParam(getApplicationContext(), dataservers_[i],"nEventsRead","unsignedLong")); 
