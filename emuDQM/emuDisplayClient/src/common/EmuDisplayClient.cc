@@ -568,7 +568,8 @@ void EmuDisplayClient::headerPage (xgi::Input * in, xgi::Output * out)  throw (x
   monitors_ = getAppsList(monitorClass_);
   *out << cgicc::table().set("border","1")
     .set("cellspacing","0").set("cellpadding","0");
-  *out << cgicc::th("Node").set("width","80") << cgicc::th("State") << cgicc::th("Run Number") 
+  *out << cgicc::th("Node").set("width","80") << cgicc::th("State") << cgicc::th("Run Number")
+       << cgicc::th("DAQ Events").set("width","60") 
        << cgicc::th("Events").set("width","60") << cgicc::th("Rate (Evt/s)").set("width","60") 
        << cgicc::th("Unpacked CSCs").set("width","60") <<  cgicc::th("Unpack Rate (CSCs/s)").set("width","80") 
        << cgicc::th("Readout Mode").set("width","60") << cgicc::th("Data Source").set("width","60")
@@ -606,16 +607,18 @@ void EmuDisplayClient::headerPage (xgi::Input * in, xgi::Output * out)  throw (x
       std::string readoutMode   = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"readoutMode","string");
       std::string lastEventTime = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"lastEventTime","string");
       
+      std::string nDAQevents = "";
       std::string dataSource = "";
       if (readoutMode == "internal")
 	dataSource   = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"inputDeviceName","string");
       if (readoutMode == "external") {
         dataSource   = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"serversClassName","string");
+	nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"nDAQEvents","unsignedLong");
       }
       
       *out << cgicc::tr();
       *out << cgicc::td("<a href="+applink+" target=frameset>"+st.str()+"</a>" )
-	   << cgicc::td(state) << cgicc::td(runNumber) << cgicc::td(events) << cgicc::td(dataRate) 
+	   << cgicc::td(state) << cgicc::td(runNumber) << cgicc::td(nDAQevents) <<cgicc::td(events) << cgicc::td(dataRate) 
 	   << cgicc::td(cscUnpacked) << cgicc::td(cscRate) << cgicc::td(readoutMode) << cgicc::td(dataSource) 
 	   << cgicc::td(lastEventTime)/* << cgicc::td(dataBw) << cgicc::td(dataLatency) */ <<std::endl;
       *out << cgicc::tr() << std::endl;
