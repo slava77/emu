@@ -167,6 +167,7 @@ public class CSCEventHandler extends UserStateNotificationHandler {
 				i.publishRunInfo("DAQ.mode", cscConfig.daqMode);
 				i.publishRunInfo("TF.config", cscConfig.tfConfig);
 				i.publishRunInfo("TTC.source", cscConfig.ttcSource);
+				i.publishRunInfo("run_type", "Monitor");
 			} catch (Exception e) {
 				logger.error("Enable" + " FAILED.", e);
 				throw new UserActionException("Enable" + " FAILED.", e);
