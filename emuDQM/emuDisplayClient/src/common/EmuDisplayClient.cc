@@ -570,7 +570,7 @@ void EmuDisplayClient::headerPage (xgi::Input * in, xgi::Output * out)  throw (x
     .set("cellspacing","0").set("cellpadding","0");
   *out << cgicc::th("Node").set("width","80") << cgicc::th("State") << cgicc::th("Run Number")
        << cgicc::th("DAQ Events").set("width","60") 
-       << cgicc::th("Events").set("width","60") << cgicc::th("Rate (Evt/s)").set("width","60") 
+       << cgicc::th("DQM Events").set("width","60") << cgicc::th("Rate (Evt/s)").set("width","60") 
        << cgicc::th("Unpacked CSCs").set("width","60") <<  cgicc::th("Unpack Rate (CSCs/s)").set("width","80") 
        << cgicc::th("Readout Mode").set("width","60") << cgicc::th("Data Source").set("width","60")
        << cgicc::th("Last event timestamp")
