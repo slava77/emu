@@ -86,6 +86,8 @@ void EmuDAQManager::configureAction(toolbox::Event::Reference e)
         throw (toolbox::fsm::exception::Exception)
 {   
     LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
+
+	configured_global_ = true;
 }
 
 void EmuDAQManager::enableAction(toolbox::Event::Reference e)
@@ -109,9 +111,9 @@ void EmuDAQManager::haltAction(toolbox::Event::Reference e)
 void EmuDAQManager::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
         throw (toolbox::fsm::exception::Exception)
 {
-	daq_state_ = state_;
-
 	EmuApplication::stateChanged(fsm);
+
+	daq_state_ = state_;
 }
 
 // End of file
