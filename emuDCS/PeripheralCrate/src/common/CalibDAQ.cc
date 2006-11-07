@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 3.8 2006/11/07 17:12:36 mey Exp $
+// $Id: CalibDAQ.cc,v 3.9 2006/11/07 23:21:02 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 3.9  2006/11/07 23:21:02  mey
+// Update
+//
 // Revision 3.8  2006/11/07 17:12:36  mey
 // UPdate
 //
@@ -283,9 +286,9 @@ void CalibDAQ::pulseAllWires(){
     std::cout << "0x28= " << std::hex << ccb->ReadRegister(0x28) << std::endl;
     std::cout << "0x20= " << std::hex << ccb->ReadRegister(0x20) << std::endl;
     //
-    ::usleep(5000);
+    ::usleep(500);
     ccb->GenerateAlctAdbSync();	 
-    ::usleep(5000);
+    ::usleep(500);
     //
   }
   //
@@ -393,7 +396,7 @@ void CalibDAQ::timeCFEB() {
 	// set amplitude
 	//
 	myDmbs[i]->set_cal_dac(dac,dac);
-	//myDmbs[i]->fxpreblkend(6); // Set pre block end to 6
+	myDmbs[i]->fxpreblkend(6); // Set pre block end to 6
 	//myDmbs[i]->set_comp_thresh(thresh);
 	//
 	// set external pulser for strip # nstrip on all 6 chips
@@ -407,6 +410,7 @@ void CalibDAQ::timeCFEB() {
 	}
 	//
 	myDmbs[i]->buck_shift();
+	//::usleep(1000);
       }
     }
     //
@@ -422,18 +426,18 @@ void CalibDAQ::timeCFEB() {
 	  std::cout << "Dmbs slot="<< myDmbs[i]->slot() << std::endl;
 	  myDmbs[i]->set_cal_tim_pulse(ntim);
 	}
-	::usleep(1000);
+	//::usleep(2000);
 	//
 	CCB * ccb = myCrates[j]->ccb();
 	(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
 	//
-	::usleep(1000);
+	//::usleep(2000);
 	//
 	std::cout << "Sending pulse" <<std::endl;
 	//
 	ccb->pulse(1, 0xff);//pulse all dmbs in this crate
 	//
-	::usleep(1000);
+	//::usleep(2000);
 	//
       }
       //
@@ -478,6 +482,8 @@ void CalibDAQ::gainCFEB() {
 	// set amplitude
 	//
 	//	myDmbs[i]->set_cal_time_pulse(pulse_delay_);
+	myDmbs[i]->fxpreblkend(6); // Set pre block end to 6
+	//
 	for(int brd=0;brd<5;brd++){
 	  for(int chip=0;chip<6;chip++){
 	    for(int ch=0;ch<16;ch++){
@@ -560,7 +566,8 @@ void CalibDAQ::pedestalCFEB() {
 	  }
 	}
       }
-	//
+      //
+      myDmbs[i]->fxpreblkend(6); // Set pre block end to 6
       myDmbs[i]->buck_shift();
       myDmbs[i]->set_cal_dac(0.0,0.0);
     }
@@ -1070,7 +1077,7 @@ void CalibDAQ::ALCTThresholdScan() {
 	  for (unsigned i=0; i<myTmbs.size(); i++) {
 	    ALCTController * alct = myTmbs[i]->alctController() ;
 	    //alct->SetUpPulsing();
-	    if(iter=0) {
+	    if(iter==0) {
 	      alct->SetUpPulsing(32);
 	    }
 	    else {alct->SetUpPulsing(48);}
@@ -1087,12 +1094,12 @@ void CalibDAQ::ALCTThresholdScan() {
 	    //
 	  }
 	}
-      //
-      for (int npulses=0; npulses<Npulses; npulses++) {
 	//
-	pulseAllWires();
-	Counter++;
-      }
+	for (int npulses=0; npulses<Npulses; npulses++) {
+	  //
+	  pulseAllWires();
+	  Counter++;
+	}
       }
     }
     //
@@ -1156,6 +1163,7 @@ void CalibDAQ::ALCTConnectivity() {
 	  alct->SetAfebThreshold(afebs,10);	    
 	}
 	alct->WriteAfebThresholds();
+	::usleep(200);
 	//
       }
     }

@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.52 2006/11/07 17:12:52 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.53 2006/11/07 23:21:16 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -3161,9 +3161,6 @@ private:
     cout << "Init System" << endl ;
     LOG4CPLUS_INFO(getApplicationLogger(), "Init System");
     //
-    //postToELog("Test","Test");
-    //
-    //return;
     //
     MyController->configure();          // Init system
     //
