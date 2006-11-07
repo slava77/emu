@@ -115,17 +115,19 @@ public class CSCEventHandler extends UserStateNotificationHandler {
 							fm.xdaqSupervisor.getApplications().get(0))
 							.getXDAQParameter();
 
-					param.select(new String[] { "RunType", "RunNumber" });
-					if (fmParameters.get("RUN_TYPE").equals("")) {
-						fmParameters.put("RUN_TYPE", DEFAULT_RUN_TYPE);
+					param.select("RunType");
+					ParameterSet p = fm.getLastInput().getParameterSet();
+					if (p == null) {
+						logger.error("Configure" + " FAILED.");
+						throw new UserActionException("Configure" + " FAILED.");
 					}
-					param.setValue("RunType", fmParameters.get("RUN_TYPE"));
-					if (fmParameters.get("RUN_NUMBER").equals("")) {
-						fmParameters.put("RUN_NUMBER", DEFAULT_RUN_NUMBER);
-					}
-					param.setValue("RunNumber", fmParameters.get("RUN_NUMBER"));
+					param.setValue("RunType", p.get("RUN_TYPE"));
+					fmParameters.put("RUN_TYPE", p.get("RUN_TYPE"));
 					param.send();
-				} catch (Exception ignored) {}
+				} catch (Exception e) {
+					logger.error("Configure" + " FAILED.", e);
+					throw new UserActionException("Configure" + " FAILED.", e);
+				}
 
 				Input input = new Input("Configure");
 
@@ -148,8 +150,29 @@ public class CSCEventHandler extends UserStateNotificationHandler {
 
 			// Enable the supervisor
 			if (!fm.xdaqSupervisor.isEmpty()) {
+				XDAQParameter param = null;
 				try {
-					fm.xdaqSupervisor.execute(new Input("Enable"));
+					param = ((XdaqApplication)
+							fm.xdaqSupervisor.getApplications().get(0))
+							.getXDAQParameter();
+
+					param.select("RunNumber");
+					ParameterSet p = fm.getLastInput().getParameterSet();
+					if (p == null) {
+						logger.error("Enable" + " FAILED.");
+						throw new UserActionException("Enable" + " FAILED.");
+					}
+					param.setValue("RunNumber", p.get("RUN_NUMBER"));
+					fmParameters.put("RUN_NUMBER", p.get("RUN_NUMBER"));
+					param.send();
+				} catch (Exception e) {
+					logger.error("Enable" + " FAILED.", e);
+					throw new UserActionException("Enable" + " FAILED.", e);
+				}
+
+				Input input = new Input("Enable");
+				try {
+					fm.xdaqSupervisor.execute(input);
 					logger.info("Enable" + " executed.");
 				} catch (QualifiedResourceContainerException e) {
 					logger.error("Enable" + " FAILED.", e);
