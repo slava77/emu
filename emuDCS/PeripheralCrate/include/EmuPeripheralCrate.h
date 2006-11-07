@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.51 2006/10/30 15:54:26 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.52 2006/11/07 17:12:52 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -334,10 +334,9 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::FindWinner, "FindWinner");
     xgi::bind(this,&EmuPeripheralCrate::RatTmbTiming, "RatTmbTiming");
     xgi::bind(this,&EmuPeripheralCrate::RpcRatTiming, "RpcRatTiming");
-    xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBTime, "CalibrationCFEBTime");
-    xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBTimeTest, "CalibrationCFEBTimeTest");
+    xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBXtalk, "CalibrationCFEBXtalk");
+    xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBGain, "CalibrationCFEBGain");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBSaturation, "CalibrationSaturation");
-    xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBCharge, "CalibrationCFEBCharge");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationCFEBPedestal, "CalibrationCFEBPedestal");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationComparatorPulse, "CalibrationComparatorPulse");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationALCTThresholdScan, "CalibrationALCTThresholdScan");
@@ -986,23 +985,23 @@ private:
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << cgicc::legend("Calibration Runs").set("style","color:blue") ;
     //
-    std::string CalibrationCFEBTime =
-      toolbox::toString("/%s/CalibrationCFEBTime",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBTime) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Calibration Strips : CFEB time spread") << std::endl ;
+    std::string CalibrationCFEBXtalk =
+      toolbox::toString("/%s/CalibrationCFEBXtalk",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBXtalk) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Calibration Strips : CFEB Xtalk") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
-    std::string CalibrationCFEBTimeTest =
-      toolbox::toString("/%s/CalibrationCFEBTimeTest",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBTimeTest) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Calibration Strips : CFEB time spread (test)") << std::endl ;
-    *out << cgicc::form() << std::endl ;
-    //
-    std::string CalibrationCFEBCharge =
-      toolbox::toString("/%s/CalibrationCFEBCharge",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBCharge) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Calibration Strips : CFEB pulse-amplitude uniformity") 
+    std::string CalibrationCFEBGain =
+      toolbox::toString("/%s/CalibrationCFEBGain",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBGain) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Calibration Strips : CFEB Gain") 
 	 << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string CalibrationCFEBPedestal =
+      toolbox::toString("/%s/CalibrationCFEBPedestal",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBPedestal) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Calibration Strips CFEB Pedestal") << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
     std::string CalibrationCFEBSaturation =
@@ -1012,11 +1011,6 @@ private:
 	 << std::endl ;
     *out << cgicc::form() << std::endl ;
     //
-    std::string CalibrationCFEBPedestal =
-      toolbox::toString("/%s/CalibrationCFEBPedestal",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",CalibrationCFEBPedestal) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Calibration Strips CFEB Pedestal") << std::endl ;
-    *out << cgicc::form() << std::endl ;
     //
     std::string CalibrationALCTThresholdScan =
       toolbox::toString("/%s/CalibrationALCTThresholdScan",getApplicationDescriptor()->getURN().c_str());
@@ -1586,14 +1580,13 @@ private:
     //
   }
   //
-  void EmuPeripheralCrate::CalibrationCFEBCharge(xgi::Input * in, xgi::Output * out ) 
+  void EmuPeripheralCrate::CalibrationCFEBGain(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
     //
     CalibDAQ calib(emuSystem_);
     //
-    //calib.rateTest();
-    calib.gainCFEBtest();
+    calib.gainCFEB();
     //
     this->Default(in,out);
     //
@@ -1605,31 +1598,19 @@ private:
     //
     CalibDAQ calib(emuSystem_);
     //
-    calib.CFEBSaturation();
+    calib.CFEBSaturationTest();
     //
     this->Default(in,out);
     //
   }
   //
-  void EmuPeripheralCrate::CalibrationCFEBTime(xgi::Input * in, xgi::Output * out ) 
+  void EmuPeripheralCrate::CalibrationCFEBXtalk(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
     //
     CalibDAQ calib(emuSystem_);
     //
     calib.timeCFEB();
-    //
-    this->Default(in,out);
-    //
-  }
-  //
-  void EmuPeripheralCrate::CalibrationCFEBTimeTest(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-    //
-    CalibDAQ calib(emuSystem_);
-    //
-    calib.timeCFEBtest();
     //
     this->Default(in,out);
     //
@@ -1658,7 +1639,7 @@ private:
     //int nsleep, nstrip, tries;
     //float dac;
     //
-    calib.pedestalCFEBtest();
+    calib.pedestalCFEB();
     //
     this->Default(in,out);
     //

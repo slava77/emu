@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.h,v 3.4 2006/10/18 15:51:07 mey Exp $
+// $Id: CalibDAQ.h,v 3.5 2006/11/07 17:12:45 mey Exp $
 // $Log: CalibDAQ.h,v $
+// Revision 3.5  2006/11/07 17:12:45  mey
+// UPdate
+//
 // Revision 3.4  2006/10/18 15:51:07  mey
 // UPdate
 //
@@ -78,8 +81,9 @@ class CalibDAQ {
   
   void loadConstants();
   void rateTest();
-  void gainCFEBtest();
+  void gainCFEB();
   void CFEBSaturation();
+  void CFEBSaturationTest();
   void loadConstants(Crate * crate);   
   void pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep, int calType=0);
   void pulseAllDMBsPre(int ntim, int nstrip, float dac, int nsleep, int calType=0);
@@ -87,9 +91,7 @@ class CalibDAQ {
   void pulseAllDMBsPost(int ntim, int nstrip, float dac, int nsleep, int calType=0);
   void injectComparator(int ntim, int nstrip, float dac, int nsleep, float thresh=0.03);
   void pedestalCFEB();
-  void pedestalCFEBtest();
   void timeCFEB();
-  void timeCFEBtest();
   void pulseAllWires();
   void pulseComparatorPulse();
   void FindL1aDelayComparator();

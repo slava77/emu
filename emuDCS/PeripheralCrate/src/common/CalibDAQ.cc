@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 3.7 2006/10/19 09:42:03 rakness Exp $
+// $Id: CalibDAQ.cc,v 3.8 2006/11/07 17:12:36 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 3.8  2006/11/07 17:12:36  mey
+// UPdate
+//
 // Revision 3.7  2006/10/19 09:42:03  rakness
 // remove old ALCTController
 //
@@ -268,6 +271,54 @@ void CalibDAQ::pulseAllWires(){
     std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
     //
     for (unsigned i=0; i<myTmbs.size(); i++) {
+      //myTmbs[i]->DisableCLCTInputs();
+      myTmbs[i]->ResetALCTRAMAddress();
+      //myTmbs[i]->scope(1,0,0);
+      //
+    }
+    //
+    CCB * ccb = myCrates[j]->ccb();
+    //
+    //
+    std::cout << "0x28= " << std::hex << ccb->ReadRegister(0x28) << std::endl;
+    std::cout << "0x20= " << std::hex << ccb->ReadRegister(0x20) << std::endl;
+    //
+    ::usleep(5000);
+    ccb->GenerateAlctAdbSync();	 
+    ::usleep(5000);
+    //
+  }
+  //
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
+    std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
+    std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
+    for (unsigned i=0; i<myTmbs.size(); i++) {
+      myTmbs[i]->DecodeALCT();
+      myTmbs[i]->GetCounters();
+      myTmbs[i]->PrintCounters();
+      int WordCount = myTmbs[i]->GetALCTWordCount();
+      std::cout << "WordCount = " << WordCount <<std::endl ;
+      //
+    }
+    for (unsigned i=0; i<myDmbs.size(); i++) {
+      myDmbs[i]->PrintCounters();
+    }
+  }
+  //
+}
+//
+/*
+void CalibDAQ::pulseAllWires(){
+  //
+  std::vector<Crate*> myCrates = theSelector.crates();
+  //
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
+    //
+    usleep(100);
+    //
+    std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
+    //
+    for (unsigned i=0; i<myTmbs.size(); i++) {
       myTmbs[i]->DisableCLCTInputs();
       myTmbs[i]->ResetALCTRAMAddress();
       //myTmbs[i]->scope(1,0,0);
@@ -304,30 +355,9 @@ void CalibDAQ::pulseAllWires(){
   }
   //
 }
+*/
 //
 void CalibDAQ::timeCFEB() { 
-  //
-  float dac;
-  int counter=0;
-  int nsleep = 100;  
-  dac = 1.0;
-  //
-  pulseAllDMBsInit();  
-  //
-  for (int i=0;i<16;i++) {  
-    for (int ntim=0;ntim<20;ntim++) {
-      pulseAllDMBs(ntim, i, dac, nsleep);  
-      counter++;
-      std::cout << "dac = " << dac <<
-	"  strip = " << i <<
-	"  ntim = " << ntim <<
-	"  event  = " << counter << std::endl;
-    }
-  }
-  //
-}
-//
-void CalibDAQ::timeCFEBtest() { 
   //
   float dac;
   int counter=0;
@@ -412,7 +442,7 @@ void CalibDAQ::timeCFEBtest() {
   //
 }
 //
-void CalibDAQ::gainCFEBtest() { 
+void CalibDAQ::gainCFEB() { 
   //
   float dac;
   int counter=0;
@@ -470,8 +500,6 @@ void CalibDAQ::gainCFEBtest() {
 	std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
 	//
 	for(unsigned i=0; i < myDmbs.size(); ++i) {
-	  std::cout << "Dmbs i="<< i << std::endl;
-	  std::cout << "Dmbs slot="<< myDmbs[i]->slot() << std::endl;
  	  myDmbs[i]->set_cal_dac(dac,dac);
 	}
 	::usleep(1000);
@@ -496,7 +524,7 @@ void CalibDAQ::gainCFEBtest() {
   //
 }
 //
-void CalibDAQ::pedestalCFEBtest() { 
+void CalibDAQ::pedestalCFEB() { 
   //
   float dac;
   int counter=0;
@@ -557,7 +585,84 @@ void CalibDAQ::pedestalCFEBtest() {
       }
   }
 }
-
+//
+void CalibDAQ::CFEBSaturationTest() { 
+  //
+  float dac;
+  int counter=0;
+  int nsleep = 100;  
+  //
+  std::cout << "CFEB Gain test" << std::endl;
+  //
+  // setup the TMB and CCB
+  std::vector<Crate*> myCrates = theSelector.crates();
+  //
+  for(unsigned j = 0; j < myCrates.size(); ++j) {
+    //
+    std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
+    std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
+    //
+    for (unsigned i=0; i<myTmbs.size(); i++) {
+      myTmbs[i]->DisableCLCTInputs();
+      std::cout << "Disabling inputs for slot " << myTmbs[i]->slot() << std::endl;
+      myTmbs[i]->DisableALCTInputs();
+    }
+  }
+  //
+  //
+  for (int nstrip=0;nstrip<16;nstrip++) {  
+    //
+    for(unsigned j = 0; j < myCrates.size(); ++j) {
+      //
+      std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
+      //
+      for(unsigned i =0; i < myDmbs.size(); ++i) {
+	//
+	for(int brd=0;brd<5;brd++){
+	  for(int chip=0;chip<6;chip++){
+	    for(int ch=0;ch<16;ch++){
+	      myDmbs[i]->shift_array[brd][chip][ch]=NORM_RUN;
+	    }
+	    if ( nstrip != -1 ) myDmbs[i]->shift_array[brd][chip][nstrip]=EXT_CAP;
+	  }
+	}
+	//
+	myDmbs[i]->buck_shift();
+      }
+    }
+    //
+    //
+    for (int ngain=0;ngain<10;ngain++) {
+      dac= 3.0 + 0.2*ngain;
+      //
+      for(unsigned j = 0; j < myCrates.size(); ++j) {
+	//
+	std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
+	//
+	for(unsigned i=0; i < myDmbs.size(); ++i) {
+ 	  myDmbs[i]->set_cal_dac(dac,dac);
+	}
+	::usleep(1000);
+	//
+	CCB * ccb = myCrates[j]->ccb();
+	(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+	//
+	::usleep(1000);
+	//
+	for (int jpulse=0;jpulse<20;jpulse++)
+	{ std::cout << "Sending pulse" <<std::endl;
+	//
+	  ccb->pulse(1, 0xff);//pulse all dmbs in this crate
+	//
+	  ::usleep(10000);
+	}
+	//
+      }
+      //
+    }
+  }
+}
+//
 void CalibDAQ::CFEBSaturation() { 
   //
   float dac;
@@ -581,24 +686,6 @@ void CalibDAQ::CFEBSaturation() {
   }
   //
 }
-//
-void CalibDAQ::pedestalCFEB() { 
-  //
-  //
-  float dac = 0.01;
-  int nsleep(100);
-  int counter = 0;
-  int nevents = 1000;
-  //
-  pulseAllDMBsInit();
-  //
-  for (int events = 0; events<nevents; events++) {
-    pulseAllDMBs(-1, -1, dac, nsleep,0);  
-    counter++;
-    std::cout << "dac = " << dac <<
-      "  event  = " << counter << std::endl;
-  }
-}  
 //
 void CalibDAQ::pulseAllDMBsPre(int ntim, int nstrip, float dac, int nsleep,int calType) { 
   //
@@ -818,8 +905,8 @@ void CalibDAQ::FindL1aDelayALCT() {
   int DMBCounterTMB[300][9];
   int DMBCounterCFEB[300][9];
   //
-  int nmin=0;
-  int nmax=200;
+  int nmin=75;
+  int nmax=90;
   //
   for(int i=0; i<300;i++) for(int j=0;j<9;j++) {
     counter[i][j]     = 0;
@@ -882,8 +969,6 @@ void CalibDAQ::FindL1aDelayALCT() {
 	  //
 	}
 	for (unsigned i=0; i<myDmbs.size(); i++) {
-	  //myDmbs[i]->readtimingCounter();
-	  //myDmbs[i]->readtimingScope();
 	  myDmbs[i]->PrintCounters();
 	  DMBCounterALCT[delay][i] = myDmbs[i]->GetAlctDavCounter();
 	  DMBCounterTMB[delay][i]  = myDmbs[i]->GetTmbDavCounter();
@@ -946,73 +1031,71 @@ void CalibDAQ::ALCTThresholdScan() {
     usleep(100);
   }
   //
-  for (int npulses=0; npulses<Npulses; npulses++) {
-    for(int thres=1; thres<30; thres++) {      
-      for(unsigned j = 0; j < myCrates.size(); j++) {
-	CCB * ccb = myCrates[j]->ccb();
-	ccb->ResetL1aCounter();
-	ccb->EnableL1aCounter();
-	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
-	for (unsigned i=0; i<myTmbs.size(); i++) {
-	  myTmbs[i]->lvl1_delay(70);
-	  //myTmbs[i]->ResetCounters();
-	  //
-	  ALCTController * alct = myTmbs[i]->alctController() ;
-	  //
-	  alct->SetL1aDelay(83);
-	  alct->SetSendEmpty(0);
-	  alct->SetL1aInternal(0);
-	  alct->SetPretrigNumberOfLayers(1);
-	  alct->SetPretrigNumberOfPattern(1);
-	  alct->WriteConfigurationReg();
-	  alct->ReadConfigurationReg();
-	  alct->PrintConfigurationReg();
-	  //
-	  int nAFEBS = alct->GetNumberOfAfebs();
-	  std::cout << "nAFEBS = " << nAFEBS << std::endl;
-	  for(int afebs=0; afebs<nAFEBS; afebs++) {
-	    alct->SetAfebThreshold(afebs,thres);	    
-	  }
-	  alct->WriteAfebThresholds();
-	  alct->ReadAfebThresholds();
-	  alct->PrintAfebThresholds();
-	  //
-	  alct->SetUpPulsing();
-	  //
-	  myTmbs[i]->SetCLCTPatternTrigger();
-	}
-      }
+    //
+    for(unsigned j = 0; j < myCrates.size(); j++) {
+      CCB * ccb = myCrates[j]->ccb();
+      ccb->ResetL1aCounter();
+      ccb->EnableL1aCounter();
       //
-      pulseAllWires();
-      Counter++;
+      ccb->setCCBMode(CCB::VMEFPGA);
+      ccb->WriteRegister(0x20,0xc7f9);  //Only enable adb_sync as l1a source
+      ccb->WriteRegister(0x04,0x0001);  //Softreset
+      ccb->WriteRegister(0x28,0x7878);  //4Aug05 DM changed 0x789b to 0x7862
       //
-      std::cout << "Event = " << Counter <<std::endl;
-      //
-      for(unsigned j = 0; j < myCrates.size(); j++) {
-	CCB * ccb = myCrates[j]->ccb();
-      //
-	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
-	std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
-	for (unsigned i=0; i<myTmbs.size(); i++) {
-	  myTmbs[i]->GetCounters();
-	  //
-	  myTmbs[i]->PrintCounters();
-	  //
-	  //myTmbs[i]->PrintCounters(8);  // display them to screen
-	  //myTmbs[i]->PrintCounters(19);
-	  //myTmbs[i]->PrintCounters(20);
-	  //
-	}
-	for (unsigned i=0; i<myDmbs.size(); i++) {
-	  //myDmbs[i]->readtimingCounter();
-	  //myDmbs[i]->readtimingScope();
-	  myDmbs[i]->PrintCounters();
-	}
-      }
-      //
+      std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
+      for (unsigned i=0; i<myTmbs.size(); i++) {
+	myTmbs[i]->lvl1_delay(70);
+	ALCTController * alct = myTmbs[i]->alctController() ;
+	alct->SetL1aDelay(82);
+	alct->SetSendEmpty(0);
+	alct->SetL1aInternal(0);
+	alct->SetPretrigNumberOfLayers(1);
+	alct->SetPretrigNumberOfPattern(1);
+	alct->WriteConfigurationReg();
+	//alct->ReadConfigurationReg();
+	//alct->PrintConfigurationReg();
+	//
+	//
+	myTmbs[i]->SetCLCTPatternTrigger();
+	myTmbs[i]->DisableCLCTInputs();
+	myTmbs[i]->ResetCounters();
+      }	
     }
-  }
-  //
+    //
+    for(int thres=0; thres<40; thres++) {      
+      for (int iter=0; iter<2;iter++){
+	//
+	for(unsigned j = 0; j < myCrates.size(); j++) {
+	  std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
+	  for (unsigned i=0; i<myTmbs.size(); i++) {
+	    ALCTController * alct = myTmbs[i]->alctController() ;
+	    //alct->SetUpPulsing();
+	    if(iter=0) {
+	      alct->SetUpPulsing(32);
+	    }
+	    else {alct->SetUpPulsing(48);}
+	    //
+	    int nAFEBS = alct->GetNumberOfAfebs();
+	    std::cout << "nAFEBS = " << nAFEBS << std::endl;
+	    for(int afebs=0; afebs<nAFEBS; afebs++) {
+	      alct->SetAfebThreshold(afebs,thres);	    
+	    }
+	    alct->WriteAfebThresholds();
+	    ::usleep(200);
+	    alct->ReadAfebThresholds();
+	    alct->PrintAfebThresholds();
+	    //
+	  }
+	}
+      //
+      for (int npulses=0; npulses<Npulses; npulses++) {
+	//
+	pulseAllWires();
+	Counter++;
+      }
+      }
+    }
+    //
 }
 //
 void CalibDAQ::ALCTConnectivity() { 
@@ -1026,7 +1109,7 @@ void CalibDAQ::ALCTConnectivity() {
   int nmax=200;
   int Counter=0;
   //
-  int Npulses = 100;
+  int Npulses = 200;
   //
   for(int i=0; i<300;i++) for(int j=0;j<9;j++) {
     counter[i][j]     = 0;
@@ -1043,54 +1126,56 @@ void CalibDAQ::ALCTConnectivity() {
     usleep(100);
   }
   //
-  for (int npulses=0; npulses<Npulses; npulses++) {
-    for(int layer=0; layer<6; layer++){
-      for(unsigned j = 0; j < myCrates.size(); j++) {
-	CCB * ccb = myCrates[j]->ccb();
-	ccb->ResetL1aCounter();
-	ccb->EnableL1aCounter();
-	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
-	for (unsigned i=0; i<myTmbs.size(); i++) {
-	  myTmbs[i]->alctController()->SetL1aDelay(83);
-	  myTmbs[i]->lvl1_delay(70);
-	  //myTmbs[i]->ResetCounters();
-	  myTmbs[i]->alctController()->SetSendEmpty(0);
-	  myTmbs[i]->alctController()->SetL1aInternal(0);
-	  myTmbs[i]->alctController()->SetPretrigNumberOfLayers(1);
-	  myTmbs[i]->alctController()->SetPretrigNumberOfPattern(1);
-	  myTmbs[i]->alctController()->WriteConfigurationReg();
-	  //
-	  ALCTController * alct = myTmbs[i]->alctController() ;
-	  //
-	  myTmbs[i]->alctController()->SetUpPulsing(0x3c,PULSE_LAYERS,(1<<layer),ADB_SYNC);
-	  myTmbs[i]->SetCLCTPatternTrigger();
-	}
-      }
+    for(unsigned j = 0; j < myCrates.size(); j++) {
+      CCB * ccb = myCrates[j]->ccb();
+      ccb->ResetL1aCounter();
+      ccb->EnableL1aCounter();
       //
-      pulseAllWires();
-      Counter++;
+      ccb->setCCBMode(CCB::VMEFPGA);
+      ccb->WriteRegister(0x20,0xc7f9);  //Only enable adb_sync as l1a source
+      ccb->WriteRegister(0x04,0x0001);  //Softreset
+      ccb->WriteRegister(0x28,0x7878);  //4Aug05 DM changed 0x789b to 0x7862
       //
-      std::cout << "Event = " << Counter <<std::endl;
-      //
-      for(unsigned j = 0; j < myCrates.size(); j++) {
-	CCB * ccb = myCrates[j]->ccb();
+      std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
+      for (unsigned i=0; i<myTmbs.size(); i++) {
+	myTmbs[i]->alctController()->SetL1aDelay(82);
+	myTmbs[i]->lvl1_delay(70);
+	myTmbs[i]->alctController()->SetSendEmpty(0);
+	myTmbs[i]->alctController()->SetL1aInternal(0);
+	myTmbs[i]->alctController()->SetPretrigNumberOfLayers(1);
+	myTmbs[i]->alctController()->SetPretrigNumberOfPattern(1);
+	myTmbs[i]->alctController()->WriteConfigurationReg();
 	//
-	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
-	std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
-	for (unsigned i=0; i<myTmbs.size(); i++) {
-	  myTmbs[i]->GetCounters();
-	  //
-	  myTmbs[i]->PrintCounters();
-	  //
+	myTmbs[i]->SetCLCTPatternTrigger();
+	myTmbs[i]->DisableCLCTInputs();
+	myTmbs[i]->ResetCounters();
+	//
+	ALCTController * alct = myTmbs[i]->alctController() ;
+	int nAFEBS = alct->GetNumberOfAfebs();
+	for(int afebs=0; afebs<nAFEBS; afebs++) {
+	  alct->SetAfebThreshold(afebs,10);	    
 	}
-	for (unsigned i=0; i<myDmbs.size(); i++) {
-	  myDmbs[i]->PrintCounters();
-	}
+	alct->WriteAfebThresholds();
+	//
       }
     }
     //
-  }
-  //
+    for(int layer=0; layer<6; layer++){
+      //
+      for(unsigned j = 0; j < myCrates.size(); j++) {
+	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
+	for (unsigned i=0; i<myTmbs.size(); i++) {
+	  ALCTController * alct = myTmbs[i]->alctController() ;
+	  alct->SetUpPulsing(0x55,PULSE_LAYERS,(1<<layer),ADB_SYNC);
+	  ::usleep(200);
+	}
+      }
+      for (int npulses=0; npulses<Npulses; npulses++) {
+	pulseAllWires();
+	Counter++;
+      }
+    }
+    //
 }
 //
 void CalibDAQ::CFEBConnectivity() { 
