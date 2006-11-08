@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.13 2006/10/30 15:55:43 mey Exp $
+// $Id: TMB.h,v 3.14 2006/11/08 13:53:37 mey Exp $
 // $Log: TMB.h,v $
+// Revision 3.14  2006/11/08 13:53:37  mey
+// Update
+//
 // Revision 3.13  2006/10/30 15:55:43  mey
 // Update
 //
@@ -395,8 +398,6 @@ public:
   void ADCvoltages(float*);
   int tmb_read_delays(int);
   //
-  inline int  GetALCTrxPhase() { return alct_rx_clock_delay_; }
-  inline int  GetALCTtxPhase() { return alct_tx_clock_delay_; }
   inline int  GetCFEBrxPhase(int CFEB) {
     int tmp[5] = { cfeb0delay_, cfeb1delay_, cfeb2delay_, cfeb3delay_, cfeb4delay_ };
     return tmp[CFEB]; 
@@ -406,27 +407,55 @@ public:
   //inline void SetStepMode(bool stepmode) { step_mode = stepmode ; }
   //
   void SetCFEB0delay(int delay){cfeb0delay_ = delay;}
+  int  GetCFEB0delay(){return cfeb0delay_;}
+  //
   void SetCFEB1delay(int delay){cfeb1delay_ = delay;}
+  int  GetCFEB1delay(){return cfeb1delay_;}
+  //
   void SetCFEB2delay(int delay){cfeb2delay_ = delay;}
+  int  GetCFEB2delay(){return cfeb2delay_;}
+  //
   void SetCFEB3delay(int delay){cfeb3delay_ = delay;}
+  int  GetCFEB3delay(){return cfeb3delay_;}
+  //
   void SetCFEB4delay(int delay){cfeb4delay_ = delay;}
+  int  GetCFEB4delay(){return cfeb4delay_;}
   //
   void SetAlctTXclockDelay(int delay) {alct_tx_clock_delay_ = delay;}
+  inline int  GetALCTtxPhase() { return alct_tx_clock_delay_; }
+  //
   void SetAlctRXclockDelay(int delay) {alct_rx_clock_delay_ = delay;}
+  inline int  GetALCTrxPhase() { return alct_rx_clock_delay_; }
   //
   void SetL1aDelay(int delay) { l1adelay_ = delay; }
+  inline int GetL1aDelay() { return l1adelay_; }
+  //
   void SetL1aWindowSize(int delay) {l1a_window_size_ = delay;}
+  inline int GetL1aWindowSize() {return l1a_window_size_;}
+  //
   void SetAlctMatchWindowSize(int size) {alct_match_window_size_ = size;}
+  inline int  GetAlctMatchWindowSize()         {return alct_match_window_size_ ;}
+  //
   void SetAlctVpfDelay(int delay){alct_vpf_delay_ = delay;}
+  int GetAlctVpfDelay(){return alct_vpf_delay_;}
+  //
   //void SetVersion(std::string version) {version_ = version;}
   void SetMpcDelay(int delay) {mpc_delay_= delay;}
   void SetAlctInput(int input) {ALCT_input_ = input;}
   void SetRpcExist(int exist) {rpc_exists_ = exist;}
   void SetFifoMode(int mode) {fifo_mode_ = mode;}
+  //
   void SetFifoTbins(int tbins) {fifo_tbins_ = tbins;}
+  inline int GetFifoTbins() { return fifo_tbins_ ;}
+  //
   void SetFifoPreTrig(int pretrig) {fifo_pretrig_ = pretrig;}
+  inline int GetFifoPreTrig() {return fifo_pretrig_;}
+  //
   void SetAlctClear(int clear){alct_clear_ = clear;}
+  //
   void SetMpcTXdelay(int delay){mpc_tx_delay_ = delay;}
+  inline int GetMpcTXdelay(){return mpc_tx_delay_ ;}
+  //
   void SetL1aOffset(int offset){l1a_offset_ = offset;}
   void SetBxnOffset(int offset){bxn_offset_ = offset;}
   void SetDisableCLCTInputs(int disable){disableCLCTInputs_ = disable;}
@@ -435,15 +464,35 @@ public:
   void SetRat(RAT* rat){rat_ = rat;}
   //
   inline void SetTrgMode(int trgmode){ trgmode_ = trgmode; }
+  inline int  GetTrgMode(){ return trgmode_ ; }
+  //
   inline void SetRpcBxnOffset(int rpc_bxn_offset){ rpc_bxn_offset_ = rpc_bxn_offset; }
+  inline int  GetRpcBxnOffset(){ return rpc_bxn_offset_; }
+  //
   inline void SetShiftRpc(int shift_rpc){ shift_rpc_ = shift_rpc; }
+  inline int  GetShiftRpc(){ return shift_rpc_; }
+  //
   inline void SetRequestL1a(int request_l1a){ request_l1a_ = request_l1a; }
+  inline int  GetRequestL1a(){ return request_l1a_; }
+  //
   inline void SetHsPretrigThresh(int hs_pretrig_thresh){ hs_pretrig_thresh_ = hs_pretrig_thresh; }
+  inline int  GetHsPretrigThresh(){ return hs_pretrig_thresh_; }
+  //
   inline void SetDsPretrigThresh(int ds_pretrig_thresh){ ds_pretrig_thresh_ = ds_pretrig_thresh; }
+  inline int  GetDsPretrigThresh(){ return ds_pretrig_thresh_; }
+  //
   inline void SetMinHitsPattern(int min_hits_pattern){ min_hits_pattern_ = min_hits_pattern; }
+  inline int  GetMinHitsPattern(){ return min_hits_pattern_ ;}
+  //
   inline void SetDmbTxDelay(int dmb_tx_delay){ dmb_tx_delay_ = dmb_tx_delay; }
+  inline int  GetDmbTxDelay(){ return dmb_tx_delay_; }
+  //
   inline void SetRatTmbDelay(int rat_tmb_delay){ rat_tmb_delay_ = rat_tmb_delay; }
+  inline int  GetRatTmbDelay(){ return rat_tmb_delay_ ; }
+  //
   inline void SetRpc0RatDelay(int rpc0_rat_delay){ rpc0_rat_delay_ = rpc0_rat_delay; }
+  inline int  GetRpc0RatDelay(){ return rpc0_rat_delay_ ; }
+  //
   inline void SetMpcPhase(int mpc_phase){ mpc_phase_ = mpc_phase; }
   //
   inline std::vector<unsigned long int> GetInjectedLct0() { return InjectedLct0 ; }

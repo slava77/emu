@@ -17,6 +17,10 @@ RAT::RAT(TMB * tmb) :
   EMUjtag(tmb)
 {
   //
+  MyOutput_ = &std::cout ;
+  //
+  (*MyOutput_) << "RAT board" << std::endl;
+  //
   tmb_ = tmb;
   //
   SetPowerUpUser2Register_();
@@ -24,7 +28,6 @@ RAT::RAT(TMB * tmb) :
   //
   SetCheckJtagWrite(true);
   //
-  MyOutput_ = &std::cout ;
   //
 };
 //
