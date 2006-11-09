@@ -678,7 +678,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
   {
     unsigned long int idcode,uscode;
     unsigned long int tidcode[8]={0x2124a093,0x31266093,0x31266093,0x05036093,0x05036093,0x05036093,0x05036093,0x05036093};
-    unsigned long int tuscode[8]={0xcf038a04,0xdf023a01,0xdf023a01,0xb0017a01,0xc038dd99,0xc138dd99,0xd0023a01,0xd1023a01};
+    unsigned long int tuscode[8]={0xcf039a03,0xdf024a01,0xdf024a01,0xb0018a01,0xc039dd99,0xc139dd99,0xd0024a01,0xd1024a01};
 
     printf(" entered DDUFirmware \n");
     cgicc::Cgicc cgi(in);
@@ -1420,8 +1420,22 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	   .set("value",xmltext)
 	   .set("style","font-size: 13pt; font-family: arial;") << std::endl;
 	}
-	*out << cgicc::input().set("type","submit")
-	  .set("value","set");
+	if(i==226){
+	  *out << cgicc::input().set("type","submit")
+	    .set("value","send-L1A");
+	}
+	else if(i==227){
+	  *out << cgicc::input().set("type","submit")
+	    .set("value","toggle");
+	}
+	else if(i==228){
+	  *out << cgicc::input().set("type","submit")
+	    .set("value","reset");
+	}
+	else{
+	  *out << cgicc::input().set("type","submit")
+	    .set("value","set");
+	}
 	sprintf(buf,"%d",ddu);
 	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu"); 
 	sprintf(buf,"%d",i);
@@ -1567,7 +1581,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	}
 	if((stat&0x000000F0)>0){
 	  if((0x00000080&stat)>0) *out << " CFEB-CRC Count Error &nbsp ";
-	  if((0x00000040&stat)>0) *out << " CFEB-CRC Error occurred &nbsp ";
+	  if((0x00000040&stat)>0) *out << " DMB or CFEB CRC Error &nbsp ";
 	  //	  if((0x00000020&stat)>0) *out << " <font color=black>Latched Trigger Trail</font> &nbsp ";
 	  if((0x00000020&stat)>0) *out << " Trigger Readout Error &nbsp ";
 	  if((0x00000010&stat)>0) *out << " <font color=black>Trigger Trail Done</font>";
@@ -2696,18 +2710,17 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
       }
 
       if(i==321){
-	  *out << cgicc::input().set("type","hidden")
-	   .set("name","textdata")
-	   .set("size","10")
-	   .set("ENCTYPE","multipart/form-data")
-	   .set("value","")
-	   .set("style","font-size: 13pt; font-family: arial;")<<std::endl;
-
+	*out << cgicc::input().set("type","hidden")
+	  .set("name","textdata")
+	  .set("size","10")
+	  .set("ENCTYPE","multipart/form-data")
+	  .set("value","")
+	  .set("style","font-size: 13pt; font-family: arial;")<<std::endl;
 	*out << cgicc::input().set("type","submit")
-	  .set("value","set");
+	  .set("value","reset");
 	sprintf(buf,"%d",ddu);
 	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu"); 
-	sprintf(buf,"%d",i);       
+	sprintf(buf,"%d",i);
 	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","val"); 
 	*out << cgicc::form() << std::endl;
       }else if(i==300&&(stat&0x0000f000)>0){
@@ -3138,15 +3151,14 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
       }
 
       if(i==421){
-	  *out << cgicc::input().set("type","hidden")
-	   .set("name","textdata")
-	   .set("size","10")
-	   .set("ENCTYPE","multipart/form-data")
-	   .set("value","")
-	   .set("style","font-size: 13pt; font-family: arial;")<<std::endl;
-
+	*out << cgicc::input().set("type","hidden")
+	  .set("name","textdata")
+	  .set("size","10")
+	  .set("ENCTYPE","multipart/form-data")
+	  .set("value","")
+	  .set("style","font-size: 13pt; font-family: arial;")<<std::endl;
 	*out << cgicc::input().set("type","submit")
-	  .set("value","set");
+	  .set("value","reset");
 	sprintf(buf,"%d",ddu);
 	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu"); 
 	sprintf(buf,"%d",i);       
@@ -3513,13 +3525,14 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	sprintf(buf2," %04X ",thisDDU->vmepara_rd_inreg2());
       }
       if(i==512){
-	*out << br() << " <font color=blue> Set SPY Rate (bits 2:0); set Ignore DCC/S-Link Wait (bit 3) <br>  Rate 0-7 will transmit 1 event out of 1,8,32,128,1024,8192,32768,never</font>" << br() << std::endl;
+	*out << br() << " <font color=blue> Set SPY Rate (bits 2:0); set Ignore DCC/S-Link Wait (bit 3) <br>  Rate 0-7 will transmit 1 event out of 1,2,4,16,128,1024,32768,never</font>" << br() << std::endl;
+	//	*out << br() << " <font color=blue> Set SPY Rate (bits 2:0); set Ignore DCC/S-Link Wait (bit 3) <br>  Rate 0-7 will transmit 1 event out of 1,8,32,128,1024,8192,32768,never</font>" << br() << std::endl;
 	//	*out << br() << " <font color=blue> Select 0-7 for SPY rate = 1 per 1,8,32,128,1024,8192,32768,never</font>" << br() << std::endl;
 	sprintf(buf,"GbE Prescale*:");
 	sprintf(buf2," %04X <font color=red> EXPERT ONLY! </font> ",thisDDU->vmepara_rd_GbEprescale());
       }
       if(i==513){
-	sprintf(buf,"Toggle DCC Wait/Backpressure Enable:");
+	sprintf(buf,"Toggle DAQ Backpressure Enable (DCC/S-Link Wait):");
 	sprintf(buf2," <font color=red> EXPERT ONLY! </font> ");
       }
       if(i==514){
@@ -3528,7 +3541,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	sprintf(buf2," %04X <font color=red> EXPERT ONLY! </font> ",thisDDU->vmepara_rd_fakel1reg());
       }
       if(i==515){
-	sprintf(buf,"Toggle All FakeL1A:");
+	sprintf(buf,"Toggle All FakeL1A (data dump/passthrough mode):");
 	sprintf(buf2," <font color=red> EXPERT ONLY! </font> ");
       }
       if(i==516){
@@ -3609,9 +3622,9 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	  sprintf(buf2," UNDEFINED ");
 	  iblink=1;
 	}
-	if(iblink==1)sprintf(buf,"<%1X,<blink> ",DDU_FMM);
+	if(iblink==1)sprintf(buf,"%1X,<blink> ",DDU_FMM);
 	else sprintf(buf,"%1X, ",((stat>>8)&0x000F));
-	*out << buf << buf2;
+	*out << buf << buf2 << "</blink>";
 	*out << cgicc::span();
 
 	sprintf(buf2,"<blockquote><font size=-1 color=black face=arial> slot=%d &nbsp &nbsp ",((~stat)&0x001F));
@@ -3640,6 +3653,8 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	     .set("ENCTYPE","multipart/form-data")
 	     .set("value",xmltext)
 	     .set("style","font-size: 13pt; font-family: arial;")<<std::endl;
+	   *out << cgicc::input().set("type","submit")
+	     .set("value","set");
          }
 	 else{
 	   *out << cgicc::input().set("type","hidden")
@@ -3648,9 +3663,11 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	     .set("ENCTYPE","multipart/form-data")
 	     .set("value",xmltext)
 	     .set("style","font-size: 13pt; font-family: arial;")<<std::endl;
+	   *out << cgicc::input().set("type","submit")
+	     .set("value","toggle");
          }
-	 *out << cgicc::input().set("type","submit")
-	   .set("value","set");
+	 //	 *out << cgicc::input().set("type","submit")
+	 //	   .set("value","set");
          sprintf(buf,"%d",ddu);
          *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu"); 
          sprintf(buf,"%d",i);       
