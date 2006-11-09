@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.5 2006/10/12 15:56:01 rakness Exp $
+// $Id: TMB_constants.h,v 3.6 2006/11/09 08:47:51 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.6  2006/11/09 08:47:51  rakness
+// add rpc0_raw_delay to xml file
+//
 // Revision 3.5  2006/10/12 15:56:01  rakness
 // cleaned up configuration checking for ALCT/TMB
 //
@@ -323,7 +326,7 @@ struct tmb_id_regs
 
 };
 //
-const int number_of_allowed_configuration_addresses = 22;
+const int number_of_allowed_configuration_addresses = 23;
 const int allowed_configuration_addresses[number_of_allowed_configuration_addresses] = {
   rpc_cfg_adr,          //0xb6 enable RPC 
   vme_ratctrl_adr,      //0x1e add 1/2-cycle to RPC latching
@@ -346,7 +349,8 @@ const int allowed_configuration_addresses[number_of_allowed_configuration_addres
   vme_usr_jtag_adr,     //0x10 ALCT JTAG address
   alct_inj_adr,         //0x32 ALCT Injector Control
   seq_trig_dly2_adr,    //0x6A Sequencer Trigger source delays
-  seqmod_adr            //0xAC Sequencer Trigger modifiers
+  seqmod_adr,           //0xAC Sequencer Trigger modifiers
+  rpc_raw_delay_adr     //0xBA RPC Raw Hits delay
 };
 //
 // bits within addresses which are allowed to be set in configuration prom
@@ -374,7 +378,8 @@ const int allowed_configuration_mask[number_of_allowed_configuration_addresses] 
   0x007f,               //0x10:  disable TDO, unassigned bits
   0x0001,               //0x32:  disable injector control bits
   0xffff,               //0x6A:
-  0x01df                //0xAC:  disable random LCT enable, pulses outside of L1a window, scintillator functions
+  0x01df,               //0xAC:  disable random LCT enable, pulses outside of L1a window, scintillator functions
+  0x000f                //0xBA:  disable RPC1, RPC2, RPC3 delay
 };
 //
 // TMB trigger modes:
@@ -839,6 +844,27 @@ const int scint_veto_clr_vmereg        =  seqmod_adr;
 const int scint_veto_clr_bitlo         =  12;
 const int scint_veto_clr_bithi         =  12;
 const int scint_veto_clr_default       =  0;
+//
+//
+const int rpc0_raw_delay_vmereg            =  rpc_raw_delay_adr;
+const int rpc0_raw_delay_bitlo             =  0;
+const int rpc0_raw_delay_bithi             =  3;
+const int rpc0_raw_delay_default           =  1;
+//
+const int rpc1_raw_delay_vmereg            =  rpc_raw_delay_adr;
+const int rpc1_raw_delay_bitlo             =  4;
+const int rpc1_raw_delay_bithi             =  7;
+const int rpc1_raw_delay_default           =  1;
+//
+const int rpc2_raw_delay_vmereg            =  rpc_raw_delay_adr;
+const int rpc2_raw_delay_bitlo             =  8;
+const int rpc2_raw_delay_bithi             =  11;
+const int rpc2_raw_delay_default           =  1;
+//
+const int rpc3_raw_delay_vmereg            =  rpc_raw_delay_adr;
+const int rpc3_raw_delay_bitlo             =  12;
+const int rpc3_raw_delay_bithi             =  15;
+const int rpc3_raw_delay_default           =  1;
 //
 //
 

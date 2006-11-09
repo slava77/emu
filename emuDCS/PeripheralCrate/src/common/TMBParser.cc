@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.9 2006/10/20 13:09:54 mey Exp $
+// $Id: TMBParser.cc,v 3.10 2006/11/09 08:47:51 rakness Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.10  2006/11/09 08:47:51  rakness
+// add rpc0_raw_delay to xml file
+//
 // Revision 3.9  2006/10/20 13:09:54  mey
 // UPdate
 //
@@ -263,6 +266,11 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate,xercesc::DOMNode
     int mpc_phase;
     if ( parser_.fillInt("mpc_phase",mpc_phase)) {  //add
       tmb_->SetMpcPhase(mpc_phase);
+    }
+    //
+    int rpc0_raw_delay;
+    if ( parser_.fillInt("rpc0_raw_delay",rpc0_raw_delay)) {  //add
+      tmb_->SetRpc0RawDelay(rpc0_raw_delay);
     }
     //
     xercesc::DOMNode * daughterNode = pNode->getFirstChild();

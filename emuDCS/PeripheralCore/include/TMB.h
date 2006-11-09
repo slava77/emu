@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.14 2006/11/08 13:53:37 mey Exp $
+// $Id: TMB.h,v 3.15 2006/11/09 08:47:51 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.15  2006/11/09 08:47:51  rakness
+// add rpc0_raw_delay to xml file
+//
 // Revision 3.14  2006/11/08 13:53:37  mey
 // Update
 //
@@ -495,6 +498,9 @@ public:
   //
   inline void SetMpcPhase(int mpc_phase){ mpc_phase_ = mpc_phase; }
   //
+  inline void SetRpc0RawDelay(int rpc0_raw_delay){ rpc0_raw_delay_ = rpc0_raw_delay; }
+  inline int  GetRpc0RawDelay(){ return rpc0_raw_delay_ ; }
+  //
   inline std::vector<unsigned long int> GetInjectedLct0() { return InjectedLct0 ; }
   inline std::vector<unsigned long int> GetInjectedLct1() { return InjectedLct1 ; }
   //
@@ -606,6 +612,7 @@ private:
   int rat_tmb_delay_;
   int rpc0_rat_delay_;
   int mpc_phase_;
+  int rpc0_raw_delay_;
   //
   std::vector<unsigned long int> InjectedLct0;
   std::vector<unsigned long int> InjectedLct1;
@@ -725,6 +732,10 @@ private:
   int read_l1a_allow_nol1a_;
   int read_l1a_allow_alct_only_;
   int read_scint_veto_clr_;
+  int read_rpc0_raw_delay_;
+  int read_rpc1_raw_delay_;
+  int read_rpc2_raw_delay_;
+  int read_rpc3_raw_delay_;
   //
   int read_trgmode_;
   int read_CLCTtrigger_setting_;

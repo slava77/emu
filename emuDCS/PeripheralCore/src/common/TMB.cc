@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.23 2006/10/21 17:40:58 mey Exp $
+// $Id: TMB.cc,v 3.24 2006/11/09 08:47:51 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.24  2006/11/09 08:47:51  rakness
+// add rpc0_raw_delay to xml file
+//
 // Revision 3.23  2006/10/21 17:40:58  mey
 // Got rid of last commit
 //
@@ -351,7 +354,8 @@ TMB::TMB(Crate * theCrate, int slot) :
   dmb_tx_delay_(5),
   rat_tmb_delay_(9),
   rpc0_rat_delay_(3),
-  mpc_phase_(0)
+  mpc_phase_(0),
+  rpc0_raw_delay_(1)
 {
   //
   //jtag_address = -1;
@@ -4871,6 +4875,10 @@ void TMB::setupNewDelayChips() {
    sndbuf[1]=(rpc0_rat_delay_&0x0F);
    tmb_vme(0x02,0xE6,sndbuf,rcvbuf,1);
    //
+   sndbuf[0]=0x00;                     // RPC1, RPC2, RPC3 unused
+   sndbuf[1]=(rpc0_raw_delay_&0x0F);
+   tmb_vme(0x02,0xBA,sndbuf,rcvbuf,1);
+   //
    sndbuf[0]=0x00;
    sndbuf[1]=0x20;
    tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); // PHOS4 state machine
@@ -6653,6 +6661,11 @@ bool TMB::CheckCurrentConfiguration() {
 			     mpc_phase_,
 			     true);
   //
+  config_ok &= compareValues("RPC0 raw hits delay",
+			     read_rpc0_raw_delay_,
+			     rpc0_raw_delay_,
+			     true);
+  //
   std::ostringstream dump;
   dump << "TMB slot " << (int) slot() << ": configuration check -> ";
   (*configOut_) << "TMB slot " << (int) slot() << ": configuration -> ";
@@ -6974,7 +6987,18 @@ void TMB::PrintCurrentConfiguration() {
 		<< std::hex << read_l1a_allow_alct_only_ << std::endl;
   (*configOut_) << "        Clear scintillator veto                         = " 
 		<< std::hex << read_scint_veto_clr_ << std::endl;
-    //
+  //
+  (*configOut_) << std::hex << "0x" << (rpc_raw_delay_adr & 0xff) 
+		<< " -> RPC raw hits delay register:" << std::endl;
+  (*configOut_) << "        RPC0 raw hits delay          = " 
+		<< std::dec << read_rpc0_raw_delay_ << std::endl;
+  (*configOut_) << "        RPC1 raw hits delay (unused) = " 
+		<< std::dec << read_rpc1_raw_delay_ << std::endl;
+  (*configOut_) << "        RPC2 raw hits delay (unused) = " 
+		<< std::dec << read_rpc2_raw_delay_ << std::endl;
+  (*configOut_) << "        RPC3 raw hits delay (unused) = " 
+		<< std::dec << read_rpc3_raw_delay_ << std::endl;
+  //
   return;
 }
 //
@@ -7407,6 +7431,25 @@ void TMB::DecodeConfigurationData(int address, int data) {
       (data >> scint_veto_clr_bitlo) & 
       makemask(scint_veto_clr_bitlo,
 	       scint_veto_clr_bithi);
+    //
+  } else if ( (address & address_mask) == (rpc_raw_delay_adr & address_mask) ) {
+    //
+    read_rpc0_raw_delay_ = 
+      (data >> rpc0_raw_delay_bitlo) & 
+      makemask(rpc0_raw_delay_bitlo,
+	       rpc0_raw_delay_bithi);
+    read_rpc1_raw_delay_ = 
+      (data >> rpc1_raw_delay_bitlo) & 
+      makemask(rpc1_raw_delay_bitlo,
+	       rpc1_raw_delay_bithi);
+    read_rpc2_raw_delay_ = 
+      (data >> rpc2_raw_delay_bitlo) & 
+      makemask(rpc2_raw_delay_bitlo,
+	       rpc2_raw_delay_bithi);
+    read_rpc3_raw_delay_ = 
+      (data >> rpc3_raw_delay_bitlo) & 
+      makemask(rpc3_raw_delay_bitlo,
+	       rpc3_raw_delay_bithi);
     //
   }
   //
