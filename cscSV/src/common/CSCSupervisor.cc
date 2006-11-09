@@ -341,9 +341,7 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		setParameter("EmuPeripheralCrate", "xmlFileName", "xsd:string",
 				trim(getConfigFilename("PC", runmode_)));
 		setParameter("EmuDAQManager",
-				"runNumber", "xsd:unsignedLong", runnumber_);
-		setParameter("EmuDAQManager",
-				"maxNumberOfEvents", "xsd:unsignedLong", nevents_);
+				"maxNumberOfEvents", "xsd:integer", nevents_);
 		sendCommand("Configure", "EmuFCrateSOAP");
 		sendCommand("Configure", "EmuPeripheralCrate");
 		sendCommand("Configure", "EmuDAQManager");
@@ -370,13 +368,13 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 		throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "runmode_: " << runmode_
+			<< " runnumber_: " << runnumber_ << " nevents_: " << nevents_);
 
 	try {
 		if (state_table_.getState("EmuDAQManager", 0) == "Halted") {
 			setParameter("EmuDAQManager",
 					"runNumber", "xsd:unsignedLong", runnumber_);
-			setParameter("EmuDAQManager",
-					"maxNumberOfEvents", "xsd:unsignedLong", nevents_);
 			sendCommand("Configure", "EmuDAQManager");
 		}
 		sendCommand("Enable", "EmuPeripheralCrate");
@@ -929,6 +927,9 @@ void CSCSupervisor::StateTable::refresh()
 
 			i->second = extractState(reply, klass);
 		} catch (xdaq::exception::Exception e) {
+			i->second = STATE_UNKNOWN;
+		} catch (...) {
+			LOG4CPLUS_DEBUG(sv_->getApplicationLogger(), "Exception with " << klass);
 			i->second = STATE_UNKNOWN;
 		}
 	}
