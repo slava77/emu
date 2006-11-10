@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 3.9 2006/11/07 23:21:02 mey Exp $
+// $Id: CalibDAQ.cc,v 3.10 2006/11/10 16:51:44 mey Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 3.10  2006/11/10 16:51:44  mey
+// Update
+//
 // Revision 3.9  2006/11/07 23:21:02  mey
 // Update
 //
@@ -532,10 +535,8 @@ void CalibDAQ::gainCFEB() {
 //
 void CalibDAQ::pedestalCFEB() { 
   //
-  float dac;
   int counter=0;
   int nsleep = 100;  
-  dac = 1.0;
   //
   std::cout << "CFEB Pedestal" << std::endl;
   //
@@ -569,7 +570,7 @@ void CalibDAQ::pedestalCFEB() {
       //
       myDmbs[i]->fxpreblkend(6); // Set pre block end to 6
       myDmbs[i]->buck_shift();
-      myDmbs[i]->set_cal_dac(0.0,0.0);
+      myDmbs[i]->set_cal_dac(0.01,0.01);
     }
     //
   ::usleep(1000);

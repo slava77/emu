@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.21 2006/10/30 15:54:30 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.22 2006/11/10 16:51:44 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -692,16 +692,41 @@ public:
       crateUtility.SetCrate(myCrates[crate]);
       crateUtility.CreateTstoreTables();
       crateUtility.DumpTstoreTables();
-      std::vector <std::string> PeriphTable = crateUtility.GetPeriphTable();
       //
       this->SendSOAPMessageConnectTStore(in,out);
-      this->SendSOAPMessageDefinitionTStore(in,out);
+      //
+      /*
+      std::vector <std::string> PeriphTable = crateUtility.GetPeriphTable();
+      //
+      this->SendSOAPMessageDefinitionTStore(in,out,"myTable1");
       //
       AddRow(0,table_,PeriphTable);
       //
-      //OutputTable(in,out,table_);
+      this->SendSOAPMessageUpdateTStore(in,out,"myTable1");
+      */
+      /*
+      this->SendSOAPMessageDefinitionTStore(in,out,"myTable2");
       //
-      this->SendSOAPMessageInsertTStore(in,out);
+      std::vector <std::string> CSCTable = crateUtility.GetCSCTable();
+      //
+      AddRow(0,table_,CSCTable);
+      //
+      this->SendSOAPMessageInsertTStore(in,out,"myTable2");
+      //
+      //OutputTable(in,out,table_);
+      */
+      //
+      for (int i=0; i<9; i++) {
+	//
+	this->SendSOAPMessageDefinitionTStore(in,out,"myTable4");
+	//
+	std::vector <std::string> DmbTable = crateUtility.GetDmbTable(i);
+	//
+	AddRow(0,table_,DmbTable);
+	//
+	this->SendSOAPMessageInsertTStore(in,out,"myTable4");
+	//
+      }
       //
     }
     //
@@ -711,6 +736,12 @@ public:
     //
     int Column=0;
     std::vector<std::string> columns=table.getColumns();
+    //
+    if( NewColumn.size() != columns.size() ) {
+      std::cout << "Column size doesn't match...expect= " << columns.size() << " got= " << NewColumn.size() << std::endl;
+      return;
+    }
+    //
     vector<std::string>::iterator columnIterator;
     for(columnIterator=columns.begin(); columnIterator!=columns.end(); columnIterator++,Column++) {
       string columnType=table.getColumnType(*columnIterator);
@@ -744,7 +775,7 @@ public:
       if (xdataValue) {
 	//
 	table.setValueAt(Row,*columnIterator,*xdataValue);
-	//delete xdataValue;
+	delete xdataValue;
       }
       //
     } 
@@ -1191,7 +1222,7 @@ public:
 	std::cout << "Didn't find TStore" <<std::endl;
       }
       //
-      this->Default(in,out);      
+      //this->Default(in,out);      
       //
     }
   //
@@ -1233,7 +1264,15 @@ public:
       //
     }
   //
-  void EmuPeripheralCrateManager::SendSOAPMessageQueryTStore(xgi::Input * in, xgi::Output * out ) 
+  void EmuPeripheralCrateManager::SendSOAPMessageQueryTStore(xgi::Input * in, xgi::Output * out) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      this->SendSOAPMessageQueryTStore(in,out,"myTable5");
+      //
+    }
+  //
+  void EmuPeripheralCrateManager::SendSOAPMessageQueryTStore(xgi::Input * in, xgi::Output * out, std::string TableName ) 
     throw (xgi::exception::Exception)
     {
       //
@@ -1256,7 +1295,7 @@ public:
 	//add the parameters to the message
 	queryElement.addNamespaceDeclaration("sql",  "urn:tstore-view-SQL");
 	xoap::SOAPName property = envelope.createName("name", "sql","urn:tstore-view-SQL");
-	queryElement.addAttribute(property, "myTable1");
+	queryElement.addAttribute(property, TableName);
       }
       catch(xoap::exception::Exception& e) {
 	std::cout << "Got exception 1" << std::endl;
@@ -1312,7 +1351,15 @@ public:
       //
     }
   //
-  void EmuPeripheralCrateManager::SendSOAPMessageDefinitionTStore(xgi::Input * in, xgi::Output * out ) 
+  void EmuPeripheralCrateManager::SendSOAPMessageDefinitionTStore(xgi::Input * in, xgi::Output * out) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      this->SendSOAPMessageDefinitionTStore(in,out,"myTable2");
+      //
+    }
+  //
+  void EmuPeripheralCrateManager::SendSOAPMessageDefinitionTStore(xgi::Input * in, xgi::Output * out, std::string TableName ) 
     throw (xgi::exception::Exception)
     {
       //
@@ -1335,7 +1382,7 @@ public:
 	//add the parameters to the message
 	queryElement.addNamespaceDeclaration("sql",  "urn:tstore-view-SQL");
 	xoap::SOAPName property = envelope.createName("name", "sql","urn:tstore-view-SQL");
-	queryElement.addAttribute(property, "myTable1");
+	queryElement.addAttribute(property, TableName);
       }
       catch(xoap::exception::Exception& e) {
 	std::cout << "Got exception 1" << std::endl;
@@ -1405,8 +1452,14 @@ public:
     //attachment->setContentId(contentId);
     message->addAttachmentPart(attachment);
   }
-  // 
-  void EmuPeripheralCrateManager::SendSOAPMessageInsertTStore(xgi::Input * in, xgi::Output * out ) 
+  //
+  void EmuPeripheralCrateManager::SendSOAPMessageInsertTStore(xgi::Input * in, xgi::Output * out) 
+    throw (xgi::exception::Exception)
+    {
+      this->SendSOAPMessageInsertTStore(in,out,"myTable1");
+    }
+  //
+  void EmuPeripheralCrateManager::SendSOAPMessageInsertTStore(xgi::Input * in, xgi::Output * out, std::string TableName ) 
     throw (xgi::exception::Exception)
     {
       //
@@ -1429,7 +1482,7 @@ public:
 	//add the parameters to the message
 	queryElement.addNamespaceDeclaration("sql",  "urn:tstore-view-SQL");
 	xoap::SOAPName property = envelope.createName("name", "sql","urn:tstore-view-SQL");
-	queryElement.addAttribute(property, "myTable1");
+	queryElement.addAttribute(property, TableName);
       }
       catch(xoap::exception::Exception& e) {
 	std::cout << "Got exception 1" << std::endl;
@@ -1461,7 +1514,7 @@ public:
     throw (xgi::exception::Exception)
     {
       //
-      std::cout <<"Send SOAP insert" << std::endl;
+      std::cout <<"Send SOAP delete" << std::endl;
       //
       xoap::MessageReference msg = xoap::createMessage();
       try {
@@ -1482,6 +1535,7 @@ public:
       }
       //
       try {
+	addAttachment(msg,table_,"");
 	xdaq::ApplicationDescriptor * tstoreDescriptor = 
 	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),400);
 	//
@@ -1498,7 +1552,7 @@ public:
 	std::cout << "Didn't find TStore" << std::endl;
       }
       //
-      this->Default(in,out);
+      //this->Default(in,out);
       //
     }
   //
@@ -1543,18 +1597,24 @@ public:
 	std::cout << "Didn't find TStore" << std::endl;
       }
       //
-      this->Default(in,out);
+      //this->Default(in,out);
       //
     }
   //
   void EmuPeripheralCrateManager::SendSOAPMessageUpdateTStore(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
     {
+      this->SendSOAPMessageUpdateTStore(in,out,"myTable1");
+    }
+  //
+  void EmuPeripheralCrateManager::SendSOAPMessageUpdateTStore(xgi::Input * in, xgi::Output * out, std::string TableName ) 
+    throw (xgi::exception::Exception)
+    {
       //
       std::cout << table_.getRowCount() << std::endl;
-      SetRandomDataTable(table_,1);
+      //SetRandomDataTable(table_,1);
       //
-      OutputTable(in,out,table_);
+      //OutputTable(in,out,table_);
       //
       std::cout <<"Send SOAP update" << std::endl;
       //
@@ -1570,7 +1630,7 @@ public:
 	//add the parameters to the message
 	queryElement.addNamespaceDeclaration("sql",  "urn:tstore-view-SQL");
 	xoap::SOAPName property = envelope.createName("name", "sql","urn:tstore-view-SQL");
-	queryElement.addAttribute(property, "myTable1");
+	queryElement.addAttribute(property, TableName);
       }
       catch(xoap::exception::Exception& e) {
 	std::cout << "Got exception 1" << std::endl;

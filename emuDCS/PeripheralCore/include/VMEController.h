@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.9 2006/10/30 15:56:05 mey Exp $
+// $Id: VMEController.h,v 3.10 2006/11/10 16:51:44 mey Exp $
 // $Log: VMEController.h,v $
+// Revision 3.10  2006/11/10 16:51:44  mey
+// Update
+//
 // Revision 3.9  2006/10/30 15:56:05  mey
 // Update
 //
@@ -226,6 +229,7 @@ private:
   char rbuf[9000];
   int nrbuf;
   char spebuff[MAXLINE];
+  bool done_init_;
   
   int max_buff;
   int tot_buff;

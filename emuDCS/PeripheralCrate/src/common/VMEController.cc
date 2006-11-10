@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.9 2006/10/23 09:08:39 mey Exp $
+// $Id: VMEController.cc,v 3.10 2006/11/10 16:51:45 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.10  2006/11/10 16:51:45  mey
+// Update
+//
 // Revision 3.9  2006/10/23 09:08:39  mey
 // UPdate
 //
@@ -201,6 +204,8 @@ VMEController::VMEController(int crate):
   add_ucla = -1;
   //
   usedelay_ = false ;
+  //
+  done_init_=false;
 }
 
 VMEController::~VMEController(){
@@ -235,6 +240,8 @@ void VMEController::init() {
   //
   disable_errpkt();
   //
+  done_init_=true;
+  //
 }
 
 void VMEController::reset() {
@@ -246,6 +253,9 @@ void VMEController::reset() {
 }
 
 void VMEController::start(int slot, int boardtype) {
+  //
+  if(!done_init_) init();
+  //
   board=boardtype;
   vmeadd=slot<<19;
   //std::cout << "Start.vmeadd="<<std::hex<<vmeadd<<std::endl;

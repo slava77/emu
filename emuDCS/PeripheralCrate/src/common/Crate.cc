@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.9 2006/10/30 15:56:42 mey Exp $
+// $Id: Crate.cc,v 3.10 2006/11/10 16:51:45 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 3.10  2006/11/10 16:51:45  mey
+// Update
+//
 // Revision 3.9  2006/10/30 15:56:42  mey
 // Update
 //
@@ -248,7 +251,7 @@ void Crate::configure() {
   CCB * ccb = this->ccb();
   MPC * mpc = this->mpc();
   //
-  theController->init();
+  //theController->init();
   //
   ccb->configure();
   //

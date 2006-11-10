@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: PeripheralCrateParser.cc,v 3.1 2006/08/17 15:02:31 mey Exp $
+// $Id: PeripheralCrateParser.cc,v 3.2 2006/11/10 16:51:45 mey Exp $
 // $Log: PeripheralCrateParser.cc,v $
+// Revision 3.2  2006/11/10 16:51:45  mey
+// Update
+//
 // Revision 3.1  2006/08/17 15:02:31  mey
 // Modified Parser to accept globals
 //
@@ -127,6 +130,6 @@ PeripheralCrateParser::PeripheralCrateParser(xercesc::DOMNode *pNode,EmuSystem *
   } // end of looping over boards (pNode3)
   std::cout <<"PeripheralCrateParser: finished looping over boards for crate #"<< crateNumber << std::endl; 
   //Here init controller()
-  if(crate) vmeParser_.controller()->init();
+  //if(crate) vmeParser_.controller()->init();
 }
 
