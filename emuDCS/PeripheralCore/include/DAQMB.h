@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.9 2006/10/10 11:10:07 mey Exp $
+// $Id: DAQMB.h,v 3.10 2006/11/10 16:51:44 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.10  2006/11/10 16:51:44  mey
+// Update
+//
 // Revision 3.9  2006/10/10 11:10:07  mey
 // Update
 //
@@ -286,26 +289,62 @@ public:
   void set_cal_tim_inject(int ntim);
   //
   void SetFebDavDelay(int delay){feb_dav_delay_ = delay;}
+  inline int GetFebDavDelay(){return feb_dav_delay_;}
+  //
   void SetTmbDavDelay(int delay){tmb_dav_delay_ = delay;}
+  inline int GetTmbDavDelay(){return tmb_dav_delay_;}
+  //
   void SetPushDavDelay(int delay){push_dav_delay_ = delay;}
+  inline int GetPushDavDelay(){return push_dav_delay_;}
+  //
   void SetL1aDavDelay(int delay){l1acc_dav_delay_ = delay;}
+  inline int GetL1aDavDelay(){return l1acc_dav_delay_;}
+  //
   void SetAlctDavDelay(int delay){ALCT_dav_delay_ = delay;}
+  inline int GetAlctDavDelay(){return ALCT_dav_delay_;}
+  //
   void SetCalibrationLctDelay(int delay){calibration_LCT_delay_ = delay;}
+  inline int GetCalibrationLctDelay(){return calibration_LCT_delay_;}
+  //
   void SetCalibrationL1aDelay(int delay){calibration_l1acc_delay_ = delay;}
+  inline int GetCalibrationL1aDelay(){return calibration_l1acc_delay_;}
+  //
   void SetPulseDelay(int delay){pulse_delay_ = delay;}
+  inline int GetPulseDelay(){return pulse_delay_;}
+  //
   void SetInjectDelay(int delay){inject_delay_ = delay;}
+  inline int GetInjectDelay(){return inject_delay_;}
+  //
   //void SetFebClockDelay(int delay){feb_clock_delay_ = delay;}
+  //
   void SetCompMode(int mode){comp_mode_ = mode;}
+  inline int GetCompMode(){return comp_mode_;}
+  //
   void SetCompTiming(int delay){comp_timing_ = delay;}
+  inline int GetCompTiming(){return comp_timing_;}
+  //
   void SetPreBlockEnd(int delay){pre_block_end_ = delay;}
+  inline int GetPreBlockEnd(){return pre_block_end_ ;}
+  //
   void SetCableDelay(int delay){cable_delay_ = delay;}
+  inline int GetCableDelay(){return cable_delay_;}
+  //
   void SetCrateId(int id){crate_id_ = id;}
+  //
   void SetCfebClkDelay(int delay){cfeb_clk_delay_ = delay;}
+  inline int GetCfebClkDelay(){return cfeb_clk_delay_;}
+  //
   void SetxLatency(int latency){xlatency_ = latency;}
+  inline int GetxLatency(){return xlatency_;}
   //
   void SetPulseDac(float value){pul_dac_set_= value;}
+  inline float GetPulseDac(){return pul_dac_set_;}
+  //
   void SetInjectorDac(float value){inj_dac_set_=value;}
+  inline float GetInjectorDac(){return inj_dac_set_;}
+  //
   void SetCompThresh(float value){set_comp_thresh_=value;}
+  inline float GetCompThresh(){return set_comp_thresh_;}
   //
   void SetCompModeCfeb(int cfeb, int value){comp_mode_cfeb_[cfeb]=value;}
   void SetCompTimingCfeb(int cfeb, int value){comp_timing_cfeb_[cfeb]=value;}

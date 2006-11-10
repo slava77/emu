@@ -7,6 +7,7 @@
 #include "CrateUtilities.h"
 #include "MPC.h"
 #include "TMB.h"
+#include "DAQMB.h"
 #include "CCB.h"
 #include "VMEController.h"
 //
@@ -29,104 +30,362 @@ CrateUtilities::~CrateUtilities(){
 void CrateUtilities::DumpTstoreTables(){
   //
   for( unsigned int periph_entry=0; 
-       periph_entry<periph.size(); periph_entry++){
-    std::cout << periph[periph_entry] << std::endl;
+       periph_entry<periph_table.size(); periph_entry++){
+    std::cout << periph_table[periph_entry] << std::endl;
   }
   //
 }
 //
 void CrateUtilities::CreateTstoreTables(){
   //
-  //
   CCB * myCCB = myCrate_->ccb();
   MPC * myMPC = myCrate_->mpc();
+  std::vector<TMB *>   myTmbs = myCrate_->tmbs();  
+  std::vector<DAQMB *> myDmbs = myCrate_->daqmbs();  
   //
-  std::ostringstream output;
+  std::ostringstream periph_output;
   //
-  output.str("");
-  output << myCCB->GetBxOrbit();
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << myCCB->GetBxOrbit();
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << myCCB->GetCCBmode();
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << myCCB->GetCCBmode();
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << myCCB->slot();
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << myCCB->slot();
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << "2004" ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << "2004" ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << "21" ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << "21" ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << "20/06/2004" ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << "20/06/2004" ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << "v5" ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << "v5" ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << myCrate_->number() ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << myCrate_->number() ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << myCrate_->GetLabel() ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << myCrate_->GetLabel() ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << myCCB->Getl1adelay() ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << myCCB->Getl1adelay() ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << myMPC->GetBoardID() ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << myMPC->GetBoardID() ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << myMPC->slot() ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << myMPC->slot() ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << ((myCrate_->number())+1) ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << ((myCrate_->number())+3) ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << myCrate_->vmeController()->port() ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << myCrate_->vmeController()->port() ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << myMPC->GetSerializerMode() ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << myMPC->GetSerializerMode() ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << myCCB->GetSPS25ns() ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << myCCB->GetSPS25ns() ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << myMPC->GetTransparentMode() ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << myMPC->GetTransparentMode() ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << myCCB->GetTTCmode() ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << myCCB->GetTTCmode() ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << myCCB->GetTTCrxCoarseDelay() ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << myCCB->GetTTCrxCoarseDelay() ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << myCCB->GetTTCrxID() ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << myCCB->GetTTCrxID() ;
+  periph_table.push_back(periph_output.str());
   //
-  output.str("");
-  output << myCrate_->vmeController()->GetVMEAddress() ;
-  periph.push_back(output.str());
+  periph_output.str("");
+  periph_output << myCrate_->vmeController()->GetVMEAddress() ;
+  periph_table.push_back(periph_output.str());
   //
+  std::ostringstream csc_output;
+  //
+  csc_output.str("");
+  csc_output << std::dec << "1" ;
+  csc_table.push_back(csc_output.str());
+  //
+  csc_output.str("");
+  csc_output << std::dec << "20/20/2006" ;
+  csc_table.push_back(csc_output.str());
+  //
+  csc_output.str("");
+  csc_output << std::dec << "v4" ;
+  csc_table.push_back(csc_output.str());
+  //
+  csc_output.str("");
+  csc_output << std::dec << "1" ;
+  csc_table.push_back(csc_output.str());
+  //
+  csc_output.str("");
+  csc_output << std::dec << "1" ;
+  csc_table.push_back(csc_output.str());
+  //
+  csc_output.str("");
+  csc_output << std::dec << "new CSC" ;
+  csc_table.push_back(csc_output.str());
+  //
+  csc_output.str("");
+  csc_output << std::dec << "Prod" ;
+  csc_table.push_back(csc_output.str());
+  //
+  csc_output.str("");
+  csc_output << std::dec << "1" ;
+  csc_table.push_back(csc_output.str());
+  //
+  std::ostringstream tmb_output[myTmbs.size()];
+  //
+  for( unsigned tmb=0; tmb<myTmbs.size(); tmb++) {
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetAlctMatchWindowSize();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetALCTrxPhase();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetALCTtxPhase();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetAlctVpfDelay();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetCFEB0delay();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetCFEB1delay();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetCFEB2delay();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetCFEB3delay();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetCFEB4delay();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << "3";
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << "1";
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetDmbTxDelay();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetDsPretrigThresh();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetFifoPreTrig();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetFifoTbins();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetHsPretrigThresh();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetL1aDelay();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetL1aWindowSize();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetMinHitsPattern();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetMPCdelay();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetMpcTXdelay();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetRatTmbDelay();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetRequestL1a();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetRpc0RatDelay();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetRpcBxnOffset();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetShiftRpc();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << std::dec << tmb ;
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->slot();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << "2004";
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+    tmb_output[tmb].str("");
+    tmb_output[tmb] << myTmbs[tmb]->GetTrgMode();
+    tmb_table[tmb].push_back(tmb_output[tmb].str());
+    //
+  }
+  //
+  std::ostringstream dmb_output[myDmbs.size()];
+  //
+  for( unsigned dmb=0; dmb<myDmbs.size(); dmb++) {
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetAlctDavDelay();
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetCableDelay();
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetCalibrationL1aDelay();
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetCalibrationLctDelay();
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetCompMode();
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetCompTiming();
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << "1";
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << "1";
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << "1";
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << std::dec << dmb ;
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->slot() ;
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetCfebClkDelay() ;
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetFebDavDelay() ;
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetInjectDelay() ;
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetInjectorDac() ;
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetL1aDavDelay() ;
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetPreBlockEnd() ;
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetPulseDelay() ;
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetPulseDac() ;
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetPushDavDelay() ;
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetCompThresh() ;
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetFebDavDelay() ;
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+    dmb_output[dmb].str("");
+    dmb_output[dmb] << myDmbs[dmb]->GetxLatency() ;
+    dmb_table[dmb].push_back(dmb_output[dmb].str());
+    //
+  }
 }
 //
 void CrateUtilities::MpcTMBTest(int Nloop){

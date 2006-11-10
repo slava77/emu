@@ -23,15 +23,30 @@ public:
   void DumpTstoreTables();
   //
   inline std::vector<std::string> CrateUtilities::GetPeriphTable(){
-    return periph;
+    return periph_table;
   }
-// 
-private:
+  //
+  inline std::vector<std::string> CrateUtilities::GetCSCTable(){
+    return csc_table;
+  }
+  //
+  inline std::vector<std::string> CrateUtilities::GetTmbTable(int number){
+    return tmb_table[number];
+  }
+  //
+  inline std::vector<std::string> CrateUtilities::GetDmbTable(int number){
+    return dmb_table[number];
+  }
+  // 
+ private:
   //
   int MpcTMBTestResult;
   CrateSelector theSelector;
   Crate * myCrate_;
-  std::vector<std::string> periph;
+  std::vector<std::string> periph_table;
+  std::vector<std::string> csc_table;
+  std::vector<std::string> tmb_table[9];
+  std::vector<std::string> dmb_table[9];
   //
 };
 
