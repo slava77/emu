@@ -216,6 +216,10 @@ private:
     void controlWebPage(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
 
+  void captainForm(xgi::Input *in, xgi::Output *out)
+    throw (xgi::exception::Exception);
+  void processCaptainForm(xgi::Input *in, xgi::Output *out)
+    throw (xgi::exception::Exception);
   void commentWebPage(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
   void processCommentForm(xgi::Input *in)
@@ -223,7 +227,11 @@ private:
   void commandWebPage(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
   void printUserComments( xgi::Output *out );
+  void stringReplace( string& inThis, const string& This, const string& withThis );
   string textToHtml( const string text );
+
+  xdata::Boolean globalMode_; // true if we obey central run control
+  xdata::Boolean configuredInGlobalMode_; // true if this run was configured on central run control's command
 
   string comments_;        // The comments entered by the user.
   string globalRunNumber_; // The global run number entered by the user.
@@ -232,7 +240,7 @@ private:
   xdata::String curlCommand_;         // the curl command's full path
   xdata::String curlCookies_;         // file for cookies
   xdata::String CMSUserFile_;         // file that contains the username:password for CMS user
-  xdata::String eLogUserFile_;        // file that contains the username:password for eLog user
+  xdata::String eLogUserFile_;        // file that contains the username:password:author for eLog user
   xdata::String eLogURL_;             // eLog's URL 
 
   EmuRunInfo *runInfo_; // communicates with run database
@@ -242,7 +250,7 @@ private:
   xdata::String runDbAddress_;        // e.g. "dbc:oracle:thin:@oracms.cern.ch:10121:omds"
   xdata::String runDbUserFile_;       // file that contains the username:password for run db user
   void bookRunNumber();
-  void updateRunInfoDb( bool postToELogToo );
+  void writeRunInfo( bool toDatabase, bool toELog );
   void postToELog( string subject, string body, vector<string> *attachments=0 );
   bool isBookedRunNumber_;
 
@@ -264,8 +272,8 @@ private:
 			      vector< vector<string> >  counts ); // Emu
   string getDateTime();
   string ageOfPageClock();
-  void   getRunInfoFromTA( string* runnum, string* maxevents, string* configtime );
-  string reformatConfigTime( string configtime );
+  void   getRunInfoFromTA( string* runnum, string* maxevents, string* starttime, string* stoptime );
+  string reformatTime( string time );
   vector< pair<xdaq::ApplicationDescriptor*, string> > daqAppStates_;
   set<string> daqContexts_; // all different DAQ contexts with apps controlled by EmuDAQManager
   void   createAllAppStatesVector();
@@ -300,6 +308,9 @@ private:
   void getTriggerSources();
   void getTriggerMode();
 
+  void setParametersForGlobalMode();
+
+  string warningsToDisplay_;
 
     /**
      * Processes the form sent from the control web page.

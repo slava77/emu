@@ -405,7 +405,7 @@ throw (xgi::exception::Exception)
 void EmuDAQManager::defaultWebPage(xgi::Input *in, xgi::Output *out)
 throw (xgi::exception::Exception)
 {
-    string daqState = getDAQState();
+  daqState_ = getDAQState();
 
     *out << "<html>"                                                   << endl;
 
@@ -414,7 +414,7 @@ throw (xgi::exception::Exception)
     *out << "<link type=\"text/css\" rel=\"stylesheet\"";
     *out << " href=\"/" << urn_ << "/styles.css\"/>"                   << endl;
     *out << "<title>"                                                  << endl;
-    *out << "Local DAQ " << daqState                                   << endl;
+    *out << "Local DAQ " << daqState_.toString()                       << endl;
 //     *out << xmlClass_ << instance_                                     << endl;
 // 	 << " Version "
 //         << EmuDAQManagerV::versions 
@@ -485,16 +485,23 @@ throw (xgi::exception::Exception)
 
     *out << "<hr/>"                                                    << endl;
 
-    printDAQState( out, daqState );
+    printDAQState( out, daqState_.toString() );
 
     // Emu: display event number and max number of events
     string runNumber("UNKNOWN");
     string maxNumEvents("UNKNOWN");
-    string configTime("UNKNOWN");
-    getRunInfoFromTA( &runNumber, &maxNumEvents, &configTime );
+    string runStartTime("UNKNOWN");
+    string runStopTime("UNKNOWN");
+    getRunInfoFromTA( &runNumber, &maxNumEvents, &runStartTime, &runStopTime );
 
-    if ( daqState != "Halted" )
-      *out << " (Last configured at " << configTime << ")"             << endl;
+//     if ( daqState_.toString() != "Halted" && daqState_.toString() != "Ready" )
+//       *out << " (Started at " << runStartTime << ")"                   << endl;
+//     if ( daqState_.toString() != "Enabled" && daqState_.toString() != "Ready"  )
+//       *out << " (Stopped at " << runStopTime << ")"                   << endl;
+    if ( daqState_.toString() == "Enabled" )
+      *out << " (Started at " << runStartTime << ")"                   << endl;
+    if ( daqState_.toString() == "Halted" )
+      *out << " (Stopped at " << runStopTime << ")"                   << endl;
     *out << "<br/>"                                                    << endl;
     *out << "<br/>"                                                    << endl;
 
@@ -512,7 +519,10 @@ throw (xgi::exception::Exception)
     *out << "</tr>"                                                    << endl;
     *out << "<tr>"                                                     << endl;
     *out << "  <td>"                                                   << endl;
-    *out << "    " << runNumber                                        << endl;
+    if ( fsm_.getCurrentState() == 'E' )
+      *out << "    " << runNumber                                      << endl;
+    else
+      *out << "    " << runNumber_.toString()                          << endl;
     *out << "  </td>"                                                  << endl;
     *out << "</tr>"                                                    << endl;
     *out << "</table>"                                                 << endl;
@@ -550,9 +560,16 @@ throw (xgi::exception::Exception)
     *out << "</tr>"                                                    << endl;
     *out << "<tr>"                                                     << endl;
     *out << "  <td>"                                                   << endl;
-    *out << "    " << maxNumEvents;
-    if ( maxNumEvents.find("-",0) != string::npos ) *out << " (unlimited)";
-    *out                                                               << endl;
+    if ( fsm_.getCurrentState() == 'E' ){
+      *out << "    " << maxNumEvents;
+      if ( maxNumEvents.find("-",0) != string::npos ) 
+	*out << " (unlimited)";
+    }
+    else{
+      *out << "    " << maxNumberOfEvents_.toString()                  << endl;
+      if ( maxNumberOfEvents_.toString().find("-",0) != string::npos ) 
+	*out << " (unlimited)";
+    }
     *out << "  </td>"                                                  << endl;
     *out << "</tr>"                                                    << endl;
     *out << "</table>"                                                 << endl;
@@ -757,10 +774,10 @@ throw (xgi::exception::Exception)
   *out << "Emu Local DAQ "                                           << endl;
   *out << "</title>"                                                 << endl;
   *out << "</head>"                                                  << endl;
-  *out << "<frameset rows=\"90%, *\">"                               << endl;
-  *out << "  <frame src=\"command\"/>"                               << endl;
-  *out << "  <frame src=\"comment\"/>"                               << endl;
-  *out << "</frameset>"                                              << endl;
+  *out << "  <frameset rows=\"90%, *\">"                             << endl;
+  *out << "    <frame src=\"command\"/>"                             << endl;
+  *out << "    <frame src=\"comment\"/>"                             << endl;
+  *out << "  </frameset>"                                            << endl;
   *out << "</html>"                                                  << endl;
 }
 
@@ -776,15 +793,134 @@ void EmuDAQManager::printUserComments( xgi::Output *out ){
   *out << "</table>"                                             << endl;
 }
 
+void EmuDAQManager::stringReplace( string& inThis, const string& This, const string& withThis ){
+  string::size_type atIndex = 0;
+  while( ( atIndex = inThis.find( This, atIndex )) != string::npos ){
+    inThis.replace( atIndex, This.size(), withThis, 0, withThis.size() );
+    atIndex += withThis.size();
+  }
+}
+
 string EmuDAQManager::textToHtml( const string text ){
   // Just replace new line and carriage return with <br/>
   string html = text;
-  string::size_type index = 0;
-  while ( ( index = html.find_first_of( "\n" ) ) != string::npos )
-    html.replace( index, 1, "<br/>" );
-  while ( ( index = html.find_first_of( "\r" ) ) != string::npos )
-    html.replace( index, 1, "<br/>" );
+
+  stringReplace( html, "\n", "<br/>" );
+  stringReplace( html, "\r", "<br/>" );
+//   stringReplace( html, "\\", "\\\\" );
+  stringReplace( html, "\"", "\\\"" );
+//   stringReplace( html, "'", "\'");
+
   return html;
+}
+
+void EmuDAQManager::captainForm(xgi::Input *in, xgi::Output *out)
+  throw (xgi::exception::Exception){
+  // Select who's the captain, i.e., whose order we obey: central run control or CSC shift
+
+  processCaptainForm(in, out);
+
+//  *out << "<html>"                                                   << endl;
+
+//   *out << "<head>"                                                   << endl;
+//   *out << "<title>"                                                  << endl;
+//   *out << "Captain"                                                  << endl;
+//   *out << "</title>"                                                 << endl;
+//   *out << "</head>"                                                  << endl;
+
+//   *out << "<body>"                                                   << endl;
+  *out << "<form method=\"get\" action=\"/" << urn_ << "/command\">" << endl;
+
+  *out << "<table border=\"0\" width=\"80%\" align=\"center\" valign=\"center\">"<< endl;
+  *out << "<tr>"                                                     << endl;
+  *out << "  <td align=\"left\">"                                    << endl;
+  *out << " Select who should configure, start and stop the CSC local run: "    << endl;
+  *out << "<select name=\"captain\" title=\"Whose commands are to be obeyed.\">"<< endl;
+  *out << " <option value=\"global\">Central Run Control automatically</option>"<< endl;
+  *out << " <option value=\"local\">CSC Shift manually</option>"                << endl;
+  *out << "</select>"                                                           << endl;
+  *out << "  </td>"                                                  << endl;
+
+  *out << "  <td align=\"right\">"                                   << endl;
+  *out << "<input"                                                   << endl;
+  *out << " type=\"submit\""                                         << endl;
+  *out << " name=\"commit\""                                         << endl;
+  *out << " title=\"Commit your selection.\""                        << endl;
+  *out << " value=\"commit\""                                        << endl;
+  *out << "/>"                                                       << endl;
+  *out << "  </td>"                                                  << endl;
+
+  *out << "<tr>"                                                     << endl;
+  *out << "</table>"                                                 << endl;
+
+  *out << "</form>"                                                  << endl;
+
+//   *out << "</body>"                                                  << endl;
+
+//   *out << "</html>"                                                  << endl;
+}
+
+void EmuDAQManager::processCaptainForm(xgi::Input *in, xgi::Output *out)
+throw (xgi::exception::Exception)
+{
+    cgicc::Cgicc cgi(in);
+
+    std::vector<cgicc::FormEntry> fev = cgi.getElements();
+    std::vector<cgicc::FormEntry>::iterator fe;
+
+    for ( fe=fev.begin(); fe!=fev.end(); ++ fe ){
+ 
+//      cout << fe->getName() << ": " << fe->getValue() << endl;
+
+      if ( fe->getName() == "captain" ){
+	bool userWantsGlobal = ( fe->getValue() == "global");
+// 	cout << "userWantsGlobal        " << userWantsGlobal << endl
+// 	     << "configuredInGlobalMode " << configuredInGlobalMode_.value_ << endl
+// 	     << "CurrentState           " << fsm_.getCurrentState() << endl;
+	
+	if ( daqState_.toString() == "Halted" ){
+	  // DAQ's halted, everything's permitted.
+	  warningsToDisplay_ = "";
+	  globalMode_ = userWantsGlobal;
+	}
+	else{
+	  // DAQ's most probably been configured.
+	  if ( !globalMode_.value_ && userWantsGlobal ){
+	    // User wants to switch to central RC.
+	    if ( !configuredInGlobalMode_.value_ ){
+	      // Warn him if we are in a locally configured run.
+	      warningsToDisplay_ = "<p><span style=\"color:#ff0000; font-weight:bold; text-decoration:blink\">Warning</span>:";
+	      warningsToDisplay_ += "You have yield the control to Central Run Control in a run configured by CSC Shift. ";
+	      warningsToDisplay_ += "Only CSC Shift can start or stop such runs. ";
+	      warningsToDisplay_ += "Consider going back to CSC Shift Control.</p>";
+	    }
+	    else{
+	      warningsToDisplay_ = "";
+	    }
+	    globalMode_ = userWantsGlobal;
+	  }
+	  else{
+	    // Warn the user when he wants to take control back from central RC...
+	    if ( globalMode_.value_ && !userWantsGlobal && configuredInGlobalMode_.value_ && daqState_.toString() != "Halted" ){
+	      warningsToDisplay_  = "<p><span style=\"color:#ff0000; font-weight:bold; text-decoration:blink\">Warning</span>:";
+	      warningsToDisplay_ += "You have taken back the control to CSC Shift in a run configured by Central Run Control. ";
+	      warningsToDisplay_ += "It is preferable that such runs be started and stopped by Central Run Control. ";
+	      warningsToDisplay_ += "Consider going back to Central Run Control.</p>";
+	    }
+	    // ...but do as he requested.
+	    globalMode_ = userWantsGlobal;
+	  }
+	}
+
+	break;
+      }
+
+    }
+    
+    *out << warningsToDisplay_;
+
+    if ( globalMode_.value_ ) setParametersForGlobalMode();
+
 }
 
 void EmuDAQManager::commentWebPage(xgi::Input *in, xgi::Output *out)
@@ -801,6 +937,7 @@ throw (xgi::exception::Exception)
   *out << "</head>"                                                  << endl;
 
   *out << "<body>"                                                   << endl;
+
   *out << "<form method=\"get\" action=\"/" << urn_ << "/comment\">" << endl;
 
   *out << "<table border=\"0\" width=\"100%\">"                      << endl;
@@ -827,6 +964,7 @@ throw (xgi::exception::Exception)
   *out << " alt=\"global run number\""                               << endl;
   *out << " value=\"" << globalRunNumber_ << "\""                    << endl;
   *out << " size=\"8\""                                              << endl;
+  if ( globalMode_.value_ ) *out << " disabled=\"true\""             << endl;
   *out << "/>  "                                                     << endl;
   *out << "  </td>"                                                  << endl;
 
@@ -886,7 +1024,7 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
 {
     processCommandForm(in);
 
-    string daqState = getDAQState();
+    daqState_ = getDAQState();
 
     *out << "<html>"                                                   << endl;
 
@@ -898,7 +1036,7 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
     *out << "<link type=\"text/css\" rel=\"stylesheet\"";
     *out << " href=\"/" << urn_ << "/styles.css\"/>"                   << endl;
     *out << "<title>"                                                  << endl;
-    *out << "Emu Local DAQ " << daqState                               << endl;
+    *out << "Emu Local DAQ " << daqState_.toString()                               << endl;
 //     *out << xmlClass_ << instance_ << " Version " << EmuDAQManagerV::versions
 //         << " CONTROL" << endl;
     *out << "</title>"                                                 << endl;
@@ -906,7 +1044,6 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
     *out << "</head>"                                                  << endl;
 
     *out << "<body onload=\"countSeconds()\">"                         << endl;
-    *out << "<form method=\"get\" action=\"/" << urn_ << "/command\">" << endl;
 
     *out << "<table border=\"0\" width=\"100%\">"                      << endl;
     *out << "<tr>"                                                     << endl;
@@ -960,21 +1097,36 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
     *out << "</tr>"                                                    << endl;
     *out << "</table>"                                                 << endl;
 
-    *out << "<hr/>"                                                    << endl;
-
-    printDAQState( out, daqState );
-
-
-    // Emu: display event number and max number of events
+    // Get info from TA...
     string runNumber("UNKNOWN");
     string maxNumEvents("UNKNOWN");
-    string configTime("UNKNOWN");
-    getRunInfoFromTA( &runNumber, &maxNumEvents, &configTime );
+    string runStartTime("UNKNOWN");
+    string runStopTime("UNKNOWN");
+    getRunInfoFromTA( &runNumber, &maxNumEvents, &runStartTime, &runStopTime );
+    if ( runNumber    != "UNKNOWN" ) runNumber_.fromString( runNumber );
+    if ( maxNumEvents != "UNKNOWN" ) maxNumberOfEvents_.fromString( maxNumEvents );
 
-    if ( daqState != "Halted" )
-      *out << " (Configured at " << configTime << ")"             << endl;
+    // ...but let the user overwrite them by selecting global mode.
+    *out << "<hr/>"                                                    << endl;
+    captainForm( in, out );
+    *out << "<hr/>"                                                    << endl;
+
+
+    printDAQState( out, daqState_.toString() );
+
+
+    if ( daqState_.toString() == "Enabled" )
+      *out << " (Started at " << runStartTime << ")"                   << endl;
+    if ( daqState_.toString() == "Halted" )
+      *out << " (Stopped at " << runStopTime << ")"                   << endl;
+//     if ( daqState_.toString() != "Halted" && daqState_.toString() != "Ready" )
+//       *out << " (Started at " << runStartTime << ")"                   << endl;
+//     if ( daqState_.toString() != "Enabled" && daqState_.toString() != "Ready"  )
+//       *out << " (Stopped at " << runStopTime << ")"                   << endl;
     *out << "<br/>"                                                    << endl;
     *out << "<br/>"                                                    << endl;
+
+    *out << "<form method=\"get\" action=\"/" << urn_ << "/command\">" << endl;
 
     if ( fsm_.getCurrentState() == 'H' ){
       *out << "Set run number: "                                     << endl;
@@ -983,8 +1135,9 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
       *out << " name=\"runnumber\""                                  << endl;
       *out << " title=\"Run number.\""                               << endl;
       *out << " alt=\"run number\""                                  << endl;
-      *out << " value=\"" << runNumber << "\""                       << endl;
+      *out << " value=\"" << runNumber_.toString() << "\""           << endl;
       *out << " size=\"10\""                                         << endl;
+      if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
       *out << "/>  "                                                 << endl;
       *out << "<br>"                                                 << endl;
 
@@ -992,6 +1145,7 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
       *out << "<select"                                              ;
       *out << " name=\"runtype\""                                    ;
       *out << " size=\"1\""                                          ;
+      if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
       *out << "/>  "                                                 ;
       for ( int iType=0; iType<runTypes_.elements(); ++iType ){
 	xdata::String* runtype = dynamic_cast<xdata::String*>(runTypes_.elementAt(iType));
@@ -1009,8 +1163,9 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
       *out << " name=\"maxevents\""                                  << endl;
       *out << " title=\"Readout will stop after this many events.\"" << endl;
       *out << " alt=\"maximum number of events\""                    << endl;
-      *out << " value=\"" << maxNumEvents << "\""                    << endl;
+      *out << " value=\"" << maxNumberOfEvents_.toString() << "\""   << endl;
       *out << " size=\"10\""                                         << endl;
+      if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
       *out << "/>  "                                                 << endl;
       *out << "<br>"                                                 << endl;
 
@@ -1021,6 +1176,7 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
       *out << " title=\"If checked, events will be built.\""         << endl;
       *out << " alt=\"build events\""                                << endl;
       if ( buildEvents_.value_ ) *out << " checked"                  << endl;
+      if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
       *out << "/>  "                                                 << endl;
       *out << "<br>"                                                 << endl;
     }
@@ -1031,13 +1187,31 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
       *out << "<td align=\"left\">"                                  << endl;
       *out << "<table border=\"0\" rules=\"none\">"                  << endl;
       *out << "  <tr><td>Run number:</td><td>" << runNumber;
-      if ( isBookedRunNumber_ ) *out << " (booked)";
-      else *out << " (<span style=\"font-weight: bold; color:#ff0000;\">not</span> booked)";
+      if ( fsm_.getCurrentState() == 'C' ){
+	if ( runType_.toString() == "Debug" ) 
+	  *out << " (will <span style=\"font-weight: bold; color:#ff0000;\">not</span> be booked)";
+	else
+	  *out << " (will be replaced with a booked one)";
+      }
+      else{
+	if ( isBookedRunNumber_ ) 
+	  *out << " (booked)";
+	else if ( !configuredInGlobalMode_ ) 
+	  *out << " (<span style=\"font-weight: bold; color:#ff0000;\">not</span> booked)";
+      }
       *out << "</td></tr>"                                           << endl;
       *out << "  <tr><td>Run type:</td><td>" << runType_.toString();
       *out << "</td></tr>"                                           << endl;
-      *out << "  <tr><td>Maximum number of events:</td><td>" << maxNumEvents;
-      if ( maxNumEvents.find("-",0) != string::npos ) *out << " (unlimited)";
+      if ( fsm_.getCurrentState() == 'E' ){
+	*out << "  <tr><td>Maximum number of events:</td><td>" << maxNumEvents;
+	if ( maxNumEvents.find("-",0) != string::npos ) 
+	  *out << " (unlimited)";
+      }
+      else{
+	*out << "  <tr><td>Maximum number of events:</td><td>" << maxNumberOfEvents_.toString();
+	if ( maxNumberOfEvents_.toString().find("-",0) != string::npos ) 
+	  *out << " (unlimited)";
+      }
       *out << "</td></tr>"                                           << endl;
       *out << "  <tr><td>Build events:</td><td>" << buildEvents_ .toString();
       *out << "</td></tr>"                                           << endl;
@@ -1064,28 +1238,31 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
 	*out << " value=\"start\""                                   << endl;
       else if ( fsm_.getCurrentState() == 'F' )
 	*out << " value=\"reset\""                                   << endl;
+      if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
       *out << "/>"                                                   << endl;
 
       // In case the user has changed his mind, allow him to halt from 'configured' state.
-      // Also, if EmuDAQManager is in "Halted" state, but DAQ is not (because EmuDAQManager 
-      // was restarted, for example), allow DAQ to be stopped. 
-      if ( fsm_.getCurrentState() == 'C' ||
-	   ( fsm_.getCurrentState() == 'H' && daqState != "Halted" ) )
+      if ( fsm_.getCurrentState() == 'C' )
 	{
 	  *out << "<input"                                               << endl;
 	  *out << " type=\"submit\""                                     << endl;
 	  *out << " name=\"command\""                                    << endl;
 	  *out << " value=\"stop\""                                      << endl;
+	  if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
 	  *out << "/>"                                                   << endl;
 	}
 
       // If DAQ is in "Failed" state, but EmuDAQManager isn't, place a reset button
       // (if EmuDAQManager is in 'failed' state, we should already have one).
-      if ( fsm_.getCurrentState() != 'F' && daqState == "Failed" ){
+      // Also, if EmuDAQManager is in "Halted" state, but DAQ is not (because EmuDAQManager 
+      // was restarted, for example), allow DAQ to be reset. 
+      if ( fsm_.getCurrentState() != 'F' && daqState_.toString() == "Failed" ||
+	   ( fsm_.getCurrentState() == 'H' && daqState_.toString() != "Halted" ) ){
 	  *out << "<input"                                               << endl;
 	  *out << " type=\"submit\""                                     << endl;
 	  *out << " name=\"command\""                                    << endl;
 	  *out << " value=\"reset\""                                     << endl;
+	  if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
 	  *out << "/>"                                                   << endl;
       }
       
@@ -1096,6 +1273,7 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
       *out << " title=\"If checked, DQM's state will be changed too.\""  << endl;
       *out << " alt=\"control dqm\""                                << endl;
       if ( controlDQM_.value_ ) *out << " checked"                  << endl;
+      if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
       *out << "/>  "                                                 << endl;
       *out << " DQM too"                                             << endl;
 
@@ -1138,9 +1316,16 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
     *out << "</html>"                                                  << endl;
 }
 
+void EmuDAQManager::setParametersForGlobalMode(){
+  // Prepare for obeying Central Run Control commands
+  runType_                = "Monitor";
+  maxNumberOfEvents_      = -1;
+  buildEvents_            = false;
+  controlDQM_             = true;
+  globalRunNumber_        = runNumber_.toString();
+}
 
-
-void EmuDAQManager::getRunInfoFromTA( string* runnum, string* maxevents, string* configtime ){
+void EmuDAQManager::getRunInfoFromTA( string* runnum, string* maxevents, string* starttime, string* stoptime ){
     if ( taDescriptors_.size() ){
       if ( taDescriptors_.size() > 1 ){
 	LOG4CPLUS_WARN(logger_,"The embarassment of riches: " << taDescriptors_.size() <<
@@ -1166,12 +1351,22 @@ void EmuDAQManager::getRunInfoFromTA( string* runnum, string* maxevents, string*
 	}
       try
 	{
-	  *configtime = getScalarParam(taDescriptors_[0],"runStartTime","string");
-	  *configtime = reformatConfigTime( *configtime );
+	  *starttime = getScalarParam(taDescriptors_[0],"runStartTime","string");
+	  *starttime = reformatTime( *starttime );
 	}
       catch(xcept::Exception e)
 	{
-	  LOG4CPLUS_ERROR(logger_,"Failed to get time of configuration from TA0: " << 
+	  LOG4CPLUS_ERROR(logger_,"Failed to get time of run start from TA0: " << 
+			  xcept::stdformat_exception_history(e) );
+	}
+      try
+	{
+	  *stoptime = getScalarParam(taDescriptors_[0],"runStopTime","string");
+	  *stoptime = reformatTime( *stoptime );
+	}
+      catch(xcept::Exception e)
+	{
+	  LOG4CPLUS_ERROR(logger_,"Failed to get time of stopping the run from TA0: " << 
 			  xcept::stdformat_exception_history(e) );
 	}
     }
@@ -1319,15 +1514,19 @@ throw (xgi::exception::Exception)
 	      }
 	    // Emu: set run number in emuTA to the value given by the user on the control page
 	    cgicc::form_iterator runNumElement = cgi.getElement("runnumber");
+	    if( runNumElement != cgi.getElements().end() ){
+	      string runNumber = (*runNumElement).getValue();
+	      purgeIntNumberString( &runNumber );
+	      runNumber_.fromString( runNumber );
+	    }
 	    cgicc::form_iterator maxEvtElement = cgi.getElement("maxevents");
-	    string runNumber     = (*runNumElement).getValue();
-	    string maxNumEvents  = (*maxEvtElement).getValue();
-	    purgeIntNumberString( &runNumber );
-	    purgeIntNumberString( &maxNumEvents );
-	    runNumber_.fromString( runNumber );
-	    maxNumberOfEvents_.fromString( maxNumEvents );
-	    LOG4CPLUS_INFO(logger_, "maxNumEvents: " + maxNumEvents );
-	    LOG4CPLUS_INFO(logger_, "maxNumberOfEvents_: " + maxNumberOfEvents_.toString() );
+	    if( maxEvtElement != cgi.getElements().end() ){
+	      string maxNumEvents  = (*maxEvtElement).getValue();
+	      purgeIntNumberString( &maxNumEvents );
+	      maxNumberOfEvents_.fromString( maxNumEvents );
+	    }
+// 	    LOG4CPLUS_INFO(logger_, "maxNumEvents: " + maxNumEvents );
+// 	    LOG4CPLUS_INFO(logger_, "maxNumberOfEvents_: " + maxNumberOfEvents_.toString() );
 
 	    fireEvent("Configure");
 	  }
@@ -1335,10 +1534,7 @@ throw (xgi::exception::Exception)
 	  {
 	    fireEvent("Enable");
 	  }
-        else if( cmdName == "stop"
-		 && ( fsm_.getCurrentState() == 'C' ||
-		      fsm_.getCurrentState() == 'E'    )
-		 )
+        else if( cmdName == "stop" )
 	  {
 	    fireEvent("Halt");
 	  }
@@ -1827,7 +2023,7 @@ void EmuDAQManager::printDAQState( xgi::Output *out, string state ){
   decoration["Failed" ] = "blink";
   decoration["UNKNOWN"] = "none";
 
-  *out << " DAQ is in <a href=\"#states\">";
+  *out << " Local DAQ is in <a href=\"#states\">";
   *out << "<span align=\"center\" ";
   *out << "style=\"";
   *out << "background-color:" << bgcolor[state];
@@ -1836,7 +2032,10 @@ void EmuDAQManager::printDAQState( xgi::Output *out, string state ){
   *out << "\">";
   *out << " " << state << " ";
   *out << "</span>";
-  *out << "</a> state."                                              << endl;
+  *out << "</a> state, ";
+  *out << ( globalMode_.value_ ? 
+	    "controlled automatically by <span style=\"font-weight:bold; border-color:#000000; border-style:solid; border-width:thin; padding:2px\">Central Run Control</span>." : 
+	    " controlled manually by  <span style=\"font-weight:bold; border-color:#000000; border-style:solid; border-width:thin; padding:2px\">CSC Shift</span>." ) << endl;
 }
 
 
@@ -1988,38 +2187,38 @@ void EmuDAQManager::configureDAQ()
 		       " TA instances found. Will use TA0.");
       }
       // move to enableAction START
-      string runNumber    = runNumber_.toString();
-      string maxNumEvents = maxNumberOfEvents_.toString();
-      try
-	{
-	  setScalarParam(taDescriptors_[0],"runNumber","unsignedLong",runNumber);
-	  LOG4CPLUS_INFO(logger_,"Set run number to " + runNumber );
-	}
-      catch(xcept::Exception e)
-	{
-	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
-			"Failed to set run number to "  + runNumber, e);
-	}
-      try
-	{
-	  setScalarParam(taDescriptors_[0],"isBookedRunNumber","boolean",string(isBookedRunNumber_?"true":"false"));
-	  LOG4CPLUS_INFO(logger_,string("Set isBookedRunNumber to ") + string(isBookedRunNumber_?"true.":"false.") );
-	}
-      catch(xcept::Exception e)
-	{
-	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
-			string("Failed to set isBookedRunNumber to ") + string(isBookedRunNumber_?"true.":"false."), e);
-	}
-      try
-	{
-	  setScalarParam(taDescriptors_[0],"maxNumTriggers","integer",maxNumEvents);
-	  LOG4CPLUS_INFO(logger_,"Set maximum number of events to " + maxNumEvents );
-	}
-      catch(xcept::Exception e)
-	{
-	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
-			"Failed to set maximum number of events to "  + maxNumEvents, e);
-	}
+//       string runNumber    = runNumber_.toString();
+//       string maxNumEvents = maxNumberOfEvents_.toString();
+//       try
+// 	{
+// 	  setScalarParam(taDescriptors_[0],"runNumber","unsignedLong",runNumber);
+// 	  LOG4CPLUS_INFO(logger_,"Set run number to " + runNumber );
+// 	}
+//       catch(xcept::Exception e)
+// 	{
+// 	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+// 			"Failed to set run number to "  + runNumber, e);
+// 	}
+//       try
+// 	{
+// 	  setScalarParam(taDescriptors_[0],"isBookedRunNumber","boolean",string(isBookedRunNumber_?"true":"false"));
+// 	  LOG4CPLUS_INFO(logger_,string("Set isBookedRunNumber to ") + string(isBookedRunNumber_?"true.":"false.") );
+// 	}
+//       catch(xcept::Exception e)
+// 	{
+// 	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+// 			string("Failed to set isBookedRunNumber to ") + string(isBookedRunNumber_?"true.":"false."), e);
+// 	}
+//       try
+// 	{
+// 	  setScalarParam(taDescriptors_[0],"maxNumTriggers","integer",maxNumEvents);
+// 	  LOG4CPLUS_INFO(logger_,"Set maximum number of events to " + maxNumEvents );
+// 	}
+//       catch(xcept::Exception e)
+// 	{
+// 	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+// 			"Failed to set maximum number of events to "  + maxNumEvents, e);
+// 	}
       // move to enableAction END
         try
         {
@@ -2127,6 +2326,40 @@ throw (emuDAQManager::exception::Exception)
     // If the TA is present then start it as an imaginary trigger
     if(taDescriptors_.size() > 0)
     {
+      // MOVED FROM configureDAQ BEGIN
+      string runNumber    = runNumber_.toString();
+      string maxNumEvents = maxNumberOfEvents_.toString();
+      try
+	{
+	  setScalarParam(taDescriptors_[0],"runNumber","unsignedLong",runNumber);
+	  LOG4CPLUS_INFO(logger_,"Set run number to " + runNumber );
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Failed to set run number to "  + runNumber, e);
+	}
+      try
+	{
+	  setScalarParam(taDescriptors_[0],"isBookedRunNumber","boolean",string(isBookedRunNumber_?"true":"false"));
+	  LOG4CPLUS_INFO(logger_,string("Set isBookedRunNumber to ") + string(isBookedRunNumber_?"true.":"false.") );
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			string("Failed to set isBookedRunNumber to ") + string(isBookedRunNumber_?"true.":"false."), e);
+	}
+      try
+	{
+	  setScalarParam(taDescriptors_[0],"maxNumTriggers","integer",maxNumEvents);
+	  LOG4CPLUS_INFO(logger_,"Set maximum number of events to " + maxNumEvents );
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Failed to set maximum number of events to "  + maxNumEvents, e);
+	}
+      // MOVED FROM configureDAQ END
         try
         {
             startTrigger();
@@ -3498,6 +3731,11 @@ throw (xgi::exception::Exception)
 void EmuDAQManager::exportParams(xdata::InfoSpace *s)
 {
     // Emu:
+  globalMode_             = false;
+  configuredInGlobalMode_ = false;
+  s->fireItemAvailable( "globalMode",  &globalMode_  );
+  s->fireItemAvailable( "configuredInGlobalMode",  &configuredInGlobalMode_  );
+
   curlCommand_  = "curl";
   curlCookies_  = ".curlCookies";
   CMSUserFile_  = "";
@@ -3531,6 +3769,8 @@ void EmuDAQManager::exportParams(xdata::InfoSpace *s)
     s->fireItemAvailable("runType",           &runType_          );
     s->fireItemAvailable("runTypes",          &runTypes_         );
     s->fireItemAvailable("buildEvents",       &buildEvents_      );
+
+//     s->addItemChangedListener("runNumber",this);
 
 
   // Parameters to obtain from TTCciControl
@@ -3734,21 +3974,21 @@ void EmuDAQManager::getMnemonicNames(){
     }
 }
 
-string EmuDAQManager::reformatConfigTime( string configtime ){
+string EmuDAQManager::reformatTime( string time ){
   // reformat from YYMMDD_hhmmss_UTC to YYYY-MM-DD hh:mm:ss UTC
   string reformatted("");
   reformatted += "20";
-  reformatted += configtime.substr(0,2);
+  reformatted += time.substr(0,2);
   reformatted += "-";
-  reformatted += configtime.substr(2,2);
+  reformatted += time.substr(2,2);
   reformatted += "-";
-  reformatted += configtime.substr(4,2);
+  reformatted += time.substr(4,2);
   reformatted += " ";
-  reformatted += configtime.substr(7,2);
+  reformatted += time.substr(7,2);
   reformatted += ":";
-  reformatted += configtime.substr(9,2);
+  reformatted += time.substr(9,2);
   reformatted += ":";
-  reformatted += configtime.substr(11,2);
+  reformatted += time.substr(11,2);
   reformatted += " UTC";
   return reformatted;
 }
@@ -3780,7 +4020,8 @@ void EmuDAQManager::bookRunNumber(){
 
   if ( runInfo_ ){
 
-    string sequence = "CSC:" + runType_.toString();
+//     string sequence = "CSC:" + runType_.toString();
+    const string sequence = "CMS.CSC";
     
     LOG4CPLUS_INFO(logger_, "Booking run number with " <<
 		   runDbBookingCommand_.toString() << " at " <<
@@ -3804,19 +4045,22 @@ void EmuDAQManager::bookRunNumber(){
 
 }
 
-void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
+void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
   // Update run info db and post to eLog as well
 
   // Don't write about debug runs:
   if ( runType_.toString() == "Debug" ) return;
 
   // If it's not a debug run, it should normally have been booked. Inform the user that it somehow wasn't.
-  if ( !isBookedRunNumber_ ) LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
+  if ( toDatabase && !isBookedRunNumber_ ) LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
 
     stringstream subjectToELog;
     subjectToELog << "Emu local run " << runNumber_.value_
 		  << " (" << runType_.value_ << ")" << ( badRun_? " is bad" : "" );
 
+    //
+    // run number; bad run; global run number
+    //
     stringstream htmlMessageToELog;
     htmlMessageToELog << " <b>Emu local run</b><br/><br/>"; // Attention: Body must not start with html tag (elog feature...)
     htmlMessageToELog << "<table>";
@@ -3824,20 +4068,19 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">bad run</td><td>" << ( badRun_? "true" : "false" ) << "</td></tr>";
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">global run number</td><td>" << globalRunNumber_ << "</td></tr>";
 
-//     stringstream textMessageToELog;
-//     textMessageToELog << "Run number " << runNumber_.value_ << ", ";
-//     textMessageToELog << ( badRun_? "bad" : "good" ) << " run, " ;
-//     textMessageToELog << "Global run number " << globalRunNumber_ << ", ";
-
     bool success = false;
-    string name, value, nameSpace;
+    const string nameSpace = "CMS.CSC";
+    string name, value;
 
-    nameSpace = "run";
-    name      = "type";
+    //
+    // run type
+    //
+//     nameSpace = "run";
+//     name      = "type";
+    name      = "run_type";
     value     = runType_.value_;
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">run type</td><td>" << runType_.value_ << "</td></tr>";
-//     textMessageToELog << "Run type " << runType_.value_ << ", ";
-   if ( isBookedRunNumber_ ){
+    if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value ); }
@@ -3846,23 +4089,26 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
 				      " to run database " << runDbAddress_.toString() ); }
     }
 
-    string configTime("UNKNOWN");
+    //
+    // start time
+    //
+    string runStartTime("UNKNOWN");
     try
       {
-	configTime = getScalarParam(taDescriptors_[0],"runStartTime","string");
-	configTime = reformatConfigTime( configTime );
+	runStartTime = getScalarParam(taDescriptors_[0],"runStartTime","string");
+	runStartTime = reformatTime( runStartTime );
       }
     catch(xcept::Exception e)
       {
-	LOG4CPLUS_ERROR(logger_,"Failed to get time of configuration from TA0: " << 
+	LOG4CPLUS_ERROR(logger_,"Failed to get time of run start from TA0: " << 
 			xcept::stdformat_exception_history(e) );
       }
-    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">start time</td><td>" << configTime << "</td></tr>";
-//     textMessageToELog << "Start time " << configTime << ", ";
-    nameSpace = "time";
-    name      = "start";
-    value     = configTime;
-    if ( isBookedRunNumber_ ){
+    htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">start time</td><td>" << runStartTime << "</td></tr>";
+//     nameSpace = "time";
+//     name      = "start";
+    name      = "start_time";
+    value     = runStartTime;
+    if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value ); }
@@ -3871,12 +4117,26 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
 				      " to run database " << runDbAddress_.toString() ); }
     }
     
-    nameSpace = "time";
-    name      = "stop";
-    value     = getDateTime();
+    //
+    // stop time
+    //
+    string runStopTime("UNKNOWN");
+    try
+      {
+	runStopTime = getScalarParam(taDescriptors_[0],"runStopTime","string");
+	runStopTime = reformatTime( runStopTime );
+      }
+    catch(xcept::Exception e)
+      {
+	LOG4CPLUS_ERROR(logger_,"Failed to get time of stopping the run from TA0: " << 
+			xcept::stdformat_exception_history(e) );
+      }
+//     nameSpace = "time";
+//     name      = "stop";
+    name      = "stop_time";
+    value     = runStopTime;
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">stop time</td><td>" << value << "</td></tr>";
-//     textMessageToELog << "Stop time " << value << ", ";
-    if ( isBookedRunNumber_ ){
+    if ( toDatabase && isBookedRunNumber_ ){
       success = runInfo_->writeRunInfo( name, value, nameSpace );
       if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				     nameSpace << ":" << name << " = " << value ); }
@@ -3885,15 +4145,36 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
 				      " to run database " << runDbAddress_.toString() ); }
     }
 
+
+    //
+    // comments
+    //
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">comments</td><td>" << textToHtml(comments_) << "</td></tr>";
 
+
+    //
+    // trigger mode
+    //
     getTriggerMode();
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">Track Finder</td>";
     htmlMessageToELog << "<td><table>";
     htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "trigger mode" << "</td><td align=\"right\">" 
 		      << TF_triggerMode_.toString() << "</td></tr>";
     htmlMessageToELog << "</table></td></tr>";
+    name  = "trigger_mode";
+    value = TF_triggerMode_.toString();
+    if ( toDatabase && isBookedRunNumber_ ){
+      success = runInfo_->writeRunInfo( name, value, nameSpace );
+      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+				     nameSpace << ":" << name << " = " << value ); }
+      else          { LOG4CPLUS_ERROR(logger_,
+				      "Failed to write " << nameSpace << ":" << name << 
+				      " to run database " << runDbAddress_.toString() ); }
+    }
 
+    //
+    // trigger sources
+    //
     getTriggerSources();
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">TTCci</td>";
     htmlMessageToELog << "<td><table>";
@@ -3906,16 +4187,58 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
     htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << "BGO source"     << "</td><td align=\"right\">" 
 		      << TTCci_BGOSource_.toString()     << "</td></tr>";
     htmlMessageToELog << "</table></td></tr>";
+    name  = "clock_source";
+    value = TTCci_ClockSource_.toString();
+    if ( toDatabase && isBookedRunNumber_ ){
+      success = runInfo_->writeRunInfo( name, value, nameSpace );
+      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+				     nameSpace << ":" << name << " = " << value ); }
+      else          { LOG4CPLUS_ERROR(logger_,
+				      "Failed to write " << nameSpace << ":" << name << 
+				      " to run database " << runDbAddress_.toString() ); }
+    }
+    name  = "orbit_source";
+    value = TTCci_OrbitSource_.toString();
+    if ( toDatabase && isBookedRunNumber_ ){
+      success = runInfo_->writeRunInfo( name, value, nameSpace );
+      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+				     nameSpace << ":" << name << " = " << value ); }
+      else          { LOG4CPLUS_ERROR(logger_,
+				      "Failed to write " << nameSpace << ":" << name << 
+				      " to run database " << runDbAddress_.toString() ); }
+    }
+    name  = "trigger_source";
+    value = TTCci_TriggerSource_.toString();
+    if ( toDatabase && isBookedRunNumber_ ){
+      success = runInfo_->writeRunInfo( name, value, nameSpace );
+      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+				     nameSpace << ":" << name << " = " << value ); }
+      else          { LOG4CPLUS_ERROR(logger_,
+				      "Failed to write " << nameSpace << ":" << name << 
+				      " to run database " << runDbAddress_.toString() ); }
+    }
+    name  = "BGO_source";
+    value = TTCci_BGOSource_.toString();
+    if ( toDatabase && isBookedRunNumber_ ){
+      success = runInfo_->writeRunInfo( name, value, nameSpace );
+      if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
+				     nameSpace << ":" << name << " = " << value ); }
+      else          { LOG4CPLUS_ERROR(logger_,
+				      "Failed to write " << nameSpace << ":" << name << 
+				      " to run database " << runDbAddress_.toString() ); }
+    }
 
+    //
+    // EmuFU event count
+    //
     vector< vector<string> > counts = getFUEventCounts();
     if ( counts.size() > 0 ){
       int nFUs = counts.size()-1; // the last element is the sum of all FUs' event counts
-      nameSpace = "events";
+//       nameSpace = "events";
       name      = "EmuFU";
       value     = counts.at(nFUs).at(2); // the last element is the sum of all FUs' event counts
       htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">events built</td><td>" << value << "</td></tr>";
-//       textMessageToELog << value << " events built, ";
-      if ( isBookedRunNumber_ ){
+      if ( toDatabase && isBookedRunNumber_ ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
 	if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				       nameSpace << ":" << name << " = " << value ); }
@@ -3925,17 +4248,19 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
       }
     }
 
+    //
+    // EmuRUI event counts
+    //
     htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">events read</td><td><table>";
     counts.clear();
     counts = getRUIEventCounts();
     int nRUIs = counts.size();
-    nameSpace = "events";
+//     nameSpace = "events";
     for ( int rui=0; rui<nRUIs; ++rui ){
       name  = counts.at(rui).at(1);
       value = counts.at(rui).at(2);
       htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << name << "</td><td align=\"right\">" << value << "</td></tr>";
-//       textMessageToELog << name << " " << value << ", ";
-      if ( isBookedRunNumber_ ){
+      if ( toDatabase && isBookedRunNumber_ ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
 	if ( success ){ LOG4CPLUS_INFO(logger_, "Wrote to run database: " << 
 				       nameSpace << ":" << name << " = " << value ); }
@@ -3948,16 +4273,14 @@ void EmuDAQManager::updateRunInfoDb( bool postToELogToo ){
 
     htmlMessageToELog << "</td></tr></table>";
 
-//     textMessageToELog << comments_;
 
-    if ( postToELogToo ){
+    if ( toELog ){
       vector<string> attachments;
       for ( int i=0; i<peripheralCrateConfigFiles_.elements(); ++i ){
 	xdata::String* f = dynamic_cast<xdata::String*>(peripheralCrateConfigFiles_.elementAt(i));
 	attachments.push_back( f->toString() );
       }
       postToELog( subjectToELog.str(), htmlMessageToELog.str(), &attachments );
-//       postToELog( subjectToELog.str(), textMessageToELog.str(), &attachments );
     }
 }
 
@@ -4060,9 +4383,9 @@ xoap::MessageReference EmuDAQManager::onQueryDAQState(xoap::MessageReference mes
 //   xoap::SOAPElement daqStateElement = responseNameElement.addChildElement( daqStateName );
   daqStateElement.addAttribute( xsiType, "xsd:string" );
 
-  string daqState = getDAQState();
+  daqState_ = getDAQState();
 
-  daqStateElement.addTextNode( daqState );
+  daqStateElement.addTextNode( daqState_.toString() );
 
   return reply;
 }
@@ -4073,16 +4396,24 @@ void EmuDAQManager::configureAction(toolbox::Event::Reference e)
 
     createAllAppStatesVector();
 
-    try
-      {
-	bookRunNumber();
-      }
-    catch(...)
-      {
-	LOG4CPLUS_ERROR(logger_,
-			"Failed to book run number. Falling back to run number " 
-			<< runNumber_.value_ << " specified by user." );
-      }
+    // Parameters will be set again in global mode on enable, 
+    // but just for the display lets set them now:
+    if ( globalMode_.value_ ) setParametersForGlobalMode();
+    // Set configuredInGlobalMode_ to true if and when configuration succeeds.
+    configuredInGlobalMode_ = false;
+
+    warningsToDisplay_ = "";
+
+//     try MOVED TO EmuDAQManager::enableAction
+//       {
+// 	bookRunNumber();
+//       }
+//     catch(...)
+//       {
+// 	LOG4CPLUS_ERROR(logger_,
+// 			"Failed to book run number. Falling back to run number " 
+// 			<< runNumber_.value_ << " specified by user." );
+//       }
 
     try
       {
@@ -4117,12 +4448,32 @@ void EmuDAQManager::configureAction(toolbox::Event::Reference e)
 		       << xcept::stdformat_exception_history(ex) );
       }
 
+    // Successfully configured in global mode.
+    if ( globalMode_.value_ ) configuredInGlobalMode_ = true;
+
+
   LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
 
 void EmuDAQManager::enableAction(toolbox::Event::Reference e)
 		throw (toolbox::fsm::exception::Exception)
 {
+
+    if ( globalMode_.value_ ){
+      setParametersForGlobalMode();
+    }
+    else{
+      try
+	{
+	  bookRunNumber();
+	}
+      catch(...)
+	{
+	  LOG4CPLUS_ERROR(logger_,
+			  "Failed to book run number. Falling back to run number " 
+			  << runNumber_.value_ << " specified by user." );
+	}
+    }
 
     try
       {
@@ -4163,16 +4514,6 @@ void EmuDAQManager::haltAction(toolbox::Event::Reference e)
 
     try
       {
-	updateRunInfoDb( true );
-      }
-    catch(...)
-      {
-	LOG4CPLUS_ERROR(logger_,
-			"Failed to book run number. Falling back to run number " 
-			<< runNumber_.value_ << " specified by user." );
-      }
-    try
-      {
 	stopDAQ();
       }
     catch(xcept::Exception ex)
@@ -4180,6 +4521,17 @@ void EmuDAQManager::haltAction(toolbox::Event::Reference e)
 	stringstream ss;
 	ss << "Failed to stop EmuDAQ: " << xcept::stdformat_exception_history(ex);
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception, ss.str(), ex);
+      }
+
+    try
+      {
+	// Write to database only if not in global mode. Write to e-log regardless.
+	writeRunInfo( !globalMode_.value_ , true );
+      }
+    catch(...)
+      {
+	LOG4CPLUS_ERROR(logger_,
+			"Failed to update run info database and/or to post to e-log" );
       }
 
     if ( controlDQM_.value_ ){
@@ -4277,7 +4629,27 @@ void EmuDAQManager::actionPerformed(xdata::Event & received )
 
   xdata::ItemEvent& e = dynamic_cast<xdata::ItemEvent&>(received);
   
-  if ( e.itemName() == "daqState" ) daqState_ = getDAQState();
+  if ( e.itemName() == "daqState" && e.type() == "ItemRetrieveEvent" ) daqState_ = getDAQState();
+
+//   // TODO: Check if the following setting of run number is necessary. If not, remove the listener.
+//   if ( e.itemName() == "runNumber" && e.type() == "ItemChangedEvent" ){
+//     daqState_ = getDAQState();
+//     if ( daqState_ == "Ready" ){
+//       string runNumber    = runNumber_.toString();
+//       try
+// 	{
+// 	  setScalarParam(taDescriptors_[0],"runNumber","unsignedLong",runNumber);
+// 	  LOG4CPLUS_INFO(logger_,"Set run number to " + runNumber );
+// 	}
+//       catch(xcept::Exception e)
+// 	{
+// 	  // 	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+// 	  // 			"Failed to set run number to "  + runNumber, e);
+// 	  LOG4CPLUS_ERROR(logger_,  "Failed to set run number to " << runNumber << " : "
+// 			  << xcept::stdformat_exception_history(e) );
+// 	}
+//    }
+//   }
 
 //   LOG4CPLUS_INFO(logger_, 
 // 		 "Received an InfoSpace event" <<

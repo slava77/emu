@@ -1459,7 +1459,7 @@ throw (toolbox::fsm::exception::Exception)
     }
     catch(xcept::Exception e)
     {
-        XCEPT_RETHROW(xdaq::exception::Exception,
+        XCEPT_RETHROW(toolbox::fsm::exception::Exception,
             "Failed to get the descriptor of this application", e);
     }
     try
@@ -1474,7 +1474,7 @@ throw (toolbox::fsm::exception::Exception)
         oss << "Failed to get the I2O TID of RU" << instance_;
         s = oss.str();
 
-        XCEPT_RETHROW(xdaq::exception::Exception, s ,e);
+        XCEPT_RETHROW(toolbox::fsm::exception::Exception, s ,e);
     }
 
     ruiRuPool_->setHighThreshold(threshold_ - dataBufSize_);
@@ -1487,7 +1487,15 @@ throw (toolbox::fsm::exception::Exception)
     //
     // EMu-specific stuff
     //
-    getRunInfo();
+    // move to enableAction START
+//     try{
+//       getRunInfo();
+//     }
+//     catch(emuRUI::exception::Exception e){
+//         XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+//             "Failed to get run number and max events from EmuTA", e);
+//     }
+    // move to enableAction END
 
     nEventsRead_ = 0;
 
@@ -1497,8 +1505,6 @@ throw (toolbox::fsm::exception::Exception)
     createDeviceReader();
 //     destroyDeviceReaders();
 //     createDeviceReaders();
-
-    workLoopStarted_ = false; // make sure work loop action will be (re)submitted in case it's no longer rescheduled
 
     // Just in case there's a writer, terminate it in an orderly fashion
     if ( fileWriter_ )
@@ -1516,6 +1522,8 @@ throw (toolbox::fsm::exception::Exception)
 	delete badEventsFileWriter_;
 	badEventsFileWriter_ = NULL;
       }
+
+    workLoopStarted_ = false; // make sure work loop action will be (re)submitted in case it's no longer rescheduled
 
     destroyServers();
     createServers();
@@ -1589,7 +1597,16 @@ throw (toolbox::fsm::exception::Exception)
 void EmuRUI::enableAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
 {
-    // Do nothing
+
+  // MOVED FROM configureAction START
+    try{
+      getRunInfo();
+    }
+    catch(emuRUI::exception::Exception e){
+        XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+            "Failed to get run number and max events from EmuTA", e);
+    }
+  // MOVED FROM configureAction END
 
   // Emu: start work loop upon enable, not upon config
     if(!workLoopStarted_)
