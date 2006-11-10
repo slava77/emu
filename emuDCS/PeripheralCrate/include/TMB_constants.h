@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.6 2006/11/09 08:47:51 rakness Exp $
+// $Id: TMB_constants.h,v 3.7 2006/11/10 12:43:07 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.7  2006/11/10 12:43:07  rakness
+// include TMB/ALCT configuration and state machine prints+checks to hyperDAQ
+//
 // Revision 3.6  2006/11/09 08:47:51  rakness
 // add rpc0_raw_delay to xml file
 //
@@ -179,6 +182,8 @@ static const unsigned long int  tmb_stat_adr       = 0x0000EA;
 static const unsigned long int  bxn_clct_adr       = 0x0000EC;
 static const unsigned long int  bxn_alct_adr       = 0x0000EE;
 //
+static const int LARGEST_VME_ADDRESS = bxn_alct_adr;
+//
 // this comes from alct_routines2/tmb_vme_reg.h
 #define TMB_ADR_BOOT            0x70000 // Hardware Bootstrap Register
 /*
@@ -327,7 +332,7 @@ struct tmb_id_regs
 };
 //
 const int number_of_allowed_configuration_addresses = 23;
-const int allowed_configuration_addresses[number_of_allowed_configuration_addresses] = {
+const unsigned long int allowed_configuration_addresses[number_of_allowed_configuration_addresses] = {
   rpc_cfg_adr,          //0xb6 enable RPC 
   vme_ratctrl_adr,      //0x1e add 1/2-cycle to RPC latching
   vme_loopbk_adr,       //0x0e enable ALCT LVDS rx/tx
@@ -867,6 +872,258 @@ const int rpc3_raw_delay_bithi             =  15;
 const int rpc3_raw_delay_default           =  1;
 //
 //
-
-
-
+const int vme_state_machine_start_vmereg     = vme_sm_ctrl_adr;
+const int vme_state_machine_start_bitlo      = 0;
+const int vme_state_machine_start_bithi      = 0;
+//
+const int vme_state_machine_sreset_vmereg    = vme_sm_ctrl_adr;
+const int vme_state_machine_sreset_bitlo     = 1;
+const int vme_state_machine_sreset_bithi     = 1;
+//
+const int vme_state_machine_autostart_vmereg = vme_sm_ctrl_adr;
+const int vme_state_machine_autostart_bitlo  = 2;
+const int vme_state_machine_autostart_bithi  = 2;
+//
+const int vme_state_machine_busy_vmereg      = vme_sm_ctrl_adr;
+const int vme_state_machine_busy_bitlo       = 3;
+const int vme_state_machine_busy_bithi       = 3;
+//
+const int vme_state_machine_aborted_vmereg   = vme_sm_ctrl_adr;
+const int vme_state_machine_aborted_bitlo    = 4;
+const int vme_state_machine_aborted_bithi    = 4;
+//
+const int vme_state_machine_cksum_ok_vmereg  = vme_sm_ctrl_adr;
+const int vme_state_machine_cksum_ok_bitlo   = 5;
+const int vme_state_machine_cksum_ok_bithi   = 5;
+//
+const int vme_state_machine_wdcnt_ok_vmereg  = vme_sm_ctrl_adr;
+const int vme_state_machine_wdcnt_ok_bitlo   = 6;
+const int vme_state_machine_wdcnt_ok_bithi   = 6;
+//
+const int vme_state_machine_jtag_auto_vmereg = vme_sm_ctrl_adr;
+const int vme_state_machine_jtag_auto_bitlo  = 7;
+const int vme_state_machine_jtag_auto_bithi  = 7;
+//
+const int vme_state_machine_vme_ready_vmereg = vme_sm_ctrl_adr;
+const int vme_state_machine_vme_ready_bitlo  = 8;
+const int vme_state_machine_vme_ready_bithi  = 8;
+//
+const int vme_state_machine_ok_vmereg        = vme_sm_ctrl_adr;
+const int vme_state_machine_ok_bitlo         = 9;
+const int vme_state_machine_ok_bithi         = 9;
+//
+const int vme_state_machine_path_ok_vmereg   = vme_sm_ctrl_adr;
+const int vme_state_machine_path_ok_bitlo    = 10;
+const int vme_state_machine_path_ok_bithi    = 10;
+//
+const int vme_state_machine_throttle_vmereg  = vme_sm_ctrl_adr;
+const int vme_state_machine_throttle_bitlo   = 12;
+const int vme_state_machine_throttle_bithi   = 15;
+//
+//
+const int vme_state_machine_check_sum_vmereg                     = vme_sm_cksum_adr;
+const int vme_state_machine_check_sum_bitlo                      = 0;
+const int vme_state_machine_check_sum_bithi                      = 7;
+//
+const int vme_state_machine_error_missing_header_start_vmereg    = vme_sm_cksum_adr;
+const int vme_state_machine_error_missing_header_start_bitlo     = 8;
+const int vme_state_machine_error_missing_header_start_bithi     = 8;
+//
+const int vme_state_machine_error_missing_header_end_vmereg      = vme_sm_cksum_adr;
+const int vme_state_machine_error_missing_header_end_bitlo       = 9;
+const int vme_state_machine_error_missing_header_end_bithi       = 9;
+//
+const int vme_state_machine_error_missing_data_end_marker_vmereg = vme_sm_cksum_adr;
+const int vme_state_machine_error_missing_data_end_marker_bitlo  = 10;
+const int vme_state_machine_error_missing_data_end_marker_bithi  = 10;
+//
+const int vme_state_machine_error_missing_trailer_end_vmereg     = vme_sm_cksum_adr;
+const int vme_state_machine_error_missing_trailer_end_bitlo      = 11;
+const int vme_state_machine_error_missing_trailer_end_bithi      = 11;
+//
+const int vme_state_machine_error_word_count_overflow_vmereg     = vme_sm_cksum_adr;
+const int vme_state_machine_error_word_count_overflow_bitlo      = 12;
+const int vme_state_machine_error_word_count_overflow_bithi      = 12;
+//
+//
+const int jtag_state_machine_start_vmereg       = jtag_sm_ctrl_adr;
+const int jtag_state_machine_start_bitlo        = 0;
+const int jtag_state_machine_start_bithi        = 0;
+//
+const int jtag_state_machine_sreset_vmereg      = jtag_sm_ctrl_adr;
+const int jtag_state_machine_sreset_bitlo       = 1;
+const int jtag_state_machine_sreset_bithi       = 1;
+//
+const int jtag_state_machine_autostart_vmereg   = jtag_sm_ctrl_adr;
+const int jtag_state_machine_autostart_bitlo    = 2;
+const int jtag_state_machine_autostart_bithi    = 2;
+//
+const int jtag_state_machine_busy_vmereg        = jtag_sm_ctrl_adr;
+const int jtag_state_machine_busy_bitlo         = 3;
+const int jtag_state_machine_busy_bithi         = 3;
+//
+const int jtag_state_machine_aborted_vmereg     = jtag_sm_ctrl_adr;
+const int jtag_state_machine_aborted_bitlo      = 4;
+const int jtag_state_machine_aborted_bithi      = 4;
+//
+const int jtag_state_machine_cksum_ok_vmereg    = jtag_sm_ctrl_adr;
+const int jtag_state_machine_cksum_ok_bitlo     = 5;
+const int jtag_state_machine_cksum_ok_bithi     = 5;
+//
+const int jtag_state_machine_wdcnt_ok_vmereg    = jtag_sm_ctrl_adr;
+const int jtag_state_machine_wdcnt_ok_bitlo     = 6;
+const int jtag_state_machine_wdcnt_ok_bithi     = 6;
+//
+const int jtag_state_machine_tck_fpga_ok_vmereg = jtag_sm_ctrl_adr;
+const int jtag_state_machine_tck_fpga_ok_bitlo  = 7;
+const int jtag_state_machine_tck_fpga_ok_bithi  = 7;
+//
+const int jtag_state_machine_vme_ready_vmereg   = jtag_sm_ctrl_adr; 
+const int jtag_state_machine_vme_ready_bitlo    = 8; 
+const int jtag_state_machine_vme_ready_bithi    = 8; 
+//
+const int jtag_state_machine_ok_vmereg          = jtag_sm_ctrl_adr;
+const int jtag_state_machine_ok_bitlo           = 9;
+const int jtag_state_machine_ok_bithi           = 9;
+//
+const int jtag_state_machine_oe_vmereg          = jtag_sm_ctrl_adr;
+const int jtag_state_machine_oe_bitlo           = 10;
+const int jtag_state_machine_oe_bithi           = 10;
+//
+const int jtag_state_machine_throttle_vmereg    = jtag_sm_ctrl_adr;
+const int jtag_state_machine_throttle_bitlo     = 12;
+const int jtag_state_machine_throttle_bithi     = 15;
+//
+//
+const int jtag_state_machine_check_sum_vmereg = jtag_sm_cksum_adr;
+const int jtag_state_machine_check_sum_bitlo  = 0;
+const int jtag_state_machine_check_sum_bithi  = 7;
+//
+const int jtag_state_machine_tck_fpga_vmereg  = jtag_sm_cksum_adr;
+const int jtag_state_machine_tck_fpga_bitlo   = 8;
+const int jtag_state_machine_tck_fpga_bithi   = 11;
+//
+//
+const int jtag_state_machine_word_count_vmereg = jtag_sm_wdcnt_adr; 
+const int jtag_state_machine_word_count_bitlo  = 0; 
+const int jtag_state_machine_word_count_bithi  = 15; 
+//
+//
+const int boot_tdi_vmereg                   = TMB_ADR_BOOT;
+const int boot_tdi_bitlo                    = 0;
+const int boot_tdi_bithi                    = 0;
+//
+const int boot_tms_vmereg                   = TMB_ADR_BOOT;
+const int boot_tms_bitlo                    = 1;
+const int boot_tms_bithi                    = 1;
+//
+const int boot_tck_vmereg                   = TMB_ADR_BOOT;
+const int boot_tck_bitlo                    = 2;
+const int boot_tck_bithi                    = 2;
+//
+const int boot_jtag_chain_select_vmereg     = TMB_ADR_BOOT;
+const int boot_jtag_chain_select_bitlo      = 3;
+const int boot_jtag_chain_select_bithi      = 6;
+//
+const int boot_control_jtag_chain_vmereg    = TMB_ADR_BOOT;
+const int boot_control_jtag_chain_bitlo     = 7;
+const int boot_control_jtag_chain_bithi     = 7;
+//
+const int boot_hard_reset_alct_vmereg       = TMB_ADR_BOOT;
+const int boot_hard_reset_alct_bitlo        = 8;
+const int boot_hard_reset_alct_bithi        = 8;
+//
+const int boot_hard_reset_tmb_vmereg        = TMB_ADR_BOOT;
+const int boot_hard_reset_tmb_bitlo         = 9;
+const int boot_hard_reset_tmb_bithi         = 9;
+//
+const int boot_allow_hard_reset_alct_vmereg = TMB_ADR_BOOT;
+const int boot_allow_hard_reset_alct_bitlo  = 10;
+const int boot_allow_hard_reset_alct_bithi  = 10;
+//
+const int boot_allow_VME_vmereg             = TMB_ADR_BOOT;
+const int boot_allow_VME_bitlo              = 11;
+const int boot_allow_VME_bithi              = 11;
+//
+const int boot_enable_mezz_clock_vmereg     = TMB_ADR_BOOT;
+const int boot_enable_mezz_clock_bitlo      = 12;
+const int boot_enable_mezz_clock_bithi      = 12;
+//
+const int boot_hard_reset_rat_vmereg        = TMB_ADR_BOOT;
+const int boot_hard_reset_rat_bitlo         = 13;
+const int boot_hard_reset_rat_bithi         = 13;
+//
+const int boot_vme_ready_vmereg             = TMB_ADR_BOOT;
+const int boot_vme_ready_bitlo              = 14;
+const int boot_vme_ready_bithi              = 14;
+//
+const int boot_tdo_vmereg                   = TMB_ADR_BOOT;
+const int boot_tdo_bitlo                    = 15;
+const int boot_tdo_bithi                    = 15;
+//
+//
+const int ddd_state_machine_start_vmereg            = vme_dddsm_adr;
+const int ddd_state_machine_start_bitlo             = 0;
+const int ddd_state_machine_start_bithi             = 0;
+//
+const int ddd_state_machine_manual_vmereg           = vme_dddsm_adr;
+const int ddd_state_machine_manual_bitlo            = 1;
+const int ddd_state_machine_manual_bithi            = 1;
+//
+const int ddd_state_machine_latch_vmereg            = vme_dddsm_adr;
+const int ddd_state_machine_latch_bitlo             = 2;
+const int ddd_state_machine_latch_bithi             = 2;
+//
+const int ddd_state_machine_serial_in_vmereg        = vme_dddsm_adr;
+const int ddd_state_machine_serial_in_bitlo         = 3;
+const int ddd_state_machine_serial_in_bithi         = 3;
+//
+const int ddd_state_machine_serial_out_vmereg       = vme_dddsm_adr;
+const int ddd_state_machine_serial_out_bitlo        = 4;
+const int ddd_state_machine_serial_out_bithi        = 4;
+//
+const int ddd_state_machine_autostart_vmereg        = vme_dddsm_adr;
+const int ddd_state_machine_autostart_bitlo         = 5;
+const int ddd_state_machine_autostart_bithi         = 5;
+//
+const int ddd_state_machine_busy_vmereg             = vme_dddsm_adr;
+const int ddd_state_machine_busy_bitlo              = 6;
+const int ddd_state_machine_busy_bithi              = 6;
+//
+const int ddd_state_machine_verify_ok_vmereg        = vme_dddsm_adr;
+const int ddd_state_machine_verify_ok_bitlo         = 7;
+const int ddd_state_machine_verify_ok_bithi         = 7;
+//
+const int ddd_state_machine_clock0_lock_vmereg      = vme_dddsm_adr;
+const int ddd_state_machine_clock0_lock_bitlo       = 8;
+const int ddd_state_machine_clock0_lock_bithi       = 8;
+//
+const int ddd_state_machine_clock0d_lock_vmereg     = vme_dddsm_adr;
+const int ddd_state_machine_clock0d_lock_bitlo      = 9;
+const int ddd_state_machine_clock0d_lock_bithi      = 9;
+//
+const int ddd_state_machine_clock1_lock_vmereg      = vme_dddsm_adr;
+const int ddd_state_machine_clock1_lock_bitlo       = 10;
+const int ddd_state_machine_clock1_lock_bithi       = 10;
+//
+const int ddd_state_machine_clock_alct_lock_vmereg  = vme_dddsm_adr;
+const int ddd_state_machine_clock_alct_lock_bitlo   = 11;
+const int ddd_state_machine_clock_alct_lock_bithi   = 11;
+//
+const int ddd_state_machine_clockd_alct_lock_vmereg = vme_dddsm_adr;
+const int ddd_state_machine_clockd_alct_lock_bitlo  = 12;
+const int ddd_state_machine_clockd_alct_lock_bithi  = 12;
+//
+const int ddd_state_machine_clock_mpc_lock_vmereg   = vme_dddsm_adr;
+const int ddd_state_machine_clock_mpc_lock_bitlo    = 13;
+const int ddd_state_machine_clock_mpc_lock_bithi    = 13;
+//
+const int ddd_state_machine_clock_dcc_lock_vmereg   = vme_dddsm_adr;
+const int ddd_state_machine_clock_dcc_lock_bitlo    = 14;
+const int ddd_state_machine_clock_dcc_lock_bithi    = 14;
+//
+const int ddd_state_machine_clock_rpc_lock_vmereg   = vme_dddsm_adr;
+const int ddd_state_machine_clock_rpc_lock_bitlo    = 15;
+const int ddd_state_machine_clock_rpc_lock_bithi    = 15;
+//
+//

@@ -53,7 +53,7 @@ int main() {
   int value,channel,layer;
   int write_data, read_data;
   int busy, verify;
-
+  //
   CCB *thisCCB ;
   DAQMB *thisDMB;
   ALCTController *alct;
@@ -184,11 +184,11 @@ int main() {
 	      << std::endl;
     std::cout << "400:Program user proms        401: Check user prom programs  402: Program TMB"
 	      << std::endl;
-    std::cout << "403:Prog. proms w/walking 1s  500: Check state machine       501: Read TMB config registers"
+    std::cout << "403:Prog. proms w/walking 1s  500: Check TMB state machines  501: Read TMB config registers"
 	      << std::endl;
     std::cout << "502:Read ALCT config regs     503: StartTriggers TMB         504: Check TMB config registers"
 	      << std::endl;
-    std::cout << "505:Check ALCT config regs"
+    std::cout << "505:Check ALCT config regs    506: Print TMB state machines"
 	      << std::endl;
     //
     std::cout << std::endl;
@@ -446,16 +446,7 @@ int main() {
 		<< thisTMB->ReadRegister(seq_trig_src_adr) << std::endl;
       break;
     case 97:
-      for (int i=0; i<0xf0; i+=2) {
-	int k = thisTMB->ReadRegister(i);
-	std::cout << "VME address " << std::hex 
-		  << ( (i>> 4) & 0xf ) 
-		  << ( (i>> 0) & 0xf ) << " = " 
-		  << ( (k>>12) & 0xf )
-		  << ( (k>> 8) & 0xf )
-		  << ( (k>> 4) & 0xf )
-		  << ( (k>> 0) & 0xf ) << std::endl;
-      }
+      thisTMB->DumpAllRegisters();
       break;
       //
     case 100:
@@ -696,38 +687,79 @@ int main() {
       //
       break;
     case 500:
+      //      outputfile.open("TMBCheckStatus.txt");
+      //      thisTMB->RedirectOutput(&outputfile);
+      //
+      thisTMB->CheckTMBConfiguration();
       thisTMB->CheckVMEStateMachine();
+      alct->CheckALCTConfiguration();
       thisTMB->CheckJTAGStateMachine();
+      thisTMB->CheckDDDStateMachine();
       thisTMB->CheckRawHitsHeader();
+      //
+      std::cout << "TMB/ALCT configuration/state machines status: ";
+      if (thisTMB->GetTMBConfigurationStatus() && 
+	  thisTMB->GetVMEStateMachineStatus() &&
+	  alct->GetALCTConfigurationStatus() && 
+	  thisTMB->GetJTAGStateMachineStatus() &&
+	  thisTMB->GetDDDStateMachineStatus() &&
+	  thisTMB->GetRawHitsHeaderStatus() ) {
+	std::cout << "OK";
+      } else {
+	std::cout << "-> FAIL <-";
+      }
+      std::cout << std::endl;
+      thisTMB->RedirectOutput(&std::cout);
+      //
+      //      outputfile.close();
       break;
     case 501:
       //      outputfile.open("TMBconfiguration.txt");
-      //      thisTMB->RedirectConfigOutput(&outputfile);
-      thisTMB->ReadCurrentConfiguration();
-      thisTMB->PrintCurrentConfiguration();
+      //      thisTMB->RedirectOutput(&outputfile);
+      thisTMB->ReadTMBConfiguration();
+      thisTMB->PrintTMBConfiguration();
+      thisTMB->RedirectOutput(&std::cout);
       //      outputfile.close();
-      thisTMB->RedirectConfigOutput(&std::cout);
       break;
     case 502:
-      alct->ReadCurrentConfiguration();
       //      outputfile.open("ALCTconfiguration.txt");
-      //alct->RedirectConfigOutput(&outputfile);
-      alct->PrintCurrentConfiguration();
-      outputfile.close();
-      //      alct->RedirectConfigOutput(&std::cout);
+      //      alct->RedirectOutput(&outputfile);
+      alct->ReadALCTConfiguration();
+      alct->PrintALCTConfiguration();
+      alct->RedirectOutput(&std::cout);
+      //      outputfile.close();
       break;
     case 503:
       thisTMB->StartTTC();
       break;
     case 504:
+      thisTMB->CheckTMBConfiguration(); 
       std::cout << "Check TMB configuration vs xml file = "
-		<< thisTMB->CheckCurrentConfiguration() 
+		<< thisTMB->GetTMBConfigurationStatus()
 		<< std::endl;
       break;
     case 505:
+      alct->CheckALCTConfiguration(); 
       std::cout << "Check ALCT configuration vs xml file = "
-		<< alct->CheckCurrentConfiguration() 
+		<< alct->GetALCTConfigurationStatus()
 		<< std::endl;
+      break;
+    case 506:
+      //      outputfile.open("TMBStateMachines.txt");
+      //      thisTMB->RedirectOutput(&outputfile);
+      thisTMB->ReadVMEStateMachine();
+      thisTMB->PrintVMEStateMachine();
+      //
+      thisTMB->ReadJTAGStateMachine();
+      thisTMB->PrintJTAGStateMachine();
+      //
+      thisTMB->ReadDDDStateMachine();
+      thisTMB->PrintDDDStateMachine();
+      //
+      thisTMB->ReadRawHitsHeader();
+      thisTMB->PrintRawHitsHeader();
+      thisTMB->RedirectOutput(&std::cout);
+      //      outputfile.close();
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 

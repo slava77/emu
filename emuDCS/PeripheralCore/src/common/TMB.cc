@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.24 2006/11/09 08:47:51 rakness Exp $
+// $Id: TMB.cc,v 3.25 2006/11/10 12:43:07 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.25  2006/11/10 12:43:07  rakness
+// include TMB/ALCT configuration and state machine prints+checks to hyperDAQ
+//
 // Revision 3.24  2006/11/09 08:47:51  rakness
 // add rpc0_raw_delay to xml file
 //
@@ -355,7 +358,12 @@ TMB::TMB(Crate * theCrate, int slot) :
   rat_tmb_delay_(9),
   rpc0_rat_delay_(3),
   mpc_phase_(0),
-  rpc0_raw_delay_(1)
+  rpc0_raw_delay_(1),
+  tmb_configuration_status_(-1),
+  vme_state_machine_status_(-1),
+  jtag_state_machine_status_(-1),
+  ddd_state_machine_status_(-1),
+  raw_hits_header_status_(-1)
 {
   //
   //jtag_address = -1;
@@ -365,7 +373,6 @@ TMB::TMB(Crate * theCrate, int slot) :
   std::cout << "Inside TMB" << std::endl;
   //
   MyOutput_ = &std::cout ;
-  configOut_ = &std::cout ;
   (*MyOutput_) << "TMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
 } 
 
@@ -599,11 +606,7 @@ void TMB::configure() {
   //
   SetFillVmeWriteVecs(false);        //give VME back to the user (default)
   //
-  if ( CheckCurrentConfiguration() ) {
-    (*MyOutput_) << "TMB slot " << (int) slot() << " configuration check OK" << std::endl;
-  } else {
-    (*MyOutput_) << "TMB slot " << (int) slot() << " configuration check FAIL" << std::endl;
-  }
+  CheckTMBConfiguration();
   //
 }
 
@@ -6340,6 +6343,9 @@ int TMB::smb_io(int smb_adr, int cmd, int module) {
   return data;
 }
 //
+////////////////////////////////////////////////////////////////////////////
+// write/read userPROMs
+////////////////////////////////////////////////////////////////////////////
 void TMB::ClockOutPromProgram(int prom,
 			      int number_of_addresses) {
   //
@@ -6485,11 +6491,1080 @@ void TMB::OkVmeWrite(char vme) {
   return;
 }
 //
-bool TMB::CheckCurrentConfiguration() {
+////////////////////////////////////////////////////////////////////////////
+// decode TMB registers
+////////////////////////////////////////////////////////////////////////////
+void TMB::DumpAllRegisters() {
+  //
+  (*MyOutput_) << "TMB register dump:" << std::endl;
+  (*MyOutput_) << "addr  value" << std::endl;
+  (*MyOutput_) << "----  -----" << std::endl;
+  for (int register_address=0; register_address <= LARGEST_VME_ADDRESS; register_address+=2) {
+    int register_value = ReadRegister(register_address);
+    (*MyOutput_) << " " << std::hex  
+		 << ( (register_address >> 4) & 0xf ) 
+		 << ( (register_address >> 0) & 0xf ) 
+		 << "   " << std::hex
+		 << ( (register_value   >>12) & 0xf )
+		 << ( (register_value   >> 8) & 0xf )
+		 << ( (register_value   >> 4) & 0xf )
+		 << ( (register_value   >> 0) & 0xf ) << std::endl;
+  }
+  //
+  return;
+}
+//
+//
+void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
+  //
+  if ( address == rpc_cfg_adr ) {
+    //
+    read_rpc_exists_      = 
+      (data >> rpc_exists_bitlo) &
+      makemask(rpc_exists_bitlo,
+	       rpc_exists_bithi);
+    read_rpc_read_enable_ = 
+      (data >> rpc_read_enable_bitlo) &
+      makemask(rpc_read_enable_bitlo,
+	       rpc_read_enable_bithi);
+    read_rpc_bxn_offset_  = 
+      (data >> rpc_bxn_offset_bitlo) &
+      makemask(rpc_bxn_offset_bitlo,
+	       rpc_bxn_offset_bithi);
+    //
+  } else if ( address == vme_ratctrl_adr ) {
+    //
+    read_shift_rpc_ = 
+      (data >> shift_rpc_bitlo) & 
+      makemask(shift_rpc_bitlo,
+	       shift_rpc_bithi);
+
+    //
+  } else if ( address == vme_loopbk_adr ) {
+    //
+    read_enable_alct_rx_ = 
+      (data >> enable_alct_rx_bitlo) & 
+      makemask(enable_alct_rx_bitlo,
+	       enable_alct_rx_bithi);
+    read_enable_alct_tx_ = 
+      (data >> enable_alct_tx_bitlo) & 
+      makemask(enable_alct_tx_bitlo,
+	       enable_alct_tx_bithi);
+    read_ALCT_input_ = read_enable_alct_tx_ & read_enable_alct_rx_;
+    //
+  } else if ( address == ccb_trig_adr ) {
+    //
+    read_alct_ext_trig_l1aen_ = 
+      (data >> alct_ext_trig_l1aen_bitlo) & 
+      makemask(alct_ext_trig_l1aen_bitlo,
+	       alct_ext_trig_l1aen_bithi);
+    read_clct_ext_trig_l1aen_ = 
+      (data >> clct_ext_trig_l1aen_bitlo) & 
+      makemask(clct_ext_trig_l1aen_bitlo,
+	       clct_ext_trig_l1aen_bithi);
+    read_request_l1a_ = 
+      (data >> request_l1a_bitlo) & 
+      makemask(request_l1a_bitlo,
+	       request_l1a_bithi);
+    read_alct_ext_trig_vme_ = 
+      (data >> alct_ext_trig_vme_bitlo) & 
+      makemask(alct_ext_trig_vme_bitlo,
+	       alct_ext_trig_vme_bithi);
+    read_clct_ext_trig_vme_ = 
+      (data >> clct_ext_trig_vme_bitlo) & 
+      makemask(clct_ext_trig_vme_bitlo,
+	       clct_ext_trig_vme_bithi);
+    read_ext_trig_both_ = 
+      (data >> ext_trig_both_bitlo) & 
+      makemask(ext_trig_both_bitlo,
+	       ext_trig_both_bithi);
+    read_ccb_allow_bypass_ = 
+      (data >> ccb_allow_bypass_bitlo) & 
+      makemask(ccb_allow_bypass_bitlo,
+	       ccb_allow_bypass_bithi);
+    read_internal_l1a_delay_vme_ = 
+      (data >> internal_l1a_delay_vme_bitlo) & 
+      makemask(internal_l1a_delay_vme_bitlo,
+	       internal_l1a_delay_vme_bithi);
+    //
+  } else if ( address == seq_fifo_adr ) {
+    //
+    read_fifo_mode_ = 
+      (data >> fifo_mode_bitlo) & 
+      makemask(fifo_mode_bitlo,
+	       fifo_mode_bithi);
+    read_fifo_tbins_ = 
+      (data >> fifo_tbins_bitlo) & 
+      makemask(fifo_tbins_bitlo,
+	       fifo_tbins_bithi);
+    read_fifo_pretrig_ = 
+      (data >> fifo_pretrig_bitlo) & 
+      makemask(fifo_pretrig_bitlo,
+	       fifo_pretrig_bithi);
+    //
+  } else if ( address == seq_trig_en_adr ) {
+    //
+    read_clct_pat_trig_en_ = 
+      (data >> clct_pat_trig_en_bitlo) & 
+      makemask(clct_pat_trig_en_bitlo,
+	       clct_pat_trig_en_bithi);
+    read_alct_pat_trig_en_ = 
+      (data >> alct_pat_trig_en_bitlo) & 
+      makemask(alct_pat_trig_en_bitlo,
+	       alct_pat_trig_en_bithi);
+    read_match_pat_trig_en_ = 
+      (data >> match_pat_trig_en_bitlo) & 
+      makemask(match_pat_trig_en_bitlo,
+	       match_pat_trig_en_bithi);
+    read_adb_ext_trig_en_ = 
+      (data >> adb_ext_trig_en_bitlo) & 
+      makemask(adb_ext_trig_en_bitlo,
+	       adb_ext_trig_en_bithi);
+    read_dmb_ext_trig_en_ = 
+      (data >> dmb_ext_trig_en_bitlo) & 
+      makemask(dmb_ext_trig_en_bitlo,
+	       dmb_ext_trig_en_bithi);
+    read_clct_ext_trig_en_ = 
+      (data >> clct_ext_trig_en_bitlo) & 
+      makemask(clct_ext_trig_en_bitlo,
+	       clct_ext_trig_en_bithi);
+    read_alct_ext_trig_en_ = 
+      (data >> alct_ext_trig_en_bitlo) & 
+      makemask(alct_ext_trig_en_bitlo,
+	       alct_ext_trig_en_bithi);
+    read_vme_ext_trig_en_ = 
+      (data >> vme_ext_trig_en_bitlo) & 
+      makemask(vme_ext_trig_en_bitlo,
+	       vme_ext_trig_en_bithi);
+    read_ext_trig_inject_ = 
+      (data >> ext_trig_inject_bitlo) & 
+      makemask(ext_trig_inject_bitlo,
+	       ext_trig_inject_bithi);
+    read_all_cfeb_active_ = 
+      (data >> all_cfeb_active_bitlo) & 
+      makemask(all_cfeb_active_bitlo,
+	       all_cfeb_active_bithi);
+    read_cfebs_enabled_ = 
+      (data >> cfebs_enabled_bitlo) & 
+      makemask(cfebs_enabled_bitlo,
+	       cfebs_enabled_bithi);
+    read_cfeb_enable_source_ = 
+      (data >> cfeb_enable_source_bitlo) & 
+      makemask(cfeb_enable_source_bitlo,
+	       cfeb_enable_source_bithi);
+    //    
+  } else if ( address == tmbtim_adr ) {
+    //
+    read_alct_vpf_delay_ = 
+      (data >> alct_vpf_delay_bitlo) & 
+      makemask(alct_vpf_delay_bitlo,
+	       alct_vpf_delay_bithi);
+    read_alct_match_window_size_ = 
+      (data >> alct_match_window_size_bitlo) & 
+      makemask(alct_match_window_size_bitlo,
+	       alct_match_window_size_bithi);
+    read_mpc_tx_delay_ = 
+      (data >> mpc_tx_delay_bitlo) & 
+      makemask(mpc_tx_delay_bitlo,
+	       mpc_tx_delay_bithi);
+    //
+  } else if ( address == seq_offset_adr ) {
+    //
+    read_l1a_offset_ = 
+      (data >> l1a_offset_bitlo) & 
+      makemask(l1a_offset_bitlo,
+	       l1a_offset_bithi);
+    read_bxn_offset_ = 
+      (data >> bxn_offset_bitlo) & 
+      makemask(bxn_offset_bitlo,
+	       bxn_offset_bithi);
+    //    
+  } else if ( address == seq_clct_adr ) {
+    //
+    read_triad_persist_ = 
+      (data >> triad_persist_bitlo) & 
+      makemask(triad_persist_bitlo,
+	       triad_persist_bithi);
+    read_hs_pretrig_thresh_ = 
+      (data >> hs_pretrig_thresh_bitlo) & 
+      makemask(hs_pretrig_thresh_bitlo,
+	       hs_pretrig_thresh_bithi);
+    read_ds_pretrig_thresh_ = 
+      (data >> ds_pretrig_thresh_bitlo) & 
+      makemask(ds_pretrig_thresh_bitlo,
+	       ds_pretrig_thresh_bithi);
+    read_min_hits_pattern_ = 
+      (data >> min_hits_pattern_bitlo) & 
+      makemask(min_hits_pattern_bitlo,
+	       min_hits_pattern_bithi);
+    read_drift_delay_ = 
+      (data >> drift_delay_bitlo) & 
+      makemask(drift_delay_bitlo,
+	       drift_delay_bithi);
+    read_pretrigger_halt_ = 
+      (data >> pretrigger_halt_bitlo) & 
+      makemask(pretrigger_halt_bitlo,
+	       pretrigger_halt_bithi);
+    //
+  } else if ( address == scp_ctrl_adr ) {
+    //
+    read_seq_readmode_in_dmb_ = 
+      (data >> seq_readmode_in_dmb_bitlo) & 
+      makemask(seq_readmode_in_dmb_bitlo,
+	       seq_readmode_in_dmb_bithi);
+    //
+  } else if ( address == seq_l1a_adr ) {
+    //
+    read_l1adelay_ = 
+      (data >> l1adelay_bitlo) & 
+      makemask(l1adelay_bitlo,
+	       l1adelay_bithi);
+    read_l1a_window_size_ = 
+      (data >> l1a_window_size_bitlo) & 
+      makemask(l1a_window_size_bitlo,
+	       l1a_window_size_bithi);
+    //
+  } else if ( address == tmb_trig_adr ) {
+    //
+    read_tmb_sync_err_enable_ = 
+      (data >> tmb_sync_err_enable_bitlo) & 
+      makemask(tmb_sync_err_enable_bitlo,
+	       tmb_sync_err_enable_bithi);
+    //
+    // N.B. according to TMB documentation, an ALCT only L1a is not used in current version...
+    //
+    read_tmb_allow_clct_ = 
+      (data >> tmb_allow_clct_bitlo) & 
+      makemask(tmb_allow_clct_bitlo,
+	       tmb_allow_clct_bithi);
+    read_tmb_allow_match_ = 
+      (data >> tmb_allow_match_bitlo) & 
+      makemask(tmb_allow_match_bitlo,
+	       tmb_allow_match_bithi);
+    read_mpc_delay_ = 
+      (data >> mpc_delay_bitlo) & 
+      makemask(mpc_delay_bitlo,
+	       mpc_delay_bithi);
+    read_mpc_sel_ttc_bx0_ = 
+      (data >> mpc_sel_ttc_bx0_bitlo) & 
+      makemask(mpc_sel_ttc_bx0_bitlo,
+	       mpc_sel_ttc_bx0_bithi);
+    read_mpc_idle_blank_ = 
+      (data >> mpc_idle_blank_bitlo) & 
+      makemask(mpc_idle_blank_bitlo,
+	       mpc_idle_blank_bithi);
+    //
+  } else if ( address == vme_ddd1_adr ) {
+    //
+    read_tmb1_phase_ = 
+      (data >> tmb1_phase_bitlo) & 
+      makemask(tmb1_phase_bitlo,
+	       tmb1_phase_bithi);
+    read_mpc_phase_ = 
+      (data >> mpc_phase_bitlo) & 
+      makemask(mpc_phase_bitlo,
+	       mpc_phase_bithi);
+    read_dcc_phase_ = 
+      (data >> dcc_phase_bitlo) & 
+      makemask(dcc_phase_bitlo,
+	       dcc_phase_bithi);
+    read_cfeb0delay_ = 
+      (data >> cfeb0delay_bitlo) & 
+      makemask(cfeb0delay_bitlo,
+	       cfeb0delay_bithi);
+    //
+  } else if ( address == vme_ddd2_adr ) {
+    //
+    read_cfeb1delay_ = 
+      (data >> cfeb1delay_bitlo) & 
+      makemask(cfeb1delay_bitlo,
+	       cfeb1delay_bithi);
+    read_cfeb2delay_ = 
+      (data >> cfeb2delay_bitlo) & 
+      makemask(cfeb2delay_bitlo,
+	       cfeb2delay_bithi);
+    read_cfeb3delay_ = 
+      (data >> cfeb3delay_bitlo) & 
+      makemask(cfeb3delay_bitlo,
+	       cfeb3delay_bithi);
+    read_cfeb4delay_ = 
+      (data >> cfeb4delay_bitlo) & 
+      makemask(cfeb4delay_bitlo,
+	       cfeb4delay_bithi);
+    //
+  } else if ( address == vme_ddd0_adr ) {
+    //
+    read_alct_tx_clock_delay_ = 
+      (data >> alct_tx_clock_delay_bitlo) & 
+      makemask(alct_tx_clock_delay_bitlo,
+	       alct_tx_clock_delay_bithi);
+    read_alct_rx_clock_delay_ = 
+      (data >> alct_rx_clock_delay_bitlo) & 
+      makemask(alct_rx_clock_delay_bitlo,
+	       alct_rx_clock_delay_bithi);
+    read_dmb_tx_delay_ = 
+      (data >> dmb_tx_delay_bitlo) & 
+      makemask(dmb_tx_delay_bitlo,
+	       dmb_tx_delay_bithi);
+    read_rat_tmb_delay_ = 
+      (data >> rat_tmb_delay_bitlo) & 
+      makemask(rat_tmb_delay_bitlo,
+	       rat_tmb_delay_bithi);
+    //
+  } else if ( address == rat_3d_delays_adr ) {
+    //
+    read_rpc0_rat_delay_ = 
+      (data >> rpc0_rat_delay_bitlo) & 
+      makemask(rpc0_rat_delay_bitlo,
+	       rpc0_rat_delay_bithi);
+    read_rpc1_rat_delay_ = 
+      (data >> rpc1_rat_delay_bitlo) & 
+      makemask(rpc1_rat_delay_bitlo,
+	       rpc1_rat_delay_bithi);
+    read_rpc2_rat_delay_ = 
+      (data >> rpc2_rat_delay_bitlo) & 
+      makemask(rpc2_rat_delay_bitlo,
+	       rpc2_rat_delay_bithi);
+    read_rpc3_rat_delay_ = 
+      (data >> rpc3_rat_delay_bitlo) & 
+      makemask(rpc3_rat_delay_bitlo,
+	       rpc3_rat_delay_bithi);
+    //
+  } else if ( address == cfeb_inj_adr ) {
+    //
+    read_enableCLCTInputs_ = 
+      (data >> enableCLCTInputs_bitlo) & 
+      makemask(enableCLCTInputs_bitlo,
+	       enableCLCTInputs_bithi);
+    read_cfeb_ram_sel_ = 
+      (data >> cfeb_ram_sel_bitlo) & 
+      makemask(cfeb_ram_sel_bitlo,
+	       cfeb_ram_sel_bithi);
+    read_cfeb_inj_en_sel_ = 
+      (data >> cfeb_inj_en_sel_bitlo) & 
+      makemask(cfeb_inj_en_sel_bitlo,
+	       cfeb_inj_en_sel_bithi);
+    read_start_pattern_inj_ = 
+      (data >> start_pattern_inj_bitlo) & 
+      makemask(start_pattern_inj_bitlo,
+	       start_pattern_inj_bithi);
+    //
+  } else if ( address == seq_id_adr ) {
+    //
+    read_tmb_slot_ = 
+      (data >> tmb_slot_bitlo) & 
+      makemask(tmb_slot_bitlo,
+	       tmb_slot_bithi);
+    read_csc_id_ = 
+      (data >> csc_id_bitlo) & 
+      makemask(csc_id_bitlo,
+	       csc_id_bithi);
+    read_run_id_ = 
+      (data >> run_id_bitlo) & 
+      makemask(run_id_bitlo,
+	       run_id_bithi);
+    //
+  } else if ( address == alct_inj_adr ) {
+    //
+    read_alct_clear_ = 
+      (data >> alct_clear_bitlo) & 
+      makemask(alct_clear_bitlo,
+	       alct_clear_bithi);
+    //
+  } else if ( address == seq_trig_dly2_adr ) {
+    //
+    read_alct_trig_width_ = 
+      (data >> alct_trig_width_bitlo) & 
+      makemask(alct_trig_width_bitlo,
+	       alct_trig_width_bithi);
+    read_alct_pretrig_delay_ = 
+      (data >> alct_pretrig_delay_bitlo) & 
+      makemask(alct_pretrig_delay_bitlo,
+	       alct_pretrig_delay_bithi);
+    read_alct_pattern_delay_ = 
+      (data >> alct_pattern_delay_bitlo) & 
+      makemask(alct_pattern_delay_bitlo,
+	       alct_pattern_delay_bithi);
+    read_adb_ext_trig_delay_ = 
+      (data >> adb_ext_trig_delay_bitlo) & 
+      makemask(adb_ext_trig_delay_bitlo,
+	       adb_ext_trig_delay_bithi);
+    //
+  } else if ( address == seqmod_adr ) {
+    //
+    read_clct_flush_delay_ = 
+      (data >> clct_flush_delay_bitlo) & 
+      makemask(clct_flush_delay_bitlo,
+	       clct_flush_delay_bithi);
+    read_clct_turbo_ = 
+      (data >> clct_turbo_bitlo) & 
+      makemask(clct_turbo_bitlo,
+	       clct_turbo_bithi);
+    read_ranlct_enable_ = 
+      (data >> ranlct_enable_bitlo) & 
+      makemask(ranlct_enable_bitlo,
+	       ranlct_enable_bithi);
+    read_wrt_buf_required_ = 
+      (data >> wrt_buf_required_bitlo) & 
+      makemask(wrt_buf_required_bitlo,
+	       wrt_buf_required_bithi);
+    read_valid_clct_required_ = 
+      (data >> valid_clct_required_bitlo) & 
+      makemask(valid_clct_required_bitlo,
+	       valid_clct_required_bithi);
+    read_l1a_allow_match_ = 
+      (data >> l1a_allow_match_bitlo) & 
+      makemask(l1a_allow_match_bitlo,
+	       l1a_allow_match_bithi);
+    read_l1a_allow_notmb_ = 
+      (data >> l1a_allow_notmb_bitlo) & 
+      makemask(l1a_allow_notmb_bitlo,
+	       l1a_allow_notmb_bithi);
+    read_l1a_allow_nol1a_ = 
+      (data >> l1a_allow_nol1a_bitlo) & 
+      makemask(l1a_allow_nol1a_bitlo,
+	       l1a_allow_nol1a_bithi);
+    read_l1a_allow_alct_only_ = 
+      (data >> l1a_allow_alct_only_bitlo) & 
+      makemask(l1a_allow_alct_only_bitlo,
+	       l1a_allow_alct_only_bithi);
+    read_scint_veto_clr_ = 
+      (data >> scint_veto_clr_bitlo) & 
+      makemask(scint_veto_clr_bitlo,
+	       scint_veto_clr_bithi);
+    //
+  } else if ( address == rpc_raw_delay_adr ) {
+    //
+    read_rpc0_raw_delay_ = 
+      (data >> rpc0_raw_delay_bitlo) & 
+      makemask(rpc0_raw_delay_bitlo,
+	       rpc0_raw_delay_bithi);
+    read_rpc1_raw_delay_ = 
+      (data >> rpc1_raw_delay_bitlo) & 
+      makemask(rpc1_raw_delay_bitlo,
+	       rpc1_raw_delay_bithi);
+    read_rpc2_raw_delay_ = 
+      (data >> rpc2_raw_delay_bitlo) & 
+      makemask(rpc2_raw_delay_bitlo,
+	       rpc2_raw_delay_bithi);
+    read_rpc3_raw_delay_ = 
+      (data >> rpc3_raw_delay_bitlo) & 
+      makemask(rpc3_raw_delay_bitlo,
+	       rpc3_raw_delay_bithi);
+    //
+  } else if ( address == vme_sm_ctrl_adr ) {
+    //
+    read_vme_state_machine_start_ =
+      (data >> vme_state_machine_start_bitlo) & 
+      makemask(vme_state_machine_start_bitlo,
+	       vme_state_machine_start_bithi);
+    read_vme_state_machine_sreset_ =
+      (data >> vme_state_machine_sreset_bitlo) & 
+      makemask(vme_state_machine_sreset_bitlo,
+	       vme_state_machine_sreset_bithi);
+    read_vme_state_machine_autostart_ = 
+      (data >> vme_state_machine_autostart_bitlo) & 
+      makemask(vme_state_machine_autostart_bitlo,
+	       vme_state_machine_autostart_bithi);
+    read_vme_state_machine_busy_ = 
+      (data >> vme_state_machine_busy_bitlo) & 
+      makemask(vme_state_machine_busy_bitlo,
+	       vme_state_machine_busy_bithi);
+    read_vme_state_machine_aborted_ =
+      (data >> vme_state_machine_aborted_bitlo) & 
+      makemask(vme_state_machine_aborted_bitlo,
+	       vme_state_machine_aborted_bithi);
+    read_vme_state_machine_cksum_ok_ = 
+      (data >> vme_state_machine_cksum_ok_bitlo) & 
+      makemask(vme_state_machine_cksum_ok_bitlo,
+	       vme_state_machine_cksum_ok_bithi);
+    read_vme_state_machine_wdcnt_ok_ = 
+      (data >> vme_state_machine_wdcnt_ok_bitlo) & 
+      makemask(vme_state_machine_wdcnt_ok_bitlo,
+	       vme_state_machine_wdcnt_ok_bithi);
+    read_vme_state_machine_jtag_auto_ = 
+      (data >> vme_state_machine_jtag_auto_bitlo) & 
+      makemask(vme_state_machine_jtag_auto_bitlo,
+	       vme_state_machine_jtag_auto_bithi);
+    read_vme_state_machine_vme_ready_ = 
+      (data >> vme_state_machine_vme_ready_bitlo) & 
+      makemask(vme_state_machine_vme_ready_bitlo,
+	       vme_state_machine_vme_ready_bithi);
+    read_vme_state_machine_ok_ =
+      (data >> vme_state_machine_ok_bitlo) & 
+      makemask(vme_state_machine_ok_bitlo,
+	       vme_state_machine_ok_bithi);
+    read_vme_state_machine_path_ok_ = 
+      (data >> vme_state_machine_path_ok_bitlo) & 
+      makemask(vme_state_machine_path_ok_bitlo,
+	       vme_state_machine_path_ok_bithi);
+    read_vme_state_machine_throttle_ = 
+      (data >> vme_state_machine_throttle_bitlo) & 
+      makemask(vme_state_machine_throttle_bitlo,
+	       vme_state_machine_throttle_bithi);
+    //
+  } else if ( address == vme_sm_cksum_adr ) {
+    //
+    read_vme_state_machine_check_sum_ = 
+      (data >> vme_state_machine_check_sum_bitlo) & 
+      makemask(vme_state_machine_check_sum_bitlo,
+	       vme_state_machine_check_sum_bithi);
+    read_vme_state_machine_error_missing_header_start_ = 
+      (data >> vme_state_machine_error_missing_header_start_bitlo) & 
+      makemask(vme_state_machine_error_missing_header_start_bitlo,
+	       vme_state_machine_error_missing_header_start_bithi);
+    read_vme_state_machine_error_missing_header_end_ = 
+      (data >> vme_state_machine_error_missing_header_end_bitlo) & 
+      makemask(vme_state_machine_error_missing_header_end_bitlo,
+	       vme_state_machine_error_missing_header_end_bithi);
+    read_vme_state_machine_error_missing_data_end_marker_ = 
+      (data >> vme_state_machine_error_missing_data_end_marker_bitlo) & 
+      makemask(vme_state_machine_error_missing_data_end_marker_bitlo,
+	       vme_state_machine_error_missing_data_end_marker_bithi);
+    read_vme_state_machine_error_missing_trailer_end_ = 
+      (data >> vme_state_machine_error_missing_trailer_end_bitlo) & 
+      makemask(vme_state_machine_error_missing_trailer_end_bitlo,
+	       vme_state_machine_error_missing_trailer_end_bithi);
+    read_vme_state_machine_error_word_count_overflow_ = 
+      (data >> vme_state_machine_error_word_count_overflow_bitlo) & 
+      makemask(vme_state_machine_error_word_count_overflow_bitlo,
+	       vme_state_machine_error_word_count_overflow_bithi);
+    //
+  } else if ( address == jtag_sm_ctrl_adr ) {
+    //
+    read_jtag_state_machine_start_ =
+      (data >> jtag_state_machine_start_bitlo) & 
+      makemask(jtag_state_machine_start_bitlo,
+	       jtag_state_machine_start_bithi);    
+    read_jtag_state_machine_sreset_ =
+      (data >> jtag_state_machine_sreset_bitlo) & 
+      makemask(jtag_state_machine_sreset_bitlo,
+	       jtag_state_machine_sreset_bithi);
+    read_jtag_state_machine_autostart_ =
+      (data >> jtag_state_machine_autostart_bitlo) & 
+      makemask(jtag_state_machine_autostart_bitlo,
+	       jtag_state_machine_autostart_bithi);
+    read_jtag_state_machine_busy_ =
+      (data >> jtag_state_machine_busy_bitlo) & 
+      makemask(jtag_state_machine_busy_bitlo,
+	       jtag_state_machine_busy_bithi);
+    read_jtag_state_machine_aborted_ =
+      (data >> jtag_state_machine_aborted_bitlo) & 
+      makemask(jtag_state_machine_aborted_bitlo,
+	       jtag_state_machine_aborted_bithi);
+    read_jtag_state_machine_cksum_ok_ =
+      (data >> jtag_state_machine_cksum_ok_bitlo) & 
+      makemask(jtag_state_machine_cksum_ok_bitlo,
+	       jtag_state_machine_cksum_ok_bithi);
+    read_jtag_state_machine_wdcnt_ok_ =
+      (data >> jtag_state_machine_wdcnt_ok_bitlo) & 
+      makemask(jtag_state_machine_wdcnt_ok_bitlo,
+	       jtag_state_machine_wdcnt_ok_bithi);
+    read_jtag_state_machine_tck_fpga_ok_ =
+      (data >> jtag_state_machine_tck_fpga_ok_bitlo) & 
+      makemask(jtag_state_machine_tck_fpga_ok_bitlo,
+	       jtag_state_machine_tck_fpga_ok_bithi);
+    read_jtag_state_machine_vme_ready_ =
+      (data >> jtag_state_machine_vme_ready_bitlo) & 
+      makemask(jtag_state_machine_vme_ready_bitlo,
+	       jtag_state_machine_vme_ready_bithi);
+    read_jtag_state_machine_ok_ = 
+      (data >> jtag_state_machine_ok_bitlo) & 
+      makemask(jtag_state_machine_ok_bitlo,
+	       jtag_state_machine_ok_bithi);
+    read_jtag_state_machine_oe_ =
+      (data >> jtag_state_machine_oe_bitlo) & 
+      makemask(jtag_state_machine_oe_bitlo,
+	       jtag_state_machine_oe_bithi);
+    read_jtag_state_machine_throttle_ = 
+      (data >> jtag_state_machine_throttle_bitlo) & 
+      makemask(jtag_state_machine_throttle_bitlo,
+	       jtag_state_machine_throttle_bithi);
+    //
+  } else if ( address == jtag_sm_cksum_adr ) {
+    //
+    read_jtag_state_machine_check_sum_ = 
+      (data >> jtag_state_machine_check_sum_bitlo) & 
+      makemask(jtag_state_machine_check_sum_bitlo,
+	       jtag_state_machine_check_sum_bithi);
+    read_jtag_state_machine_tck_fpga_ = 
+      (data >> jtag_state_machine_tck_fpga_bitlo) & 
+      makemask(jtag_state_machine_tck_fpga_bitlo,
+	       jtag_state_machine_tck_fpga_bithi);
+    //
+  } else if ( address == jtag_sm_wdcnt_adr ) {    
+    //
+    read_jtag_state_machine_word_count_ =
+      (data >> jtag_state_machine_word_count_bitlo) & 
+      makemask(jtag_state_machine_word_count_bitlo,
+	       jtag_state_machine_word_count_bithi);
+    //
+  } else if ( address == vme_dddsm_adr ) {    
+    //
+    read_ddd_state_machine_start_ =
+      (data >> ddd_state_machine_start_bitlo) & 
+      makemask(ddd_state_machine_start_bitlo,
+	       ddd_state_machine_start_bithi);
+    read_ddd_state_machine_manual_ =
+      (data >> ddd_state_machine_manual_bitlo) & 
+      makemask(ddd_state_machine_manual_bitlo,
+	       ddd_state_machine_manual_bithi);
+    read_ddd_state_machine_latch_ =
+      (data >> ddd_state_machine_latch_bitlo) & 
+      makemask(ddd_state_machine_latch_bitlo,
+	       ddd_state_machine_latch_bithi);
+    read_ddd_state_machine_serial_in_ =
+      (data >> ddd_state_machine_serial_in_bitlo) & 
+      makemask(ddd_state_machine_serial_in_bitlo,
+	       ddd_state_machine_serial_in_bithi);
+    read_ddd_state_machine_serial_out_ =
+      (data >> ddd_state_machine_serial_out_bitlo) & 
+      makemask(ddd_state_machine_serial_out_bitlo,
+	       ddd_state_machine_serial_out_bithi);
+    read_ddd_state_machine_autostart_ =
+      (data >> ddd_state_machine_autostart_bitlo) & 
+      makemask(ddd_state_machine_autostart_bitlo,
+	       ddd_state_machine_autostart_bithi);
+    read_ddd_state_machine_busy_ =
+      (data >> ddd_state_machine_busy_bitlo) & 
+      makemask(ddd_state_machine_busy_bitlo,
+	       ddd_state_machine_busy_bithi);
+    read_ddd_state_machine_verify_ok_ =
+      (data >> ddd_state_machine_verify_ok_bitlo) & 
+      makemask(ddd_state_machine_verify_ok_bitlo,
+	       ddd_state_machine_verify_ok_bithi);
+    read_ddd_state_machine_clock0_lock_ =
+      (data >> ddd_state_machine_clock0_lock_bitlo) & 
+      makemask(ddd_state_machine_clock0_lock_bitlo,
+	       ddd_state_machine_clock0_lock_bithi);
+    read_ddd_state_machine_clock0d_lock_ =
+      (data >> ddd_state_machine_clock0d_lock_bitlo) & 
+      makemask(ddd_state_machine_clock0d_lock_bitlo,
+	       ddd_state_machine_clock0d_lock_bithi);
+    read_ddd_state_machine_clock1_lock_ =
+      (data >> ddd_state_machine_clock1_lock_bitlo) & 
+      makemask(ddd_state_machine_clock1_lock_bitlo,
+	       ddd_state_machine_clock1_lock_bithi);
+    read_ddd_state_machine_clock_alct_lock_ =
+      (data >> ddd_state_machine_clock_alct_lock_bitlo) & 
+      makemask(ddd_state_machine_clock_alct_lock_bitlo,
+	       ddd_state_machine_clock_alct_lock_bithi);
+    read_ddd_state_machine_clockd_alct_lock_ =
+      (data >> ddd_state_machine_clockd_alct_lock_bitlo) & 
+      makemask(ddd_state_machine_clockd_alct_lock_bitlo,
+	       ddd_state_machine_clockd_alct_lock_bithi);
+    read_ddd_state_machine_clock_mpc_lock_ =
+      (data >> ddd_state_machine_clock_mpc_lock_bitlo) & 
+      makemask(ddd_state_machine_clock_mpc_lock_bitlo,
+	       ddd_state_machine_clock_mpc_lock_bithi);
+    read_ddd_state_machine_clock_dcc_lock_ =
+      (data >> ddd_state_machine_clock_dcc_lock_bitlo) & 
+      makemask(ddd_state_machine_clock_dcc_lock_bitlo,
+	       ddd_state_machine_clock_dcc_lock_bithi);
+    read_ddd_state_machine_clock_rpc_lock_ =
+      (data >> ddd_state_machine_clock_rpc_lock_bitlo) & 
+      makemask(ddd_state_machine_clock_rpc_lock_bitlo,
+	       ddd_state_machine_clock_rpc_lock_bithi);
+  //
+  }
+  //
+  // combinations of bits which say which trgmode_ we are using....
+  //
+  read_CLCTtrigger_setting_     = read_tmb_allow_clct_  & read_clct_pat_trig_en_;
+  read_ALCTCLCTtrigger_setting_ = read_tmb_allow_match_ & read_match_pat_trig_en_;
+  //
+  if (read_CLCTtrigger_setting_) 
+    read_trgmode_ = CLCT_trigger;
+  if (read_ALCTCLCTtrigger_setting_) 
+    read_trgmode_ = ALCT_CLCT_coincidence_trigger;
+  //
+  return;
+}
+//
+void TMB::DecodeBootAddress_(int data) {
+  //
+  read_boot_tdi_ =
+    (data >> boot_tdi_bitlo) & 
+    makemask(boot_tdi_bitlo,
+	     boot_tdi_bithi);
+  read_boot_tms_ =
+    (data >> boot_tms_bitlo) & 
+    makemask(boot_tms_bitlo,
+	     boot_tms_bithi);
+  read_boot_tck_ =
+    (data >> boot_tck_bitlo) & 
+    makemask(boot_tck_bitlo,
+	     boot_tck_bithi);
+  read_boot_jtag_chain_select_ =
+    (data >> boot_jtag_chain_select_bitlo) & 
+    makemask(boot_jtag_chain_select_bitlo,
+	     boot_jtag_chain_select_bithi);
+  read_boot_control_jtag_chain_ =
+    (data >> boot_control_jtag_chain_bitlo) & 
+    makemask(boot_control_jtag_chain_bitlo,
+	     boot_control_jtag_chain_bithi);
+  read_boot_hard_reset_alct_ =
+    (data >> boot_hard_reset_alct_bitlo) & 
+    makemask(boot_hard_reset_alct_bitlo,
+	     boot_hard_reset_alct_bithi);
+  read_boot_hard_reset_tmb_ =
+    (data >> boot_hard_reset_tmb_bitlo) & 
+    makemask(boot_hard_reset_tmb_bitlo,
+	     boot_hard_reset_tmb_bithi);
+  read_boot_allow_hard_reset_alct_ =
+    (data >> boot_allow_hard_reset_alct_bitlo) & 
+    makemask(boot_allow_hard_reset_alct_bitlo,
+	     boot_allow_hard_reset_alct_bithi);
+  read_boot_allow_VME_ =
+    (data >> boot_allow_VME_bitlo) & 
+    makemask(boot_allow_VME_bitlo,
+	     boot_allow_VME_bithi);
+  read_boot_enable_mezz_clock_ =
+    (data >> boot_enable_mezz_clock_bitlo) & 
+    makemask(boot_enable_mezz_clock_bitlo,
+	     boot_enable_mezz_clock_bithi);
+  read_boot_hard_reset_rat_ =
+    (data >> boot_hard_reset_rat_bitlo) & 
+    makemask(boot_hard_reset_rat_bitlo,
+	     boot_hard_reset_rat_bithi);
+  read_boot_vme_ready_ =
+    (data >> boot_vme_ready_bitlo) & 
+    makemask(boot_vme_ready_bitlo,
+	     boot_vme_ready_bithi);
+  read_boot_tdo_ =
+    (data >> boot_tdo_bitlo) & 
+    makemask(boot_tdo_bitlo,
+	     boot_tdo_bithi);
+  //
+  return;
+}
+//
+////////////////////////////////////////////////////////////////////////////
+// TMB configuration registers
+////////////////////////////////////////////////////////////////////////////
+void TMB::ReadTMBConfiguration() {
+  //
+  read_firmware_date_ = FirmwareDate();
+  read_firmware_year_ = FirmwareYear();
+  //
+  unsigned short int BootData;
+  tmb_get_boot_reg(&BootData);
+  DecodeBootAddress_(BootData);
+  //
+  //  (*MyOutput_) << "addr    data" << std::endl;
+  //  (*MyOutput_) << "====   ======" << std::endl;
+  //
+  int config_data[number_of_allowed_configuration_addresses];
+  for (int index=0; index<number_of_allowed_configuration_addresses; index++) {
+    if (allowed_configuration_addresses[index] != vme_usr_jtag_adr) {  // skip the user jtag register
+      //      (*MyOutput_) << "0x" << std::hex
+      //		   << ((allowed_configuration_addresses[index] >> 4) & 0xf) 
+      //		   << ((allowed_configuration_addresses[index] >> 0) & 0xf);
+      //      (*MyOutput_) << "   ";
+      config_data[index] = ReadRegister(allowed_configuration_addresses[index]);
+      //      (*MyOutput_) << "0x" << std::hex  
+      //		   << ((config_data[index] >>12) & 0xf) 
+      //		   << ((config_data[index] >> 8) & 0xf) 
+      //		   << ((config_data[index] >> 4) & 0xf) 
+      //		   << ((config_data[index] >> 0) & 0xf);
+      //      (*MyOutput_) << std::endl;		
+      DecodeTMBRegister_(allowed_configuration_addresses[index],
+			config_data[index]);
+    }
+  }
+  //
+  //
+  return;
+}
+//
+void TMB::PrintTMBConfiguration() {
+  //
+  (*MyOutput_) << "TMB READ configuration in slot = " << (int) slot() << std::endl;
+  //
+  (*MyOutput_) << "-> Firmware date: " << std::hex 
+	       << ((read_firmware_date_ >> 12) & 0xf)
+	       << ((read_firmware_date_ >>  8) & 0xf)
+	       << ((read_firmware_date_ >>  4) & 0xf)
+	       << ((read_firmware_date_ >>  0) & 0xf)
+	       << ((read_firmware_year_ >> 12) & 0xf)
+	       << ((read_firmware_year_ >>  8) & 0xf)
+	       << ((read_firmware_year_ >>  4) & 0xf)
+	       << ((read_firmware_year_ >>  0) & 0xf) 
+	       << std::endl;
+  //
+  (*MyOutput_) << "Boot Register controls JTAG chain = " 
+		<< std::hex << boot_register_control_jtag_chain_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (rpc_cfg_adr & 0xff) 
+		<< " -> RPC configuration register" << std::endl;
+  (*MyOutput_) << "        RPC exists      = 0x" 
+		<< std::hex << read_rpc_exists_ << std::endl;
+  (*MyOutput_) << "        RPC read enable = " 
+		<< std::hex << read_rpc_read_enable_ << std::endl;
+  (*MyOutput_) << "        RPC BXN offset  = " 
+		<< std::dec << read_rpc_bxn_offset_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (vme_ratctrl_adr & 0xff) 
+		<< " -> RAT control register" << std::endl;
+  (*MyOutput_) << "        RPC shift 1/2 cycle = " 
+		<< std::hex << read_shift_rpc_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (vme_loopbk_adr & 0xff) 
+		<< " -> Loopback register" << std::endl;
+  (*MyOutput_) << "        ALCT enable LVDS rx = " 
+		<< std::hex << read_enable_alct_rx_ << std::endl;
+  (*MyOutput_) << "        ALCT enable LVDS tx = " 
+		<< std::hex << read_enable_alct_tx_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (ccb_trig_adr & 0xff) 
+		<< " -> CCB trigger configuration register" << std::endl;
+  (*MyOutput_) << "        Request CCB L1a on ALCT ext trig      = "
+		<< std::hex << read_alct_ext_trig_l1aen_ << std::endl;
+  (*MyOutput_) << "        Request CCB L1a on CLCT ext trig      = " 
+		<< std::hex << read_clct_ext_trig_l1aen_ << std::endl;
+  (*MyOutput_) << "        Request CCB L1a on seq trig           = " 
+		<< std::hex << read_request_l1a_ << std::endl;
+  (*MyOutput_) << "        Fire ALCT ext trig one-shot           = " 
+		<< std::hex << read_alct_ext_trig_vme_ << std::endl;
+  (*MyOutput_) << "        Fire CLCT ext trig one-shot           = " 
+		<< std::hex << read_clct_ext_trig_vme_ << std::endl;
+  (*MyOutput_) << "        CLCText fire ALCT + ALCText fire CLCT = " 
+		<< std::hex << read_ext_trig_both_ << std::endl;
+  (*MyOutput_) << "        allow CLCTextCCB when ccb_ignore_rx=1 = " 
+		<< std::hex << read_ccb_allow_bypass_ << std::endl;
+  (*MyOutput_) << "        Internal L1A delay (VME)              = " 
+		<< std::dec << read_internal_l1a_delay_vme_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (seq_fifo_adr & 0xff) 
+		<< " -> Sequencer FIFO configuration register" << std::endl;
+  (*MyOutput_) << "        Fifo_mode                            = " 
+		<< std::dec << read_fifo_mode_ << " = ";
+  if (read_fifo_mode_ == 0) {
+    (*MyOutput_) << "no    CFEB raw hits, full  header";
+  } else if (read_fifo_mode_ == 1) {
+    (*MyOutput_) << "all   CFEB raw hits, full  header";
+  } else if (read_fifo_mode_ == 2) {
+    (*MyOutput_) << "local CFEB raw hits, full  header";
+  } else if (read_fifo_mode_ == 3) {
+    (*MyOutput_) << "no    CFEB raw hits, short header";
+  } else if (read_fifo_mode_ == 4) {
+    (*MyOutput_) << "no    CFEB raw hits, no    header";
+  } else {
+    (*MyOutput_) << "unknown fifo_mode...";
+  }
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << "        Number FIFO time bins read out       = " 
+		<< std::dec << read_fifo_tbins_ << std::endl;
+  (*MyOutput_) << "        Number FIFO time bins before pretrig = " 
+		<< std::dec << read_fifo_pretrig_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (seq_trig_en_adr & 0xff) 
+		<< " -> Sequencer trigger source enable register" << std::endl;
+  (*MyOutput_) << "        CLCT pattern trigger            = " 
+		<< std::hex << read_clct_pat_trig_en_ << std::endl;
+  (*MyOutput_) << "        ALCT pattern trigger            = " 
+		<< std::hex << read_alct_pat_trig_en_ << std::endl;
+  (*MyOutput_) << "        ALCT*CLCT pattern trigger       = " 
+		<< std::hex << read_match_pat_trig_en_ << std::endl;
+  (*MyOutput_) << "        ADB external trigger            = " 
+		<< std::hex << read_adb_ext_trig_en_ << std::endl;
+  (*MyOutput_) << "        DMB external trigger            = " 
+		<< std::hex << read_dmb_ext_trig_en_ << std::endl;
+  (*MyOutput_) << "        CLCT external (scint) trigger   = " 
+		<< std::hex << read_clct_ext_trig_en_ << std::endl;
+  (*MyOutput_) << "        ALCT external trigger           = " 
+		<< std::hex << read_alct_ext_trig_en_ << std::endl;
+  (*MyOutput_) << "        VME external trigger            = " 
+		<< std::hex << read_vme_ext_trig_en_ << std::endl;
+  (*MyOutput_) << "        CLCT ext trig fire pat injector = " 
+		<< std::hex << read_ext_trig_inject_ << std::endl;
+  (*MyOutput_) << "        all CFEBs active                = " 
+		<< std::hex << read_all_cfeb_active_ << std::endl;
+  (*MyOutput_) << "        CFEBs enabled                   = 0x" 
+		<< std::hex << read_cfebs_enabled_ << std::endl;
+  (*MyOutput_) << "        enable CFEBS through VME 0x42   = " 
+		<< std::hex << read_cfeb_enable_source_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (tmbtim_adr & 0xff) 
+		<< " -> ALCT*CLCT timing register" << std::endl;
+  (*MyOutput_) << "        ALCT Valid Pattern Flag delay = " 
+		<< std::dec << read_alct_vpf_delay_ << std::endl;
+  (*MyOutput_) << "        ALCT*CLCT match window width  = " 
+		<< std::dec << read_alct_match_window_size_ << std::endl;
+  (*MyOutput_) << "        LCT transmit to MPC delay     = " 
+		<< std::dec << read_mpc_tx_delay_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (seq_offset_adr & 0xff) 
+		<< " -> Sequencer counter offset register" << std::endl;
+  (*MyOutput_) << "        l1a Counter Preset value = " 
+		<< std::dec << read_l1a_offset_ << std::endl;
+  (*MyOutput_) << "        BXN offset at reset      = " 
+		<< std::dec << read_bxn_offset_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (seq_clct_adr & 0xff) 
+		<< " -> Sequencer CLCT configuration register" << std::endl;
+  (*MyOutput_) << "        Triad 1-shot persistence          = 0x" 
+		<< std::hex << read_triad_persist_ << std::endl;
+  (*MyOutput_) << "        1/2-strip pretrig thresh          = " 
+		<< std::dec << read_hs_pretrig_thresh_ << std::endl;
+  (*MyOutput_) << "        di-strip pretrig thresh           = " 
+		<< std::dec << read_ds_pretrig_thresh_ << std::endl;
+  (*MyOutput_) << "        min hits for valid pattern        = " 
+		<< std::dec << read_min_hits_pattern_ << std::endl;
+  (*MyOutput_) << "        drift delay                       = " 
+		<< std::dec << read_drift_delay_ << std::endl;
+  (*MyOutput_) << "        pretrigger then halt until unhalt = " 
+		<< std::hex << read_pretrigger_halt_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (scp_ctrl_adr & 0xff) 
+		<< " -> Scope control register..." << std::endl;
+  (*MyOutput_) << "        Insert sequencer readout mode in DMB data  = " 
+		<< std::hex << read_seq_readmode_in_dmb_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (seq_l1a_adr & 0xff) 
+		<< " -> Sequencer L1A configuration register..." << std::endl;
+  (*MyOutput_) << "        L1a delay from pretrig status output  = " 
+		<< std::dec << read_l1adelay_ << std::endl;
+  (*MyOutput_) << "        L1a accept window width               = " 
+		<< std::dec << read_l1a_window_size_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (tmb_trig_adr & 0xff) 
+		<< " -> TMB trigger, MPC accept register..." << std::endl;
+  (*MyOutput_) << "        Allow sync_err to MPC for either muon        = " 
+		<< std::hex << read_tmb_sync_err_enable_ << std::endl;
+  (*MyOutput_) << "        Allow CLCT only L1a                          = " 
+		<< std::hex << read_tmb_allow_clct_ << std::endl;
+  (*MyOutput_) << "        Allow ALCT*CLCT match pre-trigger            = " 
+		<< std::hex << read_tmb_allow_match_ << std::endl;
+  (*MyOutput_) << "        MPC rx delay                                 = " 
+		<< std::dec << read_mpc_delay_ << std::endl;
+  (*MyOutput_) << "        MPC gets bx0 from TTC                        = " 
+		<< std::dec << read_mpc_sel_ttc_bx0_ << std::endl;
+  (*MyOutput_) << "        blank MPC data and bx0 except when triggered = " 
+		<< std::hex << read_mpc_idle_blank_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (vme_ddd1_adr & 0xff) 
+		<< " -> Clock phase delay register:" << std::endl;
+  (*MyOutput_) << "        TMB 1 phase                             = " 
+		<< std::dec << read_tmb1_phase_ << std::endl;
+  (*MyOutput_) << "        MPC phase                               = " 
+		<< std::dec << read_mpc_phase_ << std::endl;
+  (*MyOutput_) << "        DCC (cfeb duty cycle correction) phase  = " 
+		<< std::dec << read_dcc_phase_ << std::endl;
+  (*MyOutput_) << "        CFEB 0 phase                            = " 
+		<< std::dec << read_cfeb0delay_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (vme_ddd2_adr & 0xff) 
+		<< " -> Clock phase delay register:" << std::endl;
+  (*MyOutput_) << "        CFEB 1 phase = " 
+		<< std::dec << read_cfeb1delay_ << std::endl;
+  (*MyOutput_) << "        CFEB 2 phase = " 
+		<< std::dec << read_cfeb2delay_ << std::endl;
+  (*MyOutput_) << "        CFEB 3 phase = " 
+		<< std::dec << read_cfeb3delay_ << std::endl;
+  (*MyOutput_) << "        CFEB 4 phase = " 
+		<< std::dec << read_cfeb4delay_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (vme_ddd0_adr & 0xff) 
+		<< " -> Clock phase delay register:" << std::endl;
+  (*MyOutput_) << "        ALCT tx phase = " 
+		<< std::dec << read_alct_tx_clock_delay_ << std::endl;
+  (*MyOutput_) << "        ALCT rx phase = " 
+		<< std::dec << read_alct_rx_clock_delay_ << std::endl;
+  (*MyOutput_) << "        DMB tx phase  = " 
+		<< std::dec << read_dmb_tx_delay_ << std::endl;
+  (*MyOutput_) << "        RAT-TMB phase  = " 
+		<< std::dec << read_rat_tmb_delay_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (rat_3d_delays_adr & 0xff) 
+		<< " -> RPC/RAT phase delay register:" << std::endl;
+  (*MyOutput_) << "        RPC0/RAT rx phase          = " 
+		<< std::dec << read_rpc0_rat_delay_ << std::endl;
+  (*MyOutput_) << "        RPC1/RAT rx phase          = " 
+		<< std::dec << read_rpc1_rat_delay_ << std::endl;
+  (*MyOutput_) << "        RPC2/RAT rx phase (unused) = " 
+		<< std::dec << read_rpc2_rat_delay_ << std::endl;
+  (*MyOutput_) << "        RPC3/RAT rx phase (unused) = " 
+		<< std::dec << read_rpc3_rat_delay_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (cfeb_inj_adr & 0xff) 
+		<< " -> CFEB injector control register:" << std::endl;
+  (*MyOutput_) << "        CFEB enable mask                = 0x" 
+		<< std::hex << read_enableCLCTInputs_ << std::endl;
+  (*MyOutput_) << "        select CFEB for RAM read/write  = 0x" 
+		<< std::hex << read_cfeb_ram_sel_ << std::endl;
+  (*MyOutput_) << "        CFEB enable injector mask       = 0x" 
+		<< std::hex << read_cfeb_inj_en_sel_ << std::endl;
+  (*MyOutput_) << "        start pattern injector          = " 
+		<< std::hex << read_start_pattern_inj_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (seq_id_adr & 0xff) 
+		<< " -> ID register" << std::endl;
+  (*MyOutput_) << "        TMB slot = " 
+		<< std::dec << read_tmb_slot_ << std::endl;
+  (*MyOutput_) << "        CSC ID   = " 
+		<< std::dec << read_csc_id_ << std::endl;
+  (*MyOutput_) << "        Run ID   = " 
+		<< std::dec << read_run_id_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (alct_inj_adr & 0xff) 
+		<< " -> ALCT injector control register" << std::endl;
+  (*MyOutput_) << "        disable ALCT = " 
+		<< std::hex << read_alct_clear_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (seq_trig_dly2_adr & 0xff) 
+		<< " -> Sequencer trigger source delays register" << std::endl;
+  (*MyOutput_) << "        ALCTCLCT Pretrigger window width    = " 
+		<< std::dec << read_alct_trig_width_ << std::endl;
+  (*MyOutput_) << "        ALCT Pretrigger delay for ALCT*CLCT = " 
+		<< std::dec << read_alct_pretrig_delay_ << std::endl;
+  (*MyOutput_) << "        ALCT Pattern delay                  = " 
+		<< std::dec << read_alct_pattern_delay_ << std::endl;
+  (*MyOutput_) << "        ADB External Trig delay             = " 
+		<< std::dec << read_adb_ext_trig_delay_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (seqmod_adr &0xff) 
+		<< " -> Sequencer trigger modifier register" << std::endl;
+  (*MyOutput_) << "        Trigger seq flush state timer                   = " 
+		<< std::dec << read_clct_flush_delay_ << std::endl;
+  (*MyOutput_) << "        Disable raw hits (turbo mode)                   = " 
+		<< std::hex << read_clct_turbo_ << std::endl;
+  (*MyOutput_) << "        Enable OSU random LCT generator                 = " 
+		<< std::hex << read_ranlct_enable_ << std::endl;
+  (*MyOutput_) << "        Require wr_buffer available to pretrigger       = " 
+		<< std::hex << read_wrt_buf_required_ << std::endl;
+  (*MyOutput_) << "        Require valid CLCT after drift delay            = " 
+		<< std::hex << read_valid_clct_required_ << std::endl;
+  (*MyOutput_) << "        Allow tmb trig pulse in L1a window              = " 
+		<< std::hex << read_l1a_allow_match_ << std::endl;
+  (*MyOutput_) << "        Allow no TMB trig pulse in L1a window           = " 
+		<< std::hex << read_l1a_allow_notmb_ << std::endl;
+  (*MyOutput_) << "        Allow readout TMB trig pulse outside L1a window = " 
+		<< std::hex << read_l1a_allow_nol1a_ << std::endl;
+  (*MyOutput_) << "        Allow ALCT-only events to readout at L1a        = " 
+		<< std::hex << read_l1a_allow_alct_only_ << std::endl;
+  (*MyOutput_) << "        Clear scintillator veto                         = " 
+		<< std::hex << read_scint_veto_clr_ << std::endl;
+  //
+  (*MyOutput_) << std::hex << "0x" << (rpc_raw_delay_adr & 0xff) 
+		<< " -> RPC raw hits delay register:" << std::endl;
+  (*MyOutput_) << "        RPC0 raw hits delay          = " 
+		<< std::dec << read_rpc0_raw_delay_ << std::endl;
+  (*MyOutput_) << "        RPC1 raw hits delay (unused) = " 
+		<< std::dec << read_rpc1_raw_delay_ << std::endl;
+  (*MyOutput_) << "        RPC2 raw hits delay (unused) = " 
+		<< std::dec << read_rpc2_raw_delay_ << std::endl;
+  (*MyOutput_) << "        RPC3 raw hits delay (unused) = " 
+		<< std::dec << read_rpc3_raw_delay_ << std::endl;
+  //
+  return;
+}
+//
+void TMB::CheckTMBConfiguration() {
   //
   bool config_ok = true;
   //
-  ReadCurrentConfiguration();    // fill the read values in the software
+  ReadTMBConfiguration();    // fill the read values in the software
   //
   config_ok &= compareValues("Boot register control JTAG chain",
 			     boot_register_control_jtag_chain_,
@@ -6666,342 +7741,373 @@ bool TMB::CheckCurrentConfiguration() {
 			     rpc0_raw_delay_,
 			     true);
   //
-  std::ostringstream dump;
-  dump << "TMB slot " << (int) slot() << ": configuration check -> ";
-  (*configOut_) << "TMB slot " << (int) slot() << ": configuration -> ";
+  ReportCheck("TMB configuration check",config_ok);
   //
-  if ( config_ok ) {
-    dump << "OK" << std::endl;
-    (*configOut_) << "OK" << std::endl;
-    SendOutput(dump.str(),"INFO");
-  } else {
-    dump << "FAIL <-" << std::endl;
-    (*configOut_) << "FAIL <-" << std::endl;
-    SendOutput(dump.str(),"ERROR");
-  }
+  tmb_configuration_status_ = (int) config_ok;
   //
-  return config_ok;
+  return;
 }
 //
-void TMB::ReadCurrentConfiguration() {
+////////////////////////////////////////////////////////////////////////////
+// VME state machine
+////////////////////////////////////////////////////////////////////////////
+void TMB::ReadVMEStateMachine() {
   //
-  read_firmware_date_ = FirmwareDate();
-  read_firmware_year_ = FirmwareYear();
+  DecodeTMBRegister_(vme_sm_ctrl_adr,
+		     ReadRegister(vme_sm_ctrl_adr));
+  //
+  read_vme_state_machine_word_count_ = ReadRegister(vme_sm_wdcnt_adr);
+  //
+  DecodeTMBRegister_(vme_sm_cksum_adr,
+		     ReadRegister(vme_sm_cksum_adr));
+  //
+  read_vme_state_machine_number_of_vme_writes_ = ReadRegister(num_vme_sm_adr_adr);
+  //
+  return;
+}
+//
+void TMB::PrintVMEStateMachine() {
+  //
+  (*MyOutput_) << "-------------------------------------------" << std::endl;
+  (*MyOutput_) << "TMB VME state machine status in slot = " << (int) slot() << std::endl;
+  (*MyOutput_) << "-------------------------------------------" << std::endl;
+  (*MyOutput_) << " start            = " << std::hex << read_vme_state_machine_start_ << std::endl;
+  (*MyOutput_) << " sreset           = " << std::hex << read_vme_state_machine_sreset_ << std::endl;
+  (*MyOutput_) << " autostart        = " << std::hex << read_vme_state_machine_autostart_ << std::endl;
+  (*MyOutput_) << " busy             = " << std::hex << read_vme_state_machine_busy_ << std::endl;
+  (*MyOutput_) << " aborted          = " << std::hex << read_vme_state_machine_aborted_ << std::endl;
+  (*MyOutput_) << " check sum OK     = " << std::hex << read_vme_state_machine_cksum_ok_ << std::endl;
+  (*MyOutput_) << " word count OK    = " << std::hex << read_vme_state_machine_wdcnt_ok_ << std::endl;
+  (*MyOutput_) << " JTAG auto        = " << std::hex << read_vme_state_machine_jtag_auto_ << std::endl;
+  (*MyOutput_) << " VME ready        = " << std::hex << read_vme_state_machine_vme_ready_ << std::endl;
+  (*MyOutput_) << " state machine OK = " << std::hex << read_vme_state_machine_ok_ << std::endl;
+  (*MyOutput_) << " path OK          = " << std::hex << read_vme_state_machine_path_ok_ << std::endl;
+  (*MyOutput_) << " throttle         = 0x" << std::hex << read_vme_state_machine_throttle_ << std::endl;
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << " word count = 0x" << std::hex << read_vme_state_machine_word_count_ << std::endl;
+  (*MyOutput_) << " check sum  = 0x" << std::hex << read_vme_state_machine_check_sum_ << std::endl;
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << " missing header start    = " << std::hex << read_vme_state_machine_error_missing_header_start_ << std::endl;
+  (*MyOutput_) << " missing header end      = " << std::hex << read_vme_state_machine_error_missing_header_end_ << std::endl;
+  (*MyOutput_) << " missing data end marker = " << std::hex << read_vme_state_machine_error_missing_data_end_marker_ << std::endl;
+  (*MyOutput_) << " missing trailer end     = " << std::hex << read_vme_state_machine_error_missing_trailer_end_ << std::endl;
+  (*MyOutput_) << " word count overflow     = " << std::hex << read_vme_state_machine_error_word_count_overflow_ << std::endl;
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << " Number of VME writes    = 0x" << std::hex << read_vme_state_machine_number_of_vme_writes_ << std::endl;
+  //
+  return;
+}
+//
+void TMB::CheckVMEStateMachine() {
+  //
+  bool config_ok = true;
+  //
+  ReadVMEStateMachine();
+  //
+  config_ok &= compareValues("VME state machine autostart",
+			     read_vme_state_machine_autostart_,
+			     1,
+			     true);
+  config_ok &= compareValues("VME state machine aborted",
+			     read_vme_state_machine_aborted_,
+			     0,
+			     true);
+  config_ok &= compareValues("VME state machine check sum OK",
+			     read_vme_state_machine_cksum_ok_,
+			     1,
+			     true);
+  config_ok &= compareValues("VME state machine word count OK",
+			     read_vme_state_machine_wdcnt_ok_,
+			     1,
+			     true);
+  config_ok &= compareValues("VME state machine JTAG autostart",
+			     read_vme_state_machine_jtag_auto_,
+			     1,
+			     true);
+  config_ok &= compareValues("VME state machine VME ready",
+			     read_vme_state_machine_vme_ready_,
+			     1,
+			     true);
+  config_ok &= compareValues("VME state machine OK",
+			     read_vme_state_machine_ok_,
+			     1,
+			     true);
+  config_ok &= compareValues("VME state machine path OK",
+			     read_vme_state_machine_path_ok_,
+			     1,
+			     true);
+  config_ok &= compareValues("VME state machine missing header start",
+			     read_vme_state_machine_error_missing_header_start_,
+			     0,
+			     true);
+  config_ok &= compareValues("VME state machine missing header end",
+			     read_vme_state_machine_error_missing_header_end_,
+			     0,
+			     true);
+  config_ok &= compareValues("VME state machine missing data end marker",
+			     read_vme_state_machine_error_missing_data_end_marker_,
+			     0,
+			     true);
+  config_ok &= compareValues("VME state machine missing trailer end",
+			     read_vme_state_machine_error_missing_trailer_end_,
+			     0,
+			     true);
+  config_ok &= compareValues("VME state machine word count overflow",
+			     read_vme_state_machine_error_word_count_overflow_,
+			     0,
+			     true);
+  //
+  ReportCheck("VME state machine check",config_ok);
+  //
+  vme_state_machine_status_ = (int) config_ok;
+  //
+  return;
+}
+//
+////////////////////////////////////////////////////////////////////////////
+// JTAG state machine
+////////////////////////////////////////////////////////////////////////////
+void TMB::ReadJTAGStateMachine() {
+  //
+  DecodeTMBRegister_(jtag_sm_ctrl_adr,
+		     ReadRegister(jtag_sm_ctrl_adr));
+  //
+  DecodeTMBRegister_(jtag_sm_cksum_adr,
+		     ReadRegister(jtag_sm_cksum_adr));
+  //
+  DecodeTMBRegister_(jtag_sm_wdcnt_adr,
+		     ReadRegister(jtag_sm_wdcnt_adr));
   //
   unsigned short int BootData;
   tmb_get_boot_reg(&BootData);
-  //  (*configOut_) << "Boot Register data = 0x" << std::hex << BootData << std::endl;
-  boot_register_control_jtag_chain_ = (BootData << 7) & 0x1;
-  //
-  //  (*configOut_) << "addr    data" << std::endl;
-  //  (*configOut_) << "====   ======" << std::endl;
-  //
-  int config_data[number_of_allowed_configuration_addresses];
-  for (int index=0; index<number_of_allowed_configuration_addresses; index++) {
-    if (allowed_configuration_addresses[index] != vme_usr_jtag_adr) {  // skip the user jtag register
-      //      (*configOut_) << "0x" << std::hex
-      //		   << ((allowed_configuration_addresses[index] >> 4) & 0xf) 
-      //		   << ((allowed_configuration_addresses[index] >> 0) & 0xf);
-      //      (*configOut_) << "   ";
-      config_data[index] = ReadRegister(allowed_configuration_addresses[index]);
-      //      (*configOut_) << "0x" << std::hex  
-      //		   << ((config_data[index] >>12) & 0xf) 
-      //		   << ((config_data[index] >> 8) & 0xf) 
-      //		   << ((config_data[index] >> 4) & 0xf) 
-      //		   << ((config_data[index] >> 0) & 0xf);
-      //      (*configOut_) << std::endl;		
-      DecodeConfigurationData(allowed_configuration_addresses[index],
-			      config_data[index]);
-    }
-  }
-  //
+  DecodeBootAddress_(BootData);
   //
   return;
 }
 //
-void TMB::PrintCurrentConfiguration() {
+void TMB::PrintJTAGStateMachine() {
   //
-  (*configOut_) << "TMB READ configuration in slot = " << (int) slot() << std::endl;
-  //
-  (*configOut_) << "-> Firmware date: " << std::hex 
-	       << ((read_firmware_date_ >> 12) & 0xf)
-	       << ((read_firmware_date_ >>  8) & 0xf)
-	       << ((read_firmware_date_ >>  4) & 0xf)
-	       << ((read_firmware_date_ >>  0) & 0xf)
-	       << ((read_firmware_year_ >> 12) & 0xf)
-	       << ((read_firmware_year_ >>  8) & 0xf)
-	       << ((read_firmware_year_ >>  4) & 0xf)
-	       << ((read_firmware_year_ >>  0) & 0xf) 
-	       << std::endl;
-  //
-  (*configOut_) << "Boot Register controls JTAG chain = " 
-		<< std::hex << boot_register_control_jtag_chain_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (rpc_cfg_adr & 0xff) 
-		<< " -> RPC configuration register" << std::endl;
-  (*configOut_) << "        RPC exists      = 0x" 
-		<< std::hex << read_rpc_exists_ << std::endl;
-  (*configOut_) << "        RPC read enable = " 
-		<< std::hex << read_rpc_read_enable_ << std::endl;
-  (*configOut_) << "        RPC BXN offset  = " 
-		<< std::dec << read_rpc_bxn_offset_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (vme_ratctrl_adr & 0xff) 
-		<< " -> RAT control register" << std::endl;
-  (*configOut_) << "        RPC shift 1/2 cycle = " 
-		<< std::hex << read_shift_rpc_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (vme_loopbk_adr & 0xff) 
-		<< " -> Loopback register" << std::endl;
-  (*configOut_) << "        ALCT enable LVDS rx = " 
-		<< std::hex << read_enable_alct_rx_ << std::endl;
-  (*configOut_) << "        ALCT enable LVDS tx = " 
-		<< std::hex << read_enable_alct_tx_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (ccb_trig_adr & 0xff) 
-		<< " -> CCB trigger configuration register" << std::endl;
-  (*configOut_) << "        Request CCB L1a on ALCT ext trig      = "
-		<< std::hex << read_alct_ext_trig_l1aen_ << std::endl;
-  (*configOut_) << "        Request CCB L1a on CLCT ext trig      = " 
-		<< std::hex << read_clct_ext_trig_l1aen_ << std::endl;
-  (*configOut_) << "        Request CCB L1a on seq trig           = " 
-		<< std::hex << read_request_l1a_ << std::endl;
-  (*configOut_) << "        Fire ALCT ext trig one-shot           = " 
-		<< std::hex << read_alct_ext_trig_vme_ << std::endl;
-  (*configOut_) << "        Fire CLCT ext trig one-shot           = " 
-		<< std::hex << read_clct_ext_trig_vme_ << std::endl;
-  (*configOut_) << "        CLCText fire ALCT + ALCText fire CLCT = " 
-		<< std::hex << read_ext_trig_both_ << std::endl;
-  (*configOut_) << "        allow CLCTextCCB when ccb_ignore_rx=1 = " 
-		<< std::hex << read_ccb_allow_bypass_ << std::endl;
-  (*configOut_) << "        Internal L1A delay (VME)              = " 
-		<< std::dec << read_internal_l1a_delay_vme_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (seq_fifo_adr & 0xff) 
-		<< " -> Sequencer FIFO configuration register" << std::endl;
-  (*configOut_) << "        Fifo_mode                            = " 
-		<< std::dec << read_fifo_mode_ << " = ";
-  if (read_fifo_mode_ == 0) {
-    (*configOut_) << "no    CFEB raw hits, full  header";
-  } else if (read_fifo_mode_ == 1) {
-    (*configOut_) << "all   CFEB raw hits, full  header";
-  } else if (read_fifo_mode_ == 2) {
-    (*configOut_) << "local CFEB raw hits, full  header";
-  } else if (read_fifo_mode_ == 3) {
-    (*configOut_) << "no    CFEB raw hits, short header";
-  } else if (read_fifo_mode_ == 4) {
-    (*configOut_) << "no    CFEB raw hits, no    header";
-  } else {
-    (*configOut_) << "unknown fifo_mode...";
-  }
-  (*configOut_) << std::endl;
-  (*configOut_) << "        Number FIFO time bins read out       = " 
-		<< std::dec << read_fifo_tbins_ << std::endl;
-  (*configOut_) << "        Number FIFO time bins before pretrig = " 
-		<< std::dec << read_fifo_pretrig_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (seq_trig_en_adr & 0xff) 
-		<< " -> Sequencer trigger source enable register" << std::endl;
-  (*configOut_) << "        CLCT pattern trigger            = " 
-		<< std::hex << read_clct_pat_trig_en_ << std::endl;
-  (*configOut_) << "        ALCT pattern trigger            = " 
-		<< std::hex << read_alct_pat_trig_en_ << std::endl;
-  (*configOut_) << "        ALCT*CLCT pattern trigger       = " 
-		<< std::hex << read_match_pat_trig_en_ << std::endl;
-  (*configOut_) << "        ADB external trigger            = " 
-		<< std::hex << read_adb_ext_trig_en_ << std::endl;
-  (*configOut_) << "        DMB external trigger            = " 
-		<< std::hex << read_dmb_ext_trig_en_ << std::endl;
-  (*configOut_) << "        CLCT external (scint) trigger   = " 
-		<< std::hex << read_clct_ext_trig_en_ << std::endl;
-  (*configOut_) << "        ALCT external trigger           = " 
-		<< std::hex << read_alct_ext_trig_en_ << std::endl;
-  (*configOut_) << "        VME external trigger            = " 
-		<< std::hex << read_vme_ext_trig_en_ << std::endl;
-  (*configOut_) << "        CLCT ext trig fire pat injector = " 
-		<< std::hex << read_ext_trig_inject_ << std::endl;
-  (*configOut_) << "        all CFEBs active                = " 
-		<< std::hex << read_all_cfeb_active_ << std::endl;
-  (*configOut_) << "        CFEBs enabled                   = 0x" 
-		<< std::hex << read_cfebs_enabled_ << std::endl;
-  (*configOut_) << "        enable CFEBS through VME 0x42   = " 
-		<< std::hex << read_cfeb_enable_source_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (tmbtim_adr & 0xff) 
-		<< " -> ALCT*CLCT timing register" << std::endl;
-  (*configOut_) << "        ALCT Valid Pattern Flag delay = " 
-		<< std::dec << read_alct_vpf_delay_ << std::endl;
-  (*configOut_) << "        ALCT*CLCT match window width  = " 
-		<< std::dec << read_alct_match_window_size_ << std::endl;
-  (*configOut_) << "        LCT transmit to MPC delay     = " 
-		<< std::dec << read_mpc_tx_delay_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (seq_offset_adr & 0xff) 
-		<< " -> Sequencer counter offset register" << std::endl;
-  (*configOut_) << "        l1a Counter Preset value = " 
-		<< std::dec << read_l1a_offset_ << std::endl;
-  (*configOut_) << "        BXN offset at reset      = " 
-		<< std::dec << read_bxn_offset_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (seq_clct_adr & 0xff) 
-		<< " -> Sequencer CLCT configuration register" << std::endl;
-  (*configOut_) << "        Triad 1-shot persistence          = 0x" 
-		<< std::hex << read_triad_persist_ << std::endl;
-  (*configOut_) << "        1/2-strip pretrig thresh          = " 
-		<< std::dec << read_hs_pretrig_thresh_ << std::endl;
-  (*configOut_) << "        di-strip pretrig thresh           = " 
-		<< std::dec << read_ds_pretrig_thresh_ << std::endl;
-  (*configOut_) << "        min hits for valid pattern        = " 
-		<< std::dec << read_min_hits_pattern_ << std::endl;
-  (*configOut_) << "        drift delay                       = " 
-		<< std::dec << read_drift_delay_ << std::endl;
-  (*configOut_) << "        pretrigger then halt until unhalt = " 
-		<< std::hex << read_pretrigger_halt_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (scp_ctrl_adr & 0xff) 
-		<< " -> Scope control register..." << std::endl;
-  (*configOut_) << "        Insert sequencer readout mode in DMB data  = " 
-		<< std::hex << read_seq_readmode_in_dmb_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (seq_l1a_adr & 0xff) 
-		<< " -> Sequencer L1A configuration register..." << std::endl;
-  (*configOut_) << "        L1a delay from pretrig status output  = " 
-		<< std::dec << read_l1adelay_ << std::endl;
-  (*configOut_) << "        L1a accept window width               = " 
-		<< std::dec << read_l1a_window_size_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (tmb_trig_adr & 0xff) 
-		<< " -> TMB trigger, MPC accept register..." << std::endl;
-  (*configOut_) << "        Allow sync_err to MPC for either muon        = " 
-		<< std::hex << read_tmb_sync_err_enable_ << std::endl;
-  (*configOut_) << "        Allow CLCT only L1a                          = " 
-		<< std::hex << read_tmb_allow_clct_ << std::endl;
-  (*configOut_) << "        Allow ALCT*CLCT match pre-trigger            = " 
-		<< std::hex << read_tmb_allow_match_ << std::endl;
-  (*configOut_) << "        MPC rx delay                                 = " 
-		<< std::dec << read_mpc_delay_ << std::endl;
-  (*configOut_) << "        MPC gets bx0 from TTC                        = " 
-		<< std::dec << read_mpc_sel_ttc_bx0_ << std::endl;
-  (*configOut_) << "        blank MPC data and bx0 except when triggered = " 
-		<< std::hex << read_mpc_idle_blank_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (vme_ddd1_adr & 0xff) 
-		<< " -> Clock phase delay register:" << std::endl;
-  (*configOut_) << "        TMB 1 phase                             = " 
-		<< std::dec << read_tmb1_phase_ << std::endl;
-  (*configOut_) << "        MPC phase                               = " 
-		<< std::dec << read_mpc_phase_ << std::endl;
-  (*configOut_) << "        DCC (cfeb duty cycle correction) phase  = " 
-		<< std::dec << read_dcc_phase_ << std::endl;
-  (*configOut_) << "        CFEB 0 phase                            = " 
-		<< std::dec << read_cfeb0delay_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (vme_ddd2_adr & 0xff) 
-		<< " -> Clock phase delay register:" << std::endl;
-  (*configOut_) << "        CFEB 1 phase = " 
-		<< std::dec << read_cfeb1delay_ << std::endl;
-  (*configOut_) << "        CFEB 2 phase = " 
-		<< std::dec << read_cfeb2delay_ << std::endl;
-  (*configOut_) << "        CFEB 3 phase = " 
-		<< std::dec << read_cfeb3delay_ << std::endl;
-  (*configOut_) << "        CFEB 4 phase = " 
-		<< std::dec << read_cfeb4delay_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (vme_ddd0_adr & 0xff) 
-		<< " -> Clock phase delay register:" << std::endl;
-  (*configOut_) << "        ALCT tx phase = " 
-		<< std::dec << read_alct_tx_clock_delay_ << std::endl;
-  (*configOut_) << "        ALCT rx phase = " 
-		<< std::dec << read_alct_rx_clock_delay_ << std::endl;
-  (*configOut_) << "        DMB tx phase  = " 
-		<< std::dec << read_dmb_tx_delay_ << std::endl;
-  (*configOut_) << "        RAT-TMB phase  = " 
-		<< std::dec << read_rat_tmb_delay_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (rat_3d_delays_adr & 0xff) 
-		<< " -> RPC/RAT phase delay register:" << std::endl;
-  (*configOut_) << "        RPC0/RAT rx phase          = " 
-		<< std::dec << read_rpc0_rat_delay_ << std::endl;
-  (*configOut_) << "        RPC1/RAT rx phase          = " 
-		<< std::dec << read_rpc1_rat_delay_ << std::endl;
-  (*configOut_) << "        RPC2/RAT rx phase (unused) = " 
-		<< std::dec << read_rpc2_rat_delay_ << std::endl;
-  (*configOut_) << "        RPC3/RAT rx phase (unused) = " 
-		<< std::dec << read_rpc3_rat_delay_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (cfeb_inj_adr & 0xff) 
-		<< " -> CFEB injector control register:" << std::endl;
-  (*configOut_) << "        CFEB enable mask                = 0x" 
-		<< std::hex << read_enableCLCTInputs_ << std::endl;
-  (*configOut_) << "        select CFEB for RAM read/write  = 0x" 
-		<< std::hex << read_cfeb_ram_sel_ << std::endl;
-  (*configOut_) << "        CFEB enable injector mask       = 0x" 
-		<< std::hex << read_cfeb_inj_en_sel_ << std::endl;
-  (*configOut_) << "        start pattern injector          = " 
-		<< std::hex << read_start_pattern_inj_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (seq_id_adr & 0xff) 
-		<< " -> ID register" << std::endl;
-  (*configOut_) << "        TMB slot = " 
-		<< std::dec << read_tmb_slot_ << std::endl;
-  (*configOut_) << "        CSC ID   = " 
-		<< std::dec << read_csc_id_ << std::endl;
-  (*configOut_) << "        Run ID   = " 
-		<< std::dec << read_run_id_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (alct_inj_adr & 0xff) 
-		<< " -> ALCT injector control register" << std::endl;
-  (*configOut_) << "        disable ALCT = " 
-		<< std::hex << read_alct_clear_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (seq_trig_dly2_adr & 0xff) 
-		<< " -> Sequencer trigger source delays register" << std::endl;
-  (*configOut_) << "        ALCTCLCT Pretrigger window width    = " 
-		<< std::dec << read_alct_trig_width_ << std::endl;
-  (*configOut_) << "        ALCT Pretrigger delay for ALCT*CLCT = " 
-		<< std::dec << read_alct_pretrig_delay_ << std::endl;
-  (*configOut_) << "        ALCT Pattern delay                  = " 
-		<< std::dec << read_alct_pattern_delay_ << std::endl;
-  (*configOut_) << "        ADB External Trig delay             = " 
-		<< std::dec << read_adb_ext_trig_delay_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (seqmod_adr &0xff) 
-		<< " -> Sequencer trigger modifier register" << std::endl;
-  (*configOut_) << "        Trigger seq flush state timer                   = " 
-		<< std::dec << read_clct_flush_delay_ << std::endl;
-  (*configOut_) << "        Disable raw hits (turbo mode)                   = " 
-		<< std::hex << read_clct_turbo_ << std::endl;
-  (*configOut_) << "        Enable OSU random LCT generator                 = " 
-		<< std::hex << read_ranlct_enable_ << std::endl;
-  (*configOut_) << "        Require wr_buffer available to pretrigger       = " 
-		<< std::hex << read_wrt_buf_required_ << std::endl;
-  (*configOut_) << "        Require valid CLCT after drift delay            = " 
-		<< std::hex << read_valid_clct_required_ << std::endl;
-  (*configOut_) << "        Allow tmb trig pulse in L1a window              = " 
-		<< std::hex << read_l1a_allow_match_ << std::endl;
-  (*configOut_) << "        Allow no TMB trig pulse in L1a window           = " 
-		<< std::hex << read_l1a_allow_notmb_ << std::endl;
-  (*configOut_) << "        Allow readout TMB trig pulse outside L1a window = " 
-		<< std::hex << read_l1a_allow_nol1a_ << std::endl;
-  (*configOut_) << "        Allow ALCT-only events to readout at L1a        = " 
-		<< std::hex << read_l1a_allow_alct_only_ << std::endl;
-  (*configOut_) << "        Clear scintillator veto                         = " 
-		<< std::hex << read_scint_veto_clr_ << std::endl;
-  //
-  (*configOut_) << std::hex << "0x" << (rpc_raw_delay_adr & 0xff) 
-		<< " -> RPC raw hits delay register:" << std::endl;
-  (*configOut_) << "        RPC0 raw hits delay          = " 
-		<< std::dec << read_rpc0_raw_delay_ << std::endl;
-  (*configOut_) << "        RPC1 raw hits delay (unused) = " 
-		<< std::dec << read_rpc1_raw_delay_ << std::endl;
-  (*configOut_) << "        RPC2 raw hits delay (unused) = " 
-		<< std::dec << read_rpc2_raw_delay_ << std::endl;
-  (*configOut_) << "        RPC3 raw hits delay (unused) = " 
-		<< std::dec << read_rpc3_raw_delay_ << std::endl;
+  (*MyOutput_) << "-------------------------------------------" << std::endl;
+  (*MyOutput_) << "TMB JTAG state machine status in slot = " << (int) slot() << std::endl;
+  (*MyOutput_) << "-------------------------------------------" << std::endl;
+  (*MyOutput_) << " prom start vme   = " << std::hex << read_jtag_state_machine_start_ << std::endl;
+  (*MyOutput_) << " sreset           = " << std::hex << read_jtag_state_machine_sreset_ << std::endl;
+  (*MyOutput_) << " autostart        = " << std::hex << read_jtag_state_machine_autostart_ << std::endl;
+  (*MyOutput_) << " busy             = " << std::hex << read_jtag_state_machine_busy_ << std::endl;
+  (*MyOutput_) << " aborted          = " << std::hex << read_jtag_state_machine_aborted_ << std::endl;
+  (*MyOutput_) << " check sum OK     = " << std::hex << read_jtag_state_machine_cksum_ok_ << std::endl;
+  (*MyOutput_) << " word count OK    = " << std::hex << read_jtag_state_machine_wdcnt_ok_ << std::endl;
+  (*MyOutput_) << " tck FPGA OK      = " << std::hex << read_jtag_state_machine_tck_fpga_ok_ << std::endl;
+  (*MyOutput_) << " VME ready        = " << std::hex << read_jtag_state_machine_vme_ready_ << std::endl;
+  (*MyOutput_) << " state machine OK = " << std::hex << read_jtag_state_machine_ok_ << std::endl;
+  (*MyOutput_) << " throttle         = 0x" << std::hex << read_jtag_state_machine_throttle_ << std::endl;
+  (*MyOutput_) << " jtag oe          = " << std::hex << read_jtag_state_machine_oe_ << std::endl;
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << " word count = 0x" << std::hex << read_jtag_state_machine_word_count_ << std::endl;
+  (*MyOutput_) << " check sum  = 0x" << std::hex << read_jtag_state_machine_check_sum_ << std::endl;
+  (*MyOutput_) << " tck_fpga   = 0x" << std::hex << read_jtag_state_machine_tck_fpga_ << std::endl;
+  (*MyOutput_) << std::endl;
+  (*MyOutput_) << " boot register tdi                   = " << std::hex << read_boot_tdi_ << std::endl;
+  (*MyOutput_) << " boot register tms                   = " << std::hex << read_boot_tms_ << std::endl;
+  (*MyOutput_) << " boot register tck                   = " << std::hex << read_boot_tck_ << std::endl;
+  (*MyOutput_) << " boot register jtag chain select     = 0x" << std::hex << read_boot_jtag_chain_select_ << std::endl;
+  (*MyOutput_) << " boot register control jtag chain    = " << std::hex << read_boot_control_jtag_chain_ << std::endl;
+  (*MyOutput_) << " boot register hard reset ALCT       = " << std::hex << read_boot_hard_reset_alct_ << std::endl;
+  (*MyOutput_) << " boot register hard reset TMB        = " << std::hex << read_boot_hard_reset_tmb_ << std::endl;
+  (*MyOutput_) << " boot register allow hard reset ALCT = " << std::hex << read_boot_allow_hard_reset_alct_ << std::endl;
+  (*MyOutput_) << " boot register allow VME             = " << std::hex << read_boot_allow_VME_ << std::endl;
+  (*MyOutput_) << " boot register enable TMB mezz clock = " << std::hex << read_boot_enable_mezz_clock_ << std::endl;
+  (*MyOutput_) << " boot register hard reset RAT        = " << std::hex << read_boot_hard_reset_rat_ << std::endl;
+  (*MyOutput_) << " boot register VME ready             = " << std::hex << read_boot_vme_ready_ << std::endl;
+  (*MyOutput_) << " boot register tdo                   = " << std::hex << read_boot_tdo_ << std::endl;
   //
   return;
 }
 //
+void TMB::CheckJTAGStateMachine() {
+  //
+  bool config_ok = true;
+  //
+  ReadJTAGStateMachine();
+  //
+  config_ok &= compareValues("JTAG state machine started with VME",
+			     read_jtag_state_machine_start_,
+			     0,
+			     true);
+  config_ok &= compareValues("JTAG state machine aborted",
+			     read_jtag_state_machine_aborted_,
+			     0,
+			     true);
+  config_ok &= compareValues("JTAG state machine check sum OK",
+			     read_jtag_state_machine_cksum_ok_,
+			     1,
+			     true);
+  config_ok &= compareValues("JTAG state machine word count OK",
+			     read_jtag_state_machine_wdcnt_ok_,
+			     1,
+			     true);
+  config_ok &= compareValues("JTAG state machine tck FPGA OK",
+			     read_jtag_state_machine_tck_fpga_ok_,
+			     1,
+			     true);
+  config_ok &= compareValues("JTAG state machine VME ready",
+			     read_jtag_state_machine_vme_ready_,
+			     1,
+			     true);
+  config_ok &= compareValues("JTAG state machine OK",
+			     read_jtag_state_machine_ok_,
+			     1,
+			     true);
+  config_ok &= compareValues("Boot Register FPGA control JTAG chain",
+			     read_boot_control_jtag_chain_,
+			     0,
+			     true);
+  //
+  ReportCheck("JTAG state machine check",config_ok);
+  //
+  jtag_state_machine_status_ = (int) config_ok;
+  //
+  return;
+}
+////////////////////////////////////////////////////////////////////////////
+// Raw hits header
+////////////////////////////////////////////////////////////////////////////
+void TMB::ReadRawHitsHeader() {
+  //
+  read_raw_hits_header_ = ReadRegister(tmb_stat_adr);
+  //
+  return;
+}
+void TMB::PrintRawHitsHeader() {
+  //
+  (*MyOutput_) << "-------------------------------------------" << std::endl;
+  (*MyOutput_) << "TMB raw hits header in slot " << std::dec << (int) slot() 
+	       << " = 0x" << std::hex << read_raw_hits_header_ << std::endl;
+  (*MyOutput_) << "-------------------------------------------" << std::endl;
+  //
+  return;
+}
+void TMB::CheckRawHitsHeader() {
+  //
+  bool config_ok = true;
+  //
+  ReadRawHitsHeader();
+  //
+  config_ok &= compareValues("Raw Hits Header",
+			     read_raw_hits_header_,
+			     0x777f,
+			     true);
+  //
+  ReportCheck("TMB Raw hits header",config_ok);
+  //
+  raw_hits_header_status_ = (int) config_ok;
+  //
+  return;
+}
+//
+////////////////////////////////////////////////////////////////////////////
+// 3d444 state machine
+////////////////////////////////////////////////////////////////////////////
+void TMB::ReadDDDStateMachine() {
+  //
+  DecodeTMBRegister_(vme_dddsm_adr,
+		     ReadRegister(vme_dddsm_adr));
+  //
+  return;
+}
+//
+void TMB::PrintDDDStateMachine() {
+  //
+  (*MyOutput_) << "-------------------------------------------" << std::endl;
+  (*MyOutput_) << "TMB DDD state machine status in slot = " << (int) slot() << std::endl;
+  (*MyOutput_) << "-------------------------------------------" << std::endl;
+  (*MyOutput_) << " start VME        = " << std::hex << read_ddd_state_machine_start_ << std::endl;
+  (*MyOutput_) << " manual clock mode= " << std::hex << read_ddd_state_machine_manual_ << std::endl;
+  (*MyOutput_) << " address latch    = " << std::hex << read_ddd_state_machine_latch_ << std::endl;
+  (*MyOutput_) << " serial in        = " << std::hex << read_ddd_state_machine_serial_in_ << std::endl;
+  (*MyOutput_) << " serial out       = " << std::hex << read_ddd_state_machine_serial_out_ << std::endl;
+  (*MyOutput_) << " auto start       = " << std::hex << read_ddd_state_machine_autostart_ << std::endl;
+  (*MyOutput_) << " busy             = " << std::hex << read_ddd_state_machine_busy_ << std::endl;
+  (*MyOutput_) << " verify OK        = " << std::hex << read_ddd_state_machine_verify_ok_ << std::endl;
+  (*MyOutput_) << " clock 0 DCM lock = " << std::hex << read_ddd_state_machine_clock0_lock_ << std::endl;
+  (*MyOutput_) << " clock 0d DCM lock= " << std::hex << read_ddd_state_machine_clock0d_lock_ << std::endl;
+  (*MyOutput_) << " clock 1 DCM lock = " << std::hex << read_ddd_state_machine_clock1_lock_ << std::endl;
+  (*MyOutput_) << " clock ALCT lock  = " << std::hex << read_ddd_state_machine_clock_alct_lock_ << std::endl;
+  (*MyOutput_) << " clock ALCTd lock = " << std::hex << read_ddd_state_machine_clockd_alct_lock_ << std::endl;
+  (*MyOutput_) << " clock MPC lock   = " << std::hex << read_ddd_state_machine_clock_mpc_lock_ << std::endl;
+  (*MyOutput_) << " clock DCC lock   = " << std::hex << read_ddd_state_machine_clock_dcc_lock_ << std::endl;
+  (*MyOutput_) << " clock RPC lock   = " << std::hex << read_ddd_state_machine_clock_rpc_lock_ << std::endl;
+  //
+  return;
+}
+//
+void TMB::CheckDDDStateMachine() {
+  //
+  bool config_ok = true;
+  //
+  ReadDDDStateMachine();
+  //
+  config_ok &= compareValues("DDD state machine autostart",
+			     read_ddd_state_machine_autostart_,
+			     1,                              
+			     true);
+  config_ok &= compareValues("DDD state machine busy",
+			     read_ddd_state_machine_busy_,
+			     0,                              
+			     true);
+  config_ok &= compareValues("DDD state machine data verify OK",
+			     read_ddd_state_machine_verify_ok_,
+			     1,                              
+			     true);
+  config_ok &= compareValues("DDD state machine clock 0 DCM lock",
+			     read_ddd_state_machine_clock0_lock_,
+			     1,                              
+			     true);
+  config_ok &= compareValues("DDD state machine clock 0d DCM lock",
+			     read_ddd_state_machine_clock0d_lock_,
+			     1,                              
+			     true);
+  //
+  // should clock 1 DCM lock check be there?
+  //  config_ok &= compareValues("DDD state machine clock 1 DCM lock",
+  //			     read_ddd_state_machine_clock1_lock_,
+  //			     1,                              
+  //			     true);
+  config_ok &= compareValues("DDD state machine clock ALCT lock",
+			     read_ddd_state_machine_clock_alct_lock_,
+			     1,                              
+			     true);
+  config_ok &= compareValues("DDD state machine clock ALCTd lock",
+			     read_ddd_state_machine_clockd_alct_lock_,
+			     1,                              
+			     true);
+  config_ok &= compareValues("DDD state machine clock MPC lock",
+			     read_ddd_state_machine_clock_mpc_lock_,
+			     1,                              
+			     true);
+  //
+  // should DCC lock check be there?
+  //  config_ok &= compareValues("DDD state machine clock DCC lock",
+  //			     read_ddd_state_machine_clock_dcc_lock_,
+  //			     1,                              
+  //			     true);
+  //
+  // RPC lock check should be enabled once RPCs are in place...
+  //  config_ok &= compareValues("DDD state machine clock RPC lock",
+  //			     read_ddd_state_machine_clock_rpc_lock_,
+  //			     1,                              
+  //			     true);
+  //
+  ReportCheck("TMB DDD state machine check",config_ok);
+  //
+  ddd_state_machine_status_ = (int) config_ok;
+  //
+  return;
+}
+//
+///////////////////////////////////
+// register comparison methods
+///////////////////////////////////
 int TMB::makemask(int bitlo, int bithi) {
   // make a mask of the right size for the number of bits...
   int mask = 0;
@@ -7012,582 +8118,21 @@ int TMB::makemask(int bitlo, int bithi) {
   return mask;
 }
 //
-void TMB::DecodeConfigurationData(int address, int data) {
+void TMB::ReportCheck(std::string check_type, bool status_bit) {
   //
-  int address_mask = 0xff;  // only the last 8 bits are important for the TMB vme addresses
+  std::ostringstream dump;
+  dump << "slot " << (int) slot() << ": " << check_type << " -> ";
+  (*MyOutput_) << "slot " << (int) slot() << ": " << check_type << " -> ";
   //
-  if ( (address & address_mask) == (rpc_cfg_adr & address_mask) ) {
-    //
-    read_rpc_exists_      = 
-      (data >> rpc_exists_bitlo) &
-      makemask(rpc_exists_bitlo,
-	       rpc_exists_bithi);
-    read_rpc_read_enable_ = 
-      (data >> rpc_read_enable_bitlo) &
-      makemask(rpc_read_enable_bitlo,
-	       rpc_read_enable_bithi);
-    read_rpc_bxn_offset_  = 
-      (data >> rpc_bxn_offset_bitlo) &
-      makemask(rpc_bxn_offset_bitlo,
-	       rpc_bxn_offset_bithi);
-    //
-  } else if ( (address & address_mask) == (vme_ratctrl_adr & address_mask) ) {
-    //
-    read_shift_rpc_ = 
-      (data >> shift_rpc_bitlo) & 
-      makemask(shift_rpc_bitlo,
-	       shift_rpc_bithi);
-
-    //
-  } else if ( (address & address_mask) == (vme_loopbk_adr & address_mask) ) {
-    //
-    read_enable_alct_rx_ = 
-      (data >> enable_alct_rx_bitlo) & 
-      makemask(enable_alct_rx_bitlo,
-	       enable_alct_rx_bithi);
-    read_enable_alct_tx_ = 
-      (data >> enable_alct_tx_bitlo) & 
-      makemask(enable_alct_tx_bitlo,
-	       enable_alct_tx_bithi);
-    read_ALCT_input_ = read_enable_alct_tx_ & read_enable_alct_rx_;
-    //
-  } else if ( (address & address_mask) == (ccb_trig_adr & address_mask) ) {
-    //
-    read_alct_ext_trig_l1aen_ = 
-      (data >> alct_ext_trig_l1aen_bitlo) & 
-      makemask(alct_ext_trig_l1aen_bitlo,
-	       alct_ext_trig_l1aen_bithi);
-    read_clct_ext_trig_l1aen_ = 
-      (data >> clct_ext_trig_l1aen_bitlo) & 
-      makemask(clct_ext_trig_l1aen_bitlo,
-	       clct_ext_trig_l1aen_bithi);
-    read_request_l1a_ = 
-      (data >> request_l1a_bitlo) & 
-      makemask(request_l1a_bitlo,
-	       request_l1a_bithi);
-    read_alct_ext_trig_vme_ = 
-      (data >> alct_ext_trig_vme_bitlo) & 
-      makemask(alct_ext_trig_vme_bitlo,
-	       alct_ext_trig_vme_bithi);
-    read_clct_ext_trig_vme_ = 
-      (data >> clct_ext_trig_vme_bitlo) & 
-      makemask(clct_ext_trig_vme_bitlo,
-	       clct_ext_trig_vme_bithi);
-    read_ext_trig_both_ = 
-      (data >> ext_trig_both_bitlo) & 
-      makemask(ext_trig_both_bitlo,
-	       ext_trig_both_bithi);
-    read_ccb_allow_bypass_ = 
-      (data >> ccb_allow_bypass_bitlo) & 
-      makemask(ccb_allow_bypass_bitlo,
-	       ccb_allow_bypass_bithi);
-    read_internal_l1a_delay_vme_ = 
-      (data >> internal_l1a_delay_vme_bitlo) & 
-      makemask(internal_l1a_delay_vme_bitlo,
-	       internal_l1a_delay_vme_bithi);
-    //
-  } else if ( (address & address_mask) == (seq_fifo_adr & address_mask) ) {
-    //
-    read_fifo_mode_ = 
-      (data >> fifo_mode_bitlo) & 
-      makemask(fifo_mode_bitlo,
-	       fifo_mode_bithi);
-    read_fifo_tbins_ = 
-      (data >> fifo_tbins_bitlo) & 
-      makemask(fifo_tbins_bitlo,
-	       fifo_tbins_bithi);
-    read_fifo_pretrig_ = 
-      (data >> fifo_pretrig_bitlo) & 
-      makemask(fifo_pretrig_bitlo,
-	       fifo_pretrig_bithi);
-    //
-  } else if ( (address & address_mask) == (seq_trig_en_adr & address_mask) ) {
-    //
-    read_clct_pat_trig_en_ = 
-      (data >> clct_pat_trig_en_bitlo) & 
-      makemask(clct_pat_trig_en_bitlo,
-	       clct_pat_trig_en_bithi);
-    read_alct_pat_trig_en_ = 
-      (data >> alct_pat_trig_en_bitlo) & 
-      makemask(alct_pat_trig_en_bitlo,
-	       alct_pat_trig_en_bithi);
-    read_match_pat_trig_en_ = 
-      (data >> match_pat_trig_en_bitlo) & 
-      makemask(match_pat_trig_en_bitlo,
-	       match_pat_trig_en_bithi);
-    read_adb_ext_trig_en_ = 
-      (data >> adb_ext_trig_en_bitlo) & 
-      makemask(adb_ext_trig_en_bitlo,
-	       adb_ext_trig_en_bithi);
-    read_dmb_ext_trig_en_ = 
-      (data >> dmb_ext_trig_en_bitlo) & 
-      makemask(dmb_ext_trig_en_bitlo,
-	       dmb_ext_trig_en_bithi);
-    read_clct_ext_trig_en_ = 
-      (data >> clct_ext_trig_en_bitlo) & 
-      makemask(clct_ext_trig_en_bitlo,
-	       clct_ext_trig_en_bithi);
-    read_alct_ext_trig_en_ = 
-      (data >> alct_ext_trig_en_bitlo) & 
-      makemask(alct_ext_trig_en_bitlo,
-	       alct_ext_trig_en_bithi);
-    read_vme_ext_trig_en_ = 
-      (data >> vme_ext_trig_en_bitlo) & 
-      makemask(vme_ext_trig_en_bitlo,
-	       vme_ext_trig_en_bithi);
-    read_ext_trig_inject_ = 
-      (data >> ext_trig_inject_bitlo) & 
-      makemask(ext_trig_inject_bitlo,
-	       ext_trig_inject_bithi);
-    read_all_cfeb_active_ = 
-      (data >> all_cfeb_active_bitlo) & 
-      makemask(all_cfeb_active_bitlo,
-	       all_cfeb_active_bithi);
-    read_cfebs_enabled_ = 
-      (data >> cfebs_enabled_bitlo) & 
-      makemask(cfebs_enabled_bitlo,
-	       cfebs_enabled_bithi);
-    read_cfeb_enable_source_ = 
-      (data >> cfeb_enable_source_bitlo) & 
-      makemask(cfeb_enable_source_bitlo,
-	       cfeb_enable_source_bithi);
-    //    
-  } else if ( (address & address_mask) == (tmbtim_adr & address_mask) ) {
-    //
-    read_alct_vpf_delay_ = 
-      (data >> alct_vpf_delay_bitlo) & 
-      makemask(alct_vpf_delay_bitlo,
-	       alct_vpf_delay_bithi);
-    read_alct_match_window_size_ = 
-      (data >> alct_match_window_size_bitlo) & 
-      makemask(alct_match_window_size_bitlo,
-	       alct_match_window_size_bithi);
-    read_mpc_tx_delay_ = 
-      (data >> mpc_tx_delay_bitlo) & 
-      makemask(mpc_tx_delay_bitlo,
-	       mpc_tx_delay_bithi);
-    //
-  } else if ( (address & address_mask) == (seq_offset_adr & address_mask) ) {
-    //
-    read_l1a_offset_ = 
-      (data >> l1a_offset_bitlo) & 
-      makemask(l1a_offset_bitlo,
-	       l1a_offset_bithi);
-    read_bxn_offset_ = 
-      (data >> bxn_offset_bitlo) & 
-      makemask(bxn_offset_bitlo,
-	       bxn_offset_bithi);
-    //    
-  } else if ( (address & address_mask) == (seq_clct_adr & address_mask) ) {
-    //
-    read_triad_persist_ = 
-      (data >> triad_persist_bitlo) & 
-      makemask(triad_persist_bitlo,
-	       triad_persist_bithi);
-    read_hs_pretrig_thresh_ = 
-      (data >> hs_pretrig_thresh_bitlo) & 
-      makemask(hs_pretrig_thresh_bitlo,
-	       hs_pretrig_thresh_bithi);
-    read_ds_pretrig_thresh_ = 
-      (data >> ds_pretrig_thresh_bitlo) & 
-      makemask(ds_pretrig_thresh_bitlo,
-	       ds_pretrig_thresh_bithi);
-    read_min_hits_pattern_ = 
-      (data >> min_hits_pattern_bitlo) & 
-      makemask(min_hits_pattern_bitlo,
-	       min_hits_pattern_bithi);
-    read_drift_delay_ = 
-      (data >> drift_delay_bitlo) & 
-      makemask(drift_delay_bitlo,
-	       drift_delay_bithi);
-    read_pretrigger_halt_ = 
-      (data >> pretrigger_halt_bitlo) & 
-      makemask(pretrigger_halt_bitlo,
-	       pretrigger_halt_bithi);
-    //
-  } else if ( (address & address_mask) == (scp_ctrl_adr & address_mask) ) {
-    //
-    read_seq_readmode_in_dmb_ = 
-      (data >> seq_readmode_in_dmb_bitlo) & 
-      makemask(seq_readmode_in_dmb_bitlo,
-	       seq_readmode_in_dmb_bithi);
-    //
-  } else if ( (address & address_mask) == (seq_l1a_adr & address_mask) ) {
-    //
-    read_l1adelay_ = 
-      (data >> l1adelay_bitlo) & 
-      makemask(l1adelay_bitlo,
-	       l1adelay_bithi);
-    read_l1a_window_size_ = 
-      (data >> l1a_window_size_bitlo) & 
-      makemask(l1a_window_size_bitlo,
-	       l1a_window_size_bithi);
-    //
-  } else if ( (address & address_mask) == (tmb_trig_adr & address_mask) ) {
-    //
-    read_tmb_sync_err_enable_ = 
-      (data >> tmb_sync_err_enable_bitlo) & 
-      makemask(tmb_sync_err_enable_bitlo,
-	       tmb_sync_err_enable_bithi);
-    //
-    // N.B. according to TMB documentation, an ALCT only L1a is not used in current version...
-    //
-    read_tmb_allow_clct_ = 
-      (data >> tmb_allow_clct_bitlo) & 
-      makemask(tmb_allow_clct_bitlo,
-	       tmb_allow_clct_bithi);
-    read_tmb_allow_match_ = 
-      (data >> tmb_allow_match_bitlo) & 
-      makemask(tmb_allow_match_bitlo,
-	       tmb_allow_match_bithi);
-    read_mpc_delay_ = 
-      (data >> mpc_delay_bitlo) & 
-      makemask(mpc_delay_bitlo,
-	       mpc_delay_bithi);
-    read_mpc_sel_ttc_bx0_ = 
-      (data >> mpc_sel_ttc_bx0_bitlo) & 
-      makemask(mpc_sel_ttc_bx0_bitlo,
-	       mpc_sel_ttc_bx0_bithi);
-    read_mpc_idle_blank_ = 
-      (data >> mpc_idle_blank_bitlo) & 
-      makemask(mpc_idle_blank_bitlo,
-	       mpc_idle_blank_bithi);
-    //
-  } else if ( (address & address_mask) == (vme_ddd1_adr & address_mask) ) {
-    //
-    read_tmb1_phase_ = 
-      (data >> tmb1_phase_bitlo) & 
-      makemask(tmb1_phase_bitlo,
-	       tmb1_phase_bithi);
-    read_mpc_phase_ = 
-      (data >> mpc_phase_bitlo) & 
-      makemask(mpc_phase_bitlo,
-	       mpc_phase_bithi);
-    read_dcc_phase_ = 
-      (data >> dcc_phase_bitlo) & 
-      makemask(dcc_phase_bitlo,
-	       dcc_phase_bithi);
-    read_cfeb0delay_ = 
-      (data >> cfeb0delay_bitlo) & 
-      makemask(cfeb0delay_bitlo,
-	       cfeb0delay_bithi);
-    //
-  } else if ( (address & address_mask) == (vme_ddd2_adr & address_mask) ) {
-    //
-    read_cfeb1delay_ = 
-      (data >> cfeb1delay_bitlo) & 
-      makemask(cfeb1delay_bitlo,
-	       cfeb1delay_bithi);
-    read_cfeb2delay_ = 
-      (data >> cfeb2delay_bitlo) & 
-      makemask(cfeb2delay_bitlo,
-	       cfeb2delay_bithi);
-    read_cfeb3delay_ = 
-      (data >> cfeb3delay_bitlo) & 
-      makemask(cfeb3delay_bitlo,
-	       cfeb3delay_bithi);
-    read_cfeb4delay_ = 
-      (data >> cfeb4delay_bitlo) & 
-      makemask(cfeb4delay_bitlo,
-	       cfeb4delay_bithi);
-    //
-  } else if ( (address & address_mask) == (vme_ddd0_adr & address_mask) ) {
-    //
-    read_alct_tx_clock_delay_ = 
-      (data >> alct_tx_clock_delay_bitlo) & 
-      makemask(alct_tx_clock_delay_bitlo,
-	       alct_tx_clock_delay_bithi);
-    read_alct_rx_clock_delay_ = 
-      (data >> alct_rx_clock_delay_bitlo) & 
-      makemask(alct_rx_clock_delay_bitlo,
-	       alct_rx_clock_delay_bithi);
-    read_dmb_tx_delay_ = 
-      (data >> dmb_tx_delay_bitlo) & 
-      makemask(dmb_tx_delay_bitlo,
-	       dmb_tx_delay_bithi);
-    read_rat_tmb_delay_ = 
-      (data >> rat_tmb_delay_bitlo) & 
-      makemask(rat_tmb_delay_bitlo,
-	       rat_tmb_delay_bithi);
-    //
-  } else if ( (address & address_mask) == (rat_3d_delays_adr & address_mask) ) {
-    //
-    read_rpc0_rat_delay_ = 
-      (data >> rpc0_rat_delay_bitlo) & 
-      makemask(rpc0_rat_delay_bitlo,
-	       rpc0_rat_delay_bithi);
-    read_rpc1_rat_delay_ = 
-      (data >> rpc1_rat_delay_bitlo) & 
-      makemask(rpc1_rat_delay_bitlo,
-	       rpc1_rat_delay_bithi);
-    read_rpc2_rat_delay_ = 
-      (data >> rpc2_rat_delay_bitlo) & 
-      makemask(rpc2_rat_delay_bitlo,
-	       rpc2_rat_delay_bithi);
-    read_rpc3_rat_delay_ = 
-      (data >> rpc3_rat_delay_bitlo) & 
-      makemask(rpc3_rat_delay_bitlo,
-	       rpc3_rat_delay_bithi);
-    //
-  } else if ( (address & address_mask) == (cfeb_inj_adr & address_mask) ) {
-    //
-    read_enableCLCTInputs_ = 
-      (data >> enableCLCTInputs_bitlo) & 
-      makemask(enableCLCTInputs_bitlo,
-	       enableCLCTInputs_bithi);
-    read_cfeb_ram_sel_ = 
-      (data >> cfeb_ram_sel_bitlo) & 
-      makemask(cfeb_ram_sel_bitlo,
-	       cfeb_ram_sel_bithi);
-    read_cfeb_inj_en_sel_ = 
-      (data >> cfeb_inj_en_sel_bitlo) & 
-      makemask(cfeb_inj_en_sel_bitlo,
-	       cfeb_inj_en_sel_bithi);
-    read_start_pattern_inj_ = 
-      (data >> start_pattern_inj_bitlo) & 
-      makemask(start_pattern_inj_bitlo,
-	       start_pattern_inj_bithi);
-    //
-  } else if ( (address & address_mask) == (seq_id_adr & address_mask) ) {
-    //
-    read_tmb_slot_ = 
-      (data >> tmb_slot_bitlo) & 
-      makemask(tmb_slot_bitlo,
-	       tmb_slot_bithi);
-    read_csc_id_ = 
-      (data >> csc_id_bitlo) & 
-      makemask(csc_id_bitlo,
-	       csc_id_bithi);
-    read_run_id_ = 
-      (data >> run_id_bitlo) & 
-      makemask(run_id_bitlo,
-	       run_id_bithi);
-    //
-  } else if ( (address & address_mask) == (alct_inj_adr & address_mask) ) {
-    //
-    read_alct_clear_ = 
-      (data >> alct_clear_bitlo) & 
-      makemask(alct_clear_bitlo,
-	       alct_clear_bithi);
-    //
-  } else if ( (address & address_mask) == (seq_trig_dly2_adr & address_mask) ) {
-    //
-    read_alct_trig_width_ = 
-      (data >> alct_trig_width_bitlo) & 
-      makemask(alct_trig_width_bitlo,
-	       alct_trig_width_bithi);
-    read_alct_pretrig_delay_ = 
-      (data >> alct_pretrig_delay_bitlo) & 
-      makemask(alct_pretrig_delay_bitlo,
-	       alct_pretrig_delay_bithi);
-    read_alct_pattern_delay_ = 
-      (data >> alct_pattern_delay_bitlo) & 
-      makemask(alct_pattern_delay_bitlo,
-	       alct_pattern_delay_bithi);
-    read_adb_ext_trig_delay_ = 
-      (data >> adb_ext_trig_delay_bitlo) & 
-      makemask(adb_ext_trig_delay_bitlo,
-	       adb_ext_trig_delay_bithi);
-    //
-  } else if ( (address & address_mask) == (seqmod_adr & address_mask) ) {
-    //
-    read_clct_flush_delay_ = 
-      (data >> clct_flush_delay_bitlo) & 
-      makemask(clct_flush_delay_bitlo,
-	       clct_flush_delay_bithi);
-    read_clct_turbo_ = 
-      (data >> clct_turbo_bitlo) & 
-      makemask(clct_turbo_bitlo,
-	       clct_turbo_bithi);
-    read_ranlct_enable_ = 
-      (data >> ranlct_enable_bitlo) & 
-      makemask(ranlct_enable_bitlo,
-	       ranlct_enable_bithi);
-    read_wrt_buf_required_ = 
-      (data >> wrt_buf_required_bitlo) & 
-      makemask(wrt_buf_required_bitlo,
-	       wrt_buf_required_bithi);
-    read_valid_clct_required_ = 
-      (data >> valid_clct_required_bitlo) & 
-      makemask(valid_clct_required_bitlo,
-	       valid_clct_required_bithi);
-    read_l1a_allow_match_ = 
-      (data >> l1a_allow_match_bitlo) & 
-      makemask(l1a_allow_match_bitlo,
-	       l1a_allow_match_bithi);
-    read_l1a_allow_notmb_ = 
-      (data >> l1a_allow_notmb_bitlo) & 
-      makemask(l1a_allow_notmb_bitlo,
-	       l1a_allow_notmb_bithi);
-    read_l1a_allow_nol1a_ = 
-      (data >> l1a_allow_nol1a_bitlo) & 
-      makemask(l1a_allow_nol1a_bitlo,
-	       l1a_allow_nol1a_bithi);
-    read_l1a_allow_alct_only_ = 
-      (data >> l1a_allow_alct_only_bitlo) & 
-      makemask(l1a_allow_alct_only_bitlo,
-	       l1a_allow_alct_only_bithi);
-    read_scint_veto_clr_ = 
-      (data >> scint_veto_clr_bitlo) & 
-      makemask(scint_veto_clr_bitlo,
-	       scint_veto_clr_bithi);
-    //
-  } else if ( (address & address_mask) == (rpc_raw_delay_adr & address_mask) ) {
-    //
-    read_rpc0_raw_delay_ = 
-      (data >> rpc0_raw_delay_bitlo) & 
-      makemask(rpc0_raw_delay_bitlo,
-	       rpc0_raw_delay_bithi);
-    read_rpc1_raw_delay_ = 
-      (data >> rpc1_raw_delay_bitlo) & 
-      makemask(rpc1_raw_delay_bitlo,
-	       rpc1_raw_delay_bithi);
-    read_rpc2_raw_delay_ = 
-      (data >> rpc2_raw_delay_bitlo) & 
-      makemask(rpc2_raw_delay_bitlo,
-	       rpc2_raw_delay_bithi);
-    read_rpc3_raw_delay_ = 
-      (data >> rpc3_raw_delay_bitlo) & 
-      makemask(rpc3_raw_delay_bitlo,
-	       rpc3_raw_delay_bithi);
-    //
+  if ( status_bit ) {
+    dump << "OK" << std::endl;
+    (*MyOutput_) << "OK" << std::endl;
+    SendOutput(dump.str(),"INFO");
+  } else {
+    dump << "FAIL <-" << std::endl;
+    (*MyOutput_) << "FAIL <-" << std::endl;
+    SendOutput(dump.str(),"ERROR");
   }
-  //
-  // combinations of bits which say which trgmode_ we are using....
-  //
-  read_CLCTtrigger_setting_     = read_tmb_allow_clct_  & read_clct_pat_trig_en_;
-  read_ALCTCLCTtrigger_setting_ = read_tmb_allow_match_ & read_match_pat_trig_en_;
-  //
-  if (read_CLCTtrigger_setting_) 
-    read_trgmode_ = CLCT_trigger;
-  if (read_ALCTCLCTtrigger_setting_) 
-    read_trgmode_ = ALCT_CLCT_coincidence_trigger;
-  //
-  return;
-}
-//
-void TMB::CheckVMEStateMachine() {
-  //
-  int read_data = ReadRegister(vme_sm_ctrl_adr);
-  //
-  int vme_state_machine_start       = (read_data >> 0) & 0x1;
-  int vme_state_machine_sreset      = (read_data >> 1) & 0x1;
-  int vme_state_machine_autostart   = (read_data >> 2) & 0x1;
-  int vme_state_machine_busy        = (read_data >> 3) & 0x1;
-  int vme_state_machine_aborted     = (read_data >> 4) & 0x1;
-  int vme_state_machine_cksum_ok    = (read_data >> 5) & 0x1;
-  int vme_state_machine_wdcnt_ok    = (read_data >> 6) & 0x1;
-  int vme_state_machine_jtag_auto   = (read_data >> 7) & 0x1;
-  int vme_state_machine_vme_ready   = (read_data >> 8) & 0x1;
-  int vme_state_machine_ok          = (read_data >> 9) & 0x1;
-  int vme_state_machine_path_ok     = (read_data >>10) & 0x1;
-  //  int vme_state_machine_unassigned0 = (read_data >>11) & 0x1;
-  int vme_state_machine_throttle    = (read_data >>12) & 0xf;
-  //
-  int vme_state_machine_word_count  = ReadRegister(vme_sm_wdcnt_adr);
-  //
-  read_data = ReadRegister(vme_sm_cksum_adr);
-  //
-  int vme_state_machine_check_sum   = (read_data >> 0) & 0xff;
-  //
-  int vme_state_machine_error_missing_header_start    = (read_data >> 8) & 0x1;
-  int vme_state_machine_error_missing_header_end      = (read_data >> 9) & 0x1;
-  int vme_state_machine_error_missing_data_end_marker = (read_data >>10) & 0x1;
-  int vme_state_machine_error_missing_trailer_end     = (read_data >>11) & 0x1;
-  int vme_state_machine_error_word_count_overflow     = (read_data >>12) & 0x1;
-  //
-  int vme_state_machine_number_of_vme_writes       = ReadRegister(num_vme_sm_adr_adr);
-  //
-  (*MyOutput_) << "VME prom state machine status: " << std::endl;
-  (*MyOutput_) << "-------------------------------" << std::endl;
-  (*MyOutput_) << " start            = " << std::hex << vme_state_machine_start << std::endl;
-  (*MyOutput_) << " sreset           = " << std::hex << vme_state_machine_sreset << std::endl;
-  (*MyOutput_) << " autostart        = " << std::hex << vme_state_machine_autostart << std::endl;
-  (*MyOutput_) << " busy             = " << std::hex << vme_state_machine_busy << std::endl;
-  (*MyOutput_) << " aborted          = " << std::hex << vme_state_machine_aborted << std::endl;
-  (*MyOutput_) << " check sum OK     = " << std::hex << vme_state_machine_cksum_ok << std::endl;
-  (*MyOutput_) << " word count OK    = " << std::hex << vme_state_machine_wdcnt_ok << std::endl;
-  (*MyOutput_) << " JTAG auto        = " << std::hex << vme_state_machine_jtag_auto << std::endl;
-  (*MyOutput_) << " VME ready        = " << std::hex << vme_state_machine_vme_ready << std::endl;
-  (*MyOutput_) << " state machine OK = " << std::hex << vme_state_machine_ok << std::endl;
-  (*MyOutput_) << " path OK          = " << std::hex << vme_state_machine_path_ok << std::endl;
-  (*MyOutput_) << " throttle         = 0x" << std::hex << vme_state_machine_throttle << std::endl;
-  (*MyOutput_) << std::endl;
-  (*MyOutput_) << " word count = 0x" << std::hex << vme_state_machine_word_count << std::endl;
-  (*MyOutput_) << " check sum  = 0x" << std::hex << vme_state_machine_check_sum << std::endl;
-  (*MyOutput_) << std::endl;
-  (*MyOutput_) << " missing header start    = " << std::hex << vme_state_machine_error_missing_header_start << std::endl;
-  (*MyOutput_) << " missing header end      = " << std::hex << vme_state_machine_error_missing_header_end << std::endl;
-  (*MyOutput_) << " missing data end marker = " << std::hex << vme_state_machine_error_missing_data_end_marker << std::endl;
-  (*MyOutput_) << " missing trailer end     = " << std::hex << vme_state_machine_error_missing_trailer_end << std::endl;
-  (*MyOutput_) << " word count overflow     = " << std::hex << vme_state_machine_error_word_count_overflow << std::endl;
-  (*MyOutput_) << std::endl;
-  (*MyOutput_) << " Number of VME writes    = 0x" << std::hex << vme_state_machine_number_of_vme_writes << std::endl;
-  //
-  return;
-}
-//
-void TMB::CheckJTAGStateMachine() {
-  //
-  int read_data = ReadRegister(jtag_sm_ctrl_adr);
-  int jtag_state_machine_start       = (read_data >> 0) & 0x1;
-  int jtag_state_machine_sreset      = (read_data >> 1) & 0x1;
-  int jtag_state_machine_autostart   = (read_data >> 2) & 0x1;
-  int jtag_state_machine_busy        = (read_data >> 3) & 0x1;
-  int jtag_state_machine_aborted     = (read_data >> 4) & 0x1;
-  int jtag_state_machine_cksum_ok    = (read_data >> 5) & 0x1;
-  int jtag_state_machine_wdcnt_ok    = (read_data >> 6) & 0x1;
-  int jtag_state_machine_tck_fpga_ok = (read_data >> 7) & 0x1;
-  int jtag_state_machine_vme_ready   = (read_data >> 8) & 0x1;
-  int jtag_state_machine_ok          = (read_data >> 9) & 0x1;
-  int jtag_state_machine_oe          = (read_data >>10) & 0x1;
-  //  int jtag_state_machine_unassigned0 = (read_data >>11) & 0x1;
-  int jtag_state_machine_throttle    = (read_data >>12) & 0xf;
-  //
-  int jtag_state_machine_word_count  = ReadRegister(jtag_sm_wdcnt_adr);
-  //
-  read_data = ReadRegister(jtag_sm_cksum_adr);
-  //
-  //  (*MyOutput_) << "JTAG statemachine 2 address data = " << std::hex << read_data << std::endl;
-  //
-  int jtag_state_machine_check_sum   = (read_data >> 0) & 0xff;
-  //
-  int jtag_state_machine_tck_fpga    = (read_data >> 8) & 0xf;
-  //
-  (*MyOutput_) << "JTAG prom state machine status: " << std::endl;
-  (*MyOutput_) << "-------------------------------" << std::endl;
-  (*MyOutput_) << " prom start vme   = " << std::hex << jtag_state_machine_start << std::endl;
-  (*MyOutput_) << " sreset           = " << std::hex << jtag_state_machine_sreset << std::endl;
-  (*MyOutput_) << " autostart        = " << std::hex << jtag_state_machine_autostart << std::endl;
-  (*MyOutput_) << " busy             = " << std::hex << jtag_state_machine_busy << std::endl;
-  (*MyOutput_) << " aborted          = " << std::hex << jtag_state_machine_aborted << std::endl;
-  (*MyOutput_) << " check sum OK     = " << std::hex << jtag_state_machine_cksum_ok << std::endl;
-  (*MyOutput_) << " word count OK    = " << std::hex << jtag_state_machine_wdcnt_ok << std::endl;
-  (*MyOutput_) << " tck FPGA OK      = " << std::hex << jtag_state_machine_tck_fpga_ok << std::endl;
-  (*MyOutput_) << " VME ready        = " << std::hex << jtag_state_machine_vme_ready << std::endl;
-  (*MyOutput_) << " state machine OK = " << std::hex << jtag_state_machine_ok << std::endl;
-  (*MyOutput_) << " throttle         = 0x" << std::hex << jtag_state_machine_throttle << std::endl;
-  (*MyOutput_) << " jtag oe          = " << std::hex << jtag_state_machine_oe << std::endl;
-  (*MyOutput_) << std::endl;
-  (*MyOutput_) << " word count = 0x" << std::hex << jtag_state_machine_word_count << std::endl;
-  (*MyOutput_) << " check sum  = 0x" << std::hex << jtag_state_machine_check_sum << std::endl;
-  (*MyOutput_) << " tck_fpga   = 0x" << std::hex << jtag_state_machine_tck_fpga << std::endl;
-  //
-  (*MyOutput_) << std::endl;
-  //
-  unsigned short int BootData;
-  tmb_get_boot_reg(&BootData);
-  (*MyOutput_) << "Boot Register data = 0x" << std::hex << BootData << std::endl;
-  int boot_control_jtag_chain = (BootData << 7) & 0x1;
-  (*MyOutput_) << "Boot Register controls JTAG chain = " << std::hex << boot_control_jtag_chain << std::endl;
-  //
-  return;
-}
-//
-void TMB::CheckRawHitsHeader() {
-  //
-  int header = ReadRegister(tmb_stat_adr);
-  (*MyOutput_) << "Raw hits header = 0x" << std::hex << header << std::endl;
   //
   return;
 }
