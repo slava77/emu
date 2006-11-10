@@ -4,6 +4,7 @@
 #include "EmuApplication.h"
 
 #include "xdata/UnsignedLong.h"
+#include "xdata/Integer.h"
 #include "xdata/Boolean.h"
 #include "xdata/String.h"
 #include "toolbox/fsm/FiniteStateMachine.h"
@@ -40,7 +41,7 @@ private:
 			throw (toolbox::fsm::exception::Exception);
 
 	xdata::UnsignedLong run_number_;
-	xdata::UnsignedLong max_n_events_;
+	xdata::Integer max_n_events_;
 	xdata::Boolean mode_, configured_global_;
 	xdata::String daq_state_;
 };
