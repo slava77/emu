@@ -375,10 +375,14 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 
 	try {
 		if (state_table_.getState("EmuDAQManager", 0) == "Halted") {
+			setParameter("EmuPeripheralCrate", "xmlFileName", "xsd:string",
+					trim(getConfigFilename("PC", runmode_)));
 			setParameter("EmuDAQManager",
-					"runNumber", "xsd:unsignedLong", runnumber_);
+					"maxNumberOfEvents", "xsd:integer", nevents_);
 			sendCommand("Configure", "EmuDAQManager");
 		}
+		setParameter("EmuDAQManager",
+				"runNumber", "xsd:unsignedLong", runnumber_);
 		sendCommand("Enable", "EmuPeripheralCrate");
 		sendCommand("Enable", "EmuDAQManager");
 		sendCommand("Enable", "LTCControl");
