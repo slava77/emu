@@ -1104,7 +1104,9 @@ throw (toolbox::fsm::exception::Exception)
     //
     // EMu-specific stuff
     //
-    getRunInfo();
+    // MOVED TO enableAction START
+//     getRunInfo();
+    // MOVED TO enableAction END
 
     // Just in case there's a writer, terminate it in an orderly fashion
     if ( fileWriter_ )
@@ -1145,6 +1147,9 @@ throw (toolbox::fsm::exception::Exception)
 void EmuFU::enableAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
 {
+  // MOVED FROM configureAction START
+  getRunInfo();
+  // MOVED FROM configureAction END
 
     // server loops
     for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){

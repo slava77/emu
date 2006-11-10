@@ -307,9 +307,12 @@ vector< pair<string, xdata::Serializable*> > EmuTA::initAndGetStdConfigParams()
 
     // Emu specific
     runStartTime_ = "YYMMDD_hhmmss_UTC";
+    runStopTime_  = "YYMMDD_hhmmss_UTC";
     isBookedRunNumber_ = false;
     params.push_back(pair<string,xdata::Serializable *>
         ("runStartTime", &runStartTime_));
+    params.push_back(pair<string,xdata::Serializable *>
+        ("runStopTime", &runStopTime_));
     params.push_back(pair<string,xdata::Serializable *>
         ("runNumber", &runNumber_));
     params.push_back(pair<string,xdata::Serializable *>
@@ -812,11 +815,13 @@ throw (toolbox::fsm::exception::Exception)
             "Failed to get application descriptors and tids", e);
     }
     
-    runStartTime_ = getDateTime();
+    // MOVED TO enableAction START
+//     runStartTime_ = getDateTime();
 
-    LOG4CPLUS_INFO(logger_, 
-		   "Configured run number " << runNumber_.toString() <<
-		   ", time " << runStartTime_.value_ );
+//     LOG4CPLUS_INFO(logger_, 
+// 		   "Configured run number " << runNumber_.toString() <<
+// 		   ", time " << runStartTime_.value_ );
+    // MOVED TO enableAction END
     LOG4CPLUS_INFO(logger_, "End of configureAction");
 }
 
@@ -859,7 +864,13 @@ throw (emuTA::exception::Exception)
 void EmuTA::enableAction(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
 {
-    // Do nothing
+  // MOVED FROM configureAction START
+    runStartTime_ = getDateTime();
+
+    LOG4CPLUS_INFO(logger_, 
+		   "Started run number " << runNumber_.toString() <<
+		   " at time " << runStartTime_.value_ );
+  // MOVED FROM configureAction END
 }
 
 
@@ -888,6 +899,8 @@ throw (toolbox::fsm::exception::Exception)
 
     // Reset the number of credits held
     nbCreditsHeld_ = 0;
+
+    runStopTime_ = getDateTime();
 }
 
 void EmuTA::haltActionComingFromReady(toolbox::Event::Reference e)

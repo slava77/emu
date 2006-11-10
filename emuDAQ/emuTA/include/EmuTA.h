@@ -186,6 +186,7 @@ private:
   // EMu-specific stuff
   //
     xdata::String       runStartTime_;
+    xdata::String       runStopTime_;
     xdata::UnsignedLong runNumber_;
     xdata::Boolean      isBookedRunNumber_;
     xdata::Integer      maxNumTriggers_;
