@@ -25,6 +25,7 @@ private:
   unsigned int  bytesInRunCounter_;
   unsigned int  eventsInRunCounter_;
   string        fileName_;
+  string        markerFileName_;
   std::fstream *fs_;
 
 //   string nameFile(){
@@ -41,7 +42,7 @@ private:
 //     return fileNameStream.str();
 //   }
 
-  string nameFile(){
+  void nameFile(){
     ostringstream fileNameStream;
     fileNameStream << pathToFile_        << "/csc_";
     fileNameStream.fill('0');
@@ -53,19 +54,12 @@ private:
     fileNameStream << filesInRunCounter_;
     // Insert start time to make sure the name will be unique if it's not a booked run number:
     if ( !isBookedRunNumber_ ) fileNameStream << "_" << runStartTime_;
-    fileNameStream << ".raw";
-    return fileNameStream.str();
-  }
-
-  string markerFileName(){
-    // The name of the 0 length file indicating that the data file is closed.
-    // Replace .raw with .is_closed
-    string markerFile = nameFile();
-    return markerFile.substr( 0, markerFile.size()-3 ) + "is_closed";
+    fileName_       = fileNameStream.str() + ".raw";
+    markerFileName_ = fileNameStream.str() + ".is_closed";
   }
 
   void open(){
-    fileName_ = nameFile();
+    nameFile();
     fs_->open(fileName_.c_str(), ios::out | ios::binary);
     if ( fs_->is_open() ){
       bytesInFileCounter_  = 0;
@@ -95,7 +89,7 @@ private:
       LOG4CPLUS_ERROR( logger_, fileName_ << " could not be closed.");
     }
     else{
-      fs_->open( markerFileName().c_str(), ios::out );
+      fs_->open( markerFileName_.c_str(), ios::out );
       fs_->close();
     }
   }
@@ -201,7 +195,7 @@ public:
     else{
       LOG4CPLUS_INFO( logger_, "Deleted empty file " << fileName_ );
       // Delete the status file too
-      ::remove( markerFileName().c_str() );
+      ::remove( markerFileName_.c_str() );
     }
   }
 
