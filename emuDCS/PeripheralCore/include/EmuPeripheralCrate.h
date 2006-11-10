@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.53 2006/11/07 23:21:16 mey Exp $
+// $Id: EmuPeripheralCrate.h,v 3.54 2006/11/10 12:43:06 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -316,6 +316,11 @@ public:
     xgi::bind(this,&EmuPeripheralCrate::armScope, "armScope");
     xgi::bind(this,&EmuPeripheralCrate::forceScope, "forceScope");
     xgi::bind(this,&EmuPeripheralCrate::readoutScope, "readoutScope");
+    xgi::bind(this,&EmuPeripheralCrate::TMBDumpAllRegisters, "TMBDumpAllRegisters");
+    xgi::bind(this,&EmuPeripheralCrate::TMBReadConfiguration, "TMBReadConfiguration");
+    xgi::bind(this,&EmuPeripheralCrate::TMBCheckConfiguration, "TMBCheckConfiguration");
+    xgi::bind(this,&EmuPeripheralCrate::TMBReadStateMachines, "TMBReadStateMachines");
+    xgi::bind(this,&EmuPeripheralCrate::TMBCheckStateMachines, "TMBCheckStateMachines");
     xgi::bind(this,&EmuPeripheralCrate::PowerUp,  "PowerUp");
     xgi::bind(this,&EmuPeripheralCrate::Operator, "Operator");
     xgi::bind(this,&EmuPeripheralCrate::RunNumber, "RunNumber");
@@ -4879,6 +4884,159 @@ private:
     //
   }
   //
+  void EmuPeripheralCrate::TMBDumpAllRegisters(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    }
+    //
+    TMB * thisTMB = tmbVector[tmb];
+    thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
+    thisTMB->DumpAllRegisters();
+    thisTMB->RedirectOutput(&std::cout);
+    //
+    this->TMBUtils(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::TMBReadConfiguration(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    }
+    //
+    TMB * thisTMB = tmbVector[tmb];
+    ALCTController * alct = thisTMB->alctController();
+    //
+    thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
+    alct->RedirectOutput(&OutputStringTMBStatus[tmb]);
+    //
+    thisTMB->ReadTMBConfiguration();
+    thisTMB->PrintTMBConfiguration();
+    alct->ReadALCTConfiguration();
+    alct->PrintALCTConfiguration();
+    //
+    thisTMB->RedirectOutput(&std::cout);
+    alct->RedirectOutput(&std::cout);
+    //
+    this->TMBUtils(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::TMBCheckConfiguration(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    }
+    //
+    TMB * thisTMB = tmbVector[tmb];
+    ALCTController * alct = thisTMB->alctController();
+    //
+    thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
+    alct->RedirectOutput(&OutputStringTMBStatus[tmb]);
+    //
+    thisTMB->CheckTMBConfiguration();
+    alct->CheckALCTConfiguration();
+    //
+    thisTMB->RedirectOutput(&std::cout);
+    alct->RedirectOutput(&std::cout);
+    //
+    this->TMBUtils(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::TMBReadStateMachines(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    }
+    //
+    TMB * thisTMB = tmbVector[tmb];
+    //
+    thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
+    //
+    thisTMB->ReadVMEStateMachine();
+    thisTMB->PrintVMEStateMachine();
+    thisTMB->ReadJTAGStateMachine();
+    thisTMB->PrintJTAGStateMachine();
+    thisTMB->ReadDDDStateMachine();
+    thisTMB->PrintDDDStateMachine();
+    thisTMB->ReadRawHitsHeader();
+    thisTMB->PrintRawHitsHeader();
+    //
+    thisTMB->RedirectOutput(&std::cout);
+
+    //
+    this->TMBUtils(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::TMBCheckStateMachines(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    }
+    //
+    TMB * thisTMB = tmbVector[tmb];
+    //
+    thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
+    //
+    thisTMB->CheckVMEStateMachine();
+    thisTMB->CheckJTAGStateMachine();
+    thisTMB->CheckDDDStateMachine();
+    thisTMB->CheckRawHitsHeader();
+    //
+    thisTMB->RedirectOutput(&std::cout);
+    //
+    this->TMBUtils(in,out);
+    //
+  }
+  //
   void EmuPeripheralCrate::ALCTStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
@@ -4906,17 +5064,17 @@ private:
     //
     alct->ReadSlowControlId();
     //
-    alct->RedirectConfigOutput(out);
+    alct->RedirectOutput(out);
     alct->PrintSlowControlId();
-    alct->RedirectConfigOutput(&std::cout);
+    alct->RedirectOutput(&std::cout);
     //
     *out << cgicc::br();
     //
     alct->ReadFastControlId();
     //
-    alct->RedirectConfigOutput(out);
+    alct->RedirectOutput(out);
     alct->PrintFastControlId();
-    alct->RedirectConfigOutput(&std::cout);
+    alct->RedirectOutput(&std::cout);
     //
     *out << cgicc::fieldset();
     //
@@ -7172,6 +7330,103 @@ private:
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
+    //
+    //
+    std::string TMBDumpAllRegisters =
+      toolbox::toString("/%s/TMBDumpAllRegisters",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",TMBDumpAllRegisters) ;
+    *out << cgicc::input().set("type","submit").set("value","Dump All TMB VME Registers") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    //
+    *out << cgicc::table().set("border","0");
+    //
+    *out << cgicc::td();
+    //
+    std::string TMBReadConfiguration =
+      toolbox::toString("/%s/TMBReadConfiguration",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",TMBReadConfiguration) ;
+    *out << cgicc::input().set("type","submit").set("value","Read TMB+ALCT Configuration") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    *out << cgicc::td();
+    //
+    std::string TMBCheckConfiguration =
+      toolbox::toString("/%s/TMBCheckConfiguration",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBCheckConfiguration) ;
+    if ( thisTMB->GetTMBConfigurationStatus() == 1 &&
+	 alct->GetALCTConfigurationStatus()   == 1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","Check TMB+ALCT Configuration")
+	.set("style","color:green");
+    } else if ( thisTMB->GetTMBConfigurationStatus() == 0 ||
+		alct->GetALCTConfigurationStatus()   == 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","Check TMB+ALCT Configuration")
+	.set("style","color:red");
+    } else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","Check TMB+ALCT Configuration")
+	.set("style","color:blue");
+    }
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    *out << cgicc::table();
+    //
+    //
+    *out << cgicc::table().set("border","0");
+    *out << cgicc::td();
+    //
+    std::string TMBReadStateMachines =
+      toolbox::toString("/%s/TMBReadStateMachines",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBReadStateMachines) ;
+    *out << cgicc::input().set("type","submit").set("value","Read TMB State Machines") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    *out << cgicc::td();
+    //
+    std::string TMBCheckStateMachines =
+      toolbox::toString("/%s/TMBCheckStateMachines",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBCheckStateMachines) ;
+    if ( thisTMB->GetVMEStateMachineStatus()  == 1 && 
+	 thisTMB->GetJTAGStateMachineStatus() == 1 && 
+	 thisTMB->GetDDDStateMachineStatus()  == 1 && 
+	 thisTMB->GetRawHitsHeaderStatus()    == 1 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","Check TMB State Machines")
+	.set("style","color:green");
+    } else if ( thisTMB->GetVMEStateMachineStatus()  == 0 || 
+		thisTMB->GetJTAGStateMachineStatus() == 0 || 
+		thisTMB->GetDDDStateMachineStatus()  == 0 || 
+		thisTMB->GetRawHitsHeaderStatus()    == 0 ) {
+      *out << cgicc::input().set("type","submit")
+	.set("value","Check TMB State Machines")
+	.set("style","color:red");
+    } else {
+      *out << cgicc::input().set("type","submit")
+	.set("value","Check TMB State Machines")
+	.set("style","color:blue");
+    }
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
     //
     // Output area
     //

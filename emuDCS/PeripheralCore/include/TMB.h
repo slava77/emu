@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.15 2006/11/09 08:47:51 rakness Exp $
+// $Id: TMB.h,v 3.16 2006/11/10 12:43:07 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.16  2006/11/10 12:43:07  rakness
+// include TMB/ALCT configuration and state machine prints+checks to hyperDAQ
+//
 // Revision 3.15  2006/11/09 08:47:51  rakness
 // add rpc0_raw_delay to xml file
 //
@@ -225,7 +228,6 @@ public:
   virtual ~TMB();
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
-  inline void RedirectConfigOutput(std::ostream * Output) { configOut_ = Output ; }
   //
   void WriteOutput(std::string);
   //
@@ -529,16 +531,36 @@ public:
   void ClockOutPromProgram(int prom,int number_of_addresses);
   inline int GetClockedOutPromImage(int address) { return clocked_out_prom_image_.at(address); }
   //
-  void ReadCurrentConfiguration();
-  void PrintCurrentConfiguration();
-  bool CheckCurrentConfiguration();
-  void DecodeConfigurationData(int address, int data);
+  void DumpAllRegisters();
+  //
+  void ReadTMBConfiguration();
+  void PrintTMBConfiguration();
+  void CheckTMBConfiguration();
+  inline int GetTMBConfigurationStatus() { return tmb_configuration_status_; }
+  //
+  void ReadVMEStateMachine();
+  void PrintVMEStateMachine();
   void CheckVMEStateMachine();
+  inline int GetVMEStateMachineStatus() { return vme_state_machine_status_; }
+  //
+  void ReadJTAGStateMachine();
+  void PrintJTAGStateMachine();
   void CheckJTAGStateMachine();
+  inline int GetJTAGStateMachineStatus() { return jtag_state_machine_status_; }
+  //
+  void ReadDDDStateMachine();
+  void PrintDDDStateMachine();
+  void CheckDDDStateMachine();
+  inline int GetDDDStateMachineStatus() { return ddd_state_machine_status_; }
+  //
+  void ReadRawHitsHeader();
+  void PrintRawHitsHeader();
   void CheckRawHitsHeader();
+  inline int GetRawHitsHeaderStatus() { return raw_hits_header_status_; }
+  //
   //
   int makemask(int lo_bit, int hi_bit);
-  //
+  void ReportCheck(std::string check_type, bool status_bit);
   bool compareValues(std::string typeOfTest,
 		     int read_val,
 		     int write_val,
@@ -576,7 +598,6 @@ private:
   //bool step_mode;
   //int bits_per_opcode[MAX_NUM_CHIPS];
   std::ostream * MyOutput_ ;
-  std::ostream * configOut_ ;
   int alct_tx_clock_delay_;
   int alct_rx_clock_delay_;
   int cfeb0delay_;
@@ -640,7 +661,16 @@ private:
   //
   std::vector<int> clocked_out_prom_image_;
   //
-  // values decoded from the configuration registers:
+  int tmb_configuration_status_;
+  int vme_state_machine_status_;
+  int jtag_state_machine_status_;
+  int ddd_state_machine_status_;
+  int raw_hits_header_status_;
+  //
+  // values decoded from the TMB registers:
+  void DecodeBootAddress_(int data);
+  void DecodeTMBRegister_(unsigned long int address, int data);
+  //
   int read_firmware_date_;
   int boot_register_control_jtag_chain_;
   int read_firmware_year_;
@@ -736,6 +766,81 @@ private:
   int read_rpc1_raw_delay_;
   int read_rpc2_raw_delay_;
   int read_rpc3_raw_delay_;
+  //
+  int read_vme_state_machine_start_;
+  int read_vme_state_machine_sreset_;
+  int read_vme_state_machine_autostart_; 
+  int read_vme_state_machine_busy_;
+  int read_vme_state_machine_aborted_;
+  int read_vme_state_machine_cksum_ok_;
+  int read_vme_state_machine_wdcnt_ok_; 
+  int read_vme_state_machine_jtag_auto_; 
+  int read_vme_state_machine_vme_ready_; 
+  int read_vme_state_machine_ok_;
+  int read_vme_state_machine_path_ok_; 
+  int read_vme_state_machine_throttle_; 
+  //
+  int read_vme_state_machine_word_count_;
+  //
+  int read_vme_state_machine_check_sum_;
+  int read_vme_state_machine_error_missing_header_start_;
+  int read_vme_state_machine_error_missing_header_end_;
+  int read_vme_state_machine_error_missing_data_end_marker_;
+  int read_vme_state_machine_error_missing_trailer_end_;
+  int read_vme_state_machine_error_word_count_overflow_;
+  //
+  int read_vme_state_machine_number_of_vme_writes_;
+  //
+  int read_jtag_state_machine_start_;
+  int read_jtag_state_machine_sreset_;
+  int read_jtag_state_machine_autostart_;
+  int read_jtag_state_machine_busy_;
+  int read_jtag_state_machine_aborted_;
+  int read_jtag_state_machine_cksum_ok_;
+  int read_jtag_state_machine_wdcnt_ok_;
+  int read_jtag_state_machine_tck_fpga_ok_;
+  int read_jtag_state_machine_vme_ready_;
+  int read_jtag_state_machine_ok_;
+  int read_jtag_state_machine_oe_;
+  int read_jtag_state_machine_throttle_;
+  //
+  int read_jtag_state_machine_word_count_;
+  //
+  int read_jtag_state_machine_check_sum_;
+  int read_jtag_state_machine_tck_fpga_;
+  //
+  int read_boot_tdi_;
+  int read_boot_tms_;
+  int read_boot_tck_;
+  int read_boot_jtag_chain_select_;
+  int read_boot_control_jtag_chain_;
+  int read_boot_hard_reset_alct_;
+  int read_boot_hard_reset_tmb_;
+  int read_boot_allow_hard_reset_alct_;
+  int read_boot_allow_VME_;
+  int read_boot_enable_mezz_clock_;
+  int read_boot_hard_reset_rat_;
+  int read_boot_vme_ready_;
+  int read_boot_tdo_;
+  //
+  int read_raw_hits_header_;
+  //
+  int read_ddd_state_machine_start_;
+  int read_ddd_state_machine_manual_;
+  int read_ddd_state_machine_latch_;
+  int read_ddd_state_machine_serial_in_;
+  int read_ddd_state_machine_serial_out_;
+  int read_ddd_state_machine_autostart_;
+  int read_ddd_state_machine_busy_;
+  int read_ddd_state_machine_verify_ok_;
+  int read_ddd_state_machine_clock0_lock_;
+  int read_ddd_state_machine_clock0d_lock_;
+  int read_ddd_state_machine_clock1_lock_;
+  int read_ddd_state_machine_clock_alct_lock_;
+  int read_ddd_state_machine_clockd_alct_lock_;
+  int read_ddd_state_machine_clock_mpc_lock_;
+  int read_ddd_state_machine_clock_dcc_lock_;
+  int read_ddd_state_machine_clock_rpc_lock_;
   //
   int read_trgmode_;
   int read_CLCTtrigger_setting_;

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.13 2006/10/19 09:42:03 rakness Exp $
+// $Id: ALCTController.h,v 3.14 2006/11/10 12:43:06 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.14  2006/11/10 12:43:06  rakness
+// include TMB/ALCT configuration and state machine prints+checks to hyperDAQ
+//
 // Revision 3.13  2006/10/19 09:42:03  rakness
 // remove old ALCTController
 //
@@ -139,15 +142,15 @@ public:
   ~ALCTController();
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
-  inline void RedirectConfigOutput(std::ostream * Output) { configOut_ = Output ; }
   //
   ///////////////////////////////////////////////////////////////////////////
   //  Useful methods to use ALCTController:
   ///////////////////////////////////////////////////////////////////////////
   void configure();                                  //writes software values to all registers on ALCT
-  void ReadCurrentConfiguration();                   //Read current configuration and fill software read values
-  void PrintCurrentConfiguration();                  //Print software configuration values
-  bool CheckCurrentConfiguration();                  //Check the read values against the write values
+  void ReadALCTConfiguration();                      //Read current configuration and fill software read values
+  void PrintALCTConfiguration();                     //Print software configuration values
+  void CheckALCTConfiguration();                     //Check the read values against the write values
+  inline int GetALCTConfigurationStatus() { return alct_configuration_status_; }
   //
   void SetFillVmeWriteVecs(bool fill_vectors_or_not);//writes software values to user prom
   bool GetFillVmeWriteVecs();
@@ -406,10 +409,10 @@ protected:
 private:
   //
   std::ostream * MyOutput_ ;
-  std::ostream * configOut_ ;
   TMB * tmb_ ;
   int debug_;
   //
+  int alct_configuration_status_;
   //
   ////////////////////////////////////////////////////////////////////
   // Private variables specific to the chamber-type:                //

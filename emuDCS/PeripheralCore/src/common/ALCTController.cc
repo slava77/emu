@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.26 2006/10/21 09:40:46 rakness Exp $
+// $Id: ALCTController.cc,v 3.27 2006/11/10 12:43:07 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.27  2006/11/10 12:43:07  rakness
+// include TMB/ALCT configuration and state machine prints+checks to hyperDAQ
+//
 // Revision 3.26  2006/10/21 09:40:46  rakness
 // src/common/ALCTController.cc
 //
@@ -252,11 +255,13 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
 {
   //
   MyOutput_ = &std::cout ;
-  configOut_ = &std::cout ;
   //
   (*MyOutput_) << "Creating ALCTController" << std::endl;
   //
   tmb_ = tmb;
+  //
+  alct_configuration_status_ = -1;
+  //
   SetChamberCharacteristics_(chamberType);
   //
   SetPowerUpTestpulsePowerSwitchReg_();
@@ -478,7 +483,7 @@ void ALCTController::SetUpRandomALCT(){
 void ALCTController::configure() {
   //
   SetCheckJtagWrite(false);          //in this method we only want to write data...
-  //                                 //the settings will be verified with CheckCurrentConfiguration()
+  //                                 //the settings will be verified with CheckALCTConfiguration()
   //  SetFillVmeWriteVecs(true);     //fill the user prom with JTAG data?
   ClearVmeWriteVecs();
   //
@@ -541,36 +546,32 @@ void ALCTController::configure() {
   //
   SetFillVmeWriteVecs(false);        //give VME back to the user (default)
   //
-  if ( CheckCurrentConfiguration() ) {
-    (*MyOutput_) << "ALCT slot " << (int) tmb_->slot() << " configuration check OK" << std::endl;
-  } else {
-    (*MyOutput_) << "ALCT slot " << (int) tmb_->slot() << " configuration check FAIL" << std::endl;
-  }
+  this->CheckALCTConfiguration();
   //
   return;
 }
 //
-void ALCTController::PrintCurrentConfiguration() {
+void ALCTController::PrintALCTConfiguration() {
   //
-  (*configOut_) << "ALCT configuration in slot " <<  (int)tmb_->slot() << std::endl;
+  (*MyOutput_) << "ALCT configuration in slot " <<  (int)tmb_->slot() << std::endl;
   //
   PrintSlowControlId();
   //
   PrintFastControlId();
   //
-  (*configOut_) << "........................ ALCT type = " 
+  (*MyOutput_) << "........................ ALCT type = " 
 		<< std::dec << GetNumberOfChannelsInAlct() << std::endl; 
-  (*configOut_) << "............ Number of Wire Groups = " 
+  (*MyOutput_) << "............ Number of Wire Groups = " 
 		<< std::dec << GetNumberOfWireGroupsInChamber() << std::endl; 
-  (*configOut_) << "........ Number of Wires per layer = " 
+  (*MyOutput_) << "........ Number of Wires per layer = " 
 		<< GetNumberOfChannelsPerLayer() << std::endl;
-  (*configOut_) << ".. Number of groups of delay chips =  " 
+  (*MyOutput_) << ".. Number of groups of delay chips =  " 
 		<< GetNumberOfGroupsOfDelayChips() << std::endl; 
-  (*configOut_) << "Number of collision pattern groups = " 
+  (*MyOutput_) << "Number of collision pattern groups = " 
 		<< GetNumberOfCollisionPatternGroups() << std::endl;
-  (*configOut_) << ".................. Number of AFEBs = " 
+  (*MyOutput_) << ".................. Number of AFEBs = " 
 		<< GetNumberOfAfebs() << std::endl;
-  (*configOut_) << "........... Enabled AFEBs count from  " 
+  (*MyOutput_) << "........... Enabled AFEBs count from  " 
 		<< GetLowestAfebIndex() << " to " << GetHighestAfebIndex() << std::endl;
   //
   PrintAfebThresholds();
@@ -589,7 +590,7 @@ void ALCTController::PrintCurrentConfiguration() {
   return;
 }
 //
-void ALCTController::ReadCurrentConfiguration() {
+void ALCTController::ReadALCTConfiguration() {
   //
   ReadSlowControlId();
   //
@@ -610,11 +611,11 @@ void ALCTController::ReadCurrentConfiguration() {
   return;
 }
 //
-bool ALCTController::CheckCurrentConfiguration() {
+void ALCTController::CheckALCTConfiguration() {
   //
   bool config_ok = true;
   //
-  ReadCurrentConfiguration();  //fill the read values in the software
+  ReadALCTConfiguration();  //fill the read values in the software
   //
   for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++) {
     // to compare write and read thresholds, we need to compare an 8-bit dac 
@@ -787,21 +788,11 @@ bool ALCTController::CheckCurrentConfiguration() {
       
     }
   //
-  std::ostringstream dump;
-  dump << "ALCT slot " << (int) tmb_->slot() << ": configuration check -> ";
-  (*configOut_) << "ALCT slot " << (int) tmb_->slot() << ": configuration -> ";
+  tmb_->ReportCheck("ALCT configuration check",config_ok);
   //
-  if ( config_ok ) {
-    dump << "OK" << std::endl;
-    (*configOut_) << "OK" << std::endl;
-    tmb_->SendOutput(dump.str(),"INFO");
-  } else {
-    dump << "FAIL <-" << std::endl;
-    (*configOut_) << "FAIL <-" << std::endl;
-    tmb_->SendOutput(dump.str(),"ERROR");
-  }
+  alct_configuration_status_ = (int) config_ok;
   //
-  return config_ok;
+  return;
 }
 //
 void ALCTController::SetFillVmeWriteVecs(bool fill_vectors_or_not) {
@@ -851,7 +842,7 @@ void ALCTController::ReadSlowControlId() {
 //
 void ALCTController::PrintSlowControlId() {
   //
-  (*configOut_) << "ALCT: " << chamber_type_string_ 
+  (*MyOutput_) << "ALCT: " << chamber_type_string_ 
 		<< " Slow Control chip ID = " << std::hex << GetSlowControlChipId()
 	       << " version " << GetSlowControlVersionId()
 		<< ": day = " << GetSlowControlDay()
@@ -1235,7 +1226,7 @@ void ALCTController::ReadAfebThresholds() {
 void ALCTController::PrintAfebThresholds() {
   //
   for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++) 
-    (*configOut_) << "AFEB " << std::setw(2) << std::dec << afeb
+    (*MyOutput_) << "AFEB " << std::setw(2) << std::dec << afeb
 		 << " write threshold DAC = " << std::setw(3) << GetAfebThresholdDAC(afeb)
       //		 << std::endl;
   		 << " -> read threshold ADC = " << GetAfebThresholdADC(afeb)
@@ -1384,16 +1375,16 @@ void ALCTController::PrintStandbyRegister_() {
 		 RegSizeAlctSlowFpga_RD_STANDBY_REG,
 		 tempBuffer);
   //
-  (*configOut_) << "ALCT: Standby Register (right to left)= ";
+  (*MyOutput_) << "ALCT: Standby Register (right to left)= ";
   for (int i=buffersize; i>=0; i--) {
     if (i == buffersize) {
-      (*configOut_) << std::hex << (tempBuffer[i] & 0x03) << " ";  //register is 42 bits long
+      (*MyOutput_) << std::hex << (tempBuffer[i] & 0x03) << " ";  //register is 42 bits long
     } else {
-      (*configOut_) << std::hex << (tempBuffer[i]>>4 & 0xf) 
+      (*MyOutput_) << std::hex << (tempBuffer[i]>>4 & 0xf) 
 		   << (tempBuffer[i] & 0xf) << " "; 
     }
   }
-  (*configOut_) << std::dec <<std::endl;
+  (*MyOutput_) << std::dec <<std::endl;
   //
   return;
 }
@@ -1458,42 +1449,42 @@ void ALCTController::ReadFastControlId() {
 //
 void ALCTController::PrintFastControlId() {
   //
-  (*configOut_) << "ALCT: " << chamber_type_string_ << " Fast Control firmware type: ";
+  (*MyOutput_) << "ALCT: " << chamber_type_string_ << " Fast Control firmware type: ";
   // 
   if ( GetFastControlAlctType() == FIRMWARE_TYPE_288 ) {
-    (*configOut_) << "288, ";
+    (*MyOutput_) << "288, ";
   } else if ( GetFastControlAlctType() == FIRMWARE_TYPE_384 ) {
-    (*configOut_) << "384, ";
+    (*MyOutput_) << "384, ";
   } else if ( GetFastControlAlctType() == FIRMWARE_TYPE_672 ) {
-    (*configOut_) << "672, ";
+    (*MyOutput_) << "672, ";
   } else {
-    (*configOut_) << "unknown, ";
+    (*MyOutput_) << "unknown, ";
   }
   // 
   if ( GetFastControlRegularMirrorType() == REGULAR_FIRMWARE_TYPE ) {
-    (*configOut_) << "non-mirrored, ";
+    (*MyOutput_) << "non-mirrored, ";
   } else  if ( GetFastControlRegularMirrorType() == MIRROR_FIRMWARE_TYPE ) {
-    (*configOut_) << "mirrored, ";
+    (*MyOutput_) << "mirrored, ";
   } else {
-    (*configOut_) << "unknown, ";
+    (*MyOutput_) << "unknown, ";
   }
   //
   if (chamber_type_string_ == "ME11") {
     if ( GetFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE ) {
-      (*configOut_) << "backward, ";
+      (*MyOutput_) << "backward, ";
     } else if ( GetFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE ) {
-      (*configOut_) << "forward, ";
+      (*MyOutput_) << "forward, ";
     }
     if ( GetFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE ) {
-      (*configOut_) << "negative, ";
+      (*MyOutput_) << "negative, ";
     } else if ( GetFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
-      (*configOut_) << "positive, ";
+      (*MyOutput_) << "positive, ";
     }
   }
   //
-  (*configOut_) << "day = " << std::hex << GetFastControlDay();
-  (*configOut_) << ", month = " << std::hex << GetFastControlMonth();
-  (*configOut_) << ", year = " << std::hex << GetFastControlYear() << std::dec << std::endl; 
+  (*MyOutput_) << "day = " << std::hex << GetFastControlDay();
+  (*MyOutput_) << ", month = " << std::hex << GetFastControlMonth();
+  (*MyOutput_) << ", year = " << std::hex << GetFastControlYear() << std::dec << std::endl; 
   //
   return;
 }
@@ -2155,11 +2146,11 @@ void ALCTController::SetPowerUpAsicDelays() {
 //
 void ALCTController::PrintAsicDelays() {
   //
-  (*configOut_) << "ASIC delay values:" << std::endl;
-  (*configOut_) << "AFEB   delay (2ns)" << std::endl;
-  (*configOut_) << "----   -----------" << std::endl;
+  (*MyOutput_) << "ASIC delay values:" << std::endl;
+  (*MyOutput_) << "AFEB   delay (2ns)" << std::endl;
+  (*MyOutput_) << "----   -----------" << std::endl;
   for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++)
-    (*configOut_) << " " << std::dec << afeb << "     " << GetAsicDelay(afeb) << std::endl;
+    (*MyOutput_) << " " << std::dec << afeb << "     " << GetAsicDelay(afeb) << std::endl;
   //
   return;
 }
@@ -2223,18 +2214,18 @@ void ALCTController::PrintAsicPatterns() {
 		   GetNumberOfChannelsPerLayer(),
 		   pattern[layer]);
   //
-  (*configOut_) << "READ Asic pattern for ALCT" << std::dec << GetNumberOfChannelsInAlct() 
+  (*MyOutput_) << "READ Asic pattern for ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 	       << " (from right to left):" << std::endl;
   //
   for (int layer=MAX_NUM_LAYERS-1; layer>=0; layer--) {
-    (*configOut_) << "Layer " << std::dec << layer << " -> ";    
+    (*MyOutput_) << "Layer " << std::dec << layer << " -> ";    
     //
     for (int char_counter=(GetNumberOfChannelsPerLayer()/8)-1; char_counter>=0; char_counter--) {
-      (*configOut_) << std::hex
+      (*MyOutput_) << std::hex
       		   << ((pattern[layer][char_counter] >> 4) & 0xf) 
       		   << (pattern[layer][char_counter] & 0xf) << " ";
     }
-      (*configOut_) << std::endl;
+      (*MyOutput_) << std::endl;
   }
   //
   return;
@@ -2305,48 +2296,48 @@ void ALCTController::ReadConfigurationReg() {
 //
 void ALCTController::PrintConfigurationReg() {
   //
-  (*configOut_) << "ALCT configuration register:" << std::endl;
-  (*configOut_) << "----------------------------" << std::endl;
-  (*configOut_) << "trigger_mode_    = " << std::dec 
+  (*MyOutput_) << "ALCT configuration register:" << std::endl;
+  (*MyOutput_) << "----------------------------" << std::endl;
+  (*MyOutput_) << "trigger_mode_    = " << std::dec 
 		<< GetTriggerMode() << std::endl;                      
-  (*configOut_) << "ext_trig_enable_ = " << std::dec 
+  (*MyOutput_) << "ext_trig_enable_ = " << std::dec 
 		<< GetExtTrigEnable() << std::endl;                    
-  (*configOut_) << "send_empty_      = " << std::dec 
+  (*MyOutput_) << "send_empty_      = " << std::dec 
 		<< GetSendEmpty() << std::endl;
-  (*configOut_) << "inject_          = " << std::dec 
+  (*MyOutput_) << "inject_          = " << std::dec 
 		<< GetInjectMode() << std::endl;
-  (*configOut_) << "bxc_offset_      = " << std::dec 
+  (*MyOutput_) << "bxc_offset_      = " << std::dec 
 		<< GetBxcOffset() << std::endl;
-  (*configOut_) << "nph_thresh_      = " << std::dec 
+  (*MyOutput_) << "nph_thresh_      = " << std::dec 
 		<< GetPretrigNumberOfLayers() << std::endl;
-  (*configOut_) << "nph_pattern_     = " << std::dec 
+  (*MyOutput_) << "nph_pattern_     = " << std::dec 
 		<< GetPretrigNumberOfPattern() << std::endl;
-  (*configOut_) << "drift_delay_     = " << std::dec
+  (*MyOutput_) << "drift_delay_     = " << std::dec
 		<< GetDriftDelay() << std::endl;
-  (*configOut_) << "fifo_tbins_      = " << std::dec 
+  (*MyOutput_) << "fifo_tbins_      = " << std::dec 
 		<< GetFifoTbins() << std::endl;
-  (*configOut_) << "fifo_pretrig_    = " << std::dec         
+  (*MyOutput_) << "fifo_pretrig_    = " << std::dec         
 		<< GetFifoPretrig() << std::endl;
-  (*configOut_) << "fifo_mode_       = " << std::dec
+  (*MyOutput_) << "fifo_mode_       = " << std::dec
 		<< GetFifoMode() << std::endl;
-  (*configOut_) << "l1a_delay_       = " << std::dec 
+  (*MyOutput_) << "l1a_delay_       = " << std::dec 
 		<< GetL1aDelay() << " = 0x" << std::hex
 		<< GetL1aDelay() << std::endl;
-  (*configOut_) << "l1a_window_      = " << std::dec
+  (*MyOutput_) << "l1a_window_      = " << std::dec
 		<< GetL1aWindowSize() << std::endl;
-  (*configOut_) << "l1a_offset_      = " << std::dec
+  (*MyOutput_) << "l1a_offset_      = " << std::dec
 		<< GetL1aOffset() << std::endl;
-  (*configOut_) << "l1a_internal_    = " << std::dec         
+  (*MyOutput_) << "l1a_internal_    = " << std::dec         
 		<< GetL1aInternal() << std::endl;
-  (*configOut_) << "board_id_        = " << std::dec
+  (*MyOutput_) << "board_id_        = " << std::dec
 		<< GetBoardId() << std::endl;
-  (*configOut_) << "ccb_enable_      = " << std::dec
+  (*MyOutput_) << "ccb_enable_      = " << std::dec
 		<< GetCcbEnable() << std::endl;
-  (*configOut_) << "alct_amode_      = " << std::dec
+  (*MyOutput_) << "alct_amode_      = " << std::dec
 		<< GetAlctAmode() << std::endl;
-  (*configOut_) << "trigger_info_en_ = " << std::dec
+  (*MyOutput_) << "trigger_info_en_ = " << std::dec
 		<< GetTriggerInfoEnable() << std::endl;         
-  (*configOut_) << "sn_select_       = " << std::dec
+  (*MyOutput_) << "sn_select_       = " << std::dec
 		<< GetSnSelect() << std::endl;  
 }
 //
@@ -2888,19 +2879,19 @@ void ALCTController::PrintHotChannelMask() {
   //
   int char_counter = RegSizeAlctFastFpga_RD_HOTCHAN_MASK_/8 - 1;
   //
-  (*configOut_) << "ALCT: Hot Channel Mask for ALCT" << std::dec << GetNumberOfChannelsInAlct() 
+  (*MyOutput_) << "ALCT: Hot Channel Mask for ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 	       << " (from right to left):" << std::endl;
   //
   for (int layer=5; layer>=0; layer--) {
-    (*configOut_) << "Layer " << std::dec << layer << " -> ";    
+    (*MyOutput_) << "Layer " << std::dec << layer << " -> ";    
     for (int layer_counter=GetNumberOfChannelsPerLayer()/8; layer_counter>0; layer_counter--) {
-      //      (*configOut_) << "char_counter " << std::dec << char_counter << " -> ";    
-      (*configOut_) << std::hex
+      //      (*MyOutput_) << "char_counter " << std::dec << char_counter << " -> ";    
+      (*MyOutput_) << std::hex
 		   << ((hot_channel_mask[char_counter] >> 4) & 0xf) 
 		   << (hot_channel_mask[char_counter] & 0xf) << " ";
       char_counter--;
     }
-      (*configOut_) << std::endl;
+      (*MyOutput_) << std::endl;
   }
   return;
 }
@@ -3022,70 +3013,70 @@ void ALCTController::PrintCollisionPatternMask() {
   // Print out collision pattern mask for each wiregroup 
   // for pattern A and pattern B
   //
-  (*configOut_) << "READ Collision Pattern Mask for ALCT" << std::dec << GetNumberOfChannelsInAlct() << "..." << std::endl;
+  (*MyOutput_) << "READ Collision Pattern Mask for ALCT" << std::dec << GetNumberOfChannelsInAlct() << "..." << std::endl;
   //
-  (*configOut_) << "Wire Groups 0 to " << GetNumberOfCollisionPatternGroups() << " -> Pattern A:" << std::endl;
+  (*MyOutput_) << "Wire Groups 0 to " << GetNumberOfCollisionPatternGroups() << " -> Pattern A:" << std::endl;
   //
   int bit_counter=0;
   //
   for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
     int lo_wire_group_index = group*NUMBER_OF_WIREGROUPS_PER_COLLISION_PATTERN_GROUP;
     int hi_wire_group_index = ( (group+1)*NUMBER_OF_WIREGROUPS_PER_COLLISION_PATTERN_GROUP ) - 1;
-    (*configOut_) << "[" << std::dec << std::setw(3) << lo_wire_group_index 
+    (*MyOutput_) << "[" << std::dec << std::setw(3) << lo_wire_group_index 
 		 << "," << std::dec << std::setw(3) << hi_wire_group_index << "]";
   }
-  (*configOut_) << std::endl;
+  (*MyOutput_) << std::endl;
   //
   int bit_counter0 = bit_counter++;
   int bit_counter1 = bit_counter++;
   int bit_counter2 = bit_counter++;
   for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
     if (group == 0) {
-      (*configOut_) << "    ";
+      (*MyOutput_) << "    ";
     } else { 
-      (*configOut_) << "    ";
+      (*MyOutput_) << "    ";
     }
-    (*configOut_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2); 
+    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2); 
   }
-  (*configOut_) << std::endl;
+  (*MyOutput_) << std::endl;
   //
   //
   bit_counter0 = bit_counter++;
   bit_counter1 = bit_counter++;
   for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
     if (group == 0) {
-      (*configOut_) << "    ";
+      (*MyOutput_) << "    ";
     } else { 
-      (*configOut_) << "      ";
+      (*MyOutput_) << "      ";
     }
-    (*configOut_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1);
+    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1);
   }
-  (*configOut_) << std::endl;
+  (*MyOutput_) << std::endl;
   //
   //
   bit_counter0 = bit_counter++;
   for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
     if (group == 0) {
-      (*configOut_) << "    ";
+      (*MyOutput_) << "    ";
     } else { 
-      (*configOut_) << "        ";
+      (*MyOutput_) << "        ";
     }
-    (*configOut_) << GetCollisionPatternMask(group,bit_counter0);
+    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0);
   }
-  (*configOut_) << std::endl;
+  (*MyOutput_) << std::endl;
   //
   //
   bit_counter0 = bit_counter++;
   bit_counter1 = bit_counter++;
   for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
     if (group == 0) {
-      (*configOut_) << "  ";
+      (*MyOutput_) << "  ";
     } else {
-      (*configOut_) << "      ";
+      (*MyOutput_) << "      ";
     }
-    (*configOut_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1); 
+    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1); 
   }
-  (*configOut_) << std::endl;
+  (*MyOutput_) << std::endl;
   //
   //
   bit_counter0 = bit_counter++;
@@ -3093,11 +3084,11 @@ void ALCTController::PrintCollisionPatternMask() {
   bit_counter2 = bit_counter++;
   for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
     if (group != 0) {
-      (*configOut_) << "    ";
+      (*MyOutput_) << "    ";
     }
-    (*configOut_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2);
+    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2);
   }
-  (*configOut_) << std::endl;
+  (*MyOutput_) << std::endl;
   //
   //
   bit_counter0 = bit_counter++;
@@ -3105,75 +3096,75 @@ void ALCTController::PrintCollisionPatternMask() {
   bit_counter2 = bit_counter++;
   for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
     if (group != 0) {
-      (*configOut_) << "    ";
+      (*MyOutput_) << "    ";
     }
-    (*configOut_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2);
+    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2);
   }
-  (*configOut_) << std::endl;
+  (*MyOutput_) << std::endl;
   //
   //
   //
   // Pattern B is not supported in the low-latency ALCT firmware...  But if it were, here would be its print-out:
-  //  (*configOut_) << "Wire Groups 0 to " << GetNumberOfCollisionPatternGroups() << " -> Pattern B:" << std::endl;
+  //  (*MyOutput_) << "Wire Groups 0 to " << GetNumberOfCollisionPatternGroups() << " -> Pattern B:" << std::endl;
   //  //
   //  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
   //    int lo_wire_group_index = group*NUMBER_OF_WIREGROUPS_PER_COLLISION_PATTERN_GROUP;
   //    int hi_wire_group_index = ( (group+1)*NUMBER_OF_WIREGROUPS_PER_COLLISION_PATTERN_GROUP ) - 1;
-  //    (*configOut_) << "[" << std::dec << std::setw(3) << lo_wire_group_index 
+  //    (*MyOutput_) << "[" << std::dec << std::setw(3) << lo_wire_group_index 
   //		 << "," << std::dec << std::setw(3) << hi_wire_group_index << "]";
   //  }
-  //  (*configOut_) << std::endl;
+  //  (*MyOutput_) << std::endl;
   //  //
   //  bit_counter0 = bit_counter++;
   //  bit_counter1 = bit_counter++;
   //  bit_counter2 = bit_counter++;
   //  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
   //    if (group == 0) {
-  //      (*configOut_) << "    ";
+  //      (*MyOutput_) << "    ";
   //    } else { 
-  //      (*configOut_) << "    ";
+  //      (*MyOutput_) << "    ";
   //    }
-  //    (*configOut_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2); 
+  //    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2); 
   //  }
-  //  (*configOut_) << std::endl;
+  //  (*MyOutput_) << std::endl;
   //  //
   //  //
   //  bit_counter0 = bit_counter++;
   //  bit_counter1 = bit_counter++;
   //  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
   //    if (group == 0) {
-  //      (*configOut_) << "    ";
+  //      (*MyOutput_) << "    ";
   //    } else { 
-  //      (*configOut_) << "      ";
+  //      (*MyOutput_) << "      ";
   //    }
-  //    (*configOut_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1);
+  //    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1);
   //  }
-  //  (*configOut_) << std::endl;
+  //  (*MyOutput_) << std::endl;
   //  //
   //  //
   //  bit_counter0 = bit_counter++;
   //  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
   //    if (group == 0) {
-  //      (*configOut_) << "    ";
+  //      (*MyOutput_) << "    ";
   //    } else { 
-  //      (*configOut_) << "        ";
+  //      (*MyOutput_) << "        ";
   //    }
-  //    (*configOut_) << GetCollisionPatternMask(group,bit_counter0);
+  //    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0);
   //  }
-  //  (*configOut_) << std::endl;
+  //  (*MyOutput_) << std::endl;
   //  //
   //  //
   //  bit_counter0 = bit_counter++;
   //  bit_counter1 = bit_counter++;
   //  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
   //    if (group == 0) {
-  //      (*configOut_) << "  ";
+  //      (*MyOutput_) << "  ";
   //    } else {
-  //      (*configOut_) << "      ";
+  //      (*MyOutput_) << "      ";
   //    }
-  //    (*configOut_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1); 
+  //    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1); 
   //  }
-  //  (*configOut_) << std::endl;
+  //  (*MyOutput_) << std::endl;
   //  //
   //  //
   //  bit_counter0 = bit_counter++;
@@ -3181,11 +3172,11 @@ void ALCTController::PrintCollisionPatternMask() {
   //  bit_counter2 = bit_counter++;
   //  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
   //    if (group != 0) {
-  //      (*configOut_) << "    ";
+  //      (*MyOutput_) << "    ";
   //    }
-  //    (*configOut_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2);
+  //    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2);
   //  }
-  //  (*configOut_) << std::endl;
+  //  (*MyOutput_) << std::endl;
   //  //
   //  //
   //  bit_counter0 = bit_counter++;
@@ -3193,11 +3184,11 @@ void ALCTController::PrintCollisionPatternMask() {
   //  bit_counter2 = bit_counter++;
   //  for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) {
   //    if (group != 0) {
-  //      (*configOut_) << "    ";
+  //      (*MyOutput_) << "    ";
   //    }
-  //    (*configOut_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2);
+  //    (*MyOutput_) << GetCollisionPatternMask(group,bit_counter0) << " " << GetCollisionPatternMask(group,bit_counter1) << " " << GetCollisionPatternMask(group,bit_counter2);
   //  }
-  //  (*configOut_) << std::endl;
+  //  (*MyOutput_) << std::endl;
   //
   return;
 }
