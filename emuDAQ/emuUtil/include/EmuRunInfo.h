@@ -50,10 +50,10 @@ private:
 protected:
 
 //   EmuRunInfo();
-  EmuRunInfo( string bookingCommand, 
-	      string writingCommand, 
-	      string dbUserFile, 
-	      string dbAddress ):
+  EmuRunInfo( const string bookingCommand, 
+	      const string writingCommand, 
+	      const string dbUserFile, 
+	      const string dbAddress ):
     bookingCommand_  (bookingCommand),
     writingCommand_  (writingCommand),
     dbUserFile_      (dbUserFile    ),
@@ -70,10 +70,10 @@ protected:
 
 public:
 
-  static EmuRunInfo* Instance( string bookingCommand, 
-			       string writingCommand, 
-			       string dbUserFile, 
-			       string dbAddress ){
+  static EmuRunInfo* Instance( const string bookingCommand, 
+			       const string writingCommand, 
+			       const string dbUserFile, 
+			       const string dbAddress ){
     
     if ( instance_ == 0 )  // is it the first call?
       instance_ = new EmuRunInfo( bookingCommand, writingCommand, dbUserFile, dbAddress ); // create sole instance
@@ -118,7 +118,7 @@ public:
 
   }
 
-  bool bookRunNumber( string sequence ){
+  bool bookRunNumber( const string sequence ){
 
     errorMessage_ = "";
     bool success  = false;
@@ -193,7 +193,7 @@ public:
 
   }
   
-  bool writeRunInfo( string name, string value, string nameSpace ){
+  bool writeRunInfo( const string name, const string value, const string nameSpace ){
 
     errorMessage_ = "";
     bool success = false;
