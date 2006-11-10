@@ -132,7 +132,7 @@ public:
     command += " ";
     command += eLogURL_;
 
-//     cout << command << endl;
+    cout << command << endl;
 
     vector<string> replyLines;
     string reply;
@@ -166,7 +166,7 @@ public:
     command += " ";
     command += eLogURL_;
 
-//     cout << command << endl;
+    cout << command << endl;
 
     replyLines.clear();
     ipstream post( command.c_str() );
@@ -191,7 +191,7 @@ public:
     command += " ";
     command += eLogURL_;
 
-//     cout << command << endl;
+    cout << command << endl;
 
     replyLines.clear();
     ipstream logout( command.c_str() );
