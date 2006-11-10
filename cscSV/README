@@ -15,10 +15,10 @@ test/		files to test applications
 == 1. CVS access
 
 foo> cd ~/work
-foo> export CVSROOT=:pserver:anonymous@cmscvs.cern.ch:/cvs_server/repositories/TriDAS
+foo> export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/tridas
 foo> cvs login
 ...
-foo> cvs co -r Release-1_5 -d cscSV TriDAS/emu/cscSV
+foo> cvs co -r Release-1_7 -d cscSV TriDAS/emu/cscSV
 
 == 2. Build and run
 
