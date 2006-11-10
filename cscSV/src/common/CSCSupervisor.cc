@@ -104,7 +104,7 @@ xoap::MessageReference CSCSupervisor::onConfigure(xoap::MessageReference message
 		throw (xoap::exception::Exception)
 {
 	runmode_ = x_runmode_;
-	runnumber_ = x_runnumber_.toString();
+	runnumber_ = "0";
 	nevents_ = "9999";
 
 	fireEvent("Configure");
@@ -115,6 +115,8 @@ xoap::MessageReference CSCSupervisor::onConfigure(xoap::MessageReference message
 xoap::MessageReference CSCSupervisor::onEnable(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
+	runnumber_ = x_runnumber_.toString();
+
 	fireEvent("Enable");
 
 	return createReply(message);
