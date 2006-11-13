@@ -680,16 +680,24 @@ bool TMBTester::testADC(){
   (*MyOutput_) << "Total power = " << std::dec << total_power << " Watts" << std::endl;
 
   // ** Get TMB and RAT temperatures **
-  int TMBtempPCB = tmb_->ReadTMBtempPCB();  
-  int TMBtempFPGA = tmb_->ReadTMBtempFPGA();  
-  int RATtempPCB = rat_->ReadRATtempPCB(); 
-  int RATtempHeatSink = rat_->ReadRATtempHSink(); 
+  //  int TMBtempPCB = 
+  tmb_->ReadTMBtempPCB();  
+  //  int TMBtempFPGA = 
+  tmb_->ReadTMBtempFPGA();  
+  //  int RATtempPCB = 
+  rat_->ReadRATtempPCB(); 
+  //  int RATtempHeatSink = 
+  rat_->ReadRATtempHSink(); 
 
   // ** Get TMB and RAT critical temperature settings **
-  int TMBtCritPCB = tmb_->ReadTMBtCritPCB();  
-  int TMBtCritFPGA = tmb_->ReadTMBtCritFPGA();  
-  int RATtCritPCB = rat_->ReadRATtCritPCB(); 
-  int RATtCritHeatSink = rat_->ReadRATtCritHSink(); 
+  //  int TMBtCritPCB = 
+  tmb_->ReadTMBtCritPCB();  
+  //  int TMBtCritFPGA = 
+  tmb_->ReadTMBtCritFPGA();  
+  //  int RATtCritPCB = 
+  rat_->ReadRATtCritPCB(); 
+  //  int RATtCritHeatSink = 
+  rat_->ReadRATtCritHSink(); 
 
   testOK = (voltageDisc&&
 	    v5p0OK     &&
