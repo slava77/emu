@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 3.2 2006/10/30 15:53:39 mey Exp $
+// $Id: Crate.h,v 3.3 2006/11/13 16:25:31 mey Exp $
 // $Log: Crate.h,v $
+// Revision 3.3  2006/11/13 16:25:31  mey
+// Update
+//
 // Revision 3.2  2006/10/30 15:53:39  mey
 // Update
 //
@@ -43,6 +46,7 @@ class VMEModule;
 class VMEController;
 class DAQMB;
 class TMB;
+class ALCTController;
 class CCB;
 class MPC;
 class ChamberUtilities;
@@ -71,6 +75,7 @@ public:
   /// uses RTTI to find types
   std::vector<DAQMB *> daqmbs() const;
   std::vector<TMB *> tmbs() const;
+  std::vector<ALCTController *> alcts() const;
   std::vector<ChamberUtilities> chamberUtilsMatch() const;
   std::vector<Chamber*> chambers() const;
   std::vector<Chamber> chambersMatch() const;

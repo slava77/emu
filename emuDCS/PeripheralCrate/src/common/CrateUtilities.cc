@@ -7,6 +7,7 @@
 #include "CrateUtilities.h"
 #include "MPC.h"
 #include "TMB.h"
+#include "ALCTController.h"
 #include "DAQMB.h"
 #include "CCB.h"
 #include "VMEController.h"
@@ -42,6 +43,9 @@ void CrateUtilities::CreateTstoreTables(){
   MPC * myMPC = myCrate_->mpc();
   std::vector<TMB *>   myTmbs = myCrate_->tmbs();  
   std::vector<DAQMB *> myDmbs = myCrate_->daqmbs();  
+  std::vector<ALCTController *> myAlcts = myCrate_->alcts();  
+  //
+  std::cout << "Alct size=" << myAlcts.size() << std::endl;
   //
   std::ostringstream periph_output;
   //
@@ -290,6 +294,8 @@ void CrateUtilities::CreateTstoreTables(){
   }
   //
   std::ostringstream dmb_output[myDmbs.size()];
+  std::ostringstream cfeb_output;
+  int cfeb_line=0;
   //
   for( unsigned dmb=0; dmb<myDmbs.size(); dmb++) {
     //
@@ -330,7 +336,7 @@ void CrateUtilities::CreateTstoreTables(){
     dmb_table[dmb].push_back(dmb_output[dmb].str());
     //
     dmb_output[dmb].str("");
-    dmb_output[dmb] << std::dec << dmb ;
+    dmb_output[dmb] << myDmbs[dmb]->slot() ;
     dmb_table[dmb].push_back(dmb_output[dmb].str());
     //
     dmb_output[dmb].str("");
@@ -385,7 +391,161 @@ void CrateUtilities::CreateTstoreTables(){
     dmb_output[dmb] << myDmbs[dmb]->GetxLatency() ;
     dmb_table[dmb].push_back(dmb_output[dmb].str());
     //
+    std::vector<CFEB> myCfebs = myDmbs[dmb]->cfebs();
+    //
+    for( unsigned int cfeb=0; cfeb<myCfebs.size(); cfeb++) {
+      //
+      cfeb_table.push_back(std::vector<std::string>());
+      //
+      cfeb_output.str("");
+      cfeb_output << cfeb+(100*dmb);
+      cfeb_table[cfeb_line].push_back(cfeb_output.str());    
+      //
+      cfeb_output.str("");
+      cfeb_output << myCfebs[cfeb].number();
+      cfeb_table[cfeb_line].push_back(cfeb_output.str());    
+      //
+      cfeb_output.str("");
+      cfeb_output << "1";
+      cfeb_table[cfeb_line].push_back(cfeb_output.str());    
+      //
+      cfeb_output.str("");
+      cfeb_output << myDmbs[dmb]->slot();
+      cfeb_table[cfeb_line].push_back(cfeb_output.str());    
+      //
+      cfeb_line++;
+      //
+    }
+    //
   }
+  //
+  std::ostringstream alct_output[myAlcts.size()];
+  std::ostringstream afeb_output;
+  int afeb_line=0;
+  //
+  for( unsigned alct=0; alct<myAlcts.size(); alct++) {
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetTMB()->slot();
+    alct_table[alct].push_back(alct_output[alct].str());
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << "pattern_file";
+    alct_table[alct].push_back(alct_output[alct].str());
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetAlctWriteAmode();
+    alct_table[alct].push_back(alct_output[alct].str());
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetWriteBxcOffset();
+    alct_table[alct].push_back(alct_output[alct].str());
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetWriteCcbEnable();
+    alct_table[alct].push_back(alct_output[alct].str());
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetChamberType();
+    alct_table[alct].push_back(alct_output[alct].str());
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << "1";
+    alct_table[alct].push_back(alct_output[alct].str());
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetWriteExtTrigEnable();
+    alct_table[alct].push_back(alct_output[alct].str());
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetWriteFifoMode();
+    alct_table[alct].push_back(alct_output[alct].str());
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetWriteFifoPretrig();
+    alct_table[alct].push_back(alct_output[alct].str());
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetWriteFifoTbins();
+    alct_table[alct].push_back(alct_output[alct].str());
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetWriteL1aDelay();
+    alct_table[alct].push_back(alct_output[alct].str());
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetWriteL1aInternal();
+    alct_table[alct].push_back(alct_output[alct].str());
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetWriteL1aOffset();
+    alct_table[alct].push_back(alct_output[alct].str());
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetWriteL1aWindowSize();
+    alct_table[alct].push_back(alct_output[alct].str());
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetWritePretrigNumberOfPattern();
+    alct_table[alct].push_back(alct_output[alct].str());    
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetWritePretrigNumberOfLayers();
+    alct_table[alct].push_back(alct_output[alct].str());     
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetWriteSendEmpty();
+    alct_table[alct].push_back(alct_output[alct].str());    
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << "1";
+    alct_table[alct].push_back(alct_output[alct].str());    
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetWriteTriggerInfoEnable();
+    alct_table[alct].push_back(alct_output[alct].str());    
+    //
+    alct_output[alct].str("");
+    alct_output[alct] << myAlcts[alct]->GetWriteTriggerMode();
+    alct_table[alct].push_back(alct_output[alct].str());    
+    //
+    // Fill AFEB table
+    //
+    int nAFEBs = myAlcts[alct]->GetNumberOfAfebs();
+    //
+    for( unsigned afebs=0; afebs<nAFEBs; afebs++){
+      //
+      afeb_table.push_back(std::vector<std::string>());
+      //
+      afeb_output.str("");
+      afeb_output << myAlcts[alct]->GetWriteAsicDelay(afebs);
+      afeb_table[afeb_line].push_back(afeb_output.str());    
+      //
+      afeb_output.str("");
+      afeb_output << afebs+(100*alct);
+      afeb_table[afeb_line].push_back(afeb_output.str());    
+      //
+      afeb_output.str("");
+      afeb_output << afebs;
+      afeb_table[afeb_line].push_back(afeb_output.str());    
+      //
+      afeb_output.str("");
+      afeb_output << myAlcts[alct]->GetAfebThresholdDAC(afebs);
+      afeb_table[afeb_line].push_back(afeb_output.str());    
+      //
+      afeb_output.str("");
+      afeb_output << myAlcts[alct]->GetTMB()->slot();;
+      afeb_table[afeb_line].push_back(afeb_output.str());    
+      //
+      afeb_output.str("");
+      afeb_output << "1";
+      afeb_table[afeb_line].push_back(afeb_output.str());    
+      //
+      afeb_line++;
+      //
+    }
+  }
+  //
 }
 //
 void CrateUtilities::MpcTMBTest(int Nloop){
