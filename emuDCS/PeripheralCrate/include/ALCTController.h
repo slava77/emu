@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.14 2006/11/10 12:43:06 rakness Exp $
+// $Id: ALCTController.h,v 3.15 2006/11/13 16:25:31 mey Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.15  2006/11/13 16:25:31  mey
+// Update
+//
 // Revision 3.14  2006/11/10 12:43:06  rakness
 // include TMB/ALCT configuration and state machine prints+checks to hyperDAQ
 //
@@ -231,6 +234,8 @@ public:
 		    int delay);                      //                    delay = [0-15] (~2ns steps)
   int  GetAsicDelay(int AFEB);                       // get Read values -> AFEB = [0-(GetNumberOfAfebs()-1)]
   //
+  inline int GetWriteAsicDelay(int AFEB){ return write_asic_delay_[AFEB]; }
+  //
   void SetPowerUpAsicDelays();  		     // sets Write values to data-taking defaults
   void PrintAsicDelays();                            // print out Read values
   //
@@ -257,18 +262,21 @@ public:
   //                                              3 = pre-trigger on collision muon, veto pre-trigger on accelerator muon
   int  GetTriggerMode();                            // get Read values
   //
+  inline int GetWriteTriggerMode(){ return write_trigger_mode_ ; }
   //
   void SetExtTrigEnable(int ext_trig_enable);       // set Write values...
   //                      ext_trig_enable = [0-1] -> 0 = disable
   //                                                 1 = enable (triggers if ext_trig input signal == 1)
   int  GetExtTrigEnable();                          // get Read values
   //
+  inline int GetWriteExtTrigEnable(){ return write_ext_trig_enable_ ;}
   //
   void SetSendEmpty(int send_empty);                // set Write values...
   //                      send_empty = [0-1] -> 0 = do not send DAQ for empty events
   //                                            1 = do send DAQ for empty events
   int  GetSendEmpty();                              // get Read values
   //
+  inline int  GetWriteSendEmpty(){ return write_send_empty_;}
   //
   void SetInjectMode(int inject);                   // set Write values...
   //                       inject = [0-1] -> 0 = input data enabled
@@ -280,16 +288,19 @@ public:
   //                       bxc_offset = [0-255] -> value loaded into internal BX counter upon BC0
   int  GetBxcOffset();                              // get Read values
   //
+  int  GetWriteBxcOffset(){ return write_bxc_offset_; }
   //
   void SetPretrigNumberOfLayers(int nph_thresh);    // set Write values...
   //                       nph_thresh = [0-6] -> number of layers needed to generate pretrigger (marks bunch crossing)
   int  GetPretrigNumberOfLayers();                  // get Read values
   //
+  inline int  GetWritePretrigNumberOfLayers(){ return write_nph_thresh_; }
   //
   void SetPretrigNumberOfPattern(int nph_pattern);  // set Write values...
   //                       nph_pattern = [0-6] -> number of layers needed after "drift delay" (starting from pretrigger) to generate LCT
   int  GetPretrigNumberOfPattern();                 // get Read values
   //
+  inline int  GetWritePretrigNumberOfPattern(){ return write_nph_pattern_ ;}
   //
   void SetDriftDelay(int drift_delay);              // set Write values...
   //                       drift_delay = [0-3] -> number of bunch crossings between pretrigger and LCT
@@ -300,11 +311,13 @@ public:
   //                       fifo_tbins = [0-31] -> number of bunch crossings in FIFO DAQ readout  
   int  GetFifoTbins();                              // get Read values
   //
+  inline int GetWriteFifoTbins(){ return write_fifo_tbins_ ;} 
   //
   void SetFifoPretrig(int fifo_pretrig);            // set Write values...
   //                       fifo_pretrig = [0-31] -> raw hits will be shown in DAQ readout from (fifo_pretrig-10) bunch crossings before trigger event
   int  GetFifoPretrig();                            // get Read values
   //
+  inline int  GetWriteFifoPretrig(){ return write_fifo_pretrig_;}
   //
   void SetFifoMode(int fifo_mode);                  // set Write values...
   //                       fifo_mode = [0-2] -> 0 = no raw hits dump
@@ -312,27 +325,32 @@ public:
   //                                            2 = local dump (LCT chips with hits)
   int  GetFifoMode();                               // get Read values
   //
+  inline int  GetWriteFifoMode(){ return write_fifo_mode_;}
   //
   void SetL1aDelay(int l1a_delay);                  // set Write values...
   //                       l1a_delay = [0-255] -> number of bunch crossings (after the LCT) of the leading edge of the l1a window 
   int  GetL1aDelay();                               // get Read values
   //
+  int  GetWriteL1aDelay(){ return write_l1a_delay_; }
   //
   void SetL1aWindowSize(int size);                  // set Write values...
   //                       size = [0-15] -> width of l1a window in bunch crossings 
   int  GetL1aWindowSize();                          // get Read values
   //
+  inline int  GetWriteL1aWindowSize(){ return write_l1a_window_; }
   //
   void SetL1aOffset(int l1a_offset);                // set Write values...
   //                       l1a_offset = [0-15] -> l1a accept counter pre-load value
   int  GetL1aOffset();                              // get Read values
   //
+  inline int  GetWriteL1aOffset(){ return write_l1a_offset_; }
   //
   void SetL1aInternal(int l1a_internal);            // set Write values...
   //                       l1a_internal = [0-1] -> 0 = l1a expected to come from CCB via TMB
   //                                               1 = l1a generated internally (within the l1a window)
   int  GetL1aInternal();                            // get Read values
   //
+  inline int  GetWriteL1aInternal(){ return write_l1a_internal_ ; }
   //
   void SetBoardId(int board_id);                    // set Write values...
   //                       board_id = [0-7] -> ALCT2001 circuit board ID (defunct)
@@ -343,6 +361,7 @@ public:
   //                       ccb_enable = [] -> undocumented parameter
   int  GetCcbEnable();                              // get Read values
   //
+  inline int  GetWriteCcbEnable(){ return write_ccb_enable_;}
   //
   void SetAlctAmode(int alct_amode);                // set Write values...
   //                       alct_amode = [0-3] -> use in conjunction with trig_mode
@@ -350,12 +369,14 @@ public:
   //                                             2,3 = prefer Accelerator muon mode
   int  GetAlctAmode();                              // get Read values
   //
+  inline int  GetAlctWriteAmode(){ return write_alct_amode_; }
   //
   void SetTriggerInfoEnable(int trigger_info_en);   // set Write values...
   //                       trigger_info_en = [0-1] -> 0 = do not write trigger info to FIFO
   //                                                  1 = write trigger info to FIFO
   int  GetTriggerInfoEnable();                      // get Read values
   //
+  inline int  GetWriteTriggerInfoEnable(){ return write_trigger_info_en_ ;}
   //
   void SetSnSelect(int sn_select);                  // set Write values...
   //                       sn_select = [0-1] -> 0 = read ALCT serial number via JTAG (defunct)
@@ -402,6 +423,8 @@ public:
   //
   void WriteCollisionPatternMask();                    //writes Write values to ALCT
   void ReadCollisionPatternMask();                     //fills Read values with values read from ALCT
+  //
+  inline TMB * GetTMB(){ return tmb_;}
   //
 protected:
   //

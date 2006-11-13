@@ -38,6 +38,18 @@ public:
     return dmb_table[number];
   }
   // 
+  inline std::vector<std::string> CrateUtilities::GetAlctTable(int number){
+    return alct_table[number];
+  }
+  //
+  inline std::vector<std::vector<std::string> > CrateUtilities::GetAfebTable(){
+    return afeb_table;
+  }
+  //
+  inline std::vector<std::vector<std::string> > CrateUtilities::GetCfebTable(){
+    return cfeb_table;
+  }
+  //
  private:
   //
   int MpcTMBTestResult;
@@ -47,6 +59,9 @@ public:
   std::vector<std::string> csc_table;
   std::vector<std::string> tmb_table[9];
   std::vector<std::string> dmb_table[9];
+  std::vector<std::string> alct_table[9];
+  std::vector<std::vector<std::string> > afeb_table;
+  std::vector<std::vector<std::string> > cfeb_table;
   //
 };
 

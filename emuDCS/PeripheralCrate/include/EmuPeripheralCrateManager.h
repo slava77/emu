@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.22 2006/11/10 16:51:44 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.23 2006/11/13 16:25:31 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -15,6 +15,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <stdexcept>
 #include <iostream>
 #include<unistd.h> // for sleep()
@@ -61,6 +62,7 @@
 #include "EmuApplication.h"
 #include "EmuController.h"
 #include "Crate.h"
+#include "TStoreParser.h"
 #include "CrateUtilities.h"
 
 using namespace cgicc;
@@ -109,6 +111,7 @@ public:
     xgi::bind(this,&EmuPeripheralCrateManager::CheckEmuPeripheralCrateCalibrationState, "CheckEmuPeripheralCrateCalibrationState");
     //
     xgi::bind(this,&EmuPeripheralCrateManager::UploadDB, "UpLoadDB");
+    xgi::bind(this,&EmuPeripheralCrateManager::RetrieveTStoreTable, "RetrieveTStoreTable");
     //
     // SOAP call-back functions, which relays to *Action method.
     xoap::bind(this, &EmuPeripheralCrateManager::onConfigure, "Configure", XDAQ_NS_URI);
@@ -450,6 +453,14 @@ public:
       .set("value","Upload DB") << std::endl ;
     *out << cgicc::form();
     //
+    std::string RetrieveTStoreTable =
+      toolbox::toString("/%s/RetrieveTStoreTable",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",RetrieveTStoreTable) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Retrieve TStore table") << std::endl ;
+    *out << cgicc::form();
+    //
     *out << cgicc::fieldset();
     //
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
@@ -722,12 +733,62 @@ public:
 	//
 	std::vector <std::string> DmbTable = crateUtility.GetDmbTable(i);
 	//
+	for(unsigned j=0; j<DmbTable.size(); j++) std::cout << " " << DmbTable[j];
+	std::cout << std::endl;
+	//
 	AddRow(0,table_,DmbTable);
 	//
 	this->SendSOAPMessageInsertTStore(in,out,"myTable4");
 	//
       }
       //
+      /*
+      for (int i=0; i<9; i++) {
+      //
+	this->SendSOAPMessageDefinitionTStore(in,out,"myTable5");
+	//
+	std::vector <std::string> AlctTable = crateUtility.GetAlctTable(i);
+	//
+	std::cout << "Size " << AlctTable.size() << std::endl;
+	//
+	AddRow(0,table_,AlctTable);
+	//
+	this->SendSOAPMessageInsertTStore(in,out,"myTable5");
+	//
+	}
+      */
+      /*
+      std::vector<std::vector<std::string> > AfebTable = crateUtility.GetAfebTable();
+      //
+      for (unsigned int i=0; i<AfebTable.size(); i++) {
+	//
+	this->SendSOAPMessageDefinitionTStore(in,out,"myTable6");
+	//
+	AddRow(0,table_,AfebTable[i]);
+	//
+	for(int j=0; j<AfebTable[i].size(); j++) std::cout << " " << AfebTable[i][j] ;
+	std::cout << std::endl;
+	//
+	this->SendSOAPMessageInsertTStore(in,out,"myTable6");
+	//
+      }
+      */
+      /*
+      std::vector<std::vector<std::string> > CfebTable = crateUtility.GetCfebTable();
+      //
+      for (unsigned int i=0; i<CfebTable.size(); i++) {
+	//
+	this->SendSOAPMessageDefinitionTStore(in,out,"myTable7");
+	//
+	AddRow(0,table_,CfebTable[i]);
+	//
+	for(int j=0; j<CfebTable[i].size(); j++) std::cout << " " << CfebTable[i][j] ;
+	std::cout << std::endl;
+	//
+	this->SendSOAPMessageInsertTStore(in,out,"myTable7");
+	//
+      }
+      */
     }
     //
   }
@@ -1268,9 +1329,89 @@ public:
     throw (xgi::exception::Exception)
     {
       //
-      this->SendSOAPMessageQueryTStore(in,out,"myTable5");
+      this->SendSOAPMessageQueryTStore(in,out,"VME+2/5_afeb");
       //
     }
+  //
+  void EmuPeripheralCrateManager::RetrieveTStoreTable(xgi::Input * in, xgi::Output * out) 
+    throw (xgi::exception::Exception)
+    {
+      this->RetrieveTStoreTable(in,out,"VME+2/5");
+    }
+  //
+  std::vector < std::vector <std::string > > EmuPeripheralCrateManager::ConvertTable(xdata::Table thisTable) 
+    throw (xgi::exception::Exception)
+    {
+      //
+      std::vector < std::vector <std::string > > push;
+      //
+      for(int rows=0; rows<thisTable.getRowCount(); rows++){
+	//
+	push.push_back(std::vector<std::string>());
+	std::cout << std::endl;      
+	//
+	vector<std::string>::iterator columnIterator;
+	std::vector<std::string> columns=thisTable.getColumns();
+	for(columnIterator=columns.begin(); columnIterator!=columns.end(); columnIterator++) {
+	  //
+	  push[rows].push_back(thisTable.getValueAt(rows,*columnIterator)->toString());
+	  std::cout << " " << thisTable.getValueAt(rows,*columnIterator)->toString() ;
+	  //
+	}
+	//
+      }
+      return push;
+    }
+  //
+  void EmuPeripheralCrateManager::RetrieveTStoreTable(xgi::Input * in, xgi::Output * out, std::string CrateLabel) 
+    throw (xgi::exception::Exception){
+    //
+    this->SendSOAPMessageConnectTStore(in,out);
+    ostringstream tableName ;
+    tableName << CrateLabel << "_periph";
+    this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+    //
+    std::vector < std::vector <std::string > > periph_table = ConvertTable(table_);
+    //
+    tableName.str("");
+    tableName << CrateLabel << "_csc";
+    this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+    //
+    std::vector < std::vector <std::string > > csc_table = ConvertTable(table_);
+    //
+    tableName.str("");
+    tableName << CrateLabel << "_tmb";
+    this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+    //
+    std::vector < std::vector <std::string > > tmb_table = ConvertTable(table_);
+    //
+    tableName.str("");
+    tableName << CrateLabel << "_dmb";
+    this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+    //
+    std::vector < std::vector <std::string > > dmb_table = ConvertTable(table_);
+    //
+    tableName.str("");
+    tableName << CrateLabel << "_alct";
+    this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+    //
+    std::vector < std::vector <std::string > > alct_table = ConvertTable(table_);
+    //
+    tableName.str("");
+    tableName << CrateLabel << "_afeb";
+    this->SendSOAPMessageQueryTStore(in,out,tableName.str());    
+    //
+    std::vector < std::vector <std::string > > afeb_table = ConvertTable(table_);
+    //
+    tableName.str("");
+    tableName << CrateLabel << "_cfeb";
+    this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+    //
+    std::vector < std::vector <std::string > > cfeb_table = ConvertTable(table_);
+    //
+    TStoreParser(periph_table,csc_table,tmb_table,dmb_table,alct_table,afeb_table,cfeb_table);
+    //
+  }
   //
   void EmuPeripheralCrateManager::SendSOAPMessageQueryTStore(xgi::Input * in, xgi::Output * out, std::string TableName ) 
     throw (xgi::exception::Exception)

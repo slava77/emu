@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.10 2006/11/10 16:51:45 mey Exp $
+// $Id: Crate.cc,v 3.11 2006/11/13 16:25:31 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 3.11  2006/11/13 16:25:31  mey
+// Update
+//
 // Revision 3.10  2006/11/10 16:51:45  mey
 // Update
 //
@@ -186,6 +189,19 @@ std::vector<TMB *> Crate::tmbs() const {
   }
   return result;
 }
+
+std::vector<ALCTController *> Crate::alcts() const {
+  std::vector<ALCTController *> result;
+  for(unsigned i = 0; i < theModules.size(); ++i) {
+    TMB * tmb = dynamic_cast<TMB *>(theModules[i]);
+    if(tmb != 0) {
+      ALCTController * alct = tmb->alctController();
+      if( alct != 0 ) result.push_back(alct);
+    }
+  }
+  return result;
+}
+
 
 
 CCB * Crate::ccb() const {
