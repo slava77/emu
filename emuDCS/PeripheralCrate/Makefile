@@ -57,6 +57,7 @@ Sources=\
 	CSCParser.cc \
 	EMUjtag.cc \
 	EmuSystem.cc \
+	TStoreParser.cc \
 	EmuApplication.cc \
 	EmuModule.cc
 
