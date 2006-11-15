@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.10 2006/11/09 08:47:51 rakness Exp $
+// $Id: TMBParser.cc,v 3.11 2006/11/15 16:01:37 mey Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.11  2006/11/15 16:01:37  mey
+// Cleaning up code
+//
 // Revision 3.10  2006/11/09 08:47:51  rakness
 // add rpc0_raw_delay to xml file
 //
@@ -101,7 +104,7 @@
 #include "ALCTController.h"
 #include "RAT.h"
 
-TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate,xercesc::DOMNode * pNodeGlobal)
+TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theChamber, xercesc::DOMNode * pNodeGlobal)
 {
 
   if (pNodeGlobal) {
@@ -117,9 +120,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate,xercesc::DOMNode
     std::cerr << "No slot specified for TMB! " << std::endl;
   } else {
     //
-    std::cout << "Creating TMB" <<std::endl;
-    tmb_ = new TMB(theCrate, slot);
-    std::cout << "Leaving  TMB" <<std::endl;
+    tmb_ = new TMB(theCrate, theChamber, slot);
     //
     int delay;
     if ( parser_.fillInt("cfeb0delay",delay) ) {

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: Chamber.cc,v 3.1 2006/11/15 16:01:36 mey Exp $
 // $Log: Chamber.cc,v $
+// Revision 3.1  2006/11/15 16:01:36  mey
+// Cleaning up code
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -55,11 +58,6 @@
 using namespace std;
 //
 Chamber::Chamber(){
-}
-//
-Chamber::Chamber(int crateNumber, int slot){
-  //
-  //
 }
 //
 Chamber::~Chamber(){

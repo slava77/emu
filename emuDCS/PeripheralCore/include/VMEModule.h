@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 3.2 2006/10/02 18:18:25 mey Exp $
+// $Id: VMEModule.h,v 3.3 2006/11/15 16:01:36 mey Exp $
 // $Log: VMEModule.h,v $
+// Revision 3.3  2006/11/15 16:01:36  mey
+// Cleaning up code
+//
 // Revision 3.2  2006/10/02 18:18:25  mey
 // UPdate
 //
@@ -95,7 +98,7 @@ public:
   /// automatically registers itself with the Crate
   VMEModule(Crate *, int );
   virtual ~VMEModule() {};
-  int crate() const {return theCrate_->number();}
+  int crate() const {return theCrate_->CrateID();}
   int slot() const {return theSlot;}
   bool exist();
   
@@ -117,8 +120,6 @@ public:
   
   VMEController* getTheController();
   
-  inline void SetCSC(Chamber * csc){csc_ = csc;}
-
   inline void SetJtagSource(int source){JtagSource_ = source;}
 
 protected:
@@ -147,7 +148,6 @@ protected:
   Crate * theCrate_;
   VMEController * theController;
   int theSlot;
-  Chamber * csc_;
   
   /// is this really needed?
   char sndbuf[4096];

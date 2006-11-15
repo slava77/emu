@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateSelector.cc,v 3.2 2006/10/30 15:56:55 mey Exp $
+// $Id: CrateSelector.cc,v 3.3 2006/11/15 16:01:36 mey Exp $
 // $Log: CrateSelector.cc,v $
+// Revision 3.3  2006/11/15 16:01:36  mey
+// Cleaning up code
+//
 // Revision 3.2  2006/10/30 15:56:55  mey
 // Update
 //
@@ -99,7 +102,7 @@ std::vector<Crate *> CrateSelector::crates() const {
   } else {
     for(unsigned icrate = 0; icrate < allCrates.size(); ++icrate) {
       for(unsigned iSelect = 0; iSelect < theSelectedCrates.size(); ++iSelect) {
-        if(allCrates[icrate]->number() == theSelectedCrates[iSelect]) {
+        if(allCrates[icrate]->CrateID() == theSelectedCrates[iSelect]) {
           result.push_back(allCrates[icrate]);
         }
       }

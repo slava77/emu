@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: DAQMBParser.h,v 3.1 2006/11/15 16:01:36 mey Exp $
 // $Log: DAQMBParser.h,v $
+// Revision 3.1  2006/11/15 16:01:36  mey
+// Cleaning up code
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -30,7 +33,7 @@ class Crate;
 class DAQMBParser{
 public:
   DAQMBParser(){}
-  explicit DAQMBParser(xercesc::DOMNode * , Crate * );
+  explicit DAQMBParser(xercesc::DOMNode * , Crate *, Chamber * );
   std::vector<CFEB> parseCFEBs(xercesc::DOMNode * );   
 
   /// the last one parsed

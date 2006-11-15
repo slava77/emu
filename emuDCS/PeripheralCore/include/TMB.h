@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.16 2006/11/10 12:43:07 rakness Exp $
+// $Id: TMB.h,v 3.17 2006/11/15 16:01:36 mey Exp $
 // $Log: TMB.h,v $
+// Revision 3.17  2006/11/15 16:01:36  mey
+// Cleaning up code
+//
 // Revision 3.16  2006/11/10 12:43:07  rakness
 // include TMB/ALCT configuration and state machine prints+checks to hyperDAQ
 //
@@ -206,15 +209,15 @@
 #include <vector>
 #include <string>
 #include <bitset>
-//#include "TMB_JTAG_constants.h"
+
 #include "EMUjtag.h"
-//#include "EmuModule.h"
 
 class ALCTController;
 class TMBParser;
 class RAT;
 class AnodeChannel;
 class Crate;
+class Chamber;
 
 class TMB :  public VMEModule, public EMUjtag {
 
@@ -224,7 +227,7 @@ public:
   //friend class TMBParser;
   friend class EMUjtag;
   //
-  TMB(Crate * , int );
+  explicit TMB(Crate * , Chamber *, int );
   virtual ~TMB();
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
@@ -591,6 +594,7 @@ protected:
   //
 private:
   //
+  Chamber * csc_;
   int tmb_idcode_[7];
   //int jtag_address;
   //int jtag_chain;

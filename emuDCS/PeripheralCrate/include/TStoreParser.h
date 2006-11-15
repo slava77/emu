@@ -9,22 +9,28 @@
 #include "CCB.h"
 #include "MPC.h"
 #include "ALCTController.h"
+#include "EmuSystem.h"
 
 class TStoreParser {
   //
  public:
   //
-  TStoreParser(std::vector < std::vector <std::string > > ,std::vector < std::vector <std::string > > ,std::vector < std::vector <std::string > > ,std::vector < std::vector <std::string > > ,std::vector < std::vector <std::string > > ,std::vector < std::vector <std::string > > ,std::vector < std::vector <std::string > > );//
-  void TStoreParser::FindTMB(std::vector <std::string> csc, std::vector < std::vector <std::string > > tmb_table);
-  void TStoreParser::FindDMB(std::vector <std::string> csc, std::vector < std::vector <std::string > > dmb_table);
+  TStoreParser(std::vector < std::vector <std::string > > ,
+	       std::vector < std::vector <std::string > > ,
+	       std::vector < std::vector <std::string > > ,
+	       std::vector < std::vector <std::string > > ,
+	       std::vector < std::vector <std::string > > ,
+	       std::vector < std::vector <std::string > > ,
+	       std::vector < std::vector <std::string > > 
+	       );
+  //
+  //
+  void ParseTableTMB(Chamber*,std::vector<std::string>);
+  void ParseTableDMB(Chamber*,std::vector<std::string>);
   //
   ~TStoreParser();
   //
 private:
-  //
-  static const int tmb_table_CSCID_loc = 9;
-  static const int dmb_table_CSCID_loc = 7;
-  static const int csc_table_CSCID_loc = 3;
   //
 };
 
