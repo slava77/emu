@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.7 2006/10/12 17:52:13 mey Exp $
+// $Id: VMEModule.cc,v 3.8 2006/11/15 16:01:37 mey Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.8  2006/11/15 16:01:37  mey
+// Cleaning up code
+//
 // Revision 3.7  2006/10/12 17:52:13  mey
 // Update
 //
@@ -124,22 +127,17 @@
 #define PRINTSTRING(x) cout << #x << endl; 
 #endif
 
-
-
 VMEModule::VMEModule(Crate * theCrate, int newslot): 
-  theSlot(newslot), csc_(0x0)
+  theSlot(newslot)
 {
   theCrate_ = theCrate;
   //
-  cout << "creating VMEModule in crate " << theCrate->number() << endl;
+  cout << "creating VMEModule in crate " << theCrate->CrateID() << endl;
   //
-#ifdef debugV
-  cout << "creating VMEModule in crate " << theCrate->number() << endl;
-#endif 
   theController = theCrate->vmeController();
   theCrate->addModule(this);
   //
-  cout << "Done VMEModule in crate " << theCrate->number() << endl;
+  cout << "Done VMEModule in crate " << theCrate->CrateID() << endl;
   //
 }
 

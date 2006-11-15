@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.10 2006/11/10 16:51:45 mey Exp $
+// $Id: VMEController.cc,v 3.11 2006/11/15 16:01:37 mey Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.11  2006/11/15 16:01:37  mey
+// Cleaning up code
+//
 // Revision 3.10  2006/11/10 16:51:45  mey
 // Update
 //
@@ -187,10 +190,10 @@
 #define PRINTSTRING(x) cout << #x << endl; 
 #endif
 
-VMEController::VMEController(int crate): 
- crate_(crate), indian(SWAP),  max_buff(0), tot_buff(0), 
- plev(1), idevo(0), error_type(0), error_count(0), DEBUG(0), port_(2),
- fill_write_vme_vectors_(false), ok_vme_write_(false)
+VMEController::VMEController(int crateID): 
+  crate_(crateID), indian(SWAP),  max_buff(0), tot_buff(0), 
+  plev(1), idevo(0), error_type(0), error_count(0), DEBUG(0), port_(2),
+  fill_write_vme_vectors_(false), ok_vme_write_(false)
 {
   //
   fpacket_delay = 0;
@@ -207,7 +210,7 @@ VMEController::VMEController(int crate):
   //
   done_init_=false;
 }
-
+//
 VMEController::~VMEController(){
   cout << "destructing VMEController .. closing socket " << endl;
   do_schar(2); // give up the schar device

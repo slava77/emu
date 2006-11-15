@@ -78,7 +78,7 @@ void CrateUtilities::CreateTstoreTables(){
   periph_table.push_back(periph_output.str());
   //
   periph_output.str("");
-  periph_output << myCrate_->number() ;
+  periph_output << myCrate_->CrateID() ;
   periph_table.push_back(periph_output.str());
   //
   periph_output.str("");
@@ -98,7 +98,7 @@ void CrateUtilities::CreateTstoreTables(){
   periph_table.push_back(periph_output.str());
   //
   periph_output.str("");
-  periph_output << ((myCrate_->number())+3) ;
+  periph_output << ((myCrate_->CrateID())+3) ;
   periph_table.push_back(periph_output.str());
   //
   periph_output.str("");

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.11 2006/11/13 16:25:31 mey Exp $
+// $Id: Crate.cc,v 3.12 2006/11/15 16:01:36 mey Exp $
 // $Log: Crate.cc,v $
+// Revision 3.12  2006/11/15 16:01:36  mey
+// Cleaning up code
+//
 // Revision 3.11  2006/11/13 16:25:31  mey
 // Update
 //
@@ -109,8 +112,8 @@
 #include "ChamberUtilities.h"
 #include "Chamber.h"
 
-Crate::Crate(int number, VMEController * controller, EmuSystem * emuSystem) : 
-  theNumber(number),  
+Crate::Crate(int CrateID, VMEController * controller, EmuSystem * emuSystem) : 
+  theCrateID(CrateID),  
   theModules(28),
   theController(controller),
   label_("label")
@@ -119,6 +122,7 @@ Crate::Crate(int number, VMEController * controller, EmuSystem * emuSystem) :
   theChambers.clear();
   //
   //emuSystem->addCrate(number, this);
+  //
   emuSystem->addCrate(this);
 }
 

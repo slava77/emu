@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.10 2006/11/10 16:51:44 mey Exp $
+// $Id: DAQMB.h,v 3.11 2006/11/15 16:01:36 mey Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.11  2006/11/15 16:01:36  mey
+// Cleaning up code
+//
 // Revision 3.10  2006/11/10 16:51:44  mey
 // Update
 //
@@ -147,10 +150,10 @@ public:
 
   // standard routines
   /// construct with all the standard CFEBs and BuckeyeChips
-  DAQMB(Crate * , int slot) ;
+  explicit DAQMB(Crate * ,Chamber *, int slot) ;
   /// construct with a single CFEB, count from zero
-  DAQMB(Crate * , int slot, int cfeb);
-  DAQMB(Crate * , int slot, const std::vector<CFEB> & cfebs);
+  //DAQMB(Crate * , int slot, int cfeb);
+  //DAQMB(Crate * , int slot, const std::vector<CFEB> & cfebs);
   //
   virtual ~DAQMB();
   /// from the BOARDTYPE enum

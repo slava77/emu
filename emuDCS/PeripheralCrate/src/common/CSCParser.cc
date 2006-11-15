@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CSCParser.cc,v 3.2 2006/09/05 16:14:14 mey Exp $
+// $Id: CSCParser.cc,v 3.3 2006/11/15 16:01:36 mey Exp $
 // $Log: CSCParser.cc,v $
+// Revision 3.3  2006/11/15 16:01:36  mey
+// Cleaning up code
+//
 // Revision 3.2  2006/09/05 16:14:14  mey
 // Update
 //
@@ -40,6 +43,7 @@ CSCParser::CSCParser(xercesc::DOMNode * pNode, Crate * theCrate, xercesc::DOMNod
   parser_.fillString("chamber_type", chamberType);
   parser_.fillString("label", label);
   csc_ = new Chamber();
+  csc_->SetCrate(theCrate);
   //
   theCrate->AddChamber(csc_);
   //
@@ -53,17 +57,16 @@ CSCParser::CSCParser(xercesc::DOMNode * pNode, Crate * theCrate, xercesc::DOMNod
       std::cout << "PeripheralCrateParser: pNode1=" << xercesc::XMLString::transcode(pNode1->getNodeName()) << std::endl;
       //
       if (strcmp("DAQMB",xercesc::XMLString::transcode(pNode1->getNodeName()))==0) {  
-	daqmbParser_ = DAQMBParser(pNode1, theCrate);
-	(daqmbParser_.daqmb())->SetCSC(csc_);
-	csc_->SetDMB(daqmbParser_.daqmb());
+	daqmbParser_ = DAQMBParser(pNode1, theCrate, csc_);
+	//(daqmbParser_.daqmb())->SetCSC(csc_);
+	//csc_->SetDMB(daqmbParser_.daqmb());
       }
       //
       if (strcmp("TMB",xercesc::XMLString::transcode(pNode1->getNodeName()))==0) {  
 	std::cout << "TMBparser..." <<std::endl;
-	tmbParser_ = TMBParser(pNode1, theCrate,pNodeGlobal);
-	(tmbParser_.tmb())->SetCSC(csc_);
-	csc_->SetTMB(tmbParser_.tmb());
-	std::cout << "Out TMBparser..." <<std::endl;
+	tmbParser_ = TMBParser(pNode1, theCrate, csc_, pNodeGlobal);
+	//(tmbParser_.tmb())->SetCSC(csc_);
+	//csc_->SetTMB(tmbParser_.tmb());
       }       
     }
     pNode1 = pNode1->getNextSibling();

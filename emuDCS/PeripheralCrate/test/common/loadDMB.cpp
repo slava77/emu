@@ -24,6 +24,7 @@ int main(int argc,char **argv){
   dynatem->reset();
   EmuSystem * emuSystem = new EmuSystem();
   Crate *crate = new Crate(crateId,dynatem,emuSystem);
+  Chamber * chamber = new Chamber();
   //
   // create CCB
   int ccbSlot(13);
@@ -34,7 +35,7 @@ int main(int argc,char **argv){
   // create DMB
   //
   int dmbSlot(25);
-  DAQMB *dmb = new DAQMB(crate,dmbSlot);
+  DAQMB *dmb = new DAQMB(crate,chamber,dmbSlot);
   printf("DMB fpga user id                   : %x ", (int) dmb->mbfpgauser());
   //
   char *outp = "0";

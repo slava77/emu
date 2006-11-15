@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.18 2006/10/12 17:52:13 mey Exp $
+// $Id: DAQMB.cc,v 3.19 2006/11/15 16:01:36 mey Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.19  2006/11/15 16:01:36  mey
+// Cleaning up code
+//
 // Revision 3.18  2006/10/12 17:52:13  mey
 // Update
 //
@@ -303,8 +306,9 @@ const int DAQMB::chip_use[5][6] = {
 
 const int DAQMB::nchips[5] = {6,6,6,6,6};
 
-DAQMB::DAQMB(Crate * theCrate,int newslot):
+DAQMB::DAQMB(Crate * theCrate, Chamber * theChamber, int newslot):
   VMEModule(theCrate, newslot),
+  csc_(theChamber),
   feb_dav_delay_(24),tmb_dav_delay_(24), 
   push_dav_delay_(31), l1acc_dav_delay_(24), ALCT_dav_delay_(0),
   calibration_LCT_delay_(8), calibration_l1acc_delay_(22),
@@ -325,6 +329,8 @@ DAQMB::DAQMB(Crate * theCrate,int newslot):
     L1A_extra_cfeb_[cfeb] = xlatency_;
   }
   //
+  theChamber->SetDMB(this);
+  //
   MyOutput_ = &std::cout ;
   cfebs_.clear();
   std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl;
@@ -334,23 +340,23 @@ DAQMB::DAQMB(Crate * theCrate,int newslot):
   //
 }
 
-DAQMB::DAQMB(Crate * theCrate,int newslot,  int newcfeb):
-  VMEModule(theCrate, newslot)
-{
-  MyOutput_ = &std::cout ;
-  cfebs_.push_back(CFEB(newcfeb));
-  std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl; 
-  for(int i=0;i<20;i++) TestStatus_[i]=-1;
-}
+//DAQMB::DAQMB(Crate * theCrate,int newslot,  int newcfeb):
+//VMEModule(theCrate, newslot)
+//{
+// MyOutput_ = &std::cout ;
+//cfebs_.push_back(CFEB(newcfeb));
+//std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl; 
+//for(int i=0;i<20;i++) TestStatus_[i]=-1;
+//}
 
-DAQMB::DAQMB(Crate * theCrate,int newslot, const std::vector<CFEB> & cfebs):
-  VMEModule(theCrate, newslot),
-  cfebs_(cfebs)
-{
-  MyOutput_ = &std::cout ;
-  std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl; 
-  for(int i=0;i<20;i++) TestStatus_[i]=-1;
-}
+//DAQMB::DAQMB(Crate * theCrate,int newslot, const std::vector<CFEB> & cfebs):
+//VMEModule(theCrate, newslot),
+//cfebs_(cfebs)
+//{
+// MyOutput_ = &std::cout ;
+//std::cout << "DMB: crate=" << this->crate() << " slot=" << this->slot() << std::endl; 
+//for(int i=0;i<20;i++) TestStatus_[i]=-1;
+//}
 
 
 DAQMB::~DAQMB() {

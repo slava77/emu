@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.25 2006/11/10 12:43:07 rakness Exp $
+// $Id: TMB.cc,v 3.26 2006/11/15 16:01:36 mey Exp $
 // $Log: TMB.cc,v $
+// Revision 3.26  2006/11/15 16:01:36  mey
+// Cleaning up code
+//
 // Revision 3.25  2006/11/10 12:43:07  rakness
 // include TMB/ALCT configuration and state machine prints+checks to hyperDAQ
 //
@@ -314,13 +317,15 @@
 #include "TMB_constants.h"
 #include "ALCTController.h"
 #include "RAT.h"
+#include "Chamber.h"
 
 // the VME addresses here are defined in
 // http://www-collider.physics.ucla.edu/cms/trigger/tmb2001/tmb2001_spec.pdf
 
-TMB::TMB(Crate * theCrate, int slot) :
+TMB::TMB(Crate * theCrate, Chamber * theChamber, int slot) :
   VMEModule(theCrate, slot),
   EMUjtag(this),
+  csc_(theChamber),
   ucla_ldev(1),
   cfeb0delay_(7),
   cfeb1delay_(7),
@@ -369,6 +374,8 @@ TMB::TMB(Crate * theCrate, int slot) :
   //jtag_address = -1;
   //jtag_chain = -1;
   //step_mode = false;
+  //
+  theChamber->SetTMB(this);
   //
   std::cout << "Inside TMB" << std::endl;
   //

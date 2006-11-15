@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 3.3 2006/11/13 16:25:31 mey Exp $
+// $Id: Crate.h,v 3.4 2006/11/15 16:01:36 mey Exp $
 // $Log: Crate.h,v $
+// Revision 3.4  2006/11/15 16:01:36  mey
+// Cleaning up code
+//
 // Revision 3.3  2006/11/13 16:25:31  mey
 // Update
 //
@@ -57,9 +60,9 @@ class Crate {
 public:
   Crate(int, VMEController *, EmuSystem *);
   ~Crate();
-
-  int number() const {return theNumber;}
-
+  
+  int CrateID() const {return theCrateID;}
+  
   void enable();
   void disable();
   void configure();
@@ -93,8 +96,8 @@ private:
     }
     return 0;
   }
-
-  int theNumber;
+  
+  int theCrateID;
   std::string label_;
   /// indexed by slot 
   std::vector<VMEModule *> theModules;

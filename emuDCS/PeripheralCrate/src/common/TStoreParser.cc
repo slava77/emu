@@ -6,10 +6,12 @@
 #include <iomanip>
 #include <unistd.h> 
 #include <string>
-#include <map>
+#include <set>
 //
 #include "TStoreParser.h"
+#include "TStorePeriphParser.h"
 #include "Chamber.h"
+#include "EmuSystem.h"
 //
 using namespace std;
 //
@@ -28,57 +30,37 @@ TStoreParser::TStoreParser(
 			   std::vector < std::vector <std::string > > afeb_table,
 			   std::vector < std::vector <std::string > > cfeb_table) {
   //
-  std::cout << "CSCs " << csc_table.size() << std::endl;
+  // Create EmuSystem
   //
-  std::vector<Chamber> CSCs;
+  EmuSystem * emuSystem = new EmuSystem();
   //
-  for(unsigned int i=0; i<csc_table.size(); i++) {
-    Chamber csc;
+  for(unsigned int crate=0; crate<periph_table.size(); crate++) {
     //
-    FindTMB(csc_table[i], tmb_table);
-    FindDMB(csc_table[i], dmb_table);
-    //
-    CSCs.push_back(csc);
-    //
-  }
-  //
-  }
-//
-void TStoreParser::FindTMB(std::vector <std::string> csc, std::vector < std::vector <std::string > > tmb_table){
-  //
-  std::string cscId = csc[3];
-  //
-  for( unsigned loop=0; loop<csc.size(); loop++) std::cout << " " << csc[loop];
-  //
-  for(unsigned int i=0; i<tmb_table.size(); i++){
-    //
-    if(tmb_table[i][tmb_table_CSCID_loc] == csc[csc_table_CSCID_loc] ) {
-      std::cout << "Found TMB!!!" << std::endl;
-      for( unsigned loop=0; loop<tmb_table[i].size(); loop++) std::cout << " " << tmb_table[i][loop];
-      std::cout << std::endl;
-    }
+    TStorePeriphParser(
+		       periph_table.at(crate),
+		       csc_table,
+		       tmb_table,
+		       dmb_table,
+		       alct_table,
+		       afeb_table,
+		       cfeb_table,
+		       emuSystem
+		       );
     //
   }
   //
 }
 //
-void TStoreParser::FindDMB(std::vector <std::string> csc, std::vector < std::vector <std::string > > dmb_table){
+void ParseTableTMB(Chamber* csc,std::vector<std::string>){
   //
-  std::string cscId = csc[3];
-  //
-  for( unsigned loop=0; loop<csc.size(); loop++) std::cout << " " << csc[loop];
-  //
-  for(unsigned int i=0; i<dmb_table.size(); i++){
-    //
-    if(dmb_table[i][dmb_table_CSCID_loc] == csc[csc_table_CSCID_loc] ) {
-      std::cout << "Found DMB!!!" << std::endl;
-      for( unsigned loop=0; loop<dmb_table[i].size(); loop++) std::cout << " " << dmb_table[i][loop];
-      std::cout << std::endl;
-    }
-    //
-  }
   //
 }
+//
+void ParseTableDMB(Chamber* csc,std::vector<std::string>){
+  //
+  //
+}
+//
 //
 TStoreParser::~TStoreParser(){
   //

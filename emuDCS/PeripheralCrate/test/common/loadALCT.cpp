@@ -22,7 +22,7 @@ int main(int argc,char **argv){
   dynatem->init(ipAddr,port);
   EmuSystem * emuSystem = new EmuSystem();
   Crate *crate = new Crate(crateId,dynatem,emuSystem);
-
+  Chamber * chamber = new Chamber();
   // create CCB
   int ccbSlot(13);
   CCB *ccb = new CCB(crate,ccbSlot);
@@ -32,7 +32,7 @@ int main(int argc,char **argv){
   // create TMB & ALCT
   int tmbSlot(18);
   string chamberType("ME13");
-  TMB *tmb = new TMB(crate,tmbSlot);
+  TMB *tmb = new TMB(crate,chamber,tmbSlot);
   //
   cout << "Read Register" << endl;
   tmb->ReadRegister(0x4);  

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.h,v 3.1 2006/08/17 15:02:31 mey Exp $
+// $Id: TMBParser.h,v 3.2 2006/11/15 16:01:36 mey Exp $
 // $Log: TMBParser.h,v $
+// Revision 3.2  2006/11/15 16:01:36  mey
+// Cleaning up code
+//
 // Revision 3.1  2006/08/17 15:02:31  mey
 // Modified Parser to accept globals
 //
@@ -34,8 +37,8 @@ class TMBParser
 public:
   TMBParser(){}
   ~TMBParser();
-  explicit TMBParser(xercesc::DOMNode * , Crate *, xercesc::DOMNode * );
-  
+  explicit TMBParser(xercesc::DOMNode * , Crate *, Chamber *, xercesc::DOMNode * );
+  //
   /// returns the last tmb parsed
   TMB * tmb() const {return tmb_;}
 
