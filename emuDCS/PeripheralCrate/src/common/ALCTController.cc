@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.27 2006/11/10 12:43:07 rakness Exp $
+// $Id: ALCTController.cc,v 3.28 2006/11/15 10:05:49 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.28  2006/11/15 10:05:49  rakness
+// fix/document testpulse DAC setting routine
+//
 // Revision 3.27  2006/11/10 12:43:07  rakness
 // include TMB/ALCT configuration and state machine prints+checks to hyperDAQ
 //
@@ -953,11 +956,25 @@ void ALCTController::WriteTestpulseAmplitude_() {
   //
   int dac[RegSizeAlctSlowFpga_WRT_TESTPULSE_DAC] = {};
   //
+  // 14 November 2006:  looking at the AFEB testpulse response in 904 and
+  // comparing with the FAST site results documented in, e.g.,
+  // http://www-hep.phys.cmu.edu/cms/TALKS/teren_01_03/emu_jan_03_teren.html
+  // has revealed that:
+  //
+  // a) this JTAG operation needs 9 bits to shift in the 8-bit DAC value 
+  // b) the 9th bit which is shifted in is dummy
+  //
+  // Since the DAC requires MSB first, the DAC value which we want
+  // to set is shifted to the left by 1:
+  //
+  int dac_value_to_send = write_testpulse_amplitude_dacvalue_ << 1;
+  //
   //DAC's require MSB sent first....
-  int_to_bits(write_testpulse_amplitude_dacvalue_,
+  int_to_bits(dac_value_to_send,
 	      RegSizeAlctSlowFpga_WRT_TESTPULSE_DAC,
 	      dac,
 	      MSBfirst);
+  //
   //  for (int i=0; i<RegSizeAlctSlowFpga_WRT_TESTPULSE_DAC; i++) 
   //    (*MyOutput_) << "dac[" << i << "] = " << dac[i] << std::endl;
   //
@@ -980,8 +997,8 @@ void ALCTController::PrintTestpulseAmplitude_() {
 }
 //
 void ALCTController::SetTestpulseAmplitude_(int dacvalue) {
+  //
   // 8-bit DAC controls amplitude of analog test pulse sent to AFEBs
-  //  Voltage = 2.5V * dacvalue/256
   //
   if (dacvalue > 255) {
     (*MyOutput_) << "ALCT: ERROR testpulse amplitude maximum = 255 " << std::endl;
