@@ -156,7 +156,7 @@ int main() {
 	      << std::endl;
     std::cout << " 93:TMB Raw hits dump          94:Print counters              95:Reset counters"
 	      << std::endl;
-    std::cout << " 96:Who triggered TMB?         97:Dump all TMB registers"
+    std::cout << " 96:Who triggered TMB?         97:Dump all TMB registers      98:Clock out TMB user prom"
 	      << std::endl;
     //
     std::cout << std::endl;
@@ -448,6 +448,18 @@ int main() {
     case 97:
       thisTMB->DumpAllRegisters();
       break;
+    case 98:
+      layer = ChipLocationTmbUserPromTMB;
+      std::cout << "number of addresses to clock out " << std::endl;
+      std::cin >> value;
+      thisTMB->ClockOutPromProgram(layer,value);
+      for (int address = 0; address<value; address++) {
+	std::cout << "User prom " << layer
+		  << ", address " << address
+		  << "-> data = " << thisTMB->GetClockedOutPromImage(address) 
+		  << std::endl;
+      }
+      break;
       //
     case 100:
       alct->configure();
@@ -662,12 +674,12 @@ int main() {
       //
       ::sleep(5);
       //
-      thisTMB->SetXsvfFilename("tmb17mar2006_noverify");
+      thisTMB->SetXsvfFilename("tmb10162006");
       thisTMB->ProgramTMBProms();
       //
       ::sleep(5);
       //
-      testTMB.reset();
+      //      testTMB.reset();
       //
       thisTMB->ClearXsvfFilename();
       //
