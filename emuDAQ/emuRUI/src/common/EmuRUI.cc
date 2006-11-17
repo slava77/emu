@@ -982,6 +982,10 @@ vector< pair<string, xdata::Serializable*> > EmuRUI::initAndGetStdMonitorParams(
     nEventsRead_ = 0;
     params.push_back(pair<string,xdata::Serializable *>
 		     ("nEventsRead", &nEventsRead_));
+    persistentDDUError_ = "";
+    params.push_back(pair<string,xdata::Serializable *>
+		     ("persistentDDUError", &persistentDDUError_));
+    
 
     for( unsigned int iClient=0; iClient<maxClients_; ++iClient ){ 
       creditsHeld_.push_back(0);
@@ -1499,7 +1503,7 @@ throw (toolbox::fsm::exception::Exception)
 
     nEventsRead_ = 0;
 
-    nDevicesWithBadData_ = 0;
+    persistentDDUError_ = "";
 
     destroyDeviceReader();
     createDeviceReader();
@@ -2549,7 +2553,6 @@ int EmuRUI::continueConstructionOfSuperFrag()
 	  if ( dataLengthWithoutPadding >= 0 ){
 	    dataLength = dataLengthWithoutPadding;
 	    badData    = interestingDDUErrorBitPattern(data,dataLength);
-	    if ( badData ) nDevicesWithBadData_++;
 	  }
 	}
       }
@@ -2896,7 +2899,7 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
 
   // Check for interesting error bit patterns (defined by J. Gilmore):
   // 1) Critical Error = Sync Reset or Hard Reset required
-  //        DDU Trail bits 5 OR 6   -OR-
+  //        TTS out of sync or in error   -OR-
   //        DDU Trailer-1 bit 47
   //    ----> Persistent, these bits stay set for all events until
   //         RESET occurs.
@@ -2905,7 +2908,7 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
   //    ----> Only set for the single event with a detected error.
   // 3) Warning = Buffer Near Full (no reset)
   //        DDU Trailer-1 bit 31  -OR-
-  //        DDU Trail bit 4
+  //        TTS overflow warning
   //    ----> Remains set until the condition abates.
   // 4) Special Warning (Rare & Interesting occurence, no reset)
   //        DDU Trailer-1 bit 45
@@ -2917,16 +2920,27 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
   unsigned short *trailerShortWord =
     reinterpret_cast<unsigned short*>( data + dataLength - DDUTrailerLength );
   
-  // 1)
-  if ( trailerShortWord[8] & 0x0060 ||     // DDU Trail bits 5 OR 6
-       trailerShortWord[6] & 0x8000    ) { // DDU Trailer-1 bit 47
-    LOG4CPLUS_ERROR(logger_, 
-		    "Critical DDU error in "
-		    << deviceReader_->getName()
-		    << ". Sync Reset or Hard Reset required. (bit T:5|T:6|T-1:47) Event "
-		    << deviceReader_->eventNumber()
-		    << " (" << nEventsRead_ << " read)");
+  // TTS/FMM status defined in C.D.F.
+  const short FED_Overflow  = 0x0010;
+  const short FED_OutOfSync = 0x0020;
+  const short FED_Error     = 0x00C0;
 
+  // 1)
+  if ( trailerShortWord[8] & FED_OutOfSync ||
+       trailerShortWord[8] & FED_Error     ||
+       trailerShortWord[6] & 0x8000           ) { // DDU Trailer-1 bit 47
+    if ( persistentDDUError_.toString().size() == 0 ){
+      stringstream ss;
+      ss << "DDU error: Sync or Hard Reset required. First in event "
+	 << deviceReader_->eventNumber()
+	 << " (after " << nEventsRead_+1 << " read)";
+      persistentDDUError_ = ss.str();
+    }
+    LOG4CPLUS_ERROR(logger_, "Critical DDU error in "
+       << deviceReader_->getName() << "[" << hardwareMnemonic_.toString() << "]"
+       << ". Sync Reset or Hard Reset required. (bit T:5|T:6&7|T-1:47) Event "
+       << deviceReader_->eventNumber()
+       << " (" << nEventsRead_+1 << " read)");
     foundError = true;
   }
   // 2)
@@ -2940,8 +2954,8 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
     foundError = true;
   }
   // 3)
-  if ( trailerShortWord[8] & 0x0001 ||      // DDU Trail bit 4
-       trailerShortWord[5] & 0x8000    ) {  // DDU Trailer-1 bit 31
+  if ( trailerShortWord[8] & FED_Overflow ||
+       trailerShortWord[5] & 0x8000          ) {  // DDU Trailer-1 bit 31
     LOG4CPLUS_WARN(logger_,
 		   "DDU buffer near Full in "
 		   << deviceReader_->getName() 
