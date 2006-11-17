@@ -1331,44 +1331,32 @@ void EmuDAQManager::getRunInfoFromTA( string* runnum, string* maxevents, string*
 	LOG4CPLUS_WARN(logger_,"The embarassment of riches: " << taDescriptors_.size() <<
 		       " TA instances found. Will use TA0.");
       }
+
+      map <string,string> namesAndTypes;
+      namesAndTypes["runNumber"     ] = "unsignedLong";
+      namesAndTypes["maxNumTriggers"] = "integer";
+      namesAndTypes["runStartTime"  ] = "string";
+      namesAndTypes["runStopTime"   ] = "string";
       try
 	{
-	  *runnum = getScalarParam(taDescriptors_[0],"runNumber","unsignedLong");
-	}
-      catch(xcept::Exception e)
-	{
-	  LOG4CPLUS_ERROR(logger_,"Failed to get run number from TA0: " << 
-			  xcept::stdformat_exception_history(e) );
-	}
-      try
-	{
-	  *maxevents = getScalarParam(taDescriptors_[0],"maxNumTriggers","integer");
-	}
-      catch(xcept::Exception e)
-	{
-	  LOG4CPLUS_ERROR(logger_,"Failed to get maximum number of events from TA0: " << 
-			  xcept::stdformat_exception_history(e) );
-	}
-      try
-	{
-	  *starttime = getScalarParam(taDescriptors_[0],"runStartTime","string");
+	  map <string,string> namesAndValues = getScalarParams(taDescriptors_[0],namesAndTypes);
+	  *runnum    = namesAndValues["runNumber"     ];
+	  *maxevents = namesAndValues["maxNumTriggers"];
+	  *starttime = namesAndValues["runStartTime"  ];
+	  *stoptime  = namesAndValues["runStopTime"   ];
 	  *starttime = reformatTime( *starttime );
+	  *stoptime  = reformatTime( *stoptime  );
 	}
       catch(xcept::Exception e)
 	{
-	  LOG4CPLUS_ERROR(logger_,"Failed to get time of run start from TA0: " << 
+	  LOG4CPLUS_ERROR(logger_,"Failed to get run info from TA0: " << 
 			  xcept::stdformat_exception_history(e) );
 	}
-      try
+      catch(...)
 	{
-	  *stoptime = getScalarParam(taDescriptors_[0],"runStopTime","string");
-	  *stoptime = reformatTime( *stoptime );
+	  LOG4CPLUS_ERROR(logger_,"Failed to get run info from TA0.");
 	}
-      catch(xcept::Exception e)
-	{
-	  LOG4CPLUS_ERROR(logger_,"Failed to get time of stopping the run from TA0: " << 
-			  xcept::stdformat_exception_history(e) );
-	}
+
     }
     else{
       LOG4CPLUS_ERROR(logger_,"No TA found.");
@@ -1401,15 +1389,39 @@ void EmuDAQManager::getTriggerSources()
       LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
 		      appDescriptors.size() << 
 		      " TTCciControl instances found. Trying first one.");
-    TTCci_ClockSource_   = getScalarParam(appDescriptors[0],"ClockSource"  ,"string");
-    TTCci_OrbitSource_   = getScalarParam(appDescriptors[0],"OrbitSource"  ,"string");
-    TTCci_TriggerSource_ = getScalarParam(appDescriptors[0],"TriggerSource","string");
-    TTCci_BGOSource_     = getScalarParam(appDescriptors[0],"BGOSource"    ,"string");
-    LOG4CPLUS_INFO(logger_, "Got trigger sources  from TTCciControl:" 
-		   << " ClockSource: "   << TTCci_ClockSource_.toString()
-		   << " OrbitSource: "   << TTCci_OrbitSource_.toString()
-		   << " TriggerSource: " << TTCci_TriggerSource_.toString()
-		   << " BGOSource: "     << TTCci_BGOSource_.toString() );
+//     TTCci_ClockSource_   = getScalarParam(appDescriptors[0],"ClockSource"  ,"string");
+//     TTCci_OrbitSource_   = getScalarParam(appDescriptors[0],"OrbitSource"  ,"string");
+//     TTCci_TriggerSource_ = getScalarParam(appDescriptors[0],"TriggerSource","string");
+//     TTCci_BGOSource_     = getScalarParam(appDescriptors[0],"BGOSource"    ,"string");
+    map <string,string> namesAndTypes;
+    namesAndTypes["ClockSource"  ] = "string";
+    namesAndTypes["OrbitSource"  ] = "string";
+    namesAndTypes["TriggerSource"] = "string";
+    namesAndTypes["BGOSource"    ] = "string";
+    try
+      {
+	map <string,string> namesAndValues = getScalarParams(appDescriptors[0],namesAndTypes);
+	TTCci_ClockSource_   = namesAndValues["ClockSource"  ];
+	TTCci_OrbitSource_   = namesAndValues["OrbitSource"  ];
+	TTCci_TriggerSource_ = namesAndValues["TriggerSource"];
+	TTCci_BGOSource_     = namesAndValues["BGOSource"    ];
+	
+	LOG4CPLUS_INFO(logger_, "Got trigger sources  from TTCciControl:" 
+		       << " ClockSource: "   << TTCci_ClockSource_.toString()
+		       << " OrbitSource: "   << TTCci_OrbitSource_.toString()
+		       << " TriggerSource: " << TTCci_TriggerSource_.toString()
+		       << " BGOSource: "     << TTCci_BGOSource_.toString() );
+      }
+      catch(xcept::Exception e)
+	{
+	  LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from TTCciControl: " << 
+			  xcept::stdformat_exception_history(e) );
+	}
+      catch(...)
+	{
+	  LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from TTCciControl."); 
+	}
+    
   }
   else{
     LOG4CPLUS_ERROR(logger_, "Did not find TTCciControl. ==> Trigger sources are unknown.");
@@ -2188,7 +2200,6 @@ void EmuDAQManager::configureDAQ()
       }
       // move to enableAction START
 //       string runNumber    = runNumber_.toString();
-//       string maxNumEvents = maxNumberOfEvents_.toString();
 //       try
 // 	{
 // 	  setScalarParam(taDescriptors_[0],"runNumber","unsignedLong",runNumber);
@@ -2209,17 +2220,18 @@ void EmuDAQManager::configureDAQ()
 // 	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
 // 			string("Failed to set isBookedRunNumber to ") + string(isBookedRunNumber_?"true.":"false."), e);
 // 	}
-//       try
-// 	{
-// 	  setScalarParam(taDescriptors_[0],"maxNumTriggers","integer",maxNumEvents);
-// 	  LOG4CPLUS_INFO(logger_,"Set maximum number of events to " + maxNumEvents );
-// 	}
-//       catch(xcept::Exception e)
-// 	{
-// 	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
-// 			"Failed to set maximum number of events to "  + maxNumEvents, e);
-// 	}
       // move to enableAction END
+      string maxNumEvents = maxNumberOfEvents_.toString();
+      try
+	{
+	  setScalarParam(taDescriptors_[0],"maxNumTriggers","integer",maxNumEvents);
+	  LOG4CPLUS_INFO(logger_,"Set maximum number of events to " + maxNumEvents );
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Failed to set maximum number of events to "  + maxNumEvents, e);
+	}
         try
         {
             configureTrigger();
@@ -3376,6 +3388,52 @@ throw (emuDAQManager::exception::Exception)
 }
 
 
+map<string,string> EmuDAQManager::getScalarParams
+(
+    xdaq::ApplicationDescriptor* appDescriptor,
+    const map<string,string>     paramNamesAndTypes
+)
+throw (emuDAQManager::exception::Exception)
+{
+    string appClass = appDescriptor->getClassName();
+    map<string,string> paramNamesAndValues;
+
+    try
+    {
+        xoap::MessageReference msg =
+            createParametersGetSOAPMsg(appClass, paramNamesAndTypes);
+
+        xoap::MessageReference reply =
+            appContext_->postSOAP(msg, appDescriptor);
+
+        // Check if the reply indicates a fault occurred
+        xoap::SOAPBody replyBody =
+            reply->getSOAPPart().getEnvelope().getBody();
+
+        if(replyBody.hasFault())
+        {
+            stringstream oss;
+            string s;
+
+            oss << "Received fault reply: ";
+            oss << replyBody.getFault().getFaultString();
+            s = oss.str();
+
+            XCEPT_RAISE(emuDAQManager::exception::Exception, s);
+        }
+
+        paramNamesAndValues = extractScalarParameterValuesFromSoapMsg(reply, paramNamesAndTypes);
+    }
+    catch(xcept::Exception e)
+    {
+        string s = "Failed to get scalar parameter from application";
+
+        XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
+    }
+
+    return paramNamesAndValues;
+}
+
 string EmuDAQManager::getScalarParam
 (
     xdaq::ApplicationDescriptor* appDescriptor,
@@ -3469,6 +3527,70 @@ throw (emuDAQManager::exception::Exception)
     }
 }
 
+
+xoap::MessageReference EmuDAQManager::createParametersGetSOAPMsg
+(
+    const string             appClass,
+    const map<string,string> paramNamesAndTypes
+)
+throw (emuDAQManager::exception::Exception)
+{
+    string appNamespace = "urn:xdaq-application:" + appClass;
+
+    string problemParams = "";
+    for ( map<string,string>::const_iterator pnt = paramNamesAndTypes.begin(); 
+	  pnt != paramNamesAndTypes.end(); ++pnt ) problemParams += pnt->first + "(" + pnt->second + ") ";
+
+    try
+    {
+        xoap::MessageReference message = xoap::createMessage();
+        xoap::SOAPPart soapPart = message->getSOAPPart();
+        xoap::SOAPEnvelope envelope = soapPart.getEnvelope();
+        envelope.addNamespaceDeclaration("xsi",
+            "http://www.w3.org/2001/XMLSchema-instance");
+        envelope.addNamespaceDeclaration("xsd",
+            "http://www.w3.org/2001/XMLSchema");
+        envelope.addNamespaceDeclaration("soapenc",
+            "http://schemas.xmlsoap.org/soap/encoding/");
+        xoap::SOAPBody body = envelope.getBody();
+        xoap::SOAPName cmdName =
+            envelope.createName("ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
+        xoap::SOAPBodyElement cmdElement =
+            body.addBodyElement(cmdName);
+        xoap::SOAPName propertiesName =
+            envelope.createName("properties", appClass, appNamespace);
+        xoap::SOAPElement propertiesElement =
+            cmdElement.addChildElement(propertiesName);
+        xoap::SOAPName propertiesTypeName =
+            envelope.createName("type", "xsi",
+             "http://www.w3.org/2001/XMLSchema-instance");
+        propertiesElement.addAttribute(propertiesTypeName, "soapenc:Struct");
+
+	for ( map<string,string>::const_iterator pnt = paramNamesAndTypes.begin(); 
+	      pnt != paramNamesAndTypes.end(); ++pnt ){
+	  problemParams = pnt->first + "(" + pnt->second + ") ";
+
+	  xoap::SOAPName propertyName =
+            envelope.createName(pnt->first, appClass, appNamespace);
+	  xoap::SOAPElement propertyElement =
+            propertiesElement.addChildElement(propertyName);
+	  xoap::SOAPName propertyTypeName =
+	    envelope.createName("type", "xsi",
+				"http://www.w3.org/2001/XMLSchema-instance");
+
+	  propertyElement.addAttribute(propertyTypeName, "xsd:" + pnt->second);
+
+	}
+
+        return message;
+    }
+    catch(xcept::Exception e)
+    {
+        XCEPT_RETHROW(emuDAQManager::exception::Exception,
+            "Failed to create ParameterGet SOAP message for parameter " +
+            problemParams, e);
+    }
+}
 
 xoap::MessageReference EmuDAQManager::createParameterGetSOAPMsg
 (
@@ -3585,6 +3707,57 @@ throw (emuDAQManager::exception::Exception)
     }
 }
 
+
+map<string,string> EmuDAQManager::extractScalarParameterValuesFromSoapMsg
+(
+    xoap::MessageReference   msg,
+    const map<string,string> paramNamesAndTypes
+)
+throw (emuDAQManager::exception::Exception)
+{
+    map<string,string> paramNamesAndValues;
+
+    string paramName = "";
+    for ( map<string,string>::const_iterator pnt = paramNamesAndTypes.begin(); 
+	  pnt != paramNamesAndTypes.end(); ++pnt ) paramName += pnt->first + " ";
+
+    try
+    {
+        xoap::SOAPPart part = msg->getSOAPPart();
+        xoap::SOAPEnvelope env = part.getEnvelope();
+        xoap::SOAPBody body = env.getBody();
+        DOMNode *bodyNode = body.getDOMNode();
+        DOMNodeList *bodyList = bodyNode->getChildNodes();
+        DOMNode *responseNode = findNode(bodyList, "ParameterGetResponse");
+        DOMNodeList *responseList = responseNode->getChildNodes();
+        DOMNode *propertiesNode = findNode(responseList, "properties");
+        DOMNodeList *propertiesList = propertiesNode->getChildNodes();
+	
+	for ( map<string,string>::const_iterator pnt = paramNamesAndTypes.begin(); 
+	      pnt != paramNamesAndTypes.end(); ++pnt ){
+	  paramName = pnt->first;
+	  DOMNode *paramNode = findNode(propertiesList, pnt->first);
+	  DOMNodeList *paramList = paramNode->getChildNodes();
+	  DOMNode *valueNode = paramList->item(0);
+	  if ( valueNode )
+	    paramNamesAndValues[paramName] = xoap::XMLCh2String(valueNode->getNodeValue());
+	  else
+	    paramNamesAndValues[paramName] = "";
+	}
+
+        return paramNamesAndValues;
+    }
+    catch(xcept::Exception e)
+    {
+        XCEPT_RETHROW(emuDAQManager::exception::Exception,
+            "Parameter " + paramName + " not found", e);
+    }
+    catch(...)
+    {
+        XCEPT_RAISE(emuDAQManager::exception::Exception,
+            "Parameter " + paramName + " not found");
+    }
+}
 
 string EmuDAQManager::extractScalarParameterValueFromSoapMsg
 (
@@ -3822,18 +3995,25 @@ vector< vector<string> > EmuDAQManager::getRUIEventCounts()
     string       count;
     stringstream name;
     string       href;
+    string       dduError = "";
     try
-    {
-      name << "EmuRUI" << setfill('0') << setw(2) << (*rui)->getInstance();
-      if ( hardwareMnemonics_.find( (*rui)->getInstance() ) != hardwareMnemonics_.end() )
+      {
+	name << "EmuRUI" << setfill('0') << setw(2) << (*rui)->getInstance();
+	if ( hardwareMnemonics_.find( (*rui)->getInstance() ) != hardwareMnemonics_.end() )
 	name << "[" << hardwareMnemonics_[(*rui)->getInstance()] << "]";
-      count = getScalarParam( (*rui), "nEventsRead", "unsignedLong" );
-      href  = getHref( *rui );
-    }
+	href  = getHref( *rui );
+	map <string,string> namesAndTypes;
+	namesAndTypes["nEventsRead"       ] = "unsignedLong";
+	namesAndTypes["persistentDDUError"] = "string";
+	map <string,string> namesAndValues = getScalarParams((*rui), namesAndTypes);
+	count    = namesAndValues["nEventsRead"       ];
+	dduError = namesAndValues["persistentDDUError"];
+      }
     catch(xcept::Exception e)
     {
-      href  = getHref( appDescriptor_ ) + "/control"; // self
-      count = "UNKNOWN";
+      href     = getHref( appDescriptor_ ) + "/control"; // self
+      count    = "UNKNOWN";
+      dduError = "";
       LOG4CPLUS_ERROR(logger_, "Failed to get event count of " << name.str()
 		      << " : " << xcept::stdformat_exception_history(e));
     }
@@ -3841,6 +4021,7 @@ vector< vector<string> > EmuDAQManager::getRUIEventCounts()
     sv.push_back( href       );
     sv.push_back( name.str() );
     sv.push_back( count      );
+    sv.push_back( dduError   );
     ec.push_back( sv );
   }
 
@@ -3916,13 +4097,43 @@ void EmuDAQManager::printEventCountsTable
     for(int row=0; row<nbRows; row++)
     {
         *out << "<tr>"                                                 << endl;
-        *out << "  <td align=\"left\">"                                               << endl;
-	*out << "      <a href=\"" <<counts[row][0] << "\" target=\"_blank\">"        << endl;
+        *out << "  <td align=\"left\">"                                << endl;
+	*out << "      <a href=\"" <<counts[row][0] 
+	     <<       "\" target=\"_blank\">"                          << endl;
         *out <<             counts[row][1]                             << endl;
 	*out << "      </a>"                                           << endl;
         *out << "  </td>"                                              << endl;
-        *out << "  <td align=\"right\">"                                               << endl;
-        *out << "    " << counts[row][2]                               << endl;
+        *out << "  <td align=\"right\">"                               << endl;
+	if ( counts[row].size() > 3 ){ // have element for DDU error
+	  if ( counts[row][3].size() > 0 ){ // DDU in error
+// 	    string href= getHref( appDescriptor_ ) + "/control"; // self
+// 	    if ( appGroup_->getApplicationDescriptor("EmuFCrateHyperDAQ",0) )
+// 	      href = getHref( appGroup_->getApplicationDescriptor("EmuFCrateHyperDAQ",0) );
+	    string href   = getHref( appDescriptor_ ) + "/control"; // self
+	    string target = "_self";
+	    try{
+	      href   = getHref( appGroup_->getApplicationDescriptor("EmuFCrateHyperDAQ",0) );
+	      target = "_blank";
+	    }
+	    catch(...){
+	      href = getHref( appDescriptor_ ) + "/control"; // self
+	      target = "_self";
+	    }
+	    *out << "      <a href=\"" << href << "\""
+		 <<         " title=\"" << counts[row][3] << "\""
+		 <<         " style=\"color:#ffffff;"
+		 <<                  "background-color:#000000;"
+		 <<                  "text-decoration:underline blink\""
+		 <<         " target=\"" << target << "\">"
+		 <<           counts[row][2] << "</a>"                 << endl;
+	  }
+	  else{ // DDU OK
+	    *out << "    " << counts[row][2]                           << endl;
+	  }
+	}
+	else{ // no element for DDU error
+	  *out << "    " << counts[row][2]                             << endl;
+	}
         *out << "  </td>"                                              << endl;
         *out << "</tr>"                                                << endl;
     }
@@ -4281,8 +4492,17 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
 	attachments.push_back( f->toString() );
       }
       postToELog( subjectToELog.str(), htmlMessageToELog.str(), &attachments );
+
+      // Just in case submission to e-log failed...
+      cout << 
+	"\n========================================================================\n" <<
+	"If automatic posting to eLog address " << eLogURL_.toString() << 
+	" failed, post this manually:\nSubject: " << subjectToELog.str() << 
+	"\nBody:\n" << htmlMessageToELog.str() <<
+	"\n========================================================================\n";
     }
 }
+
 
 void EmuDAQManager::postToELog( string subject, string body, vector<string> *attachments ){
   // Post to eLog:
