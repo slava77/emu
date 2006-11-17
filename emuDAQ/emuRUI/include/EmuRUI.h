@@ -144,6 +144,7 @@ private:
   void moveToFailedState();
 
   xdata::UnsignedLong                 nEventsRead_;
+  xdata::String                       persistentDDUError_;
   EmuFileWriter                      *fileWriter_;
   EmuFileWriter                      *badEventsFileWriter_;
   int                                 nDevicesWithBadData_;
