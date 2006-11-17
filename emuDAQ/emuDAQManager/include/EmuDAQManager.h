@@ -534,6 +534,13 @@ private:
     )
     throw (emuDAQManager::exception::Exception);
 
+  map<string,string> getScalarParams
+  (
+   xdaq::ApplicationDescriptor* appDescriptor,
+   const map<string,string>     paramNamesAndTypes
+   )
+    throw (emuDAQManager::exception::Exception);
+    
     /**
      * Sets the specified parameter of the specified application to the
      * specified value.
@@ -556,6 +563,13 @@ private:
         const string paramName,
         const string paramType
     )
+    throw (emuDAQManager::exception::Exception);
+
+  xoap::MessageReference createParametersGetSOAPMsg
+  (
+   const string             appClass,
+   const map<string,string> paramNamesAndTypes
+   )
     throw (emuDAQManager::exception::Exception);
 
     /**
@@ -581,6 +595,13 @@ private:
     )
     throw (emuDAQManager::exception::Exception);
 
+  map<string,string> extractScalarParameterValuesFromSoapMsg
+  (
+   xoap::MessageReference   msg,
+   const map<string,string> paramNamesAndTypes
+   )
+    throw (emuDAQManager::exception::Exception);
+  
     /**
      * Retruns the node with the specified local name from the specified list
      * of node.  An exception is thrown if the node is not found.
