@@ -58,13 +58,16 @@ Sources=\
 	EMUjtag.cc \
 	EmuSystem.cc \
 	TStoreParser.cc \
-	TStorePeriphParser.cc \
 	TStoreVMEParser.cc \
 	TStoreCCBParser.cc \
 	TStoreMPCParser.cc \
 	TStoreTMBParser.cc \
 	TStoreDMBParser.cc \
 	TStoreCSCParser.cc \
+	TStoreALCTParser.cc \
+	TStoreAFEBParser.cc \
+	TStoreCFEBParser.cc \
+	TStorePeriphParser.cc \
 	EmuApplication.cc \
 	EmuModule.cc
 

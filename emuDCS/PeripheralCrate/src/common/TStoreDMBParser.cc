@@ -9,8 +9,8 @@
 #include <sstream>
 //
 #include "TStoreDMBParser.h"
+#include "TStoreCFEBParser.h"
 #include "TStore_constants.h"
-#include "Chamber.h"
 //
 TStoreDMBParser::TStoreDMBParser(
 				 std::vector <std::string > dmb_table,
@@ -99,6 +99,29 @@ TStoreDMBParser::TStoreDMBParser(
   input.str(dmb_table[XLATENCY_loc]);
   input >> delay; 
   dmb_->SetxLatency(delay);
+  //
+  std::vector<std::vector<std::string> > myCfebs = FindCFEBs(dmb_table, cfeb_table);
+  if(myCfebs.size()) TStoreCFEBParser(myCfebs, theCrate, theChamber, dmb_);
+  //
+}
+//
+std::vector<std::vector<std::string> > TStoreDMBParser::FindCFEBs(std::vector <std::string> dmb , std::vector < std::vector <std::string > > cfeb_table){
+  //
+  std::vector<std::vector<std::string> > push;
+  //
+  int row=0;
+  //
+  for(unsigned int i=0; i<cfeb_table.size(); i++){
+    //
+    if(cfeb_table[i][CFEB_CSCID_loc] == dmb[DMB_CSCID_loc] ) {
+      push.push_back(std::vector<std::string>());
+      push[row] = cfeb_table[i];
+      row++;
+    }
+    //
+  }
+  //
+  return push;
   //
 }
 //
