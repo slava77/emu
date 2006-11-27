@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.15 2006/11/13 16:25:31 mey Exp $
+// $Id: ALCTController.h,v 3.16 2006/11/27 12:59:42 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.16  2006/11/27 12:59:42  rakness
+// move some registers to public
+//
 // Revision 3.15  2006/11/13 16:25:31  mey
 // Update
 //
@@ -424,6 +427,45 @@ public:
   void WriteCollisionPatternMask();                    //writes Write values to ALCT
   void ReadCollisionPatternMask();                     //fills Read values with values read from ALCT
   //
+  /////////////////////////////////////////////////
+  //STANDBY REGISTER - enable power for each AFEB
+  /////////////////////////////////////////////////
+  void SetStandbyRegister_(int AFEB,                   // set Write Values -> AFEB = [0 - GetNumberOfAfebs()-1]
+			   int powerswitch);           //                     powerswitch = OFF or ON
+  int  GetStandbyRegister_(int AFEB);                  // get Read Values -> AFEB = [0 - GetNumberOfAfebs()-1]
+  //
+  void SetPowerUpStandbyRegister_();		      // set Write values to data-taking defaults          
+  void PrintStandbyRegister_();			      // print out Read values				       
+  //
+  //
+  void WriteStandbyRegister_();               // writes Write values to ALCT
+  void ReadStandbyRegister_();		      // fills Read values with values read from ALCT	 
+  //
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+  // TESTPULSE TRIGGER REGISTER - specify which signal will fire the testpulse
+  //////////////////////////////////////////////////////////////////////////////
+  void FillTriggerRegister_();
+  void DecodeTriggerRegister_();
+  //
+  void SetPulseTriggerSource_(int source);      // set Write value -> source = [OFF, ADB_SYNC, ADB_ASYNC, LEMO, SELF]
+  int  GetPulseTriggerSource_();                // get Read value -> return value -> 0  = OFF
+  //                                                                                 3  = SELF
+  //                                                                                 4  = ADB_SYNC
+  //                                                                                 8  = ADB_ASYNC
+  //                                                                                 12 = LEMO
+  void SetInvertPulse_(int mask);               //set Write value -> mask = [ON, OFF] 
+  int  GetInvertPulse_();                       //get Read value -> return value -> 0 = not inverted
+  //                                                                                1 = inverted 
+  //
+  void SetPowerUpTriggerRegister_();	       // sets Write values to data-taking defaults
+  void PrintTriggerRegister_();                // print out Read values				 
+  //
+  //
+  void WriteTriggerRegister_();                 //writes Write values to ALCT
+  void ReadTriggerRegister_();                  //fills Read values with values read from ALCT
+  //
+  //
   inline TMB * GetTMB(){ return tmb_;}
   //
 protected:
@@ -543,23 +585,8 @@ private:
   void WriteTestpulseStripMask_();            // writes Write values to ALCT
   void ReadTestpulseStripMask_();             // fills Read values with values read from ALCT	      
   //
-  /////////////////////////////////////////////////
-  //STANDBY REGISTER - enable power for each AFEB
-  /////////////////////////////////////////////////
   int write_standby_register_[RegSizeAlctSlowFpga_WRT_STANDBY_REG];
   int read_standby_register_[RegSizeAlctSlowFpga_RD_STANDBY_REG];
-  //
-  void SetStandbyRegister_(int AFEB,                   // set Write Values -> AFEB = [0 - GetNumberOfAfebs()-1]
-			   int powerswitch);           //                     powerswitch = OFF or ON
-  int  GetStandbyRegister_(int AFEB);                  // get Read Values -> AFEB = [0 - GetNumberOfAfebs()-1]
-  //
-  void SetPowerUpStandbyRegister_();		      // set Write values to data-taking defaults          
-  void PrintStandbyRegister_();			      // print out Read values				       
-  //
-  //
-  void WriteStandbyRegister_();               // writes Write values to ALCT
-  void ReadStandbyRegister_();		      // fills Read values with values read from ALCT	 
-  //
   //
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // vectors of bits for the fast-control registers, variables in these registers, and methods to translate between the two... //
@@ -643,36 +670,13 @@ private:
   int write_collision_pattern_mask_reg_[RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_672]; //make this as large as it could possibly be
   int read_collision_pattern_mask_reg_[RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_672];  //make this as large as it could possibly be
   //
-  ///////////////////////////////////////////////////////////////////////////////
-  // TESTPULSE TRIGGER REGISTER - specify which signal will fire the testpulse
-  //////////////////////////////////////////////////////////////////////////////
   int write_trigger_reg_[RegSizeAlctFastFpga_WRT_TRIG_REG];
   int write_pulse_trigger_source_;
   int write_invert_pulse_;
-  void FillTriggerRegister_();
   //
   int read_trigger_reg_[RegSizeAlctFastFpga_RD_TRIG_REG];
   int read_pulse_trigger_source_;
   int read_invert_pulse_;
-  void DecodeTriggerRegister_();
-  //
-  void SetPulseTriggerSource_(int source);      // set Write value -> source = [OFF, ADB_SYNC, ADB_ASYNC, LEMO, SELF]
-  int  GetPulseTriggerSource_();                // get Read value -> return value -> 0  = OFF
-  //                                                                                 3  = SELF
-  //                                                                                 4  = ADB_SYNC
-  //                                                                                 8  = ADB_ASYNC
-  //                                                                                 12 = LEMO
-  void SetInvertPulse_(int mask);               //set Write value -> mask = [ON, OFF] 
-  int  GetInvertPulse_();                       //get Read value -> return value -> 0 = not inverted
-  //                                                                                1 = inverted 
-  //
-  void SetPowerUpTriggerRegister_();	       // sets Write values to data-taking defaults
-  void PrintTriggerRegister_();                // print out Read values				 
-  //
-  //
-  void WriteTriggerRegister_();                 //writes Write values to ALCT
-  void ReadTriggerRegister_();                  //fills Read values with values read from ALCT
-  //
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
   // DELAY LINE CONTROL REGISTER - Control which group of chips has its delays and patterns written/read
   ///////////////////////////////////////////////////////////////////////////////////////////////////////
