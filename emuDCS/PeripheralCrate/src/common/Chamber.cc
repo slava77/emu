@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 3.1 2006/11/15 16:01:36 mey Exp $
+// $Id: Chamber.cc,v 3.2 2006/11/27 15:06:05 mey Exp $
 // $Log: Chamber.cc,v $
+// Revision 3.2  2006/11/27 15:06:05  mey
+// Made chamber(crate)
+//
 // Revision 3.1  2006/11/15 16:01:36  mey
 // Cleaning up code
 //
@@ -57,7 +60,10 @@
 //
 using namespace std;
 //
-Chamber::Chamber(){
+Chamber::Chamber(Crate * csc):
+  crate_(csc)
+{
+  csc->AddChamber(this);
 }
 //
 Chamber::~Chamber(){

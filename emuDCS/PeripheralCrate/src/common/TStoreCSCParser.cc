@@ -29,8 +29,8 @@ TStoreCSCParser::TStoreCSCParser(
   //
   std::istringstream input;
   //
-  csc_ = new Chamber();
-  csc_->SetCrate(theCrate);
+  csc_ = new Chamber(theCrate);
+  //csc_->SetCrate(theCrate);
   //
   std::vector <std::string> myTMB = FindTMB(csc_table, tmb_table); 
   if(myTMB.size()) TStoreTMBParser(myTMB,alct_table, afeb_table, theCrate,csc_);
