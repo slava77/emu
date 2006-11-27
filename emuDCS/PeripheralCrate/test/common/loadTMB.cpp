@@ -21,7 +21,7 @@ int main(int argc,char **argv){
   dynatem->init(ipAddr,port);
   EmuSystem * emuSystem = new EmuSystem();
   Crate *crate = new Crate(crateId,dynatem,emuSystem);
-  Chamber * chamber = new Chamber();
+  Chamber * chamber = new Chamber(crate);
 
   // create CCB
   int ccbSlot(13);

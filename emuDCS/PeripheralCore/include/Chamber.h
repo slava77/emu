@@ -10,12 +10,13 @@
 #include "MPC.h"
 #include "ALCTController.h"
 #include "CFEB.h"
+#include "Crate.h"
 
 class Chamber {
   //
 public:
   //
-  Chamber();
+  Chamber(Crate *);
   ~Chamber();
   //
   inline void SetTMB(TMB* myTMB)   {thisTMB = myTMB; alct = myTMB->alctController() ;}
