@@ -14,6 +14,7 @@
 //
 TStoreDMBParser::TStoreDMBParser(
 				 std::vector <std::string > dmb_table,
+				 std::vector<std::vector <std::string > > cfeb_table,
 				 Crate * theCrate,
 				 Chamber * theChamber
 				 ) {

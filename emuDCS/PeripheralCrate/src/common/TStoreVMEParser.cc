@@ -18,7 +18,6 @@ TStoreVMEParser::TStoreVMEParser(
 				 EmuSystem * emuSystem
 				 ) {
   //
-  //
   // Create the controller object
   //
   std::string VMEaddress = periph_table[VMEADDRESS_loc];

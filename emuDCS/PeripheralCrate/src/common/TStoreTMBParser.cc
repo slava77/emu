@@ -9,11 +9,14 @@
 #include <sstream>
 //
 #include "TStoreTMBParser.h"
+#include "TStoreALCTParser.h"
 #include "TStore_constants.h"
 #include "Chamber.h"
 //
 TStoreTMBParser::TStoreTMBParser(
 				 std::vector <std::string > tmb_table,
+				 std::vector<std::vector <std::string > > alct_table,
+				 std::vector<std::vector <std::string > > afeb_table,
 				 Crate * theCrate,
 				 Chamber * theChamber
 				 ) {
@@ -79,11 +82,11 @@ TStoreTMBParser::TStoreTMBParser(
   input >> delay; 
   tmb_->SetMpcDelay(delay);
   //
-  input.str(tmb_table[FIFO_TBINS_loc]);
+  input.str(tmb_table[TMB_FIFO_TBINS_loc]);
   input >> delay; 
   tmb_->SetFifoTbins(delay);
   //
-  input.str(tmb_table[FIFO_PRETRIG_loc]);
+  input.str(tmb_table[TMB_FIFO_PRETRIG_loc]);
   input >> delay; 
   tmb_->SetFifoPreTrig(delay);
   //
@@ -130,6 +133,27 @@ TStoreTMBParser::TStoreTMBParser(
   input.str(tmb_table[RPC0_RAT_DELAY_loc]);
   input >> delay; 
   tmb_->SetRpc0RatDelay(delay);
+  //
+  // Now look for ALCT
+  //
+  std::vector<std::string> myAlct = FindALCT(tmb_table, alct_table);
+  if(myAlct.size()) TStoreALCTParser(myAlct,theCrate,theChamber,tmb_);
+  //
+}
+//
+std::vector<std::string> TStoreTMBParser::FindALCT(std::vector <std::string> tmb, std::vector < std::vector <std::string > > alct_table){
+  //
+  std::vector<std::string> push;
+  //
+  for(unsigned int i=0; i<alct_table.size(); i++){
+    //
+    if(alct_table[i][ALCT_CSCID_loc] == tmb[TMB_CSCID_loc] ) {
+      push = alct_table[i];
+    }
+    //
+  }
+  //
+  return push;
   //
 }
 //
