@@ -17,11 +17,16 @@ class TStoreTMBParser {
   //
  public:
   //
-  TStoreTMBParser(std::vector <std::string > ,
+  TStoreTMBParser(
+		  std::vector <std::string > ,
+		  std::vector<std::vector <std::string > >,
+		  std::vector<std::vector <std::string > >,
 		  Crate * , Chamber *
 		  );//
   //
   ~TStoreTMBParser();
+  //
+  std::vector<std::string> TStoreTMBParser::FindALCT(std::vector <std::string>, std::vector < std::vector <std::string > > );
   //
  private:
   //

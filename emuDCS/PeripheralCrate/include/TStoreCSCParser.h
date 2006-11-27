@@ -13,6 +13,9 @@ class TStoreCSCParser {
   TStoreCSCParser(std::vector <std::string > , 
 		  std::vector<std::vector <std::string > >,
 		  std::vector<std::vector <std::string > >,
+		  std::vector<std::vector <std::string > >,
+		  std::vector<std::vector <std::string > >,
+		  std::vector<std::vector <std::string > >,
 		  Crate * 
 		  );//
   //

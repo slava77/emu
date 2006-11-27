@@ -43,7 +43,7 @@ TStorePeriphParser::TStorePeriphParser(
   for (unsigned int CSCs=0; CSCs<csc_table.size(); CSCs++){
     //
     std::vector <std::string> table = csc_table[CSCs];
-    TStoreCSCParser(table,tmb_table,dmb_table,crate);
+    TStoreCSCParser(table,tmb_table,dmb_table,alct_table,afeb_table,cfeb_table,crate);
     //
   }
   //

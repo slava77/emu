@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <string>
 
 #include "DAQMB.h"
 #include "TMB.h"
@@ -17,7 +18,8 @@ class TStoreVMEParser {
   //
  public:
   //
-  TStoreVMEParser(std::vector <std::string > ,
+  TStoreVMEParser(
+		  std::vector <std::string > ,
 		  EmuSystem * 
 		  );//
   //

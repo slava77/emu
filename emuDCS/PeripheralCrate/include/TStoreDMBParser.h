@@ -11,7 +11,9 @@ class TStoreDMBParser {
   //
  public:
   //
-  TStoreDMBParser(std::vector <std::string > ,
+  TStoreDMBParser(
+		  std::vector <std::string > ,
+		  std::vector<std::vector <std::string > >,
 		  Crate *,
 		  Chamber *
 		  );//
