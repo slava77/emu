@@ -48,3 +48,13 @@ enum {
   NPH_THRESH_loc, SEND_EMPTY_loc, ALCT_TMB_KEY_loc, TRIG_INFO_EN_loc,
   TRIG_MODE_loc
 };
+
+//AFEB_TABLE
+enum {
+  AFEB_DELAY_loc, AFEB_KEY_loc, AFEB_NUMBER_loc, AFEB_THRESHOLD_loc, AFEB_ALCT_KEY_loc, AFEB_CSCID_loc
+};
+
+//CFEB_TABLE
+enum{
+  CFEB_KEY_loc, CFEB_NUMBER_loc, CFEB_CSCID_loc, CFEB_DMB_KEY_loc
+};

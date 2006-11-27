@@ -137,7 +137,7 @@ TStoreTMBParser::TStoreTMBParser(
   // Now look for ALCT
   //
   std::vector<std::string> myAlct = FindALCT(tmb_table, alct_table);
-  if(myAlct.size()) TStoreALCTParser(myAlct,theCrate,theChamber,tmb_);
+  if(myAlct.size()) TStoreALCTParser(myAlct,afeb_table, theCrate,theChamber,tmb_);
   //
 }
 //

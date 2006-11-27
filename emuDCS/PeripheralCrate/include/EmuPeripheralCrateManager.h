@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.23 2006/11/13 16:25:31 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.24 2006/11/27 14:39:35 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1329,7 +1329,7 @@ public:
     throw (xgi::exception::Exception)
     {
       //
-      this->SendSOAPMessageQueryTStore(in,out,"VME+2/5_afeb");
+      this->SendSOAPMessageQueryTStore(in,out,"VME+2/5_alct");
       //
     }
   //
@@ -1391,11 +1391,15 @@ public:
     //
     std::vector < std::vector <std::string > > dmb_table = ConvertTable(table_);
     //
+    std::cout << "ALCT query" << std::endl;
+    //
     tableName.str("");
     tableName << CrateLabel << "_alct";
     this->SendSOAPMessageQueryTStore(in,out,tableName.str());
     //
     std::vector < std::vector <std::string > > alct_table = ConvertTable(table_);
+    //
+    std::cout << "AFEB query" << std::endl;
     //
     tableName.str("");
     tableName << CrateLabel << "_afeb";

@@ -44,8 +44,6 @@ std::vector<std::string> TStoreCSCParser::FindTMB(std::vector <std::string> csc,
   //
   std::vector<std::string> push;
   //
-  for( unsigned loop=0; loop<csc.size(); loop++) std::cout << " " << csc[loop];
-  //
   for(unsigned int i=0; i<tmb_table.size(); i++){
     //
     if(tmb_table[i][TMB_CSCID_loc] == csc[CSC_CSCID_loc] ) {
@@ -60,8 +58,6 @@ std::vector<std::string> TStoreCSCParser::FindDMB(std::vector <std::string> csc,
   //
   std::vector<std::string> push;
   //
-  //
-  for( unsigned loop=0; loop<csc.size(); loop++) std::cout << " " << csc[loop];
   //
   for(unsigned int i=0; i<dmb_table.size(); i++){
     //

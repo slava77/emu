@@ -18,6 +18,8 @@ class TStoreDMBParser {
 		  Chamber *
 		  );//
   //
+  std::vector<std::vector<std::string> > FindCFEBs(std::vector <std::string>, std::vector < std::vector <std::string > >);
+  //
   ~TStoreDMBParser();
   //
  private:

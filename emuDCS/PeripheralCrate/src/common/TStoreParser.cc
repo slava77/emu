@@ -32,7 +32,11 @@ TStoreParser::TStoreParser(
   //
   // Create EmuSystem
   //
+  std::cout << "Creating EmuSystem" << std::endl;
+  //
   EmuSystem * emuSystem = new EmuSystem();
+  //
+  std::cout << "Done Creating EmuSystem" << std::endl;
   //
   for(unsigned int crate=0; crate<periph_table.size(); crate++) {
     //
