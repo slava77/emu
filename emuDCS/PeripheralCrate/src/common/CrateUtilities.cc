@@ -44,8 +44,7 @@ void CrateUtilities::CreateTstoreTables(){
   std::vector<TMB *>   myTmbs = myCrate_->tmbs();  
   std::vector<DAQMB *> myDmbs = myCrate_->daqmbs();  
   std::vector<ALCTController *> myAlcts = myCrate_->alcts();  
-  //
-  std::cout << "Alct size=" << myAlcts.size() << std::endl;
+  std::vector<Chamber *> myCSCs = myCrate_->chambers();
   //
   std::ostringstream periph_output;
   //
@@ -98,7 +97,7 @@ void CrateUtilities::CreateTstoreTables(){
   periph_table.push_back(periph_output.str());
   //
   periph_output.str("");
-  periph_output << ((myCrate_->CrateID())+3) ;
+  periph_output << myCrate_->CrateID() ;
   periph_table.push_back(periph_output.str());
   //
   periph_output.str("");
@@ -133,43 +132,58 @@ void CrateUtilities::CreateTstoreTables(){
   periph_output << myCrate_->vmeController()->GetVMEAddress() ;
   periph_table.push_back(periph_output.str());
   //
-  std::ostringstream csc_output;
+  std::ostringstream csc_output[myCSCs.size()];
   //
-  csc_output.str("");
-  csc_output << std::dec << "1" ;
-  csc_table.push_back(csc_output.str());
-  //
-  csc_output.str("");
-  csc_output << std::dec << "20/20/2006" ;
-  csc_table.push_back(csc_output.str());
-  //
-  csc_output.str("");
-  csc_output << std::dec << "v4" ;
-  csc_table.push_back(csc_output.str());
-  //
-  csc_output.str("");
-  csc_output << std::dec << "1" ;
-  csc_table.push_back(csc_output.str());
-  //
-  csc_output.str("");
-  csc_output << std::dec << "1" ;
-  csc_table.push_back(csc_output.str());
-  //
-  csc_output.str("");
-  csc_output << std::dec << "new CSC" ;
-  csc_table.push_back(csc_output.str());
-  //
-  csc_output.str("");
-  csc_output << std::dec << "Prod" ;
-  csc_table.push_back(csc_output.str());
-  //
-  csc_output.str("");
-  csc_output << std::dec << "1" ;
-  csc_table.push_back(csc_output.str());
+  for(unsigned int csc=0; csc<myCSCs.size(); csc++) {
+    //
+    int tmbSlot = myCSCs[csc]->GetTMB()->slot();
+    int CSCid   = tmbSlot/2;
+    if (tmbSlot>12 ) CSCid -=1;
+    int cscKey = CSCid;
+    //
+    csc_output[csc].str("");
+    csc_output[csc] << std::dec << "1" ;
+    csc_table[csc].push_back(csc_output[csc].str());
+    //
+    csc_output[csc].str("");
+    csc_output[csc] << std::dec << "20/20/2006" ;
+    csc_table[csc].push_back(csc_output[csc].str());
+    //
+    csc_output[csc].str("");
+    csc_output[csc] << std::dec << "v4" ;
+    csc_table[csc].push_back(csc_output[csc].str());
+    //
+    csc_output[csc].str("");
+    csc_output[csc] << std::dec << CSCid;
+    csc_table[csc].push_back(csc_output[csc].str());
+    //
+    csc_output[csc].str("");
+    csc_output[csc] << std::dec << cscKey;
+    csc_table[csc].push_back(csc_output[csc].str());
+    //
+    csc_output[csc].str("");
+    csc_output[csc] << myCSCs[csc]->GetLabel() ;
+    csc_table[csc].push_back(csc_output[csc].str());
+    //
+    csc_output[csc].str("");
+    csc_output[csc] << std::dec << "1" ;
+    csc_table[csc].push_back(csc_output[csc].str());
+    //
+    csc_output[csc].str("");
+    csc_output[csc] << std::dec << myCSCs[csc]->GetCrate()->CrateID();
+    csc_table[csc].push_back(csc_output[csc].str());
+    //
+  }
   //
   std::ostringstream tmb_output[myTmbs.size()];
   //
   for( unsigned tmb=0; tmb<myTmbs.size(); tmb++) {
+    //
+    int tmbSlot = myTmbs[tmb]->slot();
+    int CSCid   = tmbSlot/2;
+    if (tmbSlot>12 ) CSCid -=1;
+    int cscKey = CSCid;
+    int tmbKey = CSCid;
     //
     tmb_output[tmb].str("");
     tmb_output[tmb] << myTmbs[tmb]->GetAlctMatchWindowSize();
@@ -208,11 +222,11 @@ void CrateUtilities::CreateTstoreTables(){
     tmb_table[tmb].push_back(tmb_output[tmb].str());
     //
     tmb_output[tmb].str("");
-    tmb_output[tmb] << "3";
+    tmb_output[tmb] << CSCid;
     tmb_table[tmb].push_back(tmb_output[tmb].str());
     //
     tmb_output[tmb].str("");
-    tmb_output[tmb] << "1";
+    tmb_output[tmb] << cscKey;
     tmb_table[tmb].push_back(tmb_output[tmb].str());
     //
     tmb_output[tmb].str("");
@@ -276,7 +290,7 @@ void CrateUtilities::CreateTstoreTables(){
     tmb_table[tmb].push_back(tmb_output[tmb].str());
     //
     tmb_output[tmb].str("");
-    tmb_output[tmb] << std::dec << tmb ;
+    tmb_output[tmb] << std::dec << tmbKey ;
     tmb_table[tmb].push_back(tmb_output[tmb].str());
     //
     tmb_output[tmb].str("");
@@ -298,6 +312,13 @@ void CrateUtilities::CreateTstoreTables(){
   int cfeb_line=0;
   //
   for( unsigned dmb=0; dmb<myDmbs.size(); dmb++) {
+    //
+    int dmbSlot = myDmbs[dmb]->slot();
+    int CSCid   = (dmbSlot-1)/2;
+    if (dmbSlot>12 ) CSCid -=1;
+    int cscKey = CSCid;
+    int dmbKey = CSCid;
+    int CrateId = 0;
     //
     dmb_output[dmb].str("");
     dmb_output[dmb] << myDmbs[dmb]->GetAlctDavDelay();
@@ -324,19 +345,19 @@ void CrateUtilities::CreateTstoreTables(){
     dmb_table[dmb].push_back(dmb_output[dmb].str());
     //
     dmb_output[dmb].str("");
-    dmb_output[dmb] << "1";
+    dmb_output[dmb] << CrateId;
     dmb_table[dmb].push_back(dmb_output[dmb].str());
     //
     dmb_output[dmb].str("");
-    dmb_output[dmb] << "1";
+    dmb_output[dmb] << CSCid;
     dmb_table[dmb].push_back(dmb_output[dmb].str());
     //
     dmb_output[dmb].str("");
-    dmb_output[dmb] << "1";
+    dmb_output[dmb] << cscKey;
     dmb_table[dmb].push_back(dmb_output[dmb].str());
     //
     dmb_output[dmb].str("");
-    dmb_output[dmb] << myDmbs[dmb]->slot() ;
+    dmb_output[dmb] << dmbKey;
     dmb_table[dmb].push_back(dmb_output[dmb].str());
     //
     dmb_output[dmb].str("");
@@ -425,8 +446,14 @@ void CrateUtilities::CreateTstoreTables(){
   //
   for( unsigned alct=0; alct<myAlcts.size(); alct++) {
     //
+    int alctSlot = myAlcts[alct]->GetTMB()->slot();
+    int CSCid   = (alctSlot)/2;
+    if (alctSlot>12 ) CSCid -=1;
+    int tmbKey = CSCid;
+    int alctKey = CSCid;
+    //
     alct_output[alct].str("");
-    alct_output[alct] << myAlcts[alct]->GetTMB()->slot();
+    alct_output[alct] << std::dec << CSCid;
     alct_table[alct].push_back(alct_output[alct].str());
     //
     alct_output[alct].str("");
@@ -450,7 +477,7 @@ void CrateUtilities::CreateTstoreTables(){
     alct_table[alct].push_back(alct_output[alct].str());
     //
     alct_output[alct].str("");
-    alct_output[alct] << "1";
+    alct_output[alct] << CSCid;
     alct_table[alct].push_back(alct_output[alct].str());
     //
     alct_output[alct].str("");
@@ -498,7 +525,7 @@ void CrateUtilities::CreateTstoreTables(){
     alct_table[alct].push_back(alct_output[alct].str());    
     //
     alct_output[alct].str("");
-    alct_output[alct] << "1";
+    alct_output[alct] << CSCid;
     alct_table[alct].push_back(alct_output[alct].str());    
     //
     alct_output[alct].str("");
@@ -514,6 +541,8 @@ void CrateUtilities::CreateTstoreTables(){
     int nAFEBs = myAlcts[alct]->GetNumberOfAfebs();
     //
     for( unsigned afebs=0; afebs<nAFEBs; afebs++){
+      //
+      int AfebKey = (alctKey-1)*42+(afebs+1);
       //
       afeb_table.push_back(std::vector<std::string>());
       //
@@ -534,11 +563,11 @@ void CrateUtilities::CreateTstoreTables(){
       afeb_table[afeb_line].push_back(afeb_output.str());    
       //
       afeb_output.str("");
-      afeb_output << myAlcts[alct]->GetTMB()->slot();;
+      afeb_output << alctKey;
       afeb_table[afeb_line].push_back(afeb_output.str());    
       //
       afeb_output.str("");
-      afeb_output << "1";
+      afeb_output << CSCid;
       afeb_table[afeb_line].push_back(afeb_output.str());    
       //
       afeb_line++;

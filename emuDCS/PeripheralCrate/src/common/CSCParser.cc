@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CSCParser.cc,v 3.4 2006/11/27 15:06:05 mey Exp $
+// $Id: CSCParser.cc,v 3.5 2006/11/28 14:17:16 mey Exp $
 // $Log: CSCParser.cc,v $
+// Revision 3.5  2006/11/28 14:17:16  mey
+// UPdate
+//
 // Revision 3.4  2006/11/27 15:06:05  mey
 // Made chamber(crate)
 //
@@ -46,8 +49,10 @@ CSCParser::CSCParser(xercesc::DOMNode * pNode, Crate * theCrate, xercesc::DOMNod
   parser_.fillString("chamber_type", chamberType);
   parser_.fillString("label", label);
   csc_ = new Chamber(theCrate);
+  csc_->SetLabel(label);
   //
-  std::cout << "Creating CSC Type=" << chamberType << std::endl;
+  std::cout << "Creating CSC Type=" << chamberType 
+	    << " Label= " << label << std::endl;
   std::cout << "Done" << std::endl;
   //
   xercesc::DOMNode * pNode1 = pNode->getFirstChild();

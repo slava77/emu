@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.24 2006/11/27 14:39:35 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.25 2006/11/28 14:17:15 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -692,7 +692,7 @@ public:
     MyHeader(in,out,"Upload DB");
     //
     EmuController myController;
-    myController.SetConfFile("/home/meydev/test.conf");
+    myController.SetConfFile("/home/meydev/config/configFall2006ME3.xml");
     myController.init();
     //
     std::vector<Crate*> myCrates = (myController.selector()).crates();
@@ -706,91 +706,157 @@ public:
       //
       this->SendSOAPMessageConnectTStore(in,out);
       //
-      /*
+      std::string CrateLabel = myCrates[crate]->GetLabel();
+      ostringstream tableName ;
+      //
+      tableName.str("");
+      tableName << CrateLabel << "_periph";
+      //
       std::vector <std::string> PeriphTable = crateUtility.GetPeriphTable();
       //
-      this->SendSOAPMessageDefinitionTStore(in,out,"myTable1");
+      this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+      //
+      this->SendSOAPMessageDefinitionTStore(in,out,tableName.str());
+      //
+      for(unsigned int debug=0; debug<PeriphTable.size(); debug++) std::cout << " " << PeriphTable[debug];
       //
       AddRow(0,table_,PeriphTable);
       //
-      this->SendSOAPMessageUpdateTStore(in,out,"myTable1");
-      */
+      this->SendSOAPMessageUpdateTStore(in,out,tableName.str());
+      //
+      this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+      //
+      //
       /*
-      this->SendSOAPMessageDefinitionTStore(in,out,"myTable2");
+      tableName.str("");
+      tableName << CrateLabel << "_csc";
       //
-      std::vector <std::string> CSCTable = crateUtility.GetCSCTable();
-      //
-      AddRow(0,table_,CSCTable);
-      //
-      this->SendSOAPMessageInsertTStore(in,out,"myTable2");
-      //
-      //OutputTable(in,out,table_);
-      */
+      this->SendSOAPMessageQueryTStore(in,out,tableName.str());
       //
       for (int i=0; i<9; i++) {
 	//
-	this->SendSOAPMessageDefinitionTStore(in,out,"myTable4");
+	this->SendSOAPMessageDefinitionTStore(in,out,tableName.str());
 	//
-	std::vector <std::string> DmbTable = crateUtility.GetDmbTable(i);
+	std::vector <std::string> CSCTable = crateUtility.GetCSCTable(i);
 	//
-	for(unsigned j=0; j<DmbTable.size(); j++) std::cout << " " << DmbTable[j];
-	std::cout << std::endl;
+	for(unsigned int debug=0; debug<CSCTable.size(); debug++) std::cout << " " << CSCTable[debug];
 	//
-	AddRow(0,table_,DmbTable);
+	AddRow(0,table_,CSCTable);
 	//
-	this->SendSOAPMessageInsertTStore(in,out,"myTable4");
+	this->SendSOAPMessageUpdateTStore(in,out,tableName.str());
 	//
       }
       //
+      this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+      */
       /*
+      tableName.str("");
+      tableName << CrateLabel << "_tmb";
+      //
+      this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+      //
+      for (int i=0; i<9; i++) {
+	//
+	this->SendSOAPMessageDefinitionTStore(in,out,tableName.str());
+	//
+	std::vector <std::string> TmbTable = crateUtility.GetTmbTable(i);
+	//
+	for(unsigned int debug=0; debug<TmbTable.size(); debug++) std::cout << " " << TmbTable[debug];
+	//
+	std::cout << std::endl;
+	//
+	AddRow(0,table_,TmbTable);
+	//
+	this->SendSOAPMessageUpdateTStore(in,out,tableName.str());
+	//
+      }
+      //
+      this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+      */
+      /*
+      tableName.str("");
+      tableName << CrateLabel << "_dmb";
+      //
+      this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+      //
+      for (int i=0; i<9; i++) {
+	//
+	this->SendSOAPMessageDefinitionTStore(in,out,tableName.str());
+	//
+	std::vector <std::string> DmbTable = crateUtility.GetDmbTable(i);
+	//
+	for(unsigned int debug=0; debug<DmbTable.size(); debug++) std::cout << " " << DmbTable[debug];
+	//
+	AddRow(0,table_,DmbTable);
+	//
+	this->SendSOAPMessageUpdateTStore(in,out,tableName.str());
+	//
+      }
+      //
+      this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+      */
+      /*
+      tableName.str("");
+      tableName << CrateLabel << "_alct";
+      //
+      this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+      //
       for (int i=0; i<9; i++) {
       //
-	this->SendSOAPMessageDefinitionTStore(in,out,"myTable5");
+	this->SendSOAPMessageDefinitionTStore(in,out,tableName.str());
 	//
 	std::vector <std::string> AlctTable = crateUtility.GetAlctTable(i);
 	//
-	std::cout << "Size " << AlctTable.size() << std::endl;
-	//
 	AddRow(0,table_,AlctTable);
 	//
-	this->SendSOAPMessageInsertTStore(in,out,"myTable5");
+	for(unsigned int debug=0; debug<AlctTable.size(); debug++) std::cout << " " << AlctTable[debug];
 	//
-	}
+	this->SendSOAPMessageUpdateTStore(in,out,tableName.str());
+	//
+      }
+      //
+      this->SendSOAPMessageQueryTStore(in,out,tableName.str());
       */
       /*
+      this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+      //
+      tableName.str("");
+      tableName << CrateLabel << "_afeb";
+      //
       std::vector<std::vector<std::string> > AfebTable = crateUtility.GetAfebTable();
       //
       for (unsigned int i=0; i<AfebTable.size(); i++) {
 	//
-	this->SendSOAPMessageDefinitionTStore(in,out,"myTable6");
+	this->SendSOAPMessageDefinitionTStore(in,out,tableName.str());
+	//
+	for(unsigned int debug=0; debug<AfebTable[i].size(); debug++) std::cout << " " << AfebTable[i][debug];
 	//
 	AddRow(0,table_,AfebTable[i]);
 	//
-	for(int j=0; j<AfebTable[i].size(); j++) std::cout << " " << AfebTable[i][j] ;
-	std::cout << std::endl;
-	//
-	this->SendSOAPMessageInsertTStore(in,out,"myTable6");
+	this->SendSOAPMessageUpdateTStore(in,out,tableName.str());
 	//
       }
+      //
+      this->SendSOAPMessageQueryTStore(in,out,tableName.str());
       */
       /*
+      tableName.str("");
+      tableName << CrateLabel << "_cfeb";
+      //
       std::vector<std::vector<std::string> > CfebTable = crateUtility.GetCfebTable();
       //
       for (unsigned int i=0; i<CfebTable.size(); i++) {
 	//
-	this->SendSOAPMessageDefinitionTStore(in,out,"myTable7");
+	this->SendSOAPMessageDefinitionTStore(in,out,tableName.str());
 	//
 	AddRow(0,table_,CfebTable[i]);
 	//
-	for(int j=0; j<CfebTable[i].size(); j++) std::cout << " " << CfebTable[i][j] ;
-	std::cout << std::endl;
-	//
-	this->SendSOAPMessageInsertTStore(in,out,"myTable7");
+	this->SendSOAPMessageUpdateTStore(in,out,tableName.str());
 	//
       }
       */
     }
-    //
+      //
   }
   //
   void EmuPeripheralCrateManager::AddRow(int Row,xdata::Table & table, std::vector<std::string> NewColumn){
@@ -1345,7 +1411,7 @@ public:
       //
       std::vector < std::vector <std::string > > push;
       //
-      for(int rows=0; rows<thisTable.getRowCount(); rows++){
+      for(unsigned int rows=0; rows<thisTable.getRowCount(); rows++){
 	//
 	push.push_back(std::vector<std::string>());
 	std::cout << std::endl;      
@@ -2026,7 +2092,7 @@ public:
 	  std::string url = (*itDescriptor)->getContextDescriptor()->getURL();
 	  std::cout << url << std::endl;
 	  //
-	  int index = url.find_last_of(":");
+	  unsigned int index = url.find_last_of(":");
 	  //
 	  if (  index != string::npos ) {
 	    //	    
@@ -2159,7 +2225,7 @@ public:
 	std::vector<xdaq::ApplicationDescriptor * >  descriptor =
 	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuPeripheralCrate");
 	//
-	if ( compare == descriptor.size() ) {
+	if ( compare == (int) descriptor.size() ) {
 	  ConfigureState_ = "Configured";
 	  break;
 	}

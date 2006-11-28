@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.cc,v 3.1 2006/11/15 16:01:37 mey Exp $
+// $Id: VMEParser.cc,v 3.2 2006/11/28 14:17:16 mey Exp $
 // $Log: VMEParser.cc,v $
+// Revision 3.2  2006/11/28 14:17:16  mey
+// UPdate
+//
 // Revision 3.1  2006/11/15 16:01:37  mey
 // Cleaning up code
 //
@@ -52,7 +55,10 @@ VMEParser::VMEParser(xercesc::DOMNode * pNode, int CrateID, EmuSystem * emuSyste
   parser_.fillString("VMEaddress",VMEaddress); 
   //parser_.fillString("ipAddress",ipAddress); 
   parser_.fillInt("port",port);
-  
+
+  std::string label;
+  parser_.fillString("label",label);   
+
   controller_ = new VMEController(CrateID); 
 
   // The following is just to show how it works. 
@@ -64,6 +70,7 @@ VMEParser::VMEParser(xercesc::DOMNode * pNode, int CrateID, EmuSystem * emuSyste
   controller_->SetPort(port);
   
   crate_ = new Crate(CrateID,controller_,emuSystem);
+  crate_->SetLabel(label);
 }
 //VMEParser::~VMEParser(){
 //  delete crate_;
