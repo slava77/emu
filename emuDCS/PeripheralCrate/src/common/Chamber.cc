@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 3.2 2006/11/27 15:06:05 mey Exp $
+// $Id: Chamber.cc,v 3.3 2006/11/28 14:17:16 mey Exp $
 // $Log: Chamber.cc,v $
+// Revision 3.3  2006/11/28 14:17:16  mey
+// UPdate
+//
 // Revision 3.2  2006/11/27 15:06:05  mey
 // Made chamber(crate)
 //
@@ -61,7 +64,7 @@
 using namespace std;
 //
 Chamber::Chamber(Crate * csc):
-  crate_(csc)
+  crate_(csc), label_("new_csc")
 {
   csc->AddChamber(this);
 }

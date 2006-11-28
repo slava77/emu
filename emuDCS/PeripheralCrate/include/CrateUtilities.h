@@ -26,8 +26,8 @@ public:
     return periph_table;
   }
   //
-  inline std::vector<std::string> CrateUtilities::GetCSCTable(){
-    return csc_table;
+  inline std::vector<std::string> CrateUtilities::GetCSCTable(int number){
+    return csc_table[number];
   }
   //
   inline std::vector<std::string> CrateUtilities::GetTmbTable(int number){
@@ -56,7 +56,7 @@ public:
   CrateSelector theSelector;
   Crate * myCrate_;
   std::vector<std::string> periph_table;
-  std::vector<std::string> csc_table;
+  std::vector<std::string> csc_table[9];
   std::vector<std::string> tmb_table[9];
   std::vector<std::string> dmb_table[9];
   std::vector<std::string> alct_table[9];

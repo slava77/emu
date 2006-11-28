@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.cc,v 3.4 2006/11/15 16:01:36 mey Exp $
+// $Id: DAQMBParser.cc,v 3.5 2006/11/28 14:17:16 mey Exp $
 // $Log: DAQMBParser.cc,v $
+// Revision 3.5  2006/11/28 14:17:16  mey
+// UPdate
+//
 // Revision 3.4  2006/11/15 16:01:36  mey
 // Cleaning up code
 //
@@ -170,7 +173,7 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * t
 	      //parser_.fillFloat("comp_thresh", daqmb_->comp_thresh_cfeb_[number]);
 	      //
 	      int fvalue;
-	      if ( parser_.fillInt("comp_timing",fvalue)){
+	      if ( parser_.fillInt("comp_threshold",fvalue)){
 		daqmb_->SetCompThresholdsCfeb(number,fvalue);
 	      }
 	      //

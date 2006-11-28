@@ -13,11 +13,12 @@
 #include "TStoreCFEBParser.h"
 //
 TStoreCFEBParser::TStoreCFEBParser(
-				 std::vector<std::vector <std::string > > cfeb_table,
-				 Crate * theCrate,
-				 Chamber * theChamber,
-				 DAQMB * dmb
-				 ) {
+				   std::vector<std::vector <std::string > > cfeb_table,
+				   Crate * theCrate,
+				   Chamber * theChamber,
+				   DAQMB * dmb
+				   ) 
+{
   //
   //
   // Create the CFEB object

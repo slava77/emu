@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 3.4 2006/11/15 16:01:36 mey Exp $
+// $Id: Crate.h,v 3.5 2006/11/28 14:17:15 mey Exp $
 // $Log: Crate.h,v $
+// Revision 3.5  2006/11/28 14:17:15  mey
+// UPdate
+//
 // Revision 3.4  2006/11/15 16:01:36  mey
 // Cleaning up code
 //
@@ -69,10 +72,11 @@ public:
   void init();
   void addModule(VMEModule * module);
   void AddChamber(Chamber * chamber);
-
   void DumpConfiguration();
+  //
   std::string GetLabel() {return label_;}
-
+  inline void SetLabel(std::string label ) {label_ = label;}
+  //
   VMEController * vmeController() const {return theController;}
 
   /// uses RTTI to find types
