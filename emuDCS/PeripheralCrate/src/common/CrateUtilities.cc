@@ -97,7 +97,8 @@ void CrateUtilities::CreateTstoreTables(){
   periph_table.push_back(periph_output.str());
   //
   periph_output.str("");
-  periph_output << myCrate_->CrateID() ;
+  //periph_output << myCrate_->CrateID() ;
+  periph_output << "1";
   periph_table.push_back(periph_output.str());
   //
   periph_output.str("");
@@ -170,7 +171,8 @@ void CrateUtilities::CreateTstoreTables(){
     csc_table[csc].push_back(csc_output[csc].str());
     //
     csc_output[csc].str("");
-    csc_output[csc] << std::dec << myCSCs[csc]->GetCrate()->CrateID();
+    //csc_output[csc] << std::dec << myCSCs[csc]->GetCrate()->CrateID();
+    csc_output[csc] << std::dec << "1";
     csc_table[csc].push_back(csc_output[csc].str());
     //
   }
@@ -416,10 +418,12 @@ void CrateUtilities::CreateTstoreTables(){
     //
     for( unsigned int cfeb=0; cfeb<myCfebs.size(); cfeb++) {
       //
+      int CfebKey = (dmbKey-1)*5+(cfeb+1);
+      //
       cfeb_table.push_back(std::vector<std::string>());
       //
       cfeb_output.str("");
-      cfeb_output << cfeb+(100*dmb);
+      cfeb_output << CfebKey;
       cfeb_table[cfeb_line].push_back(cfeb_output.str());    
       //
       cfeb_output.str("");
@@ -427,11 +431,11 @@ void CrateUtilities::CreateTstoreTables(){
       cfeb_table[cfeb_line].push_back(cfeb_output.str());    
       //
       cfeb_output.str("");
-      cfeb_output << "1";
+      cfeb_output << CSCid;
       cfeb_table[cfeb_line].push_back(cfeb_output.str());    
       //
       cfeb_output.str("");
-      cfeb_output << myDmbs[dmb]->slot();
+      cfeb_output << dmbKey;
       cfeb_table[cfeb_line].push_back(cfeb_output.str());    
       //
       cfeb_line++;
@@ -551,7 +555,7 @@ void CrateUtilities::CreateTstoreTables(){
       afeb_table[afeb_line].push_back(afeb_output.str());    
       //
       afeb_output.str("");
-      afeb_output << afebs+(100*alct);
+      afeb_output << AfebKey;
       afeb_table[afeb_line].push_back(afeb_output.str());    
       //
       afeb_output.str("");
