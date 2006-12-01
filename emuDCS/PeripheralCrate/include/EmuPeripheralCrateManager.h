@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.25 2006/11/28 14:17:15 mey Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.26 2006/12/01 10:42:47 mey Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -692,7 +692,7 @@ public:
     MyHeader(in,out,"Upload DB");
     //
     EmuController myController;
-    myController.SetConfFile("/home/meydev/config/configFall2006ME3.xml");
+    myController.SetConfFile("/home/meydev/config/configFall2006ME1b.xml");
     myController.init();
     //
     std::vector<Crate*> myCrates = (myController.selector()).crates();
@@ -708,7 +708,7 @@ public:
       //
       std::string CrateLabel = myCrates[crate]->GetLabel();
       ostringstream tableName ;
-      //
+      /*
       tableName.str("");
       tableName << CrateLabel << "_periph";
       //
@@ -726,8 +726,8 @@ public:
       //
       this->SendSOAPMessageQueryTStore(in,out,tableName.str());
       //
+      */
       //
-      /*
       tableName.str("");
       tableName << CrateLabel << "_csc";
       //
@@ -748,8 +748,8 @@ public:
       }
       //
       this->SendSOAPMessageQueryTStore(in,out,tableName.str());
-      */
-      /*
+      //
+      //
       tableName.str("");
       tableName << CrateLabel << "_tmb";
       //
@@ -772,8 +772,8 @@ public:
       }
       //
       this->SendSOAPMessageQueryTStore(in,out,tableName.str());
-      */
-      /*
+      //
+      //
       tableName.str("");
       tableName << CrateLabel << "_dmb";
       //
@@ -794,8 +794,8 @@ public:
       }
       //
       this->SendSOAPMessageQueryTStore(in,out,tableName.str());
-      */
-      /*
+      //
+      //
       tableName.str("");
       tableName << CrateLabel << "_alct";
       //
@@ -816,12 +816,12 @@ public:
       }
       //
       this->SendSOAPMessageQueryTStore(in,out,tableName.str());
-      */
-      /*
-      this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+      //
       //
       tableName.str("");
       tableName << CrateLabel << "_afeb";
+      //
+      this->SendSOAPMessageQueryTStore(in,out,tableName.str());
       //
       std::vector<std::vector<std::string> > AfebTable = crateUtility.GetAfebTable();
       //
@@ -838,10 +838,12 @@ public:
       }
       //
       this->SendSOAPMessageQueryTStore(in,out,tableName.str());
-      */
-      /*
+      //
+      //
       tableName.str("");
       tableName << CrateLabel << "_cfeb";
+      //
+      this->SendSOAPMessageQueryTStore(in,out,tableName.str());
       //
       std::vector<std::vector<std::string> > CfebTable = crateUtility.GetCfebTable();
       //
@@ -854,9 +856,11 @@ public:
 	this->SendSOAPMessageUpdateTStore(in,out,tableName.str());
 	//
       }
-      */
-    }
       //
+      this->SendSOAPMessageQueryTStore(in,out,tableName.str());
+      //
+    }
+    //
   }
   //
   void EmuPeripheralCrateManager::AddRow(int Row,xdata::Table & table, std::vector<std::string> NewColumn){
