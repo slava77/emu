@@ -678,7 +678,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
   {
     unsigned long int idcode,uscode;
     unsigned long int tidcode[8]={0x2124a093,0x31266093,0x31266093,0x05036093,0x05036093,0x05036093,0x05036093,0x05036093};
-    unsigned long int tuscode[8]={0xcf039a03,0xdf024a01,0xdf024a01,0xb0018a01,0xc039dd99,0xc139dd99,0xd0024a01,0xd1024a01};
+    unsigned long int tuscode[8]={0xcf040a03,0xdf025a01,0xdf025a01,0xb0018a01,0xc040dd99,0xc140dd99,0xd0025a01,0xd1025a01};
 
     printf(" entered DDUFirmware \n");
     cgicc::Cgicc cgi(in);
@@ -1530,7 +1530,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	if((stat&0x0000ECEF)>0){
 	  *out << "<blockquote>";
 	  if((stat&0x0000E000)>0){
-	    if((0x00008000&stat)>0) *out << " DDU Output Limited Buffer Overflow occurred &nbsp ";
+	    if((0x00008000&stat)>0) *out << " DDU Buffer Overflow occurred &nbsp ";
 	    if((0x00004000&stat)>0) *out << " <font color=blue>DAQ (DCC/S-Link) Wait occurred</font> &nbsp ";
 	    if((0x00002000&stat)>0) *out << " DDU S-Link Full occurred &nbsp ";
 	    //	  if((0x00001000&stat)>0) *out << " DDU S-Link Never Ready";
