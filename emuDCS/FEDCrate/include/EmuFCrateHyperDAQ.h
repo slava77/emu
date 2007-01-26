@@ -445,7 +445,7 @@ public:
             }else{
 	      *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
             }
-	    */
+  
 	    if((statush&0xc000)!=0x0)
 	      {
 		*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
@@ -454,8 +454,8 @@ public:
 		*out << cgicc::span().set("style","color:green;background-color:#dddddd;");
 		status ="(OK)";
 	      }
-	    //
-	    /*
+	    */
+
 	    // New DCC firmware
 	    //
 	    std::cout << "status ............. " << std::hex << (statush&0xf000) << std::endl;
@@ -482,7 +482,6 @@ public:
 	    *out << cgicc::span().set("style","color:black;background-color:#dddddd;");              
 	    status ="(CAEN error)";
 	    }
-	    */
 	    //
             sprintf(buf,"Status H:%04X L:%04X ",statush,statusl);
             *out << buf << " " << status ; 
@@ -678,7 +677,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
   {
     unsigned long int idcode,uscode;
     unsigned long int tidcode[8]={0x2124a093,0x31266093,0x31266093,0x05036093,0x05036093,0x05036093,0x05036093,0x05036093};
-    unsigned long int tuscode[8]={0xcf040a03,0xdf025a01,0xdf025a01,0xb0018a01,0xc040dd99,0xc140dd99,0xd0025a01,0xd1025a01};
+    unsigned long int tuscode[8]={0xcf041a01,0xdf025a02,0xdf025a02,0xb0018a01,0xc041dd99,0xc141dd99,0xd0025a02,0xd1025a02};
 
     printf(" entered DDUFirmware \n");
     cgicc::Cgicc cgi(in);
@@ -4447,7 +4446,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
     *out << std::endl;
     *out << cgicc::legend(buf).set("style","color:blue")  << std::endl;
     int igu;
-    for(int i=100;i<109;i++){
+    for(int i=100;i<110;i++){
       thisDCC->CAEN_err_reset();
       sprintf(buf3," ");
       if(i==100){
@@ -4510,9 +4509,16 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
 	}
 	sprintf(buf2," %d  ddu11: %d  ddu6: %d  ddu10: %d  ddu7: %d  ddu9: %d",dr[0],dr[1],dr[2],dr[3],dr[4],dr[5]);
       }
+      if(i==109){
+           unsigned short int swset=thisDCC->mctrl_swrd();
+           sprintf(buf,"Set switch register:");
+	   sprintf(buf2," %04X ",(swset&0xffff));
+	   //           sprintf(buf2," ");
+	   sprintf(buf3,"<font size=-1> (set the software switch etc)</font>");
+      }
 
 
-      if(i>100 && i<107){
+      if((i>100 && i<107)||i==109) {
          std::string dcctextload =
 	 toolbox::toString("/%s/DCCTextLoad",getApplicationDescriptor()->getURN().c_str());
          *out << cgicc::form().set("method","GET").set("action",dcctextload)
@@ -4528,7 +4534,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
       }
       *out << buf2;
       *out << cgicc::span();
-      if(i>100&&i<107){
+      if((i>100&&i<107)||i==109) {
 	string xmltext="";
 	if(i==103) {
 	  //int readback=thisDCC->mctrl_rd_fifoinuse();
@@ -4540,8 +4546,11 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
 	  xmltext="ffff";
 	  //  xmltext=(readback2);
 	}
+	if (i==109) {
+	  xmltext="0000";
+	}
 	if(i==105)xmltext="2,5";
-	if(i==103|i==104|i==105){
+	if(i==103|i==104|i==105|i==109){
 	  *out << cgicc::input().set("type","text")
 	    .set("name","textdata")
 	    .set("size","10")
@@ -4570,6 +4579,14 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
 	  *out << "<blockquote><font size=-1 face=arial>";
 	  *out << "Command Code examples (hex):" << br();
 	  *out << " &nbsp &nbsp &nbsp &nbsp 3=SyncRst, &nbsp 4=HardRst, &nbsp 1C=SoftRst";
+	  *out << "</font></blockquote>" << std::endl;
+      }
+      if(i==109){
+	  *out << "<blockquote><font size=-1 face=arial>";
+	  *out << "bit4 = sw4; bit5 = sw5" << br();
+	  *out << " &nbsp bit0=0&bit9=1: Enable software switch"<<br();
+          *out << " &nbsp bitC=1&bitF=0: Set TTCrx NOT ready"<<br();
+          *out << " &nbsp bitD=1&bitE=0: Ignore SLINK full, &nbsp bitD=0&bitE=1: Ignore SLINK full and Slink_down";
 	  *out << "</font></blockquote>" << std::endl;
       }
     }
@@ -4608,7 +4625,7 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
     //
 
     string XMLtext;
-    if (val==103 || val==104 || val==105) {
+    if (val==103 || val==104 || val==105 || val==109) {
        XMLtext = cgi["textdata"]->getValue() ; 
 	//
      cout << XMLtext  << endl ;
@@ -4648,6 +4665,13 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
       arate=rate;anum=num;
        printf(" load (no prompt) L1A send rate:%d num:%d \n",arate,anum);
        thisDCC->mctrl_fakeL1A(arate,anum);
+    } 
+    if(val==109){
+      //      sscanf(XMLtext.data(),"%04x",&para_val);
+      std::istringstream test(XMLtext);
+	test >> hex >> para_val;
+      printf(" Set switch register %04x \n",para_val);
+      thisDCC->mctrl_swset(para_val);
     } 
 
       DCC_=dcc;

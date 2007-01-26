@@ -41,6 +41,8 @@ public:
   void mctrl_fakeL1A(char rate,char num);
   void mctrl_fifoinuse(unsigned short int fifo);
   void mctrl_reg(char *c);
+  void mctrl_swset(unsigned short int swset);
+  unsigned short int  mctrl_swrd();
   unsigned short int  mctrl_stath();
   unsigned short int  mctrl_statl();
   unsigned short int  mctrl_ratemon(int address);
