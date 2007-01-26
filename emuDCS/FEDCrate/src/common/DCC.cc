@@ -204,6 +204,32 @@ void DCC::mctrl_reg(char *c)
      }
 }
 
+
+void DCC::mctrl_swset(unsigned short int swset)
+{
+unsigned short int tmp;
+ tmp=(swset&0xffff);
+ printf(" Set switch register to: %04x \n",tmp);
+ cmd[0]=0x00;  // fcn 0x00-write 0x01-read
+ cmd[1]=0x07;  // vme add
+ cmd[2]=(tmp>>8)&0xff;  // data h
+ cmd[3]=tmp&0xff;  // data l
+ devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
+}
+
+unsigned short int  DCC::mctrl_swrd()
+{
+  unsigned short int swrd=0;
+     cmd[0]=0x01;  // fcn 0x00-write 0x01-read
+     cmd[1]=0x1f;  // vme add
+     cmd[2]=0xff;  // data h
+     cmd[3]=0xff;  // data l
+     devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
+     printf(" Current switch register readback %02x %02x \n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
+     swrd=((rcvbuf[1]<<8)&0xff00)|(rcvbuf[0]&0x00ff);
+     return swrd;
+}
+
 unsigned short int  DCC::mctrl_stath()
 {
   unsigned short int rcvr=0;
