@@ -1,4 +1,4 @@
-# $Id: Makefile.rules,v 3.1 2006/10/27 14:38:19 ichiro Exp $
+# $Id: Makefile.rules,v 3.2 2007/01/30 15:03:51 ichiro Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -31,6 +31,7 @@ default: build
 
 
 SourceDir		= .
+ConfigDir		= $(XDAQ_ROOT)/config
 
 
 ifdef Packages
@@ -97,7 +98,7 @@ endif
 PackageLibDir		= $(SourceDir)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 PackageBinDir		= $(SourceDir)/bin/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 PackageTargetDir 	= $(PackageSourceDir)/$(XDAQ_OS)/$(XDAQ_PLATFORM)
-PackageIncludeDirs	= $(SourceDir)/include/$(XDAQ_OS) $(SourceDir)/include $(IncludeDirs)
+PackageIncludeDirs	= $(ConfigDir) $(SourceDir)/include/$(XDAQ_OS) $(SourceDir)/include $(IncludeDirs)
 endif
 
 LibInstallDir   	= $(XDAQ_ROOT)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
@@ -107,7 +108,10 @@ LibDir			= $(XDAQ_ROOT)/$(Project)/$(Package)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 BinDir			= $(XDAQ_ROOT)/$(Project)/$(Package)/bin/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 DocsDir			= $(XDAQ_ROOT)/$(Project)/$(Package)/doc
 
-Copy			= cp -p
+# look in installation dirs if libraries are not found in development dirs.
+LibraryDirs += $(LibInstallDir)
+
+Copy			= cp -pd
 CopyDir 		= cp -rp
 Move			= mv
 MakeDir 		= mkdir -p
@@ -276,11 +280,11 @@ ifdef StaticLibrary
 	$(Copy) $(StaticLibraryName) $(ReleaseDir)/TriDAS/$(Project)/$(Package)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 endif
 ifdef DynamicLibrary
-	$(Print) Installing dynamic library.
+	$(Print) Installing dynamic library
 	$(Copy) $(DynamicLibraryName) $(ReleaseDir)/TriDAS/$(Project)/$(Package)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 endif
 ifdef Executables
-	$(Print) Installing executable binaries.
+	$(Print) Installing executable binaries
 	$(Copy) $(PackageBinDir)/*.exe $(ReleaseDir)/TriDAS/$(Project)/$(Package)/bin/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 endif
 # Packages
@@ -397,13 +401,13 @@ install : $(PackageListLoop)
 _installall: _buildall
 ifndef Packages
 	$(Install) -d $(LibInstallDir) $(BinInstallDir)
-ifdef StaticLibrary
+ifdef StaticLibraryName
 	$(Print) Installing static library.
 	$(Install) -p $(StaticLibraryName) $(LibInstallDir)/
 endif
-ifdef DynamicLibrary
+ifdef DynamicLibraryName
 	$(Print) Installing dynamic library.
-	$(Install) -p $(DynamicLibraryName) $(LibInstallDir)/
+	$(Copy) $(DynamicLibraryName) $(LibInstallDir)/
 endif
 ifdef Executables
 	$(Print) Installing executable binaries.

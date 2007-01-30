@@ -1,4 +1,4 @@
-# $Id: Makefile,v 3.1 2006/10/27 14:38:19 ichiro Exp $
+# $Id: Makefile,v 3.2 2007/01/30 15:03:48 ichiro Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -30,7 +30,7 @@ Sources = \
 	TF_hyperDAQ.cc \
 	TF_hyperDAQV.cc
 
-DependentLibraryDirs = $(XDAQ_ROOT)/daq/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+DependentLibraryDirs = $(XDAQ_ROOT)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 DependentLibraries = CSCSupervisor
 EMU_APP_DIR = ../..
 
@@ -57,11 +57,7 @@ IncludeDirs = \
 
 
 LibraryDirs = \
-	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
-	$(XDAQ_ROOT)/daq/extern/cgicc/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
-	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
-	$(XDAQ_ROOT)/daq/extern/log4cplus/udpappender/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-	$(XDAQ_ROOT)/daq/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+	$(XDAQ_ROOT)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
 
 UserSourcePath =
