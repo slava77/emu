@@ -11,8 +11,13 @@ EmuFEDCrate::EmuFEDCrate(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
 		EmuApplication(stub)
 {
-	xoap::bind(this, &EmuFEDCrate::onConfigure, "Configure", XDAQ_NS_URI);
-	xoap::bind(this, &EmuFEDCrate::onHalt,      "Halt",      XDAQ_NS_URI);
+	xoap::bind(this, &EmuFEDCrate::onConfigure,  "Configure",  XDAQ_NS_URI);
+	xoap::bind(this, &EmuFEDCrate::onHalt,       "Halt",       XDAQ_NS_URI);
+	xoap::bind(this, &EmuFEDCrate::onSetTTSBits, "SetTTSBits", XDAQ_NS_URI);
+
+	getApplicationInfoSpace()->fireItemAvailable("TTSCrate", &tts_crate_);
+	getApplicationInfoSpace()->fireItemAvailable("TTSSlot",  &tts_slot_);
+	getApplicationInfoSpace()->fireItemAvailable("TTSBits",  &tts_bits_);
 
 	fsm_.addState('H', "Halted",     this, &EmuFEDCrate::stateChanged);
 	fsm_.addState('C', "Configured", this, &EmuFEDCrate::stateChanged);
@@ -46,6 +51,16 @@ xoap::MessageReference EmuFEDCrate::onHalt(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
 	fireEvent("Halt");
+
+	return createReply(message);
+}
+
+xoap::MessageReference EmuFEDCrate::onSetTTSBits(xoap::MessageReference message)
+		throw (xoap::exception::Exception)
+{
+    LOG4CPLUS_INFO(getApplicationLogger(),
+			"Setting TTS: crate " << tts_crate_ << " slot " << tts_slot_
+			<< " bits " << hex << tts_bits_ << dec);
 
 	return createReply(message);
 }
