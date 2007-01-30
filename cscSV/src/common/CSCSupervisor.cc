@@ -3,9 +3,9 @@
 #include "CSCSupervisor.h"
 
 #include <sstream>
+#include <set>
 
 #include "xdaq/NamespaceURI.h"
-#include "xdaq/ApplicationGroup.h"
 #include "xoap/Method.h"
 #include "xoap/MessageFactory.h"  // createMessage()
 #include "xoap/SOAPPart.h"
@@ -463,9 +463,9 @@ void CSCSupervisor::sendCommand(string command, string klass)
 	// xdaq exceptions are thrown by postSOAP() for socket level errors.
 
 	// find applications
-	vector<xdaq::ApplicationDescriptor *> apps;
+	std::set<xdaq::ApplicationDescriptor *> apps;
 	try {
-		apps = getApplicationContext()->getApplicationGroup()
+		apps = getApplicationContext()->getDefaultZone()
 				->getApplicationDescriptors(klass);
 	} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
 		return; // Do nothing if the target doesn't exist
@@ -480,7 +480,7 @@ void CSCSupervisor::sendCommand(string command, string klass)
 	xoap::MessageReference reply;
 
 	// send the message one-by-one
-	vector<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
+	std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
 	for (; i != apps.end(); ++i) {
 		// postSOAP() may throw an exception when failed.
 		reply = getApplicationContext()->postSOAP(message, *i);
@@ -504,9 +504,9 @@ void CSCSupervisor::setParameter(
 		string klass, string name, string type, string value)
 {
 	// find applications
-	vector<xdaq::ApplicationDescriptor *> apps;
+	std::set<xdaq::ApplicationDescriptor *> apps;
 	try {
-		apps = getApplicationContext()->getApplicationGroup()
+		apps = getApplicationContext()->getDefaultZone()
 				->getApplicationDescriptors(klass);
 	} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
 		return; // Do nothing if the target doesn't exist
@@ -518,7 +518,7 @@ void CSCSupervisor::setParameter(
 	xoap::MessageReference reply;
 
 	// send the message one-by-one
-	vector<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
+	std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
 	for (; i != apps.end(); ++i) {
 		reply = getApplicationContext()->postSOAP(message, *i);
 		analyzeReply(message, reply, *i);
@@ -760,7 +760,7 @@ string CSCSupervisor::trim(string orig) const
 string CSCSupervisor::getDAQMode()
 {
 	if (daq_descr_ == NULL) {
-		daq_descr_ = getApplicationContext()->getApplicationGroup()
+		daq_descr_ = getApplicationContext()->getDefaultZone()
 				->getApplicationDescriptor("EmuDAQManager", 0);
 		daq_param_ = createParameterGetSOAP(
 				"EmuDAQManager", "globalMode", "xsd:boolean");
@@ -788,7 +788,7 @@ string CSCSupervisor::getDAQMode()
 string CSCSupervisor::getTFConfig()
 {
 	if (tf_descr_ == NULL) {
-		tf_descr_ = getApplicationContext()->getApplicationGroup()
+		tf_descr_ = getApplicationContext()->getDefaultZone()
 				->getApplicationDescriptor("TF_hyperDAQ", 0);
 		tf_param_ = createParameterGetSOAP(
 				"TF_hyperDAQ", "triggerMode", "xsd:string");
@@ -811,7 +811,7 @@ string CSCSupervisor::getTFConfig()
 string CSCSupervisor::getTTCciSource()
 {
 	if (ttc_descr_ == NULL) {
-		ttc_descr_ = getApplicationContext()->getApplicationGroup()
+		ttc_descr_ = getApplicationContext()->getDefaultZone()
 				->getApplicationDescriptor("TTCciControl", 0);
 
 		string names[4], types[4];
@@ -896,16 +896,16 @@ void CSCSupervisor::StateTable::addApplication(CSCSupervisor *sv, string klass)
 	sv_ = sv;
 
 	// find applications
-	vector<xdaq::ApplicationDescriptor *> apps;
+	std::set<xdaq::ApplicationDescriptor *> apps;
 	try {
-		apps = sv->getApplicationContext()->getApplicationGroup()
+		apps = sv->getApplicationContext()->getDefaultZone()
 				->getApplicationDescriptors(klass);
 	} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
 		return; // Do nothing if the target doesn't exist
 	}
 
 	// add to the table
-	vector<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
+	std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
 	for (; i != apps.end(); ++i) {
 		table_.push_back(
 				pair<xdaq::ApplicationDescriptor *, string>(*i, "NULL"));

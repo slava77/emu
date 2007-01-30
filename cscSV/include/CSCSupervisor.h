@@ -11,6 +11,7 @@
 #include "xdata/Vector.h"
 #include "xdata/Bag.h"
 #include "xdata/String.h"
+#include "xdata/UnsignedLong.h"
 #include "xgi/Method.h"
 
 class CSCSupervisor : public EmuApplication
