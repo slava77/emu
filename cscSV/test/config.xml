@@ -57,8 +57,8 @@
 	</xc:Context>
 
 	<xc:Context url="http://localhost:40001">
-		<xc:Application class="EmuFEDCrate" id="20" instance="0" network="local"/>
-		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libEmuFEDCrate.so</xc:Module>
+		<xc:Application class="EmuFCrateSOAP" id="20" instance="0" network="local"/>
+		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libEmuFCrateSOAP.so</xc:Module>
 
 		<xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="local"/>
 		<xc:Application class="EmuPeripheralCrate" id="31" instance="1" network="local"/>
