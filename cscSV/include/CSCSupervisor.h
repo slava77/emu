@@ -49,6 +49,8 @@ public:
 			throw (xgi::exception::Exception);
 	void webReset(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
+	void webSetTTS(xgi::Input *in, xgi::Output *out)
+			throw (xgi::exception::Exception);
 	void webRedirect(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
 
@@ -62,6 +64,7 @@ public:
 	void haltAction(toolbox::Event::Reference e) 
 			throw (toolbox::fsm::exception::Exception);
 	void resetAction() throw (toolbox::fsm::exception::Exception);
+	void setTTSAction() throw (toolbox::fsm::exception::Exception);
 
 private: // XDAQ parameters
 	xdata::String x_runmode_;
@@ -97,9 +100,7 @@ private:
 	string extractParameter(xoap::MessageReference message, string name);
 	void refreshConfigParameters();
 
-	string getRunmode(xgi::Input *in);
-	string getRunNumber(xgi::Input *in);
-	string getNEvents(xgi::Input *in);
+	string getCGIParameter(xgi::Input *in, string name);
 	int modeToIndex(string mode);
 
 	string getConfigFilename(string type, string mode) const;
@@ -120,6 +121,10 @@ private:
 	string runmode_;
 	string runnumber_;
 	string nevents_;
+
+	string tts_crate_;
+	string tts_slot_;
+	string tts_bits_;
 
 	string error_message_;
 
