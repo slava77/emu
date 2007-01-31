@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: RAT.h,v 3.2 2006/07/23 14:04:06 rakness Exp $
+// $Id: RAT.h,v 3.3 2007/01/31 16:49:51 rakness Exp $
 // $Log: RAT.h,v $
+// Revision 3.3  2007/01/31 16:49:51  rakness
+// complete set of TMB/ALCT/RAT xml parameters
+//
 // Revision 3.2  2006/07/23 14:04:06  rakness
 // encapsulate RAT, update configure()
 //
@@ -80,6 +83,9 @@ public:
   ////////////////////////////////////////////////
   // Useful methods to use the RAT class...
   ////////////////////////////////////////////////
+  void CheckRATConfiguration();
+  inline int GetRATConfigurationStatus() { return rat_configuration_status_; }
+  //
   void configure();
   //
   void reset_parity_error_counter();
@@ -98,6 +104,9 @@ public:
   void ReadRatUserCode();
   int GetRatUserCode(int device);  //device = [ChipLocationRatFpga,ChipLocationRatProm]
   //
+  inline int GetReadRatFirmwareDay()   { return read_rat_firmware_day_;   }
+  inline int GetReadRatFirmwareMonth() { return read_rat_firmware_month_; }
+  inline int GetReadRatFirmwareYear()  { return read_rat_firmware_year_;  }
   //
   /////////////////////////////////////
   // User1 Register (read register):
@@ -122,8 +131,13 @@ private:
   std::ostream * MyOutput_ ;
   TMB * tmb_ ;
   //
+  int rat_configuration_status_;
   int rat_idcode_[2];
   int rat_usercode_[2];
+  //
+  int read_rat_firmware_day_;
+  int read_rat_firmware_month_;
+  int read_rat_firmware_year_;
   //
   void rpc_fpga_finished_();
   //

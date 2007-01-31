@@ -26,8 +26,9 @@ RAT::RAT(TMB * tmb) :
   SetPowerUpUser2Register_();
   SetRatTmbDelay(9);
   //
-  SetCheckJtagWrite(true);
+  SetCheckJtagWrite(false);
   //
+  rat_configuration_status_ = -1;
   //
 };
 //
@@ -38,9 +39,11 @@ RAT::~RAT() {
 //
 void RAT::configure() {
   //
-  WriteRpcRatDelay();
-  if (GetCheckJtagWrite())
-    PrintRatUser1();
+  // the configuration for the RAT has been moved into TMB
+  //
+  //  WriteRpcRatDelay();
+  //  if (GetCheckJtagWrite())
+  //    PrintRatUser1();
   //
   // The following should probably go in TMB configure, since it is actually a delay on the TMB:
   //  WriteRatTmbDelay();
@@ -48,13 +51,29 @@ void RAT::configure() {
   return;
 }
 //
+void RAT::CheckRATConfiguration() {
+  //
+  bool config_ok = true;
+  //
+  ReadRatUserCode(); // fill the read values in the software
+  //
+  config_ok &= tmb_->compareValues("RAT Firmware Day"  ,GetReadRatFirmwareDay()  ,tmb_->GetExpectedRatFirmwareDay()  );
+  config_ok &= tmb_->compareValues("RAT Firmware Month",GetReadRatFirmwareMonth(),tmb_->GetExpectedRatFirmwareMonth());
+  config_ok &= tmb_->compareValues("RAT Firmware Year" ,GetReadRatFirmwareYear() ,tmb_->GetExpectedRatFirmwareYear() );
+  //
+  tmb_->ReportCheck("RAT configuration check",config_ok);
+  //
+  rat_configuration_status_ = (int) config_ok;
+  //
+  return;
+}
 //
 ///////////////////////////////////
 // user and ID codes...
 ///////////////////////////////////
 void RAT::ReadRatIdCode(){
   //
-  (*MyOutput_) << "RAT: Read RAT ID Codes" << std::endl;
+  //  (*MyOutput_) << "RAT: Read RAT ID Codes" << std::endl;
   //
   setup_jtag(ChainRat);
   //
@@ -74,8 +93,8 @@ void RAT::ReadRatIdCode(){
 			       GetRegLength(),
 			       LSBfirst);
   //
-  (*MyOutput_) << "RAT FPGA ID code = " << rat_idcode_[ChipLocationRatFpga] << std::endl;
-  (*MyOutput_) << "RAT PROM ID code = " << rat_idcode_[ChipLocationRatProm] << std::endl;
+  //  (*MyOutput_) << "RAT FPGA ID code = " << std::hex << rat_idcode_[ChipLocationRatFpga] << std::endl;
+  //  (*MyOutput_) << "RAT PROM ID code = " << std::hex << rat_idcode_[ChipLocationRatProm] << std::endl;
   //
   return;
 }
@@ -88,7 +107,7 @@ int RAT::GetRatIdCode(int device) {
 //
 void RAT::ReadRatUserCode(){
   //
-  (*MyOutput_) << "RAT: Read RAT User Codes" << std::endl;
+  //  (*MyOutput_) << "RAT: Read RAT User Codes" << std::endl;
   //
   setup_jtag(ChainRat);
   //
@@ -109,8 +128,12 @@ void RAT::ReadRatUserCode(){
 						   GetRegLength(),
 						   LSBfirst);
   //
-  (*MyOutput_) << "RAT FPGA User code = " << rat_usercode_[ChipLocationRatFpga] << std::endl;
-  (*MyOutput_) << "RAT PROM User code = " << rat_usercode_[ChipLocationRatProm] << std::endl;
+  //  (*MyOutput_) << "RAT FPGA User code = " << std::hex << rat_usercode_[ChipLocationRatFpga] << std::endl;
+  //  (*MyOutput_) << "RAT PROM User code = " << std::hex << rat_usercode_[ChipLocationRatProm] << std::endl;
+  //
+  read_rat_firmware_month_ =  (rat_usercode_[ChipLocationRatFpga] >> 24) & 0xff;
+  read_rat_firmware_day_   =  (rat_usercode_[ChipLocationRatFpga] >> 16) & 0xff;
+  read_rat_firmware_year_  =  (rat_usercode_[ChipLocationRatFpga] >>  0) & 0xffff;
   //
   return;
 }

@@ -144,31 +144,31 @@ bool TMBTester::runAllTests() {
 
   return AllOK;
 }
-
+//
 bool TMBTester::testBootRegister() {
   (*MyOutput_) << "TMBTester: testing Boot Register" << std::endl;
-
+  //
   bool testOK = false;
   int dummy;  
-  
+  //
   unsigned short int BootData;
   dummy = tmb_->tmb_get_boot_reg(&BootData);
   //  (*MyOutput_) << "Initial boot contents = " << std::hex << BootData << std::endl;
-
+  //
   unsigned short int write_data, read_data;
   int err_reg = 0;
-
+  //
   // walk through the 16 bits on the register
   for (int ibit=0; ibit<16; ibit++) {
     write_data = 0x1 << ibit;
     dummy = tmb_->tmb_set_boot_reg(write_data);
-
+    //
     dummy = tmb_->tmb_get_boot_reg(&read_data);
-
+    //
     // Remove the read-only bits:
     read_data &= 0x3FFF;
     write_data &= 0x3FFF;
-    
+    //
     if ( !compareValues("bootreg bit",read_data,write_data,true) ) {
       err_reg++;
     }
@@ -176,12 +176,12 @@ bool TMBTester::testBootRegister() {
     // to various item...
     ::sleep(1);
   }
-
+  //
   // Restore boot contents
   dummy = tmb_->tmb_set_boot_reg(BootData);
   dummy = tmb_->tmb_get_boot_reg(&read_data);   //check for FPGA final state
   //  (*MyOutput_) << "Final Boot Contents = " << std::hex << read_data << std::endl;    
-
+  //
   testOK = compareValues("Number of boot register errors",err_reg,0,true);  
   messageOK("Boot Register",testOK);
   //dummy = sleep(3);
@@ -190,92 +190,90 @@ bool TMBTester::testBootRegister() {
   //
   return testOK; 
 }
-
+//
 bool TMBTester::testHardReset(){
   (*MyOutput_) << "TMBTester: checking hard reset TMB via boot register" << std::endl;
   (*MyOutput_) << "NOTE:  TEST NOT NEEDED, as we hard reset by the CCB" << std::endl; 
-
+  //
   bool testOK = false;
   int dummy;
-
+  //
   unsigned short int BootData;
   dummy = tmb_->tmb_get_boot_reg(&BootData);
   //  (*MyOutput_) << "Initial boot contents = " << std::hex << BootData << std::endl;
-
+  //
   unsigned short int write_data, read_data;
-
+  //
   write_data = 0x0200;
   dummy = tmb_->tmb_set_boot_reg(write_data);   //assert hard reset
-
+  //
   dummy = tmb_->tmb_get_boot_reg(&read_data);   //check for FPGA not ready
   read_data &= 0x7FFF;                          // remove tdo
-
+  //
   bool FPGAnotReady = 
     compareValues("Hard reset TMB FPGA not ready",read_data,0x0200,true);
-
-  
+  //
   write_data = 0x0000;
   dummy = tmb_->tmb_set_boot_reg(write_data);   //de-assert hard reset
-
+  //
   (*MyOutput_) << "waiting for TMB to reload..." << std::endl;
   dummy = ::sleep(5);                             
-
+  //
   dummy = tmb_->tmb_get_boot_reg(&read_data);   //check for FPGA not ready
   read_data &= 0x4000;                          // remove bits beside "FPGA ready"
-
+  //
   bool FPGAReady = compareValues("Hard reset TMB FPGA ready",read_data,0x4000,true);
-
+  //
   // Restore boot contents
   dummy = tmb_->tmb_set_boot_reg(BootData);
   dummy = tmb_->tmb_get_boot_reg(&read_data);   //check for FPGA final state
   //  (*MyOutput_) << "Final Boot Contents = " << std::hex << read_data << std::endl;    
-
+  //
   testOK = (FPGAnotReady &&
 	    FPGAReady);
   return testOK;
 }
-
-
+//
 bool TMBTester::testVMEfpgaDataRegister(){
   //
   // NOTE: This test is redundant with the 3d3444 test....       
   //
   (*MyOutput_) << "TMBTester: testing VME FPGA Data Register" << std::endl;
   bool testOK = false;
-
+  //
   //std::cout << "Read..." << std::endl;
-
+  //
   // Get current status:
   int vme_cfg = tmb_->ReadRegister(vme_ddd0_adr);
-
+  //
   //std::cout << "Done..." << std::endl;
-
+  //
   int write_data,read_data;
   bool tempBool;
-
+  //
   int register_error = 0;
-
+  //
   for (int i=0; i<=15; i++) {
     //
     //    std::cout << "Looping " << std::endl ;
     //
     write_data = 1 << i;
-
+    //
     tmb_->WriteRegister(vme_ddd0_adr,write_data);  //write walking 1
     read_data = tmb_->ReadRegister(0);               //read base to purge bit3 buffers
     read_data = tmb_->ReadRegister(vme_ddd0_adr);  //read walking 1
-    
+    //
     tempBool = compareValues("Register value",read_data,write_data,true);
-    
+    //
     if (!tempBool) register_error++;
   }
-
+  //
   //restore data register...
   tmb_->WriteRegister(vme_ddd0_adr,vme_cfg);
-
+  //
   write_data = 0x001A;       // turn on cylons
   tmb_->WriteRegister(ccb_cfg_adr,write_data);
-
+  //
   testOK = compareValues("Number of VME FPGA data reg errors",register_error,0,true);
   messageOK("VME FPGA data register",testOK);
   //int dummy = sleep(3);
@@ -284,36 +282,40 @@ bool TMBTester::testVMEfpgaDataRegister(){
   //
   return testOK;
 }
-
+//
 bool TMBTester::testFirmwareSlot(){
-  (*MyOutput_) << 
-    "TMBTester::testFirmwareSlot() NOT YET IMPLEMENTED" 
-     << std::endl;
-
+  (*MyOutput_) << "TMBTester::testFirmwareSlot() NOT YET IMPLEMENTED" << std::endl;
+  //
   bool testOK = false;  
   return testOK;
 }
-
+//
 bool TMBTester::testFirmwareDate() {
+  //
   (*MyOutput_) << "TMBTester: testing Firmware date" << std::endl;
-
-  bool testOK = false;
-
-  int firmwareData = tmb_->FirmwareDate();
-  int day = firmwareData & 0xff;
-  int month = (firmwareData>>8) & 0xff;
-  int year=tmb_->FirmwareYear();
-
+  //
+  // read the registers:
+  tmb_->FirmwareDate();
+  tmb_->FirmwareYear();
+  //
+  // get the read values:
+  int day   = tmb_->GetReadTmbFirmwareDay();
+  int month = tmb_->GetReadTmbFirmwareMonth();
+  int year  = tmb_->GetReadTmbFirmwareYear();
+  //
   (*MyOutput_) << "Firmware day.month.year = " << std::hex 
 	       << day << "." << month << "." << year << std::endl;
-
-  bool dayOK = compareValues("Firmware Day",day,0x17,true);
-  bool monthOK = compareValues("Firmware Month",month,0x3,true);
-  bool yearOK = compareValues("Firmware Year",year,0x2006,true);
-  testOK = (dayOK &&
-	    monthOK &&
-	    yearOK);
-
+  //
+  int expected_day   = tmb_->GetExpectedTmbFirmwareDay();
+  int expected_month = tmb_->GetExpectedTmbFirmwareMonth();
+  int expected_year  = tmb_->GetExpectedTmbFirmwareYear();
+  //
+  bool dayOK   = compareValues("Firmware Day"  ,day  ,expected_day  ,true);
+  bool monthOK = compareValues("Firmware Month",month,expected_month,true);
+  bool yearOK  = compareValues("Firmware Year" ,year ,expected_year ,true);
+  //
+  bool testOK = (dayOK && monthOK && yearOK);
+  //
   messageOK("Firmware Date",testOK);
   //int dummy = sleep(3);
   //
@@ -321,39 +323,43 @@ bool TMBTester::testFirmwareDate() {
   //
   return testOK; 
 }
-
-
+//
 bool TMBTester::testFirmwareType() {
+  //
   (*MyOutput_) << "TMBTester: testing Firmware Type" << std::endl;
-  bool TypeNormal=false;
-  bool TypeDebug=false;
-
-  int firmwareData = tmb_->FirmwareVersion();
-  int type = firmwareData & 0xf;
-
-  TypeNormal = compareValues("Firmware Normal",type,0xC,true);
-  if (!TypeNormal){
-    TypeDebug = compareValues("CAUTION Firmware Debug",type,0xD,true);    
-  }
-  if (!TypeNormal && !TypeDebug ){
-    (*MyOutput_) << 
-      "What kind of Firmware is this? Firmware = " << type << std::endl;
-  }
-  messageOK("Firmware Type Normal",TypeNormal);
+  //
+  // read the registers:
+  tmb_->FirmwareVersion();
+  //
+  // get the read values:
+  int type = tmb_->GetReadTmbFirmwareType();
+  //
+  int expected_type = tmb_->GetExpectedTmbFirmwareType();
+  //
+  bool testOK = compareValues("Firmware Type",type,expected_type,true);
+  //
+  messageOK("Firmware Type",testOK);
   //int dummy = sleep(3);
   //
-  ResultTestFirmwareType_ = TypeNormal;
+  ResultTestFirmwareType_ = testOK;
   //
-  return TypeNormal;
+  return testOK;
 }
-
-
+//
 bool TMBTester::testFirmwareVersion() {
+  //
   (*MyOutput_) << "TMBTester: testing Firmware Version" << std::endl;
-  int firmwareData = tmb_->FirmwareVersion();
-  int version = (firmwareData>>4) & 0xf;
-
-  bool testOK = compareValues("Firmware Version",version,0xE,true);
+  //
+  // read the registers:
+  tmb_->FirmwareVersion();
+  //
+  // get the read values:
+  int version = tmb_->GetReadTmbFirmwareVersion();
+  //
+  int expected_version = tmb_->GetExpectedTmbFirmwareVersion();
+  //
+  bool testOK = compareValues("Firmware Version",version,expected_version,true);
+  //
   messageOK("Firmware Version",testOK);
   //int dummy = sleep(3);
   //
@@ -361,19 +367,21 @@ bool TMBTester::testFirmwareVersion() {
   //
   return testOK;
 }
-
-
+//
 bool TMBTester::testFirmwareRevCode(){
+  //
   (*MyOutput_) << "TMBTester: testing Firmware Revision Code" << std::endl;
-
-  int firmwareData = tmb_->FirmwareRevCode();
-
-  //  int RevCodeDay = firmwareData & 0x001f;
-  //  int RevCodeMonth = (firmwareData>>5) & 0x000f;
-  //  int RevCodeYear = (firmwareData>>9) & 0x0007;
-  int RevCodeFPGA = (firmwareData>>12) & 0x000F;
-  
-  bool testOK = compareValues("Firmware Revcode FPGA",RevCodeFPGA,0x04,true);
+  //
+  // read the registers:
+  tmb_->FirmwareRevCode();
+  //
+  // get the read values:
+  int revcode = tmb_->GetReadTmbFirmwareRevcode();
+  //
+  int expected_revcode = tmb_->GetExpectedTmbFirmwareRevcode();
+  //
+  bool testOK = compareValues("Firmware Revcode FPGA",revcode,expected_revcode,true);
+  //
   messageOK("Firmware Revcode FPGA",testOK);
   //int dummy = sleep(3);
   //
@@ -381,55 +389,53 @@ bool TMBTester::testFirmwareRevCode(){
   //
   return testOK;
 }
-
-
+//
 bool TMBTester::testJTAGchain(){
   (*MyOutput_) << "TMBTester: testing User and Boot JTAG chains" << std::endl;
-
+  //
   bool user = testJTAGchain(0);
   bool boot = testJTAGchain(1);
-
+  //
   bool JTAGchainOK = (user && boot);
   messageOK("JTAG chains",JTAGchainOK);
   //int dummy = sleep(3);
   return JTAGchainOK;
 }
-
+//
 bool TMBTester::testJTAGchain(int type){
   (*MyOutput_) << "testJTAGchain: DOES NOT WORK with firmware not in debug mode" << std::endl; 
-  (*MyOutput_) << 
-   "Therefore...  TMBTester::testJTAGchain() NOT YET IMPLEMENTED" 
-     << std::endl;
-
+  (*MyOutput_) << "Therefore...  TMBTester::testJTAGchain() NOT YET IMPLEMENTED" << std::endl;
+  //
   bool testOK = false;  
   return testOK;
 }
-
-
+//
 bool TMBTester::testMezzId(){
   //
   (*MyOutput_) << "TMBTester: Checking Mezzanine FPGA and PROMs ID codes" << std::endl;
-  bool testOK = false;
+  //
+  const int EXPECTED_TMB_MEZZ_FPGA_IDCODE = 0x11050093;
+  const int EXPECTED_TMB_MEZZ_PROM_IDCODE = 0x05036093;
   //
   tmb_->ReadTmbIdCodes();
   //
-  int fpgaIdCode = tmb_->GetTMBmezzFpgaIdCode();
+  int fpgaIdCode  = tmb_->GetTMBmezzFpgaIdCode();
   int prom0IdCode = tmb_->GetTMBmezzProm0IdCode();
   int prom1IdCode = tmb_->GetTMBmezzProm1IdCode();
   int prom2IdCode = tmb_->GetTMBmezzProm2IdCode();
   int prom3IdCode = tmb_->GetTMBmezzProm3IdCode();
   //
-  bool testFPGAmezz  = compareValues("Mezz FPGA ID code",fpgaIdCode,0x11050093,true);  
-  bool testPROMmezz0 = compareValues("Mezz PROM 0 ID code",prom0IdCode,0x05036093,true);  
-  bool testPROMmezz1 = compareValues("Mezz PROM 1 ID code",prom1IdCode,0x05036093,true);  
-  bool testPROMmezz2 = compareValues("Mezz PROM 2 ID code",prom2IdCode,0x05036093,true);  
-  bool testPROMmezz3 = compareValues("Mezz PROM 3 ID code",prom3IdCode,0x05036093,true);  
+  bool testFPGAmezz  = compareValues("Mezz FPGA ID code"  ,fpgaIdCode ,EXPECTED_TMB_MEZZ_FPGA_IDCODE,true);  
+  bool testPROMmezz0 = compareValues("Mezz PROM 0 ID code",prom0IdCode,EXPECTED_TMB_MEZZ_PROM_IDCODE,true);  
+  bool testPROMmezz1 = compareValues("Mezz PROM 1 ID code",prom1IdCode,EXPECTED_TMB_MEZZ_PROM_IDCODE,true);  
+  bool testPROMmezz2 = compareValues("Mezz PROM 2 ID code",prom2IdCode,EXPECTED_TMB_MEZZ_PROM_IDCODE,true);  
+  bool testPROMmezz3 = compareValues("Mezz PROM 3 ID code",prom3IdCode,EXPECTED_TMB_MEZZ_PROM_IDCODE,true);  
   //
-  testOK = (testFPGAmezz  &&
-	    testPROMmezz0 &&
-	    testPROMmezz1 &&
-	    testPROMmezz2 &&
-	    testPROMmezz3 );
+  bool testOK = (testFPGAmezz  &&
+		 testPROMmezz0 &&
+		 testPROMmezz1 &&
+		 testPROMmezz2 &&
+		 testPROMmezz3 );
   //
   messageOK("Mezzanine FPGA/PROM ID",testOK);
   //int dummy = sleep(3);
@@ -440,8 +446,8 @@ bool TMBTester::testMezzId(){
 }
 //
 bool TMBTester::testPROMid(){
+  //
   (*MyOutput_) << "TMBTester: Checking User PROM ID codes" << std::endl;
-  bool testOK = false;
   //
   tmb_->ReadTmbIdCodes();
   //
@@ -463,9 +469,9 @@ bool TMBTester::testPROMid(){
 				       (userProm1IdCode & MASK_TO_TREAT_512k_LIKE_256k),
 				       PROM_ID_256k,true);  
   //
-  testOK = (testSameID &&
-	    testPROMUserId0 &&
-	    testPROMUserId1 );
+  bool testOK = (testSameID &&
+		 testPROMUserId0 &&
+		 testPROMUserId1 );
   //
   messageOK("PROM User ID",testOK);
   //int dummy = sleep(3);
@@ -474,12 +480,10 @@ bool TMBTester::testPROMid(){
   //
   return testOK;
 }
-
-
+//
 bool TMBTester::testPROMpath(){
-  (*MyOutput_) << "TMBTester: Checking User PROM Data Path" << std::endl;
   //
-  bool testOK = false;
+  (*MyOutput_) << "TMBTester: Checking User PROM Data Path" << std::endl;
   //
   int pat_expect1, pat_expect2;
   //
@@ -521,7 +525,7 @@ bool TMBTester::testPROMpath(){
       }
     }
   }
-  testOK = temptest;
+  bool testOK = temptest;
   //
   messageOK("PROM path",testOK);
   //int dummy = sleep(3);
@@ -530,32 +534,29 @@ bool TMBTester::testPROMpath(){
   //
   return testOK;
 }
-
-
+//
 bool TMBTester::testDSN(){
-  (*MyOutput_) << "TMBTester: Checking Digital Serial Numbers for TMB" 
-	    << std::endl;
+  //
+  (*MyOutput_) << "TMBTester: Checking Digital Serial Numbers for TMB" << std::endl;
   bool tmbDSN = testDSN(0);
   //::sleep(1);
-
-  (*MyOutput_) << "TMBTester: Checking Digital Serial Numbers for Mezzanine" 
-	    << std::endl;
+  //
+  (*MyOutput_) << "TMBTester: Checking Digital Serial Numbers for Mezzanine" << std::endl;
   bool mezzanineDSN = testDSN(1);
   //::sleep(1);
-
-  (*MyOutput_) << "TMBTester: Checking Digital Serial Numbers for RAT" 
-	    << std::endl;
+  //
+  (*MyOutput_) << "TMBTester: Checking Digital Serial Numbers for RAT" << std::endl;
   bool ratDSN = testDSN(2);
   //::sleep(1);
-
+  //
   messageOK("TMB DSN",tmbDSN);
   messageOK("Mezzanine DSN",mezzanineDSN);
   messageOK("RAT DSN",ratDSN);
-
+  //
   bool DSNOK = (tmbDSN &&
                 mezzanineDSN &&
                 ratDSN);
-
+  //
   messageOK("All Digital Serial Numbers",DSNOK);
   //::sleep(3);
   //
@@ -563,20 +564,20 @@ bool TMBTester::testDSN(){
   //
   return DSNOK;
 }
-
+//
 bool TMBTester::testDSN(int BoardType){
   //BoardType = 0 = TMB
   //          = 1 = Mezzanine
   //          = 2 = RAT
 
   std::bitset<64> dsn;
-
+  //
   // get the digital serial number
   dsn = tmb_->dsnRead(BoardType);
-
+  //
   // compute the CRC
   int crc = dowCRC(dsn);
-
+  //
   //get the 8 most significant bits (from their LSB) to compare with CRC
   int dsntocompare = 0;
   int value;
@@ -584,19 +585,19 @@ bool TMBTester::testDSN(int BoardType){
     value = dsntocompare << 1;
     dsntocompare = value | dsn[bit];
   }
-
+  //
   bool crcEqualDSN = compareValues("CRC equal dsn[56-63]",crc,dsntocompare,true);
   bool crcZero = compareValues("CRC value ",crc,0,false);
-
+  //
   bool DSNOK = (crcZero &&
 		crcEqualDSN);
   return DSNOK;
 }
-
-
+//
 bool TMBTester::testADC(){
+  //
   (*MyOutput_) << "TMBTester: Checking ADC and status" << std::endl;
-
+  //
   bool testOK = false;
 
   // Voltage status bits...
@@ -727,32 +728,27 @@ bool TMBTester::testADC(){
 
 
 bool TMBTester::test3d3444(){
+  //
   (*MyOutput_) << "TMBTester: Verifying 3d3444 operation" << std::endl;
-  bool testOK = false;
-
+  //
   bool tempbool = true;  
-
-  int device; 
-  
-  unsigned short int ddd_delay;
-  int initial_data;
-  int delay_data;
-
-  for (device=0; device<=11; device++){
-
-    initial_data=tmb_->tmb_read_delays(device);   //initial value of delays
-
-    for (ddd_delay=0; ddd_delay<=15; ddd_delay++ ) {
+  //
+  for (int device=0; device<=11; device++){
+    //
+    int initial_data=tmb_->tmb_read_delays(device);   //initial value of delays
+    //
+    for (unsigned short int ddd_delay=0; ddd_delay<=15; ddd_delay++ ) {
+      //
       tmb_->tmb_clk_delays(ddd_delay,device);              
-      delay_data=tmb_->tmb_read_delays(device);
+      int delay_data=tmb_->tmb_read_delays(device);
       tempbool &= compareValues("delay values ",delay_data,ddd_delay,true);
     }
-
+    //
     tmb_->tmb_clk_delays(initial_data,device);              
   }
-  
-  testOK = tempbool;
-
+  //
+  bool testOK = tempbool;
+  //
   messageOK("3d3444 Verification",testOK);
   //int dummy = sleep(3);
   //
@@ -762,17 +758,16 @@ bool TMBTester::test3d3444(){
 }
 //
 bool TMBTester::testALCTtxrx(){
+  //
   (*MyOutput_) << "TMBTester: Testing ALCT tx/rx cables connection to RAT" << std::endl;
-  bool testOK = false;
   //
   rat_->ReadRatUser1();
-  //
   //
   bool testTx = compareValues("ALCT tx",rat_->GetRatTxOk(),0x1,true);
   bool testRx = compareValues("ALCT rx",rat_->GetRatRxOk(),0x1,true);
   //
-  testOK = (testTx &&
-	    testRx );
+  bool testOK = (testTx &&
+		 testRx );
   //
   messageOK("ALCT tx/rx cables plugged in",testOK);
   //
@@ -781,37 +776,41 @@ bool TMBTester::testALCTtxrx(){
 }
 
 bool TMBTester::testRATtemper(){
+  //
   (*MyOutput_) << "TMBTester: Testing RAT temperature threshold bit" << std::endl;
-  bool testOK = false;
   //
   rat_->ReadRatUser1();
   //
-  testOK = compareValues("RAT Temperature bit",rat_->GetRatCriticalTempBit(),0x1,true);
+  bool testOK = compareValues("RAT Temperature bit",rat_->GetRatCriticalTempBit(),0x1,true);
   //
   messageOK("RAT Temperature bit",testOK);
   //
   ResultTestRATtemper_ = testOK ;
+  //
   return testOK;
 }
 
 bool TMBTester::testRATidCodes(){
+  //
   (*MyOutput_) << "TMBTester: Testing RAT ID codes" << std::endl;
-  bool testOK = false;
+  //
+  const int EXPECTED_RAT_FPGA_IDCODE = 0x20a10093;
+  const int EXPECTED_RAT_PROM_IDCODE = 0x05024093;
   //
   rat_->ReadRatIdCode();
   //
   int fpgaidcode = rat_->GetRatIdCode(ChipLocationRatFpga);
   //
-  bool FPGAidOK = compareValues("RAT FPGA ID code",fpgaidcode,0x20a10093,true);
+  bool FPGAidOK = compareValues("RAT FPGA ID code",fpgaidcode,EXPECTED_RAT_FPGA_IDCODE,true);
   //
   //
   // RAT PROM id can be 5034093 or 5024093....
   int promidcode = rat_->GetRatIdCode(ChipLocationRatProm) & 0xfffeffff;
   //
-  bool PROMidOK = compareValues("RAT PROM ID code",promidcode,0x05024093,true);
+  bool PROMidOK = compareValues("RAT PROM ID code",promidcode,EXPECTED_RAT_PROM_IDCODE,true);
   //
-  testOK = (FPGAidOK &&
-	    PROMidOK );
+  bool testOK = (FPGAidOK &&
+		 PROMidOK );
   //
   messageOK("RAT ID codes",testOK);
   //
@@ -820,28 +819,35 @@ bool TMBTester::testRATidCodes(){
 }
 
 bool TMBTester::testRATuserCodes(){
+  //
   (*MyOutput_) << "TMBTester: Testing RAT User codes" << std::endl;
-  //
-  // Apparently the user id code is not being entered on the RAT prom when it is programmed.
-  // This is OK, since the only thing that actually matters is the FPGA user code, which 
-  // tells what the date of the firmware is....
-  //
-  bool testOK = false;
   //
   rat_->ReadRatUserCode();
   //
-  int fpgauser = rat_->GetRatUserCode(ChipLocationRatFpga) & 0xffffffff;
+  int day   = rat_->GetReadRatFirmwareDay();
+  int month = rat_->GetReadRatFirmwareMonth();
+  int year  = rat_->GetReadRatFirmwareYear();
   //
-  bool FPGAuserOK = compareValues("RAT FPGA user code",fpgauser,0x02232006,true);
-  testOK = (FPGAuserOK);
+  int expected_day   = tmb_->GetExpectedRatFirmwareDay();
+  int expected_month = tmb_->GetExpectedRatFirmwareMonth();
+  int expected_year  = tmb_->GetExpectedRatFirmwareYear();
   //
-  messageOK("RAT User codes",testOK);
+  bool RatFirmwareDayOK   = compareValues("RAT Firmware Day"  ,day  ,expected_day  ,true);
+  bool RatFirmwareMonthOK = compareValues("RAT Firmware Month",month,expected_month,true);
+  bool RatFirmwareYearOK  = compareValues("RAT Firmware Year" ,year ,expected_year ,true);
+  //
+  bool testOK = (RatFirmwareDayOK   &&
+		 RatFirmwareMonthOK &&
+		 RatFirmwareYearOK  );
+  //
+  messageOK("RAT Firmware Date (User Code)",testOK);
   //
   ResultTestRATuserCodes_ = testOK ;
   return testOK;
 }
 //
 bool TMBTester::testU76chip(){
+  //
   (*MyOutput_) << "TMBTester: Testing TMB U76 bus-hold chip" << std::endl;  
   //
   short unsigned int initial_boot;
