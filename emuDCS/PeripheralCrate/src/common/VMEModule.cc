@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.8 2006/11/15 16:01:37 mey Exp $
+// $Id: VMEModule.cc,v 3.9 2007/01/31 16:51:19 rakness Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.9  2007/01/31 16:51:19  rakness
+// remove excessive output from prom programming
+//
 // Revision 3.8  2006/11/15 16:01:37  mey
 // Cleaning up code
 //
@@ -271,8 +274,8 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db )
   const char *downfile;
   //char fStop;
   int jchan;
-  unsigned char sndvalue;
-  fpos_t ftdi_pos, fsmask_pos;
+  //  unsigned char sndvalue;
+  //  fpos_t ftdi_pos, fsmask_pos;
   unsigned char send_tmp;//, rcv_tmp;
   int i,j,Count,nbytes,nbits,nframes,step_mode,pause;
   int hdrbits = 0, tdrbits = 0, hirbits = 0, tirbits = 0;
@@ -644,6 +647,7 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db )
 		realsnd[(i+hdrbits+nbits)/8] |= (sndtdr[i/8] >> (i%8)) << ((i+hdrbits+nbits)%8);
 	    }	    
 	    //
+	    if (db)
 	    {	
 	      printf("SDR Sent Data:\n");
 	      for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) 
@@ -783,6 +787,7 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db )
 	    //
 	    this->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, 2); 
 	    //	   
+	    if (db)
 	    { 	printf("SIR Send Data:\n");
 	    for (i=0; i< ((hirbits+nbits+tirbits-1)/8+1);  i++)
 	      printf("%02X",realsnd[i]);
@@ -820,7 +825,7 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db )
 		  {
 		    rcvword = rcv[i+(hirbits/8)<<3]+(((int)rcv[i+1+(hirbits/8)])<<2)+(((int)rcv[i+2+(hirbits/8)])<<1)+(((int)rcv[i+3+(hirbits/8)]));
 		    printf("%02x %02x\n",rcv[i+(hirbits/8)],(((int)rcv[i+1+(hirbits/8)])<<8));
-		    printf("hirbits=%d %02x\n",hirbits,rcvword);
+		    if (db) printf("hirbits=%d %02x\n",hirbits,rcvword);
 		    //rcvword = rcv[i];
 		    // if (((rcv[nbytes-1-i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
 		    if ((((rcvword&0xFF)^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
@@ -851,13 +856,13 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db )
 	    {
 	      if(strcmp(Word[2],"IDLE;")==0)
 		{
-		  cout << "STATE: goto reset idle state" << std::endl;
+		  if(db) cout << "STATE: goto reset idle state" << std::endl;
 		  RestoreIdle();
 		} 
 	    }
 	  else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET;")==0))
 	    {
-	      cout << "STATE: goto reset state" << std::endl;
+	      if(db) cout << "STATE: goto reset state" << std::endl;
 	      RestoreReset();
 	    }
 	  else if(strcmp(Word[0],"TRST")==0)
