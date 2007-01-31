@@ -59,6 +59,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	xgi::bind(this, &CSCSupervisor::webDisable,   "Disable");
 	xgi::bind(this, &CSCSupervisor::webHalt,      "Halt");
 	xgi::bind(this, &CSCSupervisor::webReset,     "Reset");
+	xgi::bind(this, &CSCSupervisor::webSetTTS,    "SetTTS");
 
 	xoap::bind(this, &CSCSupervisor::onConfigure, "Configure", XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onEnable,    "Enable",    XDAQ_NS_URI);
@@ -256,6 +257,46 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << hr() << endl;
 	state_table_.webOutput(out, (string)state_);
 
+	// TTS operation
+	*out << hr() << endl;
+	*out << form().set("action",
+			"/" + getApplicationDescriptor()->getURN() + "/SetTTS") << endl;
+
+	*out << "Crate #: " << endl;
+	*out << cgicc::select().set("name", "tts_crate") << endl;
+
+	const char n[] = "1234";
+	string str = "";
+	for (int i = 0; i < 4; ++i) {
+		if (n[i] == tts_crate_[0]) {
+			*out << option().set("value", str + n[i]).set("selected", "");
+		} else {
+			*out << option().set("value", str + n[i]);
+		}
+		*out << n[i] << option() << endl;
+	}
+
+	*out << cgicc::select() << br() << endl;
+	
+	*out << "Slot # (4-13): " << endl;
+	*out << input().set("type", "text")
+			.set("name", "tts_slot")
+			.set("value", tts_slot_)
+			.set("size", "10") << br() << endl;
+
+	*out << "TTS value: (0-15)" << endl;
+	*out << input().set("type", "text")
+			.set("name", "tts_bits")
+			.set("value", tts_bits_)
+			.set("size", "10") << br() << endl;
+
+	*out << input().set("type", "submit")
+			.set("name", "command")
+			.set("value", "SetTTS") << endl;
+	*out << form() << endl;
+
+
+	// Message logs
 	*out << hr() << endl;
 	last_log_.webOutput(out);
 
@@ -265,9 +306,9 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
-	runmode_ = getRunmode(in);
-	runnumber_ = getRunNumber(in);
-	nevents_ = getNEvents(in);
+	runmode_   = getCGIParameter(in, "runtype");
+	runnumber_ = getCGIParameter(in, "runnumber");
+	nevents_   = getCGIParameter(in, "nevents");
 
 	if (runmode_.empty()) { error_message_ += "Please select run type.\n"; }
 	if (runnumber_.empty()) { error_message_ += "Please set run number.\n"; }
@@ -309,6 +350,24 @@ void CSCSupervisor::webReset(xgi::Input *in, xgi::Output *out)
 {
 	resetAction();
 	fireEvent("Halt");
+
+	webRedirect(in, out);
+}
+
+void CSCSupervisor::webSetTTS(xgi::Input *in, xgi::Output *out)
+		throw (xgi::exception::Exception)
+{
+	tts_crate_ = getCGIParameter(in, "tts_crate");
+	tts_slot_  = getCGIParameter(in, "tts_slot");
+	tts_bits_  = getCGIParameter(in, "tts_bits");
+
+	if (tts_crate_.empty()) { error_message_ += "Please select TTS crate.\n"; }
+	if (tts_slot_.empty())  { error_message_ += "Please set TTS slot.\n"; }
+	if (tts_bits_.empty())  { error_message_ += "Please set TTS bits.\n"; }
+
+	if (error_message_.empty()) {
+		setTTSAction();
+	}
 
 	webRedirect(in, out);
 }
@@ -447,6 +506,21 @@ void CSCSupervisor::resetAction() throw (toolbox::fsm::exception::Exception)
 	fsm_.reset();
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "reset(end)");
+}
+
+void CSCSupervisor::setTTSAction() throw (toolbox::fsm::exception::Exception)
+{
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "setTTS(begin)");
+
+	const string fed_app = "EmuFCrateSOAP";
+
+	setParameter(fed_app, "TTSCrate", "xsd:unsignedInt", tts_crate_);
+	setParameter(fed_app, "TTSSlot",  "xsd:unsignedInt", tts_slot_);
+	setParameter(fed_app, "TTSBits",  "xsd:unsignedInt", tts_bits_);
+
+	sendCommand("SetTTSBits", fed_app);
+
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "setTTS(end)");
 }
 
 void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
@@ -662,50 +736,17 @@ void CSCSupervisor::refreshConfigParameters()
 	ttc_source_ = getTTCciSource();
 }
 
-string CSCSupervisor::getRunmode(xgi::Input *in)
+string CSCSupervisor::getCGIParameter(xgi::Input *in, string name)
 {
 	cgicc::Cgicc cgi(in);
-	string runmode;
+	string value;
 
-	form_iterator i = cgi.getElement("runtype");
+	form_iterator i = cgi.getElement(name);
 	if (i != cgi.getElements().end()) {
-		runmode = (*i).getValue();
+		value = (*i).getValue();
 	}
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(),
-			"==== run type:" << modeToIndex(runmode) << ":" << runmode);
-
-	return runmode;
-}
-
-string CSCSupervisor::getRunNumber(xgi::Input *in)
-{
-	cgicc::Cgicc cgi(in);
-	string runnumber;
-
-	form_iterator i = cgi.getElement("runnumber");
-	if (i != cgi.getElements().end()) {
-		runnumber = (*i).getValue();
-	}
-
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "==== run number:" << runnumber);
-
-	return runnumber;
-}
-
-string CSCSupervisor::getNEvents(xgi::Input *in)
-{
-	cgicc::Cgicc cgi(in);
-	string nevents;
-
-	form_iterator i = cgi.getElement("nevents");
-	if (i != cgi.getElements().end()) {
-		nevents = (*i).getValue();
-	}
-
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "==== # of events:" << nevents);
-
-	return nevents;
+	return value;
 }
 
 int CSCSupervisor::modeToIndex(string mode)
