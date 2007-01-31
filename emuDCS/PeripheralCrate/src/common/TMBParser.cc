@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.11 2006/11/15 16:01:37 mey Exp $
+// $Id: TMBParser.cc,v 3.12 2007/01/31 16:50:07 rakness Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.12  2007/01/31 16:50:07  rakness
+// complete set of TMB/ALCT/RAT xml parameters
+//
 // Revision 3.11  2006/11/15 16:01:37  mey
 // Cleaning up code
 //
@@ -122,157 +125,216 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     //
     tmb_ = new TMB(theCrate, theChamber, slot);
     //
-    int delay;
-    if ( parser_.fillInt("cfeb0delay",delay) ) {
-      tmb_->SetCFEB0delay(delay);
-    }
-    if ( parser_.fillInt("cfeb1delay",delay) ) {
-      tmb_->SetCFEB1delay(delay);
-    }
-    if ( parser_.fillInt("cfeb2delay",delay) ) {
-      tmb_->SetCFEB2delay(delay);
-    }
-    if ( parser_.fillInt("cfeb3delay",delay) ) {
-      tmb_->SetCFEB3delay(delay);
-    }
-    if ( parser_.fillInt("cfeb4delay",delay) ) {
-      tmb_->SetCFEB4delay(delay);
+    // need still to put in 
+    //   . hot channel mask
+    int value;
+    //////////////////////////////
+    // Expected Firmware tags:
+    //////////////////////////////
+    if (parser_.fillInt("tmb_firmware_month"  ,value)) { tmb_->SetExpectedTmbFirmwareMonth(value);   }
+    if (parser_.fillInt("tmb_firmware_day"    ,value)) { tmb_->SetExpectedTmbFirmwareDay(value);     }
+    if (parser_.fillInt("tmb_firmware_year"   ,value)) { tmb_->SetExpectedTmbFirmwareYear(value);    }
+    if (parser_.fillInt("tmb_firmware_version",value)) { tmb_->SetExpectedTmbFirmwareVersion(value); }
+    if (parser_.fillInt("tmb_firmware_revcode",value)) { tmb_->SetExpectedTmbFirmwareRevcode(value); }
+    if (parser_.fillInt("tmb_firmware_type"   ,value)) { tmb_->SetExpectedTmbFirmwareType(value);    }
+    //
+    if (parser_.fillInt("rat_firmware_month"  ,value)) { tmb_->SetExpectedRatFirmwareMonth(value); }
+    if (parser_.fillInt("rat_firmware_day"    ,value)) { tmb_->SetExpectedRatFirmwareDay(value);   }
+    if (parser_.fillInt("rat_firmware_year"   ,value)) { tmb_->SetExpectedRatFirmwareYear(value);  }
+    //
+    //////////////////////////////
+    // Enable inputs
+    //////////////////////////////
+    //0x0E:
+    if (parser_.fillInt("enable_alct_tx",value)) { tmb_->SetEnableAlctTx(value); }
+    if (parser_.fillInt("enable_alct_rx",value)) { tmb_->SetAlctInput(value);    }
+    //    
+    //0X32:
+    if (parser_.fillInt("alct_clear"     ,value)) { tmb_->SetAlctClear(value);                  }
+    //if (parser_.fillInt("alct_inject_mux",value)) { tmb_->SetAlctInject(value);                 }
+    //if (parser_.fillInt("alct_sync_clct" ,value)) { tmb_->SetSyncAlctInjectToClctInject(value); }
+    //if (parser_.fillInt("alct_inj_delay" ,value)) { tmb_->SetAlctInjectorDelay(value);          }
+    //
+    //0X42:
+    if (parser_.fillInt("enableCLCTInputs_reg42" ,value)) { tmb_->SetEnableCLCTInputs(value);     }
+    //if (parser_.fillInt("cfeb_ram_sel"           ,value)) { tmb_->SetSelectCLCTRAM(value);        }
+    //if (parser_.fillInt("cfeb_inj_en_sel"        ,value)) { tmb_->SetEnableCLCTInject(value);     }
+    //if (parser_.fillInt("start_pattern_inj"      ,value)) { tmb_->SetStartPatternInjector(value); }
+    //
+    //0XB6:
+    if (parser_.fillInt("rpc_exists"     ,value)) { tmb_->SetRpcExist(value);           }
+    if (parser_.fillInt("rpc_read_enable",value)) { tmb_->SetRpcReadEnable(value);      }
+    if (parser_.fillInt("rpc_bxn_offset" ,value)) { tmb_->SetRpcBxnOffset(value);       }    
+    //if (parser_.fillInt("rpc_bank_addr"  ,value)) { tmb_->SetRpcSyncBankAddress(value); }
+    //
+    //0xBC:
+    if (parser_.fillInt("rpc_mask_all" ,value)) { tmb_->SetEnableRpcInput(value);           }
+    //if (parser_.fillInt("inj_mask_rat" ,value)) { tmb_->SetInjectorMaskRat(value);          }
+    //if (parser_.fillInt("inj_mask_rpc" ,value)) { tmb_->SetInjectorMaskRpc(value);          }
+    //if (parser_.fillInt("inj_delay_rat",value)) { tmb_->SetInjectorDelayRat(value);         }
+    //if (parser_.fillInt("rpc_inj_sel"  ,value)) { tmb_->SetRpcInjector(value);              }
+    //if (parser_.fillInt("rpc_inj_wdata",value)) { tmb_->SetRpcInjectorWriteDataMSBs(value); }
+    //
+    //////////////////////////////
+    // trigger and signal delays
+    //////////////////////////////
+    //0X6A:
+    if (parser_.fillInt("match_pretrig_match_window_size",value)) { tmb_->SetAlctClctPretrigWidth(value); }
+    if (parser_.fillInt("match_pretrig_alct_delay"       ,value)) { tmb_->SetAlctPretrigDelay(value);     }
+    //if (parser_.fillInt("alct_pat_trig_delay"            ,value)) { tmb_->SetAlctPatternDelay(value);     }
+    //if (parser_.fillInt("adb_ext_trig_delay"             ,value)) { tmb_->SetAdbExternalTrigDelay(value); }
+    //
+    //0X6C:
+    //if (parser_.fillInt("dmb_ext_trig_delay" ,value)) { tmb_->SetDmbExternalTrigDelay(value);  }
+    //if (parser_.fillInt("clct_ext_trig_delay",value)) { tmb_->SetClctExternalTrigDelay(value); }
+    //if (parser_.fillInt("alct_ext_trig_delay",value)) { tmb_->SetAlctExternalTrigDelay(value); }
+    if (parser_.fillInt("layer_trig_delay"   ,value)) { tmb_->SetLayerTrigDelay(value);        }
+    //
+    //0X74:
+    if (parser_.fillInt("tmb_l1a_delay"       ,value)) { tmb_->SetL1aDelay(value);      }
+    if (parser_.fillInt("tmb_l1a_window_size" ,value)) { tmb_->SetL1aWindowSize(value); }
+    //if (parser_.fillInt("tmb_l1a_internal",value)) { tmb_->SetInternalL1a(value);   }
+    //
+    //0X76:
+    if (parser_.fillInt("tmb_l1a_offset",value)) { tmb_->SetL1aOffset(value); }
+    if (parser_.fillInt("tmb_bxn_offset",value)) { tmb_->SetBxnOffset(value); }
+    //
+    //0XB2:
+    if (parser_.fillInt("match_trig_alct_delay"       ,value)) { tmb_->SetAlctVpfDelay(value);        }
+    if (parser_.fillInt("match_trig_match_window_size",value)) { tmb_->SetAlctMatchWindowSize(value); }
+    if (parser_.fillInt("mpc_tx_delay"                ,value)) { tmb_->SetMpcTXdelay(value);          }
+    //
+    //0XBA:
+    if (parser_.fillInt("rpc0_raw_delay",value)) { tmb_->SetRpc0RawDelay(value); }
+    if (parser_.fillInt("rpc1_raw_delay",value)) { tmb_->SetRpc1RawDelay(value); }
+    //if (parser_.fillInt("rpc2_raw_delay",value)) { tmb_->SetRpc2RawDelay(value); }
+    //if (parser_.fillInt("rpc3_raw_delay",value)) { tmb_->SetRpc3RawDelay(value); }
+    //
+    //
+    //////////////////////////////
+    // trigger configuration
+    //////////////////////////////
+    //if (parser_.fillInt("trgmode",value)) { tmb_->SetTrgMode(value); }
+    //
+    //0X68:
+    if (parser_.fillInt("clct_pretrig_enable"    ,value)) { tmb_->SetClctPatternTrigEnable(value);  }
+    if (parser_.fillInt("alct_pretrig_enable"    ,value)) { tmb_->SetAlctPatternTrigEnable(value);  }
+    if (parser_.fillInt("match_pretrig_enable"   ,value)) { tmb_->SetMatchPatternTrigEnable(value); }
+    //if (parser_.fillInt("adb_ext_pretrig_enable" ,value)) { tmb_->SetAdbExtTrigEnable(value);       }
+    //if (parser_.fillInt("dmb_ext_pretrig_enable" ,value)) { tmb_->SetDmbExtTrigEnable(value);       }
+    //if (parser_.fillInt("clct_ext_pretrig_enable",value)) { tmb_->SetClctExtTrigEnable(value);      }
+    //if (parser_.fillInt("alct_ext_pretrig_enable",value)) { tmb_->SetAlctExtTrigEnable(value);      }
+    //if (parser_.fillInt("ext_trig_inject"        ,value)) { tmb_->SetExtTrigInject(value);          }
+    if (parser_.fillInt("all_cfeb_active"        ,value)) { tmb_->SetEnableAllCfebsActive(value);   }
+    if (parser_.fillInt("enableCLCTInputs_reg68" ,value)) { tmb_->SetCfebEnable(value);             }
+    if (parser_.fillInt("cfeb_enable_source"     ,value)) { 
+      if (value == 42) {
+	tmb_->SetCfebEnableSource(1);     
+      } else if (value == 68) {
+	tmb_->SetCfebEnableSource(0);     
+      }
     }
     //
-    if ( parser_.fillInt("alct_tx_clock_delay", delay)) {
-      tmb_->SetAlctTXclockDelay(delay);
-    }
-    if ( parser_.fillInt("alct_rx_clock_delay", delay) ) {
-      tmb_->SetAlctRXclockDelay(delay);
-    }
+    //0X70:
+    if (parser_.fillInt("triad_persistence"            ,value)) { tmb_->SetTriadPersistence(value); }
+    if (parser_.fillInt("clct_halfstrip_pretrig_thresh",value)) { tmb_->SetHsPretrigThresh(value);  }
+    if (parser_.fillInt("clct_distrip_pretrig_thresh"  ,value)) { tmb_->SetDsPretrigThresh(value);  }
+    if (parser_.fillInt("clct_pattern_thresh"          ,value)) { tmb_->SetMinHitsPattern(value);   }
+    if (parser_.fillInt("clct_drift_delay"             ,value)) { tmb_->SetDriftDelay(value);       }
+    //if (parser_.fillInt("pretrigger_halt"              ,value)) { tmb_->SetPretriggerHalt(value);   }
     //
-    if ( parser_.fillInt("l1adelay", delay) ) {
-      tmb_->SetL1aDelay(delay);
-    }
-    if ( parser_.fillInt("l1a_window_size", delay) ) {
-      tmb_->SetL1aWindowSize(delay);
-    }
-    int size;
-    if ( parser_.fillInt("alct_match_window_size", size) ) {
-      tmb_->SetAlctMatchWindowSize(size);
-    }
-    if ( parser_.fillInt("alct_vpf_delay", delay) ) {
-      tmb_->SetAlctVpfDelay(delay);
-    }
-    if ( parser_.fillInt("mpc_delay", delay) ) {
-      tmb_->SetMpcDelay(delay);
-    }
-    int input;
-    if ( parser_.fillInt("ALCT_input",input) ) {
-      tmb_->SetAlctInput(input);
-    }
+    //0X72
+    if (parser_.fillInt("tmb_fifo_mode"   ,value)) { tmb_->SetFifoMode(value);    }
+    if (parser_.fillInt("tmb_fifo_tbins"  ,value)) { tmb_->SetFifoTbins(value);   }
+    if (parser_.fillInt("tmb_fifo_pretrig",value)) { tmb_->SetFifoPreTrig(value); }
     //
-    int exist;
-    if ( parser_.fillInt("rpc_exists",exist) ) {
-      tmb_->SetRpcExist(exist);
-    }
+    //0X86
+    if (parser_.fillInt("mpc_sync_err_enable",value)) { tmb_->SetTmbSyncErrEnable(value); }
+    if (parser_.fillInt("alct_trig_enable"   ,value)) { tmb_->SetTmbAllowAlct(value);     }
+    if (parser_.fillInt("clct_trig_enable"   ,value)) { tmb_->SetTmbAllowClct(value);     }
+    if (parser_.fillInt("match_trig_enable"  ,value)) { tmb_->SetTmbAllowMatch(value);    }
+    if (parser_.fillInt("mpc_rx_delay"       ,value)) { tmb_->SetMpcDelay(value);         }
+    //if (parser_.fillInt("mpc_sel_ttc_bx0"    ,value)) { tmb_->SetSelectMpcTtcBx0(value);  }
+    if (parser_.fillInt("mpc_idle_blank"     ,value)) { tmb_->SetMpcIdleBlank(value);     }
     //
-    int mode;
-    if ( parser_.fillInt("fifo_mode",mode) ) {
-      tmb_->SetFifoMode(mode);
-    }
+    //0XAC
+    //if (parser_.fillInt("clct_flush_delay"   ,value)) { tmb_->SetClctFlushDelay(value);        }
+    //if (parser_.fillInt("clct_turbo"         ,value)) { tmb_->SetClctTurbo(value);             }
+    //if (parser_.fillInt("ranlct_enable"      ,value)) { tmb_->SetRandomLctEnable(value);       }
+    if (parser_.fillInt("write_buffer_required",value)) { tmb_->SetWriteBufferRequired(value);   }
+    if (parser_.fillInt("valid_clct_required"  ,value)) { tmb_->SetRequireValidClct(value);      }
+    if (parser_.fillInt("l1a_allow_match"      ,value)) { tmb_->SetL1aAllowMatch(value);         }
+    if (parser_.fillInt("l1a_allow_notmb"      ,value)) { tmb_->SetL1aAllowNoTmb(value);         }
+    if (parser_.fillInt("l1a_allow_nol1a"      ,value)) { tmb_->SetL1aAllowNoL1a(value);         }
+    if (parser_.fillInt("l1a_allow_alct_only"  ,value)) { tmb_->SetL1aAllowAlctOnly(value);      }
+    //if (parser_.fillInt("scint_veto_clr"     ,value)) { tmb_->SetScintillatorVetoClear(value); }
     //
-    int tbins;
-    if ( parser_.fillInt("fifo_tbins",tbins)) {
-      tmb_->SetFifoTbins(tbins);
-    }
+    //0XF0
+    if (parser_.fillInt("layer_trig_enable",value)) { tmb_->SetEnableLayerTrigger(value);    }
+    if (parser_.fillInt("layer_trig_thresh",value)) { tmb_->SetLayerTriggerThreshold(value); }
     //
-    int pretrig;
-    if ( parser_.fillInt("fifo_pretrig",pretrig)) {
-      tmb_->SetFifoPreTrig(pretrig);
-    }
     //
-    int clear;
-    if ( parser_.fillInt("alct_clear",clear)) {
-      tmb_->SetAlctClear(clear);
-    }
+    ///////////////////////////////////
+    // special configuration registers
+    ///////////////////////////////////
+    //0X1C
+    // greg, put int ddd_oe...
+    //0X2C
+    //if (parser_.fillInt("alct_ext_trig_l1aen"   ,value)) { tmb_->SetEnableL1aRequestOnAlctExtTrig(value); }
+    //if (parser_.fillInt("clct_ext_trig_l1aen"   ,value)) { tmb_->SetEnableL1aRequestOnClctExtTrig(value); }
+    if (parser_.fillInt("request_l1a"           ,value)) { tmb_->SetRequestL1a(value);                    }
+    //if (parser_.fillInt("alct_ext_trig_vme"     ,value)) { tmb_->SetAlctExtTrigVme(value);                }
+    //if (parser_.fillInt("clct_ext_trig_vme"     ,value)) { tmb_->SetClctExtTrigVme(value);                }
+    //if (parser_.fillInt("ext_trig_both"         ,value)) { tmb_->SetExtTrigBoth(value);                   }
+    //if (parser_.fillInt("ccb_allow_bypass"      ,value)) { tmb_->SetCcbAllowExternalBypass(value);        }
+    //if (parser_.fillInt("internal_l1a_delay_vme",value)) { tmb_->SetInternalL1aDelay(value);              }
     //
-    if ( parser_.fillInt("mpc_tx_delay",delay)) {
-      tmb_->SetMpcTXdelay(delay);
-    }
+    //0X30
+    //if (parser_.fillInt("cfg_alct_ext_trig_en"  ,value)) { tmb_->SetEnableAlctExtTrig(value);     }
+    //if (parser_.fillInt("cfg_alct_ext_inject_en",value)) { tmb_->SetEnableAlctExtInject(value);   }
+    //if (parser_.fillInt("cfg_alct_ext_trig"     ,value)) { tmb_->SetAlctExtTrig(value);           }
+    //if (parser_.fillInt("cfg_alct_ext_inject"   ,value)) { tmb_->SetAlctExtInject(value);         }
+    //if (parser_.fillInt("alct_seq_cmd"          ,value)) { tmb_->SetAlctSequencerCommand(value);  }
+    if (parser_.fillInt("alct_clock_en_use_ccb" ,value)) { tmb_->SetEnableAlctUseCcbClock(value); }
+    //if (parser_.fillInt("alct_clock_en_use_vme" ,value)) { tmb_->SetAlctClockVme(value);          }
     //
-    int offset;
-    if ( parser_.fillInt("l1a_offset",offset) ) {
-      tmb_->SetL1aOffset(offset);
-    }
+    //0X6E
+    //if (parser_.fillInt("slot"  ,value)) { tmb_->SetTmbSlot(value); }
+    //if (parser_.fillInt("csc_id",value)) { tmb_->SetCscId(value);   }
+    //if (parser_.fillInt("run_id",value)) { tmb_->SetRunId(value);   }
     //
-    if ( parser_.fillInt("bxn_offset",offset)) {
-      tmb_->SetBxnOffset(offset);
-    }
+    //if (parser_.fillInt("disableCLCTInputs",value)) { tmb_->SetDisableCLCTInputs(value); }
+    //if (parser_.fillInt("shift_rpc",value)) { tmb_->SetShiftRpc(value); }
     //
-    int disable;
-    if ( parser_.fillInt("disableCLCTInputs",disable)) {
-      tmb_->SetDisableCLCTInputs(disable);
-    }
+    ///////////////////////////////////
+    // clock phases
+    ///////////////////////////////////
+    //0X16
+    if (parser_.fillInt("alct_tx_clock_delay",value)) { tmb_->SetAlctTXclockDelay(value); }
+    if (parser_.fillInt("alct_rx_clock_delay",value)) { tmb_->SetAlctRXclockDelay(value); }
+    //if (parser_.fillInt("dmb_tx_delay"       ,value)) { tmb_->SetDmbTxDelay(value);       }
+    if (parser_.fillInt("rat_tmb_delay"      ,value)) { tmb_->SetRatTmbDelay(value);      }
     //
-    int enable;
-    if ( parser_.fillInt("enableCLCTInputs",enable)) {
-      tmb_->SetEnableCLCTInputs(enable);
-    }
-    int trgmode;
-    if ( parser_.fillInt("trgmode",trgmode)) {               //add
-      tmb_->SetTrgMode(trgmode);
-    }
+    //0X18
+    //if (parser_.fillInt("tmb1_phase",value)) { tmb_->SetTmb1Phase(value);  }
+    //if (parser_.fillInt("mpc_phase" ,value)) { tmb_->SetMpcPhase(value);   }
+    //if (parser_.fillInt("dcc_phase" ,value)) { tmb_->SetDccPhase(value);   }
+    if (parser_.fillInt("cfeb0delay",value)) { tmb_->SetCFEB0delay(value); }
     //
-    int rpc_bxn_offset;
-    if ( parser_.fillInt("rpc_bxn_offset",rpc_bxn_offset)) { //add
-      tmb_->SetRpcBxnOffset(rpc_bxn_offset);
-    }
+    //0X1A
+    if (parser_.fillInt("cfeb1delay",value)) { tmb_->SetCFEB1delay(value); }
+    if (parser_.fillInt("cfeb2delay",value)) { tmb_->SetCFEB2delay(value); }
+    if (parser_.fillInt("cfeb3delay",value)) { tmb_->SetCFEB3delay(value); }
+    if (parser_.fillInt("cfeb4delay",value)) { tmb_->SetCFEB4delay(value); }
     //
-    int shift_rpc;
-    if ( parser_.fillInt("shift_rpc",shift_rpc)) {           //add
-      tmb_->SetShiftRpc(shift_rpc);
-    }
+    //0XE6
+    if (parser_.fillInt("rpc0_rat_delay",value)) { tmb_->SetRpc0RatDelay(value); }
+    if (parser_.fillInt("rpc1_rat_delay",value)) { tmb_->SetRpc1RatDelay(value); }
+    //if (parser_.fillInt("rpc2_rat_delay",value)) { tmb_->SetRpc2RatDelay(value); }
+    //if (parser_.fillInt("rpc3_rat_delay",value)) { tmb_->SetRpc3RatDelay(value); }
     //
-    int request_l1a;
-    if ( parser_.fillInt("request_l1a",request_l1a)) {       //add
-      tmb_->SetRequestL1a(request_l1a);
-    }
     //
-    int hs_pretrig_thresh;
-    if ( parser_.fillInt("hs_pretrig_thresh",hs_pretrig_thresh)) { //add
-      tmb_->SetHsPretrigThresh(hs_pretrig_thresh);
-    }
-    //
-    int ds_pretrig_thresh;
-    if ( parser_.fillInt("ds_pretrig_thresh",ds_pretrig_thresh)) { //add
-      tmb_->SetDsPretrigThresh(ds_pretrig_thresh);
-    }
-    //
-    int min_hits_pattern;
-    if ( parser_.fillInt("min_hits_pattern",min_hits_pattern)) { //add
-      tmb_->SetMinHitsPattern(min_hits_pattern);
-    }
-    //
-    int dmb_tx_delay;
-    if ( parser_.fillInt("dmb_tx_delay",dmb_tx_delay)) {  //add
-      tmb_->SetDmbTxDelay(dmb_tx_delay);
-    }
-    //
-    int rat_tmb_delay;
-    if ( parser_.fillInt("rat_tmb_delay",rat_tmb_delay)) {  //add
-      tmb_->SetRatTmbDelay(rat_tmb_delay);
-    }
-    //
-    int rpc0_rat_delay;
-    if ( parser_.fillInt("rpc0_rat_delay",rpc0_rat_delay)) {  //add
-      tmb_->SetRpc0RatDelay(rpc0_rat_delay);
-    }
-    //
-    int mpc_phase;
-    if ( parser_.fillInt("mpc_phase",mpc_phase)) {  //add
-      tmb_->SetMpcPhase(mpc_phase);
-    }
-    //
-    int rpc0_raw_delay;
-    if ( parser_.fillInt("rpc0_raw_delay",rpc0_raw_delay)) {  //add
-      tmb_->SetRpc0RawDelay(rpc0_raw_delay);
-    }
+    ////////
     //
     xercesc::DOMNode * daughterNode = pNode->getFirstChild();
     while(daughterNode) {
@@ -287,7 +349,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
 	EmuParser alctParser_;
 	//
 	alctParser_.parseNode(daughterNode);
-
+	
         std::string chamberType;
         alctParser_.fillString("chamber_type", chamberType);
         //alct_ memory area is deleted in ~TMB()
@@ -297,73 +359,57 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
 	tmb_->SetRat(rat_); //store rat_  in tmb_
 	//
 	//RAT
-       	if(alctParser_.fillInt("rpc0_rat_delay",delay)){
-	  rat_->SetRpcRatDelay(0,delay);
-	}
+       	//if(alctParser_.fillInt("rpc0_rat_delay",value)) { rat_->SetRpcRatDelay(0,value); }   GREG take this out of configure
 	//
 	//ALCT
+	// need to put in 
+	//   . standby register
+	//   . hot channel mask
+	//   . collision mask
 	//
+	////////////////////////////////////////////////////////
+	// Expected firmware tags
+	////////////////////////////////////////////////////////
+	if (alctParser_.fillInt("alct_firmware_day"  ,value)) { alct_->SetExpectedFastControlDay(value);   }
+	if (alctParser_.fillInt("alct_firmware_month",value)) { alct_->SetExpectedFastControlMonth(value); }
+	if (alctParser_.fillInt("alct_firmware_year" ,value)) { alct_->SetExpectedFastControlYear(value);  }
 	//
-	int mode;
-	if ( alctParser_.fillInt("trig_mode", mode) ) {
-	  alct_->SetTriggerMode(mode);
+	std::string alct_firmware_backwardForward;
+        if (alctParser_.fillString("alct_firmware_backward_forward", alct_firmware_backwardForward) ){
+	  if (alct_firmware_backwardForward == "b") alct_->SetExpectedFastControlBackwardForwardType(BACKWARD_FIRMWARE_TYPE);
+	  if (alct_firmware_backwardForward == "f") alct_->SetExpectedFastControlBackwardForwardType(FORWARD_FIRMWARE_TYPE);
+	}
+	std::string alct_firmware_negativePositive;
+        if (alctParser_.fillString("alct_firmware_negative_positive", alct_firmware_negativePositive) ){
+	  if (alct_firmware_negativePositive == "n") alct_->SetExpectedFastControlNegativePositiveType(NEGATIVE_FIRMWARE_TYPE);
+	  if (alct_firmware_negativePositive == "p") alct_->SetExpectedFastControlNegativePositiveType(POSITIVE_FIRMWARE_TYPE);
 	}
 	//
-	if ( alctParser_.fillInt("ext_trig_en", enable)) {
-	  alct_->SetExtTrigEnable(enable);
-	}
-	//
-	if ( alctParser_.fillInt("trig_info_en", enable)) {
-	  alct_->SetTriggerInfoEnable(enable);
-	}
-	if ( alctParser_.fillInt("l1a_internal", enable)) {
-	  alct_->SetL1aInternal(enable);
-	}
-	if ( alctParser_.fillInt("fifo_tbins", tbins) ) {
-	  alct_->SetFifoTbins(tbins);
-	}
-	if ( alctParser_.fillInt("fifo_pretrig", pretrig)) {
-	  alct_->SetFifoPretrig(pretrig);
-	}
-	if (alctParser_.fillInt("l1a_delay", delay)) {
-	  alct_->SetL1aDelay(delay);
-	}
-	if ( alctParser_.fillInt("l1a_offset",offset)) {
-	  alct_->SetL1aOffset(offset);
-	}
-	if (alctParser_.fillInt("l1a_window", size)) {
-	  alct_->SetL1aWindowSize(size);
-	}
-	int nph;
-	if ( alctParser_.fillInt("nph_thresh", nph) ){
-	  alct_->SetPretrigNumberOfLayers(nph);
-	}
+	////////////////////////////////////////////////////////
+	// configuration register
+	////////////////////////////////////////////////////////
+	if (alctParser_.fillInt("alct_trig_mode"      ,value)) { alct_->SetTriggerMode(value);            }
+	if (alctParser_.fillInt("alct_ext_trig_enable",value)) { alct_->SetExtTrigEnable(value);          }
+	if (alctParser_.fillInt("alct_send_empty"     ,value)) { alct_->SetSendEmpty(value);              }
+	if (alctParser_.fillInt("alct_inject_mode"    ,value)) { alct_->SetInjectMode(value);             }
+	if (alctParser_.fillInt("alct_bxn_offset"     ,value)) { alct_->SetBxcOffset(value);              }
+	if (alctParser_.fillInt("alct_pretrig_thresh" ,value)) { alct_->SetPretrigNumberOfLayers(value);  }
 	if (pNodeGlobal){
-	  if ( parserGlobal_.fillInt("nph_thresh", nph) ){
-	    alct_->SetPretrigNumberOfLayers(nph);
-	  }
+	  if (parserGlobal_.fillInt("alct_pretrig_thresh",value)) { alct_->SetPretrigNumberOfLayers(value); }
 	}
-	if ( alctParser_.fillInt("nph_pattern", nph)){
-	  alct_->SetPretrigNumberOfPattern(nph);
-	}
-	if ( alctParser_.fillInt("ccb_enable", enable) ) {
-	  alct_->SetCcbEnable(enable);
-	}
-	if ( alctParser_.fillInt("inject_mode", mode)) {
-	  alct_->SetInjectMode(mode);
-	}
-	if ( alctParser_.fillInt("send_empty", enable)) {
-	  alct_->SetSendEmpty(enable);
-	}
-	if (alctParser_.fillInt("drift_delay", delay)) {
-	  alct_->SetDriftDelay(delay);
-	}
-	if (alctParser_.fillInt("amode", mode)) {    //add
-	  alct_->SetAlctAmode(mode);
-	}
-	if (alctParser_.fillInt("bxc_offset", offset)) {    //add
-	  alct_->SetBxcOffset(offset);
-	}
+	if (alctParser_.fillInt("alct_pattern_thresh" ,value)) { alct_->SetPretrigNumberOfPattern(value); }
+	if (alctParser_.fillInt("alct_drift_delay"    ,value)) { alct_->SetDriftDelay(value);             }
+	if (alctParser_.fillInt("alct_fifo_tbins"     ,value)) { alct_->SetFifoTbins(value);              }
+	if (alctParser_.fillInt("alct_fifo_pretrig"   ,value)) { alct_->SetFifoPretrig(value);            }
+	if (alctParser_.fillInt("alct_fifo_mode"      ,value)) { alct_->SetFifoMode(value);               }
+	if (alctParser_.fillInt("alct_l1a_delay"      ,value)) { alct_->SetL1aDelay(value);               }
+	if (alctParser_.fillInt("alct_l1a_window_size",value)) { alct_->SetL1aWindowSize(value);          }
+	if (alctParser_.fillInt("alct_l1a_offset"     ,value)) { alct_->SetL1aOffset(value);              }
+	if (alctParser_.fillInt("alct_l1a_internal"   ,value)) { alct_->SetL1aInternal(value);	          }
+	if (alctParser_.fillInt("alct_ccb_enable"     ,value)) { alct_->SetCcbEnable(value);              }
+	if (alctParser_.fillInt("alct_accel_mode"     ,value)) { alct_->SetAlctAmode(value);              }
+	if (alctParser_.fillInt("alct_trig_info_en"   ,value)) { alct_->SetTriggerInfoEnable(value);      }
+	if (alctParser_.fillInt("alct_sn_select"       ,value)) { alct_->SetSnSelect(value);               }
 	//	std::string file;
 	//	if ( alctParser_.fillString("alct_pattern_file", file)) {
 	//	  alct_->SetPatternFile(file);

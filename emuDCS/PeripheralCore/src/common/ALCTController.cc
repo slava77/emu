@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.28 2006/11/15 10:05:49 rakness Exp $
+// $Id: ALCTController.cc,v 3.29 2007/01/31 16:49:57 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.29  2007/01/31 16:49:57  rakness
+// complete set of TMB/ALCT/RAT xml parameters
+//
 // Revision 3.28  2006/11/15 10:05:49  rakness
 // fix/document testpulse DAC setting routine
 //
@@ -619,6 +622,38 @@ void ALCTController::CheckALCTConfiguration() {
   bool config_ok = true;
   //
   ReadALCTConfiguration();  //fill the read values in the software
+  //
+  config_ok &= tmb_->compareValues("ALCT Fast Control Firmware Regular/Mirror type",
+				   GetFastControlRegularMirrorType(),
+				   GetExpectedFastControlRegularMirrorType(),
+				   true);
+  if (chamber_type_string_ == "ME11") {
+    //
+    config_ok &= tmb_->compareValues("ALCT Fast Control Firmware Backward/Forward type",
+				     GetFastControlBackwardForwardType(),
+				     GetExpectedFastControlBackwardForwardType(),
+				     true);
+    config_ok &= tmb_->compareValues("ALCT Fast Control Firmware Negative/Positive type",
+				     GetFastControlNegativePositiveType(),
+				     GetExpectedFastControlNegativePositiveType(),
+				     true);
+  }
+  config_ok &= tmb_->compareValues("ALCT Fast Control Firmware ALCT type",
+				   GetFastControlAlctType(),
+				   GetExpectedFastControlAlctType(),
+				   true);
+  config_ok &= tmb_->compareValues("ALCT Fast Control Firmware year",
+				   GetFastControlYear(),
+				   GetExpectedFastControlYear(),
+				   true);
+  config_ok &= tmb_->compareValues("ALCT Fast Control Firmware month",
+				   GetFastControlMonth(),
+				   GetExpectedFastControlMonth(),
+				   true);
+  config_ok &= tmb_->compareValues("ALCT Fast Control Firmware day",
+				   GetFastControlDay(),
+				   GetExpectedFastControlDay(),
+				   true);
   //
   for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++) {
     // to compare write and read thresholds, we need to compare an 8-bit dac 
@@ -1581,6 +1616,29 @@ int ALCTController::GetFastControlMonth() {
   return fastcontrol_firmware_month_;
     //(read_fastcontrol_id_[4] & 0xff); 
 }
+//
+
+void ALCTController::SetExpectedFastControlYear(int firmware_year) { 
+  //
+  expected_fastcontrol_firmware_year_ = tmb_->ConvertToHexAscii(firmware_year); 
+  //
+  return;
+} 
+//
+void ALCTController::SetExpectedFastControlDay(int firmware_day) { 
+  //
+  expected_fastcontrol_firmware_day_ = tmb_->ConvertToHexAscii(firmware_day); 
+  //
+  return;
+} 
+//
+void ALCTController::SetExpectedFastControlMonth(int firmware_month) { 
+  //
+  expected_fastcontrol_firmware_month_ = tmb_->ConvertToHexAscii(firmware_month); 
+  //
+  return;
+} 
+
 //
 ////////////////////////////////
 // TESTPULSE TRIGGER REGISTER
@@ -2794,31 +2852,31 @@ void ALCTController::SetPowerUpConfigurationReg() {
   for (int i=0; i<RegSizeAlctFastFpga_WRT_CONFIG_REG; i++)
     write_config_reg_[i] = 0;
   //
-  SetTriggerMode(0);                      //in xml file, firmware default
-  SetExtTrigEnable(0);                    //in xml file, firmware default
-  SetSendEmpty(0);                        //NOT in xml file, firmware default
-  SetInjectMode(0);                       //NOT in xml file, firmware default
-  SetBxcOffset(1);                        //ADD to xml file, firmware default
-  SetPretrigNumberOfLayers(2);            //in xml file, firmware default
-  SetPretrigNumberOfPattern(4);           //in xml file, firmware default
-  SetDriftDelay(3);                       //NOT in xml file, firmware default
-  SetFifoTbins(10);                       //in xml file, NOT firmware default
-  SetFifoPretrig(8);                      //in xml file, NOT firmware default
-  SetFifoMode(1);                         //NOT in xml file, firmware default
+  SetTriggerMode(0);                      
+  SetExtTrigEnable(0);                    
+  SetSendEmpty(0);                        
+  SetInjectMode(0);                       
+  SetBxcOffset(1);                        
+  SetPretrigNumberOfLayers(2);            
+  SetPretrigNumberOfPattern(4);           
+  SetDriftDelay(3);                       
+  SetFifoTbins(10);                       
+  SetFifoPretrig(8);                      
+  SetFifoMode(1);                         
   //  SetFifoLastLct(0); ->no longer supported
-  SetL1aDelay(146);                       //in xml file, NOT firmware default
-  SetL1aWindowSize(3);                    //in xml file, firmware default
-  SetL1aOffset(1);                        //in xml file, firmware default
-  SetL1aInternal(0);                      //in xml file, firmware default
-  SetBoardId(5);                          //NOT in xml file, firmware default
+  SetL1aDelay(146);                       
+  SetL1aWindowSize(3);                    
+  SetL1aOffset(1);                        
+  SetL1aInternal(0);                      
+  SetBoardId(5);                          
   //  SetBxnOffset(0);   ->no longer supported
-  SetCcbEnable(1);                        //in xml file, NOT firmware default (should change)
+  SetCcbEnable(1);                        
   //  SetAlctJtagDs(1);  ->no longer supported
   //  SetAlctTmode(0);   ->no longer supported
-  SetAlctAmode(0);                        //ADD to xml file, firmware default
+  SetAlctAmode(0);                        
   //  SetAlctMaskAll(0); ->no longer supported
-  SetTriggerInfoEnable(0);                //in xml file, NOT firmware default (should change)
-  SetSnSelect(0);                         //NOT in xml file, firmware default
+  SetTriggerInfoEnable(0);                
+  SetSnSelect(0);                         
   //
   return;
 }
@@ -3281,48 +3339,56 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
   //
   if (chamber_type_string_ == "ME11") {
     //
+    SetExpectedFastControlRegularMirrorType(REGULAR_FIRMWARE_TYPE);
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME11;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME11);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME11);
     //
   } else if (chamber_type_string_ == "ME12") {
     //
+    SetExpectedFastControlRegularMirrorType(REGULAR_FIRMWARE_TYPE);
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME12;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME12);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME12);
     //
   } else if (chamber_type_string_ == "ME13") {
     //
+    SetExpectedFastControlRegularMirrorType(REGULAR_FIRMWARE_TYPE);
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME13;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME13);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME13);
     //
   } else if (chamber_type_string_ == "ME21") {
     //
+    SetExpectedFastControlRegularMirrorType(REGULAR_FIRMWARE_TYPE);
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME21;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME21);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME21);
     //
   } else if (chamber_type_string_ == "ME22") {
     //
+    SetExpectedFastControlRegularMirrorType(REGULAR_FIRMWARE_TYPE);
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME22;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME22);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME22);
     //
   } else if (chamber_type_string_ == "ME31") {
     //
+    SetExpectedFastControlRegularMirrorType(MIRROR_FIRMWARE_TYPE);
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME31;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME31);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME31);
     //
   } else if (chamber_type_string_ == "ME32") {
     //
+    SetExpectedFastControlRegularMirrorType(MIRROR_FIRMWARE_TYPE);
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME32;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME32);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME32);
     //
   } else if (chamber_type_string_ == "ME41") {
     //
+    SetExpectedFastControlRegularMirrorType(MIRROR_FIRMWARE_TYPE);
     NumberOfWireGroupsInChamber_ = NUMBER_OF_WIRE_GROUPS_ME41;
     SetFastControlAlctType_(FAST_CONTROL_ALCT_TYPE_ME41);
     SetSlowControlAlctType_(SLOW_CONTROL_ALCT_TYPE_ME41);
@@ -3360,6 +3426,19 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
 //
 void ALCTController::SetFastControlAlctType_(int type_of_fast_control_alct) {
   //
+  if (type_of_fast_control_alct == 192) {
+    SetExpectedFastControlAlctType(FIRMWARE_TYPE_192); 
+  } else if (type_of_fast_control_alct == 288) {
+    SetExpectedFastControlAlctType(FIRMWARE_TYPE_288); 
+  } else if (type_of_fast_control_alct == 384) {
+    SetExpectedFastControlAlctType(FIRMWARE_TYPE_384); 
+  } else if (type_of_fast_control_alct == 576) {
+    SetExpectedFastControlAlctType(FIRMWARE_TYPE_576); 
+  } else if (type_of_fast_control_alct == 672) {
+    SetExpectedFastControlAlctType(FIRMWARE_TYPE_672); 
+  } else {
+    SetExpectedFastControlAlctType(9999); 
+  }
   NumberOfChannelsInAlct_ = type_of_fast_control_alct;
   NumberOfGroupsOfDelayChips_ = 0;
   //

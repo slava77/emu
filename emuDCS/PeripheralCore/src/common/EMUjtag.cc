@@ -576,19 +576,12 @@ void EMUjtag::CreateUserPromFile() {
     TmbUserDataLsb = tmb_->GetVecDataLsb();
     TmbUserDataMsb = tmb_->GetVecDataMsb();
     //
-    for (int data_counter=0; data_counter<TmbUserVmeAddress.size(); data_counter++) {
+    for (unsigned int data_counter=0; data_counter<TmbUserVmeAddress.size(); data_counter++) {
       data_to_prom[address_counter++] = TmbUserVmeAddress.at(data_counter);
       data_to_prom[address_counter++] = 0x00;
       data_to_prom[address_counter++] = 0x00;
-      int mask = 0;
-      for (int i=0; i<number_of_allowed_configuration_addresses; i++) {
-	if ( TmbUserVmeAddress.at(data_counter) == allowed_configuration_addresses[i] ) {
-	  mask = allowed_configuration_mask[i];
-	  break;
-	}
-      }
-      data_to_prom[address_counter++] = TmbUserDataLsb.at(data_counter) & (mask & 0xff);
-      data_to_prom[address_counter++] = TmbUserDataMsb.at(data_counter) & ( (mask >> 8) & 0xff );
+      data_to_prom[address_counter++] = TmbUserDataLsb.at(data_counter);
+      data_to_prom[address_counter++] = TmbUserDataMsb.at(data_counter);
     }
     //
   } else if (GetWhichUserProm() == ChipLocationTmbUserPromALCT) {
@@ -597,7 +590,7 @@ void EMUjtag::CreateUserPromFile() {
     //
     AlctUserDataLsb = tmb_->GetVecDataLsb();
     //
-    for (int data_counter=0; data_counter<AlctUserDataLsb.size(); data_counter++) 
+    for (unsigned int data_counter=0; data_counter<AlctUserDataLsb.size(); data_counter++) 
       data_to_prom[address_counter++] = (int) (AlctUserDataLsb.at(data_counter) & 0x7f);
     //
   } else {
@@ -2261,6 +2254,7 @@ void EMUjtag::CheckUserProm() {
     //    (*MyOutput_) << "EMUjtag: For address " << std::hex << address << std::endl;
     //    (*MyOutput_) << " -> prom image in file = " << std::hex << GetUserPromImage(address) << std::endl;
     //    (*MyOutput_) << " -> prom image in prom = " << std::hex << tmb_->GetClockedOutPromImage(address) << std::endl;
+    //
     if ( tmb_->GetClockedOutPromImage(address) != GetUserPromImage(address) ) {
       //
       //stuff which is irrelevant if it is all that changes for the user proms...
@@ -2391,15 +2385,12 @@ int EMUjtag::SVFLoad(int *jch, const char *fn, int db )
   unsigned char sndhdr[MAXBUFSIZE],sndtdr[MAXBUFSIZE], sndhir[MAXBUFSIZE], sndtir[MAXBUFSIZE];
   unsigned char hdrsmask[MAXBUFSIZE],tdrsmask[MAXBUFSIZE], hirsmask[MAXBUFSIZE], tirsmask[MAXBUFSIZE];
   int rcvword;
-  FILE *dwnfp, *ftmptdi, *ftmpsmask;
+  FILE *dwnfp;
   char buf[MAXBUFSIZE], buf2[256];
   //  char buf[8192],buf2[256];
   char *Word[256],*lastn;
   const char *downfile;
-  char fStop;
   int jchan;
-  unsigned char sndvalue;
-  fpos_t ftdi_pos, fsmask_pos;
   unsigned char send_tmp;//, rcv_tmp;
   int i,j,Count,nbytes,nbits,nframes,step_mode,pause;
   int hdrbits = 0, tdrbits = 0, hirbits = 0, tirbits = 0;

@@ -158,6 +158,9 @@ int main() {
 	      << std::endl;
     std::cout << " 96:Who triggered TMB?         97:Dump all TMB registers      98:Clock out TMB user prom"
 	      << std::endl;
+    std::cout << " 99:Set Distrip HotChannel mask "
+	      << std::endl;
+
     //
     std::cout << std::endl;
     std::cout << "100: Setup ALCT               101:Read ALCT slow control ID  102: Read ALCT fast control ID"
@@ -188,7 +191,7 @@ int main() {
 	      << std::endl;
     std::cout << "502:Read ALCT config regs     503: StartTriggers TMB         504: Check TMB config registers"
 	      << std::endl;
-    std::cout << "505:Check ALCT config regs    506: Print TMB state machines"
+    std::cout << "505:Check ALCT config regs    506: Print TMB state machines  507: Check RAT config registers"
 	      << std::endl;
     //
     std::cout << std::endl;
@@ -460,6 +463,17 @@ int main() {
 		  << std::endl;
       }
       break;
+    case 99:
+      std::cout << "layer (0-5)" << std::endl;
+      std::cin >> layer;
+      std::cout << "channel (0-39) " << std::endl;
+      std::cin >> channel;
+      std::cout << "OFF (0) or ON (1) " << std::endl;
+      std::cin >> value;
+      thisTMB->SetDistripHotChannelMask(layer,channel,value);
+      thisTMB->configure();
+      thisTMB->PrintHotChannelMask();
+      break;
       //
     case 100:
       alct->configure();
@@ -726,12 +740,12 @@ int main() {
       //      outputfile.close();
       break;
     case 501:
-      //      outputfile.open("TMBconfiguration.txt");
-      //      thisTMB->RedirectOutput(&outputfile);
+      outputfile.open("TMBconfiguration.txt");
+      thisTMB->RedirectOutput(&outputfile);
       thisTMB->ReadTMBConfiguration();
       thisTMB->PrintTMBConfiguration();
       thisTMB->RedirectOutput(&std::cout);
-      //      outputfile.close();
+      outputfile.close();
       break;
     case 502:
       //      outputfile.open("ALCTconfiguration.txt");
@@ -772,6 +786,12 @@ int main() {
       thisTMB->PrintRawHitsHeader();
       thisTMB->RedirectOutput(&std::cout);
       //      outputfile.close();
+      break;
+    case 507:
+      myRat->CheckRATConfiguration(); 
+      std::cout << "Check RAT configuration vs xml file = "
+		<< myRat->GetRATConfigurationStatus()
+		<< std::endl;
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 

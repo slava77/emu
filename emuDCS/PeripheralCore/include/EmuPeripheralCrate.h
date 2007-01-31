@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrate.h,v 3.54 2006/11/10 12:43:06 rakness Exp $
+// $Id: EmuPeripheralCrate.h,v 3.55 2007/01/31 16:49:50 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -83,6 +83,29 @@
 using namespace cgicc;
 using namespace std;
 
+const string CFEB_FIRMWARE_FILENAME = "cfeb/cfeb_v7_r1.svf";
+//
+const string DMB_FIRMWARE_FILENAME     = "dmb/dmb6cntl_v20_r4.svf";
+const string DMBVME_FIRMWARE_FILENAME  = "dmb/dmb6vme_v10_r2.svf";
+//
+const string ALCT_FIRMWARE_FILENAME_ME11 = "alct/alct288bp_rl.svf";
+const string ALCT_FIRMWARE_FILENAME_ME12 = "alct/alct384rl.svf";
+const string ALCT_FIRMWARE_FILENAME_ME13 = "alct/alct288rl.svf";
+const string ALCT_FIRMWARE_FILENAME_ME21 = "alct/alct672rl.svf";
+const string ALCT_FIRMWARE_FILENAME_ME22 = "alct/alct384rl.svf";
+const string ALCT_FIRMWARE_FILENAME_ME31 = "alct/alct672mirrorrl.svf";
+const string ALCT_FIRMWARE_FILENAME_ME32 = "alct/alct384mirrorrl.svf";
+const string ALCT_FIRMWARE_FILENAME_ME41 = "alct/alct672mirrorrl.svf";
+//
+const string RAT_FIRMWARE_FILENAME = "rat/rat09052006.svf";
+const string TMB_FIRMWARE_FILENAME = "tmb/tmb09jan2007.svf";
+//
+//const int         EXPECTED_DMB_USERID       = 0x48547204;
+const int         EXPECTED_DMB_USERID       = 0x48547195;
+//const int         EXPECTED_CFEB_USERID   = 0xcfeda071;
+const int         EXPECTED_CFEB_USERID   = 0xcfeda062;
+//
+//
 //#ifdef STANDALONE
 //class EmuPeripheralCrate: public xdaq::Application 
 //#else
@@ -5072,16 +5095,31 @@ private:
     //
     alct->ReadFastControlId();
     //
+    // NEED TO PUT IN ALCT FIRMWARE FORWARD/BACKWARD NEGATIVE/POSITIVE GREEN/RED FLAG FOR ME11...
+    //
+    if (alct->GetFastControlRegularMirrorType() == alct->GetExpectedFastControlRegularMirrorType() &&
+	alct->GetFastControlAlctType()          == alct->GetExpectedFastControlAlctType()          &&
+	alct->GetFastControlYear()              == alct->GetExpectedFastControlYear()              &&
+	alct->GetFastControlMonth()             == alct->GetExpectedFastControlMonth()             &&
+	alct->GetFastControlDay()               == alct->GetExpectedFastControlDay()               ) {
+	*out << cgicc::span().set("style","color:green");
+    } else { 
+	*out << cgicc::span().set("style","color:red");
+    }
+    //
     alct->RedirectOutput(out);
     alct->PrintFastControlId();
     alct->RedirectOutput(&std::cout);
     //
+    *out << cgicc::span();
     *out << cgicc::fieldset();
     //
   }
   //
   void EmuPeripheralCrate::RATStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
+    //
+    // NEED TO PUT IN RAT FIRMWARE GREEN/RED FLAG
     //
     cgicc::Cgicc cgi(in);
     //
@@ -5159,14 +5197,14 @@ private:
 	      (int)thisDMB->febpromuser(*cfebItr),
 	      (int)thisDMB->febfpgauser(*cfebItr));
       //
-      if ( thisDMB->febfpgauser(*cfebItr) == 0xcfeda071 ) {
+      if ( thisDMB->febfpgauser(*cfebItr) == EXPECTED_CFEB_USERID ) {
 	*out << cgicc::span().set("style","color:green");
 	*out << buf;
 	*out << cgicc::span();
       } else {
 	*out << cgicc::span().set("style","color:red");
 	*out << buf;
-	*out << " (Should be 0xcfeda071) ";
+	*out << " (Should be 0x" << std::hex << EXPECTED_CFEB_USERID << ") ";
 	*out << cgicc::span();
       }
       //
@@ -6156,13 +6194,26 @@ private:
     //
     *out << cgicc::pre();
     //
-    sprintf(buf,"TMB Firmware date         : %02x/%02x/%04x ",((thisTMB->FirmwareDate()>>8)&0xff), 
-	    (thisTMB->FirmwareDate()&0xff), 
-	    (thisTMB->FirmwareYear()&0xffff)  );
+    // read the registers:
+    thisTMB->FirmwareDate();
+    thisTMB->FirmwareYear();
     //
-    if ( ((thisTMB->FirmwareDate()>>8)&0xff) ==  0x05 &&
-	 ((thisTMB->FirmwareDate()&0xff))    ==  0x25 &&
-	 ((thisTMB->FirmwareYear()&0xffff))  ==  0x2006 ) {
+    // get the read values:
+    int day   = thisTMB->GetReadTmbFirmwareDay();
+    int month = thisTMB->GetReadTmbFirmwareMonth();
+    int year  = thisTMB->GetReadTmbFirmwareYear();
+    //
+    // get the expected values:
+    int expected_day   = thisTMB->GetExpectedTmbFirmwareDay();
+    int expected_month = thisTMB->GetExpectedTmbFirmwareMonth();
+    int expected_year  = thisTMB->GetExpectedTmbFirmwareYear();
+    //
+    //
+    sprintf(buf,"TMB Firmware date         : %02x/%02x/%04x ",month,day,year);
+    //
+    if ( month == expected_month &&
+	 day   == expected_day   &&
+	 year  == expected_year ) {
       *out << cgicc::span().set("style","color:green");
       *out << buf;
       *out << cgicc::span();
@@ -6172,11 +6223,21 @@ private:
       *out << cgicc::span();
     }
     //
+    //
     *out << cgicc::br();
     //
-    sprintf(buf,"Firmware Type             : %01x ",(thisTMB->FirmwareVersion()&0xf));       
+    // read the registers:
+    thisTMB->FirmwareVersion();
     //
-    if ( (thisTMB->FirmwareVersion()&0xf) == 0xc ) {
+    // get the read values:
+    int type = thisTMB->GetReadTmbFirmwareType();
+    //
+    // get the expected values:
+    int expected_type = thisTMB->GetExpectedTmbFirmwareType();
+
+    sprintf(buf,"Firmware Type             : %01x ",type);       
+    //
+    if ( type == expected_type ) {
       *out << cgicc::span().set("style","color:green");
       *out << buf;
       *out << cgicc::span();
@@ -6186,11 +6247,20 @@ private:
       *out << cgicc::span();
     }
     //
+    //
     *out << cgicc::br();
     //
-    sprintf(buf,"Firmware Version Code     : %01x ",((thisTMB->FirmwareVersion()>>4)&0xf));       
+    // read the registers:
+    thisTMB->FirmwareVersion();
     //
-    if ( ((thisTMB->FirmwareVersion()>>4)&0xf) == 0xe ){
+    // get the read values:
+    int version = thisTMB->GetReadTmbFirmwareVersion();
+    //
+    int expected_version = thisTMB->GetExpectedTmbFirmwareVersion();
+    //
+    sprintf(buf,"Firmware Version Code     : %01x ",version);       
+    //
+    if ( version == expected_version ){
       *out << cgicc::span().set("style","color:green");
       *out << buf ;
       *out << cgicc::span();
@@ -6403,7 +6473,8 @@ private:
     *out << cgicc::br();
       //
     sprintf(buf,"DMB fpga user id                   : %x ", (int) thisDMB->mbfpgauser());
-    if ( thisDMB->mbfpgauser() == 0x48547204 ) {
+
+    if ( thisDMB->mbfpgauser() == EXPECTED_DMB_USERID ) {
 	*out << cgicc::span().set("style","color:green");
 	*out << buf;
 	*out << cgicc::span();
@@ -6878,7 +6949,7 @@ private:
     *out << cgicc::table().set("border","1");
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB1 3.3 A = %3.2f ",(value=thisDMB->lowv_adc(1,0))/1000.);
+    sprintf(buf,"CFEB1 3.3 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,0))/1000.);
     if ( value/1000. < 3.3*(0.95) ||
 	 value/1000. > 3.3*(1.05) ) {	 
       *out << cgicc::span().set("style","color:black");
@@ -6890,7 +6961,7 @@ private:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB1 5.0 A = %3.2f ",(value=thisDMB->lowv_adc(1,1))/1000.);
+    sprintf(buf,"CFEB1 5.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,1))/1000.);
     if ( value/1000. < 5.0*0.95 ||
 	 value/1000. > 5.0*1.05 ) {
       *out << cgicc::span().set("style","color:black");
@@ -6902,7 +6973,7 @@ private:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB1 6.0 A = %3.2f ",(value=thisDMB->lowv_adc(1,2))/1000.);
+    sprintf(buf,"CFEB1 6.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,2))/1000.);
     if ( value/1000. < 6.0*0.95 ||
 	 value/1000. > 6.0*1.05  ) {
       *out << cgicc::span().set("style","color:black");
@@ -6918,7 +6989,7 @@ private:
     *out << cgicc::table().set("border","1");
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB2 3.3 A = %3.2f ",(value=thisDMB->lowv_adc(1,3))/1000.);
+    sprintf(buf,"CFEB2 3.3 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,3))/1000.);
     if ( value/1000. < 3.3*0.95 ||
 	 value/1000. > 3.3*1.05 ) {
       *out << cgicc::span().set("style","color:black");
@@ -6930,7 +7001,7 @@ private:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB2 5.0 A = %3.2f ",(value=thisDMB->lowv_adc(1,4))/1000.);
+    sprintf(buf,"CFEB2 5.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,4))/1000.);
     if ( value/1000. < 5.0*0.95 ||
 	 value/1000. > 5.0*1.05 ) {
       *out << cgicc::span().set("style","color:black");
@@ -6942,7 +7013,7 @@ private:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB2 6.0 A = %3.2f ",(value=thisDMB->lowv_adc(1,5))/1000.);
+    sprintf(buf,"CFEB2 6.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,5))/1000.);
     if ( value/1000. < 6.0*0.95 ||
 	 value/1000. > 6.0*1.95 ) {
       *out << cgicc::span().set("style","color:black");
@@ -6957,7 +7028,7 @@ private:
     //
     *out << cgicc::table().set("border","1");
     *out << cgicc::td();
-    sprintf(buf,"CFEB3 3.3 A = %3.2f ",(value=thisDMB->lowv_adc(1,6))/1000.);
+    sprintf(buf,"CFEB3 3.3 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,6))/1000.);
     if ( value/1000. < 3.3*0.95 ||
 	 value/1000. > 3.3*1.05 ) {
       *out << cgicc::span().set("style","color:black");
@@ -6969,7 +7040,7 @@ private:
     *out << cgicc::td();
       //
     *out << cgicc::td();
-    sprintf(buf,"CFEB3 5.0 A = %3.2f ",(value=thisDMB->lowv_adc(1,7))/1000.);
+    sprintf(buf,"CFEB3 5.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(1,7))/1000.);
     if (  value/1000. < 5.0*0.95 ||
 	  value/1000. > 5.0*1.05 ) {
       *out << cgicc::span().set("style","color:black");
@@ -6981,7 +7052,7 @@ private:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB3 6.0 A = %3.2f ",(value=thisDMB->lowv_adc(2,0))/1000.);
+    sprintf(buf,"CFEB3 6.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,0))/1000.);
     if ( value/1000. < 6.0*0.95 ||
 	 value/1000. > 6.0*1.05 ) {
       *out << cgicc::span().set("style","color:black");
@@ -6997,7 +7068,7 @@ private:
     *out << cgicc::table().set("border","1");
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB4 3.3 A = %3.2f ",(value=thisDMB->lowv_adc(2,1))/1000.);
+    sprintf(buf,"CFEB4 3.3 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,1))/1000.);
     if ( value/1000. < 3.3*0.95 ||
 	 value/1000. > 3.3*1.05 ) {
       *out << cgicc::span().set("style","color:black");
@@ -7009,7 +7080,7 @@ private:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB4 5.0 A = %3.2f ",(value=thisDMB->lowv_adc(2,2))/1000.);
+    sprintf(buf,"CFEB4 5.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,2))/1000.);
     if ( value/1000. < 5.0*0.95 ||
 	 value/1000. > 5.0*1.05 ) {
       *out << cgicc::span().set("style","color:black");
@@ -7021,7 +7092,7 @@ private:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB4 6.0 A = %3.2f ",(value=thisDMB->lowv_adc(2,3))/1000.);
+    sprintf(buf,"CFEB4 6.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,3))/1000.);
     if ( value/1000. < 6.0*0.95 ||
 	 value/1000. > 6.0*1.05 ){
       *out << cgicc::span().set("style","color:black");
@@ -7037,7 +7108,7 @@ private:
     *out << cgicc::table().set("border","1");
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB5 3.3 A = %3.2f ",(value=thisDMB->lowv_adc(2,4))/1000.);
+    sprintf(buf,"CFEB5 3.3 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,4))/1000.);
     if ( value/1000. < 3.3*0.95 ||
 	 value/1000. > 3.3*1.05 ) {
       *out << cgicc::span().set("style","color:black");
@@ -7049,7 +7120,7 @@ private:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB5 5.0 A = %3.2f ",(value=thisDMB->lowv_adc(2,5))/1000.);
+    sprintf(buf,"CFEB5 5.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,5))/1000.);
     if ( value/1000. < 5.0*0.95 ||
 	 value/1000. > 5.0*1.05 ) {
       *out << cgicc::span().set("style","color:black");
@@ -7061,7 +7132,7 @@ private:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"CFEB5 6.0 A = %3.2f ",(value=thisDMB->lowv_adc(2,6))/1000.);
+    sprintf(buf,"CFEB5 6.0 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,6))/1000.);
     if ( value/1000. < 6.0*0.95 ||
 	 value/1000. > 6.0*1.05 ) {
       *out << cgicc::span().set("style","color:black");
@@ -7081,7 +7152,7 @@ private:
     *out << cgicc::table().set("border","1");
     //
     *out << cgicc::td();
-    sprintf(buf,"ALCT  3.3 A = %3.2f ",(value=thisDMB->lowv_adc(2,7))/1000.);
+    sprintf(buf,"ALCT  3.3 V, I = %3.2f ",(value=thisDMB->lowv_adc(2,7))/1000.);
     if ( value/1000. < 3.3*0.95 ||
 	 value/1000. > 3.3*1.05 ) {
       *out << cgicc::span().set("style","color:black");
@@ -7093,7 +7164,7 @@ private:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"ALCT  1.8 A = %3.2f ",(value=thisDMB->lowv_adc(3,0))/1000.);
+    sprintf(buf,"ALCT  1.8 V, I = %3.2f ",(value=thisDMB->lowv_adc(3,0))/1000.);
     if ( value/1000. < 1.8*0.95 ||
 	 value/1000. > 1.8*1.95 ) {
       *out << cgicc::span().set("style","color:black");
@@ -7105,7 +7176,7 @@ private:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"ALCT  5.5 A B = %3.2f ",(value=thisDMB->lowv_adc(3,1))/1000.);
+    sprintf(buf,"ALCT  5.5A V, I = %3.2f ",(value=thisDMB->lowv_adc(3,1))/1000.);
     if ( value/1000. < 5.5*0.95 ||
 	 value/1000. > 5.5*1.05 ) {
       *out << cgicc::span().set("style","color:black");
@@ -7117,7 +7188,7 @@ private:
     *out << cgicc::td();
     //
     *out << cgicc::td();
-    sprintf(buf,"ALCT  5.5 A A = %3.2f ",(value=thisDMB->lowv_adc(3,2))/1000.);
+    sprintf(buf,"ALCT  5.5B V, I = %3.2f ",(value=thisDMB->lowv_adc(3,2))/1000.);
     if ( value/1000. < 5.5*0.95 ||
 	 value/1000. > 5.5*1.05 ) {
       *out << cgicc::span().set("style","color:black");
@@ -7174,7 +7245,7 @@ private:
     *out << cgicc::legend("TMB Utils").set("style","color:blue") ;
     //
     //std::string TMBFirmware = FirmwareDir_+"tmb/tmb09052005.svf";
-    std::string TMBFirmware = FirmwareDir_+"tmb/tmb10162006.svf";
+    std::string TMBFirmware = FirmwareDir_+TMB_FIRMWARE_FILENAME;
     TMBFirmware_ = TMBFirmware;
     //
     std::string LoadTMBFirmware =
@@ -7227,7 +7298,7 @@ private:
     //
     if (rat) {
       //
-      std::string RATFirmware = FirmwareDir_+"rat/rat09052006.svf";
+      std::string RATFirmware = FirmwareDir_+RAT_FIRMWARE_FILENAME;
       RATFirmware_ = RATFirmware;
       //
       std::string LoadRATFirmware =
@@ -7524,24 +7595,24 @@ private:
 	std::cout << "No ALCT present" << std::endl;
 	return;
       }
-      std::string ALCTFirmware = FirmwareDir_+"alct/";
+      std::string ALCTFirmware = FirmwareDir_;
       //
       if ( (alct->GetChamberType()).find("ME22") != string::npos ) {
-	ALCTFirmware += "alct384rl.svf";
+	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME22;
       } else if ( (alct->GetChamberType()).find("ME12") != string::npos ) {
-	ALCTFirmware += "alct384rl.svf";
+	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME12;
       } else if ( (alct->GetChamberType()).find("ME13") != string::npos ) {
-	ALCTFirmware += "alct288rl.svf";
+	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME13;
       } else if ( (alct->GetChamberType()).find("ME21") != string::npos ) {
-	ALCTFirmware += "alct672rl.svf";
+	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME21;
       } else if ( (alct->GetChamberType()).find("ME41") != string::npos ) {
-	ALCTFirmware += "alct672rl.svf";
+	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME41;
       } else if ( (alct->GetChamberType()).find("ME31") != string::npos ) {
-	ALCTFirmware += "alct672mirrorrl.svf";
+	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME31;
       } else if ( (alct->GetChamberType()).find("ME32") != string::npos ) {
-	ALCTFirmware += "alct384mirrorrl.svf";
+	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME32;
       } else if ( (alct->GetChamberType()).find("ME11") != string::npos ) {
-	ALCTFirmware += "alct288bp_rl.svf";
+	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME11;
       }
       //
       ALCTFirmware_ = ALCTFirmware;
@@ -7777,9 +7848,9 @@ private:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    std::string DMBFirmware = FirmwareDir_+"dmb/dmb6cntl_v20_r4.svf";
+    std::string DMBFirmware = FirmwareDir_+DMB_FIRMWARE_FILENAME;
     DMBFirmware_ = DMBFirmware;
-    std::string DMBVmeFirmware = FirmwareDir_+"dmb/dmb6vme_v10_r2.svf";
+    std::string DMBVmeFirmware = FirmwareDir_+DMBVME_FIRMWARE_FILENAME;
     DMBVmeFirmware_ = DMBVmeFirmware;
     //
     std::string DMBLoadFirmware =
@@ -7812,8 +7883,7 @@ private:
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    std::string CFEBFirmware = FirmwareDir_+"cfeb/cfeb_v7_r1.svf";
-    //std::string CFEBFirmware = FirmwareDir_+"cfeb/cfeb_v3_r1.svf";
+    std::string CFEBFirmware = FirmwareDir_+CFEB_FIRMWARE_FILENAME;
     CFEBFirmware_ = CFEBFirmware;
     //
     std::string CFEBLoadFirmware =

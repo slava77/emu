@@ -479,9 +479,11 @@ const int NUMBER_OF_GROUPS_OF_DELAY_CHIPS_384   = RegSizeAlctFastFpga_WRT_DELAYL
 const int NUMBER_OF_GROUPS_OF_DELAY_CHIPS_576   = RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_576 - 2; 
 const int NUMBER_OF_GROUPS_OF_DELAY_CHIPS_672   = RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_672 - 2; 
 //
-const int MAX_NUM_AFEBS = 42;
 const int MAX_NUM_LAYERS = 6;
-const int MAX_NUM_WIRES_PER_LAYER = 112;  // =672/6
+const int MAX_NUM_AFEBS = 42;
+const int MAX_NUM_WIRES_PER_LAYER = 112;  // =42 AFEBs * 16 wires/AFEB / 6 layers
+const int MAX_NUM_CFEBS  = 5;
+const int MAX_NUM_DISTRIPS_PER_LAYER = 40; //=5 CFEBs * 8 distrips/CFEB/layer
 //
 //
 ////////////////////////////////////////
@@ -693,8 +695,10 @@ const int FORWARD_FIRMWARE_TYPE                  = 1;
 const int NEGATIVE_FIRMWARE_TYPE                 = 0;
 const int POSITIVE_FIRMWARE_TYPE                 = 1;
 //
+const int FIRMWARE_TYPE_192                      = 999;
 const int FIRMWARE_TYPE_288                      = 2;
 const int FIRMWARE_TYPE_384                      = 3;
+const int FIRMWARE_TYPE_576                      = 999;
 const int FIRMWARE_TYPE_672                      = 6;
 //
 //
