@@ -1,17 +1,17 @@
-#ifndef __EMU_FED_CRATE_H__
-#define __EMU_FED_CRATE_H__
+#ifndef __EMU_FCRATE_SOAP_H__
+#define __EMU_FCRATE_SOAP_H__
 
 #include "EmuApplication.h"
 
 #include "toolbox/fsm/FiniteStateMachine.h"
 #include "xdata/UnsignedInteger.h"
 
-class EmuFEDCrate : public EmuApplication
+class EmuFCrateSOAP : public EmuApplication
 {
 public:
 	XDAQ_INSTANTIATOR();
 
-	EmuFEDCrate(xdaq::ApplicationStub *stub) throw (xdaq::exception::Exception);
+	EmuFCrateSOAP(xdaq::ApplicationStub *stub) throw (xdaq::exception::Exception);
 
 	// SOAP interface
 	xoap::MessageReference onConfigure(xoap::MessageReference message)
@@ -37,5 +37,5 @@ private:
 	xdata::UnsignedInteger tts_bits_;
 };
 
-#endif  // ifndef __EMU_FED_CRATE_H__
+#endif  // ifndef __EMU_FCRATE_SOAP_H__
 // vim: set ai sw=4 ts=4:

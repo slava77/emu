@@ -1,45 +1,45 @@
-// EmuFEDCrate.cc
+// EmuFCrateSOAP.cc
 
-#include "EmuFEDCrate.h"
+#include "EmuFCrateSOAP.h"
 
 #include "xdaq/NamespaceURI.h"
 #include "xoap/Method.h"
 
-XDAQ_INSTANTIATOR_IMPL(EmuFEDCrate);
+XDAQ_INSTANTIATOR_IMPL(EmuFCrateSOAP);
 
-EmuFEDCrate::EmuFEDCrate(xdaq::ApplicationStub *stub)
+EmuFCrateSOAP::EmuFCrateSOAP(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
 		EmuApplication(stub)
 {
-	xoap::bind(this, &EmuFEDCrate::onConfigure,  "Configure",  XDAQ_NS_URI);
-	xoap::bind(this, &EmuFEDCrate::onHalt,       "Halt",       XDAQ_NS_URI);
-	xoap::bind(this, &EmuFEDCrate::onSetTTSBits, "SetTTSBits", XDAQ_NS_URI);
+	xoap::bind(this, &EmuFCrateSOAP::onConfigure,  "Configure",  XDAQ_NS_URI);
+	xoap::bind(this, &EmuFCrateSOAP::onHalt,       "Halt",       XDAQ_NS_URI);
+	xoap::bind(this, &EmuFCrateSOAP::onSetTTSBits, "SetTTSBits", XDAQ_NS_URI);
 
 	getApplicationInfoSpace()->fireItemAvailable("TTSCrate", &tts_crate_);
 	getApplicationInfoSpace()->fireItemAvailable("TTSSlot",  &tts_slot_);
 	getApplicationInfoSpace()->fireItemAvailable("TTSBits",  &tts_bits_);
 
-	fsm_.addState('H', "Halted",     this, &EmuFEDCrate::stateChanged);
-	fsm_.addState('C', "Configured", this, &EmuFEDCrate::stateChanged);
+	fsm_.addState('H', "Halted",     this, &EmuFCrateSOAP::stateChanged);
+	fsm_.addState('C', "Configured", this, &EmuFCrateSOAP::stateChanged);
 
 	fsm_.addStateTransition(
-			'H', 'C', "Configure", this, &EmuFEDCrate::configureAction);
+			'H', 'C', "Configure", this, &EmuFCrateSOAP::configureAction);
 	fsm_.addStateTransition(
-			'C', 'C', "Configure", this, &EmuFEDCrate::configureAction);
+			'C', 'C', "Configure", this, &EmuFCrateSOAP::configureAction);
 	fsm_.addStateTransition(
-			'H', 'H', "Halt",      this, &EmuFEDCrate::haltAction);
+			'H', 'H', "Halt",      this, &EmuFCrateSOAP::haltAction);
 	fsm_.addStateTransition(
-			'C', 'H', "Halt",      this, &EmuFEDCrate::haltAction);
+			'C', 'H', "Halt",      this, &EmuFCrateSOAP::haltAction);
 
 	fsm_.setInitialState('H');
 	fsm_.reset();
 
 	state_ = fsm_.getStateName(fsm_.getCurrentState());
 
-	LOG4CPLUS_INFO(getApplicationLogger(), "EmuFEDCrate");
+	LOG4CPLUS_INFO(getApplicationLogger(), "EmuFCrateSOAP");
 }
 
-xoap::MessageReference EmuFEDCrate::onConfigure(xoap::MessageReference message)
+xoap::MessageReference EmuFCrateSOAP::onConfigure(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
 	fireEvent("Configure");
@@ -47,7 +47,7 @@ xoap::MessageReference EmuFEDCrate::onConfigure(xoap::MessageReference message)
 	return createReply(message);
 }
 
-xoap::MessageReference EmuFEDCrate::onHalt(xoap::MessageReference message)
+xoap::MessageReference EmuFCrateSOAP::onHalt(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
 	fireEvent("Halt");
@@ -55,7 +55,7 @@ xoap::MessageReference EmuFEDCrate::onHalt(xoap::MessageReference message)
 	return createReply(message);
 }
 
-xoap::MessageReference EmuFEDCrate::onSetTTSBits(xoap::MessageReference message)
+xoap::MessageReference EmuFCrateSOAP::onSetTTSBits(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
     LOG4CPLUS_INFO(getApplicationLogger(),
@@ -65,19 +65,19 @@ xoap::MessageReference EmuFEDCrate::onSetTTSBits(xoap::MessageReference message)
 	return createReply(message);
 }
 
-void EmuFEDCrate::configureAction(toolbox::Event::Reference e)
+void EmuFCrateSOAP::configureAction(toolbox::Event::Reference e)
         throw (toolbox::fsm::exception::Exception)
 {   
     LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
 
-void EmuFEDCrate::haltAction(toolbox::Event::Reference e)
+void EmuFCrateSOAP::haltAction(toolbox::Event::Reference e)
 		throw (toolbox::fsm::exception::Exception)
 {
     LOG4CPLUS_DEBUG(getApplicationLogger(), e->type());
 }
 
-void EmuFEDCrate::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
+void EmuFCrateSOAP::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
         throw (toolbox::fsm::exception::Exception)
 {
 	EmuApplication::stateChanged(fsm);

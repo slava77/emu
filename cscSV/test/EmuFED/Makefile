@@ -1,4 +1,4 @@
-# $Id: Makefile,v 3.1 2007/01/30 15:03:34 ichiro Exp $
+# $Id: Makefile,v 3.2 2007/01/31 13:31:32 ichiro Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -24,11 +24,11 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 # Packages to be built
 #
 Project = daq
-Package = EmuFEDCrate
+Package = EmuFCrateSOAP
 
 Sources = \
-	EmuFEDCrate.cc \
-	EmuFEDCrateV.cc
+	EmuFCrateSOAP.cc \
+	EmuFCrateSOAPV.cc
 
 DependentLibraryDirs = $(XDAQ_ROOT)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 DependentLibraries = CSCSupervisor
