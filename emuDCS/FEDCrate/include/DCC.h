@@ -29,8 +29,7 @@ public:
 
   void configure();
 
-  // DCC commands 
-  void TTCrxReset();
+   // DCC commands 
   unsigned long int inprom_userid();
   unsigned long int mprom_userid();
   unsigned long int inprom_chipid();
@@ -43,6 +42,8 @@ public:
   void mctrl_reg(char *c);
   void mctrl_swset(unsigned short int swset);
   unsigned short int  mctrl_swrd();
+  void mctrl_fmmset(unsigned short int fmmset);
+  unsigned short int  mctrl_fmmrd();
   unsigned short int  mctrl_stath();
   unsigned short int  mctrl_statl();
   unsigned short int  mctrl_ratemon(int address);
