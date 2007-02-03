@@ -143,12 +143,6 @@ enum DEVTYPE dv;
       return ibrd;
 }
 
-void DCC::TTCrxReset(){
-  cmd[0]=0x00;
-  cmd[1]=0x5A;
-  devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,0);
-  usleep(10000);
-}
 
 
 void DCC::mctrl_bxr()
@@ -228,6 +222,30 @@ unsigned short int  DCC::mctrl_swrd()
      printf(" Current switch register readback %02x %02x \n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
      swrd=((rcvbuf[1]<<8)&0xff00)|(rcvbuf[0]&0x00ff);
      return swrd;
+}
+void DCC::mctrl_fmmset(unsigned short int fmmset)
+{
+unsigned short int tmp;
+ tmp=(fmmset&0xffff);
+ printf(" Set FMM register to: %04x \n",tmp);
+ cmd[0]=0x00;  // fcn 0x00-write 0x01-read
+ cmd[1]=0x08;  // vme add
+ cmd[2]=(tmp>>8)&0xff;  // data h
+ cmd[3]=tmp&0xff;  // data l
+ devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
+}
+
+unsigned short int  DCC::mctrl_fmmrd()
+{
+  unsigned short int fmmrd=0;
+     cmd[0]=0x01;  // fcn 0x00-write 0x01-read
+     cmd[1]=0x1e;  // vme add
+     cmd[2]=0xff;  // data h
+     cmd[3]=0xff;  // data l
+     devdo(MCTRL,4,cmd,0,sndbuf,rcvbuf,1);
+     printf(" Current FMM register readback: %02x %02x \n",rcvbuf[1]&0xff,rcvbuf[0]&0xff);
+     fmmrd=((rcvbuf[1]<<8)&0xff00)|(rcvbuf[0]&0x00ff);
+     return fmmrd;
 }
 
 unsigned short int  DCC::mctrl_stath()
