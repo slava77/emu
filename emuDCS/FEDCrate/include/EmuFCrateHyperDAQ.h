@@ -4446,7 +4446,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
     *out << std::endl;
     *out << cgicc::legend(buf).set("style","color:blue")  << std::endl;
     int igu;
-    for(int i=100;i<110;i++){
+    for(int i=100;i<111;i++){
       thisDCC->CAEN_err_reset();
       sprintf(buf3," ");
       if(i==100){
@@ -4516,9 +4516,16 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
 	   //           sprintf(buf2," ");
 	   sprintf(buf3,"<font size=-1> (set the software switch etc)</font>");
       }
+      if(i==110){
+           unsigned short int fmmset=thisDCC->mctrl_swrd();
+           sprintf(buf,"Set FMM register:");
+	   sprintf(buf2," %04X ",(fmmset&0xffff));
+	   //           sprintf(buf2," ");
+	   sprintf(buf3,"<font size=-1> (set the FMM status)</font>");
+      }
 
 
-      if((i>100 && i<107)||i==109) {
+      if((i>100 && i<107)||i==109||i==110) {
          std::string dcctextload =
 	 toolbox::toString("/%s/DCCTextLoad",getApplicationDescriptor()->getURN().c_str());
          *out << cgicc::form().set("method","GET").set("action",dcctextload)
@@ -4534,7 +4541,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
       }
       *out << buf2;
       *out << cgicc::span();
-      if((i>100&&i<107)||i==109) {
+      if((i>100&&i<107)||i==109||i==110) {
 	string xmltext="";
 	if(i==103) {
 	  //int readback=thisDCC->mctrl_rd_fifoinuse();
@@ -4549,8 +4556,11 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
 	if (i==109) {
 	  xmltext="0000";
 	}
+	if (i==110) {
+	  xmltext="0000";
+	}
 	if(i==105)xmltext="2,5";
-	if(i==103|i==104|i==105|i==109){
+	if(i==103|i==104|i==105|i==109|i==110){
 	  *out << cgicc::input().set("type","text")
 	    .set("name","textdata")
 	    .set("size","10")
@@ -4589,6 +4599,13 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
           *out << " &nbsp bitD=1&bitE=0: Ignore SLINK full, &nbsp bitD=0&bitE=1: Ignore SLINK full and Slink_down";
 	  *out << "</font></blockquote>" << std::endl;
       }
+      if(i==110) {
+	  *out << "<blockquote><font size=-1 face=arial>";
+	  *out << " XOR(bit4,bit5): Enable FMM overwrite";
+	  *out << " &nbsp FMM[3:0]=bit[3:0]";
+	  *out << "</font></blockquote>" << std::endl;
+      }
+
     }
 
     *out << cgicc::fieldset() << std::endl;
@@ -4625,7 +4642,7 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
     //
 
     string XMLtext;
-    if (val==103 || val==104 || val==105 || val==109) {
+    if (val==103 || val==104 || val==105 || val==109 ||val==110) {
        XMLtext = cgi["textdata"]->getValue() ; 
 	//
      cout << XMLtext  << endl ;
@@ -4672,6 +4689,13 @@ void EmuFCrateHyperDAQ::DCCTextLoad(xgi::Input * in, xgi::Output * out )
 	test >> hex >> para_val;
       printf(" Set switch register %04x \n",para_val);
       thisDCC->mctrl_swset(para_val);
+    } 
+    if(val==110){
+      //      sscanf(XMLtext.data(),"%04x",&para_val);
+      std::istringstream test(XMLtext);
+	test >> hex >> para_val;
+      printf(" Set FMM register %04x \n",para_val);
+      thisDCC->mctrl_fmmset(para_val);
     } 
 
       DCC_=dcc;
