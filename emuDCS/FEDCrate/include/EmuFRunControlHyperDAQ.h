@@ -1,4 +1,4 @@
-// $Id: EmuFRunControlHyperDAQ.h,v 3.0 2006/07/20 21:16:10 geurts Exp $
+// $Id: EmuFRunControlHyperDAQ.h,v 3.1 2007/02/03 14:09:45 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -21,6 +21,7 @@
 #include "xdaq/ApplicationContext.h"
 #include "xdaq/ApplicationStub.h"
 #include "xdaq/exception/Exception.h"
+#include "xdaq/ApplicationRegistry.h"
 
 
 #include "xdaq/NamespaceURI.h"
@@ -176,12 +177,14 @@ public:
     
     try 
       {	
-	// Get the Xrelay application descriptor and post the message:
-	xdaq::ApplicationDescriptor * xrelay = getApplicationContext()->
+	/* Get the Xrelay application descriptor and post the message:
+       	xdaq::ApplicationDescriptor * xrelay = getApplicationContext()->
 	  getApplicationGroup()->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),4);
-	
+       
+       xdaq::ApplicationDescriptor * xrelay = getApplicationContext()->getApplicationRegistry()->getApplication(getApplicationContext()->getContextDescriptor(),4)->getApplicationDescriptor();
+
 	xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, xrelay);
-	
+	*/
       } 
     catch (xdaq::exception::Exception& e) 
       {
@@ -204,8 +207,11 @@ public:
     //
     try
       {	
-	xdaq::ApplicationDescriptor * d = 
+	/*	xdaq::ApplicationDescriptor * d = 
 	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("DDUHyperDAQ",0);
+	*/
+       xdaq::ApplicationDescriptor * d = getApplicationContext()->getApplicationRegistry()->getApplication("DDUHyperDAQ",0)->getApplicationDescriptor();
+
 	xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
       } 
     catch (xdaq::exception::Exception& e)
@@ -232,12 +238,17 @@ public:
     //
     try
       {	
-	xdaq::ApplicationDescriptor * d = 
-	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuFCrateSOAP", 0);
+	/*	xdaq::ApplicationDescriptor * d = 
+		getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuFCrateSOAP", 0);
+ */
+       xdaq::ApplicationDescriptor * d = getApplicationContext()->getApplicationRegistry()->getApplication("EmuFCrateSOAP",0)->getApplicationDescriptor();
+
 	xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
 	//
-	d = 
+	/*	d = 
 	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuFCrateSOAP", 1);
+	*/
+         d = getApplicationContext()->getApplicationRegistry()->getApplication("EmuFCrateSOAP",1)->getApplicationDescriptor();
 	reply    = getApplicationContext()->postSOAP(msg, d);
       } 
     catch (xdaq::exception::Exception& e)
@@ -252,14 +263,16 @@ public:
   void EmuFRunControlHyperDAQ::SendSOAPMessageInitXRelay(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-    //
+    /*
     std::vector<xdaq::ApplicationDescriptor * >  descriptors =
       getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuFCrateSOAP");
-    //
+    
+       xdaq::ApplicationDescriptor * descriptors = getApplicationContext()->getApplicationRegistry()->getApplication("EmuFCrareSOAP",0)->getApplicationDescriptor();
+
     xoap::MessageReference configure = createXRelayMessage("Init", descriptors);
-    //
+   
     this->relayMessage(configure);
-    // 
+    */ 
     this->Default(in,out);
     //
   }
@@ -267,14 +280,16 @@ public:
   void EmuFRunControlHyperDAQ::SendSOAPMessageConfigureXRelay(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-    //
+    /*
     std::vector<xdaq::ApplicationDescriptor * >  descriptors =
       getApplicationContext()->getApplicationGroup()->getApplicationDescriptors("EmuFCrateSOAP");
-    //
+   
+       std::vector<xdaq::ApplicationDescriptor * > descriptors = getApplicationContext()->getApplicationRegistry()->getApplication("EmuFCrareSOAP")->getApplicationDescriptor();
+
     xoap::MessageReference configure = createXRelayMessage("Configure", descriptors);
     //
     this->relayMessage(configure);
-    //
+    */
     this->Default(in,out);
     //
   }
@@ -294,12 +309,19 @@ public:
     //
     try
       {	
+	/*
 	xdaq::ApplicationDescriptor * d = 
 	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuFCrateSOAP", 0);
+	*/
+       xdaq::ApplicationDescriptor * d = getApplicationContext()->getApplicationRegistry()->getApplication("EmuFCrateSOAP",0)->getApplicationDescriptor();
+
 	xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
-	//
+	/*
 	d = 
 	  getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuFCrateSOAP", 1);
+	*/
+        d = getApplicationContext()->getApplicationRegistry()->getApplication("EmuFCrateSOAP",1)->getApplicationDescriptor();
+
 	reply    = getApplicationContext()->postSOAP(msg, d);
 	//
       } 

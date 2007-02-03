@@ -21,6 +21,7 @@
 #include "xdaq/ApplicationContext.h"
 #include "xdaq/ApplicationStub.h"
 #include "xdaq/exception/Exception.h"
+#include "xdaq/ApplicationRegistry.h"
 
 #include "xdaq/NamespaceURI.h"
 
@@ -350,9 +351,10 @@ void timeExpired (toolbox::task::TimerEvent& e)
 
 
 
-
+	     /*
              xdaq::ApplicationDescriptor * d = 
-	     getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuFRunControlHyperDAQ",0);
+	     getApplicationContext()->getApplicationGroup()->getApplicationDescriptor("EmuFRunControlHyperDAQ",0); */
+             xdaq::ApplicationDescriptor * d = getApplicationContext()->getApplicationRegistry()->getApplication("EmuFRunControlHyperDAQ",0)->getApplicationDescriptor();
 	     xoap::MessageReference reply    = getApplicationContext()->postSOAP(msg, d);
 
 
