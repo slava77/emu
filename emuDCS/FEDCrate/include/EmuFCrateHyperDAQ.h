@@ -588,6 +588,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     FEDCrateParser parser;
     cout << " Using file " << xmlFile_.toString() << endl ;
     parser.parseFile(xmlFile_.toString().c_str());
+    cout <<" Parser Finished"<<endl;
     //
     //-- Make sure that only one TMB in one crate is configured
     CrateSelector selector = tbController.selector();
@@ -4517,7 +4518,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
 	   sprintf(buf3,"<font size=-1> (set the software switch etc)</font>");
       }
       if(i==110){
-           unsigned short int fmmset=thisDCC->mctrl_swrd();
+           unsigned short int fmmset=thisDCC->mctrl_fmmrd();
            sprintf(buf,"Set FMM register:");
 	   sprintf(buf2," %04X ",(fmmset&0xffff));
 	   //           sprintf(buf2," ");
