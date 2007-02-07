@@ -37,7 +37,9 @@ Sources=\
 	EmuFCrateHyperDAQ.cc \
 	EmuFRunControlHyperDAQ.cc \
 	EmuFCrateSOAP.cc \
+	EmuFCrate.cc \
 	EmuFController.cc
+
 IncludeDirs = \
 	$(XDAQ_ROOT)/daq/toolbox/include \
 	$(XDAQ_ROOT)/daq/toolbox/include/$(XDAQ_OS) \
