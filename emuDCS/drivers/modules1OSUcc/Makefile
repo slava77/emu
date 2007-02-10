@@ -10,12 +10,12 @@ include $(XDAQ_BACK_TO_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
 Project=emu
-Package=emuDAQ/drivers/modules1OSUcc
+Package=emuDCS/drivers/modules1OSUcc
 
 include $(XDAQ_ROOT)/config/Makefile.rules
 
 _all:
-	compile
+	sh ./compile
 
 _cleanall:
 	rm *.o
