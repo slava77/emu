@@ -8,7 +8,8 @@
 	<property name="lib.dir"        value="." />
 	<property name="fm.deploy.dir"
 			value="${env.CATALINA_HOME}/webapps/ROOT/functionmanagers" />
-	<property name="l1fm.jar"       value="levelOneTemplateFM.jar" />
+	<property name="duck.jar" value="${env.RCMS_HOME}/framework/resourceservice/db/tools/parser/script/duck.jar" />
+	<property name="duck.xml" value="simple.xml" />
 
 	<path id="rcms.path">
 		<fileset dir="${env.RCMS_HOME}/framework/rcms/WEB-INF/lib">
@@ -19,7 +20,6 @@
 	
 	<path id="base.path">
 		<path refid="rcms.path" />
-		<pathelement location="${fm.deploy.dir}/${l1fm.jar}" />
 	</path>
 
 	<target name="foo">
@@ -40,7 +40,6 @@
 				basedir="${build.dir}" includes="rcms/fm/app/**">
 			<manifest>
 				<attribute name="Built-by" value="${user.name}" />
-				<attribute name="Class-Path" value="${l1fm.jar}" />
 			</manifest>
 		</jar>
 	</target>
@@ -57,6 +56,12 @@
 		<mkdir dir="${fm.deploy.dir}" />
 		<copy file="${lib.dir}/${package.name}.jar" todir="${fm.deploy.dir}" />
 		<copy file="cscfm.properties" todir="${fm.deploy.dir}" />
+	</target>
+
+	<target name="duck">
+		<java jar="${duck.jar}" fork="true">
+			<arg line="${duck.xml} localhost 3306 rs3 rcms ${rs.pass} MYSQL" />
+		</java>
 	</target>
 </project>
 

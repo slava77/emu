@@ -1,9 +1,0 @@
-REPLACE
-KEY "simple" "0.0" ""
-FULL_PATH "/CSC/simple" "cscpro"
-
-GROUP "csc" "cscpro"
-RSC   "csc" "thisGroup" "http://localhost:8080/urn:rcms-fm:group=csc,configuration=simple,owner=cscpro"
-RSC_CONF   "http://localhost:8080/functionmanagers/cscFM.jar" "rcms.fm.app.csc.CSCFunctionManager"
-RSC "CSCSupervisor" "rcms.fm.resource.qualifiedresource.XdaqApplication" "http://localhost:40000/urn:xdaq-application:lid=40"
-
