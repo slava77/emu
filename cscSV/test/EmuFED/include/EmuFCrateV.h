@@ -1,10 +1,10 @@
-#ifndef __EMU_FCRATE_SOAP_V_H__
-#define __EMU_FCRATE_SOAP_V_H__
+#ifndef __EMU_FCRATE_V_H__
+#define __EMU_FCRATE_V_H__
 
 #include "PackageInfo.h"
 
-namespace EmuFCrateSOAP {
-	const string package     = "EmuFCrateSOAP";
+namespace EmuFCrate {
+	const string package     = "EmuFCrate";
 	const string versions    = "1.0";
 	const string description = "dummy XDAQ application to test CSC Supervisor";
 	const string link        = "http://localhost:40000/";
@@ -14,5 +14,5 @@ namespace EmuFCrateSOAP {
 	set<string, less<string> > getPackageDependencies();
 };
 
-#endif  // ifndef __EMU_FCRATE_SOAP_V_H__
+#endif  // ifndef __EMU_FCRATE_V_H__
 // vim: set ai sw=4 ts=4:
