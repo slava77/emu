@@ -295,7 +295,6 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 			.set("value", "SetTTS") << endl;
 	*out << form() << endl;
 
-
 	// Message logs
 	*out << hr() << endl;
 	last_log_.webOutput(out);
@@ -802,9 +801,15 @@ string CSCSupervisor::trim(string orig) const
 
 string CSCSupervisor::getDAQMode()
 {
+	string result = "";
+
 	if (daq_descr_ == NULL) {
-		daq_descr_ = getApplicationContext()->getDefaultZone()
-				->getApplicationDescriptor("EmuDAQManager", 0);
+		try {
+			daq_descr_ = getApplicationContext()->getDefaultZone()
+					->getApplicationDescriptor("EmuDAQManager", 0);
+		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+			return result; // Do nothing if the target doesn't exist
+		}
 		daq_param_ = createParameterGetSOAP(
 				"EmuDAQManager", "globalMode", "xsd:boolean");
 		daq_configured_param_ = createParameterGetSOAP(
@@ -812,8 +817,6 @@ string CSCSupervisor::getDAQMode()
 		daq_state_param_ = createParameterGetSOAP(
 				"EmuDAQManager", "daqState", "xsd:string");
 	}
-
-	string result = "";
 
 	xoap::MessageReference reply;
 	try {
@@ -830,14 +833,18 @@ string CSCSupervisor::getDAQMode()
 
 string CSCSupervisor::getTFConfig()
 {
+	string result = "";
+
 	if (tf_descr_ == NULL) {
-		tf_descr_ = getApplicationContext()->getDefaultZone()
-				->getApplicationDescriptor("TF_hyperDAQ", 0);
+		try {
+			tf_descr_ = getApplicationContext()->getDefaultZone()
+					->getApplicationDescriptor("TF_hyperDAQ", 0);
+		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+			return result; // Do nothing if the target doesn't exist
+		}
 		tf_param_ = createParameterGetSOAP(
 				"TF_hyperDAQ", "triggerMode", "xsd:string");
 	}
-
-	string result = "";
 
 	xoap::MessageReference reply;
 	try {
@@ -853,9 +860,15 @@ string CSCSupervisor::getTFConfig()
 
 string CSCSupervisor::getTTCciSource()
 {
+	string result = "";
+
 	if (ttc_descr_ == NULL) {
-		ttc_descr_ = getApplicationContext()->getDefaultZone()
-				->getApplicationDescriptor("TTCciControl", 0);
+		try {
+			ttc_descr_ = getApplicationContext()->getDefaultZone()
+					->getApplicationDescriptor("TTCciControl", 0);
+		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+			return result; // Do nothing if the target doesn't exist
+		}
 
 		string names[4], types[4];
 		names[0] = "ClockSource";
@@ -869,8 +882,6 @@ string CSCSupervisor::getTTCciSource()
 		ttc_param_ = createParameterGetSOAP2(
 				"TTCciControl", 4, names, types);
 	}
-
-	string result = "";
 
 	xoap::MessageReference reply;
 	try {
