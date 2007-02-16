@@ -12,7 +12,7 @@ import rcms.util.logger.RCMSLogger;
 
 public class Level1LeadingActions extends UserEventHandler {
 
-    private RCMSLogger logger = new RCMSLogger(Level1FunctionManager.class);
+    RCMSLogger logger = new RCMSLogger(Level1FunctionManager.class);
 
 	Level1FunctionManager fm;
 
