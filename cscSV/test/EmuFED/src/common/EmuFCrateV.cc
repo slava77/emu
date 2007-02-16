@@ -1,15 +1,15 @@
 //
-// EmuFCrateSOAPV.cc
+// EmuFCrateV.cc
 
-#include "EmuFCrateSOAPV.h"
+#include "EmuFCrateV.h"
 
 #include "toolboxV.h"
 #include "xoap/version.h"
 #include "xdaqV.h"
 
-GETPACKAGEINFO(EmuFCrateSOAP)
+GETPACKAGEINFO(EmuFCrate)
 
-void EmuFCrateSOAP::checkPackageDependencies()
+void EmuFCrate::checkPackageDependencies()
 		throw (toolbox::PackageInfo::VersionException)
 {
 	CHECKDEPENDENCY(toolbox)

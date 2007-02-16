@@ -91,7 +91,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 
 	state_ = fsm_.getStateName(fsm_.getCurrentState());
 
-	state_table_.addApplication(this, "EmuFCrateSOAP");
+	state_table_.addApplication(this, "EmuFCrate");
 	state_table_.addApplication(this, "EmuPeripheralCrate");
 	state_table_.addApplication(this, "EmuDAQManager");
 	state_table_.addApplication(this, "LTCControl");
@@ -403,7 +403,7 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 				trim(getConfigFilename("PC", runmode_)));
 		setParameter("EmuDAQManager",
 				"maxNumberOfEvents", "xsd:integer", nevents_);
-		sendCommand("Configure", "EmuFCrateSOAP");
+		sendCommand("Configure", "EmuFCrate");
 		sendCommand("Configure", "EmuPeripheralCrate");
 		sendCommand("Configure", "EmuDAQManager");
 		sendCommand("Configure", "LTCControl");
@@ -440,6 +440,7 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 		}
 		setParameter("EmuDAQManager",
 				"runNumber", "xsd:unsignedLong", runnumber_);
+		sendCommand("Enable", "EmuFCrate");
 		sendCommand("Enable", "EmuPeripheralCrate");
 		sendCommand("Enable", "EmuDAQManager");
 		sendCommand("Enable", "LTCControl");
@@ -465,6 +466,7 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference evt)
 	try {
 		sendCommand("Halt", "LTCControl");
 		sendCommand("Halt", "EmuDAQManager");
+		sendCommand("Disable", "EmuFCrate");
 		sendCommand("Disable", "EmuPeripheralCrate");
 		sendCommand("Configure", "LTCControl");
 	} catch (xoap::exception::Exception e) {
@@ -484,7 +486,7 @@ void CSCSupervisor::haltAction(toolbox::Event::Reference evt)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
 
 	try {
-		sendCommand("Halt", "EmuFCrateSOAP");
+		sendCommand("Halt", "EmuFCrate");
 		sendCommand("Halt", "EmuPeripheralCrate");
 		sendCommand("Halt", "EmuDAQManager");
 		sendCommand("Halt", "LTCControl");
@@ -512,11 +514,11 @@ void CSCSupervisor::setTTSAction() throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "setTTS(begin)");
 
-	const string fed_app = "EmuFCrateSOAP";
+	const string fed_app = "EmuFCrate";
 
-	setParameter(fed_app, "TTSCrate", "xsd:unsignedInt", tts_crate_);
-	setParameter(fed_app, "TTSSlot",  "xsd:unsignedInt", tts_slot_);
-	setParameter(fed_app, "TTSBits",  "xsd:unsignedInt", tts_bits_);
+	setParameter(fed_app, "ttsCrate", "xsd:unsignedInt", tts_crate_);
+	setParameter(fed_app, "ttsSlot",  "xsd:unsignedInt", tts_slot_);
+	setParameter(fed_app, "ttsBits",  "xsd:unsignedInt", tts_bits_);
 
 	sendCommand("SetTTSBits", fed_app);
 
