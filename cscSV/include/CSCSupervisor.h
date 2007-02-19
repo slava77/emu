@@ -35,6 +35,8 @@ public:
 			throw (xoap::exception::Exception);
 	xoap::MessageReference onReset(xoap::MessageReference message)
 			throw (xoap::exception::Exception);
+	xoap::MessageReference onSetTTS(xoap::MessageReference message)
+			throw (xoap::exception::Exception);
 
 	// HyperDAQ interface
 	void webDefault(xgi::Input *in, xgi::Output *out)
@@ -64,7 +66,8 @@ public:
 	void haltAction(toolbox::Event::Reference e) 
 			throw (toolbox::fsm::exception::Exception);
 	void resetAction() throw (toolbox::fsm::exception::Exception);
-	void setTTSAction() throw (toolbox::fsm::exception::Exception);
+	void setTTSAction(toolbox::Event::Reference e) 
+			throw (toolbox::fsm::exception::Exception);
 
 private: // XDAQ parameters
 	xdata::String x_runmode_;
