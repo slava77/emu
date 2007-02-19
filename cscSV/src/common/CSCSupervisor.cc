@@ -53,6 +53,10 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	i->fireItemAvailable("modesForFC", &modes_fc_);
 	i->fireItemAvailable("filesForFC", &files_fc_);
 
+	i->fireItemAvailable("TTSCrate", &tts_crate_);
+	i->fireItemAvailable("TTSSlot", &tts_slot_);
+	i->fireItemAvailable("TTSBits", &tts_bits_);
+
 	xgi::bind(this, &CSCSupervisor::webDefault,   "Default");
 	xgi::bind(this, &CSCSupervisor::webConfigure, "Configure");
 	xgi::bind(this, &CSCSupervisor::webEnable,    "Enable");
@@ -268,7 +272,7 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 	const char n[] = "1234";
 	string str = "";
 	for (int i = 0; i < 4; ++i) {
-		if (n[i] == tts_crate_[0]) {
+		if (n[i] == (tts_crate_.toString())[0]) {
 			*out << option().set("value", str + n[i]).set("selected", "");
 		} else {
 			*out << option().set("value", str + n[i]);
@@ -360,9 +364,9 @@ void CSCSupervisor::webSetTTS(xgi::Input *in, xgi::Output *out)
 	tts_slot_  = getCGIParameter(in, "tts_slot");
 	tts_bits_  = getCGIParameter(in, "tts_bits");
 
-	if (tts_crate_.empty()) { error_message_ += "Please select TTS crate.\n"; }
-	if (tts_slot_.empty())  { error_message_ += "Please set TTS slot.\n"; }
-	if (tts_bits_.empty())  { error_message_ += "Please set TTS bits.\n"; }
+	if (tts_crate_ == "") { error_message_ += "Please select TTS crate.\n"; }
+	if (tts_slot_  == "") { error_message_ += "Please set TTS slot.\n"; }
+	if (tts_bits_  == "") { error_message_ += "Please set TTS bits.\n"; }
 
 	if (error_message_.empty()) {
 		setTTSAction();

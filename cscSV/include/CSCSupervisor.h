@@ -79,6 +79,10 @@ private: // XDAQ parameters
 	xdata::String trigger_config_;
 	xdata::String ttc_source_;
 
+	xdata::String tts_crate_;
+	xdata::String tts_slot_;
+	xdata::String tts_bits_;
+
 private:
 	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 			throw (toolbox::fsm::exception::Exception);
@@ -121,10 +125,6 @@ private:
 	string runmode_;
 	string runnumber_;
 	string nevents_;
-
-	string tts_crate_;
-	string tts_slot_;
-	string tts_bits_;
 
 	string error_message_;
 
