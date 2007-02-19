@@ -70,6 +70,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	xoap::bind(this, &CSCSupervisor::onDisable,   "Disable",   XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onHalt,      "Halt",      XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onReset,     "Reset",     XDAQ_NS_URI);
+	xoap::bind(this, &CSCSupervisor::onSetTTS,    "SetTTS",    XDAQ_NS_URI);
 
 	fsm_.addState('H', "Halted",     this, &CSCSupervisor::stateChanged);
 	fsm_.addState('C', "Configured", this, &CSCSupervisor::stateChanged);
@@ -89,6 +90,8 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 			'E', 'H', "Halt",      this, &CSCSupervisor::haltAction);
 	fsm_.addStateTransition(
 			'H', 'H', "Halt",      this, &CSCSupervisor::haltAction);
+	fsm_.addStateTransition(
+			'E', 'E', "SetTTS",    this, &CSCSupervisor::setTTSAction);
 
 	fsm_.setInitialState('H');
 	fsm_.reset();
@@ -148,6 +151,14 @@ xoap::MessageReference CSCSupervisor::onReset(xoap::MessageReference message)
 {
 	resetAction();
 	fireEvent("Halt");
+
+	return createReply(message);
+}
+
+xoap::MessageReference CSCSupervisor::onSetTTS(xoap::MessageReference message)
+		throw (xoap::exception::Exception)
+{
+	fireEvent("SetTTS");
 
 	return createReply(message);
 }
@@ -369,7 +380,7 @@ void CSCSupervisor::webSetTTS(xgi::Input *in, xgi::Output *out)
 	if (tts_bits_  == "") { error_message_ += "Please set TTS bits.\n"; }
 
 	if (error_message_.empty()) {
-		setTTSAction();
+		fireEvent("SetTTS");
 	}
 
 	webRedirect(in, out);
@@ -513,19 +524,28 @@ void CSCSupervisor::resetAction() throw (toolbox::fsm::exception::Exception)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "reset(end)");
 }
 
-void CSCSupervisor::setTTSAction() throw (toolbox::fsm::exception::Exception)
+void CSCSupervisor::setTTSAction(toolbox::Event::Reference evt) 
+		throw (toolbox::fsm::exception::Exception)
 {
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "setTTS(begin)");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
 
 	const string fed_app = "EmuFCrate";
 
-	setParameter(fed_app, "ttsCrate", "xsd:unsignedInt", tts_crate_);
-	setParameter(fed_app, "ttsSlot",  "xsd:unsignedInt", tts_slot_);
-	setParameter(fed_app, "ttsBits",  "xsd:unsignedInt", tts_bits_);
+	try {
+		setParameter(fed_app, "ttsCrate", "xsd:unsignedInt", tts_crate_);
+		setParameter(fed_app, "ttsSlot",  "xsd:unsignedInt", tts_slot_);
+		setParameter(fed_app, "ttsBits",  "xsd:unsignedInt", tts_bits_);
 
-	sendCommand("SetTTSBits", fed_app);
+		sendCommand("SetTTSBits", fed_app);
+	} catch (xoap::exception::Exception e) {
+		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+				"SOAP fault was returned", e);
+	} catch (xdaq::exception::Exception e) {
+		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+				"Failed to send a command", e);
+	}
 
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "setTTS(end)");
+	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
 }
 
 void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
