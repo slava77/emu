@@ -199,11 +199,11 @@ public class CSCLeadingActions extends Level1LeadingActions {
 		ParameterSet<CommandParameter> parameterSet =
 				getUserFunctionManager().getLastInput().getParameterSet();
 
-		crate = 0;
-		slot = getSlotNumber(
-				((IntegerT)parameterSet.get(
-				Level1Parameters.TTS_TEST_FED_ID)
-				.getValue()).getInteger());
+		int fedID = ((IntegerT)parameterSet.get(
+				Level1Parameters.TTS_TEST_FED_ID).getValue())
+				.getInteger();
+		crate = getCrateNumber(fedID);
+		slot = getSlotNumber(fedID);
 		bits = Integer.parseInt(
 				((StringT)parameterSet.get(
 				Level1Parameters.TTS_TEST_PATTERN)
@@ -222,12 +222,6 @@ public class CSCLeadingActions extends Level1LeadingActions {
 			ttsSetterFuture = scheduler.scheduleWithFixedDelay(
 					ttsSetter, 0, 10, MILLISECONDS);
 		}
-
-		stateWatcher.setTarget("Enabled");
-		if (stateWatcherFuture == null) {
-			stateWatcherFuture = scheduler.scheduleWithFixedDelay(
-					stateWatcher, 500, 500, MILLISECONDS);
-		}
 	}
 
 	/*
@@ -243,22 +237,14 @@ public class CSCLeadingActions extends Level1LeadingActions {
 	}
 
 	/* */
-	private void waitForState(String target) {
-		String state = "";
-		
-		while (!target.equals(state)) {
-			try { Thread.sleep(500); } catch (Exception ignored) {}
+	private int getCrateNumber(int fed) {
+		int crate = 1;
 
-			try {
-				svStateParameter.get();
-				state = svStateParameter.getValue("stateName");
-			} catch (Exception e) {
-				logger.error(getClass().toString() +
-						"Failed to get XDAQ state.", e);
-
-				fm.fireEvent(Level1Inputs.ERROR);
-			}
+		if (fed == 752 || (fed / 10) == 83) {
+			crate = 2;
 		}
+
+		return crate;
 	}
 
 	/* */
@@ -276,6 +262,17 @@ public class CSCLeadingActions extends Level1LeadingActions {
 			case 847: slot = 11; break;
 			case 848: slot = 12; break;
 			case 849: slot = 13; break;
+
+			case 752: slot = 8; break;
+			case 831: slot = 4; break;
+			case 832: slot = 5; break;
+			case 833: slot = 6; break;
+			case 834: slot = 7; break;
+			case 835: slot = 9; break;
+			case 836: slot = 10; break;
+			case 837: slot = 11; break;
+			case 838: slot = 12; break;
+			case 839: slot = 13; break;
 		}
 
 		return slot;
