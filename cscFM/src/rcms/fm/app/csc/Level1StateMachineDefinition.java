@@ -81,8 +81,6 @@ public class Level1StateMachineDefinition extends UserStateMachineDefinition {
 
 		try {
 			for (int i = 0; i < fields.length; ++i) {
-				System.out.println(
-						"==== addStates: " + fields[i].getType().getName());
 				if (fields[i].getType().getName().indexOf("State") >= 0) {
 					addState((State)fields[i].get(null));
 				}
@@ -98,10 +96,10 @@ public class Level1StateMachineDefinition extends UserStateMachineDefinition {
 
 		try {
 			for (int i = 0; i < fields.length; ++i) {
-				System.out.println(
-						"==== addInputs: " + fields[i].getType().getName());
-				if (fields[i].getType().getName().indexOf("Input") >= 0) {
-					if (fields[i].getName().indexOf("_DONE") > 0) {
+				Field field = fields[i];
+				if (field.getType().getName().indexOf("Input") >= 0) {
+					String name = field.getName();
+					if (name.indexOf("_DONE") > 0 || name.equals("ERROR")) {
 						((Input)fields[i].get(null)).setVisualizable(false);
 					}
 					addInput((Input)fields[i].get(null));

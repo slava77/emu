@@ -41,9 +41,6 @@ public class Level1TrailingActions extends UserEventHandler {
 
 		StateNotification notification = (StateNotification)o;
 
-		System.out.println("==== Level1TrailingActions.initialize: " + 
-				notification.getIdentifier());
-
 		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
 				Level1Parameters.ACTION_MSG, new StringT("")));
 
