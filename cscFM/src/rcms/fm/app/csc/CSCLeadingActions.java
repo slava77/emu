@@ -13,8 +13,8 @@ import rcms.fm.resource.qualifiedresource.XdaqApplicationContainer;
 import rcms.fm.resource.qualifiedresource.XdaqApplication;
 import rcms.xdaqctl.XDAQParameter;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.*;
+import static java.util.concurrent.TimeUnit.*;
 
 import rcms.util.logger.RCMSLogger;
 
@@ -24,36 +24,78 @@ public class CSCLeadingActions extends Level1LeadingActions {
 
 	private XDAQParameter svStateParameter;
 	private XDAQParameter svTTSParameter;
-	private Timer timer;
-	private SetTTSTask setTTSTask;
 
-	class SetTTSTask extends TimerTask {
-		int crate, slot, bits, repeat;
+	private final ScheduledExecutorService scheduler;
+	private StateWatcher stateWatcher;
+	private TTSSetter ttsSetter;
+	private ScheduledFuture stateWatcherFuture, ttsSetterFuture;
 
-		public void run() {
-			System.out.println("==== " + slot + " " + bits);
+	private class StateWatcher implements Runnable {
+		private String target = "";
 
-			try {
-				svTTSParameter.setValue("TTSCrate", "" + crate);
-				svTTSParameter.setValue("TTSSlot", "" + slot);
-				svTTSParameter.setValue("TTSBits", "" + bits);
-				svTTSParameter.send();
-				fm.xdaqSupervisor.execute(new Input("SetTTSBits"));
-
-				fm.fireEvent(createStateNotification());
-			} catch (Exception e) {
-				logger.error(e);
-				fm.fireEvent(Level1Inputs.ERROR);
-			}
-
-			cancel();
+		public synchronized void setTarget(String target) {
+			this.target = target;
 		}
 
-		public void config(int crate, int slot, int bits, int repeat) {
+		public void run() {
+			if (target.length() > 0) {
+				try {
+					svStateParameter.get();
+
+					String state = svStateParameter.getValue("stateName");
+					logger.debug("StateWatcher: " + target + "? " + state);
+
+					if (target.equals(state)) {
+						setTarget("");
+						fm.fireEvent(createStateNotification());
+					}
+				} catch (Exception e) {
+					logger.error("StateWatcher", e);
+					fm.fireEvent(Level1Inputs.ERROR);
+				}
+			}
+		}
+	}
+
+	private class TTSSetter implements Runnable {
+		private int crate, slot, bits;
+		private int repeat = 0;
+
+		public synchronized void config(
+				int crate, int slot, int bits, int repeat) {
 			this.crate = crate;
 			this.slot = slot;
 			this.bits = bits;
-			this.repeat = repeat;
+			this.repeat = repeat * 16;
+
+			if (this.repeat == 0) {
+				this.repeat = 1;
+			}
+		}
+
+		public void run() {
+			if (repeat > 0) {
+				try {
+					logger.debug("TTSSetter: " +
+							crate + " " + slot + " " + bits + " " + repeat);
+
+					svTTSParameter.setValue("TTSCrate", "" + crate);
+					svTTSParameter.setValue("TTSSlot", "" + slot);
+					svTTSParameter.setValue("TTSBits", "" + bits);
+					svTTSParameter.send();
+					fm.xdaqSupervisor.execute(new Input("SetTTSBits"));
+
+					bits = (bits + 1) % 16;  // prepare for the next shot.
+					repeat--;
+
+					if (repeat == 0) {
+						fm.fireEvent(Level1Inputs.TTS_TEST_DONE);
+					}
+				} catch (Exception e) {
+					logger.error("TTSSetter", e);
+					fm.fireEvent(Level1Inputs.ERROR);
+				}
+			}
 		}
 	}
 
@@ -62,6 +104,13 @@ public class CSCLeadingActions extends Level1LeadingActions {
 	 */
 	public CSCLeadingActions() throws EventHandlerException {
 		super();
+
+		scheduler = Executors.newScheduledThreadPool(1);
+		stateWatcher = new StateWatcher();
+		ttsSetter = new TTSSetter();
+
+		stateWatcherFuture = null;
+		ttsSetterFuture = null;
 	}
 	
 	/*
@@ -80,11 +129,9 @@ public class CSCLeadingActions extends Level1LeadingActions {
 		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
 				Level1Parameters.ACTION_MSG, new StringT("Initializing")));
 
-		QualifiedGroup group = fm.getQualifiedGroup();
-
 		// Initialize the qualified group, whatever it means.
 		try {
-			group.init();
+			fm.getQualifiedGroup().init();
 		} catch (Exception e) {
 			logger.error(getClass().toString() +
 					"Failed to initialize resources.", e);
@@ -105,6 +152,7 @@ public class CSCLeadingActions extends Level1LeadingActions {
 
 			svTTSParameter = ((XdaqApplication)fm.xdaqSupervisor.getApplications().get(0)).getXDAQParameter();
 			svTTSParameter.select(new String[] {"TTSCrate", "TTSSlot", "TTSBits"});
+
 		} catch (Exception e) {
 			logger.error(getClass().toString() +
 					"Failed to prepare XDAQ parameters.", e);
@@ -126,10 +174,8 @@ public class CSCLeadingActions extends Level1LeadingActions {
 
 		try {
 			fm.xdaqSupervisor.execute(new Input("Configure"));
-			waitForState("Configured");
 
 			fm.xdaqSupervisor.execute(new Input("Enable"));
-			waitForState("Enabled");
 		} catch (Exception e) {
 			logger.error(getClass().toString() +
 					"Failed to TTSPrepare XDAQ.", e);
@@ -171,16 +217,17 @@ public class CSCLeadingActions extends Level1LeadingActions {
 					.getValue()).getInteger();
 		}
 
-		if (timer == null) {
-			timer = new Timer();
+		ttsSetter.config(crate, slot, bits, repeat);
+		if (ttsSetterFuture == null) {
+			ttsSetterFuture = scheduler.scheduleWithFixedDelay(
+					ttsSetter, 0, 10, MILLISECONDS);
 		}
 
-		if (setTTSTask == null) {
-			setTTSTask = new SetTTSTask();
+		stateWatcher.setTarget("Enabled");
+		if (stateWatcherFuture == null) {
+			stateWatcherFuture = scheduler.scheduleWithFixedDelay(
+					stateWatcher, 500, 500, MILLISECONDS);
 		}
-		setTTSTask.config(crate, slot, bits, repeat);
-
-		timer.schedule(setTTSTask, 0, 10); // 10ms interval
 	}
 
 	/*
