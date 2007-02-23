@@ -536,7 +536,8 @@ void CSCSupervisor::setTTSAction(toolbox::Event::Reference evt)
 		setParameter(fed_app, "ttsSlot",  "xsd:unsignedInt", tts_slot_);
 		setParameter(fed_app, "ttsBits",  "xsd:unsignedInt", tts_bits_);
 
-		sendCommand("SetTTSBits", fed_app);
+		int instance = (tts_crate_ == "1") ? 0 : 1;
+		sendCommand("SetTTSBits", fed_app, instance);
 	} catch (xoap::exception::Exception e) {
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 				"SOAP fault was returned", e);
@@ -586,6 +587,37 @@ void CSCSupervisor::sendCommand(string command, string klass)
 
 		analyzeReply(message, reply, *i);
 	}
+}
+
+void CSCSupervisor::sendCommand(string command, string klass, int instance)
+		throw (xoap::exception::Exception, xdaq::exception::Exception)
+{
+	// Exceptions:
+	// xoap exceptions are thrown by analyzeReply() for SOAP faults.
+	// xdaq exceptions are thrown by postSOAP() for socket level errors.
+
+	// find applications
+	xdaq::ApplicationDescriptor *app;
+	try {
+		app = getApplicationContext()->getDefaultZone()
+				->getApplicationDescriptor(klass, instance);
+	} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+		return; // Do nothing if the target doesn't exist
+	}
+
+	if (klass == "EmuDAQManager" && !isDAQManagerControlled(command)) {
+		return;  // Do nothing if EmuDAQManager is not under control.
+	}
+
+	// prepare a SOAP message
+	xoap::MessageReference message = createCommandSOAP(command);
+	xoap::MessageReference reply;
+
+	// send the message
+	// postSOAP() may throw an exception when failed.
+	reply = getApplicationContext()->postSOAP(message, app);
+
+	analyzeReply(message, reply, app);
 }
 
 xoap::MessageReference CSCSupervisor::createCommandSOAP(string command)

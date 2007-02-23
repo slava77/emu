@@ -92,6 +92,8 @@ private:
 
 	void sendCommand(string command, string klass)
 			throw (xoap::exception::Exception, xdaq::exception::Exception);
+	void sendCommand(string command, string klass, int instance)
+			throw (xoap::exception::Exception, xdaq::exception::Exception);
 
 	xoap::MessageReference createCommandSOAP(string command);
 	void setParameter(string klass, string name, string type, string value);
