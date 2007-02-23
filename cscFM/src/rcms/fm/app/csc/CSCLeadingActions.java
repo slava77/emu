@@ -83,7 +83,7 @@ public class CSCLeadingActions extends Level1LeadingActions {
 					svTTSParameter.setValue("TTSSlot", "" + slot);
 					svTTSParameter.setValue("TTSBits", "" + bits);
 					svTTSParameter.send();
-					fm.xdaqSupervisor.execute(new Input("SetTTSBits"));
+					fm.xdaqSupervisor.execute(new Input("SetTTS"));
 
 					bits = (bits + 1) % 16;  // prepare for the next shot.
 					repeat--;
