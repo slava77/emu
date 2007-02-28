@@ -5,7 +5,6 @@
 #include <fstream>
 
 
-#include "EmuController.h"
 #include "DAQMB.h"
 #include "TMB.h"
 #include "CCB.h"
@@ -116,7 +115,6 @@ private:
   //
   std::ostream * MyOutput_ ;
   //
-  EmuController emuController;
   //
   TMB * thisTMB ;
   DAQMB * thisDMB ;

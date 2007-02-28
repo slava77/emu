@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.12 2006/11/15 16:01:36 mey Exp $
+// $Id: Crate.cc,v 3.13 2007/02/28 18:35:10 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.13  2007/02/28 18:35:10  liu
+// resolve class dependence
+//
 // Revision 3.12  2006/11/15 16:01:36  mey
 // Cleaning up code
 //
@@ -111,6 +114,7 @@
 #include "ALCTController.h"
 #include "ChamberUtilities.h"
 #include "Chamber.h"
+#include "EmuSystem.h"
 
 Crate::Crate(int CrateID, VMEController * controller, EmuSystem * emuSystem) : 
   theCrateID(CrateID),  
