@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.2 2007/02/26 01:57:45 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.3 2007/02/28 18:24:27 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1053,7 +1053,7 @@ using namespace std;
   // 
   // Create a XRelay SOAP Message
   //
-  xoap::MessageReference QueryLTCInfoSpace()
+  xoap::MessageReference EmuPeripheralCrateManager::QueryLTCInfoSpace()
     {
       xoap::MessageReference message = xoap::createMessage();
       xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
@@ -1979,7 +1979,7 @@ using namespace std;
       //
     }
   //
-  xoap::MessageReference ExecuteCommandMessage(std::string port)
+  xoap::MessageReference EmuPeripheralCrateManager::ExecuteCommandMessage(std::string port)
     {
       xoap::MessageReference msg = xoap::createMessage();
       xoap::SOAPPart soap = msg->getSOAPPart();
