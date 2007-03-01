@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.12 2007/01/31 16:50:07 rakness Exp $
+// $Id: TMBParser.cc,v 3.13 2007/03/01 18:07:26 rakness Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.13  2007/03/01 18:07:26  rakness
+// changes to xml: add dmb_tx_delay, change match_pretrig(trig)_match_window_size->match_pretrig(trig)_window_size
+//
 // Revision 3.12  2007/01/31 16:50:07  rakness
 // complete set of TMB/ALCT/RAT xml parameters
 //
@@ -179,7 +182,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     // trigger and signal delays
     //////////////////////////////
     //0X6A:
-    if (parser_.fillInt("match_pretrig_match_window_size",value)) { tmb_->SetAlctClctPretrigWidth(value); }
+    if (parser_.fillInt("match_pretrig_window_size",value))       { tmb_->SetAlctClctPretrigWidth(value); }
     if (parser_.fillInt("match_pretrig_alct_delay"       ,value)) { tmb_->SetAlctPretrigDelay(value);     }
     //if (parser_.fillInt("alct_pat_trig_delay"            ,value)) { tmb_->SetAlctPatternDelay(value);     }
     //if (parser_.fillInt("adb_ext_trig_delay"             ,value)) { tmb_->SetAdbExternalTrigDelay(value); }
@@ -201,7 +204,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     //
     //0XB2:
     if (parser_.fillInt("match_trig_alct_delay"       ,value)) { tmb_->SetAlctVpfDelay(value);        }
-    if (parser_.fillInt("match_trig_match_window_size",value)) { tmb_->SetAlctMatchWindowSize(value); }
+    if (parser_.fillInt("match_trig_window_size",value))       { tmb_->SetAlctMatchWindowSize(value); }
     if (parser_.fillInt("mpc_tx_delay"                ,value)) { tmb_->SetMpcTXdelay(value);          }
     //
     //0XBA:
@@ -312,7 +315,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     //0X16
     if (parser_.fillInt("alct_tx_clock_delay",value)) { tmb_->SetAlctTXclockDelay(value); }
     if (parser_.fillInt("alct_rx_clock_delay",value)) { tmb_->SetAlctRXclockDelay(value); }
-    //if (parser_.fillInt("dmb_tx_delay"       ,value)) { tmb_->SetDmbTxDelay(value);       }
+    if (parser_.fillInt("dmb_tx_delay"       ,value)) { tmb_->SetDmbTxDelay(value);       }
     if (parser_.fillInt("rat_tmb_delay"      ,value)) { tmb_->SetRatTmbDelay(value);      }
     //
     //0X18
