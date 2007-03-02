@@ -1,6 +1,11 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.11 2006/11/15 16:01:37 mey Exp $
+// $Id: VMEController.cc,v 3.12 2007/03/02 20:29:49 gujh Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.12  2007/03/02 20:29:49  gujh
+// Set the Jumbo package to <8000 (6000 for now)
+// For longer controller delay, send down the eth immediately
+//                          ---- Mar. 2, 2007  GU
+//
 // Revision 3.11  2006/11/15 16:01:37  mey
 // Cleaning up code
 //
@@ -171,7 +176,7 @@
 
 
 // #define MAX_DATA 8990
-#define MAX_DATA 8900
+#define MAX_DATA 6000
 #define VME_CMDS 0x20
 #define ACNLG 0x20
 #define ACNLG_LOOP 0x60
@@ -442,6 +447,7 @@ void VMEController::sdly()
   unsigned short int tmp2[2]={0,0};
   unsigned short int *ptr;
   tmp2[0]=50;  // 50x16=800ns delay
+  //  cout <<" sdly() called "<<endl;
   vme_controller(6,ptr,tmp2,tmp);
 }
 
@@ -985,6 +991,7 @@ void VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sh
   if(irdwr==6){
     // only use delay type 2 and 5 (in 16 ns)
     int delay_type=2;
+    //    cout <<" really delayed "<<data[0]<<data[1]<<endl;
     if(data[1]) delay_type=5;
     wbuf[nwbuf+0]=delay_mask[delay_type];
     wbuf[nwbuf+1]=0x00;
@@ -1002,6 +1009,7 @@ void VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sh
     fpacket_delay=fpacket_delay+(data[0]+data[1]*65536)*DELAY2;
     //  if(delay_type==3)fpacket_delay=fpacket_delay+(*data)*DELAY3;
     irdwr=1;  // delay always acts like a buffered WRITE command.
+    if (data[1]) irdwr=3;  //send immediately for longer delays  
   } 
 
     /* check for overflow */
