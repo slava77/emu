@@ -60,7 +60,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
   stateChangeTime_ = now();
   lastEventTime_ = "---";
 
-  //bindI2Ocallbacks();
+  bindI2Ocallbacks();
   bindSOAPcallbacks();
   bindCGIcallbacks();
   appTid_ = i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor());
@@ -551,7 +551,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
 
 std::string EmuMonitor::getROOTFileName() 
 {
-   std::string histofile="dqm_results.root";
+   std::string histofile="dqm_results";
    std::string path=outputROOTFile_;
    if (path.rfind("/") != string::npos) {
       path = path.substr(0, path.rfind("/")+1);
@@ -735,7 +735,7 @@ void  EmuMonitor::doStart()
   enableReadout();
   pmeter_->init(200);
   pmeterCSC_->init(200);
-  bindI2Ocallbacks();
+  // bindI2Ocallbacks();
 }
 
 void EmuMonitor::HaltAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception )
@@ -982,6 +982,15 @@ void EmuMonitor::failurePage(xgi::Output * out, xgi::exception::Exception & e)  
 void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
   // Emu-specific stuff
 
+  creditsHeld_ = ((I2O_EMU_DATA_MESSAGE_FRAME*)bufRef->getDataLocation())->nEventCreditsHeld;
+  if (fsm_.getCurrentState() != 'E') {
+	LOG4CPLUS_WARN(getApplicationLogger(),"Dropping received Data. Not in Enabled state.");
+	
+	LOG4CPLUS_WARN(getApplicationLogger(),"EmuRUI holding " << creditsHeld_ << " event credits");
+	bufRef->release();
+	return;	
+  }
+
   dataMessages_.push_back( bufRef );
   eventsReceived_++;
 
@@ -1016,7 +1025,7 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
 		   ", errorFlag 0x"  << std::hex << status << std::dec <<
 		   " from " << serversClassName_.toString() <<
 		   ":" << serverTID <<
-		   ", still holding " << msg->nEventCreditsHeld << " event credits, " <<
+		   ", still holding " << creditsHeld_ << " event credits, " <<
 		   "pool size " << dataMessages_.size());
   }
 
@@ -1035,6 +1044,11 @@ int EmuMonitor::sendDataRequest(unsigned long last)
   //  creditMsgsSent += 1;
   for (unsigned int i = 0; i < dataservers_.size(); i++)
     {
+      unsigned int newRate = (unsigned int)(rint(pmeter_->rate()));
+      if (newRate>nEventCredits_) {
+         LOG4CPLUS_WARN (getApplicationLogger(), "Adjusting nEventCredits to " << newRate);
+         nEventCredits_ = newRate;
+      };
       creditMsgsSent_ ++;
       eventsRequested_ = eventsRequested_ +  nEventCredits_;
       toolbox::mem::Reference * ref = 0;
@@ -1221,7 +1235,9 @@ int EmuMonitor::svc()
 	  if (useAltFileReader_ == xdata::Boolean(true) ) {
 	    keepRunning = altFileReader_->readNextEvent();
 	  } else {
-	    keepRunning = deviceReader_->readNextEvent();
+	   //  if (inputDataFormat_.toString() == "file") 
+		    keepRunning = deviceReader_->readNextEvent();
+	    // else deviceReader_->readNextEvent();
 	  }
 	  if ( !keepRunning )
 	    {
@@ -1256,6 +1272,12 @@ int EmuMonitor::svc()
       if (readoutMode_.toString() == "external") { 
 	// ::sleep(1);
 	// usleep(500000);
+	if (creditsHeld_> nEventCredits_) {
+	   LOG4CPLUS_WARN (getApplicationLogger(), "Waiting to clear " << creditsHeld_ << " event credits from EmuRUI");
+        }
+	while (creditsHeld_> xdata::UnsignedLong(0)) {
+	  usleep(wait);
+        }
 	while ((eventsReceived_ < eventsRequested_) && ( waittime <= timeout )) {
 	  usleep(wait);
 	  waittime += wait;
@@ -1264,8 +1286,16 @@ int EmuMonitor::svc()
 	  LOG4CPLUS_WARN (getApplicationLogger(), toolbox::toString("Timeout waiting for events from server."));
 	  LOG4CPLUS_WARN (getApplicationLogger(), "Missed " << (eventsRequested_ - eventsReceived_) << " events");
 	  eventsRequested_ = eventsReceived_;
+	  if (pmeter_->rate() >0) {
+		int newRate = (int)(rint(pmeter_->rate()));
+		if (nEventCredits_!=xdata::UnsignedLong(newRate)) {
+			LOG4CPLUS_WARN (getApplicationLogger(), "Adjusting nEventCredits to " << newRate);
+		}
+		nEventCredits_ = newRate;
+	  }
 	}
 	waittime = 0;
+	usleep(20000);
 	if (!pool_->isHighThresholdExceeded())
 	  {
 	    // Stop if there is an error in sending
@@ -1282,6 +1312,13 @@ int EmuMonitor::svc()
 		  LOG4CPLUS_INFO (getApplicationLogger(), "yield till low threshold reached");
 		  this->yield(1);
 		}
+		/*
+		if (pmeter_->rate()>nEventCredits_) { 
+		  int newRate = (int)(rint(pmeter_->rate()));
+		  LOG4CPLUS_WARN (getApplicationLogger(), "Adjusting nEventCredits to " << newRate);
+                  nEventCredits_ = newRate;
+		}
+		*/
 	    }
       }
     }

@@ -206,6 +206,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   xdata::UnsignedLong   creditMsgsSent_;
   xdata::UnsignedLong   eventsRequested_;
   xdata::UnsignedLong   eventsReceived_;
+  xdata::UnsignedLong   creditsHeld_;
   xdata::String		stateName_;
   xdata::String		stateChangeTime_;
   xdata::String		lastEventTime_;
