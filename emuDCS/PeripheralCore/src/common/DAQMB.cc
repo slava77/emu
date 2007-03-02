@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.19 2006/11/15 16:01:36 mey Exp $
+// $Id: DAQMB.cc,v 3.20 2007/03/02 20:26:18 gujh Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.20  2007/03/02 20:26:18  gujh
+// fix the delay in epromload
+//
 // Revision 3.19  2006/11/15 16:01:36  mey
 // Cleaning up code
 //
@@ -2806,7 +2809,7 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
     float percent;
     while (fgets(buf,256,dwnfp) != NULL)  {
       percent = (float)line/(float)nlines;
-      printf("<   > Processed line %d of %d (%.1f%%)\r",line,nlines,percent*100.0);
+      if ((line%10)==0) printf("<   > Processed line %d of %d (%.1f%%)\r",line,nlines,percent*100.0);
       fflush(stdout);
       if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
 	//  printf("%s",buf);
@@ -2843,19 +2846,6 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
 	     for(j=0;j<nbytes;j++){
 	       sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&snd[j]);
 	     }
-	     /*JRG, new selective way to download UNALTERED PromUserCode from SVF to
-	       ANY prom:  just set cbrdnum[3,2,1,0]=0 in calling routine!
-	       was  if(nowrit==1){  */
-	     /*	     if(nowrit==1&&(cbrdnum[0]|cbrdnum[1]|cbrdnum[2]|cbrdnum[3])!=0){
-	       tstusr=0;
-	       snd[0]=cbrdnum[0];
-	       snd[1]=cbrdnum[1];
-	       snd[2]=cbrdnum[2]; 
-	       snd[3]=cbrdnum[3];
-	     */
-	       // printf(" snd %02x %02x %02x %02x \n",snd[0],snd[1],snd[2],snd[3]);
-	     //}
-	     //}
 	     if(nowrit==1&&cbrdnum[0]!=0) {
 	       tstusr=0;
 	       snd[0]=cbrdnum[0];
@@ -2953,14 +2943,11 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
             //sndbuf[i]=snd[i]&smask[i];
             sndbuf[i]=snd[i];
           }
-	  //   printf("I%04d",nbits);
-          // for(i=0;i<nbits/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
-	  /*JRG, brute-force way to download UNALTERED PromUserCode from SVF file to
-	    DDU prom, but screws up CFEB/DMB program method:      nowrit=0;  */
           if(nowrit==0){
-	    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);}
+  	      devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+	  }
           else{
-            if(writ==1)devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+            if(writ==1) {devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);}
             if(writ==0)printf(" ***************** nowrit %02x \n",sndbuf[0]);
           }
 	  /*
@@ -2980,20 +2967,21 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
 	  //  if(pause>1000)printf("pause = %f s  while erasing\n",t2-t1); */
 	  //          for (i=0;i<pause/100;i++)
 	  //  devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
-          pause=pause/2;
+          pause=pause;
+	  if (pause<100000) pause=2*pause+100;
           if (pause>65535) {
             sndbuf[0]=255;
             sndbuf[1]=255;
             for (int looppause=0;looppause<pause/65536;looppause++) {
-              devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,0);
-              usleep(65535*2);}
+              devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
+              usleep(65535);}
             pause=65535;
 	  }
           sndbuf[0]=pause-(pause/256)*256;
           sndbuf[1]=pause/256;
 	  // printf(" sndbuf %d %d %d \n",sndbuf[1],sndbuf[0],pause);
-          devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,2);
-	  usleep(pause*50);
+          devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
+	  usleep(pause);
           // printf(" send sleep \n");  
 	  /* printf("pause      %d us\n",pause);*/
 	  //#ifdef OSUcc
