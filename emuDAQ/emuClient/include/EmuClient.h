@@ -1,4 +1,4 @@
-// $Id: EmuClient.h,v 3.1 2006/02/27 12:49:27 banicz Exp $
+// $Id: EmuClient.h,v 3.2 2007/03/05 11:00:17 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -51,7 +51,7 @@ protected:
 
 protected:
 
-  std::vector<xdaq::ApplicationDescriptor*> destination_;	// Vector of all server tids
+  std::set<xdaq::ApplicationDescriptor*> destination_;	// Vector of all server tids
   xdata::UnsignedLong maxFrameSize_;	 	// The maximum frame size to be allocated by the Client       
   xdata::UnsignedLong committedPoolSize_;	// Total memory for credit messages
   xdata::String       serversClassName_; 	// servers' class name

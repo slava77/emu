@@ -38,7 +38,7 @@ runInfo_(0)
     appInfoSpace_  = getApplicationInfoSpace();
     appDescriptor_ = getApplicationDescriptor();
     appContext_    = getApplicationContext();
-    appGroup_      = appContext_->getApplicationGroup();
+    zone_          = appContext_->getDefaultZone();
     xmlClass_      = appDescriptor_->getClassName();
     instance_      = appDescriptor_->getInstance();
     urn_           = appDescriptor_->getURN();
@@ -165,7 +165,7 @@ void EmuDAQManager::getAllAppDescriptors()
 {
     try
     {
-        evmDescriptors_ = getAppDescriptors(appGroup_, "EVM");
+        evmDescriptors_ = getAppDescriptors(zone_, "EVM");
     }
     catch(emuDAQManager::exception::Exception e)
     {
@@ -178,7 +178,7 @@ void EmuDAQManager::getAllAppDescriptors()
 
     try
     {
-        ruDescriptors_ = getAppDescriptors(appGroup_, "RU");
+        ruDescriptors_ = getAppDescriptors(zone_, "RU");
     }
     catch(emuDAQManager::exception::Exception e)
     {
@@ -191,7 +191,7 @@ void EmuDAQManager::getAllAppDescriptors()
 
     try
     {
-        buDescriptors_ = getAppDescriptors(appGroup_, "BU");
+        buDescriptors_ = getAppDescriptors(zone_, "BU");
     }
     catch(emuDAQManager::exception::Exception e)
     {
@@ -204,7 +204,7 @@ void EmuDAQManager::getAllAppDescriptors()
 
     try
     {
-        taDescriptors_ = getAppDescriptors(appGroup_, "EmuTA");
+        taDescriptors_ = getAppDescriptors(zone_, "EmuTA");
     }
     catch(emuDAQManager::exception::Exception e)
     {
@@ -218,7 +218,7 @@ void EmuDAQManager::getAllAppDescriptors()
 
     try
     {
-        ruiDescriptors_ = getAppDescriptors(appGroup_, "EmuRUI");
+        ruiDescriptors_ = getAppDescriptors(zone_, "EmuRUI");
     }
     catch(emuDAQManager::exception::Exception e)
     {
@@ -232,7 +232,7 @@ void EmuDAQManager::getAllAppDescriptors()
 
     try
     {
-        fuDescriptors_ = getAppDescriptors(appGroup_, "EmuFU");
+        fuDescriptors_ = getAppDescriptors(zone_, "EmuFU");
     }
     catch(emuDAQManager::exception::Exception e)
     {
@@ -246,7 +246,7 @@ void EmuDAQManager::getAllAppDescriptors()
 
     try
     {
-        dqmMonitorDescriptors_ = getAppDescriptors(appGroup_, "EmuMonitor");
+        dqmMonitorDescriptors_ = getAppDescriptors(zone_, "EmuMonitor");
     }
     catch(emuDAQManager::exception::Exception e)
     {
@@ -272,22 +272,22 @@ void EmuDAQManager::onException(xcept::Exception &e)
 
 vector< xdaq::ApplicationDescriptor* > EmuDAQManager::getAppDescriptors
 (
-    xdaq::ApplicationGroup *appGroup,
+    xdaq::Zone             *zone,
     const string           appClass
 )
 throw (emuDAQManager::exception::Exception)
 {
     vector< xdaq::ApplicationDescriptor* > orderedDescriptors;
-    vector< xdaq::ApplicationDescriptor* > descriptors;
+    set< xdaq::ApplicationDescriptor* > descriptors;
 //     xdaq::ApplicationDescriptor *descriptor = 0;
     int nbApps = 0;
 
 
     try
     {
-        descriptors = appGroup->getApplicationDescriptors(appClass);
+        descriptors = zone->getApplicationDescriptors(appClass);
     }
-    catch(xcept::Exception e)
+    catch(xdaq::exception::ApplicationDescriptorNotFound e)
     {
         string s;
 
@@ -302,8 +302,8 @@ throw (emuDAQManager::exception::Exception)
     while( !descriptors.empty() ){
       // Find app with smallest instance number
       unsigned int minInstance = 99999;
-      vector< xdaq::ApplicationDescriptor* >::iterator adOfSmallest;
-      vector< xdaq::ApplicationDescriptor* >::iterator ad;
+      set< xdaq::ApplicationDescriptor* >::iterator adOfSmallest;
+      set< xdaq::ApplicationDescriptor* >::iterator ad;
       for ( ad=descriptors.begin(); ad!=descriptors.end(); ++ad )
 	if ( (*ad)->getInstance() < minInstance ){
 	  adOfSmallest = ad;
@@ -1147,7 +1147,7 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
       *out << " size=\"1\""                                          ;
       if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
       *out << "/>  "                                                 ;
-      for ( int iType=0; iType<runTypes_.elements(); ++iType ){
+      for ( unsigned int iType=0; iType<runTypes_.elements(); ++iType ){
 	xdata::String* runtype = dynamic_cast<xdata::String*>(runTypes_.elementAt(iType));
 	*out << "<option value=\"" << runtype->toString() << "\"";
 	if ( runtype->toString() == runType_.toString() )
@@ -1374,7 +1374,7 @@ void EmuDAQManager::getTriggerSources()
   vector< xdaq::ApplicationDescriptor* > appDescriptors;
   try
     {
-      appDescriptors = getAppDescriptors(appGroup_, "TTCciControl");
+      appDescriptors = getAppDescriptors(zone_, "TTCciControl");
     }
   catch(xcept::Exception e)
     {
@@ -1436,7 +1436,7 @@ void EmuDAQManager::getTriggerMode()
   vector< xdaq::ApplicationDescriptor* > appDescriptors;
   try
     {
-      appDescriptors = getAppDescriptors(appGroup_, "TF_hyperDAQ");
+      appDescriptors = getAppDescriptors(zone_, "TF_hyperDAQ");
     }
   catch(xcept::Exception e)
     {
@@ -4106,13 +4106,10 @@ void EmuDAQManager::printEventCountsTable
         *out << "  <td align=\"right\">"                               << endl;
 	if ( counts[row].size() > 3 ){ // have element for DDU error
 	  if ( counts[row][3].size() > 0 ){ // DDU in error
-// 	    string href= getHref( appDescriptor_ ) + "/control"; // self
-// 	    if ( appGroup_->getApplicationDescriptor("EmuFCrateHyperDAQ",0) )
-// 	      href = getHref( appGroup_->getApplicationDescriptor("EmuFCrateHyperDAQ",0) );
 	    string href   = getHref( appDescriptor_ ) + "/control"; // self
 	    string target = "_self";
 	    try{
-	      href   = getHref( appGroup_->getApplicationDescriptor("EmuFCrateHyperDAQ",0) );
+	      href   = getHref( zone_->getApplicationDescriptor("EmuFCrateHyperDAQ",0) );
 	      target = "_blank";
 	    }
 	    catch(...){
@@ -4487,7 +4484,7 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
 
     if ( toELog ){
       vector<string> attachments;
-      for ( int i=0; i<peripheralCrateConfigFiles_.elements(); ++i ){
+      for ( unsigned int i=0; i<peripheralCrateConfigFiles_.elements(); ++i ){
 	xdata::String* f = dynamic_cast<xdata::String*>(peripheralCrateConfigFiles_.elementAt(i));
 	attachments.push_back( f->toString() );
       }

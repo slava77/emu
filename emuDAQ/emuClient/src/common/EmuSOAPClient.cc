@@ -1,4 +1,4 @@
-// $Id: EmuSOAPClient.cc,v 3.3 2006/03/28 11:10:18 banicz Exp $
+// $Id: EmuSOAPClient.cc,v 3.4 2007/03/05 11:00:17 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -108,19 +108,22 @@ void EmuSOAPClient::actionPerformed (xdata::Event& e)
 	{
 	  try 
 	    {
-	      destination_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(serversClassName_.toString().c_str());
+	      destination_ = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(serversClassName_.toString().c_str());
 	      hasSet_serversClassName_ = true;
 	    }
+	  catch(xdaq::exception::ApplicationDescriptorNotFound e)
+	    {
+	      LOG4CPLUS_ERROR (getApplicationLogger(), 
+			       "No " << serversClassName_.toString() << 
+			       "found. EmuSOAPClient cannot be configured." << 
+			       xcept::stdformat_exception_history(e));
+	    }	
 	  catch (xdaq::exception::Exception& e)
 	    {
 	      LOG4CPLUS_ERROR (getApplicationLogger(), 
 			       "No " << serversClassName_.toString() << 
 			       "found. EmuSOAPClient cannot be configured." << 
 			       xcept::stdformat_exception_history(e));
-// 	      XCEPT_RETHROW (xdaq::exception::Exception, 
-// 			     toolbox::toString("No %s application instance found. EmuSOAPClient cannot be configured.",
-// 					       serversClassName_.toString().c_str()),
-// 			     e);
 	    }	
 	}
       if ( item == "serversClassInstance")
@@ -191,11 +194,28 @@ int EmuSOAPClient::sendCreditSOAPMessage()
   prescalingElement.addTextNode( prescalingFactor_.toString() );
   
 
-  xdaq::ApplicationDescriptor* serverDescriptor = 
-    getApplicationContext()
-    ->getApplicationGroup()
-    ->getApplicationDescriptor( serversClassName_, 0 );
-
+  xdaq::ApplicationDescriptor* serverDescriptor;
+  try 
+    {
+      serverDescriptor = getApplicationContext()
+	->getDefaultZone()
+	->getApplicationDescriptor( serversClassName_, 0 );
+    }
+  catch(xdaq::exception::ApplicationDescriptorNotFound e)
+    {
+      LOG4CPLUS_ERROR (getApplicationLogger(), 
+		       "No " << serversClassName_.toString() << 
+		       "found. EmuSOAPClient cannot be configured." << 
+		       xcept::stdformat_exception_history(e));
+    }	
+  catch (xdaq::exception::Exception& e)
+    {
+      LOG4CPLUS_ERROR (getApplicationLogger(), 
+		       "No " << serversClassName_.toString() << 
+		       "found. EmuSOAPClient cannot be configured." << 
+		       xcept::stdformat_exception_history(e));
+    }	
+  
   string s;
   msg->writeTo(s);
   LOG4CPLUS_DEBUG(getApplicationLogger(), "Sending to " << 

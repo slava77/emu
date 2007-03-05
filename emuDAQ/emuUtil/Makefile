@@ -63,7 +63,9 @@ LibraryDirs =  \
         $(XDAQ_ROOT)/daq/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
 UserCFlags =
-UserCCFlags = -g -Wall -Werror -pedantic-errors
+#UserCCFlags = -g -Wall -Werror -pedantic-errors
+#UserCCFlags = -g -Wall -pedantic-errors
+UserCCFlags = -g -Wall
 UserDynamicLinkFlags =
 UserStaticLinkFlags =
 UserExecutableLinkFlags =

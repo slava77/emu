@@ -74,7 +74,7 @@ LibraryDirs = \
 
 UserCFlags =
 #UserCCFlags = -g -Wall -Werror -pedantic-errors
-UserCCFlags = -g -Wall -Werror
+UserCCFlags = -g -Wall
 UserDynamicLinkFlags =
 UserStaticLinkFlags =
 UserExecutableLinkFlags =

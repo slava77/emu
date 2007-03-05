@@ -60,7 +60,7 @@ applicationBSem_(BSem::FULL)
     appInfoSpace_    = getApplicationInfoSpace();
     appDescriptor_   = getApplicationDescriptor();
     appContext_      = getApplicationContext();
-    appGroup_        = appContext_->getApplicationGroup();
+    zone_            = appContext_->getDefaultZone();
     xmlClass_        = appDescriptor_->getClassName();
     instance_        = appDescriptor_->getInstance();
     urn_             = appDescriptor_->getURN();
@@ -70,7 +70,7 @@ applicationBSem_(BSem::FULL)
 
     // Note that rubuilderTesterDescriptor_ will be zero if the
     // RUBuilderTester application is not found
-    rubuilderTesterDescriptor_ = getRUBuilderTester(appGroup_);
+    rubuilderTesterDescriptor_ = getRUBuilderTester( zone_ );
 
     // Note that sentinel_ will be zero if the setinel application is not found
     sentinel_ = getSentinel(appContext_);
@@ -393,7 +393,7 @@ void EmuRUI::onI2OClientCreditMsg(toolbox::mem::Reference *bufRef)
 
 xdaq::ApplicationDescriptor *EmuRUI::getRUBuilderTester
 (
-    xdaq::ApplicationGroup *appGroup
+    xdaq::Zone *zone
 )
 {
     xdaq::ApplicationDescriptor *appDescriptor = 0;
@@ -402,10 +402,9 @@ xdaq::ApplicationDescriptor *EmuRUI::getRUBuilderTester
     try
     {
         appDescriptor =
-//             appGroup->getApplicationDescriptor("EmuDAQtester", 0);
-            appGroup->getApplicationDescriptor("EmuDAQManager", 0);
+            zone->getApplicationDescriptor("EmuDAQManager", 0);
     }
-    catch(xcept::Exception e)
+    catch(xdaq::exception::ApplicationDescriptorNotFound e)
     {
         appDescriptor = 0;
     }
@@ -439,21 +438,21 @@ sentinel::Interface *EmuRUI::getSentinel(xdaq::ApplicationContext *appContext)
 }
 
 
-vector< xdaq::ApplicationDescriptor* > EmuRUI::getAppDescriptors(xdaq::ApplicationGroup *appGroup,
+vector< xdaq::ApplicationDescriptor* > EmuRUI::getAppDescriptors(xdaq::Zone *zone,
 								 const string            appClass)
   throw (emuRUI::exception::Exception)
 {
     vector< xdaq::ApplicationDescriptor* > orderedDescriptors;
-    vector< xdaq::ApplicationDescriptor* > descriptors;
+    set< xdaq::ApplicationDescriptor* > descriptors;
     xdaq::ApplicationDescriptor *descriptor = 0;
     int nbApps = 0;
 
 
     try
     {
-        descriptors = appGroup->getApplicationDescriptors(appClass);
+        descriptors = zone->getApplicationDescriptors(appClass);
     }
-    catch(xcept::Exception e)
+    catch(xdaq::exception::ApplicationDescriptorNotFound e)
     {
         string s;
 
@@ -469,9 +468,9 @@ vector< xdaq::ApplicationDescriptor* > EmuRUI::getAppDescriptors(xdaq::Applicati
     {
         try
         {
-            descriptor = appGroup->getApplicationDescriptor(appClass, i);
+            descriptor = zone->getApplicationDescriptor(appClass, i);
         }
-        catch(emuRUI::exception::Exception e)
+	catch(xdaq::exception::ApplicationDescriptorNotFound e)
         {
             stringstream oss;
             string s;
@@ -672,9 +671,9 @@ throw (emuRUI::exception::Exception)
 
   try
     {
-      taDescriptors = getAppDescriptors(appGroup_, "EmuTA");
+      taDescriptors = getAppDescriptors(zone_, "EmuTA");
     }
-  catch(xcept::Exception e)
+  catch(emuRUI::exception::Exception e)
     {
       taDescriptors.clear();
       XCEPT_RETHROW(emuRUI::exception::Exception, 
@@ -1222,7 +1221,7 @@ void EmuRUI::createDeviceReader(){
 	stringstream oss;
 	oss << "No such data format: " << inputDataFormat_.toString() << 
 	  "Use \"DDU\" or \"DCC\"";
-	LOG4CPLUS_FATAL(logger_, oss.str());
+// 	LOG4CPLUS_FATAL(logger_, oss.str());
 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
   }
 
@@ -1233,7 +1232,7 @@ void EmuRUI::createDeviceReader(){
       stringstream oss;
       oss << "Bad device type: " << inputDeviceType_.toString() << 
 	"Use \"file\", \"spy\", or \"slink\"";
-      LOG4CPLUS_FATAL(logger_, oss.str());
+//       LOG4CPLUS_FATAL(logger_, oss.str());
       XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
     try {
@@ -1249,22 +1248,21 @@ void EmuRUI::createDeviceReader(){
       oss << "Failed to create " << inputDeviceType_.toString()
 	  << " reader for "      << inputDeviceName_.toString()
 	  << ": "                << e.what();
-      LOG4CPLUS_FATAL(logger_, oss.str());
-      moveToFailedState();
-//       XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
+//       LOG4CPLUS_FATAL(logger_, oss.str());
+      XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
     catch(...){
       stringstream oss;
       oss << "Failed to create " << inputDeviceType_.toString()
 	  << " reader for "      << inputDeviceName_.toString()
 	  << ": unknown exception.";
-      LOG4CPLUS_FATAL(logger_, oss.str());
-      moveToFailedState();
-//       XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
+//       LOG4CPLUS_FATAL(logger_, oss.str());
+      XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
 
-    if ( deviceReader_->getLogMessage().length() > 0 )
-      LOG4CPLUS_INFO(logger_, deviceReader_->getLogMessage());
+    if ( deviceReader_)
+      if ( deviceReader_->getLogMessage().length() > 0 )
+	LOG4CPLUS_INFO(logger_, deviceReader_->getLogMessage());
 
 }
 
@@ -1417,7 +1415,7 @@ bool EmuRUI::createSOAPServer( string clientName,  unsigned int clientInstance, 
 
 
 void EmuRUI::createServers(){
-  for ( int iClient=0; iClient<clientName_.elements(); ++iClient ){
+  for ( unsigned int iClient=0; iClient<clientName_.elements(); ++iClient ){
     xdata::Boolean *persists = dynamic_cast<xdata::Boolean*>( clientPersists_.elementAt(iClient) );
     // (Re)create it only if it has a name and is not a temporary server created on the fly
     if ( clientName_.elementAt(iClient)->toString() != "" && persists->value_ ){
@@ -1459,9 +1457,9 @@ throw (toolbox::fsm::exception::Exception)
     // Avoid repeated function calls to obtain RU descriptor and tid
     try
     {
-        ruDescriptor_ = appGroup_->getApplicationDescriptor("RU", instance_);
+        ruDescriptor_ = zone_->getApplicationDescriptor("RU", instance_);
     }
-    catch(xcept::Exception e)
+    catch(xdaq::exception::ApplicationDescriptorNotFound  e)
     {
         XCEPT_RETHROW(toolbox::fsm::exception::Exception,
             "Failed to get the descriptor of this application", e);
@@ -1793,11 +1791,11 @@ throw (toolbox::fsm::exception::Exception)
         stringstream oss;
         string       s;
 
-        oss << "Failure occurred when performing transition from: ";
+        oss << "Failure occurred when performing transition from ";
         oss << failedEvent.getFromState();
-        oss <<  " to: ";
+        oss <<  " to ";
         oss << failedEvent.getToState();
-        oss << " exception history: ";
+        oss << "; Exception history: ";
         oss << xcept::stdformat_exception_history(exception);
         s = oss.str();
 
@@ -1805,10 +1803,9 @@ throw (toolbox::fsm::exception::Exception)
     }
     catch(bad_cast)
     {
-        LOG4CPLUS_FATAL(logger_, "Moving to Failed state");
+        LOG4CPLUS_FATAL(logger_, "Caught bad_cast exception while moving to Failed state." );
     }
 }
-
 
 void EmuRUI::bindI2oCallbacks()
 {
@@ -1820,6 +1817,8 @@ void EmuRUI::bindI2oCallbacks()
 }
 
 void EmuRUI::moveToFailedState(){ // Emu-specific
+  // Use this from inside the work loop to force the FSM to Failed state 
+
   try
     {
       // Move to the failed state
@@ -2021,7 +2020,7 @@ throw (xgi::exception::Exception)
 // 	    for ( xsv_it=xsv->begin(); xsv_it != xsv->end(); ++xsv_it )
 // 	      cout << "   type " << xsv_it->type() << endl; // crashes on second iteration...
 
-	for ( int i=0; i<xsv->elements(); ++i ){
+	for ( unsigned int i=0; i<xsv->elements(); ++i ){
 	  
 	  *out << "  <tr>"                                               << endl;
 	  
@@ -2410,7 +2409,8 @@ void EmuRUI::createFileWriters(){
 	      badEventsFileWriter_ = NULL;
 	    }
 	  // create new writers if path is not empty
-	  if ( pathToDataOutFile_ != string("") && fileSizeInMegaBytes_ > (long unsigned int) 0 )
+	  if ( pathToDataOutFile_ != string("") && 
+	       (xdata::UnsignedLongT) fileSizeInMegaBytes_ > (long unsigned int) 0 )
 	    {
 	      stringstream app;
 	      app << "EmuRUI";
@@ -2429,7 +2429,8 @@ void EmuRUI::createFileWriters(){
 	    LOG4CPLUS_FATAL( logger_, e );
 	    moveToFailedState();
 	  }
-	  if ( pathToBadEventsFile_ != string("") && fileSizeInMegaBytes_ > (long unsigned int) 0 )
+	  if ( pathToBadEventsFile_ != string("") && 
+	       (xdata::UnsignedLongT) fileSizeInMegaBytes_ > (long unsigned int) 0 )
 	    {
 	      stringstream app;
 	      app << "EmuRUI";
@@ -2465,12 +2466,13 @@ int EmuRUI::continueConstructionOfSuperFrag()
   unsigned int   nBytesRead = 0;
   unsigned short errorFlag  = 0;
 
-  if ( maxEvents_.value_ >= 0 && nEventsRead_.value_ >= (unsigned long) maxEvents_.value_ ) return notToBeRescheduled;
+  if ( maxEvents_.value_ >= 0 && nEventsRead_.value_ >= (unsigned long) maxEvents_.value_ ) 
+    return notToBeRescheduled;
 
   if (deviceReader_){
 
     // Prepare to read the first first event if we have not yet done so:
-    if ( nEventsRead_ == (unsigned long) 0 && ! deviceReader_->isResetAndEnabled() ){
+    if ( (xdata::UnsignedLongT) nEventsRead_ == (unsigned long) 0 && ! deviceReader_->isResetAndEnabled() ){
       try{
 	deviceReader_->resetAndEnable();
       }
@@ -2493,6 +2495,7 @@ int EmuRUI::continueConstructionOfSuperFrag()
 	moveToFailedState();
 	// 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
       }
+
       if ( deviceReader_->getLogMessage().length() > 0 )
 	LOG4CPLUS_INFO(logger_, deviceReader_->getLogMessage());
     } // if ( nEventsRead_ == (unsigned long) 0 )
@@ -2529,7 +2532,7 @@ int EmuRUI::continueConstructionOfSuperFrag()
 		    " read " << nBytesRead << " bytes only.");
   }
 
-  if ( nEventsRead_ == (unsigned long) 0 ) // first event being read --> a new run
+  if ( (xdata::UnsignedLongT) nEventsRead_ == (unsigned long) 0 ) // first event being read --> a new run
     {
 	  createFileWriters();
     } // if first event 

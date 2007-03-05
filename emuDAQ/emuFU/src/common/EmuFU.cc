@@ -77,7 +77,7 @@ bSem_(BSem::FULL)
     appInfoSpace_      = getApplicationInfoSpace();
     appDescriptor_     = getApplicationDescriptor();
     appContext_        = getApplicationContext();
-    appGroup_          = appContext_->getApplicationGroup();
+    zone_              = appContext_->getDefaultZone();
     xmlClass_          = appDescriptor_->getClassName();
     instance_          = appDescriptor_->getInstance();
     urn_               = appDescriptor_->getURN();
@@ -91,7 +91,7 @@ bSem_(BSem::FULL)
 
     // Note that rubuilderTesterDescriptor_ will be zero if the
     // RUBuilderTester application is not found
-    rubuilderTesterDescriptor_ = getRUBuilderTester(appGroup_);
+    rubuilderTesterDescriptor_ = getRUBuilderTester(zone_);
 
     // Note that sentinel_ will be zero if the setinel application is not found
     sentinel_ = getSentinel(appContext_);
@@ -429,7 +429,7 @@ void EmuFU::onI2OClientCreditMsg(toolbox::mem::Reference *bufRef)
 
 xdaq::ApplicationDescriptor *EmuFU::getRUBuilderTester
 (
-    xdaq::ApplicationGroup *appGroup
+    xdaq::Zone *zone
 )
 {
     xdaq::ApplicationDescriptor *appDescriptor = 0;
@@ -438,10 +438,9 @@ xdaq::ApplicationDescriptor *EmuFU::getRUBuilderTester
     try
     {
         appDescriptor =
-//             appGroup->getApplicationDescriptor("EmuDAQtester", 0);
-            appGroup->getApplicationDescriptor("EmuDAQManager", 0);
+            zone->getApplicationDescriptor("EmuDAQManager", 0);
     }
-    catch(xcept::Exception e)
+    catch(xdaq::exception::ApplicationDescriptorNotFound e)
     {
         appDescriptor = 0;
     }
@@ -1023,7 +1022,7 @@ bool EmuFU::createSOAPServer( string clientName,  unsigned int clientInstance, b
 
 
 void EmuFU::createServers(){
-  for ( int iClient=0; iClient<clientName_.elements(); ++iClient ){
+  for ( unsigned int iClient=0; iClient<clientName_.elements(); ++iClient ){
     xdata::Boolean *persists = dynamic_cast<xdata::Boolean*>( clientPersists_.elementAt(iClient) );
     // (Re)create it only if it has a name and is not a temporary server created on the fly
     if ( clientName_.elementAt(iClient)->toString() != "" && persists->value_ ){
@@ -1074,8 +1073,19 @@ throw (toolbox::fsm::exception::Exception)
 
     try
     {
-        buDescriptor_ = appGroup_->getApplicationDescriptor("BU", buInstNb_);
+        buDescriptor_ = zone_->getApplicationDescriptor("BU", buInstNb_);
         buTid_        = i2oAddressMap_->getTid(buDescriptor_);
+    }
+    catch(xdaq::exception::ApplicationDescriptorNotFound e)
+    {
+        stringstream oss;
+        string       s;
+
+        oss << "Failed to get application descriptor and I2O for";
+        oss << " BU" << instance_;
+        s = oss.str();
+
+        XCEPT_RETHROW(toolbox::fsm::exception::Exception, s, e);
     }
     catch(xcept::Exception e)
     {
@@ -1117,7 +1127,7 @@ throw (toolbox::fsm::exception::Exception)
 	fileWriter_ = NULL;
       }
     // create new writer if path is not empty
-    if ( pathToDataOutFile_ != string("") && fileSizeInMegaBytes_ > (long unsigned int) 0 ){
+    if ( pathToDataOutFile_ != string("") && (xdata::UnsignedLongT) fileSizeInMegaBytes_ > (long unsigned int) 0 ){
       stringstream app;
       app << "EmuFU";
       app.fill('0');
@@ -1564,7 +1574,7 @@ throw (xgi::exception::Exception)
  	xdata::Vector<xdata::Serializable> *xsv = 
 	  static_cast<xdata::Vector<xdata::Serializable> * > (pos->second); // that's it!
 
-	for ( int i=0; i<xsv->elements(); ++i ){
+	for ( unsigned int i=0; i<xsv->elements(); ++i ){
 	  
 	  *out << "  <tr>"                                               << endl;
 	  
@@ -2834,13 +2844,13 @@ throw (emuFU::exception::Exception)
   isBookedRunNumber_ = false;
   runStartTime_ = "YYMMDD_hhmmss_UTC";
 
-  vector< xdaq::ApplicationDescriptor* > taDescriptors;
+  set< xdaq::ApplicationDescriptor* > taDescriptors;
 
   try
     {
-      taDescriptors = appGroup_->getApplicationDescriptors( "EmuTA");
+      taDescriptors = zone_->getApplicationDescriptors( "EmuTA" );
     }
-  catch(xcept::Exception e)
+  catch(xdaq::exception::ApplicationDescriptorNotFound e)
     {
       taDescriptors.clear();
       XCEPT_RETHROW(emuFU::exception::Exception, 
@@ -2855,11 +2865,11 @@ throw (emuFU::exception::Exception)
     if ( taDescriptors.size() > 1 )
       LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
 		      taDescriptors.size() << " emuTA instances found. Trying first one.");
-    rn = getScalarParam(taDescriptors[0],"runNumber","unsignedLong");
+    rn = getScalarParam(*taDescriptors.begin(),"runNumber","unsignedLong");
     LOG4CPLUS_INFO(logger_, "Got run number from emuTA: " + rn );
-    br = getScalarParam(taDescriptors[0],"isBookedRunNumber","boolean");
+    br = getScalarParam(*taDescriptors.begin(),"isBookedRunNumber","boolean");
     LOG4CPLUS_INFO(logger_, "Got info on run booking from emuTA: " + br );
-    runStartTime_ = getScalarParam(taDescriptors[0],"runStartTime","string");
+    runStartTime_ = getScalarParam(*taDescriptors.begin(),"runStartTime","string");
     LOG4CPLUS_INFO(logger_, "Got run start time from emuTA: " + runStartTime_.toString() );
   }
   else{
