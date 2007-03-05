@@ -113,7 +113,8 @@ void EmuSOAPServer::appendData( char* const         data,
   // Append message to queue if complete
   if ( completesEvent ){
     messages_.push_back( messageReference_ );
-    messageReference_          = NULL;
+//     messageReference_          = NULL;
+    messageReference_ = xoap::MessageReference(NULL);
     dataIsPendingTransmission_ = true;
   }
 }

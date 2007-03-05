@@ -161,8 +161,8 @@ private:
 		 const unsigned int       dataLength)
     throw (emuRUI::exception::Exception);
 
-  vector< xdaq::ApplicationDescriptor* > getAppDescriptors(xdaq::ApplicationGroup *appGroup,
-								   const string            appClass)
+  vector< xdaq::ApplicationDescriptor* > getAppDescriptors(xdaq::Zone *zone,
+							   const string            appClass)
     throw (emuRUI::exception::Exception);
 
   xoap::MessageReference createParameterGetSOAPMsg(const string appClass,
@@ -270,9 +270,9 @@ private:
     xdaq::ApplicationContext *appContext_;
 
     /**
-     * Used to access the application's group without a function call.
+     * Used to access the application's zone without a function call.
      */
-    xdaq::ApplicationGroup *appGroup_;
+    xdaq::Zone *zone_;
 
     /**
      * The XML class name of the application.
@@ -449,7 +449,7 @@ private:
      */
     xdaq::ApplicationDescriptor *getRUBuilderTester
     (
-        xdaq::ApplicationGroup *appGroup
+     xdaq::Zone *zone
     );
 
     /**

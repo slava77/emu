@@ -45,7 +45,7 @@ bSem_(BSem::FULL)
     appInfoSpace_  = getApplicationInfoSpace();
     appDescriptor_ = getApplicationDescriptor();
     appContext_    = getApplicationContext();
-    appGroup_      = appContext_->getApplicationGroup();
+    zone_          = appContext_->getDefaultZone();
     xmlClass_      = appDescriptor_->getClassName();
     instance_      = appDescriptor_->getInstance();
     urn_           = appDescriptor_->getURN();
@@ -55,7 +55,7 @@ bSem_(BSem::FULL)
 
     // Note that rubuilderTesterDescriptor_ will be zero if the
     // RUBuilderTester application is not found
-    rubuilderTesterDescriptor_ = getRUBuilderTester(appGroup_);
+    rubuilderTesterDescriptor_ = getRUBuilderTester(zone_);
 
     // Note that sentinel_ will be zero if the setinel application is not found
     sentinel_ = getSentinel(appContext_);
@@ -136,7 +136,7 @@ string EmuTA::generateLoggerName()
 
 xdaq::ApplicationDescriptor *EmuTA::getRUBuilderTester
 (
-    xdaq::ApplicationGroup *appGroup
+    xdaq::Zone *zone
 )
 {
     xdaq::ApplicationDescriptor *appDescriptor = 0;
@@ -145,10 +145,9 @@ xdaq::ApplicationDescriptor *EmuTA::getRUBuilderTester
     try
     {
         appDescriptor =
-//             appGroup->getApplicationDescriptor("EmuDAQtester", 0);
-            appGroup->getApplicationDescriptor("EmuDAQManager", 0);
+            zone->getApplicationDescriptor("EmuDAQManager", 0);
     }
-    catch(xcept::Exception e)
+    catch(xdaq::exception::ApplicationDescriptorNotFound e)
     {
         appDescriptor = 0;
     }
@@ -376,7 +375,7 @@ throw (toolbox::fsm::exception::Exception)
     }
 
     // If the EmuTA has moved to the Enabled state and there are some held credits
-    if((state == 'E') && (nbCreditsHeld_ != (unsigned long)0))
+    if((state == 'E') && ((xdata::UnsignedLongT) nbCreditsHeld_ != (unsigned long)0))
     {
         // Send triggers for the held credits
         sendNTriggers(nbCreditsHeld_);
@@ -842,9 +841,9 @@ throw (emuTA::exception::Exception)
     // Avoid repeated function calls to obtain EVM descriptor and tid
     try
     {
-        evmDescriptor_ = appGroup_->getApplicationDescriptor("EVM", 0);
+        evmDescriptor_ = zone_->getApplicationDescriptor("EVM", 0);
     }
-    catch(xcept::Exception e)
+    catch(xdaq::exception::ApplicationDescriptorNotFound e)
     {
         XCEPT_RETHROW(emuTA::exception::Exception,
             "Failed to get the application descriptor of the EVM", e);

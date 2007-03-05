@@ -93,9 +93,9 @@ private:
     xdaq::ApplicationContext *appContext_;
 
     /**
-     * Used to access the application's group without a function call.
+     * Used to access the application's zone without a function call.
      */
-    xdaq::ApplicationGroup *appGroup_;
+    xdaq::Zone *zone_;
 
     /**
      * The XML class name of the application.
@@ -189,8 +189,8 @@ private:
      */
     vector< xdaq::ApplicationDescriptor* > getAppDescriptors
     (
-        xdaq::ApplicationGroup *appGroup,
-        const string           appClass
+     xdaq::Zone             *zone,
+     const string           appClass
     )
     throw (emuDAQManager::exception::Exception);
 

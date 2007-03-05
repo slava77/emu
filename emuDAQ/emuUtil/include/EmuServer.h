@@ -35,7 +35,7 @@ protected:
   string                                      name_;
   xdaq::ApplicationDescriptor                *appDescriptor_;
   xdaq::ApplicationContext                   *appContext_;
-  xdaq::ApplicationGroup                     *appGroup_;
+  xdaq::Zone                                 *zone_;
 
   string                                      clientName_;
   unsigned int                                clientInstance_;

@@ -20,7 +20,7 @@ EmuServer::EmuServer( xdaq::Application                    *parentApp,
   name_            = createName();
   appDescriptor_   = parentApp->getApplicationDescriptor();
   appContext_      = parentApp->getApplicationContext();
-  appGroup_        = appContext_->getApplicationGroup();
+  zone_            = appContext_->getDefaultZone();
 
   dataIsPendingTransmission_ = false;
 
@@ -44,9 +44,9 @@ void EmuServer::findClientDescriptor()
   try
     {
       clientDescriptor_ =
-	appGroup_->getApplicationDescriptor( clientName_, clientInstance_ );
+	zone_->getApplicationDescriptor( clientName_, clientInstance_ );
     }
-  catch(xcept::Exception e)
+  catch(xdaq::exception::ApplicationDescriptorNotFound e)
     {
       clientDescriptor_ = 0;
       LOG4CPLUS_WARN(logger_, 

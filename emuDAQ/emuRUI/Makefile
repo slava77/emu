@@ -47,7 +47,7 @@ LibraryDirs = \
 
 UserCFlags =
 #UserCCFlags = -g -Wall -Werror -pedantic-errors -DUSE_DDU2004
-UserCCFlags = -g -Wall -Werror -DUSE_DDU2004
+UserCCFlags = -g -Wall -DUSE_DDU2004
 UserDynamicLinkFlags =
 UserStaticLinkFlags =
 UserExecutableLinkFlags =

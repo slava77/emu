@@ -1,4 +1,4 @@
-// $Id: EmuSOAPClient.h,v 3.2 2006/03/23 22:17:40 banicz Exp $
+// $Id: EmuSOAPClient.h,v 3.3 2007/03/05 11:00:17 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -65,7 +65,7 @@ protected:
 protected:
 
   std::string         name_;
-  std::vector<xdaq::ApplicationDescriptor*> destination_;	// Vector of all server tids
+  std::set<xdaq::ApplicationDescriptor*> destination_;	// Set of all server tids
   xdata::String       serversClassName_; 	// servers' class name
   xdata::UnsignedLong serversClassInstance_;	// instance of server
   xdata::UnsignedLong nEventCredits_;	 	// send this meny event credits at a time

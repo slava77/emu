@@ -1,4 +1,4 @@
-// $Id: EmuClient.cc,v 3.4 2006/09/11 12:16:54 banicz Exp $
+// $Id: EmuClient.cc,v 3.5 2007/03/05 11:00:17 banicz Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -145,9 +145,16 @@ void EmuClient::actionPerformed (xdata::Event& e)
 	{
 	  try 
 	    {
-	      destination_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(serversClassName_.toString().c_str());
+	      destination_ = getApplicationContext()->getDefaultZone()->getApplicationDescriptors(serversClassName_.toString().c_str());
 	      hasSet_serversClassName_ = true;
 	    }
+	  catch(xdaq::exception::ApplicationDescriptorNotFound  e)
+	    {
+	      LOG4CPLUS_ERROR (getApplicationLogger(), 
+			       "No " << serversClassName_.toString() << 
+			       "found. EmuClient cannot be configured." << 
+			       xcept::stdformat_exception_history(e));
+	    }	
 	  catch (xdaq::exception::Exception& e)
 	    {
 	      LOG4CPLUS_ERROR (getApplicationLogger(), 
@@ -183,10 +190,11 @@ void EmuClient::actionPerformed (xdata::Event& e)
 // Send an I2O token message to the specified instance of the server
 int EmuClient::sendMessage(unsigned long last) 
 {	
-  for (unsigned int i = 0; i < destination_.size(); i++)
+  std::set<xdaq::ApplicationDescriptor*>::const_iterator d;
+  for ( d = destination_.begin(); d != destination_.end(); ++d )
     {
 
-      if ( destination_[i]->getInstance() != serversClassInstance_.value_ ) continue;
+      if ( (*d)->getInstance() != serversClassInstance_.value_ ) continue;
 
       toolbox::mem::Reference * ref = 0;
       try 
@@ -198,7 +206,7 @@ int EmuClient::sendMessage(unsigned long last)
 
 	  frame->PvtMessageFrame.StdMessageFrame.MsgFlags         = 0;
 	  frame->PvtMessageFrame.StdMessageFrame.VersionOffset    = 0;
-	  frame->PvtMessageFrame.StdMessageFrame.TargetAddress    = i2o::utils::getAddressMap()->getTid(destination_[i]);
+	  frame->PvtMessageFrame.StdMessageFrame.TargetAddress    = i2o::utils::getAddressMap()->getTid(*d);
 	  frame->PvtMessageFrame.StdMessageFrame.InitiatorAddress = i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor());
 	  frame->PvtMessageFrame.StdMessageFrame.MessageSize      = (sizeof(I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME)) >> 2;
 
@@ -213,7 +221,7 @@ int EmuClient::sendMessage(unsigned long last)
 	  LOG4CPLUS_DEBUG (getApplicationLogger(),
 			   "Sending credit to tid: " << frame->PvtMessageFrame.StdMessageFrame.TargetAddress
 			   );
-	  getApplicationContext()->postFrame(ref, this->getApplicationDescriptor(), destination_[i]);
+	  getApplicationContext()->postFrame(ref, this->getApplicationDescriptor(), *d);
 	} 
       catch (toolbox::mem::exception::Exception & me)
 	{
@@ -228,7 +236,7 @@ int EmuClient::sendMessage(unsigned long last)
 	    {
 	      try
 		{
-		  getApplicationContext()->postFrame(ref,  this->getApplicationDescriptor(), destination_[i]);
+		  getApplicationContext()->postFrame(ref,  this->getApplicationDescriptor(), *d);
 		  retryOK = true;
 		  break; // if send was successfull, continue to send other messages
 		}

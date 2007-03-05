@@ -43,7 +43,9 @@ LibraryDirs =
 UserSourcePath =
 
 UserCFlags =
-UserCCFlags =  -g -Wall -Werror -pedantic-errors
+# UserCCFlags =  -g -Wall -Werror -pedantic-errors
+# UserCCFlags =  -g -Wall -pedantic-errors
+UserCCFlags =  -g -Wall
 UserDynamicLinkFlags =
 UserStaticLinkFlags =
 UserExecutableLinkFlags =
