@@ -15,9 +15,9 @@
 using namespace cgicc;
 using namespace std;
 
-const string CFEB_FIRMWARE_FILENAME = "cfeb/cfeb_v7_r1.svf";
+const string CFEB_FIRMWARE_FILENAME = "cfeb/cfeb_v8_r9.svf";
 //
-const string DMB_FIRMWARE_FILENAME     = "dmb/dmb6cntl_v20_r4.svf";
+const string DMB_FIRMWARE_FILENAME     = "dmb/dmb6cntl_v23_r1.svf";
 const string DMBVME_FIRMWARE_FILENAME  = "dmb/dmb6vme_v10_r2.svf";
 //
 const string ALCT_FIRMWARE_FILENAME_ME11 = "alct/alct288bp_rl.svf";
@@ -4484,6 +4484,9 @@ const int         EXPECTED_CFEB_USERID   = 0xcfeda062;
       cout << "CFEBLoadFirmware - DMB " << dmb << endl;
       //
       thisCCB->hardReset();
+      ::sleep(1);
+      thisCCB->hardReset();
+      ::sleep(1);
       //
       if (thisDMB) {
 	//
@@ -4493,20 +4496,14 @@ const int         EXPECTED_CFEB_USERID   = 0xcfeda062;
 	    ostringstream dum;
 	    dum << "loading CFEB firmware for DMB=" << dmb << " CFEB="<< i << std::endl;
 	    LOG4CPLUS_INFO(getApplicationLogger(), dum.str());
-	    thisCCB->hardReset();
-	    ::sleep(1);
 	    unsigned short int dword[2];
 	    dword[0]=thisDMB->febpromuser(thisCFEBs[i]);
 	    CFEBid_[dmb][i] = dword[0];  // fill summary file with user ID value read from this CFEB
 	    char * outp=(char *)dword;   // recast dword
 	    thisDMB->epromload(thisCFEBs[i].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
-	    ::sleep(1);
-	    thisCCB->hardReset();
 	  }
 	} else {
 	  std::cout << "loading CFEB firmware for DMB=" << dmb << " CFEB="<< dmbNumber << std::endl;
-	  thisCCB->hardReset();
-	  ::sleep(1);
 	  unsigned short int dword[2];
 	  for (unsigned int i=0; i<thisCFEBs.size(); i++) {
 	    if (thisCFEBs[i].number() == dmbNumber ) {
@@ -4514,15 +4511,13 @@ const int         EXPECTED_CFEB_USERID   = 0xcfeda062;
 	      CFEBid_[dmb][i] = dword[0];  // fill summary file with user ID value read from this CFEB
 	      char * outp=(char *)dword;   // recast dword
 	      thisDMB->epromload(thisCFEBs[i].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);  // load mprom
-	      ::sleep(1);
-	      thisCCB->hardReset();
 	    }
 	  }
 	}
-	//
-	thisCCB->hardReset();
-	//
       }
+      ::sleep(1);
+      thisCCB->hardReset();
+      ::sleep(1);
     }
     //
     this->DMBUtils(in,out);
