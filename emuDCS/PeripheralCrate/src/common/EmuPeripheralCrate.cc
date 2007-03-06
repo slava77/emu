@@ -4485,8 +4485,6 @@ const int         EXPECTED_CFEB_USERID   = 0xcfeda062;
       //
       thisCCB->hardReset();
       ::sleep(1);
-      thisCCB->hardReset();
-      ::sleep(1);
       //
       if (thisDMB) {
 	//
