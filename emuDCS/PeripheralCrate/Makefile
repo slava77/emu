@@ -35,7 +35,6 @@ Sources=\
 	DAQMB.cc \
 	DAQMBParser.cc \
 	EmuSystemParser.cc \
-	elong.cc \
 	EmuParser.cc \
 	MPC.cc \
 	MPCParser.cc \
