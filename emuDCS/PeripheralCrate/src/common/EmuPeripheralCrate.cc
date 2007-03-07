@@ -15,27 +15,25 @@
 using namespace cgicc;
 using namespace std;
 
-const string CFEB_FIRMWARE_FILENAME = "cfeb/cfeb_v8_r9.svf";
+const string CFEB_FIRMWARE_FILENAME = "cfeb/mtcc_phase2_20060925/cfeb_v7_r1.svf";
+const int    EXPECTED_CFEB_USERID   = 0xcfeda071;
 //
-const string DMB_FIRMWARE_FILENAME     = "dmb/dmb6cntl_v23_r1.svf";
-const string DMBVME_FIRMWARE_FILENAME  = "dmb/dmb6vme_v10_r2.svf";
+const string DMB_FIRMWARE_FILENAME     = "dmb/mtcc_phase2_cntl_20060928/dmb6cntl_v20_r4.svf";
+const int    EXPECTED_DMB_USERID       = 0x48547204;
+const string DMBVME_FIRMWARE_FILENAME  = "dmb/mtcc_phase2_vme_20061004/dmb6vme_v10_r2.svf";
 //
-const string ALCT_FIRMWARE_FILENAME_ME11 = "alct/alct288bp_rl.svf";
-const string ALCT_FIRMWARE_FILENAME_ME12 = "alct/alct384rl.svf";
-const string ALCT_FIRMWARE_FILENAME_ME13 = "alct/alct288rl.svf";
-const string ALCT_FIRMWARE_FILENAME_ME21 = "alct/alct672rl.svf";
-const string ALCT_FIRMWARE_FILENAME_ME22 = "alct/alct384rl.svf";
-const string ALCT_FIRMWARE_FILENAME_ME31 = "alct/alct672mirrorrl.svf";
-const string ALCT_FIRMWARE_FILENAME_ME32 = "alct/alct384mirrorrl.svf";
-const string ALCT_FIRMWARE_FILENAME_ME41 = "alct/alct672mirrorrl.svf";
+const string ALCT_FIRMWARE_FILENAME_ME11 = "alct/feature_id_20061016/alct288bp_rl.svf";
+const string ALCT_FIRMWARE_FILENAME_ME12 = "alct/feature_id_20061016/alct384rl.svf";
+const string ALCT_FIRMWARE_FILENAME_ME13 = "alct/feature_id_20061016/alct288rl.svf";
+const string ALCT_FIRMWARE_FILENAME_ME21 = "alct/feature_id_20061016/alct672rl.svf";
+const string ALCT_FIRMWARE_FILENAME_ME22 = "alct/feature_id_20061016/alct384rl.svf";
+const string ALCT_FIRMWARE_FILENAME_ME31 = "alct/feature_id_20061016/alct672mirrorrl.svf";
+const string ALCT_FIRMWARE_FILENAME_ME32 = "alct/feature_id_20061016/alct384mirrorrl.svf";
+const string ALCT_FIRMWARE_FILENAME_ME41 = "alct/feature_id_20061016/alct672mirrorrl.svf";
 //
-const string RAT_FIRMWARE_FILENAME = "rat/rat09052006.svf";
-const string TMB_FIRMWARE_FILENAME = "tmb/tmb09jan2007.svf";
+const string RAT_FIRMWARE_FILENAME = "rat/hard_reset_20060905/rat09052006.svf";
+const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
 //
-//const int         EXPECTED_DMB_USERID       = 0x48547204;
-const int         EXPECTED_DMB_USERID       = 0x48547195;
-//const int         EXPECTED_CFEB_USERID   = 0xcfeda071;
-const int         EXPECTED_CFEB_USERID   = 0xcfeda062;
 //
 
   EmuPeripheralCrate::EmuPeripheralCrate(xdaq::ApplicationStub * s): EmuApplication(s)
@@ -4332,22 +4330,33 @@ const int         EXPECTED_CFEB_USERID   = 0xcfeda062;
     //
     DAQMB * thisDMB = dmbVector[dmb];
     //
-    cout << "DMBLoadFirmware" << endl;
-    //
-    thisCCB->hardReset();
-    //
-    ::sleep(2);
-    //
-    if (thisDMB) {
-      //
-      char *outp;
-      //char *name = DMBFirmware_.toString().c_str() ;
-      thisDMB->epromload(MPROM,DMBFirmware_.toString().c_str(),1,outp);  // load mprom
+    int mindmb = dmb;
+    int maxdmb = dmb+1;
+    if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each dmb
+      mindmb = 0;
+      maxdmb = dmbVector.size()-1;
     }
     //
-    ::sleep(2);
-    //
     thisCCB->hardReset();
+    //
+    for (dmb=mindmb; dmb<maxdmb; dmb++) {
+      //
+      DAQMB * thisDMB = dmbVector[dmb];
+      //
+      if (thisDMB) {
+	//
+	cout << "DMBLoadFirmware in slot " << thisDMB->slot() << endl;
+	//
+	::sleep(1);
+	//
+	char *outp;
+	//char *name = DMBFirmware_.toString().c_str() ;
+	thisDMB->epromload(MPROM,DMBFirmware_.toString().c_str(),1,outp);  // load mprom
+	//
+	::sleep(1);
+	thisCCB->hardReset();
+      }
+    }
     //
     this->DMBUtils(in,out);
     //
@@ -4369,7 +4378,6 @@ const int         EXPECTED_CFEB_USERID   = 0xcfeda062;
     }
     //
     DAQMB * thisDMB = dmbVector[dmb];
-    cout << "DMBVmeLoadFirmware" << endl;
     //
     int mindmb = dmb;
     int maxdmb = dmb+1;
@@ -4377,13 +4385,18 @@ const int         EXPECTED_CFEB_USERID   = 0xcfeda062;
       mindmb = 0;
       maxdmb = dmbVector.size()-1;
     }
+    //
+    thisCCB->hardReset();
+    //
     for (dmb=mindmb; dmb<maxdmb; dmb++) {
-      //
-      thisCCB->hardReset();
       //
       thisDMB = dmbVector[dmb];
       //
       if (thisDMB) {
+	//
+	cout << "DMBVmeLoadFirmware in slot " << thisDMB->slot() << endl;
+	//
+	::sleep(1);
 	//
 	unsigned short int dword[2];
 	dword[0]=thisDMB->mbpromuser(0);
@@ -4393,8 +4406,8 @@ const int         EXPECTED_CFEB_USERID   = 0xcfeda062;
 	thisDMB->epromload(VPROM,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
       }
       //
+      ::sleep(1);
       thisCCB->hardReset();
-      //
     }
     //
     this->DMBUtils(in,out);
@@ -4418,23 +4431,35 @@ const int         EXPECTED_CFEB_USERID   = 0xcfeda062;
     //
     DAQMB * thisDMB = dmbVector[dmb];
     //
-    cout << "DMB Vme Load Firmware Emergency" << endl;
-    LOG4CPLUS_INFO(getApplicationLogger(),"Started DMB Vme Load Firmware Emergency");
-    //
-    //    thisCCB->hardReset();
     //    ::sleep(2);
     //
-    if (thisDMB) {
-      //
-      unsigned short int dword[2];
-      dword[0]=0;
-      char * outp=(char *)dword;  
-      thisDMB->epromload(RESET,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
+    int mindmb = dmb;
+    int maxdmb = dmb+1;
+    if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each dmb
+      mindmb = 0;
+      maxdmb = dmbVector.size()-1;
     }
     //
-    ::sleep(3);
-    //
     thisCCB->hardReset();
+    //
+    for (dmb=mindmb; dmb<maxdmb; dmb++) {
+      //
+      if (thisDMB) {
+	//
+	cout << "DMB Vme Load Firmware Emergency in slot " << thisDMB->slot() << endl;
+	LOG4CPLUS_INFO(getApplicationLogger(),"Started DMB Vme Load Firmware Emergency");
+	//
+	unsigned short int dword[2];
+	dword[0]=0;
+	char * outp=(char *)dword;  
+	thisDMB->epromload(RESET,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
+	//
+	::sleep(2);
+	//
+	thisCCB->hardReset();
+      }
+    }
+    //
     //
     this->DMBUtils(in,out);
     //
@@ -7074,30 +7099,6 @@ const int         EXPECTED_CFEB_USERID   = 0xcfeda062;
     *out << cgicc::form() << std::endl ;
     //
     if (alct) {
-      //
-      /*      
-      std::string ALCTFirmware = FirmwareDir_+"alct/";
-      //
-      if ( (alct->GetChamberType()).find("ME22") != string::npos ) {
-      	ALCTFirmware += "alct384rl.svf";
-      } else if ( (alct->GetChamberType()).find("ME12") != string::npos ) {
-	ALCTFirmware += "alct384rl.svf";
-      } else if ( (alct->GetChamberType()).find("ME13") != string::npos ) {
-	ALCTFirmware += "alct288rl.svf";
-      } else if ( (alct->GetChamberType()).find("ME21") != string::npos ) {
-	ALCTFirmware += "alct672rl.svf";
-      } else if ( (alct->GetChamberType()).find("ME41") != string::npos ) {
-	ALCTFirmware += "alct672rl.svf";
-      } else if ( (alct->GetChamberType()).find("ME31") != string::npos ) {
-	ALCTFirmware += "alct672mirrorrl.svf";
-      } else if ( (alct->GetChamberType()).find("ME32") != string::npos ) {
-	ALCTFirmware += "alct384mirrorrl.svf";
-      } else if ( (alct->GetChamberType()).find("ME11") != string::npos ) {
-	ALCTFirmware += "alct288fp_rl.svf";
-      }
-      //
-      ALCTFirmware_ = ALCTFirmware;
-*/
       //
       std::string LoadALCTFirmware =
 	toolbox::toString("/%s/LoadALCTFirmware",getApplicationDescriptor()->getURN().c_str());
