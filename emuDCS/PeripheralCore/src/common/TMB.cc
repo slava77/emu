@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.27 2007/01/31 16:50:06 rakness Exp $
+// $Id: TMB.cc,v 3.28 2007/03/08 03:14:20 liu Exp $
 // $Log: TMB.cc,v $
+// Revision 3.28  2007/03/08 03:14:20  liu
+// include math.h
+//
 // Revision 3.27  2007/01/31 16:50:06  rakness
 // complete set of TMB/ALCT/RAT xml parameters
 //
@@ -316,6 +319,7 @@
 #include <iostream>
 #include <cstdio>
 #include <sstream>
+#include<math.h>
 
 #include "TMB_constants.h"
 #include "ALCTController.h"
