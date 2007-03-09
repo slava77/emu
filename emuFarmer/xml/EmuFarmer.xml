@@ -1,0 +1,82 @@
+<?xml version='1.0'?>
+<?xml-stylesheet type="text/xml" href="EmuDAQConfig.xml"?>
+<!-- <?xml-stylesheet type="text/xml" href="EmuDAQConfig.xsl"?> -->
+<!-- <?xml-stylesheet type="application/xml" href="EmuDAQConfig.xsl"?> -->
+<xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
+
+  <xc:Context url="http://emudaq:40399">
+
+    <xc:Module>${XDAQ_ROOT}/daq/extern/xalan/xml-xalan/c/lib/libxalan-c.so</xc:Module>
+
+    <xc:Application id="12" instance="0" class="EmuFarmer" network="local">
+      <properties xsi:type="soapenc:Struct" xmlns="urn:xdaq-application:EmuFarmer">
+
+	<configFilesList    xsi:type="xsd:string">http://emudaq/cscdaq/config/EmuConfigList.xml</configFilesList>
+	<mergingXSLT        xsi:type="xsd:string">http://emudaq/cscdaq/config/EmuConfigMerger.xsl</mergingXSLT>
+	<mergedConfigDir    xsi:type="xsd:string">/home/cscdaq/config</mergedConfigDir>
+	<mergedConfigDirURL xsi:type="xsd:string">http://emudaq/cscdaq/config</mergedConfigDirURL>
+
+	<commandToStartXDAQ xsi:type="xsd:string">xdaq.sh</commandToStartXDAQ>
+
+        <daqUser xsi:type="xsd:string">cscdaq</daqUser>
+        <dqmUser xsi:type="xsd:string">cscdqm</dqmUser>
+        <fedUser xsi:type="xsd:string">cscfed</fedUser>
+        <tfUser xsi:type="xsd:string">csctf</tfUser>
+        <managerUser xsi:type="xsd:string">cscdaq</managerUser>
+        <supervisorUser xsi:type="xsd:string">cscdaq</supervisorUser>
+        <pcUser xsi:type="xsd:string">cscpc</pcUser>
+        <ltcUser xsi:type="xsd:string">cscltc</ltcUser>
+
+        <daqApplicationNames xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[6]">
+          <item xsi:type="xsd:string" soapenc:position="[0]">EmuRUI</item>
+          <item xsi:type="xsd:string" soapenc:position="[1]">RU</item>
+          <item xsi:type="xsd:string" soapenc:position="[2]">BU</item>
+          <item xsi:type="xsd:string" soapenc:position="[3]">EVM</item>
+          <item xsi:type="xsd:string" soapenc:position="[4]">EmuTA</item>
+          <item xsi:type="xsd:string" soapenc:position="[5]">EmuFU</item>
+        </daqApplicationNames>
+        <dqmApplicationNames xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[2]">
+          <item xsi:type="xsd:string" soapenc:position="[0]">EmuMonitor</item>
+          <item xsi:type="xsd:string" soapenc:position="[1]">EmuDisplayClient</item>
+        </dqmApplicationNames>
+        <fedApplicationNames xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[2]">
+          <item xsi:type="xsd:string" soapenc:position="[0]">EmuFEDCrate</item>
+          <item xsi:type="xsd:string" soapenc:position="[1]">EmuFCrateHyperDAQ</item>
+        </fedApplicationNames>
+        <tfApplicationNames xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[2]">
+          <item xsi:type="xsd:string" soapenc:position="[0]">TF_hyperDAQ</item>
+          <item xsi:type="xsd:string" soapenc:position="[1]">TTCciControl</item>
+        </tfApplicationNames>
+        <managerApplicationNames xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[2]">
+          <item xsi:type="xsd:string" soapenc:position="[0]">EmuDAQManager</item>
+        </managerApplicationNames>
+        <supervisorApplicationNames xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[1]">
+          <item xsi:type="xsd:string" soapenc:position="[0]">CSCSupervisor</item>
+        </supervisorApplicationNames>
+        <pcApplicationNames xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[1]">
+          <item xsi:type="xsd:string" soapenc:position="[0]">EmuPeripheralCrate</item>
+        </pcApplicationNames>
+        <ltcApplicationNames xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[1]">
+          <item xsi:type="xsd:string" soapenc:position="[0]">LTCControl</item>
+        </ltcApplicationNames>
+
+      </properties>
+    </xc:Application>
+    <xc:Module>${XDAQ_ROOT}/emu/emuFarmer/lib/linux/x86/libEmuFarmer.so</xc:Module>
+
+  </xc:Context>
+
+  <xc:Context url="http://emudaq.cern.ch:39999">
+    <xc:Application id="10" instance="0" class="JobControl" network="local"/>
+  </xc:Context>
+
+  <xc:Context url="http://emudaq01.cern.ch:39999">
+    <xc:Application id="10" instance="0" class="JobControl" network="local"/>
+  </xc:Context>
+
+  <xc:Context url="http://emudaq02.cern.ch:39999">
+<!--   <xc:Context url="http://emudaq02.cern.ch:39998"> -->
+    <xc:Application id="10" instance="0" class="JobControl" network="local"/>
+  </xc:Context>
+
+</xc:Partition>
