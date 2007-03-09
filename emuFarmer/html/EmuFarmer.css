@@ -1,0 +1,80 @@
+body
+{
+    background-color: #9b916d;
+    font-size: small;
+}
+
+td, th{
+    border-width: 0px 0px 0px 0px;
+    padding: 0px 2px 0px 2px;
+}
+a{text-decoration: underline;}
+a:link{
+    color: #e8dcb1;
+}
+a:visited{
+    color: #e8dcb1;
+}
+a:active, a:hover{
+    color: #ffff00;
+}
+
+table.processes{
+    background-color: transparent;
+    padding: 5px 5px 5px 5px;
+}
+tr.processes{
+    color: #e8dcb1;
+    background-color: #554d30;
+}
+td.processes{
+    color: #e8dcb1;
+    background-color: #554d30;
+}
+th.title, th.processes{
+    background-color: #8a7f58;
+    color: #201b0b;
+    text-align: center;
+}
+th.title{
+    font-size: x-large;
+}
+
+#pageTitle{
+    float: left;
+    font-size: xx-large;
+    font-weight:bold;
+    background-color: transparent;
+    color: #201b0b;
+}
+
+button, input.config {
+    float: right;
+    background-color: transparent;
+    border-color: #e8dcb1;
+    color: #e8dcb1;
+}
+
+input.startButton {
+    font-weight:bold;
+    font-size:x-large;
+    color:#ffffff; 
+    background-color:#889d17;
+    border-color:#889d17;
+}
+
+input.stopButton {
+    font-weight:bold;
+    font-size:x-large;
+    color:#ffffff;
+    background-color:#9d1717;
+    border-color:#9d1717; 
+}
+
+input.restartButton {
+    font-weight:bold;
+    font-size:x-large;
+    color:#9d1717;
+    background-color:#889d17;
+    border-color:#889d17;
+}
