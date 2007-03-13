@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.20 2007/03/02 20:26:18 gujh Exp $
+// $Id: DAQMB.cc,v 3.21 2007/03/13 20:56:08 gujh Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.21  2007/03/13 20:56:08  gujh
+// Add function DAQMB::set_rndmtrg_rate(int)
+//          --- Mar. 13, 2007   GU
+//
 // Revision 3.20  2007/03/02 20:26:18  gujh
 // fix the delay in epromload
 //
@@ -3518,6 +3522,28 @@ void DAQMB::setpulsedelay(int tinj){
   }
    cout << "DAQMB:configure: caldelay " << hex << cal_delay_bits << dec << endl;
    setcaldelay(cal_delay_bits);
+}
+
+void DAQMB::set_rndmtrg_rate(int rate)
+{
+  if (rate<0) rate=0x2db6d;
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=TRG_RATE;
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+
+  cmd[0]=VTX2_USR2;
+  sndbuf[0]=rate&0xff;
+  sndbuf[1]=(rate>>8)&0xff;
+  sndbuf[2]=(rate>>16)&0xff;
+  devdo(MCTRL,6,cmd,18,sndbuf,rcvbuf,0);
+
+  cmd[0]=VTX2_USR1;
+  sndbuf[0]=0;   // NO_OP mode
+  devdo(MCTRL,6,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX2_BYPASS;
+  sndbuf[0]=0;
+  devdo(MCTRL,6,cmd,0,sndbuf,rcvbuf,2);
+  std::cout<< "Random Trigger Rate set to: "<<hex<<rate<<endl;
 }
 
 void DAQMB::toggle_rndmtrg_start()
