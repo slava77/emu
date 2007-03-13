@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.12 2006/11/27 15:06:05 mey Exp $
+// $Id: DAQMB.h,v 3.13 2007/03/13 20:57:13 gujh Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.13  2007/03/13 20:57:13  gujh
+// Add function set_rndmtrg_rate(int)
+//                  ---- Mar. 13, 2007   GU
+//
 // Revision 3.12  2006/11/27 15:06:05  mey
 // Made chamber(crate)
 //
@@ -372,6 +376,7 @@ public:
   // Buckeye shift variables
   // RPW utilities
   // rtrig
+  void set_rndmtrg_rate(int);
   void toggle_rndmtrg_start();
   void burst_rndmtrg();
 
