@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.28 2007/03/08 03:14:20 liu Exp $
+// $Id: TMB.cc,v 3.29 2007/03/14 08:59:03 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.29  2007/03/14 08:59:03  rakness
+// make parser dumb
+//
 // Revision 3.28  2007/03/08 03:14:20  liu
 // include math.h
 //
@@ -7615,6 +7618,17 @@ void TMB::PrintBootRegister() {
 ////////////////////////////////////////////////////////////////////////////////////////
 // Fill register value with values extracted from database
 ////////////////////////////////////////////////////////////////////////////////////////
+void TMB::Set_cfeb_enable_source(int value) {
+  //
+  // decode TMB VME register into the bit which the VME register expects
+  if (value == 42) {
+    SetCfebEnableSource(1);     
+  } else if (value == 68) {
+    SetCfebEnableSource(0);     
+  }
+  return;
+}
+//
 int TMB::FillTMBRegister(unsigned long int address) {
   //
   // Default to write 0's into bits not specified

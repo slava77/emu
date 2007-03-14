@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.13 2007/03/01 18:07:26 rakness Exp $
+// $Id: TMBParser.cc,v 3.14 2007/03/14 08:59:03 rakness Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.14  2007/03/14 08:59:03  rakness
+// make parser dumb
+//
 // Revision 3.13  2007/03/01 18:07:26  rakness
 // changes to xml: add dmb_tx_delay, change match_pretrig(trig)_match_window_size->match_pretrig(trig)_window_size
 //
@@ -130,6 +133,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     //
     // need still to put in 
     //   . hot channel mask
+    //   . ddd_oe mask
     int value;
     //////////////////////////////
     // Expected Firmware tags:
@@ -159,10 +163,10 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     //if (parser_.fillInt("alct_inj_delay" ,value)) { tmb_->SetAlctInjectorDelay(value);          }
     //
     //0X42:
-    if (parser_.fillInt("enableCLCTInputs_reg42" ,value)) { tmb_->SetEnableCLCTInputs(value);     }
-    //if (parser_.fillInt("cfeb_ram_sel"           ,value)) { tmb_->SetSelectCLCTRAM(value);        }
-    //if (parser_.fillInt("cfeb_inj_en_sel"        ,value)) { tmb_->SetEnableCLCTInject(value);     }
-    //if (parser_.fillInt("start_pattern_inj"      ,value)) { tmb_->SetStartPatternInjector(value); }
+    if (parser_.fillInt("enableCLCTInputs_reg42",value)) { tmb_->SetEnableCLCTInputs(value);     }
+    //if (parser_.fillInt("cfeb_ram_sel"          ,value)) { tmb_->SetSelectCLCTRAM(value);        }
+    //if (parser_.fillInt("cfeb_inj_en_sel"       ,value)) { tmb_->SetEnableCLCTInject(value);     }
+    //if (parser_.fillInt("start_pattern_inj"     ,value)) { tmb_->SetStartPatternInjector(value); }
     //
     //0XB6:
     if (parser_.fillInt("rpc_exists"     ,value)) { tmb_->SetRpcExist(value);           }
@@ -182,10 +186,10 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     // trigger and signal delays
     //////////////////////////////
     //0X6A:
-    if (parser_.fillInt("match_pretrig_window_size",value))       { tmb_->SetAlctClctPretrigWidth(value); }
-    if (parser_.fillInt("match_pretrig_alct_delay"       ,value)) { tmb_->SetAlctPretrigDelay(value);     }
-    //if (parser_.fillInt("alct_pat_trig_delay"            ,value)) { tmb_->SetAlctPatternDelay(value);     }
-    //if (parser_.fillInt("adb_ext_trig_delay"             ,value)) { tmb_->SetAdbExternalTrigDelay(value); }
+    if (parser_.fillInt("match_pretrig_window_size",value)) { tmb_->SetAlctClctPretrigWidth(value); }
+    if (parser_.fillInt("match_pretrig_alct_delay" ,value)) { tmb_->SetAlctPretrigDelay(value);     }
+    //if (parser_.fillInt("alct_pat_trig_delay"      ,value)) { tmb_->SetAlctPatternDelay(value);     }
+    //if (parser_.fillInt("adb_ext_trig_delay"       ,value)) { tmb_->SetAdbExternalTrigDelay(value); }
     //
     //0X6C:
     //if (parser_.fillInt("dmb_ext_trig_delay" ,value)) { tmb_->SetDmbExternalTrigDelay(value);  }
@@ -196,16 +200,16 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     //0X74:
     if (parser_.fillInt("tmb_l1a_delay"       ,value)) { tmb_->SetL1aDelay(value);      }
     if (parser_.fillInt("tmb_l1a_window_size" ,value)) { tmb_->SetL1aWindowSize(value); }
-    //if (parser_.fillInt("tmb_l1a_internal",value)) { tmb_->SetInternalL1a(value);   }
+    //if (parser_.fillInt("tmb_l1a_internal"    ,value)) { tmb_->SetInternalL1a(value);   }
     //
     //0X76:
     if (parser_.fillInt("tmb_l1a_offset",value)) { tmb_->SetL1aOffset(value); }
     if (parser_.fillInt("tmb_bxn_offset",value)) { tmb_->SetBxnOffset(value); }
     //
     //0XB2:
-    if (parser_.fillInt("match_trig_alct_delay"       ,value)) { tmb_->SetAlctVpfDelay(value);        }
-    if (parser_.fillInt("match_trig_window_size",value))       { tmb_->SetAlctMatchWindowSize(value); }
-    if (parser_.fillInt("mpc_tx_delay"                ,value)) { tmb_->SetMpcTXdelay(value);          }
+    if (parser_.fillInt("match_trig_alct_delay" ,value)) { tmb_->SetAlctVpfDelay(value);        }
+    if (parser_.fillInt("match_trig_window_size",value)) { tmb_->SetAlctMatchWindowSize(value); }
+    if (parser_.fillInt("mpc_tx_delay"          ,value)) { tmb_->SetMpcTXdelay(value);          }
     //
     //0XBA:
     if (parser_.fillInt("rpc0_raw_delay",value)) { tmb_->SetRpc0RawDelay(value); }
@@ -230,13 +234,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     //if (parser_.fillInt("ext_trig_inject"        ,value)) { tmb_->SetExtTrigInject(value);          }
     if (parser_.fillInt("all_cfeb_active"        ,value)) { tmb_->SetEnableAllCfebsActive(value);   }
     if (parser_.fillInt("enableCLCTInputs_reg68" ,value)) { tmb_->SetCfebEnable(value);             }
-    if (parser_.fillInt("cfeb_enable_source"     ,value)) { 
-      if (value == 42) {
-	tmb_->SetCfebEnableSource(1);     
-      } else if (value == 68) {
-	tmb_->SetCfebEnableSource(0);     
-      }
-    }
+    if (parser_.fillInt("cfeb_enable_source"     ,value)) { tmb_->Set_cfeb_enable_source(value);    }
     //
     //0X70:
     if (parser_.fillInt("triad_persistence"            ,value)) { tmb_->SetTriadPersistence(value); }
@@ -281,7 +279,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     // special configuration registers
     ///////////////////////////////////
     //0X1C
-    // greg, put int ddd_oe...
+    // put int ddd_oe...
     //0X2C
     //if (parser_.fillInt("alct_ext_trig_l1aen"   ,value)) { tmb_->SetEnableL1aRequestOnAlctExtTrig(value); }
     //if (parser_.fillInt("clct_ext_trig_l1aen"   ,value)) { tmb_->SetEnableL1aRequestOnClctExtTrig(value); }
@@ -362,7 +360,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
 	tmb_->SetRat(rat_); //store rat_  in tmb_
 	//
 	//RAT
-       	//if(alctParser_.fillInt("rpc0_rat_delay",value)) { rat_->SetRpcRatDelay(0,value); }   GREG take this out of configure
+       	//if(alctParser_.fillInt("rpc0_rat_delay",value)) { rat_->SetRpcRatDelay(0,value); }
 	//
 	//ALCT
 	// need to put in 
@@ -379,13 +377,11 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
 	//
 	std::string alct_firmware_backwardForward;
         if (alctParser_.fillString("alct_firmware_backward_forward", alct_firmware_backwardForward) ){
-	  if (alct_firmware_backwardForward == "b") alct_->SetExpectedFastControlBackwardForwardType(BACKWARD_FIRMWARE_TYPE);
-	  if (alct_firmware_backwardForward == "f") alct_->SetExpectedFastControlBackwardForwardType(FORWARD_FIRMWARE_TYPE);
+	  alct_->Set_fastcontrol_backward_forward_type(alct_firmware_backwardForward);
 	}
 	std::string alct_firmware_negativePositive;
         if (alctParser_.fillString("alct_firmware_negative_positive", alct_firmware_negativePositive) ){
-	  if (alct_firmware_negativePositive == "n") alct_->SetExpectedFastControlNegativePositiveType(NEGATIVE_FIRMWARE_TYPE);
-	  if (alct_firmware_negativePositive == "p") alct_->SetExpectedFastControlNegativePositiveType(POSITIVE_FIRMWARE_TYPE);
+	  alct_->Set_fastcontrol_negative_positive_type(alct_firmware_negativePositive);
 	}
 	//
 	////////////////////////////////////////////////////////
@@ -439,8 +435,6 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
 	      anodeParser_.fillInt("threshold", threshold);
 	      //
 	      alct_->SetAsicDelay(number-1,delay);
-	      //alct_->delays_[number-1] = delay;
-	      //alct_->thresholds_[number-1] = threshold;
 	      alct_->SetAfebThreshold(number-1,threshold);
 	      //
 	    }
