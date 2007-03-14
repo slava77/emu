@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.13 2007/03/13 20:57:13 gujh Exp $
+// $Id: DAQMB.h,v 3.14 2007/03/14 20:41:43 gujh Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.14  2007/03/14 20:41:43  gujh
+// Divide the cable_delay into four sections
+//       --- Mar. 14, 2007  GU
+//
 // Revision 3.13  2007/03/13 20:57:13  gujh
 // Add function set_rndmtrg_rate(int)
 //                  ---- Mar. 13, 2007   GU
@@ -336,7 +340,12 @@ public:
   void SetPreBlockEnd(int delay){pre_block_end_ = delay;}
   inline int GetPreBlockEnd(){return pre_block_end_ ;}
   //
-  void SetCableDelay(int delay){cable_delay_ = delay;}
+  //  void SetCableDelay(int delay){cable_delay_ = delay;}
+  void SetCfebCableDelay(int delay){cable_delay_=(cable_delay_&0xfe)+(delay&0x01);}
+  void SetTmbLctCableDelay(int delay){cable_delay_=(cable_delay_&0xf1)+((delay<<1)&0x0e);}
+  void SetCfebDavCableDelay(int delay){cable_delay_=(cable_delay_&0xcf)+((delay<<4)&0x30);}
+  void SetAlctDavCableDelay(int delay){cable_delay_=(cable_delay_&0x3f)+((delay<<6)&0xc0);}
+
   inline int GetCableDelay(){return cable_delay_;}
   //
   void SetCrateId(int id){crate_id_ = id;}
