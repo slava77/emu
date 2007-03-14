@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.8 2006/10/10 11:10:09 mey Exp $
+// $Id: CCB.cc,v 3.9 2007/03/14 11:59:45 rakness Exp $
 // $Log: CCB.cc,v $
+// Revision 3.9  2007/03/14 11:59:45  rakness
+// extract TTCrxID
+//
 // Revision 3.8  2006/10/10 11:10:09  mey
 // Update
 //
@@ -211,6 +214,8 @@ CCB::CCB(Crate * theCrate ,int slot)
   TTCrxFineDelay_(0)
 {
   MyOutput_ = &std::cout ;
+
+  ReadTTCrxID_ = -2;
     
   (*MyOutput_) << "CCB: configured for crate=" << this->crate()
 	    << " slot=" << this->slot() << std::endl;
@@ -504,7 +509,7 @@ void CCB::WriteTTCrxReg(const unsigned short registerAdd,int value){
   std::bitset<7> DataRegAddress(TTCrxID_*2+1);
   std::bitset<8> regAddress(registerAdd);
   //
-  //(*MyOutput_) << " " << pointerRegAddress << " " << DataRegAddress << " " << regAddress << std::endl ;
+  //(*MyOutput_) << "TTCrxAddresses = " << pointerRegAddress << " " << DataRegAddress << " " << regAddress << std::endl ;
   //
   // start I2C
   //
@@ -628,7 +633,9 @@ void CCB::ReadTTCrxID(){
   // Read TTCrx ID number
   do_vme(VME_READ,CSRB18,sndbuf,rcvbuf,NOW);
   //
-  printf("ReadTTCRxID.%02x%02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  //  printf("ReadTTCRxID.%02x%02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
+  //
+  ReadTTCrxID_ = ( (rcvbuf[0]&0xff) << 8 ) | (rcvbuf[1]&0xff);
   //
   setCCBMode(CCB::DLOG);
   //
@@ -831,7 +838,7 @@ void CCB::hardReset() {
     (*MyOutput_) << "CCB: NOTE -- switching back to DLOG" << std::endl;
   };
 
-  std::cout << ReadRegister(0x0) << std::endl;
+  //  std::cout << ReadRegister(0x0) << std::endl;
 
   SoftReset_crate();
   //fg note: this 1second is not necessary
@@ -1040,20 +1047,23 @@ void CCB::configure() {
   // report firmware version
   firmwareVersion();
   
-  std::cout << ReadRegister(0x0) << std::endl;
+  //  std::cout << ReadRegister(0x0) << std::endl;
   hardReset();
-  std::cout << ReadRegister(0x0) << std::endl;
+  //  std::cout << ReadRegister(0x0) << std::endl;
   
   // this line from the old rice_clk_setup(), not sure if it's needed
   SetL1aDelay(l1aDelay_);
   
-  std::cout << ReadRegister(0x0) << std::endl;
+  //  std::cout << ReadRegister(0x0) << std::endl;
   disableL1();
-  std::cout << ReadRegister(0x0) << std::endl;
+  //  std::cout << ReadRegister(0x0) << std::endl;
+  //
+  //ReadTTCrxID();
   //
   // Download coarse delay to TTCrx
   //
   //PrintTTCrxRegs();
+  //std::cout << "write TTCrxCoarseDelay_ = " << TTCrxCoarseDelay_ << " to register 2" << std::endl;
   //
   int delay = ((TTCrxCoarseDelay_&0xf)<<4) + (TTCrxCoarseDelay_&0xf);
   WriteTTCrxReg(2,delay);
@@ -1064,7 +1074,6 @@ void CCB::configure() {
   WriteTTCrxReg(0,delay);
   WriteTTCrxReg(1,delay);
   //
-  std::cout << std::endl;
   //
   //PrintTTCrxRegs();
   setCCBMode(CCB::DLOG);
@@ -1289,11 +1298,11 @@ void CCB::firmwareVersion(){
   /// report the firmware version
   do_vme(VME_READ,CSRB17,sndbuf,rcvbuf,NOW);  
   int versionWord = (rcvbuf[0]<<8) + (rcvbuf[1]&0xFF);
-  std::cout << std::hex << "Word=" << versionWord << std::endl;
+  //  std::cout << std::hex << "Word=" << versionWord << std::endl;
   int day   =  versionWord & 0x1F;
   int month = (versionWord >> 5   ) & 0xF;
   int year  = (versionWord >>(5+4)) + 2000;
-  (*MyOutput_) << "CCB: firmware date: " 
+  (*MyOutput_) << "CCB: firmware day-month-year: " 
 	       << std::dec << day << "-" << month << "-" << year << std::endl;
 }
 //
