@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.cc,v 3.5 2006/11/28 14:17:16 mey Exp $
+// $Id: DAQMBParser.cc,v 3.6 2007/03/14 20:43:03 gujh Exp $
 // $Log: DAQMBParser.cc,v $
+// Revision 3.6  2007/03/14 20:43:03  gujh
+// Divide the Cable_delay into four parts
+//      ---Mar. 14, 2007    GU
+//
 // Revision 3.5  2006/11/28 14:17:16  mey
 // UPdate
 //
@@ -129,9 +133,18 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * t
       daqmb_->SetPreBlockEnd(delay);
       for(int cfeb=0; cfeb<5; cfeb++) daqmb_->SetPreBlockEndCfeb(cfeb,delay);
     }
-    if(parser_.fillInt("cable_delay", delay)){
-      daqmb_->SetCableDelay(delay);
-    }
+    //    if(parser_.fillInt("cable_delay", delay)){
+    //      daqmb_->SetCableDelay(delay);
+    //    }
+    if (parser_.fillInt("cfeb_cable_delay", delay)) {
+      daqmb_->SetCfebCableDelay(delay); }
+    if (parser_.fillInt("tmb_lct_cable_delay", delay)) {
+      daqmb_->SetTmbLctCableDelay(delay); }
+    if (parser_.fillInt("cfeb_dav_cable_delay", delay)) {
+      daqmb_->SetCfebDavCableDelay(delay); }
+    if (parser_.fillInt("alct_dav_cable_delay", delay)) {
+      daqmb_->SetAlctDavCableDelay(delay); }
+
     int id;
     if(parser_.fillInt("crate_id",id)){
       daqmb_->SetCrateId(id);
