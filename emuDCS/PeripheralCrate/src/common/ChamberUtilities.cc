@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.10 2006/10/19 13:01:07 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.11 2007/03/14 14:24:50 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.11  2007/03/14 14:24:50  rakness
+// write sync values to summary file
+//
 // Revision 3.10  2006/10/19 13:01:07  rakness
 // RPC-RAT delay scan in hyperDAQ
 //
@@ -179,6 +182,7 @@ using namespace std;
 //
 ChamberUtilities::ChamberUtilities(){
   //
+  ALCTvpf_      = -1;
   ALCTvpf       = -1;
   TMBL1aTiming_ = -1;
   ALCTrxPhase_  = -1;
