@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.13 2007/02/28 18:35:10 liu Exp $
+// $Id: Crate.cc,v 3.14 2007/03/14 08:36:35 rakness Exp $
 // $Log: Crate.cc,v $
+// Revision 3.14  2007/03/14 08:36:35  rakness
+// remove RAT from configure
+//
 // Revision 3.13  2007/02/28 18:35:10  liu
 // resolve class dependence
 //
@@ -294,12 +297,12 @@ void Crate::configure() {
 	//
       }
       //
-      RAT * rat = myTmbs[i]->getRAT();
-      if(rat) {
-	//
-	rat->configure();
-	//
-      }
+      //      RAT * rat = myTmbs[i]->getRAT();
+      //      if(rat) {
+      //	//
+      //	rat->configure();
+      //	//
+      //      }
       //
     }
     //
