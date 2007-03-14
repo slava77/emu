@@ -15,12 +15,12 @@
 using namespace cgicc;
 using namespace std;
 
-const string CFEB_FIRMWARE_FILENAME = "cfeb/mtcc_phase2_20060925/cfeb_v7_r1.svf";
-const int    EXPECTED_CFEB_USERID   = 0xcfeda071;
+const string       CFEB_FIRMWARE_FILENAME = "cfeb/mtcc_phase2_20060925/cfeb_v7_r1.svf";
+const unsigned int EXPECTED_CFEB_USERID   = 0xcfeda071;
 //
-const string DMB_FIRMWARE_FILENAME     = "dmb/mtcc_phase2_cntl_20060928/dmb6cntl_v20_r4.svf";
-const int    EXPECTED_DMB_USERID       = 0x48547204;
-const string DMBVME_FIRMWARE_FILENAME  = "dmb/mtcc_phase2_vme_20061004/dmb6vme_v10_r2.svf";
+const string       DMB_FIRMWARE_FILENAME    = "dmb/mtcc_phase2_cntl_20060928/dmb6cntl_v20_r4.svf";
+const unsigned int EXPECTED_DMB_USERID      = 0x48547204;
+const string       DMBVME_FIRMWARE_FILENAME = "dmb/mtcc_phase2_vme_20061004/dmb6vme_v10_r2.svf";
 //
 const string ALCT_FIRMWARE_FILENAME_ME11 = "alct/feature_id_20061016/alct288bp_rl.svf";
 const string ALCT_FIRMWARE_FILENAME_ME12 = "alct/feature_id_20061016/alct384rl.svf";
@@ -265,6 +265,7 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     CalibrationState_ = "None";
     MPCBoardID_ = "-2";
     CCBBoardID_ = "-2";
+    TTCrxId_    = "-2";
     ControllerBoardID_ = "-2";
     for (int i=0; i<9; i++) { DMBBoardID_[i] = "-2" ; TMBBoardID_[i] = "-2" ; RATBoardID_[i] = "-2" ;}
     for (int i=0; i<9; i++) 
@@ -3525,10 +3526,10 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::pre();
-    *out << "ALCT rx Phase = " << MyTest[tmb].GetALCTrxPhaseTest() <<  " (" << MyTest[tmb].GetALCTrxPhase() 
+    *out << "alct_rx_clock_phase = " << MyTest[tmb].GetALCTrxPhaseTest() <<  " (" << MyTest[tmb].GetALCTrxPhase() 
 	 << ") " << std::endl;
     //
-    *out << "ALCT tx Phase = " << MyTest[tmb].GetALCTtxPhaseTest() <<  " (" << MyTest[tmb].GetALCTtxPhase()
+    *out << "alct_tx_clock_phase = " << MyTest[tmb].GetALCTtxPhaseTest() <<  " (" << MyTest[tmb].GetALCTtxPhase()
 	 << ") " << std::endl;
     *out << cgicc::pre();
     //
@@ -3544,7 +3545,7 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::pre();
-    for(int i=0;i<5;i++) *out << "CFEB " << i << " rx Phase = " << 
+    for(int i=0;i<5;i++) *out << "cfeb" << i << "delay = " << 
 			   MyTest[tmb].GetCFEBrxPhaseTest(i) << " ("  << 
 			   MyTest[tmb].GetCFEBrxPhase(i)     << ") " <<
 			   std::endl;
@@ -3611,7 +3612,7 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::pre();
-    *out << "MPC delay = " << MyTest[tmb].GetMPCdelayTest() 
+    *out << "mpc_rx_delay = " << MyTest[tmb].GetMPCdelayTest() 
 	 << " ("  << MyTest[tmb].GetMPCdelay()     << ") " 
 	 << std::endl;
     *out << cgicc::pre();
@@ -3628,7 +3629,8 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::pre();
-    *out << "RAT TMB delay = " << MyTest[tmb].GetRatTmbDelayTest() 
+    *out << "rat_tmb_delay = " << MyTest[tmb].GetRatTmbDelayTest() 
+	 << " ("  << MyTest[tmb].GetRatTmbDelay()     << ") " 
 	 << std::endl;
     *out << cgicc::pre();
     //
@@ -3644,7 +3646,8 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     *out << cgicc::form() << std::endl ;
     //
     *out << cgicc::pre();
-    *out << "RPC RAT delay = " << MyTest[tmb].GetRpcRatDelayTest() 
+    *out << "rpc0_rat_delay = " << MyTest[tmb].GetRpcRatDelayTest() 
+	 << " ("  << MyTest[tmb].GetRpcRatDelay()     << ") " 
 	 << std::endl;
     *out << cgicc::pre();
     //
@@ -3659,7 +3662,11 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    *out << MyTest[tmb].GetTMBL1aTiming() ;
+    *out << cgicc::pre();
+    *out << "tmb_l1a_delay = " << MyTest[tmb].GetTMBL1aTiming() 
+	 << " ("  << MyTest[tmb].GetTMBL1aTiming_configvalue() << ") " 
+	 << std::endl;
+    *out << cgicc::pre();
     //
     std::string ALCTL1aTiming =
       toolbox::toString("/%s/ALCTL1aTiming",getApplicationDescriptor()->getURN().c_str());
@@ -3672,7 +3679,11 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    *out << MyTest[tmb].GetALCTL1aDelay() ;
+    *out << cgicc::pre();
+    *out << "alct_l1a_delay = " << MyTest[tmb].GetALCTL1aDelay() 
+	 << " ("  << MyTest[tmb].GetALCTL1aDelay_configvalue() << ") " 
+	 << std::endl;
+    *out << cgicc::pre();
     //
     std::string ALCTvpf =
       toolbox::toString("/%s/ALCTvpf",getApplicationDescriptor()->getURN().c_str());
@@ -3685,7 +3696,11 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    *out << MyTest[tmb].GetALCTvpf() ;
+    *out << cgicc::pre();
+    *out << "match_trig_alct_delay = " << MyTest[tmb].GetALCTvpf() 
+	 << " ("  << MyTest[tmb].GetALCTvpf_configvalue() << ") " 
+	 << std::endl;
+    *out << cgicc::pre();
     //
     *out << cgicc::br();
     //
@@ -3831,7 +3846,6 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     //MyTest.SetCCB(thisCCB);
     //
     MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
-    //MyTest[tmb].RedirectOutput(&std::cout);
     MyTest[tmb].ALCTTiming();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
@@ -3975,7 +3989,9 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
       //MyTest.SetDMB(thisDMB);
       //MyTest.SetCCB(thisCCB);
       //
+      MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
       MyTest[tmb].FindTMB_L1A_delay(150,180);
+      MyTest[tmb].RedirectOutput(&std::cout);
       //
       this->ChamberTests(in,out);
       //
@@ -4021,7 +4037,9 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetCCB(thisCCB);
     //
+    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
     MyTest[tmb].FindALCT_L1A_delay(150,170);
+    MyTest[tmb].RedirectOutput(&std::cout);
     //
     this->ChamberTests(in,out);
     //
@@ -4065,7 +4083,9 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetCCB(thisCCB);
     //
+    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
     MyTest[tmb].FindALCTvpf();
+    MyTest[tmb].RedirectOutput(&std::cout);
     //
     this->ChamberTests(in,out);
     //
@@ -4353,10 +4373,10 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
 	//char *name = DMBFirmware_.toString().c_str() ;
 	thisDMB->epromload(MPROM,DMBFirmware_.toString().c_str(),1,outp);  // load mprom
 	//
-	::sleep(1);
-	thisCCB->hardReset();
       }
     }
+    ::sleep(1);
+    thisCCB->hardReset();
     //
     this->DMBUtils(in,out);
     //
@@ -4406,9 +4426,9 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
 	thisDMB->epromload(VPROM,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
       }
       //
-      ::sleep(1);
-      thisCCB->hardReset();
     }
+    ::sleep(1);
+    thisCCB->hardReset();
     //
     this->DMBUtils(in,out);
     //
@@ -4431,8 +4451,6 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     //
     DAQMB * thisDMB = dmbVector[dmb];
     //
-    //    ::sleep(2);
-    //
     int mindmb = dmb;
     int maxdmb = dmb+1;
     if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each dmb
@@ -4449,16 +4467,17 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
 	cout << "DMB Vme Load Firmware Emergency in slot " << thisDMB->slot() << endl;
 	LOG4CPLUS_INFO(getApplicationLogger(),"Started DMB Vme Load Firmware Emergency");
 	//
+	::sleep(1);
+	//
 	unsigned short int dword[2];
 	dword[0]=0;
 	char * outp=(char *)dword;  
 	thisDMB->epromload(RESET,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
 	//
-	::sleep(2);
-	//
-	thisCCB->hardReset();
       }
     }
+    ::sleep(1);
+    thisCCB->hardReset();
     //
     //
     this->DMBUtils(in,out);
@@ -4509,11 +4528,13 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
       cout << "CFEBLoadFirmware - DMB " << dmb << endl;
       //
       thisCCB->hardReset();
-      ::sleep(1);
       //
       if (thisDMB) {
 	//
 	vector<CFEB> thisCFEBs = thisDMB->cfebs();
+	//
+	::sleep(1);
+	//
 	if (dmbNumber == -1 ) {
 	  for (unsigned int i=0; i<thisCFEBs.size(); i++) {
 	    ostringstream dum;
@@ -4540,7 +4561,6 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
       }
       ::sleep(1);
       thisCCB->hardReset();
-      ::sleep(1);
     }
     //
     this->DMBUtils(in,out);
@@ -5077,7 +5097,12 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     *out << cgicc::legend("CCB Info").set("style","color:blue") << cgicc::p() << std::endl ;
     //
     thisCCB->RedirectOutput(out);
+    //
     thisCCB->firmwareVersion();
+    *out << cgicc::br();
+    thisCCB->ReadTTCrxID();
+    *out << "TTCrx ID (dec) = " << std::dec << thisCCB->GetReadTTCrxID();
+    //
     thisCCB->RedirectOutput(&std::cout);
     //
     *out << cgicc::fieldset();
@@ -7402,10 +7427,13 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
       mintmb = 0;
       maxtmb = tmbVector.size()-1;
     }
+    //
+    thisCCB->hardReset();
+    //
     std::cout << "Loading ALCT firmware from " << mintmb << " to " << maxtmb << std::endl;
     for (tmb=mintmb; tmb<maxtmb; tmb++) {
       thisTMB = tmbVector[tmb];
-    //
+      //
       alct = thisTMB->alctController();
       if (!alct) {
 	std::cout << "No ALCT present" << std::endl;
@@ -7436,8 +7464,6 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
 		<< " with " << ALCTFirmware_.toString() 
 		<< std::endl;
       //
-      thisCCB->hardReset();
-      //
       int debugMode(0);
       int jch(3);
       //
@@ -7463,10 +7489,10 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
       else{
 	cout << "=== Fatal Error. Exiting with " <<  status << endl;
       }
-      //
-      thisCCB->hardReset();
-      //
     }
+    //
+    thisCCB->hardReset();
+    //
     this->TMBUtils(in,out);
     //
   }
@@ -8191,7 +8217,7 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
       for (unsigned int cfebctr=0; cfebctr<thisCFEBs.size(); cfebctr++) {
 	LogFile << "CFEBid " << std::setw(5) << dmbctr 
 		<< std::setw(5) << cfebctr 
-		<< std::setw(5) << CFEBid_[dmbctr][cfebctr] 
+		<< std::setw(10) << CFEBid_[dmbctr][cfebctr] 
 		<< std::endl;
       }
     }
@@ -8215,35 +8241,49 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
 
     for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
       //
+      LogFile << "slot " << std::setw(5) << i 
+	      << std::setw(5) << tmbVector[i]->slot()
+	      << std::endl;
       LogFile << "cfeb0delay " << std::setw(5) << i 
-	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(0)
+	      << std::setw(10) << MyTest[i].GetCFEBrxPhaseTest(0)
 	      << std::endl;
       LogFile << "cfeb1delay " << std::setw(5) << i 
-	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(1)
+	      << std::setw(10) << MyTest[i].GetCFEBrxPhaseTest(1)
 	      << std::endl;
       LogFile << "cfeb2delay " << std::setw(5) << i 
-	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(2)
+	      << std::setw(10) << MyTest[i].GetCFEBrxPhaseTest(2)
 	      << std::endl;
       LogFile << "cfeb3delay " << std::setw(5) << i 
-	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(3)
+	      << std::setw(10) << MyTest[i].GetCFEBrxPhaseTest(3)
 	      << std::endl;
       LogFile << "cfeb4delay " << std::setw(5) << i 
-	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(4)
+	      << std::setw(10) << MyTest[i].GetCFEBrxPhaseTest(4)
 	      << std::endl;
       LogFile << "alct_tx_clock_delay " << std::setw(5) << i 
-	      << std::setw(5) << MyTest[i].GetALCTtxPhaseTest()
+	      << std::setw(10) << MyTest[i].GetALCTtxPhaseTest()
 	      << std::endl;
       LogFile << "alct_rx_clock_delay " << std::setw(5) << i 
-	      << std::setw(5) << MyTest[i].GetALCTrxPhaseTest()
+	      << std::setw(10) << MyTest[i].GetALCTrxPhaseTest()
 	      << std::endl;
       LogFile << "mpc_delay " << std::setw(5) << i 
-	      << std::setw(5) << MyTest[i].GetMPCdelayTest()
+	      << std::setw(10) << MyTest[i].GetMPCdelayTest()
 	      << std::endl;
       LogFile << "rat_tmb_delay " << std::setw(5) << i 
-	      << std::setw(5) << MyTest[i].GetRatTmbDelayTest()
+	      << std::setw(10) << MyTest[i].GetRatTmbDelayTest()
+	      << std::endl;
+      LogFile << "rpc0_rat_delay " << std::setw(5) << i 
+	      << std::setw(10) << MyTest[i].GetRpcRatDelayTest(0)
+	      << std::endl;
+      LogFile << "tmb_l1a_delay " << std::setw(5) << i 
+	      << std::setw(10) << MyTest[i].GetTMBL1aTiming()
+	      << std::endl;
+      LogFile << "alct_l1a_delay " << std::setw(5) << i 
+	      << std::setw(10) << MyTest[i].GetALCTL1aDelay()
+	      << std::endl;
+      LogFile << "match_trig_alct_delay " << std::setw(5) << i 
+	      << std::setw(10) << MyTest[i].GetALCTvpf()
 	      << std::endl;
       LogFile << std::endl;
-
     }
     //
     LogFile.close();
@@ -8918,6 +8958,47 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
 	  //
 	  MyTest[vectorid].SetRatTmbDelayTest(result);
 	}
+	//
+	if ( line.find("rpc0_rat_delay") != string::npos ) {	  
+	  //
+	  int vectorid, result;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid >> result;
+	  //
+	  MyTest[vectorid].SetRpcRatDelayTest(0,result);
+	}
+	//
+	if ( line.find("tmb_l1a_delay") != string::npos ) {	  
+	  //
+	  int vectorid, result;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid >> result;
+	  //
+	  MyTest[vectorid].SetTMBL1aTiming(result);
+	}
+	//
+	if ( line.find("alct_l1a_delay") != string::npos ) {	  
+	  //
+	  int vectorid, result;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid >> result;
+	  //
+	  MyTest[vectorid].SetALCTL1aDelay(result);
+	}
+	//
+	if ( line.find("match_trig_alct_delay") != string::npos ) {	  
+	  //
+	  int vectorid, result;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid >> result;
+	  //
+	  MyTest[vectorid].SetALCTvpf(result);
+	}
+	//
       }
     }
     //

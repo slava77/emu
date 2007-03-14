@@ -88,6 +88,11 @@ public:
   inline int  GetALCTtxPhase() { return thisTMB->GetALCTtxPhase(); }
   inline int  GetCFEBrxPhase(int CFEB) {return thisTMB->GetCFEBrxPhase(CFEB); }
   inline int  GetMPCdelay()    { return thisTMB->GetMPCdelay(); }
+  inline int  GetRatTmbDelay()  { return thisTMB->GetRatTmbDelay() ; }
+  inline int  GetRpcRatDelay()  { return thisTMB->GetRpc0RatDelay(); }
+  inline int  GetTMBL1aTiming_configvalue(){ return thisTMB->GetL1aDelay(); }
+  inline int  GetALCTvpf_configvalue()     { return thisTMB->GetAlctVpfDelay(); }
+  inline int  GetALCTL1aDelay_configvalue(){ return thisTMB->alctController()->GetWriteL1aDelay(); }
   //
   // The following are test results, not configuration data:
   inline int  GetALCTrxPhaseTest()         { return ALCTrxPhase_ ; }
@@ -102,7 +107,8 @@ public:
   inline void SetALCTtxPhaseTest(int value) { ALCTtxPhase_ = value ; }
   inline void SetCFEBrxPhaseTest(int CFEB, int value) { CFEBrxPhase_[CFEB] = value ; }
   inline void SetMPCdelayTest(int value)    { MPCdelay_ = value ; }
-  inline void  SetRatTmbDelayTest(int value) { RatTmbDelay_ = value ; }
+  inline void SetRatTmbDelayTest(int value) { RatTmbDelay_ = value ; }
+  inline void SetRpcRatDelayTest(int rpc, int value)  { RpcRatDelay_[rpc] = value ; }
   //
   inline int  GetCFEBStripScan(int CFEB, int Strip){ return CFEBStripScan_[CFEB][Strip]; }
   inline int  GetALCTWireScan(int Wire){ return ALCTWireScan_[Wire]; }
@@ -110,6 +116,13 @@ public:
   inline int  GetALCTvpf(){ return ALCTvpf_; }
   inline int  GetBestALCTL1aDelay(){ return BestALCTL1aDelay_; }
   inline int  GetALCTL1aDelay(){ return ALCTL1aDelay_; }
+  //
+  inline void SetCFEBStripScan(int CFEB, int Strip, int value){ CFEBStripScan_[CFEB][Strip] = value; }
+  inline void SetALCTWireScan(int Wire, int value){ ALCTWireScan_[Wire] = value; }
+  inline void SetTMBL1aTiming(int value){ TMBL1aTiming_ = value; }
+  inline void SetALCTvpf(int value){ ALCTvpf_ = value; }
+  inline void SetBestALCTL1aDelay(int value){ BestALCTL1aDelay_ = value; }
+  inline void SetALCTL1aDelay(int value){ ALCTL1aDelay_ = value; }
   //
 private:
   //
