@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.6 2006/10/30 15:53:19 mey Exp $
+// $Id: CCB.h,v 3.7 2007/03/14 11:59:44 rakness Exp $
 // $Log: CCB.h,v $
+// Revision 3.7  2007/03/14 11:59:44  rakness
+// extract TTCrxID
+//
 // Revision 3.6  2006/10/30 15:53:19  mey
 // Update
 //
@@ -165,6 +168,7 @@ public:
   //
   inline void SetTTCrxID(int ID)     {TTCrxID_  = ID;}
   inline int  GetTTCrxID(){return TTCrxID_;}
+  inline int  GetReadTTCrxID() { return ReadTTCrxID_;}
   //
   inline void SetTTCrxCoarseDelay(int delay) {TTCrxCoarseDelay_  = delay;}
   inline int  GetTTCrxCoarseDelay(){return TTCrxCoarseDelay_;}
@@ -306,6 +310,7 @@ private:
   int l1aDelay_;
   //
   int TTCrxID_;
+  int ReadTTCrxID_;
   int TTCrxCoarseDelay_;
   int TTCrxFineDelay_;
   //
