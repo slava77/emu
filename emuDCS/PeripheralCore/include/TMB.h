@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.18 2007/01/31 16:49:52 rakness Exp $
+// $Id: TMB.h,v 3.19 2007/03/14 08:59:03 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.19  2007/03/14 08:59:03  rakness
+// make parser dumb
+//
 // Revision 3.18  2007/01/31 16:49:52  rakness
 // complete set of TMB/ALCT/RAT xml parameters
 //
@@ -723,6 +726,11 @@ public:
   //cfebs_enabled_ = [0-31] -> normally copied from 0x42.  
   //See TMB documentation before setting these bits...
   //
+  void Set_cfeb_enable_source(int value); 
+  // value = 42, 68 = VME register which controls the CFEB mask
+  // this is the user interface to TMB::SetCfebEnableSource(int), below
+  //See TMB documentation before setting this bit.
+  //
   inline void SetCfebEnableSource(int cfeb_enable_source) { cfeb_enable_source_ = cfeb_enable_source; }
   inline int  GetCfebEnableSource() { return cfeb_enable_source_; }
   //cfeb_enable_source = [0,1] = [0x68,0x42] is source of cfeb_enable
@@ -1027,7 +1035,7 @@ public:
   //Return the software value to be written into the register at "address" 
   //The bits are set according to the database values, set by the "Set...(int data)" 
   //methods, above:
-  int FillTMBRegister(unsigned long int address); 
+  int  FillTMBRegister(unsigned long int address); 
   //
   inline std::vector<unsigned long int> GetInjectedLct0() { return InjectedLct0 ; }
   inline std::vector<unsigned long int> GetInjectedLct1() { return InjectedLct1 ; }

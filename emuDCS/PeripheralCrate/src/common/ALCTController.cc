@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.29 2007/01/31 16:49:57 rakness Exp $
+// $Id: ALCTController.cc,v 3.30 2007/03/14 08:59:03 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.30  2007/03/14 08:59:03  rakness
+// make parser dumb
+//
 // Revision 3.29  2007/01/31 16:49:57  rakness
 // complete set of TMB/ALCT/RAT xml parameters
 //
@@ -1587,8 +1590,27 @@ int ALCTController::GetFastControlRegularMirrorType() {
   return fastcontrol_regular_mirror_; 
 }
 //
+void ALCTController::Set_fastcontrol_backward_forward_type(std::string alct_firmware_backwardForward) {
+  //
+  if (alct_firmware_backwardForward == "b") 
+    SetExpectedFastControlBackwardForwardType(BACKWARD_FIRMWARE_TYPE);
+  if (alct_firmware_backwardForward == "f") 
+    SetExpectedFastControlBackwardForwardType(FORWARD_FIRMWARE_TYPE);
+  //
+  return;
+}
+//
 int ALCTController::GetFastControlBackwardForwardType() { 
   return fastcontrol_backward_forward_; 
+}
+//
+void ALCTController::Set_fastcontrol_negative_positive_type(std::string alct_firmware_negativePositive) {
+  if (alct_firmware_negativePositive == "n") 
+    SetExpectedFastControlNegativePositiveType(NEGATIVE_FIRMWARE_TYPE);
+  if (alct_firmware_negativePositive == "p") 
+    SetExpectedFastControlNegativePositiveType(POSITIVE_FIRMWARE_TYPE);
+  //
+  return;
 }
 //
 int ALCTController::GetFastControlNegativePositiveType() { 

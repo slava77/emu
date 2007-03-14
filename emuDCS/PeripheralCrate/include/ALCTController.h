@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.17 2007/01/31 16:49:41 rakness Exp $
+// $Id: ALCTController.h,v 3.18 2007/03/14 08:59:03 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.18  2007/03/14 08:59:03  rakness
+// make parser dumb
+//
 // Revision 3.17  2007/01/31 16:49:41  rakness
 // complete set of TMB/ALCT/RAT xml parameters
 //
@@ -214,10 +217,14 @@ public:
   int  GetFastControlBackwardForwardType();            // get Read values for ALCT firmware type (ME11)
   inline  int GetExpectedFastControlBackwardForwardType() { return expected_fastcontrol_backward_forward_; } 
   inline void SetExpectedFastControlBackwardForwardType(int backward_forward) { expected_fastcontrol_backward_forward_ = backward_forward; } 
+  // here is the xml/database/user-friendly interface to prior method...
+  void  Set_fastcontrol_backward_forward_type(std::string alct_firmware_backwardForward); //alct_firmware_backwardForward = [b,f]
   //
   int  GetFastControlNegativePositiveType();           // get Read values for ALCT firmware type (ME11)
   inline  int GetExpectedFastControlNegativePositiveType() { return expected_fastcontrol_negative_positive_; } 
   inline void SetExpectedFastControlNegativePositiveType(int negative_positive) { expected_fastcontrol_negative_positive_ = negative_positive; } 
+  // here is the xml/database/user-friendly interface to prior method:
+  void  Set_fastcontrol_negative_positive_type(std::string alct_firmware_negativePositive); //alct_firmware_negativePositive = [n,p]
   //
   int  GetFastControlAlctType();                       // get Read values for ALCT firmware type
   inline  int GetExpectedFastControlAlctType() { return expected_fastcontrol_alct_type_; } 
