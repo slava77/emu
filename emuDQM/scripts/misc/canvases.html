@@ -1,0 +1,111 @@
+<head></head>
+<body>
+
+<script language="JavaScript" src="tree_runs.js"></script>
+
+<script language="JavaScript">
+parent.run=0;
+parent.folder=RUNS[parent.run][0].replace(/\s+.*$/g, "");
+parent.sp=1;
+parent.station=0;
+parent.type=0;
+
+document.writeln("Correlated LCTs:");
+//document.writeln("(<a target='viewer' href=view.html onClick='parent.station=0'>F4</a>");
+//document.writeln("<a target='viewer' href=view.html onClick='parent.station=1'>F3</a>");
+//document.writeln("<a target='viewer' href=view.html onClick='parent.station=2'>F2</a>");
+//document.writeln("<a target='viewer' href=view.html onClick='parent.station=3'>F1</a>):<br>");
+////document.writeln("<a target='viewer' href=view.html onClick='parent.station=4'>F5</a>):<br>");
+
+document.writeln("<ul>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"status.png\"'>Optical Link Status</a>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"LCTquality.png\"'>Correlated LCT Quality</a>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"qualityConsistency.png\"'>Reserved Quality Codes</a>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"WireGroup.png\"'>Wire Group distribution</a>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"Strips.png\"'>Half-strip and Di-strip distributions</a>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"CLCT.png\"'>CLCT distribution</a>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"time_bin.png\"'>Time Bin distribution</a>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"csc_timing.png\"'>Relative timing</a>");
+document.writeln("<br><br>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"links.png\"'>Links\' Status</a>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"csc.png\"'>CSC occupancy</a>");
+document.writeln("</ul>");
+
+document.writeln("<a target='viewer' href=view.html onClick='parent.type=\"dt_data{1,2}.png\"'>Drift-Tube Stubs</a><br><br>");
+
+document.writeln("Track-Finder:");
+document.writeln("<ul>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"EventRecordHeader.png\"'>Event Record Header</a>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"DataBlockHeader{1,2}.png\"'>Data Block Header</a>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"rate.png\"'>Rate Sensitive Parameters</a>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"tracks.png\"'>Tracks</a>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"timing.png\"'>Internal Timing Properties</a>");
+document.writeln("<li><a target='viewer' href=view.html onClick='parent.type=\"summary.html\"'>Validation Summary</a>");
+//document.writeln("<li><a target='viewer' href=\""+parent.folder+'/summary.html\"'+">Validation Summary</a>");
+document.writeln("</ul>");
+
+document.writeln("<br>");
+
+document.writeln("<form name=\"runs_list\">");
+document.writeln("<select name=\"runname\" id='rn' onchange=\"setRun(this.options[this.selectedIndex].value)\">");
+for(var run=0; run<RUNS.length; run++){
+	var option = RUNS[run][0].replace(/\s+.*$/g, "").replace(/cscdaq\//g, "");
+	option = option.replace(/tmp\//g, "");
+	var time   = RUNS[run][0].replace(/^.*?\s+/g, "");
+	document.writeln("<option value=\""+run+"\">"+option.substring(0,12)+" "+time+"</option>");
+}
+document.writeln("</select>");
+document.writeln("</form>");
+</script>
+
+<script language="JavaScript">
+
+function setRun(run){
+	var prev_run    = parent.run;
+	var prev_folder = parent.folder;
+	parent.folder   = RUNS[run][0].replace(/\s+.*$/g, "");
+	parent.run      = run;
+	if( parent.frames[1].location.href.indexOf("view.html")>0 ){
+		parent.frames[1].location.reload();
+	} else {
+		var expr = new RegExp(prev_folder, "g");
+		parent.frames[1].location.href = parent.frames[1].location.href.replace(expr,parent.folder);
+	}
+	document.getElementById('rn').selectedIndex = run;
+}
+
+document.writeln("<- Ctrl -><br>");
+
+// Modified from http://www.artlebedev.ru/svalka/navigate.js :
+
+document.onkeydown = NavigateThrough;
+
+function NavigateThrough (event){
+	if(!document.getElementById) return;
+	if(window.event) event = window.event;
+	if(event.ctrlKey){
+		var link = null;
+		switch (event.keyCode ? event.keyCode : event.which ? event.which : null) {
+			case 0x25:
+				if(parent.run>0) setRun(parent.run-1);
+				//link = document.getElementById ('NextLink');
+				break;
+			case 0x27:
+				if(parent.run<RUNS.length-1) setRun(parent.run+1);
+				//link = document.getElementById ('PrevLink');
+				break;
+			case 0x26:
+				if(parent.run>0) setRun(parent.run-1);
+				//link = document.getElementById ('UpLink');
+				break;
+			case 0x28:
+				if(parent.run<RUNS.length-1) setRun(parent.run+1);
+				//link = document.getElementById ('DownLink');
+				break;
+		}
+		//if (link && link.href) document.location = link.href;
+	}
+}
+
+</script>
+</body>

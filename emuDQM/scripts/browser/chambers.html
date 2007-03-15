@@ -1,0 +1,91 @@
+<HTML><HEAD>
+<TITLE>Chamber List</TITLE>
+<style>
+	body {color: #000000; font-weight:bold ; font-family: Tahoma, Verdana; font-size: 12pt}
+	td {font-size: 10pt}
+	a, A:link, a:visited, a:active, A:hover
+		{color: #000000; text-decoration: none; font-family: Tahoma, Verdana; font-size: 10pt}
+</style>
+<script language="JavaScript">
+<!--//
+var link=parent.BaseURL+parent.RunNumber+parent.postfix;
+this.o_selected = null;
+function select (id, b_deselect) {
+	var obj = get_element(id);
+	if (obj) {
+	if(!b_deselect) {
+		var o_olditem = this.o_selected;
+		this.o_selected = obj;
+		if (o_olditem) select(o_olditem.id, true);
+		
+	}
+	obj.style.fontWeight = b_deselect ? 'normal' : 'bold';
+	obj.style.color = b_deselect ? '000000' : 'ff0000';
+	//parent.isFolderValid=true;
+	}
+	parent.images.location.href="image.html";
+	
+	/*return false; */
+}
+
+function loadFrame(id, b_select, url)
+{
+	parent.isFolderValid=true;
+	select(id, b_select);
+	// parent.images.location.href=url;
+	return false; 
+}
+
+function chambers_list(r_list) {
+	idx = parent.RunInfoIdx;
+	parent.isFolderValid=false;
+	if (idx >=0) {
+	document.write("<tr><td><a href=image.html target=\'images\' id=\'EMU\' onClick='parent.Folder=\"EMU\"; return loadFrame(\"EMU\", false,\"image.html\")'>"+"DDU</a></td>");
+	if (parent.Folder == "EMU") parent.isFolderValid = true;
+	crates = r_list[idx];
+	
+	for (var i=1; i<crates.length; i++) {
+		crate = crates[i][0];
+		if (crate=="crate255") continue;		
+		document.write("<tr><td><b>"+crate+"</b></td>");
+		
+		slots = crates[i][1];
+		for (var j=0; j<slots.length; j++) {
+		csc = crate+"/"+slots[j];
+		if (!parent.isFolderValid && (parent.Folder == csc)) parent.isFolderValid=true;
+		csclink="<a target=\'images\' href=image.html id='" + csc+ "' onClick='parent.Folder=\""+csc+"\"; return loadFrame(\""+csc+"\", false,\"image.html\")'>"+slots[j]+"</a>";
+		document.write("<td>"+csclink+"</td>");
+		}
+		document.write("</tr>");
+	}
+	
+	}
+	// if (parent.isFolderValid) 
+	select(parent.Folder, false);
+
+}
+get_element = document.all ?
+	function (s_id) { return document.all[s_id] } :
+	function (s_id) { return document.getElementById(s_id) };
+		
+//-->
+</script>
+</HEAD>
+<BODY>
+<SCRIPT type="text/javascript"><!--
+document.write("Chambers List for Run: <a target=images href="+link+">"+parent.RunNumber+"</a><br>");
+//--></SCRIPT>
+<body bottommargin="0" topmargin="10" leftmargin="10" rightmargin="0" marginheight="10" marginwidth="10" bgcolor="white">
+<script language="JavaScript" src="http://cms-csc.web.cern.ch/cms-csc/DQM/DAQ/plots/tree_runs.js"></script> 
+<table cellpadding="3" cellspacing="2"  border="1">
+	<script language="JavaScript">
+	<!--//
+		new chambers_list (RUNS);
+	//-->
+	</script>
+</table>
+
+</BODY>
+</HTML> 
+
+

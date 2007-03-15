@@ -1,0 +1,36 @@
+<HTML><HEAD>
+<TITLE>Show Image</TITLE>
+<style>
+	body {color: #000000; font-weight:bold ; font-family: Tahoma, Verdana; font-size: 12pt}
+	a, A:link, a:visited, a:active, A:hover
+		{text-decoration: none; font-family: Tahoma, Verdana; font-size: 12pt}
+</style>
+<script language="JavaScript">
+<!--//
+var imgurl = parent.BaseURL+parent.RunNumber+parent.postfix+"/"+parent.Folder+"/"+parent.Canvas;
+//-->
+</script>
+</HEAD>
+<!-- <body bottommargin="0" topmargin="10" leftmargin="10" rightmargin="0" marginheight="10" marginwidth="10" bgcolor="white"> -->
+<BODY>
+<SCRIPT type="text/javascript"><!--
+	if (!parent.isFolderValid) {
+		document.write(parent.RunNumber+": Invalid folder - \""+parent.Folder+"\"<hr>");
+	} else {
+	if ((parent.Folder != "") && (parent.Canvas != "") ) {
+	if ((parent.Folder == "EMU" && parent.Scope == "EMU") || 
+		(parent.Folder != "EMU" && parent.Scope != "EMU")) {
+	document.write(parent.RunNumber+": \""+parent.Folder+"/"+parent.Canvas+"\"<hr>");
+	document.write("<a href=\'"+imgurl+"\'><IMAGE width=100% height=95% NAME='test' SRC='"+imgurl+"'></a>");
+	}else {
+		document.write("Invalid canvas: \""+parent.Folder+"/"+parent.Canvas+"\"<hr>");
+	} 
+	} 
+	}
+//--></SCRIPT>
+
+
+</BODY>
+</HTML> 
+
+

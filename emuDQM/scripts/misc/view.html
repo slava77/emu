@@ -1,0 +1,87 @@
+<head></head>
+<body>
+
+<script language="JavaScript" src="view.js"></script>
+<script language="JavaScript" src="tree_runs.js"></script>
+
+<script language="JavaScript">
+
+if( parent.type != 0 ){
+	for(var sp=1; sp<RUNS[parent.run].length && RUNS[parent.run].length>2; sp++){
+		if( sp == parent.sp ) document.writeln("<font size=+1>");
+		document.writeln("<a target='viewer' href=view.html onClick='parent.sp="+sp+"'>"+RUNS[parent.run][sp][0]+"</a>");
+		if( sp == parent.sp ) document.writeln("</font>");
+	}
+
+	document.writeln("<br>");
+
+	if( parent.type=="status.png" || parent.type=="LCTquality.png" || 
+	    parent.type=="qualityConsistency.png" || parent.type=="WireGroup.png" ||
+	    parent.type=="Strips.png" || parent.type=="CLCT.png" ||
+	    parent.type=="time_bin.png" || parent.type=="csc_timing.png" ){
+		for(var station=0; station<RUNS[parent.run][parent.sp][1].length && RUNS[parent.run][parent.sp][1].length>1; station++){
+			if( station == parent.station ) document.writeln("<font size=+1>");
+			document.writeln("<a target='viewer' href=view.html onClick='parent.station="+station+"'>"+RUNS[parent.run][parent.sp][1][station][0]+"</a>");
+			if( station == parent.station ) document.writeln("</font>");
+		}
+	}
+
+	var layout  = new Object();
+
+	var folder  = parent.folder;
+	var run     = parent.run;
+	var sp      = parent.sp;
+	var station = parent.station;
+	var type    = parent.type;
+
+	if( parent.type=="status.png" || parent.type=="LCTquality.png" || 
+	    parent.type=="qualityConsistency.png" || parent.type=="WireGroup.png" ||
+	    parent.type=="Strips.png" || parent.type=="CLCT.png" ||
+	    parent.type=="time_bin.png" || parent.type=="csc_timing.png" ){
+		for(var csc=0; csc<RUNS[run][sp][1][station][1].length; csc++){
+			layout[folder+'/'+RUNS[run][sp][0]+'/'+RUNS[run][sp][1][station][0]+'/'+RUNS[run][sp][1][station][1][csc]+'/'+type] = '200x150+'+(csc%3+1)+'+'+parseInt(csc/3+1);
+		}
+	}
+
+	if( parent.type=="links.png" || parent.type=="csc.png" ){
+		for(var station=0; station<RUNS[run][sp][1].length; station++){
+			layout[folder+'/'+RUNS[run][sp][0]+'/'+RUNS[run][sp][1][station][0]+'/'+type] = '350x250+'+(station%2+1)+'+'+parseInt(station/2+1);
+		}
+	} 
+
+	if( parent.type=="dt_data{1,2}.png" ){
+		layout[folder+'/'+RUNS[run][sp][0]+'/dt_data1.png'] = '350x250+1+1';
+		layout[folder+'/'+RUNS[run][sp][0]+'/dt_data2.png'] = '350x250+1+2';
+	}
+
+	if( parent.type=="EventRecordHeader.png" ){
+		layout[folder+'/'+RUNS[run][sp][0]+'/EventRecordHeader.png'] = '700x400+1+1';
+	}
+
+	if( parent.type=="DataBlockHeader{1,2}.png" ){
+		layout[folder+'/'+RUNS[run][sp][0]+'/DataBlockHeader1.png'] = '350x250+1+1';
+		layout[folder+'/'+RUNS[run][sp][0]+'/DataBlockHeader2.png'] = '350x250+1+2';
+	}
+
+	if( parent.type=="rate.png" ){
+		layout[folder+'/'+RUNS[run][sp][0]+'/rate.png'] = '700x400+1+1';
+	}
+
+	if( parent.type=="tracks.png" ){
+		layout[folder+'/'+RUNS[run][sp][0]+'/tracks.png'] = '700x400+1+1';
+	}
+
+	if( parent.type=="timing.png" ){
+		layout[folder+'/'+RUNS[run][sp][0]+'/timing.png'] = '700x400+1+1';
+	}
+
+	if( parent.type=="summary.html" ){
+		parent.frames[1].location = folder+'/summary.html';
+	}
+
+	view(layout);
+}
+
+</script>
+
+</body>
