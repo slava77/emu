@@ -1,0 +1,167 @@
+<html>
+<head>
+	<title>JavaScript Tree Menu</title>
+	<meta name="description" content="Free Cross Browser Javascript DHTML Tree Menu Navigation">
+	<meta name="keywords" content="JavaScript tree menu, DHTML tree menu, client side tree menu, table of contents, site map, web authoring, scripting, freeware, download, shareware, free software, DHTML, Free Tree Menu, site, navigation, html, web, netscape, explorer, IE, opera, DOM, control, cross browser, support, frames, target, download">
+	<meta name="robots" content="index,follow">
+<style>
+	a, A:link, a:visited, a:active, A:hover
+		{color: #000000; text-decoration: none; font-family: Tahoma, Verdana; font-size: 12px}
+</style>
+
+</head>
+
+<body bottommargin="0" topmargin="0" leftmargin="0" rightmargin="0" marginheight="0" marginwidth="0" bgcolor="white">
+<script language="JavaScript" src="tree.js"></script>
+<!--<script language="JavaScript" src="tree_items.js"></script>-->
+<script language="JavaScript" src="tree_tpl.js"></script>
+<script language="JavaScript" src="tree_runs.js"></script>
+
+<table cellpadding="5" cellspacing="0" cellpadding="10" border="0" width="100%">
+<tr>
+	<td>
+	<script language="JavaScript">
+	<!--//
+var TREE_ITEMS = new Array(RUNS.length);
+
+for(var run=0; run<RUNS.length; run++){
+	var folder = RUNS[run][0].replace(/\s+.*$/g, "");
+
+	var plot0='DDU: Connected and Active Input',                    path0=folder+'/'+'EMU/DDU_Connected_and_Active_Inputs.png';
+	var plot1='DDU: DMBs DAV and Unpacked vs DMBs Activ',           path1=folder+'/'+'EMU/DDU_DMBs_DAV_and_Unpacked_vs_DMBs_Active.png';
+	var plot2='DDU: Data Format Errors and Warnings in Table',      path2=folder+'/'+'EMU/DDU_Data_Format_Errors_and_Warnings_in_Tables.png';
+	var plot3='DDU: Data Integrity Checks vs Event Numbe',          path3=folder+'/'+'EMU/DDU_Data_Integrity_Checks_vs_Event_Number.png';
+	var plot4='DDU: Error Status from DDU Traile',                  path4=folder+'/'+'EMU/DDU_Error_Status_from_DDU_Trailer.png';
+	var plot5='DDU: Error Status from DDU Trailer vs Event Number', path5=folder+'/'+'EMU/DDU_Error_Status_from_DDU_Trailer_vs_Event_Number.png';
+	var plot6='DDU: Event Buffer Size and DDU Word Coun',           path6=folder+'/'+'EMU/DDU_Event_Buffer_Size_and_DDU_Word_Count.png';
+	var plot7='DDU: L1A and BXN Counter',                           path7=folder+'/'+'EMU/DDU_L1A_and_BXN_Counters.png';
+	var plot8='DDU: State of CSC',                                  path8=folder+'/'+'EMU/DDU_State_of_CSCs.png';
+	var plot9='DDU: Unpacked DMB',                                  path9=folder+'/'+'EMU/DDU_Unpacked_DMBs.png';
+
+	var DDU =
+		['EMU', 0,
+			[plot0,path0], [plot1,path1], [plot2,path2], [plot3,path3], [plot4,path4],
+			[plot5,path5], [plot6,path6], [plot7,path7], [plot8,path8], [plot9,path9]
+		];
+
+	TREE_ITEMS[run] = new Array(RUNS[run].length-1+3);
+	TREE_ITEMS[run][0] = RUNS[run][0];
+	TREE_ITEMS[run][1] = null;
+	TREE_ITEMS[run][2] = DDU;
+
+	for(var crate=1; crate<RUNS[run].length; crate++){
+
+		var CRATE = new Array( RUNS[run][crate][1].length + 2 );
+		CRATE[0]=RUNS[run][crate][0];
+		CRATE[1]=0;
+
+		for(var slot=0; slot<RUNS[run][crate][1].length; slot++){
+
+			var plot10='CSC: Data Block Finding Efficiency',   path10=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/CSC/CSC_Data_Block_Finding_Efficiency.png';
+			var plot11='CSC: Data Format Errors and Warnings', path11=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/CSC/CSC_Data_Format_Errors_and_Warnings.png';
+
+			var CSC =
+				['CSC', 0,
+                    [plot10,path10], [plot11,path11]
+				];
+
+			var plot12='DMB: CFEB Multiple Overlaps',    path12=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/DMB/DMB_CFEB_Multiple_Overlaps.png';
+			var plot13='DMB: CFEBs DAV and Active',      path13=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/DMB/DMB_CFEBs_DAV_and_Active.png';
+			var plot14='DMB: DMB-CFEB-SYNC BXN Counter', path14=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/DMB/DMB_DMB-CFEB-SYNC_BXN_Counter.png';
+			var plot15='DMB: FEB Status (Timeouts, FIFO, L1 pipe)', path15=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/DMB/DMB_FEB_Status_%28Timeouts__FIFO__L1_pipe%29.png';
+			var plot16='DMB: FEBs DAV and Unpacked',     path16=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/DMB/DMB_FEBs_DAV_and_Unpacked.png';
+
+			var DMB =
+				['DMB', 0,
+					[plot12,path12], [plot13,path13], [plot14,path14], [plot15,path15], [plot16,path16]
+				];
+
+			var plot17='CFEB: Clusters Charge',             path17=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/CFEB/CFEB_Clusters_Charge.png';
+			var plot18='CFEB: Clusters Width',              path18=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/CFEB/CFEB_Clusters_Width.png';
+			var plot19='CFEB: Number of Clusters',          path19=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/CFEB/CFEB_Number_of_Clusters.png';
+			var plot20='CFEB: Out of ADC Range Strips',     path20=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/CFEB/CFEB_Out_of_ADC_Range_Strips.png';
+			var plot21='CFEB: Pedestals (First Sample)',    path21=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/CFEB/CFEB_Pedestals_%28First_Sample%29.png';
+			var plot22='CFEB: Pedestals RMS',               path22=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/CFEB/CFEB_Pedestals_RMS.png';
+			var plot23='CFEB: SCA Active Strips Occupancy', path23=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/CFEB/CFEB_SCA_Active_Strips_Occupancy.png';
+			var plot24='CFEB: SCA Active Time Samples vs Strip Numbers Profile', path24=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/CFEB/CFEB_SCA_Active_Time_Samples_vs_Strip_Numbers_Profile.png';
+			var plot25='CFEB: SCA Active Time Samples vs Strip Numbers',         path25=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/CFEB/CFEB_SCA_Active_Time_Samples_vs_Strip_Numbers.png';
+			var plot26='CFEB: SCA Block Occupancy',         path26=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/CFEB/CFEB_SCA_Block_Occupancy.png';
+//			var plot27='CFEB: SCA Cell Peak',               path27=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/CFEB/CFEB:_SCA_Cell_Peak.png';
+//			var plot28='CFEB: SCA Cell Occupancy',          path28=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/CFEB/CFEB:_SCA_Cell_Occupancy.png';
+
+			var CFEB =
+				['CFEB', 0,
+					[plot17,path17], [plot18,path18], [plot19,path19], [plot20,path20], [plot21,path21],
+					[plot22,path22], [plot23,path23], [plot24,path24], [plot25,path25], [plot26,path26]//,
+//					[plot27,path27], [plot28,path28]
+				];
+
+			var plot29='TMB-CLCT: CLCT0 Key DiStrips, Patterns and Quality',     path29=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/TMB/TMB-CLCT_CLCT0_Key_DiStrips__Patterns_and_Quality.png';
+			var plot30='TMB-CLCT: CLCT0 Key HalfStrips, Patterns and Quality',   path30=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/TMB/TMB-CLCT_CLCT0_Key_HalfStrips__Patterns_and_Quality.png';
+			var plot31='TMB-CLCT: CLCT0_BXN and TMB_L1A_BXN Synchronization',    path31=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/TMB/TMB-CLCT_CLCT0_BXN_and_TMB_L1A_BXN_Synchronization.png';
+			var plot32='TMB-CLCT: CLCT1 Key DiStrips, Patterns and Quality',     path32=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/TMB/TMB-CLCT_CLCT1_Key_DiStrips__Patterns_and_Quality.png';
+			var plot33='TMB-CLCT: CLCT1 Key HalfStrips, Patterns and Quality',   path33=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/TMB/TMB-CLCT_CLCT1_Key_HalfStrips__Patterns_and_Quality.png';
+			var plot34='TMB-CLCT: CLCT1_BXN and TMB_L1A_BXN Synchronization',    path34=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/TMB/TMB-CLCT_CLCT1_BXN_and_TMB_L1A_BXN_Synchronization.png';
+			var plot35='TMB-CLCT: CLCTs Found',                                  path35=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/TMB/TMB-CLCT_CLCTs_Found.png';
+			var plot36='TMB: Number of Words in TMB',                            path36=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/TMB/TMB_Number_of_Words_in_TMB.png';
+			var plot37='TMB-CLCT: Cathode Comparator Hit Occupancy per Chamber', path37=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/TMB/TMB-CLCT_Cathode_Comparator_Hit_Occupancy_per_Chamber.png';
+			var plot38='TMB-CLCT: Cathode Comparator Hit Occupancy per Half Strip', path38=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/TMB/TMB-CLCT_Cathode_Comparator_Hit_Occupancy_per_Half_Strip.png';
+			var plot39='TMB-CLCT: Comparator Raw Hit Time Bin Average Occupancy',path39=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/TMB/TMB-CLCT_Comparator_Raw_Hit_Time_Bin_Average_Occupancy.png';
+			var plot40='TMB-CLCT: Comparator Raw Hit Time Bin Occupancy',        path40=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/TMB/TMB-CLCT_Comparator_Raw_Hit_Time_Bin_Occupancy.png';
+			var plot41='TMB: ALCT - CLCT Time MatchingSynchronization',          path41=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/TMB/TMB_ALCT_-_CLCT_Time_MatchingSynchronization.png';
+
+			var TMB =
+				['TMB', 0,
+					[plot29,path29], [plot30,path30], [plot31,path31], [plot32,path32], [plot33,path33],
+					[plot34,path34], [plot35,path35], [plot36,path36], [plot37,path37],
+					[plot38,path38], [plot39,path39], [plot40,path40], [plot41,path41]
+				];
+
+			var plot42='ALCT: ALCT0 Key Wiregroups, Patterns and Quality', path42=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/ALCT/ALCT_ALCT0_Key_Wiregroups__Patterns_and_Quality.png';
+			var plot43='ALCT: ALCT0_BXN and ALCT_L1A_BXN Synchronization', path43=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/ALCT/ALCT_ALCT0_BXN_and_ALCT_L1A_BXN_Synchronization.png';
+			var plot44='ALCT: ALCT1 Key Wiregroups, Patterns and Quality', path44=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/ALCT/ALCT_ALCT1_Key_Wiregroups__Patterns_and_Quality.png';
+			var plot45='ALCT: ALCT1_BXN and ALCT_L1A_BXN Synchronization', path45=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/ALCT/ALCT_ALCT1_BXN_and_ALCT_L1A_BXN_Synchronization.png';
+			var plot46='ALCT: ALCTs Foun',                                 path46=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/ALCT/ALCT_ALCTs_Found.png';
+			var plot47='ALCT: Anode Hit Occupancy per Chamber',            path47=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/ALCT/ALCT_Anode_Hit_Occupancy_per_Chamber.png';
+			var plot48='ALCT: Anode Hit Occupancy per Wire Group',         path48=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/ALCT/ALCT_Anode_Hit_Occupancy_per_Wire_Group.png';
+			var plot49='ALCT: Number of Words in ALCT',                    path49=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/ALCT/ALCT_Number_of_Words_in_ALCT.png';
+			var plot50='ALCT: Raw Hit Time Bin Occupancy',                 path50=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/ALCT/ALCT_Raw_Hit_Time_Bin_Occupancy.png';
+			var plot51='ALCT: Raw Hit Time Bin Average Occupancy',         path51=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/ALCT/ALCT_Raw_Hit_Time_Bin_Average_Occupancy.png';
+
+			var ALCT =
+				['ALCT', 0,
+					[plot42,path42], [plot43,path43], [plot44,path44], [plot45,path45], [plot46,path46],
+					[plot47,path47], [plot48,path48], [plot49,path49], [plot50,path50], [plot51,path51]
+				];
+
+			var plot52='SYNC: ALCT - DMB Synchronization',                 path52=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/SYNC/SYNC_ALCT_-_DMB_Synchronization.png';
+			var plot53='SYNC: CFEB - DMB Phase Synchronization',           path53=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/SYNC/SYNC_CFEB_-_DMB_Phase_Synchronization.png';
+			var plot54='SYNC: CFEB - DMB Synchronization',                 path54=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/SYNC/SYNC_CFEB_-_DMB_Synchronization.png';
+			var plot55='SYNC: DMB - DDU Synchronization',                  path55=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/SYNC/SYNC_DMB_-_DDU_Synchronization.png';
+			var plot56='SYNC: TMB - ALCT Syncronization',                  path56=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/SYNC/SYNC_TMB_-_ALCT_Syncronization.png';
+			var plot57='SYNC: TMB - DMB Synchronization',                  path57=folder+'/'+RUNS[run][crate][0]+'/'+RUNS[run][crate][1][slot]+'/SYNC/SYNC_TMB_-_DMB_Synchronization.png';
+
+			var SYNC =
+				['SYNC', 0,
+					[plot52,path52], [plot53,path53], [plot54,path54], [plot55,path55], [plot56,path56], [plot57,path57]
+				];
+
+			CRATE[slot+2] = [ RUNS[run][crate][1][slot], 0, CSC, DMB, CFEB, TMB, ALCT, SYNC ];
+		}
+		TREE_ITEMS[run][crate-1+3] = CRATE;
+	}
+}
+
+		//TREE_ITEMS[run] = ['older runs (open in new window)','./browse_old.html" target="new""'];
+
+		new tree (TREE_ITEMS, TREE_TPL);
+
+	//-->
+	</script>
+	</td>
+
+</tr>
+</table>
+
+</body>
+</html>

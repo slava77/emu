@@ -1,0 +1,67 @@
+<html>
+<head>
+	<title>Runs List</title>
+<style>
+	body {color: #000000; font-weight:bold ; font-family: Tahoma, Verdana; font-size: 12pt}
+	td {font-size: 10pt}
+	a, A:link, a:visited, a:active, A:hover
+		{color: #000000; text-decoration: none; font-family: Tahoma, Verdana; font-size: 10pt}
+</style>
+<script type="text/javascript">
+<!--//
+this.o_selected = null;
+function select (id, b_deselect) {
+	var obj = get_element(id);
+	if (obj && !b_deselect) {
+		var o_olditem = this.o_selected;
+		this.o_selected = obj;
+		if (o_olditem && (o_olditem != obj)) select(o_olditem.id, true);
+		
+	}
+	obj.style.fontWeight = b_deselect ? 'normal' : 'bold';
+	obj.style.color = b_deselect ? '000000' : 'ff0000';
+	parent.images.location.href="image.html";
+	return false;
+}
+
+function runs_list(r_list) {
+	var scope="";
+	for (var i = 0; i< r_list.length; i++) {
+		document.write("<tr><td><b>"+r_list[i][0]+"</b></td></tr>");
+		
+		if (r_list[i][0] == "DDU") 
+			{ scope = "EMU";}
+		else 
+			{scope = "CSC";}
+		var child = [];				
+		child=r_list[i];
+		
+		for (var j=2; j<child.length; j++) {
+		 document.write("<tr><td><li><a target=\'images\' href=image.html id =\""+child[j][0]+"\"  onClick='parent.Canvas=\""+child[j][1]+"\";parent.Scope=\""+scope+"\";select(\""+child[j][0]+"\",false)'>"+child[j][0]+"</a></td></tr>");
+		 }
+
+	}
+}	
+get_element = document.all ?
+	function (s_id) { return document.all[s_id] } :
+	function (s_id) { return document.getElementById(s_id) };	
+//-->
+</script>
+
+</head>
+
+<body bottommargin="0" topmargin="0" leftmargin="2" rightmargin="0" marginheight="0" marginwidth="0" bgcolor="white">
+<script type="text/javascript" src="canvases_list.js"></script>
+Canvases List:
+<hr>
+<table cellpadding="0" cellspacing="1"  border="0" width="100%">
+	<script type="text/javascript">
+	<!--//
+		new runs_list (TREE_ITEMS);
+	//-->
+	</script>
+</table>
+
+</body>
+</html>
+

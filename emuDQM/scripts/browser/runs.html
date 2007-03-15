@@ -1,0 +1,71 @@
+<html>
+<head>
+	<title>Runs List</title>
+<style>
+	body {color: #000000; font-weight:bold ; font-family: Tahoma, Verdana; font-size: 12pt} 
+	a, A:link, a:visited, a:active, A:hover
+		{color: #000000; text-decoration: none; font-family: Tahoma, Verdana; font-size: 10pt}
+</style>
+<script language="JavaScript">
+<!--//
+this.o_selected = null;
+function select (id, b_deselect,url1, url2) {
+	var obj = get_element(id);
+	if (obj && !b_deselect) {
+		var o_olditem = this.o_selected;
+		this.o_selected = obj;
+		if (o_olditem) select(o_olditem.id, true);
+		
+	}
+	obj.style.fontWeight = b_deselect ? 'normal' : 'bold';
+	obj.style.color = b_deselect ? '000000' : 'ff0000';
+	// return false;
+}
+
+function loadFrames(id, url1, url2) {
+	select(id);
+	// parent.images.location.href = url1;
+	parent.chambers.location.href = url2;
+    	return false;
+
+}
+
+
+
+
+function runs_list(r_list) {
+	for (var i = 0; i< r_list.length; i++) {
+		child = [];		
+		child=r_list[i];
+		run_descr = child[0].replace(/.plots/g,'');
+		run_num = child[0].substr(0, child[0].search(/.plots/g));
+		// for (var j=0; j<child.length; j++) {
+		document.write("<tr><td><li><a target=\'chambers\' href=chambers.html id='"+run_num+"' onClick='parent.RunNumber=\""+run_num+"\";parent.RunInfoIdx="+i+";return loadFrames(\""+run_num+"\",\"image.html\",\"chambers.html\")' >"+run_descr+"</a></td></tr>");
+		// document.write("<tr><td><li><a target=chambers href=chambers.html onClick='parent.RunNumber=\""+run_num+"\";parent.RunInfoIdx="+i+";parent.image.location.href=image.html' >"+run_descr+"</a></td></tr>");
+		// }
+	}
+}	
+
+get_element = document.all ?
+	function (s_id) { return document.all[s_id] } :
+	function (s_id) { return document.getElementById(s_id) };
+	
+//-->
+</script>
+
+</head>
+
+<body bottommargin="0" topmargin="0" leftmargin="2" rightmargin="0" marginheight="0" marginwidth="0" bgcolor="white">
+<script language="JavaScript" src="http://cms-csc.web.cern.ch/cms-csc/DQM/DAQ/plots/tree_runs.js"></script>
+Runs List:
+<table cellpadding="0" cellspacing="1"  border="0" width="100%">
+	<script language="JavaScript">
+	<!--//
+		new runs_list (RUNS);
+	//-->
+	</script>
+</table>
+
+</body>
+</html>
+
