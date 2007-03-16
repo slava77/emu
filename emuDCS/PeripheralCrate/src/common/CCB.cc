@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.9 2007/03/14 11:59:45 rakness Exp $
+// $Id: CCB.cc,v 3.10 2007/03/16 18:06:22 rakness Exp $
 // $Log: CCB.cc,v $
+// Revision 3.10  2007/03/16 18:06:22  rakness
+// put scans+TTCrxID in summary file
+//
 // Revision 3.9  2007/03/14 11:59:45  rakness
 // extract TTCrxID
 //
@@ -215,7 +218,7 @@ CCB::CCB(Crate * theCrate ,int slot)
 {
   MyOutput_ = &std::cout ;
 
-  ReadTTCrxID_ = -2;
+  ReadTTCrxID_ = -1;
     
   (*MyOutput_) << "CCB: configured for crate=" << this->crate()
 	    << " slot=" << this->slot() << std::endl;
@@ -1058,7 +1061,7 @@ void CCB::configure() {
   disableL1();
   //  std::cout << ReadRegister(0x0) << std::endl;
   //
-  //ReadTTCrxID();
+  ReadTTCrxID();
   //
   // Download coarse delay to TTCrx
   //

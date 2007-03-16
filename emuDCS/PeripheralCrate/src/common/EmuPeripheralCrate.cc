@@ -265,7 +265,6 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     CalibrationState_ = "None";
     MPCBoardID_ = "-2";
     CCBBoardID_ = "-2";
-    TTCrxId_    = "-2";
     ControllerBoardID_ = "-2";
     for (int i=0; i<9; i++) { DMBBoardID_[i] = "-2" ; TMBBoardID_[i] = "-2" ; RATBoardID_[i] = "-2" ;}
     for (int i=0; i<9; i++) 
@@ -5100,8 +5099,24 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     //
     thisCCB->firmwareVersion();
     *out << cgicc::br();
+    //
     thisCCB->ReadTTCrxID();
-    *out << "TTCrx ID (dec) = " << std::dec << thisCCB->GetReadTTCrxID();
+    int readValue   = thisCCB->GetReadTTCrxID();
+    int configValue = thisCCB->GetTTCrxID();
+    //
+    char buf[50];
+    sprintf(buf,"Onboard TTCrx ID = %d",readValue);
+    //
+    if ( readValue == configValue ) {
+      *out << cgicc::span().set("style","color:green");
+      *out << buf;
+      *out << cgicc::span();
+    } else {
+      *out << cgicc::span().set("style","color:red");
+      *out << buf;
+      *out << " (TTCrxID value in configuration incorrectly set to " << std::dec << configValue << ") ";
+      *out << cgicc::span();
+    }
     //
     thisCCB->RedirectOutput(&std::cout);
     //
@@ -8194,8 +8209,8 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     for(int i=0; i<20; i++) LogFile << "-";
     LogFile << std::endl ;
     //
-    LogFile << "MPC    12 " << std::setw(5) << MPCBoardID_ << std::endl;
-    LogFile << "CCB    13 " << std::setw(5) << CCBBoardID_ << std::endl;
+    LogFile << "MPC     12 " << std::setw(5)  << MPCBoardID_ << std::endl;
+    LogFile << "CCB     13 " << std::setw(5)  << CCBBoardID_ << std::endl;
     //
     for(int i=0; i<20; i++) LogFile << "-";
     LogFile << std::endl ;
@@ -8241,48 +8256,63 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
 
     for (unsigned int i=0; i<(tmbVector.size()<9?tmbVector.size():9) ; i++) {
       //
-      LogFile << "slot " << std::setw(5) << i 
+      LogFile << "slot                 " << std::setw(3) << i 
 	      << std::setw(5) << tmbVector[i]->slot()
 	      << std::endl;
-      LogFile << "cfeb0delay " << std::setw(5) << i 
-	      << std::setw(10) << MyTest[i].GetCFEBrxPhaseTest(0)
+      LogFile << "cfeb0delay           " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(0)
 	      << std::endl;
-      LogFile << "cfeb1delay " << std::setw(5) << i 
-	      << std::setw(10) << MyTest[i].GetCFEBrxPhaseTest(1)
+      LogFile << "cfeb1delay           " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(1)
 	      << std::endl;
-      LogFile << "cfeb2delay " << std::setw(5) << i 
-	      << std::setw(10) << MyTest[i].GetCFEBrxPhaseTest(2)
+      LogFile << "cfeb2delay           " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(2)
 	      << std::endl;
-      LogFile << "cfeb3delay " << std::setw(5) << i 
-	      << std::setw(10) << MyTest[i].GetCFEBrxPhaseTest(3)
+      LogFile << "cfeb3delay           " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(3)
 	      << std::endl;
-      LogFile << "cfeb4delay " << std::setw(5) << i 
-	      << std::setw(10) << MyTest[i].GetCFEBrxPhaseTest(4)
+      LogFile << "cfeb4delay           " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetCFEBrxPhaseTest(4)
 	      << std::endl;
-      LogFile << "alct_tx_clock_delay " << std::setw(5) << i 
-	      << std::setw(10) << MyTest[i].GetALCTtxPhaseTest()
+      LogFile << "alct_tx_clock_delay  " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetALCTtxPhaseTest()
 	      << std::endl;
-      LogFile << "alct_rx_clock_delay " << std::setw(5) << i 
-	      << std::setw(10) << MyTest[i].GetALCTrxPhaseTest()
+      LogFile << "alct_rx_clock_delay  " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetALCTrxPhaseTest()
 	      << std::endl;
-      LogFile << "mpc_delay " << std::setw(5) << i 
-	      << std::setw(10) << MyTest[i].GetMPCdelayTest()
+      LogFile << "mpc_delay            " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetMPCdelayTest()
 	      << std::endl;
-      LogFile << "rat_tmb_delay " << std::setw(5) << i 
-	      << std::setw(10) << MyTest[i].GetRatTmbDelayTest()
+      LogFile << "rat_tmb_delay        " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetRatTmbDelayTest()
 	      << std::endl;
-      LogFile << "rpc0_rat_delay " << std::setw(5) << i 
-	      << std::setw(10) << MyTest[i].GetRpcRatDelayTest(0)
+      LogFile << "rpc0_rat_delay       " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetRpcRatDelayTest(0)
 	      << std::endl;
-      LogFile << "tmb_l1a_delay " << std::setw(5) << i 
-	      << std::setw(10) << MyTest[i].GetTMBL1aTiming()
+      LogFile << "tmb_l1a_delay        " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetTMBL1aTiming()
 	      << std::endl;
-      LogFile << "alct_l1a_delay " << std::setw(5) << i 
-	      << std::setw(10) << MyTest[i].GetALCTL1aDelay()
+      LogFile << "alct_l1a_delay       " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetALCTL1aDelay()
 	      << std::endl;
-      LogFile << "match_trig_alct_delay " << std::setw(5) << i 
-	      << std::setw(10) << MyTest[i].GetALCTvpf()
+      LogFile << "match_trig_alct_delay" << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetALCTvpf()
 	      << std::endl;
+      LogFile << "TTCrxID              " << std::setw(3) << i 
+	      << std::setw(5) << thisCCB->GetReadTTCrxID() 
+	      << std::endl;
+      for (int CFEBs = 0; CFEBs<5; CFEBs++) {
+	LogFile << "cfeb" << CFEBs << "_scan " << std::setw(3) << i;
+	for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
+	  LogFile << std::setw(3) << MyTest[i].GetCFEBStripScan(CFEBs,HalfStrip) ;
+	LogFile << std::endl;
+      }
+      //
+      LogFile << "alct_scan  " << std::setw(3) << i;
+      for (int Wire = 0; Wire<(tmbVector[i]->alctController()->GetNumberOfChannelsInAlct())/6; Wire++) 
+	LogFile << std::setw(3) << MyTest[i].GetALCTWireScan(Wire) ;
+      LogFile << std::endl;
+      //
       LogFile << std::endl;
     }
     //
@@ -8997,6 +9027,111 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
 	  instring >> line0 >> vectorid >> result;
 	  //
 	  MyTest[vectorid].SetALCTvpf(result);
+	}
+	//
+	if ( line.find("TTCrxID") != string::npos ) {	  
+	  //
+	  int vectorid, boardid;
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid >> boardid;
+	  std::cout << "TTCrxID.Setting " << boardid << std::endl ;
+	  //
+	  if (thisCCB) 
+	    thisCCB->SetReadTTCrxID(boardid);
+	}
+	//
+	if ( line.find("cfeb0_scan") != string::npos ) {	  
+	  //
+	  int vectorid, hs[32];
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid 
+		   >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
+		   >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
+		   >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
+		   >> hs[30] >> hs[31];
+	  for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
+	    MyTest[vectorid].SetCFEBStripScan(0,HalfStrip,hs[HalfStrip]);
+	}
+	//
+	if ( line.find("cfeb1_scan") != string::npos ) {	  
+	  //
+	  int vectorid, hs[32];
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid 
+		   >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
+		   >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
+		   >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
+		   >> hs[30] >> hs[31];
+	  for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
+	    MyTest[vectorid].SetCFEBStripScan(1,HalfStrip,hs[HalfStrip]);
+	}
+	//
+	if ( line.find("cfeb2_scan") != string::npos ) {	  
+	  //
+	  int vectorid, hs[32];
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid 
+		   >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
+		   >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
+		   >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
+		   >> hs[30] >> hs[31];
+	  for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
+	    MyTest[vectorid].SetCFEBStripScan(2,HalfStrip,hs[HalfStrip]);
+	}
+	//
+	if ( line.find("cfeb3_scan") != string::npos ) {	  
+	  //
+	  int vectorid, hs[32];
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid 
+		   >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
+		   >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
+		   >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
+		   >> hs[30] >> hs[31];
+	  for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
+	    MyTest[vectorid].SetCFEBStripScan(3,HalfStrip,hs[HalfStrip]);
+	}
+	//
+	if ( line.find("cfeb4_scan") != string::npos ) {	  
+	  //
+	  int vectorid, hs[32];
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid 
+		   >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
+		   >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
+		   >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
+		   >> hs[30] >> hs[31];
+	  for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
+	    MyTest[vectorid].SetCFEBStripScan(4,HalfStrip,hs[HalfStrip]);
+	}
+	//
+	if ( line.find("alct_scan") != string::npos ) {	  
+	  //
+	  int vectorid, hs[112];
+	  istringstream instring(line);
+	  //
+	  instring >> line0 >> vectorid 
+		   >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
+		   >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
+		   >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
+		   >> hs[30] >> hs[31] >> hs[32] >> hs[33] >> hs[34] >> hs[35] >> hs[36] >> hs[37] >> hs[38] >> hs[39]
+		   >> hs[40] >> hs[41] >> hs[42] >> hs[43] >> hs[44] >> hs[45] >> hs[46] >> hs[47] >> hs[48] >> hs[49]
+		   >> hs[50] >> hs[51] >> hs[52] >> hs[53] >> hs[54] >> hs[55] >> hs[56] >> hs[57] >> hs[58] >> hs[59]
+		   >> hs[60] >> hs[61] >> hs[62] >> hs[63] >> hs[64] >> hs[65] >> hs[66] >> hs[67] >> hs[68] >> hs[69]
+		   >> hs[70] >> hs[71] >> hs[72] >> hs[73] >> hs[74] >> hs[75] >> hs[76] >> hs[77] >> hs[78] >> hs[79]
+		   >> hs[80] >> hs[81] >> hs[82] >> hs[83] >> hs[84] >> hs[85] >> hs[86] >> hs[87] >> hs[88] >> hs[89]
+		   >> hs[90] >> hs[91] >> hs[92] >> hs[93] >> hs[94] >> hs[95] >> hs[96] >> hs[97] >> hs[98] >> hs[99]
+		   >> hs[100] >> hs[101] >> hs[102] >> hs[103] >> hs[104] >> hs[105] >> hs[106] >> hs[107] >> hs[108] 
+		   >> hs[109] >> hs[110] >> hs[111];
+	  for (int Wire = 0; Wire<(tmbVector[vectorid]->alctController()->GetNumberOfChannelsInAlct())/6; Wire++) 
+	    MyTest[vectorid].SetALCTWireScan(Wire,hs[Wire]) ;
+
 	}
 	//
       }

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.7 2007/03/14 11:59:44 rakness Exp $
+// $Id: CCB.h,v 3.8 2007/03/16 18:06:22 rakness Exp $
 // $Log: CCB.h,v $
+// Revision 3.8  2007/03/16 18:06:22  rakness
+// put scans+TTCrxID in summary file
+//
 // Revision 3.7  2007/03/14 11:59:44  rakness
 // extract TTCrxID
 //
@@ -168,6 +171,8 @@ public:
   //
   inline void SetTTCrxID(int ID)     {TTCrxID_  = ID;}
   inline int  GetTTCrxID(){return TTCrxID_;}
+  //
+  inline void SetReadTTCrxID(int ID) { ReadTTCrxID_ = ID;}
   inline int  GetReadTTCrxID() { return ReadTTCrxID_;}
   //
   inline void SetTTCrxCoarseDelay(int delay) {TTCrxCoarseDelay_  = delay;}

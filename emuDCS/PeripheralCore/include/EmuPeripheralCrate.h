@@ -132,7 +132,6 @@ protected:
   std::string CalibrationCfebTimeEvent_;
   std::string MPCBoardID_;
   std::string CCBBoardID_;
-  std::string TTCrxId_;
   std::string ControllerBoardID_;
   std::string DMBBoardID_[10];
   std::string TMBBoardID_[10];
