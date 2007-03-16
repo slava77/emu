@@ -161,7 +161,10 @@
              feb_clock_delay="31" 
              comp_mode="2" 
              comp_timing="1" 
-             cable_delay= "2"
+             cfeb_cable_delay="0"
+             tmb_lct_cable_delay="2"
+             cfeb_dav_cable_delay="1"
+             alct_dav_cable_delay="2"
              crate_id="2"
              xLatency="2"
              pre_block_end="7">
