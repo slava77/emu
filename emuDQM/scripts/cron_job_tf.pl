@@ -7,7 +7,7 @@ my $CADAVER = "~/bin/cadaver";
 my $WEB     = "https://cms-csc.web.cern.ch:444/cms-csc/";
 my $SOURCE  = "/data/";
 my $LOGS    = "/net/data/dqm/logs";
-my $TFDQM   = "perl /home/cscdqm/DAQKit/v.3.9.2/TriDAS/emu/emuDQM/scripts/TFDQM.pl ./ /home/cscdqm/DAQKit/v.3.9.2/TriDAS/emu/emuDQM/EmuTFMonitor/test/common/test /home/cscdqm/DAQKit/v.3.9.2/TriDAS/emu/emuDQM/scripts/drawAllSP.C"; 
+my $TFDQM   = "perl /home/cscdqm/DAQKit/v3.9.2/TriDAS/emu/emuDQM/scripts/TFDQM.pl ./ /home/cscdqm/DAQKit/v3.9.2/TriDAS/emu/emuDQM/EmuTFMonitor/test/common/test /home/cscdqm/DAQKit/v3.9.2/TriDAS/emu/emuDQM/scripts/drawAllSP.C"; 
 
 die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/TrackFinder/plots/\nget tree_runs.js tree_runs.js\n\" | $CADAVER $WEB >> cron_job_tf.log");
 
