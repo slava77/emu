@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.cc,v 3.6 2007/03/14 20:43:03 gujh Exp $
+// $Id: DAQMBParser.cc,v 3.7 2007/03/19 13:36:56 geurts Exp $
 // $Log: DAQMBParser.cc,v $
+// Revision 3.7  2007/03/19 13:36:56  geurts
+// remove CFEB-specific parsing options. the parser will only deal with settings that apply to all CFEBs at once
+//
 // Revision 3.6  2007/03/14 20:43:03  gujh
 // Divide the Cable_delay into four parts
 //      ---Mar. 14, 2007    GU
@@ -22,37 +25,6 @@
 //
 // Revision 3.0  2006/07/20 21:15:48  geurts
 // *** empty log message ***
-//
-// Revision 2.9  2006/07/18 14:12:03  mey
-// Update
-//
-// Revision 2.8  2006/07/13 15:46:37  mey
-// New Parser strurture
-//
-// Revision 2.7  2006/06/23 13:40:26  mey
-// Fixed bug
-//
-// Revision 2.6  2006/06/20 13:37:46  mey
-// Udpate
-//
-// Revision 2.5  2006/05/19 15:13:32  mey
-// UPDate
-//
-// Revision 2.4  2006/04/06 22:23:08  mey
-// Update
-//
-// Revision 2.3  2006/03/10 15:55:28  mey
-// Update
-//
-// Revision 2.2  2005/09/13 14:46:40  mey
-// Get DMB crate id; and DCS
-//
-// Revision 2.1  2005/09/07 13:54:45  mey
-// Included new timing routines from Jianhui
-//
-// Revision 2.0  2005/04/12 08:07:05  geurts
-// *** empty log message ***
-//
 //
 //-----------------------------------------------------------------------
 #include "DAQMBParser.h"
@@ -117,9 +89,6 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * t
       daqmb_->SetCompThresh(value);
       for(int cfeb=0; cfeb<5; cfeb++) daqmb_->SetCompThresholdsCfeb(cfeb,value);
     }
-    //if(parser_.fillInt("feb_clock_delay", delay)){
-    //daqmb_->SetFebClockDelay(delay);
-    //}
     int mode;
     if(parser_.fillInt("comp_mode", mode)){
       daqmb_->SetCompMode(mode);
@@ -133,9 +102,6 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * t
       daqmb_->SetPreBlockEnd(delay);
       for(int cfeb=0; cfeb<5; cfeb++) daqmb_->SetPreBlockEndCfeb(cfeb,delay);
     }
-    //    if(parser_.fillInt("cable_delay", delay)){
-    //      daqmb_->SetCableDelay(delay);
-    //    }
     if (parser_.fillInt("cfeb_cable_delay", delay)) {
       daqmb_->SetCfebCableDelay(delay); }
     if (parser_.fillInt("tmb_lct_cable_delay", delay)) {
@@ -169,38 +135,25 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * t
 	    //daqmb_->SendOutput("CFEB");
 	    if ( number <5 ){
 	      CFEB cfeb(number);
-	      //
-	      //parser_.fillInt("comp_mode",daqmb_->comp_mode_cfeb_[number]);
-	      //
-	      int ivalue;
-	      if ( parser_.fillInt("comp_mode",ivalue)){
-		daqmb_->SetCompModeCfeb(number,ivalue);
-	      }
-	      //
-	      //parser_.fillInt("comp_timing", daqmb_->comp_timing_cfeb_[number]);
-	      //
-	      if ( parser_.fillInt("comp_timing",ivalue)){
-		daqmb_->SetCompTimingCfeb(number,ivalue);
-	      }
-	      //
-	      //parser_.fillFloat("comp_thresh", daqmb_->comp_thresh_cfeb_[number]);
-	      //
-	      int fvalue;
-	      if ( parser_.fillInt("comp_threshold",fvalue)){
-		daqmb_->SetCompThresholdsCfeb(number,fvalue);
-	      }
-	      //
-	      //parser_.fillInt("pre_block_end", daqmb_->pre_block_end_cfeb_[number]);
-	      //
-	      if ( parser_.fillInt("pre_block_end",ivalue)){
-		daqmb_->SetPreBlockEndCfeb(number,ivalue);
-	      }
-	      //parser_.fillInt("L1A_extra", daqmb_->L1A_extra_cfeb_[number]);
-	      //
-	      if ( parser_.fillInt("L1A_extra",ivalue)){
-		daqmb_->SetL1aExtraCfeb(number,ivalue);
-	      }
-	      //
+//fg explicitly prevend the parser from interpreting the following 5 options ...
+//	      int ivalue;
+//	      if ( parser_.fillInt("comp_mode",ivalue)){
+//		daqmb_->SetCompModeCfeb(number,ivalue);
+//	      }
+//	      if ( parser_.fillInt("comp_timing",ivalue)){
+//		daqmb_->SetCompTimingCfeb(number,ivalue);
+//	      }
+//	      int fvalue;
+//	      if ( parser_.fillInt("comp_threshold",fvalue)){
+//		daqmb_->SetCompThresholdsCfeb(number,fvalue);
+//	      }
+//	      if ( parser_.fillInt("pre_block_end",ivalue)){
+//		daqmb_->SetPreBlockEndCfeb(number,ivalue);
+//	      }
+//	      if ( parser_.fillInt("L1A_extra",ivalue)){
+//		daqmb_->SetL1aExtraCfeb(number,ivalue);
+//	      }
+//fg
 	      parser_.fillIntX("kill_chip0",kill_chip[0]);
 	      parser_.fillIntX("kill_chip1",kill_chip[1]);
 	      parser_.fillIntX("kill_chip2",kill_chip[2]);
