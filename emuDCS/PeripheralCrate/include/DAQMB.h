@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.14 2007/03/14 20:41:43 gujh Exp $
+// $Id: DAQMB.h,v 3.15 2007/03/19 13:35:09 geurts Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.15  2007/03/19 13:35:09  geurts
+// make the new cable_delay functions inline
+//
 // Revision 3.14  2007/03/14 20:41:43  gujh
 // Divide the cable_delay into four sections
 //       --- Mar. 14, 2007  GU
@@ -341,10 +344,10 @@ public:
   inline int GetPreBlockEnd(){return pre_block_end_ ;}
   //
   //  void SetCableDelay(int delay){cable_delay_ = delay;}
-  void SetCfebCableDelay(int delay){cable_delay_=(cable_delay_&0xfe)+(delay&0x01);}
-  void SetTmbLctCableDelay(int delay){cable_delay_=(cable_delay_&0xf1)+((delay<<1)&0x0e);}
-  void SetCfebDavCableDelay(int delay){cable_delay_=(cable_delay_&0xcf)+((delay<<4)&0x30);}
-  void SetAlctDavCableDelay(int delay){cable_delay_=(cable_delay_&0x3f)+((delay<<6)&0xc0);}
+  inline void SetCfebCableDelay(int delay){cable_delay_=(cable_delay_&0xfe)+(delay&0x01);}
+  inline void SetTmbLctCableDelay(int delay){cable_delay_=(cable_delay_&0xf1)+((delay<<1)&0x0e);}
+  inline void SetCfebDavCableDelay(int delay){cable_delay_=(cable_delay_&0xcf)+((delay<<4)&0x30);}
+  inline void SetAlctDavCableDelay(int delay){cable_delay_=(cable_delay_&0x3f)+((delay<<6)&0xc0);}
 
   inline int GetCableDelay(){return cable_delay_;}
   //
