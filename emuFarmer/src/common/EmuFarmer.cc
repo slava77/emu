@@ -9,6 +9,7 @@
 #include "cgicc/HTMLClasses.h"
 
 #include "toolbox/Runtime.h"
+#include "toolbox/regex.h"
 #include <xercesc/util/XMLURL.hpp>
 #include "xcept/tools.h"
 #include "xoap/DOMParser.h"
@@ -87,6 +88,7 @@ void EmuFarmer::exportParams(){
   s->fireItemAvailable( "ltcApplicationNames", &ltcApplicationNames_ );
 
   s->fireItemAvailable( "commandToStartXDAQ", &commandToStartXDAQ_ );
+  s->fireItemAvailable( "commandToReloadDrivers", &commandToReloadDrivers_ );
 }
 
 void EmuFarmer::mapUserNames(){
@@ -234,6 +236,8 @@ string EmuFarmer::processForm(xgi::Input *in, xgi::Output *out)
       } else if ( fe->getValue() == "stop and restart" ){
 	actOnEmuProcesses( "stop" , fev );
 	actOnEmuProcesses( "start", fev );
+      } else if ( fe->getValue() == "reload DDU drivers" ){
+	reloadDDUDrivers( fev );
       } else if ( fe->getValue() == "create config" ){
 	message = createConfigFile();
       } else needRedirecting = false;
@@ -420,7 +424,7 @@ void EmuFarmer::actionButtons(xgi::Output *out){
   *out << "  <td align=\"center\">"                                  << endl;
   *out << "<input"                                                   << endl;
   *out << " onclick=\"validateSelection(event)\""                    << endl;
-  *out << " class=\"startButton\""                                   << endl;
+  *out << " class=\"button start\""                                  << endl;
   *out << " type=\"button\""                                         << endl;
   *out << " name=\"action\""                                         << endl;
   *out << " title=\"Hatch the selected Emu processes.\""             << endl;
@@ -431,7 +435,7 @@ void EmuFarmer::actionButtons(xgi::Output *out){
   *out << "  <td align=\"center\">"                                  << endl;
   *out << "<input"                                                   << endl;
   *out << " onclick=\"validateSelection(event)\""                    << endl;
-  *out << " class=\"stopButton\""                                    << endl;
+  *out << " class=\"button stop\""                                   << endl;
   *out << " type=\"button\""                                         << endl;
   *out << " name=\"action\""                                         << endl;
   *out << " title=\"Cull the selected Emu processes.\""              << endl;
@@ -442,7 +446,7 @@ void EmuFarmer::actionButtons(xgi::Output *out){
   *out << "  <td align=\"center\">"                                  << endl;
   *out << "<input"                                                   << endl;
   *out << " onclick=\"validateSelection(event)\""                    << endl;
-  *out << " class=\"restartButton\""                                 << endl;
+  *out << " class=\"button restart\""                                << endl;
   *out << " type=\"button\""                                         << endl;
   *out << " name=\"action\""                                         << endl;
   *out << " title=\"Cull and then hatch the selected Emu processes.\""<< endl;
@@ -574,7 +578,7 @@ void EmuFarmer::collectEmuProcesses(){
 	}
       }// Loop over Application's attributes
 
-      // Loop over Application's 'properties' list looking for 'hardwareMnemonic'
+      // Loop over Application's 'properties' list looking for 'hardwareMnemonic' and 'inputDeviceName'
       DOMNodeList* appsChildren = app->item(j)->getChildNodes();
       for ( unsigned int k=0; k<appsChildren->getLength(); ++k ){
 	if ( xoap::XMLCh2String( appsChildren->item(k)->getNodeName() ) == "properties" ){
@@ -582,7 +586,10 @@ void EmuFarmer::collectEmuProcesses(){
 	  for ( unsigned int l=0; l<properties->getLength(); ++l ){
 	    if ( xoap::XMLCh2String( properties->item(l)->getNodeName() ) == "hardwareMnemonic" ){
 	      appClass += "[" + xoap::XMLCh2String( properties->item(l)->getTextContent() ) + "]";
-	      break;
+	    }
+	    if ( xoap::XMLCh2String( properties->item(l)->getNodeName() ) == "inputDeviceName" ){
+	      emuProcessDescriptors_[ epd.getNormalizedURL() ]
+		.setDeviceName( xoap::XMLCh2String( properties->item(l)->getTextContent() ) );
 	    }
 	  }
 	  break;
@@ -626,7 +633,7 @@ void EmuFarmer::collectEmuProcesses(){
     }
 
   LOG4CPLUS_DEBUG( logger_, "Process groups:\n" + ss.str() );
-
+  cerr << ss.str() << endl;
 }
 
 void EmuFarmer::assignJobControlProcesses(){
@@ -710,7 +717,20 @@ void EmuFarmer::processGroupTable(const string& groupName, xgi::Output *out){
   *out << "   <table class=\"processes\" name=\"processTable\" id=\""
        << groupName << "\">" << endl;
   *out << "     <tr>                                                                                       " << endl;
-  *out << "       <th class=\"title\" colspan=\"6\">" << groupName << " processes</th>                     " << endl;
+  *out << "       <th class=\"processes title\" colspan=\"6\">" << groupName << " processes</th>          " << endl;
+  if ( groupName == "DAQ" ){
+  *out << "     </tr><tr>                                                                                  " << endl;
+    *out << "       <td  class=\"processes\"  colspan=\"6\" width=\"100%\">"                                 << endl;
+    *out << "          <input"                                                                               << endl;
+    *out << "           class=\"config\""                                                                    << endl;
+    *out << "           type=\"button\""                                                                     << endl;
+    *out << "           name=\"drivers\""                                                                    << endl;
+    *out << "           title=\"(Re)load the DDU drivers for the selected DAQ processes.\""                  << endl;
+    *out << "           value=\"reload DDU drivers\""                                                        << endl;
+    *out << "           onclick=\"validateDriverReload(event)\""                                             << endl;
+    *out << "          />"                                                                                   << endl;
+    *out << "       </td>"                                                                                   << endl;
+  }
   *out << "     </tr>                                                                                      " << endl;
   *out << "     <tr>                                                                                       " << endl;
   *out << "       <th class=\"processes\">host</th>                                                        " << endl;
@@ -740,13 +760,13 @@ void EmuFarmer::processGroupTable(const string& groupName, xgi::Output *out){
 	epd != emuProcessDescriptors_.end(); ++epd )
     { 
       if ( emuGroups_[epd->first] != groupName ) continue;
-      *out << "     <tr>                                                                                   " << endl;
+      *out << "     <tr>                                                                                      " << endl;
       *out << "       <td class=\"processes\"><a href=\"" 
 	   << epd->second.getJobControlNormalizedURL() << "\" target=\"_blank\">"
-	   << epd->second.getHost() << "</a></td>"                                                                  << endl;
+	   << epd->second.getHost() << "</a></td>"                                                              << endl;
       *out << "       <td class=\"processes\"><a href=\"" 
 	   << epd->second.getNormalizedURL() << "\" target=\"_blank\">"
-	   << epd->second.getPort() << "</a></td>"                                                                  << endl;
+	   << epd->second.getPort() << "</a></td>"                                                              << endl;
       *out << "       <td class=\"processes\"><span style=\"display:none;\" id=\"" << groupName << "_apps\">";
       set< pair<string, int> > apps = epd->second.getApplications();
       for ( set< pair<string, int> >::iterator appi = apps.begin(); appi != apps.end(); ++appi ){
@@ -765,12 +785,12 @@ void EmuFarmer::processGroupTable(const string& groupName, xgi::Output *out){
       *out << "         <input id=\"" << groupName << "\"                                                      " << endl;
       *out << "                type=\"checkbox\"                                                               " << endl;
       *out << "                title=\"check to select for killing/(re)starting\"                              " << endl;
-      if ( epd->second.isSelected() ) *out << "checked=\"checked\"                                              " << endl;
+      if ( epd->second.isSelected() ) *out << "checked=\"checked\"                                             " << endl;
       *out << "                onclick=\"changeRowColor()\"                                                    " << endl;
       *out << "                value=\"on\"                                                                    " << endl;
       *out << "                name=\"" 
 	   << epd->second.getNormalizedHost() << ":" 
-	   << epd->second.getPort() << "\"/></td>"                                                                << endl;
+	   << epd->second.getPort() << "\"/></td>"                                                               << endl;
       *out << "     </tr>                                                                                      " << endl;
     }
   *out << "   </table>                                                                                         " << endl;
@@ -787,14 +807,13 @@ void EmuFarmer::actOnEmuProcesses( const string& action, const vector<cgicc::For
     epd->second.setSelected( false );
 
   // Get from the query string the processes selected by the user and act on them
-  string logMessage("");
   for ( fe=fev.begin(); fe!=fev.end(); ++fe ){
     // Identify processes by the colon between host and port
     string::size_type colonPosition = fe->getName().find( ':', 0 );
     if ( colonPosition != string::npos && fe->getValue() == "on" ){
       if ( fe->getName().size() < 7 ){
-	LOG4CPLUS_ERROR( logger_, "Suspicious element in HTTP query string: " 
-			 + fe->getName() + " cannot possibly be a valid host:port." );
+	LOG4CPLUS_WARN( logger_, "Suspicious element in HTTP query string: " 
+			+ fe->getName() + " cannot possibly be a valid host:port." );
       }
       // Remember it's been selected
       const string url = "http://"+fe->getName();
@@ -828,21 +847,22 @@ void EmuFarmer::actOnEmuProcess( const string& action, const string& url )
 
   // create SOAP message
   xoap::MessageReference m;
-  if      ( action == "stop"  ) m = createSOAPCommandToCull( url );
-  else if ( action == "start" ) m = createSOAPCommandToHatch( url );
+  if      ( action == "stop"   ) m = createSOAPCommandToCull( url );
+  else if ( action == "start"  ) m = createSOAPCommandToHatch( url );
+  else if ( action == "reload" ) m = createSOAPCommandToReload( url );
   else{
     LOG4CPLUS_ERROR( logger_, "Unknown action: " + action );
     return;
   }
   // bail out if message is empty
-  stringstream log;
   if ( ! m->getSOAPPart().getEnvelope().getBody().getDOM()->hasChildNodes() ) return;
 
-  if ( !m.isNull() ) {
-    m->writeTo( log );
-    LOG4CPLUS_INFO( logger_, "Sending message:\n" + log.str() );
-    log.clear();
-  }
+// chainsaw doesn't display XML-formatted text
+//   stringstream log;
+//   if ( !m.isNull() ) {
+//     m->writeTo( log );
+//     LOG4CPLUS_INFO( logger_, "Sending message: " + log.str() );
+//   }
 
   // send SOAP message
   xoap::MessageReference reply;
@@ -851,10 +871,13 @@ void EmuFarmer::actOnEmuProcess( const string& action, const string& url )
   } catch (xdaq::exception::Exception e) {
     LOG4CPLUS_ERROR( logger_, "Failed to " + action + " " + url
 		     + ": " + xcept::stdformat_exception_history(e) );      
+    return;
   }
 
-  reply->writeTo( log );
-  LOG4CPLUS_INFO( logger_, "Received message:\n" + log.str() );
+// chainsaw doesn't display XML-formatted text
+//   log.clear();
+//   reply->writeTo( log );
+//   LOG4CPLUS_INFO( logger_, "Received message:\n" + log.str() );
 
   // check for errors in reply
   xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
@@ -905,6 +928,71 @@ void EmuFarmer::actOnEmuProcess( const string& action, const string& url )
 
 }
 
+void EmuFarmer::reloadDDUDrivers( const vector<cgicc::FormEntry>& fev )
+  throw (xdaq::exception::Exception){
+  std::vector<cgicc::FormEntry>::const_iterator fe;
+
+  // Let's first forget any previous selection
+  for ( map< string, EmuProcessDescriptor >::iterator epd = emuProcessDescriptors_.begin();
+	epd != emuProcessDescriptors_.end(); ++epd )
+    epd->second.setSelected( false );
+
+  // Get from the query string the processes selected by the user and collect the different
+  // hosts from them into a map. (One command will reload all drivers on a given host.)
+  string host;
+  map<string,string> urls; // hostMachine->URL
+  for ( fe=fev.begin(); fe!=fev.end(); ++fe ){
+    // Identify processes by the colon between host and port
+    string::size_type colonPosition = fe->getName().find( ':', 0 );
+    if ( colonPosition != string::npos && fe->getValue() == "on" ){
+      if ( fe->getName().size() < 7 ){
+	LOG4CPLUS_WARN( logger_, "Suspicious element in HTTP query string: " 
+			+ fe->getName() + " cannot possibly be a valid host:port." );
+      }
+      // Remember it's been selected
+      const string url = "http://"+fe->getName();
+      emuProcessDescriptors_[url].setSelected();
+
+      // Chop off port number
+      host = fe->getName().substr( 0, colonPosition );
+
+      // Get host machine name, stripped of any domain name.
+      bool isIPNumber = false;
+      try{
+	isIPNumber = toolbox::regx_match( host, "^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$" );
+      }catch( std::bad_alloc e ){
+	LOG4CPLUS_WARN( logger_, "Failed to check whether host name " << 
+			host << " is a resolved IP number: " << e.what() );
+      }catch( std::invalid_argument e ){
+	LOG4CPLUS_WARN( logger_, "Failed to check whether host name " << 
+			host << " is a resolved IP number: " << e.what() );
+      }
+      if ( !isIPNumber ){
+	// strip host of any domain name
+	string::size_type dotPosition = host.find( '.', 0 );
+	if ( dotPosition != string::npos ) host = host.substr( 0, dotPosition );
+      }
+      urls[host] = url;
+    }
+  }
+
+  // Loop over urls to reload the drivers on them
+  for ( map<string,string>::iterator u = urls.begin(); u != urls.end(); ++u ){
+    // Reload the driver
+    try
+      {
+	actOnEmuProcess( "reload", u->second );
+      }
+    catch(xdaq::exception::Exception e)
+      {
+	// Let's not rethrow here, but rather let it go on to do the rest.
+	LOG4CPLUS_ERROR( logger_, 
+			 "Failed to reload DDU driver for " + fe->getName() + ": "
+			 + xcept::stdformat_exception_history(e));
+      }
+  }
+}
+
 string EmuFarmer::printNodeList( DOMNodeList *List ){
   string printout("");
   if ( !List ) return printout;
@@ -951,13 +1039,6 @@ xoap::MessageReference EmuFarmer::createSOAPCommandToHatch( const string& url ){
   name = envelope.createName("user","","");
   bodyelement.addAttribute( name, user );
 
-//   name = envelope.createName("EnvironmentVariable", "xdaq", "urn:xdaq-soap:3.0");
-//   xoap::SOAPElement childelement = bodyelement.addChildElement( name );
-//   string envVarName  = "NAME";
-//   string envVarValue = "value";
-//   name = envelope.createName( envVarName, "", "" );
-//   childelement.addAttribute( name, envVarValue );
-
   return message;
 }
 
@@ -983,6 +1064,49 @@ xoap::MessageReference EmuFarmer::createSOAPCommandToCull( const string& url ){
   name = envelope.createName("jid", "", "");
   bodyelement.addAttribute( name, jobId.str() );
 
+  return message;
+}
+
+xoap::MessageReference EmuFarmer::createSOAPCommandToReload( const string& url ){
+  // Creates a SOAP command to be sent to JobControl to reload the DDU driver for this Emu process.
+
+  xoap::MessageReference message = xoap::createMessage();
+
+  // Find which user is to run this process
+  string group = emuGroups_[url];
+  if ( group.size() == 0 ){
+    LOG4CPLUS_ERROR( logger_, url + " belongs to no group." );
+    return message;
+  }
+  xdata::String* User = users_[group];
+  if ( User == 0 ){
+    LOG4CPLUS_ERROR( logger_, url + "'s group (" + group + ") has no user associated to it.");
+    return message;
+  }
+  
+  // Contruct SOAP
+  xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+  xoap::SOAPName name = envelope.createName("executeCommand", "xdaq", "urn:xdaq-soap:3.0");
+  xoap::SOAPBodyElement bodyelement = envelope.getBody().addBodyElement(name);
+  string user     = User->toString();
+  string execPath = string("/home/") + user + string("/") + commandToReloadDrivers_.toString();
+  stringstream argv;
+//   argv << " " << emuProcessDescriptors_[url].getDeviceName();
+  name = envelope.createName("execPath","","");
+  bodyelement.addAttribute( name, execPath );
+//   name = envelope.createName("argv","","");
+//   bodyelement.addAttribute( name, argv.str() );
+  name = envelope.createName("user","","");
+  bodyelement.addAttribute( name, user );
+
+  name = envelope.createName("EnvironmentVariable", "", "");
+  xoap::SOAPElement childelement = bodyelement.addChildElement( name );
+  string envVarName  = "HOME";
+  string envVarValue = string("/home/") + user;
+  name = envelope.createName( envVarName, "", "" );
+  childelement.addAttribute( name, envVarValue );
+
+//   message->writeTo(cerr);
   return message;
 }
 

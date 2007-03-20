@@ -29,9 +29,9 @@ tr.processes{
 }
 td.processes{
     color: #e8dcb1;
-    background-color: #554d30;
+    background-color: #8a7f58;
 }
-th.title, th.processes{
+th.processes{
     background-color: #8a7f58;
     color: #201b0b;
     text-align: center;
@@ -48,32 +48,31 @@ th.title{
     color: #201b0b;
 }
 
-button, input.config {
+input.config {
     float: right;
     background-color: transparent;
     border-color: #e8dcb1;
     color: #e8dcb1;
 }
 
-input.startButton {
+input.button{
     font-weight:bold;
     font-size:x-large;
+}
+
+input.start {
     color:#ffffff; 
     background-color:#889d17;
     border-color:#889d17;
 }
 
-input.stopButton {
-    font-weight:bold;
-    font-size:x-large;
+input.stop {
     color:#ffffff;
     background-color:#9d1717;
     border-color:#9d1717; 
 }
 
-input.restartButton {
-    font-weight:bold;
-    font-size:x-large;
+input.restart {
     color:#9d1717;
     background-color:#889d17;
     border-color:#889d17;

@@ -20,9 +20,8 @@ function changeRowColor(){
 	    for (j=0; j<tds.length; j++){
 		if ( tds.item(j).nodeName == 'TD' ){
 		    var styleValue='';
-		    if ( ! inputs.item(i).checked ){
-// 			styleValue='background-color:transparent';
-			styleValue='background-color:#8a7f58';
+		    if ( inputs.item(i).checked ){
+			styleValue='background-color:#554d30';
 		    }
 		    tds.item(j).setAttribute('style',styleValue);
 		}
@@ -86,6 +85,37 @@ function validateSelection(e){
     message += '.';
     if ( totalCount == 0 ){
 	alert('You have not selected any process.');
+	return;
+    }
+    // prompt user to confirm
+    if ( confirm( message ) )
+    {
+	// set the value of the action button to that of the button that was clicked on
+	document.getElementById('action').value=e.target.getAttribute('value');
+	e.target.form.submit();
+    }
+}
+
+function validateDriverReload(e){
+    var counter = 0;
+    // count checked process selector checkboxes in the DAQ group
+    var inputs=document.getElementsByTagName("input");
+    for (i=0; i<inputs.length; i++){
+	if ( inputs.item(i).id=='DAQ' &&
+	     inputs.item(i).getAttribute('type')=='checkbox' &&
+	     inputs.item(i).name.indexOf( ':', 0 )>0 &&
+	     inputs.item(i).checked ){
+	    counter++;
+	}
+    }
+    // prepare message
+    if ( counter > 0 ){
+	var message='You are about to reload the drivers for '+ counter + " DAQ process";
+	if ( counter > 1 ) message += 'es';
+	message += '.';
+    }
+    else{
+	alert('You have not selected any process for which to reload the driver.');
 	return;
     }
     // prompt user to confirm

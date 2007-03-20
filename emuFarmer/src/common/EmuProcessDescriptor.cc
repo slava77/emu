@@ -6,6 +6,7 @@ EmuProcessDescriptor::EmuProcessDescriptor() :
   URL_(""),
   normalizedURL_(""),
   jobControlNormalizedURL_(""),
+  deviceName_(""),
   jobControlAppDescriptor_(NULL),
   selected_( false ), 
   jobId_( -1 ),    
@@ -17,6 +18,7 @@ EmuProcessDescriptor::EmuProcessDescriptor( const string& url )
   URL_(""),
   normalizedURL_(""),
   jobControlNormalizedURL_(""),
+  deviceName_(""),
   jobControlAppDescriptor_(NULL),
   selected_( false ), 
   jobId_( -1 ),    
@@ -48,6 +50,7 @@ EmuProcessDescriptor& EmuProcessDescriptor::operator=( const EmuProcessDescripto
   URL_                     = ep.URL_;
   normalizedURL_           = ep.normalizedURL_;
   jobControlNormalizedURL_ = ep.jobControlNormalizedURL_;
+  deviceName_              = ep.deviceName_;
   jobControlAppDescriptor_ = ep.jobControlAppDescriptor_;
   selected_                = ep.selected_;
   jobId_                   = ep.jobId_;
@@ -61,6 +64,7 @@ void EmuProcessDescriptor::print( ostream& os ) const {
      << "   normalized URL: " << normalizedURL_
      << "   selected: " << (selected_?"yes":"no")
      << "   job id: " << jobId_
+     << "   device: " << deviceName_
      << "   apps: ";
   for ( set< pair<string, int> >::iterator a = applications_.begin();
 	a != applications_.end();
