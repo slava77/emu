@@ -34,6 +34,8 @@ public:
     jobControlAppDescriptor_ = jcad;
   }
   string getJobControlNormalizedURL() const { return jobControlNormalizedURL_; }
+  void setDeviceName( const string& name ){ deviceName_ = name; }
+  string getDeviceName(){ return deviceName_; }
   xdaq::ApplicationDescriptor* getJobControlAppDescriptor() const { return jobControlAppDescriptor_; }
   void setSelected( bool s=true ){ selected_ = s; }
   bool isSelected() const { return selected_; }
@@ -61,6 +63,10 @@ private:
    */
   string jobControlNormalizedURL_;
   /**
+   * the device name for the DDU driver
+   */
+  string deviceName_;
+  /**
    * the ApplicationDescriptor of the JobControl app in charge of this process
    */
   xdaq::ApplicationDescriptor* jobControlAppDescriptor_;
@@ -68,6 +74,7 @@ private:
    * whether or not this process is selected for action on the web page
    */
   bool   selected_;
+
   int    jobId_;
   time_t startTime_;
   set< pair<string, int> > applications_;

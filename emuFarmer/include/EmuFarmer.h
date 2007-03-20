@@ -155,6 +155,11 @@ private:
    */
   xdata::String commandToStartXDAQ_;
 
+  /**
+   * 
+   */
+  xdata::String commandToReloadDrivers_;
+
   ////////////////////////////////////////////////////////
   // End of exported parameters for configuration       //
   ////////////////////////////////////////////////////////
@@ -208,8 +213,11 @@ private:
     throw (xdaq::exception::Exception);
   void actOnEmuProcess( const string& action, const string& url )
     throw (xdaq::exception::Exception);
+  void reloadDDUDrivers( const vector<cgicc::FormEntry>& fev )
+    throw (xdaq::exception::Exception);
   xoap::MessageReference createSOAPCommandToHatch( const string& url );
   xoap::MessageReference createSOAPCommandToCull( const string& url );
+  xoap::MessageReference createSOAPCommandToReload( const string& url );
   DOMNode* findNode( DOMNodeList *nodeList, const string& nodeLocalName )
     throw (xdaq::exception::Exception);
   void webRedirect(xgi::Input *in, xgi::Output *out)
