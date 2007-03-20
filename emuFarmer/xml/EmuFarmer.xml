@@ -17,6 +17,7 @@
 	<mergedConfigDirURL xsi:type="xsd:string">http://emudaq/cscdaq/config</mergedConfigDirURL>
 
 	<commandToStartXDAQ xsi:type="xsd:string">xdaq.sh</commandToStartXDAQ>
+	<commandToReloadDrivers xsi:type="xsd:string">bin/loadGbit</commandToReloadDrivers>
 
         <daqUser xsi:type="xsd:string">cscdaq</daqUser>
         <dqmUser xsi:type="xsd:string">cscdqm</dqmUser>
@@ -40,7 +41,7 @@
           <item xsi:type="xsd:string" soapenc:position="[1]">EmuDisplayClient</item>
         </dqmApplicationNames>
         <fedApplicationNames xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[2]">
-          <item xsi:type="xsd:string" soapenc:position="[0]">EmuFEDCrate</item>
+          <item xsi:type="xsd:string" soapenc:position="[0]">EmuFCrateSOAP</item>
           <item xsi:type="xsd:string" soapenc:position="[1]">EmuFCrateHyperDAQ</item>
         </fedApplicationNames>
         <tfApplicationNames xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[2]">
