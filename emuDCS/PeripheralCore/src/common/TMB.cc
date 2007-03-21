@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.29 2007/03/14 08:59:03 rakness Exp $
+// $Id: TMB.cc,v 3.30 2007/03/21 12:56:51 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.30  2007/03/21 12:56:51  rakness
+// update labels of TMB counters
+//
 // Revision 3.29  2007/03/14 08:59:03  rakness
 // make parser dumb
 //
@@ -1062,23 +1065,23 @@ std::string TMB::CounterName(int counter){
   std::string name="Not defined";;
   if( counter == 0 ) name = "ALCT: CRC error                                         ";
   if( counter == 1 ) name = "ALCT: LCT sent to TMB                                   ";
-  if( counter == 2 ) name = "ALCT: LCT error (alct debug firmware)                   ";
+  if( counter == 2 ) name = "ALCT: LCT matching error (alct onboard debug firmware)  ";
   if( counter == 3 ) name = "ALCT: L1A readout                                       ";
   if( counter == 4 ) name = "CLCT: Pretrigger                                        ";
   if( counter == 5 ) name = "CLCT: Pretrig but no wbuf available                     ";
   if( counter == 6 ) name = "CLCT: Invalid pattern after drift                       ";
   if( counter == 7 ) name = "CLCT: TMB matching rejected event                       ";
-  if( counter == 8 ) name = "TMB:  CLCT or  ALCT or both triggered                   ";
-  if( counter == 9 ) name = "TMB:  CLCT or  ALCT or both triggered xmit MPC          ";
+  if( counter == 8 ) name = "TMB:  CLCT,ALCT,or both trigger                         ";
+  if( counter == 9 ) name = "TMB:  CLCT,ALCT,or both trigger, trig allowed, xmit MPC ";
   if( counter == 10) name = "TMB:  CLCT and ALCT matched in time                     ";
   if( counter == 11) name = "TMB:  ALCT-only trigger                                 ";
   if( counter == 12) name = "TMB:  CLCT-only trigger                                 ";
-  if( counter == 13) name = "TMB:  No trig pulse response                            ";
-  if( counter == 14) name = "TMB:  No MPC transmission                               ";
-  if( counter == 15) name = "TMB:  No MPC response FF pulse                          ";
+  if( counter == 13) name = "TMB:  No trig pulse response (TMB internal logic check) ";
+  if( counter == 14) name = "TMB:  No MPC transmission (TMB internal logic check)    ";
+  if( counter == 15) name = "TMB:  No MPC response FF pulse (TMB internal logic ck)  ";
   if( counter == 16) name = "TMB:  MPC accepted LCT0                                 ";
   if( counter == 17) name = "TMB:  MPC accepted LCT1                                 ";
-  if( counter == 18) name = "L1A:  BUGS, IGNORE (should be L1A received)             ";
+  if( counter == 18) name = "L1A:  L1A received                                      ";
   if( counter == 19) name = "L1A:  TMB triggered, TMB in L1A window                  ";
   if( counter == 20) name = "L1A:  L1A received, no TMB in window                    ";
   if( counter == 21) name = "L1A:  TMB triggered, no L1A received                    ";
