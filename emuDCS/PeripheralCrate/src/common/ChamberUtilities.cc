@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.11 2007/03/14 14:24:50 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.12 2007/03/22 18:34:45 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.12  2007/03/22 18:34:45  rakness
+// weighted average in ALCT-CLCT match, and TMB/ALCT-L1A scans
+//
 // Revision 3.11  2007/03/14 14:24:50  rakness
 // write sync values to summary file
 //
@@ -633,7 +636,7 @@ void ChamberUtilities::ALCTScanDelays(){
       //      int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6);
       //      int ChamberSection = alct->GetWGNumber()/6;
       int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetNumberOfChannelsInAlct())/6);
-      int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
+      //      int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
       //
       cout << endl ;
       cout << "Injecting at " << dec << keyWG << endl;
@@ -719,13 +722,13 @@ void ChamberUtilities::ALCTScanDelays(){
 void ChamberUtilities::ALCTTiming(){
   //
   int maxTimeBins(13);
-  int ProjectionX[13*2], ProjectionY[13*2];
+  //  int ProjectionX[13*2], ProjectionY[13*2];
   int selected[13][13];
   int selected2[13][13];
   int selected3[13][13];
   int ALCTWordCount[13][13];
   int rxtx_timing[13][13];
-  int ALCTWordCountWrap[13*2][13*2];
+  //  int ALCTWordCountWrap[13*2][13*2];
   int ALCTConfDone[13][13];
   int j,k;
   int alct0_quality = 0;
@@ -764,7 +767,7 @@ void ChamberUtilities::ALCTTiming(){
 	//
 	int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetNumberOfChannelsInAlct())/6/4);
 	int keyWG2 = (alct->GetNumberOfChannelsInAlct())/6-keyWG;
-	int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
+	//	int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
 	//
 	(*MyOutput_) << std::endl;
 	(*MyOutput_) << "*******************" << std::endl;
@@ -1119,7 +1122,7 @@ int ChamberUtilities::FindBestL1aAlct(){
     //    int keyWG          = int((rand()/(RAND_MAX+0.01))*(alct->GetWGNumber())/6./2.);
     //    int ChamberSection = alct->GetWGNumber()/6;
     int keyWG          = int((rand()/(RAND_MAX+0.01))*(alct->GetNumberOfChannelsInAlct())/6./2.);
-    int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
+    //    int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
     //
     printf("\n");
     printf("-----> Injecting at %d \n",keyWG);
@@ -1180,9 +1183,9 @@ int ChamberUtilities::FindBestL1aAlct(){
   //
   DelayBin /= (DelayBinN+0.0001) ;
   //
-  BestALCTL1aDelay_ = DelayBin ;
+  BestALCTL1aDelay_ = (int) (DelayBin+0.5) ;
   //
-  return int(DelayBin);
+  return BestALCTL1aDelay_;
   //
 }
 //
@@ -1191,49 +1194,65 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
   int WordCount[200];
   for (int i=0; i<200; i++) WordCount[i] = 0;
   //
+  int ALCT_l1a_accepted[256] = {};
+  //
   for (int l1a=minlimit; l1a<maxlimit+1; l1a++) {
     //
     alct->SetL1aDelay(l1a);
     alct->WriteConfigurationReg();
-    alct->ReadConfigurationReg();
-    alct->PrintConfigurationReg();
+    //    alct->ReadConfigurationReg();
+    //    alct->PrintConfigurationReg();
     thisTMB->ResetCounters();
     thisTMB->ResetALCTRAMAddress();
-    ::sleep(3);
+    ::sleep(5);                     //collect statistics
     thisTMB->GetCounters();
     //
     cout << endl;
-    printf("L1a ALCT delay %d : \n",l1a);
+    (*MyOutput_) << "L1a ALCT delay " << std::dec << l1a << std::endl;
     //
     thisTMB->PrintCounters(3);
     thisDMB->PrintCounters();
+    //
+    ALCT_l1a_accepted[l1a] = thisTMB->GetCounter(3);
+    //
     thisTMB->DecodeALCT();
     WordCount[l1a] = thisTMB->GetALCTWordCount();
-    if(thisTMB->GetALCTWordCount()==0 and (l1a>0) ) WordCount[l1a-1]=0;
+    if(thisTMB->GetALCTWordCount()==0 and (l1a>0) ) WordCount[l1a-1]=0;  //this makes no sense
     printf(" WordCount %d \n",thisTMB->GetALCTWordCount());
     //
   }
   float DelayBin  = 0;
-  int   DelayBinN = 0;
+  //  int   DelayBinN = 0;
+  float DelayBinDenom = 0;
   //
-  for (int i=maxlimit; i>minlimit; i--){
+  for (int i=minlimit; i<maxlimit+1; i++){
+    (*MyOutput_) << "alct_l1a_delay " << std::dec << std::setw(5) << i << ":" 
+		 << std::setw(10) << ALCT_l1a_accepted[i] << std::endl;
     //
-    if ( WordCount[i]>0 ) {
-      DelayBin  += i ;
-      DelayBinN ++;
-    }
+    //    if ( WordCount[i]>0 ) {
+      DelayBin       += ALCT_l1a_accepted[i] * ( (float) i );
+      DelayBinDenom  += ALCT_l1a_accepted[i] ;
+      //      DelayBinN ++;
+      //    }
     //
   }
   //
-  printf(" DelayBin=%f DelaybinN=%d \n",DelayBin,DelayBinN);
+  //  printf(" DelayBin=%f DelaybinN=%d \n",DelayBin,DelayBinN);
   //
-  DelayBin /= (DelayBinN+0.0001) ;
+  //  DelayBin /= (DelayBinN+0.0001) ;
+  if (DelayBin > 100.) {                //try to prevent all 0's from giving a false value
+    DelayBin /= DelayBinDenom ;
+  } else {
+    DelayBin = -999;
+  }
   //
   printf("In.Best L1a ALCT delay %f \n",DelayBin);
   //
-  ALCTL1aDelay_ = DelayBin;
+  ALCTL1aDelay_ = (int) (DelayBin+0.5);
   //
-  return int(DelayBin);
+  (*MyOutput_) << " Best value of alct_l1a_delay = " << ALCTL1aDelay_ << std::endl;
+  //
+  return ALCTL1aDelay_;
   //
 }
 //
@@ -1273,7 +1292,7 @@ void ChamberUtilities::PulseAllWires(){
 //
 void ChamberUtilities::PulseTestStrips(int delay){
   //
-  int slot = thisTMB->slot();
+  //  int slot = thisTMB->slot();
   //
   if ( alct ) {
     //
@@ -1491,16 +1510,16 @@ int ChamberUtilities::TMBL1aTiming(int enableInternalL1a){
       RightTimeBin += delay ;
       DataCounter++ ;
     }
-    printf("delay = %d wordcount = %d TmbDavScope %d wordcount/nmuons %f \n",delay,wordcounts[delay],TmbDavScope[delay],wordcounts[delay]/(nmuons));
+    //printf("delay = %d wordcount = %d TmbDavScope %d wordcount/nmuons %f \n",delay,wordcounts[delay],TmbDavScope[delay],wordcounts[delay]/(nmuons));
   }
   //
   RightTimeBin /= float(DataCounter) ;
   //
   printf("Right L1a delay setting is %f \n",RightTimeBin);
   //
-  TMBL1aTiming_ = RightTimeBin;
+  TMBL1aTiming_ = (int) (RightTimeBin+0.5);
   //
-  return int(RightTimeBin) ;
+  return TMBL1aTiming_; ;
   //
 }
 //
@@ -1859,6 +1878,7 @@ int ChamberUtilities::FindWinner(int npulses=10){
   //
   MPCdelay_ = (int)(MpcDelay + 0.5);
   //
+  return MPCdelay_;
 }
 //
 int ChamberUtilities::FindALCTvpf(){
@@ -1867,14 +1887,13 @@ int ChamberUtilities::FindALCTvpf(){
   // Not really necessary:
   // thisTMB->alct_match_window_size_ = 3;
   //
-  float RightTimeBin = 0;
-  int   DataCounter  = 0;
+  const int MaxTimeBin   = 10;
   //
-  int MaxTimeBin   = 10;
+  int alct_in_window[MaxTimeBin] = {};
   //
   for (int i = 0; i < MaxTimeBin; i++){
     //
-    cout << endl << "ALCT_vpf_delay=" << i << endl;
+    cout << "ALCT_vpf_delay=" << i << endl;
     //
     thisTMB->alct_vpf_delay(i);    // loop over this
     //thisTMB->trgmode(1);         // 
@@ -1890,22 +1909,37 @@ int ChamberUtilities::FindALCTvpf(){
     thisTMB->PrintCounters(8);
     thisTMB->PrintCounters(10);
     //
-    if ( thisTMB->GetCounter(10) > 0 ) {
-      RightTimeBin += i ;
-      DataCounter++;
-    }
+    alct_in_window[i] = thisTMB->GetCounter(10);
+  }
+  //
+  float RightTimeBin      = 0;
+  float RightTimeBinDenom = 0;
+  //
+  for (int i = 0; i < MaxTimeBin; i++){
+    //
+    (*MyOutput_) << "match_trig_alct_delay " << std::dec << std::setw(5) << i
+		 << " : " << std::setw(10) << alct_in_window[i] << std::endl;
+    //
+    RightTimeBin      += ((float) alct_in_window[i]) * ((float) i) ;
+    RightTimeBinDenom += ((float) alct_in_window[i]) ;
     //
   }
   //
-  RightTimeBin /= float(DataCounter) ;
+  if (RightTimeBin > 100) {
+    RightTimeBin /= RightTimeBinDenom ;
+  } else {
+    RightTimeBin = -999.;
+  }
   //
   printf("Best Setting is %f \n",RightTimeBin);
   //
   printf("\n");
 
-  ALCTvpf_ = int(RightTimeBin);
+  ALCTvpf_ = (int) (RightTimeBin+0.5);
+
+  (*MyOutput_) << "Best value for match_trig_alct_delay = " << std::dec << ALCTvpf_ << std::endl;
      
-  return int(RightTimeBin) ;
+  return ALCTvpf_ ;
 
 }
 
@@ -1919,9 +1953,8 @@ int ChamberUtilities::FindTMB_L1A_delay( int idelay_min, int idelay_max ){
   // Not really necessary:
   //     thisTMB->alct_match_window_size_ = 3;
   //
-  float RightTimeBin = 0;
-  int   DataCounter  = 0;
-
+  int tmb_in_l1a_window[255] = {};
+  //
   for (int i = idelay_min; i < idelay_max+1; i++){
     
     //thisTMB->l1adelay_ = i;// loop over this
@@ -1933,7 +1966,7 @@ int ChamberUtilities::FindTMB_L1A_delay( int idelay_min, int idelay_max ){
     thisTMB->ResetCounters();    // reset counters
     //if (useCCB) thisCCB_->startTrigger();     // 2 commands to get trigger going
     //if (useCCB) thisCCB_->bx0();
-    cout << endl << "TMB_l1adelay=" << std::dec << i << ":" << endl;
+    (*MyOutput_) << "TMB_l1adelay=" << std::dec << i << ":" << endl;
     ::sleep(5);                   // accumulate statistics
     //if (useCCB) thisCCB_->stopTrigger();      // stop trigger
     thisTMB->GetCounters();      // read counter values
@@ -1943,14 +1976,29 @@ int ChamberUtilities::FindTMB_L1A_delay( int idelay_min, int idelay_max ){
     thisTMB->PrintCounters(19);
     thisTMB->PrintCounters(20);
 
-    if ( thisTMB->GetCounter(19) > 0) {
-      RightTimeBin += i;
-      DataCounter++;
-    }
-
+    tmb_in_l1a_window[i] = thisTMB->GetCounter(19);
   }
-
-  RightTimeBin /= float(DataCounter) ;
+  //
+  float RightTimeBin      = 0;
+  float RightTimeBinDenom = 0;
+  int   DataCounter  = 0;
+  //
+  for (int i = idelay_min; i < idelay_max+1; i++){
+    //
+    (*MyOutput_) << "tmb_l1a_delay " << std::dec << std::setw(5) << i
+		 << " : " << std::setw(10) << tmb_in_l1a_window[i] << std::endl;
+    //
+    RightTimeBin      += ((float) tmb_in_l1a_window[i]) * ((float) i);
+    RightTimeBinDenom += (float) tmb_in_l1a_window[i];
+    DataCounter++;
+    //
+  }
+  //
+  if (RightTimeBin > 100) {
+    RightTimeBin /= RightTimeBinDenom ;
+  } else {
+    RightTimeBin = -999;
+  }
   
   printf("Right L1a delay setting is %f \n",RightTimeBin);
 
@@ -1958,9 +2006,11 @@ int ChamberUtilities::FindTMB_L1A_delay( int idelay_min, int idelay_max ){
 
   //if (useCCB) thisCCB_->setCCBMode(CCB::DLOG);      // return to "regular" mode for CCB
 
-  TMBL1aTiming_ = RightTimeBin;
+  TMBL1aTiming_ = (int) (RightTimeBin+0.5);
 
-  return int(RightTimeBin) ;
+  (*MyOutput_) << "Best value of tmb_l1a_delay = " << std::dec << std::setw(5) << TMBL1aTiming_ << std::endl;
+
+  return TMBL1aTiming_ ;
 
 }
 //
