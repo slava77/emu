@@ -81,13 +81,15 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
 
   toolbox::exception::HandlerSignature  * errorHandler_;
   
-  std::vector<xdaq::ApplicationDescriptor*> EmuDisplayClient::getAppsList(xdata::String className);
+  std::set<xdaq::ApplicationDescriptor*> EmuDisplayClient::getAppsList(xdata::String className);
 
   // == Vector of all external data servers tids
-  std::vector<xdaq::ApplicationDescriptor*> monitors_;
+  std::set<xdaq::ApplicationDescriptor*> monitors_;
 
   xdata::String monitorClass_;
   xdata::String iconsURL_;
+  xdata::String imageFormat_;
+  xdata::String imagePath_;
 
 
 };

@@ -18,6 +18,7 @@
 #include "TH1.h"
 #include "TObject.h"
 #include "CObject.hh"
+#include "TList.h"
 
 class CHistogram: public CObject {
 

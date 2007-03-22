@@ -109,8 +109,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   /*
   //KK
   if(check_bin_error){
-  map<int,long> checkerErrors = bin_checker.errorsDetailed();
-  map<int,long>::const_iterator chamber = checkerErrors.begin();
+  map<int,uint32_t> checkerErrors = bin_checker.errorsDetailed();
+  map<int,uint32_t>::const_iterator chamber = checkerErrors.begin();
   while( chamber != checkerErrors.end() ){
   string cscname(Form("_CSC_%d_%d_", (chamber->first>>4) & 0xFF, chamber->first & 0xF));
   hname = Form("hist/h%sBinCheck_ErrorStat_Table", cscname.c_str());
@@ -121,7 +121,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   else LOG4CPLUS_DEBUG(logger_," Error: unknown histogram "<<hname);
   chamber++;
   }
-  map<int,long> checkerWarnings  = bin_checker.warningsDetailed();
+  map<int,uint32_t> checkerWarnings  = bin_checker.warningsDetailed();
   chamber = checkerWarnings.begin();
   while( chamber != checkerWarnings.end() ){
   string cscname(Form("_CSC_%d_%d_", (chamber->first>>4) & 0xFF, chamber->first & 0xF));
@@ -282,7 +282,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     vector<CSCALCTDigi> alctsDatasTmp = alctHeader.ALCTDigis();
     vector<CSCALCTDigi> alctsDatas;
 
-    for (unsigned int lct=0; lct<alctsDatasTmp.size(); lct++) {
+    for (uint32_t lct=0; lct<alctsDatasTmp.size(); lct++) {
       if (alctsDatasTmp[lct].isValid())
         alctsDatas.push_back(alctsDatasTmp[lct]);
     }
@@ -355,7 +355,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       if (isMEvalid(cscME, "ALCT1_vs_ALCT0_KeyWG", mo)) mo->Fill(alctsDatas[0].getKeyWG(),alctsDatas[1].getKeyWG());
     }
 
-    for (unsigned int lct=0; lct<alctsDatas.size(); lct++) {
+    for (uint32_t lct=0; lct<alctsDatas.size(); lct++) {
       if (isMEvalid(cscME, Form("ALCT%d_KeyWG", lct), mo)) mo->Fill(alctsDatas[lct].getKeyWG());
       if(lct == 0) alct_keywg  = alctsDatas[lct].getKeyWG();
 
@@ -420,7 +420,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
           NumberOfLayersWithHitsInALCT = NumberOfLayersWithHitsInALCT + 1;
           CheckLayerALCT = false;
         }
-	for (unsigned int n=0; n < tbins.size(); n++) {
+	for (uint32_t n=0; n < tbins.size(); n++) {
 	  tbin = tbins[n];
 	  if(wg != wg_previous || (tbin != tbin_previous + 1 && tbin != tbin_previous - 1) ) {
 	    if (isMEvalid(cscME, Form("ALCTTime_Ly%d", nLayer), mo)) mo->Fill(wg, tbin);
@@ -472,7 +472,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     vector<CSCALCTDigi> alctsDatasTmp = alctHeader.ALCTDigis();
     vector<CSCALCTDigi> alctsDatas;
 
-    for (unsigned int lct=0; lct<alctsDatasTmp.size(); lct++) {
+    for (uint32_t lct=0; lct<alctsDatasTmp.size(); lct++) {
       if (alctsDatasTmp[lct].isValid())
         alctsDatas.push_back(alctsDatasTmp[lct]);
     }
@@ -514,7 +514,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     vector<CSCCLCTDigi> clctsDatasTmp = tmbHeader.CLCTDigis();
     vector<CSCCLCTDigi> clctsDatas;
 
-    for (unsigned int lct=0; lct<clctsDatasTmp.size(); lct++) {
+    for (uint32_t lct=0; lct<clctsDatasTmp.size(); lct++) {
       if (clctsDatasTmp[lct].isValid())
         clctsDatas.push_back(clctsDatasTmp[lct]);
     }
@@ -609,7 +609,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 		    << dec << (int)tmbTrailer.wordCount());
 
 
-    for (unsigned int lct=0; lct<clctsDatas.size(); lct++) {
+    for (uint32_t lct=0; lct<clctsDatas.size(); lct++) {
 
       if (isMEvalid(cscME,  Form("CLCT%d_BXN", lct), mo)) mo ->Fill(clctsDatas[lct].getBX());
 
@@ -1100,9 +1100,9 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       if(Clus.size() >= 0)  mo->Fill(Clus.size());
     }
 
-    for(unsigned int u=0;u<Clus.size();u++){
+    for(uint32_t u=0;u<Clus.size();u++){
       Clus_Sum_Charge = 0.0;
-      for(unsigned int k=0;k<Clus[u].ClusterPulseMapHeight.size();k++) {
+      for(uint32_t k=0;k<Clus[u].ClusterPulseMapHeight.size();k++) {
         LOG4CPLUS_DEBUG(logger_, "Strip: " << Clus[u].ClusterPulseMapHeight[k].channel_+1);
 
         for(int n=Clus[u].LFTBNDTime; n < Clus[u].IRTBNDTime; n++){

@@ -9,22 +9,24 @@ void EmuDisplayClient::createTreeItems(xgi::Input * in, xgi::Output * out ) thro
   url += "/getImage";
 
   *out << "var TREE_ITEMS = [\n['"<< runName << "','getEMUSystemView',"<< endl;
-  for (int i=0; i<monitors_.size(); i++) {
+  std::set<xdaq::ApplicationDescriptor*>::iterator pos;
+  for (pos=monitors_.begin(); pos!=monitors_.end(); ++pos) {
+  //  for (int i=0; i<monitors_.size(); i++) {
 
-    std::string state =  emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"stateName","string");
+    std::string state =  emu::dqm::getScalarParam(getApplicationContext(), *pos,"stateName","string");
     
-    *out <<"    ['" << monitors_[i]->getClassName() <<"-" << monitors_[i]->getInstance()  
+    *out <<"    ['" << (*pos)->getClassName() <<"-" << (*pos)->getInstance()  
 	 <<"', '" 
-	 << monitors_[i]->getContextDescriptor()->getURL()+"/"+monitors_[i]->getURN() <<"'," << std::endl;
+	 << (*pos)->getContextDescriptor()->getURL()+"/"+(*pos)->getURN() <<"'," << std::endl;
     if (state != "") {
-      std::map<std::string, std::list<std::string> > bmap = requestCanvasesList(monitors_[i]);
+      std::map<std::string, std::list<std::string> > bmap = requestCanvasesList((*pos));
       std::map<std::string, std::list<std::string> >::iterator itr;
     
       for (itr = bmap.begin(); itr != bmap.end(); ++itr) {
 	*out << "    ['" << itr->first << "',''," << std::endl;
 	std::list<std::string>::iterator i_itr;
 	for (i_itr = itr->second.begin(); i_itr != itr->second.end(); ++i_itr) {
-	  *out << "     ['" << *i_itr << "', 'getImage?nodeID="<< monitors_[i]->getLocalId()
+	  *out << "     ['" << *i_itr << "', 'getImage?nodeID="<< (*pos)->getLocalId()
 	       << "&folderName=" << itr->first 
 	       << "&objectName="<< *i_itr 
 	       << "&autoUpdate=on']," << std::endl;

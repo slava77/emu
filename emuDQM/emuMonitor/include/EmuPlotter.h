@@ -39,6 +39,7 @@
 #include "EventFilter/CSCRawToDigi/interface/CSCTMBData.h"
 #include "EventFilter/CSCRawToDigi/interface/CSCTMBHeader.h"
 #include "EventFilter/CSCRawToDigi/interface/CSCTMBTrailer.h"
+#include "EventFilter/CSCRawToDigi/interface/bitset_append.h"
 #include "DataFormats/CSCDigi/interface/CSCALCTDigi.h"
 #include "DataFormats/CSCDigi/interface/CSCCLCTDigi.h"
 
@@ -92,12 +93,12 @@ public:
 
   // === Fills the data coming in.  unpacks the data into the METBRawFormat
   //     data structures and calls the appropriate fill() routine below.
-  void processEvent(const char * data, int dataSize, unsigned long errorStat, int nodeNumber = 0);
-  void processChamber(const CSCEventData& data,int nodeID, int dduID);
+  void processEvent(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber = 0);
+  void processChamber(const CSCEventData& data,int32_t nodeID, int32_t dduID);
 
   void setHistoFile(string hfile) {HistoFile = hfile;};
-  void setDDUCheckMask(unsigned long mask) { dduCheckMask = mask;}
-  void setBinCheckMask(unsigned long mask) { binCheckMask = mask;}
+  void setDDUCheckMask(uint32_t mask) { dduCheckMask = mask;}
+  void setBinCheckMask(uint32_t mask) { binCheckMask = mask;}
 
   void saveHistos() {};
   void saveToROOTFile(std::string filename);
@@ -158,12 +159,12 @@ private:
   map<string,int> nDMBEvents;
   int unpackedDMBcount;
 
-  unsigned long nEvents;
-  unsigned long L1ANumber;
-  unsigned long BXN;
+  uint32_t nEvents;
+  uint32_t L1ANumber;
+  uint32_t BXN;
 
-  unsigned long dduCheckMask;
-  unsigned long binCheckMask;
+  uint32_t dduCheckMask;
+  uint32_t binCheckMask;
 
   bool fListModified;
   string HistoFile;

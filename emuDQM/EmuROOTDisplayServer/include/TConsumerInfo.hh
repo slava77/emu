@@ -12,8 +12,8 @@
 // RCS Current Revision Record
 //-------------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/include/TConsumerInfo.hh,v $
-// $Revision: 1.2 $
-// $Date: 2006/03/09 00:17:06 $
+// $Revision: 1.3 $
+// $Date: 2007/03/22 17:42:18 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $
@@ -27,6 +27,7 @@
 
 #include "TString.h"
 #include "TNamed.h"
+#include "TList.h"
 
 class TList;
 class TSocket;

@@ -54,7 +54,6 @@ ExternalObjects = \
         $(XDAQ_ROOT)/$(Project)/emuDQM/CMSSWLibs/lib/libCSCDigi.a \
 	$(XDAQ_ROOT)/$(Project)/emuDQM/dduBinExaminer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libdduBinExaminer.a \
 	$(XDAQ_ROOT)/$(Project)/emuDQM/EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a 
-	# $(XDAQ_ROOT)/$(Project)/emuDAQ/DDUReadout/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libDDUReadout.a 
 
 IncludeDirs = $(XdaqIncludeDirs) \
 	$(XDAQ_ROOT)/$(Project)/emuDQM/CMSSWLibs \
@@ -66,14 +65,12 @@ IncludeDirs = $(XdaqIncludeDirs) \
 	$(XDAQ_ROOT)/$(Project) \
 	$(XDAQ_ROOT)/$(Project)/emuDQM/EmuROOTDisplayServer/include \
 	$(XDAQ_ROOT)/$(Project)/emuDQM/EmuDisplayServer/include \
-	$(XDAQ_ROOT)/$(Project)/emuDAQ/DDUReadout/include \
 	$(XDAQ_ROOT)/$(Project)/emuDAQ/GenericRUI/include \
 	$(BOOST)
 
 
 LibraryDirs = $(XdaqLibraryDirs) \
-	$(XDAQ_ROOT)/$(Project)/emuDAQ/emuReadout/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/ \
-	$(XDAQ_ROOT)/$(Project)/emuDAQ/DDUReadout/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/
+	$(XDAQ_ROOT)/$(Project)/emuDAQ/emuReadout/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/ 
 
 
 UserSourcePath = 
@@ -87,7 +84,7 @@ UserExecutableLinkFlags += $(ROOTCFLAGS)
 # These libraries can be platform specific and
 # potentially need conditional processing
 #
-Libraries = $(XdaqLibraries)  EmuReadout DDUReadout
+Libraries = $(XdaqLibraries)  EmuReadout 
 
 #
 # Compile the source files and create a shared library

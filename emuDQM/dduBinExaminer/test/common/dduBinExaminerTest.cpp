@@ -70,7 +70,7 @@ void savehistos(const char* filename, map<string, TH1*> histos){
 }
 
 // == Prints four 16bits words in Hex
-void printb(unsigned short* buf){
+void printb(uint16_t* buf){
 	for (int i=0; i<4; i++)
 		cout << " " << setw(4)<< setfill('0') << hex << buf[i];
 	cout << dec << endl;
@@ -81,12 +81,12 @@ void printb(unsigned short* buf){
 int main(int argc, char **argv){
 	dduBinExaminer examiner;
 
-	//typedef long ERRARR[examiner.nERRORS];
-	//typedef long WRNARR[examiner.nWARNINGS];
+	//typedef int32_t ERRARR[examiner.nERRORS];
+	//typedef int32_t WRNARR[examiner.nWARNINGS];
 
-	long cntERROR[examiner.nERRORS], cntWARNING[examiner.nWARNINGS], cntBadEvent=0, unknownChamber=0;
-	map< int, map<int,long> > cntChambERROR;
-	map< int, map<int,long> > cntChambWARNING;
+	int32_t cntERROR[examiner.nERRORS], cntWARNING[examiner.nWARNINGS], cntBadEvent=0, unknownChamber=0;
+	map< int, map<int,int32_t> > cntChambERROR;
+	map< int, map<int,int32_t> > cntChambWARNING;
 
 	// set ERROR and WARNING counters and flags to zero
 	bzero(cntERROR,   sizeof(cntERROR)  );
@@ -200,9 +200,9 @@ int main(int argc, char **argv){
 	cerr << datafile << " Opened" << endl;
 
 	const int bufferSize = 116384;
-	unsigned short buffer[bufferSize];
+	uint16_t buffer[bufferSize];
 
-	unsigned long iteration=1;
+	uint32_t iteration=1;
 
 //------------------------------------------------------------------------------------------------
 
@@ -211,9 +211,9 @@ int main(int argc, char **argv){
 
 		input.read((char *)(buffer), bufferSize*sizeof(short));
 
-		const unsigned short *buf = buffer;
+		const uint16_t *buf = buffer;
 
-		long length = input.gcount()/sizeof(short);
+		int32_t length = input.gcount()/sizeof(short);
 
 		while( (length = examiner.check(buf,length)) >= 0 ){
 			h["hDDUWordCount"]->Fill((buf-buffer)/4.);
@@ -304,9 +304,9 @@ int main(int argc, char **argv){
 	input.close();
 	cerr << datafile << " Closed" << endl;
 
-	//hash_map< int, hash_map<int,long> >::iterator chamber = cntChambERROR.begin();
+	//hash_map< int, hash_map<int,int32_t> >::iterator chamber = cntChambERROR.begin();
 	//while( chamber != cntChambERROR.end() ){
-	map<int,long>::const_iterator chamber = examiner.cntCHAMB_Headers.begin();
+	map<int,int32_t>::const_iterator chamber = examiner.cntCHAMB_Headers.begin();
 	while( chamber != examiner.cntCHAMB_Headers.end() ){
 		cerr << endl << endl << endl;
 		cerr << "-------------------------------------------------------------------------" << endl << endl;
@@ -389,7 +389,7 @@ int main(int argc, char **argv){
 	if( cntBadEvent ){
 		const char *descr;
 		TFile f(rootfile.c_str(), "UPDATE");
-		for(unsigned int i=0,bin=1; i<examiner.nERRORS; i++,bin=1){
+		for(uint32_t i=0,bin=1; i<examiner.nERRORS; i++,bin=1){
 			if( !tlerror[i] ) continue;
 			char buff[128]; sprintf(buff,"error%d",i);
 			TH1F err(buff,buff,iteration/tlbinsize,1,iteration);
@@ -414,7 +414,7 @@ int main(int argc, char **argv){
 			err.SetEntries(cntERROR[i]);
 			err.Write();
 		}
-		for(unsigned int i=0,bin=1; i<examiner.nWARNINGS; i++,bin=1){
+		for(uint32_t i=0,bin=1; i<examiner.nWARNINGS; i++,bin=1){
 			if( !tlwarn[i] ) continue;
 			char buff[128]; sprintf(buff,"warning%d",i);
 			TH1F wrn(buff,buff,iteration/tlbinsize,1,iteration);

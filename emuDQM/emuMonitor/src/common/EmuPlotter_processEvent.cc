@@ -1,6 +1,6 @@
 #include "EmuPlotter.h"
 
-void EmuPlotter::processEvent(const char * data, int dataSize, unsigned long errorStat, int nodeNumber)
+void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber)
 {
   //	LOG4CPLUS_INFO(logger_ , "processing event data");
   
@@ -42,14 +42,14 @@ void EmuPlotter::processEvent(const char * data, int dataSize, unsigned long err
 
 
   //	Binary check of the buffer
-  unsigned long BinaryErrorStatus = 0, BinaryWarningStatus = 0;
+  uint32_t BinaryErrorStatus = 0, BinaryWarningStatus = 0;
   // if(check_bin_error){
   LOG4CPLUS_INFO(logger_,nodeTag << " Start binary checking of buffer...");
-  const unsigned short *tmp = reinterpret_cast<const unsigned short *>(data);
+  const uint16_t *tmp = reinterpret_cast<const uint16_t *>(data);
   if( bin_checker.check(tmp,dataSize/sizeof(short)) < 0 ){
     //   No ddu trailer found - force checker to summarize errors by adding artificial trailer
-    const unsigned short dduTrailer[4] = { 0x8000, 0x8000, 0xFFFF, 0x8000 };
-    tmp = dduTrailer; bin_checker.check(tmp,long(4));
+    const uint16_t dduTrailer[4] = { 0x8000, 0x8000, 0xFFFF, 0x8000 };
+    tmp = dduTrailer; bin_checker.check(tmp,uint32_t(4));
   }
 
   BinaryErrorStatus   = bin_checker.errors();
@@ -107,7 +107,7 @@ void EmuPlotter::processEvent(const char * data, int dataSize, unsigned long err
   //	Accept or deny event
   bool EventDenied = false;
   //	Accept or deny event according to DDU Readout Error and dduCheckMask
-  if (((unsigned long)errorStat & dduCheckMask) > 0) {
+  if (((uint32_t)errorStat & dduCheckMask) > 0) {
     LOG4CPLUS_WARN(logger_,nodeTag << "Event skiped because of DDU Readout Error");
     EventDenied = true;
   }
@@ -124,7 +124,7 @@ void EmuPlotter::processEvent(const char * data, int dataSize, unsigned long err
 
   // CSCDDUEventData::setDebug(true);
   int dduID = 0;
-  CSCDDUEventData dduData((unsigned short *) data);
+  CSCDDUEventData dduData((uint16_t *) data);
 
   CSCDDUHeader dduHeader  = dduData.header();
   CSCDDUTrailer dduTrailer = dduData.trailer();
@@ -153,7 +153,7 @@ void EmuPlotter::processEvent(const char * data, int dataSize, unsigned long err
   LOG4CPLUS_INFO(logger_,"Start unpacking " << dduTag);
 
   // ==     Check binary Error status at DDU Trailer
-  unsigned int trl_errorstat = dduTrailer.errorstat();
+  uint32_t trl_errorstat = dduTrailer.errorstat();
   LOG4CPLUS_INFO(logger_,dduTag << " Trailer Error Status = 0x" << hex << trl_errorstat);
   for (int i=0; i<32; i++) {
     if ((trl_errorstat>>i) & 0x1) {

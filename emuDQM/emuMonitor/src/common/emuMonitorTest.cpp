@@ -45,8 +45,8 @@ int main(int argc, char **argv) {
   	string histofile = "dqm_results.root";
         // EmuFileReader ddu; //( inputDeviceName_.toString(), inputDataFormatInt_ );
 	// FileReaderDDU ddu;
-	unsigned long dduCheckMask=0xFFFFDFFF;
-        unsigned long binCheckMask=0xF7FB7BF6;
+	uint32_t dduCheckMask=0xFFFFDFFF;
+        uint32_t binCheckMask=0xF7FB7BF6;
 	// int binCheckMask=0xFFFFFFFF;
 	// int dduCheckMask = 0x0;
 //	int binCheckMask = 0x0;
@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
 
 	LOG4CPLUS_WARN (logger, "Events: " << i);
 	plotter.saveToROOTFile(histofile.c_str());
-	// plotter.saveImages("images", "png" , 1600, 1200);
+	plotter.saveImages("images", "png" , 1600, 1200);
 	ddu.close();
 
 	// delete plotter;

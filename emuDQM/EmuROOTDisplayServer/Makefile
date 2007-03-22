@@ -59,7 +59,7 @@ UserExecutableLinkFlags = -g -O -fPIC $(ROOTGLIBS)
 
 Libraries= $(XdaqLibraries)
 
-Executables = HistoDisplayMain.cc Server.cc Producer.cc
+Executables = HistoDisplayMain.cc Server.cc 
 ExternalObjects =  
 #------------------------------------------------------------------------------
 DynamicLibrary = EmuROOTDisplayServer 

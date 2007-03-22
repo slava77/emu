@@ -29,7 +29,6 @@
 #include "EmuFileReader.h"
 #include "EmuSpyReader.h"
 
-#include "FileReaderDDU.h"
 
 #include "EmuPlotter.h"
 
@@ -125,7 +124,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   // == Callback for incoming i2o message
   void emuDataMsg(toolbox::mem::Reference *bufRef);
 
-  int sendDataRequest(unsigned long last);
+  int sendDataRequest(uint32_t last);
 
   xoap::MessageReference fireEvent (xoap::MessageReference msg) throw (xoap::exception::Exception);
   xoap::MessageReference onReset (xoap::MessageReference msg) throw (xoap::exception::Exception);
@@ -150,7 +149,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   void failurePage(xgi::Output * out, xgi::exception::Exception & e)  throw (xgi::exception::Exception);
 
   // Process Event data
-  void processEvent(const char * data, int dataSize, unsigned long errorFlag, int node=0);
+  void processEvent(const char * data, int32_t dataSize, uint32_t errorFlag, int32_t node=0);
 
   void updateList(xdata::Integer);
   void updateObjects(xdata::Integer);
@@ -195,28 +194,29 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   xdata::String outputROOTFile_;
   xdata::String outputImagesPath_;
   xdata::Integer plotterSaveTimer_;
-  xdata::UnsignedLong binCheckMask_;
-  xdata::UnsignedLong dduCheckMask_;
+  xdata::UnsignedInteger binCheckMask_;
+  xdata::UnsignedInteger dduCheckMask_;
   xdata::Boolean fSaveROOTFile_;
+  xdata::String daqGroup_;
 
 
 
   EmuMonitorTimerTask * timer_;
 
-  xdata::UnsignedLong   creditMsgsSent_;
-  xdata::UnsignedLong   eventsRequested_;
-  xdata::UnsignedLong   eventsReceived_;
-  xdata::UnsignedLong   creditsHeld_;
+  xdata::UnsignedInteger   creditMsgsSent_;
+  xdata::UnsignedInteger  eventsRequested_;
+  xdata::UnsignedInteger   eventsReceived_;
+  xdata::UnsignedInteger   creditsHeld_;
   xdata::String		stateName_;
   xdata::String		stateChangeTime_;
   xdata::String		lastEventTime_;
-  xdata::UnsignedLong   nDAQEvents_;
+  xdata::UnsignedInteger   nDAQEvents_;
 
 
   // == Total processed events counter
-  xdata::UnsignedLong 	totalEvents_;
+  xdata::UnsignedInteger 	totalEvents_;
   // == Session processed events counter
-  xdata::UnsignedLong 	sessionEvents_;
+  xdata::UnsignedInteger 	sessionEvents_;
 
   toolbox::PerformanceMeter * pmeter_;
   toolbox::PerformanceMeter * pmeterCSC_;
@@ -225,19 +225,18 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   xdata::String         dataLatency_;
   xdata::String 	dataRate_;
   xdata::String		cscRate_;
-  xdata::UnsignedLong   cscUnpacked_;
-  xdata::UnsignedLong   runNumber_;
+  xdata::UnsignedInteger   cscUnpacked_;
+  xdata::UnsignedInteger   runNumber_;
 
 
   xdata::Boolean 	useAltFileReader_;
 
 
   EmuReader*         	deviceReader_;         // device reader
-  FileReaderDDU*        altFileReader_;      // alternative device reader
   xdata::String         inputDeviceName_;      // input device name (file path or board number)
   xdata::String         inputDeviceType_;      // spy, slink or file
   xdata::String         inputDataFormat_;      // "DDU" or "DCC"
-  int                   inputDataFormatInt_;   // EmuReader::DDU or EmuReader::DCC
+  int32_t               inputDataFormatInt_;   // EmuReader::DDU or EmuReader::DCC
 
   // == Data Readout Modes (external, internal)
   xdata::String 	readoutMode_;
@@ -248,23 +247,23 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   xdata::Integer	collectorID_;
 
   // == Total memory for credit messages
-  xdata::UnsignedLong 	committedPoolSize_;     
+  xdata::UnsignedInteger 	committedPoolSize_;     
   // == Servers' class name
   xdata::String       	serversClassName_;
   // == Server TIDs
-  xdata::Vector<xdata::UnsignedLong> serverTIDs_;
+  xdata::Vector<xdata::UnsignedInteger> serverTIDs_;
   // == Send this many event credits at a time
-  xdata::UnsignedLong 	nEventCredits_;
+  xdata::UnsignedInteger 	nEventCredits_;
   // == Prescaling factor for data to be received
-  xdata::UnsignedLong 	prescalingFactor_; 
+  xdata::UnsignedInteger 	prescalingFactor_; 
 
   // == Vector of all external data servers tids
-  std::vector<xdaq::ApplicationDescriptor*> dataservers_;
+  std::set<xdaq::ApplicationDescriptor*> dataservers_;
   // == Vector of all collectors tids
-  std::vector<xdaq::ApplicationDescriptor*> collectors_; 
+  std::set<xdaq::ApplicationDescriptor*> collectors_; 
 
   // == The maximum frame size to be allocated by the Client
-  xdata::UnsignedLong maxFrameSize_; 
+  xdata::UnsignedInteger maxFrameSize_; 
  
   // == Exception handler
   toolbox::exception::HandlerSignature  * errorHandler_;
@@ -282,7 +281,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   xgi::WSM wsm_;
 
   int sTimeout; // Timeout (in secs) waiting for plotter's busy flag to clear
-  int appTid_;
+  int32_t appTid_;
   bool isReadoutActive;
 };
 
