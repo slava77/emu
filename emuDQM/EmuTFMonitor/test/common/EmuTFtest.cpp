@@ -21,11 +21,12 @@
 #include <unistd.h>
 #include <time.h>
 
-#define BASE "/home/cscdqm/DAQKit/v.3.9.2/TriDAS/emu/emuDQM/" 
+#define BASE "/home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/" 
 
 //To compile on lxplus:   g++ -o test EmuTFtest.cpp -I/afs/cern.ch/cms/Releases/XDAQ/XDAQ_3_4/daq/extern/xerces/linuxx86/include/ -L/afs/cern.ch/cms/Releases/XDAQ/XDAQ_3_4/daq/extern/xerces/linuxx86/lib/ -lxerces-c `root-config --cflags` `root-config --glibs` -Wall -I/afs/cern.ch/user/k/kkotov/CMSSW_0_8_0_pre2/src/ -I../../src/common/ -I../../include/
 //To compile on cmsdaq03: g++ -o test EmuTFtest.cpp -I$XDAQ_ROOT/daq/extern/xerces/linuxx86/include/ -L$XDAQ_ROOT/daq/extern/xerces/linuxx86/lib/ -lxerces-c `root-config --cflags` `root-config --glibs` -Wall -I/home/daq/kotov/CMSSW_0_5_1/src/ -I../../src/common/ -I../../include/
 //To compile on slice11:  g++ -o test EmuTFtest.cpp -I/home/slice/DAQKit/v3.6/TriDAS/daq/extern/xerces/linuxx86/include/ -I../../src/common/ -I../../include/ -L/home/slice/DAQKit/v3.6/TriDAS/daq/extern/xerces/linuxx86/lib/ -lxerces-c `root-config --cflags` `root-config --glibs` -Wall -I/home/slice/kotov/CMSSW_0_8_0_pre2/src/
+//To compile on emudqm: g++ -o test EmuTFtest.cpp -I/home/cscdqm/DAQKit/v4.2.1/TriDAS/daq/extern/xerces/linuxx86/include/ -I../../src/common/ -I../../include/ -L/home/cscdqm/DAQKit/v4.2.1/TriDAS/daq/extern/xerces/linuxx86/lib/ -lxerces-c `root-config --cflags` `root-config --glibs` -Wall -I/home/cscdqm/CMSSW_1_3_0_pre4/src
 
 int main(int argc, char *argv[]){
 	using namespace std;

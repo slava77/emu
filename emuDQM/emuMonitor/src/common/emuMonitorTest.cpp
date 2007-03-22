@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
 
 	LOG4CPLUS_WARN (logger, "Events: " << i);
 	plotter.saveToROOTFile(histofile.c_str());
-	plotter.saveImages("images", "png" , 1600, 1200);
+//	plotter.saveImages("images", "png" , 1600, 1200);
 	ddu.close();
 
 	// delete plotter;
