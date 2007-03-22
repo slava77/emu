@@ -1245,13 +1245,16 @@ int EmuMonitor::svc()
 			      " " << inputDeviceName_.toString() << " read error.");
 	      // plotter_->saveToROOTFile(outputROOTFile_);
 	      if (plotter_ != NULL) {
-		updateList(collectorID_);
-		updateObjects(collectorID_);
-		plotter_->setListModified(false);
+		//  updateList(collectorID_);
+		//updateObjects(collectorID_);
+		// plotter_->setListModified(false);
 		// plotter_->saveImages(outputImagesPath_, "png", 1200, 900);
 		// plotter_->SaveImagesFromROOTFile(outputROOTFile_, outputImagesPath_, "png", 1200, 900);
-		// plotter_->saveToROOTFile(outputROOTFile_);
-		plotter_->saveHistos();
+		// disableReadout();
+		isReadoutActive = false;
+		plotter_->saveToROOTFile(getROOTFileName());
+		// plotter_->saveHistos();
+		// doStop();
 	      }
 	    } else {
 	      uint32_t errorFlag = 0;

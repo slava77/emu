@@ -204,9 +204,10 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   EmuMonitorTimerTask * timer_;
 
   xdata::UnsignedInteger   creditMsgsSent_;
-  xdata::UnsignedInteger  eventsRequested_;
+  xdata::UnsignedInteger   eventsRequested_;
   xdata::UnsignedInteger   eventsReceived_;
   xdata::UnsignedInteger   creditsHeld_;
+  
   xdata::String		stateName_;
   xdata::String		stateChangeTime_;
   xdata::String		lastEventTime_;
