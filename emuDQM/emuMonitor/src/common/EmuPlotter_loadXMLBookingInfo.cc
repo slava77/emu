@@ -36,7 +36,7 @@ int EmuPlotter::loadXMLBookingInfo(string xmlFile)
   clearMECollection(commonMEfactory);
   clearMECollection(chamberMEfactory);
   clearMECollection(dduMEfactory);
-  for(unsigned int i=0; i<itemList->getLength(); i++){
+  for(uint32_t i=0; i<itemList->getLength(); i++){
 //    createME(itemList->item(i));
 	// EmuMonitoringObject obj(itemList->item(i));
 	obj = new EmuMonitoringObject(itemList->item(i));
@@ -68,7 +68,7 @@ int EmuPlotter::loadXMLBookingInfo(string xmlFile)
 EmuMonitoringObject* EmuPlotter::createME(DOMNode* MEInfo)
 {
   DOMNodeList *children = MEInfo->getChildNodes();
-  for(unsigned int i=0; i<children->getLength(); i++){
+  for(uint32_t i=0; i<children->getLength(); i++){
     XMLCh *compXmlCh = XMLString::transcode("Name");
     if(XMLString::equals(children->item(i)->getNodeName(),compXmlCh)){
       if ( children->item(i)->hasChildNodes() ) {

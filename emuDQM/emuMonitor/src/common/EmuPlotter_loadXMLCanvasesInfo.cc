@@ -36,7 +36,7 @@ int EmuPlotter::loadXMLCanvasesInfo(string xmlFile)
   clearCanvasesCollection(commonCanvasesFactory);
   clearCanvasesCollection(chamberCanvasesFactory);
   clearCanvasesCollection(dduCanvasesFactory);
-  for(unsigned int i=0; i<itemList->getLength(); i++){
+  for(uint32_t i=0; i<itemList->getLength(); i++){
 	obj = new EmuMonitoringCanvas(itemList->item(i));
 
 	string name = obj->getName();

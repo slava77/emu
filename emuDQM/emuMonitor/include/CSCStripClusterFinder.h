@@ -13,6 +13,7 @@
 #include <iomanip>
 #include <set>
 #include <sstream>
+#include <stdint.h>
 
 using namespace std;
 
@@ -32,10 +33,10 @@ class CSCStripClusterFinder
   ClusterLocalMax localMaxTMP;
   std::vector<CSCStripCluster> getClusters(){ return MEStripClusters;}
  private:
-  int LId;
-  unsigned int i;
-  unsigned int j;
-  unsigned int ic1,IC1MIN,IC1MAX,JC1MIN,JC1MAX,ic2,IC2MIN,IC2MAX,JC2MIN,JC2MAX,icstart;
+  int32_t LId;
+  uint32_t i;
+  uint32_t j;
+  uint32_t ic1,IC1MIN,IC1MAX,JC1MIN,JC1MAX,ic2,IC2MIN,IC2MAX,JC2MIN,JC2MAX,icstart;
   int LayerNmb, TimeSliceNmb, StripNmb, AnodeGroupNmb,AFEBSliceNmb; 
   void SearchMax(void);
   void SearchBorders(void);

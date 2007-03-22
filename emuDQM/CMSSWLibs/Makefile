@@ -5,7 +5,7 @@ include ../config/xdaq.mk
 
 CXX     = g++
 
-CXXFLAGS  = -pedantic -Wno-long-long -Wall 
+CXXFLAGS  = -pedantic -Wno-long-long -Wall -fPIC
 
 LOG4CPLUS = $(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include
 DEFINES   = -DLOG4CPLUS_LOGGER  $(INPDEF) $(OUTDEF)
@@ -31,7 +31,7 @@ CSCRAW   = $(CMSSW)/EventFilter/CSCRawToDigi
 SRCRAW_PATH    = $(CSCRAW)/src
 SRCS_RAW      = $(SRCRAW_PATH)/CSCCFEBData.cc $(SRCRAW_PATH)/CSCDCCHeader.cc\
 	$(SRCRAW_PATH)/CSCDDUEventData.cc $(SRCRAW_PATH)/CSCDCCEventData.cc\
-	$(SRCRAW_PATH)/CSCDDUHeader.cc \
+	$(SRCRAW_PATH)/CSCDDUHeader.cc $(SRCRAW_PATH)/bitset_append.cc \
 	$(SRCRAW_PATH)/CSCDMBHeader.cc $(SRCRAW_PATH)/CSCEventData.cc\
 	$(SRCRAW_PATH)/CSCCFEBTimeSlice.cc \
 	$(SRCRAW_PATH)/CSCTMBHeader.cc $(SRCRAW_PATH)/CSCALCTHeader.cc \

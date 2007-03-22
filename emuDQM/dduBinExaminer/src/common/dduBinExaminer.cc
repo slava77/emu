@@ -159,7 +159,7 @@ dduBinExaminer::dduBinExaminer(void):nERRORS(25),nWARNINGS(5),sERROR(nERRORS),sW
 	bzero(tmpbuf, sizeof(short)*16);
 }
 
-long dduBinExaminer::check(const unsigned short* &buffer, long length){
+int32_t dduBinExaminer::check(const uint16_t* &buffer, int32_t length){
 	if( length<=0 ) return -1;
 
 	while( length>0 ){
@@ -462,8 +462,8 @@ long dduBinExaminer::check(const unsigned short* &buffer, long length){
 
 			// Check calculated CRC sum against reported
 			if( checkCrcALCT ){
-				unsigned long crc = buf0[0] & 0x7ff;
-				crc |= ((unsigned long)(buf0[1] & 0x7ff)) << 11;
+				uint32_t crc = buf0[0] & 0x7ff;
+				crc |= ((uint32_t)(buf0[1] & 0x7ff)) << 11;
 				if( ALCT_CRC != crc ){
 					fERROR[10] = true;
 					bERROR   |= 0x400;
@@ -485,9 +485,9 @@ long dduBinExaminer::check(const unsigned short* &buffer, long length){
 
 		// Calculation of CRC sum ( algorithm is written by Madorsky )
 		if( fALCT_Header && checkCrcALCT ){
-			for(unsigned short j=0, w=0; j<4; j++){
+			for(uint16_t j=0, w=0; j<4; j++){
 				w = buf0[j] & 0x7fff;
-				for(unsigned long i=15, t=0, ncrc=0; i<16; i--){
+				for(uint32_t i=15, t=0, ncrc=0; i<16; i--){
 					t = ((w >> i) & 1) ^ ((ALCT_CRC >> 21) & 1);
 					ncrc = (ALCT_CRC << 1) & 0x3ffffc;
 					ncrc |= (t ^ (ALCT_CRC & 1)) << 1;
@@ -523,8 +523,8 @@ long dduBinExaminer::check(const unsigned short* &buffer, long length){
 
 			// Check calculated CRC sum against reported
 			if( checkCrcTMB ){
-				unsigned long crc = buf0[0] & 0x7ff;
-				crc |= ((unsigned long)(buf0[1] & 0x7ff)) << 11;
+				uint32_t crc = buf0[0] & 0x7ff;
+				crc |= ((uint32_t)(buf0[1] & 0x7ff)) << 11;
 				if( TMB_CRC != crc ){
 					fERROR[15] = true;
 					bERROR    |= 0x8000;
@@ -560,7 +560,7 @@ long dduBinExaminer::check(const unsigned short* &buffer, long length){
 		if( fTMB_Header && checkCrcTMB ){
 			for(unsigned short j=0, w=0; j<4; j++){
 				w = buf0[j] & 0x7fff;
-				for(unsigned long i=15, t=0, ncrc=0; i<16; i--){
+				for(uint32_t i=15, t=0, ncrc=0; i<16; i--){
 					t = ((w >> i) & 1) ^ ((TMB_CRC >> 21) & 1);
 					ncrc = (TMB_CRC << 1) & 0x3ffffc;
 					ncrc |= (t ^ (TMB_CRC & 1)) << 1;

@@ -19,7 +19,6 @@ Packages=\
 	emuDQM/EmuROOTDisplayServer \
 	emuDQM/Common \
 	emuDQM/EmuDisplayServer \
-	emuDQM/EmuMonitor \
 	emuDQM/emuMonitor \
 	emuDQM/emuDisplayClient
 endif

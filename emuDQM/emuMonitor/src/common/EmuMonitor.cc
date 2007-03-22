@@ -42,7 +42,6 @@ XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
 
   plotter_ = NULL;
   deviceReader_ = NULL;
-  altFileReader_ = NULL;
   pool_ = NULL;
   initProperties();
   setMemoryPool();
@@ -108,6 +107,7 @@ void EmuMonitor::initProperties()
   
   serversClassName_ 	= "EmuRUI";
   serverTIDs_.clear();
+  daqGroup_		= "default";
   // serverTIDs_.push_back(0);
   collectorsClassName_	= "EmuDisplayServer";
   collectorID_		= 0;
@@ -158,6 +158,7 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->fireItemAvailable("stateChangeTime",&stateChangeTime_);
   getApplicationInfoSpace()->fireItemAvailable("lastEventTime",&lastEventTime_);
   getApplicationInfoSpace()->fireItemAvailable("nDAQEvents",&nDAQEvents_);
+  getApplicationInfoSpace()->fireItemAvailable("daqGroup",&daqGroup_);
 
   getApplicationInfoSpace()->addItemChangedListener ("readoutMode", this);
   getApplicationInfoSpace()->addItemChangedListener ("transport", this);
@@ -179,6 +180,7 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->addItemChangedListener ("plotterSaveTimer", this);
   getApplicationInfoSpace()->addItemChangedListener ("dduCheckMask", this);
   getApplicationInfoSpace()->addItemChangedListener ("binCheckMask", this);
+  getApplicationInfoSpace()->addItemChangedListener ("daqGroup", this);
 
   getApplicationInfoSpace()->addItemChangedListener ("useAltFileReader", this);
 
@@ -239,14 +241,14 @@ void EmuMonitor::setMemoryPool()
   }
   try
     {
-      LOG4CPLUS_INFO (getApplicationLogger(), "Committed pool size is " << (unsigned long) committedPoolSize_);
+      LOG4CPLUS_INFO (getApplicationLogger(), "Committed pool size is " << (uint32_t) committedPoolSize_);
       toolbox::mem::CommittedHeapAllocator* a = new toolbox::mem::CommittedHeapAllocator(committedPoolSize_);
       toolbox::net::URN urn ("toolbox-mem-pool", "EmuMonitor_EMU_MsgPool");
       pool_ = toolbox::mem::getMemoryPoolFactory()->createPool(urn, a);
       //            LOG4CPLUS_INFO (getApplicationLogger(), "Set high watermark to 90% and low watermark to 70%");
       LOG4CPLUS_INFO (getApplicationLogger(), "Set event credit message buffer's high watermark to 70%");
-      pool_->setHighThreshold ( (unsigned long) (committedPoolSize_ * 0.7));
-      //            pool_->setLowThreshold ((unsigned long) (committedPoolSize_ * 0.7));
+      pool_->setHighThreshold ( (uint32_t) (committedPoolSize_ * 0.7));
+      //            pool_->setLowThreshold ((uint32_t) (committedPoolSize_ * 0.7));
       //  hasSet_committedPoolSize_ = true;
     }
   catch(toolbox::mem::exception::Exception & e)
@@ -414,9 +416,10 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
       else if ( item == "nDAQEvents")
         {
 	  nDAQEvents_ = 0;
-	  for (unsigned int i=0; i<dataservers_.size(); i++) {
+	  std::set<xdaq::ApplicationDescriptor*>::iterator pos;
+           for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos) {
 	      xdata::UnsignedLong count;
-	      count.fromString(emu::dqm::getScalarParam(getApplicationContext(), dataservers_[i],"nEventsRead","unsignedLong")); 
+	      count.fromString(emu::dqm::getScalarParam(getApplicationContext(), (*pos),"nEventsRead","unsignedLong"));
 	      nDAQEvents_ = nDAQEvents_ + count;	
           }
         }
@@ -446,7 +449,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
           LOG4CPLUS_INFO(getApplicationLogger(), "Data Servers Class Name : " << serversClassName_.toString());
 	  getDataServers(serversClassName_);
         }
-      else if ( item == "serverTIDs")
+      else if ( item == "serverTIDs" || item == "daqGroup")
         {
           LOG4CPLUS_INFO(getApplicationLogger(), "List of Servers TIDs changed : ");
           getDataServers(serversClassName_);
@@ -504,7 +507,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
       else if ( item == "binCheckMask")
         {
           LOG4CPLUS_INFO(getApplicationLogger(), "Binary Checks Mask : 0x" << std::hex << std::uppercase << binCheckMask_ << std::dec);
-												      if (binCheckMask_ >= xdata::UnsignedLong(0)
+												      if (binCheckMask_ >= xdata::UnsignedInteger(0)
 													  && (plotter_ != NULL)) {
 													plotter_->setBinCheckMask(binCheckMask_);
 												      }
@@ -513,7 +516,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
       else if ( item == "dduCheckMask")
         {
           LOG4CPLUS_INFO(getApplicationLogger(), "DDU Checks Mask : 0x" << std::hex << std::uppercase << dduCheckMask_ << std::dec);
-												   if (dduCheckMask_ >= xdata::UnsignedLong(0)
+												   if (dduCheckMask_ >= xdata::UnsignedInteger(0)
 												       && (plotter_ != NULL)) {
 												     plotter_->setDDUCheckMask(dduCheckMask_);
 												   }
@@ -571,9 +574,10 @@ std::string EmuMonitor::getROOTFileName()
 		std::ostringstream st;
 		st.clear();
 		st << "OnlineRun_" << runNumber_ << "_" << serversClassName_.toString();
-		for (unsigned int i =0; i<dataservers_.size(); i++) {
-			st << "_" << dataservers_[i]->getInstance();
-		}
+		std::set<xdaq::ApplicationDescriptor*>::iterator pos;
+                for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos) {
+                        st << "_" << (*pos)->getInstance();
+                }
 		histofile = st.str();
 	}
    }
@@ -590,16 +594,23 @@ void EmuMonitor::getDataServers(xdata::String className)
     {
       dataservers_.clear();
       if (serverTIDs_.size() > 0) {
-	std::vector<xdaq::ApplicationDescriptor*> tmpdataservers_;
-	tmpdataservers_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
-	for (unsigned int i = 0; i<tmpdataservers_.size(); i++) {
-	  for (unsigned int j = 0; j<serverTIDs_.size(); j++) {
-	    if ((serverTIDs_.at(j) != xdata::UnsignedLong(0)) && (serverTIDs_.at(j) == xdata::UnsignedLong(i2o::utils::getAddressMap()->getTid(tmpdataservers_[i]))))
-	      dataservers_.push_back(tmpdataservers_[i]);
-	  }
-	}
+	std::set<xdaq::ApplicationDescriptor*> tmpdataservers_;
+//	tmpdataservers_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
+        xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup(daqGroup_);
+        tmpdataservers_  = g->getApplicationDescriptors(className.toString().c_str());
+	std::set<xdaq::ApplicationDescriptor*>::iterator pos;
+        for (pos=tmpdataservers_.begin(); pos!=tmpdataservers_.end(); ++pos) {
+          for (uint32_t j = 0; j<serverTIDs_.size(); j++) {
+            if ((serverTIDs_.at(j) != xdata::UnsignedInteger(0)) && (serverTIDs_.at(j) == xdata::UnsignedInteger(i2o::utils::getAddressMap()->getTid(*pos))))
+              dataservers_.insert((*pos));
+          }
+        }
+
       } else {
-	dataservers_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
+	xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup(daqGroup_);
+        dataservers_  = g->getApplicationDescriptors(className.toString().c_str());
+
+//	dataservers_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
       }
       if (dataservers_.size() == 0) {
 	LOG4CPLUS_ERROR (getApplicationLogger(),
@@ -626,7 +637,10 @@ void EmuMonitor::getCollectors(xdata::String className)
   try
     {
       collectors_.clear();
-      collectors_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
+      // collectors_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
+      xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup("dqm");
+      collectors_  =    g->getApplicationDescriptors(className.toString().c_str());
+
       //hasSet_serversClassName_ = true;
     }
   catch (xdaq::exception::Exception& e)
@@ -698,12 +712,12 @@ void EmuMonitor::doConfigure()
                       "plotter::outputROOTFile: 0x" << outputROOTFile_.toString());
       plotter_->setHistoFile(outputROOTFile_);
     }
-    if (dduCheckMask_ >= xdata::UnsignedLong(0)) {
+    if (dduCheckMask_ >= xdata::UnsignedInteger(0)) {
       LOG4CPLUS_INFO (getApplicationLogger(),
                       "plotter::dduCheckMask: 0x" << std::hex << dduCheckMask_.value_);
       plotter_->setDDUCheckMask(dduCheckMask_);
     }
-    if (binCheckMask_ >= xdata::UnsignedLong(0)) {
+    if (binCheckMask_ >= xdata::UnsignedInteger(0)) {
       LOG4CPLUS_INFO (getApplicationLogger(),
                       "plotter::binCheckMask: 0x" << std::hex << binCheckMask_.value_);
       plotter_->setBinCheckMask(binCheckMask_);
@@ -724,6 +738,7 @@ void  EmuMonitor::doStart()
 {
   sessionEvents_=0;
   creditMsgsSent_ = 0;
+  creditsHeld_ = 0;
   eventsRequested_ = 0;
   eventsReceived_ = 0;
   cscUnpacked_ = 0;
@@ -849,10 +864,12 @@ void EmuMonitor::printParametersTable( xgi::Output * out ) throw (xgi::exception
       *out << "<td>" << itr->second->type() << "</td>" << std::endl;
       if (itr->second->type() == "vector") {
         *out << "<td>";
-	// =VB= !!! possible XDAQ bug: returns wrong pointer to xdata::Vector (+4 bytes offset) 
+	// =VB= !!! possible XDAQ bug: returns wrong pointer to xdata::Vector (+4 bytes offset)
+        /* 
 	for (int i=0; i < reinterpret_cast<xdata::Vector<xdata::Serializable>* >((int)(itr->second)-4)->elements(); i++) {
 	  *out << reinterpret_cast<xdata::Vector<xdata::Serializable>*>((int)(itr->second)-4)->elementAt(i)->toString() << " ";
 	}
+	*/
 	*out << "</td>" << std::endl;
       } else {
 	*out << "<td>" << itr->second->toString() << "</td>" << std::endl;
@@ -1003,11 +1020,11 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
   char *startOfPayload = (char*) oldestMessage->getDataLocation()
     + sizeof(I2O_EMU_DATA_MESSAGE_FRAME);
 
-  unsigned long sizeOfPayload = oldestMessage->getDataSize()-sizeof(I2O_EMU_DATA_MESSAGE_FRAME);
+  uint32_t sizeOfPayload = oldestMessage->getDataSize()-sizeof(I2O_EMU_DATA_MESSAGE_FRAME);
 
-  unsigned long errorFlag = msg->errorFlag;
-  unsigned long serverTID = msg->PvtMessageFrame.StdMessageFrame.InitiatorAddress;
-  unsigned long status = 0;
+  uint32_t errorFlag = msg->errorFlag;
+  uint32_t serverTID = msg->PvtMessageFrame.StdMessageFrame.InitiatorAddress;
+  uint32_t status = 0;
   runNumber_ = msg->runNumber;
   
   if( errorFlag==EmuFileReader::Type2 ) status |= 0x8000;
@@ -1039,13 +1056,15 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
 }
 
 // == Send an I2O token message to all servers == //
-int EmuMonitor::sendDataRequest(unsigned long last)
+int EmuMonitor::sendDataRequest(uint32_t last)
 {
   //  creditMsgsSent += 1;
-  for (unsigned int i = 0; i < dataservers_.size(); i++)
+  std::set<xdaq::ApplicationDescriptor*>::iterator pos;
+  for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos)
     {
-      unsigned int newRate = (unsigned int)(rint(pmeter_->rate()));
-      if (newRate>nEventCredits_) {
+      uint32_t newRate = (uint32_t)(rint(pmeter_->rate()));
+      if (newRate>10) newRate=(newRate/10)*10;
+      if (newRate>nEventCredits_ && (newRate <=300)) {
          LOG4CPLUS_WARN (getApplicationLogger(), "Adjusting nEventCredits to " << newRate);
          nEventCredits_ = newRate;
       };
@@ -1061,7 +1080,7 @@ int EmuMonitor::sendDataRequest(unsigned long last)
 
           frame->PvtMessageFrame.StdMessageFrame.MsgFlags         = 0;
           frame->PvtMessageFrame.StdMessageFrame.VersionOffset    = 0;
-          frame->PvtMessageFrame.StdMessageFrame.TargetAddress    = i2o::utils::getAddressMap()->getTid(dataservers_[i]);
+          frame->PvtMessageFrame.StdMessageFrame.TargetAddress    = i2o::utils::getAddressMap()->getTid((*pos));
           frame->PvtMessageFrame.StdMessageFrame.InitiatorAddress = i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor());
           frame->PvtMessageFrame.StdMessageFrame.MessageSize      = (sizeof(I2O_EMUMONITOR_CREDIT_MESSAGE_FRAME)) >> 2;
 
@@ -1077,7 +1096,7 @@ int EmuMonitor::sendDataRequest(unsigned long last)
 			  "Sending credit #" << creditMsgsSent_ << " to tid: " << frame->PvtMessageFrame.StdMessageFrame.TargetAddress
 			  //                                   << ". maxFrameSize=" << maxFrameSize_
 			  );
-          getApplicationContext()->postFrame(ref, this->getApplicationDescriptor(), dataservers_[i]);
+          getApplicationContext()->postFrame(ref, this->getApplicationDescriptor(), (*pos));
         }
       catch (toolbox::mem::exception::Exception & me)
         {
@@ -1092,7 +1111,7 @@ int EmuMonitor::sendDataRequest(unsigned long last)
             {
               try
                 {
-                  getApplicationContext()->postFrame(ref,  this->getApplicationDescriptor(), dataservers_[i]);
+		  getApplicationContext()->postFrame(ref,  this->getApplicationDescriptor(), (*pos));
                   retryOK = true;
                   break; // if send was successfull, continue to send other messages
                 }
@@ -1171,19 +1190,11 @@ void EmuMonitor::createDeviceReader()
 		     "Creating " << inputDeviceType_.toString() <<
 		     " reader for " << inputDeviceName_.toString());
       deviceReader_ = NULL;
-      altFileReader_ = NULL;
       try {
 	if      ( inputDeviceType_ == "spy"  )
 	  deviceReader_ = new EmuSpyReader(  inputDeviceName_.toString(), inputDataFormatInt_ );
 	else if ( inputDeviceType_ == "file" )
-	  if (useAltFileReader_ == xdata::Boolean(true)) {
-	    altFileReader_ = new FileReaderDDU();
-	    altFileReader_->openFile((inputDeviceName_.toString()).c_str());
-	    LOG4CPLUS_INFO(getApplicationLogger(),
-			   "Will use Alternative File Reader");
-	  } else {
 	    deviceReader_ = new EmuFileReader( inputDeviceName_.toString(), inputDataFormatInt_ );
-	  }
 	// TODO: slink
 	else     LOG4CPLUS_ERROR(getApplicationLogger(),
 				 "Bad device type: " << inputDeviceType_.toString() <<
@@ -1212,12 +1223,6 @@ void EmuMonitor::destroyDeviceReader()
     delete deviceReader_;
     deviceReader_ = NULL;
   }
-  if (altFileReader_ != NULL) {
-    LOG4CPLUS_DEBUG(getApplicationLogger(),
-		    "Destroying alternative File Reader" );
-    delete altFileReader_;
-    altFileReader_ = NULL;
-  }
 }
 
 int EmuMonitor::svc()
@@ -1230,15 +1235,9 @@ int EmuMonitor::svc()
   while(keepRunning)
     {
       if ( (readoutMode_.toString() == "internal") && 
-	   ( (deviceReader_ != NULL) || ( (useAltFileReader_ == xdata::Boolean(true) && altFileReader_ != NULL) ) )) 
+	   ( (deviceReader_ != NULL))) 
 	{
-	  if (useAltFileReader_ == xdata::Boolean(true) ) {
-	    keepRunning = altFileReader_->readNextEvent();
-	  } else {
-	   //  if (inputDataFormat_.toString() == "file") 
-		    keepRunning = deviceReader_->readNextEvent();
-	    // else deviceReader_->readNextEvent();
-	  }
+	    keepRunning = deviceReader_->readNextEvent();
 	  if ( !keepRunning )
 	    {
 	      LOG4CPLUS_ERROR(getApplicationLogger(),
@@ -1255,27 +1254,23 @@ int EmuMonitor::svc()
 		plotter_->saveHistos();
 	      }
 	    } else {
-	      unsigned long errorFlag = 0;
-	      if (useAltFileReader_ == xdata::Boolean(true) ) {
-                errorFlag = altFileReader_->status();
-		processEvent(altFileReader_->data(), altFileReader_->dataLength(), errorFlag, appTid_);
-	      } else {
+	      uint32_t errorFlag = 0;
 		processEvent(deviceReader_->data(), deviceReader_->dataLength(), errorFlag, appTid_);
-	      }
 	    }
 
         }
       
-      unsigned long timeout = 3*1000000; // 5sec
-      unsigned long wait = 10000; // 10ms
-      unsigned long waittime = 0;
+      uint32_t timeout = 3*1000000; // 5sec
+      uint32_t wait = 10000; // 10ms
+      uint32_t waittime = 0;
       if (readoutMode_.toString() == "external") { 
 	// ::sleep(1);
 	// usleep(500000);
 	if (creditsHeld_> nEventCredits_) {
 	   LOG4CPLUS_WARN (getApplicationLogger(), "Waiting to clear " << creditsHeld_ << " event credits from EmuRUI");
         }
-	while (creditsHeld_> xdata::UnsignedLong(0)) {
+	while (creditsHeld_>= nEventCredits_/2) {
+//	while (creditsHeld_> xdata::UnsignedInteger(0)) {
 	  usleep(wait);
         }
 	while ((eventsReceived_ < eventsRequested_) && ( waittime <= timeout )) {
@@ -1285,17 +1280,29 @@ int EmuMonitor::svc()
 	if (waittime >= timeout) {
 	  LOG4CPLUS_WARN (getApplicationLogger(), toolbox::toString("Timeout waiting for events from server."));
 	  LOG4CPLUS_WARN (getApplicationLogger(), "Missed " << (eventsRequested_ - eventsReceived_) << " events");
+	  if ((eventsRequested_ - eventsReceived_) >= nEventCredits_) {
+		// nEventCredits_ = ((nEventCredits_-10)>1)? nEventCredits_-10: 1;		
+		continue;
+          } 
+	   if (pmeter_->rate() >0) {
+		int newRate = (int)(rint(pmeter_->rate()));
+	        if (newRate>10) newRate = (newRate/10)*10;
+		if (nEventCredits_!=xdata::UnsignedInteger(newRate) && (newRate <=300)) {
+			LOG4CPLUS_WARN (getApplicationLogger(), "Adjusting nEventCredits to " << newRate);
+			nEventCredits_ = newRate;
+		}
+	  }
 	  eventsRequested_ = eventsReceived_;
 	  if (pmeter_->rate() >0) {
 		int newRate = (int)(rint(pmeter_->rate()));
-		if (nEventCredits_!=xdata::UnsignedLong(newRate)) {
+		if (nEventCredits_!=xdata::UnsignedInteger(newRate)) {
 			LOG4CPLUS_WARN (getApplicationLogger(), "Adjusting nEventCredits to " << newRate);
 		}
 		nEventCredits_ = newRate;
 	  }
 	}
 	waittime = 0;
-	usleep(20000);
+	usleep(200000);
 	if (!pool_->isHighThresholdExceeded())
 	  {
 	    // Stop if there is an error in sending
@@ -1328,7 +1335,7 @@ int EmuMonitor::svc()
 
 
 // == Process Event data == //
-void EmuMonitor::processEvent(const char * data, int dataSize, unsigned long errorFlag, int node)
+void EmuMonitor::processEvent(const char * data, int dataSize, uint32_t errorFlag, int node)
 {
 
   if (plotter_ != NULL) {
@@ -1417,10 +1424,14 @@ void EmuMonitor::updateList(xdata::Integer id)
   */
   try
     {
+/*
       xdaq::ApplicationDescriptor* collectorDescriptor =
 	getApplicationContext()
 	->getApplicationGroup()
 	->getApplicationDescriptor( collectorsClassName_, id );
+*/
+      xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup("dqm");
+      xdaq::ApplicationDescriptor* collectorDescriptor =        g->getApplicationDescriptor(collectorsClassName_, id);
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, collectorDescriptor);
 
       /*
@@ -1582,11 +1593,14 @@ void EmuMonitor::updateObjects(xdata::Integer id)
   */
   try
     {
+      xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup("dqm");
+      xdaq::ApplicationDescriptor* collectorDescriptor =        g->getApplicationDescriptor(collectorsClassName_, id);
+/*
       xdaq::ApplicationDescriptor* collectorDescriptor =
 	getApplicationContext()
     	->getApplicationGroup()
     	->getApplicationDescriptor( collectorsClassName_, id );
-
+*/
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, collectorDescriptor);
       /*
         cout << endl;

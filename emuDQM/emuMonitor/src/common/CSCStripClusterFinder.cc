@@ -71,7 +71,7 @@ void CSCStripClusterFinder::DoAction(int LayerId,float *Cathodes)
     sumstrip=0;
     sumtime=0;
     sumheight=0;
-    for(unsigned int k=0;k<MEStripClusters[i].ClusterPulseMapHeight.size();k++){
+    for(uint32_t k=0;k<MEStripClusters[i].ClusterPulseMapHeight.size();k++){
       for(int l=0;l<16;l++){
 	sumstrip+=
 	  MEStripClusters[i].ClusterPulseMapHeight[k].height_[l]*
@@ -121,7 +121,7 @@ void CSCStripClusterFinder::SearchMax(void)
 }
 void CSCStripClusterFinder::SearchBorders(void)
 {
-  unsigned int iS,iT,iL,jL,iR,jR;
+  uint32_t iS,iT,iL,jL,iR,jR;
   
   //              SEARCHING PARAMETERS OF THE CLASTERS (LEFT DOWN & RIGHT UP)
   
@@ -360,13 +360,13 @@ void CSCStripClusterFinder::printClusters(void)
       jT=MEStripClusters[i].localMax[j].Time;
 
       //      cout << "Local Max: " << j << " Strip: " << iS << " Time: " << jT << endl;
-      for(unsigned int k=0;k<MEStripClusters[i].ClusterPulseMapHeight.size();k++){
+      for(uint32_t k=0;k<MEStripClusters[i].ClusterPulseMapHeight.size();k++){
 	if(MEStripClusters[i].ClusterPulseMapHeight[k].channel_==iS)
 	  cout << "Local Max: " << j+1 << " Strip: " << iS+1 << " Time: " << jT+1 
 	       << " Height: " << MEStripClusters[i].ClusterPulseMapHeight[k].height_[jT] << endl;
       }
     }
-    for(unsigned int k=0;k<MEStripClusters[i].ClusterPulseMapHeight.size();k++){
+    for(uint32_t k=0;k<MEStripClusters[i].ClusterPulseMapHeight.size();k++){
       cout << "Strip: " << MEStripClusters[i].ClusterPulseMapHeight[k].channel_+1;
       for(int l=0;l<16;l++)
 	cout << " " << MEStripClusters[i].ClusterPulseMapHeight[k].height_[l];

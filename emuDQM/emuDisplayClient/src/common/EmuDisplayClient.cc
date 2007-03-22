@@ -36,7 +36,9 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
   throw (xdaq::exception::Exception)
     : xdaq::WebApplication(stub),
       monitorClass_("EmuMonitor"),
-      iconsURL_("http://cms-dqm03.phys.ufl.edu/dqm/results/")
+      iconsURL_("http://cms-dqm03.phys.ufl.edu/dqm/results/"),
+      imageFormat_("png"),
+      imagePath_("/tmp/images")
 {
 
   errorHandler_ = toolbox::exception::bind (this, &EmuDisplayClient::onError, "onError");
@@ -84,6 +86,9 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
   getApplicationInfoSpace()->addItemChangedListener ("monitorClass", this);
   getApplicationInfoSpace()->fireItemAvailable("iconsURL",&iconsURL_);
   getApplicationInfoSpace()->addItemChangedListener ("iconsURL", this);
+  getApplicationInfoSpace()->fireItemAvailable("imageFormat",&imageFormat_);
+  getApplicationInfoSpace()->addItemChangedListener ("imageFormat", this);
+  getApplicationInfoSpace()->fireItemAvailable("imagePath",&imagePath_);
 
   // === Initialize ROOT system
   if (!gApplication)
@@ -445,11 +450,12 @@ void EmuDisplayClient::getImagePage (xgi::Input * in, xgi::Output * out)  throw 
   *out << ageOfPageClock();
   *out << cgicc::title("Show Object - /node"+(xdata::Integer(nodeID)).toString() + "/"+ folderName + "/" + objectName) << std::endl;
   *out << cgicc::head();
-  std::string imgname = "node"+(xdata::Integer(nodeID)).toString() + "_" +folderName + "_" + objectName+".png";
+  std::string imgname = "node"+(xdata::Integer(nodeID)).toString() + "_" +folderName + "_" + objectName+"."+imageFormat_.toString();
   std::string imgurl = "";
   imgurl += getApplicationDescriptor()->getContextDescriptor()->getURL();
   // imgurl += "/emu/emuDQM/emuDisplayClient/images/"+imgname;
-  imgurl += "/tmp/images/"+imgname;
+  // imgurl += "/tmp/images/"+imgname;
+  imgurl += imagePath_.toString()+"/"+imgname;
   std::string url = "/";
   url += getApplicationDescriptor()->getURN();
   url += "/getImage";
@@ -507,7 +513,8 @@ void EmuDisplayClient::getImagePage (xgi::Input * in, xgi::Output * out)  throw 
 	TCanvas* canvas = new TCanvas(objectName.c_str(), objectName.c_str(), w, h);
 	canvas->cd();
 	((TH1*)obj)->Draw();    
-	canvas->Print(string("/tmp/images/"+imgname).c_str());
+	// canvas->Print(string("/tmp/images/"+imgname).c_str());
+	canvas->Print(string(imagePath_.toString()+"/"+imgname).c_str());
         // if (!imgSize) {
 	//   *out << cgicc::img().set("src", imgurl).set("alt",imgname).set("width","100%").set("height","95%") << std::endl;
         //} else {
@@ -516,8 +523,12 @@ void EmuDisplayClient::getImagePage (xgi::Input * in, xgi::Output * out)  throw 
 	delete canvas;
       }
       if (obj->InheritsFrom(TCanvas::Class())) {
+	((TCanvas*)obj)->Draw();
 	((TCanvas*)obj)->SetCanvasSize(w, h);
-	((TCanvas*)obj)->Print(string("/tmp/images/"+imgname).c_str());
+	
+        // ((TCanvas*)obj)->SetWindowSize(w, h); 
+	// ((TCanvas*)obj)->Print(string("/tmp/images/"+imgname).c_str());
+	((TCanvas*)obj)->Print(string(imagePath_.toString()+"/"+imgname).c_str());
         //if (!imgSize) {
 	//  *out << cgicc::img().set("src", imgurl).set("alt",imgname).set("width","100%").set("height","95%") << std::endl;
 	//} else {
@@ -578,12 +589,14 @@ void EmuDisplayClient::headerPage (xgi::Input * in, xgi::Output * out)  throw (x
        <<  std::endl;
   if (!monitors_.empty()) {
     //    *out << cgicc::b("Monitors List:")<<cgicc::br() << std::endl;    
-    for (int i=0; i<monitors_.size(); i++) {
+    std::set<xdaq::ApplicationDescriptor*>::iterator pos;
+    for (pos=monitors_.begin(); pos!=monitors_.end(); ++pos) {
+      // for (int i=0; i<monitors_.size(); i++) {
 
       std::ostringstream st;
-      st << monitors_[i]->getClassName() << "-" << monitors_[i]->getInstance();
-      std::string applink = monitors_[i]->getContextDescriptor()->getURL()+"/"+monitors_[i]->getURN();
-      std::string state =  emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"stateName","string");
+      st << (*pos)->getClassName() << "-" << (*pos)->getInstance();
+      std::string applink = (*pos)->getContextDescriptor()->getURL()+"/"+(*pos)->getURN();
+      std::string state =  emu::dqm::getScalarParam(getApplicationContext(), (*pos),"stateName","string");
       
       if (state == "") { 
 	state = "Unknown/Dead";
@@ -594,26 +607,26 @@ void EmuDisplayClient::headerPage (xgi::Input * in, xgi::Output * out)  throw (x
 	continue;
       }
       else {
-        std::string stateChangeTime = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"stateChangeTime","string");
+        std::string stateChangeTime = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"stateChangeTime","string");
         state += " at " + stateChangeTime;
       }
 
       
-      std::string runNumber   = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"runNumber","unsignedLong");
-      std::string events = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"sessionEvents","unsignedLong");
-      std::string dataRate   = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"dataRate","string");
-      std::string cscUnpacked   = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"cscUnpacked","unsignedLong");
-      std::string cscRate   = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"cscRate","string");
-      std::string readoutMode   = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"readoutMode","string");
-      std::string lastEventTime = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"lastEventTime","string");
+      std::string runNumber   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"runNumber","unsignedInt");
+      std::string events = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"sessionEvents","unsignedInt");
+      std::string dataRate   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"dataRate","string");
+      std::string cscUnpacked   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"cscUnpacked","unsignedInt");
+      std::string cscRate   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"cscRate","string");
+      std::string readoutMode   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"readoutMode","string");
+      std::string lastEventTime = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"lastEventTime","string");
       
       std::string nDAQevents = "";
       std::string dataSource = "";
       if (readoutMode == "internal")
-	dataSource   = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"inputDeviceName","string");
+	dataSource   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"inputDeviceName","string");
       if (readoutMode == "external") {
-        dataSource   = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"serversClassName","string");
-	nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), monitors_[i],"nDAQEvents","unsignedLong");
+        dataSource   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"serversClassName","string");
+	nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"nDAQEvents","unsignedInt");
       }
       
       *out << cgicc::tr();
@@ -1154,14 +1167,17 @@ TMessage* EmuDisplayClient::requestCanvas(xdata::Integer nodeaddr, std::string f
 }
 
 // == Get Application Descriptors for specified Data Server class name == //
-std::vector<xdaq::ApplicationDescriptor*> EmuDisplayClient::getAppsList(xdata::String className)
+std::set<xdaq::ApplicationDescriptor*> EmuDisplayClient::getAppsList(xdata::String className)
 {
-  std::vector<xdaq::ApplicationDescriptor*> applist;
+
+  std::set<xdaq::ApplicationDescriptor*> applist;
   try
     {
       applist.clear();
-      applist = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
-      sort(applist.begin(), applist.end(), Compare_ApplicationDescriptors());
+
+      xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup("dqm");
+      applist =	g->getApplicationDescriptors(className.toString());
+      // sort(applist.begin(), applist.end(), Compare_ApplicationDescriptors());
     }
   catch (xdaq::exception::Exception& e)
     {
