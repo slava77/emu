@@ -55,8 +55,8 @@ void DDU::end()
 void DDU::configure() {
 
 
-  printf(" ********************DDU configure is called \n");
-  printf(" DCC slot %d gbe_prescale %d  \n",slot(),gbe_prescale_);
+  printf(" ********************DDU configure is called, slot %d \n",slot());
+  //  printf(" DDU slot %d gbe_prescale %d  \n",slot(),gbe_prescale_);
   if(slot()<21)vmepara_wr_GbEprescale(gbe_prescale_);
   if(slot()<21)ddu_loadkillfiber(killfiber_);
 }
@@ -479,7 +479,7 @@ unsigned long int code;
   cmd[0]=VTX2P_USR2_L;cmd[1]=VTX2P_USR2_H;
   sndbuf[0]=0xCE;
   sndbuf[1]=0xFA;
-  sndbuf[2]=0x08;
+  sndbuf[2]=0x68;
   sndbuf[3]=0x04;
   sndbuf[4]=0x02;
   sndbuf[5]=0x01;
@@ -502,7 +502,7 @@ unsigned long int code;
   ddu_code1=(0x000f&rcvbuf[2]);
   ddu_code0=(0x00ff&rcvbuf[0])|((0x00ff&rcvbuf[1])<<8);
   ddu_shift0=shft2in;
-  printf("   ----> 44-bit FPGA shift test:  sent 0xFACE, got back 0x%04X \n",shft2in);
+  printf("   ----> 47-bit FPGA shift test:  sent 0xFACE, got back 0x%04X \n",shft2in);
   for(i=0;i<7;i=i+4){
     printf("      rcv bytes %d-%d:  %02x%02x/%02x%02x",i+3,i,0xff&rcvbuf[i+3],0xff&rcvbuf[i+2],0xff&rcvbuf[i+1],0xff&rcvbuf[i]);
     printf("      no right-shift needed\n");
@@ -533,29 +533,29 @@ unsigned long int code;
   cmd[0]=VTX2P_BYPASS_L;cmd[1]=VTX2P_BYPASS_H;
   devdo(DDUFPGA,10,cmd,0,sndbuf,rcvbuf,0);
   cmd[0]=VTX2P_USR2_L;cmd[1]=VTX2P_USR2_H;
-//There are 15 fibers....test load "4CAB" in register:
-/*sndbuf[0]=0xCE;
-  sndbuf[1]=0xFA;
-  sndbuf[2]=0x00;
-  sndbuf[3]=0xAB;
-  sndbuf[4]=0x4C;*/
-//Default load "e7FEF" in kill reg:
-//                disable ALCT, enable TMB & all fibers except bad #4:
+//Default load "e7FFF" in kill reg:
+//                disable ALCT, enable TMB & all fibers
   sndbuf[0]=0xCE;
   sndbuf[1]=0xFA;
   sndbuf[2]=0x00;
-  sndbuf[3]=0xEF;
-  sndbuf[4]=0x7F;
-  sndbuf[5]=0x0E;
-  sndbuf[6]=0x00;
+  sndbuf[3]=0x24;
+  sndbuf[4]=0xFF;
+  sndbuf[5]=0x7F;
+  sndbuf[6]=0x0E;
   sndbuf[7]=0x00;
+  sndbuf[8]=0x00;
+  sndbuf[9]=0x00;
   if(regval>=0&&regval<=0x000FFFFF){
-    sndbuf[3]= 0x000000FF&regval;
-    sndbuf[4]=(0x0000FF00&regval)>>8;
-    sndbuf[5]=(0x000F0000&regval)>>16;
+    sndbuf[4]= 0x000000FF&regval;
+    sndbuf[5]=(0x0000FF00&regval)>>8;
+    sndbuf[6]=(0x000F0000&regval)>>16;
   }
-  printf("          Sending to KillFiber:  %01X%02X%02X \n",0x000F&sndbuf[5],0x00FF&sndbuf[4],0x00FF&sndbuf[3]);
-  devdo(DDUFPGA,10,cmd,44,sndbuf,rcvbuf,1);
+  printf("          Sending to KillFiber:  %01X%02X%02X \n",0x000F&sndbuf[6],0x00FF&sndbuf[5],0x00FF&sndbuf[4]);
+
+  rcvbuf[0]=0x00;
+  rcvbuf[1]=0x00;
+  rcvbuf[2]=0x00;
+  devdo(DDUFPGA,10,cmd,52,sndbuf,rcvbuf,1);
   printf(" readback of Previous KillFiber setting, bits [19-0]:\n                       ");
   code=((0x00ff&rcvbuf[0])|((0x00ff&rcvbuf[1])<<8)|((0x000f&rcvbuf[2])<<16))&0x000fffff;
   for(j=19;j>=0;j--){
@@ -571,7 +571,7 @@ unsigned long int code;
 //  shft2in=(((0xff&rcvbuf[3])<<8)|(0xfe&rcvbuf[2]));
 //  shft2in=(((0x1f&rcvbuf[4])<<11)|((0xff&rcvbuf[3])<<3)|(0xe0&rcvbuf[2])>>5);
   shft2in=(((0x0f&rcvbuf[4])<<12)|((0xff&rcvbuf[3])<<4)|(0xf0&rcvbuf[2])>>4);
-  printf("   ----> 44-bit FPGA shift test:  sent 0xFACE, got back 0x%04X \n",shft2in);
+  printf("   ----> 52-bit FPGA shift test:  sent 0xFACE, got back 0x%04X \n",shft2in);
   for(i=0;i<7;i=i+4){
     printf("      rcv bytes %d-%d:  %02x%02x/%02x%02x",i+3,i,0xff&rcvbuf[i+3],0xff&rcvbuf[i+2],0xff&rcvbuf[i+1],0xff&rcvbuf[i]);
     printf("      no right-shift needed\n");
@@ -5639,6 +5639,7 @@ unsigned short int DDU::vmepara_busyhist()
 }
 
 
+// all serial DEVDOs were ...,0) for Reads, ...,1) for Writes
 void DDU::read_status()
 {
 
@@ -5672,17 +5673,14 @@ void DDU::write_page1()
 int i;
   cmd[0]=0x04; //dev 0x04 is flash sram
   cmd[1]=0x09; // cmd 0x09 is program page 1, 16 bits
-/*
-  sndbuf[0]=0xf4; // low data byte
-  sndbuf[1]=0xf9; // high data byte 
-*/
   sndbuf[0]=snd_serial[1]; // low data byte, Kill only channel 16 (D.N.E.)
   sndbuf[1]=snd_serial[0]; // high data byte 
-  printf("Programming Flash Memory Page1 (Kill Cahnnel Mask):  0x");
+  printf("Programming Flash Memory Page1 (Kill Channel Mask):  0x");
   for(i=0;i<2;i++)printf("%02x",sndbuf[1-i]&0xff);
   printf("\n");
-  devdo(VMESERI,2,cmd,0,sndbuf,rcvbuf,1);
-  usleep(1);
+// JG, sndbuf is ignored here, uses InReg0 instead:
+  devdo(VMESERI,2,cmd,0,sndbuf,rcvbuf,0);
+  usleep(20000);
 }
 
 
@@ -5713,12 +5711,6 @@ void DDU::write_page4()
 int i;
   cmd[0]=0x04; //dev 0x04 is flash sram
   cmd[1]=0x0c; // cmd 0x0c is program page 4, 32 bits
-/*
-  sndbuf[0]=0xfe; // low data byte
-  sndbuf[1]=0xca;
-  sndbuf[2]=0xed;
-  sndbuf[3]=0xfe; // high data byte 
-*/
   sndbuf[0]=snd_serial[3]; // low data byte
   sndbuf[1]=snd_serial[2]; //  PAE: m=255
   sndbuf[2]=snd_serial[1]; //  PAF: n=16
@@ -5726,8 +5718,9 @@ int i;
   printf("Programming Flash Memory Page4 (DDR Input FIFO Thresholds):  0x");
   for(i=0;i<4;i++)printf("%02x",snd_serial[3-i]&0xff);
   printf("\n");
+// JG, sndbuf is ignored here, uses InReg0 instead:
   devdo(VMESERI,2,cmd,0,sndbuf,rcvbuf,1);
-  usleep(1);
+  usleep(20000);
 }
 
 
@@ -5746,20 +5739,10 @@ unsigned int code[3];
   sndbuf[5]=0x68;
   devdo(VMESERI,2,cmd,0,sndbuf,rcv_serial,0);
   printf("Read from Flash Memory Page5 (GBE FIFO Thresholds, 34 bits): ");
-/* old 34-bit shift:
-*/
   code[0]=(((rcv_serial[0]&0xC0)>>6)|((rcv_serial[3]&0xFF)<<2)|((rcv_serial[2]&0x3F)<<10));
   code[1]=(((rcv_serial[2]&0xC0)>>6)|((rcv_serial[5]&0xFF)<<2)|((rcv_serial[4]&0x3F)<<10));
   code[2]=((rcv_serial[4]&0xC0)>>6);
-/* 48-bit shift test:
-  code[0]=((rcv_serial[1]&0xFF)|((rcv_serial[0]&0xFF)<<8));
-  code[1]=((rcv_serial[3]&0xFF)|((rcv_serial[2]&0xFF)<<8));
-  code[2]=((rcv_serial[5]&0x03));
-*/
   printf("%01x/%04x/%04x\n",code[2],code[1],code[0]);
-  //  printf("%01x",rcv_serial[1]&0x03);
-  //  for(i=2;i<6;i++)printf("%02x",rcv_serial[i]&0xff);
-  //  printf("\n");
 }
 
 
@@ -5775,11 +5758,17 @@ int i;
   sndbuf[3]=0x20;
   sndbuf[4]=0x00; // high data byte 
   sndbuf[5]=0x68;
+  sndbuf[0]=snd_serial[4]; // low data byte
+  sndbuf[1]=snd_serial[3];
+  sndbuf[2]=snd_serial[2];
+  sndbuf[3]=snd_serial[1];
+  sndbuf[4]=snd_serial[0]; // high data byte 
   printf("Programming Flash Memory Page5 (GBE FIFO Thresholds):  0x");
-  for(i=0;i<5;i++)printf("%02x",sndbuf[4-i]&0xff);
-  printf("\n");
+  for(i=0;i<4;i++)printf("%02x",sndbuf[4-i]&0xff);
+  printf("%01X\n",(sndbuf[0]&0x0f));
+// JG, sndbuf is ignored here, uses InReg0 instead:
   devdo(VMESERI,2,cmd,0,sndbuf,rcv_serial,1);
-  usleep(1);
+  usleep(20000);
 }
 
 
@@ -5809,11 +5798,13 @@ int i;
   sndbuf[0]=0xde; // low data byte
   sndbuf[1]=0xfa; // high data byte 
   printf("Programming Flash Memory Page7 (DDU Board ID):  0x");
-  for(i=0;i<2;i++)printf("%02x",sndbuf[1-i]&0xff);
+  for(i=0;i<2;i++)printf("%02x",snd_serial[i]&0xff);
   printf("\n");
+// JG, sndbuf is ignored here, uses InReg0 instead:
   devdo(VMESERI,2,cmd,0,sndbuf,rcv_serial,1);
-  usleep(1);
-// JRG, add delay after Serial Write
+  usleep(20000);
+/* Worked for Dynatem/VCC, but not Caen.  Used usleep() instead:
+// JRG, add delay after Serial Write, 10-20ms required!
 //   --from "pause" below....
   for(i=0;i<11;i++){
     sndbuf[0]=254;
@@ -5821,6 +5812,8 @@ int i;
     printf(" pausing for %d usec \n",( ((sndbuf[1]&0x00ff)<<8)|(sndbuf[0]&0x00ff) ) );
     devdo(VMESERI,-99,sndbuf,0,sndbuf,rcvbuf,0);
   }
+*/
+
 }
 
 
@@ -6050,7 +6043,8 @@ extern struct GEOM geo[];
       // printf("%s",buf);
      if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
        // printf("%s",buf);
-      }
+     }
+
       else {
         if(strrchr(buf,';')==0){
           do {
@@ -6216,6 +6210,13 @@ extern struct GEOM geo[];
 	  //  devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
           // fpause=pause;
           // pause=pause/2;
+/*
+// JRG, tried this delay for CAEN, no good:
+	  printf("  RUNTEST, pause for %d usec\n",pause);
+	  if(pause>1000)usleep(pause);
+	  else usleep(1000);
+ */
+
           if (pause>65535) {
             sndbuf[0]=255;
             sndbuf[1]=255;
@@ -6234,7 +6235,9 @@ extern struct GEOM geo[];
         }
         else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0)){
 	   printf("goto reset idle state\n"); 
+	   //	   usleep(1000);
 	   devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
+	   //	   usleep(1000);
         }
         else if(strcmp(Word[0],"TRST")==0){
         }

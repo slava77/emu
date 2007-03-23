@@ -431,7 +431,7 @@ public:
           sprintf(buf,"DCC Slot: %d ",slot);
 	  printf(" %s \n",buf);      
           *out << buf; 
-          if(thisDCC->slot()<21){
+          if(thisDCC->slot()<=21){
             thisDDU->CAEN_err_reset();
             unsigned short int statush=thisDCC->mctrl_stath();
             unsigned short int statusl=thisDCC->mctrl_statl();
@@ -678,7 +678,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
   {
     unsigned long int idcode,uscode;
     unsigned long int tidcode[8]={0x2124a093,0x31266093,0x31266093,0x05036093,0x05036093,0x05036093,0x05036093,0x05036093};
-    unsigned long int tuscode[8]={0xcf041a01,0xdf025a02,0xdf025a02,0xb0018a01,0xc041dd99,0xc141dd99,0xd0025a02,0xd1025a02};
+    unsigned long int tuscode[8]={0xcf041a01,0xdf025a02,0xdf025a02,0xb0018a06,0xc041dd99,0xc141dd99,0xd0025a02,0xd1025a02};
 
     printf(" entered DDUFirmware \n");
     cgicc::Cgicc cgi(in);
@@ -708,7 +708,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     *out << br() << std::endl;
 
     char buf[300];
-    int j;
+    int j;// j is not used anymore, JG.
     sprintf(buf,"DDU Firmware Slot %d",thisDDU->slot());
     *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
     *out << std::endl;
@@ -718,9 +718,9 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     for(int i=0;i<8;i++){ 
       xmltext="data/ddu_config/";
       printf(" LOOP: %d \n",i);
-      j=i;
+      j=i;  // j is not used anymore, JG.
       *out << cgicc::span().set("style","color:black");
-      if(thisDDU->slot()>=21){
+      if(thisDDU->slot()>21){
 	sprintf(buf," ");
 	//	if(i==0){sprintf(buf,"ddufpga  ");}
 	//	if(i==1){sprintf(buf,"infpga0  ");}
@@ -741,18 +741,18 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	if(i==4){
 	  sprintf(buf,"dduprom0 ");
 	  j=6;
-	  xmltext="http://www.physics.ohio-state.edu/~cms/firmwares/ddu5ctrl_0.svf";
+	  xmltext="/home/cscfed/firmware/ddu5ctrl_0.svf";
 	}
 	if(i==5){
 	  sprintf(buf,"dduprom1 ");
 	  j=7;
-	  xmltext="http://www.physics.ohio-state.edu/~cms/firmwares/ddu5ctrl_1.svf";
+	  xmltext="/home/cscfed/firmware/ddu5ctrl_1.svf";
 	}
 
 	printf(" %s ",buf);
 	*out << buf << cgicc::span() << std::endl;
       }
-      if(thisDDU->slot()<21){
+      if(thisDDU->slot()<=21){
 	thisDDU->CAEN_err_reset();
 	if(i==0){idcode=thisDDU->ddufpga_idcode(); sprintf(buf,"ddufpga  ");}
 	if(i==1){idcode=thisDDU->infpga_idcode0(); sprintf(buf,"infpga0  ");}
@@ -853,7 +853,8 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	sprintf(buf,"%d",ddu);
 	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu") << std::endl; 
 	sprintf(buf,"%d",i);
-	//       sprintf(buf,"%d",j);
+	//       sprintf(buf,"%d",j);  // j is not used anymore, JG.
+	if(thisDDU->slot()>21)sprintf(buf,"%d",10+i);
 	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","prom") << std::endl; 
 	*out << cgicc::form() << std::endl ;
       }else{ 
@@ -884,6 +885,8 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     //
     if(name2 != cgi.getElements().end()) {
       prom = cgi["prom"]->getIntegerValue();
+      if(prom==13)prom=9;   // JG, special Broadcast case for VMEPROM...
+      if(prom>=10)prom-=10; //  ...now remove the "10+" flag for all cases.
       cout << "PROM " << prom << endl;
     } 
     //
@@ -925,6 +928,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
 	  if(prom==6)thisDDU->epromload("INPROM0",INPROM0,"MySVFFile.svf",1,cbrdnum);
           if(prom==7)thisDDU->epromload("INPROM1",INPROM1,"MySVFFile.svf",1,cbrdnum);
           if(prom==3)thisDDU->epromload("RESET",RESET,"MySVFFile.svf",1,cbrdnum);
+          if(prom==9)thisDDU->epromload("VMEPROM",VMEPROM,"MySVFFile.svf",1,cbrdnum);
           if(prom==4||prom==5){
             int brdnum=thisDDU->read_page7();
             cbrdnum[0]=brdnum;
@@ -3457,6 +3461,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
     //   
    
     for(int i=500;i<523;i++){
+      // JG, note: 523 is hidden, reserved for expert FMM Wr/Rd loop test.
       printf(" LOOP: %d \n",i);
       thisDDU->CAEN_err_reset();  
       icond=0;
@@ -3554,27 +3559,32 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	sprintf(buf,"'F0E' + 4-bit FMM Reg:");
 	sprintf(buf2," %04X <font color=red> EXPERT ONLY! </font> ",thisDDU->vmepara_rd_fmmreg());
       }
+
+      if(i==523){
+	sprintf(buf,"Cycle test for FMM Reg, number of loops:");
+	sprintf(buf2," <font color=red> EXPERT ONLY! </font> ");
+      }
       if(i==518){
 	sprintf(buf,"Test Reg0:");
 	sprintf(buf2," %04X ",thisDDU->vmepara_rd_testreg0());
       }
       if(i==519){
 	sprintf(buf,"Test Reg1:");
-	sprintf(buf2," %04X ",thisDDU->vmepara_rd_testreg0());
+	sprintf(buf2," %04X ",thisDDU->vmepara_rd_testreg1());
       }
       if(i==520){
 	sprintf(buf,"Test Reg2:");
-	sprintf(buf2," %04X ",thisDDU->vmepara_rd_testreg0());
+	sprintf(buf2," %04X ",thisDDU->vmepara_rd_testreg2());
       }
       if(i==521){
 	sprintf(buf,"Test Reg3:");
-	sprintf(buf2," %04X ",thisDDU->vmepara_rd_testreg0());
+	sprintf(buf2," %04X ",thisDDU->vmepara_rd_testreg3());
       }
       if(i==522){
 	sprintf(buf,"Test Reg4:");
-	sprintf(buf2," %04X ",thisDDU->vmepara_rd_testreg0());
+	sprintf(buf2," %04X ",thisDDU->vmepara_rd_testreg4());
       }
-      if(i==508||i==512||i==514||i==517||i==515||i==513){
+      if(i==508||i==512||i==514||i==517||i==515||i==513||i==523){
          std::string ddutextload =
 	 toolbox::toString("/%s/DDUTextLoad",getApplicationDescriptor()->getURN().c_str());
          *out << cgicc::form().set("method","GET").set("action",ddutextload);
@@ -3640,12 +3650,13 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
 	iblink=0;
       }
       printf(" now boxes \n");
-      if(i==508||i==512||i==514||i==517||i==515||i==513){
+      if(i==508||i==512||i==514||i==517||i==515||i==513||i==523){
 	 string xmltext="";
 	 if(i==508)xmltext="ffff";
          if(i==512)xmltext="f0f0";
          if(i==514)xmltext="f0f0";
          if(i==517)xmltext="0f0e";
+         if(i==523)xmltext="1600";
          if(i!=515&&i!=513){
 	   *out << cgicc::input().set("type","text")
 	     .set("name","textdata")
@@ -3837,7 +3848,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
       //      if(i==603||i==604||i==605){
 	string xmltext="7fff";
 	if(i==604)xmltext="000880440";
-	if(i==605)xmltext="ff";
+	if(i==605)xmltext="ffff";
 	*out << cgicc::input().set("type","text")
 	  .set("name","textdata")
 	  .set("size","10")
@@ -3955,6 +3966,41 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
       printf(" para_val %04x \n",para_val);
       thisDDU->vmepara_wr_fmmreg(para_val);
     }
+    if(val==523){
+      int i,n_loop=0, ierror=0;
+      sscanf(XMLtext.data(),"%d",&n_loop);
+      printf(" FMM cycle test, n_loop=%d \n",n_loop);
+      for(i=0;i<n_loop;i++){
+	//	para_val=(i%16)|0xF0E0;
+	//	para_val=(65536*rand());
+	para_val=(rand());
+	thisDDU->vmepara_wr_fmmreg(para_val);
+	//	thisDDU->vmepara_wr_inreg(para_val);
+	int rd_in=thisDDU->vmepara_rd_fmmreg();
+	//	int rd_in=thisDDU->vmepara_rd_inreg0();
+	//       	usleep(10000);
+	if (rd_in != para_val){
+	  printf(" **** sent %04X, read back %04X **** \n",para_val,rd_in);
+	  ierror++;
+/*
+	  thisDDU->vmepara_rd_testreg0();
+	  thisDDU->vmepara_rd_testreg1();
+	  thisDDU->vmepara_rd_testreg2();
+	  thisDDU->vmepara_rd_testreg3();
+	  thisDDU->vmepara_rd_testreg4();
+*/
+	  //rd_in=thisDDU->vmepara_rd_fmmreg();
+	  //if (rd_in != para_val)printf("   **** read back failed again: %04X **** \n",rd_in);
+	  //else printf("   **** 2nd try read back OK:  %04X **** \n",rd_in);
+	}
+      }
+      if (ierror>0){
+	printf(" ***** FMM cycle test summary: %d errors out of %d tries \n",ierror,n_loop);
+      }else{
+	printf(" ** FMM cycle test summary: No errors out of %d tries \n",n_loop);
+      }
+      thisDDU->vmepara_wr_fmmreg(0xd093);  // Disable Over-ride Mode when done
+    }
     if(val==603){
       sscanf(XMLtext.data(),"%02hhx%02hhx",&thisDDU->snd_serial[0],&thisDDU->snd_serial[1]);
       //  printf(" SSCANF Return: %02x %02x \n",thisDDU->snd_serial[0]&0xff,thisDDU->snd_serial[1]&0xff);
@@ -3970,15 +4016,19 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
     if(val==604){
       thisDDU->snd_serial[5]=0x00;
       sscanf(XMLtext.data(),"%02hhx%02hhx%02hhx%02hhx%02hhx",&thisDDU->snd_serial[0],&thisDDU->snd_serial[1],&thisDDU->snd_serial[2],&thisDDU->snd_serial[3],&thisDDU->snd_serial[4]);
-      para_val=((thisDDU->snd_serial[4]<<8))&0xff00|(thisDDU->snd_serial[5]&0x00ff);
+
+      para_val=((thisDDU->snd_serial[4]))&0x000f|((thisDDU->snd_serial[3]<<4)&0x0ff0)|((thisDDU->snd_serial[2]<<12)&0xf000);
       printf(" para_val %04x \n",para_val);
       thisDDU->vmepara_wr_inreg(para_val);
-      para_val=((thisDDU->snd_serial[2]<<8))&0xff00|(thisDDU->snd_serial[3]&0x00ff);
+
+      para_val=((thisDDU->snd_serial[2]>>4))&0x000f|((thisDDU->snd_serial[1]<<4)&0x0ff0)|((thisDDU->snd_serial[0]<<12)&0xf000);
       printf(" para_val %04x \n",para_val);
       thisDDU->vmepara_wr_inreg(para_val);
-      para_val=((thisDDU->snd_serial[0]<<8))&0xff00|(thisDDU->snd_serial[1]&0x00ff);
+
+      para_val=((thisDDU->snd_serial[0]>>4))&0x000f;
       printf(" para_val %04x \n",para_val);
       thisDDU->vmepara_wr_inreg(para_val);
+
       thisDDU->write_page5();
       // sleep(1);
     }
@@ -4057,7 +4107,7 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
       for(int i=0;i<(int)dduVector.size();i++){
 	thisDDU=dduVector[i];
 	int slot=thisDDU->slot();
-        if(slot<21){
+        if(slot<=21){
 	  FEDVME_CSCstat=thisDDU->vmepara_CSCstat();
 	  if(FEDVME_CSCstat!=0x0000){
 // only gets set if there's a previous problem at VMEirq service startup:
@@ -4238,13 +4288,13 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
       // *out << cgicc::tr();
       printf(" LOOP: %d \n",i);
     *out << cgicc::span().set("style","color:black");
-    if(thisDCC->slot()>=21){
+    if(thisDCC->slot()>21){
     if(i==0){sprintf(buf,"inprom  ");}
     if(i==1){sprintf(buf,"mprom  ");}
     printf(" %s ",buf);
     *out<< buf << std::endl;;
     }
-    if(thisDCC->slot()<21){
+    if(thisDCC->slot()<=21){
     if(i==0){idcode=thisDCC->inprom_chipid(); sprintf(buf,"inprom  ");}
     if(i==1){idcode=thisDCC->mprom_chipid(); sprintf(buf,"mprom  ");}
     printf(" %s idcode %08lx ",buf,idcode);
@@ -4589,7 +4639,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
       if(i==104){
 	  *out << "<blockquote><font size=-1 face=arial>";
 	  *out << "Command Code examples (hex):" << br();
-	  *out << " &nbsp &nbsp &nbsp &nbsp 3=SyncRst, &nbsp 4=HardRst, &nbsp 1C=SoftRst";
+	  *out << " &nbsp &nbsp &nbsp &nbsp 3=SyncRst, &nbsp 4=PChardRst, &nbsp 1C=SoftRst, &nbsp 34=DDUhardRst";
 	  *out << "</font></blockquote>" << std::endl;
       }
       if(i==109){
