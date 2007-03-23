@@ -1,0 +1,36 @@
+<EmuSystem>
+
+<!-- start of 1st crate -->
+  <FEDCrate Crate="1">
+
+    <VME Device="0" Link="0" vmeirq_start="0" >
+    </VME>
+
+    <DDU slot="3"
+       gbe_prescale="0"
+       killfiber="f7fff" >
+    </DDU>
+
+    <DDU slot="6"
+       gbe_prescale="0"
+       killfiber="f7fff" >
+    </DDU>
+
+    <DDU slot="10"
+       gbe_prescale="0"
+       killfiber="f7fff" >
+    </DDU>
+
+    <DDU slot="12"
+       gbe_prescale="0"
+       killfiber="f7fff" >
+    </DDU>
+
+    <DCC slot="8" 
+        fifoinuse="c9" >
+    </DCC>
+
+ </FEDCrate>
+
+</EmuSystem>
+

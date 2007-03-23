@@ -11,4 +11,5 @@ fi
 killall -q $XDAQ_ROOT/daq/xdaq/bin/linux/x86/xdaq.exe
 #
 cd $XDAQ_ROOT/emu/emuDCS/FEDCrate/
-nohup $XDAQ_ROOT/daq/xdaq/scripts/xdaq.sh -p 40100 -c xml/EmuFCluster.xml -l INFO >& ~/log/xdaq.log &
+nohup $XDAQ_ROOT/daq/xdaq/scripts/xdaq.sh -p 40100 -c xml/EmuFCluster_SV.xml -l INFO >& ~/log/xdaq.log.40100 &
+nohup $XDAQ_ROOT/daq/xdaq/scripts/xdaq.sh -p 40000 -c xml/EmuFCluster_SV.xml -l INFO >& ~/log/xdaq.log.40000 &

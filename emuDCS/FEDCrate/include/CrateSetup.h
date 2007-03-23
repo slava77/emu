@@ -12,9 +12,9 @@ class CrateSetup {
 public:
   CrateSetup();
   ~CrateSetup();
-  Crate * crate(unsigned int);
-  vector<Crate *> crates() const {return theCrates;}
-  void addCrate(unsigned int number, Crate * crate);
+  Crate * crate(int number);
+  void addCrate(int number, Crate * crate);
+  vector<Crate *> crates() const {return theCrates;}  // exposes internal member
 
 private:
   vector<Crate *> theCrates;

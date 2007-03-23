@@ -1,6 +1,12 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.3 2006/10/04 03:00:25 gilmore Exp $
+// $Id: VMEController.cc,v 3.4 2007/03/23 12:51:24 ichiro Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.4  2007/03/23 12:51:24  ichiro
+// merged sTTS_integ branch upto sTTS_20070324
+//
+// Revision 3.3.2.1  2007/03/19 15:03:23  gilmore
+// fixes for VMEser/VMEpara expert functions
+//
 // Revision 3.3  2006/10/04 03:00:25  gilmore
 // Removed some debug lines.
 //
@@ -133,10 +139,13 @@ int err;
 CVAddressModifier AM=cvA24_U_DATA;
 CVDataWidth DW=cvD16;
 // printf("theBHandle %08x \n",theBHandle);
+// printf(" +++++ CAENVME read sent +++++\n");
    err=CAENVME_ReadCycle(theBHandle,Address,data,AM,DW);
-   if(err!=0)caen_err=err;
-   // printf(" CAENVME read err %d \n",caen_err);
+   if(err!=0){
+     caen_err=err;
+     printf(" CAENVME read err %d \n",caen_err);
    //printf(" read: address %08x data %04x \n",Address,*data);
+   }
    return err;
 }
 
@@ -150,8 +159,11 @@ CVDataWidth DW=cvD16;
 //printf("theBHandle %08x \n",theBHandle);
 //printf(" write: address %08x data %04x \n",Address,*data);
    err=CAENVME_WriteCycle(theBHandle,Address,(char *)data,AM,DW); 
-   if(err!=0)caen_err=err;
-   // printf(" CAENVME write err %d \n",caen_err);
+   if(err!=0){
+     caen_err=err;
+     printf(" CAENVME write err %d \n",caen_err);
+   }
+// JG, temporary!   usleep(1000);
    return err;
 }
 

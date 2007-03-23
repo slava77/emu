@@ -1,6 +1,21 @@
 //-----------------------------------------------------------------------
-// $Id: EmuFController.cc,v 3.1 2006/09/06 15:43:50 gilmore Exp $
+// $Id: EmuFController.cc,v 3.2 2007/03/23 12:51:24 ichiro Exp $
 // $Log: EmuFController.cc,v $
+// Revision 3.2  2007/03/23 12:51:24  ichiro
+// merged sTTS_integ branch upto sTTS_20070324
+//
+// Revision 3.1.2.4  2007/02/23 14:16:43  ichiro
+// add a debug output
+//
+// Revision 3.1.2.3  2007/02/20 10:20:40  ichiro
+// access correct crate/slot
+//
+// Revision 3.1.2.2  2007/02/15 15:39:27  ichiro
+// added DDU sTTS bits setting/reading
+//
+// Revision 3.1.2.1  2007/02/07 16:57:58  ichiro
+// add read/writeTTSBits()
+//
 // Revision 3.1  2006/09/06 15:43:50  gilmore
 // Improved Config and interrupt features.
 //
@@ -102,3 +117,73 @@ int EmuFController::irqtest(){
   }
   return ret;
 }
+
+void EmuFController::writeTTSBits(
+    unsigned int crate, unsigned int slot, unsigned int bits)
+{
+  bool useDCC = (slot == 8 || slot == 18);
+
+  cout << "EmuFController::writeTTSBits on " << crate << " " << slot << endl;
+
+  if (useDCC) {
+    DCC *dcc = getDCC(crate, slot);
+
+    dcc->mctrl_fmmset((bits | 0x10) & 0xffff);
+
+  } else { // DDU
+    DDU *ddu = getDDU(crate, slot);
+
+    ddu->vmepara_wr_fmmreg((bits | 0xf0e0) & 0xffff);
+  }
+}
+
+unsigned int EmuFController::readTTSBits(
+    unsigned int crate, unsigned int slot)
+{
+  unsigned int bits;
+
+  bool useDCC = (slot == 8 || slot == 18);
+
+  if (useDCC) {
+    DCC *dcc = getDCC(crate, slot);
+
+    bits = dcc->mctrl_fmmrd();
+
+  } else { // DDU
+    DDU *ddu = getDDU(crate, slot);
+
+    bits = ddu->vmepara_rd_fmmreg();
+  }
+
+  return bits & 0xf;
+}
+
+DCC *EmuFController::getDCC(int crate, int slot)
+{
+  theSelector.setCrate(crate);
+  theSelector.setSlot(slot);
+
+  std::vector<DCC *> dccs = theSelector.dccs();
+
+  if (dccs.size() > 0) {
+    return dccs[0];
+  } else {
+    return NULL;
+  }
+}
+
+DDU *EmuFController::getDDU(int crate, int slot)
+{
+  theSelector.setCrate(crate);
+  theSelector.setSlot(slot);
+
+  std::vector<DDU *> ddus = theSelector.ddus();
+
+  if (ddus.size() > 0) {
+    return ddus[0];
+  } else {
+    return NULL;
+  }
+}
+
+// End of file
