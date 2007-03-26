@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.10 2007/03/16 18:06:22 rakness Exp $
+// $Id: CCB.cc,v 3.11 2007/03/26 08:15:25 rakness Exp $
 // $Log: CCB.cc,v $
+// Revision 3.11  2007/03/26 08:15:25  rakness
+// Read TTCrx ID in configure
+//
 // Revision 3.10  2007/03/16 18:06:22  rakness
 // put scans+TTCrxID in summary file
 //
@@ -639,6 +642,9 @@ void CCB::ReadTTCrxID(){
   //  printf("ReadTTCRxID.%02x%02x \n",rcvbuf[0]&0xff,rcvbuf[1]&0xff);
   //
   ReadTTCrxID_ = ( (rcvbuf[0]&0xff) << 8 ) | (rcvbuf[1]&0xff);
+  TTCrxID_ = ReadTTCrxID_;
+  //
+  (*MyOutput_) << "TTCrx ID = " << std::dec << TTCrxID_ << std::endl;
   //
   setCCBMode(CCB::DLOG);
   //
@@ -1061,6 +1067,7 @@ void CCB::configure() {
   disableL1();
   //  std::cout << ReadRegister(0x0) << std::endl;
   //
+  // need to read the TTCrxID before TTCrx registers can be touched
   ReadTTCrxID();
   //
   // Download coarse delay to TTCrx
