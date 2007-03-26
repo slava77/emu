@@ -3474,9 +3474,12 @@ throw (emuDAQManager::exception::Exception)
     }
     catch(xcept::Exception e)
     {
-        string s = "Failed to get scalar parameter from application";
+        stringstream s;
+	s << "Failed to get scalar parameter " 
+	  << paramName << " from application " 
+	  << appDescriptor->getClassName() << appDescriptor->getInstance();
 
-        XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
+        XCEPT_RETHROW(emuDAQManager::exception::Exception, s.str(), e);
     }
 
     return value;
