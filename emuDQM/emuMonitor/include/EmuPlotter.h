@@ -48,6 +48,7 @@
 
 // ==  ROOT Section
 #include <TROOT.h>
+#include <TApplication.h>
 #include <TSystem.h>
 #include <TH1.h>
 #include <TFile.h>
@@ -107,6 +108,10 @@ public:
 	std::string format=DEFAULT_IMAGE_FORMAT, 
 	int width=DEFAULT_CANVAS_WIDTH, 
 	int height=DEFAULT_CANVAS_HEIGHT);
+  void saveCanvasImages(std::string path, 
+        std::string format=DEFAULT_IMAGE_FORMAT, 
+        int width=DEFAULT_CANVAS_WIDTH, 
+        int height=DEFAULT_CANVAS_HEIGHT);
   void setXMLHistosBookingCfgFile(string filename) {xmlHistosBookingCfgFile = filename;}
   string GetXMLHistosBookingCfgFile() const {return xmlHistosBookingCfgFile;}
   void setXMLCanvasesCfgFile(string filename) {xmlCanvasesCfgFile = filename;}

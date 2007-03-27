@@ -3,7 +3,7 @@
 void EmuPlotter::saveImages(std::string path, std::string format, int width, int height)
 {
 
-  LOG4CPLUS_INFO(logger_, "Saving MEs as "<<format<< " images to to " << path)
+  LOG4CPLUS_INFO(logger_, "Saving MEs as "<<format<< " images to " << path)
   if (format == "") { format = DEFAULT_IMAGE_FORMAT; }
 
   std::ofstream tree_items;
@@ -62,6 +62,78 @@ void EmuPlotter::saveImages(std::string path, std::string format, int width, int
   LOG4CPLUS_INFO(logger_, "Done");
 
 }
+
+void EmuPlotter::saveCanvasImages(std::string path, std::string format, int width, int height)
+{
+
+   LOG4CPLUS_WARN(logger_, "Saving MEs as "<<format<< " images to to " << path)
+  if (format == "") { format = DEFAULT_IMAGE_FORMAT; }
+
+  std::ofstream tree_items;
+
+  if (!gApplication)
+    TApplication::CreateApplication();
+
+  gStyle->SetPalette(1,0);
+
+  TString command = Form("mkdir -p %s",path.c_str());
+    gSystem->Exec(command.Data());
+
+  string runNumber = "";
+  tree_items.open((path+"/tree_items.js").c_str());
+  tree_items << "var TREE_ITEMS = [\n"
+        << "    ['RunNumber" << runNumber << "', ''," << endl;
+
+
+ 
+  std::map<std::string, ME_List>::iterator me_itr; 
+  std::map<std::string, MECanvases_List>::iterator itr;
+  MECanvases_List_const_iterator h_itr;
+
+  string imgfile = "";
+  for (itr = MECanvases.begin(); itr != MECanvases.end(); ++itr) {
+    string relpath = itr->first;
+    if (relpath.find("CSC_") != string::npos) {
+	int crate=0;
+	int slot=0;
+	string csc_ptrn = "CSC_%d_%d";
+	if (sscanf(relpath.c_str(),csc_ptrn.c_str(), &crate, &slot) == 2) {
+	   ostringstream st;
+	   st << "crate" << crate << "/slot" << slot;
+	   relpath =st.str();
+	}
+    }
+    tree_items << "            ['"<< itr->first <<"', '"<< relpath <<"'," << endl;
+    for (h_itr = itr->second.begin(); h_itr != itr->second.end(); ++h_itr) {
+        string fullname = h_itr->second->getName() + "." + format;
+        string relname = relpath + "/" + h_itr->second->getFolder() +"/" + fullname;
+	string fullpath  = path+"/"+relpath + "/" + h_itr->second->getFolder();
+        imgfile = fullpath + "/"+ fullname;
+	command = Form("mkdir -p %s",fullpath.c_str());
+        gSystem->Exec(command.Data());
+	me_itr = MEs.find(itr->first);
+        if (me_itr != MEs.end()) {
+          h_itr->second->Draw(me_itr->second, width, height);
+	  LOG4CPLUS_WARN(logger_, imgfile);
+	  h_itr->second->Print(imgfile.c_str());
+        }
+        tree_items << "                    ['"<< h_itr->second->getTitle() << "','" << relname <<"']," << endl;
+    }
+    tree_items << "            ]," << endl;
+  }
+  tree_items << "    ],\n"
+        << "];" << endl;
+  tree_items.clear();
+  tree_items.close();
+
+  createTreePage(path);
+  createTreeEngine(path);
+  createTreeTemplate(path);
+  createHTMLNavigation(path);
+
+  LOG4CPLUS_INFO(logger_, "Done");
+}
+
 
 
 /*

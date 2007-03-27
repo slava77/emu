@@ -43,6 +43,7 @@ int main(int argc, char **argv) {
 	int startEvent = 0;
 	string datafile = "";
   	string histofile = "dqm_results.root";
+	string plotsdir = "images";
         // EmuFileReader ddu; //( inputDeviceName_.toString(), inputDataFormatInt_ );
 	// FileReaderDDU ddu;
 	uint32_t dduCheckMask=0xFFFFDFFF;
@@ -51,8 +52,8 @@ int main(int argc, char **argv) {
 	// int dduCheckMask = 0x0;
 //	int binCheckMask = 0x0;
 	switch (argc) {
-		case 7: binCheckMask = atoi(argv[6]);	
-		case 6: dduCheckMask = atoi(argv[5]);
+		case 7: binCheckMask = strtoul(argv[6], NULL, 0);	
+		case 6: dduCheckMask = strtoul(argv[5], NULL, 0);
 		case 5: startEvent = atoi(argv[4]);
 		case 4: histofile = argv[3];
 		case 3: NumberOfEvents = atoi(argv[2]);
@@ -64,12 +65,16 @@ int main(int argc, char **argv) {
 		histofile = datafile;
 		if (histofile.rfind("/") != string::npos) 
 			histofile.erase(0, histofile.rfind("/")+1);
+		plotsdir = histofile;
+                plotsdir = plotsdir.replace(plotsdir.find(".bin"), 4, ".plots");
 		histofile = histofile.replace(histofile.find(".bin"), 4, ".root");
 	}
         if (datafile.find(".raw") != string::npos) {
                 histofile = datafile;
                 if (histofile.rfind("/") != string::npos)
                         histofile.erase(0, histofile.rfind("/")+1);
+		plotsdir = histofile;
+		plotsdir = plotsdir.replace(plotsdir.find(".raw"), 4, ".plots");
                 histofile = histofile.replace(histofile.find(".raw"), 4, ".root");
         }
 
@@ -126,8 +131,9 @@ int main(int argc, char **argv) {
         LOG4CPLUS_WARN (logger, "Total time: " << t1-t0);
 
 	LOG4CPLUS_WARN (logger, "Events: " << i);
-	plotter.saveToROOTFile(histofile.c_str());
+	// plotter.saveToROOTFile(histofile.c_str());
 //	plotter.saveImages("images", "png" , 1600, 1200);
+	plotter.saveCanvasImages(plotsdir.c_str(), "png" , 1600, 1200);
 	ddu.close();
 
 	// delete plotter;
