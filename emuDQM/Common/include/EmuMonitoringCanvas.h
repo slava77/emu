@@ -96,6 +96,7 @@ class EmuMonitoringCanvas
 	void Write() {if (canvas!=NULL) canvas->Write();}
 	void Draw(ME_List& MEs);
         void Draw(ME_List& MEs, int width, int height);
+	void Print(const char* imgfile) {if (canvas!=NULL) canvas->Print(imgfile);}
 
 //	DOMNode * getDOMInfo();
 // 	void setDOMInfo(DOMNode *info);
