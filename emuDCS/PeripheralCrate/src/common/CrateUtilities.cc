@@ -609,7 +609,8 @@ void CrateUtilities::MpcTMBTest(int Nloop){
     //
   }
   //
-  myCrate_->ccb()->FireCCBMpcInjector();
+  //  myCrate_->ccb()->FireCCBMpcInjector();
+  myCrate_->ccb()->injectTMBPattern();
   //
   myCrate_->mpc()->read_fifos();
   //
