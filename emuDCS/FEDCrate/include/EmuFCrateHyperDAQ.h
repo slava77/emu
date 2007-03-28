@@ -678,7 +678,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
   {
     unsigned long int idcode,uscode;
     unsigned long int tidcode[8]={0x2124a093,0x31266093,0x31266093,0x05036093,0x05036093,0x05036093,0x05036093,0x05036093};
-    unsigned long int tuscode[8]={0xcf041a01,0xdf025a02,0xdf025a02,0xb0018a06,0xc041dd99,0xc141dd99,0xd0025a02,0xd1025a02};
+    unsigned long int tuscode[8]={0xcf041a01,0xdf025a02,0xdf025a02,0xb0019a03,0xc041dd99,0xc141dd99,0xd0025a02,0xd1025a02};
 
     printf(" entered DDUFirmware \n");
     cgicc::Cgicc cgi(in);
