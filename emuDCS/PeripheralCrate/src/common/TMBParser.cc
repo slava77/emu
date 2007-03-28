@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.14 2007/03/14 08:59:03 rakness Exp $
+// $Id: TMBParser.cc,v 3.15 2007/03/28 17:46:22 rakness Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.15  2007/03/28 17:46:22  rakness
+// xml changes:  add ALCT testpulse, remove TTCrxID
+//
 // Revision 3.14  2007/03/14 08:59:03  rakness
 // make parser dumb
 //
@@ -408,7 +411,12 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
 	if (alctParser_.fillInt("alct_ccb_enable"     ,value)) { alct_->SetCcbEnable(value);              }
 	if (alctParser_.fillInt("alct_accel_mode"     ,value)) { alct_->SetAlctAmode(value);              }
 	if (alctParser_.fillInt("alct_trig_info_en"   ,value)) { alct_->SetTriggerInfoEnable(value);      }
-	if (alctParser_.fillInt("alct_sn_select"       ,value)) { alct_->SetSnSelect(value);               }
+	if (alctParser_.fillInt("alct_sn_select"      ,value)) { alct_->SetSnSelect(value);               }
+	if (alctParser_.fillInt("alct_testpulse_amplitude",value)) { alct_->SetTestpulseAmplitude(value); }
+	std::string on_or_off;
+	if (alctParser_.fillString("alct_testpulse_invert",on_or_off)) { alct_->Set_InvertPulse(on_or_off); }
+	std::string afebs_or_strips;
+	if (alctParser_.fillString("alct_testpulse_direction",afebs_or_strips)) { alct_->Set_PulseDirection(afebs_or_strips); }
 	//	std::string file;
 	//	if ( alctParser_.fillString("alct_pattern_file", file)) {
 	//	  alct_->SetPatternFile(file);
@@ -431,8 +439,8 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
 	    //
 	    anodeParser_.parseNode(grandDaughterNode);
 	    if(anodeParser_.fillInt("Number", number)){
-	      anodeParser_.fillInt("delay", delay);
-	      anodeParser_.fillInt("threshold", threshold);
+	      anodeParser_.fillInt("afeb_fine_delay", delay);
+	      anodeParser_.fillInt("afeb_threshold", threshold);
 	      //
 	      alct_->SetAsicDelay(number-1,delay);
 	      alct_->SetAfebThreshold(number-1,threshold);

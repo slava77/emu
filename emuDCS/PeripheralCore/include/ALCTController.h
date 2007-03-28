@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.18 2007/03/14 08:59:03 rakness Exp $
+// $Id: ALCTController.h,v 3.19 2007/03/28 17:46:21 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.19  2007/03/28 17:46:21  rakness
+// xml changes:  add ALCT testpulse, remove TTCrxID
+//
 // Revision 3.18  2007/03/14 08:59:03  rakness
 // make parser dumb
 //
@@ -478,6 +481,12 @@ public:
   void ReadStandbyRegister_();		      // fills Read values with values read from ALCT	 
   //
   //
+  ///////////////////////////////////////////////////////////////////////
+  //TESTPULSE AMPLITUDE - amplitude of analog test pulse sent to AFEBs
+  ///////////////////////////////////////////////////////////////////////
+  void SetTestpulseAmplitude(int dacvalue);        // set Write values -> Voltage = 2.5V * dacvalue/256
+  inline int GetTestpulseAmplitude() { return write_testpulse_amplitude_dacvalue_; } // get Write value
+  //
   ///////////////////////////////////////////////////////////////////////////////
   // TESTPULSE TRIGGER REGISTER - specify which signal will fire the testpulse
   //////////////////////////////////////////////////////////////////////////////
@@ -493,6 +502,8 @@ public:
   void SetInvertPulse_(int mask);               //set Write value -> mask = [ON, OFF] 
   int  GetInvertPulse_();                       //get Read value -> return value -> 0 = not inverted
   //                                                                                1 = inverted 
+  // user-friendly version to above method:
+  void Set_InvertPulse(std::string invert_pulse); //invert_pulse = [on,off]
   //
   void SetPowerUpTriggerRegister_();	       // sets Write values to data-taking defaults
   void PrintTriggerRegister_();                // print out Read values				 
@@ -501,6 +512,11 @@ public:
   void WriteTriggerRegister_();                 //writes Write values to ALCT
   void ReadTriggerRegister_();                  //fills Read values with values read from ALCT
   //
+  // meant to be called from SetUpPulsing, or written into from xml file via method below
+  inline void SetPulseDirection(int afebs_or_layers) { pulse_direction_ = afebs_or_layers; } //afebs_or_layers = [PULSE_LAYERS,PULSE_AFEBS]
+  inline int  GetPulseDirection() { return pulse_direction_; }                      
+  // user-friendly way to write into above method...
+  void Set_PulseDirection(std::string afebs_or_strips); //afebs_or_strips = [afebs,strips]
   //
   inline TMB * GetTMB(){ return tmb_;}
   //
@@ -577,8 +593,6 @@ private:
   //TESTPULSE AMPLITUDE - amplitude of analog test pulse sent to AFEBs
   ///////////////////////////////////////////////////////////////////////
   int write_testpulse_amplitude_dacvalue_;
-  //
-  void SetTestpulseAmplitude_(int dacvalue);        // set Write values -> Voltage = 2.5V * dacvalue/256
   //
   void SetPowerUpTestpulseAmplitude_();             // sets Write values to data-taking defaults
   void PrintTestpulseAmplitude_();
@@ -727,6 +741,8 @@ private:
   int read_trigger_reg_[RegSizeAlctFastFpga_RD_TRIG_REG];
   int read_pulse_trigger_source_;
   int read_invert_pulse_;
+  //
+  int pulse_direction_;
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
   // DELAY LINE CONTROL REGISTER - Control which group of chips has its delays and patterns written/read
   ///////////////////////////////////////////////////////////////////////////////////////////////////////
