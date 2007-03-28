@@ -137,10 +137,10 @@ public:
     vector<string> replyLines;
     string reply;
     ipstream login( command.c_str() );
-//     while ( std::getline(login, reply) ) {
-//       replyLines.push_back(reply);
-//     }
-//     copy( replyLines.begin(), replyLines.end(), ostream_iterator<string>(cout, "\n") );
+    while ( std::getline(login, reply) ) {
+      replyLines.push_back(reply);
+    }
+    copy( replyLines.begin(), replyLines.end(), ostream_iterator<string>(cout, "\n") );
 
 
     //
@@ -170,10 +170,10 @@ public:
 
     replyLines.clear();
     ipstream post( command.c_str() );
-//     while ( std::getline(post, reply) ) {
-//       replyLines.push_back(reply);
-//     }
-//     copy( replyLines.begin(), replyLines.end(), ostream_iterator<string>(cout, "\n") );
+    while ( std::getline(post, reply) ) {
+      replyLines.push_back(reply);
+    }
+    copy( replyLines.begin(), replyLines.end(), ostream_iterator<string>(cout, "\n") );
 
 
     //
@@ -195,10 +195,10 @@ public:
 
     replyLines.clear();
     ipstream logout( command.c_str() );
-//     while ( std::getline(logout, reply) ) {
-//       replyLines.push_back(reply);
-//     }
-//     copy( replyLines.begin(), replyLines.end(), ostream_iterator<string>(cout, "\n") );
+    while ( std::getline(logout, reply) ) {
+      replyLines.push_back(reply);
+    }
+    copy( replyLines.begin(), replyLines.end(), ostream_iterator<string>(cout, "\n") );
 
     return success;
 
