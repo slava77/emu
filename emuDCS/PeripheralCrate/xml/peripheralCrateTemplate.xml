@@ -99,49 +99,52 @@
                 alct_ext_trig_enable="0"
                 alct_inject_mode="0"
                 alct_l1a_internal="0"
-                alct_ccb_enable="1">
-               <AnodeChannel Number="1" delay="0" threshold="1"> </AnodeChannel>     
-               <AnodeChannel Number="2" delay="1" threshold="2"> </AnodeChannel>  
-               <AnodeChannel Number="3" delay="2" threshold="3"> </AnodeChannel>     
-               <AnodeChannel Number="4" delay="3" threshold="4"> </AnodeChannel>     
-               <AnodeChannel Number="5" delay="4" threshold="5"> </AnodeChannel>     
-               <AnodeChannel Number="6" delay="5" threshold="6"> </AnodeChannel>  
-               <AnodeChannel Number="7" delay="6" threshold="7"> </AnodeChannel>     
-               <AnodeChannel Number="8" delay="7" threshold="8"> </AnodeChannel>     
-               <AnodeChannel Number="9" delay="8" threshold="9"> </AnodeChannel>     
-               <AnodeChannel Number="10" delay="9" threshold="10"> </AnodeChannel>  
-               <AnodeChannel Number="11" delay="10" threshold="11"> </AnodeChannel>     
-               <AnodeChannel Number="12" delay="11" threshold="12"> </AnodeChannel>     
-               <AnodeChannel Number="13" delay="12" threshold="13"> </AnodeChannel>     
-               <AnodeChannel Number="14" delay="13" threshold="14"> </AnodeChannel>  
-               <AnodeChannel Number="15" delay="14" threshold="15"> </AnodeChannel>     
-               <AnodeChannel Number="16" delay="15" threshold="16"> </AnodeChannel>     
-               <AnodeChannel Number="17" delay="0" threshold="17"> </AnodeChannel>     
-               <AnodeChannel Number="18" delay="1" threshold="18"> </AnodeChannel>  
-               <AnodeChannel Number="19" delay="2" threshold="19"> </AnodeChannel>     
-               <AnodeChannel Number="20" delay="3" threshold="20"> </AnodeChannel>     
-               <AnodeChannel Number="21" delay="4" threshold="21"> </AnodeChannel>     
-               <AnodeChannel Number="22" delay="5" threshold="22"> </AnodeChannel>  
-               <AnodeChannel Number="23" delay="6" threshold="23"> </AnodeChannel>     
-               <AnodeChannel Number="24" delay="7" threshold="24"> </AnodeChannel>     
-               <AnodeChannel Number="25" delay="8" threshold="25"> </AnodeChannel>     
-               <AnodeChannel Number="26" delay="9" threshold="0"> </AnodeChannel>  
-               <AnodeChannel Number="27" delay="10" threshold="1"> </AnodeChannel>     
-               <AnodeChannel Number="28" delay="11" threshold="2"> </AnodeChannel>     
-               <AnodeChannel Number="29" delay="12" threshold="3"> </AnodeChannel>     
-               <AnodeChannel Number="30" delay="13" threshold="4"> </AnodeChannel>  
-               <AnodeChannel Number="31" delay="14" threshold="5"> </AnodeChannel>     
-               <AnodeChannel Number="32" delay="15" threshold="6"> </AnodeChannel>     
-               <AnodeChannel Number="33" delay="0" threshold="7"> </AnodeChannel>     
-               <AnodeChannel Number="34" delay="1" threshold="8"> </AnodeChannel>  
-               <AnodeChannel Number="35" delay="2" threshold="9"> </AnodeChannel>     
-               <AnodeChannel Number="36" delay="3" threshold="10"> </AnodeChannel>     
-               <AnodeChannel Number="37" delay="4" threshold="11"> </AnodeChannel>     
-               <AnodeChannel Number="38" delay="5" threshold="12"> </AnodeChannel>  
-               <AnodeChannel Number="39" delay="6" threshold="13"> </AnodeChannel>     
-               <AnodeChannel Number="40" delay="7" threshold="14"> </AnodeChannel>     
-               <AnodeChannel Number="41" delay="8" threshold="15"> </AnodeChannel>     
-               <AnodeChannel Number="42" delay="9" threshold="16"> </AnodeChannel>  
+                alct_ccb_enable="1"
+                alct_testpulse_amplitude="255"
+                alct_testpulse_invert="on"
+                alct_testpulse_direction="strips">
+               <AnodeChannel Number="1" afeb_fine_delay="0" afeb_threshold="1"> </AnodeChannel>     
+               <AnodeChannel Number="2" afeb_fine_delay="1" afeb_threshold="2"> </AnodeChannel>  
+               <AnodeChannel Number="3" afeb_fine_delay="2" afeb_threshold="3"> </AnodeChannel>     
+               <AnodeChannel Number="4" afeb_fine_delay="3" afeb_threshold="4"> </AnodeChannel>     
+               <AnodeChannel Number="5" afeb_fine_delay="4" afeb_threshold="5"> </AnodeChannel>     
+               <AnodeChannel Number="6" afeb_fine_delay="5" afeb_threshold="6"> </AnodeChannel>  
+               <AnodeChannel Number="7" afeb_fine_delay="6" afeb_threshold="7"> </AnodeChannel>     
+               <AnodeChannel Number="8" afeb_fine_delay="7" afeb_threshold="8"> </AnodeChannel>     
+               <AnodeChannel Number="9" afeb_fine_delay="8" afeb_threshold="9"> </AnodeChannel>     
+               <AnodeChannel Number="10" afeb_fine_delay="9" afeb_threshold="10"> </AnodeChannel>  
+               <AnodeChannel Number="11" afeb_fine_delay="10" afeb_threshold="11"> </AnodeChannel>     
+               <AnodeChannel Number="12" afeb_fine_delay="11" afeb_threshold="12"> </AnodeChannel>     
+               <AnodeChannel Number="13" afeb_fine_delay="12" afeb_threshold="13"> </AnodeChannel>     
+               <AnodeChannel Number="14" afeb_fine_delay="13" afeb_threshold="14"> </AnodeChannel>  
+               <AnodeChannel Number="15" afeb_fine_delay="14" afeb_threshold="15"> </AnodeChannel>     
+               <AnodeChannel Number="16" afeb_fine_delay="15" afeb_threshold="16"> </AnodeChannel>     
+               <AnodeChannel Number="17" afeb_fine_delay="0" afeb_threshold="17"> </AnodeChannel>     
+               <AnodeChannel Number="18" afeb_fine_delay="1" afeb_threshold="18"> </AnodeChannel>  
+               <AnodeChannel Number="19" afeb_fine_delay="2" afeb_threshold="19"> </AnodeChannel>     
+               <AnodeChannel Number="20" afeb_fine_delay="3" afeb_threshold="20"> </AnodeChannel>     
+               <AnodeChannel Number="21" afeb_fine_delay="4" afeb_threshold="21"> </AnodeChannel>     
+               <AnodeChannel Number="22" afeb_fine_delay="5" afeb_threshold="22"> </AnodeChannel>  
+               <AnodeChannel Number="23" afeb_fine_delay="6" afeb_threshold="23"> </AnodeChannel>     
+               <AnodeChannel Number="24" afeb_fine_delay="7" afeb_threshold="24"> </AnodeChannel>     
+               <AnodeChannel Number="25" afeb_fine_delay="8" afeb_threshold="25"> </AnodeChannel>     
+               <AnodeChannel Number="26" afeb_fine_delay="9" afeb_threshold="0"> </AnodeChannel>  
+               <AnodeChannel Number="27" afeb_fine_delay="10" afeb_threshold="1"> </AnodeChannel>     
+               <AnodeChannel Number="28" afeb_fine_delay="11" afeb_threshold="2"> </AnodeChannel>     
+               <AnodeChannel Number="29" afeb_fine_delay="12" afeb_threshold="3"> </AnodeChannel>     
+               <AnodeChannel Number="30" afeb_fine_delay="13" afeb_threshold="4"> </AnodeChannel>  
+               <AnodeChannel Number="31" afeb_fine_delay="14" afeb_threshold="5"> </AnodeChannel>     
+               <AnodeChannel Number="32" afeb_fine_delay="15" afeb_threshold="6"> </AnodeChannel>     
+               <AnodeChannel Number="33" afeb_fine_delay="0" afeb_threshold="7"> </AnodeChannel>     
+               <AnodeChannel Number="34" afeb_fine_delay="1" afeb_threshold="8"> </AnodeChannel>  
+               <AnodeChannel Number="35" afeb_fine_delay="2" afeb_threshold="9"> </AnodeChannel>     
+               <AnodeChannel Number="36" afeb_fine_delay="3" afeb_threshold="10"> </AnodeChannel>     
+               <AnodeChannel Number="37" afeb_fine_delay="4" afeb_threshold="11"> </AnodeChannel>     
+               <AnodeChannel Number="38" afeb_fine_delay="5" afeb_threshold="12"> </AnodeChannel>  
+               <AnodeChannel Number="39" afeb_fine_delay="6" afeb_threshold="13"> </AnodeChannel>     
+               <AnodeChannel Number="40" afeb_fine_delay="7" afeb_threshold="14"> </AnodeChannel>     
+               <AnodeChannel Number="41" afeb_fine_delay="8" afeb_threshold="15"> </AnodeChannel>     
+               <AnodeChannel Number="42" afeb_fine_delay="9" afeb_threshold="16"> </AnodeChannel>  
           </ALCT>      
       </TMB>
 
@@ -177,7 +180,6 @@
     </CSC>
 
     <CCB slot="13" 
-         TTCrxID="13"
          TTCrxCoarseDelay="4"
          version="2004" 
          CCBmode="2"

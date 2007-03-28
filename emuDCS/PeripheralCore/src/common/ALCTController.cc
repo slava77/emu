@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.30 2007/03/14 08:59:03 rakness Exp $
+// $Id: ALCTController.cc,v 3.31 2007/03/28 17:46:22 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.31  2007/03/28 17:46:22  rakness
+// xml changes:  add ALCT testpulse, remove TTCrxID
+//
 // Revision 3.30  2007/03/14 08:59:03  rakness
 // make parser dumb
 //
@@ -346,6 +349,7 @@ void ALCTController::SetUpPulsing(int DAC_pulse_amplitude,
   (*MyOutput_) << "Set up ALCT (slot " << tmb_->slot() 
 	       << ") for pulsing: Amplitude=" << std::dec << DAC_pulse_amplitude << std::endl;
   //
+  SetPulseDirection(which_set);
   //
   //  alct_set_test_pulse_powerup(&slot,0);
   SetTestpulsePowerSwitchReg_(OFF);
@@ -355,7 +359,7 @@ void ALCTController::SetUpPulsing(int DAC_pulse_amplitude,
   //  usleep(100);   // included into WriteTestpulsePowerSwitchReg();
   //
   //  alct_set_test_pulse_amp(&slot,Amplitude);
-  SetTestpulseAmplitude_(DAC_pulse_amplitude);
+  SetTestpulseAmplitude(DAC_pulse_amplitude);
   WriteTestpulseAmplitude_();
   //
   // usleep(100);    // included into WriteTestpulseAmplitude_();
@@ -382,18 +386,18 @@ void ALCTController::SetUpPulsing(int DAC_pulse_amplitude,
     SetTestpulseStripMask_(layer,OFF);
   //
   // Choose whether you are pulsing layers with teststrips or AFEBS in groups...
-  if (which_set==PULSE_AFEBS) {
+  if (GetPulseDirection()==PULSE_AFEBS) {
     for (int group=0; group<GetNumberOfGroupsOfDelayChips(); group++) {
       int off_or_on = (mask >> group) & 0x1;
       SetTestpulseGroupMask_(group,off_or_on);    
     }
-  } else if (which_set==PULSE_LAYERS) {
+  } else if (GetPulseDirection()==PULSE_LAYERS) {
     for (int layer=0; layer<MAX_NUM_LAYERS; layer++) {
       int off_or_on = (mask >> layer) & 0x1;
       SetTestpulseStripMask_(layer,off_or_on);
     }
   } else {
-    std::cout << "ALCTcontroller SetUpPulsing : Set " << which_set 
+    std::cout << "ALCTcontroller SetUpPulsing : Set " << GetPulseDirection() 
 	      << " not available to pulse..." << std::endl;
   }
   WriteTestpulseGroupMask_();
@@ -1034,7 +1038,7 @@ void ALCTController::PrintTestpulseAmplitude_() {
   return;
 }
 //
-void ALCTController::SetTestpulseAmplitude_(int dacvalue) {
+void ALCTController::SetTestpulseAmplitude(int dacvalue) {
   //
   // 8-bit DAC controls amplitude of analog test pulse sent to AFEBs
   //
@@ -1050,7 +1054,7 @@ void ALCTController::SetTestpulseAmplitude_(int dacvalue) {
 //
 void ALCTController:: SetPowerUpTestpulseAmplitude_() { 
   //
-  SetTestpulseAmplitude_(0); 
+  SetTestpulseAmplitude(0); 
   return;
 }
 //
@@ -1229,6 +1233,15 @@ void ALCTController::SetPowerUpTestpulseStripMask_() {
   return;
 }
 //
+void ALCTController::Set_PulseDirection(std::string afebs_or_strips) {
+  //
+  if (afebs_or_strips == "afebs") {
+    SetPulseDirection(PULSE_AFEBS);
+  } else if (afebs_or_strips == "strips") {
+    SetPulseDirection(PULSE_LAYERS);
+  }
+  return;
+}
 //////////////////
 //AFEB THRESHOLDS
 //////////////////
@@ -1737,6 +1750,16 @@ void ALCTController::SetInvertPulse_(int mask) {
   //
   return;
 }  
+//
+void ALCTController::Set_InvertPulse(std::string invert_pulse) {
+  //
+  if (invert_pulse == "on") {
+    SetInvertPulse_(ON);
+  } else if (invert_pulse == "off") {
+    SetInvertPulse_(OFF);
+  }
+  return;
+}
 //
 int ALCTController::GetPulseTriggerSource_() {
   //
