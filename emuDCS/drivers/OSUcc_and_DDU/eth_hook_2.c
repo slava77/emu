@@ -43,7 +43,7 @@
 
 #include "schar.h"
 
-#define SCHAR_MAJOR_2 232
+#define SCHAR_MAJOR_2 233
 
 /* settable parameters */
 static char *schar_name = NULL;
@@ -85,7 +85,7 @@ static int schar_read_proc_2(ctl_table *ctl, int write, struct file *file,
 
 static ctl_table schar_sysctl_table_2[] = {
 	{ DEV_SCHAR_ENTRY,	/* binary id */
-	  "2",			/* name */
+	  "3",			/* name */
 	  &schar_proc_string_2,	/* data */
 	  SCHAR_MAX_SYSCTL,	/* max size of output */
 	  0644,			/* mode */
@@ -152,7 +152,7 @@ MODULE_PARM(schar_name, "s");
 MODULE_PARM_DESC(schar_name, "Name of device");
 
 
-MODULE_DESCRIPTION("schar 2, Sample character with ethernet hook");
+MODULE_DESCRIPTION("schar 3, Sample character with ethernet hook");
 MODULE_AUTHOR("S. Durkin");
 MODULE_LICENSE("GPL");
 int init_module2_2(void)
@@ -354,7 +354,7 @@ static int schar_read_proc_2(ctl_table *ctl, int write, struct file *file,
 		return 0;
 	}
 	
-	len += sprintf(schar_proc_string_2, "GIGABIT DRIVER ETH2: mm \n\n");
+	len += sprintf(schar_proc_string_2, "GIGABIT DRIVER ETH3: mm \n\n");
 	len += sprintf(schar_proc_string_2+len, " RECEIVE: \n");
 	len += sprintf(schar_proc_string_2+len, "  recieve\t\t%ld packets\n",proc_rpackets_2);
       len += sprintf(schar_proc_string_2+len, "  receive    \t\t\t%04d%09ld bytes\n",proc_rbytesH_2,proc_rbytesL_2); 
@@ -394,7 +394,7 @@ int init_module(void)
         init_module2_2();
         spin_lock_init(&eth_lock);
 
-	  schar_name = "schar2";
+	  schar_name = "schar3";
 		
 	
 	/* register device with kernel */
@@ -415,7 +415,7 @@ void cleanup_module(void)
 {
 	/* unregister device and proc entry */
  
-	unregister_chrdev(SCHAR_MAJOR_2, "schar2");
+	unregister_chrdev(SCHAR_MAJOR_2, "schar3");
 	if (schar_root_header_2)
 		unregister_sysctl_table(schar_root_header_2);
 	 cleanup_exit2_2();
