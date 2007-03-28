@@ -890,7 +890,7 @@ throw (xgi::exception::Exception)
 	    if ( !configuredInGlobalMode_.value_ ){
 	      // Warn him if we are in a locally configured run.
 	      warningsToDisplay_ = "<p><span style=\"color:#ff0000; font-weight:bold; text-decoration:blink\">Warning</span>:";
-	      warningsToDisplay_ += "You have yield the control to Central Run Control in a run configured by CSC Shift. ";
+	      warningsToDisplay_ += "You have handed over the control to Central Run Control in a run configured by CSC Shift. ";
 	      warningsToDisplay_ += "Only CSC Shift can start or stop such runs. ";
 	      warningsToDisplay_ += "Consider going back to CSC Shift Control.</p>";
 	    }
@@ -1379,14 +1379,14 @@ void EmuDAQManager::getTriggerSources()
   catch(xcept::Exception e)
     {
       appDescriptors.clear();
-      LOG4CPLUS_ERROR(logger_,
+      LOG4CPLUS_WARN(logger_,
 		      "Failed to get application descriptors for class TTCciControl: "
 		      << stdformat_exception_history(e));
     }
 
   if ( appDescriptors.size() >= 1 ){
     if ( appDescriptors.size() > 1 )
-      LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
+      LOG4CPLUS_WARN(logger_, "The embarassement of riches: " << 
 		      appDescriptors.size() << 
 		      " TTCciControl instances found. Trying first one.");
 //     TTCci_ClockSource_   = getScalarParam(appDescriptors[0],"ClockSource"  ,"string");
@@ -1412,19 +1412,19 @@ void EmuDAQManager::getTriggerSources()
 		       << " TriggerSource: " << TTCci_TriggerSource_.toString()
 		       << " BGOSource: "     << TTCci_BGOSource_.toString() );
       }
-      catch(xcept::Exception e)
+      catch(emuDAQManager::exception::Exception e)
 	{
-	  LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from TTCciControl: " << 
+	  LOG4CPLUS_WARN(logger_,"Failed to get trigger sources from TTCciControl: " << 
 			  xcept::stdformat_exception_history(e) );
 	}
       catch(...)
 	{
-	  LOG4CPLUS_ERROR(logger_,"Failed to get trigger sources from TTCciControl."); 
+	  LOG4CPLUS_WARN(logger_,"Failed to get trigger sources from TTCciControl."); 
 	}
     
   }
   else{
-    LOG4CPLUS_ERROR(logger_, "Did not find TTCciControl. ==> Trigger sources are unknown.");
+    LOG4CPLUS_WARN(logger_, "Did not find TTCciControl. ==> Trigger sources are unknown.");
   }
 }
 
@@ -1441,21 +1441,29 @@ void EmuDAQManager::getTriggerMode()
   catch(xcept::Exception e)
     {
       appDescriptors.clear();
-      LOG4CPLUS_ERROR(logger_,
+      LOG4CPLUS_WARN(logger_,
 		      "Failed to get application descriptors for class TF_hyperDAQ"
 		      << stdformat_exception_history(e));
     }
 
   if ( appDescriptors.size() >= 1 ){
     if ( appDescriptors.size() > 1 )
-      LOG4CPLUS_ERROR(logger_, "The embarassement of riches: " << 
+      LOG4CPLUS_WARN(logger_, "The embarassement of riches: " << 
 		      appDescriptors.size() << " TF_hyperDAQ instances found. Trying first one.");
-    TF_triggerMode_ = getScalarParam(appDescriptors[0],"triggerMode","string");
-    LOG4CPLUS_INFO(logger_, "Got trigger mode from TF_hyperDAQ: " 
-		   << TF_triggerMode_.toString() );
+    try{
+      TF_triggerMode_ = getScalarParam(appDescriptors[0],"triggerMode","string");
+      LOG4CPLUS_INFO(logger_, "Got trigger mode from TF_hyperDAQ: " 
+		     << TF_triggerMode_.toString() );
+    }
+    catch( emuDAQManager::exception::Exception e ){
+      LOG4CPLUS_WARN(logger_, "Failed to get trigger mode from " 
+		     << appDescriptors[0]->getClassName()
+		     << appDescriptors[0]->getInstance() << " "
+		     << xcept::stdformat_exception_history(e) );
+    }
   }
   else{
-    LOG4CPLUS_ERROR(logger_, "Did not find TF_hyperDAQ. ==> Trigger mode is unknown.");
+    LOG4CPLUS_WARN(logger_, "Did not find TF_hyperDAQ. ==> Trigger mode is unknown.");
   }
 }
 
@@ -2007,7 +2015,11 @@ string EmuDAQManager::getDAQState(){
       break;
     }
     else{
-      combinedState = s->second;
+      if ( s->second.find( "Mismatch", 0 ) != string::npos )
+	// DAQ is still "enabled" while RU is seeing mismatch but has not timed out
+	combinedState = "Enabled";
+      else
+	combinedState = s->second;
     }
   }
   return combinedState;
@@ -2018,6 +2030,8 @@ void EmuDAQManager::printDAQState( xgi::Output *out, string state ){
   bgcolor["Halted" ] = "#ff0000";
   bgcolor["Ready"  ] = "#ffff00";
   bgcolor["Enabled"] = "#00ff00";
+  bgcolor["Mismatch"] = "#008800";
+  bgcolor["TimedOut"] = "#888800";
   bgcolor["Failed" ] = "#000000";
   bgcolor["UNKNOWN"] = "#888888";
 
@@ -2025,6 +2039,8 @@ void EmuDAQManager::printDAQState( xgi::Output *out, string state ){
   color["Halted" ] = "#000000";
   color["Ready"  ] = "#000000";
   color["Enabled"] = "#000000";
+  color["Mismatch"] = "#000000";
+  color["TimedOut"] = "#000000";
   color["Failed" ] = "#ffffff";
   color["UNKNOWN"] = "#ffffff";
 
@@ -2032,6 +2048,8 @@ void EmuDAQManager::printDAQState( xgi::Output *out, string state ){
   decoration["Halted" ] = "none";
   decoration["Ready"  ] = "none";
   decoration["Enabled"] = "none";
+  decoration["Mismatch"] = "blink";
+  decoration["TimedOut"] = "blink";
   decoration["Failed" ] = "blink";
   decoration["UNKNOWN"] = "none";
 
@@ -2061,6 +2079,8 @@ void EmuDAQManager::printStatesTable( xgi::Output *out,
   bgcolor["Halted" ] = "#ff0000";
   bgcolor["Ready"  ] = "#ffff00";
   bgcolor["Enabled"] = "#00ff00";
+  bgcolor["Mismatch"] = "#008800";
+  bgcolor["TimedOut"] = "#888800";
   bgcolor["Failed" ] = "#000000";
   bgcolor["UNKNOWN"] = "#888888";
 
@@ -2068,6 +2088,8 @@ void EmuDAQManager::printStatesTable( xgi::Output *out,
   color["Halted" ] = "#000000";
   color["Ready"  ] = "#000000";
   color["Enabled"] = "#000000";
+  color["Mismatch"] = "#000000";
+  color["TimedOut"] = "#000000";
   color["Failed" ] = "#ffffff";
   color["UNKNOWN"] = "#ffffff";
 
@@ -2075,8 +2097,19 @@ void EmuDAQManager::printStatesTable( xgi::Output *out,
   decoration["Halted" ] = "none";
   decoration["Ready"  ] = "none";
   decoration["Enabled"] = "none";
+  decoration["Mismatch"] = "blink";
+  decoration["TimedOut"] = "blink";
   decoration["Failed" ] = "blink";
   decoration["UNKNOWN"] = "none";
+
+  // First find out if any application (RU) is in "Mismatch..." or "TimedOut..." state
+  bool isMismatch = false;
+  bool isTimedOut = false;
+  for ( vector< pair<xdaq::ApplicationDescriptor*, string> >::iterator s 
+	  = appStates.begin(); s!=appStates.end(); ++s ){
+    if ( s->second.find( "Mismatch", 0 ) != string::npos ) isMismatch = true;
+    if ( s->second.find( "TimedOut", 0 ) != string::npos ) isTimedOut = true;
+  }
 
   *out << "<a name=\"states\"/>"                                         << endl;
   *out << "<table frame=\"void\" rules=\"rows|cols\" class=\"params\">"  << endl;
@@ -2088,9 +2121,12 @@ void EmuDAQManager::printStatesTable( xgi::Output *out,
   *out << "</tr>"                                                         << endl;
   *out << "<tr>"                                                         << endl;
   *out << "  <th colspan=2 align=\"center\">"                            << endl;
-  *out << "     Color code: "                                            << endl;
+  *out << "     Colors:     "                                            << endl;
   map<string, string>::iterator col;
   for ( col=color.begin(); col!=color.end(); ++col ){
+    // Don't show color key for "Mismatch" or "TimedOut" if no app is in those states.
+    if ( !isMismatch && col->first == "Mismatch" ) continue;
+    if ( !isTimedOut && col->first == "TimedOut" ) continue;
     *out << "     <span align=\"center\" ";
     *out << "style=\"";
     *out << "background-color:" << bgcolor[col->first];
@@ -2198,18 +2234,18 @@ void EmuDAQManager::configureDAQ()
 	LOG4CPLUS_WARN(logger_,"The embarassment of riches: " << taDescriptors_.size() <<
 		       " TA instances found. Will use TA0.");
       }
+      string runNumber    = runNumber_.toString();
+      try
+	{
+	  setScalarParam(taDescriptors_[0],"runNumber","unsignedLong",runNumber);
+	  LOG4CPLUS_INFO(logger_,"Set run number to " + runNumber );
+	}
+      catch(xcept::Exception e)
+	{
+	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
+			"Failed to set run number to "  + runNumber, e);
+	}
       // move to enableAction START
-//       string runNumber    = runNumber_.toString();
-//       try
-// 	{
-// 	  setScalarParam(taDescriptors_[0],"runNumber","unsignedLong",runNumber);
-// 	  LOG4CPLUS_INFO(logger_,"Set run number to " + runNumber );
-// 	}
-//       catch(xcept::Exception e)
-// 	{
-// 	  XCEPT_RETHROW(emuDAQManager::exception::Exception,
-// 			"Failed to set run number to "  + runNumber, e);
-// 	}
 //       try
 // 	{
 // 	  setScalarParam(taDescriptors_[0],"isBookedRunNumber","boolean",string(isBookedRunNumber_?"true":"false"));
@@ -4231,8 +4267,8 @@ void EmuDAQManager::bookRunNumber(){
 
   if ( runInfo_ ){
 
-//     string sequence = "CSC:" + runType_.toString();
-    const string sequence = "CMS.CSC";
+//     string sequence = "CSC:" + runType_.toString(); // stand-alone database in MTCC
+    const string sequence = "CMS.CSC"; // central run database
     
     LOG4CPLUS_INFO(logger_, "Booking run number with " <<
 		   runDbBookingCommand_.toString() << " at " <<
