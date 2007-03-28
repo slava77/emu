@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.12 2007/03/26 14:41:39 rakness Exp $
+// $Id: CCB.cc,v 3.13 2007/03/28 16:01:38 rakness Exp $
 // $Log: CCB.cc,v $
+// Revision 3.13  2007/03/28 16:01:38  rakness
+// remove l1areset from TMB-MPC test
+//
 // Revision 3.12  2007/03/26 14:41:39  rakness
 // delay after l1aReset to fix TMB-MPC crate timing test
 //
@@ -1214,8 +1217,6 @@ void CCB::l1aReset(){
   sndbuf[1]=(0x3<<2);          //cmd[5:0]=0x03 
   do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
   //
-  // Give all components enough time to respond to the resync 
-  ::usleep(1000);
 }
 //
 void CCB::CLCTexternalTrigger() {
