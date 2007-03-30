@@ -321,7 +321,7 @@ void EmuPlotter::fillChamberBinCheck() {
     string cscTag(Form("CSC_%03d_%02d", (chamber->first>>4) & 0xFF, chamber->first & 0xF));
     map<string, ME_List >::iterator h_itr = MEs.find(cscTag);
     if ((((chamber->first>>4) & 0xFF) ==255) || 
-        (chamber->second & 0x40)) { chamber++; continue;} // = Skip chamber detection if DMB header is missing (Error code 6)
+        (chamber->second & 0x80)) { chamber++; continue;} // = Skip chamber detection if DMB header is missing (Error code 6)
     if (h_itr == MEs.end() || (MEs.size()==0)) {
       LOG4CPLUS_WARN(logger_,
 		     "List of Histos for " << cscTag <<  " not found");
