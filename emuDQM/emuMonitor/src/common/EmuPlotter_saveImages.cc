@@ -71,8 +71,8 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
 
   std::ofstream tree_items;
 
-  if (!gApplication)
-    TApplication::CreateApplication();
+//  if (!gApplication)
+//    TApplication::CreateApplication();
 
   gStyle->SetPalette(1,0);
 
