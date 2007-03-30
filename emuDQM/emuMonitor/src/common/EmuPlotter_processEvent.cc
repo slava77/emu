@@ -338,16 +338,17 @@ void EmuPlotter::fillChamberBinCheck() {
       nDMBEvents[cscTag]++;      
     }
 
-    if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)) {
+    if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)
+	&& isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) {
       for(int bit=5; bit<24; bit++)
 	if( chamber->second & (1<<bit) ) {
 	  mo->Fill(0.,bit-5);
 	   
 	  double freq = (100.0*mo->GetBinContent(1,bit-4))/nDMBEvents[cscTag];
-	  if (isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) mof->SetBinContent(bit-4, freq);
+	  mof->SetBinContent(bit-4, freq);
 	}
       mo->SetEntries(nDMBEvents[cscTag]);
-      if (isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) mof->SetEntries(nDMBEvents[cscTag]);
+      mof->SetEntries(nDMBEvents[cscTag]);
     }
     chamber++;
   }
@@ -372,15 +373,16 @@ void EmuPlotter::fillChamberBinCheck() {
       fBusy = false;
     }
     ME_List& cscME = MEs[cscTag];
-    if (isMEvalid(cscME, "BinCheck_WarningStat_Table", mo)) {
+    if (isMEvalid(cscME, "BinCheck_WarningStat_Table", mo)
+	&& isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) {
       for(int bit=1; bit<2; bit++)
 	if( chamber->second & (1<<bit) ) {
 	  mo->Fill(0.,bit-1);
 	  double freq = (100.0*mo->GetBinContent(1,bit))/nDMBEvents[cscTag];
-	  if (isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) mof->SetBinContent(bit, freq);
+	  mof->SetBinContent(bit, freq);
 	}
        mo->SetEntries(nDMBEvents[cscTag]);
-       if (isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) mof->SetEntries(nDMBEvents[cscTag]);
+       mof->SetEntries(nDMBEvents[cscTag]);
     }
     chamber++;
 
