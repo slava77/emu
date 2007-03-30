@@ -106,36 +106,28 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   }
 
   if (isMEvalid(cscME,"DMB_L1A_vs_DDU_L1A",mo)) mo->Fill((int)(L1ANumber&0xFF), (int)dmbHeaderL1A);
-  /*
-  //KK
-  if(check_bin_error){
-  map<int,uint32_t> checkerErrors = bin_checker.errorsDetailed();
-  map<int,uint32_t>::const_iterator chamber = checkerErrors.begin();
-  while( chamber != checkerErrors.end() ){
-  string cscname(Form("_CSC_%d_%d_", (chamber->first>>4) & 0xFF, chamber->first & 0xF));
-  hname = Form("hist/h%sBinCheck_ErrorStat_Table", cscname.c_str());
-  for(int bit=5; bit<19; bit++)
-  if( chamber->second & (1<<bit) )
-  if( histos[chamber->first].find(hname) != histos[chamber->first].end() )
-  histos[chamber->first][hname]->Fill(0.,bit-5);
-  else LOG4CPLUS_DEBUG(logger_," Error: unknown histogram "<<hname);
-  chamber++;
-  }
-  map<int,uint32_t> checkerWarnings  = bin_checker.warningsDetailed();
-  chamber = checkerWarnings.begin();
-  while( chamber != checkerWarnings.end() ){
-  string cscname(Form("_CSC_%d_%d_", (chamber->first>>4) & 0xFF, chamber->first & 0xF));
-  hname = Form("hist/h%sBinCheck_WarningStat_Table", cscname.c_str());
-  for(int bit=1; bit<2; bit++)
-  if( chamber->second & (1<<bit) )
-  if( histos[chamber->first].find(hname) != histos[chamber->first].end() )
-  histos[chamber->first][hname]->Fill(0.,bit-1);
-  else LOG4CPLUS_DEBUG(logger_," Error: unknown histogram "<<hname);
-  chamber++;
-  }
-  }
-  //KK end
-  */
+
+  EmuMonitoringObject* mof = NULL;
+  if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo) 
+	&& isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) {
+      for(int bit=5; bit<24; bit++) {
+	  double freq = (100.0*mo->GetBinContent(1,bit-4))/nDMBEvents[cscTag];
+	  mof->SetBinContent(bit-4, freq);
+	}
+      mo->SetEntries(nDMBEvents[cscTag]);
+      mof->SetEntries(nDMBEvents[cscTag]);
+    }
+
+  if (isMEvalid(cscME, "BinCheck_WarningStat_Table", mo) 
+	&& isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) {
+      for(int bit=1; bit<2; bit++) {
+	  double freq = (100.0*mo->GetBinContent(1,bit))/nDMBEvents[cscTag];
+	  mof->SetBinContent(bit, freq);
+	}
+       mo->SetEntries(nDMBEvents[cscTag]);
+       mof->SetEntries(nDMBEvents[cscTag]);
+    }
+
   //    Unpacking BXN number from DMB header
   int dmbHeaderBXN      = 0;
   int dmb_ddu_bxn_diff  = 0;
