@@ -318,8 +318,8 @@ void EmuPlotter::fillChamberBinCheck() {
   while( chamber != checkerErrors.end() ){
     int ChamberID     = chamber->first;
     string cscTag(Form("CSC_%03d_%02d", (chamber->first>>4) & 0xFF, chamber->first & 0xF));
-     map<string, ME_List >::iterator h_itr = MEs.find(cscTag);
-     if ((((chamber->first>>4) & 0xFF) ==255) || 
+    map<string, ME_List >::iterator h_itr = MEs.find(cscTag);
+    if ((((chamber->first>>4) & 0xFF) ==255) || 
         (chamber->second & 0x40)) { chamber++; continue;} // = Skip chamber detection if DMB header is missing (Error code 6)
     if (h_itr == MEs.end() || (MEs.size()==0)) {
       LOG4CPLUS_WARN(logger_,
@@ -344,8 +344,8 @@ void EmuPlotter::fillChamberBinCheck() {
 	  double freq = (100.0*mo->GetBinContent(bit-4))/nDMBEvents[cscTag];
 	  if (isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mo)) mo->SetBinContent(bit-4, freq);
 	}
-      chamber++;
     }
+    chamber++;
   }
   map<int,uint32_t> checkerWarnings  = bin_checker.warningsDetailed();
   chamber = checkerWarnings.begin();
@@ -373,8 +373,9 @@ void EmuPlotter::fillChamberBinCheck() {
 	  double freq = (100.0*mo->GetBinContent(bit))/nDMBEvents[cscTag];
 	  if (isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mo)) mo->SetBinContent(bit, freq);
 	}
-      chamber++;
     }
+    chamber++;
+
   }
   // }
 }
