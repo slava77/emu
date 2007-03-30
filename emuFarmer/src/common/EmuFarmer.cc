@@ -863,6 +863,12 @@ void EmuFarmer::actOnEmuProcess( const string& action, const string& url )
 //     m->writeTo( log );
 //     LOG4CPLUS_INFO( logger_, "Sending message: " + log.str() );
 //   }
+  if ( !m.isNull() ){ 
+    cout << endl << "Sending command to " << jcDescriptor->getContextDescriptor()->getURL() << endl; 
+    m->writeTo( cout );
+    cout.flush();
+    cout << endl; 
+  }
 
   // send SOAP message
   xoap::MessageReference reply;
@@ -878,6 +884,11 @@ void EmuFarmer::actOnEmuProcess( const string& action, const string& url )
 //   log.clear();
 //   reply->writeTo( log );
 //   LOG4CPLUS_INFO( logger_, "Received message:\n" + log.str() );
+
+  cout << endl << "Received reply from " << jcDescriptor->getContextDescriptor()->getURL() << endl; 
+  reply->writeTo( cout );
+  cout.flush();
+  cout << endl;
 
   // check for errors in reply
   xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
@@ -952,6 +963,10 @@ void EmuFarmer::reloadDDUDrivers( const vector<cgicc::FormEntry>& fev )
       // Remember it's been selected
       const string url = "http://"+fe->getName();
       emuProcessDescriptors_[url].setSelected();
+
+      // It must be a DAQ process
+      string group = emuGroups_[url];
+      if ( group != "DAQ" ) continue;
 
       // Chop off port number
       host = fe->getName().substr( 0, colonPosition );
