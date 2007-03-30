@@ -343,7 +343,7 @@ void EmuPlotter::fillChamberBinCheck() {
 	if( chamber->second & (1<<bit) ) {
 	  mo->Fill(0.,bit-5);
 	   
-	  double freq = (100.0*mo->GetBinContent(bit-4))/nDMBEvents[cscTag];
+	  double freq = (100.0*mo->GetBinContent(1,bit-4))/nDMBEvents[cscTag];
 	  if (isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) mof->SetBinContent(bit-4, freq);
 	}
     }
@@ -372,7 +372,7 @@ void EmuPlotter::fillChamberBinCheck() {
       for(int bit=1; bit<2; bit++)
 	if( chamber->second & (1<<bit) ) {
 	  mo->Fill(0.,bit-1);
-	  double freq = (100.0*mo->GetBinContent(bit))/nDMBEvents[cscTag];
+	  double freq = (100.0*mo->GetBinContent(1,bit))/nDMBEvents[cscTag];
 	  if (isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) mof->SetBinContent(bit, freq);
 	}
     }
