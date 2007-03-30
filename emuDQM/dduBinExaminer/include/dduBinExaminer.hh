@@ -47,14 +47,14 @@ public:
 
 private:
 	std::vector<char*> sERROR,  sWARNING, sERROR_,  sWARNING_;
-	int32_t               bERROR,  bWARNING;
+	uint32_t               bERROR,  bWARNING;
 	bool               fERROR  [25];//[nERRORS];
 	bool               fWARNING[5]; //[nWARNINGS];
 
 	std::set<int>      fCHAMB_ERR[25]; // Set of chambers which contain particular error
 	std::set<int>      fCHAMB_WRN[5];  // Set of chambers which contain particular warning
-	std::map<int,int32_t> bCHAMB_ERR;     // chamber <=> errors in bits
-	std::map<int,int32_t> bCHAMB_WRN;     // chamber <=> errors in bits
+	std::map<int,uint32_t> bCHAMB_ERR;     // chamber <=> errors in bits
+	std::map<int,uint32_t> bCHAMB_WRN;     // chamber <=> errors in bits
 
 	OStream cout, cerr;
 
@@ -78,30 +78,30 @@ private:
 	int  DAV_DMB;  // ...
 
 public:
-	int32_t cntDDU_Headers;
-	int32_t cntDDU_Trailers;
-	std::map<int,int32_t> cntCHAMB_Headers;
-	std::map<int,int32_t> cntCHAMB_Trailers;
+	uint32_t cntDDU_Headers;
+	uint32_t cntDDU_Trailers;
+	std::map<int,uint32_t> cntCHAMB_Headers;
+	std::map<int,uint32_t> cntCHAMB_Trailers;
 
 private:
-	int32_t DDU_WordsSinceLastHeader;
-	int32_t DDU_WordCount;
-	int32_t DDU_WordMismatch_Occurrences;
-	int32_t DDU_WordsSinceLastTrailer;
+	uint32_t DDU_WordsSinceLastHeader;
+	uint32_t DDU_WordCount;
+	uint32_t DDU_WordMismatch_Occurrences;
+	uint32_t DDU_WordsSinceLastTrailer;
 
-	int32_t ALCT_WordsSinceLastHeader;
-	int32_t ALCT_WordCount;
-	int32_t ALCT_WordsExpected;
+	uint32_t ALCT_WordsSinceLastHeader;
+	uint32_t ALCT_WordCount;
+	uint32_t ALCT_WordsExpected;
 
-	int32_t TMB_WordsSinceLastHeader;
-	int32_t TMB_WordCount;
-	int32_t TMB_WordsExpected;
-	int32_t TMB_Tbins;
-	int32_t TMB_WordsExpectedCorrection;
+	uint32_t TMB_WordsSinceLastHeader;
+	uint32_t TMB_WordCount;
+	uint32_t TMB_WordsExpected;
+	uint32_t TMB_Tbins;
+	uint32_t TMB_WordsExpectedCorrection;
 
-	int32_t CFEB_SampleWordCount;
-	int32_t CFEB_SampleCount;
-	int32_t CFEB_BSampleCount;
+	uint32_t CFEB_SampleWordCount;
+	uint32_t CFEB_SampleCount;
+	uint32_t CFEB_BSampleCount;
 
 	bool checkCrcALCT;
 	uint32_t ALCT_CRC;
@@ -119,8 +119,8 @@ public:
 
 	int32_t check(const unsigned short* &buffer, int32_t length);
 
-	int32_t errors  (void) const { return bERROR;   }
-	int32_t warnings(void) const { return bWARNING; }
+	uint32_t errors  (void) const { return bERROR;   }
+	uint32_t warnings(void) const { return bWARNING; }
 
 	const char* errName(int num) const { if(num>=0&&num<nERRORS)   return sERROR[num];   else return ""; }
 	const char* wrnName(int num) const { if(num>=0&&num<nWARNINGS) return sWARNING[num]; else return ""; }
@@ -134,18 +134,18 @@ public:
 	std::set<int> chambersWithError  (int num) const { if(num>=0&&num<nERRORS)   return fCHAMB_ERR[num]; else return std::set<int>(); }
 	std::set<int> chambersWithWarning(int num) const { if(num>=0&&num<nWARNINGS) return fCHAMB_WRN[num]; else return std::set<int>(); }
 
-	int32_t errorsForChamber(int chamber) const {
-		std::map<int,int32_t>::const_iterator item = bCHAMB_ERR.find(chamber);
+	uint32_t errorsForChamber(int chamber) const {
+		std::map<int,uint32_t>::const_iterator item = bCHAMB_ERR.find(chamber);
 		if( item != bCHAMB_ERR.end() ) return item->second; else return 0;
 	}
 
-	int32_t warningsForChamber(int chamber) const {
-		std::map<int,int32_t>::const_iterator item = bCHAMB_WRN.find(chamber);
+	uint32_t warningsForChamber(int chamber) const {
+		std::map<int,uint32_t>::const_iterator item = bCHAMB_WRN.find(chamber);
 		if( item != bCHAMB_WRN.end() ) return item->second; else return 0;
 	}
 
-	std::map<int,int32_t> errorsDetailed  (void) const { return bCHAMB_ERR; }
-	std::map<int,int32_t> warningsDetailed(void) const { return bCHAMB_WRN; }
+	std::map<int,uint32_t> errorsDetailed  (void) const { return bCHAMB_ERR; }
+	std::map<int,uint32_t> warningsDetailed(void) const { return bCHAMB_WRN; }
 
 	void crcALCT(bool enable);
 	void crcTMB (bool enable);
