@@ -338,7 +338,7 @@ void EmuPlotter::fillChamberBinCheck() {
     }
 
     if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)) {
-      for(int bit=5; bit<19; bit++)
+      for(int bit=5; bit<24; bit++)
 	if( chamber->second & (1<<bit) ) {
 	  mo->Fill(0.,bit-5);
 	  double freq = (100.0*mo->GetBinContent(bit-4))/nDMBEvents[cscTag];
