@@ -312,6 +312,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
 void EmuPlotter::fillChamberBinCheck() {
   EmuMonitoringObject* mo = NULL;
+  EmuMonitoringObject* mof = NULL;
   //  if(check_bin_error){
   map<int,uint32_t> checkerErrors = bin_checker.errorsDetailed();
   map<int,uint32_t>::const_iterator chamber = checkerErrors.begin();
@@ -341,8 +342,9 @@ void EmuPlotter::fillChamberBinCheck() {
       for(int bit=5; bit<24; bit++)
 	if( chamber->second & (1<<bit) ) {
 	  mo->Fill(0.,bit-5);
+	   
 	  double freq = (100.0*mo->GetBinContent(bit-4))/nDMBEvents[cscTag];
-	  if (isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mo)) mo->SetBinContent(bit-4, freq);
+	  if (isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) mof->SetBinContent(bit-4, freq);
 	}
     }
     chamber++;
@@ -371,7 +373,7 @@ void EmuPlotter::fillChamberBinCheck() {
 	if( chamber->second & (1<<bit) ) {
 	  mo->Fill(0.,bit-1);
 	  double freq = (100.0*mo->GetBinContent(bit))/nDMBEvents[cscTag];
-	  if (isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mo)) mo->SetBinContent(bit, freq);
+	  if (isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) mof->SetBinContent(bit, freq);
 	}
     }
     chamber++;
