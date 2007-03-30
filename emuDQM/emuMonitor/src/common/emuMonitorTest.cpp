@@ -131,9 +131,10 @@ int main(int argc, char **argv) {
         LOG4CPLUS_WARN (logger, "Total time: " << t1-t0);
 
 	LOG4CPLUS_WARN (logger, "Events: " << i);
-	// plotter.saveToROOTFile(histofile.c_str());
+//	plotter.saveToROOTFile(histofile.c_str());
 //	plotter.saveImages("images", "png" , 1600, 1200);
 	plotter.saveCanvasImages(plotsdir.c_str(), "png" , 1600, 1200);
+	plotter.saveToROOTFile(histofile.c_str());
 	ddu.close();
 
 	// delete plotter;

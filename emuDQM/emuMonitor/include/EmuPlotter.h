@@ -96,6 +96,7 @@ public:
   //     data structures and calls the appropriate fill() routine below.
   void processEvent(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber = 0);
   void processChamber(const CSCEventData& data,int32_t nodeID, int32_t dduID);
+  void fillChamberBinCheck();
 
   void setHistoFile(string hfile) {HistoFile = hfile;};
   void setDDUCheckMask(uint32_t mask) { dduCheckMask = mask;}
