@@ -39,7 +39,7 @@
 #include "EventFilter/CSCRawToDigi/interface/CSCTMBData.h"
 #include "EventFilter/CSCRawToDigi/interface/CSCTMBHeader.h"
 #include "EventFilter/CSCRawToDigi/interface/CSCTMBTrailer.h"
-#include "EventFilter/CSCRawToDigi/interface/bitset_append.h"
+// #include "EventFilter/CSCRawToDigi/interface/bitset_append.h"
 #include "DataFormats/CSCDigi/interface/CSCALCTDigi.h"
 #include "DataFormats/CSCDigi/interface/CSCCLCTDigi.h"
 

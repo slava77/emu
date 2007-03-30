@@ -764,6 +764,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   CSCCFEBTimeSlice *  timeSlice[5][16];
   CSCCFEBDataWord * timeSample[5][16][6][16];
   int Pedestal[5][6][16];
+  std::pair<int,int> CellPeak[5][6][16];
+  memset(CellPeak, 0, sizeof(CellPeak));
   float PedestalError[5][6][16];
   CSCCFEBSCAControllerWord scaControllerWord[5][16][6];
   bool CheckCFEB = true;
@@ -833,7 +835,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
       // =VB= Optimizations for faster histogram object access 
       EmuMonitoringObject* mo_CFEB_SCA_Block_Occupancy = 0;
-      isMEvalid(cscME, Form("CFEB%d_Free_SCA_Cells", nCFEB), mo_CFEB_SCA_Block_Occupancy);
+      isMEvalid(cscME, Form("CFEB%d_SCA_Block_Occupancy", nCFEB), mo_CFEB_SCA_Block_Occupancy);
       EmuMonitoringObject*  mo_CFEB_Free_SCA_Cells = 0;      
       isMEvalid(cscME, Form("CFEB%d_Free_SCA_Cells", nCFEB), mo_CFEB_Free_SCA_Cells);
       EmuMonitoringObject* mo_CFEB_SCA_Blocks_Locked_by_LCTs;
@@ -853,6 +855,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	isMEvalid(cscME, Form("CFEB_Active_Samples_vs_Strip_Ly%d_Profile", nLayer), mo_CFEB_Active_Samples_vs_Strip_Profile);
 	EmuMonitoringObject * mo_CFEB_ActiveStrips = 0;
 	isMEvalid(cscME, Form("CFEB_ActiveStrips_Ly%d", nLayer), mo_CFEB_ActiveStrips);
+	EmuMonitoringObject * mo_CFEB_SCA_Cell_Peak = 0;
+        isMEvalid(cscME, Form("CFEB_SCA_Cell_Peak_Ly_%d", nLayer), mo_CFEB_SCA_Cell_Peak);
 
 	EmuMonitoringObject * mo_CFEB_Pedestal_withEMV_Sample = 0;
 	isMEvalid(cscME, Form("CFEB_Pedestal(withEMV)_Sample_01_Ly%d", nLayer), mo_CFEB_Pedestal_withEMV_Sample);
@@ -864,7 +868,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	for(int nSample = 0; nSample < NmbTimeSamples; ++nSample) {
 	  timeSlice[nCFEB][nSample] = (CSCCFEBTimeSlice * )((cfebData[nCFEB])->timeSlice(nSample));
 	  if (timeSlice[nCFEB][nSample] == 0) {
-	    // LOG4CPLUS_DEBUG(logger_, "+++debug> nCFEB" << nCFEB << " nSample: " << nSample << " - B-Word");
+	    LOG4CPLUS_WARN(logger_, "+++debug> nCFEB" << nCFEB << " nSample: " << nSample << " - B-Word");
 	    continue;
 	  }
 
@@ -887,7 +891,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
           SCA_BLK  = (int)(scaControllerWord[nCFEB][nSample][nLayer]).sca_blk;
           // LOG4CPLUS_DEBUG(logger_, "SCA BLOCK: Chamber="<<ChamberID<<" CFEB="<<nCFEB+1
-	  //   <<" TRIGTIME="<<TrigTime<<" TimeSlice="<<nSample+1<<" Layer="<<nLayer<<" SCA_BLK="<<SCA_BLK);
+	  //  <<" TRIGTIME="<<TrigTime<<" TimeSlice="<<nSample+1<<" Layer="<<nLayer<<" SCA_BLK="<<SCA_BLK);
 	  
           for(int nStrip = 0; nStrip < N_Strips; ++nStrip) {
             SCABlockData[nCFEB*16+nStrip][nSample][nLayer-1] = SCA_BLK;
@@ -968,7 +972,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
             OutOffRange = (int) ((timeSample[nCFEB][nSample][nLayer][nStrip]->adcOverflow)&0x1);
 
             if(nSample == 0) { // nSample == 0
-
+	      CellPeak[nCFEB][nLayer][nStrip] = std::make_pair(nSample,ADC);
               Pedestal[nCFEB][nLayer][nStrip] = ADC;
               LOG4CPLUS_DEBUG(logger_, " nStrip="<< dec << nStrip
 			      << " Pedestal=" << hex << Pedestal[nCFEB][nLayer][nStrip]);
@@ -1022,8 +1026,12 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 		LOG4CPLUS_DEBUG(logger_, "Layer="<<nLayer<<" Strip="<<nCFEB*16+nStrip<<" Time="<<nSample
 				<< " ADC-PEDEST = "<<ADC - Pedestal[nCFEB][nLayer][nStrip]);
 		cscdata[nCFEB*16+nStrip-1][nSample][nLayer-1] = ADC - Pedestal[nCFEB][nLayer][nStrip];
-              }
+              }	
 	      //--------------E
+	      if(ADC >  CellPeak[nCFEB][nLayer][nStrip].second) { 
+		CellPeak[nCFEB][nLayer][nStrip].first = nSample;
+		CellPeak[nCFEB][nLayer][nStrip].second = ADC;
+	      }
             }
 	    // continue;
 	    //--------------B
@@ -1050,6 +1058,9 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	    //--------------E
           }
         }
+	for(int nStrip = 1; nStrip <= N_Strips; ++nStrip) {
+	  if (mo_CFEB_SCA_Cell_Peak && CellPeak[nCFEB][nLayer][nStrip].first) mo_CFEB_SCA_Cell_Peak->Fill((int)(nCFEB*16+nStrip), CellPeak[nCFEB][nLayer][nStrip].first);
+	}
       }
     }
   }
