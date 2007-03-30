@@ -316,6 +316,15 @@ void EmuMonitoringObject::SetBinContent(int nbin, double value)
 
 }
 
+void EmuMonitoringObject::SetBinContent(int nxbin, int nybin, double value)
+{
+        if (object != NULL) {
+               object->SetBinContent(nxbin,nybin,value);
+        }
+
+}
+
+
 double EmuMonitoringObject::GetBinContent(int nbin)
 {
         if (object != NULL) {
@@ -323,6 +332,15 @@ double EmuMonitoringObject::GetBinContent(int nbin)
         } else return 0;
 
 }
+
+double EmuMonitoringObject::GetBinContent(int nxbin, int nybin)
+{
+        if (object != NULL) {
+               return object->GetBinContent(nxbin, nybin);
+        } else return 0;
+
+}
+
 
 void EmuMonitoringObject::SetAxisRange(double xmin, double xmax, std::string options)
 {

@@ -92,7 +92,9 @@ class EmuMonitoringObject
 
 	void SetEntries(double);
 	void SetBinContent(int, double);
+	void SetBinContent(int, int, double);
 	double GetBinContent(int);
+	double GetBinContent(int, int);
 	void SetAxisRange(double, double, std::string);
 	void Write() {if (object!=NULL) object->Write();}
         void Draw() {if (object!=NULL) object->Draw();}
