@@ -346,9 +346,13 @@ void EmuPlotter::fillChamberBinCheck() {
 	  double freq = (100.0*mo->GetBinContent(1,bit-4))/nDMBEvents[cscTag];
 	  if (isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) mof->SetBinContent(bit-4, freq);
 	}
+      mo->SetEntries(nDMBEvents[cscTag]);
+      if (isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) mof->SetEntries(nDMBEvents[cscTag]);
     }
     chamber++;
   }
+
+
   map<int,uint32_t> checkerWarnings  = bin_checker.warningsDetailed();
   chamber = checkerWarnings.begin();
   while( chamber != checkerWarnings.end() ){
@@ -375,6 +379,8 @@ void EmuPlotter::fillChamberBinCheck() {
 	  double freq = (100.0*mo->GetBinContent(1,bit))/nDMBEvents[cscTag];
 	  if (isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) mof->SetBinContent(bit, freq);
 	}
+       mo->SetEntries(nDMBEvents[cscTag]);
+       if (isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) mof->SetEntries(nDMBEvents[cscTag]);
     }
     chamber++;
 
