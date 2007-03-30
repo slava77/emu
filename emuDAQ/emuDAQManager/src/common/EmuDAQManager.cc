@@ -1981,7 +1981,7 @@ void EmuDAQManager::queryAppStates( vector< pair<xdaq::ApplicationDescriptor*, s
     catch(xcept::Exception e)
       {
 	s = "UNKNOWN";
-	LOG4CPLUS_ERROR(logger_, "Failed to get state"
+	LOG4CPLUS_WARN(logger_, "Failed to get state"
 			<< " : " << xcept::stdformat_exception_history(e));
       }
     as->second = s;
@@ -4053,8 +4053,8 @@ vector< vector<string> > EmuDAQManager::getRUIEventCounts()
       href     = getHref( appDescriptor_ ) + "/control"; // self
       count    = "UNKNOWN";
       dduError = "";
-      LOG4CPLUS_ERROR(logger_, "Failed to get event count of " << name.str()
-		      << " : " << xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, "Failed to get event count of " << name.str()
+		     << " : " << xcept::stdformat_exception_history(e));
     }
     vector<string> sv;
     sv.push_back( href       );
@@ -4093,8 +4093,8 @@ vector< vector<string> > EmuDAQManager::getFUEventCounts()
     {
       href  = getHref( appDescriptor_ ) + "/control"; // self
       count = "UNKNOWN";
-      LOG4CPLUS_ERROR(logger_, "Failed to get event count of " << name.str()
-		      << " : " << xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(logger_, "Failed to get event count of " << name.str()
+		     << " : " << xcept::stdformat_exception_history(e));
     }
     vector<string> sv;
     sv.push_back( href       );
