@@ -4,7 +4,7 @@
 <!-- <?xml-stylesheet type="application/xml" href="EmuDAQConfig.xsl"?> -->
 <xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
 
-  <xc:Context url="http://emudaq:40399">
+  <xc:Context url="http://emudaq.cern.ch:40399">
 
     <xc:Module>${XDAQ_ROOT}/daq/extern/xalan/xml-xalan/c/lib/libxalan-c.so</xc:Module>
 
