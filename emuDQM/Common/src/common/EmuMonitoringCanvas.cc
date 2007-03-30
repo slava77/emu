@@ -102,12 +102,10 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
 
   setCanvasWidth(width);
   setCanvasHeight(height);
-/*	
   if (canvas != NULL) {
     delete canvas;
     canvas = NULL;
   }
-*/
   gStyle->SetPalette(1,0);
 
   std::map<std::string, std::string> other_params;
@@ -140,6 +138,12 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
 	  gPad->SetLeftMargin(atof(leftMargin.c_str()));
           // gStyle->SetOptStat(statOpt.c_str());
         }
+	std::string rightMargin = obj->second->getParameter("SetRightMargin");
+        if (rightMargin != "" ) {
+          gPad->SetRightMargin(atof(rightMargin.c_str()));
+          // gStyle->SetOptStat(statOpt.c_str());
+        }
+
 	std::string logx = obj->second->getParameter("SetLogx");
         if (logx!= "" ) {
           gPad->SetLogx(atoi(logx.c_str()));
