@@ -130,7 +130,7 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
         string csc_ptrn = "CSC_%d_%d";
         if (sscanf(CSC_folders[i].c_str(),csc_ptrn.c_str(), &crate, &slot) == 2) {
 		if (crate != cur_crate) {
-			if (cur_crate>=0) csc_list << "]";
+			if (cur_crate>=0) csc_list << "]]";
 			csc_list << ",\n['crate"<< crate << "', [";
 		}
 		csc_list << "'slot" << slot << "',";
