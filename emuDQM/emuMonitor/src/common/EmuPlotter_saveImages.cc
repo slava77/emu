@@ -7,7 +7,6 @@ void EmuPlotter::saveImages(std::string path, std::string format, int width, int
   if (format == "") { format = DEFAULT_IMAGE_FORMAT; }
 
   std::ofstream tree_items;
- 
 
   gStyle->SetPalette(1,0);
 //  gStyle->SetTitleW(0.95);
@@ -17,6 +16,7 @@ void EmuPlotter::saveImages(std::string path, std::string format, int width, int
     gSystem->Exec(command.Data());
 
   string runNumber = "";
+
   tree_items.open((path+"/tree_items.js").c_str());
   tree_items << "var TREE_ITEMS = [\n"
         << "    ['RunNumber" << runNumber << "', ''," << endl;
@@ -24,6 +24,7 @@ void EmuPlotter::saveImages(std::string path, std::string format, int width, int
 
   std::map<std::string, ME_List >::iterator itr;
   ME_List_const_iterator h_itr;
+
 
   string imgfile = "";
   for (itr = MEs.begin(); itr != MEs.end(); ++itr) {
@@ -70,6 +71,7 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
   if (format == "") { format = DEFAULT_IMAGE_FORMAT; }
 
   std::ofstream tree_items;
+  std::ofstream csc_list;
 
 //  if (!gApplication)
 //    TApplication::CreateApplication();
@@ -84,11 +86,60 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
   tree_items << "var TREE_ITEMS = [\n"
         << "    ['RunNumber" << runNumber << "', ''," << endl;
 
+  csc_list.open((path+"/csc_list.js").c_str());
+  csc_list << "var CSC_LIST = [\n"
+        << "    ['RunNumber" << runNumber << "'";
 
  
   std::map<std::string, ME_List>::iterator me_itr; 
   std::map<std::string, MECanvases_List>::iterator itr;
   MECanvases_List_const_iterator h_itr;
+
+  vector<string> EMU_folders;
+  vector<string> DDU_folders;
+  vector<string> CSC_folders;
+  for (itr = MECanvases.begin(); itr != MECanvases.end(); ++itr) {
+    string folder = itr->first;
+    if (folder.find("EMU") != string::npos) EMU_folders.push_back(folder);
+    else if (folder.find("DDU") != string::npos) DDU_folders.push_back(folder);
+    else if (folder.find("CSC") != string::npos) CSC_folders.push_back(folder);    
+  }
+
+  if (EMU_folders.size()) {
+    csc_list << ",\n['EMU',[";
+    for (uint32_t i=0; i<EMU_folders.size(); i++ ) {
+      csc_list << "'"<< EMU_folders[i] << ((i==EMU_folders.size())?"'":"',");
+    }
+    csc_list << "]]";
+  }
+  if (DDU_folders.size()) {
+    csc_list << ",\n['DDU',[";
+    for (uint32_t i=0; i<DDU_folders.size(); i++ ) {
+      csc_list << "'"<< DDU_folders[i] << ((i==DDU_folders.size())?"'":"',");
+    }
+    csc_list << "]]";
+  }
+ 
+
+// Quick fix !!!TODO: Sorted output 
+  if (CSC_folders.size()) {
+    int crate=0;
+    int slot=0;
+    int cur_crate=-1;
+    for (uint32_t i=0; i<CSC_folders.size(); i++ ) {
+        string csc_ptrn = "CSC_%d_%d";
+        if (sscanf(CSC_folders[i].c_str(),csc_ptrn.c_str(), &crate, &slot) == 2) {
+		if (crate != cur_crate) {
+			if (cur_crate>=0) csc_list << "]";
+			csc_list << ",\n['crate"<< crate << "', [";
+		}
+		csc_list << "'slot" << slot << "',";
+	}
+	cur_crate = crate;
+
+    }
+    csc_list << "]]";
+  }
 
   string imgfile = "";
   for (itr = MECanvases.begin(); itr != MECanvases.end(); ++itr) {
@@ -125,6 +176,11 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
         << "];" << endl;
   tree_items.clear();
   tree_items.close();
+  
+  csc_list << "]\n"
+        << "];" << endl;
+  csc_list.clear();
+  csc_list.close();
 
   createTreePage(path);
   createTreeEngine(path);
@@ -211,7 +267,7 @@ void EmuPlotter::createHTMLNavigation(std:: string path)
 {
 
   std::ofstream indexfile;
-  indexfile.open((path+"/index.html").c_str());
+  indexfile.open((path+"/browse.html").c_str());
   
   indexfile << "<html>\n<head>\n"
         << "<title>Emu DQM Web Client Interface</title>\n"
