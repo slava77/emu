@@ -25,6 +25,8 @@ MECanvases_List EmuPlotter::bookDDUCanvases(int dduNumber)
 	for (itr = dduCanvasesFactory.begin(); itr != dduCanvasesFactory.end(); ++itr) {
 		EmuMonitoringCanvas* obj = new EmuMonitoringCanvas(*itr->second);
 		obj->setPrefix(prefix);
+		string title = obj->getTitle() + Form(" DDU = %02d", dduNumber);
+		obj->setTitle(title);
 		dduCanvases[obj->getName()] = obj;
 		// dduCanvases.insert(pair<string, EmuMonitoringCanvas>(obj.getName(),obj));
 	}
@@ -43,6 +45,8 @@ MECanvases_List EmuPlotter::bookChamberCanvases(int chamberID)
 	for (itr = chamberCanvasesFactory.begin(); itr != chamberCanvasesFactory.end(); ++itr) {
 		EmuMonitoringCanvas* obj = new EmuMonitoringCanvas(*itr->second);
 		obj->setPrefix(prefix);
+		string title = obj->getTitle() + Form(" Crate ID = %02d. DMB ID - %02d", crate, slot);
+                obj->setTitle(title);
 		chamberCanvases[obj->getName()] = obj;
 		// chamberCanvases.insert(pair<string, EmuMonitoringCanvas>(obj.getName(),obj));
 	}
