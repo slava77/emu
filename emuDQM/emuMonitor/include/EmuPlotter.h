@@ -161,13 +161,15 @@ private:
   MECanvases_List chamberCanvasesFactory;
   MECanvases_List commonCanvasesFactory;
 
-
   map<string,int> nDMBEvents;
   int unpackedDMBcount;
 
   uint32_t nEvents;
   uint32_t L1ANumber;
   uint32_t BXN;
+
+  Logger logger_;
+  dduBinExaminer bin_checker;
 
   uint32_t dduCheckMask;
   uint32_t binCheckMask;
@@ -178,13 +180,9 @@ private:
   int SaveTimer;
   int fStopTimer;
   bool fBusy;
-
   
   string xmlHistosBookingCfgFile;
   string xmlCanvasesCfgFile;
-
-  Logger logger_;
-  dduBinExaminer bin_checker;
 
 };
 
