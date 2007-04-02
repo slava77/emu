@@ -116,10 +116,11 @@ int main(int argc, char **argv) {
 //			cout << hex << data << endl; 
 			// plotter.fill((unsigned char*) ddu.data(), ddu.dataLength(), status);			
 	//		if(debug_printout) 
-			LOG4CPLUS_WARN (logger, "Event#"<< dec << i<< " **** Buffer size: " << ddu.dataLength() << " bytes");
+			LOG4CPLUS_INFO (logger, "Event#"<< dec << i<< " **** Buffer size: " << ddu.dataLength() << " bytes");
 			plotter.processEvent(ddu.data(), ddu.dataLength(), status);
 	//		if (i%20000 == 0)
           //                      plotter.saveToROOTFile(histofile.c_str());
+			if (i%1000 == 0) LOG4CPLUS_WARN (logger, "Processed Events: "<< dec << i);
 		}
 	
 		
@@ -128,12 +129,12 @@ int main(int argc, char **argv) {
 
 
 	t1 = time(0);
-        LOG4CPLUS_WARN (logger, "Total time: " << t1-t0);
+        LOG4CPLUS_WARN (logger, "Total time: " << t1-t0 << " seconds");
 
-	LOG4CPLUS_WARN (logger, "Events: " << i);
+	LOG4CPLUS_WARN (logger, "Events: " << i << " Rate: " << (i/(t1-t0)) << " Events/sec" );
 //	plotter.saveToROOTFile(histofile.c_str());
 //	plotter.saveImages("images", "png" , 1600, 1200);
-	plotter.saveCanvasImages(plotsdir.c_str(), "png" , 1600, 1200);
+	plotter.saveCanvasImages(plotsdir.c_str(), "png" , 1200, 900);
 	plotter.saveToROOTFile(histofile.c_str());
 	ddu.close();
 

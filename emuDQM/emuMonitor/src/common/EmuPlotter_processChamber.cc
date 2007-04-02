@@ -109,24 +109,24 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
   EmuMonitoringObject* mof = NULL;
   if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo) 
-	&& isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) {
-      for(int bit=5; bit<24; bit++) {
-	  double freq = (100.0*mo->GetBinContent(1,bit-4))/nDMBEvents[cscTag];
-	  mof->SetBinContent(bit-4, freq);
-	}
-      mo->SetEntries(nDMBEvents[cscTag]);
-      mof->SetEntries(nDMBEvents[cscTag]);
+      && isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) {
+    for(int bit=5; bit<24; bit++) {
+      double freq = (100.0*mo->GetBinContent(1,bit-4))/nDMBEvents[cscTag];
+      mof->SetBinContent(bit-4, freq);
     }
+    mo->SetEntries(nDMBEvents[cscTag]);
+    mof->SetEntries(nDMBEvents[cscTag]);
+  }
 
   if (isMEvalid(cscME, "BinCheck_WarningStat_Table", mo) 
-	&& isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) {
-      for(int bit=1; bit<2; bit++) {
-	  double freq = (100.0*mo->GetBinContent(1,bit))/nDMBEvents[cscTag];
-	  mof->SetBinContent(bit, freq);
-	}
-       mo->SetEntries(nDMBEvents[cscTag]);
-       mof->SetEntries(nDMBEvents[cscTag]);
+      && isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) {
+    for(int bit=1; bit<2; bit++) {
+      double freq = (100.0*mo->GetBinContent(1,bit))/nDMBEvents[cscTag];
+      mof->SetBinContent(bit, freq);
     }
+    mo->SetEntries(nDMBEvents[cscTag]);
+    mof->SetEntries(nDMBEvents[cscTag]);
+  }
 
   //    Unpacking BXN number from DMB header
   int dmbHeaderBXN      = 0;
@@ -699,40 +699,44 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
         for (vector<CSCComparatorDigi>:: iterator compOutDataItr = compOutData.begin(); compOutDataItr != compOutData.end(); ++compOutDataItr) {
 	  // =VB= Fix to get right hafstrip
           int hstrip = 2*compOutDataItr->getStrip()+compOutDataItr->getComparator();
-          int tbin_clct = (int)compOutDataItr->getTimeBin();
+          vector<int> tbins_clct = compOutDataItr->getTimeBinsOn();
+	  int tbin_clct = (int)compOutDataItr->getTimeBin();
           if(CheckLayerCLCT) {
             NumberOfLayersWithHitsInCLCT = NumberOfLayersWithHitsInCLCT + 1;
             CheckLayerCLCT = false;
           }
 
-          if(hstrip != hstrip_previous || (tbin_clct != tbin_clct_previous + 1 && tbin_clct != tbin_clct_previous - 1) ) {
-            if (isMEvalid(cscME,  Form("CLCTTime_Ly%d", nLayer), mo)) mo->Fill(hstrip, tbin_clct);
+	  for (uint32_t n=0; n < tbins_clct.size(); n++) {
+	    tbin_clct = tbins_clct[n];
+	    if(hstrip != hstrip_previous || (tbin_clct != tbin_clct_previous + 1 && tbin_clct != tbin_clct_previous - 1) ) {
+	      if (isMEvalid(cscME,  Form("CLCTTime_Ly%d", nLayer), mo)) mo->Fill(hstrip, tbin_clct);
 
-            if (isMEvalid(cscME,  Form("CLCTTime_Ly%d_Profile", nLayer), mo)) mo->Fill(hstrip, tbin_clct);
+	      if (isMEvalid(cscME,  Form("CLCTTime_Ly%d_Profile", nLayer), mo)) mo->Fill(hstrip, tbin_clct);
 
-            if (isMEvalid(cscME,  Form("CLCT_Ly%d_Rate", nLayer), mo)) { 
-	      mo->Fill(hstrip);
+	      if (isMEvalid(cscME,  Form("CLCT_Ly%d_Rate", nLayer), mo)) { 
+		mo->Fill(hstrip);
 
-	      int number_hstrip = (int)(mo->GetBinContent(hstrip+1));
-	      Double_t Number_of_entries_CLCT = mo->getObject()->GetEntries();
+		int number_hstrip = (int)(mo->GetBinContent(hstrip+1));
+		Double_t Number_of_entries_CLCT = mo->getObject()->GetEntries();
 	   
-	      if (isMEvalid(cscME,  Form("CLCT_Ly%d_Efficiency", nLayer), mo)) {
-		mo->SetBinContent(hstrip+1,(float)number_hstrip);
-		if((Double_t)(nDMBEvents[cscTag]) > 0.0) {
-		  mo->getObject()->SetNormFactor(100.0*Number_of_entries_CLCT/(Double_t)(nDMBEvents[cscTag]));
-		} else {
-		  mo->getObject()->SetNormFactor(100.0);
+		if (isMEvalid(cscME,  Form("CLCT_Ly%d_Efficiency", nLayer), mo)) {
+		  mo->SetBinContent(hstrip+1,(float)number_hstrip);
+		  if((Double_t)(nDMBEvents[cscTag]) > 0.0) {
+		    mo->getObject()->SetNormFactor(100.0*Number_of_entries_CLCT/(Double_t)(nDMBEvents[cscTag]));
+		  } else {
+		    mo->getObject()->SetNormFactor(100.0);
+		  }
+		  mo->getObject()->SetEntries(nDMBEvents[cscTag]);
 		}
-		mo->getObject()->SetEntries(nDMBEvents[cscTag]);
 	      }
 	    }
-          }
 	  
-          if(hstrip != hstrip_previous) {
-            NumberOfHalfStripsWithHitsInCLCT = NumberOfHalfStripsWithHitsInCLCT + 1;
-          }
-	  hstrip_previous    = hstrip;
-          tbin_clct_previous = tbin_clct;
+	    if(hstrip != hstrip_previous) {
+	      NumberOfHalfStripsWithHitsInCLCT = NumberOfHalfStripsWithHitsInCLCT + 1;
+	    }
+	    hstrip_previous    = hstrip;
+	    tbin_clct_previous = tbin_clct;
+	  }
         }
       }
     }
