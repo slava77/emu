@@ -129,10 +129,12 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
     if (!objname.empty() && !MEs.empty()) {
       ME_List_iterator obj = MEs.find(objname);
       if (obj != MEs.end()) {
+/*
 	std::string statOpt = obj->second->getParameter("SetOptStat");
         if (statOpt != "" ) {
 	  gStyle->SetOptStat(statOpt.c_str());
         }
+*/
 	std::string leftMargin = obj->second->getParameter("SetLeftMargin");
         if (leftMargin != "" ) {
 	  gPad->SetLeftMargin(atof(leftMargin.c_str()));
@@ -146,12 +148,14 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
 
 	std::string logx = obj->second->getParameter("SetLogx");
         if (logx!= "" ) {
-          gPad->SetLogx(atoi(logx.c_str()));
+          // gPad->SetLogx(atoi(logx.c_str()));
+	  gPad->SetLogx();
           // gStyle->SetOptStat(statOpt.c_str()); 
         }
 	std::string logy = obj->second->getParameter("SetLogy");
         if (logx!= "" ) {
-          gPad->SetLogy(atoi(logy.c_str()));
+          // gPad->SetLogy(atoi(logy.c_str()));
+	  gPad->SetLogy();
           // gStyle->SetOptStat(statOpt.c_str()); 
         }
 
@@ -162,6 +166,11 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
 	}
 
 	obj->second->Draw();
+	std::string statOpt = obj->second->getParameter("SetOptStat");
+        if (statOpt != "" ) {
+          gStyle->SetOptStat(statOpt.c_str());
+        }
+
       }      
     }
   }
