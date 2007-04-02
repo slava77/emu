@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.8 2007/03/16 18:06:22 rakness Exp $
+// $Id: CCB.h,v 3.9 2007/04/02 17:31:23 liu Exp $
 // $Log: CCB.h,v $
+// Revision 3.9  2007/04/02 17:31:23  liu
+// fix setCCBMode problem
+//
 // Revision 3.8  2007/03/16 18:06:22  rakness
 // put scans+TTCrxID in summary file
 //
@@ -199,7 +202,6 @@ public:
   void enable();
   void enableTTCControl();
   void disableTTCControl();
-  void enableCLCT();
   void GenerateAlctAdbASync();
   void GenerateAlctAdbSync();
   void startTrigger();

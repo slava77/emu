@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.13 2007/03/28 16:01:38 rakness Exp $
+// $Id: CCB.cc,v 3.14 2007/04/02 17:31:39 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.14  2007/04/02 17:31:39  liu
+// fix setCCBMode problem
+//
 // Revision 3.13  2007/03/28 16:01:38  rakness
 // remove l1areset from TMB-MPC test
 //
@@ -602,10 +605,6 @@ void CCB::WriteTTCrxReg(const unsigned short registerAdd,int value){
 //
 void CCB::HardResetTTCrx(){
   //
-  // Go to FPGA mode
-  //
-  setCCBMode(CCB::DLOG);
-  //
   // Hard reset TTCrx....
   //
   sndbuf[0]=0x00; 
@@ -621,15 +620,9 @@ void CCB::HardResetTTCrx(){
   //
   if (rcvbuf[0]==0 and rcvbuf[1]==0 ) std::cout << "Failed TTCrxReset" <<std::endl;
   //
-  setCCBMode(CCB::DLOG);
-  //
 }
 
 void CCB::ReadTTCrxID(){
-  //
-  // Go to FPGA mode
-  //
-  setCCBMode(CCB::DLOG);
   //
   // Hardreset TTCrx
   //
@@ -651,8 +644,6 @@ void CCB::ReadTTCrxID(){
   TTCrxID_ = ReadTTCrxID_;
   //
   (*MyOutput_) << "TTCrx ID = " << std::dec << TTCrxID_ << std::endl;
-  //
-  setCCBMode(CCB::DLOG);
   //
 }
 //
@@ -745,16 +736,6 @@ void CCB::stopI2C(){
   //
 }
 //
-void CCB::enableCLCT(){
-   //
-   (*MyOutput_) << "CCB.enableCLCT" <<std::endl;
-   //
- 
-   sndbuf[0]=0xdf; 
-   sndbuf[1]=0x10;
-   do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
-   
-}
 
 void CCB::WriteRegister(int reg, int value){
   //
@@ -830,7 +811,7 @@ void CCB::hardReset() {
 
   HardResetTTCrx();
 
-  setCCBMode(CCB::VMEFPGA);
+//  setCCBMode(CCB::VMEFPGA);
 
   ReadRegister(0x0);
 
@@ -847,12 +828,6 @@ void CCB::hardReset() {
   ::sleep(2);
     HardReset_crate();
     ::sleep(1); // could go down to ~100msec (Jianhui)
-
-  if (switchedMode){
-    setCCBMode(CCB::DLOG);
-    (*MyOutput_) << "CCB: NOTE -- switching back to DLOG" << std::endl;
-  };
-
   //  std::cout << ReadRegister(0x0) << std::endl;
 
   SoftReset_crate();
@@ -861,6 +836,12 @@ void CCB::hardReset() {
   syncReset();
   //fg note: *keep* this 1second!
   ::sleep(1);
+
+  if (switchedMode){
+    setCCBMode(CCB::DLOG);
+    (*MyOutput_) << "CCB: NOTE -- switching back to DLOG" << std::endl;
+  };
+
   
 }
 
@@ -1108,34 +1089,46 @@ void CCB::SetL1aDelay(int l1adelay){
 
 void CCB::setCCBMode(CCB2004Mode_t mode){
   /// Set the mode of operation for the CCB2004 model
+
+  char tmpb1[2];
+
+  do_vme(VME_READ,CSRB1,sndbuf,rcvbuf,NOW);
+  tmpb1[0]=rcvbuf[0];
+  tmpb1[1]=rcvbuf[1];
+  
   switch (mode) {
   case TTCrqFPGA:
     sndbuf[0]=0x00;
-    sndbuf[1]=0x00;
+    sndbuf[1]=0x0E;
     do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
-    sndbuf[0]=0x00;
-    sndbuf[1]=0x00;
-    do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+    if((tmpb1[1]&0x01)==1) {
+       sndbuf[0]=tmpb1[0];
+       sndbuf[1]=tmpb1[1] & 0xFE;
+       do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+    }
     break;
   case VMEFPGA:
     sndbuf[0]=0x00;
-    sndbuf[1]=0x00;
+    sndbuf[1]=0x0E;
     do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
-    sndbuf[0]=0x00;
-    sndbuf[1]=0x01;
-    do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+    if((tmpb1[1]&0x01)==0) {
+       sndbuf[0]=tmpb1[0];
+       sndbuf[1]=tmpb1[1] | 0x01;
+       do_vme(VME_WRITE,CSRB1,sndbuf,rcvbuf,NOW);
+    }
     break;
   case DLOG:
     sndbuf[0]=0x00;
-    sndbuf[1]=0x01;
+    sndbuf[1]=0x0F;
     do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
     break;
   default:
     std::cerr << "Warning: unkown CCB2004 operation mode. Using DLOG instead" << std::endl;
     sndbuf[0]=0x00;
-    sndbuf[1]=0x01;
+    sndbuf[1]=0x0F;
     do_vme(VME_WRITE,CSRA1,sndbuf,rcvbuf,NOW);
   }
+  mCCBMode=mode;
 }
 
  
@@ -1186,7 +1179,7 @@ void CCB::enableTTCControl() {
 
 void CCB::startTrigger() {
   //
-  setCCBMode(CCB::VMEFPGA);
+  if(mCCBMode!=VMEFPGA) setCCBMode(CCB::VMEFPGA);
   //
   /// Send "Start Trigger" command on the Fast Control Bus
   (*MyOutput_) << "CCB: Start Trigger" << std::endl;
@@ -1198,10 +1191,10 @@ void CCB::startTrigger() {
 //
 void CCB::injectTMBPattern() {
   //
-  setCCBMode(CCB::VMEFPGA);
+  if(mCCBMode!=VMEFPGA) setCCBMode(CCB::VMEFPGA);
   //
   /// Inject TMB Pattern data
-  (*MyOutput_) << "CCB: Start Trigger" << std::endl;
+  (*MyOutput_) << "CCB: Start TMB pattern injection to MPC" << std::endl;
   sndbuf[0]=0x00;
   sndbuf[1]=(0x24<<2);          
   do_vme(VME_WRITE,CSRB2,sndbuf,rcvbuf,NOW);
@@ -1209,7 +1202,7 @@ void CCB::injectTMBPattern() {
 //
 void CCB::l1aReset(){
   //
-  setCCBMode(CCB::VMEFPGA);
+  if(mCCBMode!=VMEFPGA) setCCBMode(CCB::VMEFPGA);
   //
   /// Send "L1a Reset" command on the Fast Control Bus
   (*MyOutput_) << "CCB: L1a Reset" << std::endl;
@@ -1229,7 +1222,7 @@ void CCB::CLCTexternalTrigger() {
 //
 void CCB::bc0() {
   //
-  setCCBMode(CCB::VMEFPGA);
+  if(mCCBMode!=VMEFPGA) setCCBMode(CCB::VMEFPGA);
   //
   /// Send "bc0" command on the Fast Control Bus
   (*MyOutput_) << "CCB: bc0 Trigger" << std::endl;
@@ -1241,7 +1234,7 @@ void CCB::bc0() {
 //
 void CCB::stopTrigger() {
   //
-  setCCBMode(CCB::VMEFPGA);
+  if(mCCBMode!=VMEFPGA) setCCBMode(CCB::VMEFPGA);
   //
   /// Send "Stop Trigger" command on the Fast Control Bus
   (*MyOutput_) << "CCB: Stop Trigger" << std::endl;
@@ -1289,7 +1282,7 @@ void CCB::FireCCBMpcInjector(){
   //
   // Issue L1Reset
   //
-  l1aReset();
+  // l1aReset();
   //
   // Issue L1 Start
   //
