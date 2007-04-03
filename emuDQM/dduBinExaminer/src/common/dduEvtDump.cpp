@@ -10,6 +10,10 @@
 #include <iomanip>
 #include <map>
 #include <string>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 using namespace std;
 
@@ -53,7 +57,9 @@ int main(int argc, char **argv)
   	}
 	
 	// == Open input data file
-	ifstream input(datafile.c_str());
+	// ifstream input(datafile.c_str());
+	
+        int input = ::open(datafile.c_str(), O_RDONLY | O_LARGEFILE);
 
 	if (!input) { /*perror(datafile.c_str());*/ return -1; }
 	cerr << datafile << " Opened" << endl;
@@ -64,7 +70,8 @@ int main(int argc, char **argv)
 //------------------------------------------------------------------------------------------------
 
 	// == Read from datafile 4 16-bit words into buf till end-of-file is found
-	while( !input.eof() ) 
+	// while( !input.eof() ) 
+	while (::read(input,(char *)buf2, sizeof(buf2)))
 	{
 		
 		for (int i=0; i<4; i++) {
@@ -75,7 +82,7 @@ int main(int argc, char **argv)
 		}
 		
 		// == Read 8 bytes into buffer
-		input.read((char *)buf2, sizeof(buf2));
+		// input.read((char *)buf2, sizeof(buf2));
 		
 		
 		// == Check for Format Control Words
@@ -103,7 +110,8 @@ int main(int argc, char **argv)
 			}
 
 			if (cntDDUHeaders == (EventToPrint+1)) {  // Passed the requested Event, Exit the program
-			input.close();
+			// input.close();
+			::close(input);
 			cerr << datafile << " Closed" << endl;
 			return 0;
 			} 
@@ -290,7 +298,8 @@ int main(int argc, char **argv)
 
 		     cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" << endl << endl;
 		     // Exit the program
-		     input.close();
+		     // input.close();
+		     ::close(input);
 		     cerr << datafile << " Closed" << endl << endl;
 		     return 0;
 		     }
@@ -302,7 +311,8 @@ int main(int argc, char **argv)
 
 
 	// == Close input data file	
-	input.close();
+//	input.close();
+	::close(input);
 	cerr << datafile << " Closed" << endl;
 
 
