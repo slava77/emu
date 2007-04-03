@@ -61,7 +61,7 @@ int main(int argc, char **argv)
 	
         int input = ::open(datafile.c_str(), O_RDONLY | O_LARGEFILE);
 
-	if (!input) { /*perror(datafile.c_str());*/ return -1; }
+	if (input<0) { perror(datafile.c_str()); return -1; }
 	cerr << datafile << " Opened" << endl;
 		
 	cout << "Enter Event Number to print: ";
