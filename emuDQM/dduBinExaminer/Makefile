@@ -24,7 +24,7 @@ Sources=\
 Executables = 
 
 TestLibraries = 
-TestExecutables = dduBinExaminerTest.cpp
+TestExecutables = dduBinExaminerTest.cpp dduEvtDump.cpp
 
 ExternalObjects = 
 
