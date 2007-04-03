@@ -21,10 +21,10 @@ Package=emuDQM/dduBinExaminer
 Sources=\
 	dduBinExaminer.cc 
 
-Executables = 
+Executables = dduEvtDump.cpp
 
 TestLibraries = 
-TestExecutables = dduBinExaminerTest.cpp dduEvtDump.cpp
+TestExecutables = dduBinExaminerTest.cpp
 
 ExternalObjects = 
 
@@ -37,7 +37,7 @@ UserCFlags = $(ROOTCFLAGS)
 UserCCFlags = $(ROOTCFLAGS)
 UserDynamicLinkFlags = $(ROOTLIBS)
 UserStaticLinkFlags =
-UserExecutableLinkFlags += $(ROOTCFLAGS)
+UserExecutableLinkFlags += $(ROOTCFLAGS) -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
 # These libraries can be platform specific and
 # potentially need conditional processing
