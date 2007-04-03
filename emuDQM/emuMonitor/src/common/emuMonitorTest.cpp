@@ -39,8 +39,8 @@ int main(int argc, char **argv) {
 	plotter.setXMLCanvasesCfgFile(xmlCanvasesCfg);
 	plotter.book();
 
-	int NumberOfEvents = 1000000;
-	int startEvent = 0;
+	uint32_t NumberOfEvents = 0xFFFFFFFF;
+	uint32_t startEvent = 0;
 	string datafile = "";
   	string histofile = "dqm_results.root";
 	string plotsdir = "images";
