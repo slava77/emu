@@ -306,7 +306,7 @@ int main(int argc, char **argv){
 
 	//hash_map< int, hash_map<int,int32_t> >::iterator chamber = cntChambERROR.begin();
 	//while( chamber != cntChambERROR.end() ){
-	map<int,int32_t>::const_iterator chamber = examiner.cntCHAMB_Headers.begin();
+	map<int,uint32_t>::const_iterator chamber = examiner.cntCHAMB_Headers.begin();
 	while( chamber != examiner.cntCHAMB_Headers.end() ){
 		cerr << endl << endl << endl;
 		cerr << "-------------------------------------------------------------------------" << endl << endl;
