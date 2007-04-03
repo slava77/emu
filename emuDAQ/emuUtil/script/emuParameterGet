@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # default values
-SERVERURL=emudaq02.cern.ch
+SERVERURL=emudaq.cern.ch
 SERVERPORT=40200
 SERVERAPP=EmuDAQManager
 SERVERAPPINSTANCE=0
 VERBOSITY=0
 PARAMETER=stateName
-TYPE=string
+TYPE=xsd:string
 
 # user's options
 while [[ $1 = -* ]]; do
@@ -21,6 +21,8 @@ while [[ $1 = -* ]]; do
 	-T ) TYPE=$2
 	    shift ;;
 	-I ) SERVERAPPINSTANCE=$2
+	    shift ;;
+	-L ) SERVERAPPLID=$2
 	    shift ;;
 	-p ) SERVERPORT=$2
 	    shift ;;
@@ -38,20 +40,25 @@ while [[ $1 = -* ]]; do
 	    echo '  ------   -------                            -------'
 	    echo '      -A   application                        EmuDAQManager'
 	    echo '      -P   parameter name                     stateName'
-	    echo '      -T   parameter type                     string'
+	    echo '      -T   parameter type                     xsd:string'
 	    echo '      -h   print help                         do not print help'
 	    echo '      -I   server application instance        0'
+	    echo '      -L   server application lid             <not used; application instance used instead>'
 	    echo '      -p   port                               40200'
-	    echo '      -u   url                                emuslice06.cern.ch'
+	    echo '      -u   url                                emudaq.cern.ch'
 	    echo '      -v   verbose                            not verbose'
 	    exit 1 ;;
     esac
     shift
 done
 
-HEADER="\"SOAPAction: urn:xdaq-application:class=$SERVERAPP,instance=$SERVERAPPINSTANCE\""
+if [[ ${#SERVERAPPLID} == 0 ]]; then
+    HEADER="\"SOAPAction: urn:xdaq-application:class=$SERVERAPP,instance=$SERVERAPPINSTANCE\""
+else
+    HEADER="\"SOAPAction: urn:xdaq-application:class=$SERVERAPP:lid=$SERVERAPPLID\""
+fi
 
-MESSAGE="\"<soap-env:Envelope soap-env:encodingStyle=\\\"http://schemas.xmlsoap.org/soap/encoding/\\\" xmlns:soap-env=\\\"http://schemas.xmlsoap.org/soap/envelope/\\\" xmlns:xsd=\\\"http://www.w3.org/2001/XMLSchema\\\" xmlns:xsi=\\\"http://www.w3.org/2001/XMLSchema-instance\\\" xmlns:soapenc=\\\"http://schemas.xmlsoap.org/soap/encoding/\\\"><soap-env:Header/><soap-env:Body><xdaq:ParameterGet xmlns:xdaq=\\\"urn:xdaq-soap:3.0\\\"><$SERVERAPP:properties xmlns:$SERVERAPP=\\\"urn:xdaq-application:$SERVERAPP\\\" xsi:type=\\\"soapenc:Struct\\\"><$SERVERAPP:$PARAMETER xsi:type=\\\"xsd:$TYPE\\\"/></$SERVERAPP:properties></xdaq:ParameterGet></soap-env:Body></soap-env:Envelope>\""
+MESSAGE="\"<soap-env:Envelope soap-env:encodingStyle=\\\"http://schemas.xmlsoap.org/soap/encoding/\\\" xmlns:soap-env=\\\"http://schemas.xmlsoap.org/soap/envelope/\\\" xmlns:xsd=\\\"http://www.w3.org/2001/XMLSchema\\\" xmlns:xsi=\\\"http://www.w3.org/2001/XMLSchema-instance\\\" xmlns:soapenc=\\\"http://schemas.xmlsoap.org/soap/encoding/\\\"><soap-env:Header/><soap-env:Body><xdaq:ParameterGet xmlns:xdaq=\\\"urn:xdaq-soap:3.0\\\"><$SERVERAPP:properties xmlns:$SERVERAPP=\\\"urn:xdaq-application:$SERVERAPP\\\" xsi:type=\\\"soapenc:Struct\\\"><$SERVERAPP:$PARAMETER xsi:type=\\\"$TYPE\\\"/></$SERVERAPP:properties></xdaq:ParameterGet></soap-env:Body></soap-env:Envelope>\""
 
 WRITEOUT=""
 if [[ $VERBOSITY = "1" ]]; then
@@ -63,4 +70,5 @@ if [[ $VERBOSITY = "1" ]]; then
 fi
 
 eval curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE | sed -u 's/>\([^<>]\+\)<\//>[1;31m\1[0m<\//g'
+#eval curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE | sed -u -e :a -e 'N;s/>\(\([^<>]\|\n\)\+\)<\//>[1;31m\1[0m<\//g; ta'
 echo ""
