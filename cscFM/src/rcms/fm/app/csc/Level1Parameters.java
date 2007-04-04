@@ -13,13 +13,22 @@ public class Level1Parameters {
 	/**
 	 * standard parameter definitions for Level 1 Function Manager
 	 */
-	public static final String SID = "SID";
-	public static final String GLOBAL_CONF_KEY = "GLOBAL_CONF_KEY";
 
+	// FM parameters
 	public static final String STATE = "STATE";
 	public static final String ACTION_MSG = "ACTION_MSG";
 	public static final String ERROR_MSG = "ERROR_MSG";
 	public static final String COMPLETION = "COMPLETION";
+
+	// 'Initialize'
+	public static final String SID = "SID";
+	public static final String GLOBAL_CONF_KEY = "GLOBAL_CONF_KEY";
+
+	// 'Configure'
+	public static final String RUN_TYPE = "RUN_TYPE";
+
+	// 'Start'
+	public static final String RUN_NUMBER = "RUN_NUMBER";
 
 	// for TTS test
 	public static final String TTS_TEST_FED_ID = "TTS_TEST_FED_ID";
