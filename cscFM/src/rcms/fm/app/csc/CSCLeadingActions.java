@@ -103,8 +103,6 @@ public class CSCLeadingActions extends Level1LeadingActions {
 	 *
 	 */
 	public CSCLeadingActions() throws EventHandlerException {
-		super();
-
 		scheduler = Executors.newScheduledThreadPool(1);
 		stateWatcher = new StateWatcher();
 		ttsSetter = new TTSSetter();
@@ -161,6 +159,138 @@ public class CSCLeadingActions extends Level1LeadingActions {
 		}
 
 		fm.fireEvent(createStateNotification());
+	}
+
+	/*
+	 *
+	 */
+	public void configure(Object o) throws UserActionException {
+		logger.debug("CSCLeadingActions.configure");
+
+		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
+				Level1Parameters.ACTION_MSG, new StringT("Configuring")));
+
+		// set run type parameter
+		try {
+			XDAQParameter xdaqParam = ((XdaqApplication)
+					fm.xdaqSupervisor.getApplications().get(0))
+					.getXDAQParameter();
+
+			xdaqParam.select("RunType");
+
+			ParameterSet<CommandParameter> commandParam =
+					getUserFunctionManager().getLastInput().getParameterSet();
+			if (commandParam == null) {
+				logger.error(getClass().toString() +
+						"Failded to Configure XDAQ, no run type specified.");
+
+				fm.fireEvent(Level1Inputs.ERROR);
+			}
+
+			String runType = ((StringT)
+					commandParam.get(Level1Parameters.RUN_TYPE).getValue())
+					.getString();
+			xdaqParam.setValue("RunType", runType);
+			xdaqParam.send();
+
+		} catch (Exception e) {
+			logger.error(getClass().toString() +
+					"Failed to Configure XDAQ.", e);
+
+			fm.fireEvent(Level1Inputs.ERROR);
+		}
+
+		// send Configure
+		try {
+			fm.xdaqSupervisor.execute(new Input("Configure"));
+
+		} catch (Exception e) {
+			logger.error(getClass().toString() +
+					"Failed to Configure XDAQ.", e);
+
+			fm.fireEvent(Level1Inputs.ERROR);
+		}
+
+		fm.fireEvent(createStateNotification());
+
+		logger.debug("CSCLeadingActions.configure ... done.");
+	}
+
+	/*
+	 *
+	 */
+	public void start(Object o) throws UserActionException {
+		logger.debug("CSCLeadingActions.start");
+
+		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
+				Level1Parameters.ACTION_MSG, new StringT("Starting")));
+
+		// set run number parameter
+		try {
+			XDAQParameter xdaqParam = ((XdaqApplication)
+					fm.xdaqSupervisor.getApplications().get(0))
+					.getXDAQParameter();
+
+			xdaqParam.select("RunNumber");
+
+			ParameterSet<CommandParameter> commandParam =
+					getUserFunctionManager().getLastInput().getParameterSet();
+			if (commandParam == null) {
+				logger.error(getClass().toString() +
+						"Failded to Enable XDAQ, no run # specified.");
+
+				fm.fireEvent(Level1Inputs.ERROR);
+			}
+
+			String runNumber = ((IntegerT)
+					commandParam.get(Level1Parameters.RUN_NUMBER).getValue())
+					.getInteger().toString();
+			xdaqParam.setValue("RunNumber", runNumber);
+			xdaqParam.send();
+
+		} catch (Exception e) {
+			logger.error(getClass().toString() + "Failed to Enable XDAQ.", e);
+
+			fm.fireEvent(Level1Inputs.ERROR);
+		}
+
+		// send Enable
+		try {
+			fm.xdaqSupervisor.execute(new Input("Enable"));
+
+		} catch (Exception e) {
+			logger.error(getClass().toString() + "Failed to Enable XDAQ.", e);
+
+			fm.fireEvent(Level1Inputs.ERROR);
+		}
+
+		fm.fireEvent(createStateNotification());
+
+		logger.debug("CSCLeadingActions.start ... done.");
+	}
+
+	/*
+	 *
+	 */
+	public void stop(Object o) throws UserActionException {
+		logger.debug("CSCLeadingActions.stop");
+
+		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
+				Level1Parameters.ACTION_MSG, new StringT("Stopping")));
+
+		// send Disable
+		try {
+			fm.xdaqSupervisor.execute(new Input("Disable"));
+
+		} catch (Exception e) {
+			logger.error(getClass().toString() + "Failed to Disable XDAQ.", e);
+
+			fm.fireEvent(Level1Inputs.ERROR);
+		}
+
+		fm.fireEvent(createStateNotification());
+
+		logger.debug("CSCLeadingActions.stop ... done.");
 	}
 
 	/*
@@ -233,7 +363,19 @@ public class CSCLeadingActions extends Level1LeadingActions {
 		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
 				Level1Parameters.ACTION_MSG, new StringT("Halting")));
 
+		// send Halt
+		try {
+			fm.xdaqSupervisor.execute(new Input("Halt"));
+
+		} catch (Exception e) {
+			logger.error(getClass().toString() + "Failed to Halt XDAQ.", e);
+
+			fm.fireEvent(Level1Inputs.ERROR);
+		}
+
 		fm.fireEvent(createStateNotification());
+
+		logger.debug("CSCLeadingActions.halt ... done.");
 	}
 
 	/* */
