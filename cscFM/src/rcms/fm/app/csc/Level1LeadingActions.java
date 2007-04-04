@@ -23,6 +23,15 @@ public class Level1LeadingActions extends UserEventHandler {
 		subscribeForEvents(StateEnteredEvent.class);
 
 		addAction(Level1States.INITIALIZING,  "initialize");
+		addAction(Level1States.CONFIGURING,   "configure");
+		addAction(Level1States.STARTING,      "start");
+		addAction(Level1States.STOPPING,      "stop");
+		addAction(Level1States.PAUSING,       "pause");
+		addAction(Level1States.RESUMING,      "resume");
+
+		addAction(Level1States.RECOVERING,    "recover");
+		addAction(Level1States.RESETTING,     "reset");
+
 		addAction(Level1States.TTS_PREPARING, "ttsPrepare");
 		addAction(Level1States.TTS_TESTING,   "ttsTest");
 		addAction(Level1States.HALTING,       "halt");
@@ -62,46 +71,95 @@ public class Level1LeadingActions extends UserEventHandler {
 	/*
 	 *
 	 */
+	public void configure(Object o) throws UserActionException {
+		emptyAction("Level1LeadingActions.configure", "Confguring");
+	}
+
+	/*
+	 *
+	 */
+	public void start(Object o) throws UserActionException {
+		emptyAction("Level1LeadingActions.start", "Starting");
+	}
+
+	/*
+	 *
+	 */
+	public void stop(Object o) throws UserActionException {
+		emptyAction("Level1LeadingActions.stop", "Stopping");
+	}
+
+	/*
+	 *
+	 */
+	public void pause(Object o) throws UserActionException {
+		emptyAction("Level1LeadingActions.pause", "Pausing");
+	}
+
+	/*
+	 *
+	 */
+	public void resume(Object o) throws UserActionException {
+		emptyAction("Level1LeadingActions.resume", "Resuming");
+	}
+
+	/*
+	 *
+	 */
+	public void recover(Object o) throws UserActionException {
+		emptyAction("Level1LeadingActions.recover", "Recovering");
+	}
+
+	/*
+	 *
+	 */
+	public void reset(Object o) throws UserActionException {
+		emptyAction("Level1LeadingActions.reset", "Resetting");
+	}
+
+	/*
+	 *
+	 */
 	public void ttsPrepare(Object o) throws UserActionException {
-		logger.debug("Level1LeadingActions.ttsPrepare");
-
-		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
-				Level1Parameters.ACTION_MSG, new StringT("TTS preparing")));
-
-		fm.fireEvent(createStateNotification());
+		emptyAction("Level1LeadingActions.ttsPrepare", "TTS preparing");
 	}
 
 	/*
 	 *
 	 */
 	public void ttsTest(Object o) throws UserActionException {
-		logger.debug("Level1LeadingActions.ttsTest");
-
-		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
-				Level1Parameters.ACTION_MSG, new StringT("TTS testing")));
-
-		fm.fireEvent(createStateNotification());
+		emptyAction("Level1LeadingActions.ttsTest", "TTS testing");
 	}
 
 	/*
 	 *
 	 */
 	public void halt(Object o) throws UserActionException {
-		logger.debug("Level1LeadingActions.halt");
-
-		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
-				Level1Parameters.ACTION_MSG, new StringT("Halting")));
-
-		fm.fireEvent(createStateNotification());
+		emptyAction("Level1LeadingActions.halt", "Halting");
 	}
 
 	/*
 	 *
 	 */
-	public StateNotification createStateNotification() throws UserActionException {
+	protected void emptyAction(String title, String message)
+			throws UserActionException {
+		logger.debug(title);
+
+		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
+				Level1Parameters.ACTION_MSG, new StringT(message)));
+
+		fm.fireEvent(createStateNotification());
+
+		logger.debug(title + " ... done.");
+	}
+
+	/*
+	 *
+	 */
+	protected StateNotification createStateNotification() throws UserActionException {
 		StateNotification notification = new StateNotification();
 
-		notification.setIdentifier("cscFM");
+		notification.setIdentifier("level1FM");
 
 		return notification;
 	}

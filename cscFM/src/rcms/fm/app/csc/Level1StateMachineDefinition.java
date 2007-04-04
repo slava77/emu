@@ -26,6 +26,7 @@ public class Level1StateMachineDefinition extends UserStateMachineDefinition {
 		// Declare parameters associated with inputs
 		// (initialize, configure, start and testTTS)
 
+		// 'Initialize'
 		ParameterSet<CommandParameter> initializeParameters =
 				new ParameterSet<CommandParameter>();
 
@@ -38,6 +39,29 @@ public class Level1StateMachineDefinition extends UserStateMachineDefinition {
 
 		Level1Inputs.INITIALIZE.setParameters(initializeParameters);
 
+		// 'Configure'
+		ParameterSet<CommandParameter> configureParameters =
+				new ParameterSet<CommandParameter>();
+
+		try {
+			configureParameters.add(new CommandParameter<StringT>(
+					Level1Parameters.RUN_TYPE, new StringT("")));
+		} catch (ParameterException ignored) {}
+
+		Level1Inputs.CONFIGURE.setParameters(configureParameters);
+
+		// 'Start'
+		ParameterSet<CommandParameter> startParameters =
+				new ParameterSet<CommandParameter>();
+
+		try {
+			startParameters.add(new CommandParameter<StringT>(
+					Level1Parameters.RUN_NUMBER, new StringT("")));
+		} catch (ParameterException ignored) {}
+
+		Level1Inputs.START.setParameters(startParameters);
+
+		// 'TestTTS'
 		ParameterSet<CommandParameter> testTTSParameters =
 				new ParameterSet<CommandParameter>();
 
@@ -59,6 +83,47 @@ public class Level1StateMachineDefinition extends UserStateMachineDefinition {
 				Level1States.INITIAL, Level1States.INITIALIZING);
 		addTransition(Level1Inputs.INITIALIZE_DONE,
 				Level1States.INITIALIZING, Level1States.HALTED);
+
+		addTransition(Level1Inputs.CONFIGURE,
+				Level1States.HALTED, Level1States.CONFIGURING);
+		addTransition(Level1Inputs.CONFIGURE_DONE,
+				Level1States.CONFIGURING, Level1States.CONFIGURED);
+
+		addTransition(Level1Inputs.START,
+				Level1States.CONFIGURED, Level1States.STARTING);
+		addTransition(Level1Inputs.START_DONE,
+				Level1States.STARTING, Level1States.RUNNING);
+
+		addTransition(Level1Inputs.STOP,
+				Level1States.RUNNING, Level1States.STOPPING);
+		addTransition(Level1Inputs.STOP_DONE,
+				Level1States.STOPPING, Level1States.CONFIGURED);
+
+		addTransition(Level1Inputs.PAUSE,
+				Level1States.RUNNING, Level1States.PAUSING);
+		addTransition(Level1Inputs.PAUSE_DONE,
+				Level1States.PAUSING, Level1States.PAUSED);
+
+		addTransition(Level1Inputs.RESUME,
+				Level1States.PAUSED, Level1States.RESUMING);
+		addTransition(Level1Inputs.RESUME_DONE,
+				Level1States.RESUMING, Level1States.RUNNING);
+
+		addTransition(Level1Inputs.HALT,
+				Level1States.CONFIGURED, Level1States.HALTING);
+		addTransition(Level1Inputs.HALT_DONE,
+				Level1States.HALTING, Level1States.HALTED);
+
+		addTransition(Level1Inputs.RECOVER,
+				Level1States.ERROR, Level1States.RECOVERING);
+		addTransition(Level1Inputs.RECOVER_DONE,
+				Level1States.RECOVERING, Level1States.HALTED);
+
+		addTransition(Level1Inputs.RESET,
+				Level1States.ERROR, Level1States.RESETTING);
+		addTransition(Level1Inputs.RESET_DONE,
+				Level1States.RESETTING, Level1States.HALTED);
+
 		addTransition(Level1Inputs.TTS_PREPARE,
 				Level1States.HALTED, Level1States.TTS_PREPARING);
 		addTransition(Level1Inputs.TTS_PREPARE_DONE,

@@ -5,6 +5,7 @@ import rcms.fm.fw.EventHandlerException;
 import rcms.fm.fw.parameter.*;
 import rcms.fm.fw.parameter.type.*;
 import rcms.stateFormat.StateNotification;
+import rcms.statemachine.definition.Input;
 
 import rcms.util.logger.RCMSLogger;
 
@@ -21,6 +22,15 @@ public class Level1TrailingActions extends UserEventHandler {
 		subscribeForEvents(StateNotification.class);
 
 		addAction(Level1States.INITIALIZING,  "initialize");
+		addAction(Level1States.CONFIGURING,   "configure");
+		addAction(Level1States.STARTING,      "start");
+		addAction(Level1States.STOPPING,      "stop");
+		addAction(Level1States.PAUSING,       "pause");
+		addAction(Level1States.RESUMING,      "resume");
+
+		addAction(Level1States.RECOVERING,    "recover");
+		addAction(Level1States.RESETTING,     "reset");
+
 		addAction(Level1States.TTS_PREPARING, "ttsPrepare");
 		addAction(Level1States.TTS_TESTING,   "ttsTest");
 		addAction(Level1States.HALTING,       "halt");
@@ -37,58 +47,104 @@ public class Level1TrailingActions extends UserEventHandler {
 	 *
 	 */
 	public void initialize(Object o) throws UserActionException {
-		logger.debug("Level1TrailingActions.initialize");
+		emptyAction("Level1TrailingActions.initialize",
+				Level1Inputs.INITIALIZE_DONE);
+	}
 
-		StateNotification notification = (StateNotification)o;
+	/*
+	 *
+	 */
+	public void configure(Object o) throws UserActionException {
+		emptyAction("Level1TrailingActions.configure",
+				Level1Inputs.CONFIGURE_DONE);
+	}
 
-		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
-				Level1Parameters.ACTION_MSG, new StringT("")));
+	/*
+	 *
+	 */
+	public void start(Object o) throws UserActionException {
+		emptyAction("Level1TrailingActions.start",
+				Level1Inputs.START_DONE);
+	}
 
-		fm.fireEvent(Level1Inputs.INITIALIZE_DONE);
+	/*
+	 *
+	 */
+	public void stop(Object o) throws UserActionException {
+		emptyAction("Level1TrailingActions.stop",
+				Level1Inputs.STOP_DONE);
+	}
 
-		logger.debug("Level1TrailingActions.initialize ... done.");
+	/*
+	 *
+	 */
+	public void pause(Object o) throws UserActionException {
+		emptyAction("Level1TrailingActions.pause",
+				Level1Inputs.PAUSE_DONE);
+	}
+
+	/*
+	 *
+	 */
+	public void resume(Object o) throws UserActionException {
+		emptyAction("Level1TrailingActions.resume",
+				Level1Inputs.RESUME_DONE);
+	}
+
+	/*
+	 *
+	 */
+	public void recover(Object o) throws UserActionException {
+		emptyAction("Level1TrailingActions.recover",
+				Level1Inputs.RECOVER_DONE);
+	}
+
+	/*
+	 *
+	 */
+	public void reset(Object o) throws UserActionException {
+		emptyAction("Level1TrailingActions.reset",
+				Level1Inputs.RESET_DONE);
 	}
 
 	/*
 	 *
 	 */
 	public void ttsPrepare(Object o) throws UserActionException {
-		logger.debug("Level1TrailingActions.ttsPrepare");
-
-		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
-				Level1Parameters.ACTION_MSG, new StringT("")));
-
-		fm.fireEvent(Level1Inputs.TTS_PREPARE_DONE);
-
-		logger.debug("Level1TrailingActions.ttsPrepare ... done.");
+		emptyAction("Level1TrailingActions.ttsPrepare",
+				Level1Inputs.TTS_PREPARE_DONE);
 	}
 
 	/*
 	 *
 	 */
 	public void ttsTest(Object o) throws UserActionException {
-		logger.debug("Level1TrailingActions.ttsTest");
-
-		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
-				Level1Parameters.ACTION_MSG, new StringT("")));
-
-		fm.fireEvent(Level1Inputs.TTS_TEST_DONE);
-
-		logger.debug("Level1TrailingActions.ttsTest ... done.");
+		emptyAction("Level1TrailingActions.ttsTest",
+				Level1Inputs.TTS_TEST_DONE);
 	}
 
 	/*
 	 *
 	 */
 	public void halt(Object o) throws UserActionException {
-		logger.debug("Level1TrailingActions.halt");
+		emptyAction("Level1TrailingActions.halt",
+				Level1Inputs.HALT_DONE);
+	}
+
+	/*
+	 *
+	 */
+	protected void emptyAction(String title, Input input)
+			throws UserActionException {
+
+		logger.debug(title);
 
 		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
 				Level1Parameters.ACTION_MSG, new StringT("")));
 
-		fm.fireEvent(Level1Inputs.HALT_DONE);
+		fm.fireEvent(input);
 
-		logger.debug("Level1TrailingActions.halt ... done.");
+		logger.debug(title + " ... done.");
 	}
 }
 
