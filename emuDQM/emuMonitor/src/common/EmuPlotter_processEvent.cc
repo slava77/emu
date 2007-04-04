@@ -135,7 +135,10 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   
   dduID = dduHeader.source_id();
   
-  if (isMEvalid(nodeME, "Source_ID", mo)) mo->Fill(dduID);
+  if (isMEvalid(nodeME, "Source_ID", mo)) { 
+	mo->Fill(dduID%40);
+	mo->getObject()->GetXaxis()->SetBinLabel(dduID%40+1, Form("%d",dduID));
+   }
 
 
 

@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
 	ddu.open(datafile.c_str());
 	// if(debug_printout)  
 	LOG4CPLUS_WARN (logger, "File " << datafile << " is opened");
-	int i=0;
+        uint32_t i=0;
 
 	long t0, t1;
         t0 = time(0);
