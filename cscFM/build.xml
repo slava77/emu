@@ -55,7 +55,6 @@
 	<target name="deploy" depends="jar">
 		<mkdir dir="${fm.deploy.dir}" />
 		<copy file="${lib.dir}/${package.name}.jar" todir="${fm.deploy.dir}" />
-		<copy file="cscfm.properties" todir="${fm.deploy.dir}" />
 	</target>
 
 	<target name="duck">
