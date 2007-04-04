@@ -7,15 +7,11 @@
 		<XdaqApplication className="CSCSupervisor" hostname="localhost" port="40000"
 				urn="urn:xdaq-application:class=CSCSupervisor,instance=0"
 				qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqApplication"
-				modulePath="/home/ichiro/work/tridas/lib/linux/x86/libCSCSupervisor.so"
-				xdaqPath="/home/ichiro/work/tridas"
 				instance="0" />
 		<XdaqApplication className="EmuFCrate" hostname="localhost" port="40000"
 				urn="urn:xdaq-application:class=EmuFCrate,instance=0"
 				qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqApplication"
-				modulePath="/home/ichiro/work/tridas/lib/linux/x86/libEmuFCrate.so"
-				xdaqPath="/home/ichiro/work/tridas"
-				instance="1" />
+				instance="0" />
 	  <XdaqExecutive hostname="localhost" port="40000"
 				urn="urn:xdaq-application:lid=0"
 				qualifiedResourceType="rcms.fm.resource.qualifiedresource.XdaqExecutive"
