@@ -165,6 +165,7 @@ foreach $parameter (@parameters) {
 	}
 #
 	if (($parameter =~ m/delay/) && 
+	    !($parameter =~ m/rpc0_rat_delay/) && 
 	    !($parameter =~ m/alct_drift_delay/) && 
 	    !($parameter =~ m/alct_l1a_delay/) ) { 
 	    $parameter =~ s/delay/afeb_fine_delay/;
