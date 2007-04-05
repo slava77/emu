@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.30 2007/03/21 12:56:51 rakness Exp $
+// $Id: TMB.cc,v 3.31 2007/04/05 14:59:04 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.31  2007/04/05 14:59:04  rakness
+// fix minor bug in csc_id setting
+//
 // Revision 3.30  2007/03/21 12:56:51  rakness
 // update labels of TMB counters
 //
@@ -6491,6 +6494,7 @@ void TMB::SetTMBRegisterDefaults_() {
   //------------------------------------------------------------------
   tmb_slot_ = this->slot();     //the TMB was instantiated with this value from the parser
   csc_id_   = tmb_slot_/2;      //the index of the CSC served by this peripheral crate
+  if (tmb_slot_ > 11 ) csc_id_--;
   run_id_   = run_id_default;
   //
   //------------------------------------------------------------------
