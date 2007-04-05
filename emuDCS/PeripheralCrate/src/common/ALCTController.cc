@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.31 2007/03/28 17:46:22 rakness Exp $
+// $Id: ALCTController.cc,v 3.32 2007/04/05 18:11:52 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.32  2007/04/05 18:11:52  rakness
+// ALCT 576, 192 ID labels
+//
 // Revision 3.31  2007/03/28 17:46:22  rakness
 // xml changes:  add ALCT testpulse, remove TTCrxID
 //
@@ -1519,10 +1522,14 @@ void ALCTController::PrintFastControlId() {
   //
   (*MyOutput_) << "ALCT: " << chamber_type_string_ << " Fast Control firmware type: ";
   // 
-  if ( GetFastControlAlctType() == FIRMWARE_TYPE_288 ) {
+  if ( GetFastControlAlctType() == FIRMWARE_TYPE_192 ) {
+    (*MyOutput_) << "192, ";
+  } else if ( GetFastControlAlctType() == FIRMWARE_TYPE_288 ) {
     (*MyOutput_) << "288, ";
   } else if ( GetFastControlAlctType() == FIRMWARE_TYPE_384 ) {
     (*MyOutput_) << "384, ";
+  } else if ( GetFastControlAlctType() == FIRMWARE_TYPE_576 ) {
+    (*MyOutput_) << "576, ";
   } else if ( GetFastControlAlctType() == FIRMWARE_TYPE_672 ) {
     (*MyOutput_) << "672, ";
   } else {
