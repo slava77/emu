@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.19 2007/03/14 08:59:03 rakness Exp $
+// $Id: TMB.h,v 3.20 2007/04/10 13:31:01 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.20  2007/04/10 13:31:01  rakness
+// add mpc_output_enable, remove rpc2/3
+//
 // Revision 3.19  2007/03/14 08:59:03  rakness
 // make parser dumb
 //
@@ -659,13 +662,6 @@ public:
   inline int  GetRpc1RawDelay() { return rpc1_raw_delay_ ; }
   //rpc1_raw_delay = [0-15] = delay RPC data into FIFO (bx)
   //
-  inline void SetRpc2RawDelay(int rpc2_raw_delay) { rpc2_raw_delay_ = rpc2_raw_delay; }
-  inline int  GetRpc2RawDelay() { return rpc2_raw_delay_ ; }
-  //rpc2_raw_delay = [0-15] = delay RPC data into FIFO (bx)
-  //
-  inline void SetRpc3RawDelay(int rpc3_raw_delay) { rpc3_raw_delay_ = rpc3_raw_delay; }
-  inline int  GetRpc3RawDelay() { return rpc3_raw_delay_ ; }
-  //rpc3_raw_delay = [0-15] = delay RPC data into FIFO (bx)
   //
   // ******************************************
   // trigger configuration
@@ -812,6 +808,10 @@ public:
   inline void SetMpcIdleBlank(int mpc_idle_blank) { mpc_idle_blank_ = mpc_idle_blank; }
   inline int  GetMpcIdleBlank() { return mpc_idle_blank_; }
   //mpc_idle_blank = 1 = blank MPC data and BX0 except when triggered
+  //
+  inline void SetMpcOutputEnable(int mpc_output_enable) { mpc_output_enable_ = mpc_output_enable; }
+  inline int  GetMpcOutputEnable() { return mpc_output_enable_; }
+  //mpc_output_enable = [0,1] = [disable,enable] output (of LCT) to MPC 
   //
   //------------------------------------------------------------------
   //0XAC = ADR_SEQMOD:  Sequencer Trigger Modifiers
@@ -1021,15 +1021,6 @@ public:
   inline void SetRpc1RatDelay(int rpc1_rat_delay) { rpc1_rat_delay_ = rpc1_rat_delay; }
   inline int  GetRpc1RatDelay() { return rpc1_rat_delay_ ; }
   //rpc1_rat_delay = [0-15] (2ns)
-  //
-  inline void SetRpc2RatDelay(int rpc2_rat_delay) { rpc2_rat_delay_ = rpc2_rat_delay; }
-  inline int  GetRpc2RatDelay() { return rpc2_rat_delay_ ; }
-  //rpc2_rat_delay = [0-15] (2ns)
-  //
-  inline void SetRpc3RatDelay(int rpc3_rat_delay) { rpc3_rat_delay_ = rpc3_rat_delay; }
-  inline int  GetRpc3RatDelay() { return rpc3_rat_delay_ ; }
-  //rpc3_rat_delay = [0-15] (2ns)
-  //
   //
   //
   //Return the software value to be written into the register at "address" 
@@ -1566,6 +1557,7 @@ private:
   int mpc_delay_;
   int mpc_sel_ttc_bx0_;
   int mpc_idle_blank_;
+  int mpc_output_enable_;
   //
   int read_tmb_sync_err_enable_;
   int read_tmb_allow_alct_;
@@ -1576,6 +1568,7 @@ private:
   int read_mpc_reserved_;
   int read_mpc_sel_ttc_bx0_;
   int read_mpc_idle_blank_;
+  int read_mpc_output_enable_;
   //
   //------------------------------------------------------------------
   //0XAC = ADR_SEQMOD:  Sequencer Trigger Modifiers
@@ -1634,13 +1627,9 @@ private:
   //------------------------------------------------------------------
   int rpc0_raw_delay_;
   int rpc1_raw_delay_;
-  int rpc2_raw_delay_;
-  int rpc3_raw_delay_;
   //
   int read_rpc0_raw_delay_;
   int read_rpc1_raw_delay_;
-  int read_rpc2_raw_delay_;
-  int read_rpc3_raw_delay_;
   //
   //------------------------------------------------------------------
   //0XBC = ADR_RPC_INJ:  RPC Injector Control
@@ -1737,13 +1726,9 @@ private:
   //------------------------------------------------------------------
   int rpc0_rat_delay_;
   int rpc1_rat_delay_;
-  int rpc2_rat_delay_;
-  int rpc3_rat_delay_;
   //
   int read_rpc0_rat_delay_;
   int read_rpc1_rat_delay_;
-  int read_rpc2_rat_delay_;
-  int read_rpc3_rat_delay_;
   //
   //---------------------------------------------------------------------
   //0XEA = ADR_BDSTATUS:  Board Status Summary (copy of raw-hits header)

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.15 2007/03/28 17:46:22 rakness Exp $
+// $Id: TMBParser.cc,v 3.16 2007/04/10 13:31:02 rakness Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.16  2007/04/10 13:31:02  rakness
+// add mpc_output_enable, remove rpc2/3
+//
 // Revision 3.15  2007/03/28 17:46:22  rakness
 // xml changes:  add ALCT testpulse, remove TTCrxID
 //
@@ -260,6 +263,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     if (parser_.fillInt("mpc_rx_delay"       ,value)) { tmb_->SetMpcDelay(value);         }
     //if (parser_.fillInt("mpc_sel_ttc_bx0"    ,value)) { tmb_->SetSelectMpcTtcBx0(value);  }
     if (parser_.fillInt("mpc_idle_blank"     ,value)) { tmb_->SetMpcIdleBlank(value);     }
+    if (parser_.fillInt("mpc_output_enable"  ,value)) { tmb_->SetMpcOutputEnable(value);  }
     //
     //0XAC
     //if (parser_.fillInt("clct_flush_delay"   ,value)) { tmb_->SetClctFlushDelay(value);        }

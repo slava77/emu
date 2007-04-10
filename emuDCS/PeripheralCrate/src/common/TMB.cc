@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.31 2007/04/05 14:59:04 rakness Exp $
+// $Id: TMB.cc,v 3.32 2007/04/10 13:31:01 rakness Exp $
 // $Log: TMB.cc,v $
-// Revision 3.31  2007/04/05 14:59:04  rakness
-// fix minor bug in csc_id setting
+// Revision 3.32  2007/04/10 13:31:01  rakness
+// add mpc_output_enable, remove rpc2/3
 //
 // Revision 3.30  2007/03/21 12:56:51  rakness
 // update labels of TMB counters
@@ -659,15 +659,17 @@ void TMB::configure() {
   // When configuring with VME, the 3d3444 state machine needs to be 
   // started and stopped appropriately in order for the delay values 
   // to be set correctly:
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x20;
-  tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); 
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x21;
-  tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); 
-  sndbuf[0]=0x00;
-  sndbuf[1]=0x20;
-  tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); 
+  if ( !GetFillVmeWriteVecs() ) {
+    sndbuf[0]=0x00;
+    sndbuf[1]=0x20;
+    tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); 
+    sndbuf[0]=0x00;
+    sndbuf[1]=0x21;
+    tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); 
+    sndbuf[0]=0x00;
+    sndbuf[1]=0x20;
+    tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); 
+  }
   //
   if ( GetFillVmeWriteVecs() )      
     CheckAndProgramProm(ChipLocationTmbUserPromTMB);
@@ -6337,7 +6339,7 @@ void TMB::DefineTMBConfigurationRegisters_(){
   TMBConfigurationRegister.push_back(vme_ddd0_adr     );    //0x16 phases: RAT/TMB, DMBtx, ALCTrx, ALCTtx
   TMBConfigurationRegister.push_back(vme_ddd1_adr     );    //0x18 phases: CFEB0, DCC, MPC, TMB1
   TMBConfigurationRegister.push_back(vme_ddd2_adr     );    //0x1a phases: CFEB4, CFEB3, CFEB2, CFEB1
-  TMBConfigurationRegister.push_back(rat_3d_delays_adr);    //0xE6 phases: RPC3/RAT, RPC2/RAT, RPC1/RAT, RPC0/RAT 
+  TMBConfigurationRegister.push_back(rat_3d_delays_adr);    //0xE6 phases: RPC1/RAT, RPC0/RAT 
   //
   // hot channel masks:
   TMBConfigurationRegister.push_back(hcm001_adr);  //0x4A distrip hot channel mask CFEB 0 layers 0,1 
@@ -6537,6 +6539,7 @@ void TMB::SetTMBRegisterDefaults_() {
   mpc_delay_           = mpc_delay_default          ;
   mpc_sel_ttc_bx0_     = mpc_sel_ttc_bx0_default    ;
   mpc_idle_blank_      = mpc_idle_blank_default     ;
+  mpc_output_enable_   = mpc_output_enable_default  ;
   //
   //------------------------------------------------------------------
   //0XAC = ADR_SEQMOD:  Sequencer Trigger Modifiers
@@ -6572,8 +6575,6 @@ void TMB::SetTMBRegisterDefaults_() {
   //------------------------------------------------------------------
   rpc0_raw_delay_ = rpc0_raw_delay_default;
   rpc1_raw_delay_ = rpc1_raw_delay_default;
-  rpc2_raw_delay_ = rpc2_raw_delay_default;
-  rpc3_raw_delay_ = rpc3_raw_delay_default;
   //
   //------------------------------------------------------------------
   //0XBC = ADR_RPC_INJ:  RPC Injector Control
@@ -6590,8 +6591,6 @@ void TMB::SetTMBRegisterDefaults_() {
   //------------------------------------------------------------------
   rpc0_rat_delay_ = rpc0_rat_delay_default;
   rpc1_rat_delay_ = rpc1_rat_delay_default;
-  rpc2_rat_delay_ = rpc2_rat_delay_default;
-  rpc3_rat_delay_ = rpc3_rat_delay_default;
   //
   //---------------------------------------------------------------------
   //0XF0 = ADR_LAYER_TRIG:  Layer-Trigger Mode
@@ -6841,6 +6840,7 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_mpc_reserved_        = ExtractValueFromData(data,mpc_reserved_bitlo       ,mpc_reserved_bithi       );
     read_mpc_sel_ttc_bx0_     = ExtractValueFromData(data,mpc_sel_ttc_bx0_bitlo    ,mpc_sel_ttc_bx0_bithi    );
     read_mpc_idle_blank_      = ExtractValueFromData(data,mpc_idle_blank_bitlo     ,mpc_idle_blank_bithi     );
+    read_mpc_output_enable_   = ExtractValueFromData(data,mpc_output_enable_bitlo  ,mpc_output_enable_bithi  );
     //
   } else if ( address == seqmod_adr ) {
     //------------------------------------------------------------------
@@ -6883,8 +6883,6 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     //------------------------------------------------------------------
     read_rpc0_raw_delay_ = ExtractValueFromData(data,rpc0_raw_delay_bitlo,rpc0_raw_delay_bithi);
     read_rpc1_raw_delay_ = ExtractValueFromData(data,rpc1_raw_delay_bitlo,rpc1_raw_delay_bithi);
-    read_rpc2_raw_delay_ = ExtractValueFromData(data,rpc2_raw_delay_bitlo,rpc2_raw_delay_bithi);
-    read_rpc3_raw_delay_ = ExtractValueFromData(data,rpc3_raw_delay_bitlo,rpc3_raw_delay_bithi);
     //
   } else if ( address == rpc_inj_adr ) {
     //------------------------------------------------------------------
@@ -6981,8 +6979,6 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     //------------------------------------------------------------------
     read_rpc0_rat_delay_ = ExtractValueFromData(data,rpc0_rat_delay_bitlo,rpc0_rat_delay_bithi);
     read_rpc1_rat_delay_ = ExtractValueFromData(data,rpc1_rat_delay_bitlo,rpc1_rat_delay_bithi);
-    read_rpc2_rat_delay_ = ExtractValueFromData(data,rpc2_rat_delay_bitlo,rpc2_rat_delay_bithi);
-    read_rpc3_rat_delay_ = ExtractValueFromData(data,rpc3_rat_delay_bitlo,rpc3_rat_delay_bithi);
     //
   } else if ( address == tmb_stat_adr ) {    
     //---------------------------------------------------------------------
@@ -7393,6 +7389,7 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "    MPC reserved latched after delay             = " << std::dec << read_mpc_reserved_        << std::endl;
     (*MyOutput_) << "    MPC gets bx0 from TTC                        = " << std::dec << read_mpc_sel_ttc_bx0_     << std::endl;
     (*MyOutput_) << "    blank MPC data and bx0 except when triggered = " << std::hex << read_mpc_idle_blank_      << std::endl;
+    (*MyOutput_) << "    enable outputs to MPC                        = " << std::hex << read_mpc_output_enable_   << std::endl;
     //
   } else if ( address == seqmod_adr ) {
     //------------------------------------------------------------------
@@ -7439,8 +7436,6 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << " ->RPC raw hits delay register:" << std::endl;
     (*MyOutput_) << "    RPC0 raw hits delay = " << std::dec << read_rpc0_raw_delay_ << std::endl;
     (*MyOutput_) << "    RPC1 raw hits delay = " << std::dec << read_rpc1_raw_delay_ << std::endl;
-    (*MyOutput_) << "    RPC2 raw hits delay = " << std::dec << read_rpc2_raw_delay_ << std::endl;
-    (*MyOutput_) << "    RPC3 raw hits delay = " << std::dec << read_rpc3_raw_delay_ << std::endl;
     //
   } else if ( address == rpc_inj_adr ) {
     //------------------------------------------------------------------
@@ -7539,8 +7534,6 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << " ->RPC/RAT phase delay register:" << std::endl;
     (*MyOutput_) << "    RPC0/RAT rx phase = " << std::dec << read_rpc0_rat_delay_ << std::endl;
     (*MyOutput_) << "    RPC1/RAT rx phase = " << std::dec << read_rpc1_rat_delay_ << std::endl;
-    (*MyOutput_) << "    RPC2/RAT rx phase = " << std::dec << read_rpc2_rat_delay_ << std::endl;
-    (*MyOutput_) << "    RPC3/RAT rx phase = " << std::dec << read_rpc3_rat_delay_ << std::endl;
     //
   } else if ( address == tmb_stat_adr ) {
     //---------------------------------------------------------------------
@@ -7846,6 +7839,7 @@ int TMB::FillTMBRegister(unsigned long int address) {
     InsertValueIntoDataWord(mpc_delay_          ,mpc_delay_bithi          ,mpc_delay_bitlo          ,&data_word);
     InsertValueIntoDataWord(mpc_sel_ttc_bx0_    ,mpc_sel_ttc_bx0_bithi    ,mpc_sel_ttc_bx0_bitlo    ,&data_word);
     InsertValueIntoDataWord(mpc_idle_blank_     ,mpc_idle_blank_bithi     ,mpc_idle_blank_bitlo     ,&data_word);
+    InsertValueIntoDataWord(mpc_output_enable_  ,mpc_output_enable_bithi  ,mpc_output_enable_bitlo  ,&data_word);
     //
   } else if ( address == seqmod_adr ) {
     //------------------------------------------------------------------
@@ -7885,8 +7879,6 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //------------------------------------------------------------------
     InsertValueIntoDataWord(rpc0_raw_delay_,rpc0_raw_delay_bithi,rpc0_raw_delay_bitlo,&data_word);
     InsertValueIntoDataWord(rpc1_raw_delay_,rpc1_raw_delay_bithi,rpc1_raw_delay_bitlo,&data_word);
-    InsertValueIntoDataWord(rpc2_raw_delay_,rpc2_raw_delay_bithi,rpc2_raw_delay_bitlo,&data_word);
-    InsertValueIntoDataWord(rpc3_raw_delay_,rpc3_raw_delay_bithi,rpc3_raw_delay_bitlo,&data_word);
     //
   } else if ( address == rpc_inj_adr ) {
     //------------------------------------------------------------------
@@ -7922,8 +7914,6 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //------------------------------------------------------------------
     InsertValueIntoDataWord(rpc0_rat_delay_,rpc0_rat_delay_bithi,rpc0_rat_delay_bitlo,&data_word);
     InsertValueIntoDataWord(rpc1_rat_delay_,rpc1_rat_delay_bithi,rpc1_rat_delay_bitlo,&data_word);
-    InsertValueIntoDataWord(rpc2_rat_delay_,rpc2_rat_delay_bithi,rpc2_rat_delay_bitlo,&data_word);
-    InsertValueIntoDataWord(rpc3_rat_delay_,rpc3_rat_delay_bithi,rpc3_rat_delay_bitlo,&data_word);
     //
   } else if ( address == layer_trg_mode_adr ) {
     //---------------------------------------------------------------------
@@ -8136,6 +8126,7 @@ void TMB::CheckTMBConfiguration() {
   config_ok &= compareValues("MPC rx delay"                                ,read_mpc_delay_          ,mpc_delay_          );
   config_ok &= compareValues("MPC gets TTC BX0"                            ,read_mpc_sel_ttc_bx0_    ,mpc_sel_ttc_bx0_    );
   config_ok &= compareValues("Blank MPC data and BX0 except when triggered",read_mpc_idle_blank_     ,mpc_idle_blank_     );
+  config_ok &= compareValues("Enable output to MPC"                        ,read_mpc_output_enable_  ,mpc_output_enable_  );
   //
   //------------------------------------------------------------------
   //0XAC = ADR_SEQMOD:  Sequencer Trigger Modifiers
@@ -8171,8 +8162,6 @@ void TMB::CheckTMBConfiguration() {
   //------------------------------------------------------------------
   config_ok &= compareValues("RPC0 raw hits delay",read_rpc0_raw_delay_,rpc0_raw_delay_);
   config_ok &= compareValues("RPC1 raw hits delay",read_rpc1_raw_delay_,rpc1_raw_delay_);
-  config_ok &= compareValues("RPC2 raw hits delay",read_rpc2_raw_delay_,rpc2_raw_delay_);
-  config_ok &= compareValues("RPC3 raw hits delay",read_rpc3_raw_delay_,rpc3_raw_delay_);
   //
   //------------------------------------------------------------------
   //0XBC = ADR_RPC_INJ:  RPC Injector Control
@@ -8188,8 +8177,6 @@ void TMB::CheckTMBConfiguration() {
   //------------------------------------------------------------------
   config_ok &= compareValues("RAT-RPC0 phase",read_rpc0_rat_delay_,rpc0_rat_delay_);
   config_ok &= compareValues("RAT-RPC1 phase",read_rpc1_rat_delay_,rpc1_rat_delay_);
-  config_ok &= compareValues("RAT-RPC2 phase",read_rpc2_rat_delay_,rpc2_rat_delay_);
-  config_ok &= compareValues("RAT-RPC3 phase",read_rpc3_rat_delay_,rpc3_rat_delay_);
   //
   //---------------------------------------------------------------------
   //0XF0 = ADR_LAYER_TRIG:  Layer-Trigger Mode
