@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.8 2007/01/31 16:49:53 rakness Exp $
+// $Id: TMB_constants.h,v 3.9 2007/04/10 13:31:01 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.9  2007/04/10 13:31:01  rakness
+// add mpc_output_enable, remove rpc2/3
+//
 // Revision 3.8  2007/01/31 16:49:53  rakness
 // complete set of TMB/ALCT/RAT xml parameters
 //
@@ -1101,6 +1104,12 @@ const int mpc_idle_blank_bithi        = 14;
 const int mpc_idle_blank_default      =  0;
 //
 //
+const int mpc_output_enable_vmereg    =  tmb_trig_adr;
+const int mpc_output_enable_bitlo     = 15;
+const int mpc_output_enable_bithi     = 15;
+const int mpc_output_enable_default   =  1;
+//
+//
 //------------------------------------------------------------------
 //0XAC = ADR_SEQMOD:  Sequencer Trigger Modifiers
 //------------------------------------------------------------------
@@ -1183,8 +1192,8 @@ const int mpc_tx_delay_default           =  0;
 //------------------------------------------------------------------
 const int rpc_exists_vmereg       =  rpc_cfg_adr;
 const int rpc_exists_bitlo        =  0;
-const int rpc_exists_bithi        =  3;
-const int rpc_exists_default      =  0xF;
+const int rpc_exists_bithi        =  1;
+const int rpc_exists_default      =  0x3;
 //
 const int rpc_read_enable_vmereg  =  rpc_cfg_adr;
 const int rpc_read_enable_bitlo   =  4;
@@ -1216,22 +1225,12 @@ const int rpc_done_bithi          = 14;
 const int rpc0_raw_delay_vmereg  =  rpc_raw_delay_adr;
 const int rpc0_raw_delay_bitlo   =  0;
 const int rpc0_raw_delay_bithi   =  3;
-const int rpc0_raw_delay_default =  1;
+const int rpc0_raw_delay_default =  0;
 //
 const int rpc1_raw_delay_vmereg  =  rpc_raw_delay_adr;
 const int rpc1_raw_delay_bitlo   =  4;
 const int rpc1_raw_delay_bithi   =  7;
-const int rpc1_raw_delay_default =  1;
-//
-const int rpc2_raw_delay_vmereg  =  rpc_raw_delay_adr;
-const int rpc2_raw_delay_bitlo   =  8;
-const int rpc2_raw_delay_bithi   = 11;
-const int rpc2_raw_delay_default =  1;
-//
-const int rpc3_raw_delay_vmereg  =  rpc_raw_delay_adr;
-const int rpc3_raw_delay_bitlo   = 12;
-const int rpc3_raw_delay_bithi   = 15;
-const int rpc3_raw_delay_default =  1;
+const int rpc1_raw_delay_default =  0;
 //
 //
 //------------------------------------------------------------------

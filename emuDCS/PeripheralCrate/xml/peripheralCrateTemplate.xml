@@ -46,6 +46,7 @@
            rpc_bxn_offset="0"
            mpc_rx_delay="7"
            mpc_tx_delay="0"
+           mpc_output_enable="1"
            tmb_l1a_delay="156"
            tmb_l1a_window_size="7"
            l1a_allow_match="1"
