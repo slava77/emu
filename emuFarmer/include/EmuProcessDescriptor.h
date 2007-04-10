@@ -41,9 +41,13 @@ public:
   bool isSelected() const { return selected_; }
   void setStartTime( const time_t t ){ startTime_ = t; };
   time_t getStartTime() const { return startTime_; };
-  int getJobId(){ return jobId_; }
+  int getJobId() const { return jobId_; }
   void setJobId( int jobId ){ jobId_ = jobId; }
   void setJobId( const string& jobId );
+  string getStartingLogLevel() const { return startingLogLevel_; }
+  void setStartingLogLevel( const string& startingLogLevel ){ startingLogLevel_ = startingLogLevel; }
+  string getLogLevel() const { return logLevel_; }
+  void setLogLevel( const string& logLevel ){ logLevel_ = logLevel; }
   set< pair<string, int> > getApplications() const { return applications_; }
   void addApplication( const string& name, const int instance ){ applications_.insert( make_pair(name, instance) ); }
   void addApplicationsFrom( const EmuProcessDescriptor& ep ){ applications_.insert( ep.applications_.begin(), ep.applications_.end() ); }
@@ -58,6 +62,14 @@ private:
    * the resolved URL
    */
   string normalizedURL_;
+  /**
+   * the log level for starting the process
+   */
+  string startingLogLevel_;
+  /**
+   * the current log level obtained by querying the executive
+   */
+  string logLevel_;
   /**
    * the (resolved) URL of the JobControl app in charge of this process
    */

@@ -5,6 +5,8 @@
 EmuProcessDescriptor::EmuProcessDescriptor() :
   URL_(""),
   normalizedURL_(""),
+  startingLogLevel_("WARN"),
+  logLevel_(""),
   jobControlNormalizedURL_(""),
   deviceName_(""),
   jobControlAppDescriptor_(NULL),
@@ -17,6 +19,8 @@ EmuProcessDescriptor::EmuProcessDescriptor( const string& url )
   throw ( toolbox::net::exception::MalformedURL, toolbox::net::exception::BadURL ) :
   URL_(""),
   normalizedURL_(""),
+  startingLogLevel_("WARN"),
+  logLevel_(""),
   jobControlNormalizedURL_(""),
   deviceName_(""),
   jobControlAppDescriptor_(NULL),
@@ -49,6 +53,8 @@ EmuProcessDescriptor::~EmuProcessDescriptor(){
 EmuProcessDescriptor& EmuProcessDescriptor::operator=( const EmuProcessDescriptor& ep ){
   URL_                     = ep.URL_;
   normalizedURL_           = ep.normalizedURL_;
+  startingLogLevel_        = ep.startingLogLevel_;
+  logLevel_                = ep.logLevel_;
   jobControlNormalizedURL_ = ep.jobControlNormalizedURL_;
   deviceName_              = ep.deviceName_;
   jobControlAppDescriptor_ = ep.jobControlAppDescriptor_;
@@ -62,9 +68,10 @@ EmuProcessDescriptor& EmuProcessDescriptor::operator=( const EmuProcessDescripto
 void EmuProcessDescriptor::print( ostream& os ) const {
   os << "URL: " << URL_
      << "   normalized URL: " << normalizedURL_
+     << "   starting log level: " << startingLogLevel_
      << "   selected: " << (selected_?"yes":"no")
      << "   job id: " << jobId_
-     << "   device: " << deviceName_
+     << "   device: " << ( deviceName_.size() ? deviceName_ : string("-") )
      << "   apps: ";
   for ( set< pair<string, int> >::iterator a = applications_.begin();
 	a != applications_.end();

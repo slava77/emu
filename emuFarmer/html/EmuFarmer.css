@@ -61,13 +61,15 @@ input.button{
 }
 
 input.start {
-    color:#ffffff; 
+    color: #e8dcb1;
+//    color:#ffffff; 
     background-color:#889d17;
     border-color:#889d17;
 }
 
 input.stop {
-    color:#ffffff;
+    color: #e8dcb1;
+//    color:#ffffff;
     background-color:#9d1717;
     border-color:#9d1717; 
 }
@@ -76,4 +78,11 @@ input.restart {
     color:#9d1717;
     background-color:#889d17;
     border-color:#889d17;
+}
+
+input.poll {
+    color: #e8dcb1;
+//    color:#ffffff;
+    background-color:#222266;
+    border-color:#222266;
 }

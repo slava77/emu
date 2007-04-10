@@ -24,6 +24,13 @@
 #include <xalanc/XalanTransformer/XalanTransformer.hpp>
 #include <xalanc/PlatformSupport/XalanMemoryManagerDefault.hpp>
 
+// For EmuFarmer::postSOAP
+#include "pt/PeerTransportAgent.h"
+#include "pt/PeerTransportReceiver.h"
+#include "pt/PeerTransportSender.h"
+#include "pt/SOAPMessenger.h"
+
+#include <unistd.h> // for sleep()
 
 // Alias used to access the "versioning" namespace EmuFarmer from within
 // the class EmuFarmer
@@ -89,6 +96,11 @@ void EmuFarmer::exportParams(){
 
   s->fireItemAvailable( "commandToStartXDAQ", &commandToStartXDAQ_ );
   s->fireItemAvailable( "commandToReloadDrivers", &commandToReloadDrivers_ );
+
+  s->fireItemAvailable( "ApplicationsWithLogLevel_DEBUG", &ApplicationsWithLogLevel_DEBUG_ );
+  s->fireItemAvailable( "ApplicationsWithLogLevel_INFO", &ApplicationsWithLogLevel_INFO_ );
+  s->fireItemAvailable( "ApplicationsWithLogLevel_ERROR", &ApplicationsWithLogLevel_ERROR_ );
+
 }
 
 void EmuFarmer::mapUserNames(){
@@ -113,6 +125,26 @@ void EmuFarmer::mapApplicationNames(){
   applicationNames_["LTC"] = &ltcApplicationNames_;
 }
 
+void EmuFarmer::mapLogLevels(){
+  cout << "ApplicationsWithLogLevel_DEBUG_.elements() " << ApplicationsWithLogLevel_DEBUG_.elements() << endl;
+  cout << "ApplicationsWithLogLevel_INFO_.elements() " << ApplicationsWithLogLevel_INFO_.elements() << endl;
+  cout << "ApplicationsWithLogLevel_ERROR_.elements() " << ApplicationsWithLogLevel_ERROR_.elements() << endl;
+  for ( size_t i=0; i<ApplicationsWithLogLevel_DEBUG_.elements(); ++i ){
+    logLevels_[ ApplicationsWithLogLevel_DEBUG_.elementAt(i)->toString() ] = "DEBUG";
+    cout << ApplicationsWithLogLevel_DEBUG_.elementAt(i)->toString() << " DEBUG " << logLevels_[ ApplicationsWithLogLevel_DEBUG_.elementAt(i)->toString() ] << endl;
+  }
+  for ( size_t i=0; i<ApplicationsWithLogLevel_INFO_.elements(); ++i ){
+    logLevels_[ ApplicationsWithLogLevel_INFO_.elementAt(i)->toString() ] = "INFO";
+    cout << ApplicationsWithLogLevel_INFO_.elementAt(i)->toString() << " INFO " << logLevels_[ ApplicationsWithLogLevel_INFO_.elementAt(i)->toString() ] << endl;
+  }
+  // WARN is the default log level...
+  for ( size_t i=0; i<ApplicationsWithLogLevel_ERROR_.elements(); ++i ){
+    logLevels_[ ApplicationsWithLogLevel_ERROR_.elementAt(i)->toString() ] = "ERROR";
+    cout << ApplicationsWithLogLevel_ERROR_.elementAt(i)->toString() << " ERROR " << logLevels_[ ApplicationsWithLogLevel_ERROR_.elementAt(i)->toString() ] << endl;
+  }
+
+}
+
 const char* EmuFarmer::pageLayout_[][2] = { { "CSCSupervisor", "DAQManager"},
 					    { "DAQ","DQM" },
 					    { "TF","FED" },
@@ -123,6 +155,8 @@ string EmuFarmer::createConfigFile(){
   message += mergeConfigFile();
   loadConfigFile();
   collectEmuProcesses();
+  mapLogLevels();
+  assignLogLevels();
   assignJobControlProcesses();
   return message;
 }
@@ -224,6 +258,10 @@ string EmuFarmer::processForm(xgi::Input *in, xgi::Output *out)
   std::vector<cgicc::FormEntry> fev = cgi.getElements();
   std::vector<cgicc::FormEntry>::const_iterator fe;
 
+  const int maxAttemptsToStart = 5;
+  int attemptCount = 0;
+  bool success = false;
+
   for ( fe=fev.begin(); fe!=fev.end(); ++fe ){
  
     LOG4CPLUS_INFO( logger_, "Received command from user: " 
@@ -231,15 +269,53 @@ string EmuFarmer::processForm(xgi::Input *in, xgi::Output *out)
 
     if ( fe->getName() == "action" ){
       needRedirecting = true;
-      if        ( fe->getValue() == "start" || fe->getValue() == "stop" ){
-	actOnEmuProcesses( fe->getValue(), fev );
-      } else if ( fe->getValue() == "stop and restart" ){
+      if        ( fe->getValue() == "start" ){
+
+	while ( !success && attemptCount < maxAttemptsToStart ){
+	  success = actOnEmuProcesses( fe->getValue(), fev );
+	  attemptCount++;
+	  if ( !success && attemptCount < maxAttemptsToStart ) sleep( (unsigned int)(1) );
+	  if ( !success && attemptCount == maxAttemptsToStart ){
+	    LOG4CPLUS_ERROR( logger_, "Failed to start all selected processes after " << maxAttemptsToStart << "attempts." ); 
+	  }
+	  if ( success ){
+	    LOG4CPLUS_INFO( logger_, "Started all selected processes after " 
+			    << attemptCount << " attempt" << ( attemptCount==1 ? "" : "s" ) );
+	  }
+	}
+
+      } else if ( fe->getValue() == "stop" ){
+
 	actOnEmuProcesses( "stop" , fev );
-	actOnEmuProcesses( "start", fev );
+
+      } else if ( fe->getValue() == "stop and restart" ){
+
+	while ( !success && attemptCount < maxAttemptsToStart ){
+	  if ( attemptCount == 0 ) actOnEmuProcesses( "stop" , fev );
+	  success = actOnEmuProcesses( "start", fev );
+	  attemptCount++;
+	  if ( !success && attemptCount < maxAttemptsToStart ) sleep( (unsigned int)(1) );
+	  if ( !success && attemptCount == maxAttemptsToStart ){
+	    LOG4CPLUS_ERROR( logger_, "Failed to restart  all selected processes after " << maxAttemptsToStart << "attempts." ); 
+	  }
+	  if ( success ){
+	    LOG4CPLUS_INFO( logger_, "Restarted all selected processes after "
+			    << attemptCount << " attempt" << ( attemptCount==1 ? "" : "s" ) );
+	  }
+	}
+
       } else if ( fe->getValue() == "reload DDU drivers" ){
+
 	reloadDDUDrivers( fev );
+
       } else if ( fe->getValue() == "create config" ){
+
 	message = createConfigFile();
+
+      } else if ( fe->getValue() == "poll" ){
+
+	pollAllExecutives();
+
       } else needRedirecting = false;
       break;
     }
@@ -454,6 +530,17 @@ void EmuFarmer::actionButtons(xgi::Output *out){
   *out << "/>"                                                       << endl;
   *out << "  </td>"                                                  << endl;
 
+  *out << "  <td align=\"center\">"                                  << endl;
+  *out << "<input"                                                   << endl;
+  *out << " onclick=\"poll(event)\""                                 << endl;
+  *out << " class=\"button poll\""                                   << endl;
+  *out << " type=\"button\""                                         << endl;
+  *out << " name=\"action\""                                         << endl;
+  *out << " title=\"Poll all processes if they are up and running. If so, their log level will show.\""<< endl;
+  *out << " value=\"poll\""                                          << endl;
+  *out << "/>"                                                       << endl;
+  *out << "  </td>"                                                  << endl;
+
 
   *out << "</tr>"                                                    << endl;
   *out << "</table>"                                                 << endl;
@@ -608,19 +695,59 @@ void EmuFarmer::collectEmuProcesses(){
   for ( map< string, string >::iterator egi = emuGroups_.begin();
 	egi != emuGroups_.end(); ++egi ){
 	emuProcesses_.insert( pair<string,string>(egi->second, egi->first) );
-//     cout << egi->second << egi->first << endl;
+	cout << egi->second << " " << egi->first << endl;
   }
   
-  // DEBUG PRINT:
+}
+
+void EmuFarmer::assignLogLevels(){
+  // Assign log levels to processes. By default it's WARN.
+  // If some of its applications are listed otherwise in EmuFarmer's config file,
+  // assign the lowest severity one.
+
+  map< string, int > rank;
+  rank["DEBUG"] = 1;
+  rank["INFO" ] = 2;
+  rank["WARN" ] = 3;
+  rank["ERROR"] = 4;
+
+  for ( map< string, EmuProcessDescriptor >::iterator epd = emuProcessDescriptors_.begin();
+	epd != emuProcessDescriptors_.end(); ++epd ) {
+    // Loop over this process's applications and pick the lowest severity level requested in the config file.
+    set< pair<string, int> > apps = epd->second.getApplications();
+    string lowestLevel("ERROR");
+    for ( set< pair<string, int> >::const_iterator app = apps.begin(); app != apps.end(); ++app ){
+      // First strip app name of anything that may have been added to it. (hardware mnemonic name to EmuRUI)
+      string appName = app->first;
+      string::size_type delimiter = appName.find_first_of( " [" );
+      if ( delimiter != string::npos ) appName = appName.substr( 0, delimiter );
+      // Get level explicitly requested in the config file (if any)
+      if ( logLevels_.find( appName ) != logLevels_.end() ){
+	string requestedLevel = logLevels_[ appName ];
+	// Apparently there was an explicit request. If this is lower than the other requests so far, set it.
+	if ( rank[requestedLevel] < rank[lowestLevel] ){
+	  epd->second.setStartingLogLevel( requestedLevel );
+	  lowestLevel = requestedLevel;
+	}
+      }
+    }
+  }
+
+  debugPrint( "assignLogLevels()" );
+
+}
+
+void EmuFarmer::debugPrint( const string& message ){
+
   stringstream ss;
-  ss  << endl << "Emu groups" << endl;
+  ss  << "*** " << message << " ***" << endl << "Emu groups" << endl;
   for ( map< string, string >::iterator egi = emuGroups_.begin();
 	egi != emuGroups_.end(); ++egi )
     ss << "    " << egi->first << "   " << egi->second << endl;
 
   ss  << endl << "Emu processes" << endl;
-  for ( map< string, string >::iterator ep = emuProcesses_.begin();
-	ep == emuProcesses_.end(); ++ep )
+  for ( multimap< string, string >::iterator ep = emuProcesses_.begin();
+	ep != emuProcesses_.end(); ++ep )
     ss << "    " << ep->first << "   " << ep->second << endl;
 
   ss  << endl << "Emu process attributes" << endl;
@@ -632,8 +759,14 @@ void EmuFarmer::collectEmuProcesses(){
       epd->second.print( ss );
     }
 
+  ss  << endl << "Explicitly requested log levels" << endl;
+  for ( map< string, string >::iterator ll = logLevels_.begin();
+	ll != logLevels_.end(); ++ll )
+    ss << "    " << ll->first << "   " << ll->second << endl;
+
   LOG4CPLUS_DEBUG( logger_, "Process groups:\n" + ss.str() );
   cerr << ss.str() << endl;
+
 }
 
 void EmuFarmer::assignJobControlProcesses(){
@@ -717,10 +850,10 @@ void EmuFarmer::processGroupTable(const string& groupName, xgi::Output *out){
   *out << "   <table class=\"processes\" name=\"processTable\" id=\""
        << groupName << "\">" << endl;
   *out << "     <tr>                                                                                       " << endl;
-  *out << "       <th class=\"processes title\" colspan=\"6\">" << groupName << " processes</th>          " << endl;
+  *out << "       <th class=\"processes title\" colspan=\"7\">" << groupName << " processes</th>          " << endl;
   if ( groupName == "DAQ" ){
   *out << "     </tr><tr>                                                                                  " << endl;
-    *out << "       <td  class=\"processes\"  colspan=\"6\" width=\"100%\">"                                 << endl;
+    *out << "       <td  class=\"processes\"  colspan=\"7\" width=\"100%\">"                                 << endl;
     *out << "          <input"                                                                               << endl;
     *out << "           class=\"config\""                                                                    << endl;
     *out << "           type=\"button\""                                                                     << endl;
@@ -741,6 +874,7 @@ void EmuFarmer::processGroupTable(const string& groupName, xgi::Output *out){
   *out << "              title=\"toggle applications' visibility\"                                         " << endl;
   *out << "              onclick=\"appsVisible(event)\"/></th>                                             " << endl;
   *out << "       <th class=\"processes\">job id</th>                                                        " << endl;
+  *out << "       <th class=\"processes\">log level</th>                                                      " << endl;
   *out << "       <th class=\"processes\"><input id=\"" << groupName << "\"                                   " << endl;
   *out << "                   name=\"dummy\"                                                                  " << endl;
   *out << "                   value=\"0\"                                                                     " << endl;
@@ -781,6 +915,9 @@ void EmuFarmer::processGroupTable(const string& groupName, xgi::Output *out){
       else
 	*out <<          "-";
       *out << "       </td>"                                                                                     << endl;
+      *out << "       <td class=\"processes\" id=\"logLevel\" align=\"center\">";
+      *out << ( epd->second.getLogLevel().size() ? epd->second.getLogLevel() : string("") );
+      *out << "       </td>"                                                                                     << endl;
       *out << "       <td class=\"processes\" colspan=\"2\" align=\"center\">                                  " << endl;
       *out << "         <input id=\"" << groupName << "\"                                                      " << endl;
       *out << "                type=\"checkbox\"                                                               " << endl;
@@ -797,8 +934,11 @@ void EmuFarmer::processGroupTable(const string& groupName, xgi::Output *out){
 
 }
 
-void EmuFarmer::actOnEmuProcesses( const string& action, const vector<cgicc::FormEntry>& fev )
+bool EmuFarmer::actOnEmuProcesses( const string& action, const vector<cgicc::FormEntry>& fev )
   throw (xdaq::exception::Exception){
+
+  bool success = true;
+
   std::vector<cgicc::FormEntry>::const_iterator fe;
 
   // Let's first forget any previous selection
@@ -821,7 +961,7 @@ void EmuFarmer::actOnEmuProcesses( const string& action, const vector<cgicc::For
       // Action!
       try
 	{
-	  actOnEmuProcess( action, url );
+	  success &= actOnEmuProcess( action, url );
 	}
       catch(xdaq::exception::Exception e)
 	{
@@ -829,33 +969,43 @@ void EmuFarmer::actOnEmuProcesses( const string& action, const vector<cgicc::For
 	  LOG4CPLUS_ERROR( logger_, 
 			   "Failed to " + action + " " + fe->getName() + ": "
 			   + xcept::stdformat_exception_history(e));
+	  success = false;
 	}
     }
   }
   
+  return success;
+
 }
 
-void EmuFarmer::actOnEmuProcess( const string& action, const string& url )
+bool EmuFarmer::actOnEmuProcess( const string& action, const string& url )
   throw (xdaq::exception::Exception){
 
+  bool success = false;
+
+  // Find the JobControl process in charge of this process.
   xdaq::ApplicationDescriptor* jcDescriptor = emuProcessDescriptors_[url].getJobControlAppDescriptor();
   if ( jcDescriptor == 0 ){
     LOG4CPLUS_ERROR( logger_, "Failed to " + action + " " + url
 		     + ": no JobControl found on that host.");
-    return;
+    return false;
   }
 
-  // create SOAP message
+  // create SOAP message to be sent to JobControl
   xoap::MessageReference m;
   if      ( action == "stop"   ) m = createSOAPCommandToCull( url );
-  else if ( action == "start"  ) m = createSOAPCommandToHatch( url );
+  else if ( action == "start"  ){
+    // If the process is already up and running, we have nothing to do.
+    if ( pollExecutive( url ) ) return true;
+    m = createSOAPCommandToHatch( url );
+  }
   else if ( action == "reload" ) m = createSOAPCommandToReload( url );
   else{
     LOG4CPLUS_ERROR( logger_, "Unknown action: " + action );
-    return;
+    return false;
   }
   // bail out if message is empty
-  if ( ! m->getSOAPPart().getEnvelope().getBody().getDOM()->hasChildNodes() ) return;
+  if ( ! m->getSOAPPart().getEnvelope().getBody().getDOM()->hasChildNodes() ) return false;
 
 // chainsaw doesn't display XML-formatted text
 //   stringstream log;
@@ -877,7 +1027,7 @@ void EmuFarmer::actOnEmuProcess( const string& action, const string& url )
   } catch (xdaq::exception::Exception e) {
     LOG4CPLUS_ERROR( logger_, "Failed to " + action + " " + url
 		     + ": " + xcept::stdformat_exception_history(e) );      
-    return;
+    return false;
   }
 
 // chainsaw doesn't display XML-formatted text
@@ -896,7 +1046,8 @@ void EmuFarmer::actOnEmuProcess( const string& action, const string& url )
     LOG4CPLUS_ERROR( logger_, "Failed to " + action + " " + url
 		     + ": Fault (code" 
 		     + replyBody.getFault().getFaultCode() + ") in SOAP reply: " 
-		     + replyBody.getFault().getFaultString() );      
+		     + replyBody.getFault().getFaultString() );
+    success = false;
   }
   else if ( action == "start" ){
     // dig up job id from reply
@@ -909,23 +1060,28 @@ void EmuFarmer::actOnEmuProcess( const string& action, const string& url )
 //       cerr << "jidResponse's child nodes" << endl << printNodeList( nodeList );
       nodeList = findNode( nodeList, "jid"        )->getChildNodes();
 //       cerr << "jid's child nodes" << endl << printNodeList( nodeList );
+      success = true;
     } catch ( xdaq::exception::Exception e ){
       LOG4CPLUS_ERROR( logger_, "Job id of newly hatched process " + url
 		       + " not found in SOAP reply ==> it is probably dead. : "
 		       + xcept::stdformat_exception_history(e) );
-      return;
-      
+      success = false;
     } catch (...){
       LOG4CPLUS_ERROR( logger_, "Job id of newly hatched process " + url
 		       + " not found in SOAP reply: Unknown exception." );      
-      return;
+      success = false;
     }
     if ( nodeList->getLength() ){
       jobId = xoap::XMLCh2String( nodeList->item(0)->getNodeValue() );
+      success = true;
     } else {
       LOG4CPLUS_ERROR( logger_, "Job id of newly hatched process " + url
 		       + " not found in SOAP reply." );      
+      success = false;
     }
+
+    // Even if it failed to start, JobControl may have spawned a child process. Kill it, just in case.
+    if ( !success ) actOnEmuProcess( "stop", url );
 
     // remember job id of newly hatched process
     emuProcessDescriptors_[url].setJobId( jobId );
@@ -935,7 +1091,57 @@ void EmuFarmer::actOnEmuProcess( const string& action, const string& url )
     // Let's assume it's been a kill, or that that process didn't exist in the first place.
     // TODO: check what's actually taken place in JobControl
     emuProcessDescriptors_[url].setJobId( -1 );
+    success = true;
   }
+
+  return success;
+
+}
+
+void EmuFarmer::pollAllExecutives(){
+  for ( map< string, EmuProcessDescriptor > ::iterator epd = emuProcessDescriptors_.begin();
+	epd != emuProcessDescriptors_.end(); ++epd )
+      pollExecutive( epd->second.getNormalizedURL() );
+}
+
+
+bool EmuFarmer::pollExecutive( const string& URL ){
+  // Get the log level from the executive at URL. Return false on failure.
+
+  emuProcessDescriptors_[URL].setLogLevel( "" );
+
+  xoap::MessageReference SOAPMessage;
+  try{
+    SOAPMessage = createParameterGetSOAPMsg( "Executive", "logLevel", "string" );
+  } catch ( xdaq::exception::Exception e ) {
+    LOG4CPLUS_ERROR( logger_, "Failed to create SOAP message to poll executive at " 
+		     << URL << " : " << xcept::stdformat_exception_history(e) );
+    return false;
+  }
+
+  xoap::MessageReference reply;
+  try{
+    reply = postSOAP( SOAPMessage, URL, 0 );
+  } catch ( xdaq::exception::Exception e ) {
+    LOG4CPLUS_WARN( logger_, "No reply to polling from executive at " 
+		     << URL << " : " << xcept::stdformat_exception_history(e) );
+    return false;
+  }
+
+  string logLevel;
+  try{
+    logLevel = extractScalarParameterValueFromSoapMsg( reply, "logLevel" );
+  } catch ( xdaq::exception::Exception e ) {
+    LOG4CPLUS_WARN( logger_, "No log level found in reply to polling from executive at " 
+		     << URL << " : " << xcept::stdformat_exception_history(e) );
+    return false;
+  }
+
+  emuProcessDescriptors_[URL].setLogLevel( logLevel );
+
+  cout << endl; reply->writeTo( cout ); cout << endl;
+
+  return true;
 
 }
 
@@ -1046,6 +1252,7 @@ xoap::MessageReference EmuFarmer::createSOAPCommandToHatch( const string& url ){
   stringstream argv;
   argv << " -h " << emuProcessDescriptors_[url].getNormalizedHost()
        << " -p " << emuProcessDescriptors_[url].getPort()
+       << " -l " << emuProcessDescriptors_[url].getStartingLogLevel()
        << " -c " << mergedConfigFileURL_;
   name = envelope.createName("execPath","","");
   bodyelement.addAttribute( name, execPath );
@@ -1186,6 +1393,184 @@ string EmuFarmer::getDateTime(){
 
   return ss.str();
 }
+
+xoap::MessageReference EmuFarmer::createParameterGetSOAPMsg
+( const string appClass,
+  const string paramName,
+  const string paramType )
+  throw (xdaq::exception::Exception)
+{
+  string appNamespace = "urn:xdaq-application:" + appClass;
+  string paramXsdType = "xsd:" + paramType;
+
+  try
+    {
+      xoap::MessageReference message = xoap::createMessage();
+      xoap::SOAPPart soapPart = message->getSOAPPart();
+      xoap::SOAPEnvelope envelope = soapPart.getEnvelope();
+      envelope.addNamespaceDeclaration("xsi",
+				       "http://www.w3.org/2001/XMLSchema-instance");
+      envelope.addNamespaceDeclaration("xsd",
+				       "http://www.w3.org/2001/XMLSchema");
+      envelope.addNamespaceDeclaration("soapenc",
+				       "http://schemas.xmlsoap.org/soap/encoding/");
+      xoap::SOAPBody body = envelope.getBody();
+      xoap::SOAPName cmdName =
+	envelope.createName("ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
+      xoap::SOAPBodyElement cmdElement =
+	body.addBodyElement(cmdName);
+      xoap::SOAPName propertiesName =
+	envelope.createName("properties", appClass, appNamespace);
+      xoap::SOAPElement propertiesElement =
+	cmdElement.addChildElement(propertiesName);
+      xoap::SOAPName propertiesTypeName =
+	envelope.createName("type", "xsi",
+			    "http://www.w3.org/2001/XMLSchema-instance");
+      propertiesElement.addAttribute(propertiesTypeName, "soapenc:Struct");
+      xoap::SOAPName propertyName =
+	envelope.createName(paramName, appClass, appNamespace);
+      xoap::SOAPElement propertyElement =
+	propertiesElement.addChildElement(propertyName);
+      xoap::SOAPName propertyTypeName =
+	envelope.createName("type", "xsi",
+			    "http://www.w3.org/2001/XMLSchema-instance");
+
+      propertyElement.addAttribute(propertyTypeName, paramXsdType);
+
+      return message;
+    }
+  catch(xcept::Exception e)
+    {
+      XCEPT_RETHROW(xdaq::exception::Exception,
+		    "Failed to create ParameterGet SOAP message for parameter " +
+		    paramName + " of type " + paramType, e);
+    }
+}
+
+string EmuFarmer::extractScalarParameterValueFromSoapMsg
+( xoap::MessageReference msg,
+  const string           paramName )
+  throw (xdaq::exception::Exception)
+{
+  try
+    {
+      xoap::SOAPPart part = msg->getSOAPPart();
+      xoap::SOAPEnvelope env = part.getEnvelope();
+      xoap::SOAPBody body = env.getBody();
+      DOMNode *bodyNode = body.getDOMNode();
+      DOMNodeList *bodyList = bodyNode->getChildNodes();
+      DOMNode *responseNode = findNode(bodyList, "ParameterGetResponse");
+      DOMNodeList *responseList = responseNode->getChildNodes();
+      DOMNode *propertiesNode = findNode(responseList, "properties");
+      DOMNodeList *propertiesList = propertiesNode->getChildNodes();
+      DOMNode *paramNode = findNode(propertiesList, paramName);
+      DOMNodeList *paramList = paramNode->getChildNodes();
+      DOMNode *valueNode = paramList->item(0);
+      string paramValue = xoap::XMLCh2String(valueNode->getNodeValue());
+
+      return paramValue;
+    }
+  catch(xcept::Exception e)
+    {
+      XCEPT_RETHROW(xdaq::exception::Exception,
+		    "Parameter " + paramName + " not found", e);
+    }
+  catch(...)
+    {
+      XCEPT_RAISE(xdaq::exception::Exception,
+		  "Parameter " + paramName + " not found");
+    }
+}
+
+xoap::MessageReference EmuFarmer::postSOAP
+(
+ xoap::MessageReference message, 
+ const string& URL,
+ const int localId
+ ) 
+  throw (xdaq::exception::Exception)
+// Adapted from xdaq::ApplicationContextImpl::postSOAP.
+// This is necessary for sending SOAP to contexts not defined in this process's config file.
+{
+	
+  bool setSOAPAction = false;
+  if ( message->getMimeHeaders()->getHeader("SOAPAction").size() == 0 )
+    {
+      stringstream URN;
+      URN << "urn:xdaq-application:lid=" << localId;
+      message->getMimeHeaders()->setHeader("SOAPAction", URN.str());		
+      setSOAPAction = true;
+    }
+	
+  xoap::SOAPBody b = message->getSOAPPart().getEnvelope().getBody();
+  DOMNode* node = b.getDOMNode();
+	
+  DOMNodeList* bodyList = node->getChildNodes();
+  DOMNode* command = bodyList->item(0);
+	
+  if (command->getNodeType() == DOMNode::ELEMENT_NODE) 
+    {                
+      try
+	{	
+	  // Local dispatch: if remote and local address are on same host, get local messenger
+			
+	  // Get the address on the fly from the URL
+	  pt::Address::Reference remoteAddress = pt::getPeerTransportAgent()
+	    ->createAddress(URL,"soap");
+				
+	  pt::Address::Reference localAddress = 
+	    pt::getPeerTransportAgent()->createAddress(getApplicationDescriptor()->getContextDescriptor()->getURL(),"soap");
+			
+	  // force here protocol http, service soap, because at this point we know over withc protocol/service to send.
+	  // this allows specifying a host URL without the SOAP service qualifier
+	  //		
+	  std::string protocol = remoteAddress->getProtocol();
+			
+	  pt::PeerTransportSender* s = dynamic_cast<pt::PeerTransportSender*>(pt::getPeerTransportAgent()->getPeerTransport (protocol, "soap", pt::Sender));
+
+	  // These two lines cannot be merges, since a reference that is a temporary object
+	  // would delete the contained object pointer immediately after use.
+	  //
+	  pt::Messenger::Reference mr = s->getMessenger(remoteAddress, localAddress);
+	  pt::SOAPMessenger& m = dynamic_cast<pt::SOAPMessenger&>(*mr);
+	  xoap::MessageReference rep = m.send(message);	 
+			
+	  if (setSOAPAction)
+	    {
+	      message->getMimeHeaders()->removeHeader("SOAPAction");
+	    }
+	  return rep;
+	}
+      catch (xdaq::exception::HostNotFound& hnf)
+	{
+	  XCEPT_RETHROW (xdaq::exception::Exception, "Failed to post SOAP message", hnf);
+	} 
+      catch (xdaq::exception::ApplicationDescriptorNotFound& acnf)
+	{
+	  XCEPT_RETHROW (xdaq::exception::Exception, "Failed to post SOAP message", acnf);
+	}
+      catch (pt::exception::Exception& pte)
+	{
+	  XCEPT_RETHROW (xdaq::exception::Exception, "Failed to post SOAP message", pte);
+	}
+      catch(std::exception& se)
+	{
+	  XCEPT_RAISE (xdaq::exception::Exception, se.what());
+	}
+      catch(...)
+	{
+	  XCEPT_RAISE (xdaq::exception::Exception, "Failed to post SOAP message, unknown exception");
+	}
+    } 
+  else
+    {
+      /*applicationDescriptorFactory_.unlock();
+       */
+      XCEPT_RAISE (xdaq::exception::Exception, "Bad SOAP message. Cannot find command tag");
+    }
+
+}
+
 
 /**
  * Provides the factory method for the instantiation of RUBuilderTester
