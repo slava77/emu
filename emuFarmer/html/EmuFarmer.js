@@ -96,6 +96,12 @@ function validateSelection(e){
     }
 }
 
+function poll(e){
+    // set the value of the action button to that of the button that was clicked on
+    document.getElementById('action').value=e.target.getAttribute('value');
+    e.target.form.submit();
+}
+
 function validateDriverReload(e){
     var counter = 0;
     // count checked process selector checkboxes in the DAQ group
@@ -151,7 +157,7 @@ function validateConfigFileChange(e){
 	message += ' of them still running.\nIt is recommended that you stop';
 	if ( runningProcessesCount == 1 ) message += ' it ';
 	else                              message += ' them ';
-	message += 'first.';
+	message += 'first.\n\nRecreate the configuration file anyway?';
 	if ( confirm( message ) ){
 	    document.getElementById('action').value='create config';
 	    e.target.form.submit();

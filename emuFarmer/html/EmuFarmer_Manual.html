@@ -19,17 +19,24 @@
 	  <li>
 	    <p>If no Emu configuration file shows, or if you have modified it, 
 	    <span class="buttonbox">recreate</span> it.</p>
-	    <p>The Emu configuration file will (re)created by merging those listed in 
+	    <p>The Emu configuration file will be (re)created by merging those listed in 
 	    the file under "Recipe to create Emu configuration file".</p>
 	  </li>
 	  <li>
 	    <p>Select processes to act on, and <span class="buttonbox">start</span> or
 	    <span class="buttonbox">stop</span> or 
 	    <span class="buttonbox">stop and restart</span> them.</p>
+	    <p>To see which processes are actually running, <span class="buttonbox">poll</span> them.
+	    Running processes will have their log level shown.</p>
 	    <p>When in doubt about a particular process, visit the JobControl instance
 	    responsible for it by clicking on the link in the <em>host</em> column.
 	    In JobControl you can view the processes' status and console output.</p>
 	    <p>The link in the <em>port</em> column opens that process' hyperDAQ page.</p>
+	  </li>
+	  <li>
+	    <p>You can also <span class="buttonbox">reload DDU drivers</span> for selected DAQ processes.
+	    Note that even if only one DAQ process is selected, <em>all</em> DDU drivers will be reloaded
+	    on its host machine.</p>
 	  </li>
 	</ol>
       </li>

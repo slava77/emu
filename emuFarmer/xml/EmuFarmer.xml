@@ -61,6 +61,23 @@
           <item xsi:type="xsd:string" soapenc:position="[0]">LTCControl</item>
         </ltcApplicationNames>
 
+	<!-- List below applications whose executive should be started with log level other than WARN -->
+	<ApplicationsWithLogLevel_DEBUG xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[1]">
+	  <item xsi:type="xsd:string" soapenc:position="[0]">none</item>
+	</ApplicationsWithLogLevel_DEBUG>
+	<ApplicationsWithLogLevel_INFO xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[6]">
+	  <item xsi:type="xsd:string" soapenc:position="[0]">EmuRUI</item>
+	  <item xsi:type="xsd:string" soapenc:position="[1]">RU</item>
+	  <item xsi:type="xsd:string" soapenc:position="[2]">BU</item>
+	  <item xsi:type="xsd:string" soapenc:position="[3]">EVM</item>
+	  <item xsi:type="xsd:string" soapenc:position="[4]">EmuTA</item>
+	  <item xsi:type="xsd:string" soapenc:position="[5]">EmuDisplayClient</item>
+          <item xsi:type="xsd:string" soapenc:position="[6]">EmuDAQManager</item>
+	</ApplicationsWithLogLevel_INFO>
+	<ApplicationsWithLogLevel_ERROR xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[1]">
+	  <item xsi:type="xsd:string" soapenc:position="[0]">none</item>
+	</ApplicationsWithLogLevel_ERROR>
+
       </properties>
     </xc:Application>
     <xc:Module>${XDAQ_ROOT}/emu/emuFarmer/lib/linux/x86/libEmuFarmer.so</xc:Module>

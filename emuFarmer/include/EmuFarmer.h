@@ -17,6 +17,9 @@
 // #include <multimap>
 #include <vector>
 
+//---------------------
+#include "xoap/MessageReference.h"
+
 /**
  * Dispatches XDAQ executives on the Emu farm via JobControl.
  */
@@ -160,6 +163,13 @@ private:
    */
   xdata::String commandToReloadDrivers_;
 
+  /**
+   * Lists of applications whose executive should be started with log level other than WARN
+   */
+  xdata::Vector<xdata::String> ApplicationsWithLogLevel_DEBUG_;
+  xdata::Vector<xdata::String> ApplicationsWithLogLevel_INFO_;
+  xdata::Vector<xdata::String> ApplicationsWithLogLevel_ERROR_;
+
   ////////////////////////////////////////////////////////
   // End of exported parameters for configuration       //
   ////////////////////////////////////////////////////////
@@ -181,6 +191,10 @@ private:
    *  group_name --> host_port multimap (the inverse of emuGroups_)
    */
   multimap< string, string > emuProcesses_;
+  /**
+   *  application_name --> log_level map
+   */
+  map< string, string > logLevels_;
 
   static const char* pageLayout_[][2];
 
@@ -189,12 +203,14 @@ private:
   void exportParams();
   void mapUserNames();
   void mapApplicationNames();
+  void mapLogLevels();
   string createConfigFile();
   string mergeConfigFile();
   void loadConfigFile();
   DOMDocument* loadDOM( const std::string& pathname )
     throw (xdaq::exception::Exception);
   void collectEmuProcesses();
+  void assignLogLevels();
   void assignJobControlProcesses();
   void assignJobControlProcess( EmuProcessDescriptor& jobControl, xdaq::ApplicationDescriptor* jcad );
   string applicationGroupName( const string& applicationName );
@@ -209,10 +225,12 @@ private:
   void processGroupTable(const string& groupName, xgi::Output *out);
   string processForm(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
-  void actOnEmuProcesses( const string& action, const vector<cgicc::FormEntry>& fev )
+  bool actOnEmuProcesses( const string& action, const vector<cgicc::FormEntry>& fev )
     throw (xdaq::exception::Exception);
-  void actOnEmuProcess( const string& action, const string& url )
+  bool actOnEmuProcess( const string& action, const string& url )
     throw (xdaq::exception::Exception);
+  void pollAllExecutives();
+  bool pollExecutive( const string& URL );
   void reloadDDUDrivers( const vector<cgicc::FormEntry>& fev )
     throw (xdaq::exception::Exception);
   xoap::MessageReference createSOAPCommandToHatch( const string& url );
@@ -224,7 +242,20 @@ private:
     throw (xgi::exception::Exception);
   string getDateTime();
   string printNodeList( DOMNodeList *List );
-
+  void debugPrint( const string& message = "" );
+  xoap::MessageReference createParameterGetSOAPMsg
+  ( const string appClass,
+    const string paramName,
+    const string paramType )
+    throw (xdaq::exception::Exception);
+  string extractScalarParameterValueFromSoapMsg
+  ( xoap::MessageReference msg,
+    const string           paramName )
+    throw (xdaq::exception::Exception);
+  xoap::MessageReference postSOAP( xoap::MessageReference message, 
+				   const string& URL,
+				   const int localId ) 
+    throw (xdaq::exception::Exception);
 };
 
 #endif
