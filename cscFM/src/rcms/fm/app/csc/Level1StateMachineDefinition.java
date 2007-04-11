@@ -55,8 +55,8 @@ public class Level1StateMachineDefinition extends UserStateMachineDefinition {
 				new ParameterSet<CommandParameter>();
 
 		try {
-			startParameters.add(new CommandParameter<StringT>(
-					Level1Parameters.RUN_NUMBER, new StringT("")));
+			startParameters.add(new CommandParameter<IntegerT>(
+					Level1Parameters.RUN_NUMBER, new IntegerT("")));
 		} catch (ParameterException ignored) {}
 
 		Level1Inputs.START.setParameters(startParameters);

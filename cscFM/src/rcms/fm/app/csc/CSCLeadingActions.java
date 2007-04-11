@@ -190,6 +190,7 @@ public class CSCLeadingActions extends Level1LeadingActions {
 			String runType = ((StringT)
 					commandParam.get(Level1Parameters.RUN_TYPE).getValue())
 					.getString();
+			logger.debug(getClass().toString() + "Run type: " + runType);
 			xdaqParam.setValue("RunType", runType);
 			xdaqParam.send();
 
@@ -245,6 +246,8 @@ public class CSCLeadingActions extends Level1LeadingActions {
 			String runNumber = ((IntegerT)
 					commandParam.get(Level1Parameters.RUN_NUMBER).getValue())
 					.getInteger().toString();
+			logger.debug(getClass().toString() + "Run #: " + runNumber);
+
 			xdaqParam.setValue("RunNumber", runNumber);
 			xdaqParam.send();
 
