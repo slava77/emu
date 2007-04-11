@@ -1170,9 +1170,8 @@ void EmuFarmer::reloadDDUDrivers( const vector<cgicc::FormEntry>& fev )
       const string url = "http://"+fe->getName();
       emuProcessDescriptors_[url].setSelected();
 
-      // It must be a DAQ process
-      string group = emuGroups_[url];
-      if ( group != "DAQ" ) continue;
+      // It must be a DAQ process with EmuRUI
+      if ( ! emuProcessDescriptors_[url].hasApplication( "EmuRUI" ) ) continue;
 
       // Chop off port number
       host = fe->getName().substr( 0, colonPosition );

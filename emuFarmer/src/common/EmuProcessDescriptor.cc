@@ -105,6 +105,14 @@ int EmuProcessDescriptor::getPort() const {
   return u.getPort();
 }
 
+bool EmuProcessDescriptor::hasApplication( const string& name ) const {
+  for ( set< pair<string, int> >::iterator a = applications_.begin();
+	a != applications_.end();
+	++a )
+    if ( a->first.find( name, 0 ) != string::npos ) return true;
+  return false;
+}
+
 bool EmuProcessDescriptor::operator<( const EmuProcessDescriptor& epd ) const {
   return ( normalizedURL_ < epd.normalizedURL_ ); 
 }

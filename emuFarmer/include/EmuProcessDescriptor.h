@@ -50,6 +50,7 @@ public:
   void setLogLevel( const string& logLevel ){ logLevel_ = logLevel; }
   set< pair<string, int> > getApplications() const { return applications_; }
   void addApplication( const string& name, const int instance ){ applications_.insert( make_pair(name, instance) ); }
+  bool hasApplication( const string& name ) const;
   void addApplicationsFrom( const EmuProcessDescriptor& ep ){ applications_.insert( ep.applications_.begin(), ep.applications_.end() ); }
   void print( ostream& os ) const;
   EmuProcessDescriptor& operator=( const EmuProcessDescriptor& ep );
