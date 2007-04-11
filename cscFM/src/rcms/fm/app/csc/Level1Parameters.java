@@ -44,7 +44,7 @@ public class Level1Parameters {
 	
 	static {
 		/**
-		 * State of the Function Manager is currently in
+		 * State of the Function Manager
 		 */
 		LEVEL1_PARAMETER_SET.put(new FunctionManagerParameter<StringT>(
 				STATE, new StringT("")));
