@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.21 2007/03/13 20:56:08 gujh Exp $
+// $Id: DAQMB.cc,v 3.22 2007/04/11 18:01:55 gujh Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.22  2007/04/11 18:01:55  gujh
+// Move the LctL1aDelay to the CFEB part in DAQMB::Configure
+//         --- Apr. 11, 2007, GU
+//
 // Revision 3.21  2007/03/13 20:56:08  gujh
 // Add function DAQMB::set_rndmtrg_rate(int)
 //          --- Mar. 13, 2007   GU
@@ -510,7 +514,7 @@ void DAQMB::configure() {
      if((abs(compthresh[lfeb]-adcplus(2,lfeb))>5.)) cfebmatch=false;
    }
 
-   cfebmatch = false;
+   //   cfebmatch = false;
 
    if (!cfebmatch) {
      //
@@ -520,9 +524,9 @@ void DAQMB::configure() {
      (*MyOutput_) << "doing set_comp_mode " << comp_mode_bits << std::endl;
      (*MyOutput_) << comp_mode_ << " " << comp_timing_ << std::endl;
      set_comp_mode(comp_mode_bits);
-
+     LctL1aDelay(xlatency_);
      //
-     /*
+     
      char * flash_content=(char *)malloc(500);
      int n_byts = Fill_BUCK_FLASH_contents(flash_content);
      buckflash_erase();
@@ -532,7 +536,7 @@ void DAQMB::configure() {
      sleep(5);
      buckflash_init();
      sleep(1); 
-     */
+     
      //
 
    }
@@ -553,7 +557,7 @@ void DAQMB::configure() {
      setcrateid(crate_id_);
      //
      setxlatency(xlatency_);
-     LctL1aDelay(xlatency_);
+     //     LctL1aDelay(xlatency_);
      //
      (*MyOutput_) << "Set cfeb clk delay " << cfeb_clk_delay_ << std::endl ;
      setfebdelay(cfeb_clk_delay_);
@@ -562,7 +566,7 @@ void DAQMB::configure() {
      setcbldly(cable_delay_);
      //
      // Load FLASH memory
-     //WriteSFM();
+     WriteSFM();
    }
 
 }
