@@ -126,21 +126,15 @@ void EmuFarmer::mapApplicationNames(){
 }
 
 void EmuFarmer::mapLogLevels(){
-  cout << "ApplicationsWithLogLevel_DEBUG_.elements() " << ApplicationsWithLogLevel_DEBUG_.elements() << endl;
-  cout << "ApplicationsWithLogLevel_INFO_.elements() " << ApplicationsWithLogLevel_INFO_.elements() << endl;
-  cout << "ApplicationsWithLogLevel_ERROR_.elements() " << ApplicationsWithLogLevel_ERROR_.elements() << endl;
   for ( size_t i=0; i<ApplicationsWithLogLevel_DEBUG_.elements(); ++i ){
     logLevels_[ ApplicationsWithLogLevel_DEBUG_.elementAt(i)->toString() ] = "DEBUG";
-    cout << ApplicationsWithLogLevel_DEBUG_.elementAt(i)->toString() << " DEBUG " << logLevels_[ ApplicationsWithLogLevel_DEBUG_.elementAt(i)->toString() ] << endl;
   }
   for ( size_t i=0; i<ApplicationsWithLogLevel_INFO_.elements(); ++i ){
     logLevels_[ ApplicationsWithLogLevel_INFO_.elementAt(i)->toString() ] = "INFO";
-    cout << ApplicationsWithLogLevel_INFO_.elementAt(i)->toString() << " INFO " << logLevels_[ ApplicationsWithLogLevel_INFO_.elementAt(i)->toString() ] << endl;
   }
   // WARN is the default log level...
   for ( size_t i=0; i<ApplicationsWithLogLevel_ERROR_.elements(); ++i ){
     logLevels_[ ApplicationsWithLogLevel_ERROR_.elementAt(i)->toString() ] = "ERROR";
-    cout << ApplicationsWithLogLevel_ERROR_.elementAt(i)->toString() << " ERROR " << logLevels_[ ApplicationsWithLogLevel_ERROR_.elementAt(i)->toString() ] << endl;
   }
 
 }
@@ -271,10 +265,16 @@ string EmuFarmer::processForm(xgi::Input *in, xgi::Output *out)
       needRedirecting = true;
       if        ( fe->getValue() == "start" ){
 
+	std::vector<cgicc::FormEntry> stillNotRunning = fev;
 	while ( !success && attemptCount < maxAttemptsToStart ){
-	  success = actOnEmuProcesses( fe->getValue(), fev );
+	  success = actOnEmuProcesses( fe->getValue(), stillNotRunning );
 	  attemptCount++;
-	  if ( !success && attemptCount < maxAttemptsToStart ) sleep( (unsigned int)(1) );
+	  if ( success ) {
+	    // Child processes seem to have been launched, but check if the executives are really running
+	    sleep( (unsigned int)(1) );
+	    stillNotRunning = pollExecutives( stillNotRunning );
+	    success &= ( stillNotRunning.size() == 0 );
+	  }
 	  if ( !success && attemptCount == maxAttemptsToStart ){
 	    LOG4CPLUS_ERROR( logger_, "Failed to start all selected processes after " << maxAttemptsToStart << "attempts." ); 
 	  }
@@ -284,17 +284,28 @@ string EmuFarmer::processForm(xgi::Input *in, xgi::Output *out)
 	  }
 	}
 
+	pollAllExecutives();
+
       } else if ( fe->getValue() == "stop" ){
 
 	actOnEmuProcesses( "stop" , fev );
 
+	pollAllExecutives();
+
       } else if ( fe->getValue() == "stop and restart" ){
 
+	actOnEmuProcesses( "stop" , fev );
+
+	std::vector<cgicc::FormEntry> stillNotRunning = fev;
 	while ( !success && attemptCount < maxAttemptsToStart ){
-	  if ( attemptCount == 0 ) actOnEmuProcesses( "stop" , fev );
-	  success = actOnEmuProcesses( "start", fev );
+	  success = actOnEmuProcesses( "start", stillNotRunning );
 	  attemptCount++;
-	  if ( !success && attemptCount < maxAttemptsToStart ) sleep( (unsigned int)(1) );
+	  if ( success ) {
+	    // Child processes seem to have been launched, but check if the executives are really running
+	    sleep( (unsigned int)(1) );
+	    stillNotRunning = pollExecutives( stillNotRunning );
+	    success &= ( stillNotRunning.size() == 0 );
+	  }
 	  if ( !success && attemptCount == maxAttemptsToStart ){
 	    LOG4CPLUS_ERROR( logger_, "Failed to restart  all selected processes after " << maxAttemptsToStart << "attempts." ); 
 	  }
@@ -303,6 +314,8 @@ string EmuFarmer::processForm(xgi::Input *in, xgi::Output *out)
 			    << attemptCount << " attempt" << ( attemptCount==1 ? "" : "s" ) );
 	  }
 	}
+
+	pollAllExecutives();
 
       } else if ( fe->getValue() == "reload DDU drivers" ){
 
@@ -695,7 +708,6 @@ void EmuFarmer::collectEmuProcesses(){
   for ( map< string, string >::iterator egi = emuGroups_.begin();
 	egi != emuGroups_.end(); ++egi ){
 	emuProcesses_.insert( pair<string,string>(egi->second, egi->first) );
-	cout << egi->second << " " << egi->first << endl;
   }
   
 }
@@ -1096,6 +1108,26 @@ bool EmuFarmer::actOnEmuProcess( const string& action, const string& url )
 
   return success;
 
+}
+
+vector<cgicc::FormEntry> EmuFarmer::pollExecutives( const vector<cgicc::FormEntry> fev ){
+  // Poll all URL's found selected in the form entry and return those not yet running
+
+  std::vector<cgicc::FormEntry> stillNotRunning;
+
+  std::vector<cgicc::FormEntry>::const_iterator fe;
+  for ( fe=fev.begin(); fe!=fev.end(); ++fe ){
+    if ( fe->getValue() != "on" ) continue;
+    const string url = "http://"+fe->getName();
+    if ( emuProcessDescriptors_.find( url ) == emuProcessDescriptors_.end() ) continue;
+    if ( ! pollExecutive( url ) ) { 
+      stillNotRunning.push_back( *fe );
+      // Even if it's not running, JobControl may have spawned a child process. Kill it, just in case.
+      actOnEmuProcess( "stop", url );
+    }
+  }
+
+  return stillNotRunning;
 }
 
 void EmuFarmer::pollAllExecutives(){
