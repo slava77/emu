@@ -229,6 +229,7 @@ private:
     throw (xdaq::exception::Exception);
   bool actOnEmuProcess( const string& action, const string& url )
     throw (xdaq::exception::Exception);
+  vector<cgicc::FormEntry> pollExecutives( const vector<cgicc::FormEntry> fev );
   void pollAllExecutives();
   bool pollExecutive( const string& URL );
   void reloadDDUDrivers( const vector<cgicc::FormEntry>& fev )
