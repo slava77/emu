@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMBParser.cc,v 3.7 2007/03/19 13:36:56 geurts Exp $
+// $Id: DAQMBParser.cc,v 3.8 2007/04/11 18:07:47 gujh Exp $
 // $Log: DAQMBParser.cc,v $
+// Revision 3.8  2007/04/11 18:07:47  gujh
+// Assign the CFEB_Extra_Latency on reading the DMB_extra_latency
+//        --- Apr. 11, 2007.  GU
+//
 // Revision 3.7  2007/03/19 13:36:56  geurts
 // remove CFEB-specific parsing options. the parser will only deal with settings that apply to all CFEBs at once
 //
@@ -120,6 +124,7 @@ DAQMBParser::DAQMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * t
     }
     if ( parser_.fillInt("xLatency",delay)){
       daqmb_->SetxLatency(delay);
+      for (int cfeb=0; cfeb<5; cfeb++) daqmb_->SetL1aExtraCfeb(cfeb,delay);
     }
     //
     int number=0;   
