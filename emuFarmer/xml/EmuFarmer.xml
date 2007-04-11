@@ -65,7 +65,7 @@
 	<ApplicationsWithLogLevel_DEBUG xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[1]">
 	  <item xsi:type="xsd:string" soapenc:position="[0]">none</item>
 	</ApplicationsWithLogLevel_DEBUG>
-	<ApplicationsWithLogLevel_INFO xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[6]">
+	<ApplicationsWithLogLevel_INFO xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[7]">
 	  <item xsi:type="xsd:string" soapenc:position="[0]">EmuRUI</item>
 	  <item xsi:type="xsd:string" soapenc:position="[1]">RU</item>
 	  <item xsi:type="xsd:string" soapenc:position="[2]">BU</item>
