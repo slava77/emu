@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.15 2007/03/19 13:35:09 geurts Exp $
+// $Id: DAQMB.h,v 3.16 2007/04/12 16:39:49 gujh Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.16  2007/04/12 16:39:49  gujh
+// Added buck_shift_ext_bc(strip) function
+//     Apr. 12, 2007.  GU
+//
 // Revision 3.15  2007/03/19 13:35:09  geurts
 // make the new cable_delay functions inline
 //
@@ -383,6 +387,7 @@ public:
   void halfset(int icrd,int ipln,int ihalf);
   void trigsetx(int *hp,int CFEBInputs=0x1f);
   void chan2shift(int chan[][6][16]);
+  void buck_shift_ext_bc(int nstrip);
 
   // RPW stuff from external  really should be CFEB and board class
   // Buckeye shift variables
