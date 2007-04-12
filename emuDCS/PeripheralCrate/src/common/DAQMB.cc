@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.22 2007/04/11 18:01:55 gujh Exp $
+// $Id: DAQMB.cc,v 3.23 2007/04/12 16:34:27 gujh Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.23  2007/04/12 16:34:27  gujh
+// Add the buck_shift_ext_bc(strip) function
+//     --- Apr. 12, 2007,  GU
+//
 // Revision 3.22  2007/04/11 18:01:55  gujh
 // Move the LctL1aDelay to the CFEB part in DAQMB::Configure
 //         --- Apr. 11, 2007, GU
@@ -997,7 +1001,42 @@ void DAQMB::trigsetx(int *hp, int CFEBInput)
   }
   chan2shift(chan);
 }
-//
+
+//broadcast buckeye shift on DMB/CFEB level
+void DAQMB::buck_shift_ext_bc(int nstrip)
+{
+  char shft_bits[6]={0,0,0,0,0,0};
+
+  //external cap mode: 100
+  //When shift, it shift strip 1 first, and low bit first
+  int i=(15-nstrip)*3+2;
+  if ((nstrip >= 0) && (nstrip < 16)) shft_bits[i/8]=((1<<(i%8))&0xff);
+
+  //enable all CFEBs, and set the CFEB into broadcast mode
+  DEVTYPE dv = FASCAM;
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=CHIP_MASK;
+  devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+  // (*MyOutput_)<<" first devdo call \n";
+  cmd[0]=VTX_USR2;
+  sndbuf[0]=0;    //set the chip_in_use to 0 will enable broadcast
+  devdo(dv,5,cmd,6,sndbuf,rcvbuf,0);
+  //shift in 48 bits for the whole DMB ( 1/30 of non-broadcast )
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=CHIP_SHFT;
+  devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR2;
+  devdo(dv,5,cmd,48,shft_bits,rcvbuf,0);
+  //set the function into NOOP, and bypass
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(dv,5,cmd,0,sndbuf,rcvbuf,2);
+
+  ::usleep(200);
+}
+
 void DAQMB::chan2shift(int chan[5][6][16])
 {
    
