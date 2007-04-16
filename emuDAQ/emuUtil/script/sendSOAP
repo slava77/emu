@@ -84,7 +84,7 @@ if [[ $VERBOSITY = "1" ]]; then
 fi
 
 #eval curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE | sed -u 'N;s/>\(\([^<>]\|\n\)\+\)<\//>[1;31m\1[0m<\//g'
-#eval curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE | sed -u -e :a -e 'N;s/\n/ /g; ta'| sed -u 's/>\([^<>]\+\)<\//>[1;31m\1[0m<\//g'
-eval curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE | sed -u -e :a -e 'N;s/>\(\([^<>]\|\n\)\+\)<\//>[1;31m\1[0m<\//g; ta'
+eval curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE | sed -u -e :a -e 'N;s/\n/ /g; ta'| sed -u 's/>\([^<>]\+\)<\//>[1;31m\1[0m<\//g'
+#eval curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE | sed -u -e :a -e 'N;s/>\(\([^<>]\|\n\)\+\)<\//>[1;31m\1[0m<\//g; ta'
 echo ""
 
