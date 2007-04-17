@@ -15,6 +15,7 @@ DCCParser::DCCParser(DOMNode * pNode, int crateNumber)
   } else { 
    dcc_ = new DCC(crateNumber,slot);
    parser_.fillHex("fifoinuse", dcc_->fifoinuse_);
+   parser_.fillHex("softwareswitch", dcc_->softsw_);
   }
 }
 
