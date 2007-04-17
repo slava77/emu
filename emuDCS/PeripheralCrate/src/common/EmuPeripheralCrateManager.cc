@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.3 2007/02/28 18:24:27 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.4 2007/04/17 14:55:04 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -59,8 +59,12 @@ using namespace std;
     xgi::bind(this,&EmuPeripheralCrateManager::UploadDB, "UpLoadDB");
     xgi::bind(this,&EmuPeripheralCrateManager::RetrieveTStoreTable, "RetrieveTStoreTable");
     //
+    // Normal SOAP call-back function
+    // xoap::bind(this, &EmuPeripheralCrateManager::LTCResponse, "LTCResponse", XDAQ_NS_URI);
     // SOAP call-back functions, which relays to *Action method.
     xoap::bind(this, &EmuPeripheralCrateManager::onConfigure, "Configure", XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrateManager::onConfigCal0, "ConfigCal0", XDAQ_NS_URI);
+
     xoap::bind(this, &EmuPeripheralCrateManager::onEnable,    "Enable",    XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onDisable,   "Disable",   XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onHalt,      "Halt",      XDAQ_NS_URI);
@@ -620,9 +624,9 @@ using namespace std;
 	  if (body.hasFault()) {
 	    std::cout << "No connection. " << body.getFault().getFaultString() << std::endl;
 	  } else {
-	    //reply->writeTo(std::cout);
+	    // reply->writeTo(std::cout);
 	    std::string state = extractCalibrationState(reply); 
-	    //std::cout << "States " << state << " " << state_compare << std::endl;
+	    std::cout << "States " << state << " " << state_compare << std::endl;
 	    if ( state == state_compare ) compare++;
 	  }
 	}
@@ -945,7 +949,7 @@ using namespace std;
 	    std::cout << "No connection. " << body.getFault().getFaultString() << std::endl;
 	  } else {
 	    *out << cgicc::span().set("style","color:green");
-	    reply->writeTo(std::cout);
+	    // reply->writeTo(std::cout);
 	    std::string state = extractCalibrationState(reply); 
 	    *out << "(" <<  state << ")";
 	    *out << cgicc::span();
@@ -1126,13 +1130,119 @@ using namespace std;
 
       return message;
     }
+//
+/* xoap::MessageReference EmuPeripheralCrateManager::LTCResponse(xoap::MessageReference message) throw (xoap::exception::Exception)
+{
+  //
+  cout << "LTC Response Received \n";
+  LTCDone=1;
+  //
+  
+  //return createReply(message);
+  //
+} */
+
+
   //
   xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception)
   {
     //
+    std::cout<< "This is a checking printing"<<std::endl;
+    ostringstream test;
+    message->writeTo(test);
+    cout << test.str() <<endl;
+    cout << " Print check working "<<endl;
+
     fireEvent("Configure");
     //
     SendSOAPMessageXRelaySimple("Configure","");
+    //
+    return createReply(message);
+    //
+  }
+  //
+  xoap::MessageReference EmuPeripheralCrateManager::onConfigCal0 (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    //
+    std::cout<< "This is a checking printing for OnConfigCal0"<<std::endl;
+    ostringstream test;
+    message->writeTo(test);
+    cout << test.str() <<endl;
+    cout << " Print check working in OnConfigCal0 "<<endl;
+
+    //implement the cal0 configure process:
+    float dac, dac2;
+    int counter=0;
+    int nsleep = 100;  
+    static int calsetup;
+    std::cout << "DMB setup for calibration " << std::endl;
+    calsetup=0;
+    dac=1.37;
+    dac2=dac+1.4;
+
+    //define broadcast crate and board  Needs debug
+    MyController = new EmuController();
+    cout <<" debug 1 "<<endl;
+    MyController->SetConfFile("/home/cscpc/v4.1/TriDAS/emu/emuDCS/PeripheralCrate/xml/broadcast.xml");
+    cout <<" debug 2 "<<endl;
+    MyController->init();
+    cout <<" debug 3 "<<endl;
+    CrateSelector selector = MyController->selector();
+    cout <<" debug 4 "<<endl;
+    vector<Crate *> tmpcrate=selector.broadcast_crate();
+    cout <<" debug 5 "<<endl;
+    broadcastCrate=tmpcrate[0];
+    cout <<" debug 6 "<<endl;
+    broadcastDMB=selector.daqmbs(tmpcrate[0])[0];
+    cout <<" debug 7 "<<endl;
+    broadcastTMB=selector.tmbs(tmpcrate[0])[0];
+
+    cout <<" Broadcast Crate and DMB are defined "<<endl;
+
+    // broadcastCCB=selector.ccbs(tmpcrate[0])[0];
+
+    /* setup the TMB and CCB
+    std::vector<Crate*> myCrates = theSelector.crates();
+    //
+    for(unsigned j = 0; j < myCrates.size(); ++j) {
+    //
+      std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
+      std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
+      //
+      for (unsigned i=0; i<myTmbs.size(); i++) {
+        myTmbs[i]->DisableCLCTInputs();
+        std::cout << "Disabling inputs for slot " << myTmbs[i]->slot() << std::endl;
+        myTmbs[i]->DisableALCTInputs();
+      }
+      for(unsigned i =0; i < myDmbs.size(); ++i) {
+        // set amplitude
+        myDmbs[i]->set_cal_dac(dac,dac);
+      }
+    }
+    */
+    broadcastTMB->DisableCLCTInputs();
+    std::cout << "Disabling inputs for TMB slot  " << broadcastTMB->slot() << std::endl;
+    broadcastTMB->DisableALCTInputs();
+
+    std::cout << "Set DAC for DMB slot  " << broadcastDMB->slot() << std::endl;
+    broadcastDMB->set_cal_dac(dac,dac2);
+    cout <<" DAC is set to: "<<dac<<", "<<dac2<<endl;
+    //Enable CLCT (bit0=1), disable L1A (bit1=0) on DMB calibration
+    broadcastDMB->settrgsrc(1);
+    
+    //set the default DMB Calibration timing:
+    /* // change the itim to adjust the pulse position
+      int cal_delay_bits = (calibration_LCT_delay_ & 0xF)
+      | (calibration_l1acc_delay_ & 0x1F) << 4
+      | (itim & 0x1F) << 9
+      | (inject_delay_ & 0x1F) << 14;
+    */
+    int dword= (6 | (20<<4) | (10<<9) | (15<<14) ) &0xfffff;
+    broadcastDMB->setcaldelay(dword);
+
+    cout << " The Peripheral Crate configure finished "<<endl;
+
+    //    fireEvent("Configure");
     //
     return createReply(message);
     //
@@ -1158,7 +1268,7 @@ using namespace std;
 
     return createReply(message);
   }
-  //
+ //
   xoap::MessageReference EmuPeripheralCrateManager::createXRelayMessage(const std::string & command, const std::string & setting,
 					     std::set<xdaq::ApplicationDescriptor * > descriptor )
     {
@@ -1183,19 +1293,25 @@ using namespace std;
     std::string childNode = "to";
     // Send to all the destinations:
     //
-    std::set<xdaq::ApplicationDescriptor * >  descriptorsXrelays =
-      getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("XRelay");
-    //
+     std::set<xdaq::ApplicationDescriptor * >  descriptorsXrelays =
+      getApplicationContext()->getDefaultZone()->getApplicationGroup("broker")->getApplicationDescriptors("XRelay");
+    // xdata::UnsignedIntegerT lid4=4;
+    // std::set<xdaq::ApplicationDescriptor * >  descriptorsXrelays =
+    //     getApplicationContext()->getZone("default")->getApplicationGroup("broker")->getApplicationDescriptors("XRelay");
+ 
+   //
     std::cout << "descriptorXrelays size = " << descriptorsXrelays.size() << std::endl;
     //
     std::set<xdaq::ApplicationDescriptor * >::iterator  itDescriptorsXrelays = descriptorsXrelays.begin();
+    
     std::set <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
+    
     for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) 
       {
-	std::string classNameStr = (*itDescriptor)->getClassName();
+        std::string classNameStr = (*itDescriptor)->getClassName();
 	//
 	std::string url = (*itDescriptor)->getContextDescriptor()->getURL();
-	std::string urn = (*itDescriptor)->getURN();  	
+	std::string urn = (*itDescriptor)->getURN();
 	//
 	std::string urlXRelay = (*itDescriptorsXrelays)->getContextDescriptor()->getURL();
  	std::string urnXRelay = (*itDescriptorsXrelays)->getURN();
@@ -1226,7 +1342,7 @@ using namespace std;
     }
     //
     //
-    //msg->writeTo(std::cout);
+    // msg->writeTo(std::cout);
     //
     return msg;
     //
@@ -1241,7 +1357,7 @@ using namespace std;
       {	
 	// Get the Xrelay application descriptor and post the message:
 	xdaq::ApplicationDescriptor * xrelay = getApplicationContext()->getDefaultZone()->
-	  getApplicationGroup("default")->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),4);
+	  getApplicationGroup("broker")->getApplicationDescriptor(getApplicationContext()->getContextDescriptor(),4);
 	
 	reply = getApplicationContext()->postSOAP(msg, xrelay);
 	xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
@@ -1256,9 +1372,9 @@ using namespace std;
       {
 	XCEPT_RETHROW (xgi::exception::Exception, "Cannot relay message", e);
       }
-    //
-    std::cout << "Finish relayMessage" << std::endl;
-    //
+    
+     std::cout << "Finish relayMessage" << std::endl;
+    
   }
   //
   void EmuPeripheralCrateManager::SendSOAPMessageConnectTStore(xgi::Input * in, xgi::Output * out) 
@@ -1918,6 +2034,7 @@ using namespace std;
       xoap::SOAPName command = envelope.createName("Configure","xdaq", "urn:xdaq-soap:3.0");
       body.addBodyElement(command);
       //
+      printf(" EmuPeripheralCrateManager: ConfigureLTC \n"); 
       try
 	{	
 	  xdaq::ApplicationDescriptor * d = 
@@ -1974,6 +2091,7 @@ using namespace std;
 	  XCEPT_RETHROW (xgi::exception::Exception, "Cannot send message", e);	      	
 	}
       //
+      printf(" SendSoapMessageExecuteSequence \n"); 
       this->Default(in,out);
       //this->SendSOAPMessageExecuteSequence(in,out);
       //
@@ -2146,12 +2264,12 @@ using namespace std;
   //
   void EmuPeripheralCrateManager::SendSOAPMessageXRelaySimple(std::string command,std::string setting){
     //
-    std::set<xdaq::ApplicationDescriptor * >  descriptors =
+      std::set<xdaq::ApplicationDescriptor * >  descriptors =
       getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrate");
     //
-    xoap::MessageReference configure = createXRelayMessage(command,setting,descriptors);
+      xoap::MessageReference configure = createXRelayMessage(command,setting,descriptors);
     //
-    this->relayMessage(configure);
+      this->relayMessage(configure);
     //
   }
   //
@@ -2191,15 +2309,21 @@ using namespace std;
       //
       for (int i=0; i<20; i++) {
 	int compare = -1;
-	ostringstream output;      
+	ostringstream output;  
 	output << "Next Setting " << i ;
 	SendSOAPMessageXRelaySimple("Calibration",output.str());
-	while (compare!=2){
+	while (compare!=1){
 	  compare = CompareEmuPeripheralCrateCalibrationState(output.str());
 	  ostringstream compare_string;
 	  compare_string << "compare " <<  compare << std::endl;
 	  LOG4CPLUS_INFO(getApplicationLogger(), compare_string.str());
 	}
+        LTCDone=0;
+	this->SendSOAPMessageExecuteSequence(in,out);
+	// while(LTCDone==0){
+        //  output << "waiting for LTCResponse" << std::endl;
+	//  ::usleep(200); 
+        // }
       }
       //
       this->Default(in,out);
