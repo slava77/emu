@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.4 2007/04/17 14:55:04 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.5 2007/04/17 21:22:59 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -64,7 +64,7 @@ using namespace std;
     // SOAP call-back functions, which relays to *Action method.
     xoap::bind(this, &EmuPeripheralCrateManager::onConfigure, "Configure", XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onConfigCal0, "ConfigCal0", XDAQ_NS_URI);
-
+    xoap::bind(this, &EmuPeripheralCrateManager::onEnableCal0, "EnableCal0", XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onEnable,    "Enable",    XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onDisable,   "Disable",   XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onHalt,      "Halt",      XDAQ_NS_URI);
@@ -1171,62 +1171,39 @@ using namespace std;
     cout << " Print check working in OnConfigCal0 "<<endl;
 
     //implement the cal0 configure process:
-    float dac, dac2;
-    int counter=0;
+    float dac;
     int nsleep = 100;  
     static int calsetup;
     std::cout << "DMB setup for calibration " << std::endl;
     calsetup=0;
     dac=1.37;
-    dac2=dac+1.4;
 
     //define broadcast crate and board  Needs debug
     MyController = new EmuController();
-    cout <<" debug 1 "<<endl;
+    //cout <<" debug 1 "<<endl;
     MyController->SetConfFile("/home/cscpc/v4.1/TriDAS/emu/emuDCS/PeripheralCrate/xml/broadcast.xml");
-    cout <<" debug 2 "<<endl;
+    //cout <<" debug 2 "<<endl;
     MyController->init();
-    cout <<" debug 3 "<<endl;
+    //cout <<" debug 3 "<<endl;
     CrateSelector selector = MyController->selector();
-    cout <<" debug 4 "<<endl;
+    //cout <<" debug 4 "<<endl;
     vector<Crate *> tmpcrate=selector.broadcast_crate();
-    cout <<" debug 5 "<<endl;
+    //cout <<" debug 5 "<<endl;
     broadcastCrate=tmpcrate[0];
-    cout <<" debug 6 "<<endl;
+    //cout <<" debug 6 "<<endl;
     broadcastDMB=selector.daqmbs(tmpcrate[0])[0];
-    cout <<" debug 7 "<<endl;
+    //cout <<" debug 7 "<<endl;
     broadcastTMB=selector.tmbs(tmpcrate[0])[0];
 
     cout <<" Broadcast Crate and DMB are defined "<<endl;
 
-    // broadcastCCB=selector.ccbs(tmpcrate[0])[0];
-
-    /* setup the TMB and CCB
-    std::vector<Crate*> myCrates = theSelector.crates();
-    //
-    for(unsigned j = 0; j < myCrates.size(); ++j) {
-    //
-      std::vector<DAQMB*> myDmbs   = theSelector.daqmbs(myCrates[j]);
-      std::vector<TMB*>   myTmbs   = theSelector.tmbs(myCrates[j]);
-      //
-      for (unsigned i=0; i<myTmbs.size(); i++) {
-        myTmbs[i]->DisableCLCTInputs();
-        std::cout << "Disabling inputs for slot " << myTmbs[i]->slot() << std::endl;
-        myTmbs[i]->DisableALCTInputs();
-      }
-      for(unsigned i =0; i < myDmbs.size(); ++i) {
-        // set amplitude
-        myDmbs[i]->set_cal_dac(dac,dac);
-      }
-    }
-    */
     broadcastTMB->DisableCLCTInputs();
     std::cout << "Disabling inputs for TMB slot  " << broadcastTMB->slot() << std::endl;
     broadcastTMB->DisableALCTInputs();
 
     std::cout << "Set DAC for DMB slot  " << broadcastDMB->slot() << std::endl;
-    broadcastDMB->set_cal_dac(dac,dac2);
-    cout <<" DAC is set to: "<<dac<<", "<<dac2<<endl;
+    broadcastDMB->set_cal_dac(dac,dac);
+    cout <<" DAC is set to: "<<dac<<endl;
     //Enable CLCT (bit0=1), disable L1A (bit1=0) on DMB calibration
     broadcastDMB->settrgsrc(1);
     
@@ -1241,6 +1218,7 @@ using namespace std;
     broadcastDMB->setcaldelay(dword);
 
     cout << " The Peripheral Crate configure finished "<<endl;
+    usleep(nsleep);
 
     //    fireEvent("Configure");
     //
@@ -1255,6 +1233,55 @@ using namespace std;
     return createReply(message);
   }
   //
+  //
+  xoap::MessageReference EmuPeripheralCrateManager::onEnableCal0 (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    float dac;
+    int nsleep = 100;  
+    static int calsetup;
+    //
+    std::cout<< "This is a checking printing for OnEnableCal0"<<std::endl;
+    ostringstream test;
+    message->writeTo(test);
+    cout << test.str() <<endl;
+    cout << " Print check working in OnEnableCal0 "<<endl;
+
+    //increment the calsetup
+    calsetup+=1;
+
+    //implement the cal0 setup process:
+    std::cout << "DMB setup for calibration_0, calsetup= " <<calsetup<< std::endl;
+
+    /*define broadcast crate and board
+    MyController = new EmuController();
+    //cout <<" debug 1 "<<endl;
+    MyController->SetConfFile("/home/cscpc/v4.1/TriDAS/emu/emuDCS/PeripheralCrate/xml/broadcast.xml");
+    //cout <<" debug 2 "<<endl;
+    MyController->init();
+    //cout <<" debug 3 "<<endl;
+    CrateSelector selector = MyController->selector();
+    //cout <<" debug 4 "<<endl;
+    vector<Crate *> tmpcrate=selector.broadcast_crate();
+    //cout <<" debug 5 "<<endl;
+    broadcastCrate=tmpcrate[0];
+    //cout <<" debug 6 "<<endl;
+    broadcastDMB=selector.daqmbs(tmpcrate[0])[0];
+    //cout <<" debug 7 "<<endl;
+    //    broadcastTMB=selector.tmbs(tmpcrate[0])[0];
+    cout <<" Broadcast Crate and DMB are defined "<<endl;
+    */
+    //Start the setup process:
+    int gainsetting =((calsetup-1)%10);
+    int nstrip=(calsetup-1)/10;
+    if (!gainsetting) broadcastDMB->buck_shift_ext_bc(nstrip);
+    dac=0.2+0.2*gainsetting;
+    broadcastDMB->set_cal_dac(dac,dac);
+    cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<endl;
+    usleep(nsleep);
+    //    fireEvent("Enable");
+
+    return createReply(message);
+  }
   xoap::MessageReference EmuPeripheralCrateManager::onDisable (xoap::MessageReference message) throw (xoap::exception::Exception)
   {
     fireEvent("Disable");
