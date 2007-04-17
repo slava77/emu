@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: CrateSelector.cc,v 3.3 2006/11/15 16:01:36 mey Exp $
+// $Id: CrateSelector.cc,v 3.4 2007/04/17 14:56:28 gujh Exp $
 // $Log: CrateSelector.cc,v $
+// Revision 3.4  2007/04/17 14:56:28  gujh
+//  Stan has added the broadcast_crate function
+//        ---Apr. 17, 2007
+//
 // Revision 3.3  2006/11/15 16:01:36  mey
 // Cleaning up code
 //
@@ -98,15 +102,33 @@ std::vector<Crate *> CrateSelector::crates() const {
   //std::cout << "Crates size = " << allCrates.size() << std::endl;
   std::vector<Crate *> result;
   if(theSelectedCrates.empty()) {
-    result = allCrates;
-  } else {
+    for(unsigned icrate = 0; icrate < allCrates.size(); ++icrate) {
+         if(allCrates[icrate]->CrateID()!=999){
+	     result.push_back(allCrates[icrate]);
+         }
+      }
+   } else {
     for(unsigned icrate = 0; icrate < allCrates.size(); ++icrate) {
       for(unsigned iSelect = 0; iSelect < theSelectedCrates.size(); ++iSelect) {
+        if(allCrates[icrate]->CrateID()!=999){
         if(allCrates[icrate]->CrateID() == theSelectedCrates[iSelect]) {
-          result.push_back(allCrates[icrate]);
+           result.push_back(allCrates[icrate]);
+        }
         }
       }
     }
+  }
+  return result;
+}
+
+std::vector<Crate *> CrateSelector::broadcast_crate() const {
+  if (!emuSystem_) std::cout << "EmuSystem not defined" << std::endl;
+  std::vector<Crate *> allCrates = emuSystem_->crates();
+  std::vector<Crate *> result;
+  for(unsigned icrate = 0; icrate < allCrates.size(); ++icrate) {
+     if(allCrates[icrate]->CrateID()==999){
+        result.push_back(allCrates[icrate]);
+     }
   }
   return result;
 }
