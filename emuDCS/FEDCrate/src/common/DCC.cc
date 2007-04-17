@@ -29,7 +29,8 @@ void shuffle(char *a,char *b);
 
 DCC::DCC(int newcrate,int newslot):
   VMEModule(newcrate, newslot),
-  fifoinuse_(511)
+  fifoinuse_(1022),
+  softsw_(0)
 {
   // cout<<"DCC \n";
 }
@@ -54,6 +55,7 @@ void DCC::configure() {
   printf(" DCC slot %d fifoinuse %d \n",slot(),fifoinuse_);
   if(slot()<21){
      mctrl_fifoinuse(fifoinuse_);
+     mctrl_swset(softsw_);
   }
 }
 
