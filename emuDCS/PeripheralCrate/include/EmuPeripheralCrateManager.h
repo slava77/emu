@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.28 2007/02/26 01:55:35 liu Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.29 2007/04/17 14:57:59 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -53,6 +53,12 @@
 #include "TStoreParser.h"
 #include "CrateUtilities.h"
 
+EmuController * MyController;
+Crate *broadcastCrate;
+DAQMB *broadcastDMB;
+TMB *broadcastTMB;
+CCB *broadcastCCB;
+
 using namespace cgicc;
 using namespace std;
 
@@ -67,6 +73,7 @@ public:
   xdata::UnsignedLong runNumber_;
   xdata::String ConfigureState_;
   xdata::Table table_;                            
+  int LTCDone;
 
   EmuPeripheralCrateManager(xdaq::ApplicationStub * s);
 
@@ -87,7 +94,9 @@ public:
   string extractCalibrationState(xoap::MessageReference message);
   string extractState(xoap::MessageReference message);
   string extractRunNumber(xoap::MessageReference message);
+  xoap::MessageReference LTCResponse (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onConfigCal0 (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnable (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onDisable (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onHalt (xoap::MessageReference message) throw (xoap::exception::Exception);
