@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: CrateSelector.h,v 3.0 2006/07/20 21:15:47 geurts Exp $
+// $Id: CrateSelector.h,v 3.1 2007/04/17 15:00:34 gujh Exp $
 // $Log: CrateSelector.h,v $
+// Revision 3.1  2007/04/17 15:00:34  gujh
+// Stan has added the broadcast_crate function
+//      --- Apr. 17, 2007
+//
 // Revision 3.0  2006/07/20 21:15:47  geurts
 // *** empty log message ***
 //
@@ -47,7 +51,8 @@ public:
 
   /// returns the crates in the CrateSetup consistent with the selection list
   std::vector<Crate *> crates() const;
-
+  /// returns the broadcast crate
+  std::vector<Crate *> broadcast_crate() const;
   /// returns the DAQMBs consistent with lists of selected slots
   std::vector<DAQMB *> daqmbs() const;
   std::vector<DAQMB *> daqmbs(Crate *) const;
