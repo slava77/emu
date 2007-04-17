@@ -26,6 +26,7 @@ public:
   virtual void end();
 
   int fifoinuse_;
+  int softsw_;
 
   void configure();
 
