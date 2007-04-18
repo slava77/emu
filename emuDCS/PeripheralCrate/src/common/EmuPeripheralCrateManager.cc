@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.5 2007/04/17 21:22:59 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.6 2007/04/18 15:43:52 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -63,8 +63,10 @@ using namespace std;
     // xoap::bind(this, &EmuPeripheralCrateManager::LTCResponse, "LTCResponse", XDAQ_NS_URI);
     // SOAP call-back functions, which relays to *Action method.
     xoap::bind(this, &EmuPeripheralCrateManager::onConfigure, "Configure", XDAQ_NS_URI);
-    xoap::bind(this, &EmuPeripheralCrateManager::onConfigCal0, "ConfigCal0", XDAQ_NS_URI);
-    xoap::bind(this, &EmuPeripheralCrateManager::onEnableCal0, "EnableCal0", XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrateManager::onConfigCalCFEB, "ConfigCalCFEB", XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBGain, "EnableCalCFEBGain", XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBTime, "EnableCalCFEBTime", XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBPed, "EnableCalCFEBPed", XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onEnable,    "Enable",    XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onDisable,   "Disable",   XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onHalt,      "Halt",      XDAQ_NS_URI);
@@ -1161,7 +1163,7 @@ using namespace std;
     //
   }
   //
-  xoap::MessageReference EmuPeripheralCrateManager::onConfigCal0 (xoap::MessageReference message) throw (xoap::exception::Exception)
+  xoap::MessageReference EmuPeripheralCrateManager::onConfigCalCFEB (xoap::MessageReference message) throw (xoap::exception::Exception)
   {
     //
     std::cout<< "This is a checking printing for OnConfigCal0"<<std::endl;
@@ -1173,26 +1175,18 @@ using namespace std;
     //implement the cal0 configure process:
     float dac;
     int nsleep = 100;  
-    static int calsetup;
     std::cout << "DMB setup for calibration " << std::endl;
     calsetup=0;
     dac=1.37;
 
-    //define broadcast crate and board  Needs debug
+    //define broadcast crate and board
     MyController = new EmuController();
-    //cout <<" debug 1 "<<endl;
     MyController->SetConfFile("/home/cscpc/v4.1/TriDAS/emu/emuDCS/PeripheralCrate/xml/broadcast.xml");
-    //cout <<" debug 2 "<<endl;
     MyController->init();
-    //cout <<" debug 3 "<<endl;
     CrateSelector selector = MyController->selector();
-    //cout <<" debug 4 "<<endl;
     vector<Crate *> tmpcrate=selector.broadcast_crate();
-    //cout <<" debug 5 "<<endl;
     broadcastCrate=tmpcrate[0];
-    //cout <<" debug 6 "<<endl;
     broadcastDMB=selector.daqmbs(tmpcrate[0])[0];
-    //cout <<" debug 7 "<<endl;
     broadcastTMB=selector.tmbs(tmpcrate[0])[0];
 
     cout <<" Broadcast Crate and DMB are defined "<<endl;
@@ -1233,43 +1227,20 @@ using namespace std;
     return createReply(message);
   }
   //
-  //
-  xoap::MessageReference EmuPeripheralCrateManager::onEnableCal0 (xoap::MessageReference message) throw (xoap::exception::Exception)
+  xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBGain (xoap::MessageReference message) throw (xoap::exception::Exception)
   {
     float dac;
     int nsleep = 100;  
-    static int calsetup;
-    //
-    std::cout<< "This is a checking printing for OnEnableCal0"<<std::endl;
+    //  std::cout<< "This is a checking printing for OnEnableCalCFEBGain"<<std::endl;
     ostringstream test;
     message->writeTo(test);
     cout << test.str() <<endl;
-    cout << " Print check working in OnEnableCal0 "<<endl;
 
-    //increment the calsetup
-    calsetup+=1;
+    calsetup++;
 
     //implement the cal0 setup process:
-    std::cout << "DMB setup for calibration_0, calsetup= " <<calsetup<< std::endl;
+    std::cout << "DMB setup for CFEB Gain, calsetup= " <<calsetup<< std::endl;
 
-    /*define broadcast crate and board
-    MyController = new EmuController();
-    //cout <<" debug 1 "<<endl;
-    MyController->SetConfFile("/home/cscpc/v4.1/TriDAS/emu/emuDCS/PeripheralCrate/xml/broadcast.xml");
-    //cout <<" debug 2 "<<endl;
-    MyController->init();
-    //cout <<" debug 3 "<<endl;
-    CrateSelector selector = MyController->selector();
-    //cout <<" debug 4 "<<endl;
-    vector<Crate *> tmpcrate=selector.broadcast_crate();
-    //cout <<" debug 5 "<<endl;
-    broadcastCrate=tmpcrate[0];
-    //cout <<" debug 6 "<<endl;
-    broadcastDMB=selector.daqmbs(tmpcrate[0])[0];
-    //cout <<" debug 7 "<<endl;
-    //    broadcastTMB=selector.tmbs(tmpcrate[0])[0];
-    cout <<" Broadcast Crate and DMB are defined "<<endl;
-    */
     //Start the setup process:
     int gainsetting =((calsetup-1)%10);
     int nstrip=(calsetup-1)/10;
@@ -1282,6 +1253,60 @@ using namespace std;
 
     return createReply(message);
   }
+
+  xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBTime (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    float dac;
+    int nsleep = 100;  
+    //
+    std::cout<< "This is a checking printing for OnEnableCalCFEBTime"<<std::endl;
+    ostringstream test;
+    message->writeTo(test);
+    cout << test.str() <<endl;
+
+    calsetup++;
+
+    //implement the cal0 setup process:
+    std::cout << "DMB setup for CFEB Time, calsetup= " <<calsetup<< std::endl;
+
+    //Start the setup process:
+    int timesetting =((calsetup-1)%20);
+    int nstrip=(calsetup-1)/10;
+    if (!timesetting) broadcastDMB->buck_shift_ext_bc(nstrip);
+    broadcastDMB->set_cal_tim_pulse(timesetting);
+    cout <<" The strip was set to: "<<nstrip<<" Time was set to: "<<timesetting <<endl;
+    usleep(nsleep);
+    //    fireEvent("Enable");
+
+    return createReply(message);
+  }
+
+  xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBPed (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    float dac;
+    int nsleep = 100;  
+    //
+    std::cout<< "This is a checking printing for OnEnableCalCFEBPed"<<std::endl;
+    ostringstream test;
+    message->writeTo(test);
+    cout << test.str() <<endl;
+
+    calsetup++;
+
+    //implement the CFEB_Pedestal setup process:
+    std::cout << "DMB setup for CFEB Pedestal, calsetup= " <<calsetup<< std::endl;
+
+    //Start the setup process: Set all channel to normal, DAC to 0:
+    broadcastDMB->buck_shift_ext_bc(-1);
+    dac=0.0;
+    broadcastDMB->set_cal_dac(dac,dac);
+    cout <<" The strip was set to: -1, " <<" DAC was set to: "<<dac <<endl;
+    usleep(nsleep);
+    //    fireEvent("Enable");
+
+    return createReply(message);
+  }
+
   xoap::MessageReference EmuPeripheralCrateManager::onDisable (xoap::MessageReference message) throw (xoap::exception::Exception)
   {
     fireEvent("Disable");
