@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.29 2007/04/17 14:57:59 gujh Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.30 2007/04/18 15:45:23 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -53,6 +53,7 @@
 #include "TStoreParser.h"
 #include "CrateUtilities.h"
 
+static int calsetup;
 EmuController * MyController;
 Crate *broadcastCrate;
 DAQMB *broadcastDMB;
@@ -96,8 +97,11 @@ public:
   string extractRunNumber(xoap::MessageReference message);
   xoap::MessageReference LTCResponse (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onConfigCal0 (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onConfigCalCFEB (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnable (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onEnableCalCFEBGain (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onEnableCalCFEBTime (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onEnableCalCFEBPed (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onDisable (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onHalt (xoap::MessageReference message) throw (xoap::exception::Exception);
   void relayMessage (xoap::MessageReference msg) throw (xgi::exception::Exception);
