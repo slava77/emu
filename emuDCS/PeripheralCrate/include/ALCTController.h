@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.19 2007/03/28 17:46:21 rakness Exp $
+// $Id: ALCTController.h,v 3.20 2007/04/19 16:09:18 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.20  2007/04/19 16:09:18  rakness
+// add accel pretrig/pattern to ALCT config reg
+//
 // Revision 3.19  2007/03/28 17:46:21  rakness
 // xml changes:  add ALCT testpulse, remove TTCrxID
 //
@@ -306,15 +309,15 @@ public:
   //
   //
   void SetExtTrigEnable(int ext_trig_enable); // set Write values...
-  //                        ext_trig_enable = [0-1] -> 0 = disable
-  //                                                   1 = enable (triggers if ext_trig input signal == 1)
+  //                        ext_trig_enable = [0,1] -> 0 = off
+  //                                                   1 = on (triggers if ext_trig input signal == 1)
   int  GetExtTrigEnable();                    // get Read values
   inline int GetWriteExtTrigEnable(){ return write_ext_trig_enable_ ;}
   //
   //
   void SetSendEmpty(int send_empty); // set Write values...
-  //                    send_empty = [0-1] -> 0 = do not send DAQ for empty events
-  //                                          1 = do send DAQ for empty events
+  //                    send_empty = [0-1] -> 0 = off -> do not send DAQ for empty events
+  //                                          1 = on  -> do send DAQ for empty events
   int  GetSendEmpty();               // get Read values
   inline int GetWriteSendEmpty(){ return write_send_empty_;}
   //
@@ -338,10 +341,22 @@ public:
   //
   //
   void SetPretrigNumberOfPattern(int nph_pattern);  // set Write values...
-  //                                 nph_pattern = [0-6] -> number of layers needed after "drift delay" 
-  //                                                        (starting from pretrigger) to generate LCT
+  //                                 nph_pattern = [0-6] -> number of layers needed after drift delay
+  //                                                        (starting from pretrigger) to generate ALCT trigger
   int  GetPretrigNumberOfPattern();                 // get Read values
   inline int  GetWritePretrigNumberOfPattern(){ return write_nph_pattern_ ;}
+  //
+  //
+  void SetAcceleratorPretrigThresh(int accelerator_pretrig_thresh); // set Write values...
+  //                                   accelerator_pretrig_thresh = [0-6] -> number of layers needed to generate pretrigger 
+  //                                                                         for accelerator tracks
+  int  GetAcceleratorPretrigThresh();                               // get Read values
+  //
+  //
+  void SetAcceleratorPatternThresh(int accelerator_pattern_thresh); // set Write values...
+  //                                   accelerator_pattern_thresh = [0-6] -> number of layers needed to generate trigger 
+  //                                                                         (after drift_delay) for accelerator tracks
+  int  GetAcceleratorPatternThresh();                               // get Read values
   //
   //
   void SetDriftDelay(int drift_delay); // set Write values...
@@ -400,15 +415,24 @@ public:
   //
   //
   void SetCcbEnable(int ccb_enable); // set Write values...
-  //                    ccb_enable = [] -> undocumented parameter
+  //                    ccb_enable = [0,1] -> Selector of BX counter rollover value
+  //                                          1 = 3564 (LHC)
+  //                                          0 = 924 (test beam)
   int  GetCcbEnable();               // get Read values
   inline int GetWriteCcbEnable(){ return write_ccb_enable_;}
   //
   //
+  void SetConfigInReadout(int config_in_readout); // set Write values...
+  //                          config_in_readout = [0-1] -> report configuration settings in DAQ readout
+  //                                                       0 = do not report
+  //                                                       1 = report
+  int  GetConfigInReadout();               // get Read values
+  //
+  //
   void SetAlctAmode(int alct_amode); // set Write values...
-  //                    alct_amode = [0-3] -> use in conjunction with trig_mode
-  //                                          0,1 = prefer Collision muon mode
-  //                                          2,3 = prefer Accelerator muon mode
+  //                    alct_amode = [0-1] -> use in conjunction with trig_mode
+  //                                          0 = prefer Collision muon mode
+  //                                          1 = prefer Accelerator muon mode
   int  GetAlctAmode();               // get Read values
   inline int GetAlctWriteAmode(){ return write_alct_amode_; }
   //
@@ -690,6 +714,8 @@ private:
   int write_bxc_offset_;
   int write_nph_thresh_;
   int write_nph_pattern_;
+  int write_accelerator_pretrig_thresh_;
+  int write_accelerator_pattern_thresh_;
   int write_drift_delay_;
   int write_fifo_tbins_;
   int write_fifo_pretrig_;
@@ -699,6 +725,7 @@ private:
   int write_l1a_offset_;
   int write_l1a_internal_;
   int write_board_id_;
+  int write_config_in_readout_;
   int write_ccb_enable_;
   int write_alct_amode_;
   int write_trigger_info_en_;
@@ -713,6 +740,8 @@ private:
   int read_bxc_offset_;
   int read_nph_thresh_;
   int read_nph_pattern_;
+  int read_accelerator_pretrig_thresh_;
+  int read_accelerator_pattern_thresh_;
   int read_drift_delay_;
   int read_fifo_tbins_;
   int read_fifo_pretrig_;
@@ -723,6 +752,7 @@ private:
   int read_l1a_internal_;
   int read_board_id_;
   int read_ccb_enable_;
+  int read_config_in_readout_;
   int read_alct_amode_;
   int read_trigger_info_en_;
   int read_sn_select_;

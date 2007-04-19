@@ -6,9 +6,9 @@
 <!-- ME+2/1/16 chamber -->
     <CSC label="ME+2/1/16">
       <TMB slot="6" 
-           tmb_firmware_month="9"
-           tmb_firmware_day="5"
-           tmb_firmware_year="2006"
+           tmb_firmware_month="4"
+           tmb_firmware_day="9"
+           tmb_firmware_year="2007"
            tmb_firmware_version="14"
            tmb_firmware_revcode="4"
            tmb_firmware_type="12"
@@ -87,6 +87,8 @@
                 alct_accel_mode="0"
                 alct_pretrig_thresh="2"
                 alct_pattern_thresh="4"
+                alct_accel_pretrig_thresh="2"
+                alct_accel_pattern_thresh="4"
                 alct_drift_delay="3"
                 alct_fifo_mode="1"
                 alct_fifo_pretrig="16"
@@ -101,6 +103,7 @@
                 alct_inject_mode="0"
                 alct_l1a_internal="0"
                 alct_ccb_enable="1"
+                alct_config_in_readout="1"
                 alct_testpulse_amplitude="255"
                 alct_testpulse_invert="on"
                 alct_testpulse_direction="strips">
