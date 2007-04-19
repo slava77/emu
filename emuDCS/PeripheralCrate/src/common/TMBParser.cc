@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.16 2007/04/10 13:31:02 rakness Exp $
+// $Id: TMBParser.cc,v 3.17 2007/04/19 16:09:18 rakness Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.17  2007/04/19 16:09:18  rakness
+// add accel pretrig/pattern to ALCT config reg
+//
 // Revision 3.16  2007/04/10 13:31:02  rakness
 // add mpc_output_enable, remove rpc2/3
 //
@@ -403,20 +406,23 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
 	if (pNodeGlobal){
 	  if (parserGlobal_.fillInt("alct_pretrig_thresh",value)) { alct_->SetPretrigNumberOfLayers(value); }
 	}
-	if (alctParser_.fillInt("alct_pattern_thresh" ,value)) { alct_->SetPretrigNumberOfPattern(value); }
-	if (alctParser_.fillInt("alct_drift_delay"    ,value)) { alct_->SetDriftDelay(value);             }
-	if (alctParser_.fillInt("alct_fifo_tbins"     ,value)) { alct_->SetFifoTbins(value);              }
-	if (alctParser_.fillInt("alct_fifo_pretrig"   ,value)) { alct_->SetFifoPretrig(value);            }
-	if (alctParser_.fillInt("alct_fifo_mode"      ,value)) { alct_->SetFifoMode(value);               }
-	if (alctParser_.fillInt("alct_l1a_delay"      ,value)) { alct_->SetL1aDelay(value);               }
-	if (alctParser_.fillInt("alct_l1a_window_size",value)) { alct_->SetL1aWindowSize(value);          }
-	if (alctParser_.fillInt("alct_l1a_offset"     ,value)) { alct_->SetL1aOffset(value);              }
-	if (alctParser_.fillInt("alct_l1a_internal"   ,value)) { alct_->SetL1aInternal(value);	          }
-	if (alctParser_.fillInt("alct_ccb_enable"     ,value)) { alct_->SetCcbEnable(value);              }
-	if (alctParser_.fillInt("alct_accel_mode"     ,value)) { alct_->SetAlctAmode(value);              }
-	if (alctParser_.fillInt("alct_trig_info_en"   ,value)) { alct_->SetTriggerInfoEnable(value);      }
-	if (alctParser_.fillInt("alct_sn_select"      ,value)) { alct_->SetSnSelect(value);               }
-	if (alctParser_.fillInt("alct_testpulse_amplitude",value)) { alct_->SetTestpulseAmplitude(value); }
+	if (alctParser_.fillInt("alct_pattern_thresh"      ,value)) { alct_->SetPretrigNumberOfPattern(value);   }
+	if (alctParser_.fillInt("alct_accel_pretrig_thresh",value)) { alct_->SetAcceleratorPretrigThresh(value); }
+	if (alctParser_.fillInt("alct_accel_pattern_thresh",value)) { alct_->SetAcceleratorPatternThresh(value); }
+	if (alctParser_.fillInt("alct_drift_delay"         ,value)) { alct_->SetDriftDelay(value);               }
+	if (alctParser_.fillInt("alct_fifo_tbins"          ,value)) { alct_->SetFifoTbins(value);                }
+	if (alctParser_.fillInt("alct_fifo_pretrig"        ,value)) { alct_->SetFifoPretrig(value);              }
+	if (alctParser_.fillInt("alct_fifo_mode"           ,value)) { alct_->SetFifoMode(value);                 }
+	if (alctParser_.fillInt("alct_l1a_delay"           ,value)) { alct_->SetL1aDelay(value);                 }
+	if (alctParser_.fillInt("alct_l1a_window_size"     ,value)) { alct_->SetL1aWindowSize(value);            }
+	if (alctParser_.fillInt("alct_l1a_offset"          ,value)) { alct_->SetL1aOffset(value);                }
+	if (alctParser_.fillInt("alct_l1a_internal"        ,value)) { alct_->SetL1aInternal(value);	         }
+	if (alctParser_.fillInt("alct_ccb_enable"          ,value)) { alct_->SetCcbEnable(value);                }
+	if (alctParser_.fillInt("alct_config_in_readout"   ,value)) { alct_->SetConfigInReadout(value);          }
+	if (alctParser_.fillInt("alct_accel_mode"          ,value)) { alct_->SetAlctAmode(value);                }
+	if (alctParser_.fillInt("alct_trig_info_en"        ,value)) { alct_->SetTriggerInfoEnable(value);        }
+	if (alctParser_.fillInt("alct_sn_select"           ,value)) { alct_->SetSnSelect(value);                 }
+	if (alctParser_.fillInt("alct_testpulse_amplitude" ,value)) { alct_->SetTestpulseAmplitude(value);       }
 	std::string on_or_off;
 	if (alctParser_.fillString("alct_testpulse_invert",on_or_off)) { alct_->Set_InvertPulse(on_or_off); }
 	std::string afebs_or_strips;

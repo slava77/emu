@@ -539,68 +539,100 @@ const int afeb_dac_chip[MAX_NUM_AFEBS] =
    2, 2, 2, 2, 2, 2, 2, 2, 2, 
    3, 3, 3, 3, 3, 3, 3, 3, 3};
 //
-////////////////////////////////////////
-// Control register bit-map:
-////////////////////////////////////////
+/////////////////////////////////////////////////////////
+// Control register bit-map and power-up default values
+/////////////////////////////////////////////////////////
 const int trigger_mode_bitlo               = 0;
 const int trigger_mode_bithi               = 1;
+const int trigger_mode_default             = 0;
 //
 const int ext_trig_enable_bitlo            = 2;
 const int ext_trig_enable_bithi            = 2;
+const int ext_trig_enable_default          = OFF;
 //
 const int send_empty_bitlo                 = 3;
 const int send_empty_bithi                 = 3;
+const int send_empty_default               = OFF;
 //
 const int inject_bitlo                     = 4;
 const int inject_bithi                     = 4;
+const int inject_default                   = 0;
 //
 const int bxc_offset_bitlo                 = 5;
 const int bxc_offset_bithi                 = 12;
+const int bxc_offset_default               = 1;
 //
 const int nph_thresh_bitlo                 = 13;
 const int nph_thresh_bithi                 = 15;
+const int nph_thresh_default               = 2;
 //
 const int nph_pattern_bitlo                = 16;
 const int nph_pattern_bithi                = 18;
+const int nph_pattern_default              = 4;
 //
 const int alct_drift_delay_bitlo           = 19;
 const int alct_drift_delay_bithi           = 20;
+const int alct_drift_delay_default         = 3;
 //
 const int alct_fifo_tbins_bitlo            = 21;
 const int alct_fifo_tbins_bithi            = 25;
+const int alct_fifo_tbins_default          = 7;
 //
 const int alct_fifo_pretrig_bitlo          = 26;
 const int alct_fifo_pretrig_bithi          = 30;
+const int alct_fifo_pretrig_default        = 1;
 //
 const int alct_fifo_mode_bitlo             = 31;
 const int alct_fifo_mode_bithi             = 32;
+const int alct_fifo_mode_default           = 1;
+//
+const int accelerator_pretrig_thresh_bitlo = 33;
+const int accelerator_pretrig_thresh_bithi = 35;
+const int accelerator_pretrig_thresh_default= 0;
 //
 const int l1a_delay_bitlo                  = 36;
 const int l1a_delay_bithi                  = 43;
+const int l1a_delay_default                = 0x78;
 //
 const int l1a_window_bitlo                 = 44;
 const int l1a_window_bithi                 = 47;
+const int l1a_window_default               = 3;
 //
 const int alct_l1a_offset_bitlo            = 48;
 const int alct_l1a_offset_bithi            = 51;
+const int alct_l1a_offset_default          = 1;
 //
 const int l1a_internal_bitlo               = 52;
 const int l1a_internal_bithi               = 52;
+const int l1a_internal_default             = OFF;
 //
 const int board_id_bitlo                   = 53;
 const int board_id_bithi                   = 55;
+const int board_id_default                 = 5;
+//
+const int accelerator_pattern_thresh_bitlo = 56;
+const int accelerator_pattern_thresh_bithi = 59;  
+const int accelerator_pattern_thresh_default= 0;
 //
 const int ccb_enable_bitlo                 = 60;
 const int ccb_enable_bithi                 = 60;
+const int ccb_enable_default               = 0;
 //
-const int alct_amode_bitlo                 = 64;
+const int config_in_readout_bitlo          = 64;
+const int config_in_readout_bithi          = 64;
+const int config_in_readout_default        = OFF;
+//
+const int alct_amode_bitlo                 = 65;
 const int alct_amode_bithi                 = 65;
+const int alct_amode_default               = 0;
 //
 const int trigger_info_en_bitlo            = 67;
 const int trigger_info_en_bithi            = 67;
+const int trigger_info_en_default          = ON;
 //
 const int sn_select_bitlo                  = 68;
 const int sn_select_bithi                  = 68;
+const int sn_select_default                = 0;
 //
 //
 ////////////////////////////////////////

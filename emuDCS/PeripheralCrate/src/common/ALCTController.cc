@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.32 2007/04/05 18:11:52 rakness Exp $
+// $Id: ALCTController.cc,v 3.33 2007/04/19 16:09:18 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.33  2007/04/19 16:09:18  rakness
+// add accel pretrig/pattern to ALCT config reg
+//
 // Revision 3.32  2007/04/05 18:11:52  rakness
 // ALCT 576, 192 ID labels
 //
@@ -635,35 +638,32 @@ void ALCTController::CheckALCTConfiguration() {
   //
   config_ok &= tmb_->compareValues("ALCT Fast Control Firmware Regular/Mirror type",
 				   GetFastControlRegularMirrorType(),
-				   GetExpectedFastControlRegularMirrorType(),
-				   true);
+				   GetExpectedFastControlRegularMirrorType() );
   if (chamber_type_string_ == "ME11") {
     //
     config_ok &= tmb_->compareValues("ALCT Fast Control Firmware Backward/Forward type",
 				     GetFastControlBackwardForwardType(),
-				     GetExpectedFastControlBackwardForwardType(),
-				     true);
+				     GetExpectedFastControlBackwardForwardType() );
+    //
     config_ok &= tmb_->compareValues("ALCT Fast Control Firmware Negative/Positive type",
 				     GetFastControlNegativePositiveType(),
-				     GetExpectedFastControlNegativePositiveType(),
-				     true);
+				     GetExpectedFastControlNegativePositiveType() );
   }
   config_ok &= tmb_->compareValues("ALCT Fast Control Firmware ALCT type",
 				   GetFastControlAlctType(),
-				   GetExpectedFastControlAlctType(),
-				   true);
+				   GetExpectedFastControlAlctType() );
+  //
   config_ok &= tmb_->compareValues("ALCT Fast Control Firmware year",
 				   GetFastControlYear(),
-				   GetExpectedFastControlYear(),
-				   true);
+				   GetExpectedFastControlYear() );
+  //
   config_ok &= tmb_->compareValues("ALCT Fast Control Firmware month",
 				   GetFastControlMonth(),
-				   GetExpectedFastControlMonth(),
-				   true);
+				   GetExpectedFastControlMonth() );
+  //
   config_ok &= tmb_->compareValues("ALCT Fast Control Firmware day",
 				   GetFastControlDay(),
-				   GetExpectedFastControlDay(),
-				   true);
+				   GetExpectedFastControlDay() );
   //
   for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++) {
     // to compare write and read thresholds, we need to compare an 8-bit dac 
@@ -689,8 +689,7 @@ void ALCTController::CheckALCTConfiguration() {
     tested_value << "ALCT Standby Register channel " << i;
     config_ok &= tmb_->compareValues(tested_value.str(),
 				     read_standby_register_[i],
-				     write_standby_register_[i],
-				     true);
+				     write_standby_register_[i] );
   }
   //
   for (int layer=0; layer<MAX_NUM_LAYERS; layer++) {
@@ -699,129 +698,50 @@ void ALCTController::CheckALCTConfiguration() {
       tested_value << "ASIC Pattern Layer " << layer << " Channel " << channel;
       config_ok &= tmb_->compareValues(tested_value.str(),
 				       read_asic_pattern_[layer][channel],
-				       write_asic_pattern_[layer][channel],
-				       true);
+				       write_asic_pattern_[layer][channel] );
     }
   }
   //
   for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++) {
     std::ostringstream tested_value;
     tested_value << "AFEB delay AnodeChannel Number " << (afeb+1);
-    config_ok &= tmb_->compareValues(tested_value.str(),
-				     read_asic_delay_[afeb],
-				     write_asic_delay_[afeb],
-				     true);
+    config_ok &= tmb_->compareValues(tested_value.str(),read_asic_delay_[afeb],write_asic_delay_[afeb] );
   }
   //
-  config_ok &= tmb_->compareValues("ALCT Trigger Mode",
-				   read_trigger_mode_,
-				   write_trigger_mode_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT Ext trig enable",
-				   read_ext_trig_enable_,
-				   write_ext_trig_enable_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT Send Empty",
-				   read_send_empty_,
-				   write_send_empty_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT Inject Mode",
-				   read_inject_,
-				   write_inject_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT BXC offset",
-				   read_bxc_offset_,
-				   write_bxc_offset_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT Pretrig number of layers",
-				   read_nph_thresh_,
-				   write_nph_thresh_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT Pattern number of layers",
-				   read_nph_pattern_,
-				   write_nph_pattern_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT drift delay",
-				   read_drift_delay_,
-				   write_drift_delay_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT Number of FIFO tbins",
-				   read_fifo_tbins_,
-				   write_fifo_tbins_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT FIFO pretrig",
-				   read_fifo_pretrig_,
-				   write_fifo_pretrig_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT FIFO mode",
-				   read_fifo_mode_,
-				   write_fifo_mode_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT L1a delay",
-				   read_l1a_delay_,
-				   write_l1a_delay_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT L1a window size",
-				   read_l1a_window_,
-				   write_l1a_window_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT L1a counter offset",
-				   read_l1a_offset_,
-				   write_l1a_offset_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT L1a internally generated",
-				   read_l1a_internal_,
-				   write_l1a_internal_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT Board ID",
-				   read_board_id_,
-				   write_board_id_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT CCB enable",
-				   read_ccb_enable_,
-				   write_ccb_enable_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT Amode",
-				   read_alct_amode_,
-				   write_alct_amode_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT trigger info enable",
-				   read_trigger_info_en_,
-				   write_trigger_info_en_,
-				   true);
-  //
-  config_ok &= tmb_->compareValues("ALCT Serial Number select",
-				   read_sn_select_,
-				   write_sn_select_,
-				   true);
+  config_ok &= tmb_->compareValues("ALCT Trigger Mode"   ,read_trigger_mode_   ,write_trigger_mode_   );
+  config_ok &= tmb_->compareValues("ALCT Ext trig enable",read_ext_trig_enable_,write_ext_trig_enable_);
+  config_ok &= tmb_->compareValues("ALCT Send Empty"     ,read_send_empty_     ,write_send_empty_     );
+  config_ok &= tmb_->compareValues("ALCT Inject Mode"    ,read_inject_         ,write_inject_         );
+  config_ok &= tmb_->compareValues("ALCT BXC offset"     ,read_bxc_offset_     ,write_bxc_offset_     );
+  config_ok &= tmb_->compareValues("ALCT Pretrig thresh" ,read_nph_thresh_     ,write_nph_thresh_     );
+  config_ok &= tmb_->compareValues("ALCT Pattern thresh" ,read_nph_pattern_    ,write_nph_pattern_    );
+  config_ok &= tmb_->compareValues("ALCT drift delay"    ,read_drift_delay_    ,write_drift_delay_    );
+  config_ok &= tmb_->compareValues("ALCT FIFO tbins"     ,read_fifo_tbins_     ,write_fifo_tbins_     );
+  config_ok &= tmb_->compareValues("ALCT FIFO pretrig"   ,read_fifo_pretrig_   ,write_fifo_pretrig_   );
+  config_ok &= tmb_->compareValues("ALCT FIFO mode"      ,read_fifo_mode_      ,write_fifo_mode_      );
+  config_ok &= tmb_->compareValues("ALCT L1a delay"      ,read_l1a_delay_      ,write_l1a_delay_      );
+  config_ok &= tmb_->compareValues("ALCT L1a window size",read_l1a_window_     ,write_l1a_window_     );
+  config_ok &= tmb_->compareValues("ALCT L1a offset"     ,read_l1a_offset_     ,write_l1a_offset_     );
+  config_ok &= tmb_->compareValues("ALCT internal L1A"   ,read_l1a_internal_   ,write_l1a_internal_   );
+  config_ok &= tmb_->compareValues("ALCT Board ID"       ,read_board_id_       ,write_board_id_       );
+  config_ok &= tmb_->compareValues("ALCT CCB enable"     ,read_ccb_enable_     ,write_ccb_enable_     );
+  config_ok &= tmb_->compareValues("ALCT Amode"          ,read_alct_amode_     ,write_alct_amode_     );
+  config_ok &= tmb_->compareValues("ALCT trg info enable",read_trigger_info_en_,write_trigger_info_en_);
+  config_ok &= tmb_->compareValues("ALCT Config in DAQ readout",
+				   read_config_in_readout_,write_config_in_readout_);
+  config_ok &= tmb_->compareValues("ALCT Serial Number Select",
+				   read_sn_select_,write_sn_select_);
+  config_ok &= tmb_->compareValues("ALCT Accelerator Pretrig thresh",
+				   read_accelerator_pretrig_thresh_,write_accelerator_pretrig_thresh_);
+  config_ok &= tmb_->compareValues("ALCT Accelerator Pattern thresh",
+				   read_accelerator_pattern_thresh_,write_accelerator_pattern_thresh_);
   //
   for (int layer=0; layer<MAX_NUM_LAYERS; layer++) 
     for (int channel=0; channel<GetNumberOfChannelsPerLayer(); channel++) {
       int index = layer * GetNumberOfChannelsPerLayer() + channel;
       std::ostringstream tested_value;
       tested_value << "ALCT Hot Channel Mask Layer " << layer << " Channel " << channel;
-      config_ok &= tmb_->compareValues(tested_value.str(),
-				       read_hot_channel_mask_[index],
-				       write_hot_channel_mask_[index],
-				       true);      
+      config_ok &= tmb_->compareValues(tested_value.str(),read_hot_channel_mask_[index],write_hot_channel_mask_[index]);
     }
   //
   for (int group=0; group<GetNumberOfCollisionPatternGroups(); group++) 
@@ -831,9 +751,7 @@ void ALCTController::CheckALCTConfiguration() {
       tested_value << "ALCT Collision Pattern Mask Group " << group << " Bit " << bitInEnvelope;
       config_ok &= tmb_->compareValues(tested_value.str(),
 				       read_collision_pattern_mask_reg_[index],
-				       write_collision_pattern_mask_reg_[index],
-				       true);      
-      
+				       write_collision_pattern_mask_reg_[index]);      
     }
   //
   tmb_->ReportCheck("ALCT configuration check",config_ok);
@@ -2425,46 +2343,52 @@ void ALCTController::PrintConfigurationReg() {
   //
   (*MyOutput_) << "ALCT configuration register:" << std::endl;
   (*MyOutput_) << "----------------------------" << std::endl;
-  (*MyOutput_) << "trigger_mode_    = " << std::dec 
+  (*MyOutput_) << "trigger_mode_              = " << std::dec 
 		<< GetTriggerMode() << std::endl;                      
-  (*MyOutput_) << "ext_trig_enable_ = " << std::dec 
+  (*MyOutput_) << "ext_trig_enable_           = " << std::dec 
 		<< GetExtTrigEnable() << std::endl;                    
-  (*MyOutput_) << "send_empty_      = " << std::dec 
+  (*MyOutput_) << "send_empty_                = " << std::dec 
 		<< GetSendEmpty() << std::endl;
-  (*MyOutput_) << "inject_          = " << std::dec 
+  (*MyOutput_) << "inject_                    = " << std::dec 
 		<< GetInjectMode() << std::endl;
-  (*MyOutput_) << "bxc_offset_      = " << std::dec 
+  (*MyOutput_) << "bxc_offset_                = " << std::dec 
 		<< GetBxcOffset() << std::endl;
-  (*MyOutput_) << "nph_thresh_      = " << std::dec 
+  (*MyOutput_) << "nph_thresh_                = " << std::dec 
 		<< GetPretrigNumberOfLayers() << std::endl;
-  (*MyOutput_) << "nph_pattern_     = " << std::dec 
+  (*MyOutput_) << "nph_pattern_               = " << std::dec 
 		<< GetPretrigNumberOfPattern() << std::endl;
-  (*MyOutput_) << "drift_delay_     = " << std::dec
+  (*MyOutput_) << "drift_delay_               = " << std::dec
 		<< GetDriftDelay() << std::endl;
-  (*MyOutput_) << "fifo_tbins_      = " << std::dec 
+  (*MyOutput_) << "fifo_tbins_                = " << std::dec 
 		<< GetFifoTbins() << std::endl;
-  (*MyOutput_) << "fifo_pretrig_    = " << std::dec         
+  (*MyOutput_) << "fifo_pretrig_              = " << std::dec         
 		<< GetFifoPretrig() << std::endl;
-  (*MyOutput_) << "fifo_mode_       = " << std::dec
+  (*MyOutput_) << "fifo_mode_                 = " << std::dec
 		<< GetFifoMode() << std::endl;
-  (*MyOutput_) << "l1a_delay_       = " << std::dec 
+  (*MyOutput_) << "accelerator_pretrig_thresh = " << std::dec
+		<< GetAcceleratorPretrigThresh() << std::endl;
+  (*MyOutput_) << "l1a_delay_                 = " << std::dec 
 		<< GetL1aDelay() << " = 0x" << std::hex
 		<< GetL1aDelay() << std::endl;
-  (*MyOutput_) << "l1a_window_      = " << std::dec
+  (*MyOutput_) << "l1a_window_                = " << std::dec
 		<< GetL1aWindowSize() << std::endl;
-  (*MyOutput_) << "l1a_offset_      = " << std::dec
+  (*MyOutput_) << "l1a_offset_                = " << std::dec
 		<< GetL1aOffset() << std::endl;
-  (*MyOutput_) << "l1a_internal_    = " << std::dec         
+  (*MyOutput_) << "l1a_internal_              = " << std::dec         
 		<< GetL1aInternal() << std::endl;
-  (*MyOutput_) << "board_id_        = " << std::dec
+  (*MyOutput_) << "board_id_                  = " << std::dec
 		<< GetBoardId() << std::endl;
-  (*MyOutput_) << "ccb_enable_      = " << std::dec
+  (*MyOutput_) << "accelerator_pattern_thresh = " << std::dec
+		<< GetAcceleratorPatternThresh() << std::endl;
+  (*MyOutput_) << "ccb_enable_                = " << std::dec
 		<< GetCcbEnable() << std::endl;
-  (*MyOutput_) << "alct_amode_      = " << std::dec
+  (*MyOutput_) << "config_in_readout          = " << std::dec
+		<< GetConfigInReadout() << std::endl;
+  (*MyOutput_) << "alct_amode_                = " << std::dec
 		<< GetAlctAmode() << std::endl;
-  (*MyOutput_) << "trigger_info_en_ = " << std::dec
+  (*MyOutput_) << "trigger_info_en_           = " << std::dec
 		<< GetTriggerInfoEnable() << std::endl;         
-  (*MyOutput_) << "sn_select_       = " << std::dec
+  (*MyOutput_) << "sn_select_                 = " << std::dec
 		<< GetSnSelect() << std::endl;  
 }
 //
@@ -2589,6 +2513,17 @@ int ALCTController::GetFifoMode() {
   return read_fifo_mode_; 
 }
 //
+void ALCTController::SetAcceleratorPretrigThresh(int accelerator_pretrig_thresh) {
+  //
+  write_accelerator_pretrig_thresh_ = accelerator_pretrig_thresh;
+  return;
+}
+//
+int ALCTController::GetAcceleratorPretrigThresh() {
+  //
+  return read_accelerator_pretrig_thresh_;
+}
+//
 void ALCTController::SetL1aDelay(int l1a_delay) { 
   //
   write_l1a_delay_ = l1a_delay; 
@@ -2643,6 +2578,17 @@ int ALCTController::GetBoardId() {
   return read_board_id_; 
 }
 //
+void ALCTController::SetAcceleratorPatternThresh(int accelerator_pattern_thresh) {
+  //
+  write_accelerator_pattern_thresh_ = accelerator_pattern_thresh;
+  return;
+}
+//
+int ALCTController::GetAcceleratorPatternThresh() {
+  //
+  return read_accelerator_pattern_thresh_;
+}
+//
 void ALCTController::SetCcbEnable(int ccb_enable) { 
   //
   write_ccb_enable_ = ccb_enable; 
@@ -2652,6 +2598,17 @@ void ALCTController::SetCcbEnable(int ccb_enable) {
 int ALCTController::GetCcbEnable() { 
   //
   return read_ccb_enable_; 
+}
+//
+void ALCTController::SetConfigInReadout(int config_in_readout) {
+  //
+  write_config_in_readout_ = config_in_readout;
+  return;
+}
+//
+int ALCTController::GetConfigInReadout() {
+  //
+  return read_config_in_readout_;
 }
 //
 void ALCTController::SetAlctAmode(int alct_amode) { 
@@ -2744,6 +2701,11 @@ void ALCTController::DecodeConfigurationReg_(){
 				number_of_bits,
 				LSBfirst);
   //
+  number_of_bits = accelerator_pretrig_thresh_bithi - accelerator_pretrig_thresh_bitlo + 1;
+  read_accelerator_pretrig_thresh_ = bits_to_int(read_config_reg_+accelerator_pretrig_thresh_bitlo,
+						 number_of_bits,
+						 LSBfirst);
+  //
   number_of_bits = l1a_delay_bithi - l1a_delay_bitlo + 1;
   read_l1a_delay_ = bits_to_int(read_config_reg_+l1a_delay_bitlo,
 				number_of_bits,
@@ -2769,10 +2731,20 @@ void ALCTController::DecodeConfigurationReg_(){
 			       number_of_bits,
 			       LSBfirst);
   //
+  number_of_bits = accelerator_pattern_thresh_bithi - accelerator_pattern_thresh_bitlo + 1;
+  read_accelerator_pattern_thresh_ = bits_to_int(read_config_reg_+accelerator_pattern_thresh_bitlo,
+						 number_of_bits,
+						 LSBfirst);
+  //
   number_of_bits = ccb_enable_bithi - ccb_enable_bitlo + 1;
   read_ccb_enable_ = bits_to_int(read_config_reg_+ccb_enable_bitlo,
 				 number_of_bits,
 				 LSBfirst);
+  //
+  number_of_bits = config_in_readout_bithi - config_in_readout_bitlo + 1;
+  read_config_in_readout_ = bits_to_int(read_config_reg_+config_in_readout_bitlo,
+					number_of_bits,
+					LSBfirst);
   //
   number_of_bits = alct_amode_bithi - alct_amode_bitlo + 1;
   read_alct_amode_ = bits_to_int(read_config_reg_+alct_amode_bitlo,
@@ -2851,6 +2823,11 @@ void ALCTController::FillConfigurationReg_(){
 	      write_config_reg_+alct_fifo_mode_bitlo,
 	      LSBfirst);
   //
+  int_to_bits(write_accelerator_pretrig_thresh_,
+	      accelerator_pretrig_thresh_bithi-accelerator_pretrig_thresh_bitlo+1,
+	      write_config_reg_+accelerator_pretrig_thresh_bitlo,
+	      LSBfirst);
+  //
   int_to_bits(write_l1a_delay_,
 	      l1a_delay_bithi-l1a_delay_bitlo+1,
 	      write_config_reg_+l1a_delay_bitlo,
@@ -2876,9 +2853,19 @@ void ALCTController::FillConfigurationReg_(){
 	      write_config_reg_+board_id_bitlo,
 	      LSBfirst);
   //
+  int_to_bits(write_accelerator_pattern_thresh_,
+	      accelerator_pattern_thresh_bithi-accelerator_pattern_thresh_bitlo+1,
+	      write_config_reg_+accelerator_pattern_thresh_bitlo,
+	      LSBfirst);
+  //
   int_to_bits(write_ccb_enable_,
 	      ccb_enable_bithi-ccb_enable_bitlo+1,
 	      write_config_reg_+ccb_enable_bitlo,
+	      LSBfirst);
+  //
+  int_to_bits(write_config_in_readout_,
+	      config_in_readout_bithi-config_in_readout_bitlo+1,
+	      write_config_reg_+config_in_readout_bitlo,
 	      LSBfirst);
   //
   int_to_bits(write_alct_amode_,
@@ -2904,31 +2891,29 @@ void ALCTController::SetPowerUpConfigurationReg() {
   for (int i=0; i<RegSizeAlctFastFpga_WRT_CONFIG_REG; i++)
     write_config_reg_[i] = 0;
   //
-  SetTriggerMode(0);                      
-  SetExtTrigEnable(0);                    
-  SetSendEmpty(0);                        
-  SetInjectMode(0);                       
-  SetBxcOffset(1);                        
-  SetPretrigNumberOfLayers(2);            
-  SetPretrigNumberOfPattern(4);           
-  SetDriftDelay(3);                       
-  SetFifoTbins(10);                       
-  SetFifoPretrig(8);                      
-  SetFifoMode(1);                         
-  //  SetFifoLastLct(0); ->no longer supported
-  SetL1aDelay(146);                       
-  SetL1aWindowSize(3);                    
-  SetL1aOffset(1);                        
-  SetL1aInternal(0);                      
-  SetBoardId(5);                          
-  //  SetBxnOffset(0);   ->no longer supported
-  SetCcbEnable(1);                        
-  //  SetAlctJtagDs(1);  ->no longer supported
-  //  SetAlctTmode(0);   ->no longer supported
-  SetAlctAmode(0);                        
-  //  SetAlctMaskAll(0); ->no longer supported
-  SetTriggerInfoEnable(0);                
-  SetSnSelect(0);                         
+  SetTriggerMode(trigger_mode_default);                      
+  SetExtTrigEnable(ext_trig_enable_default);                    
+  SetSendEmpty(send_empty_default);                        
+  SetInjectMode(inject_default);                       
+  SetBxcOffset(bxc_offset_default);                        
+  SetPretrigNumberOfLayers(nph_thresh_default);            
+  SetPretrigNumberOfPattern(nph_pattern_default);           
+  SetDriftDelay(alct_drift_delay_default);                       
+  SetFifoTbins(alct_fifo_tbins_default);                       
+  SetFifoPretrig(alct_fifo_pretrig_default);                      
+  SetFifoMode(alct_fifo_mode_default);                         
+  SetAcceleratorPretrigThresh(accelerator_pretrig_thresh_default);
+  SetL1aDelay(l1a_delay_default);                       
+  SetL1aWindowSize(l1a_window_default);                    
+  SetL1aOffset(alct_l1a_offset_default);                        
+  SetL1aInternal(l1a_internal_default);                      
+  SetBoardId(board_id_default);                          
+  SetAcceleratorPatternThresh(accelerator_pattern_thresh_default);
+  SetCcbEnable(ccb_enable_default);                        
+  SetConfigInReadout(config_in_readout_default);
+  SetAlctAmode(alct_amode_default);                        
+  SetTriggerInfoEnable(trigger_info_en_default);                
+  SetSnSelect(sn_select_default);                         
   //
   return;
 }
