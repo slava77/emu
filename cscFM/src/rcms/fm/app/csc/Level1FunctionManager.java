@@ -3,6 +3,10 @@ package rcms.fm.app.csc;
 import rcms.fm.fw.user.*;
 import rcms.fm.fw.EventHandlerException;
 import rcms.statemachine.definition.StateMachineDefinitionException;
+import rcms.fm.resource.*;
+import rcms.fm.resource.qualifiedresource.*;
+
+import java.util.List;
 
 import rcms.util.logger.RCMSLogger;
 
@@ -30,6 +34,40 @@ public class Level1FunctionManager extends UserFunctionManager {
 	 */
 	public void destroyAction() throws UserActionException {
 		logger.debug("Level1FunctionManager.destroyAction");
+
+		QualifiedGroup group = getQualifiedGroup();
+
+		List<QualifiedResource> list;
+
+		// destroy XDAQ executives
+		list = group.seekQualifiedResourcesOfType(new XdaqExecutive());
+
+		for (QualifiedResource r: list) {
+			logger.debug("==== killing " + r.getURI());
+			try {
+				((XdaqExecutive)r).killMe();
+			} catch (Exception e) {
+				logger.error(
+						"Could not destroy a XDAQ executive " + r.getURI(), e);
+			}
+		}
+
+		// destroy function managers
+		list = group.seekQualifiedResourcesOfType(new FunctionManager());
+
+		for (QualifiedResource r: list) {
+			logger.debug("==== killing " + r.getURI());
+
+			FunctionManager fm = (FunctionManager)r;
+
+			if (fm.isInitialized()) {
+				try {
+					fm.destroy();
+				} catch (Exception e) {
+					logger.error("Could not destroy a FM " + r.getURI(), e);
+				}
+			}
+		}
 	}
 
 	/*
