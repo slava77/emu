@@ -22,17 +22,29 @@ const string       DMB_FIRMWARE_FILENAME    = "dmb/mtcc_phase2_cntl_20060928/dmb
 const unsigned int EXPECTED_DMB_USERID      = 0x48547204;
 const string       DMBVME_FIRMWARE_FILENAME = "dmb/mtcc_phase2_vme_20061004/dmb6vme_v10_r2.svf";
 //
-const string ALCT_FIRMWARE_FILENAME_ME11 = "alct/feature_id_20061016/alct288bp_rl.svf";
-const string ALCT_FIRMWARE_FILENAME_ME12 = "alct/feature_id_20061016/alct384rl.svf";
-const string ALCT_FIRMWARE_FILENAME_ME13 = "alct/feature_id_20061016/alct288rl.svf";
-const string ALCT_FIRMWARE_FILENAME_ME21 = "alct/feature_id_20061016/alct672rl.svf";
-const string ALCT_FIRMWARE_FILENAME_ME22 = "alct/feature_id_20061016/alct384rl.svf";
-const string ALCT_FIRMWARE_FILENAME_ME31 = "alct/feature_id_20061016/alct672mirrorrl.svf";
-const string ALCT_FIRMWARE_FILENAME_ME32 = "alct/feature_id_20061016/alct384mirrorrl.svf";
-const string ALCT_FIRMWARE_FILENAME_ME41 = "alct/feature_id_20061016/alct672mirrorrl.svf";
+//In order to load firmware automatically from the firmware values in the xml files, 
+//the firmware needs to reside in directories in the form:
+//    TMB  ->  $HOME/firmware/tmb/YEARMONTHDAY/tmb.svf
+//    RAT  ->  $HOME/firmware/rat/YEARMONTHDAY/rat.svf
+//    ALCT ->  $HOME/firmware/alct/YEARMONTHDAY/alctXXX/alctXXX.svf
+// with the zero-values filled in with 0's.  
+// In other words:  9 April 2007 firmware should reside in YEARMONTHDAY=20070409
 //
-const string RAT_FIRMWARE_FILENAME = "rat/hard_reset_20060905/rat09052006.svf";
-const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
+// The XXX in the ALCT firmware specification corresponds to the following structure:
+const string ALCT_FIRMWARE_FILENAME_ME11 = "alct288/alct288.svf";
+const string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE = "alct288bn/alct288bn.svf";
+const string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE = "alct288bp/alct288bp.svf";
+const string ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE  = "alct288fp/alct288fp.svf";
+const string ALCT_FIRMWARE_FILENAME_ME12 = "alct384/alct384.svf";
+const string ALCT_FIRMWARE_FILENAME_ME13 = "alct192/alct192.svf";
+const string ALCT_FIRMWARE_FILENAME_ME21 = "alct672/alct672.svf";
+const string ALCT_FIRMWARE_FILENAME_ME22 = "alct384/alct384.svf";
+const string ALCT_FIRMWARE_FILENAME_ME31 = "alct576mirror/alct576mirror.svf";
+const string ALCT_FIRMWARE_FILENAME_ME32 = "alct384mirror/alct384mirror.svf";
+const string ALCT_FIRMWARE_FILENAME_ME41 = "alct672mirror/alct672mirror.svf";
+//
+// N.B. not yet able to load automatically from xml for RAT...
+const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
 //
 //
 
@@ -4954,16 +4966,27 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     //
     alct->ReadFastControlId();
     //
-    // NEED TO PUT IN ALCT FIRMWARE FORWARD/BACKWARD NEGATIVE/POSITIVE GREEN/RED FLAG FOR ME11...
-    //
     if (alct->GetFastControlRegularMirrorType() == alct->GetExpectedFastControlRegularMirrorType() &&
 	alct->GetFastControlAlctType()          == alct->GetExpectedFastControlAlctType()          &&
 	alct->GetFastControlYear()              == alct->GetExpectedFastControlYear()              &&
 	alct->GetFastControlMonth()             == alct->GetExpectedFastControlMonth()             &&
 	alct->GetFastControlDay()               == alct->GetExpectedFastControlDay()               ) {
-	*out << cgicc::span().set("style","color:green");
+      //
+      // OK to this point... further checks for ME11...
+      if ( (alct->GetChamberType()).find("ME11") != string::npos ) {
+	//
+	if (alct->GetFastControlBackwardForwardType()  == alct->GetExpectedFastControlBackwardForwardType() &&
+	    alct->GetFastControlNegativePositiveType() == alct->GetExpectedFastControlNegativePositiveType() ) {
+	  *out << cgicc::span().set("style","color:green");  //OK if in here and ME11
+	} else {
+	  *out << cgicc::span().set("style","color:red");    //not OK if didn't pass this check and ME11
+	}
+      } else {
+	*out << cgicc::span().set("style","color:green");    //OK if in here and not ME11
+      }
     } else { 
-	*out << cgicc::span().set("style","color:red");
+      //
+      *out << cgicc::span().set("style","color:red");      //didn't pass first checks
     }
     //
     alct->RedirectOutput(out);
@@ -7124,8 +7147,15 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
     //
     *out << cgicc::legend("TMB Utils").set("style","color:blue") ;
     //
-    //std::string TMBFirmware = FirmwareDir_+"tmb/tmb09052005.svf";
-    std::string TMBFirmware = FirmwareDir_+TMB_FIRMWARE_FILENAME;
+    //create filename for firmware based on expected dates...
+    char date[8];
+    sprintf(date,"%4x%1x%1x%1x%1x",
+	    thisTMB->GetExpectedTmbFirmwareYear()&0xffff,
+	    (thisTMB->GetExpectedTmbFirmwareMonth()>>4)&0xf,
+	    (thisTMB->GetExpectedTmbFirmwareMonth()   )&0xf,
+	    (thisTMB->GetExpectedTmbFirmwareDay()  >>4)&0xf,
+	    (thisTMB->GetExpectedTmbFirmwareDay()     )&0xf);
+    std::string TMBFirmware = FirmwareDir_+"tmb/"+date+"/tmb.svf";
     TMBFirmware_ = TMBFirmware;
     //
     std::string LoadTMBFirmware =
@@ -7454,25 +7484,46 @@ const string TMB_FIRMWARE_FILENAME = "tmb/hard_reset_20060905/tmb09052006.svf";
 	std::cout << "No ALCT present" << std::endl;
 	return;
       }
-      std::string ALCTFirmware = FirmwareDir_;
+      //create filename for firmware based on expected dates...
+      char date[8];
+      sprintf(date,"%4x%1x%1x%1x%1x",
+	      (alct->GetExpectedFastControlYear()&0xffff),
+	      (alct->GetExpectedFastControlMonth()>>4)&0xf,
+	      (alct->GetExpectedFastControlMonth()   )&0xf,
+	      (alct->GetExpectedFastControlDay()  >>4)&0xf,
+	      (alct->GetExpectedFastControlDay()     )&0xf);
       //
-      if ( (alct->GetChamberType()).find("ME22") != string::npos ) {
-	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME22;
+      std::string ALCTFirmware = FirmwareDir_+"alct/"+date+"/";
+      //
+      if ( (alct->GetChamberType()).find("ME11") != string::npos ) {
+	//
+	if (alct->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
+	    alct->GetExpectedFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE ) {
+	  ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE;
+	} else if (alct->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
+		   alct->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
+	  ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE;
+	} else if (alct->GetExpectedFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE &&
+		   alct->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
+	  ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE;
+	} else {
+	  ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME11;
+	}
       } else if ( (alct->GetChamberType()).find("ME12") != string::npos ) {
 	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME12;
       } else if ( (alct->GetChamberType()).find("ME13") != string::npos ) {
 	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME13;
       } else if ( (alct->GetChamberType()).find("ME21") != string::npos ) {
 	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME21;
-      } else if ( (alct->GetChamberType()).find("ME41") != string::npos ) {
-	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME41;
+      } else if ( (alct->GetChamberType()).find("ME22") != string::npos ) {
+	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME22;
       } else if ( (alct->GetChamberType()).find("ME31") != string::npos ) {
 	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME31;
       } else if ( (alct->GetChamberType()).find("ME32") != string::npos ) {
 	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME32;
-      } else if ( (alct->GetChamberType()).find("ME11") != string::npos ) {
-	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME11;
-      }
+      } else if ( (alct->GetChamberType()).find("ME41") != string::npos ) {
+	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME41;
+      } 
       //
       ALCTFirmware_ = ALCTFirmware;
       std::cout <<  "Programming ALCT firmware - slot " << thisTMB->slot() 
