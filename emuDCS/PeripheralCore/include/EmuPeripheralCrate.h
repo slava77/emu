@@ -53,6 +53,8 @@
 
 #include "EmuApplication.h"
 
+int DMBBoardNumber[10];
+int CFEBBoardNumber[10][5];
 //
 //#ifdef STANDALONE
 //class EmuPeripheralCrate: public xdaq::Application 
@@ -96,6 +98,10 @@ protected:
   bool DisplayRatio_;
   bool AutoRefresh_;
   int MenuMonitor_;
+  //
+  xdata::String CalibType_;
+  xdata::UnsignedInteger CalibNumber_;
+  string CalibTypeStr_; 
   //
   std::string xmlFile;
   xdata::UnsignedLong myParameter_;
@@ -167,6 +173,11 @@ public:
   void EmuPeripheralCrate::actionPerformed (xdata::Event& e);  
   void EmuPeripheralCrate::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void EmuPeripheralCrate::MainPage(xgi::Input * in, xgi::Output * out );
+
+  xoap::MessageReference ReadAllVmePromUserid (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference LoadAllVmePromUserid (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference ReadAllCfebPromUserid (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference LoadAllCfebPromUserid (xoap::MessageReference message) throw (xoap::exception::Exception);
 
 private:
 
