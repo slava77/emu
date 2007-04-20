@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.6 2007/04/18 15:43:52 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.7 2007/04/20 13:38:44 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -55,6 +55,10 @@ using namespace std;
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryLTC, "SendSOAPMessageQueryLTC");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryLTC, "SendSOAPMessageQueryJobControl");
     xgi::bind(this,&EmuPeripheralCrateManager::CheckEmuPeripheralCrateCalibrationState, "CheckEmuPeripheralCrateCalibrationState");
+    xgi::bind(this,&EmuPeripheralCrateManager::LoadDMBCFEBFPGAFirmware, "LoadDMBCFEBFPGAFirmware");
+    xgi::bind(this,&EmuPeripheralCrateManager::LoadDMBControlFPGAFirmware, "LoadDMBControlFPGAFirmware");
+    xgi::bind(this,&EmuPeripheralCrateManager::LoadDMBvmeFPGAFirmware, "LoadDMBvmeFPGAFirmware");
+    xgi::bind(this,&EmuPeripheralCrateManager::LoadCFEBFPGAFirmware, "LoadCFEBFPGAFirmware");
     //
     xgi::bind(this,&EmuPeripheralCrateManager::UploadDB, "UpLoadDB");
     xgi::bind(this,&EmuPeripheralCrateManager::RetrieveTStoreTable, "RetrieveTStoreTable");
@@ -382,6 +386,17 @@ using namespace std;
     *out << cgicc::form().set("method","GET").set("action",CheckCalibrationState) << std::endl ;
     *out << cgicc::input().set("type","submit")
       .set("value","Check Calibration State") << std::endl ;
+    *out << cgicc::form();
+    //
+    *out << cgicc::fieldset();
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    std::string LoadDMBCFEBFPGA =
+      toolbox::toString("/%s/LoadDMBCFEBFPGAFirmware",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",LoadDMBCFEBFPGA) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","!!!      BroadCast Load DMB/CFEB FPGA Firmware      !!!") << std::endl ;
     *out << cgicc::form();
     //
     /*
@@ -964,6 +979,116 @@ using namespace std;
     //
   }
   //
+  void EmuPeripheralCrateManager::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out ){
+
+    MyHeader(in,out,"Load DAQMB/CFEB FPGA Firmware,  Be extra careful    !!!");
+
+    //define broadcast crate and board, if not defined before
+    if (!broadcastCrate) {
+      cout <<" Broadcast crate has not been defined yet"<<endl;
+      MyController = new EmuController();
+      MyController->SetConfFile("/home/cscpc/v4.1/TriDAS/emu/emuDCS/PeripheralCrate/xml/broadcast.xml");
+      MyController->init();
+      CrateSelector selector = MyController->selector();
+      vector<Crate *> tmpcrate=selector.broadcast_crate();
+      broadcastCrate=tmpcrate[0];
+      broadcastDMB=selector.daqmbs(tmpcrate[0])[0];
+      broadcastTMB=selector.tmbs(tmpcrate[0])[0];
+    }
+    cout <<" Broadcast Crate and DMB are defined "<<endl;
+
+    // load the DAQMB Controller FPGA firmware
+    char *outp="0";
+    cout <<" Loading all the DMBs, CFEBs FPGAs firmware ..."<<endl;
+
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+
+    std::string LoadDMBControlFPGA =
+      toolbox::toString("/%s/LoadDMBControlFPGAFirmware",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",LoadDMBControlFPGA) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Load DMBs Control FPGA Firmware") << std::endl ;
+    *out << cgicc::form()<<std::endl;
+    std::string LoadDMBvmeFPGA =
+      toolbox::toString("/%s/LoadDMBvmeFPGAFirmware",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",LoadDMBvmeFPGA) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Load DMBs VME FPGA Firmware") << std::endl ;
+    *out << cgicc::form()<<std::endl;
+
+    std::string LoadCFEBFPGA =
+      toolbox::toString("/%s/LoadCFEBFPGAFirmware",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",LoadCFEBFPGA) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Load CFEBs FPGA Firmware") << std::endl ;
+    *out << cgicc::form()<<std::endl;
+
+    *out << cgicc::fieldset()<<std::endl;
+    //
+
+  }
+  //
+  void EmuPeripheralCrateManager::LoadDMBControlFPGAFirmware(xgi::Input * in, xgi::Output * out )  {
+
+    // load the DAQMB Controller FPGA firmware
+    char *outp="0";
+    cout <<" Loading all the DMB's Controller FPGAs firmware ..."<<endl;
+    // broadcastDMB->epromload(MPROM,"/home/cscpc/firmware/dmb/dmb6cntl_pro.svf",1,outp);
+    in=NULL;
+    this->LoadDMBCFEBFPGAFirmware(in, out);
+  }
+  //
+  void EmuPeripheralCrateManager::LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception) {
+    //    cgicc::Cgicc cgi(in);
+    // load the DAQMB VME FPGA firmware
+    char *outp="0";
+    cout <<" Loading all the DMB's VME FPGAs firmware ..."<<endl;
+    cout <<" Step 1: Sending soup message to all the crates to readback the VME_PROM_ID"<<endl;
+    cout <<"         This is the DMB board number"<<endl;
+
+    //SOAP message to read back the DMB board ID:
+    PCsendCommand("ReadVmePromUserid","EmuPeripheralCrate");
+
+    cout <<" Step 2: Broadcast programming the VME until the 'loading USERCODE' point"<<endl;
+    //    broadcastDMB->epromload_broadcast(VPROM,"/home/cscpc/firmware/dmb/dmb6vme_pro.svf",1,outp,1);
+
+    cout <<" Step 3: Sending SOAP message to program PROM_USERCODE"<<endl;
+    //SOAP message to individual crates to program the PROM_USERCODE
+    PCsendCommand("LoadVmePromUserid","EmuPeripheralCrate");
+
+    cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
+    //broadcastDMB->epromload_broadcast(VPROM,"/home/cscpc/firmware/dmb/dmb6vme_pro.svf",1,outp,3);
+
+    this->LoadDMBCFEBFPGAFirmware(in, out);
+  }
+  //
+  void EmuPeripheralCrateManager::LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out ) {
+
+    // load the CFEB FPGA firmware
+    char *outp="0";
+    cout <<" Loading all the CFEBs FPGAs firmware ..."<<endl;
+
+    cout <<" Step 1: Sending soup message to all the crates to readback the CFEB_PROM_ID"<<endl;
+    cout <<"         This is the CFEB board number"<<endl;
+    //SOAP message to read back the CFEB board ID:
+    PCsendCommand("ReadCfebPromUserid","EmuPeripheralCrate");
+
+    cout <<" Step 2: Broadcast programming the CFEB until the 'loading USERCODE' point"<<endl;
+    broadcastDMB->epromload_broadcast(FAPROM,"/home/cscpc/firmware/cfeb/cfeb_pro.svf",1,outp,1);
+
+    cout <<" Step 3: Sending SOAP message to program CFEB PROM_USERCODE"<<endl;
+    //SOAP message to individual crates to program the CFEB PROM_USERCODE
+    PCsendCommand("LoadCfebPromUserid","EmuPeripheralCrate");
+
+    cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
+    broadcastDMB->epromload_broadcast(FAPROM,"/home/cscpc/firmware/cfeb/cfeb_pro.svf",1,outp,3);
+
+    this->LoadDMBCFEBFPGAFirmware(in, out);
+  }
+  //
   void EmuPeripheralCrateManager::configureAction(toolbox::Event::Reference e) 
     throw (toolbox::fsm::exception::Exception)
     {
@@ -1177,18 +1302,20 @@ using namespace std;
     int nsleep = 100;  
     std::cout << "DMB setup for calibration " << std::endl;
     calsetup=0;
-    dac=1.37;
+    dac=1.00;
 
-    //define broadcast crate and board
-    MyController = new EmuController();
-    MyController->SetConfFile("/home/cscpc/v4.1/TriDAS/emu/emuDCS/PeripheralCrate/xml/broadcast.xml");
-    MyController->init();
-    CrateSelector selector = MyController->selector();
-    vector<Crate *> tmpcrate=selector.broadcast_crate();
-    broadcastCrate=tmpcrate[0];
-    broadcastDMB=selector.daqmbs(tmpcrate[0])[0];
-    broadcastTMB=selector.tmbs(tmpcrate[0])[0];
-
+    //define broadcast crate and board, if not defined before
+    if (!broadcastCrate) {
+      cout <<" Broadcast crate has not been defined yet"<<endl;
+      MyController = new EmuController();
+      MyController->SetConfFile("/home/cscpc/v4.1/TriDAS/emu/emuDCS/PeripheralCrate/xml/broadcast.xml");
+      MyController->init();
+      CrateSelector selector = MyController->selector();
+      vector<Crate *> tmpcrate=selector.broadcast_crate();
+      broadcastCrate=tmpcrate[0];
+      broadcastDMB=selector.daqmbs(tmpcrate[0])[0];
+      broadcastTMB=selector.tmbs(tmpcrate[0])[0];
+    }
     cout <<" Broadcast Crate and DMB are defined "<<endl;
 
     broadcastTMB->DisableCLCTInputs();
@@ -1256,7 +1383,6 @@ using namespace std;
 
   xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBTime (xoap::MessageReference message) throw (xoap::exception::Exception)
   {
-    float dac;
     int nsleep = 100;  
     //
     std::cout<< "This is a checking printing for OnEnableCalCFEBTime"<<std::endl;
@@ -2416,6 +2542,82 @@ using namespace std;
     //
   }
   //  
+//This is copied from CSCSupervisor::sendcommand;
+  void EmuPeripheralCrateManager::PCsendCommand(string command, string klass)
+		throw (xoap::exception::Exception, xdaq::exception::Exception)
+  {
+	// Exceptions:
+	// xoap exceptions are thrown by analyzeReply() for SOAP faults.
+	// xdaq exceptions are thrown by postSOAP() for socket level errors.
+
+	// find applications
+    std::set<xdaq::ApplicationDescriptor *> apps;
+    try {
+      apps = getApplicationContext()->getDefaultZone()
+		    ->getApplicationDescriptors(klass);
+    } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+      return; // Do nothing if the target doesn't exist
+    }
+
+    // prepare a SOAP message
+    xoap::MessageReference message = PCcreateCommandSOAP(command);
+    xoap::MessageReference reply;
+
+    // send the message one-by-one
+    std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
+    for (; i != apps.end(); ++i) {
+      // postSOAP() may throw an exception when failed.
+      reply = getApplicationContext()->postSOAP(message, *i);
+
+      //      PCanalyzeReply(message, reply, *i);
+    }
+  }
+//
+//This is copied from CSCSupervisor::createCommandSOAP
+  xoap::MessageReference EmuPeripheralCrateManager::PCcreateCommandSOAP(string command)
+  {
+    xoap::MessageReference message = xoap::createMessage();
+    xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+    xoap::SOAPName name = envelope.createName(command, "xdaq", "urn:xdaq-soap:3.0");
+    envelope.getBody().addBodyElement(name);
+
+    return message;
+  }
+//
+/*This is copied from CSCSupervisor::analyzeReply
+  void EmuPeripheralCrateManager::PCanalyzeReply(
+		xoap::MessageReference message, xoap::MessageReference reply,
+		xdaq::ApplicationDescriptor *app)
+  {
+    string message_str, reply_str;
+
+    reply->writeTo(reply_str);
+    ostringstream s;
+    s << "Reply from "
+      << app->getClassName() << "(" << app->getInstance() << ")" << endl
+      << reply_str;
+    last_log_.add(s.str());
+    LOG4CPLUS_DEBUG(getApplicationLogger(), reply_str);
+
+    xoap::SOAPBody body = reply->getSOAPPart().getEnvelope().getBody();
+
+    // do nothing when no fault
+    if (!body.hasFault()) { return; }
+
+    ostringstream error;
+
+    error << "SOAP message: " << endl;
+    message->writeTo(message_str);
+    error << message_str << endl;
+    error << "Fault string: " << endl;
+    error << reply_str << endl;
+
+    LOG4CPLUS_ERROR(getApplicationLogger(), error.str());
+    XCEPT_RAISE(xoap::exception::Exception, "SOAP fault: \n" + reply_str);
+
+    return;
+  }
+*/
 
 //
 // provides factory method for instantion of SimpleSOAPSender application
