@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.16 2007/04/12 16:39:49 gujh Exp $
+// $Id: DAQMB.h,v 3.17 2007/04/20 16:07:48 gujh Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.17  2007/04/20 16:07:48  gujh
+// Added epromload_broadcast
+//     --- Apr. 20, 2007   GU
+//
 // Revision 3.16  2007/04/12 16:39:49  gujh
 // Added buck_shift_ext_bc(strip) function
 //     Apr. 12, 2007.  GU
@@ -297,6 +301,7 @@ public:
   void preamp_initx();
 // DAQMB program proms (electronics experts only)
   void epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum);
+  void epromload_broadcast(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum, int ipass);
   void epromloadOld(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum);
   void rdbkvirtex(DEVTYPE);
   void rdbkvirtexII();
