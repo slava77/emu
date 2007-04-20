@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.30 2007/04/18 15:45:23 gujh Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.31 2007/04/20 13:39:45 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -86,6 +86,10 @@ public:
   void AddRow(int Row,xdata::Table & table, std::vector<std::string> NewColumn);
   int CompareEmuPeripheralCrateState(std::string state_compare);
   void CheckEmuPeripheralCrateCalibrationState(xgi::Input * in, xgi::Output * out );
+  void LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out );
+  void LoadDMBControlFPGAFirmware(xgi::Input * in, xgi::Output * out );
+  void LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::Output * out ) throw(xgi::exception::Exception);
+  void LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out );
   void configureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
   void enableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
   void disableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
@@ -134,7 +138,10 @@ public:
   void SendSOAPMessageConfigureXRelay(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void SendSOAPMessageCalibrationXRelay(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void SendSOAPMessageConfigure(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-   
+  void PCsendCommand(string command, string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
+  xoap::MessageReference PCcreateCommandSOAP(string command);
+  //  void PCanalyzeReply(xoap::MessageReference message, xoap::MessageReference reply,xdaq::ApplicationDescriptor *app);
+
   xoap::MessageReference killAllMessage();
   xoap::MessageReference QueryPeripheralCrateInfoSpace();
   xoap::MessageReference QueryLTCInfoSpace();
