@@ -6,7 +6,7 @@
 #include <vector>
 #include <stdexcept>
 #include <iostream>
-#include<unistd.h> // for sleep()
+#include <unistd.h> // for sleep()
 #include <sstream>
 #include <cstdlib>
 #include <iomanip>
@@ -15,12 +15,12 @@
 using namespace cgicc;
 using namespace std;
 
-const string       CFEB_FIRMWARE_FILENAME = "cfeb/mtcc_phase2_20060925/cfeb_v7_r1.svf";
-const unsigned int EXPECTED_CFEB_USERID   = 0xcfeda071;
+const string       CFEB_FIRMWARE_FILENAME = "cfeb/cfeb_pro.svf";
+const unsigned int EXPECTED_CFEB_USERID   = 0xcfeda092;
 //
-const string       DMB_FIRMWARE_FILENAME    = "dmb/mtcc_phase2_cntl_20060928/dmb6cntl_v20_r4.svf";
-const unsigned int EXPECTED_DMB_USERID      = 0x48547204;
-const string       DMBVME_FIRMWARE_FILENAME = "dmb/mtcc_phase2_vme_20061004/dmb6vme_v10_r2.svf";
+const string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_pro.svf";
+const unsigned int EXPECTED_DMB_USERID      = 0x48547231;
+const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
 //
 //In order to load firmware automatically from the firmware values in the xml files, 
 //the firmware needs to reside in directories in the form:
@@ -220,6 +220,12 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     xgi::bind(this,&EmuPeripheralCrate::MonitorFrameLeft, "MonitorFrameLeft");
     xgi::bind(this,&EmuPeripheralCrate::MonitorFrameRight, "MonitorFrameRight");
     xgi::bind(this,&EmuPeripheralCrate::ResetAllCounters, "ResetAllCounters");
+
+    xoap::bind(this,&EmuPeripheralCrate::ReadAllVmePromUserid, "ReadVmePromUserid", XDAQ_NS_URI);
+    xoap::bind(this,&EmuPeripheralCrate::LoadAllVmePromUserid, "LoadVmePromUserid", XDAQ_NS_URI);
+    xoap::bind(this,&EmuPeripheralCrate::ReadAllCfebPromUserid, "ReadCfebPromUserid", XDAQ_NS_URI);
+    xoap::bind(this,&EmuPeripheralCrate::LoadAllCfebPromUserid, "LoadCfebPromUserid", XDAQ_NS_URI);
+
     //
     //
     // SOAP call-back functions, which relays to *Action method.
@@ -255,6 +261,9 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     fsm_.setInitialState('H');
     fsm_.reset();    
     //
+    getApplicationInfoSpace()->fireItemAvailable("Calibtype", &CalibType_);
+    getApplicationInfoSpace()->fireItemAvailable("Calibnumber", &CalibNumber_);
+
     // state_ is defined in EmuApplication
     state_ = fsm_.getStateName(fsm_.getCurrentState());
     //
@@ -544,7 +553,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       //ostringstream test;
       //message->writeTo(test);
       //
-      string setting = extractCalibrationSetting(message);
+      //string setting = extractCalibrationSetting(message);
       //
       //LOG4CPLUS_INFO(getApplicationLogger(), test.str());
       //LOG4CPLUS_INFO(getApplicationLogger(), "Next");
@@ -552,15 +561,27 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       //LOG4CPLUS_INFO(getApplicationLogger(), "Done");
       //
       //
-      CalibrationState_ = "Busy";
+      //CalibrationState_ = "Busy";
       //
       // Do something
       //
-      LOG4CPLUS_INFO(getApplicationLogger(), setting);
+      //LOG4CPLUS_INFO(getApplicationLogger(), setting);
       //
       ::sleep(1);
       //
-      CalibrationState_ = setting;
+      cout<<"soap Apr.11, 2007 "<<endl;
+      cout<<"Entered the EMUPERIPHERALCRATE.cc "<<endl;
+      printf(" LSD: Entered Calibration \n"); 
+       ostringstream test;
+       message->writeTo(test);
+       cout << test.str() << endl;
+        printf(" Print calibtype \n");
+	std::string junk = CalibType_;
+        cout << junk << endl;
+        printf(" Print calibnumber \n");
+        cout << CalibNumber_ << endl;
+
+	//CalibrationState_ = setting;
       //
       return createReply(message);
     }
@@ -601,6 +622,8 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     throw (toolbox::fsm::exception::Exception)
   {
     //
+    printf(" LSD: comment out ConfigureInit for now \n");
+
     ConfigureInit();
     //
     std::cout << "Configure" << std::endl ;
@@ -4412,10 +4435,10 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     int mindmb = dmb;
     int maxdmb = dmb+1;
-    if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each dmb
-      mindmb = 0;
-      maxdmb = dmbVector.size()-1;
-    }
+    //    if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each dmb
+    //      mindmb = 0;
+    //      maxdmb = dmbVector.size()-1;
+    //    }
     //
     thisCCB->hardReset();
     //
@@ -4435,11 +4458,16 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
 	// dword[1] = 0xff00;  to manually change the DMB ID.
 	char * outp=(char *)dword;   // recast dword
 	thisDMB->epromload(VPROM,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
+	//Test the random trigger
+	//	thisDMB->set_rndmtrg_rate(-1);
+	//	thisDMB->set_rndmtrg_rate(-1);
+	//	thisDMB->toggle_rndmtrg_start();
+
       }
       //
     }
     ::sleep(1);
-    thisCCB->hardReset();
+    thisCCB->hardReset(); //disable this when testing the random_trigger
     //
     this->DMBUtils(in,out);
     //
@@ -8574,6 +8602,8 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       }
     }
     //
+    //cout <<"Entered Configuring"<<endl; //gujh APR20
+
     MyController->SetConfFile(xmlFile_.toString().c_str());
     MyController->init();
     //
@@ -8581,17 +8611,24 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     //-- Make sure that only one TMB in one crate is configured
     //
+    //cout <<" Read xml file GUJH"<<endl; //gujh APR20
+
     CrateSelector selector = MyController->selector();
     vector<Crate*> crateVector = selector.crates();
     //
     if (crateVector.size() > 1 ) LOG4CPLUS_ERROR(getApplicationLogger(),"Warning...this configuration file has more than one crate");
-    //
+    /* durkin kludge set up selectorbroadcasts
+    vector<Crate *> tmpcrate=selector.broadcast_crate();
+    broadcastCrate=tmpcrate[0];
+    broadcastDMB=selector.daqmbs(tmpcrate[0])[0];
+    */
     thisCrate = crateVector[0];
     tmbVector = selector.tmbs(crateVector[0]);
     //
     CrateUtils MyCrateUtils;
     MyCrateUtils.SetCrate(crateVector[0]);
     //
+    //cout<<" Crate defined GUJH"<<endl; //gujh APR20
     if ( ! crateVector[0] ) {
       std::cout << "Crate doesn't exist" << std::endl;
       assert(crateVector[0]);
@@ -8650,7 +8687,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
 	//
 	xmlFile_ = XMLname ;
 	//
-	Configuring();
+ 	Configuring();
 	//
 	this->Default(in,out);
 	//
@@ -9266,6 +9303,49 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
 	//XECPT_RAISE(xgi::exception::Exception, e.what());
       }
   }
+//
+  xoap::MessageReference EmuPeripheralCrate::ReadAllVmePromUserid (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    //implement the DMB VME PROM USER_CODE Readback
+    std::cout << "DMB VME PROM USER_CODE Readback " << std::endl;
+    for (int idmb=0;idmb<dmbVector.size();idmb++)
+    {
+      if ((dmbVector[idmb]->slot())<22) {
+	DAQMB * thisDMB=dmbVector[idmb];
+        unsigned long int boardnumber=thisDMB->mbpromuser(0);
+        DMBBoardNumber[idmb]=boardnumber;
+	cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<endl;
+	cout <<" This DMB Board Number: "<<DMBBoardNumber[idmb]<<endl<<endl;
+      }
+    }
+    return createReply(message);
+  }
+
+  xoap::MessageReference EmuPeripheralCrate::LoadAllVmePromUserid (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    //implement the DMB VME PROM USER_CODE programming
+    std::cout << "DMB VME PROM USER_CODE Programming " << std::endl;
+
+    return createReply(message);
+  }
+
+  xoap::MessageReference EmuPeripheralCrate::ReadAllCfebPromUserid (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    //implement the CFEB PROM USER_CODE Readback
+    std::cout << "CFEB PROM USER_CODE Readback " << std::endl;
+
+    return createReply(message);
+  }
+
+  xoap::MessageReference EmuPeripheralCrate::LoadAllCfebPromUserid (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    //implement the CFEB PROM USER_CODE programming
+    std::cout << "CFEB PROM USER_CODE Programming " << std::endl;
+
+    return createReply(message);
+  }
+
+
 
 //
 // provides factory method for instantion of HellWorld application
