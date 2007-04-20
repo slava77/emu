@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.7 2007/04/20 13:38:44 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.8 2007/04/20 16:03:57 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1036,7 +1036,7 @@ using namespace std;
     // load the DAQMB Controller FPGA firmware
     char *outp="0";
     cout <<" Loading all the DMB's Controller FPGAs firmware ..."<<endl;
-    // broadcastDMB->epromload(MPROM,"/home/cscpc/firmware/dmb/dmb6cntl_pro.svf",1,outp);
+    broadcastDMB->epromload(MPROM,"/home/cscpc/firmware/dmb/dmb6cntl_pro.svf",1,outp);
     in=NULL;
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
@@ -1053,14 +1053,14 @@ using namespace std;
     PCsendCommand("ReadVmePromUserid","EmuPeripheralCrate");
 
     cout <<" Step 2: Broadcast programming the VME until the 'loading USERCODE' point"<<endl;
-    //    broadcastDMB->epromload_broadcast(VPROM,"/home/cscpc/firmware/dmb/dmb6vme_pro.svf",1,outp,1);
+    broadcastDMB->epromload_broadcast(VPROM,"/home/cscpc/firmware/dmb/dmb6vme_pro.svf",1,outp,1);
 
     cout <<" Step 3: Sending SOAP message to program PROM_USERCODE"<<endl;
     //SOAP message to individual crates to program the PROM_USERCODE
     PCsendCommand("LoadVmePromUserid","EmuPeripheralCrate");
 
     cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
-    //broadcastDMB->epromload_broadcast(VPROM,"/home/cscpc/firmware/dmb/dmb6vme_pro.svf",1,outp,3);
+    broadcastDMB->epromload_broadcast(VPROM,"/home/cscpc/firmware/dmb/dmb6vme_pro.svf",1,outp,3);
 
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
