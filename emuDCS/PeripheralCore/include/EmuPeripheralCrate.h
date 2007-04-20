@@ -53,8 +53,8 @@
 
 #include "EmuApplication.h"
 
-int DMBBoardNumber[10];
-int CFEBBoardNumber[10][5];
+unsigned long int DMBBoardNumber[10];
+unsigned long int CFEBBoardNumber[10][5];
 //
 //#ifdef STANDALONE
 //class EmuPeripheralCrate: public xdaq::Application 
