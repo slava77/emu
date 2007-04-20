@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.23 2007/04/12 16:34:27 gujh Exp $
+// $Id: DAQMB.cc,v 3.24 2007/04/20 16:06:39 gujh Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.24  2007/04/20 16:06:39  gujh
+// Add epromdownload_broadcast for broadcast download
+//     --- Apr. 20, 2007  GU
+//
 // Revision 3.23  2007/04/12 16:34:27  gujh
 // Add the buck_shift_ext_bc(strip) function
 //     --- Apr. 12, 2007,  GU
@@ -3069,6 +3073,236 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
   // printf(" sndbuf %d %d %d \n",sndbuf[1],sndbuf[0],pause);
   //devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
   //
+}
+
+void DAQMB::epromload_broadcast(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum, int ipass)
+{
+  //
+  std::cout << "Broadcast epromload" << std::endl;
+  //
+  char snd[1024],expect[1024],rmask[1024],smask[1024],cmpbuf[1024];
+  DEVTYPE devstp,dv;
+  char *devstr;
+  FILE *dwnfp,*fpout;
+  char buf[8192],buf2[256];
+  char *Word[256],*lastn;
+  int Count,j,nbits,nbytes,pause,xtrbits;
+  int tmp,cmpflag;
+  int tstusr;
+  int nowrit=0;
+  // 
+  (*MyOutput_) << " epromload " << std::endl;
+  (*MyOutput_) << " devnum    " << devnum << std::endl;
+
+/* ipass acts as a hiccup.
+ipass == 1 - load up to the part where you have to load the board number
+ipass == 2 - load only the board number
+ipass == 3 - load only the stuff after the board number
+*/
+  int pass = 1;
+
+  if(devnum==ALL){
+    cout <<" Please load individual CFEBs, devnum==ALL is not supported !"<<endl;
+    return;
+  }
+  devstp=devnum;
+  //
+#ifdef OSUcc
+  theController->SetUseDelay(true);
+#endif OSUcc
+
+  dv=(DEVTYPE)devnum;
+  xtrbits=geo[dv].sxtrbits;
+  //    printf(" ************************** xtrbits %d geo[dv].sxtrbits %d \n",xtrbits,geo[dv].sxtrbits);
+  devstr=geo[dv].nam;
+  dwnfp    = fopen(downfile,"r");
+  fpout=fopen("eprom.bit","w");
+  //  printf("Programming Design %s (%s) with %s\n",design,devstr,downfile);
+
+  char bogobuf[8192];
+  unsigned long int nlines=0;
+  unsigned long int line=1;
+  FILE *bogodwnfp=fopen(downfile,"r");
+  while (fgets(bogobuf,256,bogodwnfp) != NULL) if (strrchr(bogobuf,';')!=0) nlines++;
+  float percent;
+  while (fgets(buf,256,dwnfp) != NULL)  {
+    percent = (float)line/(float)nlines;
+    if ((line%10)==0) printf("<   > Processed line %d of %d (%.1f%%)\r",line,nlines,percent*100.0);
+    fflush(stdout);
+    if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
+      //  printf("%s",buf);
+    }
+    else {
+      line++;
+      if(strrchr(buf,';')==0){
+        do {
+          lastn=strrchr(buf,'\n');
+          if(lastn!=0)lastn[0]='\0';
+          if (fgets(buf2,256,dwnfp) != NULL){
+            strcat(buf,buf2);
+          }
+          else {
+           //    printf("End of File encountered.  Quiting\n");
+            return;
+          }
+        }
+        while (strrchr(buf,';')==0);
+      }
+      for(int i=0;i<1024;i++){
+        cmpbuf[i]=0;
+        sndbuf[i]=0;
+        rcvbuf[i]=0;
+      }
+      Parse(buf, &Count, &(Word[0]));
+      // count=count+1
+      if(strcmp(Word[0],"SDR")==0){
+	cmpflag=0;    //disable the comparison for no TDO SDR
+        sscanf(Word[1],"%d",&nbits);
+        nbytes=(nbits-1)/8+1;
+        for(int i=2;i<Count;i+=2){
+          if(strcmp(Word[i],"TDI")==0){
+            for(j=0;j<nbytes;j++){
+              sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&snd[j]);
+            }
+            if(nowrit==1&&cbrdnum[0]!=0) {
+              tstusr=0;
+              snd[0]=cbrdnum[0];
+              pass++;
+            }
+          }
+          if(strcmp(Word[i],"SMASK")==0){
+            for(j=0;j<nbytes;j++){
+              sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&smask[j]);
+            }
+          }
+          if(strcmp(Word[i],"TDO")==0){
+            cmpflag=1;
+            for(j=0;j<nbytes;j++){
+              sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&expect[j]);
+            }
+          }
+          if(strcmp(Word[i],"MASK")==0){
+            for(j=0;j<nbytes;j++){
+              sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&rmask[j]);
+            }
+          }
+        }
+        for(int i=0;i<nbytes;i++){
+          //sndbuf[i]=snd[i]&smask[i];
+          sndbuf[i]=snd[i]&0xff;
+        }
+        if(nowrit==0){
+          if((geo[dv].jchan==11)){
+            if (pass==ipass) scan_reset(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+            if (pass==2) pass++;
+             // printf(" Emergency load SDR \n");
+          }else{
+            if (pass==ipass) scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+            if (pass==2) pass++;
+          }
+        }else{
+          if(writ==1) {
+            if((geo[dv].jchan==11)){
+              if (pass==ipass) scan_reset(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+              if (pass==2) pass++;
+            }else{ 
+              if (pass==ipass) scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+              if (pass==2) pass++;
+            }
+          }
+        } 
+        //  Data readback comparison here:
+        for (int i=0;i<nbytes;i++) {
+          tmp=(rcvbuf[i]>>3)&0x1F;
+          rcvbuf[i]=tmp | (rcvbuf[i+1]<<5&0xE0);
+        }
+        if (cmpflag==1) {
+          for (int i=0;i<nbytes;i++) {
+            fprintf(fpout," %02X",rcvbuf[i]&0xFF);
+            if (i%4==3) fprintf(fpout,"\n");
+          }
+        }
+      }
+      //
+      else if(strcmp(Word[0],"SIR")==0){
+        nowrit=0;
+        sscanf(Word[1],"%d",&nbits);
+        nbytes=(nbits-1)/8+1;
+        for(int i=2;i<Count;i+=2){
+          if(strcmp(Word[i],"TDI")==0){
+            for(j=0;j<nbytes;j++){
+              sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&snd[j]);
+            }
+            if(nbytes==1){if(0xfd==(snd[0]&0xff))nowrit=1;} // nowrit=1  
+          }
+          else if(strcmp(Word[i],"SMASK")==0){
+            for(j=0;j<nbytes;j++){
+              sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&smask[j]);
+            }
+          }
+          if(strcmp(Word[i],"TDO")==0){
+            for(j=0;j<nbytes;j++){
+              sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&expect[j]);
+            }
+          }
+          else if(strcmp(Word[i],"MASK")==0){
+            for(j=0;j<nbytes;j++){
+              sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&rmask[j]);
+            }
+          }
+        }
+        for(int i=0;i<nbytes;i++){
+          //sndbuf[i]=snd[i]&smask[i];
+          sndbuf[i]=snd[i];
+        }
+        if(nowrit==0){
+          if (pass=ipass) devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+        }
+        else{
+          if(writ==1 && pass==ipass) {devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);}
+          if(writ==0)printf(" ***************** nowrit %02x \n",sndbuf[0]);
+        }
+      }
+      else if(strcmp(Word[0],"RUNTEST")==0){
+        sscanf(Word[1],"%d",&pause);
+        pause=pause;
+        if (pause<100000) pause=2*pause+100;
+        if (pause>65535) {
+          sndbuf[0]=255;
+          sndbuf[1]=255;
+          for (int looppause=0;looppause<pause/65536;looppause++) {
+            if (pass==ipass) {devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
+            usleep(65535);} }
+          pause=65535;
+        }
+        sndbuf[0]=pause-(pause/256)*256;
+        sndbuf[1]=pause/256;
+        // printf(" sndbuf %d %d %d \n",sndbuf[1],sndbuf[0],pause);
+        if (pass==ipass) {devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,1);
+        usleep(pause);}
+      }
+      else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0)){
+        //  printf("goto reset idle state\n"); 
+        devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
+        //#ifdef OSUcc
+        //theController->flush_vme();
+        //#endif OSUcc
+      }
+      else if(strcmp(Word[0],"TRST")==0){
+      }
+      else if(strcmp(Word[0],"ENDIR")==0){
+      }
+      else if(strcmp(Word[0],"ENDDR")==0){
+      }
+    }
+  }
+  fclose(fpout);
+  fclose(dwnfp);
+  theController->send_last();
+
+#ifdef OSUcc
+  theController->SetUseDelay(false);
+#endif OSUcc
 }
 
 
