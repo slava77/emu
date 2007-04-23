@@ -623,7 +623,7 @@ const int board_id_bithi                   = 55;
 const int board_id_default                 = 5;
 //
 const int accelerator_pattern_thresh_bitlo = 56;
-const int accelerator_pattern_thresh_bithi = 59;  
+const int accelerator_pattern_thresh_bithi = 58;  
 const int accelerator_pattern_thresh_default= 0;
 //
 const int ccb_enable_bitlo                 = 60;
