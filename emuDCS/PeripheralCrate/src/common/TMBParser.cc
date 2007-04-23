@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.17 2007/04/19 16:09:18 rakness Exp $
+// $Id: TMBParser.cc,v 3.18 2007/04/23 09:13:59 rakness Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.18  2007/04/23 09:13:59  rakness
+// power on AFEB from xml, pull hardcoding into EMU_JTAG_constants.h
+//
 // Revision 3.17  2007/04/19 16:09:18  rakness
 // add accel pretrig/pattern to ALCT config reg
 //
@@ -452,6 +455,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
 	      anodeParser_.fillInt("afeb_fine_delay", delay);
 	      anodeParser_.fillInt("afeb_threshold", threshold);
 	      //
+              alct_->SetStandbyRegister_(number-1,ON);     //setting the threshold and delay in the xml file turns on this AFEB
 	      alct_->SetAsicDelay(number-1,delay);
 	      alct_->SetAfebThreshold(number-1,threshold);
 	      //

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.33 2007/04/19 16:09:18 rakness Exp $
+// $Id: ALCTController.cc,v 3.34 2007/04/23 09:13:59 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.34  2007/04/23 09:13:59  rakness
+// power on AFEB from xml, pull hardcoding into EMU_JTAG_constants.h
+//
 // Revision 3.33  2007/04/19 16:09:18  rakness
 // add accel pretrig/pattern to ALCT config reg
 //
@@ -513,18 +516,9 @@ void ALCTController::configure() {
   (*MyOutput_) << dump.str() << std::endl;
   tmb_->SendOutput(dump.str(),"INFO");
   //
-  WriteAfebThresholds();
-  //  ReadAfebThresholds();
-  //  PrintAfebThresholds();
-  //    
-  WriteStandbyRegister_();
+  WriteStandbyRegister_();    //turn on AFEBs first to give them time to power on before thresholds and delays are written to them
   //  ReadStandbyRegister_();
   //  PrintStandbyRegister_();
-  //
-  WriteAsicDelaysAndPatterns();
-  //  ReadAsicDelaysAndPatterns();
-  //  PrintAsicDelays();
-  //  PrintAsicPatterns();
   //
   WriteConfigurationReg();
   //  ReadConfigurationReg();
@@ -537,6 +531,15 @@ void ALCTController::configure() {
   WriteCollisionPatternMask();
   //  ReadCollisionPatternMask();
   //  PrintCollisionPatternMask();
+  //
+  WriteAfebThresholds();      //set AFEB thresholds and delay after the configuration, hot channel mask, and collision pattern
+  //  ReadAfebThresholds();   //are set in order to give the AFEBs time to power on
+  //  PrintAfebThresholds();
+  //    
+  WriteAsicDelaysAndPatterns();
+  //  ReadAsicDelaysAndPatterns();
+  //  PrintAsicDelays();
+  //  PrintAsicPatterns();
   //
   // The following are ALCT registers which should not be changed in the configuration...
   //
@@ -905,7 +908,7 @@ int ALCTController::GetTestpulsePowerSwitchReg_() {
 //
 void ALCTController::SetPowerUpTestpulsePowerSwitchReg_() { 
   //
-  SetTestpulsePowerSwitchReg_(OFF); 
+  SetTestpulsePowerSwitchReg_(testpulse_power_setting_default); 
   return;
 }
 //
@@ -975,7 +978,7 @@ void ALCTController::SetTestpulseAmplitude(int dacvalue) {
 //
 void ALCTController:: SetPowerUpTestpulseAmplitude_() { 
   //
-  SetTestpulseAmplitude(0); 
+  SetTestpulseAmplitude(testpulse_amplitude_default); 
   return;
 }
 //
@@ -1059,7 +1062,7 @@ int ALCTController::GetTestpulseGroupMask_(int group) {
 void ALCTController::SetPowerUpTestpulseGroupMask_() {
   //
   for (int group=0; group<RegSizeAlctSlowFpga_WRT_TESTPULSE_GRP; group++)
-    write_testpulse_groupmask_[group] = OFF;
+    write_testpulse_groupmask_[group] = testpulse_groupmask_default;
   return;
 }
 //
@@ -1149,7 +1152,7 @@ int ALCTController::GetTestpulseStripMask_(int layer) {
 void ALCTController::SetPowerUpTestpulseStripMask_() {
   //
   for (int layer=0; layer<MAX_NUM_LAYERS; layer++)
-    write_testpulse_stripmask_[layer] = OFF;
+    write_testpulse_stripmask_[layer] = testpulse_stripmask_default;
   //
   return;
 }
@@ -1301,8 +1304,7 @@ int ALCTController::read_adc_(int chip, int channel) {
 void ALCTController::SetPowerUpAfebThresholds() {
   //
   for (int afeb=0; afeb<MAX_NUM_AFEBS; afeb++) 
-    //    write_afeb_threshold_[afeb] = 128;
-    write_afeb_threshold_[afeb] = 10;
+    write_afeb_threshold_[afeb] = afeb_threshold_default;
   //
   return;
 }
@@ -1384,7 +1386,7 @@ void ALCTController::SetStandbyRegister_(int afebChannel,
   if ( afebChannel<GetLowestAfebIndex() || afebChannel>GetHighestAfebIndex()) {
     (*MyOutput_) << "Set Standby Register: ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 		 << "-> channel " << std::dec << afebChannel
-		 << " invalid ... must be between 0" << std::dec << GetLowestAfebIndex() 
+		 << " invalid ... must be between " << std::dec << GetLowestAfebIndex() 
 		 << " and " << std::dec << GetHighestAfebIndex() 
 		 << std::endl;
     return;
@@ -1403,11 +1405,7 @@ int ALCTController::GetStandbyRegister_(int afebChannel) {
 void ALCTController::SetPowerUpStandbyRegister_() {
   //
   for (int afeb=0; afeb<MAX_NUM_AFEBS; afeb++) 
-    write_standby_register_[afeb] = OFF;         // turn unused AFEBs off
-  //
-  for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++) 
-    SetStandbyRegister_(afeb,ON); 
-
+    write_standby_register_[afeb] = standby_register_default;
   //
   return;
 }
@@ -1748,8 +1746,8 @@ void ALCTController::PrintTriggerRegister_() {
 //
 void ALCTController::SetPowerUpTriggerRegister_(){
   //
-  SetPulseTriggerSource_(OFF);
-  SetInvertPulse_(OFF);
+  SetPulseTriggerSource_(trigger_register_source_default);
+  SetInvertPulse_(trigger_register_invert_default);
   //
   return;
 }
@@ -1903,10 +1901,10 @@ void ALCTController::PrintDelayLineControlReg_() {
 //
 void ALCTController::SetPowerUpDelayLineControlReg_(){
   //
-  SetDelayLineReset_(OFF);
-  SetDelayLineSettst_(ON);                 //default for data taking
-  for (int group=0; group<7; group++) 
-    write_delay_line_group_select_[group] = ~OFF & 0x1;
+  SetDelayLineReset_(delay_line_reset_default);
+  SetDelayLineSettst_(delay_line_settst_default);
+  for (int group=0; group<7; group++)            // maximum number of groups of delay lines
+    write_delay_line_group_select_[group] = ~delay_line_group_select_default & 0x1;
   //
   return;
 }
@@ -2184,7 +2182,7 @@ int ALCTController::GetAsicDelay(int afebChannel) {
 void ALCTController::SetPowerUpAsicDelays() {
   //
   for (int afeb=0; afeb<MAX_NUM_AFEBS; afeb++)
-      write_asic_delay_[afeb] = 10;
+      write_asic_delay_[afeb] = asic_delay_value_default;
   //
   return;
 }
@@ -2246,7 +2244,7 @@ void ALCTController::SetPowerUpAsicPatterns() {
   //
   for (int layer=0; layer<MAX_NUM_LAYERS; layer++)
     for (int channel=0; channel<MAX_NUM_WIRES_PER_LAYER; channel++)
-      write_asic_pattern_[layer][channel] = OFF;
+      write_asic_pattern_[layer][channel] = asic_pattern_value_default;
   //
   return;
 }
@@ -3059,7 +3057,7 @@ int ALCTController::GetHotChannelMask(int layer,
 void ALCTController::SetPowerUpHotChannelMask() {
   //
   for (int channel=0; channel<RegSizeAlctFastFpga_RD_HOTCHAN_MASK_672; channel++)
-    write_hot_channel_mask_[channel] = ON;
+    write_hot_channel_mask_[channel] = alct_hot_channel_mask_default;
   //
   return;
 }
@@ -3358,7 +3356,7 @@ int ALCTController::GetCollisionPatternMask(int group,
 void ALCTController::SetPowerUpCollisionPatternMask() {
   //
   for (int channel=0; channel<RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_672; channel++)
-    write_collision_pattern_mask_reg_[channel] = ON;
+    write_collision_pattern_mask_reg_[channel] = collision_pattern_mask_default;
   //
   return;
 }
