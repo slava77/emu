@@ -490,8 +490,20 @@ const int PULSE_AFEBS      = 0;
 const int PULSE_LAYERS     = 1;
 //
 ////////////////////////////////////////
-// ADC channel/chip map
+// AFEB control constants
 ////////////////////////////////////////
+const int standby_register_default      = OFF;
+const int alct_hot_channel_mask_default = ON;
+//
+//
+////////////////////////////////////////
+// AFEB threshold constants
+////////////////////////////////////////
+const int afeb_threshold_default   = 128;
+//
+//-----------------------
+// ADC channel/chip map
+//-----------------------
 const int afeb_adc_channel[MAX_NUM_AFEBS] = 
   {1, 0,
    10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,
@@ -525,9 +537,9 @@ const int Voltage5p5_1_adc_channel         = 8;
 const int Voltage5p5_2_adc_channel         = 9;
 const int Temperature_adc_channel          = 10;
 //
-////////////////////////////////////////
+//-----------------------
 // DAC channel/chip map
-////////////////////////////////////////
+//-----------------------
 const int afeb_dac_channel[MAX_NUM_AFEBS] = 
   {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 
    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
@@ -635,23 +647,11 @@ const int sn_select_bithi                  = 68;
 const int sn_select_default                = 0;
 //
 //
-////////////////////////////////////////
-// Delay-Line Control Register bit-map:
-////////////////////////////////////////
-const int delay_line_reset_bitlo           = 0;
-const int delay_line_reset_bithi           = 0;
-//
-const int delay_line_settst_bitlo          = 1;
-const int delay_line_settst_bithi          = 1;
-//
-const int delay_line_group_select_bitlo    = 2;
-// -> delay_line_group_select_bithi value dependent on ALCT type...
-//
 /////////////////////////////////////////////////////
 // ASIC delay/pattern chip characteristics/bit-maps:
 /////////////////////////////////////////////////////
-const int NUMBER_OF_CHIPS_PER_GROUP        = 6;
-const int NUMBER_OF_LINES_PER_CHIP         = 16;
+const int NUMBER_OF_CHIPS_PER_GROUP = 6;
+const int NUMBER_OF_LINES_PER_CHIP  = 16;
 //
 // Load 96 pattern values into 6 asic chips with the following maps for the layer and wiregroup
 const int asic_layer_map[NUMBER_OF_CHIPS_PER_GROUP*NUMBER_OF_LINES_PER_CHIP] =
@@ -683,11 +683,29 @@ const int asic_wiregroup_map[NUMBER_OF_CHIPS_PER_GROUP*NUMBER_OF_LINES_PER_CHIP]
 //
 const int asic_delay_value_bitlo           = 0;
 const int asic_delay_value_bithi           = 3;
+const int asic_delay_value_default        = 10;
 //
 const int asic_pattern_value_bitlo         = 4;
 const int asic_pattern_value_bithi         = 19;
+const int asic_pattern_value_default       = OFF;
 //
 const int NUMBER_OF_ASIC_BITS              = asic_pattern_value_bithi-asic_delay_value_bitlo+1;
+//
+//
+////////////////////////////////////////
+// Delay-Line Control Register bit-map:
+////////////////////////////////////////
+const int delay_line_reset_bitlo           = 0;
+const int delay_line_reset_bithi           = 0;
+const int delay_line_reset_default         = OFF;
+//
+const int delay_line_settst_bitlo          = 1;
+const int delay_line_settst_bithi          = 1;
+const int delay_line_settst_default        = ON;       //needed to make algorithm work--not known why...
+//
+const int delay_line_group_select_bitlo    = 2;
+// -> delay_line_group_select_bithi value dependent on ALCT type...
+const int delay_line_group_select_default  = OFF;
 //
 //
 ////////////////////////////////////////
@@ -742,9 +760,16 @@ const int LEMO                             = (0x3<<2);
 //
 const int trigger_register_source_bitlo    = 0;
 const int trigger_register_source_bithi    = 3;
+const int trigger_register_source_default  = OFF;
 //
 const int trigger_register_invert_bitlo    = 4;
 const int trigger_register_invert_bithi    = 4;
+const int trigger_register_invert_default  = OFF;
+//
+const int testpulse_power_setting_default = OFF;
+const int testpulse_amplitude_default     = 0;
+const int testpulse_groupmask_default     = OFF;
+const int testpulse_stripmask_default     = OFF;
 //
 //
 /////////////////////////////////////////////////////
@@ -752,6 +777,8 @@ const int trigger_register_invert_bithi    = 4;
 /////////////////////////////////////////////////////
 const int NUMBER_OF_BITS_IN_COLLISION_MASK_PER_GROUP = 28;
 const int NUMBER_OF_WIREGROUPS_PER_COLLISION_PATTERN_GROUP = 8;
+//
+const int collision_pattern_mask_default = ON;
 //
 //
 ////-------------------------------////
