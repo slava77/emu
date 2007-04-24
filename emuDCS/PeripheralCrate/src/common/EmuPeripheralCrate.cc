@@ -9325,13 +9325,22 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
   {
     //implement the DMB VME PROM USER_CODE programming
     std::cout << "DMB VME PROM USER_CODE Programming " << std::endl;
+    usleep(200);
     for (int idmb=0;idmb<dmbVector.size();idmb++)
     {
       if ((dmbVector[idmb]->slot())<22) {
 	DAQMB * thisDMB=dmbVector[idmb];
         unsigned long int boardnumber=DMBBoardNumber[idmb];
-	char *promid =(char*)boardnumber;
-	thisDMB->epromload_broadcast(VPROM,"/home/cscpc/firmware/dmb/dmb6vme_pro.svf",1,promid,2);
+	char prombrdname[4];
+	//	if (idmb==0) boardnumber = 0xdb00000c;
+	//	if (idmb==1) boardnumber = 0xdb00021b;
+	prombrdname[0]=boardnumber&0xff;
+	prombrdname[1]=(boardnumber>>8)&0xff;
+	prombrdname[2]=(boardnumber>>16)&0xff;
+	prombrdname[3]=(boardnumber>>24)&0xff;
+    	cout<<" Loading the board number ..."<<endl;
+	thisDMB->epromload_broadcast(VPROM,"/home/cscpc/firmware/dmb/dmb6vme_pro.svf",1,prombrdname,2);
+	usleep(200);
 	cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<endl;
 	cout <<" This DMB is programmed to board number: "<<boardnumber<<endl<<endl;
       }
@@ -9343,6 +9352,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
   {
     //implement the CFEB PROM USER_CODE Readback
     std::cout << "CFEB PROM USER_CODE Readback " << std::endl;
+    usleep(200);
     for (int idmb=0;idmb<dmbVector.size();idmb++)
     {
       if ((dmbVector[idmb]->slot())<22) {
@@ -9375,9 +9385,25 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
 	//define CFEBs
 	vector <CFEB> thisCFEBs=thisDMB->cfebs();
 	for (int i=0;i<thisCFEBs.size();i++) {
-	  char *promid =(char*)CFEBBoardNumber[idmb][i];
+	  char promid[4];
+	  unsigned long int boardid=CFEBBoardNumber[idmb][i];
+	  /*
+    	  unsigned long int fpgaid=thisDMB->febfpgaid(thisCFEBs[i]);
+	  cout <<" i= "<<i<<endl;
+	  if (i==0) boardid=0xcfeb08e5;
+	  if (i==1) boardid=0xcfeb08e1;
+	  if (i==2) boardid=0xcfeb08e4;
+	  if (i==3) boardid=0xcfeb0903;
+	  if (i==4) boardid=0xcfeb063a;
+	  cout <<" This CFEB Board Number should be set to: "<<boardid<<endl;
+	  */
+	  promid[0]=boardid&0xff;
+	  promid[1]=(boardid>>8)&0xff;
+	  promid[2]=(boardid>>16)&0xff;
+	  promid[3]=(boardid>>24)&0xff;
 	  thisDMB->epromload_broadcast(thisCFEBs[i].promDevice(),"/home/cscpc/firmware/cfeb/cfeb_pro.svf",1,promid,2);
-	  cout <<" This CFEB Board Number is set to: "<<CFEBBoardNumber[idmb][i]<<endl;
+	  usleep(200);
+	  cout <<" This CFEB Board Number is set to: "<<boardid<<endl;
 	}
 	cout <<endl;
       }
