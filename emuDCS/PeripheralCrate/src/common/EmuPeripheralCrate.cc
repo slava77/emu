@@ -4383,23 +4383,24 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     }
     //
     DAQMB * thisDMB = dmbVector[dmb];
-    //
+    /*
     int mindmb = dmb;
     int maxdmb = dmb+1;
-    if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each dmb
+      if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each dmb
       mindmb = 0;
       maxdmb = dmbVector.size()-1;
-    }
+      }*/
     //
     thisCCB->hardReset();
     //
-    for (dmb=mindmb; dmb<maxdmb; dmb++) {
+    //    for (dmb=mindmb; dmb<maxdmb; dmb++) {
       //
       DAQMB * thisDMB = dmbVector[dmb];
       //
       if (thisDMB) {
 	//
 	cout << "DMBLoadFirmware in slot " << thisDMB->slot() << endl;
+	if (thisDMB->slot()==25) cout <<" Broadcast Loading the control FPGA insode one crate"<<endl;
 	//
 	::sleep(1);
 	//
@@ -4408,7 +4409,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
 	thisDMB->epromload(MPROM,DMBFirmware_.toString().c_str(),1,outp);  // load mprom
 	//
       }
-    }
+      //    }
     ::sleep(1);
     thisCCB->hardReset();
     //
@@ -4435,10 +4436,10 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     int mindmb = dmb;
     int maxdmb = dmb+1;
-    //    if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each dmb
-    //      mindmb = 0;
-    //      maxdmb = dmbVector.size()-1;
-    //    }
+    if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each dmb
+      mindmb = 0;
+      maxdmb = dmbVector.size()-1;
+    }
     //
     thisCCB->hardReset();
     //
