@@ -4382,7 +4382,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       DMB_ = dmb;
     }
     //
-    DAQMB * thisDMB = dmbVector[dmb];
+    //    DAQMB * thisDMB = dmbVector[dmb];
     /*
     int mindmb = dmb;
     int maxdmb = dmb+1;
