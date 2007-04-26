@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.34 2007/04/23 09:13:59 rakness Exp $
+// $Id: ALCTController.cc,v 3.35 2007/04/26 07:43:26 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.35  2007/04/26 07:43:26  rakness
+// AFEB delay chip index count from 0 for unconnected AFEBs in ME1/3,3/1,4/1
+//
 // Revision 3.34  2007/04/23 09:13:59  rakness
 // power on AFEB from xml, pull hardcoding into EMU_JTAG_constants.h
 //
@@ -581,20 +584,14 @@ void ALCTController::PrintALCTConfiguration() {
   //
   PrintFastControlId();
   //
-  (*MyOutput_) << "........................ ALCT type = " 
-		<< std::dec << GetNumberOfChannelsInAlct() << std::endl; 
-  (*MyOutput_) << "............ Number of Wire Groups = " 
-		<< std::dec << GetNumberOfWireGroupsInChamber() << std::endl; 
-  (*MyOutput_) << "........ Number of Wires per layer = " 
-		<< GetNumberOfChannelsPerLayer() << std::endl;
-  (*MyOutput_) << ".. Number of groups of delay chips =  " 
-		<< GetNumberOfGroupsOfDelayChips() << std::endl; 
-  (*MyOutput_) << "Number of collision pattern groups = " 
-		<< GetNumberOfCollisionPatternGroups() << std::endl;
-  (*MyOutput_) << ".................. Number of AFEBs = " 
-		<< GetNumberOfAfebs() << std::endl;
-  (*MyOutput_) << "........... Enabled AFEBs count from  " 
-		<< GetLowestAfebIndex() << " to " << GetHighestAfebIndex() << std::endl;
+  (*MyOutput_) << "........................ ALCT type = " << std::dec << GetNumberOfChannelsInAlct() << std::endl; 
+  (*MyOutput_) << "............ Number of Wire Groups = " << std::dec << GetNumberOfWireGroupsInChamber() << std::endl; 
+  (*MyOutput_) << "........ Number of Wires per layer = " << GetNumberOfChannelsPerLayer() << std::endl;
+  (*MyOutput_) << ".. Number of groups of delay chips = " << GetNumberOfGroupsOfDelayChips() << std::endl; 
+  (*MyOutput_) << "Number of collision pattern groups = " << GetNumberOfCollisionPatternGroups() << std::endl;
+  (*MyOutput_) << ".................. Number of AFEBs = " << GetNumberOfAfebs() << std::endl;
+  (*MyOutput_) << "...hardware AFEB indices count from " << GetLowestAfebIndex() << " to " << GetHighestAfebIndex() << std::endl;
+  (*MyOutput_) << "..while the user indices count from 0 to " << MaximumUserIndex() << std::endl;
   //
   PrintAfebThresholds();
   //
@@ -1181,7 +1178,7 @@ void ALCTController::WriteAfebThresholds() {
     //
     // ..... and the DAC channel through TDI:
     int data_to_send = 
-      ( (afeb_dac_channel[afebChannel]<<8) & 0xf00 ) | GetAfebThresholdDAC(afebChannel) & 0xff;
+      ( (afeb_dac_channel[afebChannel]<<8) & 0xf00 ) | write_afeb_threshold_[afebChannel] & 0xff;
     if (debug_)
       (*MyOutput_) << "Channel " << std::dec << afebChannel 
 		   << " -> Data to send = " << std::hex << data_to_send 
@@ -1217,7 +1214,7 @@ void ALCTController::ReadAfebThresholds() {
 //
 void ALCTController::PrintAfebThresholds() {
   //
-  for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++) 
+  for (int afeb=0; afeb<=MaximumUserIndex(); afeb++) 
     (*MyOutput_) << "AFEB " << std::setw(2) << std::dec << afeb
 		 << " write threshold DAC = " << std::setw(3) << GetAfebThresholdDAC(afeb)
       //		 << std::endl;
@@ -1236,27 +1233,27 @@ void ALCTController::SetAfebThreshold(int afebChannel, int dacvalue) {
     return;
   } 
   //
-  if ( afebChannel<0 || afebChannel>GetHighestAfebIndex()) {    // allow user to set values in software even if AFEB is not on
+  if ( afebChannel<0 || afebChannel>MaximumUserIndex() ) {
     (*MyOutput_) << "SetAfebThreshold: ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 		 << "-> channel " << std::dec << afebChannel
-		 << " invalid ... must be between 0 and " << std::dec << GetHighestAfebIndex() 
+		 << " invalid ... must be between 0 and " << std::dec << MaximumUserIndex()
 		 << std::endl;
     return;
   } 
   //
-  write_afeb_threshold_[afebChannel] = dacvalue & 0xff;
+  write_afeb_threshold_[UserIndexToHardwareIndex_(afebChannel)] = dacvalue & 0xff;
   //
   return;
 }
 //
 int ALCTController::GetAfebThresholdDAC(int afebChannel) { 
   //
-  return write_afeb_threshold_[afebChannel]; 
+  return write_afeb_threshold_[UserIndexToHardwareIndex_(afebChannel)]; 
 }
 //
 int ALCTController::GetAfebThresholdADC(int afebChannel) { 
   //   
-  return read_afeb_threshold_[afebChannel]; 
+  return read_afeb_threshold_[UserIndexToHardwareIndex_(afebChannel)]; 
 }
 //
 float ALCTController::GetAfebThresholdVolts(int afebChannel) {
@@ -1383,28 +1380,27 @@ void ALCTController::PrintStandbyRegister_() {
 void ALCTController::SetStandbyRegister_(int afebChannel, 
 					 int powerswitch) {
   //
-  if ( afebChannel<GetLowestAfebIndex() || afebChannel>GetHighestAfebIndex()) {
+  if ( afebChannel<0 || afebChannel>MaximumUserIndex() ) {
     (*MyOutput_) << "Set Standby Register: ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 		 << "-> channel " << std::dec << afebChannel
-		 << " invalid ... must be between " << std::dec << GetLowestAfebIndex() 
-		 << " and " << std::dec << GetHighestAfebIndex() 
+		 << " invalid ... must be between 0 " << " and " << std::dec << MaximumUserIndex()
 		 << std::endl;
     return;
   } 
   //
-  write_standby_register_[afebChannel] = powerswitch & 0x1;
+  write_standby_register_[UserIndexToHardwareIndex_(afebChannel)] = powerswitch & 0x1;
   //
   return;
 }
 //
 int ALCTController::GetStandbyRegister_(int afebChannel) {
   //
-  return read_standby_register_[afebChannel]; 
+  return read_standby_register_[UserIndexToHardwareIndex_(afebChannel)]; 
 }
 //
 void ALCTController::SetPowerUpStandbyRegister_() {
   //
-  for (int afeb=0; afeb<MAX_NUM_AFEBS; afeb++) 
+  for (int afeb=0; afeb<RegSizeAlctSlowFpga_RD_STANDBY_REG; afeb++) 
     write_standby_register_[afeb] = standby_register_default;
   //
   return;
@@ -2151,15 +2147,15 @@ void ALCTController::SetAsicDelay(int afebChannel,
     return;
   } 
   //
-  if ( afebChannel<0 || afebChannel>GetHighestAfebIndex() ) {  //allow user to set delays on AFEBs which are off
+  if ( afebChannel<0 || afebChannel>MaximumUserIndex() ) {
     (*MyOutput_) << "SetAsicDelay: ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 		 << "-> channel " << std::dec << afebChannel
-		 << " invalid ... must be between 0 and " << std::dec << GetHighestAfebIndex() 
+		 << " invalid ... must be between 0 and " << std::dec << MaximumUserIndex()
 		 << std::endl;
     return;
   } 
   //
-  write_asic_delay_[afebChannel] = delay & 0xf;
+  write_asic_delay_[UserIndexToHardwareIndex_(afebChannel)] = delay & 0xf;
   //
   return;
 
@@ -2167,16 +2163,15 @@ void ALCTController::SetAsicDelay(int afebChannel,
 //
 int ALCTController::GetAsicDelay(int afebChannel) {
   //
-  if ( afebChannel<GetLowestAfebIndex() || afebChannel>GetHighestAfebIndex() ) {
+  if ( afebChannel<0 || afebChannel>MaximumUserIndex() ) {
     (*MyOutput_) << "GetAsicDelay: ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 		 << "-> channel " << std::dec << afebChannel
-		 << " invalid ... must be between " << std::dec << GetLowestAfebIndex() 
-		 << " and " << std::dec << GetHighestAfebIndex() 
+		 << " invalid ... must be between 0 and " << std::dec << MaximumUserIndex() 
 		 << std::endl;
     return 999;
   } 
   //
-  return read_asic_delay_[afebChannel];
+  return read_asic_delay_[UserIndexToHardwareIndex_(afebChannel)];
 }
 //
 void ALCTController::SetPowerUpAsicDelays() {
@@ -2192,7 +2187,7 @@ void ALCTController::PrintAsicDelays() {
   (*MyOutput_) << "ASIC delay values:" << std::endl;
   (*MyOutput_) << "AFEB   delay (2ns)" << std::endl;
   (*MyOutput_) << "----   -----------" << std::endl;
-  for (int afeb=GetLowestAfebIndex(); afeb<=GetHighestAfebIndex(); afeb++)
+  for (int afeb=0; afeb<=MaximumUserIndex(); afeb++)
     (*MyOutput_) << " " << std::dec << afeb << "     " << GetAsicDelay(afeb) << std::endl;
   //
   return;
@@ -3453,7 +3448,8 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     (*MyOutput_) << ".. Number of groups of delay chips =  " << GetNumberOfGroupsOfDelayChips() << std::endl; 
     (*MyOutput_) << "Number of collision pattern groups = " << GetNumberOfCollisionPatternGroups() << std::endl;
     (*MyOutput_) << ".................. Number of AFEBs = " << GetNumberOfAfebs() << std::endl;
-    (*MyOutput_) << "........... Enabled AFEBs count from  " << GetLowestAfebIndex() << " to " << GetHighestAfebIndex() << std::endl;
+    (*MyOutput_) << "...hardware AFEB indices count from " << GetLowestAfebIndex() << " to " << GetHighestAfebIndex() << std::endl;
+    (*MyOutput_) << "..while the user indices count from 0 to " << MaximumUserIndex() << std::endl;
   }
   //
   return;
