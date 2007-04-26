@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.20 2007/04/19 16:09:18 rakness Exp $
+// $Id: ALCTController.h,v 3.21 2007/04/26 07:43:26 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.21  2007/04/26 07:43:26  rakness
+// AFEB delay chip index count from 0 for unconnected AFEBs in ME1/3,3/1,4/1
+//
 // Revision 3.20  2007/04/19 16:09:18  rakness
 // add accel pretrig/pattern to ALCT config reg
 //
@@ -182,9 +185,12 @@ public:
   inline int GetNumberOfWireGroupsInChamber() { return NumberOfWireGroupsInChamber_; }
   inline int GetNumberOfChannelsPerLayer() { return NumberOfChannelsPerLayer_; }
   inline int GetNumberOfChannelsInAlct() { return NumberOfChannelsInAlct_; }
+  inline int GetNumberOfCollisionPatternGroups() { return NumberOfCollisionPatternGroups_; }
+  // largest AFEB index which the user can access
+  inline int MaximumUserIndex() { return (GetHighestAfebIndex() - GetLowestAfebIndex()); }
+  // min-max hardware delay chip indices
   inline int GetLowestAfebIndex() { return lowest_afeb_index_; }
   inline int GetHighestAfebIndex() { return highest_afeb_index_; }
-  inline int GetNumberOfCollisionPatternGroups() { return NumberOfCollisionPatternGroups_; }
   //
   void SetUpPulsing(int DAC_pulse_amplitude=255,     //DAC_pulse_amplitude = [0-255]
 		    int which_set=PULSE_AFEBS,       //which_set = [PULSE_LAYERS, PULSE_AFEBS]
@@ -557,17 +563,17 @@ private:
   //
   //
   ////////////////////////////////////////////////////////////////////
-  // Firmware values:                                               //
-  ////////////////////////////////////////////////////////////////////
-
-  //
-  ////////////////////////////////////////////////////////////////////
   // Private variables specific to the chamber-type:                //
   ////////////////////////////////////////////////////////////////////
   void SetChamberCharacteristics_(std::string chamberType);
   std::string chamber_type_string_;  
   int NumberOfWireGroupsInChamber_;
   int NumberOfChannelsPerLayer_;
+  //
+  ///////////////////////////////////////////////////////////////////////////////////
+  // transformation from "user-interface" to "hardware-interface" delay chip index
+  //////////////////////////////////////////////////////////////////////////////////
+  inline int UserIndexToHardwareIndex_(int index) { return (index + GetLowestAfebIndex()); }
   //
   ////////////////////////////////////////////////////////////////////
   // Private variables specific to the ALCT-type:                   //
