@@ -13,6 +13,7 @@ struct IRQData{
   int last_fiber;
   int last_errs[3];
   int last_count_fmm;
+  int crate_number;
 
 };
 

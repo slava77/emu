@@ -1,7 +1,10 @@
 
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.cc,v 3.0 2006/07/20 21:16:11 geurts Exp $
+// $Id: FEDCrateParser.cc,v 3.1 2007/04/27 19:29:44 gilmore Exp $
 // $Log: FEDCrateParser.cc,v $
+// Revision 3.1  2007/04/27 19:29:44  gilmore
+// Improved multiple-FED Crate functions, added DDU firmware broadcast and management features
+//
 // Revision 3.0  2006/07/20 21:16:11  geurts
 // *** empty log message ***
 //
@@ -24,11 +27,12 @@
 #include "FEDCrateParser.h"
 #include "Crate.h"
 
-
 XERCES_CPP_NAMESPACE_USE
 using namespace std;
 
 void FEDCrateParser::parseFile(const char* name){ 
+	//PGK: clear the crateVector
+	crateVector_.clear();
   /// Initialize XML4C system
   try{
     XMLPlatformUtils::Initialize();
@@ -119,6 +123,7 @@ void FEDCrateParser::parseFile(const char* name){
 	    
 	    DOMNode * pNode3 = pNode2->getFirstChild(); 
 	    if (pNode3==0) cout << " Bad element "<< endl;
+	    else crateVector_.push_back(crateNumber);
       
 	    while(pNode3) {
 	      // the node was really a board of the FED crate like DMB, TMB, etc.

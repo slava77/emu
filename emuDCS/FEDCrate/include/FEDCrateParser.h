@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.h,v 3.0 2006/07/20 21:16:10 geurts Exp $
+// $Id: FEDCrateParser.h,v 3.1 2007/04/27 19:29:44 gilmore Exp $
 // $Log: FEDCrateParser.h,v $
+// Revision 3.1  2007/04/27 19:29:44  gilmore
+// Improved multiple-FED Crate functions, added DDU firmware broadcast and management features
+//
 // Revision 3.0  2006/07/20 21:16:10  geurts
 // *** empty log message ***
 //
@@ -39,12 +42,16 @@ public:
   DDUParser dduParser() const {return dduParser_;}
   DCCParser dccParser()     const {return dccParser_;}
   VMEParser vmeParser()     const {return vmeParser_;}
+  /* There has to be a way to get the crates in the XML
+  back to the user, so that selectCrates will work. */
+  std::vector<int> crateVector() { return crateVector_; }
 
 protected:
   DDUParser dduParser_;
   DCCParser dccParser_;
   VMEParser vmeParser_;
   int crateNumber;
+  std::vector<int> crateVector_;
 };
 
 #endif
