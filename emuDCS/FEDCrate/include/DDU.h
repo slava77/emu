@@ -208,6 +208,7 @@ public:
 
   // EPROM reprogramming (EXPERTS ONLY !)
   void epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum);
+  void epromload_broadcast(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum,int ipass);
   void Parse(char *buf,int *Count,char **Word);
 
   /// sends commands by name

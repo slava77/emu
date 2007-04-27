@@ -17,7 +17,8 @@ public:
   /// which card slots you'd like to activate.
   /// default is all active, of course.
   void selectSlots(vector<int> & slots) {theSelectedSlots = slots;}
-  void selectCrates(vector<int> & crates) {theSelectedCrates = crates;}
+  /// PGK This shouldn't be a ref...
+  void selectCrates(vector<int> crates) {theSelectedCrates = crates;}
   /// -1 means all slots, or else just a single slot
   void setSlot(int slot);
   void setSlot(string strSlot);

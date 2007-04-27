@@ -1,8 +1,8 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.4 2007/03/23 12:51:24 ichiro Exp $
+// $Id: VMEController.cc,v 3.5 2007/04/27 19:29:44 gilmore Exp $
 // $Log: VMEController.cc,v $
-// Revision 3.4  2007/03/23 12:51:24  ichiro
-// merged sTTS_integ branch upto sTTS_20070324
+// Revision 3.5  2007/04/27 19:29:44  gilmore
+// Improved multiple-FED Crate functions, added DDU firmware broadcast and management features
 //
 // Revision 3.3.2.1  2007/03/19 15:03:23  gilmore
 // fixes for VMEser/VMEpara expert functions
@@ -245,6 +245,7 @@ char buf[300];
  LOOP:
     BHandle=locdata->Handle;
     CAENVME_IRQEnable(BHandle,mask);
+    int crate_number = locdata->crate_number;
 
     ierr=CAENVME_IRQWait(BHandle,mask,5000); 
     // JRG, should show every ~5sec:   printf("IRQ_Int Looped again... \n");
@@ -267,7 +268,7 @@ char buf[300];
     NUM_ERR=((Data[0]>>4)&0x0f); // # CSCs on DDU with Error set
     NUM_SYNC=(Data[0]&0x0f);     // # CSCs on DDU with SyncErr set
 // JRG, need Crate number here:
-    sprintf(buf," ** EmuFEDVME: Interrupt detected for Crate/Slot %d/%d, 0x%02x%02x ** ",crate,SLOT,Data[1]&0xff,Data[0]&0xff);
+    sprintf(buf," ** EmuFEDVME: Interrupt detected for Crate/Slot %d/%d, 0x%02x%02x ** ",crate_number,SLOT,Data[1]&0xff,Data[0]&0xff);
     printf("%s\n",buf);
     //    printf(" ** EmuFEDVME: Interrupt detected for Crate/Slot %d/%d, 0x%02x%02x ** \n",crate,SLOT,Data[1]&0xff,Data[0]&0xff);
     // orig.  LOG4CPLUS_INFO(getApplicationLogger(), " EmuFEDVME: Interrupt detected");
@@ -335,6 +336,7 @@ void VMEController::irq_pthread_start(int crate)
       irqdata[t].last_ddu=0;
       irqdata[t].last_status=0;
       irqdata[t].last_count_fmm=0;
+      irqdata[t].crate_number=crate;
       err=pthread_create(&threads[t],NULL,(void *(*)(void *))&IRQ_Interrupt_Handler,(void *)&irqdata[t]);
       if(err){printf(" Error opening thread \n");exit(1);}
     

@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <cstdlib>
 #include <iomanip>
 #include <time.h>
@@ -62,6 +63,8 @@ private:
   //  int irqprob;
   //  long int timer,xtimer;
   long int ltime;
+	unsigned long int tidcode[8];
+	unsigned long int tuscode[8];
   //
 protected:
   //
@@ -76,6 +79,7 @@ protected:
   ostringstream OutputStringDCCStatus[9];
   vector<DDU*> dduVector;
   vector<DCC*> dccVector;
+  vector<Crate*> crateVector;
   Crate *thisCrate;
   std::string Operator_;
   std::string DDUBoardID_[9];
@@ -90,7 +94,11 @@ public:
     xgi::bind(this,&EmuFCrateHyperDAQ::setConfFile, "setConfFile");
     xgi::bind(this,&EmuFCrateHyperDAQ::setRawConfFile, "setRawConfFile");
     xgi::bind(this,&EmuFCrateHyperDAQ::UploadConfFile, "UploadConfFile");
-    xgi::bind(this,&EmuFCrateHyperDAQ::DDUFirmware, "DDUFirmware"); 
+    xgi::bind(this,&EmuFCrateHyperDAQ::DDUFirmware, "DDUFirmware");
+    xgi::bind(this,&EmuFCrateHyperDAQ::DDUBroadcast, "DDUBroadcast"); 
+    xgi::bind(this,&EmuFCrateHyperDAQ::DDULoadBroadcast, "DDULoadBroadcast"); 
+    xgi::bind(this,&EmuFCrateHyperDAQ::DDUSendBroadcast, "DDUSendBroadcast"); 
+    xgi::bind(this,&EmuFCrateHyperDAQ::DDUReset, "DDUReset"); 
     xgi::bind(this,&EmuFCrateHyperDAQ::DDUFpga, "DDUFpga");
     xgi::bind(this,&EmuFCrateHyperDAQ::INFpga0, "INFpga0");
     xgi::bind(this,&EmuFCrateHyperDAQ::INFpga1, "INFpga1");
@@ -111,6 +119,7 @@ public:
     xgi::bind(this,&EmuFCrateHyperDAQ::DCCRateMon,"DCCRateMon");
     xgi::bind(this,&EmuFCrateHyperDAQ::getDataDCCRate0,"getDataDCCRate0");
     xgi::bind(this,&EmuFCrateHyperDAQ::getDataDCCRate1,"getDataDCCRate1");
+    xgi::bind(this,&EmuFCrateHyperDAQ::setCrate,"setCrate");
     myParameter_ =  0;
     //    irqprob=0;
 
@@ -125,11 +134,30 @@ public:
       }
     }
     DCC_ratemon_cnt=0;
+	tidcode[0] = 0x2124a093;
+	tidcode[1] = 0x31266093;
+	tidcode[2] = 0x31266093;
+	tidcode[3] = 0x05036093;
+	tidcode[4] = 0x05036093;
+	tidcode[5] = 0x05036093;
+	tidcode[6] = 0x05036093;
+	tidcode[7] = 0x05036093;
+	
+	tuscode[0] = 0xcf041a02;
+	tuscode[1] = 0xdf025a02;
+	tuscode[2] = 0xdf025a02;
+	tuscode[3] = 0xb0019a03;
+	tuscode[4] = 0xc041dd99;
+	tuscode[5] = 0xc141dd99;
+	tuscode[6] = 0xd0025a02;
+	tuscode[7] = 0xd1025a02;
   }
 
-  void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  void Default(xgi::Input *in, xgi::Output *out )
+  throw (xgi::exception::Exception)
   {
-
+	using namespace std;
+	using namespace cgicc;
 /* JRG, Logger stuff to add:
     // if (getApplicationLogger().exists(getApplicationLogger().getName())) {
 */
@@ -137,10 +165,11 @@ public:
     std::string LoggerName = getApplicationLogger().getName() ;
     std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
 
+
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     //
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("Simple Web Form") << std::endl;
+    *out << cgicc::title() << "Fed Crate Control" << cgicc::title() << std::endl;
     *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg");
     //
     *out << img().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/ddudcc.gif") << std::endl;
@@ -215,9 +244,43 @@ public:
       *out << cgicc::fieldset() << std::endl;
 
     } else if (dduVector.size()>0 || dccVector.size()>0) {
+		//Cgicc cgi(in);
+    
       *out << br() << std::endl;
       *out << br() << std::endl;
+      
+		//int icrate = 0;
+		/*
+		if (!cgi["icrate"]->isEmpty()) icrate = cgi["icrate"]->getIntegerValue();
+		cout << "Entering Default with icrate " << icrate << endl;
+		//cout << " have crate number " << thisCrate->number() << endl;
+      */
+      
+		int crateerror = 0;
+		for (int icr=0; icr<crateVector.size(); icr++) {
+			if (crateVector[icr]->number() > 4 || crateVector[icr]->number() < 0) {
+				*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Crate " << crateVector[icr]->number() << " has an invalid number (should be 0-4)" << cgicc::div() << endl;
+				crateerror++;
+			}
+			for (int jcr=icr+1; jcr<crateVector.size(); jcr++) {
+				if (crateVector[icr]->number() == crateVector[jcr]->number()) {
+					*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Two crates share crate number " << crateVector[icr]->number() << cgicc::div() << endl;
+					crateerror++;
+				}
+				if (crateVector[icr]->vmeController()->Device() == crateVector[jcr]->vmeController()->Device()) {
+					*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "Crates " << crateVector[icr]->number() << " and " << crateVector[jcr]->number() << " have the same VME controller device number (" << crateVector[icr]->vmeController()->Device() << ")" << cgicc::div() << endl;
+					crateerror++;
+				}
+			}
+		}
+		if (crateerror) {
+			*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "You have " << crateerror << " error" << (crateerror != 1 ? "s" : "") << " in your XML configuration file.  MAKE SURE YOU UNDERSTAND WHAT YOU ARE DOING BEFORE CONTINUING WITH THIS CONFIGURATION.  If you did not expect this message, fix your configuration file and reload it with the button at the bottom of the page." << cgicc::div() << endl;
+		}
+		*out << br() << endl;
 
+		*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
+
+      *out << cgicc::div().set("style","float: left;") << endl;
       *out << "Documents: ";
       *out << a().set("href","http://www.physics.ohio-state.edu/~cms/ddu"); 
       *out <<"DDU WebPage" << std::endl; 
@@ -239,11 +302,32 @@ public:
       *out << a().set("href","mailto:gilmore@mps.ohio-state.edu"); 
       *out <<" Jason Gilmore " << std::endl; 
       *out << a() << std::endl; 
+/*      *out << " | " << std::endl;
+      *out << a().set("href","mailto:paste@mps.ohio-state.edu"); 
+      *out <<" Phillip Killewald " << std::endl; 
+      *out << a() << std::endl; */
+      *out << cgicc::div() << endl;
+      
+		if (crateVector.size() > 1) {
+			*out << cgicc::div().set("style","float: right;") << endl;
+			string crateform = toolbox::toString("/%s/setCrate",getApplicationDescriptor()->getURN().c_str());
+			*out << form().set("method","GET")
+				.set("action",crateform) << endl;
+			for (int icr=0; icr<crateVector.size(); icr++) {
+				*out << "<input type=\"radio\" name=\"icrate\" value=\"" << icr << "\" ";
+				if (thisCrate->number() == crateVector[icr]->number()) *out << "CHECKED ";
+				*out << "/>Crate " << crateVector[icr]->number() << "<br />" << endl;
+			}
+			*out << input().set("type","submit")
+				.set("value","Change Crate") << endl;
+			*out << form() << endl;
+			*out << cgicc::div() << endl;
+		}
       *out << br() << std::endl;
       *out << br() << std::endl;
 
       DDU_=-99;
-      *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
+      *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial; clear: both;");
       *out << endl ;
       if(irq_start[0]==0){
 	std::string vmeintirq =
@@ -297,6 +381,17 @@ public:
         *out << endl ;
         printf(" dduVector.size() %d \n",dduVector.size());
 	for (int i=0; i<(int)dduVector.size(); i++) {
+		/* PGK CAEN gets in a funny state after doing crate switching.  It doesn't seem to
+		* cause any problems, but it does fail to read anything useful from the first
+		* ddu in dduVector after performing a certain series of reads and crate switches.
+		* If you communicate to any other slot after switching to the new crate, then problem
+		* never shows up.  This is what I'm doing here--communicate to the DCC if it exists.
+		* If there is no DCC, then you'll just have to live with the error, I guess.
+		*/
+		if (i==0 && dccVector.size()) {
+			cout << " pinging DCC to avoid CAEN read error -1" << endl;
+			dccVector[0]->mctrl_stath();
+		}
          *out << cgicc::table().set("border","0").set("rules","none").set("frame","void"); 
           *out << cgicc::tr();
           thisDDU=dduVector[i];
@@ -306,13 +401,13 @@ public:
 	  printf(" %s \n",buf);      
           *out << buf; 
           if(slot<=21){
+            thisDDU->CAEN_err_reset();
             unsigned short int status=thisDDU->vmepara_CSCstat();
             unsigned short int DDU_FMM=((thisDDU->vmepara_status()>>8)&0x000F);
-            int brdnum,iblink=0;
+             int brdnum,iblink=0;
             // sleep(1);
-            thisDDU->CAEN_err_reset();
             brdnum=thisDDU->read_page7();
-            sprintf(buf,"Board: %d ",brdnum);
+             sprintf(buf,"Board: %d ",brdnum);
             *out << buf;
 
             if(DDU_FMM==4){    // Busy
@@ -417,6 +512,24 @@ public:
         }
         *out << cgicc::fieldset() << std::endl;
         *out <<cgicc::br() << std::endl;
+
+	// PGK new section
+	*out << cgicc::fieldset().set("style","background-color: #EEE;") << std::endl;
+	*out << cgicc::div().set("style","font-size: 13pt; font-weight: bold;");
+	*out << "Broadcast Firmware Upload";
+	*out << cgicc::div() << std::endl;
+
+	// It's just a button, I guess
+	std::string broadcastform = toolbox::toString("/%s/DDUBroadcast",getApplicationDescriptor()->getURN().c_str());
+	*out << cgicc::form().set("method","GET").set("action",broadcastform).set("target","_blank") << std::endl;
+	*out << cgicc::input().set("type","submit").set("value","Upload and Update Firmware").set("style","background-color: #FDD; border-color: #F00;") << std::endl;
+	
+	*out << cgicc::form() << std::endl;
+	*out << cgicc::fieldset() << std::endl;
+	*out << cgicc::br() << std::endl;
+	// PGK end new section
+
+
 	*out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
         *out << endl ;
 
@@ -544,6 +657,30 @@ public:
     *out << cgicc::html() << std::endl;    
 }
 
+void EmuFCrateHyperDAQ::setCrate(xgi::Input *in, xgi::Output *out)
+	throw (xgi::exception::Exception)
+{
+	using namespace std;
+	using namespace cgicc;
+	
+	Cgicc cgi(in);
+	
+	cout << "Switching crate..." << endl;
+	int icrate = 0;
+	if (!(cgi["icrate"]->isEmpty())) icrate = cgi["icrate"]->getIntegerValue();
+	
+
+	thisCrate = crateVector[icrate];
+	cout << " vme device " << thisCrate->vmeController()->Device() << endl;
+	cout << " vme link " << thisCrate->vmeController()->Link() << endl;
+	dduVector = thisCrate->ddus();
+	dccVector = thisCrate->dccs();
+	
+	cout << " crate set to " << icrate << ", which is crate number " << thisCrate->number() << endl;
+	in = NULL;
+	Default(in,out);
+}
+
   
 void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -589,10 +726,20 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     cout << " Using file " << xmlFile_.toString() << endl ;
     parser.parseFile(xmlFile_.toString().c_str());
     cout <<" Parser Finished"<<endl;
-    //
-    //-- Make sure that only one TMB in one crate is configured
+    // Print "FED Crate # X" at top of each HyperDAQ page.
     CrateSelector selector = tbController.selector();
-    vector<Crate*> crateVector = selector.crates();
+/*
+	for (int i=0; i<crateVector.size(); i++) {
+		delete crateVector[i];
+	}
+*/
+    crateVector.clear();
+    dduVector.clear();
+    dccVector.clear();
+	// PGK I had to add this line so that the selector knows what crates to give us...
+    selector.selectCrates(parser.crateVector());
+	// PGK ...but it STILL doesn't change the crates in the crate vector if they are changed in the XML!
+    crateVector = selector.crates();
     dduVector = selector.ddus(crateVector[0]);
     dccVector = selector.dccs(crateVector[0]);
     thisCrate = crateVector[0];
@@ -676,10 +823,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
   void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
-    unsigned long int idcode,uscode;
-    unsigned long int tidcode[8]={0x2124a093,0x31266093,0x31266093,0x05036093,0x05036093,0x05036093,0x05036093,0x05036093};
-    unsigned long int tuscode[8]={0xcf041a01,0xdf025a02,0xdf025a02,0xb0019a03,0xc041dd99,0xc141dd99,0xd0025a02,0xd1025a02};
-
+    unsigned long int uscode, idcode;
     printf(" entered DDUFirmware \n");
     cgicc::Cgicc cgi(in);
     printf(" initialize env \n");
@@ -703,6 +847,7 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("DDU Firmware Form") << std::endl;
     *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg") << std::endl;
+    *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
     *out << "(Load dual proms in order 1-0) (For hard reset use DCC TTC command)" <<std::endl;
     *out << br() << std::endl;
     *out << br() << std::endl;
@@ -866,6 +1011,475 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     *out << cgicc::html() << std::endl;    
 }
 
+// PGK new method
+void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
+	throw (xgi::exception::Exception)
+{
+	using namespace std;
+	using namespace cgicc;
+
+	Cgicc cgi(in);
+
+	printf(" entered DDUBroadcast \n");
+
+	*out << HTMLDoctype(HTMLDoctype::eStrict) << endl;
+	*out << html().set("lang", "en").set("dir","ltr") << endl;
+	*out << title("DDU Broadcast Firmware") << endl;
+	*out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg") << endl;
+	*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
+	*out << "Use the UPLOAD section to hand off local firmware copies to the server" << br() << "Use the BROADCAST section to actually load the firmware onto the boards" << br() << a().set("style","color: #D00; font-weight: bold;") << endl;
+	
+	*out << "!!! DO NOT BROADCAST UNLESS HYPERDAQ KNOWS ABOUT ALL THE DDUS IN THE CRATE !!!" << a() << endl;
+	*out << br() << endl;
+	*out << br() << endl;
+	
+	string title[5] = {"VMEPROM","DDUPROM0","DDUPROM1","INPROM0","INPROM1"};
+
+	// Green, Red, Yellow, Blue
+	string error[5] = {"background-color: #CFC;","background-color: #FCC;","background-color: #FF9;","background-color: #CCF;"};
+
+
+	string dduloadbroadcast = toolbox::toString("/%s/DDULoadBroadcast",getApplicationDescriptor()->getURN().c_str());
+	string ddusendbroadcast = toolbox::toString("/%s/DDUSendBroadcast",getApplicationDescriptor()->getURN().c_str());
+	string ddureset = toolbox::toString("/%s/DDUReset",getApplicationDescriptor()->getURN().c_str());
+
+	*out << fieldset().set("style","font-size: 13pt; font-family: arial;");
+	*out << endl;
+	*out << legend("Step 1: DDU firmware, UPLOAD SVF file to server").set("style","color:blue") << endl;
+
+	string vheader[5] = {"b0","c0","c1","d0","d1"};
+	string version[5] = {"0","0","0","0","0"};
+	
+	// UPLOAD
+	for (int i=0; i<=4; i++) {
+	
+		*out << cgicc::div().set("style","background-color: #FFF; border-color: #000; border-width: 1px; border-style: solid; margin: 2px 2px 2px 2px; padding: 3px 3px 3px 3px;") << endl;
+		*out << a(title[i]).set("style","font-size: 14pt; font-weight: bold;") << br() << endl;
+		
+		// Get the version number from the on-disk file
+		// Best mashup of perl EVER!
+		ostringstream systemcall;
+		string printversion;
+		
+		systemcall << "perl -e 'while ($line = <>) { if ($line =~ /SIR 8 TDI \\(fd\\) TDO \\(00\\) ;/) { $line = <>; if ($line =~ /TDI \\((........)\\)/) { print $1; } } }' <Current" << title[i] << ".svf >check_ver 2>&1";
+		if (!system(systemcall.str().c_str())) {
+			ifstream pipein("check_ver",ios::in);
+			getline(pipein,printversion);
+			pipein.close();
+		}
+
+		int verr = 0;
+
+		// Check header on disk
+		string checkstring( printversion, 0, 2 );
+		if ( checkstring != vheader[i] ) {
+			verr = 1;
+			printversion = "ERROR READING LOCAL FILE -- UPLOAD A NEW FILE";
+		}
+		else version[i] = printversion;
+
+		// Compare to hard-coded version
+		ostringstream checkstream;
+		checkstream << hex << tuscode[i+3];
+		if ( checkstream.str() != printversion ) {
+			verr = 1;
+			printversion += " (should be " + checkstream.str() + ")";
+		}
+
+		*out << "Registered version on-disk: " << a().set("style","font-weight: bold;" + error[verr]) << printversion << a() << br() << endl;
+		
+		*out << form().set("method","POST")
+			.set("enctype","multipart/form-data")
+			.set("id","Form" + title[i])
+			.set("action",dduloadbroadcast) << endl;
+		*out << input().set("type","file")
+			.set("name","File")
+			.set("id","File" + title[i])
+			.set("size","50") << endl;
+		*out << input().set("type","button")
+			.set("value","Upload SVF")
+			.set("onClick","javascript:clickCheck('" + title[i] + "')") << endl;
+		*out << input().set("type","hidden")
+			.set("name","svftype")
+			.set("value",title[i]) << endl;
+		*out << form() << std::endl;
+	
+		*out << cgicc::div() << endl;
+	}
+
+	*out << fieldset() << endl;
+	*out << br() << endl;
+	
+	// Tricky: javascript check!
+	*out << "<script type=\"text/javascript\">function clickCheck(id) {" << endl;
+	*out << "var element = document.getElementById('File' + id);" << endl;
+	*out << "if (element.value == '') element.style.backgroundColor = '#FFCCCC';" << endl;
+	*out << "else {" << endl;
+	*out << "var form = document.getElementById('Form' + id);" << endl;
+	*out << "form.submit();" << endl;
+	*out << "}" << endl;
+	*out << "}</script>" << endl;
+	
+	*out << fieldset().set("style","font-size: 13pt; font-family: arial;");
+	*out << endl;
+	*out << legend("Step 2: DDU firmware, BROADCAST firmware to whole crate").set("style","color:blue") << endl;
+
+	*out << cgicc::div().set("style","background-color: #FFF; border-color: #000; border-width: 1px; border-style: solid; margin: 2px 2px 2px 2px; padding: 3px 3px 3px 3px;") << endl;
+	*out << a("Click a button to perform broadcast firmware updates").set("style","font-size: 14pt; font-weight: bold;") << br() << endl;
+
+
+	string prom[4] = {"VMEPROM","DDUPROM","INPROM","ALL"};
+
+	// BROADCAST/RESET
+	for (int i=0; i<=3; i++) {
+
+		if (i == 3) *out << "<!-- ";
+
+		string button = "Broadcast " + prom[i];
+		ostringstream number;
+		number << i;
+
+		*out << form().set("method","GET")
+			.set("action",ddusendbroadcast) << endl;
+		*out << input().set("type","submit")
+			.set("value",button) << endl;
+		*out << input().set("type","hidden")
+			.set("name","svftype")
+			.set("value", number.str().c_str()) << endl;
+			
+		for (int j=0; j<=4; j++) {
+			*out << input().set("type","hidden")
+				.set("name",title[j])
+				.set("value",version[j]) << endl;
+		}
+		
+		*out << form() << endl;
+		
+		if (i == 3) *out << " -->";
+
+	}
+	
+	*out << form().set("method","GET")
+		.set("action",ddureset) << endl;
+	*out << input().set("type","submit")
+		.set("value","Reset Crate");
+	*out << "<input type=\"checkbox\" name=\"useTTC\" CHECKED /> Use DCC Command Bus";
+	*out << form() << endl;
+	
+	*out << cgicc::div() << endl;
+	*out << fieldset() << endl;
+	*out << br() << endl;
+	
+	// STATUS
+	*out << table().set("style","border-width: 2px; border-color: #000; border-style: solid; background-color: #FFF; width: 90%; margin-right: auto; margin-left: auto;");
+	*out << tr() << endl;
+	
+	*out << td().set("style","font-weight: bold; font-size: 12pt; color: #FFF; background-color: #000;") << "Slot (BN)" << td() << endl;
+	for (int i=0; i<=4; i++) {
+		*out << td().set("style","font-weight: bold; font-size: 12pt; color: #FFF; background-color: #000;") << title[i] << td() << endl;
+	}
+	*out << tr() << endl;
+
+	for (int i=0; i<dduVector.size(); i++) {
+		if (dduVector[i]->slot() <= 21) {
+			int slot = dduVector[i]->slot();
+			
+			ostringstream firmware_version[5];
+			ostringstream fpga_version[3];
+			firmware_version[0] << hex << dduVector[i]->vmeprom_usercode();
+			firmware_version[1] << hex << dduVector[i]->dduprom_usercode0();
+			firmware_version[2] << hex << dduVector[i]->dduprom_usercode1();
+			firmware_version[3] << hex << dduVector[i]->inprom_usercode0();
+			firmware_version[4] << hex << dduVector[i]->inprom_usercode1();
+			
+			fpga_version[0] << hex << dduVector[i]->ddufpga_usercode();
+			fpga_version[1] << hex << dduVector[i]->infpga_usercode0();
+			fpga_version[2] << hex << dduVector[i]->infpga_usercode1();
+			
+			string boardnumber0 = firmware_version[1].str().substr(6,2);
+			string boardnumber1 = firmware_version[2].str().substr(6,2);
+			
+			int err[5] = {0,0,0,0,0};
+
+			int ibn = dduVector[i]->dduprom_usercode0() & 0xff;
+			ostringstream bn;
+			if (boardnumber0 == boardnumber1)
+				bn << dec << ibn;
+			else {
+				bn << "MISMATCH";
+				err[1] = 2;
+				err[2] = 2;
+			}
+
+			for (int j=0; j<=4; j++) {
+				if (j==1 || j==2) {
+					if (firmware_version[j].str().substr(0,6) != version[j].substr(0,6)) {
+						err[j] = 1;
+					} else if (fpga_version[0].str().substr(3,2) != firmware_version[j].str().substr(2,2)) {
+						err[j] = 3;
+					}
+				}
+				else if (version[j] != firmware_version[j].str()) {
+					err[j] = 1;
+				}
+				else if (j==3 || j==4) {
+					if (fpga_version[j-2].str().substr(2,6) != firmware_version[j].str().substr(2,6)) {
+						err[j] = 3;
+					}
+				}
+			}
+
+			*out << tr() << endl;
+			
+			string err2 = "";
+			if (((dduVector[i]->vmepara_status()>>8)&0x000F)!= 8) {
+				err2 = "background-color: #AAA;";
+			}
+
+			*out << td().set("style","font-weight: bold; font-size: 12pt; border-color: #000; border-style: solid; border-width: 1px;" + err2) << slot << " (" << bn.str() << ")" << td() << endl;
+			
+			for (int j=0; j<=4; j++) {
+				*out << td().set("style","font-size: 10pt; border-color: #000; border-style: solid; border-width: 1px;" + error[err[j]]) << firmware_version[j].str() << td() << endl;
+			}
+			
+			*out << tr() << endl;
+		}
+	}
+
+	*out << tr() << endl;
+	*out << td().set("style","font-weight: bold; font-size: 12pt; color: #FFF; background-color: #000;") << "Legend" << td() << endl;
+	*out << td("all good").set("style","font-size: 10pt; border-color: #000; border-style: solid; border-width: 2px;" + error[0]) << endl;
+	*out << td("prom/disk mismatch").set("style","font-size: 10pt; border-color: #000; border-style: solid; border-width: 2px;" + error[1]) << endl;
+	*out << td("board number mismatch").set("style","font-size: 10pt; border-color: #000; border-style: solid; border-width: 2px;" + error[2]) << endl;
+	*out << td("prom/fpga mismatch").set("style","font-size: 10pt; border-color: #000; border-style: solid; border-width: 2px;" + error[3]) << endl;
+	*out << td("bad board status").set("style","font-size: 10pt; border-color: #000; border-style: solid; border-width: 2px; background-color: #AAA") << endl;
+	*out << tr() << endl;
+
+	*out << table() << br() << endl;
+
+/*	ostringstream debug;
+	debug << "Debug information: <br />"
+		<< "ddu: " << ddu << "<br />"
+		<< "slot: " << thisDDU->slot() << "<br />";
+	*out << cgicc::div(debug.str().c_str()).set("style","font-size: 11pt") << endl; */
+
+	*out << body() << endl;
+	*out << html() << endl;
+}
+// PGK end new method
+
+// PGK new method
+void EmuFCrateHyperDAQ::DDULoadBroadcast(xgi::Input *in, xgi::Output *out)
+	throw (xgi::exception::Exception)
+{
+	using namespace std;
+	using namespace cgicc;
+
+	Cgicc cgi(in);
+
+	printf(" entered DDULoadBroadcast \n");
+
+	string type = cgi["svftype"]->getValue();
+
+	if (type != "VMEPROM" && type != "DDUPROM0" && type != "DDUPROM1" && type != "INPROM0" && type != "INPROM1") {
+		cout << "I don't understand that PROM type (" << type << ")." << endl;
+		in = NULL;
+		this->DDUBroadcast(in,out);
+		return;
+	}
+
+	const_file_iterator ifile = cgi.getFile("File");
+	if ( (*ifile).getFilename() == "" ) {
+		cout << "The file you attempted to upload either doesn't exist, or wasn't properly transferred." << endl;
+		in = NULL;
+		this->DDUBroadcast(in,out);
+		return;
+	}
+
+	string filename = "Current" + type + ".svf";
+	ofstream outfile;
+	outfile.open(filename.c_str(),ios::trunc);
+	if (!outfile.is_open()) {
+		cout << "I can't open the file stream for writing (" << filename << ")." << endl;
+		in = NULL;
+		this->DDUBroadcast(in,out);
+		return;
+	}
+
+	(*ifile).writeToStream(outfile);
+	outfile.close();
+
+	cout << "downloaded and saved " << filename << " of type " << type << endl;
+	in = NULL;
+	this->DDUBroadcast(in,out);
+
+}
+// PGK end new method
+
+// PGK new method
+void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
+	throw (xgi::exception::Exception)
+{
+	using namespace std;
+	using namespace cgicc;
+
+	Cgicc cgi(in);
+
+	printf(" entered DDUSendBroadcast \n");
+
+	int type = cgi["svftype"]->getIntegerValue();
+
+	if (type != 0 && type != 1 && type != 2 && type != 3) {
+		cout << "I don't understand that PROM type (" << type << ")." << endl;
+		in = NULL;
+		this->DDUBroadcast(in,out);
+		return;
+	}
+
+	string name[5] = {"VMEPROM","DDUPROM1","DDUPROM0","INPROM1","INPROM0"};
+	enum DEVTYPE devtype[5] = {VMEPROM,DDUPROM1,DDUPROM0,INPROM1,INPROM0};
+
+	// Load the proper version types from the cgi handle.
+	string version[5];
+	for (int i=0; i<=4; i++) {
+		version[i] = cgi[name[i].c_str()]->getValue();
+		cout << " version on disk: " << name[i] << " " << version[i] << endl;
+	}
+	
+	int from, to;
+	if (type == 0) { from = 0; to = 0; }
+	if (type == 1) { from = 1; to = 2; }
+	if (type == 2) { from = 3; to = 4; }
+	if (type == 3) { from = 0; to = 4; }
+
+	cout << " From type " << type << ", broadcasting ";
+	for (int i=from; i<=to; i++) {
+		cout << name[i] << " ";
+	}
+	cout << endl;
+
+	int bnstore[dduVector.size()];
+	int broadcastddu;
+	for (int i=0; i<dduVector.size(); i++) {
+		if (dduVector[i]->slot() > 21) broadcastddu = i;
+	}
+
+	for (int i=from; i<=to; i++) {
+		string filename = "Current" + name[i] + ".svf";
+		cout << " broadcasting " << filename << " version " << version[i] << endl;
+
+		char *boardnumber = (char *) malloc(5);
+		boardnumber[0]=0x00;boardnumber[1]=0x00;boardnumber[2]=0x00;boardnumber[3]=0x00;
+
+		if (i == 1 || i == 2) {
+			thisDDU = dduVector[broadcastddu];
+			boardnumber[0] = 1;
+
+
+			thisDDU->epromload_broadcast((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber,1);
+
+			for (int ddu=0; ddu<dduVector.size(); ddu++) {
+				thisDDU = dduVector[ddu];
+				if (thisDDU->slot() > 21) continue;
+				int ibn = thisDDU->read_page7();
+				bnstore[ddu] = ibn;
+				boardnumber[0] = ibn;
+				cout << " pause to upload boardnumber " << ibn << endl;
+				thisDDU->epromload_broadcast((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber,2);
+			}
+
+			cout << " resuming... " << endl;
+			boardnumber[0] = 1;
+			thisDDU = dduVector[broadcastddu];
+			thisDDU->epromload_broadcast((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber,3);
+
+		} else {
+			thisDDU = dduVector[broadcastddu];
+			thisDDU->epromload((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber);
+		}
+		free(boardnumber);
+		cout << " broadcast of " << filename << " complete!" << endl;
+
+	}
+
+	cout << " broadcast operations complete... " << endl;
+	cout << " checking firmware versions on PROMs to see if broadcast worked." << endl;
+//	cout << "resetting crate via DCC TTC 34 and checking firmware versions..." << endl;
+
+	// I hope there is only one DCC in the crate...
+	//dccVector[0]->mctrl_ttccmd(52); // is 34 in hex: DDU hard reset
+	//sleep((unsigned int)1);
+	
+	for (int i=from; i<=to; i++) { // loop over PROMS
+		for (int ddu=0; ddu<dduVector.size(); ddu++) { // loop over boards
+			thisDDU = dduVector[ddu];
+			if (thisDDU->slot() > 21) continue;
+			
+			cout << "slot: " << thisDDU->slot() << endl;
+			
+			string boardversion;
+			string checkversion;
+			if (i==0) {
+				boardversion = thisDDU->vmeprom_usercode();
+				checkversion = version[i];
+			} else if (i==1) {
+				boardversion = thisDDU->dduprom_usercode0();
+				checkversion = version[i].substr(0,6);
+				checkversion += (bnstore[i] & 0xff);
+			} else if (i==2) {
+				boardversion = thisDDU->dduprom_usercode1();
+				checkversion = version[i].substr(0,6);
+				checkversion += (bnstore[i] & 0xff);
+			} else if (i==3) {
+				boardversion = thisDDU->inprom_usercode0();
+				checkversion = version[i];
+			} else if (i==4) {
+				boardversion = thisDDU->inprom_usercode1();
+				checkversion = version[i];
+			}
+			
+			if (checkversion != boardversion) {
+				cout << name[i] << " GOOD! (shows " << checkversion <<")" << endl;
+			} else {
+				cout << name[i] << " BAD! (shows " << boardversion << ", shoud be " << checkversion << ")" << endl;
+			}
+		}
+	}
+
+	in = NULL;
+	this->DDUBroadcast(in,out);
+
+}
+// PGK end new method
+
+
+// PGK new method
+void EmuFCrateHyperDAQ::DDUReset(xgi::Input *in, xgi::Output *out)
+	throw (xgi::exception::Exception)
+{
+	using namespace std;
+	using namespace cgicc;
+
+	Cgicc cgi(in);
+	
+	string useTTC = cgi["useTTC"]->getValue();
+	if (useTTC != "on") useTTC = "off";
+	cout << "Entering DDUReset with useTTC " << useTTC << endl;
+	
+	if (useTTC == "on") {
+		cout << " resetting via TTC 0x34" <<endl;
+		dccVector[0]->mctrl_ttccmd(52); // is 34 in hex: DDU hard reset
+		sleep((unsigned int)1);
+	} else {
+		cout << " don't know how to do global reset requests." << endl;
+	}
+	
+	cout << " reset complete." << endl;
+	in = NULL;
+	this->DDUBroadcast(in,out);
+}
+// PGK end new method
+
   void EmuFCrateHyperDAQ::DDULoadFirmware(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -965,8 +1579,8 @@ void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out )
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("DDUFPGA Web Form") << std::endl;
-    *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg");
-    // << std::endl;
+    *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg") << std::endl;
+    *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 
     char buf[300],buf2[300],buf3[300],buf4[200];
     char buf5[300],buf6[10],buf7[300],buf8[10];
@@ -2462,6 +3076,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
     char buf[300],buf2[300],buf3[300],buf4[30];
     sprintf(buf,"DDU INFPGA0, VME  Slot %d",thisDDU->slot());
     *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg");
+    *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
     *out << "<h2 align=center><font color=blue>" << buf << "</font></h2>" << std::endl;
 
     for(int i=300;i<322;i++){
@@ -2903,6 +3518,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("INFPGA1 Web Form") << std::endl;
      *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg");
+     *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 
     char buf[300],buf2[300],buf3[300],buf4[30];
     sprintf(buf,"DDU INFPGA1, VME  Slot %d",thisDDU->slot());
@@ -3448,6 +4064,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
     *out << cgicc::title("VMEPARA Web Form") << std::endl;
     //
      *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg");
+     *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 
     char buf[300],buf2[300] ;
     int iblink=0;
@@ -3725,6 +4342,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("VMESERI Web Form") << std::endl;
     *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg") << std::endl;
+    *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 
     char buf[300],buf2[300] ;
     sprintf(buf,"DDU SERIAL VME  Slot %d",thisDDU->slot());
@@ -4130,6 +4748,7 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
     *out << cgicc::title("VMEIRQ Web Form") << std::endl;
     //  
     *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg") << std::endl;
+    *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 
     char buf[300];
     sprintf(buf,"DDU VME IRQ Interrupt Monitor");
@@ -4144,6 +4763,7 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
       if(FEDVME_int!=0 || irqprob!=0){ 
 	printf(" <--DEBUG-->  VMEIntIRQ, pt2: DDUslot=%d   FEDVMEint=%04xh   irqprob=%d <----> \n",FEDVMEslot,FEDVME_int,irqprob);
 	*out << img().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/redlight.gif") << std::endl;
+	*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 	//	LOG4CPLUS_INFO(getApplicationLogger(), " EmuFEDVME: Interrupt xx detected");
     /* 
 S. Durkin kludge
@@ -4273,6 +4893,7 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
     *out << cgicc::title("DCC Firmware Form") << std::endl;
     //
     *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg") << std::endl;
+    *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
  
     char buf[300] ;
     sprintf(buf,"DCC Firmware Slot %d",thisDCC->slot());
@@ -4454,6 +5075,11 @@ void EmuFCrateHyperDAQ::LoadXMLconf(xgi::Input * in, xgi::Output * out )
     //    const CgiEnvironment& env = cgi.getEnvironment();
     //    string URLname = cgi["DefURL"]->getValue() ; 
     //    cout << "  should go to this URL: " << URLname  << endl ;
+    // Here's how you clear them:
+    crateVector.clear();
+    dduVector.clear();
+    dccVector.clear();
+    // It doesn't seem to work, though (PGK)
     printf(" dduVector.size() %d \n",dduVector.size());
     printf(" dccVector.size() %d \n",dccVector.size());
     //    dduVector.size()=0;  // How to set these to zero?!?
@@ -4490,6 +5116,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("DCC Comands Web Form") << std::endl;
     *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg");
+    *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 
     char buf[300],buf2[300],buf3[300];
     sprintf(buf,"DCC Commands VME  Slot %d",thisDCC->slot());
@@ -4826,10 +5453,10 @@ void EmuFCrateHyperDAQ::DCCFirmwareReset(xgi::Input * in, xgi::Output * out )
 void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-  float v_val[4]={1500.,2500.,2500.,3300.};
-  float v_delt={100.};  
-  float t_val[3]={85.,85.,85.};
-  float t_delt={7.};
+  float v_val[4]={1500.,2500.,2500.,3320.};
+  float v_delt={50.};
+  float t_val[4]={80.,80.,80.,80.};
+  float t_delt={17.};
 
   cgicc::Cgicc cgi(in);
     //
@@ -4842,6 +5469,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
     *out << cgicc::title("DDU Temp/Volt  Web Form") << std::endl;
     //  
     *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg") << std::endl;
+    *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 
     char buf[300];
     sprintf(buf,"DDU Volt/Temp Monitor");
@@ -4879,7 +5507,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
             }
             sprintf(buf,"Temperatures:");
             *out << buf;
-            for(int j=0;j<3;j++){
+            for(int j=0;j<4;j++){
               thisDDU->CAEN_err_reset();
 	      float adc=thisDDU->readthermx(j);
               if(thisDDU->CAEN_err()!=0){

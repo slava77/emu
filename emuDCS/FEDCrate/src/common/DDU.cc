@@ -6006,253 +6006,508 @@ void DDU::Parse(char *buf,int *Count,char **Word)
 
 void DDU::epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum)
 {
-enum DEVTYPE devstp,dv;
-char *devstr;
-FILE *dwnfp,*fpout;
-char buf[8192],buf2[256];
-char *Word[256],*lastn;
-
-int Count,i,j,id,nbits,nbytes,pause,xtrbits,looppause;
-
-int tmp,cmpflag;
-int tstusr;
-int nowrit;
-char snd[5000],expect[5000],rmask[5000],smask[5000],cmpbuf[5000];
-
-extern struct GEOM geo[];
-// printf(" epromload %d \n",devnum);
- 
- /*  if(devnum==ALL){
-    devnum=F1PROM;
-    devstp=F5PROM;
-  }
-  else {
-    devstp=devnum;
-    } */
- devstp=devnum;
-  for(id=devnum;id<=devstp;id++){
-    dv=(DEVTYPE)id;
-    xtrbits=geo[dv].sxtrbits;
-    //    printf(" ************************** xtrbits %d geo[dv].sxtrbits %d \n",xtrbits,geo[dv].sxtrbits);
-    devstr=geo[dv].nam;
-    dwnfp    = fopen(downfile,"r");
-    fpout=fopen("eprom.bit","w");
-    //  printf("Programming Design %s (%s) with %s\n",design,devstr,downfile);
-
-    while (fgets(buf,256,dwnfp) != NULL)  {
-      // printf("%s",buf);
-     if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
-       // printf("%s",buf);
-     }
-
-      else {
-        if(strrchr(buf,';')==0){
-          do {
-            lastn=strrchr(buf,'\n');
-            if(lastn!=0)lastn[0]='\0';
-            if (fgets(buf2,256,dwnfp) != NULL){
-              strcat(buf,buf2);
-            }
-            else {
-	      //    printf("End of File encountered.  Quiting\n");
-              return;
-            }
-          }
-          while (strrchr(buf,';')==0);
-        }
-        for(i=0;i<1024;i++){
-          cmpbuf[i]=0;
-          sndbuf[i]=0;
-          rcvbuf[i]=0;
-        }
-        Parse(buf, &Count, &(Word[0]));
-        // count=count+1;
-        // printf(" count %d \n",count);
-        if(strcmp(Word[0],"SDR")==0){
-          cmpflag=0;    //disable the comparison for no TDO SDR
-          sscanf(Word[1],"%d",&nbits);
-          nbytes=(nbits-1)/8+1;
-          for(i=2;i<Count;i+=2){
-            if(strcmp(Word[i],"TDI")==0){
-              for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&snd[j]);
-              }
-/*JRG, new selective way to download UNALTERED PromUserCode from SVF to
-    ANY prom:  just set cbrdnum[3,2,1,0]=0 in calling routine!
-    was  if(nowrit==1){  */
-//    if(nowrit==1&&(cbrdnum[0]|cbrdnum[1]|cbrdnum[2]|cbrdnum[3])!=0){
-              if(nowrit==1&&(cbrdnum[1]|cbrdnum[2]|cbrdnum[3])!=0){
-                tstusr=0;
-                snd[0]=cbrdnum[0];
-                snd[1]=cbrdnum[1];
-                snd[2]=cbrdnum[2]; 
-                snd[3]=cbrdnum[3];
-//        printf(" snd %02x %02x %02x %02x \n",snd[0],snd[1],snd[2],snd[3]);
-              }
-// JRG, try fix for dduprom case:
-              else if(nowrit==1&&(cbrdnum[0]!=0)){
-                tstusr=0;
-                snd[0]=cbrdnum[0];
-	      }
-            }
-            if(strcmp(Word[i],"SMASK")==0){
-              for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&smask[j]);
-              }
-            }
-            if(strcmp(Word[i],"TDO")==0){
-              cmpflag=1;
-              for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&expect[j]);
-              }
-            }
-            if(strcmp(Word[i],"MASK")==0){
-              for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&rmask[j]);
-              }
-            }
-          }
-          for(i=0;i<nbytes;i++){
-	    //            sndbuf[i]=snd[i]&smask[i];
-            sndbuf[i]=snd[i]&0xff;
-          }
-	  //   printf("D%04d",nbits+xtrbits);
-          // for(i=0;i<(nbits+xtrbits)/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
-          if(nowrit==0){
-             if((geo[dv].jchan==12)){
-                   scan_reset(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
-             }else{
-                   scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
-             }
-          }else{
-	     if(writ==1){
-
-                if((geo[dv].jchan==12)){
-                   scan_reset(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
-                }else{ 
-                   scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
-                }
-             }
-          } 
-      
-	  //  Data readback comparison here:
-          for (i=0;i<nbytes;i++) {
-            tmp=(rcvbuf[i]>>3)&0x1F;
-            rcvbuf[i]=tmp | (rcvbuf[i+1]<<5&0xE0);
-	    /*  if (((rcvbuf[i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1) 
-		printf("read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcvbuf[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF); */
-          }
-          if (cmpflag==1) {
-            for (i=0;i<nbytes;i++) {
-	        fprintf(fpout," %02X",rcvbuf[i]&0xFF);
-              if (i%4==3) fprintf(fpout,"\n");
-	      }
-	  }
-        }
-
-        else if(strcmp(Word[0],"SIR")==0){
-          nowrit=0;
-          sscanf(Word[1],"%d",&nbits);
-          nbytes=(nbits-1)/8+1;
-          for(i=2;i<Count;i+=2){
-            if(strcmp(Word[i],"TDI")==0){
-              for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&snd[j]);
-              }
-              if(nbytes==1){if(0xfd==(snd[0]&0xff))nowrit=1;} // nowrit=1  
-            }
-            else if(strcmp(Word[i],"SMASK")==0){
-              for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&smask[j]);
-              }
-            }
-            if(strcmp(Word[i],"TDO")==0){
-              for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&expect[j]);
-              }
-            }
-            else if(strcmp(Word[i],"MASK")==0){
-              for(j=0;j<nbytes;j++){
-                sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&rmask[j]);
-              }
-            }
-          }
-          for(i=0;i<nbytes;i++){
-	    //            sndbuf[i]=snd[i]&smask[i];
-            sndbuf[i]=snd[i];
-          }
-	  //   printf("I%04d",nbits);
-          // for(i=0;i<nbits/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
-/*JRG, brute-force way to download UNALTERED PromUserCode from SVF file to
-    DDU prom, but screws up CFEB/DMB program method:      nowrit=0;  */
-          if(nowrit==0){
-	    devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);}
-          else{
-            if(writ==1)devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
-            if(writ==0)printf(" ***************** nowrit %02x \n",sndbuf[0]);
-          }
-         
-	  /*
-          printf("send %2d instr bits %02X %02X %02X %02X %02X\n",nbits,sndbuf[4]&0xFF,sndbuf[3]&0xFF,sndbuf[2]&0xFF,sndbuf[1]&0xFF,sndbuf[0]&0xFF);
-          printf("expect %2d instr bits %02X %02X %02X %02X %02X\n",nbits,expect[4]&0xFF,expect[3]&0xFF,expect[2]&0xFF,expect[1]&0xFF,expect[0]&0xFF);
-	  */
-        }
-        else if(strcmp(Word[0],"RUNTEST")==0){
-          sscanf(Word[1],"%d",&pause);
-	  //          printf("RUNTEST = %d\n",pause);
-	  /*   ipd=83*pause;
-          // sleep(1);
-          t1=(double) clock()/(double) CLOCKS_PER_SEC;
-          for(i=0;i<ipd;i++);
-          t2=(double) clock()/(double) CLOCKS_PER_SEC;
-	  //  if(pause>1000)printf("pause = %f s  while erasing\n",t2-t1); */
-	  //          for (i=0;i<pause/100;i++)
-	  //  devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
-          // fpause=pause;
-          // pause=pause/2;
-/*
-// JRG, tried this delay for CAEN, no good:
-	  printf("  RUNTEST, pause for %d usec\n",pause);
-	  if(pause>1000)usleep(pause);
-	  else usleep(1000);
- */
-
-          if (pause>65535) {
-            sndbuf[0]=255;
-            sndbuf[1]=255;
-            for (looppause=0;looppause<pause/65536;looppause++) devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,0);
-            pause=65535;
-	    }
-          sndbuf[0]=pause-(pause/256)*256;
-          sndbuf[1]=pause/256;
-	  // printf(" sndbuf %d %d %d \n",sndbuf[1],sndbuf[0],pause);
-          devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,2);
-          // fpause=fpause*1.5+100;
-          // pause=fpause; 
-          flush_vme();
-          // usleep(pause);
-          // printf(" send sleep \n");  
-        }
-        else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0)){
-	   printf("goto reset idle state\n"); 
-	   //	   usleep(1000);
-	   devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
-	   //	   usleep(1000);
-        }
-        else if(strcmp(Word[0],"TRST")==0){
-        }
-        else if(strcmp(Word[0],"ENDIR")==0){
-        }
-        else if(strcmp(Word[0],"ENDDR")==0){
-        }
-      }
-    }
-    fclose(fpout);
-    fclose(dwnfp);
-  }
-  flush_vme();
-  send_last();
+	enum DEVTYPE devstp,dv;
+	char *devstr;
+	FILE *dwnfp,*fpout;
+	char buf[8192],buf2[256];
+	char *Word[256],*lastn;
+	
+	int Count,i,j,id,nbits,nbytes,pause,xtrbits,looppause;
+	
+	int tmp,cmpflag;
+	int tstusr;
+	int nowrit;
+	char snd[5000],expect[5000],rmask[5000],smask[5000],cmpbuf[5000];
+	
+	extern struct GEOM geo[];
+	// printf(" epromload %d \n",devnum);
+	
+	/*  if(devnum==ALL){
+		devnum=F1PROM;
+		devstp=F5PROM;
+	}
+	else {
+		devstp=devnum;
+		} */
+	devstp=devnum;
+	for(id=devnum;id<=devstp;id++){
+		dv=(DEVTYPE)id;
+		xtrbits=geo[dv].sxtrbits;
+		//    printf(" ************************** xtrbits %d geo[dv].sxtrbits %d \n",xtrbits,geo[dv].sxtrbits);
+		devstr=geo[dv].nam;
+		dwnfp    = fopen(downfile,"r");
+		fpout=fopen("eprom.bit","w");
+		//  printf("Programming Design %s (%s) with %s\n",design,devstr,downfile);
+	
+		while (fgets(buf,256,dwnfp) != NULL)  {
+			// printf("%s",buf);
+		if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
+			// printf("%s",buf);
+		}
+	
+			else {
+			if(strrchr(buf,';')==0){
+				do {
+					lastn=strrchr(buf,'\n');
+					if(lastn!=0)lastn[0]='\0';
+					if (fgets(buf2,256,dwnfp) != NULL){
+					strcat(buf,buf2);
+					}
+					else {
+				//    printf("End of File encountered.  Quiting\n");
+					return;
+					}
+				}
+				while (strrchr(buf,';')==0);
+			}
+			for(i=0;i<1024;i++){
+				cmpbuf[i]=0;
+				sndbuf[i]=0;
+				rcvbuf[i]=0;
+			}
+			Parse(buf, &Count, &(Word[0]));
+			// count=count+1;
+			// printf(" count %d \n",count);
+			if(strcmp(Word[0],"SDR")==0){
+				cmpflag=0;    //disable the comparison for no TDO SDR
+				sscanf(Word[1],"%d",&nbits);
+				nbytes=(nbits-1)/8+1;
+				for(i=2;i<Count;i+=2){
+					if(strcmp(Word[i],"TDI")==0){
+					for(j=0;j<nbytes;j++){
+						sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&snd[j]);
+					}
+	/*JRG, new selective way to download UNALTERED PromUserCode from SVF to
+		ANY prom:  just set cbrdnum[3,2,1,0]=0 in calling routine!
+		was  if(nowrit==1){  */
+	//    if(nowrit==1&&(cbrdnum[0]|cbrdnum[1]|cbrdnum[2]|cbrdnum[3])!=0){
+					if(nowrit==1&&(cbrdnum[1]|cbrdnum[2]|cbrdnum[3])!=0){
+						tstusr=0;
+						snd[0]=cbrdnum[0];
+						snd[1]=cbrdnum[1];
+						snd[2]=cbrdnum[2]; 
+						snd[3]=cbrdnum[3];
+	//        printf(" snd %02x %02x %02x %02x \n",snd[0],snd[1],snd[2],snd[3]);
+					}
+	// JRG, try fix for dduprom case:
+					else if(nowrit==1&&(cbrdnum[0]!=0)){
+						tstusr=0;
+						snd[0]=cbrdnum[0];
+				}
+					}
+					if(strcmp(Word[i],"SMASK")==0){
+					for(j=0;j<nbytes;j++){
+						sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&smask[j]);
+					}
+					}
+					if(strcmp(Word[i],"TDO")==0){
+					cmpflag=1;
+					for(j=0;j<nbytes;j++){
+						sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&expect[j]);
+					}
+					}
+					if(strcmp(Word[i],"MASK")==0){
+					for(j=0;j<nbytes;j++){
+						sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&rmask[j]);
+					}
+					}
+				}
+				for(i=0;i<nbytes;i++){
+			//            sndbuf[i]=snd[i]&smask[i];
+					sndbuf[i]=snd[i]&0xff;
+				}
+		//   printf("D%04d",nbits+xtrbits);
+				// for(i=0;i<(nbits+xtrbits)/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
+				if(nowrit==0){
+					if((geo[dv].jchan==12)){
+							scan_reset(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+					}else{
+							scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+					}
+				}else{
+			if(writ==1){
+	
+						if((geo[dv].jchan==12)){
+							scan_reset(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+						}else{ 
+							scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+						}
+					}
+				} 
+			
+		//  Data readback comparison here:
+				for (i=0;i<nbytes;i++) {
+					tmp=(rcvbuf[i]>>3)&0x1F;
+					rcvbuf[i]=tmp | (rcvbuf[i+1]<<5&0xE0);
+			/*  if (((rcvbuf[i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1) 
+			printf("read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcvbuf[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF); */
+				}
+				if (cmpflag==1) {
+					for (i=0;i<nbytes;i++) {
+				fprintf(fpout," %02X",rcvbuf[i]&0xFF);
+					if (i%4==3) fprintf(fpout,"\n");
+				}
+		}
+			}
+	
+			else if(strcmp(Word[0],"SIR")==0){
+				nowrit=0;
+				sscanf(Word[1],"%d",&nbits);
+				nbytes=(nbits-1)/8+1;
+				for(i=2;i<Count;i+=2){
+					if(strcmp(Word[i],"TDI")==0){
+					for(j=0;j<nbytes;j++){
+						sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&snd[j]);
+					}
+					if(nbytes==1){if(0xfd==(snd[0]&0xff))nowrit=1;} // nowrit=1  
+					}
+					else if(strcmp(Word[i],"SMASK")==0){
+					for(j=0;j<nbytes;j++){
+						sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&smask[j]);
+					}
+					}
+					if(strcmp(Word[i],"TDO")==0){
+					for(j=0;j<nbytes;j++){
+						sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&expect[j]);
+					}
+					}
+					else if(strcmp(Word[i],"MASK")==0){
+					for(j=0;j<nbytes;j++){
+						sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&rmask[j]);
+					}
+					}
+				}
+				for(i=0;i<nbytes;i++){
+			//            sndbuf[i]=snd[i]&smask[i];
+					sndbuf[i]=snd[i];
+				}
+		//   printf("I%04d",nbits);
+				// for(i=0;i<nbits/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
+	/*JRG, brute-force way to download UNALTERED PromUserCode from SVF file to
+		DDU prom, but screws up CFEB/DMB program method:      nowrit=0;  */
+				if(nowrit==0){
+			devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);}
+				else{
+					if(writ==1)devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+					if(writ==0)printf(" ***************** nowrit %02x \n",sndbuf[0]);
+				}
+				
+		/*
+				printf("send %2d instr bits %02X %02X %02X %02X %02X\n",nbits,sndbuf[4]&0xFF,sndbuf[3]&0xFF,sndbuf[2]&0xFF,sndbuf[1]&0xFF,sndbuf[0]&0xFF);
+				printf("expect %2d instr bits %02X %02X %02X %02X %02X\n",nbits,expect[4]&0xFF,expect[3]&0xFF,expect[2]&0xFF,expect[1]&0xFF,expect[0]&0xFF);
+		*/
+			}
+			else if(strcmp(Word[0],"RUNTEST")==0){
+				sscanf(Word[1],"%d",&pause);
+		//          printf("RUNTEST = %d\n",pause);
+		/*   ipd=83*pause;
+				// sleep(1);
+				t1=(double) clock()/(double) CLOCKS_PER_SEC;
+				for(i=0;i<ipd;i++);
+				t2=(double) clock()/(double) CLOCKS_PER_SEC;
+		//  if(pause>1000)printf("pause = %f s  while erasing\n",t2-t1); */
+		//          for (i=0;i<pause/100;i++)
+		//  devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
+				// fpause=pause;
+				// pause=pause/2;
+	/*
+	// JRG, tried this delay for CAEN, no good:
+		printf("  RUNTEST, pause for %d usec\n",pause);
+		if(pause>1000)usleep(pause);
+		else usleep(1000);
+	*/
+	
+				if (pause>65535) {
+					sndbuf[0]=255;
+					sndbuf[1]=255;
+					for (looppause=0;looppause<pause/65536;looppause++) devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,0);
+					pause=65535;
+			}
+				sndbuf[0]=pause-(pause/256)*256;
+				sndbuf[1]=pause/256;
+		// printf(" sndbuf %d %d %d \n",sndbuf[1],sndbuf[0],pause);
+				devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,2);
+				// fpause=fpause*1.5+100;
+				// pause=fpause; 
+				flush_vme();
+				// usleep(pause);
+				// printf(" send sleep \n");  
+			}
+			else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0)){
+			printf("goto reset idle state\n"); 
+			//	   usleep(1000);
+			devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
+			//	   usleep(1000);
+			}
+			else if(strcmp(Word[0],"TRST")==0){
+			}
+			else if(strcmp(Word[0],"ENDIR")==0){
+			}
+			else if(strcmp(Word[0],"ENDDR")==0){
+			}
+			}
+		}
+		fclose(fpout);
+		fclose(dwnfp);
+	}
+	flush_vme();
+	send_last();
 }
+
+
+
+void DDU::epromload_broadcast(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum,int ipass)
+{
+	enum DEVTYPE devstp,dv;
+	char *devstr;
+	FILE *dwnfp,*fpout;
+	char buf[8192],buf2[256];
+	char *Word[256],*lastn;
+	
+	int Count,i,j,id,nbits,nbytes,pause,xtrbits,looppause;
+	
+	int tmp,cmpflag;
+	int tstusr;
+	int nowrit;
+	char snd[5000],expect[5000],rmask[5000],smask[5000],cmpbuf[5000];
+
+/* ipass acts as a hiccup.
+ipass == 1 - load up to the part where you have to load the board number
+ipass == 2 - load only the board number
+ipass == 3 - load only the stuff after the board number
+*/
+	int pass = 1;
+	
+	extern struct GEOM geo[];
+	// printf(" epromload %d \n",devnum);
+
+	devstp=devnum;
+	for(id=devnum;id<=devstp;id++){
+		dv=(DEVTYPE)id;
+		xtrbits=geo[dv].sxtrbits;
+		devstr=geo[dv].nam;
+		dwnfp    = fopen(downfile,"r");
+		fpout=fopen("eprom.bit","w");
+		while (fgets(buf,256,dwnfp) != NULL)  {
+			if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!'){
+			} else {
+				if(strrchr(buf,';')==0){
+					do {
+						lastn=strrchr(buf,'\n');
+						if(lastn!=0)lastn[0]='\0';
+						if (fgets(buf2,256,dwnfp) != NULL){
+							strcat(buf,buf2);
+						} else {
+							return;
+						}
+					} while (strrchr(buf,';')==0);
+				}
+				for(i=0;i<1024;i++){
+					cmpbuf[i]=0;
+					sndbuf[i]=0;
+					rcvbuf[i]=0;
+				}
+				Parse(buf, &Count, &(Word[0]));
+				// count=count+1;
+				// printf(" count %d \n",count);
+				if(strcmp(Word[0],"SDR")==0){
+					cmpflag=0;    //disable the comparison for no TDO SDR
+					sscanf(Word[1],"%d",&nbits);
+					nbytes=(nbits-1)/8+1;
+					for(i=2;i<Count;i+=2){
+		
+		/* PGK Here is where we load up the board number.
+		I have to stop here and only send this stuff if pass==1 */
+		
+						if(strcmp(Word[i],"TDI")==0){
+							for(j=0;j<nbytes;j++){
+								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&snd[j]);
+							}
+		/*JRG, new selective way to download UNALTERED PromUserCode from SVF to
+			ANY prom:  just set cbrdnum[3,2,1,0]=0 in calling routine!
+			was  if(nowrit==1){  */
+		//    if(nowrit==1&&(cbrdnum[0]|cbrdnum[1]|cbrdnum[2]|cbrdnum[3])!=0){
+							if(nowrit==1&&(cbrdnum[1]|cbrdnum[2]|cbrdnum[3])!=0){
+								tstusr=0;
+								snd[0]=cbrdnum[0];
+								snd[1]=cbrdnum[1];
+								snd[2]=cbrdnum[2]; 
+								snd[3]=cbrdnum[3];
+		//        printf(" snd %02x %02x %02x %02x \n",snd[0],snd[1],snd[2],snd[3]);
+							}
+		// JRG, try fix for dduprom case:
+							else if(nowrit==1&&(cbrdnum[0]!=0)){
+								tstusr=0;
+								snd[0]=cbrdnum[0];
+								pass++;
+							}
+						}
+						if(strcmp(Word[i],"SMASK")==0){
+							for(j=0;j<nbytes;j++){
+								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&smask[j]);
+							}
+						}
+						if(strcmp(Word[i],"TDO")==0){
+							cmpflag=1;
+							for(j=0;j<nbytes;j++){
+								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&expect[j]);
+							}
+						}
+						if(strcmp(Word[i],"MASK")==0){
+							for(j=0;j<nbytes;j++){
+								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&rmask[j]);
+							}
+						}
+					}
+					for(i=0;i<nbytes;i++){
+	// 					sndbuf[i]=snd[i]&smask[i];
+						sndbuf[i]=snd[i]&0xff;
+					}
+			//   printf("D%04d",nbits+xtrbits);
+					// for(i=0;i<(nbits+xtrbits)/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
+					if(nowrit==0){
+						if((geo[dv].jchan==12)){
+								if (pass == ipass) scan_reset(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+								if (pass == 2) pass++;
+						}else{
+								if (pass == ipass) scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+								if (pass == 2) pass++;
+						}
+					}else{
+						if(writ==1){
+		
+							if((geo[dv].jchan==12)){
+								if (pass == ipass) scan_reset(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+								if (pass == 2) pass++;
+							}else{ 
+								if (pass == ipass) scan(DATA_REG,sndbuf,nbits+xtrbits,rcvbuf,0);
+								if (pass == 2) pass++;
+							}
+						}
+					} 
+				
+			//  Data readback comparison here:
+					for (i=0;i<nbytes;i++) {
+						tmp=(rcvbuf[i]>>3)&0x1F;
+						rcvbuf[i]=tmp | (rcvbuf[i+1]<<5&0xE0);
+				/*  if (((rcvbuf[i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1) 
+				printf("read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcvbuf[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF); */
+					}
+					if (cmpflag==1) {
+						for (i=0;i<nbytes;i++) {
+							fprintf(fpout," %02X",rcvbuf[i]&0xFF);
+							if (i%4==3) fprintf(fpout,"\n");
+						}
+					}
+				}
+		
+				else if(strcmp(Word[0],"SIR")==0){
+					nowrit=0;
+					sscanf(Word[1],"%d",&nbits);
+					nbytes=(nbits-1)/8+1;
+					for(i=2;i<Count;i+=2){
+						if(strcmp(Word[i],"TDI")==0){
+							for(j=0;j<nbytes;j++){
+								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&snd[j]);
+							}
+							if(nbytes==1){if(0xfd==(snd[0]&0xff))nowrit=1;} // nowrit=1  
+						}
+						else if(strcmp(Word[i],"SMASK")==0){
+							for(j=0;j<nbytes;j++){
+								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&smask[j]);
+							}
+						}
+						if(strcmp(Word[i],"TDO")==0){
+							for(j=0;j<nbytes;j++){
+								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&expect[j]);
+							}
+						}
+						else if(strcmp(Word[i],"MASK")==0){
+							for(j=0;j<nbytes;j++){
+								sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2hhX",&rmask[j]);
+							}
+						}
+					}
+					for(i=0;i<nbytes;i++){
+	// 				sndbuf[i]=snd[i]&smask[i];
+						sndbuf[i]=snd[i];
+					}
+			//   printf("I%04d",nbits);
+					// for(i=0;i<nbits/8+1;i++)printf("%02x",sndbuf[i]&0xff);printf("\n");
+		/*JRG, brute-force way to download UNALTERED PromUserCode from SVF file to
+			DDU prom, but screws up CFEB/DMB program method:      nowrit=0;  */
+					if(nowrit==0){
+						if (pass == ipass) devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+					} else {
+						if(writ==1 && pass == ipass)devdo(dv,nbits,sndbuf,0,sndbuf,rcvbuf,0);
+						if(writ==0)printf(" ***************** nowrit %02x \n",sndbuf[0]);
+					}
+					
+			/*
+					printf("send %2d instr bits %02X %02X %02X %02X %02X\n",nbits,sndbuf[4]&0xFF,sndbuf[3]&0xFF,sndbuf[2]&0xFF,sndbuf[1]&0xFF,sndbuf[0]&0xFF);
+					printf("expect %2d instr bits %02X %02X %02X %02X %02X\n",nbits,expect[4]&0xFF,expect[3]&0xFF,expect[2]&0xFF,expect[1]&0xFF,expect[0]&0xFF);
+			*/
+				}
+				else if(strcmp(Word[0],"RUNTEST")==0){
+					sscanf(Word[1],"%d",&pause);
+			//          printf("RUNTEST = %d\n",pause);
+			/*   ipd=83*pause;
+					// sleep(1);
+					t1=(double) clock()/(double) CLOCKS_PER_SEC;
+					for(i=0;i<ipd;i++);
+					t2=(double) clock()/(double) CLOCKS_PER_SEC;
+			//  if(pause>1000)printf("pause = %f s  while erasing\n",t2-t1); */
+			//          for (i=0;i<pause/100;i++)
+			//  devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
+					// fpause=pause;
+					// pause=pause/2;
+		/*
+		// JRG, tried this delay for CAEN, no good:
+			printf("  RUNTEST, pause for %d usec\n",pause);
+			if(pause>1000)usleep(pause);
+			else usleep(1000);
+		*/
+		
+					if (pause>65535) {
+						sndbuf[0]=255;
+						sndbuf[1]=255;
+						for (looppause=0;looppause<pause/65536;looppause++) {
+							if (pass == ipass) devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,0);
+						}
+						pause=65535;
+					}
+					sndbuf[0]=pause-(pause/256)*256;
+					sndbuf[1]=pause/256;
+			// printf(" sndbuf %d %d %d \n",sndbuf[1],sndbuf[0],pause);
+					if (pass == ipass) devdo(dv,-99,sndbuf,0,sndbuf,rcvbuf,2);
+					// fpause=fpause*1.5+100;
+					// pause=fpause; 
+					flush_vme();
+					// usleep(pause);
+					// printf(" send sleep \n");  
+				}
+				else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0)){
+					printf("goto reset idle state\n"); 
+					//	   usleep(1000);
+					devdo(dv,-1,sndbuf,0,sndbuf,rcvbuf,2);
+					//	   usleep(1000);
+				}
+				else if(strcmp(Word[0],"TRST")==0){
+				}
+				else if(strcmp(Word[0],"ENDIR")==0){
+				}
+				else if(strcmp(Word[0],"ENDDR")==0){
+				}
+			}
+		}
+		fclose(fpout);
+		fclose(dwnfp);
+	}
+	flush_vme();
+	send_last();
+}
+
+
 
 
 

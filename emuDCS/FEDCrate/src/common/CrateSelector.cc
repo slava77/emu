@@ -69,6 +69,8 @@ void CrateSelector::setCrate(string strCrate) {
 vector<Crate *> CrateSelector::crates() const {
   vector<Crate *> allCrates = Singleton<CrateSetup>::instance()->crates();
   vector<Crate *> result;
+  cout << "### In CrateSelector, I see " << allCrates.size() << " allCrates" << endl;
+  cout << "### In CrateSelector, I see " << theSelectedCrates.size() << " theSelectedCrates" << endl;
   if(theSelectedCrates.empty()) {
     result = allCrates;
   } else {
