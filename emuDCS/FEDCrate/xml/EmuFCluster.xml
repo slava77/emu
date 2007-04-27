@@ -2,7 +2,7 @@
 <xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
 
 
-<xc:Context url="http://zeuspc16:40100">		
+<xc:Context url="http://csc-fed1:40100">		
 	<xc:Application class="EmuFCrateHyperDAQ" id="31" instance="0" service="emufcratehyperdaq" network="local">                 
 		<properties xmlns="urn:xdaq-application:EmuFCrateHyperDAQ" xsi:type="soapenc:Struct">
 			<xmlFileName xsi:type="xsd:string">/home/uscfed/v4.1/TriDAS/emu/emuDCS/FEDCrate/xml/config_c2.xml</xmlFileName>
