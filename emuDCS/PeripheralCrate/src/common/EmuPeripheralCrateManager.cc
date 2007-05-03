@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.8 2007/04/20 16:03:57 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.9 2007/05/03 21:32:11 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1034,7 +1034,9 @@ using namespace std;
   void EmuPeripheralCrateManager::LoadDMBControlFPGAFirmware(xgi::Input * in, xgi::Output * out )  {
 
     // load the DAQMB Controller FPGA firmware
-    char *outp="0";
+    unsigned short int dword[2];
+    dword[0]=0;
+    char *outp=(char *)dword;
     cout <<" Loading all the DMB's Controller FPGAs firmware ..."<<endl;
     broadcastDMB->epromload(MPROM,"/home/cscpc/firmware/dmb/dmb6cntl_pro.svf",1,outp);
     in=NULL;
