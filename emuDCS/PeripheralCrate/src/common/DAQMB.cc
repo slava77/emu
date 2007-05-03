@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.25 2007/04/24 19:35:46 gujh Exp $
+// $Id: DAQMB.cc,v 3.26 2007/05/03 21:34:23 gujh Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.26  2007/05/03 21:34:23  gujh
+// Fix the PROM USERID loading bug
+//     ---- May 3, 2007   GU
+//
 // Revision 3.25  2007/04/24 19:35:46  gujh
 // Fixed bug for DMB/CFEB firmware broadcast download
 //     --- Apr. 24, 2007   GU
@@ -2901,9 +2905,12 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
 	     for(j=0;j<nbytes;j++){
 	       sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&snd[j]);
 	     }
-	     if(nowrit==1&&cbrdnum[0]!=0) {
+	     if(nowrit==1&&((cbrdnum[0]!=0)||(cbrdnum[1]!=0))) {
 	       tstusr=0;
 	       snd[0]=cbrdnum[0];
+	       snd[1]=cbrdnum[1];
+	       snd[2]=cbrdnum[2];
+	       snd[3]=cbrdnum[3];
 	     }
 	     if(nowrit==1){
 	       //  printf(" snd %02x %02x %02x %02x \n",snd[0],snd[1],snd[2],snd[3]);
