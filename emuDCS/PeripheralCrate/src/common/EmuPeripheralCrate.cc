@@ -4403,14 +4403,16 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
 	if (thisDMB->slot()==25) cout <<" Broadcast Loading the control FPGA insode one crate"<<endl;
 	//
 	::sleep(1);
+	unsigned short int dword[2];
+	dword[0]=0;
 	//
-	char *outp;
+	char *outp=(char *)dword;
 	//char *name = DMBFirmware_.toString().c_str() ;
 	thisDMB->epromload(MPROM,DMBFirmware_.toString().c_str(),1,outp);  // load mprom
 	//
       }
       //    }
-    ::sleep(1);
+    ::sleep(5);
     thisCCB->hardReset();
     //
     this->DMBUtils(in,out);
@@ -4480,6 +4482,17 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     cgicc::Cgicc cgi(in);
     //
+    int dmbNumber = 0;
+    //
+    cgicc::form_iterator name2 = cgi.getElement("DMBNumber");
+    //int registerValue = -1;
+    if(name2 != cgi.getElements().end()) {
+      dmbNumber = cgi["DMBNumber"]->getIntegerValue();
+      //
+    }
+    //
+    std::cout << "Loading DMB# " <<dmbNumber << std::endl ;
+
     cgicc::form_iterator name = cgi.getElement("dmb");
     //
     int dmb;
@@ -4494,27 +4507,24 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     int mindmb = dmb;
     int maxdmb = dmb+1;
     if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each dmb
-      mindmb = 0;
-      maxdmb = dmbVector.size()-1;
+      cout <<" The emergency load is NOT available for DMB slot25"<<endl;
+      cout <<" Please use individual slot loading !!!"<<endl;
+      return;
     }
     //
     thisCCB->hardReset();
-    //
-    for (dmb=mindmb; dmb<maxdmb; dmb++) {
-      //
-      if (thisDMB) {
+    if (thisDMB) {
 	//
-	cout << "DMB Vme Load Firmware Emergency in slot " << thisDMB->slot() << endl;
-	LOG4CPLUS_INFO(getApplicationLogger(),"Started DMB Vme Load Firmware Emergency");
+      cout << "DMB Vme Load Firmware Emergency in slot " << thisDMB->slot() << endl;
+      LOG4CPLUS_INFO(getApplicationLogger(),"Started DMB Vme Load Firmware Emergency");
 	//
-	::sleep(1);
+      ::sleep(1);
 	//
-	unsigned short int dword[2];
-	dword[0]=0;
-	char * outp=(char *)dword;  
-	thisDMB->epromload(RESET,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
-	//
-      }
+      unsigned short int dword[2];
+      dword[0]=dmbNumber&0x03ff;
+      dword[1]=0xDB00;
+      char * outp=(char *)dword;  
+      thisDMB->epromload(RESET,DMBVmeFirmware_.toString().c_str(),1,outp);  // load mprom
     }
     ::sleep(1);
     thisCCB->hardReset();
@@ -7795,7 +7805,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     *out << cgicc::form().set("method","GET").set("action",DMBLoadFirmware)
 	 << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","DMB Load Firmware") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","DMB CONTROL Load Firmware") << std::endl ;
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
@@ -7815,7 +7825,9 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     *out << cgicc::form().set("method","GET").set("action",DMBVmeLoadFirmwareEmergency)
 	 << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","DMB Vme Load Firmware (Emergengy)") << std::endl ;
+    *out << "DMB Board Number:";
+    *out <<cgicc::input().set("type","text").set("value","0").set("name","DMBNumber")<<std::endl;
+    *out << cgicc::input().set("type","submit").set("value","DMB Vme Load Firmware (Emergency)") << std::endl ;
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
