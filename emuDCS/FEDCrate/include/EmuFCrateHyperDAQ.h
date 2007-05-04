@@ -5237,7 +5237,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
 	if (i==110) {
 	  xmltext="0000";
 	}
-	if(i==105)xmltext="2,5";
+	if(i==105)xmltext="100,5";
 	if(i==103|i==104|i==105|i==109|i==110){
 	  *out << cgicc::input().set("type","text")
 	    .set("name","textdata")
