@@ -5,7 +5,7 @@ use POSIX;
 
 my $EMU_DATA_FOLDER  = $ARGV[0];
 my $EMU_MONITOR_TEST = $ARGV[1]; 
-my $EMU_ROOT_MACRO   = $ARGV[2];
+#my $EMU_ROOT_MACRO   = $ARGV[2];
 my $CADAVER          = "~/bin/cadaver"; 
 #"/home/slice/kotov/cadaver-0.22.3/cadaver";
 my $WEB              = "https://cms-csc.web.cern.ch:444/cms-csc/";
@@ -29,6 +29,8 @@ sub combine_parts {
 		my $run = $file;
 		$run =~ s/Monitor_\d+/Monitor/g;
 		$run =~ s/Monitor-\d+/Monitor/g;
+		$run =~ s/Debug_\d\d\d_/Debug_/g;
+		$run =~ s/Debug-\d\d\d-/Debug-/g;
 		$runs{$run} .= " ".$file;
 	}
 	return %runs;
@@ -61,11 +63,11 @@ foreach my $run ( keys %runs ) {
 		if( $pid==0 ){
 			exec "cat $runs{$run} > _fifo_";
 		}
-		die "Can't run EmuMonitorTest" if system("$EMU_MONITOR_TEST _fifo_ > dqm_results.log");
+		die "Can't run emuMonitorTest" if system("$EMU_MONITOR_TEST _fifo_ > /dev/null && echo No Logs > dqm_results.log");
 		unlink "_fifo_" or die "Can't delete named pipe";
 		waitpid $pid, 0;
 	} else {
-		die "Can't run EmuMonitorTest" if system("$EMU_MONITOR_TEST $run > dqm_results.log");
+		die "Can't run emuMonitorTest" if system("$EMU_MONITOR_TEST $run > /dev/null && echo No Logs > dqm_results.log");
 	}
 	# Prepare local files/folders
 	$run =~ s/\.raw//g;
@@ -79,17 +81,20 @@ foreach my $run ( keys %runs ) {
 	unless( -d "./$dirname" ){
 		mkdir "./$dirname" or die "Can't create directory";
 	}
-	rename "dqm_results.root", "$run.root" or die "Can't move dqm_results.root to $run.root";
+#	rename "dqm_results.root", "$run.root" or die "Can't move dqm_results.root to $run.root";
 	rename "dqm_results.log",  "$run.log"  or die "Can't move dqm_results.log to $run.log";
 	# Converting to png plots
-	die "Can't convert plots" if system("root.exe -b $EMU_ROOT_MACRO'(\"$run.root\")' >> $run.log");
+#	die "Can't convert plots" if system("root.exe -b $EMU_ROOT_MACRO'(\"$run.root\")' >> $run.log");
+	if( -d "images" ){
+		rename "images",  "$run.plots"  or die "Can't rename images/ to $run.plots/";
+	}
 	#  Perform actual uploading (.png and .html files only)
 	my %content;
 	map {
 		my $folder = $_;
 		$folder =~ s/(.*\/).*/$1/g;
 		my $file = $_;
-		# Simplyfy file names for windows
+		# Simplify file names for windows
 		$file =~ s/:\s*/_/g;
 		$file =~ s/\s+/_/g;
 		$file =~ s/\.\././g;
@@ -100,13 +105,15 @@ foreach my $run ( keys %runs ) {
 		$file =~ s/.*\///g;
 		#$file =~ s/ /\\ /g;
 		$content{$folder} .= "  $file";
-	} grep { $_=~/\.png/ || $_=~/\.html/ } scan_dir("plots/$run.plots");
+#	} grep { $_=~/\.png/ || $_=~/\.html/ || $_=~/\.js/ } scan_dir("plots/$run.plots");
+	} grep { $_=~/\.png/ || $_=~/\.html/ || $_=~/\.js/ } scan_dir("$run.plots");
 
 	my $cadaver_script="";
 
 	foreach my $folder ( sort keys %content ){
 		#$cadaver_script .= "cd /test-emu-dqm/SliceTest/DAQ/\n";
-		$cadaver_script .= "cd /cms-csc/DQM/DAQ/\n";
+		#$cadaver_script .= "cd /cms-csc/DQM/DAQ/\n";
+		$cadaver_script .= "cd /cms-csc/DQM/DAQ/plots/\n";
 		my $depth;
 		map { $cadaver_script.="mkdir $_\ncd $_\n"; $depth.="../"; } split(/\/*\.?\/+/,$folder);
 		$cadaver_script .= "lcd $folder\n";
@@ -120,36 +127,39 @@ foreach my $run ( keys %runs ) {
 	# Generate navigation
 	my %layout;
 
-	map {
-		if( $_=~/crate\d+\/slot\d+/ ){
-			my $crate = $_;
-			$crate =~ s/.*?\/(crate\d+)\/slot\d+.*/$1/g;
-			my $slot  = $_;
-			$slot  =~ s/.*?\/crate\d+\/(slot\d+).*/$1/g;
-			if( $layout{$crate}!~/$slot/ ){
-				$layout{$crate} .="'$slot',";
-			}
-		}
-	} scan_dir("./plots/$run.plots");
+#	map {
+#		if( $_=~/crate\d+\/slot\d+/ ){
+#			my $crate = $_;
+#			$crate =~ s/.*?\/(crate\d+)\/slot\d+.*/$1/g;
+#			my $slot  = $_;
+#			$slot  =~ s/.*?\/crate\d+\/(slot\d+).*/$1/g;
+#			if( $layout{$crate}!~/$slot/ ){
+#				$layout{$crate} .="'$slot',";
+#			}
+#		}
+#	} scan_dir("./plots/$run.plots");
 
 	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
 	my $ctime = ($hour<10?"0".$hour:$hour).":".($min<10?"0".$min:$min)." ".($mon<9?"0".$mon+1:$mon+1)."/".($mday<10?"0".$mday:$mday)."/".($year+1900);
 
-	my $entry = "['$run.plots ($ctime)',";
-	foreach my $crate (keys %layout){
-		$entry .= "['$crate', [$layout{$crate}]],";
-	}
+	my $entry = "['$run.plots ($ctime)'";
+#	foreach my $crate (keys %layout){
+#		$entry .= "['$crate', [$layout{$crate}]],";
+#	}
 	$entry .= "],";
-	$entry =~ s/,\]/\]/g;
+#	$entry =~ s/,\]/\]/g;
 	
 	#die "Can't run cadaver" if system("echo -e \"cd /test-emu-dqm/SliceTest/DAQ/plots/\nget tree_runs.js\nquit\n\" | $CADAVER $WEB >> $run.log");
-	die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/DAQ/plots/\nget tree_runs.js tree_runs.js\n\" | $CADAVER $WEB >> $run.log");
+#	die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/DAQ/plots/\nget tree_runs.js tree_runs.js\n\" | $CADAVER $WEB >> $run.log");
+	die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/DAQ/plots/\nget runs_list.js runs_list.js\n\" | $CADAVER $WEB >> $run.log");
 
-	open (TREE_RUNS, "< tree_runs.js") or die("Can't open tree_runs.js");
+#	open (TREE_RUNS, "< tree_runs.js") or die("Can't open tree_runs.js");
+	open (TREE_RUNS, "< runs_list.js") or die("Can't open runs_list.js");
 	my @list = <TREE_RUNS>;
 	close (TREE_RUNS);
 
-	open (TREE_RUNS, "> tree_runs.js") or die("Can't open tree_runs.js");
+#	open (TREE_RUNS, "> tree_runs.js") or die("Can't open tree_runs.js");
+	open (TREE_RUNS, "> runs_list.js") or die("Can't open runs_list.js");
 	if( scalar(@list)==0 ){
 		print TREE_RUNS "var RUNS = [\n"; 
 		$entry =~ s/,$//g; 
@@ -163,5 +173,6 @@ foreach my $run ( keys %runs ) {
 	close (TREE_RUNS);
 
 	#die "Can't run cadaver" if system("echo -e \"cd /test-emu-dqm/SliceTest/DAQ/plots/\nput tree_runs.js\nquit\n\" | $CADAVER $WEB >> $run.log");
-	die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/DAQ/plots/\nput tree_runs.js\n\" | $CADAVER $WEB >> $run.log");
+#	die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/DAQ/plots/\nput tree_runs.js\n\" | $CADAVER $WEB >> $run.log");
+	die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/DAQ/plots/\nput runs_list.js\n\" | $CADAVER $WEB >> $run.log");
 }
