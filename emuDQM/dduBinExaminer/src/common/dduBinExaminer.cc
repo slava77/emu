@@ -501,7 +501,8 @@ int32_t dduBinExaminer::check(const uint16_t* &buffer, int32_t length){
 		//    should it turn out to be the new RPC-aware format
 		if( fTMB_Header && ((buf0[2]&0xFFFF)==0x6E0B) )  {
 			TMB_WordsExpectedCorrection =  2 +   // header/trailer for block of RPC raw hits
-				((buf_1[2]&0x0800)>>11) * ((buf_1[2]&0x0700)>>8) * TMB_Tbins * 2;  // RPC raw hits
+//				((buf_1[2]&0x0800)>>11) * ((buf_1[2]&0x0700)>>8) * TMB_Tbins * 2;  // RPC raw hits
+				((buf_1[2]&0x0040)>>6) * ((buf_1[2]&0x0030)>>4) * TMB_Tbins * 2;  // RPC raw hits
 		}
 
 		// == TMB Trailer found
