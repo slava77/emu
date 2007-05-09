@@ -5,13 +5,20 @@ use strict;
 my $CADAVER = "~/bin/cadaver"; 
 my $WEB     = "https://cms-csc.web.cern.ch:444/cms-csc/";
 my $SOURCE  = "/net/data/dqm/";
-my $REMOTE_SOURCE = "/data/cscdaq";
-my $EMUDQM  = "perl /home/cscdqm/DAQKit/v3.9.2/TriDAS/emu/emuDQM/scripts/EmuDQM.pl ./ /home/cscdqm/DAQKit/v3.9.2/TriDAS/emu/emuDQM/EmuMonitor/src/linux/x86/EmuMonitorTest.exe /home/cscdqm/DAQKit/v3.9.2/TriDAS/emu/emuDQM/scripts/drawAll.C"; 
+#my $REMOTE_SOURCE = "/data/cscdaq";
+my $REMOTE_SOURCE = "/net/data/local";
+#my $EMUDQM  = "perl /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/scripts/EmuDQM.pl ./ /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/emuMonitor/src/linux/x86/emuMonitorTest.exe /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/scripts/drawAll.C"; 
+my $EMUDQM  = "perl /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/scripts/EmuDQM.pl ./ /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/emuMonitor/src/linux/x86/emuMonitorTest.exe"; 
 
-die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/DAQ/plots/\nget tree_runs.js tree_runs.js\n\" | $CADAVER $WEB >> cron_job.log");
+die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/DAQ/plots/\nget tree_runs.js tree_runs.js\nget runs_list.js runs_list.js\n\" | $CADAVER $WEB >> cron_job.log");
 
 open(RUNS,"< tree_runs.js") or die "Can't read tree_runs.js";
 my @runs_done = <RUNS>;
+close RUNS;
+
+open(RUNS,"< runs_list.js") or die "Can't read runs_list.js";
+my @other_runs_done = <RUNS>;
+push @runs_done, @other_runs_done;
 close RUNS;
 
 #my $remote_data_list = `ssh -2 -f slice\@emuslice02 'find $REMOTE_SOURCE -type f -name "*EmuRUI*Monitor*.raw" -printf "%C@ %h/%f\n"' 2>/dev/null`;
@@ -48,6 +55,8 @@ foreach my $file ( glob("$SOURCE/*.raw") ) {
 	$run =~ s/\.raw//g;
 	$run =~ s/Monitor_\d+/Monitor/g;
 	$run =~ s/Monitor-\d+/Monitor/g;
+	$run =~ s/Debug_\d\d\d_/Debug_/g;
+	$run =~ s/Debug-\d\d\d-/Debug-/g;
 	$run =~ s/$SOURCE\/*//g;
 	$local_runs_todo{$run} .= " ".$file;
 }
@@ -78,11 +87,21 @@ foreach my $remote_file ( @remote_runs_todo ){
 		}
 	}
 	if( defined($remote_windows_name) ){
-		my $data_list1 = `ssh -2 slice\@emudaq01 'ls $REMOTE_SOURCE/$remote_file*' 2>/dev/null`;
+		my $data_list = `ls $REMOTE_SOURCE/$remote_file* 2>/dev/null`;
 		map {
 			my $file_name = $_;
 			$file_name =~ s/.*\///g ;
-			unless( -e "$SOURCE/$file_name" || $file_name !~ /.raw/ ){
+			unless( -e "$SOURCE/$file_name" || $file_name !~ /.raw$/ || $file_name =~ /RUI02/ ){
+				system("ln -s $REMOTE_SOURCE/$file_name $SOURCE/$file_name 1>/dev/null");
+			}
+		} split (/\n/, $data_list);
+
+		my $data_list1 = `ssh -2 slice\@emudaq01 'ls $REMOTE_SOURCE/$remote_file*' 2>/dev/null`;
+
+		map {
+			my $file_name = $_;
+			$file_name =~ s/.*\///g ;
+			unless( -e "$SOURCE/$file_name" || $file_name !~ /.raw$/ || $file_name =~ /RUI02/ ){
 				system("scp -2 slice\@emudaq01:$REMOTE_SOURCE/$file_name $SOURCE/ 1>/dev/null");
 			}
 		} split (/\n/, $data_list1);
@@ -91,7 +110,7 @@ foreach my $remote_file ( @remote_runs_todo ){
 		map {
 			my $file_name = $_;
 			$file_name =~ s/.*\///g ;
-			unless( -e "$SOURCE/$file_name" || $file_name !~ /.raw/ ){
+			unless( -e "$SOURCE/$file_name" || $file_name !~ /.raw$/ || $file_name =~ /RUI02/ ){
 				system("scp -2 slice\@emudaq02:$REMOTE_SOURCE/$file_name $SOURCE/ 1>/dev/null");
 			}
 		} split (/\n/, $data_list2);
@@ -121,8 +140,8 @@ foreach my $run ( keys %local_runs_todo ){
 	die "Copying file" if( -f "$SOURCE/*.copying" );
 	#print "Processing Local Run: $run\n";
 	die "Another unfinisged process" if ( -d "./scratch/" );
-	if( system("mkdir -p ./scratch && cd ./scratch && for i in $local_runs_todo{$run}; do ln -s \$i; done && $EMUDQM && find . -name '*.log' -exec gzip {} \\; && find . -name '*.root' -exec cp {} $SOURCE/logs \\; && find . -name '*.log.gz' -exec cp {} $SOURCE/logs \\; && cd ../ && rm -rf ./scratch && rm $local_runs_todo{$run}") ){
-		system("rm -rf ./scratch");
+	if( system("mkdir -p ./scratch && cd ./scratch && for i in $local_runs_todo{$run}; do ln -s \$i; done && $EMUDQM && find . -name '*.log' -exec gzip {} \\; && find . -name '*.root' -exec cp {} $SOURCE/logs \\; && find . -name '*.log.gz' -exec cp {} $SOURCE/logs \\; && cd ../ && rm -rf ./scratch && echo rm -f $local_runs_todo{$run} > /dev/null") ){
+		#system("rm -rf ./scratch");
 		die "Can't process $run";
 	}
 }

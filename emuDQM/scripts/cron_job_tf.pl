@@ -7,7 +7,7 @@ my $CADAVER = "~/bin/cadaver";
 my $WEB     = "https://cms-csc.web.cern.ch:444/cms-csc/";
 my $SOURCE  = "/data/";
 my $LOGS    = "/net/data/dqm/logs";
-my $TFDQM   = "perl /home/cscdqm/DAQKit/v3.9.2/TriDAS/emu/emuDQM/scripts/TFDQM.pl ./ /home/cscdqm/DAQKit/v3.9.2/TriDAS/emu/emuDQM/EmuTFMonitor/test/common/test /home/cscdqm/DAQKit/v3.9.2/TriDAS/emu/emuDQM/scripts/drawAllSP.C"; 
+my $TFDQM   = "perl /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/scripts/TFDQM.pl ./ /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/EmuTFMonitor/test/common/test /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/scripts/drawAllSP.C"; 
 
 die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/TrackFinder/plots/\nget tree_runs.js tree_runs.js\n\" | $CADAVER $WEB >> cron_job_tf.log");
 
@@ -15,7 +15,7 @@ open(RUNS,"< tree_runs.js") or die "Can't read tree_runs.js";
 my @runs_done = <RUNS>;
 close RUNS;
 
-my $data_list = `ssh -2 slice\@emutf 'find $SOURCE -type f -name "*.raw" -printf "%C@ %h/%f\n"' 2>/dev/null`;
+my $data_list = `ssh -2 slice\@emutf 'find $SOURCE -type f -name "*RUI02*.raw" -printf "%C@ %h/%f\n"' 2>/dev/null`;
 my $delta_time = `ssh -2 slice\@emutf 'date +\%s' 2>/dev/null` - `date +\%s`; 
 
 # Following procedure of combining different parts from the same run should be identical to what we have in TFDQM.pl
