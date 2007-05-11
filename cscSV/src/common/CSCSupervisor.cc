@@ -12,6 +12,7 @@
 #include "xoap/SOAPEnvelope.h"
 #include "xoap/SOAPBody.h"
 #include "xoap/SOAPSerializer.h"
+#include "toolbox/task/WorkLoopFactory.h" // getWorkLoopFactory()
 
 #include "cgicc/HTMLClasses.h"
 #include "xgi/Utils.h"
@@ -28,16 +29,12 @@ static const string STATE_UNKNOWN = "unknown";
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
 		EmuApplication(stub),
-		runmode_(""), runnumber_(""), nevents_(""), error_message_("")
+		daq_mode_(""), trigger_config_(""), ttc_source_(""),
+		wl_semaphore_(BSem::EMPTY),
+		daq_descr_(NULL), tf_descr_(NULL), ttc_descr_(NULL),
+		runmode_(""), runnumber_(""), nevents_(""),
+		error_message_("")
 {
-	daq_mode_ = "";
-	trigger_config_ = "";
-	ttc_source_ = "";
-
-	daq_descr_ = NULL;
-	tf_descr_ = NULL;
-	ttc_descr_ = NULL;
-
 	xdata::InfoSpace *i = getApplicationInfoSpace();
 	i->fireItemAvailable("DAQMode", &daq_mode_);
 	i->fireItemAvailable("TriggerConfig", &trigger_config_);
@@ -71,6 +68,11 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	xoap::bind(this, &CSCSupervisor::onHalt,      "Halt",      XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onReset,     "Reset",     XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onSetTTS,    "SetTTS",    XDAQ_NS_URI);
+
+	wl_ = toolbox::task::getWorkLoopFactory()->getWorkLoop("CSC SV", "waiting");
+	wl_->activate();
+	configure_signature_ = toolbox::task::bind(
+			this, &CSCSupervisor::configureAction, "configureAction");
 
 	fsm_.addState('H', "Halted",     this, &CSCSupervisor::stateChanged);
 	fsm_.addState('C', "Configured", this, &CSCSupervisor::stateChanged);
@@ -115,7 +117,8 @@ xoap::MessageReference CSCSupervisor::onConfigure(xoap::MessageReference message
 	runnumber_ = "0";
 	nevents_ = "9999";
 
-	fireEvent("Configure");
+	//fireEvent("Configure");
+	wl_->submit(configure_signature_);
 
 	return createReply(message);
 }
@@ -329,7 +332,8 @@ void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 	if (nevents_.empty()) { error_message_ += "Please set max # of events.\n"; }
 
 	if (error_message_.empty()) {
-		fireEvent("Configure");
+		//fireEvent("Configure");
+		wl_->submit(configure_signature_);
 	}
 
 	webRedirect(in, out);
@@ -397,6 +401,13 @@ void CSCSupervisor::webRedirect(xgi::Input *in, xgi::Output *out)
 	header.getReasonPhrase("See Other");
 	header.addHeader("Location",
 			url.substr(0, url.find("/" + in->getenv("PATH_INFO"))));
+}
+
+bool CSCSupervisor::configureAction(toolbox::task::WorkLoop* wl)
+{
+	fireEvent("Configure");
+
+	return false;
 }
 
 void CSCSupervisor::configureAction(toolbox::Event::Reference evt) 
