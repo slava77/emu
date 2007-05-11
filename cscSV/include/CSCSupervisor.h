@@ -8,6 +8,8 @@
 #include <utility>  // pair
 
 #include "toolbox/fsm/FiniteStateMachine.h"
+#include "toolbox/task/WorkLoop.h"
+#include "BSem.h"
 #include "xdata/Vector.h"
 #include "xdata/Bag.h"
 #include "xdata/String.h"
@@ -56,6 +58,9 @@ public:
 	void webRedirect(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
 
+	//
+	bool configureAction(toolbox::task::WorkLoop *wl);
+
 	// State transitions
 	void configureAction(toolbox::Event::Reference e) 
 			throw (toolbox::fsm::exception::Exception);
@@ -87,6 +92,10 @@ private: // XDAQ parameters
 	xdata::String tts_bits_;
 
 private:
+	toolbox::task::WorkLoop *wl_;
+	BSem wl_semaphore_;
+	toolbox::task::ActionSignature *configure_signature_;
+
 	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 			throw (toolbox::fsm::exception::Exception);
 
