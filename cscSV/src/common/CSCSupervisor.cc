@@ -73,6 +73,8 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	wl_->activate();
 	configure_signature_ = toolbox::task::bind(
 			this, &CSCSupervisor::configureAction, "configureAction");
+	halt_signature_ = toolbox::task::bind(
+			this, &CSCSupervisor::haltAction, "haltAction");
 
 	fsm_.addState('H', "Halted",     this, &CSCSupervisor::stateChanged);
 	fsm_.addState('C', "Configured", this, &CSCSupervisor::stateChanged);
@@ -117,8 +119,7 @@ xoap::MessageReference CSCSupervisor::onConfigure(xoap::MessageReference message
 	runnumber_ = "0";
 	nevents_ = "9999";
 
-	//fireEvent("Configure");
-	wl_->submit(configure_signature_);
+	submit(configure_signature_);
 
 	return createReply(message);
 }
@@ -144,7 +145,7 @@ xoap::MessageReference CSCSupervisor::onDisable(xoap::MessageReference message)
 xoap::MessageReference CSCSupervisor::onHalt(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
-	fireEvent("Halt");
+	submit(halt_signature_);
 
 	return createReply(message);
 }
@@ -153,9 +154,8 @@ xoap::MessageReference CSCSupervisor::onReset(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
 	resetAction();
-	fireEvent("Halt");
 
-	return createReply(message);
+	return onHalt(message);
 }
 
 xoap::MessageReference CSCSupervisor::onSetTTS(xoap::MessageReference message)
@@ -332,8 +332,7 @@ void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 	if (nevents_.empty()) { error_message_ += "Please set max # of events.\n"; }
 
 	if (error_message_.empty()) {
-		//fireEvent("Configure");
-		wl_->submit(configure_signature_);
+		submit(configure_signature_);
 	}
 
 	webRedirect(in, out);
@@ -358,7 +357,7 @@ void CSCSupervisor::webDisable(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webHalt(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
-	fireEvent("Halt");
+	submit(halt_signature_);
 
 	webRedirect(in, out);
 }
@@ -367,9 +366,8 @@ void CSCSupervisor::webReset(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
 	resetAction();
-	fireEvent("Halt");
 
-	webRedirect(in, out);
+	webHalt(in, out);
 }
 
 void CSCSupervisor::webSetTTS(xgi::Input *in, xgi::Output *out)
@@ -403,9 +401,16 @@ void CSCSupervisor::webRedirect(xgi::Input *in, xgi::Output *out)
 			url.substr(0, url.find("/" + in->getenv("PATH_INFO"))));
 }
 
-bool CSCSupervisor::configureAction(toolbox::task::WorkLoop* wl)
+bool CSCSupervisor::configureAction(toolbox::task::WorkLoop *wl)
 {
 	fireEvent("Configure");
+
+	return false;
+}
+
+bool CSCSupervisor::haltAction(toolbox::task::WorkLoop *wl)
+{
+	fireEvent("Halt");
 
 	return false;
 }
@@ -558,6 +563,11 @@ void CSCSupervisor::setTTSAction(toolbox::Event::Reference evt)
 	}
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
+}
+
+void CSCSupervisor::submit(toolbox::task::ActionSignature *signature)
+{
+	wl_->submit(signature);
 }
 
 void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
