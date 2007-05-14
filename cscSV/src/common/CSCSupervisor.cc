@@ -33,7 +33,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		wl_semaphore_(BSem::EMPTY),
 		daq_descr_(NULL), tf_descr_(NULL), ttc_descr_(NULL),
 		runmode_(""), runnumber_(""), nevents_(""),
-		error_message_("")
+		error_message_(""), keep_refresh_(false)
 {
 	xdata::InfoSpace *i = getApplicationInfoSpace();
 	i->fireItemAvailable("DAQMode", &daq_mode_);
@@ -169,6 +169,11 @@ xoap::MessageReference CSCSupervisor::onSetTTS(xoap::MessageReference message)
 void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
+	if (keep_refresh_) {
+		HTTPResponseHeader &header = out->getHTTPResponseHeader();
+		header.addHeader("Refresh", "5");
+	}
+
 	// Header
 	*out << HTMLDoctype(HTMLDoctype::eStrict) << endl;
 	*out << html() << endl;
@@ -568,12 +573,15 @@ void CSCSupervisor::setTTSAction(toolbox::Event::Reference evt)
 void CSCSupervisor::submit(toolbox::task::ActionSignature *signature)
 {
 	wl_->submit(signature);
+	keep_refresh_ = true;
 }
 
 void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
         throw (toolbox::fsm::exception::Exception)
 {
     EmuApplication::stateChanged(fsm);
+
+	keep_refresh_ = false;
 }
 
 void CSCSupervisor::sendCommand(string command, string klass)
