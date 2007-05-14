@@ -145,6 +145,8 @@ private:
 
 	string error_message_;
 
+	bool keep_refresh_;
+
 	class StateTable
 	{
 	public:
