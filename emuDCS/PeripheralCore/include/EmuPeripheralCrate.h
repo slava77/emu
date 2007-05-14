@@ -286,6 +286,7 @@ private:
   void ALCTScan(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CFEBScan(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void FindWinner(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void AFFtoL1aAtDMB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void RatTmbTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void RpcRatTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MakeReference(xgi::Input * in , xgi::Output * out );

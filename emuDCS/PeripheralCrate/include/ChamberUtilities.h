@@ -56,6 +56,7 @@ public:
   void RatTmbDelayScan();
   void RpcRatDelayScan();       //rpc=0
   void RpcRatDelayScan(int rpc);
+  void MeasureTimingOfActiveFebFlagToL1aAtDMB(int min_value_to_analyze, int max_value_to_analyze);
   //
   // Move to function class ?
   //
@@ -95,6 +96,7 @@ public:
   inline int  GetALCTL1aDelay_configvalue(){ return thisTMB->alctController()->GetWriteL1aDelay(); }
   //
   // The following are test results, not configuration data:
+  inline int  GetActiveFebFlagToL1aAtDMB() { return ActiveFebFlagToL1aAtDMB_; }
   inline int  GetALCTrxPhaseTest()         { return ALCTrxPhase_ ; }
   inline int  GetALCTtxPhaseTest()         { return ALCTtxPhase_ ; }
   inline int  GetCFEBrxPhaseTest(int CFEB) { return CFEBrxPhase_[CFEB] ; }
@@ -148,6 +150,7 @@ private:
   int Npulses_;
   int RpcRatDelay_[2];
   int RatTmbDelay_;
+  int ActiveFebFlagToL1aAtDMB_;
   //
 };
 
