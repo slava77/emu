@@ -58,8 +58,9 @@ public:
 	void webRedirect(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
 
-	//
+	// work loop call-back functions
 	bool configureAction(toolbox::task::WorkLoop *wl);
+	bool haltAction(toolbox::task::WorkLoop *wl);
 
 	// State transitions
 	void configureAction(toolbox::Event::Reference e) 
@@ -94,7 +95,9 @@ private: // XDAQ parameters
 private:
 	toolbox::task::WorkLoop *wl_;
 	BSem wl_semaphore_;
-	toolbox::task::ActionSignature *configure_signature_;
+	toolbox::task::ActionSignature *configure_signature_, *halt_signature_;
+
+	void submit(toolbox::task::ActionSignature *signature);
 
 	void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 			throw (toolbox::fsm::exception::Exception);
