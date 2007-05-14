@@ -37,6 +37,8 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *stub)
 			'H', 'H', "Halt",      this, &EmuFCrate::haltAction);
 	fsm_.addStateTransition(
 			'C', 'H', "Halt",      this, &EmuFCrate::haltAction);
+	fsm_.addStateTransition(
+			'E', 'H', "Halt",      this, &EmuFCrate::haltAction);
 
 	fsm_.addStateTransition(
 			'E', 'E', "SetTTSBits", this, &EmuFCrate::setTTSBitsAction);
