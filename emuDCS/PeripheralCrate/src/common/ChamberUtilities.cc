@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.12 2007/03/22 18:34:45 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.13 2007/05/14 17:37:15 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.13  2007/05/14 17:37:15  rakness
+// AFF to L1A timing button
+//
 // Revision 3.12  2007/03/22 18:34:45  rakness
 // weighted average in ALCT-CLCT match, and TMB/ALCT-L1A scans
 //
@@ -194,10 +197,7 @@ ChamberUtilities::ChamberUtilities(){
   ALCTL1aDelay_     = -1;
   for(int i=0; i<2;i++)RpcRatDelay_[i] = -1;
   RatTmbDelay_ = -1;
-  beginning         = 0;
-  thisTMB = 0;
-  thisDMB = 0;
-  //
+  ActiveFebFlagToL1aAtDMB_ = -1;
   for( int i=0; i<5; i++) CFEBrxPhase_[i] = -1;
   MPCdelay_ = -1;
   UsePulsing = true ;
@@ -207,6 +207,11 @@ ChamberUtilities::ChamberUtilities(){
       CFEBStripScan_[i][j] = -1;
     }
   for (int i=0;i<112;i++) ALCTWireScan_[i] = -1;
+  //
+  beginning         = 0;
+  thisTMB = 0;
+  thisDMB = 0;
+  //
   Npulses_ = 2;
   //
   MyOutput_ = &std::cout ;
@@ -251,7 +256,7 @@ void ChamberUtilities::InitSystem(){
   if (thisMPC) thisMPC->configure();
   if (alct)    alct->configure();
   //
-  thisCCB_->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
+  //  thisCCB_->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
   //
 }
 //
@@ -261,6 +266,47 @@ void ChamberUtilities::bit_to_array(int data, int * array, const int size) {
     array[i] = (data >> i) & 0x00000001;
   }
 
+  return;
+}
+//
+void ChamberUtilities::MeasureTimingOfActiveFebFlagToL1aAtDMB(int min_value_to_analyze, int max_value_to_analyze) {
+  //
+  const int number_of_reads = 120;
+  const int maximum_value = 255;
+  //
+  int counter[maximum_value] = {};
+  //
+  for (int i=0; i<number_of_reads; i++) {
+    ::usleep(500000);
+    thisDMB->readtimingCounter();
+    int value = thisDMB->GetL1aLctCounter();
+    if (value >= 0 && value <= maximum_value) {
+      counter[value] += 1;
+    } else {
+      (*MyOutput_) << "Counter value = " << std::dec << value << " out of range!" << std::endl;
+    }
+  }
+  //
+  float numer = 0;
+  float denom = 0;
+  //
+  for (int i=min_value_to_analyze; i<max_value_to_analyze; i++) {
+    numer += ((float) counter[i]) *((float) (i));
+    denom += (float) counter[i];
+    (*MyOutput_) << "counter[" << std::dec << i << "] = " << counter[i] << std::endl;
+  }
+  //
+  if (denom > 10) {
+    //    (*MyOutput_) << "numerator   = " << numer << std::endl;
+    //    (*MyOutput_) << "denominator = " << denom << std::endl;
+    //
+    float average = numer / denom;
+    (*MyOutput_) << "average     = " << average << std::endl;
+    //
+    ActiveFebFlagToL1aAtDMB_ = (int) (average+0.5);
+  }
+  (*MyOutput_) << "Active FEB flag to L1a counter = " << ActiveFebFlagToL1aAtDMB_ << std::endl;
+  //
   return;
 }
 //
@@ -1495,9 +1541,9 @@ int ChamberUtilities::TMBL1aTiming(int enableInternalL1a){
       if ( UsePulsing) PulseCFEB(delay%16,0xa);
       wordcounts[delay] += thisTMB->GetWordCount();
       thisTMB->GetCounters();
-      thisTMB->PrintCounters(19) ;
-      thisTMB->PrintCounters(20) ;
-      thisTMB->PrintCounters(21) ;
+      //      thisTMB->PrintCounters(19) ;
+      //      thisTMB->PrintCounters(20) ;
+      //      thisTMB->PrintCounters(21) ;
       //
       TmbDavScope[delay] = thisDMB->GetTmbDavScope();
       //
@@ -1887,7 +1933,7 @@ int ChamberUtilities::FindALCTvpf(){
   // Not really necessary:
   // thisTMB->alct_match_window_size_ = 3;
   //
-  const int MaxTimeBin   = 10;
+  const int MaxTimeBin   = 15;
   //
   int alct_in_window[MaxTimeBin] = {};
   //
@@ -1906,8 +1952,8 @@ int ChamberUtilities::FindALCTvpf(){
     //
     //thisTMB->PrintCounters();    // display them to screen
     //
-    thisTMB->PrintCounters(8);
-    thisTMB->PrintCounters(10);
+    //    thisTMB->PrintCounters(8);
+    //    thisTMB->PrintCounters(10);
     //
     alct_in_window[i] = thisTMB->GetCounter(10);
   }
@@ -1972,9 +2018,9 @@ int ChamberUtilities::FindTMB_L1A_delay( int idelay_min, int idelay_max ){
     thisTMB->GetCounters();      // read counter values
     
     //thisTMB->PrintCounters(); // display them to screen
-    thisTMB->PrintCounters(8);  // display them to screen
-    thisTMB->PrintCounters(19);
-    thisTMB->PrintCounters(20);
+    //    thisTMB->PrintCounters(8);  // display them to screen
+    //    thisTMB->PrintCounters(19);
+    //    thisTMB->PrintCounters(20);
 
     tmb_in_l1a_window[i] = thisTMB->GetCounter(19);
   }
