@@ -399,6 +399,14 @@ throw (xgi::exception::Exception)
     *out << "{"                                                        << endl;
     *out << "color: white;"                                            << endl;
     *out << "}"                                                        << endl;
+
+    *out << "a.with_popup .popup {"                                    << endl;
+    *out << "	display: none;"                                        << endl;
+    *out << "}"                                                        << endl;
+    *out                                                               << endl;
+    *out << "a.with_popup:hover .popup{"                               << endl;
+    *out << "	display: inline;"                                      << endl;
+    *out << "}"                                                        << endl;
 }
 
 
@@ -814,17 +822,17 @@ string EmuDAQManager::textToHtml( const string text ){
   return html;
 }
 
-void EmuDAQManager::captainForm(xgi::Input *in, xgi::Output *out)
+void EmuDAQManager::governorForm(xgi::Input *in, xgi::Output *out)
   throw (xgi::exception::Exception){
-  // Select who's the captain, i.e., whose order we obey: central run control or CSC shift
+  // Select who's the governor, i.e., whose order we obey: central run control or CSC shift
 
-  processCaptainForm(in, out);
+  processGovernorForm(in, out);
 
 //  *out << "<html>"                                                   << endl;
 
 //   *out << "<head>"                                                   << endl;
 //   *out << "<title>"                                                  << endl;
-//   *out << "Captain"                                                  << endl;
+//   *out << "Governor"                                                  << endl;
 //   *out << "</title>"                                                 << endl;
 //   *out << "</head>"                                                  << endl;
 
@@ -835,7 +843,7 @@ void EmuDAQManager::captainForm(xgi::Input *in, xgi::Output *out)
   *out << "<tr>"                                                     << endl;
   *out << "  <td align=\"left\">"                                    << endl;
   *out << " Select who should configure, start and stop the CSC local run: "    << endl;
-  *out << "<select name=\"captain\" title=\"Whose commands are to be obeyed.\">"<< endl;
+  *out << "<select name=\"governor\" title=\"Whose commands are to be obeyed.\">"<< endl;
   *out << " <option value=\"global\">Central Run Control automatically</option>"<< endl;
   *out << " <option value=\"local\">CSC Shift manually</option>"                << endl;
   *out << "</select>"                                                           << endl;
@@ -860,7 +868,7 @@ void EmuDAQManager::captainForm(xgi::Input *in, xgi::Output *out)
 //   *out << "</html>"                                                  << endl;
 }
 
-void EmuDAQManager::processCaptainForm(xgi::Input *in, xgi::Output *out)
+void EmuDAQManager::processGovernorForm(xgi::Input *in, xgi::Output *out)
 throw (xgi::exception::Exception)
 {
     cgicc::Cgicc cgi(in);
@@ -872,7 +880,7 @@ throw (xgi::exception::Exception)
  
 //      cout << fe->getName() << ": " << fe->getValue() << endl;
 
-      if ( fe->getName() == "captain" ){
+      if ( fe->getName() == "governor" ){
 	bool userWantsGlobal = ( fe->getValue() == "global");
 // 	cout << "userWantsGlobal        " << userWantsGlobal << endl
 // 	     << "configuredInGlobalMode " << configuredInGlobalMode_.value_ << endl
@@ -1108,7 +1116,7 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
 
     // ...but let the user overwrite them by selecting global mode.
     *out << "<hr/>"                                                    << endl;
-    captainForm( in, out );
+    governorForm( in, out );
     *out << "<hr/>"                                                    << endl;
 
 
@@ -2118,23 +2126,24 @@ void EmuDAQManager::printStatesTable( xgi::Output *out,
   *out << "  <th colspan=2 align=\"center\">"                            << endl;
   *out << title                                                          << endl;
   *out << "  </th>"                                                      << endl;
-  *out << "</tr>"                                                         << endl;
+  *out << "</tr>"                                                        << endl;
   *out << "<tr>"                                                         << endl;
-  *out << "  <th colspan=2 align=\"center\">"                            << endl;
-  *out << "     Colors:     "                                            << endl;
+  *out << "  <th colspan=2>"                                             << endl;
+  *out << "   <a class=\"with_popup\" style=\"float: left;\" href=\"#\"> Colors:";
   map<string, string>::iterator col;
   for ( col=color.begin(); col!=color.end(); ++col ){
     // Don't show color key for "Mismatch" or "TimedOut" if no app is in those states.
     if ( !isMismatch && col->first == "Mismatch" ) continue;
     if ( !isTimedOut && col->first == "TimedOut" ) continue;
-    *out << "     <span align=\"center\" ";
+    *out << "<span class=\"popup\" ";
     *out << "style=\"";
     *out << "background-color:" << bgcolor[col->first];
     *out << "; color:"          << col->second;
     *out << "\">";
     *out << " " << col->first << " ";
-    *out << "</span>" << endl;
+    *out << "</span>";
   }
+  *out << "  </a>"                                                       << endl;
   *out << "  </th>"                                                      << endl;
   *out << "</tr>"                                                        << endl;
 
@@ -2160,9 +2169,12 @@ void EmuDAQManager::printStatesTable( xgi::Output *out,
 	    appName << "[" << hardwareMnemonics_[s->first->getInstance()] << "]";
 	  *out << "     <span align=\"center\" ";
 	  *out << "style=\"";
-	  *out << "background-color:" << bgcolor[s->second];
-	  *out << "; color:"          << color[s->second];
-	  *out << "; text-decoration:"<< decoration[s->second];
+	  string state = s->second;
+	  if ( s->second.find( "Mismatch", 0 ) != string::npos ) state = "Mismatch";
+	  if ( s->second.find( "TimedOut", 0 ) != string::npos ) state = "TimedOut";
+	  *out << "background-color:" << bgcolor[state];
+	  *out << "; color:"          << color[state];
+	  *out << "; text-decoration:"<< decoration[state];
 	  *out << "\">";
 	  *out << " " << appName.str() << " ";
 	  *out << "</span>" << endl;
@@ -4333,7 +4345,8 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
 				     nameSpace << ":" << name << " = " << value ); }
       else          { LOG4CPLUS_ERROR(logger_,
 				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() ); }
+				      " to run database " << runDbAddress_.toString() <<
+				      " : " << runInfo_->errorMessage() ); }
     }
 
     //
@@ -4361,7 +4374,8 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
 				     nameSpace << ":" << name << " = " << value ); }
       else          { LOG4CPLUS_ERROR(logger_,
 				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() ); }
+				      " to run database " << runDbAddress_.toString()  <<
+				      " : " << runInfo_->errorMessage() ); }
     }
     
     //
@@ -4389,7 +4403,8 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
 				     nameSpace << ":" << name << " = " << value ); }
       else          { LOG4CPLUS_ERROR(logger_,
 				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() ); }
+				      " to run database " << runDbAddress_.toString()  <<
+				      " : " << runInfo_->errorMessage() ); }
     }
 
 
@@ -4416,7 +4431,8 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
 				     nameSpace << ":" << name << " = " << value ); }
       else          { LOG4CPLUS_ERROR(logger_,
 				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() ); }
+				      " to run database " << runDbAddress_.toString() <<
+				      " : " << runInfo_->errorMessage() ); }
     }
 
     //
@@ -4442,7 +4458,8 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
 				     nameSpace << ":" << name << " = " << value ); }
       else          { LOG4CPLUS_ERROR(logger_,
 				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() ); }
+				      " to run database " << runDbAddress_.toString() <<
+				      " : " << runInfo_->errorMessage() ); }
     }
     name  = "orbit_source";
     value = TTCci_OrbitSource_.toString();
@@ -4452,7 +4469,8 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
 				     nameSpace << ":" << name << " = " << value ); }
       else          { LOG4CPLUS_ERROR(logger_,
 				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() ); }
+				      " to run database " << runDbAddress_.toString() <<
+				      " : " << runInfo_->errorMessage() ); }
     }
     name  = "trigger_source";
     value = TTCci_TriggerSource_.toString();
@@ -4472,7 +4490,8 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
 				     nameSpace << ":" << name << " = " << value ); }
       else          { LOG4CPLUS_ERROR(logger_,
 				      "Failed to write " << nameSpace << ":" << name << 
-				      " to run database " << runDbAddress_.toString() ); }
+				      " to run database " << runDbAddress_.toString() <<
+				      " : " << runInfo_->errorMessage() ); }
     }
 
     //
@@ -4491,7 +4510,8 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
 				       nameSpace << ":" << name << " = " << value ); }
 	else          { LOG4CPLUS_ERROR(logger_,
 					"Failed to write " << nameSpace << ":" << name << 
-					" to run database " << runDbAddress_.toString() ); }
+					" to run database " << runDbAddress_.toString() <<
+				      " : " << runInfo_->errorMessage() ); }
       }
     }
 
@@ -4513,7 +4533,8 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
 				       nameSpace << ":" << name << " = " << value ); }
 	else          { LOG4CPLUS_ERROR(logger_,
 					"Failed to write " << nameSpace << ":" << name << 
-					" to run database " << runDbAddress_.toString() ); }
+					" to run database " << runDbAddress_.toString() <<
+				      " : " << runInfo_->errorMessage() ); }
       }
     }
     htmlMessageToELog << "</table>";
