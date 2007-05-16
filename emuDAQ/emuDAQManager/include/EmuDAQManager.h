@@ -216,9 +216,9 @@ private:
     void controlWebPage(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
 
-  void captainForm(xgi::Input *in, xgi::Output *out)
+  void governorForm(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
-  void processCaptainForm(xgi::Input *in, xgi::Output *out)
+  void processGovernorForm(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
   void commentWebPage(xgi::Input *in, xgi::Output *out)
     throw (xgi::exception::Exception);
