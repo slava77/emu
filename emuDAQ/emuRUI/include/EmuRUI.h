@@ -117,6 +117,8 @@ private:
 //   xdata::Vector<xdata::String>        inputDeviceNames_;     // vector of input device names (file path or board number)
   xdata::String                       inputDeviceType_;      // spy, slink or file
   xdata::String                       inputDataFormat_;      // "DDU" or "DCC"
+// here it gets overwritten in TF DDU(!?!?); move it away:   int                                 inputDataFormatInt_;   // EmuReader::DDU or EmuReader::DCC
+  int dummy_;
   int                                 inputDataFormatInt_;   // EmuReader::DDU or EmuReader::DCC
 
   void createFileWriters();
@@ -141,18 +143,24 @@ private:
 			 const unsigned short errorFlag, 
 			 char* const data, 
 			 const int   dataLength );
+  void makeClientsLastBlockCompleteEvent();
   void moveToFailedState();
 
   xdata::UnsignedLong                 nEventsRead_;
   xdata::String                       persistentDDUError_;
   EmuFileWriter                      *fileWriter_;
   EmuFileWriter                      *badEventsFileWriter_;
-  int                                 nDevicesWithBadData_;
+  int                                 nReadingPassesInEvent_;
+  bool                                insideEvent_;
+  unsigned short                      errorFlag_;
 
-  int  getDDUDataLengthWithoutPadding(char* const data, const int dataLength);
-  int  getDCCDataLengthWithoutPadding(char* const data, const int dataLength);
+  bool hasHeader( char* const data, const int dataLength );
+  bool hasTrailer( char* const data, const int dataLength );
+//   int  getDDUDataLengthWithoutPadding(char* const data, const int dataLength);
+//   int  getDCCDataLengthWithoutPadding(char* const data, const int dataLength);
   bool interestingDDUErrorBitPattern(char* const data, const int dataLength);
-  void printData(char* data, const int dataLength);
+//   unsigned short incrementPassesCounter( const unsigned short errorFlag );
+  void printData(std::ostream& os, char* data, const int dataLength);
 
 
   void printBlocks( deque<toolbox::mem::Reference*> d );
@@ -662,7 +670,8 @@ private:
      * Fills each of the super-fragment's blocks with the total number of
      * blocks making up the super-fragment.
      */
-    void setNbBlocksInSuperFragment(const unsigned int nbBlocks);
+//     void setNbBlocksInSuperFragment(const unsigned int nbBlocks);
+    void finalizeSuperFragment();
 
     /**
      * Returns the hyper-text reference of the specified application.
