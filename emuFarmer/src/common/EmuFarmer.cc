@@ -276,7 +276,7 @@ string EmuFarmer::processForm(xgi::Input *in, xgi::Output *out)
 	    success &= ( stillNotRunning.size() == 0 );
 	  }
 	  if ( !success && attemptCount == maxAttemptsToStart ){
-	    LOG4CPLUS_ERROR( logger_, "Failed to start all selected processes after " << maxAttemptsToStart << "attempts." ); 
+	    LOG4CPLUS_ERROR( logger_, "Failed to start all selected processes after " << maxAttemptsToStart << " attempts." ); 
 	  }
 	  if ( success ){
 	    LOG4CPLUS_INFO( logger_, "Started all selected processes after " 
@@ -492,7 +492,7 @@ void EmuFarmer::configFileTable(xgi::Output *out, const string& message){
 
 
 void EmuFarmer::actionButtons(xgi::Output *out){
-  // Create three visible buttons for start/stop/restart.
+  // Create four visible buttons for start/stop/restart/poll.
   // These are NOT submit buttons, they only invoke a javascript function
   // which in turn will submit the form (provided the user confirms the action).
 
@@ -669,7 +669,11 @@ void EmuFarmer::collectEmuProcesses(){
 	if ( xoap::XMLCh2String(appAtt->item(k)->getNodeName()) == "class" ){
 	  appClass = xoap::XMLCh2String(appAtt->item(k)->getNodeValue());
 	  groupName = applicationGroupName( xoap::XMLCh2String(appAtt->item(k)->getNodeValue()) );
-	  emuGroups_[ epd.getNormalizedURL() ] = groupName;
+          // Only assign this process a group if it has been assigned "other" already or none yet
+          if ( emuGroups_.find( epd.getNormalizedURL() ) == emuGroups_.end() ) // not assigned anything yet
+            emuGroups_[ epd.getNormalizedURL() ] = groupName;
+          else if ( emuGroups_[ epd.getNormalizedURL() ] == "other" ) // assigned "other"
+	    emuGroups_[ epd.getNormalizedURL() ] = groupName;
 	}
 	if ( xoap::XMLCh2String(appAtt->item(k)->getNodeName()) == "instance" ){
 	  stringstream ai; 
