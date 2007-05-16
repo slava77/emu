@@ -118,8 +118,11 @@ applicationBSem_(BSem::FULL)
     //
     // EMu-specific
     //
-    fileWriter_          = NULL;
-    badEventsFileWriter_ = NULL;
+    fileWriter_            = NULL;
+    badEventsFileWriter_   = NULL;
+    nReadingPassesInEvent_ = 0;
+    insideEvent_           = false;
+    errorFlag_             = 0;
 
     // bind SOAP client credit message callback
     xoap::bind(this, &EmuRUI::onSOAPClientCreditMsg, 
@@ -1499,6 +1502,10 @@ throw (toolbox::fsm::exception::Exception)
 //     }
     // move to enableAction END
 
+    nReadingPassesInEvent_ = 0;
+    insideEvent_           = false;
+    errorFlag_             = 0;
+
     nEventsRead_ = 0;
 
     persistentDDUError_ = "";
@@ -2294,6 +2301,11 @@ void EmuRUI::addDataForClients( const int   runNumber,
 					errorFlag, data, dataLength );
 }
 
+void EmuRUI::makeClientsLastBlockCompleteEvent(){
+  for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient )
+    clients_[iClient]->server->makeLastBlockCompleteEvent();
+}
+
 
 int EmuRUI::processAndCommunicate()
 {
@@ -2301,7 +2313,6 @@ int EmuRUI::processAndCommunicate()
 
     if( blocksArePendingTransmission_ )
     {
-      if( blocksArePendingTransmission_ )
         try
         {
             sendNextPendingBlock();
@@ -2390,7 +2401,8 @@ throw (emuRUI::exception::Exception)
 
     superFragBlocks_.erase(superFragBlocks_.begin());
 
-    blocksArePendingTransmission_ = superFragBlocks_.size() > 0;
+    blocksArePendingTransmission_ = (superFragBlocks_.size() > 0);
+
 }
 
 void EmuRUI::createFileWriters(){
@@ -2454,66 +2466,62 @@ void EmuRUI::createFileWriters(){
 }
 
 int EmuRUI::continueConstructionOfSuperFrag()
-  throw (emuRUI::exception::Exception)
-  // Version with single device
-{
+  throw (emuRUI::exception::Exception){
 
   // Possible return values
   const int extraPauseForOtherThreads   = 5000; // [microsecond]
   const int noExtraPauseForOtherThreads = 0;    // [microsecond]
   const int notToBeRescheduled          = -1;
 
-  unsigned int   nBytesRead = 0;
-  unsigned short errorFlag  = 0;
+  unsigned int nBytesRead = 0;
 
   if ( maxEvents_.value_ >= 0 && nEventsRead_.value_ >= (unsigned long) maxEvents_.value_ ) 
     return notToBeRescheduled;
 
-  if (deviceReader_){
+  if (deviceReader_ == NULL) return notToBeRescheduled;
 
-    // Prepare to read the first first event if we have not yet done so:
-    if ( (xdata::UnsignedLongT) nEventsRead_ == (unsigned long) 0 && ! deviceReader_->isResetAndEnabled() ){
-      try{
-	deviceReader_->resetAndEnable();
-      }
-      catch(std::runtime_error e){
-	
-	stringstream oss;
-	oss << "Failed to reset and/or enable " << inputDeviceType_.toString()
-	    << " reader for "      << inputDeviceName_.toString()
-	    << ": "                << e.what();
-	LOG4CPLUS_FATAL(logger_, oss.str());
-	moveToFailedState();
-	// 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
-      }
-      catch(...){
-	stringstream oss;
-	oss << "Failed to reset and/or enable " << inputDeviceType_.toString()
-	    << " reader for "      << inputDeviceName_.toString()
-	    << ": unknown exception.";
-	LOG4CPLUS_FATAL(logger_, oss.str());
-	moveToFailedState();
-	// 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
-      }
-
-      if ( deviceReader_->getLogMessage().length() > 0 )
-	LOG4CPLUS_INFO(logger_, deviceReader_->getLogMessage());
-    } // if ( nEventsRead_ == (unsigned long) 0 )
-    
-    // See if there's something to read and then read it:
+  // Prepare to read the first first event if we have not yet done so:
+  if ( (xdata::UnsignedLongT) nEventsRead_ == (unsigned long) 0 && ! deviceReader_->isResetAndEnabled() ){
     try{
-      nBytesRead = deviceReader_->readNextEvent();
+      deviceReader_->resetAndEnable();
+    }
+    catch(std::runtime_error e){
+
+      stringstream oss;
+      oss << "Failed to reset and/or enable " << inputDeviceType_.toString()
+	  << " reader for "      << inputDeviceName_.toString()
+	  << ": "                << e.what();
+      LOG4CPLUS_FATAL(logger_, oss.str());
+      moveToFailedState();
+      // 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
     catch(...){
       stringstream oss;
-      oss << "Failed to read from " << inputDeviceName_.toString()
+      oss << "Failed to reset and/or enable " << inputDeviceType_.toString()
+	  << " reader for "      << inputDeviceName_.toString()
 	  << ": unknown exception.";
-      LOG4CPLUS_ERROR(logger_, oss.str());
+      LOG4CPLUS_FATAL(logger_, oss.str());
+      moveToFailedState();
+      // 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
     }
 
     if ( deviceReader_->getLogMessage().length() > 0 )
       LOG4CPLUS_INFO(logger_, deviceReader_->getLogMessage());
+  } // if ( nEventsRead_ == (unsigned long) 0 )
+
+    // See if there's something to read and then read it:
+  try{
+    nBytesRead = deviceReader_->readNextEvent();
   }
+  catch(...){
+    stringstream oss;
+    oss << "Failed to read from " << inputDeviceName_.toString()
+	<< ": unknown exception.";
+    LOG4CPLUS_ERROR(logger_, oss.str());
+  }
+
+  if ( deviceReader_->getLogMessage().length() > 0 )
+    LOG4CPLUS_INFO(logger_, deviceReader_->getLogMessage());
 
   if ( nBytesRead == 0 ){
     // No data ==> no business being here. Try to read again later.
@@ -2524,7 +2532,7 @@ int EmuRUI::continueConstructionOfSuperFrag()
     return extraPauseForOtherThreads;
   }
 
-  errorFlag = deviceReader_->getErrorFlag();
+  errorFlag_ |= deviceReader_->getErrorFlag();
 
   if ( nBytesRead < 8 ){
     LOG4CPLUS_ERROR(logger_, 
@@ -2532,113 +2540,204 @@ int EmuRUI::continueConstructionOfSuperFrag()
 		    " read " << nBytesRead << " bytes only.");
   }
 
-  if ( (xdata::UnsignedLongT) nEventsRead_ == (unsigned long) 0 ) // first event being read --> a new run
-    {
-	  createFileWriters();
-    } // if first event 
+  nReadingPassesInEvent_++;
 
-  bool badData = false;
+  if ( (xdata::UnsignedLongT) nEventsRead_ == (unsigned long) 0 && nReadingPassesInEvent_ == 1 ) {
+    // first event started --> a new run
+    insideEvent_ = false;
+    createFileWriters();
+  }
 
-    char* data;
-    int   dataLength  = 0;
+  char* data;
+  int   dataLength  = 0;
 
-    if ( deviceReader_ ) {
-      //     if ( true ) { // let's see those too short events too !!!
-      
-      data       = deviceReader_->data();
+  data = deviceReader_->data();
 
-      if ( data!=NULL ){
-	dataLength = deviceReader_->dataLength();
-	if ( dataLength>0 ) eventNumber_ = deviceReader_->eventNumber();
+  if ( data!=NULL ){
 
-	if ( inputDataFormatInt_ == EmuReader::DDU ){
-	  int dataLengthWithoutPadding = getDDUDataLengthWithoutPadding(data,dataLength);
-	  if ( dataLengthWithoutPadding >= 0 ){
-	    dataLength = dataLengthWithoutPadding;
-	    badData    = interestingDDUErrorBitPattern(data,dataLength);
-	  }
-	}
+    dataLength = deviceReader_->dataLength();
+    if ( dataLength>0 ) {
+
+
+      bool header  = hasHeader(data,dataLength);
+      bool trailer = hasTrailer(data,dataLength);
+
+      if ( trailer && inputDataFormatInt_ == EmuReader::DDU ) interestingDDUErrorBitPattern(data,dataLength);
+
+      stringstream ss;
+      ss << "Inside event: " << insideEvent_
+	 << " Event: " << eventNumber_
+	 << " L1A: " << deviceReader_->eventNumber()
+	 << " Read: " << nEventsRead_.toString()
+	 << " Length: " << dataLength
+	 << " Header: " << header
+	 << " Trailer: " << trailer
+	 << " Packets: " << ( errorFlag_ >> 8 );
+      if ( errorFlag_ & 0x00ff ){
+	ss << " Errors: "
+	   << (errorFlag_ & EmuSpyReader::EndOfEventMissing ? "EndOfEventMissing " : "" )
+	   << (errorFlag_ & EmuSpyReader::Timeout ? "Timeout " : "" )
+	   << (errorFlag_ & EmuSpyReader::PacketsMissing ? "PacketsMissing " : "" )
+	   << (errorFlag_ & EmuSpyReader::LoopOverwrite ? "LoopOverwrite " : "" )
+	   << (errorFlag_ & EmuSpyReader::BufferOverwrite ? "BufferOverwrite " : "" )
+	   << (errorFlag_ & EmuSpyReader::Oversized ? "Oversized" : "" );
+	LOG4CPLUS_WARN(logger_, ss.str());
+      }
+      else{
+	LOG4CPLUS_INFO(logger_, ss.str());
       }
 
-      if ( ( nEventsRead_.value_+1 <   10                                        ) ||
-	   ( nEventsRead_.value_+1 <  100 && (nEventsRead_.value_+1) %   10 == 0 ) ||
-	   ( nEventsRead_.value_+1 < 1000 && (nEventsRead_.value_+1) %  100 == 0 ) ||
-	   (                                 (nEventsRead_.value_+1) % 1000 == 0 )    )
-	LOG4CPLUS_DEBUG(logger_, 
-			"Read event "    << eventNumber_                          << 
-			" ("             << nEventsRead_                              <<
-			" so far) from " << inputDeviceName_.toString() <<
-			", size: "       << dataLength   
-			);
 
-    } // if ( deviceReader_ )
-    
-    nEventsRead_++;
+//       stringstream ss;
+//       ss << 
+// 	" Inside event: " << insideEvent_ << 
+// 	" Event: " << eventNumber_ << 
+// 	" L1A: " << deviceReader_->eventNumber() << 
+// 	" Read: " << nEventsRead_.toString() << 
+// 	" Length: " << dataLength <<
+// 	" Header: " << header <<
+// 	" Trailer: " << trailer << ss.str();
+//       ss << endl;
+//       printData(ss,data,dataLength);
+//       ss << endl;
+//       std::cout << ss.str() << std::flush;
 
-    // Write data to files
-    if ( fileWriter_ )
-      {
-	try{
-	  fileWriter_->startNewEvent();
-	}
-	catch(string e){
-	  LOG4CPLUS_FATAL( logger_, e );
-	  moveToFailedState();
-	}
-	try{
-	  fileWriter_->writeData( data, dataLength );
-	}
-	catch(string e){
-	  LOG4CPLUS_FATAL( logger_, e );
-	  moveToFailedState();
-	}
-      }
-    if ( badEventsFileWriter_ )
-      {
-	try{
-	  badEventsFileWriter_->startNewEvent();
-	}
-	catch(string e){
-	  LOG4CPLUS_ERROR( logger_, e );
-	  // Don't moveToFailedState, bad events file is not worth stopping the run for.
-	}
-	if ( badData ){
+      if ( insideEvent_ ) {
+
+	if ( fileWriter_ ){
 	  try{
-	    badEventsFileWriter_->writeData( data, dataLength );
-	  }
-	  catch(string e){
-	    LOG4CPLUS_ERROR( logger_, e );
-	    // Don't moveToFailedState, bad events file is not worth stopping the run for.
+	    if ( header ) fileWriter_->startNewEvent();
+	    fileWriter_->writeData( data, dataLength );
+	  } catch(string e) {
+	    LOG4CPLUS_FATAL( logger_, e );
+	    moveToFailedState();
 	  }
 	}
-      }
 
-    // Store this data to be sent to clients (if any)
-    addDataForClients( runNumber_.value_, nEventsRead_.value_, true, 
-		       errorFlag, data, dataLength );
+	if ( header ){
+	  LOG4CPLUS_WARN(logger_, 
+			  "No trailer in event " << eventNumber_ << 
+			  " ("             << nEventsRead_ <<
+			  " so far) from " << inputDeviceName_.toString() <<
+			  ", size: "       << dataLength );
+	  // Prepare the old block(s) to be sent out.
+	  finalizeSuperFragment();
+	  nEventsRead_++;
+	  // Mark the last block for clients
+	  makeClientsLastBlockCompleteEvent();
+	  // Get the new event number.
+	  eventNumber_ = deviceReader_->eventNumber();
+	  // New event started, reset counter of passes
+	  nReadingPassesInEvent_ = 1;
+	} // if ( header )
 
-    if ( passDataOnToRUBuilder_ ){
+	if ( passDataOnToRUBuilder_ ){
+	  // If the EmuRUI to RU memory pool has room for another data block
+	  if(!ruiRuPool_->isHighThresholdExceeded()){
+	    // Fill block and append it to superfragment
+	    appendNewBlockToSuperFrag( data, dataLength );
+	  }
+	  else { 
+	    LOG4CPLUS_WARN(logger_, "EmuRUI-to-RU memory pool's high threshold exceeded.");
+	  }
+	}
 
-      // If the EmuRUI to RU memory pool has room for another data block
-      if(!ruiRuPool_->isHighThresholdExceeded()){
-	
-	// fill block and append it to superfragment
-	appendNewBlockToSuperFrag( data, dataLength );
-
-	  // Prepare it for sending to the RU
-	  setNbBlocksInSuperFragment(superFragBlocks_.size());
+	if ( trailer ){
+	  // Prepare the block(s) to be sent out.
+	  finalizeSuperFragment();
+	  insideEvent_ = false;
+	  nEventsRead_++;
 	  // Current super-fragment is now ready to be sent to the RU
-	  blocksArePendingTransmission_ = true;
+	  blocksArePendingTransmission_ = passDataOnToRUBuilder_.value_;
+	} // if ( trailer )
 
-      }
-      else  LOG4CPLUS_WARN(logger_, "EmuRUI-to-RU memory pool's high threshold exceeded.");
+      } // if ( insideEvent_ )
+      else {
 
-    }
-  
+	if ( !header && trailer ){
+	  LOG4CPLUS_WARN(logger_, 
+			  "No header in event " << eventNumber_ << 
+			  " ("             << nEventsRead_ <<
+			  " so far) from " << inputDeviceName_.toString() <<
+			  ", size: "       << dataLength );
+	}
+
+	if ( fileWriter_ ){
+	  try{
+	    if ( header || trailer ) fileWriter_->startNewEvent();
+	    fileWriter_->writeData( data, dataLength );
+	  } catch(string e) {
+	    LOG4CPLUS_FATAL( logger_, e );
+	    moveToFailedState();
+	  }
+	}
+
+	if ( header ){
+	  // Get the new event number.
+	  eventNumber_ = deviceReader_->eventNumber();
+	  // New event started, reset counter of passes
+	  nReadingPassesInEvent_ = 1;
+	}
+
+	if ( passDataOnToRUBuilder_ ){
+	  // If the EmuRUI to RU memory pool has room for another data block
+	  if(!ruiRuPool_->isHighThresholdExceeded()){
+	    // Fill block and append it to superfragment
+	    appendNewBlockToSuperFrag( data, dataLength );
+	  }
+	  else { 
+	    LOG4CPLUS_WARN(logger_, "EmuRUI-to-RU memory pool's high threshold exceeded.");
+	  }
+	}
+	insideEvent_ = true;
+
+	if ( trailer ){
+	  // Prepare the block(s) to be sent out.
+	  finalizeSuperFragment();
+	  insideEvent_ = false;
+	  nEventsRead_++;
+	  // Current super-fragment is now ready to be sent to the RU
+	  blocksArePendingTransmission_ = passDataOnToRUBuilder_.value_;
+	}
+
+      } // if ( insideEvent_ ) else
+
+//       // Update the counter of readout passes in errorFlag
+//       errorFlag_ = incrementPassesCounter( errorFlag_ );
+      // Store this data to be sent to clients (if any)
+      addDataForClients( runNumber_.value_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+      // TO DO: handle abnormal cases too
+      if ( trailer ) errorFlag_ = 0;
+
+    } // if ( dataLength>0 )
+
+  } // if ( data!=NULL )
+
+  if ( ( nEventsRead_.value_+1 <   10                                        ) ||
+       ( nEventsRead_.value_+1 <  100 && (nEventsRead_.value_+1) %   10 == 0 ) ||
+       ( nEventsRead_.value_+1 < 1000 && (nEventsRead_.value_+1) %  100 == 0 ) ||
+       (                                 (nEventsRead_.value_+1) % 1000 == 0 )    ){
+    LOG4CPLUS_DEBUG(logger_, 
+		    "Read event "    << eventNumber_ << 
+		    " ("             << nEventsRead_ <<
+		    " so far) from " << inputDeviceName_.toString() <<
+		    ", size: "       << dataLength );
+  }
+
+
   return noExtraPauseForOtherThreads;
 
 }
 
+// unsigned short EmuRUI::incrementPassesCounter( const unsigned short errorFlag ){
+//   // Adds one to the counter of reading passes in the error flag (the 4 lsb)
+//   unsigned short updatedErrorFlag = errorFlag;
+//   // If counter has already reached its max value, leave it that way
+//   if ( ( 0xff00 & updatedErrorFlag ) == 0xff00 ) return updatedErrorFlag;
+//   // Otherwise increment it
+//   updatedErrorFlag += 0x0100;
+//   return updatedErrorFlag;
+// }
 
 // bool EmuRUI::continueConstructionOfSuperFrag()
 //   throw (emuRUI::exception::Exception)
@@ -2790,112 +2889,177 @@ int EmuRUI::continueConstructionOfSuperFrag()
 
 
 
-void EmuRUI::printData(char* data, const int dataLength){
+void EmuRUI::printData(std::ostream& os, char* data, const int dataLength){
   unsigned short *shortData = reinterpret_cast<unsigned short *>(data);
-  cout << "_________________________________" << endl;
-  cout << "                +3   +2   +1   +0" << endl;
+  os << "_________________________________" << endl;
+  os << "                +3   +2   +1   +0" << endl;
   for(int i = 0; i < dataLength/2; i+=4)
     {
-      std::cout << std::dec;
-      std::cout.width(8); std::cout.fill(' ');
-      std::cout << i;
-      std::cout << "      ";
-      std::cout << std::hex;
-      std::cout.width(4); std::cout.fill('0');    
-      std::cout << shortData[i+3] << " ";
-      std::cout.width(4); std::cout.fill('0');    
-      std::cout << shortData[i+2] << " ";
-      std::cout.width(4); std::cout.fill('0');    
-      std::cout << shortData[i+1] << " ";
-      std::cout.width(4); std::cout.fill('0');    
-      std::cout << shortData[i  ] << std::endl;
+      os << std::dec;
+      os.width(8); os.fill(' ');
+      os << i;
+      os << "      ";
+      os << std::hex;
+      os.width(4); os.fill('0');    
+      os << shortData[i+3] << " ";
+      os.width(4); os.fill('0');    
+      os << shortData[i+2] << " ";
+      os.width(4); os.fill('0');    
+      os << shortData[i+1] << " ";
+      os.width(4); os.fill('0');    
+      os << shortData[i  ] << std::endl;
     }
-  std::cout<<std::dec;
-  std::cout.width(0);
+  os<<std::dec;
+  os.width(0);
 }
 
-int EmuRUI::getDDUDataLengthWithoutPadding(char* const data, const int dataLength){
-  // Get the data length without the padding that may have been added by Gbit Ethernet
-
-  const int minEthPacketSize   = 32; // short (2-byte) words --> 64 bytes
-  const int DDUTrailerLength   = 12; // short (2-byte) words --> 24 bytes
-
-  if ( !dataLength ) return 0;
-  if ( dataLength%2 ) LOG4CPLUS_ERROR(logger_, "DDU data is odd number of bytes (" << dataLength << ") long" );
-  if ( dataLength<DDUTrailerLength*2 ) LOG4CPLUS_ERROR(logger_, 
-				      "DDU data is shorter (" << dataLength << " bytes) than trailer" );
-  //   printData(data,dataLength);
-
+bool EmuRUI::hasHeader( char* const data, const int dataLength ){
+  // By now data must have been stripped of any filler words.
+  const int DDUHeaderLength = 24; // bytes
+  const int DCCHeaderLength = 16; // bytes
+  bool headerFound = false;
   unsigned short *shortData = reinterpret_cast<unsigned short *>(data);
-  // Let's go backward looking for trailer signatures:
-  for ( int iShort=dataLength/2-DDUTrailerLength;
-	iShort>=0 && iShort>=dataLength/2-(minEthPacketSize+DDUTrailerLength); 
-	--iShort ){
-    if ( (shortData[iShort+11] & 0xf000) == 0xa000 ) // Probably the trailer.
-      // Double check:
-      if ( shortData[iShort  ]             == 0x8000 &&
-	   shortData[iShort+1]             == 0x8000 &&
-	   shortData[iShort+2]             == 0xFFFF &&
-	   shortData[iShort+3]             == 0x8000 &&
-	   (shortData[iShort+4] & 0xfff0)  == 0x0000    ){
-	// The following bit may be set in the production version,
-	// so let's not rely on it being 0
-	// (shortData[iShort+5] & 0x8000)  == 0x0000    ){
-	return 2 * (iShort + DDUTrailerLength);
-      }
+  if ( inputDataFormatInt_ == EmuReader::DDU ){
+    if ( dataLength < DDUHeaderLength ) return false; // can the data be split in the header???
+    headerFound = ( (shortData[3] & 0xf000) == 0x5000 &&
+		    shortData[5]            == 0x8000 &&
+		    shortData[6]            == 0x0001 &&
+		    shortData[7]            == 0x8000    );
+//     stringstream ss;
+//     ss <<
+//       " (shortData[3] & 0xf000) " << std::hex << std::setw(4) << (shortData[3] & 0xf000) <<
+//       " shortData[5] " << std::hex << std::setw(4) << shortData[5] <<
+//       " shortData[6] " << std::hex << std::setw(4) << shortData[6] <<
+//       " shortData[7] " << std::hex << std::setw(4) << shortData[7] <<
+//       " headerFound " << std::dec << headerFound;
+//     std::cout << ss.str() << std::endl << std::flush;
+//     LOG4CPLUS_INFO(logger_,ss.str());
   }
-
-  stringstream ss;
-  ss << "No DDU trailer found within " 
-     << 2*minEthPacketSize
-     << " bytes of the end of data in "
-     << deviceReader_->getName()
-//      << deviceReaders_[iCurrentDeviceReader_]->getName()
-     << ". Event number: "
-     << deviceReader_->eventNumber();
-//      << deviceReaders_[iCurrentDeviceReader_]->eventNumber();
-  LOG4CPLUS_ERROR(logger_,ss.str());
-  return -1; // no trailer found
-
+  else if ( inputDataFormatInt_ == EmuReader::DCC ){
+  if ( dataLength < DCCHeaderLength ) return false; // can the data be split in the header???
+    headerFound = ( (shortData[0] & 0x00ff) == 0x005f &&
+		    (shortData[3] & 0xf000) == 0x5000 &&
+		    (shortData[7] & 0xff00) == 0xd900    );
+  }
+  return headerFound;
 }
 
-int EmuRUI::getDCCDataLengthWithoutPadding(char* const data, const int dataLength){
-  // Get the data length without the padding that may have been added by Gbit Ethernet
-
-  const int minEthPacketSize   = 32; // short (2-byte) words --> 64 bytes
-  const int DCCTrailerLength   =  8; // short (2-byte) words --> 16 bytes
-
-  if ( !dataLength ) return 0;
-  if ( dataLength%2 ) LOG4CPLUS_ERROR(logger_, "DCC data is odd number of bytes (" << dataLength << ") long" );
-  if ( dataLength<DCCTrailerLength*2 ) LOG4CPLUS_ERROR(logger_, 
-				      "DCC data is shorter (" << dataLength << " bytes) than trailer" );
-  //   printData(data,dataLength);
-
+bool EmuRUI::hasTrailer( char* const data, const int dataLength ){
+  // By now data must have been stripped of any filler words.
+  const int DDUTrailerLength = 24; // bytes
+  const int DCCTrailerLength = 16; // bytes
+  bool trailerFound = false;
   unsigned short *shortData = reinterpret_cast<unsigned short *>(data);
-  // Let's go backward looking for trailer signatures:
-  for ( int iShort=dataLength/2-DCCTrailerLength;
-	iShort>=0 && iShort>=dataLength/2-(minEthPacketSize+DCCTrailerLength); 
-	--iShort ){
-    if ( (shortData[iShort+3] & 0xff00) == 0xef00 ) // Probably the trailer.
-      // Double check:
-      if ( (shortData[iShort+4] & 0x000f) == 0x0007 &&
-	   (shortData[iShort+7] & 0xff00) == 0xaf00    )
-	return 2 * (iShort + DCCTrailerLength);
+//   std::cout << "inputDataFormatInt ?=? EmuReader::DDU " << inputDataFormatInt_ << " ?=? " << EmuReader::DDU << std::endl << std::flush;
+  if ( inputDataFormatInt_ == EmuReader::DDU ){
+    if ( dataLength < DDUTrailerLength ) return false; // can the data be split in the trailer???
+    int start = (dataLength - DDUTrailerLength) / 2;
+    trailerFound = ( shortData[start+0] == 0x8000 &&
+		     shortData[start+1] == 0x8000 &&
+		     shortData[start+2] == 0xffff &&
+		     shortData[start+3] == 0x8000 &&
+		     ( shortData[start+11] & 0xf000 ) == 0xa000 );
+//     stringstream ss;
+//     ss <<
+//       " shortData[start+0] " << std::hex << std::setw(4) << shortData[start+0] <<
+//       " shortData[start+1] " << std::hex << std::setw(4) << shortData[start+1] <<
+//       " shortData[start+2] " << std::hex << std::setw(4) << shortData[start+2] <<
+//       " shortData[start+3] " << std::hex << std::setw(4) << shortData[start+3] <<
+//       " ( shortData[start+11] & 0xf000 ) " << std::hex << std::setw(4) << ( shortData[start+11] & 0xf000 ) <<
+//       " trailerFound " << std::dec << trailerFound;
+//     std::cout << ss.str() << std::endl << std::flush;
+//     LOG4CPLUS_INFO(logger_, ss.str());
   }
-
-  stringstream ss;
-  ss << "No DCC trailer found within " 
-     << 2*minEthPacketSize
-     << " bytes of the end of data in "
-     << deviceReader_->getName()
-//      << deviceReaders_[iCurrentDeviceReader_]->getName()
-     << ". Event number: "
-     << deviceReader_->eventNumber();
-//      << deviceReaders_[iCurrentDeviceReader_]->eventNumber();
-  LOG4CPLUS_ERROR(logger_,ss.str());
-  return -1; // no trailer found
-
+  else if ( inputDataFormatInt_ == EmuReader::DCC ){
+    if ( dataLength < DCCTrailerLength ) return false; // can the data be split in the trailer???
+    int start = (dataLength - DCCTrailerLength) / 2;
+    trailerFound = ( (shortData[start+3] & 0xff00) == 0xef00 &&
+		     (shortData[start+4] & 0x000f) == 0x0003 &&
+		     (shortData[start+7] & 0xff00) == 0xaf00    );
+  }
+  return trailerFound;
 }
+
+// int EmuRUI::getDDUDataLengthWithoutPadding(char* const data, const int dataLength){
+//   // Get the data length without the padding that may have been added by Gbit Ethernet
+
+//   const int minEthPacketSize   = 32; // short (2-byte) words --> 64 bytes
+//   const int DDUTrailerLength   = 12; // short (2-byte) words --> 24 bytes
+
+//   if ( !dataLength ) return 0;
+//   if ( dataLength%2 ) LOG4CPLUS_ERROR(logger_, "DDU data is odd number of bytes (" << dataLength << ") long" );
+//   if ( dataLength<DDUTrailerLength*2 ) LOG4CPLUS_ERROR(logger_, 
+// 				      "DDU data is shorter (" << dataLength << " bytes) than trailer" );
+//   //   printData(data,dataLength);
+
+//   unsigned short *shortData = reinterpret_cast<unsigned short *>(data);
+//   // Let's go backward looking for trailer signatures:
+//   for ( int iShort=dataLength/2-DDUTrailerLength;
+// 	iShort>=0 && iShort>=dataLength/2-(minEthPacketSize+DDUTrailerLength); 
+// 	--iShort ){
+//     if ( (shortData[iShort+11] & 0xf000) == 0xa000 ) // Probably the trailer.
+//       // Double check:
+//       if ( shortData[iShort  ]             == 0x8000 &&
+// 	   shortData[iShort+1]             == 0x8000 &&
+// 	   shortData[iShort+2]             == 0xFFFF &&
+// 	   shortData[iShort+3]             == 0x8000 &&
+// 	   (shortData[iShort+4] & 0xfff0)  == 0x0000    ){
+// 	// The following bit may be set in the production version,
+// 	// so let's not rely on it being 0
+// 	// (shortData[iShort+5] & 0x8000)  == 0x0000    ){
+// 	return 2 * (iShort + DDUTrailerLength);
+//       }
+//   }
+
+//   stringstream ss;
+//   ss << "No DDU trailer found within " 
+//      << 2*minEthPacketSize
+//      << " bytes of the end of data in "
+//      << deviceReader_->getName()
+//      << ". Event number: "
+//      << deviceReader_->eventNumber();
+//   LOG4CPLUS_ERROR(logger_,ss.str());
+//   return -1; // no trailer found
+
+// }
+
+// int EmuRUI::getDCCDataLengthWithoutPadding(char* const data, const int dataLength){
+//   // Get the data length without the padding that may have been added by Gbit Ethernet
+
+//   const int minEthPacketSize   = 32; // short (2-byte) words --> 64 bytes
+//   const int DCCTrailerLength   =  8; // short (2-byte) words --> 16 bytes
+
+//   if ( !dataLength ) return 0;
+//   if ( dataLength%2 ) LOG4CPLUS_ERROR(logger_, "DCC data is odd number of bytes (" << dataLength << ") long" );
+//   if ( dataLength<DCCTrailerLength*2 ) LOG4CPLUS_ERROR(logger_, 
+// 				      "DCC data is shorter (" << dataLength << " bytes) than trailer" );
+//   //   printData(data,dataLength);
+
+//   unsigned short *shortData = reinterpret_cast<unsigned short *>(data);
+//   // Let's go backward looking for trailer signatures:
+//   for ( int iShort=dataLength/2-DCCTrailerLength;
+// 	iShort>=0 && iShort>=dataLength/2-(minEthPacketSize+DCCTrailerLength); 
+// 	--iShort ){
+//     if ( (shortData[iShort+3] & 0xff00) == 0xef00 ) // Probably the trailer.
+//       // Double check:
+//       if ( (shortData[iShort+4] & 0x000f) == 0x0007 &&
+// 	   (shortData[iShort+7] & 0xff00) == 0xaf00    )
+// 	return 2 * (iShort + DCCTrailerLength);
+//   }
+
+//   stringstream ss;
+//   ss << "No DCC trailer found within " 
+//      << 2*minEthPacketSize
+//      << " bytes of the end of data in "
+//      << deviceReader_->getName()
+// //      << deviceReaders_[iCurrentDeviceReader_]->getName()
+//      << ". Event number: "
+//      << deviceReader_->eventNumber();
+// //      << deviceReaders_[iCurrentDeviceReader_]->eventNumber();
+//   LOG4CPLUS_ERROR(logger_,ss.str());
+//   return -1; // no trailer found
+
+// }
 
 bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLength){
   // At this point dataLength should no longer contain Ethernet padding.
@@ -2939,11 +3103,11 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
 	 << " (after " << nEventsRead_+1 << " read)";
       persistentDDUError_ = ss.str();
     }
-    LOG4CPLUS_ERROR(logger_, "Critical DDU error in "
-       << deviceReader_->getName() << "[" << hardwareMnemonic_.toString() << "]"
-       << ". Sync Reset or Hard Reset required. (bit T:5|T:6&7|T-1:47) Event "
-       << deviceReader_->eventNumber()
-       << " (" << nEventsRead_+1 << " read)");
+//     LOG4CPLUS_ERROR(logger_, "Critical DDU error in "
+//        << deviceReader_->getName() << "[" << hardwareMnemonic_.toString() << "]"
+//        << ". Sync Reset or Hard Reset required. (bit T:5|T:6&7|T-1:47) Event "
+//        << deviceReader_->eventNumber()
+//        << " (" << nEventsRead_+1 << " read)");
     foundError = true;
   }
   // 2)
@@ -3106,31 +3270,57 @@ throw (emuRUI::exception::Exception)
     pvtMsg->XFunctionCode  = I2O_RU_DATA_READY;
     pvtMsg->OrganizationID = XDAQ_ORGANIZATION_ID;
 
-    // moved to EmuRUI::setNbBlocksInSuperFragment:    block->eventNumber     = nEventsRead_ % 0x1000000; // 2^24
-    block->blockNb         = 0; // one single block carries the whole device's data
-//     block->blockNb         = iCurrentDeviceReader_; // each block carries a whole device's data
-
+    // block->eventNumber = nEventsRead_ % 0x1000000; // 2^24
+    block->eventNumber = eventNumber_ % 0x1000000; // 2^24
 }
 
 
-void EmuRUI::setNbBlocksInSuperFragment(const unsigned int nbBlocks)
+// void EmuRUI::setNbBlocksInSuperFragment(const unsigned int nbBlocks)
+// {
+// //      vector<toolbox::mem::Reference*>::iterator pos;
+//      deque<toolbox::mem::Reference*>::iterator pos; // BK
+//      toolbox::mem::Reference            *bufRef = 0;
+//      I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME *block  = 0;
+
+
+//      for(pos=superFragBlocks_.begin(); pos!=superFragBlocks_.end(); pos++)
+//      {
+//          bufRef = *pos;
+//          block = (I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME*)bufRef->getDataLocation();
+//          block->nbBlocksInSuperFragment = nbBlocks;
+// 	 // If we read more than one device, nEventsRead_ is implemented only when
+// 	 // all devices have been read out. This method is invoked after that, so
+// 	 // it is now that we set the run number in all blocks. 
+// 	 // (Event numbering starts from 1.)
+// 	 block->eventNumber = nEventsRead_ % 0x1000000; // 2^24
+//      }
+// }
+
+void EmuRUI::finalizeSuperFragment()
 {
 //      vector<toolbox::mem::Reference*>::iterator pos;
      deque<toolbox::mem::Reference*>::iterator pos; // BK
      toolbox::mem::Reference            *bufRef = 0;
      I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME *block  = 0;
 
-
-     for(pos=superFragBlocks_.begin(); pos!=superFragBlocks_.end(); pos++)
-     {
-         bufRef = *pos;
-         block = (I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME*)bufRef->getDataLocation();
-         block->nbBlocksInSuperFragment = nbBlocks;
-	 // If we read more than one device, nEventsRead_ is implemented only when
-	 // all devices have been read out. This method is invoked after that, so
-	 // it is now that we set the run number in all blocks. 
-	 // (Event numbering starts from 1.)
-	 block->eventNumber = nEventsRead_ % 0x1000000; // 2^24
+     // Count and number blocks belonging to current event
+     int blockCount = 0;
+     for(pos=superFragBlocks_.begin(); pos!=superFragBlocks_.end(); ++pos){
+       bufRef = *pos;
+       block = (I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME*)bufRef->getDataLocation();
+       if ( eventNumber_ % 0x1000000 == block->eventNumber ){
+	 block->blockNb = blockCount;
+	 blockCount++;
+       }
+     }
+     
+     // Update block count field in all blocks of this event
+     for(pos=superFragBlocks_.begin(); pos!=superFragBlocks_.end(); ++pos){
+       bufRef = *pos;
+       block = (I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME*)bufRef->getDataLocation();
+       if ( eventNumber_ % 0x1000000 == block->eventNumber ){
+	 block->nbBlocksInSuperFragment = blockCount;
+       }
      }
 }
 
