@@ -82,6 +82,7 @@ public:
   virtual void   sendData()
     throw ( xcept::Exception )=0;
   bool   dataIsPendingTransmission(){ return dataIsPendingTransmission_; }
+  virtual void makeLastBlockCompleteEvent()=0;
   virtual xoap::MessageReference getOldestMessagePendingTransmission()=0;
 };
 

@@ -66,6 +66,7 @@ public:
   void   sendData()
     throw ( xcept::Exception );
   unsigned long getClientTid(){ return( (unsigned long)0 ); }
+  void makeLastBlockCompleteEvent();
   xoap::MessageReference getOldestMessagePendingTransmission();
   void printMessages();
 };

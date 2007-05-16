@@ -119,6 +119,16 @@ void EmuSOAPServer::appendData( char* const         data,
   }
 }
 
+void EmuSOAPServer::makeLastBlockCompleteEvent(){
+  // First check if a message has already been in the making.
+  if ( messageReference_.isNull() ) return;
+  // There will be no more data added to this message. (Apperently this event ended incomplete.)
+  // Add it to the messages to be sent out.
+  messages_.push_back( messageReference_ );
+  messageReference_ = xoap::MessageReference(NULL);
+  dataIsPendingTransmission_ = true;
+}
+
 void EmuSOAPServer::createMessage()
   throw ( xoap::exception::Exception )
 {
