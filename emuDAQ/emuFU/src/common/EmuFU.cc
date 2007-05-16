@@ -1740,27 +1740,6 @@ throw (emuFU::exception::Exception)
     U32 buResourceId = block->buResourceId;
 
 
-//     // Check block as an individual
-//     try
-//     {
-//         if(block->superFragmentNb == 0)
-//         {
-//             checkTAPayload(bufRef);
-//         }
-//         else
-//         {
-//             checkRUIPayload(bufRef);
-//         }
-//     }
-//     catch(xcept::Exception e)
-//     {
-//         faultDetected_ = true;
-
-//         LOG4CPLUS_ERROR(logger_,
-//            "Test payload did not pass check : "
-//            << xcept::stdformat_exception_history(e));
-//     }
-
     //
     // EMu-specific stuff
     //
@@ -1768,15 +1747,16 @@ throw (emuFU::exception::Exception)
       + sizeof(I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME);
     unsigned long  sizeOfPayload =         bufRef->getDataSize()
       - sizeof(I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME);
-    SliceTestTriggerChunk *tc;
     bool blockIsFirstOfSuperFragment = block->blockNb         == 0;
     bool superFragmentIsFirstOfEvent = block->superFragmentNb == 0;
 
-//     printBlock( bufRef, true );
+    cout << "superFragmentIsLastOfEvent: " << superFragmentIsLastOfEvent << endl;
+    cout << "blockIsLastOfSuperFragment: " << blockIsLastOfSuperFragment << endl;
+    cout << "blockIsLastOfEvent: " << blockIsLastOfEvent << endl;
+    printBlock( bufRef, true );
 
     if( superFragmentIsFirstOfEvent && blockIsFirstOfSuperFragment ) // trigger block
       {
-	tc         = (SliceTestTriggerChunk*) startOfPayload;
 
 	if ( fileWriter_ )
 	  {
@@ -1802,48 +1782,48 @@ throw (emuFU::exception::Exception)
 	  }
       }
 
-    if ( fileWriter_ )
-      {
+    // Insert dummy DCC header at the beginning of this event
+    if( superFragmentIsFirstOfEvent && blockIsFirstOfSuperFragment ){
+      const unsigned short dummyDCCheader[8] = 
+	{ 0x005F, 0x0000, 0x0000, 0x5000,
+	  0x0017, 0x0000, 0x0000, 0xD900 };
+      if ( fileWriter_ ){
 	try{
-	  fileWriter_->writeData( startOfPayload, sizeOfPayload );
-	}
+	  fileWriter_->writeData( (const char*) dummyDCCheader, sizeof(dummyDCCheader) );
+	} 
 	catch(string e){
 	  LOG4CPLUS_FATAL( logger_, e );
 	  moveToFailedState();
 	}
       }
+    }
 
-    addDataForClients( runNumber_.value_,
-		       nbEventsProcessed_.value_,
-		       blockIsLastOfEvent,
-		       startOfPayload,
-		       sizeOfPayload );
-//     if ( blockIsLastOfEvent ) sendDataToClients();
+    // Write block to file unless it's the first super fragment (=trigger)
+    if ( ! superFragmentIsFirstOfEvent ){
 
+      if ( fileWriter_ )
+	{
+	  try{
+	    fileWriter_->writeData( startOfPayload, sizeOfPayload );
+	  }
+	  catch(string e){
+	    LOG4CPLUS_FATAL( logger_, e );
+	    moveToFailedState();
+	  }
+	}
+      
+      addDataForClients( runNumber_.value_,
+			 nbEventsProcessed_.value_,
+			 blockIsLastOfEvent,
+			 startOfPayload,
+			 sizeOfPayload );
 
+    }
 
     appendBlockToSuperFragment(bufRef);
 
     if(blockIsLastOfSuperFragment)
     {
-//         try
-//         {
-//             checkSuperFragment();
-//         }
-//         catch(xcept::Exception e)
-//         {
-//             faultDetected_ = true;
-
-//             stringstream oss;
-//             string       s;
-
-//             oss << "Invalid super-fragment.";
-//             oss << " BU resource id: " << buResourceId;
-//             s = oss.str();
-
-//             XCEPT_RETHROW(emuFU::exception::Exception, s, e);
-//         }
-
         try
         {
             releaseSuperFragment();
@@ -1863,24 +1843,21 @@ throw (emuFU::exception::Exception)
 
     if(blockIsLastOfEvent)
     {
+      // Insert dummy DCC trailer at the end of this event
+	const unsigned short dummyDCCtrailer[8] = 
+	  { 0x0000, 0x0000, 0x0000, 0xEF00,
+	    0x0007, 0x0000, 0x0000, 0xAF00 };
+	if ( fileWriter_ ){
+	  try{
+	    fileWriter_->writeData( (const char*) dummyDCCtrailer, sizeof(dummyDCCtrailer) );
+	  } 
+	  catch(string e){
+	    LOG4CPLUS_FATAL( logger_, e );
+	    moveToFailedState();
+	  }
+	}
+	
         nbEventsProcessed_.value_++;
-
-        // If EmuFU is to emulate a crash
-        if(nbEventsBeforeExit_.value_ > 0)
-        {
-            if(nbEventsProcessed_.value_ == nbEventsBeforeExit_.value_)
-            {
-                stringstream oss;
-                string       s;
-
-                oss << "Emulating crash after " << nbEventsBeforeExit_;
-                oss << " events";
-                s = oss.str();
-
-                LOG4CPLUS_FATAL(logger_, s);
-                exit(-1);
-            }
-        }
 
         if(sleepBetweenEvents_.value_)
         {
@@ -1917,6 +1894,7 @@ throw (emuFU::exception::Exception)
 
 
 }
+
 
 void EmuFU::printBlock( toolbox::mem::Reference *bufRef, bool printMessageHeader )
   //
