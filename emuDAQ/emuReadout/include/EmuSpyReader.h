@@ -35,6 +35,15 @@ public:
 class EmuSpyReader : public EmuReader
 {
 public:
+  enum Status_t {
+    EndOfEventMissing = 0x0001,
+    Timeout           = 0x0002,
+    PacketsMissing    = 0x0004,
+    LoopOverwrite     = 0x0008,
+    BufferOverwrite   = 0x0010,
+    Oversized         = 0x0020
+  };
+
   EmuSpyReader( std::string filename, int format, bool debug=false );
   ~EmuSpyReader();
   void open( std::string filename );
@@ -78,17 +87,17 @@ protected:
   int pmissingCount; 
   int loopOverwriteCount; 
   int bufferOverwriteCount; 
-  int packetsCount; 
   int timeoutCount; 
   int endEventCount;
   EmuClock ec;
 // DEBUG END
+  bool insideEventWithMissingPackets;
 
 //   int   readDDU(unsigned short **buf);
 //   int   readDCC(unsigned short **buf);
   int   readDDU(unsigned short*& buf);
   int   readDCC(unsigned short*& buf);
-
+  int   dataLengthWithoutPadding( const unsigned short* data, const int dataLength );
 };
 
 #endif  // ifndef __EMU_SPY_READER_H__
