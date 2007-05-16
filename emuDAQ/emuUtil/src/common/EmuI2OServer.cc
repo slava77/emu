@@ -324,3 +324,14 @@ void EmuI2OServer::sendData()
   }
 
 }
+
+void EmuI2OServer::makeLastBlockCompleteEvent(){
+  // First check if an event has already been in the making.
+  if ( dataBlocks_.size() == 0 ) return;
+  // There will be no more data added to this event. (Apperently this event ended incomplete.)
+  // Mark the last block we have as last of event.
+  deque<pair<toolbox::mem::Reference*,bool> >::reverse_iterator lastBlock = dataBlocks_.rbegin();
+  lastBlock->second = true;
+  ++nEventsInQueue;
+  dataIsPendingTransmission_ = dataBlocks_.size() > 0;
+}
