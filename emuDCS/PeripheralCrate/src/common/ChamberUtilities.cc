@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.13 2007/05/14 17:37:15 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.14 2007/05/16 13:48:38 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.14  2007/05/16 13:48:38  rakness
+// mpc_output_enable=1 in AFF to L1A measurement
+//
 // Revision 3.13  2007/05/14 17:37:15  rakness
 // AFF to L1A timing button
 //
@@ -271,6 +274,14 @@ void ChamberUtilities::bit_to_array(int data, int * array, const int size) {
 //
 void ChamberUtilities::MeasureTimingOfActiveFebFlagToL1aAtDMB(int min_value_to_analyze, int max_value_to_analyze) {
   //
+  // Enable this TMB to send LCTs to MPC:
+  int initial_value_of_register = thisTMB->GetMpcOutputEnable();
+  thisTMB->SetMpcOutputEnable(1);
+  int value_to_write = thisTMB->FillTMBRegister(tmb_trig_adr);
+  thisTMB->WriteRegister(tmb_trig_adr,value_to_write);
+  //
+  ::sleep(1);
+  //
   const int number_of_reads = 120;
   const int maximum_value = 255;
   //
@@ -306,6 +317,11 @@ void ChamberUtilities::MeasureTimingOfActiveFebFlagToL1aAtDMB(int min_value_to_a
     ActiveFebFlagToL1aAtDMB_ = (int) (average+0.5);
   }
   (*MyOutput_) << "Active FEB flag to L1a counter = " << ActiveFebFlagToL1aAtDMB_ << std::endl;
+  //
+  // Set the register back to how it was before...
+  thisTMB->SetMpcOutputEnable(initial_value_of_register);
+  value_to_write = thisTMB->FillTMBRegister(tmb_trig_adr);
+  thisTMB->WriteRegister(tmb_trig_adr,value_to_write);
   //
   return;
 }
