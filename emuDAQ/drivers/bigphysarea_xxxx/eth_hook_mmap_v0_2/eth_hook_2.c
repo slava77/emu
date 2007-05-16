@@ -246,18 +246,22 @@ unsigned long flags;
 // check for end of event 0x8000 0xffff 0x8000 0x8000
    eevent_mask=0x0000;
    if(flag_eevent_2==1){
+     // DDU
          end1=*(unsigned short int *)(skb->data+skb->len-26);
          end2=*(unsigned short int *)(skb->data+skb->len-24);
          end3=*(unsigned short int *)(skb->data+skb->len-22);
          end4=*(unsigned short int *)(skb->data+skb->len-20);
          if((end1==0x8000)&&(end2==0x8000)&&(end3==0xffff)&&(end4==0x8000))eevent_mask=0x4000;
-          
+
+     // DCC         
          end1=*(unsigned short int *)(skb->data+skb->len-14);
          end2=*(unsigned short int *)(skb->data+skb->len-6);
-         if(((end1&0xef00)==0xef00)&&((end1&0xaf00)==0xaf00))eevent_mask=0x4000;
-	 end1=*(unsigned short int *)(skb->data+skb->len-10);
-         end2=*(unsigned short int *)(skb->data+skb->len-6);
-         if(((end1&0xf000)==0xf000)&&((end2&0xf000)==0xe000))eevent_mask=0x4000;
+         if(((end1&0xef00)==0xef00)&&((end2&0xaf00)==0xaf00))eevent_mask=0x4000;
+
+     // DMB
+/* 	 end1=*(unsigned short int *)(skb->data+skb->len-10); */
+/*          end2=*(unsigned short int *)(skb->data+skb->len-6); */
+/*          if(((end1&0xf000)==0xf000)&&((end2&0xf000)==0xe000))eevent_mask=0x4000; */
    }  
 
 // write data to ring buffer
