@@ -15,12 +15,13 @@ protected:
   std::string     theName;       // name of this object (file name or board number)
   int             theFormat;     // DDU or DCC
   bool            theDebugMode;
-  unsigned short* theBuffer;     // buffer containing event data
-  int             theDataLength; // in bytes
   unsigned int    theErrorCount; // counts consequitive read errors
+  bool            theDeviceIsResetAndEnabled; // to know whether it is already reset and enabled
   unsigned short  theErrorFlag;  // for DQM
   std::string     theLogMessage; // in case anybody is interested...
-  bool            theDeviceIsResetAndEnabled; // to know whether it is already reset and enabled
+  unsigned short* theBuffer;     // buffer containing event data
+  int             theDataLength; // in bytes; size of the actual data, without filler words
+  int             theNumberOfReadBytes; // what we read in; may contain data and filler words as well!
 
 public:
   enum { DDU, DCC };

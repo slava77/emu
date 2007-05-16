@@ -138,6 +138,7 @@ int EmuFileReader::readDDU(unsigned short*& buf) {
                 if( (size = read(buf)) == 0 ) break;
         } while( rejectCriteria&eventStatus || !(acceptCriteria&eventStatus) || (selectCriteria?selectCriteria!=eventStatus:0) );
 	usleep(5000);
+	theDataLength = size;
         return size;
 }
 

@@ -35,7 +35,6 @@ EmuSpyReader::EmuSpyReader( std::string filename, int format, bool debug )
   pmissingCount =  0;
   loopOverwriteCount =  0;
   bufferOverwriteCount =  0;
-  packetsCount =  0;
   timeoutCount =  0;
   endEventCount = 0;
 // DEBUG END
@@ -92,6 +91,7 @@ void EmuSpyReader::open(std::string filename) {
   ring_loop=0;
   pmissing=0;
   pmissing_prev=0;
+  insideEventWithMissingPackets = false;
 #endif
  
 }
@@ -125,6 +125,7 @@ int EmuSpyReader::reset(void){
   pmissing=0;
   pmissing_prev=0;
   status = 0; // not much use for the status word
+  insideEventWithMissingPackets = false;
 #endif
   return status;
 }
@@ -264,149 +265,167 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
   pmissing=0;
   pmissing_prev=0;
   packets=0;
-                                                                                
-//   while (true){
-//     buf_pnt_kern=*(unsigned long int *)(buf_start+BIGPHYS_PAGES_2*PAGE_SIZE-TAILPOS);
-//     if(iloop>100000){timeout=1; break;}
-//     // printf(" %ld %ld \n",buf_pnt,buf_pnt_kern);
-//     if(buf_pnt==buf_pnt_kern){for (j=0;j<5000;j++); iloop++; continue;}
-//     iloop=0;
-//     ring_loop_kern= *(unsigned short int *)(ring_start+ring_pnt*RING_ENTRY_LENGTH);
-//     pmissing=ring_loop_kern&0x8000;
-//     end_event=ring_loop_kern&0x4000;
-//     ring_loop_kern=ring_loop_kern&0x3fff;
-//     length=*(unsigned short int *)(ring_start+ring_pnt*RING_ENTRY_LENGTH+4);
-//     //cout<<length<<"\n"; //fg
-//     ring_loop_kern2=*(unsigned short int *)ring_start;
-//     ring_loop_kern2=0x3fff&ring_loop_kern2;
 
-//     if((ring_loop_kern2!=ring_loop)&&(buf_pnt<=buf_pnt_kern)){
-//       overwrite=1;
-//       if ( theDebugMode ) std::cout << "EmuSpyReader::readDDU:  BUFFER OVERWRITE" << std::endl; 
-//       theLogMessage = theName+": buffer overwrite.";
-//       break;
-//     }
-//     if(ring_loop_kern!=ring_loop){
-//       overwrite=1;
-//       if ( theDebugMode ) std::cout << "EmuSpyReader::readDDU: LOOP OVERWRITE" << std::endl;
-//       theLogMessage = theName+": loop overwrite.";
-//       break;
-//     }
-//     if(packets==0){
-//       buf_data=buf_start+buf_pnt;
-//     }
-//     len=len+length;
+  // EndOfEventMissing bit will be unset when EndOfEvent is found
+  theErrorFlag = EndOfEventMissing;
 
-//     if(pmissing!=0&packets!=0){
-//       len=len-length;
-//       pmissing_prev=1;
-//       break;
-//     }
-
-//     buf_pnt=buf_pnt+length;
-//     ring_pnt=ring_pnt+1;
-//     //    if((buf_pnt > buf_end)||(ring_pnt>=ring_size)){
-//     if (((end_event==0x4000)&&(buf_pnt>buf_eend))||(buf_pnt > buf_end)||(ring_pnt>=ring_size)){
-//       ring_pnt=0;
-//       ring_loop=ring_loop+1;
-//       buf_pnt=0;
-//     }
-//     packets=packets+1;
-//     if(len>MAXEVENT_2) break;
-//     if(pmissing!=0) break;
-//     if(end_event==0x4000) break;
-//   }
-
-  // DEBUG START                         
   while (true){
+
+    // Get the write pointer (relative to buf_start) of the kernel driver.
     buf_pnt_kern=*(unsigned long int *)(buf_start+BIGPHYS_PAGES_2*PAGE_SIZE-TAILPOS);
-    if(iloop>100000){timeout=1; timeoutCount++; break;}
-    // printf(" %ld %ld \n",buf_pnt,buf_pnt_kern);
+
+    // If no data for a long time, abort.
+    if(iloop>100000){timeout=1; timeoutCount++; theErrorFlag|=Timeout; break;}
+
+    // If the write pointer buf_pnt_kern hasn't yet moved from the read pointer buf_pnt, 
+    // wait a bit and retry in the next loop.
     if(buf_pnt==buf_pnt_kern){for (j=0;j<5000;j++); iloop++; continue;}
+
+    // The kernel driver has written new data. No more idle looping. Reset the idle loop counter.
     iloop=0;
+
+    // From the current entry of the packet info ring,...
     ring_loop_kern= *(unsigned short int *)(ring_start+ring_pnt*RING_ENTRY_LENGTH);
+    // ...get the missing packet flag,...
     pmissing=ring_loop_kern&0x8000;
+    // ...the end-of-event flag,...
     end_event=ring_loop_kern&0x4000;
+    // ...the reset ("loop-back") counter,...
     ring_loop_kern=ring_loop_kern&0x3fff;
+    // ...and the length of data in bytes.
     length=*(unsigned short int *)(ring_start+ring_pnt*RING_ENTRY_LENGTH+4);
-    //cout<<length<<"\n"; //fg
+
+    // Get the reset counter from the first entry of the packet info ring...
     ring_loop_kern2=*(unsigned short int *)ring_start;
     ring_loop_kern2=0x3fff&ring_loop_kern2;
-
-    if((ring_loop_kern2!=ring_loop)&&(buf_pnt<=buf_pnt_kern)){
-      overwrite=1;
-      if ( theDebugMode ) std::cout << "EmuSpyReader::readDDU:  BUFFER OVERWRITE" << std::endl; 
+    // ... and compare it with our reset count. If they're different, the
+    // kernel has looped back (at least) one time more than we have.
+    // If, in addition, the write pointer has moved past our read pointer, data must have
+    // been overwritten.
+//     if((ring_loop_kern2!=ring_loop)&&(buf_pnt<=buf_pnt_kern)){
+    // To be pedantic:
+    // Write pointer has looped back one time more than the read pointer and overtaken the read pointer,
+    // OR it has looped back more than one time more (unlikely, but who knows...).
+    if( ( (ring_loop_kern2==ring_loop+1)&&(buf_pnt<=buf_pnt_kern) ) ||
+	(ring_loop_kern2>ring_loop+1)                                  ){
       theLogMessage = theName+": buffer overwrite.";
       bufferOverwriteCount++;
+      theErrorFlag|=BufferOverwrite;
+
+      // Reset the read pointers.
+      buf_pnt  = 0;
+      ring_pnt = 0;
+      // Synchronize our loop-back counter to the driver's.
+      ring_loop = ring_loop_kern2;
+      // Read no data this time.
+      len = 0;
+      // Let the next event start with a clean record.
+      insideEventWithMissingPackets = false;
+
       break;
     }
+
+    // The data may not have been overwritten, but the packet info ring may. 
+    // Check whether the driver's loop-back count is different from ours.
     if(ring_loop_kern!=ring_loop){
-      overwrite=1;
-      if ( theDebugMode ) std::cout << "EmuSpyReader::readDDU: LOOP OVERWRITE" << std::endl;
       theLogMessage = theName+": loop overwrite.";
       loopOverwriteCount++;
+      theErrorFlag|=LoopOverwrite;
+
+      // Reset the read pointers.
+      buf_pnt  = 0;
+      ring_pnt = 0;
+      // Synchronize our loop-back counter to the driver's.
+      ring_loop = ring_loop_kern2;
+      // Read no data this time.
+      len = 0;
+      // Let the next event start with a clean record.
+      insideEventWithMissingPackets = false;
+
       break;
     }
+
+    // Remember the position of the start of data...
     if(packets==0){
       buf_data=buf_start+buf_pnt;
     }
+    // ...and add its length to the total.
     len=len+length;
 
-    if(pmissing!=0&packets!=0){
-      len=len-length;
-      pmissing_prev=1;
-      packetsCount++;
-      break;
-    }
-
+    // Increment data ring pointer...
     buf_pnt=buf_pnt+length;
+    // ...and packet info ring pointer.
     ring_pnt=ring_pnt+1;
-    //    if((buf_pnt > buf_end)||(ring_pnt>=ring_size)){
+
+    // If this packet ends the event but another event may not fit in the remaining space (beyond buf_eend),
+    // OR another packet may not fit in the remaining space (beyond buf_end),
+    // OR the end of the packet info ring has been reached, 
+    // then reset the read pointers (loop back) and increment the loop-back counter.
+    // This condition must be exactly the same as that in the driver (eth_hook_<N>.c) for the
+    // write and read pointers to loop back from the same point.
     if (((end_event==0x4000)&&(buf_pnt>buf_eend))||(buf_pnt > buf_end)||(ring_pnt>=ring_size)){
       ring_pnt=0;
       ring_loop=ring_loop+1;
       buf_pnt=0;
     }
+
+    // Increment packet count.
     packets=packets+1;
-    if(len>MAXEVENT_2) {oversizedCount++; break;}
-    if(pmissing!=0) {pmissingCount++; break;}
-    if(end_event==0x4000) {endEventCount++; break;}
+
+    // Keep a tally of oversized events
+    if(len>MAXEVENT_2){
+      oversizedCount++;
+      theErrorFlag|=Oversized; 
+    }
+
+    // If this event already has packets missing, don't read it
+    if ( insideEventWithMissingPackets ) len = 0;
+
+    // If packets are missing, don't read out anything, just keep a tally.
+    if(pmissing!=0){
+      pmissingCount++; 
+      theErrorFlag|=PacketsMissing;
+      // Remember that we are inside a defective event until we reach the end of it.
+      // (Or the end of the next event, for that matter, it the end of this one happens to be missing.)
+      insideEventWithMissingPackets = true;
+      len = 0;
+    }
+
+    // Keep a tally of properly ending events.
+    if(end_event==0x4000) {
+      endEventCount++;
+      // unset EndOfEventMissing bit
+      theErrorFlag &= ~EndOfEventMissing;
+      // Defective or not, this event is ending. Let the next one start with a clean record.
+      insideEventWithMissingPackets = false;
+      break;
+    }
   }
   visitCount++;
+
+  // Pack the number of packets into the upper byte of theErrorFlag
+  theErrorFlag |= packets << 8; 
+
+  // Periodically write out counters for debugging purposes
   if ( ec.timeIsUp() ){
     std::cout << " v:" << std::setw(10) << visitCount
 	      << " o:" << std::setw(10) << oversizedCount
 	      << " m:" << std::setw(10) << pmissingCount
 	      << " b:" << std::setw(10) << bufferOverwriteCount
 	      << " l:" << std::setw(10) << loopOverwriteCount
-	      << " p:" << std::setw(10) << packetsCount
 	      << " t:" << std::setw(10) << timeoutCount
 	      << " e:" << std::setw(10) << endEventCount
+	      << " p:" << std::setw(10) << packets
 	      << " s:" << std::setw(10) << len 
-	      << std::endl;
-    std::cout << std::flush;
+	      << std::endl << std::flush;
   }
-  // DEBUG END                                                                  
-
-
-//   if ( timeout ) std::cerr << "EmuSpyReader::readDDU timed out. Event length: " << len << " b" << std::endl;
-
-  //fg adjust the length to account for filler bytes
-//  char *end_buf_data;
-//  end_buf_data = buf_data + len;
-//  int i(0);
-//  while (*end_buf_data == 0xff){
-//    i++;
-//    end_buf_data--;
-//
-//  }
-//  if (len>i) len -=i; else len =0;
-//
-    //-fg
 
   //MAINEND:
-//   *buf=(unsigned short int *)buf_data;
   buf=(unsigned short*)buf_data;
+
+  theDataLength = dataLengthWithoutPadding( buf, len );
+
+//   std::cout << "Data length " << len << std::endl << "without padding " << theDataLength << std::endl << std::flush;
 
   return len;
   //-------------------------------------------------------------------//
@@ -417,4 +436,29 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
 int EmuSpyReader::readDCC(unsigned short*& buf) {
   // TODO
   return -1;
+}
+
+int EmuSpyReader::dataLengthWithoutPadding( const unsigned short* data, const int dataLength ){
+  // Get the data length without the padding that may have been added by Gbit Ethernet.
+
+  // Jason Gilmore:
+  // "The exact format of the Filler is (8*N)-1 "FF" bytes, preceded by a 1-byte
+  // count of how many real data bytes in the packet preceded the Filler."
+
+  const int minEthPacketSize = 32; // 2-byte words (64 bytes)
+  const int fillerWordSize   =  4; // 2-byte words (8 bytes); the total filler size is an integer multiple of this
+
+  if ( !dataLength ) return 0;
+  if ( dataLength > 2*minEthPacketSize ) return dataLength; // no reason for Ethernet padding
+
+  // Let's go backward looking for the first non-filler 8-byte word:
+  for ( int iShort=dataLength/2-fillerWordSize; iShort>=0; iShort-=fillerWordSize ){
+    if ( !( ( data[iShort] & 0xFF00 ) == 0xFF00 &&
+	    data[iShort+1]            == 0xFFFF &&
+	    data[iShort+2]            == 0xFFFF &&
+	    data[iShort+3]            == 0xFFFF    ) )
+      return 2 * ( iShort + fillerWordSize );
+  }
+
+  return 0; // all filler ?!
 }
