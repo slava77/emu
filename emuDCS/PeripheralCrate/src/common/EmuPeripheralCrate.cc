@@ -5251,6 +5251,29 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     thisCCB->RedirectOutput(&std::cout);
     //
+    *out << cgicc::br() << "CCB Mode = ";
+    int ccb_mode = thisCCB->GetCCBmode();
+    switch(ccb_mode) {
+       case CCB::TTCrqFPGA:
+          *out << "TTCrgFPGA" << endl;
+          break;
+       case CCB::VMEFPGA:
+          *out << "VMEFPGA" << endl;
+          break;
+       case CCB::DLOG:
+          *out << "DLOG" << endl;
+          break;
+       default:
+          *out << "unknown" << endl;
+          break;
+    }
+    //
+    *out << cgicc::br() << "CSRA1 =  " << std::hex << thisCCB->ReadRegister(0) << endl;
+    *out << cgicc::br() << "CSRA2 =  " << std::hex << thisCCB->ReadRegister(2) << endl;
+    *out << cgicc::br() << "CSRA3 =  " << std::hex << thisCCB->ReadRegister(4) << endl;
+    *out << cgicc::br() << "CSRB1 =  " << std::hex << thisCCB->ReadRegister(0x20) << endl;
+    *out << cgicc::br() << "CSRB18 = " << std::hex << thisCCB->ReadRegister(0x42) << endl;
+    //
     *out << cgicc::fieldset();
     //
   }
@@ -5460,6 +5483,8 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     thisMPC->firmwareVersion();
     thisMPC->RedirectOutput(&std::cout);
     //
+    *out << cgicc::br() << "CSR0 = " << std::hex << thisMPC->ReadRegister(0) << endl;
+
     *out << cgicc::fieldset();
     //
   }
