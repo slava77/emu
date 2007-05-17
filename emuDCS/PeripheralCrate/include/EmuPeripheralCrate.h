@@ -78,6 +78,8 @@ protected:
   xdata::String xmlFile_;
   xdata::String CalibrationState_;
   //
+  xdata::String CCBFirmware_;
+  xdata::String MPCFirmware_;
   xdata::String TMBFirmware_;
   xdata::String DMBFirmware_;
   xdata::String DMBVmeFirmware_;
@@ -321,7 +323,10 @@ private:
   void ControllerUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void EnableDisableDebug(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CCBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void CCBLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MPCStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void MPCUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
+  void MPCLoadFirmware(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void testTMB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
