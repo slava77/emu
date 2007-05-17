@@ -2624,7 +2624,7 @@ void EmuFCrateHyperDAQ::DDUtrapDecode(xgi::Input * in, xgi::Output * out)
       igot_i0=1;
     }
     if(i1stat&0x00008000){
-      thisDDU->infpga_trap(INFPGA0);
+      thisDDU->infpga_trap(INFPGA1);
       i1trap[5]=thisDDU->fpga_lcode[5];
       i1trap[4]=thisDDU->fpga_lcode[4];
       i1trap[3]=thisDDU->fpga_lcode[3];
