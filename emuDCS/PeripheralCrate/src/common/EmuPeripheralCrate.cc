@@ -127,8 +127,11 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     xgi::bind(this,&EmuPeripheralCrate::RATBoardID, "RATBoardID");
     xgi::bind(this,&EmuPeripheralCrate::CCBStatus, "CCBStatus");
     xgi::bind(this,&EmuPeripheralCrate::CCBUtils, "CCBUtils");
+    xgi::bind(this,&EmuPeripheralCrate::CCBLoadFirmware, "CCBLoadFirmware");
     xgi::bind(this,&EmuPeripheralCrate::ControllerUtils, "ControllerUtils");
     xgi::bind(this,&EmuPeripheralCrate::MPCStatus, "MPCStatus");
+    xgi::bind(this,&EmuPeripheralCrate::MPCUtils, "MPCUtils");
+    xgi::bind(this,&EmuPeripheralCrate::MPCLoadFirmware, "MPCLoadFirmware");
     xgi::bind(this,&EmuPeripheralCrate::DMBTests, "DMBTests");
     xgi::bind(this,&EmuPeripheralCrate::DMBUtils, "DMBUtils");
     xgi::bind(this,&EmuPeripheralCrate::DMBLoadFirmware, "DMBLoadFirmware");
@@ -1071,24 +1074,23 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
 	*out << cgicc::form() << std::endl ;
 	*out << cgicc::td();
 	//
-	*out << cgicc::td();
 	if ( MPCBoardID_.find("-1") == string::npos && thisMPC ) {
-	  //
-	  //*out << cgicc::form().set("method","GET").set("action",MPCStatus)
-	  //.set("target","_blank") << std::endl ;
-	  //*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
-	  //char buf[20];
-	  //sprintf(buf,"%d",ii);
-	  //*out << cgicc::input().set("type","hidden").set("value",buf).set("name","mpc");
-	  //*out << cgicc::form() << std::endl ;
-	  //
+ 	  *out << cgicc::td();
 	  std::string MPCStatus =
 	    toolbox::toString("/%s/MPCStatus?mpc=%d",getApplicationDescriptor()->getURN().c_str(),ii);
 	  //
 	  *out << cgicc::a("MPC Status").set("href",MPCStatus) << endl;
 	  //
+          *out << cgicc::td();
+	  //
+          *out << cgicc::td();
+ 	  std::string MPCUtils =
+	    toolbox::toString("/%s/MPCUtils?mpc=%d",getApplicationDescriptor()->getURN().c_str(),ii);
+	  //
+	  *out << cgicc::a("MPC Utils").set("href",MPCUtils) << endl;
+	  //
+	  *out << cgicc::td();
 	}
-	*out << cgicc::td();
       }
       //
       std::string TMBStatus ;
@@ -5387,7 +5389,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       toolbox::toString("/%s/ReadCCBRegister",getApplicationDescriptor()->getURN().c_str());
     //
     *out << cgicc::form().set("method","GET").set("action",ReadCCBRegister) << std::endl ;
-    *out << "Read Register (int)..." << std:: endl;
+    *out << "Read Register (hex)..." << std:: endl;
     *out << cgicc::input().set("type","text").set("value","0")
       .set("name","CCBRegister") << std::endl ;
     *out << "Register value : (hex) " << std::hex << CCBRegisterValue_ << std::endl;
@@ -5400,7 +5402,41 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::input().set("type","submit").set("value","HardReset");
     *out << cgicc::form() << std::endl ;
     //
+    CCBFirmware_ = FirmwareDir_+"ccb/"+"ccb2004p_030507.svf";
+    //
+    std::string CCBLoadFirmware =
+       toolbox::toString("/%s/CCBLoadFirmware",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",CCBLoadFirmware) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Load CCB Firmware") << std::endl ;
+//    sprintf(buf,"%d",ccb);
+//    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << CCBFirmware_.toString();
+    *out << cgicc::form() << std::endl ;
+
     *out << cgicc::fieldset();
+    //
+  }
+
+  void EmuPeripheralCrate::CCBLoadFirmware(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    int debugMode(0);
+    int jch(6);
+    printf("Programming CCB using %s\n", CCBFirmware_.toString().c_str());
+    int status = thisCCB->svfLoad(&jch,CCBFirmware_.toString().c_str(),debugMode);
+    if (status >= 0){
+      cout << "=== Programming finished"<< endl;
+      cout << "=== " << status << " Verify Errors  occured" << endl;
+    }
+    else{
+      cout << "=== Fatal Error. Exiting with " <<  status << endl;
+    }
+    //
+    thisCCB->hardReset();
+    //
+    this->CCBUtils(in,out);
     //
   }
   //
@@ -5425,6 +5461,60 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     thisMPC->RedirectOutput(&std::cout);
     //
     *out << cgicc::fieldset();
+    //
+  }
+
+  void EmuPeripheralCrate::MPCUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
+  {
+    //
+    char Name[50] ;
+    sprintf(Name,"MPC Utils slot=%d",thisMPC->slot());
+    //
+    MyHeader(in,out,Name);
+    //
+    *out << cgicc::h1(Name);
+    *out << cgicc::br();
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    *out << std::endl;
+    //
+    *out << cgicc::legend("MPC Utils").set("style","color:blue") << cgicc::p() << std::endl ;
+    //
+    MPCFirmware_ = FirmwareDir_+"mpc/"+"mpc2004_102706.svf";
+    //
+    std::string MPCLoadFirmware =
+       toolbox::toString("/%s/MPCLoadFirmware",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",MPCLoadFirmware) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Load MPC Firmware") << std::endl ;
+//    sprintf(buf,"%d",ccb);
+//    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << MPCFirmware_.toString();
+    *out << cgicc::form() << std::endl ;
+
+    *out << cgicc::fieldset();
+    //
+  }
+
+  void EmuPeripheralCrate::MPCLoadFirmware(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    int debugMode(0);
+    int jch(6);
+    printf("Programming MPC using %s\n", MPCFirmware_.toString().c_str());
+    int status = thisMPC->svfLoad(&jch,MPCFirmware_.toString().c_str(),debugMode);
+    if (status >= 0){
+      cout << "=== Programming finished"<< endl;
+      cout << "=== " << status << " Verify Errors  occured" << endl;
+    }
+    else{
+      cout << "=== Fatal Error. Exiting with " <<  status << endl;
+    }
+    //
+    thisCCB->hardReset();
+    //
+    this->MPCUtils(in,out);
     //
   }
   //
@@ -7763,7 +7853,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     cgicc::form_iterator name2 = cgi.getElement("CCBRegister");
     int registerValue = -1;
     if(name2 != cgi.getElements().end()) {
-      registerValue = cgi["CCBregister"]->getIntegerValue();
+      registerValue = strtol(cgi["CCBregister"]->getValue().c_str(),NULL,16);
       cout << "Register " << registerValue << endl;
       //
       CCBRegisterValue_ = thisCCB->ReadRegister(registerValue);
