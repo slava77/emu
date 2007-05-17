@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.35 2007/04/26 07:43:26 rakness Exp $
+// $Id: ALCTController.cc,v 3.36 2007/05/17 12:52:50 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.36  2007/05/17 12:52:50  rakness
+// ignore_ccb_startstop added to TMB configuration + write configuration to userPROM default
+//
 // Revision 3.35  2007/04/26 07:43:26  rakness
 // AFEB delay chip index count from 0 for unconnected AFEBs in ME1/3,3/1,4/1
 //
@@ -509,7 +512,7 @@ void ALCTController::configure() {
   //
   SetCheckJtagWrite(false);          //in this method we only want to write data...
   //                                 //the settings will be verified with CheckALCTConfiguration()
-  //  SetFillVmeWriteVecs(true);     //fill the user prom with JTAG data?
+  SetFillVmeWriteVecs(true);     //set this to false to disable writing to user PROM
   ClearVmeWriteVecs();
   //
   std::ostringstream dump;

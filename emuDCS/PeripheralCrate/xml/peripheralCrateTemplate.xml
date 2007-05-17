@@ -15,6 +15,7 @@
            rat_firmware_month="8"
            rat_firmware_day="28"
            rat_firmware_year="2006"
+           ignore_ccb_startstop="1"
            enable_alct_tx="1"
            enable_alct_rx="1"
            cfeb_enable_source="42"

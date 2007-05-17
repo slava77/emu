@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.9 2007/04/10 13:31:01 rakness Exp $
+// $Id: TMB_constants.h,v 3.10 2007/05/17 12:52:50 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.10  2007/05/17 12:52:50  rakness
+// ignore_ccb_startstop added to TMB configuration + write configuration to userPROM default
+//
 // Revision 3.9  2007/04/10 13:31:01  rakness
 // add mpc_output_enable, remove rpc2/3
 //
@@ -664,6 +667,11 @@ const int ccb_allow_bypass_vmereg        =  ccb_trig_adr;
 const int ccb_allow_bypass_bitlo         =  6;
 const int ccb_allow_bypass_bithi         =  6;
 const int ccb_allow_bypass_default       =  0;
+//
+const int ignore_ccb_startstop_vmereg    =  ccb_trig_adr;
+const int ignore_ccb_startstop_bitlo     =  7;
+const int ignore_ccb_startstop_bithi     =  7;
+const int ignore_ccb_startstop_default   =  0;
 //
 const int internal_l1a_delay_vme_vmereg  =  ccb_trig_adr;
 const int internal_l1a_delay_vme_bitlo   =  8;
