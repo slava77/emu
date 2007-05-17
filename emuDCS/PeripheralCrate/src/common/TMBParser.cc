@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.18 2007/04/23 09:13:59 rakness Exp $
+// $Id: TMBParser.cc,v 3.19 2007/05/17 12:52:50 rakness Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.19  2007/05/17 12:52:50  rakness
+// ignore_ccb_startstop added to TMB configuration + write configuration to userPROM default
+//
 // Revision 3.18  2007/04/23 09:13:59  rakness
 // power on AFEB from xml, pull hardcoding into EMU_JTAG_constants.h
 //
@@ -301,6 +304,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     //if (parser_.fillInt("clct_ext_trig_vme"     ,value)) { tmb_->SetClctExtTrigVme(value);                }
     //if (parser_.fillInt("ext_trig_both"         ,value)) { tmb_->SetExtTrigBoth(value);                   }
     //if (parser_.fillInt("ccb_allow_bypass"      ,value)) { tmb_->SetCcbAllowExternalBypass(value);        }
+    if (parser_.fillInt("ignore_ccb_startstop"    ,value)) { tmb_->SetIgnoreCcbStartStop(value);          }
     //if (parser_.fillInt("internal_l1a_delay_vme",value)) { tmb_->SetInternalL1aDelay(value);              }
     //
     //0X30

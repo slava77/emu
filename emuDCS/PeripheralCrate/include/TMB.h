@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.20 2007/04/10 13:31:01 rakness Exp $
+// $Id: TMB.h,v 3.21 2007/05/17 12:52:50 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.21  2007/05/17 12:52:50  rakness
+// ignore_ccb_startstop added to TMB configuration + write configuration to userPROM default
+//
 // Revision 3.20  2007/04/10 13:31:01  rakness
 // add mpc_output_enable, remove rpc2/3
 //
@@ -902,6 +905,10 @@ public:
   inline int  GetCcbAllowExternalBypass() { return ccb_allow_bypass_; }
   //ccb_allow_bypass = 1 = allow clct_exttrig_ccb even though ccb_ignore_rx=1 (address 0x2A)
   //
+  inline void SetIgnoreCcbStartStop(int ignore_ccb_startstop) { ignore_ccb_startstop_ = ignore_ccb_startstop; }
+  inline int  GetIgnoreCcbStartStop() { return ignore_ccb_startstop_; }
+  //ignore_ccb_startstop = 1 = ignore ttc_trig_start, ttc_trig_stop
+  //
   inline void SetInternalL1aDelay(int internal_l1a_delay_vme) { internal_l1a_delay_vme_ = internal_l1a_delay_vme; }
   inline int  GetInternalL1aDelay() { return internal_l1a_delay_vme_; }
   //internal_l1a_delay_vme = [0-255]
@@ -1361,6 +1368,7 @@ private:
   int clct_ext_trig_vme_;
   int ext_trig_both_;
   int ccb_allow_bypass_;
+  int ignore_ccb_startstop_;
   int internal_l1a_delay_vme_;
   //
   int read_alct_ext_trig_l1aen_;
@@ -1370,6 +1378,7 @@ private:
   int read_clct_ext_trig_vme_;
   int read_ext_trig_both_;
   int read_ccb_allow_bypass_;
+  int read_ignore_ccb_startstop_;
   int read_internal_l1a_delay_vme_;
   //
   //------------------------------------------------------------------

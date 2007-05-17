@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.32 2007/04/10 13:31:01 rakness Exp $
+// $Id: TMB.cc,v 3.33 2007/05/17 12:52:50 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.33  2007/05/17 12:52:50  rakness
+// ignore_ccb_startstop added to TMB configuration + write configuration to userPROM default
+//
 // Revision 3.32  2007/04/10 13:31:01  rakness
 // add mpc_output_enable, remove rpc2/3
 //
@@ -624,7 +627,7 @@ void TMB::init() {
 //
 void TMB::configure() {
   //
-  //  SetFillVmeWriteVecs(true);
+  SetFillVmeWriteVecs(true);     //set this to false to disable writing to user PROM
   ClearVmeWriteVecs();
   //
   ostringstream dump;
@@ -6417,6 +6420,7 @@ void TMB::SetTMBRegisterDefaults_() {
   clct_ext_trig_vme_      = clct_ext_trig_vme_default     ;         
   ext_trig_both_          = ext_trig_both_default         ;         
   ccb_allow_bypass_       = ccb_allow_bypass_default      ;         
+  ignore_ccb_startstop_   = ignore_ccb_startstop_default  ;         
   internal_l1a_delay_vme_ = internal_l1a_delay_vme_default;         
   //
   //------------------------------------------------------------------
@@ -6697,6 +6701,7 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_clct_ext_trig_vme_      = ExtractValueFromData(data,clct_ext_trig_vme_bitlo     ,clct_ext_trig_vme_bithi     );
     read_ext_trig_both_          = ExtractValueFromData(data,ext_trig_both_bitlo         ,ext_trig_both_bithi         );
     read_ccb_allow_bypass_       = ExtractValueFromData(data,ccb_allow_bypass_bitlo      ,ccb_allow_bypass_bithi      );
+    read_ignore_ccb_startstop_   = ExtractValueFromData(data,ignore_ccb_startstop_bitlo  ,ignore_ccb_startstop_bithi  );
     read_internal_l1a_delay_vme_ = ExtractValueFromData(data,internal_l1a_delay_vme_bitlo,internal_l1a_delay_vme_bithi);
     //
   } else if ( address == alct_cfg_adr ) {
@@ -7241,6 +7246,7 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "    Fire CLCT external trig one-shot      = " << std::hex << read_clct_ext_trig_vme_      << std::endl;
     (*MyOutput_) << "    CLCText fire ALCT + ALCText fire CLCT = " << std::hex << read_ext_trig_both_          << std::endl;
     (*MyOutput_) << "    allow CLCTextCCB when ccb_ignore_rx=1 = " << std::hex << read_ccb_allow_bypass_       << std::endl;
+    (*MyOutput_) << "    Ignore CCB trig start/stop            = " << std::hex << read_ignore_ccb_startstop_   << std::endl;
     (*MyOutput_) << "    Internal L1A delay (VME)              = " << std::dec << read_internal_l1a_delay_vme_ << std::endl;
     //
   } else if ( address == alct_cfg_adr ) {
@@ -7698,6 +7704,7 @@ int TMB::FillTMBRegister(unsigned long int address) {
     InsertValueIntoDataWord(clct_ext_trig_vme_     ,clct_ext_trig_vme_bithi     ,clct_ext_trig_vme_bitlo     ,&data_word);
     InsertValueIntoDataWord(ext_trig_both_         ,ext_trig_both_bithi         ,ext_trig_both_bitlo         ,&data_word);
     InsertValueIntoDataWord(ccb_allow_bypass_      ,ccb_allow_bypass_bithi      ,ccb_allow_bypass_bitlo      ,&data_word);
+    InsertValueIntoDataWord(ignore_ccb_startstop_  ,ignore_ccb_startstop_bithi  ,ignore_ccb_startstop_bitlo  ,&data_word);
     InsertValueIntoDataWord(internal_l1a_delay_vme_,internal_l1a_delay_vme_bithi,internal_l1a_delay_vme_bitlo,&data_word);
     //
   } else if ( address == alct_cfg_adr ) {
@@ -8001,6 +8008,7 @@ void TMB::CheckTMBConfiguration() {
   config_ok &= compareValues("Fire CLCT ext trig one-shot"          ,read_clct_ext_trig_vme_     ,clct_ext_trig_vme_     );
   config_ok &= compareValues("CLCText fire ALCT + ALCText fire CLCT",read_ext_trig_both_         ,ext_trig_both_         );
   config_ok &= compareValues("allow CLCTextCCB when ccb_ignore_rx=1",read_ccb_allow_bypass_      ,ccb_allow_bypass_      );
+  config_ok &= compareValues("Ignore CCB trig start/stop"           ,read_ignore_ccb_startstop_  ,ignore_ccb_startstop_  );
   config_ok &= compareValues("Internal L1A delay (VME)"             ,read_internal_l1a_delay_vme_,internal_l1a_delay_vme_);
   //
   //------------------------------------------------------------------
