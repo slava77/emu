@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.9 2007/01/31 16:51:19 rakness Exp $
+// $Id: VMEModule.cc,v 3.10 2007/05/17 18:49:44 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.10  2007/05/17 18:49:44  liu
+// svfload update
+//
 // Revision 3.9  2007/01/31 16:51:19  rakness
 // remove excessive output from prom programming
 //
@@ -305,24 +308,22 @@ int VMEModule::svfLoad(int *jch, const char *fn, int db )
   if (downfile==NULL)    downfile="default.svf";
   
   dwnfp    = fopen(downfile,"r");
-  while (fgets(buf,256,dwnfp) != NULL) 
-    {
-      memcpy(buf,buf,256);
-      Parse(buf, &Count, &(Word[0]));
-      if( strcmp(Word[0],"SDR")==0 ) total_packages++ ;
-    }
-  fclose(dwnfp) ;
-  
-  printf("=== Programming Design with %s through JTAG chain %d\n",downfile, jchan);  
-  printf("=== Have to send %d DATA packages \n",total_packages) ;
-  dwnfp    = fopen(downfile,"r");
-  
   if (dwnfp == NULL)
     {
-      perror(downfile);
+      fprintf(stderr, "ERROR: failed to open file %s\n", downfile);
       
       return -1;
     }
+  
+  while (fgets(buf,256,dwnfp) != NULL) 
+    {
+      Parse(buf, &Count, &(Word[0]));
+      if( strcmp(Word[0],"SDR")==0 ) total_packages++ ;
+    }
+  fseek(dwnfp, 0, SEEK_SET);
+  
+  printf("=== Programming Design with %s through JTAG chain %d\n",downfile, jchan);  
+  printf("=== Have to send %d DATA packages \n",total_packages) ;
   
   this->start(); 
   
