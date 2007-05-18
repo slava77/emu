@@ -1326,8 +1326,8 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
 
 void EmuDAQManager::setParametersForGlobalMode(){
   // Prepare for obeying Central Run Control commands
-  runType_                = "Monitor";
-  maxNumberOfEvents_      = -1;
+//   runType_                = "Monitor";
+//   maxNumberOfEvents_      = -1;
   buildEvents_            = false;
   controlDQM_             = true;
   globalRunNumber_        = runNumber_.toString();
