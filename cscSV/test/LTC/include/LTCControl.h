@@ -28,6 +28,8 @@ public:
 			throw (xoap::exception::Exception);
 	xoap::MessageReference onHalt(xoap::MessageReference message)
 			throw (xoap::exception::Exception);
+	xoap::MessageReference onCyclic(xoap::MessageReference message)
+			throw (xoap::exception::Exception);
 
 	// State transitions
 	void configureAction(toolbox::Event::Reference e)

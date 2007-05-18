@@ -4,6 +4,7 @@
 
 #include "xdaq/NamespaceURI.h"
 #include "xoap/Method.h"
+#include "xoap/SOAPEnvelope.h"
 
 XDAQ_INSTANTIATOR_IMPL(LTCControl);
 
@@ -18,6 +19,7 @@ LTCControl::LTCControl(xdaq::ApplicationStub *stub)
 	xoap::bind(this, &LTCControl::onResynch,   "Resynch",   XDAQ_NS_URI);
 	xoap::bind(this, &LTCControl::onHardReset, "HardReset", XDAQ_NS_URI);
 	xoap::bind(this, &LTCControl::onHalt,      "Halt",      XDAQ_NS_URI);
+	xoap::bind(this, &LTCControl::onCyclic,    "Cyclic",    XDAQ_NS_URI);
 
 	fsm_.addState('H', "Halted",     this, &LTCControl::stateChanged);
 	fsm_.addState('R', "Ready",      this, &LTCControl::stateChanged);
@@ -109,6 +111,24 @@ xoap::MessageReference LTCControl::onHalt(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
 	fireEvent("Halt");
+
+	return createReply(message);
+}
+
+xoap::MessageReference LTCControl::onCyclic(xoap::MessageReference message)
+		throw (xoap::exception::Exception)
+{
+	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+	xoap::SOAPBody body = envelope.getBody();
+	std::vector<xoap::SOAPElement> elements = body.getChildElements();
+
+    LOG4CPLUS_DEBUG(getApplicationLogger(),
+			"==== " << elements[0].getElementName().getLocalName());
+
+	xoap::SOAPName param("Param", "xdaq", XDAQ_NS_URI);
+	string value = elements[0].getAttributeValue(param);
+
+    LOG4CPLUS_DEBUG(getApplicationLogger(), "==== " << value);
 
 	return createReply(message);
 }
