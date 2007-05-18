@@ -1,4 +1,4 @@
-# $Id: Makefile,v 3.1 2007/01/30 15:03:39 ichiro Exp $
+# $Id: Makefile,v 3.2 2007/05/18 07:01:32 ichiro Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -28,6 +28,7 @@ Package = EmuPeripheralCrate
 
 Sources = \
 	EmuPeripheralCrate.cc \
+	EmuPeripheralCrateManager.cc \
 	EmuPeripheralCrateV.cc
 
 DependentLibraryDirs = $(XDAQ_ROOT)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)

@@ -15,6 +15,7 @@ EmuPeripheralCrate::EmuPeripheralCrate(xdaq::ApplicationStub *stub)
 	getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xml_file_name_);
 
 	xoap::bind(this, &EmuPeripheralCrate::onConfigure, "Configure", XDAQ_NS_URI);
+	xoap::bind(this, &EmuPeripheralCrate::onConfigure, "ConfigCalCFEB", XDAQ_NS_URI);
 	xoap::bind(this, &EmuPeripheralCrate::onEnable,    "Enable",    XDAQ_NS_URI);
 	xoap::bind(this, &EmuPeripheralCrate::onDisable,   "Disable",   XDAQ_NS_URI);
 	xoap::bind(this, &EmuPeripheralCrate::onHalt,      "Halt",      XDAQ_NS_URI);
@@ -27,6 +28,10 @@ EmuPeripheralCrate::EmuPeripheralCrate(xdaq::ApplicationStub *stub)
 			'H', 'C', "Configure", this, &EmuPeripheralCrate::configureAction);
 	fsm_.addStateTransition(
 			'C', 'C', "Configure", this, &EmuPeripheralCrate::configureAction);
+	fsm_.addStateTransition(
+			'H', 'C', "ConfigCalCFEB", this, &EmuPeripheralCrate::configureAction);
+	fsm_.addStateTransition(
+			'C', 'C', "ConfigCalCFEB", this, &EmuPeripheralCrate::configureAction);
 	fsm_.addStateTransition(
 			'C', 'E', "Enable",    this, &EmuPeripheralCrate::enableAction);
 	fsm_.addStateTransition(
