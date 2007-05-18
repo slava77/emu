@@ -25,6 +25,7 @@ XDAQ_INSTANTIATOR_IMPL(CSCSupervisor);
 static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
 static const unsigned int N_LOG_MESSAGES = 10;
 static const string STATE_UNKNOWN = "unknown";
+static const unsigned int CALIB_LOOP = 3;
 
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
@@ -33,6 +34,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		wl_semaphore_(BSem::EMPTY),
 		daq_descr_(NULL), tf_descr_(NULL), ttc_descr_(NULL),
 		runmode_(""), runnumber_(""), nevents_(""),
+		step_counter_(0),
 		error_message_(""), keep_refresh_(false)
 {
 	xdata::InfoSpace *i = getApplicationInfoSpace();
@@ -72,9 +74,11 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	wl_ = toolbox::task::getWorkLoopFactory()->getWorkLoop("CSC SV", "waiting");
 	wl_->activate();
 	configure_signature_ = toolbox::task::bind(
-			this, &CSCSupervisor::configureAction, "configureAction");
+			this, &CSCSupervisor::configureAction,  "configureAction");
 	halt_signature_ = toolbox::task::bind(
-			this, &CSCSupervisor::haltAction, "haltAction");
+			this, &CSCSupervisor::haltAction,       "haltAction");
+	calibration_signature_ = toolbox::task::bind(
+			this, &CSCSupervisor::calibrationAction, "calibrationAction");
 
 	fsm_.addState('H', "Halted",     this, &CSCSupervisor::stateChanged);
 	fsm_.addState('C', "Configured", this, &CSCSupervisor::stateChanged);
@@ -103,6 +107,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	state_ = fsm_.getStateName(fsm_.getCurrentState());
 
 	state_table_.addApplication(this, "EmuFCrate");
+	state_table_.addApplication(this, "EmuPeripheralCrateManager");
 	state_table_.addApplication(this, "EmuPeripheralCrate");
 	state_table_.addApplication(this, "EmuDAQManager");
 	state_table_.addApplication(this, "LTCControl");
@@ -318,6 +323,8 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 			.set("value", "SetTTS") << endl;
 	*out << form() << endl;
 
+	*out << "Step counter: " << step_counter_ << endl;
+
 	// Message logs
 	*out << hr() << endl;
 	last_log_.webOutput(out);
@@ -420,6 +427,30 @@ bool CSCSupervisor::haltAction(toolbox::task::WorkLoop *wl)
 	return false;
 }
 
+bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
+{
+	std::map<string, string> start_attr, stop_attr;
+	
+	start_attr.insert(std::map<string, string>::value_type("Param", "Start"));
+	stop_attr.insert(std::map<string, string>::value_type("Param", "Stop"));
+
+	sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
+
+	for (step_counter_ = 0; step_counter_ < CALIB_LOOP; ++step_counter_) {
+		LOG4CPLUS_DEBUG(getApplicationLogger(),
+				"calibrationAction: " << step_counter_);
+
+		sendCommand("EnableCalCFEBGain", "EmuPeripheralCrateManager");
+		sendCommandWithAttr("Cyclic", start_attr, "LTCControl");
+		sleep(20U);
+		sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
+	}
+
+	keep_refresh_ = false;
+
+	return false;
+}
+
 void CSCSupervisor::configureAction(toolbox::Event::Reference evt) 
 		throw (toolbox::fsm::exception::Exception)
 {
@@ -439,7 +470,11 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		setParameter("EmuDAQManager",
 				"maxNumberOfEvents", "xsd:integer", nevents_);
 		sendCommand("Configure", "EmuFCrate");
-		sendCommand("Configure", "EmuPeripheralCrate");
+		if (runmode_.substr(0, 5) != "calib") {
+			sendCommand("Configure", "EmuPeripheralCrate");
+		} else {
+			sendCommand("ConfigCalCFEB", "EmuPeripheralCrateManager");
+		}
 		sendCommand("Configure", "EmuDAQManager");
 		sendCommand("Configure", "LTCControl");
 
@@ -476,7 +511,9 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 		setParameter("EmuDAQManager",
 				"runNumber", "xsd:unsignedLong", runnumber_);
 		sendCommand("Enable", "EmuFCrate");
-		sendCommand("Enable", "EmuPeripheralCrate");
+		if (runmode_.substr(0, 5) != "calib") {
+			sendCommand("Enable", "EmuPeripheralCrate");
+		}
 		sendCommand("Enable", "EmuDAQManager");
 		sendCommand("Enable", "LTCControl");
 
@@ -488,6 +525,10 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 	} catch (xdaq::exception::Exception e) {
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 				"Failed to send a command", e);
+	}
+
+	if (runmode_.substr(0, 5) == "calib") {
+		submit(calibration_signature_);
 	}
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(end)");
@@ -502,7 +543,11 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference evt)
 		sendCommand("Halt", "LTCControl");
 		sendCommand("Halt", "EmuDAQManager");
 		sendCommand("Disable", "EmuFCrate");
-		sendCommand("Disable", "EmuPeripheralCrate");
+		if (runmode_.substr(0, 5) != "calib") {
+			sendCommand("Disable", "EmuPeripheralCrate");
+		} else {
+			sendCommand("Disable", "EmuPeripheralCrateManager");
+		}
 		sendCommand("Configure", "LTCControl");
 	} catch (xoap::exception::Exception e) {
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
@@ -522,6 +567,7 @@ void CSCSupervisor::haltAction(toolbox::Event::Reference evt)
 
 	try {
 		sendCommand("Halt", "EmuFCrate");
+		sendCommand("Halt", "EmuPeripheralCrateManager");
 		sendCommand("Halt", "EmuPeripheralCrate");
 		sendCommand("Halt", "EmuDAQManager");
 		sendCommand("Halt", "LTCControl");
@@ -541,6 +587,7 @@ void CSCSupervisor::resetAction() throw (toolbox::fsm::exception::Exception)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "reset(begin)");
 
 	fsm_.reset();
+	state_ = fsm_.getStateName(fsm_.getCurrentState());
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "reset(end)");
 }
@@ -649,13 +696,64 @@ void CSCSupervisor::sendCommand(string command, string klass, int instance)
 	analyzeReply(message, reply, app);
 }
 
+void CSCSupervisor::sendCommandWithAttr(
+		string command, std::map<string, string> attr, string klass)
+		throw (xoap::exception::Exception, xdaq::exception::Exception)
+{
+	// Exceptions:
+	// xoap exceptions are thrown by analyzeReply() for SOAP faults.
+	// xdaq exceptions are thrown by postSOAP() for socket level errors.
+
+	// find applications
+	std::set<xdaq::ApplicationDescriptor *> apps;
+	try {
+		apps = getApplicationContext()->getDefaultZone()
+				->getApplicationDescriptors(klass);
+	} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+		return; // Do nothing if the target doesn't exist
+	}
+
+	if (klass == "EmuDAQManager" && !isDAQManagerControlled(command)) {
+		return;  // Do nothing if EmuDAQManager is not under control.
+	}
+
+	// prepare a SOAP message
+	xoap::MessageReference message = createCommandSOAPWithAttr(command, attr);
+	xoap::MessageReference reply;
+
+	// send the message one-by-one
+	std::set<xdaq::ApplicationDescriptor *>::iterator i = apps.begin();
+	for (; i != apps.end(); ++i) {
+		// postSOAP() may throw an exception when failed.
+		reply = getApplicationContext()->postSOAP(message, *i);
+
+		analyzeReply(message, reply, *i);
+	}
+}
+
 xoap::MessageReference CSCSupervisor::createCommandSOAP(string command)
 {
 	xoap::MessageReference message = xoap::createMessage();
 	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
-	xoap::SOAPName name = envelope.createName(
-			command, "xdaq", "urn:xdaq-soap:3.0");
+	xoap::SOAPName name = envelope.createName(command, "xdaq", XDAQ_NS_URI);
 	envelope.getBody().addBodyElement(name);
+
+	return message;
+}
+
+xoap::MessageReference CSCSupervisor::createCommandSOAPWithAttr(
+		string command, std::map<string, string> attr)
+{
+	xoap::MessageReference message = xoap::createMessage();
+	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
+	xoap::SOAPName name = envelope.createName(command, "xdaq", XDAQ_NS_URI);
+	xoap::SOAPElement element = envelope.getBody().addBodyElement(name);
+
+	std::map<string, string>::iterator i;
+	for (i = attr.begin(); i != attr.end(); ++i) {
+		xoap::SOAPName p = envelope.createName((*i).first, "xdaq", XDAQ_NS_URI);
+		element.addAttribute(p, (*i).second);
+	}
 
 	return message;
 }
@@ -693,7 +791,7 @@ xoap::MessageReference CSCSupervisor::createParameterSetSOAP(
 	envelope.addNamespaceDeclaration("xsi", NS_XSI);
 
 	xoap::SOAPName command = envelope.createName(
-			"ParameterSet", "xdaq", "urn:xdaq-soap:3.0");
+			"ParameterSet", "xdaq", XDAQ_NS_URI);
 	xoap::SOAPName properties = envelope.createName(
 			"properties", klass, "urn:xdaq-application:" + klass);
 	xoap::SOAPName parameter = envelope.createName(
@@ -720,7 +818,7 @@ xoap::MessageReference CSCSupervisor::createParameterGetSOAP(
 	envelope.addNamespaceDeclaration("xsi", NS_XSI);
 
 	xoap::SOAPName command = envelope.createName(
-			"ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
+			"ParameterGet", "xdaq", XDAQ_NS_URI);
 	xoap::SOAPName properties = envelope.createName(
 			"properties", klass, "urn:xdaq-application:" + klass);
 	xoap::SOAPName parameter = envelope.createName(
@@ -747,7 +845,7 @@ xoap::MessageReference CSCSupervisor::createParameterGetSOAP2(
 	envelope.addNamespaceDeclaration("xsi", NS_XSI);
 
 	xoap::SOAPName command = envelope.createName(
-			"ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
+			"ParameterGet", "xdaq", XDAQ_NS_URI);
 	xoap::SOAPName properties = envelope.createName(
 			"properties", klass, "urn:xdaq-application:" + klass);
 	xoap::SOAPName xsitype = envelope.createName("type", "xsi", NS_XSI);
@@ -1132,7 +1230,7 @@ xoap::MessageReference CSCSupervisor::StateTable::createStateSOAP(
 	envelope.addNamespaceDeclaration("xsi", NS_XSI);
 
 	xoap::SOAPName command = envelope.createName(
-			"ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
+			"ParameterGet", "xdaq", XDAQ_NS_URI);
 	xoap::SOAPName properties = envelope.createName(
 			"properties", klass, "urn:xdaq-application:" + klass);
 	xoap::SOAPName parameter = envelope.createName(
