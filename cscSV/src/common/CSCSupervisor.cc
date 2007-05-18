@@ -25,7 +25,7 @@ XDAQ_INSTANTIATOR_IMPL(CSCSupervisor);
 static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
 static const unsigned int N_LOG_MESSAGES = 10;
 static const string STATE_UNKNOWN = "unknown";
-static const unsigned int CALIB_LOOP = 3;
+static const unsigned int CALIB_LOOP = 160;
 
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
@@ -442,7 +442,7 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 
 		sendCommand("EnableCalCFEBGain", "EmuPeripheralCrateManager");
 		sendCommandWithAttr("Cyclic", start_attr, "LTCControl");
-		sleep(20U);
+		sleep(10U);
 		sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
 	}
 
@@ -469,6 +469,14 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 				trim(getConfigFilename("PC", runmode_)));
 		setParameter("EmuDAQManager",
 				"maxNumberOfEvents", "xsd:integer", nevents_);
+		string runtype;
+		if (runmode_.substr(0, 5) != "calib") {
+			runtype = "Monitor";
+		} else {
+			runtype = "CFEB_Gains";
+		}
+		setParameter("EmuDAQManager", "runType", "xsd:string", runtype);
+
 		sendCommand("Configure", "EmuFCrate");
 		if (runmode_.substr(0, 5) != "calib") {
 			sendCommand("Configure", "EmuPeripheralCrate");
@@ -626,9 +634,9 @@ void CSCSupervisor::submit(toolbox::task::ActionSignature *signature)
 void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
         throw (toolbox::fsm::exception::Exception)
 {
-    EmuApplication::stateChanged(fsm);
-
 	keep_refresh_ = false;
+
+    EmuApplication::stateChanged(fsm);
 }
 
 void CSCSupervisor::sendCommand(string command, string klass)
