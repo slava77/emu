@@ -5,7 +5,7 @@
 
 #include <string>
 #include <deque>
-#include <utility>  // pair
+#include <map>
 
 #include "toolbox/fsm/FiniteStateMachine.h"
 #include "toolbox/task/WorkLoop.h"
@@ -55,12 +55,15 @@ public:
 			throw (xgi::exception::Exception);
 	void webSetTTS(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
+	void webCalibPC(xgi::Input *in, xgi::Output *out)
+			throw (xgi::exception::Exception);
 	void webRedirect(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
 
 	// work loop call-back functions
 	bool configureAction(toolbox::task::WorkLoop *wl);
 	bool haltAction(toolbox::task::WorkLoop *wl);
+	bool calibrationAction(toolbox::task::WorkLoop *wl);
 
 	// State transitions
 	void configureAction(toolbox::Event::Reference e) 
@@ -96,6 +99,7 @@ private:
 	toolbox::task::WorkLoop *wl_;
 	BSem wl_semaphore_;
 	toolbox::task::ActionSignature *configure_signature_, *halt_signature_;
+	toolbox::task::ActionSignature *calibration_signature_;
 
 	void submit(toolbox::task::ActionSignature *signature);
 
@@ -106,8 +110,14 @@ private:
 			throw (xoap::exception::Exception, xdaq::exception::Exception);
 	void sendCommand(string command, string klass, int instance)
 			throw (xoap::exception::Exception, xdaq::exception::Exception);
+	void sendCommandWithAttr(
+			string command, map<string, string> attr, string klass)
+			throw (xoap::exception::Exception, xdaq::exception::Exception);
 
 	xoap::MessageReference createCommandSOAP(string command);
+	xoap::MessageReference createCommandSOAPWithAttr(
+			string command, map<string, string> attr);
+
 	void setParameter(string klass, string name, string type, string value);
 	xoap::MessageReference createParameterSetSOAP(
 	        string klass, string name, string type, string value);
@@ -142,6 +152,8 @@ private:
 	string runmode_;
 	string runnumber_;
 	string nevents_;
+
+	unsigned int step_counter_;
 
 	string error_message_;
 
