@@ -1,6 +1,11 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.26 2007/05/03 21:34:23 gujh Exp $
+// $Id: DAQMB.cc,v 3.27 2007/05/20 15:48:13 gujh Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.27  2007/05/20 15:48:13  gujh
+// Try a maximum of three times if the usercode readback is FFFFFFFF, to protect
+// the board number (DMB/CFEB) overwritten by bad readout.
+//       --- May 20, 2007.  GU
+//
 // Revision 3.26  2007/05/03 21:34:23  gujh
 // Fix the PROM USERID loading bug
 //     ---- May 3, 2007   GU
@@ -832,7 +837,7 @@ char dt[2];
  dt[1]=dt[1]>>1;
  (*MyOutput_) << "CFEB size="<<cfebs_.size() << std::endl;
  //
- for(int i=0; i<cfebs_.size();i++) {
+ for(unsigned int i=0; i<cfebs_.size();i++) {
    (*MyOutput_) << i << " CFEB number" << cfebs_[i].number() << std::endl;
  }
  //
@@ -1052,7 +1057,7 @@ void DAQMB::buck_shift_ext_bc(int nstrip)
 void DAQMB::chan2shift(int chan[5][6][16])
 {
    
-   int i,j,l;
+   int i,j;
    int chip,lay,nchips;
    char chip_mask;
    char shft_bits[6][6];
@@ -1540,7 +1545,7 @@ unsigned int DAQMB::lowv_rdpwrreg()
 /* FPGA and PROM codes  */
 
 unsigned long int DAQMB::febpromuser(const CFEB & cfeb)
-{
+{ unsigned long int ibrd;
   DEVTYPE dv = cfeb.promDevice();
   printf("%d \n",dv);
   cmd[0]=PROM_USERCODE;
@@ -1549,16 +1554,20 @@ unsigned long int DAQMB::febpromuser(const CFEB & cfeb)
   sndbuf[2]=0xFF;
   sndbuf[3]=0xFF;
   sndbuf[4]=0xFF;
-  devdo(dv,8,cmd,33,sndbuf,rcvbuf,1);
-  rcvbuf[0]=((rcvbuf[0]>>1)&0x7f)+((rcvbuf[1]<<7)&0x80);
-  rcvbuf[1]=((rcvbuf[1]>>1)&0x7f)+((rcvbuf[2]<<7)&0x80);
-  rcvbuf[2]=((rcvbuf[2]>>1)&0x7f)+((rcvbuf[3]<<7)&0x80);
-  rcvbuf[3]=((rcvbuf[3]>>1)&0x7f)+((rcvbuf[4]<<7)&0x80);
-  unsigned long int ibrd=unpack_ibrd();
-  cmd[0]=PROM_BYPASS;
-  sndbuf[0]=0;
-  devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
-  usleep(100);
+  for (int i=0;i<3;i++) {
+    devdo(dv,8,cmd,33,sndbuf,rcvbuf,1);
+    rcvbuf[0]=((rcvbuf[0]>>1)&0x7f)+((rcvbuf[1]<<7)&0x80);
+    rcvbuf[1]=((rcvbuf[1]>>1)&0x7f)+((rcvbuf[2]<<7)&0x80);
+    rcvbuf[2]=((rcvbuf[2]>>1)&0x7f)+((rcvbuf[3]<<7)&0x80);
+    rcvbuf[3]=((rcvbuf[3]>>1)&0x7f)+((rcvbuf[4]<<7)&0x80);
+    ibrd=unpack_ibrd();
+    cmd[0]=PROM_BYPASS;
+    sndbuf[0]=0;
+    devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
+    usleep(100);
+    if (((0xff&rcvbuf[0])!=0xff)||((0xff&rcvbuf[1])!=0xff)||
+        ((0xff&rcvbuf[2])!=0xff)||((0xff&rcvbuf[3])!=0xff)) return ibrd;
+  }
   return ibrd;
 }
 
@@ -1630,6 +1639,7 @@ DEVTYPE dv;
  
 
   if(prom==0){dv=VPROM;}else{dv=MPROM;}
+  for (int i=0;i<3;i++) {
       cmd[0]=PROM_USERCODE;
       sndbuf[0]=0xFF;
       sndbuf[1]=0xFF;
@@ -1645,7 +1655,9 @@ DEVTYPE dv;
       std::cout << std::hex << ibrd << " " << rcvbuf[0] 
 		<< " " << rcvbuf[1]<< " " 
 		<< rcvbuf[2] << " " << rcvbuf[3] << std::endl;
-
+      if (((0xff&rcvbuf[0])!=0xff)||((0xff&rcvbuf[1])!=0xff)||
+          ((0xff&rcvbuf[2])!=0xff)||((0xff&rcvbuf[3])!=0xff)) return ibrd;
+  }
       return ibrd;
 
 }
@@ -2621,19 +2633,6 @@ void DAQMB::epromloadOld(DEVTYPE devnum,const char *downfile,int writ,char *cbrd
 	     for(j=0;j<nbytes;j++){
 	       sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",&snd[j]);
 	     }
-	     /*JRG, new selective way to download UNALTERED PromUserCode from SVF to
-	       ANY prom:  just set cbrdnum[3,2,1,0]=0 in calling routine!
-	       was  if(nowrit==1){  */
-	     /*	     if(nowrit==1&&(cbrdnum[0]|cbrdnum[1]|cbrdnum[2]|cbrdnum[3])!=0){
-	       tstusr=0;
-	       snd[0]=cbrdnum[0];
-	       snd[1]=cbrdnum[1];
-	       snd[2]=cbrdnum[2]; 
-	       snd[3]=cbrdnum[3];
-	     */
-	       // printf(" snd %02x %02x %02x %02x \n",snd[0],snd[1],snd[2],snd[3]);
-	     //}
-	     //}
 	     if(nowrit==1&&cbrdnum[0]!=0) {
 	       tstusr=0;
                snd[0]=cbrdnum[0];
@@ -3801,19 +3800,23 @@ int i;
       sndbuf[2]=0xFF;
       sndbuf[3]=0xFF;
       sndbuf[4]=0xFF;
-      devdo(dv,8,cmd,33,sndbuf,rcvbuf,1);
-      rcvbuf[0]=((rcvbuf[0]>>1)&0x7f)+((rcvbuf[1]<<7)&0x80);
-      rcvbuf[1]=((rcvbuf[1]>>1)&0x7f)+((rcvbuf[2]<<7)&0x80);
-      rcvbuf[2]=((rcvbuf[2]>>1)&0x7f)+((rcvbuf[3]<<7)&0x80);
-      rcvbuf[3]=((rcvbuf[3]>>1)&0x7f)+((rcvbuf[4]<<7)&0x80);
-      printf(" The ISPROM USERCODE is %02x%02x%02x%02x  \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
-      cbrdnum[0]=rcvbuf[0];
-      cbrdnum[1]=rcvbuf[1];
-      cbrdnum[2]=rcvbuf[2];
-      cbrdnum[3]=rcvbuf[3];
-      cmd[0]=PROM_BYPASS;
-      sndbuf[0]=0;
-      devdo(dv,8,cmd,0,sndbuf,rcvbuf,1);
+      for (int i=0;i<3;i++) {
+        devdo(dv,8,cmd,33,sndbuf,rcvbuf,1);
+        rcvbuf[0]=((rcvbuf[0]>>1)&0x7f)+((rcvbuf[1]<<7)&0x80);
+        rcvbuf[1]=((rcvbuf[1]>>1)&0x7f)+((rcvbuf[2]<<7)&0x80);
+        rcvbuf[2]=((rcvbuf[2]>>1)&0x7f)+((rcvbuf[3]<<7)&0x80);
+        rcvbuf[3]=((rcvbuf[3]>>1)&0x7f)+((rcvbuf[4]<<7)&0x80);
+        printf(" The ISPROM USERCODE is %02x%02x%02x%02x  \n",0xff&rcvbuf[3],0xff&rcvbuf[2],0xff&rcvbuf[1],0xff&rcvbuf[0]);
+        cbrdnum[0]=rcvbuf[0];
+        cbrdnum[1]=rcvbuf[1];
+        cbrdnum[2]=rcvbuf[2];
+        cbrdnum[3]=rcvbuf[3];
+        cmd[0]=PROM_BYPASS;
+        sndbuf[0]=0;
+        devdo(dv,8,cmd,0,sndbuf,rcvbuf,1);
+	if ((rcvbuf[0]!=0xff) || (rcvbuf[1]!=0xff) || (rcvbuf[2]!=0xff) 
+	    || (rcvbuf[3]!=0xff) ) return;
+      }
 }
 
 void DAQMB::toggle_caltrg()
