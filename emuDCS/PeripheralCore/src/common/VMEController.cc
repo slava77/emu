@@ -1,6 +1,10 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.12 2007/03/02 20:29:49 gujh Exp $
+// $Id: VMEController.cc,v 3.13 2007/05/22 10:20:50 gujh Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.13  2007/05/22 10:20:50  gujh
+// Fix the code, so eth0 will correspond to schar0
+//         --- May 22, 2007   GU
+//
 // Revision 3.12  2007/03/02 20:29:49  gujh
 // Set the Jumbo package to <8000 (6000 for now)
 // For longer controller delay, send down the eth immediately
@@ -352,7 +356,7 @@ int VMEController::do_schar(int open_or_close)
   static int scharcounts[10];
   int realport=2;
   int schsocket;
-  if(port_ >0 && port_ <10)  realport= port_;
+  if(port_ >-1 && port_ <10)  realport= port_;
 
   if(open_or_close==1) 
   {
