@@ -19,6 +19,7 @@ EmuPeripheralCrate::EmuPeripheralCrate(xdaq::ApplicationStub *stub)
 	xoap::bind(this, &EmuPeripheralCrate::onEnable,    "Enable",    XDAQ_NS_URI);
 	xoap::bind(this, &EmuPeripheralCrate::onDisable,   "Disable",   XDAQ_NS_URI);
 	xoap::bind(this, &EmuPeripheralCrate::onHalt,      "Halt",      XDAQ_NS_URI);
+	xoap::bind(this, &EmuPeripheralCrate::onCalCFEB,   "EnableCalCFEBGain", XDAQ_NS_URI);
 
 	fsm_.addState('H', "Halted",     this, &EmuPeripheralCrate::stateChanged);
 	fsm_.addState('C', "Configured", this, &EmuPeripheralCrate::stateChanged);
@@ -28,10 +29,6 @@ EmuPeripheralCrate::EmuPeripheralCrate(xdaq::ApplicationStub *stub)
 			'H', 'C', "Configure", this, &EmuPeripheralCrate::configureAction);
 	fsm_.addStateTransition(
 			'C', 'C', "Configure", this, &EmuPeripheralCrate::configureAction);
-	fsm_.addStateTransition(
-			'H', 'C', "ConfigCalCFEB", this, &EmuPeripheralCrate::configureAction);
-	fsm_.addStateTransition(
-			'C', 'C', "ConfigCalCFEB", this, &EmuPeripheralCrate::configureAction);
 	fsm_.addStateTransition(
 			'C', 'E', "Enable",    this, &EmuPeripheralCrate::enableAction);
 	fsm_.addStateTransition(
@@ -82,6 +79,12 @@ xoap::MessageReference EmuPeripheralCrate::onHalt(xoap::MessageReference message
 {
 	fireEvent("Halt");
 
+	return createReply(message);
+}
+
+xoap::MessageReference EmuPeripheralCrate::onCalCFEB(xoap::MessageReference message)
+		throw (xoap::exception::Exception)
+{
 	return createReply(message);
 }
 

@@ -22,6 +22,8 @@ public:
 			throw (xoap::exception::Exception);
 	xoap::MessageReference onHalt(xoap::MessageReference message)
 			throw (xoap::exception::Exception);
+	xoap::MessageReference onCalCFEB(xoap::MessageReference message)
+			throw (xoap::exception::Exception);
 
 	// State transitions
 	void configureAction(toolbox::Event::Reference e)
