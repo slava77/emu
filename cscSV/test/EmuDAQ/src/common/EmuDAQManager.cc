@@ -17,6 +17,7 @@ EmuDAQManager::EmuDAQManager(xdaq::ApplicationStub *stub)
 	configured_global_ = false;
 	daq_state_ = "Unknown";
 
+	getApplicationInfoSpace()->fireItemAvailable("runType", &run_type_);
 	getApplicationInfoSpace()->fireItemAvailable("runNumber", &run_number_);
 	getApplicationInfoSpace()->fireItemAvailable("maxNumberOfEvents", &max_n_events_);
 	getApplicationInfoSpace()->fireItemAvailable("globalMode", &mode_);

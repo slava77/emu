@@ -40,6 +40,7 @@ private:
     void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 			throw (toolbox::fsm::exception::Exception);
 
+	xdata::String run_type_;
 	xdata::UnsignedLong run_number_;
 	xdata::Integer max_n_events_;
 	xdata::Boolean mode_, configured_global_;
