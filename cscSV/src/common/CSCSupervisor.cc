@@ -4,6 +4,7 @@
 
 #include <sstream>
 #include <set>
+#include <cstdlib>  // strtol()
 
 #include "xdaq/NamespaceURI.h"
 #include "xoap/Method.h"
@@ -23,7 +24,7 @@ using namespace cgicc;
 XDAQ_INSTANTIATOR_IMPL(CSCSupervisor);
 
 static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
-static const unsigned int N_LOG_MESSAGES = 10;
+static const unsigned int N_LOG_MESSAGES = 20;
 static const string STATE_UNKNOWN = "unknown";
 static const unsigned int CALIB_LOOP = 160;
 
@@ -33,24 +34,23 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		daq_mode_(""), trigger_config_(""), ttc_source_(""),
 		wl_semaphore_(BSem::EMPTY),
 		daq_descr_(NULL), tf_descr_(NULL), ttc_descr_(NULL),
-		runmode_(""), runnumber_(""), nevents_(""),
+		nevents_(-1),
 		step_counter_(0),
 		error_message_(""), keep_refresh_(false)
 {
 	xdata::InfoSpace *i = getApplicationInfoSpace();
+	i->fireItemAvailable("RunType", &run_type_);
+	i->fireItemAvailable("RunNumber", &run_number_);
+
+	i->fireItemAvailable("configKeys", &config_keys_);
+	i->fireItemAvailable("pcKeys",     &pc_keys_);
+	i->fireItemAvailable("pcConfigs",  &pc_configs_);
+	i->fireItemAvailable("fcKeys",     &fc_keys_);
+	i->fireItemAvailable("fcConfigs",  &fc_configs_);
+
 	i->fireItemAvailable("DAQMode", &daq_mode_);
 	i->fireItemAvailable("TriggerConfig", &trigger_config_);
 	i->fireItemAvailable("TTCSource", &ttc_source_);
-
-	i->fireItemAvailable("RunType", &x_runmode_);
-	i->fireItemAvailable("RunNumber", &x_runnumber_);
-
-	i->fireItemAvailable("configKeys", &config_keys_);
-	i->fireItemAvailable("configModes", &config_modes_);
-	i->fireItemAvailable("modesForPC", &modes_pc_);
-	i->fireItemAvailable("filesForPC", &files_pc_);
-	i->fireItemAvailable("modesForFC", &modes_fc_);
-	i->fireItemAvailable("filesForFC", &files_fc_);
 
 	i->fireItemAvailable("TTSCrate", &tts_crate_);
 	i->fireItemAvailable("TTSSlot", &tts_slot_);
@@ -120,9 +120,8 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 xoap::MessageReference CSCSupervisor::onConfigure(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
-	runmode_ = x_runmode_;
-	runnumber_ = "0";
-	nevents_ = "9999";
+	run_number_ = 0;
+	nevents_ = -1;
 
 	submit(configure_signature_);
 
@@ -132,8 +131,6 @@ xoap::MessageReference CSCSupervisor::onConfigure(xoap::MessageReference message
 xoap::MessageReference CSCSupervisor::onEnable(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
-	runnumber_ = x_runnumber_.toString();
-
 	fireEvent("Enable");
 
 	return createReply(message);
@@ -176,7 +173,7 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 {
 	if (keep_refresh_) {
 		HTTPResponseHeader &header = out->getHTTPResponseHeader();
-		header.addHeader("Refresh", "5");
+		header.addHeader("Refresh", "2");
 	}
 
 	// Header
@@ -209,18 +206,16 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << "Run Type: " << endl;
 	*out << cgicc::select().set("name", "runtype") << endl;
 
-	int selected_index = modeToIndex(runmode_);
+	int selected_index = keyToIndex(run_type_.toString());
 
 	for (int i = 0; i < n_keys; ++i) {
 		if (i == selected_index) {
 			*out << option()
-					.set("label", (string)config_keys_[i])
-					.set("value", (string)config_modes_[i])
+					.set("value", (string)config_keys_[i])
 					.set("selected", "");
 		} else {
 			*out << option()
-					.set("label", (string)config_keys_[i])
-					.set("value", (string)config_modes_[i]);
+					.set("value", (string)config_keys_[i]);
 		}
 		*out << (string)config_keys_[i] << option() << endl;
 	}
@@ -230,13 +225,13 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << "Run Number: " << endl;
 	*out << input().set("type", "text")
 			.set("name", "runnumber")
-			.set("value", runnumber_)
+			.set("value", run_number_.toString())
 			.set("size", "40") << br() << endl;
 
 	*out << "Max # of Events: " << endl;
 	*out << input().set("type", "text")
 			.set("name", "nevents")
-			.set("value", nevents_)
+			.set("value", toString(nevents_))
 			.set("size", "40") << br() << endl;
 
 	*out << input().set("type", "submit")
@@ -335,13 +330,19 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
-	runmode_   = getCGIParameter(in, "runtype");
-	runnumber_ = getCGIParameter(in, "runnumber");
-	nevents_   = getCGIParameter(in, "nevents");
+	string value;
 
-	if (runmode_.empty()) { error_message_ += "Please select run type.\n"; }
-	if (runnumber_.empty()) { error_message_ += "Please set run number.\n"; }
-	if (nevents_.empty()) { error_message_ += "Please set max # of events.\n"; }
+	value = getCGIParameter(in, "runtype");
+	if (value.empty()) { error_message_ += "Please select run type.\n"; }
+	run_type_ = value;
+
+	value = getCGIParameter(in, "runnumber");
+	if (value.empty()) { error_message_ += "Please set run number.\n"; }
+	run_number_ = strtol(value.c_str(), NULL, 0);
+
+	value = getCGIParameter(in, "nevents");
+	if (value.empty()) { error_message_ += "Please set max # of events.\n"; }
+	nevents_ = strtol(value.c_str(), NULL, 0);
 
 	if (error_message_.empty()) {
 		submit(configure_signature_);
@@ -455,8 +456,8 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "runmode_: " << runmode_
-			<< " runnumber_: " << runnumber_ << " nevents_: " << nevents_);
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "runtype: " << run_type_.toString()
+			<< " runnumber: " << run_number_ << " nevents: " << nevents_);
 
 	try {
 		if (state_table_.getState("EmuDAQManager", 0) == "Configured") {
@@ -465,20 +466,19 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		if (state_table_.getState("LTCControl", 0) == "Ready") {
 			sendCommand("Halt", "LTCControl");
 		}
-		setParameter("EmuPeripheralCrate", "xmlFileName", "xsd:string",
-				trim(getConfigFilename("PC", runmode_)));
-		setParameter("EmuDAQManager",
-				"maxNumberOfEvents", "xsd:integer", nevents_);
-		string runtype;
-		if (runmode_.substr(0, 5) != "calib") {
-			runtype = "Monitor";
-		} else {
-			runtype = "CFEB_Gains";
+		string str = trim(getCrateConfig("PC", run_type_.toString()));
+		if (!str.empty()) {
+			setParameter(
+					"EmuPeripheralCrate", "xmlFileName", "xsd:string", str);
 		}
-		setParameter("EmuDAQManager", "runType", "xsd:string", runtype);
+
+		setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:integer",
+				toString(nevents_));
+		setParameter( "EmuDAQManager", "runType", "xsd:string",
+				run_type_.toString());
 
 		sendCommand("Configure", "EmuFCrate");
-		if (runmode_.substr(0, 5) != "calib") {
+		if (!isCalibrationMode()) {
 			sendCommand("Configure", "EmuPeripheralCrate");
 		} else {
 			sendCommand("ConfigCalCFEB", "EmuPeripheralCrateManager");
@@ -507,19 +507,19 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 		throw (toolbox::fsm::exception::Exception)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
-	LOG4CPLUS_DEBUG(getApplicationLogger(), "runmode_: " << runmode_
-			<< " runnumber_: " << runnumber_ << " nevents_: " << nevents_);
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "runtype: " << run_type_.toString()
+			<< " runnumber: " << run_number_ << " nevents: " << nevents_);
 
 	try {
 		if (state_table_.getState("EmuDAQManager", 0) == "Halted") {
-			setParameter("EmuDAQManager",
-					"maxNumberOfEvents", "xsd:integer", nevents_);
+			setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:integer",
+					toString(nevents_));
 			sendCommand("Configure", "EmuDAQManager");
 		}
-		setParameter("EmuDAQManager",
-				"runNumber", "xsd:unsignedLong", runnumber_);
+		setParameter("EmuDAQManager", "runNumber", "xsd:unsignedLong",
+				run_number_.toString());
 		sendCommand("Enable", "EmuFCrate");
-		if (runmode_.substr(0, 5) != "calib") {
+		if (!isCalibrationMode()) {
 			sendCommand("Enable", "EmuPeripheralCrate");
 		}
 		sendCommand("Enable", "EmuDAQManager");
@@ -535,7 +535,7 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 				"Failed to send a command", e);
 	}
 
-	if (runmode_.substr(0, 5) == "calib") {
+	if (isCalibrationMode()) {
 		submit(calibration_signature_);
 	}
 
@@ -551,7 +551,7 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference evt)
 		sendCommand("Halt", "LTCControl");
 		sendCommand("Halt", "EmuDAQManager");
 		sendCommand("Disable", "EmuFCrate");
-		if (runmode_.substr(0, 5) != "calib") {
+		if (!isCalibrationMode()) {
 			sendCommand("Disable", "EmuPeripheralCrate");
 		} else {
 			sendCommand("Disable", "EmuPeripheralCrateManager");
@@ -941,11 +941,12 @@ string CSCSupervisor::getCGIParameter(xgi::Input *in, string name)
 	return value;
 }
 
-int CSCSupervisor::modeToIndex(string mode)
+int CSCSupervisor::keyToIndex(const string key)
 {
-	int index = 0;
-	for (unsigned int i = 0; i < config_modes_.size(); ++i) {
-		if (config_modes_[i] == mode) {
+	int index = -1;
+
+	for (unsigned int i = 0; i < config_keys_.size(); ++i) {
+		if (config_keys_[i] == key) {
 			index = i;
 			break;
 		}
@@ -954,30 +955,35 @@ int CSCSupervisor::modeToIndex(string mode)
 	return index;
 }
 
-string CSCSupervisor::getConfigFilename(string type, string mode) const
+string CSCSupervisor::getCrateConfig(const string type, const string key) const
 {
-	xdata::Vector<xdata::String> modes;
-	xdata::Vector<xdata::String> files;
+	xdata::Vector<xdata::String> keys;
+	xdata::Vector<xdata::String> values;
 
 	if (type == "PC") {
-		modes = modes_pc_;
-		files = files_pc_;
+		keys = pc_keys_;
+		values = pc_configs_;
 	} else if (type == "FC") {
-		modes = modes_fc_;
-		files = files_fc_;
+		keys = fc_keys_;
+		values = fc_configs_;
 	} else {
 		return "";
 	}
 
 	string result = "";
-	for (unsigned int i = 0; i < modes.size(); ++i) {
-		if (modes[i] == mode) {
-			result = files[i];
+	for (unsigned int i = 0; i < keys.size(); ++i) {
+		if (keys[i] == key) {
+			result = values[i];
 			break;
 		}
 	}
 
 	return result;
+}
+
+bool CSCSupervisor::isCalibrationMode()
+{
+	return (run_type_.toString().substr(0, 5) == "Calib");
 }
 
 string CSCSupervisor::trim(string orig) const
@@ -988,6 +994,14 @@ string CSCSupervisor::trim(string orig) const
 	s.erase(s.find_last_not_of(" \t\n") + 1);
 
 	return s;
+}
+
+string CSCSupervisor::toString(const long int i) const
+{
+	ostringstream s;
+	s << i;
+
+	return s.str();
 }
 
 string CSCSupervisor::getDAQMode()
