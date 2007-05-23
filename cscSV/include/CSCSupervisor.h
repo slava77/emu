@@ -101,6 +101,7 @@ private:
 	BSem wl_semaphore_;
 	toolbox::task::ActionSignature *configure_signature_, *halt_signature_;
 	toolbox::task::ActionSignature *calibration_signature_;
+	bool quit_calibration_;
 
 	void submit(toolbox::task::ActionSignature *signature);
 
