@@ -79,14 +79,15 @@ public:
 			throw (toolbox::fsm::exception::Exception);
 
 private: // XDAQ parameters
-	xdata::String x_runmode_;
-	xdata::UnsignedLong x_runnumber_;
+	xdata::String run_type_;
+	xdata::UnsignedLong run_number_;
+
 	xdata::Vector<xdata::String> config_keys_;
-	xdata::Vector<xdata::String> config_modes_;
-	xdata::Vector<xdata::String> modes_pc_;
-	xdata::Vector<xdata::String> files_pc_;
-	xdata::Vector<xdata::String> modes_fc_;
-	xdata::Vector<xdata::String> files_fc_;
+	xdata::Vector<xdata::String> pc_keys_;
+	xdata::Vector<xdata::String> pc_configs_;
+	xdata::Vector<xdata::String> fc_keys_;
+	xdata::Vector<xdata::String> fc_configs_;
+
 	xdata::String daq_mode_;
 	xdata::String trigger_config_;
 	xdata::String ttc_source_;
@@ -132,10 +133,12 @@ private:
 	void refreshConfigParameters();
 
 	string getCGIParameter(xgi::Input *in, string name);
-	int modeToIndex(string mode);
+	int keyToIndex(const string key);
 
-	string getConfigFilename(string type, string mode) const;
+	string getCrateConfig(const string type, const string key) const;
+	bool isCalibrationMode();
 	string trim(string orig) const;
+	string toString(const long int i) const;
 
 	xdaq::ApplicationDescriptor *daq_descr_, *tf_descr_, *ttc_descr_;
 	xoap::MessageReference daq_param_, tf_param_, ttc_param_;
@@ -149,10 +152,7 @@ private:
 
 	bool isDAQManagerControlled(string command);
 
-	string runmode_;
-	string runnumber_;
-	string nevents_;
-
+	int nevents_;
 	unsigned int step_counter_;
 
 	string error_message_;
