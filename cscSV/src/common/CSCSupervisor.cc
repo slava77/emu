@@ -115,6 +115,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	state_table_.addApplication(this, "EmuPeripheralCrateManager");
 	state_table_.addApplication(this, "EmuPeripheralCrate");
 	state_table_.addApplication(this, "EmuDAQManager");
+	state_table_.addApplication(this, "TTCciControl");
 	state_table_.addApplication(this, "LTCControl");
 
 	last_log_.size(N_LOG_MESSAGES);
@@ -498,9 +499,9 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		if (state_table_.getState("EmuDAQManager", 0) == "Configured") {
 			sendCommand("Halt", "EmuDAQManager");
 		}
-		if (state_table_.getState("LTCControl", 0) == "Ready") {
-			sendCommand("Halt", "LTCControl");
-		}
+		sendCommand("Halt", "TTCciControl");
+		sendCommand("Halt", "LTCControl");
+
 		string str = trim(getCrateConfig("PC", run_type_.toString()));
 		if (!str.empty()) {
 			setParameter(
@@ -519,6 +520,7 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 			sendCommand("ConfigCalCFEB", "EmuPeripheralCrateManager");
 		}
 		sendCommand("Configure", "EmuDAQManager");
+		sendCommand("Configure", "TTCciControl");
 		sendCommand("Configure", "LTCControl");
 
 		refreshConfigParameters();
@@ -558,6 +560,7 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 			sendCommand("Enable", "EmuPeripheralCrate");
 		}
 		sendCommand("Enable", "EmuDAQManager");
+		sendCommand("Enable", "TTCciControl");
 		sendCommand("Enable", "LTCControl");
 
 		refreshConfigParameters();
@@ -585,6 +588,7 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference evt)
 
 	try {
 		sendCommand("Halt", "LTCControl");
+		sendCommand("Halt", "TTCciControl");
 		sendCommand("Halt", "EmuDAQManager");
 		sendCommand("Disable", "EmuFCrate");
 		if (!isCalibrationMode()) {
@@ -592,6 +596,7 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference evt)
 		} else {
 			sendCommand("Disable", "EmuPeripheralCrateManager");
 		}
+		sendCommand("Configure", "TTCciControl");
 		sendCommand("Configure", "LTCControl");
 	} catch (xoap::exception::Exception e) {
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
@@ -610,11 +615,12 @@ void CSCSupervisor::haltAction(toolbox::Event::Reference evt)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
 
 	try {
+		sendCommand("Halt", "LTCControl");
+		sendCommand("Halt", "TTCciControl");
 		sendCommand("Halt", "EmuFCrate");
 		sendCommand("Halt", "EmuPeripheralCrateManager");
 		sendCommand("Halt", "EmuPeripheralCrate");
 		sendCommand("Halt", "EmuDAQManager");
-		sendCommand("Halt", "LTCControl");
 	} catch (xoap::exception::Exception e) {
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 				"SOAP fault was returned", e);
