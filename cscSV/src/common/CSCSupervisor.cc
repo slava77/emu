@@ -26,7 +26,6 @@ XDAQ_INSTANTIATOR_IMPL(CSCSupervisor);
 static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
 static const unsigned int N_LOG_MESSAGES = 20;
 static const string STATE_UNKNOWN = "unknown";
-static const unsigned int CALIB_LOOP = 160;
 
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
@@ -38,6 +37,9 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		step_counter_(0),
 		error_message_(""), keep_refresh_(false)
 {
+	run_type_ = "";
+	run_number_ = 0;
+
 	xdata::InfoSpace *i = getApplicationInfoSpace();
 	i->fireItemAvailable("RunType", &run_type_);
 	i->fireItemAvailable("RunNumber", &run_number_);
@@ -430,6 +432,22 @@ bool CSCSupervisor::haltAction(toolbox::task::WorkLoop *wl)
 
 bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 {
+	string command;
+	unsigned int loop;
+
+	if (run_type_ == "Calib_CFEB_Gain") {
+		command = "EnableCalCFEBGain";
+		loop = 160;
+	} else if (run_type_ == "Calib_CFEB_Time") {
+		command = "EnableCalCFEBTime";
+		loop = 320;
+	} else if (run_type_ == "Calib_CFEB_Time") {
+		command = "EnableCalCFEBPed";
+		loop = 1;
+	} else {
+		return false;
+	}
+
 	std::map<string, string> start_attr, stop_attr;
 	
 	start_attr.insert(std::map<string, string>::value_type("Param", "Start"));
@@ -437,11 +455,11 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 
 	sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
 
-	for (step_counter_ = 0; step_counter_ < CALIB_LOOP; ++step_counter_) {
+	for (step_counter_ = 0; step_counter_ < loop; ++step_counter_) {
 		LOG4CPLUS_DEBUG(getApplicationLogger(),
 				"calibrationAction: " << step_counter_);
 
-		sendCommand("EnableCalCFEBGain", "EmuPeripheralCrateManager");
+		sendCommand(command, "EmuPeripheralCrateManager");
 		sendCommandWithAttr("Cyclic", start_attr, "LTCControl");
 		sleep(10U);
 		sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
@@ -474,7 +492,7 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 
 		setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:integer",
 				toString(nevents_));
-		setParameter( "EmuDAQManager", "runType", "xsd:string",
+		setParameter("EmuDAQManager", "runType", "xsd:string",
 				run_type_.toString());
 
 		sendCommand("Configure", "EmuFCrate");

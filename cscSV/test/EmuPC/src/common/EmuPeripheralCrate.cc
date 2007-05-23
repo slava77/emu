@@ -20,6 +20,8 @@ EmuPeripheralCrate::EmuPeripheralCrate(xdaq::ApplicationStub *stub)
 	xoap::bind(this, &EmuPeripheralCrate::onDisable,   "Disable",   XDAQ_NS_URI);
 	xoap::bind(this, &EmuPeripheralCrate::onHalt,      "Halt",      XDAQ_NS_URI);
 	xoap::bind(this, &EmuPeripheralCrate::onCalCFEB,   "EnableCalCFEBGain", XDAQ_NS_URI);
+	xoap::bind(this, &EmuPeripheralCrate::onCalCFEB,   "EnableCalCFEBTime", XDAQ_NS_URI);
+	xoap::bind(this, &EmuPeripheralCrate::onCalCFEB,   "EnableCalCFEBPed", XDAQ_NS_URI);
 
 	fsm_.addState('H', "Halted",     this, &EmuPeripheralCrate::stateChanged);
 	fsm_.addState('C', "Configured", this, &EmuPeripheralCrate::stateChanged);
