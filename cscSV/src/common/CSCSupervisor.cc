@@ -26,6 +26,9 @@ XDAQ_INSTANTIATOR_IMPL(CSCSupervisor);
 static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
 static const unsigned int N_LOG_MESSAGES = 20;
 static const string STATE_UNKNOWN = "unknown";
+static const unsigned int DELAY_CFEB_GAIN = 6U;
+static const unsigned int DELAY_CFEB_TIME = 2U;
+static const unsigned int DELAY_CFEB_PED = 60U;
 
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
@@ -437,17 +440,20 @@ bool CSCSupervisor::haltAction(toolbox::task::WorkLoop *wl)
 bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 {
 	string command;
-	unsigned int loop;
+	unsigned int loop, delay;
 
 	if (run_type_ == "Calib_CFEB_Gain") {
 		command = "EnableCalCFEBGain";
 		loop = 160;
+		delay = DELAY_CFEB_GAIN;
 	} else if (run_type_ == "Calib_CFEB_Time") {
 		command = "EnableCalCFEBTime";
 		loop = 320;
+		delay = DELAY_CFEB_TIME;
 	} else if (run_type_ == "Calib_CFEB_Time") {
 		command = "EnableCalCFEBPed";
 		loop = 1;
+		delay = DELAY_CFEB_PED;
 	} else {
 		return false;
 	}
@@ -466,8 +472,7 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 
 		sendCommand(command, "EmuPeripheralCrateManager");
 		sendCommandWithAttr("Cyclic", start_attr, "LTCControl");
-		sleep(10U);
-		sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
+		sleep(6U);
 	}
 
 	quit_calibration_ = false;
