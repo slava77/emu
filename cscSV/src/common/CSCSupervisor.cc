@@ -439,6 +439,8 @@ bool CSCSupervisor::haltAction(toolbox::task::WorkLoop *wl)
 
 bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 {
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "calibrationAction " << "(begin)");
+
 	string command;
 	unsigned int loop, delay;
 
@@ -455,8 +457,11 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 		loop = 1;
 		delay = DELAY_CFEB_PED;
 	} else {
+		LOG4CPLUS_INFO(getApplicationLogger(), "wrong run type " << run_type_.toString());
 		return false;
 	}
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "command: " << command
+			<< " loop: " << loop << " delay: " << delay);
 
 	std::map<string, string> start_attr, stop_attr;
 	
@@ -475,8 +480,9 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 		sleep(delay);
 	}
 
-	quit_calibration_ = false;
 	keep_refresh_ = false;
+
+	LOG4CPLUS_DEBUG(getApplicationLogger(), "calibrationAction " << "(end)");
 
 	return false;
 }
@@ -565,6 +571,7 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 	}
 
 	if (isCalibrationMode()) {
+		quit_calibration_ = false;
 		submit(calibration_signature_);
 	}
 
