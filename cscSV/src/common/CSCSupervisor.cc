@@ -452,7 +452,7 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 		command = "EnableCalCFEBTime";
 		loop = 320;
 		delay = DELAY_CFEB_TIME;
-	} else if (run_type_ == "Calib_CFEB_Time") {
+	} else if (run_type_ == "Calib_CFEB_Ped") {
 		command = "EnableCalCFEBPed";
 		loop = 1;
 		delay = DELAY_CFEB_PED;
