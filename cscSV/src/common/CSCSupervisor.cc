@@ -472,7 +472,7 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 
 		sendCommand(command, "EmuPeripheralCrateManager");
 		sendCommandWithAttr("Cyclic", start_attr, "LTCControl");
-		sleep(6U);
+		sleep(delay);
 	}
 
 	quit_calibration_ = false;
