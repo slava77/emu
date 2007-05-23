@@ -31,7 +31,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
 		EmuApplication(stub),
 		daq_mode_(""), trigger_config_(""), ttc_source_(""),
-		wl_semaphore_(BSem::EMPTY),
+		wl_semaphore_(BSem::EMPTY), quit_calibration_(false),
 		daq_descr_(NULL), tf_descr_(NULL), ttc_descr_(NULL),
 		nevents_(-1),
 		step_counter_(0),
@@ -149,6 +149,8 @@ xoap::MessageReference CSCSupervisor::onDisable(xoap::MessageReference message)
 xoap::MessageReference CSCSupervisor::onHalt(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
+	quit_calibration_ = true;
+
 	submit(halt_signature_);
 
 	return createReply(message);
@@ -372,6 +374,8 @@ void CSCSupervisor::webDisable(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webHalt(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
+	quit_calibration_ = true;
+
 	submit(halt_signature_);
 
 	webRedirect(in, out);
@@ -456,6 +460,7 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 	sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
 
 	for (step_counter_ = 0; step_counter_ < loop; ++step_counter_) {
+		if (quit_calibration_) { break; }
 		LOG4CPLUS_DEBUG(getApplicationLogger(),
 				"calibrationAction: " << step_counter_);
 
@@ -465,6 +470,7 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 		sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
 	}
 
+	quit_calibration_ = false;
 	keep_refresh_ = false;
 
 	return false;
