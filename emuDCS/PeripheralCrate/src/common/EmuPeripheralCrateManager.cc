@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.10 2007/05/20 15:42:28 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.11 2007/05/24 19:07:53 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1399,7 +1399,7 @@ using namespace std;
 
     //Start the setup process:
     int timesetting =((calsetup-1)%20);
-    int nstrip=(calsetup-1)/10;
+    int nstrip=(calsetup-1)/20;
     if (!timesetting) broadcastDMB->buck_shift_ext_bc(nstrip);
     broadcastDMB->set_cal_tim_pulse(timesetting);
     cout <<" The strip was set to: "<<nstrip<<" Time was set to: "<<timesetting <<endl;
