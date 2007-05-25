@@ -4739,7 +4739,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     cout << "CFEBLoadFirmware - DMB " << dmb << endl;
     //
-    thisCCB->hardReset();
+    //    thisCCB->hardReset();
     //
     if (thisDMB) {
       //
@@ -4750,18 +4750,22 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       ostringstream dum;
       dum << "loading CFEB firmware for DMB=" << dmb << " CFEB="<< dmbNumber << std::endl;
       LOG4CPLUS_INFO(getApplicationLogger(), dum.str());
-      unsigned short int dword[2];
-      dword[0]=cfebSerialNumber;
-      dword[1]=0xCFEB;
-      char * outp=(char *)dword;   // recast dword
       for (unsigned int i=0; i<thisCFEBs.size(); i++) {
         if (thisCFEBs[i].number() == dmbNumber ) {
+	  std::cout <<" ThisCFEB[i].promdevice: "<<thisCFEBs[i].promDevice()<<std::endl;
+	  //force CFEB device switch
+          unsigned short int dword[2];
+          dword[0]=thisDMB->febpromuser(thisCFEBs[4-i]);
+          dword[0]=cfebSerialNumber;
+          dword[1]=0xCFEB;
+          char * outp=(char *)dword;   // recast dword
+
           thisDMB->epromload(thisCFEBs[i].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);
         }
       }
     }
-    ::sleep(1);
-    thisCCB->hardReset();
+    //    ::sleep(1);
+    //    thisCCB->hardReset();
     //
     this->DMBUtils(in,out);
     //
@@ -8018,9 +8022,9 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     *out << cgicc::legend("DMB Utils").set("style","color:blue") ;
     //
-    *out << cgicc::table().set("border","1");
+    //    *out << cgicc::table().set("border","1");
     //
-    *out << cgicc::td();
+    // *out << cgicc::td();
     //
     std::string DMBTurnOff =
       toolbox::toString("/%s/DMBTurnOff",getApplicationDescriptor()->getURN().c_str());
@@ -8030,10 +8034,8 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
-    //
-    *out << cgicc::td();
-    //
-    *out << cgicc::td();
+
+    *out << cgicc::br();
     //
     std::string DMBTurnOn =
       toolbox::toString("/%s/DMBTurnOn",getApplicationDescriptor()->getURN().c_str());
@@ -8044,10 +8046,8 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    *out << cgicc::td();
-    //
-    *out << cgicc::table();
-    //
+    *out << cgicc::br();
+
     std::string DMBPrintCounters =
       toolbox::toString("/%s/DMBPrintCounters",getApplicationDescriptor()->getURN().c_str());
     //
@@ -8057,6 +8057,13 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
+
+    *out << cgicc::fieldset();
+
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    *out << endl ;
+    //
+    *out << cgicc::legend("DMB/CFEB Load PROM").set("style","color:red") ;
     //
     std::string DMBFirmware = FirmwareDir_+DMB_FIRMWARE_FILENAME;
     DMBFirmware_ = DMBFirmware;
@@ -8072,6 +8079,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
+    *out << cgicc::br();
     //
     std::string DMBVmeLoadFirmware =
       toolbox::toString("/%s/DMBVmeLoadFirmware",getApplicationDescriptor()->getURN().c_str());
@@ -8082,6 +8090,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
+    *out << cgicc::br();
     //
     std::string DMBVmeLoadFirmwareEmergency =
       toolbox::toString("/%s/DMBVmeLoadFirmwareEmergency",getApplicationDescriptor()->getURN().c_str());
@@ -8094,6 +8103,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
+    *out << cgicc::br();
     //
     std::string CFEBFirmware = FirmwareDir_+CFEB_FIRMWARE_FILENAME;
     CFEBFirmware_ = CFEBFirmware;
@@ -8110,6 +8120,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
+    *out << cgicc::br();
     //
     std::string CFEBLoadFirmwareID =
       toolbox::toString("/%s/CFEBLoadFirmwareID",getApplicationDescriptor()->getURN().c_str());
