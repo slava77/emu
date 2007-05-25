@@ -138,6 +138,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     xgi::bind(this,&EmuPeripheralCrate::DMBVmeLoadFirmware, "DMBVmeLoadFirmware");
     xgi::bind(this,&EmuPeripheralCrate::DMBVmeLoadFirmwareEmergency, "DMBVmeLoadFirmwareEmergency");
     xgi::bind(this,&EmuPeripheralCrate::CFEBLoadFirmware, "CFEBLoadFirmware");
+    xgi::bind(this,&EmuPeripheralCrate::CFEBLoadFirmwareID, "CFEBLoadFirmwareID");
     xgi::bind(this,&EmuPeripheralCrate::CFEBStatus, "CFEBStatus");
     xgi::bind(this,&EmuPeripheralCrate::ALCTStatus, "ALCTStatus");
     xgi::bind(this,&EmuPeripheralCrate::CrateConfiguration, "CrateConfiguration");
@@ -4574,8 +4575,6 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     DAQMB * thisDMB = dmbVector[dmb];
     //
-    int mindmb = dmb;
-    int maxdmb = dmb+1;
     if (thisDMB->slot() == 25) { //if DMB slot = 25, loop over each dmb
       cout <<" The emergency load is NOT available for DMB slot25"<<endl;
       cout <<" Please use individual slot loading !!!"<<endl;
@@ -4682,6 +4681,87 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       ::sleep(1);
       thisCCB->hardReset();
     }
+    //
+    this->DMBUtils(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::CFEBLoadFirmwareID(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    LOG4CPLUS_INFO(getApplicationLogger(),"Started CFEB firmware download with Board_number");
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    int dmbNumber = -1;
+    //
+    cgicc::form_iterator name2 = cgi.getElement("DMBNumber");
+    //int registerValue = -1;
+    if(name2 != cgi.getElements().end()) {
+      dmbNumber = cgi["DMBNumber"]->getIntegerValue();
+      //
+    }
+    //
+    int cfebSerialNumber = 0;
+    //
+    cgicc::form_iterator name3 = cgi.getElement("CFEBSerialNumber");
+    //int registerValue = -1;
+    if(name3 != cgi.getElements().end()) {
+      cfebSerialNumber = cgi["CFEBSerialNumber"]->getIntegerValue();
+      //
+    }
+    //
+
+    std::cout << "Loading CFEBNumber " <<dmbNumber << " with serial number: "<<cfebSerialNumber<<std::endl ;
+    if (cfebSerialNumber>2600 ||cfebSerialNumber<1 ||
+	dmbNumber>4 || dmbNumber<0) {
+      std::cout<<"Invalid cfeb number, or serial number"<<std::endl;
+      return;
+    }
+    //*out << "Loading DMBNumber " <<dmbNumber ;
+    //*out << cgicc::br();
+    //
+    cgicc::form_iterator name = cgi.getElement("dmb");
+    //
+    int dmb;
+    if(name != cgi.getElements().end()) {
+      dmb = cgi["dmb"]->getIntegerValue();
+      cout << "DMB " << dmb << endl;
+      DMB_ = dmb;
+    }
+    //
+    DAQMB * thisDMB = dmbVector[dmb];
+    if ((thisDMB->slot() >21) || (thisDMB->slot() <3)){
+      std::cout<<" Invalid DMB slot for CFEB Number reloading "<<thisDMB->slot()<<std::endl;
+      return;
+    }
+    //
+    cout << "CFEBLoadFirmware - DMB " << dmb << endl;
+    //
+    thisCCB->hardReset();
+    //
+    if (thisDMB) {
+      //
+      vector<CFEB> thisCFEBs = thisDMB->cfebs();
+      //
+      ::sleep(1);
+      //
+      ostringstream dum;
+      dum << "loading CFEB firmware for DMB=" << dmb << " CFEB="<< dmbNumber << std::endl;
+      LOG4CPLUS_INFO(getApplicationLogger(), dum.str());
+      unsigned short int dword[2];
+      dword[0]=cfebSerialNumber;
+      dword[1]=0xCFEB;
+      char * outp=(char *)dword;   // recast dword
+      for (unsigned int i=0; i<thisCFEBs.size(); i++) {
+        if (thisCFEBs[i].number() == dmbNumber ) {
+          thisDMB->epromload(thisCFEBs[i].promDevice(),CFEBFirmware_.toString().c_str(),1,outp);
+        }
+      }
+    }
+    ::sleep(1);
+    thisCCB->hardReset();
     //
     this->DMBUtils(in,out);
     //
@@ -8027,6 +8107,21 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::input().set("type","text").set("value","-1")
       .set("name","DMBNumber") << std::endl ;
     *out << cgicc::input().set("type","submit").set("value","CFEB Load Firmware") << std::endl ;
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string CFEBLoadFirmwareID =
+      toolbox::toString("/%s/CFEBLoadFirmwareID",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",CFEBLoadFirmwareID)
+	 << std::endl ;
+    *out << "CFEB to download (0-4):";
+    *out << cgicc::input().set("type","text").set("value","-1").set("name","DMBNumber");
+    *out << " Board Serial_Number:";
+    *out << cgicc::input().set("type","text").set("value","0").set("name","CFEBSerialNumber")<<std::endl;
+
+    *out << cgicc::input().set("type","submit").set("value","CFEB Load Firmware/Serial Number recovery") << std::endl ;
     sprintf(buf,"%d",dmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
