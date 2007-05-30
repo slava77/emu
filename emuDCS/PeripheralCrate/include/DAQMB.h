@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.17 2007/04/20 16:07:48 gujh Exp $
+// $Id: DAQMB.h,v 3.18 2007/05/30 16:48:21 rakness Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.18  2007/05/30 16:48:21  rakness
+// DMB cable_delay scans/tools
+//
 // Revision 3.17  2007/04/20 16:07:48  gujh
 // Added epromload_broadcast
 //     --- Apr. 20, 2007   GU
@@ -357,8 +360,12 @@ public:
   inline void SetTmbLctCableDelay(int delay){cable_delay_=(cable_delay_&0xf1)+((delay<<1)&0x0e);}
   inline void SetCfebDavCableDelay(int delay){cable_delay_=(cable_delay_&0xcf)+((delay<<4)&0x30);}
   inline void SetAlctDavCableDelay(int delay){cable_delay_=(cable_delay_&0x3f)+((delay<<6)&0xc0);}
-
-  inline int GetCableDelay(){return cable_delay_;}
+  //
+  inline int GetCableDelay()        { return cable_delay_; }
+  inline int GetCfebCableDelay()    { return ((cable_delay_ >> 0) & 0x01); }
+  inline int GetTmbLctCableDelay()  { return ((cable_delay_ >> 1) & 0x07); }
+  inline int GetCfebDavCableDelay() { return ((cable_delay_ >> 4) & 0x03); }
+  inline int GetAlctDavCableDelay() { return ((cable_delay_ >> 6) & 0x03); }
   //
   void SetCrateId(int id){crate_id_ = id;}
   //
