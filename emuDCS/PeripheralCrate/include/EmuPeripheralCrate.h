@@ -278,7 +278,7 @@ private:
   void DMBPrintCounters(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ChamberTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBStartTrigger(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-    void EnableL1aRequest(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void EnableL1aRequest(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ALCTTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void Automatic(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CFEBTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -288,7 +288,11 @@ private:
   void ALCTScan(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CFEBScan(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void FindWinner(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
-  void AFFtoL1aAtDMB(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void AlctDavCableDelay(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void TmbLctCableDelay(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CfebDavCableDelay(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void CfebCableDelay(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void PrintDmbValuesAndScopes(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void RatTmbTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void RpcRatTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MakeReference(xgi::Input * in , xgi::Output * out );
