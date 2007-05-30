@@ -14,7 +14,7 @@
 //
 using namespace std;
 //
-CrateUtilities::CrateUtilities() : myCrate_(0), MpcTMBTestResult(-1)
+CrateUtilities::CrateUtilities() : MpcTMBTestResult(-1), myCrate_(0)
 {
   //
   std::cout << "CrateUtilities" << endl ;
@@ -453,7 +453,7 @@ void CrateUtilities::CreateTstoreTables(){
     int alctSlot = myAlcts[alct]->GetTMB()->slot();
     int CSCid   = (alctSlot)/2;
     if (alctSlot>12 ) CSCid -=1;
-    int tmbKey = CSCid;
+    //    int tmbKey = CSCid;
     int alctKey = CSCid;
     //
     alct_output[alct].str("");
@@ -542,7 +542,7 @@ void CrateUtilities::CreateTstoreTables(){
     //
     // Fill AFEB table
     //
-    int nAFEBs = myAlcts[alct]->GetNumberOfAfebs();
+    unsigned nAFEBs = myAlcts[alct]->GetNumberOfAfebs();
     //
     for( unsigned afebs=0; afebs<nAFEBs; afebs++){
       //
@@ -595,7 +595,7 @@ void CrateUtilities::MpcTMBTest(int Nloop){
   //
   std::vector <TMB*> myTmbs = myCrate_->tmbs();
   //
-  for (int i=0; i<myTmbs.size(); i++) {
+  for (unsigned i=0; i<myTmbs.size(); i++) {
     //
     (myTmbs[i]->ResetInjectedLCT());
     //
@@ -603,7 +603,7 @@ void CrateUtilities::MpcTMBTest(int Nloop){
   //
   (myCrate_->mpc())->ResetFIFOBLct();
   //
-  for (int i=0; i<myTmbs.size(); i++) {
+  for (unsigned i=0; i<myTmbs.size(); i++) {
     //
     myTmbs[i]->InjectMPCData(myTmbs.size(),0,0); //Random Data
     //
@@ -619,12 +619,10 @@ void CrateUtilities::MpcTMBTest(int Nloop){
     return;
   }
   //
-  int NInjected = 0;
-  //
   int NFrames = myTmbs.size();
   if (NFrames > 5 ) NFrames = 5;
   //
-  for( int frame = 0; frame < NFrames ; frame++ ) {
+  for (int frame = 0; frame < NFrames ; frame++ ) {
     //
     std::cout << " Frame " << frame << " " << std::hex << std::setw(8) <<
       " " << ((myCrate_->mpc())->GetFIFOBLct0())[frame] <<
@@ -640,7 +638,7 @@ void CrateUtilities::MpcTMBTest(int Nloop){
     //
     std::vector <unsigned long int> InjectedLCT;
     //
-    for (int i=0; i<myTmbs.size(); i++) {
+    for (unsigned i=0; i<myTmbs.size(); i++) {
       if ( (myTmbs[i]->GetInjectedLct0()).size() ) {
 	InjectedLCT.push_back((myTmbs[i]->GetInjectedLct0())[frame]);
 	InjectedLCT.push_back((myTmbs[i]->GetInjectedLct1())[frame]);
@@ -649,11 +647,11 @@ void CrateUtilities::MpcTMBTest(int Nloop){
     std::sort(InjectedLCT.begin(),InjectedLCT.end(), std::greater<int>() );
     //
     std::cout << "Sorted : " ;
-    for ( int vec=0; vec<InjectedLCT.size(); vec++) std::cout << InjectedLCT[vec] << " "  ;
+    for (unsigned vec=0; vec<InjectedLCT.size(); vec++) std::cout << InjectedLCT[vec] << " "  ;
     //
     std::cout << std::endl ;
     //
-    for (int i=0; i<myTmbs.size(); i++) {
+    for (unsigned i=0; i<myTmbs.size(); i++) {
       if ( (myTmbs[i]->GetInjectedLct0()).size() ) {
 	if ( ((myTmbs[i]->GetInjectedLct0())[frame]) == MPCLct0 ||
 	     ((myTmbs[i]->GetInjectedLct1())[frame]) == MPCLct0 )  {
