@@ -4802,8 +4802,8 @@ void EmuDAQManager::haltAction(toolbox::Event::Reference e)
 
     try
       {
-	// Write to database only if not in global mode. Write to e-log regardless.
-	writeRunInfo( !globalMode_.value_ , true );
+	// Write to database and e-log only if not in global mode.
+	writeRunInfo( !globalMode_.value_ , !globalMode_.value_ );
       }
     catch(...)
       {
