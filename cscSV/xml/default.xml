@@ -26,6 +26,19 @@
 				<fcConfigs soapenc:arrayType="xsd:ur-type[1]" xsi:type="soapenc:Array">
 					<item soapenc:position="[0]" xsi:type="xsd:string">Global</item>
 				</fcConfigs>
+				<runDbBookingCommand xsi:type="xsd:string">java -jar /home/cscdaq/bin/runnumberbooker.jar</runDbBookingCommand>
+				<runDbWritingCommand xsi:type="xsd:string">java -jar /home/cscdaq/bin/runinfowriter.jar</runDbWritingCommand>
+				<runDbAddress xsi:type="xsd:string">dbc:oracle:thin:@oracms.cern.ch:10121:omds</runDbAddress>
+<!-- 				<runDbUserFile xsi:type="xsd:string">/home/cscdaq/config/.runDbUser</runDbUserFile> -->
+<!-- 				<runDbUserFile xsi:type="xsd:string">/home/cscdaq/config/.runDbTestUser</runDbUserFile> -->
+				<runDbUserFile xsi:type="xsd:string">/home/cscdaq/config/.runDbMTCCUser</runDbUserFile>
+<!-- 				<curlCommand xsi:type="xsd:string">/usr/bin/curl -v -k </curlCommand> -->
+				<curlCommand xsi:type="xsd:string">/usr/bin/curl -v </curlCommand>
+				<curlCookies xsi:type="xsd:string">.curlCookies</curlCookies>
+				<CMSUserFile xsi:type="xsd:string">/home/cscdaq/config/.CMSUser</CMSUserFile>
+				<eLogUserFile xsi:type="xsd:string">/home/cscdaq/config/.eLogUser</eLogUserFile>
+				<eLogURL xsi:type="xsd:string">https://cmsdaq.cern.ch/elog/CSC</eLogURL>
+<!-- 				<eLogURL xsi:type="xsd:string">https://cmsdaq.cern.ch/elog/Test</eLogURL> -->
 			</properties>
 		</xc:Application>
 		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libCSCSupervisor.so</xc:Module>

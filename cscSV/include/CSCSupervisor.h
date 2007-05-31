@@ -15,6 +15,7 @@
 #include "xdata/String.h"
 #include "xdata/UnsignedLong.h"
 #include "xgi/Method.h"
+#include "EmuRunInfo.h"
 
 class CSCSupervisor : public EmuApplication
 {
@@ -81,6 +82,7 @@ public:
 private: // XDAQ parameters
 	xdata::String run_type_;
 	xdata::UnsignedLong run_number_;
+	xdata::UnsignedLong runSequenceNumber_;
 
 	xdata::Vector<xdata::String> config_keys_;
 	xdata::Vector<xdata::String> pc_keys_;
@@ -159,6 +161,38 @@ private:
 	string error_message_;
 
 	bool keep_refresh_;
+
+	xdata::String curlCommand_;         // the curl command's full path
+	xdata::String curlCookies_;         // file for cookies
+	xdata::String CMSUserFile_;         // file that contains the username:password for CMS user
+	xdata::String eLogUserFile_;        // file that contains the username:password:author for eLog user
+	xdata::String eLogURL_;             // eLog's URL 
+	xdata::Vector<xdata::String> peripheralCrateConfigFiles_; // files to be attached to elog post
+	
+	EmuRunInfo *runInfo_;               // communicates with run database
+	xdata::String runDbBookingCommand_; // e.g. "java -jar runnumberbooker.jar"
+	xdata::String runDbWritingCommand_; // e.g. "java -jar runinfowriter.jar"
+	xdata::String runDbAddress_;        // e.g. "dbc:oracle:thin:@oracms.cern.ch:10121:omds"
+	xdata::String runDbUserFile_;       // file that contains the username:password for run db user
+	bool isBookedRunNumber_;
+	void bookRunNumber();
+	void writeRunInfo( bool toDatabase, bool toELog );
+        void postToELog( string subject, string body, vector<string> *attachments );
+        vector< vector<string> > getFUEventCounts();
+        vector< vector<string> > getRUIEventCounts();
+        std::map<std::string,std::string> getScalarParams( xdaq::ApplicationDescriptor* appDescriptor,
+							   const std::map<std::string,std::string>     paramNamesAndTypes )
+	  throw (xcept::Exception);
+        xoap::MessageReference createParametersGetSOAPMsg( const string             appClass,
+							   const std::map<std::string,std::string> paramNamesAndTypes )
+	  throw (xcept::Exception);
+        std::map<std::string,std::string> extractScalarParameterValues( xoap::MessageReference   msg,
+							 const std::map<std::string,std::string> paramNamesAndTypes )
+	  throw (xcept::Exception);
+        DOMNode* findNode( DOMNodeList *nodeList,
+			   const string nodeLocalName )
+	  throw (xcept::Exception);
+        string reformatTime( string time );
 
 	class StateTable
 	{
