@@ -3528,32 +3528,32 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     //    *out << cgicc::form() << std::endl ;
     //
-    std::string InitChamber =
-      toolbox::toString("/%s/InitChamber",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",InitChamber) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Init Chamber") << std::endl ;
-    *out << cgicc::input().set("type","hidden").set("value","1").set("name","navigator");
-    *out << cgicc::form() << std::endl ;
+    //    std::string InitChamber =
+    //      toolbox::toString("/%s/InitChamber",getApplicationDescriptor()->getURN().c_str());
+    //    *out << cgicc::form().set("method","GET").set("action",InitChamber) << std::endl ;
+    //    *out << cgicc::input().set("type","submit").set("value","Init Chamber") << std::endl ;
+    //    *out << cgicc::input().set("type","hidden").set("value","1").set("name","navigator");
+    //    *out << cgicc::form() << std::endl ;
     //
-    std::string TMBStartTrigger =
-      toolbox::toString("/%s/TMBStartTrigger",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",TMBStartTrigger) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","TMBStartTrigger") << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    sprintf(buf,"%d",dmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    *out << cgicc::form() << std::endl ;
+    //    std::string TMBStartTrigger =
+    //      toolbox::toString("/%s/TMBStartTrigger",getApplicationDescriptor()->getURN().c_str());
+    //    *out << cgicc::form().set("method","GET").set("action",TMBStartTrigger) << std::endl ;
+    //    *out << cgicc::input().set("type","submit").set("value","TMBStartTrigger") << std::endl ;
+    //    sprintf(buf,"%d",tmb);
+    //    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    //    sprintf(buf,"%d",dmb);
+    //    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    //    *out << cgicc::form() << std::endl ;
     //
-    std::string EnableL1aRequest =
-      toolbox::toString("/%s/EnableL1aRequest",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",EnableL1aRequest) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","EnableL1aRequest") << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    sprintf(buf,"%d",dmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    *out << cgicc::form() << std::endl ;
+    //    std::string EnableL1aRequest =
+    //      toolbox::toString("/%s/EnableL1aRequest",getApplicationDescriptor()->getURN().c_str());
+    //    *out << cgicc::form().set("method","GET").set("action",EnableL1aRequest) << std::endl ;
+    //    *out << cgicc::input().set("type","submit").set("value","EnableL1aRequest") << std::endl ;
+    //    sprintf(buf,"%d",tmb);
+    //    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    //    sprintf(buf,"%d",dmb);
+    //    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    //    *out << cgicc::form() << std::endl ;
     //
     //
     *out << cgicc::pre();
@@ -3598,7 +3598,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     std::string RatTmbTiming =
       toolbox::toString("/%s/RatTmbTiming",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",RatTmbTiming) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Scan RAT-TMB phase") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Determine RAT-TMB phase") << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     sprintf(buf,"%d",dmb);
@@ -3618,7 +3618,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     std::string ALCTvpf = 
       toolbox::toString("/%s/ALCTvpf",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",ALCTvpf) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Measure CLCT-ALCT match timing") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Determine CLCT-ALCT match timing") << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     sprintf(buf,"%d",dmb);
@@ -3639,7 +3639,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     std::string FindWinner =
       toolbox::toString("/%s/FindWinner",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",FindWinner) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Find Winner Bits") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Determine Winner Bit Timing") << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     sprintf(buf,"%d",dmb);
@@ -3652,7 +3652,137 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     //
     *out << cgicc::pre();
-    *out << "---- Check the DMB parameters overall.  Has the Active FEB Flag to L1A timing changed significantly? -----" << std::endl;
+    *out << "---- Determine the DMB parameters -----" << std::endl;
+    *out << cgicc::pre();
+    //
+    //
+    std::string AlctDavCableDelay =
+      toolbox::toString("/%s/AlctDavCableDelay",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",AlctDavCableDelay) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Determine ALCT DAV (ALCT-TMB) cable delay") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << "alct_dav_cable_delay = " << MyTest[tmb].GetAlctDavCableDelayTest() 
+	 << " ("  << MyTest[tmb].GetAlctDavCableDelay_configvalue() << ") " << std::endl;
+    *out << cgicc::br();
+    *out << cgicc::br();
+    //
+    //
+    std::string TmbLctCableDelay =
+      toolbox::toString("/%s/TmbLctCableDelay",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TmbLctCableDelay) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Determine Active FEB flag (TMB-CFEB) cable delay") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << "tmb_lct_cable_delay = " << MyTest[tmb].GetTmbLctCableDelayTest() 
+    	 << " ("  << MyTest[tmb].GetTmbLctCableDelay_configvalue() << ") " << std::endl;
+    *out << cgicc::br();
+    *out << cgicc::br();
+    //
+    *out << cgicc::pre();
+    *out << "---- Make sure that cfeb_cable_delay is set to desired value before running the next test -----" << std::endl;
+    *out << cgicc::pre();
+    //
+    std::string CfebDavCableDelay =
+      toolbox::toString("/%s/CfebDavCableDelay",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",CfebDavCableDelay) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Determine CFEB DAV (CFEB-DMB) cable delay") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << "cfeb_dav_cable_delay = " << MyTest[tmb].GetCfebDavCableDelayTest() 
+	 << " ("  << MyTest[tmb].GetCfebDavCableDelay_configvalue() << ") " << std::endl;
+    *out << cgicc::br();
+    *out << cgicc::br();
+    //
+    //    *out << cgicc::pre();
+    //    *out << "---- Now trigger on neighboring chamber -----" << std::endl;
+    //    *out << cgicc::pre();
+    //    //
+    //    std::string CfebCableDelay =
+    //      toolbox::toString("/%s/CfebCableDelay",getApplicationDescriptor()->getURN().c_str());
+    //    *out << cgicc::form().set("method","GET").set("action",CfebCableDelay) << std::endl ;
+    //    *out << cgicc::input().set("type","submit").set("value","Measure CFEB cable delay") << std::endl ;
+    //    sprintf(buf,"%d",tmb);
+    //    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    //    sprintf(buf,"%d",dmb);
+    //    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    //    *out << cgicc::form() << std::endl ;
+    //    //
+    //    *out << "cfeb_cable_delay = " << MyTest[tmb].GetCfebCableDelayTest() 
+    //	 << " ("  << MyTest[tmb].GetCfebCableDelay_configvalue() << ") " << std::endl;
+    //    *out << cgicc::br();
+    //    *out << cgicc::br();
+    //
+    //
+    *out << cgicc::pre();
+    *out << "---------- Determine the delays for the L1A arrival windows at the TMB and ALCT ------------" << std::endl;
+    *out << cgicc::pre();
+    //
+    //
+    std::string TMBL1aTiming =
+      toolbox::toString("/%s/TMBL1aTiming",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",TMBL1aTiming) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Determine TMB L1a Timing") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << "tmb_l1a_delay = " << MyTest[tmb].GetTMBL1aTiming() << " ("  << MyTest[tmb].GetTMBL1aTiming_configvalue() << ") " << std::endl;
+    *out << cgicc::br();
+    *out << cgicc::br();
+    //
+    //
+    std::string ALCTL1aTiming =
+      toolbox::toString("/%s/ALCTL1aTiming",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",ALCTL1aTiming) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Determine ALCT L1a Timing") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << "alct_l1a_delay = " << MyTest[tmb].GetALCTL1aDelay() << " ("  << MyTest[tmb].GetALCTL1aDelay_configvalue() << ") " << std::endl;
+    *out << cgicc::br();
+    *out << cgicc::br();
+    //
+    //
+    *out << cgicc::pre();
+    *out << "------ Ensure the RPC parity-bit is enabled for the following scan ------------" << std::endl;
+    *out << cgicc::pre();
+    //
+    //
+    std::string RpcRatTiming =
+      toolbox::toString("/%s/RpcRatTiming",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",RpcRatTiming) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Determine RPC-RAT phase") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << "rpc0_rat_delay = " << MyTest[tmb].GetRpcRatDelayTest() << " ("  << MyTest[tmb].GetRpcRatDelay()     << ") " << std::endl;
+    *out << cgicc::br();
+    *out << cgicc::br();
+    //
+    //
+    *out << cgicc::pre();
+    *out << "---- Overall state of the DMB parameters.  Has the Active FEB Flag to L1A timing changed significantly? -----" << std::endl;
     *out << cgicc::pre();
     //
     //
@@ -3671,131 +3801,6 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::br();
     //
     //
-    *out << cgicc::br();
-    *out << cgicc::br();
-    //
-    //
-    *out << cgicc::pre();
-    *out << "---- Determine the timing of the DMB parameters triggering on one chamber -----" << std::endl;
-    *out << cgicc::pre();
-    //
-    //
-    std::string AlctDavCableDelay =
-      toolbox::toString("/%s/AlctDavCableDelay",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",AlctDavCableDelay) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Measure ALCT DAV cable delay") << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    sprintf(buf,"%d",dmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << "alct_dav_cable_delay = " << MyTest[tmb].GetAlctDavCableDelayTest() 
-	 << " ("  << MyTest[tmb].GetAlctDavCableDelay_configvalue() << ") " << std::endl;
-    *out << cgicc::br();
-    *out << cgicc::br();
-    //
-    //
-    std::string TmbLctCableDelay =
-      toolbox::toString("/%s/TmbLctCableDelay",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",TmbLctCableDelay) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Measure TMB LCT cable delay") << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    sprintf(buf,"%d",dmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << "tmb_lct_cable_delay = " << MyTest[tmb].GetTmbLctCableDelayTest() 
-    	 << " ("  << MyTest[tmb].GetTmbLctCableDelay_configvalue() << ") " << std::endl;
-    *out << cgicc::br();
-    *out << cgicc::br();
-    //
-    *out << cgicc::pre();
-    *out << "---- Make sure that cfeb_cable_delay=1 before running the next test -----" << std::endl;
-    *out << cgicc::pre();
-    //
-    std::string CfebDavCableDelay =
-      toolbox::toString("/%s/CfebDavCableDelay",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",CfebDavCableDelay) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Measure CFEB DAV cable delay") << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    sprintf(buf,"%d",dmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << "cfeb_dav_cable_delay = " << MyTest[tmb].GetCfebDavCableDelayTest() 
-	 << " ("  << MyTest[tmb].GetCfebDavCableDelay_configvalue() << ") " << std::endl;
-    *out << cgicc::br();
-    *out << cgicc::br();
-    //
-    *out << cgicc::pre();
-    *out << "---- Now trigger on neighboring chamber -----" << std::endl;
-    *out << cgicc::pre();
-    //
-    std::string CfebCableDelay =
-      toolbox::toString("/%s/CfebCableDelay",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",CfebCableDelay) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Measure CFEB cable delay") << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    sprintf(buf,"%d",dmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << "cfeb_cable_delay = " << MyTest[tmb].GetCfebCableDelayTest() 
-	 << " ("  << MyTest[tmb].GetCfebCableDelay_configvalue() << ") " << std::endl;
-    *out << cgicc::br();
-    *out << cgicc::br();
-    //
-    //
-    *out << cgicc::pre();
-    *out << "---------- Determine the timing for the L1A arrival windows at the TMB and ALCT ------------" << std::endl;
-    *out << cgicc::pre();
-    //
-    //
-    std::string TMBL1aTiming =
-      toolbox::toString("/%s/TMBL1aTiming",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",TMBL1aTiming) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","TMB L1a Timing") << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    sprintf(buf,"%d",dmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << "tmb_l1a_delay = " << MyTest[tmb].GetTMBL1aTiming() << " ("  << MyTest[tmb].GetTMBL1aTiming_configvalue() << ") " << std::endl;
-    *out << cgicc::br();
-    *out << cgicc::br();
-    //
-    //
-    std::string ALCTL1aTiming =
-      toolbox::toString("/%s/ALCTL1aTiming",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",ALCTL1aTiming) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","ALCT L1a Timing") << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    sprintf(buf,"%d",dmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << "alct_l1a_delay = " << MyTest[tmb].GetALCTL1aDelay() << " ("  << MyTest[tmb].GetALCTL1aDelay_configvalue() << ") " << std::endl;
-    *out << cgicc::br();
-    *out << cgicc::br();
-    //
-    //
-    std::string RpcRatTiming =
-      toolbox::toString("/%s/RpcRatTiming",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",RpcRatTiming) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","RPC-RAT Timing") << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    sprintf(buf,"%d",dmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << "rpc0_rat_delay = " << MyTest[tmb].GetRpcRatDelayTest() << " ("  << MyTest[tmb].GetRpcRatDelay()     << ") " << std::endl;
     *out << cgicc::br();
     *out << cgicc::br();
     //
