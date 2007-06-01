@@ -1214,8 +1214,13 @@ string CSCSupervisor::getLocalDAQState()
 
 bool CSCSupervisor::isDAQManagerControlled(string command)
 {
+        // Enforce "Halt" irrespective of DAQ mode.
+	if (command == "Halt") { return true; }
+
+	// Don't send any other command when DAQ is in local mode.
 	if (getDAQMode() != "global") { return false; }
 
+	// And don't send any other command when DAQ was configured in local mode, either.
 	if (command != "Configure" && !isDAQConfiguredInGlobal()) { return false; }
 
 	return true;
