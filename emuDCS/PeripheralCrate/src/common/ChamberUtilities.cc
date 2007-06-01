@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.15 2007/05/30 16:48:27 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.16 2007/06/01 14:57:49 gujh Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.16  2007/06/01 14:57:49  gujh
+// Add "include <cmath>" and change the 'abs' to 'fabs' on line 2488
+//
 // Revision 3.15  2007/05/30 16:48:27  rakness
 // DMB cable_delay scans/tools
 //
@@ -184,6 +187,7 @@
 //
 #include <stdio.h>
 #include <iomanip>
+#include <cmath>
 #include <unistd.h> 
 #include <string>
 //
@@ -2484,7 +2488,7 @@ int ChamberUtilities::DelayWhichGivesDesiredValue(float * values, const int min_
   float vector_of_differences[number_of_values];
   //
   for (int delay=min_delay; delay<=max_delay; delay++) 
-    vector_of_differences[delay] = abs(values[delay] - (float)(desired_value)); 
+    vector_of_differences[delay] = fabs(values[delay] - (float)(desired_value)); 
   //
   float min_difference=9999.;
   //
