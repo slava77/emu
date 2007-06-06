@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.11 2007/05/24 19:07:53 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.12 2007/06/06 14:44:08 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -71,6 +71,7 @@ using namespace std;
     xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBGain, "EnableCalCFEBGain", XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBTime, "EnableCalCFEBTime", XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBPed, "EnableCalCFEBPed", XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBComp, "EnableCalCFEBComp", XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onEnable,    "Enable",    XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onDisable,   "Disable",   XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onHalt,      "Halt",      XDAQ_NS_URI);
@@ -1356,6 +1357,41 @@ using namespace std;
     return createReply(message);
   }
   //
+  xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBComp (xoap::MessageReference message) throw (xoap::exception::Exception)
+  {
+    float dac, threshold;
+    int nsleep = 100, highthreshold;  
+    //  std::cout<< "This is a checking printing for OnEnableCalCFEBComp"<<std::endl;
+    ostringstream test;
+    message->writeTo(test);
+    cout << test.str() <<endl;
+
+    calsetup++;
+
+    //implement the comparator setup process:
+    std::cout << "DMB setup for CFEB Comparator, calsetup= " <<calsetup<< std::endl;
+
+    //Start the setup process:
+
+    if (calsetup==1) broadcastTMB->EnableCLCTInputs(0x1f); //enable TMB's CLCT inputs
+
+    int thresholdsetting =((calsetup-1)%35);   //35 Comparator threshold setting for each channel
+    int nstrip=(calsetup-1)/35;           //16 channels, total loop: 32*35=1120
+    highthreshold=nstrip/16;
+    dac=0.15+0.2*highthreshold;
+    nstrip=nstrip%16;
+    if (!thresholdsetting) {
+      broadcastDMB->buck_shift_comp_bc(nstrip);
+      if (!nstrip) broadcastDMB->set_cal_dac(dac,dac);
+    }
+    threshold=0.03*thresholdsetting+0.013+0.036*highthreshold;
+    broadcastDMB->set_comp_thresh_bc(threshold);
+    cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<endl;
+    usleep(nsleep);
+    //    fireEvent("Enable");
+
+    return createReply(message);
+  }
   xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBGain (xoap::MessageReference message) throw (xoap::exception::Exception)
   {
     float dac;
@@ -1382,6 +1418,7 @@ using namespace std;
 
     return createReply(message);
   }
+
 
   xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBTime (xoap::MessageReference message) throw (xoap::exception::Exception)
   {
