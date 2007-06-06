@@ -1,6 +1,11 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.27 2007/05/20 15:48:13 gujh Exp $
+// $Id: DAQMB.cc,v 3.28 2007/06/06 14:47:41 gujh Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.28  2007/06/06 14:47:41  gujh
+// Added methods: buck_shift_comp_bc and set_comp_thresh_bc for broadcast
+// loading the comparator pattern and comparator threshold
+//      ---- June 6, 2007.   GU
+//
 // Revision 3.27  2007/05/20 15:48:13  gujh
 // Try a maximum of three times if the usercode readback is FFFFFFFF, to protect
 // the board number (DMB/CFEB) overwritten by bad readout.
@@ -820,6 +825,39 @@ void  DAQMB::set_comp_mode(int dword)
   (*MyOutput_) << "calling set_comp_mode " << dword << std::endl;
 }
 
+void DAQMB::set_comp_thresh_bc(float thresh)
+{
+char dt[2];
+// 
+/* digitize voltages */
+// 
+ int dthresh=int(4095*((3.5-thresh)/3.5)); 
+ dt[0]=0;
+ dt[1]=0;
+ for(int i=0;i<8;i++){
+   dt[0]|=((dthresh>>(i+7))&1)<<(7-i);
+   dt[1]|=((dthresh>>i)&1)<<(6-i);
+ }
+ dt[0]=((dt[1]<<7)&0x80) + ((dt[0]>>1)&0x7f);
+ dt[1]=dt[1]>>1;
+ //
+   DEVTYPE dv = FASCAM;
+   cmd[0]=VTX_USR1;
+   sndbuf[0]=COMP_DAC;
+   devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+   cmd[0]=VTX_USR2;
+   sndbuf[0]=dt[0];
+   sndbuf[1]=dt[1];
+   sndbuf[2]=0x00; 
+   devdo(dv,5,cmd,15,sndbuf,rcvbuf,0);
+   cmd[0]=VTX_USR1;
+   sndbuf[0]=NOOP;
+   devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+   cmd[0]=VTX_BYPASS;
+   devdo(dv,5,cmd,0,sndbuf,rcvbuf,0);
+   usleep(20);
+ }
+//
 void DAQMB::set_comp_thresh(float thresh)
 {
 char dt[2];
@@ -1019,7 +1057,7 @@ void DAQMB::trigsetx(int *hp, int CFEBInput)
   chan2shift(chan);
 }
 
-//broadcast buckeye shift on DMB/CFEB level
+//broadcast buckeye shift on DMB/CFEB level for external channel
 void DAQMB::buck_shift_ext_bc(int nstrip)
 {
   char shft_bits[6]={0,0,0,0,0,0};
@@ -1044,6 +1082,67 @@ void DAQMB::buck_shift_ext_bc(int nstrip)
   devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
   cmd[0]=VTX_USR2;
   devdo(dv,5,cmd,48,shft_bits,rcvbuf,0);
+  //set the function into NOOP, and bypass
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=NOOP;
+  devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_BYPASS;
+  devdo(dv,5,cmd,0,sndbuf,rcvbuf,2);
+
+  ::usleep(200);
+}
+
+//broadcast buckeye shift on DMB/CFEB level for comparator
+void DAQMB::buck_shift_comp_bc(int nstrip)
+{
+  char shft_bitsa[6]={0,0,0,0,0,0};
+  char shft_bitsb[6]={0,0,0,0,0,0};
+
+  //small_cap  =1
+  //medium_cap =2
+  //large_cap  =3
+  //When shift, it shift strip 1 first, and low bit first
+  int i=(15-nstrip)*3;
+  long long patterna=0x99; //132 for layer 1,3,5 (channel 15 first)
+  long long patternb=0x5a; //231 for layer 2,4,6 (channel 15 first)
+  if ((nstrip >= 0) && (nstrip < 16)) {
+    long long pattern=0;
+    pattern=(patterna<<i)>>3;
+    if (i==0) pattern=pattern|(patterna<<45);
+    if (i==45) pattern=pattern|(patterna>>6);
+    for (int j=0;j<6;j++) {
+      shft_bitsa[j]=(pattern>>(j*8))&0xff;
+    }
+    pattern=0;
+    pattern=(patternb<<i)>>3;
+    if (i==0) pattern=pattern|(patternb<<45);
+    if (i==45) pattern=pattern|(patternb>>6);
+    for (int j=0;j<6;j++) {
+      shft_bitsb[j]=(pattern>>(j*8))&0xff;
+    }
+  }
+
+  //enable all CFEBs, and set the CFEB into broadcast mode
+  DEVTYPE dv = FASCAM;
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=CHIP_MASK;
+  devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+  // (*MyOutput_)<<" first devdo call \n";
+  cmd[0]=VTX_USR2;
+  sndbuf[0]=0x3f;    //set the chip_in_use to 111111 as the patterns are different for different buckeyes
+  devdo(dv,5,cmd,6,sndbuf,rcvbuf,0);
+  //shift in 48*6 bits for the whole DMB ( 1/5 of non-broadcast )
+  cmd[0]=VTX_USR1;
+  sndbuf[0]=CHIP_SHFT;
+  devdo(dv,5,cmd,8,sndbuf,rcvbuf,0);
+  cmd[0]=VTX_USR2;
+  for (int j=0;j<18;j++) {
+    sndbuf[j]=(shft_bitsb[j%6])&0xff;
+  }
+  for (int j=18;j<36;j++) {
+    sndbuf[j]=(shft_bitsa[j%6])&0xff;
+  }
+  devdo(dv,5,cmd,288,sndbuf,rcvbuf,0);
   //set the function into NOOP, and bypass
   cmd[0]=VTX_USR1;
   sndbuf[0]=NOOP;
@@ -2847,7 +2946,7 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
   //
 #ifdef OSUcc
   theController->SetUseDelay(true);
-#endif OSUcc
+#endif
   //
   for(int i=devnum;i<=devstp;i++){
     dv=(DEVTYPE)i;
@@ -3359,7 +3458,7 @@ ipass == 3 - load only the stuff after the board number
 
 #ifdef OSUcc
   theController->SetUseDelay(false);
-#endif OSUcc
+#endif
 }
 
 
@@ -5238,9 +5337,9 @@ int  DAQMB::test8()
       //set_comp_thresh(v0);
       usleep(500000);
       //
-      for(int cfeb=0; cfeb<cfebs_.size(); ++cfeb) {
-	vout=adcplus(2,cfebs_[cfeb].number());
-	(*MyOutput_) << "cfeb="<<cfeb<<" "<<" v0=" << v0 << " vout="<<vout<<std::endl;
+      for(int cfeby=0; cfeby<cfebs_.size(); ++cfeby) {
+	vout=adcplus(2,cfebs_[cfeby].number());
+	(*MyOutput_) << "cfeb="<<cfeby<<" "<<" v0=" << v0 << " vout="<<vout<<std::endl;
       }
       //
       vout=adcplus(2,cfebs_[cfeb].number());
