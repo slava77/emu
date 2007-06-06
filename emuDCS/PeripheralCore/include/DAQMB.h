@@ -1,6 +1,10 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.h,v 3.18 2007/05/30 16:48:21 rakness Exp $
+// $Id: DAQMB.h,v 3.19 2007/06/06 14:49:32 gujh Exp $
 // $Log: DAQMB.h,v $
+// Revision 3.19  2007/06/06 14:49:32  gujh
+// Added buck_shift_comp_bc and set_comp_thresh_bc
+//      ---- June 6, 2007.  GU
+//
 // Revision 3.18  2007/05/30 16:48:21  rakness
 // DMB cable_delay scans/tools
 //
@@ -250,6 +254,7 @@ public:
 // DAQMB trigger primitives
 
   void set_comp_mode(int dword);
+  void set_comp_thresh_bc(float thresh);
   void set_comp_thresh(float thresh);
   void set_comp_thresh(int, float thresh);
   
@@ -400,6 +405,7 @@ public:
   void trigsetx(int *hp,int CFEBInputs=0x1f);
   void chan2shift(int chan[][6][16]);
   void buck_shift_ext_bc(int nstrip);
+  void buck_shift_comp_bc(int nstrip);
 
   // RPW stuff from external  really should be CFEB and board class
   // Buckeye shift variables
