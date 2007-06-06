@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.31 2007/04/20 13:39:45 gujh Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.32 2007/06/06 14:41:45 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -106,6 +106,7 @@ public:
   xoap::MessageReference onEnableCalCFEBGain (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalCFEBTime (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnableCalCFEBPed (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onEnableCalCFEBComp (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onDisable (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onHalt (xoap::MessageReference message) throw (xoap::exception::Exception);
   void relayMessage (xoap::MessageReference msg) throw (xgi::exception::Exception);
