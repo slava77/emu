@@ -98,7 +98,8 @@ public:
   //
   void ClearXsvfFilename();                         //remove file handling--should be called after the file-handling of SetXsvfFilename is finished
   //
-  void SetWhichUserProm(int device);                //device = [ChipLocationTmbUserPromTMB, ChipLocationTmbUserPromALCT]
+  void SetWhichUserProm(int device);                //device = [ChipLocationTmbUserPromTMB, ChipLocationTmbUserPromALCT, 
+  //                                                            ChipLocationTmbUserPromTMBClear, ChipLocationTmbUserPromALCTClear]
   int  GetWhichUserProm();
   //
   //--------------------------------------------------------------

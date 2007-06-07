@@ -249,6 +249,10 @@ const int RegSizeTmbUserProm_PROMwriteData3      =    6;
 const int RegSizeTmbUserProm_PROMverifyData3     =    6;
 const int RegSizeTmbUserProm_PROMbypass          =    1;
 //
+// dummy values to tell EMUjtag to clear these proms
+const int ChipLocationTmbUserPromTMBClear        =    2;
+const int ChipLocationTmbUserPromALCTClear       =    3;
+//
 ////////////////////////////////////////////////////
 // RAT chain characteristics            
 ////////////////////////////////////////////////////
