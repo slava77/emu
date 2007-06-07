@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.12 2007/06/06 14:44:08 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.13 2007/06/07 17:02:01 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1373,8 +1373,10 @@ using namespace std;
 
     //Start the setup process:
 
-    if (calsetup==1) broadcastTMB->EnableCLCTInputs(0x1f); //enable TMB's CLCT inputs
-
+    if (calsetup==1) {
+      broadcastTMB->EnableCLCTInputs(0x1f); //enable TMB's CLCT inputs
+      broadcastDMB->settrgsrc(0); //disable the DMB internal LCT & L1A
+    }
     int thresholdsetting =((calsetup-1)%35);   //35 Comparator threshold setting for each channel
     int nstrip=(calsetup-1)/35;           //16 channels, total loop: 32*35=1120
     highthreshold=nstrip/16;
@@ -1384,7 +1386,7 @@ using namespace std;
       broadcastDMB->buck_shift_comp_bc(nstrip);
       if (!nstrip) broadcastDMB->set_cal_dac(dac,dac);
     }
-    threshold=0.03*thresholdsetting+0.013+0.036*highthreshold;
+    threshold=0.003*thresholdsetting+0.013+0.036*highthreshold;
     broadcastDMB->set_comp_thresh_bc(threshold);
     cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<endl;
     usleep(nsleep);
