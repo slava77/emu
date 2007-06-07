@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.33 2007/05/17 12:52:50 rakness Exp $
+// $Id: TMB.cc,v 3.34 2007/06/07 12:57:28 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.34  2007/06/07 12:57:28  rakness
+// update TMB counters
+//
 // Revision 3.33  2007/05/17 12:52:50  rakness
 // ignore_ccb_startstop added to TMB configuration + write configuration to userPROM default
 //
@@ -1035,34 +1038,19 @@ int TMB::FmState(){
 //
 void TMB::PrintCounters(int counter){
   //
+  // if counter = 0, print all counters
+  //
   (*MyOutput_) << std::endl;
   //
   if (counter<0)                  (*MyOutput_) << "--------------------------------------------------------" << std::endl;
   if (counter<0)                  (*MyOutput_) << "---              Counters                             --" << std::endl;
   if (counter<0)                  (*MyOutput_) << "--------------------------------------------------------" << std::endl;
-  if ((counter<0)||(counter==0))  (*MyOutput_) << CounterName(0)  << FinalCounter[0] <<std::endl ;
-  if ((counter<0)||(counter==1))  (*MyOutput_) << CounterName(1)  << FinalCounter[1] <<std::endl ;
-  if ((counter<0)||(counter==2))  (*MyOutput_) << CounterName(2)  << FinalCounter[2] <<std::endl ;
-  if ((counter<0)||(counter==3))  (*MyOutput_) << CounterName(3)  << FinalCounter[3] <<std::endl ;
-  if ((counter<0)||(counter==4))  (*MyOutput_) << CounterName(4)  << FinalCounter[4] <<std::endl ;
-  if ((counter<0)||(counter==5))  (*MyOutput_) << CounterName(5)  << FinalCounter[5] <<std::endl ;
-  if ((counter<0)||(counter==6))  (*MyOutput_) << CounterName(6)  << FinalCounter[6] <<std::endl ;
-  if ((counter<0)||(counter==7))  (*MyOutput_) << CounterName(7)  << FinalCounter[7] <<std::endl ;
-  if ((counter<0)||(counter==8))  (*MyOutput_) << CounterName(8)  << FinalCounter[8] <<std::endl ;
-  if ((counter<0)||(counter==9))  (*MyOutput_) << CounterName(9)  << FinalCounter[9] <<std::endl ;
-  if ((counter<0)||(counter==10)) (*MyOutput_) << CounterName(10) << FinalCounter[10] <<std::endl ;
-  if ((counter<0)||(counter==11)) (*MyOutput_) << CounterName(11) << FinalCounter[11] <<std::endl ;
-  if ((counter<0)||(counter==12)) (*MyOutput_) << CounterName(12) << FinalCounter[12] <<std::endl ;
-  if ((counter<0)||(counter==13)) (*MyOutput_) << CounterName(13) << FinalCounter[13] <<std::endl ;
-  if ((counter<0)||(counter==14)) (*MyOutput_) << CounterName(14) << FinalCounter[14] <<std::endl ;
-  if ((counter<0)||(counter==15)) (*MyOutput_) << CounterName(15) << FinalCounter[15] <<std::endl ;
-  if ((counter<0)||(counter==16)) (*MyOutput_) << CounterName(16) << FinalCounter[16] <<std::endl ;
-  if ((counter<0)||(counter==17)) (*MyOutput_) << CounterName(17) << FinalCounter[17] <<std::endl ;
-  if ((counter<0)||(counter==18)) (*MyOutput_) << CounterName(18) << FinalCounter[18] <<std::endl ;
-  if ((counter<0)||(counter==19)) (*MyOutput_) << CounterName(19) << FinalCounter[19] <<std::endl ;
-  if ((counter<0)||(counter==20)) (*MyOutput_) << CounterName(20) << FinalCounter[20] <<std::endl ;
-  if ((counter<0)||(counter==21)) (*MyOutput_) << CounterName(21) << FinalCounter[21] <<std::endl ;
-  if ((counter<0)||(counter==22)) (*MyOutput_) << CounterName(22) << FinalCounter[22] <<std::endl;
+  if (counter<0) {
+    for (int i=0; i <= (MaxCounter-1)/2; i++) 
+      (*MyOutput_) << CounterName(i)  << FinalCounter[i] <<std::endl ;
+  } else {
+    (*MyOutput_) << CounterName(counter)  << FinalCounter[counter] <<std::endl ;
+  }
   //
   (*MyOutput_) << std::endl;
    //
@@ -1094,6 +1082,7 @@ std::string TMB::CounterName(int counter){
   if( counter == 20) name = "L1A:  L1A received, no TMB in window                    ";
   if( counter == 21) name = "L1A:  TMB triggered, no L1A received                    ";
   if( counter == 22) name = "L1A:  TMB readout                                       ";
+  if( counter == 23) name = "CLCT: Triad skipped                                     ";
   //
   return name;
   //
@@ -1101,75 +1090,87 @@ std::string TMB::CounterName(int counter){
 //
 void TMB::ResetCounters(){
   //
-  unsigned long int adr;
-  //unsigned long int rd_data ;
-  unsigned long int wr_data;
+  //  unsigned long int adr;
+  //  unsigned long int rd_data ;
+  //  unsigned long int wr_data;
   //
   // Clear counters
   //
-  adr = cnt_ctrl_adr ;
-  wr_data= 0x1; //clear
-  sndbuf[0] = (wr_data>>8)&0xff;
-  sndbuf[1] = (wr_data&0xff);
-  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-  wr_data= 0x0; //unclear
-  sndbuf[0] = (wr_data>>8)&0xff;
-  sndbuf[1] = (wr_data&0xff);
-  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);   
+  WriteRegister(cnt_ctrl_adr,0x1);
+  WriteRegister(cnt_ctrl_adr,0x0);
   //
+  //  adr = cnt_ctrl_adr ;
+  //  wr_data= 0x1; //clear
+  //  sndbuf[0] = (wr_data>>8)&0xff;
+  //  sndbuf[1] = (wr_data&0xff);
+  //  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+  //  wr_data= 0x0; //unclear
+  //  sndbuf[0] = (wr_data>>8)&0xff;
+  //  sndbuf[1] = (wr_data&0xff);
+  //  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);   
+  //
+  return;
 }
-
+//
 int TMB::GetCounter(int counterID){
   //
   return FinalCounter[counterID];
-  //
 }
-
+//
 void TMB::GetCounters(){
   //
-  unsigned long int adr;
-  unsigned long int rd_data ;
-  unsigned long int wr_data;
+  //  unsigned long int adr;
+  //  unsigned long int rd_data ;
+  //  unsigned long int wr_data;
   //
   // Take snapshot of current counter state
   //
-  adr = cnt_ctrl_adr ;
-  wr_data= 0x2; //snap
-  sndbuf[0] = (wr_data>>8)&0xff;
-  sndbuf[1] = (wr_data&0xff);
-  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-  wr_data= 0x0; //unsnap
-  sndbuf[0] = (wr_data>>8)&0xff;
-  sndbuf[1] = (wr_data&0xff);
-  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);   
+  WriteRegister(cnt_ctrl_adr,0x2); //snap
+  WriteRegister(cnt_ctrl_adr,0x0); //unsnap
+  //
+  //  adr = cnt_ctrl_adr ;
+  //  wr_data= 0x2; //snap
+  //  sndbuf[0] = (wr_data>>8)&0xff;
+  //  sndbuf[1] = (wr_data&0xff);
+  //  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+  //  wr_data= 0x0; //unsnap
+  //  sndbuf[0] = (wr_data>>8)&0xff;
+  //  sndbuf[1] = (wr_data&0xff);
+  //  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);   
   //
   //
   // Read counters
   //
-  for (int counter=0; counter < MaxCounter; counter++){
-    adr = cnt_ctrl_adr;
-    wr_data= counter << 8 ;
-    sndbuf[0] = (wr_data>>8)&0xff;
-    sndbuf[1] = (wr_data&0xff);
-    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-    adr = cnt_rdata_adr;
-    tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-    rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
+  for (int counter=0; counter <= MaxCounter; counter++){
+    //
+    int counter_address = counter << 8 ;
+    WriteRegister(cnt_ctrl_adr,counter_address);
+    //
+    int rd_data = ReadRegister(cnt_rdata_adr);
+    //
+    //    adr = cnt_ctrl_adr;
+    //    wr_data = counter << 8 ;
+    //    sndbuf[0] = (wr_data>>8)&0xff;
+    //    sndbuf[1] = (wr_data&0xff);
+    //    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
+    //    adr = cnt_rdata_adr;
+    //    tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
+    //    rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
     //
     // Combine lsbs+msbs
     //
     int cnt_lsb, cnt_msb;
-      long int cnt_full;
-      //
-      if( counter%2 ==0 ) {          //even addresses contain counter LSBs
-	cnt_lsb = rd_data;
-      }
-      else                           //odd addresses contain counter MSBs
-	{	 
-	  cnt_msb  = rd_data;
-	  cnt_full = cnt_lsb | (cnt_msb<<16) ;
-	  FinalCounter[counter/2] = cnt_full ;     //assembled counter MSB,LSB	 
-	}
+    long int cnt_full;
+    //
+    if( counter%2 == 0 ) {          //even addresses contain counter LSBs
+      cnt_lsb = rd_data;
+      //      (*MyOutput_) << "counter " << counter << ", LSB = " << cnt_lsb ;
+    } else {	                     //odd addresses contain counter MSBs
+      cnt_msb  = rd_data;
+      //      (*MyOutput_) << ", MSB = " << cnt_msb << std::endl;
+      cnt_full = cnt_lsb | (cnt_msb<<16) ;
+      FinalCounter[counter/2] = cnt_full ;     //assembled counter MSB,LSB	 
+    }
   }   
   //
   //
