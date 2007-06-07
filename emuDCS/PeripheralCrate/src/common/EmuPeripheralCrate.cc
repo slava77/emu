@@ -177,6 +177,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     xgi::bind(this,&EmuPeripheralCrate::forceScope, "forceScope");
     xgi::bind(this,&EmuPeripheralCrate::readoutScope, "readoutScope");
     xgi::bind(this,&EmuPeripheralCrate::TMBDumpAllRegisters, "TMBDumpAllRegisters");
+    xgi::bind(this,&EmuPeripheralCrate::TMBClearUserProms, "TMBClearUserProms");
     xgi::bind(this,&EmuPeripheralCrate::TMBReadConfiguration, "TMBReadConfiguration");
     xgi::bind(this,&EmuPeripheralCrate::TMBCheckConfiguration, "TMBCheckConfiguration");
     xgi::bind(this,&EmuPeripheralCrate::TMBReadStateMachines, "TMBReadStateMachines");
@@ -5240,6 +5241,31 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
   }
   //
+  void EmuPeripheralCrate::TMBClearUserProms(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name = cgi.getElement("tmb");
+    //
+    int tmb;
+    if(name != cgi.getElements().end()) {
+      tmb = cgi["tmb"]->getIntegerValue();
+      cout << "TMB " << tmb << endl;
+      TMB_ = tmb;
+    }
+    //
+    TMB * thisTMB = tmbVector[tmb];
+    thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
+    thisTMB->CheckAndProgramProm(ChipLocationTmbUserPromTMBClear);
+    thisTMB->CheckAndProgramProm(ChipLocationTmbUserPromALCTClear);
+    thisTMB->RedirectOutput(&std::cout);
+    //
+    this->TMBUtils(in,out);
+    //
+  }
+  //
   void EmuPeripheralCrate::TMBReadConfiguration(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -7848,6 +7874,15 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     *out << cgicc::form().set("method","GET").set("action",TMBDumpAllRegisters) ;
     *out << cgicc::input().set("type","submit").set("value","Dump All TMB VME Registers") ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string TMBClearUserProms =
+      toolbox::toString("/%s/TMBClearUserProms",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",TMBClearUserProms) ;
+    *out << cgicc::input().set("type","submit").set("value","Clear TMB User Proms") ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
