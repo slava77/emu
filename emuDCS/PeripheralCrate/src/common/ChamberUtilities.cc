@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.16 2007/06/01 14:57:49 gujh Exp $
+// $Id: ChamberUtilities.cc,v 3.17 2007/06/07 12:57:55 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.17  2007/06/07 12:57:55  rakness
+// make scans more robust
+//
 // Revision 3.16  2007/06/01 14:57:49  gujh
 // Add "include <cmath>" and change the 'abs' to 'fabs' on line 2488
 //
@@ -274,6 +277,32 @@ ChamberUtilities::~ChamberUtilities(){
 //----------------------------------------------
 void ChamberUtilities::CFEBTiming(){
   //
+  // Set up for this test...
+  // Get initial values:
+  int initial_clct_pretrig_enable           = thisTMB->GetClctPatternTrigEnable();    //0x68
+  int initial_clct_trig_enable              = thisTMB->GetTmbAllowClct();             //0x86
+  int initial_clct_halfstrip_pretrig_thresh = thisTMB->GetHsPretrigThresh();          //0x70
+  int initial_clct_distrip_pretrig_thresh   = thisTMB->GetDsPretrigThresh();          //0x70
+  int initial_clct_pattern_thresh           = thisTMB->GetMinHitsPattern();           //0x70
+  int initial_cfeb0_phase = thisTMB->GetCFEB0delay(); //0x18
+  int initial_cfeb1_phase = thisTMB->GetCFEB1delay(); //0x1a
+  int initial_cfeb2_phase = thisTMB->GetCFEB2delay(); //0x1a
+  int initial_cfeb3_phase = thisTMB->GetCFEB3delay(); //0x1a
+  int initial_cfeb4_phase = thisTMB->GetCFEB4delay(); //0x1a
+  //
+  // Enable this TMB for this test
+  thisTMB->SetClctPatternTrigEnable(1);
+  thisTMB->WriteRegister(seq_trig_en_adr,thisTMB->FillTMBRegister(seq_trig_en_adr));
+  thisTMB->SetTmbAllowClct(1);
+  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->SetHsPretrigThresh(6);
+  thisTMB->SetDsPretrigThresh(6);
+  thisTMB->SetMinHitsPattern(6);
+  thisTMB->WriteRegister(seq_clct_adr,thisTMB->FillTMBRegister(seq_clct_adr));
+  thisTMB->StartTTC();
+  ::sleep(1);
+  //
+  //
   int MaxTimeDelay=13;
   //
   int Muons[5][MaxTimeDelay];
@@ -292,6 +321,7 @@ void ChamberUtilities::CFEBTiming(){
    }
   //
   for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){
+  //  for (int TimeDelay=5; TimeDelay<6; TimeDelay++){
     //
     (*MyOutput_) << " Setting TimeDelay to " << TimeDelay << endl;
     //
@@ -301,6 +331,9 @@ void ChamberUtilities::CFEBTiming(){
     thisTMB->tmb_clk_delays(TimeDelay,3) ;
     thisTMB->tmb_clk_delays(TimeDelay,4) ;
     //
+    int last_pulsed_halfstrip = 0;
+    int random_halfstrip = 0;
+    //
     int CLCTInputList[5] = {0x1,0x2,0x4,0x8,0x10};
     //
     for (int List=0; List<5; List++){
@@ -309,14 +342,24 @@ void ChamberUtilities::CFEBTiming(){
 	//
 	usleep(50);
 	//
-	PulseCFEB( 16,CLCTInputList[List]);
+	// To prevent problems with data persisting in the TMB registers, 
+	// generate a random halfstrip to pulse which is not the same as the 
+	// last valid halfstrip.  Also this should be away from the edges of the CFEB, 
+	while (random_halfstrip == last_pulsed_halfstrip ) {
+	  random_halfstrip = (int) (rand()/(RAND_MAX+0.01)*12);  // between 0 and 12
+	  random_halfstrip++;                                    // between 1 and 13
+	  random_halfstrip++;                                    // between 2 and 14
+	}
+	PulseCFEB(random_halfstrip,CLCTInputList[List]);	
+	//PulseCFEB( 16,CLCTInputList[List]);
 	//
 	usleep(50);
 	//
-	thisTMB->DiStripHCMask(16/4-1); // counting from 0;
+	thisTMB->DiStripHCMask(random_halfstrip/4-1); // counting from 0;
+	//	thisTMB->DiStripHCMask(16/4-1); // counting from 0;
 	//
-	(*MyOutput_) << " TimeDelay " << TimeDelay << " CLCTInput " 
-	     << CLCTInputList[List] << " Nmuons " << Nmuons << endl;
+	(*MyOutput_) << "TimeDelay=" << TimeDelay << ", CLCTInput="
+		     << CLCTInputList[List] << ", Nmuons=" << Nmuons << ", halfstrip=" << random_halfstrip << endl;
 	//
 	int clct0cfeb = thisTMB->GetCLCT0Cfeb();
 	int clct1cfeb = thisTMB->GetCLCT1Cfeb();
@@ -325,13 +368,16 @@ void ChamberUtilities::CFEBTiming(){
 	int clct0keyHalfStrip = thisTMB->GetCLCT0keyHalfStrip();
 	int clct1keyHalfStrip = thisTMB->GetCLCT1keyHalfStrip();
 	//
-	(*MyOutput_) << " clct0cfeb " << clct0cfeb << " clct1cfeb " << clct1cfeb << endl;
-	(*MyOutput_) << " clct0nhit " << clct0nhit << " clct1nhit " << clct1nhit << endl;
+	(*MyOutput_) << " clct0cfeb=" << clct0cfeb << ", clct0nhit=" << clct0nhit << ", clct0keyHalfStrip=" << clct0keyHalfStrip << endl;
+	(*MyOutput_) << " clct1cfeb=" << clct1cfeb << ", clct1nhit=" << clct1nhit << ", clct1keyHalfStrip=" << clct1keyHalfStrip << endl;
 	//
-	if ( clct0nhit == 6 && clct0keyHalfStrip == 16 && clct0cfeb == List ) 
+	//if ( clct0nhit == 6 && clct0keyHalfStrip == 16 && clct0cfeb == List ) {
+	if ( clct0nhit == 6 && clct0keyHalfStrip == random_halfstrip && clct0cfeb == List ) {
 	  Muons[clct0cfeb][TimeDelay]++;
-	if ( clct1nhit == 6 && clct1keyHalfStrip == 16 && clct1cfeb == List ) 
-	  Muons[clct1cfeb][TimeDelay]++;
+	  last_pulsed_halfstrip = random_halfstrip;
+	}
+	//	if ( clct1nhit == 6 && clct1keyHalfStrip == 16 && clct1cfeb == List ) 
+	//	  Muons[clct1cfeb][TimeDelay]++;
 	//
       }
     }
@@ -406,9 +452,41 @@ void ChamberUtilities::CFEBTiming(){
   (*MyOutput_) << endl ;
   (*MyOutput_) << endl ;
   //
+  // return to initial values:
+  thisTMB->SetClctPatternTrigEnable(initial_clct_pretrig_enable);
+  thisTMB->WriteRegister(seq_trig_en_adr,thisTMB->FillTMBRegister(seq_trig_en_adr));
+  thisTMB->SetTmbAllowClct(initial_clct_trig_enable);
+  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->SetHsPretrigThresh(initial_clct_halfstrip_pretrig_thresh);
+  thisTMB->SetDsPretrigThresh(initial_clct_distrip_pretrig_thresh);
+  thisTMB->SetMinHitsPattern(initial_clct_pattern_thresh);
+  thisTMB->WriteRegister(seq_clct_adr,thisTMB->FillTMBRegister(seq_clct_adr));
+  //
+  thisTMB->SetCFEB0delay(initial_cfeb0_phase);
+  thisTMB->WriteRegister(vme_ddd1_adr,thisTMB->FillTMBRegister(vme_ddd1_adr));
+  thisTMB->SetCFEB1delay(initial_cfeb1_phase);
+  thisTMB->SetCFEB2delay(initial_cfeb2_phase);
+  thisTMB->SetCFEB3delay(initial_cfeb3_phase);
+  thisTMB->SetCFEB4delay(initial_cfeb4_phase);
+  thisTMB->WriteRegister(vme_ddd2_adr,thisTMB->FillTMBRegister(vme_ddd2_adr));
+  ::sleep(1);
+  //
+  return;
 }
 //
 void ChamberUtilities::ALCTTiming(){
+  //
+  // set up for this test
+  alct->SetSendEmpty(1);
+  alct->WriteConfigurationReg();
+  alct->PrintConfigurationReg();
+  //
+  thisTMB->SetCLCTPatternTrigger();
+  thisTMB->DisableCLCTInputs();
+  //
+  int initial_alct_tx_phase = thisTMB->GetALCTtxPhase(); //0x16
+  int initial_alct_rx_phase = thisTMB->GetALCTrxPhase(); //0x16
+  //
   //
   int maxTimeBins(13);
   //  int ProjectionX[13*2], ProjectionY[13*2];
@@ -426,15 +504,6 @@ void ChamberUtilities::ALCTTiming(){
   int alct1_bxn = 0;
   int alct0_key = 0;
   int alct1_key = 0;
-  //
-  //
-  // set up for this test
-  alct->SetSendEmpty(1);
-  alct->WriteConfigurationReg();
-  alct->PrintConfigurationReg();
-  //
-  thisTMB->SetCLCTPatternTrigger();
-  thisTMB->DisableCLCTInputs();
   //
   //
   for (j=0;j<maxTimeBins;j++){
@@ -747,6 +816,12 @@ void ChamberUtilities::ALCTTiming(){
    //
    cout << endl;
    */
+   //
+  thisTMB->SetAlctTXclockDelay(initial_alct_tx_phase);
+  thisTMB->SetAlctRXclockDelay(initial_alct_rx_phase);
+  thisTMB->WriteRegister(vme_ddd0_adr,thisTMB->FillTMBRegister(vme_ddd0_adr));  
+  return;
+
 }
 //
 void ChamberUtilities::RatTmbDelayScan() {
@@ -1011,6 +1086,26 @@ int ChamberUtilities::FindWinner(int npulses=10){
     return -1 ;
   }
   //
+  // Set up for this test...
+  // Get initial values:
+  int initial_clct_pretrig_enable           = thisTMB->GetClctPatternTrigEnable();    //0x68
+  int initial_clct_trig_enable              = thisTMB->GetTmbAllowClct();             //0x86
+  int initial_clct_halfstrip_pretrig_thresh = thisTMB->GetHsPretrigThresh();          //0x70
+  int initial_clct_distrip_pretrig_thresh   = thisTMB->GetDsPretrigThresh();          //0x70
+  int initial_clct_pattern_thresh           = thisTMB->GetMinHitsPattern();           //0x70
+  //
+  // Enable this TMB for this test
+  thisTMB->SetClctPatternTrigEnable(1);
+  thisTMB->WriteRegister(seq_trig_en_adr,thisTMB->FillTMBRegister(seq_trig_en_adr));
+  thisTMB->SetTmbAllowClct(1);
+  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->SetHsPretrigThresh(6);
+  thisTMB->SetDsPretrigThresh(6);
+  thisTMB->SetMinHitsPattern(6);
+  thisTMB->WriteRegister(seq_clct_adr,thisTMB->FillTMBRegister(seq_clct_adr));
+  thisTMB->StartTTC();
+  ::sleep(1);
+
   thisCCB_->setCCBMode(CCB::VMEFPGA);
   //
   // thisTMB->alct_match_window_size_ = 3;
@@ -1133,6 +1228,16 @@ int ChamberUtilities::FindWinner(int npulses=10){
   (*MyOutput_) << endl ;
   //
   MPCdelay_ = (int)(MpcDelay + 0.5);
+  //
+  // return to initial values:
+  thisTMB->SetClctPatternTrigEnable(initial_clct_pretrig_enable);
+  thisTMB->WriteRegister(seq_trig_en_adr,thisTMB->FillTMBRegister(seq_trig_en_adr));
+  thisTMB->SetTmbAllowClct(initial_clct_trig_enable);
+  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->SetHsPretrigThresh(initial_clct_halfstrip_pretrig_thresh);
+  thisTMB->SetDsPretrigThresh(initial_clct_distrip_pretrig_thresh);
+  thisTMB->SetMinHitsPattern(initial_clct_pattern_thresh);
+  thisTMB->WriteRegister(seq_clct_adr,thisTMB->FillTMBRegister(seq_clct_adr));
   //
   return MPCdelay_;
 }
@@ -2057,7 +2162,7 @@ void ChamberUtilities::PulseCFEB(int HalfStrip, int CLCTInputs, bool enableL1aEm
   //
   thisTMB->DecodeCLCT();
   //
-  thisDMB->PrintCounters();
+  //  thisDMB->PrintCounters();
   //
   cout << endl ;
   //
