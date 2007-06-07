@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.21 2007/05/17 12:52:50 rakness Exp $
+// $Id: TMB.h,v 3.22 2007/06/07 12:57:28 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.22  2007/06/07 12:57:28  rakness
+// update TMB counters
+//
 // Revision 3.21  2007/05/17 12:52:50  rakness
 // ignore_ccb_startstop added to TMB configuration + write configuration to userPROM default
 //
@@ -1168,7 +1171,7 @@ private:
   int CLCT1_nhit_;
   int CLCT0_keyHalfStrip_;
   int CLCT1_keyHalfStrip_;
-  static const int MaxCounter = 0x2d;
+  static const int MaxCounter = 0x2f;
   long int FinalCounter[MaxCounter];
   //
   int alct0_valid_;
