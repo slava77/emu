@@ -152,6 +152,8 @@ int main() {
 	      << std::endl;
     //
     std::cout << std::endl;
+    std::cout << " 87:CFEB timing scan           88:ALCT timing scan" 
+	      << std::endl;
     std::cout << " 90:enable PC->CLCTex from TTC 91:Read scope                  92:TTC command received" 
 	      << std::endl;
     std::cout << " 93:TMB Raw hits dump          94:Print counters              95:Reset counters"
@@ -187,11 +189,13 @@ int main() {
 	      << std::endl;
     std::cout << "400:Program user proms        401: Check user prom programs  402: Program TMB"
 	      << std::endl;
-    std::cout << "403:Prog. proms w/walking 1s  500: Check TMB state machines  501: Read TMB config registers"
+    std::cout << "403:Prog. proms w/walking 1s  404: Interior prog. walking 1s"
 	      << std::endl;
-    std::cout << "502:Read ALCT config regs     503: StartTriggers TMB         504: Check TMB config registers"
+    std::cout << "500: Check TMB state machines 501: Read TMB config registers  502:Read ALCT config regs     "
 	      << std::endl;
-    std::cout << "505:Check ALCT config regs    506: Print TMB state machines  507: Check RAT config registers"
+    std::cout << "503: StartTriggers TMB        504:Check TMB config registers  505:Check ALCT config regs    "
+	      << std::endl;
+    std::cout << "506: Print TMB state machines 507: Check RAT config registers"
 	      << std::endl;
     //
     std::cout << std::endl;
@@ -380,6 +384,16 @@ int main() {
       myRat->configure();
       break;
       //
+      //
+    case 87:
+      std::cout << "CFEB timing scan" << std::endl;
+      util.CFEBTiming();
+      break;
+      //
+    case 88:
+      std::cout << "ALCT timing scan" << std::endl;
+      util.ALCTTiming();
+      break;
       //
     case 90:
       std::cout << "Fully reset Peripheral crate..." << std::endl;
@@ -662,6 +676,8 @@ int main() {
       //
       break;
     case 400:
+      //
+      
       thisTMB->SetXsvfFilename("prom0_passtest");
       thisTMB->ProgramUserProm();
       //
@@ -710,6 +726,11 @@ int main() {
       thisTMB->CheckUserProm();
       //
       thisTMB->ClearXsvfFilename();
+      //
+      break;
+    case 404:
+      thisTMB->CheckAndProgramProm(ChipLocationTmbUserPromTMBClear);
+      thisTMB->CheckAndProgramProm(ChipLocationTmbUserPromALCTClear);
       //
       break;
     case 500:

@@ -538,9 +538,12 @@ void EMUjtag::int_to_bits(int value,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void EMUjtag::CheckAndProgramProm(int which_prom) {
   //
-  // This method assumes you have:
-  //  a) SetFillVmeWriteVecs(true);
-  //  b) written to the registers you want to be configured...
+  // If ( which_prom == ChipLocationTmbUserPromTMBClear or ChipLocationTmbUserPromALCTClear),
+  //    this method will clear the user proms with values to make it pass the "TMB User PROM Test"
+  // If ( which_prom == ChipLocationTmbUserPromTMB or ChipLocationTmbUserPromALCT),
+  //   This method assumes you have:
+  //    a) SetFillVmeWriteVecs(true);
+  //    b) written to the registers you want to be configured...
   //
   SetWhichUserProm(which_prom);
   CreateUserPromFile();
@@ -555,7 +558,7 @@ void EMUjtag::CheckAndProgramProm(int which_prom) {
   //
   return;
 }
-
+//
 //----------------------------------//
 // prom image file create/read
 //----------------------------------//
@@ -592,6 +595,31 @@ void EMUjtag::CreateUserPromFile() {
     //
     for (unsigned int data_counter=0; data_counter<AlctUserDataLsb.size(); data_counter++) 
       data_to_prom[address_counter++] = (int) (AlctUserDataLsb.at(data_counter) & 0x7f);
+    //
+  } else if (GetWhichUserProm() == ChipLocationTmbUserPromTMBClear) {
+    //
+    data_to_prom[address_counter++] = 0xab;
+    data_to_prom[address_counter++] = 0x01;
+    data_to_prom[address_counter++] = 0x02;
+    data_to_prom[address_counter++] = 0x04;
+    data_to_prom[address_counter++] = 0x08;
+    data_to_prom[address_counter++] = 0x10;
+    data_to_prom[address_counter++] = 0x20;
+    data_to_prom[address_counter++] = 0x40;
+    data_to_prom[address_counter++] = 0x80;
+    data_to_prom[address_counter++] = 0xee;
+    //
+  } else if (GetWhichUserProm() == ChipLocationTmbUserPromALCTClear) {
+    data_to_prom[address_counter++] = 0xcd;
+    data_to_prom[address_counter++] = 0x01;
+    data_to_prom[address_counter++] = 0x02;
+    data_to_prom[address_counter++] = 0x04;
+    data_to_prom[address_counter++] = 0x08;
+    data_to_prom[address_counter++] = 0x10;
+    data_to_prom[address_counter++] = 0x20;
+    data_to_prom[address_counter++] = 0x40;
+    data_to_prom[address_counter++] = 0x80;
+    data_to_prom[address_counter++] = 0xbb;
     //
   } else {
     (*MyOutput_) << "EMUjtag:  CreateUserPromFile ERROR User Prom " << std::dec << GetWhichUserProm()
@@ -819,6 +847,13 @@ void EMUjtag::InsertHeaderAndTrailer_(int * data_to_go_into_prom) {
     SetUserPromImage_( (prom_image_word_count_ - 2),
 		       check_sum );	       
   } 
+  //
+  // Now the prom image has been created, so point the user into the correct prom to make the xsvf file...
+  if (GetWhichUserProm() == ChipLocationTmbUserPromTMBClear) {
+    SetWhichUserProm(ChipLocationTmbUserPromTMB);
+  } else if (GetWhichUserProm() == ChipLocationTmbUserPromALCTClear) {
+    SetWhichUserProm(ChipLocationTmbUserPromALCT);
+  }
   //
   return;
 }
