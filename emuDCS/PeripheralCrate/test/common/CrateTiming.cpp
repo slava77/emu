@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 3.3 2006/10/19 09:42:04 rakness Exp $
+// $Id: CrateTiming.cpp,v 3.4 2007/06/12 09:55:35 rakness Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 3.4  2007/06/12 09:55:35  rakness
+// clean up warnings
+//
 // Revision 3.3  2006/10/19 09:42:04  rakness
 // remove old ALCTController
 //
@@ -1808,7 +1811,8 @@ int main(int argc,char **argv){
     
   if (doLv1TMBTiming){
     //tbController.DcsDisable();
-    int L1aTMB = util.TMBL1aTiming();
+    //    int L1aTMB = util.TMBL1aTiming();
+    util.TMBL1aTiming();
     //tbController.DcsEnable();
   }
 
@@ -2223,7 +2227,7 @@ void Automatic(){
   printf("CFEB phases : \n");
   for( int CFEBs=0; CFEBs<5; CFEBs++) printf("CFEBs%d= %f ",CFEBs,CFEBMean[CFEBs]);
   printf("\n");
-  printf(" Best CCB delay  ; \n",BestCCBDelaySetting);      
+  printf(" Best CCB delay %d; \n",BestCCBDelaySetting);      
   printf("ALCT phases    : ");
   printf("        ALCT RX=%d TX=%d \n",ALCTRXphase,ALCTTXphase);  
   printf("TMB L1a delay  : ");
@@ -2388,35 +2392,11 @@ void ALCTScanDelays(){
       //      int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetWGNumber())/6);
       //      int ChamberSection = alct->GetWGNumber()/6;
       int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetNumberOfChannelsInAlct())/6);
-      int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
+      //      int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
       //
       cout << endl ;
       cout << "Injecting at " << dec << keyWG << endl;
       //
-      //      for (int i=0; i< 22; i++) HCmask[i] = 0;
-      //      //
-      //      bitset<672> bits(*HCmask) ;
-      //      //
-      //      for (int i=0;i<672;i++){
-      //	if ( i%(alct->GetWGNumber()/6) == keyWG ) bits.set(i);
-      //      }
-      //      //
-      //      bitset<32> Convert;
-      //      //
-      //      Convert.reset();
-      //      //
-      //      for (int i=0;i<(alct->GetWGNumber());i++){
-      //	if ( bits.test(i) ) Convert.set(i%32);
-      //	if ( i%32 == 31 ) {
-      //	  HCmask[i/32] = Convert.to_ulong();
-      //	  Convert.reset();
-      //	}
-      //      }
-      //      //
-      //      printf("\n");
-      //      //
-      //      alct->alct_write_hcmask(HCmask);
-      //      alct->alct_read_hcmask(HCmask);
       for(int layer=1; layer<MAX_NUM_LAYERS; layer++) {
 	for(int channel=1; channel<=(alct->GetNumberOfChannelsInAlct())/6; channel++) {
 	  if (channel==keyWG-1) {
@@ -2509,7 +2489,7 @@ void ALCTTiming( int & RXphase, int & TXphase ){
 	//	int ChamberSection = alct->GetWGNumber()/6;
 	int keyWG  = int(rand()/(RAND_MAX+0.01)*(alct->GetNumberOfChannelsInAlct())/6/4);
 	int keyWG2 = (alct->GetNumberOfChannelsInAlct())/6-keyWG;
-	int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
+	//	int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
 	printf("Injecting at %d \n",keyWG);
 	//
 	for(int layer=1; layer<MAX_NUM_LAYERS; layer++) {
@@ -2697,7 +2677,7 @@ void ALCTTiming( int & RXphase, int & TXphase ){
    }
    int nloop = 0;
    //
- LOOP:
+   // LOOP:
    //
    // 1dim Projection
    //
@@ -2798,7 +2778,7 @@ void ALCTTiming( int & RXphase, int & TXphase ){
    meanX /= meanXn+0.0001;
    meanY /= meanYn+0.0001;
    //
-   printf(" \n Best Setting TX=%f RX=%f \n",int(meanX)%13 ,int(meanY)%13);
+   //   printf(" \n Best Setting TX=%f RX=%f \n",int(meanX)%13 ,int(meanY)%13);
    //
    cout << endl;
    //
@@ -2813,8 +2793,8 @@ int FindBestL1aAlct(){
   //
   thisTMB->SetALCTPatternTrigger();
   //
-  unsigned long HCmask[22];
   /*
+  unsigned long HCmask[22];
   int keyWG = 16;
   for (int i=0; i<12; i++) {
     if ( i%2 == 0 ) {
@@ -2868,7 +2848,7 @@ int FindBestL1aAlct(){
     //    int keyWG          = int((rand()/(RAND_MAX+0.01))*(alct->GetWGNumber())/6./2.);
     //    int ChamberSection = alct->GetWGNumber()/6;
     int keyWG          = int((rand()/(RAND_MAX+0.01))*(alct->GetNumberOfChannelsInAlct())/6./2.);
-    int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
+    //    int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
     //
     printf("\n");
     printf("-----> Injecting at %d \n",keyWG);
@@ -2956,7 +2936,7 @@ int FindBestL1aAlct(){
 //
 int FindALCT_L1A_delay(int minlimit, int maxlimit){
   //
-  unsigned cr[3];
+  //  unsigned cr[3];
   //
   alct->ReadConfigurationReg();
   //
@@ -3052,8 +3032,8 @@ void PulseRandomALCT(){
 //
 void PulseTestStrips(){
   //
-   int slot = thisTMB->slot();
-   int TMBtime(1);
+  //   int slot = thisTMB->slot();
+  //   int TMBtime(1);
    //
    if ( alct ) {
       //
@@ -3066,8 +3046,8 @@ void PulseTestStrips(){
      //alct->SetConf(cr,1);
      //alct->unpackControlRegister(cr);
      //
-      long int StripMask = 0x3f;
-      long int PowerUp   = 1 ;
+     //      long int StripMask = 0x3f;
+     //      long int PowerUp   = 1 ;
       long int Amplitude = 0x3f;
       //
       thisTMB->DisableCLCTInputs();
@@ -3573,6 +3553,7 @@ int FindWinner(int npulses=10){
   //
   cout << endl ;
   //
+  return (int) MpcDelay;
 }
 //
 int FindALCTvpf(){
