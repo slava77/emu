@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.17 2007/06/07 12:57:55 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.18 2007/06/12 09:56:27 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.18  2007/06/12 09:56:27  rakness
+// remove TMB distrip from CLCT phase scan
+//
 // Revision 3.17  2007/06/07 12:57:55  rakness
 // make scans more robust
 //
@@ -321,9 +324,8 @@ void ChamberUtilities::CFEBTiming(){
    }
   //
   for (int TimeDelay=0; TimeDelay<MaxTimeDelay; TimeDelay++){
-  //  for (int TimeDelay=5; TimeDelay<6; TimeDelay++){
     //
-    (*MyOutput_) << " Setting TimeDelay to " << TimeDelay << endl;
+    //    (*MyOutput_) << " Setting TimeDelay to " << TimeDelay << endl;
     //
     thisTMB->tmb_clk_delays(TimeDelay,0) ;
     thisTMB->tmb_clk_delays(TimeDelay,1) ;
@@ -331,50 +333,56 @@ void ChamberUtilities::CFEBTiming(){
     thisTMB->tmb_clk_delays(TimeDelay,3) ;
     thisTMB->tmb_clk_delays(TimeDelay,4) ;
     //
-    int last_pulsed_halfstrip = 0;
-    int random_halfstrip = 0;
-    //
     int CLCTInputList[5] = {0x1,0x2,0x4,0x8,0x10};
     //
-    for (int List=0; List<5; List++){
+    int last_pulsed_halfstrip[5] = {};
+    int random_halfstrip[5] = {};
+    //
+    for (int Nmuons=0; Nmuons<2; Nmuons++){
       //
-      for (int Nmuons=0; Nmuons<2; Nmuons++){
+      for (int List=0; List<5; List++){
 	//
 	usleep(50);
 	//
 	// To prevent problems with data persisting in the TMB registers, 
 	// generate a random halfstrip to pulse which is not the same as the 
-	// last valid halfstrip.  Also this should be away from the edges of the CFEB, 
-	while (random_halfstrip == last_pulsed_halfstrip ) {
-	  random_halfstrip = (int) (rand()/(RAND_MAX+0.01)*12);  // between 0 and 12
-	  random_halfstrip++;                                    // between 1 and 13
-	  random_halfstrip++;                                    // between 2 and 14
+	// last valid halfstrip for this CFEB. 
+	// In addition, this should be away from the edges of the CFEB...
+	while (random_halfstrip[List] == last_pulsed_halfstrip[List] ) {
+	  random_halfstrip[List] = (int) (rand()/(RAND_MAX+0.01)*28);  // random number between 0 and 28
+	  random_halfstrip[List] += 2;                                 // translate to between 2 and 30
 	}
-	PulseCFEB(random_halfstrip,CLCTInputList[List]);	
+	//
+	// Di-strips do not exist anymore in TMB firmware since 05/25/2007
+	//thisTMB->DiStripHCMask(random_halfstrip/4-1); // counting from 0;
+	//thisTMB->DiStripHCMask(16/4-1); // counting from 0;
+	//
+	PulseCFEB(random_halfstrip[List],CLCTInputList[List]);	
 	//PulseCFEB( 16,CLCTInputList[List]);
 	//
 	usleep(50);
 	//
-	thisTMB->DiStripHCMask(random_halfstrip/4-1); // counting from 0;
-	//	thisTMB->DiStripHCMask(16/4-1); // counting from 0;
-	//
-	(*MyOutput_) << "TimeDelay=" << TimeDelay << ", CLCTInput="
-		     << CLCTInputList[List] << ", Nmuons=" << Nmuons << ", halfstrip=" << random_halfstrip << endl;
+	(*MyOutput_) << "TimeDelay=" << TimeDelay << endl;
+	(*MyOutput_) << "CLCTInput=" << List      << ", halfstrip=" << random_halfstrip[List] << ", Nmuons=" << Nmuons << endl;
 	//
 	int clct0cfeb = thisTMB->GetCLCT0Cfeb();
-	int clct1cfeb = thisTMB->GetCLCT1Cfeb();
 	int clct0nhit = thisTMB->GetCLCT0Nhit();
-	int clct1nhit = thisTMB->GetCLCT1Nhit();
 	int clct0keyHalfStrip = thisTMB->GetCLCT0keyHalfStrip();
-	int clct1keyHalfStrip = thisTMB->GetCLCT1keyHalfStrip();
+	(*MyOutput_) << "clct0cfeb=" << clct0cfeb << ", clct0hstp=" << clct0keyHalfStrip      << ", nHits =" << clct0nhit;
 	//
-	(*MyOutput_) << " clct0cfeb=" << clct0cfeb << ", clct0nhit=" << clct0nhit << ", clct0keyHalfStrip=" << clct0keyHalfStrip << endl;
-	(*MyOutput_) << " clct1cfeb=" << clct1cfeb << ", clct1nhit=" << clct1nhit << ", clct1keyHalfStrip=" << clct1keyHalfStrip << endl;
+	//
+	//	int clct1cfeb = thisTMB->GetCLCT1Cfeb();
+	//	int clct1nhit = thisTMB->GetCLCT1Nhit();
+	//	int clct1keyHalfStrip = thisTMB->GetCLCT1keyHalfStrip();
+	//	(*MyOutput_) << "clct1cfeb=" << clct0cfeb << ", clct1hstp=" << clct1keyHalfStrip << ", nHits =" << clct1nhit;
 	//
 	//if ( clct0nhit == 6 && clct0keyHalfStrip == 16 && clct0cfeb == List ) {
-	if ( clct0nhit == 6 && clct0keyHalfStrip == random_halfstrip && clct0cfeb == List ) {
+	if ( clct0cfeb == List && clct0keyHalfStrip == random_halfstrip[List] && clct0nhit == 6 ) {
 	  Muons[clct0cfeb][TimeDelay]++;
-	  last_pulsed_halfstrip = random_halfstrip;
+	  (*MyOutput_) << " found" << endl;
+	  last_pulsed_halfstrip[List] = random_halfstrip[List];
+	} else {
+	  (*MyOutput_) << " NOT found" << endl;
 	}
 	//	if ( clct1nhit == 6 && clct1keyHalfStrip == 16 && clct1cfeb == List ) 
 	//	  Muons[clct1cfeb][TimeDelay]++;
