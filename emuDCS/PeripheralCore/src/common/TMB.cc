@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.34 2007/06/07 12:57:28 rakness Exp $
+// $Id: TMB.cc,v 3.35 2007/06/12 09:56:57 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.35  2007/06/12 09:56:57  rakness
+// clean TMB Raw Hits
+//
 // Revision 3.34  2007/06/07 12:57:28  rakness
 // update TMB counters
 //
@@ -2546,267 +2549,108 @@ void TMB::ResetALCTRAMAddress(){
 }
 
 void TMB::ResetRAMAddress(){
-   //
-   //Clear RAM address for next event
-   //
-   int adr, wr_data;
-   //
-   adr = dmb_ram_adr ;
-   wr_data = 0x2000; //reset RAM write address
-   sndbuf[0] = (wr_data & 0xff00)>>8 ;
-   sndbuf[1] = wr_data & 0x00ff ;
-   tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-   wr_data = 0x0; //unreset
-   sndbuf[0] = (wr_data & 0xff00)>>8 ;
-   sndbuf[1] = wr_data & 0x00ff ;
-   tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-   //
+  //
+  //Clear RAM address for next event
+  //
+  WriteRegister(dmb_ram_adr,0x2000); //reset RAM write address
+  WriteRegister(dmb_ram_adr,0x0000); //unreset
+  //
+  return;
 }
 
-void TMB::TMBRawhits(){
+void TMB::TMBRawhits(int number_of_reads){
    //
-   int adr, dmb_wdcnt, dmb_busy, rd_data, wr_data, dmb_rdata, tmb_state, halt_state, tmb_state_comp;
-   std::vector < std::bitset<16> > tmb_data;
-   //
-   //Clear RAM address for next event
-   //
-   adr = dmb_ram_adr ;
-   wr_data = 0x2000; //reset RAM write address
-   sndbuf[0] = (wr_data & 0xff00)>>8 ;
-   sndbuf[1] = wr_data & 0x00ff ;
-   tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-   wr_data = 0x0; //unreset
-   sndbuf[0] = (wr_data & 0xff00)>>8 ;
-   sndbuf[1] = wr_data & 0x00ff ;
-   tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-   //
-   ::sleep(2);
-   //
-   // Read forever
-   //
-   while ( 1 < 2 ) {
-      //      
-      // Pretrigger halt
-      //
-      adr = seq_clct_adr ;
-      tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-      rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-      sndbuf[0] = (rcvbuf[0] & 0x7f) | 0x80 ;
-      sndbuf[1] = rcvbuf[1];
-      tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-      //
-      // Check state machine
-      //
-      adr = seqsm_adr ;
-      tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-      rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-      tmb_state     = (rd_data & 0x7);
-      tmb_state_comp=  rd_data ;
-      
-      adr = seq_clct_adr ;
-      tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-      rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-      halt_state = ((rd_data>>15)&0x1);
-      
-      adr = dmb_wdcnt_adr ;
-      tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-      rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-      dmb_wdcnt = rd_data & 0x0fff;
-      dmb_busy  = (rd_data >> 14 ) & 0x0001;
-    
-      printf("   word count              = %4d\n",dmb_wdcnt);
-      printf("   busy                    = %4d\n",dmb_busy);
-      printf("   tmb_state machine       = %4d\n",tmb_state);
-      printf("   tmb_state machine comp  = %4d\n",tmb_state_comp);
-      printf("   halt_state              = %4d\n",halt_state);
-      
-      while((dmb_busy) || (dmb_wdcnt <= 0) || (tmb_state != 7) ) {
-	 
-	 adr = seqsm_adr ;
-	 tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-	 rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-	 tmb_state     = (rd_data & 0x7);
-	 
-	 adr = dmb_wdcnt_adr ;
-	 tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-	 rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-	 dmb_wdcnt = rd_data & 0x0fff;
-	 dmb_busy  = (rd_data >> 14 ) & 0x0001;
-      
-	 printf("   word count              = %4d\n",dmb_wdcnt);
-	 printf("   busy                    = %4d\n",dmb_busy);
-	 printf("   tmb_state machine       = %4d\n",tmb_state);
-
-      }
-      //
-      //Write RAM read address to TMB
-      //
-      for(int i=0;i<dmb_wdcnt;i++) {
-	 adr = dmb_ram_adr ;
-	 wr_data = (i & 0xFFFF);
-	 sndbuf[0] = (wr_data & 0xff00)>>8 ;
-	 sndbuf[1] = wr_data & 0x00ff ;
-	 tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-	 
-	 //Read RAM data from TMB
-	 adr = dmb_rdata_adr ;
-	 tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);     //read lsbs
-	 rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-	 dmb_rdata = rd_data;
-	 
-	 printf("Adr=%4d, Data=%5x\n",i,dmb_rdata);
-	 tmb_data.push_back((std::bitset<16>)dmb_rdata);
-      }
-
-      printf("The size is %d\n",tmb_data.size());
-
-      int CRC_end  = tmb_data.size();
-      int CRC_low  = (tmb_data[CRC_end-4].to_ulong()) &0x7ff ;
-      int CRC_high = (tmb_data[CRC_end-3].to_ulong()) &0x7ff ;
-      int CRCdata  = (CRC_high<<11) | CRC_low ;
-
-      int CRCcalc = TMBCRCcalc(tmb_data) ;
-
-      printf(" CRC %x \n",CRCcalc);
-      printf(" CRC in data stream %lx %lx %x \n",tmb_data[CRC_end-4].to_ulong(),
-	     tmb_data[CRC_end-3].to_ulong(),CRCdata);
-      
-      if ( CRCcalc != CRCdata ) {
-	 printf("TMB CRC doesn't agree \n");
-      } else {
-	 printf("TMB CRC does    agree \n");
-      }
-
-      tmb_data.clear();
-      //
-      //Clear RAM address for next event
-      //
-      adr = dmb_ram_adr ;
-      wr_data = 0x2000; //reset RAM write address
-      sndbuf[0] = (wr_data & 0xff00)>>8 ;
-      sndbuf[1] = wr_data & 0x00ff ;
-      tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-      wr_data = 0x0; //unreset
-      sndbuf[0] = (wr_data & 0xff00)>>8 ;
-      sndbuf[1] = wr_data & 0x00ff ;
-      tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-      //
-      // Pretrigger unhalt
-      //
-      adr = seq_clct_adr ;
-      tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-      rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-      sndbuf[0] = (rcvbuf[0] & 0x7f) ;
-      sndbuf[1] = rcvbuf[1];
-      tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-            
+   for (int i=0; i<number_of_reads; i++) {
+     //      
+     // Pretrigger halt while we are reading out the data
+     //
+     SetPretriggerHalt(1);
+     WriteRegister(seq_clct_adr,FillTMBRegister(seq_clct_adr));
+     //
+     ResetRAMAddress();
+     //
+     OnlyReadTMBRawhits();
+     //
+     // Pretrigger unhalt, go back to normal data taking
+     //
+     SetPretriggerHalt(0);
+     WriteRegister(seq_clct_adr,FillTMBRegister(seq_clct_adr));
+     //
    }
-
+   return;
 }
 
-void TMB::OnlyReadTMBRawhits(){
-   //
-   int adr, dmb_wdcnt, dmb_busy, rd_data, wr_data, dmb_rdata, tmb_state, halt_state, tmb_state_comp;
-   std::vector < std::bitset<16> > tmb_data;
-      //
-      // Check state machine
-      //
-      adr = seqsm_adr ;
-      tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-      rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-      tmb_state     = (rd_data & 0x7);
-      tmb_state_comp=  rd_data ;
-      
-      adr = seq_clct_adr ;
-      tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-      rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-      halt_state = ((rd_data>>15)&0x1);
-      
-      adr = dmb_wdcnt_adr ;
-      tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-      rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-      dmb_wdcnt = rd_data & 0x0fff;
-      dmb_busy  = (rd_data >> 14 ) & 0x0001;
-    
-      printf("   word count              = %4d\n",dmb_wdcnt);
-      printf("   busy                    = %4d\n",dmb_busy);
-      printf("   tmb_state machine       = %4d\n",tmb_state);
-      printf("   tmb_state machine comp  = %4d\n",tmb_state_comp);
-      printf("   halt_state              = %4d\n",halt_state);
-      
-      while((dmb_busy) || (dmb_wdcnt <= 0) ) {
-	 
-	 adr = seqsm_adr ;
-	 tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-	 rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-	 tmb_state     = (rd_data & 0x7);
-	 
-	 adr = dmb_wdcnt_adr ;
-	 tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-	 rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-	 dmb_wdcnt = rd_data & 0x0fff;
-	 dmb_busy  = (rd_data >> 14 ) & 0x0001;
-      
-	 printf("   word count              = %4d\n",dmb_wdcnt);
-	 printf("   busy                    = %4d\n",dmb_busy);
-	 printf("   tmb_state machine       = %4d\n",tmb_state);
-
-      }
-      //
-      //Write RAM read address to TMB
-      //
-      for(int i=0;i<dmb_wdcnt;i++) {
-	 adr = dmb_ram_adr ;
-	 wr_data = (i & 0xFFFF);
-	 sndbuf[0] = (wr_data & 0xff00)>>8 ;
-	 sndbuf[1] = wr_data & 0x00ff ;
-	 tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-	 
-	 //Read RAM data from TMB
-	 adr = dmb_rdata_adr ;
-	 tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);     //read lsbs
-	 rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-	 dmb_rdata = rd_data;
-	 
-	 printf("Adr=%4d, Data=%5x\n",i,dmb_rdata);
-	 tmb_data.push_back((std::bitset<16>)dmb_rdata);
-      }
-
-      printf("The size is %d\n",tmb_data.size());
-
-      int CRC_end  = tmb_data.size();
-      int CRC_low  = (tmb_data[CRC_end-4].to_ulong()) &0x7ff ;
-      int CRC_high = (tmb_data[CRC_end-3].to_ulong()) &0x7ff ;
-      int CRCdata  = (CRC_high<<11) | CRC_low ;
-
-      int CRCcalc = TMBCRCcalc(tmb_data) ;
-
-      printf(" CRC %x \n",CRCcalc);
-      printf(" CRC in data stream %lx %lx %x \n",tmb_data[CRC_end-4].to_ulong(),
-	     tmb_data[CRC_end-3].to_ulong(),CRCdata);
-      
-      if ( CRCcalc != CRCdata ) {
-	 printf("TMB CRC doesn't agree \n");
-      } else {
-	 printf("TMB CRC does    agree \n");
-      }
-
-      tmb_data.clear();
-      //
-      //Clear RAM address for next event
-      //
-      adr = dmb_ram_adr ;
-      wr_data = 0x2000; //reset RAM write address
-      sndbuf[0] = (wr_data & 0xff00)>>8 ;
-      sndbuf[1] = wr_data & 0x00ff ;
-      tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-      wr_data = 0x0; //unreset
-      sndbuf[0] = (wr_data & 0xff00)>>8 ;
-      sndbuf[1] = wr_data & 0x00ff ;
-      tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-
+bool TMB::OnlyReadTMBRawhits(){
+  //
+  tmb_data_.clear();
+  //
+  // Check state machine, is it halted while we extract the data?
+  //
+  ReadRegister(seq_clct_adr);
+  int halt_state = GetPretriggerHalt();
+  //
+  (*MyOutput_) << "TMB halt_state before read RAM = " << halt_state << std::endl;
+  //
+  int dmb_busy  = 1;
+  int dmb_wdcnt = 0;
+  //
+  // Determine the number of words in this event:
+  //
+  while( (dmb_busy) || (dmb_wdcnt <= 0) ) {
+    //
+    int rd_data = ReadRegister(dmb_wdcnt_adr);
+    dmb_wdcnt   = rd_data & 0x0fff;
+    dmb_busy    = (rd_data>>14) & 0x1;  
+    //
+    (*MyOutput_) << "DMB busy       = " << dmb_busy << std::endl;
+    (*MyOutput_) << "DMB word count = " << dmb_wdcnt << std::endl;
+    //
+    //    rd_data        = ReadRegister(seqsm_adr);
+    //    int tmb_state      = rd_data & 0x7;
+    //    int tmb_state_comp = rd_data;
+    //    printf("   tmb_state machine       = %4d\n",tmb_state);
+  }
+  //
+  // Get the data:
+  for(int i=0; i<dmb_wdcnt; i++) {
+    //
+    //Write RAM read address
+    int address = (i & 0xFFFF);
+    WriteRegister(dmb_ram_adr,address);
+    //    
+    //Read RAM data
+    int dmb_rdata = ReadRegister(dmb_rdata_adr);
+    //
+    tmb_data_.push_back((std::bitset<16>) dmb_rdata);
+    //    printf("Adr=%4d, Data=%5x\n",i,dmb_rdata);
+    (*MyOutput_) << "Address = " << std::dec << i << ", data = " << std::hex << dmb_rdata << std::endl;
+  }
+  //
+  (*MyOutput_) << "Total number of words read = " << tmb_data_.size() << std::endl;
+  //  printf("The size is %d\n",tmb_data.size());
+  //
+  // Determine the CRC to see if we've extracted the data correctly, among other possibilities
+  int CRC_end  = tmb_data_.size();
+  int CRC_low  = (tmb_data_[CRC_end-4].to_ulong()) &0x7ff;
+  int CRC_high = (tmb_data_[CRC_end-3].to_ulong()) &0x7ff;
+  //
+  int CRCdata  = (CRC_high<<11) | CRC_low;
+  int CRCcalc = TMBCRCcalc(tmb_data_);
+  //
+  int dataOK = compareValues("TMB CRC", CRCcalc, CRCdata);
+  //
+  //  printf(" CRC %x \n",CRCcalc);
+  //  printf(" CRC in data stream %lx %lx %x \n",tmb_data[CRC_end-4].to_ulong(),
+  //	 tmb_data[CRC_end-3].to_ulong(),CRCdata);
+  //  if ( CRCcalc != CRCdata ) {
+  //    printf("TMB CRC doesn't agree \n");
+  //  } else {
+  //    printf("TMB CRC does    agree \n");
+  //  }
+  //
+  return dataOK;
 }
-
+//
 void TMB::decode() {
   //
   unsigned long int base_adr;
