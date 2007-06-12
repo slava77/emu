@@ -1748,7 +1748,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     output <<cgicc::tr();
     //
-    for (int count=0; count<23; count++) {
+    for (int count=0; count<24; count++) {
       //output <<cgicc::tr();
       for(unsigned int tmb=0; tmb<tmbVector.size(); tmb++) {
 	output <<cgicc::td();
