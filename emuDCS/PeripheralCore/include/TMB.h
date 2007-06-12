@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.22 2007/06/07 12:57:28 rakness Exp $
+// $Id: TMB.h,v 3.23 2007/06/12 09:56:56 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.23  2007/06/12 09:56:56  rakness
+// clean TMB Raw Hits
+//
 // Revision 3.22  2007/06/07 12:57:28  rakness
 // update TMB counters
 //
@@ -273,9 +276,9 @@ public:
   void scope(int scp_arm,int scp_readout, int scp_channel=0x1d);
   void decode();
   void ALCTRawhits();
-  void TMBRawhits();
+  void TMBRawhits(int number_of_reads = 1);
+  bool OnlyReadTMBRawhits();
   void ForceScopeTrigger();
-  void OnlyReadTMBRawhits();
   void fifomode();
   void init_alct(int choice);
   void load_cscid();
@@ -1185,6 +1188,9 @@ private:
   int alct1_amu_;
   int alct1_second_key_;
   int alct1_second_bxn_;
+  //
+  //-- TMB data in raw hits VME readout --//
+  std::vector< std::bitset<16> > tmb_data_;
   //
   //-- program in user prom --//
   std::vector<int> clocked_out_prom_image_;
