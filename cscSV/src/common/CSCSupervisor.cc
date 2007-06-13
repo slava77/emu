@@ -33,8 +33,8 @@ XDAQ_INSTANTIATOR_IMPL(CSCSupervisor);
 static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
 static const unsigned int N_LOG_MESSAGES = 20;
 static const string STATE_UNKNOWN = "unknown";
-static const unsigned int DELAY_CFEB_GAIN = 6U;
-static const unsigned int DELAY_CFEB_TIME = 2U;
+static const unsigned int DELAY_CFEB_GAIN = 2U;
+static const unsigned int DELAY_CFEB_TIME = 1U;
 static const unsigned int DELAY_CFEB_PED = 60U;
 
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
@@ -525,8 +525,12 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		if (state_table_.getState("EmuDAQManager", 0) == "Configured") {
 			sendCommand("Halt", "EmuDAQManager");
 		}
-		sendCommand("Halt", "TTCciControl");
-		sendCommand("Halt", "LTCControl");
+		if (state_table_.getState("TTCciControl", 0) != "Halted") {
+			sendCommand("Halt", "TTCciControl");
+		}
+		if (state_table_.getState("LTCControl", 0) != "Halted") {
+			sendCommand("Halt", "LTCControl");
+		}
 
 		string str = trim(getCrateConfig("PC", run_type_.toString()));
 		if (!str.empty()) {
