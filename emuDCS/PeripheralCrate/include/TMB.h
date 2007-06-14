@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.23 2007/06/12 09:56:56 rakness Exp $
+// $Id: TMB.h,v 3.24 2007/06/14 14:47:56 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.24  2007/06/14 14:47:56  rakness
+// clean up MPC injection
+//
 // Revision 3.23  2007/06/12 09:56:56  rakness
 // clean TMB Raw Hits
 //
@@ -1164,6 +1167,7 @@ private:
   int tmb_idcode_[7];
   //
   std::ostream * MyOutput_ ;
+  bool debug_;
   //
   std::vector<unsigned long int> InjectedLct0;
   std::vector<unsigned long int> InjectedLct1;
