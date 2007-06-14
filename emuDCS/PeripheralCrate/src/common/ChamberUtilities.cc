@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.18 2007/06/12 09:56:27 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.19 2007/06/14 08:47:55 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.19  2007/06/14 08:47:55  rakness
+// make winner scan more robust
+//
 // Revision 3.18  2007/06/12 09:56:27  rakness
 // remove TMB distrip from CLCT phase scan
 //
@@ -1096,6 +1099,7 @@ int ChamberUtilities::FindWinner(int npulses=10){
   //
   // Set up for this test...
   // Get initial values:
+  int initial_value_of_register             = thisTMB->GetMpcOutputEnable();
   int initial_clct_pretrig_enable           = thisTMB->GetClctPatternTrigEnable();    //0x68
   int initial_clct_trig_enable              = thisTMB->GetTmbAllowClct();             //0x86
   int initial_clct_halfstrip_pretrig_thresh = thisTMB->GetHsPretrigThresh();          //0x70
@@ -1105,12 +1109,18 @@ int ChamberUtilities::FindWinner(int npulses=10){
   // Enable this TMB for this test
   thisTMB->SetClctPatternTrigEnable(1);
   thisTMB->WriteRegister(seq_trig_en_adr,thisTMB->FillTMBRegister(seq_trig_en_adr));
+  //
   thisTMB->SetTmbAllowClct(1);
   thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  //
   thisTMB->SetHsPretrigThresh(6);
   thisTMB->SetDsPretrigThresh(6);
   thisTMB->SetMinHitsPattern(6);
   thisTMB->WriteRegister(seq_clct_adr,thisTMB->FillTMBRegister(seq_clct_adr));
+  //
+  thisTMB->SetMpcOutputEnable(1);
+  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  //
   thisTMB->StartTTC();
   ::sleep(1);
 
@@ -1240,12 +1250,17 @@ int ChamberUtilities::FindWinner(int npulses=10){
   // return to initial values:
   thisTMB->SetClctPatternTrigEnable(initial_clct_pretrig_enable);
   thisTMB->WriteRegister(seq_trig_en_adr,thisTMB->FillTMBRegister(seq_trig_en_adr));
+  //
   thisTMB->SetTmbAllowClct(initial_clct_trig_enable);
   thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  //
   thisTMB->SetHsPretrigThresh(initial_clct_halfstrip_pretrig_thresh);
   thisTMB->SetDsPretrigThresh(initial_clct_distrip_pretrig_thresh);
   thisTMB->SetMinHitsPattern(initial_clct_pattern_thresh);
   thisTMB->WriteRegister(seq_clct_adr,thisTMB->FillTMBRegister(seq_clct_adr));
+  //
+  thisTMB->SetMpcOutputEnable(initial_value_of_register);
+  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
   //
   return MPCdelay_;
 }
