@@ -5520,8 +5520,6 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
   void EmuPeripheralCrate::RATStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
   {
     //
-    // NEED TO PUT IN RAT FIRMWARE GREEN/RED FLAG
-    //
     cgicc::Cgicc cgi(in);
     //
     cgicc::form_iterator name = cgi.getElement("tmb");
@@ -5547,10 +5545,20 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::br();
     //
     *out << cgicc::pre();
+    //
+    tmbTestVector[tmb].testRATuserCodes();
+    //
+    if ( tmbTestVector[tmb].GetResultTestRATuserCodes() == 1 ) {
+      *out << cgicc::span().set("style","color:green");
+    } else {
+      *out << cgicc::span().set("style","color:red");
+    }
     rat->RedirectOutput(out);
     rat->ReadRatUser1();
     rat->PrintRatUser1();
     rat->RedirectOutput(&std::cout);
+    //
+    *out << cgicc::span();
     *out << cgicc::pre();
     //
     *out << cgicc::fieldset();
@@ -6489,7 +6497,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     std::string testRATuserCodes =
       toolbox::toString("/%s/testTMB",getApplicationDescriptor()->getURN().c_str());
     //
-    *out << cgicc::form().set("method","GET").set("action",testRATtemper)
+    *out << cgicc::form().set("method","GET").set("action",testRATuserCodes)
 	 << std::endl ;
     //
     if ( tmbTestVector[tmb].GetResultTestRATuserCodes() == -1 ) {
