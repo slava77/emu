@@ -19,6 +19,8 @@ CrateUtilities::CrateUtilities() : MpcTMBTestResult(-1), myCrate_(0)
   //
   std::cout << "CrateUtilities" << endl ;
   //
+  MyOutput_ = &std::cout ;
+  //
 }
 //
 //
@@ -581,106 +583,163 @@ void CrateUtilities::CreateTstoreTables(){
   //
 }
 //
-void CrateUtilities::MpcTMBTest(int Nloop){
+void CrateUtilities::MpcTMBTest(int Nloop) {
   //
-  int NFound = 0;
-  //
-  for(int nloop = 0; nloop<Nloop; nloop++) {
-  //
-  myCrate_->mpc()->SoftReset();
-  myCrate_->mpc()->configure();
-  myCrate_->mpc()->read_csr0();
-  myCrate_->mpc()->read_fifos();
-  myCrate_->mpc()->read_csr0();
-  //
-  std::vector <TMB*> myTmbs = myCrate_->tmbs();
-  //
-  for (unsigned i=0; i<myTmbs.size(); i++) {
-    //
-    (myTmbs[i]->ResetInjectedLCT());
-    //
-  }
-  //
-  (myCrate_->mpc())->ResetFIFOBLct();
-  //
-  for (unsigned i=0; i<myTmbs.size(); i++) {
-    //
-    myTmbs[i]->InjectMPCData(myTmbs.size(),0,0); //Random Data
-    //
-  }
-  //
-  //  myCrate_->ccb()->FireCCBMpcInjector();
-  myCrate_->ccb()->injectTMBPattern();
-  //
-  myCrate_->mpc()->read_fifos();
-  //
-  if (((myCrate_->mpc())->GetFIFOBLct0()).size() == 0 ) {
-    std::cout << "No data" << std::endl;
-    return;
-  }
-  //
-  int NFrames = myTmbs.size();
-  if (NFrames > 5 ) NFrames = 5;
-  //
-  for (int frame = 0; frame < NFrames ; frame++ ) {
-    //
-    std::cout << " Frame " << frame << " " << std::hex << std::setw(8) <<
-      " " << ((myCrate_->mpc())->GetFIFOBLct0())[frame] <<
-      " " << ((myCrate_->mpc())->GetFIFOBLct1())[frame] <<
-      " " << ((myCrate_->mpc())->GetFIFOBLct2())[frame] 
-	      << std::endl ;
-    //
-    unsigned long int MPCLct0= ((myCrate_->mpc())->GetFIFOBLct0())[frame] ;
-    unsigned long int MPCLct1= ((myCrate_->mpc())->GetFIFOBLct1())[frame] ;
-    unsigned long int MPCLct2= ((myCrate_->mpc())->GetFIFOBLct2())[frame] ;
-    //
-    // Copy LCT data and sort...
-    //
-    std::vector <unsigned long int> InjectedLCT;
-    //
-    for (unsigned i=0; i<myTmbs.size(); i++) {
-      if ( (myTmbs[i]->GetInjectedLct0()).size() ) {
-	InjectedLCT.push_back((myTmbs[i]->GetInjectedLct0())[frame]);
-	InjectedLCT.push_back((myTmbs[i]->GetInjectedLct1())[frame]);
-      }
-    }
-    std::sort(InjectedLCT.begin(),InjectedLCT.end(), std::greater<int>() );
-    //
-    std::cout << "Sorted : " ;
-    for (unsigned vec=0; vec<InjectedLCT.size(); vec++) std::cout << InjectedLCT[vec] << " "  ;
-    //
-    std::cout << std::endl ;
-    //
-    for (unsigned i=0; i<myTmbs.size(); i++) {
-      if ( (myTmbs[i]->GetInjectedLct0()).size() ) {
-	if ( ((myTmbs[i]->GetInjectedLct0())[frame]) == MPCLct0 ||
-	     ((myTmbs[i]->GetInjectedLct1())[frame]) == MPCLct0 )  {
-	  std::cout << "Found0 " << std::endl;
-	  NFound++;
-	}
-	if ( ((myTmbs[i]->GetInjectedLct0())[frame]) == MPCLct1 ||
-	     ((myTmbs[i]->GetInjectedLct1())[frame]) == MPCLct1 )  {
-	  std::cout << "Found1 " << std::endl;
-	  NFound++;
-	}
-	if ( ((myTmbs[i]->GetInjectedLct0())[frame]) == MPCLct2 ||
-	     ((myTmbs[i]->GetInjectedLct1())[frame]) == MPCLct2 )  {
-	  std::cout << "Found2 " << std::endl;
-	  NFound++;
-	}
-      }
-    }
-  }
-  //
-  std::cout << "NFound " << std::dec << NFound%15 << " " << NFound << std::endl;
-  if ( NFound == (nloop+1)*3*NFrames ) {
-    std::cout << "Passed" << std::endl;
-    MpcTMBTestResult = 1;
-  } else {
-    std::cout << "Failed " << " nloop=" << nloop << std::endl;
-    MpcTMBTestResult = 0;
-    break;
-  }
-  //
+  MpcTMBTest(Nloop, 0, 0);  //default is no scan for "safe window"
+  return;
 }
+//
+void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
+  //
+  // Allows for scan over "safe window"
+  //
+  int NFound[255] = {};
+  //
+  for (int delay=min_delay; delay<=max_delay; delay++) {
+    //
+    myCrate_->mpc()->SoftReset();
+    myCrate_->mpc()->configure();
+    //    myCrate_->mpc()->read_csr0();
+    //
+    if (delay) {
+      std::cout << "Delay value = " << delay << std::endl;
+      int value = myCrate_->mpc()->ReadRegister(0xAC);
+      //  int delay=15;
+      value = (value & 0x00ff) | ((delay<<8)&0xff00);
+      myCrate_->mpc()->WriteRegister(0xAC,value);
+      myCrate_->mpc()->ReadRegister(0xAC);
+    }
+    //
+    myCrate_->mpc()->read_fifos();   //read FIFOB to clear it
+    //    myCrate_->mpc()->read_csr0();
+    //
+    int sequential_events_with_fifob_empty=0;
+    //
+    int nloop;
+    for(nloop = 0; nloop<Nloop; nloop++) {
+      //
+      std::cout << "Begin Event " << nloop << std::endl;
+      //
+      std::vector <TMB*> myTmbs = myCrate_->tmbs();
+      //
+      // clear the vectors of input LCTs
+      for (unsigned i=0; i<myTmbs.size(); i++) {
+	(myTmbs[i]->ResetInjectedLCT());
+      }
+      //
+      // clear the vectors of read out LCTs
+      (myCrate_->mpc())->ResetFIFOBLct();
+      //
+      int NFrames = myTmbs.size();
+      if (NFrames > 5 ) NFrames = 5;
+      //
+      for (unsigned i=0; i<myTmbs.size(); i++) {
+	myTmbs[i]->InjectMPCData(NFrames,0,0); //Random Data
+	//      myTmbs[i]->ReadBackMpcRAM(NFrames)
+      }
+      //
+      //  myCrate_->ccb()->FireCCBMpcInjector();
+      myCrate_->ccb()->injectTMBPattern();
+      //
+      myCrate_->mpc()->read_fifos();
+      //
+      if (((myCrate_->mpc())->GetFIFOBLct0()).size() == 0 ) {
+	std::cout << "No data in FIFO B for event " << nloop << std::endl;
+	sequential_events_with_fifob_empty++;
+	//
+	if (sequential_events_with_fifob_empty > 9) {
+	  std::cout << "Number of events in a row with FIFO-B empty = " 
+		    << std::dec << sequential_events_with_fifob_empty << std::endl;
+	  std::cout << "...quitting..." << std::endl;
+	  break;
+	} else {
+	  continue;
+	}
+      } else {
+	sequential_events_with_fifob_empty = 0;
+      }
+      //
+      int N_LCTs_found_this_pass = 0;
+      //
+      for (int frame = 0; frame < NFrames ; frame++ ) {
+	//
+	unsigned long int MPCLct0= ((myCrate_->mpc())->GetFIFOBLct0())[frame] ;
+	unsigned long int MPCLct1= ((myCrate_->mpc())->GetFIFOBLct1())[frame] ;
+	unsigned long int MPCLct2= ((myCrate_->mpc())->GetFIFOBLct2())[frame] ;
+	//
+	std::cout << "MPC data in frame " << frame << ":" << std::hex 
+		  << " " << MPCLct0 << " " << MPCLct1 << " " << MPCLct2 
+		  << std::endl ;
+	//
+	// Copy LCT data and sort...
+	//
+	std::vector <unsigned long int> InjectedLCT;
+	//
+	for (unsigned i=0; i<myTmbs.size(); i++) {
+	  if ( (myTmbs[i]->GetInjectedLct0()).size() ) {
+	    InjectedLCT.push_back((myTmbs[i]->GetInjectedLct0())[frame]);
+	    InjectedLCT.push_back((myTmbs[i]->GetInjectedLct1())[frame]);
+	  }
+	}
+	std::sort(InjectedLCT.begin(),InjectedLCT.end(), std::greater<int>() );
+	//
+	std::cout << "Data sorted in code: ";
+	for (unsigned vec=0; vec<InjectedLCT.size(); vec++) std::cout << InjectedLCT[vec] << " "  ;
+	//
+	std::cout << std::endl ;
+	//
+	std::cout << "Found...  ";
+	for (unsigned i=0; i<myTmbs.size(); i++) {
+	  if ( (myTmbs[i]->GetInjectedLct0()).size() ) {
+	    if ( ((myTmbs[i]->GetInjectedLct0())[frame]) == MPCLct0 ||
+		 ((myTmbs[i]->GetInjectedLct1())[frame]) == MPCLct0 )  {
+	      std::cout << " LCT0 ";
+	      NFound[delay]++;
+	      N_LCTs_found_this_pass++;
+	    }
+	    if ( ((myTmbs[i]->GetInjectedLct0())[frame]) == MPCLct1 ||
+		 ((myTmbs[i]->GetInjectedLct1())[frame]) == MPCLct1 )  {
+	      std::cout << " LCT1 ";
+	      NFound[delay]++;
+	      N_LCTs_found_this_pass++;
+	    }
+	    if ( ((myTmbs[i]->GetInjectedLct0())[frame]) == MPCLct2 ||
+		 ((myTmbs[i]->GetInjectedLct1())[frame]) == MPCLct2 )  {
+	      std::cout << " LCT2 ";
+	      NFound[delay]++;
+	      N_LCTs_found_this_pass++;
+	    }
+	  }
+	}
+	std::cout << std::endl;
+      }
+      //
+      std::cout << "N_LCTs found this pass = " << std::dec << N_LCTs_found_this_pass << std::endl;
+      std::cout << "N_LCTs found for delay " << std::dec << delay << " = " << NFound[delay] << std::endl;
+      if ( NFound[delay] == (nloop+1)*3*NFrames ) {
+	if (delay == 0) MpcTMBTestResult = 1;
+      } else {
+	if (delay == 0) MpcTMBTestResult = 0;
+	break;
+      }
+      //
+    }
+    //
+    if (delay == 0 && MpcTMBTestResult == 1) {
+      (*MyOutput_) << "TMB-MPC Crate Test Passed, N_LCT = " << std::dec << NFound[delay] << std::endl;
+    } else if (delay == 0 && MpcTMBTestResult == 0) {
+      (*MyOutput_) << "TMB-MPC Crate Test Failed " << ", nloop=" << nloop << std::endl;
+    }
+    //
+    //    std::cout << "Broke out, try next delay..." << std::endl;
+  }
+  //
+  if (min_delay>0 || max_delay>0) {
+    (*MyOutput_) << "MPC safe-window scan:" << std::endl;
+    for (int delay=min_delay; delay<=max_delay; delay++) {
+      (*MyOutput_) << "N_LCT[ " << delay << "] = " << NFound[delay] << std::endl;
+    }
+  }
+  //
+  return;
 }

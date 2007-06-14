@@ -18,9 +18,12 @@ using namespace std;
 const string       CFEB_FIRMWARE_FILENAME = "cfeb/cfeb_pro.svf";
 const unsigned int EXPECTED_CFEB_USERID   = 0xcfeda092;
 //
-const string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_pro.svf";
-const unsigned int EXPECTED_DMB_USERID      = 0x48547231;
-const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
+//const string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_pro.svf";
+//const unsigned int EXPECTED_DMB_USERID      = 0x48547231;
+const string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_v23_r2.svf";
+const unsigned int EXPECTED_DMB_USERID      = 0x48547232;
+//const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
+const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_v11_r1.svf";
 //
 //In order to load firmware automatically from the firmware values in the xml files, 
 //the firmware needs to reside in directories in the form:
@@ -73,6 +76,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     xgi::bind(this,&EmuPeripheralCrate::getTestLogFile, "getTestLogFile");
     xgi::bind(this,&EmuPeripheralCrate::getTestLogFileUpload, "getTestLogFileUpload");
     xgi::bind(this,&EmuPeripheralCrate::TmbMPCTest, "TmbMPCTest");
+    xgi::bind(this,&EmuPeripheralCrate::MPCSafeWindowScan, "MPCSafeWindowScan");
     xgi::bind(this,&EmuPeripheralCrate::InitSystem, "InitSystem");
     xgi::bind(this,&EmuPeripheralCrate::InitChamber, "InitChamber");
     xgi::bind(this,&EmuPeripheralCrate::setRawConfFile, "setRawConfFile");
@@ -81,6 +85,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     xgi::bind(this,&EmuPeripheralCrate::SetUnsetRatio, "SetUnsetRatio");
     xgi::bind(this,&EmuPeripheralCrate::SetUnsetAutoRefresh, "SetUnsetAutoRefresh");
     xgi::bind(this,&EmuPeripheralCrate::DefineConfiguration, "DefineConfiguration");
+    xgi::bind(this,&EmuPeripheralCrate::LogChamberTestsOutput, "LogChamberTestsOutput");
     xgi::bind(this,&EmuPeripheralCrate::LogCrateTestsOutput, "LogCrateTestsOutput");
     //
     xgi::bind(this,&EmuPeripheralCrate::getData0, "getData0");
@@ -312,8 +317,9 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       OutputStringTMBStatus[i] << "TMB-RAT Status " << i << " output:" << std::endl;
       OutputDMBTests[i]        << "DMB-CFEB Tests " << i << " output:" << std::endl;
       OutputTMBTests[i]        << "TMB-RAT Tests " << i << " output:" << std::endl;
-      CrateTestsOutput[i]      << "Chamber-Crate Phases " << i << " output:" << std::endl;
+      ChamberTestsOutput[i]    << "Chamber-Crate Phases " << i << " output:" << std::endl;
     }
+    CrateTestsOutput << "Crate Tests output:" << std::endl;
     //
     this->getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
     this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
@@ -759,15 +765,41 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::form() << std::endl ;
     //
     if (myCrateTest.GetMpcTMBTestResult() == -1 ) {
-      *out << "Not tested yet" <<std::endl;
+      *out << "Not tested yet" << std::endl;
     } else if (myCrateTest.GetMpcTMBTestResult() == 0 ) {
       *out << "Failed" <<std::endl;
     } else {
       *out << "Passed" <<std::endl;
     }
     //
+    *out<< cgicc::br() ;
+    *out<< cgicc::br() ;
+    //
+    *out << cgicc::pre();
+    *out << "If MPC switch S2-1/2=on/off, the following scan will pass for all values (CMS running)" << std::endl;
+    *out << "If MPC switch S2-1/2=off/on, the following scan will determine the MPC safe window" << std::endl;
+    *out << cgicc::pre();
+    //
+    std::string MPCSafeWindowScan =
+      toolbox::toString("/%s/MPCSafeWindowScan",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",MPCSafeWindowScan) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","MPC Safe Window Scan") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
     *out << cgicc::fieldset();
     //
+    *out << cgicc::form().set("method","GET") << std::endl ;
+    *out << cgicc::textarea().set("name","CrateTestsOutput").set("WRAP","OFF").set("rows","20").set("cols","100");
+    *out << CrateTestsOutput.str() << endl ;
+    *out << cgicc::textarea();
+    *out << cgicc::form() << std::endl ;
+    //
+    std::string LogCrateTestsOutput = toolbox::toString("/%s/LogCrateTestsOutput",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",LogCrateTestsOutput) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Log output").set("name","LogCrateTestsOutput") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Clear").set("name","ClearCrateTestsOutput") << std::endl ;
+    *out << cgicc::form() << std::endl ;
   }
   //
   void EmuPeripheralCrate::DefineConfiguration(xgi::Input * in, xgi::Output * out ) 
@@ -3143,11 +3175,34 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     cgicc::Cgicc cgi(in);
     //
+    myCrateTest.SetCrate(thisCrate);
+    //
+    myCrateTest.RedirectOutput(&CrateTestsOutput);
+    int number_of_loops = 1000;
+    myCrateTest.MpcTMBTest(number_of_loops);
+    myCrateTest.RedirectOutput(&std::cout);
+    //
+    this->CrateTests(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::MPCSafeWindowScan(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
     //CrateUtilities myCrateTest;
     myCrateTest.SetCrate(thisCrate);
-    myCrateTest.MpcTMBTest(1000);
     //
-    this->Default(in,out);
+    myCrateTest.RedirectOutput(&CrateTestsOutput);
+    int number_of_loops = 10;
+    int min_value       = 15;
+    int max_value       = 75;
+    myCrateTest.MpcTMBTest(number_of_loops,min_value,max_value);
+    myCrateTest.RedirectOutput(&std::cout);
+    //
+    this->CrateTests(in,out);
     //
   }
   //
@@ -3852,23 +3907,23 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << std::endl;
     //
     *out << cgicc::form().set("method","GET") << std::endl ;
-    *out << cgicc::textarea().set("name","CrateTestOutput")
+    *out << cgicc::textarea().set("name","ChamberTestOutput")
       .set("WRAP","OFF")
       .set("rows","20").set("cols","100");
-    *out << CrateTestsOutput[tmb].str() << endl ;
+    *out << ChamberTestsOutput[tmb].str() << endl ;
     *out << cgicc::textarea();
     *out << cgicc::form() << std::endl ;
     //
-    std::string LogCrateTestsOutput = toolbox::toString("/%s/LogCrateTestsOutput",getApplicationDescriptor()->getURN().c_str());
+    std::string LogChamberTestsOutput = toolbox::toString("/%s/LogChamberTestsOutput",getApplicationDescriptor()->getURN().c_str());
     //
-    *out << cgicc::form().set("method","GET").set("action",LogCrateTestsOutput) << std::endl ;
+    *out << cgicc::form().set("method","GET").set("action",LogChamberTestsOutput) << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::input().set("type","submit")
-    .set("value","Log output").set("name","LogCrateTestsOutput") << std::endl ;
+    .set("value","Log output").set("name","LogChamberTestsOutput") << std::endl ;
     *out << cgicc::input().set("type","submit")
       .set("value","Clear")
-      .set("name","ClearCrateTestsOutput") << std::endl ;
+      .set("name","ClearChamberTestsOutput") << std::endl ;
     *out << cgicc::form() << std::endl ;
   }
 //
@@ -3991,7 +4046,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //MyTest.SetTMB(thisTMB);
     //MyTest.SetCCB(thisCCB);
     //
-    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     MyTest[tmb].ALCTTiming();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
@@ -4087,7 +4142,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetCCB(thisCCB);
     //
-    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     MyTest[tmb].CFEBTiming();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
@@ -4135,7 +4190,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       //MyTest.SetDMB(thisDMB);
       //MyTest.SetCCB(thisCCB);
       //
-      MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+      MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
       MyTest[tmb].FindTMB_L1A_delay(150,165);
       MyTest[tmb].RedirectOutput(&std::cout);
       //
@@ -4183,7 +4238,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetCCB(thisCCB);
     //
-    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     MyTest[tmb].FindALCT_L1A_delay(155,170);
     MyTest[tmb].RedirectOutput(&std::cout);
     //
@@ -4229,7 +4284,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetCCB(thisCCB);
     //
-    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     MyTest[tmb].FindALCTvpf();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
@@ -4274,7 +4329,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //MyTest.SetTMB(thisTMB);
     //MyTest.SetCCB(thisCCB);
     //
-    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     MyTest[tmb].ALCTChamberScan();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
@@ -4320,7 +4375,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //MyTest.SetCCB(thisCCB);
     //MyTest.SetDMB(thisDMB);
     //
-    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     MyTest[tmb].CFEBChamberScan();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
@@ -4367,7 +4422,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetMPC(thisMPC);
     //
-    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     MyTest[tmb].FindWinner(2);
     MyTest[tmb].RedirectOutput(&std::cout);
     //
@@ -4406,7 +4461,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       cout << "No tmb" << endl;
     }
     //
-    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     MyTest[tmb].MeasureAlctDavCableDelay();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
@@ -4445,7 +4500,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       cout << "No tmb" << endl;
     }
     //
-    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     MyTest[tmb].MeasureCfebDavCableDelay();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
@@ -4484,7 +4539,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       cout << "No tmb" << endl;
     }
     //
-    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     MyTest[tmb].MeasureCfebCableDelay();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
@@ -4523,7 +4578,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       cout << "No tmb" << endl;
     }
     //
-    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     MyTest[tmb].MeasureTmbLctCableDelay();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
@@ -4572,7 +4627,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     MyTest[tmb].ReadAllDmbValuesAndScopes();
     //
-    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     MyTest[tmb].PrintAllDmbValuesAndScopes();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
@@ -4606,7 +4661,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //MyTest.SetDMB(thisDMB);
     //MyTest.SetMPC(thisMPC);
     //
-    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     MyTest[tmb].RatTmbDelayScan();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
@@ -4632,7 +4687,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       cout << "No tmb" << endl;
     }
     //
-    MyTest[tmb].RedirectOutput(&CrateTestsOutput[tmb]);
+    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     MyTest[tmb].RpcRatDelayScan();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
@@ -9005,9 +9060,10 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     LogFile.open(buf.c_str());
     while(TextFile.good()) LogFile << (char) TextFile.get() ;
     TextFile.close();
+    LogFile << CrateTestsOutput.str();
     for (unsigned int i=0; i<tmbVector.size(); i++) {
       LogFile << OutputTMBTests[i].str() ;
-      LogFile << CrateTestsOutput[i].str() ;
+      LogFile << ChamberTestsOutput[i].str() ;
     }
     for (unsigned int i=0; i<dmbVector.size(); i++) {
       LogFile << OutputDMBTests[i].str() ;
@@ -9068,11 +9124,11 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
   }
   //
-  void EmuPeripheralCrate::LogCrateTestsOutput(xgi::Input * in, xgi::Output * out ) 
+  void EmuPeripheralCrate::LogChamberTestsOutput(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
     //
-    cout << "LogCrateTestsOutput" << std::endl;
+    cout << "LogChamberTestsOutput" << std::endl;
     //
     cgicc::Cgicc cgi(in);
     //
@@ -9088,12 +9144,12 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       tmb = TMB_;
     }
     //
-    cgicc::form_iterator name2 = cgi.getElement("ClearCrateTestsOutput");
+    cgicc::form_iterator name2 = cgi.getElement("ClearChamberTestsOutput");
     //
     if(name2 != cgi.getElements().end()) {
       cout << "Clear..." << endl;
-      cout << cgi["ClearCrateTestsOutput"]->getValue() << std::endl ;
-      CrateTestsOutput[tmb].str("");
+      cout << cgi["ClearChamberTestsOutput"]->getValue() << std::endl ;
+      ChamberTestsOutput[tmb].str("");
       //
       this->ChamberTests(in,out);
       return ;
@@ -9105,16 +9161,50 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     cout << TMBBoardID_[tmb] << endl ;
     //
     char buf[20];
-    sprintf(buf,"CrateTestsLogFile_%d_%s.log",thisTMB->slot(),TMBBoardID_[tmb].c_str());
+    sprintf(buf,"ChamberTestsLogFile_%d_%s.log",thisTMB->slot(),TMBBoardID_[tmb].c_str());
+    //
+    ofstream ChamberTestsLogFile;
+    ChamberTestsLogFile.open(buf);
+    ChamberTestsLogFile << ChamberTestsOutput[tmb].str() ;
+    ChamberTestsLogFile.close();
+    //
+    ChamberTestsOutput[tmb].str("");
+    //
+    this->ChamberTests(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::LogCrateTestsOutput(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cout << "LogCrateTestsOutput" << std::endl;
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    cgicc::form_iterator name2 = cgi.getElement("ClearCrateTestsOutput");
+    //
+    if(name2 != cgi.getElements().end()) {
+      cout << "Clear..." << endl;
+      cout << cgi["ClearCrateTestsOutput"]->getValue() << std::endl ;
+      CrateTestsOutput.str("");
+      //
+      this->CrateTests(in,out);
+      return ;
+      //
+    }
+    //
+    char buf[20];
+    sprintf(buf,"CrateTestsLogFile.log");
     //
     ofstream CrateTestsLogFile;
     CrateTestsLogFile.open(buf);
-    CrateTestsLogFile << CrateTestsOutput[tmb].str() ;
+    CrateTestsLogFile << CrateTestsOutput.str() ;
     CrateTestsLogFile.close();
     //
-    CrateTestsOutput[tmb].str("");
+    CrateTestsOutput.str("");
     //
-    this->ChamberTests(in,out);
+    this->CrateTests(in,out);
     //
   }
   //
