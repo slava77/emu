@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.19 2007/06/14 08:47:55 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.20 2007/06/14 15:33:17 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.20  2007/06/14 15:33:17  rakness
+// scan only 2 RPCs for RAT/TMB phase
+//
 // Revision 3.19  2007/06/14 08:47:55  rakness
 // make winner scan more robust
 //
@@ -899,7 +902,7 @@ void ChamberUtilities::RatTmbDelayScan() {
       thisRAT_->WriteRatTmbDelay();
       //
       // ** read RAT 80MHz demux registers**
-      for (int irat=0; irat<=3; irat++) {
+      for (int irat=0; irat<=1; irat++) {           //only 2 RPCs exist
 	//
 	read_data = thisTMB->ReadRegister(rpc_cfg_adr);
 	read_data &= 0xf9ff;                        //zero out old RAT bank
