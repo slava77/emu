@@ -104,6 +104,7 @@ private:
 	toolbox::task::ActionSignature *configure_signature_, *halt_signature_;
 	toolbox::task::ActionSignature *calibration_signature_;
 	bool quit_calibration_;
+	std::map<string, string> start_attr, stop_attr;
 
 	void submit(toolbox::task::ActionSignature *signature);
 

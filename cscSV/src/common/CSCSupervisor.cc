@@ -4,7 +4,6 @@
 
 #include <sstream>
 #include <set>
-#include <map>
 #include <cstdlib>  // strtol()
 #include <iomanip>
 
@@ -36,6 +35,7 @@ static const string STATE_UNKNOWN = "unknown";
 static const unsigned int DELAY_CFEB_GAIN = 2U;
 static const unsigned int DELAY_CFEB_TIME = 1U;
 static const unsigned int DELAY_CFEB_PED = 60U;
+static const unsigned int DELAY_CFEB_COMP = 1U;
 
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
@@ -56,6 +56,9 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	run_type_ = "";
 	run_number_ = 0;
 	runSequenceNumber_ = 0;
+
+	start_attr.insert(std::map<string, string>::value_type("Param", "Start"));
+	stop_attr.insert(std::map<string, string>::value_type("Param", "Stop"));
 
 	xdata::InfoSpace *i = getApplicationInfoSpace();
 	i->fireItemAvailable("RunType", &run_type_);
@@ -483,19 +486,16 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 		command = "EnableCalCFEBPed";
 		loop = 1;
 		delay = DELAY_CFEB_PED;
+	} else if (run_type_ == "Calib_CFEB_Comparator") {
+		command = "EnableCalCFEBComp";
+		loop = 1120;
+		delay = DELAY_CFEB_COMP;
 	} else {
 		LOG4CPLUS_INFO(getApplicationLogger(), "wrong run type " << run_type_.toString());
 		return false;
 	}
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "command: " << command
 			<< " loop: " << loop << " delay: " << delay);
-
-	std::map<string, string> start_attr, stop_attr;
-	
-	start_attr.insert(std::map<string, string>::value_type("Param", "Start"));
-	stop_attr.insert(std::map<string, string>::value_type("Param", "Stop"));
-
-	sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
 
 	for (step_counter_ = 0; step_counter_ < loop; ++step_counter_) {
 		if (quit_calibration_) { break; }
@@ -593,6 +593,7 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 		sendCommand("Enable", "EmuDAQManager");
 		sendCommand("Enable", "TTCciControl");
 		sendCommand("Enable", "LTCControl");
+		sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
 
 		refreshConfigParameters();
 
