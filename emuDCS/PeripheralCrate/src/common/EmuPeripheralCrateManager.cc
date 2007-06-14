@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.13 2007/06/07 17:02:01 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.14 2007/06/14 13:20:37 ichiro Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -988,7 +988,7 @@ using namespace std;
     if (!broadcastCrate) {
       cout <<" Broadcast crate has not been defined yet"<<endl;
       MyController = new EmuController();
-      MyController->SetConfFile("/home/gujh/config/broadcast.xml");
+      MyController->SetConfFile("/home/slicedev/config/pc/broadcast.xml");
       MyController->init();
       CrateSelector selector = MyController->selector();
       vector<Crate *> tmpcrate=selector.broadcast_crate();
@@ -1311,7 +1311,7 @@ using namespace std;
     if (!broadcastCrate) {
       cout <<" Broadcast crate has not been defined yet"<<endl;
       MyController = new EmuController();
-      MyController->SetConfFile("/home/gujh/config/broadcast.xml");
+      MyController->SetConfFile("/home/slicedev/config/pc/broadcast.xml");
       MyController->init();
       CrateSelector selector = MyController->selector();
       vector<Crate *> tmpcrate=selector.broadcast_crate();
