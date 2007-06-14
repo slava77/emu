@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.4 2006/10/30 10:02:10 rakness Exp $
+// $Id: MPC.cc,v 3.5 2007/06/14 14:46:39 rakness Exp $
 // $Log: MPC.cc,v $
+// Revision 3.5  2007/06/14 14:46:39  rakness
+// remove output containing no information
+//
 // Revision 3.4  2006/10/30 10:02:10  rakness
 // Update
 //
@@ -340,21 +343,21 @@ void MPC::SoftReset() {
   char addr =  CSR0;
   //
   do_vme(1, addr, NULL, data, 1);
-  printf("%x %x \n",data[0],data[1]);
+  //  printf("%x %x \n",data[0],data[1]);
   //
   // reset FPGA logic
   //
   data[0] = (data[0]&0xfd) ;
   do_vme(2, addr, data, NULL, 1);
-  printf("%x %x \n",data[0],data[1]);
+  //  printf("%x %x \n",data[0],data[1]);
   //
   data[0] = (data[0]&0xfd) | 0x2 ;
   do_vme(2, addr, data, NULL, 1);
-  printf("%x %x \n",data[0],data[1]);
+  //  printf("%x %x \n",data[0],data[1]);
   //
   data[0] = (data[0]&0xfd) ;
   do_vme(2, addr, data, NULL, 1);
-  printf("%x %x \n",data[0],data[1]);
+  //  printf("%x %x \n",data[0],data[1]);
   //
 }
 
@@ -697,7 +700,7 @@ void MPC::firmwareVersion(){
   do_vme(1,CSR1,NULL, data, 1);
   
   int versionWord = (data[0]<<8) + (data[1]&0xFF);
-  std::cout << std::hex << versionWord << std::endl;
+  //  std::cout << std::hex << versionWord << std::endl;
   int day   =  versionWord & 0x1F;
   int month = (versionWord >> 5   ) & 0xF;
   int year  = (versionWord >>(5+4)) + 2000;
