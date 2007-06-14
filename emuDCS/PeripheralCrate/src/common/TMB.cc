@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.35 2007/06/12 09:56:57 rakness Exp $
+// $Id: TMB.cc,v 3.36 2007/06/14 14:47:55 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.36  2007/06/14 14:47:55  rakness
+// clean up MPC injection
+//
 // Revision 3.35  2007/06/12 09:56:57  rakness
 // clean TMB Raw Hits
 //
@@ -354,6 +357,8 @@ TMB::TMB(Crate * theCrate, Chamber * theChamber, int slot) :
   rat_(0),
   csc_(theChamber)
 {
+  //
+  debug_ = false;
   //
   ucla_ldev = 1;
   //
@@ -750,37 +755,37 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
   //
   unsigned short frame1, frame2, ramAdd;
   //
-  (*MyOutput_) << "Injecting data" << std::endl ;
+  (*MyOutput_) << "TMB:  Inject " << nEvents << " frames of MPC data to slot " << this->slot() << std::endl ;
   //
   for (int evtId(0); evtId<nEvents; ++evtId) {
     //
     ramAdd = (evtId<<8);
     //
-    if ( lct0 == 0 ) {
-      frame2             = (unsigned short) ((rand()/(RAND_MAX+0.01))*0xffff) ;
-      frame1             = (unsigned short) ((rand()/(RAND_MAX+0.01))*0xffff) ;
-      frame1            |= (0x1<<15) ;
+    if ( lct0 == 0 ) {  // random LCT
+      //
+      unsigned short vpf  = 1;         // 1 bit
+      unsigned short qual = rand()%16; // 4 bits
+      unsigned short clct = rand()%16; // 4 bits
+      unsigned short wire = rand()%128;// 7 bits
+      frame1 = ((vpf<<15)&0x8000) + ((qual<<11)&0x7800) + ((clct<<7)& 0x780) + wire;
+      //
+      unsigned short lr     = rand()%2;
+      unsigned short halfSt = rand()%256;
+      frame2 = ((lr<<8)&0x100) + halfSt;    
+      //
+      //      frame2             = (unsigned short) ((rand()/(RAND_MAX+0.01))*0xffff) ;
+      //      frame1             = (unsigned short) ((rand()/(RAND_MAX+0.01))*0xffff) ;
+      //      frame1            |= (0x1<<15) ;
     } else {
       frame2             = lct0 & 0xffff;
       frame1             = (lct0>>16) & 0xffff;
     }
     //
-    unsigned short vpf  = 1;         // 1 bit
-    unsigned short qual = rand()%16; // 4 bits
-    unsigned short clct = rand()%16; // 4 bits
-    unsigned short wire = rand()%128;// 7 bits
-    frame1 = ((vpf<<15)&0x8000) + ((qual<<11)&0x7800) +
-      ((clct<<7)& 0x780) + wire;
-    //
-    unsigned short lr     = rand()%2;
-    unsigned short halfSt = rand()%256;
-    unsigned frame2 = ((lr<<8)&0x100) + halfSt;    
-    //
     lct0_ = ((frame1&0xffff)<<16) | (frame2&0xffff) ;
     //
     InjectedLct0.push_back(lct0_);
     //
-    printf(" lct0 = %x %x %x\n",frame1,frame2,(unsigned int)lct0_);
+    if (debug_) printf(" lct0 = %x %x %x\n",frame1,frame2,(unsigned int)lct0_);
     //
     sndbuf[0] = (frame1>>8)&0xff ;
     sndbuf[1] = (frame1)&0xff ;
@@ -815,30 +820,29 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
     //
     if ( lct1 == 0 ) {
-      frame2             = (unsigned short) ((rand()/(RAND_MAX+0.01))*0xffff);
-      frame1             = (unsigned short) ((rand()/(RAND_MAX+0.01))*0xffff);
-      frame1            |= (0x1<<15) ;
+      unsigned short vpf  = 1;         // 1 bit
+      unsigned short qual = rand()%16; // 4 bits
+      unsigned short clct = rand()%16; // 4 bits
+      unsigned short wire = rand()%128;// 7 bits
+      frame1 = ((vpf<<15)&0x8000) + ((qual<<11)&0x7800) + ((clct<<7)& 0x780) + wire;
+      //
+      unsigned short lr     = rand()%2;
+      unsigned short halfSt = rand()%256;
+      frame2 = ((lr<<8)&0x100) + halfSt;    
+      //
+      //      frame2             = (unsigned short) ((rand()/(RAND_MAX+0.01))*0xffff);
+      //      frame1             = (unsigned short) ((rand()/(RAND_MAX+0.01))*0xffff);
+      //      frame1            |= (0x1<<15) ;
     } else {
       frame2             = lct1 & 0xffff;
       frame1             = (lct1>>16) & 0xffff;
     }
     //
-    vpf  = 1;         // 1 bit
-    qual = rand()%16; // 4 bits
-    clct = rand()%16; // 4 bits
-    wire = rand()%128;// 7 bits
-    frame1 = ((vpf<<15)&0x8000) + ((qual<<11)&0x7800) +
-    ((clct<<7)& 0x780) + wire;
-    //
-    lr     = rand()%2;
-    halfSt = rand()%256;
-    frame2 = ((lr<<8)&0x100) + halfSt;
-    //
     lct1_ = ((frame1&0xffff)<<16) | (frame2&0xffff) ;
     //
     InjectedLct1.push_back(lct1_);
     //
-    printf(" lct1 = %x %x %x\n",frame1,frame2,(unsigned int)lct1_);
+    if (debug_) printf(" lct1 = %x %x %x\n",frame1,frame2,(unsigned int)lct1_);
     //
     sndbuf[0] = (frame1>>8)&0xff ;
     sndbuf[1] = (frame1)&0xff ;
@@ -876,8 +880,8 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
   //
   // Read back RAM address
   //
-  usleep(100);
-  ReadBackMpcRAM(nEvents);
+  //  usleep(100);
+  //  ReadBackMpcRAM(nEvents);
   usleep(100);
   //
   // Now fire MPC injector
