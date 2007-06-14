@@ -16,9 +16,14 @@ public:
   virtual ~CrateUtilities();
   //
   inline void SetCrate(Crate * crate) { myCrate_ = crate ; }
-  inline int  GetMpcTMBTestResult() { return MpcTMBTestResult; }
+  //
+  inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
+  //
+  void MpcTMBTest(int number_of_events, int minimum_delay_value, int maximum_delay_value); //"safe window" scan
+  void MpcTMBTest(int number_of_events);                                                   //not the "safe window" scan
+  inline int  GetMpcTMBTestResult() { return MpcTMBTestResult; }             //result of the non-"safe window" scan
   inline void SetMpcTMBTestResult(int result) { MpcTMBTestResult = result; }
-  void MpcTMBTest(int);
+  //
   void CreateTstoreTables();
   void DumpTstoreTables();
   //
@@ -53,6 +58,8 @@ public:
  private:
   //
   int MpcTMBTestResult;
+  std::ostream * MyOutput_ ;
+  //
   CrateSelector theSelector;
   Crate * myCrate_;
   std::vector<std::string> periph_table;

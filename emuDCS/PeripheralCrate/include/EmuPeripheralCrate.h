@@ -116,9 +116,10 @@ protected:
   ALCTController *alct ;
   RAT * rat;
   MPC * thisMPC;
-  ChamberUtilities MyTest[10];
   CrateUtilities myCrateTest;
-  ostringstream CrateTestsOutput[10];
+  ostringstream CrateTestsOutput;
+  ChamberUtilities MyTest[10];
+  ostringstream ChamberTestsOutput[10];
   ostringstream OutputStringDMBStatus[10];
   ostringstream OutputStringTMBStatus[10];
   ostringstream OutputDMBTests[10];
@@ -262,6 +263,7 @@ private:
   void InitChamber(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CCBBoardID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TmbMPCTest(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void MPCSafeWindowScan(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void MPCBoardID(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void PowerUp(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void Operator(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
@@ -353,6 +355,7 @@ private:
   void LogTestSummary(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LogOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LogTMBTestsOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void LogChamberTestsOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LogCrateTestsOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void setRawConfFile(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ConfigureInit();
