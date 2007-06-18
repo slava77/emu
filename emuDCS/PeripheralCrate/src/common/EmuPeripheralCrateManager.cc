@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.14 2007/06/14 13:20:37 ichiro Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.15 2007/06/18 18:17:18 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1039,7 +1039,7 @@ using namespace std;
     dword[0]=0;
     char *outp=(char *)dword;
     cout <<" Loading all the DMB's Controller FPGAs firmware ..."<<endl;
-    broadcastDMB->epromload(MPROM,"/home/gujh/firmware/dmb/dmb6cntl_pro.svf",1,outp);
+    broadcastDMB->epromload(MPROM,"/home/slicedev/firmware/dmb/dmb6cntl_pro.svf",1,outp);
     in=NULL;
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
@@ -1056,14 +1056,14 @@ using namespace std;
     PCsendCommand("ReadVmePromUserid","EmuPeripheralCrate");
 
     cout <<" Step 2: Broadcast programming the VME until the 'loading USERCODE' point"<<endl;
-    broadcastDMB->epromload_broadcast(VPROM,"/home/gujh/firmware/dmb/dmb6vme_pro.svf",1,outp,1);
+    broadcastDMB->epromload_broadcast(VPROM,"/home/slicedev/firmware/dmb/dmb6vme_pro.svf",1,outp,1);
 
     cout <<" Step 3: Sending SOAP message to program PROM_USERCODE"<<endl;
     //SOAP message to individual crates to program the PROM_USERCODE
     PCsendCommand("LoadVmePromUserid","EmuPeripheralCrate");
 
     cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
-    broadcastDMB->epromload_broadcast(VPROM,"/home/gujh/firmware/dmb/dmb6vme_pro.svf",1,outp,3);
+    broadcastDMB->epromload_broadcast(VPROM,"/home/slicedev/firmware/dmb/dmb6vme_pro.svf",1,outp,3);
 
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
@@ -1080,14 +1080,14 @@ using namespace std;
     PCsendCommand("ReadCfebPromUserid","EmuPeripheralCrate");
 
     cout <<" Step 2: Broadcast programming the CFEB until the 'loading USERCODE' point"<<endl;
-    broadcastDMB->epromload_broadcast(FAPROM,"/home/gujh/firmware/cfeb/cfeb_pro.svf",1,outp,1);
+    broadcastDMB->epromload_broadcast(FAPROM,"/home/slicedev/firmware/cfeb/cfeb_pro.svf",1,outp,1);
 
     cout <<" Step 3: Sending SOAP message to program CFEB PROM_USERCODE"<<endl;
     //SOAP message to individual crates to program the CFEB PROM_USERCODE
     PCsendCommand("LoadCfebPromUserid","EmuPeripheralCrate");
 
     cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
-    broadcastDMB->epromload_broadcast(FAPROM,"/home/gujh/firmware/cfeb/cfeb_pro.svf",1,outp,3);
+    broadcastDMB->epromload_broadcast(FAPROM,"/home/slicedev/firmware/cfeb/cfeb_pro.svf",1,outp,3);
 
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
@@ -1374,6 +1374,15 @@ using namespace std;
     //Start the setup process:
 
     if (calsetup==1) {
+      broadcastTMB->SetTmbAllowClct(1);
+      broadcastTMB->SetTmbAllowMatch(0);
+      broadcastTMB->WriteRegister(0x86,broadcastTMB->FillTMBRegister(0x86));
+      broadcastTMB->SetAlctMatchWindowSize(7);
+      broadcastTMB->WriteRegister(0xb2,broadcastTMB->FillTMBRegister(0xb2));
+      broadcastTMB->SetL1aDelay(154);
+      broadcastTMB->SetL1aWindowSize(7);
+      broadcastTMB->WriteRegister(0x74,broadcastTMB->FillTMBRegister(0x74));
+      //
       broadcastTMB->EnableCLCTInputs(0x1f); //enable TMB's CLCT inputs
       broadcastDMB->settrgsrc(0); //disable the DMB internal LCT & L1A
     }
