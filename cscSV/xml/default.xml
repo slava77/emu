@@ -8,11 +8,13 @@
 	<xc:Context url="http://emupc:40000">
 		<xc:Application class="CSCSupervisor" id="40" instance="0" network="local">
 			<properties xmlns="urn:xdaq-application:CSCSupervisor" xsi:type="soapenc:Struct">
-				<configKeys soapenc:arrayType="xsd:ur-type[4]" xsi:type="soapenc:Array">
+				<configKeys soapenc:arrayType="xsd:ur-type[6]" xsi:type="soapenc:Array">
 					<item soapenc:position="[0]" xsi:type="xsd:string">Monitor</item>
 					<item soapenc:position="[1]" xsi:type="xsd:string">Calib_CFEB_Gain</item>
 					<item soapenc:position="[2]" xsi:type="xsd:string">Calib_CFEB_Time</item>
 					<item soapenc:position="[3]" xsi:type="xsd:string">Calib_CFEB_Ped</item>
+					<item soapenc:position="[4]" xsi:type="xsd:string">Calib_CFEB_Comparator</item>
+					<item soapenc:position="[5]" xsi:type="xsd:string">Debug</item>
 				</configKeys>
 				<pcKeys soapenc:arrayType="xsd:ur-type[1]" xsi:type="soapenc:Array">
 					<item soapenc:position="[0]" xsi:type="xsd:string">default</item>
@@ -26,19 +28,22 @@
 				<fcConfigs soapenc:arrayType="xsd:ur-type[1]" xsi:type="soapenc:Array">
 					<item soapenc:position="[0]" xsi:type="xsd:string">Global</item>
 				</fcConfigs>
-				<runDbBookingCommand xsi:type="xsd:string">java -jar /home/cscdaq/bin/runnumberbooker.jar</runDbBookingCommand>
-				<runDbWritingCommand xsi:type="xsd:string">java -jar /home/cscdaq/bin/runinfowriter.jar</runDbWritingCommand>
+				<runDbBookingCommand xsi:type="xsd:string">/home.local/slicedev/bin/java -jar /home.local/slicedev/bin/runnumberbooker.jar</runDbBookingCommand>
+				<runDbWritingCommand xsi:type="xsd:string">/home.local/slicedev/bin/java -jar /home.local/slicedev/bin/runinfowriter.jar</runDbWritingCommand>
 				<runDbAddress xsi:type="xsd:string">dbc:oracle:thin:@oracms.cern.ch:10121:omds</runDbAddress>
-<!-- 				<runDbUserFile xsi:type="xsd:string">/home/cscdaq/config/.runDbUser</runDbUserFile> -->
-<!-- 				<runDbUserFile xsi:type="xsd:string">/home/cscdaq/config/.runDbTestUser</runDbUserFile> -->
-				<runDbUserFile xsi:type="xsd:string">/home/cscdaq/config/.runDbMTCCUser</runDbUserFile>
-<!-- 				<curlCommand xsi:type="xsd:string">/usr/bin/curl -v -k </curlCommand> -->
-				<curlCommand xsi:type="xsd:string">/usr/bin/curl -v </curlCommand>
+				<!-- 	<runDbUserFile xsi:type="xsd:string">/home.local/slicedev/config/.runDbUser</runDbUserFile> -->
+				<!-- 	<runDbUserFile xsi:type="xsd:string">/home.local/slicedev/config/.runDbTestUser</runDbUserFile> -->
+				<runDbUserFile xsi:type="xsd:string">/home.local/slicedev/config/.runDbMTCCUser</runDbUserFile>
+				<curlCommand xsi:type="xsd:string">/usr/bin/curl -v</curlCommand>
 				<curlCookies xsi:type="xsd:string">.curlCookies</curlCookies>
-				<CMSUserFile xsi:type="xsd:string">/home/cscdaq/config/.CMSUser</CMSUserFile>
-				<eLogUserFile xsi:type="xsd:string">/home/cscdaq/config/.eLogUser</eLogUserFile>
+				<CMSUserFile xsi:type="xsd:string">/home.local/slicedev/config/.CMSUser</CMSUserFile>
+				<eLogUserFile xsi:type="xsd:string">/home.local/slicedev/config/.eLogUser</eLogUserFile>
 				<eLogURL xsi:type="xsd:string">https://cmsdaq.cern.ch/elog/CSC</eLogURL>
-<!-- 				<eLogURL xsi:type="xsd:string">https://cmsdaq.cern.ch/elog/Test</eLogURL> -->
+				<!-- 	<eLogURL xsi:type="xsd:string">https://cmsdaq.cern.ch/elog/Test</eLogURL> -->
+				<peripheralCrateConfigFiles xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[2]">
+				  <item xsi:type="xsd:string" soapenc:position="[0]">/net/user/cscpc/config/configME-2.xml</item>
+				  <item xsi:type="xsd:string" soapenc:position="[1]">/net/user/cscpc/config/configME-3.xml</item>
+				</peripheralCrateConfigFiles>
 			</properties>
 		</xc:Application>
 		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libCSCSupervisor.so</xc:Module>
