@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.10 2007/05/17 12:52:50 rakness Exp $
+// $Id: TMB_constants.h,v 3.11 2007/06/21 16:14:02 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.11  2007/06/21 16:14:02  rakness
+// online measurement of ALCT in CLCT matching window
+//
 // Revision 3.10  2007/05/17 12:52:50  rakness
 // ignore_ccb_startstop added to TMB configuration + write configuration to userPROM default
 //
@@ -51,7 +54,11 @@
 //
 //
 //-----------------------------------------------------------------------
-
+//////////////////////////////////////////////
+// TMB VME register names:
+//////////////////////////////////////////////
+static const unsigned long int tmb_adr_boot        = 0x700000; // Hardware Bootstrap Register
+//
 static const unsigned long int vme_idreg0_adr      = 0x000000;
 static const unsigned long int vme_idreg1_adr      = 0x000002;
 static const unsigned long int vme_idreg2_adr      = 0x000004;
@@ -60,17 +67,9 @@ static const unsigned long int vme_status_adr      = 0x000008;
 static const unsigned long int vme_adr0_adr        = 0x00000A;
 static const unsigned long int vme_adr1_adr        = 0x00000C;
 static const unsigned long int vme_loopbk_adr      = 0x00000E;
-
+//
 static const unsigned long int	vme_usr_jtag_adr   = 0x000010;
 static const unsigned long int	vme_prom_adr	   = 0x000012;
-/*
-static const unsigned long int	vme_phos4sm_adr	   = 0x000014;
-static const unsigned long int	vme_phos4a_adr	   = 0x000016;
-static const unsigned long int	vme_phos4b_adr	   = 0x000018;
-static const unsigned long int	vme_phos4c_adr	   = 0x00001A;
-static const unsigned long int	vme_phos4d_adr	   = 0x00001C;
-static const unsigned long int	vme_phos4e_adr	   = 0x00001E;
-*/
 static const unsigned long int	vme_dddsm_adr	   = 0x000014;
 static const unsigned long int	vme_ddd0_adr	   = 0x000016;
 static const unsigned long int	vme_ddd1_adr	   = 0x000018;
@@ -82,11 +81,11 @@ static const unsigned long int	vme_step_adr	   = 0x000020;
 static const unsigned long int	vme_led_adr	   = 0x000022;
 static const unsigned long int	vme_adc_adr	   = 0x000024;
 static const unsigned long int	vme_dsn_adr	   = 0x000026;
-
 static const unsigned long int	mod_cfg_adr	   = 0x000028;	
 static const unsigned long int	ccb_cfg_adr	   = 0x00002A;
 static const unsigned long int	ccb_trig_adr	   = 0x00002C;
 static const unsigned long int	ccb_stat_adr	   = 0x00002E;	
+//
 static const unsigned long int	alct_cfg_adr	   = 0x000030;
 static const unsigned long int	alct_inj_adr	   = 0x000032;
 static const unsigned long int	alct0_inj_adr	   = 0x000034;
@@ -95,6 +94,7 @@ static const unsigned long int	alct_stat_adr	   = 0x000038;
 static const unsigned long int	alct_alct0_adr	   = 0x00003A;
 static const unsigned long int	alct_alct1_adr	   = 0x00003C;
 static const unsigned long int	alct_fifo_adr	   = 0x00003E;
+//
 static const unsigned long int	dmb_mon_adr	   = 0x000040;
 static const unsigned long int	cfeb_inj_adr	   = 0x000042;
 static const unsigned long int	cfeb_inj_adr_adr   = 0x000044;
@@ -103,6 +103,7 @@ static const unsigned long int	cfeb_inj_rdata_adr = 0x000048;
 static const unsigned long int	hcm001_adr	   = 0x00004A;
 static const unsigned long int	hcm023_adr	   = 0x00004C;
 static const unsigned long int	hcm045_adr	   = 0x00004E;
+//
 static const unsigned long int	hcm101_adr	   = 0x000050;
 static const unsigned long int	hcm123_adr	   = 0x000052;
 static const unsigned long int	hcm145_adr	   = 0x000054;
@@ -111,6 +112,7 @@ static const unsigned long int	hcm223_adr	   = 0x000058;
 static const unsigned long int	hcm245_adr	   = 0x00005A;
 static const unsigned long int	hcm301_adr	   = 0x00005C;
 static const unsigned long int	hcm323_adr	   = 0x00005E;
+//
 static const unsigned long int	hcm345_adr	   = 0x000060;
 static const unsigned long int	hcm401_adr	   = 0x000062;
 static const unsigned long int	hcm423_adr	   = 0x000064;
@@ -119,6 +121,7 @@ static const unsigned long int	seq_trig_en_adr	   = 0x000068;
 static const unsigned long int	seq_trig_dly0_adr  = 0x00006A;
 static const unsigned long int	seq_trig_dly1_adr  = 0x00006C;
 static const unsigned long int	seq_id_adr	   = 0x00006E;
+//
 static const unsigned long int	seq_clct_adr	   = 0x000070;
 static const unsigned long int	seq_fifo_adr	   = 0x000072;
 static const unsigned long int	seq_l1a_adr	   = 0x000074;
@@ -127,6 +130,7 @@ static const unsigned long int	seq_clct0_adr	   = 0x000078;
 static const unsigned long int	seq_clct1_adr	   = 0x00007A;
 static const unsigned long int	seq_trig_src_adr   = 0x00007C;
 static const unsigned long int	dmb_ram_adr	   = 0x00007E;
+//
 static const unsigned long int	dmb_wdata_adr	   = 0x000080;
 static const unsigned long int	dmb_wdcnt_adr	   = 0x000082;
 static const unsigned long int	dmb_rdata_adr	   = 0x000084;
@@ -135,15 +139,16 @@ static const unsigned long int	mpc0_frame0_adr	   = 0x000088;
 static const unsigned long int	mpc0_frame1_adr	   = 0x00008A;
 static const unsigned long int	mpc1_frame0_adr	   = 0x00008C;
 static const unsigned long int	mpc1_frame1_adr	   = 0x00008E;
+//
 static const unsigned long int	mpc_inj_adr	   = 0x000090;
 static const unsigned long int	mpc_ram_adr	   = 0x000092;
 static const unsigned long int	mpc_ram_wdata_adr  = 0x000094;
 static const unsigned long int	mpc_ram_rdata_adr  = 0x000096;
 static const unsigned long int	scp_ctrl_adr	   = 0x000098;
 static const unsigned long int	scp_rdata_adr	   = 0x00009A;
-
-static const unsigned long int	ccb_cmd_adr	   = 0x00009C;	//For tmb e-version
+static const unsigned long int	ccb_cmd_adr	   = 0x00009C;
 static const unsigned long int	buf_stat_adr	   = 0x00009E;
+//
 static const unsigned long int	srlpgm_adr	   = 0x0000A0;
 static const unsigned long int	alctfifo1_adr	   = 0x0000A2;
 static const unsigned long int	alctfifo2_adr	   = 0x0000A4;
@@ -152,10 +157,10 @@ static const unsigned long int	adjcfeb1_adr	   = 0x0000A8;
 static const unsigned long int	adjcfeb2_adr	   = 0x0000AA;
 static const unsigned long int	seqmod_adr	   = 0x0000AC;
 static const unsigned long int	seqsm_adr	   = 0x0000AE;
+//
 static const unsigned long int	seq_clctm_adr	   = 0x0000B0;
 static const unsigned long int	tmbtim_adr	   = 0x0000B2;
 static const unsigned long int  lhc_cycle_adr      = 0x0000B4;
-//
 static const unsigned long int  rpc_cfg_adr        = 0x0000B6;
 static const unsigned long int  rpc_rdata_adr      = 0x0000B8;
 static const unsigned long int  rpc_raw_delay_adr  = 0x0000BA;
@@ -169,187 +174,30 @@ static const unsigned long int  rpc0_hcm_adr       = 0x0000C6;
 static const unsigned long int  rpc1_hcm_adr       = 0x0000C8;
 static const unsigned long int  rpc2_hcm_adr       = 0x0000CA;
 static const unsigned long int  rpc3_hcm_adr       = 0x0000CC;
-//
 static const unsigned long int  scp_trig_adr       = 0x0000CE;
 //
 static const unsigned long int  cnt_ctrl_adr       = 0x0000D0;
 static const unsigned long int  cnt_rdata_adr      = 0x0000D2;
-//
 static const unsigned long int  jtag_sm_ctrl_adr   = 0x0000D4;
 static const unsigned long int  jtag_sm_wdcnt_adr  = 0x0000D6;
 static const unsigned long int  jtag_sm_cksum_adr  = 0x0000D8;
 static const unsigned long int  vme_sm_ctrl_adr    = 0x0000DA;
 static const unsigned long int  vme_sm_wdcnt_adr   = 0x0000DC;
 static const unsigned long int  vme_sm_cksum_adr   = 0x0000DE;
+//
 static const unsigned long int  num_vme_sm_adr_adr = 0x0000E0;
 static const unsigned long int  vme_wrt_dat_ck_adr = 0x0000E2;
-//
 static const unsigned long int  rat_3d_sm_ctrl_adr = 0x0000E4;
 static const unsigned long int  rat_3d_delays_adr  = 0x0000E6;
 static const unsigned long int  uptime_adr         = 0x0000E8;
 static const unsigned long int  tmb_stat_adr       = 0x0000EA;
 static const unsigned long int  bxn_clct_adr       = 0x0000EC;
 static const unsigned long int  bxn_alct_adr       = 0x0000EE;
+//
 static const unsigned long int  layer_trg_mode_adr = 0x0000F0;
 static const unsigned long int  ise_version_adr    = 0x0000F2;
 //
 static const int LARGEST_VME_ADDRESS = ise_version_adr;
-//
-// this comes from alct_routines2/tmb_vme_reg.h
-#define TMB_ADR_BOOT            0x70000 // Hardware Bootstrap Register
-/*
-#define TMB_ADR_IDREG0          0x00    // ID Register 0
-#define TMB_ADR_IDREG1          0x02    // ID Register 1
-#define TMB_ADR_IDREG2          0x04    // ID Register 2
-#define TMB_ADR_IDREG3          0x06    // ID Register 3
-
-#define TMB_ADR_VME_STATUS      0x08    // VME Status Register
-#define TMB_ADR_VME_ADR0        0x0a    // VME Address read-back
-#define TMB_ADR_VME_ADR1        0x0c    // VME Address read-back
-
-#define TMB_ADR_LOOPBK          0x0e    // Loop-back Register
-#define TMB_ADR_USR_JTAG        0x10    // User JTAG
-#define TMB_ADR_PROM            0x12    // PROM
-
-#define TMB_ADR_PHOS4SM         0x14    // PHOS4 State Machine Register + Clock DLLs
-#define TMB_ADR_PHOS4A          0x16    // PHOS4 Chip 0 Channels 0,1
-#define TMB_ADR_PHOS4B          0x18    // PHOS4 Chip 0 Channels 2,3
-#define TMB_ADR_PHOS4C          0x1a    // PHOS4 Chip 0 Channels 4, Chip 1 Channel 0
-#define TMB_ADR_PHOS4D          0x1c    // PHOS4 Chip 1 Channels 1,2
-#define TMB_ADR_PHOS4E          0x1e    // PHOS4 Chip 1 Channels 3,4
-
-#define TMB_ADR_STEP            0x20    // Step Register
-#define TMB_ADR_LED             0x22    // Front Panel LEDs
-#define TMB_ADR_ADC             0x24    // ADCs
-#define TMB_ADR_DSN             0x26    // Difital Serials
-
-#define TMB_ADR_MOD_CFG         0x28    // TMB Configuration
-#define TMB_ADR_CCB_CFG         0x2a    // CCB Configuration
-#define TMB_ADR_CCB_TRIG        0x2c    // CCB Trigger Control
-#define TMB_ADR_CCB_STAT        0x2e    // CCB Status
-
-#define TMB_ADR_ALCT_CFG        0x30    // ALCT Configuration
-#define TMB_ADR_ALCT_INJ        0x32    // ALCT Injector Control
-#define TMB_ADR_ALCT0_INJ       0x34    // ALCT Injected ALCT0
-#define TMB_ADR_ALCT1_INJ       0x36    // ALCT Injected ALCT1
-#define TMB_ADR_ALCT_STAT       0x38    // ALCT Sequencer Control/Status
-#define TMB_ADR_ALCT0_RCD       0x3a    // ALCT LCT0 Received by TMB
-#define TMB_ADR_ALCT1_RCD       0x3c    // ALCT LCT1 Received by TMB
-#define TMB_ALCT_FIFO           0x3e    // ALCT FIFO word count
-
-#define TMB_ADR_DMB_MON         0x40    // DMB Monitored signals
-
-#define TMB_ADR_CFEB_INJ        0x42    // CFEB Injector Control
-#define TMB_ADR_CFEB_INJ_ADR    0x44    // CFEB Injector RAM Address
-#define TMB_ADR_CFEB_INJ_WDATA  0x46    // CFEB Injector Write Data
-#define TMb_ADR_CFEB_INJ_RDATA  0x48    // CFEB INjector Read Data
-
-#define TMB_ADR_HCM001          0x4a    // CFEB0 Ly0,Ly1 Hot Channel Mask
-#define TMB_ADR_HCM023          0x4c    // CFEB0 Ly2,Ly3 Hot Channel Mask
-#define TMB_ADR_HCM045          0x4e    // CFEB0 Ly4,Ly5 Hot Channel Mask
-#define TMB_ADR_HCM101          0x50    // CFEB1 Ly0,Ly1 Hot Channel Mask
-#define TMB_ADR_HCM123          0x52    // CFEB1 Ly2,Ly3 Hot Channel Mask
-#define TMB_ADR_HCM145          0x54    // CFEB1 Ly4,Ly5 Hot Channel Mask
-#define TMB_ADR_HCM201          0x56    // CFEB2 Ly0,Ly1 Hot Channel Mask
-#define TMB_ADR_HCM223          0x58    // CFEB2 Ly2,Ly3 Hot Channel Mask
-#define TMB_ADR_HCM245          0x5a    // CFEB2 Ly4,Ly5 Hot Channel Mask
-#define TMB_ADR_HCM301          0x5c    // CFEB3 Ly0,Ly1 Hot Channel Mask
-#define TMB_ADR_HCM323          0x5e    // CFEB3 Ly2,Ly3 Hot Channel Mask
-#define TMB_ADR_HCM345          0x60    // CFEB3 Ly4,Ly5 Hot Channel Mask
-#define TMB_ADR_HCM401          0x62    // CFEB4 Ly0,Ly1 Hot Channel Mask
-#define TMB_ADR_HCM423          0x64    // CFEB4 Ly2,Ly3 Hot Channel Mask
-#define TMB_ADR_HCM445          0x66    // CFEB4 Ly4,Ly5 Hot Channel Mask
-
-#define TMB_ADR_SEQ_TRIG        0x68    // Sequencer Trigger Control
-#define TMB_ADR_SEQ_CLCT        0x6a    // Sequencer CLCT Configuration
-#define TMB_ADR_SEQ_FIFO        0x6c    // Sequencer FIFO Configuration
-#define TMB_ADR_SEQ_L1A         0x6e    // Sequencer L1A Configuration
-#define TMB_ADR_SEQ_OFFSET      0x70    // Sequencer Counter Offsets
-#define TMB_ADR_SEQ_CLCT0       0x72    // Sequencer Latched CLCT0
-#define TMB_ADR_SEQ_CLCT1       0x74    // Sequencer Latched CLCT1
-
-#define TMB_ADR_DMB_RAM_ADR     0x76    // Sequencer RAM Address
-#define TMB_ADR_DMB_RAM_WDATA   0x78    // Sequencer RAM Write Data
-#define TMB_ADR_DMB_RAM_WDCNT   0x7a    // Sequencer RAM Word Count
-#define TMB_ADR_DMB_RAM_RDATA   0x7c    // Sequencer RAM Read Data
-
-#define TMB_ADR_TMB_TRIG        0x7e    // TMB Trigger Configuration
-
-#define TMB_ADR_MPC0_FRAME0     0x80    // MPC0 Frame 0 Data sent to MPC
-#define TMB_ADR_MPC0_FRAME1     0x82    // MPC0 Frame 1 Data sent to MPC
-#define TMB_ADR_MPC1_FRAME0     0x84    // MPC1 Frame 0 Data sent to MPC
-#define TMB_ADR_MPC1_FRAME1     0x86    // MPC1 Frame 1 Data sent to MPC
-
-#define TMB_ADR_MPC_INJ         0x88    // MPC Injector Control
-#define TMB_ADR_MPC_RAM_ADR     0x8a    // MPC Injector RAM Address
-#define TMB_ADR_MPC_RAM_WDATA   0x8c    // MPC Injector RAM Write Data
-#define TMB_ADR_MPC_RAM_RDATA   0x8e    // MPC Injector RAM Read Data
-
-#define TMB_ADR_LHC_CYCLE       0xb4    // LHC cycle period, Max BXN + 1
-#define TMB_ADR_RPC_CFG         0xb6    // RPC configuration
-
-// this comes from alctroutines2/tmb_vme.h
-*/
-/*
- *  Definitions to work with TMB
- */
-
-#define VME_BOOT_REG    0x04
-
-#define ALCT_SLOW_PROG  0x0     // ALCT Slow Control JTAG Programming Chain
-#define ALCT_SLOW_USER  0x1     // ALCT Slow Control JTAG User Chain
-#define ALCT_FAST_PROG  0x2     // ALCT Fast JTAG Programming Chain
-#define ALCT_FAST_USER  0x3     // ALCT Fast JTAG User Chain
-#define TMB_FPGA_PROG   0x4     // TMB Mezzanine FPGA + FPGA PROMs JTAG Chain
-#define TMB_USER_PROM   0x8     // TMB User PROMs JTAG Chain
-#define TMB_FPGA_USER   0xc     // TMB FPGA User JTAG Chain
-//
-#define TMB_JTAG_SRC    0x08    // Hardware Bootstrap Register JTAG Source Bit
-#define JTAG_SOFT_SRC   0x0     // JTAG Sourced by FPGA (TMB_ADR_USR_JTAG VME Register)
-#define JTAG_HARD_SRC   0x1     // JTAG Sourced by Bootstrap Register
-
-#define SOFT_TDO        0x01    // Software VME Register JTAG TDO Bit
-#define SOFT_TDI        0x02    // Software VME Register JTAG TDI Bit
-#define SOFT_TMS        0x03    // Software VME Register JTAG TMS Bit
-#define SOFT_TCK        0x08    // Software VME Register JTAG TCK Bit
-
-#define HARD_TDO        0x80    // Hardware Bootstrap Register JTAG TDO Bit
-#define HARD_TDI        0x01    // Hardware Bootstrap Register JTAG TDI Bit
-#define HARD_TMS        0x02    // Hardware Bootstrap Register JTAG TMS Bit
-#define HARD_TCK        0x04    // Hardware Bootstrap Register JTAG TCK Bit
-
-#define ALCT_HARD_RESET 0x0100  // Hardware ALCT FPGA Hard Reset
-#define TMB_HARD_RESET  0x0200  // Hardware TMB FPGA Hard Reset
-#define TMB_ENABLE_ALCT_RESET 0x0400 // Enable ALCT Hard Reset
-#define TMB_ENABLE_VME  0x0800  // Enable TMB to issue VME commands
-
-struct tmb_id_regs
-{
-/* TMB_ADR_IDREG0 */
-  unsigned char fw_type;        // TMB Firmware Type, C=Normal CLCT/TMB, D=Debug loopback
-  unsigned char fw_version;     // Firmware Version code
-  unsigned char brd_geo_addr;   // Geographic address for this board
-
-/* TMB_ADR_IDREG1 */
-  unsigned char fw_day;         // DD Firmware Version Day (BCD)
-  unsigned char fw_month;       // MM Firmware Version Month (BCD)
-
-/* TMB_ADR_IDREG2 */
-  unsigned short int fw_year;   // YYYY Firmware Version Year (BCD)
-
-/* TMB_ADR_IDREG3 */
-  unsigned short int fpga_type; // Xilinx FPGA Type XCV1000E (BCD)
-
-};
-//
-//////////////////////////////////////////////
-// TMB trigger modes:
-//////////////////////////////////////////////
-const int CLCT_trigger                  =  1;
-const int ALCT_trigger                  =  2;
-const int Scintillator_trigger          =  3;
-const int DMB_trigger                   =  4;
-const int ALCT_CLCT_coincidence_trigger =  5;
 //
 //
 /////////////////////////////////////////////////////////////////////////////////////
@@ -360,56 +208,56 @@ const int ALCT_CLCT_coincidence_trigger =  5;
 //-----------------------------------------------------------------
 //0X70000 = ADR_BOOT:  Hardware Bootstrap Register
 //-----------------------------------------------------------------
-const int boot_tdi_vmereg                   =  TMB_ADR_BOOT;
+const int boot_tdi_vmereg                   =  tmb_adr_boot;
 const int boot_tdi_bitlo                    =  0;
 const int boot_tdi_bithi                    =  0;
 //
-const int boot_tms_vmereg                   =  TMB_ADR_BOOT;
+const int boot_tms_vmereg                   =  tmb_adr_boot;
 const int boot_tms_bitlo                    =  1;
 const int boot_tms_bithi                    =  1;
 //
-const int boot_tck_vmereg                   =  TMB_ADR_BOOT;
+const int boot_tck_vmereg                   =  tmb_adr_boot;
 const int boot_tck_bitlo                    =  2;
 const int boot_tck_bithi                    =  2;
 //
-const int boot_jtag_chain_select_vmereg     =  TMB_ADR_BOOT;
+const int boot_jtag_chain_select_vmereg     =  tmb_adr_boot;
 const int boot_jtag_chain_select_bitlo      =  3;
 const int boot_jtag_chain_select_bithi      =  6;
 //
-const int boot_control_jtag_chain_vmereg    =  TMB_ADR_BOOT;
+const int boot_control_jtag_chain_vmereg    =  tmb_adr_boot;
 const int boot_control_jtag_chain_bitlo     =  7;
 const int boot_control_jtag_chain_bithi     =  7;
 const int boot_control_jtag_chain_expected  =  0;           //expect FPGA to control JTAG chain
 //
-const int boot_hard_reset_alct_vmereg       =  TMB_ADR_BOOT;
+const int boot_hard_reset_alct_vmereg       =  tmb_adr_boot;
 const int boot_hard_reset_alct_bitlo        =  8;
 const int boot_hard_reset_alct_bithi        =  8;
 //
-const int boot_hard_reset_tmb_vmereg        =  TMB_ADR_BOOT;
+const int boot_hard_reset_tmb_vmereg        =  tmb_adr_boot;
 const int boot_hard_reset_tmb_bitlo         =  9;
 const int boot_hard_reset_tmb_bithi         =  9;
 //
-const int boot_allow_hard_reset_alct_vmereg =  TMB_ADR_BOOT;
+const int boot_allow_hard_reset_alct_vmereg =  tmb_adr_boot;
 const int boot_allow_hard_reset_alct_bitlo  = 10;
 const int boot_allow_hard_reset_alct_bithi  = 10;
 //
-const int boot_allow_VME_vmereg             =  TMB_ADR_BOOT;
+const int boot_allow_VME_vmereg             =  tmb_adr_boot;
 const int boot_allow_VME_bitlo              = 11;
 const int boot_allow_VME_bithi              = 11;
 //
-const int boot_enable_mezz_clock_vmereg     =  TMB_ADR_BOOT;
+const int boot_enable_mezz_clock_vmereg     =  tmb_adr_boot;
 const int boot_enable_mezz_clock_bitlo      = 12;
 const int boot_enable_mezz_clock_bithi      = 12;
 //
-const int boot_hard_reset_rat_vmereg        =  TMB_ADR_BOOT;
+const int boot_hard_reset_rat_vmereg        =  tmb_adr_boot;
 const int boot_hard_reset_rat_bitlo         = 13;
 const int boot_hard_reset_rat_bithi         = 13;
 //
-const int boot_vme_ready_vmereg             =  TMB_ADR_BOOT;
+const int boot_vme_ready_vmereg             =  tmb_adr_boot;
 const int boot_vme_ready_bitlo              = 14;
 const int boot_vme_ready_bithi              = 14;
 //
-const int boot_tdo_vmereg                   =  TMB_ADR_BOOT;
+const int boot_tdo_vmereg                   =  tmb_adr_boot;
 const int boot_tdo_bitlo                    = 15;
 const int boot_tdo_bithi                    = 15;
 //
@@ -1591,3 +1439,586 @@ const int number_layers_hit_bitlo   =  4;
 const int number_layers_hit_bithi   =  6;
 //
 //
+//////////////////////////////////////////////
+// Bit mapping for TMB Raw Hits
+//////////////////////////////////////////////
+//-----------
+// header 0
+//-----------
+// beginning of cathode record marker
+const int h0_beginning_of_cathode_header_number =  0;
+const int h0_beginning_of_cathode_lo_bit        =  0;
+const int h0_beginning_of_cathode_hi_bit        = 11;
+//
+// marker 6
+const int h0_marker_6_header_number             =  0;
+const int h0_marker_6_lo_bit                    = 12;
+const int h0_marker_6_hi_bit                    = 14;
+//
+//-----------
+// header 1
+//-----------
+// number of time bins per CFEB in dump
+const int h1_nTbins_per_cfeb_header_number =  1;
+const int h1_nTbins_per_cfeb_lo_bit        =  0;
+const int h1_nTbins_per_cfeb_hi_bit        =  4;
+//
+// CFEBs read out for this event
+const int h1_cfebs_read_header_number      =  1;
+const int h1_cfebs_read_lo_bit             =  5;
+const int h1_cfebs_read_hi_bit             =  9;
+//
+// fifo mode
+// 0 = no raw hits, full header (if buffer was available at pretrigger)
+// 1 = all 5 CFEBs raw hits, full header (if buffer was available at pretrigger)
+// 2 = Local raw hits, full header (if buffer was available at pretrigger)
+// 3 = no raw hits, short header
+// 4 = no raw hits, no header
+const int h1_fifo_mode_header_number       =  0;
+const int h1_fifo_mode_lo_bit              = 12;
+const int h1_fifo_mode_hi_bit              = 14;
+//
+//-----------
+// header 2
+//-----------
+// L1A received and pushed on L1A stack
+const int h2_l1a_counter_header_number =  2;
+const int h2_l1a_counter_lo_bit        =  0;
+const int h2_l1a_counter_hi_bit        =  3;
+//
+// Chamber ID number (= slot/2 or slot/2-1 if slot>12 at power up)
+const int h2_csc_id_header_number      =  2;
+const int h2_csc_id_lo_bit             =  4;
+const int h2_csc_id_hi_bit             =  7;
+//
+// module ID number (= VME slot at power up)
+const int h2_board_id_header_number    =  2;
+const int h2_board_id_lo_bit           =  8;
+const int h2_board_id_hi_bit           = 12;
+//
+// L1A pop type mode:  
+// 0 = Normal CLCT trigger with buffer data and L1A window match
+// 1 = ALCT-only trigger, no data buffers
+// 2 = L1A-only, no matching TMB trigger, no buffer data
+// 3 = TMB triggered, no L1A-window match, event has buffer data
+const int h2_l1a_type_header_number    =  2;
+const int h2_l1a_type_lo_bit           = 13;
+const int h2_l1a_type_hi_bit           = 14;
+//
+//-----------
+// header 3
+//-----------
+// Bunch-crossing number pushed on L1A stack on L1A arrival
+const int h3_bxn_counter_header_number   =  3;
+const int h3_bxn_counter_lo_bit          =  0;
+const int h3_bxn_counter_hi_bit          = 11;
+//
+// record type: 
+//   0 = rawhits no   , header full
+//   1 = rawhits full , header full
+//   2 = rawhits local, header full
+//   3 = rawhits no   , header short (no buffer was available at pretrigger)
+const int h3_record_type_header_number   =  3;
+const int h3_record_type_lo_bit          = 12;
+const int h3_record_type_hi_bit          = 13;
+//
+// internal logic analyzer scop data included in readout
+const int h3_scope_in_data_header_number =  3;
+const int h3_scope_in_data_lo_bit        = 14;
+const int h3_scope_in_data_hi_bit        = 14;
+//
+//-----------
+// header 4
+//-----------
+// Number of header words
+const int h4_nheader_words_header_number   =  4;
+const int h4_nheader_words_lo_bit          =  0;
+const int h4_nheader_words_hi_bit          =  4;
+//
+// Number of CFEBs readout
+const int h4_nCFEBs_read_header_number     =  4;
+const int h4_nCFEBs_read_lo_bit            =  5;
+const int h4_nCFEBs_read_hi_bit            =  7;
+//
+// Number of CFEBs readout
+const int h4_has_buffer_data_header_number =  4;
+const int h4_has_buffer_data_lo_bit        =  8;
+const int h4_has_buffer_data_hi_bit        =  8;
+//
+// Number time bins in readout before pretrigger
+const int h4_fifo_pretrig_header_number    =  4;
+const int h4_fifo_pretrig_lo_bit           =  9;
+const int h4_fifo_pretrig_hi_bit           = 13;
+//
+//-----------
+// header 5
+//-----------
+// L1A number at CLCT pretrigger
+const int h5_l1a_at_pretrig_header_number                   =  5;
+const int h5_l1a_at_pretrig_lo_bit                          =  0;
+const int h5_l1a_at_pretrig_hi_bit                          =  3;
+//
+// trigger source vector
+const int h5_trigger_source_vector_header_number            =  5;
+const int h5_trigger_source_vector_lo_bit                   =  4;
+const int h5_trigger_source_vector_hi_bit                   = 11;
+//
+// trigger source halfstrip or distrip
+const int h5_trigger_source_halfstrip_distrip_header_number =  5;
+const int h5_trigger_source_halfstrip_distrip_lo_bit        = 12;
+const int h5_trigger_source_halfstrip_distrip_hi_bit        = 12;
+//
+//-----------
+// header 6
+//-----------
+// Active CFEB list sent to DMB
+const int h6_aff_to_dmb_header_number  =  6;
+const int h6_aff_to_dmb_lo_bit         =  0;
+const int h6_aff_to_dmb_hi_bit         =  4;
+//
+// List of instantiated CFEBs
+const int h6_cfeb_exists_header_number =  6;
+const int h6_cfeb_exists_lo_bit        =  5;
+const int h6_cfeb_exists_hi_bit        =  9;
+//
+// Run info
+const int h6_run_info_header_number    =  6;
+const int h6_run_info_lo_bit           = 10;
+const int h6_run_info_hi_bit           = 13;
+//
+//-----------
+// header 7
+//-----------
+// bunch crossing number at CLCT pretrigger
+const int h7_bxn_at_clct_pretrig_header_number =  7;
+const int h7_bxn_at_clct_pretrig_lo_bit        =  0;
+const int h7_bxn_at_clct_pretrig_hi_bit        = 11;
+//
+// bunch crossing number synchronization error
+const int h7_sync_err_header_number            =  7;
+const int h7_sync_err_lo_bit                   = 12;
+const int h7_sync_err_hi_bit                   = 12;
+//
+//-----------
+// header 8
+//-----------
+// CLCT0 pattern trigger (after drift) LSBS
+const int h8_clct0_lsbs_header_number =  8;
+const int h8_clct0_lsbs_lo_bit        =  0;
+const int h8_clct0_lsbs_hi_bit        = 14;
+//
+//-----------
+// header 9
+//-----------
+// CLCT1 pattern trigger (after drift) LSBS
+const int h9_clct1_lsbs_header_number =  9;
+const int h9_clct1_lsbs_lo_bit        =  0;
+const int h9_clct1_lsbs_hi_bit        = 14;
+//
+//-----------
+// header 10
+//-----------
+// CLCT0 pattern trigger (after drift) MSBS
+const int h10_clct0_msbs_header_number            = 10;
+const int h10_clct0_msbs_lo_bit                   =  0;
+const int h10_clct0_msbs_hi_bit                   =  5;
+//
+// CLCT1 pattern trigger (after drift) MSBS
+const int h10_clct1_msbs_header_number            = 10;
+const int h10_clct1_msbs_lo_bit                   =  6;
+const int h10_clct1_msbs_hi_bit                   = 11;
+//
+// CLCT0 had invalid pattern after drift
+const int h10_clct0_invalid_pattern_header_number = 10;
+const int h10_clct0_invalid_pattern_lo_bit        = 12;
+const int h10_clct0_invalid_pattern_hi_bit        = 12;
+//
+//-----------
+// header 11
+//-----------
+// ALCT and CLCT matched in time
+const int h11_alct_clct_match_header_number           = 11;
+const int h11_alct_clct_match_lo_bit                  =  0;
+const int h11_alct_clct_match_hi_bit                  =  0;
+//
+// ALCT trigger only
+const int h11_alct_trig_only_header_number            = 11;
+const int h11_alct_trig_only_lo_bit                   =  1;
+const int h11_alct_trig_only_hi_bit                   =  1;
+//
+// CLCT trigger only
+const int h11_clct_trig_only_header_number            = 11;
+const int h11_clct_trig_only_lo_bit                   =  2;
+const int h11_clct_trig_only_hi_bit                   =  2;
+//
+// ALCT-CLCT0 bunch crossing difference
+const int h11_clct0_alct_bxn_diff_header_number       = 11;
+const int h11_clct0_alct_bxn_diff_lo_bit              =  3;
+const int h11_clct0_alct_bxn_diff_hi_bit              =  4;
+//
+// ALCT-CLCT1 bunch crossing difference
+const int h11_clct1_alct_bxn_diff_header_number       = 11;
+const int h11_clct1_alct_bxn_diff_lo_bit              =  5;
+const int h11_clct1_alct_bxn_diff_hi_bit              =  6;
+//
+// Location of ALCT in CLCT match window
+const int h11_alct_in_clct_match_window_header_number = 11;
+const int h11_alct_in_clct_match_window_lo_bit        =  7;
+const int h11_alct_in_clct_match_window_hi_bit        = 10;
+//
+// triad persistence
+const int h11_triad_persistence_header_number         = 11;
+const int h11_triad_persistence_lo_bit                = 11;
+const int h11_triad_persistence_hi_bit                = 14;
+//
+//-----------
+// header 12
+//-----------
+// MPC muon0 frame 0 LSBs
+const int h12_mpc0_frame0_lsbs_header_number = 12;
+const int h12_mpc0_frame0_lsbs_lo_bit        =  0;
+const int h12_mpc0_frame0_lsbs_hi_bit        = 14;
+//
+//-----------
+// header 13
+//-----------
+// MPC muon0 frame 1 LSBs
+const int h13_mpc0_frame1_lsbs_header_number = 13;
+const int h13_mpc0_frame1_lsbs_lo_bit        =  0;
+const int h13_mpc0_frame1_lsbs_hi_bit        = 14;
+//
+//-----------
+// header 14
+//-----------
+// MPC muon1 frame 0 LSBs
+const int h14_mpc1_frame0_lsbs_header_number = 14;
+const int h14_mpc1_frame0_lsbs_lo_bit        =  0;
+const int h14_mpc1_frame0_lsbs_hi_bit        = 14;
+//
+//-----------
+// header 15
+//-----------
+// MPC muon1 frame 1 LSBs
+const int h15_mpc1_frame1_lsbs_header_number = 15;
+const int h15_mpc1_frame1_lsbs_lo_bit        =  0;
+const int h15_mpc1_frame1_lsbs_hi_bit        = 14;
+//
+//-----------
+// header 16
+//-----------
+// MPC muon0 frame 0 MSBs
+const int h16_mpc0_frame0_msbs_header_number              = 16;
+const int h16_mpc0_frame0_msbs_lo_bit                     =  0;
+const int h16_mpc0_frame0_msbs_hi_bit                     =  0;
+//
+// MPC muon0 frame 1 MSBs
+const int h16_mpc0_frame1_msbs_header_number              = 16;
+const int h16_mpc0_frame1_msbs_lo_bit                     =  1;
+const int h16_mpc0_frame1_msbs_hi_bit                     =  1;
+//
+// MPC muon1 frame 0 MSBs
+const int h16_mpc1_frame0_msbs_header_number              = 16;
+const int h16_mpc1_frame0_msbs_lo_bit                     =  2;
+const int h16_mpc1_frame0_msbs_hi_bit                     =  2;
+//
+// MPC muon1 frame 1 MSBs
+const int h16_mpc1_frame1_msbs_header_number              = 16;
+const int h16_mpc1_frame1_msbs_lo_bit                     =  3;
+const int h16_mpc1_frame1_msbs_hi_bit                     =  3;
+//
+// MPC muon accept response
+const int h16_mpc_accept_header_number                    = 16;
+const int h16_mpc_accept_lo_bit                           =  4;
+const int h16_mpc_accept_hi_bit                           =  5;
+//
+// CLCT halfstrip pretrigger threshold
+const int h16_clct_halfstrip_pretrig_thresh_header_number = 16;
+const int h16_clct_halfstrip_pretrig_thresh_lo_bit        =  8;
+const int h16_clct_halfstrip_pretrig_thresh_hi_bit        = 10;
+//
+// CLCT distrip pretrigger threshold
+const int h16_clct_distrip_pretrig_thresh_header_number   = 16;
+const int h16_clct_distrip_pretrig_thresh_lo_bit          = 11;
+const int h16_clct_distrip_pretrig_thresh_hi_bit          = 13;
+//
+//-----------
+// header 17
+//-----------
+// Write buffer is ready
+const int h17_write_buffer_ready_header_number     = 17;
+const int h17_write_buffer_ready_lo_bit            =  0;
+const int h17_write_buffer_ready_hi_bit            =  0;
+//
+// Tbin address for pretrig
+const int h17_pretrig_tbin_header_number           = 17;
+const int h17_pretrig_tbin_lo_bit                  =  1;
+const int h17_pretrig_tbin_hi_bit                  =  5;
+//
+// write buffer address 
+const int h17_write_buffer_address_header_number   = 17;
+const int h17_write_buffer_address_lo_bit          =  6;
+const int h17_write_buffer_address_hi_bit          =  8;
+//
+// pretrig arrived, no buffer free
+const int h17_pretrig_no_free_buffer_header_number = 17;
+const int h17_pretrig_no_free_buffer_lo_bit        =  9;
+const int h17_pretrig_no_free_buffer_hi_bit        =  9;
+//
+// buffer full
+const int h17_buffer_full_header_number            = 17;
+const int h17_buffer_full_lo_bit                   = 10;
+const int h17_buffer_full_hi_bit                   = 10;
+//
+// buffer almost full
+const int h17_buffer_almost_full_header_number     = 17;
+const int h17_buffer_almost_full_lo_bit            = 11;
+const int h17_buffer_almost_full_hi_bit            = 11;
+//
+// buffer half full
+const int h17_buffer_half_full_header_number       = 17;
+const int h17_buffer_half_full_lo_bit              = 12;
+const int h17_buffer_half_full_hi_bit              = 12;
+//
+// buffer empty
+const int h17_buffer_empty_header_number           = 17;
+const int h17_buffer_empty_lo_bit                  = 13;
+const int h17_buffer_empty_hi_bit                  = 13;
+//
+//-----------
+// header 18
+//-----------
+// Number of buffers busy
+const int h18_nbuf_busy_header_number          = 18;
+const int h18_nbuf_busy_lo_bit                 =  0;
+const int h18_nbuf_busy_hi_bit                 =  3;
+//
+// List of busy buffers
+const int h18_buf_busy_header_number           = 18;
+const int h18_buf_busy_lo_bit                  =  4;
+const int h18_buf_busy_hi_bit                  = 11;
+//
+// L1A stack overflow
+const int h18_l1a_stack_overflow_header_number = 18;
+const int h18_l1a_stack_overflow_lo_bit        = 13;
+const int h18_l1a_stack_overflow_hi_bit        = 13;
+//
+//-----------
+// header 19
+//-----------
+// TMB response
+const int h19_tmb_trig_pulse_header_number         = 19;
+const int h19_tmb_trig_pulse_lo_bit                =  0;
+const int h19_tmb_trig_pulse_hi_bit                =  0;
+//
+// Only ALCT triggered
+const int h19_tmb_alct_only_header_number          = 19;
+const int h19_tmb_alct_only_lo_bit                 =  1;
+const int h19_tmb_alct_only_hi_bit                 =  1;
+//
+// Only CLCT triggered
+const int h19_tmb_clct_only_header_number          = 19;
+const int h19_tmb_clct_only_lo_bit                 =  2;
+const int h19_tmb_clct_only_hi_bit                 =  2;
+//
+// ALCT*CLCT triggered
+const int h19_tmb_match_header_number              = 19;
+const int h19_tmb_match_lo_bit                     =  3;
+const int h19_tmb_match_hi_bit                     =  3;
+//
+// Write buffer ready at pretrig
+const int h19_write_buffer_ready_header_number     = 19;
+const int h19_write_buffer_ready_lo_bit            =  4;
+const int h19_write_buffer_ready_hi_bit            =  4;
+//
+// write buffer either (ready -or- not required) at pretrig
+const int h19_write_buffer_available_header_number = 19;
+const int h19_write_buffer_available_lo_bit        =  5;
+const int h19_write_buffer_available_hi_bit        =  5;
+//
+// Tbin address at pretrig
+const int h19_write_tbin_address_header_number     = 19;
+const int h19_write_tbin_address_lo_bit            =  6;
+const int h19_write_tbin_address_hi_bit            = 10;
+//
+// Address of write buffer at pretrig
+const int h19_write_buffer_address_header_number   = 19;
+const int h19_write_buffer_address_lo_bit          = 11;
+const int h19_write_buffer_address_hi_bit          = 13;
+//
+//-----------
+// header 20
+//-----------
+// pretrig but no write buffer available
+const int h20_discard_no_write_buf_available_header_number = 20;
+const int h20_discard_no_write_buf_available_lo_bit        =  0;
+const int h20_discard_no_write_buf_available_hi_bit        =  3;
+//
+// invalid pattern after drift
+const int h20_discard_invalid_pattern_header_number        = 20;
+const int h20_discard_invalid_pattern_lo_bit               =  4;
+const int h20_discard_invalid_pattern_hi_bit               =  7;
+//
+// TMB rejected event
+const int h20_discard_tmb_reject_header_number             = 20;
+const int h20_discard_tmb_reject_lo_bit                    =  8;
+const int h20_discard_tmb_reject_hi_bit                    = 11;
+//
+// timeout with no TMB trig pulse
+const int h20_timeout_no_tmb_trig_pulse_header_number      = 20;
+const int h20_timeout_no_tmb_trig_pulse_lo_bit             = 12;
+const int h20_timeout_no_tmb_trig_pulse_hi_bit             = 12;
+//
+// timeout with no mpc_frame_ff
+const int h20_timeout_no_mpc_frame_header_number           = 20;
+const int h20_timeout_no_mpc_frame_lo_bit                  = 13;
+const int h20_timeout_no_mpc_frame_hi_bit                  = 13;
+//
+// timeout with no mpc_response_ff
+const int h20_timeout_no_mpc_response_header_number        = 20;
+const int h20_timeout_no_mpc_response_lo_bit               = 14;
+const int h20_timeout_no_mpc_response_hi_bit               = 14;
+//
+//-----------
+// header 21
+//-----------
+// setting of ALCT delay for match window
+const int h21_match_trig_alct_delay_header_number   = 21;
+const int h21_match_trig_alct_delay_lo_bit          =  0;
+const int h21_match_trig_alct_delay_hi_bit          =  3;
+//
+// setting of match window width
+const int h21_match_trig_window_width_header_number = 21;
+const int h21_match_trig_window_width_lo_bit        =  4;
+const int h21_match_trig_window_width_hi_bit        =  7;
+//
+// setting of MPC transmit delay
+const int h21_mpc_tx_delay_header_number            = 21;
+const int h21_mpc_tx_delay_lo_bit                   =  8;
+const int h21_mpc_tx_delay_hi_bit                   = 11;
+//
+//-----------
+// header 22
+//-----------
+// RPCs connected to this TMB
+const int h22_rpc_exist_header_number       = 22;
+const int h22_rpc_exist_lo_bit              =  0;
+const int h22_rpc_exist_hi_bit              =  1;
+//
+// RPCs included in readout
+const int h22_rpc_list_header_number        = 22;
+const int h22_rpc_list_lo_bit               =  2;
+const int h22_rpc_list_hi_bit               =  3;
+//
+// Number of RPCs in readout
+const int h22_nrpc_header_number            = 22;
+const int h22_nrpc_lo_bit                   =  4;
+const int h22_nrpc_hi_bit                   =  5;
+//
+// RPC readout enabled
+const int h22_rpc_read_enable_header_number = 22;
+const int h22_rpc_read_enable_lo_bit        =  6;
+const int h22_rpc_read_enable_hi_bit        =  6;
+//
+// Number of layers hit on layer trigger
+const int h22_nlayers_hit_header_number     = 22;
+const int h22_nlayers_hit_lo_bit            =  7;
+const int h22_nlayers_hit_hi_bit            =  9;
+//
+// Position of L1A in window
+const int h22_l1a_in_window_header_number   = 22;
+const int h22_l1a_in_window_lo_bit          = 10;
+const int h22_l1a_in_window_hi_bit          = 13;
+//
+//-----------
+// header 23
+//-----------
+// Board status
+const int h23_board_status_header_number = 23;
+const int h23_board_status_lo_bit        =  0;
+const int h23_board_status_hi_bit        = 14;
+//
+//-----------
+// header 24
+//-----------
+// seconds since last hard reset
+const int h24_time_since_hard_reset_header_number = 24;
+const int h24_time_since_hard_reset_lo_bit        =  0;
+const int h24_time_since_hard_reset_hi_bit        = 14;
+//
+//-----------
+// header 25
+//-----------
+// Firmware version date code
+const int h25_firmware_version_date_code_header_number = 25;
+const int h25_firmware_version_date_code_lo_bit        =  0;
+const int h25_firmware_version_date_code_hi_bit        = 13;
+//
+//
+/////////////////////////////////////////////////////////////////////////////
+// The following stuff should be deprecated
+/////////////////////////////////////////////////////////////////////////////
+//------------------------------------------
+// TMB trigger modes:
+//------------------------------------------
+const int CLCT_trigger                  =  1;
+const int ALCT_trigger                  =  2;
+const int Scintillator_trigger          =  3;
+const int DMB_trigger                   =  4;
+const int ALCT_CLCT_coincidence_trigger =  5;
+//
+//
+//------------------------------------------
+// this comes from alct_routines2/tmb_vme_reg.h
+//------------------------------------------
+//#define TMB_ADR_BOOT            0x70000 // Hardware Bootstrap Register
+//
+//--------------------------------
+//  Definitions to work with TMB
+//-------------------------------
+#define VME_BOOT_REG    0x04
+//
+#define ALCT_SLOW_PROG  0x0     // ALCT Slow Control JTAG Programming Chain
+#define ALCT_SLOW_USER  0x1     // ALCT Slow Control JTAG User Chain
+#define ALCT_FAST_PROG  0x2     // ALCT Fast JTAG Programming Chain
+#define ALCT_FAST_USER  0x3     // ALCT Fast JTAG User Chain
+#define TMB_FPGA_PROG   0x4     // TMB Mezzanine FPGA + FPGA PROMs JTAG Chain
+#define TMB_USER_PROM   0x8     // TMB User PROMs JTAG Chain
+#define TMB_FPGA_USER   0xc     // TMB FPGA User JTAG Chain
+//
+#define TMB_JTAG_SRC    0x08    // Hardware Bootstrap Register JTAG Source Bit
+#define JTAG_SOFT_SRC   0x0     // JTAG Sourced by FPGA (TMB_ADR_USR_JTAG VME Register)
+#define JTAG_HARD_SRC   0x1     // JTAG Sourced by Bootstrap Register
+//
+#define SOFT_TDO        0x01    // Software VME Register JTAG TDO Bit
+#define SOFT_TDI        0x02    // Software VME Register JTAG TDI Bit
+#define SOFT_TMS        0x03    // Software VME Register JTAG TMS Bit
+#define SOFT_TCK        0x08    // Software VME Register JTAG TCK Bit
+//
+#define HARD_TDO        0x80    // Hardware Bootstrap Register JTAG TDO Bit
+#define HARD_TDI        0x01    // Hardware Bootstrap Register JTAG TDI Bit
+#define HARD_TMS        0x02    // Hardware Bootstrap Register JTAG TMS Bit
+#define HARD_TCK        0x04    // Hardware Bootstrap Register JTAG TCK Bit
+//
+#define ALCT_HARD_RESET 0x0100  // Hardware ALCT FPGA Hard Reset
+#define TMB_HARD_RESET  0x0200  // Hardware TMB FPGA Hard Reset
+#define TMB_ENABLE_ALCT_RESET 0x0400 // Enable ALCT Hard Reset
+#define TMB_ENABLE_VME  0x0800  // Enable TMB to issue VME commands
+//
+struct tmb_id_regs
+{
+/* TMB_ADR_IDREG0 */
+  unsigned char fw_type;        // TMB Firmware Type, C=Normal CLCT/TMB, D=Debug loopback
+  unsigned char fw_version;     // Firmware Version code
+  unsigned char brd_geo_addr;   // Geographic address for this board
+
+/* TMB_ADR_IDREG1 */
+  unsigned char fw_day;         // DD Firmware Version Day (BCD)
+  unsigned char fw_month;       // MM Firmware Version Month (BCD)
+
+/* TMB_ADR_IDREG2 */
+  unsigned short int fw_year;   // YYYY Firmware Version Year (BCD)
+
+/* TMB_ADR_IDREG3 */
+  unsigned short int fpga_type; // Xilinx FPGA Type XCV1000E (BCD)
+
+};
