@@ -40,10 +40,11 @@ public:
   void RpcRatDelayScan(int rpc);
   //
   // ALCT-CLCT match timing
-  int  FindALCTvpf();
+  int FindALCTinCLCTMatchWindow(int number_of_reads);
+  int FindALCTvpf();
   //
   // Winner bits from MPC
-  int  FindWinner(int number_of_pulses);
+  int FindWinner(int number_of_pulses);
   //
   // DMB parameters
   void MeasureAlctDavCableDelay();
@@ -76,13 +77,14 @@ public:
   //
   void InjectMPCData() ;
   //
-  void ZeroDmbHistograms();
   void PopulateDmbHistograms(int number_of_reads);
   //
   int  AdjustL1aLctDMB();
   void CCBStartTrigger();
   //
   // analysis methods
+  void ZeroTmbHistograms();
+  void ZeroDmbHistograms();
   void ALCT_phase_analysis(int rxtxtiming[13][13]);
   int window_analysis(int * data, const int length);
   int DelayWhichGivesDesiredValue(float * vector_of_values_with_delay_index, 
@@ -134,6 +136,7 @@ public:
   inline int  GetRpcRatDelayTest()         { return GetRpcRatDelayTest(0); }
   inline int  GetRpcRatDelayTest(int rpc)  { return RpcRatDelay_[rpc] ; }
   inline int  GetALCTvpf()                 { return ALCTvpf_; }
+  inline int  GetMeasuredAlctMatchDelay()  { return measured_alct_match_window_delay_; }
   inline int  GetMPCdelayTest()            { return MPCdelay_ ; }
   inline int  GetAlctDavCableDelayTest()   { return AlctDavCableDelay_; }
   inline int  GetTmbLctCableDelayTest()    { return TmbLctCableDelay_; }
@@ -201,6 +204,7 @@ private:
   int RatTmbDelay_;
   int RpcRatDelay_[2];
   int ALCTvpf_;
+  int measured_alct_match_window_delay_;
   int MPCdelay_;
   int AlctDavCableDelay_;
   int TmbLctCableDelay_;
@@ -232,6 +236,8 @@ private:
   //
   int CFEBStripScan_[5][32];
   int ALCTWireScan_[112];
+  //
+  int AlctInClctMatchWindowHisto_[16];
   //
   int AffToL1aScopeHisto_[5];
   int CfebDavScopeHisto_[5];

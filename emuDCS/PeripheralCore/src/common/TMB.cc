@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.36 2007/06/14 14:47:55 rakness Exp $
+// $Id: TMB.cc,v 3.37 2007/06/21 16:14:03 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.37  2007/06/21 16:14:03  rakness
+// online measurement of ALCT in CLCT matching window
+//
 // Revision 3.36  2007/06/14 14:47:55  rakness
 // clean up MPC injection
 //
@@ -674,15 +677,18 @@ void TMB::configure() {
   // started and stopped appropriately in order for the delay values 
   // to be set correctly:
   if ( !GetFillVmeWriteVecs() ) {
-    sndbuf[0]=0x00;
-    sndbuf[1]=0x20;
-    tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); 
-    sndbuf[0]=0x00;
-    sndbuf[1]=0x21;
-    tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); 
-    sndbuf[0]=0x00;
-    sndbuf[1]=0x20;
-    tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); 
+    WriteRegister(vme_dddsm_adr,0x20);
+    WriteRegister(vme_dddsm_adr,0x21);
+    WriteRegister(vme_dddsm_adr,0x20);
+    //sndbuf[0]=0x00;
+    //sndbuf[1]=0x20;
+    //tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); 
+    //sndbuf[0]=0x00;
+    //sndbuf[1]=0x21;
+    //tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); 
+    //sndbuf[0]=0x00;
+    //sndbuf[1]=0x20;
+    //tmb_vme(0x02,0x14,sndbuf,rcvbuf,1); 
   }
   //
   if ( GetFillVmeWriteVecs() )      
@@ -695,6 +701,8 @@ void TMB::configure() {
 }
 //
 void TMB::SetTrgmode_() {  
+  //
+  // To be deprecated.  Replaced by explicitly setting each pretrigger/trigger bit
   //
   // set the combinations of bits for 
   // register 0x68 = ADR_SEQ_TRIG_EN  and
@@ -1045,7 +1053,7 @@ int TMB::FmState(){
 //
 void TMB::PrintCounters(int counter){
   //
-  // if counter = 0, print all counters
+  // if (counter < 0) { print all counters }
   //
   (*MyOutput_) << std::endl;
   //
@@ -1171,7 +1179,7 @@ void TMB::GetCounters(){
     //
     if( counter%2 == 0 ) {          //even addresses contain counter LSBs
       cnt_lsb = rd_data;
-      //      (*MyOutput_) << "counter " << counter << ", LSB = " << cnt_lsb ;
+      //(*MyOutput_) << "counter " << counter << ", LSB = " << cnt_lsb ;
     } else {	                     //odd addresses contain counter MSBs
       cnt_msb  = rd_data;
       //      (*MyOutput_) << ", MSB = " << cnt_msb << std::endl;
@@ -1835,7 +1843,7 @@ std::bitset<22> TMB::calCRC22(const std::vector< std::bitset<16> >& datain){
   std::bitset<22> CRC;
   CRC.reset();
   for(unsigned int i=0;i<datain.size()-4;i++){
-    printf("Taking %d %x \n",i,(unsigned int)datain[i].to_ulong());
+    //    printf("Taking %d %x \n",i,(unsigned int)datain[i].to_ulong());
     CRC=nextCRC22_D16(datain[i],CRC);
   }
   return CRC;
@@ -2196,7 +2204,7 @@ int TMB::TestArray(){
 int TMB::TMBCRCcalc(std::vector<std::bitset <16> >& TMBData) {
   //
   std::bitset<22> CRC=calCRC22(TMBData);
-  (*MyOutput_) << " Test here " << CRC.to_ulong() << std::endl ;
+  //  (*MyOutput_) << " Test here " << CRC.to_ulong() << std::endl ;
   return CRC.to_ulong();
   //
 }
@@ -2562,28 +2570,40 @@ void TMB::ResetRAMAddress(){
   return;
 }
 
-void TMB::TMBRawhits(int number_of_reads){
-   //
-   for (int i=0; i<number_of_reads; i++) {
-     //      
-     // Pretrigger halt while we are reading out the data
-     //
-     SetPretriggerHalt(1);
-     WriteRegister(seq_clct_adr,FillTMBRegister(seq_clct_adr));
-     //
-     ResetRAMAddress();
-     //
-     OnlyReadTMBRawhits();
-     //
-     // Pretrigger unhalt, go back to normal data taking
-     //
-     SetPretriggerHalt(0);
-     WriteRegister(seq_clct_adr,FillTMBRegister(seq_clct_adr));
-     //
-   }
-   return;
+void TMB::TMBRawhits(){
+  //
+  bool read_ok = false;
+  //
+  int max_number_of_times = 100;  //prevent going into an infinite loop
+  int number_of_reads = 0;
+  //
+  while (!read_ok && (number_of_reads<max_number_of_times) ) {
+    //
+    number_of_reads++;
+    //
+    ::usleep(100000);  //give a little bit of time for a trigger to arrive
+    //      
+    // Pretrigger halt while we are reading out the data:
+    SetPretriggerHalt(1);
+    WriteRegister(seq_clct_adr,FillTMBRegister(seq_clct_adr));
+    ::usleep(10000);
+    //
+    // Attempt to read the data:
+    ResetRAMAddress();
+    read_ok = OnlyReadTMBRawhits();
+    //
+    // Pretrigger unhalt, go back to normal data taking:
+    SetPretriggerHalt(0);
+    WriteRegister(seq_clct_adr,FillTMBRegister(seq_clct_adr));
+    ::usleep(10000);
+  }
+  //
+  if (number_of_reads >= max_number_of_times) 
+    (*MyOutput_) << "TMB read " << number_of_reads << " times with no data..." << std::endl;
+  //
+  return;
 }
-
+//
 bool TMB::OnlyReadTMBRawhits(){
   //
   tmb_data_.clear();
@@ -2592,31 +2612,37 @@ bool TMB::OnlyReadTMBRawhits(){
   //
   ReadRegister(seq_clct_adr);
   int halt_state = GetPretriggerHalt();
-  //
-  (*MyOutput_) << "TMB halt_state before read RAM = " << halt_state << std::endl;
+  if (debug_) (*MyOutput_) << "TMB halt_state before read RAM = " << halt_state << std::endl;
   //
   int dmb_busy  = 1;
-  int dmb_wdcnt = 0;
+  dmb_wordcount_ = 0;
   //
-  // Determine the number of words in this event:
+  // Probe the RAM to see if there is data.  If there is nothing after a few attempts, try again...
   //
-  while( (dmb_busy) || (dmb_wdcnt <= 0) ) {
+  const int max_number_of_tries = 5;
+  int number_of_tries = 0;
+  //
+  while( ((dmb_busy) || (dmb_wordcount_ <= 0)) && (number_of_tries < max_number_of_tries) ) {
+    //
+    number_of_tries++;
     //
     int rd_data = ReadRegister(dmb_wdcnt_adr);
-    dmb_wdcnt   = rd_data & 0x0fff;
+    dmb_wordcount_   = rd_data & 0x0fff;
     dmb_busy    = (rd_data>>14) & 0x1;  
     //
-    (*MyOutput_) << "DMB busy       = " << dmb_busy << std::endl;
-    (*MyOutput_) << "DMB word count = " << dmb_wdcnt << std::endl;
-    //
-    //    rd_data        = ReadRegister(seqsm_adr);
-    //    int tmb_state      = rd_data & 0x7;
-    //    int tmb_state_comp = rd_data;
-    //    printf("   tmb_state machine       = %4d\n",tmb_state);
+    //(*MyOutput_) << "Try to get TMB data through VME " << std::dec << number_of_tries << " times" << std::endl;
+    //(*MyOutput_) << "DMB busy       = " << dmb_busy << std::endl;
+    //(*MyOutput_) << "DMB word count = " << std::dec << dmb_wordcount_ << std::endl;
   }
   //
+  if (number_of_tries >= max_number_of_tries) {
+    if (debug_) (*MyOutput_) << "DMB word count=0 or DMB busy "<< std::dec << number_of_tries << " times..." << std::endl;
+    return false;
+  } else {
+    if (debug_) (*MyOutput_) << "Got TMB data on the " << std::dec << number_of_tries << " time" << std::endl;
+  }
   // Get the data:
-  for(int i=0; i<dmb_wdcnt; i++) {
+  for(int i=0; i<dmb_wordcount_; i++) {
     //
     //Write RAM read address
     int address = (i & 0xFFFF);
@@ -2626,12 +2652,10 @@ bool TMB::OnlyReadTMBRawhits(){
     int dmb_rdata = ReadRegister(dmb_rdata_adr);
     //
     tmb_data_.push_back((std::bitset<16>) dmb_rdata);
-    //    printf("Adr=%4d, Data=%5x\n",i,dmb_rdata);
-    (*MyOutput_) << "Address = " << std::dec << i << ", data = " << std::hex << dmb_rdata << std::endl;
+    if (debug_) (*MyOutput_) << "Address = " << std::dec << i << ", data = " << std::hex << dmb_rdata << std::endl;
   }
   //
-  (*MyOutput_) << "Total number of words read = " << tmb_data_.size() << std::endl;
-  //  printf("The size is %d\n",tmb_data.size());
+  if (debug_) (*MyOutput_) << "Total number of words read = " << std::dec << tmb_data_.size() << std::endl;
   //
   // Determine the CRC to see if we've extracted the data correctly, among other possibilities
   int CRC_end  = tmb_data_.size();
@@ -2643,16 +2667,326 @@ bool TMB::OnlyReadTMBRawhits(){
   //
   int dataOK = compareValues("TMB CRC", CRCcalc, CRCdata);
   //
-  //  printf(" CRC %x \n",CRCcalc);
-  //  printf(" CRC in data stream %lx %lx %x \n",tmb_data[CRC_end-4].to_ulong(),
-  //	 tmb_data[CRC_end-3].to_ulong(),CRCdata);
-  //  if ( CRCcalc != CRCdata ) {
-  //    printf("TMB CRC doesn't agree \n");
-  //  } else {
-  //    printf("TMB CRC does    agree \n");
-  //  }
+  if (dataOK) {
+    if (debug_) (*MyOutput_) << "CRC OK..." << std::endl;
+    DecodeTMBRawHits_();
+  } else {
+    (*MyOutput_) << "CRC not OK..." << std::endl;
+  }
   //
   return dataOK;
+}
+//
+void TMB::DecodeTMBRawHits_() {
+  //
+  for (int word_count=0; word_count<dmb_wordcount_; word_count++) 
+    DecodeTMBRawHitWord_(word_count);
+  //
+  return;
+}
+//
+void TMB::DecodeTMBRawHitWord_(int address) {
+  //
+  int data = tmb_data_[address].to_ulong();
+  //
+  if (address == 0) {
+    h0_beginning_of_cathode_ = ExtractValueFromData(data ,h0_beginning_of_cathode_lo_bit ,h0_beginning_of_cathode_hi_bit );
+    h0_marker_6_             = ExtractValueFromData(data ,h0_marker_6_lo_bit             ,h0_marker_6_hi_bit             );
+    //
+  } else if (address == 1) { 
+    h1_nTbins_per_cfeb_ = ExtractValueFromData(data ,h1_nTbins_per_cfeb_lo_bit ,h1_nTbins_per_cfeb_hi_bit );
+    h1_cfebs_read_      = ExtractValueFromData(data ,h1_cfebs_read_lo_bit      ,h1_cfebs_read_hi_bit      );
+    h1_fifo_mode_       = ExtractValueFromData(data ,h1_fifo_mode_lo_bit       ,h1_fifo_mode_hi_bit       );
+    //
+  } else if (address == 2) { 
+    h2_l1a_counter_ = ExtractValueFromData(data ,h2_l1a_counter_lo_bit ,h2_l1a_counter_hi_bit );
+    h2_csc_id_      = ExtractValueFromData(data ,h2_csc_id_lo_bit      ,h2_csc_id_hi_bit      );
+    h2_board_id_    = ExtractValueFromData(data ,h2_board_id_lo_bit    ,h2_board_id_hi_bit    );
+    h2_l1a_type_    = ExtractValueFromData(data ,h2_l1a_type_lo_bit    ,h2_l1a_type_hi_bit    );
+    //
+  } else if (address == 3) { 
+    h3_bxn_counter_   = ExtractValueFromData(data ,h3_bxn_counter_lo_bit   ,h3_bxn_counter_hi_bit   );
+    h3_record_type_   = ExtractValueFromData(data ,h3_record_type_lo_bit   ,h3_record_type_hi_bit   );
+    h3_scope_in_data_ = ExtractValueFromData(data ,h3_scope_in_data_lo_bit ,h3_scope_in_data_hi_bit );
+    //
+  } else if (address == 4) { 
+    h4_nheader_words_   = ExtractValueFromData(data ,h4_nheader_words_lo_bit   ,h4_nheader_words_hi_bit   );
+    h4_nCFEBs_read_     = ExtractValueFromData(data ,h4_nCFEBs_read_lo_bit     ,h4_nCFEBs_read_hi_bit     );
+    h4_has_buffer_data_ = ExtractValueFromData(data ,h4_has_buffer_data_lo_bit ,h4_has_buffer_data_hi_bit );
+    h4_fifo_pretrig_    = ExtractValueFromData(data ,h4_fifo_pretrig_lo_bit    ,h4_fifo_pretrig_hi_bit    );
+    //
+  } else if (address == 5) { 
+    h5_l1a_at_pretrig_                   = ExtractValueFromData(data ,h5_l1a_at_pretrig_lo_bit                   ,h5_l1a_at_pretrig_hi_bit                   );
+    h5_trigger_source_vector_            = ExtractValueFromData(data ,h5_trigger_source_vector_lo_bit            ,h5_trigger_source_vector_hi_bit            );
+    h5_trigger_source_halfstrip_distrip_ = ExtractValueFromData(data ,h5_trigger_source_halfstrip_distrip_lo_bit ,h5_trigger_source_halfstrip_distrip_hi_bit );
+    //
+  } else if (address == 6) { 
+    h6_aff_to_dmb_  = ExtractValueFromData(data ,h6_aff_to_dmb_lo_bit  ,h6_aff_to_dmb_hi_bit  );
+    h6_cfeb_exists_ = ExtractValueFromData(data ,h6_cfeb_exists_lo_bit ,h6_cfeb_exists_hi_bit );
+    h6_run_info_    = ExtractValueFromData(data ,h6_run_info_lo_bit    ,h6_run_info_hi_bit    );
+    //
+  } else if (address == 7) { 
+    h7_bxn_at_clct_pretrig_ = ExtractValueFromData(data ,h7_bxn_at_clct_pretrig_lo_bit ,h7_bxn_at_clct_pretrig_hi_bit );
+    h7_sync_err_            = ExtractValueFromData(data ,h7_sync_err_lo_bit            ,h7_sync_err_hi_bit            );
+    //
+  } else if (address == 8) { 
+    h8_clct0_lsbs_ = ExtractValueFromData(data ,h8_clct0_lsbs_lo_bit ,h8_clct0_lsbs_hi_bit );
+    //
+  } else if (address == 9) { 
+    h9_clct1_lsbs_ = ExtractValueFromData(data ,h9_clct1_lsbs_lo_bit ,h9_clct1_lsbs_hi_bit );
+    //
+  } else if (address == 10) { 
+    h10_clct0_msbs_            = ExtractValueFromData(data ,h10_clct0_msbs_lo_bit            ,h10_clct0_msbs_hi_bit            );
+    h10_clct1_msbs_            = ExtractValueFromData(data ,h10_clct1_msbs_lo_bit            ,h10_clct1_msbs_hi_bit            );
+    h10_clct0_invalid_pattern_ = ExtractValueFromData(data ,h10_clct0_invalid_pattern_lo_bit ,h10_clct0_invalid_pattern_hi_bit );
+    //
+  } else if (address == 11) {
+    h11_alct_clct_match_           = ExtractValueFromData(data ,h11_alct_clct_match_lo_bit           ,h11_alct_clct_match_hi_bit           );
+    h11_alct_trig_only_            = ExtractValueFromData(data ,h11_alct_trig_only_lo_bit            ,h11_alct_trig_only_hi_bit            );
+    h11_clct_trig_only_            = ExtractValueFromData(data ,h11_clct_trig_only_lo_bit            ,h11_clct_trig_only_hi_bit            );
+    h11_clct0_alct_bxn_diff_       = ExtractValueFromData(data ,h11_clct0_alct_bxn_diff_lo_bit       ,h11_clct0_alct_bxn_diff_hi_bit       );
+    h11_clct1_alct_bxn_diff_       = ExtractValueFromData(data ,h11_clct1_alct_bxn_diff_lo_bit       ,h11_clct1_alct_bxn_diff_hi_bit       );
+    h11_alct_in_clct_match_window_ = ExtractValueFromData(data ,h11_alct_in_clct_match_window_lo_bit ,h11_alct_in_clct_match_window_hi_bit );
+    h11_triad_persistence_         = ExtractValueFromData(data ,h11_triad_persistence_lo_bit         ,h11_triad_persistence_hi_bit         );
+    //
+  } else if (address == 12) { 
+    h12_mpc0_frame0_lsbs_ = ExtractValueFromData(data ,h12_mpc0_frame0_lsbs_lo_bit ,h12_mpc0_frame0_lsbs_hi_bit );
+    //
+  } else if (address == 13) { 
+    h13_mpc0_frame1_lsbs_ = ExtractValueFromData(data ,h13_mpc0_frame1_lsbs_lo_bit ,h13_mpc0_frame1_lsbs_hi_bit );
+    //
+  } else if (address == 14) { 
+    h14_mpc1_frame0_lsbs_ = ExtractValueFromData(data ,h14_mpc1_frame0_lsbs_lo_bit ,h14_mpc1_frame0_lsbs_hi_bit );
+    //
+  } else if (address == 15) { 
+    h15_mpc1_frame1_lsbs_ = ExtractValueFromData(data ,h15_mpc1_frame1_lsbs_lo_bit ,h15_mpc1_frame1_lsbs_hi_bit );
+    //
+  } else if (address == 16) { 
+    h16_mpc0_frame0_msbs_              = ExtractValueFromData(data ,h16_mpc0_frame0_msbs_lo_bit              ,h16_mpc0_frame0_msbs_hi_bit              );
+    h16_mpc0_frame1_msbs_              = ExtractValueFromData(data ,h16_mpc0_frame1_msbs_lo_bit              ,h16_mpc0_frame1_msbs_hi_bit              );
+    h16_mpc1_frame0_msbs_              = ExtractValueFromData(data ,h16_mpc1_frame0_msbs_lo_bit              ,h16_mpc1_frame0_msbs_hi_bit              );
+    h16_mpc1_frame1_msbs_              = ExtractValueFromData(data ,h16_mpc1_frame1_msbs_lo_bit              ,h16_mpc1_frame1_msbs_hi_bit              );
+    h16_mpc_accept_                    = ExtractValueFromData(data ,h16_mpc_accept_lo_bit                    ,h16_mpc_accept_hi_bit                    );
+    h16_clct_halfstrip_pretrig_thresh_ = ExtractValueFromData(data ,h16_clct_halfstrip_pretrig_thresh_lo_bit ,h16_clct_halfstrip_pretrig_thresh_hi_bit );
+    h16_clct_distrip_pretrig_thresh_   = ExtractValueFromData(data ,h16_clct_distrip_pretrig_thresh_lo_bit   ,h16_clct_distrip_pretrig_thresh_hi_bit   );
+    //
+  } else if (address == 17) { 
+    h17_write_buffer_ready_     = ExtractValueFromData(data ,h17_write_buffer_ready_lo_bit     ,h17_write_buffer_ready_hi_bit     );
+    h17_pretrig_tbin_           = ExtractValueFromData(data ,h17_pretrig_tbin_lo_bit           ,h17_pretrig_tbin_hi_bit           );
+    h17_write_buffer_address_   = ExtractValueFromData(data ,h17_write_buffer_address_lo_bit   ,h17_write_buffer_address_hi_bit   );
+    h17_pretrig_no_free_buffer_ = ExtractValueFromData(data ,h17_pretrig_no_free_buffer_lo_bit ,h17_pretrig_no_free_buffer_hi_bit );
+    h17_buffer_full_            = ExtractValueFromData(data ,h17_buffer_full_lo_bit            ,h17_buffer_full_hi_bit            );
+    h17_buffer_almost_full_     = ExtractValueFromData(data ,h17_buffer_almost_full_lo_bit     ,h17_buffer_almost_full_hi_bit     );
+    h17_buffer_half_full_       = ExtractValueFromData(data ,h17_buffer_half_full_lo_bit       ,h17_buffer_half_full_hi_bit       );
+    h17_buffer_empty_           = ExtractValueFromData(data ,h17_buffer_empty_lo_bit           ,h17_buffer_empty_hi_bit           );
+    //
+  } else if (address == 18) { 
+    h18_nbuf_busy_          = ExtractValueFromData(data ,h18_nbuf_busy_lo_bit          ,h18_nbuf_busy_hi_bit          );
+    h18_buf_busy_           = ExtractValueFromData(data ,h18_buf_busy_lo_bit           ,h18_buf_busy_hi_bit           );
+    h18_l1a_stack_overflow_ = ExtractValueFromData(data ,h18_l1a_stack_overflow_lo_bit ,h18_l1a_stack_overflow_hi_bit );
+    //
+  } else if (address == 19) { 
+    h19_tmb_trig_pulse_         = ExtractValueFromData(data ,h19_tmb_trig_pulse_lo_bit         ,h19_tmb_trig_pulse_hi_bit         );
+    h19_tmb_alct_only_          = ExtractValueFromData(data ,h19_tmb_alct_only_lo_bit          ,h19_tmb_alct_only_hi_bit          );
+    h19_tmb_clct_only_          = ExtractValueFromData(data ,h19_tmb_clct_only_lo_bit          ,h19_tmb_clct_only_hi_bit          );
+    h19_tmb_match_              = ExtractValueFromData(data ,h19_tmb_match_lo_bit              ,h19_tmb_match_hi_bit              );
+    h19_write_buffer_ready_     = ExtractValueFromData(data ,h19_write_buffer_ready_lo_bit     ,h19_write_buffer_ready_hi_bit     );
+    h19_write_buffer_available_ = ExtractValueFromData(data ,h19_write_buffer_available_lo_bit ,h19_write_buffer_available_hi_bit );
+    h19_write_tbin_address_     = ExtractValueFromData(data ,h19_write_tbin_address_lo_bit     ,h19_write_tbin_address_hi_bit     );
+    h19_write_buffer_address_   = ExtractValueFromData(data ,h19_write_buffer_address_lo_bit   ,h19_write_buffer_address_hi_bit   );
+    //
+  } else if (address == 20) { 
+    h20_discard_no_write_buf_available_ = ExtractValueFromData(data ,h20_discard_no_write_buf_available_lo_bit ,h20_discard_no_write_buf_available_hi_bit );
+    h20_discard_invalid_pattern_        = ExtractValueFromData(data ,h20_discard_invalid_pattern_lo_bit        ,h20_discard_invalid_pattern_hi_bit        );
+    h20_discard_tmb_reject_             = ExtractValueFromData(data ,h20_discard_tmb_reject_lo_bit             ,h20_discard_tmb_reject_hi_bit             );
+    h20_timeout_no_tmb_trig_pulse_      = ExtractValueFromData(data ,h20_timeout_no_tmb_trig_pulse_lo_bit      ,h20_timeout_no_tmb_trig_pulse_hi_bit      );
+    h20_timeout_no_mpc_frame_           = ExtractValueFromData(data ,h20_timeout_no_mpc_frame_lo_bit           ,h20_timeout_no_mpc_frame_hi_bit           );
+    h20_timeout_no_mpc_response_        = ExtractValueFromData(data ,h20_timeout_no_mpc_response_lo_bit        ,h20_timeout_no_mpc_response_hi_bit        );
+    //
+  } else if (address == 21) { 
+    h21_match_trig_alct_delay_   = ExtractValueFromData(data ,h21_match_trig_alct_delay_lo_bit   ,h21_match_trig_alct_delay_hi_bit   );
+    h21_match_trig_window_width_ = ExtractValueFromData(data ,h21_match_trig_window_width_lo_bit ,h21_match_trig_window_width_hi_bit );
+    h21_mpc_tx_delay_            = ExtractValueFromData(data ,h21_mpc_tx_delay_lo_bit            ,h21_mpc_tx_delay_hi_bit            );
+    //
+  } else if (address == 22) {
+    h22_rpc_exist_       = ExtractValueFromData(data ,h22_rpc_exist_lo_bit       ,h22_rpc_exist_hi_bit       );
+    h22_rpc_list_        = ExtractValueFromData(data ,h22_rpc_list_lo_bit        ,h22_rpc_list_hi_bit        );
+    h22_nrpc_            = ExtractValueFromData(data ,h22_nrpc_lo_bit            ,h22_nrpc_hi_bit            );
+    h22_rpc_read_enable_ = ExtractValueFromData(data ,h22_rpc_read_enable_lo_bit ,h22_rpc_read_enable_hi_bit );
+    h22_nlayers_hit_     = ExtractValueFromData(data ,h22_nlayers_hit_lo_bit     ,h22_nlayers_hit_hi_bit     );
+    h22_l1a_in_window_   = ExtractValueFromData(data ,h22_l1a_in_window_lo_bit   ,h22_l1a_in_window_hi_bit   );
+    //
+  } else if (address == 23) { 
+    h23_board_status_ = ExtractValueFromData(data ,h23_board_status_lo_bit ,h23_board_status_hi_bit );
+    //
+  } else if (address == 24) { 
+    h24_time_since_hard_reset_ = ExtractValueFromData(data ,h24_time_since_hard_reset_lo_bit ,h24_time_since_hard_reset_hi_bit );
+    //
+  } else if (address == 25) { 
+    h25_firmware_version_date_code_ = ExtractValueFromData(data ,h25_firmware_version_date_code_lo_bit ,h25_firmware_version_date_code_hi_bit );
+    //
+  }
+  //
+  return;
+}
+//
+void TMB::PrintTMBRawHits() {
+  //
+  (*MyOutput_) << "Header 0:" << std::endl;
+  (*MyOutput_) << "-> beginning of cathode record marker = " << h0_beginning_of_cathode_ << std::endl;
+  (*MyOutput_) << "-> marker 6                           = " << h0_marker_6_             << std::endl;
+  //
+  (*MyOutput_) << "Header 1:" << std::endl;
+  (*MyOutput_) << "-> number of time bins per CFEB in dump                = " << h1_nTbins_per_cfeb_ << std::endl;
+  (*MyOutput_) << "-> CFEBs read out for this event                       = " << h1_cfebs_read_      << std::endl;
+  (*MyOutput_) << "-> fifo mode                                           = " << h1_fifo_mode_       << std::endl;
+  //
+  (*MyOutput_) << "Header 2:" << std::endl;
+  (*MyOutput_) << "-> L1A received and pushed on L1A stack                = " << h2_l1a_counter_ << std::endl;
+  (*MyOutput_) << "-> Chamber ID number (= slot/2 or slot/2-1 if slot>12) = " << h2_csc_id_      << std::endl;
+  (*MyOutput_) << "-> module ID number (= VME slot)                       = " << h2_board_id_    << std::endl;
+  (*MyOutput_) << "-> L1A pop type mode                                   = " << h2_l1a_type_;
+  if (h2_l1a_type_ == 0) {
+    (*MyOutput_) << " = Normal CLCT trigger with buffer data and L1A window match" << std::endl;
+  } else if (h2_l1a_type_ == 1) {
+    (*MyOutput_) << " = ALCT-only trigger, no data buffers" << std::endl;
+  } else if (h2_l1a_type_ == 2) {
+    (*MyOutput_) << " = L1A-only, no matching TMB trigger, no buffer data" << std::endl;
+  } else if (h2_l1a_type_ == 3) {
+    (*MyOutput_) << " = TMB triggered, no L1A-window match, event has buffer data" << std::endl;
+  }
+  //
+  (*MyOutput_) << "Header 3:" << std::endl;  
+  (*MyOutput_) << "-> Bunch-crossing number pushed on L1A stack on L1A arrival = " << h3_bxn_counter_ << std::endl;
+  (*MyOutput_) << "-> Record type = " << h3_record_type_;
+  if (h3_record_type_ == 0 ) {
+    (*MyOutput_) << " = No rawhits, full header" << std::endl;
+  } else if (h3_record_type_ == 1 ) {
+    (*MyOutput_) << " = Full rawhits, full header" << std::endl;
+  } else if (h3_record_type_ == 2 ) {
+    (*MyOutput_) << " = Local rawhits, full header" << std::endl;
+  } else if (h3_record_type_ == 3 ) {
+    (*MyOutput_) << " = No rawhits, short header (no buffer available at pretrigger)" << std::endl;
+  }
+  (*MyOutput_) << "-> internal logic analyzer scope data included in readout = 0x " << std::hex << h3_scope_in_data_ << std::endl;
+  //
+  (*MyOutput_) << "Header 4:" << std::endl;  
+  (*MyOutput_) << "-> Number of header words                        = 0x " << std::hex << h4_nheader_words_   << std::endl;
+  (*MyOutput_) << "-> Number of CFEBs readout                       = 0x " << std::hex << h4_nCFEBs_read_     << std::endl;
+  (*MyOutput_) << "-> Number of CFEBs readout                       = 0x " << std::hex << h4_has_buffer_data_ << std::endl;
+  (*MyOutput_) << "-> Number time bins in readout before pretrigger = 0x " << std::hex << h4_fifo_pretrig_    << std::endl;
+  //
+  (*MyOutput_) << "Header 5:" << std::endl;  
+  (*MyOutput_) << "-> L1A number at CLCT pretrigger       = 0x " << std::hex << h5_l1a_at_pretrig_                   << std::endl;
+  (*MyOutput_) << "-> trigger source vector               = 0x " << std::hex << h5_trigger_source_vector_            << std::endl;
+  (*MyOutput_) << "-> trigger source halfstrip or distrip = 0x " << std::hex << h5_trigger_source_halfstrip_distrip_ << std::endl;
+  //
+  (*MyOutput_) << "Header 6:" << std::endl;  
+  (*MyOutput_) << "-> Active CFEB list sent to DMB = 0x " << std::hex << h6_aff_to_dmb_  << std::endl;
+  (*MyOutput_) << "-> List of instantiated CFEBs   = 0x " << std::hex << h6_cfeb_exists_ << std::endl;
+  (*MyOutput_) << "-> Run info                     = 0x " << std::hex << h6_run_info_    << std::endl;
+  //
+  (*MyOutput_) << "Header 7:" << std::endl;  
+  (*MyOutput_) << "-> bunch crossing number at CLCT pretrigger    = 0x " << std::hex << h7_bxn_at_clct_pretrig_ << std::endl;
+  (*MyOutput_) << "-> bunch crossing number synchronization error = 0x " << std::hex << h7_sync_err_            << std::endl;
+  //
+  (*MyOutput_) << "Header 8:" << std::endl;  
+  (*MyOutput_) << "-> CLCT0 pattern trigger (after drift) LSBS = 0x " << std::hex << h8_clct0_lsbs_ << std::endl;
+  //
+  (*MyOutput_) << "Header 9:" << std::endl;  
+  (*MyOutput_) << "-> CLCT1 pattern trigger (after drift) LSBS = 0x " << std::hex << h9_clct1_lsbs_ << std::endl;
+  //
+  (*MyOutput_) << "Header 10:" << std::endl;  
+  (*MyOutput_) << "-> CLCT0 pattern trigger (after drift) MSBS = 0x " << std::hex << h10_clct0_msbs_            << std::endl;
+  (*MyOutput_) << "-> CLCT1 pattern trigger (after drift) MSBS = 0x " << std::hex << h10_clct1_msbs_            << std::endl;
+  (*MyOutput_) << "-> CLCT0 had invalid pattern after drift    = 0x " << std::hex << h10_clct0_invalid_pattern_ << std::endl;
+  //
+  (*MyOutput_) << "Header 11:" << std::endl;  
+  (*MyOutput_) << "-> ALCT and CLCT matched in time         = 0x " << std::hex << h11_alct_clct_match_           << std::endl;
+  (*MyOutput_) << "-> ALCT trigger only                     = 0x " << std::hex << h11_alct_trig_only_            << std::endl;
+  (*MyOutput_) << "-> CLCT trigger only                     = 0x " << std::hex << h11_clct_trig_only_            << std::endl;
+  (*MyOutput_) << "-> ALCT-CLCT0 bunch crossing difference  = 0x " << std::hex << h11_clct0_alct_bxn_diff_       << std::endl;
+  (*MyOutput_) << "-> ALCT-CLCT1 bunch crossing difference  = 0x " << std::hex << h11_clct1_alct_bxn_diff_       << std::endl;
+  (*MyOutput_) << "-> Location of ALCT in CLCT match window = 0x " << std::hex << h11_alct_in_clct_match_window_ << std::endl;
+  (*MyOutput_) << "-> triad persistence                     = 0x " << std::hex << h11_triad_persistence_         << std::endl;
+  //
+  (*MyOutput_) << "Header 12:" << std::endl;  
+  (*MyOutput_) << "-> MPC muon0 frame 0 LSBs = 0x " << std::hex << h12_mpc0_frame0_lsbs_ << std::endl;
+  //
+  (*MyOutput_) << "Header 13:" << std::endl;  
+  (*MyOutput_) << "-> MPC muon0 frame 1 LSBs = 0x " << std::hex << h13_mpc0_frame1_lsbs_ << std::endl;
+  //
+  (*MyOutput_) << "Header 14:" << std::endl;  
+  (*MyOutput_) << "-> MPC muon1 frame 0 LSBs = 0x " << std::hex << h14_mpc1_frame0_lsbs_ << std::endl;
+  //
+  (*MyOutput_) << "Header 15:" << std::endl;  
+  (*MyOutput_) << "-> MPC muon1 frame 1 LSBs = 0x " << std::hex << h15_mpc1_frame1_lsbs_ << std::endl;
+  //
+  (*MyOutput_) << "Header 16:" << std::endl;  
+  (*MyOutput_) << "-> MPC muon0 frame 0 MSBs              = 0x " << std::hex << h16_mpc0_frame0_msbs_              << std::endl;
+  (*MyOutput_) << "-> MPC muon0 frame 1 MSBs              = 0x " << std::hex << h16_mpc0_frame1_msbs_              << std::endl;
+  (*MyOutput_) << "-> MPC muon1 frame 0 MSBs              = 0x " << std::hex << h16_mpc1_frame0_msbs_              << std::endl;
+  (*MyOutput_) << "-> MPC muon1 frame 1 MSBs              = 0x " << std::hex << h16_mpc1_frame1_msbs_              << std::endl;
+  (*MyOutput_) << "-> MPC muon accept response            = 0x " << std::hex << h16_mpc_accept_                    << std::endl;
+  (*MyOutput_) << "-> CLCT halfstrip pretrigger threshold = 0x " << std::hex << h16_clct_halfstrip_pretrig_thresh_ << std::endl;
+  (*MyOutput_) << "-> CLCT distrip pretrigger threshold   = 0x " << std::hex << h16_clct_distrip_pretrig_thresh_   << std::endl;
+  //
+  (*MyOutput_) << "Header 17:" << std::endl;  
+  (*MyOutput_) << "-> Write buffer is ready           = 0x " << std::hex << h17_write_buffer_ready_     << std::endl;
+  (*MyOutput_) << "-> Tbin address for pretrig        = 0x " << std::hex << h17_pretrig_tbin_           << std::endl;
+  (*MyOutput_) << "-> write buffer address            = 0x " << std::hex << h17_write_buffer_address_   << std::endl;
+  (*MyOutput_) << "-> pretrig arrived, no buffer free = 0x " << std::hex << h17_pretrig_no_free_buffer_ << std::endl;
+  (*MyOutput_) << "-> buffer full                     = 0x " << std::hex << h17_buffer_full_            << std::endl;
+  (*MyOutput_) << "-> buffer almost full              = 0x " << std::hex << h17_buffer_almost_full_     << std::endl;
+  (*MyOutput_) << "-> buffer half full                = 0x " << std::hex << h17_buffer_half_full_       << std::endl;
+  (*MyOutput_) << "-> buffer empty                    = 0x " << std::hex << h17_buffer_empty_           << std::endl;
+  //
+  (*MyOutput_) << "Header 18:" << std::hex << std::endl;  
+  (*MyOutput_) << "-> Number of buffers busy = 0x " << std::hex << h18_nbuf_busy_          << std::endl;
+  (*MyOutput_) << "-> List of busy buffers   = 0x " << std::hex << h18_buf_busy_           << std::endl;
+  (*MyOutput_) << "-> L1A stack overflow     = 0x " << std::hex << h18_l1a_stack_overflow_ << std::endl;
+  //
+  (*MyOutput_) << "Header 19:" << std::endl;  
+  (*MyOutput_) << "-> TMB response                                             = 0x " << std::hex << h19_tmb_trig_pulse_         << std::endl;
+  (*MyOutput_) << "-> Only ALCT triggered                                      = 0x " << std::hex << h19_tmb_alct_only_          << std::endl;
+  (*MyOutput_) << "-> Only CLCT triggered                                      = 0x " << std::hex << h19_tmb_clct_only_          << std::endl;
+  (*MyOutput_) << "-> ALCT*CLCT triggered                                      = 0x " << std::hex << h19_tmb_match_              << std::endl;
+  (*MyOutput_) << "-> Write buffer ready at pretrig                            = 0x " << std::hex << h19_write_buffer_ready_     << std::endl;
+  (*MyOutput_) << "-> write buffer either (ready -or- not required) at pretrig = 0x " << std::hex << h19_write_buffer_available_ << std::endl;
+  (*MyOutput_) << "-> Tbin address at pretrig                                  = 0x " << std::hex << h19_write_tbin_address_     << std::endl;
+  (*MyOutput_) << "-> Address of write buffer at pretrig                       = 0x " << std::hex << h19_write_buffer_address_   << std::endl;
+  //
+  (*MyOutput_) << "Header 20:" << std::endl;  
+  (*MyOutput_) << "-> pretrig but no write buffer available = 0x " << std::hex << h20_discard_no_write_buf_available_ << std::endl;
+  (*MyOutput_) << "-> invalid pattern after drift           = 0x " << std::hex << h20_discard_invalid_pattern_        << std::endl;
+  (*MyOutput_) << "-> TMB rejected event                    = 0x " << std::hex << h20_discard_tmb_reject_             << std::endl;
+  (*MyOutput_) << "-> timeout with no TMB trig pulse        = 0x " << std::hex << h20_timeout_no_tmb_trig_pulse_      << std::endl;
+  (*MyOutput_) << "-> timeout with no mpc_frame_ff          = 0x " << std::hex << h20_timeout_no_mpc_frame_           << std::endl;
+  (*MyOutput_) << "-> timeout with no mpc_response_ff       = 0x " << std::hex << h20_timeout_no_mpc_response_        << std::endl;
+  //
+  (*MyOutput_) << "Header 21:" << std::endl;  
+  (*MyOutput_) << "-> setting of ALCT delay for match window = 0x " << std::hex << h21_match_trig_alct_delay_   << std::endl;
+  (*MyOutput_) << "-> setting of match window width          = 0x " << std::hex << h21_match_trig_window_width_ << std::endl;
+  (*MyOutput_) << "-> setting of MPC transmit delay          = 0x " << std::hex << h21_mpc_tx_delay_            << std::endl;
+  //
+  (*MyOutput_) << "Header 22:" << std::endl;  
+  (*MyOutput_) << "-> RPCs connected to this TMB            = 0x " << std::hex << h22_rpc_exist_       << std::endl;
+  (*MyOutput_) << "-> RPCs included in readout              = 0x " << std::hex << h22_rpc_list_        << std::endl;
+  (*MyOutput_) << "-> Number of RPCs in readout             = 0x " << std::hex << h22_nrpc_            << std::endl;
+  (*MyOutput_) << "-> RPC readout enabled                   = 0x " << std::hex << h22_rpc_read_enable_ << std::endl;
+  (*MyOutput_) << "-> Number of layers hit on layer trigger = 0x " << std::hex << h22_nlayers_hit_     << std::endl;
+  (*MyOutput_) << "-> Position of L1A in window             = 0x " << std::hex << h22_l1a_in_window_   << std::endl;
+  //
+  (*MyOutput_) << "Header 23:" << std::endl;  
+  (*MyOutput_) << "-> Board status = 0x " << std::hex << h23_board_status_ << std::endl;
+  //
+  (*MyOutput_) << "Header 24:" << std::endl;  
+  (*MyOutput_) << "-> seconds since last hard reset = 0x " << std::hex << h24_time_since_hard_reset_ << std::endl;
+  //
+  (*MyOutput_) << "Header 25:" << std::endl;  
+  (*MyOutput_) << "-> Firmware version date code = 0x " << std::hex << h25_firmware_version_date_code_ << std::endl;
+//
+  return;
 }
 //
 void TMB::decode() {
@@ -5168,7 +5502,7 @@ int TMB::tmb_read_delays(int device) {
   return data;
 }
 
-void TMB::new_clk_delays(unsigned short int time,int cfeb_id)
+void TMB::new_clk_delays(unsigned short int time,int device)
 {
   // device = 0  = CFEB 0 Clock
   //        = 1  = CFEB 1 clock
@@ -5190,91 +5524,91 @@ void TMB::new_clk_delays(unsigned short int time,int cfeb_id)
 int iloop;
  iloop=0;
  //printf(" here write to delay registers \n");
-  if ( cfeb_id == 0 ) {
+  if ( device == 0 ) {
     tmb_vme(0x01,vme_ddd1_adr,sndbuf,rcvbuf,NOW);
     sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
     sndbuf[1]=rcvbuf[1];
     tmb_vme(0x02,vme_ddd1_adr,sndbuf,rcvbuf,NOW);
   } 
-  if ( cfeb_id == 1 ) {
+  if ( device == 1 ) {
     tmb_vme(0x01,vme_ddd2_adr,sndbuf,rcvbuf,NOW);
     sndbuf[0]=rcvbuf[0];
     sndbuf[1]=(time&0x0f)|(rcvbuf[1]&0xf0);
     tmb_vme(0x02,vme_ddd2_adr,sndbuf,rcvbuf,NOW);
   } 
-  if ( cfeb_id == 2 ) {
+  if ( device == 2 ) {
     tmb_vme(0x01,vme_ddd2_adr,sndbuf,rcvbuf,NOW);
     sndbuf[0]=rcvbuf[0];
     sndbuf[1]=(((time&0x0f)<<4)&0xf0)|(rcvbuf[1]&0x0f);
     tmb_vme(0x02,vme_ddd2_adr,sndbuf,rcvbuf,NOW);
   } 
-  if ( cfeb_id == 3 ) {
+  if ( device == 3 ) {
     tmb_vme(0x01,vme_ddd2_adr,sndbuf,rcvbuf,NOW);
     sndbuf[0]=(time&0x0f)|(rcvbuf[0]&0xf0);
     sndbuf[1]=rcvbuf[1];
     tmb_vme(0x02,vme_ddd2_adr,sndbuf,rcvbuf,NOW);
   } 
-  if ( cfeb_id == 4 ) {
+  if ( device == 4 ) {
     tmb_vme(0x01,vme_ddd2_adr,sndbuf,rcvbuf,NOW);
     sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
     sndbuf[1]=rcvbuf[1];
     tmb_vme(0x02,vme_ddd2_adr,sndbuf,rcvbuf,NOW);
   } 
-  if ( cfeb_id == 5 ) {
+  if ( device == 5 ) {
     tmb_vme(0x01,vme_ddd0_adr,sndbuf,rcvbuf,NOW);
     sndbuf[0]=rcvbuf[0];
     sndbuf[1]=(((time&0x0f)<<4)&0xf0)|(rcvbuf[1]&0x0f);
     tmb_vme(0x02,vme_ddd0_adr,sndbuf,rcvbuf,NOW);
   } 
-  if ( cfeb_id == 6 ) {
+  if ( device == 6 ) {
     tmb_vme(0x01,vme_ddd0_adr,sndbuf,rcvbuf,NOW);
     sndbuf[0]=rcvbuf[0];
     sndbuf[1]=(time&0x0f)|(rcvbuf[1]&0xf0);
     tmb_vme(0x02,vme_ddd0_adr,sndbuf,rcvbuf,NOW);
   } 
-  if ( cfeb_id == 7 ) {
+  if ( device == 7 ) {
     tmb_vme(0x01,vme_ddd0_adr,sndbuf,rcvbuf,NOW);
     sndbuf[0]=(time&0x0f)|(rcvbuf[0]&0xf0);
     sndbuf[1]=rcvbuf[1];
     tmb_vme(0x02,vme_ddd0_adr,sndbuf,rcvbuf,NOW);
   } 
-  if ( cfeb_id == 8 ) {
+  if ( device == 8 ) {
     tmb_vme(0x01,vme_ddd0_adr,sndbuf,rcvbuf,NOW);
     sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
     sndbuf[1]=rcvbuf[1];
     tmb_vme(0x02,vme_ddd0_adr,sndbuf,rcvbuf,NOW);
   } 
-  if ( cfeb_id == 9 ) {
+  if ( device == 9 ) {
     tmb_vme(0x01,vme_ddd1_adr,sndbuf,rcvbuf,NOW);
     sndbuf[0]=rcvbuf[0];
     sndbuf[1]=(time&0x0f)|(rcvbuf[1]&0xf0);
     tmb_vme(0x02,vme_ddd1_adr,sndbuf,rcvbuf,NOW);
   } 
-  if ( cfeb_id == 10 ) {
+  if ( device == 10 ) {
     tmb_vme(0x01,vme_ddd1_adr,sndbuf,rcvbuf,NOW);
     sndbuf[0]=rcvbuf[0];
     sndbuf[1]=(((time&0x0f)<<4)&0xf0)|(rcvbuf[1]&0x0f);
     tmb_vme(0x02,vme_ddd1_adr,sndbuf,rcvbuf,NOW);
   } 
-  if ( cfeb_id == 11 ) {
+  if ( device == 11 ) {
     tmb_vme(0x01,vme_ddd1_adr,sndbuf,rcvbuf,NOW);
     sndbuf[0]=(time&0x0f)|(rcvbuf[0]&0xf0);
     sndbuf[1]=rcvbuf[1];
     tmb_vme(0x02,vme_ddd1_adr,sndbuf,rcvbuf,NOW);
   } 
-  if ( cfeb_id == 12 ) {
+  if ( device == 12 ) {
     tmb_vme(0x01,rat_3d_delays_adr,sndbuf,rcvbuf,NOW);
     sndbuf[0]=rcvbuf[0];
     sndbuf[1]=(time&0x0f)|(rcvbuf[1]&0xf0);
     tmb_vme(0x02,rat_3d_delays_adr,sndbuf,rcvbuf,NOW);
   } 
-  if ( cfeb_id == 13 ) {
+  if ( device == 13 ) {
     tmb_vme(0x01,rat_3d_delays_adr,sndbuf,rcvbuf,NOW);
     sndbuf[0]=rcvbuf[0];
     sndbuf[1]=(((time&0x0f)<<4)&0xf0)|(rcvbuf[1]&0x0f);
     tmb_vme(0x02,rat_3d_delays_adr,sndbuf,rcvbuf,NOW);
   } 
-  if ( cfeb_id == 1000 ) {
+  if ( device == 1000 ) {
     tmb_vme(0x01,vme_ddd1_adr,sndbuf,rcvbuf,NOW);
     sndbuf[0]=(((time&0xf)<<4)&0xf0)|(rcvbuf[0]&0x0f);
     sndbuf[1]=rcvbuf[1];
@@ -7115,7 +7449,7 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     //------------------------------------------------------------------
     //0X32 = ADR_ALCT_INJ:  ALCT Injector Control
     //------------------------------------------------------------------
-    (*MyOutput_) << " ->ALCT injector control registe_r:" << std::endl;
+    (*MyOutput_) << " ->ALCT injector control register:" << std::endl;
     (*MyOutput_) << "    Blank ALCT received data          = " << std::hex << read_alct_clear_      << std::endl;
     (*MyOutput_) << "    Start ALCT injector state machine = " << std::hex << read_alct_inject_mux_ << std::endl;
     (*MyOutput_) << "    Link ALCT inject with CLCT inject = " << std::hex << read_alct_sync_clct_  << std::endl;

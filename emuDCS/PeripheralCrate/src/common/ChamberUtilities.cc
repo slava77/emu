@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.20 2007/06/14 15:33:17 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.21 2007/06/21 16:14:02 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.21  2007/06/21 16:14:02  rakness
+// online measurement of ALCT in CLCT matching window
+//
 // Revision 3.20  2007/06/14 15:33:17  rakness
 // scan only 2 RPCs for RAT/TMB phase
 //
@@ -228,6 +231,7 @@ ChamberUtilities::ChamberUtilities(){
     RpcRatDelay_[i] = -1;
   ALCTvpf_           = -1;
   ALCTvpf            = -1;
+  measured_alct_match_window_delay_ = -1;
   MPCdelay_          = -1;
   AlctDavCableDelay_ = -1;
   TmbLctCableDelay_  = -1;
@@ -1029,6 +1033,64 @@ void ChamberUtilities::RpcRatDelayScan(int rpc) {
 //----------------------------------------------
 // ALCT-CLCT match timing
 //----------------------------------------------
+int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
+  //
+  const int HistoMin = 0;
+  const int HistoMax =15;
+  //
+  const int test_alct_delay_value  = 7;
+  const int test_match_window_size = 15;
+  //
+  const int desired_window_size = 3;
+  int desired_value = (int) ((float)desired_window_size + 0.5);
+  //
+  // Set up for this test...
+  // Get initial values:
+  int initial_mpc_output_enable = thisTMB->GetMpcOutputEnable();
+  int initial_alct_delay_value  = thisTMB->GetAlctVpfDelay();
+  int initial_match_window_size = thisTMB->GetAlctMatchWindowSize();
+  //
+  // Enable this TMB for this test
+  thisTMB->SetMpcOutputEnable(1);
+  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->SetAlctVpfDelay(test_alct_delay_value);
+  thisTMB->SetAlctMatchWindowSize(test_match_window_size);
+  thisTMB->WriteRegister(tmbtim_adr,thisTMB->FillTMBRegister(tmbtim_adr));
+  //
+  ZeroTmbHistograms();
+  //
+  for (int i=0; i<number_of_reads; i++) {
+    thisTMB->TMBRawhits();
+    int value = thisTMB->GetAlctInClctMatchWindow();
+    AlctInClctMatchWindowHisto_[value]++;
+  }
+  //
+  float average_value = AverageHistogram(AlctInClctMatchWindowHisto_,HistoMin,HistoMax);
+  //
+  // Print the data:
+  (*MyOutput_) << "With match_trig_alct_delay = 7..." << std::endl;
+  PrintHistogram("ALCT in CLCT match window",AlctInClctMatchWindowHisto_,HistoMin,HistoMax,average_value);  
+  //
+  //
+  // return to initial values:
+  thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
+  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->SetAlctVpfDelay(initial_alct_delay_value);
+  thisTMB->SetAlctMatchWindowSize(initial_match_window_size);
+  thisTMB->WriteRegister(tmbtim_adr,thisTMB->FillTMBRegister(tmbtim_adr));
+  //
+  // average location with the test delay value:
+  int shifted_average_value = (int) (average_value + 0.5);
+  //
+  // minimum value for the desired window size...
+  int shift = shifted_average_value - desired_value;
+  //
+  //
+  measured_alct_match_window_delay_ = test_alct_delay_value - shift;
+  //
+  return measured_alct_match_window_delay_;
+}
+//
 int ChamberUtilities::FindALCTvpf() {
   //
   // thisCCB_->setCCBMode(CCB::VMEFPGA);
@@ -2283,27 +2345,6 @@ void ChamberUtilities::InjectMPCData(){
   //
 }
 //
-void ChamberUtilities::ZeroDmbHistograms() {
-  //
-  // scope histograms:
-  for (int i=0; i<5; i++) {
-    AffToL1aScopeHisto_[i] = 0;
-    CfebDavScopeHisto_[i]  = 0;
-    TmbDavScopeHisto_[i]   = 0;
-    AlctDavScopeHisto_[i]  = 0;
-  }
-  //
-  // Counter histograms
-  for (int i=0; i<255; i++) {
-    AffToL1aValueHisto_[i] = 0;
-    CfebDavValueHisto_[i]  = 0;
-    TmbDavValueHisto_[i]   = 0;
-    AlctDavValueHisto_[i]  = 0;
-  }
-  //
-  return;
-}
-//
 void ChamberUtilities::PopulateDmbHistograms(int number_of_reads) {
   //
   for (int i=0; i<number_of_reads; i++) {
@@ -2411,6 +2452,37 @@ void ChamberUtilities::CCBStartTrigger(){
 //////////////////////////////////////////////////////////////////////
 // analysis methods
 //////////////////////////////////////////////////////////////////////
+void ChamberUtilities::ZeroTmbHistograms() {
+  //
+  // Counter histograms
+  for (int i=0; i<15; i++) {
+    AlctInClctMatchWindowHisto_[i] = 0;
+  }
+  //
+  return;
+}
+//
+void ChamberUtilities::ZeroDmbHistograms() {
+  //
+  // scope histograms:
+  for (int i=0; i<5; i++) {
+    AffToL1aScopeHisto_[i] = 0;
+    CfebDavScopeHisto_[i]  = 0;
+    TmbDavScopeHisto_[i]   = 0;
+    AlctDavScopeHisto_[i]  = 0;
+  }
+  //
+  // Counter histograms
+  for (int i=0; i<255; i++) {
+    AffToL1aValueHisto_[i] = 0;
+    CfebDavValueHisto_[i]  = 0;
+    TmbDavValueHisto_[i]   = 0;
+    AlctDavValueHisto_[i]  = 0;
+  }
+  //
+  return;
+}
+//
 void ChamberUtilities::ALCT_phase_analysis (int rxtx_timing[13][13]) {
   int i, j, k, p;  
   //
@@ -2664,14 +2736,14 @@ float ChamberUtilities::AverageHistogram(int * histogram, int min_value, int max
     numer += ((float) histogram[i]) *((float) (i));
     denom += (float) histogram[i];
   }
-  //    (*MyOutput_) << "numerator   = " << numer << std::endl;
-  //    (*MyOutput_) << "denominator = " << denom << std::endl;
+  //  (*MyOutput_) << "numerator   = " << numer << std::endl;
+  //  (*MyOutput_) << "denominator = " << denom << std::endl;
   //
   float average = -999.;
   if (denom > 10) 
     average = numer / denom;
   //
-  //    (*MyOutput_) << "average     = " << average << std::endl;
+  //  (*MyOutput_) << "average     = " << average << std::endl;
   return average;;
 }
 //

@@ -449,7 +449,7 @@ int main() {
       break;
       //
     case 93:
-      thisTMB->TMBRawhits(1);
+      thisTMB->TMBRawhits();
       break;
     case 94:
       thisTMB->GetCounters();

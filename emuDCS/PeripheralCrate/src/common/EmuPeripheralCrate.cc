@@ -3681,7 +3681,8 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    *out << "match_trig_alct_delay = " << MyTest[tmb].GetALCTvpf() << " ("  << MyTest[tmb].GetALCTvpf_configvalue() << ") " << std::endl;
+    *out << "match_trig_alct_delay = " << MyTest[tmb].GetMeasuredAlctMatchDelay() 
+	 << " ("  << MyTest[tmb].GetALCTvpf_configvalue() << ") " << std::endl;
     *out << cgicc::br();
     *out << cgicc::br();
     //
@@ -4285,7 +4286,8 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //MyTest.SetCCB(thisCCB);
     //
     MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-    MyTest[tmb].FindALCTvpf();
+    //    MyTest[tmb].FindALCTvpf();
+    MyTest[tmb].FindALCTinCLCTMatchWindow(50);
     MyTest[tmb].RedirectOutput(&std::cout);
     //
     this->ChamberTests(in,out);

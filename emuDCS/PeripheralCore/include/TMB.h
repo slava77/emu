@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.24 2007/06/14 14:47:56 rakness Exp $
+// $Id: TMB.h,v 3.25 2007/06/21 16:14:02 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.25  2007/06/21 16:14:02  rakness
+// online measurement of ALCT in CLCT matching window
+//
 // Revision 3.24  2007/06/14 14:47:56  rakness
 // clean up MPC injection
 //
@@ -279,8 +282,10 @@ public:
   void scope(int scp_arm,int scp_readout, int scp_channel=0x1d);
   void decode();
   void ALCTRawhits();
-  void TMBRawhits(int number_of_reads = 1);
+  void TMBRawhits();
+  inline int GetAlctInClctMatchWindow() { return h11_alct_in_clct_match_window_ ; }
   bool OnlyReadTMBRawhits();
+  void PrintTMBRawHits();
   void ForceScopeTrigger();
   void fifomode();
   void init_alct(int choice);
@@ -1195,6 +1200,9 @@ private:
   //
   //-- TMB data in raw hits VME readout --//
   std::vector< std::bitset<16> > tmb_data_;
+  int dmb_wordcount_;
+  void DecodeTMBRawHits_();
+  void DecodeTMBRawHitWord_(int address);
   //
   //-- program in user prom --//
   std::vector<int> clocked_out_prom_image_;
@@ -1780,6 +1788,216 @@ private:
   int read_layer_trigger_en_ ;
   int read_layer_trig_thresh_;
   int read_number_layers_hit_;
+  //
+  //*******************************************************************
+  // TMB Raw Hits header words
+  //*******************************************************************
+  //-----------
+  // header 0
+  //-----------
+  int h0_beginning_of_cathode_ ;
+  int h0_marker_6_             ;
+  //
+  //-----------
+  // header 1
+  //-----------
+  int h1_nTbins_per_cfeb_ ;
+  int h1_cfebs_read_      ;
+  //
+  // fifo mode
+  // 0 = no raw hits, full header (if buffer was available at pretrigger)
+  // 1 = all 5 CFEBs raw hits, full header (if buffer was available at pretrigger)
+  // 2 = Local raw hits, full header (if buffer was available at pretrigger)
+  // 3 = no raw hits, short header
+  // 4 = no raw hits, no header
+  int h1_fifo_mode_       ;
+  //
+  //-----------
+  // header 2
+  //-----------
+  int h2_l1a_counter_ ;
+  int h2_csc_id_      ;
+  int h2_board_id_    ;
+  //
+  // L1A pop type mode:  
+  // 0 = Normal CLCT trigger with buffer data and L1A window match
+  // 1 = ALCT-only trigger, no data buffers
+  // 2 = L1A-only, no matching TMB trigger, no buffer data
+  // 3 = TMB triggered, no L1A-window match, event has buffer data
+  int h2_l1a_type_    ;
+  //
+  //-----------
+  // header 3
+  //-----------
+  int h3_bxn_counter_   ;
+  //
+  // record type: 
+  //   0 = rawhits no   , header full
+  //   1 = rawhits full , header full
+  //   2 = rawhits local, header full
+  //   3 = rawhits no   , header short (no buffer was available at pretrigger)
+  int h3_record_type_   ;
+  int h3_scope_in_data_ ;
+  //
+  //-----------
+  // header 4
+  //-----------
+  int h4_nheader_words_   ;
+  int h4_nCFEBs_read_     ;
+  int h4_has_buffer_data_ ;
+  int h4_fifo_pretrig_    ;
+  //
+  //-----------
+  // header 5
+  //-----------
+  int h5_l1a_at_pretrig_                   ;
+  int h5_trigger_source_vector_            ;
+  int h5_trigger_source_halfstrip_distrip_ ;
+  //
+  //-----------
+  // header 6
+  //-----------
+  int h6_aff_to_dmb_  ;
+  int h6_cfeb_exists_ ;
+  int h6_run_info_    ;
+  //
+  //-----------
+  // header 7
+  //-----------
+  int h7_bxn_at_clct_pretrig_ ;
+  int h7_sync_err_            ;
+  //
+  //-----------
+  // header 8
+  //-----------
+  int h8_clct0_lsbs_ ;
+  //
+  //-----------
+  // header 9
+  //-----------
+  int h9_clct1_lsbs_ ;
+  //
+  //-----------
+  // header 10
+  //-----------
+  int h10_clct0_msbs_            ;
+  int h10_clct1_msbs_            ;
+  int h10_clct0_invalid_pattern_ ;
+  //
+  //-----------
+  // header 11
+  //-----------
+  int h11_alct_clct_match_           ;
+  int h11_alct_trig_only_            ;
+  int h11_clct_trig_only_            ;
+  int h11_clct0_alct_bxn_diff_       ;
+  int h11_clct1_alct_bxn_diff_       ;
+  int h11_alct_in_clct_match_window_ ;
+  int h11_triad_persistence_         ;
+  //
+  //-----------
+  // header 12
+  //-----------
+  int h12_mpc0_frame0_lsbs_ ;
+  //
+  //-----------
+  // header 13
+  //-----------
+  int h13_mpc0_frame1_lsbs_ ;
+  //
+  //-----------
+  // header 14
+  //-----------
+  int h14_mpc1_frame0_lsbs_ ;
+  //
+  //-----------
+  // header 15
+  //-----------
+  int h15_mpc1_frame1_lsbs_ ;
+  //
+  //-----------
+  // header 16
+  //-----------
+  int h16_mpc0_frame0_msbs_              ;
+  int h16_mpc0_frame1_msbs_              ;
+  int h16_mpc1_frame0_msbs_              ;
+  int h16_mpc1_frame1_msbs_              ;
+  int h16_mpc_accept_                    ;
+  int h16_clct_halfstrip_pretrig_thresh_ ;
+  int h16_clct_distrip_pretrig_thresh_   ;
+  //
+  //-----------
+  // header 17
+  //-----------
+  int h17_write_buffer_ready_     ;
+  int h17_pretrig_tbin_           ;
+  int h17_write_buffer_address_   ;
+  int h17_pretrig_no_free_buffer_ ;
+  int h17_buffer_full_            ;
+  int h17_buffer_almost_full_     ;
+  int h17_buffer_half_full_       ;
+  int h17_buffer_empty_           ;
+  //
+  //-----------
+  // header 18
+  //-----------
+  int h18_nbuf_busy_          ;
+  int h18_buf_busy_           ;
+  int h18_l1a_stack_overflow_ ;
+  //
+  //-----------
+  // header 19
+  //-----------
+  int h19_tmb_trig_pulse_         ;
+  int h19_tmb_alct_only_          ;
+  int h19_tmb_clct_only_          ;
+  int h19_tmb_match_              ;
+  int h19_write_buffer_ready_     ;
+  int h19_write_buffer_available_ ;
+  int h19_write_tbin_address_     ;
+  int h19_write_buffer_address_   ;
+  //
+  //-----------
+  // header 20
+  //-----------
+  int h20_discard_no_write_buf_available_ ;
+  int h20_discard_invalid_pattern_        ;
+  int h20_discard_tmb_reject_             ;
+  int h20_timeout_no_tmb_trig_pulse_      ;
+  int h20_timeout_no_mpc_frame_           ;
+  int h20_timeout_no_mpc_response_        ;
+  //
+  //-----------
+  // header 21
+  //-----------
+  int h21_match_trig_alct_delay_   ;
+  int h21_match_trig_window_width_ ;
+  int h21_mpc_tx_delay_            ;
+  //
+  //-----------
+  // header 22
+  //-----------
+  int h22_rpc_exist_       ;
+  int h22_rpc_list_        ;
+  int h22_nrpc_            ;
+  int h22_rpc_read_enable_ ;
+  int h22_nlayers_hit_     ;
+  int h22_l1a_in_window_   ;
+  //
+  //-----------
+  // header 23
+  //-----------
+  int h23_board_status_ ;
+  //
+  //-----------
+  // header 24
+  //-----------
+  int h24_time_since_hard_reset_ ;
+  //
+  //-----------
+  // header 25
+  //-----------
+  int h25_firmware_version_date_code_ ;
   //
 };
 
