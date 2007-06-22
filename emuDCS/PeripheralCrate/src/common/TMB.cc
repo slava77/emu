@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.37 2007/06/21 16:14:03 rakness Exp $
+// $Id: TMB.cc,v 3.38 2007/06/22 12:28:11 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.38  2007/06/22 12:28:11  rakness
+// fix checking of register 0x68 based on which registers are enabled
+//
 // Revision 3.37  2007/06/21 16:14:03  rakness
 // online measurement of ALCT in CLCT matching window
 //
@@ -8127,7 +8130,13 @@ void TMB::CheckTMBConfiguration() {
   //
   ReadTMBConfiguration();    // fill the read values in the software
   //
-  //  config_ok &= compareValues("TMB Trigger mode",read_trgmode_,trgmode_);
+  // Check if user has enforced CFEB enable bits in register 0x68 and 0x42 to be the same.
+  // If yes => the expected value of address 0x68 = the expected value of address 0x42, 
+  //           and whatever was specified as the write/expected value for address 0x68
+  //           needs to be usurped.  
+  // If no  => the two values are independent, leave them as is
+  if (GetCfebEnableSource() == 1)  // =>source = 0x42
+    cfebs_enabled_ = enableCLCTInputs_;  // 0x68 write/expected values = 0x42 write/expected values
   //
   //-----------------------------------------------------------------
   // firmware information
