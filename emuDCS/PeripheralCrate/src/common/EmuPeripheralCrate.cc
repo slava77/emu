@@ -3613,7 +3613,10 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     //
     *out << cgicc::pre();
-    *out << "----------- Measure relative clock phases with pulsing ---------------" << std::endl;
+    *out << "1) Measure relative clock phases with pulsing" << std::endl;
+    *out << "   -> HV on or off" << std::endl;
+    *out << "   -> Stop L1A triggers" << std::endl;
+    *out << "   -> Hard reset" << std::endl;
     *out << cgicc::pre();
     //
     //
@@ -3667,7 +3670,12 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     //
     *out << cgicc::pre();
-    *out << "------------- Measure CLCT-ALCT match timing with cosmic rays --------------" << std::endl;
+    *out << "2) Measure CLCT-ALCT match timing with cosmic rays" << std::endl;
+    *out << "   -> Configure the crates with the desired ALCT and CLCT trigger configuration" << std::endl;
+    *out << "   -> HV on" << std::endl;
+    *out << "   -> Hard Reset" << std::endl;
+    *out << "   -> start LTC triggering" << std::endl;
+    *out << "   -> Measured values are based on current match_trig_alct_delay and mpc_tx_delay settings" << std::endl;
     *out << cgicc::pre();
     //
     //
@@ -3684,12 +3692,17 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << "match_trig_alct_delay = " << MyTest[tmb].GetMeasuredAlctMatchDelay() 
 	 << " ("  << MyTest[tmb].GetALCTvpf_configvalue() << ") " << std::endl;
     *out << cgicc::br();
+    *out << "mpc_tx_delay = " << MyTest[tmb].GetMeasuredMPCTxDelay() 
+	 << " ("  << MyTest[tmb].GetMPCTxDelay_configvalue() << ") " << std::endl;
+    *out << cgicc::br();
     *out << cgicc::br();
     //
     //
     *out << cgicc::pre();
-    *out << "--- Look at offline analysis to ensure LCTs are lined up at sector processor..." << std::endl;
-    *out << "... then, measure the delay needed for the winner bit from MPC back to TMB ---" << std::endl;
+    *out << "3) Measure the delay needed for the winner bit from MPC back to TMB" << std::endl;
+    *out << "   -> HV on or off" << std::endl;
+    *out << "   -> Stop L1A triggers" << std::endl;
+    *out << "   -> Hard reset" << std::endl;
     *out << cgicc::pre();
     //
     //
@@ -3709,7 +3722,10 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     //
     *out << cgicc::pre();
-    *out << "---- Determine the DMB parameters -----" << std::endl;
+    *out << "4) Determine the DMB parameters" << std::endl;
+    *out << "   -> HV on" << std::endl;
+    *out << "   -> Hard Reset" << std::endl;
+    *out << "   -> start LTC triggering" << std::endl;
     *out << cgicc::pre();
     //
     //
@@ -3816,6 +3832,11 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << "alct_l1a_delay = " << MyTest[tmb].GetALCTL1aDelay() << " ("  << MyTest[tmb].GetALCTL1aDelay_configvalue() << ") " << std::endl;
     *out << cgicc::br();
     *out << cgicc::br();
+    //
+    *out << cgicc::pre();
+    *out << "--- Look at offline analysis to ensure LCTs are lined up at sector processor..." << std::endl;
+    *out << "... then, measure the delay needed for the winner bit from MPC back to TMB ---" << std::endl;
+    *out << cgicc::pre();
     //
     //
     *out << cgicc::pre();
