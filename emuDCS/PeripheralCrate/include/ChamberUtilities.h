@@ -120,6 +120,7 @@ public:
   inline int  GetRatTmbDelay()                   { return thisTMB->GetRatTmbDelay() ; }
   inline int  GetRpcRatDelay()                   { return thisTMB->GetRpc0RatDelay(); }
   inline int  GetMPCdelay()                      { return thisTMB->GetMPCdelay(); }
+  inline int  GetMPCTxDelay_configvalue()        { return thisTMB->GetMpcTXdelay(); }
   inline int  GetAlctDavCableDelay_configvalue() { return thisDMB->GetAlctDavCableDelay(); }
   inline int  GetTmbLctCableDelay_configvalue()  { return thisDMB->GetTmbLctCableDelay(); }
   inline int  GetCfebDavCableDelay_configvalue() { return thisDMB->GetCfebDavCableDelay(); }
@@ -137,6 +138,7 @@ public:
   inline int  GetRpcRatDelayTest(int rpc)  { return RpcRatDelay_[rpc] ; }
   inline int  GetALCTvpf()                 { return ALCTvpf_; }
   inline int  GetMeasuredAlctMatchDelay()  { return measured_alct_match_window_delay_; }
+  inline int  GetMeasuredMPCTxDelay()      { return measured_mpc_tx_delay_; }
   inline int  GetMPCdelayTest()            { return MPCdelay_ ; }
   inline int  GetAlctDavCableDelayTest()   { return AlctDavCableDelay_; }
   inline int  GetTmbLctCableDelayTest()    { return TmbLctCableDelay_; }
@@ -205,6 +207,7 @@ private:
   int RpcRatDelay_[2];
   int ALCTvpf_;
   int measured_alct_match_window_delay_;
+  int measured_mpc_tx_delay_;
   int MPCdelay_;
   int AlctDavCableDelay_;
   int TmbLctCableDelay_;
