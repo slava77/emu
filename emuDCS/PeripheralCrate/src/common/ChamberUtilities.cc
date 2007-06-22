@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.21 2007/06/21 16:14:02 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.22 2007/06/22 10:27:49 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.22  2007/06/22 10:27:49  rakness
+// Include (correlated) mpc_tx_delay determination based on match_trig_alct_delay
+//
 // Revision 3.21  2007/06/21 16:14:02  rakness
 // online measurement of ALCT in CLCT matching window
 //
@@ -232,6 +235,7 @@ ChamberUtilities::ChamberUtilities(){
   ALCTvpf_           = -1;
   ALCTvpf            = -1;
   measured_alct_match_window_delay_ = -1;
+  measured_mpc_tx_delay_            = -1;
   MPCdelay_          = -1;
   AlctDavCableDelay_ = -1;
   TmbLctCableDelay_  = -1;
@@ -1041,9 +1045,14 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   const int test_alct_delay_value  = 7;
   const int test_match_window_size = 15;
   //
-  const int desired_window_size = 3;
-  int desired_value = (int) ((float)desired_window_size + 0.5);
+  const float desired_window_size = 3;
   //
+  // desired value should put central value of measured distribution at the following location (counting from 0)
+  float desired_value = (desired_window_size*0.5) - 0.5;
+  //
+  (*MyOutput_) << "Given a CLCT match window width = " << desired_window_size << "bx," << std::endl;
+  (*MyOutput_) << " the centroid of the ALCT in the CLCT match window should be in bin " 
+	       << desired_value << std::endl;
   // Set up for this test...
   // Get initial values:
   int initial_mpc_output_enable = thisTMB->GetMpcOutputEnable();
@@ -1068,9 +1077,32 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   float average_value = AverageHistogram(AlctInClctMatchWindowHisto_,HistoMin,HistoMax);
   //
   // Print the data:
-  (*MyOutput_) << "With match_trig_alct_delay = 7..." << std::endl;
+  (*MyOutput_) << "Setting match_trig_alct_delay = " << test_alct_delay_value << " gives:" << std::endl;
   PrintHistogram("ALCT in CLCT match window",AlctInClctMatchWindowHisto_,HistoMin,HistoMax,average_value);  
   //
+  // amount to shift this distribution is:
+  float amount_to_shift = average_value - desired_value;
+  int int_amount_to_shift = (int) (amount_to_shift+0.5);
+  //
+  (*MyOutput_) << "The amount to shift the distribution by is " << amount_to_shift 
+	       << " (= " << int_amount_to_shift << ")" << std::endl;
+  //
+  measured_alct_match_window_delay_ = test_alct_delay_value - int_amount_to_shift;
+  //
+  (*MyOutput_) << "=> Best alct_match_window_delay = " << measured_alct_match_window_delay_ << std::endl;
+  //
+  // Determine new value of mpc_tx_delay:
+  int initial_mpc_tx_delay = thisTMB->GetMpcTXdelay();;
+  //
+  int amount_to_shift_mpc_tx_delay = measured_alct_match_window_delay_ - initial_alct_delay_value;
+  //
+  (*MyOutput_) << "Based on the current settings in the xml file:  ";
+  (*MyOutput_) << "mpc_tx_delay = " << initial_mpc_tx_delay;
+  (*MyOutput_) << " and alct_match_window_delay = " << initial_alct_delay_value << std::endl;
+  //    
+  measured_mpc_tx_delay_ = initial_mpc_tx_delay + amount_to_shift_mpc_tx_delay;
+  //
+  (*MyOutput_) << "=> Best mpc_tx_delay = " << measured_mpc_tx_delay_ << std::endl;
   //
   // return to initial values:
   thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
@@ -1078,15 +1110,6 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   thisTMB->SetAlctVpfDelay(initial_alct_delay_value);
   thisTMB->SetAlctMatchWindowSize(initial_match_window_size);
   thisTMB->WriteRegister(tmbtim_adr,thisTMB->FillTMBRegister(tmbtim_adr));
-  //
-  // average location with the test delay value:
-  int shifted_average_value = (int) (average_value + 0.5);
-  //
-  // minimum value for the desired window size...
-  int shift = shifted_average_value - desired_value;
-  //
-  //
-  measured_alct_match_window_delay_ = test_alct_delay_value - shift;
   //
   return measured_alct_match_window_delay_;
 }
