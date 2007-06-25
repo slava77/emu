@@ -6,47 +6,38 @@
 </head>
 
 <body>
-	<p><span style="color: red;">!Error!</span></p>
-
 	<form action="/urn:xdaq-application:lid=10/Configure">
 		Run Type:
 		<select name="runtype">
 			<option label="global" value="http://cms.cern.ch:8080/config/EmuPC/global.xml">global</option>
 			<option label="local" value="file:///config/EmuPC/local.xml">local</option>
 			<option label="calib" value="file:///config/EmuPC/calib.xml">calib</option>
-		</select><br>
-		Run Number:
-		<input type="text" name="runnumber" size="40"  /><br>
-		Max # of Events:
-		<input type="text" name="nevents" size="40"  /><br>
-
+		</select>
 		<input type="submit" name="command" value="Configure" />
-	</form>
-
-	<form action="/urn:xdaq-application:lid=10/Enable" >
-		<input type="submit" name="command" value="Enable"  />
-	</form>
-	<form action="/urn:xdaq-application:lid=10/Disable" >
-		<input type="submit" name="command" value="Disable"  />
-	</form>
-	<form action="/urn:xdaq-application:lid=10/Halt" >
-		<input type="submit" name="command" value="Halt"  />
-	</form>
-	<form action="/urn:xdaq-application:lid=10/Reset" >
-		<input type="submit" name="command" value="Reset"  />
 	</form>
 
 	<table>
 		<tbody>
-			<tr><td>EmuFEDCrate(0)</td><td class="Configured">Configured</td></tr>
-			<tr><td>EmuPeripheralCrate(0)</td><td class="Enabled">Enabled</td></tr>
-			<tr><td>EmuPeripheralCrate(1)</td><td class="Enabled">Enabled</td></tr>
-			<tr><td>EmuDAQManager(0)</td><td class="Error">Error</td></tr>
-			<tr><td>LTCControl(0)</td><td class="Halted">Halted</td></tr>
+			<tr>
+				<td><form action="/urn:xdaq-application:lid=10/Enable" >
+					<input type="submit" name="command" value="Enable"  />
+				</form></td>
+				<td><form action="/urn:xdaq-application:lid=10/Disable" >
+					<input type="submit" name="command" value="Disable"  />
+				</form></td>
+				<td><form action="/urn:xdaq-application:lid=10/Halt" >
+					<input type="submit" name="command" value="Halt"  />
+				</form></td>
+				<td><form action="/urn:xdaq-application:lid=10/Reset" >
+					<input type="submit" name="command" value="Reset"  />
+				</form></td>
+			</tr>
 		</tbody>
 	</table>
 
-	<hr>
+	<p><span style="color: red;">!Error!</span></p>
+
+	<hr/>
 
 	<form action="/urn:xdaq-application:lid=10/SetTTS">
 		Crate #:
@@ -64,18 +55,40 @@
 		<input type="submit" name="command" value="SetTTS" />
 	</form>
 
-	Step counter: 109
+	<hr>
+
+	<table>
+		<tbody>
+			<tr><td>Run #:</td><td>22<br>
+			<tr><td>Event #:</td><td>1050<br>
+			<tr><td>Step:</td><td>109<br>
+		</tbody>
+	</table>
+
+	<hr>
+
+	<table>
+		<tbody>
+			<tr><td>EmuFEDCrate(0)</td><td class="Configured">Configured</td></tr>
+			<tr><td>EmuPeripheralCrate(0)</td><td class="Enabled">Enabled</td></tr>
+			<tr><td>EmuPeripheralCrate(1)</td><td class="Enabled">Enabled</td></tr>
+			<tr><td>EmuDAQManager(0)</td><td class="Error">Error</td></tr>
+			<tr><td>LTCControl(0)</td><td class="Halted">Halted</td></tr>
+		</tbody>
+	</table>
 
 	<hr>
 
 	Last 20 log messages:<br>
-	<textarea cols="120" rows="20" readonly class="log">
-	Error in CSCSupervisor
+	<form>
+		<textarea readonly cols="120" rows="20" class="log">
+Error in CSCSupervisor
 
-	Executive.lid(0).SOAPDispatcher <> - Caught exception: xoap::exception::Exception 'Parameter import failed in ParameterSet' raised at ParameterSet(Application.cc:182);
-	originated by xdata::exception::Exception 'Wrong node type or imported tag name EmuPeripheralCrate:xmlFileName, expected type xsd:string received type xsd:int' raised at import(StringSerializer.cc:87)
+Executive.lid(0).SOAPDispatcher &lt;> - Caught exception: xoap::exception::Exception 'Parameter import failed in ParameterSet' raised at ParameterSet(Application.cc:182);
+originated by xdata::exception::Exception 'Wrong node type or imported tag name EmuPeripheralCrate:xmlFileName, expected type xsd:string received type xsd:int' raised at import(StringSerializer.cc:87)
 
-	</textarea>
+		</textarea>
+	</form>
 
 </body></html>
 <!-- vim: set ai sw=2 ts=2: -->
