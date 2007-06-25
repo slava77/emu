@@ -9,7 +9,7 @@
 	<p><span style="color: red;">!Error!</span></p>
 
 	<form action="/urn:xdaq-application:lid=10/Configure">
-		Peripheral Crate:
+		Run Type:
 		<select name="runtype">
 			<option label="global" value="http://cms.cern.ch:8080/config/EmuPC/global.xml">global</option>
 			<option label="local" value="file:///config/EmuPC/local.xml">local</option>
@@ -31,6 +31,9 @@
 	</form>
 	<form action="/urn:xdaq-application:lid=10/Halt" >
 		<input type="submit" name="command" value="Halt"  />
+	</form>
+	<form action="/urn:xdaq-application:lid=10/Reset" >
+		<input type="submit" name="command" value="Reset"  />
 	</form>
 
 	<table>
@@ -61,9 +64,11 @@
 		<input type="submit" name="command" value="SetTTS" />
 	</form>
 
+	Step counter: 109
+
 	<hr>
 
-	Last 5 log messages:<br>
+	Last 20 log messages:<br>
 	<textarea cols="120" rows="20" readonly class="log">
 	Error in CSCSupervisor
 
