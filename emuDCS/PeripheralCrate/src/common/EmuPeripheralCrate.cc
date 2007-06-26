@@ -4308,7 +4308,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     //    MyTest[tmb].FindALCTvpf();
-    MyTest[tmb].FindALCTinCLCTMatchWindow(50);
+    MyTest[tmb].FindALCTinCLCTMatchWindow(100);
     MyTest[tmb].RedirectOutput(&std::cout);
     //
     this->ChamberTests(in,out);
