@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.22 2007/06/22 10:27:49 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.23 2007/06/26 14:40:10 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.23  2007/06/26 14:40:10  rakness
+// mpc_tx_delay compensation fixed
+//
 // Revision 3.22  2007/06/22 10:27:49  rakness
 // Include (correlated) mpc_tx_delay determination based on match_trig_alct_delay
 //
@@ -1050,9 +1053,10 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   // desired value should put central value of measured distribution at the following location (counting from 0)
   float desired_value = (desired_window_size*0.5) - 0.5;
   //
-  (*MyOutput_) << "Given a CLCT match window width = " << desired_window_size << "bx," << std::endl;
-  (*MyOutput_) << " the centroid of the ALCT in the CLCT match window should be in bin " 
+  (*MyOutput_) << "If you wanted a CLCT match window width of " << desired_window_size << "bx," << std::endl;
+  (*MyOutput_) << "the value of the ALCT to be centered in the CLCT match window should end up in bin " 
 	       << desired_value << std::endl;
+  //
   // Set up for this test...
   // Get initial values:
   int initial_mpc_output_enable = thisTMB->GetMpcOutputEnable();
@@ -1100,7 +1104,8 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   (*MyOutput_) << "mpc_tx_delay = " << initial_mpc_tx_delay;
   (*MyOutput_) << " and alct_match_window_delay = " << initial_alct_delay_value << std::endl;
   //    
-  measured_mpc_tx_delay_ = initial_mpc_tx_delay + amount_to_shift_mpc_tx_delay;
+  // The mpc_tx_delay compensates for the change in match_trig_alct_delay, so subtract the shift:
+  measured_mpc_tx_delay_ = initial_mpc_tx_delay - amount_to_shift_mpc_tx_delay;
   //
   (*MyOutput_) << "=> Best mpc_tx_delay = " << measured_mpc_tx_delay_ << std::endl;
   //
