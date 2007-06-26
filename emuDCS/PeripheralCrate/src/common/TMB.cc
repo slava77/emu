@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.38 2007/06/22 12:28:11 rakness Exp $
+// $Id: TMB.cc,v 3.39 2007/06/26 14:39:14 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.39  2007/06/26 14:39:14  rakness
+// fix cfeb_enable_expected bug
+//
 // Revision 3.38  2007/06/22 12:28:11  rakness
 // fix checking of register 0x68 based on which registers are enabled
 //
@@ -8130,13 +8133,17 @@ void TMB::CheckTMBConfiguration() {
   //
   ReadTMBConfiguration();    // fill the read values in the software
   //
-  // Check if user has enforced CFEB enable bits in register 0x68 and 0x42 to be the same.
-  // If yes => the expected value of address 0x68 = the expected value of address 0x42, 
-  //           and whatever was specified as the write/expected value for address 0x68
-  //           needs to be usurped.  
-  // If no  => the two values are independent, leave them as is
-  if (GetCfebEnableSource() == 1)  // =>source = 0x42
-    cfebs_enabled_ = enableCLCTInputs_;  // 0x68 write/expected values = 0x42 write/expected values
+  // Check if user has forced CFEB enable bits in register 0x68 to be copied from 0x42
+  // If yes => expected value of address 0x68 = write value of address 0x42 
+  // If no  => expected value of address 0x68 = write value of address 0x68 
+  //
+  int cfebs_enabled_expected;
+  //
+  if (GetCfebEnableSource() == 1) {
+    cfebs_enabled_expected = enableCLCTInputs_;
+  } else {
+    cfebs_enabled_expected = cfebs_enabled_; 
+  }
   //
   //-----------------------------------------------------------------
   // firmware information
@@ -8251,18 +8258,18 @@ void TMB::CheckTMBConfiguration() {
   //0X68 = ADR_SEQ_TRIG_EN:  Sequencer Trigger Source Enables
   //N.B. See TMB documentation first before controlling CFEBs through this register...
   //------------------------------------------------------------------
-  config_ok &= compareValues("Allow CLCT pretrigger"                   ,read_clct_pat_trig_en_  ,clct_pat_trig_en_  );
-  config_ok &= compareValues("Allow ALCT pretrigger"                   ,read_alct_pat_trig_en_  ,alct_pat_trig_en_  );
-  config_ok &= compareValues("Allow ALCT*CLCT pretrigger"              ,read_match_pat_trig_en_ ,match_pat_trig_en_ );
-  config_ok &= compareValues("Allow ADB ext trig (CCB) for pretrigger" ,read_adb_ext_trig_en_   ,adb_ext_trig_en_   );
-  config_ok &= compareValues("Allow DMB ext trig for pretrigger"       ,read_dmb_ext_trig_en_   ,dmb_ext_trig_en_   );
-  config_ok &= compareValues("Allow CLCT ext trig (scint) for pretrig" ,read_clct_ext_trig_en_  ,clct_ext_trig_en_  );
-  config_ok &= compareValues("Allow ALCT ext trig (CCB) for pretrigger",read_alct_ext_trig_en_  ,alct_ext_trig_en_  );
-  config_ok &= compareValues("Initiate sequencer trigger from VME"     ,read_vme_ext_trig_      ,vme_ext_trig_      );
-  config_ok &= compareValues("Make clct_ext_trig fire pattern injector",read_ext_trig_inject_   ,ext_trig_inject_   );
-  config_ok &= compareValues("Make all CFEBs active when triggered"    ,read_all_cfeb_active_   ,all_cfeb_active_   );
-  config_ok &= compareValues("Reg 0x68:  Enable CFEB n to trigger"     ,read_cfebs_enabled_     ,cfebs_enabled_     );
-  config_ok &= compareValues("CFEB enable mask from register 0x42"     ,read_cfeb_enable_source_,cfeb_enable_source_);
+  config_ok &= compareValues("Allow CLCT pretrigger"                   ,read_clct_pat_trig_en_  ,clct_pat_trig_en_     );
+  config_ok &= compareValues("Allow ALCT pretrigger"                   ,read_alct_pat_trig_en_  ,alct_pat_trig_en_     );
+  config_ok &= compareValues("Allow ALCT*CLCT pretrigger"              ,read_match_pat_trig_en_ ,match_pat_trig_en_    );
+  config_ok &= compareValues("Allow ADB ext trig (CCB) for pretrigger" ,read_adb_ext_trig_en_   ,adb_ext_trig_en_      );
+  config_ok &= compareValues("Allow DMB ext trig for pretrigger"       ,read_dmb_ext_trig_en_   ,dmb_ext_trig_en_      );
+  config_ok &= compareValues("Allow CLCT ext trig (scint) for pretrig" ,read_clct_ext_trig_en_  ,clct_ext_trig_en_     );
+  config_ok &= compareValues("Allow ALCT ext trig (CCB) for pretrigger",read_alct_ext_trig_en_  ,alct_ext_trig_en_     );
+  config_ok &= compareValues("Initiate sequencer trigger from VME"     ,read_vme_ext_trig_      ,vme_ext_trig_         );
+  config_ok &= compareValues("Make clct_ext_trig fire pattern injector",read_ext_trig_inject_   ,ext_trig_inject_      );
+  config_ok &= compareValues("Make all CFEBs active when triggered"    ,read_all_cfeb_active_   ,all_cfeb_active_      );
+  config_ok &= compareValues("Reg 0x68:  Enable CFEB n to trigger"     ,read_cfebs_enabled_     ,cfebs_enabled_expected);
+  config_ok &= compareValues("CFEB enable mask from register 0x42"     ,read_cfeb_enable_source_,cfeb_enable_source_   );
   //
   //------------------------------------------------------------------
   //0X6A = ADR_SEQ_TRIG_DLY0:  Sequencer Trigger Source Delays
