@@ -1,4 +1,4 @@
-# $Id: Makefile,v 3.4 2007/06/06 16:48:00 banicz Exp $
+# $Id: Makefile,v 3.5 2007/06/29 12:13:32 ichiro Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -50,7 +50,6 @@ IncludeDirs = \
 	$(XDAQ_ROOT)/daq/xgi/include \
 	$(XDAQ_ROOT)/daq/i2o/include \
 	$(XDAQ_ROOT)/daq/i2o/utils/include \
-	$(XDAQ_ROOT)/emu/emuDAQ/emuUtil/include
 
 
 LibraryDirs = \
