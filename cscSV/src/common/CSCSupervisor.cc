@@ -45,13 +45,12 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		daq_descr_(NULL), tf_descr_(NULL), ttc_descr_(NULL),
 		nevents_(-1),
 		step_counter_(0),
-		error_message_(""), keep_refresh_(false),
+		error_message_(""), keep_refresh_(false), hide_tts_control_(true),
 		runDbBookingCommand_( "java -jar runnumberbooker.jar" ),
 		runDbWritingCommand_( "java -jar runinfowriter.jar" ),
 		runDbAddress_       ( "" ),
 		runDbUserFile_      ( "" ),
 		isBookedRunNumber_  ( false )
-
 {
 	run_type_ = "";
 	run_number_ = 0;
@@ -97,6 +96,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	xgi::bind(this, &CSCSupervisor::webHalt,      "Halt");
 	xgi::bind(this, &CSCSupervisor::webReset,     "Reset");
 	xgi::bind(this, &CSCSupervisor::webSetTTS,    "SetTTS");
+	xgi::bind(this, &CSCSupervisor::webSwitchTTS, "SwitchTTS");
 
 	xoap::bind(this, &CSCSupervisor::onConfigure, "Configure", XDAQ_NS_URI);
 	xoap::bind(this, &CSCSupervisor::onEnable,    "Enable",    XDAQ_NS_URI);
@@ -220,19 +220,12 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 	*out << head() << endl;
 	*out << title("CSCSupervisor") << endl;
 	*out << cgicc::link().set("rel", "stylesheet")
-			.set("href", "/daq/lib/linux/x86/cscsv.css")
+			.set("href", "/cscsv.css")
 			.set("type", "text/css") << endl;
 	*out << head() << endl;
 
 	// Body
 	*out << body() << endl;
-
-	// Error message, if exists.
-	if (!error_message_.empty()) {
-		*out  << p() << span().set("style", "color: red;")
-				<< error_message_ << span() << p() << endl;
-		error_message_ = "";
-	}
 
 	// Config listbox
 	*out << form().set("action",
@@ -257,8 +250,15 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 		*out << (string)config_keys_[i] << option() << endl;
 	}
 
-	*out << cgicc::select() << br() << endl;
+	*out << cgicc::select() << endl;
+
+	*out << input().set("type", "submit")
+			.set("name", "command")
+			.set("value", "Configure") << endl;
+	*out << form() << endl;
+
 	
+	/*
 	*out << "Run Number: " << endl;
 	*out << input().set("type", "text")
 			.set("name", "runnumber")
@@ -270,43 +270,107 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 			.set("name", "nevents")
 			.set("value", toString(nevents_))
 			.set("size", "40") << br() << endl;
-
-	*out << input().set("type", "submit")
-			.set("name", "command")
-			.set("value", "Configure") << endl;
-	*out << form() << endl;
+	*/
 
 	// Buttons
-	*out << form().set("action",
+	*out << table() << tbody() << tr();
+
+	*out << td() << form().set("action",
 			"/" + getApplicationDescriptor()->getURN() + "/Enable") << endl;
 	*out << input().set("type", "submit")
 			.set("name", "command")
 			.set("value", "Enable") << endl;
-	*out << form() << endl;
+	*out << form() << td() << endl;
 
-	*out << form().set("action",
+	*out << td() << form().set("action",
 			"/" + getApplicationDescriptor()->getURN() + "/Disable") << endl;
 	*out << input().set("type", "submit")
 			.set("name", "command")
 			.set("value", "Disable") << endl;
-	*out << form() << endl;
+	*out << form() << td() << endl;
 
-	*out << form().set("action",
+	*out << td() << form().set("action",
 			"/" + getApplicationDescriptor()->getURN() + "/Halt") << endl;
 	*out << input().set("type", "submit")
 			.set("name", "command")
 			.set("value", "Halt") << endl;
-	*out << form() << endl;
+	*out << form() << td() << endl;
 
-	*out << form().set("action",
+	*out << td() << form().set("action",
 			"/" + getApplicationDescriptor()->getURN() + "/Reset") << endl;
 	*out << input().set("type", "submit")
 			.set("name", "command")
 			.set("value", "Reset") << endl;
-	*out << form() << endl;
+	*out << form() << td() << endl;
+
+	*out << tr() << tbody() << table();
+
+	// TTS operation
+	if (hide_tts_control_) {
+		*out << form().set("action",
+				"/" + getApplicationDescriptor()->getURN() + "/SwitchTTS") << endl;
+		*out << input().set("type", "submit")
+				.set("name", "command")
+				.set("value", "ShowTTSControl") << endl;
+		*out << form() << endl;
+	} else {
+		*out << form().set("action",
+				"/" + getApplicationDescriptor()->getURN() + "/SetTTS") << endl;
+
+		*out << "Crate #: " << endl;
+		*out << cgicc::select().set("name", "tts_crate") << endl;
+
+		const char n[] = "1234";
+		string str = "";
+		for (int i = 0; i < 4; ++i) {
+			if (n[i] == (tts_crate_.toString())[0]) {
+				*out << option().set("value", str + n[i]).set("selected", "");
+			} else {
+				*out << option().set("value", str + n[i]);
+			}
+			*out << n[i] << option() << endl;
+		}
+
+		*out << cgicc::select() << br() << endl;
+		
+		*out << "Slot # (4-13): " << endl;
+		*out << input().set("type", "text")
+				.set("name", "tts_slot")
+				.set("value", tts_slot_)
+				.set("size", "10") << br() << endl;
+
+		*out << "TTS value: (0-15)" << endl;
+		*out << input().set("type", "text")
+				.set("name", "tts_bits")
+				.set("value", tts_bits_)
+				.set("size", "10") << br() << endl;
+
+		*out << input().set("type", "submit")
+				.set("name", "command")
+				.set("value", "SetTTS") << endl;
+		*out << form() << endl;
+
+		*out << form().set("action",
+				"/" + getApplicationDescriptor()->getURN() + "/SwitchTTS") << endl;
+		*out << input().set("type", "submit")
+				.set("name", "command")
+				.set("value", "HideTTSControl") << endl;
+		*out << form() << endl;
+	}
+
+	// Error message, if exists.
+	if (!error_message_.empty()) {
+		*out  << p() << span().set("style", "color: red;")
+				<< error_message_ << span() << p() << endl;
+		error_message_ = "";
+	}
 
 	// Configuration parameters
+	*out << hr() << endl;
+	*out << "Step counter: " << step_counter_ << br() << endl;
+
 	refreshConfigParameters();
+
 	*out << "Mode of DAQManager: " << daq_mode_.toString() << br() << endl;
 	*out << "TF configuration: " << trigger_config_.toString() << br() << endl;
 	*out << "TTCci inputs(Clock:Orbit:Trig:BGo): " << ttc_source_.toString() << br() << endl;
@@ -316,46 +380,6 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 	// Application states
 	*out << hr() << endl;
 	state_table_.webOutput(out, (string)state_);
-
-	// TTS operation
-	*out << hr() << endl;
-	*out << form().set("action",
-			"/" + getApplicationDescriptor()->getURN() + "/SetTTS") << endl;
-
-	*out << "Crate #: " << endl;
-	*out << cgicc::select().set("name", "tts_crate") << endl;
-
-	const char n[] = "1234";
-	string str = "";
-	for (int i = 0; i < 4; ++i) {
-		if (n[i] == (tts_crate_.toString())[0]) {
-			*out << option().set("value", str + n[i]).set("selected", "");
-		} else {
-			*out << option().set("value", str + n[i]);
-		}
-		*out << n[i] << option() << endl;
-	}
-
-	*out << cgicc::select() << br() << endl;
-	
-	*out << "Slot # (4-13): " << endl;
-	*out << input().set("type", "text")
-			.set("name", "tts_slot")
-			.set("value", tts_slot_)
-			.set("size", "10") << br() << endl;
-
-	*out << "TTS value: (0-15)" << endl;
-	*out << input().set("type", "text")
-			.set("name", "tts_bits")
-			.set("value", tts_bits_)
-			.set("size", "10") << br() << endl;
-
-	*out << input().set("type", "submit")
-			.set("name", "command")
-			.set("value", "SetTTS") << endl;
-	*out << form() << endl;
-
-	*out << "Step counter: " << step_counter_ << endl;
 
 	// Message logs
 	*out << hr() << endl;
@@ -436,6 +460,14 @@ void CSCSupervisor::webSetTTS(xgi::Input *in, xgi::Output *out)
 	if (error_message_.empty()) {
 		fireEvent("SetTTS");
 	}
+
+	webRedirect(in, out);
+}
+
+void CSCSupervisor::webSwitchTTS(xgi::Input *in, xgi::Output *out)
+		throw (xgi::exception::Exception)
+{
+	hide_tts_control_ = getCGIParameter(in, "command").find("Hide", 0) == 0;
 
 	webRedirect(in, out);
 }
