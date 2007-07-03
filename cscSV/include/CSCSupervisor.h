@@ -56,6 +56,8 @@ public:
 			throw (xgi::exception::Exception);
 	void webSetTTS(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
+	void webSwitchTTS(xgi::Input *in, xgi::Output *out)
+			throw (xgi::exception::Exception);
 	void webCalibPC(xgi::Input *in, xgi::Output *out)
 			throw (xgi::exception::Exception);
 	void webRedirect(xgi::Input *in, xgi::Output *out)
@@ -162,6 +164,7 @@ private:
 	string error_message_;
 
 	bool keep_refresh_;
+	bool hide_tts_control_;
 
 	xdata::String curlCommand_;         // the curl command's full path
 	xdata::String curlCookies_;         // file for cookies
