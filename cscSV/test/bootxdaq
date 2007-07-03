@@ -40,7 +40,7 @@ start() {
 }
 
 stop() {
-	run "killall xdaq.exe; mv $LOG.$PORT xdaq.log.$PORT"
+	run "killall xdaq.exe 2>/dev/null; mv $LOG.$PORT xdaq.log.$PORT"
 
 	count=0
 	lines=`check "$@" | grep 'not found' | wc -l`
