@@ -9,13 +9,13 @@
 			<properties xmlns="urn:xdaq-application:CSCSupervisor" xsi:type="soapenc:Struct">
 				<configKeys soapenc:arrayType="xsd:ur-type[4]" xsi:type="soapenc:Array">
 					<item soapenc:position="[0]" xsi:type="xsd:string">Monitor</item>
-					<item soapenc:position="[1]" xsi:type="xsd:string">Calib_CFEB_Gain</item>
-					<item soapenc:position="[2]" xsi:type="xsd:string">Calib_CFEB_Time</item>
-					<item soapenc:position="[3]" xsi:type="xsd:string">Calib_CFEB_Ped</item>
+					<item soapenc:position="[1]" xsi:type="xsd:string">Calib_CFEB_Gains</item>
+					<item soapenc:position="[2]" xsi:type="xsd:string">Calib_CFEB_CrossTalk</item>
+					<item soapenc:position="[3]" xsi:type="xsd:string">Calib_CFEB_SCAPed</item>
 				</configKeys>
 				<pcKeys soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
 					<item soapenc:position="[0]" xsi:type="xsd:string">default</item>
-					<item soapenc:position="[1]" xsi:type="xsd:string">Calib_CFEB_Ped</item>
+					<item soapenc:position="[1]" xsi:type="xsd:string">Calib_CFEB_SCAPed</item>
 				</pcKeys>
 				<pcConfigs soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
 					<item soapenc:position="[0]" xsi:type="xsd:string">Global</item>
@@ -23,7 +23,7 @@
 				</pcConfigs>
 				<fcKeys soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
 					<item soapenc:position="[0]" xsi:type="xsd:string">default</item>
-					<item soapenc:position="[1]" xsi:type="xsd:string">Calib_CFEB_Ped</item>
+					<item soapenc:position="[1]" xsi:type="xsd:string">Calib_CFEB_SCAPed</item>
 				</fcKeys>
 				<fcConfigs soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
 					<item soapenc:position="[0]" xsi:type="xsd:string">Global</item>

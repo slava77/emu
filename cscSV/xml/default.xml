@@ -10,9 +10,9 @@
 			<properties xmlns="urn:xdaq-application:CSCSupervisor" xsi:type="soapenc:Struct">
 				<configKeys soapenc:arrayType="xsd:ur-type[6]" xsi:type="soapenc:Array">
 					<item soapenc:position="[0]" xsi:type="xsd:string">Monitor</item>
-					<item soapenc:position="[1]" xsi:type="xsd:string">Calib_CFEB_Gain</item>
-					<item soapenc:position="[2]" xsi:type="xsd:string">Calib_CFEB_Time</item>
-					<item soapenc:position="[3]" xsi:type="xsd:string">Calib_CFEB_Ped</item>
+					<item soapenc:position="[1]" xsi:type="xsd:string">Calib_CFEB_Gains</item>
+					<item soapenc:position="[2]" xsi:type="xsd:string">Calib_CFEB_CrossTalk</item>
+					<item soapenc:position="[3]" xsi:type="xsd:string">Calib_CFEB_SCAPed</item>
 					<item soapenc:position="[4]" xsi:type="xsd:string">Calib_CFEB_Comparator</item>
 					<item soapenc:position="[5]" xsi:type="xsd:string">Debug</item>
 				</configKeys>
