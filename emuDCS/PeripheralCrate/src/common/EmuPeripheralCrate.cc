@@ -122,6 +122,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     xgi::bind(this,&EmuPeripheralCrate::ReadTMBRegister, "ReadTMBRegister");
     xgi::bind(this,&EmuPeripheralCrate::ReadCCBRegister, "ReadCCBRegister");
     xgi::bind(this,&EmuPeripheralCrate::HardReset, "HardReset");
+    xgi::bind(this,&EmuPeripheralCrate::HardResetChamberTests, "HardResetChamberTests");
     xgi::bind(this,&EmuPeripheralCrate::testTMB, "testTMB");
     xgi::bind(this,&EmuPeripheralCrate::Automatic, "Automatic");
     xgi::bind(this,&EmuPeripheralCrate::TMBTests,  "TMBTests");
@@ -3613,11 +3614,28 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     //
     *out << cgicc::pre();
+    *out << "0) Prepare to run tests" << std::endl;
+    *out << "   -> LV on" << std::endl;
+    *out << "   -> Set mpc_output_enable=0 in xml file for all chambers" << std::endl;
+    *out << "   -> Restart Peripheral Crate" << std::endl;
+    *out << "   -> Init System" << std::endl;
+    *out << cgicc::pre();
+    //
+    //
+    *out << cgicc::pre();
+    *out << "-------------------------------------------------------------------------" << std::endl;
     *out << "1) Measure relative clock phases with pulsing" << std::endl;
     *out << "   -> HV on or off" << std::endl;
     *out << "   -> Stop L1A triggers" << std::endl;
-    *out << "   -> Hard reset" << std::endl;
     *out << cgicc::pre();
+    //
+    //
+    std::string HardResetChamberTests =
+      toolbox::toString("/%s/HardResetChamberTests",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",HardResetChamberTests) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Hard Reset");
+    *out << cgicc::form() << std::endl ;
+    *out << cgicc::br();
     //
     //
     std::string ALCTTiming =
@@ -3670,12 +3688,30 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     //
     *out << cgicc::pre();
+    *out << "   -> Set up the xml file with the desired ALCT and CLCT trigger configuration" << std::endl;
+    *out << "   -> Enter above values into xml" << std::endl;
+    *out << "   -> Restart Peripheral Crate" << std::endl;
+    *out << "   -> Init System" << std::endl;
+    *out << cgicc::br();
+    *out << "-------------------------------------------------------------------------" << std::endl;
     *out << "2) Measure CLCT-ALCT match timing with cosmic rays" << std::endl;
-    *out << "   -> Configure the crates with the desired ALCT and CLCT trigger configuration" << std::endl;
+    *out << "   -> LV on" << std::endl;
     *out << "   -> HV on" << std::endl;
-    *out << "   -> Hard Reset" << std::endl;
-    *out << "   -> start LTC triggering" << std::endl;
-    *out << "   -> Measured values are based on current match_trig_alct_delay and mpc_tx_delay settings" << std::endl;
+    *out << cgicc::pre();
+    //
+    //
+    *out << cgicc::form().set("method","GET").set("action",HardResetChamberTests) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Hard Reset");
+    *out << cgicc::form() << std::endl ;
+    //
+    //
+    *out << cgicc::pre();
+    *out << "   -> start LTC triggers" << std::endl;
+    *out << "   -> Recommended values will be based on current values of:" << std::endl;
+    *out << "        * match_trig_window_size" << std::endl;
+    *out << "        * match_trig_alct_delay" << std::endl;
+    *out << "        * mpc_tx_delay" << std::endl;
+    *out << "(last two are assuming the triggers have been lined up at the SP)" << std::endl;
     *out << cgicc::pre();
     //
     //
@@ -3699,11 +3735,20 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     //
     *out << cgicc::pre();
+    *out << "   -> Enter above values into xml" << std::endl;
+    *out << "   -> Restart Peripheral Crate" << std::endl;
+    *out << "   -> Init System" << std::endl;
+    *out << cgicc::br();
+    *out << "-------------------------------------------------------------------------" << std::endl;
     *out << "3) Measure the delay needed for the winner bit from MPC back to TMB" << std::endl;
     *out << "   -> HV on or off" << std::endl;
     *out << "   -> Stop L1A triggers" << std::endl;
-    *out << "   -> Hard reset" << std::endl;
     *out << cgicc::pre();
+    //
+    //
+    *out << cgicc::form().set("method","GET").set("action",HardResetChamberTests) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Hard Reset");
+    *out << cgicc::form() << std::endl ;
     //
     //
     std::string FindWinner =
@@ -3722,11 +3767,41 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     //
     *out << cgicc::pre();
+    *out << "   -> Set up the xml file with the correct value of cfeb_cable_delay according to its DMB-CFEB cable length" << std::endl;
+    *out << "   -> Enter above values into xml" << std::endl;
+    *out << "   -> Restart Peripheral Crate" << std::endl;
+    *out << "   -> Init System" << std::endl;
+    *out << cgicc::br();
+    *out << "-------------------------------------------------------------------------" << std::endl;
     *out << "4) Determine the DMB parameters" << std::endl;
     *out << "   -> HV on" << std::endl;
-    *out << "   -> Hard Reset" << std::endl;
-    *out << "   -> start LTC triggering" << std::endl;
     *out << cgicc::pre();
+    //
+    //
+    *out << cgicc::form().set("method","GET").set("action",HardResetChamberTests) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Hard Reset");
+    *out << cgicc::form() << std::endl ;
+    //
+    //
+    *out << cgicc::pre();
+    *out << "   -> start LTC triggers" << std::endl;
+    *out << "----> Check the overall state of the DMB parameters.  Is the Active FEB Flag to L1A close to 147? -----" << std::endl;
+    *out << cgicc::pre();
+    //
+    //
+    std::string PrintDmbValuesAndScopes =
+      toolbox::toString("/%s/PrintDmbValuesAndScopes",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",PrintDmbValuesAndScopes) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Read DMB Values/Scopes") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    //
+    *out << "Active FEB flag to L1A timing = " << MyTest[tmb].GetActiveFebFlagToL1aAtDMB() << std::endl;
+    *out << cgicc::br();
+    *out << cgicc::br();
     //
     //
     std::string AlctDavCableDelay =
@@ -3760,10 +3835,6 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::br();
     *out << cgicc::br();
     //
-    *out << cgicc::pre();
-    *out << "---- Make sure that cfeb_cable_delay is set to desired value before running the next test -----" << std::endl;
-    *out << cgicc::pre();
-    //
     std::string CfebDavCableDelay =
       toolbox::toString("/%s/CfebDavCableDelay",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",CfebDavCableDelay) << std::endl ;
@@ -3779,28 +3850,25 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::br();
     *out << cgicc::br();
     //
-    //    *out << cgicc::pre();
-    //    *out << "---- Now trigger on neighboring chamber -----" << std::endl;
-    //    *out << cgicc::pre();
-    //    //
-    //    std::string CfebCableDelay =
-    //      toolbox::toString("/%s/CfebCableDelay",getApplicationDescriptor()->getURN().c_str());
-    //    *out << cgicc::form().set("method","GET").set("action",CfebCableDelay) << std::endl ;
-    //    *out << cgicc::input().set("type","submit").set("value","Measure CFEB cable delay") << std::endl ;
-    //    sprintf(buf,"%d",tmb);
-    //    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    //    sprintf(buf,"%d",dmb);
-    //    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    //    *out << cgicc::form() << std::endl ;
-    //    //
-    //    *out << "cfeb_cable_delay = " << MyTest[tmb].GetCfebCableDelayTest() 
-    //	 << " ("  << MyTest[tmb].GetCfebCableDelay_configvalue() << ") " << std::endl;
-    //    *out << cgicc::br();
-    //    *out << cgicc::br();
+    //
+    *out << cgicc::pre();
+    *out << "   -> Enter above values into xml" << std::endl;
+    *out << "   -> Restart Peripheral Crate" << std::endl;
+    *out << "   -> Init System" << std::endl;
+    *out << cgicc::br();
+    *out << "-------------------------------------------------------------------------" << std::endl;
+    *out << "5) Determine the delays for the L1A arrival windows at the TMB and ALCT" << std::endl;
+    *out << "   -> HV on" << std::endl;
+    *out << cgicc::pre();
+    //
+    //
+    *out << cgicc::form().set("method","GET").set("action",HardResetChamberTests) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Hard Reset");
+    *out << cgicc::form() << std::endl ;
     //
     //
     *out << cgicc::pre();
-    *out << "---------- Determine the delays for the L1A arrival windows at the TMB and ALCT ------------" << std::endl;
+    *out << "   -> start LTC triggers" << std::endl;
     *out << cgicc::pre();
     //
     //
@@ -3855,30 +3923,6 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::form() << std::endl ;
     //
     *out << "rpc0_rat_delay = " << MyTest[tmb].GetRpcRatDelayTest() << " ("  << MyTest[tmb].GetRpcRatDelay()     << ") " << std::endl;
-    *out << cgicc::br();
-    *out << cgicc::br();
-    //
-    //
-    *out << cgicc::pre();
-    *out << "---- Overall state of the DMB parameters.  Has the Active FEB Flag to L1A timing changed significantly? -----" << std::endl;
-    *out << cgicc::pre();
-    //
-    //
-    std::string PrintDmbValuesAndScopes =
-      toolbox::toString("/%s/PrintDmbValuesAndScopes",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",PrintDmbValuesAndScopes) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Read DMB Values/Scopes") << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    sprintf(buf,"%d",dmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << "Active FEB flag to L1A timing = " << MyTest[tmb].GetActiveFebFlagToL1aAtDMB() << std::endl;
-    *out << cgicc::br();
-    *out << cgicc::br();
-    //
-    //
     *out << cgicc::br();
     *out << cgicc::br();
     //
@@ -8355,6 +8399,21 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     thisCCB->HardReset_crate();
     //
     this->CCBUtils(in,out);
+    //
+  }
+  //
+  void EmuPeripheralCrate::HardResetChamberTests(xgi::Input * in, xgi::Output * out ) 
+    throw (xgi::exception::Exception)
+  {
+    //
+    cgicc::Cgicc cgi(in);
+    //
+    //    std::cout << "hardReset" << std::endl;
+    //
+    //thisCCB->hardReset();
+    thisCCB->HardReset_crate();
+    //
+    this->ChamberTests(in,out);
     //
   }
   //

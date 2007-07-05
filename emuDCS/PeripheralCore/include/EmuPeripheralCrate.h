@@ -349,6 +349,7 @@ private:
   void ReadTMBRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ReadCCBRegister(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void HardReset(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void HardResetChamberTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBUtils(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void DMBTests(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void LogDMBTestsOutput(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
