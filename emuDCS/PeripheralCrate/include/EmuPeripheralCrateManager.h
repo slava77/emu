@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.32 2007/06/06 14:41:45 gujh Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.33 2007/07/05 19:04:21 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -103,10 +103,10 @@ public:
   xoap::MessageReference onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onConfigCalCFEB (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnable (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onEnableCalCFEBGain (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onEnableCalCFEBTime (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onEnableCalCFEBPed (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onEnableCalCFEBComp (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onEnableCalCFEBGains (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onEnableCalCFEBCrossTalk (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onEnableCalCFEBSCAPed (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onEnableCalCFEBComparator (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onDisable (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onHalt (xoap::MessageReference message) throw (xoap::exception::Exception);
   void relayMessage (xoap::MessageReference msg) throw (xgi::exception::Exception);
