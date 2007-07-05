@@ -32,10 +32,10 @@ XDAQ_INSTANTIATOR_IMPL(CSCSupervisor);
 static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
 static const unsigned int N_LOG_MESSAGES = 20;
 static const string STATE_UNKNOWN = "unknown";
-static const unsigned int DELAY_CFEB_GAIN = 2U;
-static const unsigned int DELAY_CFEB_TIME = 1U;
-static const unsigned int DELAY_CFEB_PED = 60U;
-static const unsigned int DELAY_CFEB_COMP = 1U;
+static const unsigned int DELAY_CFEB_GAINS = 1U;
+static const unsigned int DELAY_CFEB_CROSSTALK = 1U;
+static const unsigned int DELAY_CFEB_SCAPED = 180U;
+static const unsigned int DELAY_CFEB_COMPARATOR = 1U;
 
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
@@ -506,22 +506,22 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 	string command;
 	unsigned int loop, delay;
 
-	if (run_type_ == "Calib_CFEB_Gain") {
-		command = "EnableCalCFEBGain";
-		loop = 160;
-		delay = DELAY_CFEB_GAIN;
-	} else if (run_type_ == "Calib_CFEB_Time") {
-		command = "EnableCalCFEBTime";
+	if (run_type_ == "Calib_CFEB_Gains") {
+		command = "EnableCalCFEBGains";
 		loop = 320;
-		delay = DELAY_CFEB_TIME;
-	} else if (run_type_ == "Calib_CFEB_Ped") {
-		command = "EnableCalCFEBPed";
+		delay = DELAY_CFEB_GAINS;
+	} else if (run_type_ == "Calib_CFEB_CrossTalk") {
+		command = "EnableCalCFEBCrossTalk";
+		loop = 160;
+		delay = DELAY_CFEB_CROSSTALK;
+	} else if (run_type_ == "Calib_CFEB_SCAPed") {
+		command = "EnableCalCFEBSCAPed";
 		loop = 1;
-		delay = DELAY_CFEB_PED;
+		delay = DELAY_CFEB_SCAPED;
 	} else if (run_type_ == "Calib_CFEB_Comparator") {
-		command = "EnableCalCFEBComp";
-		loop = 1120;
-		delay = DELAY_CFEB_COMP;
+		command = "EnableCalCFEBComparator";
+		loop = 640;
+		delay = DELAY_CFEB_COMPARATOR;
 	} else {
 		LOG4CPLUS_INFO(getApplicationLogger(), "wrong run type " << run_type_.toString());
 		return false;
