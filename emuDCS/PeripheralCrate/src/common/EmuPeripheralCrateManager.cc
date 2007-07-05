@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.15 2007/06/18 18:17:18 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.16 2007/07/05 19:03:33 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -68,10 +68,10 @@ using namespace std;
     // SOAP call-back functions, which relays to *Action method.
     xoap::bind(this, &EmuPeripheralCrateManager::onConfigure, "Configure", XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onConfigCalCFEB, "ConfigCalCFEB", XDAQ_NS_URI);
-    xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBGain, "EnableCalCFEBGain", XDAQ_NS_URI);
-    xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBTime, "EnableCalCFEBTime", XDAQ_NS_URI);
-    xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBPed, "EnableCalCFEBPed", XDAQ_NS_URI);
-    xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBComp, "EnableCalCFEBComp", XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBGains, "EnableCalCFEBGains", XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBCrossTalk, "EnableCalCFEBCrossTalk", XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBSCAPed, "EnableCalCFEBSCAPed", XDAQ_NS_URI);
+    xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBComparator, "EnableCalCFEBComparator", XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onEnable,    "Enable",    XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onDisable,   "Disable",   XDAQ_NS_URI);
     xoap::bind(this, &EmuPeripheralCrateManager::onHalt,      "Halt",      XDAQ_NS_URI);
@@ -1357,11 +1357,11 @@ using namespace std;
     return createReply(message);
   }
   //
-  xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBComp (xoap::MessageReference message) throw (xoap::exception::Exception)
+  xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBComparator (xoap::MessageReference message) throw (xoap::exception::Exception)
   {
     float dac, threshold;
     int nsleep = 100, highthreshold;  
-    //  std::cout<< "This is a checking printing for OnEnableCalCFEBComp"<<std::endl;
+    //  std::cout<< "This is a checking printing for OnEnableCalCFEBComparator"<<std::endl;
     ostringstream test;
     message->writeTo(test);
     cout << test.str() <<endl;
@@ -1386,16 +1386,16 @@ using namespace std;
       broadcastTMB->EnableCLCTInputs(0x1f); //enable TMB's CLCT inputs
       broadcastDMB->settrgsrc(0); //disable the DMB internal LCT & L1A
     }
-    int thresholdsetting =((calsetup-1)%35);   //35 Comparator threshold setting for each channel
-    int nstrip=(calsetup-1)/35;           //16 channels, total loop: 32*35=1120
+    int thresholdsetting =((calsetup-1)%20);   //35 Comparator threshold setting for each channel
+    int nstrip=(calsetup-1)/20;           //16 channels, total loop: 32*35=1120
     highthreshold=nstrip/16;
-    dac=0.15+0.2*highthreshold;
+    dac=0.02+0.18*highthreshold;
     nstrip=nstrip%16;
     if (!thresholdsetting) {
       broadcastDMB->buck_shift_comp_bc(nstrip);
       if (!nstrip) broadcastDMB->set_cal_dac(dac,dac);
     }
-    threshold=0.003*thresholdsetting+0.013+0.036*highthreshold;
+    threshold=0.003*thresholdsetting+0.01+ (0.19+0.007*thresholdsetting)*highthreshold;
     broadcastDMB->set_comp_thresh_bc(threshold);
     cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<endl;
     usleep(nsleep);
@@ -1403,11 +1403,11 @@ using namespace std;
 
     return createReply(message);
   }
-  xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBGain (xoap::MessageReference message) throw (xoap::exception::Exception)
+  xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBGains (xoap::MessageReference message) throw (xoap::exception::Exception)
   {
     float dac;
     int nsleep = 100;  
-    //  std::cout<< "This is a checking printing for OnEnableCalCFEBGain"<<std::endl;
+    //  std::cout<< "This is a checking printing for OnEnableCalCFEBGains"<<std::endl;
     ostringstream test;
     message->writeTo(test);
     cout << test.str() <<endl;
@@ -1418,10 +1418,10 @@ using namespace std;
     std::cout << "DMB setup for CFEB Gain, calsetup= " <<calsetup<< std::endl;
 
     //Start the setup process:
-    int gainsetting =((calsetup-1)%10);
-    int nstrip=(calsetup-1)/10;
+    int gainsetting =((calsetup-1)%20);
+    int nstrip=(calsetup-1)/20;
     if (!gainsetting) broadcastDMB->buck_shift_ext_bc(nstrip);
-    dac=0.2+0.2*gainsetting;
+    dac=0.1+0.25*gainsetting;
     broadcastDMB->set_cal_dac(dac,dac);
     cout <<" The strip was set to: "<<nstrip<<" DAC was set to: "<<dac <<endl;
     usleep(nsleep);
@@ -1431,11 +1431,11 @@ using namespace std;
   }
 
 
-  xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBTime (xoap::MessageReference message) throw (xoap::exception::Exception)
+  xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBCrossTalk (xoap::MessageReference message) throw (xoap::exception::Exception)
   {
     int nsleep = 100;  
     //
-    std::cout<< "This is a checking printing for OnEnableCalCFEBTime"<<std::endl;
+    std::cout<< "This is a checking printing for OnEnableCalCFEBCrossTalk"<<std::endl;
     ostringstream test;
     message->writeTo(test);
     cout << test.str() <<endl;
@@ -1446,10 +1446,10 @@ using namespace std;
     std::cout << "DMB setup for CFEB Time, calsetup= " <<calsetup<< std::endl;
 
     //Start the setup process:
-    int timesetting =((calsetup-1)%20);
-    int nstrip=(calsetup-1)/20;
+    int timesetting =((calsetup-1)%10);
+    int nstrip=(calsetup-1)/10;
     if (!timesetting) broadcastDMB->buck_shift_ext_bc(nstrip);
-    broadcastDMB->set_cal_tim_pulse(timesetting);
+    broadcastDMB->set_cal_tim_pulse(timesetting+5);
     cout <<" The strip was set to: "<<nstrip<<" Time was set to: "<<timesetting <<endl;
     usleep(nsleep);
     //    fireEvent("Enable");
@@ -1457,12 +1457,12 @@ using namespace std;
     return createReply(message);
   }
 
-  xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBPed (xoap::MessageReference message) throw (xoap::exception::Exception)
+  xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBSCAPed (xoap::MessageReference message) throw (xoap::exception::Exception)
   {
     float dac;
     int nsleep = 100;  
     //
-    std::cout<< "This is a checking printing for OnEnableCalCFEBPed"<<std::endl;
+    std::cout<< "This is a checking printing for OnEnableCalCFEBSCAPed"<<std::endl;
     ostringstream test;
     message->writeTo(test);
     cout << test.str() <<endl;
