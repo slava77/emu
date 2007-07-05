@@ -55,10 +55,10 @@ public:
   void PrintAllDmbValuesAndScopes();
   //
   // L1A accept windows
-  int  TMBL1aTiming(int enable=1);
   int  FindTMB_L1A_delay(int,int);
-  int  FindBestL1aAlct();
   int  FindALCT_L1A_delay(int,int);
+  //  int  TMBL1aTiming(int enable=1);
+  //  int  FindBestL1aAlct();
   //
   // scans to check functionality of electronics
   void CFEBChamberScan();
@@ -137,7 +137,7 @@ public:
   inline int  GetRpcRatDelayTest()         { return GetRpcRatDelayTest(0); }
   inline int  GetRpcRatDelayTest(int rpc)  { return RpcRatDelay_[rpc] ; }
   inline int  GetALCTvpf()                 { return ALCTvpf_; }
-  inline int  GetMeasuredAlctMatchDelay()  { return measured_alct_match_window_delay_; }
+  inline int  GetMeasuredAlctMatchDelay()  { return measured_match_trig_alct_delay_; }
   inline int  GetMeasuredMPCTxDelay()      { return measured_mpc_tx_delay_; }
   inline int  GetMPCdelayTest()            { return MPCdelay_ ; }
   inline int  GetAlctDavCableDelayTest()   { return AlctDavCableDelay_; }
@@ -190,6 +190,7 @@ public:
 private:
   //
   std::ostream * MyOutput_ ;
+  bool debug_;
   //
   int Npulses_;
   //
@@ -206,7 +207,7 @@ private:
   int RatTmbDelay_;
   int RpcRatDelay_[2];
   int ALCTvpf_;
-  int measured_alct_match_window_delay_;
+  int measured_match_trig_alct_delay_;
   int measured_mpc_tx_delay_;
   int MPCdelay_;
   int AlctDavCableDelay_;

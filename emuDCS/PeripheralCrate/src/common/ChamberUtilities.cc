@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.23 2007/06/26 14:40:10 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.24 2007/07/05 07:29:09 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.24  2007/07/05 07:29:09  rakness
+// add debug_ flag, make testing more robust, comment out old l1a timing routines
+//
 // Revision 3.23  2007/06/26 14:40:10  rakness
 // mpc_tx_delay compensation fixed
 //
@@ -219,6 +222,8 @@ using namespace std;
 //
 ChamberUtilities::ChamberUtilities(){
   //
+  debug_ = true;
+  //
   beginning = 0;
   thisTMB   = 0;
   thisDMB   = 0;
@@ -237,8 +242,8 @@ ChamberUtilities::ChamberUtilities(){
     RpcRatDelay_[i] = -1;
   ALCTvpf_           = -1;
   ALCTvpf            = -1;
-  measured_alct_match_window_delay_ = -1;
-  measured_mpc_tx_delay_            = -1;
+  measured_match_trig_alct_delay_ = -1;
+  measured_mpc_tx_delay_          = -1;
   MPCdelay_          = -1;
   AlctDavCableDelay_ = -1;
   TmbLctCableDelay_  = -1;
@@ -304,21 +309,28 @@ void ChamberUtilities::CFEBTiming(){
   int initial_clct_halfstrip_pretrig_thresh = thisTMB->GetHsPretrigThresh();          //0x70
   int initial_clct_distrip_pretrig_thresh   = thisTMB->GetDsPretrigThresh();          //0x70
   int initial_clct_pattern_thresh           = thisTMB->GetMinHitsPattern();           //0x70
-  int initial_cfeb0_phase = thisTMB->GetCFEB0delay(); //0x18
-  int initial_cfeb1_phase = thisTMB->GetCFEB1delay(); //0x1a
-  int initial_cfeb2_phase = thisTMB->GetCFEB2delay(); //0x1a
-  int initial_cfeb3_phase = thisTMB->GetCFEB3delay(); //0x1a
-  int initial_cfeb4_phase = thisTMB->GetCFEB4delay(); //0x1a
+  int initial_ignore_ccb_startstop          = thisTMB->GetIgnoreCcbStartStop();       //0x2c
+  int initial_cfeb0_phase = thisTMB->GetCFEB0delay();                                 //0x18
+  int initial_cfeb1_phase = thisTMB->GetCFEB1delay();                                 //0x1a
+  int initial_cfeb2_phase = thisTMB->GetCFEB2delay();                                 //0x1a
+  int initial_cfeb3_phase = thisTMB->GetCFEB3delay();                                 //0x1a
+  int initial_cfeb4_phase = thisTMB->GetCFEB4delay();                                 //0x1a
   //
   // Enable this TMB for this test
   thisTMB->SetClctPatternTrigEnable(1);
   thisTMB->WriteRegister(seq_trig_en_adr,thisTMB->FillTMBRegister(seq_trig_en_adr));
+  //
   thisTMB->SetTmbAllowClct(1);
   thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  //
   thisTMB->SetHsPretrigThresh(6);
   thisTMB->SetDsPretrigThresh(6);
   thisTMB->SetMinHitsPattern(6);
   thisTMB->WriteRegister(seq_clct_adr,thisTMB->FillTMBRegister(seq_clct_adr));
+  //
+  thisTMB->SetIgnoreCcbStartStop(0);
+  thisTMB->WriteRegister(ccb_trig_adr,thisTMB->FillTMBRegister(ccb_trig_adr));
+  //
   thisTMB->StartTTC();
   ::sleep(1);
   //
@@ -480,15 +492,21 @@ void ChamberUtilities::CFEBTiming(){
   // return to initial values:
   thisTMB->SetClctPatternTrigEnable(initial_clct_pretrig_enable);
   thisTMB->WriteRegister(seq_trig_en_adr,thisTMB->FillTMBRegister(seq_trig_en_adr));
+  //
   thisTMB->SetTmbAllowClct(initial_clct_trig_enable);
   thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  //
   thisTMB->SetHsPretrigThresh(initial_clct_halfstrip_pretrig_thresh);
   thisTMB->SetDsPretrigThresh(initial_clct_distrip_pretrig_thresh);
   thisTMB->SetMinHitsPattern(initial_clct_pattern_thresh);
   thisTMB->WriteRegister(seq_clct_adr,thisTMB->FillTMBRegister(seq_clct_adr));
   //
+  thisTMB->SetIgnoreCcbStartStop(initial_ignore_ccb_startstop);
+  thisTMB->WriteRegister(ccb_trig_adr,thisTMB->FillTMBRegister(ccb_trig_adr));
+  //
   thisTMB->SetCFEB0delay(initial_cfeb0_phase);
   thisTMB->WriteRegister(vme_ddd1_adr,thisTMB->FillTMBRegister(vme_ddd1_adr));
+  //
   thisTMB->SetCFEB1delay(initial_cfeb1_phase);
   thisTMB->SetCFEB2delay(initial_cfeb2_phase);
   thisTMB->SetCFEB3delay(initial_cfeb3_phase);
@@ -1048,22 +1066,24 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   const int test_alct_delay_value  = 7;
   const int test_match_window_size = 15;
   //
-  const float desired_window_size = 3;
-  //
-  // desired value should put central value of measured distribution at the following location (counting from 0)
-  float desired_value = (desired_window_size*0.5) - 0.5;
-  //
-  (*MyOutput_) << "If you wanted a CLCT match window width of " << desired_window_size << "bx," << std::endl;
-  (*MyOutput_) << "the value of the ALCT to be centered in the CLCT match window should end up in bin " 
-	       << desired_value << std::endl;
-  //
   // Set up for this test...
   // Get initial values:
+  if (debug_) std::cout << "Read TMB initial values" << std::endl;
   int initial_mpc_output_enable = thisTMB->GetMpcOutputEnable();
   int initial_alct_delay_value  = thisTMB->GetAlctVpfDelay();
   int initial_match_window_size = thisTMB->GetAlctMatchWindowSize();
   //
+  const float desired_window_size = (float) initial_match_window_size;
+  //
+  // desired value should put central value of measured distribution at the following location (counting from 0)
+  float desired_value = (desired_window_size*0.5) - 0.5;
+  //
+  (*MyOutput_) << "With the current CLCT match window width setting of " << desired_window_size << "bx," << std::endl;
+  (*MyOutput_) << "the value of the ALCT to be centered in the CLCT match window should end up in bin " 
+	       << desired_value << std::endl;
+  //
   // Enable this TMB for this test
+  if (debug_) std::cout << "Initialize TMB for test" << std::endl;
   thisTMB->SetMpcOutputEnable(1);
   thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
   thisTMB->SetAlctVpfDelay(test_alct_delay_value);
@@ -1072,12 +1092,15 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   //
   ZeroTmbHistograms();
   //
+  if (debug_) std::cout << "Going to try to read TMB " << number_of_reads << " times" << std::endl;
   for (int i=0; i<number_of_reads; i++) {
+    if (debug_) std::cout << "Read TMB " << i << " times" << std::endl;
     thisTMB->TMBRawhits();
     int value = thisTMB->GetAlctInClctMatchWindow();
     AlctInClctMatchWindowHisto_[value]++;
   }
   //
+  if (debug_) std::cout << "Begin histogram analysis" << std::endl;
   float average_value = AverageHistogram(AlctInClctMatchWindowHisto_,HistoMin,HistoMax);
   //
   // Print the data:
@@ -1091,18 +1114,18 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   (*MyOutput_) << "The amount to shift the distribution by is " << amount_to_shift 
 	       << " (= " << int_amount_to_shift << ")" << std::endl;
   //
-  measured_alct_match_window_delay_ = test_alct_delay_value - int_amount_to_shift;
+  measured_match_trig_alct_delay_ = test_alct_delay_value - int_amount_to_shift;
   //
-  (*MyOutput_) << "=> Best alct_match_window_delay = " << measured_alct_match_window_delay_ << std::endl;
+  (*MyOutput_) << "=> Best match_trig_alct_delay = " << measured_match_trig_alct_delay_ << std::endl;
   //
   // Determine new value of mpc_tx_delay:
   int initial_mpc_tx_delay = thisTMB->GetMpcTXdelay();;
   //
-  int amount_to_shift_mpc_tx_delay = measured_alct_match_window_delay_ - initial_alct_delay_value;
+  int amount_to_shift_mpc_tx_delay = measured_match_trig_alct_delay_ - initial_alct_delay_value;
   //
   (*MyOutput_) << "Based on the current settings in the xml file:  ";
   (*MyOutput_) << "mpc_tx_delay = " << initial_mpc_tx_delay;
-  (*MyOutput_) << " and alct_match_window_delay = " << initial_alct_delay_value << std::endl;
+  (*MyOutput_) << " and match_trig_alct_delay = " << initial_alct_delay_value << std::endl;
   //    
   // The mpc_tx_delay compensates for the change in match_trig_alct_delay, so subtract the shift:
   measured_mpc_tx_delay_ = initial_mpc_tx_delay - amount_to_shift_mpc_tx_delay;
@@ -1116,7 +1139,7 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   thisTMB->SetAlctMatchWindowSize(initial_match_window_size);
   thisTMB->WriteRegister(tmbtim_adr,thisTMB->FillTMBRegister(tmbtim_adr));
   //
-  return measured_alct_match_window_delay_;
+  return measured_match_trig_alct_delay_;
 }
 //
 int ChamberUtilities::FindALCTvpf() {
@@ -1198,6 +1221,7 @@ int ChamberUtilities::FindWinner(int npulses=10){
   int initial_clct_halfstrip_pretrig_thresh = thisTMB->GetHsPretrigThresh();          //0x70
   int initial_clct_distrip_pretrig_thresh   = thisTMB->GetDsPretrigThresh();          //0x70
   int initial_clct_pattern_thresh           = thisTMB->GetMinHitsPattern();           //0x70
+  int initial_ignore_ccb_startstop          = thisTMB->GetIgnoreCcbStartStop();       //0x2c
   //
   // Enable this TMB for this test
   thisTMB->SetClctPatternTrigEnable(1);
@@ -1214,13 +1238,13 @@ int ChamberUtilities::FindWinner(int npulses=10){
   thisTMB->SetMpcOutputEnable(1);
   thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
   //
+  thisTMB->SetIgnoreCcbStartStop(0);
+  thisTMB->WriteRegister(ccb_trig_adr,thisTMB->FillTMBRegister(ccb_trig_adr));
+  //
   thisTMB->StartTTC();
   ::sleep(1);
-
-  thisCCB_->setCCBMode(CCB::VMEFPGA);
   //
-  // thisTMB->alct_match_window_size_ = 3;
-  // thisTMB->alct_vpf_delay_ = 3;
+  //  thisCCB_->setCCBMode(CCB::VMEFPGA);
   //
   float MpcDelay=0;
   int   MpcDelayN=0;
@@ -1243,16 +1267,9 @@ int ChamberUtilities::FindWinner(int npulses=10){
   //
   for (int i = 0; i < DelaySize; i++){
     //
-    //thisTMB->alct_match_window_size_ = i;
-    //
     thisTMB->mpc_delay(i);
     //
-    //thisTMB->trgmode(1);
-    //
     thisTMB->ResetCounters();
-    //
-    //thisCCB_->startTrigger();
-    //thisCCB_->bx0();
     //
     int iterations = 0;
     //
@@ -1274,9 +1291,10 @@ int ChamberUtilities::FindWinner(int npulses=10){
     //
     //thisTMB->PrintCounters();
     //
-    (*MyOutput_) << "mpc_delay_ =  " << dec << i << endl;
-    //
-    //cout << thisTMB->MPC0Accept() << " " << thisTMB->MPC1Accept() << endl ;
+    if (debug_) {
+      std::cout << "mpc_delay_ =  " << dec << i << std::endl;
+      std::cout << thisTMB->MPC0Accept() << " " << thisTMB->MPC1Accept() << std::endl ;
+    }
     //
     if (UseCosmic) {
       thisTMB->PrintCounters(8);
@@ -1354,6 +1372,9 @@ int ChamberUtilities::FindWinner(int npulses=10){
   //
   thisTMB->SetMpcOutputEnable(initial_value_of_register);
   thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  //
+  thisTMB->SetIgnoreCcbStartStop(initial_ignore_ccb_startstop);
+  thisTMB->WriteRegister(ccb_trig_adr,thisTMB->FillTMBRegister(ccb_trig_adr));
   //
   return MPCdelay_;
 }
@@ -1618,6 +1639,13 @@ void ChamberUtilities::MeasureCfebCableDelay() {
 //
 void ChamberUtilities::ReadAllDmbValuesAndScopes() {
   //
+  // Get initial values:
+  int initial_value_of_register = thisTMB->GetMpcOutputEnable();
+  //
+  // Enable this TMB to send LCTs to MPC:
+  thisTMB->SetMpcOutputEnable(1);
+  thisTMB->WriteRegister( tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr) );
+  //
   ZeroDmbHistograms();
   //
   const int number_of_reads = 120;
@@ -1632,6 +1660,10 @@ void ChamberUtilities::ReadAllDmbValuesAndScopes() {
   CfebDavAverageValue_  = RoundOff( AverageHistogram(CfebDavValueHisto_ ,CfebDavValueMin_ ,CfebDavValueMax_ ) );
   TmbDavAverageValue_   = RoundOff( AverageHistogram(TmbDavValueHisto_  ,TmbDavValueMin_  ,TmbDavValueMax_  ) );
   AlctDavAverageValue_  = RoundOff( AverageHistogram(AlctDavValueHisto_ ,AlctDavValueMin_ ,AlctDavValueMax_ ) );
+  //
+  // Set the registers back to how they were at beginning...
+  thisTMB->SetMpcOutputEnable(initial_value_of_register);
+  thisTMB->WriteRegister( tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr) );
   //
   return;
 }
@@ -1662,67 +1694,67 @@ void ChamberUtilities::PrintAllDmbValuesAndScopes() {
 //----------------------------------------------
 // L1A accept windows
 //----------------------------------------------
-int ChamberUtilities::TMBL1aTiming(int enableInternalL1a){
-  //
-  int wordcounts[200];
-  int TmbDavScope[200];
-  int nmuons = 1;
-  //
-  if(enableInternalL1a) thisTMB->EnableInternalL1aSequencer();
-  //
-  for (int delay=0;delay<200;delay++) {
-    wordcounts[delay] = 0;
-    TmbDavScope[delay] = 0;
-  }
-  //
-  int minlimit = 100;
-  int maxlimit = 200;
-  //
-  float RightTimeBin = 0;
-  int   DataCounter  = 0;
-  //
-  thisTMB->ResetCounters();
-  //
-  for( int delay=minlimit; delay<maxlimit; delay++){
-    //
-    printf("delay %d\n",delay);
-    //
-    thisTMB->lvl1_delay(delay);
-    //
-    for (int Nmuons=0; Nmuons<nmuons; Nmuons++){
-      while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
-      thisTMB->ResetRAMAddress();
-      if ( UseCosmic ) ::sleep(2);
-      if ( UsePulsing) PulseCFEB(delay%16,0xa);
-      wordcounts[delay] += thisTMB->GetWordCount();
-      thisTMB->GetCounters();
-      //      thisTMB->PrintCounters(19) ;
-      //      thisTMB->PrintCounters(20) ;
-      //      thisTMB->PrintCounters(21) ;
-      //
-      TmbDavScope[delay] = thisDMB->GetTmbDavScope();
-      //
-      printf(" WordCount %d \n",thisTMB->GetWordCount());
-    }
-  }
-  //
-  for (int delay=minlimit;delay<maxlimit;delay++){
-    if ( wordcounts[delay] > 0 ) {
-      RightTimeBin += delay ;
-      DataCounter++ ;
-    }
-    //printf("delay = %d wordcount = %d TmbDavScope %d wordcount/nmuons %f \n",delay,wordcounts[delay],TmbDavScope[delay],wordcounts[delay]/(nmuons));
-  }
-  //
-  RightTimeBin /= float(DataCounter) ;
-  //
-  printf("Right L1a delay setting is %f \n",RightTimeBin);
-  //
-  TMBL1aTiming_ = (int) (RightTimeBin+0.5);
-  //
-  return TMBL1aTiming_; ;
-  //
-}
+//int ChamberUtilities::TMBL1aTiming(int enableInternalL1a){
+//  //
+//  int wordcounts[200];
+//  int TmbDavScope[200];
+//  int nmuons = 1;
+//  //
+//  if(enableInternalL1a) thisTMB->EnableInternalL1aSequencer();
+//  //
+//  for (int delay=0;delay<200;delay++) {
+//    wordcounts[delay] = 0;
+//    TmbDavScope[delay] = 0;
+//  }
+//  //
+//  int minlimit = 100;
+//  int maxlimit = 200;
+//  //
+//  float RightTimeBin = 0;
+//  int   DataCounter  = 0;
+//  //
+//  thisTMB->ResetCounters();
+//  //
+//  for( int delay=minlimit; delay<maxlimit; delay++){
+//    //
+//    printf("delay %d\n",delay);
+//    //
+//    thisTMB->lvl1_delay(delay);
+//    //
+//    for (int Nmuons=0; Nmuons<nmuons; Nmuons++){
+//      while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
+//      thisTMB->ResetRAMAddress();
+//      if ( UseCosmic ) ::sleep(2);
+//      if ( UsePulsing) PulseCFEB(delay%16,0xa);
+//      wordcounts[delay] += thisTMB->GetWordCount();
+//      thisTMB->GetCounters();
+//      //      thisTMB->PrintCounters(19) ;
+//      //      thisTMB->PrintCounters(20) ;
+//      //      thisTMB->PrintCounters(21) ;
+//      //
+//      TmbDavScope[delay] = thisDMB->GetTmbDavScope();
+//      //
+//      printf(" WordCount %d \n",thisTMB->GetWordCount());
+//    }
+//  }
+//  //
+//  for (int delay=minlimit;delay<maxlimit;delay++){
+//    if ( wordcounts[delay] > 0 ) {
+//      RightTimeBin += delay ;
+//      DataCounter++ ;
+//    }
+//    //printf("delay = %d wordcount = %d TmbDavScope %d wordcount/nmuons %f \n",delay,wordcounts[delay],TmbDavScope[delay],wordcounts[delay]/(nmuons));
+//  }
+//  //
+//  RightTimeBin /= float(DataCounter) ;
+//  //
+//  printf("Right L1a delay setting is %f \n",RightTimeBin);
+//  //
+//  TMBL1aTiming_ = (int) (RightTimeBin+0.5);
+//  //
+//  return TMBL1aTiming_; ;
+//  //
+//}
 //
 //
 int ChamberUtilities::FindTMB_L1A_delay(int idelay_min, int idelay_max ){
@@ -1731,13 +1763,19 @@ int ChamberUtilities::FindTMB_L1A_delay(int idelay_min, int idelay_max ){
   //cout << "Value of useCCB is" << useCCB <<endl;
   //
   //if (useCCB) thisCCB_->setCCBMode(CCB::VMEFPGA);
-  // Not really necessary:
-  //     thisTMB->alct_match_window_size_ = 3;
+  //
+  // Set up for this test...
+  // Get initial values:
+  int initial_value_of_register             = thisTMB->GetMpcOutputEnable();
+  //
+  // Enable this TMB for this test
+  thisTMB->SetMpcOutputEnable(1);
+  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
   //
   int tmb_in_l1a_window[255] = {};
   //
   for (int i = idelay_min; i < idelay_max+1; i++){
-    
+    //
     //thisTMB->l1adelay_ = i;// loop over this
     //
     thisTMB->lvl1_delay(i);
@@ -1751,12 +1789,12 @@ int ChamberUtilities::FindTMB_L1A_delay(int idelay_min, int idelay_max ){
     ::sleep(5);                   // accumulate statistics
     //if (useCCB) thisCCB_->stopTrigger();      // stop trigger
     thisTMB->GetCounters();      // read counter values
-    
+    //
     //thisTMB->PrintCounters(); // display them to screen
     //    thisTMB->PrintCounters(8);  // display them to screen
     //    thisTMB->PrintCounters(19);
     //    thisTMB->PrintCounters(20);
-
+    //
     tmb_in_l1a_window[i] = thisTMB->GetCounter(19);
   }
   //
@@ -1780,119 +1818,128 @@ int ChamberUtilities::FindTMB_L1A_delay(int idelay_min, int idelay_max ){
   } else {
     RightTimeBin = -999;
   }
-  
+  //  
   printf("Right L1a delay setting is %f \n",RightTimeBin);
-
-  printf("\n");
-
+  //
   //if (useCCB) thisCCB_->setCCBMode(CCB::DLOG);      // return to "regular" mode for CCB
-
+  //
   TMBL1aTiming_ = (int) (RightTimeBin+0.5);
-
+  //
   (*MyOutput_) << "Best value of tmb_l1a_delay = " << std::dec << std::setw(5) << TMBL1aTiming_ << std::endl;
-
+  //
+  // Set the registers back to how they were at beginning...
+  thisTMB->SetMpcOutputEnable(initial_value_of_register);
+  thisTMB->WriteRegister( tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr) );
+  //
   return TMBL1aTiming_ ;
-
 }
 //
-int ChamberUtilities::FindBestL1aAlct(){
-  //
-  // Now find the best L1a_delay value for the ALCT
-  //
-  //thisTMB->SetALCTPatternTrigger();
-  //
-  //  unsigned long HCmask[22];
-  int WordCount[200], DMBCount[200];
-  for (int i=0; i<200; i++) {
-    WordCount[i] = 0; 
-    DMBCount[i]=0;
-  }
-  //  //
-  //  //unsigned cr[3]  = {0x80fc5fc0, 0x20a03786, 0x8}; // default conf register
-  //  //
-  //
-  //  unsigned cr[3];
-  //  //
-  //  alct->GetConf(cr,1);
-  //
-  int minlimit = 0;
-  int maxlimit = 150;
-  //
-  for (int l1a=minlimit; l1a<maxlimit; l1a++) {
-    //
-    //while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
-    //
-    //    int keyWG          = int((rand()/(RAND_MAX+0.01))*(alct->GetWGNumber())/6./2.);
-    //    int ChamberSection = alct->GetWGNumber()/6;
-    int keyWG          = int((rand()/(RAND_MAX+0.01))*(alct->GetNumberOfChannelsInAlct())/6./2.);
-    //    int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
-    //
-    printf("\n");
-    printf("-----> Injecting at %d \n",keyWG);
-    for(int layer=0; layer<MAX_NUM_LAYERS; layer++) {
-      for(int channel=0; channel<(alct->GetNumberOfChannelsInAlct())/6; channel++) {
-	if (channel==keyWG) {
-	  alct->SetHotChannelMask(layer,channel,ON);
-	} else {
-	  alct->SetHotChannelMask(layer,channel,OFF);
-	}
-      }
-    }
-    alct->WriteHotChannelMask();
-    alct->PrintHotChannelMask();
-    //
-    alct->SetL1aDelay(l1a);
-    alct->WriteConfigurationReg();
-    alct->PrintConfigurationReg();
-    //
-    //
-    thisTMB->ResetALCTRAMAddress();
-    PulseTestStrips();
-    thisTMB->DecodeALCT();
-    thisTMB->GetCounters();
-    thisTMB->PrintCounters(3);
-    WordCount[l1a] = thisTMB->GetALCTWordCount();
-    DMBCount[l1a] = thisDMB->GetAlctDavCounter();
-    printf(" WordCount %d \n",thisTMB->GetALCTWordCount());
-    //
-    thisDMB->PrintCounters();
-    //
-  }
-  //
-  for (int i=minlimit; i<maxlimit; i++){
-    printf(" Value = %d WordCount = %3d DMBCount = %3d \n",i,WordCount[i],DMBCount[i]);
-  }
-  //
-  float DelayBin  = 0;
-  int   DelayBinN = 0;
-  int   flag      = 0;
-  //
-  for (int i=maxlimit; i>minlimit; i--){
-    //
-    if (flag == 1 && WordCount[i] == 0 ) break;
-    //
-    if ( WordCount[i]>0 ) {
-      //
-      //printf("Including %d \n",i);
-      //
-      flag = 1;
-      DelayBin  += i ;
-      DelayBinN ++;
-    }
-    //
-  }
-  //
-  printf(" DelayBin=%f DelaybinN=%d \n",DelayBin,DelayBinN);
-  //
-  DelayBin /= (DelayBinN+0.0001) ;
-  //
-  BestALCTL1aDelay_ = (int) (DelayBin+0.5) ;
-  //
-  return BestALCTL1aDelay_;
-  //
-}
+//int ChamberUtilities::FindBestL1aAlct(){
+//  //
+//  // Now find the best L1a_delay value for the ALCT
+//  //
+//  //thisTMB->SetALCTPatternTrigger();
+//  //
+//  //  unsigned long HCmask[22];
+//  int WordCount[200], DMBCount[200];
+//  for (int i=0; i<200; i++) {
+//    WordCount[i] = 0; 
+//    DMBCount[i]=0;
+//  }
+//  //  //
+//  //  //unsigned cr[3]  = {0x80fc5fc0, 0x20a03786, 0x8}; // default conf register
+//  //  //
+//  //
+//  //  unsigned cr[3];
+//  //  //
+//  //  alct->GetConf(cr,1);
+//  //
+//  int minlimit = 0;
+//  int maxlimit = 150;
+//  //
+//  for (int l1a=minlimit; l1a<maxlimit; l1a++) {
+//    //
+//    //while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
+//    //
+//    //    int keyWG          = int((rand()/(RAND_MAX+0.01))*(alct->GetWGNumber())/6./2.);
+//    //    int ChamberSection = alct->GetWGNumber()/6;
+//    int keyWG          = int((rand()/(RAND_MAX+0.01))*(alct->GetNumberOfChannelsInAlct())/6./2.);
+//    //    int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
+//    //
+//    printf("\n");
+//    printf("-----> Injecting at %d \n",keyWG);
+//    for(int layer=0; layer<MAX_NUM_LAYERS; layer++) {
+//      for(int channel=0; channel<(alct->GetNumberOfChannelsInAlct())/6; channel++) {
+//	if (channel==keyWG) {
+//	  alct->SetHotChannelMask(layer,channel,ON);
+//	} else {
+//	  alct->SetHotChannelMask(layer,channel,OFF);
+//	}
+//      }
+//    }
+//    alct->WriteHotChannelMask();
+//    alct->PrintHotChannelMask();
+//    //
+//    alct->SetL1aDelay(l1a);
+//    alct->WriteConfigurationReg();
+//    alct->PrintConfigurationReg();
+//    //
+//    //
+//    thisTMB->ResetALCTRAMAddress();
+//    PulseTestStrips();
+//    thisTMB->DecodeALCT();
+//    thisTMB->GetCounters();
+//    thisTMB->PrintCounters(3);
+//    WordCount[l1a] = thisTMB->GetALCTWordCount();
+//    DMBCount[l1a] = thisDMB->GetAlctDavCounter();
+//    printf(" WordCount %d \n",thisTMB->GetALCTWordCount());
+//    //
+//    thisDMB->PrintCounters();
+//    //
+//  }
+//  //
+//  for (int i=minlimit; i<maxlimit; i++){
+//    printf(" Value = %d WordCount = %3d DMBCount = %3d \n",i,WordCount[i],DMBCount[i]);
+//  }
+//  //
+//  float DelayBin  = 0;
+//  int   DelayBinN = 0;
+//  int   flag      = 0;
+//  //
+//  for (int i=maxlimit; i>minlimit; i--){
+//    //
+//    if (flag == 1 && WordCount[i] == 0 ) break;
+//    //
+//    if ( WordCount[i]>0 ) {
+//      //
+//      //printf("Including %d \n",i);
+//      //
+//      flag = 1;
+//      DelayBin  += i ;
+//      DelayBinN ++;
+//    }
+//    //
+//  }
+//  //
+//  printf(" DelayBin=%f DelaybinN=%d \n",DelayBin,DelayBinN);
+//  //
+//  DelayBin /= (DelayBinN+0.0001) ;
+//  //
+//  BestALCTL1aDelay_ = (int) (DelayBin+0.5) ;
+//  //
+//  return BestALCTL1aDelay_;
+//  //
+//}
 //
 int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
+  //
+  // Set up for this test...
+  // Get initial values:
+  int initial_value_of_register = thisTMB->GetMpcOutputEnable();
+  //
+  // Enable this TMB for this test
+  thisTMB->SetMpcOutputEnable(1);
+  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
   //
   int WordCount[200];
   for (int i=0; i<200; i++) WordCount[i] = 0;
@@ -1954,6 +2001,10 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
   ALCTL1aDelay_ = (int) (DelayBin+0.5);
   //
   (*MyOutput_) << " Best value of alct_l1a_delay = " << ALCTL1aDelay_ << std::endl;
+  //
+  // Set the registers back to how they were at beginning...
+  thisTMB->SetMpcOutputEnable(initial_value_of_register);
+  thisTMB->WriteRegister( tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr) );
   //
   return ALCTL1aDelay_;
   //
@@ -2247,9 +2298,13 @@ void ChamberUtilities::LoadCFEB(int HalfStrip, int CLCTInputs, bool enableL1aEmu
   //
   if (HalfStrip == -1 ) HalfStrip = int(rand()*31./(RAND_MAX+1.0));
   //
-  (*MyOutput_) << endl;
-  (*MyOutput_) << " -- Injecting in " << HalfStrip << endl;
-  (*MyOutput_) << endl;
+  (*MyOutput_) << " -- Injecting CFEB in halfstrip = " << std::dec << HalfStrip 
+	       << " into CLCT inputs = 0x" << std::hex << CLCTInputs << std::endl;
+  //
+  if (debug_) {
+    std::cout << " -- Injecting CFEB in halfstrip = " << std::dec << HalfStrip 
+	      << " into CLCT inputs = 0x" << std::hex << CLCTInputs << std::endl;
+  }
   //
   //thisTMB->DiStripHCMask(HalfStrip/4-1); // counting from 0; //Bad...requests L1a....
   //
@@ -2481,6 +2536,8 @@ void ChamberUtilities::CCBStartTrigger(){
 // analysis methods
 //////////////////////////////////////////////////////////////////////
 void ChamberUtilities::ZeroTmbHistograms() {
+  //
+  if (debug_) std::cout << "Zero TMB histograms" << std::endl;
   //
   // Counter histograms
   for (int i=0; i<15; i++) {
