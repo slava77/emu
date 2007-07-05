@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 3.4 2007/06/12 09:55:35 rakness Exp $
+// $Id: CrateTiming.cpp,v 3.5 2007/07/05 07:29:10 rakness Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 3.5  2007/07/05 07:29:10  rakness
+// add debug_ flag, make testing more robust, comment out old l1a timing routines
+//
 // Revision 3.4  2007/06/12 09:55:35  rakness
 // clean up warnings
 //
@@ -1710,7 +1713,7 @@ int main(int argc,char **argv){
 
     if (doFindBestL1aALCT){
       //tbController.DcsDisable();
-      util.FindBestL1aAlct();
+      //      util.FindBestL1aAlct();
       //tbController.DcsEnable();
     }
 
@@ -1812,7 +1815,7 @@ int main(int argc,char **argv){
   if (doLv1TMBTiming){
     //tbController.DcsDisable();
     //    int L1aTMB = util.TMBL1aTiming();
-    util.TMBL1aTiming();
+    //    util.TMBL1aTiming();
     //tbController.DcsEnable();
   }
 
