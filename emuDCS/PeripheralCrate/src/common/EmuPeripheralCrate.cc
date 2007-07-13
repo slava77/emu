@@ -1187,13 +1187,6 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
 	  *out << cgicc::td();
 	  if ( TMBBoardID_[i].find("-1") == string::npos ) {
 	    //
-	    //*out << cgicc::form().set("method","GET").set("action",TMBStatus)
-	    //.set("target","_blank") << std::endl ;
-	    //*out << cgicc::input().set("type","submit").set("value",Name) << std::endl ;
-	    //sprintf(buf,"%d",i);
-	    //*out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-	    //*out << cgicc::form() << std::endl ;
-	    //
 	    std::string MonitorTMBTrigger =
 	      toolbox::toString("/%s/MonitorTMBTrigger?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
 	    *out << cgicc::a("Monitor TMB trigger").set("href",MonitorTMBTrigger) << endl;
@@ -1204,6 +1197,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
 	    //
 	    std::string TMBStatus =
 	      toolbox::toString("/%s/TMBStatus?tmb=%d",getApplicationDescriptor()->getURN().c_str(),i);
+	    //
 	    *out << cgicc::a("TMB Status").set("href",TMBStatus) << endl;
 	    //
 	  }
@@ -5387,8 +5381,8 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     this->TMBUtils(in,out);
     //
   }
-  //
-  void EmuPeripheralCrate::TMBReadConfiguration(xgi::Input * in, xgi::Output * out ) 
+  // 
+ void EmuPeripheralCrate::TMBReadConfiguration(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
     //
@@ -5540,7 +5534,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
     *out << std::endl;
     //
-    *out << cgicc::legend("ALCT Status").set("style","color:blue") << cgicc::p() << std::endl ;
+    *out << cgicc::legend("ALCT Firmware Status").set("style","color:blue") << cgicc::p() << std::endl ;
     //
     alct->ReadSlowControlId();
     //
@@ -5581,6 +5575,185 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     *out << cgicc::span();
     *out << cgicc::fieldset();
+    //
+    //
+    //
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+    //
+    *out << cgicc::legend("Voltages, Currents, and Temperatures").set("style","color:blue") 
+	 << cgicc::p() << std::endl ;
+    //
+    alct->ReadAlctTemperatureAndVoltages();
+    //
+    alct->RedirectOutput(out);
+    alct->PrintAlctTemperature();
+    alct->RedirectOutput(&std::cout);
+    //
+    *out << cgicc::br();    
+    //
+    //
+    *out << cgicc::table().set("border","1").set("cellspacing","1").set("cellpadding","8");
+    //
+    *out << cgicc::td();
+    *out << "power line" << endl;
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    *out << "+3.3V" << endl;
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    *out << "+1.8V" << endl;
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    *out << "+5.5V B" << endl;
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    *out << "+5.5V A" << endl;
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
+    //
+    //
+    *out << cgicc::table().set("border","1").set("cellspacing","1").set("cellpadding","8");
+    //
+    *out << cgicc::td();
+    *out << "measured V" << endl;
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    //    float value_3p3volt = thisDMB->lowv_adc(5,2)/1000.;
+    float value_3p3volt = alct->GetAlct_3p3_Voltage();
+    //
+    if ( value_3p3volt < 3.3*0.95 ||
+	 value_3p3volt > 3.3*1.05 ) {
+      *out << cgicc::span().set("style","color:red");
+    } else {
+      *out << cgicc::span().set("style","color:green");  
+    }
+    *out << std::setprecision(2) << value_3p3volt << "V";
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    //
+    *out << cgicc::td();
+    //    float value_1p8volt = thisDMB->lowv_adc(5,3)/1000.;
+    float value_1p8volt = alct->GetAlct_1p8_Voltage();
+    //
+    if ( value_1p8volt < 1.8*0.95 ||
+	 value_1p8volt > 1.8*1.95 ) {
+      *out << cgicc::span().set("style","color:red");
+    } else {
+      *out << cgicc::span().set("style","color:green");  
+    }
+    *out << std::setprecision(2) << value_1p8volt << "V";
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    //
+    *out << cgicc::td();
+    //    float value_5p5voltb = thisDMB->lowv_adc(5,4)/1000.;
+    float value_5p5voltb = alct->GetAlct_5p5b_Voltage();
+    //
+    if ( value_5p5voltb < 5.5*0.95 ||
+	 value_5p5voltb > 5.5*1.05 ) {
+      *out << cgicc::span().set("style","color:red");
+    } else {
+      *out << cgicc::span().set("style","color:green");  
+    }
+    *out << std::setprecision(2) << value_5p5voltb << " V";
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    //
+    *out << cgicc::td();
+    //    float value_5p5volta = thisDMB->lowv_adc(5,5)/1000.;
+    float value_5p5volta = alct->GetAlct_5p5a_Voltage();
+    //
+    if ( value_5p5volta < 5.5*0.95 ||
+	 value_5p5volta > 5.5*1.05 ) {
+      *out << cgicc::span().set("style","color:red");
+    } else {
+      *out << cgicc::span().set("style","color:green");  
+    }
+    *out << std::setprecision(2) << value_5p5volta << " V" ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
+    //
+    //
+    // ALCT currents
+    //
+    *out << cgicc::table().set("border","1").set("cellspacing","1").set("cellpadding","8");
+    //
+    *out << cgicc::td();
+    *out << "measured I" << endl;
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    //    float value_3p3amps = thisDMB->lowv_adc(2,7)/1000.;
+    float value_3p3amps = alct->GetAlct_3p3_Current();
+    //
+    if ( value_3p3amps < 3.3*0.95 ||
+	 value_3p3amps > 3.3*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");  
+    }
+    *out << std::setprecision(2) << value_3p3amps << "A" ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    //
+    *out << cgicc::td();
+    //    float value_1p8amps = thisDMB->lowv_adc(3,0)/1000.;
+    float value_1p8amps = alct->GetAlct_1p8_Current();
+    //
+    if ( value_1p8amps < 1.8*0.95 ||
+	 value_1p8amps > 1.8*1.95 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");  
+    }
+    *out << std::setprecision(2) << value_1p8amps << "A" ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::td();
+    //    float value_5p5ampsb = thisDMB->lowv_adc(3,2)/1000.;
+    float value_5p5ampsb = alct->GetAlct_5p5b_Current();
+    if ( value_5p5ampsb < 5.5*0.95 ||
+	 value_5p5ampsb > 5.5*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");  
+    }
+    *out << std::setprecision(2) << value_5p5ampsb << " A" ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    //
+    *out << cgicc::td();
+    //    float value_5p5ampsa = thisDMB->lowv_adc(3,1)/1000.;
+    float value_5p5ampsa = alct->GetAlct_5p5a_Current();
+    //
+    if ( value_5p5ampsa < 5.5*0.95 ||
+	 value_5p5ampsa > 5.5*1.05 ) {
+      *out << cgicc::span().set("style","color:black");
+    } else {
+      *out << cgicc::span().set("style","color:black");  
+    }
+    *out << std::setprecision(2) << value_5p5ampsa << " A" ;
+    *out << cgicc::span();
+    *out << cgicc::td();
+    //
+    *out << cgicc::table();
+    //
+    *out << cgicc::fieldset();
+    *out << std::endl;
     //
   }
   //
@@ -6762,17 +6935,14 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     int tmb;
     if(name != cgi.getElements().end()) {
       tmb = cgi["tmb"]->getIntegerValue();
-      cout << "TMB " << tmb << endl;
+      cout << "TMBStatus TMB=" << tmb << endl;
       TMB_ = tmb;
     } else {
-      cout << "Not tmb" << endl ;
+      cout << "TMBStatus No TMB" << endl ;
       tmb = TMB_;
     }
     //
     TMB * thisTMB = tmbVector[tmb];
-    //
-    char Name[50];
-    sprintf(Name,"TMB Status slot=%d",thisTMB->slot());	
     //
     alct = thisTMB->alctController();
     rat  = thisTMB->getRAT();
@@ -6793,6 +6963,8 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       //
     }
     //
+    char Name[50];
+    sprintf(Name,"TMB Status slot=%d",thisTMB->slot());	
     MyHeader(in,out,Name);
     //
     //*out << cgicc::h1(Name);
@@ -6821,21 +6993,16 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     int expected_month = thisTMB->GetExpectedTmbFirmwareMonth();
     int expected_year  = thisTMB->GetExpectedTmbFirmwareYear();
     //
-    //
-    sprintf(buf,"TMB Firmware date         : %02x/%02x/%04x ",month,day,year);
-    //
     if ( month == expected_month &&
 	 day   == expected_day   &&
 	 year  == expected_year ) {
       *out << cgicc::span().set("style","color:green");
-      *out << buf;
-      *out << cgicc::span();
     } else {
       *out << cgicc::span().set("style","color:red");
-      *out << buf;
-      *out << cgicc::span();
     }
-    //
+    sprintf(buf,"TMB Firmware date         : %02x/%02x/%04x ",month,day,year);
+    *out << buf;
+    *out << cgicc::span();
     //
     *out << cgicc::br();
     //
@@ -6848,17 +7015,14 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     // get the expected values:
     int expected_type = thisTMB->GetExpectedTmbFirmwareType();
 
-    sprintf(buf,"Firmware Type             : %01x ",type);       
-    //
     if ( type == expected_type ) {
       *out << cgicc::span().set("style","color:green");
-      *out << buf;
-      *out << cgicc::span();
     } else {
       *out << cgicc::span().set("style","color:red");
-      *out << buf;
-      *out << cgicc::span();
     }
+    sprintf(buf,"Firmware Type             : %01x ",type);       
+    *out << buf;
+    *out << cgicc::span();
     //
     //
     *out << cgicc::br();
@@ -6871,48 +7035,43 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     int expected_version = thisTMB->GetExpectedTmbFirmwareVersion();
     //
-    sprintf(buf,"Firmware Version Code     : %01x ",version);       
-    //
     if ( version == expected_version ){
       *out << cgicc::span().set("style","color:green");
-      *out << buf ;
-      *out << cgicc::span();
     } else {
       *out << cgicc::span().set("style","color:red");
-      *out << buf ;
-      *out << cgicc::span();
     }
+    sprintf(buf,"Firmware Version Code     : %01x ",version);       
+    *out << buf ;
+    *out << cgicc::span();
     //
     *out << cgicc::br();
     //
-    sprintf(buf,"Geographic Address        : %02d ",((thisTMB->FirmwareVersion()>>8)&0x1f));       
+    //
     if ( ((thisTMB->FirmwareVersion()>>8)&0x1f) == thisTMB->slot() ){
       *out << cgicc::span().set("style","color:green");
-      *out << buf ;
-      *out << cgicc::span();
     } else {
       *out << cgicc::span().set("style","color:red");
-      *out << buf ;
-      *out << cgicc::span();
-      //
     }
+    sprintf(buf,"Geographic Address        : %02d ",((thisTMB->FirmwareVersion()>>8)&0x1f));       
+    *out << buf ;
+    *out << cgicc::span();
     //
     *out << cgicc::br();
+    //
     //
     sprintf(buf,"Firmware Revision Code    : %04x ",((thisTMB->FirmwareRevCode())&0xffff));       
     *out << buf ;
     *out << cgicc::br();
     //
-    sprintf(buf,"Power Comparator          : %02x ",((thisTMB->PowerComparator())&0x1f));       
+    //
     if ( (thisTMB->PowerComparator())&0x1f == 0x1f ) {
       *out << cgicc::span().set("style","color:green");
-      *out << buf ;
-      *out << cgicc::span();
     } else {
       *out << cgicc::span().set("style","color:red");
-      *out << buf ;
-      *out << cgicc::span();
     }
+    sprintf(buf,"Power Comparator          : %02x ",((thisTMB->PowerComparator())&0x1f));       
+    *out << buf ;
+    *out << cgicc::span();
     //
     *out << cgicc::br();
     //

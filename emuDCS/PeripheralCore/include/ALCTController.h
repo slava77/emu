@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.21 2007/04/26 07:43:26 rakness Exp $
+// $Id: ALCTController.h,v 3.22 2007/07/13 11:57:46 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.22  2007/07/13 11:57:46  rakness
+// add read/accessors to ALCT temperature+on-board voltage
+//
 // Revision 3.21  2007/04/26 07:43:26  rakness
 // AFEB delay chip index count from 0 for unconnected AFEBs in ME1/3,3/1,4/1
 //
@@ -276,6 +279,18 @@ public:
   //
   void  WriteAfebThresholds();                    //writes Write values to ALCT DAC
   void  ReadAfebThresholds();			  //fills Read values with values read from ALCT ADC	 
+  //
+  void  ReadAlctTemperatureAndVoltages();         //Read the ALCT values from the ADC
+  void  PrintAlctTemperature();                   //Print the ALCT temperature
+  inline float GetAlctTemperatureCelcius() { return read_alct_temperature_celcius_; } 
+  inline float GetAlct_1p8_Voltage()  { return read_alct_1p8_voltage_;  } 
+  inline float GetAlct_3p3_Voltage()  { return read_alct_3p3_voltage_;  } 
+  inline float GetAlct_5p5a_Voltage() { return read_alct_5p5a_voltage_; } 
+  inline float GetAlct_5p5b_Voltage() { return read_alct_5p5b_voltage_; } 
+  inline float GetAlct_1p8_Current()  { return read_alct_1p8_current_;  } 
+  inline float GetAlct_3p3_Current()  { return read_alct_3p3_current_;  } 
+  inline float GetAlct_5p5a_Current() { return read_alct_5p5a_current_; } 
+  inline float GetAlct_5p5b_Current() { return read_alct_5p5b_current_; } 
   //
   //////////////////////////////
   // ASIC DELAYS and PATTERNS 
@@ -601,7 +616,20 @@ private:
   //
   int write_afeb_threshold_[MAX_NUM_AFEBS];
   int read_afeb_threshold_[MAX_NUM_AFEBS];
+  float read_alct_temperature_celcius_;
+  float read_alct_1p8_voltage_;
+  float read_alct_3p3_voltage_;
+  float read_alct_5p5a_voltage_;
+  float read_alct_5p5b_voltage_;
+  float read_alct_1p8_current_;
+  float read_alct_3p3_current_;
+  float read_alct_5p5a_current_;
+  float read_alct_5p5b_current_;
+  //
   int read_adc_(int ADCchipNumber, int ADCchannel);
+  float ConvertADCtoVoltage_(int adc_value);  
+  float ConvertADCtoCurrent_(int adc_value);
+  float ConvertADCtoTemperature_(int adc_value);
   //
   //////////////////////////
   //TESTPULSE POWERSWITCH

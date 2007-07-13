@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.36 2007/05/17 12:52:50 rakness Exp $
+// $Id: ALCTController.cc,v 3.37 2007/07/13 11:57:48 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.37  2007/07/13 11:57:48  rakness
+// add read/accessors to ALCT temperature+on-board voltage
+//
 // Revision 3.36  2007/05/17 12:52:50  rakness
 // ignore_ccb_startstop added to TMB configuration + write configuration to userPROM default
 //
@@ -1249,6 +1252,84 @@ void ALCTController::SetAfebThreshold(int afebChannel, int dacvalue) {
   return;
 }
 //
+void ALCTController::ReadAlctTemperatureAndVoltages() {
+  //
+  if (debug_) 
+    (*MyOutput_) << "ALCT: READ ALCT Temperature and on-board voltages... " << std::endl;
+  //
+  int read_alct_1p8_current_adc = read_adc_(Current1p8_adc_chip,Current1p8_adc_channel);
+  read_alct_1p8_current_        = ConvertADCtoCurrent_(read_alct_1p8_current_adc);    
+  if (debug_) {
+    (*MyOutput_) << "1.8V I ADC = " << std::dec << read_alct_1p8_current_adc << std::endl;
+    (*MyOutput_) << "1.8V I     = "             << read_alct_1p8_current_    << std::endl;
+  }
+  //
+  int read_alct_3p3_current_adc = read_adc_(Current3p3_adc_chip,Current3p3_adc_channel);
+  read_alct_3p3_current_        = ConvertADCtoCurrent_(read_alct_3p3_current_adc);    
+  if (debug_) {
+    (*MyOutput_) << "3.3V I ADC = " << std::dec << read_alct_3p3_current_adc << std::endl;
+    (*MyOutput_) << "3.3V I     = "             << read_alct_3p3_current_    << std::endl;
+  }
+  //
+  int read_alct_5p5a_current_adc = read_adc_(Current5p5_1_adc_chip,Current5p5_1_adc_channel);
+  read_alct_5p5a_current_        = ConvertADCtoCurrent_(read_alct_5p5a_current_adc);
+  if (debug_) {
+    (*MyOutput_) << "5.5VA I ADC = " << std::dec << read_alct_5p5a_current_adc << std::endl;
+    (*MyOutput_) << "5.5VA I     = "             << read_alct_5p5a_current_    << std::endl;
+  }
+  //
+  int read_alct_5p5b_current_adc = read_adc_(Current5p5_2_adc_chip,Current5p5_2_adc_channel);
+  read_alct_5p5b_current_         = ConvertADCtoCurrent_(read_alct_5p5b_current_adc);
+  if (debug_) {
+    (*MyOutput_) << "5.5V2 I ADC = " << std::dec << read_alct_5p5b_current_adc << std::endl;
+    (*MyOutput_) << "5.5V2 I     = "             << read_alct_5p5b_current_    << std::endl;
+  }
+  //
+  int read_alct_1p8_voltage_adc = read_adc_(Voltage1p8_adc_chip  ,Voltage1p8_adc_channel  );
+  read_alct_1p8_voltage_        = ConvertADCtoVoltage_(read_alct_1p8_voltage_adc);    
+  if (debug_) {
+    (*MyOutput_) << "1.8V V ADC = " << std::dec << read_alct_1p8_voltage_adc    << std::endl;
+    (*MyOutput_) << "1.8V V     = "             << read_alct_1p8_voltage_       << std::endl;
+  }
+  //
+  int read_alct_3p3_voltage_adc = read_adc_(Voltage3p3_adc_chip  ,Voltage3p3_adc_channel  );
+  read_alct_3p3_voltage_        = ConvertADCtoVoltage_(read_alct_3p3_voltage_adc);    
+  if (debug_) {
+    (*MyOutput_) << "3.3V V ADC = " << std::dec << read_alct_3p3_voltage_adc    << std::endl;
+    (*MyOutput_) << "3.3V       = "             << read_alct_3p3_voltage_       << std::endl;
+  }
+  //
+  int read_alct_5p5a_voltage_adc = read_adc_(Voltage5p5_1_adc_chip,Voltage5p5_1_adc_channel);
+  read_alct_5p5a_voltage_        = ConvertADCtoVoltage_(read_alct_5p5a_voltage_adc);
+  if (debug_) {
+    (*MyOutput_) << "5.5VA V ADC = " << std::dec << read_alct_5p5a_voltage_adc << std::endl;
+    (*MyOutput_) << "5.5V1 V     = "             << read_alct_5p5a_voltage_     << std::endl;
+  }
+  //
+  int read_alct_5p5b_voltage_adc = read_adc_(Voltage5p5_2_adc_chip,Voltage5p5_2_adc_channel);
+  read_alct_5p5b_voltage_        = ConvertADCtoVoltage_(read_alct_5p5b_voltage_adc);
+  if (debug_) {
+    (*MyOutput_) << "5.5V2 V ADC = " << std::dec << read_alct_5p5b_voltage_adc << std::endl;
+    (*MyOutput_) << "5.5V2 V     = "             << read_alct_5p5b_voltage_    << std::endl;
+  }
+  //
+  int read_alct_temperature_adc  = read_adc_(Temperature_adc_chip ,Temperature_adc_channel );
+  read_alct_temperature_celcius_ = ConvertADCtoTemperature_(read_alct_temperature_adc);
+  if (debug_) {
+    (*MyOutput_) << "Temp ADC     = " << std::dec << read_alct_temperature_adc << std::endl;
+    (*MyOutput_) << "Temp Celcius = " << read_alct_temperature_celcius_ << std::endl;
+  }  
+  //
+  return;
+}
+//
+void ALCTController::PrintAlctTemperature() {
+  //
+  (*MyOutput_) << "ALCT Temperature =  " << std::setprecision(1) << std::fixed 
+	       << GetAlctTemperatureCelcius() << " C" << std::endl;
+  return;
+}
+//
 int ALCTController::GetAfebThresholdDAC(int afebChannel) { 
   //
   return write_afeb_threshold_[UserIndexToHardwareIndex_(afebChannel)]; 
@@ -1260,7 +1341,71 @@ int ALCTController::GetAfebThresholdADC(int afebChannel) {
 }
 //
 float ALCTController::GetAfebThresholdVolts(int afebChannel) {
-  return (2.5 * (float)GetAfebThresholdADC(afebChannel) /1023.); 
+  //
+  return ConvertADCtoVoltage_(GetAfebThresholdADC(afebChannel)); 
+}
+//
+float ALCTController::ConvertADCtoVoltage_(int adc_value) {
+  //
+  // From the ALCT schematics, the reference voltage for the ADC is +1.225V.
+  const float reference_voltage = 1.225;
+  //
+  // There is a resistor divider so that the maximum value (~5.5V) can 
+  // be measured appropriately by the ADC:
+  const float r1 = 1.1;
+  const float r2 = 4.3;
+  //
+  // 10 bit adc:
+  const float max_adc_value = 1023.;
+  //
+  // So the ADC value in volts is:
+  float volts = (float)adc_value * (reference_voltage / max_adc_value) * ((r1 + r2) / r1); 
+  return volts;
+}
+//
+float ALCTController::ConvertADCtoCurrent_(int adc_value) {
+  //
+  // From the ALCT schematics, the reference voltage for the ADC is +1.225V.
+  const float reference_voltage = 1.225;
+  //
+  // 10 bit adc:
+  const float max_adc_value = 1023.;
+  //
+  // So the ADC value in volts is:
+  float volts_into_adc = (float)adc_value * (reference_voltage / max_adc_value);
+  //
+  // The voltage into the ADC has arrived via an op-amp with a 2kohm resistor in parallel:
+  float resistor_in_parallel = 2000.;
+  float current_in_parallel  = volts_into_adc / resistor_in_parallel;
+  //
+  // ... which makes the voltage into the 49.9ohm resistor in front be...
+  float resistor_in_front    = 49.9;
+  float volts_into_front     = current_in_parallel * resistor_in_front;
+  //
+  // Finally, the current into the 49.9ohm resistor had gone through a small resistor
+  // before going into the op-amp circuitry:
+  float small_resistor = 0.01;
+  float current = volts_into_front / small_resistor;
+  //
+  return current;
+}
+//
+float ALCTController::ConvertADCtoTemperature_(int adc_value) {
+  //
+  // From the ALCT schematics, the reference voltage for the ADC is +1.225V.
+  const float reference_voltage = 1.225;
+  //
+  // 10 bit adc:
+  const float max_adc_value = 1023.;
+  //
+  float volts = (float)adc_value * (reference_voltage / max_adc_value);
+  //
+  // The device reads temperature with an offset of 25degC = 0.750V and a slope of 0.010V/degC
+  float slope  = (1. / 0.010);
+  float offset = (25 - 0.750*slope);
+  // 
+  float temperature = offset + slope*volts;
+  return temperature;
 }
 //
 int ALCTController::read_adc_(int chip, int channel) {
@@ -1279,8 +1424,10 @@ int ALCTController::read_adc_(int chip, int channel) {
   //
   setup_jtag(ChainAlctSlowFpga);
   //
+  //
   // Need to ShfDR in two times: 
   //   -> First time to shift in the channel on tdi
+  if (debug_) (*MyOutput_) << "Shift in channel value..." << std::endl;
   ShfIR_ShfDR(ChipLocationAlctSlowFpga,
 	      opcode,
 	      RegSizeAlctSlowFpga_RD_THRESH_ADC0,
@@ -1290,6 +1437,7 @@ int ALCTController::read_adc_(int chip, int channel) {
   ::usleep(200);
   //
   //   -> Second time to get the data on tdo
+  if (debug_) (*MyOutput_) << "Get ADC data..." << std::endl;
   ShfIR_ShfDR(ChipLocationAlctSlowFpga,
 	      opcode,
 	      RegSizeAlctSlowFpga_RD_THRESH_ADC0,
@@ -1298,6 +1446,9 @@ int ALCTController::read_adc_(int chip, int channel) {
   int adcValue = bits_to_int(GetDRtdo(),
 			     RegSizeAlctSlowFpga_RD_THRESH_ADC0,
 			     MSBfirst);
+  //
+  if (debug_) (*MyOutput_) << "ADC value = 0x" << std::hex << adcValue << std::endl;
+  //
   return adcValue;
 }
 //
