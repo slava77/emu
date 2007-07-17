@@ -21,54 +21,36 @@ Package=emuDCS/PeripheralCrate
 #DependentLibraries = CSCSupervisor
 
 Sources=\
-	ALCTController.cc \
-	AnodeChannel.cc \
+        CCBParser.cc \
+        ChamberUtilities.cc \
+        DAQMBParser.cc \
+        EmuSystemParser.cc \
+        EmuParser.cc \
+        MPCParser.cc \
+        PeripheralCrateParser.cc \
+        EMUParser.cc \
+        EmuController.cc \
+        TMBParser.cc \
+        VMEParser.cc \
         CalibDAQ.cc \
-	CCB.cc \
-	RAT.cc \
-	CCBParser.cc \
-	CFEB.cc \
-	Crate.cc \
-	CrateSelector.cc \
 	CrateUtils.cc \
-	CrateSetup.cc \
-	DAQMB.cc \
-	DAQMBParser.cc \
-	EmuSystemParser.cc \
-	EmuParser.cc \
-	MPC.cc \
-	MPCParser.cc \
-	PeripheralCrateParser.cc \
-	EMUParser.cc \
-	EmuController.cc \
-	TMBTester.cc \
-	TMB.cc \
-	TMBParser.cc \
-	VMEController.cc \
-	VMEController_jtag.cc \
-	VMEModule.cc \
-	VMEParser.cc \
-	EmuPeripheralCrate.cc  \
-	EmuPeripheralCrateManager.cc  \
 	CrateUtilities.cc \
-	Chamber.cc \
-	ChamberUtilities.cc \
-	CSCParser.cc \
-	EMUjtag.cc \
-	EmuSystem.cc \
-	TStoreParser.cc \
-	TStoreVMEParser.cc \
-	TStoreCCBParser.cc \
-	TStoreMPCParser.cc \
-	TStoreTMBParser.cc \
-	TStoreDMBParser.cc \
-	TStoreCSCParser.cc \
-	TStoreALCTParser.cc \
-	TStoreAFEBParser.cc \
-	TStoreCFEBParser.cc \
-	TStorePeriphParser.cc \
-	EmuApplication.cc \
-	EmuModule.cc
+        EmuPeripheralCrate.cc \
+        EmuPeripheralCrateManager.cc \
+        EmuRunControlHyperDAQ.cc \
+        CSCParser.cc \
+        TStoreParser.cc \
+        TStoreVMEParser.cc \
+        TStoreCCBParser.cc \
+        TStoreMPCParser.cc \
+        TStoreTMBParser.cc \
+        TStoreDMBParser.cc \
+        TStoreCSCParser.cc \
+        TStoreALCTParser.cc \
+        TStoreAFEBParser.cc \
+        TStoreCFEBParser.cc \
+        TStorePeriphParser.cc \
+        EmuApplication.cc
 
 IncludeDirs = \
 	$(XDAQ_ROOT)/daq/toolbox/include \
@@ -86,7 +68,8 @@ IncludeDirs = \
 	$(XDAQ_ROOT)/daq/extern/i2o/include/i2o/shared \
 	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
 	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
-	$(XDAQ_ROOT)/daq/xgi/include 
+	$(XDAQ_ROOT)/daq/xgi/include \
+        $(XDAQ_ROOT)/emu/emuDCS/PeripheralCore/include
 
 LibraryDirs = \
 	$(XDAQ_ROOT)/daq/xdata/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
@@ -97,7 +80,7 @@ LibraryDirs = \
 	$(XDAQ_ROOT)/daq/pt/tcp/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
 	$(XDAQ_ROOT)/daq/toolbox/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
 	$(XDAQ_ROOT)/daq/xoap/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-	$(XDAQ_ROOT)/daq/pt/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) 
+	$(XDAQ_ROOT)/daq/pt/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
 TestLibraryDirs = \
 	$(XDAQ_ROOT)/daq/xdata/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
@@ -109,6 +92,7 @@ TestLibraryDirs = \
 	$(XDAQ_ROOT)/daq/extern/log4cplus/xmlappender/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
 	$(XDAQ_ROOT)/daq/extern/log4cplus/udpappender/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
 	$(XDAQ_ROOT)/daq/extern/mimetic/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
+        $(XDAQ_ROOT)/emu/emuDCS/PeripheralCore/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
         $(XDAQ_ROOT)/emu/emuDCS/PeripheralCrate/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
 UserCFlags  = 
@@ -123,7 +107,7 @@ UserExecutableLinkFlags =
 Libraries = xerces-c xdaq xdata log4cplus toolbox xoap cgicc xcept xgi peer
 TestLibraries = xerces-c xdaq xdata log4cplus toolbox xoap cgicc xcept xgi peer \
                 mimetic xmlappender udpappender asyncresolv\
-	        EmuPeripheralCrate
+	        EmuPeripheralCore EmuPeripheralCrate
 
 #
 # Compile the source files and create a shared library
