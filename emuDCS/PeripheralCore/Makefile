@@ -35,8 +35,7 @@ Sources=\
 	EmuModule.cc
 
 IncludeDirs = \
-        $(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
-        $(XDAQ_ROOT)/emu/emuDCS/PeripheralCrate/include
+        $(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include
 
 LibraryDirs = 
 
