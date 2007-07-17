@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.24 2007/07/05 07:29:09 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.25 2007/07/17 16:25:15 liu Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.25  2007/07/17 16:25:15  liu
+// remove CCBStartTrigger()
+//
 // Revision 3.24  2007/07/05 07:29:09  rakness
 // add debug_ flag, make testing more robust, comment out old l1a timing routines
 //
@@ -2517,21 +2520,6 @@ int ChamberUtilities::AdjustL1aLctDMB(){
   //
 }
 //
-void ChamberUtilities::CCBStartTrigger(){
-  //
-  //printf("CCB %x \n",thisCCB_);
-  //printf("MPC %x \n",thisMPC);
-  //
-  if (!thisCCB_) {
-    std::cout << "CCB doesn't exist" << std::endl;
-    return;
-  }
-  thisCCB_->setCCBMode(CCB::VMEFPGA);      // It needs to be in FPGA mod to work.
-  thisCCB_->startTrigger();
-  thisCCB_->bc0(); 
-  //
-}
-//
 //////////////////////////////////////////////////////////////////////
 // analysis methods
 //////////////////////////////////////////////////////////////////////
@@ -2853,7 +2841,6 @@ void ChamberUtilities::Automatic(){
   //
   // Enable all...for DMB....be careful....
   //
-  //CCBStartTrigger();
   //
   //BestCCBDelaySetting = AdjustL1aLctDMB();
   //
