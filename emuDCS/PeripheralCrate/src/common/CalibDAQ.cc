@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 3.10 2006/11/10 16:51:44 mey Exp $
+// $Id: CalibDAQ.cc,v 3.11 2007/07/17 16:28:40 liu Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 3.11  2007/07/17 16:28:40  liu
+// replace CCBStartTrigger() with CCB->startTrigger() & CCB->bc0()
+//
 // Revision 3.10  2006/11/10 16:51:44  mey
 // Update
 //
@@ -432,7 +435,9 @@ void CalibDAQ::timeCFEB() {
 	//::usleep(2000);
 	//
 	CCB * ccb = myCrates[j]->ccb();
-	(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+	// (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+        ccb->startTrigger();
+        ccb->bc0();
 	//
 	//::usleep(2000);
 	//
@@ -514,7 +519,9 @@ void CalibDAQ::gainCFEB() {
 	::usleep(1000);
 	//
 	CCB * ccb = myCrates[j]->ccb();
-	(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+	//(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+        ccb->startTrigger();
+        ccb->bc0();
 	//
 	::usleep(1000);
 	//
@@ -576,7 +583,9 @@ void CalibDAQ::pedestalCFEB() {
   ::usleep(1000);
     //
     CCB * ccb = myCrates[j]->ccb();
-    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+    //(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+        ccb->startTrigger();
+        ccb->bc0();
     //
     ::usleep(1000);
     //
@@ -653,7 +662,9 @@ void CalibDAQ::CFEBSaturationTest() {
 	::usleep(1000);
 	//
 	CCB * ccb = myCrates[j]->ccb();
-	(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+	//(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+        ccb->startTrigger();
+        ccb->bc0();
 	//
 	::usleep(1000);
 	//
@@ -796,7 +807,9 @@ void CalibDAQ::pulseAllDMBs(int ntim, int nstrip, float dac, int nsleep,int calT
   for(unsigned j = 0; j < myCrates.size(); ++j) {
     //
     CCB * ccb = myCrates[j]->ccb();
-    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+    //(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+        ccb->startTrigger();
+        ccb->bc0();
     //
     ::usleep(1000);
     //
@@ -826,10 +839,12 @@ void CalibDAQ::injectComparator(int ntim, int nstrip, float dac, int nsleep, flo
   //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
     //
-    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+    CCB * ccb = myCrates[j]->ccb();
+    //(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+        ccb->startTrigger();
+        ccb->bc0();
     usleep(100);
     //
-    CCB * ccb = myCrates[j]->ccb();
     std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
     std::vector<TMB*> myTmbs   = theSelector.tmbs(myCrates[j]);
     //
@@ -929,7 +944,10 @@ void CalibDAQ::FindL1aDelayALCT() {
   //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
     //
-    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+    CCB * ccb = myCrates[j]->ccb();
+    //(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+        ccb->startTrigger();
+        ccb->bc0();
     usleep(100);
   }
   //
@@ -1035,7 +1053,10 @@ void CalibDAQ::ALCTThresholdScan() {
   //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
     //
-    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+    CCB * ccb = myCrates[j]->ccb();
+    //(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+        ccb->startTrigger();
+        ccb->bc0();
     usleep(100);
   }
   //
@@ -1130,7 +1151,10 @@ void CalibDAQ::ALCTConnectivity() {
   //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
     //
-    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+    CCB * ccb = myCrates[j]->ccb();
+    //(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+        ccb->startTrigger();
+        ccb->bc0();
     usleep(100);
   }
   //
@@ -1211,7 +1235,10 @@ void CalibDAQ::CFEBConnectivity() {
   //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
     //
-    (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+    CCB * ccb = myCrates[j]->ccb();
+    //(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+        ccb->startTrigger();
+        ccb->bc0();
     usleep(100);
   }
   //
@@ -1284,10 +1311,12 @@ void CalibDAQ::FindL1aDelayComparator() {
   for(int delay=0;delay<200;delay++){
     for(unsigned j = 0; j < myCrates.size(); ++j) {
       //
-      (myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+      CCB * ccb = myCrates[j]->ccb();
+      //(myCrates[j]->chamberUtilsMatch())[0].CCBStartTrigger();
+        ccb->startTrigger();
+        ccb->bc0();
       usleep(100);
       //
-      CCB * ccb = myCrates[j]->ccb();
       std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
       std::vector<TMB*> myTmbs   = theSelector.tmbs(myCrates[j]);
       //
