@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.14 2007/03/14 08:36:35 rakness Exp $
+// $Id: Crate.cc,v 3.15 2007/07/17 16:17:22 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.15  2007/07/17 16:17:22  liu
+// remove ChamberUtilities dependence
+//
 // Revision 3.14  2007/03/14 08:36:35  rakness
 // remove RAT from configure
 //
@@ -115,7 +118,6 @@
 #include "CCB.h"
 #include "RAT.h"
 #include "ALCTController.h"
-#include "ChamberUtilities.h"
 #include "Chamber.h"
 #include "EmuSystem.h"
 
@@ -151,6 +153,9 @@ void Crate::AddChamber(Chamber * chamber) {
   theChambers.push_back(chamber);
 }
 
+#if 0
+// commented out to remove dependence on ChamberUtilities. Liu 2007 July 17.
+//
 std::vector<ChamberUtilities> Crate::chamberUtilsMatch() const {
   //
   std::vector<DAQMB *> dmbVector = daqmbs();
@@ -175,6 +180,8 @@ std::vector<ChamberUtilities> Crate::chamberUtilsMatch() const {
   return result;
   //
 }
+#endif
+
 //
 std::vector<Chamber*> Crate::chambers() const {
   //
