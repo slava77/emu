@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 3.5 2006/11/28 14:17:15 mey Exp $
+// $Id: Crate.h,v 3.6 2007/07/17 16:16:09 liu Exp $
 // $Log: Crate.h,v $
+// Revision 3.6  2007/07/17 16:16:09  liu
+// remove ChamberUtilities dependence
+//
 // Revision 3.5  2006/11/28 14:17:15  mey
 // UPdate
 //
@@ -55,7 +58,7 @@ class TMB;
 class ALCTController;
 class CCB;
 class MPC;
-class ChamberUtilities;
+//class ChamberUtilities;
 class Chamber;
 class EmuSystem;
 
@@ -83,7 +86,7 @@ public:
   std::vector<DAQMB *> daqmbs() const;
   std::vector<TMB *> tmbs() const;
   std::vector<ALCTController *> alcts() const;
-  std::vector<ChamberUtilities> chamberUtilsMatch() const;
+  //std::vector<ChamberUtilities> chamberUtilsMatch() const;
   std::vector<Chamber*> chambers() const;
   std::vector<Chamber> chambersMatch() const;
   //
