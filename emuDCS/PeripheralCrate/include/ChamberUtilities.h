@@ -80,7 +80,6 @@ public:
   void PopulateDmbHistograms(int number_of_reads);
   //
   int  AdjustL1aLctDMB();
-  void CCBStartTrigger();
   //
   // analysis methods
   void ZeroTmbHistograms();
