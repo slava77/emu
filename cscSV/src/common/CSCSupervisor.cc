@@ -397,13 +397,8 @@ void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 	if (value.empty()) { error_message_ += "Please select run type.\n"; }
 	run_type_ = value;
 
-	value = getCGIParameter(in, "runnumber");
-	if (value.empty()) { error_message_ += "Please set run number.\n"; }
-	run_number_ = strtol(value.c_str(), NULL, 0);
-
-	value = getCGIParameter(in, "nevents");
-	if (value.empty()) { error_message_ += "Please set max # of events.\n"; }
-	nevents_ = strtol(value.c_str(), NULL, 0);
+	run_number_ = 0;
+	nevents_ = -1;
 
 	if (error_message_.empty()) {
 		submit(configure_signature_);
@@ -615,7 +610,7 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 					toString(nevents_));
 			sendCommand("Configure", "EmuDAQManager");
 		}
-		if ( run_type_.toString() != "Debug " ) bookRunNumber();
+		bookRunNumber();
 		setParameter("EmuDAQManager", "runNumber", "xsd:unsignedLong",
 				run_number_.toString());
 		sendCommand("Enable", "EmuFCrate");
