@@ -13,6 +13,7 @@ Project=emu
 ifeq ($(Set),framework)
 Packages=\
         extern/dim \
+	emuDCS/PeripheralCore \
 	emuDCS/PeripheralCrate \
 	emuDCS/e2p \
 	emuDCS/FEDCrate \
@@ -26,6 +27,7 @@ endif
 ifeq ($(Set),emuDCS)
 Packages= \
         extern/dim \
+        emuDCS/PeripheralCore \
         emuDCS/PeripheralCrate \
 	emuDCS/e2p \
 	emuDCS/FEDCrate
