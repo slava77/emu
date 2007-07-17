@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateTiming.cpp,v 3.5 2007/07/05 07:29:10 rakness Exp $
+// $Id: CrateTiming.cpp,v 3.6 2007/07/17 16:29:27 liu Exp $
 // $Log: CrateTiming.cpp,v $
+// Revision 3.6  2007/07/17 16:29:27  liu
+// replace CCBStartTrigger() with CCB->startTrigger() & CCB->bc0()
+//
 // Revision 3.5  2007/07/05 07:29:10  rakness
 // add debug_ flag, make testing more robust, comment out old l1a timing routines
 //
@@ -996,7 +999,9 @@ int main(int argc,char **argv){
     }
 
     if (doCCBstartTrigger) {
-      util.CCBStartTrigger();
+      //util.CCBStartTrigger();
+      thisCCB->startTrigger();
+      thisCCB->bc0();
     }
 
     if (doL1aRequest) {
