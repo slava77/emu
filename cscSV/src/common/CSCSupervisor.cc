@@ -46,6 +46,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		nevents_(-1),
 		step_counter_(0),
 		error_message_(""), keep_refresh_(false), hide_tts_control_(true),
+		runInfo_(NULL),
 		runDbBookingCommand_( "java -jar runnumberbooker.jar" ),
 		runDbWritingCommand_( "java -jar runinfowriter.jar" ),
 		runDbAddress_       ( "" ),
