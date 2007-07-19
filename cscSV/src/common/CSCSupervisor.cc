@@ -410,6 +410,11 @@ void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webEnable(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
+        // Book run number here to make sure it's done 
+        // only when requested by the user from the web page,
+        // and not by the FunctionManager via SOAP.
+        bookRunNumber();
+
 	fireEvent("Enable");
 
 	webRedirect(in, out);
@@ -610,7 +615,6 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 					toString(nevents_));
 			sendCommand("Configure", "EmuDAQManager");
 		}
-		bookRunNumber();
 		setParameter("EmuDAQManager", "runNumber", "xsd:unsignedLong",
 				run_number_.toString());
 		sendCommand("Enable", "EmuFCrate");
@@ -1919,7 +1923,7 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
     try{
       app = getApplicationContext()->getDefaultZone()->getApplicationDescriptor("TF_hyperDAQ",0);
       namesAndValues = getScalarParams(app,namesAndTypes);
-      value = reformatTime( namesAndValues["triggerMode"] );
+      value = namesAndValues["triggerMode"];
     }
     catch(xdaq::exception::ApplicationDescriptorNotFound e) {
       LOG4CPLUS_ERROR(getApplicationLogger(),"Failed to get trigger mode from TF_hyperDAQ 0: " << 
