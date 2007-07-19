@@ -3,10 +3,10 @@
 # Send SOAP message to XDAQ app.
 
 # Example:
-#          sendSOAP -u emudaq -p 39999 -A JobControl -L 10 -v -b "<xdaq:executeCommand  xmlns:xdaq=\\\"urn:xdaq-soap:3.0\\\" execPath=\\\"/bin/ls\\\" argv=\\\"-l ..\\\" user=\\\"cscdaq\\\"></xdaq:executeCommand>"
+#          sendSOAP -h emudaq -p 39999 -A JobControl -L 10 -v -b "<xdaq:executeCommand  xmlns:xdaq=\\\"urn:xdaq-soap:3.0\\\" execPath=\\\"/bin/ls\\\" argv=\\\"-l ..\\\" user=\\\"cscdaq\\\"></xdaq:executeCommand>"
 
 # default values
-SERVERURL=emudaq.cern.ch
+SERVERHOST=emudaq.cern.ch
 SERVERPORT=39999
 SERVERAPP=JobControl
 SERVERAPPINSTANCE=0
@@ -29,30 +29,30 @@ while [[ $1 = -* ]]; do
 	    shift ;;
 	-p ) SERVERPORT=$2
 	    shift ;;
-	-u ) SERVERURL=$2
+	-h ) SERVERHOST=$2
 	    shift ;;
 	-v ) VERBOSITY=1 ;;
 	*  ) 
 	    echo 'Usage: '
 	    echo '------'
-	    echo '    sendSOAP [-u url] [-p port]'
-	    echo '             [-A application] [-I app_instance] [-b SOAP_body]'
-	    echo '             [-v]'
+	    echo '    sendSOAP [-h host] [-p port]'
+	    echo '             [-A application] [-I app_instance | -L app_lid] [-b SOAP_body]'
+	    echo '             [-v] [-H]'
 	    echo
 	    echo '  option   meaning                            default'
 	    echo '  ------   -------                            -------'
+	    echo '      -h   host                               emudaq.cern.ch'
 	    echo '      -p   port                               39999'
-	    echo '      -u   url                                emudaq.cern.ch'
 	    echo '      -A   application                        JobControl'
 	    echo '      -I   server application instance        0'
 	    echo '      -L   server application lid             <not used; application instance used instead>'
 	    echo '      -b   SOAP body                          <get stateName>'
-	    echo '      -h   print help                         do not print help'
+	    echo '      -H   print help                         do not print help'
 	    echo '      -v   verbose                            not verbose'
 	    echo
 	    echo 'Example:'
 	    echo '------'
-	    echo 'sendSOAP -u emudaq -p 39999 -A JobControl -L 10 -v -b "<xdaq:executeCommand  xmlns:xdaq=\\\"urn:xdaq-soap:3.0\\\" execPath=\\\"/bin/ls\\\" argv=\\\"-l \$HOME\\\" user=\\\"cscdaq\\\"><EnvironmentVariable HOME=\\\"/home/cscdaq\\\"></EnvironmentVariable></xdaq:executeCommand>"'
+	    echo 'sendSOAP -h emudaq -p 39999 -A JobControl -L 10 -v -b "<xdaq:executeCommand  xmlns:xdaq=\\\"urn:xdaq-soap:3.0\\\" execPath=\\\"/bin/ls\\\" argv=\\\"-l \$HOME\\\" user=\\\"cscdaq\\\"><EnvironmentVariable HOME=\\\"/home/cscdaq\\\"></EnvironmentVariable></xdaq:executeCommand>"'
 
 	    exit 1 ;;
     esac
@@ -78,13 +78,12 @@ WRITEOUT=""
 if [[ $VERBOSITY = "1" ]]; then
     WRITEOUT="--write-out \"\n\nGot %{size_download} bytes in total (%{size_header} in header) in %{time_total} s.\n\""
     echo "Command:"
-    echo curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE
+    echo curl -H $HEADER http://$SERVERHOST:$SERVERPORT $WRITEOUT -d $MESSAGE
     echo ""
     echo "Reply:"
 fi
 
-#eval curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE | sed -u 'N;s/>\(\([^<>]\|\n\)\+\)<\//>[1;31m\1[0m<\//g'
-eval curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE | sed -u -e :a -e 'N;s/\n/ /g; ta'| sed -u 's/>\([^<>]\+\)<\//>[1;31m\1[0m<\//g'
-#eval curl -H $HEADER http://$SERVERURL:$SERVERPORT $WRITEOUT -d $MESSAGE | sed -u -e :a -e 'N;s/>\(\([^<>]\|\n\)\+\)<\//>[1;31m\1[0m<\//g; ta'
+#eval curl -H $HEADER http://$SERVERHOST:$SERVERPORT $WRITEOUT -d $MESSAGE | sed -u 'N;s/>\(\([^<>]\|\n\)\+\)<\//>[1;31m\1[0m<\//g'
+eval curl -H $HEADER http://$SERVERHOST:$SERVERPORT $WRITEOUT -d $MESSAGE | sed -u -e :a -e 'N;s/\n/ /g; ta'| sed -u 's/>\([^<>]\+\)<\//>[1;31m\1[0m<\//g'
+#eval curl -H $HEADER http://$SERVERHOST:$SERVERPORT $WRITEOUT -d $MESSAGE | sed -u -e :a -e 'N;s/>\(\([^<>]\|\n\)\+\)<\//>[1;31m\1[0m<\//g; ta'
 echo ""
-
