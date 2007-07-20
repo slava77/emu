@@ -57,6 +57,8 @@ public:
   //
  private:
   //
+  bool debug_;
+  //
   int MpcTMBTestResult;
   std::ostream * MyOutput_ ;
   //

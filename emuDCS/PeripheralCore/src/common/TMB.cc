@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.39 2007/06/26 14:39:14 rakness Exp $
+// $Id: TMB.cc,v 3.40 2007/07/20 15:13:00 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.40  2007/07/20 15:13:00  rakness
+// improve emulation of MPC and TMB in TMB-MPC crate test
+//
 // Revision 3.39  2007/06/26 14:39:14  rakness
 // fix cfeb_enable_expected bug
 //
@@ -769,20 +772,27 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
   //
   unsigned short frame1, frame2, ramAdd;
   //
-  (*MyOutput_) << "TMB:  Inject " << nEvents << " frames of MPC data to slot " << this->slot() << std::endl ;
+  (*MyOutput_) << "TMB:  Inject " << nEvents << " events with 2 muons into MPC data to slot " << this->slot() << std::endl ;
   //
   for (int evtId(0); evtId<nEvents; ++evtId) {
     //
     ramAdd = (evtId<<8);
     //
+    unsigned short qual1;
+    unsigned short qual2;
+    //
     if ( lct0 == 0 ) {  // random LCT
       //
       unsigned short vpf  = 1;         // 1 bit
-      unsigned short qual = rand()%16; // 4 bits
+      qual1 = 0;
+      while (qual1 < 1)                // ensure that one random muon has quality > 0
+	qual1= rand()%16;              // 4 bits
       unsigned short clct = rand()%16; // 4 bits
       unsigned short wire = rand()%128;// 7 bits
-      frame1 = ((vpf<<15)&0x8000) + ((qual<<11)&0x7800) + ((clct<<7)& 0x780) + wire;
+      frame1 = ((vpf<<15)&0x8000) + ((qual1<<11)&0x7800) + ((clct<<7)& 0x780) + wire;
       //
+      //Note, for void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay), 
+      //the 5 MSB of frame2 are used to insert the date, so filling them may make the test fail...
       unsigned short lr     = rand()%2;
       unsigned short halfSt = rand()%256;
       frame2 = ((lr<<8)&0x100) + halfSt;    
@@ -835,11 +845,15 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     //
     if ( lct1 == 0 ) {
       unsigned short vpf  = 1;         // 1 bit
-      unsigned short qual = rand()%16; // 4 bits
+      qual2 = 15;
+      while (qual2 >= qual1)           // ensure that quality for LCT1 is always less than quality for LCT0
+	qual2 = rand()%16;             // 4 bits
       unsigned short clct = rand()%16; // 4 bits
       unsigned short wire = rand()%128;// 7 bits
-      frame1 = ((vpf<<15)&0x8000) + ((qual<<11)&0x7800) + ((clct<<7)& 0x780) + wire;
+      frame1 = ((vpf<<15)&0x8000) + ((qual2<<11)&0x7800) + ((clct<<7)& 0x780) + wire;
       //
+      //Note, for void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay), 
+      //the 5 MSB of frame2 are used to insert the date, so filling them may make the test fail...
       unsigned short lr     = rand()%2;
       unsigned short halfSt = rand()%256;
       frame2 = ((lr<<8)&0x100) + halfSt;    

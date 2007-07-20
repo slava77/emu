@@ -17,6 +17,7 @@ using namespace std;
 CrateUtilities::CrateUtilities() : MpcTMBTestResult(-1), myCrate_(0)
 {
   //
+  debug_ = false;
   std::cout << "CrateUtilities" << endl ;
   //
   MyOutput_ = &std::cout ;
@@ -667,51 +668,140 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
 	unsigned long int MPCLct1= ((myCrate_->mpc())->GetFIFOBLct1())[frame] ;
 	unsigned long int MPCLct2= ((myCrate_->mpc())->GetFIFOBLct2())[frame] ;
 	//
-	std::cout << "MPC data in frame " << frame << ":" << std::hex 
+	// Copy LCT data and sort according to the MPC algorithm...
+	//
+	std::vector <unsigned long int> SortingLCT;
+	//
+	for (unsigned i=0; i<myTmbs.size(); i++) {
+	  int TMBslot = myTmbs[i]->slot();
+	  if (debug_)
+	    std::cout << "slot = " << std::dec << TMBslot << "..." << std::endl;
+	  if ( (myTmbs[i]->GetInjectedLct0()).size() ) {
+	    //
+	    // MPC algorithm picks the LCT according to:
+            // 1) the highest quality
+	    // 2) if two LCTs have the same quality, it picks the one from the highest number slot
+	    //
+	    // Can mimic this by inserting the slot value behind the quality bits and sort by largest value...
+	    //
+	    unsigned long int original_lct0_value = (myTmbs[i]->GetInjectedLct0())[frame];
+	    //
+	    if (debug_)
+	      std::cout << "LCT0:  injected value = " << std::hex << original_lct0_value << std::endl;
+	    //
+	    // move 5 bits below down into the TMB word, since they are not injected in this test
+	    unsigned long int lct0_sorting_value = 
+	      ( (original_lct0_value & 0xf80007ff)      ) | //clear out information to make space for slot
+	      ( (original_lct0_value & 0x07ff0000) >>  5) | //move information into the unused part of the slot
+	      ( (TMBslot             & 0x1f)       << 21);  //insert the date
+	    //
+	    //	    std::cout << "LCT0:  value with slot= " << std::hex << lct0_sorting_value << std::endl;
+	    //
+	    SortingLCT.push_back(lct0_sorting_value);
+	    //
+	    unsigned long int original_lct1_value = (myTmbs[i]->GetInjectedLct1())[frame];
+	    //
+	    if (debug_)
+	      std::cout << "LCT1:  injected value = " << std::hex << original_lct1_value << std::endl;
+	    //
+	    unsigned long int lct1_sorting_value = 
+	      ( (original_lct1_value & 0xf80007ff)      ) | //clear out information to make space for slot
+	      ( (original_lct1_value & 0x07ff0000) >>  5) | //move information into the unused part of the slot
+	      (TMBslot                             << 21);  //insert the date
+	    //
+	    //	    std::cout << "LCT1:  value with slot= " << std::hex << lct1_sorting_value << std::endl;
+	    //
+	    SortingLCT.push_back(lct1_sorting_value);
+	  }
+	}
+	std::sort(SortingLCT.begin(),SortingLCT.end(), std::greater<int>() );
+	//
+	// remove slot from sorting vector to print out value:
+	std::vector <unsigned long int> InjectedLCT;
+	for (unsigned vec=0; vec<SortingLCT.size(); vec++) {
+	  //
+	  unsigned long int original_value = SortingLCT[vec];
+	  //
+	  unsigned long int return_value = 
+	    ( (original_value & 0xf80007ff)     ) |
+	    ( (original_value & 0x003ff800) << 5) ;
+	    //
+	    InjectedLCT.push_back(return_value);
+	}
+	//
+	std::cout << "MPC data in event " << frame << ":" << std::hex 
 		  << " " << MPCLct0 << " " << MPCLct1 << " " << MPCLct2 
 		  << std::endl ;
 	//
-	// Copy LCT data and sort...
-	//
-	std::vector <unsigned long int> InjectedLCT;
-	//
-	for (unsigned i=0; i<myTmbs.size(); i++) {
-	  if ( (myTmbs[i]->GetInjectedLct0()).size() ) {
-	    InjectedLCT.push_back((myTmbs[i]->GetInjectedLct0())[frame]);
-	    InjectedLCT.push_back((myTmbs[i]->GetInjectedLct1())[frame]);
-	  }
-	}
-	std::sort(InjectedLCT.begin(),InjectedLCT.end(), std::greater<int>() );
-	//
 	std::cout << "Data sorted in code: ";
-	for (unsigned vec=0; vec<InjectedLCT.size(); vec++) std::cout << InjectedLCT[vec] << " "  ;
-	//
+	for (unsigned vec=0; vec<InjectedLCT.size(); vec++) 
+	  std::cout << std::hex << InjectedLCT[vec] << " "  ;
 	std::cout << std::endl ;
 	//
-	std::cout << "Found...  ";
-	for (unsigned i=0; i<myTmbs.size(); i++) {
-	  if ( (myTmbs[i]->GetInjectedLct0()).size() ) {
-	    if ( ((myTmbs[i]->GetInjectedLct0())[frame]) == MPCLct0 ||
-		 ((myTmbs[i]->GetInjectedLct1())[frame]) == MPCLct0 )  {
-	      std::cout << " LCT0 ";
-	      NFound[delay]++;
-	      N_LCTs_found_this_pass++;
-	    }
-	    if ( ((myTmbs[i]->GetInjectedLct0())[frame]) == MPCLct1 ||
-		 ((myTmbs[i]->GetInjectedLct1())[frame]) == MPCLct1 )  {
-	      std::cout << " LCT1 ";
-	      NFound[delay]++;
-	      N_LCTs_found_this_pass++;
-	    }
-	    if ( ((myTmbs[i]->GetInjectedLct0())[frame]) == MPCLct2 ||
-		 ((myTmbs[i]->GetInjectedLct1())[frame]) == MPCLct2 )  {
-	      std::cout << " LCT2 ";
-	      NFound[delay]++;
-	      N_LCTs_found_this_pass++;
-	    }
+	//	std::cout << "Data sorted w/ slot: ";
+	//	for (unsigned vec=0; vec<SortingLCT.size(); vec++) 
+	//	  std::cout << std::hex << SortingLCT[vec] << " "  ;
+	//	std::cout << std::endl;
+	//
+	if ( InjectedLCT[0] == MPCLct0 ) {
+	  NFound[delay] ++;
+	  N_LCTs_found_this_pass++;
+	} else {
+	  std::cout << "FAIL! LCT 0 Slot = ";
+	  for (unsigned vec=0; vec<SortingLCT.size(); vec++) {
+	    int slotvalue = (SortingLCT[vec] & 0x07c00000)>> 21;
+	    std::cout << std::dec << std::setw(9) << slotvalue;
 	  }
+	  std::cout << std::endl ;
 	}
-	std::cout << std::endl;
+	//
+	if ( InjectedLCT[1] == MPCLct1 ) {
+	  NFound[delay] ++;
+	  N_LCTs_found_this_pass++;
+	} else {
+	  std::cout << "FAIL! LCT 1 Slot = ";
+	  for (unsigned vec=0; vec<SortingLCT.size(); vec++) {
+	    int slotvalue = (SortingLCT[vec] & 0x07c00000)>> 21;
+	    std::cout << std::dec << std::setw(9) << slotvalue;
+	  }
+	  std::cout << std::endl ;
+	}
+	//
+	if ( InjectedLCT[2] == MPCLct2 ) {
+	  NFound[delay] ++;
+	  N_LCTs_found_this_pass++;
+	}else {
+	  std::cout << "FAIL! LCT 2 Slot = ";
+	  for (unsigned vec=0; vec<SortingLCT.size(); vec++) {
+	    int slotvalue = (SortingLCT[vec] & 0x07c00000)>> 21;
+	    std::cout << std::dec << std::setw(9) << slotvalue;
+	  }
+	  std::cout << std::endl ;
+	}
+	//
+	//	for (unsigned i=0; i<myTmbs.size(); i++) {
+	//	  if ( (myTmbs[i]->GetInjectedLct0()).size() ) {
+	//	    if ( ((myTmbs[i]->GetInjectedLct0())[frame]) == MPCLct0 ||
+	//		 ((myTmbs[i]->GetInjectedLct1())[frame]) == MPCLct0 )  {
+	//	      std::cout << " LCT0 ";
+	//	      NFound[delay]++;
+	//	      N_LCTs_found_this_pass++;
+	//	    }
+	//	    if ( ((myTmbs[i]->GetInjectedLct0())[frame]) == MPCLct1 ||
+	//		 ((myTmbs[i]->GetInjectedLct1())[frame]) == MPCLct1 )  {
+	//	      std::cout << " LCT1 ";
+	//	      NFound[delay]++;
+	//	      N_LCTs_found_this_pass++;
+	//	    }
+	//	    if ( ((myTmbs[i]->GetInjectedLct0())[frame]) == MPCLct2 ||
+	//		 ((myTmbs[i]->GetInjectedLct1())[frame]) == MPCLct2 )  {
+	//	      std::cout << " LCT2 ";
+	//	      NFound[delay]++;
+	//	      N_LCTs_found_this_pass++;
+	//	    }
+	//	  }
+	//	}
+	//	std::cout << std::endl;
       }
       //
       std::cout << "N_LCTs found this pass = " << std::dec << N_LCTs_found_this_pass << std::endl;
