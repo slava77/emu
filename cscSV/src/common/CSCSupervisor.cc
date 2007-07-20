@@ -1135,6 +1135,7 @@ string CSCSupervisor::getDAQMode()
 	xoap::MessageReference reply;
 	try {
 		reply = getApplicationContext()->postSOAP(daq_param_, daq_descr_);
+		analyzeReply(daq_param_, reply, daq_descr_);
 
 		result = extractParameter(reply, "globalMode");
 		result = (result == "true") ? "global" : "local";
@@ -1163,6 +1164,7 @@ string CSCSupervisor::getTFConfig()
 	xoap::MessageReference reply;
 	try {
 		reply = getApplicationContext()->postSOAP(tf_param_, tf_descr_);
+		analyzeReply(tf_param_, reply, tf_descr_);
 
 		result = extractParameter(reply, "triggerMode");
 	} catch (xdaq::exception::Exception e) {
@@ -1195,6 +1197,7 @@ string CSCSupervisor::getTTCciSource()
 	xoap::MessageReference reply;
 	try {
 		reply = getApplicationContext()->postSOAP(ttc_param_, ttc_descr_);
+		analyzeReply(ttc_param_, reply, ttc_descr_);
 
 		result = extractParameter(reply, "ClockSource");
 		result += ":" + extractParameter(reply, "OrbitSource");
@@ -1215,6 +1218,7 @@ bool CSCSupervisor::isDAQConfiguredInGlobal()
 		xoap::MessageReference reply;
 		try {
 			reply = getApplicationContext()->postSOAP(daq_param_, daq_descr_);
+			analyzeReply(daq_param_, reply, daq_descr_);
 
 			result = extractParameter(reply, "configuredInGlobalMode");
 		} catch (xdaq::exception::Exception e) {
@@ -1233,6 +1237,7 @@ string CSCSupervisor::getLocalDAQState()
 		xoap::MessageReference reply;
 		try {
 			reply = getApplicationContext()->postSOAP(daq_param_, daq_descr_);
+			analyzeReply(daq_param_, reply, daq_descr_);
 
 			result = extractParameter(reply, "daqState");
 		} catch (xdaq::exception::Exception e) {
@@ -1421,185 +1426,6 @@ void CSCSupervisor::LastLog::webOutput(xgi::Output *out)
 	*out << textarea() << endl;
 }
 
-//
-// Methods for run info db
-//
-
-std::map<string,string> CSCSupervisor::getScalarParams( xdaq::ApplicationDescriptor* appDescriptor,
-						   const std::map<string,string>     paramNamesAndTypes )
-  throw (xcept::Exception)
-{
-    string appClass = appDescriptor->getClassName();
-    std::map<string,string> paramNamesAndValues;
-
-    try
-    {
-        xoap::MessageReference msg =
-            createParametersGetSOAPMsg(appClass, paramNamesAndTypes);
-
-        xoap::MessageReference reply =
-            getApplicationContext()->postSOAP(msg, appDescriptor);
-
-        // Check if the reply indicates a fault occurred
-        xoap::SOAPBody replyBody =
-            reply->getSOAPPart().getEnvelope().getBody();
-
-        if(replyBody.hasFault())
-        {
-            stringstream oss;
-            string s;
-
-            oss << "Received fault reply: ";
-            oss << replyBody.getFault().getFaultString();
-            s = oss.str();
-
-            XCEPT_RAISE(xcept::Exception, s);
-        }
-
-        paramNamesAndValues = extractScalarParameterValues(reply, paramNamesAndTypes);
-    }
-    catch(xcept::Exception e)
-    {
-        string s = "Failed to get scalar parameter from application";
-
-        XCEPT_RETHROW(xcept::Exception, s, e);
-    }
-
-    return paramNamesAndValues;
-}
-
-xoap::MessageReference CSCSupervisor::createParametersGetSOAPMsg
-(
-    const string             appClass,
-    const std::map<string,string> paramNamesAndTypes
-)
-throw (xcept::Exception)
-{
-    string appNamespace = "urn:xdaq-application:" + appClass;
-
-    string problemParams = "";
-    for ( std::map<string,string>::const_iterator pnt = paramNamesAndTypes.begin(); 
-	  pnt != paramNamesAndTypes.end(); ++pnt ) problemParams += pnt->first + "(" + pnt->second + ") ";
-
-    try
-    {
-        xoap::MessageReference message = xoap::createMessage();
-        xoap::SOAPPart soapPart = message->getSOAPPart();
-        xoap::SOAPEnvelope envelope = soapPart.getEnvelope();
-        envelope.addNamespaceDeclaration("xsi","http://www.w3.org/2001/XMLSchema-instance");
-        envelope.addNamespaceDeclaration("xsd","http://www.w3.org/2001/XMLSchema");
-        envelope.addNamespaceDeclaration("soapenc","http://schemas.xmlsoap.org/soap/encoding/");
-        xoap::SOAPBody body = envelope.getBody();
-        xoap::SOAPName cmdName = envelope.createName("ParameterGet", "xdaq", "urn:xdaq-soap:3.0");
-        xoap::SOAPBodyElement cmdElement = body.addBodyElement(cmdName);
-        xoap::SOAPName propertiesName = envelope.createName("properties", appClass, appNamespace);
-        xoap::SOAPElement propertiesElement = cmdElement.addChildElement(propertiesName);
-        xoap::SOAPName propertiesTypeName =
-            envelope.createName("type", "xsi","http://www.w3.org/2001/XMLSchema-instance");
-        propertiesElement.addAttribute(propertiesTypeName, "soapenc:Struct");
-
-	for ( std::map<string,string>::const_iterator pnt = paramNamesAndTypes.begin(); 
-	      pnt != paramNamesAndTypes.end(); ++pnt ){
-	  problemParams = pnt->first + "(" + pnt->second + ") ";
-
-	  xoap::SOAPName propertyName = envelope.createName(pnt->first, appClass, appNamespace);
-	  xoap::SOAPElement propertyElement = propertiesElement.addChildElement(propertyName);
-	  xoap::SOAPName propertyTypeName = 
-	    envelope.createName("type", "xsi",
-				"http://www.w3.org/2001/XMLSchema-instance");
-
-	  propertyElement.addAttribute(propertyTypeName, "xsd:" + pnt->second);
-
-	}
-
-        return message;
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(xcept::Exception,
-            "Failed to create ParameterGet SOAP message for parameter " +
-            problemParams, e);
-    }
-}
-
-std::map<string,string> CSCSupervisor::extractScalarParameterValues
-(
-    xoap::MessageReference   msg,
-    const std::map<string,string> paramNamesAndTypes
-)
-throw (xcept::Exception)
-{
-    std::map<string,string> paramNamesAndValues;
-
-    string paramName = "";
-    for ( std::map<string,string>::const_iterator pnt = paramNamesAndTypes.begin(); 
-	  pnt != paramNamesAndTypes.end(); ++pnt ) paramName += pnt->first + " ";
-
-    try
-    {
-        xoap::SOAPPart part = msg->getSOAPPart();
-        xoap::SOAPEnvelope env = part.getEnvelope();
-        xoap::SOAPBody body = env.getBody();
-        DOMNode *bodyNode = body.getDOMNode();
-        DOMNodeList *bodyList = bodyNode->getChildNodes();
-        DOMNode *responseNode = findNode(bodyList, "ParameterGetResponse");
-        DOMNodeList *responseList = responseNode->getChildNodes();
-        DOMNode *propertiesNode = findNode(responseList, "properties");
-        DOMNodeList *propertiesList = propertiesNode->getChildNodes();
-	
-	for ( std::map<string,string>::const_iterator pnt = paramNamesAndTypes.begin(); 
-	      pnt != paramNamesAndTypes.end(); ++pnt ){
-	  paramName = pnt->first;
-	  DOMNode *paramNode = findNode(propertiesList, pnt->first);
-	  DOMNodeList *paramList = paramNode->getChildNodes();
-	  DOMNode *valueNode = paramList->item(0);
-	  if ( valueNode )
-	    paramNamesAndValues[paramName] = xoap::XMLCh2String(valueNode->getNodeValue());
-	  else
-	    paramNamesAndValues[paramName] = "";
-	}
-
-        return paramNamesAndValues;
-    }
-    catch(xcept::Exception e)
-    {
-        XCEPT_RETHROW(xcept::Exception,
-            "Parameter " + paramName + " not found", e);
-    }
-    catch(...)
-    {
-        XCEPT_RAISE(xcept::Exception,
-            "Parameter " + paramName + " not found");
-    }
-}
-
-DOMNode* CSCSupervisor::findNode( DOMNodeList *nodeList,
-				  const string nodeLocalName )
-  throw (xcept::Exception)
-{
-    DOMNode            *node = 0;
-    string             name  = "";
-    unsigned int       i     = 0;
-
-    for(i=0; i<nodeList->getLength(); i++)
-    {
-        node = nodeList->item(i);
-
-        if(node->getNodeType() == DOMNode::ELEMENT_NODE)
-        {
-            name = xoap::XMLCh2String(node->getLocalName());
-
-            if(name == nodeLocalName)
-            {
-                return node;
-            }
-        }
-    }
-
-    XCEPT_RAISE(xcept::Exception,
-        "Failed to find node with local name: " + nodeLocalName);
-}
-
 string CSCSupervisor::reformatTime( string time ){
   // reformat from YYMMDD_hhmmss_UTC to YYYY-MM-DD hh:mm:ss UTC
   string reformatted("");
@@ -1642,19 +1468,22 @@ vector< vector<string> > CSCSupervisor::getFUEventCounts()
     return ec;
   }
 
+  xoap::MessageReference message = createParameterGetSOAP(
+		"EmuFU", "nbEventsProcessed", "xsd:unsignedLong");
+
   std::set<xdaq::ApplicationDescriptor *>::iterator fu;
   for ( fu = EmuFUs.begin(); fu!=EmuFUs.end(); ++fu ){
-    string       count;
-    stringstream name;
+	string       count;
+	stringstream name;
     unsigned int nProcessed = 0;
     stringstream ss;
     try
     {
-      name << "EmuFU" << setfill('0') << setw(2) << (*fu)->getInstance();
-      std::map <string,string> namesAndTypes;
-      namesAndTypes["nbEventsProcessed"] = "unsignedLong";
-      std::map <string,string> namesAndValues = getScalarParams((*fu), namesAndTypes);
-      count = namesAndValues["nbEventsProcessed"];
+	  name << "EmuFU" << setfill('0') << setw(2) << (*fu)->getInstance();
+	  xoap::MessageReference reply =
+			getApplicationContext()->postSOAP(message, *fu);
+	  analyzeReply(message, reply, *fu);
+	  count = extractParameter(reply, "nbEventsProcessed");
       ss << count;
       ss >> nProcessed;
       totalProcessed += nProcessed;
@@ -1662,8 +1491,9 @@ vector< vector<string> > CSCSupervisor::getFUEventCounts()
     catch(xcept::Exception e)
     {
       count = "UNKNOWN";
-      LOG4CPLUS_WARN(getApplicationLogger(), "Failed to get event count of " << name.str()
-		     << " : " << xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(getApplicationLogger(),
+			"Failed to get event count of " << name.str()
+			<< " : " << xcept::stdformat_exception_history(e));
     }
     vector<string> sv;
     sv.push_back( name.str() );
@@ -1697,26 +1527,31 @@ vector< vector<string> > CSCSupervisor::getRUIEventCounts()
     return ec;
   }
 
+  std::map<string, string> m;
+  m["nEventsRead"     ] = "unsignedLong";
+  m["hardwareMnemonic"] = "string";
+  xoap::MessageReference message = createParameterGetSOAP("EmuRUI", m);
+
   std::set< xdaq::ApplicationDescriptor* >::iterator rui;
   for ( rui = EmuRUIs.begin(); rui!=EmuRUIs.end(); ++rui ){
-    string       count;
-    string       hardwareMnemonic;
+    string count;
+	string mnemonic;
     stringstream name;
-    try
-      {
-	name << "EmuRUI" << setfill('0') << setw(2) << (*rui)->getInstance();
-	std::map <string,string> namesAndTypes;
-	namesAndTypes["nEventsRead"     ] = "unsignedLong";
-	namesAndTypes["hardwareMnemonic"] = "string";
-	std::map <string,string> namesAndValues = getScalarParams((*rui), namesAndTypes);
-	name << " [" << namesAndValues["hardwareMnemonic"] << "]";
-	count = namesAndValues["nEventsRead"];
-      }
+	try {
+	  xoap::MessageReference reply =
+			getApplicationContext()->postSOAP(message, *rui);
+	  analyzeReply(message, reply, *rui);
+	  count = extractParameter(reply, "nEventsRead");
+	  mnemonic = extractParameter(reply, "hardwareMnemonic");
+	}
     catch(xcept::Exception e)
     {
       count    = "UNKNOWN";
-      LOG4CPLUS_WARN(getApplicationLogger(), "Failed to get event count of " << name.str()
-		     << " : " << xcept::stdformat_exception_history(e));
+      LOG4CPLUS_WARN(getApplicationLogger(),
+			"Failed to get event count of "
+			<< "EmuRUI" << setfill('0') << setw(2) << (*rui)->getInstance()
+			<< " [" << mnemonic << "]"
+		    << " : " << xcept::stdformat_exception_history(e));
     }
     vector<string> sv;
     sv.push_back( name.str() );
@@ -1852,22 +1687,25 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
     }
 
     std::map<string,string> namesAndTypes;
-    std::map<string,string> namesAndValues;
     xdaq::ApplicationDescriptor* app;
     std::set<xdaq::ApplicationDescriptor *> apps;
     
     //
     // start time and stop time
     //
-    namesAndTypes["runStartTime"] = "string";
-    namesAndTypes["runStopTime" ] = "string";
+    namesAndTypes["runStartTime"] = "xsd:string";
+    namesAndTypes["runStopTime" ] = "xsd:string";
     string runStartTime("UNKNOWN");
     string runStopTime("UNKNOWN");
     try{
       app = getApplicationContext()->getDefaultZone()->getApplicationDescriptor("EmuTA",0);
-      namesAndValues = getScalarParams(app,namesAndTypes);
-      runStartTime = reformatTime( namesAndValues["runStartTime"] );
-      runStopTime  = reformatTime( namesAndValues["runStopTime" ] );
+	  xoap::MessageReference message =
+			createParameterGetSOAP("EmuTA", namesAndTypes);
+	  xoap::MessageReference reply =
+			getApplicationContext()->postSOAP(message, app);
+	  analyzeReply(message, reply, app);
+      runStartTime = reformatTime(extractParameter(reply, "runStartTime"));
+      runStopTime  = reformatTime(extractParameter(reply, "runStopTime"));
     }
     catch(xdaq::exception::ApplicationDescriptorNotFound e) {
       LOG4CPLUS_ERROR(getApplicationLogger(),"Failed to get time of run start and stop from EmuTA 0: " << 
@@ -1912,13 +1750,15 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
     //
     // trigger mode
     //
-    namesAndTypes.clear();
-    namesAndTypes["triggerMode"] = "string";
     value = "UNKNOWN";
     try{
       app = getApplicationContext()->getDefaultZone()->getApplicationDescriptor("TF_hyperDAQ",0);
-      namesAndValues = getScalarParams(app,namesAndTypes);
-      value = namesAndValues["triggerMode"];
+	  xoap::MessageReference message =
+			createParameterGetSOAP("TF_hyperDAQ", "triggerMode", "xsd:string");
+	  xoap::MessageReference reply =
+			getApplicationContext()->postSOAP(message, app);
+	  analyzeReply(message, reply, app);
+      value = extractParameter(reply, "triggerMode");
     }
     catch(xdaq::exception::ApplicationDescriptorNotFound e) {
       LOG4CPLUS_ERROR(getApplicationLogger(),"Failed to get trigger mode from TF_hyperDAQ 0: " << 
@@ -1948,21 +1788,25 @@ void CSCSupervisor::writeRunInfo( bool toDatabase, bool toELog ){
     // trigger sources
     //
     namesAndTypes.clear();
-    namesAndTypes["ClockSource"  ] = "string";
-    namesAndTypes["OrbitSource"  ] = "string";
-    namesAndTypes["TriggerSource"] = "string";
-    namesAndTypes["BGOSource"    ] = "string";
+    namesAndTypes["ClockSource"  ] = "xsd:string";
+    namesAndTypes["OrbitSource"  ] = "xsd:string";
+    namesAndTypes["TriggerSource"] = "xsd:string";
+    namesAndTypes["BGOSource"    ] = "xsd:string";
     string ClockSource("UNKNOWN");
     string OrbitSource("UNKNOWN");
     string TriggerSource("UNKNOWN");
     string BGOSource("UNKNOWN");
     try{
       app = getApplicationContext()->getDefaultZone()->getApplicationDescriptor("TTCciControl",0);
-      namesAndValues = getScalarParams(app,namesAndTypes);
-      ClockSource   = namesAndValues["ClockSource"  ];
-      OrbitSource   = namesAndValues["OrbitSource"  ];
-      TriggerSource = namesAndValues["TriggerSource"];
-      BGOSource     = namesAndValues["BGOSource"    ];
+	  xoap::MessageReference message =
+			createParameterGetSOAP("TTCciControl", namesAndTypes);
+	  xoap::MessageReference reply =
+			getApplicationContext()->postSOAP(message, app);
+	  analyzeReply(message, reply, app);
+      ClockSource   = extractParameter(reply, "ClockSource");
+      OrbitSource   = extractParameter(reply, "OrbitSource");
+      TriggerSource = extractParameter(reply, "TriggerSource");
+      BGOSource     = extractParameter(reply, "BGOSource");
     }
     catch(xdaq::exception::ApplicationDescriptorNotFound e) {
       LOG4CPLUS_ERROR(getApplicationLogger(),"Failed to get trigger sources from TTCciControl 0: " << 
