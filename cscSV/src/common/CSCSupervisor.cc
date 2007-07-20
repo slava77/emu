@@ -953,8 +953,8 @@ xoap::MessageReference CSCSupervisor::createParameterGetSOAP(
 	return message;
 }
 
-xoap::MessageReference CSCSupervisor::createParameterGetSOAP2(
-		string klass, int length, string names[], string types[])
+xoap::MessageReference CSCSupervisor::createParameterGetSOAP(
+		string klass, std::map<string, string> name_type)
 {
 	xoap::MessageReference message = xoap::createMessage();
 	xoap::SOAPEnvelope envelope = message->getSOAPPart().getEnvelope();
@@ -971,12 +971,13 @@ xoap::MessageReference CSCSupervisor::createParameterGetSOAP2(
 			.addChildElement(properties);
 	properties_e.addAttribute(xsitype, "soapenc:Struct");
 
-	for (int i = 0; i < length; ++i) {
-		xoap::SOAPName parameter = envelope.createName(
-				names[i], klass, "urn:xdaq-application:" + klass);
-		xoap::SOAPElement parameter_e = properties_e.addChildElement(parameter);
-		parameter_e.addAttribute(xsitype, types[i]);
-		parameter_e.addTextNode("");
+	std::map<string, string>::iterator i;
+	for (i = name_type.begin(); i != name_type.end(); ++i) {
+		xoap::SOAPName n = envelope.createName(
+				(*i).first, klass, "urn:xdaq-application:" + klass);
+		xoap::SOAPElement e = properties_e.addChildElement(n);
+		e.addAttribute(xsitype, (*i).second);
+		e.addTextNode("");
 	}
 
 	return message;
@@ -1123,12 +1124,12 @@ string CSCSupervisor::getDAQMode()
 		} catch (xdaq::exception::ApplicationDescriptorNotFound e) {
 			return result; // Do nothing if the target doesn't exist
 		}
-		daq_param_ = createParameterGetSOAP(
-				"EmuDAQManager", "globalMode", "xsd:boolean");
-		daq_configured_param_ = createParameterGetSOAP(
-				"EmuDAQManager", "configuredInGlobalMode", "xsd:boolean");
-		daq_state_param_ = createParameterGetSOAP(
-				"EmuDAQManager", "daqState", "xsd:string");
+
+		std::map<string, string> m;
+		m["globalMode"] = "xsd:boolean";
+		m["configuredInGlobalMode"] = "xsd:boolean";
+		m["daqState"] = "xsd:string";
+		daq_param_ = createParameterGetSOAP("EmuDAQManager", m);
 	}
 
 	xoap::MessageReference reply;
@@ -1183,17 +1184,12 @@ string CSCSupervisor::getTTCciSource()
 			return result; // Do nothing if the target doesn't exist
 		}
 
-		string names[4], types[4];
-		names[0] = "ClockSource";
-		names[1] = "OrbitSource";
-		names[2] = "TriggerSource";
-		names[3] = "BGOSource";
-		for (int i = 0; i < 4; ++i) {
-			types[i] = "xsd:string";
-		}
-
-		ttc_param_ = createParameterGetSOAP2(
-				"TTCciControl", 4, names, types);
+		std::map<string, string> m;
+		m["ClockSource"] = "xsd:string";
+		m["OrbitSource"] = "xsd:string";
+		m["TriggerSource"] = "xsd:string";
+		m["BGOSource"] = "xsd:string";
+		ttc_param_ = createParameterGetSOAP("TTCciControl", m);
 	}
 
 	xoap::MessageReference reply;
@@ -1218,8 +1214,7 @@ bool CSCSupervisor::isDAQConfiguredInGlobal()
 	if (daq_descr_ != NULL) {
 		xoap::MessageReference reply;
 		try {
-			reply = getApplicationContext()->postSOAP(
-					daq_configured_param_, daq_descr_);
+			reply = getApplicationContext()->postSOAP(daq_param_, daq_descr_);
 
 			result = extractParameter(reply, "configuredInGlobalMode");
 		} catch (xdaq::exception::Exception e) {
@@ -1237,8 +1232,7 @@ string CSCSupervisor::getLocalDAQState()
 	if (daq_descr_ != NULL) {
 		xoap::MessageReference reply;
 		try {
-			reply = getApplicationContext()->postSOAP(
-					daq_state_param_, daq_descr_);
+			reply = getApplicationContext()->postSOAP(daq_param_, daq_descr_);
 
 			result = extractParameter(reply, "daqState");
 		} catch (xdaq::exception::Exception e) {
@@ -1251,7 +1245,7 @@ string CSCSupervisor::getLocalDAQState()
 
 bool CSCSupervisor::isDAQManagerControlled(string command)
 {
-        // Enforce "Halt" irrespective of DAQ mode.
+	// Enforce "Halt" irrespective of DAQ mode.
 	if (command == "Halt") { return true; }
 
 	// Don't send any other command when DAQ is in local mode.
