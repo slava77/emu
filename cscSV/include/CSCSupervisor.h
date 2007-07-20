@@ -180,22 +180,10 @@ private:
 	bool isBookedRunNumber_;
 	void bookRunNumber();
 	void writeRunInfo( bool toDatabase, bool toELog );
-        void postToELog( string subject, string body, vector<string> *attachments );
-        vector< vector<string> > getFUEventCounts();
-        vector< vector<string> > getRUIEventCounts();
-        std::map<std::string,std::string> getScalarParams( xdaq::ApplicationDescriptor* appDescriptor,
-							   const std::map<std::string,std::string>     paramNamesAndTypes )
-	  throw (xcept::Exception);
-        xoap::MessageReference createParametersGetSOAPMsg( const string             appClass,
-							   const std::map<std::string,std::string> paramNamesAndTypes )
-	  throw (xcept::Exception);
-        std::map<std::string,std::string> extractScalarParameterValues( xoap::MessageReference   msg,
-							 const std::map<std::string,std::string> paramNamesAndTypes )
-	  throw (xcept::Exception);
-        DOMNode* findNode( DOMNodeList *nodeList,
-			   const string nodeLocalName )
-	  throw (xcept::Exception);
-        string reformatTime( string time );
+	void postToELog( string subject, string body, vector<string> *attachments );
+	vector< vector<string> > getFUEventCounts();
+	vector< vector<string> > getRUIEventCounts();
+	string reformatTime( string time );
 
 	class StateTable
 	{
