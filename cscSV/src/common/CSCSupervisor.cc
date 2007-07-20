@@ -1528,8 +1528,8 @@ vector< vector<string> > CSCSupervisor::getRUIEventCounts()
   }
 
   std::map<string, string> m;
-  m["nEventsRead"     ] = "unsignedLong";
-  m["hardwareMnemonic"] = "string";
+  m["nEventsRead"     ] = "xsd:unsignedLong";
+  m["hardwareMnemonic"] = "xsd:string";
   xoap::MessageReference message = createParameterGetSOAP("EmuRUI", m);
 
   std::set< xdaq::ApplicationDescriptor* >::iterator rui;
