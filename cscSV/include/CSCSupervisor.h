@@ -127,11 +127,11 @@ private:
 
 	void setParameter(string klass, string name, string type, string value);
 	xoap::MessageReference createParameterSetSOAP(
-	        string klass, string name, string type, string value);
+			string klass, string name, string type, string value);
 	xoap::MessageReference createParameterGetSOAP(
-	        string klass, string name, string type);
-	xoap::MessageReference createParameterGetSOAP2(
-	        string klass, int length, string names[], string types[]);
+			string klass, string name, string type);
+	xoap::MessageReference createParameterGetSOAP(
+			string klass, map<string, string> name_type);
 	void analyzeReply(
 			xoap::MessageReference message, xoap::MessageReference reply,
 			xdaq::ApplicationDescriptor *app);
@@ -148,7 +148,6 @@ private:
 
 	xdaq::ApplicationDescriptor *daq_descr_, *tf_descr_, *ttc_descr_;
 	xoap::MessageReference daq_param_, tf_param_, ttc_param_;
-	xoap::MessageReference daq_configured_param_, daq_state_param_;
 
 	string getDAQMode();
 	string getTFConfig();
