@@ -1,22 +1,18 @@
-#include <vector>
 #include "DCCParser.h"
-#include "DCC.h"
-#include <xercesc/dom/DOM.hpp>
 
-DCCParser::DCCParser(DOMNode * pNode, int crateNumber)
+DCCParser::DCCParser(DOMNode * pNode, int crate)
 {
-
-  parser_.parseNode(pNode);
-
-  int slot = 0;
-  parser_.fillInt("slot", slot);
-  if(slot == 0) {
-    cerr << "No slot specified for DCC! " << endl;
-  } else { 
-   dcc_ = new DCC(crateNumber,slot);
-   parser_.fillHex("fifoinuse", dcc_->fifoinuse_);
-   parser_.fillHex("softwareswitch", dcc_->softsw_);
-  }
+	parseNode(pNode);
+	
+	int slot = 0;
+	fillInt("slot", slot);
+	if(slot == 0) {
+		cerr << "No slot specified for DCC! " << endl;
+	} else { 
+		dcc_ = new DCC(slot);
+		fillHex("fifoinuse", dcc_->fifoinuse_);
+		fillHex("softwareswitch", dcc_->softsw_);
+	}
 }
 
 

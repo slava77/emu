@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: FEDCrateParser.h,v 3.1 2007/04/27 19:29:44 gilmore Exp $
+// $Id: FEDCrateParser.h,v 3.2 2007/07/23 05:02:22 gilmore Exp $
 // $Log: FEDCrateParser.h,v $
-// Revision 3.1  2007/04/27 19:29:44  gilmore
-// Improved multiple-FED Crate functions, added DDU firmware broadcast and management features
+// Revision 3.2  2007/07/23 05:02:22  gilmore
+// major structural chages to improve multi-crate functionality
 //
 // Revision 3.0  2006/07/20 21:16:10  geurts
 // *** empty log message ***
@@ -27,31 +27,36 @@
 #include "DDUParser.h"
 #include "DCCParser.h"
 #include "VMEParser.h"
-
+#include <iostream>
+#include <xercesc/util/PlatformUtils.hpp>
+#include <xercesc/framework/XMLPScanToken.hpp>
+#include <xercesc/dom/DOM.hpp>
+#include <xercesc/parsers/XercesDOMParser.hpp>
+#include "Crate.h"
 
 class FEDCrateParser {
 
 public:
-  FEDCrateParser() {}
-
-  /** Parse the file
-      @param name File Name
-  */
-  void parseFile(const char* name);
-
-  DDUParser dduParser() const {return dduParser_;}
-  DCCParser dccParser()     const {return dccParser_;}
-  VMEParser vmeParser()     const {return vmeParser_;}
-  /* There has to be a way to get the crates in the XML
-  back to the user, so that selectCrates will work. */
-  std::vector<int> crateVector() { return crateVector_; }
+	FEDCrateParser() {}
+	
+	/** Parse the file
+		@param name File Name
+	*/
+	void parseFile(const char* name);
+	
+	DDUParser dduParser() const {return dduParser_;}
+	DCCParser dccParser() const {return dccParser_;}
+	VMEParser vmeParser() const {return vmeParser_;}
+	/* There has to be a way to get the crates in the XML
+	back to the user, so that selectCrates will work. */
+	std::vector<Crate*> crateVector() { return crateVector_; }
 
 protected:
-  DDUParser dduParser_;
-  DCCParser dccParser_;
-  VMEParser vmeParser_;
-  int crateNumber;
-  std::vector<int> crateVector_;
+	DDUParser dduParser_;
+	DCCParser dccParser_;
+	VMEParser vmeParser_;
+	int crateNumber;
+	std::vector<Crate*> crateVector_;
 };
 
 #endif

@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.0 2006/07/20 21:16:11 geurts Exp $
+// $Id: VMEModule.cc,v 3.1 2007/07/23 05:03:31 gilmore Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.1  2007/07/23 05:03:31  gilmore
+// major structural chages to improve multi-crate functionality
+//
 // Revision 3.0  2006/07/20 21:16:11  geurts
 // *** empty log message ***
 //
@@ -34,26 +37,37 @@ extern int delay_type;
 #define PRINTSTRING(x) cout << #x << endl; 
 #endif
 
-
-
-VMEModule::VMEModule(int newcrate, int newslot): 
-  theSlot(newslot)
+VMEModule::VMEModule(int crate,int slot):
+	theSlot(slot),theController(NULL)
 {
-  theCrate = Singleton<CrateSetup>::instance()->crate(newcrate);
-  #ifdef debugV
-    cout << "creating VMEModule in crate " << theCrate->number() << endl;
-  #endif 
-  theController = theCrate->vmeController();
-  theCrate->addModule(this);
+	#ifdef debugV
+	cout << "creating VMEModule" << endl;
+	#endif 
+	//printf("--Construction complete, controller address %08x\n",this->theController);
 }
 
+VMEModule::VMEModule(int slot):
+	theSlot(slot),theController(NULL)
+{
+	#ifdef debugV
+	cout << "creating VMEModule" << endl;
+	#endif 
+	//printf("--Construction complete, controller address %08x\n",this->theController);
+}
+
+void VMEModule::setController(VMEController *controller) {
+	if (theController != NULL) {
+		cout << "WARNING: Trying change the VMEController of " << boardType() << " " << theSlot << endl;
+	}
+	theController = controller;
+}
 
 void VMEModule::start() {
-  PRINTSTRING(OVAL: start() from VMEModule have been called...);
-#ifdef debugV
-  cout << "starting VMEModule for slot " << dec << theSlot << " boardType " << boardType() << " line " << (int) c << endl;
-#endif  
-   vmeadd=0x00000000|(theSlot<<19);
+	PRINTSTRING(OVAL: start() from VMEModule have been called...);
+	#ifdef debugV
+	cout << "starting VMEModule for slot " << dec << theSlot << " boardType " << boardType() << " line " << (int) c << endl;
+	#endif  
+	vmeadd=0x00000000|(theSlot<<19);
 }
 
 
@@ -166,45 +180,4 @@ void VMEModule::vme_adc(int ichp,int ichn,char *rcv)
   theController->vme_adc(ichp,ichn,rcv);
 }
 
-
-void VMEModule::irq_pthread_start(int crate)
-{
-  theController->start(this);
-  theController->irq_pthread_start(crate);
-}
-
-int VMEModule::irq_tester(int crate,int ival)
-{
-  theController->start(this);
-  return theController->irq_tester(crate,ival);
-}
-
-void VMEModule::irq_pthread_info(int crate)
-{
-  theController->start(this);
-  theController->irq_pthread_info(crate);
-
-}
-
-void VMEModule::irq_pthread_end(int crate)
-{
-  theController->start(this);
-  theController->irq_pthread_end(crate);
-}
-
-int VMEModule::CAEN_err()
-{
-  theController->start(this);
-  return theController->caen_err;
-}
-
-void VMEModule::CAEN_err_reset()
-{
-  theController->start(this);
-  theController->caen_err=0;
-}
-
-VMEController* VMEModule::getTheController(){
-  return theController;
-}
 

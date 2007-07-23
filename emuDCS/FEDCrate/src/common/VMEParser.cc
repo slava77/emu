@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.cc,v 3.0 2006/07/20 21:16:11 geurts Exp $
+// $Id: VMEParser.cc,v 3.1 2007/07/23 05:03:31 gilmore Exp $
 // $Log: VMEParser.cc,v $
+// Revision 3.1  2007/07/23 05:03:31  gilmore
+// major structural chages to improve multi-crate functionality
+//
 // Revision 3.0  2006/07/20 21:16:11  geurts
 // *** empty log message ***
 //
@@ -16,16 +19,15 @@
 #include "VMEController.h"
 #include "Crate.h"
 
-VMEParser::VMEParser(DOMNode * pNode, int number)
+VMEParser::VMEParser(DOMNode * pNode, int crate)
 {
-  int Link;
-  int Device;
-  parser_.parseNode(pNode);
-  parser_.fillInt("Device",Device); 
-  parser_.fillInt("Link",Link); 
-  controller_ = new VMEController(Device, Link);
-  parser_.fillInt("vmeirq_start", controller_->vmeirq_start_); 
-  crate_ = new Crate(number, controller_); 
+	int Link;
+	int Device;
+	parseNode(pNode);
+	fillInt("Device",Device); 
+	fillInt("Link",Link);
+	controller_ = new VMEController(Device, Link);
+	fillInt("vmeirq_start", controller_->start_thread_on_init); 
 }
 
 
