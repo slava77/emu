@@ -2412,8 +2412,7 @@ std::string EMUjtag::AddTrailer_(std::string filename,
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // SVF programming:
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-int EMUjtag::SVFLoad(int *jch, const char *fn, int db )
-{
+int EMUjtag::SVFLoad(int *jch, const char *fn, int db ) {
   int MAXBUFSIZE=8200;
   unsigned char snd[MAXBUFSIZE], rcv[MAXBUFSIZE], expect[MAXBUFSIZE],rmask[MAXBUFSIZE],smask[MAXBUFSIZE],cmpbuf[MAXBUFSIZE];
   unsigned char sndbuf[MAXBUFSIZE],rcvbuf[MAXBUFSIZE], realsnd[MAXBUFSIZE];
@@ -2446,599 +2445,523 @@ int EMUjtag::SVFLoad(int *jch, const char *fn, int db )
   char tdi_post[4]={ 0, 0, 0, 0 };
   int total_packages ;
   int send_packages ;
-  
+  //
   total_packages = 0 ;
   send_packages = 0 ;
   jchan = *jch;
   downfile = fn;
   errcntr = 0;
-  if (downfile==NULL)    downfile="default.svf";
-  
-  dwnfp    = fopen(downfile,"r");
-  while (fgets(buf,256,dwnfp) != NULL) 
-    {
-      memcpy(buf,buf,256);
-      Parse(buf, &Count, &(Word[0]));
-      if( strcmp(Word[0],"SDR")==0 ) total_packages++ ;
-    }
-  fclose(dwnfp) ;
-  
+  if (downfile==NULL) downfile="default.svf";
+  //
   printf("=== Programming Design with %s through JTAG chain %d\n",downfile, jchan);  
-  printf("=== Have to send %d DATA packages \n",total_packages) ;
+  //
+  dwnfp = fopen(downfile,"r");
+  while (fgets(buf,256,dwnfp) != NULL) {
+    memcpy(buf,buf,256);
+    Parse(buf, &Count, &(Word[0]));
+    if( strcmp(Word[0],"SDR")==0 ) total_packages++ ;
+  }
+  fclose(dwnfp) ;
+  //
+  printf("=== Going to send %d DATA packages \n",total_packages) ;
   dwnfp    = fopen(downfile,"r");
-  
-  if (dwnfp == NULL)
-    {
-      perror(downfile);
-      
-      return -1;
-    }
-  
+  //
+  if (dwnfp == NULL) {
+    perror(downfile);
+    return -1;
+  }
+  //
   tmb_->start(jtag_chain_tmb[jchan-1]); 
-  
+  //
   count=0; 
   nowrit=1;
   step_mode=0;
-  while (fgets(buf,256,dwnfp) != NULL)  
-    {
-      if((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!')
-	{
-	  if (db>4)          printf("%s",buf);
-	}
-      else 
-	{
-	  if(strrchr(buf,';')==0)
-	    {
-	      lastn=strrchr(buf,'\r');
-	      if(lastn!=0)lastn[0]='\0';
-	      lastn=strrchr(buf,'\n');
-	      if(lastn!=0)lastn[0]='\0';
-	      memcpy(buf2,buf,256);
-	      Parse(buf2, &Count, &(Word[0]));
-	      if(( strcmp(Word[0],"SDR")==0) || (strcmp(Word[0],"SIR")==0))
-		{
-		  sscanf(Word[1],"%d",&nbits);
-		  if (nbits>MAXBUFSIZE) // === Handle Big Bitstreams
-		    {
-		      (*MyOutput_) << "EMUjtag. nbits larger than buffer size" << std::endl;
-		    }
-		  else do  // == Handle Normal Bitstreams
-		    {
-		      lastn=strrchr(buf,'\r');
-		      if(lastn!=0)lastn[0]='\0';
-		      lastn=strrchr(buf,'\n');
-		      if(lastn!=0)lastn[0]='\0';
-		      if (fgets(buf2,256,dwnfp) != NULL)
-			{
-			  strcat(buf,buf2);
-			}
-		      else 
-			{
-			  if (db)              printf("End of File encountered.  Quiting\n");
-			  return -1;
-			}
-		    }
-		  while (strrchr(buf,';')==0);
-		}
-	    } 
-	  bzero(snd, sizeof(snd));
-	  bzero(cmpbuf, sizeof(cmpbuf));
-	  bzero(sndbuf, sizeof(sndbuf));
-	  bzero(rcvbuf, sizeof(rcvbuf));
-	  
-	  /*
-	    for(i=0;i<MAXBUFSIZE;i++)
-	    {
-	    snd[i]=0;
-	    cmpbuf[i]=0;
-	    sndbuf[i]=0;
-	    rcvbuf[i]=0;
+  while (fgets(buf,256,dwnfp) != NULL) {
+    //
+    if ((buf[0]=='/'&&buf[1]=='/')||buf[0]=='!') {
+      if (db>4) printf("%s",buf);
+      //
+    } else {
+      //
+      if (strrchr(buf,';')==0) {
+	lastn=strrchr(buf,'\r');
+	if (lastn!=0) lastn[0]='\0';
+	lastn=strrchr(buf,'\n');
+	if (lastn!=0) lastn[0]='\0';
+	memcpy(buf2,buf,256);
+	Parse(buf2, &Count, &(Word[0]));
+	if (( strcmp(Word[0],"SDR")==0) || (strcmp(Word[0],"SIR")==0)) {
+	  sscanf(Word[1],"%d",&nbits);
+	  if (nbits>MAXBUFSIZE) { 
+	    // === Handle Big Bitstreams
+	    (*MyOutput_) << "EMUjtag. nbits larger than buffer size" << std::endl;
+	  } else do {
+	    // == Handle Normal Bitstreams
+	    lastn=strrchr(buf,'\r');
+	    if (lastn!=0) lastn[0]='\0';
+	    lastn=strrchr(buf,'\n');
+	    if (lastn!=0) lastn[0]='\0';
+	    if (fgets(buf2,256,dwnfp) != NULL) {
+	      strcat(buf,buf2);
+	    } else {
+	      if (db) printf("End of File encountered.  Quiting\n");
+	      return -1;
 	    }
-	  */
-	  Parse(buf, &Count, &(Word[0]));
-	  count=count+1;
-	  cmpflag=0;
-	  // ==================  Parsing commands from SVF file ====================
-	  // === Handling HDR ===
-	  if(strcmp(Word[0],"HDR")==0)
-	    {
-	      sscanf(Word[1],"%d",&hdrbits);
-	      hdrbytes=(hdrbits)?(hdrbits-1)/8+1:0;
-	    if (db)	  
-	      printf("Sending %d bits of Header Data\n", hdrbits);
-	    // if (db>3)          printf("HDR: Num of bits - %d, num of bytes - %d\n",hdrbits,hdrbytes);
-	    for(i=2;i<Count;i+=2)
-	      {
-		if(strcmp(Word[i],"TDI")==0)
-		  {
-		    for(j=0;j<hdrbytes;j++)
-		      {
-			sscanf(&Word[i+1][2*(hdrbytes-j-1)+1],"%2X",(int *)&sndhdr[j]);
-			// printf("%2X",sndhdr[j]);
-		      }
-		    // printf("\n%d\n",nbytes);
-    		  }
-      		if(strcmp(Word[i],"SMASK")==0)
-		  {
-		    for(j=0;j<hdrbytes;j++)
-		      {
-      		  	sscanf(&Word[i+1][2*(hdrbytes-j-1)+1],"%2X",(int *)&hdrsmask[j]);
-		      }
-		  }
-     	 	if(strcmp(Word[i],"TDO")==0)
-		  {
-		    //if (db>2)             cmpflag=1;
-		    cmpflag=1;
-		    for(j=0;j<hdrbytes;j++)
-		      {
-			sscanf(&Word[i+1][2*(hdrbytes-j-1)+1],"%2X",(int *)&expect[j]);
-		      }
-		  }
-      		if(strcmp(Word[i],"MASK")==0)
-		  {
-		    for(j=0;j<hdrbytes;j++)
-		      {
-			sscanf(&Word[i+1][2*(hdrbytes-j-1)+1],"%2X",(int *)&rmask[j]);
-		      }
-		  }
-	      }
-	    }
-	  
-	  // === Handling HIR ===
-	  else if(strcmp(Word[0],"HIR")==0)
-	    {
-	      // for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
-	      // cmpflag=1;    //disable the comparison for no TDO SDR
-	      sscanf(Word[1],"%d",&hirbits);
-	      hirbytes=(hirbits)?(hirbits-1)/8+1:0;
-	      if (db)	  
-		printf("Sending %d bits of Header Data\n", hirbits);
-	      // if (db>3)          printf("HIR: Num of bits - %d, num of bytes - %d\n",hirbits,hirbytes);
-	      for(i=2;i<Count;i+=2)
-		{
-		  if(strcmp(Word[i],"TDI")==0)
-		  {
-		    for(j=0;j<hirbytes;j++)
-		      {
-			sscanf(&Word[i+1][2*(hirbytes-j-1)+1],"%2X",(int *)&sndhir[j]);
-			// printf("%2X",sndhir[j]);
-		      }
-		    // printf("\n%d\n",nbytes);
-    		  }
-		  if(strcmp(Word[i],"SMASK")==0)
-		    {
-		      for(j=0;j<hirbytes;j++)
-		      {
-      		  	sscanf(&Word[i+1][2*(hirbytes-j-1)+1],"%2X",(int *)&hirsmask[j]);
-		      }
-		    }
-		  if(strcmp(Word[i],"TDO")==0)
-		    {
-		      //if (db>2)             cmpflag=1;
-		      cmpflag=1;
-		      for(j=0;j<hirbytes;j++)
-			{
-			  sscanf(&Word[i+1][2*(hirbytes-j-1)+1],"%2X",(int *)&expect[j]);
-			}
-		    }
-		  if(strcmp(Word[i],"MASK")==0)
-		    {
-		      for(j=0;j<hirbytes;j++)
-			{
-			  sscanf(&Word[i+1][2*(hirbytes-j-1)+1],"%2X",(int *)&rmask[j]);
-			}
-		    }
-		}
-	    }	
-	  
-	  // === Handling TDR ===
-	  else if(strcmp(Word[0],"TDR")==0)
-	    {
-	      // for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
-	      // cmpflag=1;    //disable the comparison for no TDO SDR
-	      sscanf(Word[1],"%d",&tdrbits);
-	      tdrbytes=(tdrbits)?(tdrbits-1)/8+1:0;
-	      if (db)	  
-		printf("Sending %d bits of Tailer Data\n", tdrbits);
-	      // if (db>3)          printf("TDR: Num of bits - %d, num of bytes - %d\n",tdrbits,tdrbytes);
-	      for(i=2;i<Count;i+=2)
-	      {
-		if(strcmp(Word[i],"TDI")==0)
-		  {
-		    for(j=0;j<tdrbytes;j++)
-		      {
-			sscanf(&Word[i+1][2*(tdrbytes-j-1)+1],"%2X",(int *)&sndtdr[j]);
-			// printf("%2X",sndhir[j]);
-		      }
-		    // printf("\n%d\n",nbytes);
-    		  }
-      		if(strcmp(Word[i],"SMASK")==0)
-		  {
-		    for(j=0;j<tdrbytes;j++)
-		      {
-			sscanf(&Word[i+1][2*(tdrbytes-j-1)+1],"%2X",(int *)&tdrsmask[j]);
-		      }
-		  }
-		if(strcmp(Word[i],"TDO")==0)
-		  {
-		    //if (db>2)             cmpflag=1;
-		    cmpflag=1;
-		    for(j=0;j<tdrbytes;j++)
-		      {
-			sscanf(&Word[i+1][2*(tdrbytes-j-1)+1],"%2X",(int *)&expect[j]);
-		      }
-		  }
-      		if(strcmp(Word[i],"MASK")==0)
-		  {
-		    for(j=0;j<tdrbytes;j++)
-		      {
-			sscanf(&Word[i+1][2*(tdrbytes-j-1)+1],"%2X",(int *)&rmask[j]);
-		      }	
-		  }
-	      }
-	    }
-	  
-	  // === Handling TDR ===
-	  else if(strcmp(Word[0],"TIR")==0)
-	  {
-	    // for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
-	    // cmpflag=1;    //disable the comparison for no TDO SDR
-	    sscanf(Word[1],"%d",&tirbits);
-	    tirbytes=(tirbits)?(tirbits-1)/8+1:0;
-	    if (db)	  
-	      printf("Sending %d bits of Tailer Data\n", tdrbits);
-	    // if (db>3)          printf("TIR: Num of bits - %d, num of bytes - %d\n",tirbits,tirbytes);
-	    for(i=2;i<Count;i+=2)
-	      {
-		if(strcmp(Word[i],"TDI")==0)
-		  {
-		    for(j=0;j<tirbytes;j++)
-		      {
-			sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",(int *)&sndtir[j]);
-			    // printf("%2X",sndhir[j]);
-		      }
-		    // printf("\n%d\n",nbytes);
-    		  }
-      		if(strcmp(Word[i],"SMASK")==0)
-		  {
-		    for(j=0;j<tirbytes;j++)
-		      {
-				  sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",(int *)&tirsmask[j]);
-		      }
-		  }
-		if(strcmp(Word[i],"TDO")==0)
-		  {
-		    //if (db>2)             cmpflag=1;
-		    cmpflag=1;
-		    for(j=0;j<tirbytes;j++)
-		      {
-			sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",(int *)&expect[j]);
-		      }
-		  }
-      		if(strcmp(Word[i],"MASK")==0)
-		  {
-		    for(j=0;j<tirbytes;j++)
-		      {
-			sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",(int *)&rmask[j]);
-		      }
-		  }
-	      }
 	  }
-	  // === Handling SDR ===
-	  else if(strcmp(Word[0],"SDR")==0)
-	    {
-	      for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
-	      // cmpflag=1;    //disable the comparison for no TDO SDR
-	    sscanf(Word[1],"%d",&nbits);
-	    nbytes=(nbits)?(nbits-1)/8+1:0;
-	    if (db)	  printf("Sending %d bits Data\n", nbits);
-	    // if (db>3)          printf("SDR: Num of bits - %d, num of bytes - %d\n",nbits,nbytes);
-	    for(i=2;i<Count;i+=2)
-	      {
-	      if(strcmp(Word[i],"TDI")==0)
-		{
-		  for(j=0;j<nbytes;j++)
-		    {
-		      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&snd[j]);
-		      //                printf("%2X",snd[j]);
-		    }
-		  //                printf("\n%d\n",nbytes);
-		}
-	      if(strcmp(Word[i],"SMASK")==0)
-		{
-		  for(j=0;j<nbytes;j++)
-		    {
-		      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&smask[j]);
-		    }
-		}
-	      if(strcmp(Word[i],"TDO")==0)
-		{
-		  //if (db>2)             cmpflag=1;
-		  cmpflag=1;
-		  for(j=0;j<nbytes;j++)
-		    {
-		      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&expect[j]);
-		    }
-		}
-	      if(strcmp(Word[i],"MASK")==0)
-		{
-		  for(j=0;j<nbytes;j++)
-		    {
-		      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&rmask[j]);
-		    }
-		}
-	      }
-	    for(i=0;i<nbytes;i++)
-	      {
-	      send_tmp = snd[i]&smask[i];
-	      for(j=0;j<8;j++)
-		{
-		  if ((i*8+j)< nbits) 
-		    { 
-		      sndbuf[i*8+j+3]=send_tmp&0x01; 
-		    }
-		  send_tmp = send_tmp >> 1;
-		}
-	      }
-	    for(i=0;i<4;i++)sndbuf[nbits+3]=tdi_post[i];         
-	    nframes=nbits+7;
-          // Put send SDR here
-	    for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++)
-	      realsnd[i] = 0;
-	    if (hdrbytes>0) {
-	      for (i=0;i<hdrbytes;i++)
-		realsnd[i]=sndhdr[i];
-	    }
-	    for (i=0;i<nbits;i++)
-	    realsnd[(i+hdrbits)/8] |= (snd[i/8] >> (i%8)) << ((i+hdrbits)%8);
-	    if (tdrbytes>0) {
-	      for (i=0;i<tdrbits;i++)
-		realsnd[(i+hdrbits+nbits)/8] |= (sndtdr[i/8] >> (i%8)) << ((i+hdrbits+nbits)%8);
-	    }
-	    
-	    if (db>6) {	printf("SDR Send Data:\n");
-	    for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++)
-	    printf("%02X",realsnd[i]);
-	    printf("\n");
-	    }
-	    send_packages++ ;
-	    printf("%c[0m", '\033');
-	    printf("%c[1m", '\033');
-	    //printf("%c[2;50H", '\033');
-	    if ( send_packages == 1 )   {
-	      printf("%c7", '\033');
-	    }
-	  printf("%c8", '\033'); 
-	  printf(" Sending %d/%d ",send_packages,total_packages) ;
-	  printf("%c8", '\033'); 
-	  printf("%c[0m", '\033');
-	  if ( send_packages == total_packages ) printf("\n") ;
-	  //
-	  //	  tmb_->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, 2); 
-	  tmb_->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, READ_BACK); 
-	  //
-	  if (cmpflag==1)
-	    {     
-	      /*
-		for(i=0;i<nbytes;i++)
-		{
-		rcv_tmp = 0;
-		for(j=0;j<8;j++)
-		{
-		if ((i*8+j) < nbits)
-		{
-		rcv_tmp |= ((rcvbuf[i*8+j+3]<<7) &0x80); 
-		}
-		rcv_tmp = rcv_tmp >> (j<7);
-		
-		}	
-		rcv[nbytes-1-i] = rcv_tmp;		
-		}
-	      */
-	      if (db>4){	  	printf("SDR Readback Data:\n");
-	      //for(i=0;i<nbytes;i++) printf("%02X",rcv[i]);
-	      for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) 
-		printf("%02X",rcv[i]);
-	      printf("\n");
-	      }	
-	      
-	      for(i=0;i<nbytes;i++)
-		{
-		  rcvword = rcv[i+(hdrbits/8)]+(((int)rcv[i+1+(hdrbits/8)])<<8);
-		  rcvword = rcvword>>(hdrbits%8);
-		  rcvword = rcv[i];
-		  // if (((rcv[nbytes-1-i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
-		  if ((((rcvword&0xFF)^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
-		    {
-		      printf("1.read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
-		      errcntr++;
-		    }
-		}	
-	    }
-	  /*         if (cmpflag==1)
-		     {
-		     for(i=3;i<nbits+3;i++) printf("%d",rcvbuf[i]);
-		     printf("\n");
-		     }
-	  */       
-          }
-        // === Handling SIR ===
-        else if(strcmp(Word[0],"SIR")==0)
-          {
-	    for(i=0;i<4;i++)sndbuf[i]=tdi_pre_sir[i];
-	    // cmpflag=1;    //disable the comparison for no TDO SDR
-	    sscanf(Word[1],"%d",&nbits);
-	    nbytes=(nbits)?(nbits-1)/8+1:0;
-	    if (db)	  printf("Sending %d bits of Command\n",nbits);
-	    // if (db>3)          printf("SIR: Num of bits - %d, num of bytes - %d\n",nbits,nbytes);
-	    for(i=2;i<Count;i+=2)
-	      {
-		if(strcmp(Word[i],"TDI")==0)
-		  {
-		    for(j=0;j<nbytes;j++)
-		      {
-			sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&snd[j]);
-		      }
-		  }
-		if(strcmp(Word[i],"SMASK")==0)
-		  {
-		    for(j=0;j<nbytes;j++)
-		      {
-			sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&smask[j]);
-		      }
-		  }
-		if(strcmp(Word[i],"TDO")==0)
-		  {
-			cmpflag=1;
-			// if (db>2)              cmpflag=1;
-			for(j=0;j<nbytes;j++)
-			  {
-			    sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&expect[j]);
-			  }
-		  }
-		if(strcmp(Word[i],"MASK")==0)
-		  {
-		    for(j=0;j<nbytes;j++)
-		      {
-			sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&rmask[j]);
-		      }
-		  }
-	      }
-	    for(i=0;i<nbytes;i++)
-	      {
-		send_tmp = snd[i]&smask[i];
-		// printf("\n%d - ", send_tmp);
-		for(j=0;j<8;j++)
-		  {
-		    if ((i*8+j)< nbits) 
-		      {
-			sndbuf[i*8+j+4]=send_tmp&0x01;
-			// printf("%d", sndbuf[i*8+j+4]);
-		      }
-		    send_tmp = send_tmp >> 1;
-		  }
-	      }
-	    for(i=0;i<4;i++)sndbuf[nbits+4]=tdi_post[i];
-	    nframes=nbits+8;
-	    // Put send SIR here
-	    for (i=0; i< ((hirbits+nbits+tirbits-1)/8+1);  i++)
-	      realsnd[i] = 0;
-	    if (hirbytes>0) {
-	      for (i=0;i<hirbytes;i++)
-		realsnd[i]=sndhir[i];
-	    }
-	    for (i=0;i<nbits;i++)
-	      realsnd[(i+hirbits)/8] |= (snd[i/8] >> (i%8)) << ((i+hirbits)%8);
-	    if (tirbytes>0) {
-	      for (i=0;i<tirbits;i++)
-		realsnd[(i+hirbits+nbits)/8] |= (sndtir[i/8] >> (i%8)) << ((i+hirbits+nbits)%8);
-	    }
-	    //
-	    //	    tmb_->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, 0); 
-	    tmb_->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, NO_READ_BACK); 
-	    //
-
-	    if (db>6) { 	printf("SIR Send Data:\n");
-	    for (i=0; i< ((hirbits+nbits+tirbits-1)/8+1);  i++)
-	      printf("%02X",realsnd[i]);
-	    printf("\n");
-	    }
-	    //	  jtag_load_(&fd, &nframes, tms_pre_sir, sndbuf, rcvbuf, &step_mode);
-	    if (cmpflag==1)
-	      {
-		/*               for(i=0;i<nbytes;i++)
-				 {
-				 rcv_tmp = 0;
-				 for(j=0;j<8;j++)
-				 {
-				 if ((i*8+j) < nbits)
-				 {
-				 rcv_tmp |= ((rcvbuf[i*8+j+4]<<7) &0x80);
-				 }
-				 rcv_tmp = rcv_tmp >> (j<7);
-				 
-				 }
-				 rcv[nbytes-1-i] = rcv_tmp;
-				 }
-		*/
-		if (db>4){                printf("SIR Readback Data:\n");
-                //for(i=0;i<nbytes;i++) printf("%02X",rcv[i]);
-		for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) printf("%02X",rcv[i]);
-                printf("\n");
-		}
-		
-                for(i=0;i<nbytes;i++)
-		  {
-		    rcvword = rcv[i+(hirbits/8)]+(((int)rcv[i+1+(hirbits/8)])<<8);
-		    rcvword = rcvword>>(hirbits%8);
-		    rcvword = rcv[i];
-		    // if (((rcv[nbytes-1-i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
-		    if ((((rcvword&0xFF)^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
-		      {
-			printf("2.read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
-                	errcntr++;
-		      }
-		  }
-		
-	      }
-	    /*
-	      if (cmpflag==1)
-	      {
-	      for(i=4;i<nbits+4;i++) printf("%d",rcvbuf[i]);
-	      printf("\n");
-	      }
-	    */   
-          }
-	// === Handling RUNTEST ===
-	  else if(strcmp(Word[0],"RUNTEST")==0)
-	    {
-	      sscanf(Word[1],"%d",&pause);
-	      //printf("RUNTEST:  %d\n",pause);
-	      usleep(pause+100);
-	      // InsertDelayJTAG(pause,MYMICROSECONDS);
-	    }
-	  // === Handling STATE ===
-	  else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0))
-	    {
-	      //          printf("STATE: goto reset idle state\n");
-	      // Put send STATE RESET here
-          }
-	  // === Handling TRST ===
-	  else if(strcmp(Word[0],"TRST")==0)
-	    {
-	      //          printf("TRST\n");
-          }
-	// === Handling ENDIR ===
-        else if(strcmp(Word[0],"ENDIR")==0)
-	  {
-	    //          printf("ENDIR\n");
-          }
-	  // === Handling ENDDR ===
-	  else if(strcmp(Word[0],"ENDDR")==0)
-	  {
-	    //	   printf("ENDDR\n");
-          }
+	  while (strrchr(buf,';')==0);
 	}
+      } 
+      bzero(snd, sizeof(snd));
+      bzero(cmpbuf, sizeof(cmpbuf));
+      bzero(sndbuf, sizeof(sndbuf));
+      bzero(rcvbuf, sizeof(rcvbuf));      
+      /*
+	for(i=0;i<MAXBUFSIZE;i++) {
+	snd[i]=0;
+	cmpbuf[i]=0;
+	sndbuf[i]=0;
+	rcvbuf[i]=0;
+	}
+      */
+      Parse(buf, &Count, &(Word[0]));
+      count=count+1;
+      cmpflag=0;
+      //
+      // ==================  Parse commands from SVF file ====================
+      //
+      if(strcmp(Word[0],"HDR")==0) {
+	//
+	// === Handling HDR ===
+	//
+	sscanf(Word[1],"%d",&hdrbits);
+	hdrbytes=(hdrbits)?(hdrbits-1)/8+1:0;
+	//
+	if (db)	  printf("HDR: Packing %d bits of Header Data\n", hdrbits);
+	if (db>3) printf("HDR: Num of bits - %d, num of bytes - %d\n",hdrbits,hdrbytes);
+	//
+	for(i=2;i<Count;i+=2) {
+	  if(strcmp(Word[i],"TDI")==0) {
+	    if (db>5) printf("TDI ");
+	    for(j=0;j<hdrbytes;j++) {
+	      sscanf(&Word[i+1][2*(hdrbytes-j-1)+1],"%2X",(int *)&sndhdr[j]);
+	      // printf("%2X",sndhdr[j]);
+	    }
+	    // printf("\n%d\n",nbytes);
+	  }
+	  if(strcmp(Word[i],"SMASK")==0) {
+	    if (db>5) printf("SMASK ");
+	    for(j=0;j<hdrbytes;j++) {
+	      sscanf(&Word[i+1][2*(hdrbytes-j-1)+1],"%2X",(int *)&hdrsmask[j]);
+	    }
+	  }
+	  if(strcmp(Word[i],"TDO")==0) {
+	    if (db>5) printf("TDO ");
+	    //if (db>2)             cmpflag=1;
+	    cmpflag=1;
+	    for(j=0;j<hdrbytes;j++) {
+	      sscanf(&Word[i+1][2*(hdrbytes-j-1)+1],"%2X",(int *)&expect[j]);
+	    }
+	  }
+	  if(strcmp(Word[i],"MASK")==0) {
+	    if (db>5) printf("MASK ");
+	    for(j=0;j<hdrbytes;j++) {
+	      sscanf(&Word[i+1][2*(hdrbytes-j-1)+1],"%2X",(int *)&rmask[j]);
+	    }
+	  }
+	}
+	if (db>5) printf("\n");
+      } else if(strcmp(Word[0],"HIR")==0) {
+	//
+	// === Handling HIR ===
+	//
+	// for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
+	// cmpflag=1;    //disable the comparison for no TDO SDR
+	//
+	sscanf(Word[1],"%d",&hirbits);
+	hirbytes=(hirbits)?(hirbits-1)/8+1:0;
+	//
+	if (db)	  printf("HIR: Packing %d bits of Header Data\n", hirbits);
+	if (db>3) printf("HIR: Num of bits - %d, num of bytes - %d\n",hirbits,hirbytes);
+	//
+	for(i=2;i<Count;i+=2) { 
+	  if(strcmp(Word[i],"TDI")==0) {
+	    if (db>5) printf("TDI ");
+	    for(j=0;j<hirbytes;j++)  {
+	      sscanf(&Word[i+1][2*(hirbytes-j-1)+1],"%2X",(int *)&sndhir[j]);
+	      // printf("%2X",sndhir[j]);
+	    }
+	    // printf("\n%d\n",nbytes);
+	  }
+	  if(strcmp(Word[i],"SMASK")==0) {
+	    if (db>5) printf("SMASK ");
+	    for(j=0;j<hirbytes;j++) {
+	      sscanf(&Word[i+1][2*(hirbytes-j-1)+1],"%2X",(int *)&hirsmask[j]);
+	    }
+	  }
+	  if(strcmp(Word[i],"TDO")==0) {
+	    if (db>5) printf("TDO ");
+	    //if (db>2) cmpflag=1;
+	    cmpflag=1;
+	    for(j=0;j<hirbytes;j++) {
+	      sscanf(&Word[i+1][2*(hirbytes-j-1)+1],"%2X",(int *)&expect[j]);
+	    }
+	  }
+	  if(strcmp(Word[i],"MASK")==0) {
+	    if (db>5) printf("MASK ");
+	    for(j=0;j<hirbytes;j++) {
+	      sscanf(&Word[i+1][2*(hirbytes-j-1)+1],"%2X",(int *)&rmask[j]);
+	    }
+	  }
+	}
+	if (db>5) printf("\n");
+      } else if(strcmp(Word[0],"TDR")==0) {
+	//
+	// === Handling TDR ===
+	//
+	// for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
+	// cmpflag=1;    //disable the comparison for no TDO SDR
+	//
+	sscanf(Word[1],"%d",&tdrbits);
+	tdrbytes=(tdrbits)?(tdrbits-1)/8+1:0;
+	if (db)	  printf("TDR: Packing %d bits of Data Register\n", tdrbits);
+	if (db>3) printf("TDR: Num of bits - %d, num of bytes - %d\n",tdrbits,tdrbytes);
+	for(i=2;i<Count;i+=2) {
+	  if(strcmp(Word[i],"TDI")==0) {
+	    if (db>5) printf("TDI ");
+	    for(j=0;j<tdrbytes;j++) {
+	      sscanf(&Word[i+1][2*(tdrbytes-j-1)+1],"%2X",(int *)&sndtdr[j]);
+	      // printf("%2X",sndhir[j]);
+	    }
+	    // printf("\n%d\n",nbytes);
+	  }
+	  if(strcmp(Word[i],"SMASK")==0) {
+	    if (db>5) printf("SMASK ");
+	    for(j=0;j<tdrbytes;j++) {
+	      sscanf(&Word[i+1][2*(tdrbytes-j-1)+1],"%2X",(int *)&tdrsmask[j]);
+	    }
+	  }
+	  if(strcmp(Word[i],"TDO")==0) {
+	    if (db>5) printf("TDO ");
+	    //if (db>2) cmpflag=1;
+	    cmpflag=1;
+	    for(j=0;j<tdrbytes;j++) {
+	      sscanf(&Word[i+1][2*(tdrbytes-j-1)+1],"%2X",(int *)&expect[j]);
+	    }
+	  }
+	  if(strcmp(Word[i],"MASK")==0) {
+	    if (db>5) printf("MASK ");
+	    for(j=0;j<tdrbytes;j++) {
+	      sscanf(&Word[i+1][2*(tdrbytes-j-1)+1],"%2X",(int *)&rmask[j]);
+	    }	
+	  }
+	}
+      } else if(strcmp(Word[0],"TIR")==0) {
+	//	  
+	// === Handling TIR ===
+	//
+	// for(i=0;i<3;i++)sndbuf[i]=tdi_pre_sdr[i];
+	// cmpflag=1;    //disable the comparison for no TDO SDR
+	//
+	sscanf(Word[1],"%d",&tirbits);
+	tirbytes=(tirbits)?(tirbits-1)/8+1:0;
+	//
+	if (db)	  printf("TIR: Packing %d bits of Instruction Register\n", tdrbits);
+	if (db>3) printf("TIR: Num of bits - %d, num of bytes - %d\n",tirbits,tirbytes);
+	//
+	for(i=2;i<Count;i+=2) {
+	  if(strcmp(Word[i],"TDI")==0) {
+	    if (db>5) printf("TDI ");
+	    for(j=0;j<tirbytes;j++) {
+	      sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",(int *)&sndtir[j]);
+	      // printf("%2X",sndhir[j]);
+	    }
+	    // printf("\n%d\n",nbytes);
+	  }
+	  if(strcmp(Word[i],"SMASK")==0) {
+	    if (db>5) printf("SMASK ");
+	    for(j=0;j<tirbytes;j++) {
+	      sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",(int *)&tirsmask[j]);
+	    }
+	  }
+	  if(strcmp(Word[i],"TDO")==0) {
+	    if (db>5) printf("TDO ");
+	    //if (db>2) cmpflag=1;
+	    cmpflag=1;
+	    for(j=0;j<tirbytes;j++) {
+	      sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",(int *)&expect[j]);
+	    }
+	  }
+	  if(strcmp(Word[i],"MASK")==0) {
+	    if (db>5) printf("MASK ");
+	    for(j=0;j<tirbytes;j++) {
+	      sscanf(&Word[i+1][2*(tirbytes-j-1)+1],"%2X",(int *)&rmask[j]);
+	    }
+	  }
+	}
+	if (db>5) printf("\n");
+      } else if(strcmp(Word[0],"SDR")==0) {
+	//
+	// === Handling SDR ===
+	//
+	for(i=0;i<3;i++) sndbuf[i]=tdi_pre_sdr[i];
+	// cmpflag=1;    //disable the comparison for no TDO SDR
+	sscanf(Word[1],"%d",&nbits);
+	nbytes=(nbits)?(nbits-1)/8+1:0;
+	//
+	if (db)	  printf("SDR: Packing %d bits data to shift into data register...\n", nbits);
+	if (db>3) printf("SDR: Num of bits - %d, num of bytes - %d\n",nbits,nbytes);
+	//
+	for(i=2;i<Count;i+=2) {
+	  if(strcmp(Word[i],"TDI")==0) {
+	    if (db>5) printf("TDI ");
+	    for(j=0;j<nbytes;j++) {
+	      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&snd[j]);
+	      // printf("%2X",snd[j]);
+	    }
+	    // printf("\n%d\n",nbytes);
+	  }
+	  if(strcmp(Word[i],"SMASK")==0) {
+	    if (db>5) printf("SMASK ");
+	    for(j=0;j<nbytes;j++) {
+	      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&smask[j]);
+	    }
+	  }
+	  if(strcmp(Word[i],"TDO")==0) {
+	    if (db>5) printf("TDO ");
+	    //if (db>2) cmpflag=1;
+	    cmpflag=1;
+	    for(j=0;j<nbytes;j++) {
+	      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&expect[j]);
+	    }
+	  }
+	  if(strcmp(Word[i],"MASK")==0) {
+	    if (db>5) printf("MASK ");
+	    for(j=0;j<nbytes;j++) {
+	      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&rmask[j]);
+	    }
+	  }
+	}
+	//
+	for(i=0;i<nbytes;i++) {
+	  send_tmp = snd[i]&smask[i];
+	  for(j=0;j<8;j++) {
+	    if ((i*8+j)< nbits) { 
+	      sndbuf[i*8+j+3]=send_tmp&0x01; 
+	    }
+	    send_tmp = send_tmp >> 1;
+	  }
+	}
+	for(i=0;i<4;i++) sndbuf[nbits+3]=tdi_post[i];         
+	nframes=nbits+7;
+	// Put send SDR here
+	for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++)
+	  realsnd[i] = 0;
+	if (hdrbytes>0) {
+	  for (i=0;i<hdrbytes;i++)
+	    realsnd[i]=sndhdr[i];
+	}
+	for (i=0;i<nbits;i++)
+	  realsnd[(i+hdrbits)/8] |= (snd[i/8] >> (i%8)) << ((i+hdrbits)%8);
+	if (tdrbytes>0) {
+	  for (i=0;i<tdrbits;i++)
+	    realsnd[(i+hdrbits+nbits)/8] |= (sndtdr[i/8] >> (i%8)) << ((i+hdrbits+nbits)%8);
+	}
+	//
+	if (db>6) {	
+	  printf("SDR Send Data:\n");
+	  for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++)
+	    printf("%02X",realsnd[i]);
+	  printf("\n");
+	}
+	send_packages++ ;
+	printf("%c[0m", '\033');
+	printf("%c[1m", '\033');
+	//printf("%c[2;50H", '\033');
+	if ( send_packages == 1 ) {
+	  printf("%c7", '\033');
+	}
+	printf("%c8", '\033'); 
+	printf(" Sending %d/%d ",send_packages,total_packages) ;
+	printf("%c8", '\033'); 
+	printf("%c[0m", '\033');
+	if ( send_packages == total_packages ) printf("\n") ;
+	//
+	if (db) printf("SDR Send NOW\n");
+	tmb_->scan(DATA_REG, (char*)realsnd, hdrbits+nbits+tdrbits, (char*)rcv, READ_BACK); 
+	//
+	if (cmpflag==1) {     
+	  //
+	  if (db>6) {	  	
+	    printf("SDR Readback Data: ");
+	    for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) 
+	      printf("%02X",rcv[i]);
+	    printf("\n");
+	  }	
+	  //    
+	  for(i=0;i<nbytes;i++)	{
+	    rcvword = rcv[i+(hdrbits/8)]+(((int)rcv[i+1+(hdrbits/8)])<<8);
+	    rcvword = rcvword>>(hdrbits%8);
+	    rcvword = rcv[i];
+	    // if (((rcv[nbytes-1-i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
+	    if ((((rcvword&0xFF)^expect[i]) & (rmask[i]))!=0 && cmpflag==1) {
+	      if (db)
+		printf("SDR read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",
+		       i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
+	      errcntr++;
+	    }
+	  }	
+	}
+	//
+      } else if(strcmp(Word[0],"SIR")==0) {
+	//
+        // === Handling SIR ===
+	//
+	for(i=0;i<4;i++) sndbuf[i]=tdi_pre_sir[i];
+	// cmpflag=1;    //disable the comparison for no TDO SDR
+	sscanf(Word[1],"%d",&nbits);
+	nbytes=(nbits)?(nbits-1)/8+1:0;
+	//
+	if (db)	  printf("SIR: Packing %d bits of data to shift into the instruction register...\n",nbits);
+	if (db>3) printf("SIR: Num of bits - %d, num of bytes - %d\n",nbits,nbytes);
+	//
+	for(i=2;i<Count;i+=2) {
+	  if(strcmp(Word[i],"TDI")==0) {
+	    if (db>5) printf("TDI ");
+	    for(j=0;j<nbytes;j++) {
+	      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&snd[j]);
+	    }
+	  }
+	  if(strcmp(Word[i],"SMASK")==0) {
+	    if (db>5) printf("SMASK ");
+	    for(j=0;j<nbytes;j++) {
+	      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&smask[j]);
+	    }
+	  }
+	  if(strcmp(Word[i],"TDO")==0) {
+	    if (db>5) printf("TDO ");
+	    cmpflag=1;
+	    // if (db>2) cmpflag=1;
+	    for(j=0;j<nbytes;j++) {
+	      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&expect[j]);
+	    }
+	  }
+	  if(strcmp(Word[i],"MASK")==0) {
+	    if (db>5) printf("MASK ");
+	    for(j=0;j<nbytes;j++) {
+	      sscanf(&Word[i+1][2*(nbytes-j-1)+1],"%2X",(int *)&rmask[j]);
+	    }
+	  }
+	}
+	for(i=0;i<nbytes;i++) {
+	  send_tmp = snd[i]&smask[i];
+	  // printf("\n%d - ", send_tmp);
+	  for(j=0;j<8;j++) {
+	    if ((i*8+j)< nbits) {
+	      sndbuf[i*8+j+4]=send_tmp&0x01;
+	      // printf("%d", sndbuf[i*8+j+4]);
+	    }
+	    send_tmp = send_tmp >> 1;
+	  }
+	}
+	for(i=0;i<4;i++) sndbuf[nbits+4]=tdi_post[i];
+	nframes=nbits+8;
+	// Put send SIR here
+	for (i=0; i< ((hirbits+nbits+tirbits-1)/8+1);  i++)
+	  realsnd[i] = 0;
+	if (hirbytes>0) {
+	  for (i=0;i<hirbytes;i++)
+	    realsnd[i]=sndhir[i];
+	}
+	for (i=0;i<nbits;i++)
+	  realsnd[(i+hirbits)/8] |= (snd[i/8] >> (i%8)) << ((i+hirbits)%8);
+	if (tirbytes>0) {
+	  for (i=0;i<tirbits;i++)
+	    realsnd[(i+hirbits+nbits)/8] |= (sndtir[i/8] >> (i%8)) << ((i+hirbits+nbits)%8);
+	}
+	//
+	if (db>6) { 	
+	  printf("SIR Send Data: ");
+	  for (i=0; i< ((hirbits+nbits+tirbits-1)/8+1);  i++)
+	    printf("%02X",realsnd[i]);
+	  printf("\n");
+	}
+	//
+	if (db) printf("SIR Send NOW\n");
+	tmb_->scan(INSTR_REG, (char*)realsnd, hirbits+nbits+tirbits, (char*)rcv, NO_READ_BACK); 
+	//
+	if (cmpflag==1) {
+	  //
+	  if (db>6) {                
+	    printf("SIR Readback Data: ");
+	    for (i=0; i< ((hdrbits+nbits+tdrbits-1)/8+1); i++) 
+	      printf("%02X",rcv[i]);
+	    printf("\n");
+	  }
+	  //	  
+	  for(i=0;i<nbytes;i++) {
+	    rcvword = rcv[i+(hirbits/8)]+(((int)rcv[i+1+(hirbits/8)])<<8);
+	    rcvword = rcvword>>(hirbits%8);
+	    rcvword = rcv[i];
+	    // if (((rcv[nbytes-1-i]^expect[i]) & (rmask[i]))!=0 && cmpflag==1)
+	    if ((((rcvword&0xFF)^expect[i]) & (rmask[i]))!=0 && cmpflag==1) {
+	      if (db)
+		printf("SIR read back wrong, at i %02d  rdbk %02X  expect %02X  rmask %02X\n",
+		       i,rcv[i]&0xFF,expect[i]&0xFF,rmask[i]&0xFF);
+	      errcntr++;
+	    }
+	  }
+	}
+	/*
+	  if (cmpflag==1)
+	  {
+	  for(i=4;i<nbits+4;i++) printf("%d",rcvbuf[i]);
+	  printf("\n");
+	  }
+	*/   
+      } else if(strcmp(Word[0],"RUNTEST")==0) {
+	//
+	// === Handling RUNTEST ===
+	//
+	sscanf(Word[1],"%d",&pause);
+	if (db) printf("RUNTEST:  %d\n",pause);
+	usleep(pause+100);
+	// 
+      }	else if((strcmp(Word[0],"STATE")==0)&&(strcmp(Word[1],"RESET")==0)&&(strcmp(Word[2],"IDLE;")==0)) {
+	//	
+	// === Handling STATE ===
+	//
+      } else if(strcmp(Word[0],"TRST")==0) {
+	//
+	// === Handling TRST ===
+	//
+      } else if(strcmp(Word[0],"ENDIR")==0) {
+	//
+	// === Handling ENDIR ===
+	//
+      } else if(strcmp(Word[0],"ENDDR")==0) {
+	//
+	// === Handling ENDDR ===
+	//
       }
+      //      ::sleep(1);
+    }
+  }
+  //
   tmb_->endDevice();
   fclose(dwnfp);
   return errcntr; 
 }
-
-
-// ====
-// SVF File Parser module
-// ====
-void EMUjtag::Parse(char *buf,int *Count,char **Word)
-{
-
+//
+void EMUjtag::Parse(char *buf,int *Count,char **Word) {
+  //
+  // SVF File Parser module
+  //
   *Word = buf;
   *Count = 0;
   while(*buf != '\0')  {
     while ((*buf==' ') || (*buf=='\t') || (*buf=='\n') || (*buf=='"')) *(buf++)='\0';
     if ((*buf != '\n') && (*buf != '\0'))  {
       Word[(*Count)++] = buf;
-
     }
     while ((*buf!=' ')&&(*buf!='\0')&&(*buf!='\n')&&(*buf!='\t')&&(*buf!='"')) {
       buf++;
