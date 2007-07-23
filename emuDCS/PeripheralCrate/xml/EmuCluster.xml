@@ -27,6 +27,7 @@
                   <xmlFileName xsi:type="xsd:string">/home/cscpc/config/configFall2006ME1a-highrate.xml</xmlFileName>
                  </properties>
                 </xc:Application>
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCore/lib/linux/x86/libEmuPeripheralCore.so</xc:Module>      
         	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
         </xc:Context>
 
@@ -38,6 +39,7 @@
                   <xmlFileName xsi:type="xsd:string">/home/cscpc/config/configFall2006ME1b-highrate.xml</xmlFileName>
                  </properties>
                 </xc:Application>
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCore/lib/linux/x86/libEmuPeripheralCore.so</xc:Module>      
         	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
         </xc:Context>
 
@@ -48,6 +50,7 @@
                   <xmlFileName xsi:type="xsd:string">/home/cscpc/config/configFall2006ME2-highrate.xml</xmlFileName>
                  </properties>
                 </xc:Application>
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCore/lib/linux/x86/libEmuPeripheralCore.so</xc:Module>      
         	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
         </xc:Context>
 
@@ -58,6 +61,7 @@
                   <xmlFileName xsi:type="xsd:string">/home/cscpc/config/configFall2006ME3-highrate.xml</xmlFileName>
                  </properties>
                 </xc:Application>
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCore/lib/linux/x86/libEmuPeripheralCore.so</xc:Module>      
         	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
         </xc:Context>
 
