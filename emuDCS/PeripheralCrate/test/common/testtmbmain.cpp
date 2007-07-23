@@ -191,11 +191,15 @@ int main() {
 	      << std::endl;
     std::cout << "403:Prog. proms w/walking 1s  404: Interior prog. walking 1s"
 	      << std::endl;
-    std::cout << "500: Check TMB state machines 501: Read TMB config registers  502:Read ALCT config regs     "
+    std::cout << "500:Check TMB state machines  501: Read TMB config registers 502:Read ALCT config regs     "
 	      << std::endl;
-    std::cout << "503: StartTriggers TMB        504:Check TMB config registers  505:Check ALCT config regs    "
+    std::cout << "503:StartTriggers TMB         504:Check TMB config registers 505:Check ALCT config regs    "
 	      << std::endl;
-    std::cout << "506: Print TMB state machines 507: Check RAT config registers"
+    std::cout << "506:Print TMB state machines  507: Check RAT config registers"
+	      << std::endl;
+    //
+    std::cout << std::endl;
+    std::cout << "600:Program TMB firmware"
 	      << std::endl;
     //
     std::cout << std::endl;
@@ -205,6 +209,10 @@ int main() {
 
     std::ofstream outputfile;
 
+    int jch = 5;
+    char firmware_string[100] = "/home/rakness/firmware/tmb/20070710/tmb20070710.svf";
+    int debug = 0;
+    //
     switch (Menu) {
     case 0:
       testTMB.reset();
@@ -813,6 +821,10 @@ int main() {
       std::cout << "Check RAT configuration vs xml file = "
 		<< myRat->GetRATConfigurationStatus()
 		<< std::endl;
+      break;
+    case 600:
+      std::cout << "Load TMB firmware = " << firmware_string << std::endl;
+      thisTMB->SVFLoad(&jch,firmware_string,debug);
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 
