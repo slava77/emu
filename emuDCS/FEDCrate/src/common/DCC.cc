@@ -26,9 +26,16 @@ extern short int intval2;
 void Parse(char *buf,int *Count,char **Word);
 void shuffle(char *a,char *b);
 
+DCC::DCC(int crate, int slot):
+  VMEModule(slot),
+  fifoinuse_(1022),
+  softsw_(0)
+{
+  // cout<<"DCC \n";
+}
 
-DCC::DCC(int newcrate,int newslot):
-  VMEModule(newcrate, newslot),
+DCC::DCC(int slot):
+  VMEModule(slot),
   fifoinuse_(1022),
   softsw_(0)
 {
@@ -44,7 +51,7 @@ DCC::~DCC() {
 void DCC::end()
 {
   //  cout << "calling DCC::end" << endl;
-  theController->send_last();
+  send_last();
   VMEModule::end();
 }
 
@@ -342,7 +349,7 @@ enum DEVTYPE dv;
       cmd[0]=PROM_BYPASS;
       sndbuf[0]=0;
       devdo(dv,8,cmd,0,sndbuf,rcvbuf,0);
-      sleep(1);
+      sleep((unsigned int) 1);
 }
 
 void DCC::hdrst_main(void)
@@ -359,7 +366,7 @@ enum DEVTYPE dv;
       cmd[1]=0xFF;
       sndbuf[0]=0;
       devdo(dv,16,cmd,0,sndbuf,rcvbuf,0);
-      sleep(1);
+      sleep((unsigned int) 1);
 }
 
 

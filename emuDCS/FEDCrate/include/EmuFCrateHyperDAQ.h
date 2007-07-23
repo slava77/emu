@@ -39,19 +39,14 @@
 // My Stuff
 
 #include "FEDCrateParser.h"
-#include "TestBeamCrateController.h"
 #include "Crate.h"
 #include "DDU.h"
 #include "DCC.h"
 #include "VMEController.h"
-#include "CrateSelector.h"
 #include "JTAG_constants.h"
+#include "IRQThread.h"
 
 #include "EmuFController.h"
-
-extern int irq_start[4];
-extern int irqprob;
-extern long int timer,xtimer;
 
 using namespace cgicc;
 using namespace std;
@@ -59,81 +54,81 @@ using namespace std;
 class EmuFCrateHyperDAQ: public xdaq::Application 
 {
 private:
-  int reload;
-  //  int irqprob;
-  //  long int timer,xtimer;
-  long int ltime;
+	int reload;
+	//  long int timer,xtimer;
+	bool interrupt_set;
+	time_t interrupt_time;
+	long int ltime;
 	unsigned long int tidcode[8];
 	unsigned long int tuscode[8];
-  //
+	//
 protected:
-  //
-  xdata::String svfFile_;
-  xdata::String xmlFile_;
-  xdata::UnsignedLong myParameter_;
-  TestBeamCrateController tbController;
-  DDU* thisDDU;
-  DCC* thisDCC;
-  ostringstream CrateTestsOutput;
-  ostringstream OutputStringDDUStatus[9];
-  ostringstream OutputStringDCCStatus[9];
-  vector<DDU*> dduVector;
-  vector<DCC*> dccVector;
-  vector<Crate*> crateVector;
-  Crate *thisCrate;
-  std::string Operator_;
-  std::string DDUBoardID_[9];
-  std::string DCCBoardID_[9];
-  int DCC_ratemon[50][12],DCC_ratemon_cnt,DCC_ratemon_ch;
-  int DDU_, DCC_;
-  //
+	//
+	xdata::String svfFile_;
+	xdata::String xmlFile_;
+	xdata::UnsignedLong myParameter_;
+	//TestBeamCrateController tbController; // PGK ??
+	DDU* thisDDU;
+	DCC* thisDCC;
+	ostringstream CrateTestsOutput;
+	ostringstream OutputStringDDUStatus[9];
+	ostringstream OutputStringDCCStatus[9];
+	vector<DDU*> dduVector;
+	vector<DCC*> dccVector;
+	vector<Crate*> crateVector;
+	Crate *thisCrate;
+	std::string Operator_;
+	std::string DDUBoardID_[9];
+	std::string DCCBoardID_[9];
+	int DCC_ratemon[50][12],DCC_ratemon_cnt,DCC_ratemon_ch;
+	int DDU_, DCC_;
+	//
 public:
-  EmuFCrateHyperDAQ(xdaq::ApplicationStub * s): xdaq::Application(s) 
-  {	
-    xgi::bind(this,&EmuFCrateHyperDAQ::Default, "Default");
-    xgi::bind(this,&EmuFCrateHyperDAQ::setConfFile, "setConfFile");
-    xgi::bind(this,&EmuFCrateHyperDAQ::setRawConfFile, "setRawConfFile");
-    xgi::bind(this,&EmuFCrateHyperDAQ::UploadConfFile, "UploadConfFile");
-    xgi::bind(this,&EmuFCrateHyperDAQ::DDUFirmware, "DDUFirmware");
-    xgi::bind(this,&EmuFCrateHyperDAQ::DDUBroadcast, "DDUBroadcast"); 
-    xgi::bind(this,&EmuFCrateHyperDAQ::DDULoadBroadcast, "DDULoadBroadcast"); 
-    xgi::bind(this,&EmuFCrateHyperDAQ::DDUSendBroadcast, "DDUSendBroadcast"); 
-    xgi::bind(this,&EmuFCrateHyperDAQ::DDUReset, "DDUReset"); 
-    xgi::bind(this,&EmuFCrateHyperDAQ::DDUFpga, "DDUFpga");
-    xgi::bind(this,&EmuFCrateHyperDAQ::INFpga0, "INFpga0");
-    xgi::bind(this,&EmuFCrateHyperDAQ::INFpga1, "INFpga1");
-    xgi::bind(this,&EmuFCrateHyperDAQ::VMEPARA, "VMEPARA");
-    xgi::bind(this,&EmuFCrateHyperDAQ::VMESERI, "VMESERI");
-    xgi::bind(this,&EmuFCrateHyperDAQ::DDUTextLoad, "DDUTextLoad");
-    xgi::bind(this,&EmuFCrateHyperDAQ::DDULoadFirmware,"DDULoadFirmware");
-    xgi::bind(this,&EmuFCrateHyperDAQ::VMEIntIRQ,"VMEIntIRQ");
-    xgi::bind(this,&EmuFCrateHyperDAQ::DDUtrapDecode,"DDUtrapDecode");
-    xgi::bind(this,&EmuFCrateHyperDAQ::LoadXMLconf,"LoadXMLconf");
-    xgi::bind(this,&EmuFCrateHyperDAQ::DCCFirmware,"DCCFirmware");
-    xgi::bind(this,&EmuFCrateHyperDAQ::DCCLoadFirmware,"DCCLoadFirmware"); 
-    xgi::bind(this,&EmuFCrateHyperDAQ::DCCFirmwareReset,"DCCFirmwareReset");
-    xgi::bind(this,&EmuFCrateHyperDAQ::DCCCommands,"DCCCommands");
-    xgi::bind(this,&EmuFCrateHyperDAQ::DCCTextLoad, "DCCTextLoad");
-    xgi::bind(this,&EmuFCrateHyperDAQ::IRQTester,"IRQTester");
-    xgi::bind(this,&EmuFCrateHyperDAQ::DDUVoltMon,"DDUVoltMon");
-    xgi::bind(this,&EmuFCrateHyperDAQ::DCCRateMon,"DCCRateMon");
-    xgi::bind(this,&EmuFCrateHyperDAQ::getDataDCCRate0,"getDataDCCRate0");
-    xgi::bind(this,&EmuFCrateHyperDAQ::getDataDCCRate1,"getDataDCCRate1");
-    xgi::bind(this,&EmuFCrateHyperDAQ::setCrate,"setCrate");
-    myParameter_ =  0;
-    //    irqprob=0;
+EmuFCrateHyperDAQ(xdaq::ApplicationStub * s): xdaq::Application(s) 
+{	
+	xgi::bind(this,&EmuFCrateHyperDAQ::Default, "Default");
+	xgi::bind(this,&EmuFCrateHyperDAQ::setConfFile, "setConfFile");
+	xgi::bind(this,&EmuFCrateHyperDAQ::setRawConfFile, "setRawConfFile");
+	xgi::bind(this,&EmuFCrateHyperDAQ::UploadConfFile, "UploadConfFile");
+	xgi::bind(this,&EmuFCrateHyperDAQ::DDUFirmware, "DDUFirmware");
+	xgi::bind(this,&EmuFCrateHyperDAQ::DDUBroadcast, "DDUBroadcast"); 
+	xgi::bind(this,&EmuFCrateHyperDAQ::DDULoadBroadcast, "DDULoadBroadcast"); 
+	xgi::bind(this,&EmuFCrateHyperDAQ::DDUSendBroadcast, "DDUSendBroadcast"); 
+	xgi::bind(this,&EmuFCrateHyperDAQ::DDUReset, "DDUReset"); 
+	xgi::bind(this,&EmuFCrateHyperDAQ::DDUFpga, "DDUFpga");
+	xgi::bind(this,&EmuFCrateHyperDAQ::INFpga0, "INFpga0");
+	xgi::bind(this,&EmuFCrateHyperDAQ::INFpga1, "INFpga1");
+	xgi::bind(this,&EmuFCrateHyperDAQ::VMEPARA, "VMEPARA");
+	xgi::bind(this,&EmuFCrateHyperDAQ::VMESERI, "VMESERI");
+	xgi::bind(this,&EmuFCrateHyperDAQ::DDUTextLoad, "DDUTextLoad");
+	xgi::bind(this,&EmuFCrateHyperDAQ::DDULoadFirmware,"DDULoadFirmware");
+	xgi::bind(this,&EmuFCrateHyperDAQ::VMEIntIRQ,"VMEIntIRQ");
+	xgi::bind(this,&EmuFCrateHyperDAQ::DDUtrapDecode,"DDUtrapDecode");
+	xgi::bind(this,&EmuFCrateHyperDAQ::LoadXMLconf,"LoadXMLconf");
+	xgi::bind(this,&EmuFCrateHyperDAQ::DCCFirmware,"DCCFirmware");
+	xgi::bind(this,&EmuFCrateHyperDAQ::DCCLoadFirmware,"DCCLoadFirmware"); 
+	xgi::bind(this,&EmuFCrateHyperDAQ::DCCFirmwareReset,"DCCFirmwareReset");
+	xgi::bind(this,&EmuFCrateHyperDAQ::DCCCommands,"DCCCommands");
+	xgi::bind(this,&EmuFCrateHyperDAQ::DCCTextLoad, "DCCTextLoad");
+	xgi::bind(this,&EmuFCrateHyperDAQ::IRQTester,"IRQTester");
+	xgi::bind(this,&EmuFCrateHyperDAQ::DDUVoltMon,"DDUVoltMon");
+	xgi::bind(this,&EmuFCrateHyperDAQ::DCCRateMon,"DCCRateMon");
+	xgi::bind(this,&EmuFCrateHyperDAQ::getDataDCCRate0,"getDataDCCRate0");
+	xgi::bind(this,&EmuFCrateHyperDAQ::getDataDCCRate1,"getDataDCCRate1");
+	xgi::bind(this,&EmuFCrateHyperDAQ::setCrate,"setCrate");
+	myParameter_ =  0;
 
-    xmlFile_     = 
-      "/home/fastdducaen/v3.4/TriDAS/emu/emuDCS/FEDCrate/xml/config.xml" ;
-    Operator_ = "Name...";
-    for (int i=0; i<9; i++) { DDUBoardID_[i] = "-1" ; DCCBoardID_[i] = "-1" ; }
-    this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName",&xmlFile_);
-    for(int i=0;i<12;i++){
-      for(int j=0;j<50;j++){
-	DCC_ratemon[j][i]=i+1;
-      }
-    }
-    DCC_ratemon_cnt=0;
+	xmlFile_     = 
+	"/home/fastdducaen/v3.4/TriDAS/emu/emuDCS/FEDCrate/xml/config.xml" ;
+	Operator_ = "Name...";
+	for (int i=0; i<9; i++) { DDUBoardID_[i] = "-1" ; DCCBoardID_[i] = "-1" ; }
+	this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName",&xmlFile_);
+	for(int i=0;i<12;i++){
+		for(int j=0;j<50;j++){
+			DCC_ratemon[j][i]=i+1;
+		}
+	}
+	DCC_ratemon_cnt=0;
 	tidcode[0] = 0x2124a093;
 	tidcode[1] = 0x31266093;
 	tidcode[2] = 0x31266093;
@@ -143,38 +138,42 @@ public:
 	tidcode[6] = 0x05036093;
 	tidcode[7] = 0x05036093;
 	
-	tuscode[0] = 0xcf041a02;
+	tuscode[0] = 0xcf042a01;
 	tuscode[1] = 0xdf025a02;
 	tuscode[2] = 0xdf025a02;
 	tuscode[3] = 0xb0019a03;
-	tuscode[4] = 0xc041dd99;
-	tuscode[5] = 0xc141dd99;
+	tuscode[4] = 0xc042dd99;
+	tuscode[5] = 0xc142dd99;
 	tuscode[6] = 0xd0025a02;
 	tuscode[7] = 0xd1025a02;
-  }
+	
+	interrupt_set = false;
+}
 
-  void Default(xgi::Input *in, xgi::Output *out )
-  throw (xgi::exception::Exception)
-  {
+void Default(xgi::Input *in, xgi::Output *out )
+throw (xgi::exception::Exception)
+{
+
 	using namespace std;
 	using namespace cgicc;
+	cout << "--Entering Default" << endl;
 /* JRG, Logger stuff to add:
     // if (getApplicationLogger().exists(getApplicationLogger().getName())) {
 */
-    LOG4CPLUS_INFO(getApplicationLogger(), " EmuFEDVME: server startup" << endl);
-    std::string LoggerName = getApplicationLogger().getName() ;
-    std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
+	LOG4CPLUS_INFO(getApplicationLogger(), " EmuFEDVME: server startup" << endl);
+	std::string LoggerName = getApplicationLogger().getName() ;
+	std::cout << "Name of Logger is " <<  LoggerName <<std::endl;
 
 
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title() << "Fed Crate Control" << cgicc::title() << std::endl;
-    *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg");
-    //
-    *out << img().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/ddudcc.gif") << std::endl;
-    *out << img() << std::endl;
-    *out << cgicc::br();
+	*out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+	//
+	*out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+	*out << cgicc::title() << "Fed Crate Control" << cgicc::title() << std::endl;
+	*out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg");
+	//
+	*out << img().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/ddudcc.gif") << std::endl;
+	*out << img() << std::endl;
+	*out << cgicc::br();
 
 //    int reload=0;
 
@@ -191,63 +190,66 @@ public:
 */
 //    cout << "  JRGdebug: Reload value = " << reload << endl;
 
-    if (reload>0||(dduVector.size()==0 && dccVector.size()==0)) {
-      std::string method =
-	toolbox::toString("/%s/setConfFile",getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-      *out << std::endl;
-      *out << cgicc::legend("Upload Configuration...").set("style","color:blue") 
-	   << std::endl ;
-
-      *out << cgicc::form().set("method","POST").set("action",method) << std::endl ;
-      *out << cgicc::input().set("type","text")
-	.set("name","xmlFilename")
-	.set("size","60")
-	.set("ENCTYPE","multipart/form-data")
-	.set("value",xmlFile_);
-      *out << std::endl;
-      *out << cgicc::input().set("type","submit").set("name","buttonid")
-	.set("value","Normal Init & Config") << std::endl;
+	if (reload>0||(dduVector.size()==0 && dccVector.size()==0)) {
+		cout << "Awaiting configuration..." << endl;
+	
+		std::string method =
+		toolbox::toString("/%s/setConfFile",getApplicationDescriptor()->getURN().c_str());
+		*out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+		*out << std::endl;
+		*out << cgicc::legend("Upload Configuration...").set("style","color:blue") 
+		<< std::endl ;
+	
+		*out << cgicc::form().set("method","POST").set("action",method) << std::endl ;
+		*out << cgicc::input().set("type","text")
+		.set("name","xmlFilename")
+		.set("size","60")
+		.set("ENCTYPE","multipart/form-data")
+		.set("value",xmlFile_);
+		*out << std::endl;
+		*out << cgicc::input().set("type","submit").set("name","buttonid")
+		.set("value","Normal Init & Config") << std::endl;
 // JRG Note: buttonid="Init Only" is critical string, do not change
-      *out << cgicc::input().set("type","submit").set("name","buttonid")
-	.set("value","Init Only") << std::endl;
-      *out << cgicc::form() << std::endl;
+		*out << cgicc::input().set("type","submit").set("name","buttonid")
+		.set("value","Init Only") << std::endl;
+		*out << cgicc::form() << std::endl;
 
-      //
-      // Upload file...
-      //
-      std::string methodUpload =
-	toolbox::toString("/%s/UploadConfFile",getApplicationDescriptor()->getURN().c_str());
-      *out << cgicc::form().set("method","POST")
-	.set("enctype","multipart/form-data")
-	.set("action",methodUpload) << std::endl ;
-      *out << cgicc::input().set("type","file")
-	.set("name","xmlFilenameUpload")
-	.set("size","60") ;
-      *out << std::endl;
-      *out << cgicc::input().set("type","submit").set("value","Send") << std::endl ;
-      *out << cgicc::form() << std::endl ;
-      *out << std::endl;
+		//
+		// Upload file...
+		//
+		std::string methodUpload =
+		toolbox::toString("/%s/UploadConfFile",getApplicationDescriptor()->getURN().c_str());
+		*out << cgicc::form().set("method","POST")
+		.set("enctype","multipart/form-data")
+		.set("action",methodUpload) << std::endl ;
+		*out << cgicc::input().set("type","file")
+		.set("name","xmlFilenameUpload")
+		.set("size","60") ;
+		*out << std::endl;
+		*out << cgicc::input().set("type","submit").set("value","Send") << std::endl ;
+		*out << cgicc::form() << std::endl ;
+		*out << std::endl;
 
-      std::string methodRaw =
-	toolbox::toString("/%s/setRawConfFile",getApplicationDescriptor()->getURN().c_str());
+		std::string methodRaw =
+		toolbox::toString("/%s/setRawConfFile",getApplicationDescriptor()->getURN().c_str());
+	
+		*out << cgicc::form().set("method","POST").set("action",methodRaw) << std::endl ;
+		*out << cgicc::textarea().set("name","Text")
+		.set("WRAP","OFF")
+		.set("rows","20").set("cols","60");
+		*out << "Paste configuration..." << std::endl;
+		*out << cgicc::textarea() << std::endl;
+		*out << cgicc::input().set("type","submit").set("value","Send");
+		*out << cgicc::form() << std::endl ;
+		*out << std::endl;
+		*out << cgicc::fieldset() << std::endl;
 
-      *out << cgicc::form().set("method","POST").set("action",methodRaw) << std::endl ;
-      *out << cgicc::textarea().set("name","Text")
-	.set("WRAP","OFF")
-	.set("rows","20").set("cols","60");
-      *out << "Paste configuration..." << std::endl;
-      *out << cgicc::textarea() << std::endl;
-      *out << cgicc::input().set("type","submit").set("value","Send");
-      *out << cgicc::form() << std::endl ;
-      *out << std::endl;
-      *out << cgicc::fieldset() << std::endl;
-
-    } else if (dduVector.size()>0 || dccVector.size()>0) {
+	} else if (dduVector.size()>0 || dccVector.size()>0) {
+		cout << "Main page loading." << endl;
 		//Cgicc cgi(in);
     
-      *out << br() << std::endl;
-      *out << br() << std::endl;
+		*out << br() << std::endl;
+		*out << br() << std::endl;
       
 		//int icrate = 0;
 		/*
@@ -277,36 +279,42 @@ public:
 			*out << cgicc::div().set("style","background-color: #000; color: #FAA; font-weight: bold; margin-bottom: 0px;") << "You have " << crateerror << " error" << (crateerror != 1 ? "s" : "") << " in your XML configuration file.  MAKE SURE YOU UNDERSTAND WHAT YOU ARE DOING BEFORE CONTINUING WITH THIS CONFIGURATION.  If you did not expect this message, fix your configuration file and reload it with the button at the bottom of the page." << cgicc::div() << endl;
 		}
 		*out << br() << endl;
-
+		// Reload
+		string reload = toolbox::toString("/%s",getApplicationDescriptor()->getURN().c_str());
+		*out << input()
+			.set("type","button")
+			.set("value","Reload Page")
+			.set("onClick","window.location.href='"+reload+"'") << endl;
+		*out << br() << endl;
 		*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 
-      *out << cgicc::div().set("style","float: left;") << endl;
-      *out << "Documents: ";
-      *out << a().set("href","http://www.physics.ohio-state.edu/~cms/ddu"); 
-      *out <<"DDU WebPage" << std::endl; 
-      *out << a() << std::endl;
-      *out << " | " << std::endl;
-      *out << a().set("href","http://www.physics.ohio-state.edu/~cms/dcc"); 
-      *out <<"DCC WebPage" << std::endl; 
-      *out << a() << std::endl;
-      *out << br() << std::endl;
-      *out << "Experts: ";
-      *out << a().set("href","mailto:durkin@mps.ohio-state.edu"); 
-      *out <<" Stan Durkin " << std::endl; 
-      *out << a() << std::endl;
-      *out << " | " << std::endl; 
-      *out << a().set("href","mailto:gujh@mps.ohio-state.edu"); 
-      *out <<" Jianhui Gu " << std::endl; 
-      *out << a() << std::endl; 
-      *out << " | " << std::endl;
-      *out << a().set("href","mailto:gilmore@mps.ohio-state.edu"); 
-      *out <<" Jason Gilmore " << std::endl; 
-      *out << a() << std::endl; 
-/*      *out << " | " << std::endl;
-      *out << a().set("href","mailto:paste@mps.ohio-state.edu"); 
-      *out <<" Phillip Killewald " << std::endl; 
-      *out << a() << std::endl; */
-      *out << cgicc::div() << endl;
+		*out << cgicc::div().set("style","float: left;") << endl;
+		*out << "Documents: ";
+		*out << a().set("href","http://www.physics.ohio-state.edu/~cms/ddu"); 
+		*out <<"DDU WebPage" << std::endl; 
+		*out << a() << std::endl;
+		*out << " | " << std::endl;
+		*out << a().set("href","http://www.physics.ohio-state.edu/~cms/dcc"); 
+		*out <<"DCC WebPage" << std::endl; 
+		*out << a() << std::endl;
+		*out << br() << std::endl;
+		*out << "Experts: ";
+		*out << a().set("href","mailto:durkin@mps.ohio-state.edu"); 
+		*out <<" Stan Durkin " << std::endl; 
+		*out << a() << std::endl;
+		*out << " | " << std::endl; 
+		*out << a().set("href","mailto:gujh@mps.ohio-state.edu"); 
+		*out <<" Jianhui Gu " << std::endl; 
+		*out << a() << std::endl; 
+		*out << " | " << std::endl;
+		*out << a().set("href","mailto:gilmore@mps.ohio-state.edu"); 
+		*out <<" Jason Gilmore " << std::endl; 
+		*out << a() << std::endl; 
+		*out << " | " << std::endl;
+		*out << a().set("href","mailto:paste@mps.ohio-state.edu"); 
+		*out <<" Phillip Killewald " << std::endl; 
+		*out << a() << std::endl;
+		*out << cgicc::div() << endl;
       
 		if (crateVector.size() > 1) {
 			*out << cgicc::div().set("style","float: right;") << endl;
@@ -323,343 +331,381 @@ public:
 			*out << form() << endl;
 			*out << cgicc::div() << endl;
 		}
-      *out << br() << std::endl;
-      *out << br() << std::endl;
+		*out << br() << std::endl;
+		*out << br() << std::endl;
 
-      DDU_=-99;
-      *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial; clear: both;");
-      *out << endl ;
-      if(irq_start[0]==0){
-	std::string vmeintirq =
-	  toolbox::toString("/%s/VMEIntIRQ",getApplicationDescriptor()->getURN().c_str());
-	*out << cgicc::form().set("method","GET").set("action",vmeintirq)
-	  .set("target","_blank") << std::endl; 
-        *out << cgicc::input().set("type","submit")
-	  .set("value","Start VME IRQ Interrupt") << std::endl;
-	*out << cgicc::input().set("type","hidden").set("value","0").set("name","ddu") << std::endl;
-	*out << cgicc::form() << std::endl ;
-      }else{
-	std::string vmeintirq2 =
-	  toolbox::toString("/%s/VMEIntIRQ",getApplicationDescriptor()->getURN().c_str());
-	*out << cgicc::form().set("method","GET").set("action",vmeintirq2)
-	  .set("target","_blank") << std::endl; 
-        *out << cgicc::input().set("type","submit")
-	  .set("value","Start VME IRQ Monitor") << std::endl;
-          *out << cgicc::input().set("type","hidden").set("value","0").set("name","ddu") << std::endl;
-         *out << cgicc::form() << std::endl ; 
-           
-         std::string vmeintirq =
-	 toolbox::toString("/%s/VMEIntIRQ",getApplicationDescriptor()->getURN().c_str());
-         *out << cgicc::form().set("method","GET").set("action",vmeintirq)
-             .set("target","_blank") << std::endl; 
-        *out << cgicc::input().set("type","submit")
-	  .set("value","End VME IRQ Interrupt") << std::endl;
-          *out << cgicc::input().set("type","hidden").set("value","99").set("name","ddu") << std::endl;
-         *out << cgicc::form() << std::endl ;
-        }
-         std::string dduvoltmon =
-	 toolbox::toString("/%s/DDUVoltMon",getApplicationDescriptor()->getURN().c_str());
-         *out << cgicc::form().set("method","GET").set("action",dduvoltmon)
-             .set("target","_blank") << std::endl; 
-        *out << cgicc::input().set("type","submit")
-	  .set("value","Start Volt/Temp Monitor") << std::endl;
-         *out << cgicc::form() << std::endl ;
+		DDU_=-99;
+		*out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial; clear: both;");
+		*out << endl ;
 
-       	 std::string dccratemon =
-	   toolbox::toString("/%s/DCCRateMon",getApplicationDescriptor()->getURN().c_str());
-         *out << cgicc::form().set("method","GET").set("action",dccratemon)
-	   .set("target","_blank") << std::endl;
-	 *out << cgicc::input().set("type","submit")
-	   .set("value","Start DCC Rate Monitor") << std::endl;
-	   *out << cgicc::form() << std::endl ; 
-
-
-        *out << cgicc::fieldset() << std::endl;
-        *out << cgicc::br() << std::endl;
-
-        *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
-        *out << endl ;
-        printf(" dduVector.size() %d \n",dduVector.size());
-	for (int i=0; i<(int)dduVector.size(); i++) {
-		/* PGK CAEN gets in a funny state after doing crate switching.  It doesn't seem to
-		* cause any problems, but it does fail to read anything useful from the first
-		* ddu in dduVector after performing a certain series of reads and crate switches.
-		* If you communicate to any other slot after switching to the new crate, then problem
-		* never shows up.  This is what I'm doing here--communicate to the DCC if it exists.
-		* If there is no DCC, then you'll just have to live with the error, I guess.
-		*/
-		if (i==0 && dccVector.size()) {
-			cout << " pinging DCC to avoid CAEN read error -1" << endl;
-			dccVector[0]->mctrl_stath();
+		if (!thisCrate->vmeController()->thread_started()) {
+			string vmeintirq = toolbox::toString("/%s/VMEIntIRQ",getApplicationDescriptor()->getURN().c_str());
+			*out << cgicc::form().set("method","GET").set("action",vmeintirq)
+				.set("target","_blank") << std::endl;
+			*out << cgicc::input().set("type","submit")
+				.set("value","Start VME IRQ Interrupt Thread")
+				.set("style","background-color: #DFD; border-color: #0D0;") << std::endl;
+			*out << cgicc::input()
+				.set("type","hidden")
+				.set("value","1")
+				.set("name","start") << std::endl;
+			*out << cgicc::form() << std::endl;
+		} else {
+			string vmeintirq = toolbox::toString("/%s/VMEIntIRQ",getApplicationDescriptor()->getURN().c_str());
+			*out << cgicc::form().set("method","GET").set("action",vmeintirq)
+				.set("target","_blank") << std::endl;
+			*out << cgicc::input().set("type","submit")
+				.set("value","Monitor VME IRQ Interrupt Thread") << std::endl;
+			*out << cgicc::input()
+				.set("type","hidden")
+				.set("value","2")
+				.set("name","start") << std::endl;
+			*out << cgicc::form() << std::endl;
+			
+			*out << cgicc::form().set("method","GET").set("action",vmeintirq)
+				.set("target","_blank") << std::endl;
+			*out << cgicc::input().set("type","submit")
+				.set("value","Stop VME IRQ Interrupt Thread")
+				.set("style","background-color: #FDD; border-color: #D00;") << std::endl;
+			*out << cgicc::input()
+				.set("type","hidden")
+				.set("value","0")
+				.set("name","start") << std::endl;
+			*out << cgicc::form() << std::endl;
+			
 		}
-         *out << cgicc::table().set("border","0").set("rules","none").set("frame","void"); 
-          *out << cgicc::tr();
-          thisDDU=dduVector[i];
-	  int slot = thisDDU->slot();
-	  char buf[20];	
-          sprintf(buf,"DDU Slot: %d ",slot);
-	  printf(" %s \n",buf);      
-          *out << buf; 
-          if(slot<=21){
-            thisDDU->CAEN_err_reset();
-            unsigned short int status=thisDDU->vmepara_CSCstat();
-            unsigned short int DDU_FMM=((thisDDU->vmepara_status()>>8)&0x000F);
-             int brdnum,iblink=0;
-            // sleep(1);
-            brdnum=thisDDU->read_page7();
-             sprintf(buf,"Board: %d ",brdnum);
-            *out << buf;
-
-            if(DDU_FMM==4){    // Busy
-	      *out << cgicc::span().set("style","color:orange;background-color:#dddddd;");
-	      irqprob=1;
-            }
-            else if(DDU_FMM==1){    // Warn, near full: reduce trigger rate
-	      *out << cgicc::span().set("style","color:blue;background-color:#dddddd;");
-	      iblink=1;
-            }
-            else if(DDU_FMM==8){    // Ready
-	      *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
-            }
-            else if(DDU_FMM==2 || DDU_FMM==0xC){     // Error or Sync
-	      *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
-	      irqprob=1;
-	    }
-	    else{  // Not Defined
-	      *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
-	      iblink=1;
-            }
-	    if(iblink==1)sprintf(buf,"<blink>DDU FMM: %1X</blink> ",DDU_FMM);
-	    else sprintf(buf,"DDU-FMM: %1X ",DDU_FMM);
-            *out << buf;
-            *out << cgicc::span();
-	    iblink=0;
-
-            if(thisDDU->CAEN_err()!=0){
-	      *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
-            }
-            else if(status==0x0000){
-	      *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
-            }else{
-	      *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
-            }
-            sprintf(buf,"Status: %04Xh ",status);
-            *out << buf;
-            *out << cgicc::span()<< std::endl;
-          }else{
-	    sprintf(buf,"Crate Broadcast");
-	    *out << buf;
-          }
-
-          std::string ddufirmware =
-	  toolbox::toString("/%s/DDUFirmware",getApplicationDescriptor()->getURN().c_str());
-	  *out << cgicc::form().set("method","GET").set("action",ddufirmware)
-	    .set("target","_blank") << std::endl;
-	  *out << cgicc::input().set("type","submit").set("value","Firmware")<<std::endl;  
-          sprintf(buf,"%d",i);
-          *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu") << std::endl;
-	  *out << cgicc::form() << br() << std::endl;
-          if(slot<=21){
-	    std::string ddufpga =
-	      toolbox::toString("/%s/DDUFpga",getApplicationDescriptor()->getURN().c_str());
-	    *out << " &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp ";
-
-	    *out << cgicc::form().set("method","GET").set("action",ddufpga)
-	      .set("target","_blank") << std::endl;
-	    *out << cgicc::input().set("type","submit").set("value","DDUFPGA") << std::endl;  
-	    sprintf(buf,"%d",i);
-	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu") << std::endl;
-	    *out << cgicc::form() << std::endl;
-
-	    std::string infpga0 =
-	      toolbox::toString("/%s/INFpga0",getApplicationDescriptor()->getURN().c_str());
-	    *out << cgicc::form().set("method","GET").set("action",infpga0)
-	      .set("target","_blank") << std::endl ;
-	    *out << cgicc::input().set("type","submit").set("value","InFPGA0")<< std::endl;  
-	    sprintf(buf,"%d",i);
-	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu")<< std::endl ;
-	    *out << cgicc::form() << std::endl;
-	    
-	    std::string infpga1 =
-	      toolbox::toString("/%s/INFpga1",getApplicationDescriptor()->getURN().c_str());
-	    *out << cgicc::form().set("method","GET").set("action",infpga1)
-	      .set("target","_blank") << std::endl ;
-	    *out << cgicc::input().set("type","submit").set("value","InFPGA1")<< std::endl;  
-	    sprintf(buf,"%d",i);
-	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu")<< std::endl ;
-	    *out << cgicc::form() << std::endl;
-	    
-	    std::string vmepara =
-	      toolbox::toString("/%s/VMEPARA",getApplicationDescriptor()->getURN().c_str());
-	    *out << cgicc::form().set("method","GET").set("action",vmepara)
-	      .set("target","_blank") << std::endl ;
-	    *out << cgicc::input().set("type","submit").set("value","VMEPARA")<< std::endl;  
-	    sprintf(buf,"%d",i);
-	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu")<< std::endl ;
-	    *out << cgicc::form() << std::endl;
-	    
-	    std::string vmeseri =
-	      toolbox::toString("/%s/VMESERI",getApplicationDescriptor()->getURN().c_str());
-	    *out << cgicc::form().set("method","GET").set("action",vmeseri)
-	      .set("target","_blank");
-	    *out << cgicc::input().set("type","submit").set("value","VMESERI")<< std::endl;  
-	    sprintf(buf,"%d",i);
-	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu")<< std::endl ;
-	    *out << cgicc::form() << std::endl;
-          } 
-          *out << cgicc::tr() << std::endl; 
-          *out << cgicc::table() << std::endl;
-        }
-        *out << cgicc::fieldset() << std::endl;
-        *out <<cgicc::br() << std::endl;
-
-	// PGK new section
-	*out << cgicc::fieldset().set("style","background-color: #EEE;") << std::endl;
-	*out << cgicc::div().set("style","font-size: 13pt; font-weight: bold;");
-	*out << "Broadcast Firmware Upload";
-	*out << cgicc::div() << std::endl;
-
-	// It's just a button, I guess
-	std::string broadcastform = toolbox::toString("/%s/DDUBroadcast",getApplicationDescriptor()->getURN().c_str());
-	*out << cgicc::form().set("method","GET").set("action",broadcastform).set("target","_blank") << std::endl;
-	*out << cgicc::input().set("type","submit").set("value","Upload and Update Firmware").set("style","background-color: #FDD; border-color: #F00;") << std::endl;
+		
+		string dduvoltmon = toolbox::toString("/%s/DDUVoltMon",getApplicationDescriptor()->getURN().c_str());
+		*out << cgicc::form().set("method","GET").set("action",dduvoltmon)
+			.set("target","_blank") << std::endl; 
+		*out << cgicc::input().set("type","submit")
+			.set("value","Start Volt/Temp Monitor") << std::endl;
+		*out << cgicc::form() << std::endl;
 	
-	*out << cgicc::form() << std::endl;
-	*out << cgicc::fieldset() << std::endl;
-	*out << cgicc::br() << std::endl;
-	// PGK end new section
+		string dccratemon = toolbox::toString("/%s/DCCRateMon",getApplicationDescriptor()->getURN().c_str());
+		*out << cgicc::form().set("method","GET").set("action",dccratemon)
+			.set("target","_blank") << std::endl;
+		*out << cgicc::input().set("type","submit")
+			.set("value","Start DCC Rate Monitor") << std::endl;
+		*out << cgicc::form() << std::endl; 
+
+		*out << cgicc::fieldset() << std::endl;
+		*out << cgicc::br() << std::endl;
+	
+		*out << cgicc::fieldset()
+			.set("style","font-size: 13pt; font-family: arial;");
+		*out << endl;
+		printf(" dduVector.size() %d \n",dduVector.size());
+
+		// DDU table...
+		*out << cgicc::table()
+			.set("border","0")
+			.set("rules","none")
+			.set("frame","void"); 
+
+		for (int i=0; i<(int)dduVector.size(); i++) {
+			/* PGK CAEN gets in a funny state after doing crate switching.  It doesn't seem to
+			* cause any problems, but it does fail to read anything useful from the first
+			* ddu in dduVector after performing a certain series of reads and crate switches.
+			* If you communicate to any other slot after switching to the new crate, then problem
+			* never shows up.  This is what I'm doing here--communicate to the DCC if it exists.
+			* If there is no DCC, then you'll just have to live with the error, I guess.
+			*/
+			if (i==0 && dccVector.size()) {
+				cout << " pinging DCC to avoid CAEN read error -1" << endl;
+				dccVector[0]->mctrl_stath();
+			}
+			*out << cgicc::tr() << td().set("colspan","6");
+			thisDDU=dduVector[i];
+			int slot = thisDDU->slot();
+			char buf[20];	
+			if(slot<=21){ // DDU/DCC
+				sprintf(buf,"DDU Slot: %d ",slot);
+				printf(" %s \n",buf);
+				*out << buf; 
+				thisCrate->vmeController()->CAEN_err_reset();
+				unsigned short int status=thisDDU->vmepara_CSCstat();
+				unsigned short int DDU_FMM=((thisDDU->vmepara_status()>>8)&0x000F);
+				int brdnum,iblink=0;
+				// sleep(1);
+				brdnum=thisDDU->read_page7();
+				sprintf(buf,"Board: %d ",brdnum);
+				*out << buf;
+
+				if(DDU_FMM==4){    // Busy
+				*out << cgicc::span()
+					.set("style","color:orange;background-color:#dddddd;");
+					// irqprob=1;
+				}
+				else if(DDU_FMM==1){    // Warn, near full: reduce trigger rate
+					*out << cgicc::span()
+						.set("style","color:blue;background-color:#dddddd;");
+					iblink=1;
+				}
+				else if(DDU_FMM==8){    // Ready
+					*out << cgicc::span()
+						.set("style","color:green;background-color:#dddddd;");
+				}
+				else if(DDU_FMM==2 || DDU_FMM==0xC){     // Error or Sync
+					*out << cgicc::span()
+						.set("style","color:red;background-color:#dddddd;");
+					// irqprob=1;
+				}
+				else{  // Not Defined
+					*out << cgicc::span()
+						.set("style","color:red;background-color:#dddddd;");
+					iblink=1;
+				}
+				
+				if(iblink==1)sprintf(buf,"<blink>DDU FMM: %1X</blink> ",DDU_FMM);
+				else sprintf(buf,"DDU-FMM: %1X ",DDU_FMM);
+				*out << buf;
+				*out << cgicc::span();
+				iblink=0;
+
+				if(thisCrate->vmeController()->CAEN_err()!=0){
+					*out << cgicc::span()
+						.set("style","color:yellow;background-color:#dddddd;");
+				}
+				else if(status==0x0000){
+					*out << cgicc::span()
+						.set("style","color:green;background-color:#dddddd;");
+				} else {
+					*out << cgicc::span()
+						.set("style","color:red;background-color:#dddddd;");
+				}
+				sprintf(buf,"Status: %04Xh ",status);
+				*out << buf;
+				*out << cgicc::span()<< std::endl;
+			} else { // Broadcast?
+				sprintf(buf,"Crate Broadcast");
+				*out << buf;
+			}
+			*out << td() << tr() << tr();
+			// All of these are the same...  let's just loop
+			string appString[7] = {
+				toolbox::toString("/%s/DDUFirmware",getApplicationDescriptor()->getURN().c_str()),
+				toolbox::toString("/%s/DDUFpga",getApplicationDescriptor()->getURN().c_str()),
+				toolbox::toString("/%s/INFpga0",getApplicationDescriptor()->getURN().c_str()),
+				toolbox::toString("/%s/INFpga1",getApplicationDescriptor()->getURN().c_str()),
+				toolbox::toString("/%s/VMEPARA",getApplicationDescriptor()->getURN().c_str()),
+				toolbox::toString("/%s/VMESERI",getApplicationDescriptor()->getURN().c_str()),
+				toolbox::toString("/%s/DDUBroadcast",getApplicationDescriptor()->getURN().c_str())
+			};
+			string appName[6] = {
+				"Firmware",
+				"dduFPGA",
+				"inFPGA0",
+				"inFPGA1",
+				"VME Parallel",
+				"VME Serial"
+			};
+
+			for (int j=0; j<=5; j++) {
+				if (j!=0 && slot > 21) continue; // everybody gets 0, DDUs get 1-5
+				if (j==0 && slot > 21) { // broadcast
+					*out << td() << endl;
+					*out << cgicc::form()
+						.set("method","GET")
+						.set("action",appString[6])
+						.set("target","_blank") << std::endl;
+					*out << cgicc::input()
+						.set("type","submit")
+						.set("value","Upload and Update Firmware")
+						.set("style","background-color: #FDD; border-color: #F00;") << std::endl;
+					*out << "Password: " << input()
+						.set("type","password")
+						.set("name","password") << endl;
+					*out << input()
+						.set("type","hidden")
+						.set("name","needed")
+						.set("value","1") << endl;
+					*out << cgicc::form() << std::endl;
+					*out << td() << endl;
+				} else {
+					*out << td();
+					*out << cgicc::form()
+						.set("method","GET")
+						.set("action",appString[j])
+						.set("target","_blank") << endl;
+					*out << cgicc::input()
+						.set("type","submit")
+						.set("value",appName[j]) << endl;  
+					sprintf(buf,"%d",i);
+					*out << cgicc::input()
+						.set("type","hidden")
+						.set("value",buf)
+						.set("name","ddu") << endl;
+					*out << cgicc::form() << endl;
+					*out << td() << endl;
+					//if (j==0) *out << tr() << tr() << endl;
+				}
+			}
+			*out << tr();
+		} // end DDU loop
+		*out << std::endl; 
+		*out << cgicc::table() << std::endl;
+
+		*out << cgicc::fieldset() << std::endl;
+		*out <<cgicc::br() << std::endl;
+	
+		*out << cgicc::fieldset()
+			.set("style","font-size: 13pt; font-family: arial;") << endl;
+	
+		printf(" dccVector.size() %d \n",dduVector.size());
+		for (int i=0; i<(int)dccVector.size(); i++) {
+			*out << cgicc::table()
+				.set("border","0")
+				.set("rules","none")
+				.set("frame","void"); 
+			*out << cgicc::tr();
+			
+			thisDCC=dccVector[i];
+			int slot = thisDCC->slot();
+			char buf[20];	
+			sprintf(buf,"DCC Slot: %d ",slot);
+			printf(" %s \n",buf);
+			*out << buf; 
+			
+			if(thisDCC->slot()<=21){ // not broadcast
+				thisCrate->vmeController()->CAEN_err_reset();
+				unsigned short int statush=thisDCC->mctrl_stath();
+				unsigned short int statusl=thisDCC->mctrl_statl();
+				//
+				string status;
+				/*
+				if(thisCrate->vmeController()->CAEN_err()!=0){
+					*out << cgicc::span()
+						.set("style","color:yellow;background-color:#dddddd;"); 
+				} else if(statush==0x0000&&statusl==0x0000) {
+					*out << cgicc::span()
+						.set("style","color:green;background-color:#dddddd;");
+				} else {
+					*out << cgicc::span()
+						.set("style","color:green;background-color:#dddddd;");
+				}
+		
+				if((statush&0xc000)!=0x0) {
+					*out << cgicc::span()
+						.set("style","color:yellow;background-color:#dddddd;");
+					status ="(Out of Sync)";
+				} else {
+					*out << cgicc::span()
+						.set("style","color:green;background-color:#dddddd;");
+					status ="(OK)";
+				}
+				*/
+	
+				// New DCC firmware
+				//
+				std::cout << "status ............. " << std::hex << (statush&0xf000) << std::endl;
+				//
+				//
+				if((statush&0xf000)==0x2000) {
+					*out << cgicc::span()
+						.set("style","color:green;background-color:#dddddd;");
+					status ="(Ready)";
+				} else if((statush&0xf000)==0x4000) {
+					*out << cgicc::span()
+						.set("style","color:yellow;background-color:#dddddd;");
+					status ="(Warning)";
+				} else if((statush&0xf000)==0x8000 || (statush&0xf000)==0x3000 ) {
+					*out << cgicc::span()
+						.set("style","color:red;background-color:#dddddd;");
+					status ="(Out of sync or error)";
+				} else if((statush&0xf000)==0x1000) {
+					*out << cgicc::span()
+						.set("style","color:blue;background-color:#dddddd;");
+					status ="(Busy)";
+				} else {
+					*out << cgicc::span()
+						.set("style","color:black;background-color:#dddddd;");
+					status ="(CAEN error)";
+				}
+				//
+					sprintf(buf,"Status H:%04X L:%04X ",statush,statusl);
+					*out << buf << " " << status ; 
+					*out << cgicc::span()<< std::endl;
+			} else { // broadcast
+				sprintf(buf,"Crate Broadcast");
+				*out << buf; 
+			}
+	
+			string dccfirmware = toolbox::toString("/%s/DCCFirmware",getApplicationDescriptor()->getURN().c_str());
+			*out << cgicc::form()
+				.set("method","GET")
+				.set("action",dccfirmware)
+				.set("target","_blank") << std::endl;
+			*out << cgicc::input()
+				.set("type","submit")
+				.set("value","Firmware") << std::endl;     
+			sprintf(buf,"%d",i);
+			*out << cgicc::input()
+				.set("type","hidden")
+				.set("value",buf)
+				.set("name","dcc") << std::endl;
+			*out << cgicc::form() << std::endl;
+			if(slot<=21){ // Not broadcast
+				std::string dcccommands = toolbox::toString("/%s/DCCCommands",getApplicationDescriptor()->getURN().c_str());
+				*out << cgicc::form()
+					.set("method","GET")
+					.set("action",dcccommands)
+					.set("target","_blank") << std::endl;
+				*out << cgicc::input()
+					.set("type","submit")
+					.set("value","Commands") << std::endl;  
+				sprintf(buf,"%d",i);
+				*out << cgicc::input()
+					.set("type","hidden")
+					.set("value",buf)
+					.set("name","dcc") << std::endl;
+				*out << cgicc::form() << std::endl;
+			} // End not broadcast
+			*out << cgicc::tr() << std::endl;
+			*out << cgicc::table() << std::endl;
+		} // End loop over DCCs
+		*out << cgicc::fieldset() << std::endl;
+	
+	// JRG, inside end of "normal" DDU/DCC Control top-level page
+	//   --add "Go to XML Reload" button here for Martin:
+		*out << "<blockquote> &nbsp; &nbsp; </blockquote>" << std::endl;
+		*out << "<P> &nbsp; <P> &nbsp; <P> &nbsp; <P> &nbsp; <P> &nbsp;" << std::endl;
+		*out << hr();
+		string loadxmlconf =  toolbox::toString("/%s/LoadXMLconf",getApplicationDescriptor()->getURN().c_str());
+		string defurl = toolbox::toString("/%s/",getApplicationDescriptor()->getURN().c_str());
+	
+		*out << cgicc::form()
+			.set("method","POST")
+			.set("action",loadxmlconf) << std::endl;
+		*out << "<center> <font color=red>  EXPERT ONLY! </font>" << std::endl;
+		*out << "Reload " << std::endl;
+		//    *out << "Reload XML Config: " << std::endl;
+	//  JRG, for now Reload value below not used
+		*out << cgicc::input().set("type","hidden")
+			.set("name","Reload")
+			.set("value","1");
+		*out << std::endl;
+		*out << cgicc::input()
+			.set("type","submit")
+			.set("value","XMLconfig") << std::endl;
+		*out << "<font color=red>  EXPERT ONLY! </font> </center>" << cgicc::form() << std::endl;
 
 
-	*out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
-        *out << endl ;
+	} // End if DDU/DCCs exist
 
-
-        printf(" dccVector.size() %d \n",dduVector.size());
-	for (int i=0; i<(int)dccVector.size(); i++) {
-	  *out << cgicc::table().set("border","0").set("rules","none").set("frame","void"); 
-          *out << cgicc::tr();
-          thisDCC=dccVector[i];
-	  int slot = thisDCC->slot();
-	  char buf[20];	
-          sprintf(buf,"DCC Slot: %d ",slot);
-	  printf(" %s \n",buf);      
-          *out << buf; 
-          if(thisDCC->slot()<=21){
-            thisDDU->CAEN_err_reset();
-            unsigned short int statush=thisDCC->mctrl_stath();
-            unsigned short int statusl=thisDCC->mctrl_statl();
-	    //
-	    std::string status;
-	    /*
-            if(thisDCC->CAEN_err()!=0){
-	      *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");              
-            }else if(statush==0x0000&&statusl==0x0000){
-	      *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
-            }else{
-	      *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
-            }
-  
-	    if((statush&0xc000)!=0x0)
-	      {
-		*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
-		status ="(Out of Sync)";
-	      } else {
-		*out << cgicc::span().set("style","color:green;background-color:#dddddd;");
-		status ="(OK)";
-	      }
-	    */
-
-	    // New DCC firmware
-	    //
-	    std::cout << "status ............. " << std::hex << (statush&0xf000) << std::endl;
-	    //
-	    //
-	    if((statush&0xf000)==0x2000)
-	    {
-	    *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
-	    status ="(Ready)";
-	    } else if((statush&0xf000)==0x4000)
-	    {
-	    *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");              
-	    status ="(Warning)";
-	    } else if((statush&0xf000)==0x8000 || (statush&0xf000)==0x3000 )
-	    {
-	    *out << cgicc::span().set("style","color:red;background-color:#dddddd;");              
-	    status ="(Out of sync or error)";
-	    } else if((statush&0xf000)==0x1000)
-	    {
-	    *out << cgicc::span().set("style","color:blue;background-color:#dddddd;");              
-	    status ="(Busy)";
-	    } else 
-	    {
-	    *out << cgicc::span().set("style","color:black;background-color:#dddddd;");              
-	    status ="(CAEN error)";
-	    }
-	    //
-            sprintf(buf,"Status H:%04X L:%04X ",statush,statusl);
-            *out << buf << " " << status ; 
-            *out << cgicc::span()<< std::endl;
-          }else{
-	    sprintf(buf,"Crate Broadcast");
-	    *out << buf; 
-          }
-
-          std::string dccfirmware =
-	  toolbox::toString("/%s/DCCFirmware",getApplicationDescriptor()->getURN().c_str());
-	  *out << cgicc::form().set("method","GET").set("action",dccfirmware)
-	    .set("target","_blank") << std::endl;
-	  *out << cgicc::input().set("type","submit").set("value","Firmware")<<std::endl;     
-	  sprintf(buf,"%d",i);
-          *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dcc") << std::endl;
-	  *out << cgicc::form() << std::endl;
-          if(slot<=21){
-	    std::string dcccommands =
-	      toolbox::toString("/%s/DCCCommands",getApplicationDescriptor()->getURN().c_str());
-	    *out << cgicc::form().set("method","GET").set("action",dcccommands)
-	      .set("target","_blank") << std::endl;
-	    *out << cgicc::input().set("type","submit").set("value","Commands") << std::endl;  
-	    sprintf(buf,"%d",i);
-	    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dcc") << std::endl;
-	    *out << cgicc::form() << std::endl;
-          }
-          *out << cgicc::tr() << std::endl;
-          *out << cgicc::table() << std::endl;
-        }
-        *out << cgicc::fieldset() << std::endl;
-
-// JRG, inside end of "normal" DDU/DCC Control top-level page
-//   --add "Go to XML Reload" button here for Martin:
-	*out << "<blockquote> &nbsp; &nbsp; </blockquote>" << std::endl;
-	*out << "<P> &nbsp; <P> &nbsp; <P> &nbsp; <P> &nbsp; <P> &nbsp;" << std::endl;
-	*out << hr();
-    std::string loadxmlconf =
-      toolbox::toString("/%s/LoadXMLconf",getApplicationDescriptor()->getURN().c_str());
-    std::string defurl =
-      toolbox::toString("/%s/",getApplicationDescriptor()->getURN().c_str());
-    //    cout<<endl<<"  JRGdebug: loadxmlconf string="<<loadxmlconf<<endl;
-    *out << cgicc::form().set("method","POST").set("action",loadxmlconf) << std::endl;
-    *out << "<center> <font color=red>  EXPERT ONLY! </font>" << std::endl;
-    *out << "Reload " << std::endl;
-    //    *out << "Reload XML Config: " << std::endl;
-//  JRG, for now Reload value below not used
-    *out << cgicc::input().set("type","hidden")
-      .set("name","Reload")
-      .set("value","1");
-    *out << std::endl;
-    *out << cgicc::input().set("type","submit").set("value","XMLconfig") << std::endl;
-    *out << "<font color=red>  EXPERT ONLY! </font> </center>" << cgicc::form() << std::endl;
-
-
-    }
-
-    reload=0;
-    *out << cgicc::body() << std::endl; 
-    *out << cgicc::html() << std::endl;    
+	reload=0;
+	*out << cgicc::body() << std::endl;
+	*out << cgicc::html() << std::endl;
+	
+	LOG4CPLUS_INFO(getApplicationLogger(), " EmuFEDVME: server startup" << endl);
+	LoggerName = getApplicationLogger().getName() ;
+	cout << " (Name of Logger is " <<  LoggerName << ")" << endl;
 }
 
 void EmuFCrateHyperDAQ::setCrate(xgi::Input *in, xgi::Output *out)
 	throw (xgi::exception::Exception)
 {
+	cout << "--Entering setCrate" << endl;
 	using namespace std;
 	using namespace cgicc;
 	
@@ -669,7 +715,6 @@ void EmuFCrateHyperDAQ::setCrate(xgi::Input *in, xgi::Output *out)
 	int icrate = 0;
 	if (!(cgi["icrate"]->isEmpty())) icrate = cgi["icrate"]->getIntegerValue();
 	
-
 	thisCrate = crateVector[icrate];
 	cout << " vme device " << thisCrate->vmeController()->Device() << endl;
 	cout << " vme link " << thisCrate->vmeController()->Link() << endl;
@@ -683,332 +728,326 @@ void EmuFCrateHyperDAQ::setCrate(xgi::Input *in, xgi::Output *out)
 
   
 void EmuFCrateHyperDAQ::setRawConfFile(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
+throw (xgi::exception::Exception)
 {
-    try
-      {
-	cout << "setRawConfFile" << endl ;
-	//
-	cgicc::Cgicc cgi(in);
-	//
-	ofstream TextFile ;
-	TextFile.open("MyTextConfigurationFile.xml");
-	TextFile << (cgi["Text"]->getValue()) ; 
-	TextFile.close();
-	//
-	xmlFile_ = "MyTextConfigurationFile.xml" ;
-	cout << "Out setRawConfFile" << endl ;
-	//
-	this->Default(in,out);
-      }
-    catch (const std::exception & e )
-      {
+	cout << "--Entering setRawConfFile" << endl;
+	try {
+		cout << "setRawConfFile" << endl;
+		//
+		cgicc::Cgicc cgi(in);
+		//
+		ofstream TextFile ;
+		TextFile.open("MyTextConfigurationFile.xml");
+		TextFile << (cgi["Text"]->getValue()) ; 
+		TextFile.close();
+		//
+		xmlFile_ = "MyTextConfigurationFile.xml" ;
+		cout << "Out setRawConfFile" << endl ;
+		//
+		this->Default(in,out);
+	} catch (const std::exception & e ) {
 	//XECPT_RAISE(xgi::exception::Exception, e.what());
-      }
-  }
-  //
-
-  void EmuFCrateHyperDAQ::Configuring(int SkipConfig){
-/*
-    cgicc::Cgicc cgi(in);
-    const CgiEnvironment& env = cgi.getEnvironment();
-    std::string crateStr = env.getQueryString() ;
-    //    cout << crateStr << endl ;
-*/
-
-    std::cout << "Configuring: SkipConfig=" << SkipConfig << std::endl ;
-    //
-    //-- parse XML file
-    //
-    cout << "---- XML parser ----" << endl;
-    cout << " Here parser " << endl;
-    FEDCrateParser parser;
-    cout << " Using file " << xmlFile_.toString() << endl ;
-    parser.parseFile(xmlFile_.toString().c_str());
-    cout <<" Parser Finished"<<endl;
-    // Print "FED Crate # X" at top of each HyperDAQ page.
-    CrateSelector selector = tbController.selector();
-/*
-	for (int i=0; i<crateVector.size(); i++) {
-		delete crateVector[i];
 	}
+}
+
+
+void EmuFCrateHyperDAQ::Configuring(int SkipConfig){
+	cout << "--Entering Configuring" << endl;
+/*
+	cgicc::Cgicc cgi(in);
+	const CgiEnvironment& env = cgi.getEnvironment();
+	std::string crateStr = env.getQueryString() ;
 */
-    crateVector.clear();
-    dduVector.clear();
-    dccVector.clear();
-	// PGK I had to add this line so that the selector knows what crates to give us...
-    selector.selectCrates(parser.crateVector());
-	// PGK ...but it STILL doesn't change the crates in the crate vector if they are changed in the XML!
-    crateVector = selector.crates();
-    dduVector = selector.ddus(crateVector[0]);
-    dccVector = selector.dccs(crateVector[0]);
-    thisCrate = crateVector[0];
-    timer=0;
-    xtimer=0;
-    irqprob=0;
+
+	std::cout << "Configuring: SkipConfig=" << SkipConfig << std::endl ;
+	//
+	//-- parse XML file
+	//
+	cout << "---- XML parser ----" << endl;
+//	cout << " Here parser " << endl;
+	FEDCrateParser parser;
+	cout << " Using file " << xmlFile_.toString() << endl ;
+	parser.parseFile(xmlFile_.toString().c_str());
+	cout <<"---- Parser Finished ----"<<endl;
+
+	cout << " clearing vectors..." << endl;
+	crateVector.clear();
+	dduVector.clear();
+	dccVector.clear();
+
+	cout << " setting vectors..." << endl;
+	crateVector = parser.crateVector();
+	dduVector = crateVector[0]->ddus();
+	dccVector = crateVector[0]->dccs();
+	cout << " crateVector["<<crateVector.size()<<"] dduVector["<<dduVector.size()<<"] dccVector["<<dccVector.size()<<"]" << endl;
+	
+	thisCrate = crateVector[0];
 
 // LSD, Make these optional with buttons
 // JRG, only start/reset the IRQ handler:
-    if(SkipConfig>0)thisCrate->init(0);
+	if(SkipConfig>0) thisCrate->init(0);
 
 // JRG, download setup to all boards, then start/reset the IRQ handler:
-     if(SkipConfig==0)thisCrate->configure(0);
+	if(SkipConfig==0) thisCrate->configure(0);
  
-    std::cout << "EmuFCrateHyperDAQ::Configuring  >done< " << std::endl ;
-  }
+	std::cout << "EmuFCrateHyperDAQ::Configuring  >done< " << std::endl ;
+}
   //
 
-  void EmuFCrateHyperDAQ::setConfFile(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-    try
-      {
-	//
-	cgicc::Cgicc cgi(in);
-	//
-
-	int SkipConfig=0;
-	std::string Bid;
-	SkipConfig=0;
-	cgicc::form_iterator name = cgi.getElement("buttonid");
-	if(name != cgi.getElements().end()) {
-	  Bid = cgi["buttonid"]->getValue();
-	  if(Bid=="Init Only")SkipConfig=1;
-	}
-	std::cout << "setConfFile: ButtonID=" << Bid << ".   SkipConfig=" << SkipConfig << std::endl ;
-
-	const_file_iterator file;
-	file = cgi.getFile("xmlFileName");
-	cout << "GetFiles string" << endl ;
-	if(file != cgi.getFiles().end()) (*file).writeToStream(cout);
-	string XMLname = cgi["xmlFileName"]->getValue() ; 
-	cout << XMLname  << endl ;
-	xmlFile_ = XMLname ;
-	Configuring(SkipConfig);
-	this->Default(in,out);
-      }
-    catch (const std::exception & e )
-      {
-	//XECPT_RAISE(xgi::exception::Exception, e.what());
-      }
-  }
-
-  void EmuFCrateHyperDAQ::UploadConfFile(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
+void EmuFCrateHyperDAQ::setConfFile(xgi::Input * in, xgi::Output * out ) 
+	throw (xgi::exception::Exception)
  {
-    try
-      {
-	cout << "UploadConfFileUpload" << endl ;
-	cgicc::Cgicc cgi(in);
-	const_file_iterator file;
-	file = cgi.getFile("xmlFileNameUpload");
-	cout << "GetFiles" << endl ;
-	if(file != cgi.getFiles().end()) {
-	  ofstream TextFile ;
-	  TextFile.open("MyTextConfigurationFile.xml");
-	  (*file).writeToStream(TextFile);
-	  TextFile.close();
+	cout << "--Entering setConfFile" << endl;
+	try {
+		//
+		cgicc::Cgicc cgi(in);
+		//
+	
+		int SkipConfig=0;
+		std::string Bid;
+		SkipConfig=0;
+		cgicc::form_iterator name = cgi.getElement("buttonid");
+		if(name != cgi.getElements().end()) {
+			Bid = cgi["buttonid"]->getValue();
+			if(Bid=="Init Only")SkipConfig=1;
+		}
+		std::cout << "setConfFile: ButtonID=" << Bid << ".   SkipConfig=" << SkipConfig << std::endl ;
+
+		const_file_iterator file;
+		file = cgi.getFile("xmlFileName");
+		cout << "GetFiles string" << endl ;
+		if(file != cgi.getFiles().end()) (*file).writeToStream(cout);
+		string XMLname = cgi["xmlFileName"]->getValue() ; 
+		cout << XMLname  << endl ;
+		xmlFile_ = XMLname ;
+		Configuring(SkipConfig);
+		this->Default(in,out);
+	} catch (const std::exception & e ) {
+		//XECPT_RAISE(xgi::exception::Exception, e.what());
 	}
-	xmlFile_ = "MyTextConfigurationFile.xml" ;
-	Configuring(0);
-	cout << "UploadConfFile done" << endl ;
-	this->Default(in,out);
-      }
-    catch (const std::exception & e )
-      {
-	//XECPT_RAISE(xgi::exception::Exception, e.what());
-      }
 }
 
-  void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-    unsigned long int uscode, idcode;
-    printf(" entered DDUFirmware \n");
-    cgicc::Cgicc cgi(in);
-    printf(" initialize env \n");
-    const CgiEnvironment& env = cgi.getEnvironment();
-    printf(" getQueryString \n");
-    std::string crateStr = env.getQueryString() ;
-    cout << crateStr << endl ; 
+void EmuFCrateHyperDAQ::UploadConfFile(xgi::Input * in, xgi::Output * out ) 
+	throw (xgi::exception::Exception)
+{
+	try {
+		cout << "UploadConfFileUpload" << endl ;
+		cgicc::Cgicc cgi(in);
+		const_file_iterator file;
+		file = cgi.getFile("xmlFileNameUpload");
+		cout << "GetFiles" << endl ;
+		if(file != cgi.getFiles().end()) {
+			ofstream TextFile ;
+			TextFile.open("MyTextConfigurationFile.xml");
+			(*file).writeToStream(TextFile);
+			TextFile.close();
+		}
+		xmlFile_ = "MyTextConfigurationFile.xml" ;
+		Configuring(0);
+		cout << "UploadConfFile done" << endl ;
+		this->Default(in,out);
+	} catch (const std::exception & e ) {
+		//XECPT_RAISE(xgi::exception::Exception, e.what());
+	}
+}
 
-    cgicc::form_iterator name = cgi.getElement("ddu");
-    int ddu;
-    if(name != cgi.getElements().end()) {
-      ddu = cgi["ddu"]->getIntegerValue();
-      cout << "DDU inside " << ddu << endl;
-      DDU_ = ddu;
-    }else{
-      ddu=DDU_;
-    }
-    thisDDU = dduVector[ddu];
+void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out ) 
+	throw (xgi::exception::Exception)
+{
+	
+	unsigned long int uscode, idcode;
+	printf(" entered DDUFirmware \n");
+	cgicc::Cgicc cgi(in);
+	printf(" initialize env \n");
+	const CgiEnvironment& env = cgi.getEnvironment();
+	printf(" getQueryString \n");
+	std::string crateStr = env.getQueryString() ;
+	cout << crateStr << endl ; 
 
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << cgicc::title("DDU Firmware Form") << std::endl;
-    *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg") << std::endl;
-    *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
-    *out << "(Load dual proms in order 1-0) (For hard reset use DCC TTC command)" <<std::endl;
-    *out << br() << std::endl;
-    *out << br() << std::endl;
+	cgicc::form_iterator name = cgi.getElement("ddu");
+	int ddu;
+	if(name != cgi.getElements().end()) {
+		ddu = cgi["ddu"]->getIntegerValue();
+		cout << "DDU inside " << ddu << endl;
+		DDU_ = ddu;
+	}else{
+		ddu=DDU_;
+	}
+	thisDDU = dduVector[ddu];
 
-    char buf[300];
-    int j;// j is not used anymore, JG.
-    sprintf(buf,"DDU Firmware Slot %d",thisDDU->slot());
-    *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
-    *out << std::endl;
-    *out << cgicc::legend(buf).set("style","color:blue") << std::endl ;
+	*out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
+	*out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
+	*out << cgicc::title("DDU Firmware Form") << std::endl;
+	*out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg") << std::endl;
+	*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
+	*out << "(Load dual proms in order 1-0) (For hard reset use DCC TTC command)" <<std::endl;
+	*out << br() << std::endl;
+	*out << br() << std::endl;
 
-    string xmltext="";
-    for(int i=0;i<8;i++){ 
-      xmltext="data/ddu_config/";
-      printf(" LOOP: %d \n",i);
-      j=i;  // j is not used anymore, JG.
-      *out << cgicc::span().set("style","color:black");
-      if(thisDDU->slot()>21){
-	sprintf(buf," ");
-	//	if(i==0){sprintf(buf,"ddufpga  ");}
-	//	if(i==1){sprintf(buf,"infpga0  ");}
-	//	if(i==2){sprintf(buf,"infpga1  ");}
-	if(i==1)sprintf(buf," <font size=+1> DDU Broadcast Firmware Load</font> ");
-	if(i==6){
-	  sprintf(buf,"inprom0  ");
-	  j=3;
-	}
-	if(i==7){
-	  sprintf(buf,"inprom1  ");
-	  j=4;
-	}
-	if(i==3){
-	  sprintf(buf,"vmeprom  ");
-	  j=5;
-	}
-	if(i==4){
-	  sprintf(buf,"dduprom0 ");
-	  j=6;
-	  xmltext="/home/cscfed/firmware/ddu5ctrl_0.svf";
-	}
-	if(i==5){
-	  sprintf(buf,"dduprom1 ");
-	  j=7;
-	  xmltext="/home/cscfed/firmware/ddu5ctrl_1.svf";
-	}
+	char buf[300];
+	sprintf(buf,"DDU Firmware Slot %d",thisDDU->slot());
+	*out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
+	*out << std::endl;
+	*out << cgicc::legend(buf).set("style","color:blue") << std::endl ;
 
-	printf(" %s ",buf);
-	*out << buf << cgicc::span() << std::endl;
-      }
-      if(thisDDU->slot()<=21){
-	thisDDU->CAEN_err_reset();
-	if(i==0){idcode=thisDDU->ddufpga_idcode(); sprintf(buf,"ddufpga  ");}
-	if(i==1){idcode=thisDDU->infpga_idcode0(); sprintf(buf,"infpga0  ");}
-	if(i==2){idcode=thisDDU->infpga_idcode1(); sprintf(buf,"infpga1  ");}
-	if(i==6){idcode=thisDDU->inprom_idcode0(); sprintf(buf,"inprom0  ");}
-	if(i==7){idcode=thisDDU->inprom_idcode1(); sprintf(buf,"inprom1  ");}
-	if(i==3){idcode=thisDDU->vmeprom_idcode(), sprintf(buf,"vmeprom  ");}
-	if(i==4){idcode=thisDDU->dduprom_idcode0();sprintf(buf,"dduprom0 ");}
-	if(i==5){idcode=thisDDU->dduprom_idcode1();sprintf(buf,"dduprom1 ");}
-	printf(" %s idcode %08lx ",buf,idcode);
-	*out<<buf;
-	sprintf(buf,"  id: ");
-	*out << buf;*out << cgicc::span();
-	if(thisDDU->CAEN_err()!=0){ 
-	  *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
-	}else if(idcode!=tidcode[i]){
-	  *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
-	}else{ 
-	  *out << cgicc::span().set("style","color:green;background-color:#dddddd");
-	}
-	sprintf(buf,"%08lX",idcode);
-	*out << buf;*out << cgicc::span();
-	thisDDU->CAEN_err_reset();
-	if(i==0){uscode=thisDDU->ddufpga_usercode();}
-	if(i==1){uscode=thisDDU->infpga_usercode0();}
-	if(i==2){uscode=thisDDU->infpga_usercode1();}
-	if(i==6){uscode=thisDDU->inprom_usercode0();}
-	if(i==7){uscode=thisDDU->inprom_usercode1();}
-	if(i==3){uscode=thisDDU->vmeprom_usercode();}
-	if(i==4){uscode=thisDDU->dduprom_usercode0();}
-	if(i==5){uscode=thisDDU->dduprom_usercode1();}
-	*out << cgicc::span().set("style","color:black");
-	sprintf(buf," usr: ");
-	*out << buf;*out << cgicc::span();
-	if(i==4||i==5){
-	  printf(" uscode %06lx ",(uscode>>8)&0x00ffffff);
-	  printf(" BoardID %2ld \n",uscode&0x000000ff);
-	}
-	else{
-	  printf(" uscode %08lx \n",uscode);
-	}
-	if(thisDDU->CAEN_err()!=0){
-	  *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
-	}else if(i!=4 && i!=5 && uscode!=tuscode[i]){
-	  *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
-	}else if((i==4 || i==5) && (uscode&0xffffff00)!=(tuscode[i]&0xffffff00)){
-	  *out << cgicc::span().set("style","color:red;background-color:#dddddd;");
-	}else{ 
-	  *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
-	}
+	string xmltext="";
+	for(int i=0;i<=7;i++){ 
+		xmltext="data/ddu_config/";
+		printf(" LOOP: %d \n",i);
+		*out << cgicc::span().set("style","color:black");
+		if(thisDDU->slot()>21){ // Broadcast only (not needed anymore?)
+			sprintf(buf," ");
+	
+			switch(i) {
+			case 1:
+				sprintf(buf," <font size=+1> DDU Broadcast Firmware Load</font> ");
+				break;
+			case 3:
+				sprintf(buf,"vmeprom  ");
+				break;
+			case 4:
+				sprintf(buf,"dduprom0 ");
+				xmltext="/home/cscfed/firmware/ddu5ctrl_0.svf";
+				break;
+			case 5:
+				sprintf(buf,"dduprom1 ");
+				xmltext="/home/cscfed/firmware/ddu5ctrl_1.svf";
+				break;
+			case 6:
+				sprintf(buf,"inprom0  ");
+				break;
+			case 7:
+				sprintf(buf,"inprom1  ");
+				break;
+			default:
+				break;
+			}
+	
+			printf(" %s ",buf);
+			*out << buf << cgicc::span() << std::endl;
+		} else {
+			thisCrate->vmeController()->CAEN_err_reset();
+			if(i==0){idcode=thisDDU->ddufpga_idcode(); sprintf(buf,"ddufpga  ");}
+			if(i==1){idcode=thisDDU->infpga_idcode0(); sprintf(buf,"infpga0  ");}
+			if(i==2){idcode=thisDDU->infpga_idcode1(); sprintf(buf,"infpga1  ");}
+			if(i==6){idcode=thisDDU->inprom_idcode0(); sprintf(buf,"inprom0  ");}
+			if(i==7){idcode=thisDDU->inprom_idcode1(); sprintf(buf,"inprom1  ");}
+			if(i==3){idcode=thisDDU->vmeprom_idcode(), sprintf(buf,"vmeprom  ");}
+			if(i==4){idcode=thisDDU->dduprom_idcode0();sprintf(buf,"dduprom0 ");}
+			if(i==5){idcode=thisDDU->dduprom_idcode1();sprintf(buf,"dduprom1 ");}
+			printf(" %s idcode %08lx ",buf,idcode);
+			*out<<buf;
+			sprintf(buf,"  id: ");
+			*out << buf;*out << cgicc::span();
+			if(thisCrate->vmeController()->CAEN_err()!=0){
+				*out << cgicc::span()
+					.set("style","color:yellow;background-color:#dddddd;");
+			}else if(idcode!=tidcode[i]){
+				*out << cgicc::span()
+					.set("style","color:red;background-color:#dddddd;");
+			} else { 
+				*out << cgicc::span()
+					.set("style","color:green;background-color:#dddddd");
+			}
+			sprintf(buf,"%08lX",idcode);
+			*out << buf;*out << cgicc::span();
+			
+			thisCrate->vmeController()->CAEN_err_reset();
+			if(i==0){uscode=thisDDU->ddufpga_usercode();}
+			if(i==1){uscode=thisDDU->infpga_usercode0();}
+			if(i==2){uscode=thisDDU->infpga_usercode1();}
+			if(i==6){uscode=thisDDU->inprom_usercode0();}
+			if(i==7){uscode=thisDDU->inprom_usercode1();}
+			if(i==3){uscode=thisDDU->vmeprom_usercode();}
+			if(i==4){uscode=thisDDU->dduprom_usercode0();}
+			if(i==5){uscode=thisDDU->dduprom_usercode1();}
+			*out << cgicc::span().set("style","color:black");
+			sprintf(buf," usr: ");
+			*out << buf;*out << cgicc::span();
+			if(i==4||i==5){
+				printf(" uscode %06lx ",(uscode>>8)&0x00ffffff);
+				printf(" BoardID %2ld \n",uscode&0x000000ff);
+			} else {
+				printf(" uscode %08lx \n",uscode);
+			}
+			if(thisCrate->vmeController()->CAEN_err()!=0){
+				*out << cgicc::span()
+					.set("style","color:yellow;background-color:#dddddd;");
+			}else if(i!=4 && i!=5 && uscode!=tuscode[i]){
+				*out << cgicc::span()
+					.set("style","color:red;background-color:#dddddd;");
+			}else if((i==4 || i==5) && (uscode&0xffffff00)!=(tuscode[i]&0xffffff00)){
+				*out << cgicc::span()
+					.set("style","color:red;background-color:#dddddd;");
+			}else{ 
+				*out << cgicc::span()
+					.set("style","color:green;background-color:#dddddd;");
+			}
 
-	if(i==4||i==5){
-	  sprintf(buf,"%06lX",(uscode>>8)&0x00ffffff);
-	  *out << buf;*out << cgicc::span();
-	  *out << cgicc::span().set("style","color:black");
-	  sprintf(buf," BoardID: ");
-	  *out << buf;*out << cgicc::span();
-	  *out << cgicc::span().set("style","color:blue;background-color:#dddddd;");
-	  sprintf(buf,"%2ld",uscode&0x000000ff);
-	}
-	else{
-	  sprintf(buf,"%08lX",uscode);
-	}
-	//    sprintf(buf,"%08lX",uscode);
-	*out << buf << cgicc::span() << std::endl;
-	if(i==2) *out << br() << std::endl;
-      }
-      *out << br() << std::endl;
-      printf(" now boxes \n");
-      if(i>=3&&i<8){
-	std::string dduloadfirmware =
-	  toolbox::toString("/%s/DDULoadFirmware",getApplicationDescriptor()->getURN().c_str());
-	//
-
-/*  JRG, try to put a default value in text field--no good
-	*out << cgicc::form()
-	  .set("method","POST")
-	  .set("action",dduloadfirmware)
-	  .set("name","textdata")
-	  .set("size","10")
-	  .set("enctype","multipart/form-data")
-	  .set("value",xmltext) << std::endl;
-	*out << cgicc::input().set("type","file")
-	  .set("name","DDULoadSVF")
-	  .set("size","50") << std::endl;
-*/
+			if(i==4||i==5){
+				sprintf(buf,"%06lX",(uscode>>8)&0x00ffffff);
+				*out << buf;*out << cgicc::span();
+				*out << cgicc::span().set("style","color:black");
+				sprintf(buf," BoardID: ");
+				*out << buf;*out << cgicc::span();
+				*out << cgicc::span().set("style","color:blue;background-color:#dddddd;");
+				sprintf(buf,"%2ld",uscode&0x000000ff);
+			} else {
+				sprintf(buf,"%08lX",uscode);
+			}
+// 			sprintf(buf,"%08lX",uscode);
+			*out << buf << cgicc::span() << std::endl;
+			if(i==2) *out << br() << std::endl;
+		} // end regular DDU (not broadcast)
+		
+		*out << br() << std::endl;
+		printf(" now boxes \n");
+		
+		if(i>=3&&i<8){
+			string dduloadfirmware =
+			toolbox::toString("/%s/DDULoadFirmware",getApplicationDescriptor()->getURN().c_str());
+	
+	
 /*  Orig: */
-	*out << cgicc::form().set("method","POST")
-	  .set("enctype","multipart/form-data")
-//	  .set("value",xmltext)
-	  .set("action",dduloadfirmware) << std::endl;;	
-	//.set("enctype","multipart/form-data")
-	*out << cgicc::input().set("type","file")
-	  .set("name","DDULoadSVF")
-	  .set("size","50") << std::endl;
+			*out << cgicc::form().set("method","POST")
+				.set("enctype","multipart/form-data")
+				.set("action",dduloadfirmware) << std::endl;	
+				//.set("enctype","multipart/form-data")
+			*out << cgicc::input().set("type","file")
+				.set("name","DDULoadSVF")
+/*NOTE: the _input_ tag is what takes the value parameter, 
+ * not the _form_ tag.
+ * Also, it's not exacly well defined if file type inputs
+ * obey the value parameter.  The default value will be
+ * browser-dependent.
+ */
+				.set("value",xmltext)
+				.set("size","50") << std::endl;
 
-	*out << cgicc::input().set("type","submit").set("value","LoadSVF") << std::endl;   
-	sprintf(buf,"%d",ddu);
-	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","ddu") << std::endl; 
-	sprintf(buf,"%d",i);
-	//       sprintf(buf,"%d",j);  // j is not used anymore, JG.
-	if(thisDDU->slot()>21)sprintf(buf,"%d",10+i);
-	*out << cgicc::input().set("type","hidden").set("value",buf).set("name","prom") << std::endl; 
-	*out << cgicc::form() << std::endl ;
-      }else{ 
-	*out << std::endl; 
-      }
-    }
-    *out << cgicc::fieldset()<< std::endl;
-    *out << cgicc::body() << std::endl;
-    *out << cgicc::html() << std::endl;    
+			*out << cgicc::input()
+				.set("type","submit")
+				.set("value","LoadSVF") << std::endl;   
+			sprintf(buf,"%d",ddu);
+			*out << cgicc::input()
+				.set("type","hidden")
+				.set("value",buf)
+				.set("name","ddu") << std::endl; 
+			sprintf(buf,"%d",i);
+
+			if(thisDDU->slot()>21)sprintf(buf,"%d",10+i);
+			*out << cgicc::input()
+				.set("type","hidden")
+				.set("value",buf)
+				.set("name","prom") << std::endl; 
+			*out << cgicc::form() << std::endl ;
+			
+		} else { // Not a proper thing to load
+			*out << std::endl; 
+		}
+	} // end run over chip types
+	*out << cgicc::fieldset()<< std::endl;
+	*out << cgicc::body() << std::endl;
+	*out << cgicc::html() << std::endl;    
 }
 
 // PGK new method
@@ -1027,6 +1066,15 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	*out << title("DDU Broadcast Firmware") << endl;
 	*out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg") << endl;
 	*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
+	
+	string password;
+	int password_needed;
+	if (!(cgi["password"]->isEmpty())) password = cgi["password"]->getValue();
+	if (!(cgi["needed"]->isEmpty())) password_needed = cgi["password"]->getIntegerValue();
+	if (password != "abc123" && password_needed == 1) {
+		*out << "Error:  Get the password from an expert before attempting this operation." << endl;
+	} else {
+	
 	*out << "Use the UPLOAD section to hand off local firmware copies to the server" << br() << "Use the BROADCAST section to actually load the firmware onto the boards" << br() << a().set("style","color: #D00; font-weight: bold;") << endl;
 	
 	*out << "!!! DO NOT BROADCAST UNLESS HYPERDAQ KNOWS ABOUT ALL THE DDUS IN THE CRATE !!!" << a() << endl;
@@ -1061,6 +1109,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		ostringstream systemcall;
 		string printversion;
 		
+		// My perl-fu is 1337, indeed!
 		systemcall << "perl -e 'while ($line = <>) { if ($line =~ /SIR 8 TDI \\(fd\\) TDO \\(00\\) ;/) { $line = <>; if ($line =~ /TDI \\((........)\\)/) { print $1; } } }' <Current" << title[i] << ".svf >check_ver 2>&1";
 		if (!system(systemcall.str().c_str())) {
 			ifstream pipein("check_ver",ios::in);
@@ -1139,14 +1188,13 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		ostringstream number;
 		number << i;
 
-		*out << form().set("method","GET")
+		*out << form().set("method","POST")
 			.set("action",ddusendbroadcast) << endl;
 		*out << input().set("type","submit")
 			.set("value",button) << endl;
 		*out << input().set("type","hidden")
 			.set("name","svftype")
 			.set("value", number.str().c_str()) << endl;
-			
 		for (int j=0; j<=4; j++) {
 			*out << input().set("type","hidden")
 				.set("name",title[j])
@@ -1159,7 +1207,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 
 	}
 	
-	*out << form().set("method","GET")
+	*out << form().set("method","POST")
 		.set("action",ddureset) << endl;
 	*out << input().set("type","submit")
 		.set("value","Reset Crate");
@@ -1262,6 +1310,8 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		<< "ddu: " << ddu << "<br />"
 		<< "slot: " << thisDDU->slot() << "<br />";
 	*out << cgicc::div(debug.str().c_str()).set("style","font-size: 11pt") << endl; */
+
+	} // if password was correct.
 
 	*out << body() << endl;
 	*out << html() << endl;
@@ -1376,7 +1426,7 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 			boardnumber[0] = 1;
 
 
-			thisDDU->epromload_broadcast((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber,1);
+			thisDDU->epromload((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber,1);
 
 			for (int ddu=0; ddu<dduVector.size(); ddu++) {
 				thisDDU = dduVector[ddu];
@@ -1385,13 +1435,13 @@ void EmuFCrateHyperDAQ::DDUSendBroadcast(xgi::Input *in, xgi::Output *out)
 				bnstore[ddu] = ibn;
 				boardnumber[0] = ibn;
 				cout << " pause to upload boardnumber " << ibn << endl;
-				thisDDU->epromload_broadcast((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber,2);
+				thisDDU->epromload((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber,2);
 			}
 
 			cout << " resuming... " << endl;
 			boardnumber[0] = 1;
 			thisDDU = dduVector[broadcastddu];
-			thisDDU->epromload_broadcast((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber,3);
+			thisDDU->epromload((char *)name[i].c_str(),devtype[i],(char *)filename.c_str(),1,boardnumber,3);
 
 		} else {
 			thisDDU = dduVector[broadcastddu];
@@ -1591,7 +1641,7 @@ void EmuFCrateHyperDAQ::DDUReset(xgi::Input *in, xgi::Output *out)
     *out << "<h2 align=center><font color=blue>" << buf << "</font></h2>" << std::endl;
     for(int i=200;i<230;i++){
       thisDDU->infpga_shift0=0x0000;
-      thisDDU->CAEN_err_reset();
+      thisCrate->vmeController()->CAEN_err_reset();
       sprintf(buf3," ");
       sprintf(buf4," ");
       sprintf(buf5," ");
@@ -1983,7 +2033,7 @@ void EmuFCrateHyperDAQ::DDUReset(xgi::Input *in, xgi::Output *out)
       }
       *out << buf4 << cgicc::span();
 
-      if(thisDDU->CAEN_err()!=0){
+      if(thisCrate->vmeController()->CAEN_err()!=0){
         *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
         *out << " **CAEN Error " << cgicc::span();
       }
@@ -3082,7 +3132,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
     for(int i=300;i<322;i++){
       printf(" LOOP: %d \n",i);
       thisDDU->infpga_shift0=0x0000; 
-      thisDDU->CAEN_err_reset();
+      thisCrate->vmeController()->CAEN_err_reset();
       sprintf(buf3," ");
       sprintf(buf4," ");
       icond=0;
@@ -3318,7 +3368,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::span().set("style","color:green;background-color:#dddddd;");
       }
       *out << buf4 << cgicc::span();
-      if(thisDDU->CAEN_err()!=0){
+      if(thisCrate->vmeController()->CAEN_err()!=0){
 	*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
 	*out << " **CAEN Error " << cgicc::span();
       }
@@ -3527,7 +3577,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
     for(int i=400;i<422;i++){
       printf(" LOOP: %d \n",i);
       thisDDU->infpga_shift0=0x0000; 
-      thisDDU->CAEN_err_reset();
+      thisCrate->vmeController()->CAEN_err_reset();
       sprintf(buf3," ");
       sprintf(buf4," ");
       icond=0;
@@ -3760,7 +3810,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::span().set("style","color:green;background-color:#dddddd;");
       }
       *out << buf4 << cgicc::span();
-      if(thisDDU->CAEN_err()!=0){
+      if(thisCrate->vmeController()->CAEN_err()!=0){
 	*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
 	*out << " **CAEN Error " << cgicc::span();
       }
@@ -4080,7 +4130,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
     for(int i=500;i<523;i++){
       // JG, note: 523 is hidden, reserved for expert FMM Wr/Rd loop test.
       printf(" LOOP: %d \n",i);
-      thisDDU->CAEN_err_reset();  
+      thisCrate->vmeController()->CAEN_err_reset();  
       icond=0;
       if(i==500){
         sprintf(buf,"VMEctrl Status Register:");
@@ -4219,7 +4269,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
       }
       *out << buf2 << cgicc::span();
 
-      if(thisDDU->CAEN_err()!=0){
+      if(thisCrate->vmeController()->CAEN_err()!=0){
 	*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
 	*out << " **CAEN Error " << cgicc::span();
       }
@@ -4352,7 +4402,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
    
     for(int i=600;i<606;i++){
       printf(" LOOP: %d \n",i);
-      thisDDU->CAEN_err_reset();
+      thisCrate->vmeController()->CAEN_err_reset();
       if(i==602){
 	thisDDU->read_status(); 
 	istat=thisDDU->rcv_serial[1]&0xff;
@@ -4455,7 +4505,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
       if(i==603||i==604||i==605){
       *out << cgicc::span().set("style","color:black");
       *out << buf << cgicc::span();
-      if(thisDDU->CAEN_err()!=0){
+      if(thisCrate->vmeController()->CAEN_err()!=0){
 	*out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
       }else{
 	*out << cgicc::span().set("style","color:green;background-color:#dddddd;");
@@ -4694,166 +4744,194 @@ void EmuFCrateHyperDAQ::DDUTextLoad(xgi::Input * in, xgi::Output * out )
 void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-   cgicc::Cgicc cgi(in);
-    //
-   const CgiEnvironment& env = cgi.getEnvironment();
-    //
-   std::string crateStr = env.getQueryString() ;
-    //
-   //  cout << crateStr << endl ;
-    cgicc::form_iterator name = cgi.getElement("ddu");
-    //
-    int ddu;
-    unsigned int FEDVME_CSCstat=0;
-    long int xsec,xmin,xhr;
-    if(name != cgi.getElements().end()) {
-      ddu = cgi["ddu"]->getIntegerValue();
-      //      cout << "DDU inside " << ddu << endl;
-      DDU_ = ddu;
-    }else{
-      ddu=DDU_;
-    }
+	//cout << "**Entering VMEIntIRQ" << endl;
+	cgicc::Cgicc cgi(in);
+	/* start will be
+		1 (yes, start and monitor)
+		2 (don't start, just monitor)
+		0 (stop)
+	*/
+	unsigned int FEDVME_CSCstat=0;
+	int start = 2;
+	if (!(cgi["start"]->isEmpty())) start = cgi["start"]->getIntegerValue();
 
-    if(irq_start[0]==0){   // if IRQ service is not active then start it up
-      VMEController *theController=thisCrate->vmeController();
-      theController->irq_pthread_start(0);
-// only get cleared if VMEirq service is started via Button:
-      timer=0;
-      xtimer=0;
-      irqprob=0;  // bad idea?
-      printf(" <--DEBUG-->  VMEIntIRQ, pt0: timer & irqprob set to zero <----> \n");
-      for(int i=0;i<(int)dduVector.size();i++){
-	thisDDU=dduVector[i];
-	int slot=thisDDU->slot();
-        if(slot<=21){
-	  FEDVME_CSCstat=thisDDU->vmepara_CSCstat();
-	  if(FEDVME_CSCstat!=0x0000){
-// only gets set if there's a previous problem at VMEirq service startup:
-	    irqprob=1;
-	    printf(" <--DEBUG-->  VMEIntIRQ, pt1: irqprob set to 1 <----> \n");
-	    //	    printf(" ** EmuFEDVME: Interrupt was set for Slot %d, CSCstat=0x%04x ** \n",slot,FEDVME_CSCstat);
-	  }
-        }
-      }
-    }
-
-
-    thisDDU = dduVector[0];
-    //   printf(" set up web page \n");
-    //
-    *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-    //
-    *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-    *out << meta().set("http-equiv","refresh").set("content","5") << std::endl;
-    *out << cgicc::title("VMEIRQ Web Form") << std::endl;
-    //  
-    *out << body().set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg") << std::endl;
-    *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
-
-    char buf[300];
-    sprintf(buf,"DDU VME IRQ Interrupt Monitor");
-    //
-    *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
-    *out << std::endl;
-
-    if(ddu!=99){
-      *out << cgicc::legend(buf).set("style","color:blue")  << std::endl ;
-      unsigned int FEDVME_int=thisDDU->irq_tester(0,0);
-      int FEDVMEslot=thisDDU->irq_tester(0,2);
-      if(FEDVME_int!=0 || irqprob!=0){ 
-	printf(" <--DEBUG-->  VMEIntIRQ, pt2: DDUslot=%d   FEDVMEint=%04xh   irqprob=%d <----> \n",FEDVMEslot,FEDVME_int,irqprob);
-	*out << img().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/redlight.gif") << std::endl;
-	*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
-	//	LOG4CPLUS_INFO(getApplicationLogger(), " EmuFEDVME: Interrupt xx detected");
-    /* 
-S. Durkin kludge
-
-for IE sound the following line must be added to 
-HTMLClasses.h:  ATOMIC_ELEMENT  (bgsound,        "bgsound");
-for Mozilla sound the following line must be added to 
-HTMLClasses.h:  ATOMIC_ELEMENT  (embed,        "embed"); 
-one must then recompile the libcgicc.so library 
-    *out << bgsound().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/siren.wav") << std::endl;  */
-
-    //*out << embed().set("src","http://www.physics.ohio-state.edu/~durkin/xdaq_files/siren.wav").set("hidden","true").set("autostart","true").set("loop","true") << std::endl;
-
-	*out << br() << std::endl;
-	*out << cgicc::span().set("style","font-size: 25pt;color:red;background-color:yellow;");
-
-/*
-	long int xtimer=timer;
-	long int xsec=xtimer%60;
-	xtimer=(xtimer-xsec)/60;
-	long int xmin=xtimer%60;
-	long int xhr=(xtimer-xmin)/60;
-*/
-//	xtimer=timer;
-	timer=xtimer;
-	xsec=timer%60;
-	timer=(timer-xsec)/60;
-	xmin=timer%60;
-	xhr=(timer-xmin)/60;
-	timer=0;
-	printf(" <--DEBUG-->  VMEIntIRQ, pt5: timer set to zero, xtimer=%d <----> \n",xtimer);
-
-	sprintf(buf,"%02ld:%02ld:%02ld",xhr,xmin,xsec);
-	*out << buf << std::endl;
-	*out << cgicc::span() << std::endl;
-
-	if(FEDVME_int!=0){
-	printf(" <--DEBUG-->  VMEIntIRQ, pt3: DDUslot=%d   FEDVMEint=%04xh <----> \n",FEDVMEslot,FEDVME_int);
-	  //	  printf(" ** EmuFEDVME: Interrupt detected, 0x%04x ** \n",FEDVME_int);
-	  *out << cgicc::span().set("style","font-size: 20pt;color:red");
-	  printf("     *** EmuFEDVME: Failure in Crate %d, Slot %d:  Status %04xh ***\n",thisDDU->irq_tester(0,1),thisDDU->irq_tester(0,2),thisDDU->irq_tester(0,3));
-	  sprintf(buf,"  Failure in Crate %d, Slot %d:  Status %04xh",thisDDU->irq_tester(0,1),thisDDU->irq_tester(0,2),thisDDU->irq_tester(0,3));
-	  //	LOG4CPLUS_INFO(getApplicationLogger(), buf);
-	}else{
-	  printf(" <--DEBUG-->  VMEIntIRQ, pt4: DDUslot=%d   FEDVMEint=%04xh   irqprob=%d <----> \n",FEDVMEslot,FEDVME_int,irqprob);
-	  *out << cgicc::span().set("style","font-size: 20pt;color:red");
-	  sprintf(buf," DDUs set Interrupt previously, still in error state");
+	bool is_started = thisCrate->vmeController()->thread_started();
+	
+	if ((!is_started && start!=1)) {
+		*out << "ACK!  Threads are a mess!  Try again." << endl;
+		return;
 	}
-	*out << buf << std::endl;
-      }else{ 
-	*out << cgicc::span().set("style","color:green");
-	*out << "Time without interrupt" << std::endl;
-	*out << cgicc::span() << std::endl;
-	*out << cgicc::span().set("style","font-size: 25pt;color:white;background-color:black;");
-	//  printf(" timer %ld start %d irq_start \n",timer,irq_start[0]);
+	
+	IRQThread *thread;
+	if (is_started) thread = thisCrate->vmeController()->thread();
 
-/*
-	long int xtimer=timer;
-	long int xsec=xtimer%60;
-	xtimer=(xtimer-xsec)/60;
-	long int xmin=xtimer%60;
-	long int xhr=(xtimer-xmin)/60;
-*/
-	xtimer=timer;
-	xsec=xtimer%60;
-	xtimer=(xtimer-xsec)/60;
-	xmin=xtimer%60;
-	xhr=(xtimer-xmin)/60;
+	// Check here for pre-existing conditions and report.
+	if(!is_started && start==1) {
+		cout << " Controller tells me thread is not started.  Starting..." << endl;
+		// if IRQ service is not active, start it...
+		thisCrate->vmeController()->start_thread(0); // 0 is the "test" run number.
+		thread = thisCrate->vmeController()->thread();
+		is_started = thisCrate->vmeController()->thread_started();
+		// only get cleared if VMEirq service is started via Button:
+		for(int i=0;i<(int)dduVector.size();i++){
+			thisDDU=dduVector[i];
+			int slot=thisDDU->slot();
+			if(slot<=21){
+				FEDVME_CSCstat=thisDDU->vmepara_CSCstat();
+				if(FEDVME_CSCstat!=0x0000){
+					thread->data.previous_problem[slot] = FEDVME_CSCstat;
+				}
+			}
+		}
+	}
 
-	sprintf(buf,"%02ld:%02ld:%02ld",xhr,xmin,xsec);
-	*out << buf << std::endl;
-	timer=timer+2;
-	xtimer=timer;
-      }
-      *out << cgicc::span() << std::endl;
-      std::string irqtester =
-	toolbox::toString("/%s/IRQTester",getApplicationDescriptor()->getURN().c_str());
+	*out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
 
-      *out << cgicc::fieldset() << std::endl;
-      *out << cgicc::body() << std::endl;
-    }else{
-      VMEController *theController=thisCrate->vmeController();
-      theController->irq_pthread_end(0); 
-      *out << cgicc::fieldset().set("style","font-size: 13pt; font-family: arial;");
-      *out << std::endl;
-      *out << " VME IRQ Interrupt has been disabled \n"; 
-      *out << cgicc::fieldset() << std::endl;
-      *out << cgicc::body() << std::endl;
-    }
-    *out << cgicc::html() << std::endl;
+	*out << cgicc::html()
+		.set("lang", "en")
+		.set("dir","ltr") << endl;
+	if (start != 0 && is_started) {
+		string vmeintirq = toolbox::toString("/%s/VMEIntIRQ",getApplicationDescriptor()->getURN().c_str());
+		*out << meta()
+			.set("http-equiv","refresh")
+			.set("content","8;" + vmeintirq + "?start=2") << endl;
+	}
+	*out << cgicc::title("VMEIRQ Web Form") << endl;
+
+	*out << body()
+		.set("background","http://www.physics.ohio-state.edu/~durkin/xdaq_files/bgndcms.jpg") << endl;
+	*out << cgicc::div()
+		.set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
+
+	char buf[300];
+
+	*out << h3("DDU VME IRQ Monitor")
+		.set("style","color: blue;") << endl;
+
+	if (start!=0 && is_started) { // Don't stop...
+
+		// Step 1:  time since thread was started
+		*out << span("Time since thread began: ") << endl;
+		*out << span()
+			.set("style","font-weight: bold; color: white; background-color: black;") << endl;
+
+		time_t now;
+		time_t start_time = thread->start_time();
+		time(&now);
+		long int timediff = (long int) difftime(now,start_time);
+		int xsec=timediff%60;
+		int xmin = ((timediff - xsec)/60) % 60;
+		int xhour = ((timediff - xmin*60 - xsec)/3600) % 24;
+		int xday = ((timediff - xhour*3600 - xmin*60 - xsec)/(3600*24));
+		
+
+		sprintf(buf,"%dd %02ld:%02ld:%02ld",xday,xhour,xmin,xsec);
+		*out << buf;
+		*out << span() << br() << endl;
+
+		// Step 1.5:  previous problems
+		bool printed = false;
+		for (int i=0; i<21; i++) {
+			if (!thread->data.previous_problem[i]) continue;
+			if (!printed) {
+				printed = true;
+				// ALERT ALERT ALERT
+				*out << cgicc::div("CAUTION CAUTION CAUTION")
+					.set("style","width: 100%; clear:both; font-size: 24pt; text-align: center; font-weight: bold; padding: 10px; background-color: yellow; color: black;")
+					.set("id","caution") << endl;
+			}
+			*out << span() << endl;
+			*out << "** Slot " << i << " showed status " << hex << thread->data.previous_problem[i] << dec << "h prior to thread initalization." << endl;
+			*out << span() << br() << endl;
+		}
+
+		// Step 2:  last interrupt
+		if (thread->last_error()) {
+
+			// ALERT ALERT ALERT
+			*out << cgicc::div("ALERT ALERT ALERT")
+				.set("style","width: 100%; clear:both; font-size: 24pt; text-align: center; font-weight: bold; padding: 10px;")
+				.set("id","error") << endl;
+				
+			// Javascript error flasher
+			*out << "<script type='text/javascript'>" << endl;
+			*out << "var red = 1;var DHTML = (document.getElementById || document.all || document.layers);function getObj(name){if (document.getElementById){this.obj = document.getElementById(name);this.style = document.getElementById(name).style;}else if (document.all){this.obj = document.all[name];this.style = document.all[name].style;}else if (document.layers){this.obj = document.layers[name];this.style = document.layers[name];}}" << endl;
+			*out << "function setcolor(){if (!DHTML) return; var x = new getObj('error');var c1;var c2; if (red){ red = 0; c1 = 'red'; c2 = 'black'; } else { red = 1; c1 = 'black'; c2 = 'red'; } x.style.backgroundColor = c1; x.style.color = c2; setTimeout('setcolor();',200);}" << endl;
+			*out << "setTimeout('setcolor();',200)" << endl;
+			*out << "</script>" << endl;
+
+			time_t last_time = thread->last_error_time();
+			struct tm* timeinfo = localtime(&last_time);
+			sprintf(buf,"%s",asctime(timeinfo));
+			*out << span() << endl;
+			*out << "Last interrupt occured " << buf << endl;
+			*out << span() << br() << endl;
+			
+			*out << span() << endl;
+			*out << "Last slot to send interrupt: " << thread->last_ddu() << endl;
+			*out << span() << br() << endl;
+			
+			*out << span() << endl;
+			*out << "Last error status: " << hex << thread->last_error() << dec << "h" << endl;
+			*out << span() << br() << endl;
+			
+			// Status table
+			*out << table()
+				.set("style","width: 80%; margin-right: auto; margin-left: auto; margin-top: 20px; border-color: #D00; border-width: 1px; border-style: solid; clear: both;") << endl;
+			*out << tr() << endl;
+			*out << td("Slot")
+				.set("style","background-color: red; color: black; font-weight: bold; text-align: center;") << endl;
+			*out << td("nIRQ")
+				.set("style","background-color: red; color: black; font-weight: bold; text-align: center;") << endl;
+			*out << td("Last Time")
+				.set("style","background-color: red; color: black; font-weight: bold; text-align: center;") << endl;
+			*out << td("Last Error")
+				.set("style","background-color: red; color: black; font-weight: bold; text-align: center;") << endl;
+			*out << td("Cumulative Error")
+				.set("style","background-color: red; color: black; font-weight: bold; text-align: center;") << endl;
+			*out << tr() << endl;
+			
+			for (int i=0; i<21; i++) {
+				if (!thread->ddu_last_error(i)) continue;
+				*out << tr() << endl;
+				*out << td().set("style","border: 1px solid black;") << i << td() << endl;
+				*out << td().set("style","border: 1px solid black;") << thread->ddu_count(i) << td() << endl;
+				time_t interrupt_time = thread->ddu_last_error_time(i);
+				struct tm* timeinfo = localtime(&interrupt_time);
+				*out << td().set("style","border: 1px solid black;") << asctime(timeinfo) << td() << endl;
+				*out << td().set("style","border: 1px solid black;") << hex << thread->ddu_last_error(i) << dec << "h" << td() << endl;
+				*out << td().set("style","border: 1px solid black;") << hex << thread->acc_error(i) << dec << "h" << td() << endl;
+				*out << tr() << endl;
+			}
+		
+			*out << table() << endl;
+
+		}
+		
+		string vmeintirq = toolbox::toString("/%s/VMEIntIRQ",getApplicationDescriptor()->getURN().c_str());
+		*out << cgicc::form()
+			.set("method","GET")
+			.set("action",vmeintirq) << endl;
+		*out << cgicc::input().set("type","submit")
+			.set("value","Stop VME IRQ Interrupt Thread")
+			.set("style","background-color: #FDD; border-color: #D00;") << std::endl;
+		*out << cgicc::input()
+			.set("type","hidden")
+			.set("value","0")
+			.set("name","start") << std::endl;
+		*out << cgicc::form() << std::endl;
+
+	} else if (is_started) { // STOP!
+		thisCrate->vmeController()->end_thread();
+		*out << endl;
+		*out << "**VME IRQ Interrupt has been disabled" << endl; 
+	} else {
+		*out << "**Unexpected condition.  Try again." << endl;
+		*out << "Start: " << start << " is_started: " << ((is_started) ? "true" : "false") << endl;
+	}
+	
+	*out << cgicc::body() << std::endl;
+	*out << cgicc::html() << std::endl;
 }
 
 
@@ -4929,14 +5007,14 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
     }
     sprintf(buf,"%08lX",idcode);
     *out << buf;*out << cgicc::span();
-    thisDCC->CAEN_err_reset();
+    thisCrate->vmeController()->CAEN_err_reset();
     if(i==0){uscode=thisDCC->inprom_userid();}
     if(i==1){uscode=thisDCC->mprom_userid();}
     *out << cgicc::span().set("style","color:black");
     sprintf(buf," usr: ");
     *out << buf;*out << cgicc::span();
     printf(" uscode %08lx \n",uscode);
-    if(thisDCC->CAEN_err()!=0){ 
+    if(thisCrate->vmeController()->CAEN_err()!=0){ 
       *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
       //    }else if(uscode!=tuscode[i]){
     }else if(0xffff0000&uscode!=0xffff0000&tuscode[i]){
@@ -5125,7 +5203,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
     *out << cgicc::legend(buf).set("style","color:blue")  << std::endl;
     int igu;
     for(int i=100;i<111;i++){
-      thisDCC->CAEN_err_reset();
+      thisCrate->vmeController()->CAEN_err_reset();
       sprintf(buf3," ");
       if(i==100){
            unsigned short int statush=thisDCC->mctrl_stath();
@@ -5212,7 +5290,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
       }
       *out << cgicc::span().set("style","color:black");
       *out << buf << cgicc::span();
-      if(thisDCC->CAEN_err()!=0){
+      if(thisCrate->vmeController()->CAEN_err()!=0){
       *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");
       }else{
       *out << cgicc::span().set("style","color:green;background-color:#dddddd;");
@@ -5237,7 +5315,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
 	if (i==110) {
 	  xmltext="0000";
 	}
-	if(i==105)xmltext="100,5";
+	if(i==105)xmltext="2,5";
 	if(i==103|i==104|i==105|i==109|i==110){
 	  *out << cgicc::input().set("type","text")
 	    .set("name","textdata")
@@ -5453,9 +5531,9 @@ void EmuFCrateHyperDAQ::DCCFirmwareReset(xgi::Input * in, xgi::Output * out )
 void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
 {
-  float v_val[4]={1500.,2500.,2500.,3320.};
-  float v_delt={50.};
-  float t_val[4]={80.,80.,80.,80.};
+  float v_val[4]={1500.,2500.,2500.,3300.};
+  float v_delt={100.};  
+  float t_val[4]={90.,90.,90.,90.};
   float t_delt={17.};
 
   cgicc::Cgicc cgi(in);
@@ -5489,10 +5567,10 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
             sprintf(buf,"Voltages:");
             *out << buf;
             for(int j=4;j<8;j++){
-              thisDDU->CAEN_err_reset();
+              thisCrate->vmeController()->CAEN_err_reset();
 	      float adc=thisDDU->adcplus(1,j);
 	      //  printf(" caen_err %d \n",thisDDU->CAEN_err());
-              if(thisDDU->CAEN_err()!=0){
+              if(thisCrate->vmeController()->CAEN_err()!=0){
                  *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");           
               }
               else if((adc>v_val[j-4]-v_delt)&&(adc<v_val[j-4]+v_delt)){
@@ -5508,9 +5586,9 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
             sprintf(buf,"Temperatures:");
             *out << buf;
             for(int j=0;j<4;j++){
-              thisDDU->CAEN_err_reset();
+              thisCrate->vmeController()->CAEN_err_reset();
 	      float adc=thisDDU->readthermx(j);
-              if(thisDDU->CAEN_err()!=0){
+              if(thisCrate->vmeController()->CAEN_err()!=0){
                  *out << cgicc::span().set("style","color:yellow;background-color:#dddddd;");           
               }
               else if((adc>t_val[j]-t_delt)&&(adc<t_val[j]+t_delt)){

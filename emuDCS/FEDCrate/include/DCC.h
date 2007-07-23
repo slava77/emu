@@ -19,7 +19,8 @@ public:
 
 // standard routines
   /// construct with all the standard CFEBs and BuckeyeChips
-  DCC(int newcrate, int slot);
+  DCC(int,int);
+  DCC(int slot);
   virtual ~DCC();
   /// from the BOARDTYPE enum
   virtual unsigned int boardType() const {return DCC_ENUM;}

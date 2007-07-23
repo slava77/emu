@@ -19,7 +19,8 @@ public:
   friend class DDUParser;
 
 // standard routines
-  DDU(int newcrate, int slot);
+  DDU(int,int);
+  DDU(int slot);
   virtual ~DDU();
   /// from the BOARDTYPE enum
   virtual unsigned int boardType() const {return DDU_ENUM;}
@@ -208,7 +209,7 @@ public:
 
   // EPROM reprogramming (EXPERTS ONLY !)
   void epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum);
-  void epromload_broadcast(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum,int ipass);
+  void epromload(char *design,enum DEVTYPE devnum,char *downfile,int writ,char *cbrdnum,int ipass); // for broadcast
   void Parse(char *buf,int *Count,char **Word);
 
   /// sends commands by name

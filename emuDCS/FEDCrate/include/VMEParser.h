@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.h,v 3.0 2006/07/20 21:16:10 geurts Exp $
+// $Id: VMEParser.h,v 3.1 2007/07/23 05:02:24 gilmore Exp $
 // $Log: VMEParser.h,v $
+// Revision 3.1  2007/07/23 05:02:24  gilmore
+// major structural chages to improve multi-crate functionality
+//
 // Revision 3.0  2006/07/20 21:16:10  geurts
 // *** empty log message ***
 //
@@ -20,8 +23,8 @@
  *     
  */
 
-class Crate;
-class VMEController;
+#include "Crate.h"
+#include "VMEController.h"
 #include "EmuParser.h"
 #include <xercesc/dom/DOM.hpp>
 
@@ -29,21 +32,17 @@ class VMEController;
 XERCES_CPP_NAMESPACE_USE
 
 
-class VMEParser
+class VMEParser : public EmuParser
 {
 
-
 public:
-  VMEParser(){}
-  explicit VMEParser(DOMNode * pNode, int number);
-
-  Crate *crate() const {return crate_;} 
-  VMEController * controller() const {return controller_;}
+	VMEParser(){}
+	explicit VMEParser(DOMNode * pNode, int crate = 0;);
+	
+	VMEController * controller() const {return controller_;}
 
 protected:
-  Crate * crate_;
-  VMEController * controller_; 
-  EmuParser parser_;
+	VMEController * controller_; 
 };
 
 #endif

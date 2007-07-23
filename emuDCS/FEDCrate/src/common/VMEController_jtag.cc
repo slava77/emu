@@ -30,45 +30,45 @@ int cntvme_rd;
 
 void VMEController::devdo(enum DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd)
 {
-  char cmd2[9000];
-  
-  char tmp[4];
-  int kbit,kbybit;
-  char kbypass;
-  
-  int ppnt,pcmd,pow2;
-  int idev,i,k,m;
-  int ncmd2,nbcmd2,nbuf2;
-  
- 
-  int init;
-  
+	char cmd2[9000];
+	
+	char tmp[4];
+	int kbit,kbybit;
+	char kbypass;
+	
+	int ppnt,pcmd,pow2;
+	int idev,i,k,m;
+	int ncmd2,nbcmd2,nbuf2;
+	
+	
+	int init;
+	
+	
+	unsigned short int ishft,temp;
+	unsigned long int vmeaddo;
+	static int feuse;  
 
-  unsigned short int ishft,temp;
-  unsigned long int vmeaddo;
-  static int feuse;  
-
-  /* irdsnd for jtag
-          irdsnd = 0 send immediately, no read
-          irdsnd = 1 send immediately, read
-          irdsnd = 2 send in buffer, no read
-  */
-  if(dev!=99){
-  idev=geo[dev].jchan;
-  }else{
-    idev=idevo;
-    if(idev>4&idev!=12)return;
-  }
-  // printf(" enter devdo %d %d \n",dev,idev);
-
-  // printf(" idev idevo dev %d %d %d \n",idev,idevo,dev);
-  /****** check we have same old device otherwise we need to initialize */
-  init=0;
-    if(idev!=idevo||vmeadd!=vmeaddo){
-       init=1;
-    }
-  idevo=idev;
-  vmeaddo=vmeadd;
+	/* irdsnd for jtag
+			irdsnd = 0 send immediately, no read
+			irdsnd = 1 send immediately, read
+			irdsnd = 2 send in buffer, no read
+	*/
+	if(dev!=99){
+	idev=geo[dev].jchan;
+	}else{
+		idev=idevo;
+		if(idev>4&idev!=12)return;
+	}
+	// printf(" enter devdo %d %d \n",dev,idev);
+	
+	// printf(" idev idevo dev %d %d %d \n",idev,idevo,dev);
+	/****** check we have same old device otherwise we need to initialize */
+	init=0;
+	if(idev!=idevo||vmeadd!=vmeaddo){
+		init=1;
+	}
+	idevo=idev;
+	vmeaddo=vmeadd;
 
   //  printf(" about to initialize plev idve devo init %d %d %d %d \n",plev,idev,idevo,init);
 /************  JTAG initialize ******************/
@@ -747,12 +747,14 @@ unsigned short int *ptr;
 
 void VMEController::sdly()
 {
+/*
 char tmp[1]={0x00};
 unsigned short int tmp2[1]={0x0000};
 unsigned short int *ptr;
 // delay_type=2;
 // tmp2[0]=50;
 //  vme_controller(6,ptr,tmp2,tmp);
+*/
 }
 
 

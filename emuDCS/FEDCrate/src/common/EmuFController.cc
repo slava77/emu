@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: EmuFController.cc,v 3.2 2007/03/23 12:51:24 ichiro Exp $
+// $Id: EmuFController.cc,v 3.3 2007/07/23 05:03:28 gilmore Exp $
 // $Log: EmuFController.cc,v $
-// Revision 3.2  2007/03/23 12:51:24  ichiro
-// merged sTTS_integ branch upto sTTS_20070324
+// Revision 3.3  2007/07/23 05:03:28  gilmore
+// major structural chages to improve multi-crate functionality
 //
 // Revision 3.1.2.4  2007/02/23 14:16:43  ichiro
 // add a debug output
@@ -106,12 +106,12 @@ int EmuFController::irqtest(){
   int ret,ret2;
   ret=0;
   for(unsigned i = 0; i < myCrates.size(); ++i) {
-    ret2=myCrates[i]->irqtest(i,0);
+    ret2=myCrates[i]->vmeController()->thread()->test(0);
     if(ret2!=0&&ret2!=irqlast[i]){
        ret=ret2;
-       irqcrate=myCrates[i]->irqtest(i,1);
-       irqslot=myCrates[i]->irqtest(i,2);
-       irqstatus=myCrates[i]->irqtest(i,3);
+       irqcrate=myCrates[i]->vmeController()->thread()->test(1);
+       irqslot=myCrates[i]->vmeController()->thread()->test(2);
+       irqstatus=myCrates[i]->vmeController()->thread()->test(3);
     }
     irqlast[i]=ret2;
   }
