@@ -103,11 +103,12 @@ function poll(e){
 }
 
 function validateDriverReload(e){
+    var group = e.target.getAttribute('id');
     var counter = 0;
     // count checked process selector checkboxes in the DAQ group
     var inputs=document.getElementsByTagName("input");
     for (i=0; i<inputs.length; i++){
-	if ( inputs.item(i).id=='DAQ' &&
+	if ( inputs.item(i).id==group &&
 	     inputs.item(i).getAttribute('type')=='checkbox' &&
 	     inputs.item(i).name.indexOf( ':', 0 )>0 &&
 	     inputs.item(i).checked ){
@@ -116,7 +117,7 @@ function validateDriverReload(e){
     }
     // prepare message
     if ( counter > 0 ){
-	var message='You are about to reload the drivers for '+ counter + " DAQ process";
+	var message='You are about to reload the drivers for '+ counter + ' ' + group + ' process';
 	if ( counter > 1 ) message += 'es';
 	message += '.';
     }

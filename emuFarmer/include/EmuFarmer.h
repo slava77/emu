@@ -161,7 +161,12 @@ private:
   /**
    * 
    */
-  xdata::String commandToReloadDrivers_;
+  xdata::String commandToReloadDriversForDAQ_;
+
+  /**
+   * 
+   */
+  xdata::String commandToReloadDriversForPC_;
 
   /**
    * Lists of applications whose executive should be started with log level other than WARN
@@ -232,7 +237,7 @@ private:
   vector<cgicc::FormEntry> pollExecutives( const vector<cgicc::FormEntry> fev );
   void pollAllExecutives();
   bool pollExecutive( const string& URL );
-  void reloadDDUDrivers( const vector<cgicc::FormEntry>& fev )
+  void reloadDrivers( const vector<cgicc::FormEntry>& fev, const string group )
     throw (xdaq::exception::Exception);
   xoap::MessageReference createSOAPCommandToHatch( const string& url );
   xoap::MessageReference createSOAPCommandToCull( const string& url );
