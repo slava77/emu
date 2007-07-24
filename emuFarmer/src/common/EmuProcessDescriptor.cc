@@ -108,8 +108,13 @@ int EmuProcessDescriptor::getPort() const {
 bool EmuProcessDescriptor::hasApplication( const string& name ) const {
   for ( set< pair<string, int> >::iterator a = applications_.begin();
 	a != applications_.end();
-	++a )
-    if ( a->first.find( name, 0 ) != string::npos ) return true;
+	++a ){
+    // First strip app name of anything that may have been added to it. (hardware mnemonic name to EmuRUI)
+    string appName = a->first;
+    string::size_type delimiter = appName.find_first_of( " [" );
+    if ( delimiter != string::npos ) appName = appName.substr( 0, delimiter );
+    if ( appName == name ) return true;
+  }
   return false;
 }
 

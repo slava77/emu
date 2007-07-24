@@ -95,7 +95,8 @@ void EmuFarmer::exportParams(){
   s->fireItemAvailable( "ltcApplicationNames", &ltcApplicationNames_ );
 
   s->fireItemAvailable( "commandToStartXDAQ", &commandToStartXDAQ_ );
-  s->fireItemAvailable( "commandToReloadDrivers", &commandToReloadDrivers_ );
+  s->fireItemAvailable( "commandToReloadDriversForDAQ", &commandToReloadDriversForDAQ_ );
+  s->fireItemAvailable( "commandToReloadDriversForPC", &commandToReloadDriversForPC_ );
 
   s->fireItemAvailable( "ApplicationsWithLogLevel_DEBUG", &ApplicationsWithLogLevel_DEBUG_ );
   s->fireItemAvailable( "ApplicationsWithLogLevel_INFO", &ApplicationsWithLogLevel_INFO_ );
@@ -319,7 +320,11 @@ string EmuFarmer::processForm(xgi::Input *in, xgi::Output *out)
 
       } else if ( fe->getValue() == "reload DDU drivers" ){
 
-	reloadDDUDrivers( fev );
+	reloadDrivers( fev, "DAQ" );
+
+      } else if ( fe->getValue() == "reload VME drivers" ){
+
+	reloadDrivers( fev, "PC" );
 
       } else if ( fe->getValue() == "create config" ){
 
@@ -867,16 +872,20 @@ void EmuFarmer::processGroupTable(const string& groupName, xgi::Output *out){
        << groupName << "\">" << endl;
   *out << "     <tr>                                                                                       " << endl;
   *out << "       <th class=\"processes title\" colspan=\"7\">" << groupName << " processes</th>          " << endl;
-  if ( groupName == "DAQ" ){
-  *out << "     </tr><tr>                                                                                  " << endl;
+  if ( groupName == "DAQ" || groupName == "PC" ){
+    string device;
+    if      ( groupName == "DAQ" ) device = "DDU";
+    else if ( groupName == "PC"  ) device = "VME";
+    *out << "   </tr><tr>                                                                                  " << endl;
     *out << "       <td  class=\"processes\"  colspan=\"7\" width=\"100%\">"                                 << endl;
     *out << "          <input"                                                                               << endl;
+    *out << "           id=\"" << groupName << "\""                                                          << endl;
     *out << "           class=\"config\""                                                                    << endl;
     *out << "           type=\"button\""                                                                     << endl;
     *out << "           name=\"drivers\""                                                                    << endl;
-    *out << "           title=\"(Re)load the DDU drivers for the selected DAQ processes.\""                  << endl;
-    *out << "           value=\"reload DDU drivers\""                                                        << endl;
-    *out << "           onclick=\"validateDriverReload(event)\""                                             << endl;
+    *out << "           title=\"(Re)load the " << device << " drivers for the selected DAQ processes.\""     << endl;
+    *out << "           value=\"reload " << device << " drivers\""                                           << endl;
+    *out << "           onclick=\"validateDriverReload(event,'" << groupName << "')\""                       << endl;
     *out << "          />"                                                                                   << endl;
     *out << "       </td>"                                                                                   << endl;
   }
@@ -1181,7 +1190,7 @@ bool EmuFarmer::pollExecutive( const string& URL ){
 
 }
 
-void EmuFarmer::reloadDDUDrivers( const vector<cgicc::FormEntry>& fev )
+void EmuFarmer::reloadDrivers( const vector<cgicc::FormEntry>& fev, const string group )
   throw (xdaq::exception::Exception){
   std::vector<cgicc::FormEntry>::const_iterator fe;
 
@@ -1206,8 +1215,14 @@ void EmuFarmer::reloadDDUDrivers( const vector<cgicc::FormEntry>& fev )
       const string url = "http://"+fe->getName();
       emuProcessDescriptors_[url].setSelected();
 
-      // It must be a DAQ process with EmuRUI
-      if ( ! emuProcessDescriptors_[url].hasApplication( "EmuRUI" ) ) continue;
+      if ( group == "DAQ" ){
+	// It must be a DAQ process with EmuRUI
+	if ( ! emuProcessDescriptors_[url].hasApplication( "EmuRUI" ) ) continue;
+      }
+      else if ( group == "PC" ){
+	// It must be a PC process with EmuPeripheralCrate
+	if ( ! emuProcessDescriptors_[url].hasApplication( "EmuPeripheralCrate" ) ) continue;
+      }
 
       // Chop off port number
       host = fe->getName().substr( 0, colonPosition );
@@ -1243,7 +1258,7 @@ void EmuFarmer::reloadDDUDrivers( const vector<cgicc::FormEntry>& fev )
       {
 	// Let's not rethrow here, but rather let it go on to do the rest.
 	LOG4CPLUS_ERROR( logger_, 
-			 "Failed to reload DDU driver for " + fe->getName() + ": "
+			 "Failed to reload " << group << " driver for " + fe->getName() + ": "
 			 + xcept::stdformat_exception_history(e));
       }
   }
@@ -1346,7 +1361,9 @@ xoap::MessageReference EmuFarmer::createSOAPCommandToReload( const string& url )
   xoap::SOAPName name = envelope.createName("executeCommand", "xdaq", "urn:xdaq-soap:3.0");
   xoap::SOAPBodyElement bodyelement = envelope.getBody().addBodyElement(name);
   string user     = User->toString();
-  string execPath = string("/home/") + user + string("/") + commandToReloadDrivers_.toString();
+  string execPath = string("/home/") + user + string("/");
+  if      ( group == "DAQ" ) execPath += commandToReloadDriversForDAQ_.toString();
+  else if ( group == "PC"  ) execPath += commandToReloadDriversForPC_.toString();
   stringstream argv;
 //   argv << " " << emuProcessDescriptors_[url].getDeviceName();
   name = envelope.createName("execPath","","");

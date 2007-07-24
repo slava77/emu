@@ -39,8 +39,8 @@ public:
   xdaq::ApplicationDescriptor* getJobControlAppDescriptor() const { return jobControlAppDescriptor_; }
   void setSelected( bool s=true ){ selected_ = s; }
   bool isSelected() const { return selected_; }
-  void setStartTime( const time_t t ){ startTime_ = t; };
-  time_t getStartTime() const { return startTime_; };
+  void setStartTime( const time_t t ){ startTime_ = t; }
+  time_t getStartTime() const { return startTime_; }
   int getJobId() const { return jobId_; }
   void setJobId( int jobId ){ jobId_ = jobId; }
   void setJobId( const string& jobId );
