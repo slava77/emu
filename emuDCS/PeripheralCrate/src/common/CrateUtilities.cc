@@ -616,6 +616,8 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
     //
     int sequential_events_with_fifob_empty=0;
     //
+    std::vector <unsigned long int> InjectedCSCId;
+    //
     int nloop;
     for(nloop = 0; nloop<Nloop; nloop++) {
       //
@@ -682,34 +684,44 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
             // 1) the highest quality
 	    // 2) if two LCTs have the same quality, it picks the one from the highest number slot
 	    //
-	    // Can mimic this by inserting the slot value behind the quality bits and sort by largest value...
+	    // Can mimic this by inserting the CSC ID value (bits 12-15 in the LCT)
+	    // behind the quality bits and sorting by largest value...
 	    //
 	    unsigned long int original_lct0_value = (myTmbs[i]->GetInjectedLct0())[frame];
 	    //
 	    if (debug_)
-	      std::cout << "LCT0:  injected value = " << std::hex << original_lct0_value << std::endl;
+	      std::cout << "LCT0:  original value = " << std::hex << original_lct0_value << std::endl;
 	    //
-	    // move 5 bits below down into the TMB word, since they are not injected in this test
+	    // extract the csc_id from the LCT
+	    unsigned long int csc_id = (original_lct0_value & 0x0000f000) >> 12;
 	    unsigned long int lct0_sorting_value = 
-	      ( (original_lct0_value & 0xf80007ff)      ) | //clear out information to make space for slot
-	      ( (original_lct0_value & 0x07ff0000) >>  5) | //move information into the unused part of the slot
-	      ( (TMBslot             & 0x1f)       << 21);  //insert the date
+	      ( (original_lct0_value & 0xf8000fff)      ) | //clear out information to make space for csc_id
+	      ( (original_lct0_value & 0x07ff0000) >>  4) | //move information over to make space for csc_id
+	      ( (csc_id              & 0xf)        << 23);  //insert the csc_id
 	    //
-	    //	    std::cout << "LCT0:  value with slot= " << std::hex << lct0_sorting_value << std::endl;
+	    if (debug_) {
+	      std::cout << "csc_id = " << std::hex << csc_id << std::endl;
+	      std::cout << "LCT0:  shifted cscid  = " << std::hex << lct0_sorting_value << std::endl;
+	    }
 	    //
 	    SortingLCT.push_back(lct0_sorting_value);
 	    //
 	    unsigned long int original_lct1_value = (myTmbs[i]->GetInjectedLct1())[frame];
 	    //
 	    if (debug_)
-	      std::cout << "LCT1:  injected value = " << std::hex << original_lct1_value << std::endl;
+	      std::cout << "LCT1:  original value = " << std::hex << original_lct1_value << std::endl;
 	    //
+	    // extract the csc_id from the LCT
+	    csc_id = (original_lct1_value & 0x0000f000) >> 12;
 	    unsigned long int lct1_sorting_value = 
-	      ( (original_lct1_value & 0xf80007ff)      ) | //clear out information to make space for slot
-	      ( (original_lct1_value & 0x07ff0000) >>  5) | //move information into the unused part of the slot
-	      (TMBslot                             << 21);  //insert the date
+	      ( (original_lct1_value & 0xf8000fff)      ) | //clear out information to make space for csc_id
+	      ( (original_lct1_value & 0x07ff0000) >>  4) | //move information over to make space for csc_id
+	      ( (csc_id              & 0xf)        << 23);  //insert the csc_id
 	    //
-	    //	    std::cout << "LCT1:  value with slot= " << std::hex << lct1_sorting_value << std::endl;
+	    if (debug_) {
+	      std::cout << "csc_id = " << std::hex << csc_id << std::endl;
+	      std::cout << "LCT1:  shifted cscid  = " << std::hex << lct1_sorting_value << std::endl;
+	    }	    
 	    //
 	    SortingLCT.push_back(lct1_sorting_value);
 	  }
@@ -718,15 +730,21 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
 	//
 	// remove slot from sorting vector to print out value:
 	std::vector <unsigned long int> InjectedLCT;
+	InjectedCSCId.clear();
+	//
 	for (unsigned vec=0; vec<SortingLCT.size(); vec++) {
 	  //
 	  unsigned long int original_value = SortingLCT[vec];
 	  //
+	  // extract the csc_id from the LCT
+	  unsigned long int csc_id = (original_value & 0x07800000) >> 23;
 	  unsigned long int return_value = 
-	    ( (original_value & 0xf80007ff)     ) |
-	    ( (original_value & 0x003ff800) << 5) ;
+	    ( (original_value & 0xf8000fff)      ) | //clear out information to make space for csc_id
+	    ( (original_value & 0x007ff000) <<  4) | //move information over to make space for csc_id
+	    ( (csc_id              & 0xf)   << 12);  //insert the csc_id
 	    //
 	    InjectedLCT.push_back(return_value);
+	    InjectedCSCId.push_back(csc_id);
 	}
 	//
 	std::cout << "MPC data in event " << frame << ":" << std::hex 
@@ -738,45 +756,45 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
 	  std::cout << std::hex << InjectedLCT[vec] << " "  ;
 	std::cout << std::endl ;
 	//
-	//	std::cout << "Data sorted w/ slot: ";
-	//	for (unsigned vec=0; vec<SortingLCT.size(); vec++) 
-	//	  std::cout << std::hex << SortingLCT[vec] << " "  ;
-	//	std::cout << std::endl;
+	if (debug_) {
+	  std::cout << "Data sorted w/cscid: ";
+	  for (unsigned vec=0; vec<SortingLCT.size(); vec++) 
+	    std::cout << std::hex << SortingLCT[vec] << " "  ;
+	  std::cout << std::endl;
+	}
 	//
 	if ( InjectedLCT[0] == MPCLct0 ) {
 	  NFound[delay] ++;
 	  N_LCTs_found_this_pass++;
 	} else {
-	  std::cout << "FAIL! LCT 0 Slot = ";
-	  for (unsigned vec=0; vec<SortingLCT.size(); vec++) {
-	    int slotvalue = (SortingLCT[vec] & 0x07c00000)>> 21;
-	    std::cout << std::dec << std::setw(9) << slotvalue;
-	  }
+	  std::cout << "LCT source TMB  = ";
+	  for (unsigned vec=0; vec<InjectedCSCId.size(); vec++) 
+	    std::cout << std::dec << std::setw(9) << InjectedCSCId[vec];
 	  std::cout << std::endl ;
+	  std::cout << "FAIL on LCT 0" << std::endl;
 	}
 	//
 	if ( InjectedLCT[1] == MPCLct1 ) {
 	  NFound[delay] ++;
 	  N_LCTs_found_this_pass++;
 	} else {
-	  std::cout << "FAIL! LCT 1 Slot = ";
-	  for (unsigned vec=0; vec<SortingLCT.size(); vec++) {
-	    int slotvalue = (SortingLCT[vec] & 0x07c00000)>> 21;
-	    std::cout << std::dec << std::setw(9) << slotvalue;
-	  }
+	  std::cout << "LCT source TMB  = ";
+	  for (unsigned vec=0; vec<InjectedCSCId.size(); vec++) 
+	    std::cout << std::dec << std::setw(9) << InjectedCSCId[vec];
 	  std::cout << std::endl ;
+	  std::cout << "FAIL on LCT 1" << std::endl;
 	}
 	//
 	if ( InjectedLCT[2] == MPCLct2 ) {
 	  NFound[delay] ++;
 	  N_LCTs_found_this_pass++;
-	}else {
-	  std::cout << "FAIL! LCT 2 Slot = ";
-	  for (unsigned vec=0; vec<SortingLCT.size(); vec++) {
-	    int slotvalue = (SortingLCT[vec] & 0x07c00000)>> 21;
-	    std::cout << std::dec << std::setw(9) << slotvalue;
-	  }
+	} else {
+	  std::cout << "LCT source TMB  = ";
+	  for (unsigned vec=0; vec<InjectedCSCId.size(); vec++) 
+	    std::cout << std::dec << std::setw(9) << InjectedCSCId[vec];
 	  std::cout << std::endl ;
+	  std::cout << "FAIL on LCT 2" << std::endl;
+	  //
 	}
 	//
 	//	for (unsigned i=0; i<myTmbs.size(); i++) {
@@ -806,19 +824,24 @@ void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay){
       //
       std::cout << "N_LCTs found this pass = " << std::dec << N_LCTs_found_this_pass << std::endl;
       std::cout << "N_LCTs found for delay " << std::dec << delay << " = " << NFound[delay] << std::endl;
+      //
       if ( NFound[delay] == (nloop+1)*3*NFrames ) {
+	//
 	if (delay == 0) MpcTMBTestResult = 1;
+	//
       } else {
+	//
 	if (delay == 0) MpcTMBTestResult = 0;
 	break;
       }
-      //
     }
     //
     if (delay == 0 && MpcTMBTestResult == 1) {
-      (*MyOutput_) << "TMB-MPC Crate Test Passed, N_LCT = " << std::dec << NFound[delay] << std::endl;
+      (*MyOutput_) << "TMB-MPC Crate Test PASS, N_LCT = " << std::dec << NFound[delay] << std::endl;
+      std::cout << "TMB-MPC Crate Test PASS, N_LCT = " << std::dec << NFound[delay] << std::endl;
     } else if (delay == 0 && MpcTMBTestResult == 0) {
-      (*MyOutput_) << "TMB-MPC Crate Test Failed " << ", nloop=" << nloop << std::endl;
+      (*MyOutput_) << "TMB-MPC Crate Test FAIL " << ", nloop=" << nloop << std::endl;
+      std::cout << "TMB-MPC Crate Test FAIL " << ", nloop=" << nloop << std::endl;
     }
     //
     //    std::cout << "Broke out, try next delay..." << std::endl;

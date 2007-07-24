@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.40 2007/07/20 15:13:00 rakness Exp $
+// $Id: TMB.cc,v 3.41 2007/07/24 11:15:35 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.41  2007/07/24 11:15:35  rakness
+// more bits checked in TMB-MPC test. Sorting algorithm based only on data which is passed
+//
 // Revision 3.40  2007/07/20 15:13:00  rakness
 // improve emulation of MPC and TMB in TMB-MPC crate test
 //
@@ -778,38 +781,49 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     //
     ramAdd = (evtId<<8);
     //
+    unsigned short vpf      = 1;         
+    unsigned short sync_err = 0;
     unsigned short qual1;
     unsigned short qual2;
+    unsigned short BC0 = 0;  //this value should be equal for the same event in all slots...
+    ReadRegister(seq_id_adr);
+    unsigned short csc_id  = (unsigned short) GetCscId();
     //
     if ( lct0 == 0 ) {  // random LCT
       //
-      unsigned short vpf  = 1;         // 1 bit
       qual1 = 0;
       while (qual1 < 1)                // ensure that one random muon has quality > 0
-	qual1= rand()%16;              // 4 bits
-      unsigned short clct = rand()%16; // 4 bits
-      unsigned short wire = rand()%128;// 7 bits
-      frame1 = ((vpf<<15)&0x8000) + ((qual1<<11)&0x7800) + ((clct<<7)& 0x780) + wire;
-      //
-      //Note, for void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay), 
-      //the 5 MSB of frame2 are used to insert the date, so filling them may make the test fail...
+	qual1= rand()%16;              
+      unsigned short clct   = rand()%16; 
+      unsigned short wire   = rand()%128;
+      unsigned short bxn0   = rand()%2;
       unsigned short lr     = rand()%2;
       unsigned short halfSt = rand()%256;
-      frame2 = ((lr<<8)&0x100) + halfSt;    
       //
-      //      frame2             = (unsigned short) ((rand()/(RAND_MAX+0.01))*0xffff) ;
-      //      frame1             = (unsigned short) ((rand()/(RAND_MAX+0.01))*0xffff) ;
-      //      frame1            |= (0x1<<15) ;
+      frame1 = 
+	((vpf   &  0x1) << 15) + 
+	((qual1 &  0xf) << 11) + 
+	((clct  &  0xf) <<  7) + 
+	((wire  & 0x7f) <<  0) ;
+      //
+      frame2 = 
+	((csc_id   &  0xf) << 12) +
+	((BC0      &  0x1) << 11) +
+	((bxn0     &  0x1) << 10) +
+	((sync_err &  0x1) <<  9) +
+	((lr       &  0x1) <<  8) + 
+	((halfSt   & 0xff) <<  0);    
+      //
     } else {
-      frame2             = lct0 & 0xffff;
-      frame1             = (lct0>>16) & 0xffff;
+      frame2 = (lct0>> 0) & 0xffff;
+      frame1 = (lct0>>16) & 0xffff;
     }
     //
     lct0_ = ((frame1&0xffff)<<16) | (frame2&0xffff) ;
     //
     InjectedLct0.push_back(lct0_);
     //
-    if (debug_) printf(" lct0 = %x %x %x\n",frame1,frame2,(unsigned int)lct0_);
+    if (debug_) printf("TMB lct0 = %x %x %x\n",frame1,frame2,(unsigned int)lct0_);
     //
     sndbuf[0] = (frame1>>8)&0xff ;
     sndbuf[1] = (frame1)&0xff ;
@@ -843,34 +857,42 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
     sndbuf[1] = (ramAdd)&0xff ;
     tmb_vme(VME_WRITE,mpc_ram_adr,sndbuf,rcvbuf,NOW);
     //
-    if ( lct1 == 0 ) {
-      unsigned short vpf  = 1;         // 1 bit
+    if ( lct1 == 0 ) {    //random LCT
+      //
       qual2 = 15;
       while (qual2 >= qual1)           // ensure that quality for LCT1 is always less than quality for LCT0
-	qual2 = rand()%16;             // 4 bits
-      unsigned short clct = rand()%16; // 4 bits
-      unsigned short wire = rand()%128;// 7 bits
-      frame1 = ((vpf<<15)&0x8000) + ((qual2<<11)&0x7800) + ((clct<<7)& 0x780) + wire;
-      //
-      //Note, for void CrateUtilities::MpcTMBTest(int Nloop, int min_delay, int max_delay), 
-      //the 5 MSB of frame2 are used to insert the date, so filling them may make the test fail...
+	qual2 = rand()%16;            
+      unsigned short clct   = rand()%16; 
+      unsigned short wire   = rand()%128;
+      unsigned short bxn0   = rand()%2;
       unsigned short lr     = rand()%2;
       unsigned short halfSt = rand()%256;
-      frame2 = ((lr<<8)&0x100) + halfSt;    
       //
-      //      frame2             = (unsigned short) ((rand()/(RAND_MAX+0.01))*0xffff);
-      //      frame1             = (unsigned short) ((rand()/(RAND_MAX+0.01))*0xffff);
-      //      frame1            |= (0x1<<15) ;
+      frame1 = 
+	((vpf   &  0x1) << 15) + 
+	((qual2 &  0xf) << 11) + 
+	((clct  &  0xf) <<  7) + 
+	((wire  & 0x7f) <<  0) ;
+      //
+      frame2 = 
+	((csc_id   &  0xf) << 12) +
+	((BC0      &  0x1) << 11) +
+	((bxn0     &  0x1) << 10) +
+	((sync_err &  0x1) <<  9) +
+	((lr       &  0x1) <<  8) + 
+	((halfSt   & 0xff) <<  0);    
+      //
+
     } else {
-      frame2             = lct1 & 0xffff;
-      frame1             = (lct1>>16) & 0xffff;
+      frame2 = (lct1 >>  0) & 0xffff;
+      frame1 = (lct1 >> 16) & 0xffff;
     }
     //
     lct1_ = ((frame1&0xffff)<<16) | (frame2&0xffff) ;
     //
     InjectedLct1.push_back(lct1_);
     //
-    if (debug_) printf(" lct1 = %x %x %x\n",frame1,frame2,(unsigned int)lct1_);
+    if (debug_) printf("TMB lct1 = %x %x %x\n",frame1,frame2,(unsigned int)lct1_);
     //
     sndbuf[0] = (frame1>>8)&0xff ;
     sndbuf[1] = (frame1)&0xff ;
