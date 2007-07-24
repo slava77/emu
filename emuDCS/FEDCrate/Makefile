@@ -33,6 +33,7 @@ Sources=\
 	VMEController.cc \
 	VMEController_jtag.cc \
 	VMEModule.cc \
+	IRQThread.cc \
 	VMEParser.cc \
 	EmuFCrateHyperDAQ.cc \
 	EmuFRunControlHyperDAQ.cc \
