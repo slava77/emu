@@ -203,12 +203,19 @@ int main() {
 	      << std::endl;
     //
     std::cout << std::endl;
+    std::cout << "700:Pulse ALCT test strips    701:Generate ADB Async         702:Generate ADB Sync"
+	      << std::endl;
+    //
+    std::cout << std::endl;
     std::cout << "1000:Exit " << std::endl;
     std::cout << " menu choice? (Default = 999)" << std::endl;
     std::cin >> Menu;
 
     std::ofstream outputfile;
-
+    //
+    int amplitude;
+    int strip_mask;
+    //
     int jch = 5;
     char firmware_string[100] = "/home/rakness/firmware/tmb/20070710/tmb20070710.svf";
     int debug = 0;
@@ -825,6 +832,22 @@ int main() {
     case 600:
       std::cout << "Load TMB firmware = " << firmware_string << std::endl;
       thisTMB->SVFLoad(&jch,firmware_string,debug);
+      break;
+    case 700:
+      amplitude = 64;
+      std::cout << "strip mask " << std::endl;
+      std::cin >> strip_mask;
+      std::cout << "Setting up pulsing with amplitude = " << amplitude 
+		<< " and mask = " << strip_mask << std::endl;
+      alct->SetUpPulsing(amplitude,PULSE_LAYERS,strip_mask,ADB_ASYNC);
+      break;
+    case 701:
+      thisCCB->setCCBMode(CCB::VMEFPGA);
+      thisCCB->GenerateAlctAdbASync();	 
+      break;
+    case 702:
+      thisCCB->setCCBMode(CCB::VMEFPGA);
+      thisCCB->GenerateAlctAdbSync();	 
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 
