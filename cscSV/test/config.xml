@@ -13,6 +13,32 @@
 					<item soapenc:position="[2]" xsi:type="xsd:string">Calib_CFEB_CrossTalk</item>
 					<item soapenc:position="[3]" xsi:type="xsd:string">Calib_CFEB_SCAPed</item>
 				</configKeys>
+				<calibParams soapenc:arrayType="xsd:ur-type[4]" xsi:type="soapenc:Array">
+					<item soapenc:position="[0]" xsi:type="soapenc:Struct">
+						<key xsi:type="xsd:string">Calib_CFEB_Gains</key>
+						<command xsi:type="xsd:string">EnableCalCFEBGains</command>
+						<loop xsi:type="xsd:unsignedInt">320</loop>
+						<delay xsi:type="xsd:unsignedInt">1</delay>
+					</item>
+					<item soapenc:position="[1]" xsi:type="soapenc:Struct">
+						<key xsi:type="xsd:string">Calib_CFEB_CrossTalk</key>
+						<command xsi:type="xsd:string">EnableCalCFEBCrossTalk</command>
+						<loop xsi:type="xsd:unsignedInt">160</loop>
+						<delay xsi:type="xsd:unsignedInt">1</delay>
+					</item>
+					<item soapenc:position="[2]" xsi:type="soapenc:Struct">
+						<key xsi:type="xsd:string">Calib_CFEB_SCAPed</key>
+						<command xsi:type="xsd:string">EnableCalCFEBSCAPed</command>
+						<loop xsi:type="xsd:unsignedInt">1</loop>
+						<delay xsi:type="xsd:unsignedInt">180</delay>
+					</item>
+					<item soapenc:position="[3]" xsi:type="soapenc:Struct">
+						<key xsi:type="xsd:string">Calib_CFEB_Comparator</key>
+						<command xsi:type="xsd:string">EnableCalCFEBComparator</command>
+						<loop xsi:type="xsd:unsignedInt">640</loop>
+						<delay xsi:type="xsd:unsignedInt">1</delay>
+					</item>
+				</calibParams>
 				<pcKeys soapenc:arrayType="xsd:ur-type[2]" xsi:type="soapenc:Array">
 					<item soapenc:position="[0]" xsi:type="xsd:string">default</item>
 					<item soapenc:position="[1]" xsi:type="xsd:string">Calib_CFEB_SCAPed</item>
