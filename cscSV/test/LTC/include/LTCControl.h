@@ -3,7 +3,7 @@
 
 #include "EmuApplication.h"
 
-#include "xdata/UnsignedLong.h"
+#include "xdata/String.h"
 #include "toolbox/fsm/FiniteStateMachine.h"
 
 class LTCControl : public EmuApplication
@@ -50,6 +50,8 @@ public:
 private:
     void stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 			throw (toolbox::fsm::exception::Exception);
+
+	xdata::String configuration_;
 };
 
 #endif  // ifndef __LTC_CONTROL_H__

@@ -16,6 +16,36 @@
 					<item soapenc:position="[4]" xsi:type="xsd:string">Calib_CFEB_Comparator</item>
 					<item soapenc:position="[5]" xsi:type="xsd:string">Debug</item>
 				</configKeys>
+				<calibParams soapenc:arrayType="xsd:ur-type[4]" xsi:type="soapenc:Array">
+					<item soapenc:position="[0]" xsi:type="soapenc:Struct">
+						<key xsi:type="xsd:string">Calib_CFEB_Gains</key>
+						<command xsi:type="xsd:string">EnableCalCFEBGains</command>
+						<loop xsi:type="xsd:unsignedInt">320</loop>
+						<delay xsi:type="xsd:unsignedInt">1</delay>
+						<ltc xsi:type="xsd:string">/home/cscttc/config/LTCConfiguration_Calib_Cfeb_Gains.txt</ltc>
+					</item>
+					<item soapenc:position="[1]" xsi:type="soapenc:Struct">
+						<key xsi:type="xsd:string">Calib_CFEB_CrossTalk</key>
+						<command xsi:type="xsd:string">EnableCalCFEBCrossTalk</command>
+						<loop xsi:type="xsd:unsignedInt">160</loop>
+						<delay xsi:type="xsd:unsignedInt">1</delay>
+						<ltc xsi:type="xsd:string">/home/cscttc/config/LTCConfiguration_Calib_Cfeb_Crosstalk25.txt</ltc>
+					</item>
+					<item soapenc:position="[2]" xsi:type="soapenc:Struct">
+						<key xsi:type="xsd:string">Calib_CFEB_SCAPed</key>
+						<command xsi:type="xsd:string">EnableCalCFEBSCAPed</command>
+						<loop xsi:type="xsd:unsignedInt">1</loop>
+						<delay xsi:type="xsd:unsignedInt">180</delay>
+						<ltc xsi:type="xsd:string">/home/cscttc/config/LTCConfiguration_Calib_Cfeb_SCAped.txt</ltc>
+					</item>
+					<item soapenc:position="[3]" xsi:type="soapenc:Struct">
+						<key xsi:type="xsd:string">Calib_CFEB_Comparator</key>
+						<command xsi:type="xsd:string">EnableCalCFEBComparator</command>
+						<loop xsi:type="xsd:unsignedInt">640</loop>
+						<delay xsi:type="xsd:unsignedInt">1</delay>
+						<ltc xsi:type="xsd:string">/home/cscttc/config/LTCConfiguration_Calib_Cfeb_Comparator.txt</ltc>
+					</item>
+				</calibParams>
 				<pcKeys soapenc:arrayType="xsd:ur-type[1]" xsi:type="soapenc:Array">
 					<item soapenc:position="[0]" xsi:type="xsd:string">default</item>
 				</pcKeys>

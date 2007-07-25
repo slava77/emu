@@ -10,7 +10,8 @@ XDAQ_INSTANTIATOR_IMPL(LTCControl);
 
 LTCControl::LTCControl(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
-		EmuApplication(stub)
+		EmuApplication(stub),
+		configuration_("")
 {
 	xoap::bind(this, &LTCControl::onConfigure, "Configure", XDAQ_NS_URI);
 	xoap::bind(this, &LTCControl::onEnable,    "Enable",    XDAQ_NS_URI);
@@ -55,6 +56,9 @@ LTCControl::LTCControl(xdaq::ApplicationStub *stub)
 	fsm_.reset();
 
 	state_ = fsm_.getStateName(fsm_.getCurrentState());
+
+	getApplicationInfoSpace()->fireItemAvailable(
+			"Configuration", &configuration_);
 
 	LOG4CPLUS_INFO(getApplicationLogger(), "LTCControl");
 }
