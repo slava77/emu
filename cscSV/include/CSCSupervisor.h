@@ -82,11 +82,23 @@ public:
 			throw (toolbox::fsm::exception::Exception);
 
 private: // XDAQ parameters
+	class CalibParam
+	{
+	public:
+		void registerFields(xdata::Bag<CalibParam> *bag);
+
+		xdata::String key_;
+		xdata::String command_;
+		xdata::UnsignedInteger loop_;
+		xdata::UnsignedInteger delay_;
+	};
+
 	xdata::String run_type_;
 	xdata::UnsignedLong run_number_;
 	xdata::UnsignedLong runSequenceNumber_;
 
 	xdata::Vector<xdata::String> config_keys_;
+	xdata::Vector<xdata::Bag<CalibParam> > calib_params_;
 	xdata::Vector<xdata::String> pc_keys_;
 	xdata::Vector<xdata::String> pc_configs_;
 	xdata::Vector<xdata::String> fc_keys_;
@@ -143,6 +155,8 @@ private:
 
 	string getCrateConfig(const string type, const string key) const;
 	bool isCalibrationMode();
+	int getCalibParamIndex(const string name);
+
 	string trim(string orig) const;
 	string toString(const long int i) const;
 

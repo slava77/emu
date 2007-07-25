@@ -32,10 +32,19 @@ XDAQ_INSTANTIATOR_IMPL(CSCSupervisor);
 static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
 static const unsigned int N_LOG_MESSAGES = 20;
 static const string STATE_UNKNOWN = "unknown";
-static const unsigned int DELAY_CFEB_GAINS = 1U;
-static const unsigned int DELAY_CFEB_CROSSTALK = 1U;
-static const unsigned int DELAY_CFEB_SCAPED = 180U;
-static const unsigned int DELAY_CFEB_COMPARATOR = 1U;
+
+void CSCSupervisor::CalibParam::registerFields(xdata::Bag<CalibParam> *bag)
+{
+	key_ = "";
+	command_ = "";
+	loop_ = 1U;
+	delay_ = 1U;
+
+	bag->addField("key",     &key_);
+	bag->addField("command", &command_);
+	bag->addField("loop",    &loop_);
+	bag->addField("delay",   &delay_);
+}
 
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
@@ -65,6 +74,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	i->fireItemAvailable("RunNumber", &run_number_);
 
 	i->fireItemAvailable("configKeys", &config_keys_);
+	i->fireItemAvailable("calibParams", &calib_params_);
 	i->fireItemAvailable("pcKeys",     &pc_keys_);
 	i->fireItemAvailable("pcConfigs",  &pc_configs_);
 	i->fireItemAvailable("fcKeys",     &fc_keys_);
@@ -507,26 +517,17 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 	string command;
 	unsigned int loop, delay;
 
-	if (run_type_ == "Calib_CFEB_Gains") {
-		command = "EnableCalCFEBGains";
-		loop = 320;
-		delay = DELAY_CFEB_GAINS;
-	} else if (run_type_ == "Calib_CFEB_CrossTalk") {
-		command = "EnableCalCFEBCrossTalk";
-		loop = 160;
-		delay = DELAY_CFEB_CROSSTALK;
-	} else if (run_type_ == "Calib_CFEB_SCAPed") {
-		command = "EnableCalCFEBSCAPed";
-		loop = 1;
-		delay = DELAY_CFEB_SCAPED;
-	} else if (run_type_ == "Calib_CFEB_Comparator") {
-		command = "EnableCalCFEBComparator";
-		loop = 640;
-		delay = DELAY_CFEB_COMPARATOR;
-	} else {
-		LOG4CPLUS_INFO(getApplicationLogger(), "wrong run type " << run_type_.toString());
+	int index = getCalibParamIndex(run_type_);
+	if (index < 0) {
+		LOG4CPLUS_INFO(getApplicationLogger(),
+				"wrong run type " << run_type_.toString());
 		return false;
 	}
+
+	command = calib_params_[index].bag.command_;
+	loop    = calib_params_[index].bag.loop_;
+	delay   = calib_params_[index].bag.delay_;
+
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "command: " << command
 			<< " loop: " << loop << " delay: " << delay);
 
@@ -1093,6 +1094,20 @@ string CSCSupervisor::getCrateConfig(const string type, const string key) const
 bool CSCSupervisor::isCalibrationMode()
 {
 	return (run_type_.toString().substr(0, 5) == "Calib");
+}
+
+int CSCSupervisor::getCalibParamIndex(const string name)
+{
+	int result = -1;
+
+	for (size_t i = 0; i < calib_params_.size(); ++i) {
+		if (calib_params_[i].bag.key_ == name) {
+			result = i;
+			break;
+		}
+	}
+
+	return result;
 }
 
 string CSCSupervisor::trim(string orig) const
