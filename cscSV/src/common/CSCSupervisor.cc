@@ -39,11 +39,13 @@ void CSCSupervisor::CalibParam::registerFields(xdata::Bag<CalibParam> *bag)
 	command_ = "";
 	loop_ = 1U;
 	delay_ = 1U;
+	ltc_ = "LTCConfiguration.txt";
 
 	bag->addField("key",     &key_);
 	bag->addField("command", &command_);
 	bag->addField("loop",    &loop_);
 	bag->addField("delay",   &delay_);
+	bag->addField("ltc",     &ltc_);
 }
 
 CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
@@ -514,22 +516,17 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "calibrationAction " << "(begin)");
 
-	string command;
+	string command, ltc;
 	unsigned int loop, delay;
 
 	int index = getCalibParamIndex(run_type_);
-	if (index < 0) {
-		LOG4CPLUS_INFO(getApplicationLogger(),
-				"wrong run type " << run_type_.toString());
-		return false;
-	}
-
 	command = calib_params_[index].bag.command_;
 	loop    = calib_params_[index].bag.loop_;
 	delay   = calib_params_[index].bag.delay_;
+	ltc     = calib_params_[index].bag.ltc_;
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "command: " << command
-			<< " loop: " << loop << " delay: " << delay);
+			<< " loop: " << loop << " delay: " << delay << " ltc: " << ltc);
 
 	for (step_counter_ = 0; step_counter_ < loop; ++step_counter_) {
 		if (quit_calibration_) { break; }
@@ -585,6 +582,12 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		}
 		sendCommand("Configure", "EmuDAQManager");
 		sendCommand("Configure", "TTCciControl");
+
+		int index = getCalibParamIndex(run_type_);
+		if (index >= 0) {
+			setParameter("LTCControl", "Configuration", "xsd:string",
+					"[file=" + calib_params_[index].bag.ltc_.toString() + "]");
+		}
 		sendCommand("Configure", "LTCControl");
 
 		refreshConfigParameters();
@@ -1093,7 +1096,7 @@ string CSCSupervisor::getCrateConfig(const string type, const string key) const
 
 bool CSCSupervisor::isCalibrationMode()
 {
-	return (run_type_.toString().substr(0, 5) == "Calib");
+	return (getCalibParamIndex(run_type_) >= 0);
 }
 
 int CSCSupervisor::getCalibParamIndex(const string name)
