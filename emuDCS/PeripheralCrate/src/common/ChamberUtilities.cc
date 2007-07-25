@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.25 2007/07/17 16:25:15 liu Exp $
+// $Id: ChamberUtilities.cc,v 3.26 2007/07/25 15:13:16 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.26  2007/07/25 15:13:16  rakness
+// histogram averaging over limited region
+//
 // Revision 3.25  2007/07/17 16:25:15  liu
 // remove CCBStartTrigger()
 //
@@ -225,7 +228,7 @@ using namespace std;
 //
 ChamberUtilities::ChamberUtilities(){
   //
-  debug_ = true;
+  debug_ = false;
   //
   beginning = 0;
   thisTMB   = 0;
@@ -1093,9 +1096,18 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   thisTMB->SetAlctMatchWindowSize(test_match_window_size);
   thisTMB->WriteRegister(tmbtim_adr,thisTMB->FillTMBRegister(tmbtim_adr));
   //
+  ::usleep(500000); //time for registers to write...
+  //
+  if (debug_) {
+    std::cout << "Read tmb_trig_adr " << std::hex << tmb_trig_adr
+	      << " = 0x" << thisTMB->ReadRegister(tmb_trig_adr) << std::endl;
+    std::cout << "Read tmbtim_adr " << std::hex << tmbtim_adr
+	      << " = 0x" << thisTMB->ReadRegister(tmbtim_adr) << std::endl;
+  }
+  //
   ZeroTmbHistograms();
   //
-  if (debug_) std::cout << "Going to try to read TMB " << number_of_reads << " times" << std::endl;
+  if (debug_) std::cout << "Going to try to read TMB " << std::dec << number_of_reads << " times" << std::endl;
   for (int i=0; i<number_of_reads; i++) {
     if (debug_) std::cout << "Read TMB " << i << " times" << std::endl;
     thisTMB->TMBRawhits();
@@ -2802,21 +2814,49 @@ void ChamberUtilities::PrintHistogram(std::string label, int * histogram, int mi
 //
 float ChamberUtilities::AverageHistogram(int * histogram, int min_value, int max_value) {
   //
-  float numer = 0;
-  float denom = 0;
+  /// determine the best value by slowly reducing the range over which the average is computed
   //
-  for (int i=min_value; i<=max_value; i++) {
-    numer += ((float) histogram[i]) *((float) (i));
-    denom += (float) histogram[i];
+  float average;
+  //
+  const int max_width = 5;
+  bool first_time = true;
+  //
+  int width = max_value - min_value + 1;  //starting value for width = input values
+  //
+  while ( width>=max_width || first_time ) {
+    //
+    float numer   = 0;
+    float denom   = 0;
+    average = -999;
+    //
+    for (int i=min_value; i<=max_value; i++) {
+      numer += ((float) histogram[i]) *((float) (i));
+      denom += (float) histogram[i];
+    }
+    if (debug_) {
+      std::cout << "Determine average in " << width << " wide window from " << min_value << " to " << max_value << std::endl;
+      std::cout << "numerator   = " << numer << std::endl;
+      std::cout << "denominator = " << denom << std::endl;
+    }
+    //
+    if (denom > 10) 
+      average = numer / denom;
+    //
+    if (average > 0) {          // Good determination of average, reduce the width and compute again
+      //
+      width -= 2;
+      min_value = (int) (0.5 + (average - ((float) width)*0.5) );
+      max_value = (int) (0.5 + (average + ((float) width)*0.5) );
+      //
+    } else {                    // Bad determination of average, get out of loop....
+      //
+      width = 0;
+      //
+    }
+    first_time = false;
+    if (debug_) std::cout << "average     = " << average << std::endl;
   }
-  //  (*MyOutput_) << "numerator   = " << numer << std::endl;
-  //  (*MyOutput_) << "denominator = " << denom << std::endl;
   //
-  float average = -999.;
-  if (denom > 10) 
-    average = numer / denom;
-  //
-  //  (*MyOutput_) << "average     = " << average << std::endl;
   return average;;
 }
 //
