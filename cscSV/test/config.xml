@@ -17,7 +17,7 @@
 					<item soapenc:position="[0]" xsi:type="soapenc:Struct">
 						<key xsi:type="xsd:string">Calib_CFEB_Gains</key>
 						<command xsi:type="xsd:string">EnableCalCFEBGains</command>
-						<loop xsi:type="xsd:unsignedInt">320</loop>
+						<loop xsi:type="xsd:unsignedInt">6</loop>
 						<delay xsi:type="xsd:unsignedInt">1</delay>
 						<ltc xsi:type="xsd:string">/home/cscttc/config/LTCConfiguration_Calib_Cfeb_Gains.txt</ltc>
 					</item>
