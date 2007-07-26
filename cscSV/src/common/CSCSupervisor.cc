@@ -417,6 +417,7 @@ void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 		submit(configure_signature_);
 	}
 
+	keep_refresh_ = true;
 	webRedirect(in, out);
 }
 
@@ -430,6 +431,7 @@ void CSCSupervisor::webEnable(xgi::Input *in, xgi::Output *out)
 
 	fireEvent("Enable");
 
+	keep_refresh_ = true;
 	webRedirect(in, out);
 }
 
@@ -438,6 +440,7 @@ void CSCSupervisor::webDisable(xgi::Input *in, xgi::Output *out)
 {
 	fireEvent("Disable");
 
+	keep_refresh_ = true;
 	webRedirect(in, out);
 }
 
@@ -448,6 +451,7 @@ void CSCSupervisor::webHalt(xgi::Input *in, xgi::Output *out)
 
 	submit(halt_signature_);
 
+	keep_refresh_ = true;
 	webRedirect(in, out);
 }
 
@@ -538,7 +542,9 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 		sleep(delay);
 	}
 
-	keep_refresh_ = false;
+	if (!quit_calibration_) {
+		submit(halt_signature_);
+	}
 
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "calibrationAction " << "(end)");
 
@@ -551,6 +557,8 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
 	LOG4CPLUS_DEBUG(getApplicationLogger(), "runtype: " << run_type_.toString()
 			<< " runnumber: " << run_number_ << " nevents: " << nevents_);
+
+	step_counter_ = 0;
 
 	try {
 		if (state_table_.getState("EmuDAQManager", 0) == "Configured") {
@@ -740,7 +748,6 @@ void CSCSupervisor::setTTSAction(toolbox::Event::Reference evt)
 void CSCSupervisor::submit(toolbox::task::ActionSignature *signature)
 {
 	wl_->submit(signature);
-	keep_refresh_ = true;
 }
 
 void CSCSupervisor::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
