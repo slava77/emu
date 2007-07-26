@@ -6,6 +6,7 @@
 #include <set>
 #include <cstdlib>  // strtol()
 #include <iomanip>
+#include <sys/time.h>  // gettimeofday()
 
 #include "xdaq/NamespaceURI.h"
 #include "xoap/Method.h"
@@ -30,7 +31,7 @@ using namespace cgicc;
 XDAQ_INSTANTIATOR_IMPL(CSCSupervisor);
 
 static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
-static const unsigned int N_LOG_MESSAGES = 20;
+static const unsigned int N_LOG_MESSAGES = 50;
 static const string STATE_UNKNOWN = "unknown";
 
 void CSCSupervisor::CalibParam::registerFields(xdata::Bag<CalibParam> *bag)
@@ -1432,8 +1433,26 @@ unsigned int CSCSupervisor::LastLog::size() const
 
 void CSCSupervisor::LastLog::add(string message)
 {
-	messages_.push_back(message);
+	messages_.push_back(getTime() + " " + message);
+
 	if (messages_.size() > size_) { messages_.pop_front(); }
+}
+
+string CSCSupervisor::LastLog::getTime() const
+{
+	timeval tv;
+	gettimeofday(&tv, 0);
+
+	ostringstream line;
+	char s[100];
+
+	strftime(s, 100, "%Y-%m-%dT%H:%M:%S.", localtime(&tv.tv_sec));
+	line << s;
+	line << tv.tv_usec / 1000;
+	strftime(s, 100, "%z", localtime(&tv.tv_sec));
+	line << s;
+
+	return line.str();
 }
 
 void CSCSupervisor::LastLog::webOutput(xgi::Output *out)
