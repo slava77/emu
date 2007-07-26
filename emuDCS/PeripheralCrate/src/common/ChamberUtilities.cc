@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.26 2007/07/25 15:13:16 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.27 2007/07/26 13:09:35 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
-// Revision 3.26  2007/07/25 15:13:16  rakness
-// histogram averaging over limited region
+// Revision 3.27  2007/07/26 13:09:35  rakness
+// update CFEB rx scan for CLCT key layer 3 -> 2 change
 //
 // Revision 3.25  2007/07/17 16:25:15  liu
 // remove CCBStartTrigger()
@@ -235,6 +235,7 @@ ChamberUtilities::ChamberUtilities(){
   thisDMB   = 0;
   //
   Npulses_ = 2;
+  comparing_with_clct_ = false;
   //
   MyOutput_ = &std::cout ;
   //
@@ -337,6 +338,7 @@ void ChamberUtilities::CFEBTiming(){
   thisTMB->SetIgnoreCcbStartStop(0);
   thisTMB->WriteRegister(ccb_trig_adr,thisTMB->FillTMBRegister(ccb_trig_adr));
   //
+  comparing_with_clct_ = true;
   thisTMB->StartTTC();
   ::sleep(1);
   //
@@ -519,6 +521,8 @@ void ChamberUtilities::CFEBTiming(){
   thisTMB->SetCFEB4delay(initial_cfeb4_phase);
   thisTMB->WriteRegister(vme_ddd2_adr,thisTMB->FillTMBRegister(vme_ddd2_adr));
   ::sleep(1);
+  //
+  comparing_with_clct_ = false;
   //
   return;
 }
@@ -2323,7 +2327,22 @@ void ChamberUtilities::LoadCFEB(int HalfStrip, int CLCTInputs, bool enableL1aEmu
   //
   //thisTMB->DiStripHCMask(HalfStrip/4-1); // counting from 0; //Bad...requests L1a....
   //
-  int hp[6] = {HalfStrip, HalfStrip, HalfStrip, HalfStrip, HalfStrip, HalfStrip};       
+  int hp[6];
+  //
+  if (comparing_with_clct_) {
+    //
+    // The CLCT key-layer has been moved from layer 3 to layer 2.
+    // As a result, for a staggered, non-bending pattern, the key 1/2-strip 
+    // determined by the CLCT is changed by 1.
+    //
+    for (int layer = 0; layer < 6; layer++ )
+      hp[layer] = HalfStrip+1;       
+    //
+  } else{
+    //
+    for (int layer = 0; layer < 6; layer++ )
+      hp[layer] = HalfStrip;       
+  }
   //
   // Set the pattern
   //

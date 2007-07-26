@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.41 2007/07/24 11:15:35 rakness Exp $
+// $Id: TMB.cc,v 3.42 2007/07/26 13:09:32 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.42  2007/07/26 13:09:32  rakness
+// update CFEB rx scan for CLCT key layer 3 -> 2 change
+//
 // Revision 3.41  2007/07/24 11:15:35  rakness
 // more bits checked in TMB-MPC test. Sorting algorithm based only on data which is passed
 //
@@ -604,29 +607,40 @@ void TMB::StartTTC(){
   WriteOutput("TMB.StartTTC");
   //
   sndbuf[0] = 0x0;
-  sndbuf[1] = 0x1;
+  sndbuf[1] = 0x1;      // Disconnect CCB backplane
   tmb_vme(VME_WRITE,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
   //
-  sndbuf[0] = 0x6;
-  sndbuf[1] = 0x3;
+  sndbuf[0] = 0x6;      // TTC command to generate (Trig Start--needed if ignore_ccb_startstop=0 or
+  //                       for old versions of TMB firmware)
+  sndbuf[1] = 0x3;      // Disconnect CCB backplane + Assert internal CCB command Broadcast strobe
   tmb_vme(VME_WRITE,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
   //
   sndbuf[0] = 0x0;
-  sndbuf[1] = 0x1;
+  sndbuf[1] = 0x1;      // Disconnect CCB backplane + Un-assert internal CCB cmd broadcast strobe
   tmb_vme(VME_WRITE,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
   //
   tmb_vme(VME_READ,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
   //
-  sndbuf[0] = 0x0;
-  sndbuf[1] = 0x1;
-  tmb_vme(VME_WRITE,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
-  //
-  sndbuf[0] = 0x1;
-  sndbuf[1] = 0x3;
+  sndbuf[0] = 0x3;      // TTC command to generate (Resync)
+  sndbuf[1] = 0x3;      // Disconnect CCB backplane + Assert internal CCB command Broadcast strobe
   tmb_vme(VME_WRITE,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
   //
   sndbuf[0] = 0x0;
-  sndbuf[1] = 0x1;
+  sndbuf[1] = 0x1;      // Disconnect CCB backplane + Un-assert internal CCB cmd broadcast strobe
+  tmb_vme(VME_WRITE,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
+  //
+  tmb_vme(VME_READ,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
+  //
+  sndbuf[0] = 0x1;      // TTC command to generate (BC0)
+  sndbuf[1] = 0x3;      // Disconnect CCB backplane + Assert internal CCB command Broadcast strobe
+  tmb_vme(VME_WRITE,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
+  //
+  sndbuf[0] = 0x0;
+  sndbuf[1] = 0x1;      // Disconnect CCB backplane + Un-assert internal CCB command Broadcast strobe
+  tmb_vme(VME_WRITE,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
+  //
+  sndbuf[0] = 0x0;
+  sndbuf[1] = 0x0;      // Connect CCB backplane
   tmb_vme(VME_WRITE,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
   //
   tmb_vme(VME_READ,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
@@ -1007,80 +1021,123 @@ void TMB::FireMPCInjector(int nEvents){
 }
 
 void TMB::DecodeALCT(){
-   //
-  (*MyOutput_) << std::endl;
-  (*MyOutput_) << "DecodeALCT.Read " << std::hex << alct_alct0_adr << std::endl ;
+  //
   tmb_vme(VME_READ,alct_alct0_adr,sndbuf,rcvbuf,NOW);
-  (*MyOutput_) << "DecodeALCT.Done " << std::hex << alct_alct0_adr << std::endl ;
   //
-  int data = (((rcvbuf[0]&0xff)<<8) | rcvbuf[1]&0xff);
-  //
-  alct0_valid_     = data&0x1;
-  alct0_quality_   = (data>>1)&0x3 ;
-  alct0_amu_       = (data>>3)&0x1 ;
-  alct0_first_key_ = (data>>4)&0x7f;
-  alct0_first_bxn_ = (data>>11)&0x3 ;
-  //
-  (*MyOutput_) << " alct0      = " << data << std::endl;
-  (*MyOutput_) << " valid      = " << std::dec<< alct0_valid_ << std::endl;
-  (*MyOutput_) << " quality    = " << alct0_quality_ << std::endl ;
-  (*MyOutput_) << " amu        = " << alct0_amu_ << std::endl ;
-  (*MyOutput_) << " first_key  = " << alct0_first_key_ << std::endl;
-  (*MyOutput_) << " first_bxn  = " << alct0_first_bxn_ << std::endl;
-  (*MyOutput_) << std::endl;
+  alct0_data_ = (((rcvbuf[0]&0xff)<<8) | rcvbuf[1]&0xff);
+  alct0_valid_     = ((alct0_data_ >>  0) &  0x1);
+  alct0_quality_   = ((alct0_data_ >>  1) &  0x3);
+  alct0_amu_       = ((alct0_data_ >>  3) &  0x1);
+  alct0_first_key_ = ((alct0_data_ >>  4) & 0x7f);
+  alct0_first_bxn_ = ((alct0_data_ >> 11) &  0x3);
   //
   tmb_vme(VME_READ,alct_alct1_adr,sndbuf,rcvbuf,NOW);
   //
-  data = (((rcvbuf[0]&0xff)<<8) | rcvbuf[1]&0xff);
+  alct1_data_ = (((rcvbuf[0]&0xff)<<8) | rcvbuf[1]&0xff);
+  alct1_valid_      = ((alct1_data_ >>  0) &  0x1);
+  alct1_quality_    = ((alct1_data_ >>  1) &  0x3);
+  alct1_amu_        = ((alct1_data_ >>  3) &  0x1);
+  alct1_second_key_ = ((alct1_data_ >>  4) & 0x7f);
+  alct1_second_bxn_ = ((alct1_data_ >> 11) &  0x3);
   //
-  alct1_valid_     = data&0x1;
-  alct1_quality_   = (data>>1)&0x3 ;
-  alct1_amu_       = (data>>3)&0x1 ;
-  alct1_second_key_ = (data>>4)&0x7f;
-  alct1_second_bxn_ = (data>>11)&0x3 ;
+  PrintALCT();
   //
-  (*MyOutput_) << " alct1      = " << data << std::endl ;
-  (*MyOutput_) << " valid      = " << alct1_valid_ << std::endl ;
-  (*MyOutput_) << " quality    = " << alct1_quality_ << std::endl ;
-  (*MyOutput_) << " amu        = " << alct1_amu_ << std::endl ;
-  (*MyOutput_) << " second_key = " << alct1_second_key_ << std::endl ;
-  (*MyOutput_) << " second_bxn = " << alct1_second_bxn_ << std::endl ;
+  return;
+}
+//
+void TMB::PrintALCT() {
   //
+  (*MyOutput_) << "----------------------"                                << std::endl;
+  (*MyOutput_) << " ALCT0.data  = 0x"     << std::hex << alct0_data_      << std::endl;
+  (*MyOutput_) << "----------------------"                                << std::endl;
+  (*MyOutput_) << " ALCT0.valid     = 0x" << std::hex << alct0_valid_     << std::endl;
+  (*MyOutput_) << " ALCT0.quality   = "   << std::dec << alct0_quality_   << std::endl;
+  (*MyOutput_) << " ALCT0.amu       = 0x" << std::hex << alct0_amu_       << std::endl;
+  (*MyOutput_) << " ALCT0.key WG    = "   << std::dec << alct0_first_key_ << std::endl;
+  (*MyOutput_) << " ALCT0.bxn       = 0x" << std::hex << alct0_first_bxn_ << std::endl;
+  //
+  (*MyOutput_) << std::endl;
+  //
+  (*MyOutput_) << "----------------------"                                << std::endl;
+  (*MyOutput_) << " ALCT1.data  = 0x"     << std::hex << alct1_data_      << std::endl;
+  (*MyOutput_) << "----------------------"                                << std::endl;
+  (*MyOutput_) << " ALCT1.valid     = 0x" << std::hex << alct1_valid_     << std::endl;
+  (*MyOutput_) << " ALCT1.quality   = "   << std::dec << alct1_quality_   << std::endl;
+  (*MyOutput_) << " ALCT1.amu       = 0x" << std::hex << alct1_amu_       << std::endl;
+  (*MyOutput_) << " ALCT1.key WG    = "   << std::dec << alct1_second_key_ << std::endl;
+  (*MyOutput_) << " ALCT1.bxn       = 0x" << std::hex << alct1_second_bxn_ << std::endl;
+  //
+  return;
 }
 //
 void TMB::DecodeCLCT(){
    //
-   (*MyOutput_) << std::endl;
    tmb_vme(VME_READ,seq_clctm_adr,sndbuf,rcvbuf2,NOW);
    tmb_vme(VME_READ,seq_clct0_adr,sndbuf,rcvbuf,NOW);
    //
-   int data = (((rcvbuf[0]&0xff)<<8) | rcvbuf[1]&0xff | (rcvbuf2[1]&0x1f)<<16 ) ;
-   printf(" data             = %8x \n",data);
-   CLCT0_cfeb_ =  ((data>>14) & 0x7);
-   CLCT0_nhit_ =  ((data>>1)  & 0x7);
-   CLCT0_keyHalfStrip_ =  ((data>>9)  & 0x1f) ;
-   (*MyOutput_) << "CLCT0.Valid      = " << ((data)     & 0x1)  << std::endl ;
-   (*MyOutput_) << "CLCT0.Key HStrip = " << CLCT0_keyHalfStrip_ << std::endl;
-   (*MyOutput_) << "CLCT0.Key CFEB   = " << CLCT0_cfeb_  << std::endl ;
-   (*MyOutput_) << "CLCT0.Key nhit   = " << CLCT0_nhit_  << std::endl;
-   (*MyOutput_) << "CLCT0.Key PatD   = " << ((data>>7)  & 0x1)  << std::endl ;
-   (*MyOutput_) << "CLCT0.BXN        = " << ((data>>17) & 0x3)  << std::endl ;
-   (*MyOutput_) << std::endl;
+   CLCT0_data_ = (((rcvbuf[0]&0xff)<<8) | rcvbuf[1]&0xff | (rcvbuf2[1]&0x1f)<<16 ) ;
+   CLCT0_valid_        = ((CLCT0_data_>> 0) &  0x1);
+   CLCT0_nhit_         = ((CLCT0_data_>> 1) &  0x7);
+   CLCT0_pattern_      = ((CLCT0_data_>> 4) &  0xf);
+   CLCT0_bend_         = ((CLCT0_data_>> 8) &  0x1);
+   CLCT0_keyHalfStrip_ = ((CLCT0_data_>> 9) & 0x1f);
+   CLCT0_cfeb_         = ((CLCT0_data_>>14) &  0x7);
+   CLCT0_BXN_          = ((CLCT0_data_>>17) &  0x3);
+   CLCT0_sync_err_     = ((CLCT0_data_>>19) &  0x1);
+   CLCT0_bx0_local_    = ((CLCT0_data_>>20) &  0x1);
    //
    tmb_vme(VME_READ,seq_clct1_adr,sndbuf,rcvbuf,NOW);
-   data = (((rcvbuf[0]&0xff)<<8) | rcvbuf[1]&0xff ) | ((rcvbuf2[1]>>5)&0x7)<<16 | (rcvbuf2[0]&0x3)<<19 ;
-   printf(" data             = %8x \n",data);
-   CLCT1_cfeb_ =  ((data>>14) & 0x7);
-   CLCT1_nhit_ =  ((data>>1)  & 0x7);
-   CLCT1_keyHalfStrip_ =  ((data>>9)  & 0x1f) ;
-   (*MyOutput_) << "CLCT1.Valid      = " << ((data)     & 0x1)  << std::endl;
-   (*MyOutput_) << "CLCT1.Key HStrip = " << CLCT1_keyHalfStrip_ << std::endl;
-   (*MyOutput_) << "CLCT1.Key CFEB   = " << CLCT1_cfeb_  << std::endl ;
-   (*MyOutput_) << "CLCT1.Key nhit   = " << CLCT1_nhit_  << std::endl;
-   (*MyOutput_) << "CLCT1.Key PatD   = " << ((data>>7)  & 0x1)  << std::endl ;
-   (*MyOutput_) << "CLCT1.BXN        = " << ((data>>17) & 0x3)  << std::endl ;
-   (*MyOutput_) << std::endl;
+   CLCT1_data_ = (((rcvbuf[0]&0xff)<<8) | rcvbuf[1]&0xff ) | ((rcvbuf2[1]>>5)&0x7)<<16 | (rcvbuf2[0]&0x3)<<19 ;
    //
+   CLCT1_valid_        = ((CLCT1_data_>> 0) &  0x1);
+   CLCT1_nhit_         = ((CLCT1_data_>> 1) &  0x7);
+   CLCT1_pattern_      = ((CLCT1_data_>> 4) &  0xf);
+   CLCT1_bend_         = ((CLCT1_data_>> 8) &  0x1);
+   CLCT1_keyHalfStrip_ = ((CLCT1_data_>> 9) & 0x1f);
+   CLCT1_cfeb_         = ((CLCT1_data_>>14) &  0x7);
+   CLCT1_BXN_          = ((CLCT1_data_>>17) &  0x3);
+   CLCT1_sync_err_     = ((CLCT1_data_>>19) &  0x1);
+   CLCT1_bx0_local_    = ((CLCT1_data_>>20) &  0x1);
+   //
+   PrintCLCT();
+   //
+   return;
+}
+//
+void TMB::PrintCLCT() {
+  //
+  std::cout << "CLCT0 data = 0x"       << std::hex << CLCT0_data_          << std::endl;
+  std::cout << "CLCT1 data = 0x"       << std::hex << CLCT1_data_          << std::endl;
+  //
+  (*MyOutput_) << "----------------------"                                   << std::endl;
+  (*MyOutput_) << "CLCT0 data = 0x"       << std::hex << CLCT0_data_          << std::endl;
+  (*MyOutput_) << "----------------------"                                   << std::endl;
+  (*MyOutput_) << "CLCT0.Valid      = 0x" << std::hex << CLCT0_valid_        << std::endl;
+  (*MyOutput_) << "CLCT0.Nhits      = 0x" << std::hex << CLCT0_nhit_         << std::endl;
+  (*MyOutput_) << "CLCT0.pattern    = 0x" << std::hex << CLCT0_pattern_      << std::endl;
+  (*MyOutput_) << "CLCT0.bend       = 0x" << std::hex << CLCT0_bend_         << std::endl;
+  (*MyOutput_) << "CLCT0.Key HStrip = "   << std::dec << CLCT0_keyHalfStrip_ << std::endl;
+  (*MyOutput_) << "CLCT0.Key CFEB   = "   << std::dec << CLCT0_cfeb_         << std::endl;
+  (*MyOutput_) << "CLCT0.BXN        = 0x" << std::hex << CLCT0_BXN_          << std::endl;
+  (*MyOutput_) << "CLCT0.sync err   = 0x" << std::hex << CLCT0_sync_err_     << std::endl;
+  (*MyOutput_) << "CLCT0.BX0 local  = 0x" << std::hex << CLCT0_bx0_local_    << std::endl;
+  //
+  (*MyOutput_) << std::endl;
+  //
+  (*MyOutput_) << "----------------------"                                   << std::endl;
+  (*MyOutput_) << "CLCT1 data = 0x"       << std::hex << CLCT1_data_         << std::endl;
+  (*MyOutput_) << "----------------------"                                   << std::endl;
+  (*MyOutput_) << "CLCT1.Valid      = 0x" << std::hex << CLCT1_valid_        << std::endl;
+  (*MyOutput_) << "CLCT1.Nhits      = 0x" << std::hex << CLCT1_nhit_         << std::endl;
+  (*MyOutput_) << "CLCT1.pattern    = 0x" << std::hex << CLCT1_pattern_      << std::endl;
+  (*MyOutput_) << "CLCT1.bend       = 0x" << std::hex << CLCT1_bend_         << std::endl;
+  (*MyOutput_) << "CLCT1.Key HStrip = "   << std::dec << CLCT1_keyHalfStrip_ << std::endl;
+  (*MyOutput_) << "CLCT1.Key CFEB   = "   << std::dec << CLCT1_cfeb_         << std::endl;
+  (*MyOutput_) << "CLCT1.BXN        = 0x" << std::hex << CLCT1_BXN_          << std::endl;
+  (*MyOutput_) << "CLCT1.sync err   = 0x" << std::hex << CLCT1_sync_err_     << std::endl;
+  (*MyOutput_) << "CLCT1.BX0 local  = 0x" << std::hex << CLCT1_bx0_local_    << std::endl;
+  //
+  return;
 }
 //
 int TMB::FmState(){

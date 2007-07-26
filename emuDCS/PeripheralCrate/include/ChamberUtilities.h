@@ -192,6 +192,7 @@ private:
   bool debug_;
   //
   int Npulses_;
+  bool comparing_with_clct_;
   //
   TMB * thisTMB ;
   DAQMB * thisDMB ;

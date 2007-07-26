@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.25 2007/06/21 16:14:02 rakness Exp $
+// $Id: TMB.h,v 3.26 2007/07/26 13:09:34 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.26  2007/07/26 13:09:34  rakness
+// update CFEB rx scan for CLCT key layer 3 -> 2 change
+//
 // Revision 3.25  2007/06/21 16:14:02  rakness
 // online measurement of ALCT in CLCT matching window
 //
@@ -268,14 +271,18 @@ public:
   /// does start(1)
   void tmb_vme(char fcn, char vme, const char *snd,char *rcv, int wrt);      
   int  GetWordCount();
-  int  GetALCTWordCount();
   void StartTTC();
   int  ReadRegister(int);
   void DumpRegister(int);
   void WriteRegister(int,int);
-  void DecodeCLCT();
-  void DecodeALCT();
   void DumpAddress(int);
+  //
+  void DecodeCLCT();
+  void PrintCLCT();
+  int  GetALCTWordCount();
+  void DecodeALCT();
+  void PrintALCT();
+  //
   //void lctrequestdelay(int dword);
   void clear_i2c();
   void clk_delays(unsigned short int time,int cfeb_id);
@@ -1177,24 +1184,43 @@ private:
   std::vector<unsigned long int> InjectedLct0;
   std::vector<unsigned long int> InjectedLct1;
   unsigned long lct0_, lct1_;
-  int CLCT0_cfeb_;
-  int CLCT1_cfeb_;
-  int CLCT0_nhit_;
-  int CLCT1_nhit_;
+  //
+  int CLCT0_data_        ;
+  int CLCT0_valid_       ;
+  int CLCT0_nhit_        ;
+  int CLCT0_pattern_     ;
+  int CLCT0_bend_        ;
   int CLCT0_keyHalfStrip_;
+  int CLCT0_cfeb_        ;
+  int CLCT0_BXN_         ;
+  int CLCT0_sync_err_    ;
+  int CLCT0_bx0_local_   ;  
+  //
+  int CLCT1_data_        ;
+  int CLCT1_valid_       ;
+  int CLCT1_nhit_        ;
+  int CLCT1_pattern_     ;
+  int CLCT1_bend_        ;
   int CLCT1_keyHalfStrip_;
+  int CLCT1_cfeb_        ;
+  int CLCT1_BXN_         ;
+  int CLCT1_sync_err_    ;
+  int CLCT1_bx0_local_   ;  
+  //
   static const int MaxCounter = 0x2f;
   long int FinalCounter[MaxCounter];
   //
-  int alct0_valid_;
-  int alct0_quality_;
-  int alct0_amu_;
+  int alct0_data_     ;
+  int alct0_valid_    ;
+  int alct0_quality_  ;
+  int alct0_amu_      ;
   int alct0_first_key_;
   int alct0_first_bxn_;
   //
-  int alct1_valid_;
-  int alct1_quality_;
-  int alct1_amu_;
+  int alct1_data_      ;
+  int alct1_valid_     ;
+  int alct1_quality_   ;
+  int alct1_amu_       ;
   int alct1_second_key_;
   int alct1_second_bxn_;
   //
