@@ -17,8 +17,8 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 Project=emu
 Package=emuDCS/PeripheralCrate
 
-#DependentLibraryDirs = $(XDAQ_ROOT)/emu/cscSV/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
-#DependentLibraries = CSCSupervisor
+DependentLibraryDirs = $(XDAQ_ROOT)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+DependentLibraries = CSCSupervisor EmuPeripheralCore
 
 Sources=\
         CCBParser.cc \
@@ -50,7 +50,7 @@ Sources=\
         TStoreAFEBParser.cc \
         TStoreCFEBParser.cc \
         TStorePeriphParser.cc \
-        EmuApplication.cc
+
 
 IncludeDirs = \
 	$(XDAQ_ROOT)/daq/toolbox/include \
@@ -69,7 +69,8 @@ IncludeDirs = \
 	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
 	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
 	$(XDAQ_ROOT)/daq/xgi/include \
-        $(XDAQ_ROOT)/emu/emuDCS/PeripheralCore/include
+        $(XDAQ_ROOT)/emu/emuDCS/PeripheralCore/include \
+        $(XDAQ_ROOT)/emu/cscSV/include
 
 LibraryDirs = \
 	$(XDAQ_ROOT)/daq/xdata/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
