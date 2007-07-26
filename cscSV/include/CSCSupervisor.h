@@ -226,6 +226,8 @@ private:
 		void webOutput(xgi::Output *out) throw (xgi::exception::Exception);
 
 	private:
+		string getTime(void) const;
+
 		unsigned int size_;
 		deque<string> messages_;
 	} last_log_;
