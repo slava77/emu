@@ -94,7 +94,8 @@ TestLibraryDirs = \
 	$(XDAQ_ROOT)/daq/extern/log4cplus/udpappender/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
 	$(XDAQ_ROOT)/daq/extern/mimetic/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
         $(XDAQ_ROOT)/emu/emuDCS/PeripheralCore/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-        $(XDAQ_ROOT)/emu/emuDCS/PeripheralCrate/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
+        $(XDAQ_ROOT)/emu/emuDCS/PeripheralCrate/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
+        $(XDAQ_ROOT)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
 UserCFlags  = 
 UserCCFlags = 
@@ -108,7 +109,7 @@ UserExecutableLinkFlags =
 Libraries = xerces-c xdaq xdata log4cplus toolbox xoap cgicc xcept xgi peer
 TestLibraries = xerces-c xdaq xdata log4cplus toolbox xoap cgicc xcept xgi peer \
                 mimetic xmlappender udpappender asyncresolv\
-	        EmuPeripheralCore EmuPeripheralCrate
+	        CSCSupervisor EmuPeripheralCore EmuPeripheralCrate
 
 #
 # Compile the source files and create a shared library
