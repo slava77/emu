@@ -10,6 +10,7 @@ using namespace std;
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
+#include <inttypes.h>
 #include <time.h>
 
 #include <unistd.h>
