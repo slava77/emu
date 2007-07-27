@@ -148,7 +148,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     mo->SetAxisRange(0.1, 1.1*(1.0+ mo->getObject()->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
   }
 
-  if (isMEvalid(cscME,"DMB_BXN_vs_DDU_BXN", mo)) mo->Fill((int)(BXN), (int)dmbHeaderBXN);
+//  if (isMEvalid(cscME,"DMB_BXN_vs_DDU_BXN", mo)) mo->Fill((int)(BXN), (int)dmbHeaderBXN);
+  if (isMEvalid(cscME,"DMB_BXN_vs_DDU_BXN", mo)) mo->Fill(((int)(BXN))%256, ((int)dmbHeaderBXN)%256);
 
   //    Unpacking CFEB information from DMB header
   int cfeb_dav    = 0;
@@ -315,7 +316,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     }
 
 
-    if (isMEvalid(cscME, "DMB_L1A_vs_ALCT_L1A", mo)) mo->Fill(alctHeader.L1Acc(),dmbHeader.l1a());
+    // if (isMEvalid(cscME, "DMB_L1A_vs_ALCT_L1A", mo)) mo->Fill(alctHeader.L1Acc(),dmbHeader.l1a());
+    if (isMEvalid(cscME, "DMB_L1A_vs_ALCT_L1A", mo)) mo->Fill(alctHeader.L1Acc()%16,dmbHeader.l1a());
 
     if (isMEvalid(cscME, "ALCT_DMB_BXN_diff", mo)) {
       int alct_dmb_bxn_diff = (int)(dmbHeader.bxn()-(alctHeader.BXNCount()&0x7F));
@@ -329,7 +331,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
     if (isMEvalid(cscME, "ALCT_BXN", mo)) mo->Fill(alctHeader.BXNCount());
 
-    if (isMEvalid(cscME, "ALCT_BXN_vs_DMB_BXN", mo)) mo->Fill((int)((alctHeader.BXNCount())), (int)(dmbHeader.bxn()));
+//    if (isMEvalid(cscME, "ALCT_BXN_vs_DMB_BXN", mo)) mo->Fill((int)((alctHeader.BXNCount())), (int)(dmbHeader.bxn()));
+    if (isMEvalid(cscME, "ALCT_BXN_vs_DMB_BXN", mo)) mo->Fill((int)((alctHeader.BXNCount())%256), (int)(dmbHeader.bxn())%256);
 
     if (isMEvalid(cscME, "ALCT_Number_Rate", mo)) {
       mo->Fill(alctsDatas.size());
@@ -472,7 +475,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     CSCTMBData tmbData = data.tmbData();
     CSCTMBHeader tmbHeader = tmbData.tmbHeader();
 
-    if (isMEvalid(cscME, "TMB_BXN_vs_ALCT_BXN", mo)) mo->Fill((int)((alctHeader.BXNCount())),(int)(tmbHeader.BXNCount()));
+//    if (isMEvalid(cscME, "TMB_BXN_vs_ALCT_BXN", mo)) mo->Fill((int)((alctHeader.BXNCount())),(int)(tmbHeader.BXNCount()));
+    if (isMEvalid(cscME, "TMB_BXN_vs_ALCT_BXN", mo)) mo->Fill( ((int)(alctHeader.BXNCount()))%256, ((int)(tmbHeader.BXNCount()))%256 );
 
     if (isMEvalid(cscME, "TMB_ALCT_BXN_diff", mo)) {
       int clct_alct_bxn_diff = (int)(alctHeader.BXNCount() - tmbHeader.BXNCount());
@@ -556,7 +560,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       mo->SetAxisRange(0.1, 1.1*(1.0+mo->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
     }
 
-    if (isMEvalid(cscME, "DMB_L1A_vs_CLCT_L1A", mo)) mo->Fill(tmbHeader.L1ANumber(),dmbHeader.l1a());
+//    if (isMEvalid(cscME, "DMB_L1A_vs_CLCT_L1A", mo)) mo->Fill(tmbHeader.L1ANumber(),dmbHeader.l1a());
+    if (isMEvalid(cscME, "DMB_L1A_vs_CLCT_L1A", mo)) mo->Fill(tmbHeader.L1ANumber(),dmbHeader.l1a()%16);
 
     if (isMEvalid(cscME, "CLCT_DMB_BXN_diff", mo)) {
       int clct_dmb_bxn_diff = (int)(dmbHeader.bxn()-(tmbHeader.BXNCount()&0x7F));
@@ -570,7 +575,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
     if (isMEvalid(cscME, "CLCT_BXN", mo)) mo->Fill((int)(tmbHeader.BXNCount()));
 
-    if (isMEvalid(cscME, "CLCT_BXN_vs_DMB_BXN", mo)) mo->Fill(tmbHeader.BXNCount(),dmbHeader.bxn());
+//    if (isMEvalid(cscME, "CLCT_BXN_vs_DMB_BXN", mo)) mo->Fill(tmbHeader.BXNCount(),dmbHeader.bxn());
+    if (isMEvalid(cscME, "CLCT_BXN_vs_DMB_BXN", mo)) mo->Fill(tmbHeader.BXNCount()%256,dmbHeader.bxn()%256);
 
     if (isMEvalid(cscME, "CLCT_Number_Rate", mo)) {
       mo->Fill(clctsDatas.size());
@@ -636,6 +642,23 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	  int pattern_clct = (int)((clctsDatas[lct].getPattern()>>1)&0x3);
 	  //                              pattern_clct = Number of patterns in CLCT
 	  //                              Last (left) bit is bend. Positive bend = 1, negative bend = 0
+         double tbin = -1;
+	 switch (pattern_clct) {
+	 case 0:  tbin=0.; break;
+	 case 1:  tbin=1.; break;
+	 case 2:  tbin=2.; break;
+	 case 3:  tbin=10.; break;
+	 case 4:  tbin=3.; break;
+	 case 5:  tbin=9.; break;
+	 case 6:  tbin=4.; break;
+	 case 7:  tbin=8.; break;
+	 case 8:  tbin=5.; break;
+	 case 9:  tbin=7.; break;
+	 case 10: tbin=6.; break;
+         }
+	 if (tbin >= 0) mo->Fill(clctsDatas[lct].getKeyStrip(), tbin);
+
+/*	// 3-bit CLCT pattern field
 	  if(pattern_clct == 1) mo->Fill(clctsDatas[lct].getKeyStrip(), 7.0);
 	  if(pattern_clct == 3) mo->Fill(clctsDatas[lct].getKeyStrip(), 6.0);
 	  if(pattern_clct == 5) mo->Fill(clctsDatas[lct].getKeyStrip(), 5.0);
@@ -644,6 +667,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	  if(pattern_clct == 4) mo->Fill(clctsDatas[lct].getKeyStrip(), 2.0);
 	  if(pattern_clct == 2) mo->Fill(clctsDatas[lct].getKeyStrip(), 1.0);
 	  if(pattern_clct == 0) mo->Fill(clctsDatas[lct].getKeyStrip(), 0.0);
+*/
 	}
 
         if (isMEvalid(cscME,  Form("CLCT%d_Half_Strip_Quality", lct), mo)) 
