@@ -513,6 +513,7 @@ throw (xgi::exception::Exception)
 						.set("type","submit")
 						.set("value","Upload and Update Firmware")
 						.set("style","background-color: #FDD; border-color: #F00;") << std::endl;
+					/*
 					*out << "Password: " << input()
 						.set("type","password")
 						.set("name","password") << endl;
@@ -520,6 +521,7 @@ throw (xgi::exception::Exception)
 						.set("type","hidden")
 						.set("name","needed")
 						.set("value","1") << endl;
+					*/
 					*out << cgicc::form() << std::endl;
 					*out << td() << endl;
 				} else {
@@ -1066,15 +1068,18 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	*out << title("DDU Broadcast Firmware") << endl;
 	*out << body().set("background","bgndcms.jpg") << endl;
 	*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
-	
-	string password;
-	int password_needed;
+/*	
+	cout << "begin password" << endl;
+	string password = "";
+	int password_needed = 0;
 	if (!(cgi["password"]->isEmpty())) password = cgi["password"]->getValue();
-	if (!(cgi["needed"]->isEmpty())) password_needed = cgi["password"]->getIntegerValue();
+	cout << "password #1 " << password << endl;
+	if (!(cgi["needed"]->isEmpty())) password_needed = cgi["needed"]->getIntegerValue();
+	cout << "checking password " << password_needed << endl;
 	if (password != "abc123" && password_needed == 1) {
 		*out << "Error:  Get the password from an expert before attempting this operation." << endl;
 	} else {
-	
+*/	
 	*out << "Use the UPLOAD section to hand off local firmware copies to the server" << br() << "Use the BROADCAST section to actually load the firmware onto the boards" << br() << a().set("style","color: #D00; font-weight: bold;") << endl;
 	
 	*out << "!!! DO NOT BROADCAST UNLESS HYPERDAQ KNOWS ABOUT ALL THE DDUS IN THE CRATE !!!" << a() << endl;
@@ -1099,6 +1104,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	string version[5] = {"0","0","0","0","0"};
 	
 	// UPLOAD
+	cout << "begin first block" << endl;
 	for (int i=0; i<=4; i++) {
 	
 		*out << cgicc::div().set("style","background-color: #FFF; border-color: #000; border-width: 1px; border-style: solid; margin: 2px 2px 2px 2px; padding: 3px 3px 3px 3px;") << endl;
@@ -1155,6 +1161,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	
 		*out << cgicc::div() << endl;
 	}
+	cout << "end first block" << endl;
 
 	*out << fieldset() << endl;
 	*out << br() << endl;
@@ -1217,6 +1224,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::div() << endl;
 	*out << fieldset() << endl;
 	*out << br() << endl;
+	cout << "end second block" << endl;
 	
 	// STATUS
 	*out << table().set("style","border-width: 2px; border-color: #000; border-style: solid; background-color: #FFF; width: 90%; margin-right: auto; margin-left: auto;");
@@ -1311,7 +1319,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 		<< "slot: " << thisDDU->slot() << "<br />";
 	*out << cgicc::div(debug.str().c_str()).set("style","font-size: 11pt") << endl; */
 
-	} // if password was correct.
+//	} // if password was correct.
 
 	*out << body() << endl;
 	*out << html() << endl;
