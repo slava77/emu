@@ -1812,6 +1812,8 @@ void EMUjtag::ReadXsvfFile_(bool create_logfile) {
   //
   if (number_of_read_bytes_ > 0) {
     //
+    verify_error_ = 0;     //start fresh with no verify errors
+    //
     DecodeXsvfImage_();
     //
   } else {
