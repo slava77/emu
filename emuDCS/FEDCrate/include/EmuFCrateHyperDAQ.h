@@ -169,9 +169,9 @@ throw (xgi::exception::Exception)
 	//
 	*out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
 	*out << cgicc::title() << "Fed Crate Control" << cgicc::title() << std::endl;
-	*out << body().set("background","bgndcms.jpg");
+	*out << body().set("background","/daq/examples/images/bgndcms.jpg");
 	//
-	*out << img().set("src","ddudcc.gif") << std::endl;
+	*out << img().set("src","/daq/examples/images/ddudcc.gif") << std::endl;
 	*out << img() << std::endl;
 	*out << cgicc::br();
 
@@ -880,7 +880,7 @@ void EmuFCrateHyperDAQ::DDUFirmware(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
 	*out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
 	*out << cgicc::title("DDU Firmware Form") << std::endl;
-	*out << body().set("background","bgndcms.jpg") << std::endl;
+	*out << body().set("background","/daq/examples/images/bgndcms.jpg") << std::endl;
 	*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 	*out << "(Load dual proms in order 1-0) (For hard reset use DCC TTC command)" <<std::endl;
 	*out << br() << std::endl;
@@ -1066,7 +1066,7 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	*out << HTMLDoctype(HTMLDoctype::eStrict) << endl;
 	*out << html().set("lang", "en").set("dir","ltr") << endl;
 	*out << title("DDU Broadcast Firmware") << endl;
-	*out << body().set("background","bgndcms.jpg") << endl;
+	*out << body().set("background","/daq/examples/images/bgndcms.jpg") << endl;
 	*out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 /*	
 	cout << "begin password" << endl;
@@ -1104,7 +1104,6 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	string version[5] = {"0","0","0","0","0"};
 	
 	// UPLOAD
-	cout << "begin first block" << endl;
 	for (int i=0; i<=4; i++) {
 	
 		*out << cgicc::div().set("style","background-color: #FFF; border-color: #000; border-width: 1px; border-style: solid; margin: 2px 2px 2px 2px; padding: 3px 3px 3px 3px;") << endl;
@@ -1161,7 +1160,6 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	
 		*out << cgicc::div() << endl;
 	}
-	cout << "end first block" << endl;
 
 	*out << fieldset() << endl;
 	*out << br() << endl;
@@ -1224,7 +1222,6 @@ void EmuFCrateHyperDAQ::DDUBroadcast(xgi::Input *in, xgi::Output *out)
 	*out << cgicc::div() << endl;
 	*out << fieldset() << endl;
 	*out << br() << endl;
-	cout << "end second block" << endl;
 	
 	// STATUS
 	*out << table().set("style","border-width: 2px; border-color: #000; border-style: solid; background-color: #FFF; width: 90%; margin-right: auto; margin-left: auto;");
@@ -1637,7 +1634,7 @@ void EmuFCrateHyperDAQ::DDUReset(xgi::Input *in, xgi::Output *out)
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("DDUFPGA Web Form") << std::endl;
-    *out << body().set("background","bgndcms.jpg") << std::endl;
+    *out << body().set("background","/daq/examples/images/bgndcms.jpg") << std::endl;
     *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 
     char buf[300],buf2[300],buf3[300],buf4[200];
@@ -3133,7 +3130,7 @@ void EmuFCrateHyperDAQ::INFpga0(xgi::Input * in, xgi::Output * out )
     *out << cgicc::title("INFPGA0 Web Form") << std::endl;
     char buf[300],buf2[300],buf3[300],buf4[30];
     sprintf(buf,"DDU INFPGA0, VME  Slot %d",thisDDU->slot());
-    *out << body().set("background","bgndcms.jpg");
+    *out << body().set("background","/daq/examples/images/bgndcms.jpg");
     *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
     *out << "<h2 align=center><font color=blue>" << buf << "</font></h2>" << std::endl;
 
@@ -3575,7 +3572,7 @@ void EmuFCrateHyperDAQ::INFpga1(xgi::Input * in, xgi::Output * out )
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("INFPGA1 Web Form") << std::endl;
-     *out << body().set("background","bgndcms.jpg");
+     *out << body().set("background","/daq/examples/images/bgndcms.jpg");
      *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 
     char buf[300],buf2[300],buf3[300],buf4[30];
@@ -4121,7 +4118,7 @@ void EmuFCrateHyperDAQ::VMEPARA(xgi::Input * in, xgi::Output * out )
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("VMEPARA Web Form") << std::endl;
     //
-     *out << body().set("background","bgndcms.jpg");
+     *out << body().set("background","/daq/examples/images/bgndcms.jpg");
      *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 
     char buf[300],buf2[300] ;
@@ -4399,7 +4396,7 @@ void EmuFCrateHyperDAQ::VMESERI(xgi::Input * in, xgi::Output * out )
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("VMESERI Web Form") << std::endl;
-    *out << body().set("background","bgndcms.jpg") << std::endl;
+    *out << body().set("background","/daq/examples/images/bgndcms.jpg") << std::endl;
     *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 
     char buf[300],buf2[300] ;
@@ -4765,6 +4762,8 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
 
 	bool is_started = thisCrate->vmeController()->thread_started();
 	
+	//cout << "Entered VMEIntIRQ with start " << start << " is_started " << is_started << endl;
+	
 	if ((!is_started && start!=1)) {
 		*out << "ACK!  Threads are a mess!  Try again." << endl;
 		return;
@@ -4807,7 +4806,7 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
 	*out << cgicc::title("VMEIRQ Web Form") << endl;
 
 	*out << body()
-		.set("background","bgndcms.jpg") << endl;
+		.set("background","/daq/examples/images/bgndcms.jpg") << endl;
 	*out << cgicc::div()
 		.set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 
@@ -4932,7 +4931,7 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
 	} else if (is_started) { // STOP!
 		thisCrate->vmeController()->end_thread();
 		*out << endl;
-		*out << "**VME IRQ Interrupt has been disabled" << endl; 
+		*out << "**VME IRQ Interrupt has been disabled" << endl;
 	} else {
 		*out << "**Unexpected condition.  Try again." << endl;
 		*out << "Start: " << start << " is_started: " << ((is_started) ? "true" : "false") << endl;
@@ -4940,6 +4939,8 @@ void EmuFCrateHyperDAQ::VMEIntIRQ(xgi::Input * in, xgi::Output * out )
 	
 	*out << cgicc::body() << std::endl;
 	*out << cgicc::html() << std::endl;
+	
+	//cout << "I am still alive" << endl;
 }
 
 
@@ -4978,7 +4979,7 @@ void EmuFCrateHyperDAQ::DCCFirmware(xgi::Input * in, xgi::Output * out )
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("DCC Firmware Form") << std::endl;
     //
-    *out << body().set("background","bgndcms.jpg") << std::endl;
+    *out << body().set("background","/daq/examples/images/bgndcms.jpg") << std::endl;
     *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
  
     char buf[300] ;
@@ -5201,7 +5202,7 @@ void EmuFCrateHyperDAQ::DCCCommands(xgi::Input * in, xgi::Output * out )
     *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
     *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
     *out << cgicc::title("DCC Comands Web Form") << std::endl;
-    *out << body().set("background","bgndcms.jpg");
+    *out << body().set("background","/daq/examples/images/bgndcms.jpg");
     *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 
     char buf[300],buf2[300],buf3[300];
@@ -5554,7 +5555,7 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
     *out << meta().set("http-equiv","refresh").set("content","60") << std::endl;
     *out << cgicc::title("DDU Temp/Volt  Web Form") << std::endl;
     //  
-    *out << body().set("background","bgndcms.jpg") << std::endl;
+    *out << body().set("background","/daq/examples/images/bgndcms.jpg") << std::endl;
     *out << cgicc::div().set("style","font-size: 16pt; font-weight: bold; color: #D00; width: 400px; margin-left: auto; margin-right: auto; text-align: center;") << "Crate " << thisCrate->number() << " Selected" << cgicc::div() << endl;
 
     char buf[300];

@@ -90,8 +90,9 @@ void IRQThread::end()
 	//cout << "Interrupt handler sleeping for 6 seconds...." << endl;
 	//usleep(6000000);
 	unsigned long mask=0x00000001;
-	CAENVME_IRQDisable(data.Handle,mask);
 	data.exit = 1;
+	sleep((unsigned int) 6);
+	CAENVME_IRQDisable(data.Handle,mask);
 	is_started = false;
 	cout << "**pthread ended" << endl;
 	cout << "**Killing EmuFEDVME log Appender" << endl;
@@ -116,6 +117,7 @@ void IRQThread::kill()
 		//cout << "Interrupt handler sleeping for 6 seconds...." << endl;
 		//usleep(6000000);
 		unsigned long mask=0x00000001;
+		sleep((unsigned int) 6);
 		CAENVME_IRQDisable(data.Handle,mask);
 		cout << "**pthread killed" << endl;
 		cout << "**Killing EmuFEDVME log Appender" << endl;
