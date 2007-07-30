@@ -7989,10 +7989,10 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     int tmb;
     if(name != cgi.getElements().end()) {
       tmb = cgi["tmb"]->getIntegerValue();
-      cout << "TMB " << tmb << endl;
+      cout << "TMBUtils:  TMB " << tmb << endl;
       TMB_ = tmb;
     } else {
-      cout << "Not tmb" << endl ;
+      cout << "TMBUtils:  No TMB" << endl ;
       tmb = TMB_;
     }
     //
@@ -8024,7 +8024,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
 	    (thisTMB->GetExpectedTmbFirmwareMonth()   )&0xf,
 	    (thisTMB->GetExpectedTmbFirmwareDay()  >>4)&0xf,
 	    (thisTMB->GetExpectedTmbFirmwareDay()     )&0xf);
-    std::string TMBFirmware = FirmwareDir_+"tmb/"+date+"/tmb.svf";
+    std::string TMBFirmware = FirmwareDir_+"tmb/"+date+"/tmb";   // ".xsvf" is added in SetXsvfFilename
     TMBFirmware_ = TMBFirmware;
     //
     std::string LoadTMBFirmware =
@@ -8034,7 +8034,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::input().set("type","submit").set("value","Load TMB Firmware") << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << TMBFirmware_.toString();
+    *out << TMBFirmware_.toString() << ".xsvf";
     *out << cgicc::form() << std::endl ;
     //
     if (alct) {
@@ -8300,27 +8300,61 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     TMB * thisTMB = tmbVector[tmb];
     //
-    thisCCB->hardReset();
+    // remove CCB hard reset from beginning of prom programming:
+    //    thisCCB->hardReset();
     //
-    int debugMode(0);
-    int jch(5);
-    //string chamberType("ME21");
-    //ALCTController *alct = new ALCTController(thisTMB,chamberType);
-    //
-    //thisTMB->disableAllClocks();
-    printf("Programming...");
-    int status = thisTMB->SVFLoad(&jch,TMBFirmware_.toString().c_str(),debugMode);
-    //thisTMB->enableAllClocks();
-    //
-    if (status >= 0){
-      cout << "=== Programming finished"<< endl;
-      cout << "=== " << status << " Verify Errors  occured" << endl;
-    }
-    else{
-      cout << "=== Fatal Error. Exiting with " <<  status << endl;
+    int mintmb = tmb;
+    int maxtmb = tmb+1;
+    if (thisTMB->slot() == 26) { //if TMB slot = 26, loop over each alct according to its type
+      mintmb = 0;
+      maxtmb = tmbVector.size()-1;
     }
     //
-    thisCCB->hardReset();
+    std::cout << "Loading TMB firmware from " << mintmb << " to " << maxtmb << std::endl;
+    //
+    int number_of_verify_errors[9] = {};
+    //
+    for (tmb=mintmb; tmb<maxtmb; tmb++) {
+      thisTMB = tmbVector[tmb];
+      thisTMB->SetXsvfFilename(TMBFirmware_.toString().c_str());
+      thisTMB->ProgramTMBProms();
+      thisTMB->ClearXsvfFilename();
+      //
+      //int debugMode(0);
+      //int jch(5);
+      //
+      //thisTMB->disableAllClocks();
+      //int status = thisTMB->SVFLoad(&jch,TMBFirmware_.toString().c_str(),debugMode);
+      //thisTMB->enableAllClocks();
+      //
+      number_of_verify_errors[tmb] = thisTMB->GetNumberOfVerifyErrors();
+      cout << "=== Programming finished on TMB slot " << thisTMB->slot() << endl;
+      cout << "=== " << number_of_verify_errors[tmb] << " Verify Errors occured" << endl;
+      //
+    }
+    //
+    int total_number_of_errors = 0;
+    for (int i=0; i<9; i++) 
+      total_number_of_errors += number_of_verify_errors[i];
+    //
+    if (total_number_of_errors < 0) {
+      cout << "File does not exist, programming did not occur..."<< endl;
+      //
+    } else if (total_number_of_errors == 0) {
+      cout << "hard Reset to Load Proms"<< endl;
+      thisCCB->hardReset();
+      //
+    } else {
+      cout << "ERROR!!  Total number of verify errors = " << total_number_of_errors << endl;
+      for (int i=0; i<9; i++) {
+	cout << "TMB slot " << tmbVector[i]->slot() 
+	     << " -> Number of errors = " << number_of_verify_errors[i] 
+	     << std::endl;
+      }
+      cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << endl;
+      cout << "!!!! Do not perform hard reset !!!! " << endl;
+      cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << endl;
+    }
     //
     this->TMBUtils(in,out);
     //

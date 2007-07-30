@@ -719,7 +719,7 @@ int main() {
       //
       ::sleep(5);
       //
-      thisTMB->SetXsvfFilename("tmb10162006");
+      thisTMB->SetXsvfFilename("/home/rakness/firmware/tmb/20070710/tmb20070710_verify");
       thisTMB->ProgramTMBProms();
       //
       ::sleep(5);

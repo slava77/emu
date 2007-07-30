@@ -1816,6 +1816,8 @@ void EMUjtag::ReadXsvfFile_(bool create_logfile) {
     //
   } else {
     //
+    verify_error_ = -1;    //tag that file does not exist
+    //
     (*MyOutput_) << "EMUjtag:  ERROR XSVF file " << filename_xsvf_ << " does not exist" << std::endl;
     //
   }
