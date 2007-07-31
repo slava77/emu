@@ -1,0 +1,11 @@
+//#define PAGE_SIZE 4096
+#define BIGPHYS_PAGES_4 5000 
+#define RING_PAGES_4 1000
+#define RING_ENTRY_LENGTH 8
+#define MAXPACKET_4 9100
+//#define MAXEVENT_4 30100
+#define MAXEVENT_4 75601
+#define TAILMEM 100
+#define TAILPOS  80
+#define SKB_EXTRA 14
+#define SKB_OFFSET -14
