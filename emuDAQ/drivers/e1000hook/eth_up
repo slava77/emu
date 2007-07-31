@@ -1,0 +1,21 @@
+mknod /dev/schar2 c 232 0
+mknod /dev/schar3 c 233 0
+mknod /dev/schar4 c 234 0
+mknod /dev/schar5 c 235 0
+modprobe e1000h
+/sbin/ifconfig eth2 promisc
+/sbin/ifconfig eth2 mtu 8192
+/sbin/ifconfig eth2
+/sbin/ifconfig eth3 promisc
+/sbin/ifconfig eth3 mtu 8192
+/sbin/ifconfig eth3
+/sbin/ifconfig eth4 promisc
+/sbin/ifconfig eth4 mtu 8192
+/sbin/ifconfig eth4
+/sbin/ifconfig eth5 promisc
+/sbin/ifconfig eth5 mtu 8192
+/sbin/ifconfig eth5
+/sbin/ifup eth2
+/sbin/ifup eth3
+/sbin/ifup eth4
+/sbin/ifup eth5

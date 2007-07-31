@@ -1,0 +1,11 @@
+chmod 755  /root/e1000hook/e1000-7.0.39/src/e1000h.ko
+cp /root/e1000hook/e1000-7.0.39/src/e1000h.ko /lib/modules/2.6.9-42.0.3.EL.cernsmp/kernel/drivers/net/e1000h/e1000h.ko
+cp /root/e1000hook/eth_hook_2_nobigphysxxx/eth_hook_2.ko /lib/modules/2.6.9-42.0.3.EL.cernsmp/kernel/drivers/net/eth_hook_2.ko
+cp /root/e1000hook/eth_hook_3_nobigphysxxx/eth_hook_3.ko /lib/modules/2.6.9-42.0.3.EL.cernsmp/kernel/drivers/net/eth_hook_3.ko
+cp /root/e1000hook/eth_hook_4_nobigphysxxx/eth_hook_4.ko /lib/modules/2.6.9-42.0.3.EL.cernsmp/kernel/drivers/net/eth_hook_4.ko
+cp /root/e1000hook/eth_hook_5_nobigphysxxx/eth_hook_5.ko /lib/modules/2.6.9-42.0.3.EL.cernsmp/kernel/drivers/net/eth_hook_5.ko
+rmmod e1000h
+rmmod eth_hook_2
+rmmod eth_hook_3
+rmmod eth_hook_4
+rmmod eth_hook_5
