@@ -562,9 +562,12 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 	step_counter_ = 0;
 
 	try {
-		if (state_table_.getState("EmuDAQManager", 0) == "Configured") {
-			sendCommand("Halt", "EmuDAQManager");
-		}
+		try {
+			if (state_table_.getState("EmuDAQManager", 0) == "Configured") {
+				sendCommand("Halt", "EmuDAQManager");
+			}
+		} catch (xcept::Exception ignored) {}
+
 		if (state_table_.getState("TTCciControl", 0) != "Halted") {
 			sendCommand("Halt", "TTCciControl");
 		}
@@ -578,10 +581,12 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 					"EmuPeripheralCrate", "xmlFileName", "xsd:string", str);
 		}
 
-		setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:integer",
-				toString(nevents_));
-		setParameter("EmuDAQManager", "runType", "xsd:string",
-				run_type_.toString());
+		try {
+			setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:integer",
+					toString(nevents_));
+			setParameter("EmuDAQManager", "runType", "xsd:string",
+					run_type_.toString());
+		} catch (xcept::Exception ignored) {}
 
 		sendCommand("Configure", "EmuFCrate");
 		if (!isCalibrationMode()) {
@@ -589,7 +594,10 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		} else {
 			sendCommand("ConfigCalCFEB", "EmuPeripheralCrateManager");
 		}
-		sendCommand("Configure", "EmuDAQManager");
+
+		try {
+			sendCommand("Configure", "EmuDAQManager");
+		} catch (xcept::Exception ignored) {}
 		sendCommand("Configure", "TTCciControl");
 
 		int index = getCalibParamIndex(run_type_);
@@ -624,18 +632,22 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 			<< " runnumber: " << run_number_ << " nevents: " << nevents_);
 
 	try {
-		if (state_table_.getState("EmuDAQManager", 0) == "Halted") {
-			setParameter("EmuDAQManager", "maxNumberOfEvents", "xsd:integer",
-					toString(nevents_));
-			sendCommand("Configure", "EmuDAQManager");
-		}
-		setParameter("EmuDAQManager", "runNumber", "xsd:unsignedLong",
-				run_number_.toString());
 		sendCommand("Enable", "EmuFCrate");
 		if (!isCalibrationMode()) {
 			sendCommand("Enable", "EmuPeripheralCrate");
 		}
-		sendCommand("Enable", "EmuDAQManager");
+
+		try {
+			if (state_table_.getState("EmuDAQManager", 0) == "Halted") {
+				setParameter("EmuDAQManager",
+						"maxNumberOfEvents", "xsd:integer", toString(nevents_));
+				sendCommand("Configure", "EmuDAQManager");
+			}
+			setParameter("EmuDAQManager",
+					"runNumber", "xsd:unsignedLong", run_number_.toString());
+			sendCommand("Enable", "EmuDAQManager");
+		} catch (xcept::Exception ignored) {}
+
 		sendCommand("Enable", "TTCciControl");
 		sendCommand("Enable", "LTCControl");
 		sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
@@ -666,7 +678,11 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference evt)
 	try {
 		sendCommand("Halt", "LTCControl");
 		sendCommand("Halt", "TTCciControl");
-		sendCommand("Halt", "EmuDAQManager");
+
+		try {
+			sendCommand("Halt", "EmuDAQManager");
+		} catch (xcept::Exception ignored) {}
+
 		writeRunInfo( true, true );
 		sendCommand("Disable", "EmuFCrate");
 		if (!isCalibrationMode()) {
@@ -698,7 +714,9 @@ void CSCSupervisor::haltAction(toolbox::Event::Reference evt)
 		sendCommand("Halt", "EmuFCrate");
 		sendCommand("Halt", "EmuPeripheralCrateManager");
 		sendCommand("Halt", "EmuPeripheralCrate");
-		sendCommand("Halt", "EmuDAQManager");
+		try {
+			sendCommand("Halt", "EmuDAQManager");
+		} catch (xcept::Exception ignored) {}
 		writeRunInfo( true, true );
 	} catch (xoap::exception::Exception e) {
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
