@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.42 2007/07/26 13:09:32 rakness Exp $
+// $Id: TMB.cc,v 3.43 2007/08/01 11:40:38 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.43  2007/08/01 11:40:38  rakness
+// reorder sleep in TMB raw hits to maximize chances of good data readout
+//
 // Revision 3.42  2007/07/26 13:09:32  rakness
 // update CFEB rx scan for CLCT key layer 3 -> 2 change
 //
@@ -2680,16 +2683,14 @@ void TMB::TMBRawhits(){
     //
     number_of_reads++;
     //
-    ::usleep(100000);  //give a little bit of time for a trigger to arrive
-    //      
-    // Pretrigger halt while we are reading out the data:
+    //pretrigger and halt until next unhalt arrives:
     SetPretriggerHalt(1);
     WriteRegister(seq_clct_adr,FillTMBRegister(seq_clct_adr));
-    ::usleep(10000);
+    ::usleep(100000);   // Give the chamber time to trigger on and read an event
     //
     // Attempt to read the data:
     ResetRAMAddress();
-    read_ok = OnlyReadTMBRawhits();
+    read_ok = OnlyReadTMBRawhits();   //check to see that pretrigger made a L1A -> read out...
     //
     // Pretrigger unhalt, go back to normal data taking:
     SetPretriggerHalt(0);
@@ -2712,6 +2713,11 @@ bool TMB::OnlyReadTMBRawhits(){
   ReadRegister(seq_clct_adr);
   int halt_state = GetPretriggerHalt();
   if (debug_) (*MyOutput_) << "TMB halt_state before read RAM = " << halt_state << std::endl;
+  //
+  if (!halt_state) {
+    (*MyOutput_) << "ERROR:  TMB not halted.  halt_state before read RAM = " << halt_state << std::endl;
+    return false;
+  }
   //
   int dmb_busy  = 1;
   dmb_wordcount_ = 0;
