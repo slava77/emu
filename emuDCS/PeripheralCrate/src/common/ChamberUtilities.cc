@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.27 2007/07/26 13:09:35 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.28 2007/08/01 11:31:15 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.28  2007/08/01 11:31:15  rakness
+// fix bug in window/histo sizes in ALCT in CLCT match window
+//
 // Revision 3.27  2007/07/26 13:09:35  rakness
 // update CFEB rx scan for CLCT key layer 3 -> 2 change
 //
@@ -228,7 +231,7 @@ using namespace std;
 //
 ChamberUtilities::ChamberUtilities(){
   //
-  debug_ = false;
+  debug_ = true;
   //
   beginning = 0;
   thisTMB   = 0;
@@ -1071,7 +1074,7 @@ void ChamberUtilities::RpcRatDelayScan(int rpc) {
 int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   //
   const int HistoMin = 0;
-  const int HistoMax =15;
+  const int HistoMax =14;
   //
   const int test_alct_delay_value  = 7;
   const int test_match_window_size = 15;
