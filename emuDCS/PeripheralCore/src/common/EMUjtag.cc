@@ -1824,6 +1824,11 @@ void EMUjtag::ReadXsvfFile_(bool create_logfile) {
     //
   }
   //
+  (*MyOutput_) << "Number of verify errors = " << std::dec << verify_error_ << std::endl;
+  //
+  Logfile_ << std::endl;
+  Logfile_ << "Number of verify errors = " << std::dec << verify_error_ << std::endl;
+  //
   Logfile_ << std::endl;
   Logfile_ << "Summary statistics: " << std::endl;
   Logfile_ << "--------------------------" << std::endl;
