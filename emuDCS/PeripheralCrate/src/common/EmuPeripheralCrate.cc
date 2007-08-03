@@ -8370,14 +8370,34 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     int tmb;
     if(name != cgi.getElements().end()) {
       tmb = cgi["tmb"]->getIntegerValue();
-      cout << "TMB " << tmb << endl;
+      std::cout << "LoadALCTFirmware:  TMB " << tmb << std::endl;
       TMB_ = tmb;
     } else {
-      cout << "Not tmb" << endl ;
+      std::cout << "LoadALCTFirmware:  No tmb" << std::endl ;
       tmb = TMB_;
     }
     //
-    TMB * thisTMB = tmbVector[tmb];
+    TMB * thisTMB;
+    thisTMB = tmbVector[tmb];
+    //
+    ALCTController * thisALCT;
+    thisALCT = thisTMB->alctController();
+    //
+    char date[8];
+    //create filename for firmware based on expected date...
+    //If broadcast slot 26 is picked, this will pick slot 26's date tag for ALL the firmware which is downloaded
+    int expected_year       = thisALCT->GetExpectedFastControlYear() & 0xffff;
+    int expected_month_tens = (thisALCT->GetExpectedFastControlMonth()>>4) & 0xf;
+    int expected_month_ones = (thisALCT->GetExpectedFastControlMonth()>>0) & 0xf;
+    int expected_day_tens   = (thisALCT->GetExpectedFastControlDay()  >>4) & 0xf;
+    int expected_day_ones   = (thisALCT->GetExpectedFastControlDay()  >>0) & 0xf;
+    sprintf(date,"%4x%1x%1x%1x%1x",
+	    expected_year,
+	    expected_month_tens,
+	    expected_month_ones,
+	    expected_day_tens,
+	    expected_day_ones);
+    //
     int mintmb = tmb;
     int maxtmb = tmb+1;
     if (thisTMB->slot() == 26) { //if TMB slot = 26, loop over each alct according to its type
@@ -8387,53 +8407,47 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     thisCCB->hardReset();
     //
-    std::cout << "Loading ALCT firmware from " << mintmb << " to " << maxtmb << std::endl;
+    std::cout << "Loading ALCT firmware in the TMB vector from index " << mintmb << " to " << maxtmb << std::endl;
+    //
     for (tmb=mintmb; tmb<maxtmb; tmb++) {
-      thisTMB = tmbVector[tmb];
       //
-      alct = thisTMB->alctController();
-      if (!alct) {
+      thisTMB = tmbVector[tmb];
+      thisALCT = thisTMB->alctController();
+      //
+      if (!thisALCT) {
 	std::cout << "No ALCT present" << std::endl;
 	return;
       }
-      //create filename for firmware based on expected dates...
-      char date[8];
-      sprintf(date,"%4x%1x%1x%1x%1x",
-	      (alct->GetExpectedFastControlYear()&0xffff),
-	      (alct->GetExpectedFastControlMonth()>>4)&0xf,
-	      (alct->GetExpectedFastControlMonth()   )&0xf,
-	      (alct->GetExpectedFastControlDay()  >>4)&0xf,
-	      (alct->GetExpectedFastControlDay()     )&0xf);
       //
       std::string ALCTFirmware = FirmwareDir_+"alct/"+date+"/";
       //
-      if ( (alct->GetChamberType()).find("ME11") != string::npos ) {
+      if ( (thisALCT->GetChamberType()).find("ME11") != string::npos ) {
 	//
-	if (alct->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
-	    alct->GetExpectedFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE ) {
+	if (thisALCT->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
+	    thisALCT->GetExpectedFastControlNegativePositiveType() == NEGATIVE_FIRMWARE_TYPE ) {
 	  ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE;
-	} else if (alct->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
-		   alct->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
+	} else if (thisALCT->GetExpectedFastControlBackwardForwardType() == BACKWARD_FIRMWARE_TYPE &&
+		   thisALCT->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
 	  ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE;
-	} else if (alct->GetExpectedFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE &&
-		   alct->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
+	} else if (thisALCT->GetExpectedFastControlBackwardForwardType() == FORWARD_FIRMWARE_TYPE &&
+		   thisALCT->GetExpectedFastControlNegativePositiveType() == POSITIVE_FIRMWARE_TYPE ) {
 	  ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE;
 	} else {
 	  ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME11;
 	}
-      } else if ( (alct->GetChamberType()).find("ME12") != string::npos ) {
+      } else if ( (thisALCT->GetChamberType()).find("ME12") != string::npos ) {
 	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME12;
-      } else if ( (alct->GetChamberType()).find("ME13") != string::npos ) {
+      } else if ( (thisALCT->GetChamberType()).find("ME13") != string::npos ) {
 	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME13;
-      } else if ( (alct->GetChamberType()).find("ME21") != string::npos ) {
+      } else if ( (thisALCT->GetChamberType()).find("ME21") != string::npos ) {
 	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME21;
-      } else if ( (alct->GetChamberType()).find("ME22") != string::npos ) {
+      } else if ( (thisALCT->GetChamberType()).find("ME22") != string::npos ) {
 	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME22;
-      } else if ( (alct->GetChamberType()).find("ME31") != string::npos ) {
+      } else if ( (thisALCT->GetChamberType()).find("ME31") != string::npos ) {
 	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME31;
-      } else if ( (alct->GetChamberType()).find("ME32") != string::npos ) {
+      } else if ( (thisALCT->GetChamberType()).find("ME32") != string::npos ) {
 	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME32;
-      } else if ( (alct->GetChamberType()).find("ME41") != string::npos ) {
+      } else if ( (thisALCT->GetChamberType()).find("ME41") != string::npos ) {
 	ALCTFirmware += ALCT_FIRMWARE_FILENAME_ME41;
       } 
       //
@@ -8447,24 +8461,23 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       //
       printf("Reading IDs...") ;
       //
-      alct->ReadSlowControlId();
-      alct->PrintSlowControlId();
+      thisALCT->ReadSlowControlId();
+      thisALCT->PrintSlowControlId();
       //
-      alct->ReadFastControlId();
-      alct->PrintFastControlId();
+      thisALCT->ReadFastControlId();
+      thisALCT->PrintFastControlId();
       //
       thisTMB->disableAllClocks();
       LOG4CPLUS_INFO(getApplicationLogger(), "Programming ALCT");
       //
-      int status = alct->SVFLoad(&jch,ALCTFirmware_.toString().c_str(),debugMode);
+      int status = thisALCT->SVFLoad(&jch,ALCTFirmware_.toString().c_str(),debugMode);
       thisTMB->enableAllClocks();
       //
       if (status >= 0){
 	LOG4CPLUS_INFO(getApplicationLogger(), "Programming ALCT finished");
-	//cout << "=== Programming finished"<< endl;
-	//cout << "=== " << status << " Verify Errors  occured" << endl;
-      }
-      else{
+	cout << "=== Programming finished"<< endl;
+	//	cout << "=== " << status << " Verify Errors  occured" << endl;
+      } else {
 	cout << "=== Fatal Error. Exiting with " <<  status << endl;
       }
     }
