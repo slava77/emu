@@ -15,12 +15,8 @@
 #include "PeripheralCrateParser.h"
 #include "ChamberUtilities.h"
 #include "TMB_constants.h"
-
-int  FindTMB_L1A_delay(int,int);
-TMB *thisTMB ;
-
+//
 int main() {
-
 
   int rpc;
   int delay;
@@ -54,27 +50,32 @@ int main() {
   int write_data, read_data;
   int busy, verify;
   //
-  CCB *thisCCB ;
-  DAQMB *thisDMB;
-  ALCTController *alct;
-  MPC *thisMPC;
-  RAT *myRat;
-
-
-  //TestBeamCrateController tbController;
-
+  const bool debug = false;
+  //
+  std::ofstream outputfile;
+  //
+  const int pulse_signal = ADB_SYNC;
+  float amplitude = 255.;
+  int strip_mask_int = 0xff;
+  //
+  const int number_of_hs = 160;
+  int clct0_keyhs_histo[number_of_hs];
+  int clct1_keyhs_histo[number_of_hs];
+  //
+  int strip_mask[7];
+  int HalfStrip;
+  int hp[6];
+  //
+  std::string firmware_string = "/home/rakness/firmware/tmb/20070710/tmb20070710_verify";
+  //
   EmuController emuController;
-
-  //PeripheralCrateParser parser;
-  //parser.parseFile("config.xml");
-
+  //
   emuController.SetConfFile("config.xml");
   emuController.init();
-
+  //
   CrateSelector selector = emuController.selector();
   std::vector<Crate*> crateVector = selector.crates();
-
-  //-- Make sure that only one TMB in one crate is configured
+  //
   if (crateVector.size() > 1){
     std::cerr << "Error: only one PeripheralCrate allowed" << std::endl;
     exit(1);
@@ -89,136 +90,126 @@ int main() {
     std::cerr << "Error: only one DMB in xml file allowed" << std::endl;
     exit(1);
   }
-  
-  //-- get pointers to CCB, TMB and DMB
+  //
   Crate *thisCrate = crateVector[0];
-
-  thisCCB = thisCrate->ccb();
-  thisTMB = tmbVector[0];
-  thisDMB = dmbVector[0];
-  thisMPC = thisCrate->mpc();
-  //  DDU * thisDDU = thisCrate->ddu();
-  myRat = thisTMB->getRAT();
-
-  alct = thisTMB->alctController();
-
-  // point the TMBTester to the classes we need:
+  CCB * thisCCB = thisCrate->ccb();
+  DAQMB * thisDMB = dmbVector[0];
+  TMB * thisTMB = tmbVector[0];
+  MPC * thisMPC = thisCrate->mpc();
+  RAT * myRat = thisTMB->getRAT();
+  ALCTController * alct = thisTMB->alctController();
+  //
   TMBTester testTMB;
   testTMB.setTMB(thisTMB);
   testTMB.setCCB(thisCCB);
   testTMB.setRAT(myRat);
-
-  // point the ChamberUtilities to the classes we need:
+  //
   ChamberUtilities util;
   util.SetCCB(thisCCB);
   util.SetTMB(thisTMB);
   util.SetDMB(thisDMB);
   util.SetMPC(thisMPC);
-
-
+  //
   while (Menu < 1000 && Menu >=0 ){
-
+    //
     Menu = 999;
-
+    //
     std::cout << std::endl;
     std::cout << " TMB TEST program " << std::endl;
     std::cout << "  0:Init System " 
 	      << std::endl;
-    std::cout << "  1:Run All Tests, or singly test one of the following... " 
-              << std::endl;
-    std::cout << "  2:Boot Register               3:TMB Hard Reset              4:VME FPGA data reg" 
-              << std::endl; 
-    std::cout << "  5:Slot                        6:Firmware Date               7:Firmware Type"
-              << std::endl;
-    std::cout << "  8:Firmware Version            9:Firmware Rev Code          10:JTAG chains"
-              << std::endl;
-    std::cout << " 11:Mezzanine ID               12:PROM ID                    13:PROM Path"
-              << std::endl;
-    std::cout << " 14:Digital Serial Numbers     15:Voltages, Currents, Temps  16:3d3444 status"
-              << std::endl;
-    std::cout << " 17:ALCT TX/RX cables          18:RAT temperature OK         19:RAT ID codes"
-              << std::endl;
-    std::cout << " 70:RAT User codes             71:TMB U76 bus-hold chip"
-              << std::endl;
-    //
-    std::cout << std::endl;
-    std::cout << " 21:Read RAT USER1             23:read RAT-RPC delay         25:Set RAT-RPC delay" 
-	      << std::endl;
-    std::cout << " 26:reset RPC parity error ctr 29:Read RAT Usercodes         30:Read RAT IDcodes" 
-	      << std::endl;
-    std::cout << " 31:Read TMB-RAT delay         32:Set TMB-RAT Delay          37:Test parity bit computation"
-	      << std::endl;
-    std::cout << " 38:Test RAT values from TMB   39:configure RAT"
-	      << std::endl;
-    //
-    std::cout << std::endl;
-    std::cout << " 87:CFEB timing scan           88:ALCT timing scan" 
-	      << std::endl;
-    std::cout << " 90:enable PC->CLCTex from TTC 91:Read scope                  92:TTC command received" 
-	      << std::endl;
-    std::cout << " 93:TMB Raw hits dump          94:Print counters              95:Reset counters"
-	      << std::endl;
-    std::cout << " 96:Who triggered TMB?         97:Dump all TMB registers      98:Clock out TMB user prom"
-	      << std::endl;
-    std::cout << " 99:Set Distrip HotChannel mask "
+    //    std::cout << "  1:Run All Tests, or singly test one of the following... " 
+    //              << std::endl;
+    //    std::cout << "  2:Boot Register               3:TMB Hard Reset              4:VME FPGA data reg" 
+    //              << std::endl; 
+    //    std::cout << "  5:Slot                        6:Firmware Date               7:Firmware Type"
+    //              << std::endl;
+    //    std::cout << "  8:Firmware Version            9:Firmware Rev Code          10:JTAG chains"
+    //              << std::endl;
+    //    std::cout << " 11:Mezzanine ID               12:PROM ID                    13:PROM Path"
+    //              << std::endl;
+    //    std::cout << " 14:Digital Serial Numbers     15:Voltages, Currents, Temps  16:3d3444 status"
+    //              << std::endl;
+    //    std::cout << " 17:ALCT TX/RX cables          18:RAT temperature OK         19:RAT ID codes"
+    //              << std::endl;
+    //    std::cout << " 70:RAT User codes             71:TMB U76 bus-hold chip"
+    //              << std::endl;
+    //    //
+    //    std::cout << std::endl;
+    //    std::cout << " 21:Read RAT USER1             23:read RAT-RPC delay         25:Set RAT-RPC delay" 
+    //	      << std::endl;
+    //    std::cout << " 26:reset RPC parity error ctr 29:Read RAT Usercodes         30:Read RAT IDcodes" 
+    //	      << std::endl;
+    //    std::cout << " 31:Read TMB-RAT delay         32:Set TMB-RAT Delay          37:Test parity bit computation"
+    //	      << std::endl;
+    //    std::cout << " 38:Test RAT values from TMB   39:configure RAT"
+    //	      << std::endl;
+    //    //
+    //    std::cout << std::endl;
+    //    std::cout << " 87:CFEB timing scan           88:ALCT timing scan" 
+    //	      << std::endl;
+    //    std::cout << " 90:enable PC->CLCTex from TTC 91:Read scope                  92:TTC command received" 
+    //	      << std::endl;
+    //    std::cout << " 93:TMB Raw hits dump          94:Print counters              95:Reset counters"
+    //	      << std::endl;
+    //    std::cout << " 96:Who triggered TMB?         97:Dump all TMB registers      98:Clock out TMB user prom"
+    //	      << std::endl;
+    //    std::cout << " 99:Set Distrip HotChannel mask "
+    //	      << std::endl;
+    std::cout << " 99:Distrip HotChannel mask    94:Print counters              95:Reset counters"
 	      << std::endl;
 
     //
-    std::cout << std::endl;
-    std::cout << "100: Setup ALCT               101:Read ALCT slow control ID  102: Read ALCT fast control ID"
-	      << std::endl;
-    std::cout << "110: Read asic delays         111:Set asic delays            112: Read asic patterns"
-	      << std::endl;
-    std::cout << "113: Set asic patterns        119:Set power-up dly/patt "
-	      << std::endl;
-    std::cout << "120: Read configuration reg   121:Set Trigger Mode           122:Set L1a delay"
-	      << std::endl;
-    std::cout << "123: Set CCB enable           129:Set power-up config. reg."
-	      << std::endl;
-    std::cout << "130: Read hot channel mask    131:Set hot channel mask       139:Set power-up hot channel mask"
-	      << std::endl;
-    std::cout << "180: Read AFEB thresholds     181:Set AFEB threshold         189:Set power-up AFEB thresholds"
-	      << std::endl;
-    std::cout << "190: Read collision pattern   191:Set collision pattern      199:Set power-up collision pattern mask"
-	      << std::endl;
+    //    std::cout << std::endl;
+    //    std::cout << "100: Setup ALCT               101:Read ALCT slow control ID  102: Read ALCT fast control ID"
+    //	      << std::endl;
+    //    std::cout << "110: Read asic delays         111:Set asic delays            112: Read asic patterns"
+    //	      << std::endl;
+    //    std::cout << "113: Set asic patterns        119:Set power-up dly/patt "
+    //	      << std::endl;
+    //    std::cout << "120: Read configuration reg   121:Set Trigger Mode           122:Set L1a delay"
+    //	      << std::endl;
+    //    std::cout << "123: Set CCB enable           129:Set power-up config. reg."
+    //	      << std::endl;
+    //    std::cout << "130: Read hot channel mask    131:Set hot channel mask       139:Set power-up hot channel mask"
+    //	      << std::endl;
+    //    std::cout << "180: Read AFEB thresholds     181:Set AFEB threshold         189:Set power-up AFEB thresholds"
+    //	      << std::endl;
+    //    std::cout << "190: Read collision pattern   191:Set collision pattern      199:Set power-up collision pattern mask"
+    //	      << std::endl;
     //
-    std::cout << std::endl;
-    std::cout << "200:Configure TMB             201: Configure TMB/write prom  202: Configure ALCT "
+    //    std::cout << std::endl;
+    std::cout << "200:Configure TMB             201:Configure ALCT             600:Program TMB firmware"
 	      << std::endl;
-    std::cout << "203:Configure ALCT/write prom 300: Write xsvf files          301: Read xsvf file"
-	      << std::endl;
-    std::cout << "400:Program user proms        401: Check user prom programs  402: Program TMB"
-	      << std::endl;
-    std::cout << "403:Prog. proms w/walking 1s  404: Interior prog. walking 1s"
-	      << std::endl;
-    std::cout << "500:Check TMB state machines  501: Read TMB config registers 502:Read ALCT config regs     "
-	      << std::endl;
+    //    std::cout << "203:Configure ALCT/write prom 300: Write xsvf files          301: Read xsvf file"
+    //	      << std::endl;
+    //    std::cout << "400:Program user proms        401: Check user prom programs  402: Program TMB"
+    //	      << std::endl;
+    //    std::cout << "403:Prog. proms w/walking 1s  404: Interior prog. walking 1s"
+    //	      << std::endl;
+    //    std::cout << "500:Check TMB state machines  501: Read TMB config registers 502:Read ALCT config regs     "
+    //	      << std::endl;
     std::cout << "503:StartTriggers TMB         504:Check TMB config registers 505:Check ALCT config regs    "
 	      << std::endl;
-    std::cout << "506:Print TMB state machines  507: Check RAT config registers"
+    //    std::cout << "506:Print TMB state machines  507: Check RAT config registers"
+    //	      << std::endl;
+    //
+    //    std::cout << std::endl;
+    //
+    std::cout << std::endl;
+    std::cout << "700:Setup pulse test strips   701:Generate ADB Async         702:Generate ADB Sync"
+	      << std::endl;
+    std::cout << "703:Setup pulse AFEBs         704:Set up CFEB pulsing        705:Pulse CFEB"
 	      << std::endl;
     //
     std::cout << std::endl;
-    std::cout << "600:Program TMB firmware"
-	      << std::endl;
-    //
-    std::cout << std::endl;
-    std::cout << "700:Pulse ALCT test strips    701:Generate ADB Async         702:Generate ADB Sync"
+    std::cout << "707:Pulse multiple times"
 	      << std::endl;
     //
     std::cout << std::endl;
     std::cout << "1000:Exit " << std::endl;
     std::cout << " menu choice? (Default = 999)" << std::endl;
     std::cin >> Menu;
-
-    std::ofstream outputfile;
-    //
-    int amplitude;
-    int strip_mask;
-    //
-    int jch = 5;
-    char firmware_string[100] = "/home/rakness/firmware/tmb/20070710/tmb20070710.svf";
-    int debug = 0;
     //
     switch (Menu) {
     case 0:
@@ -499,9 +490,12 @@ int main() {
       std::cin >> channel;
       std::cout << "OFF (0) or ON (1) " << std::endl;
       std::cin >> value;
-      thisTMB->SetDistripHotChannelMask(layer,channel,value);
-      thisTMB->configure();
+      for (int i=0; i<6; i++)
+	thisTMB->SetDistripHotChannelMask(i,channel,value);
+      thisTMB->WriteDistripHotChannelMasks();
+      thisTMB->ReadDistripHotChannelMasks();
       thisTMB->PrintHotChannelMask();
+      //
       break;
       //
     case 100:
@@ -654,20 +648,8 @@ int main() {
     case 200:
       thisTMB->configure();
       break;
-    case 201:      
-      //      thisTMB->SetXsvfFilename("prom0_example");
-      thisTMB->SetFillVmeWriteVecs(true);
-      thisTMB->configure();
-      //      thisTMB->ClearXsvfFilename();
-      break;
-    case 202:
+    case 201:
       alct->configure();
-      break;
-    case 203:
-      //      alct->SetXsvfFilename("prom1_example");
-      alct->SetFillVmeWriteVecs(true);
-      alct->configure();
-      //      alct->ClearXsvfFilename();
       break;
     case 300:
       thisTMB->SetXsvfFilename("prom0_passtest");
@@ -691,8 +673,6 @@ int main() {
       //
       break;
     case 400:
-      //
-      
       thisTMB->SetXsvfFilename("prom0_passtest");
       thisTMB->ProgramUserProm();
       //
@@ -715,16 +695,8 @@ int main() {
       //
       break;
     case 402:
-      testTMB.reset();
-      //
-      ::sleep(5);
-      //
       thisTMB->SetXsvfFilename("/home/rakness/firmware/tmb/20070710/tmb20070710_verify");
       thisTMB->ProgramTMBProms();
-      //
-      ::sleep(5);
-      //
-      //      testTMB.reset();
       //
       thisTMB->ClearXsvfFilename();
       //
@@ -749,8 +721,8 @@ int main() {
       //
       break;
     case 500:
-      //      outputfile.open("TMBCheckStatus.txt");
-      //      thisTMB->RedirectOutput(&outputfile);
+      outputfile.open("TMBCheckStatus.txt");
+      thisTMB->RedirectOutput(&outputfile);
       //
       thisTMB->CheckTMBConfiguration();
       thisTMB->CheckVMEStateMachine();
@@ -772,8 +744,8 @@ int main() {
       }
       std::cout << std::endl;
       thisTMB->RedirectOutput(&std::cout);
+      outputfile.close();
       //
-      //      outputfile.close();
       break;
     case 501:
       outputfile.open("TMBconfiguration.txt");
@@ -782,33 +754,38 @@ int main() {
       thisTMB->PrintTMBConfiguration();
       thisTMB->RedirectOutput(&std::cout);
       outputfile.close();
+      //
       break;
     case 502:
-      //      outputfile.open("ALCTconfiguration.txt");
-      //      alct->RedirectOutput(&outputfile);
+      outputfile.open("ALCTconfiguration.txt");
+      alct->RedirectOutput(&outputfile);
       alct->ReadALCTConfiguration();
       alct->PrintALCTConfiguration();
       alct->RedirectOutput(&std::cout);
-      //      outputfile.close();
+      outputfile.close();
+      //
       break;
     case 503:
       thisTMB->StartTTC();
+      //
       break;
     case 504:
       thisTMB->CheckTMBConfiguration(); 
       std::cout << "Check TMB configuration vs xml file = "
 		<< thisTMB->GetTMBConfigurationStatus()
 		<< std::endl;
+      //
       break;
     case 505:
       alct->CheckALCTConfiguration(); 
       std::cout << "Check ALCT configuration vs xml file = "
 		<< alct->GetALCTConfigurationStatus()
 		<< std::endl;
+      //
       break;
     case 506:
-      //      outputfile.open("TMBStateMachines.txt");
-      //      thisTMB->RedirectOutput(&outputfile);
+      outputfile.open("TMBStateMachines.txt");
+      thisTMB->RedirectOutput(&outputfile);
       thisTMB->ReadVMEStateMachine();
       thisTMB->PrintVMEStateMachine();
       //
@@ -821,33 +798,248 @@ int main() {
       thisTMB->ReadRawHitsHeader();
       thisTMB->PrintRawHitsHeader();
       thisTMB->RedirectOutput(&std::cout);
-      //      outputfile.close();
+      outputfile.close();
+      //
       break;
     case 507:
       myRat->CheckRATConfiguration(); 
       std::cout << "Check RAT configuration vs xml file = "
 		<< myRat->GetRATConfigurationStatus()
 		<< std::endl;
+      //
       break;
     case 600:
       std::cout << "Load TMB firmware = " << firmware_string << std::endl;
-      thisTMB->SVFLoad(&jch,firmware_string,debug);
+      thisTMB->SetXsvfFilename(firmware_string);
+      thisTMB->ProgramTMBProms();
+      //
       break;
     case 700:
-      amplitude = 64;
-      std::cout << "strip mask " << std::endl;
-      std::cin >> strip_mask;
-      std::cout << "Setting up pulsing with amplitude = " << amplitude 
-		<< " and mask = " << strip_mask << std::endl;
-      alct->SetUpPulsing(amplitude,PULSE_LAYERS,strip_mask,ADB_ASYNC);
+      std::cout << "Pulse ALCT teststrips with signal = ";
+      if (pulse_signal == ADB_SYNC) {
+	std::cout << "ADB_SYNC" << std::endl;
+      } else if (pulse_signal == ADB_ASYNC) {
+	std::cout << "ADB_ASYNC" << std::endl;
+      }
+      std::cout << "amplitude " << std::endl;
+      std::cin >> amplitude;
+      std::cout << "layer mask 0" << std::endl;
+      std::cin >> strip_mask[0];
+      std::cout << "layer mask 1" << std::endl;
+      std::cin >> strip_mask[1];
+      std::cout << "layer mask 2" << std::endl;
+      std::cin >> strip_mask[2];
+      std::cout << "layer mask 3" << std::endl;
+      std::cin >> strip_mask[3];
+      std::cout << "layer mask 4" << std::endl;
+      std::cin >> strip_mask[4];
+      std::cout << "layer mask 5" << std::endl;
+      std::cin >> strip_mask[5];
+      strip_mask_int = 
+	( (strip_mask[5] & 0x1) << 5 ) |
+	( (strip_mask[4] & 0x1) << 4 ) |
+	( (strip_mask[3] & 0x1) << 3 ) |
+	( (strip_mask[2] & 0x1) << 2 ) |
+	( (strip_mask[1] & 0x1) << 1 ) |
+	( (strip_mask[0] & 0x1) << 0 );
+      alct->SetUpPulsing((int)amplitude,PULSE_LAYERS,strip_mask_int,pulse_signal);
+      //
       break;
     case 701:
       thisCCB->setCCBMode(CCB::VMEFPGA);
-      thisCCB->GenerateAlctAdbASync();	 
+      thisCCB->GenerateAlctAdbASync();	
+      thisCCB->setCCBMode(CCB::DLOG); 
+      //
       break;
     case 702:
       thisCCB->setCCBMode(CCB::VMEFPGA);
-      thisCCB->GenerateAlctAdbSync();	 
+      thisCCB->GenerateAlctAdbSync();	
+      thisCCB->setCCBMode(CCB::DLOG); 
+      //
+      break;
+    case 703:
+      std::cout << "Pulse AFEBs with signal = ";
+      if (pulse_signal == ADB_SYNC) {
+	std::cout << "ADB_SYNC" << std::endl;
+      } else if (pulse_signal == ADB_ASYNC) {
+	std::cout << "ADB_ASYNC" << std::endl;
+      }
+      std::cout << "amplitude " << std::endl;
+      std::cin >> amplitude;
+      std::cout << "AFEB mask 0" << std::endl;
+      std::cin >> strip_mask[0];
+      std::cout << "AFEB mask 1" << std::endl;
+      std::cin >> strip_mask[1];
+      std::cout << "AFEB mask 2" << std::endl;
+      std::cin >> strip_mask[2];
+      std::cout << "AFEB mask 3" << std::endl;
+      std::cin >> strip_mask[3];
+      std::cout << "AFEB mask 4" << std::endl;
+      std::cin >> strip_mask[4];
+      std::cout << "AFEB mask 5" << std::endl;
+      std::cin >> strip_mask[5];
+      std::cout << "AFEB mask 6" << std::endl;
+      std::cin >> strip_mask[6];
+      std::cout << "AFEB mask 7" << std::endl;
+      std::cin >> strip_mask[7];
+      strip_mask_int = 
+	( (strip_mask[7] & 0x1) << 7 ) |
+	( (strip_mask[6] & 0x1) << 6 ) |
+	( (strip_mask[5] & 0x1) << 5 ) |
+	( (strip_mask[4] & 0x1) << 4 ) |
+	( (strip_mask[3] & 0x1) << 3 ) |
+	( (strip_mask[2] & 0x1) << 2 ) |
+	( (strip_mask[1] & 0x1) << 1 ) |
+	( (strip_mask[0] & 0x1) << 0 );
+      alct->SetUpPulsing((int)amplitude,PULSE_AFEBS,strip_mask_int,pulse_signal);
+      //
+      break;
+    case 704:
+      std::cout << "amplitude " << std::endl;
+      std::cin >> amplitude;
+      std::cout << "CFEB 0" << std::endl;
+      std::cin >> strip_mask[0];
+      std::cout << "CFEB 1" << std::endl;
+      std::cin >> strip_mask[1];
+      std::cout << "CFEB 2" << std::endl;
+      std::cin >> strip_mask[2];
+      std::cout << "CFEB 3" << std::endl;
+      std::cin >> strip_mask[3];
+      std::cout << "CFEB 4" << std::endl;
+      std::cin >> strip_mask[4];
+      strip_mask_int = 
+	( (strip_mask[4] & 0x1) << 4 ) |
+	( (strip_mask[3] & 0x1) << 3 ) |
+	( (strip_mask[2] & 0x1) << 2 ) |
+	( (strip_mask[1] & 0x1) << 1 ) |
+	( (strip_mask[0] & 0x1) << 0 );
+      HalfStrip = 16;
+      //
+      thisDMB->set_comp_thresh(0.1);
+      thisDMB->set_dac(amplitude,0);
+      //
+      for (int layer = 0; layer < 6; layer++ ) 
+	hp[layer] = HalfStrip;       
+      //
+      thisDMB->trigsetx(hp,strip_mask_int);
+      //
+      break;
+    case 705:
+      thisDMB->inject(1,0x4f);
+      //
+      break;
+    case 707:
+      thisTMB->StartTTC(); //enable the TMB to trigger by faking TTC Resync/BC0 commands
+      //
+      thisCCB->setCCBMode(CCB::VMEFPGA);
+      thisCCB->SetL1aDelay(155);
+      //
+      //      for (amplitude = 0; amplitude<51; amplitude+=2) {
+      for (amplitude = 24; amplitude<25; amplitude+=2) {
+	//
+	std::cout << "Amplitude = " << amplitude << std::endl;
+	//
+	//set up the output file
+	char buf[20];
+	sprintf(buf,"ampl%d.dat",(int)amplitude);
+	outputfile.open(buf);
+	alct->RedirectOutput(&outputfile);
+	//
+	// set up ALCT pulsing at this amplitude
+	strip_mask_int = 0x3f;        //pulse all six (layers of) strips
+	alct->SetUpPulsing((int)amplitude,PULSE_LAYERS,strip_mask_int,pulse_signal);
+	::sleep(1);
+	//
+	alct->RedirectOutput(&std::cout);
+	//
+	//for (int window=100; window<200; window++) {
+	//  thisTMB->SetL1aDelay(window);
+	//  thisTMB->WriteRegister(seq_l1a_adr);
+	//
+	// clear histograms
+	thisTMB->ResetCounters();
+	for (int i=0; i<number_of_hs; i++) {
+	  clct0_keyhs_histo[i] = 0;
+	  clct1_keyhs_histo[i] = 0;
+	}
+	//
+	int npulse;
+	//
+	//	for (npulse=0; npulse<100; npulse++) {
+	for (npulse=0; npulse<10; npulse++) {
+	  //
+	  for (channel=1; channel<10; channel++) { 
+	    //
+	    // mask out all channels except a single distrip (for each layer)
+	    // Couple of points:  
+	    // 1) always mask off channel 0 since this rings hot when the teststrip is enabled
+	    // 2) nothing fires above distrip 7, so restrict range of scan to 10...
+	    for (int layer=0; layer<6; layer++) {
+	      for (int zerochannel=0; zerochannel<40; zerochannel++) {
+		if (zerochannel == channel) {
+		  thisTMB->SetDistripHotChannelMask(layer,zerochannel,1);
+		} else {
+		  thisTMB->SetDistripHotChannelMask(layer,zerochannel,0);
+		}
+	      }
+	    }
+	    thisTMB->WriteDistripHotChannelMasks();
+	    //
+	    if (debug) {
+	      outputfile << "Enable distrip = " << channel << std::endl;
+	      thisTMB->ReadDistripHotChannelMasks();
+	      thisTMB->RedirectOutput(&outputfile);
+	      thisTMB->PrintHotChannelMask();
+	    }
+	    //
+	    thisCCB->GenerateAlctAdbSync();
+	    ::usleep(100);
+	    //
+	    thisTMB->DecodeCLCT();
+	    int clct0_key_halfstrip = thisTMB->GetCLCT0keyHalfStrip();
+	    int distrip_associated_w_halfstrip = (int)(clct0_key_halfstrip/4);
+	    if (distrip_associated_w_halfstrip == channel) {
+	      if (debug) {
+		thisTMB->PrintCLCT();
+		outputfile << "!!!!YES!!!! -> match" << std::endl;
+	      }
+	      // clct0_keyhs_histo[clct0_key_halfstrip]++;   //plot vs. 1/2-strip
+	      clct0_keyhs_histo[channel]++;   //plot vs. di-strip
+	    } else {
+	      if (debug) outputfile << "not a match..." << std::endl;
+	    }
+	    //
+	    if (debug) thisTMB->RedirectOutput(&std::cout);
+	    //
+	  }
+	}
+	//
+	outputfile << "Pulse teststrip " << npulse << " times on ADB_SYNC with amplitude = " << amplitude << std::endl;
+	outputfile << "di-strip   CLCT0   " << std::endl;
+	outputfile << "--------   -----   " << std::endl;
+	for (int i=0; i<10; i++) 
+	  outputfile << std::dec 
+		     << std::setw(8) << i 
+		     << std::setw(8)  << clct0_keyhs_histo[i] 
+		     << std::endl;
+	//
+	thisTMB->RedirectOutput(&outputfile);
+	//
+	thisTMB->GetCounters();
+	thisTMB->PrintCounters(1);
+	thisTMB->PrintCounters(4);
+	thisTMB->PrintCounters(6);
+	thisTMB->PrintCounters(7);
+	thisTMB->PrintCounters(8);
+	thisTMB->PrintCounters(18);
+	thisTMB->PrintCounters(19);
+	//  std::cout << "delay = " << window << ", number of TMB in L1A window = " << thisTMB->GetCounter(19) << std::endl;
+	//
+	thisTMB->RedirectOutput(&std::cout);
+	outputfile.close();
+      }
+      thisCCB->setCCBMode(CCB::DLOG);
+      //
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 
