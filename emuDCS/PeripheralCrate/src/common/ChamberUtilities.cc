@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.28 2007/08/01 11:31:15 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.29 2007/08/03 14:38:06 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.29  2007/08/03 14:38:06  rakness
+// use new TMB::WriteRegister(int)
+//
 // Revision 3.28  2007/08/01 11:31:15  rakness
 // fix bug in window/histo sizes in ALCT in CLCT match window
 //
@@ -328,18 +331,18 @@ void ChamberUtilities::CFEBTiming(){
   //
   // Enable this TMB for this test
   thisTMB->SetClctPatternTrigEnable(1);
-  thisTMB->WriteRegister(seq_trig_en_adr,thisTMB->FillTMBRegister(seq_trig_en_adr));
+  thisTMB->WriteRegister(seq_trig_en_adr);
   //
   thisTMB->SetTmbAllowClct(1);
-  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisTMB->SetHsPretrigThresh(6);
   thisTMB->SetDsPretrigThresh(6);
   thisTMB->SetMinHitsPattern(6);
-  thisTMB->WriteRegister(seq_clct_adr,thisTMB->FillTMBRegister(seq_clct_adr));
+  thisTMB->WriteRegister(seq_clct_adr);
   //
   thisTMB->SetIgnoreCcbStartStop(0);
-  thisTMB->WriteRegister(ccb_trig_adr,thisTMB->FillTMBRegister(ccb_trig_adr));
+  thisTMB->WriteRegister(ccb_trig_adr);
   //
   comparing_with_clct_ = true;
   thisTMB->StartTTC();
@@ -502,27 +505,27 @@ void ChamberUtilities::CFEBTiming(){
   //
   // return to initial values:
   thisTMB->SetClctPatternTrigEnable(initial_clct_pretrig_enable);
-  thisTMB->WriteRegister(seq_trig_en_adr,thisTMB->FillTMBRegister(seq_trig_en_adr));
+  thisTMB->WriteRegister(seq_trig_en_adr);
   //
   thisTMB->SetTmbAllowClct(initial_clct_trig_enable);
-  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisTMB->SetHsPretrigThresh(initial_clct_halfstrip_pretrig_thresh);
   thisTMB->SetDsPretrigThresh(initial_clct_distrip_pretrig_thresh);
   thisTMB->SetMinHitsPattern(initial_clct_pattern_thresh);
-  thisTMB->WriteRegister(seq_clct_adr,thisTMB->FillTMBRegister(seq_clct_adr));
+  thisTMB->WriteRegister(seq_clct_adr);
   //
   thisTMB->SetIgnoreCcbStartStop(initial_ignore_ccb_startstop);
-  thisTMB->WriteRegister(ccb_trig_adr,thisTMB->FillTMBRegister(ccb_trig_adr));
+  thisTMB->WriteRegister(ccb_trig_adr);
   //
   thisTMB->SetCFEB0delay(initial_cfeb0_phase);
-  thisTMB->WriteRegister(vme_ddd1_adr,thisTMB->FillTMBRegister(vme_ddd1_adr));
+  thisTMB->WriteRegister(vme_ddd1_adr);
   //
   thisTMB->SetCFEB1delay(initial_cfeb1_phase);
   thisTMB->SetCFEB2delay(initial_cfeb2_phase);
   thisTMB->SetCFEB3delay(initial_cfeb3_phase);
   thisTMB->SetCFEB4delay(initial_cfeb4_phase);
-  thisTMB->WriteRegister(vme_ddd2_adr,thisTMB->FillTMBRegister(vme_ddd2_adr));
+  thisTMB->WriteRegister(vme_ddd2_adr);
   ::sleep(1);
   //
   comparing_with_clct_ = false;
@@ -875,7 +878,7 @@ void ChamberUtilities::ALCTTiming(){
    //
   thisTMB->SetAlctTXclockDelay(initial_alct_tx_phase);
   thisTMB->SetAlctRXclockDelay(initial_alct_rx_phase);
-  thisTMB->WriteRegister(vme_ddd0_adr,thisTMB->FillTMBRegister(vme_ddd0_adr));  
+  thisTMB->WriteRegister(vme_ddd0_adr);  
   return;
 
 }
@@ -1098,10 +1101,11 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   // Enable this TMB for this test
   if (debug_) std::cout << "Initialize TMB for test" << std::endl;
   thisTMB->SetMpcOutputEnable(1);
-  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->WriteRegister(tmb_trig_adr);
+  //
   thisTMB->SetAlctVpfDelay(test_alct_delay_value);
   thisTMB->SetAlctMatchWindowSize(test_match_window_size);
-  thisTMB->WriteRegister(tmbtim_adr,thisTMB->FillTMBRegister(tmbtim_adr));
+  thisTMB->WriteRegister(tmbtim_adr);
   //
   ::usleep(500000); //time for registers to write...
   //
@@ -1156,10 +1160,11 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   //
   // return to initial values:
   thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
-  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->WriteRegister(tmb_trig_adr);
+  //
   thisTMB->SetAlctVpfDelay(initial_alct_delay_value);
   thisTMB->SetAlctMatchWindowSize(initial_match_window_size);
-  thisTMB->WriteRegister(tmbtim_adr,thisTMB->FillTMBRegister(tmbtim_adr));
+  thisTMB->WriteRegister(tmbtim_adr);
   //
   return measured_match_trig_alct_delay_;
 }
@@ -1247,21 +1252,21 @@ int ChamberUtilities::FindWinner(int npulses=10){
   //
   // Enable this TMB for this test
   thisTMB->SetClctPatternTrigEnable(1);
-  thisTMB->WriteRegister(seq_trig_en_adr,thisTMB->FillTMBRegister(seq_trig_en_adr));
+  thisTMB->WriteRegister(seq_trig_en_adr);
   //
   thisTMB->SetTmbAllowClct(1);
-  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisTMB->SetHsPretrigThresh(6);
   thisTMB->SetDsPretrigThresh(6);
   thisTMB->SetMinHitsPattern(6);
-  thisTMB->WriteRegister(seq_clct_adr,thisTMB->FillTMBRegister(seq_clct_adr));
+  thisTMB->WriteRegister(seq_clct_adr);
   //
   thisTMB->SetMpcOutputEnable(1);
-  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisTMB->SetIgnoreCcbStartStop(0);
-  thisTMB->WriteRegister(ccb_trig_adr,thisTMB->FillTMBRegister(ccb_trig_adr));
+  thisTMB->WriteRegister(ccb_trig_adr);
   //
   thisTMB->StartTTC();
   ::sleep(1);
@@ -1382,21 +1387,21 @@ int ChamberUtilities::FindWinner(int npulses=10){
   //
   // return to initial values:
   thisTMB->SetClctPatternTrigEnable(initial_clct_pretrig_enable);
-  thisTMB->WriteRegister(seq_trig_en_adr,thisTMB->FillTMBRegister(seq_trig_en_adr));
+  thisTMB->WriteRegister(seq_trig_en_adr);
   //
   thisTMB->SetTmbAllowClct(initial_clct_trig_enable);
-  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisTMB->SetHsPretrigThresh(initial_clct_halfstrip_pretrig_thresh);
   thisTMB->SetDsPretrigThresh(initial_clct_distrip_pretrig_thresh);
   thisTMB->SetMinHitsPattern(initial_clct_pattern_thresh);
-  thisTMB->WriteRegister(seq_clct_adr,thisTMB->FillTMBRegister(seq_clct_adr));
+  thisTMB->WriteRegister(seq_clct_adr);
   //
   thisTMB->SetMpcOutputEnable(initial_value_of_register);
-  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisTMB->SetIgnoreCcbStartStop(initial_ignore_ccb_startstop);
-  thisTMB->WriteRegister(ccb_trig_adr,thisTMB->FillTMBRegister(ccb_trig_adr));
+  thisTMB->WriteRegister(ccb_trig_adr);
   //
   return MPCdelay_;
 }
@@ -1421,7 +1426,7 @@ void ChamberUtilities::MeasureAlctDavCableDelay() {
   //
   // Enable this TMB to send LCTs to MPC:
   thisTMB->SetMpcOutputEnable(1);
-  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->WriteRegister(tmb_trig_adr);
   //
   float Average[DelayRange];
   int Histo[DelayRange][255];
@@ -1459,7 +1464,7 @@ void ChamberUtilities::MeasureAlctDavCableDelay() {
   //  
   // Set the registers back to how they were at beginning...
   thisTMB->SetMpcOutputEnable(initial_value_of_register);
-  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisDMB->SetAlctDavCableDelay(initial_delay_value);
   thisDMB->setcbldly(thisDMB->GetCableDelay());
@@ -1485,8 +1490,7 @@ void ChamberUtilities::MeasureTmbLctCableDelay() {
   //
   // Enable this TMB to send LCTs to MPC:
   thisTMB->SetMpcOutputEnable(1);
-  int value_to_write = thisTMB->FillTMBRegister(tmb_trig_adr);
-  thisTMB->WriteRegister(tmb_trig_adr,value_to_write);
+  thisTMB->WriteRegister(tmb_trig_adr);
   //
   float Average[DelayRange];
   int Histo[DelayRange][255];
@@ -1525,7 +1529,7 @@ void ChamberUtilities::MeasureTmbLctCableDelay() {
   //  
   // Set the registers back to how they were at beginning...
   thisTMB->SetMpcOutputEnable(initial_value_of_register);
-  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisDMB->SetTmbLctCableDelay(initial_delay_value);
   thisDMB->setcbldly(thisDMB->GetCableDelay());
@@ -1550,7 +1554,7 @@ void ChamberUtilities::MeasureCfebDavCableDelay() {
   //
   // Enable this TMB to send LCTs to MPC:
   thisTMB->SetMpcOutputEnable(1);
-  thisTMB->WriteRegister( tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr) );
+  thisTMB->WriteRegister(tmb_trig_adr);
   //
   float Average[DelayRange];
   int Histo[DelayRange][255];
@@ -1588,7 +1592,7 @@ void ChamberUtilities::MeasureCfebDavCableDelay() {
   //  
   // Set the registers back to how they were at beginning...
   thisTMB->SetMpcOutputEnable(initial_value_of_register);
-  thisTMB->WriteRegister( tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr) );
+  thisTMB->WriteRegister( tmb_trig_adr);
   //
   thisDMB->SetCfebDavCableDelay(initial_delay_value);
   thisDMB->setcbldly(thisDMB->GetCableDelay());
@@ -1613,7 +1617,7 @@ void ChamberUtilities::MeasureCfebCableDelay() {
   //
   // Enable this TMB to send LCTs to MPC:
   thisTMB->SetMpcOutputEnable(1);
-  thisTMB->WriteRegister( tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr) );
+  thisTMB->WriteRegister(tmb_trig_adr);
   //
   float Average[DelayRange];
   int Histo[DelayRange][255];
@@ -1651,7 +1655,7 @@ void ChamberUtilities::MeasureCfebCableDelay() {
   //  
   // Set the registers back to how they were at beginning...
   thisTMB->SetMpcOutputEnable(initial_value_of_register);
-  thisTMB->WriteRegister( tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr) );
+  thisTMB->WriteRegister( tmb_trig_adr);
   //
   thisDMB->SetCfebCableDelay(initial_delay_value);
   thisDMB->setcbldly(thisDMB->GetCableDelay());
@@ -1666,7 +1670,7 @@ void ChamberUtilities::ReadAllDmbValuesAndScopes() {
   //
   // Enable this TMB to send LCTs to MPC:
   thisTMB->SetMpcOutputEnable(1);
-  thisTMB->WriteRegister( tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr) );
+  thisTMB->WriteRegister( tmb_trig_adr);
   //
   ZeroDmbHistograms();
   //
@@ -1685,7 +1689,7 @@ void ChamberUtilities::ReadAllDmbValuesAndScopes() {
   //
   // Set the registers back to how they were at beginning...
   thisTMB->SetMpcOutputEnable(initial_value_of_register);
-  thisTMB->WriteRegister( tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr) );
+  thisTMB->WriteRegister( tmb_trig_adr);
   //
   return;
 }
@@ -1792,7 +1796,7 @@ int ChamberUtilities::FindTMB_L1A_delay(int idelay_min, int idelay_max ){
   //
   // Enable this TMB for this test
   thisTMB->SetMpcOutputEnable(1);
-  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->WriteRegister(tmb_trig_adr);
   //
   int tmb_in_l1a_window[255] = {};
   //
@@ -1851,7 +1855,7 @@ int ChamberUtilities::FindTMB_L1A_delay(int idelay_min, int idelay_max ){
   //
   // Set the registers back to how they were at beginning...
   thisTMB->SetMpcOutputEnable(initial_value_of_register);
-  thisTMB->WriteRegister( tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr) );
+  thisTMB->WriteRegister( tmb_trig_adr);
   //
   return TMBL1aTiming_ ;
 }
@@ -1961,7 +1965,7 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
   //
   // Enable this TMB for this test
   thisTMB->SetMpcOutputEnable(1);
-  thisTMB->WriteRegister(tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr));
+  thisTMB->WriteRegister(tmb_trig_adr);
   //
   int WordCount[200];
   for (int i=0; i<200; i++) WordCount[i] = 0;
@@ -2026,7 +2030,7 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
   //
   // Set the registers back to how they were at beginning...
   thisTMB->SetMpcOutputEnable(initial_value_of_register);
-  thisTMB->WriteRegister( tmb_trig_adr,thisTMB->FillTMBRegister(tmb_trig_adr) );
+  thisTMB->WriteRegister( tmb_trig_adr);
   //
   return ALCTL1aDelay_;
   //
