@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.43 2007/08/01 11:40:38 rakness Exp $
+// $Id: TMB.cc,v 3.44 2007/08/03 14:35:40 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.44  2007/08/03 14:35:40  rakness
+// begin commenting for doxygen, add hot-channel mask write, add writeregister together with fillregister
+//
 // Revision 3.43  2007/08/01 11:40:38  rakness
 // reorder sleep in TMB raw hits to maximize chances of good data readout
 //
@@ -605,9 +608,7 @@ void TMB::WriteOutput(std::string output){
 //
 void TMB::StartTTC(){
   //
-  (*MyOutput_) << "TMB.StartTTC" << std::endl;
-  //
-  WriteOutput("TMB.StartTTC");
+  WriteOutput("TMB:  StartTriggers");
   //
   sndbuf[0] = 0x0;
   sndbuf[1] = 0x1;      // Disconnect CCB backplane
@@ -649,7 +650,7 @@ void TMB::StartTTC(){
   tmb_vme(VME_READ,ccb_cmd_adr,sndbuf,rcvbuf,NOW);
   //
 }
-
+//
 void TMB::WriteRegister(int reg, int value){
   //
   sndbuf[0] = (value>>8)&0xff;
@@ -659,13 +660,29 @@ void TMB::WriteRegister(int reg, int value){
   //
 }
 //
+void TMB::WriteRegister(int address) {
+  //
+  int data_to_write = FillTMBRegister(address);
+  //
+  if (data_to_write < 0x10000) {
+    //
+    WriteRegister(address,data_to_write);
+    //
+  } else {
+    //
+    (*MyOutput_) << "TMB: ERROR in WriteRegister, data word too big to write" << std::endl;
+  }
+  return;
+}
+//
 bool TMB::SelfTest() {
   //
-return 0;
-  //
+  return 0;
 }
 //
 void TMB::init() {
+  //
+  return;
 }
 //
 void TMB::configure() {
@@ -697,8 +714,7 @@ void TMB::configure() {
     //don't write to the user FPGA JTAG address, since it is used for ALCT configuration:
     if ( address == vme_usr_jtag_adr ) continue;
     //
-    int data_to_write = FillTMBRegister(address);
-    WriteRegister(address,data_to_write);
+    WriteRegister(address);
     //
   }
   //
@@ -1102,7 +1118,7 @@ void TMB::DecodeCLCT(){
    CLCT1_sync_err_     = ((CLCT1_data_>>19) &  0x1);
    CLCT1_bx0_local_    = ((CLCT1_data_>>20) &  0x1);
    //
-   PrintCLCT();
+   //   PrintCLCT();
    //
    return;
 }
@@ -1157,8 +1173,6 @@ void TMB::PrintCounters(int counter){
   //
   // if (counter < 0) { print all counters }
   //
-  (*MyOutput_) << std::endl;
-  //
   if (counter<0)                  (*MyOutput_) << "--------------------------------------------------------" << std::endl;
   if (counter<0)                  (*MyOutput_) << "---              Counters                             --" << std::endl;
   if (counter<0)                  (*MyOutput_) << "--------------------------------------------------------" << std::endl;
@@ -1169,8 +1183,6 @@ void TMB::PrintCounters(int counter){
     (*MyOutput_) << CounterName(counter)  << FinalCounter[counter] <<std::endl ;
   }
   //
-  (*MyOutput_) << std::endl;
-   //
 }
 //
 std::string TMB::CounterName(int counter){
@@ -2685,7 +2697,7 @@ void TMB::TMBRawhits(){
     //
     //pretrigger and halt until next unhalt arrives:
     SetPretriggerHalt(1);
-    WriteRegister(seq_clct_adr,FillTMBRegister(seq_clct_adr));
+    WriteRegister(seq_clct_adr);
     ::usleep(100000);   // Give the chamber time to trigger on and read an event
     //
     // Attempt to read the data:
@@ -2694,7 +2706,7 @@ void TMB::TMBRawhits(){
     //
     // Pretrigger unhalt, go back to normal data taking:
     SetPretriggerHalt(0);
-    WriteRegister(seq_clct_adr,FillTMBRegister(seq_clct_adr));
+    WriteRegister(seq_clct_adr);
     ::usleep(10000);
   }
   //
@@ -3383,12 +3395,7 @@ void TMB::decode() {
   //return 0;
 
 } //main
-
-
-void TMB::fifomode() {
-
-}
-
+//
 void TMB::DataSendMPC(){
   //
   (*MyOutput_) << "TMB LCT data send to MPC" << std::endl;
@@ -5906,6 +5913,48 @@ void TMB::ExtClctTrigFromCCBonly() {
   return;
 }
 //
+void TMB::WriteDistripHotChannelMasks(){
+  //
+  WriteRegister(hcm001_adr);
+  WriteRegister(hcm023_adr); 
+  WriteRegister(hcm045_adr); 
+  WriteRegister(hcm101_adr); 
+  WriteRegister(hcm123_adr); 
+  WriteRegister(hcm145_adr); 
+  WriteRegister(hcm201_adr); 
+  WriteRegister(hcm223_adr); 
+  WriteRegister(hcm245_adr); 
+  WriteRegister(hcm301_adr); 
+  WriteRegister(hcm323_adr); 
+  WriteRegister(hcm345_adr); 
+  WriteRegister(hcm401_adr); 
+  WriteRegister(hcm423_adr); 
+  WriteRegister(hcm445_adr); 
+  //
+  return;
+}
+//
+void TMB::ReadDistripHotChannelMasks(){
+  //
+  ReadRegister(hcm001_adr);
+  ReadRegister(hcm023_adr); 
+  ReadRegister(hcm045_adr); 
+  ReadRegister(hcm101_adr); 
+  ReadRegister(hcm123_adr); 
+  ReadRegister(hcm145_adr); 
+  ReadRegister(hcm201_adr); 
+  ReadRegister(hcm223_adr); 
+  ReadRegister(hcm245_adr); 
+  ReadRegister(hcm301_adr); 
+  ReadRegister(hcm323_adr); 
+  ReadRegister(hcm345_adr); 
+  ReadRegister(hcm401_adr); 
+  ReadRegister(hcm423_adr); 
+  ReadRegister(hcm445_adr); 
+  //
+  return;
+}
+//
 ////////////////////////////////////////////////////////
 // Digital Serial Numbers
 ////////////////////////////////////////////////////////
@@ -7916,9 +7965,9 @@ void TMB::Set_cfeb_enable_source(int value) {
   //
   // decode TMB VME register into the bit which the VME register expects
   if (value == 42) {
-    SetCfebEnableSource(1);     
+    SetCfebEnableSource_(1);     
   } else if (value == 68) {
-    SetCfebEnableSource(0);     
+    SetCfebEnableSource_(0);     
   }
   return;
 }
@@ -8216,6 +8265,11 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //---------------------------------------------------------------------
     InsertValueIntoDataWord(layer_trigger_en_ ,layer_trigger_en_bithi ,layer_trigger_en_bitlo ,&data_word); 
     InsertValueIntoDataWord(layer_trig_thresh_,layer_trig_thresh_bithi,layer_trig_thresh_bitlo,&data_word); 
+    //
+  } else {
+    //
+    (*MyOutput_) << "TMB: ERROR in FillTMBRegister, VME address = " << address << " not supported to be filled" << std::endl;
+    data_word = 0xf0000;  //make data word too big to fit in TMB register
     //
   }
   //
