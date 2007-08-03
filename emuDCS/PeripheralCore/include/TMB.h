@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.26 2007/07/26 13:09:34 rakness Exp $
+// $Id: TMB.h,v 3.27 2007/08/03 14:35:40 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.27  2007/08/03 14:35:40  rakness
+// begin commenting for doxygen, add hot-channel mask write, add writeregister together with fillregister
+//
 // Revision 3.26  2007/07/26 13:09:34  rakness
 // update CFEB rx scan for CLCT key layer 3 -> 2 change
 //
@@ -261,20 +264,26 @@ public:
   //
   void WriteOutput(std::string);
   //
-  /// from the BOARDTYPE enum
+  // from the BOARDTYPE enum
   unsigned int boardType() const {return TMB_ENUM;}
-  /// ucla_start was always called with a dev and a slot
+  // ucla_start was always called with a dev and a slot
   void start();
   void end();
-  /// ALCTs need to go to lower scan level, whatever that means
+  // ALCTs need to go to lower scan level, whatever that means
   void start(int,int jtagSource=jtagSourceBoot);
-  /// does start(1)
+  // does start(1)
   void tmb_vme(char fcn, char vme, const char *snd,char *rcv, int wrt);      
   int  GetWordCount();
   void StartTTC();
-  int  ReadRegister(int);
   void DumpRegister(int);
-  void WriteRegister(int,int);
+  //
+  //! Write "data" into VME "address"
+  void WriteRegister(int address, int data);
+  //!return value read from "address"
+  int  ReadRegister(int address);
+  //! Write data which has been set by Set... methods
+  void WriteRegister(int address);
+  //
   void DumpAddress(int);
   //
   void DecodeCLCT();
@@ -294,7 +303,6 @@ public:
   bool OnlyReadTMBRawhits();
   void PrintTMBRawHits();
   void ForceScopeTrigger();
-  void fifomode();
   void init_alct(int choice);
   void load_cscid();
   void DiStripHCMask(int);
@@ -352,30 +360,32 @@ public:
   inline int  GetExpectedRatFirmwareYear() { return rat_firmware_year_; }
   //
   int  PowerComparator();
-  /// called by TRGMODE, depending on version_
+  // called by TRGMODE, depending on version_
   void setupNewDelayChips();
   void setupOldDelayChips();
   void trgmode_bprsq_alct();
   void trgmode_bprsq_clct(int choice);
   void activecfeb();
   void toggle_l1req();
-  //void trgmode_bprsq_dmb();
+  //
   void firmwareVersion();
   void setLogicAnalyzerToDataStream(bool yesorno);
-  //void tmb_PHOS4_alct(int time=0);
-  //void tmb_PHOS4_cfeb();
+  //
   void EnableL1aRequest();
   void DisableL1aRequest();
   //
-  void EnableCLCTInputs(int CLCInputs );
+  void EnableCLCTInputs(int CLCTInputs );
   void DisableCLCTInputs();
-  //
   void DisableALCTInputs();
+  //
   void DisableALCTCLCTSync();
+  //
   void DisableExternalCCB();
+  //
   void EnableInternalL1aEmulator();
   void DisableInternalL1aSequencer();
   void EnableInternalL1aSequencer();
+  //
   void tmb_clk_delays(unsigned short int time, int cfeb_id);
   //
   int  CCB_command_from_TTC();
@@ -463,7 +473,8 @@ public:
   void init() ;
   void configure() ;
   //
-  std::bitset<64> dsnRead(int); // TMB=0, mezzanine=1, RAT=2
+  //!device = 0 = TMB, = 1 = mezzanine, = 2 = RAT
+  std::bitset<64> dsnRead(int device); 
   void ADCvoltages(float*);
   int tmb_read_delays(int);
   //
@@ -481,7 +492,6 @@ public:
   inline void SetShiftRpc(int shift_rpc){ shift_rpc_ = shift_rpc; }
   inline int  GetShiftRpc(){ return shift_rpc_; }
   //
-  //
   ////////////////////////////////////////////////////
   // configuration parameters
   ////////////////////////////////////////////////////
@@ -491,28 +501,28 @@ public:
   //----------------------------------------------------------------
   //0X0E = ADR_LOOPBK:  Loop-Back Control Register:
   //----------------------------------------------------------------
+  //!ALCT_input = [0,1] -> ALCT rx [off,on]
   inline void SetAlctInput(int ALCT_input) { ALCT_input_ = ALCT_input; }        
   inline int  GetAlctInput() { return ALCT_input_;}
-  //ALCT_input = [0,1] -> ALCT rx [off,on]
   //
+  //!enable_alct_tx = [0,1] -> ALCT tx [off,on]
   inline void SetEnableAlctTx(int enable_alct_tx) { enable_alct_tx_ = enable_alct_tx; } 
   inline int  GetEnableAlctTx() { return enable_alct_tx_; }
-  //enable_alct_tx = [0,1] -> ALCT tx [off,on]
   //
   //----------------------------------------------------------------
   //0X32 = ADR_ALCT_INJ:  ALCT Injector Control:
   //----------------------------------------------------------------
+  //!alct_clear = [0,1] -> [do not blank,blank] ALCT received data
   inline void SetAlctClear(int alct_clear) { alct_clear_ = alct_clear; }                    
   inline int  GetAlctClear() { return alct_clear_; }
-  //alct_clear = [0,1] -> [do not blank,blank] ALCT received data
   //
+  //!alct_inject_mux = 1 = start ALCT injector state machine
   inline void SetAlctInject(int alct_inject_mux) { alct_inject_mux_ = alct_inject_mux; }              
   inline int  GetAlctInject() { return alct_inject_mux_; }
-  //alct_inject_mux = 1 = start ALCT injector state machine
   //
+  //!alct_sync_clct = 1 = link ALCT injector with CLCT inject command
   inline void SetSyncAlctInjectToClctInject(int alct_sync_clct) { alct_sync_clct_ = alct_sync_clct; } 
   inline int  GetSyncAlctInjectToClctInject() { return alct_sync_clct_; }
-  //alct_sync_clct = 1 = link ALCT injector with CLCT inject command
   //
   inline void SetAlctInjectorDelay(int alct_inj_delay) { alct_inj_delay_ = alct_inj_delay; }
   inline int  GetAlctInjectorDelay() { return alct_inj_delay_; }
@@ -520,21 +530,21 @@ public:
   //----------------------------------------------------------------
   //0X42 = ADR_CFEB_INJ:  CFEB Injector Control:
   //----------------------------------------------------------------
+  //!enableCLCTInputs = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [disable,enable] CFEB input
   inline void SetEnableCLCTInputs(int enableCLCTInputs) { enableCLCTInputs_ = enableCLCTInputs; } 
   inline int  GetEnableCLCTInputs() { return enableCLCTInputs_; }
-  //enableCLCTInputs = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [disable,enable] CFEB input
   //
+  //!cfeb_ram_sel = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [do not select,select] CFEB for RAM read/write
   inline void SetSelectCLCTRAM(int cfeb_ram_sel) { cfeb_ram_sel_ = cfeb_ram_sel; }        
   inline int  GetSelectCLCTRAM() { return cfeb_ram_sel_; }
-  //cfeb_ram_sel = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [do not select,select] CFEB for RAM read/write
   //
+  //!cfeb_inj_en_sel = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [disable,enable] CFEB for injector trigger
   inline void SetEnableCLCTInject(int cfeb_inj_en_sel) { cfeb_inj_en_sel_ = cfeb_inj_en_sel; }  
   inline int  GetEnableCLCTInject() { return cfeb_inj_en_sel_; }
-  //cfeb_inj_en_sel = [0-31]... 5 bit mask, 1 bit per CFEB -> each bit [0,1] = [disable,enable] CFEB for injector trigger
   //
+  //!start_pattern_inj = 1 = start pattern injector
   inline void SetStartPatternInjector(int start_pattern_inj) { start_pattern_inj_ = start_pattern_inj; } 
   inline int  GetStartPatternInjector() { return start_pattern_inj_; }
-  //start_pattern_inj = 1 = start pattern injector
   //
   //------------------------------------------------------------------
   //0X4A,4C,4E = ADR_HCM001,HCM023,HCM045 = CFEB0 Hot Channel Masks
@@ -543,55 +553,59 @@ public:
   //0X5C,5E,60 = ADR_HCM301,HCM323,HCM345 = CFEB3 Hot Channel Masks
   //0X62,64,66 = ADR_HCM401,HCM423,HCM445 = CFEB4 Hot Channel Masks
   //------------------------------------------------------------------
+  //!layer=[0-5], distrip=[0-39], on_or_off = 0 = disable
   inline void SetDistripHotChannelMask(int layer,int distrip,int on_or_off) { hot_channel_mask_[layer][distrip] = on_or_off; } 
   inline int  GetDistripHotChannelMask(int layer,int distrip) { return hot_channel_mask_[layer][distrip]; }
-  //layer=[0-5], distrip=[0-39], on_or_off = 0 = disable
+  //
+  //!Write registers whose values have been set by SetDistripHotChannelMask(layer,channel,on_or_off)
+  void WriteDistripHotChannelMasks();
+  void ReadDistripHotChannelMasks();
   //
   //-----------------------------------------------------------------
   //0XB6 = ADR_RPC_CFG:  RPC Configuration:
   //-----------------------------------------------------------------
+  //!rpc_exists = [0-15]... 4 bit mask, 1 bit per RPC -> each bit [0,1] = RPC [does not,does] exist
   inline void SetRpcExist(int rpc_exists) { rpc_exists_ = rpc_exists; }  
   inline int  GetRpcExist() { return rpc_exists_; }
-  //rpc_exists = [0-15]... 4 bit mask, 1 bit per RPC -> each bit [0,1] = RPC [does not,does] exist
   //
+  //!rpc_read_enable = 1 = include existing RPCs in DMB readout
   inline void SetRpcReadEnable(int rpc_read_enable) { rpc_read_enable_ = rpc_read_enable; } 
   inline int  GetRpcReadEnable() { return rpc_read_enable_; }
-  //rpc_read_enable = 1 = include existing RPCs in DMB readout
   //
+  //!rpc_bxn_offset = [0-15]
   inline void SetRpcBxnOffset(int rpc_bxn_offset) { rpc_bxn_offset_ = rpc_bxn_offset; } 
   inline int  GetRpcBxnOffset() { return rpc_bxn_offset_; }
-  //rpc_bxn_offset = [0-15]
   //
+  //!rpc_bank = [0-3] -> RPC bank address, for reading rdata sync mode
   inline void SetRpcSyncBankAddress(int rpc_bank) { rpc_bank_ = rpc_bank; } 
   inline int  GetRpcSyncBankAddress() { return rpc_bank_; }
-  //rpc_bank = [0-3] -> RPC bank address, for reading rdata sync mode
   //
   //------------------------------------------------------------------
   //0XBC = ADR_RPC_INJ:  RPC Injector Control
   //------------------------------------------------------------------
+  //!rpc_mask_all = [1,0] -> All RPC inputs [on,off]
   inline void SetEnableRpcInput(int rpc_mask_all) { rpc_mask_all_ = rpc_mask_all; }   
   inline int  GetEnableRpcInput() { return rpc_mask_all_; }
-  //rpc_mask_all = [1,0] -> All RPC inputs [on,off]
   //
+  //!inj_mask_rat = 1 = enable RAT for injector fire
   inline void SetInjectorMaskRat(int inj_mask_rat) { inj_mask_rat_ = inj_mask_rat; }
   inline int  GetInjectorMaskRat() { return inj_mask_rat_; }
-  //inj_mask_rat = 1 = enable RAT for injector fire
   //
+  //!inj_mask_rpc = 1 = enable RPC injector RAM for injector fire
   inline void SetInjectorMaskRpc(int inj_mask_rpc) { inj_mask_rpc_ = inj_mask_rpc; }
   inline int  GetInjectorMaskRpc() { return inj_mask_rpc_; }
-  //inj_mask_rpc = 1 = enable RPC injector RAM for injector fire
   //
+  //!inj_delay_rat = [0-15] -> CFEB/RPC injectors wait for RAT
   inline void SetInjectorDelayRat(int inj_delay_rat) { inj_delay_rat_ = inj_delay_rat; }
   inline int  GetInjectorDelayRat() { return inj_delay_rat_; }
-  //inj_delay_rat = [0-15] -> CFEB/RPC injectors wait for RAT
   //
+  //!rpc_inj_sel = 1 = enable injector RAM write 
   inline void SetRpcInjector(int rpc_inj_sel) {rpc_inj_sel_ = rpc_inj_sel; }
   inline int  GetRpcInjector() {return rpc_inj_sel_; }
-  //rpc_inj_sel = 1 = enable injector RAM write 
   //
+  //rpc_inj_wdata = [0-7] -> RPC injector write data MSBs
   inline void SetRpcInjectorWriteDataMSBs(int rpc_inj_wdata) { rpc_inj_wdata_ = rpc_inj_wdata; }
   inline int  GetRpcInjectorWriteDataMSBs() { return rpc_inj_wdata_; }
-  //rpc_inj_wdata = [0-7] -> RPC injector write data MSBs
   //
   // ******************************************
   // trigger and signal delays:
@@ -599,97 +613,98 @@ public:
   //------------------------------------------------------------------
   //0X6A = ADR_SEQ_TRIG_DLY0:  Sequencer Trigger Source Delays
   //------------------------------------------------------------------
+  //!alct_pretrig_width = [0-15] = window width for ALCT*CLCT pretrigger (bx)
   inline void SetAlctClctPretrigWidth(int alct_pretrig_width) { alct_pretrig_width_ = alct_pretrig_width; }
   inline int  GetAlctClctPretrigWidth() { return alct_pretrig_width_; }
-  //alct_pretrig_width = [0-15] = window width for ALCT*CLCT pretrigger (bx)
   //
+  //!alct_pretrig_delay = [0-15] = ALCT delay for use in ALCT*CLCT pretrigger (bx)
   inline void SetAlctPretrigDelay(int alct_pretrig_delay) { alct_pretrig_delay_ = alct_pretrig_delay; }
   inline int  GetAlctPretrigDelay() { return alct_pretrig_delay_; }  
-  //alct_pretrig_delay = [0-15] = ALCT delay for use in ALCT*CLCT pretrigger (bx)
   //
+  //!alct_pattern_delay = [0-15] = delay active FEB flag from ALCT (bx)
   inline void SetAlctPatternDelay(int alct_pattern_delay) { alct_pattern_delay_ = alct_pattern_delay; }
   inline int  GetAlctPatternDelay() { return alct_pattern_delay_; }
-  //alct_pattern_delay = [0-15] = delay active FEB flag from ALCT (bx)
   //
+  //!adb_ext_trig_delay = [0-15] = delay ADB external trig from CCB (bx)
   inline void SetAdbExternalTrigDelay(int adb_ext_trig_delay) { adb_ext_trig_delay_ = adb_ext_trig_delay; }
   inline int  GetAdbExternalTrigDelay() { return adb_ext_trig_delay_; }
-  //adb_ext_trig_delay = [0-15] = delay ADB external trig from CCB (bx)
   //
   //------------------------------------------------------------------
   //0X6C = ADR_SEQ_TRIG_DLY1:  Sequencer Trigger Source Delays
   //------------------------------------------------------------------
+  //!dmb_ext_trig_delay = [0-15] = delay external trigger from DMB (bx)
   inline void SetDmbExternalTrigDelay(int dmb_ext_trig_delay) { dmb_ext_trig_delay_ = dmb_ext_trig_delay; }
   inline int  GetDmbExternalTrigDelay() { return dmb_ext_trig_delay_; }
-  //dmb_ext_trig_delay = [0-15] = delay external trigger from DMB (bx)
   //
+  //!clct_ext_trig_delay = [0-15] = delay external trigger from CLCT (bx)
   inline void SetClctExternalTrigDelay(int clct_ext_trig_delay) { clct_ext_trig_delay_ = clct_ext_trig_delay; }
   inline int  GetClctExternalTrigDelay() { return clct_ext_trig_delay_; }
-  //clct_ext_trig_delay = [0-15] = delay external trigger from CLCT (bx)
   //
+  //!alct_ext_trig_delay = [0-15] = delay external trigger from ALCT (bx)
   inline void SetAlctExternalTrigDelay(int alct_ext_trig_delay) { alct_ext_trig_delay_ = alct_ext_trig_delay; }
   inline int  GetAlctExternalTrigDelay() { return alct_ext_trig_delay_; }
-  //alct_ext_trig_delay = [0-15] = delay external trigger from ALCT (bx)
   //
+  //!layer_trig_delay = [0-15] = delay layer trigger (bx)
   inline void SetLayerTrigDelay(int layer_trig_delay) { layer_trig_delay_ = layer_trig_delay; }
   inline int  GetLayerTrigDelay() { return layer_trig_delay_; }
-  //layer_trig_delay = [0-15] = delay layer trigger (bx)
   //
   //------------------------------------------------------------------
   //0X74 = ADR_SEQ_L1A:  Sequencer L1A configuration
   //------------------------------------------------------------------
+  //!l1adelay = [0-255] (bx)
   inline void SetL1aDelay(int l1adelay) { l1adelay_ = l1adelay; }
   inline int  GetL1aDelay() { return l1adelay_; }
-  //l1adelay = [0-255] (bx)
   //
+  //!l1a_window_size = [0-15] (bx)
   inline void SetL1aWindowSize(int l1a_window_size) { l1a_window_size_ = l1a_window_size; }
   inline int  GetL1aWindowSize() { return l1a_window_size_; }
-  //l1a_window_size = [0-15] (bx)
   //
+  //!tmb_l1a_internal = 1 = generate internal level 1 (overrides external)
   inline void SetInternalL1a(int tmb_l1a_internal) { tmb_l1a_internal_ = tmb_l1a_internal; }
   inline int  GetInternalL1a() { return tmb_l1a_internal_; }
-  //tmb_l1a_internal = 1 = generate internal level 1 (overrides external)
   //
   //------------------------------------------------------------------
   //0X76 = ADR_SEQ_OFFSET:  Sequencer Counter Offsets
   //------------------------------------------------------------------
+  //!l1a_offset = [0-15]
   inline void SetL1aOffset(int l1a_offset) { l1a_offset_ = l1a_offset; }
   inline int  GetL1aOffset() { return l1a_offset_; }
-  //l1a_offset = [0-15]
   //
+  //!bxn_offset = [0-4095]
   inline void SetBxnOffset(int bxn_offset) { bxn_offset_ = bxn_offset; }
   inline int  GetBxnOffset() { return bxn_offset_; }
-  //bxn_offset = [0-4095]
   //
   //------------------------------------------------------------------
   //0XB2 = ADR_TMBTIM:  TMB Timing for ALCT*CLCT Coincidence
   //------------------------------------------------------------------
+  //!alct_vpf_delay = [0-15] = delay ALCT valid pattern flag to match with CLCT pattern for trigger (bx)
   inline void SetAlctVpfDelay(int alct_vpf_delay) { alct_vpf_delay_ = alct_vpf_delay; }
   inline int  GetAlctVpfDelay() { return alct_vpf_delay_; }
-  //alct_vpf_delay = [0-15] = delay ALCT valid pattern flag to match with CLCT pattern for trigger (bx)
   //
+  //!alct_match_window_size = [0-15] = ALCT/CLCT match window width for trigger (bx)
   inline void SetAlctMatchWindowSize(int alct_match_window_size) { alct_match_window_size_ = alct_match_window_size; }
   inline int  GetAlctMatchWindowSize() { return alct_match_window_size_ ; }
-  //alct_match_window_size = [0-15] = ALCT/CLCT match window width for trigger (bx)
   //
+  //!mpc_tx_delay = [0-15] = delay sending LCT to MPC (bx)
   inline void SetMpcTXdelay(int mpc_tx_delay) { mpc_tx_delay_ = mpc_tx_delay; }
   inline  int GetMpcTXdelay() { return mpc_tx_delay_; }
-  //mpc_tx_delay = [0-15] = delay sending LCT to MPC (bx)
   //
   //------------------------------------------------------------------
   //0XBA = ADR_RPC_RAW_DELAY:  RPC Raw Hits Data Delay
   //------------------------------------------------------------------
+  //!rpc0_raw_delay = [0-15] = delay RPC data into FIFO (bx)
   inline void SetRpc0RawDelay(int rpc0_raw_delay) { rpc0_raw_delay_ = rpc0_raw_delay; }
   inline int  GetRpc0RawDelay() { return rpc0_raw_delay_ ; }
-  //rpc0_raw_delay = [0-15] = delay RPC data into FIFO (bx)
   //
+  //!rpc1_raw_delay = [0-15] = delay RPC data into FIFO (bx)
   inline void SetRpc1RawDelay(int rpc1_raw_delay) { rpc1_raw_delay_ = rpc1_raw_delay; }
   inline int  GetRpc1RawDelay() { return rpc1_raw_delay_ ; }
-  //rpc1_raw_delay = [0-15] = delay RPC data into FIFO (bx)
   //
   //
   // ******************************************
   // trigger configuration
   // ******************************************
+  //!to be deprecated
   inline void SetTrgMode(int trgmode) { trgmode_ = trgmode; }
   inline int  GetTrgMode() { return trgmode_ ; }
   //trgmode = CLCT_trigger                  =  1;
@@ -701,196 +716,190 @@ public:
   //------------------------------------------------------------------
   //0X68 = ADR_SEQ_TRIG_EN:  Sequencer Trigger Source Enables
   //------------------------------------------------------------------
+  //!clct_pat_trig_en = 1 = CLCT Pattern = pretrigger
   inline void SetClctPatternTrigEnable(int clct_pat_trig_en) { clct_pat_trig_en_ = clct_pat_trig_en; }
   inline int  GetClctPatternTrigEnable() { return clct_pat_trig_en_; }
-  //clct_pat_trig_en = 1 = CLCT Pattern = pretrigger
   //
+  //!alct_pat_trig_en = 1 = ALCT Pattern = pretrigger
   inline void SetAlctPatternTrigEnable(int alct_pat_trig_en) { alct_pat_trig_en_ = alct_pat_trig_en; }
   inline int  GetAlctPatternTrigEnable() { return alct_pat_trig_en_; }
-  //alct_pat_trig_en = 1 = ALCT Pattern = pretrigger
   //
+  //!match_pat_trig_en = 1 = ALCT*CLCT Pattern = pretrigger
   inline void SetMatchPatternTrigEnable(int match_pat_trig_en) { match_pat_trig_en_ = match_pat_trig_en; }
   inline int  GetMatchPatternTrigEnable() { return match_pat_trig_en_; }
-  //match_pat_trig_en = 1 = ALCT*CLCT Pattern = pretrigger
   //
+  //!adb_ext_trig_en = 1 = allow ADB external triggers from CCB
   inline void SetAdbExtTrigEnable(int adb_ext_trig_en) { adb_ext_trig_en_ = adb_ext_trig_en; }
   inline int  GetAdbExtTrigEnable() { return adb_ext_trig_en_; }
-  //adb_ext_trig_en = 1 = allow ADB external triggers from CCB
   //
+  //!dmb_ext_trig_en = 1 = allow DMB external triggers
   inline void SetDmbExtTrigEnable(int dmb_ext_trig_en) { dmb_ext_trig_en_ = dmb_ext_trig_en; }
   inline int  GetDmbExtTrigEnable() { return dmb_ext_trig_en_; }
-  //dmb_ext_trig_en = 1 = allow DMB external triggers
   //
+  //!clct_ext_trig_en = 1 = allow CLCT external triggers (scintillator) from CCB
   inline void SetClctExtTrigEnable(int clct_ext_trig_en) { clct_ext_trig_en_ = clct_ext_trig_en; }
   inline int  GetClctExtTrigEnable() { return clct_ext_trig_en_; }
-  //clct_ext_trig_en = 1 = allow CLCT external triggers (scintillator) from CCB
   //
+  //!alct_ext_trig_en = 1 = allow ALCT external triggers from CCB
   inline void SetAlctExtTrigEnable(int alct_ext_trig_en) { alct_ext_trig_en_ = alct_ext_trig_en; }
   inline int  GetAlctExtTrigEnable() { return alct_ext_trig_en_; }
-  //alct_ext_trig_en = 1 = allow ALCT external triggers from CCB
   //
+  //!vme_ext_trig = 1 = Initiate sequencer trigger (write 0 to recover)
   inline void SetVmeExtTrig(int vme_ext_trig) { vme_ext_trig_ = vme_ext_trig; }
   inline int  GetVmeExtTrig() { return vme_ext_trig_; }
-  //vme_ext_trig = 1 = Initiate sequencer trigger (write 0 to recover)
   //
+  //!ext_trig_inject = 1 = change clct_ext_trig to fire pattern injector
   inline void SetExtTrigInject(int ext_trig_inject) { ext_trig_inject_ = ext_trig_inject; }
   inline int  GetExtTrigInject() { return ext_trig_inject_; }
-  //ext_trig_inject = 1 = change clct_ext_trig to fire pattern injector
   //
+  //!all_cfeb_active = 1 = make all CFEBs active when triggered
   inline void SetEnableAllCfebsActive(int all_cfeb_active) { all_cfeb_active_ = all_cfeb_active; }
   inline int  GetEnableAllCfebsActive() { return all_cfeb_active_; }
-  //all_cfeb_active = 1 = make all CFEBs active when triggered
   //
+  //!cfebs_enabled_ = [0-31] -> normally copied from 0x42.  See TMB documentation before setting these bits...
   inline void SetCfebEnable(int cfebs_enabled) { cfebs_enabled_ = cfebs_enabled; }
   inline int  GetCfebEnable() { return cfebs_enabled_; }
-  //cfebs_enabled_ = [0-31] -> normally copied from 0x42.  
-  //See TMB documentation before setting these bits...
   //
+  //! value = 42, 68 = VME register which controls the CFEB mask.  See TMB documentation before setting this value.
   void Set_cfeb_enable_source(int value); 
-  // value = 42, 68 = VME register which controls the CFEB mask
-  // this is the user interface to TMB::SetCfebEnableSource(int), below
-  //See TMB documentation before setting this bit.
+  // this is the user interface to SetCfebEnableSource_(int cfeb_enable_source)...
   //
-  inline void SetCfebEnableSource(int cfeb_enable_source) { cfeb_enable_source_ = cfeb_enable_source; }
   inline int  GetCfebEnableSource() { return cfeb_enable_source_; }
-  //cfeb_enable_source = [0,1] = [0x68,0x42] is source of cfeb_enable
-  //See TMB documentation before setting this bit.
   //
   //------------------------------------------------------------------
   //0X70 = ADR_SEQ_CLCT:  Sequencer CLCT configuration
   //------------------------------------------------------------------
+  //!triad_persist = [0-15] = triad one-shot perisistence (bx)
   inline void SetTriadPersistence(int triad_persist) { triad_persist_ = triad_persist; }
   inline int  GetTriadPersistence() { return triad_persist_; }
-  //triad_persist = [0-15] = triad one-shot perisistence (bx)
   //
+  //!hs_pretrig_thresh = [0-6] = 1/2-strip pretrigger threshold
   inline void SetHsPretrigThresh(int hs_pretrig_thresh) { hs_pretrig_thresh_ = hs_pretrig_thresh; }
   inline int  GetHsPretrigThresh() { return hs_pretrig_thresh_; }
-  //hs_pretrig_thresh = [0-6] = 1/2-strip pretrigger threshold
   //
+  //!ds_pretrig_thresh = [0-6] = di-strip pretrigger threshold
   inline void SetDsPretrigThresh(int ds_pretrig_thresh) { ds_pretrig_thresh_ = ds_pretrig_thresh; }
   inline int  GetDsPretrigThresh() { return ds_pretrig_thresh_; }
-  //ds_pretrig_thresh = [0-6] = di-strip pretrigger threshold
   //
+  //!min_hits_pattern = minimum number of layers needed to match for pattern trigger
   inline void SetMinHitsPattern(int min_hits_pattern){ min_hits_pattern_ = min_hits_pattern; }
   inline int  GetMinHitsPattern() { return min_hits_pattern_ ;}
-  //min_hits_pattern = minimum number of layers needed to match for pattern trigger
   //
+  //!drift_delay = [0-3] = drift delay between TMB pretrigger and CLCT pattern trigger
   inline void SetDriftDelay(int drift_delay) { drift_delay_ = drift_delay; }
   inline int  GetDriftDelay() { return drift_delay_; }
-  //drift_delay = [0-3] = drift delay between TMB pretrigger and CLCT pattern trigger
   //
+  //!pretrigger_halt = 1 = pretrigger and halt until unhalt arrives
   inline void SetPretriggerHalt(int pretrigger_halt) { pretrigger_halt_ = pretrigger_halt; }
   inline int  GetPretriggerHalt() { return pretrigger_halt_; }
-  //pretrigger_halt = 1 = pretrigger and halt until unhalt arrives
   //
   //------------------------------------------------------------------
   //0X72 = ADR_SEQ_FIFO:  Sequencer FIFO configuration
   //------------------------------------------------------------------
-  inline void SetFifoMode(int fifo_mode) { fifo_mode_ = fifo_mode; }
-  inline int  GetFifoMode() { return fifo_mode_; }
   //fifo_mode = FIFOMODE_NoCfebRaw_FullHeader    = 0
   //            FIFOMODE_AllCfebRaw_FullHeader   = 1;
   //            FIFOMODE_LocalCfebRaw_FullHeader = 2;
   //            FIFOMODE_NoCfebRaw_ShortHeader   = 3;
   //            FIFOMODE_NoCfebRaw_NoHeader      = 4;
+  inline void SetFifoMode(int fifo_mode) { fifo_mode_ = fifo_mode; }
+  inline int  GetFifoMode() { return fifo_mode_; }
   //
+  //!fifo_tbins = [0-31] -> width of window for CLCT/RPC raw data readout (bx)
   inline void SetFifoTbins(int fifo_tbins) { fifo_tbins_ = fifo_tbins; }
   inline int  GetFifoTbins() { return fifo_tbins_ ; }
-  //fifo_tbins = [0-31] -> width of window for CLCT/RPC raw data readout (bx)
   //
+  //!fifo_pretrig = [0-31] -> number of time bins before TMB pretrigger to begin data readout window (bx)
   inline void SetFifoPreTrig(int fifo_pretrig) { fifo_pretrig_ = fifo_pretrig; }
   inline int  GetFifoPreTrig() { return fifo_pretrig_; }
-  //fifo_pretrig = [0-31] -> number of time bins before TMB pretrigger to begin data readout window (bx)
   //
   //------------------------------------------------------------------
   //0X86 = ADR_TMB_TRIG:  TMB Trigger configuration/MPC accept
   //------------------------------------------------------------------
+  //!tmb_sync_err_enable = [0-3]... 2 bit mask, 1 bit per LCT -> each bit [0,1] = [disable,enable] sync_err to MPC
   inline void SetTmbSyncErrEnable(int tmb_sync_err_enable) { tmb_sync_err_enable_ = tmb_sync_err_enable; }
   inline int  GetTmbSyncErrEnable() { return tmb_sync_err_enable_; }
-  //tmb_sync_err_enable = [0-3]... 2 bit mask, 1 bit per LCT -> each bit [0,1] = [disable,enable] sync_err to MPC
   //
+  //!tmb_allow_alct = 1 = ALCT only trigger
   inline void SetTmbAllowAlct(int tmb_allow_alct) { tmb_allow_alct_ = tmb_allow_alct; }
   inline int  GetTmbAllowAlct() { return tmb_allow_alct_; }
-  //tmb_allow_alct = 1 = ALCT only trigger
   //
+  //!tmb_allow_clct = 1 = CLCT only trigger
   inline void SetTmbAllowClct(int tmb_allow_clct) { tmb_allow_clct_ = tmb_allow_clct; }
   inline int  GetTmbAllowClct() { return tmb_allow_clct_; }
-  //tmb_allow_clct = 1 = CLCT only trigger
   //
+  //!tmb_allow_match = 1 = ALCT*CLCT trigger
   inline void SetTmbAllowMatch(int tmb_allow_match) { tmb_allow_match_ = tmb_allow_match; }
   inline int  GetTmbAllowMatch() { return tmb_allow_match_; }
-  //tmb_allow_match = 1 = ALCT*CLCT trigger
   //
+  //!mpc_delay = [0-15] -> MPC accept bit delay
   inline void SetMpcDelay(int mpc_delay) {mpc_delay_= mpc_delay;}
   inline int  GetMPCdelay() { return mpc_delay_; }
-  //mpc_delay = [0-15] -> MPC accept bit delay
   //
+  //!mpc_sel_ttc_bx0 = [0,1] -> BX0 for MPC comes from [local,TTC]
   inline void SetSelectMpcTtcBx0(int mpc_sel_ttc_bx0) { mpc_sel_ttc_bx0_ = mpc_sel_ttc_bx0; }
   inline int  GetSelectMpcTtcBx0() { return mpc_sel_ttc_bx0_; }
-  //mpc_sel_ttc_bx0 = [0,1] -> BX0 for MPC comes from [local,TTC]
   //
+  //!mpc_idle_blank = 1 = blank MPC data and BX0 except when triggered
   inline void SetMpcIdleBlank(int mpc_idle_blank) { mpc_idle_blank_ = mpc_idle_blank; }
   inline int  GetMpcIdleBlank() { return mpc_idle_blank_; }
-  //mpc_idle_blank = 1 = blank MPC data and BX0 except when triggered
   //
+  //!mpc_output_enable = [0,1] = [disable,enable] output (of LCT) to MPC 
   inline void SetMpcOutputEnable(int mpc_output_enable) { mpc_output_enable_ = mpc_output_enable; }
   inline int  GetMpcOutputEnable() { return mpc_output_enable_; }
-  //mpc_output_enable = [0,1] = [disable,enable] output (of LCT) to MPC 
   //
   //------------------------------------------------------------------
   //0XAC = ADR_SEQMOD:  Sequencer Trigger Modifiers
   //------------------------------------------------------------------
-  // Values in this register which are not set by SetTrgMode are:  
+  //!clct_flush_delay_ = [0-15] = delay to flush the trigger sequencer  
   inline void SetClctFlushDelay(int clct_flush_delay) { clct_flush_delay_ = clct_flush_delay; }
   inline int  GetClctFlushDelay() { return clct_flush_delay_; }
-  //clct_flush_delay_ = [0-15] = delay to flush the trigger sequencer
   //
+  //!clct_turbo = 1 = trigger sequencer turbo mode (no raw hits)
   inline void SetClctTurbo(int clct_turbo) { clct_turbo_ = clct_turbo; }
   inline int  GetClctTurbo() { return clct_turbo_; }
-  //clct_turbo = 1 = trigger sequencer turbo mode (no raw hits)
   //
+  //!ranlct_enable_ = 1 = enable OSU random LCT generator (see TMB documentation)
   inline void SetRandomLctEnable(int ranlct_enable) { ranlct_enable_ = ranlct_enable; }
   inline int  GetRandomLctEnable() { return ranlct_enable_; }
-  //ranlct_enable_ = 1 = enable OSU random LCT generator (see TMB documentation)
   //
+  //!wrt_buf_required_ = 1 = require wr_buffer available to pretrigger
   inline void SetWriteBufferRequired(int wrt_buf_required) { wrt_buf_required_ = wrt_buf_required; }
   inline int  GetWriteBufferRequired() { return wrt_buf_required_; }
-  //wrt_buf_required_ = 1 = require wr_buffer available to pretrigger
   //
+  //!valid_clct_required_ = 1 = require valid CLCT after drift delay
   inline void SetRequireValidClct(int valid_clct_required) { valid_clct_required_ = valid_clct_required; }
   inline int  GetRequireValidClct() { return valid_clct_required_; }
-  //valid_clct_required_ = 1 = require valid CLCT after drift delay
   //
+  //!l1a_allow_match = 1 = readout allows tmb trigger pulse in L1A window
   inline void SetL1aAllowMatch(int l1a_allow_match) { l1a_allow_match_ = l1a_allow_match; }
   inline int  GetL1aAllowMatch() { return l1a_allow_match_; }
-  //l1a_allow_match = 1 = readout allows tmb trigger pulse in L1A window
   //
+  //!l1a_allow_notmb = 1 = readout allows notmb trigger pulse in L1A window
   inline void SetL1aAllowNoTmb(int l1a_allow_notmb) { l1a_allow_notmb_ = l1a_allow_notmb; }
   inline int  GetL1aAllowNoTmb() { return l1a_allow_notmb_; }
-  //l1a_allow_notmb = 1 = readout allows notmb trigger pulse in L1A window
   //
+  //!l1a_allow_nol1a = 1 = readout allows tmb trig pulse outside L1A window
   inline void SetL1aAllowNoL1a(int l1a_allow_nol1a) { l1a_allow_nol1a_ = l1a_allow_nol1a; }
   inline int  GetL1aAllowNoL1a() { return l1a_allow_nol1a_; }
-  //l1a_allow_nol1a = 1 = readout allows tmb trig pulse outside L1A window
   //
+  //!l1a_allow_alct_only = 1 = allow ALCT-only events to readout at L1A
   inline void SetL1aAllowAlctOnly(int l1a_allow_alct_only) { l1a_allow_alct_only_ = l1a_allow_alct_only; }
   inline int  GetL1aAllowAlctOnly() { return l1a_allow_alct_only_; }
-  //l1a_allow_alct_only = 1 = allow ALCT-only events to readout at L1A
   //
+  //!scint_veto_clr = 1 = clear scintillator veto 
   inline void SetScintillatorVetoClear(int scint_veto_clr) { scint_veto_clr_ =  scint_veto_clr; }
   inline int  GetScintillatorVetoClear() { return scint_veto_clr_; }
-  //scint_veto_clr = 1 = clear scintillator veto 
   //
   //---------------------------------------------------------------------
   //0XF0 = ADR_LAYER_TRIG:  Layer-Trigger Mode
   //---------------------------------------------------------------------
+  //!layer_trigger_en = 1 = enable layer trigger mode
   inline void SetEnableLayerTrigger(int layer_trigger_en) { layer_trigger_en_ = layer_trigger_en; } 
   inline int  GetEnableLayerTrigger() { return layer_trigger_en_; } 
-  //layer_trigger_en = 1 = enable layer trigger mode
   //
+  //!layer_trig_thresh = [0-6] = number of layers required for layer trigger
   inline void SetLayerTriggerThreshold(int layer_trig_thresh) { layer_trig_thresh_ = layer_trig_thresh; }
   inline int  GetLayerTriggerThreshold() { return layer_trig_thresh_; }
-  //layer_trig_thresh = [0-6] = number of layers required for layer trigger
   //
   // ******************************************
   // special configuration registers
@@ -898,83 +907,83 @@ public:
   //------------------------------------------------------------------
   //0X2C = ADR_CCB_TRIG:  CCB Trigger Control
   //------------------------------------------------------------------
+  //!alct_ext_trig_l1aen = 1 = request CCB L1A on alct_ext_trig
   inline void SetEnableL1aRequestOnAlctExtTrig(int alct_ext_trig_l1aen) { alct_ext_trig_l1aen_ = alct_ext_trig_l1aen; }
   inline int  GetEnableL1aRequestOnAlctExtTrig() { return alct_ext_trig_l1aen_; }
-  //alct_ext_trig_l1aen = 1 = request CCB L1A on alct_ext_trig
   //
+  //!clct_ext_trig_l1aen = 1 = request CCB L1A on clct_ext_trig
   inline void SetEnableL1aRequestOnClctExtTrig(int clct_ext_trig_l1aen) { clct_ext_trig_l1aen_ = clct_ext_trig_l1aen; }
   inline int  GetEnableL1aRequestOnClctExtTrig() { return clct_ext_trig_l1aen_; }
-  //clct_ext_trig_l1aen = 1 = request CCB L1A on clct_ext_trig
   //
+  //!request_l1a = 1 = request CCB L1A on sequencer trigger
   inline void SetRequestL1a(int request_l1a) { request_l1a_ = request_l1a; }
   inline int  GetRequestL1a() { return request_l1a_; }
-  //request_l1a = 1 = request CCB L1A on sequencer trigger
   //
+  //!alct_ext_trig_vme = 1 = Fire alct_ext_trig oneshot
   inline void SetAlctExtTrigVme(int alct_ext_trig_vme) { alct_ext_trig_vme_ = alct_ext_trig_vme; }
   inline int  GetAlctExtTrigVme() { return alct_ext_trig_vme_; }
-  //alct_ext_trig_vme = 1 = Fire alct_ext_trig oneshot
   //
+  //!clct_ext_trig_vme = 1 = Fire clct_ext_trig oneshot
   inline void SetClctExtTrigVme(int clct_ext_trig_vme) { clct_ext_trig_vme_ = clct_ext_trig_vme; }
   inline int  GetClctExtTrigVme() { return clct_ext_trig_vme_; }
-  //clct_ext_trig_vme = 1 = Fire clct_ext_trig oneshot
   //
+  //!ext_trig_both = 1 = clct_ext_trig fires ALCT + alct_ext_trig fires CLCT
   inline void SetExtTrigBoth(int ext_trig_both) { ext_trig_both_ = ext_trig_both; }
   inline int  GetExtTrigBoth() { return ext_trig_both_; }
-  //ext_trig_both = 1 = clct_ext_trig fires ALCT + alct_ext_trig fires CLCT
   //
+  //!ccb_allow_bypass = 1 = allow clct_exttrig_ccb even though ccb_ignore_rx=1 (address 0x2A)
   inline void SetCcbAllowExternalBypass(int ccb_allow_bypass) { ccb_allow_bypass_ = ccb_allow_bypass; }
   inline int  GetCcbAllowExternalBypass() { return ccb_allow_bypass_; }
-  //ccb_allow_bypass = 1 = allow clct_exttrig_ccb even though ccb_ignore_rx=1 (address 0x2A)
   //
+  //!ignore_ccb_startstop = 1 = ignore ttc_trig_start, ttc_trig_stop
   inline void SetIgnoreCcbStartStop(int ignore_ccb_startstop) { ignore_ccb_startstop_ = ignore_ccb_startstop; }
   inline int  GetIgnoreCcbStartStop() { return ignore_ccb_startstop_; }
-  //ignore_ccb_startstop = 1 = ignore ttc_trig_start, ttc_trig_stop
   //
+  //!internal_l1a_delay_vme = [0-255]
   inline void SetInternalL1aDelay(int internal_l1a_delay_vme) { internal_l1a_delay_vme_ = internal_l1a_delay_vme; }
   inline int  GetInternalL1aDelay() { return internal_l1a_delay_vme_; }
-  //internal_l1a_delay_vme = [0-255]
   //
   //------------------------------------------------------------------
   //0X30 = ADR_ALCT_CFG:  ALCT Configuration
   //------------------------------------------------------------------
+  //!cfg_alct_ext_trig_en = 1 = enable alct_ext_trig from CCB
   inline void SetEnableAlctExtTrig(int cfg_alct_ext_trig_en) { cfg_alct_ext_trig_en_ = cfg_alct_ext_trig_en; }
   inline int  GetEnableAlctExtTrig() { return cfg_alct_ext_trig_en_; }
-  //cfg_alct_ext_trig_en = 1 = enable alct_ext_trig from CCB
   //
+  //!cfg_alct_ext_inject_en = 1 = enable alct_ext_inject from CCB
   inline void SetEnableAlctExtInject(int cfg_alct_ext_inject_en) { cfg_alct_ext_inject_en_ = cfg_alct_ext_inject_en; }
   inline int  GetEnableAlctExtInject() { return cfg_alct_ext_inject_en_; }
-  //cfg_alct_ext_inject_en = 1 = enable alct_ext_inject from CCB
   //
+  //!cfg_alct_ext_trig = 1 = assert alct_ext_trig
   inline void SetAlctExtTrig(int cfg_alct_ext_trig) { cfg_alct_ext_trig_ = cfg_alct_ext_trig; }
   inline int  GetAlctExtTrig() { return cfg_alct_ext_trig_; }
-  //cfg_alct_ext_trig = 1 = assert alct_ext_trig
   //
+  //!cfg_alct_ext_inject = 1 = assert alct_ext_inject
   inline void SetAlctExtInject(int cfg_alct_ext_inject) { cfg_alct_ext_inject_ = cfg_alct_ext_inject; }
   inline int  GetAlctExtInject() { return cfg_alct_ext_inject_; }
-  //cfg_alct_ext_inject = 1 = assert alct_ext_inject
   //
+  //!alct_seq_cmd = [0-7]
   inline void SetAlctSequencerCommand(int alct_seq_cmd) { alct_seq_cmd_ = alct_seq_cmd; }
   inline int  GetAlctSequencerCommand() { return alct_seq_cmd_; }
-  //alct_seq_cmd = [0-7]
   //
+  //!alct_clock_en_use_ccb = 1 => alct_clock_en_vme = ccb_clock40_enable
   inline void SetEnableAlctUseCcbClock(int alct_clock_en_use_ccb) { alct_clock_en_use_ccb_ = alct_clock_en_use_ccb; }
   inline int  GetEnableAlctUseCcbClock() { return alct_clock_en_use_ccb_; }
-  //alct_clock_en_use_ccb = 1 => alct_clock_en_vme = ccb_clock40_enable
   //
+  //!alct_clock_en_use_vme = [0,1] = alct_clock_en scsi signal if GetEnableAlctUseCcbClock() = 0;
   inline void SetAlctClockVme(int alct_clock_en_use_vme) { alct_clock_en_use_vme_ = alct_clock_en_use_vme; }
   inline int  GetAlctClockVme() { return alct_clock_en_use_vme_; }
-  //alct_clock_en_use_vme = [0,1] = alct_clock_en scsi signal if GetEnableAlctUseCcbClock() = 0;
   //
   //------------------------------------------------------------------
   //0X6E = ADR_SEQ_ID:  Sequencer Board + CSC Ids
   //------------------------------------------------------------------
+  //!tmb_slot = [2-20] (even) VME slot for this TMB
   inline void SetTmbSlot(int tmb_slot) { tmb_slot_ = tmb_slot; }
   inline int  GetTmbSlot() { return tmb_slot_; }
-  //tmb_slot = [2-20] (even) VME slot for this TMB
   //
+  //!csc_id = [1-10] index of CSC within this crate (tmb_slot/2) 
   inline void SetCscId(int csc_id) { csc_id_ = csc_id; }
   inline int  GetCscId() { return csc_id_; }
-  //csc_id = [1-10] index of CSC within this crate (tmb_slot/2) 
   //
   inline void SetRunId(int run_id) { run_id_ = run_id; }
   inline int  GetRunId() { return run_id_; }
@@ -985,75 +994,73 @@ public:
   //------------------------------------------------------------------
   //0X16 = ADR_DDD0:  3D3444 Chip 0 Delays, 1 step = 2ns
   //------------------------------------------------------------------
+  //!alct_tx_clock_delay = [0-15] (2ns)
   inline void SetAlctTXclockDelay(int alct_tx_clock_delay) { alct_tx_clock_delay_ = alct_tx_clock_delay; }
   inline int  GetALCTtxPhase() { return alct_tx_clock_delay_; }
-  //alct_tx_clock_delay = [0-15] (2ns)
   //
+  //!alct_rx_clock_delay = [0-15] (2ns)
   inline void SetAlctRXclockDelay(int alct_rx_clock_delay) {alct_rx_clock_delay_ = alct_rx_clock_delay;}
   inline int  GetALCTrxPhase() { return alct_rx_clock_delay_; }
-  //alct_rx_clock_delay = [0-15] (2ns)
   //
+  //!dmb_tx_delay = [0-15] (2ns)
   inline void SetDmbTxDelay(int dmb_tx_delay) { dmb_tx_delay_ = dmb_tx_delay; }
   inline int  GetDmbTxDelay() { return dmb_tx_delay_; }
-  //dmb_tx_delay = [0-15] (2ns)
   //
+  //!rat_tmb_delay = [0-15] (2ns)
   inline void SetRatTmbDelay(int rat_tmb_delay) { rat_tmb_delay_ = rat_tmb_delay; }
   inline int  GetRatTmbDelay() { return rat_tmb_delay_ ; }
-  //rat_tmb_delay = [0-15] (2ns)
   //
   //------------------------------------------------------------------
   //0X18 = ADR_DDD1:  3D3444 Chip 1 Delays, 1 step = 2ns
   //------------------------------------------------------------------
+  //!tmb1_phase = [0-15] (2ns)
   inline void SetTmb1Phase(int tmb1_phase) { tmb1_phase_ = tmb1_phase; }
   inline int  GetTmb1Phase() { return tmb1_phase_; }
-  //tmb1_phase = [0-15] (2ns)
   //
+  //!mpc_phase = [0-15] (2ns)
   inline void SetMpcPhase(int mpc_phase) { mpc_phase_ = mpc_phase; }
   inline int  GetMpcPhase() { return mpc_phase_; }
-  //mpc_phase = [0-15] (2ns)
   //
+  //!dcc_phase = [0-15] (2ns) (CFEB Duty Cycle Correction)
   inline void SetDccPhase(int dcc_phase) { dcc_phase_ = dcc_phase; }
   inline int  GetDccPhase() { return dcc_phase_; }
-  //dcc_phase = [0-15] (2ns) (CFEB Duty Cycle Correction)
   //
+  //!cfeb0delay = [0-15] (2ns)
   inline void SetCFEB0delay(int cfeb0delay) { cfeb0delay_ = cfeb0delay; }
   inline int  GetCFEB0delay() { return cfeb0delay_; }
-  //cfeb0delay = [0-15] (2ns)
   //
   //------------------------------------------------------------------
   //0X1A = ADR_DDD2:  3D3444 Chip 2 Delays, 1 step = 2ns
   //------------------------------------------------------------------
+  //!cfeb1delay = [0-15] (2ns)
   inline void SetCFEB1delay(int cfeb1delay) { cfeb1delay_ = cfeb1delay; }
   inline int  GetCFEB1delay() { return cfeb1delay_; }
-  //cfeb1delay = [0-15] (2ns)
   //
+  //!cfeb2delay = [0-15] (2ns)
   inline void SetCFEB2delay(int cfeb2delay) { cfeb2delay_ = cfeb2delay; }
   inline int  GetCFEB2delay(){return cfeb2delay_;}
-  //cfeb2delay = [0-15] (2ns)
   //
+  //!cfeb3delay = [0-15] (2ns)
   inline void SetCFEB3delay(int cfeb3delay) { cfeb3delay_ = cfeb3delay; }
   inline int  GetCFEB3delay() { return cfeb3delay_; }
-  //cfeb3delay = [0-15] (2ns)
   //
+  //!cfeb4delay = [0-15] (2ns)
   inline void SetCFEB4delay(int cfeb4delay) { cfeb4delay_ = cfeb4delay; }
   inline int  GetCFEB4delay() { return cfeb4delay_; }
-  //cfeb4delay = [0-15] (2ns)
   //
   //------------------------------------------------------------------
   //0XE6 = ADR_DDDR0:  RAT 3D3444 RPC Delays, 1 step = 2ns
   //------------------------------------------------------------------
+  //!rpc0_rat_delay = [0-15] (2ns)
   inline void SetRpc0RatDelay(int rpc0_rat_delay) { rpc0_rat_delay_ = rpc0_rat_delay; }
   inline int  GetRpc0RatDelay() { return rpc0_rat_delay_ ; }
-  //rpc0_rat_delay = [0-15] (2ns)
   //
+  //!rpc1_rat_delay = [0-15] (2ns)
   inline void SetRpc1RatDelay(int rpc1_rat_delay) { rpc1_rat_delay_ = rpc1_rat_delay; }
   inline int  GetRpc1RatDelay() { return rpc1_rat_delay_ ; }
-  //rpc1_rat_delay = [0-15] (2ns)
   //
   //
-  //Return the software value to be written into the register at "address" 
-  //The bits are set according to the database values, set by the "Set...(int data)" 
-  //methods, above:
+  //!Return the software value to be written into the register at "address", whose values have been set by the "Set...(int data)" methods
   int  FillTMBRegister(unsigned long int address); 
   //
   inline std::vector<unsigned long int> GetInjectedLct0() { return InjectedLct0 ; }
@@ -1517,6 +1524,10 @@ private:
   int read_all_cfeb_active_;
   int read_cfebs_enabled_;
   int read_cfeb_enable_source_;
+  //
+  inline void SetCfebEnableSource_(int cfeb_enable_source) { cfeb_enable_source_ = cfeb_enable_source; }
+  //cfeb_enable_source = [0,1] = [0x68,0x42] is source of cfeb_enable
+  //See TMB documentation before setting this bit.
   //
   //------------------------------------------------------------------
   //0X6A = ADR_SEQ_TRIG_DLY0:  Sequencer Trigger Source Delays
