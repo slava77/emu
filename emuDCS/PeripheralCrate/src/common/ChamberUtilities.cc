@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.29 2007/08/03 14:38:06 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.30 2007/08/06 14:17:47 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.30  2007/08/06 14:17:47  rakness
+// fix bug of hitting edges of windows when computing mean
+//
 // Revision 3.29  2007/08/03 14:38:06  rakness
 // use new TMB::WriteRegister(int)
 //
@@ -234,7 +237,7 @@ using namespace std;
 //
 ChamberUtilities::ChamberUtilities(){
   //
-  debug_ = true;
+  debug_ = false;
   //
   beginning = 0;
   thisTMB   = 0;
@@ -2871,8 +2874,8 @@ float ChamberUtilities::AverageHistogram(int * histogram, int min_value, int max
     if (average > 0) {          // Good determination of average, reduce the width and compute again
       //
       width -= 2;
-      min_value = (int) (0.5 + (average - ((float) width)*0.5) );
-      max_value = (int) (0.5 + (average + ((float) width)*0.5) );
+      min_value = ((int) (0.5 + (average - ((float) width)*0.5) ) ) >? min_value;  //maximum of lower value and min_value
+      max_value = ((int) (0.5 + (average + ((float) width)*0.5) ) ) <? max_value;  //minimum of lower value and min_value
       //
     } else {                    // Bad determination of average, get out of loop....
       //
