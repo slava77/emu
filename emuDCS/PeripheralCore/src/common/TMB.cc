@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.44 2007/08/03 14:35:40 rakness Exp $
+// $Id: TMB.cc,v 3.45 2007/08/06 14:20:08 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.45  2007/08/06 14:20:08  rakness
+// pulse teststrips and measure ALCT in CLCT match window
+//
 // Revision 3.44  2007/08/03 14:35:40  rakness
 // begin commenting for doxygen, add hot-channel mask write, add writeregister together with fillregister
 //
@@ -2711,7 +2714,7 @@ void TMB::TMBRawhits(){
   }
   //
   if (number_of_reads >= max_number_of_times) 
-    (*MyOutput_) << "TMB read " << number_of_reads << " times with no data..." << std::endl;
+    (*MyOutput_) << "TMB read " << std::dec << number_of_reads << " times with no data..." << std::endl;
   //
   return;
 }

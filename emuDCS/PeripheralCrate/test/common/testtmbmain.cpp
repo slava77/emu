@@ -55,12 +55,19 @@ int main() {
   std::ofstream outputfile;
   //
   const int pulse_signal = ADB_SYNC;
-  float amplitude = 255.;
+  float amplitude = 25.;
   int strip_mask_int = 0xff;
   //
+  const int total_number_of_pulses_per_distrip = 10;   //for measuring distrip occupation distribution
   const int number_of_hs = 160;
   int clct0_keyhs_histo[number_of_hs];
   int clct1_keyhs_histo[number_of_hs];
+  //
+  const int total_number_of_pulses = 1000;             //for measuring ALCT in CLCT match window
+  const int minbin = 0;
+  const int maxbin = 15;
+  int AlctInClctMatchWindowHisto[16];
+  float average;
   //
   int strip_mask[7];
   int HalfStrip;
@@ -179,7 +186,7 @@ int main() {
     //	      << std::endl;
     //
     //    std::cout << std::endl;
-    std::cout << "200:Configure TMB             201:Configure ALCT             600:Program TMB firmware"
+    std::cout << "200:Configure TMB/DMB         201:Configure ALCT             600:Program TMB firmware"
 	      << std::endl;
     //    std::cout << "203:Configure ALCT/write prom 300: Write xsvf files          301: Read xsvf file"
     //	      << std::endl;
@@ -203,7 +210,7 @@ int main() {
 	      << std::endl;
     //
     std::cout << std::endl;
-    std::cout << "707:Pulse multiple times"
+    std::cout << "707:pulse strips: CLCT Distn  708:pulse strips: match timing"
 	      << std::endl;
     //
     std::cout << std::endl;
@@ -647,6 +654,7 @@ int main() {
       break;
     case 200:
       thisTMB->configure();
+      thisDMB->configure();
       break;
     case 201:
       alct->configure();
@@ -929,115 +937,232 @@ int main() {
       //
       break;
     case 707:
-      thisTMB->StartTTC(); //enable the TMB to trigger by faking TTC Resync/BC0 commands
       //
-      thisCCB->setCCBMode(CCB::VMEFPGA);
-      thisCCB->SetL1aDelay(155);
+      // Pulse ALCT teststrips to determine distribution of induced pulses on comparators (CLCT)
       //
-      //      for (amplitude = 0; amplitude<51; amplitude+=2) {
-      for (amplitude = 24; amplitude<25; amplitude+=2) {
-	//
-	std::cout << "Amplitude = " << amplitude << std::endl;
-	//
-	//set up the output file
-	char buf[20];
-	sprintf(buf,"ampl%d.dat",(int)amplitude);
-	outputfile.open(buf);
-	alct->RedirectOutput(&outputfile);
-	//
-	// set up ALCT pulsing at this amplitude
-	strip_mask_int = 0x3f;        //pulse all six (layers of) strips
-	alct->SetUpPulsing((int)amplitude,PULSE_LAYERS,strip_mask_int,pulse_signal);
-	::sleep(1);
-	//
-	alct->RedirectOutput(&std::cout);
-	//
-	//for (int window=100; window<200; window++) {
-	//  thisTMB->SetL1aDelay(window);
-	//  thisTMB->WriteRegister(seq_l1a_adr);
-	//
-	// clear histograms
-	thisTMB->ResetCounters();
-	for (int i=0; i<number_of_hs; i++) {
-	  clct0_keyhs_histo[i] = 0;
-	  clct1_keyhs_histo[i] = 0;
-	}
-	//
-	int npulse;
-	//
-	//	for (npulse=0; npulse<100; npulse++) {
-	for (npulse=0; npulse<10; npulse++) {
-	  //
-	  for (channel=1; channel<10; channel++) { 
-	    //
-	    // mask out all channels except a single distrip (for each layer)
-	    // Couple of points:  
-	    // 1) always mask off channel 0 since this rings hot when the teststrip is enabled
-	    // 2) nothing fires above distrip 7, so restrict range of scan to 10...
-	    for (int layer=0; layer<6; layer++) {
-	      for (int zerochannel=0; zerochannel<40; zerochannel++) {
-		if (zerochannel == channel) {
-		  thisTMB->SetDistripHotChannelMask(layer,zerochannel,1);
-		} else {
-		  thisTMB->SetDistripHotChannelMask(layer,zerochannel,0);
-		}
-	      }
-	    }
-	    thisTMB->WriteDistripHotChannelMasks();
-	    //
-	    if (debug) {
-	      outputfile << "Enable distrip = " << channel << std::endl;
-	      thisTMB->ReadDistripHotChannelMasks();
-	      thisTMB->RedirectOutput(&outputfile);
-	      thisTMB->PrintHotChannelMask();
-	    }
-	    //
-	    thisCCB->GenerateAlctAdbSync();
-	    ::usleep(100);
-	    //
-	    thisTMB->DecodeCLCT();
-	    int clct0_key_halfstrip = thisTMB->GetCLCT0keyHalfStrip();
-	    int distrip_associated_w_halfstrip = (int)(clct0_key_halfstrip/4);
-	    if (distrip_associated_w_halfstrip == channel) {
-	      if (debug) {
-		thisTMB->PrintCLCT();
-		outputfile << "!!!!YES!!!! -> match" << std::endl;
-	      }
-	      // clct0_keyhs_histo[clct0_key_halfstrip]++;   //plot vs. 1/2-strip
-	      clct0_keyhs_histo[channel]++;   //plot vs. di-strip
-	    } else {
-	      if (debug) outputfile << "not a match..." << std::endl;
-	    }
-	    //
-	    if (debug) thisTMB->RedirectOutput(&std::cout);
-	    //
-	  }
-	}
-	//
-	outputfile << "Pulse teststrip " << npulse << " times on ADB_SYNC with amplitude = " << amplitude << std::endl;
-	outputfile << "di-strip   CLCT0   " << std::endl;
-	outputfile << "--------   -----   " << std::endl;
-	for (int i=0; i<10; i++) 
-	  outputfile << std::dec 
-		     << std::setw(8) << i 
-		     << std::setw(8)  << clct0_keyhs_histo[i] 
-		     << std::endl;
-	//
-	thisTMB->RedirectOutput(&outputfile);
-	//
-	thisTMB->GetCounters();
-	thisTMB->PrintCounters(1);
-	thisTMB->PrintCounters(4);
-	thisTMB->PrintCounters(6);
-	thisTMB->PrintCounters(7);
-	thisTMB->PrintCounters(8);
-	thisTMB->PrintCounters(18);
-	thisTMB->PrintCounters(19);
-	//  std::cout << "delay = " << window << ", number of TMB in L1A window = " << thisTMB->GetCounter(19) << std::endl;
-	//
-	thisTMB->RedirectOutput(&std::cout);
-	outputfile.close();
+      thisTMB->StartTTC(); //enable the TMB to trigger by faking TTC Resync/BC0 commands, should be able to use LTC
+      //
+      thisCCB->setCCBMode(CCB::VMEFPGA);// need to remove this and use the LTC, instead
+      thisCCB->SetL1aDelay(155);  //should be able to use same timing as slice test.  This value is good for tmb::l1a_delay = 140
+      //
+      //for (amplitude = 0; amplitude<51; amplitude+=2) {  //need to determine what is best for this
+      //
+      std::cout << "ALCT Amplitude [0-255] (25 seems to work OK) = " << std::endl;
+      std::cin  >> amplitude;
+      //
+      //set up the output file
+      char buf[20];
+      sprintf(buf,"ampl%d.dat",(int)amplitude);
+      outputfile.open(buf);
+      alct->RedirectOutput(&outputfile);
+      //
+      // set up ALCT pulsing at this amplitude
+      strip_mask_int = 0x3f;        //pulse all six (layers of) strips
+      alct->SetUpPulsing((int)amplitude,PULSE_LAYERS,strip_mask_int,pulse_signal);
+      ::sleep(1);
+      //
+      alct->RedirectOutput(&std::cout);
+      //
+      // uncomment following to measure TMB L1A delay value for CCB L1A
+      //for (int window=100; window<200; window++) {    
+      //  thisTMB->SetL1aDelay(window);
+      //  thisTMB->WriteRegister(seq_l1a_adr);
+      //
+      // clear histograms
+      thisTMB->ResetCounters();
+      for (int i=0; i<number_of_hs; i++) {
+	clct0_keyhs_histo[i] = 0;
+	clct1_keyhs_histo[i] = 0;
       }
+      //
+      int npulse;
+      //
+      for (npulse=0; npulse<total_number_of_pulses_per_distrip; npulse++) {
+	//
+	for (channel=1; channel<10; channel++) { 
+	  //
+	  // mask out all channels except a single distrip (for each layer)
+	  // Couple of points:  
+	  // 1) always mask off channel 0 since this rings hot when the teststrip is enabled
+	  // 2) nothing fires above distrip 7, so restrict range of scan to 10...
+	  for (int layer=0; layer<6; layer++) {
+	    for (int zerochannel=0; zerochannel<40; zerochannel++) {
+	      if (zerochannel == channel) {
+		thisTMB->SetDistripHotChannelMask(layer,zerochannel,1);
+	      } else {
+		thisTMB->SetDistripHotChannelMask(layer,zerochannel,0);
+	      }
+	    }
+	  }
+	  thisTMB->WriteDistripHotChannelMasks();
+	  //
+	  if (debug) {
+	    outputfile << "Enable distrip = " << channel << std::endl;
+	    thisTMB->ReadDistripHotChannelMasks();
+	    thisTMB->RedirectOutput(&outputfile);
+	    thisTMB->PrintHotChannelMask();
+	  }
+	  //
+	  thisCCB->GenerateAlctAdbSync();  // need to send via LTC cyclicly, somehow...
+	  ::usleep(100);
+	  //
+	  thisTMB->DecodeCLCT();
+	  int clct0_key_halfstrip = thisTMB->GetCLCT0keyHalfStrip();
+	  int distrip_associated_w_halfstrip = (int)(clct0_key_halfstrip/4);
+	  if (distrip_associated_w_halfstrip == channel) {
+	    if (debug) {
+	      thisTMB->PrintCLCT();
+	      outputfile << "!!!!YES!!!! -> match" << std::endl;
+	    }
+	    // clct0_keyhs_histo[clct0_key_halfstrip]++;   //plot vs. 1/2-strip
+	    clct0_keyhs_histo[channel]++;   //plot vs. di-strip
+	  } else {
+	    if (debug) outputfile << "not a match..." << std::endl;
+	  }
+	  //
+	  if (debug) thisTMB->RedirectOutput(&std::cout);
+	  //
+	}
+      }
+      //
+      outputfile << "Pulse teststrip " << npulse << " times on ADB_SYNC with amplitude = " << amplitude << std::endl;
+      outputfile << "di-strip   CLCT0   " << std::endl;
+      outputfile << "--------   -----   " << std::endl;
+      for (int i=0; i<10; i++) 
+	outputfile << std::dec 
+		   << std::setw(8) << i 
+		   << std::setw(8)  << clct0_keyhs_histo[i] 
+		   << std::endl;
+      //
+      thisTMB->RedirectOutput(&outputfile);
+      //
+      thisTMB->GetCounters();
+      thisTMB->PrintCounters(1);
+      thisTMB->PrintCounters(4);
+      thisTMB->PrintCounters(6);
+      thisTMB->PrintCounters(7);
+      thisTMB->PrintCounters(8);
+      thisTMB->PrintCounters(18);
+      thisTMB->PrintCounters(19);
+      // uncomment following to measure TMB L1A delay value for CCB L1A
+      //  std::cout << "delay = " << window << ", number of TMB in L1A window = " << thisTMB->GetCounter(19) << std::endl;
+      //
+      thisTMB->RedirectOutput(&std::cout);
+      outputfile.close();
+      //
+      // uncomment following to measure TMB L1A delay value for CCB L1A
+      // }
+      thisCCB->setCCBMode(CCB::DLOG);
+      //
+      break;
+    case 708:
+      //      greg, get readout of ALCT-CLCT timing going... 
+      //	what is the difference with:
+      //	- inverted pulse
+      //	- amplitude
+      //	- masking different CFEBs
+      //	- ALCT masks
+      //	- what do ALCT data look like?
+      //
+      // Pulse ALCT teststrips to determine ALCT-CLCT match timing
+      //
+      thisTMB->StartTTC(); //enable the TMB to trigger by faking TTC Resync/BC0 commands, should be able to use LTC
+      //
+      thisCCB->setCCBMode(CCB::VMEFPGA);// need to remove this and use the LTC, instead
+      thisCCB->SetL1aDelay(155);  //should be able to use same timing as slice test.  This value is good for tmb::l1a_delay = 140
+      //
+      //for (amplitude = 0; amplitude<51; amplitude+=2) {  //need to determine what is best for this
+      //
+      //      std::cout << "ALCT Amplitude [0-255] (25 seems to work OK) = " << std::endl;
+      //      std::cin  >> amplitude;
+      //
+      //set up the output file
+      //      char buf[20];
+      //      sprintf(buf,"ampl%d.dat",(int)amplitude);
+      //      outputfile.open(buf);
+      //      alct->RedirectOutput(&outputfile);
+      //
+      // set up ALCT pulsing at this amplitude
+      strip_mask_int = 0x3f;        //pulse all six (layers of) strips
+      alct->SetUpPulsing((int)amplitude,PULSE_LAYERS,strip_mask_int,pulse_signal);
+      ::sleep(1);
+      //
+      //      alct->RedirectOutput(&std::cout);
+      //
+      // clear histograms
+      thisTMB->ResetCounters();
+      for (int bin=minbin; bin<=maxbin; bin++)
+	AlctInClctMatchWindowHisto[bin] = 0;
+      //
+      //mask off channel 0 since this rings hot when the teststrip is enabled
+      for (int layer=0; layer<6; layer++) 
+	thisTMB->SetDistripHotChannelMask(layer,0,0);
+      thisTMB->WriteDistripHotChannelMasks();
+      //
+      thisTMB->ReadDistripHotChannelMasks();
+      thisTMB->PrintHotChannelMask();
+      //
+      for (npulse=0; npulse<total_number_of_pulses; npulse++) {
+	//
+	if (npulse % 100 == 0) 
+	  std::cout << "Pulse " << std::dec<< npulse << " times..." << std::endl;
+	//
+	// after following pretrigger, halt until next unhalt signal is set: 
+	thisTMB->SetPretriggerHalt(1);  
+	thisTMB->WriteRegister(seq_clct_adr);
+	::usleep(100);
+	//
+	if (pulse_signal == ADB_SYNC) {
+	  thisCCB->GenerateAlctAdbSync();  // need to send via LTC cyclicly, somehow...
+	} else if (pulse_signal == ADB_ASYNC) {
+	  thisCCB->GenerateAlctAdbASync();  // need to send via LTC cyclicly, somehow...
+	}
+	::usleep(100);
+	//
+	thisTMB->ResetRAMAddress();
+	if (thisTMB->OnlyReadTMBRawhits()) {
+	  //	  thisTMB->PrintTMBRawHits();
+	  int value = thisTMB->GetAlctInClctMatchWindow();
+	  AlctInClctMatchWindowHisto[value]++;
+	} else {
+	  if (debug) std::cout << "Did not read out raw hits... " << std::endl;
+	}
+	// set unhalt signal to enable normal triggers
+	thisTMB->SetPretriggerHalt(0);  
+	thisTMB->WriteRegister(seq_clct_adr);
+	::usleep(100);
+	//
+      }
+      //
+      //      outputfile << "Pulse teststrip " << npulse << " times on ADB_SYNC with amplitude = " << amplitude << std::endl;
+      std::cout << "Amplitude = " << std::dec << amplitude << ", pulse teststrip " << npulse 
+		<< " times on signal ";
+      if (pulse_signal == ADB_SYNC) {
+	std::cout << "ADB_SYNC" << std::endl;
+      } else if (pulse_signal == ADB_ASYNC) {
+	std::cout << "ADB_ASYNC" << std::endl;
+      }
+      average = util.AverageHistogram(AlctInClctMatchWindowHisto,minbin,maxbin);
+      util.PrintHistogram("ALCT in CLCT match window",AlctInClctMatchWindowHisto,minbin,maxbin,average);
+      //
+      //      thisTMB->RedirectOutput(&outputfile);
+      //
+      thisTMB->GetCounters();
+      thisTMB->PrintCounters(1);
+      thisTMB->PrintCounters(4);
+      thisTMB->PrintCounters(6);
+      thisTMB->PrintCounters(7);
+      thisTMB->PrintCounters(8);
+      thisTMB->PrintCounters(18);
+      thisTMB->PrintCounters(19);
+      // uncomment following to measure TMB L1A delay value for CCB L1A
+      //  std::cout << "delay = " << window << ", number of TMB in L1A window = " << thisTMB->GetCounter(19) << std::endl;
+      //
+      //      thisTMB->RedirectOutput(&std::cout);
+      //      outputfile.close();
+      //
+      // uncomment following to measure TMB L1A delay value for CCB L1A
+      // }
       thisCCB->setCCBMode(CCB::DLOG);
       //
       break;
