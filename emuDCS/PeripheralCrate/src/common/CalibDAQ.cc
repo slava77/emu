@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CalibDAQ.cc,v 3.11 2007/07/17 16:28:40 liu Exp $
+// $Id: CalibDAQ.cc,v 3.12 2007/08/06 14:18:23 rakness Exp $
 // $Log: CalibDAQ.cc,v $
+// Revision 3.12  2007/08/06 14:18:23  rakness
+// comment out many unused variables
+//
 // Revision 3.11  2007/07/17 16:28:40  liu
 // replace CCBStartTrigger() with CCB->startTrigger() & CCB->bc0()
 //
@@ -226,8 +229,9 @@ void CalibDAQ::loadConstants(Crate * crate) {
 //
 void CalibDAQ::rateTest() {
   //
-  int chip,ch,brd, nstrip;
-  int counter = 0;
+  //  int chip,ch,brd, nstrip;
+  int nstrip;
+  //  int counter = 0;
   float dac;
   //
   pulseAllDMBsInit();
@@ -236,7 +240,7 @@ void CalibDAQ::rateTest() {
   //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
     //
-    CCB * ccb = myCrates[j]->ccb();
+    //    CCB * ccb = myCrates[j]->ccb();
     std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
     std::vector<TMB*> myTmbs   = theSelector.tmbs(myCrates[j]);
     //
@@ -369,8 +373,8 @@ void CalibDAQ::pulseAllWires(){
 void CalibDAQ::timeCFEB() { 
   //
   float dac;
-  int counter=0;
-  int nsleep = 100;  
+  //  int counter=0;
+  //  int nsleep = 100;  
   dac = 1.0;
   //
   std::cout << "timeCFEBtest" << std::endl;
@@ -457,8 +461,8 @@ void CalibDAQ::timeCFEB() {
 void CalibDAQ::gainCFEB() { 
   //
   float dac;
-  int counter=0;
-  int nsleep = 100;  
+  //  int counter=0;
+  //  int nsleep = 100;  
   dac = 1.0;
   //
   std::cout << "CFEB Gain test" << std::endl;
@@ -542,8 +546,8 @@ void CalibDAQ::gainCFEB() {
 //
 void CalibDAQ::pedestalCFEB() { 
   //
-  int counter=0;
-  int nsleep = 100;  
+  //  int counter=0;
+  //  int nsleep = 100;  
   //
   std::cout << "CFEB Pedestal" << std::endl;
   //
@@ -606,8 +610,8 @@ void CalibDAQ::pedestalCFEB() {
 void CalibDAQ::CFEBSaturationTest() { 
   //
   float dac;
-  int counter=0;
-  int nsleep = 100;  
+  //  int counter=0;
+  //  int nsleep = 100;  
   //
   std::cout << "CFEB Gain test" << std::endl;
   //
@@ -753,7 +757,7 @@ void CalibDAQ::pulseAllDMBsPre(int ntim, int nstrip, float dac, int nsleep,int c
 //
 void CalibDAQ::pulseAllDMBsInit() { 
   //
-  int chip,ch,brd;
+  //  int chip,ch,brd;
   std::vector<Crate*> myCrates = theSelector.crates();
   //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
@@ -834,7 +838,7 @@ void CalibDAQ::injectComparator(int ntim, int nstrip, float dac, int nsleep, flo
   //injects identical pulse to all dmbs
   //in all crates one crate at a time          
   //
-  int chip,ch,brd;
+  //  int chip,ch,brd;
   std::vector<Crate*> myCrates = theSelector.crates();
   //
   for(unsigned j = 0; j < myCrates.size(); ++j) {
@@ -1036,8 +1040,8 @@ void CalibDAQ::ALCTThresholdScan() {
   int DMBCounter [300][9];
   int DMBCounter0[300][9];
   //
-  int nmin=0;
-  int nmax=200;
+  //  int nmin=0;
+  //  int nmax=200;
   int Counter=0;
   //
   int Npulses = 100;
@@ -1134,8 +1138,8 @@ void CalibDAQ::ALCTConnectivity() {
   int DMBCounter [300][9];
   int DMBCounter0[300][9];
   //
-  int nmin=0;
-  int nmax=200;
+  //  int nmin=0;
+  //  int nmax=200;
   int Counter=0;
   //
   int Npulses = 200;
@@ -1218,8 +1222,8 @@ void CalibDAQ::CFEBConnectivity() {
   int DMBCounter [300][9];
   int DMBCounter0[300][9];
   //
-  int nmin=0;
-  int nmax=200;
+  //  int nmin=0;
+  //  int nmax=200;
   int Counter=0;
   //
   int Npulses = 10;
@@ -1259,7 +1263,7 @@ void CalibDAQ::CFEBConnectivity() {
 	  myTmbs[i]->alctController()->SetPretrigNumberOfPattern(1);
 	  myTmbs[i]->alctController()->WriteConfigurationReg();
 	  //
-	  ALCTController * alct = myTmbs[i]->alctController() ;
+	  //	  ALCTController * alct = myTmbs[i]->alctController() ;
 	  //
 	  myTmbs[i]->alctController()->SetUpPulsing(0xff,PULSE_LAYERS,0xff,ADB_SYNC);
 	  myTmbs[i]->SetALCTPatternTrigger();
@@ -1272,7 +1276,7 @@ void CalibDAQ::CFEBConnectivity() {
       std::cout << "Event = " << Counter <<std::endl;
       //
       for(unsigned j = 0; j < myCrates.size(); j++) {
-	CCB * ccb = myCrates[j]->ccb();
+	//	CCB * ccb = myCrates[j]->ccb();
 	//
 	std::vector<TMB*> myTmbs = theSelector.tmbs(myCrates[j]);
 	std::vector<DAQMB*> myDmbs = theSelector.daqmbs(myCrates[j]);
@@ -1297,7 +1301,7 @@ void CalibDAQ::FindL1aDelayComparator() {
 //injects identical pulse to all dmbs (EXT capacitors)
 //in all crates one crate at a time          
   //
-  int chip,ch,brd;
+  //  int chip,ch,brd;
   int counter[200][9];
   //
   int ntim=25;
