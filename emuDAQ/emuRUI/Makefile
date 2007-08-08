@@ -8,7 +8,8 @@ Package=emuDAQ/emuRUI
 
 Sources = \
 	EmuRUI.cc \
-	EmuRUIV.cc
+	EmuRUIV.cc \
+	STEPEventCounter.cc
 
 IncludeDirs = \
 	$(XDAQ_ROOT) \

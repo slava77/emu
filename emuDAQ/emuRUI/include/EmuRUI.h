@@ -25,6 +25,8 @@
 #include "emuDAQ/emuReadout/include/EmuReader.h"
 #include "emuDAQ/emuClient/include/i2oEmuClientMsg.h"
 #include "emuDAQ/emuUtil/include/EmuServer.h"
+#include "emuDAQ/emuRUI/include/i2oEmuFirstEventNumberMsg.h"
+#include "emuDAQ/emuRUI/include/emuRUI/STEPEventCounter.h"
 
 using namespace std;
 
@@ -111,15 +113,12 @@ private:
   EmuReader*                          deviceReader_;	     // device reader
   xdata::String                       inputDeviceName_;      // input device name (file path or board number)
   xdata::String                       hardwareMnemonic_;     // mnemonic name for the piece of hardware to read
-//   std::vector<EmuReader*>             deviceReaders_;	     // vector of device readers
-//   unsigned int                        iCurrentDeviceReader_; // index of device reader currently active
-//   xdata::UnsignedLong                 nInputDevices_;        // number of input devices
-//   xdata::Vector<xdata::String>        inputDeviceNames_;     // vector of input device names (file path or board number)
   xdata::String                       inputDeviceType_;      // spy, slink or file
   xdata::String                       inputDataFormat_;      // "DDU" or "DCC"
 // here it gets overwritten in TF DDU(!?!?); move it away:   int                                 inputDataFormatInt_;   // EmuReader::DDU or EmuReader::DCC
   int dummy_;
   int                                 inputDataFormatInt_;   // EmuReader::DDU or EmuReader::DCC
+  unsigned int                        previousEventNumber_;
 
   void createFileWriters();
   void createDeviceReader();
@@ -144,6 +143,9 @@ private:
 			 char* const data, 
 			 const int   dataLength );
   void makeClientsLastBlockCompleteEvent();
+  void insertEmptySuperFragments( const unsigned long fromEventNumber, const unsigned long toEventNumber )
+    throw (emuRUI::exception::Exception);
+  void EmuRUI::ensureContiguousEventNumber();
   void moveToFailedState();
 
   xdata::UnsignedLong                 nEventsRead_;
@@ -153,6 +155,17 @@ private:
   int                                 nReadingPassesInEvent_;
   bool                                insideEvent_;
   unsigned short                      errorFlag_;
+  // In STEP runs, count on each DDU input the number of events it's contributed to with data
+  bool                                isSTEPRun_;
+  emuRUI::STEPEventCounter            STEPEventCounter_;
+  xoap::MessageReference onSTEPQuery( xoap::MessageReference msg )
+    throw (xoap::exception::Exception);
+  xoap::MessageReference onExcludeDDUInputs( xoap::MessageReference msg )
+    throw (xoap::exception::Exception);
+  xoap::MessageReference onIncludeDDUInputs( xoap::MessageReference msg )
+    throw (xoap::exception::Exception);
+  xoap::MessageReference maskDDUInputs( const bool in, const xoap::MessageReference msg )
+    throw (xoap::exception::Exception);
 
   bool hasHeader( char* const data, const int dataLength );
   bool hasTrailer( char* const data, const int dataLength );
@@ -161,13 +174,24 @@ private:
   bool interestingDDUErrorBitPattern(char* const data, const int dataLength);
 //   unsigned short incrementPassesCounter( const unsigned short errorFlag );
   void printData(std::ostream& os, char* data, const int dataLength);
-
+  void writeDataToFile(  char* const data, const int dataLength, const bool newEvent=false );
 
   void printBlocks( deque<toolbox::mem::Reference*> d );
   void fillBlock(toolbox::mem::Reference *bufRef,
-		 char*                    data,
-		 const unsigned int       dataLength)
+		 const char*              data,
+		 const unsigned int       dataLength,
+		 const unsigned long      eventNumber 
+		 )
     throw (emuRUI::exception::Exception);
+
+
+  toolbox::mem::Pool *ruiTaPool_;
+  I2O_TID emuTATid_;
+  vector< xdaq::ApplicationDescriptor* > taDescriptors_;
+  void getTidOfEmuTA()
+    throw ( xcept::Exception );
+  void sendEventNumberToTA( unsigned long firstEventNumber )
+    throw ( xcept::Exception );
 
   vector< xdaq::ApplicationDescriptor* > getAppDescriptors(xdaq::Zone *zone,
 							   const string            appClass)
@@ -400,7 +424,6 @@ private:
     xdata::String       pathToDataOutFile_;    // the path to the file to write the data into (no file written if "")
     xdata::String       pathToBadEventsFile_;    // the path to the file to write the bad events into (no file written if "")
     xdata::UnsignedLong fileSizeInMegaBytes_;  // when the file size exceeds this, no more events will be written to it (no file written if <=0)
-//     xdata::UnsignedLong maxEvents_;            // stop reading from DDU after this many events
     xdata::Integer      maxEvents_;            // stop reading from DDU after this many events
     xdata::Boolean      passDataOnToRUBuilder_;// it true, data is sent to the event builder
     xdata::UnsignedLong runNumber_;            // run number to be obtained from TA
@@ -546,6 +569,8 @@ private:
 
     string serializableUnsignedLongToString(xdata::Serializable *s);
 
+    string serializableIntegerToString(xdata::Serializable *s);
+
     string serializableDoubleToString(xdata::Serializable *s);
 
     string serializableStringToString(xdata::Serializable *s);
@@ -658,12 +683,15 @@ private:
     int continueConstructionOfSuperFrag()
     throw (emuRUI::exception::Exception);
 
+    int continueSTEPRun()
+    throw (emuRUI::exception::Exception);
+
     /**
      * Appends a new block from the EmuRUI/RU memory pool to the super-fragment
      * under contruction.
      */
 //     void appendNewBlockToSuperFrag()
-    void appendNewBlockToSuperFrag( char* data, unsigned long dataLength )
+    void appendNewBlockToSuperFrag( const char* data, const unsigned long dataLength, const unsigned long eventNumber )
     throw (emuRUI::exception::Exception);
 
     /**
