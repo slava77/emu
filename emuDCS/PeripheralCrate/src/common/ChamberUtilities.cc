@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.30 2007/08/06 14:17:47 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.31 2007/08/08 13:23:02 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.31  2007/08/08 13:23:02  rakness
+// sleep after setting mpc_output_enable for reading DMB delays and scopes
+//
 // Revision 3.30  2007/08/06 14:17:47  rakness
 // fix bug of hitting edges of windows when computing mean
 //
@@ -1670,10 +1673,18 @@ void ChamberUtilities::ReadAllDmbValuesAndScopes() {
   //
   // Get initial values:
   int initial_value_of_register = thisTMB->GetMpcOutputEnable();
+  if (debug_) std::cout << "Initial value of mpc_output_enable = " << initial_value_of_register << std::endl;
   //
   // Enable this TMB to send LCTs to MPC:
   thisTMB->SetMpcOutputEnable(1);
-  thisTMB->WriteRegister( tmb_trig_adr);
+  thisTMB->WriteRegister(tmb_trig_adr);
+  ::sleep(1);
+  //
+  if (debug_) {
+    std::cout << "After enabling, TMB register 0x" << std::hex << tmb_trig_adr 
+	      << " = 0x" << thisTMB->ReadRegister(tmb_trig_adr) 
+	      << " which has value of mpc_output_enable = " << thisTMB->GetMpcOutputEnable() << std::endl;
+  }
   //
   ZeroDmbHistograms();
   //
