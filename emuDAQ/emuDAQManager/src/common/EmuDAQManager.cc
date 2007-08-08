@@ -1,5 +1,6 @@
 #include "emu/emuDAQ/emuDAQManager/include/EmuDAQManager.h"
 #include "emu/emuDAQ/emuDAQManager/include/EmuDAQManagerV.h"
+#include "emu/emuDAQ/emuRUI/include/emuRUI/STEPEventCounter.h"
 #include "extern/cgicc/linuxx86/include/cgicc/HTTPHTMLHeader.h"
 #include "extern/cgicc/linuxx86/include/cgicc/HTTPPlainHeader.h"
 #include "xcept/include/xcept/tools.h"
@@ -14,6 +15,11 @@
 #include "xoap/include/xoap/SOAPBody.h"
 #include "xoap/include/xoap/SOAPBodyElement.h"
 #include "xoap/include/xoap/SOAPEnvelope.h"
+
+#include "xoap/include/xoap/DOMParser.h"
+#include "xoap/include/xoap/domutils.h"
+#include "xdata/soap/Serializer.h"
+#include "toolbox/regex.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -407,6 +413,15 @@ throw (xgi::exception::Exception)
     *out << "a.with_popup:hover .popup{"                               << endl;
     *out << "	display: inline;"                                      << endl;
     *out << "}"                                                        << endl;
+
+    *out << "td.masked {";
+    *out << "background-color: #dddddd;";
+    *out << "}"                                                        << endl;
+
+    *out << "td.notFinished {";
+    *out << "font-weight: bold;";
+    *out << "color: #ff0000;";
+    *out << "}"                                                        << endl;
 }
 
 
@@ -511,6 +526,17 @@ throw (xgi::exception::Exception)
     if ( daqState_.toString() == "Halted" )
       *out << " (Stopped at " << runStopTime << ")"                   << endl;
     *out << "<br/>"                                                    << endl;
+
+    stringstream STEPCountsTable;
+    bool         STEPHasFinished = true;
+    if ( runType_.toString().find("STEP",0) != string::npos ){
+      STEPHasFinished = printSTEPCountsTable( STEPCountsTable, false );
+      *out << "STEP has ";
+      if ( !STEPHasFinished ) *out << "<span style=\"font-weight: bold; color:#ff0000;\">not</span> ";
+      *out << "finished.";
+      *out << "<br/>"                                                    << endl;
+    }
+
     *out << "<br/>"                                                    << endl;
 
     *out << "<table border=\"0\">"                                   << endl;
@@ -629,12 +655,18 @@ throw (xgi::exception::Exception)
     *out << "<table border=\"0\">"                                   << endl;
     *out << "<tr valign=\"top\">"                                    << endl;
     *out << "<td>"                                                   << endl;
-    printEventCountsTable( out, "Events read by EmuRUI's"    , getRUIEventCounts() );
+    if ( runType_.toString().find("STEP",0) != string::npos ){
+      *out << STEPCountsTable.str();
+    }
+    else{
+      printEventCountsTable( out, "Events read by EmuRUI's"    , getRUIEventCounts() );
+    }
     *out << "</td>"                                                  << endl;
     *out << "<td width=\"64\">"                                      << endl;
     *out << "</td>"                                                  << endl;
     *out << "<td>"                                                   << endl;
-    printEventCountsTable( out, "Events processed by EmuFU's", getFUEventCounts()  );      
+    if ( runType_.toString().find("STEP",0) == string::npos )
+      printEventCountsTable( out, "Events processed by EmuFU's", getFUEventCounts()  );      
     *out << "     "                                                  << endl;
     *out << "</td>"                                                  << endl;
     *out << "</tr>"                                                  << endl;
@@ -1132,6 +1164,17 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
 //     if ( daqState_.toString() != "Enabled" && daqState_.toString() != "Ready"  )
 //       *out << " (Stopped at " << runStopTime << ")"                   << endl;
     *out << "<br/>"                                                    << endl;
+
+    stringstream STEPCountsTable;
+    bool         STEPHasFinished = true;
+    if ( runType_.toString().find("STEP",0) != string::npos ){
+      STEPHasFinished = printSTEPCountsTable( STEPCountsTable, true );
+      *out << "STEP has ";
+      if ( !STEPHasFinished ) *out << "<span style=\"font-weight: bold; color:#ff0000;\">not</span> ";
+      *out << "finished.";
+      *out << "<br/>"                                                    << endl;
+    }
+
     *out << "<br/>"                                                    << endl;
 
     *out << "<form method=\"get\" action=\"/" << urn_ << "/command\">" << endl;
@@ -1196,7 +1239,7 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
       *out << "<table border=\"0\" rules=\"none\">"                  << endl;
       *out << "  <tr><td>Run number:</td><td>" << runNumber;
       if ( fsm_.getCurrentState() == 'C' ){
-	if ( runType_.toString() == "Debug" ) 
+	if ( runType_.toString() == "Debug" || runType_.toString().find("STEP",0) != string::npos ) 
 	  *out << " (will <span style=\"font-weight: bold; color:#ff0000;\">not</span> be booked)";
 	else
 	  *out << " (will be replaced with a booked one)";
@@ -1285,23 +1328,28 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
       *out << "/>  "                                                 << endl;
       *out << " DQM too"                                             << endl;
 
-    *out << "</form>"                                                  << endl;
     *out << "<br>"                                                     << endl;
     *out << "<br>"                                                     << endl;
 
     *out << "<table border=\"0\">"                                   << endl;
     *out << "<tr valign=\"top\">"                                    << endl;
     *out << "<td>"                                                   << endl;
-    printEventCountsTable( out, "Events read by EmuRUI's"    , getRUIEventCounts() );
+    if ( runType_.toString().find("STEP",0) != string::npos )
+      *out << STEPCountsTable.str();
+    else
+      printEventCountsTable( out, "Events read by EmuRUI's", getRUIEventCounts() );
     *out << "<td width=\"64\">"                                      << endl;
     *out << "</td>"                                                  << endl;
     *out << "</td>"                                                  << endl;
     *out << "<td>"                                                   << endl;
-    printEventCountsTable( out, "Events processed by EmuFU's", getFUEventCounts()  );      
+    if ( runType_.toString().find("STEP",0) == string::npos )
+      printEventCountsTable( out, "Events processed by EmuFU's", getFUEventCounts()  );      
     *out << "     "                                                  << endl;
     *out << "</td>"                                                  << endl;
     *out << "</tr>"                                                  << endl;
     *out << "</table>"                                               << endl;
+
+    *out << "</form>"                                                  << endl;
 
     *out << "<br/>"                                                    << endl;
     *out << "<br/>"                                                    << endl;
@@ -1503,6 +1551,10 @@ throw (xgi::exception::Exception)
     std::vector<cgicc::FormEntry> fev = cgi.getElements();
     std::vector<cgicc::FormEntry>::iterator fe;
 
+//     for ( fe=fev.begin(); fe!=fev.end(); ++fe )
+//       cout << fe->getName() << " " << fe->getValue() << endl;
+//     cout << "---------------------------------" << endl;
+
     // Check if DQM needs controlling
     // Apparently the query string does not even include the checkbox element if it's not checked...
     controlDQM_ = false;
@@ -1579,6 +1631,22 @@ throw (xgi::exception::Exception)
 	    fireEvent("Halt");
 	  }
     }
+
+    // If there is a request to mask from the html form
+    cmdElement = cgi.getElement("mask");
+    if( cmdElement != cgi.getElements().end() )
+      {
+        string cmdName = (*cmdElement).getValue();
+	
+	if ( cmdName == "count in" )
+	  {
+	    maskDDUInputs( true, fev );
+	  }
+	else if ( cmdName == "count out" )
+	  {
+	    maskDDUInputs( false, fev );
+	  }
+      }
 }
 
 
@@ -2129,7 +2197,8 @@ void EmuDAQManager::printStatesTable( xgi::Output *out,
   *out << "</tr>"                                                        << endl;
   *out << "<tr>"                                                         << endl;
   *out << "  <th colspan=2>"                                             << endl;
-  *out << "   <a class=\"with_popup\" style=\"float: left;\" href=\"#\"> Colors:";
+  *out << "   <a class=\"with_popup\" style=\"float: left;\" href=\"" << 
+       getHref( appDescriptor_ ) << "\"> Colors:";
   map<string, string>::iterator col;
   for ( col=color.begin(); col!=color.end(); ++col ){
     // Don't show color key for "Mismatch" or "TimedOut" if no app is in those states.
@@ -2195,9 +2264,13 @@ void EmuDAQManager::configureDAQ()
     bool rusGenerateDummySuperFrags = ruiDescriptors_.size() == 0;
     bool busDropEvents              = fuDescriptors_.size()  == 0;
 
-    comments_        = "";
     globalRunNumber_ = "";
-    badRun_          = false;
+    // If run number is booked, it will be on "Enable". For the time being, it's not booked.
+    isBookedRunNumber_ = false;
+    // All runs are assumed bad until started. Reset it to false once it's started.
+    badRun_ = true;
+    // It may be aborted after "Configure". Reset comment to null once the run is started.
+    comments_ = "aborted after configuration";
 
     try
     {
@@ -2468,6 +2541,12 @@ throw (emuDAQManager::exception::Exception)
                 "Failed to start filter farm", e);
         }
     }
+
+    // Once started, all runs are assumed good until proven otherwise.
+    badRun_ = false;
+    // No comment by default.
+    comments_ = "";
+
 }
 
 
@@ -4018,6 +4097,12 @@ void EmuDAQManager::exportParams(xdata::InfoSpace *s)
     daqState_ = "UNKNOWN";
     s->fireItemAvailable("daqState",&daqState_);
     s->addItemRetrieveListener("daqState",this);
+
+    STEPFinished_ = false;
+    s->fireItemAvailable("STEPFinished",&STEPFinished_);
+    s->addItemRetrieveListener("STEPFinished",this);
+
+
 }
 
 
@@ -4189,6 +4274,386 @@ void EmuDAQManager::printEventCountsTable
     *out << "</table>"                                                 << endl;
 }
 
+bool EmuDAQManager::printSTEPCountsTable( stringstream& out, bool control ){
+  // Prints STEP counts. 
+  // If control is true, prints checkboxes for masking inputs.
+  // Returns true if STEP has finished, false otherwise.
+
+  bool isFinished = true;
+
+  // Nothing to do if not in STEP run.
+  if ( runType_.toString().find("STEP",0) == string::npos ) return isFinished;
+
+  out << "<table frame=\"void\" rules=\"rows cols\" class=\"params\">"   << endl;
+  
+  out << "<tr>"                                                     << endl;
+  out << "  <th colspan=" << 3 + emuRUI::STEPEventCounter::maxDDUInputs_ 
+       <<      " align=\"center\">";
+  out <<       "<b>Event counts</b>";
+  out << "  </th>"                                                  << endl;
+  out << "</tr>"                                                    << endl;
+
+  out << "<tr>"                                                     << endl;
+  out <<   "<th colspan=3>";
+  if ( control ){
+    out <<       "<input type=\"submit\"";
+    out <<           " style=\"float: left; background-color: #ffffff;\"";
+    out <<           " name=\"mask\"";
+    out <<           " title=\"Count selected DDU inputs in.\"";
+    out <<           " value=\"count in\"";
+    out <<       "/> ";
+    out <<       "<input type=\"submit\"";
+    out <<           " style=\"float: right; background-color: #dddddd;\"";
+    out <<           " name=\"mask\"";
+    out <<           " title=\"Count selected DDU inputs out.\"";
+    out <<           " value=\"count out\"";
+    out <<       "/>";
+  }
+  out <<   "</th>"                                                   << endl;
+  out <<   "<th colspan=" << emuRUI::STEPEventCounter::maxDDUInputs_ << ">";
+  out << "DDU input";
+  out <<   "</th>"                                                   << endl;
+  out << "</tr>"                                                     << endl;
+
+  out << "<tr>"                                                      << endl;
+  out <<   "<th></th>";
+  out <<   "<th>read</th>";
+  out <<   "<th>accepted</th>";
+  for ( unsigned int i = 0; i < emuRUI::STEPEventCounter::maxDDUInputs_; ++i )
+    out <<   "<th>" << i << "</th>";
+  out << "</tr>"                                                    << endl;
+
+  xoap::MessageReference reply;
+
+  xoap::DOMParser* parser = xoap::DOMParser::get("ParseFromSOAP");
+
+  xdata::soap::Serializer serializer;
+
+  // Loop over RUIs and query them for STEP info, and write a table row
+  vector< xdaq::ApplicationDescriptor* >::iterator rui;
+  for(rui = ruiDescriptors_.begin(); rui != ruiDescriptors_.end(); rui++){
+
+    // Get STEP info from EmuRUI
+
+    xdata::String                      persistentDDUError = "";
+    xdata::UnsignedLong                eventsRead  = 0;
+    xdata::UnsignedLong                totalCount  = 0;
+    xdata::UnsignedLong                lowestCount = 0;
+    xdata::Vector<xdata::UnsignedLong> counts;
+    xdata::Vector<xdata::Boolean>      masks;
+    xdata::Vector<xdata::Boolean>      liveInputs;
+
+    try{
+      reply = querySTEP( *rui );
+      std::stringstream ss;
+      reply->writeTo( ss );
+      DOMDocument* doc = parser->parse( ss.str() );
+
+      DOMNode* n;
+      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("PersistentDDUError") )->item(0);
+      serializer.import( &persistentDDUError, n );
+      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("EventsRead") )->item(0);
+      serializer.import( &eventsRead, n );
+      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("TotalCount") )->item(0);
+      serializer.import( &totalCount, n );
+      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("LowestCount") )->item(0);
+      serializer.import( &lowestCount, n );
+      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("Counts") )->item(0);
+      serializer.import( &counts, n );
+      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("Masks") )->item(0);
+      serializer.import( &masks, n );
+      n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("LiveInputs") )->item(0);
+      serializer.import( &liveInputs, n );
+
+      isFinished &= ( (int) lowestCount.value_ >= maxNumberOfEvents_.value_ ); 
+
+    } catch( emuDAQManager::exception::Exception e ){
+      LOG4CPLUS_WARN( logger_, "Failed to get STEP info from " 
+		      << (*rui)->getClassName() << (*rui)->getInstance() 
+		      << " : " << xcept::stdformat_exception_history(e));
+      isFinished = false;
+    } catch (xoap::exception::Exception& e){
+      LOG4CPLUS_WARN( logger_, "Failed to parse STEP info from reply from " 
+		      << (*rui)->getClassName() << (*rui)->getInstance() 
+		      << " : " << xcept::stdformat_exception_history(e));
+      isFinished = false;
+    }
+    
+    // Write HTML table row
+
+    // First column: EmuRUI and instance
+    stringstream name;
+    string       href = getHref( appDescriptor_ ) + "/control"; // self;
+    string       dduError = "";
+    name << "EmuRUI " << setfill('0') << setw(2) << (*rui)->getInstance();
+    if ( hardwareMnemonics_.find( (*rui)->getInstance() ) != hardwareMnemonics_.end() )
+      name << " [" << hardwareMnemonics_[(*rui)->getInstance()] << "]";
+    href  = getHref( *rui );
+    out << "<tr>"                                                 << endl;
+    out << "  <th align=\"left\">";
+    out << "      <a href=\"" << href 
+	 <<       "\" target=\"_blank\">";
+    out <<             name.str();
+    out << "      </a>";
+    out << "  </th>"                                              << endl;
+
+
+    // Second column: number of events read
+    out << "  <td align=\"right\">";
+    if ( persistentDDUError.toString().size() > 0 ){ // DDU in error
+      out << "      <a href=\"" << href << "\""
+	   <<         " title=\"" << persistentDDUError.toString() << "\""
+	   <<         " style=\"color:#ffffff;"
+	   <<                  "background-color:#000000;"
+	   <<                  "text-decoration:underline blink\""
+	   <<         "\">"
+	   <<           eventsRead.toString() << "</a>";
+    }
+    else{ // DDU OK
+      out << "    " << eventsRead.toString();
+    }
+    out << "  </td>"                                              << endl;
+
+    // Third column: number of events accepted
+    out << "  <td align=\"right\">";
+    out << "    " << totalCount.toString();
+    out << "  </td>"                                              << endl;
+
+    // The remaining 15 columns: event count on each DDU input
+    for ( unsigned int i = 0; i < counts.elements(); ++i ){
+      stringstream DDUInput;
+      DDUInput << "EmuRUI." << (*rui)->getInstance() << "." << i;
+      out << "  <td align=\"right\"";
+      if ( masks.elementAt(i)->toString() == "true" ) 
+	out <<     "class=\"masked\"";
+      else if ( liveInputs.elementAt(i)->toString() == "true" &&
+		(int) ( dynamic_cast<xdata::UnsignedLong*> ( counts.elementAt(i)) )->value_ < maxNumberOfEvents_.value_ )
+	out <<     "class=\"notFinished\"";
+      out <<   ">";
+      if ( liveInputs.elementAt(i)->toString() == "true" )
+	out << counts.elementAt(i)->toString();
+      else
+	out << "&#8212;";
+      if ( control ){
+	out <<       "<input type=\"checkbox\"";
+	out <<             " name=\"" << DDUInput.str() << "\"";
+	out <<             " title=\"DDU Input\"";
+	out <<             " alt=\"DDU Input\"";
+	out <<        "/>";
+      }
+      out <<   "</td>"                                            << endl;
+    } // for ( unsigned int i = 0; i < counts.elements(); ++i )
+
+    out << "</tr>"                                                << endl;
+
+  } // for(rui = ruiDescriptors_.begin(); rui != ruiDescriptors_.end(); rui++)
+
+  // Parser must be explicitly removed, or else it stays in the memory
+  xoap::DOMParser::remove("ParseFromSOAP");
+
+  out << "</table>"                                                 << endl;
+
+  return isFinished;
+}
+
+xoap::MessageReference EmuDAQManager::querySTEP( xdaq::ApplicationDescriptor* ruiDescriptor )
+  throw (emuDAQManager::exception::Exception){
+
+  xoap::MessageReference reply;
+
+  try{
+    
+    // Create query message
+    xoap::MessageReference message = createSimpleSOAPCmdMsg("STEPQuery");
+
+    // Post it
+    reply = appContext_->postSOAP(message, ruiDescriptor);
+    
+    // Check if the reply indicates a fault occurred
+    xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
+    
+    if(replyBody.hasFault())
+      {
+	stringstream oss;
+	oss << "Received fault reply from ";
+	oss << ruiDescriptor->getClassName();
+	oss << ruiDescriptor->getInstance();
+	oss << " : " << replyBody.getFault().getFaultString();
+	XCEPT_RAISE(emuDAQManager::exception::Exception, oss.str());
+      }
+  } catch(xcept::Exception e){
+    stringstream oss;    
+    oss << "Failed to query STEP info in ";
+    oss << ruiDescriptor->getClassName();
+    oss << ruiDescriptor->getInstance();
+    XCEPT_RETHROW(emuDAQManager::exception::Exception, oss.str(), e);
+  }
+
+  return reply;
+}
+
+bool EmuDAQManager::isSTEPFinished(){
+  // Return TRUE if all DDUs' all live and unmasked inputs have produced the requested number of events.
+  bool isFinished = true;
+  
+  xoap::MessageReference reply;
+
+  xoap::DOMParser* parser = xoap::DOMParser::get("ParseFromSOAP");
+
+  xdata::soap::Serializer serializer;
+
+  // Loop over RUIs and query them for STEP info
+  vector< xdaq::ApplicationDescriptor* >::iterator pos;
+  for(pos = ruiDescriptors_.begin(); pos != ruiDescriptors_.end(); pos++){
+
+    xdata::UnsignedLong lowestCount = 0;
+
+    try{
+      reply = querySTEP( *pos );
+      std::stringstream ss;
+      reply->writeTo( ss );
+      DOMDocument* doc = parser->parse( ss.str() );
+      DOMNodeList* dataNode = doc->getElementsByTagNameNS(xoap::XStr("urn:xdaq-soap:3.0"), xoap::XStr("LowestCount") );
+      DOMNode* n = dataNode->item(0);
+      serializer.import( &lowestCount, n );
+      cout << "Lowest count = " << lowestCount.toString() << endl << ss.str() << endl;
+    } catch( emuDAQManager::exception::Exception e ){
+      LOG4CPLUS_WARN( logger_, "Failed to get STEP info from " 
+		      << (*pos)->getClassName() << (*pos)->getInstance() 
+		      << " : " << xcept::stdformat_exception_history(e));
+      isFinished = false;
+    } catch (xoap::exception::Exception& e){
+      LOG4CPLUS_WARN( logger_, "Failed to parse STEP info from reply from " 
+		      << (*pos)->getClassName() << (*pos)->getInstance() 
+		      << " : " << xcept::stdformat_exception_history(e));
+      isFinished = false;
+    }
+
+    isFinished &= ( (int) lowestCount.value_ >= maxNumberOfEvents_.value_ ); 
+    
+  }
+
+  xoap::DOMParser::remove("ParseFromSOAP");
+
+  return isFinished;
+}
+
+void EmuDAQManager::maskDDUInputs( const bool in, const std::vector<cgicc::FormEntry>& fev ){
+
+  //
+  // Collect the RUI instances and DDU input indices that are to be masked
+  //
+
+  std::map< unsigned int, std::set<unsigned int> > instanceToInputs; // an RUI_instance --> [DDU inputs] map
+
+  std::vector<cgicc::FormEntry>::const_iterator fe;
+  for ( fe=fev.begin(); fe!=fev.end(); ++fe ){
+    std::vector<std::string> matches; // matches[1] will be the instance, matches[2] the DDU input
+    if ( toolbox::regx_match( fe->getName(), "^EmuRUI.[0-9]{1,2}.[0-9]{1,2}$") ){ // Make sure there's a match...
+      toolbox::regx_match( fe->getName(), "^EmuRUI.([0-9]{1,2}).([0-9]{1,2})$", matches ); // ...because this crashes if no match.
+      stringstream instance( matches[1] );
+      stringstream input   ( matches[2] );
+      unsigned int ins; instance >> ins;
+      unsigned int inp; input    >> inp;
+      std::map< unsigned int, std::set<unsigned int> >::iterator i = instanceToInputs.find( ins );
+      if ( i == instanceToInputs.end() ){
+	// First selected input of this instance
+	std::set<unsigned int> inputs;
+	inputs.insert( inp );
+	instanceToInputs[ins] = inputs;
+      }
+      else{
+	// This isntance has already input(s) selected
+	i->second.insert( inp );
+      }
+    }
+  }
+
+  //
+  // Loop over RUIs that have inputs selected and send them their list
+  //
+
+  std::map< unsigned int, std::set<unsigned int> >::iterator i;
+  for ( i = instanceToInputs.begin(); i!= instanceToInputs.end(); ++i ){
+    sendDDUInputMask( in, i->first, i->second );
+  }
+
+}
+
+void EmuDAQManager::sendDDUInputMask( const bool                    in, 
+				      const unsigned int            ruiInstance, 
+				      const std::set<unsigned int>& inputs ){
+  // Sends a mask to a RUI exclude or include DDU inputs in the STEP event counts
+
+  string commandName = "excludeDDUInputs";
+  if ( in ) commandName = "includeDDUInputs";
+
+  // Find the application descriptor for RUI of this instance
+  xdaq::ApplicationDescriptor* ruiDescriptor = NULL;
+  vector< xdaq::ApplicationDescriptor* >::iterator rui;
+  for ( rui = ruiDescriptors_.begin(); rui!=ruiDescriptors_.end(); ++rui )
+    if ( (*rui)->getInstance() == ruiInstance ) ruiDescriptor = (*rui);
+  if ( ruiDescriptor == NULL ){
+    LOG4CPLUS_ERROR(logger_, "Failed to get descriptor of EmuRUI instance " << ruiInstance );
+    return;
+  }
+
+  // Transfer inputs into an xdata vector as that can readily be serialized into SOAP
+  xdata::Vector<xdata::UnsignedLong> inputsToMask;
+  std::set<unsigned int>::iterator i;
+  for( i = inputs.begin(); i != inputs.end(); ++i ){
+    inputsToMask.push_back( *i );
+  }
+
+
+  try{
+
+    xoap::MessageReference message = xoap::createMessage();
+    xoap::SOAPPart soapPart = message->getSOAPPart();
+    xoap::SOAPEnvelope envelope = soapPart.getEnvelope();
+    xoap::SOAPBody body = envelope.getBody();
+
+    xoap::SOAPName cmdName = envelope.createName(commandName, "xdaq", "urn:xdaq-soap:3.0");
+    xoap::SOAPBodyElement bodyElement = body.addBodyElement( cmdName );
+
+    xoap::SOAPName arrayName = envelope.createName("DDUInputs", "xdaq", "urn:xdaq-soap:3.0");
+    xoap::SOAPElement array = bodyElement.addChildElement( arrayName );
+
+    xdata::soap::Serializer serializer;
+    serializer.exportAll(&inputsToMask, dynamic_cast<DOMElement*>(array.getDOMNode()), true);
+
+//     message->writeTo( std::cout ); std::cout << std:: endl;
+
+    xoap::MessageReference reply = appContext_->postSOAP( message, ruiDescriptor );
+    
+//     reply->writeTo( std::cout ); std::cout << std:: endl;
+
+    // Check if the reply indicates a fault occurred
+    xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
+    if(replyBody.hasFault()){
+      LOG4CPLUS_ERROR(logger_, 
+		      "Received fault reply to DDU input mask command from EmuRUI instance " 
+		      << ruiInstance << ": " << replyBody.getFault().getFaultString() );
+    }
+
+  } catch( xdaq::exception::Exception e ){
+    LOG4CPLUS_ERROR(logger_,
+		    "Failed to mask DDU inputs in EmuRUI instance " << ruiInstance 
+		    << ": " << xcept::stdformat_exception_history(e) );
+  } catch( xoap::exception::Exception e ){
+    LOG4CPLUS_ERROR(logger_,
+		    "Failed to mask DDU inputs in EmuRUI instance " << ruiInstance 
+		    << ": " << xcept::stdformat_exception_history(e) );
+  } catch( ... ){
+    LOG4CPLUS_ERROR(logger_,
+		    "Failed to mask DDU inputs in EmuRUI instance " << ruiInstance 
+		    << ": Unknown exception." );
+  }
+  
+  return;
+
+}
+
 string EmuDAQManager::getDateTime(){
   time_t t;
   struct tm *tm;
@@ -4257,7 +4722,7 @@ void EmuDAQManager::bookRunNumber(){
   isBookedRunNumber_ = false;
 
   // Don't book debug runs:
-  if ( runType_.toString() == "Debug" ) return;
+  if ( runType_.toString() == "Debug" ||  runType_.toString().find("STEP",0) != string::npos ) return;
   
   // Just in case it's left over from the previuos run:
   if ( runInfo_ ) {
@@ -4308,7 +4773,7 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
   // Update run info db and post to eLog as well
 
   // Don't write about debug runs:
-  if ( runType_.toString() == "Debug" ) return;
+  if ( runType_.toString() == "Debug" ||  runType_.toString().find("STEP",0) != string::npos ) return;
 
   // If it's not a debug run, it should normally have been booked. Inform the user that it somehow wasn't.
   if ( toDatabase && !isBookedRunNumber_ ) LOG4CPLUS_WARN(logger_, "Nothing written to run database as no run number was booked.");
@@ -4681,17 +5146,6 @@ void EmuDAQManager::configureAction(toolbox::Event::Reference e)
 
     warningsToDisplay_ = "";
 
-//     try MOVED TO EmuDAQManager::enableAction
-//       {
-// 	bookRunNumber();
-//       }
-//     catch(...)
-//       {
-// 	LOG4CPLUS_ERROR(logger_,
-// 			"Failed to book run number. Falling back to run number " 
-// 			<< runNumber_.value_ << " specified by user." );
-//       }
-
     try
       {
 	configureDAQ();
@@ -4906,7 +5360,8 @@ void EmuDAQManager::actionPerformed(xdata::Event & received )
 
   xdata::ItemEvent& e = dynamic_cast<xdata::ItemEvent&>(received);
   
-  if ( e.itemName() == "daqState" && e.type() == "ItemRetrieveEvent" ) daqState_ = getDAQState();
+  if      ( e.itemName() == "daqState"     && e.type() == "ItemRetrieveEvent" ) daqState_ = getDAQState();
+  else if ( e.itemName() == "STEPFinished" && e.type() == "ItemRetrieveEvent" ) STEPFinished_ = isSTEPFinished();
 
 //   // TODO: Check if the following setting of run number is necessary. If not, remove the listener.
 //   if ( e.itemName() == "runNumber" && e.type() == "ItemChangedEvent" ){

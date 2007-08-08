@@ -22,6 +22,7 @@
 
 #include <string>
 
+
 using namespace std;
 
 
@@ -34,6 +35,7 @@ public EmuApplication,
 public sentinel::Listener,
 public xdata::ActionListener
 {
+
 public:
 
     /**
@@ -52,6 +54,10 @@ public:
      */
     void onException(xcept::Exception &e);
 
+  xdata::String*  GetRunType(){ return &runType_; };
+  xdata::Integer* GetMaxNumberOfEvents(){ return &maxNumberOfEvents_; }
+  vector< xdaq::ApplicationDescriptor* >* GetRuiDescriptors(){ return &ruiDescriptors_; }
+  map<int,string>* GetHardwareMnemonics(){ return &hardwareMnemonics_; }
 
 private:
 
@@ -311,6 +317,15 @@ private:
   void setParametersForGlobalMode();
 
   string warningsToDisplay_;
+
+  // STEP-specific stuff
+  xdata::Boolean STEPFinished_; // set to TRUE when all DDUs' all live and unmasked inputs have produced the requested number of events
+  bool printSTEPCountsTable( stringstream& out, bool control );
+  bool isSTEPFinished();
+  xoap::MessageReference querySTEP( xdaq::ApplicationDescriptor* ruiDescriptor )
+    throw (emuDAQManager::exception::Exception);
+  void maskDDUInputs( const bool in, const std::vector<cgicc::FormEntry>& fev );
+  void sendDDUInputMask( const bool in, const unsigned int ruiInstance, const std::set<unsigned int>& inputs );
 
     /**
      * Processes the form sent from the control web page.
