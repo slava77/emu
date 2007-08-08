@@ -31,6 +31,8 @@
 #include "emuDAQ/emuUtil/include/EmuI2OServer.h"
 #include "emuDAQ/emuUtil/include/EmuSOAPServer.h"
 #include <sstream>
+#include "xdata/soap/Serializer.h"
+#include "xoap/include/xoap/DOMParser.h"
 
 // Alias used to access the "versioning" namespace EmuRUI from within the class EmuRUI
 namespace EmuRUIV = EmuRUI;
@@ -123,10 +125,21 @@ applicationBSem_(BSem::FULL)
     nReadingPassesInEvent_ = 0;
     insideEvent_           = false;
     errorFlag_             = 0;
+    previousEventNumber_   = 0;
 
     // bind SOAP client credit message callback
     xoap::bind(this, &EmuRUI::onSOAPClientCreditMsg, 
 	       "onClientCreditMessage", XDAQ_NS_URI);
+
+    // bind STEP-related SOAP messages
+    xoap::bind(this, &EmuRUI::onSTEPQuery       ,"STEPQuery"       , XDAQ_NS_URI);
+    xoap::bind(this, &EmuRUI::onExcludeDDUInputs,"excludeDDUInputs", XDAQ_NS_URI);
+    xoap::bind(this, &EmuRUI::onIncludeDDUInputs,"includeDDUInputs", XDAQ_NS_URI);
+
+    // Memory pool for i2o messages to EmuTA
+    stringstream ruiTaPoolName;
+    ruiTaPoolName << "EmuRUI" << instance_ << "-to-EmuTA";
+    ruiTaPool_ = createHeapAllocatorMemoryPool(poolFactory_, ruiTaPoolName.str());
 
     LOG4CPLUS_INFO(logger_, "End of constructor");
 }
@@ -913,14 +926,6 @@ vector< pair<string, xdata::Serializable*> > EmuRUI::initAndGetStdConfigParams()
     params.push_back(pair<string,xdata::Serializable *> 
 		     ("hardwareMnemonic", &hardwareMnemonic_));
 
-//     // Version with multiple devices
-//     for( unsigned int iDev=0; iDev<maxDevices_; ++iDev ) inputDeviceNames_.push_back("");
-//     params.push_back(pair<string,xdata::Serializable *> 
-// 		     ("inputDeviceNames", &inputDeviceNames_));
-//     for( unsigned int iDev=0; iDev<maxDevices_; ++iDev ) hardwareMnemonics_.push_back("");
-//     params.push_back(pair<string,xdata::Serializable *> 
-// 		     ("hardwareMnemonics", &hardwareMnemonics_));
-
 
     pathToDataOutFile_   = "";
     pathToBadEventsFile_ = "";
@@ -987,7 +992,6 @@ vector< pair<string, xdata::Serializable*> > EmuRUI::initAndGetStdMonitorParams(
     persistentDDUError_ = "";
     params.push_back(pair<string,xdata::Serializable *>
 		     ("persistentDDUError", &persistentDDUError_));
-    
 
     for( unsigned int iClient=0; iClient<maxClients_; ++iClient ){ 
       creditsHeld_.push_back(0);
@@ -1502,6 +1506,12 @@ throw (toolbox::fsm::exception::Exception)
 //     }
     // move to enableAction END
 
+    try{
+      getTidOfEmuTA();
+    } catch( xcept::Exception e ) {
+      LOG4CPLUS_WARN(logger_,"Failed to get i2o target id of EmuTA: " +  xcept::stdformat_exception_history(e));
+    }
+
     nReadingPassesInEvent_ = 0;
     insideEvent_           = false;
     errorFlag_             = 0;
@@ -1537,6 +1547,12 @@ throw (toolbox::fsm::exception::Exception)
     destroyServers();
     createServers();
 
+    // Find out if this is going to be a STEP run
+    isSTEPRun_ = ( runType_.toString().find("STEP",0) != string::npos );
+    if ( isSTEPRun_ && inputDataFormatInt_ == EmuReader::DCC ){
+      XCEPT_RAISE(toolbox::fsm::exception::Exception,"STEP runs can only be taken with DDU. Running STEP with DCC is not supported.");
+    }
+    if ( isSTEPRun_ ) STEPEventCounter_.reset();
 
   // Emu: start work loop upon enable, not upon config
 //     if(!workLoopStarted_)
@@ -1769,6 +1785,8 @@ throw (toolbox::fsm::exception::Exception)
 
     // Reset event number
     eventNumber_ = 1;
+    // Reset previous event number
+    previousEventNumber_ = 0;
 
     // EMu specific
     if ( fileWriter_ ){
@@ -2071,6 +2089,7 @@ throw (xgi::exception::Exception)
 string EmuRUI::serializableScalarToString(xdata::Serializable *s)
 {
     if(s->type() == "unsigned long") return serializableUnsignedLongToString(s);
+    if(s->type() == "int"          ) return serializableIntegerToString(s);
     if(s->type() == "double"       ) return serializableDoubleToString(s);
     if(s->type() == "string"       ) return serializableStringToString(s);
     if(s->type() == "bool"         ) return serializableBooleanToString(s);
@@ -2082,6 +2101,13 @@ string EmuRUI::serializableScalarToString(xdata::Serializable *s)
 string EmuRUI::serializableUnsignedLongToString(xdata::Serializable *s)
 {
     xdata::UnsignedLong *v = dynamic_cast<xdata::UnsignedLong*>(s);
+
+    return v->toString();
+}
+
+string EmuRUI::serializableIntegerToString(xdata::Serializable *s)
+{
+    xdata::Integer *v = dynamic_cast<xdata::Integer*>(s);
 
     return v->toString();
 }
@@ -2330,7 +2356,8 @@ int EmuRUI::processAndCommunicate()
     {
         try
         {
-	  pauseForOtherThreads = continueConstructionOfSuperFrag();
+	  if ( isSTEPRun_ ) pauseForOtherThreads = continueSTEPRun();
+	  else              pauseForOtherThreads = continueConstructionOfSuperFrag();
         }
         catch(xcept::Exception e)
         {
@@ -2465,6 +2492,18 @@ void EmuRUI::createFileWriters(){
 	  }
 }
 
+void EmuRUI::writeDataToFile(  char* const data, const int dataLength, const bool newEvent ){
+  if ( fileWriter_ ){
+    try{
+      if ( newEvent ) fileWriter_->startNewEvent();
+      fileWriter_->writeData( data, dataLength );
+    } catch(string e) {
+      LOG4CPLUS_FATAL( logger_, e );
+      moveToFailedState();
+    }
+  }
+}
+
 int EmuRUI::continueConstructionOfSuperFrag()
   throw (emuRUI::exception::Exception){
 
@@ -2477,6 +2516,14 @@ int EmuRUI::continueConstructionOfSuperFrag()
 
   if ( maxEvents_.value_ >= 0 && nEventsRead_.value_ >= (unsigned long) maxEvents_.value_ ) 
     return notToBeRescheduled;
+
+//   //DEBUG_START
+//   insertEmptySuperFragments( eventNumber_, eventNumber_+4 );
+//   eventNumber_ = eventNumber_ + 5;
+//   nEventsRead_ = nEventsRead_ + 5;
+//   blocksArePendingTransmission_ = passDataOnToRUBuilder_.value_;
+//   return noExtraPauseForOtherThreads;
+//   //DEBUG_END
 
   if (deviceReader_ == NULL) return notToBeRescheduled;
 
@@ -2544,8 +2591,17 @@ int EmuRUI::continueConstructionOfSuperFrag()
 
   if ( (xdata::UnsignedLongT) nEventsRead_ == (unsigned long) 0 && nReadingPassesInEvent_ == 1 ) {
     // first event started --> a new run
+
     insideEvent_ = false;
     createFileWriters();
+
+    // inform emuTA about the L1A number of the first event read
+    try{
+      sendEventNumberToTA( deviceReader_->eventNumber() );
+    } catch( xcept::Exception e ) {
+      LOG4CPLUS_WARN(logger_,"Failed to inform emuTA about the L1A number of the first event read: " +  xcept::stdformat_exception_history(e));
+    }
+
   }
 
   char* data;
@@ -2566,53 +2622,36 @@ int EmuRUI::continueConstructionOfSuperFrag()
 
       stringstream ss;
       ss << "Inside event: " << insideEvent_
-	 << " Event: " << eventNumber_
-	 << " L1A: " << deviceReader_->eventNumber()
-	 << " Read: " << nEventsRead_.toString()
+	 << " Last L1A: " << eventNumber_
+	 << " N read: " << nEventsRead_.toString()
+	 << " This L1A: " << deviceReader_->eventNumber()
 	 << " Length: " << dataLength
 	 << " Header: " << header
-	 << " Trailer: " << trailer
-	 << " Packets: " << ( errorFlag_ >> 8 );
-      if ( errorFlag_ & 0x00ff ){
-	ss << " Errors: "
-	   << (errorFlag_ & EmuSpyReader::EndOfEventMissing ? "EndOfEventMissing " : "" )
-	   << (errorFlag_ & EmuSpyReader::Timeout ? "Timeout " : "" )
-	   << (errorFlag_ & EmuSpyReader::PacketsMissing ? "PacketsMissing " : "" )
-	   << (errorFlag_ & EmuSpyReader::LoopOverwrite ? "LoopOverwrite " : "" )
-	   << (errorFlag_ & EmuSpyReader::BufferOverwrite ? "BufferOverwrite " : "" )
-	   << (errorFlag_ & EmuSpyReader::Oversized ? "Oversized" : "" );
-	LOG4CPLUS_WARN(logger_, ss.str());
+	 << " Trailer: " << trailer;
+      if ( inputDeviceType_ == "spy"  ){
+	ss << " Packets: " << ( errorFlag_ >> 8 );
+	if ( errorFlag_ & 0x00ff ){
+	  ss << " Errors: "
+	     << (errorFlag_ & EmuSpyReader::EndOfEventMissing ? "EndOfEventMissing " : "" )
+	     << (errorFlag_ & EmuSpyReader::Timeout ? "Timeout " : "" )
+	     << (errorFlag_ & EmuSpyReader::PacketsMissing ? "PacketsMissing " : "" )
+	     << (errorFlag_ & EmuSpyReader::LoopOverwrite ? "LoopOverwrite " : "" )
+	     << (errorFlag_ & EmuSpyReader::BufferOverwrite ? "BufferOverwrite " : "" )
+	     << (errorFlag_ & EmuSpyReader::Oversized ? "Oversized" : "" );
+	  LOG4CPLUS_WARN(logger_, ss.str());
+	}
+	else{
+	  LOG4CPLUS_INFO(logger_, ss.str());
+	}
       }
-      else{
-	LOG4CPLUS_INFO(logger_, ss.str());
-      }
-
-
-//       stringstream ss;
-//       ss << 
-// 	" Inside event: " << insideEvent_ << 
-// 	" Event: " << eventNumber_ << 
-// 	" L1A: " << deviceReader_->eventNumber() << 
-// 	" Read: " << nEventsRead_.toString() << 
-// 	" Length: " << dataLength <<
-// 	" Header: " << header <<
-// 	" Trailer: " << trailer << ss.str();
-//       ss << endl;
+//       else{
+// 	LOG4CPLUS_INFO(logger_, ss.str());
+//       }
 //       printData(ss,data,dataLength);
-//       ss << endl;
-//       std::cout << ss.str() << std::flush;
 
       if ( insideEvent_ ) {
 
-	if ( fileWriter_ ){
-	  try{
-	    if ( header ) fileWriter_->startNewEvent();
-	    fileWriter_->writeData( data, dataLength );
-	  } catch(string e) {
-	    LOG4CPLUS_FATAL( logger_, e );
-	    moveToFailedState();
-	  }
-	}
+	writeDataToFile( data, dataLength, header );
 
 	if ( header ){
 	  LOG4CPLUS_WARN(logger_, 
@@ -2620,13 +2659,17 @@ int EmuRUI::continueConstructionOfSuperFrag()
 			  " ("             << nEventsRead_ <<
 			  " so far) from " << inputDeviceName_.toString() <<
 			  ", size: "       << dataLength );
-	  // Prepare the old block(s) to be sent out.
+	  // Prepare the old block(s) to be sent out. 
+	  // They will be assumed to belong to the previous known event number.
 	  finalizeSuperFragment();
+	  previousEventNumber_ = eventNumber_;
 	  nEventsRead_++;
 	  // Mark the last block for clients
 	  makeClientsLastBlockCompleteEvent();
 	  // Get the new event number.
 	  eventNumber_ = deviceReader_->eventNumber();
+	  // Ensure there's no gap in the events by inserting dummy super-fragments if necessary.
+	  ensureContiguousEventNumber();
 	  // New event started, reset counter of passes
 	  nReadingPassesInEvent_ = 1;
 	} // if ( header )
@@ -2635,17 +2678,19 @@ int EmuRUI::continueConstructionOfSuperFrag()
 	  // If the EmuRUI to RU memory pool has room for another data block
 	  if(!ruiRuPool_->isHighThresholdExceeded()){
 	    // Fill block and append it to superfragment
-	    appendNewBlockToSuperFrag( data, dataLength );
+	    appendNewBlockToSuperFrag( data, dataLength, eventNumber_ );
 	  }
 	  else { 
-	    LOG4CPLUS_WARN(logger_, "EmuRUI-to-RU memory pool's high threshold exceeded.");
+	    LOG4CPLUS_WARN(logger_, "Event fragment dropped. (EmuRUI-to-RU memory pool's high threshold exceeded.)");
 	  }
 	}
 
 	if ( trailer ){
 	  // Prepare the block(s) to be sent out.
+	  // They will be assumed to belong to the previous known event number.
 	  finalizeSuperFragment();
 	  insideEvent_ = false;
+	  previousEventNumber_ = eventNumber_;
 	  nEventsRead_++;
 	  // Current super-fragment is now ready to be sent to the RU
 	  blocksArePendingTransmission_ = passDataOnToRUBuilder_.value_;
@@ -2662,19 +2707,13 @@ int EmuRUI::continueConstructionOfSuperFrag()
 			  ", size: "       << dataLength );
 	}
 
-	if ( fileWriter_ ){
-	  try{
-	    if ( header || trailer ) fileWriter_->startNewEvent();
-	    fileWriter_->writeData( data, dataLength );
-	  } catch(string e) {
-	    LOG4CPLUS_FATAL( logger_, e );
-	    moveToFailedState();
-	  }
-	}
+	writeDataToFile( data, dataLength, header || trailer );
 
 	if ( header ){
 	  // Get the new event number.
 	  eventNumber_ = deviceReader_->eventNumber();
+	  // Ensure there's no gap in the events by inserting dummy super-fragments if necessary.
+	  ensureContiguousEventNumber();
 	  // New event started, reset counter of passes
 	  nReadingPassesInEvent_ = 1;
 	}
@@ -2683,10 +2722,10 @@ int EmuRUI::continueConstructionOfSuperFrag()
 	  // If the EmuRUI to RU memory pool has room for another data block
 	  if(!ruiRuPool_->isHighThresholdExceeded()){
 	    // Fill block and append it to superfragment
-	    appendNewBlockToSuperFrag( data, dataLength );
+	    appendNewBlockToSuperFrag( data, dataLength, eventNumber_ );
 	  }
 	  else { 
-	    LOG4CPLUS_WARN(logger_, "EmuRUI-to-RU memory pool's high threshold exceeded.");
+	    LOG4CPLUS_WARN(logger_, "Event fragment dropped. (EmuRUI-to-RU memory pool's high threshold exceeded.)");
 	  }
 	}
 	insideEvent_ = true;
@@ -2695,6 +2734,7 @@ int EmuRUI::continueConstructionOfSuperFrag()
 	  // Prepare the block(s) to be sent out.
 	  finalizeSuperFragment();
 	  insideEvent_ = false;
+	  previousEventNumber_ = eventNumber_;
 	  nEventsRead_++;
 	  // Current super-fragment is now ready to be sent to the RU
 	  blocksArePendingTransmission_ = passDataOnToRUBuilder_.value_;
@@ -2702,8 +2742,6 @@ int EmuRUI::continueConstructionOfSuperFrag()
 
       } // if ( insideEvent_ ) else
 
-//       // Update the counter of readout passes in errorFlag
-//       errorFlag_ = incrementPassesCounter( errorFlag_ );
       // Store this data to be sent to clients (if any)
       addDataForClients( runNumber_.value_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
       // TO DO: handle abnormal cases too
@@ -2729,15 +2767,269 @@ int EmuRUI::continueConstructionOfSuperFrag()
 
 }
 
-// unsigned short EmuRUI::incrementPassesCounter( const unsigned short errorFlag ){
-//   // Adds one to the counter of reading passes in the error flag (the 4 lsb)
-//   unsigned short updatedErrorFlag = errorFlag;
-//   // If counter has already reached its max value, leave it that way
-//   if ( ( 0xff00 & updatedErrorFlag ) == 0xff00 ) return updatedErrorFlag;
-//   // Otherwise increment it
-//   updatedErrorFlag += 0x0100;
-//   return updatedErrorFlag;
-// }
+int EmuRUI::continueSTEPRun()
+  throw (emuRUI::exception::Exception){
+
+  // Possible return values
+  const int extraPauseForOtherThreads   = 5000; // [microsecond]
+  const int noExtraPauseForOtherThreads = 0;    // [microsecond]
+  const int notToBeRescheduled          = -1;
+
+  unsigned int nBytesRead = 0;
+
+  if ( maxEvents_.value_ >= 0 && STEPEventCounter_.getLowestCount() >= (unsigned long) maxEvents_.value_ )
+    return notToBeRescheduled;
+
+  if (deviceReader_ == NULL) return notToBeRescheduled;
+
+  // Prepare to read the first event if we have not yet done so:
+  if ( (xdata::UnsignedLongT) nEventsRead_ == (unsigned long) 0 && ! deviceReader_->isResetAndEnabled() ){
+    try{
+      deviceReader_->resetAndEnable();
+    }
+    catch(std::runtime_error e){
+
+      stringstream oss;
+      oss << "Failed to reset and/or enable " << inputDeviceType_.toString()
+	  << " reader for "      << inputDeviceName_.toString()
+	  << ": "                << e.what();
+      LOG4CPLUS_FATAL(logger_, oss.str());
+      moveToFailedState();
+    }
+    catch(...){
+      stringstream oss;
+      oss << "Failed to reset and/or enable " << inputDeviceType_.toString()
+	  << " reader for "      << inputDeviceName_.toString()
+	  << ": unknown exception.";
+      LOG4CPLUS_FATAL(logger_, oss.str());
+      moveToFailedState();
+      // 	XCEPT_RAISE(toolbox::fsm::exception::Exception, oss.str());
+    }
+
+    if ( deviceReader_->getLogMessage().length() > 0 )
+      LOG4CPLUS_INFO(logger_, deviceReader_->getLogMessage());
+  } // if ( nEventsRead_ == (unsigned long) 0 )
+
+    // See if there's something to read and then read it:
+  try{
+    nBytesRead = deviceReader_->readNextEvent();
+  }
+  catch(...){
+    stringstream oss;
+    oss << "Failed to read from " << inputDeviceName_.toString()
+	<< ": unknown exception.";
+    LOG4CPLUS_ERROR(logger_, oss.str());
+  }
+
+  if ( deviceReader_->getLogMessage().length() > 0 )
+    LOG4CPLUS_INFO(logger_, deviceReader_->getLogMessage());
+
+  if ( nBytesRead == 0 ){
+    // No data ==> no business being here. Try to read again later.
+    // But in this case give the other threads a break 
+    // in case a 'Halt' FSM state transition needs to be fired.
+    // Otherwise they may have to wait a couple of seconds or 
+    // sometimes minutes (!) to take the semaphore...
+    return extraPauseForOtherThreads;
+  }
+
+  errorFlag_ |= deviceReader_->getErrorFlag();
+
+  if ( nBytesRead < 8 ){
+    LOG4CPLUS_ERROR(logger_, 
+		    " " << inputDataFormat_.toString() << inputDeviceType_.toString() << 
+		    " read " << nBytesRead << " bytes only.");
+  }
+
+  nReadingPassesInEvent_++;
+
+  if ( (xdata::UnsignedLongT) nEventsRead_ == (unsigned long) 0 && nReadingPassesInEvent_ == 1 ) {
+    // first event started --> a new run
+
+    insideEvent_ = false;
+    createFileWriters();
+
+    // inform emuTA about the L1A number of the first event read
+    try{
+      sendEventNumberToTA( deviceReader_->eventNumber() );
+    } catch( xcept::Exception e ) {
+      LOG4CPLUS_WARN(logger_,"Failed to inform emuTA about the L1A number of the first event read: " +  xcept::stdformat_exception_history(e));
+    }
+
+  }
+
+  char* data;
+  int   dataLength  = 0;
+
+  data = deviceReader_->data();
+
+  if ( data!=NULL ){
+
+    dataLength = deviceReader_->dataLength();
+    if ( dataLength>0 ) {
+
+
+      bool header  = hasHeader(data,dataLength);
+      bool trailer = hasTrailer(data,dataLength);
+
+//       if (header) printData( cout, data, 24 ); // print the DDU header only
+
+      if ( header ) nEventsRead_++;
+
+      if ( trailer && inputDataFormatInt_ == EmuReader::DDU ) interestingDDUErrorBitPattern(data,dataLength);
+
+      if ( header && ! STEPEventCounter_.isInitialized() ){
+	unsigned int maxEvents;
+	if ( maxEvents_.value_ < 0 ) maxEvents = 0xffffffff;
+	else                         maxEvents = (unsigned int) maxEvents_.value_;
+	STEPEventCounter_.initialize( maxEvents, data );
+      }
+
+      stringstream ss;
+      ss << "Inside event: " << insideEvent_
+	 << " Last L1A: " << eventNumber_
+	 << " N read: " << nEventsRead_.toString()
+	 << " This L1A: " << deviceReader_->eventNumber()
+	 << " Length: " << dataLength
+	 << " Header: " << header
+	 << " Trailer: " << trailer
+	 << " STEP counts: " << STEPEventCounter_.print();
+      if ( inputDeviceType_ == "spy"  ){
+	ss << " Packets: " << ( errorFlag_ >> 8 );
+	if ( errorFlag_ & 0x00ff ){
+	  ss << " Errors: "
+	     << (errorFlag_ & EmuSpyReader::EndOfEventMissing ? "EndOfEventMissing " : "" )
+	     << (errorFlag_ & EmuSpyReader::Timeout ? "Timeout " : "" )
+	     << (errorFlag_ & EmuSpyReader::PacketsMissing ? "PacketsMissing " : "" )
+	     << (errorFlag_ & EmuSpyReader::LoopOverwrite ? "LoopOverwrite " : "" )
+	     << (errorFlag_ & EmuSpyReader::BufferOverwrite ? "BufferOverwrite " : "" )
+	     << (errorFlag_ & EmuSpyReader::Oversized ? "Oversized" : "" );
+	  LOG4CPLUS_WARN(logger_, ss.str());
+	}
+	else{
+	  LOG4CPLUS_INFO(logger_, ss.str());
+	}
+      }
+      else{
+	LOG4CPLUS_INFO(logger_, ss.str());
+      }
+//       printData(ss,data,dataLength);
+
+      if ( insideEvent_ ) { // In STEP runs, insideEvent_ means that we are inside a *needed* event.
+
+	if ( !header && !trailer ){
+	  writeDataToFile( data, dataLength );
+	  // Store this data to be sent to clients (if any)
+	  addDataForClients( runNumber_.value_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	} // if ( !header && !trailer )
+
+	else if ( header && !trailer ){
+	  LOG4CPLUS_WARN(logger_, 
+			 "No trailer in event " << eventNumber_ << 
+			 " ("             << nEventsRead_ <<
+			 " so far) from " << inputDeviceName_.toString() <<
+			 ", size: "       << dataLength );
+	  // Mark the last block for clients
+	  makeClientsLastBlockCompleteEvent();
+	  insideEvent_ = false;
+	  if ( STEPEventCounter_.isNeededEvent( data ) ){
+	    writeDataToFile( data, dataLength, true );
+	    // Get the new event number.
+	    eventNumber_ = deviceReader_->eventNumber();
+	    // New event started, reset counter of passes
+	    nReadingPassesInEvent_ = 1;
+	    // Store this data to be sent to clients (if any)
+	    addDataForClients( runNumber_.value_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	    insideEvent_ = true;
+	  }
+	} // if ( header && !trailer )
+
+	else if ( !header && trailer ){
+	  writeDataToFile( data, dataLength );
+	  insideEvent_ = false;
+	  // Store this data to be sent to clients (if any)
+	  addDataForClients( runNumber_.value_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	} // if ( !header && trailer )
+
+	else if ( header && trailer ){
+	  LOG4CPLUS_WARN(logger_, 
+			 "No trailer in event " << eventNumber_ << 
+			 " ("             << nEventsRead_ <<
+			 " so far) from " << inputDeviceName_.toString() <<
+			 ", size: "       << dataLength );
+	  // Mark the last block for clients
+	  makeClientsLastBlockCompleteEvent();
+	  if ( STEPEventCounter_.isNeededEvent( data ) ){
+	    writeDataToFile( data, dataLength, true );
+	    // Get the new event number.
+	    eventNumber_ = deviceReader_->eventNumber();
+	    // New event started and ended, reset counter of passes
+	    nReadingPassesInEvent_ = 0;
+	    // Store this data to be sent to clients (if any)
+	    addDataForClients( runNumber_.value_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	  }
+	  insideEvent_ = false;
+	} // if ( header && trailer )
+
+
+      } // if ( insideEvent_ )
+      else {
+
+	if ( !header && !trailer ){
+	  LOG4CPLUS_WARN(logger_, 
+			  "No header in event after " << eventNumber_ << 
+			  " ("             << nEventsRead_ <<
+			  " so far) from " << inputDeviceName_.toString() <<
+			  ", size: "       << dataLength );
+	} // if ( !header && !trailer )
+
+	else if ( header && !trailer ){
+	  if ( STEPEventCounter_.isNeededEvent( data ) ){
+	    writeDataToFile( data, dataLength, true );
+	    // Get the new event number.
+	    eventNumber_ = deviceReader_->eventNumber();
+	    // New event started, reset counter of passes
+	    nReadingPassesInEvent_ = 1;
+	    // Store this data to be sent to clients (if any)
+	    addDataForClients( runNumber_.value_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	    insideEvent_ = true;
+	  }
+	} // if ( header && !trailer )
+
+	else if ( !header && trailer ){
+	  LOG4CPLUS_WARN(logger_, 
+			  "No header in event after " << eventNumber_ << 
+			  " ("             << nEventsRead_ <<
+			  " so far) from " << inputDeviceName_.toString() <<
+			  ", size: "       << dataLength );
+	} // if ( !header && trailer )
+
+	else if ( header && trailer ){
+	  if ( STEPEventCounter_.isNeededEvent( data ) ){
+	    writeDataToFile( data, dataLength, true );
+	    // Get the new event number.
+	    eventNumber_ = deviceReader_->eventNumber();
+	    // New event started and ended, reset counter of passes
+	    nReadingPassesInEvent_ = 0;
+	    // Store this data to be sent to clients (if any)
+	    addDataForClients( runNumber_.value_, nEventsRead_.value_, trailer, errorFlag_, data, dataLength );
+	  }
+	  insideEvent_ = false;
+	} // if ( header && trailer )
+
+      } // if ( insideEvent_ ) else
+
+      if ( trailer ) errorFlag_ = 0;
+
+    } // if ( dataLength>0 )
+
+  } // if ( data!=NULL )
+
+
+  return noExtraPauseForOtherThreads;
+
+}
+
 
 // bool EmuRUI::continueConstructionOfSuperFrag()
 //   throw (emuRUI::exception::Exception)
@@ -2886,8 +3178,64 @@ int EmuRUI::continueConstructionOfSuperFrag()
 
 // }
 
+void EmuRUI::ensureContiguousEventNumber(){
+  // If event number is incremented by more than one, 
+  // fill the gap with empty events (super fragments) to make the event builder happy.
+  // Take into account that the max possible L1A value (eventNumber_) is 2^24-1 = 0xffffff
 
+  // Don't do it if this is the first event read (i.e., previous event number is zero)
+  if ( previousEventNumber_ == 0 ) return;
 
+  const unsigned int maxL1A = 0xffffff;
+
+  try{
+
+    if ( previousEventNumber_ < eventNumber_ ){ // not wrapped around maxL1A
+      
+      if ( previousEventNumber_ + 1 < eventNumber_ )
+	insertEmptySuperFragments( previousEventNumber_ + 1, eventNumber_-1 );
+      
+    }
+    else if ( previousEventNumber_ > eventNumber_ ){ // wrapped around maxL1A
+      
+      if ( previousEventNumber_ < maxL1A )
+	insertEmptySuperFragments( previousEventNumber_ + 1, maxL1A );
+
+      if ( 0 < eventNumber_ )
+	insertEmptySuperFragments( 0, eventNumber_-1 );
+      
+    }
+    else{
+      LOG4CPLUS_ERROR(logger_, "event number = previous event number = " << eventNumber_ );
+    }
+  }
+  catch( emuRUI::exception::Exception e ){
+    LOG4CPLUS_ERROR(logger_, "Failed to insert empty super-fragments: " << stdformat_exception_history(e));
+  }
+}
+
+void EmuRUI::insertEmptySuperFragments( const unsigned long fromEventNumber, const unsigned long toEventNumber )
+  throw (emuRUI::exception::Exception){
+
+  const char* data     = NULL;
+  const int dataLength = 0;
+
+  LOG4CPLUS_WARN(logger_, "Inserting " << toEventNumber-fromEventNumber+1 
+		 << " empty events (" << fromEventNumber << " through " << toEventNumber << ")");  
+
+  for ( unsigned long eventNumber = fromEventNumber; eventNumber <= toEventNumber; ++eventNumber ){
+    appendNewBlockToSuperFrag( data, dataLength, eventNumber );
+    nEventsRead_++;
+    previousEventNumber_ = eventNumber;
+
+// //DEBUG_START
+//     const int DBGdataLength = 8;
+//     char DBGdata[DBGdataLength] = {'a','b','c','d','e','f','g','h'};
+//     appendNewBlockToSuperFrag( &DBGdata[0], DBGdataLength, eventNumber );
+// //DEBUG_END
+  }
+
+}
 
 void EmuRUI::printData(std::ostream& os, char* data, const int dataLength){
   unsigned short *shortData = reinterpret_cast<unsigned short *>(data);
@@ -3093,8 +3441,8 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
   const short FED_Error     = 0x00C0;
 
   // 1)
-  if ( trailerShortWord[8] & FED_OutOfSync ||
-       trailerShortWord[8] & FED_Error     ||
+  if ( trailerShortWord[8] & FED_OutOfSync            ||
+       (trailerShortWord[8] & FED_Error) == FED_Error || // FED_Error has 2 bits set!!!
        trailerShortWord[6] & 0x8000           ) { // DDU Trailer-1 bit 47
     if ( persistentDDUError_.toString().size() == 0 ){
       stringstream ss;
@@ -3103,11 +3451,14 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
 	 << " (after " << nEventsRead_+1 << " read)";
       persistentDDUError_ = ss.str();
     }
-//     LOG4CPLUS_ERROR(logger_, "Critical DDU error in "
-//        << deviceReader_->getName() << "[" << hardwareMnemonic_.toString() << "]"
-//        << ". Sync Reset or Hard Reset required. (bit T:5|T:6&7|T-1:47) Event "
-//        << deviceReader_->eventNumber()
-//        << " (" << nEventsRead_+1 << " read)");
+    LOG4CPLUS_ERROR(logger_, "Critical DDU error in "
+       << deviceReader_->getName() << "[" << hardwareMnemonic_.toString() << "]"
+       << ". Sync Reset or Hard Reset required. (bit T:5|T:6&7|T-1:47) Event "
+       << deviceReader_->eventNumber()
+       << " (" << nEventsRead_+1 << " read)");
+    // << " FED_OutOfSync: " << short(trailerShortWord[8] & FED_OutOfSync)
+    // << " FED_Error: " << short(trailerShortWord[8] & FED_Error) 
+    // << " DDU Trailer-1 bit 47: " << short(trailerShortWord[6] & 0x8000) );
     foundError = true;
   }
   // 2)
@@ -3145,7 +3496,7 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
   return foundError;
 }
 
-void EmuRUI::appendNewBlockToSuperFrag( char* data, unsigned long dataLength )
+void EmuRUI::appendNewBlockToSuperFrag( const char* data, const unsigned long dataLength, const unsigned long eventNumber )
 throw (emuRUI::exception::Exception)
 {
     toolbox::mem::Reference *bufRef = 0;
@@ -3175,7 +3526,7 @@ throw (emuRUI::exception::Exception)
     // Fill block with super-fragment data
     try
     {
-         fillBlock( bufRef, data, dataLength );
+         fillBlock( bufRef, data, dataLength, eventNumber );
     }
     catch(xcept::Exception e)
     {
@@ -3186,7 +3537,7 @@ throw (emuRUI::exception::Exception)
         oss << " : " << stdformat_exception_history(e);
         s = oss.str();
 
-        LOG4CPLUS_ERROR(logger_, s);
+        XCEPT_RETHROW(emuRUI::exception::Exception, s, e);
     }
 
     // Append block to super-fragment under construction
@@ -3211,8 +3562,9 @@ void EmuRUI::printBlocks( deque<toolbox::mem::Reference*> d ){
 
 void EmuRUI::fillBlock(
     toolbox::mem::Reference *bufRef,
-    char*                    data,
-    const unsigned int       dataLength
+    const char*              data,
+    const unsigned int       dataLength,
+    const unsigned long      eventNumber
 )
 throw (emuRUI::exception::Exception)
 {
@@ -3246,7 +3598,7 @@ throw (emuRUI::exception::Exception)
     // Fill FED data   //
     /////////////////////
 
-    ::memcpy( fedAddr, data, dataLength );
+    if ( data != NULL && dataLength != 0 ) ::memcpy( fedAddr, data, dataLength );
 
     /////////////////////////////
     // Fill RU  headers        //
@@ -3270,35 +3622,23 @@ throw (emuRUI::exception::Exception)
     pvtMsg->XFunctionCode  = I2O_RU_DATA_READY;
     pvtMsg->OrganizationID = XDAQ_ORGANIZATION_ID;
 
-    // block->eventNumber = nEventsRead_ % 0x1000000; // 2^24
-    block->eventNumber = eventNumber_ % 0x1000000; // 2^24
+    block->eventNumber = eventNumber;
+
+    if ( data == NULL || dataLength == 0 ){
+      // Empty event, which needs 1 block only
+      block->blockNb = 0;
+      block->nbBlocksInSuperFragment = 1;
+    }
+// //DEBUG_START
+//       block->blockNb = 0;
+//       block->nbBlocksInSuperFragment = 1;
+// //DEBUG_END
 }
 
 
-// void EmuRUI::setNbBlocksInSuperFragment(const unsigned int nbBlocks)
-// {
-// //      vector<toolbox::mem::Reference*>::iterator pos;
-//      deque<toolbox::mem::Reference*>::iterator pos; // BK
-//      toolbox::mem::Reference            *bufRef = 0;
-//      I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME *block  = 0;
-
-
-//      for(pos=superFragBlocks_.begin(); pos!=superFragBlocks_.end(); pos++)
-//      {
-//          bufRef = *pos;
-//          block = (I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME*)bufRef->getDataLocation();
-//          block->nbBlocksInSuperFragment = nbBlocks;
-// 	 // If we read more than one device, nEventsRead_ is implemented only when
-// 	 // all devices have been read out. This method is invoked after that, so
-// 	 // it is now that we set the run number in all blocks. 
-// 	 // (Event numbering starts from 1.)
-// 	 block->eventNumber = nEventsRead_ % 0x1000000; // 2^24
-//      }
-// }
-
 void EmuRUI::finalizeSuperFragment()
 {
-//      vector<toolbox::mem::Reference*>::iterator pos;
+
      deque<toolbox::mem::Reference*>::iterator pos; // BK
      toolbox::mem::Reference            *bufRef = 0;
      I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME *block  = 0;
@@ -3308,7 +3648,7 @@ void EmuRUI::finalizeSuperFragment()
      for(pos=superFragBlocks_.begin(); pos!=superFragBlocks_.end(); ++pos){
        bufRef = *pos;
        block = (I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME*)bufRef->getDataLocation();
-       if ( eventNumber_ % 0x1000000 == block->eventNumber ){
+       if ( eventNumber_.value_ == block->eventNumber ){
 	 block->blockNb = blockCount;
 	 blockCount++;
        }
@@ -3318,7 +3658,7 @@ void EmuRUI::finalizeSuperFragment()
      for(pos=superFragBlocks_.begin(); pos!=superFragBlocks_.end(); ++pos){
        bufRef = *pos;
        block = (I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME*)bufRef->getDataLocation();
-       if ( eventNumber_ % 0x1000000 == block->eventNumber ){
+       if ( eventNumber_.value_ == block->eventNumber ){
 	 block->nbBlocksInSuperFragment = blockCount;
        }
      }
@@ -3459,6 +3799,282 @@ xoap::MessageReference EmuRUI::onReset(xoap::MessageReference msg)
   
   return createFsmResponseMsg(cmdName, stateName_.toString());
 }
+
+void EmuRUI::getTidOfEmuTA()
+  throw ( xcept::Exception ){
+
+  // First EmuTA's application descriptor
+  taDescriptors_.clear();
+  try{
+    taDescriptors_ = getAppDescriptors(zone_, "EmuTA");
+  } catch(emuRUI::exception::Exception e) {
+    XCEPT_RETHROW( xcept::Exception, 
+		  "Failed to get application descriptor for class EmuTA", e);
+  }
+
+  if ( taDescriptors_.size() == 0 ){
+    XCEPT_RAISE( xcept::Exception, 
+		 "Failed to get application descriptor for class EmuTA");
+  }
+
+  if ( taDescriptors_.size() >= 2 ){
+    LOG4CPLUS_WARN(logger_,"Got more than one application descriptors for class EmuTA. Using the first one.");
+  }
+  
+  // Now the Tid
+  i2o::utils::AddressMap *i2oAddressMap  = i2o::utils::getAddressMap();
+
+  emuTATid_ = i2oAddressMap->getTid( taDescriptors_[0] );
+
+}
+
+// void EmuRUI::sendEventNumberToTA( unsigned long firstEventNumber )
+//   throw ( xcept::Exception ){
+
+//   const unsigned long frameSize = sizeof(I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME) + sizeof(firstEventNumber);
+
+//   toolbox::mem::Reference *ref = 0;
+//   try 
+//     {
+//       ref = toolbox::mem::getMemoryPoolFactory()->getFrame(ruiTaPool_, frameSize);
+      
+//       PI2O_EMU_FIRST_EVENT_NUMBER_MESSAGE_FRAME frame = (PI2O_EMU_FIRST_EVENT_NUMBER_MESSAGE_FRAME) ref->getDataLocation();   
+      
+      
+//       frame->PvtMessageFrame.StdMessageFrame.MsgFlags         = 0;
+//       frame->PvtMessageFrame.StdMessageFrame.VersionOffset    = 0;
+//       frame->PvtMessageFrame.StdMessageFrame.TargetAddress    = emuTATid_;
+//       frame->PvtMessageFrame.StdMessageFrame.InitiatorAddress = tid_;
+//       frame->PvtMessageFrame.StdMessageFrame.MessageSize      = (sizeof(I2O_EMU_FIRST_EVENT_NUMBER_MESSAGE_FRAME)) >> 2;
+      
+//       frame->PvtMessageFrame.StdMessageFrame.Function = I2O_PRIVATE_MESSAGE;
+//       frame->PvtMessageFrame.XFunctionCode            = I2O_EMU_FIRST_EVENT_NUMBER_CODE;
+//       frame->PvtMessageFrame.OrganizationID           = XDAQ_ORGANIZATION_ID;
+      
+//       frame->firstEventNumber = firstEventNumber;
+      
+//       ref->setDataSize(frame->PvtMessageFrame.StdMessageFrame.MessageSize << 2);
+//       LOG4CPLUS_INFO(logger_,
+// 		     "Sending first event number " << firstEventNumber <<
+// 		     " to EmuTA of tid: " << frame->PvtMessageFrame.StdMessageFrame.TargetAddress );
+//       appContext_->postFrame(ref, appDescriptor_, taDescriptors_[0]);
+//       LOG4CPLUS_INFO(logger_,
+// 		     "Sent first event number " << firstEventNumber <<
+// 		     " to EmuTA of tid: " << frame->PvtMessageFrame.StdMessageFrame.TargetAddress );
+//     } 
+//   catch (toolbox::mem::exception::Exception & me)
+//     {
+//       XCEPT_RETHROW( xcept::Exception, xcept::stdformat_exception_history(me), me );
+//     }
+//   catch (xdaq::exception::Exception & e)
+//     {
+//       // Retry 3 times
+//       bool retryOK = false;
+//       for (int k = 0; k < 3; k++)
+// 	{
+// 	  try
+// 	    {
+// 	      appContext_->postFrame(ref, appDescriptor_, taDescriptors_[0]);
+// 	      retryOK = true;
+// 	      break;
+// 	    }
+// 	  catch (xdaq::exception::Exception & re)
+// 	    {
+// 	      LOG4CPLUS_WARN(logger_, "Retrying to send first event number to EmuTA" + 
+// 			     xcept::stdformat_exception_history(re));
+// 	    }
+// 	}
+      
+//       if (!retryOK)
+// 	{
+// 	  ref->release();
+// 	  XCEPT_RAISE( xcept::Exception, "Failed to send first event number I2O frame after 3 retries" );
+// 	}
+//     }
+// }
+
+void EmuRUI::sendEventNumberToTA( unsigned long firstEventNumber )
+  throw ( xcept::Exception ){
+
+  const unsigned long frameSize = sizeof(I2O_EMUCLIENT_CREDIT_MESSAGE_FRAME) + sizeof(firstEventNumber);
+
+  toolbox::mem::Reference *ref = 0;
+  try 
+    {
+      ref = toolbox::mem::getMemoryPoolFactory()->getFrame(ruiTaPool_, frameSize);
+      
+      PI2O_EMU_FIRST_EVENT_NUMBER_MESSAGE_FRAME frame = (PI2O_EMU_FIRST_EVENT_NUMBER_MESSAGE_FRAME) ref->getDataLocation();   
+      
+      
+      frame->PvtMessageFrame.StdMessageFrame.MsgFlags         = 0;
+      frame->PvtMessageFrame.StdMessageFrame.VersionOffset    = 0;
+      frame->PvtMessageFrame.StdMessageFrame.TargetAddress    = emuTATid_;
+      frame->PvtMessageFrame.StdMessageFrame.InitiatorAddress = tid_;
+      frame->PvtMessageFrame.StdMessageFrame.MessageSize      = (sizeof(I2O_EMU_FIRST_EVENT_NUMBER_MESSAGE_FRAME)) >> 2;
+      
+      frame->PvtMessageFrame.StdMessageFrame.Function = I2O_PRIVATE_MESSAGE;
+      frame->PvtMessageFrame.XFunctionCode            = I2O_EMU_FIRST_EVENT_NUMBER_CODE;
+      frame->PvtMessageFrame.OrganizationID           = XDAQ_ORGANIZATION_ID;
+      
+      frame->firstEventNumber = firstEventNumber;
+      
+      ref->setDataSize(frame->PvtMessageFrame.StdMessageFrame.MessageSize << 2);
+      appContext_->postFrame(ref, appDescriptor_, taDescriptors_[0], i2oExceptionHandler_, taDescriptors_[0]);
+      LOG4CPLUS_INFO(logger_,
+		     "Sent first event number " << firstEventNumber <<
+		     " to EmuTA of tid: " << frame->PvtMessageFrame.StdMessageFrame.TargetAddress );
+    } 
+  catch (toolbox::mem::exception::Exception & me)
+    {
+      XCEPT_RETHROW( xcept::Exception, xcept::stdformat_exception_history(me), me );
+    }
+  catch (xdaq::exception::Exception & e)
+    // Actually we may never catch this, as i2oExceptionHandler_ will. And if  we didn't use i2oExceptionHandler_, 
+    // the Executive would catch the I20 exceptions.
+    {
+      // Retry 3 times
+      bool retryOK = false;
+      for (int k = 0; k < 3; k++)
+	{
+	  try
+	    {
+	      appContext_->postFrame(ref, appDescriptor_, taDescriptors_[0], i2oExceptionHandler_, taDescriptors_[0]);
+	      retryOK = true;
+	      break;
+	    }
+	  catch (xdaq::exception::Exception & re)
+	    {
+	      LOG4CPLUS_WARN(logger_, "Retrying to send first event number to EmuTA" + 
+			     xcept::stdformat_exception_history(re));
+	    }
+	}
+      
+      if (!retryOK)
+	{
+	  ref->release();
+	  XCEPT_RAISE( xcept::Exception, "Failed to send first event number I2O frame after 3 retries" );
+	}
+    }
+}
+
+xoap::MessageReference EmuRUI::onSTEPQuery( xoap::MessageReference msg )
+  throw (xoap::exception::Exception){
+  
+  // Declare a SOAP serializer
+  xdata::soap::Serializer serializer;
+
+  // Create reply message
+  xoap::MessageReference reply = xoap::createMessage();
+  xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+  xoap::SOAPBody body = envelope.getBody();
+
+  // Transfer STEP info into xdata as those can readily be serialized into SOAP
+  xdata::UnsignedLong                totalCount  = STEPEventCounter_.getNEvents();
+  xdata::UnsignedLong                lowestCount = STEPEventCounter_.getLowestCount();
+  xdata::Vector<xdata::UnsignedLong> counts;
+  xdata::Vector<xdata::Boolean>      masks;
+  xdata::Vector<xdata::Boolean>      liveInputs;
+  for( unsigned int iInput=0; iInput < emuRUI::STEPEventCounter::maxDDUInputs_; ++iInput ){
+    counts.push_back( STEPEventCounter_.getCount( iInput ) );
+    masks.push_back( STEPEventCounter_.isMaskedInput( iInput ) );
+    liveInputs.push_back( STEPEventCounter_.isLiveInput( iInput ) );
+  }
+
+  // Serialize the persistent DDU error
+  xoap::SOAPName name = envelope.createName("PersistentDDUError", "xdaq", "urn:xdaq-soap:3.0");;
+  xoap::SOAPBodyElement bodyElement = body.addBodyElement( name );
+  serializer.exportAll(&persistentDDUError_, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
+
+  // Serialize the number of events read
+  name = envelope.createName("EventsRead", "xdaq", "urn:xdaq-soap:3.0");;
+  bodyElement = body.addBodyElement( name );
+  serializer.exportAll(&nEventsRead_, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
+
+  // Serialize the total number of events accepted
+  name = envelope.createName("TotalCount", "xdaq", "urn:xdaq-soap:3.0");;
+  bodyElement = body.addBodyElement( name );
+  serializer.exportAll(&totalCount, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
+
+  // Serialize the lowest count
+  name = envelope.createName("LowestCount", "xdaq", "urn:xdaq-soap:3.0");;
+  bodyElement = body.addBodyElement( name );
+  serializer.exportAll(&lowestCount, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
+
+  // Serialize counts
+  name = envelope.createName("Counts", "xdaq", "urn:xdaq-soap:3.0");;
+  bodyElement = body.addBodyElement( name );
+  serializer.exportAll(&counts, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
+
+  // Serialize masks
+  name = envelope.createName("Masks", "xdaq", "urn:xdaq-soap:3.0");;
+  bodyElement = body.addBodyElement( name );
+  serializer.exportAll(&masks, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
+
+  // Serialize live inputs
+  name = envelope.createName("LiveInputs", "xdaq", "urn:xdaq-soap:3.0");;
+  bodyElement = body.addBodyElement( name );
+  serializer.exportAll(&liveInputs, dynamic_cast<DOMElement*>(bodyElement.getDOMNode()), true);
+
+  return reply;
+}
+
+xoap::MessageReference EmuRUI::onExcludeDDUInputs( xoap::MessageReference msg )
+  throw (xoap::exception::Exception){
+  // Exclude DDU inputs from STEP count 
+  
+  return maskDDUInputs( false, msg );
+}
+
+xoap::MessageReference EmuRUI::onIncludeDDUInputs( xoap::MessageReference msg )
+  throw (xoap::exception::Exception){
+  // Include DDU inputs in STEP count 
+
+  return maskDDUInputs( true, msg );
+}
+
+xoap::MessageReference EmuRUI::maskDDUInputs( const bool in, const xoap::MessageReference msg )
+  throw (xoap::exception::Exception){
+  // Set mask on DDU inputs for STEP count 
+
+  // Create reply message
+  xoap::MessageReference reply = xoap::createMessage();
+
+  // Create a parser
+  xoap::DOMParser* parser = xoap::DOMParser::get("ParseFromSOAP");
+
+  // Create a (de)serializer
+  xdata::soap::Serializer serializer;
+
+  // xdata::soap::Serializer serializes into xdata
+  xdata::Vector<xdata::UnsignedLong> DDUInputs;
+
+  try{
+    stringstream ss;
+    msg->writeTo( ss );
+    DOMDocument* doc = parser->parse( ss.str() );
+    
+    DOMNode* n = doc->getElementsByTagNameNS( xoap::XStr("urn:xdaq-soap:3.0"), 
+					      xoap::XStr("DDUInputs")         )->item(0);
+    serializer.import( &DDUInputs, n );
+
+    for ( unsigned int i = 0; i < DDUInputs.elements(); ++i ){
+      int dduInputIndex = (int)( dynamic_cast<xdata::UnsignedLong*> ( DDUInputs.elementAt(i)) )->value_;
+      if ( in ) STEPEventCounter_.unmaskInput( dduInputIndex );
+      else      STEPEventCounter_.maskInput( dduInputIndex );
+    }
+    
+  } catch( xoap::exception::Exception e ){
+    XCEPT_RETHROW(xoap::exception::Exception, "Failed to mask DDU inputs.", e );
+  } catch( ... ){
+    XCEPT_RAISE(xoap::exception::Exception, "Failed to mask DDU inputs: Unknown exception." );
+  }
+
+  // Parser must be explicitly removed, or else it stays in the memory
+  xoap::DOMParser::remove("ParseFromSOAP");
+
+  return reply;
+}
+
 
 /**
  * Provides the factory method for the instantiation of EmuRUI applications.
