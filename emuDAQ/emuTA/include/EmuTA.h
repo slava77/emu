@@ -325,6 +325,8 @@ private:
 
     string serializableUnsignedLongToString(xdata::Serializable *s);
 
+    string serializableIntegerToString(xdata::Serializable *s);
+
     string serializableDoubleToString(xdata::Serializable *s);
 
     string serializableStringToString(xdata::Serializable *s);
@@ -479,6 +481,12 @@ private:
   // EMu-specific stuff
   //
 
+  unsigned int nEmuRUIs_;                  // The number of EmuRUIs. They should all vote for the first event number.
+  unsigned int nVotesForFirstEventNumber_; // Count how many EmuRUIs have sent the L1A number of the first event it read out.
+  unsigned int biggestFirstEventNumber_;   // The biggest of the first event numbers reported by EmuRUIs.
+  unsigned int smallestFirstEventNumber_;  // The smallesr of the first event numbers reported by EmuRUIs.
+
+  void firstEventNumberMsg(toolbox::mem::Reference *bufRef);
   string getDateTime();
   void printBlock( toolbox::mem::Reference *bufRef, bool printMessageHeader );
 };
