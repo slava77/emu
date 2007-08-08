@@ -1750,12 +1750,14 @@ throw (emuFU::exception::Exception)
     bool blockIsFirstOfSuperFragment = block->blockNb         == 0;
     bool superFragmentIsFirstOfEvent = block->superFragmentNb == 0;
 
-    cout << "superFragmentIsLastOfEvent: " << superFragmentIsLastOfEvent << endl;
-    cout << "blockIsLastOfSuperFragment: " << blockIsLastOfSuperFragment << endl;
-    cout << "blockIsLastOfEvent: " << blockIsLastOfEvent << endl;
-    printBlock( bufRef, true );
+//     cout << "blockIsFirstOfSuperFragment: " << blockIsFirstOfSuperFragment << endl;
+//     cout << "superFragmentIsFirstOfEvent: " << superFragmentIsFirstOfEvent << endl;
+//     cout << "superFragmentIsLastOfEvent: " << superFragmentIsLastOfEvent << endl;
+//     cout << "blockIsLastOfSuperFragment: " << blockIsLastOfSuperFragment << endl;
+//     cout << "blockIsLastOfEvent: " << blockIsLastOfEvent << endl;
+//     printBlock( bufRef, true );
 
-    if( superFragmentIsFirstOfEvent && blockIsFirstOfSuperFragment ) // trigger block
+    if( superFragmentIsFirstOfEvent && blockIsFirstOfSuperFragment ) // new event is starting
       {
 
 	if ( fileWriter_ )
@@ -1906,6 +1908,14 @@ void EmuFU::printBlock( toolbox::mem::Reference *bufRef, bool printMessageHeader
       std::cout << "EmuFU::printBlock: no buffer?!" << endl;
       return;
     }
+
+  char         *startOfPayload = (char*) bufRef->getDataLocation() 
+    + sizeof(I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME);
+  unsigned long  sizeOfPayload =         bufRef->getDataSize()
+    - sizeof(I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME);
+  unsigned short * shorts = reinterpret_cast<unsigned short *>(startOfPayload);
+  int nshorts = sizeOfPayload / sizeof(unsigned short);
+
   if( printMessageHeader )
     {
       std::cout << "EmuFU::printBlock:" << endl;
@@ -1916,25 +1926,20 @@ void EmuFU::printBlock( toolbox::mem::Reference *bufRef, bool printMessageHeader
 	" of "   << block->nbSuperFragmentsInEvent << endl;
       std::cout  << 
 	"   Block " << block->blockNb << 
-	" of "   << block->nbBlocksInSuperFragment << endl;
+	" of "   << block->nbBlocksInSuperFragment <<
+	", length " << sizeOfPayload << " bytes" << endl;
     }
-  char         *startOfPayload = (char*) bufRef->getDataLocation() 
-    + sizeof(I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME);
-  unsigned long  sizeOfPayload =         bufRef->getDataSize()
-    - sizeof(I2O_EVENT_DATA_BLOCK_MESSAGE_FRAME);
-  unsigned short * shorts = reinterpret_cast<unsigned short *>(startOfPayload);
-  int nshorts = sizeOfPayload / sizeof(unsigned short);
   std::cout<<std::hex;
   for(int i = 0; i < nshorts; i+=4)
     {
       std::cout << "      ";
-      std::cout.width(4); std::cout.fill('0');    
+      std::cout.width(4); std::cout.fill('0');
       std::cout << shorts[i+3] << " ";
-      std::cout.width(4); std::cout.fill('0');    
+      std::cout.width(4); std::cout.fill('0');
       std::cout << shorts[i+2] << " ";
-      std::cout.width(4); std::cout.fill('0');    
+      std::cout.width(4); std::cout.fill('0');
       std::cout << shorts[i+1] << " ";
-      std::cout.width(4); std::cout.fill('0');    
+      std::cout.width(4); std::cout.fill('0');
       std::cout << shorts[i] << std::endl;
     }
   std::cout<<std::dec;
