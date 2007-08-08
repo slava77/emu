@@ -2,6 +2,7 @@
 // #include "evb/examples/ta/include/TAV.h"
 #include "emu/emuDAQ/emuTA/include/EmuTA.h"
 #include "emu/emuDAQ/emuTA/include/EmuTAV.h"
+#include "emu/emuDAQ/emuRUI/include/i2oEmuFirstEventNumberMsg.h"
 #include "extern/cgicc/linuxx86/include/cgicc/HTTPHTMLHeader.h"
 #include "extern/cgicc/linuxx86/include/cgicc/HTTPPlainHeader.h"
 #include "i2o/include/i2o/Method.h"
@@ -26,6 +27,7 @@
 
 #include <time.h>
 #include <iomanip>
+#include <unistd.h>
 
 // Alias used to access the "versioning" namespace EmuTA from within the class EmuTA
 namespace EmuTAV = EmuTA;
@@ -330,7 +332,7 @@ vector< pair<string, xdata::Serializable*> > EmuTA::initAndGetStdMonitorParams()
 
     stateName_          = "Halted";
     nbCreditsHeld_      = 0;
-    eventNumber_        = 1;
+    eventNumber_        = 0;
 
     params.push_back(pair<string,xdata::Serializable *>
         ("stateName", &stateName_));
@@ -402,6 +404,14 @@ void EmuTA::bindI2oCallbacks()
         this,
         &EmuTA::taCreditMsg,
         I2O_TA_CREDIT,
+        XDAQ_ORGANIZATION_ID
+    );
+
+    i2o::bind
+    (
+        this,
+        &EmuTA::firstEventNumberMsg,
+        I2O_EMU_FIRST_EVENT_NUMBER_CODE,
         XDAQ_ORGANIZATION_ID
     );
 }
@@ -587,6 +597,7 @@ throw (xgi::exception::Exception)
 string EmuTA::serializableScalarToString(xdata::Serializable *s)
 {
     if(s->type() == "unsigned long") return serializableUnsignedLongToString(s);
+    if(s->type() == "int"          ) return serializableIntegerToString(s);
     if(s->type() == "double"       ) return serializableDoubleToString(s);
     if(s->type() == "string"       ) return serializableStringToString(s);
     if(s->type() == "bool"         ) return serializableBooleanToString(s);
@@ -598,6 +609,13 @@ string EmuTA::serializableScalarToString(xdata::Serializable *s)
 string EmuTA::serializableUnsignedLongToString(xdata::Serializable *s)
 {
     xdata::UnsignedLong *v = dynamic_cast<xdata::UnsignedLong*>(s);
+
+    return v->toString();
+}
+
+string EmuTA::serializableIntegerToString(xdata::Serializable *s)
+{
+    xdata::Integer *v = dynamic_cast<xdata::Integer*>(s);
 
     return v->toString();
 }
@@ -814,6 +832,11 @@ throw (toolbox::fsm::exception::Exception)
             "Failed to get application descriptors and tids", e);
     }
     
+    nEmuRUIs_ = zone_->getApplicationDescriptors("EmuRUI").size();
+    nVotesForFirstEventNumber_ = 0;
+    biggestFirstEventNumber_   = 0;
+    smallestFirstEventNumber_  = 0x1000000; // 2^24 (L1A is an unsigned 24-bit number)
+
     // MOVED TO enableAction START
 //     runStartTime_ = getDateTime();
 
@@ -894,7 +917,7 @@ throw (toolbox::fsm::exception::Exception)
   runNumber_++;
 
     // Reset the dummy event number
-    eventNumber_ = 1;
+    eventNumber_ = 0;
 
     // Reset the number of credits held
     nbCreditsHeld_ = 0;
@@ -906,7 +929,7 @@ void EmuTA::haltActionComingFromReady(toolbox::Event::Reference e)
 throw (toolbox::fsm::exception::Exception)
 {
     // Reset the dummy event number
-    eventNumber_ = 1;
+    eventNumber_ = 0;
 
     // Reset the number of credits held
     nbCreditsHeld_ = 0;
@@ -949,13 +972,14 @@ throw (emuTA::exception::Exception)
     unsigned int            i       = 0;
 
 
-//     for(i=0; i<n; i++)
-//     for(i=0; i<n && eventNumber_<maxNumTriggers_+1; i++)
     for(i=0; 
 	i<n && ( maxNumTriggers_.value_ < 0 || 
-		 eventNumber_.value_    < (unsigned long)(maxNumTriggers_.value_+1) ); 
+		 eventNumber_.value_    < biggestFirstEventNumber_ + (unsigned long)(maxNumTriggers_.value_) ); 
 	i++)
     {
+      // In the builder the trigger number must match the data event number. As the latter wraps around 2^24,
+      // so too must the trigger number:
+      unsigned int eventNumber = eventNumber_.value_ % 0x1000000;
         bufRef = triggerGenerator_.generate
         (
             poolFactory_,            // poolFactory
@@ -963,7 +987,7 @@ throw (emuTA::exception::Exception)
             tid_,                    // initiatorAddress
             evmTid_,                 // targetAddress
             triggerSourceId_.value_, // triggerSourceId
-            eventNumber_.value_,     // eventNumber
+            eventNumber,             // eventNumber
             runNumber_.value_        // runNumber
         );
 
@@ -1004,9 +1028,7 @@ throw (emuTA::exception::Exception)
             XCEPT_RAISE(emuTA::exception::Exception, s);
         }
 
-        // Increment the event number taking into account the event number of
-        // CMS will be 24-bits (2 to the power of 24 = 16777216)
-        eventNumber_ = (eventNumber_ + 1) % 16777216;
+        eventNumber_++;
     }
 //     LOG4CPLUS_INFO(logger_, "Sent " << eventNumber_ << " triggers; holding " << nbCreditsHeld_);
 
@@ -1055,6 +1077,11 @@ void EmuTA::printBlock( toolbox::mem::Reference *bufRef, bool printMessageHeader
 
 void EmuTA::taCreditMsg(toolbox::mem::Reference *bufRef)
 {
+
+  // Wait for all votes for first event number to arrive, but don't hog the CPU by idle-looping:
+  while( nVotesForFirstEventNumber_ < nEmuRUIs_ ) usleep( 1000 );
+
+
     I2O_TA_CREDIT_MESSAGE_FRAME *msg =
         (I2O_TA_CREDIT_MESSAGE_FRAME*)bufRef->getDataLocation();
 
@@ -1090,6 +1117,78 @@ void EmuTA::taCreditMsg(toolbox::mem::Reference *bufRef)
     {
         LOG4CPLUS_ERROR(logger_,
             "Failed to process trigger credit message : Unknown exception");
+    }
+
+    bSem_.give();
+
+    // Free the trigger credits message
+    bufRef->release();
+}
+
+void EmuTA::firstEventNumberMsg(toolbox::mem::Reference *bufRef)
+{
+    I2O_EMU_FIRST_EVENT_NUMBER_MESSAGE_FRAME *msg =
+      (I2O_EMU_FIRST_EVENT_NUMBER_MESSAGE_FRAME*)bufRef->getDataLocation();
+
+    I2O_TID tid;
+    string name;
+    int instance;
+
+    bSem_.take();
+
+    try
+    {
+        switch(fsm_.getCurrentState())
+        {
+        case 'H': // Halted
+        case 'F': // Failed
+            break;
+        case 'E': // Enabled
+
+	  tid = msg->PvtMessageFrame.StdMessageFrame.InitiatorAddress;
+	  name = i2o::utils::getAddressMap()->getApplicationDescriptor(tid)->getClassName();
+	  instance = i2o::utils::getAddressMap()->getApplicationDescriptor(tid)->getInstance();
+
+	  nVotesForFirstEventNumber_++;
+
+	  if ( nVotesForFirstEventNumber_ <= nEmuRUIs_ ){
+	    if ( msg->firstEventNumber > biggestFirstEventNumber_  ) biggestFirstEventNumber_  = msg->firstEventNumber;
+	    if ( msg->firstEventNumber < smallestFirstEventNumber_ ) smallestFirstEventNumber_ = msg->firstEventNumber;
+	    eventNumber_ = biggestFirstEventNumber_;
+	    LOG4CPLUS_INFO(logger_,"Got first event number " 
+			   << msg->firstEventNumber << " from " 
+			   << name << instance << " ("
+			   << nVotesForFirstEventNumber_ << " of "
+			   << nEmuRUIs_ << ")");
+	    if ( nVotesForFirstEventNumber_ == nEmuRUIs_ ){
+	      LOG4CPLUS_INFO(logger_,"Got first event number from every EmuRUI. Their range is [" 
+			     << smallestFirstEventNumber_ << ", " << biggestFirstEventNumber_ << "]" );
+	    }
+	  }
+	  else{
+	    LOG4CPLUS_ERROR(logger_,"Got more votes (" << nVotesForFirstEventNumber_ 
+			    << ") for first event number than there are EmuRUIs (" << nEmuRUIs_ << ")?!" );
+	  }
+
+	  break;
+        case 'R': // Ready
+        case 'S': // Suspended
+            break;
+        default:
+            LOG4CPLUS_ERROR(logger_,
+                "EmuTA in undefined state");
+        }
+    }
+    catch(xcept::Exception e)
+    {
+        LOG4CPLUS_ERROR(logger_,
+            "Failed to process first event number message : "
+             << stdformat_exception_history(e));
+    }
+    catch(...)
+    {
+        LOG4CPLUS_ERROR(logger_,
+            "Failed to process first event number message : Unknown exception");
     }
 
     bSem_.give();
@@ -1201,7 +1300,6 @@ string EmuTA::createValueForSentinelNotifierProperty
 
     return s;
 }
-
 
 /**
  * Provides the factory method for the instantiation of EmuTA applications.
