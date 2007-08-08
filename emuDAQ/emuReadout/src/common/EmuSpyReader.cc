@@ -372,9 +372,8 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
     // Increment packet count.
     packets=packets+1;
 
-    // Keep a tally of oversized events
+    // Mark this event as oversized to keep a tally
     if(len>MAXEVENT_2){
-      oversizedCount++;
       theErrorFlag|=Oversized; 
     }
 
@@ -402,6 +401,11 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
     }
   }
   visitCount++;
+
+  // Keep a tally of oversized events
+  if(theErrorFlag & Oversized){
+    oversizedCount++;
+  }
 
   // Pack the number of packets into the upper byte of theErrorFlag
   theErrorFlag |= packets << 8; 
@@ -445,11 +449,14 @@ int EmuSpyReader::dataLengthWithoutPadding( const unsigned short* data, const in
   // "The exact format of the Filler is (8*N)-1 "FF" bytes, preceded by a 1-byte
   // count of how many real data bytes in the packet preceded the Filler."
 
-  const int minEthPacketSize = 32; // 2-byte words (64 bytes)
+//   const int minEthPacketSize = 32; // 2-byte words (64 bytes)
   const int fillerWordSize   =  4; // 2-byte words (8 bytes); the total filler size is an integer multiple of this
 
   if ( !dataLength ) return 0;
-  if ( dataLength > 2*minEthPacketSize ) return dataLength; // no reason for Ethernet padding
+
+  // The following conditional would be useful if we examined individual packets. That's not the case:
+  // We examine events, which may consist of more than one packet (>64 bytes) and still have padding at the end.
+//   if ( dataLength > 2*minEthPacketSize ) return dataLength; // no reason for Ethernet padding
 
   // Let's go backward looking for the first non-filler 8-byte word:
   for ( int iShort=dataLength/2-fillerWordSize; iShort>=0; iShort-=fillerWordSize ){
