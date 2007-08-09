@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.31 2007/08/08 13:23:02 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.32 2007/08/09 09:24:24 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.32  2007/08/09 09:24:24  rakness
+// ALCT-CLCT coincidence pulsing using teststrip in ChamberUtilities
+//
 // Revision 3.31  2007/08/08 13:23:02  rakness
 // sleep after setting mpc_output_enable for reading DMB delays and scopes
 //
@@ -2248,6 +2251,50 @@ void ChamberUtilities::InitStartSystem(){
   //
 }
 //
+void ChamberUtilities::SetupCoincidencePulsing() {
+  //  
+  const int default_amplitude = 25;
+  const int default_signal    = ADB_SYNC;
+  //
+  SetupCoincidencePulsing(default_amplitude,default_signal);
+  //
+  return;
+}
+//
+void ChamberUtilities::SetupCoincidencePulsing(int amplitude, int pulse_signal) {
+  //
+  // Setup to pulse the chamber so that both CLCT and ALCT fire on a single (TTC) command
+  //
+  // Set up ALCT teststrip pulsing: 
+  //
+  if (debug_) std::cout << "Setup coincidence pulsing in TMB slot " << thisTMB->slot() << std::endl;
+  const int strip_mask = 0x3f;        //pulse all six (layers of) strips
+  //
+  alct->SetUpPulsing(amplitude,PULSE_LAYERS,strip_mask,pulse_signal);
+  ::sleep(1);
+  //
+  // Mask off the distrip channels near both edges of the chamber for pulsing the teststrip:
+  //
+  // We mask off both because:
+  // 1) The distrip nearest the teststrip fires hot when the teststrip is enabled.  
+  // 2) The placement of the teststrip relative to which edge depends on the routing of the 
+  //    lemo cables, which depends on the chamber type
+  // 3) Since the distrip farthest from the teststrip does not have a pulse induced, anyway,
+  //    we can mask it off safely
+  for (int layer=0; layer<6; layer++) {
+    thisTMB->SetDistripHotChannelMask(layer,0,0);
+    thisTMB->SetDistripHotChannelMask(layer,39,0);
+  }
+  thisTMB->WriteDistripHotChannelMasks();
+  //
+  if (debug_) {
+    thisTMB->ReadDistripHotChannelMasks();
+    thisTMB->PrintHotChannelMask();
+  }
+  //
+  return;
+}
+//
 void ChamberUtilities::PulseRandomALCT(int delay){
   //
   alct->SetUpRandomALCT();
@@ -2858,7 +2905,7 @@ float ChamberUtilities::AverageHistogram(int * histogram, int min_value, int max
   //
   float average;
   //
-  const int max_width = 5;
+  const int max_width = 7;
   bool first_time = true;
   //
   int width = max_value - min_value + 1;  //starting value for width = input values

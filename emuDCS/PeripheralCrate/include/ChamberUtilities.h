@@ -11,7 +11,9 @@
 #include "MPC.h"
 #include "RAT.h"
 #include "ALCTController.h"
-
+/**
+   Functions specific to a chamber which may use methods from several different core classes  
+ */
 class ChamberUtilities {
   //
 public:
@@ -55,8 +57,8 @@ public:
   void PrintAllDmbValuesAndScopes();
   //
   // L1A accept windows
-  int  FindTMB_L1A_delay(int,int);
-  int  FindALCT_L1A_delay(int,int);
+  int  FindTMB_L1A_delay(int min_delay, int max_delay);
+  int  FindALCT_L1A_delay(int min_delay, int max_delay);
   //  int  TMBL1aTiming(int enable=1);
   //  int  FindBestL1aAlct();
   //
@@ -67,6 +69,10 @@ public:
   // useful peripheral crate functions
   void InitSystem();
   void InitStartSystem();
+  //
+  /// Setup to pulse the chamber so that both CLCT and ALCT fire on the ADB_SYNC command
+  void SetupCoincidencePulsing();
+  void SetupCoincidencePulsing(int amplitude, int pulse_signal);
   //
   void PulseRandomALCT(int delay = 0x6868);
   void PulseAllWires();
