@@ -1,5 +1,11 @@
 #include "EmuFCrate.h"
 
+// addition for STEP
+#include "Crate.h"
+#include "DDU.h"
+// end addition for STEP
+
+
 #include "xdaq/NamespaceURI.h"
 #include "xoap/Method.h"  // xoap::bind()
 #include "xgi/Method.h"  // xgi::bind()
@@ -67,6 +73,11 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s): EmuApplication(s)
 	xgi::bind(this, &EmuFCrate::webDefault, "Default");
 	xgi::bind(this, &EmuFCrate::webConfigure, "Configure");
 	xgi::bind(this, &EmuFCrate::webSetTTSBits, "SetTTSBits");
+
+	// addition for STEP
+	getApplicationInfoSpace()->fireItemAvailable ("step_killfiber", &step_killfiber_);
+	xoap::bind(this, &EmuFCrate::onPassthru,  "Passthru", XDAQ_NS_URI);
+	// end addition for STEP
 }
 
 xoap::MessageReference EmuFCrate::onConfigure(xoap::MessageReference message)
@@ -267,6 +278,41 @@ void EmuFCrate::stateChanged(toolbox::fsm::FiniteStateMachine &fsm)
 {
 	EmuApplication::stateChanged(fsm);
 }
+
+// addition for STEP
+
+// this routine is written in the assumption that we have only one DDU at this time, for STEP setup.
+// if used on multy-ddu setup, will program them all with the same killfiber.
+// user must program step_killfiber_ before calling this routine.
+xoap::MessageReference EmuFCrate::onPassthru(xoap::MessageReference message)
+		throw (xoap::exception::Exception)
+{
+	// find crates
+	std::vector<Crate*> myCrates = selector().crates();
+
+	for(unsigned i = 0; i < myCrates.size(); ++i) 
+	{
+		// find DDUs in each crate
+		std::vector<DDU*> myDdus = myCrates[i]->ddus();
+		for(unsigned j =0; j < myDdus.size(); ++j) 
+		{
+			cout << "Setting passthru mode for crate: " << i << " DDU: " << j << " slot: " << myDdus[j]->slot()
+				 << " fiber mask: 0x" << hex << step_killfiber_.toString() << dec << endl;
+
+			if (myDdus[j]->slot() < 21) 
+			{
+				myDdus[j]->vmepara_wr_GbEprescale (0xf0f0); // no prescaling
+				myDdus[j]->vmepara_wr_fakel1reg   (0x8787); // fake L1A for each event
+				myDdus[j]->ddu_loadkillfiber      (step_killfiber_); // user selects which inputs to use
+				myDdus[j]->ddu_reset(); // sync reset via VME
+			}
+		}
+	}
+	return createReply(message);
+}
+
+// end addition for STEP
+
 
 // End of file
 // vim: set sw=4 ts=4:

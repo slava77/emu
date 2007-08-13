@@ -68,6 +68,19 @@ private:
 	xdata::UnsignedInteger ttsBits_;
 
 	string ttsCrateStr_, ttsSlotStr_, ttsBitsStr_;
+
+
+// addition for STEP
+
+ public:
+
+	xdata::UnsignedInteger step_killfiber_;
+
+	xoap::MessageReference onPassthru(xoap::MessageReference message)
+		throw (xoap::exception::Exception);
+
+// end addition for STEP
+
 };
 
 #endif  // ifndef _EmuFCrate_h_
