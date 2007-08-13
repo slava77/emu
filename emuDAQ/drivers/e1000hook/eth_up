@@ -2,6 +2,10 @@ mknod /dev/schar2 c 232 0
 mknod /dev/schar3 c 233 0
 mknod /dev/schar4 c 234 0
 mknod /dev/schar5 c 235 0
+chmod 777 /dev/schar2
+chmod 777 /dev/schar3
+chmod 777 /dev/schar4
+chmod 777 /dev/schar5
 modprobe e1000h
 /sbin/ifconfig eth2 promisc
 /sbin/ifconfig eth2 mtu 8192
