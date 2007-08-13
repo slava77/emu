@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.19 2007/05/17 12:52:50 rakness Exp $
+// $Id: TMBParser.cc,v 3.20 2007/08/13 14:17:22 rakness Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.20  2007/08/13 14:17:22  rakness
+// allow synchronization of full trigger/DAQ paths with TTC pulsing
+//
 // Revision 3.19  2007/05/17 12:52:50  rakness
 // ignore_ccb_startstop added to TMB configuration + write configuration to userPROM default
 //
@@ -224,7 +227,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     //0XB2:
     if (parser_.fillInt("match_trig_alct_delay" ,value)) { tmb_->SetAlctVpfDelay(value);        }
     if (parser_.fillInt("match_trig_window_size",value)) { tmb_->SetAlctMatchWindowSize(value); }
-    if (parser_.fillInt("mpc_tx_delay"          ,value)) { tmb_->SetMpcTXdelay(value);          }
+    if (parser_.fillInt("mpc_tx_delay"          ,value)) { tmb_->SetMpcTxDelay(value);          }
     //
     //0XBA:
     if (parser_.fillInt("rpc0_raw_delay",value)) { tmb_->SetRpc0RawDelay(value); }
@@ -269,7 +272,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     if (parser_.fillInt("alct_trig_enable"   ,value)) { tmb_->SetTmbAllowAlct(value);     }
     if (parser_.fillInt("clct_trig_enable"   ,value)) { tmb_->SetTmbAllowClct(value);     }
     if (parser_.fillInt("match_trig_enable"  ,value)) { tmb_->SetTmbAllowMatch(value);    }
-    if (parser_.fillInt("mpc_rx_delay"       ,value)) { tmb_->SetMpcDelay(value);         }
+    if (parser_.fillInt("mpc_rx_delay"       ,value)) { tmb_->SetMpcRxDelay(value);       }
     //if (parser_.fillInt("mpc_sel_ttc_bx0"    ,value)) { tmb_->SetSelectMpcTtcBx0(value);  }
     if (parser_.fillInt("mpc_idle_blank"     ,value)) { tmb_->SetMpcIdleBlank(value);     }
     if (parser_.fillInt("mpc_output_enable"  ,value)) { tmb_->SetMpcOutputEnable(value);  }

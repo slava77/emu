@@ -45,22 +45,20 @@ public:
   int FindALCTinCLCTMatchWindow(int number_of_reads);
   int FindALCTvpf();
   //
-  // Winner bits from MPC
-  int FindWinner(int number_of_pulses);
+  // Winner bits from MPC -> TMB
+  int FindWinner();                          /// Use cosmic rays/pulsing from TTC
+  int FindWinner(int number_of_pulses);      /// Use local pulsing of CFEB, data sent to MPC from TMB by VME command
   //
   // DMB parameters
   void MeasureAlctDavCableDelay();
   void MeasureTmbLctCableDelay();
   void MeasureCfebDavCableDelay();
-  void MeasureCfebCableDelay();
   void ReadAllDmbValuesAndScopes();
   void PrintAllDmbValuesAndScopes();
   //
   // L1A accept windows
   int  FindTMB_L1A_delay(int min_delay, int max_delay);
   int  FindALCT_L1A_delay(int min_delay, int max_delay);
-  //  int  TMBL1aTiming(int enable=1);
-  //  int  FindBestL1aAlct();
   //
   // scans to check functionality of electronics
   void CFEBChamberScan();
@@ -72,6 +70,7 @@ public:
   //
   /// Setup to pulse the chamber so that both CLCT and ALCT fire on the ADB_SYNC command
   void SetupCoincidencePulsing();
+  void SetupCoincidencePulsing(int amplitude);
   void SetupCoincidencePulsing(int amplitude, int pulse_signal);
   //
   void PulseRandomALCT(int delay = 0x6868);
@@ -124,8 +123,8 @@ public:
   inline int  GetALCTtxPhase()                   { return thisTMB->GetALCTtxPhase(); }
   inline int  GetRatTmbDelay()                   { return thisTMB->GetRatTmbDelay() ; }
   inline int  GetRpcRatDelay()                   { return thisTMB->GetRpc0RatDelay(); }
-  inline int  GetMPCdelay()                      { return thisTMB->GetMPCdelay(); }
-  inline int  GetMPCTxDelay_configvalue()        { return thisTMB->GetMpcTXdelay(); }
+  inline int  GetMPCdelay()                      { return thisTMB->GetMpcRxDelay(); }
+  inline int  GetMPCTxDelay_configvalue()        { return thisTMB->GetMpcTxDelay(); }
   inline int  GetAlctDavCableDelay_configvalue() { return thisDMB->GetAlctDavCableDelay(); }
   inline int  GetTmbLctCableDelay_configvalue()  { return thisDMB->GetTmbLctCableDelay(); }
   inline int  GetCfebDavCableDelay_configvalue() { return thisDMB->GetCfebDavCableDelay(); }
@@ -148,20 +147,19 @@ public:
   inline int  GetAlctDavCableDelayTest()   { return AlctDavCableDelay_; }
   inline int  GetTmbLctCableDelayTest()    { return TmbLctCableDelay_; }
   inline int  GetCfebDavCableDelayTest()   { return CfebDavCableDelay_; }
-  inline int  GetCfebCableDelayTest()      { return CfebCableDelay_; }
   inline int  GetTMBL1aTiming()            { return TMBL1aTiming_; }
   inline int  GetBestALCTL1aDelay()        { return BestALCTL1aDelay_; }
   inline int  GetALCTL1aDelay()            { return ALCTL1aDelay_; }
   //
   // Get measured values (not parameters)
-  inline int  GetActiveFebFlagToL1aAtDMB() { return AffToL1aAverageValue_; }
-  inline int  GetTmbDavValue()             { return TmbDavAverageValue_; }
-  inline int  GetCfebDavValue()            { return CfebDavAverageValue_; }
-  inline int  GetAlctDavValue()            { return AlctDavAverageValue_; }
-  inline int  GetActiveFebFlagToL1aScope() { return AffToL1aScopeAverageValue_; }
-  inline int  GetTmbDavScopeValue()        { return TmbDavScopeAverageValue_; }
-  inline int  GetCfebDavScopeValue()       { return CfebDavScopeAverageValue_; }
-  inline int  GetAlctDavScopeValue()       { return AlctDavScopeAverageValue_; }
+  inline float GetActiveFebFlagToL1aAtDMB() { return AffToL1aAverageValue_; }
+  inline float GetTmbDavValue()             { return TmbDavAverageValue_; }
+  inline float GetCfebDavValue()            { return CfebDavAverageValue_; }
+  inline float GetAlctDavValue()            { return AlctDavAverageValue_; }
+  inline float GetActiveFebFlagToL1aScope() { return AffToL1aScopeAverageValue_; }
+  inline float GetTmbDavScopeValue()        { return TmbDavScopeAverageValue_; }
+  inline float GetCfebDavScopeValue()       { return CfebDavScopeAverageValue_; }
+  inline float GetAlctDavScopeValue()       { return AlctDavScopeAverageValue_; }
   //
   inline int  GetCFEBStripScan(int CFEB, int Strip) { return CFEBStripScan_[CFEB][Strip]; }
   inline int  GetALCTWireScan(int Wire)             { return ALCTWireScan_[Wire]; }
@@ -181,8 +179,8 @@ public:
   inline void SetCFEBStripScan(int CFEB, int Strip, int value) { CFEBStripScan_[CFEB][Strip] = value; }
   inline void SetALCTWireScan(int Wire, int value)             { ALCTWireScan_[Wire] = value; }
   //
-  bool UseCosmic ;
-  bool UsePulsing ;
+  //  bool UseCosmic ;
+  //  bool UsePulsing ;
   //
   int BestCCBDelaySetting ;
   float CFEBMean[5];
@@ -219,7 +217,6 @@ private:
   int AlctDavCableDelay_;
   int TmbLctCableDelay_;
   int CfebDavCableDelay_;
-  int CfebCableDelay_;
   int TMBL1aTiming_;
   int BestALCTL1aDelay_;
   int ALCTL1aDelay_;
@@ -235,14 +232,14 @@ private:
   int AlctDavValueMin_;
   int AlctDavValueMax_;
   //
-  int AffToL1aAverageValue_;
-  int CfebDavAverageValue_;
-  int TmbDavAverageValue_;
-  int AlctDavAverageValue_;
-  int AffToL1aScopeAverageValue_;
-  int CfebDavScopeAverageValue_;
-  int TmbDavScopeAverageValue_;
-  int AlctDavScopeAverageValue_;
+  float AffToL1aAverageValue_;
+  float CfebDavAverageValue_;
+  float TmbDavAverageValue_;
+  float AlctDavAverageValue_;
+  float AffToL1aScopeAverageValue_;
+  float CfebDavScopeAverageValue_;
+  float TmbDavScopeAverageValue_;
+  float AlctDavScopeAverageValue_;
   //
   int CFEBStripScan_[5][32];
   int ALCTWireScan_[112];

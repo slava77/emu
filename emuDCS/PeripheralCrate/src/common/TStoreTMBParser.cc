@@ -80,7 +80,7 @@ TStoreTMBParser::TStoreTMBParser(
   //
   input.str(tmb_table[MPC_DELAY_loc]);
   input >> delay; 
-  tmb_->SetMpcDelay(delay);
+  tmb_->SetMpcRxDelay(delay);
   //
   input.str(tmb_table[TMB_FIFO_TBINS_loc]);
   input >> delay; 
@@ -92,7 +92,7 @@ TStoreTMBParser::TStoreTMBParser(
   //
   input.str(tmb_table[MPC_TX_DELAY_loc]);
   input >> delay; 
-  tmb_->SetMpcTXdelay(delay);
+  tmb_->SetMpcTxDelay(delay);
   //
   input.str(tmb_table[TRGMODE_loc]);
   input >> delay; 

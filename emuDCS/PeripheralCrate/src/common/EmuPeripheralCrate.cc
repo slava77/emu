@@ -122,7 +122,6 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     xgi::bind(this,&EmuPeripheralCrate::ReadTMBRegister, "ReadTMBRegister");
     xgi::bind(this,&EmuPeripheralCrate::ReadCCBRegister, "ReadCCBRegister");
     xgi::bind(this,&EmuPeripheralCrate::HardReset, "HardReset");
-    xgi::bind(this,&EmuPeripheralCrate::HardResetChamberTests, "HardResetChamberTests");
     xgi::bind(this,&EmuPeripheralCrate::testTMB, "testTMB");
     xgi::bind(this,&EmuPeripheralCrate::Automatic, "Automatic");
     xgi::bind(this,&EmuPeripheralCrate::TMBTests,  "TMBTests");
@@ -204,10 +203,10 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     xgi::bind(this,&EmuPeripheralCrate::LogTestSummary, "LogTestSummary");
     xgi::bind(this,&EmuPeripheralCrate::LogTMBTestsOutput, "LogTMBTestsOutput");
     xgi::bind(this,&EmuPeripheralCrate::FindWinner, "FindWinner");
+    xgi::bind(this,&EmuPeripheralCrate::setupCoincidencePulsing, "setupCoincidencePulsing");
     xgi::bind(this,&EmuPeripheralCrate::AlctDavCableDelay, "AlctDavCableDelay");
     xgi::bind(this,&EmuPeripheralCrate::TmbLctCableDelay, "TmbLctCableDelay");
     xgi::bind(this,&EmuPeripheralCrate::CfebDavCableDelay, "CfebDavCableDelay");
-    xgi::bind(this,&EmuPeripheralCrate::CfebCableDelay, "CfebCableDelay");
     xgi::bind(this,&EmuPeripheralCrate::PrintDmbValuesAndScopes, "PrintDmbValuesAndScopes");
     xgi::bind(this,&EmuPeripheralCrate::RatTmbTiming, "RatTmbTiming");
     xgi::bind(this,&EmuPeripheralCrate::RpcRatTiming, "RpcRatTiming");
@@ -3530,10 +3529,10 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     if(name != cgi.getElements().end()) {
       dmb = cgi["dmb"]->getIntegerValue();
-      cout << "DMB " << dmb << endl;
+      cout << "ChamberTests:  DMB " << dmb << endl;
       DMB_ = dmb;
     } else {
-      cout << "No dmb" << endl;
+      cout << "ChamberTests:  No dmb" << endl;
       dmb = DMB_;
     }
     //
@@ -3541,10 +3540,10 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     if(name != cgi.getElements().end()) {
       tmb = cgi["tmb"]->getIntegerValue();
-      cout << "TMB " << tmb << endl;
+      cout << "ChamberTests:  TMB " << tmb << endl;
       TMB_ = tmb;
     } else {
-      cout << "No tmb" << endl;
+      cout << "ChamberTests:  No tmb" << endl;
       tmb = TMB_;
     }
     //
@@ -3610,7 +3609,6 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::pre();
     *out << "0) Prepare to run tests" << std::endl;
     *out << "   -> LV on" << std::endl;
-    *out << "   -> Set mpc_output_enable=0 in xml file for all chambers" << std::endl;
     *out << "   -> Restart Peripheral Crate" << std::endl;
     *out << "   -> Init System" << std::endl;
     *out << cgicc::pre();
@@ -3622,14 +3620,6 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << "   -> HV on or off" << std::endl;
     *out << "   -> Stop L1A triggers" << std::endl;
     *out << cgicc::pre();
-    //
-    //
-    std::string HardResetChamberTests =
-      toolbox::toString("/%s/HardResetChamberTests",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",HardResetChamberTests) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Hard Reset");
-    *out << cgicc::form() << std::endl ;
-    *out << cgicc::br();
     //
     //
     std::string ALCTTiming =
@@ -3691,16 +3681,17 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << "2) Measure CLCT-ALCT match timing with cosmic rays" << std::endl;
     *out << "   -> LV on" << std::endl;
     *out << "   -> HV on" << std::endl;
-    *out << cgicc::pre();
     //
-    //
-    *out << cgicc::form().set("method","GET").set("action",HardResetChamberTests) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Hard Reset");
+    std::string setupCoincidencePulsing =
+      toolbox::toString("/%s/setupCoincidencePulsing",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",setupCoincidencePulsing) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Setup Coincidence Pulsing") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
     //
     //
-    *out << cgicc::pre();
-    *out << "   -> start LTC triggers" << std::endl;
+    *out << "   -> Hard Reset, start LTC triggers (start pulsing--OPTIONAL)" << std::endl;
     *out << "   -> Recommended values will be based on current values of:" << std::endl;
     *out << "        * match_trig_window_size" << std::endl;
     *out << "        * match_trig_alct_delay" << std::endl;
@@ -3740,11 +3731,6 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::pre();
     //
     //
-    *out << cgicc::form().set("method","GET").set("action",HardResetChamberTests) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Hard Reset");
-    *out << cgicc::form() << std::endl ;
-    //
-    //
     std::string FindWinner =
       toolbox::toString("/%s/FindWinner",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",FindWinner) << std::endl ;
@@ -3769,15 +3755,6 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << "-------------------------------------------------------------------------" << std::endl;
     *out << "4) Determine the DMB parameters" << std::endl;
     *out << "   -> HV on" << std::endl;
-    *out << cgicc::pre();
-    //
-    //
-    *out << cgicc::form().set("method","GET").set("action",HardResetChamberTests) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Hard Reset");
-    *out << cgicc::form() << std::endl ;
-    //
-    //
-    *out << cgicc::pre();
     *out << "   -> start LTC triggers" << std::endl;
     *out << "----> Check the overall state of the DMB parameters.  Is the Active FEB Flag to L1A close to 147? -----" << std::endl;
     *out << cgicc::pre();
@@ -3853,15 +3830,6 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << "-------------------------------------------------------------------------" << std::endl;
     *out << "5) Determine the delays for the L1A arrival windows at the TMB and ALCT" << std::endl;
     *out << "   -> HV on" << std::endl;
-    *out << cgicc::pre();
-    //
-    //
-    *out << cgicc::form().set("method","GET").set("action",HardResetChamberTests) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Hard Reset");
-    *out << cgicc::form() << std::endl ;
-    //
-    //
-    *out << cgicc::pre();
     *out << "   -> start LTC triggers" << std::endl;
     *out << cgicc::pre();
     //
@@ -3988,6 +3956,37 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
   }
 //
 //
+void EmuPeripheralCrate::setupCoincidencePulsing(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception)
+{
+  //
+  cout << "Setup coincidence pulsing" << endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Setup Coincidence Pulsing");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  int tmb;
+  //
+  name = cgi.getElement("tmb");
+  //
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    cout << "Setup Coincidence Pulsing:  TMB " << tmb << endl;
+    TMB_ = tmb;
+  } else {
+    cout << "Setup Coincidence Pulsing:  No tmb" << endl;
+    tmb = TMB_;
+  }
+  //
+  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb].SetupCoincidencePulsing();
+  MyTest[tmb].RedirectOutput(&std::cout);
+  //
+  this->ChamberTests(in,out);
+  //
+}
   //
   void EmuPeripheralCrate::TMBStartTrigger(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -4306,52 +4305,44 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
   }
   //
-  void EmuPeripheralCrate::ALCTvpf(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-    //
-    cout << "ALCTvpf" << endl;
-    LOG4CPLUS_INFO(getApplicationLogger(), "ALCTvpf");
-    //
-    cgicc::Cgicc cgi(in);
-    //
-    int tmb, dmb;
-    //
-    cgicc::form_iterator name = cgi.getElement("dmb");
-    //
-    if(name != cgi.getElements().end()) {
-      dmb = cgi["dmb"]->getIntegerValue();
-      cout << "DMB " << dmb << endl;
-      DMB_ = dmb;
-    } else {
-      cout << "No dmb" << endl;
-    }
-    //
-    name = cgi.getElement("tmb");
-    //
-    if(name != cgi.getElements().end()) {
-      tmb = cgi["tmb"]->getIntegerValue();
-      cout << "TMB " << tmb << endl;
-      TMB_ = tmb;
-    } else {
-      cout << "No tmb" << endl;
-    }
-    //
-    //DAQMB * thisDMB = dmbVector[dmb];
-    //TMB * thisTMB = tmbVector[tmb];
-    //
-    //MyTest.SetTMB(thisTMB);
-    //MyTest.SetDMB(thisDMB);
-    //MyTest.SetCCB(thisCCB);
-    //
-    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-    //    MyTest[tmb].FindALCTvpf();
-    MyTest[tmb].FindALCTinCLCTMatchWindow(100);
-    MyTest[tmb].RedirectOutput(&std::cout);
-    //
-    this->ChamberTests(in,out);
-    //
+void EmuPeripheralCrate::ALCTvpf(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cout << "EmuPeripheralCrate:  ALCTvpf" << endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "ALCTvpf");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  int tmb;
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    cout << "ALCTvpf:  TMB " << tmb << endl;
+    TMB_ = tmb;
+  } else {
+    cout << "ALCTvpf:  No tmb" << endl;
   }
+  //
+  int dmb;
+  name = cgi.getElement("dmb");
+  //
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    cout << "ALCTvpf:  DMB " << dmb << endl;
+    DMB_ = dmb;
+  } else {
+    cout << "ALCTvpf:  No dmb" << endl;
+  }
+  //
+  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
+  //    MyTest[tmb].FindALCTvpf();
+  MyTest[tmb].FindALCTinCLCTMatchWindow(100);
+  MyTest[tmb].RedirectOutput(&std::cout);
+  //
+  this->ChamberTests(in,out);
+}
   //
   void EmuPeripheralCrate::ALCTScan(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -4444,52 +4435,43 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
   }
   //
-  void EmuPeripheralCrate::FindWinner(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-    //
-    cout << "FindWinner" << endl;
-    LOG4CPLUS_INFO(getApplicationLogger(), "FindWinner");
-    //
-    cgicc::Cgicc cgi(in);
-    //
-    int tmb, dmb;
-    //
-    cgicc::form_iterator name = cgi.getElement("dmb");
-    //
-    if(name != cgi.getElements().end()) {
-      dmb = cgi["dmb"]->getIntegerValue();
-      cout << "DMB " << dmb << endl;
-      DMB_ = dmb;
-    } else {
-      cout << "No dmb" << endl;
-    }
-    //
-    name = cgi.getElement("tmb");
-    //
-    if(name != cgi.getElements().end()) {
-      tmb = cgi["tmb"]->getIntegerValue();
-      cout << "TMB " << tmb << endl;
-      TMB_ = tmb;
-    } else {
-      cout << "No tmb" << endl;
-    }
-    //
-    //DAQMB * thisDMB = dmbVector[dmb];
-    //TMB * thisTMB = tmbVector[tmb];
-    //
-    //MyTest.SetTMB(thisTMB);
-    //MyTest.SetCCB(thisCCB);
-    //MyTest.SetDMB(thisDMB);
-    //MyTest.SetMPC(thisMPC);
-    //
-    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-    MyTest[tmb].FindWinner(2);
-    MyTest[tmb].RedirectOutput(&std::cout);
-    //
-    this->ChamberTests(in,out);
-    //
+void EmuPeripheralCrate::FindWinner(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception)
+{
+  //
+  cout << "EmuPeripheralCrate:  FindWinner" << endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "FindWinner");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  int tmb, dmb;
+  //
+  cgicc::form_iterator name = cgi.getElement("dmb");
+  //
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    cout << "FindWinner:  DMB " << dmb << endl;
+    DMB_ = dmb;
+  } else {
+    cout << "FindWinner:  No dmb" << endl;
   }
+  //
+  name = cgi.getElement("tmb");
+  //
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    cout << "FindWinner:  TMB " << tmb << endl;
+    TMB_ = tmb;
+  } else {
+    cout << "FindWinner:  No tmb" << endl;
+  }
+  //
+  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb].FindWinner();
+  MyTest[tmb].RedirectOutput(&std::cout);
+  //
+  this->ChamberTests(in,out);
+}
 //
   void EmuPeripheralCrate::AlctDavCableDelay(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -4563,45 +4545,6 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     MyTest[tmb].MeasureCfebDavCableDelay();
-    MyTest[tmb].RedirectOutput(&std::cout);
-    //
-    this->ChamberTests(in,out);
-    //
-  }
-//
-  void EmuPeripheralCrate::CfebCableDelay(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-    //
-    cout << "Measure CFEB cable delay" << endl;
-    //    LOG4CPLUS_INFO(getApplicationLogger(), "Measure CFEB cable delay");
-    //
-    cgicc::Cgicc cgi(in);
-    //
-    int tmb, dmb;
-    //
-    cgicc::form_iterator name = cgi.getElement("dmb");
-    //
-    if(name != cgi.getElements().end()) {
-      dmb = cgi["dmb"]->getIntegerValue();
-      cout << "DMB " << dmb << endl;
-      DMB_ = dmb;
-    } else {
-      cout << "No dmb" << endl;
-    }
-    //
-    name = cgi.getElement("tmb");
-    //
-    if(name != cgi.getElements().end()) {
-      tmb = cgi["tmb"]->getIntegerValue();
-      cout << "TMB " << tmb << endl;
-      TMB_ = tmb;
-    } else {
-      cout << "No tmb" << endl;
-    }
-    //
-    MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-    MyTest[tmb].MeasureCfebCableDelay();
     MyTest[tmb].RedirectOutput(&std::cout);
     //
     this->ChamberTests(in,out);
@@ -4708,19 +4651,11 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     int tmb;
     if(name != cgi.getElements().end()) {
       tmb = cgi["tmb"]->getIntegerValue();
-      cout << "TMB " << tmb << endl;
+      cout << "RatTmbTiming:  TMB " << tmb << endl;
       TMB_ = tmb;
     } else {
-      cout << "No tmb" << endl;
+      cout << "RatTmbTiming:  No tmb" << endl;
     }
-    //
-    //DAQMB * thisDMB = dmbVector[dmb];
-    //TMB * thisTMB = tmbVector[tmb];
-    //
-    //MyTest.SetTMB(thisTMB);
-    //MyTest.SetCCB(thisCCB);
-    //MyTest.SetDMB(thisDMB);
-    //MyTest.SetMPC(thisMPC);
     //
     MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
     MyTest[tmb].RatTmbDelayScan();
@@ -8605,21 +8540,6 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     thisCCB->HardReset_crate();
     //
     this->CCBUtils(in,out);
-    //
-  }
-  //
-  void EmuPeripheralCrate::HardResetChamberTests(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-    //
-    cgicc::Cgicc cgi(in);
-    //
-    //    std::cout << "hardReset" << std::endl;
-    //
-    //thisCCB->hardReset();
-    thisCCB->HardReset_crate();
-    //
-    this->ChamberTests(in,out);
     //
   }
   //
