@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.27 2007/08/03 14:35:40 rakness Exp $
+// $Id: TMB.h,v 3.28 2007/08/13 14:17:22 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.28  2007/08/13 14:17:22  rakness
+// allow synchronization of full trigger/DAQ paths with TTC pulsing
+//
 // Revision 3.27  2007/08/03 14:35:40  rakness
 // begin commenting for doxygen, add hot-channel mask write, add writeregister together with fillregister
 //
@@ -686,8 +689,8 @@ public:
   inline int  GetAlctMatchWindowSize() { return alct_match_window_size_ ; }
   //
   //!mpc_tx_delay = [0-15] = delay sending LCT to MPC (bx)
-  inline void SetMpcTXdelay(int mpc_tx_delay) { mpc_tx_delay_ = mpc_tx_delay; }
-  inline  int GetMpcTXdelay() { return mpc_tx_delay_; }
+  inline void SetMpcTxDelay(int mpc_tx_delay) { mpc_tx_delay_ = mpc_tx_delay; }
+  inline  int GetMpcTxDelay() { return mpc_tx_delay_; }
   //
   //------------------------------------------------------------------
   //0XBA = ADR_RPC_RAW_DELAY:  RPC Raw Hits Data Delay
@@ -832,8 +835,8 @@ public:
   inline int  GetTmbAllowMatch() { return tmb_allow_match_; }
   //
   //!mpc_delay = [0-15] -> MPC accept bit delay
-  inline void SetMpcDelay(int mpc_delay) {mpc_delay_= mpc_delay;}
-  inline int  GetMPCdelay() { return mpc_delay_; }
+  inline void SetMpcRxDelay(int mpc_delay) {mpc_delay_= mpc_delay;}
+  inline int  GetMpcRxDelay() { return mpc_delay_; }
   //
   //!mpc_sel_ttc_bx0 = [0,1] -> BX0 for MPC comes from [local,TTC]
   inline void SetSelectMpcTtcBx0(int mpc_sel_ttc_bx0) { mpc_sel_ttc_bx0_ = mpc_sel_ttc_bx0; }

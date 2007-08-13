@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.32 2007/08/09 09:24:24 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.33 2007/08/13 14:17:22 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.33  2007/08/13 14:17:22  rakness
+// allow synchronization of full trigger/DAQ paths with TTC pulsing
+//
 // Revision 3.32  2007/08/09 09:24:24  rakness
 // ALCT-CLCT coincidence pulsing using teststrip in ChamberUtilities
 //
@@ -270,7 +273,6 @@ ChamberUtilities::ChamberUtilities(){
   AlctDavCableDelay_ = -1;
   TmbLctCableDelay_  = -1;
   CfebDavCableDelay_ = -1;
-  CfebCableDelay_    = -1;
   TMBL1aTiming_      = -1;
   BestALCTL1aDelay_  = -1;
   ALCTL1aDelay_      = -1;
@@ -291,23 +293,17 @@ ChamberUtilities::ChamberUtilities(){
     }
   for (int i=0;i<112;i++) ALCTWireScan_[i] = -1;
   //
-  // values for analyzing DMB
+  // ranges over which to analyze DMB histograms
   ScopeMin_        = 0;
   ScopeMax_        = 4;
-  AffToL1aValueMin_= 140;
-  AffToL1aValueMax_= 155;
+  AffToL1aValueMin_= 135;
+  AffToL1aValueMax_= 160;
   CfebDavValueMin_ = 0;
   CfebDavValueMax_ = 10;
   TmbDavValueMin_  = 0;
   TmbDavValueMax_  = 10;
   AlctDavValueMin_ = 20;
   AlctDavValueMax_ = 30;
-  //
-
-  UsePulsing = true ;
-  UseCosmic = false ;
-  //
-  //cout << "ChamberUtilities" << endl ;
   //
 }
 //
@@ -331,6 +327,7 @@ void ChamberUtilities::CFEBTiming(){
   int initial_clct_halfstrip_pretrig_thresh = thisTMB->GetHsPretrigThresh();          //0x70
   int initial_clct_distrip_pretrig_thresh   = thisTMB->GetDsPretrigThresh();          //0x70
   int initial_clct_pattern_thresh           = thisTMB->GetMinHitsPattern();           //0x70
+  int initial_layer_trig_enable             = thisTMB->GetEnableLayerTrigger();       //0xf0
   int initial_ignore_ccb_startstop          = thisTMB->GetIgnoreCcbStartStop();       //0x2c
   int initial_cfeb0_phase = thisTMB->GetCFEB0delay();                                 //0x18
   int initial_cfeb1_phase = thisTMB->GetCFEB1delay();                                 //0x1a
@@ -352,6 +349,9 @@ void ChamberUtilities::CFEBTiming(){
   //
   thisTMB->SetIgnoreCcbStartStop(0);
   thisTMB->WriteRegister(ccb_trig_adr);
+  //
+  thisTMB->SetEnableLayerTrigger(0);
+  thisTMB->WriteRegister(layer_trg_mode_adr);
   //
   comparing_with_clct_ = true;
   thisTMB->StartTTC();
@@ -526,6 +526,9 @@ void ChamberUtilities::CFEBTiming(){
   //
   thisTMB->SetIgnoreCcbStartStop(initial_ignore_ccb_startstop);
   thisTMB->WriteRegister(ccb_trig_adr);
+  //
+  thisTMB->SetEnableLayerTrigger(initial_layer_trig_enable);
+  thisTMB->WriteRegister(layer_trg_mode_adr);
   //
   thisTMB->SetCFEB0delay(initial_cfeb0_phase);
   thisTMB->WriteRegister(vme_ddd1_adr);
@@ -1085,6 +1088,13 @@ void ChamberUtilities::RpcRatDelayScan(int rpc) {
 //----------------------------------------------
 int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   //
+  std::cout << "***************************" << std::endl;
+  std::cout << "Find match_trig_alct_delay:" << std::endl;
+  std::cout << "***************************" << std::endl;
+  (*MyOutput_) << "***************************" << std::endl;
+  (*MyOutput_) << "Find match_trig_alct_delay:" << std::endl;
+  (*MyOutput_) << "***************************" << std::endl;
+  //
   const int HistoMin = 0;
   const int HistoMax =14;
   //
@@ -1127,9 +1137,9 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   //
   ZeroTmbHistograms();
   //
-  if (debug_) std::cout << "Going to try to read TMB " << std::dec << number_of_reads << " times" << std::endl;
+  std::cout << "Going to try to read TMB " << std::dec << number_of_reads << " times" << std::endl;
   for (int i=0; i<number_of_reads; i++) {
-    if (debug_) std::cout << "Read TMB " << i << " times" << std::endl;
+    if ((i%25) == 0) std::cout << "Read TMB " << i << " times" << std::endl;
     thisTMB->TMBRawhits();
     int value = thisTMB->GetAlctInClctMatchWindow();
     AlctInClctMatchWindowHisto_[value]++;
@@ -1144,28 +1154,37 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   //
   // amount to shift this distribution is:
   float amount_to_shift = average_value - desired_value;
-  int int_amount_to_shift = (int) (amount_to_shift+0.5);
+  int int_amount_to_shift;
+  if (amount_to_shift > 0.) {
+    int_amount_to_shift = (int) (amount_to_shift+0.5);
+  } else if (amount_to_shift < 0.) {
+    int_amount_to_shift = (int) (amount_to_shift-0.5);
+  }
   //
   (*MyOutput_) << "The amount to shift the distribution by is " << amount_to_shift 
 	       << " (= " << int_amount_to_shift << ")" << std::endl;
   //
   measured_match_trig_alct_delay_ = test_alct_delay_value - int_amount_to_shift;
   //
-  (*MyOutput_) << "=> Best match_trig_alct_delay = " << measured_match_trig_alct_delay_ << std::endl;
+  // Determine new value of mpc_tx_delay, based on the prior values 
+  // of mpc_tx_delay and match_trig_alct_delay (assuming they had lined LCTs at the MPC)...
   //
-  // Determine new value of mpc_tx_delay:
-  int initial_mpc_tx_delay = thisTMB->GetMpcTXdelay();;
+  int initial_mpc_tx_delay = thisTMB->GetMpcTxDelay();;
   //
   int amount_to_shift_mpc_tx_delay = measured_match_trig_alct_delay_ - initial_alct_delay_value;
   //
-  (*MyOutput_) << "Based on the current settings in the xml file:  ";
-  (*MyOutput_) << "mpc_tx_delay = " << initial_mpc_tx_delay;
-  (*MyOutput_) << " and match_trig_alct_delay = " << initial_alct_delay_value << std::endl;
-  //    
   // The mpc_tx_delay compensates for the change in match_trig_alct_delay, so subtract the shift:
   measured_mpc_tx_delay_ = initial_mpc_tx_delay - amount_to_shift_mpc_tx_delay;
   //
-  (*MyOutput_) << "=> Best mpc_tx_delay = " << measured_mpc_tx_delay_ << std::endl;
+  (*MyOutput_) << "Therefore, based on the current settings in the xml file:" << std::endl;
+  (*MyOutput_) << "match_trig_window_size = " << std::dec << desired_window_size             << std::endl;
+  (*MyOutput_) << "(mpc_tx_delay          = " << std::dec << initial_mpc_tx_delay     << ")" << std::endl;
+  (*MyOutput_) << "(match_trig_alct_delay = " << std::dec << initial_alct_delay_value << ")" << std::endl;
+  //    
+  (*MyOutput_) << "-----------------------------------------------------" << std::endl;
+  (*MyOutput_) << "Best value is match_trig_alct_delay = " << measured_match_trig_alct_delay_ << std::endl;
+  (*MyOutput_) << "Best value is mpc_tx_delay          = " << measured_mpc_tx_delay_          << std::endl;
+  (*MyOutput_) << "-----------------------------------------------------" << std::endl;
   //
   // return to initial values:
   thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
@@ -1242,7 +1261,99 @@ int ChamberUtilities::FindALCTvpf() {
 //----------------------------------------------
 // Winner bits from MPC
 //----------------------------------------------
-int ChamberUtilities::FindWinner(int npulses=10){
+int ChamberUtilities::FindWinner(){
+  //
+  // Use muons from beam or cosmic rays, or pulsing from TTC
+  //
+  if ( ! thisMPC ) {
+    std::cout << " No MPC defined in XML file " << std::endl ;
+    return -1 ;
+  }
+  // send output to std::cout except for the essential information 
+  thisTMB->RedirectOutput(&std::cout);
+  thisDMB->RedirectOutput(&std::cout);
+  thisCCB_->RedirectOutput(&std::cout);
+  thisMPC->RedirectOutput(&std::cout);
+  //
+  std::cout << "******************" << std::endl;
+  std::cout << "Find mpc_rx_delay:" << std::endl;
+  std::cout << "******************" << std::endl;
+  std::cout << "... using muons from beam, cosmic rays, or pulsing from TTC" << std::endl;
+  //
+  (*MyOutput_) << "******************" << std::endl;
+  (*MyOutput_) << "Find mpc_rx_delay:" << std::endl;
+  (*MyOutput_) << "******************" << std::endl;
+  (*MyOutput_) << "... using muons from beam, cosmic rays, or pulsing from TTC" << std::endl;
+  //
+  //
+  // Set up for this test...
+  // Get initial values:
+  int initial_mpc_output_enable = thisTMB->GetMpcOutputEnable();
+  int initial_mpc_rx_delay      = thisTMB->GetMpcRxDelay();
+  //
+  if (debug_) std::cout << "Set mpc_output_enable = 1" << std::endl;
+  thisTMB->SetMpcOutputEnable(1);
+  thisTMB->WriteRegister(tmb_trig_adr);
+  ::sleep(1);
+  //
+  const int delaymin = 0;
+  const int delaymax = 15;
+  const int histo_size = delaymax - delaymin + 1;
+  int number_of_mpc_accepted[histo_size] = {};
+  //
+  for (int delay_value=delaymin; delay_value<=delaymax; delay_value++) {
+    //
+    std::cout << "Set mpc_rx_delay = " << std::dec << delay_value;
+    //
+    thisTMB->SetMpcRxDelay(delay_value);
+    thisTMB->WriteRegister(tmb_trig_adr);
+    //
+    thisTMB->ResetCounters();
+    //
+    ::sleep(5);
+    //
+    thisTMB->GetCounters();
+    number_of_mpc_accepted[delay_value] = thisTMB->GetCounter(16);
+    //
+    std::cout << ", number of MPC winner bits accepted = " 
+	      << std::dec << number_of_mpc_accepted[delay_value] << std::endl;
+    //
+    if (debug_) thisTMB->PrintCounters();
+  }
+  //
+  float average = AverageHistogram(number_of_mpc_accepted,delaymin,delaymax);
+  //
+  (*MyOutput_) << "-----------------------------------------------------" << std::endl;
+  (*MyOutput_) << "Number of Winner bits vs. mpc_rx_delay..." << std::endl;
+  PrintHistogram("Number of Winner Bits at TMB",number_of_mpc_accepted,delaymin,delaymax,average);
+  //
+  MPCdelay_ = RoundOff(average);
+  //
+  (*MyOutput_) << "Best value is mpc_rx_delay = " << MPCdelay_ << std::endl;
+  (*MyOutput_) << "-----------------------------------------------------" << std::endl;
+  //
+  std::cout << "Best value is mpc_rx_delay = " << MPCdelay_ << std::endl;
+  //
+  // return to initial values:
+  if (debug_) std::cout << "Set mpc_output_enable back to = " << initial_mpc_output_enable << std::endl;
+  thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
+  thisTMB->SetMpcRxDelay(initial_mpc_rx_delay);
+  thisTMB->WriteRegister(tmb_trig_adr);
+  //
+  thisTMB->RedirectOutput(MyOutput_);
+  thisDMB->RedirectOutput(MyOutput_);
+  thisCCB_->RedirectOutput(MyOutput_);
+  thisMPC->RedirectOutput(MyOutput_);
+  //
+  return MPCdelay_;
+}
+//
+int ChamberUtilities::FindWinner(int npulses){
+  // 
+  // Use local pulsing of CFEB, sending the data from the TMB to the MPC by a VME command
+  // This is presently not working :(
+  //
+  std::cout << "FindWinner:  Using local pulsing of CFEB, data sent to MPC from TMB by VME..." << std::endl;
   //
   if ( ! thisMPC ) {
     cout << " No MPC defined in XML file " << endl ;
@@ -1250,10 +1361,14 @@ int ChamberUtilities::FindWinner(int npulses=10){
   }
   //
   // Set up for this test...
+  if (debug_) this->RedirectOutput(&std::cout);
+  //
   // Get initial values:
-  int initial_value_of_register             = thisTMB->GetMpcOutputEnable();
-  int initial_clct_pretrig_enable           = thisTMB->GetClctPatternTrigEnable();    //0x68
+  int initial_mpc_output_enable             = thisTMB->GetMpcOutputEnable();          //0x86
   int initial_clct_trig_enable              = thisTMB->GetTmbAllowClct();             //0x86
+  int initial_mpc_rx_delay                  = thisTMB->GetMpcRxDelay();               //0x86
+  int initial_layer_trig_enable             = thisTMB->GetEnableLayerTrigger();       //0xf0
+  int initial_clct_pretrig_enable           = thisTMB->GetClctPatternTrigEnable();    //0x68
   int initial_clct_halfstrip_pretrig_thresh = thisTMB->GetHsPretrigThresh();          //0x70
   int initial_clct_distrip_pretrig_thresh   = thisTMB->GetDsPretrigThresh();          //0x70
   int initial_clct_pattern_thresh           = thisTMB->GetMinHitsPattern();           //0x70
@@ -1264,6 +1379,7 @@ int ChamberUtilities::FindWinner(int npulses=10){
   thisTMB->WriteRegister(seq_trig_en_adr);
   //
   thisTMB->SetTmbAllowClct(1);
+  thisTMB->SetMpcOutputEnable(1);
   thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisTMB->SetHsPretrigThresh(6);
@@ -1271,8 +1387,8 @@ int ChamberUtilities::FindWinner(int npulses=10){
   thisTMB->SetMinHitsPattern(6);
   thisTMB->WriteRegister(seq_clct_adr);
   //
-  thisTMB->SetMpcOutputEnable(1);
-  thisTMB->WriteRegister(tmb_trig_adr);
+  thisTMB->SetEnableLayerTrigger(0);
+  thisTMB->WriteRegister(layer_trg_mode_adr);
   //
   thisTMB->SetIgnoreCcbStartStop(0);
   thisTMB->WriteRegister(ccb_trig_adr);
@@ -1280,7 +1396,11 @@ int ChamberUtilities::FindWinner(int npulses=10){
   thisTMB->StartTTC();
   ::sleep(1);
   //
-  //  thisCCB_->setCCBMode(CCB::VMEFPGA);
+  if (debug_) {
+    std::cout << "After enabling, TMB register 0x" << std::hex << tmb_trig_adr 
+	      << " = 0x" << thisTMB->ReadRegister(tmb_trig_adr) 
+	      << " which has value of mpc_output_enable = " << thisTMB->GetMpcOutputEnable() << std::endl;
+  }
   //
   float MpcDelay=0;
   int   MpcDelayN=0;
@@ -1291,95 +1411,75 @@ int ChamberUtilities::FindWinner(int npulses=10){
   float Mpc1Delay=0;
   int   Mpc1DelayN=0;
   //
-  int   DelaySize = 15;
+  const int DelaySize = 15;
   //
-  int   MPC0Count[DelaySize];
-  int   MPC1Count[DelaySize];
+  int MPC0Count[DelaySize] = {};
+  int MPC1Count[DelaySize] = {};
   //
-  for (int i=0; i<DelaySize; i++ ) {
-    MPC0Count[i] = 0;
-    MPC1Count[i] = 0;
-  }
   //
   for (int i = 0; i < DelaySize; i++){
     //
-    thisTMB->mpc_delay(i);
+    int iterations = 0;
+    //
+    std::cout << "----------> mpc_delay_ =  " << dec << i << std::endl;
+    //
+    thisTMB->SetMpcRxDelay(i);
+    thisTMB->WriteRegister(tmb_trig_adr);
     //
     thisTMB->ResetCounters();
     //
-    int iterations = 0;
-    //
-  REPEAT:
-    //
-    thisMPC->SoftReset();
-    thisMPC->init();
-    //
-    if (UsePulsing) {
-      iterations++;
+    while (iterations < npulses) {
+      //
+      thisMPC->SoftReset();
+      //
       PulseCFEB(-1,0xa);
-    }
-
-    if (UseCosmic)  ::sleep(2);
-    //
-    thisTMB->DataSendMPC();
-    //
-    if (UseCosmic) thisTMB->GetCounters();
-    //
-    //thisTMB->PrintCounters();
-    //
-    if (debug_) {
-      std::cout << "mpc_delay_ =  " << dec << i << std::endl;
-      std::cout << thisTMB->MPC0Accept() << " " << thisTMB->MPC1Accept() << std::endl ;
-    }
-    //
-    if (UseCosmic) {
-      thisTMB->PrintCounters(8);
-      thisTMB->PrintCounters(16);
-      thisTMB->PrintCounters(17);
-    }
-    //
-    if (thisTMB->GetCounter(16) || 
-	(thisTMB->MPC0Accept()+thisTMB->MPC1Accept()) > 0 ) {
-      MpcDelay  += i ;    
-      MpcDelayN++;
-      if ( thisTMB->MPC0Accept() > 0 ) {
-	Mpc0Delay  += i ;    
-	Mpc0DelayN++;
-	MPC0Count[i]++ ;
+      //
+      if (debug_) {
+	//
+	//thisMPC->firmwareVersion();
+	//(*MyOutput_) << endl;
+	//
+	thisMPC->read_fifos();
+	(*MyOutput_) << endl;
+	//
+	thisMPC->read_csr0();
+	//
+	thisTMB->DataSendMPC();
+	thisTMB->GetCounters();
+	thisTMB->PrintCounters();
+	//
+	std::cout << "----------> Accepted at TMB:  MPC0 = " << thisTMB->MPC0Accept() 
+		  << ", MPC1 = " << thisTMB->MPC1Accept() << std::endl ;
       }
-      if ( thisTMB->MPC1Accept() > 0 ) {
-	Mpc1Delay  += i ;    
-	Mpc1DelayN++;
-	MPC1Count[i]++ ;
+      //
+      if ( (thisTMB->MPC0Accept()+thisTMB->MPC1Accept()) > 0 ) {
+	MpcDelay  += i ;    
+	MpcDelayN++;
+	if ( thisTMB->MPC0Accept() > 0 ) {
+	  Mpc0Delay  += i ;    
+	  Mpc0DelayN++;
+	  MPC0Count[i]++ ;
+	}
+	if ( thisTMB->MPC1Accept() > 0 ) {
+	  Mpc1Delay  += i ;    
+	  Mpc1DelayN++;
+	  MPC1Count[i]++ ;
+	}
       }
+      //
+      iterations++;
     }
-    //
-    thisMPC->firmwareVersion();
-    //
-    //thisMPC->read_fifosA();
-    //
-    (*MyOutput_) << endl;
-    //
-    thisMPC->read_fifos();
-    //
-    (*MyOutput_) << endl;
-    //
-    thisMPC->read_csr0();
-    //
-    if (UsePulsing && iterations < npulses ) goto REPEAT;
     //
   }
   //
   for (int i=0; i<DelaySize; i++) {
     (*MyOutput_) << "MPC0 winner delay=" << setw(3) << i << " gives " << MPC0Count[i] << endl;
   }
-  //
   (*MyOutput_) << endl ;
   //
   for (int i=0; i<DelaySize; i++) {
     (*MyOutput_) << "MPC1 winner delay=" << setw(3) << i << " gives " << MPC1Count[i] << endl;
   }
-  //
   (*MyOutput_) << endl ;
   //
   MpcDelay  /= (MpcDelayN  + 0.0001) ;
@@ -1390,14 +1490,14 @@ int ChamberUtilities::FindWinner(int npulses=10){
   (*MyOutput_) << "Correct MPC0 setting  : " << Mpc0Delay << endl ;
   (*MyOutput_) << "Correct MPC1 setting  : " << Mpc1Delay << endl ;
   //
-  (*MyOutput_) << endl ;
-  //
   MPCdelay_ = (int)(MpcDelay + 0.5);
   //
   // return to initial values:
   thisTMB->SetClctPatternTrigEnable(initial_clct_pretrig_enable);
   thisTMB->WriteRegister(seq_trig_en_adr);
   //
+  thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
+  thisTMB->SetMpcRxDelay(initial_mpc_rx_delay);
   thisTMB->SetTmbAllowClct(initial_clct_trig_enable);
   thisTMB->WriteRegister(tmb_trig_adr);
   //
@@ -1406,11 +1506,13 @@ int ChamberUtilities::FindWinner(int npulses=10){
   thisTMB->SetMinHitsPattern(initial_clct_pattern_thresh);
   thisTMB->WriteRegister(seq_clct_adr);
   //
-  thisTMB->SetMpcOutputEnable(initial_value_of_register);
-  thisTMB->WriteRegister(tmb_trig_adr);
+  thisTMB->SetEnableLayerTrigger(initial_layer_trig_enable);
+  thisTMB->WriteRegister(layer_trg_mode_adr);
   //
   thisTMB->SetIgnoreCcbStartStop(initial_ignore_ccb_startstop);
   thisTMB->WriteRegister(ccb_trig_adr);
+  //
+  this->RedirectOutput(MyOutput_);
   //
   return MPCdelay_;
 }
@@ -1420,25 +1522,39 @@ int ChamberUtilities::FindWinner(int npulses=10){
 //----------------------------------------------
 void ChamberUtilities::MeasureAlctDavCableDelay() {
   //
+  std::cout << "**************************" << std::endl;
+  std::cout << "Find alct_dav_cable_delay:" << std::endl;
+  std::cout << "**************************" << std::endl;
+  //
+  (*MyOutput_) << "**************************" << std::endl;
+  (*MyOutput_) << "Find alct_dav_cable_delay:" << std::endl;
+  (*MyOutput_) << "**************************" << std::endl;
+  //
   const int DelayMin = 0;
   const int DelayMax = 3;
-  const int DelayRange = DelayMax - DelayMin + 1;
+  float Average[4];                             //2-bit delay value
   //
-  const int HistoMin   = ScopeMin_;
-  const int HistoMax   = ScopeMax_;
+  // Range over which to analyze the histogram:
+  const int HistoMin = ScopeMin_;        
+  const int HistoMax = ScopeMax_;
+  int Histo[4][5];                              //Total range available:  scope is 5 bins wide
   //
-  const int desired_value = 2;
+  const int desired_value = 2;                  //we want the scope's average to be this value
   //
   // Get initial values:
-  int initial_value_of_register = thisTMB->GetMpcOutputEnable();
+  int initial_mpc_output_enable = thisTMB->GetMpcOutputEnable();
   int initial_delay_value = thisDMB->GetAlctDavCableDelay();
   //
   // Enable this TMB to send LCTs to MPC:
   thisTMB->SetMpcOutputEnable(1);
   thisTMB->WriteRegister(tmb_trig_adr);
   //
-  float Average[DelayRange];
-  int Histo[DelayRange][255];
+  // clear histograms
+  for (int delay=0; delay<4; delay++) {
+    Average[delay] = 0.;
+    for (int histo=0; histo<5; histo++) 
+      Histo[delay][histo] = 0;
+  }
   //
   for (int delay=DelayMin; delay<=DelayMax; delay++) {
     //
@@ -1457,7 +1573,7 @@ void ChamberUtilities::MeasureAlctDavCableDelay() {
       Histo[delay][bin] = AlctDavScopeHisto_[bin];
     //
     // Print the data:
-    (*MyOutput_) << "alct_dav_cable_delay = " << delay << std::endl;
+    (*MyOutput_) << "Setting alct_dav_cable_delay = " << delay << " gives..." << std::endl;
     PrintHistogram("ALCT DAV Scope",Histo[delay],HistoMin,HistoMax,Average[delay]);  
     //
   }
@@ -1467,12 +1583,12 @@ void ChamberUtilities::MeasureAlctDavCableDelay() {
   //
   // print the delay value that gives the reading we want:
   (*MyOutput_) << "-----------------------------------------------------" << std::endl;
-  (*MyOutput_) << "--> Best is alct_dav_cable_delay = " << AlctDavCableDelay_ << "..." << std::endl;
-  (*MyOutput_) << "-----------------------------------------------------" << std::endl;
+  (*MyOutput_) << "--> Best value is alct_dav_cable_delay = " << AlctDavCableDelay_ << "..." << std::endl;
   PrintHistogram("Best ALCT DAV Scope",Histo[AlctDavCableDelay_],HistoMin,HistoMax,Average[AlctDavCableDelay_]);  
+  (*MyOutput_) << "-----------------------------------------------------" << std::endl;
   //  
   // Set the registers back to how they were at beginning...
-  thisTMB->SetMpcOutputEnable(initial_value_of_register);
+  thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
   thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisDMB->SetAlctDavCableDelay(initial_delay_value);
@@ -1483,26 +1599,39 @@ void ChamberUtilities::MeasureAlctDavCableDelay() {
 //
 void ChamberUtilities::MeasureTmbLctCableDelay() {
   //
+  std::cout << "*************************" << std::endl;
+  std::cout << "Find tmb_lct_cable_delay:" << std::endl;
+  std::cout << "*************************" << std::endl;
+  //
+  (*MyOutput_) << "*************************" << std::endl;
+  (*MyOutput_) << "Find tmb_lct_cable_delay:" << std::endl;
+  (*MyOutput_) << "*************************" << std::endl;
   //
   const int DelayMin = 0;
-  const int DelayMax = 3;
-  const int DelayRange = DelayMax - DelayMin + 1;
+  const int DelayMax = 7;
+  float Average[8];                           //3-bit delay value
   //
+  // Range over which to analyze the histogram:
   const int HistoMin   = AffToL1aValueMin_;
   const int HistoMax   = AffToL1aValueMax_;
+  int Histo[8][256];                          //Total range available:  counter is 8 bits long
   //
-  const int desired_value = 147;
+  const int desired_value = 147;              //we want the counter's average to be this value
   //
   // Get initial values
-  int initial_value_of_register = thisTMB->GetMpcOutputEnable();
+  int initial_mpc_output_enable = thisTMB->GetMpcOutputEnable();
   int initial_delay_value = thisDMB->GetTmbLctCableDelay();
   //
   // Enable this TMB to send LCTs to MPC:
   thisTMB->SetMpcOutputEnable(1);
   thisTMB->WriteRegister(tmb_trig_adr);
   //
-  float Average[DelayRange];
-  int Histo[DelayRange][255];
+  // clear histograms
+  for (int delay=0; delay<8; delay++) {
+    Average[delay] = 0.;
+    for (int histo=0; histo<256; histo++) 
+      Histo[delay][histo] = 0;
+  }
   //
   for (int delay=DelayMin; delay<=DelayMax; delay++) {
     //
@@ -1522,9 +1651,8 @@ void ChamberUtilities::MeasureTmbLctCableDelay() {
       Histo[delay][bin] = AffToL1aValueHisto_[bin];
     //
     // Print the data from this delay value:
-    (*MyOutput_) << "tmb_lct_cable_delay = " << delay << std::endl;
+    (*MyOutput_) << "Setting tmb_lct_cable_delay = " << delay << " gives..." << std::endl;
     PrintHistogram("AFF to L1A Value",Histo[delay],HistoMin,HistoMax,Average[delay]);  
-    //
   }
   //
   // determine which delay value gives the reading we want:
@@ -1532,12 +1660,12 @@ void ChamberUtilities::MeasureTmbLctCableDelay() {
   //
   // print the delay value that gives the reading we want:
   (*MyOutput_) << "-----------------------------------------------------" << std::endl;
-  (*MyOutput_) << "--> Best is tmb_lct_cable_delay = " << TmbLctCableDelay_ << "..." << std::endl;
+  (*MyOutput_) << "--> Best value is tmb_lct_cable_delay = " << TmbLctCableDelay_ << "..." << std::endl;
+  PrintHistogram("Best AFF to L1A Counter"  ,Histo[TmbLctCableDelay_],HistoMin,HistoMax,Average[TmbLctCableDelay_]);  
   (*MyOutput_) << "-----------------------------------------------------" << std::endl;
-  PrintHistogram("Best AFF to L1A Value"  ,Histo[TmbLctCableDelay_],HistoMin,HistoMax,Average[TmbLctCableDelay_]);  
   //  
   // Set the registers back to how they were at beginning...
-  thisTMB->SetMpcOutputEnable(initial_value_of_register);
+  thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
   thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisDMB->SetTmbLctCableDelay(initial_delay_value);
@@ -1548,25 +1676,39 @@ void ChamberUtilities::MeasureTmbLctCableDelay() {
 //
 void ChamberUtilities::MeasureCfebDavCableDelay() {
   //
+  std::cout << "**************************" << std::endl;
+  std::cout << "Find cfeb_dav_cable_delay:" << std::endl;
+  std::cout << "**************************" << std::endl;
+  //
+  (*MyOutput_) << "**************************" << std::endl;
+  (*MyOutput_) << "Find cfeb_dav_cable_delay:" << std::endl;
+  (*MyOutput_) << "**************************" << std::endl;
+  //
   const int DelayMin = 0;
-  const int DelayMax = 2;
-  const int DelayRange = DelayMax - DelayMin + 1;
+  const int DelayMax = 3;
+  float Average[4];              //2-bit delay value
   //
-  const int HistoMin   = ScopeMin_;
-  const int HistoMax   = ScopeMax_;
+  // Range over which to analyze the histogram:
+  const int HistoMin = ScopeMin_; 
+  const int HistoMax = ScopeMax_;
+  int Histo[4][5];               //total range available:  scope is 5 bins wide
   //
-  const int desired_value = 2;
+  const int desired_value = 2;   //we want the scope's average to be this value
   //
   // Get initial values:
-  int initial_value_of_register = thisTMB->GetMpcOutputEnable();
+  int initial_mpc_output_enable = thisTMB->GetMpcOutputEnable();
   int initial_delay_value = thisDMB->GetCfebDavCableDelay();
   //
   // Enable this TMB to send LCTs to MPC:
   thisTMB->SetMpcOutputEnable(1);
   thisTMB->WriteRegister(tmb_trig_adr);
   //
-  float Average[DelayRange];
-  int Histo[DelayRange][255];
+  // clear histograms
+  for (int delay=0; delay<4; delay++) {
+    Average[delay] = 0.;
+    for (int histo=0; histo<5; histo++) 
+      Histo[delay][histo] = 0;
+  }
   //
   for (int delay=DelayMin; delay<=DelayMax; delay++) {
     //
@@ -1585,7 +1727,7 @@ void ChamberUtilities::MeasureCfebDavCableDelay() {
       Histo[delay][bin] = CfebDavScopeHisto_[bin];
     //
     // Print the data:
-    (*MyOutput_) << "cfeb_dav_cable_delay = " << delay << std::endl;
+    (*MyOutput_) << "Setting cfeb_dav_cable_delay = " << delay << " gives..." << std::endl;
     PrintHistogram("CFEB DAV Scope",Histo[delay],HistoMin,HistoMax,Average[delay]);  
     //
   }
@@ -1595,12 +1737,12 @@ void ChamberUtilities::MeasureCfebDavCableDelay() {
   //
   // print the delay value that gives the reading we want:
   (*MyOutput_) << "-----------------------------------------------------" << std::endl;
-  (*MyOutput_) << "--> Best is cfeb_dav_cable_delay = " << CfebDavCableDelay_ << "..." << std::endl;
-  (*MyOutput_) << "-----------------------------------------------------" << std::endl;
+  (*MyOutput_) << "--> Best value is cfeb_dav_cable_delay = " << CfebDavCableDelay_ << "..." << std::endl;
   PrintHistogram("Best CFEB DAV Scope",Histo[CfebDavCableDelay_],HistoMin,HistoMax,Average[CfebDavCableDelay_]);  
+  (*MyOutput_) << "-----------------------------------------------------" << std::endl;
   //  
   // Set the registers back to how they were at beginning...
-  thisTMB->SetMpcOutputEnable(initial_value_of_register);
+  thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
   thisTMB->WriteRegister( tmb_trig_adr);
   //
   thisDMB->SetCfebDavCableDelay(initial_delay_value);
@@ -1609,74 +1751,11 @@ void ChamberUtilities::MeasureCfebDavCableDelay() {
   return;
 }
 //
-void ChamberUtilities::MeasureCfebCableDelay() {
-  //
-  const int DelayMin = 0;
-  const int DelayMax = 1;
-  const int DelayRange = DelayMax - DelayMin + 1;
-  //
-  const int HistoMin   = ScopeMin_;
-  const int HistoMax   = ScopeMax_;
-  //
-  const int desired_value = 2;
-  //
-  // Get initial values:
-  int initial_value_of_register = thisTMB->GetMpcOutputEnable();
-  int initial_delay_value = thisDMB->GetCfebCableDelay();
-  //
-  // Enable this TMB to send LCTs to MPC:
-  thisTMB->SetMpcOutputEnable(1);
-  thisTMB->WriteRegister(tmb_trig_adr);
-  //
-  float Average[DelayRange];
-  int Histo[DelayRange][255];
-  //
-  for (int delay=DelayMin; delay<=DelayMax; delay++) {
-    //
-    // Set the delay value:
-    thisDMB->SetCfebCableDelay(delay);            //insert the delay value into the DMB cable_delay_ parameter
-    thisDMB->setcbldly(thisDMB->GetCableDelay()); //write the value
-    ::sleep(1);
-    //
-    // Get the data:
-    ZeroDmbHistograms();
-    ReadAllDmbValuesAndScopes();
-    //
-    // Preserve the data:
-    Average[delay] = AverageHistogram(CfebDavScopeHisto_,HistoMin,HistoMax);
-    for (int bin=HistoMin; bin<=HistoMax; bin++) 
-      Histo[delay][bin] = CfebDavScopeHisto_[bin];
-    //
-    // Print the data:
-    (*MyOutput_) << "cfeb_cable_delay = " << delay << std::endl;
-    PrintHistogram("CFEB DAV Scope",Histo[delay],HistoMin,HistoMax,Average[delay]);  
-    //
-  }
-  //
-  // determine which delay value gives the reading we want:
-  CfebCableDelay_ = DelayWhichGivesDesiredValue(Average,DelayMin,DelayMax,desired_value);
-  //
-  // print the delay value that gives the reading we want:
-  (*MyOutput_) << "-----------------------------------------------------" << std::endl;
-  (*MyOutput_) << "--> Best is cfeb_cable_delay = " << CfebCableDelay_ << "..." << std::endl;
-  (*MyOutput_) << "-----------------------------------------------------" << std::endl;
-  PrintHistogram("Best CFEB DAV Scope",Histo[CfebCableDelay_],HistoMin,HistoMax,Average[CfebCableDelay_]);  
-  //  
-  // Set the registers back to how they were at beginning...
-  thisTMB->SetMpcOutputEnable(initial_value_of_register);
-  thisTMB->WriteRegister( tmb_trig_adr);
-  //
-  thisDMB->SetCfebCableDelay(initial_delay_value);
-  thisDMB->setcbldly(thisDMB->GetCableDelay());
-  //
-  return;
-}
-//
 void ChamberUtilities::ReadAllDmbValuesAndScopes() {
   //
   // Get initial values:
-  int initial_value_of_register = thisTMB->GetMpcOutputEnable();
-  if (debug_) std::cout << "Initial value of mpc_output_enable = " << initial_value_of_register << std::endl;
+  int initial_mpc_output_enable = thisTMB->GetMpcOutputEnable();
+  if (debug_) std::cout << "Initial value of mpc_output_enable = " << initial_mpc_output_enable << std::endl;
   //
   // Enable this TMB to send LCTs to MPC:
   thisTMB->SetMpcOutputEnable(1);
@@ -1694,24 +1773,26 @@ void ChamberUtilities::ReadAllDmbValuesAndScopes() {
   const int number_of_reads = 120;
   PopulateDmbHistograms(number_of_reads);
   //
-  AffToL1aScopeAverageValue_ = RoundOff( AverageHistogram(AffToL1aScopeHisto_,ScopeMin_,ScopeMax_) );
-  CfebDavScopeAverageValue_  = RoundOff( AverageHistogram(CfebDavScopeHisto_ ,ScopeMin_,ScopeMax_) );
-  TmbDavScopeAverageValue_   = RoundOff( AverageHistogram(TmbDavScopeHisto_  ,ScopeMin_,ScopeMax_) );
-  AlctDavScopeAverageValue_  = RoundOff( AverageHistogram(AlctDavScopeHisto_ ,ScopeMin_,ScopeMax_) );
+  AffToL1aScopeAverageValue_ = AverageHistogram(AffToL1aScopeHisto_,ScopeMin_,ScopeMax_);
+  CfebDavScopeAverageValue_  = AverageHistogram(CfebDavScopeHisto_ ,ScopeMin_,ScopeMax_);
+  TmbDavScopeAverageValue_   = AverageHistogram(TmbDavScopeHisto_  ,ScopeMin_,ScopeMax_);
+  AlctDavScopeAverageValue_  = AverageHistogram(AlctDavScopeHisto_ ,ScopeMin_,ScopeMax_);
   //
-  AffToL1aAverageValue_ = RoundOff( AverageHistogram(AffToL1aValueHisto_,AffToL1aValueMin_,AffToL1aValueMax_) );
-  CfebDavAverageValue_  = RoundOff( AverageHistogram(CfebDavValueHisto_ ,CfebDavValueMin_ ,CfebDavValueMax_ ) );
-  TmbDavAverageValue_   = RoundOff( AverageHistogram(TmbDavValueHisto_  ,TmbDavValueMin_  ,TmbDavValueMax_  ) );
-  AlctDavAverageValue_  = RoundOff( AverageHistogram(AlctDavValueHisto_ ,AlctDavValueMin_ ,AlctDavValueMax_ ) );
+  AffToL1aAverageValue_ = AverageHistogram(AffToL1aValueHisto_,AffToL1aValueMin_,AffToL1aValueMax_);
+  CfebDavAverageValue_  = AverageHistogram(CfebDavValueHisto_ ,CfebDavValueMin_ ,CfebDavValueMax_ );
+  TmbDavAverageValue_   = AverageHistogram(TmbDavValueHisto_  ,TmbDavValueMin_  ,TmbDavValueMax_  );
+  AlctDavAverageValue_  = AverageHistogram(AlctDavValueHisto_ ,AlctDavValueMin_ ,AlctDavValueMax_ );
   //
   // Set the registers back to how they were at beginning...
-  thisTMB->SetMpcOutputEnable(initial_value_of_register);
+  thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
   thisTMB->WriteRegister( tmb_trig_adr);
   //
   return;
 }
 //
 void ChamberUtilities::PrintAllDmbValuesAndScopes() {
+  //
+  (*MyOutput_) << "Current state of all DMB Counters and Scopes is... " << std::endl;
   //
   PrintHistogram("AFF to L1A Value",AffToL1aValueHisto_,AffToL1aValueMin_,AffToL1aValueMax_,AffToL1aAverageValue_);
   (*MyOutput_) << "---" << std::endl;
@@ -1737,320 +1818,155 @@ void ChamberUtilities::PrintAllDmbValuesAndScopes() {
 //----------------------------------------------
 // L1A accept windows
 //----------------------------------------------
-//int ChamberUtilities::TMBL1aTiming(int enableInternalL1a){
-//  //
-//  int wordcounts[200];
-//  int TmbDavScope[200];
-//  int nmuons = 1;
-//  //
-//  if(enableInternalL1a) thisTMB->EnableInternalL1aSequencer();
-//  //
-//  for (int delay=0;delay<200;delay++) {
-//    wordcounts[delay] = 0;
-//    TmbDavScope[delay] = 0;
-//  }
-//  //
-//  int minlimit = 100;
-//  int maxlimit = 200;
-//  //
-//  float RightTimeBin = 0;
-//  int   DataCounter  = 0;
-//  //
-//  thisTMB->ResetCounters();
-//  //
-//  for( int delay=minlimit; delay<maxlimit; delay++){
-//    //
-//    printf("delay %d\n",delay);
-//    //
-//    thisTMB->lvl1_delay(delay);
-//    //
-//    for (int Nmuons=0; Nmuons<nmuons; Nmuons++){
-//      while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
-//      thisTMB->ResetRAMAddress();
-//      if ( UseCosmic ) ::sleep(2);
-//      if ( UsePulsing) PulseCFEB(delay%16,0xa);
-//      wordcounts[delay] += thisTMB->GetWordCount();
-//      thisTMB->GetCounters();
-//      //      thisTMB->PrintCounters(19) ;
-//      //      thisTMB->PrintCounters(20) ;
-//      //      thisTMB->PrintCounters(21) ;
-//      //
-//      TmbDavScope[delay] = thisDMB->GetTmbDavScope();
-//      //
-//      printf(" WordCount %d \n",thisTMB->GetWordCount());
-//    }
-//  }
-//  //
-//  for (int delay=minlimit;delay<maxlimit;delay++){
-//    if ( wordcounts[delay] > 0 ) {
-//      RightTimeBin += delay ;
-//      DataCounter++ ;
-//    }
-//    //printf("delay = %d wordcount = %d TmbDavScope %d wordcount/nmuons %f \n",delay,wordcounts[delay],TmbDavScope[delay],wordcounts[delay]/(nmuons));
-//  }
-//  //
-//  RightTimeBin /= float(DataCounter) ;
-//  //
-//  printf("Right L1a delay setting is %f \n",RightTimeBin);
-//  //
-//  TMBL1aTiming_ = (int) (RightTimeBin+0.5);
-//  //
-//  return TMBL1aTiming_; ;
-//  //
-//}
-//
-//
-int ChamberUtilities::FindTMB_L1A_delay(int idelay_min, int idelay_max ){
+int ChamberUtilities::FindTMB_L1A_delay(int delay_min, int delay_max ){
   //
-  //bool useCCB = false; // if using TTC for L1A and start trig, bc0, set to false
-  //cout << "Value of useCCB is" << useCCB <<endl;
+  std::cout << "*******************" << std::endl;
+  std::cout << "Find tmb_l1a_delay:" << std::endl;
+  std::cout << "*******************" << std::endl;
   //
-  //if (useCCB) thisCCB_->setCCBMode(CCB::VMEFPGA);
+  (*MyOutput_) << "*******************" << std::endl;
+  (*MyOutput_) << "Find tmb_l1a_delay:" << std::endl;
+  (*MyOutput_) << "*******************" << std::endl;
   //
   // Set up for this test...
   // Get initial values:
-  int initial_value_of_register             = thisTMB->GetMpcOutputEnable();
+  int initial_mpc_output_enable = thisTMB->GetMpcOutputEnable();
+  int initial_delay             = thisTMB->GetL1aDelay();
   //
   // Enable this TMB for this test
   thisTMB->SetMpcOutputEnable(1);
   thisTMB->WriteRegister(tmb_trig_adr);
   //
+  // send output to std::cout except for the essential information 
+  thisTMB->RedirectOutput(&std::cout);
+  thisDMB->RedirectOutput(&std::cout);
+  thisCCB_->RedirectOutput(&std::cout);
+  thisMPC->RedirectOutput(&std::cout);
+  //
   int tmb_in_l1a_window[255] = {};
   //
-  for (int i = idelay_min; i < idelay_max+1; i++){
+  for (int delay=delay_min; delay<=delay_max; delay++){
     //
-    //thisTMB->l1adelay_ = i;// loop over this
-    //
-    thisTMB->lvl1_delay(i);
-    //
-    // thisTMB->trgmode(1);         // 
+    std::cout << "Set tmb_l1a_delay = " << std::dec << delay;
+    thisTMB->SetL1aDelay(delay);
+    thisTMB->WriteRegister(seq_l1a_adr);
     //
     thisTMB->ResetCounters();    // reset counters
-    //if (useCCB) thisCCB_->startTrigger();     // 2 commands to get trigger going
-    //if (useCCB) thisCCB_->bx0();
-    (*MyOutput_) << "TMB_l1adelay=" << std::dec << i << ":" << endl;
-    ::sleep(5);                   // accumulate statistics
-    //if (useCCB) thisCCB_->stopTrigger();      // stop trigger
+    //
+    ::sleep(5);                  // accumulate statistics
+    //
     thisTMB->GetCounters();      // read counter values
     //
-    //thisTMB->PrintCounters(); // display them to screen
-    //    thisTMB->PrintCounters(8);  // display them to screen
-    //    thisTMB->PrintCounters(19);
-    //    thisTMB->PrintCounters(20);
+    tmb_in_l1a_window[delay] = thisTMB->GetCounter(19);
     //
-    tmb_in_l1a_window[i] = thisTMB->GetCounter(19);
+    std::cout << ", TMB in L1A window =  " << std::dec << tmb_in_l1a_window[delay] << std::endl;
+    //
+    if (debug_) thisTMB->PrintCounters(); // display them to screen
   }
   //
-  float RightTimeBin      = 0;
-  float RightTimeBinDenom = 0;
-  int   DataCounter  = 0;
+  float average = AverageHistogram(tmb_in_l1a_window,delay_min,delay_max);
   //
-  for (int i = idelay_min; i < idelay_max+1; i++){
-    //
-    (*MyOutput_) << "tmb_l1a_delay " << std::dec << std::setw(5) << i
-		 << " : " << std::setw(10) << tmb_in_l1a_window[i] << std::endl;
-    //
-    RightTimeBin      += ((float) tmb_in_l1a_window[i]) * ((float) i);
-    RightTimeBinDenom += (float) tmb_in_l1a_window[i];
-    DataCounter++;
-    //
-  }
+  (*MyOutput_) << "---------------------------------------------" << std::endl;
+  (*MyOutput_) << "Number of L1A in TMB window vs. tmb_l1a_delay" << std::endl;
+  PrintHistogram("Number of L1A in TMB window",tmb_in_l1a_window,delay_min,delay_max,average);
   //
-  if (RightTimeBin > 100) {
-    RightTimeBin /= RightTimeBinDenom ;
-  } else {
-    RightTimeBin = -999;
-  }
-  //  
-  printf("Right L1a delay setting is %f \n",RightTimeBin);
+  TMBL1aTiming_ = RoundOff(average);
+  (*MyOutput_) << " Best value is tmb_l1a_delay = " << TMBL1aTiming_ << std::endl;
+  (*MyOutput_) << "---------------------------------------------" << std::endl;
   //
-  //if (useCCB) thisCCB_->setCCBMode(CCB::DLOG);      // return to "regular" mode for CCB
-  //
-  TMBL1aTiming_ = (int) (RightTimeBin+0.5);
-  //
-  (*MyOutput_) << "Best value of tmb_l1a_delay = " << std::dec << std::setw(5) << TMBL1aTiming_ << std::endl;
+  std::cout    << " Best value is tmb_l1a_delay = " << TMBL1aTiming_ << std::endl;
   //
   // Set the registers back to how they were at beginning...
-  thisTMB->SetMpcOutputEnable(initial_value_of_register);
-  thisTMB->WriteRegister( tmb_trig_adr);
+  thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
+  thisTMB->WriteRegister(tmb_trig_adr);
+  //
+  thisTMB->SetL1aDelay(initial_delay);
+  thisTMB->WriteRegister(seq_l1a_adr);
+  //
+  thisTMB->RedirectOutput(MyOutput_);
+  thisDMB->RedirectOutput(MyOutput_);
+  thisCCB_->RedirectOutput(MyOutput_);
+  thisMPC->RedirectOutput(MyOutput_);
   //
   return TMBL1aTiming_ ;
 }
 //
-//int ChamberUtilities::FindBestL1aAlct(){
-//  //
-//  // Now find the best L1a_delay value for the ALCT
-//  //
-//  //thisTMB->SetALCTPatternTrigger();
-//  //
-//  //  unsigned long HCmask[22];
-//  int WordCount[200], DMBCount[200];
-//  for (int i=0; i<200; i++) {
-//    WordCount[i] = 0; 
-//    DMBCount[i]=0;
-//  }
-//  //  //
-//  //  //unsigned cr[3]  = {0x80fc5fc0, 0x20a03786, 0x8}; // default conf register
-//  //  //
-//  //
-//  //  unsigned cr[3];
-//  //  //
-//  //  alct->GetConf(cr,1);
-//  //
-//  int minlimit = 0;
-//  int maxlimit = 150;
-//  //
-//  for (int l1a=minlimit; l1a<maxlimit; l1a++) {
-//    //
-//    //while (thisTMB->FmState() == 1 ) printf("Waiting to get out of StopTrigger\n");
-//    //
-//    //    int keyWG          = int((rand()/(RAND_MAX+0.01))*(alct->GetWGNumber())/6./2.);
-//    //    int ChamberSection = alct->GetWGNumber()/6;
-//    int keyWG          = int((rand()/(RAND_MAX+0.01))*(alct->GetNumberOfChannelsInAlct())/6./2.);
-//    //    int ChamberSection = alct->GetNumberOfChannelsInAlct()/6;
-//    //
-//    printf("\n");
-//    printf("-----> Injecting at %d \n",keyWG);
-//    for(int layer=0; layer<MAX_NUM_LAYERS; layer++) {
-//      for(int channel=0; channel<(alct->GetNumberOfChannelsInAlct())/6; channel++) {
-//	if (channel==keyWG) {
-//	  alct->SetHotChannelMask(layer,channel,ON);
-//	} else {
-//	  alct->SetHotChannelMask(layer,channel,OFF);
-//	}
-//      }
-//    }
-//    alct->WriteHotChannelMask();
-//    alct->PrintHotChannelMask();
-//    //
-//    alct->SetL1aDelay(l1a);
-//    alct->WriteConfigurationReg();
-//    alct->PrintConfigurationReg();
-//    //
-//    //
-//    thisTMB->ResetALCTRAMAddress();
-//    PulseTestStrips();
-//    thisTMB->DecodeALCT();
-//    thisTMB->GetCounters();
-//    thisTMB->PrintCounters(3);
-//    WordCount[l1a] = thisTMB->GetALCTWordCount();
-//    DMBCount[l1a] = thisDMB->GetAlctDavCounter();
-//    printf(" WordCount %d \n",thisTMB->GetALCTWordCount());
-//    //
-//    thisDMB->PrintCounters();
-//    //
-//  }
-//  //
-//  for (int i=minlimit; i<maxlimit; i++){
-//    printf(" Value = %d WordCount = %3d DMBCount = %3d \n",i,WordCount[i],DMBCount[i]);
-//  }
-//  //
-//  float DelayBin  = 0;
-//  int   DelayBinN = 0;
-//  int   flag      = 0;
-//  //
-//  for (int i=maxlimit; i>minlimit; i--){
-//    //
-//    if (flag == 1 && WordCount[i] == 0 ) break;
-//    //
-//    if ( WordCount[i]>0 ) {
-//      //
-//      //printf("Including %d \n",i);
-//      //
-//      flag = 1;
-//      DelayBin  += i ;
-//      DelayBinN ++;
-//    }
-//    //
-//  }
-//  //
-//  printf(" DelayBin=%f DelaybinN=%d \n",DelayBin,DelayBinN);
-//  //
-//  DelayBin /= (DelayBinN+0.0001) ;
-//  //
-//  BestALCTL1aDelay_ = (int) (DelayBin+0.5) ;
-//  //
-//  return BestALCTL1aDelay_;
-//  //
-//}
 //
 int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
   //
+  std::cout << "********************" << std::endl;
+  std::cout << "Find alct_l1a_delay:" << std::endl;
+  std::cout << "********************" << std::endl;
+  //
+  (*MyOutput_) << "********************" << std::endl;
+  (*MyOutput_) << "Find alct_l1a_delay:" << std::endl;
+  (*MyOutput_) << "********************" << std::endl;
+  //
   // Set up for this test...
   // Get initial values:
-  int initial_value_of_register = thisTMB->GetMpcOutputEnable();
+  int initial_mpc_output_enable = thisTMB->GetMpcOutputEnable();
+  int initial_alct_l1a_delay    = alct->GetWriteL1aDelay();
   //
   // Enable this TMB for this test
   thisTMB->SetMpcOutputEnable(1);
   thisTMB->WriteRegister(tmb_trig_adr);
   //
-  int WordCount[200];
-  for (int i=0; i<200; i++) WordCount[i] = 0;
+  // send output to std::cout except for the essential information 
+  thisTMB->RedirectOutput(&std::cout);
+  thisDMB->RedirectOutput(&std::cout);
+  thisCCB_->RedirectOutput(&std::cout);
+  thisMPC->RedirectOutput(&std::cout);
   //
   int ALCT_l1a_accepted[256] = {};
   //
-  for (int l1a=minlimit; l1a<maxlimit+1; l1a++) {
+  for (int delay=minlimit; delay<=maxlimit; delay++) {
     //
-    alct->SetL1aDelay(l1a);
+    std::cout << "Set alct_l1a_delay = " << std::dec << delay;
+    alct->SetL1aDelay(delay);
     alct->WriteConfigurationReg();
-    //    alct->ReadConfigurationReg();
-    //    alct->PrintConfigurationReg();
+    if (debug_) {
+      alct->ReadConfigurationReg();
+      alct->PrintConfigurationReg();
+    }
+    //
     thisTMB->ResetCounters();
-    thisTMB->ResetALCTRAMAddress();
+    //
     ::sleep(5);                     //collect statistics
+    //
     thisTMB->GetCounters();
     //
-    cout << endl;
-    (*MyOutput_) << "L1a ALCT delay " << std::dec << l1a << std::endl;
+    ALCT_l1a_accepted[delay] = thisTMB->GetCounter(3);
     //
-    thisTMB->PrintCounters(3);
-    thisDMB->PrintCounters();
+    std::cout << ", ALCT in L1A window =  " << std::dec << ALCT_l1a_accepted[delay] << std::endl;
     //
-    ALCT_l1a_accepted[l1a] = thisTMB->GetCounter(3);
-    //
-    thisTMB->DecodeALCT();
-    WordCount[l1a] = thisTMB->GetALCTWordCount();
-    if(thisTMB->GetALCTWordCount()==0 and (l1a>0) ) WordCount[l1a-1]=0;  //this makes no sense
-    printf(" WordCount %d \n",thisTMB->GetALCTWordCount());
-    //
-  }
-  float DelayBin  = 0;
-  //  int   DelayBinN = 0;
-  float DelayBinDenom = 0;
-  //
-  for (int i=minlimit; i<maxlimit+1; i++){
-    (*MyOutput_) << "alct_l1a_delay " << std::dec << std::setw(5) << i << ":" 
-		 << std::setw(10) << ALCT_l1a_accepted[i] << std::endl;
-    //
-    //    if ( WordCount[i]>0 ) {
-      DelayBin       += ALCT_l1a_accepted[i] * ( (float) i );
-      DelayBinDenom  += ALCT_l1a_accepted[i] ;
-      //      DelayBinN ++;
-      //    }
-    //
+    if (debug_) thisTMB->PrintCounters();
   }
   //
-  //  printf(" DelayBin=%f DelaybinN=%d \n",DelayBin,DelayBinN);
+  float average = AverageHistogram(ALCT_l1a_accepted,minlimit,maxlimit);
   //
-  //  DelayBin /= (DelayBinN+0.0001) ;
-  if (DelayBin > 100.) {                //try to prevent all 0's from giving a false value
-    DelayBin /= DelayBinDenom ;
-  } else {
-    DelayBin = -999;
-  }
+  (*MyOutput_) << "-----------------------------------------------" << std::endl;
+  (*MyOutput_) << "Number of L1A in ALCT window vs. alct_l1a_delay" << std::endl;
+  PrintHistogram("Number of L1A in ALCT window",ALCT_l1a_accepted,minlimit,maxlimit,average);
   //
-  printf("In.Best L1a ALCT delay %f \n",DelayBin);
+  ALCTL1aDelay_ = RoundOff(average);
+  (*MyOutput_) << " Best value is alct_l1a_delay = " << ALCTL1aDelay_ << std::endl;
+  (*MyOutput_) << "-----------------------------------------------" << std::endl;
   //
-  ALCTL1aDelay_ = (int) (DelayBin+0.5);
-  //
-  (*MyOutput_) << " Best value of alct_l1a_delay = " << ALCTL1aDelay_ << std::endl;
+  std::cout << " Best value is alct_l1a_delay = " << ALCTL1aDelay_ << std::endl;
   //
   // Set the registers back to how they were at beginning...
-  thisTMB->SetMpcOutputEnable(initial_value_of_register);
-  thisTMB->WriteRegister( tmb_trig_adr);
+  thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
+  thisTMB->WriteRegister(tmb_trig_adr);
+  //
+  alct->SetL1aDelay(initial_alct_l1a_delay);
+  alct->WriteConfigurationReg();
+  //
+  thisTMB->RedirectOutput(MyOutput_);
+  thisDMB->RedirectOutput(MyOutput_);
+  thisCCB_->RedirectOutput(MyOutput_);
+  thisMPC->RedirectOutput(MyOutput_);
   //
   return ALCTL1aDelay_;
-  //
 }
 //
 //
@@ -2253,7 +2169,7 @@ void ChamberUtilities::InitStartSystem(){
 //
 void ChamberUtilities::SetupCoincidencePulsing() {
   //  
-  const int default_amplitude = 25;
+  const int default_amplitude = 5;
   const int default_signal    = ADB_SYNC;
   //
   SetupCoincidencePulsing(default_amplitude,default_signal);
@@ -2261,17 +2177,18 @@ void ChamberUtilities::SetupCoincidencePulsing() {
   return;
 }
 //
+void ChamberUtilities::SetupCoincidencePulsing(int amplitude) {
+  //  
+  const int default_signal = ADB_SYNC;
+  //
+  SetupCoincidencePulsing(amplitude,default_signal);
+  //
+  return;
+}
+//
 void ChamberUtilities::SetupCoincidencePulsing(int amplitude, int pulse_signal) {
   //
   // Setup to pulse the chamber so that both CLCT and ALCT fire on a single (TTC) command
-  //
-  // Set up ALCT teststrip pulsing: 
-  //
-  if (debug_) std::cout << "Setup coincidence pulsing in TMB slot " << thisTMB->slot() << std::endl;
-  const int strip_mask = 0x3f;        //pulse all six (layers of) strips
-  //
-  alct->SetUpPulsing(amplitude,PULSE_LAYERS,strip_mask,pulse_signal);
-  ::sleep(1);
   //
   // Mask off the distrip channels near both edges of the chamber for pulsing the teststrip:
   //
@@ -2282,8 +2199,11 @@ void ChamberUtilities::SetupCoincidencePulsing(int amplitude, int pulse_signal) 
   // 3) Since the distrip farthest from the teststrip does not have a pulse induced, anyway,
   //    we can mask it off safely
   for (int layer=0; layer<6; layer++) {
-    thisTMB->SetDistripHotChannelMask(layer,0,0);
-    thisTMB->SetDistripHotChannelMask(layer,39,0);
+    for (int channel=0; channel<=39; channel++) {
+      thisTMB->SetDistripHotChannelMask(layer,channel,0);
+    }
+    thisTMB->SetDistripHotChannelMask(layer,3,1);
+    thisTMB->SetDistripHotChannelMask(layer,36,1);
   }
   thisTMB->WriteDistripHotChannelMasks();
   //
@@ -2291,6 +2211,14 @@ void ChamberUtilities::SetupCoincidencePulsing(int amplitude, int pulse_signal) 
     thisTMB->ReadDistripHotChannelMasks();
     thisTMB->PrintHotChannelMask();
   }
+  //
+  // Set up ALCT teststrip pulsing: 
+  //
+  if (debug_) std::cout << "Setup coincidence pulsing in TMB slot " << thisTMB->slot() << std::endl;
+  const int strip_mask = 0x3f;        //pulse all six (layers of) strips
+  //
+  alct->SetUpPulsing(amplitude,PULSE_LAYERS,strip_mask,pulse_signal);
+  ::sleep(1);
   //
   return;
 }
@@ -2435,7 +2363,10 @@ void ChamberUtilities::PulseCFEB(int HalfStrip, int CLCTInputs, bool enableL1aEm
   //
   thisTMB->DecodeCLCT();
   //
-  //  thisDMB->PrintCounters();
+  if (debug_) {
+    thisTMB->PrintCLCT();
+    thisDMB->PrintCounters();
+  }
   //
   cout << endl ;
   //
@@ -2533,6 +2464,8 @@ void ChamberUtilities::InjectMPCData(){
 void ChamberUtilities::PopulateDmbHistograms(int number_of_reads) {
   //
   for (int i=0; i<number_of_reads; i++) {
+    //
+    if ( (i%25) == 0 )  std::cout << "DMB Read " << std::dec << i << " times" << std::endl;
     //
     thisDMB->readtimingCounter();
     thisDMB->readtimingScope();
@@ -2879,22 +2812,20 @@ int ChamberUtilities::DelayWhichGivesDesiredValue(float * values, const int min_
 //
 void ChamberUtilities::PrintHistogram(std::string label, int * histogram, int min, int max, int average) {
   //
-  for (int i=min; i<=max; i++) {
-    (*MyOutput_) << label << "[" << i << "] = " << histogram[i] << std::endl;
-  }
+  for (int i=min; i<=max; i++) 
+    (*MyOutput_) << std::dec << label << "[" << i << "] = " << histogram[i] << std::endl;
   //
-  (*MyOutput_) << label << " average (integer) = " << average << std::endl;
+  (*MyOutput_) << std::dec << label << " average = " << average << " (integer)" << std::endl;
   //
   return;
 }
 //
 void ChamberUtilities::PrintHistogram(std::string label, int * histogram, int min, int max, float average) {
   //
-  for (int i=min; i<=max; i++) {
-    (*MyOutput_) << label << "[" << i << "] = " << histogram[i] << std::endl;
-  }
+  for (int i=min; i<=max; i++) 
+    (*MyOutput_) << std::dec << label << "[" << i << "] = " << histogram[i] << std::endl;
   //
-  (*MyOutput_) << label << " average = " << average << std::endl;
+  (*MyOutput_) << std::dec << label << " average = " << average << " (float)" << std::endl;
   //
   return;
 }

@@ -267,11 +267,11 @@ void CrateUtilities::CreateTstoreTables(){
     tmb_table[tmb].push_back(tmb_output[tmb].str());
     //
     tmb_output[tmb].str("");
-    tmb_output[tmb] << myTmbs[tmb]->GetMPCdelay();
+    tmb_output[tmb] << myTmbs[tmb]->GetMpcRxDelay();
     tmb_table[tmb].push_back(tmb_output[tmb].str());
     //
     tmb_output[tmb].str("");
-    tmb_output[tmb] << myTmbs[tmb]->GetMpcTXdelay();
+    tmb_output[tmb] << myTmbs[tmb]->GetMpcTxDelay();
     tmb_table[tmb].push_back(tmb_output[tmb].str());
     //
     tmb_output[tmb].str("");
