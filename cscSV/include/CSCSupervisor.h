@@ -13,6 +13,7 @@
 #include "xdata/Vector.h"
 #include "xdata/Bag.h"
 #include "xdata/String.h"
+#include "xdata/Integer.h"
 #include "xdata/UnsignedLong.h"
 #include "xgi/Method.h"
 #include "EmuRunInfo.h"
@@ -104,6 +105,7 @@ private: // XDAQ parameters
 	xdata::Vector<xdata::String> pc_configs_;
 	xdata::Vector<xdata::String> fc_keys_;
 	xdata::Vector<xdata::String> fc_configs_;
+	xdata::Vector<xdata::Integer> fed_instance_to_crate_;
 
 	xdata::String daq_mode_;
 	xdata::String trigger_config_;
@@ -171,6 +173,7 @@ private:
 	string getLocalDAQState();
 
 	bool isDAQManagerControlled(string command);
+	int getFEDInstance(std::string crate);
 
 	int nevents_;
 	unsigned int step_counter_;

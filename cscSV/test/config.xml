@@ -59,6 +59,11 @@
 					<item soapenc:position="[0]" xsi:type="xsd:string">Global</item>
 					<item soapenc:position="[1]" xsi:type="xsd:string">Calibration</item>
 				</fcConfigs>
+				<fedInstanceToCrate soapenc:arrayType="xsd:ur-type[3]" xsi:type="soapenc:Array">
+					<item soapenc:position="[0]" xsi:type="xsd:integer">1</item>
+					<item soapenc:position="[1]" xsi:type="xsd:integer">2</item>
+					<item soapenc:position="[2]" xsi:type="xsd:integer">3</item>
+				</fedInstanceToCrate>
 			</properties>
 		</xc:Application>
 		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libCSCSupervisor.so</xc:Module>
