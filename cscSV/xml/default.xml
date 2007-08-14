@@ -58,6 +58,11 @@
 				<fcConfigs soapenc:arrayType="xsd:ur-type[1]" xsi:type="soapenc:Array">
 					<item soapenc:position="[0]" xsi:type="xsd:string">Global</item>
 				</fcConfigs>
+				<fedInstanceToCrate soapenc:arrayType="xsd:ur-type[3]" xsi:type="soapenc:Array">
+					<item soapenc:position="[0]" xsi:type="xsd:integer">1</item>
+					<item soapenc:position="[1]" xsi:type="xsd:integer">2</item>
+					<item soapenc:position="[2]" xsi:type="xsd:integer">3</item>
+				</fedInstanceToCrate>
 				<runDbBookingCommand xsi:type="xsd:string">/home.local/slicedev/bin/java -jar /home.local/slicedev/bin/runnumberbooker.jar</runDbBookingCommand>
 				<runDbWritingCommand xsi:type="xsd:string">/home.local/slicedev/bin/java -jar /home.local/slicedev/bin/runinfowriter.jar</runDbWritingCommand>
 				<runDbAddress xsi:type="xsd:string">dbc:oracle:thin:@oracms.cern.ch:10121:omds</runDbAddress>

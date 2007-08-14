@@ -82,6 +82,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	i->fireItemAvailable("pcConfigs",  &pc_configs_);
 	i->fireItemAvailable("fcKeys",     &fc_keys_);
 	i->fireItemAvailable("fcConfigs",  &fc_configs_);
+	i->fireItemAvailable("fedInstanceToCrate", &fed_instance_to_crate_);
 
 	i->fireItemAvailable("DAQMode", &daq_mode_);
 	i->fireItemAvailable("TriggerConfig", &trigger_config_);
@@ -425,15 +426,19 @@ void CSCSupervisor::webConfigure(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webEnable(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
-        // Book run number here to make sure it's done 
-        // only when requested by the user from the web page,
-        // and not by the FunctionManager via SOAP.
-        bookRunNumber();
+	// Book run number here to make sure it's done 
+	// only when requested by the user from the web page,
+	// and not by the FunctionManager via SOAP.
+	bookRunNumber();
 
 	fireEvent("Enable");
 
 	keep_refresh_ = true;
 	webRedirect(in, out);
+
+	if (!isCalibrationMode()) {
+		keep_refresh_ = false;
+	}
 }
 
 void CSCSupervisor::webDisable(xgi::Input *in, xgi::Output *out)
@@ -751,8 +756,7 @@ void CSCSupervisor::setTTSAction(toolbox::Event::Reference evt)
 		setParameter(fed_app, "ttsSlot",  "xsd:unsignedInt", tts_slot_);
 		setParameter(fed_app, "ttsBits",  "xsd:unsignedInt", tts_bits_);
 
-		int instance = (tts_crate_ == "1") ? 0 : 1;
-		sendCommand("SetTTSBits", fed_app, instance);
+		sendCommand("SetTTSBits", fed_app, getFEDInstance(tts_crate_));
 	} catch (xoap::exception::Exception e) {
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 				"SOAP fault was returned", e);
@@ -1304,6 +1308,20 @@ bool CSCSupervisor::isDAQManagerControlled(string command)
 	if (command != "Configure" && !isDAQConfiguredInGlobal()) { return false; }
 
 	return true;
+}
+
+int CSCSupervisor::getFEDInstance(std::string crate)
+{
+	int target = atoi(crate.c_str());
+	unsigned int i;
+
+	for (i = 0; i < fed_instance_to_crate_.size(); ++i) {
+		if (fed_instance_to_crate_[i] == target) {
+			break;
+		}
+	}
+
+	return i;
 }
 
 void CSCSupervisor::StateTable::addApplication(CSCSupervisor *sv, string klass)
