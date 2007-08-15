@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.45 2007/08/06 14:20:08 rakness Exp $
+// $Id: TMB.cc,v 3.46 2007/08/15 12:40:56 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.46  2007/08/15 12:40:56  rakness
+// determine sync parameters w/1 button, clean up output, control level of cout with debug_
+//
 // Revision 3.45  2007/08/06 14:20:08  rakness
 // pulse teststrips and measure ALCT in CLCT match window
 //
@@ -1062,7 +1065,7 @@ void TMB::DecodeALCT(){
   alct1_second_key_ = ((alct1_data_ >>  4) & 0x7f);
   alct1_second_bxn_ = ((alct1_data_ >> 11) &  0x3);
   //
-  PrintALCT();
+  //  PrintALCT();
   //
   return;
 }

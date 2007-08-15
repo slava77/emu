@@ -182,6 +182,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     xgi::bind(this,&EmuPeripheralCrate::forceScope, "forceScope");
     xgi::bind(this,&EmuPeripheralCrate::readoutScope, "readoutScope");
     xgi::bind(this,&EmuPeripheralCrate::TMBDumpAllRegisters, "TMBDumpAllRegisters");
+    xgi::bind(this,&EmuPeripheralCrate::TMBConfigure, "TMBConfigure");
     xgi::bind(this,&EmuPeripheralCrate::TMBClearUserProms, "TMBClearUserProms");
     xgi::bind(this,&EmuPeripheralCrate::TMBReadConfiguration, "TMBReadConfiguration");
     xgi::bind(this,&EmuPeripheralCrate::TMBCheckConfiguration, "TMBCheckConfiguration");
@@ -3567,17 +3568,6 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     char buf[20];
     //
-    //    std::string Automatic =
-    //      toolbox::toString("/%s/Automatic",getApplicationDescriptor()->getURN().c_str());
-    //    //
-    //    *out << cgicc::form().set("method","GET").set("action",Automatic) << std::endl ;
-    //    *out << cgicc::input().set("type","submit").set("value","Automatic") << std::endl ;
-    //    sprintf(buf,"%d",tmb);
-    //    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    //    sprintf(buf,"%d",dmb);
-    //    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    //    *out << cgicc::form() << std::endl ;
-    //
     //    std::string InitChamber =
     //      toolbox::toString("/%s/InitChamber",getApplicationDescriptor()->getURN().c_str());
     //    *out << cgicc::form().set("method","GET").set("action",InitChamber) << std::endl ;
@@ -3607,20 +3597,21 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     //
     *out << cgicc::pre();
-    *out << "0) Prepare to run tests" << std::endl;
-    *out << "   -> LV on" << std::endl;
-    *out << "   -> Restart Peripheral Crate" << std::endl;
-    *out << "   -> Init System" << std::endl;
-    *out << cgicc::pre();
-    //
-    //
-    *out << cgicc::pre();
     *out << "-------------------------------------------------------------------------" << std::endl;
-    *out << "1) Measure relative clock phases with pulsing" << std::endl;
-    *out << "   -> HV on or off" << std::endl;
-    *out << "   -> Stop L1A triggers" << std::endl;
+    *out << " Synchronize the Chamber Trigger and DAQ paths" << std::endl;
+    *out << "-------------------------------------------------------------------------" << std::endl;
+    *out << "0) Prepare to synchronize system" << std::endl;
+    *out << "   a) LV:  on" << std::endl;
+    *out << "   b) Restart Peripheral Crate XDAQ" << std::endl;
+    *out << "   c) Init System" << std::endl;
     *out << cgicc::pre();
     //
+    //
+    *out << cgicc::pre();
+    *out << "1) Measure relative clock phases with pulsing" << std::endl;
+    *out << "   a) LTC:  Stop L1A triggers" << std::endl;
+    *out << "   b) Push the following buttons:" << std::endl;
+    *out << cgicc::pre();
     //
     std::string ALCTTiming =
       toolbox::toString("/%s/ALCTTiming",getApplicationDescriptor()->getURN().c_str());
@@ -3659,7 +3650,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     std::string RatTmbTiming =
       toolbox::toString("/%s/RatTmbTiming",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",RatTmbTiming) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Determine RAT-TMB phase") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Scan RAT-TMB phase") << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     sprintf(buf,"%d",dmb);
@@ -3668,19 +3659,24 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     *out << "rat_tmb_delay = " << MyTest[tmb].GetRatTmbDelayTest() << " ("  << MyTest[tmb].GetRatTmbDelay()     << ") " << std::endl;
     *out << cgicc::br();
-    *out << cgicc::br();
+    //
+    *out << cgicc::pre();
+    *out << "   c) Enter above values into xml" << std::endl;
+    *out << "   d) Set up the xml file with the desired ALCT and CLCT trigger configuration" << std::endl;
+    *out << "   e) Restart Peripheral Crate XDAQ" << std::endl;
+    *out << "   f) Init System" << std::endl;
+    *out << cgicc::pre();
     //
     //
     *out << cgicc::pre();
-    *out << "   -> Set up the xml file with the desired ALCT and CLCT trigger configuration" << std::endl;
-    *out << "   -> Enter above values into xml" << std::endl;
-    *out << "   -> Restart Peripheral Crate" << std::endl;
-    *out << "   -> Init System" << std::endl;
-    *out << cgicc::br();
-    *out << "-------------------------------------------------------------------------" << std::endl;
-    *out << "2) Measure CLCT-ALCT match timing with cosmic rays" << std::endl;
-    *out << "   -> LV on" << std::endl;
-    *out << "   -> HV on" << std::endl;
+    *out << "2) Set up to perform synchronization" << std::endl;
+    *out << "   a) LTC Hard Reset" << std::endl;
+    *out << "   b) For muons from LHC beam or cosmic rays:" << std::endl;
+    *out << "      i ) HV:  on" << std::endl;
+    *out << "      ii) skip to step d)" << std::endl;
+    *out << "   c) For pulsing from the TTC:" << std::endl;
+    *out << "      i ) push the following button" << std::endl;
+    *out << cgicc::pre();
     //
     std::string setupCoincidencePulsing =
       toolbox::toString("/%s/setupCoincidencePulsing",getApplicationDescriptor()->getURN().c_str());
@@ -3690,20 +3686,49 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     *out << cgicc::form() << std::endl ;
     //
+    *out << cgicc::pre();
+    *out << "   d) LTC:  Resync" << std::endl;
+    *out << "   e) LTC Enable L1A's" << std::endl;
+    *out << "   f) LTC Begin cyclic BGo 15" << std::endl;
+    *out << cgicc::pre();
     //
-    *out << "   -> Hard Reset, start LTC triggers (start pulsing--OPTIONAL)" << std::endl;
-    *out << "   -> Recommended values will be based on current values of:" << std::endl;
+    //
+    *out << cgicc::pre();
+    *out << "3) Perform all synchronization steps by pushing the following button" << std::endl;
+    *out << "   -> This button performs the synchronization steps detailed below " << std::endl;
+    *out << "      in order, propagating the measured values from one step to the" << std::endl;
+    *out << "      next step" << std::endl;
+    *out << cgicc::pre();
+    //
+    std::string Automatic =
+      toolbox::toString("/%s/Automatic",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",Automatic) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Automatic") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    *out << cgicc::br();
+    *out << cgicc::br();
+    //
+    //
+    *out << cgicc::pre();
+    *out << "--------------------------------------------------------------------------" << std::endl;
+    *out << " Synchronization step-by-step" << std::endl;
+    *out << "--------------------------------------------------------------------------" << std::endl;
+    *out << "A) Measure CLCT-ALCT match timing with cosmic rays" << std::endl;
+    *out << "   -> Measured values are based on current values of:" << std::endl;
     *out << "        * match_trig_window_size" << std::endl;
     *out << "        * match_trig_alct_delay" << std::endl;
     *out << "        * mpc_tx_delay" << std::endl;
-    *out << "(last two are assuming the triggers have been lined up at the SP)" << std::endl;
+    *out << "(assuming that the trigger primitives have already been synchronized at the MPC)" << std::endl;
     *out << cgicc::pre();
-    //
     //
     std::string ALCTvpf = 
       toolbox::toString("/%s/ALCTvpf",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",ALCTvpf) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Determine CLCT-ALCT match timing") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Measure CLCT-ALCT match timing") << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     sprintf(buf,"%d",dmb);
@@ -3720,16 +3745,8 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     //
     *out << cgicc::pre();
-    *out << "   -> Enter above values into xml" << std::endl;
-    *out << "   -> Restart Peripheral Crate" << std::endl;
-    *out << "   -> Init System" << std::endl;
-    *out << cgicc::br();
-    *out << "-------------------------------------------------------------------------" << std::endl;
-    *out << "3) Measure the delay needed for the winner bit from MPC back to TMB" << std::endl;
-    *out << "   -> HV on or off" << std::endl;
-    *out << "   -> Stop L1A triggers" << std::endl;
+    *out << "B) Measure the delay needed for the winner bit from MPC back to TMB" << std::endl;
     *out << cgicc::pre();
-    //
     //
     std::string FindWinner =
       toolbox::toString("/%s/FindWinner",getApplicationDescriptor()->getURN().c_str());
@@ -3741,39 +3758,14 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    *out << "mpc_rx_delay = " << MyTest[tmb].GetMPCdelayTest() << " ("  << MyTest[tmb].GetMPCdelay()     << ") " << std::endl;
+    *out << "mpc_rx_delay = " << MyTest[tmb].GetMPCdelayTest() << " ("  << MyTest[tmb].GetMPCdelay() << ") " << std::endl;
     *out << cgicc::br();
     *out << cgicc::br();
     //
     //
     *out << cgicc::pre();
-    *out << "   -> Set up the xml file with the correct value of cfeb_cable_delay according to its DMB-CFEB cable length" << std::endl;
-    *out << "   -> Enter above values into xml" << std::endl;
-    *out << "   -> Restart Peripheral Crate" << std::endl;
-    *out << "   -> Init System" << std::endl;
-    *out << cgicc::br();
-    *out << "-------------------------------------------------------------------------" << std::endl;
-    *out << "4) Determine the DMB parameters" << std::endl;
-    *out << "   -> HV on" << std::endl;
-    *out << "   -> start LTC triggers" << std::endl;
-    *out << "----> Check the overall state of the DMB parameters.  Is the Active FEB Flag to L1A close to 147? -----" << std::endl;
+    *out << "C) Determine the DAQ timing parameters" << std::endl;
     *out << cgicc::pre();
-    //
-    //
-    std::string PrintDmbValuesAndScopes =
-      toolbox::toString("/%s/PrintDmbValuesAndScopes",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",PrintDmbValuesAndScopes) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Read DMB Values/Scopes") << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    sprintf(buf,"%d",dmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << "Active FEB flag to L1A timing = " << MyTest[tmb].GetActiveFebFlagToL1aAtDMB() << std::endl;
-    *out << cgicc::br();
-    *out << cgicc::br();
-    //
     //
     std::string AlctDavCableDelay =
       toolbox::toString("/%s/AlctDavCableDelay",getApplicationDescriptor()->getURN().c_str());
@@ -3794,7 +3786,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     std::string TmbLctCableDelay =
       toolbox::toString("/%s/TmbLctCableDelay",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",TmbLctCableDelay) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Determine Active FEB flag (TMB-CFEB) cable delay") << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Determine Active FEB flag (CFEB-TMB) cable delay") << std::endl ;
     sprintf(buf,"%d",tmb);
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
     sprintf(buf,"%d",dmb);
@@ -3804,7 +3796,11 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << "tmb_lct_cable_delay = " << MyTest[tmb].GetTmbLctCableDelayTest() 
     	 << " ("  << MyTest[tmb].GetTmbLctCableDelay_configvalue() << ") " << std::endl;
     *out << cgicc::br();
-    *out << cgicc::br();
+    //
+    *out << cgicc::pre();
+    *out << "-> The following parameter, cfeb_dav_cable_delay, depends on cfeb_cable_delay," << std::endl;
+    *out << "   who should be set strictly according to its cable length" << std::endl;
+    *out << cgicc::pre();
     //
     std::string CfebDavCableDelay =
       toolbox::toString("/%s/CfebDavCableDelay",getApplicationDescriptor()->getURN().c_str());
@@ -3823,16 +3819,27 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     //
     *out << cgicc::pre();
-    *out << "   -> Enter above values into xml" << std::endl;
-    *out << "   -> Restart Peripheral Crate" << std::endl;
-    *out << "   -> Init System" << std::endl;
-    *out << cgicc::br();
-    *out << "-------------------------------------------------------------------------" << std::endl;
-    *out << "5) Determine the delays for the L1A arrival windows at the TMB and ALCT" << std::endl;
-    *out << "   -> HV on" << std::endl;
-    *out << "   -> start LTC triggers" << std::endl;
+    *out << "D) Check the overall state of the DMB readout" << std::endl;
+    *out << "   -> Is the Active FEB Flag to L1A = 147?" << std::endl;
+    *out << "   -> Is the ALCT DAV scope centered at 2?" << std::endl;
+    *out << "   -> Is the CFEB DAV scope centered at 2?" << std::endl;
     *out << cgicc::pre();
     //
+    std::string PrintDmbValuesAndScopes =
+      toolbox::toString("/%s/PrintDmbValuesAndScopes",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",PrintDmbValuesAndScopes) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Read DMB Values/Scopes") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::form() << std::endl ;
+    *out << cgicc::br();
+    //
+    //
+    *out << cgicc::pre();
+    *out << "E) Determine the delays for the L1A arrival windows at the TMB and ALCT" << std::endl;
+    *out << cgicc::pre();
     //
     std::string TMBL1aTiming =
       toolbox::toString("/%s/TMBL1aTiming",getApplicationDescriptor()->getURN().c_str());
@@ -3863,16 +3870,12 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::br();
     *out << cgicc::br();
     //
-    *out << cgicc::pre();
-    *out << "--- Look at offline analysis to ensure LCTs are lined up at sector processor..." << std::endl;
-    *out << "... then, measure the delay needed for the winner bit from MPC back to TMB ---" << std::endl;
-    *out << cgicc::pre();
-    //
     //
     *out << cgicc::pre();
-    *out << "------ Ensure the RPC parity-bit is enabled for the following scan ------------" << std::endl;
+    *out << "F) Measure the communication phase of the RPC link board to the RAT" << std::endl;
+    *out << "   -> For the future, when RPC Link Boards are connected to the RAT" << std::endl;
+    *out << "   -> Make sure the RPC parity-bit is enabled for the following scan" << std::endl;
     *out << cgicc::pre();
-    //
     //
     std::string RpcRatTiming =
       toolbox::toString("/%s/RpcRatTiming",getApplicationDescriptor()->getURN().c_str());
@@ -3890,9 +3893,10 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     //
     *out << cgicc::pre();
-    *out << "------ Scans over on-chamber electronics with pulsing ------------" << std::endl;
+    *out << "------------------------------------------------------------------" << std::endl;
+    *out << "         Scans over on-chamber electronics with pulsing" << std::endl;
+    *out << "------------------------------------------------------------------" << std::endl;
     *out << cgicc::pre();
-    //
     //
     std::string ALCTScan =
       toolbox::toString("/%s/ALCTScan",getApplicationDescriptor()->getURN().c_str());
@@ -3908,7 +3912,6 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
       *out << MyTest[tmb].GetALCTWireScan(Wire) ;
     *out << std::endl;
     *out << cgicc::br();
-    //
     //
     std::string CFEBScan = 
       toolbox::toString("/%s/CFEBScan",getApplicationDescriptor()->getURN().c_str());
@@ -4113,53 +4116,46 @@ void EmuPeripheralCrate::setupCoincidencePulsing(xgi::Input * in, xgi::Output * 
     //
   }
   //
-  void EmuPeripheralCrate::Automatic(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-    //
-    cout << "Automatic" << endl;
-    LOG4CPLUS_INFO(getApplicationLogger(), "Automatic");
-    //
-    cgicc::Cgicc cgi(in);
-    //
-    int tmb, dmb;
-    //
-    cgicc::form_iterator name = cgi.getElement("dmb");
-    //
-    if(name != cgi.getElements().end()) {
-      dmb = cgi["dmb"]->getIntegerValue();
-      cout << "DMB " << dmb << endl;
-      DMB_ = dmb;
-    } else {
-      cout << "No dmb" << endl;
-      dmb = DMB_;
-    }
-    //
-    name = cgi.getElement("tmb");
-    //
-    if(name != cgi.getElements().end()) {
-      tmb = cgi["tmb"]->getIntegerValue();
-      cout << "TMB " << tmb << endl;
-      TMB_ = tmb;
-    } else {
-      cout << "No tmb" << endl;
-      tmb = TMB_;
-    }
-    //
-    //DAQMB * thisDMB = dmbVector[dmb];
-    //TMB * thisTMB = tmbVector[tmb];
-    //
-    //MyTest.SetTMB(thisTMB);
-    //MyTest.SetDMB(thisDMB);
-    //MyTest.SetCCB(thisCCB);
-    //
-    //int RXphase, TXphase;
-    //
-    MyTest[tmb].Automatic();
-    //
-    this->ChamberTests(in,out);
-    //
+void EmuPeripheralCrate::Automatic(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cout << "Perform all synchronization steps in order" << endl;
+  LOG4CPLUS_INFO(getApplicationLogger(), "Automatic");
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  int tmb;
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "Automatic:  TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  } else {
+    std::cout << "Automatic:  No tmb" << std::endl;
+    tmb = TMB_;
   }
+  //
+  int dmb;
+  name = cgi.getElement("dmb");
+  //
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "Automatic:  DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  } else {
+    std::cout << "Automatic:  No dmb" << std::endl;
+    dmb = DMB_;
+  }
+  //
+  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb].PropagateMeasuredValues(true);
+  MyTest[tmb].Automatic();
+  MyTest[tmb].RedirectOutput(&std::cout);
+  //
+  this->ChamberTests(in,out);
+  //
+}
   //
   void EmuPeripheralCrate::CFEBTiming(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
@@ -5291,32 +5287,52 @@ void EmuPeripheralCrate::FindWinner(xgi::Input * in, xgi::Output * out )
     this->TMBUtils(in,out);
     //
   }
+//
+void EmuPeripheralCrate::TMBClearUserProms(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
   //
-  void EmuPeripheralCrate::TMBClearUserProms(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-    //
-    cgicc::Cgicc cgi(in);
-    //
-    cgicc::form_iterator name = cgi.getElement("tmb");
-    //
-    int tmb;
-    if(name != cgi.getElements().end()) {
-      tmb = cgi["tmb"]->getIntegerValue();
-      cout << "TMB " << tmb << endl;
-      TMB_ = tmb;
-    }
-    //
-    TMB * thisTMB = tmbVector[tmb];
-    thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
-    thisTMB->CheckAndProgramProm(ChipLocationTmbUserPromTMBClear);
-    thisTMB->CheckAndProgramProm(ChipLocationTmbUserPromALCTClear);
-    thisTMB->RedirectOutput(&std::cout);
-    //
-    this->TMBUtils(in,out);
-    //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  int tmb;
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    cout << "TMB " << tmb << endl;
+    TMB_ = tmb;
   }
-  // 
+  //
+  TMB * thisTMB = tmbVector[tmb];
+  thisTMB->RedirectOutput(&OutputStringTMBStatus[tmb]);
+  thisTMB->CheckAndProgramProm(ChipLocationTmbUserPromTMBClear);
+  thisTMB->CheckAndProgramProm(ChipLocationTmbUserPromALCTClear);
+  thisTMB->RedirectOutput(&std::cout);
+  //
+  this->TMBUtils(in,out);
+  //
+}
+//
+void EmuPeripheralCrate::TMBConfigure(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  int tmb;
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    cout << "Configure:  TMB " << tmb << endl;
+    TMB_ = tmb;
+  }
+  //
+  TMB * thisTMB = tmbVector[tmb];
+  ALCTController * alct = thisTMB->alctController();
+  thisTMB->configure();
+  alct->configure();
+  //
+  this->TMBUtils(in,out);
+  //
+}
+// 
  void EmuPeripheralCrate::TMBReadConfiguration(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
   {
@@ -6861,182 +6877,184 @@ void EmuPeripheralCrate::FindWinner(xgi::Input * in, xgi::Output * out )
     //
   }
   //
-  void EmuPeripheralCrate::TMBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
-  {
+void EmuPeripheralCrate::TMBStatus(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  int tmb;
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    cout << "TMBStatus:  TMB=" << tmb << endl;
+    TMB_ = tmb;
+  } else {
+    cout << "TMBStatus: No TMB" << endl ;
+    tmb = TMB_;
+  }
+  //
+  TMB * thisTMB = tmbVector[tmb];
+  //
+  alct = thisTMB->alctController();
+  rat  = thisTMB->getRAT();
+  //
+  if (alct) {
+    std::string ALCTStatus =
+      toolbox::toString("/%s/ALCTStatus?tmb=%d",getApplicationDescriptor()->getURN().c_str(),tmb);
     //
-    cgicc::Cgicc cgi(in);
+    *out << cgicc::a("ALCT Status").set("href",ALCTStatus) << endl;
     //
-    cgicc::form_iterator name = cgi.getElement("tmb");
-    int tmb;
-    if(name != cgi.getElements().end()) {
-      tmb = cgi["tmb"]->getIntegerValue();
-      cout << "TMBStatus TMB=" << tmb << endl;
-      TMB_ = tmb;
-    } else {
-      cout << "TMBStatus No TMB" << endl ;
-      tmb = TMB_;
-    }
+  }
+  //
+  if (rat) {
+    std::string RATStatus =
+      toolbox::toString("/%s/RATStatus?tmb=%d",getApplicationDescriptor()->getURN().c_str(),tmb);
     //
-    TMB * thisTMB = tmbVector[tmb];
+    *out << cgicc::a("RAT Status").set("href",RATStatus) << endl;
     //
-    alct = thisTMB->alctController();
-    rat  = thisTMB->getRAT();
-    //
-    if (alct) {
-      std::string ALCTStatus =
-	toolbox::toString("/%s/ALCTStatus?tmb=%d",getApplicationDescriptor()->getURN().c_str(),tmb);
-      //
-      *out << cgicc::a("ALCT Status").set("href",ALCTStatus) << endl;
-      //
-    }
-    //
-    if (rat) {
-      std::string RATStatus =
-	toolbox::toString("/%s/RATStatus?tmb=%d",getApplicationDescriptor()->getURN().c_str(),tmb);
-      //
-      *out << cgicc::a("RAT Status").set("href",RATStatus) << endl;
-      //
-    }
-    //
-    char Name[50];
-    sprintf(Name,"TMB Status slot=%d",thisTMB->slot());	
-    MyHeader(in,out,Name);
-    //
-    //*out << cgicc::h1(Name);
-    //*out << cgicc::br();
-    //
-    char buf[200] ;
-    //
-    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-    *out << std::endl;
-    //
-    *out << cgicc::legend("TMB Info").set("style","color:blue") << cgicc::p() << std::endl ;
-    //
-    *out << cgicc::pre();
-    //
-    // read the registers:
-    thisTMB->FirmwareDate();
-    thisTMB->FirmwareYear();
-    //
-    // get the read values:
-    int day   = thisTMB->GetReadTmbFirmwareDay();
-    int month = thisTMB->GetReadTmbFirmwareMonth();
-    int year  = thisTMB->GetReadTmbFirmwareYear();
-    //
-    // get the expected values:
-    int expected_day   = thisTMB->GetExpectedTmbFirmwareDay();
-    int expected_month = thisTMB->GetExpectedTmbFirmwareMonth();
-    int expected_year  = thisTMB->GetExpectedTmbFirmwareYear();
-    //
-    if ( month == expected_month &&
-	 day   == expected_day   &&
-	 year  == expected_year ) {
-      *out << cgicc::span().set("style","color:green");
-    } else {
-      *out << cgicc::span().set("style","color:red");
-    }
-    sprintf(buf,"TMB Firmware date         : %02x/%02x/%04x ",month,day,year);
-    *out << buf;
-    *out << cgicc::span();
-    //
-    *out << cgicc::br();
-    //
-    // read the registers:
-    thisTMB->FirmwareVersion();
-    //
-    // get the read values:
-    int type = thisTMB->GetReadTmbFirmwareType();
-    //
-    // get the expected values:
-    int expected_type = thisTMB->GetExpectedTmbFirmwareType();
-
-    if ( type == expected_type ) {
-      *out << cgicc::span().set("style","color:green");
-    } else {
-      *out << cgicc::span().set("style","color:red");
-    }
-    sprintf(buf,"Firmware Type             : %01x ",type);       
-    *out << buf;
-    *out << cgicc::span();
-    //
-    //
-    *out << cgicc::br();
-    //
-    // read the registers:
-    thisTMB->FirmwareVersion();
-    //
-    // get the read values:
-    int version = thisTMB->GetReadTmbFirmwareVersion();
-    //
-    int expected_version = thisTMB->GetExpectedTmbFirmwareVersion();
-    //
-    if ( version == expected_version ){
-      *out << cgicc::span().set("style","color:green");
-    } else {
-      *out << cgicc::span().set("style","color:red");
-    }
-    sprintf(buf,"Firmware Version Code     : %01x ",version);       
-    *out << buf ;
-    *out << cgicc::span();
-    //
-    *out << cgicc::br();
-    //
-    //
-    if ( ((thisTMB->FirmwareVersion()>>8)&0x1f) == thisTMB->slot() ){
-      *out << cgicc::span().set("style","color:green");
-    } else {
-      *out << cgicc::span().set("style","color:red");
-    }
-    sprintf(buf,"Geographic Address        : %02d ",((thisTMB->FirmwareVersion()>>8)&0x1f));       
-    *out << buf ;
-    *out << cgicc::span();
-    //
-    *out << cgicc::br();
-    //
-    //
-    sprintf(buf,"Firmware Revision Code    : %04x ",((thisTMB->FirmwareRevCode())&0xffff));       
-    *out << buf ;
-    *out << cgicc::br();
-    //
-    //
-    if ( (thisTMB->PowerComparator())&0x1f == 0x1f ) {
-      *out << cgicc::span().set("style","color:green");
-    } else {
-      *out << cgicc::span().set("style","color:red");
-    }
-    sprintf(buf,"Power Comparator          : %02x ",((thisTMB->PowerComparator())&0x1f));       
-    *out << buf ;
-    *out << cgicc::span();
-    //
-    *out << cgicc::br();
-    //
-    *out << cgicc::pre();
-    //
+  }
+  //
+  char Name[50];
+  sprintf(Name,"TMB Status slot=%d",thisTMB->slot());	
+  MyHeader(in,out,Name);
+  //
+  //*out << cgicc::h1(Name);
+  //*out << cgicc::br();
+  //
+  char buf[200] ;
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+  *out << std::endl;
+  //
+  *out << cgicc::legend("TMB Info").set("style","color:blue") << cgicc::p() << std::endl ;
+  //
+  *out << cgicc::pre();
+  //
+  // read the registers:
+  thisTMB->FirmwareDate();
+  thisTMB->FirmwareYear();
+  //
+  // get the read values:
+  int day   = thisTMB->GetReadTmbFirmwareDay();
+  int month = thisTMB->GetReadTmbFirmwareMonth();
+  int year  = thisTMB->GetReadTmbFirmwareYear();
+  //
+  // get the expected values:
+  int expected_day   = thisTMB->GetExpectedTmbFirmwareDay();
+  int expected_month = thisTMB->GetExpectedTmbFirmwareMonth();
+  int expected_year  = thisTMB->GetExpectedTmbFirmwareYear();
+  //
+  if ( month == expected_month &&
+       day   == expected_day   &&
+       year  == expected_year ) {
+    *out << cgicc::span().set("style","color:green");
+  } else {
+    *out << cgicc::span().set("style","color:red");
+  }
+  sprintf(buf,"TMB Firmware date         : %02x/%02x/%04x ",month,day,year);
+  *out << buf;
+  *out << cgicc::span();
+  //
+  *out << cgicc::br();
+  //
+  // read the registers:
+  thisTMB->FirmwareVersion();
+  //
+  // get the read values:
+  int type = thisTMB->GetReadTmbFirmwareType();
+  //
+  // get the expected values:
+  int expected_type = thisTMB->GetExpectedTmbFirmwareType();
+  
+  if ( type == expected_type ) {
+    *out << cgicc::span().set("style","color:green");
+  } else {
+    *out << cgicc::span().set("style","color:red");
+  }
+  sprintf(buf,"Firmware Type             : %01x ",type);       
+  *out << buf;
+  *out << cgicc::span();
+  //
+  //
+  *out << cgicc::br();
+  //
+  // read the registers:
+  thisTMB->FirmwareVersion();
+  //
+  // get the read values:
+  int version = thisTMB->GetReadTmbFirmwareVersion();
+  //
+  int expected_version = thisTMB->GetExpectedTmbFirmwareVersion();
+  //
+  if ( version == expected_version ){
+    *out << cgicc::span().set("style","color:green");
+  } else {
+    *out << cgicc::span().set("style","color:red");
+  }
+  sprintf(buf,"Firmware Version Code     : %01x ",version);       
+  *out << buf ;
+  *out << cgicc::span();
+  //
+  *out << cgicc::br();
+  //
+  //
+  if ( ((thisTMB->FirmwareVersion()>>8)&0x1f) == thisTMB->slot() ){
+    *out << cgicc::span().set("style","color:green");
+  } else {
+    *out << cgicc::span().set("style","color:red");
+  }
+  sprintf(buf,"Geographic Address        : %02d ",((thisTMB->FirmwareVersion()>>8)&0x1f));       
+  *out << buf ;
+  *out << cgicc::span();
+  //
+  *out << cgicc::br();
+  //
+  //
+  sprintf(buf,"Firmware Revision Code    : %04x ",((thisTMB->FirmwareRevCode())&0xffff));       
+  *out << buf ;
+  *out << cgicc::br();
+  //
+  //
+  if ( (thisTMB->PowerComparator())&0x1f == 0x1f ) {
+    *out << cgicc::span().set("style","color:green");
+  } else {
+    *out << cgicc::span().set("style","color:red");
+  }
+  sprintf(buf,"Power Comparator          : %02x ",((thisTMB->PowerComparator())&0x1f));       
+  *out << buf ;
+  *out << cgicc::span();
+  //
+  *out << cgicc::br();
+  //
+  *out << cgicc::pre();
+  //
+  *out << cgicc::fieldset();
+  //
+  *out << cgicc::fieldset();
+  *out << cgicc::legend("CLCT Info").set("style","color:blue") << cgicc::p() << std::endl ;
+  *out << cgicc::pre();
+  thisTMB->RedirectOutput(out);
+  thisTMB->DecodeCLCT();
+  thisTMB->PrintCLCT();
+  thisTMB->RedirectOutput(&std::cout);
+  *out << cgicc::pre();
+  *out << cgicc::fieldset();
+  //
+  if (alct) {
     *out << cgicc::fieldset();
-    //
-    *out << cgicc::fieldset();
-    *out << cgicc::legend("CLCT Info").set("style","color:blue") << cgicc::p() << std::endl ;
+    *out << cgicc::legend("ALCT Info").set("style","color:blue") << cgicc::p() << std::endl ;
     *out << cgicc::pre();
     thisTMB->RedirectOutput(out);
-    thisTMB->DecodeCLCT();
+    thisTMB->DecodeALCT();
+    thisTMB->PrintALCT();
     thisTMB->RedirectOutput(&std::cout);
     *out << cgicc::pre();
     *out << cgicc::fieldset();
-    //
-    if (alct) {
-      *out << cgicc::fieldset();
-      *out << cgicc::legend("ALCT Info").set("style","color:blue") << cgicc::p() << std::endl ;
-      *out << cgicc::pre();
-      thisTMB->RedirectOutput(out);
-      thisTMB->DecodeALCT();
-      thisTMB->RedirectOutput(&std::cout);
-      *out << cgicc::pre();
-      *out << cgicc::fieldset();
-    }
-    //
-    *out << std::endl;    
-    //
   }
+  //
+  *out << std::endl;    
+  //
+}
   //
   void EmuPeripheralCrate::DMBBoardID(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception){
@@ -7915,304 +7933,304 @@ void EmuPeripheralCrate::FindWinner(xgi::Input * in, xgi::Output * out )
     //
   }
   //
-  void EmuPeripheralCrate::TMBUtils(xgi::Input * in, xgi::Output * out ) 
-    throw (xgi::exception::Exception)
-  {
-    cgicc::Cgicc cgi(in);
-    //
-    cgicc::form_iterator name = cgi.getElement("tmb");
-    int tmb;
-    if(name != cgi.getElements().end()) {
-      tmb = cgi["tmb"]->getIntegerValue();
-      cout << "TMBUtils:  TMB " << tmb << endl;
-      TMB_ = tmb;
-    } else {
-      cout << "TMBUtils:  No TMB" << endl ;
-      tmb = TMB_;
-    }
-    //
-    TMB * thisTMB = tmbVector[tmb];
-    //
-    char Name[50];
-    sprintf(Name,"TMB Utils slot=%d",thisTMB->slot());
-    //
-    alct = thisTMB->alctController();
-    rat = thisTMB->getRAT();
-    //
-    MyHeader(in,out,Name);
-    //
-    //*out << cgicc::h1(Name);
-    //*out << cgicc::br();
-    //
-    char buf[200] ;
-    //
-    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
-    *out << endl ;
-    //
-    *out << cgicc::legend("TMB Utils").set("style","color:blue") ;
-    //
-    //create filename for firmware based on expected dates...
-    char date[8];
-    sprintf(date,"%4x%1x%1x%1x%1x",
-	    thisTMB->GetExpectedTmbFirmwareYear()&0xffff,
-	    (thisTMB->GetExpectedTmbFirmwareMonth()>>4)&0xf,
-	    (thisTMB->GetExpectedTmbFirmwareMonth()   )&0xf,
-	    (thisTMB->GetExpectedTmbFirmwareDay()  >>4)&0xf,
-	    (thisTMB->GetExpectedTmbFirmwareDay()     )&0xf);
-    std::string TMBFirmware = FirmwareDir_+"tmb/"+date+"/tmb";   // ".xsvf" is added in SetXsvfFilename
-    TMBFirmware_ = TMBFirmware;
-    //
-    std::string LoadTMBFirmware =
-      toolbox::toString("/%s/LoadTMBFirmware",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",LoadTMBFirmware) << std::endl ;
-    *out << cgicc::input().set("type","submit").set("value","Load TMB Firmware") << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << TMBFirmware_.toString() << ".xsvf";
-    *out << cgicc::form() << std::endl ;
-    //
-    if (alct) {
-      //
-      std::string LoadALCTFirmware =
-	toolbox::toString("/%s/LoadALCTFirmware",getApplicationDescriptor()->getURN().c_str());
-      //
-      *out << cgicc::form().set("method","GET").set("action",LoadALCTFirmware) << std::endl ;
-      *out << cgicc::input().set("type","submit").set("value","Load ALCT Firmware") << std::endl ;
-      sprintf(buf,"%d",tmb);
-      //      *out << ALCTFirmware_.toString() ;
-      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-      *out << cgicc::form() << std::endl ;
-      //
-    }
-    //
-    if (rat) {
-      //
-      std::string RATFirmware = FirmwareDir_+RAT_FIRMWARE_FILENAME;
-      RATFirmware_ = RATFirmware;
-      //
-      std::string LoadRATFirmware =
-	toolbox::toString("/%s/LoadRATFirmware",getApplicationDescriptor()->getURN().c_str());
-      //
-      *out << cgicc::form().set("method","GET").set("action",LoadRATFirmware) << std::endl ;
-      *out << cgicc::input().set("type","submit").set("value","Load RAT Firmware") << std::endl ;
-      sprintf(buf,"%d",tmb);
-      *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-      *out << RATFirmware_.toString() ;
-      *out << cgicc::form() << std::endl ;
-      //
-    }
-    //
-    std::string ReadTMBRegister =
-      toolbox::toString("/%s/ReadTMBRegister",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",ReadTMBRegister) << std::endl ;
-    *out << "Read Register (int)..." << std:: endl;
-    *out << cgicc::input().set("type","text").set("value","0")
-      .set("name","TMBRegister") << std::endl ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << "Register value : (hex) " << std::hex << TMBRegisterValue_ << std::endl;
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << cgicc::fieldset();
-    //
-    *out << cgicc::table().set("border","0");
-    //
-    *out << cgicc::td();
-    //
-    std::string TMBPrintCounters =
-      toolbox::toString("/%s/TMBPrintCounters",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",TMBPrintCounters) ;
-    *out << cgicc::input().set("type","submit").set("value","TMB Print Counters") ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() ;
-    //
-    *out << cgicc::td();
-    //
-    *out << cgicc::td();
-    //
-    std::string TMBResetCounters =
-      toolbox::toString("/%s/TMBResetCounters",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",TMBResetCounters) ;
-    *out << cgicc::input().set("type","submit").set("value","TMB Reset Counters") ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << cgicc::td();
-    //
-    *out << cgicc::table();
-    //
-    std::string armScope =
-      toolbox::toString("/%s/armScope",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",armScope) ;
-    *out << cgicc::input().set("type","submit").set("value","arm Scope") ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    std::string readoutScope =
-      toolbox::toString("/%s/readoutScope",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",readoutScope) ;
-    *out << cgicc::input().set("type","submit").set("value","readout Scope") ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    std::string forceScope =
-      toolbox::toString("/%s/forceScope",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",forceScope) ;
-    *out << cgicc::input().set("type","submit").set("value","force Scope") ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    std::string TriggerTestInjectALCT =
-      toolbox::toString("/%s/TriggerTestInjectALCT",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",TriggerTestInjectALCT) ;
-    *out << cgicc::input().set("type","submit").set("value","TriggerTest : InjectALCT") ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    std::string TriggerTestInjectCLCT =
-      toolbox::toString("/%s/TriggerTestInjectCLCT",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",TriggerTestInjectCLCT) ;
-    *out << cgicc::input().set("type","submit").set("value","TriggerTest : InjectCLCT") ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    //
-    std::string TMBDumpAllRegisters =
-      toolbox::toString("/%s/TMBDumpAllRegisters",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",TMBDumpAllRegisters) ;
-    *out << cgicc::input().set("type","submit").set("value","Dump All TMB VME Registers") ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    std::string TMBClearUserProms =
-      toolbox::toString("/%s/TMBClearUserProms",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",TMBClearUserProms) ;
-    *out << cgicc::input().set("type","submit").set("value","Clear TMB User Proms") ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    //
-    *out << cgicc::table().set("border","0");
-    //
-    *out << cgicc::td();
-    //
-    std::string TMBReadConfiguration =
-      toolbox::toString("/%s/TMBReadConfiguration",getApplicationDescriptor()->getURN().c_str());
-    //
-    *out << cgicc::form().set("method","GET").set("action",TMBReadConfiguration) ;
-    *out << cgicc::input().set("type","submit").set("value","Read TMB+ALCT Configuration") ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << cgicc::td();
-    *out << cgicc::td();
-    //
-    std::string TMBCheckConfiguration =
-      toolbox::toString("/%s/TMBCheckConfiguration",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",TMBCheckConfiguration) ;
-    if ( thisTMB->GetTMBConfigurationStatus() == 1 &&
-	 alct->GetALCTConfigurationStatus()   == 1 ) {
-      *out << cgicc::input().set("type","submit")
-	.set("value","Check TMB+ALCT Configuration")
-	.set("style","color:green");
-    } else if ( thisTMB->GetTMBConfigurationStatus() == 0 ||
-		alct->GetALCTConfigurationStatus()   == 0 ) {
-      *out << cgicc::input().set("type","submit")
-	.set("value","Check TMB+ALCT Configuration")
-	.set("style","color:red");
-    } else {
-      *out << cgicc::input().set("type","submit")
-	.set("value","Check TMB+ALCT Configuration")
-	.set("style","color:blue");
-    }
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << cgicc::td();
-    *out << cgicc::table();
-    //
-    //
-    *out << cgicc::table().set("border","0");
-    *out << cgicc::td();
-    //
-    std::string TMBReadStateMachines =
-      toolbox::toString("/%s/TMBReadStateMachines",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",TMBReadStateMachines) ;
-    *out << cgicc::input().set("type","submit").set("value","Read TMB State Machines") ;
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << cgicc::td();
-    *out << cgicc::td();
-    //
-    std::string TMBCheckStateMachines =
-      toolbox::toString("/%s/TMBCheckStateMachines",getApplicationDescriptor()->getURN().c_str());
-    *out << cgicc::form().set("method","GET").set("action",TMBCheckStateMachines) ;
-    if ( thisTMB->GetVMEStateMachineStatus()  == 1 && 
-	 thisTMB->GetJTAGStateMachineStatus() == 1 && 
-	 thisTMB->GetDDDStateMachineStatus()  == 1 && 
-	 thisTMB->GetRawHitsHeaderStatus()    == 1 ) {
-      *out << cgicc::input().set("type","submit")
-	.set("value","Check TMB State Machines")
-	.set("style","color:green");
-    } else if ( thisTMB->GetVMEStateMachineStatus()  == 0 || 
-		thisTMB->GetJTAGStateMachineStatus() == 0 || 
-		thisTMB->GetDDDStateMachineStatus()  == 0 || 
-		thisTMB->GetRawHitsHeaderStatus()    == 0 ) {
-      *out << cgicc::input().set("type","submit")
-	.set("value","Check TMB State Machines")
-	.set("style","color:red");
-    } else {
-      *out << cgicc::input().set("type","submit")
-	.set("value","Check TMB State Machines")
-	.set("style","color:blue");
-    }
-    sprintf(buf,"%d",tmb);
-    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
-    *out << cgicc::form() << std::endl ;
-    //
-    *out << cgicc::td();
-    //
-    *out << cgicc::table();
-    //
-    // Output area
-    //
-    *out << cgicc::form().set("method","GET") << std::endl ;
-    *out << cgicc::pre();
-    *out << cgicc::textarea().set("name","CrateTestTMBOutput")
-      .set("rows","50")
-      .set("cols","150")
-      .set("WRAP","OFF");
-    *out << OutputStringTMBStatus[tmb].str() << endl ;
-    *out << cgicc::textarea();
-    OutputStringTMBStatus[tmb].str("");
-    *out << cgicc::pre();
-    *out << cgicc::form() << std::endl ;
-    //
+void EmuPeripheralCrate::TMBUtils(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  cgicc::Cgicc cgi(in);
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  int tmb;
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    cout << "TMBUtils:  TMB " << tmb << endl;
+    TMB_ = tmb;
+  } else {
+    cout << "TMBUtils:  No TMB" << endl ;
+    tmb = TMB_;
   }
+  //
+  TMB * thisTMB = tmbVector[tmb];
+  //
+  char Name[50];
+  sprintf(Name,"TMB Utils slot=%d",thisTMB->slot());
+  //
+  alct = thisTMB->alctController();
+  rat = thisTMB->getRAT();
+  //
+  MyHeader(in,out,Name);
+  //
+  char buf[200] ;
+  //
+  *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+  *out << endl ;
+  //
+  *out << cgicc::legend("TMB Utils").set("style","color:blue") ;
+  //
+  //create filename for firmware based on expected dates...
+  char date[8];
+  sprintf(date,"%4x%1x%1x%1x%1x",
+	  thisTMB->GetExpectedTmbFirmwareYear()&0xffff,
+	  (thisTMB->GetExpectedTmbFirmwareMonth()>>4)&0xf,
+	  (thisTMB->GetExpectedTmbFirmwareMonth()   )&0xf,
+	  (thisTMB->GetExpectedTmbFirmwareDay()  >>4)&0xf,
+	  (thisTMB->GetExpectedTmbFirmwareDay()     )&0xf);
+  std::string TMBFirmware = FirmwareDir_+"tmb/"+date+"/tmb";   // ".xsvf" is added in SetXsvfFilename
+  TMBFirmware_ = TMBFirmware;
+  //
+  std::string LoadTMBFirmware =
+    toolbox::toString("/%s/LoadTMBFirmware",getApplicationDescriptor()->getURN().c_str());
+  //
+  *out << cgicc::form().set("method","GET").set("action",LoadTMBFirmware) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Load TMB Firmware") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << TMBFirmware_.toString() << ".xsvf";
+  *out << cgicc::form() << std::endl ;
+  //
+  if (alct) {
+    std::string LoadALCTFirmware =
+      toolbox::toString("/%s/LoadALCTFirmware",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",LoadALCTFirmware) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Load ALCT Firmware") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << cgicc::form() << std::endl ;
+  }
+  //
+  if (rat) {
+    std::string RATFirmware = FirmwareDir_+RAT_FIRMWARE_FILENAME;
+    RATFirmware_ = RATFirmware;
+    //
+    std::string LoadRATFirmware =
+      toolbox::toString("/%s/LoadRATFirmware",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",LoadRATFirmware) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Load RAT Firmware") << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    *out << RATFirmware_.toString() ;
+    *out << cgicc::form() << std::endl ;
+  }
+  //
+  std::string ReadTMBRegister =
+    toolbox::toString("/%s/ReadTMBRegister",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",ReadTMBRegister) << std::endl ;
+  *out << "Read Register (int)..." << std:: endl;
+  *out << cgicc::input().set("type","text").set("value","0")
+    .set("name","TMBRegister") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << "Register value : (hex) " << std::hex << TMBRegisterValue_ << std::endl;
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::fieldset();
+  //
+  *out << cgicc::table().set("border","0");
+  //
+  *out << cgicc::td();
+  //
+  std::string TMBPrintCounters =
+    toolbox::toString("/%s/TMBPrintCounters",getApplicationDescriptor()->getURN().c_str());
+  //
+  *out << cgicc::form().set("method","GET").set("action",TMBPrintCounters) ;
+  *out << cgicc::input().set("type","submit").set("value","TMB Print Counters") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() ;
+  //
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  //
+  std::string TMBResetCounters =
+    toolbox::toString("/%s/TMBResetCounters",getApplicationDescriptor()->getURN().c_str());
+  //
+  *out << cgicc::form().set("method","GET").set("action",TMBResetCounters) ;
+  *out << cgicc::input().set("type","submit").set("value","TMB Reset Counters") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::td();
+  //
+  *out << cgicc::table();
+  //
+  std::string armScope =
+    toolbox::toString("/%s/armScope",getApplicationDescriptor()->getURN().c_str());
+  //
+  *out << cgicc::form().set("method","GET").set("action",armScope) ;
+  *out << cgicc::input().set("type","submit").set("value","arm Scope") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  std::string readoutScope =
+    toolbox::toString("/%s/readoutScope",getApplicationDescriptor()->getURN().c_str());
+  //
+  *out << cgicc::form().set("method","GET").set("action",readoutScope) ;
+  *out << cgicc::input().set("type","submit").set("value","readout Scope") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  std::string forceScope =
+    toolbox::toString("/%s/forceScope",getApplicationDescriptor()->getURN().c_str());
+  //
+  *out << cgicc::form().set("method","GET").set("action",forceScope) ;
+  *out << cgicc::input().set("type","submit").set("value","force Scope") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  std::string TriggerTestInjectALCT =
+    toolbox::toString("/%s/TriggerTestInjectALCT",getApplicationDescriptor()->getURN().c_str());
+  //
+  *out << cgicc::form().set("method","GET").set("action",TriggerTestInjectALCT) ;
+  *out << cgicc::input().set("type","submit").set("value","TriggerTest : InjectALCT") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  std::string TriggerTestInjectCLCT =
+    toolbox::toString("/%s/TriggerTestInjectCLCT",getApplicationDescriptor()->getURN().c_str());
+  //
+  *out << cgicc::form().set("method","GET").set("action",TriggerTestInjectCLCT) ;
+  *out << cgicc::input().set("type","submit").set("value","TriggerTest : InjectCLCT") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  //
+  std::string TMBDumpAllRegisters =
+    toolbox::toString("/%s/TMBDumpAllRegisters",getApplicationDescriptor()->getURN().c_str());
+  //
+  *out << cgicc::form().set("method","GET").set("action",TMBDumpAllRegisters) ;
+  *out << cgicc::input().set("type","submit").set("value","Dump All TMB VME Registers") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::table().set("border","0");
+  //
+  *out << cgicc::td();
+  std::string TMBClearUserProms =
+    toolbox::toString("/%s/TMBClearUserProms",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBClearUserProms) ;
+  *out << cgicc::input().set("type","submit").set("value","Clear TMB+ALCT User Proms") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string TMBConfigure =
+    toolbox::toString("/%s/TMBConfigure",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBConfigure) ;
+  *out << cgicc::input().set("type","submit").set("value","Configure TMB+ALCT") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::table();
+  //
+  //
+  *out << cgicc::table().set("border","0");
+  //
+  *out << cgicc::td();
+  std::string TMBReadConfiguration =
+    toolbox::toString("/%s/TMBReadConfiguration",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBReadConfiguration) ;
+  *out << cgicc::input().set("type","submit").set("value","Read TMB+ALCT Configuration") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::td();
+  std::string TMBCheckConfiguration =
+    toolbox::toString("/%s/TMBCheckConfiguration",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBCheckConfiguration) ;
+  if ( thisTMB->GetTMBConfigurationStatus() == 1 &&
+       alct->GetALCTConfigurationStatus()   == 1 ) {
+    *out << cgicc::input().set("type","submit")
+      .set("value","Check TMB+ALCT Configuration")
+      .set("style","color:green");
+  } else if ( thisTMB->GetTMBConfigurationStatus() == 0 ||
+	      alct->GetALCTConfigurationStatus()   == 0 ) {
+    *out << cgicc::input().set("type","submit")
+      .set("value","Check TMB+ALCT Configuration")
+      .set("style","color:red");
+  } else {
+    *out << cgicc::input().set("type","submit")
+      .set("value","Check TMB+ALCT Configuration")
+      .set("style","color:blue");
+  }
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  *out << cgicc::td();
+  //
+  *out << cgicc::table();
+  //
+  //
+  *out << cgicc::table().set("border","0");
+  *out << cgicc::td();
+  //
+  std::string TMBReadStateMachines =
+    toolbox::toString("/%s/TMBReadStateMachines",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBReadStateMachines) ;
+  *out << cgicc::input().set("type","submit").set("value","Read TMB State Machines") ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::td();
+  *out << cgicc::td();
+  //
+  std::string TMBCheckStateMachines =
+    toolbox::toString("/%s/TMBCheckStateMachines",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",TMBCheckStateMachines) ;
+  if ( thisTMB->GetVMEStateMachineStatus()  == 1 && 
+       thisTMB->GetJTAGStateMachineStatus() == 1 && 
+       thisTMB->GetDDDStateMachineStatus()  == 1 && 
+       thisTMB->GetRawHitsHeaderStatus()    == 1 ) {
+    *out << cgicc::input().set("type","submit")
+      .set("value","Check TMB State Machines")
+      .set("style","color:green");
+  } else if ( thisTMB->GetVMEStateMachineStatus()  == 0 || 
+	      thisTMB->GetJTAGStateMachineStatus() == 0 || 
+	      thisTMB->GetDDDStateMachineStatus()  == 0 || 
+	      thisTMB->GetRawHitsHeaderStatus()    == 0 ) {
+    *out << cgicc::input().set("type","submit")
+      .set("value","Check TMB State Machines")
+      .set("style","color:red");
+  } else {
+    *out << cgicc::input().set("type","submit")
+      .set("value","Check TMB State Machines")
+      .set("style","color:blue");
+  }
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::td();
+  //
+  *out << cgicc::table();
+  //
+  // Output area
+  //
+  *out << cgicc::form().set("method","GET") << std::endl ;
+  *out << cgicc::pre();
+  *out << cgicc::textarea().set("name","CrateTestTMBOutput")
+    .set("rows","50")
+    .set("cols","150")
+    .set("WRAP","OFF");
+  *out << OutputStringTMBStatus[tmb].str() << endl ;
+  *out << cgicc::textarea();
+  OutputStringTMBStatus[tmb].str("");
+  *out << cgicc::pre();
+  *out << cgicc::form() << std::endl ;
+  //
+}
   //
   void EmuPeripheralCrate::LoadTMBFirmware(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
