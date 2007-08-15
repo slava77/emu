@@ -34,10 +34,17 @@ public:
   ////////////////////////////////////////////////
   // determine peripheral crate timing parameters
   ////////////////////////////////////////////////
+  //
+  ///When measuring synchronization parameters, choose to propagate the measured values from one step to the next (or not)
+  inline void PropagateMeasuredValues(bool true_or_false) { use_measured_values_ = true_or_false; }
+  //
+  ///Perform all synchronization steps sequentially except the clock phases
+  void Automatic();
+  //
   // clock phases
   void CFEBTiming();
   void ALCTTiming();
-  void RatTmbDelayScan();
+  int  RatTmbDelayScan();
   void RpcRatDelayScan();       //rpc=0
   void RpcRatDelayScan(int rpc);
   //
@@ -50,9 +57,9 @@ public:
   int FindWinner(int number_of_pulses);      /// Use local pulsing of CFEB, data sent to MPC from TMB by VME command
   //
   // DMB parameters
-  void MeasureAlctDavCableDelay();
-  void MeasureTmbLctCableDelay();
-  void MeasureCfebDavCableDelay();
+  int MeasureAlctDavCableDelay();
+  int MeasureTmbLctCableDelay();
+  int MeasureCfebDavCableDelay();
   void ReadAllDmbValuesAndScopes();
   void PrintAllDmbValuesAndScopes();
   //
@@ -102,7 +109,6 @@ public:
   //
   //
   // Following should be deprecated?
-  void Automatic();
   void ALCTScanDelays();
   //
   // Get and Set peripheral crate instances:
@@ -193,7 +199,9 @@ public:
 private:
   //
   std::ostream * MyOutput_ ;
-  bool debug_;
+  int debug_;
+  //
+  bool use_measured_values_;
   //
   int Npulses_;
   bool comparing_with_clct_;
