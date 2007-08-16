@@ -1887,8 +1887,10 @@ void EMUjtag::DecodeXsvfImage_() {
       if (command_counter % 100 == 0) {
 	float percent_programmed = 100.* (float)image_counter_ / (float)number_of_read_bytes_;
 	//
-	(*MyOutput_) << "Programmed " << std::setprecision(1) << std::fixed << percent_programmed 
-		     << "% of " << std::dec << number_of_read_bytes_ << " bytes" << std::endl;
+	(*MyOutput_) << "Slot " << (int) tmb_->slot() 
+		     << ":  Programmed " << std::setprecision(1) << std::fixed << percent_programmed 
+		     << "% of " << std::dec << number_of_read_bytes_ 
+		     << " bytes with " << verify_error_ <<" verify errors" << std::endl;
       }
     //
     if (command > NUMBER_OF_DIFFERENT_XSVF_COMMANDS) {
