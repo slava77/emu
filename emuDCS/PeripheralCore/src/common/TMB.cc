@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.46 2007/08/15 12:40:56 rakness Exp $
+// $Id: TMB.cc,v 3.47 2007/08/16 11:40:23 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.47  2007/08/16 11:40:23  rakness
+// add Raw Hits Write Buffer Reset Counter
+//
 // Revision 3.46  2007/08/15 12:40:56  rakness
 // determine sync parameters w/1 button, clean up output, control level of cout with debug_
 //
@@ -1218,31 +1221,17 @@ std::string TMB::CounterName(int counter){
   if( counter == 21) name = "L1A:  TMB triggered, no L1A received                    ";
   if( counter == 22) name = "L1A:  TMB readout                                       ";
   if( counter == 23) name = "CLCT: Triad skipped                                     ";
+  if( counter == 24) name = "TMB:  Raw Hits Buffer Reset                             ";
   //
   return name;
-  //
 }
 //
 void TMB::ResetCounters(){
-  //
-  //  unsigned long int adr;
-  //  unsigned long int rd_data ;
-  //  unsigned long int wr_data;
   //
   // Clear counters
   //
   WriteRegister(cnt_ctrl_adr,0x1);
   WriteRegister(cnt_ctrl_adr,0x0);
-  //
-  //  adr = cnt_ctrl_adr ;
-  //  wr_data= 0x1; //clear
-  //  sndbuf[0] = (wr_data>>8)&0xff;
-  //  sndbuf[1] = (wr_data&0xff);
-  //  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-  //  wr_data= 0x0; //unclear
-  //  sndbuf[0] = (wr_data>>8)&0xff;
-  //  sndbuf[1] = (wr_data&0xff);
-  //  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);   
   //
   return;
 }
@@ -1254,27 +1243,12 @@ int TMB::GetCounter(int counterID){
 //
 void TMB::GetCounters(){
   //
-  //  unsigned long int adr;
-  //  unsigned long int rd_data ;
-  //  unsigned long int wr_data;
-  //
   // Take snapshot of current counter state
   //
   WriteRegister(cnt_ctrl_adr,0x2); //snap
   WriteRegister(cnt_ctrl_adr,0x0); //unsnap
   //
-  //  adr = cnt_ctrl_adr ;
-  //  wr_data= 0x2; //snap
-  //  sndbuf[0] = (wr_data>>8)&0xff;
-  //  sndbuf[1] = (wr_data&0xff);
-  //  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-  //  wr_data= 0x0; //unsnap
-  //  sndbuf[0] = (wr_data>>8)&0xff;
-  //  sndbuf[1] = (wr_data&0xff);
-  //  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);   
-  //
-  //
-  // Read counters
+  // Extract counter data whose picture has been taken
   //
   for (int counter=0; counter <= MaxCounter; counter++){
     //
@@ -1283,15 +1257,6 @@ void TMB::GetCounters(){
     //
     int rd_data = ReadRegister(cnt_rdata_adr);
     //
-    //    adr = cnt_ctrl_adr;
-    //    wr_data = counter << 8 ;
-    //    sndbuf[0] = (wr_data>>8)&0xff;
-    //    sndbuf[1] = (wr_data&0xff);
-    //    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-    //    adr = cnt_rdata_adr;
-    //    tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-    //    rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-    //
     // Combine lsbs+msbs
     //
     int cnt_lsb, cnt_msb;
@@ -1299,16 +1264,16 @@ void TMB::GetCounters(){
     //
     if( counter%2 == 0 ) {          //even addresses contain counter LSBs
       cnt_lsb = rd_data;
-      //(*MyOutput_) << "counter " << counter << ", LSB = " << cnt_lsb ;
+      // (*MyOutput_) << "counter " << counter << ", LSB = " << cnt_lsb ;
     } else {	                     //odd addresses contain counter MSBs
       cnt_msb  = rd_data;
-      //      (*MyOutput_) << ", MSB = " << cnt_msb << std::endl;
+      // (*MyOutput_) << ", MSB = " << cnt_msb << std::endl;
       cnt_full = cnt_lsb | (cnt_msb<<16) ;
       FinalCounter[counter/2] = cnt_full ;     //assembled counter MSB,LSB	 
     }
   }   
   //
-  //
+  return;
 }
 
 void TMB::old_clk_delays(unsigned short int time,int cfeb_id)
