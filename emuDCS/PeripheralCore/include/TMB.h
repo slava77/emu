@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.28 2007/08/13 14:17:22 rakness Exp $
+// $Id: TMB.h,v 3.29 2007/08/16 11:40:23 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.29  2007/08/16 11:40:23  rakness
+// add Raw Hits Write Buffer Reset Counter
+//
 // Revision 3.28  2007/08/13 14:17:22  rakness
 // allow synchronization of full trigger/DAQ paths with TTC pulsing
 //
@@ -1139,29 +1142,27 @@ public:
   //
   //
   //-- integer parsing routines --//
-  // insert "value" into the value of the variable pointed at by "data_word" from "lobit" (LSB) to "hibit" (MSB):
+  /// insert "value" into the value of the variable pointed at by "data_word" from "lobit" (LSB) to "hibit" (MSB):
   void InsertValueIntoDataWord(int value, int hibit, int lobit, int * data_word);
   //
-  // return the value located in "data" which resides from "lobit" to "hibit"
-  int ExtractValueFromData(int data, int lobit, int hibit);
+  int ExtractValueFromData(int data, int lobit, int hibit); /// return the value located in "data" which resides from "lobit" to "hibit"
   //
-  // return a mask of the right size for the specified number of bits
-  int makemask(int lo_bit, int hi_bit);
+  int makemask(int lo_bit, int hi_bit); /// return a mask of the right size for the specified number of bits
   //
-  // convert the argument to its "hex-ascii" value:  i.e.  2007 -> 0x2007
-  int ConvertToHexAscii(int value_to_convert);
+  int ConvertToHexAscii(int value_to_convert); /// convert the argument to its "hex-ascii" value:  i.e.  2007 -> 0x2007
   //
   //-- register comparison methods --//
-  // test if "testval" is equal expected value: "compareval"
-  bool compareValues(std::string typeOfTest, int testval, int compareval);    
+  /// test if "testval" is equal expected value: "compareval"
+  bool compareValues(std::string typeOfTest, int testval, int compareval); 
   //
-  // this method allows return to depend on if you want them to be "equalOrNot"
-  bool compareValues(std::string typeOfTest, int testval, int compareval, bool equalOrNot);
+  /// same as compareValues, except return depends if they should be "equalOrNot"
+  bool compareValues(std::string typeOfTest, int testval, int compareval, bool equalOrNot); 
   //
-  //test if "testval" is within a fractional "tolerance" of "compareval"
-  bool compareValues(std::string typeOfTest, float testval, float compareval, float tolerance);
+  ///test if "testval" is within a fractional "tolerance" of "compareval"
+  bool compareValues(std::string typeOfTest, float testval, float compareval, float tolerance);   
   //
-  void ReportCheck(std::string check_type, bool status_bit);    //report status of "check_type" to logger, (*MyOutput_) according to "status_bit"
+  ///report status of "check_type" to logger and to (*MyOutput_), whether it passed or not is set by "status_bit"
+  void ReportCheck(std::string check_type, bool status_bit);    
   //
   //
 public:
@@ -1217,7 +1218,7 @@ private:
   int CLCT1_sync_err_    ;
   int CLCT1_bx0_local_   ;  
   //
-  static const int MaxCounter = 0x2f;
+  static const int MaxCounter = 0x31;
   long int FinalCounter[MaxCounter];
   //
   int alct0_data_     ;

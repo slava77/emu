@@ -27,7 +27,7 @@ const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_v11_r1.svf";
 //
 //In order to load firmware automatically from the firmware values in the xml files, 
 //the firmware needs to reside in directories in the form:
-//    TMB  ->  $HOME/firmware/tmb/YEARMONTHDAY/tmb.svf
+//    TMB  ->  $HOME/firmware/tmb/YEARMONTHDAY/tmb.xsvf   <-- N.B. xsvf format for TMB
 //    RAT  ->  $HOME/firmware/rat/YEARMONTHDAY/rat.svf
 //    ALCT ->  $HOME/firmware/alct/YEARMONTHDAY/alctXXX/alctXXX.svf
 // with the zero-values filled in with 0's.  
@@ -1775,7 +1775,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     output <<cgicc::tr();
     //
-    for (int count=0; count<24; count++) {
+    for (int count=0; count<25; count++) {
       //output <<cgicc::tr();
       for(unsigned int tmb=0; tmb<tmbVector.size(); tmb++) {
 	output <<cgicc::td();
