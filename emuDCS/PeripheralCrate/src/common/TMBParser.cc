@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.20 2007/08/13 14:17:22 rakness Exp $
+// $Id: TMBParser.cc,v 3.21 2007/08/16 11:39:24 rakness Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.21  2007/08/16 11:39:24  rakness
+// add clct_ext_pretrig_enable to parser
+//
 // Revision 3.20  2007/08/13 14:17:22  rakness
 // allow synchronization of full trigger/DAQ paths with TTC pulsing
 //
@@ -247,7 +250,7 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     if (parser_.fillInt("match_pretrig_enable"   ,value)) { tmb_->SetMatchPatternTrigEnable(value); }
     //if (parser_.fillInt("adb_ext_pretrig_enable" ,value)) { tmb_->SetAdbExtTrigEnable(value);       }
     //if (parser_.fillInt("dmb_ext_pretrig_enable" ,value)) { tmb_->SetDmbExtTrigEnable(value);       }
-    //if (parser_.fillInt("clct_ext_pretrig_enable",value)) { tmb_->SetClctExtTrigEnable(value);      }
+    if (parser_.fillInt("clct_ext_pretrig_enable",value)) { tmb_->SetClctExtTrigEnable(value);      }
     //if (parser_.fillInt("alct_ext_pretrig_enable",value)) { tmb_->SetAlctExtTrigEnable(value);      }
     //if (parser_.fillInt("ext_trig_inject"        ,value)) { tmb_->SetExtTrigInject(value);          }
     if (parser_.fillInt("all_cfeb_active"        ,value)) { tmb_->SetEnableAllCfebsActive(value);   }
