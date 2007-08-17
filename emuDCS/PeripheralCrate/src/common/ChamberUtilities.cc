@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.34 2007/08/15 12:40:57 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.35 2007/08/17 09:39:17 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.35  2007/08/17 09:39:17  rakness
+// flag (obviously) bad results in ALCT-CLCT matching measurement
+//
 // Revision 3.34  2007/08/15 12:40:57  rakness
 // determine sync parameters w/1 button, clean up output, control level of cout with debug_
 //
@@ -1060,6 +1063,12 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   const int test_match_window_size = 15;
   //
   // Set up for this test...
+  // send output to std::cout except for the essential information 
+  thisTMB->RedirectOutput(&std::cout);
+  thisDMB->RedirectOutput(&std::cout);
+  thisCCB_->RedirectOutput(&std::cout);
+  thisMPC->RedirectOutput(&std::cout);
+  //
   // Get initial values:
   if (debug_) std::cout << "Read TMB initial values" << std::endl;
   int initial_mpc_output_enable = thisTMB->GetMpcOutputEnable();
@@ -1156,19 +1165,39 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   thisTMB->SetMpcOutputEnable(initial_mpc_output_enable);
   thisTMB->WriteRegister(tmb_trig_adr);
   //
+  int return_value;
+  //
   if (use_measured_values_) { 
+    //
     (*MyOutput_) << "Setting measured values of match_trig_alct_delay and mpc_tx_delay..." << std::endl;
     thisTMB->SetAlctVpfDelay(measured_match_trig_alct_delay_);
     thisTMB->SetMpcTxDelay(measured_mpc_tx_delay_);
+    //
+    // if using the measured values (e.g., for automatic()), return the smaller of these two, so that a negative
+    // value will correctly stop yourself from setting a negative value and blithely continuing...
+    return_value = (measured_match_trig_alct_delay_ < measured_mpc_tx_delay_ ?   
+		    measured_match_trig_alct_delay_ : measured_mpc_tx_delay_ );  
+    //
   } else { 
+    //
     (*MyOutput_) << "Reverting back to original values of match_trig_alct_delay and mpc_tx_delay..." << std::endl;
     thisTMB->SetAlctVpfDelay(initial_alct_delay_value); 
     thisTMB->SetMpcTxDelay(initial_mpc_tx_delay);
+    //
+    //since using the (usable) xml parameters, automatic() can continue with this return value 
+    return_value = 1;                                    
+    //
   }
   thisTMB->SetAlctMatchWindowSize(initial_match_window_size);
   thisTMB->WriteRegister(tmbtim_adr);
   //
-  return measured_match_trig_alct_delay_;
+  // send output to std::cout except for the essential information 
+  thisTMB->RedirectOutput(MyOutput_);
+  thisDMB->RedirectOutput(MyOutput_);
+  thisCCB_->RedirectOutput(MyOutput_);
+  thisMPC->RedirectOutput(MyOutput_);
+  //
+  return return_value;
 }
 //
 int ChamberUtilities::FindALCTvpf() {
