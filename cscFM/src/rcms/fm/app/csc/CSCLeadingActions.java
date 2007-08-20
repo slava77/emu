@@ -385,7 +385,9 @@ public class CSCLeadingActions extends Level1LeadingActions {
 	private int getCrateNumber(int fed) {
 		int crate = 1;
 
-		if (fed == 752 || (fed / 10) == 83) {
+		if (fed == 780) {
+			crate = 3; // TF-FED
+		} else if (fed == 752 || (fed / 10) == 83) {
 			crate = 2;
 		}
 
