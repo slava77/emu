@@ -50,7 +50,7 @@ public:
   //
   // ALCT-CLCT match timing
   int FindALCTinCLCTMatchWindow(int number_of_reads);
-  int FindALCTvpf();
+  //  int FindALCTvpf();
   //
   // Winner bits from MPC -> TMB
   int FindWinner();                          /// Use cosmic rays/pulsing from TTC
@@ -146,16 +146,14 @@ public:
   inline int  GetRatTmbDelayTest()         { return RatTmbDelay_ ; }
   inline int  GetRpcRatDelayTest()         { return GetRpcRatDelayTest(0); }
   inline int  GetRpcRatDelayTest(int rpc)  { return RpcRatDelay_[rpc] ; }
-  inline int  GetALCTvpf()                 { return ALCTvpf_; }
-  inline int  GetMeasuredAlctMatchDelay()  { return measured_match_trig_alct_delay_; }
-  inline int  GetMeasuredMPCTxDelay()      { return measured_mpc_tx_delay_; }
-  inline int  GetMPCdelayTest()            { return MPCdelay_ ; }
+  inline int  GetMatchTrigAlctDelayTest()  { return measured_match_trig_alct_delay_; }
+  inline int  GetMpcTxDelayTest()          { return measured_mpc_tx_delay_; }
+  inline int  GetMpcRxDelayTest()          { return MPCdelay_ ; }
   inline int  GetAlctDavCableDelayTest()   { return AlctDavCableDelay_; }
   inline int  GetTmbLctCableDelayTest()    { return TmbLctCableDelay_; }
   inline int  GetCfebDavCableDelayTest()   { return CfebDavCableDelay_; }
-  inline int  GetTMBL1aTiming()            { return TMBL1aTiming_; }
-  inline int  GetBestALCTL1aDelay()        { return BestALCTL1aDelay_; }
-  inline int  GetALCTL1aDelay()            { return ALCTL1aDelay_; }
+  inline int  GetTmbL1aDelayTest()         { return TMBL1aTiming_; }
+  inline int  GetAlctL1aDelayTest()        { return ALCTL1aDelay_; }
   //
   // Get measured values (not parameters)
   inline float GetActiveFebFlagToL1aAtDMB() { return AffToL1aAverageValue_; }
@@ -176,17 +174,17 @@ public:
   inline void SetALCTtxPhaseTest(int value)           { ALCTtxPhase_ = value ; }
   inline void SetRatTmbDelayTest(int value)           { RatTmbDelay_ = value ; }
   inline void SetRpcRatDelayTest(int rpc, int value)  { RpcRatDelay_[rpc] = value ; }
-  inline void SetALCTvpf(int value)                   { ALCTvpf_ = value; }
-  inline void SetMPCdelayTest(int value)              { MPCdelay_ = value ; }
-  inline void SetTMBL1aTiming(int value)              { TMBL1aTiming_ = value; }
-  inline void SetBestALCTL1aDelay(int value)          { BestALCTL1aDelay_ = value; }
-  inline void SetALCTL1aDelay(int value)              { ALCTL1aDelay_ = value; }
+  inline void SetMatchTrigAlctDelayTest(int value)    { measured_match_trig_alct_delay_ = value; }
+  inline void SetMpcTxDelayTest(int value)            { measured_mpc_tx_delay_ = value; }
+  inline void SetMpcRxDelayTest(int value)            { MPCdelay_ = value; }
+  inline void SetAlctDavCableDelayTest(int value)     { AlctDavCableDelay_ = value; }
+  inline void SetTmbLctCableDelayTest(int value)      { TmbLctCableDelay_ = value; }
+  inline void SetCfebDavCableDelayTest(int value)     { CfebDavCableDelay_ = value; }
+  inline void SetTmbL1aDelayTest(int value)           { TMBL1aTiming_ = value; }
+  inline void SetAlctL1aDelayTest(int value)          { ALCTL1aDelay_ = value; }
   //
   inline void SetCFEBStripScan(int CFEB, int Strip, int value) { CFEBStripScan_[CFEB][Strip] = value; }
   inline void SetALCTWireScan(int Wire, int value)             { ALCTWireScan_[Wire] = value; }
-  //
-  //  bool UseCosmic ;
-  //  bool UsePulsing ;
   //
   int BestCCBDelaySetting ;
   float CFEBMean[5];
