@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.35 2007/08/17 09:39:17 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.36 2007/08/21 16:01:37 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.36  2007/08/21 16:01:37  rakness
+// comment out FindALCTvpf()--FindAlctInClctMatchWindow() should be used instead
+//
 // Revision 3.35  2007/08/17 09:39:17  rakness
 // flag (obviously) bad results in ALCT-CLCT matching measurement
 //
@@ -284,7 +287,6 @@ ChamberUtilities::ChamberUtilities(){
   TmbLctCableDelay_  = -1;
   CfebDavCableDelay_ = -1;
   TMBL1aTiming_      = -1;
-  BestALCTL1aDelay_  = -1;
   ALCTL1aDelay_      = -1;
   //
   // measured values
@@ -1200,66 +1202,66 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   return return_value;
 }
 //
-int ChamberUtilities::FindALCTvpf() {
-  //
-  // thisCCB_->setCCBMode(CCB::VMEFPGA);
-  // Not really necessary:
-  // thisTMB->alct_match_window_size_ = 3;
-  //
-  const int MaxTimeBin   = 15;
-  //
-  int alct_in_window[MaxTimeBin] = {};
-  //
-  for (int i = 0; i < MaxTimeBin; i++){
-    //
-    cout << "ALCT_vpf_delay=" << i << endl;
-    //
-    thisTMB->alct_vpf_delay(i);    // loop over this
-    //thisTMB->trgmode(1);         // 
-    thisTMB->ResetCounters();      // reset counters
-    //thisCCB_->startTrigger();     // 2 commands to get trigger going
-    //thisCCB_->bx0();
-    ::sleep(5);                      // accumulate statistics
-    //thisCCB_->stopTrigger();      // stop trigger
-    thisTMB->GetCounters();        // read counter values
-    //
-    //thisTMB->PrintCounters();    // display them to screen
-    //
-    //    thisTMB->PrintCounters(8);
-    //    thisTMB->PrintCounters(10);
-    //
-    alct_in_window[i] = thisTMB->GetCounter(10);
-  }
-  //
-  float RightTimeBin      = 0;
-  float RightTimeBinDenom = 0;
-  //
-  for (int i = 0; i < MaxTimeBin; i++){
-    //
-    (*MyOutput_) << "match_trig_alct_delay " << std::dec << std::setw(5) << i
-		 << " : " << std::setw(10) << alct_in_window[i] << std::endl;
-    //
-    RightTimeBin      += ((float) alct_in_window[i]) * ((float) i) ;
-    RightTimeBinDenom += ((float) alct_in_window[i]) ;
-    //
-  }
-  //
-  if (RightTimeBin > 100) {
-    RightTimeBin /= RightTimeBinDenom ;
-  } else {
-    RightTimeBin = -999.;
-  }
-  //
-  printf("Best Setting is %f \n",RightTimeBin);
-  //
-  printf("\n");
-
-  ALCTvpf_ = (int) (RightTimeBin+0.5);
-
-  (*MyOutput_) << "Best value for match_trig_alct_delay = " << std::dec << ALCTvpf_ << std::endl;
-     
-  return ALCTvpf_ ;
-}
+//int ChamberUtilities::FindALCTvpf() {
+//  //
+//  // thisCCB_->setCCBMode(CCB::VMEFPGA);
+//  // Not really necessary:
+//  // thisTMB->alct_match_window_size_ = 3;
+//  //
+//  const int MaxTimeBin   = 15;
+// //
+//  int alct_in_window[MaxTimeBin] = {};
+//  //
+//  for (int i = 0; i < MaxTimeBin; i++){
+//    //
+//    cout << "ALCT_vpf_delay=" << i << endl;
+//    //
+//    thisTMB->alct_vpf_delay(i);    // loop over this
+//    //thisTMB->trgmode(1);         // 
+//    thisTMB->ResetCounters();      // reset counters
+//    //thisCCB_->startTrigger();     // 2 commands to get trigger going
+//    //thisCCB_->bx0();
+//    ::sleep(5);                      // accumulate statistics
+//    //thisCCB_->stopTrigger();      // stop trigger
+//    thisTMB->GetCounters();        // read counter values
+//    //
+//    //thisTMB->PrintCounters();    // display them to screen
+//    //
+//    //    thisTMB->PrintCounters(8);
+//    //    thisTMB->PrintCounters(10);
+//    //
+//    alct_in_window[i] = thisTMB->GetCounter(10);
+//  }
+//  //
+//  float RightTimeBin      = 0;
+//  float RightTimeBinDenom = 0;
+//  //
+//  for (int i = 0; i < MaxTimeBin; i++){
+//    //
+//    (*MyOutput_) << "match_trig_alct_delay " << std::dec << std::setw(5) << i
+//		 << " : " << std::setw(10) << alct_in_window[i] << std::endl;
+//    //
+//    RightTimeBin      += ((float) alct_in_window[i]) * ((float) i) ;
+//    RightTimeBinDenom += ((float) alct_in_window[i]) ;
+//    //
+//  }
+//  //
+//  if (RightTimeBin > 100) {
+//    RightTimeBin /= RightTimeBinDenom ;
+//  } else {
+//    RightTimeBin = -999.;
+//  }
+//  //
+//  printf("Best Setting is %f \n",RightTimeBin);
+//  //
+//  printf("\n");
+//
+//  ALCTvpf_ = (int) (RightTimeBin+0.5);
+//
+//  (*MyOutput_) << "Best value for match_trig_alct_delay = " << std::dec << ALCTvpf_ << std::endl;
+//     
+//  return ALCTvpf_ ;
+//}
 //
 //----------------------------------------------
 // Winner bits from MPC
