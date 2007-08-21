@@ -18,12 +18,10 @@ using namespace std;
 const string       CFEB_FIRMWARE_FILENAME = "cfeb/cfeb_pro.svf";
 const unsigned int EXPECTED_CFEB_USERID   = 0xcfeda092;
 //
-//const string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_pro.svf";
-//const unsigned int EXPECTED_DMB_USERID      = 0x48547231;
-const string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_v23_r2.svf";
-const unsigned int EXPECTED_DMB_USERID      = 0x48547232;
-//const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
-const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_v11_r1.svf";
+const string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_pro.svf";
+const unsigned int EXPECTED_DMB_USERID      = 0x48547241;
+const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_pro.svf";
+//const string       DMBVME_FIRMWARE_FILENAME = "dmb/dmb6vme_v11_r1.svf";
 //
 //In order to load firmware automatically from the firmware values in the xml files, 
 //the firmware needs to reside in directories in the form:
@@ -3735,10 +3733,10 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    *out << "match_trig_alct_delay = " << MyTest[tmb].GetMeasuredAlctMatchDelay() 
+    *out << "match_trig_alct_delay = " << MyTest[tmb].GetMatchTrigAlctDelayTest() 
 	 << " ("  << MyTest[tmb].GetALCTvpf_configvalue() << ") " << std::endl;
     *out << cgicc::br();
-    *out << "mpc_tx_delay = " << MyTest[tmb].GetMeasuredMPCTxDelay() 
+    *out << "mpc_tx_delay = " << MyTest[tmb].GetMpcTxDelayTest() 
 	 << " ("  << MyTest[tmb].GetMPCTxDelay_configvalue() << ") " << std::endl;
     *out << cgicc::br();
     *out << cgicc::br();
@@ -3758,7 +3756,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    *out << "mpc_rx_delay = " << MyTest[tmb].GetMPCdelayTest() << " ("  << MyTest[tmb].GetMPCdelay() << ") " << std::endl;
+    *out << "mpc_rx_delay = " << MyTest[tmb].GetMpcRxDelayTest() << " ("  << MyTest[tmb].GetMPCdelay() << ") " << std::endl;
     *out << cgicc::br();
     *out << cgicc::br();
     //
@@ -3851,7 +3849,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    *out << "tmb_l1a_delay = " << MyTest[tmb].GetTMBL1aTiming() << " ("  << MyTest[tmb].GetTMBL1aTiming_configvalue() << ") " << std::endl;
+    *out << "tmb_l1a_delay = " << MyTest[tmb].GetTmbL1aDelayTest() << " ("  << MyTest[tmb].GetTMBL1aTiming_configvalue() << ") " << std::endl;
     *out << cgicc::br();
     *out << cgicc::br();
     //
@@ -3866,7 +3864,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
     *out << cgicc::form() << std::endl ;
     //
-    *out << "alct_l1a_delay = " << MyTest[tmb].GetALCTL1aDelay() << " ("  << MyTest[tmb].GetALCTL1aDelay_configvalue() << ") " << std::endl;
+    *out << "alct_l1a_delay = " << MyTest[tmb].GetAlctL1aDelayTest() << " ("  << MyTest[tmb].GetALCTL1aDelay_configvalue() << ") " << std::endl;
     *out << cgicc::br();
     *out << cgicc::br();
     //
@@ -9233,23 +9231,35 @@ void EmuPeripheralCrate::TMBUtils(xgi::Input * in, xgi::Output * out )
       LogFile << "alct_rx_clock_delay  " << std::setw(3) << i 
 	      << std::setw(5) << MyTest[i].GetALCTrxPhaseTest()
 	      << std::endl;
-      LogFile << "mpc_delay            " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetMPCdelayTest()
-	      << std::endl;
       LogFile << "rat_tmb_delay        " << std::setw(3) << i 
 	      << std::setw(5) << MyTest[i].GetRatTmbDelayTest()
 	      << std::endl;
-      LogFile << "rpc0_rat_delay       " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetRpcRatDelayTest(0)
+      LogFile << "match_trig_alct_delay" << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetMatchTrigAlctDelayTest()
+	      << std::endl;
+      LogFile << "mpc_tx_delay         " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetMpcTxDelayTest()
+	      << std::endl;
+      LogFile << "mpc_rx_delay         " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetMpcRxDelayTest()
+	      << std::endl;
+      LogFile << "alct_dav_cable_delay " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetAlctDavCableDelayTest()
+	      << std::endl;
+      LogFile << "tmb_lct_cable_delay  " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetTmbLctCableDelayTest()
+	      << std::endl;
+      LogFile << "cfeb_dav_cable_delay " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetCfebDavCableDelayTest()
 	      << std::endl;
       LogFile << "tmb_l1a_delay        " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetTMBL1aTiming()
+	      << std::setw(5) << MyTest[i].GetTmbL1aDelayTest()
 	      << std::endl;
       LogFile << "alct_l1a_delay       " << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetALCTL1aDelay()
+	      << std::setw(5) << MyTest[i].GetAlctL1aDelayTest()
 	      << std::endl;
-      LogFile << "match_trig_alct_delay" << std::setw(3) << i 
-	      << std::setw(5) << MyTest[i].GetALCTvpf()
+      LogFile << "rpc0_rat_delay       " << std::setw(3) << i 
+	      << std::setw(5) << MyTest[i].GetRpcRatDelayTest(0)
 	      << std::endl;
       LogFile << "TTCrxID              " << std::setw(3) << i 
 	      << std::setw(5) << thisCCB->GetReadTTCrxID() 
@@ -9641,507 +9651,496 @@ void EmuPeripheralCrate::TMBUtils(xgi::Input * in, xgi::Output * out )
 	//XECPT_RAISE(xgi::exception::Exception, e.what());
       }
   }
-
-  void EmuPeripheralCrate::ParseTestLogFile(xdata::String logFile) 
-    throw (xgi::exception::Exception){
-    //
-    ifstream TextFile ;
-    std:: cout << "Opening file " << logFile.toString().c_str() << std::endl ;
-    TextFile.open(logFile.toString().c_str());    
-    //
-    //while(TextFile.good()) std::cout << (char) TextFile.get() ;
-    //
-    bool FoundXML = false ;
-    int nTMB = 0;
-    int nDMB = 0;
-    //
-    std::string line, line0, line1, line2;
-    while(TextFile.good()) {
-      //std::cout << "Line" <<std::endl ;
-      getline(TextFile,line);
-      //std::cout << line << std::endl ;
-      if ( line.find("XML File") != string::npos ) {
-	std::cout << "Found" << std::endl ;
-	int start = line.find("/");
-	int end   = line.length();
-	xmlFile_ = line.substr(start,end-start) ;
-	//
-	Configuring();
-	FoundXML = true ;
-	//
-      }
+//
+void EmuPeripheralCrate::ParseTestLogFile(xdata::String logFile) 
+  throw (xgi::exception::Exception){
+  //
+  ifstream TextFile ;
+  std:: cout << "Opening file " << logFile.toString().c_str() << std::endl ;
+  TextFile.open(logFile.toString().c_str());    
+  //
+  bool FoundXML = false ;
+  int nTMB = 0;
+  int nDMB = 0;
+  //
+  std::string line, line0, line1, line2;
+  while(TextFile.good()) {
+    //std::cout << "Line = ";
+    getline(TextFile,line);
+    //std::cout << line << std::endl ;
+    if ( line.find("XML File") != string::npos ) {
+      //std::cout << "Found" << std::endl ;
+      int start = line.find("/");
+      int end   = line.length();
+      xmlFile_ = line.substr(start,end-start) ;
       //
-      //
-      if ( FoundXML ) { // Processed XML File
-	if ( line.find("Chassis") != string::npos ) {	  
-	  //
-	  int ID;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> ID;
-	  std::cout << "Chassis.Setting " << ID << std::endl ;
-	  //
-	  char buf[20];
-	  sprintf(buf,"%d",ID);
-	  CrateChassisID_ = buf;
-	}
-	//
-	if ( line.find("Backplane") != string::npos ) {	  
-	  //
-	  int ID;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> ID;
-	  std::cout << "Backplane.Setting " << ID << std::endl ;
-	  //
-	  char buf[20];
-	  sprintf(buf,"%d",ID);
-	  BackplaneID_ = buf;
-	}
-	//
-	if ( line.find("CRB") != string::npos ) {	  
-	  //
-	  int ID;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> ID;
-	  std::cout << "CRB.Setting " << ID << std::endl ;
-	  //
-	  char buf[20];
-	  sprintf(buf,"%d",ID);
-	  CrateRegulatorBoardID_ = buf;
-	}
-	//
-	if ( line.find("PCMB") != string::npos ) {	  
-	  //
-	  int ID;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> ID;
-	  std::cout << "PCMB.Setting " << ID << std::endl ;
-	  //
-	  char buf[20];
-	  sprintf(buf,"%d",ID);
-	  PeripheralCrateMotherBoardID_ = buf;
-	}
-	//
-	if ( line.find("ELMB") != string::npos ) {	  
-	  //
-	  int ID;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> ID;
-	  std::cout << "ELMB.Setting " << ID << std::endl ;
-	  //
-	  char buf[20];
-	  sprintf(buf,"%d",ID);
-	  ELMBID_ = buf;
-	}
-	//
-	if ( line.find("VCC") != string::npos ) {	  
-	  //
-	  int slot, boardid;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> slot >> boardid;
-	  std::cout << "VCC.Setting " << slot << " " << boardid << std::endl ;
-	  //
-	  char buf[20];
-	  sprintf(buf,"%d",boardid);
-	  ControllerBoardID_ = buf;
-	}
-	//
-	if ( line.find("TMB ") != string::npos ) {	  
-	  //
-	  int slot, boardid, testResult[20], ratid;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> slot >> boardid >> ratid 
-		   >> testResult[0] 
-		   >> testResult[1] 
-		   >> testResult[2] 
-		   >> testResult[3] 
-		   >> testResult[4] 
-		   >> testResult[5] 
-		   >> testResult[6] 
-		   >> testResult[7] 
-		   >> testResult[8] 
-		   >> testResult[9] 
-		   >> testResult[10] 
-		   >> testResult[11] 
-		   >> testResult[12] 
-		   >> testResult[13] 
-		   >> testResult[14] ;
-	  //
-	  std::cout << "TMB.Setting " << nTMB << " " << boardid << " " << ratid << " " 
-		    << testResult[0] <<  " " << testResult[1] << std::endl ;
-	  //
-	  char buf[20];
-	  sprintf(buf,"%d",boardid);
-	  TMBBoardID_[nTMB] = buf ;
-	  sprintf(buf,"%d",ratid);
-	  RATBoardID_[nTMB] = buf ;
-	  //
-	  tmbTestVector[nTMB].SetResultTestBootRegister(testResult[0]);
-	  //	  tmbTestVector[nTMB].SetResultTestVMEfpgaDataRegister(testResult[1]);
-	  tmbTestVector[nTMB].SetResultTestFirmwareDate(testResult[1]); 
-	  tmbTestVector[nTMB].SetResultTestFirmwareType(testResult[2]); 
-	  tmbTestVector[nTMB].SetResultTestFirmwareVersion(testResult[3]); 
-	  tmbTestVector[nTMB].SetResultTestFirmwareRevCode(testResult[4]);
-	  tmbTestVector[nTMB].SetResultTestMezzId(testResult[5]);
-	  tmbTestVector[nTMB].SetResultTestPromId(testResult[6]);
-	  tmbTestVector[nTMB].SetResultTestPROMPath(testResult[7]);
-	  tmbTestVector[nTMB].SetResultTestDSN(testResult[8]);
-	  tmbTestVector[nTMB].SetResultTestADC(testResult[9]);
-	  tmbTestVector[nTMB].SetResultTest3d3444(testResult[10]);
-	  tmbTestVector[nTMB].SetResultTestRATtemper(testResult[11]);
-	  tmbTestVector[nTMB].SetResultTestRATidCodes(testResult[12]);
-	  tmbTestVector[nTMB].SetResultTestRATuserCodes(testResult[13]);
-	  tmbTestVector[nTMB].SetResultTestU76chip(testResult[14]);
-	  //
-	  nTMB++ ;
-	  //	  
-	}
-	//
-	if ( line.find("MPC") != string::npos ) {	  
-	  //
-	  int slot, boardid;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> slot >> boardid;
-	  std::cout << "MPC.Setting " << slot << " " << boardid << std::endl ;
-	  //
-	  char buf[20];
-	  sprintf(buf,"%d",boardid);
-	  MPCBoardID_ = buf;
-	}
-	//
-	if ( line.find("CCB") != string::npos ) {	  
-	  //
-	  int slot, boardid;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> slot >> boardid;
-	  std::cout << "CCB.Setting " << slot << " " << boardid << std::endl ;
-	  //
-	  char buf[20];
-	  sprintf(buf,"%d",boardid);
-	  CCBBoardID_ = buf;
-	}
-	//
-	if ( line.find("DMB") != string::npos ) {	  
-	  //
-	  int slot, boardid, testResult[20];
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> slot >> boardid 
-		   >> testResult[0] 
-		   >> testResult[1] 
-		   >> testResult[2] 
-		   >> testResult[3] 
-		   >> testResult[4] 
-		   >> testResult[5] 
-		   >> testResult[6] 
-		   >> testResult[7] 
-		   >> testResult[8] 
-		   >> testResult[9] 
-		   >> testResult[10] 
-		   >> testResult[11] 
-		   >> testResult[12] 
-		   >> testResult[13] 
-		   >> testResult[14] 
-		   >> testResult[15] 
-		   >> testResult[16] 
-		   >> testResult[17] 
-		   >> testResult[18] 
-		   >> testResult[19] ;
-	  //
-	  std::cout << "DMB.Setting " << nDMB << " " << boardid 
-		    << "slot " << slot 
-		    << " " << testResult[0] <<  " " << testResult[1] << std::endl ;
-	  //
-	  char buf[20];
-	  sprintf(buf,"%d",boardid);
-	  DMBBoardID_[nDMB] = buf;
-	  //
-	  if ( dmbVector[nDMB]->slot() == slot ) {
-	    for(int i=0; i<20; i++) dmbVector[nDMB]->SetTestStatus(i,testResult[i]);
-	  }
-	  //
-	  nDMB++;
-	  //
-	}
-	//
-	if ( line.find("CFEBid") != string::npos ) {
-	  //
-	  int vectorId, CFEBnum, cfebID;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorId >> CFEBnum >> cfebID;
-	  std::cout << "CFEB.Setting DMB " << vectorId 
-		    << " CFEB " << CFEBnum 
-		    << " -> ID number = " << cfebID 
-		    << std::endl ;
-	  //
-	  CFEBid_[vectorId][CFEBnum]=cfebID;
-	  //
-	}
-	//
-	if ( line.find("MpcTMBTest") != string::npos ) {
-	  //
-	  int result;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> result ;
-	  //
-	  myCrateTest.SetMpcTMBTestResult(result);
-	  //
-	}
-	//
-	if ( line.find("cfeb0delay") != string::npos ) {	  
-	  //
-	  int vectorid, result;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid >> result;
-	  //
-	  MyTest[vectorid].SetCFEBrxPhaseTest(0,result);
-	}
-	//
-	if ( line.find("cfeb1delay") != string::npos ) {	  
-	  //
-	  int vectorid, result;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid >> result;
-	  //
-	  MyTest[vectorid].SetCFEBrxPhaseTest(1,result);
-	}
-	//
-	if ( line.find("cfeb2delay") != string::npos ) {	  
-	  //
-	  int vectorid, result;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid >> result;
-	  //
-	  MyTest[vectorid].SetCFEBrxPhaseTest(2,result);
-	}
-	//
-	if ( line.find("cfeb3delay") != string::npos ) {	  
-	  //
-	  int vectorid, result;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid >> result;
-	  //
-	  MyTest[vectorid].SetCFEBrxPhaseTest(3,result);
-	}
-	//
-	if ( line.find("cfeb4delay") != string::npos ) {	  
-	  //
-	  int vectorid, result;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid >> result;
-	  //
-	  MyTest[vectorid].SetCFEBrxPhaseTest(4,result);
-	}
-	//
-	if ( line.find("alct_tx_clock_delay") != string::npos ) {	  
-	  //
-	  int vectorid, result;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid >> result;
-	  //
-	  MyTest[vectorid].SetALCTtxPhaseTest(result);
-	}
-	//
-	if ( line.find("alct_rx_clock_delay") != string::npos ) {	  
-	  //
-	  int vectorid, result;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid >> result;
-	  //
-	  MyTest[vectorid].SetALCTrxPhaseTest(result);
-	}
-	//
-	if ( line.find("mpc_delay") != string::npos ) {	  
-	  //
-	  int vectorid, result;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid >> result;
-	  //
-	  MyTest[vectorid].SetMPCdelayTest(result);
-	}
-	//
-	if ( line.find("rat_tmb_delay") != string::npos ) {	  
-	  //
-	  int vectorid, result;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid >> result;
-	  //
-	  MyTest[vectorid].SetRatTmbDelayTest(result);
-	}
-	//
-	if ( line.find("rpc0_rat_delay") != string::npos ) {	  
-	  //
-	  int vectorid, result;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid >> result;
-	  //
-	  MyTest[vectorid].SetRpcRatDelayTest(0,result);
-	}
-	//
-	if ( line.find("tmb_l1a_delay") != string::npos ) {	  
-	  //
-	  int vectorid, result;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid >> result;
-	  //
-	  MyTest[vectorid].SetTMBL1aTiming(result);
-	}
-	//
-	if ( line.find("alct_l1a_delay") != string::npos ) {	  
-	  //
-	  int vectorid, result;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid >> result;
-	  //
-	  MyTest[vectorid].SetALCTL1aDelay(result);
-	}
-	//
-	if ( line.find("match_trig_alct_delay") != string::npos ) {	  
-	  //
-	  int vectorid, result;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid >> result;
-	  //
-	  MyTest[vectorid].SetALCTvpf(result);
-	}
-	//
-	if ( line.find("TTCrxID") != string::npos ) {	  
-	  //
-	  int vectorid, boardid;
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid >> boardid;
-	  std::cout << "TTCrxID.Setting " << boardid << std::endl ;
-	  //
-	  if (thisCCB) 
-	    thisCCB->SetReadTTCrxID(boardid);
-	}
-	//
-	if ( line.find("cfeb0_scan") != string::npos ) {	  
-	  //
-	  int vectorid, hs[32];
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid 
-		   >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
-		   >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
-		   >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
-		   >> hs[30] >> hs[31];
-	  for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
-	    MyTest[vectorid].SetCFEBStripScan(0,HalfStrip,hs[HalfStrip]);
-	}
-	//
-	if ( line.find("cfeb1_scan") != string::npos ) {	  
-	  //
-	  int vectorid, hs[32];
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid 
-		   >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
-		   >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
-		   >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
-		   >> hs[30] >> hs[31];
-	  for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
-	    MyTest[vectorid].SetCFEBStripScan(1,HalfStrip,hs[HalfStrip]);
-	}
-	//
-	if ( line.find("cfeb2_scan") != string::npos ) {	  
-	  //
-	  int vectorid, hs[32];
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid 
-		   >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
-		   >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
-		   >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
-		   >> hs[30] >> hs[31];
-	  for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
-	    MyTest[vectorid].SetCFEBStripScan(2,HalfStrip,hs[HalfStrip]);
-	}
-	//
-	if ( line.find("cfeb3_scan") != string::npos ) {	  
-	  //
-	  int vectorid, hs[32];
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid 
-		   >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
-		   >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
-		   >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
-		   >> hs[30] >> hs[31];
-	  for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
-	    MyTest[vectorid].SetCFEBStripScan(3,HalfStrip,hs[HalfStrip]);
-	}
-	//
-	if ( line.find("cfeb4_scan") != string::npos ) {	  
-	  //
-	  int vectorid, hs[32];
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid 
-		   >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
-		   >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
-		   >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
-		   >> hs[30] >> hs[31];
-	  for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
-	    MyTest[vectorid].SetCFEBStripScan(4,HalfStrip,hs[HalfStrip]);
-	}
-	//
-	if ( line.find("alct_scan") != string::npos ) {	  
-	  //
-	  int vectorid, hs[112];
-	  istringstream instring(line);
-	  //
-	  instring >> line0 >> vectorid 
-		   >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
-		   >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
-		   >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
-		   >> hs[30] >> hs[31] >> hs[32] >> hs[33] >> hs[34] >> hs[35] >> hs[36] >> hs[37] >> hs[38] >> hs[39]
-		   >> hs[40] >> hs[41] >> hs[42] >> hs[43] >> hs[44] >> hs[45] >> hs[46] >> hs[47] >> hs[48] >> hs[49]
-		   >> hs[50] >> hs[51] >> hs[52] >> hs[53] >> hs[54] >> hs[55] >> hs[56] >> hs[57] >> hs[58] >> hs[59]
-		   >> hs[60] >> hs[61] >> hs[62] >> hs[63] >> hs[64] >> hs[65] >> hs[66] >> hs[67] >> hs[68] >> hs[69]
-		   >> hs[70] >> hs[71] >> hs[72] >> hs[73] >> hs[74] >> hs[75] >> hs[76] >> hs[77] >> hs[78] >> hs[79]
-		   >> hs[80] >> hs[81] >> hs[82] >> hs[83] >> hs[84] >> hs[85] >> hs[86] >> hs[87] >> hs[88] >> hs[89]
-		   >> hs[90] >> hs[91] >> hs[92] >> hs[93] >> hs[94] >> hs[95] >> hs[96] >> hs[97] >> hs[98] >> hs[99]
-		   >> hs[100] >> hs[101] >> hs[102] >> hs[103] >> hs[104] >> hs[105] >> hs[106] >> hs[107] >> hs[108] 
-		   >> hs[109] >> hs[110] >> hs[111];
-	  for (int Wire = 0; Wire<(tmbVector[vectorid]->alctController()->GetNumberOfChannelsInAlct())/6; Wire++) 
-	    MyTest[vectorid].SetALCTWireScan(Wire,hs[Wire]) ;
-
-	}
-	//
-      }
+      Configuring();
+      FoundXML = true ;
     }
     //
-    std::cout << std::endl ;
-    //
-    TextFile.close();
-    //
-    
+    if ( FoundXML ) { // Processed XML File
+      if ( line.find("Chassis") != string::npos ) {	  
+	int ID;
+	istringstream instring(line);
+	//
+	instring >> line0 >> ID;
+	std::cout << "Chassis.Setting " << ID << std::endl ;
+	//
+	char buf[20];
+	sprintf(buf,"%d",ID);
+	CrateChassisID_ = buf;
+      }
+      //
+      if ( line.find("Backplane") != string::npos ) {	  
+	int ID;
+	istringstream instring(line);
+	//
+	instring >> line0 >> ID;
+	std::cout << "Backplane.Setting " << ID << std::endl ;
+	//
+	char buf[20];
+	sprintf(buf,"%d",ID);
+	BackplaneID_ = buf;
+      }
+      //
+      if ( line.find("CRB") != string::npos ) {	  
+	int ID;
+	istringstream instring(line);
+	//
+	instring >> line0 >> ID;
+	std::cout << "CRB.Setting " << ID << std::endl ;
+	//
+	char buf[20];
+	sprintf(buf,"%d",ID);
+	CrateRegulatorBoardID_ = buf;
+      }
+      //
+      if ( line.find("PCMB") != string::npos ) {	  
+	int ID;
+	istringstream instring(line);
+	//
+	instring >> line0 >> ID;
+	std::cout << "PCMB.Setting " << ID << std::endl ;
+	//
+	char buf[20];
+	sprintf(buf,"%d",ID);
+	PeripheralCrateMotherBoardID_ = buf;
+      }
+      //
+      if ( line.find("ELMB") != string::npos ) {	  
+	int ID;
+	istringstream instring(line);
+	//
+	instring >> line0 >> ID;
+	std::cout << "ELMB.Setting " << ID << std::endl ;
+	//
+	char buf[20];
+	sprintf(buf,"%d",ID);
+	ELMBID_ = buf;
+      }
+      //
+      if ( line.find("VCC") != string::npos ) {	  
+	int slot, boardid;
+	istringstream instring(line);
+	//
+	instring >> line0 >> slot >> boardid;
+	std::cout << "VCC.Setting " << slot << " " << boardid << std::endl ;
+	//
+	char buf[20];
+	sprintf(buf,"%d",boardid);
+	ControllerBoardID_ = buf;
+      }
+      //
+      if ( line.find("TMB ") != string::npos ) {	  
+	int slot, boardid, testResult[20], ratid;
+	istringstream instring(line);
+	//
+	instring >> line0 >> slot >> boardid >> ratid 
+		 >> testResult[0] 
+		 >> testResult[1] 
+		 >> testResult[2] 
+		 >> testResult[3] 
+		 >> testResult[4] 
+		 >> testResult[5] 
+		 >> testResult[6] 
+		 >> testResult[7] 
+		 >> testResult[8] 
+		 >> testResult[9] 
+		 >> testResult[10] 
+		 >> testResult[11] 
+		 >> testResult[12] 
+		 >> testResult[13] 
+		 >> testResult[14] ;
+	//
+	std::cout << "TMB.Setting " << nTMB << " " << boardid << " " << ratid << " " 
+		  << testResult[0] <<  " " << testResult[1] << std::endl ;
+	//
+	char buf[20];
+	sprintf(buf,"%d",boardid);
+	TMBBoardID_[nTMB] = buf ;
+	sprintf(buf,"%d",ratid);
+	RATBoardID_[nTMB] = buf ;
+	//
+	tmbTestVector[nTMB].SetResultTestBootRegister(testResult[0]);
+	//	  tmbTestVector[nTMB].SetResultTestVMEfpgaDataRegister(testResult[1]);
+	tmbTestVector[nTMB].SetResultTestFirmwareDate(testResult[1]); 
+	tmbTestVector[nTMB].SetResultTestFirmwareType(testResult[2]); 
+	tmbTestVector[nTMB].SetResultTestFirmwareVersion(testResult[3]); 
+	tmbTestVector[nTMB].SetResultTestFirmwareRevCode(testResult[4]);
+	tmbTestVector[nTMB].SetResultTestMezzId(testResult[5]);
+	tmbTestVector[nTMB].SetResultTestPromId(testResult[6]);
+	tmbTestVector[nTMB].SetResultTestPROMPath(testResult[7]);
+	tmbTestVector[nTMB].SetResultTestDSN(testResult[8]);
+	tmbTestVector[nTMB].SetResultTestADC(testResult[9]);
+	tmbTestVector[nTMB].SetResultTest3d3444(testResult[10]);
+	tmbTestVector[nTMB].SetResultTestRATtemper(testResult[11]);
+	tmbTestVector[nTMB].SetResultTestRATidCodes(testResult[12]);
+	tmbTestVector[nTMB].SetResultTestRATuserCodes(testResult[13]);
+	tmbTestVector[nTMB].SetResultTestU76chip(testResult[14]);
+	//
+	nTMB++ ;
+      }
+      //
+      if ( line.find("MPC") != string::npos ) {	  
+	int slot, boardid;
+	istringstream instring(line);
+	//
+	instring >> line0 >> slot >> boardid;
+	std::cout << "MPC.Setting " << slot << " " << boardid << std::endl ;
+	//
+	char buf[20];
+	sprintf(buf,"%d",boardid);
+	MPCBoardID_ = buf;
+      }
+      //
+      if ( line.find("CCB") != string::npos ) {	  
+	int slot, boardid;
+	istringstream instring(line);
+	//
+	instring >> line0 >> slot >> boardid;
+	std::cout << "CCB.Setting " << slot << " " << boardid << std::endl ;
+	//
+	char buf[20];
+	sprintf(buf,"%d",boardid);
+	CCBBoardID_ = buf;
+      }
+      //
+      if ( line.find("DMB") != string::npos ) {	  
+	int slot, boardid, testResult[20];
+	istringstream instring(line);
+	//
+	instring >> line0 >> slot >> boardid 
+		 >> testResult[0] 
+		 >> testResult[1] 
+		 >> testResult[2] 
+		 >> testResult[3] 
+		 >> testResult[4] 
+		 >> testResult[5] 
+		 >> testResult[6] 
+		 >> testResult[7] 
+		 >> testResult[8] 
+		 >> testResult[9] 
+		 >> testResult[10] 
+		 >> testResult[11] 
+		 >> testResult[12] 
+		 >> testResult[13] 
+		 >> testResult[14] 
+		 >> testResult[15] 
+		 >> testResult[16] 
+		 >> testResult[17] 
+		 >> testResult[18] 
+		 >> testResult[19] ;
+	//
+	std::cout << "DMB.Setting " << nDMB << " " << boardid 
+		  << "slot " << slot 
+		  << " " << testResult[0] <<  " " << testResult[1] << std::endl ;
+	//
+	char buf[20];
+	sprintf(buf,"%d",boardid);
+	DMBBoardID_[nDMB] = buf;
+	//
+	if ( dmbVector[nDMB]->slot() == slot ) {
+	  for(int i=0; i<20; i++) dmbVector[nDMB]->SetTestStatus(i,testResult[i]);
+	}
+	//
+	nDMB++;
+      }
+      //
+      if ( line.find("CFEBid") != string::npos ) {
+	int vectorId, CFEBnum, cfebID;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorId >> CFEBnum >> cfebID;
+	std::cout << "CFEB.Setting DMB " << vectorId 
+		  << " CFEB " << CFEBnum 
+		  << " -> ID number = " << cfebID 
+		  << std::endl ;
+	//
+	CFEBid_[vectorId][CFEBnum]=cfebID;
+      }
+      //
+      if ( line.find("MpcTMBTest") != string::npos ) {
+	int result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> result ;
+	//
+	myCrateTest.SetMpcTMBTestResult(result);
+      }
+      //
+      if ( line.find("cfeb0delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetCFEBrxPhaseTest(0,result);
+      }
+      //
+      if ( line.find("cfeb1delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetCFEBrxPhaseTest(1,result);
+      }
+      //
+      if ( line.find("cfeb2delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetCFEBrxPhaseTest(2,result);
+      }
+      //
+      if ( line.find("cfeb3delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetCFEBrxPhaseTest(3,result);
+      }
+      //
+      if ( line.find("cfeb4delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetCFEBrxPhaseTest(4,result);
+      }
+      //
+      if ( line.find("alct_tx_clock_delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetALCTtxPhaseTest(result);
+      }
+      //
+      if ( line.find("alct_rx_clock_delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetALCTrxPhaseTest(result);
+      }
+      //
+      if ( line.find("rat_tmb_delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetRatTmbDelayTest(result);
+      }
+      //
+      if ( line.find("match_trig_alct_delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetMatchTrigAlctDelayTest(result);
+      }
+      //
+      if ( line.find("mpc_tx_delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetMpcTxDelayTest(result);
+      }
+      //
+      if ( line.find("mpc_rx_delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetMpcRxDelayTest(result);
+      }
+      //
+      if ( line.find("alct_dav_cable_delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetAlctDavCableDelayTest(result);
+      }
+      //
+      if ( line.find("tmb_lct_cable_delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetTmbLctCableDelayTest(result);
+      }
+      //
+      if ( line.find("cfeb_dav_cable_delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetCfebDavCableDelayTest(result);
+      }
+      //
+      if ( line.find("tmb_l1a_delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetTmbL1aDelayTest(result);
+      }
+      //
+      if ( line.find("alct_l1a_delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetAlctL1aDelayTest(result);
+      }
+      //
+      if ( line.find("rpc0_rat_delay") != string::npos ) {	  
+	int vectorid, result;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> result;
+	//
+	MyTest[vectorid].SetRpcRatDelayTest(0,result);
+      }
+      //
+      if ( line.find("TTCrxID") != string::npos ) {	  
+	int vectorid, boardid;
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid >> boardid;
+	std::cout << "TTCrxID.Setting " << boardid << std::endl ;
+	//
+	if (thisCCB) thisCCB->SetReadTTCrxID(boardid);
+      }
+      //
+      if ( line.find("cfeb0_scan") != string::npos ) {	  
+	int vectorid, hs[32];
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid 
+		 >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
+		 >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
+		 >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
+		 >> hs[30] >> hs[31];
+	for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
+	  MyTest[vectorid].SetCFEBStripScan(0,HalfStrip,hs[HalfStrip]);
+      }
+      //
+      if ( line.find("cfeb1_scan") != string::npos ) {	  
+	int vectorid, hs[32];
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid 
+		 >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
+		 >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
+		 >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
+		 >> hs[30] >> hs[31];
+	for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
+	  MyTest[vectorid].SetCFEBStripScan(1,HalfStrip,hs[HalfStrip]);
+      }
+      //
+      if ( line.find("cfeb2_scan") != string::npos ) {	  
+	int vectorid, hs[32];
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid 
+		 >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
+		 >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
+		 >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
+		 >> hs[30] >> hs[31];
+	for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
+	  MyTest[vectorid].SetCFEBStripScan(2,HalfStrip,hs[HalfStrip]);
+      }
+      //
+      if ( line.find("cfeb3_scan") != string::npos ) {	  
+	int vectorid, hs[32];
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid 
+		 >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
+		 >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
+		 >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
+		 >> hs[30] >> hs[31];
+	for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
+	  MyTest[vectorid].SetCFEBStripScan(3,HalfStrip,hs[HalfStrip]);
+      }
+      //
+      if ( line.find("cfeb4_scan") != string::npos ) {	  
+	int vectorid, hs[32];
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid 
+		 >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
+		 >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
+		 >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
+		 >> hs[30] >> hs[31];
+	for (int HalfStrip = 0; HalfStrip<32; HalfStrip++) 
+	  MyTest[vectorid].SetCFEBStripScan(4,HalfStrip,hs[HalfStrip]);
+      }
+      //
+      if ( line.find("alct_scan") != string::npos ) {	  
+	int vectorid, hs[112];
+	istringstream instring(line);
+	//
+	instring >> line0 >> vectorid 
+		 >> hs[0] >> hs[1] >> hs[2] >> hs[3] >> hs[4] >> hs[5] >> hs[6] >> hs[7] >> hs[8] >> hs[9]
+		 >> hs[10] >> hs[11] >> hs[12] >> hs[13] >> hs[14] >> hs[15] >> hs[16] >> hs[17] >> hs[18] >> hs[19]
+		 >> hs[20] >> hs[21] >> hs[22] >> hs[23] >> hs[24] >> hs[25] >> hs[26] >> hs[27] >> hs[28] >> hs[29]
+		 >> hs[30] >> hs[31] >> hs[32] >> hs[33] >> hs[34] >> hs[35] >> hs[36] >> hs[37] >> hs[38] >> hs[39]
+		 >> hs[40] >> hs[41] >> hs[42] >> hs[43] >> hs[44] >> hs[45] >> hs[46] >> hs[47] >> hs[48] >> hs[49]
+		 >> hs[50] >> hs[51] >> hs[52] >> hs[53] >> hs[54] >> hs[55] >> hs[56] >> hs[57] >> hs[58] >> hs[59]
+		 >> hs[60] >> hs[61] >> hs[62] >> hs[63] >> hs[64] >> hs[65] >> hs[66] >> hs[67] >> hs[68] >> hs[69]
+		 >> hs[70] >> hs[71] >> hs[72] >> hs[73] >> hs[74] >> hs[75] >> hs[76] >> hs[77] >> hs[78] >> hs[79]
+		 >> hs[80] >> hs[81] >> hs[82] >> hs[83] >> hs[84] >> hs[85] >> hs[86] >> hs[87] >> hs[88] >> hs[89]
+		 >> hs[90] >> hs[91] >> hs[92] >> hs[93] >> hs[94] >> hs[95] >> hs[96] >> hs[97] >> hs[98] >> hs[99]
+		 >> hs[100] >> hs[101] >> hs[102] >> hs[103] >> hs[104] >> hs[105] >> hs[106] >> hs[107] >> hs[108] 
+		 >> hs[109] >> hs[110] >> hs[111];
+	for (int Wire = 0; Wire<(tmbVector[vectorid]->alctController()->GetNumberOfChannelsInAlct())/6; Wire++) 
+	  MyTest[vectorid].SetALCTWireScan(Wire,hs[Wire]) ;
+      }
+    }
   }
+  //
+  TextFile.close();
+}
   //
   void EmuPeripheralCrate::getTestLogFileUpload(xgi::Input * in, xgi::Output * out ) 
     throw (xgi::exception::Exception)
