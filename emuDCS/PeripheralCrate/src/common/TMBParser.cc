@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMBParser.cc,v 3.21 2007/08/16 11:39:24 rakness Exp $
+// $Id: TMBParser.cc,v 3.22 2007/08/22 13:39:12 rakness Exp $
 // $Log: TMBParser.cc,v $
+// Revision 3.22  2007/08/22 13:39:12  rakness
+// add distrip hotchannel mask to xml file
+//
 // Revision 3.21  2007/08/16 11:39:24  rakness
 // add clct_ext_pretrig_enable to parser
 //
@@ -153,7 +156,6 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     tmb_ = new TMB(theCrate, theChamber, slot);
     //
     // need still to put in 
-    //   . hot channel mask
     //   . ddd_oe mask
     int value;
     //////////////////////////////
@@ -298,6 +300,28 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
     //
     //
     ///////////////////////////////////
+    // distrip hot channel mask
+    ///////////////////////////////////
+    long long int hot_channel_mask;
+    if (parser_.fillLongLongIntX("layer0_distrip_hot_channel_mask", hot_channel_mask) ) 
+      tmb_->SetDistripHotChannelMask(0,hot_channel_mask);
+    //
+    if (parser_.fillLongLongIntX("layer1_distrip_hot_channel_mask", hot_channel_mask) ) 
+      tmb_->SetDistripHotChannelMask(1,hot_channel_mask);
+    //
+    if (parser_.fillLongLongIntX("layer2_distrip_hot_channel_mask", hot_channel_mask) ) 
+      tmb_->SetDistripHotChannelMask(2,hot_channel_mask);
+    //
+    if (parser_.fillLongLongIntX("layer3_distrip_hot_channel_mask", hot_channel_mask) ) 
+      tmb_->SetDistripHotChannelMask(3,hot_channel_mask);
+    //
+    if (parser_.fillLongLongIntX("layer4_distrip_hot_channel_mask", hot_channel_mask) ) 
+      tmb_->SetDistripHotChannelMask(4,hot_channel_mask);
+    //
+    if (parser_.fillLongLongIntX("layer5_distrip_hot_channel_mask", hot_channel_mask) ) 
+      tmb_->SetDistripHotChannelMask(5,hot_channel_mask);
+    //
+    ///////////////////////////////////
     // special configuration registers
     ///////////////////////////////////
     //0X1C
@@ -387,7 +411,6 @@ TMBParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theCh
 	//
 	//ALCT
 	// need to put in 
-	//   . standby register
 	//   . hot channel mask
 	//   . collision mask
 	//
