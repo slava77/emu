@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.47 2007/08/16 11:40:23 rakness Exp $
+// $Id: TMB.cc,v 3.48 2007/08/22 13:39:11 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.48  2007/08/22 13:39:11  rakness
+// add distrip hotchannel mask to xml file
+//
 // Revision 3.47  2007/08/16 11:40:23  rakness
 // add Raw Hits Write Buffer Reset Counter
 //
@@ -5881,6 +5884,34 @@ void TMB::ExtClctTrigFromCCBonly() {
 
   (*MyOutput_) << "TMB Sequencer trigger source after = " << std::hex << data << std::endl;
 
+  return;
+}
+/////////////////////////////////////////////////////////////////////
+// hot channel masks
+/////////////////////////////////////////////////////////////////////
+void TMB::SetDistripHotChannelMask(int layer,long long int mask) {
+  //
+  // mask=10-hex characters for the 40 distrips right->left LSB->MSB.  
+  // So, to mask off channel 0, mask= 0xfffffffffe
+  //
+  if (debug_) 
+    std::cout << "TMB: Setting Distrip hot channel mask for Layer " << std::dec << layer 
+	      << " (LSB->MSB right->left): " << std::hex << mask << std::endl;
+  //
+  mask &= 0xffffffffff;  //clean mask before processing
+  //
+  for (int channel=39; channel>=0; channel--) {
+    int on_or_off = (mask >> channel) & 0x1;
+    //
+    if (debug_) {
+      std::cout << on_or_off;
+      if ((channel%4) == 0) std::cout << " ";
+    }
+    //
+    SetDistripHotChannelMask(layer,channel,on_or_off);
+  }
+  if (debug_) std::cout << std::endl;
+  //
   return;
 }
 //

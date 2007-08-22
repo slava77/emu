@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.29 2007/08/16 11:40:23 rakness Exp $
+// $Id: TMB.h,v 3.30 2007/08/22 13:39:11 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.30  2007/08/22 13:39:11  rakness
+// add distrip hotchannel mask to xml file
+//
 // Revision 3.29  2007/08/16 11:40:23  rakness
 // add Raw Hits Write Buffer Reset Counter
 //
@@ -562,6 +565,9 @@ public:
   //!layer=[0-5], distrip=[0-39], on_or_off = 0 = disable
   inline void SetDistripHotChannelMask(int layer,int distrip,int on_or_off) { hot_channel_mask_[layer][distrip] = on_or_off; } 
   inline int  GetDistripHotChannelMask(int layer,int distrip) { return hot_channel_mask_[layer][distrip]; }
+  //
+  //!layer=[0-5], mask=10 hex-characters for the 40 distrips right->left LSB->MSB.  So, to mask off channel 0, mask= fffffffffe
+  void SetDistripHotChannelMask(int layer,long long int mask);
   //
   //!Write registers whose values have been set by SetDistripHotChannelMask(layer,channel,on_or_off)
   void WriteDistripHotChannelMasks();

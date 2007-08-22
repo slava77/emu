@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuParser.h,v 3.1 2006/09/12 15:50:01 mey Exp $
+// $Id: EmuParser.h,v 3.2 2007/08/22 13:39:12 rakness Exp $
 // $Log: EmuParser.h,v $
+// Revision 3.2  2007/08/22 13:39:12  rakness
+// add distrip hotchannel mask to xml file
+//
 // Revision 3.1  2006/09/12 15:50:01  mey
 // New software changes to DMB abd CFEB
 //
@@ -33,6 +36,7 @@ public:
   void parseNode(xercesc::DOMNode * pNode);
   bool fillInt(std::string item, int & target);
   bool fillIntX(std::string item, int & target);
+  bool fillLongLongIntX(std::string item, long long int & target);
   bool fillFloat(std::string item, float & target);
   bool fillString(std::string item, std::string & target);
      
