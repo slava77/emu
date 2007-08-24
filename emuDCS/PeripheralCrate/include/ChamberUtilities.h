@@ -64,6 +64,7 @@ public:
   void PrintAllDmbValuesAndScopes();
   //
   // L1A accept windows
+  int FindTmbAndAlctL1aDelay();
   int  FindTMB_L1A_delay(int min_delay, int max_delay);
   int  FindALCT_L1A_delay(int min_delay, int max_delay);
   //
@@ -203,6 +204,8 @@ private:
   //
   int Npulses_;
   bool comparing_with_clct_;
+  //
+  bool UsePulsing_;
   //
   TMB * thisTMB ;
   DAQMB * thisDMB ;
