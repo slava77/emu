@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.16 2007/07/05 19:03:33 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.17 2007/08/26 19:00:43 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1039,7 +1039,7 @@ using namespace std;
     dword[0]=0;
     char *outp=(char *)dword;
     cout <<" Loading all the DMB's Controller FPGAs firmware ..."<<endl;
-    broadcastDMB->epromload(MPROM,"/home/slicedev/firmware/dmb/dmb6cntl_pro.svf",1,outp);
+    broadcastDMB->epromload(MPROM,"$HOME/firmware/dmb/dmb6cntl_pro.svf",1,outp);
     in=NULL;
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
@@ -1056,14 +1056,14 @@ using namespace std;
     PCsendCommand("ReadVmePromUserid","EmuPeripheralCrate");
 
     cout <<" Step 2: Broadcast programming the VME until the 'loading USERCODE' point"<<endl;
-    broadcastDMB->epromload_broadcast(VPROM,"/home/slicedev/firmware/dmb/dmb6vme_pro.svf",1,outp,1);
+    broadcastDMB->epromload_broadcast(VPROM,"$HOME/firmware/dmb/dmb6vme_pro.svf",1,outp,1);
 
     cout <<" Step 3: Sending SOAP message to program PROM_USERCODE"<<endl;
     //SOAP message to individual crates to program the PROM_USERCODE
     PCsendCommand("LoadVmePromUserid","EmuPeripheralCrate");
 
     cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
-    broadcastDMB->epromload_broadcast(VPROM,"/home/slicedev/firmware/dmb/dmb6vme_pro.svf",1,outp,3);
+    broadcastDMB->epromload_broadcast(VPROM,"$HOME/firmware/dmb/dmb6vme_pro.svf",1,outp,3);
 
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
@@ -1080,14 +1080,14 @@ using namespace std;
     PCsendCommand("ReadCfebPromUserid","EmuPeripheralCrate");
 
     cout <<" Step 2: Broadcast programming the CFEB until the 'loading USERCODE' point"<<endl;
-    broadcastDMB->epromload_broadcast(FAPROM,"/home/slicedev/firmware/cfeb/cfeb_pro.svf",1,outp,1);
+    broadcastDMB->epromload_broadcast(FAPROM,"$HOME/firmware/cfeb/cfeb_pro.svf",1,outp,1);
 
     cout <<" Step 3: Sending SOAP message to program CFEB PROM_USERCODE"<<endl;
     //SOAP message to individual crates to program the CFEB PROM_USERCODE
     PCsendCommand("LoadCfebPromUserid","EmuPeripheralCrate");
 
     cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
-    broadcastDMB->epromload_broadcast(FAPROM,"/home/slicedev/firmware/cfeb/cfeb_pro.svf",1,outp,3);
+    broadcastDMB->epromload_broadcast(FAPROM,"$HOME/firmware/cfeb/cfeb_pro.svf",1,outp,3);
 
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
