@@ -10249,7 +10249,7 @@ void EmuPeripheralCrate::ParseTestLogFile(xdata::String logFile)
 	prombrdname[2]=(boardnumber>>16)&0xff;
 	prombrdname[3]=(boardnumber>>24)&0xff;
     	cout<<" Loading the board number ..."<<endl;
-	thisDMB->epromload_broadcast(VPROM,"/home/gujh/firmware/dmb/dmb6vme_pro.svf",1,prombrdname,2);
+	thisDMB->epromload_broadcast(VPROM,"$HOME/firmware/dmb/dmb6vme_pro.svf",1,prombrdname,2);
 	usleep(200);
 	cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<endl;
 	cout <<" This DMB is programmed to board number: "<<boardnumber<<endl<<endl;
@@ -10311,7 +10311,7 @@ void EmuPeripheralCrate::ParseTestLogFile(xdata::String logFile)
 	  promid[1]=(boardid>>8)&0xff;
 	  promid[2]=(boardid>>16)&0xff;
 	  promid[3]=(boardid>>24)&0xff;
-	  thisDMB->epromload_broadcast(thisCFEBs[i].promDevice(),"/home/gujh/firmware/cfeb/cfeb_pro.svf",1,promid,2);
+	  thisDMB->epromload_broadcast(thisCFEBs[i].promDevice(),"$HOME/firmware/cfeb/cfeb_pro.svf",1,promid,2);
 	  usleep(200);
 	  cout <<" This CFEB Board Number is set to: "<<boardid<<endl;
 	}
