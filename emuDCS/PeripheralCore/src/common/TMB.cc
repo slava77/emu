@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.48 2007/08/22 13:39:11 rakness Exp $
+// $Id: TMB.cc,v 3.49 2007/08/27 11:28:34 geurts Exp $
 // $Log: TMB.cc,v $
+// Revision 3.49  2007/08/27 11:28:34  geurts
+// explicitly set an integer constant to long long int by suffixing it with LL
+//
 // Revision 3.48  2007/08/22 13:39:11  rakness
 // add distrip hotchannel mask to xml file
 //
@@ -5898,7 +5901,7 @@ void TMB::SetDistripHotChannelMask(int layer,long long int mask) {
     std::cout << "TMB: Setting Distrip hot channel mask for Layer " << std::dec << layer 
 	      << " (LSB->MSB right->left): " << std::hex << mask << std::endl;
   //
-  mask &= 0xffffffffff;  //clean mask before processing
+  mask &= 0xffffffffffLL;  //clean mask before processing
   //
   for (int channel=39; channel>=0; channel--) {
     int on_or_off = (mask >> channel) & 0x1;
