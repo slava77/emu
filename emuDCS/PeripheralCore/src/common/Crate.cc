@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.15 2007/07/17 16:17:22 liu Exp $
+// $Id: Crate.cc,v 3.16 2007/08/27 22:51:36 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.16  2007/08/27 22:51:36  liu
+// update
+//
 // Revision 3.15  2007/07/17 16:17:22  liu
 // remove ChamberUtilities dependence
 //
@@ -123,11 +126,11 @@
 
 Crate::Crate(int CrateID, VMEController * controller, EmuSystem * emuSystem) : 
   theCrateID(CrateID),  
+  label_("label"),
   theModules(28),
-  theController(controller),
-  label_("label")
+  theController(controller)
 {
-  for(int i=0;i<theModules.size();i++) theModules[i] = 0;
+  for(unsigned i=0;i<theModules.size();i++) theModules[i] = 0;
   theChambers.clear();
   //
   //emuSystem->addCrate(number, this);

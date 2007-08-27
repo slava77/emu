@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.h,v 3.9 2007/04/02 17:31:23 liu Exp $
+// $Id: CCB.h,v 3.10 2007/08/27 22:50:24 liu Exp $
 // $Log: CCB.h,v $
+// Revision 3.10  2007/08/27 22:50:24  liu
+// update
+//
 // Revision 3.9  2007/04/02 17:31:23  liu
 // fix setCCBMode problem
 //
@@ -118,7 +121,6 @@
 #include <string>
 #include <bitset>
 
-class CCBParser;
 class Crate;
 
 class CCB: public VMEModule
@@ -259,7 +261,8 @@ public:
   void soft_reset_tmb();
   void soft_reset_mpc();
   void soft_reset_all();
-
+  void l1a_and_trig();
+  
   void DumpAddress(int);
 
   friend std::ostream & operator<<(std::ostream & os, CCB & ccb);
