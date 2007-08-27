@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 3.4 2006/10/30 15:55:01 mey Exp $
+// $Id: MPC.h,v 3.5 2007/08/27 22:50:39 liu Exp $
 // $Log: MPC.h,v $
+// Revision 3.5  2007/08/27 22:50:39  liu
+// update
+//
 // Revision 3.4  2006/10/30 15:55:01  mey
 // Update
 //
@@ -196,8 +199,6 @@ class MPC : public VMEModule {
     CSR0_TXEN = 0x80, CSR0_MASKCOMP = 0x100
   };
 
-  enum MPCMODE {READ, WRITE};
-
 
  private:
   //
@@ -224,8 +225,6 @@ class MPC : public VMEModule {
   void writeToAddress(unsigned long int addr,
      char * bufp, int xfer_len);
 
-  // only used so start routine can do different things.
-  MPCMODE theMode;
 };
 
 #endif

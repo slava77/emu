@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.5 2007/06/14 14:46:39 rakness Exp $
+// $Id: MPC.cc,v 3.6 2007/08/27 22:51:16 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.6  2007/08/27 22:51:16  liu
+// update
+//
 // Revision 3.5  2007/06/14 14:46:39  rakness
 // remove output containing no information
 //
@@ -126,8 +129,7 @@
 #include "VMEController.h"
 
 MPC::MPC(Crate * theCrate, int slot) : VMEModule(theCrate, slot),
-				       TLK2501TxMode_(0), TransparentModeSources_(0), TMBDelayPattern_(0),
-				       BoardId_(0)
+				       BoardId_(0), TLK2501TxMode_(0), TransparentModeSources_(0), TMBDelayPattern_(0)
 {
   std::cout << "MPC: module created in crate=" << this->crate() 
 	    << " slot=" << this->slot() << std::endl;
@@ -155,6 +157,7 @@ std::ostream & operator<<(std::ostream & os, MPC & mpc) {
      << "TransparentModeSources_ " << mpc.TransparentModeSources_ << std::endl
      << "TMBDelayPattern_ " << mpc.TMBDelayPattern_ << std::endl
      << "BoardID_ " << mpc.BoardId_ << std::endl;
+  return os;
     }
 
 void MPC::configure() {
@@ -170,7 +173,7 @@ void MPC::configure() {
   addr = CSR0;
   data[1]=0x10|((BoardId_&0xf)<<1);
   data[0]=0x4a|((BoardId_&0x30)>>2);
-  do_vme(2, addr, data, NULL, 1);
+  do_vme(VME_WRITE, addr, data, NULL, NOW);
 
   ReadRegister(CSR0);
 
@@ -195,7 +198,7 @@ void MPC::configure() {
 void MPC::read_fifo(char address, char * data) {
   //data[0] = 0x00;
   //data[1] = 0x00;
-  do_vme(1, address, NULL, data, 1); 
+  do_vme(VME_READ, address, NULL, data, NOW); 
 }
 
 void MPC::read_fifosA() {
@@ -338,27 +341,13 @@ void MPC::read_csr0() {
 
 void MPC::SoftReset() {
   //
-  char data[2];
+  char data[2]={0, 1};
   //
-  char addr =  CSR0;
+  char addr =  0x4;
   //
-  do_vme(1, addr, NULL, data, 1);
-  //  printf("%x %x \n",data[0],data[1]);
+  // reset FPGA logic----write to address 0x4 for firmware 2006 and newer
   //
-  // reset FPGA logic
-  //
-  data[0] = (data[0]&0xfd) ;
-  do_vme(2, addr, data, NULL, 1);
-  //  printf("%x %x \n",data[0],data[1]);
-  //
-  data[0] = (data[0]&0xfd) | 0x2 ;
-  do_vme(2, addr, data, NULL, 1);
-  //  printf("%x %x \n",data[0],data[1]);
-  //
-  data[0] = (data[0]&0xfd) ;
-  do_vme(2, addr, data, NULL, 1);
-  //  printf("%x %x \n",data[0],data[1]);
-  //
+  do_vme(VME_WRITE, addr, data, NULL, NOW);
 }
 
 void MPC::read_status() {
@@ -401,13 +390,13 @@ void MPC::enablePRBS(){
   //fg data[0]=data[0]|0x01;
   data[0]=0x00;
   data[1]=0x01;
-  do_vme(2, addr, data, NULL, 1);
+  do_vme(VME_WRITE, addr, data, NULL, NOW);
 
   // brute force set to 0xC210, will change to masking soon, very soon ...
   addr = CSR0;
   data[0]=0xCA;
   data[1]=0x10;
-  do_vme(2, addr, data, NULL, 1);
+  do_vme(VME_WRITE, addr, data, NULL, NOW);
 
   (*MyOutput_) << "MPC: PRBS mode enabled" << std::endl;
 }
@@ -421,7 +410,7 @@ void MPC::disablePRBS(){
   addr = CSR0;
   data[0]=0x5B;
   data[1]=0x10;
-  do_vme(2, addr, data, NULL, 1);
+  do_vme(VME_WRITE, addr, data, NULL, NOW);
 
   (*MyOutput_) << "MPC: PRBS mode disabled" << std::endl;
 }
@@ -441,15 +430,15 @@ void MPC::initTestLinks(){
   addr = CSR0;
   data[1]=0x11;
   data[0]=0x4E;
-  do_vme(2, addr, data, NULL, 1);
+  do_vme(VME_WRITE, addr, data, NULL, NOW);
   
   data[1]=0x13;
   data[0]=0x4E;
-  do_vme(2, addr, data, NULL, 1);
+  do_vme(VME_WRITE, addr, data, NULL, NOW);
  
   data[1]=0x11;
   data[0]=0x4E;
-  do_vme(2, addr, data, NULL, 1);
+  do_vme(VME_WRITE, addr, data, NULL, NOW);
 //done init
 }
 
@@ -485,13 +474,13 @@ void MPC::injectSP(){
 	         {
 		     data[1]= mframe1&0x00FF;
 		     data[0]=(mframe1&0xFF00)>>8;
-		     this->do_vme(2, addr, data, NULL, 1);
+		     this->do_vme(VME_WRITE, addr, data, NULL, NOW);
 
 //2 frames?:ie 2x16 bits =tot 32 bits..
 
 		     data[1]= mframe2&0x00FF;
 		     data[0]=(mframe2&0xFF00)>>8;
-		     this->do_vme(2, addr, data, NULL, 1);
+		     this->do_vme(VME_WRITE, addr, data, NULL, NOW);
 
 		     addr+=0x00002;
 
@@ -507,10 +496,10 @@ void MPC::injectSP(){
 
 		     data[0]=0;
 		     data[1]=0;
-		     this->do_vme(2, addr, data, NULL, 1);
+		     this->do_vme(VME_WRITE, addr, data, NULL, NOW);
 		     data[0]=0;
 		     data[1]=0;
-		     this->do_vme(2, addr, data, NULL, 1);
+		     this->do_vme(VME_WRITE, addr, data, NULL, NOW);
 		     addr+=0x00002;
 	    }
     }
@@ -592,7 +581,7 @@ void MPC::injectSP(char *injectDataFileName){
 	    {
 	      data[1]= mframe1&0x00FF;
 	      data[0]=(mframe1&0xFF00)>>8;
-	      this->do_vme(2, addr, data, NULL, 1);
+	      this->do_vme(VME_WRITE, addr, data, NULL, NOW);
 	      
 	      //(*MyOutput_)<<"event: "<<EVNT<<"...filling fifoA with "<<std::hex<<mframe1<<std::endl;
 	      
@@ -600,7 +589,7 @@ void MPC::injectSP(char *injectDataFileName){
 	      
 	      data[0]= mframe2&0x00FF;
 	      data[1]=(mframe2&0xFF00)>>8;
-	      this->do_vme(2, addr, data, NULL, 1);
+	      this->do_vme(VME_WRITE, addr, data, NULL, NOW);
 	      
 	      addr+=0x00002;
 	      
@@ -629,10 +618,10 @@ void MPC::injectSP(char *injectDataFileName){
       
       data[0]=0;
       data[1]=0;
-      this->do_vme(2, addr, data, NULL, 1);
+      this->do_vme(VME_WRITE, addr, data, NULL, NOW);
       data[0]=0;
       data[1]=0;
-      this->do_vme(2, addr, data, NULL, 1);
+      this->do_vme(VME_WRITE, addr, data, NULL, NOW);
       addr+=0x00002;
     }
   }
@@ -667,7 +656,7 @@ void MPC::setTLK2501TxMode(int mode){
   //fg data[1]=0x00;
   data[0]=0x00;
   data[1]=mode;
-  do_vme(2, addr, data, NULL, 1);
+  do_vme(VME_WRITE, addr, data, NULL, NOW);
 }
 
 
@@ -697,7 +686,7 @@ void MPC::firmwareVersion(){
   /// report the firmware version
   //
   char data[2];
-  do_vme(1,CSR1,NULL, data, 1);
+  do_vme(VME_READ,CSR1,NULL, data, NOW);
   
   int versionWord = (data[0]<<8) + (data[1]&0xFF);
   //  std::cout << std::hex << versionWord << std::endl;
@@ -716,13 +705,13 @@ void MPC::setSorterMode(){
   //
   //
   char data[2];
-  do_vme(1,addr, NULL,data,1);  
+  do_vme(VME_READ,addr, NULL,data, NOW);  
   //fg data[0]=data[0]&0xfe;
   //fg data[1]=data[1];
   //fg andersom, slimpy.
   data[0]=data[0];
   data[1]=data[1]&0xfe;
-  do_vme(2, addr, data, NULL, 1);
+  do_vme(VME_WRITE, addr, data, NULL, NOW);
 }
 
 
@@ -740,7 +729,7 @@ void MPC::setTransparentMode(unsigned int pattern){
   char data[2];
   char addr=CSR4;
 
-  do_vme(1, addr, NULL, data, 1);
+  do_vme(VME_READ, addr, NULL, data, NOW);
 
   // make sure that the last bit is actually 1, otherwise there is no transparentMode
   if ( !(pattern & 0x01)){
@@ -753,7 +742,7 @@ void MPC::setTransparentMode(unsigned int pattern){
   //
   data[0]=(pattern>>8)&0xff;   // MSB
   data[1]=pattern&0xff; // LSB
-  do_vme(VME_WRITE, addr, data, NULL, 1);
+  do_vme(VME_WRITE, addr, data, NULL, NOW);
   //
   (*MyOutput_) << "Reading back..." << std::endl;
   //
@@ -770,13 +759,13 @@ void MPC::setTransparentMode(){
   //
   char data[2];
   char addr = CSR4; 
-  do_vme(1, addr, NULL, data, 1);
+  do_vme(VME_READ, addr, NULL, data, NOW);
 
   //fg data[0] |= 0x01;
   //fg data[1] = 0;
   data[0] =0;
   data[1] |= 0x01;
-  do_vme(2, addr, data, NULL, 1);
+  do_vme(VME_WRITE, addr, data, NULL, NOW);
 }
 
 
@@ -792,7 +781,7 @@ void MPC::setDelayFromTMB(unsigned char delays){
   //fg data[1] = 0;
   data[0] = 0;
   data[1] = delays;
-  do_vme(2, addr, data, NULL, 1);
+  do_vme(VME_WRITE, addr, data, NULL, NOW);
 }
 
 
@@ -806,8 +795,8 @@ void MPC::interconnectTest(){
   data[1] = 0x12;
   //data[0] = 0x12;
   //data[1] = 0x00;
-  do_vme(2, addr, data, NULL, 1);
-  do_vme(1, addr, NULL, data, 1);
+  do_vme(VME_WRITE, addr, data, NULL, NOW);
+  do_vme(VME_READ, addr, NULL, data, NOW);
   (*MyOutput_) << "MPC: interconnectTest  0x" << std::hex << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
 
   // release reset, put TLK2501 transmitters in the test mode
@@ -816,8 +805,8 @@ void MPC::interconnectTest(){
   data[1] = 0x10;
   //data[0] = 0x10;
   //data[1] = 0xc2;
-  do_vme(2, addr, data, NULL, 1);
-  do_vme(1, addr, NULL, data, 1);
+  do_vme(VME_WRITE, addr, data, NULL, NOW);
+  do_vme(VME_READ, addr, NULL, data, NOW);
   (*MyOutput_) << "MPC: interconnectTest  0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::dec << std::endl;
 }
 
