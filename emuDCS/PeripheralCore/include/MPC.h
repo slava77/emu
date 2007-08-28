@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.h,v 3.5 2007/08/27 22:50:39 liu Exp $
+// $Id: MPC.h,v 3.6 2007/08/28 18:05:37 liu Exp $
 // $Log: MPC.h,v $
+// Revision 3.6  2007/08/28 18:05:37  liu
+// remove unused & outdated functions
+//
 // Revision 3.5  2007/08/27 22:50:39  liu
 // update
 //
@@ -83,7 +86,6 @@
 #include "VMEModule.h"
 #include <string>
 
-class MPCParser;
 class Crate;
 
 class MPC : public VMEModule {
@@ -157,17 +159,12 @@ class MPC : public VMEModule {
   void enablePRBS();
   void disablePRBS();
 
-  void initTestLinks(); // initialise the Links for injectSP() funct below:DH.
   void injectSP();      // injects some test patterns into fifos :dan Holmes
   void injectSP(char*); // as above you give me file with data in.:dan Holmes
 
   void setTransparentMode();
   void setTransparentMode(unsigned int);
   void setSorterMode();
-  void setDelayFromTMB(unsigned char);
-
-  /// MPC-SP02 interconnect validation procedure
-  void interconnectTest();
 
  protected:
   /// MPC base address should always correspond to VME Slot 12 (=0x600000)
@@ -211,19 +208,6 @@ class MPC : public VMEModule {
   int TLK2501TxMode_;
   int TransparentModeSources_;
   int TMBDelayPattern_;
-  int read(int btd,char *buf_p,
-    unsigned long int add,
-    int xfer_len,
-    int *xfer_done_p);
-
-  int write(int btd,char *buf_p,
-    unsigned long int add,
-    int xfer_len,
-    int *xfer_done_p);
-
-  // helper routine for the above two functions
-  void writeToAddress(unsigned long int addr,
-     char * bufp, int xfer_len);
 
 };
 
