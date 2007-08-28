@@ -2467,20 +2467,18 @@ int EMUjtag::SVFLoad(int *jch, const char *fn, int db ) {
   printf("=== Programming Design with %s through JTAG chain %d\n",downfile, jchan);  
   //
   dwnfp = fopen(downfile,"r");
+  if (dwnfp == NULL) {
+    fprintf(stderr, "ERROR: failed to open file %s\n", downfile);
+    return -1;
+  }
+  //
   while (fgets(buf,256,dwnfp) != NULL) {
-    memcpy(buf,buf,256);
     Parse(buf, &Count, &(Word[0]));
     if( strcmp(Word[0],"SDR")==0 ) total_packages++ ;
   }
-  fclose(dwnfp) ;
+  fseek(dwnfp, 0, SEEK_SET);
   //
   printf("=== Going to send %d DATA packages \n",total_packages) ;
-  dwnfp    = fopen(downfile,"r");
-  //
-  if (dwnfp == NULL) {
-    perror(downfile);
-    return -1;
-  }
   //
   tmb_->start(jtag_chain_tmb[jchan-1]); 
   //
