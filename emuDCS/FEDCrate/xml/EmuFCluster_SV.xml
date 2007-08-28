@@ -53,16 +53,14 @@
 	</xc:Context>
 
 	<xc:Context url="http://csc-fed1:40100">		
-<!--
 		<xc:Application class="EmuFCrate" id="33" instance="0" service="emufcrate" network="local"> 
 			<properties xmlns="urn:xdaq-application:EmuFCrate" xsi:type="soapenc:Struct">
-				<xmlFileName xsi:type="xsd:string">/home/uscfed/v4.1/TriDAS/emu/emuDCS/FEDCrate/xml/config_c1.xml</xmlFileName>
+				<xmlFileName xsi:type="xsd:string">/nfshome0/cscpro/TriDAS/emu/emuDCS/FEDCrate/xml/config_c1.xml</xmlFileName>
 			</properties>
 		</xc:Application>	
--->
 		<xc:Application class="EmuFCrate" id="34" instance="1" service="emufcrate" network="local"> 
 			<properties xmlns="urn:xdaq-application:EmuFCrate" xsi:type="soapenc:Struct">
-				<xmlFileName xsi:type="xsd:string">/home/uscfed/v4.1/TriDAS/emu/emuDCS/FEDCrate/xml/config_c2.xml</xmlFileName>
+				<xmlFileName xsi:type="xsd:string">/nfshome0/cscpro/TriDAS/emu/emuDCS/FEDCrate/xml/config_c2.xml</xmlFileName>
 			</properties>
 		</xc:Application>	
 
