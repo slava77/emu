@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.13 2007/05/22 10:20:50 gujh Exp $
+// $Id: VMEController.cc,v 3.14 2007/08/28 20:38:04 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.14  2007/08/28 20:38:04  liu
+// remove compiler warnings
+//
 // Revision 3.13  2007/05/22 10:20:50  gujh
 // Fix the code, so eth0 will correspond to schar0
 //         --- May 22, 2007   GU
@@ -200,9 +203,9 @@
 #endif
 
 VMEController::VMEController(int crateID): 
-  crate_(crateID), indian(SWAP),  max_buff(0), tot_buff(0), 
-  plev(1), idevo(0), error_type(0), error_count(0), DEBUG(0), port_(2),
-  fill_write_vme_vectors_(false), ok_vme_write_(false)
+  port_(2), crate_(crateID), indian(SWAP),  max_buff(0), tot_buff(0), 
+  plev(1), idevo(0), error_type(0), error_count(0), DEBUG(0),
+  ok_vme_write_(false), fill_write_vme_vectors_(false)
 {
   //
   fpacket_delay = 0;
@@ -213,7 +216,7 @@ VMEController::VMEController(int crateID):
   DELAY3 = 16.384;
   //
   JtagBaseAddress_ = 0x0;
-  add_ucla = -1;
+  add_ucla = 0xffffffff;
   //
   usedelay_ = false ;
   //
@@ -239,7 +242,7 @@ void VMEController::init() {
   //
   theSocket=do_schar(1); // register a new schar device
   //
-  cout << "VMEController opened socket = " << socket << endl;
+  cout << "VMEController opened socket = " << theSocket << endl;
   cout << "VMEController is using eth" << port_ << endl;
   enable_Reset(); 
   //read_CR();
@@ -399,9 +402,10 @@ int VMEController::do_schar(int open_or_close)
     }
     return -1;
   }
+  else return -100; // wrong call, should not happen
 }
 
-int udelay(long int itim)
+void udelay(long int itim)
 {
   usleep(5000);
   //std::cout << "Udelay..." << std::endl;
@@ -411,12 +415,12 @@ int udelay(long int itim)
   //
   struct  timeval tp;
   long usec1,usec2;
-  long int loop;
   int tim;
   int i,j,k;
   static int inter=1000;
   float xinter;
   static int mdelay;
+
   /* calibrate on first entry */
   if(inter==1000){
     mdelay=0;
@@ -432,7 +436,7 @@ int udelay(long int itim)
       if(tim<0)goto RETRY;
       // printf(" inter tim %d %d \n",inter,tim);
       xinter=inter*110./tim;
-      inter=xinter+1;
+      inter=(int)xinter+1;
       if(j>3&&inter>mdelay)mdelay=inter;
     }
     printf(" udelay calibration: %d loops for 1 usec \n",mdelay);
@@ -527,7 +531,6 @@ void VMEController::clear_error()
 
 int VMEController::eth_read()
 {  
-   int err;
    int size;
    int loopcnt;
 
@@ -646,7 +649,7 @@ bool VMEController::SelfTest()
 bool VMEController::exist(int slot)
 { 
    unsigned char tmp[2]={0, 0};
-   bool v_return;
+//   bool v_return;
    unsigned short int tmp2[1]={0x0000}, *ptr;
 
    if(slot<1 || slot>21) return 0;
@@ -823,7 +826,7 @@ void VMEController::get_macaddr(int realport)
    memcpy(ether_header.h_source, hw_source_addr, ETH_ALEN);
    close(msock_fd);
 
-   sscanf(ipAddress_.c_str(), "%02x:%02x:%02x:%02x:%02x:%02x",
+   sscanf(ipAddress_.c_str(), "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx",
        hw_dest_addr, hw_dest_addr+1, hw_dest_addr+2,
        hw_dest_addr+3, hw_dest_addr+4, hw_dest_addr+5);
    memcpy(ether_header.h_dest, hw_dest_addr, ETH_ALEN);
@@ -919,7 +922,7 @@ void VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sh
       printf("vme_control: %02x %04x%04x", irdwr, data[1], data[0]);
     else
     {
-      printf("vme_control: %02x %08x",irdwr, (unsigned long int)ptr);
+      printf("vme_control: %02x %08lx",irdwr, (unsigned long int)ptr);
       if(irdwr==1 || irdwr==3) printf(" %04X",data[0]);
     }
     printf("\n");
@@ -975,7 +978,7 @@ void VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sh
     // Jinghua Liu: 
     // to prevent the OSU controller hanging up on invalid VME address
     if(ptrt<0x80000) 
-      {  printf("VME ADDRESS ERROR: %06X\n",ptrt);
+      {  printf("VME ADDRESS ERROR: %06lX\n",ptrt);
          exit(-1);
       }
     wbuf[nwbuf+3]=(ptrt&0xff0000)>>16;
@@ -1034,7 +1037,7 @@ void VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sh
     wbuf[3]=nvme&0xff;
     nwrtn=eth_write();
     //
-    packet_delay=fpacket_delay+1;
+    packet_delay=(long int)fpacket_delay+1;
     packet_delay=packet_delay+15; 
     //if ( usedelay_ ) udelay(packet_delay);
     //
