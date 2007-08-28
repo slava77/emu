@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.18 2007/08/28 19:37:23 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.19 2007/08/28 21:56:58 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -999,7 +999,7 @@ using namespace std;
     cout <<" Broadcast Crate and DMB are defined "<<endl;
 
     // load the DAQMB Controller FPGA firmware
-    char *outp="0";
+    
     cout <<" Loading all the DMBs, CFEBs FPGAs firmware ..."<<endl;
 
     *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
