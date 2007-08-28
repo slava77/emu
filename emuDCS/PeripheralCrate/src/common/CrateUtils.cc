@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CrateUtils.cc,v 3.0 2006/07/20 21:15:48 geurts Exp $
+// $Id: CrateUtils.cc,v 3.1 2007/08/28 21:50:58 liu Exp $
 // $Log: CrateUtils.cc,v $
+// Revision 3.1  2007/08/28 21:50:58  liu
+// *** empty log message ***
+//
 // Revision 3.0  2006/07/20 21:15:48  geurts
 // *** empty log message ***
 //
@@ -51,7 +54,7 @@ std::vector<TMBTester> CrateUtils::TMBTests() const {
   CCB * MyCCB_ = MyCrate_->ccb();
   std::vector<TMBTester>   result;
   //
-  for( int i=0; i< tmbVector.size(); i++) {
+  for( unsigned i=0; i< tmbVector.size(); i++) {
     //
     TMBTester tmp;
     tmp.setTMB(tmbVector[i]);
