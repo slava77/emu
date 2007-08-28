@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: MPC.cc,v 3.6 2007/08/27 22:51:16 liu Exp $
+// $Id: MPC.cc,v 3.7 2007/08/28 18:06:00 liu Exp $
 // $Log: MPC.cc,v $
+// Revision 3.7  2007/08/28 18:06:00  liu
+// remove unused & outdated functions
+//
 // Revision 3.6  2007/08/27 22:51:16  liu
 // update
 //
@@ -186,10 +189,6 @@ void MPC::configure() {
     setTransparentMode(TransparentModeSources_);
   else
     setSorterMode();
-
-  // The default power-up delays are always 0.
-  (*MyOutput_) << "MPC: setting default TMB-MPC delays ..." << std::endl;
-  setDelayFromTMB(TMBDelayPattern_);
 
   // report firmware version
   firmwareVersion();
@@ -384,18 +383,11 @@ void MPC::enablePRBS(){
   char data[2];
   char addr;
 
-  // make sure we are in framed mode
-  addr = CSR2;
-  //fg read(btd,data,addr,2,xfer_done);
-  //fg data[0]=data[0]|0x01;
-  data[0]=0x00;
-  data[1]=0x01;
-  do_vme(VME_WRITE, addr, data, NULL, NOW);
-
-  // brute force set to 0xC210, will change to masking soon, very soon ...
   addr = CSR0;
-  data[0]=0xCA;
-  data[1]=0x10;
+  do_vme(VME_READ, addr, NULL, data, NOW);
+
+  // set both bits 14 and 15 to "1", bit 14 was probably on already
+  data[0] |= 0xC0;
   do_vme(VME_WRITE, addr, data, NULL, NOW);
 
   (*MyOutput_) << "MPC: PRBS mode enabled" << std::endl;
@@ -406,40 +398,14 @@ void MPC::disablePRBS(){
   char data[2];
   char addr;
 
-  // brute force set back to 0x5B10, will change to masking soon, very soon ...
   addr = CSR0;
-  data[0]=0x5B;
-  data[1]=0x10;
+  do_vme(VME_READ, addr, NULL, data, NOW);
+
+  // set bit 15 to "0", leave bit 14 as "1"
+  data[0] &= 0x7F;
   do_vme(VME_WRITE, addr, data, NULL, NOW);
 
   (*MyOutput_) << "MPC: PRBS mode disabled" << std::endl;
-}
-
-void MPC::initTestLinks(){
-// initialise FIFOs ready to load test data with injectSP functs
-//nb! need to time in SP after this funct but before inject data
-
-//initialise!!! toggle CSR0 bits.
- (*MyOutput_) << "Initialising peripheral crate links for load FIFOs" << std::endl;
- //
- //
-  char data[2];
-  char addr;
-
-
-  addr = CSR0;
-  data[1]=0x11;
-  data[0]=0x4E;
-  do_vme(VME_WRITE, addr, data, NULL, NOW);
-  
-  data[1]=0x13;
-  data[0]=0x4E;
-  do_vme(VME_WRITE, addr, data, NULL, NOW);
- 
-  data[1]=0x11;
-  data[0]=0x4E;
-  do_vme(VME_WRITE, addr, data, NULL, NOW);
-//done init
 }
 
 void MPC::injectSP(){
@@ -768,47 +734,6 @@ void MPC::setTransparentMode(){
   do_vme(VME_WRITE, addr, data, NULL, NOW);
 }
 
-
-void MPC::setDelayFromTMB(unsigned char delays){
-  /// Add single BX delays to each of the TMBs based on the delayPattern
-  (*MyOutput_) << "MPC: setting TMB-MPC delays. Delay pattern = 0x"
-	       << std::hex << (unsigned short)delays << std::dec << std::endl;
-  //
-  //
-  char data[2];
-  char addr = CSR5;
-  //fg data[0] = delays;
-  //fg data[1] = 0;
-  data[0] = 0;
-  data[1] = delays;
-  do_vme(VME_WRITE, addr, data, NULL, NOW);
-}
-
-
-void MPC::interconnectTest(){
-  char data[2];
-  //
-
-  // reset FPGA logic
-  char addr = CSR0;
-  data[0] = 0x00;
-  data[1] = 0x12;
-  //data[0] = 0x12;
-  //data[1] = 0x00;
-  do_vme(VME_WRITE, addr, data, NULL, NOW);
-  do_vme(VME_READ, addr, NULL, data, NOW);
-  (*MyOutput_) << "MPC: interconnectTest  0x" << std::hex << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::endl;
-
-  // release reset, put TLK2501 transmitters in the test mode
-  addr =  CSR0;
-  data[0] = 0xc2;
-  data[1] = 0x10;
-  //data[0] = 0x10;
-  //data[1] = 0xc2;
-  do_vme(VME_WRITE, addr, data, NULL, NOW);
-  do_vme(VME_READ, addr, NULL, data, NOW);
-  (*MyOutput_) << "MPC: interconnectTest  0x" << std::setw(2) << (data[0]&0x00ff) << std::setw(2) << (data[1]&0x00ff) << std::dec << std::endl;
-}
 
 void MPC::start() {
 #ifdef debugV
