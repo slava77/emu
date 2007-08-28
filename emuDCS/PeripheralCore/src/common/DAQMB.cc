@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: DAQMB.cc,v 3.28 2007/06/06 14:47:41 gujh Exp $
+// $Id: DAQMB.cc,v 3.29 2007/08/28 23:13:47 liu Exp $
 // $Log: DAQMB.cc,v $
+// Revision 3.29  2007/08/28 23:13:47  liu
+// remove compiler warnings
+//
 // Revision 3.28  2007/06/06 14:47:41  gujh
 // Added methods: buck_shift_comp_bc and set_comp_thresh_bc for broadcast
 // loading the comparator pattern and comparator threshold
@@ -347,15 +350,16 @@ DAQMB::DAQMB(Crate * theCrate, Chamber * theChamber, int newslot):
   VMEModule(theCrate, newslot),
   csc_(theChamber),
   feb_dav_delay_(24),tmb_dav_delay_(24), 
-  push_dav_delay_(31), l1acc_dav_delay_(24), ALCT_dav_delay_(0),
+  push_dav_delay_(31), l1acc_dav_delay_(24),
   calibration_LCT_delay_(8), calibration_l1acc_delay_(22),
   pulse_delay_(15), inject_delay_(15),
   pul_dac_set_(1.0), inj_dac_set_(1.0),
   set_comp_thresh_(0.03),
   comp_timing_(1), comp_mode_(2), pre_block_end_(7),
+  cable_delay_(0), crate_id_(0xfe), toogle_bxn_(1), ALCT_dav_delay_(0),
+  cfeb_clk_delay_(15), xlatency_(1),
   l1a_lct_counter_(-1), cfeb_dav_counter_(-1), 
-  tmb_dav_counter_(-1), alct_dav_counter_(-1), cable_delay_(0), 
-  crate_id_(0xfe), toogle_bxn_(1), cfeb_clk_delay_(15), xlatency_(1)
+  tmb_dav_counter_(-1), alct_dav_counter_(-1)
 {
   //
   for (int cfeb=0; cfeb<5; cfeb++) {
@@ -3175,7 +3179,7 @@ void DAQMB::epromload(DEVTYPE devnum,const char *downfile,int writ,char *cbrdnum
   //
 #ifdef OSUcc
   theController->SetUseDelay(false);
-#endif OSUcc
+#endif
   //
   //sndbuf[0]=0x01;
   //sndbuf[1]=0x00;
@@ -3220,7 +3224,7 @@ ipass == 3 - load only the stuff after the board number
   //
 #ifdef OSUcc
   theController->SetUseDelay(true);
-#endif OSUcc
+#endif
 
   dv=(DEVTYPE)devnum;
   xtrbits=geo[dv].sxtrbits;
@@ -3891,7 +3895,7 @@ void DAQMB::cfeb_vtx_prom(enum DEVTYPE devnum) {
 
 void DAQMB::febpromuser2(const CFEB & cfeb,char *cbrdnum)
 {
-int i;
+
     DEVTYPE dv = cfeb.promDevice();
       cmd[0]=PROM_USERCODE;
       sndbuf[0]=0xFF;
@@ -3913,8 +3917,8 @@ int i;
         cmd[0]=PROM_BYPASS;
         sndbuf[0]=0;
         devdo(dv,8,cmd,0,sndbuf,rcvbuf,1);
-	if ((rcvbuf[0]!=0xff) || (rcvbuf[1]!=0xff) || (rcvbuf[2]!=0xff) 
-	    || (rcvbuf[3]!=0xff) ) return;
+	if ((rcvbuf[0]!=-1) || (rcvbuf[1]!=-1) || (rcvbuf[2]!=-1) 
+	    || (rcvbuf[3]!=-1) ) return;
       }
 }
 
@@ -4929,14 +4933,14 @@ int DAQMB::readfifox_chk(enum DEVTYPE devnum,unsigned int short memchk)
 int DAQMB::memchk(enum DEVTYPE devnum)
 {
   int ierr,ierr2;
-  unsigned long int lmsk;
+
   //
   if(devnum<FIFO1||devnum>FIFO7){
     (*MyOutput_) << " Device is not a FIFO " << std::endl;
     return -1;
   }
   //
-  for (int i=0; i<sizeof(rcvbuf);i++) {
+  for (unsigned i=0; i<sizeof(rcvbuf);i++) {
     rcvbuf[i] = 0;
   }
   //
@@ -5314,7 +5318,7 @@ int  DAQMB::test8()
 {
   //
   int i,ierr,err2,pass;
-  float v0,v1,vout,diff,diff2;
+  float v0,vout,diff,diff2;
   //
   double sn,sx,sy,sxy,sx2;
   float x[9],y[9];
@@ -5328,7 +5332,7 @@ int  DAQMB::test8()
      (*MyOutput_) << "ERROR: only "<<cfebs_.size()<<" FEBs found "<<std::endl;
   }
   err2=0;
-  for(int cfeb = 0; cfeb < cfebs_.size(); ++cfeb) {
+  for(unsigned cfeb = 0; cfeb < cfebs_.size(); ++cfeb) {
     //
     for(i=0;i<10;i++){
       //
@@ -5337,7 +5341,7 @@ int  DAQMB::test8()
       //set_comp_thresh(v0);
       usleep(500000);
       //
-      for(int cfeby=0; cfeby<cfebs_.size(); ++cfeby) {
+      for(unsigned cfeby=0; cfeby<cfebs_.size(); ++cfeby) {
 	vout=adcplus(2,cfebs_[cfeby].number());
 	(*MyOutput_) << "cfeb="<<cfeby<<" "<<" v0=" << v0 << " vout="<<vout<<std::endl;
       }
