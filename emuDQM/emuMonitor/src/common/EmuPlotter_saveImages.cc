@@ -164,8 +164,8 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
         gSystem->Exec(command.Data());
 	me_itr = MEs.find(itr->first);
         if (me_itr != MEs.end()) {
-          h_itr->second->Draw(me_itr->second, width, height);
 	  LOG4CPLUS_WARN(logger_, imgfile);
+          h_itr->second->Draw(me_itr->second, width, height);
 	  h_itr->second->Print(imgfile.c_str());
         }
         tree_items << "                    ['"<< h_itr->second->getTitle() << "','" << relname <<"']," << endl;

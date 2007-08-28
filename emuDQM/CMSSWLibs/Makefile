@@ -59,13 +59,13 @@ SRCS_QLTY     = $(SRCQLTY_PATH)/Comp2RefChi2ROOT.cc \
 OBJS_QLTY      = $(addprefix $(ODIR)/, $(notdir $(SRCS_QLTY:%.cc=%.o)))
 
 
-$(ODIR)/%.o: $(CSCDIGI)/src/%.cc $(CSCDIGI)/interface/%.h
+$(ODIR)/%.o: $(CSCDIGI)/src/%.cc 
 	$(CXX) -c $(CXXFLAGS) $(DEFINES) $(INCLUDES) $< -o $@
 
-$(ODIR)/%.o: $(CSCRAW)/src/%.cc $(CSCRAW)/interface/%.h
+$(ODIR)/%.o: $(CSCRAW)/src/%.cc 
 	$(CXX) -c $(CXXFLAGS) $(DEFINES) $(INCLUDES) $< -o $@
 
-$(ODIR)/%.o: $(QLTY)/src/%.cc $(QLTY)/interface/%.h
+$(ODIR)/%.o: $(QLTY)/src/%.cc 
 	$(CXX) -c $(CXXFLAGS) $(DEFINES) $(ROOTCFLAGS) $(INCLUDES) $< -o $@
 
 all: libs 

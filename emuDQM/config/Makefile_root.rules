@@ -9,6 +9,7 @@ DestDir=$(PackageDir)/src/common
 Dicts=$(DictLinkdef:%.hh=%Dict.cc)
 Sources += $(Dicts)
 TargetDicts=$(DictLinkdef:%.hh=$(DestDir)/%Dict.cc)
+LD_LIBRARY_PATH=$(ROOTSYS)/lib
 
 vpath %.hh	$(PackageDir)/include
 vpath %.h 	$(PackageDir)/include
