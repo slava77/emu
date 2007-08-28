@@ -29,16 +29,12 @@
 void VMEController::devdo(DEVTYPE dev,int ncmd,const char *cmd,int nbuf,const char *inbuf,char *outbuf,int irdsnd)
 {
   char cmd2[9000];
-  char snd[10];
   char tmp[4];
   int kbit,kbybit;
   char kbypass;
-  char c;
   int ppnt,pcmd,pow2;
-  int idev,i,j,k,m;
+  int idev,i,k,m;
   int ncmd2,nbcmd2,nbuf2;
-  int n,nt1;
-  int nleft,ncnt,max;
   int init;
   int ififo;
   int nbyte;
@@ -398,12 +394,10 @@ void VMEController::scan(int reg,const char *snd,int cnt,char *rcv,int ird)
 {
 int i;
 int cnt2;
-int npnt;
 int byte,bit;
 unsigned short int tird[3]={3,1,3};
 unsigned short int tmp[2]={0x0000};
 unsigned short int *data;
-unsigned short int *data2;
 unsigned short int *ptr_i;
 unsigned short int *ptr_d;
 unsigned short int *ptr_dh;
@@ -536,9 +530,7 @@ if(cnt==0)return;
 void VMEController::initDevice(int idev) {
   //if(debugV)cout << "InitDevice " << idev << " " <<(int) feuse << endl;
   //cout << "InitDevice " << idev << " " <<(int) feuse << endl;
-  char tmp[2]={0x00,0x00};
-  unsigned short int tmp2[1];
-  unsigned short int *ptrreg;
+  
   //    vmeadd=0x00000000;
   
   switch(idev){
@@ -636,7 +628,7 @@ void VMEController::load_cdac(const char *snd)
  static unsigned short int *ptr;
  unsigned short int data1,data2;
  char tmp[2]={0x00,0x00};
- int n;
+
  ptr=(unsigned short int *)add_cdac;
  // n = readline(sockfd,val,4);
  data1=((snd[1]&0x0f)<<8)|(snd[0]&0xff);
@@ -664,7 +656,6 @@ void VMEController::vme_adc(int ichp,int ichn,char *rcv)
 
  char adcreg[5]={0x00,0x0e,0x0d,0x0b,0x07};
 
- unsigned short int *data;
  unsigned short int *ptr;
  unsigned short int val[2];
  unsigned short int tmp[2]={0x0000,0x0000}; 
@@ -699,7 +690,7 @@ void VMEController::buckflash(const char *cmd,int nbuf,const char *inbuf,char *r
  unsigned short int tmp[1];
  unsigned short int data[2];
  char *line2;
- int n,m,nleft,i;
+ int i;
  //printf(" entering buckflash cmd %d  \n",cmd[0);
 
  if(cmd[0]==0){
@@ -835,10 +826,10 @@ void VMEController::lowvolt(int ichp,int ichn,char *rcv)
  };
 
  char lowvreg[10]={0x10,0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x11,0x12};
- unsigned short int *data;
  unsigned short int *ptr;
  unsigned short int val[2];
  unsigned short int tmp[2]={0x0000,0x0000}; 
+
  // printf(" enter vme_adc \n");
 
       val[0]=lowvreg[ichp];
@@ -874,7 +865,6 @@ void VMEController::lowvolt(int ichp,int ichn,char *rcv)
 void  VMEController::scan_reset(int reg,const char *snd, int cnt, char *rcv,int ird)
 {
 int i,j;
-int npnt;
 int byte,bit;
 unsigned short int x00[1]={0x00};
 unsigned short int x01[1]={0x01};
@@ -883,6 +873,7 @@ unsigned short int x03[1]={0x03};
 unsigned short int ival,ival2;
 unsigned short int *data;
 unsigned short int *ptr;
+
  if(cnt==0)return;
  ptr=(unsigned short int *)add_reset;
  data=(unsigned short int *) snd;
