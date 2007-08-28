@@ -132,12 +132,12 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   int dmbHeaderBXN      = 0;
   int dmb_ddu_bxn_diff  = 0;
 
-  dmbHeaderBXN = dmbHeader.bxn();
+  dmbHeaderBXN = dmbHeader.bxn12();
   //          Calculation difference between BXN numbers from DDU and DMB
   dmb_ddu_bxn_diff = (int)(dmbHeaderBXN-(int)(BXN&0x7F));
   LOG4CPLUS_DEBUG(logger_, "DMB(ID=" << ChamberID  << ") BXN = " << dmbHeaderBXN
 		  << " : DMB BXN - DDU BXN = " << dmb_ddu_bxn_diff);
-  if (isMEvalid(cscME,"DMB_BXN_Distrib", mo)) mo->Fill((int)(dmbHeader.bxn()));
+  if (isMEvalid(cscME,"DMB_BXN_Distrib", mo)) mo->Fill((int)(dmbHeader.bxn12()));
 
   if (isMEvalid(cscME, "DMB_DDU_BXN_diff", mo)) {
     if(dmb_ddu_bxn_diff < -64) mo->Fill(dmb_ddu_bxn_diff + 128);
@@ -320,7 +320,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     if (isMEvalid(cscME, "DMB_L1A_vs_ALCT_L1A", mo)) mo->Fill(alctHeader.L1Acc()%16,dmbHeader.l1a());
 
     if (isMEvalid(cscME, "ALCT_DMB_BXN_diff", mo)) {
-      int alct_dmb_bxn_diff = (int)(dmbHeader.bxn()-(alctHeader.BXNCount()&0x7F));
+      int alct_dmb_bxn_diff = (int)(dmbHeader.bxn12()-(alctHeader.BXNCount()&0x7F));
       if(alct_dmb_bxn_diff < -64) mo->Fill(alct_dmb_bxn_diff + 128);
       else {
 	if(alct_dmb_bxn_diff > 64)  mo->Fill(alct_dmb_bxn_diff - 128);
@@ -332,7 +332,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     if (isMEvalid(cscME, "ALCT_BXN", mo)) mo->Fill(alctHeader.BXNCount());
 
 //    if (isMEvalid(cscME, "ALCT_BXN_vs_DMB_BXN", mo)) mo->Fill((int)((alctHeader.BXNCount())), (int)(dmbHeader.bxn()));
-    if (isMEvalid(cscME, "ALCT_BXN_vs_DMB_BXN", mo)) mo->Fill((int)((alctHeader.BXNCount())%256), (int)(dmbHeader.bxn())%256);
+    if (isMEvalid(cscME, "ALCT_BXN_vs_DMB_BXN", mo)) mo->Fill((int)((alctHeader.BXNCount())%256), (int)(dmbHeader.bxn12())%256);
 
     if (isMEvalid(cscME, "ALCT_Number_Rate", mo)) {
       mo->Fill(alctsDatas.size());
@@ -564,7 +564,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     if (isMEvalid(cscME, "DMB_L1A_vs_CLCT_L1A", mo)) mo->Fill(tmbHeader.L1ANumber(),dmbHeader.l1a()%16);
 
     if (isMEvalid(cscME, "CLCT_DMB_BXN_diff", mo)) {
-      int clct_dmb_bxn_diff = (int)(dmbHeader.bxn()-(tmbHeader.BXNCount()&0x7F));
+      int clct_dmb_bxn_diff = (int)(dmbHeader.bxn12()-(tmbHeader.BXNCount()&0x7F));
       if(clct_dmb_bxn_diff < -64) mo->Fill(clct_dmb_bxn_diff + 128);
       else {
 	if(clct_dmb_bxn_diff > 64)  mo->Fill(clct_dmb_bxn_diff - 128);
@@ -576,7 +576,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     if (isMEvalid(cscME, "CLCT_BXN", mo)) mo->Fill((int)(tmbHeader.BXNCount()));
 
 //    if (isMEvalid(cscME, "CLCT_BXN_vs_DMB_BXN", mo)) mo->Fill(tmbHeader.BXNCount(),dmbHeader.bxn());
-    if (isMEvalid(cscME, "CLCT_BXN_vs_DMB_BXN", mo)) mo->Fill(tmbHeader.BXNCount()%256,dmbHeader.bxn()%256);
+    if (isMEvalid(cscME, "CLCT_BXN_vs_DMB_BXN", mo)) mo->Fill(tmbHeader.BXNCount()%256,dmbHeader.bxn12()%256);
 
     if (isMEvalid(cscME, "CLCT_Number_Rate", mo)) {
       mo->Fill(clctsDatas.size());
@@ -639,7 +639,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	}
 	
 	if (isMEvalid(cscME,  Form("CLCT%d_Half_Strip_Pattern", lct), mo)) {
-	  int pattern_clct = (int)((clctsDatas[lct].getPattern()>>1)&0x3);
+          int pattern_clct = clctsDatas[lct].getPattern();
+	  // int pattern_clct = (int)((clctsDatas[lct].getPattern()>>1)&0x3);
 	  //                              pattern_clct = Number of patterns in CLCT
 	  //                              Last (left) bit is bend. Positive bend = 1, negative bend = 0
          double tbin = -1;
@@ -725,7 +726,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	  vector<CSCComparatorDigi> compOutData = clctData.comparatorDigis(nLayer, nCFEB);
 	  for (vector<CSCComparatorDigi>:: iterator compOutDataItr = compOutData.begin(); compOutDataItr != compOutData.end(); ++compOutDataItr) {
 	    // =VB= Fix to get right hafstrip
-	    int hstrip = 2*compOutDataItr->getStrip()+compOutDataItr->getComparator();
+	    int hstrip = 2*(compOutDataItr->getStrip()-1)+compOutDataItr->getComparator();
 	    vector<int> tbins_clct = compOutDataItr->getTimeBinsOn();
 	    int tbin_clct = (int)compOutDataItr->getTimeBin();
 	    if(CheckLayerCLCT) {
@@ -743,11 +744,11 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 		if (isMEvalid(cscME,  Form("CLCT_Ly%d_Rate", nLayer), mo)) { 
 		  mo->Fill(hstrip);
 
-		  int number_hstrip = (int)(mo->GetBinContent(hstrip+1));
+		  int number_hstrip = (int)(mo->GetBinContent(hstrip));
 		  Double_t Number_of_entries_CLCT = mo->getObject()->GetEntries();
 	   
 		  if (isMEvalid(cscME,  Form("CLCT_Ly%d_Efficiency", nLayer), mo)) {
-		    mo->SetBinContent(hstrip+1,(float)number_hstrip);
+		    mo->SetBinContent(hstrip,(float)number_hstrip);
 		    if((Double_t)(nDMBEvents[cscTag]) > 0.0) {
 		      mo->getObject()->SetNormFactor(100.0*Number_of_entries_CLCT/(Double_t)(nDMBEvents[cscTag]));
 		    } else {
