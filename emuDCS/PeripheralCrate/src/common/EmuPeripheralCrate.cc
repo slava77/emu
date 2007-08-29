@@ -1611,15 +1611,8 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::br();
     *out << cgicc::fieldset();
     //
-    int read = (thisCCB->ReadRegister(0x2))&0xffff;
+    int read = (thisCCB->ReadRegister(0x4))&0xffff;
     //
-    *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
-    *out << cgicc::span().set("style","color:blue");
-    *out << "MPC slot = 12 cfg             " << (read&0x1);
-    *out << cgicc::span();
-    *out << cgicc::br();
-    //
-    *out << cgicc::fieldset();
     //
     *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
     //
@@ -1650,7 +1643,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << cgicc::br();
     //
     *out << "QPLL ready                    " << ((read>>14)&0x1);
-    if(((read>>14)&0x1) == 1) {
+    if(((read>>14)&0x1) == 0) {
       *out << cgicc::span().set("style","color:green");
       *out << " (Locked)";
       *out << cgicc::span();
@@ -1663,7 +1656,15 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     //
     *out << "All cfg                       " << ((read>>15)&0x1);
     *out << cgicc::br();
+    *out << cgicc::fieldset() ;
     //
+    read = (thisCCB->ReadRegister(0x2))&0xffff;
+    //
+    *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
+    *out << cgicc::span().set("style","color:blue");
+    *out << "MPC slot = 12 cfg             " << (read&0x1);
+    *out << cgicc::span();
+    *out << cgicc::br();
     *out << cgicc::fieldset() ;
     //
     *out << cgicc::fieldset().set("style","font-size: 10pt; font-family: arial;");
