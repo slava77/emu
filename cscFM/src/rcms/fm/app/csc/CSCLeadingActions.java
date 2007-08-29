@@ -171,6 +171,7 @@ public class CSCLeadingActions extends Level1LeadingActions {
 				Level1Parameters.ACTION_MSG, new StringT("Configuring")));
 
 		// set run type parameter
+		String runType = "";
 		try {
 			XDAQParameter xdaqParam = ((XdaqApplication)
 					fm.xdaqSupervisor.getApplications().get(0))
@@ -187,7 +188,7 @@ public class CSCLeadingActions extends Level1LeadingActions {
 				fm.fireEvent(Level1Inputs.ERROR);
 			}
 
-			String runType = ((StringT)
+			runType = ((StringT)
 					commandParam.get(Level1Parameters.RUN_TYPE).getValue())
 					.getString();
 			logger.debug(getClass().toString() + "Run type: " + runType);
@@ -196,7 +197,7 @@ public class CSCLeadingActions extends Level1LeadingActions {
 
 		} catch (Exception e) {
 			logger.error(getClass().toString() +
-					"Failed to Configure XDAQ.", e);
+					"Failed to set run type: " + runType, e);
 
 			fm.fireEvent(Level1Inputs.ERROR);
 		}
@@ -305,6 +306,23 @@ public class CSCLeadingActions extends Level1LeadingActions {
 		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
 				Level1Parameters.ACTION_MSG, new StringT("TTS preparing")));
 
+		// set run type parameter
+		try {
+			XDAQParameter xdaqParam = ((XdaqApplication)
+					fm.xdaqSupervisor.getApplications().get(0))
+					.getXDAQParameter();
+
+			xdaqParam.select("RunType");
+			xdaqParam.setValue("RunType", "sTTS_Test");
+			xdaqParam.send();
+
+		} catch (Exception e) {
+			logger.error(getClass().toString() +
+					"Failed to set run type: " + "sTTS_Test", e);
+
+			fm.fireEvent(Level1Inputs.ERROR);
+		}
+
 		try {
 			fm.xdaqSupervisor.execute(new Input("Configure"));
 
@@ -399,7 +417,9 @@ public class CSCLeadingActions extends Level1LeadingActions {
 		int slot = 0;
 
 		switch (fed) {
-			case 750: slot = 8; break;
+			case 780: slot = 2; break; // TF
+
+			case 750: slot = 8; break; // plus 1
 			case 841: slot = 4; break;
 			case 842: slot = 5; break;
 			case 843: slot = 6; break;
@@ -410,7 +430,7 @@ public class CSCLeadingActions extends Level1LeadingActions {
 			case 848: slot = 12; break;
 			case 849: slot = 13; break;
 
-			case 752: slot = 8; break;
+			case 752: slot = 8; break; // plus 2
 			case 831: slot = 4; break;
 			case 832: slot = 5; break;
 			case 833: slot = 6; break;
