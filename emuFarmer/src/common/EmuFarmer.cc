@@ -94,6 +94,7 @@ void EmuFarmer::exportParams(){
   s->fireItemAvailable( "pcApplicationNames", &pcApplicationNames_ );
   s->fireItemAvailable( "ltcApplicationNames", &ltcApplicationNames_ );
 
+  s->fireItemAvailable( "pathToHome", &pathToHome_ );
   s->fireItemAvailable( "commandToStartXDAQ", &commandToStartXDAQ_ );
   s->fireItemAvailable( "commandToReloadDriversForDAQ", &commandToReloadDriversForDAQ_ );
   s->fireItemAvailable( "commandToReloadDriversForPC", &commandToReloadDriversForPC_ );
@@ -235,10 +236,10 @@ void EmuFarmer::loadConfigFile(){
     }
 }
 
-void EmuFarmer::css( xgi::Input *in, xgi::Output *out ){
-  out->getHTTPResponseHeader().addHeader("Content-Type", "text/css");
-  // moved to an external file
-}
+// void EmuFarmer::css( xgi::Input *in, xgi::Output *out ){
+//   out->getHTTPResponseHeader().addHeader("Content-Type", "text/css");
+//   // moved to an external file
+// }
 
 
 string EmuFarmer::processForm(xgi::Input *in, xgi::Output *out)
@@ -565,9 +566,9 @@ void EmuFarmer::actionButtons(xgi::Output *out){
 
 }
 
-void EmuFarmer::javascript(xgi::Input *in, xgi::Output *out){
-  // moved to an external file
-}
+// void EmuFarmer::javascript(xgi::Input *in, xgi::Output *out){
+//   // moved to an external file
+// }
 
 DOMDocument* EmuFarmer::loadDOM( const std::string& pathname )
   throw (xdaq::exception::Exception)
@@ -1298,7 +1299,7 @@ xoap::MessageReference EmuFarmer::createSOAPCommandToHatch( const string& url ){
   xoap::SOAPName name = envelope.createName("executeCommand", "xdaq", "urn:xdaq-soap:3.0");
   xoap::SOAPBodyElement bodyelement = envelope.getBody().addBodyElement(name);
   string user     = User->toString();
-  string execPath = string("/home/") + user + string("/") + commandToStartXDAQ_.toString();
+  string execPath = pathToHome_.toString() + string("/") + user + string("/") + commandToStartXDAQ_.toString();
   stringstream argv;
   argv << " -h " << emuProcessDescriptors_[url].getNormalizedHost()
        << " -p " << emuProcessDescriptors_[url].getPort()
@@ -1361,7 +1362,7 @@ xoap::MessageReference EmuFarmer::createSOAPCommandToReload( const string& url )
   xoap::SOAPName name = envelope.createName("executeCommand", "xdaq", "urn:xdaq-soap:3.0");
   xoap::SOAPBodyElement bodyelement = envelope.getBody().addBodyElement(name);
   string user     = User->toString();
-  string execPath = string("/home/") + user + string("/");
+  string execPath = pathToHome_.toString() + string("/") + user + string("/");
   if      ( group == "DAQ" ) execPath += commandToReloadDriversForDAQ_.toString();
   else if ( group == "PC"  ) execPath += commandToReloadDriversForPC_.toString();
   stringstream argv;
@@ -1376,7 +1377,7 @@ xoap::MessageReference EmuFarmer::createSOAPCommandToReload( const string& url )
   name = envelope.createName("EnvironmentVariable", "", "");
   xoap::SOAPElement childelement = bodyelement.addChildElement( name );
   string envVarName  = "HOME";
-  string envVarValue = string("/home/") + user;
+  string envVarValue = pathToHome_.toString() + string("/") + user;
   name = envelope.createName( envVarName, "", "" );
   childelement.addAttribute( name, envVarValue );
 
