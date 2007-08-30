@@ -145,7 +145,7 @@ private:
   void makeClientsLastBlockCompleteEvent();
   void insertEmptySuperFragments( const unsigned long fromEventNumber, const unsigned long toEventNumber )
     throw (emuRUI::exception::Exception);
-  void EmuRUI::ensureContiguousEventNumber();
+  void ensureContiguousEventNumber();
   void moveToFailedState();
 
   xdata::UnsignedLong                 nEventsRead_;
