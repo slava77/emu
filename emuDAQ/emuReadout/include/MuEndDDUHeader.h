@@ -1,6 +1,13 @@
-/* MuEndDDUHeader 4/24/03 A.Tumanov
- * documented at  http://www.physics.ohio-state.edu/~cms/ddu/ddu2.html
- */
+///
+/// @file   MuEndDDUHeader.h
+/// @author A.Tumanov 
+/// @date   4/24/03
+/// 
+/// @brief documented at http://www.physics.ohio-state.edu/~cms/ddu/ddu2.html
+/// 
+/// 
+///
+
 
 #ifndef MuEndDDUHeader_h
 #define MuEndDDUHeader_h

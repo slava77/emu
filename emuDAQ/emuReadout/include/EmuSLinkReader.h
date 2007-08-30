@@ -5,6 +5,7 @@
 #include "fedkit.h"
 #include "fedkit_sender.h"
 
+/// An EmuReader to read data from S-link (<b>not implemented</b>).
 class EmuSLinkReader : public EmuReader
 {
 public:
