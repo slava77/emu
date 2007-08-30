@@ -403,7 +403,7 @@ public class CSCLeadingActions extends Level1LeadingActions {
 	private int getCrateNumber(int fed) {
 		int crate = 1;
 
-		if (fed == 780) {
+		if (fed == 760) {
 			crate = 3; // TF-FED
 		} else if (fed == 752 || (fed / 10) == 83) {
 			crate = 2;
@@ -417,7 +417,7 @@ public class CSCLeadingActions extends Level1LeadingActions {
 		int slot = 0;
 
 		switch (fed) {
-			case 780: slot = 2; break; // TF
+			case 760: slot = 2; break; // TF
 
 			case 750: slot = 8; break; // plus 1
 			case 841: slot = 4; break;
