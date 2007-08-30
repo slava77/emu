@@ -23,10 +23,21 @@
 
 using namespace std;
 
+/// Emu trigger adapter
 
-/**
- * Example trigger adapter (TA) to be copied and modified by end-users.
- */
+/// EmuTA performs the following functions:
+/// \li Gets trigger credits from, and sends trigger data to, the event manager EVM. 
+///     Since EmuTA is not connected to any real (hardware) trigger, 
+///     it blindly generates and sends as many triggers as it has received credit for.
+/// \li Before sending out the first trigger data, 
+///     it collects the L1A number of the first event read out by every EmuRUI. 
+///     Once it has the votes of all EmuRUIs, it picks the biggest L1A number, and starts
+///     the event numbering from it.
+/// \li Serves as a keeper of run-related information provided by EmuDAQmanager, 
+///     such as run number, start and stop time,
+///     maximum namber of triggers requested, and whether or not the run number was booked with
+///     the run info database. EmuRUIs and EmuDAQmanager help themselves to this information when they need it.
+///
 class EmuTA :
 public xdaq::WebApplication
 {
@@ -47,9 +58,7 @@ public:
 private:
 
     /**
-     * Pointer to the descriptor of the RUBuilderTester application.
-     *
-     * It is normal for this pointer to be 0 if the RUBuilderTester application      * cannot be found.
+     * Pointer to the descriptor of the EmuDAQManager application.
      */
     xdaq::ApplicationDescriptor *rubuilderTesterDescriptor_;
 
@@ -172,10 +181,13 @@ private:
      */
     vector< pair<string, xdata::Serializable *> > stdMonitorParams_;
 
+  /// \defgroup EmuTA_config_param EmuTA parameters exported for configuration
+  /// @{
 
     ////////////////////////////////////////////////////////
     // Beginning of exported parameters for configuration //
     ////////////////////////////////////////////////////////
+
 
     /**
      * Exported read/write parameter specifying the trigger source id that is
@@ -186,17 +198,21 @@ private:
   //
   // EMu-specific stuff
   //
-    xdata::String       runStartTime_;
-    xdata::String       runStopTime_;
-    xdata::UnsignedLong runNumber_;
-    xdata::Boolean      isBookedRunNumber_;
-    xdata::Integer      maxNumTriggers_;
+    xdata::String       runStartTime_; ///< runs start time
+    xdata::String       runStopTime_; ///< run stop time
+    xdata::UnsignedLong runNumber_; ///< run number
+    xdata::Boolean      isBookedRunNumber_; ///< \c TRUE if run number is booked with run info database
+    xdata::Integer      maxNumTriggers_; ///< maximum number of triggers (-1 if unlimited)
 
 
     ////////////////////////////////////////////////////////
     // End of exported parameters for configuration       //
     ////////////////////////////////////////////////////////
 
+  /// @}
+
+  /// \defgroup EmuTA_config_monitor EmuTA parameters exported for monitoring
+  /// @{
 
     //////////////////////////////////////////////////////////
     // Beginning of exported parameters used for monitoring //
@@ -223,6 +239,7 @@ private:
     // End of exported parameters used for monitoring       //
     //////////////////////////////////////////////////////////
 
+/// @}
 
     /**
      * Returns the name to be given to the logger of this application.
@@ -321,16 +338,22 @@ private:
     )
     throw (xgi::exception::Exception);
 
+  /// Serializes xdata scalar into std::string.
     string serializableScalarToString(xdata::Serializable *s);
 
+  /// Serializes xdata unsigned long into std::string.
     string serializableUnsignedLongToString(xdata::Serializable *s);
 
+  /// Serializes xdata integer into std::string.
     string serializableIntegerToString(xdata::Serializable *s);
 
+  /// Serializes xdata double into std::string.
     string serializableDoubleToString(xdata::Serializable *s);
 
+  /// Serializes xdata string into std::string.
     string serializableStringToString(xdata::Serializable *s);
 
+  /// Serializes xdata boolean into std::string.
     string serializableBooleanToString(xdata::Serializable *s);
 
     /**
@@ -476,18 +499,28 @@ private:
         xdaq::ApplicationDescriptor *notifier
     );
   
+  unsigned int nEmuRUIs_;                  ///< The number of EmuRUIs. They should all vote for the first event number.
+  unsigned int nVotesForFirstEventNumber_; ///< Counts how many EmuRUIs have sent the L1A number of the first event it read out.
+  unsigned int biggestFirstEventNumber_;   ///< The biggest of the first event numbers reported by EmuRUIs.
+  unsigned int smallestFirstEventNumber_;  ///< The smallest of the first event numbers reported by EmuRUIs.
 
-  //
-  // EMu-specific stuff
-  //
+  /// Callback on receiving I2O message with first read event number
 
-  unsigned int nEmuRUIs_;                  // The number of EmuRUIs. They should all vote for the first event number.
-  unsigned int nVotesForFirstEventNumber_; // Count how many EmuRUIs have sent the L1A number of the first event it read out.
-  unsigned int biggestFirstEventNumber_;   // The biggest of the first event numbers reported by EmuRUIs.
-  unsigned int smallestFirstEventNumber_;  // The smallesr of the first event numbers reported by EmuRUIs.
-
+  /// @param bufRef memory pool buffer reference
+  ///
   void firstEventNumberMsg(toolbox::mem::Reference *bufRef);
+
+  /// Gets UTC date and time.
+
+  /// @return date and time as YYMMDD_hhmmss_UTC
+  ///
   string getDateTime();
+
+  /// Prints I2O message block in hexadecimal
+
+  /// @param bufRef memory pool buffer reference
+  /// @param printMessageHeader if \c TRUE , message header is printed too 
+  ///
   void printBlock( toolbox::mem::Reference *bufRef, bool printMessageHeader );
 };
 
