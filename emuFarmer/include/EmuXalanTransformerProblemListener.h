@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef __EmuXalanTransformerProblemListener_h__
 #define __EmuXalanTransformerProblemListener_h__
 
@@ -36,13 +37,13 @@ class ostream;
 
 XALAN_CPP_NAMESPACE_BEGIN
 
-/**
- * 
- * Emu implementation of ProblemListener for XalanTransformer.
- * Relays Xalan messages to XDAQ application's logger.
- * */
 
+/// \class EmuXalanTransformerProblemListener 
+/// \brief Relay Xalan messages to XDAQ application's logger. 
 
+///
+/// Emu implementation of ProblemListener for XalanTransformer.
+///
 class XALAN_TRANSFORMER_EXPORT EmuXalanTransformerProblemListener : public ProblemListener
 {
 public:
@@ -53,17 +54,46 @@ public:
   typedef std::ostream	StreamType;
 #endif
 
+  /// constructor
+
+  ///
+  /// @param theManager Xalan memory manager 
+  /// @param theLogger logger
+  ///
   EmuXalanTransformerProblemListener( MemoryManagerType&  theManager,
 				      log4cplus::Logger*  theLogger );
 
+  /// destructor
   virtual
-  ~EmuXalanTransformerProblemListener();
+    ~EmuXalanTransformerProblemListener();
 
-  // These methods are inherited from ProblemListener ...
-	
+  ///
+  /// \defgroup inherited methods inherited from Xalan's ProblemListener
+  ///
+  /// @{
+
+  /// method called by Xalan
+
+  ///
+  /// @param pw used by Xalan
+  ///	
   virtual void
   setPrintWriter(PrintWriter*		pw);
 
+
+  /// relay the Xalan error message to XDAQ application's logger or raise a XDAQ exception
+
+  /// method called by Xalan if it encounters a problem
+  ///
+  /// @param where the Xalan module where the problem was encountered
+  /// @param classification severity of problem
+  /// @param sourceNode Xalan node
+  /// @param styleNode ?
+  /// @param msg message
+  /// @param uri URI
+  /// @param lineNo line in file
+  /// @param charOffset character in line
+  ///
   virtual void
   problem(
 	  eProblemSource	        where,
@@ -75,13 +105,20 @@ public:
 	  int				lineNo,
 	  int				charOffset)
     throw (xdaq::exception::Exception);
+/// @}
 
 private:
-  //not implemented
+
+  /// default constructor
   EmuXalanTransformerProblemListener();
+
+  /// copy contructor (not implemented)
   EmuXalanTransformerProblemListener(const EmuXalanTransformerProblemListener&);
 
+  /// problem listener
   ProblemListenerDefault	m_problemListener;
+
+  /// logger to relay problem messages to
   log4cplus::Logger*            m_logger;
 };
 
