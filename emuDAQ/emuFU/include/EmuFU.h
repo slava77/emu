@@ -48,9 +48,15 @@
 
 using namespace std;
 
-/**
- * Example Filter Unit (FU) to be copied and modified by end-users.
- */
+/// Filter unit for built events.
+
+/// This filter unit is transparent, i.e., it makes no selection whatsoever.
+/// It performs the following functions:
+/// \li Gets a built event from the builder.
+/// \li Drops the trigger block.
+/// \li Wraps the event in DCC header/trailer.
+/// \li Gets credits from client(s), and transmits events to them.
+/// \li Writes data to local files.
 class EmuFU :
 public xdaq::WebApplication
 {
@@ -168,11 +174,7 @@ private:
   xoap::MessageReference onReset(xoap::MessageReference msg)
     throw (xoap::exception::Exception);
 
-    /**
-     * Pointer to the descriptor of the RUBuilderTester application.
-     *
-     * It is normal for this pointer to be 0 if the RUBuilderTester application      * cannot be found.
-     */
+  /// Pointer to the descriptor of the EmuDAQManager application.
     xdaq::ApplicationDescriptor *rubuilderTesterDescriptor_;
 
     /**
@@ -303,12 +305,12 @@ private:
     //
     // EMu-specific stuff
     //
-    xdata::String       pathToDataOutFile_;   // the path to the file to write the data into (no file written if "")
-    xdata::UnsignedLong fileSizeInMegaBytes_; // when the file size exceeds this, no more events will be written to it (no file written if <=0)
-    xdata::UnsignedLong runNumber_;           // run number to be obtained from TA
-    xdata::Boolean      isBookedRunNumber_;    // whether or not this run number was booked in the database
-    xdata::String       runStartTime_;        // run start time to be included in the file name
-    xdata::String       runType_;             // run type to be included in the file name
+    xdata::String       pathToDataOutFile_;   ///< the path to the file to write the data into (no file written if "")
+    xdata::UnsignedLong fileSizeInMegaBytes_; ///< when the file size exceeds this, no more events will be written to it (no file written if <=0)
+    xdata::UnsignedLong runNumber_;           ///< run number to be obtained from EmuTA
+    xdata::Boolean      isBookedRunNumber_;   ///< whether or not this run number was booked in the database, to be obtained from EmuTA
+    xdata::String       runStartTime_;        ///< run start time to be included in the file name, to be obtained from EmuTA
+    xdata::String       runType_;             ///< run type to be included in the file name
 
 
     /**
@@ -494,14 +496,19 @@ private:
     )
     throw (xgi::exception::Exception);
 
+  /// Serializes xdata scalar into std::string.
     string serializableScalarToString(xdata::Serializable *s);
 
+  /// Serializes xdata unsigned long into std::string.
     string serializableUnsignedLongToString(xdata::Serializable *s);
 
+  /// Serializes xdata double into std::string.
     string serializableDoubleToString(xdata::Serializable *s);
 
+  /// Serializes xdata string into std::string.
     string serializableStringToString(xdata::Serializable *s);
 
+  /// Serializes xdata boolean into std::string.
     string serializableBooleanToString(xdata::Serializable *s);
 
     /**
