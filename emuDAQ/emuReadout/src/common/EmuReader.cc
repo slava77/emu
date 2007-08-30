@@ -6,10 +6,8 @@ int EmuReader::readNextEvent(){
   else                    theNumberOfReadBytes = readDCC( theBuffer );
   if ( theDebugMode ) std::cout << " theNumberOfReadBytes " << theNumberOfReadBytes << std::endl;
   if ( theNumberOfReadBytes<=7 ) {
-    theErrorCount++;      
     return theNumberOfReadBytes;
   }
-  theErrorCount = 0;
   // get this CPU hog out of here:    delete buf2;
   // new and delete: ~400s/10^9 on a 2.4GHz Pentium 4 !!!
   return theNumberOfReadBytes;
