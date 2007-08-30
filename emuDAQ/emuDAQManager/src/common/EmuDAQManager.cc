@@ -4039,12 +4039,14 @@ void EmuDAQManager::exportParams(xdata::InfoSpace *s)
   s->fireItemAvailable( "globalMode",  &globalMode_  );
   s->fireItemAvailable( "configuredInGlobalMode",  &configuredInGlobalMode_  );
 
+  postToELog_   = true;
   curlCommand_  = "curl";
   curlCookies_  = ".curlCookies";
   CMSUserFile_  = "";
   eLogUserFile_ = "";
   eLogURL_      = "";
 
+  s->fireItemAvailable( "postToELog",   &postToELog_   );
   s->fireItemAvailable( "curlCommand",  &curlCommand_  );
   s->fireItemAvailable( "curlCookies", 	&curlCookies_  );
   s->fireItemAvailable( "CMSUserFile", 	&CMSUserFile_  );
@@ -5007,7 +5009,7 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
     htmlMessageToELog << "</td></tr></table>";
 
 
-    if ( toELog ){
+    if ( toELog && postToELog_.value_ ){
       vector<string> attachments;
       for ( unsigned int i=0; i<peripheralCrateConfigFiles_.elements(); ++i ){
 	xdata::String* f = dynamic_cast<xdata::String*>(peripheralCrateConfigFiles_.elementAt(i));

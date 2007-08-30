@@ -243,6 +243,7 @@ private:
   string globalRunNumber_; // The global run number entered by the user.
   bool   badRun_;          // User's judgement on the run.
 
+  xdata::Boolean postToELog_;         // whether or not to post to e-log
   xdata::String curlCommand_;         // the curl command's full path
   xdata::String curlCookies_;         // file for cookies
   xdata::String CMSUserFile_;         // file that contains the username:password for CMS user
