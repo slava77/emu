@@ -567,6 +567,8 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 	step_counter_ = 0;
 
 	try {
+		state_table_.refresh();
+
 		try {
 			if (state_table_.getState("EmuDAQManager", 0) == "Configured") {
 				sendCommand("Halt", "EmuDAQManager");
@@ -579,6 +581,8 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		if (state_table_.getState("LTCControl", 0) != "Halted") {
 			sendCommand("Halt", "LTCControl");
 		}
+
+		state_table_.refresh();
 
 		string str = trim(getCrateConfig("PC", run_type_.toString()));
 		if (!str.empty()) {
@@ -637,6 +641,8 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 			<< " runnumber: " << run_number_ << " nevents: " << nevents_);
 
 	try {
+		state_table_.refresh();
+
 		sendCommand("Enable", "EmuFCrate");
 		if (!isCalibrationMode()) {
 			sendCommand("Enable", "EmuPeripheralCrate");
@@ -653,8 +659,14 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 			sendCommand("Enable", "EmuDAQManager");
 		} catch (xcept::Exception ignored) {}
 
-		sendCommand("Enable", "TTCciControl");
-		sendCommand("Enable", "LTCControl");
+		state_table_.refresh();
+
+		if (state_table_.getState("TTCciControl", 0) != "Enabled") {
+			sendCommand("Enable", "TTCciControl");
+		}
+		if (state_table_.getState("TTCciControl", 0) != "Enabled") {
+			sendCommand("Enable", "LTCControl");
+		}
 		sendCommandWithAttr("Cyclic", stop_attr, "LTCControl");
 
 		refreshConfigParameters();
@@ -681,8 +693,14 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference evt)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
 
 	try {
-		sendCommand("Halt", "LTCControl");
-		sendCommand("Halt", "TTCciControl");
+		state_table_.refresh();
+
+		if (state_table_.getState("LTCControl", 0) != "Halted") {
+			sendCommand("Halt", "LTCControl");
+		}
+		if (state_table_.getState("TTCciControl", 0) != "Halted") {
+			sendCommand("Halt", "TTCciControl");
+		}
 
 		try {
 			sendCommand("Halt", "EmuDAQManager");
@@ -714,8 +732,14 @@ void CSCSupervisor::haltAction(toolbox::Event::Reference evt)
 	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
 
 	try {
-		sendCommand("Halt", "LTCControl");
-		sendCommand("Halt", "TTCciControl");
+		state_table_.refresh();
+
+		if (state_table_.getState("LTCControl", 0) != "Halted") {
+			sendCommand("Halt", "LTCControl");
+		}
+		if (state_table_.getState("TTCciControl", 0) != "Halted") {
+			sendCommand("Halt", "TTCciControl");
+		}
 		sendCommand("Halt", "EmuFCrate");
 		sendCommand("Halt", "EmuPeripheralCrateManager");
 		sendCommand("Halt", "EmuPeripheralCrate");
