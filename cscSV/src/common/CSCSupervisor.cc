@@ -570,7 +570,7 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		state_table_.refresh();
 
 		try {
-			if (state_table_.getState("EmuDAQManager", 0) == "Configured") {
+			if (state_table_.getState("EmuDAQManager", 0) != "Halted") {
 				sendCommand("Halt", "EmuDAQManager");
 			}
 		} catch (xcept::Exception ignored) {}
