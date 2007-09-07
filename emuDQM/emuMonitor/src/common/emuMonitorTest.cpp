@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
                 if (histofile.rfind("/") != string::npos)
                         histofile.erase(0, histofile.rfind("/")+1);
                 plotsdir = histofile;
-                plotsdir = plotsdir.replace(plotsdir.find(".root"), 4, ".plots");
+                plotsdir = plotsdir.replace(plotsdir.find(".root"), 5, ".plots");
 		plotter.loadFromROOTFile(datafile);
 		plotter.saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight);
 		return 0;
