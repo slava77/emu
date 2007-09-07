@@ -83,6 +83,11 @@ int main(int argc, char **argv) {
 
 	if (datafile.find(".root") != string::npos) {
 		LOG4CPLUS_WARN (logger, "Load MEs from ROOT file " << datafile);
+		histofile = datafile;
+                if (histofile.rfind("/") != string::npos)
+                        histofile.erase(0, histofile.rfind("/")+1);
+                plotsdir = histofile;
+                plotsdir = plotsdir.replace(plotsdir.find(".root"), 4, ".plots");
 		plotter.loadFromROOTFile(datafile);
 		plotter.saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight);
 		return 0;
