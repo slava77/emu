@@ -43,11 +43,14 @@ int main(int argc, char **argv) {
 	uint32_t startEvent = 0;
 	string datafile = "";
   	string histofile = "dqm_results.root";
-	string plotsdir = "images";
+	string plotsdir = "images";	// Output images path
+	string imgFormat = "png"; 	// Output image format
+	uint32_t imgWidth = 1200;	// Output image width
+	uint32_t imgHeight = 900;	// Putput image height
         // EmuFileReader ddu; //( inputDeviceName_.toString(), inputDataFormatInt_ );
 	// FileReaderDDU ddu;
 	uint32_t dduCheckMask=0xFFFFDFFF;
-        uint32_t binCheckMask=0xF7FB7BF6;
+        uint32_t binCheckMask=0xF7FB3BF6;
 	// int binCheckMask=0xFFFFFFFF;
 	// int dduCheckMask = 0x0;
 //	int binCheckMask = 0x0;
@@ -78,6 +81,12 @@ int main(int argc, char **argv) {
                 histofile = histofile.replace(histofile.find(".raw"), 4, ".root");
         }
 
+	if (datafile.find(".root") != string::npos) {
+		LOG4CPLUS_WARN (logger, "Load MEs from ROOT file " << datafile);
+		plotter.loadFromROOTFile(datafile);
+		plotter.saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight);
+		return 0;
+	}
 
 	plotter.setHistoFile(histofile.c_str());	
 	if (dduCheckMask >= 0) {
@@ -134,7 +143,7 @@ int main(int argc, char **argv) {
 	LOG4CPLUS_WARN (logger, "Events: " << i << " Rate: " << (i/(t1-t0)) << " Events/sec" );
 //	plotter.saveToROOTFile(histofile.c_str());
 //	plotter.saveImages("images", "png" , 1600, 1200);
-	plotter.saveCanvasImages(plotsdir.c_str(), "png" , 1200, 900);
+	plotter.saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight);
 	plotter.saveToROOTFile(histofile.c_str());
 	ddu.close();
 

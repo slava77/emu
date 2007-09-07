@@ -55,6 +55,7 @@
 #include <TDirectory.h>
 #include <TString.h>
 #include <TCanvas.h>
+#include <TKey.h>
 
 // == DDU Bin Examiner
 #include "dduBinExaminer.hh"
@@ -82,6 +83,7 @@ public:
 
   // === Book Histograms
   void book();
+  int loadFromROOTFile(string rootfile, bool fReset=true);
 
   ME_List bookChamber(int chamberID);
   ME_List bookCommon(int nodeNumber);
