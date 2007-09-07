@@ -43,7 +43,7 @@ Sources=\
 #	EmuBinCheck.cc 
 
 
-Executables = emuMonitorTest.cpp makePlots.cc
+Executables = emuMonitorTest.cpp 
 #EmuMonitorTest.cpp MonitorTest.cpp
 
 TestLibraries = xerces-c
