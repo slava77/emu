@@ -31,6 +31,7 @@ Sources=\
 	EmuPlotter_bookCanvases.cc \
 	EmuPlotter_loadXMLBookingInfo.cc \
 	EmuPlotter_loadXMLCanvasesInfo.cc \
+	EmuPlotter_loadFromROOTFile.cc \
 	EmuPlotter_processEvent.cc \
 	EmuPlotter_processChamber.cc \
 	EmuPlotter_saveImages.cc \
@@ -42,7 +43,7 @@ Sources=\
 #	EmuBinCheck.cc 
 
 
-Executables = emuMonitorTest.cpp
+Executables = emuMonitorTest.cpp makePlots.cc
 #EmuMonitorTest.cpp MonitorTest.cpp
 
 TestLibraries = xerces-c
