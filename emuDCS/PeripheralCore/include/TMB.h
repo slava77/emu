@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.30 2007/08/22 13:39:11 rakness Exp $
+// $Id: TMB.h,v 3.31 2007/09/11 11:30:09 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.31  2007/09/11 11:30:09  rakness
+// document TMB counters
+//
 // Revision 3.30  2007/08/22 13:39:11  rakness
 // add distrip hotchannel mask to xml file
 //
@@ -315,7 +318,6 @@ public:
   void init_alct(int choice);
   void load_cscid();
   void DiStripHCMask(int);
-  void PrintCounters(int counter=-1);
   // should have bx window coded in.  See trgmode.
   void lvl1_delay(unsigned short int time);
   void alct_vpf_delay(unsigned short int time);
@@ -325,7 +327,6 @@ public:
   void reset();
   //void scan_rx_clock();
   void trgmode(int choice);
-  void ResetCounters();
   void SetALCTPatternTrigger();
   void SetCLCTPatternTrigger();
   //
@@ -410,15 +411,21 @@ public:
   //
   void ResetRAMAddress();
   void ResetALCTRAMAddress();
-  int  GetCounter(int);
-  std::string CounterName(int);
-  void GetCounters();
+  //
+  // TMB counters
+  void ResetCounters();                 /// reset TMB counters
+  void GetCounters();                   /// read TMB counters, fill values in software
+  int  GetCounter(int counter);         /// return counter value
+  void PrintCounters(int counter=-1);   /// print counter value (-1 means print all)
+  std::string CounterName(int counter); /// return counter label
+  //
   void FireALCTInjector();
   void FireCLCTInjector();
   void ClearALCTInjector();
   void ClearCLCTInjector();
   void ClearScintillatorVeto();
   int  TestArray();
+  //
   int  TMBCRCcalc(std::vector< std::bitset<16> >& datain );
   std::bitset<22> calCRC22(const std::vector< std::bitset<16> >& datain);
   std::bitset<22> nextCRC22_D16(const std::bitset<16>& D, const std::bitset<22>& C);
