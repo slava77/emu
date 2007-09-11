@@ -159,6 +159,7 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     xgi::bind(this,&EmuPeripheralCrate::FindLv1aDelayALCT, "FindLv1aDelayALCT");
     xgi::bind(this,&EmuPeripheralCrate::CFEBTiming, "CFEBTiming");
     xgi::bind(this,&EmuPeripheralCrate::CFEBScan, "CFEBScan");
+    xgi::bind(this,&EmuPeripheralCrate::FindDistripHotChannel, "FindDistripHotChannel");
     xgi::bind(this,&EmuPeripheralCrate::CalibrationRuns, "CalibrationRuns");
     xgi::bind(this,&EmuPeripheralCrate::TMBStartTrigger, "TMBStartTrigger");
     xgi::bind(this,&EmuPeripheralCrate::EnableL1aRequest, "EnableL1aRequest");
@@ -3897,6 +3898,16 @@ const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
     *out << "------------------------------------------------------------------" << std::endl;
     *out << cgicc::pre();
     //
+    std::string FindDistripHotChannel = 
+      toolbox::toString("/%s/FindDistripHotChannel",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",FindDistripHotChannel) << std::endl ;
+    sprintf(buf,"%d",tmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+    sprintf(buf,"%d",dmb);
+    *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+    *out << cgicc::input().set("type","submit").set("value","Find CLCT distrip hot channels") << std::endl ;
+    *out << cgicc::form() << std::endl ;
+    //
     std::string ALCTScan =
       toolbox::toString("/%s/ALCTScan",getApplicationDescriptor()->getURN().c_str());
     *out << cgicc::form().set("method","GET").set("action",ALCTScan) << std::endl ;
@@ -4430,6 +4441,43 @@ void EmuPeripheralCrate::ALCTvpf(xgi::Input * in, xgi::Output * out )
     //
   }
   //
+void EmuPeripheralCrate::FindDistripHotChannel(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cout << "Find CLCT Distrip Hot Channels" << endl;
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  int tmb, dmb;
+  //
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  if (name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    cout << "FindDistripHotChannel:  TMB " << tmb << endl;
+    TMB_ = tmb;
+  } else {
+    cout << "FindDistripHotChannel:  No tmb" << endl;
+  }
+  //
+  name = cgi.getElement("dmb");
+  //
+  if (name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    cout << "FindDistripHotChannel:  DMB " << dmb << endl;
+    DMB_ = dmb;
+  } else {
+    cout << "FindDistripHotChannel:  No dmb" << endl;
+  }
+  //
+  MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
+  MyTest[tmb].FindDistripHotChannels();
+  MyTest[tmb].RedirectOutput(&std::cout);
+  //
+  this->ChamberTests(in,out);
+  //
+}
+//
 void EmuPeripheralCrate::FindWinner(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception)
 {
