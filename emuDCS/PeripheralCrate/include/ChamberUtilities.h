@@ -69,8 +69,9 @@ public:
   int  FindALCT_L1A_delay(int min_delay, int max_delay);
   //
   // scans to check functionality of electronics
+  void ALCTChamberScan();  
   void CFEBChamberScan();
-  void ALCTChamberScan();
+  void FindDistripHotChannels();
   //
   // useful peripheral crate functions
   void InitSystem();

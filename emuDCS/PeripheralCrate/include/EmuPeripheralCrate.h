@@ -290,6 +290,7 @@ private:
   void ALCTvpf(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ALCTScan(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CFEBScan(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void FindDistripHotChannel(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void FindWinner(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void AlctDavCableDelay(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TmbLctCableDelay(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.37 2007/08/24 16:06:55 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.38 2007/09/11 11:34:30 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.38  2007/09/11 11:34:30  rakness
+// Find Distrip Hot Channels
+//
 // Revision 3.37  2007/08/24 16:06:55  rakness
 // make synchronization with pulsing more robust/combine ALCT+TMB L1A delay determination into one method
 //
@@ -2468,6 +2471,201 @@ void ChamberUtilities::CFEBChamberScan(){
   thisTMB->WriteRegister(layer_trg_mode_adr);
   //
   comparing_with_clct_ = false;
+  //
+  thisTMB->RedirectOutput(MyOutput_);
+  thisDMB->RedirectOutput(MyOutput_);
+  thisCCB_->RedirectOutput(MyOutput_);
+  thisMPC->RedirectOutput(MyOutput_);
+  //
+  return;
+}
+//
+void ChamberUtilities::FindDistripHotChannels(){
+  //
+  if (debug_) {
+    std::cout << "**************************" << std::endl;
+    std::cout << "Find Distrip Hot Channels:" << std::endl;
+    std::cout << "**************************" << std::endl;
+  }
+  //
+  (*MyOutput_) << "**************************" << std::endl;
+  (*MyOutput_) << "Find Distrip Hot Channels:" << std::endl;
+  (*MyOutput_) << "**************************" << std::endl;
+  //
+  // if a chamber whose HV is OFF is firing one time per orbit, call it too noisy:
+  const float maximum_allowed_rate = 11223;  
+  //
+  // maximum fraction any one CLCT distrip is allowed to contribute to the rate, if it above, it is deemed HOT:
+  const float maximum_contribution = 0.1;
+  //
+  // number of microseconds we spend on each distrip to determine if it is hot
+  const int usec_wait = 500000;
+  //
+  const int number_of_layers = 6;
+  const int number_of_distrips_per_layer = 40;
+  //
+  // send output to std::cout except for the essential information 
+  thisTMB->RedirectOutput(&std::cout);
+  thisDMB->RedirectOutput(&std::cout);
+  thisCCB_->RedirectOutput(&std::cout);
+  thisMPC->RedirectOutput(&std::cout);
+  //
+  // Set up for this test...
+  // Get initial values:
+  int initial_clct_pretrig_enable           = thisTMB->GetClctPatternTrigEnable();    //0x68
+  int initial_clct_halfstrip_pretrig_thresh = thisTMB->GetHsPretrigThresh();          //0x70
+  int initial_layer_trig_enable             = thisTMB->GetEnableLayerTrigger();       //0xf0
+  int initial_ignore_ccb_startstop          = thisTMB->GetIgnoreCcbStartStop();       //0x2c
+  //
+  int initial_hot_channel_mask[number_of_layers][number_of_distrips_per_layer];
+  for (int layer=0; layer<number_of_layers; layer++) 
+    for (int distrip=0; distrip<number_of_distrips_per_layer; distrip++) 
+      initial_hot_channel_mask[layer][distrip] = thisTMB->GetDistripHotChannelMask(layer,distrip);
+  //
+  int hot_channel_mask[number_of_layers][number_of_distrips_per_layer];
+  //
+  // Enable this TMB for this test
+  // We want CLCT to pretrigger on single 1/2-strips to be able to find which (single) distrip is hot:
+  thisTMB->SetClctPatternTrigEnable(1);
+  thisTMB->WriteRegister(seq_trig_en_adr);
+  //
+  thisTMB->SetHsPretrigThresh(1);
+  thisTMB->WriteRegister(seq_clct_adr);
+  //
+  thisTMB->SetEnableLayerTrigger(0);
+  thisTMB->WriteRegister(layer_trg_mode_adr);
+  //
+  // Start the TMB triggering ourselves:
+  thisTMB->SetIgnoreCcbStartStop(0);
+  thisTMB->WriteRegister(ccb_trig_adr);
+  //
+  thisTMB->StartTTC();
+  ::sleep(1);
+  //
+  // First establish the baseline:
+  //
+  //turn all distrips on
+  for (int layer=0; layer<number_of_layers; layer++) {
+    for (int distrip=0; distrip<number_of_distrips_per_layer; distrip++) {
+      hot_channel_mask[layer][distrip] = 1;
+      thisTMB->SetDistripHotChannelMask(layer,distrip,hot_channel_mask[layer][distrip]);     
+    }
+  }
+  thisTMB->WriteDistripHotChannelMasks();
+  ::usleep(10);
+  //
+  if (debug_) std::cout << "With all distrips ON..." << std::endl;
+  thisTMB->ResetCounters();
+  ::usleep(usec_wait);
+  thisTMB->GetCounters();
+  //
+  int clct_pretrigger_counts = thisTMB->GetCounter(4);
+  if (debug_) std::cout << "---> CLCT pretrigger rate = " << clct_pretrigger_counts << std::endl;
+  float clct_pretrigger_rate = ( ((float) clct_pretrigger_counts) / ((float) usec_wait) ) * 1000000.;  // rate in Hz
+  //
+  if (clct_pretrigger_rate < maximum_allowed_rate) {
+    (*MyOutput_) << "CLCT pretrigger rate = " << clct_pretrigger_rate << " less than " << maximum_allowed_rate 
+		 << ", so no hot channels necessary for this chamber..." << std::endl;    
+    if (debug_) 
+      std::cout << "CLCT pretrigger rate = " << clct_pretrigger_rate << " less than " << maximum_allowed_rate 
+		<< ", so no hot channels necessary for this chamber..." << std::endl;    
+    return;
+  }
+  //
+  // go through each distrip and measure the rate on each one...
+  for (int layer_test=0; layer_test<number_of_layers; layer_test++) {
+    for (int distrip_test=0; distrip_test<number_of_distrips_per_layer; distrip_test++) {
+      //
+      if (debug_) 
+	std::cout << "HotChannelMask:  Checking (layer,distrip) = " << layer_test << "," << distrip_test << ")" << std::endl;
+      //
+      int working_hot_channel_mask[number_of_layers][number_of_distrips_per_layer];
+      //
+      for (int layer=0; layer<number_of_layers; layer++) {
+	for (int distrip=0; distrip<number_of_distrips_per_layer; distrip++) {
+	  //
+	  if (layer==layer_test && distrip==distrip_test) {
+	    working_hot_channel_mask[layer][distrip] = 1;
+	  } else {
+	    working_hot_channel_mask[layer][distrip] = 0;
+	  }
+	  thisTMB->SetDistripHotChannelMask(layer,distrip,working_hot_channel_mask[layer][distrip]);     
+	}
+      }
+      thisTMB->WriteDistripHotChannelMasks();
+      ::usleep(10);
+      //
+      thisTMB->ResetCounters();
+      ::usleep(usec_wait);
+      thisTMB->GetCounters();
+      //
+      clct_pretrigger_counts = thisTMB->GetCounter(4);
+      if (debug_) std::cout << "---> CLCT pretrigger rate = " << clct_pretrigger_counts << std::endl;
+      //
+      clct_pretrigger_rate = ( ((float) clct_pretrigger_counts) / ((float) usec_wait) ) * 1000000.;  // rate in Hz
+      //
+      if (clct_pretrigger_rate > maximum_contribution*maximum_allowed_rate) {
+	hot_channel_mask[layer_test][distrip_test] = 0;
+	(*MyOutput_) << "Distrip Hot Channel Mask:  Masking off (layer,channel) = (" 
+		     << layer_test << "," << distrip_test << ")" << std::endl;
+	if (debug_) 
+	  std::cout << "Distrip Hot Channel Mask:  Masking off (layer,channel) = (" 
+		    << layer_test << "," << distrip_test << ")" << std::endl;
+      } else {
+	hot_channel_mask[layer_test][distrip_test] = 1;
+      }
+    }
+  }
+  //
+  // print out the results:
+  //
+  for (int layer=0; layer<number_of_layers; layer++) {
+    char print_hot_channel_mask[number_of_distrips_per_layer/8];
+    thisTMB->packCharBuffer(hot_channel_mask[layer],
+			    number_of_distrips_per_layer,
+			    print_hot_channel_mask);
+    //
+    int char_counter = number_of_distrips_per_layer/8 - 1;
+    //
+    (*MyOutput_) << "layer" << std::dec << layer << "_distrip_hot_channel_mask=\"";    
+    if (debug_) std::cout << "layer" << std::dec << layer << "_distrip_hot_channel_mask=\"";    
+    //
+    for (int layer_counter=number_of_distrips_per_layer/8; layer_counter>0; layer_counter--) {
+      (*MyOutput_) << std::hex
+		   << ((print_hot_channel_mask[char_counter] >> 4) & 0xf) 
+		   << (print_hot_channel_mask[char_counter] & 0xf);
+
+      if (debug_) {
+	std::cout << std::hex
+		  << ((print_hot_channel_mask[char_counter] >> 4) & 0xf) 
+		  << (print_hot_channel_mask[char_counter] & 0xf);
+      }
+      //
+      char_counter--;
+    }
+    (*MyOutput_) << "\"" << std::endl;
+    if (debug_) std::cout << "\"" << std::endl;
+  }
+  //
+  // return to initial values:
+  thisTMB->SetClctPatternTrigEnable(initial_clct_pretrig_enable);
+  thisTMB->WriteRegister(seq_trig_en_adr);
+  //
+  thisTMB->SetHsPretrigThresh(initial_clct_halfstrip_pretrig_thresh);
+  thisTMB->WriteRegister(seq_clct_adr);
+  //
+  thisTMB->SetIgnoreCcbStartStop(initial_ignore_ccb_startstop);
+  thisTMB->WriteRegister(ccb_trig_adr);
+  //
+  thisTMB->SetEnableLayerTrigger(initial_layer_trig_enable);
+  thisTMB->WriteRegister(layer_trg_mode_adr);
+  //
+  for (int layer=0; layer<number_of_layers; layer++) {
+    for (int distrip=0; distrip<number_of_distrips_per_layer; distrip++) {
+      thisTMB->SetDistripHotChannelMask(layer,distrip,initial_hot_channel_mask[layer][distrip]);     
+    }
+  }
+  thisTMB->WriteDistripHotChannelMasks();
   //
   thisTMB->RedirectOutput(MyOutput_);
   thisDMB->RedirectOutput(MyOutput_);
