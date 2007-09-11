@@ -7,5 +7,5 @@
 #define MAXEVENT_3 75601
 #define TAILMEM 100
 #define TAILPOS  80
-#define SKB_EXTRA 14
+#define SKB_EXTRA 10
 #define SKB_OFFSET -14
