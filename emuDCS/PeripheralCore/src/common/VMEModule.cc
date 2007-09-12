@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.10 2007/05/17 18:49:44 liu Exp $
+// $Id: VMEModule.cc,v 3.11 2007/09/12 16:02:00 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.11  2007/09/12 16:02:00  liu
+// remove log4cplus dependency
+//
 // Revision 3.10  2007/05/17 18:49:44  liu
 // svfload update
 //
@@ -912,3 +915,19 @@ void VMEModule::Parse(char *buf,int *Count,char **Word)
 }
 
 
+void VMEModule::SendOutput(std::string Output, std::string MessageType){
+  //
+  if(MessageType=="INFO") 
+    {
+    std::cout << "INFO INFO BEGIN" << endl 
+              << Output << endl
+              << "INFO INFO END" << endl; 
+    }
+  if(MessageType=="ERROR")
+    {
+    std::cout << "ERROR ERROR BEGIN" << endl 
+              << Output << endl
+              << "ERROR ERROR END" << endl; 
+    }
+  //
+}

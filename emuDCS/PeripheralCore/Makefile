@@ -31,11 +31,9 @@ Sources=\
 	VMEModule.cc \
 	Chamber.cc \
 	EMUjtag.cc \
-	EmuSystem.cc \
-	EmuModule.cc
+	EmuSystem.cc
 
-IncludeDirs = \
-        $(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include
+IncludeDirs = 
 
 LibraryDirs = 
 

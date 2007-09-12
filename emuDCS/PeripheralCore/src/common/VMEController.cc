@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.14 2007/08/28 20:38:04 liu Exp $
+// $Id: VMEController.cc,v 3.15 2007/09/12 16:02:14 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.15  2007/09/12 16:02:14  liu
+// remove log4cplus dependency
+//
 // Revision 3.14  2007/08/28 20:38:04  liu
 // remove compiler warnings
 //
@@ -238,7 +241,8 @@ void VMEController::init(string ipAddr, int port) {
 
 void VMEController::init() {
   //
-  SendOutput("VMEController : Init()","INFO");
+  // SendOutput("VMEController : Init()","INFO");
+  cout << "VMEController : Init()" << endl;
   //
   theSocket=do_schar(1); // register a new schar device
   //
