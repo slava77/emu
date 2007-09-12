@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.11 2007/08/28 20:37:13 liu Exp $
+// $Id: VMEController.h,v 3.12 2007/09/12 16:01:47 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 3.12  2007/09/12 16:01:47  liu
+// remove log4cplus dependency
+//
 // Revision 3.11  2007/08/28 20:37:13  liu
 // remove compiler warnings
 //
@@ -121,7 +124,6 @@ using namespace std;
 #include <vector>
 #include <string>
 #include <iostream>
-// class VMEModule;
 // class Crate;
 #include "JTAG_constants.h"
 #include <string>
@@ -130,9 +132,8 @@ using namespace std;
 #include <time.h>
 #include <sys/time.h>
 
-#include "EmuModule.h"
 
-class VMEController : public EmuModule
+class VMEController
 {
 public:
   VMEController(int crate);

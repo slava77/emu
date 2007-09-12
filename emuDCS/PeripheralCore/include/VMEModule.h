@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 3.3 2006/11/15 16:01:36 mey Exp $
+// $Id: VMEModule.h,v 3.4 2007/09/12 16:01:36 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 3.4  2007/09/12 16:01:36  liu
+// remove log4cplus dependency
+//
 // Revision 3.3  2006/11/15 16:01:36  mey
 // Cleaning up code
 //
@@ -79,16 +82,14 @@
 #define VMEModule_h
 
 #include "Crate.h"
-#include "EmuModule.h"
 
 class VMEController;
 class Chamber;
 class Crate;
-class EmuModule;
 
 #include "JTAG_constants.h"
 
-class VMEModule : public EmuModule
+class VMEModule
 {
 public:
   enum {MAXLINE = 70000};
@@ -144,6 +145,7 @@ protected:
   void InitJTAG(int port);
   void CloseJTAG();
   void SetupJtag();
+  void SendOutput(std::string,std::string = "INFO");
   
   Crate * theCrate_;
   VMEController * theController;
