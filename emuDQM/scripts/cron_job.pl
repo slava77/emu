@@ -8,7 +8,7 @@ my $SOURCE  = "/net/data/dqm/";
 #my $REMOTE_SOURCE = "/data/cscdaq";
 my $REMOTE_SOURCE = "/net/data/local";
 #my $EMUDQM  = "perl /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/scripts/EmuDQM.pl ./ /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/emuMonitor/src/linux/x86/emuMonitorTest.exe /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/scripts/drawAll.C"; 
-my $EMUDQM  = "perl /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/scripts/EmuDQM.pl ./ /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/emuMonitor/src/linux/x86/emuMonitorTest.exe"; 
+my $EMUDQM  = "perl /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/scripts/_EmuDQM.pl ./ /home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/emuMonitor/src/linux/x86/emuMonitorTest.exe"; 
 
 die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/DAQ/plots/\nget tree_runs.js tree_runs.js\nget runs_list.js runs_list.js\n\" | $CADAVER $WEB >> cron_job.log");
 
@@ -140,7 +140,7 @@ foreach my $run ( keys %local_runs_todo ){
 	die "Copying file" if( -f "$SOURCE/*.copying" );
 	#print "Processing Local Run: $run\n";
 	die "Another unfinisged process" if ( -d "./scratch/" );
-	if( system("mkdir -p ./scratch && cd ./scratch && for i in $local_runs_todo{$run}; do ln -s \$i; done && $EMUDQM && find . -name '*.log' -exec gzip {} \\; && find . -name '*.root' -exec cp {} $SOURCE/logs \\; && find . -name '*.log.gz' -exec cp {} $SOURCE/logs \\; && cd ../ && rm -rf ./scratch && echo rm -f $local_runs_todo{$run} > /dev/null") ){
+	if( system("mkdir -p ./scratch && cd ./scratch && for i in $local_runs_todo{$run}; do ln -s \$i; done && $EMUDQM && find . -name '*.log' -exec gzip {} \\; && for i in `find . -name '*.root'` ; do cp \$i $SOURCE/logs ; echo -e \"cd /cms-csc/DQM/DAQ/plots/\nput \$i\n\" | ~/bin/cadaver https://cms-csc.web.cern.ch:444/cms-csc/ ; done && find . -name '*.log.gz' -exec cp {} $SOURCE/logs \\; && cd ../ && echo rm -rf ./scratch && echo rm -f $local_runs_todo{$run} > /dev/null") ){
 		#system("rm -rf ./scratch");
 		die "Can't process $run";
 	}

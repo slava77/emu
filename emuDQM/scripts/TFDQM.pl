@@ -5,10 +5,8 @@ use strict;
 my $TF_DATA_FOLDER = $ARGV[0];
 my $TF_DQM_EXEC    = $ARGV[1];
 my $TF_ROOT_MACRO  = $ARGV[2];
-my $CADAVER          = "~/bin/cadaver"; 
-#my $CADAVER          = "/home/slice/kotov/cadaver-0.22.3/cadaver";
-my $WEB              = "https://cms-csc.web.cern.ch:444/cms-csc/"; 
-#my $WEB              = "https://test-emu-dqm.webtest.cern.ch:444/test-emu-dqm";
+my $CADAVER          = undef;
+my $WEB              = "https://cms-csc.web.cern.ch:444/cms-csc/";
 
 # Read content of the target derictory - analog of `/bin/find . -type f`
 sub scan_dir {
@@ -48,18 +46,18 @@ foreach my $file ( grep { $_=~/\.raw$/ } scan_dir($TF_DATA_FOLDER) ){
 	} split(/\/*\.?\/+/,$file);
 }
 
-# Generate DQM plots 
+# Generate DQM plots
 my %runs = combine_parts(grep { $_=~/\.raw$/ } scan_dir($TF_DATA_FOLDER));
 
-# Generate and upload DQM plots 
-foreach my $run ( keys %runs ) { 
+# Generate and upload DQM plots
+foreach my $run ( keys %runs ) {
 	# Generate root file
 	die "Can't run test" if system("$TF_DQM_EXEC $runs{$run} > qqq.log\n");
 	# Prepare local files/folders
 	$TF_DATA_FOLDER =~ s/\./\\./g;
 	$run =~ s/$TF_DATA_FOLDER//g;
 	$run =~ s/^\/*//g;
-	my $basename = $run; 
+	my $basename = $run;
 	my $dirname  = $run;
 	$basename =~ s/.*\///g;
 	$dirname  =~ s/$basename//g;
@@ -72,7 +70,7 @@ foreach my $run ( keys %runs ) {
 	die "Can't convert plots" if system("root.exe -b $TF_ROOT_MACRO'(\"$run.root\")' >> $run.log");
 	#  Perform actual uploading (.png and .html files only)
 	my %content;
-	map {  
+	map {
 		my $folder = $_;
 		$folder =~ s/(.*\/).*/$1/g;
 		my $file = $_;
@@ -93,7 +91,11 @@ foreach my $run ( keys %runs ) {
 	}
 	#$cadaver_script .= "ls\nquit\n";
 
-	die "Can't upload plots" if system("echo -e \"$cadaver_script\" | $CADAVER $WEB >> $run.log");
+	if(defined $CADAVER){
+		die "Can't upload plots" if system("echo -e \"$cadaver_script\" | $CADAVER $WEB >> $run.log");
+	} else {
+		die "Can't create cadaver script" if system("echo -e \"$cadaver_script\" > $run.cadaver");
+	}
 
 	# Generate navigation
 	my %layout;
@@ -143,17 +145,20 @@ foreach my $run ( keys %runs ) {
 	$entry =~ s/,\]/\]/g;
 	$entry =~ s/,,/,/g; #cheap solution
 
-	#die "Can't run cadaver" if system("echo -e \"cd /test-emu-dqm/SliceTest/TrackFinder/plots/\nget tree_runs.js\nquit\n\" | $CADAVER $WEB >> $run.log");
-	die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/TrackFinder/plots/\nget tree_runs.js tree_runs.js\n\" | $CADAVER $WEB >> $run.log");
+	if(defined $CADAVER){
+		die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/TrackFinder/plots/\nget tree_runs.js tree_runs.js\n\" | $CADAVER $WEB >> $run.log");
+	}
 
-	open (TREE_RUNS, "< tree_runs.js") or die("Can't open tree_runs.js");
-	my @list = <TREE_RUNS>;
-	close (TREE_RUNS);
+	my @list;
+	if( open (TREE_RUNS, "< tree_runs.js") ){
+		@list = <TREE_RUNS>;
+		close (TREE_RUNS);
+	}
 
-	open (TREE_RUNS, "> tree_runs.js") or die("Can't open tree_runs.js");
+	open (TREE_RUNS, "> tree_runs.js") or die("Can't write to tree_runs.js");
 	if( scalar(@list)==0 ){
-		print TREE_RUNS "var RUNS = [\n"; 
-		$entry =~ s/,$//g; 
+		print TREE_RUNS "var RUNS = [\n";
+		$entry =~ s/,$//g;
 		print TREE_RUNS $entry."\n];";
 	} else {
 		for my $row (0..$#list){
@@ -163,6 +168,7 @@ foreach my $run ( keys %runs ) {
 	}
 	close (TREE_RUNS);
 
-	#die "Can't run cadaver" if system("echo -e \"cd /test-emu-dqm/SliceTest/TrackFinder/plots/\nput tree_runs.js\nquit\n\" | $CADAVER $WEB >> $run.log");
-	die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/TrackFinder/plots/\nput tree_runs.js\n\" | $CADAVER $WEB >> $run.log");
+	if(defined $CADAVER){
+		die "Can't run cadaver" if system("echo -e \"cd /cms-csc/DQM/TrackFinder/plots/\nput tree_runs.js\n\" | $CADAVER $WEB >> $run.log");
+	}
 }

@@ -45,38 +45,46 @@ if( parent.type != 0 ){
 
 	if( parent.type=="links.png" || parent.type=="csc.png" ){
 		for(var station=0; station<RUNS[run][sp][1].length; station++){
-			layout[folder+'/'+RUNS[run][sp][0]+'/'+RUNS[run][sp][1][station][0]+'/'+type] = '350x250+'+(station%2+1)+'+'+parseInt(station/2+1);
+			layout[folder+'/'+RUNS[run][sp][0]+'/'+RUNS[run][sp][1][station][0]+'/'+type] = '300x250+'+(station%2+1)+'+'+parseInt(station/2+1);
 		}
 	} 
 
 	if( parent.type=="dt_data{1,2}.png" ){
-		layout[folder+'/'+RUNS[run][sp][0]+'/dt_data1.png'] = '350x250+1+1';
-		layout[folder+'/'+RUNS[run][sp][0]+'/dt_data2.png'] = '350x250+1+2';
+		layout[folder+'/'+RUNS[run][sp][0]+'/dt_data1.png'] = '300x250+1+1';
+		layout[folder+'/'+RUNS[run][sp][0]+'/dt_data2.png'] = '300x250+1+2';
 	}
 
 	if( parent.type=="EventRecordHeader.png" ){
-		layout[folder+'/'+RUNS[run][sp][0]+'/EventRecordHeader.png'] = '700x400+1+1';
+		layout[folder+'/'+RUNS[run][sp][0]+'/EventRecordHeader.png'] = '600x500+1+1';
 	}
 
 	if( parent.type=="DataBlockHeader{1,2}.png" ){
-		layout[folder+'/'+RUNS[run][sp][0]+'/DataBlockHeader1.png'] = '350x250+1+1';
-		layout[folder+'/'+RUNS[run][sp][0]+'/DataBlockHeader2.png'] = '350x250+1+2';
+		layout[folder+'/'+RUNS[run][sp][0]+'/DataBlockHeader1.png'] = '300x250+1+1';
+		layout[folder+'/'+RUNS[run][sp][0]+'/DataBlockHeader2.png'] = '300x250+1+2';
 	}
 
 	if( parent.type=="rate.png" ){
-		layout[folder+'/'+RUNS[run][sp][0]+'/rate.png'] = '700x400+1+1';
+		layout[folder+'/'+RUNS[run][sp][0]+'/rate.png'] = '600x500+1+1';
 	}
 
 	if( parent.type=="tracks.png" ){
-		layout[folder+'/'+RUNS[run][sp][0]+'/tracks.png'] = '700x400+1+1';
+		layout[folder+'/'+RUNS[run][sp][0]+'/tracks.png'] = '600x500+1+1';
 	}
 
 	if( parent.type=="timing.png" ){
-		layout[folder+'/'+RUNS[run][sp][0]+'/timing.png'] = '700x400+1+1';
+		layout[folder+'/'+RUNS[run][sp][0]+'/timing.png'] = '600x500+1+1';
 	}
 
 	if( parent.type=="summary.html" ){
 		parent.frames[1].location = folder+'/summary.html';
+	}
+
+	if( parent.type=="DDU_status.png" ){
+		layout[folder+'/DDU_status.png'] = '600x500+1+1';
+	}
+
+	if( parent.type=="integrity.png" ){
+		layout[folder+'/integrity.png'] = '600x500+1+1';
 	}
 
 	view(layout);
