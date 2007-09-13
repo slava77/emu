@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.20 2007/09/13 14:07:21 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.21 2007/09/13 20:22:09 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1001,7 +1001,7 @@ using namespace std;
     if (!broadcastCrate) {
       cout <<" Broadcast crate has not been defined yet"<<endl;
       MyController = new EmuController();
-      MyController->SetConfFile("/home/cscpro/config/pc/broadcast.xml");
+      MyController->SetConfFile("/nfshome0/cscpro/config/pc/broadcast.xml");
       MyController->init();
       CrateSelector selector = MyController->selector();
       vector<Crate *> tmpcrate=selector.broadcast_crate();
@@ -1088,7 +1088,7 @@ using namespace std;
     if (!broadcastCrate) {
       cout <<" Broadcast crate has not been defined yet"<<endl;
       MyController = new EmuController();
-      MyController->SetConfFile("/home/cscpro/config/pc/broadcast.xml");
+      MyController->SetConfFile("/nfshome0/cscpro/config/pc/broadcast.xml");
       MyController->init();
       CrateSelector selector = MyController->selector();
       vector<Crate *> tmpcrate=selector.broadcast_crate();
@@ -1139,7 +1139,7 @@ using namespace std;
     dword[0]=0;
     char *outp=(char *)dword;
     cout <<" Loading all the DMB's Controller FPGAs firmware ..."<<endl;
-    broadcastDMB->epromload(MPROM,"/home/cscpro/firmware/dmb/dmb6cntl_pro.svf",1,outp);
+    broadcastDMB->epromload(MPROM,"/nfshome0/cscpro/firmware/dmb/dmb6cntl_pro.svf",1,outp);
     in=NULL;
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
@@ -1156,14 +1156,14 @@ using namespace std;
     PCsendCommand("ReadVmePromUserid","EmuPeripheralCrate");
 
     cout <<" Step 2: Broadcast programming the VME until the 'loading USERCODE' point"<<endl;
-    broadcastDMB->epromload_broadcast(VPROM,"/home/cscpro/firmware/dmb/dmb6vme_pro.svf",1,outp,1);
+    broadcastDMB->epromload_broadcast(VPROM,"/nfshome0/cscpro/firmware/dmb/dmb6vme_pro.svf",1,outp,1);
 
     cout <<" Step 3: Sending SOAP message to program PROM_USERCODE"<<endl;
     //SOAP message to individual crates to program the PROM_USERCODE
     PCsendCommand("LoadVmePromUserid","EmuPeripheralCrate");
 
     cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
-    broadcastDMB->epromload_broadcast(VPROM,"/home/cscpro/firmware/dmb/dmb6vme_pro.svf",1,outp,3);
+    broadcastDMB->epromload_broadcast(VPROM,"/nfshome0/cscpro/firmware/dmb/dmb6vme_pro.svf",1,outp,3);
 
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
@@ -1180,14 +1180,14 @@ using namespace std;
     PCsendCommand("ReadCfebPromUserid","EmuPeripheralCrate");
 
     cout <<" Step 2: Broadcast programming the CFEB until the 'loading USERCODE' point"<<endl;
-    broadcastDMB->epromload_broadcast(FAPROM,"/home/cscpro/firmware/cfeb/cfeb_pro.svf",1,outp,1);
+    broadcastDMB->epromload_broadcast(FAPROM,"/nfshome0/cscpro/firmware/cfeb/cfeb_pro.svf",1,outp,1);
 
     cout <<" Step 3: Sending SOAP message to program CFEB PROM_USERCODE"<<endl;
     //SOAP message to individual crates to program the CFEB PROM_USERCODE
     PCsendCommand("LoadCfebPromUserid","EmuPeripheralCrate");
 
     cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
-    broadcastDMB->epromload_broadcast(FAPROM,"/home/cscpro/firmware/cfeb/cfeb_pro.svf",1,outp,3);
+    broadcastDMB->epromload_broadcast(FAPROM,"/nfshome0/cscpro/firmware/cfeb/cfeb_pro.svf",1,outp,3);
 
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
@@ -1411,7 +1411,7 @@ using namespace std;
     if (!broadcastCrate) {
       cout <<" Broadcast crate has not been defined yet"<<endl;
       MyController = new EmuController();
-      MyController->SetConfFile("/home/cscpro/config/pc/broadcast.xml");
+      MyController->SetConfFile("/nfshome0/cscpro/config/pc/broadcast.xml");
       MyController->init();
       CrateSelector selector = MyController->selector();
       vector<Crate *> tmpcrate=selector.broadcast_crate();
