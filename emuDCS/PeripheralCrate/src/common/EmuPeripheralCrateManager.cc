@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.19 2007/08/28 21:56:58 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.20 2007/09/13 14:07:21 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -55,6 +55,10 @@ using namespace std;
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryLTC, "SendSOAPMessageQueryLTC");
     xgi::bind(this,&EmuPeripheralCrateManager::SendSOAPMessageQueryLTC, "SendSOAPMessageQueryJobControl");
     xgi::bind(this,&EmuPeripheralCrateManager::CheckEmuPeripheralCrateCalibrationState, "CheckEmuPeripheralCrateCalibrationState");
+    xgi::bind(this,&EmuPeripheralCrateManager::LoadCFEBcalchannel, "LoadCFEBcalchannel");
+    xgi::bind(this,&EmuPeripheralCrateManager::LoadDACandTrigger, "LoadDACandTrigger");
+    xgi::bind(this,&EmuPeripheralCrateManager::LoadCFEBinternal, "LoadCFEBinternal");
+    xgi::bind(this,&EmuPeripheralCrateManager::LoadCFEBexternal, "LoadCFEBexternal");
     xgi::bind(this,&EmuPeripheralCrateManager::LoadDMBCFEBFPGAFirmware, "LoadDMBCFEBFPGAFirmware");
     xgi::bind(this,&EmuPeripheralCrateManager::LoadDMBControlFPGAFirmware, "LoadDMBControlFPGAFirmware");
     xgi::bind(this,&EmuPeripheralCrateManager::LoadDMBvmeFPGAFirmware, "LoadDMBvmeFPGAFirmware");
@@ -399,6 +403,15 @@ using namespace std;
     *out << cgicc::input().set("type","submit")
       .set("value","!!!      BroadCast Load DMB/CFEB FPGA Firmware      !!!") << std::endl ;
     *out << cgicc::form();
+
+    std::string LoadCFEBchannel =
+      toolbox::toString("/%s/LoadCFEBcalchannel",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",LoadCFEBchannel) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","-----   Load CFEB Buckeye Patterns for Calibration    -----") << std::endl ;
+    *out << cgicc::form();
+
     //
     /*
     std::string methodSOAPMessageOpenFile =
@@ -980,6 +993,93 @@ using namespace std;
     //
   }
   //
+  void EmuPeripheralCrateManager::LoadCFEBcalchannel(xgi::Input * in, xgi::Output * out ){
+
+    MyHeader(in,out,"Load CFEB buckeye channels, broadcast !!!");
+
+    //define broadcast crate and board, if not defined before
+    if (!broadcastCrate) {
+      cout <<" Broadcast crate has not been defined yet"<<endl;
+      MyController = new EmuController();
+      MyController->SetConfFile("/home/cscpro/config/pc/broadcast.xml");
+      MyController->init();
+      CrateSelector selector = MyController->selector();
+      vector<Crate *> tmpcrate=selector.broadcast_crate();
+      broadcastCrate=tmpcrate[0];
+      broadcastDMB=selector.daqmbs(tmpcrate[0])[0];
+      broadcastTMB=selector.tmbs(tmpcrate[0])[0];
+    }
+    cout <<" Broadcast Crate and DMB are defined "<<endl;
+
+    // load the DAQMB Controller FPGA firmware
+    
+    cout <<" Buckeye shift channels......"<<endl;
+
+    *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
+
+    std::string LoadDACandTrigger =
+      toolbox::toString("/%s/LoadDACandTrigger",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",LoadDACandTrigger) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Load the DAC to 1V, and trigger to DMB-->LCT, LTC-->L1A") << std::endl ;
+    *out << cgicc::form()<<std::endl;
+    std::string LoadCFEBinternal =
+      toolbox::toString("/%s/LoadCFEBinternal",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",LoadCFEBinternal) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Load Buckeye half-strip pattern 8") << std::endl ;
+    *out << cgicc::form()<<std::endl;
+    std::string LoadCFEBexternal =
+      toolbox::toString("/%s/LoadCFEBexternal",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",LoadCFEBexternal) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","Load Buckeye external channel 8") << std::endl ;
+    *out << cgicc::form()<<std::endl;
+
+    *out << cgicc::fieldset()<<std::endl;
+    //
+  }
+  //
+  void EmuPeripheralCrateManager::LoadCFEBinternal(xgi::Input * in, xgi::Output * out )  {
+
+    // load the DAQMB Controller FPGA firmware
+    unsigned short int dword[2];
+    dword[0]=0;
+    char *outp=(char *)dword;
+    cout <<" Loading all Buckeye half-strip pattern 8 ..."<<endl;
+    broadcastDMB->buck_shift_comp_bc(8);
+    in=NULL;
+    this->LoadCFEBcalchannel(in, out);
+  }
+  //
+  void EmuPeripheralCrateManager::LoadCFEBexternal(xgi::Input * in, xgi::Output * out )  {
+
+    // load the DAQMB Controller FPGA firmware
+    unsigned short int dword[2];
+    dword[0]=0;
+    char *outp=(char *)dword;
+    cout <<" Loading all Buckeye external pattern 8 ..."<<endl;
+    broadcastDMB->buck_shift_ext_bc(8);
+    in=NULL;
+    this->LoadCFEBcalchannel(in, out);
+  }
+  //
+  void EmuPeripheralCrateManager::LoadDACandTrigger(xgi::Input * in, xgi::Output * out )  {
+
+    // load the DAQMB Controller FPGA firmware
+    unsigned short int dword[2];
+    dword[0]=0;
+    char *outp=(char *)dword;
+    cout <<" Loading all Buckeye external pattern 8 ..."<<endl;
+    broadcastDMB->set_cal_dac(1.0,1.0);
+    broadcastDMB->settrgsrc(1);
+    in=NULL;
+    this->LoadCFEBcalchannel(in, out);
+  }
+  //
   void EmuPeripheralCrateManager::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out ){
 
     MyHeader(in,out,"Load DAQMB/CFEB FPGA Firmware,  Be extra careful    !!!");
@@ -988,7 +1088,7 @@ using namespace std;
     if (!broadcastCrate) {
       cout <<" Broadcast crate has not been defined yet"<<endl;
       MyController = new EmuController();
-      MyController->SetConfFile("$HOME/config/pc/broadcast.xml");
+      MyController->SetConfFile("/home/cscpro/config/pc/broadcast.xml");
       MyController->init();
       CrateSelector selector = MyController->selector();
       vector<Crate *> tmpcrate=selector.broadcast_crate();
@@ -1039,7 +1139,7 @@ using namespace std;
     dword[0]=0;
     char *outp=(char *)dword;
     cout <<" Loading all the DMB's Controller FPGAs firmware ..."<<endl;
-    broadcastDMB->epromload(MPROM,"$HOME/firmware/dmb/dmb6cntl_pro.svf",1,outp);
+    broadcastDMB->epromload(MPROM,"/home/cscpro/firmware/dmb/dmb6cntl_pro.svf",1,outp);
     in=NULL;
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
@@ -1056,14 +1156,14 @@ using namespace std;
     PCsendCommand("ReadVmePromUserid","EmuPeripheralCrate");
 
     cout <<" Step 2: Broadcast programming the VME until the 'loading USERCODE' point"<<endl;
-    broadcastDMB->epromload_broadcast(VPROM,"$HOME/firmware/dmb/dmb6vme_pro.svf",1,outp,1);
+    broadcastDMB->epromload_broadcast(VPROM,"/home/cscpro/firmware/dmb/dmb6vme_pro.svf",1,outp,1);
 
     cout <<" Step 3: Sending SOAP message to program PROM_USERCODE"<<endl;
     //SOAP message to individual crates to program the PROM_USERCODE
     PCsendCommand("LoadVmePromUserid","EmuPeripheralCrate");
 
     cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
-    broadcastDMB->epromload_broadcast(VPROM,"$HOME/firmware/dmb/dmb6vme_pro.svf",1,outp,3);
+    broadcastDMB->epromload_broadcast(VPROM,"/home/cscpro/firmware/dmb/dmb6vme_pro.svf",1,outp,3);
 
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
@@ -1080,14 +1180,14 @@ using namespace std;
     PCsendCommand("ReadCfebPromUserid","EmuPeripheralCrate");
 
     cout <<" Step 2: Broadcast programming the CFEB until the 'loading USERCODE' point"<<endl;
-    broadcastDMB->epromload_broadcast(FAPROM,"$HOME/firmware/cfeb/cfeb_pro.svf",1,outp,1);
+    broadcastDMB->epromload_broadcast(FAPROM,"/home/cscpro/firmware/cfeb/cfeb_pro.svf",1,outp,1);
 
     cout <<" Step 3: Sending SOAP message to program CFEB PROM_USERCODE"<<endl;
     //SOAP message to individual crates to program the CFEB PROM_USERCODE
     PCsendCommand("LoadCfebPromUserid","EmuPeripheralCrate");
 
     cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
-    broadcastDMB->epromload_broadcast(FAPROM,"$HOME/firmware/cfeb/cfeb_pro.svf",1,outp,3);
+    broadcastDMB->epromload_broadcast(FAPROM,"/home/cscpro/firmware/cfeb/cfeb_pro.svf",1,outp,3);
 
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
@@ -1311,7 +1411,7 @@ using namespace std;
     if (!broadcastCrate) {
       cout <<" Broadcast crate has not been defined yet"<<endl;
       MyController = new EmuController();
-      MyController->SetConfFile("$HOME/config/pc/broadcast.xml");
+      MyController->SetConfFile("/home/cscpro/config/pc/broadcast.xml");
       MyController->init();
       CrateSelector selector = MyController->selector();
       vector<Crate *> tmpcrate=selector.broadcast_crate();
