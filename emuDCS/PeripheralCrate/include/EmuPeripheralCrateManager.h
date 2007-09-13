@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.33 2007/07/05 19:04:21 gujh Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.34 2007/09/13 14:08:24 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -86,6 +86,10 @@ public:
   void AddRow(int Row,xdata::Table & table, std::vector<std::string> NewColumn);
   int CompareEmuPeripheralCrateState(std::string state_compare);
   void CheckEmuPeripheralCrateCalibrationState(xgi::Input * in, xgi::Output * out );
+  void LoadCFEBcalchannel(xgi::Input * in, xgi::Output * out );
+  void LoadCFEBinternal(xgi::Input * in, xgi::Output * out );
+  void LoadCFEBexternal(xgi::Input * in, xgi::Output * out );
+  void LoadDACandTrigger(xgi::Input * in, xgi::Output * out );
   void LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out );
   void LoadDMBControlFPGAFirmware(xgi::Input * in, xgi::Output * out );
   void LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::Output * out ) throw(xgi::exception::Exception);
