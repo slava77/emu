@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.34 2007/09/13 14:08:24 gujh Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.35 2007/09/14 15:36:07 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -89,6 +89,8 @@ public:
   void LoadCFEBcalchannel(xgi::Input * in, xgi::Output * out );
   void LoadCFEBinternal(xgi::Input * in, xgi::Output * out );
   void LoadCFEBexternal(xgi::Input * in, xgi::Output * out );
+  void DmbTurnOnPower(xgi::Input * in, xgi::Output * out );
+  void DmbTurnOffPower(xgi::Input * in, xgi::Output * out );
   void LoadDACandTrigger(xgi::Input * in, xgi::Output * out );
   void LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out );
   void LoadDMBControlFPGAFirmware(xgi::Input * in, xgi::Output * out );
