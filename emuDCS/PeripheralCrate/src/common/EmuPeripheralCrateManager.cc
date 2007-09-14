@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.21 2007/09/13 20:22:09 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.22 2007/09/14 15:37:28 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -59,6 +59,8 @@ using namespace std;
     xgi::bind(this,&EmuPeripheralCrateManager::LoadDACandTrigger, "LoadDACandTrigger");
     xgi::bind(this,&EmuPeripheralCrateManager::LoadCFEBinternal, "LoadCFEBinternal");
     xgi::bind(this,&EmuPeripheralCrateManager::LoadCFEBexternal, "LoadCFEBexternal");
+    xgi::bind(this,&EmuPeripheralCrateManager::DmbTurnOnPower, "DmbTurnOnPower");
+    xgi::bind(this,&EmuPeripheralCrateManager::DmbTurnOffPower, "DmbTurnOffPower");
     xgi::bind(this,&EmuPeripheralCrateManager::LoadDMBCFEBFPGAFirmware, "LoadDMBCFEBFPGAFirmware");
     xgi::bind(this,&EmuPeripheralCrateManager::LoadDMBControlFPGAFirmware, "LoadDMBControlFPGAFirmware");
     xgi::bind(this,&EmuPeripheralCrateManager::LoadDMBvmeFPGAFirmware, "LoadDMBvmeFPGAFirmware");
@@ -410,6 +412,22 @@ using namespace std;
     *out << cgicc::form().set("method","GET").set("action",LoadCFEBchannel) << std::endl ;
     *out << cgicc::input().set("type","submit")
       .set("value","-----   Load CFEB Buckeye Patterns for Calibration    -----") << std::endl ;
+    *out << cgicc::form();
+
+    std::string DmbTurnOnPower =
+      toolbox::toString("/%s/DmbTurnOnPower",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",DmbTurnOnPower) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","-----  Broadcast Turn ON On-chamber electronics power -----") << std::endl ;
+    *out << cgicc::form();
+
+    std::string DmbTurnOffPower =
+      toolbox::toString("/%s/DmbTurnOffPower",getApplicationDescriptor()->getURN().c_str());
+    //
+    *out << cgicc::form().set("method","GET").set("action",DmbTurnOffPower) << std::endl ;
+    *out << cgicc::input().set("type","submit")
+      .set("value","-----  Broadcast Turn OFF On-chamber electronics power ----") << std::endl ;
     *out << cgicc::form();
 
     //
@@ -1132,6 +1150,52 @@ using namespace std;
 
   }
   //
+  void EmuPeripheralCrateManager::DmbTurnOnPower(xgi::Input * in, xgi::Output * out )  {
+
+    //define broadcast crate and board, if not defined before
+    if (!broadcastCrate) {
+      cout <<" Broadcast crate has not been defined yet"<<endl;
+      MyController = new EmuController();
+      MyController->SetConfFile("/nfshome0/cscpro/config/pc/broadcast.xml");
+      MyController->init();
+      CrateSelector selector = MyController->selector();
+      vector<Crate *> tmpcrate=selector.broadcast_crate();
+      broadcastCrate=tmpcrate[0];
+      broadcastDMB=selector.daqmbs(tmpcrate[0])[0];
+      broadcastTMB=selector.tmbs(tmpcrate[0])[0];
+    }
+    cout <<" Broadcast Crate and DMB are defined "<<endl;
+
+    cout <<" Broadcast to turn ON the On-chamber electronics power ..."<<endl;
+    broadcastDMB->lowv_onoff(0x3f);
+    in=NULL;
+    this->Default(in, out);
+  }
+  //
+
+  void EmuPeripheralCrateManager::DmbTurnOffPower(xgi::Input * in, xgi::Output * out )  {
+
+    //define broadcast crate and board, if not defined before
+    if (!broadcastCrate) {
+      cout <<" Broadcast crate has not been defined yet"<<endl;
+      MyController = new EmuController();
+      MyController->SetConfFile("/nfshome0/cscpro/config/pc/broadcast.xml");
+      MyController->init();
+      CrateSelector selector = MyController->selector();
+      vector<Crate *> tmpcrate=selector.broadcast_crate();
+      broadcastCrate=tmpcrate[0];
+      broadcastDMB=selector.daqmbs(tmpcrate[0])[0];
+      broadcastTMB=selector.tmbs(tmpcrate[0])[0];
+    }
+    cout <<" Broadcast Crate and DMB are defined "<<endl;
+
+    cout <<" Broadcast to turn ON the On-chamber electronics power ..."<<endl;
+    broadcastDMB->lowv_onoff(0x00);
+    in=NULL;
+    this->Default(in, out);
+  }
+  //
+
   void EmuPeripheralCrateManager::LoadDMBControlFPGAFirmware(xgi::Input * in, xgi::Output * out )  {
 
     // load the DAQMB Controller FPGA firmware
