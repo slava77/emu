@@ -200,8 +200,10 @@ void *IRQThread::IRQ_Interrupt_Handler(void *data)
 			CAENVME_ReadCycle(BHandle,Address,Data,AM,DW);
 			status = ( (Data[1]<<8)&0xff00 ) | (Data[0]&0xff);
 			if (!status) {
-				sprintf(buf," ** EmuFEDVME, Crate %01d:  Reset detected, clearing old IRQ data...\n ",locdata->crate_number);
+				sprintf(buf," ** EmuFEDVME, Crate %01d:  RESET detected, clearing old IRQ data...\n ",locdata->crate_number);
 				LOG4CPLUS_ERROR(logger,buf);
+				sprintf(buf," ErrorData RESET Detected");
+				LOG4CPLUS_ERROR(logger,buf << endl);
 
 				locdata->count=0;
 				locdata->count_fmm=0;
