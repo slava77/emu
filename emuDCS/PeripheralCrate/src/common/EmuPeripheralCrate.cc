@@ -4256,7 +4256,7 @@ void EmuPeripheralCrate::Automatic(xgi::Input * in, xgi::Output * out )
       //MyTest.SetCCB(thisCCB);
       //
       MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-      MyTest[tmb].FindTMB_L1A_delay(150,165);
+      MyTest[tmb].FindTMB_L1A_delay(100,200);
       MyTest[tmb].RedirectOutput(&std::cout);
       //
       this->ChamberTests(in,out);
@@ -4304,7 +4304,7 @@ void EmuPeripheralCrate::Automatic(xgi::Input * in, xgi::Output * out )
     //MyTest.SetCCB(thisCCB);
     //
     MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-    MyTest[tmb].FindALCT_L1A_delay(155,170);
+    MyTest[tmb].FindALCT_L1A_delay(100,170);
     MyTest[tmb].RedirectOutput(&std::cout);
     //
     this->ChamberTests(in,out);
