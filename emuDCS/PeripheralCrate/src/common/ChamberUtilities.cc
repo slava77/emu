@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.38 2007/09/11 11:34:30 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.39 2007/09/26 08:42:48 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.39  2007/09/26 08:42:48  rakness
+// open scan windows to find L1A from different sources, slightly re-order ::automatic() to make DAV cable delay scan more robust by finding L1A windows first
+//
 // Revision 3.38  2007/09/11 11:34:30  rakness
 // Find Distrip Hot Channels
 //
@@ -316,7 +319,7 @@ ChamberUtilities::ChamberUtilities(){
   // ranges over which to analyze DMB histograms
   ScopeMin_        = 0;
   ScopeMax_        = 4;
-  AffToL1aValueMin_= 100;
+  AffToL1aValueMin_= 50;
   AffToL1aValueMax_= 160;
   CfebDavValueMin_ = 0;
   CfebDavValueMax_ = 10;
@@ -1033,17 +1036,26 @@ void ChamberUtilities::RpcRatDelayScan(int rpc) {
 //----------------------------------------------
 void ChamberUtilities::Automatic(){
   //
+  // First receive the L1A correctly so that the Raw hits readout works:
+  if (FindTMB_L1A_delay(100,200) < 0 ) return;
+  //
+  // Center the ALCT in the CLCT match window:
   if (FindALCTinCLCTMatchWindow(100) < 0) return;
   //
+  // Since mpc_tx_delay is set, we can now determine mpc_rx_delay:
   if (FindWinner() < 0) return;
   //
-  if (MeasureAlctDavCableDelay() < 0) return;
-  //
+  // Now receive the L1A for the CFEB:
   if (MeasureTmbLctCableDelay() < 0) return;
   //
+  // Since we are getting the L1A for the CFEB, we can determine its DAV timing:
   if (MeasureCfebDavCableDelay() < 0) return;
   //
+  // Receive the L1A for the TMB and the ALCT:
   if (FindTmbAndAlctL1aDelay() < 0) return;
+  //
+  // Since we are getting the L1A for the ALCT, we can determine its DAV timing:
+  if (MeasureAlctDavCableDelay() < 0) return;
   //
   std::cout << "Finished successfully" << std::endl;
   //
@@ -1327,7 +1339,7 @@ int ChamberUtilities::FindWinner(){
     //
     thisTMB->ResetCounters();
     //
-    ::sleep(5);
+    ::sleep(1);
     //
     thisTMB->GetCounters();
     number_of_mpc_accepted[delay_value] = thisTMB->GetCounter(16);
@@ -1655,12 +1667,13 @@ int ChamberUtilities::MeasureTmbLctCableDelay() {
   const int HistoMax   = AffToL1aValueMax_;
   int Histo[8][256];                          //Total range available:  counter is 8 bits long
   //
-  int desired_value = 147;                   // this is the value we want the counter to be...
+  //  int desired_value = 147;                   // this is the value we want the counter to be...
+  int desired_value = 115;                   // value for xLatency = 0
   //
   // The CFEB is expecting the L1A back 147bx after the Active FEB flag arrives.
   // The ADB_SYNC pulse is 500ns long, and can induce another pulse on the strips...
   // Since the counter counts from the *most recent* AFF, we need to expect this value to be:
-  if (UsePulsing_) desired_value = 147 - 550/25;    // to agree with cosmics, this value appears better to be 550ns...
+  if (UsePulsing_) desired_value -= 550/25;    // to agree with cosmics, this value appears better to be 550ns...
   //
   (*MyOutput_) << "Desired value is " << std::dec << desired_value << std::endl;
   if (debug_) std::cout << "Desired value is " << std::dec << desired_value << std::endl;
@@ -1915,14 +1928,14 @@ int ChamberUtilities::FindTmbAndAlctL1aDelay(){
   int tmb_in_l1a_window[255] = {};
   int alct_in_l1a_window[255] = {};
   //
-  const int range = 20;
+  const int range = 100;
   //
   int tmb_delay_value;
-  const int tmb_delay_min = 145;
+  const int tmb_delay_min = 100;
   const int tmb_delay_max = tmb_delay_min + range;
   //
   int alct_delay_value;
-  const int alct_delay_min = 155;
+  const int alct_delay_min = 100;
   const int alct_delay_max = alct_delay_min + range;
   //
   //
@@ -1943,7 +1956,7 @@ int ChamberUtilities::FindTmbAndAlctL1aDelay(){
     //
     thisTMB->ResetCounters();    // reset counters
     //
-    ::sleep(5);                  // accumulate statistics
+    ::sleep(1);                  // accumulate statistics
     //
     thisTMB->GetCounters();      // read counter values
     //
@@ -2056,7 +2069,7 @@ int ChamberUtilities::FindTMB_L1A_delay(int delay_min, int delay_max ){
     //
     thisTMB->ResetCounters();    // reset counters
     //
-    ::sleep(5);                  // accumulate statistics
+    ::sleep(1);                  // accumulate statistics
     //
     thisTMB->GetCounters();      // read counter values
     //
@@ -2142,7 +2155,7 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
     //
     thisTMB->ResetCounters();
     //
-    ::sleep(5);                     //collect statistics
+    ::sleep(1);                     //collect statistics
     //
     thisTMB->GetCounters();
     //
