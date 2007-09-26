@@ -6,13 +6,18 @@ import rcms.fm.fw.parameter.*;
 import rcms.fm.fw.parameter.type.*;
 import rcms.fm.fw.StateEnteredEvent;
 import rcms.fm.resource.QualifiedGroup;
+import rcms.fm.resource.QualifiedResource;
 import rcms.stateFormat.StateNotification;
 import rcms.statemachine.definition.Input;
 
 import rcms.fm.resource.qualifiedresource.XdaqApplicationContainer;
 import rcms.fm.resource.qualifiedresource.XdaqApplication;
+import rcms.fm.resource.qualifiedresource.XdaqExecutive;
+import rcms.fm.resource.qualifiedresource.JobControl;
+import rcms.resourceservice.db.resource.xdaq.XdaqExecutiveResource;
 import rcms.xdaqctl.XDAQParameter;
 
+import java.util.List;
 import java.util.concurrent.*;
 import static java.util.concurrent.TimeUnit.*;
 
@@ -126,6 +131,28 @@ public class CSCLeadingActions extends Level1LeadingActions {
 
 		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
 				Level1Parameters.ACTION_MSG, new StringT("Initializing")));
+
+		// get a user name from the first XDAQ executive
+		QualifiedResource r = fm.getQualifiedGroup()
+				.seekQualifiedResourcesOfType(new XdaqExecutive()).get(0);
+
+		if (r != null) {
+			String user = ((XdaqExecutiveResource)r.getResource()).getUnixUser();
+
+			// clear up job controls
+			List<QualifiedResource> l = fm.getQualifiedGroup()
+					.seekQualifiedResourcesOfType(new JobControl());
+
+			for (QualifiedResource qr: l) {
+				logger.debug("killing processes of " + user);
+				JobControl jc = (JobControl)qr;
+				jc.init();
+				jc.killUser(user);
+				logger.debug("killed processes of " + user);
+			}
+		} else {
+			logger.error("initialize(): failed to get a QualifiedResource");
+		}
 
 		// Initialize the qualified group, whatever it means.
 		try {
