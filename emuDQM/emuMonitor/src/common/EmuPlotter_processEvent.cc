@@ -13,7 +13,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
   // == Check and book global node specific histos
   if (MEs.size() == 0 || ((itr = MEs.find(nodeTag)) == MEs.end())) {
-    LOG4CPLUS_INFO(logger_, " List of MEs for " << nodeTag << " not found. Booking...");
+    LOG4CPLUS_WARN(logger_, " List of MEs for " << nodeTag << " not found. Booking...");
       fBusy = true;
       MEs[nodeTag] = bookCommon(nodeNumber);
       MECanvases[nodeTag] = bookCommonCanvases(nodeNumber);
@@ -35,7 +35,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
       for (int i=0; i<16; i++) if ((errorStat>>i) & 0x1) mo->Fill(0.,i);
     }
     else {
-      LOG4CPLUS_INFO(logger_,nodeTag << " Readout Error Status is OK: 0x" << std::hex << errorStat);
+      LOG4CPLUS_DEBUG(logger_,nodeTag << " Readout Error Status is OK: 0x" << std::hex << errorStat);
     }
   }
 
@@ -44,7 +44,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   //	Binary check of the buffer
   uint32_t BinaryErrorStatus = 0, BinaryWarningStatus = 0;
   // if(check_bin_error){
-  LOG4CPLUS_INFO(logger_,nodeTag << " Start binary checking of buffer...");
+  LOG4CPLUS_DEBUG(logger_,nodeTag << " Start binary checking of buffer...");
   const uint16_t *tmp = reinterpret_cast<const uint16_t *>(data);
   if( bin_checker.check(tmp,dataSize/sizeof(short)) < 0 ){
     //   No ddu trailer found - force checker to summarize errors by adding artificial trailer
@@ -54,7 +54,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
   BinaryErrorStatus   = bin_checker.errors();
   BinaryWarningStatus = bin_checker.warnings();
-  LOG4CPLUS_INFO(logger_,nodeTag <<" Done");
+  LOG4CPLUS_DEBUG(logger_,nodeTag <<" Done");
   if(BinaryErrorStatus != 0) {
 
     LOG4CPLUS_WARN(logger_,nodeTag << " Nonzero Binary Errors Status is observed: 0x" << std::hex << BinaryErrorStatus << " mask: 0x" << binCheckMask);
@@ -67,7 +67,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
   }
   else {
-    LOG4CPLUS_INFO(logger_,nodeTag << " Binary Error Status is OK: 0x" << hex << BinaryErrorStatus);
+    LOG4CPLUS_DEBUG(logger_,nodeTag << " Binary Error Status is OK: 0x" << hex << BinaryErrorStatus);
   }
 
 
@@ -82,7 +82,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
   }
   else {
-    LOG4CPLUS_INFO(logger_,nodeTag << " Binary Warnings Status is OK: 0x" << hex << BinaryWarningStatus);
+    LOG4CPLUS_DEBUG(logger_,nodeTag << " Binary Warnings Status is OK: 0x" << hex << BinaryWarningStatus);
 
   }
 
@@ -102,7 +102,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
       mo->Fill(nEvents,1.0);
     }
     mo->SetAxisRange(0, nEvents, "X");
-    LOG4CPLUS_INFO(logger_,nodeTag << " Error checking has been done");
+    LOG4CPLUS_DEBUG(logger_,nodeTag << " Error checking has been done");
   }
 
   //	Accept or deny event
@@ -121,7 +121,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     EventDenied = true;
   }
   if(EventDenied) return;
-  else LOG4CPLUS_INFO(logger_,nodeTag << " Event is accepted");
+  else LOG4CPLUS_DEBUG(logger_,nodeTag << " Event is accepted");
 
 
 
@@ -145,7 +145,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   string dduTag = Form("DDU_%d",dduID);
 
   if (MEs.size() == 0 || ((itr = MEs.find(dduTag)) == MEs.end())) {
-    LOG4CPLUS_INFO(logger_, " List of MEs for " << dduTag << " not found. Booking...");
+    LOG4CPLUS_WARN(logger_, " List of MEs for " << dduTag << " not found. Booking...");
       fBusy = true;
       MEs[dduTag] = bookDDU(dduID);
       MECanvases[dduTag] = bookDDUCanvases(dduID);
@@ -157,11 +157,11 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
 
 
-  LOG4CPLUS_INFO(logger_,"Start unpacking " << dduTag);
+  LOG4CPLUS_DEBUG(logger_,"Start unpacking " << dduTag);
 
   // ==     Check binary Error status at DDU Trailer
   uint32_t trl_errorstat = dduTrailer.errorstat();
-  LOG4CPLUS_INFO(logger_,dduTag << " Trailer Error Status = 0x" << hex << trl_errorstat);
+  LOG4CPLUS_DEBUG(logger_,dduTag << " Trailer Error Status = 0x" << hex << trl_errorstat);
   for (int i=0; i<32; i++) {
     if ((trl_errorstat>>i) & 0x1) {
       if (isMEvalid(dduME,"Trailer_ErrorStat_Rate", mo)) { 
@@ -187,17 +187,17 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   int trl_word_count = 0;
   trl_word_count = dduTrailer.wordcount();
   if (isMEvalid(dduME, "Word_Count", mo)) mo->Fill(trl_word_count );
-  LOG4CPLUS_INFO(logger_,dduTag << " Trailer Word (64 bits) Count = " << dec << trl_word_count);
+  LOG4CPLUS_DEBUG(logger_,dduTag << " Trailer Word (64 bits) Count = " << dec << trl_word_count);
 
   // ==     DDU Header banch crossing number (BXN)
   BXN=dduHeader.bxnum();
-  LOG4CPLUS_INFO(logger_,dduTag << " DDU Header BXN Number = " << dec << BXN);
+  LOG4CPLUS_DEBUG(logger_,dduTag << " DDU Header BXN Number = " << dec << BXN);
   if (isMEvalid(dduME, "BXN", mo)) mo->Fill((double)BXN);
 
   // ==     L1A number from DDU Header
   int L1ANumber_previous_event = L1ANumber;
   L1ANumber = (int)(dduHeader.lvl1num());
-  LOG4CPLUS_INFO(logger_,dduTag << " Header L1A Number = " << dec << L1ANumber);
+  LOG4CPLUS_DEBUG(logger_,dduTag << " Header L1A Number = " << dec << L1ANumber);
   if (isMEvalid(dduME, "L1A_Increment", mo)) dduME["L1A_Increment"]->Fill(L1ANumber - L1ANumber_previous_event);
 
   if (isMEvalid(dduME, "L1A_Increment_vs_nEvents", mo)) {
@@ -232,8 +232,8 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   ddu_connected_inputs=dduHeader.live_cscs();
 
 
-  LOG4CPLUS_INFO(logger_,dduTag << " Header DMB DAV = 0x" << hex << dmb_dav_header);
-  LOG4CPLUS_INFO(logger_,dduTag << " Header Number of Active DMB = " << dec << dmb_active_header);
+  LOG4CPLUS_DEBUG(logger_,dduTag << " Header DMB DAV = 0x" << hex << dmb_dav_header);
+  LOG4CPLUS_DEBUG(logger_,dduTag << " Header Number of Active DMB = " << dec << dmb_active_header);
 
 
   double freq = 0;
@@ -287,13 +287,13 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   for(vector<CSCEventData>::iterator chamberDataItr = chamberDatas.begin(); chamberDataItr != chamberDatas.end(); ++chamberDataItr) {
     unpackedDMBcount++;
     // unpacked_dmb_cnt=unpacked_dmb_cnt+1;
-    LOG4CPLUS_INFO(logger_,
+    LOG4CPLUS_DEBUG(logger_,
 		   "Found DMB " << dec << unpackedDMBcount  << ". Run unpacking procedure...");
     processChamber(*chamberDataItr, nodeNumber, dduID);
-    LOG4CPLUS_INFO(logger_,
+    LOG4CPLUS_DEBUG(logger_,
 		   "Unpacking procedure for DMB " << dec << unpackedDMBcount << " finished");
   }
-  LOG4CPLUS_INFO(logger_,
+  LOG4CPLUS_DEBUG(logger_,
 		 "Total number of unpacked DMB = " << dec << unpackedDMBcount);
 
   if (isMEvalid(dduME,"DMB_unpacked_vs_DAV",mo)) mo->Fill(dmb_active_header, unpackedDMBcount);
@@ -328,7 +328,7 @@ void EmuPlotter::fillChamberBinCheck() {
     if (h_itr == MEs.end() || (MEs.size()==0)) {
       LOG4CPLUS_WARN(logger_,
 		     "List of Histos for " << cscTag <<  " not found");
-      LOG4CPLUS_INFO(logger_,
+      LOG4CPLUS_DEBUG(logger_,
 		     "Booking Histos for " << cscTag);
       fBusy = true;
       MEs[cscTag] = bookChamber(ChamberID);
@@ -367,7 +367,7 @@ void EmuPlotter::fillChamberBinCheck() {
     if (h_itr == MEs.end() || (MEs.size()==0)) {
       LOG4CPLUS_WARN(logger_,
 		     "List of Histos for " << cscTag <<  " not found");
-      LOG4CPLUS_INFO(logger_,
+      LOG4CPLUS_DEBUG(logger_,
 		     "Booking Histos for " << cscTag);
       fBusy = true;
       MEs[cscTag] = bookChamber(ChamberID);

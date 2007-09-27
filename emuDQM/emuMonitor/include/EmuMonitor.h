@@ -12,6 +12,7 @@
 #define _EmuMonitor_h_
 
 #include <vector>
+#include <sys/time.h>
 
 #include "xdaq.h"
 #include "xdata.h"
@@ -191,6 +192,7 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   EmuPlotter* plotter_;
   xdata::String xmlHistosBookingCfgFile_;
   xdata::String xmlCanvasesCfgFile_;
+  xdata::String cscMapFile_;
   xdata::String outputROOTFile_;
   xdata::String outputImagesPath_;
   xdata::Integer plotterSaveTimer_;
@@ -256,7 +258,12 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   // == Send this many event credits at a time
   xdata::UnsignedInteger 	nEventCredits_;
   // == Prescaling factor for data to be received
-  xdata::UnsignedInteger 	prescalingFactor_; 
+  xdata::UnsignedInteger 	prescalingFactor_;
+
+  xdata::UnsignedInteger        defEventCredits_;
+
+  xdata::UnsignedInteger        averageRate_;
+ 
 
   // == Vector of all external data servers tids
   std::set<xdaq::ApplicationDescriptor*> dataservers_;
@@ -281,9 +288,11 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   // == Web dialog state machine
   xgi::WSM wsm_;
 
+  time_t startmark;
   int sTimeout; // Timeout (in secs) waiting for plotter's busy flag to clear
   int32_t appTid_;
   bool isReadoutActive;
+  bool keepRunning;
 };
 
 #endif

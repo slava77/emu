@@ -46,20 +46,22 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   ChamberID	= (((crateID) << 4) + dmbID) & 0xFFF;
 
   LOG4CPLUS_DEBUG(logger_, "Done");
-  LOG4CPLUS_DEBUG(logger_, 
-		  "Chamber ID = "<< ChamberID << " Crate ID = "<< crateID << " DMB ID = " << dmbID);
+  //  LOG4CPLUS_DEBUG(logger_, 
+  //		  "Chamber ID = "<< ChamberID << " Crate ID = "<< crateID << " DMB ID = " << dmbID);
 
   string nodeTag(Form("EMU_%d", nodeID));
   string dduTag(Form("DDU_%d", dduID));
   string cscTag(Form("CSC_%03d_%02d", crateID, dmbID));
   nDMBEvents[cscTag]++;
+  LOG4CPLUS_INFO(logger_,
+                "Unpacking " << cscTag << " (Event: " << nDMBEvents[cscTag]<< ")");
 
   //	Creating list of histograms for the particular chamber
   map<string, ME_List >::iterator h_itr = MEs.find(cscTag);
   if (h_itr == MEs.end() || (MEs.size()==0)) {
     LOG4CPLUS_WARN(logger_,
 		   "List of Histos for " << cscTag <<  " not found");
-    LOG4CPLUS_INFO(logger_, 
+    LOG4CPLUS_DEBUG(logger_, 
 		   "Booking Histos for " << cscTag);
     fBusy = true;
     MEs[cscTag] = bookChamber(ChamberID);

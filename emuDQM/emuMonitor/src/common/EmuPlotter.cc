@@ -33,6 +33,7 @@ void EmuPlotter::setParameters()
         bin_checker.crcALCT(true);
         bin_checker.crcTMB (true);
         bin_checker.crcCFEB(true);
+	fBusy=false;
 }
 
 void EmuPlotter::clearMECollection(ME_List & collection) 
