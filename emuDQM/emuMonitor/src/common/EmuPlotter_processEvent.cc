@@ -133,7 +133,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   CSCDDUHeader dduHeader  = dduData.header();
   CSCDDUTrailer dduTrailer = dduData.trailer();
   
-  dduID = dduHeader.source_id();
+  dduID = dduHeader.source_id()&0xFF; // Only 8bits are significant; format of DDU id is Dxx
   
   if (isMEvalid(nodeME, "Source_ID", mo)) { 
 	mo->Fill(dduID%40);
