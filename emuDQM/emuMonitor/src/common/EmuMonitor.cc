@@ -85,6 +85,7 @@ void EmuMonitor::initProperties()
   outputImagesPath_ = ""; 
   xmlHistosBookingCfgFile_ = ""; 
   xmlCanvasesCfgFile_ = "";
+  cscMapFile_ = "";
   dduCheckMask_ = 0xFFFFFFFF;
   binCheckMask_ = 0xFFFFFFFF;
 
@@ -113,12 +114,16 @@ void EmuMonitor::initProperties()
   collectorID_		= 0;
   transport_            = "i2o";
   committedPoolSize_	= 0x500000; // 1Mb
-  nEventCredits_	= 1;
-  prescalingFactor_	= 100;
+  nEventCredits_	= 50;
+  defEventCredits_      = nEventCredits_;
+  prescalingFactor_	= 1;
+  averageRate_          = 0;
+
 
   useAltFileReader_	= false;
   stateName_		= "";
   fSaveROOTFile_	= false;
+  keepRunning           = false;
 
   getApplicationInfoSpace()->fireItemAvailable("totalEvents",&totalEvents_);
   getApplicationInfoSpace()->fireItemAvailable("sessionEvents",&sessionEvents_);
@@ -152,6 +157,7 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->fireItemAvailable("outputImagesPath",&outputImagesPath_);
   getApplicationInfoSpace()->fireItemAvailable("dduCheckMask",&dduCheckMask_);
   getApplicationInfoSpace()->fireItemAvailable("binCheckMask",&binCheckMask_);
+  getApplicationInfoSpace()->fireItemAvailable("cscMapFile",&cscMapFile_);
 
   getApplicationInfoSpace()->fireItemAvailable("useAltFileReader",&useAltFileReader_);
   getApplicationInfoSpace()->fireItemAvailable("stateName",&stateName_);
@@ -159,6 +165,7 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->fireItemAvailable("lastEventTime",&lastEventTime_);
   getApplicationInfoSpace()->fireItemAvailable("nDAQEvents",&nDAQEvents_);
   getApplicationInfoSpace()->fireItemAvailable("daqGroup",&daqGroup_);
+  getApplicationInfoSpace()->addItemChangedListener ("cscMapFile", this);
 
   getApplicationInfoSpace()->addItemChangedListener ("readoutMode", this);
   getApplicationInfoSpace()->addItemChangedListener ("transport", this);
@@ -417,10 +424,10 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
         {
 	  nDAQEvents_ = 0;
 	  std::set<xdaq::ApplicationDescriptor*>::iterator pos;
-           for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos) {
-	      xdata::UnsignedLong count;
-	      count.fromString(emu::dqm::getScalarParam(getApplicationContext(), (*pos),"nEventsRead","unsignedLong"));
-	      nDAQEvents_ = nDAQEvents_ + count;	
+	  for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos) {
+	    xdata::UnsignedLong count;
+	    count.fromString(emu::dqm::getScalarParam(getApplicationContext(), (*pos),"nEventsRead","unsignedLong"));
+	    nDAQEvents_ = nDAQEvents_ + count;	
           }
         }
 
@@ -469,6 +476,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
       else if ( item == "nEventCredits")
         {
           LOG4CPLUS_INFO(getApplicationLogger(), "Events Credits : " << nEventCredits_.toString());
+	  defEventCredits_=nEventCredits_;
         }
       else if ( item == "prescalingFactor")
         {
@@ -554,37 +562,37 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
 
 std::string EmuMonitor::getROOTFileName() 
 {
-   std::string histofile="dqm_results";
-   std::string path=outputROOTFile_;
-   if (path.rfind("/") != string::npos) {
-      path = path.substr(0, path.rfind("/")+1);
-   } else path="";
+  std::string histofile="dqm_results";
+  std::string path=outputROOTFile_;
+  if (path.rfind("/") != string::npos) {
+    path = path.substr(0, path.rfind("/")+1);
+  } else path="";
    
-   if (readoutMode_.toString() == "internal") {
-	if (inputDeviceName_.toString().rfind(".") != string::npos) {
-                histofile = inputDeviceName_.toString();
-                if (histofile.rfind("/") != string::npos)
-                        histofile.erase(0, histofile.rfind("/")+1);
-                if (histofile.rfind(".") != string::npos)
-                	histofile.erase(histofile.rfind("."), histofile.size());
-        }
-   }
-   if (readoutMode_.toString() == "external") {
-        if (serversClassName_.toString() != "") { 
-		std::ostringstream st;
-		st.clear();
-		st << "OnlineRun_" << runNumber_ << "_" << serversClassName_.toString();
-		std::set<xdaq::ApplicationDescriptor*>::iterator pos;
-                for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos) {
-                        st << "_" << (*pos)->getInstance();
-                }
-		histofile = st.str();
-	}
-   }
+  if (readoutMode_.toString() == "internal") {
+    if (inputDeviceName_.toString().rfind(".") != string::npos) {
+      histofile = inputDeviceName_.toString();
+      if (histofile.rfind("/") != string::npos)
+	histofile.erase(0, histofile.rfind("/")+1);
+      if (histofile.rfind(".") != string::npos)
+	histofile.erase(histofile.rfind("."), histofile.size());
+    }
+  }
+  if (readoutMode_.toString() == "external") {
+    if (serversClassName_.toString() != "") { 
+      std::ostringstream st;
+      st.clear();
+      st << "OnlineRun_" << runNumber_ << "_" << serversClassName_.toString();
+      std::set<xdaq::ApplicationDescriptor*>::iterator pos;
+      for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos) {
+	st << "_" << (*pos)->getInstance();
+      }
+      histofile = st.str();
+    }
+  }
 
    
    
-   return (path+histofile+".root");
+  return (path+histofile+".root");
 }
 
 // == Get Application Descriptors for specified Data Server class name == //
@@ -595,7 +603,7 @@ void EmuMonitor::getDataServers(xdata::String className)
       dataservers_.clear();
       if (serverTIDs_.size() > 0) {
 	std::set<xdaq::ApplicationDescriptor*> tmpdataservers_;
-//	tmpdataservers_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
+	//	tmpdataservers_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
         xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup(daqGroup_);
         tmpdataservers_  = g->getApplicationDescriptors(className.toString().c_str());
 	std::set<xdaq::ApplicationDescriptor*>::iterator pos;
@@ -610,7 +618,7 @@ void EmuMonitor::getDataServers(xdata::String className)
 	xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup(daqGroup_);
         dataservers_  = g->getApplicationDescriptors(className.toString().c_str());
 
-//	dataservers_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
+	//	dataservers_ = getApplicationContext()->getApplicationGroup()->getApplicationDescriptors(className.toString().c_str());
       }
       if (dataservers_.size() == 0) {
 	LOG4CPLUS_ERROR (getApplicationLogger(),
@@ -668,21 +676,21 @@ void EmuMonitor::ConfigureAction(toolbox::Event::Reference e) throw (toolbox::fs
 void EmuMonitor::doStop()
 {
   if (plotter_ != NULL && isReadoutActive) { 
-        if (timer_ != NULL && timer_->isActive())
-		timer_->kill();
-	if (fSaveROOTFile_ == xdata::Boolean(true)) {
-		if (timer_ != NULL) {
-			timer_->setPlotter(plotter_);
-			timer_->setROOTFileName(getROOTFileName());
-			if (plotterSaveTimer_>xdata::Integer(0)) {
-			    timer_->setTimer(plotterSaveTimer_);
-  			}
-			timer_->activate();
-
-		}
-	      
-	//	plotter_->saveToROOTFile(getROOTFileName());
+    if (timer_ != NULL && timer_->isActive())
+      timer_->kill();
+    if (fSaveROOTFile_ == xdata::Boolean(true)) {
+      if (timer_ != NULL) {
+	timer_->setPlotter(plotter_);
+	timer_->setROOTFileName(getROOTFileName());
+	if (plotterSaveTimer_>xdata::Integer(0)) {
+	  timer_->setTimer(plotterSaveTimer_);
 	}
+	timer_->activate();
+
+      }
+	      
+      //	plotter_->saveToROOTFile(getROOTFileName());
+    }
   }
   disableReadout();
   pmeter_->init(200);
@@ -695,14 +703,14 @@ void EmuMonitor::doConfigure()
   disableReadout();
   pmeter_->init(200);
   pmeterCSC_->init(200);
-   // !! EmuMonitor or EmuRUI tid?
+  // !! EmuMonitor or EmuRUI tid?
   appTid_ = i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor());
   /*
     if (xmlCfgFile_ != "" && plotter_ != NULL) plotter_->setXMLCfgFile(xmlCfgFile_.toString());
     if (plotter_ != NULL) plotter_->book(appTid_);
   */
   if (timer_ != NULL && timer_->isActive())
-                timer_->kill();
+    timer_->kill();
 
   setupPlotter();
   if (plotter_ != NULL) {
@@ -714,22 +722,22 @@ void EmuMonitor::doConfigure()
     }
     if (dduCheckMask_ >= xdata::UnsignedInteger(0)) {
       LOG4CPLUS_INFO (getApplicationLogger(),
-                      "plotter::dduCheckMask: 0x" << std::hex << dduCheckMask_.value_);
+                      "plotter::dduCheckMask: 0x" << std::hex << strtoul((dduCheckMask_.toString()).c_str(),NULL,0));
       plotter_->setDDUCheckMask(dduCheckMask_);
     }
     if (binCheckMask_ >= xdata::UnsignedInteger(0)) {
       LOG4CPLUS_INFO (getApplicationLogger(),
-                      "plotter::binCheckMask: 0x" << std::hex << binCheckMask_.value_);
+                      "plotter::binCheckMask: 0x" << std::hex << strtoul((binCheckMask_.toString()).c_str(),NULL,0));
       plotter_->setBinCheckMask(binCheckMask_);
     }
 
     plotter_->book();
   }
-/*
-  if (plotterSaveTimer_>xdata::Integer(0)) {
+  /*
+    if (plotterSaveTimer_>xdata::Integer(0)) {
     timer_->setTimer(plotterSaveTimer_);
-  }
-*/
+    }
+  */
   configureReadout();
 
 }
@@ -743,10 +751,11 @@ void  EmuMonitor::doStart()
   eventsReceived_ = 0;
   cscUnpacked_ = 0;
   runNumber_ = 0;
+  nEventCredits_ = defEventCredits_;
   //    configureReadout();
   // if (plotter_ != NULL) timer_->activate();
   if (timer_ != NULL && timer_->isActive())
-                timer_->kill();
+    timer_->kill();
   enableReadout();
   pmeter_->init(200);
   pmeterCSC_->init(200);
@@ -866,9 +875,9 @@ void EmuMonitor::printParametersTable( xgi::Output * out ) throw (xgi::exception
         *out << "<td>";
 	// =VB= !!! possible XDAQ bug: returns wrong pointer to xdata::Vector (+4 bytes offset)
         /* 
-	for (int i=0; i < reinterpret_cast<xdata::Vector<xdata::Serializable>* >((int)(itr->second)-4)->elements(); i++) {
-	  *out << reinterpret_cast<xdata::Vector<xdata::Serializable>*>((int)(itr->second)-4)->elementAt(i)->toString() << " ";
-	}
+	   for (int i=0; i < reinterpret_cast<xdata::Vector<xdata::Serializable>* >((int)(itr->second)-4)->elements(); i++) {
+	   *out << reinterpret_cast<xdata::Vector<xdata::Serializable>*>((int)(itr->second)-4)->elementAt(i)->toString() << " ";
+	   }
 	*/
 	*out << "</td>" << std::endl;
       } else {
@@ -1001,11 +1010,11 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
 
   creditsHeld_ = ((I2O_EMU_DATA_MESSAGE_FRAME*)bufRef->getDataLocation())->nEventCreditsHeld;
   if (fsm_.getCurrentState() != 'E') {
-	LOG4CPLUS_WARN(getApplicationLogger(),"Dropping received Data. Not in Enabled state.");
+    LOG4CPLUS_WARN(getApplicationLogger(),"Dropping received Data. Not in Enabled state.");
 	
-	LOG4CPLUS_WARN(getApplicationLogger(),"EmuRUI holding " << creditsHeld_ << " event credits");
-	bufRef->release();
-	return;	
+    LOG4CPLUS_WARN(getApplicationLogger(),"EmuRUI holding " << creditsHeld_ << " event credits");
+    bufRef->release();
+    return;	
   }
 
   dataMessages_.push_back( bufRef );
@@ -1033,6 +1042,18 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
   if( errorFlag==EmuFileReader::Type5 ) status |= 0x1000;
   if( errorFlag==EmuFileReader::Type6 ) status |= 0x0800;
   
+
+  if (eventsReceived_%200 == 0) {
+    time_t nowmark=time(NULL);
+    averageRate_ = eventsReceived_/(nowmark-startmark);
+    /*        LOG4CPLUS_WARN(getApplicationLogger(),
+	      "==> Average rate: " << averageRate_ << " evt/sec");
+	      LOG4CPLUS_WARN(getApplicationLogger(),
+	      "==> Current rate: " << pmeter_->rate() << " evt/sec");
+    */
+
+  }
+
  
   if (eventsReceived_%1000 == 0) { 
     LOG4CPLUS_WARN(getApplicationLogger(),
@@ -1044,6 +1065,10 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
 		   ":" << serverTID <<
 		   ", still holding " << creditsHeld_ << " event credits, " <<
 		   "pool size " << dataMessages_.size());
+    LOG4CPLUS_INFO(getApplicationLogger(),
+		   "==> Average rate: " << averageRate_ << " evt/sec");
+    LOG4CPLUS_INFO(getApplicationLogger(),
+		   "==> Current rate: " << pmeter_->rate() << " evt/sec");
   }
 
   if (status == 0) processEvent(reinterpret_cast<const char *>(startOfPayload), sizeOfPayload, status, serverTID);
@@ -1062,12 +1087,22 @@ int EmuMonitor::sendDataRequest(uint32_t last)
   std::set<xdaq::ApplicationDescriptor*>::iterator pos;
   for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos)
     {
-      uint32_t newRate = (uint32_t)(rint(pmeter_->rate()));
-      if (newRate>10) newRate=(newRate/10)*10;
-      if (newRate>nEventCredits_ && (newRate <=300)) {
-         LOG4CPLUS_WARN (getApplicationLogger(), "Adjusting nEventCredits to " << newRate);
-         nEventCredits_ = newRate;
-      };
+      if (eventsReceived_ > xdata::UnsignedInteger(1000)) {
+	uint32_t newRate = averageRate_;
+	if (newRate>10) newRate=(newRate/10)*10;
+	if ((newRate>=defEventCredits_) && (newRate <=500)) {
+	  LOG4CPLUS_WARN (getApplicationLogger(), "Adjusting nEventCredits to " << newRate);
+	  nEventCredits_ = newRate;
+	}
+      }
+      /*
+	uint32_t newRate = (uint32_t)(rint(pmeter_->rate()));
+	if (newRate>10) newRate=(newRate/10)*10;
+	if (newRate>nEventCredits_ && (newRate <=300)) {
+	LOG4CPLUS_WARN (getApplicationLogger(), "Adjusting nEventCredits to " << newRate);
+	nEventCredits_ = newRate;
+	};
+      */
       creditMsgsSent_ ++;
       eventsRequested_ = eventsRequested_ +  nEventCredits_;
       toolbox::mem::Reference * ref = 0;
@@ -1092,10 +1127,10 @@ int EmuMonitor::sendDataRequest(uint32_t last)
           frame->prescalingFactor = prescalingFactor_;
 
           ref->setDataSize(frame->PvtMessageFrame.StdMessageFrame.MessageSize << 2);
-          LOG4CPLUS_INFO (getApplicationLogger(),
-			  "Sending credit #" << creditMsgsSent_ << " to tid: " << frame->PvtMessageFrame.StdMessageFrame.TargetAddress
-			  //                                   << ". maxFrameSize=" << maxFrameSize_
-			  );
+          LOG4CPLUS_WARN(getApplicationLogger(),
+			 "Sending credit #" << creditMsgsSent_ << " to tid: " << frame->PvtMessageFrame.StdMessageFrame.TargetAddress
+			 //                                   << ". maxFrameSize=" << maxFrameSize_
+			 );
           getApplicationContext()->postFrame(ref, this->getApplicationDescriptor(), (*pos));
         }
       catch (toolbox::mem::exception::Exception & me)
@@ -1157,6 +1192,7 @@ void EmuMonitor::configureReadout()
 void EmuMonitor::enableReadout()
 {
   if (!isReadoutActive) {
+    keepRunning = true;
     this->activate();
     isReadoutActive = true;
   }
@@ -1166,7 +1202,8 @@ void EmuMonitor::enableReadout()
 void EmuMonitor::disableReadout()
 {
   if (isReadoutActive) {
-    this->kill();
+    keepRunning = false;
+    // this->kill();
     isReadoutActive = false;
   }
 }
@@ -1194,7 +1231,7 @@ void EmuMonitor::createDeviceReader()
 	if      ( inputDeviceType_ == "spy"  )
 	  deviceReader_ = new EmuSpyReader(  inputDeviceName_.toString(), inputDataFormatInt_ );
 	else if ( inputDeviceType_ == "file" )
-	    deviceReader_ = new EmuFileReader( inputDeviceName_.toString(), inputDataFormatInt_ );
+	  deviceReader_ = new EmuFileReader( inputDeviceName_.toString(), inputDataFormatInt_ );
 	// TODO: slink
 	else     LOG4CPLUS_ERROR(getApplicationLogger(),
 				 "Bad device type: " << inputDeviceType_.toString() <<
@@ -1230,35 +1267,31 @@ int EmuMonitor::svc()
   LOG4CPLUS_INFO (getApplicationLogger(), "Starting Readout loop...");
   //  return 0;
 
-  bool keepRunning = true;
+  keepRunning = true;
+  bool readValid = true;
+  startmark=time(NULL);
 
-  while(keepRunning)
+  while(keepRunning && readValid)
     {
       if ( (readoutMode_.toString() == "internal") && 
 	   ( (deviceReader_ != NULL))) 
 	{
-	    keepRunning = deviceReader_->readNextEvent();
-	  if ( !keepRunning )
+	  readValid = deviceReader_->readNextEvent();
+	  if ( !keepRunning || !readValid)
 	    {
 	      LOG4CPLUS_ERROR(getApplicationLogger(),
 			      " " << inputDataFormat_.toString() << " " << inputDeviceType_.toString() <<
 			      " " << inputDeviceName_.toString() << " read error.");
-	      // plotter_->saveToROOTFile(outputROOTFile_);
 	      if (plotter_ != NULL) {
-		//  updateList(collectorID_);
-		//updateObjects(collectorID_);
-		// plotter_->setListModified(false);
-		// plotter_->saveImages(outputImagesPath_, "png", 1200, 900);
-		// plotter_->SaveImagesFromROOTFile(outputROOTFile_, outputImagesPath_, "png", 1200, 900);
-		// disableReadout();
 		isReadoutActive = false;
-		plotter_->saveToROOTFile(getROOTFileName());
-		// plotter_->saveHistos();
-		// doStop();
+		if (fSaveROOTFile_== xdata::Boolean(true)) {
+		  plotter_->saveToROOTFile(getROOTFileName());
+                }
+
 	      }
 	    } else {
 	      uint32_t errorFlag = 0;
-		processEvent(deviceReader_->data(), deviceReader_->dataLength(), errorFlag, appTid_);
+	      processEvent(deviceReader_->data(), deviceReader_->dataLength(), errorFlag, appTid_);
 	    }
 
         }
@@ -1267,15 +1300,13 @@ int EmuMonitor::svc()
       uint32_t wait = 10000; // 10ms
       uint32_t waittime = 0;
       if (readoutMode_.toString() == "external") { 
-	// ::sleep(1);
-	// usleep(500000);
-	if (creditsHeld_> nEventCredits_) {
-	   LOG4CPLUS_WARN (getApplicationLogger(), "Waiting to clear " << creditsHeld_ << " event credits from EmuRUI");
+	if (creditsHeld_ > nEventCredits_) {
+	  LOG4CPLUS_WARN (getApplicationLogger(), "Waiting to clear " << creditsHeld_ << " event credits from EmuRUI");
         }
-	while (creditsHeld_>= nEventCredits_/2) {
-//	while (creditsHeld_> xdata::UnsignedInteger(0)) {
+	while (creditsHeld_ > nEventCredits_) {
 	  usleep(wait);
         }
+	if (eventsReceived_ > eventsRequested_) eventsRequested_=eventsReceived_;
 	while ((eventsReceived_ < eventsRequested_) && ( waittime <= timeout )) {
 	  usleep(wait);
 	  waittime += wait;
@@ -1283,29 +1314,20 @@ int EmuMonitor::svc()
 	if (waittime >= timeout) {
 	  LOG4CPLUS_WARN (getApplicationLogger(), toolbox::toString("Timeout waiting for events from server."));
 	  LOG4CPLUS_WARN (getApplicationLogger(), "Missed " << (eventsRequested_ - eventsReceived_) << " events");
-	  if ((eventsRequested_ - eventsReceived_) >= nEventCredits_) {
-		// nEventCredits_ = ((nEventCredits_-10)>1)? nEventCredits_-10: 1;		
-		continue;
-          } 
-	   if (pmeter_->rate() >0) {
-		int newRate = (int)(rint(pmeter_->rate()));
-	        if (newRate>10) newRate = (newRate/10)*10;
-		if (nEventCredits_!=xdata::UnsignedInteger(newRate) && (newRate <=300)) {
-			LOG4CPLUS_WARN (getApplicationLogger(), "Adjusting nEventCredits to " << newRate);
-			nEventCredits_ = newRate;
-		}
-	  }
+	  
+          time_t nowmark=time(NULL);
+          averageRate_ = eventsReceived_/(nowmark-startmark);
+
+          if ((eventsRequested_ - eventsReceived_) >= nEventCredits_) {
+            // nEventCredits_ = ((nEventCredits_-10)>1)? nEventCredits_-10: 1;
+            continue;
+          }
+
 	  eventsRequested_ = eventsReceived_;
-	  if (pmeter_->rate() >0) {
-		int newRate = (int)(rint(pmeter_->rate()));
-		if (nEventCredits_!=xdata::UnsignedInteger(newRate)) {
-			LOG4CPLUS_WARN (getApplicationLogger(), "Adjusting nEventCredits to " << newRate);
-		}
-		nEventCredits_ = newRate;
-	  }
+	  
 	}
 	waittime = 0;
-	usleep(200000);
+	//usleep(200000);
 	if (!pool_->isHighThresholdExceeded())
 	  {
 	    // Stop if there is an error in sending
@@ -1322,13 +1344,6 @@ int EmuMonitor::svc()
 		  LOG4CPLUS_INFO (getApplicationLogger(), "yield till low threshold reached");
 		  this->yield(1);
 		}
-		/*
-		if (pmeter_->rate()>nEventCredits_) { 
-		  int newRate = (int)(rint(pmeter_->rate()));
-		  LOG4CPLUS_WARN (getApplicationLogger(), "Adjusting nEventCredits to " << newRate);
-                  nEventCredits_ = newRate;
-		}
-		*/
 	    }
       }
     }
@@ -1427,12 +1442,12 @@ void EmuMonitor::updateList(xdata::Integer id)
   */
   try
     {
-/*
-      xdaq::ApplicationDescriptor* collectorDescriptor =
+      /*
+	xdaq::ApplicationDescriptor* collectorDescriptor =
 	getApplicationContext()
 	->getApplicationGroup()
 	->getApplicationDescriptor( collectorsClassName_, id );
-*/
+      */
       xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup("dqm");
       xdaq::ApplicationDescriptor* collectorDescriptor =        g->getApplicationDescriptor(collectorsClassName_, id);
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, collectorDescriptor);
@@ -1598,12 +1613,12 @@ void EmuMonitor::updateObjects(xdata::Integer id)
     {
       xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup("dqm");
       xdaq::ApplicationDescriptor* collectorDescriptor =        g->getApplicationDescriptor(collectorsClassName_, id);
-/*
-      xdaq::ApplicationDescriptor* collectorDescriptor =
+      /*
+	xdaq::ApplicationDescriptor* collectorDescriptor =
 	getApplicationContext()
     	->getApplicationGroup()
     	->getApplicationDescriptor( collectorsClassName_, id );
-*/
+      */
       xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, collectorDescriptor);
       /*
         cout << endl;
