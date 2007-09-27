@@ -136,8 +136,8 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   dduID = dduHeader.source_id()&0xFF; // Only 8bits are significant; format of DDU id is Dxx
   
   if (isMEvalid(nodeME, "Source_ID", mo)) { 
-	mo->Fill(dduID%40);
-	mo->getObject()->GetXaxis()->SetBinLabel(dduID%40+1, Form("%d",dduID));
+	mo->Fill(dduID);
+	mo->getObject()->GetXaxis()->SetBinLabel(dduID+1, Form("%d",dduID));
    }
 
 
