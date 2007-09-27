@@ -151,6 +151,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
       MECanvases[dduTag] = bookDDUCanvases(dduID);
       printMECollection(MEs[dduTag]);
       fBusy = false;
+     L1ANumbers[dduID] = (int)(dduHeader.lvl1num());
   }
 
   ME_List& dduME = MEs[dduTag];
@@ -195,8 +196,9 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   if (isMEvalid(dduME, "BXN", mo)) mo->Fill((double)BXN);
 
   // ==     L1A number from DDU Header
-  int L1ANumber_previous_event = L1ANumber;
-  L1ANumber = (int)(dduHeader.lvl1num());
+  int L1ANumber_previous_event = L1ANumbers[dduID];
+  L1ANumbers[dduID] = (int)(dduHeader.lvl1num());
+  L1ANumber = L1ANumbers[dduID];
   LOG4CPLUS_DEBUG(logger_,dduTag << " Header L1A Number = " << dec << L1ANumber);
   if (isMEvalid(dduME, "L1A_Increment", mo)) dduME["L1A_Increment"]->Fill(L1ANumber - L1ANumber_previous_event);
 

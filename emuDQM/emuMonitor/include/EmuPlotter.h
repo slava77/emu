@@ -163,7 +163,8 @@ private:
   MECanvases_List chamberCanvasesFactory;
   MECanvases_List commonCanvasesFactory;
 
-  map<string,int> nDMBEvents;
+  map<string,uint32_t> nDMBEvents;
+  map<uint32_t,uint32_t> L1ANumbers;
   int unpackedDMBcount;
 
   uint32_t nEvents;
