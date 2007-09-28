@@ -18,7 +18,7 @@ public:
 	/// default is all active, of course.
 	void selectSlots(vector<int> & slots) {theSelectedSlots = slots;}
 	/// PGK This shouldn't be a ref...
-	void selectCrates(vector<int> crates) {theSelectedCrates = crates;}
+	void selectCrates(vector<int> myCrates) {theSelectedCrates = myCrates;}
 	/// -1 means all slots, or else just a single slot
 	void setSlot(int slot);
 	void setSlot(string strSlot);

@@ -10,6 +10,13 @@
 #include "xoap/Method.h"  // xoap::bind()
 #include "xgi/Method.h"  // xgi::bind()
 
+// Includes added for createReply:
+#include "xoap/MessageFactory.h"  // createMessage()
+#include "xoap/SOAPPart.h"
+#include "xoap/SOAPEnvelope.h"
+#include "xoap/SOAPBody.h"
+#include "xoap/domutils.h"  // XMLCh2String()
+
 #include "cgicc/HTMLClasses.h"
 
 using namespace cgicc;
@@ -115,9 +122,70 @@ xoap::MessageReference EmuFCrate::onHalt(xoap::MessageReference message)
 xoap::MessageReference EmuFCrate::onSetTTSBits(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
+	cout << "EmuFCrate: inside onSetTTSBits" << endl;
 	fireEvent("SetTTSBits");
 
-	return createReply(message);
+	// seems to occur last...but it gives the correct readback!
+	cout << "EmuFCrate: onSetTTSBits, ttsBits_=" << ttsBits_.toString() << endl;
+	string strmess;
+	message->writeTo(strmess);
+	cout << " Message:  "<< strmess << std::endl;
+
+
+
+//	return createReply(message); // copy and modify this function here:
+	string command = "";
+
+	DOMNodeList *elements =
+			message->getSOAPPart().getEnvelope().getBody()
+			.getDOMNode()->getChildNodes();
+
+	for (unsigned int i = 0; i < elements->getLength(); i++) {
+		DOMNode *e = elements->item(i);
+		if (e->getNodeType() == DOMNode::ELEMENT_NODE) {
+			command = xoap::XMLCh2String(e->getLocalName());
+			break;
+		}
+	}
+
+	xoap::MessageReference reply = xoap::createMessage();
+	xoap::SOAPEnvelope envelope = reply->getSOAPPart().getEnvelope();
+	xoap::SOAPName responseName = envelope.createName(
+			command + "Response", "xdaq", XDAQ_NS_URI);
+	envelope.getBody().addBodyElement(responseName);
+
+// JRG, return the ttsBits readback value too:
+	xoap::SOAPName responseStatus = envelope.createName(
+			"setTTSBitsStatus", "ttsBits", ttsBits_.toString());
+	envelope.getBody().addBodyElement(responseStatus);
+
+	string strrply;
+	reply->writeTo(strrply);
+	cout << " Reply:  " << strrply << std::endl;
+
+
+// JRG, try postSOAP:
+	string klass="EmuFCrateManager";
+	int instance = 0;
+  cout << "  * EmuFCrate: trying postSOAP" << endl;
+  xdaq::ApplicationDescriptor *app;
+  try {
+    app = getApplicationContext()->getDefaultZone()
+      ->getApplicationDescriptor(klass, instance);
+    cout << "  * EmuFCrate: postSOAP, got application" << endl;
+  } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
+    cout << "  * EmuFCrate: postSOAP, application not found! " << endl;
+    return reply; // Do nothing if the target doesn't exist
+  }
+
+  xoap::MessageReference rereply;
+
+	// send the message
+  cout << "  * EmuFCrate: onSetTTSBitsResponse, sending Soap Response" << endl;
+  rereply = getApplicationContext()->postSOAP(reply, app);
+  cout << "  * EmuFCrate: onSetTTSBitsResponse, got Soap rereply " << endl;
+
+	return reply;
 }
 
 void EmuFCrate::configureAction(toolbox::Event::Reference e) 
@@ -161,7 +229,8 @@ void EmuFCrate::setTTSBitsAction(toolbox::Event::Reference e)
 	// read back sTTS bits
 	ttsBits_ = readTTSBits(ttsCrate_, ttsSlot_);
 
-	cout << "Received Message SetTTSBits" << endl ;
+	// seems to occur next-to-last...
+	cout << "EmuFCrate:  Received Message SetTTSBits" << endl ;
 }
 
 // HyperDAQ pages
@@ -242,6 +311,8 @@ void EmuFCrate::webSetTTSBits(xgi::Input *in, xgi::Output *out)
 	ttsCrateStr_ = ttsCrate_.toString();
 	ttsSlotStr_  = ttsSlot_.toString();
 	ttsBitsStr_  = ttsBits_.toString();
+
+	cout << "EmuFCrate:  inside webSetTTSBits" << endl ;
 
 	webRedirect(in, out);
 }

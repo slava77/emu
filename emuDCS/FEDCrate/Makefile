@@ -38,6 +38,7 @@ Sources=\
 	EmuFCrateHyperDAQ.cc \
 	EmuFRunControlHyperDAQ.cc \
 	EmuFCrate.cc \
+	EmuFCrateManager.cc \
 	EmuFController.cc
 
 IncludeDirs = \

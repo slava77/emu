@@ -18,4 +18,5 @@ ln -fs $XDAQ_ROOT/emu/emuDCS/FEDCrate/*.jpg $XDAQ_ROOT/daq/examples/images/
 ln -fs $XDAQ_ROOT/emu/emuDCS/FEDCrate/*.gif $XDAQ_ROOT/daq/examples/images/
 
 # start xdaq
-nohup $XDAQ_ROOT/daq/xdaq/scripts/xdaq.sh -p 40100 -c xml/EmuFCluster.xml -l INFO >& ~/log/xdaq.log &
+# old config location:  nohup $XDAQ_ROOT/daq/xdaq/scripts/xdaq.sh -p 40100 -c xml/EmuFCluster.xml -l INFO >& ~/log/xdaq.log &
+nohup $XDAQ_ROOT/daq/xdaq/scripts/xdaq.sh -p 40100 -c $HOME/config/EmuFCluster.xml -l INFO >& ~/log/xdaq.log &

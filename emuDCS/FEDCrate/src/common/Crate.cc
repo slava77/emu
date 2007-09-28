@@ -74,7 +74,7 @@ void Crate::disable() {
   //
 }
 //
-void Crate::configure(long unsigned int runnumber) {
+void Crate::configure(long unsigned int runnumber = 0) {
 // JRG, downloads to all boards, then starts the IRQ handler.
 	printf(" ********   Crate::configure is called with run number %d \n",runnumber);
 	std::vector<DDU*> myDdus = this->ddus();
@@ -94,7 +94,7 @@ void Crate::configure(long unsigned int runnumber) {
 	this->init(runnumber);
 }
 
-void Crate::init(long unsigned int runnumber) {
+void Crate::init(long unsigned int runnumber = 0) {
 // PGK, new objects (IRQThread) in town.  Use these instead.
 	cout << " Crate::init: theController->start_thread_on_init="<<theController->start_thread_on_init<<".  Calling thread end" << endl;
 	theController->end_thread();
