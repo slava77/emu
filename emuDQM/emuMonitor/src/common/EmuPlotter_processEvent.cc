@@ -89,6 +89,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   //  }
   // else LOG4CPLUS_INFO(logger_,dduTag << " Binary checking skipped");
 
+   /*
   //	if any error
   if (isMEvalid(nodeME, "Data_Format_Check_vs_nEvents", mo)) {
     if( BinaryErrorStatus != 0 ) {
@@ -104,6 +105,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     mo->SetAxisRange(0, nEvents, "X");
     LOG4CPLUS_DEBUG(logger_,nodeTag << " Error checking has been done");
   }
+  */
 
   //	Accept or deny event
   bool EventDenied = false;
@@ -171,17 +173,18 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 	if (isMEvalid(dduME, "Trailer_ErrorStat_Frequency", mo)) mo->SetBinContent(i+1, freq);
       }
       if (isMEvalid(dduME, "Trailer_ErrorStat_Table", mo)) mo->Fill(0.,i);
-      if (isMEvalid(dduME, "Trailer_ErrorStat_vs_nEvents", mo)) mo->Fill(nEvents, i);
+    //  if (isMEvalid(dduME, "Trailer_ErrorStat_vs_nEvents", mo)) mo->Fill(nEvents, i);
     }
   }
 	
   if (isMEvalid(dduME,"Trailer_ErrorStat_Table", mo)) mo->SetEntries(nEvents);
   if (isMEvalid(dduME,"Trailer_ErrorStat_Frequency", mo)) mo->SetEntries(nEvents);
+/*
   if (isMEvalid(dduME,"Trailer_ErrorStat_vs_nEvents", mo)) { 
     mo->SetEntries(nEvents);
     mo->SetAxisRange(0, nEvents, "X");
   }
-
+*/
 
   if (isMEvalid(dduME, "Buffer_Size", mo)) mo->Fill(dataSize);
   // ==     DDU word counter
@@ -201,7 +204,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   L1ANumber = L1ANumbers[dduID];
   LOG4CPLUS_DEBUG(logger_,dduTag << " Header L1A Number = " << dec << L1ANumber);
   if (isMEvalid(dduME, "L1A_Increment", mo)) dduME["L1A_Increment"]->Fill(L1ANumber - L1ANumber_previous_event);
-
+/*
   if (isMEvalid(dduME, "L1A_Increment_vs_nEvents", mo)) {
     if(L1ANumber - L1ANumber_previous_event == 0) {
       mo->Fill((double)(nEvents), 0.0);
@@ -215,7 +218,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     }
     mo->SetAxisRange(0, nEvents, "X");
   }
-
+*/
   // ==     Occupancy and number of DMB (CSC) with Data available (DAV) in header of particular DDU
   int dmb_dav_header      = 0;
   int dmb_dav_header_cnt  = 0;
@@ -299,6 +302,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 		 "Total number of unpacked DMB = " << dec << unpackedDMBcount);
 
   if (isMEvalid(dduME,"DMB_unpacked_vs_DAV",mo)) mo->Fill(dmb_active_header, unpackedDMBcount);
+/*
   if (isMEvalid(nodeME,"Unpacking_Match_vs_nEvents", mo)) {
     if(dmb_active_header == unpackedDMBcount) {
       mo->Fill(nEvents, 0.0);
@@ -308,6 +312,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     }
     mo->SetAxisRange(0, nEvents, "X");
   }
+*/
   LOG4CPLUS_DEBUG(logger_,
 		  "END OF EVENT :-(");
 
