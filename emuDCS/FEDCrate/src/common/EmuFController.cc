@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuFController.cc,v 3.3 2007/07/23 05:03:28 gilmore Exp $
+// $Id: EmuFController.cc,v 3.4 2007/09/28 14:17:58 ichiro Exp $
 // $Log: EmuFController.cc,v $
+// Revision 3.4  2007/09/28 14:17:58  ichiro
+// added EmuFCrateManager
+//
 // Revision 3.3  2007/07/23 05:03:28  gilmore
 // major structural chages to improve multi-crate functionality
 //
@@ -76,7 +79,7 @@ void EmuFController::configure() {
   printf(" myCrates.size() %d \n",myCrates.size());  
   for(unsigned i = 0; i < myCrates.size(); ++i) {
     printf(" call mycrate->config %d \n",i);
-    myCrates[i]->configure(i);
+    myCrates[i]->configure(0);
   }
 }
 //
@@ -123,7 +126,7 @@ void EmuFController::writeTTSBits(
 {
   bool useDCC = (slot == 8 || slot == 18);
 
-  cout << "EmuFController::writeTTSBits on " << crate << " " << slot << endl;
+  cout << "### EmuFController::writeTTSBits on " << crate << " " << slot << endl;
 
   if (useDCC) {
     DCC *dcc = getDCC(crate, slot);
@@ -132,8 +135,12 @@ void EmuFController::writeTTSBits(
 
   } else { // DDU
     DDU *ddu = getDDU(crate, slot);
-
-    ddu->vmepara_wr_fmmreg((bits | 0xf0e0) & 0xffff);
+    if (ddu == NULL) {
+      cout << "### EmuFController::writeTTSBits, getDDU returns NULL, skipping write" << std::endl;
+    } else {
+      cout << "### EmuFController::writeTTSBits call wr_fmmreg " << std::endl;
+      ddu->vmepara_wr_fmmreg((bits | 0xf0e0) & 0xffff);
+    }
   }
 }
 
@@ -144,6 +151,8 @@ unsigned int EmuFController::readTTSBits(
 
   bool useDCC = (slot == 8 || slot == 18);
 
+  cout << "### EmuFController::readTTSBits on " << crate << " " << slot << endl;
+
   if (useDCC) {
     DCC *dcc = getDCC(crate, slot);
 
@@ -151,8 +160,13 @@ unsigned int EmuFController::readTTSBits(
 
   } else { // DDU
     DDU *ddu = getDDU(crate, slot);
-
-    bits = ddu->vmepara_rd_fmmreg();
+    if (ddu == NULL) {
+      cout << "### EmuFController::readTTSBits, getDDU returns NULL, skipping read" << std::endl;
+      bits=0xface;
+    } else {
+      cout << "### EmuFController::readTTSBits call rd_fmmreg " << std::endl;
+      bits = ddu->vmepara_rd_fmmreg();
+    }
   }
 
   return bits & 0xf;
@@ -174,11 +188,15 @@ DCC *EmuFController::getDCC(int crate, int slot)
 
 DDU *EmuFController::getDDU(int crate, int slot)
 {
+  //  cout << "  getDDU: calling setCrate" << std::endl;
   theSelector.setCrate(crate);
+  //  cout << "  getDDU: calling setSlot" << std::endl;
   theSelector.setSlot(slot);
 
+  //  cout << "  getDDU: finished setSlot, select ddus" << std::endl;
   std::vector<DDU *> ddus = theSelector.ddus();
 
+  //  cout << "  getDDU: return, ddus.size=" << ddus.size() << std::endl;
   if (ddus.size() > 0) {
     return ddus[0];
   } else {
