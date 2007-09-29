@@ -155,7 +155,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 
 	state_ = fsm_.getStateName(fsm_.getCurrentState());
 
-	state_table_.addApplication(this, "EmuFCrate");
+	state_table_.addApplication(this, "EmuFCrateManager");
 	state_table_.addApplication(this, "EmuPeripheralCrateManager");
 	state_table_.addApplication(this, "EmuPeripheralCrate");
 	state_table_.addApplication(this, "EmuDAQManager");
@@ -597,7 +597,7 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 					run_type_.toString());
 		} catch (xcept::Exception ignored) {}
 
-		sendCommand("Configure", "EmuFCrate");
+		sendCommand("Configure", "EmuFCrateManager");
 		if (!isCalibrationMode()) {
 			sendCommand("Configure", "EmuPeripheralCrate");
 		} else {
@@ -643,7 +643,7 @@ void CSCSupervisor::enableAction(toolbox::Event::Reference evt)
 	try {
 		state_table_.refresh();
 
-		sendCommand("Enable", "EmuFCrate");
+		sendCommand("Enable", "EmuFCrateManager");
 		if (!isCalibrationMode()) {
 			sendCommand("Enable", "EmuPeripheralCrate");
 		}
@@ -707,7 +707,7 @@ void CSCSupervisor::disableAction(toolbox::Event::Reference evt)
 		} catch (xcept::Exception ignored) {}
 
 		writeRunInfo( true, true );
-		sendCommand("Disable", "EmuFCrate");
+		sendCommand("Disable", "EmuFCrateManager");
 		if (!isCalibrationMode()) {
 			sendCommand("Disable", "EmuPeripheralCrate");
 		} else {
@@ -740,7 +740,7 @@ void CSCSupervisor::haltAction(toolbox::Event::Reference evt)
 		if (state_table_.getState("TTCciControl", 0) != "Halted") {
 			sendCommand("Halt", "TTCciControl");
 		}
-		sendCommand("Halt", "EmuFCrate");
+		sendCommand("Halt", "EmuFCrateManager");
 		sendCommand("Halt", "EmuPeripheralCrateManager");
 		sendCommand("Halt", "EmuPeripheralCrate");
 		try {
@@ -773,7 +773,7 @@ void CSCSupervisor::setTTSAction(toolbox::Event::Reference evt)
 {
 	LOG4CPLUS_DEBUG(getApplicationLogger(), evt->type() << "(begin)");
 
-	const string fed_app = "EmuFCrate";
+	const string fed_app = "EmuFCrateManager";
 
 	try {
 		setParameter(fed_app, "ttsCrate", "xsd:unsignedInt", tts_crate_);
