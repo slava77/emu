@@ -82,7 +82,6 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	i->fireItemAvailable("pcConfigs",  &pc_configs_);
 	i->fireItemAvailable("fcKeys",     &fc_keys_);
 	i->fireItemAvailable("fcConfigs",  &fc_configs_);
-	i->fireItemAvailable("fedInstanceToCrate", &fed_instance_to_crate_);
 
 	i->fireItemAvailable("DAQMode", &daq_mode_);
 	i->fireItemAvailable("TriggerConfig", &trigger_config_);
@@ -780,7 +779,7 @@ void CSCSupervisor::setTTSAction(toolbox::Event::Reference evt)
 		setParameter(fed_app, "ttsSlot",  "xsd:unsignedInt", tts_slot_);
 		setParameter(fed_app, "ttsBits",  "xsd:unsignedInt", tts_bits_);
 
-		sendCommand("SetTTSBits", fed_app, getFEDInstance(tts_crate_));
+		sendCommand("SetTTSBits", fed_app, 0);
 	} catch (xoap::exception::Exception e) {
 		XCEPT_RETHROW(toolbox::fsm::exception::Exception,
 				"SOAP fault was returned", e);
@@ -1332,20 +1331,6 @@ bool CSCSupervisor::isDAQManagerControlled(string command)
 	if (command != "Configure" && !isDAQConfiguredInGlobal()) { return false; }
 
 	return true;
-}
-
-int CSCSupervisor::getFEDInstance(std::string crate)
-{
-	int target = atoi(crate.c_str());
-	unsigned int i;
-
-	for (i = 0; i < fed_instance_to_crate_.size(); ++i) {
-		if (fed_instance_to_crate_[i] == target) {
-			break;
-		}
-	}
-
-	return i;
 }
 
 void CSCSupervisor::StateTable::addApplication(CSCSupervisor *sv, string klass)
