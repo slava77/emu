@@ -17,8 +17,7 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *stub)
 	xoap::bind(this, &EmuFCrate::onHalt,       "Halt",       XDAQ_NS_URI);
 	xoap::bind(this, &EmuFCrate::onSetTTSBits, "SetTTSBits", XDAQ_NS_URI);
 
-	getApplicationInfoSpace()->fireItemAvailable("ttsCrate", &tts_crate_);
-	getApplicationInfoSpace()->fireItemAvailable("ttsSlot",  &tts_slot_);
+	getApplicationInfoSpace()->fireItemAvailable("ttsID",  &tts_id_);
 	getApplicationInfoSpace()->fireItemAvailable("ttsBits",  &tts_bits_);
 
 	fsm_.addState('H', "Halted",     this, &EmuFCrate::stateChanged);
@@ -87,7 +86,7 @@ xoap::MessageReference EmuFCrate::onSetTTSBits(xoap::MessageReference message)
 		throw (xoap::exception::Exception)
 {
     LOG4CPLUS_INFO(getApplicationLogger(),
-			"Setting TTS: crate " << tts_crate_ << " slot " << tts_slot_
+			"Setting TTS: ID " << tts_id_
 			<< " bits " << hex << tts_bits_ << dec);
 
 	fireEvent("SetTTSBits");

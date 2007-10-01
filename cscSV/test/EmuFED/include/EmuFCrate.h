@@ -42,8 +42,7 @@ private:
 			throw (toolbox::fsm::exception::Exception);
 
 private:
-	xdata::UnsignedInteger tts_crate_;
-	xdata::UnsignedInteger tts_slot_;
+	xdata::UnsignedInteger tts_id_;
 	xdata::UnsignedInteger tts_bits_;
 };
 
