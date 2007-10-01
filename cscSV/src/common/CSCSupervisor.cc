@@ -87,9 +87,8 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 	i->fireItemAvailable("TriggerConfig", &trigger_config_);
 	i->fireItemAvailable("TTCSource", &ttc_source_);
 
-	i->fireItemAvailable("TTSCrate", &tts_crate_);
-	i->fireItemAvailable("TTSSlot", &tts_slot_);
-	i->fireItemAvailable("TTSBits", &tts_bits_);
+	i->fireItemAvailable("ttsID", &tts_id_);
+	i->fireItemAvailable("ttsBits", &tts_bits_);
 
 	i->fireItemAvailable( "curlCommand",    &curlCommand_  );
 	i->fireItemAvailable( "curlCookies", 	&curlCookies_  );
@@ -331,32 +330,21 @@ void CSCSupervisor::webDefault(xgi::Input *in, xgi::Output *out)
 		*out << form().set("action",
 				"/" + getApplicationDescriptor()->getURN() + "/SetTTS") << endl;
 
-		*out << "Crate #: " << endl;
-		*out << cgicc::select().set("name", "tts_crate") << endl;
-
-		const char n[] = "1234";
-		string str = "";
-		for (int i = 0; i < 4; ++i) {
-			if (n[i] == (tts_crate_.toString())[0]) {
-				*out << option().set("value", str + n[i]).set("selected", "");
-			} else {
-				*out << option().set("value", str + n[i]);
-			}
-			*out << n[i] << option() << endl;
-		}
-
-		*out << cgicc::select() << br() << endl;
-		
-		*out << "Slot # (4-13): " << endl;
+		*out << small() << "(See, "
+				<< a().set("href", "https://twiki.cern.ch/twiki/bin/view/CMS/CSCcommissioningFED#FED_Mapping")
+				<< "FED commissioning Wiki page"
+				<< a()
+				<< " to find out sTTS IDs (FMM-ID).)" << small() << br() << endl;
+		*out << "sTTS ID: (750-757,760,830-869)" << endl;
 		*out << input().set("type", "text")
-				.set("name", "tts_slot")
-				.set("value", tts_slot_)
+				.set("name", "tts_id")
+				.set("value", tts_id_.toString())
 				.set("size", "10") << br() << endl;
 
-		*out << "TTS value: (0-15)" << endl;
+		*out << "sTTS value: (0-15)" << endl;
 		*out << input().set("type", "text")
 				.set("name", "tts_bits")
-				.set("value", tts_bits_)
+				.set("value", tts_bits_.toString())
 				.set("size", "10") << br() << endl;
 
 		*out << input().set("type", "submit")
@@ -471,13 +459,8 @@ void CSCSupervisor::webReset(xgi::Input *in, xgi::Output *out)
 void CSCSupervisor::webSetTTS(xgi::Input *in, xgi::Output *out)
 		throw (xgi::exception::Exception)
 {
-	tts_crate_ = getCGIParameter(in, "tts_crate");
-	tts_slot_  = getCGIParameter(in, "tts_slot");
-	tts_bits_  = getCGIParameter(in, "tts_bits");
-
-	if (tts_crate_ == "") { error_message_ += "Please select TTS crate.\n"; }
-	if (tts_slot_  == "") { error_message_ += "Please set TTS slot.\n"; }
-	if (tts_bits_  == "") { error_message_ += "Please set TTS bits.\n"; }
+	tts_id_.fromString(getCGIParameter(in, "tts_id"));
+	tts_bits_.fromString(getCGIParameter(in, "tts_bits"));
 
 	if (error_message_.empty()) {
 		fireEvent("SetTTS");
@@ -775,9 +758,8 @@ void CSCSupervisor::setTTSAction(toolbox::Event::Reference evt)
 	const string fed_app = "EmuFCrateManager";
 
 	try {
-		setParameter(fed_app, "ttsCrate", "xsd:unsignedInt", tts_crate_);
-		setParameter(fed_app, "ttsSlot",  "xsd:unsignedInt", tts_slot_);
-		setParameter(fed_app, "ttsBits",  "xsd:unsignedInt", tts_bits_);
+		setParameter(fed_app, "ttsID",   "xsd:unsignedInt", tts_id_.toString());
+		setParameter(fed_app, "ttsBits", "xsd:unsignedInt", tts_bits_.toString());
 
 		sendCommand("SetTTSBits", fed_app, 0);
 	} catch (xoap::exception::Exception e) {

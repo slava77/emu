@@ -15,6 +15,7 @@
 #include "xdata/String.h"
 #include "xdata/Integer.h"
 #include "xdata/UnsignedLong.h"
+#include "xdata/UnsignedInteger.h"
 #include "xgi/Method.h"
 #include "EmuRunInfo.h"
 
@@ -110,9 +111,8 @@ private: // XDAQ parameters
 	xdata::String trigger_config_;
 	xdata::String ttc_source_;
 
-	xdata::String tts_crate_;
-	xdata::String tts_slot_;
-	xdata::String tts_bits_;
+	xdata::UnsignedInteger tts_id_;
+	xdata::UnsignedInteger tts_bits_;
 
 private:
 	toolbox::task::WorkLoop *wl_;
