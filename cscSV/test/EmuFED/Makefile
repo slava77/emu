@@ -1,4 +1,4 @@
-# $Id: Makefile,v 3.3 2007/02/16 01:45:50 ichiro Exp $
+# $Id: Makefile,v 3.4 2007/10/01 12:19:04 ichiro Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -28,6 +28,7 @@ Package = EmuFCrate
 
 Sources = \
 	EmuFCrate.cc \
+	EmuFCrateManager.cc \
 	EmuFCrateV.cc
 
 DependentLibraryDirs = $(XDAQ_ROOT)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)

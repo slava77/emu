@@ -71,6 +71,7 @@
 
 	<xc:Context url="http://localhost:40001">
 		<xc:Application class="EmuFCrate" id="20" instance="0" network="local"/>
+		<xc:Application class="EmuFCrateManager" id="29" instance="0" network="local"/>
 		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libEmuFCrate.so</xc:Module>
 
 		<xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="local"/>
