@@ -111,6 +111,10 @@ public class Level1StateMachineDefinition extends UserStateMachineDefinition {
 
 		addTransition(Level1Inputs.HALT,
 				Level1States.CONFIGURED, Level1States.HALTING);
+		addTransition(Level1Inputs.HALT,
+				Level1States.RUNNING, Level1States.HALTING);
+		addTransition(Level1Inputs.HALT,
+				Level1States.PAUSED, Level1States.HALTING);
 		addTransition(Level1Inputs.HALT_DONE,
 				Level1States.HALTING, Level1States.HALTED);
 
