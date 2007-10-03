@@ -1,4 +1,4 @@
-/* $Id: pstream.h,v 1.1 2007/06/29 12:12:36 ichiro Exp $
+/* $Id: pstream.h,v 3.1 2007/10/03 09:29:04 ichiro Exp $
 PStreams - POSIX Process I/O for C++
 Copyright (C) 2001,2002,2003,2004 Jonathan Wakely
 
