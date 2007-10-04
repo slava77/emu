@@ -70,8 +70,8 @@ private:
     fileNameStream << runType_           << "_";
     fileNameStream.width(3);
     fileNameStream << filesInRunCounter_;
-    // Insert start time to make sure the name will be unique if it's not a booked run number:
-    if ( !isBookedRunNumber_ ) fileNameStream << "_" << runStartTime_;
+    // Insert start time to make sure the name will be unique if it's not a booked run number or it's a debug run:
+    if ( !isBookedRunNumber_ || runType_ == "Debug" ) fileNameStream << "_" << runStartTime_;
     fileName_       = fileNameStream.str() + ".raw";
     markerFileName_ = fileNameStream.str() + ".is_closed";
   }
