@@ -120,6 +120,7 @@ applicationBSem_(BSem::FULL)
     //
     // EMu-specific
     //
+    deviceReader_          = NULL;
     fileWriter_            = NULL;
     badEventsFileWriter_   = NULL;
     nReadingPassesInEvent_ = 0;
@@ -154,7 +155,7 @@ string EmuRUI::generateLoggerName()
     string                      loggerName;
 
 
-    oss << appClass << appInstance;
+    oss << appClass << "." << setfill('0') << std::setw(2) << appInstance;
     loggerName = oss.str();
 
     return loggerName;
@@ -1221,7 +1222,7 @@ void EmuRUI::createDeviceReader(){
   // Version with single device
 
   // Create readers
-  int inputDataFormatInt_ = -1;
+  inputDataFormatInt_ = -1;
   if      ( inputDataFormat_ == "DDU" ) inputDataFormatInt_ = EmuReader::DDU;
   else if ( inputDataFormat_ == "DCC" ) inputDataFormatInt_ = EmuReader::DCC;
   else{
@@ -2614,7 +2615,6 @@ int EmuRUI::continueConstructionOfSuperFrag()
     dataLength = deviceReader_->dataLength();
     if ( dataLength>0 ) {
 
-
       bool header  = hasHeader(data,dataLength);
       bool trailer = hasTrailer(data,dataLength);
 
@@ -2640,13 +2640,11 @@ int EmuRUI::continueConstructionOfSuperFrag()
 	     << (errorFlag_ & EmuSpyReader::Oversized ? "Oversized" : "" );
 	  LOG4CPLUS_WARN(logger_, ss.str());
 	}
-	else{
-	  LOG4CPLUS_INFO(logger_, ss.str());
-	}
+// 	else{
+// 	  LOG4CPLUS_INFO(logger_, ss.str());
+// 	}
       }
-//       else{
-// 	LOG4CPLUS_INFO(logger_, ss.str());
-//       }
+
 //       printData(ss,data,dataLength);
 
       if ( insideEvent_ ) {
@@ -2669,12 +2667,12 @@ int EmuRUI::continueConstructionOfSuperFrag()
 	  // Get the new event number.
 	  eventNumber_ = deviceReader_->eventNumber();
 	  // Ensure there's no gap in the events by inserting dummy super-fragments if necessary.
-	  ensureContiguousEventNumber();
+	  if ( passDataOnToRUBuilder_.value_ ) ensureContiguousEventNumber();
 	  // New event started, reset counter of passes
 	  nReadingPassesInEvent_ = 1;
 	} // if ( header )
 
-	if ( passDataOnToRUBuilder_ ){
+	if ( passDataOnToRUBuilder_.value_ ){
 	  // If the EmuRUI to RU memory pool has room for another data block
 	  if(!ruiRuPool_->isHighThresholdExceeded()){
 	    // Fill block and append it to superfragment
@@ -2713,12 +2711,12 @@ int EmuRUI::continueConstructionOfSuperFrag()
 	  // Get the new event number.
 	  eventNumber_ = deviceReader_->eventNumber();
 	  // Ensure there's no gap in the events by inserting dummy super-fragments if necessary.
-	  ensureContiguousEventNumber();
+	  if ( passDataOnToRUBuilder_.value_ ) ensureContiguousEventNumber();
 	  // New event started, reset counter of passes
 	  nReadingPassesInEvent_ = 1;
 	}
 
-	if ( passDataOnToRUBuilder_ ){
+	if ( passDataOnToRUBuilder_.value_ ){
 	  // If the EmuRUI to RU memory pool has room for another data block
 	  if(!ruiRuPool_->isHighThresholdExceeded()){
 	    // Fill block and append it to superfragment
@@ -3267,6 +3265,7 @@ bool EmuRUI::hasHeader( char* const data, const int dataLength ){
   const int DCCHeaderLength = 16; // bytes
   bool headerFound = false;
   unsigned short *shortData = reinterpret_cast<unsigned short *>(data);
+
   if ( inputDataFormatInt_ == EmuReader::DDU ){
     if ( dataLength < DDUHeaderLength ) return false; // can the data be split in the header???
     headerFound = ( (shortData[3] & 0xf000) == 0x5000 &&
@@ -3279,7 +3278,8 @@ bool EmuRUI::hasHeader( char* const data, const int dataLength ){
 //       " shortData[5] " << std::hex << std::setw(4) << shortData[5] <<
 //       " shortData[6] " << std::hex << std::setw(4) << shortData[6] <<
 //       " shortData[7] " << std::hex << std::setw(4) << shortData[7] <<
-//       " headerFound " << std::dec << headerFound;
+//       " headerFound " << std::dec << headerFound   << std::endl;
+//     printData(ss,data,dataLength);
 //     std::cout << ss.str() << std::endl << std::flush;
 //     LOG4CPLUS_INFO(logger_,ss.str());
   }
