@@ -54,11 +54,6 @@ public:
      */
     void onException(xcept::Exception &e);
 
-  xdata::String*  GetRunType(){ return &runType_; };
-  xdata::Integer* GetMaxNumberOfEvents(){ return &maxNumberOfEvents_; }
-  vector< xdaq::ApplicationDescriptor* >* GetRuiDescriptors(){ return &ruiDescriptors_; }
-  map<int,string>* GetHardwareMnemonics(){ return &hardwareMnemonics_; }
-
 private:
 
     /**
@@ -271,12 +266,15 @@ private:
   xdata::Boolean buildEvents_;
   xdata::String daqState_; // the combined state of the DAQ applications
   int stringToInt( const string* const s );
-  int purgeIntNumberString( string* s ); // Emu
-  vector< vector<string> > getRUIEventCounts(); // Emu
-  vector< vector<string> > getFUEventCounts(); // Emu
+  int purgeIntNumberString( string* s );
+
+  xdata::String hardwareMapping_; // file of the hardware mapping (path relative to XDAQ_ROOT
+
+  vector< map< string,string > > getRUIEventCounts();
+  vector< map< string,string > > getFUEventCounts();
   void printEventCountsTable( xgi::Output              *out,
 			      string                    title,
-			      vector< vector<string> >  counts ); // Emu
+			      vector< map< string,string > > counts );
   string getDateTime();
   string ageOfPageClock();
   void   getRunInfoFromTA( string* runnum, string* maxevents, string* starttime, string* stoptime );
