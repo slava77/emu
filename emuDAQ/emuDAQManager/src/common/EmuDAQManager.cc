@@ -390,6 +390,15 @@ throw (xgi::exception::Exception)
     *out << "font-family: Arial;"                                      << endl;
     *out << "}"                                                        << endl;
     *out                                                               << endl;
+    *out << "input.button"                                             << endl;
+    *out << "{"                                                        << endl;
+    *out << "color: white;"                                            << endl;
+    *out << "background-color: #222288;"                               << endl;
+    *out << "border-color: #222288;"                                   << endl;
+    *out << "font-family: Arial;"                                      << endl;
+    *out << "font-weight: bold;";
+    *out << "}"                                                        << endl;
+    *out                                                               << endl;
     *out << ".app_links"                                               << endl;
     *out << "{"                                                        << endl;
     *out << "font-size: 14px;"                                         << endl;
@@ -415,7 +424,7 @@ throw (xgi::exception::Exception)
     *out << "}"                                                        << endl;
 
     *out << "td.masked {";
-    *out << "background-color: #dddddd;";
+    *out << "background-color: #cccccc;";
     *out << "}"                                                        << endl;
 
     *out << "td.notFinished {";
@@ -651,27 +660,18 @@ throw (xgi::exception::Exception)
     *out << "</table>"                                               << endl;
 
 
-    // Emu: display RUIs' and FUs' event counts
-    *out << "<table border=\"0\">"                                   << endl;
-    *out << "<tr valign=\"top\">"                                    << endl;
-    *out << "<td>"                                                   << endl;
+    // Display RUIs' and FUs' event counts
     if ( runType_.toString().find("STEP",0) != string::npos ){
       *out << STEPCountsTable.str();
     }
     else{
-      printEventCountsTable( out, "Events read by EmuRUI's"    , getRUIEventCounts() );
+      printEventCountsTable( out, "Events read by EmuRUIs"    , getRUIEventCounts() );
     }
-    *out << "</td>"                                                  << endl;
-    *out << "<td width=\"64\">"                                      << endl;
-    *out << "</td>"                                                  << endl;
-    *out << "<td>"                                                   << endl;
-    if ( runType_.toString().find("STEP",0) == string::npos )
-      printEventCountsTable( out, "Events processed by EmuFU's", getFUEventCounts()  );      
-    *out << "     "                                                  << endl;
-    *out << "</td>"                                                  << endl;
-    *out << "</tr>"                                                  << endl;
-    *out << "</table>"                                               << endl;
-    // Emu end: display RUIs' and FUs' event counts
+    *out << "<br/>"                                                  << endl;
+    if ( runType_.toString().find("STEP",0) == string::npos && buildEvents_.value_ ){
+      printEventCountsTable( out, "Events processed by EmuFUs", getFUEventCounts()  );
+      *out << "<br/>"                                                  << endl;
+    }
 
     *out << "<table border=\"0\">"                                   << endl;
     *out << "<tr valign=\"top\">"                                    << endl;
@@ -883,6 +883,7 @@ void EmuDAQManager::governorForm(xgi::Input *in, xgi::Output *out)
 
   *out << "  <td align=\"right\">"                                   << endl;
   *out << "<input"                                                   << endl;
+  *out << " class=\"button\""                                        << endl;
   *out << " type=\"submit\""                                         << endl;
   *out << " name=\"commit\""                                         << endl;
   *out << " title=\"Commit your selection.\""                        << endl;
@@ -971,6 +972,8 @@ throw (xgi::exception::Exception)
   *out << "<html>"                                                   << endl;
 
   *out << "<head>"                                                   << endl;
+  *out << "<link type=\"text/css\" rel=\"stylesheet\"";
+  *out << " href=\"/" << urn_ << "/styles.css\"/>"                   << endl;
   *out << "<title>"                                                  << endl;
   *out << "Comments"                                                 << endl;
   *out << "</title>"                                                 << endl;
@@ -1021,6 +1024,7 @@ throw (xgi::exception::Exception)
 
   *out << "  <td align=\"right\">"                                   << endl;
   *out << "<input"                                                   << endl;
+  *out << " class=\"button\""                                        << endl;
   *out << " type=\"submit\""                                         << endl;
   *out << " name=\"refresh\""                                        << endl;
   *out << " title=\"Refresh comments. They will be saved when the run is stopped.\""<< endl;
@@ -1279,6 +1283,7 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
 
 
       *out << "<input"                                               << endl;
+      *out << " class=\"button\""                                    << endl;
       *out << " type=\"submit\""                                     << endl;
       *out << " name=\"command\""                                    << endl;
       if ( fsm_.getCurrentState() == 'H' )
@@ -1296,6 +1301,7 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
       if ( fsm_.getCurrentState() == 'C' )
 	{
 	  *out << "<input"                                               << endl;
+	  *out << " class=\"button\""                                    << endl;
 	  *out << " type=\"submit\""                                     << endl;
 	  *out << " name=\"command\""                                    << endl;
 	  *out << " value=\"stop\""                                      << endl;
@@ -1310,6 +1316,7 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
       if ( fsm_.getCurrentState() != 'F' && daqState_.toString() == "Failed" ||
 	   ( fsm_.getCurrentState() == 'H' && daqState_.toString() != "Halted" ) ){
 	  *out << "<input"                                               << endl;
+	  *out << " class=\"button\""                                    << endl;
 	  *out << " type=\"submit\""                                     << endl;
 	  *out << " name=\"command\""                                    << endl;
 	  *out << " value=\"reset\""                                     << endl;
@@ -1318,58 +1325,50 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
       }
       
 
-      *out << "<input"                                               << endl;
-      *out << " type=\"checkbox\""                                   << endl;
-      *out << " name=\"controldqm\""                                << endl;
+      *out << "<input"                                                   << endl;
+      *out << " type=\"checkbox\""                                       << endl;
+      *out << " name=\"controldqm\""                                     << endl;
       *out << " title=\"If checked, DQM's state will be changed too.\""  << endl;
-      *out << " alt=\"control dqm\""                                << endl;
-      if ( controlDQM_.value_ ) *out << " checked"                  << endl;
-      if ( globalMode_.value_ ) *out << " disabled=\"true\""         << endl;
-      *out << "/>  "                                                 << endl;
-      *out << " DQM too"                                             << endl;
+      *out << " alt=\"control dqm\""                                     << endl;
+      if ( controlDQM_.value_ ) *out << " checked"                       << endl;
+      if ( globalMode_.value_ ) *out << " disabled=\"true\""             << endl;
+      *out << "/>  "                                                     << endl;
+      *out << " DQM too"                                                 << endl;
 
-    *out << "<br>"                                                     << endl;
-    *out << "<br>"                                                     << endl;
+    *out << "<br>"                                                       << endl;
+    *out << "<br>"                                                       << endl;
 
-    *out << "<table border=\"0\">"                                   << endl;
-    *out << "<tr valign=\"top\">"                                    << endl;
-    *out << "<td>"                                                   << endl;
     if ( runType_.toString().find("STEP",0) != string::npos )
       *out << STEPCountsTable.str();
     else
-      printEventCountsTable( out, "Events read by EmuRUI's", getRUIEventCounts() );
-    *out << "<td width=\"64\">"                                      << endl;
-    *out << "</td>"                                                  << endl;
-    *out << "</td>"                                                  << endl;
-    *out << "<td>"                                                   << endl;
-    if ( runType_.toString().find("STEP",0) == string::npos )
-      printEventCountsTable( out, "Events processed by EmuFU's", getFUEventCounts()  );      
-    *out << "     "                                                  << endl;
-    *out << "</td>"                                                  << endl;
-    *out << "</tr>"                                                  << endl;
-    *out << "</table>"                                               << endl;
+      printEventCountsTable( out, "Events read by EmuRUIs", getRUIEventCounts() );
+    *out << "<br/>"                                                      << endl;
+    if ( runType_.toString().find("STEP",0) == string::npos && buildEvents_.value_ ){
+      printEventCountsTable( out, "Events processed by EmuFUs", getFUEventCounts()  );      
+      *out << "<br/>"                                                    << endl;
+    }
 
-    *out << "</form>"                                                  << endl;
+    *out << "</form>"                                                    << endl;
 
-    *out << "<br/>"                                                    << endl;
-    *out << "<br/>"                                                    << endl;
+    *out << "<br/>"                                                      << endl;
+    *out << "<br/>"                                                      << endl;
 
-    *out << "<table border=\"0\">"                                   << endl;
-    *out << "<tr valign=\"top\">"                                    << endl;
-    *out << "<td>"                                                   << endl;
+    *out << "<table border=\"0\">"                                       << endl;
+    *out << "<tr valign=\"top\">"                                        << endl;
+    *out << "<td>"                                                       << endl;
     printStatesTable( out, "DAQ applications", daqContexts_, daqAppStates_ );
-    *out << "</td>"                                                   << endl;
-    *out << "<td width=\"16\"/>"                                      << endl;
-    *out << "<td>"                                                   << endl;
+    *out << "</td>"                                                      << endl;
+    *out << "<td width=\"16\"/>"                                         << endl;
+    *out << "<td>"                                                       << endl;
     queryAppStates( dqmAppStates_ );
     printStatesTable( out, "DQM applications", dqmContexts_, dqmAppStates_ );
-    *out << "</td>"                                                   << endl;
-    *out << "</tr>"                                                   << endl;
-    *out << "</table>"                                               << endl;
+    *out << "</td>"                                                      << endl;
+    *out << "</tr>"                                                      << endl;
+    *out << "</table>"                                                   << endl;
 
-    *out << "</body>"                                                  << endl;
+    *out << "</body>"                                                    << endl;
 
-    *out << "</html>"                                                  << endl;
+    *out << "</html>"                                                    << endl;
 }
 
 void EmuDAQManager::setParametersForGlobalMode(){
@@ -1379,6 +1378,7 @@ void EmuDAQManager::setParametersForGlobalMode(){
   buildEvents_            = false;
   controlDQM_             = true;
   globalRunNumber_        = runNumber_.toString();
+  isBookedRunNumber_      = true;
 }
 
 void EmuDAQManager::getRunInfoFromTA( string* runnum, string* maxevents, string* starttime, string* stoptime ){
@@ -1573,7 +1573,7 @@ throw (xgi::exception::Exception)
 // 	if ( (cmdName == "configure") && fsm_.getCurrentState() == 'H' )
 	if ( (cmdName == "configure") )
 	  {
-	    // Emu: run type will be queried by EmuRUI's and EmuFU's
+	    // Emu: run type will be queried by EmuRUIs and EmuFUs
 	    for ( fe=fev.begin(); fe!=fev.end(); ++ fe )
 	      if ( fe->getName() == "runtype" ){
 		// cgicc::form_iterator runTypeElement = cgi.getElement("runtype");
@@ -1584,7 +1584,7 @@ throw (xgi::exception::Exception)
 		  runType_.fromString( fe->getValue() );
 		}
 	      }
-	    // Emu: buildEvents will be queried by EmuRUI's
+	    // Emu: buildEvents will be queried by EmuRUIs
 	    // Apparently the query string does not even include the checkbox element if it's not checked...
 	    buildEvents_ = false;
 	    for ( fe=fev.begin(); fe!=fev.end(); ++ fe )
@@ -1770,7 +1770,7 @@ throw (emuDAQManager::exception::Exception)
 
     try
     {
-        eventNb = getScalarParam(evmDescriptor, "eventNb", "unsignedLong");
+        eventNb = getScalarParam(evmDescriptor, "eventNumberFromTrigger", "unsignedInt");
     }
     catch(xcept::Exception e)
     {
@@ -1851,7 +1851,7 @@ vector< pair<string,string> > EmuDAQManager::getStats
 
     try
     {
-        s = getScalarParam(appDescriptor, "deltaN", "unsignedLong");
+        s = getScalarParam(appDescriptor, "deltaN", "unsignedInt");
         deltaN = atoi(s.c_str());
         retrievedDeltaN = true;
     }
@@ -1884,7 +1884,7 @@ vector< pair<string,string> > EmuDAQManager::getStats
 
     try
     {
-        s = getScalarParam(appDescriptor, "deltaSumOfSizes", "unsignedLong");
+        s = getScalarParam(appDescriptor, "deltaSumOfSizes", "unsignedInt");
         deltaSumOfSizes = atoi(s.c_str());
         retrievedDeltaSumOfSizes = true;
     }
@@ -2129,7 +2129,8 @@ void EmuDAQManager::printDAQState( xgi::Output *out, string state ){
   decoration["Failed" ] = "blink";
   decoration["UNKNOWN"] = "none";
 
-  *out << " Local DAQ is in <a href=\"#states\">";
+  *out << " Local DAQ is in <a href=\"" << getHref( appDescriptor_ ) << "#states\"" 
+       << " title=\"click to see applications' states\">";
   *out << "<span align=\"center\" ";
   *out << "style=\"";
   *out << "background-color:" << bgcolor[state];
@@ -4104,7 +4105,8 @@ void EmuDAQManager::exportParams(xdata::InfoSpace *s)
     s->fireItemAvailable("STEPFinished",&STEPFinished_);
     s->addItemRetrieveListener("STEPFinished",this);
 
-
+    hardwareMapping_ = "emu/EmuDAQ/xml/RUI-to-chamber_mapping.xml";
+    s->fireItemAvailable("hardwareMapping",&hardwareMapping_);
 }
 
 
@@ -4122,24 +4124,27 @@ void EmuDAQManager::printSoapMsgToStdOut(xoap::MessageReference message)
     cout << flush;
 }
 
-
-vector< vector<string> > EmuDAQManager::getRUIEventCounts()
-  // Emu specific
+vector< map< string,string > > EmuDAQManager::getRUIEventCounts()
 {
-  vector< vector<string> > ec;
+  vector< map< string,string > > ec;
 
   vector< xdaq::ApplicationDescriptor* >::iterator rui;
   for ( rui = ruiDescriptors_.begin(); rui!=ruiDescriptors_.end(); ++rui ){
+    stringstream appInst;
+    string       appURL;
+    string       hwName = "chambers"; 
+    string       hwMapURL;
     string       count;
-    stringstream name;
-    string       href;
-    string       dduError = "";
+    string       dduError;
     try
       {
-	name << "EmuRUI" << setfill('0') << setw(2) << (*rui)->getInstance();
-	if ( hardwareMnemonics_.find( (*rui)->getInstance() ) != hardwareMnemonics_.end() )
-	name << "[" << hardwareMnemonics_[(*rui)->getInstance()] << "]";
-	href  = getHref( *rui );
+	appInst << setfill('0') << setw(2) << (*rui)->getInstance();
+	if ( hardwareMnemonics_.find( (*rui)->getInstance() ) != hardwareMnemonics_.end() ){
+	  hwName = hardwareMnemonics_[(*rui)->getInstance()];
+	}
+	hwMapURL = appDescriptor_->getContextDescriptor()->getURL() + "/" +
+	  hardwareMapping_.toString() + "#RUI." + appInst.str();
+	appURL = getHref( *rui );
 	map <string,string> namesAndTypes;
 	namesAndTypes["nEventsRead"       ] = "unsignedLong";
 	namesAndTypes["persistentDDUError"] = "string";
@@ -4149,40 +4154,42 @@ vector< vector<string> > EmuDAQManager::getRUIEventCounts()
       }
     catch(xcept::Exception e)
     {
-      href     = getHref( appDescriptor_ ) + "/control"; // self
+      appURL   = getHref( appDescriptor_ ) + "/control"; // self
       count    = "UNKNOWN";
       dduError = "";
-      LOG4CPLUS_WARN(logger_, "Failed to get event count of " << name.str()
+      LOG4CPLUS_WARN(logger_, "Failed to get event count of EmuRUI." << appInst.str()
 		     << " : " << xcept::stdformat_exception_history(e));
     }
-    vector<string> sv;
-    sv.push_back( href       );
-    sv.push_back( name.str() );
-    sv.push_back( count      );
-    sv.push_back( dduError   );
-    ec.push_back( sv );
+    map< string,string > sm;
+    sm[ "appName"  ] = "EmuRUI";
+    sm[ "appInst"  ] = appInst.str();
+    sm[ "appURL"   ] = appURL;
+    sm[ "hwName"   ] = hwName;
+    sm[ "hwMapURL" ] = hwMapURL;
+    sm[ "count"    ] = count;
+    sm[ "dduError" ] = dduError;
+    ec.push_back( sm );
   }
 
   return ec;
 }
 
-vector< vector<string> > EmuDAQManager::getFUEventCounts()
-  // Emu specific
+vector< map< string,string > > EmuDAQManager::getFUEventCounts()
 {
-  vector< vector<string> > ec;
+  vector< map< string,string > > ec;
 
   unsigned int totalProcessed = 0;
   vector< xdaq::ApplicationDescriptor* >::iterator fu;
   for ( fu = fuDescriptors_.begin(); fu!=fuDescriptors_.end(); ++fu ){
+    stringstream appInst;
+    string       appURL;
     string       count;
-    stringstream name;
-    string       href;
     unsigned int nProcessed = 0;
     stringstream ss;
     try
     {
-      href  = getHref( *fu );
-      name << "EmuFU" << setfill('0') << setw(2) << (*fu)->getInstance();
+      appURL  = getHref( *fu );
+      appInst << setfill('0') << setw(2) << (*fu)->getInstance();
       count = getScalarParam( (*fu), "nbEventsProcessed", "unsignedLong" );
       ss << count;
       ss >> nProcessed;
@@ -4190,88 +4197,119 @@ vector< vector<string> > EmuDAQManager::getFUEventCounts()
     }
     catch(xcept::Exception e)
     {
-      href  = getHref( appDescriptor_ ) + "/control"; // self
+      appURL = getHref( appDescriptor_ ) + "/control"; // self
       count = "UNKNOWN";
-      LOG4CPLUS_WARN(logger_, "Failed to get event count of " << name.str()
+      LOG4CPLUS_WARN(logger_, "Failed to get event count of EmuFU." << appInst.str()
 		     << " : " << xcept::stdformat_exception_history(e));
     }
-    vector<string> sv;
-    sv.push_back( href       );
-    sv.push_back( name.str() );
-    sv.push_back( count      );
-    ec.push_back( sv );
+    map< string,string > sm;
+    sm[ "appName"  ] = "EmuFU";
+    sm[ "appInst"  ] = appInst.str();
+    sm[ "appURL"   ] = appURL;
+    sm[ "count"    ] = count;
+    ec.push_back( sm );
   }
   stringstream sst;
   sst << totalProcessed;
-  vector<string> svt;
-  svt.push_back( getHref( appDescriptor_ ) + "/control" ); // self
-  svt.push_back( "Total" );
-  svt.push_back( sst.str()  );
-  ec.push_back( svt );
+  map< string,string > smt;
+  smt[ "appInst"  ] = "Total";
+  smt[ "appURL"   ] = getHref( appDescriptor_ ) + "/control";;
+  smt[ "count"    ] = sst.str();
+  ec.push_back( smt );
 
   return ec;
 }
+
 
 void EmuDAQManager::printEventCountsTable
 (
     xgi::Output              *out,
     string                    title,
-    vector< vector<string> >  counts 
+    vector< map< string,string > >   counts 
 ) // Emu specific
 {
-    int nbRows    = counts.size();
-
+    const int superColWidth = 3; // [columns]
+    int nCounts = counts.size();
+    int nSuperCols = 6;
+    if ( nCounts < nSuperCols ) nSuperCols = nCounts;
+    int nRows = nCounts/nSuperCols + (nCounts%nSuperCols?1:0);
 
     *out << "<table frame=\"void\" rules=\"rows\" class=\"params\">"   << endl;
 
     *out << "<tr>"                                                     << endl;
-    *out << "  <th colspan=2 align=\"center\">"                        << endl;
+    *out << "  <th colspan=" << nSuperCols*superColWidth << " align=\"center\">" << endl;
     *out << "    <b>"                                                  << endl;
     *out << title                                                      << endl;
     *out << "    </b>"                                                 << endl;
     *out << "  </th>"                                                  << endl;
     *out << "</tr>"                                                    << endl;
 
-    for(int row=0; row<nbRows; row++)
-    {
-        *out << "<tr>"                                                 << endl;
-        *out << "  <td align=\"left\">"                                << endl;
-	*out << "      <a href=\"" <<counts[row][0] 
-	     <<       "\" target=\"_blank\">"                          << endl;
-        *out <<             counts[row][1]                             << endl;
-	*out << "      </a>"                                           << endl;
-        *out << "  </td>"                                              << endl;
-        *out << "  <td align=\"right\">"                               << endl;
-	if ( counts[row].size() > 3 ){ // have element for DDU error
-	  if ( counts[row][3].size() > 0 ){ // DDU in error
-	    string href   = getHref( appDescriptor_ ) + "/control"; // self
-	    string target = "_self";
-	    try{
-	      href   = getHref( zone_->getApplicationDescriptor("EmuFCrateHyperDAQ",0) );
-	      target = "_blank";
-	    }
-	    catch(...){
-	      href = getHref( appDescriptor_ ) + "/control"; // self
-	      target = "_self";
-	    }
-	    *out << "      <a href=\"" << href << "\""
-		 <<         " title=\"" << counts[row][3] << "\""
-		 <<         " style=\"color:#ffffff;"
-		 <<                  "background-color:#000000;"
-		 <<                  "text-decoration:underline blink\""
-		 <<         " target=\"" << target << "\">"
-		 <<           counts[row][2] << "</a>"                 << endl;
+    for (int row=0; row<nRows; row++){
+      *out << "<tr>"                                                   << endl;
+      for (int superCol=0; superCol<nSuperCols; superCol++){
+// 	int iCount = superCol * nRows + row;
+	int iCount = row * nSuperCols + superCol;
+
+	  *out << "  <th align=\"center\">"                            << endl;
+	  if ( iCount < nCounts ){
+	    *out << "      <a href=\"" <<counts[iCount]["appURL"] << "\"";
+	    if ( counts[iCount].find("appName") != counts[iCount].end() )
+	      *out <<         " title=\"click to visit "
+		   <<           counts[iCount]["appName"] << "."
+		   <<           counts[iCount]["appInst"] << "\"";
+	    *out <<         " target=\"_blank\">"
+		 <<             counts[iCount]["appInst"]
+		 <<       "</a>"                                       << endl;
 	  }
-	  else{ // DDU OK
-	    *out << "    " << counts[row][2]                           << endl;
+	  *out << "  </th>"                                            << endl;
+
+	  *out << "  <td align=\"left\" style=\"padding:0 15px 0 5px;\">" << endl;
+	  if ( iCount < nCounts ){
+	    if ( counts[iCount].find("hwName") != counts[iCount].end() ){ // have element for hardware (chamber) name
+	      *out << "      <a href=\"" << counts[iCount]["hwMapURL"] << "\""
+	           <<         " title=\"click to view all chambers read out by "
+	           <<           counts[iCount]["appName"] << "."
+	           <<           counts[iCount]["appInst"] << "\""
+	           <<         " target=\"_blank\">"
+	           <<           counts[iCount]["hwName"] << "</a>"     << endl;
+	    }
 	  }
-	}
-	else{ // no element for DDU error
-	  *out << "    " << counts[row][2]                             << endl;
-	}
-        *out << "  </td>"                                              << endl;
-        *out << "</tr>"                                                << endl;
-    }
+	  *out << "  </td>"                                            << endl;
+
+	  *out << "  <td align=\"right\" style=\"padding:0 15px 0 5px;\">"<< endl;
+	  if ( iCount < nCounts ){
+	    if ( counts[iCount].find("dduError") != counts[iCount].end() ){ // have element for DDU error
+	      if ( counts[iCount]["dduError"].size() > 0 ){ // DDU in error
+		string href   = getHref( appDescriptor_ ) + "/control"; // self
+		string target = "_self";
+		try{
+		  href   = getHref( zone_->getApplicationDescriptor("EmuFCrateHyperDAQ",0) );
+		  target = "_blank";
+		}
+		catch(...){
+		  href = getHref( appDescriptor_ ) + "/control"; // self
+		  target = "_self";
+		}
+		*out << "      <a href=\"" << href << "\""
+		     <<         " title=\"" << counts[iCount]["dduError"] << "\""
+		     <<         " style=\"color:#ffffff;"
+		     <<                  "background-color:#000000;"
+		     <<                  "text-decoration:underline blink\""
+		     <<         " target=\"" << target << "\">"
+		     <<           counts[iCount]["count"] << "</a>"    << endl;
+	      }
+	      else{ // DDU OK
+		*out << "    " << counts[iCount]["count"]              << endl;
+	      }
+	    }
+	    else{ // no element for DDU error
+	      *out << "    " << counts[iCount]["count"]                << endl;
+	    }
+	  }
+	  *out << "  </td>"                                            << endl;
+      } // for (int superCol=0; superCol<nSuperCols; superCol++){
+      *out << "</tr>"                                                  << endl;
+    } // for (int row=0; row<nRows; row++){
 
     *out << "</table>"                                                 << endl;
 }
@@ -4286,44 +4324,46 @@ bool EmuDAQManager::printSTEPCountsTable( stringstream& out, bool control ){
   // Nothing to do if not in STEP run.
   if ( runType_.toString().find("STEP",0) == string::npos ) return isFinished;
 
-  out << "<table frame=\"void\" rules=\"rows cols\" class=\"params\">"   << endl;
+  out << "<table frame=\"void\" rules=\"rows cols\" class=\"params\">" << endl;
   
-  out << "<tr>"                                                     << endl;
-  out << "  <th colspan=" << 3 + emuRUI::STEPEventCounter::maxDDUInputs_ 
+  out << "<tr>"                                                        << endl;
+  out << "  <th colspan=" << 4 + emuRUI::STEPEventCounter::maxDDUInputs_ 
        <<      " align=\"center\">";
   out <<       "<b>Event counts</b>";
-  out << "  </th>"                                                  << endl;
-  out << "</tr>"                                                    << endl;
+  out << "  </th>"                                                     << endl;
+  out << "</tr>"                                                       << endl;
 
-  out << "<tr>"                                                     << endl;
-  out <<   "<th colspan=3>";
+  out << "<tr>"                                                        << endl;
+  out <<   "<th colspan=4/>";
+  out <<   "<th colspan=" << emuRUI::STEPEventCounter::maxDDUInputs_ << ">";
   if ( control ){
     out <<       "<input type=\"submit\"";
-    out <<           " style=\"float: left; background-color: #ffffff;\"";
+    out <<           " style=\"float: left; z-index: 1; background-color: #ffffff;\"";
     out <<           " name=\"mask\"";
     out <<           " title=\"Count selected DDU inputs in.\"";
     out <<           " value=\"count in\"";
     out <<       "/> ";
     out <<       "<input type=\"submit\"";
-    out <<           " style=\"float: right; background-color: #dddddd;\"";
+    out <<           " style=\"float: right; z-index: 1; background-color: #cccccc;\"";
     out <<           " name=\"mask\"";
     out <<           " title=\"Count selected DDU inputs out.\"";
     out <<           " value=\"count out\"";
     out <<       "/>";
+    out <<       "<span style=\"z-index: 0;\">DDU input</span>";
   }
-  out <<   "</th>"                                                   << endl;
-  out <<   "<th colspan=" << emuRUI::STEPEventCounter::maxDDUInputs_ << ">";
-  out << "DDU input";
-  out <<   "</th>"                                                   << endl;
-  out << "</tr>"                                                     << endl;
+  else{
+    out << "DDU input";
+  }
+  out <<   "</th>"                                                     << endl;
+  out << "</tr>"                                                       << endl;
 
-  out << "<tr>"                                                      << endl;
-  out <<   "<th></th>";
+  out << "<tr>"                                                        << endl;
+  out <<   "<th/><th/>";
   out <<   "<th>read</th>";
   out <<   "<th>accepted</th>";
   for ( unsigned int i = 0; i < emuRUI::STEPEventCounter::maxDDUInputs_; ++i )
     out <<   "<th>" << i << "</th>";
-  out << "</tr>"                                                    << endl;
+  out << "</tr>"                                                       << endl;
 
   xoap::MessageReference reply;
 
@@ -4388,19 +4428,27 @@ bool EmuDAQManager::printSTEPCountsTable( stringstream& out, bool control ){
     string       href = getHref( appDescriptor_ ) + "/control"; // self;
     string       dduError = "";
     name << "EmuRUI " << setfill('0') << setw(2) << (*rui)->getInstance();
-    if ( hardwareMnemonics_.find( (*rui)->getInstance() ) != hardwareMnemonics_.end() )
-      name << " [" << hardwareMnemonics_[(*rui)->getInstance()] << "]";
     href  = getHref( *rui );
     out << "<tr>"                                                 << endl;
     out << "  <th align=\"left\">";
     out << "      <a href=\"" << href 
-	 <<       "\" target=\"_blank\">";
+	<<       "\" target=\"_blank\" title=\"click to visit EmuRUI\">";
     out <<             name.str();
     out << "      </a>";
     out << "  </th>"                                              << endl;
 
+    // Second column: hardware name...
+    out << "  <th align=\"left\">";
+    out << "      <a href=\"" << appDescriptor_->getContextDescriptor()->getURL() << "/"
+	<< hardwareMapping_.toString() << "#RUI." << (*rui)->getInstance()
+	<<       "\" target=\"_blank\" title=\"click to view chambers\">";
+    if ( hardwareMnemonics_.find( (*rui)->getInstance() ) != hardwareMnemonics_.end() )
+      out << hardwareMnemonics_[(*rui)->getInstance()];
+    out << "      </a>";
+    out << "  </th>"                                              << endl;
 
-    // Second column: number of events read
+
+    // Third column: number of events read
     out << "  <td align=\"right\">";
     if ( persistentDDUError.toString().size() > 0 ){ // DDU in error
       out << "      <a href=\"" << href << "\""
@@ -4416,7 +4464,7 @@ bool EmuDAQManager::printSTEPCountsTable( stringstream& out, bool control ){
     }
     out << "  </td>"                                              << endl;
 
-    // Third column: number of events accepted
+    // Fourth column: number of events accepted
     out << "  <td align=\"right\">";
     out << "    " << totalCount.toString();
     out << "  </td>"                                              << endl;
@@ -4432,10 +4480,17 @@ bool EmuDAQManager::printSTEPCountsTable( stringstream& out, bool control ){
 		(int) ( dynamic_cast<xdata::UnsignedLong*> ( counts.elementAt(i)) )->value_ < maxNumberOfEvents_.value_ )
 	out <<     "class=\"notFinished\"";
       out <<   ">";
+      
+      out << "<a href=\"" 
+	  << appDescriptor_->getContextDescriptor()->getURL() << "/"
+	  << hardwareMapping_.toString() << "#RUI." << (*rui)->getInstance() << "." << i << "\""
+	  << " title=\"click to view chamber\""
+	  << " target=\"_blank\">";
       if ( liveInputs.elementAt(i)->toString() == "true" )
 	out << counts.elementAt(i)->toString();
       else
 	out << "&#8212;";
+      out << "</a>";
       if ( control ){
 	out <<       "<input type=\"checkbox\"";
 	out <<             " name=\"" << DDUInput.str() << "\"";
@@ -4964,12 +5019,12 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
     //
     // EmuFU event count
     //
-    vector< vector<string> > counts = getFUEventCounts();
+    vector< map< string,string > > counts = getFUEventCounts();
     if ( counts.size() > 0 ){
       int nFUs = counts.size()-1; // the last element is the sum of all FUs' event counts
 //       nameSpace = "events";
       name      = "EmuFU";
-      value     = counts.at(nFUs).at(2); // the last element is the sum of all FUs' event counts
+      value     = counts.at(nFUs)["count"]; // the last element is the sum of all FUs' event counts
       htmlMessageToELog << "<tr><td bgcolor=\"#dddddd\">events built</td><td>" << value << "</td></tr>";
       if ( toDatabase && isBookedRunNumber_ ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
@@ -4991,8 +5046,8 @@ void EmuDAQManager::writeRunInfo( bool toDatabase, bool toELog ){
     int nRUIs = counts.size();
 //     nameSpace = "events";
     for ( int rui=0; rui<nRUIs; ++rui ){
-      name  = counts.at(rui).at(1);
-      value = counts.at(rui).at(2);
+      name  = "EmuRUI"+counts.at(rui)["appInst"];
+      value = counts.at(rui)["count"];
       htmlMessageToELog << "<tr><td bgcolor=\"#eeeeee\">" << name << "</td><td align=\"right\">" << value << "</td></tr>";
       if ( toDatabase && isBookedRunNumber_ ){
 	success = runInfo_->writeRunInfo( name, value, nameSpace );
