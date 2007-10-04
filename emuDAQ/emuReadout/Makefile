@@ -29,7 +29,7 @@ IncludeDirs =  \
         $(XDAQ_ROOT)/daq/extern/i2o/include/i2o \
         $(XDAQ_ROOT)/daq/extern/i2o/include/i2o/shared \
         $(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
-        $(XDAQ_ROOT)/emu/emuDAQ/drivers/bigphysarea_xxxx/eth_hook_mmap_v0_2 \
+        $(XDAQ_ROOT)/emu/emuDAQ/drivers/e1000hook/eth_hook_2_nobigphysxxx \
 	$(XDAQ_ROOT)/daq/itools/i2ocore-modules/fedkit
 
 LibraryDirs =  \
