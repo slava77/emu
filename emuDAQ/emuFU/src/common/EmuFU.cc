@@ -175,7 +175,7 @@ string EmuFU::generateLoggerName()
     string                      loggerName;
 
 
-    oss << appClass << appInstance;
+    oss << appClass << "." << setfill('0') << std::setw(2) << appInstance;
     loggerName = oss.str();
 
     return loggerName;
