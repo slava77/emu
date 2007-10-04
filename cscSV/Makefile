@@ -1,4 +1,4 @@
-# $Id: Makefile,v 3.5 2007/06/29 12:13:32 ichiro Exp $
+# $Id: Makefile,v 3.6 2007/10/04 07:22:48 ichiro Exp $
 
 #########################################################################
 # XDAQ Components for Distributed Data Acquisition                      #
@@ -12,6 +12,8 @@
 # Modified for xdaqctl by I.Suzuki                                      #
 #########################################################################
 
+BUILD_HOME = .
+
 ##
 #
 # This is the xdaqctl test application Makefile
@@ -23,7 +25,7 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 #
 # Packages to be built
 #
-Project = daq
+Project =
 Package = CSCSupervisor
 
 Sources = \
@@ -32,31 +34,12 @@ Sources = \
 	CSCSupervisorV.cc
 
 IncludeDirs = \
-	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
-	$(XDAQ_ROOT)/daq/extern/cgicc/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
-	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
-	$(XDAQ_ROOT)/daq/extern/log4cplus/udpappender/include \
-	$(XDAQ_ROOT)/daq/extern/i2o/include/ \
-	$(XDAQ_ROOT)/daq/extern/i2o/include/i2o \
-	$(XDAQ_ROOT)/daq/extern/i2o/include/i2o/shared \
-	$(XDAQ_ROOT)/daq/toolbox/include \
-	$(XDAQ_ROOT)/daq/toolbox/include/$(XDAQ_OS) \
-	$(XDAQ_ROOT)/daq/toolbox/include/solaris \
-	$(XDAQ_ROOT)/daq/xdata/include \
-	$(XDAQ_ROOT)/daq/xcept/include \
-	$(XDAQ_ROOT)/daq/xoap/include \
-	$(XDAQ_ROOT)/daq/xdaq/include \
-	$(XDAQ_ROOT)/daq/pt/include \
-	$(XDAQ_ROOT)/daq/xgi/include \
-	$(XDAQ_ROOT)/daq/i2o/include \
-	$(XDAQ_ROOT)/daq/i2o/utils/include \
+	$(XDAQ_ROOT)/include \
+	$(XDAQ_ROOT)/include/$(XDAQ_OS)
 
+LibraryDirs = $(XDAQ_ROOT)/lib
 
-LibraryDirs = \
-	$(XDAQ_ROOT)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
-
-
-UserSourcePath =
+UserSourcePath = src/common
 
 UserCFlags =
 UserCCFlags =
@@ -79,6 +62,7 @@ StaticLibrary =
 TestLibraries=
 TestExecutables=
 
+#include $(XDAQ_ROOT)/config/Makefile.rules
 include ./Makefile.rules
 
 installcss:

@@ -1,17 +1,21 @@
 #ifndef __CSC_SUPERVISOR_V_H__
 #define __CSC_SUPERVISOR_V_H__
 
-#include "PackageInfo.h"
+#include "config/PackageInfo.h"
 
 namespace CSCSupervisor {
-	const string package     = "CSCSupervisor";
-	const string versions    = "1.0";
-	const string description = "CSC supervisor";
-	const string link        = "http://localhost:40000/";
+	const std::string package     = "CSCSupervisor";
+	const std::string versions    = "3.0";
+	const std::string description = "CSC supervisor";
 
-	toolbox::PackageInfo getPackageInfo();
-	void checkPackageDependencies() throw (toolbox::PackageInfo::VersionException);
-	set<string, less<string> > getPackageDependencies();
+	const std::string summary     = "emu/cscSV";
+	const std::string authors     = "Ichiro Suzuki";
+	const std::string link        = "http://localhost:40000/";
+
+	config::PackageInfo getPackageInfo();
+	void checkPackageDependencies()
+			throw (config::PackageInfo::VersionException);
+	std::set<std::string, std::less<std::string> > getPackageDependencies();
 };
 
 #endif  // ifndef __CSC_SUPERVISOR_V_H__

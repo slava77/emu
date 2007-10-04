@@ -53,7 +53,7 @@ CSCSupervisor::CSCSupervisor(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
 		EmuApplication(stub),
 		daq_mode_(""), trigger_config_(""), ttc_source_(""),
-		wl_semaphore_(BSem::EMPTY), quit_calibration_(false),
+		wl_semaphore_(toolbox::BSem::EMPTY), quit_calibration_(false),
 		daq_descr_(NULL), tf_descr_(NULL), ttc_descr_(NULL),
 		nevents_(-1),
 		step_counter_(0),
