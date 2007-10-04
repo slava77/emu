@@ -10,6 +10,8 @@
 #include "xoap/domutils.h"  // XMLCh2String()
 #include "toolbox/fsm/FailedEvent.h"
 
+using namespace std;
+
 EmuApplication::EmuApplication(xdaq::ApplicationStub *stub)
 		throw (xdaq::exception::Exception) :
 		xdaq::WebApplication(stub)

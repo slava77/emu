@@ -20,7 +20,7 @@ protected:
 			throw (toolbox::fsm::exception::Exception);
 	void transitionFailed(toolbox::Event::Reference event)
 			throw (toolbox::fsm::exception::Exception);
-	void fireEvent(string event) throw (toolbox::fsm::exception::Exception);
+	void fireEvent(std::string event) throw (toolbox::fsm::exception::Exception);
 
 	xoap::MessageReference createReply(xoap::MessageReference message)
 			throw (xoap::exception::Exception);

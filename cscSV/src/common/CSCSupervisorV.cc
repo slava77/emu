@@ -3,17 +3,21 @@
 
 #include "CSCSupervisorV.h"
 
-#include "toolboxV.h"
+#include "toolbox/version.h"
 #include "xoap/version.h"
-#include "xdaqV.h"
+#include "xdata/version.h"
+#include "xdaq/version.h"
+
+using namespace std;
 
 GETPACKAGEINFO(CSCSupervisor)
 
 void CSCSupervisor::checkPackageDependencies()
-		throw (toolbox::PackageInfo::VersionException)
+		throw (config::PackageInfo::VersionException)
 {
 	CHECKDEPENDENCY(toolbox)
 	CHECKDEPENDENCY(xoap)
+	CHECKDEPENDENCY(xdata)
 	CHECKDEPENDENCY(xdaq)
 }
 
@@ -23,6 +27,7 @@ set<string, less<string> > xdaq::getPackageDependencies()
 
 	ADDDEPENDENCY(dependencies, toolbox);
 	ADDDEPENDENCY(dependencies, xoap);
+	ADDDEPENDENCY(dependencies, xdata);
 	ADDDEPENDENCY(dependencies, xdaq);
 
 	return dependencies;

@@ -9,7 +9,7 @@
 
 #include "toolbox/fsm/FiniteStateMachine.h"
 #include "toolbox/task/WorkLoop.h"
-#include "BSem.h"
+#include "toolbox/BSem.h"
 #include "xdata/Vector.h"
 #include "xdata/Bag.h"
 #include "xdata/String.h"
@@ -116,7 +116,7 @@ private: // XDAQ parameters
 
 private:
 	toolbox::task::WorkLoop *wl_;
-	BSem wl_semaphore_;
+	toolbox::BSem wl_semaphore_;
 	toolbox::task::ActionSignature *configure_signature_, *halt_signature_;
 	toolbox::task::ActionSignature *calibration_signature_;
 	bool quit_calibration_;
