@@ -59,37 +59,32 @@
 					<item soapenc:position="[0]" xsi:type="xsd:string">Global</item>
 					<item soapenc:position="[1]" xsi:type="xsd:string">Calibration</item>
 				</fcConfigs>
-				<fedInstanceToCrate soapenc:arrayType="xsd:ur-type[3]" xsi:type="soapenc:Array">
-					<item soapenc:position="[0]" xsi:type="xsd:integer">1</item>
-					<item soapenc:position="[1]" xsi:type="xsd:integer">2</item>
-					<item soapenc:position="[2]" xsi:type="xsd:integer">3</item>
-				</fedInstanceToCrate>
 			</properties>
 		</xc:Application>
-		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libCSCSupervisor.so</xc:Module>
+		<xc:Module>$BUILD_HOME/$XDAQ_PLATFORM/lib/libCSCSupervisor.so</xc:Module>
 	</xc:Context>
 
 	<xc:Context url="http://localhost:40001">
 		<xc:Application class="EmuFCrate" id="20" instance="0" network="local"/>
 		<xc:Application class="EmuFCrateManager" id="29" instance="0" network="local"/>
-		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libEmuFCrate.so</xc:Module>
+		<xc:Module>$BUILD_HOME/$XDAQ_PLATFORM/lib/libEmuFCrate.so</xc:Module>
 
 		<xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="local"/>
 		<xc:Application class="EmuPeripheralCrate" id="31" instance="1" network="local"/>
 		<xc:Application class="EmuPeripheralCrateManager" id="32" instance="0" network="local"/>
-		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>
+		<xc:Module>$BUILD_HOME/$XDAQ_PLATFORM/lib/libEmuPeripheralCrate.so</xc:Module>
 
 		<xc:Application class="TF_hyperDAQ" id="50" instance="0" network="local"/>
-		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libTF_hyperDAQ.so</xc:Module>
+		<xc:Module>$BUILD_HOME/$XDAQ_PLATFORM/lib/libTF_hyperDAQ.so</xc:Module>
 
 		<xc:Application class="EmuDAQManager" id="80" instance="0" network="local"/>
-		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libEmuDAQManager.so</xc:Module>
+		<xc:Module>$BUILD_HOME/$XDAQ_PLATFORM/lib/libEmuDAQManager.so</xc:Module>
 
 		<xc:Application class="LTCControl" id="90" instance="0" network="local"/>
-		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libLTCControl.so</xc:Module>
+		<xc:Module>$BUILD_HOME/$XDAQ_PLATFORM/lib/libLTCControl.so</xc:Module>
 
 		<xc:Application class="TTCciControl" id="91" instance="0" network="local"/>
-		<xc:Module>$XDAQ_ROOT/lib/linux/x86/libTTCciControl.so</xc:Module>
+		<xc:Module>$BUILD_HOME/$XDAQ_PLATFORM/lib/libTTCciControl.so</xc:Module>
 	</xc:Context>
 </xc:Partition>
 <!-- vim: set sw=2 ts=2: -->

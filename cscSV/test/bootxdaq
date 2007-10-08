@@ -5,11 +5,14 @@ ECHO=
 RSH=ssh
 PORT=40000
 LOG=/tmp/xdaq.$USER
-XDAQ_EXE=$XDAQ_ROOT/bin/linux/x86/xdaq.exe
+XDAQ_EXE=$XDAQ_ROOT/bin/xdaq.exe
 XDAQ_FLAGS="-l DEBUG"
 CONFIG=$PWD/test/config.xml
 
-LIBPATH=.:$XDAQ_ROOT/lib/linux/x86
+export XDAQ_PLATFORM=x86_`$XDAQ_ROOT/config/checkos.sh`
+export XDAQ_DOCUMENT_ROOT=$XDAQ_ROOT/htdocs
+
+LIBPATH=.:$XDAQ_ROOT/lib:$BUILD_HOME/$XDAQ_PLATFORM/lib
 
 run() {
 	with_host=`echo "$@" | sed -e "s/HOST/localhost/"`
