@@ -1,16 +1,4 @@
-# $Id: Makefile,v 3.2 2007/01/30 15:03:48 ichiro Exp $
-
-#########################################################################
-# XDAQ Components for Distributed Data Acquisition                      #
-# Copyright (C) 2000-2004, CERN.			                #
-# All rights reserved.                                                  #
-# Authors: J. Gutleber and L. Orsini					#
-#                                                                       #
-# For the licensing terms see LICENSE.		                        #
-# For the list of contributors see CREDITS.   			        #
-#                                                                       #
-# Modified for xdaqctl by I.Suzuki                                      #
-#########################################################################
+# $Id: Makefile,v 3.3 2007/10/08 08:55:45 ichiro Exp $
 
 ##
 #
@@ -23,45 +11,24 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 #
 # Packages to be built
 #
-Project = daq
-Package = TF_hyperDAQ
+Project = emu
+Package = cscSV/test/EmuTF
 
 Sources = \
 	TF_hyperDAQ.cc \
 	TF_hyperDAQV.cc
 
-DependentLibraryDirs = $(XDAQ_ROOT)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
-DependentLibraries = CSCSupervisor
-EMU_APP_DIR = ../..
-
 IncludeDirs = \
-	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
-	$(XDAQ_ROOT)/daq/extern/cgicc/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
-	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
-	$(XDAQ_ROOT)/daq/extern/log4cplus/udpappender/include \
-	$(XDAQ_ROOT)/daq/extern/i2o/include/ \
-	$(XDAQ_ROOT)/daq/extern/i2o/include/i2o \
-	$(XDAQ_ROOT)/daq/extern/i2o/include/i2o/shared \
-	$(XDAQ_ROOT)/daq/toolbox/include \
-	$(XDAQ_ROOT)/daq/toolbox/include/$(XDAQ_OS) \
-	$(XDAQ_ROOT)/daq/toolbox/include/solaris \
-	$(XDAQ_ROOT)/daq/xdata/include \
-	$(XDAQ_ROOT)/daq/xcept/include \
-	$(XDAQ_ROOT)/daq/xoap/include \
-	$(XDAQ_ROOT)/daq/xdaq/include \
-	$(XDAQ_ROOT)/daq/pt/include \
-	$(XDAQ_ROOT)/daq/xgi/include \
-	$(XDAQ_ROOT)/daq/i2o/include \
-	$(XDAQ_ROOT)/daq/i2o/utils/include \
-	$(EMU_APP_DIR)/include
+	$(XDAQ_ROOT)/include \
+	$(XDAQ_ROOT)/include/$(XDAQ_OS) \
+	../../include
 
+LibraryDirs = $(XDAQ_ROOT)/lib
 
-LibraryDirs = \
-	$(XDAQ_ROOT)/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
-
+DependentLibraryDirs = $(BUILD_HOME)/$(XDAQ_PLATFORM)/lib
+DependentLibraries = CSCSupervisor
 
 UserSourcePath =
-
 UserCFlags =
 UserCCFlags =
 UserDynamicLinkFlags =
@@ -77,10 +44,12 @@ ExternalObjects =
 #
 # Compile the source files and create a shared library
 #
-DynamicLibrary = $(Package)
+DynamicLibrary = TF_hyperDAQ
 StaticLibrary =
 
 TestLibraries=
 TestExecutables=
 
-include ./Makefile.rules
+include $(XDAQ_ROOT)/config/Makefile.rules
+
+# End of file

@@ -5,6 +5,8 @@
 #include "xdaq/NamespaceURI.h"
 #include "xoap/Method.h"
 
+using namespace std;
+
 XDAQ_INSTANTIATOR_IMPL(EmuPeripheralCrate);
 
 EmuPeripheralCrate::EmuPeripheralCrate(xdaq::ApplicationStub *stub)
