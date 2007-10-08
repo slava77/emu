@@ -320,6 +320,8 @@ private:
   void TMBCheckConfiguration(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBReadStateMachines(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBCheckStateMachines(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void TMBRawHits(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void ALCTRawHits(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ALCTStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void RATStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CFEBStatus(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
