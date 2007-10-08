@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.11 2007/06/21 16:14:02 rakness Exp $
+// $Id: TMB_constants.h,v 3.12 2007/10/08 15:04:32 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.12  2007/10/08 15:04:32  rakness
+// add ALCT and TMB raw hits button in hyperDAQ
+//
 // Revision 3.11  2007/06/21 16:14:02  rakness
 // online measurement of ALCT in CLCT matching window
 //
@@ -591,6 +594,26 @@ const int alct_inj_delay_default  =0xd;                  //TMB documentation say
 //
 //
 //------------------------------------------------------------------
+//0X3E = ADR_ALCT_FIFO:  ALCT FIFO RAM Status
+//------------------------------------------------------------------
+const int alct_raw_busy_vmereg       =  alct_fifo_adr;
+const int alct_raw_busy_bitlo        =  0;
+const int alct_raw_busy_bithi        =  0;
+//
+const int alct_raw_done_vmereg       =  alct_fifo_adr;
+const int alct_raw_done_bitlo        =  1;
+const int alct_raw_done_bithi        =  1;
+//
+const int alct_raw_word_count_vmereg =  alct_fifo_adr;
+const int alct_raw_word_count_bitlo  =  2;
+const int alct_raw_word_count_bithi  = 12;
+//
+const int alct_raw_msbs_vmereg       =  alct_fifo_adr;
+const int alct_raw_msbs_bitlo        = 13;
+const int alct_raw_msbs_bithi        = 14;
+//
+//
+//------------------------------------------------------------------
 //0X42 = ADR_CFEB_INJ:  CFEB Injector Control
 //------------------------------------------------------------------
 const int enableCLCTInputs_vmereg   =  cfeb_inj_adr;
@@ -967,6 +990,38 @@ const int mpc_output_enable_default   =  1;
 //
 //
 //------------------------------------------------------------------
+//0XA2 = ADR_ALCTFIFO1:  ALCT Raw Hits RAM control
+//------------------------------------------------------------------
+const int alct_raw_reset_vmereg         =  alctfifo1_adr;
+const int alct_raw_reset_bitlo          =  0;
+const int alct_raw_reset_bithi          =  0;
+const int alct_raw_reset_default        =  0;
+//
+const int alct_raw_read_address_vmereg  =  alctfifo1_adr;
+const int alct_raw_read_address_bitlo   =  1;
+const int alct_raw_read_address_bithi   = 11;
+const int alct_raw_read_address_default =  0;
+//
+const int alct_raw_sync_vmereg          =  alctfifo1_adr;
+const int alct_raw_sync_bitlo           = 12;
+const int alct_raw_sync_bithi           = 12;
+const int alct_raw_sync_default         =  0;
+//
+const int alct_demux_mode_vmereg        =  alctfifo1_adr;
+const int alct_demux_mode_bitlo         = 13;
+const int alct_demux_mode_bithi         = 13;
+const int alct_demux_mode_default       =  0;
+//
+//
+//------------------------------------------------------------------
+//0XA4 = ADR_ALCTFIFO2:  ALCT Raw Hits RAM data LSBs
+//------------------------------------------------------------------
+const int alct_raw_lsbs_vmereg =  alctfifo2_adr;
+const int alct_raw_lsbs_bitlo  =  0;
+const int alct_raw_lsbs_bithi  = 15;
+//
+//
+//------------------------------------------------------------------
 //0XAC = ADR_SEQMOD:  Sequencer Trigger Modifiers
 //------------------------------------------------------------------
 const int clct_flush_delay_vmereg     =  seqmod_adr;
@@ -1022,6 +1077,38 @@ const int scint_veto_clr_default      =  0;
 const int scint_veto_vme_vmereg       =  seqmod_adr;
 const int scint_veto_vme_bitlo        = 13;
 const int scint_veto_vme_bithi        = 13;
+//
+//
+//------------------------------------------------------------------
+//0XAE = ADR_SEQSM:  Sequencer Machine State
+//------------------------------------------------------------------
+const int clct_state_machine_vmereg      =  seqsm_adr;
+const int clct_state_machine_bitlo       =  0;
+const int clct_state_machine_bithi       =  2;
+//
+const int tmb_match_state_machine_vmereg =  seqsm_adr;
+const int tmb_match_state_machine_bitlo  =  3;
+const int tmb_match_state_machine_bithi  =  5;
+//
+const int readout_state_machine_vmereg   =  seqsm_adr;
+const int readout_state_machine_bitlo    =  6;
+const int readout_state_machine_bithi    = 10;
+//
+const int readout_stack_full_vmereg      =  seqsm_adr;
+const int readout_stack_full_bitlo       = 11;
+const int readout_stack_full_bithi       = 11;
+//
+const int readout_stack_empty_vmereg     =  seqsm_adr;
+const int readout_stack_empty_bitlo      = 12;
+const int readout_stack_empty_bithi      = 12;
+//
+const int readout_stack_overflow_vmereg  =  seqsm_adr;
+const int readout_stack_overflow_bitlo   = 13;
+const int readout_stack_overflow_bithi   = 13;
+//
+const int readout_stack_underflow_vmereg =  seqsm_adr;
+const int readout_stack_underflow_bitlo  = 14;
+const int readout_stack_underflow_bithi  = 14;
 //
 //
 //------------------------------------------------------------------

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.49 2007/08/27 11:28:34 geurts Exp $
+// $Id: TMB.cc,v 3.50 2007/10/08 15:04:36 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.50  2007/10/08 15:04:36  rakness
+// add ALCT and TMB raw hits button in hyperDAQ
+//
 // Revision 3.49  2007/08/27 11:28:34  geurts
 // explicitly set an integer constant to long long int by suffixing it with LL
 //
@@ -377,6 +380,7 @@
 #include "VMEController.h"
 #include <unistd.h>
 #include <iostream>
+#include <iomanip>
 #include <cstdio>
 #include <sstream>
 #include<math.h>
@@ -1205,7 +1209,7 @@ std::string TMB::CounterName(int counter){
   std::string name="Not defined";;
   if( counter == 0 ) name = "ALCT: CRC error                                         ";
   if( counter == 1 ) name = "ALCT: LCT sent to TMB                                   ";
-  if( counter == 2 ) name = "ALCT: LCT matching error (alct onboard debug firmware)  ";
+  if( counter == 2 ) name = "ALCT: LCT received data error                           ";
   if( counter == 3 ) name = "ALCT: L1A readout                                       ";
   if( counter == 4 ) name = "CLCT: Pretrigger                                        ";
   if( counter == 5 ) name = "CLCT: Pretrig but no wbuf available                     ";
@@ -1227,7 +1231,24 @@ std::string TMB::CounterName(int counter){
   if( counter == 21) name = "L1A:  TMB triggered, no L1A received                    ";
   if( counter == 22) name = "L1A:  TMB readout                                       ";
   if( counter == 23) name = "CLCT: Triad skipped                                     ";
-  if( counter == 24) name = "TMB:  Raw Hits Buffer Reset                             ";
+  if( counter == 24) name = "TMB:  Raw Hits Buffer Reset due to overflow             ";
+  if( counter == 25) name = "TMB:  No ALCT in trigger                                ";
+  if( counter == 26) name = "TMB:  One ALCT in trigger                               ";
+  if( counter == 27) name = "TMB:  One CLCT in trigger                               ";
+  if( counter == 28) name = "TMB:  Two ALCTs in trigger                              ";
+  if( counter == 29) name = "TMB:  Two CLCTs in trigger                              ";
+  if( counter == 30) name = "TMB:  ALCT0 copied to ALCT1 to make 2nd LCT             ";
+  if( counter == 31) name = "TMB:  CLCT0 copied to CLCT1 to make 2nd LCT             ";
+  if( counter == 32) name = "TMB:  LCT1 has higher quality than LCT0 (ranking error) ";
+  //
+  // The following are not accessible via VME
+  //  if( counter == 33) name = "HDR:  Pretrigger counter                                ";
+  //  if( counter == 34) name = "HDR:  CLCT counter                                      ";
+  //  if( counter == 35) name = "HDR:  TMB trigger counter                               ";
+  //  if( counter == 36) name = "HDR:  ALCTs received counter                            ";
+  //  if( counter == 37) name = "HDR:  L1As received counter (12 bits)                   ";
+  //  if( counter == 38) name = "HDR:  Readout counter (12 bits)                         ";
+  //  if( counter == 39) name = "HDR:  BC0 counter                                       ";
   //
   return name;
 }
@@ -1970,328 +1991,327 @@ std::bitset<22> TMB::nextCRC22_D16(const std::bitset<16>& D,
 
   return NewCRC;
 }
-
-
+//
 int TMB::TestArray(){
-   (*MyOutput_) << "In TestArray" << std::endl;
-   int data[] = {      
- 0x6b0c 
- ,0x13e7 
- ,0x1291 
- ,0x135f 
- ,0x5ba 
- ,0x13 
- ,0x3ec 
- ,0x12e9 
- ,0x402d 
- ,0x157 
- ,0x515 
- ,0x29d1 
- ,0x5125 
- ,0x1660 
- ,0x3aa5 
- ,0x1700 
- ,0x243f 
- ,0x5d 
- ,0x21 
- ,0xbb9 
- ,0x0 
- ,0x53 
- ,0xcff 
- ,0x23 
- ,0x24 
- ,0x38ca 
- ,0x6e0b 
- ,0x0 
- ,0x0 
- ,0x0 
- ,0x0 
- ,0x0 
- ,0x0 
- ,0x100 
- ,0x100 
- ,0x100 
- ,0x100 
- ,0x100 
- ,0x100 
- ,0x200 
- ,0x200 
- ,0x200 
- ,0x200 
- ,0x200 
- ,0x200 
- ,0x300 
- ,0x300 
- ,0x300 
- ,0x300 
- ,0x300 
- ,0x300 
- ,0x400 
- ,0x400 
- ,0x400 
- ,0x400 
- ,0x400 
- ,0x400 
- ,0x500 
- ,0x500 
- ,0x500 
- ,0x500 
- ,0x500 
- ,0x500 
- ,0x600 
- ,0x600 
- ,0x600 
- ,0x600 
- ,0x600 
- ,0x600 
- ,0x1000 
- ,0x1000 
- ,0x1000 
- ,0x1000 
- ,0x1000 
- ,0x1000 
- ,0x1100 
- ,0x1100 
- ,0x1100 
- ,0x1100 
- ,0x1100 
- ,0x1100 
- ,0x1200 
- ,0x1200 
- ,0x1200 
- ,0x1200 
- ,0x1200 
- ,0x1200 
- ,0x1300 
- ,0x1300 
- ,0x1300 
- ,0x1300 
- ,0x1300 
- ,0x1300 
- ,0x1400 
- ,0x1400 
- ,0x1400 
- ,0x1400 
- ,0x1400 
- ,0x1400 
- ,0x1500 
- ,0x1500 
- ,0x1500 
- ,0x1500 
- ,0x1500 
- ,0x1500 
- ,0x1600 
- ,0x1600 
- ,0x1600 
- ,0x1600 
- ,0x1600 
- ,0x1600 
- ,0x2000 
- ,0x2000 
- ,0x2000 
- ,0x2000 
- ,0x2000 
- ,0x2000 
- ,0x2100 
- ,0x2180 
- ,0x2100 
- ,0x2100 
- ,0x2100 
- ,0x2100 
- ,0x2280 
- ,0x2280 
- ,0x2280 
- ,0x2200 
- ,0x2200 
- ,0x2200 
- ,0x2300 
- ,0x2300 
- ,0x2380 
- ,0x2300 
- ,0x2300 
- ,0x2300 
- ,0x2400 
- ,0x2400 
- ,0x2400 
- ,0x2400 
- ,0x2400 
- ,0x2400 
- ,0x2500 
- ,0x2500 
- ,0x2500 
- ,0x2500 
- ,0x2500 
- ,0x2500 
- ,0x2600 
- ,0x2600 
- ,0x2600 
- ,0x2600 
- ,0x2600 
- ,0x2600 
- ,0x3000 
- ,0x3000 
- ,0x3000 
- ,0x3000 
- ,0x3000 
- ,0x3000 
- ,0x3100 
- ,0x3100 
- ,0x3100 
- ,0x3101 
- ,0x3100 
- ,0x3100 
- ,0x3200 
- ,0x3200 
- ,0x3200 
- ,0x3200 
- ,0x3200 
- ,0x3200 
- ,0x3300 
- ,0x3300 
- ,0x3300 
- ,0x3301 
- ,0x3300 
- ,0x3302 
- ,0x3400 
- ,0x3400 
- ,0x3400 
- ,0x3400 
- ,0x3401 
- ,0x3400 
- ,0x3500 
- ,0x3500 
- ,0x3500 
- ,0x3500 
- ,0x3500 
- ,0x3500 
- ,0x3600 
- ,0x3600 
- ,0x3600 
- ,0x3600 
- ,0x3601 
- ,0x3600 
- ,0x4000 
- ,0x4000 
- ,0x4000 
- ,0x4000 
- ,0x4000 
- ,0x4000 
- ,0x4100 
- ,0x4100 
- ,0x4100 
- ,0x4100 
- ,0x4100 
- ,0x4100 
- ,0x4200 
- ,0x4200 
- ,0x4200 
- ,0x4200 
- ,0x4200 
- ,0x4200 
- ,0x4300 
- ,0x4300 
- ,0x4300 
- ,0x4300 
- ,0x4300 
- ,0x4300 
- ,0x4400 
- ,0x4400 
- ,0x4400 
- ,0x4400 
- ,0x4400 
- ,0x4400 
- ,0x4500 
- ,0x4500 
- ,0x4500 
- ,0x4500 
- ,0x4500 
- ,0x4500 
- ,0x4600 
- ,0x4600 
- ,0x4600 
- ,0x4600 
- ,0x4600 
- ,0x4600 
- ,0x6b04 
- ,0xff 
- ,0xf7 
- ,0x1ff 
- ,0xf7 
- ,0x2ff 
- ,0xf7 
- ,0x3ff 
- ,0xf7 
- ,0x4ff 
- ,0xf7 
- ,0x5ff 
- ,0xf7 
- ,0x6ff 
- ,0xf7 
- ,0x10ff 
- ,0x17ff 
- ,0x11ff 
- ,0x17ff 
- ,0x12ff 
- ,0x17ff 
- ,0x13ff 
- ,0x17ff 
- ,0x14ff 
- ,0x17ff 
- ,0x15ff 
- ,0x17ff 
- ,0x16ff 
- ,0x17ff 
- ,0x20ff 
- ,0x20f7 
- ,0x21ff 
- ,0x20f7 
- ,0x22ff 
- ,0x20f7 
- ,0x23ff 
- ,0x20f7 
- ,0x24ff 
- ,0x20f7 
- ,0x25ff 
- ,0x20f7 
- ,0x26ff 
- ,0x20f7 
- ,0x30ff 
- ,0x37ff 
- ,0x31ff 
- ,0x37ff 
- ,0x32ff 
- ,0x37ff 
- ,0x33ff 
- ,0x37ff 
- ,0x34ff 
- ,0x37ff 
- ,0x35ff 
- ,0x37ff 
- ,0x36ff 
- ,0x37ff 
- ,0x6e04 
- ,0x6e0c 
- ,0xdf1a 
- ,0xdb92 
- ,0xde0f 
- ,-1
-   };
-   std::vector < std::bitset<16> > alct_data;
-   for (int i=0; data[i] != -1; i++ ) {
-	 alct_data.push_back((std::bitset<16>)data[i]);
-   }
-   int CRC_end  = alct_data.size();
-   printf(" Size = %d \n",CRC_end);
-   int CRC_low  = (alct_data[CRC_end-3].to_ulong()) &0x7ff ;
-   int CRC_high = (alct_data[CRC_end-2].to_ulong()) &0x7ff ;
-   int CRCdata  = (CRC_high<<11) | CRC_low ;
-   printf(" CRC in data stream %x %x %x \n",(unsigned int)alct_data[CRC_end-3].to_ulong(),
-	  (unsigned int)alct_data[CRC_end-2].to_ulong(),
-	  CRCdata);
-   printf(" CRC %x \n",TMBCRCcalc(alct_data));
-   return 0;
+  (*MyOutput_) << "In TestArray" << std::endl;
+  int data[] = {      
+    0x6b0c 
+    ,0x13e7 
+    ,0x1291 
+    ,0x135f 
+    ,0x5ba 
+    ,0x13 
+    ,0x3ec 
+    ,0x12e9 
+    ,0x402d 
+    ,0x157 
+    ,0x515 
+    ,0x29d1 
+    ,0x5125 
+    ,0x1660 
+    ,0x3aa5 
+    ,0x1700 
+    ,0x243f 
+    ,0x5d 
+    ,0x21 
+    ,0xbb9 
+    ,0x0 
+    ,0x53 
+    ,0xcff 
+    ,0x23 
+    ,0x24 
+    ,0x38ca 
+    ,0x6e0b 
+    ,0x0 
+    ,0x0 
+    ,0x0 
+    ,0x0 
+    ,0x0 
+    ,0x0 
+    ,0x100 
+    ,0x100 
+    ,0x100 
+    ,0x100 
+    ,0x100 
+    ,0x100 
+    ,0x200 
+    ,0x200 
+    ,0x200 
+    ,0x200 
+    ,0x200 
+    ,0x200 
+    ,0x300 
+    ,0x300 
+    ,0x300 
+    ,0x300 
+    ,0x300 
+    ,0x300 
+    ,0x400 
+    ,0x400 
+    ,0x400 
+    ,0x400 
+    ,0x400 
+    ,0x400 
+    ,0x500 
+    ,0x500 
+    ,0x500 
+    ,0x500 
+    ,0x500 
+    ,0x500 
+    ,0x600 
+    ,0x600 
+    ,0x600 
+    ,0x600 
+    ,0x600 
+    ,0x600 
+    ,0x1000 
+    ,0x1000 
+    ,0x1000 
+    ,0x1000 
+    ,0x1000 
+    ,0x1000 
+    ,0x1100 
+    ,0x1100 
+    ,0x1100 
+    ,0x1100 
+    ,0x1100 
+    ,0x1100 
+    ,0x1200 
+    ,0x1200 
+    ,0x1200 
+    ,0x1200 
+    ,0x1200 
+    ,0x1200 
+    ,0x1300 
+    ,0x1300 
+    ,0x1300 
+    ,0x1300 
+    ,0x1300 
+    ,0x1300 
+    ,0x1400 
+    ,0x1400 
+    ,0x1400 
+    ,0x1400 
+    ,0x1400 
+    ,0x1400 
+    ,0x1500 
+    ,0x1500 
+    ,0x1500 
+    ,0x1500 
+    ,0x1500 
+    ,0x1500 
+    ,0x1600 
+    ,0x1600 
+    ,0x1600 
+    ,0x1600 
+    ,0x1600 
+    ,0x1600 
+    ,0x2000 
+    ,0x2000 
+    ,0x2000 
+    ,0x2000 
+    ,0x2000 
+    ,0x2000 
+    ,0x2100 
+    ,0x2180 
+    ,0x2100 
+    ,0x2100 
+    ,0x2100 
+    ,0x2100 
+    ,0x2280 
+    ,0x2280 
+    ,0x2280 
+    ,0x2200 
+    ,0x2200 
+    ,0x2200 
+    ,0x2300 
+    ,0x2300 
+    ,0x2380 
+    ,0x2300 
+    ,0x2300 
+    ,0x2300 
+    ,0x2400 
+    ,0x2400 
+    ,0x2400 
+    ,0x2400 
+    ,0x2400 
+    ,0x2400 
+    ,0x2500 
+    ,0x2500 
+    ,0x2500 
+    ,0x2500 
+    ,0x2500 
+    ,0x2500 
+    ,0x2600 
+    ,0x2600 
+    ,0x2600 
+    ,0x2600 
+    ,0x2600 
+    ,0x2600 
+    ,0x3000 
+    ,0x3000 
+    ,0x3000 
+    ,0x3000 
+    ,0x3000 
+    ,0x3000 
+    ,0x3100 
+    ,0x3100 
+    ,0x3100 
+    ,0x3101 
+    ,0x3100 
+    ,0x3100 
+    ,0x3200 
+    ,0x3200 
+    ,0x3200 
+    ,0x3200 
+    ,0x3200 
+    ,0x3200 
+    ,0x3300 
+    ,0x3300 
+    ,0x3300 
+    ,0x3301 
+    ,0x3300 
+    ,0x3302 
+    ,0x3400 
+    ,0x3400 
+    ,0x3400 
+    ,0x3400 
+    ,0x3401 
+    ,0x3400 
+    ,0x3500 
+    ,0x3500 
+    ,0x3500 
+    ,0x3500 
+    ,0x3500 
+    ,0x3500 
+    ,0x3600 
+    ,0x3600 
+    ,0x3600 
+    ,0x3600 
+    ,0x3601 
+    ,0x3600 
+    ,0x4000 
+    ,0x4000 
+    ,0x4000 
+    ,0x4000 
+    ,0x4000 
+    ,0x4000 
+    ,0x4100 
+    ,0x4100 
+    ,0x4100 
+    ,0x4100 
+    ,0x4100 
+    ,0x4100 
+    ,0x4200 
+    ,0x4200 
+    ,0x4200 
+    ,0x4200 
+    ,0x4200 
+    ,0x4200 
+    ,0x4300 
+    ,0x4300 
+    ,0x4300 
+    ,0x4300 
+    ,0x4300 
+    ,0x4300 
+    ,0x4400 
+    ,0x4400 
+    ,0x4400 
+    ,0x4400 
+    ,0x4400 
+    ,0x4400 
+    ,0x4500 
+    ,0x4500 
+    ,0x4500 
+    ,0x4500 
+    ,0x4500 
+    ,0x4500 
+    ,0x4600 
+    ,0x4600 
+    ,0x4600 
+    ,0x4600 
+    ,0x4600 
+    ,0x4600 
+    ,0x6b04 
+    ,0xff 
+    ,0xf7 
+    ,0x1ff 
+    ,0xf7 
+    ,0x2ff 
+    ,0xf7 
+    ,0x3ff 
+    ,0xf7 
+    ,0x4ff 
+    ,0xf7 
+    ,0x5ff 
+    ,0xf7 
+    ,0x6ff 
+    ,0xf7 
+    ,0x10ff 
+    ,0x17ff 
+    ,0x11ff 
+    ,0x17ff 
+    ,0x12ff 
+    ,0x17ff 
+    ,0x13ff 
+    ,0x17ff 
+    ,0x14ff 
+    ,0x17ff 
+    ,0x15ff 
+    ,0x17ff 
+    ,0x16ff 
+    ,0x17ff 
+    ,0x20ff 
+    ,0x20f7 
+    ,0x21ff 
+    ,0x20f7 
+    ,0x22ff 
+    ,0x20f7 
+    ,0x23ff 
+    ,0x20f7 
+    ,0x24ff 
+    ,0x20f7 
+    ,0x25ff 
+    ,0x20f7 
+    ,0x26ff 
+    ,0x20f7 
+    ,0x30ff 
+    ,0x37ff 
+    ,0x31ff 
+    ,0x37ff 
+    ,0x32ff 
+    ,0x37ff 
+    ,0x33ff 
+    ,0x37ff 
+    ,0x34ff 
+    ,0x37ff 
+    ,0x35ff 
+    ,0x37ff 
+    ,0x36ff 
+    ,0x37ff 
+    ,0x6e04 
+    ,0x6e0c 
+    ,0xdf1a 
+    ,0xdb92 
+    ,0xde0f 
+    ,-1
+  };
+  std::vector < std::bitset<16> > alct_data;
+  for (int i=0; data[i] != -1; i++ ) {
+    alct_data.push_back((std::bitset<16>)data[i]);
+  }
+  int CRC_end  = alct_data.size();
+  printf(" Size = %d \n",CRC_end);
+  int CRC_low  = (alct_data[CRC_end-3].to_ulong()) &0x7ff ;
+  int CRC_high = (alct_data[CRC_end-2].to_ulong()) &0x7ff ;
+  int CRCdata  = (CRC_high<<11) | CRC_low ;
+  printf(" CRC in data stream %x %x %x \n",(unsigned int)alct_data[CRC_end-3].to_ulong(),
+	 (unsigned int)alct_data[CRC_end-2].to_ulong(),
+	 CRCdata);
+  printf(" CRC %x \n",TMBCRCcalc(alct_data));
+  return 0;
 }
-
+//
 int TMB::TMBCRCcalc(std::vector<std::bitset <16> >& TMBData) {
   //
   std::bitset<22> CRC=calCRC22(TMBData);
@@ -2299,7 +2319,7 @@ int TMB::TMBCRCcalc(std::vector<std::bitset <16> >& TMBData) {
   return CRC.to_ulong();
   //
 }
-
+//
 void TMB::FireALCTInjector(){
   //
   tmb_vme(VME_READ, alct_inj_adr, sndbuf,rcvbuf,NOW);
@@ -2440,13 +2460,10 @@ void TMB::EnableL1aRequest(){
   //printf(" Setting to %x %x \n",rcvbuf[0], rcvbuf[1]);
   //
 }
-
-
-
+//
 void TMB::DisableL1aRequest(){
   //
-  int adr;
-  adr = ccb_trig_adr;
+  int adr = ccb_trig_adr;
   tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
   //printf(" Current %x %x \n",rcvbuf[0], rcvbuf[1]);
   //
@@ -2458,209 +2475,10 @@ void TMB::DisableL1aRequest(){
   //printf(" Setting to %x %x \n",rcvbuf[0], rcvbuf[1]);
   //
 }
-
-
-void TMB::ALCTRawhits(){
-  //   
-  int adr, alct_wdcnt, alct_busy, rd_data, wr_data, alct_rdata;
-  int tmb_state, halt_state;
-  std::vector < std::bitset<16> > alct_data;
-  
-  //Clear RAM address for next event and set sync bit
-  /*
-  adr = alctfifo1_adr ;
-  wr_data  = 0x1; //reset RAM write address
-  wr_data |= 0x1000;  // Set sync mode
-  sndbuf[0] = (wr_data & 0xff00)>>8 ;
-  sndbuf[1] = wr_data & 0x00ff ;
-  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-  wr_data  = 0x0; //unreset
-  wr_data |= 0x1000;  // Set sync mode
-  sndbuf[0] = (wr_data & 0xff00)>>8 ;
-  sndbuf[1] = wr_data & 0x00ff ;
-  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-  */
-  //
-  ::sleep(2);
-  //
-  //while ( 1 < 2 ) {
-    //
-    // Pretrigger halt
-    //
-  adr = seq_clct_adr ;
-  tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-  rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-  printf(" Start loop tmb_state machine  = %4d\n",(rd_data>>15)&0x1);
-  sndbuf[0] = (rcvbuf[0] & 0x7f) | 0x80 ;
-  sndbuf[1] = rcvbuf[1];
-  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-  //
-  adr = seqsm_adr ;
-  tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-  rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-  tmb_state     = (rd_data & 0x7);
-  //
-  adr = seq_clct_adr ;
-  tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-  rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-  halt_state = ((rd_data>>15)&0x1);
-  //
-  adr = alct_fifo_adr ;
-  tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-  rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-  alct_wdcnt = (rd_data >> 2 ) & 0x1ff;
-  alct_busy  = rd_data & 0x0001;
-  //
-  printf("   word count         = %4d\n",alct_wdcnt);
-  printf("   busy               = %4d\n",alct_busy);
-  printf("   tmb_state machine  = %4d\n",tmb_state);
-  printf("   halt_state         = %4d\n",halt_state);   
-  //
-  while((alct_busy) || (tmb_state != 7 )) {
-    //
-    adr = seqsm_adr ;
-    tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-    rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-    tmb_state     = (rd_data & 0x7);
-    //
-    adr = seq_clct_adr ;
-    tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-    rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-    halt_state = ((rd_data>>15)&0x1);
-    //
-    adr = alct_fifo_adr ;
-    tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-    rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-    alct_wdcnt = (rd_data >> 2 ) & 0x1ff;
-    alct_busy  = rd_data & 0x0001;
-    //
-    printf("   word count = %4d\n",alct_wdcnt);
-    printf("   busy       = %4d\n",alct_busy);
-    printf("   tmb_state machine  = %4d\n",tmb_state);
-    printf("   halt_state         = %4d\n",halt_state);   
-    //
-  }
-  //Write RAM read address to TMB
-  for(int i=0;i<alct_wdcnt;i++) {
-    //
-    adr = alctfifo1_adr ;
-    wr_data = (i & 0x7FFF) << 1;
-    wr_data |= 0x1000;  // Set sync mode
-    wr_data |= 0x0000;  // Disable sync mode
-    sndbuf[0] = (wr_data & 0xff00)>>8 ;
-    sndbuf[1] = wr_data & 0x00ff ;
-    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-    
-    //Read RAM data from TMB
-    adr = alctfifo2_adr ;
-    tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);     //read lsbs
-    rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-    alct_rdata = rd_data;
-    
-    printf("Adr=%4d, Data=%5x\n",i,alct_rdata);
-    alct_data.push_back((std::bitset<16>)alct_rdata);
-  }
-  //
-  if ( alct_wdcnt > 0 ) {
-    
-    printf("The size is %d\n",alct_data.size());
-	
-    int CRC_end  = alct_data.size();
-    int CRC_low  = (alct_data[CRC_end-4].to_ulong()) &0x7ff ;
-    int CRC_high = (alct_data[CRC_end-3].to_ulong()) &0x7ff ;
-    int CRCdata  = (CRC_high<<11) | CRC_low ;
-    
-    int CRCcalc = TMBCRCcalc(alct_data) ;
-    
-    printf(" CRC %x \n",CRCcalc);
-    printf(" CRC in data stream %lx %lx %x \n",alct_data[CRC_end-4].to_ulong(),
-	   alct_data[CRC_end-3].to_ulong(),CRCdata);
-	 
-    if ( CRCcalc != CRCdata ) {
-      printf("ALCT CRC doesn't agree \n");
-    } else {
-      printf("ALCT CRC does    agree \n");
-    }
-    //
-  }
-  
-  alct_data.clear();
-  
-  //Clear RAM address for next event
-  /*
-    adr = alctfifo1_adr ;
-    wr_data = 0x1; //reset RAM write address
-    sndbuf[0] = (wr_data & 0xff00)>>8 ;
-    sndbuf[1] = wr_data & 0x00ff ;
-    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-    wr_data = 0x0; //unreset
-    sndbuf[0] = (wr_data & 0xff00)>>8 ;
-    sndbuf[1] = wr_data & 0x00ff ;
-    tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-  */
-  //
-  
-  // Pretrigger unhalt
-  
-  adr = seq_clct_adr ;
-  tmb_vme(VME_READ,adr,sndbuf,rcvbuf,NOW);
-  rd_data = ((rcvbuf[0]&0xff) << 8) | (rcvbuf[1]&0xff) ;
-  sndbuf[0] = (rcvbuf[0] & 0x7f) ;
-  sndbuf[1] = rcvbuf[1];
-  tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-  
-  //}
-} 
 //
-void TMB::ResetALCTRAMAddress(){
-   //
-   //Clear RAM address for next event
-   //
-   int adr, wr_data;
-   int busy=0;
-   //
-   tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
-   while ( rcvbuf[1]&0x1 != 0 && busy < 20 ){
-     (*MyOutput_) << "1.Waiting for busy to clear" <<std::endl;
-     tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);
-     busy++;
-   }
-   //
-   adr = alctfifo1_adr ;
-   wr_data = 0x1; //reset RAM write address
-   sndbuf[0] = (wr_data & 0xff00)>>8 ;
-   sndbuf[1] = wr_data & 0x00ff ;
-   tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-   //
-   tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
-   while ( rcvbuf[1]&0x1 != 0 ){
-     (*MyOutput_) << "2.Waiting for busy to clear" <<std::endl;
-     tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
-   }
-   //
-   wr_data = 0x0; //unreset
-   sndbuf[0] = (wr_data & 0xff00)>>8 ;
-   sndbuf[1] = wr_data & 0x00ff ;
-   tmb_vme(VME_WRITE,adr,sndbuf,rcvbuf,NOW);
-   //
-   tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
-   while ( rcvbuf[1]&0x1 != 0 ){
-     (*MyOutput_) << "3.Waiting for busy to clear" <<std::endl;
-     tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
-   }
-   //
-}
-
-void TMB::ResetRAMAddress(){
-  //
-  //Clear RAM address for next event
-  //
-  WriteRegister(dmb_ram_adr,0x2000); //reset RAM write address
-  WriteRegister(dmb_ram_adr,0x0000); //unreset
-  //
-  return;
-}
-
+////////////////////////////////////////////////////
+// ALCT and TMB data from VME reads
+////////////////////////////////////////////////////
 void TMB::TMBRawhits(){
   //
   bool read_ok = false;
@@ -2679,7 +2497,7 @@ void TMB::TMBRawhits(){
     //
     // Attempt to read the data:
     ResetRAMAddress();
-    read_ok = OnlyReadTMBRawhits();   //check to see that pretrigger made a L1A -> read out...
+    read_ok = ReadTMBRawhits_();   //check to see that pretrigger made a L1A -> read out...
     //
     // Pretrigger unhalt, go back to normal data taking:
     SetPretriggerHalt(0);
@@ -2693,14 +2511,24 @@ void TMB::TMBRawhits(){
   return;
 }
 //
-bool TMB::OnlyReadTMBRawhits(){
+void TMB::ResetRAMAddress(){
+  //
+  //Clear RAM address for next event
+  //
+  WriteRegister(dmb_ram_adr,0x2000); //reset RAM write address
+  WriteRegister(dmb_ram_adr,0x0000); //unreset
+  //
+  return;
+}
+//
+bool TMB::ReadTMBRawhits_(){
   //
   tmb_data_.clear();
   //
   // Check state machine, is it halted while we extract the data?
   //
   ReadRegister(seq_clct_adr);
-  int halt_state = GetPretriggerHalt();
+  int halt_state = GetReadPretriggerHalt();
   if (debug_) (*MyOutput_) << "TMB halt_state before read RAM = " << halt_state << std::endl;
   //
   if (!halt_state) {
@@ -2770,6 +2598,207 @@ bool TMB::OnlyReadTMBRawhits(){
   //
   return dataOK;
 }
+//
+void TMB::ALCTRawhits() {
+  //   
+  bool read_ok = false;
+  //
+  int max_number_of_times = 10;  //prevent going into an infinite loop
+  int number_of_reads = 0;
+  //
+  while (!read_ok && (number_of_reads<max_number_of_times) ) {
+    //
+    number_of_reads++;
+    //
+    //pretrigger and halt until next unhalt arrives:
+    //    if (debug_) std::cout << "TMB:  Halt pretrigger" << std::endl;
+    //    SetPretriggerHalt(1);
+    //    WriteRegister(seq_clct_adr);
+    //    ::sleep(100000);   // Give the chamber time to trigger on and read an event
+    //
+    // Attempt to read the data:
+    read_ok = ReadALCTRawhits_();   //check to see that pretrigger made a L1A -> read out...
+    //
+    // Pretrigger unhalt, go back to normal data taking:
+    //    if (debug_) std::cout << "TMB:  Unhalt pretrigger" << std::endl;
+    //    SetPretriggerHalt(0);
+    //    WriteRegister(seq_clct_adr);
+    //    ::usleep(10000);
+  }
+  //
+  if (number_of_reads >= max_number_of_times) 
+    (*MyOutput_) << "TMB read ALCT " << std::dec << number_of_reads << " times with no data..." << std::endl;
+  //
+  return;
+}
+//
+bool TMB::ReadALCTRawhits_() {
+  //
+  const int max_number_of_waits_for_busy = 20;
+  //
+  ReadRegister(seq_clct_adr);
+  int halt_state = GetReadPretriggerHalt();
+  if (debug_) std::cout << "TMB:  TMB halt_state before read ALCT raw hits RAM = " << halt_state << std::endl;
+  //
+  //  if (!halt_state) {
+  //    std::cout << "ERROR:  TMB not halted.  halt_state before read ALCT raw hits RAM = " << halt_state << std::endl;
+  //    return false;
+  //  }
+  //
+  if (!CheckAlctFIFOBusy(max_number_of_waits_for_busy)) {
+    std::cout << "TMB:  At beginning of ReadALCTRawHits(),  ALCT FIFO Busy " << max_number_of_waits_for_busy << " times... " << std::endl;
+    std::cout << "..... aborting" << std::endl;
+    return false;
+  }
+  //
+  int data = ReadRegister(alct_fifo_adr);
+  if (debug_) (*MyOutput_) << "Register 0x3E -> Read=0x" << std::hex << data << std::endl;
+  //
+  int alct_wdcnt = GetReadAlctRawWordCount();
+  if (debug_) (*MyOutput_) << "Number of raw words =" << std::dec << alct_wdcnt << std::endl;
+  //
+  if (alct_wdcnt == 0) {
+    if (debug_) std::cout << "Try again" << std::endl;
+    return false;
+  }
+  //
+  for(int i=0;i<alct_wdcnt;i++) {
+    //
+    //Write RAM read address to TMB
+    SetAlctRawSync(0);
+    SetAlctDemuxMode(0);         //set to enable alctfifo2 address to contain raw hits
+    SetAlctRawReadAddress(i);
+    WriteRegister(alctfifo1_adr);
+    int data = ReadRegister(alctfifo1_adr);
+    //    if (debug_) (*MyOutput_) << "Register 0xA2 -> Read=" << std::hex << data << std::endl;
+    //
+    //Read RAM data from TMB...
+    //
+    // Least Significant Bits:
+    data = ReadRegister(alctfifo2_adr);
+    long int alct_rdata = (GetReadAlctRawDataLeastSignificantBits() & 0xffff);
+    //    if (debug_) (*MyOutput_) << "Register 0xA4 -> Read=" << std::hex << data << std::endl;
+    //
+    // Add on the most significant bits:
+    data = ReadRegister(alct_fifo_adr);
+    //    if (debug_) (*MyOutput_) << "Register 0x3E -> Read=" << std::hex << data << std::endl;
+    alct_rdata |= ( (GetReadAlctRawDataMostSignificantBits()&0x3) << 16 );
+    //
+    (*MyOutput_) << "Adr=" << std::dec << std::setw(4) << i 
+		 << ", Data=0x" << std::hex 
+		 << ((alct_rdata>>16)&0xf) 
+		 << ((alct_rdata>>12)&0xf) 
+		 << ((alct_rdata>> 8)&0xf) 
+		 << ((alct_rdata>> 4)&0xf) 
+		 << ((alct_rdata>> 0)&0xf)
+		 << std::endl;
+    if (debug_) 
+      std::cout << "Adr=" << std::dec << std::setw(4) << i 
+		<< ", Data=" << std::hex 
+		<< ((alct_rdata>>16)&0xf) 
+		<< ((alct_rdata>>12)&0xf) 
+		<< ((alct_rdata>> 8)&0xf) 
+		<< ((alct_rdata>> 4)&0xf) 
+		<< ((alct_rdata>> 0)&0xf)
+		<< std::endl;
+    //
+    //alct_data.push_back((std::bitset<16>)alct_rdata);
+  }
+  //
+  //  if ( alct_wdcnt > 0 ) {
+  //    
+  //    printf("The size is %d\n",alct_data.size());
+  //	
+  //    int CRC_end  = alct_data.size();
+  //    int CRC_low  = (alct_data[CRC_end-4].to_ulong()) &0x7ff ;
+  //    int CRC_high = (alct_data[CRC_end-3].to_ulong()) &0x7ff ;
+  //    int CRCdata  = (CRC_high<<11) | CRC_low ;
+  //    
+  //    int CRCcalc = TMBCRCcalc(alct_data) ;
+  //    
+  //    printf(" CRC %x \n",CRCcalc);
+  //    printf(" CRC in data stream %lx %lx %x \n",alct_data[CRC_end-4].to_ulong(),
+  //	   alct_data[CRC_end-3].to_ulong(),CRCdata);
+  //	 
+  //    if ( CRCcalc != CRCdata ) {
+  //      printf("ALCT CRC doesn't agree \n");
+  //    } else {
+  //      printf("ALCT CRC does    agree \n");
+  //    }
+  //
+  //}
+  //
+  //  alct_data.clear();
+  //
+  return true;
+}
+//
+bool TMB::ResetALCTRAMAddress(){
+  //
+  //Clear RAM address
+  //
+  if (debug_) std::cout << "Reset ALCTRAMAddress" << std::endl;
+  //
+  const int maximum_number_of_allowed_busies = 20;
+  //
+  if (!CheckAlctFIFOBusy(maximum_number_of_allowed_busies)) {
+    std::cout << "TMB:  At beginning of ResetALCTRAMAddress(),  ALCT FIFO Busy " << maximum_number_of_allowed_busies << " times... " << std::endl;
+    std::cout << "..... aborting" << std::endl;
+    return false;
+  }
+  //
+  //reset ALCT raw hits FIFO controller:
+  SetAlctRawReset(1);
+  WriteRegister(alctfifo1_adr);
+  //
+  if (!CheckAlctFIFOBusy(maximum_number_of_allowed_busies)) {
+    std::cout << "TMB:  After resetting ALCT FIFO controller,  ALCT FIFO Busy " << maximum_number_of_allowed_busies << " times... " << std::endl;
+    std::cout << "..... aborting" << std::endl;
+    return false;
+  }
+  //
+  //unreset ALCT raw hits FIFO controller:
+  SetAlctRawReset(0);
+  WriteRegister(alctfifo1_adr);
+  //
+  if (!CheckAlctFIFOBusy(maximum_number_of_allowed_busies)) {
+    std::cout << "TMB:  After unresetting ALCT FIFO controller,  ALCT FIFO Busy " << maximum_number_of_allowed_busies << " times... " << std::endl;
+    std::cout << "..... aborting" << std::endl;
+    return false;
+  }
+  //
+  return true;
+}
+//
+//
+bool TMB::CheckAlctFIFOBusy(int number_of_checks_before_aborting) {
+  //
+  int number_of_checks = 0;
+  //
+  int data = ReadRegister(alct_fifo_adr);
+  if (debug_) std::cout << "CheckAlctFIFOBusy:  TMB register 0x3E = " << std::hex << data << std::endl;
+  //
+  while ( GetReadAlctRawBusy() != 0 && 
+	  GetReadAlctRawDone() != 1 && 
+	  number_of_checks < number_of_checks_before_aborting ){
+    //
+    if (debug_) std::cout << "TMB:  ALCT raw hits FIFO busy writing ALCT data... " << number_of_checks << " times" << std::endl;
+    //
+    data = ReadRegister(alct_fifo_adr);
+    if (debug_) std::cout << "CheckAlctFIFOBusy:  TMB register 0x3E = " << std::hex << data << std::endl;
+    //
+    number_of_checks++;
+  }
+  //
+  if (number_of_checks < number_of_checks_before_aborting) {
+    if (debug_) std::cout << "CheckAlctFIFOBusy:  Not busy, continuing..." << std::endl;
+    return true;
+  } else {
+    if (debug_) std::cout << "CheckAlctFIFOBusy:  BUSY, should abort..." << std::endl;
+    return false;
+  }
+}
+//
 //
 void TMB::DecodeTMBRawHits_() {
   //
@@ -3522,15 +3551,12 @@ void TMB::SetCLCTPatternTrigger(){
 //
 int TMB::GetALCTWordCount(){
   //
-  tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
-  while ( rcvbuf[1]&0x1 != 0 ){
-    (*MyOutput_) << "10.Waiting for busy to clear" <<std::endl;
-    tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
-  }
+  const int maximum_number_of_allowed_busies = 20;
   //
-  while ( rcvbuf[1]&0x1 != 1 ){
-    (*MyOutput_) << "11.Waiting for done" <<std::endl;
-    tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);   
+  if (!CheckAlctFIFOBusy(maximum_number_of_allowed_busies)) {
+    std::cout << "TMB:  At beginning of GetALCTWordCount(),  ALCT FIFO Busy " << maximum_number_of_allowed_busies << " times... " << std::endl;
+    std::cout << "..... aborting" << std::endl;
+    return 0;
   }
   //
   tmb_vme(VME_READ,alct_fifo_adr,sndbuf,rcvbuf,NOW);
@@ -6888,6 +6914,14 @@ void TMB::SetTMBRegisterDefaults_() {
   mpc_output_enable_   = mpc_output_enable_default  ;
   //
   //------------------------------------------------------------------
+  //0XA2 = ADR_ALCTFIFO1:  ALCT Raw Hits RAM control
+  //------------------------------------------------------------------
+  alct_raw_reset_        = alct_raw_reset_default       ;
+  alct_raw_read_address_ = alct_raw_read_address_default;
+  alct_raw_sync_     = alct_raw_sync_default    ;
+  alct_demux_mode_       = alct_demux_mode_default      ;
+  //
+  //------------------------------------------------------------------
   //0XAC = ADR_SEQMOD:  Sequencer Trigger Modifiers
   //------------------------------------------------------------------
   clct_flush_delay_    = clct_flush_delay_default   ;
@@ -7067,6 +7101,15 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_alct_sync_clct_  = ExtractValueFromData(data,alct_sync_clct_bitlo ,alct_sync_clct_bithi );
     read_alct_inj_delay_  = ExtractValueFromData(data,alct_inj_delay_bitlo ,alct_inj_delay_bithi );
     //
+  } else if ( address == alct_fifo_adr ) {
+    //------------------------------------------------------------------
+    //0X3E = ADR_ALCT_FIFO:  ALCT FIFO RAM Status
+    //------------------------------------------------------------------
+    read_alct_raw_busy_       = ExtractValueFromData(data,alct_raw_busy_bitlo      ,alct_raw_busy_bithi      );
+    read_alct_raw_done_       = ExtractValueFromData(data,alct_raw_done_bitlo      ,alct_raw_done_bithi      );
+    read_alct_raw_word_count_ = ExtractValueFromData(data,alct_raw_word_count_bitlo,alct_raw_word_count_bithi);
+    read_alct_raw_msbs_       = ExtractValueFromData(data,alct_raw_msbs_bitlo      ,alct_raw_msbs_bithi      );
+    //
   } else if ( address == cfeb_inj_adr ) {
     //------------------------------------------------------------------
     //0X42 = ADR_CFEB_INJ:  CFEB Injector Control
@@ -7189,6 +7232,21 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_mpc_idle_blank_      = ExtractValueFromData(data,mpc_idle_blank_bitlo     ,mpc_idle_blank_bithi     );
     read_mpc_output_enable_   = ExtractValueFromData(data,mpc_output_enable_bitlo  ,mpc_output_enable_bithi  );
     //
+  } else if ( address == alctfifo1_adr ) {
+    //------------------------------------------------------------------
+    //0XA2 = ADR_ALCTFIFO1:  ALCT Raw Hits RAM control 
+    //------------------------------------------------------------------
+    read_alct_raw_reset_        = ExtractValueFromData(data,alct_raw_reset_bitlo       ,alct_raw_reset_bithi       );
+    read_alct_raw_read_address_ = ExtractValueFromData(data,alct_raw_read_address_bitlo,alct_raw_read_address_bithi);
+    read_alct_raw_sync_         = ExtractValueFromData(data,alct_raw_sync_bitlo        ,alct_raw_sync_bithi        );
+    read_alct_demux_mode_       = ExtractValueFromData(data,alct_demux_mode_bitlo      ,alct_demux_mode_bithi      );
+    //
+  } else if ( address == alctfifo2_adr ) {
+    //------------------------------------------------------------------
+    //0XA4 = ADR_ALCTFIFO2:  ALCT Raw Hits RAM data 
+    //------------------------------------------------------------------
+    read_alct_raw_lsbs_ = ExtractValueFromData(data,alct_raw_lsbs_bitlo,alct_raw_lsbs_bithi);
+    //
   } else if ( address == seqmod_adr ) {
     //------------------------------------------------------------------
     //0XAC = ADR_SEQMOD:  Sequencer Trigger Modifiers
@@ -7204,6 +7262,18 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_l1a_allow_alct_only_ = ExtractValueFromData(data,l1a_allow_alct_only_bitlo,l1a_allow_alct_only_bithi);
     read_scint_veto_clr_      = ExtractValueFromData(data,scint_veto_clr_bitlo     ,scint_veto_clr_bithi     );
     read_scint_veto_vme_      = ExtractValueFromData(data,scint_veto_vme_bitlo     ,scint_veto_vme_bithi     );
+    //
+  } else if ( address == seqsm_adr ) {
+    //------------------------------------------------------------------
+    //0XAE = ADR_SEQSM:  Sequencer Machine State
+    //------------------------------------------------------------------
+    read_clct_state_machine_      = ExtractValueFromData(data,clct_state_machine_bitlo     ,clct_state_machine_bithi     );
+    read_tmb_match_state_machine_ = ExtractValueFromData(data,tmb_match_state_machine_bitlo,tmb_match_state_machine_bithi);
+    read_readout_state_machine_   = ExtractValueFromData(data,readout_state_machine_bitlo  ,readout_state_machine_bithi  );
+    read_readout_stack_full_      = ExtractValueFromData(data,readout_stack_full_bitlo     ,readout_stack_full_bithi     );
+    read_readout_stack_empty_     = ExtractValueFromData(data,readout_stack_empty_bitlo    ,readout_stack_empty_bithi    );
+    read_readout_stack_overflow_  = ExtractValueFromData(data,readout_stack_overflow_bitlo ,readout_stack_overflow_bithi );
+    read_readout_stack_underflow_ = ExtractValueFromData(data,readout_stack_underflow_bitlo,readout_stack_underflow_bithi);
     //
   } else if ( address == tmbtim_adr ) {
     //------------------------------------------------------------------
@@ -8189,6 +8259,15 @@ int TMB::FillTMBRegister(unsigned long int address) {
     InsertValueIntoDataWord(mpc_sel_ttc_bx0_    ,mpc_sel_ttc_bx0_bithi    ,mpc_sel_ttc_bx0_bitlo    ,&data_word);
     InsertValueIntoDataWord(mpc_idle_blank_     ,mpc_idle_blank_bithi     ,mpc_idle_blank_bitlo     ,&data_word);
     InsertValueIntoDataWord(mpc_output_enable_  ,mpc_output_enable_bithi  ,mpc_output_enable_bitlo  ,&data_word);
+    //
+  } else if ( address == alctfifo1_adr ) {
+    //------------------------------------------------------------------
+    //0XA2 = ADR_ALCTFIFO1:  ALCT Raw Hits RAM control
+    //------------------------------------------------------------------
+    InsertValueIntoDataWord(alct_raw_reset_       ,alct_raw_reset_bithi       ,alct_raw_reset_bitlo       ,&data_word);
+    InsertValueIntoDataWord(alct_raw_read_address_,alct_raw_read_address_bithi,alct_raw_read_address_bitlo,&data_word);
+    InsertValueIntoDataWord(alct_raw_sync_        ,alct_raw_sync_bithi        ,alct_raw_sync_bitlo        ,&data_word);
+    InsertValueIntoDataWord(alct_demux_mode_      ,alct_demux_mode_bithi      ,alct_demux_mode_bitlo      ,&data_word);
     //
   } else if ( address == seqmod_adr ) {
     //------------------------------------------------------------------

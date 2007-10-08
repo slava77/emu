@@ -1152,14 +1152,11 @@ int main() {
 	}
 	::usleep(100);
 	//
-	thisTMB->ResetRAMAddress();
-	if (thisTMB->OnlyReadTMBRawhits()) {
-	  //thisTMB->PrintTMBRawHits();
-	  int value = thisTMB->GetAlctInClctMatchWindow();
-	  AlctInClctMatchWindowHisto[value]++;
-	} else {
-	  if (debug) std::cout << "Did not read out raw hits... " << std::endl;
-	}
+	thisTMB->TMBRawhits();
+	//thisTMB->PrintTMBRawHits();
+	int value = thisTMB->GetAlctInClctMatchWindow();
+	AlctInClctMatchWindowHisto[value]++;
+	//
 	// set unhalt signal to enable normal triggers
 	thisTMB->SetPretriggerHalt(0);  
 	thisTMB->WriteRegister(seq_clct_adr);
