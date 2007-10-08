@@ -1,18 +1,4 @@
-# $Id: Makefile,v 3.6 2007/10/04 07:22:48 ichiro Exp $
-
-#########################################################################
-# XDAQ Components for Distributed Data Acquisition                      #
-# Copyright (C) 2000-2004, CERN.			                #
-# All rights reserved.                                                  #
-# Authors: J. Gutleber and L. Orsini					#
-#                                                                       #
-# For the licensing terms see LICENSE.		                        #
-# For the list of contributors see CREDITS.   			        #
-#                                                                       #
-# Modified for xdaqctl by I.Suzuki                                      #
-#########################################################################
-
-BUILD_HOME = .
+# $Id: Makefile,v 3.7 2007/10/08 08:55:41 ichiro Exp $
 
 ##
 #
@@ -25,8 +11,8 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 #
 # Packages to be built
 #
-Project =
-Package = CSCSupervisor
+Project = emu
+Package = cscSV
 
 Sources = \
         EmuApplication.cc\
@@ -39,8 +25,7 @@ IncludeDirs = \
 
 LibraryDirs = $(XDAQ_ROOT)/lib
 
-UserSourcePath = src/common
-
+UserSourcePath =
 UserCFlags =
 UserCCFlags =
 UserDynamicLinkFlags =
@@ -56,14 +41,13 @@ ExternalObjects =
 #
 # Compile the source files and create a shared library
 #
-DynamicLibrary = $(Package)
+DynamicLibrary = CSCSupervisor
 StaticLibrary =
 
 TestLibraries=
 TestExecutables=
 
-#include $(XDAQ_ROOT)/config/Makefile.rules
-include ./Makefile.rules
+include $(XDAQ_ROOT)/config/Makefile.rules
 
 installcss:
 	$(Install) -p html/cscsv.css $(LibInstallDir)/

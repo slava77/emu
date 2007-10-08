@@ -1,18 +1,22 @@
 #ifndef __LTC_CONTROL_V_H__
 #define __LTC_CONTROL_V_H__
 
-#include "PackageInfo.h"
+#include "config/PackageInfo.h"
 
 namespace LTCControl {
-	const string package     = "LTCControl";
-	const string versions    = "1.0";
-	const string description = "dummy XDAQ application to test CSC Supervisor";
-	const string link        = "http://localhost:40000/";
+	const std::string package     = "LTCControl";
+	const std::string versions    = "3.0";
+	const std::string description = "dummy LTCControl";
 
-	toolbox::PackageInfo getPackageInfo();
-	void checkPackageDependencies() throw (toolbox::PackageInfo::VersionException);
-	set<string, less<string> > getPackageDependencies();
+	const std::string summary     = "emu/cscSV";
+	const std::string authors     = "Ichiro Suzuki";
+	const std::string link        = "http://localhost:40000/";
+
+	config::PackageInfo getPackageInfo();
+	void checkPackageDependencies()
+			throw (config::PackageInfo::VersionException);
+	std::set<std::string, std::less<std::string> > getPackageDependencies();
 };
 
 #endif  // ifndef __LTC_CONTROL_V_H__
-// vim: set ai sw=4 ts=4:
+// vim: set sw=4 ts=4:

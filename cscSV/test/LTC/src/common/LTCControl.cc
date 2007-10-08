@@ -6,6 +6,8 @@
 #include "xoap/Method.h"
 #include "xoap/SOAPEnvelope.h"
 
+using namespace std;
+
 XDAQ_INSTANTIATOR_IMPL(LTCControl);
 
 LTCControl::LTCControl(xdaq::ApplicationStub *stub)
