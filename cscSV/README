@@ -2,7 +2,7 @@
 
 README		this file
 Makefile	Makefile for libCSCSupervisor.so
-Makefile.rules	Definitions to compile this package outside of TriDAS tree
+Makefile.testapap Makefile for test applications
 include/	include files for CSCSupervisor and EmuApplication
 src/common/	source files for CSCSupervisor and EmuApplication
 test/		files to test applications
@@ -11,6 +11,9 @@ test/		files to test applications
    EmuFED/	dummy EmuFEDCrate application
    EmuPC/	dummy EmuPeripheralCrate application
    EmuDAQ/	dummy EmuDAQManager application
+   EmuTF/	dummy TF_hyperDAQ application
+   LTC/		dummy LTCControl application
+   TTC/		dummy TTCciControl application
 
 == 1. CVS access
 
@@ -18,12 +21,14 @@ foo> cd ~/work
 foo> export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/tridas
 foo> cvs login
 ...
-foo> cvs co -r Release-1_7 -d cscSV TriDAS/emu/cscSV
+foo> cvs co -r Release-3_0 -d cscSV TriDAS/emu/cscSV
 
 == 2. Build and run
 
 foo> cd cscSV
-foo> export XDAQ_ROOT=/home/foo/work/tridas
+foo> export XDAQ_ROOT=/opt/xdaq
+foo> export BUILD_HOME=..
 foo> make install
+foo> make -f Makefile.testapp install
 foo> test/bootxdaq start
 
