@@ -1,4 +1,4 @@
-// $Id: EmuFCrateManager.cc,v 1.1 2007/09/28 14:18:25 ichiro Exp $
+/// $Id: EmuFCrateManager.cc,v 1.2 2007/10/08 19:21:08 gilmore Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -265,12 +265,21 @@ void EmuFCrateManager::setTTSBitsAction(toolbox::Event::Reference e)
 // JRG: this is the instance for the FED application, NOT really the CrateID
 //		int instance = (tts_crate_ == "1") ? 0 : 1;
 		int instance = 0;
+		xdata::UnsignedInteger ui_diff = 1;
 
-		setParameter(fed_app, "ttsSlot",  "xsd:unsignedInt", tts_slot_);
-		setParameter(fed_app, "ttsBits",  "xsd:unsignedInt", tts_bits_);
+// JRG 9/29/07: need to have unique instance for each crate fed_app process
+//		if(tts_crate_>0)instance=tts_crate_ - ui_diff;
+		instance=tts_crate_;
+		if(instance>0)instance--;
+/*
+		if(instance>2)instance=1;
+		else instance=0;
+*/
+		setParameter(fed_app, "ttsSlot",  "xsd:unsignedInt",tts_slot_);
+		setParameter(fed_app, "ttsBits",  "xsd:unsignedInt",tts_bits_);
 //		cout << "inside setTTSAction" << tts_crate_.str() << tts_slot_.str() << tts_bits_.str() << endl;
 
-		cout << " ** EmuFCrateManager: inside setTTSBitsAction, setParameter tried, now sendCommand" << endl;
+		cout << " ** EmuFCrateManager: inside setTTSBitsAction, setParameter tried, now sendCommand instance=" << instance << fed_app << endl;
 
 		sendCommand("SetTTSBits", fed_app, instance);
 
@@ -294,12 +303,13 @@ void EmuFCrateManager::setTTSBitsResponseAction(toolbox::Event::Reference e)
       //
       LOG4CPLUS_INFO(getApplicationLogger(), "Received Message SetTTSBitsResponse");
       //
-	const string sv_app = "CSCSupervisor";
+//JRG  Jason's failed attempt to send positive/negative result info to cscSV
+	const string sv_app = "bad_idea_CSCSupervisor_skipit";
 	cout << "*** EmuFCrateManager: inside setTTSBitsResponseAction" << endl;
 
 	try {
-		cout << " ** EmuFCrateManager: inside setTTSBitsResponseAction, try sendCommand" << endl;
 		int instance = 0;
+		cout << " ** EmuFCrateManager: inside setTTSBitsResponseAction, try sendCommand instance=" << instance << sv_app << endl;
 		sendCommand("SetTTSBitsResponse", sv_app, instance);
 
 	} catch (xoap::exception::Exception e) {
@@ -479,7 +489,7 @@ xoap::MessageReference EmuFCrateManager::onSetTTSBits(xoap::MessageReference mes
 
 	fireEvent("SetTTSBits");
 
-	SendSOAPMessageXRelaySimple("SetTTSBits","");
+	//	SendSOAPMessageXRelaySimple("SetTTSBits","");
 
 	cout << "*** EmuFCrateManager: end of onSetTTSBits, so return" << endl ;
 	return createReply(message);
@@ -492,7 +502,7 @@ xoap::MessageReference EmuFCrateManager::onSetTTSBitsResponse(xoap::MessageRefer
 
 	fireEvent("SetTTSBitsResponse");
 
-	SendSOAPMessageXRelayReturn("SetTTSBitsResponse","");
+	//	SendSOAPMessageXRelayReturn("SetTTSBitsResponse","");
 
 	cout << "*** EmuFCrateManager: end of onSetTTSBitsResponse, so return" << endl ;
 	return createReply(message);
@@ -873,7 +883,7 @@ void EmuFCrateManager::SendSOAPMessageConfigureXRelay(xgi::Input * in, xgi::Outp
   throw (xgi::exception::Exception)
 {
       //
-      SendSOAPMessageXRelaySimple("Configure","");
+//JRGtry:      SendSOAPMessageXRelaySimple("Configure","");
       //
       // Now check
       //
@@ -1059,9 +1069,9 @@ void EmuFCrateManager::sendCommand(string command, string klass, int instance)
   try {
     app = getApplicationContext()->getDefaultZone()
       ->getApplicationDescriptor(klass, instance);
-    cout << "  * EmuFCrateManager: sendCommand, got application" << endl;
+    cout << "  * EmuFCrateManager: sendCommand, got application " << klass << endl;
   } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-    cout << "  * EmuFCrateManager: sendCommand, application not found! " << endl;
+    cout << "  * EmuFCrateManager: sendCommand, application not found! " << klass << endl;
     return; // Do nothing if the target doesn't exist
   }
 

@@ -40,6 +40,7 @@ protected:
 private:
   CrateSelector theSelector;
   std::string xmlFile_;
+  vector<Crate *> theCrates;
 };
 
 #endif

@@ -172,9 +172,9 @@ xoap::MessageReference EmuFCrate::onSetTTSBits(xoap::MessageReference message)
   try {
     app = getApplicationContext()->getDefaultZone()
       ->getApplicationDescriptor(klass, instance);
-    cout << "  * EmuFCrate: postSOAP, got application" << endl;
+    cout << "  * EmuFCrate: postSOAP, got application instance=" << instance << klass << endl;
   } catch (xdaq::exception::ApplicationDescriptorNotFound e) {
-    cout << "  * EmuFCrate: postSOAP, application not found! " << endl;
+    cout << "  * EmuFCrate: postSOAP, application not found! " << instance << klass << endl;
     return reply; // Do nothing if the target doesn't exist
   }
 

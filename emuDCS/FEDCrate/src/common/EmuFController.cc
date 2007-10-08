@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuFController.cc,v 3.4 2007/09/28 14:17:58 ichiro Exp $
+// $Id: EmuFController.cc,v 3.5 2007/10/08 19:20:05 gilmore Exp $
 // $Log: EmuFController.cc,v $
+// Revision 3.5  2007/10/08 19:20:05  gilmore
+// fixes for multi-crate Soap operation
+//
 // Revision 3.4  2007/09/28 14:17:58  ichiro
 // added EmuFCrateManager
 //
@@ -59,6 +62,8 @@ void EmuFController::init(){
   FEDCrateParser parser;
   std::cout << " Using file " << xmlFile_ << std::endl ;
   parser.parseFile(xmlFile_.c_str());
+
+  theCrates = parser.crateVector();
   //
 
 /*  Need to add for Soap Init?
@@ -75,7 +80,8 @@ void EmuFController::init(){
 
 void EmuFController::configure() {
   // read the configuration
-  std::vector<Crate*> myCrates = theSelector.crates();
+  //  std::vector<Crate*> myCrates = theSelector.crates();
+  vector<Crate *> myCrates = theCrates;
   printf(" myCrates.size() %d \n",myCrates.size());  
   for(unsigned i = 0; i < myCrates.size(); ++i) {
     printf(" call mycrate->config %d \n",i);
