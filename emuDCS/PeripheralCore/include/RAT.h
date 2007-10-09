@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: RAT.h,v 3.3 2007/01/31 16:49:51 rakness Exp $
+// $Id: RAT.h,v 3.4 2007/10/09 11:10:35 rakness Exp $
 // $Log: RAT.h,v $
+// Revision 3.4  2007/10/09 11:10:35  rakness
+// remove RAT and ALCT inheritance from EMUjtag, i.e., make calls to EMUjtag methods explicitly through TMB
+//
 // Revision 3.3  2007/01/31 16:49:51  rakness
 // complete set of TMB/ALCT/RAT xml parameters
 //
@@ -36,18 +39,16 @@
 //-----------------------------------------------------------------------
 #ifndef RAT_h
 #define RAT_h
-
+//
 #include <string>
-#include "EMUjtag.h"
-
+#include "EMU_JTAG_constants.h"
+//
 class TMB;
-
-class RAT : public EMUjtag
-{
-public:
+//
+class RAT {
+ public:
   //
   RAT(TMB * );
-  //RAT();
   ~RAT();
   //
   inline void RedirectOutput(std::ostream * Output) { MyOutput_ = Output ; }
@@ -122,6 +123,8 @@ public:
   void ReadRatUser1();
   void PrintRatUser1();
   //
+  // Methods used to program RAT prom:
+  int SVFLoad(int *, const char *, int);
   //
 protected:
   //

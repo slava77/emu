@@ -8,13 +8,8 @@
 #include "TMB.h"
 #include "TMB_constants.h"
 //
-//RAT::RAT() :
-//  EMUjtag()
-//{
-//}
 //
-RAT::RAT(TMB * tmb) :
-  EMUjtag(tmb)
+RAT::RAT(TMB * tmb) 
 {
   //
   MyOutput_ = &std::cout ;
@@ -26,7 +21,7 @@ RAT::RAT(TMB * tmb) :
   SetPowerUpUser2Register_();
   SetRatTmbDelay(9);
   //
-  SetCheckJtagWrite(false);
+  tmb_->SetCheckJtagWrite(false);
   //
   rat_configuration_status_ = -1;
   //
@@ -42,7 +37,7 @@ void RAT::configure() {
   // the configuration for the RAT has been moved into TMB
   //
   //  WriteRpcRatDelay();
-  //  if (GetCheckJtagWrite())
+  //  if (tmb_->GetCheckJtagWrite())
   //    PrintRatUser1();
   //
   // The following should probably go in TMB configure, since it is actually a delay on the TMB:
@@ -75,23 +70,23 @@ void RAT::ReadRatIdCode(){
   //
   //  (*MyOutput_) << "RAT: Read RAT ID Codes" << std::endl;
   //
-  setup_jtag(ChainRat);
+  tmb_->setup_jtag(ChainRat);
   //
-  ShfIR_ShfDR(ChipLocationRatFpga,
-	      FPGAidCode,
-	      RegSizeRatFpga_FPGAidCode);
-  rat_idcode_[0] = bits_to_int(GetDRtdo(),
-			       GetRegLength(),
-			       LSBfirst);
+  tmb_->ShfIR_ShfDR(ChipLocationRatFpga,
+		    FPGAidCode,
+		    RegSizeRatFpga_FPGAidCode);
+  rat_idcode_[0] = tmb_->bits_to_int(tmb_->GetDRtdo(),
+				     tmb_->GetRegLength(),
+				     LSBfirst);
   //
   //
-  ShfIR_ShfDR(ChipLocationRatProm,
-	      PROMidCode,
-	      RegSizeRatProm_PROMidCode);
+  tmb_->ShfIR_ShfDR(ChipLocationRatProm,
+		    PROMidCode,
+		    RegSizeRatProm_PROMidCode);
   //
-  rat_idcode_[1] = bits_to_int(GetDRtdo(),
-			       GetRegLength(),
-			       LSBfirst);
+  rat_idcode_[1] = tmb_->bits_to_int(tmb_->GetDRtdo(),
+				     tmb_->GetRegLength(),
+				     LSBfirst);
   //
   //  (*MyOutput_) << "RAT FPGA ID code = " << std::hex << rat_idcode_[ChipLocationRatFpga] << std::endl;
   //  (*MyOutput_) << "RAT PROM ID code = " << std::hex << rat_idcode_[ChipLocationRatProm] << std::endl;
@@ -109,24 +104,24 @@ void RAT::ReadRatUserCode(){
   //
   //  (*MyOutput_) << "RAT: Read RAT User Codes" << std::endl;
   //
-  setup_jtag(ChainRat);
+  tmb_->setup_jtag(ChainRat);
   //
-  ShfIR_ShfDR(ChipLocationRatFpga,
-	      FPGAuserCode,
-	      RegSizeRatFpga_FPGAuserCode);
+  tmb_->ShfIR_ShfDR(ChipLocationRatFpga,
+		    FPGAuserCode,
+		    RegSizeRatFpga_FPGAuserCode);
   //
-  rat_usercode_[ChipLocationRatFpga] = bits_to_int(GetDRtdo(),
-						   GetRegLength(),
-						   LSBfirst);
+  rat_usercode_[ChipLocationRatFpga] = tmb_->bits_to_int(tmb_->GetDRtdo(),
+							 tmb_->GetRegLength(),
+							 LSBfirst);
   //
   //
-  ShfIR_ShfDR(ChipLocationRatProm,
-	      PROMuserCode,
-	      RegSizeRatProm_PROMuserCode);
+  tmb_->ShfIR_ShfDR(ChipLocationRatProm,
+		    PROMuserCode,
+		    RegSizeRatProm_PROMuserCode);
   //
-  rat_usercode_[ChipLocationRatProm] = bits_to_int(GetDRtdo(),
-						   GetRegLength(),
-						   LSBfirst);
+  rat_usercode_[ChipLocationRatProm] = tmb_->bits_to_int(tmb_->GetDRtdo(),
+							 tmb_->GetRegLength(),
+							 LSBfirst);
   //
   //  (*MyOutput_) << "RAT FPGA User code = " << std::hex << rat_usercode_[ChipLocationRatFpga] << std::endl;
   //  (*MyOutput_) << "RAT PROM User code = " << std::hex << rat_usercode_[ChipLocationRatProm] << std::endl;
@@ -155,15 +150,15 @@ void RAT::ReadRatUser1(){
   for (int i=0; i<MAX_NUM_FRAMES; i++) 
     user1_value_[i] = 0;
   //
-  setup_jtag(ChainRat);
+  tmb_->setup_jtag(ChainRat);
   //	       
-  ShfIR_ShfDR(ChipLocationRatFpga,
-	      FPGAuser1,
-	      RegSizeRatFpga_FPGAuser1);
+  tmb_->ShfIR_ShfDR(ChipLocationRatFpga,
+		    FPGAuser1,
+		    RegSizeRatFpga_FPGAuser1);
   //
   //Fill user1_value_ with JTAG data...
-  rat_user1_length_ = GetRegLength();
-  int * user1_pointer = GetDRtdo();
+  rat_user1_length_ = tmb_->GetRegLength();
+  int * user1_pointer = tmb_->GetDRtdo();
   //
   for (int i=0; i<rat_user1_length_; i++) 
     user1_value_[i] = *(user1_pointer+i);
@@ -171,7 +166,7 @@ void RAT::ReadRatUser1(){
   //  
   //Print out the USER1 value from right (first bit out) to left (last bit out):
   char rat_user1[rat_user1_length_/8];
-  packCharBuffer(user1_value_,rat_user1_length_,rat_user1);
+  tmb_->packCharBuffer(user1_value_,rat_user1_length_,rat_user1);
   //
   (*MyOutput_) << "RAT USER1 = " << std::hex;
   for (int counter=(rat_user1_length_/8)-1; counter>=0; counter--) 
@@ -186,179 +181,179 @@ void RAT::ReadRatUser1(){
 void RAT::decodeRATUser1_() {
   // ** parse the bit array from the USER1 data register
   //  
-  read_rs_begin_ = bits_to_int(user1_value_ + read_rs_begin_bitlo,
-			       read_rs_begin_bithi - read_rs_begin_bitlo + 1,
-			       LSBfirst);
-  //
-  read_rs_version_ = bits_to_int(user1_value_ + read_rs_version_bitlo,
-				 read_rs_version_bithi - read_rs_version_bitlo + 1,
-				 LSBfirst);
-  //
-  read_rs_monthday_ = bits_to_int(user1_value_ + read_rs_monthday_bitlo,
-				  read_rs_monthday_bithi - read_rs_monthday_bitlo + 1,
-				  LSBfirst);
-  //
-  read_rs_year_ = bits_to_int(user1_value_ + read_rs_year_bitlo,
-			      read_rs_year_bithi - read_rs_year_bitlo + 1,			 
-			      LSBfirst);
-  //
-  read_rs_syncmode_ = bits_to_int(user1_value_ + read_rs_syncmode_bitlo,
-				  read_rs_syncmode_bithi - read_rs_syncmode_bitlo + 1,			 
-				  LSBfirst);
-  //
-  read_rs_posneg_ = bits_to_int(user1_value_ + read_rs_posneg_bitlo,
-				read_rs_posneg_bithi - read_rs_posneg_bitlo + 1,			 
-				LSBfirst);
-  //
-  read_rs_loop_ = bits_to_int(user1_value_ + read_rs_loop_bitlo,
-			      read_rs_loop_bithi - read_rs_loop_bitlo + 1,			 
-			      LSBfirst);
-  //
-  read_rs_rpc_en_ = bits_to_int(user1_value_ + read_rs_rpc_en_bitlo,
-				read_rs_rpc_en_bithi - read_rs_rpc_en_bitlo + 1,			 
-				LSBfirst);
-  //
-  read_rs_clk_active_ = bits_to_int(user1_value_ + read_rs_clk_active_bitlo,
-				    read_rs_clk_active_bithi - read_rs_clk_active_bitlo + 1,			 
-				    LSBfirst);
-  //
-  read_rs_locked_tmb_ = bits_to_int(user1_value_ + read_rs_locked_tmb_bitlo,
-				    read_rs_locked_tmb_bithi - read_rs_locked_tmb_bitlo + 1,			 
-				    LSBfirst);
-  //
-  read_rs_locked_rpc0_ = bits_to_int(user1_value_ + read_rs_locked_rpc0_bitlo,
-				     read_rs_locked_rpc0_bithi - read_rs_locked_rpc0_bitlo + 1,			 
+  read_rs_begin_ = tmb_->bits_to_int(user1_value_ + read_rs_begin_bitlo,
+				     read_rs_begin_bithi - read_rs_begin_bitlo + 1,
 				     LSBfirst);
   //
-  read_rs_locked_rpc1_ = bits_to_int(user1_value_ + read_rs_locked_rpc1_bitlo,
-				     read_rs_locked_rpc1_bithi - read_rs_locked_rpc1_bitlo + 1,			 
-				     LSBfirst);
+  read_rs_version_ = tmb_->bits_to_int(user1_value_ + read_rs_version_bitlo,
+				       read_rs_version_bithi - read_rs_version_bitlo + 1,
+				       LSBfirst);
   //
-  read_rs_locklost_tmb_ = bits_to_int(user1_value_ + read_rs_locklost_tmb_bitlo, 
-				      read_rs_locklost_tmb_bithi - read_rs_locklost_tmb_bitlo + 1, 
+  read_rs_monthday_ = tmb_->bits_to_int(user1_value_ + read_rs_monthday_bitlo,
+					read_rs_monthday_bithi - read_rs_monthday_bitlo + 1,
+					LSBfirst);
+  //
+  read_rs_year_ = tmb_->bits_to_int(user1_value_ + read_rs_year_bitlo,
+				    read_rs_year_bithi - read_rs_year_bitlo + 1,			 
+				    LSBfirst);
+  //
+  read_rs_syncmode_ = tmb_->bits_to_int(user1_value_ + read_rs_syncmode_bitlo,
+					read_rs_syncmode_bithi - read_rs_syncmode_bitlo + 1,			 
+					LSBfirst);
+  //
+  read_rs_posneg_ = tmb_->bits_to_int(user1_value_ + read_rs_posneg_bitlo,
+				      read_rs_posneg_bithi - read_rs_posneg_bitlo + 1,			 
 				      LSBfirst);
   //
-  read_rs_locklost_rpc0_ = bits_to_int(user1_value_ + read_rs_locklost_rpc0_bitlo, 
-				       read_rs_locklost_rpc0_bithi - read_rs_locklost_rpc0_bitlo + 1,
-				       LSBfirst);
+  read_rs_loop_ = tmb_->bits_to_int(user1_value_ + read_rs_loop_bitlo,
+				    read_rs_loop_bithi - read_rs_loop_bitlo + 1,			 
+				    LSBfirst);
   //
-  read_rs_locklost_rpc1_ = bits_to_int(user1_value_ + read_rs_locklost_rpc1_bitlo, 
-				       read_rs_locklost_rpc1_bithi - read_rs_locklost_rpc1_bitlo + 1,
-				       LSBfirst);
+  read_rs_rpc_en_ = tmb_->bits_to_int(user1_value_ + read_rs_rpc_en_bitlo,
+				      read_rs_rpc_en_bithi - read_rs_rpc_en_bitlo + 1,			 
+				      LSBfirst);
   //
-  read_rs_txok_ = bits_to_int(user1_value_ + read_rs_txok_bitlo, 
-			      read_rs_txok_bithi - read_rs_txok_bitlo + 1,			 
-			      LSBfirst);
+  read_rs_clk_active_ = tmb_->bits_to_int(user1_value_ + read_rs_clk_active_bitlo,
+					  read_rs_clk_active_bithi - read_rs_clk_active_bitlo + 1,			 
+					  LSBfirst);
   //
-  read_rs_rxok_ = bits_to_int(user1_value_ + read_rs_rxok_bitlo, 
-			      read_rs_rxok_bithi - read_rs_rxok_bitlo + 1,			 
-			      LSBfirst);
+  read_rs_locked_tmb_ = tmb_->bits_to_int(user1_value_ + read_rs_locked_tmb_bitlo,
+					  read_rs_locked_tmb_bithi - read_rs_locked_tmb_bitlo + 1,			 
+					  LSBfirst);
   //
-  read_rs_ntcrit_ = bits_to_int(user1_value_ + read_rs_ntcrit_bitlo, 
-				read_rs_ntcrit_bithi - read_rs_ntcrit_bitlo + 1,			 
-				LSBfirst);
+  read_rs_locked_rpc0_ = tmb_->bits_to_int(user1_value_ + read_rs_locked_rpc0_bitlo,
+					   read_rs_locked_rpc0_bithi - read_rs_locked_rpc0_bitlo + 1,			 
+					   LSBfirst);
   //
-  read_rs_rpc_free_ = bits_to_int(user1_value_ + read_rs_rpc_free_bitlo, 
-				  read_rs_rpc_free_bithi - read_rs_rpc_free_bitlo + 1,			 
-				  LSBfirst);
+  read_rs_locked_rpc1_ = tmb_->bits_to_int(user1_value_ + read_rs_locked_rpc1_bitlo,
+					   read_rs_locked_rpc1_bithi - read_rs_locked_rpc1_bitlo + 1,			 
+					   LSBfirst);
   //
-  read_rs_dsn_ = bits_to_int(user1_value_ + read_rs_dsn_bitlo, 
-			     read_rs_dsn_bithi - read_rs_dsn_bitlo + 1,			 
-			     LSBfirst);
+  read_rs_locklost_tmb_ = tmb_->bits_to_int(user1_value_ + read_rs_locklost_tmb_bitlo, 
+					    read_rs_locklost_tmb_bithi - read_rs_locklost_tmb_bitlo + 1, 
+					    LSBfirst);
   //
-  read_rs_dddoe_wr_ = bits_to_int(user1_value_ + read_rs_dddoe_wr_bitlo,
-				  read_rs_dddoe_wr_bithi - read_rs_dddoe_wr_bitlo + 1,			 
-				  LSBfirst);
+  read_rs_locklost_rpc0_ = tmb_->bits_to_int(user1_value_ + read_rs_locklost_rpc0_bitlo, 
+					     read_rs_locklost_rpc0_bithi - read_rs_locklost_rpc0_bitlo + 1,
+					     LSBfirst);
   //
-  read_rs_ddd_wr_ = bits_to_int(user1_value_ + read_rs_ddd_wr_bitlo,
-				read_rs_ddd_wr_bithi - read_rs_ddd_wr_bitlo + 1,			 
-				LSBfirst);
+  read_rs_locklost_rpc1_ = tmb_->bits_to_int(user1_value_ + read_rs_locklost_rpc1_bitlo, 
+					     read_rs_locklost_rpc1_bithi - read_rs_locklost_rpc1_bitlo + 1,
+					     LSBfirst);
+  //
+  read_rs_txok_ = tmb_->bits_to_int(user1_value_ + read_rs_txok_bitlo, 
+				    read_rs_txok_bithi - read_rs_txok_bitlo + 1,			 
+				    LSBfirst);
+  //
+  read_rs_rxok_ = tmb_->bits_to_int(user1_value_ + read_rs_rxok_bitlo, 
+				    read_rs_rxok_bithi - read_rs_rxok_bitlo + 1,			 
+				    LSBfirst);
+  //
+  read_rs_ntcrit_ = tmb_->bits_to_int(user1_value_ + read_rs_ntcrit_bitlo, 
+				      read_rs_ntcrit_bithi - read_rs_ntcrit_bitlo + 1,			 
+				      LSBfirst);
+  //
+  read_rs_rpc_free_ = tmb_->bits_to_int(user1_value_ + read_rs_rpc_free_bitlo, 
+					read_rs_rpc_free_bithi - read_rs_rpc_free_bitlo + 1,			 
+					LSBfirst);
+  //
+  read_rs_dsn_ = tmb_->bits_to_int(user1_value_ + read_rs_dsn_bitlo, 
+				   read_rs_dsn_bithi - read_rs_dsn_bitlo + 1,			 
+				   LSBfirst);
+  //
+  read_rs_dddoe_wr_ = tmb_->bits_to_int(user1_value_ + read_rs_dddoe_wr_bitlo,
+					read_rs_dddoe_wr_bithi - read_rs_dddoe_wr_bitlo + 1,			 
+					LSBfirst);
+  //
+  read_rs_ddd_wr_ = tmb_->bits_to_int(user1_value_ + read_rs_ddd_wr_bitlo,
+				      read_rs_ddd_wr_bithi - read_rs_ddd_wr_bitlo + 1,			 
+				      LSBfirst);
   for (int rpc=0; rpc<4; rpc++)
     read_rpc_rat_delay_[rpc] = (read_rs_ddd_wr_ >> rpc*4) & 0xf;
   //
-  read_rs_ddd_auto_ = bits_to_int(user1_value_ + read_rs_ddd_auto_bitlo, 
-				  read_rs_ddd_auto_bithi - read_rs_ddd_auto_bitlo + 1,			 
-				  LSBfirst);
-  //
-  read_rs_ddd_start_ = bits_to_int(user1_value_ + read_rs_ddd_start_bitlo, 
-				   read_rs_ddd_start_bithi - read_rs_ddd_start_bitlo + 1,			 
-				   LSBfirst);
-  //
-  read_rs_ddd_busy_ = bits_to_int(user1_value_ + read_rs_ddd_busy_bitlo, 
-				  read_rs_ddd_busy_bithi - read_rs_ddd_busy_bitlo + 1,			 
-				  LSBfirst);
-  //
-  read_rs_ddd_verify_ok_ = bits_to_int(user1_value_ + read_rs_ddd_verify_ok_bitlo, 
-				       read_rs_ddd_verify_ok_bithi - read_rs_ddd_verify_ok_bitlo + 1,
-				       LSBfirst);
-  //
-  read_rs_rpc0_parity_ok_ = bits_to_int(user1_value_ + read_rs_rpc0_parity_ok_bitlo, 
-					read_rs_rpc0_parity_ok_bithi - read_rs_rpc0_parity_ok_bitlo + 1,
+  read_rs_ddd_auto_ = tmb_->bits_to_int(user1_value_ + read_rs_ddd_auto_bitlo, 
+					read_rs_ddd_auto_bithi - read_rs_ddd_auto_bitlo + 1,			 
 					LSBfirst);
   //
-  read_rs_rpc1_parity_ok_ = bits_to_int(user1_value_ + read_rs_rpc1_parity_ok_bitlo, 
-					read_rs_rpc1_parity_ok_bithi - read_rs_rpc1_parity_ok_bitlo + 1,
+  read_rs_ddd_start_ = tmb_->bits_to_int(user1_value_ + read_rs_ddd_start_bitlo, 
+					 read_rs_ddd_start_bithi - read_rs_ddd_start_bitlo + 1,			 
+					 LSBfirst);
+  //
+  read_rs_ddd_busy_ = tmb_->bits_to_int(user1_value_ + read_rs_ddd_busy_bitlo, 
+					read_rs_ddd_busy_bithi - read_rs_ddd_busy_bitlo + 1,			 
 					LSBfirst);
   //
-  read_rs_rpc0_cnt_perr_ = bits_to_int(user1_value_ + read_rs_rpc0_cnt_perr_bitlo,
-				       read_rs_rpc0_cnt_perr_bithi - read_rs_rpc0_cnt_perr_bitlo + 1,
-				       LSBfirst);
+  read_rs_ddd_verify_ok_ = tmb_->bits_to_int(user1_value_ + read_rs_ddd_verify_ok_bitlo, 
+					     read_rs_ddd_verify_ok_bithi - read_rs_ddd_verify_ok_bitlo + 1,
+					     LSBfirst);
   //
-  read_rs_rpc1_cnt_perr_ = bits_to_int(user1_value_ + read_rs_rpc1_cnt_perr_bitlo,
-				       read_rs_rpc1_cnt_perr_bithi - read_rs_rpc1_cnt_perr_bitlo + 1,
-				       LSBfirst);
+  read_rs_rpc0_parity_ok_ = tmb_->bits_to_int(user1_value_ + read_rs_rpc0_parity_ok_bitlo, 
+					      read_rs_rpc0_parity_ok_bithi - read_rs_rpc0_parity_ok_bitlo + 1,
+					      LSBfirst);
   //
-  read_rs_last_opcode_ = bits_to_int(user1_value_ + read_rs_last_opcode_bitlo,
-				     read_rs_last_opcode_bithi - read_rs_last_opcode_bitlo + 1,
-				     LSBfirst);
+  read_rs_rpc1_parity_ok_ = tmb_->bits_to_int(user1_value_ + read_rs_rpc1_parity_ok_bitlo, 
+					      read_rs_rpc1_parity_ok_bithi - read_rs_rpc1_parity_ok_bitlo + 1,
+					      LSBfirst);
   //
-  read_rw_rpc_en_ = bits_to_int(user1_value_ + read_rw_rpc_en_bitlo,
-				read_rw_rpc_en_bithi - read_rw_rpc_en_bitlo + 1,			 
-				LSBfirst);
+  read_rs_rpc0_cnt_perr_ = tmb_->bits_to_int(user1_value_ + read_rs_rpc0_cnt_perr_bitlo,
+					     read_rs_rpc0_cnt_perr_bithi - read_rs_rpc0_cnt_perr_bitlo + 1,
+					     LSBfirst);
   //
-  read_rw_ddd_start_ = bits_to_int(user1_value_ + read_rw_ddd_start_bitlo, 
-				   read_rw_ddd_start_bithi - read_rw_ddd_start_bitlo + 1,			 
+  read_rs_rpc1_cnt_perr_ = tmb_->bits_to_int(user1_value_ + read_rs_rpc1_cnt_perr_bitlo,
+					     read_rs_rpc1_cnt_perr_bithi - read_rs_rpc1_cnt_perr_bitlo + 1,
+					     LSBfirst);
+  //
+  read_rs_last_opcode_ = tmb_->bits_to_int(user1_value_ + read_rs_last_opcode_bitlo,
+					   read_rs_last_opcode_bithi - read_rs_last_opcode_bitlo + 1,
+					   LSBfirst);
+  //
+  read_rw_rpc_en_ = tmb_->bits_to_int(user1_value_ + read_rw_rpc_en_bitlo,
+				      read_rw_rpc_en_bithi - read_rw_rpc_en_bitlo + 1,			 
+				      LSBfirst);
+  //
+  read_rw_ddd_start_ = tmb_->bits_to_int(user1_value_ + read_rw_ddd_start_bitlo, 
+					 read_rw_ddd_start_bithi - read_rw_ddd_start_bitlo + 1,			 
+					 LSBfirst);
+  //
+  read_rw_ddd_wr_ = tmb_->bits_to_int(user1_value_ + read_rw_ddd_wr_bitlo,
+				      read_rw_ddd_wr_bithi - read_rw_ddd_wr_bitlo + 1,			 
+				      LSBfirst);
+  //
+  read_rw_dddoe_wr_ = tmb_->bits_to_int(user1_value_ + read_rw_dddoe_wr_bitlo,
+					read_rw_dddoe_wr_bithi - read_rw_dddoe_wr_bitlo + 1,			 
+					LSBfirst);
+  //
+  read_rw_perr_reset_ = tmb_->bits_to_int(user1_value_ + read_rw_perr_reset_bitlo, 
+					  read_rw_perr_reset_bithi - read_rw_perr_reset_bitlo + 1,			 
+					  LSBfirst);
+  //
+  read_rw_parity_odd_ = tmb_->bits_to_int(user1_value_ + read_rw_parity_odd_bitlo, 
+					  read_rw_parity_odd_bithi - read_rw_parity_odd_bitlo + 1,			 
+					  LSBfirst);
+  //
+  read_rw_perr_ignore_ = tmb_->bits_to_int(user1_value_ + read_rw_perr_ignore_bitlo, 
+					   read_rw_perr_ignore_bithi - read_rw_perr_ignore_bitlo + 1,			 
+					   LSBfirst);
+  //
+  read_rw_rpc_future_ = tmb_->bits_to_int(user1_value_ + read_rw_rpc_future_bitlo,
+					  read_rw_rpc_future_bithi - read_rw_rpc_future_bitlo + 1,			 
+					  LSBfirst);
+  //
+  read_rs_rpc0_pdata_ = tmb_->bits_to_int(user1_value_ + read_rs_rpc0_pdata_bitlo,
+					  read_rs_rpc0_pdata_bithi - read_rs_rpc0_pdata_bitlo + 1,			 
+					  LSBfirst);
+  //
+  read_rs_rpc1_pdata_ = tmb_->bits_to_int(user1_value_ + read_rs_rpc1_pdata_bitlo,
+					  read_rs_rpc1_pdata_bithi - read_rs_rpc1_pdata_bitlo + 1,			 
+					  LSBfirst);
+  //
+  read_rs_unused_ = tmb_->bits_to_int(user1_value_ + read_rs_unused_bitlo,
+				      read_rs_unused_bithi - read_rs_unused_bitlo + 1,			 
+				      LSBfirst);
+  //
+  read_rs_end_ = tmb_->bits_to_int(user1_value_ + read_rs_end_bitlo,
+				   read_rs_end_bithi - read_rs_end_bitlo + 1,			 
 				   LSBfirst);
-  //
-  read_rw_ddd_wr_ = bits_to_int(user1_value_ + read_rw_ddd_wr_bitlo,
-				read_rw_ddd_wr_bithi - read_rw_ddd_wr_bitlo + 1,			 
-				LSBfirst);
-  //
-  read_rw_dddoe_wr_ = bits_to_int(user1_value_ + read_rw_dddoe_wr_bitlo,
-				  read_rw_dddoe_wr_bithi - read_rw_dddoe_wr_bitlo + 1,			 
-				  LSBfirst);
-  //
-  read_rw_perr_reset_ = bits_to_int(user1_value_ + read_rw_perr_reset_bitlo, 
-				    read_rw_perr_reset_bithi - read_rw_perr_reset_bitlo + 1,			 
-				    LSBfirst);
-  //
-  read_rw_parity_odd_ = bits_to_int(user1_value_ + read_rw_parity_odd_bitlo, 
-				    read_rw_parity_odd_bithi - read_rw_parity_odd_bitlo + 1,			 
-				    LSBfirst);
-  //
-  read_rw_perr_ignore_ = bits_to_int(user1_value_ + read_rw_perr_ignore_bitlo, 
-				     read_rw_perr_ignore_bithi - read_rw_perr_ignore_bitlo + 1,			 
-				     LSBfirst);
-  //
-  read_rw_rpc_future_ = bits_to_int(user1_value_ + read_rw_rpc_future_bitlo,
-				    read_rw_rpc_future_bithi - read_rw_rpc_future_bitlo + 1,			 
-				    LSBfirst);
-  //
-  read_rs_rpc0_pdata_ = bits_to_int(user1_value_ + read_rs_rpc0_pdata_bitlo,
-				    read_rs_rpc0_pdata_bithi - read_rs_rpc0_pdata_bitlo + 1,			 
-				    LSBfirst);
-  //
-  read_rs_rpc1_pdata_ = bits_to_int(user1_value_ + read_rs_rpc1_pdata_bitlo,
-				    read_rs_rpc1_pdata_bithi - read_rs_rpc1_pdata_bitlo + 1,			 
-				    LSBfirst);
-  //
-  read_rs_unused_ = bits_to_int(user1_value_ + read_rs_unused_bitlo,
-				read_rs_unused_bithi - read_rs_unused_bitlo + 1,			 
-				LSBfirst);
-  //
-  read_rs_end_ = bits_to_int(user1_value_ + read_rs_end_bitlo,
-			     read_rs_end_bithi - read_rs_end_bitlo + 1,			 
-			     LSBfirst);
   return;
 }
 //
@@ -492,20 +487,20 @@ void RAT::WriteRatUser2_(){
   //
   FillRatUser2_();
   //
-  setup_jtag(ChainRat);
+  tmb_->setup_jtag(ChainRat);
   //	       
-  ShfIR_ShfDR(ChipLocationRatFpga,
-	      FPGAuser2,
-	      RegSizeRatFpga_FPGAuser2,
-	      user2_value_);
+  tmb_->ShfIR_ShfDR(ChipLocationRatFpga,
+		    FPGAuser2,
+		    RegSizeRatFpga_FPGAuser2,
+		    user2_value_);
   //
-  if (GetCheckJtagWrite()) {
+  if (tmb_->GetCheckJtagWrite()) {
     // Compare the write values into the User2 register with a copy of the 
     // values which are embedded into the read-only User1 register
     ReadRatUser1();
-    CompareBitByBit(user2_value_,
-		    user1_value_ + read_rw_rpc_en_bitlo,
-		    RegSizeRatFpga_FPGAuser2);
+    tmb_->CompareBitByBit(user2_value_,
+			  user1_value_ + read_rw_rpc_en_bitlo,
+			  RegSizeRatFpga_FPGAuser2);
   }
   //
   return;
@@ -515,46 +510,46 @@ void RAT::WriteRatUser2_(){
 void RAT::FillRatUser2_() {
   // ** fill the bit array for the USER2 data register
   //
-  int_to_bits(write_rw_rpc_en_,
-	      write_rw_rpc_en_bithi - write_rw_rpc_en_bitlo + 1,
-	      user2_value_ + write_rw_rpc_en_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_rw_rpc_en_,
+		    write_rw_rpc_en_bithi - write_rw_rpc_en_bitlo + 1,
+		    user2_value_ + write_rw_rpc_en_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_rw_ddd_start_,
-	      write_rw_ddd_start_bithi - write_rw_ddd_start_bitlo + 1,
-	      user2_value_ + write_rw_ddd_start_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_rw_ddd_start_,
+		    write_rw_ddd_start_bithi - write_rw_ddd_start_bitlo + 1,
+		    user2_value_ + write_rw_ddd_start_bitlo,
+		    LSBfirst);
   //
   for (int rpc=0; rpc<4; rpc++)
-    int_to_bits(write_rpc_rat_delay_[rpc],
-		4,
-		user2_value_ + write_rw_ddd_wr_bitlo + 4*rpc,		
-		LSBfirst);
+    tmb_->int_to_bits(write_rpc_rat_delay_[rpc],
+		      4,
+		      user2_value_ + write_rw_ddd_wr_bitlo + 4*rpc,		
+		      LSBfirst);
   //
-  int_to_bits(write_rw_dddoe_wr_,
-	      write_rw_dddoe_wr_bithi - write_rw_dddoe_wr_bitlo + 1,
-	      user2_value_ + write_rw_dddoe_wr_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_rw_dddoe_wr_,
+		    write_rw_dddoe_wr_bithi - write_rw_dddoe_wr_bitlo + 1,
+		    user2_value_ + write_rw_dddoe_wr_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_rw_perr_reset_,
-	      write_rw_perr_reset_bithi - write_rw_perr_reset_bitlo + 1,
-	      user2_value_ + write_rw_perr_reset_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_rw_perr_reset_,
+		    write_rw_perr_reset_bithi - write_rw_perr_reset_bitlo + 1,
+		    user2_value_ + write_rw_perr_reset_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_rw_parity_odd_,
-	      write_rw_parity_odd_bithi - write_rw_parity_odd_bitlo + 1,
-	      user2_value_ + write_rw_parity_odd_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_rw_parity_odd_,
+		    write_rw_parity_odd_bithi - write_rw_parity_odd_bitlo + 1,
+		    user2_value_ + write_rw_parity_odd_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_rw_perr_ignore_,
-	      write_rw_perr_ignore_bithi - write_rw_perr_ignore_bitlo + 1,
-	      user2_value_ + write_rw_perr_ignore_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_rw_perr_ignore_,
+		    write_rw_perr_ignore_bithi - write_rw_perr_ignore_bitlo + 1,
+		    user2_value_ + write_rw_perr_ignore_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_rw_rpc_future_,
-	      write_rw_rpc_future_bithi - write_rw_rpc_future_bitlo + 1,
-	      user2_value_ + write_rw_rpc_future_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_rw_rpc_future_,
+		    write_rw_rpc_future_bithi - write_rw_rpc_future_bitlo + 1,
+		    user2_value_ + write_rw_rpc_future_bitlo,
+		    LSBfirst);
   //
   return;
 }
@@ -631,7 +626,7 @@ void RAT::WriteRpcRatDelay() {
   WriteRatUser2_();
   //
   // Check that the DDD state machine went idle:
-  if (GetCheckJtagWrite()) {
+  if (tmb_->GetCheckJtagWrite()) {
     while (GetRat3dBusy_() != 0) {
       ReadRatUser1();
       //
@@ -647,7 +642,7 @@ void RAT::WriteRpcRatDelay() {
   WriteRatUser2_();
   //
   // Check that the DDD state machine went busy:
-  if (GetCheckJtagWrite()) {
+  if (tmb_->GetCheckJtagWrite()) {
     while (GetRat3dBusy_() != 1) {
       ReadRatUser1();
       //
@@ -663,7 +658,7 @@ void RAT::WriteRpcRatDelay() {
   WriteRatUser2_();
   //
   // Check that the DDD state machine is not busy:
-  if (GetCheckJtagWrite()) {
+  if (tmb_->GetCheckJtagWrite()) {
     while (GetRat3dBusy_() != 0) {
       ReadRatUser1();
       //
@@ -825,4 +820,11 @@ int RAT::ReadRATtCritHSink() {
 	       << " deg C " << std::endl;
   //
   return temperature;
+}
+//
+// Methods used to program RAT prom: 
+//
+int RAT::SVFLoad(int * arg1, const char * arg2, int arg3) { 
+  //
+  return tmb_->SVFLoad(arg1,arg2,arg3); 
 }
