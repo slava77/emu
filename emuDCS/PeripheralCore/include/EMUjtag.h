@@ -228,7 +228,6 @@ private:
   int which_user_prom_;
   //
   int image_counter_;
-  char write_xsvf_image_[MAX_XSVF_IMAGE_NUMBER];
   int number_of_write_bytes_;
   //
   bool CreateXsvfImage_();
@@ -239,7 +238,7 @@ private:
   void WritePostambleIntoXsvfImage_();
   void WriteXsvfImageToDisk_();
   //
-  void SetWriteXsvfImage_(int address,int value);
+  void SetWriteXsvfImage_(unsigned int address,int value);
   void WriteXCOMPLETE_();
   void WriteXTDOMASK_(int number_of_bits_in_mask,
 		      int * vector_of_bits_for_mask);
@@ -257,12 +256,12 @@ private:
   //-------------------
   // read xsvf file 
   //-------------------
-  int read_xsvf_image_[MAX_XSVF_IMAGE_NUMBER];
+  std::vector<int> xsvf_image_;
   int number_of_read_bytes_;
   //
   void ReadXsvfFile_(bool create_logfile);
   //		     
-  int  GetReadXsvfImage_(int address);
+  int  GetReadXsvfImage_(unsigned int address);
   //
   void DecodeXsvfImage_();
   void ParseXCOMPLETE_();

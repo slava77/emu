@@ -11,7 +11,8 @@
 //
 #include "TMB.h"
 #include "TMB_constants.h"
-
+//
+//
 //EMUjtag::EMUjtag(){
 //}
 //
@@ -1025,9 +1026,9 @@ void EMUjtag::CreateXsvfFile() {
 bool EMUjtag::CreateXsvfImage_() {
   //
   // Clear the XSVF image:
-  image_counter_ = 0;
-  while (image_counter_ < MAX_XSVF_IMAGE_NUMBER) 
-    SetWriteXsvfImage_(image_counter_++,0); 
+  //  while (image_counter_ < MAX_XSVF_IMAGE_NUMBER) 
+  //    SetWriteXsvfImage_(image_counter_++,0); 
+  xsvf_image_.clear();
   //
   // Reset the byte counter:
   image_counter_ = 0;
@@ -1729,7 +1730,7 @@ void EMUjtag::WriteXsvfImageToDisk_() {
 		     std::ios::binary);        
   //
   for (int index=0; index<number_of_write_bytes_; index++) 
-      file_to_write << write_xsvf_image_[index];
+    file_to_write << GetReadXsvfImage_(index);
   //
   file_to_write.close();
   //
@@ -1763,33 +1764,39 @@ void EMUjtag::ReadXsvfFile(bool create_logfile) {
 //
 void EMUjtag::ReadXsvfFile_(bool create_logfile) {
   //
-  for (int i=0; i<MAX_XSVF_IMAGE_NUMBER; i++) 
-    read_xsvf_image_[i]=0; 
-  //
   if (file_io_) {
     (*MyOutput_) << "EMUjtag:  Read XSVF file " << filename_xsvf_ << " from disk" << std::endl;
+    //
+    //    for (int i=0; i<MAX_XSVF_IMAGE_NUMBER; i++) 
+    //      xsvf_image_[i]=0; 
+    xsvf_image_.clear(); 
     //
     std::ifstream Readfile;
     Readfile.open(filename_xsvf_.c_str(),
 		  std::ifstream::binary);     //xsvf file is binary
     //
     int byte_counter=0;
-    while ( Readfile.good() ) 
-      read_xsvf_image_[byte_counter++] = Readfile.get();
+    while ( Readfile.good() ) {
+      int temp = Readfile.get();
+      SetWriteXsvfImage_(byte_counter++,temp);
+    }
+    //    std::cout << "size before swap = " << xsvf_image_.capacity() << std::endl;
+    //
+    std::vector<int>(xsvf_image_).swap(xsvf_image_);   //reduce the size allocated to xsvf_image to the size that is needed
+    //
+    //    std::cout << "size after swap = " << xsvf_image_.capacity() << std::endl;
     //
     number_of_read_bytes_ = --byte_counter;
     //
     //  for (int i=200; i<300; i++) 
-    //    std::cout << "read_xsvf_image_[" << std::dec << i 
-    //	      << "] = " << read_xsvf_image_[i] << std::endl;
+    //    std::cout << "xsvf_image_[" << std::dec << i 
+    //	      << "] = " << GetReadXsvfImage_(i) << std::endl;
     //
     Readfile.close();
+    //
   } else {
     //
     (*MyOutput_) << "EMUjtag:  Read internal XSVF image" << std::endl;
-    //
-    for (int i=0; i<number_of_write_bytes_; i++) 
-      read_xsvf_image_[i] = write_xsvf_image_[i]; 
     //
     number_of_read_bytes_ = number_of_write_bytes_ ;
     //
@@ -1864,6 +1871,12 @@ void EMUjtag::ReadXsvfFile_(bool create_logfile) {
   //
   if (create_logfile)
     Logfile_.close();
+  //
+  //  std::cout << "size before zeroing = " << xsvf_image_.capacity() << std::endl;
+  //
+  std::vector<int>().swap(xsvf_image_);   //reduce the size allocated to xsvf_image to 0
+  //
+  //  std::cout << "size after zeroing = " << xsvf_image_.capacity() << std::endl;
   //
   return;
 }
@@ -2226,28 +2239,27 @@ void EMUjtag::ParseXSTATE_() {
   return;
 }
 //
-int EMUjtag::GetReadXsvfImage_(int address) {
+int EMUjtag::GetReadXsvfImage_(unsigned int address) {
   //
-  if (address >= MAX_XSVF_IMAGE_NUMBER) {
+  if (address >= xsvf_image_.size()) 
     (*MyOutput_) << "GetReadXsvfImage ERROR: address " << address 
-		 << " out of range...  should be between 0 and " << MAX_XSVF_IMAGE_NUMBER-1 
+		 << " out of range...  should be between 0 and " << xsvf_image_.size()-1 
 		 << std::endl;
-    return 0;
-  }
   //
-  return read_xsvf_image_[address]; 
+  return xsvf_image_.at(address); 
 }
 //
-void EMUjtag::SetWriteXsvfImage_(int address, int value) {
+void EMUjtag::SetWriteXsvfImage_(unsigned int address, int value) {
   //
-  if (address >= MAX_XSVF_IMAGE_NUMBER) {
-    (*MyOutput_) << "SetWriteXsvfImage ERROR: address " << address 
-		 << " out of range...  should be between 0 and " << MAX_XSVF_IMAGE_NUMBER-1 
-		 << std::endl;
-    return;
-  }
+  //  if (address >= MAX_XSVF_IMAGE_NUMBER) {
+  //    (*MyOutput_) << "SetWriteXsvfImage ERROR: address " << address 
+  //		 << " out of range...  should be between 0 and " << MAX_XSVF_IMAGE_NUMBER-1 
+  //		 << std::endl;
+  //    return;
+  //  }
   //
-  write_xsvf_image_[address] = (char) (value & 0xff);
+  //  xsvf_image_[address] = (char) (value & 0xff);
+  xsvf_image_.push_back( (char) (value & 0xff) );
   return; 
 }
 //
