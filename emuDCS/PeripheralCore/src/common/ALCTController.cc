@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.37 2007/07/13 11:57:48 rakness Exp $
+// $Id: ALCTController.cc,v 3.38 2007/10/09 11:10:35 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.38  2007/10/09 11:10:35  rakness
+// remove RAT and ALCT inheritance from EMUjtag, i.e., make calls to EMUjtag methods explicitly through TMB
+//
 // Revision 3.37  2007/07/13 11:57:48  rakness
 // add read/accessors to ALCT temperature+on-board voltage
 //
@@ -276,17 +279,16 @@
 #include <cstdlib>
 //
 #include "ALCTController.h"
-#include "EMUjtag.h"
 #include "TMB.h"
 //
 //
-ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
-  EMUjtag(tmb),debug_(0)
-{
+ALCTController::ALCTController(TMB * tmb, std::string chamberType) {
   //
   MyOutput_ = &std::cout ;
   //
   (*MyOutput_) << "Creating ALCTController" << std::endl;
+  //
+  debug_ = 0;
   //
   tmb_ = tmb;
   //
@@ -309,7 +311,7 @@ ALCTController::ALCTController(TMB * tmb, std::string chamberType) :
   SetPowerUpHotChannelMask();
   SetPowerUpCollisionPatternMask();
   //
-  SetCheckJtagWrite(true);
+  tmb_->SetCheckJtagWrite(true);
   //
 }
 //
@@ -513,7 +515,7 @@ void ALCTController::SetUpRandomALCT(){
 //
 void ALCTController::configure() {
   //
-  SetCheckJtagWrite(false);          //in this method we only want to write data...
+  tmb_->SetCheckJtagWrite(false);          //in this method we only want to write data...
   //                                 //the settings will be verified with CheckALCTConfiguration()
   SetFillVmeWriteVecs(true);     //set this to false to disable writing to user PROM
   ClearVmeWriteVecs();
@@ -570,10 +572,10 @@ void ALCTController::configure() {
   //  WriteTriggerRegister_();
   //    PrintTriggerRegister_();
   //
-  SetCheckJtagWrite(true);                //re-enable the checking of JTAG writes (default)
+  tmb_->SetCheckJtagWrite(true);                //re-enable the checking of JTAG writes (default)
   //
   if ( GetFillVmeWriteVecs() ) 
-    CheckAndProgramProm(ChipLocationTmbUserPromALCT);
+    tmb_->CheckAndProgramProm(ChipLocationTmbUserPromALCT);
   //
   SetFillVmeWriteVecs(false);        //give VME back to the user (default)
   //
@@ -800,15 +802,15 @@ void ALCTController::ReadSlowControlId() {
   if (debug_)
     (*MyOutput_) << "ALCT: READ slow control ID " << std::endl;
   //
-  setup_jtag(ChainAlctSlowFpga);
+  tmb_->setup_jtag(ChainAlctSlowFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctSlowFpga,
-	      ALCT_SLOW_RD_ID_REG,
-	      RegSizeAlctSlowFpga_RD_ID_REG);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctSlowFpga,
+		    ALCT_SLOW_RD_ID_REG,
+		    RegSizeAlctSlowFpga_RD_ID_REG);
   //
-  packCharBuffer(GetDRtdo(),
-		 GetRegLength(),
-		 read_slowcontrol_id_);
+  tmb_->packCharBuffer(tmb_->GetDRtdo(),
+		       tmb_->GetRegLength(),
+		       read_slowcontrol_id_);
   return;
 }
 //
@@ -851,24 +853,24 @@ void ALCTController::WriteTestpulsePowerSwitchReg_() {
   if (debug_)
     (*MyOutput_) << "ALCT: WRITE testpulse POWERSWITCH " << write_testpulse_power_setting_ << std::endl;
   //
-  setup_jtag(ChainAlctSlowFpga);
+  tmb_->setup_jtag(ChainAlctSlowFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctSlowFpga,
-	      ALCT_SLOW_WRT_TESTPULSE_POWERDOWN,
-	      RegSizeAlctSlowFpga_WRT_TESTPULSE_POWERDOWN,
-	      &write_testpulse_power_setting_);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctSlowFpga,
+		    ALCT_SLOW_WRT_TESTPULSE_POWERDOWN,
+		    RegSizeAlctSlowFpga_WRT_TESTPULSE_POWERDOWN,
+		    &write_testpulse_power_setting_);
   //
   usleep(100);
   //
-  if ( GetCheckJtagWrite() ) {
+  if ( tmb_->GetCheckJtagWrite() ) {
     //
     if (debug_)
       (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
     //
     ReadTestpulsePowerSwitchReg_();
-    CompareBitByBit(&write_testpulse_power_setting_,
-		    &read_testpulse_power_setting_,
-		    RegSizeAlctSlowFpga_WRT_TESTPULSE_POWERDOWN);
+    tmb_->CompareBitByBit(&write_testpulse_power_setting_,
+			  &read_testpulse_power_setting_,
+			  RegSizeAlctSlowFpga_WRT_TESTPULSE_POWERDOWN);
   }
   //
   return;
@@ -879,15 +881,15 @@ void ALCTController::ReadTestpulsePowerSwitchReg_() {
   if (debug_)
     (*MyOutput_) << "ALCT: READ testpulse POWERSWITCH" << std::endl;
   //
-  setup_jtag(ChainAlctSlowFpga);
+  tmb_->setup_jtag(ChainAlctSlowFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctSlowFpga,
-	      ALCT_SLOW_RD_TESTPULSE_POWERDOWN,
-	      RegSizeAlctSlowFpga_RD_TESTPULSE_POWERDOWN);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctSlowFpga,
+		    ALCT_SLOW_RD_TESTPULSE_POWERDOWN,
+		    RegSizeAlctSlowFpga_RD_TESTPULSE_POWERDOWN);
   //
-  read_testpulse_power_setting_ = bits_to_int(GetDRtdo(),
-					      GetRegLength(),
-					      LSBfirst);
+  read_testpulse_power_setting_ = tmb_->bits_to_int(tmb_->GetDRtdo(),
+						    tmb_->GetRegLength(),
+						    LSBfirst);
   return;
 }
 //
@@ -939,20 +941,20 @@ void ALCTController::WriteTestpulseAmplitude_() {
   int dac_value_to_send = write_testpulse_amplitude_dacvalue_ << 1;
   //
   //DAC's require MSB sent first....
-  int_to_bits(dac_value_to_send,
-	      RegSizeAlctSlowFpga_WRT_TESTPULSE_DAC,
-	      dac,
-	      MSBfirst);
+  tmb_->int_to_bits(dac_value_to_send,
+		    RegSizeAlctSlowFpga_WRT_TESTPULSE_DAC,
+		    dac,
+		    MSBfirst);
   //
   //  for (int i=0; i<RegSizeAlctSlowFpga_WRT_TESTPULSE_DAC; i++) 
   //    (*MyOutput_) << "dac[" << i << "] = " << dac[i] << std::endl;
   //
-  setup_jtag(ChainAlctSlowFpga);
+  tmb_->setup_jtag(ChainAlctSlowFpga);
   //      
-  ShfIR_ShfDR(ChipLocationAlctSlowFpga,
-	      ALCT_SLOW_WRT_TESTPULSE_DAC,
-	      RegSizeAlctSlowFpga_WRT_TESTPULSE_DAC,
-	      dac);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctSlowFpga,
+		    ALCT_SLOW_WRT_TESTPULSE_DAC,
+		    RegSizeAlctSlowFpga_WRT_TESTPULSE_DAC,
+		    dac);
   usleep(100);
   //
   return;
@@ -993,22 +995,22 @@ void ALCTController::WriteTestpulseGroupMask_() {
   if (debug_)
     (*MyOutput_) << "ALCT: WRITE testpulse GROUPMASK" << std::endl;
   //
-  setup_jtag(ChainAlctSlowFpga);
+  tmb_->setup_jtag(ChainAlctSlowFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctSlowFpga,
-	      ALCT_SLOW_WRT_TESTPULSE_GRP,
-	      RegSizeAlctSlowFpga_WRT_TESTPULSE_GRP,
-	      write_testpulse_groupmask_);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctSlowFpga,
+		    ALCT_SLOW_WRT_TESTPULSE_GRP,
+		    RegSizeAlctSlowFpga_WRT_TESTPULSE_GRP,
+		    write_testpulse_groupmask_);
   //
-  if ( GetCheckJtagWrite() ) {
+  if ( tmb_->GetCheckJtagWrite() ) {
     //
     if (debug_)
       (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
     //
     ReadTestpulseGroupMask_();
-    CompareBitByBit(write_testpulse_groupmask_,
-		    read_testpulse_groupmask_,
-		    RegSizeAlctSlowFpga_WRT_TESTPULSE_GRP);
+    tmb_->CompareBitByBit(write_testpulse_groupmask_,
+			  read_testpulse_groupmask_,
+			  RegSizeAlctSlowFpga_WRT_TESTPULSE_GRP);
   }
   //
   return;
@@ -1019,13 +1021,13 @@ void ALCTController::ReadTestpulseGroupMask_() {
   if (debug_)
     (*MyOutput_) << "ALCT: READ testpulse GROUPMASK" << std::endl;
   //
-  setup_jtag(ChainAlctSlowFpga);
+  tmb_->setup_jtag(ChainAlctSlowFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctSlowFpga,
-	      ALCT_SLOW_RD_TESTPULSE_GRP,
-	      RegSizeAlctSlowFpga_RD_TESTPULSE_GRP);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctSlowFpga,
+		    ALCT_SLOW_RD_TESTPULSE_GRP,
+		    RegSizeAlctSlowFpga_RD_TESTPULSE_GRP);
   //
-  int * register_pointer = GetDRtdo();
+  int * register_pointer = tmb_->GetDRtdo();
   for (int i=0; i<RegSizeAlctSlowFpga_RD_TESTPULSE_GRP; i++)
     read_testpulse_groupmask_[i] = *(register_pointer+i);
   //
@@ -1034,9 +1036,9 @@ void ALCTController::ReadTestpulseGroupMask_() {
 //
 void ALCTController::PrintTestpulseGroupMask_() {
   //
-  int testpulse_groupmask = bits_to_int(read_testpulse_groupmask_,
-					RegSizeAlctSlowFpga_RD_TESTPULSE_GRP,
-					LSBfirst);
+  int testpulse_groupmask = tmb_->bits_to_int(read_testpulse_groupmask_,
+					      RegSizeAlctSlowFpga_RD_TESTPULSE_GRP,
+					      LSBfirst);
   //
   (*MyOutput_) << "ALCT READ: Testpulse groupmask = 0x" 
 	       << std::hex << testpulse_groupmask << std::endl;
@@ -1077,22 +1079,22 @@ void ALCTController::WriteTestpulseStripMask_() {
   if (debug_)
     (*MyOutput_) << "ALCT: WRITE testpulse STRIPMASK" << std::endl;
   //
-  setup_jtag(ChainAlctSlowFpga);
+  tmb_->setup_jtag(ChainAlctSlowFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctSlowFpga,
-	      ALCT_SLOW_WRT_TESTPULSE_STRIP,
-	      RegSizeAlctSlowFpga_WRT_TESTPULSE_STRIP,
-	      write_testpulse_stripmask_);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctSlowFpga,
+		    ALCT_SLOW_WRT_TESTPULSE_STRIP,
+		    RegSizeAlctSlowFpga_WRT_TESTPULSE_STRIP,
+		    write_testpulse_stripmask_);
   //
-  if ( GetCheckJtagWrite() ) {
+  if ( tmb_->GetCheckJtagWrite() ) {
     //
     if (debug_)
       (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
     //
     ReadTestpulseStripMask_();
-    CompareBitByBit(write_testpulse_stripmask_,
-		    read_testpulse_stripmask_,
-		    RegSizeAlctSlowFpga_WRT_TESTPULSE_STRIP);
+    tmb_->CompareBitByBit(write_testpulse_stripmask_,
+			  read_testpulse_stripmask_,
+			  RegSizeAlctSlowFpga_WRT_TESTPULSE_STRIP);
   }
   //
   return;
@@ -1103,13 +1105,13 @@ void ALCTController::ReadTestpulseStripMask_() {
   if (debug_)
     (*MyOutput_) << "ALCT: READ testpulse STRIPMASK" << std::endl;
   //
-  setup_jtag(ChainAlctSlowFpga);
+  tmb_->setup_jtag(ChainAlctSlowFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctSlowFpga,
-	      ALCT_SLOW_RD_TESTPULSE_STRIP,
-	      RegSizeAlctSlowFpga_RD_TESTPULSE_STRIP);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctSlowFpga,
+		    ALCT_SLOW_RD_TESTPULSE_STRIP,
+		    RegSizeAlctSlowFpga_RD_TESTPULSE_STRIP);
   //
-  int * register_pointer = GetDRtdo();
+  int * register_pointer = tmb_->GetDRtdo();
   for (int i=0; i<RegSizeAlctSlowFpga_RD_TESTPULSE_STRIP; i++)
     read_testpulse_stripmask_[i] = *(register_pointer+i);
   //
@@ -1118,9 +1120,9 @@ void ALCTController::ReadTestpulseStripMask_() {
 //
 void ALCTController::PrintTestpulseStripMask_() {
   //
-  int testpulse_stripmask = bits_to_int(read_testpulse_stripmask_,
-					RegSizeAlctSlowFpga_RD_TESTPULSE_STRIP,
-					LSBfirst);
+  int testpulse_stripmask = tmb_->bits_to_int(read_testpulse_stripmask_,
+					      RegSizeAlctSlowFpga_RD_TESTPULSE_STRIP,
+					      LSBfirst);
   //
   (*MyOutput_) << "ALCT READ: testpulse stripmask = 0x" 
 	       << std::hex << testpulse_stripmask << std::endl;
@@ -1192,17 +1194,17 @@ void ALCTController::WriteAfebThresholds() {
     //
     int vector_of_data[RegSizeAlctSlowFpga_WRT_THRESH_DAC0] = {}; //all DAC's have same size register
     //
-    int_to_bits(data_to_send,
-		RegSizeAlctSlowFpga_WRT_THRESH_DAC0,
-		vector_of_data,
-		MSBfirst);
+    tmb_->int_to_bits(data_to_send,
+		      RegSizeAlctSlowFpga_WRT_THRESH_DAC0,
+		      vector_of_data,
+		      MSBfirst);
     //
-    setup_jtag(ChainAlctSlowFpga);
+    tmb_->setup_jtag(ChainAlctSlowFpga);
     //
-    ShfIR_ShfDR(ChipLocationAlctSlowFpga,
-		opcode,
-		RegSizeAlctSlowFpga_WRT_THRESH_DAC0,
-		vector_of_data);
+    tmb_->ShfIR_ShfDR(ChipLocationAlctSlowFpga,
+		      opcode,
+		      RegSizeAlctSlowFpga_WRT_THRESH_DAC0,
+		      vector_of_data);
   }
   return;
 }
@@ -1417,35 +1419,35 @@ int ALCTController::read_adc_(int chip, int channel) {
   //
   int address[RegSizeAlctSlowFpga_RD_THRESH_ADC0] = {}; //all ADC's have same size register
   //
-  int_to_bits(data_to_send,
-	      RegSizeAlctSlowFpga_RD_THRESH_ADC0,
-	      address,
-	      MSBfirst);
+  tmb_->int_to_bits(data_to_send,
+		    RegSizeAlctSlowFpga_RD_THRESH_ADC0,
+		    address,
+		    MSBfirst);
   //
-  setup_jtag(ChainAlctSlowFpga);
+  tmb_->setup_jtag(ChainAlctSlowFpga);
   //
   //
   // Need to ShfDR in two times: 
   //   -> First time to shift in the channel on tdi
   if (debug_) (*MyOutput_) << "Shift in channel value..." << std::endl;
-  ShfIR_ShfDR(ChipLocationAlctSlowFpga,
-	      opcode,
-	      RegSizeAlctSlowFpga_RD_THRESH_ADC0,
-	      address);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctSlowFpga,
+		    opcode,
+		    RegSizeAlctSlowFpga_RD_THRESH_ADC0,
+		    address);
   //
   // Give adc time to receive address:
   ::usleep(200);
   //
   //   -> Second time to get the data on tdo
   if (debug_) (*MyOutput_) << "Get ADC data..." << std::endl;
-  ShfIR_ShfDR(ChipLocationAlctSlowFpga,
-	      opcode,
-	      RegSizeAlctSlowFpga_RD_THRESH_ADC0,
-	      address);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctSlowFpga,
+		    opcode,
+		    RegSizeAlctSlowFpga_RD_THRESH_ADC0,
+		    address);
   //
-  int adcValue = bits_to_int(GetDRtdo(),
-			     RegSizeAlctSlowFpga_RD_THRESH_ADC0,
-			     MSBfirst);
+  int adcValue = tmb_->bits_to_int(tmb_->GetDRtdo(),
+				   RegSizeAlctSlowFpga_RD_THRESH_ADC0,
+				   MSBfirst);
   //
   if (debug_) (*MyOutput_) << "ADC value = 0x" << std::hex << adcValue << std::endl;
   //
@@ -1468,23 +1470,23 @@ void ALCTController::WriteStandbyRegister_() {
   if (debug_)
     (*MyOutput_) << "ALCT: WRITE standby register" << std::endl;
   //
-  setup_jtag(ChainAlctSlowFpga);  
+  tmb_->setup_jtag(ChainAlctSlowFpga);  
   //
-  ShfIR_ShfDR(ChipLocationAlctSlowFpga,
-	      ALCT_SLOW_WRT_STANDBY_REG,
-	      RegSizeAlctSlowFpga_WRT_STANDBY_REG,
-	      write_standby_register_);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctSlowFpga,
+		    ALCT_SLOW_WRT_STANDBY_REG,
+		    RegSizeAlctSlowFpga_WRT_STANDBY_REG,
+		    write_standby_register_);
   usleep(100);
   //
-  if ( GetCheckJtagWrite() ) {
+  if ( tmb_->GetCheckJtagWrite() ) {
     //
     if (debug_)
       (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
     //
     ReadStandbyRegister_();
-    CompareBitByBit(write_standby_register_,
-		    read_standby_register_,
-		    RegSizeAlctSlowFpga_WRT_STANDBY_REG);
+    tmb_->CompareBitByBit(write_standby_register_,
+			  read_standby_register_,
+			  RegSizeAlctSlowFpga_WRT_STANDBY_REG);
   }
   //
   return;
@@ -1495,13 +1497,13 @@ void ALCTController::ReadStandbyRegister_() {
   if (debug_)
     (*MyOutput_) << "ALCT: READ Standby Register" << std::endl;
   //
-  setup_jtag(ChainAlctSlowFpga);  
+  tmb_->setup_jtag(ChainAlctSlowFpga);  
   //
-  ShfIR_ShfDR(ChipLocationAlctSlowFpga,
-	      ALCT_SLOW_RD_STANDBY_REG,
-	      RegSizeAlctSlowFpga_RD_STANDBY_REG);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctSlowFpga,
+		    ALCT_SLOW_RD_STANDBY_REG,
+		    RegSizeAlctSlowFpga_RD_STANDBY_REG);
   //
-  int * standby_reg_pointer = GetDRtdo();
+  int * standby_reg_pointer = tmb_->GetDRtdo();
   //
   for (int i=0; i<RegSizeAlctSlowFpga_RD_STANDBY_REG; i++)
     read_standby_register_[i] = *(standby_reg_pointer+i);
@@ -1513,9 +1515,9 @@ void ALCTController::PrintStandbyRegister_() {
   //
   const int buffersize = RegSizeAlctSlowFpga_RD_STANDBY_REG/8;
   char tempBuffer[buffersize] = {};
-  packCharBuffer(read_standby_register_,
-		 RegSizeAlctSlowFpga_RD_STANDBY_REG,
-		 tempBuffer);
+  tmb_->packCharBuffer(read_standby_register_,
+		       RegSizeAlctSlowFpga_RD_STANDBY_REG,
+		       tempBuffer);
   //
   (*MyOutput_) << "ALCT: Standby Register (right to left)= ";
   for (int i=buffersize; i>=0; i--) {
@@ -1568,13 +1570,13 @@ void ALCTController::ReadFastControlId() {
   if (debug_)
     (*MyOutput_) << "ALCT: READ fast control ID " << std::endl;
   //
-  setup_jtag(ChainAlctFastFpga);
+  tmb_->setup_jtag(ChainAlctFastFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-	      ALCT_FAST_RD_ID_REG,
-	      RegSizeAlctFastFpga_RD_ID_REG);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastFpga,
+		    ALCT_FAST_RD_ID_REG,
+		    RegSizeAlctFastFpga_RD_ID_REG);
   //
-  int * fast_control_id_reg_pointer = GetDRtdo();
+  int * fast_control_id_reg_pointer = tmb_->GetDRtdo();
   //
   for (int i=0; i<RegSizeAlctFastFpga_RD_ID_REG; i++)
     read_fastcontrol_id_[i] = *(fast_control_id_reg_pointer+i);
@@ -1635,39 +1637,39 @@ void ALCTController::DecodeFastControlId_() {
   // ** from the vector of bits read_fastcontrol_id_[]          **
   //
   int number_of_bits = fastcontrol_regular_mirror_bithi - fastcontrol_regular_mirror_bitlo + 1;  
-  fastcontrol_regular_mirror_ = bits_to_int(read_fastcontrol_id_+fastcontrol_regular_mirror_bitlo,
-					    number_of_bits,
-					    LSBfirst);
+  fastcontrol_regular_mirror_ = tmb_->bits_to_int(read_fastcontrol_id_+fastcontrol_regular_mirror_bitlo,
+						  number_of_bits,
+						  LSBfirst);
   //
   number_of_bits = fastcontrol_backward_forward_bithi - fastcontrol_backward_forward_bitlo + 1;  
-  fastcontrol_backward_forward_ = bits_to_int(read_fastcontrol_id_+fastcontrol_backward_forward_bitlo,
-					      number_of_bits,
-					      LSBfirst);
+  fastcontrol_backward_forward_ = tmb_->bits_to_int(read_fastcontrol_id_+fastcontrol_backward_forward_bitlo,
+						    number_of_bits,
+						    LSBfirst);
   //
   number_of_bits = fastcontrol_negative_positive_bithi - fastcontrol_negative_positive_bitlo + 1;  
-  fastcontrol_negative_positive_ = bits_to_int(read_fastcontrol_id_+fastcontrol_negative_positive_bitlo,
-					       number_of_bits,
-					       LSBfirst);
+  fastcontrol_negative_positive_ = tmb_->bits_to_int(read_fastcontrol_id_+fastcontrol_negative_positive_bitlo,
+						     number_of_bits,
+						     LSBfirst);
   //
   number_of_bits = fastcontrol_alct_type_bithi - fastcontrol_alct_type_bitlo + 1;  
-  fastcontrol_alct_type_ = bits_to_int(read_fastcontrol_id_+fastcontrol_alct_type_bitlo,
-				       number_of_bits,
-				       LSBfirst);
+  fastcontrol_alct_type_ = tmb_->bits_to_int(read_fastcontrol_id_+fastcontrol_alct_type_bitlo,
+					     number_of_bits,
+					     LSBfirst);
   //
   number_of_bits = fastcontrol_firmware_year_bithi - fastcontrol_firmware_year_bitlo + 1;  
-  fastcontrol_firmware_year_ = bits_to_int(read_fastcontrol_id_+fastcontrol_firmware_year_bitlo,
-					   number_of_bits,
-					   LSBfirst);
+  fastcontrol_firmware_year_ = tmb_->bits_to_int(read_fastcontrol_id_+fastcontrol_firmware_year_bitlo,
+						 number_of_bits,
+						 LSBfirst);
   //
   number_of_bits = fastcontrol_firmware_day_bithi - fastcontrol_firmware_day_bitlo + 1;  
-  fastcontrol_firmware_day_ = bits_to_int(read_fastcontrol_id_+fastcontrol_firmware_day_bitlo,
-					  number_of_bits,
-					  LSBfirst);
+  fastcontrol_firmware_day_ = tmb_->bits_to_int(read_fastcontrol_id_+fastcontrol_firmware_day_bitlo,
+						number_of_bits,
+						LSBfirst);
   //
   number_of_bits = fastcontrol_firmware_month_bithi - fastcontrol_firmware_month_bitlo + 1;  
-  fastcontrol_firmware_month_ = bits_to_int(read_fastcontrol_id_+fastcontrol_firmware_month_bitlo,
-					    number_of_bits,
-					    LSBfirst);
+  fastcontrol_firmware_month_ = tmb_->bits_to_int(read_fastcontrol_id_+fastcontrol_firmware_month_bitlo,
+						  number_of_bits,
+						  LSBfirst);
   
   return;
 }
@@ -1758,23 +1760,23 @@ void ALCTController::WriteTriggerRegister_() {
   //
   FillTriggerRegister_();
   //
-  setup_jtag(ChainAlctFastFpga);
+  tmb_->setup_jtag(ChainAlctFastFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-	      ALCT_FAST_WRT_TRIG_REG,
-	      RegSizeAlctFastFpga_WRT_TRIG_REG,
-	      write_trigger_reg_);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastFpga,
+		    ALCT_FAST_WRT_TRIG_REG,
+		    RegSizeAlctFastFpga_WRT_TRIG_REG,
+		    write_trigger_reg_);
   usleep(100);
   //
-  if ( GetCheckJtagWrite() ) {
+  if ( tmb_->GetCheckJtagWrite() ) {
     //
     if (debug_)
       (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
     //
     ReadTriggerRegister_();
-    CompareBitByBit(write_trigger_reg_,
-		    read_trigger_reg_,
-		    RegSizeAlctFastFpga_WRT_TRIG_REG);
+    tmb_->CompareBitByBit(write_trigger_reg_,
+			  read_trigger_reg_,
+			  RegSizeAlctFastFpga_WRT_TRIG_REG);
   }
   //
   return;
@@ -1782,21 +1784,21 @@ void ALCTController::WriteTriggerRegister_() {
 //
 void ALCTController::ReadTriggerRegister_() {
   //
-  setup_jtag(ChainAlctFastFpga);
+  tmb_->setup_jtag(ChainAlctFastFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-	      ALCT_FAST_RD_TRIG_REG,
-	      RegSizeAlctFastFpga_RD_TRIG_REG);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastFpga,
+		    ALCT_FAST_RD_TRIG_REG,
+		    RegSizeAlctFastFpga_RD_TRIG_REG);
   //
-  int * register_pointer = GetDRtdo();
+  int * register_pointer = tmb_->GetDRtdo();
   for (int i=0; i<RegSizeAlctFastFpga_RD_TRIG_REG; i++)
     read_trigger_reg_[i] = *(register_pointer+i);
   //
   //Print out control register value in hex
   if (debug_) {
-    int scaler_trigger_reg = bits_to_int(read_trigger_reg_,
-					 RegSizeAlctFastFpga_RD_TRIG_REG,
-					 LSBfirst);
+    int scaler_trigger_reg = tmb_->bits_to_int(read_trigger_reg_,
+					       RegSizeAlctFastFpga_RD_TRIG_REG,
+					       LSBfirst);
     (*MyOutput_) << "ALCT: READ TRIGGER REGISTER = " 
 		 << std::hex << scaler_trigger_reg << std::dec << std::endl;
   }
@@ -1849,14 +1851,14 @@ void ALCTController::DecodeTriggerRegister_() {
   // ** from the vector of bits read_trigger_reg_[]          **
   //
   int number_of_bits = trigger_register_source_bithi - trigger_register_source_bitlo + 1;  
-  read_pulse_trigger_source_ = bits_to_int(read_trigger_reg_+trigger_register_source_bitlo,
-					   number_of_bits,
-					   LSBfirst);
+  read_pulse_trigger_source_ = tmb_->bits_to_int(read_trigger_reg_+trigger_register_source_bitlo,
+						 number_of_bits,
+						 LSBfirst);
   //
   number_of_bits = trigger_register_invert_bithi - trigger_register_invert_bitlo + 1;  
-  read_invert_pulse_ = bits_to_int(read_trigger_reg_+trigger_register_invert_bitlo,
-				   number_of_bits,
-				   LSBfirst);
+  read_invert_pulse_ = tmb_->bits_to_int(read_trigger_reg_+trigger_register_invert_bitlo,
+					 number_of_bits,
+					 LSBfirst);
   //
   return;
 }
@@ -1865,15 +1867,15 @@ void ALCTController::FillTriggerRegister_() {
   // ** Project the trigger register's software values  **
   // ** into the vector of bits write_trigger_reg_[]          **
   //
-  int_to_bits(write_pulse_trigger_source_,
-	      trigger_register_source_bithi - trigger_register_source_bitlo + 1,
-	      write_trigger_reg_ + trigger_register_source_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_pulse_trigger_source_,
+		    trigger_register_source_bithi - trigger_register_source_bitlo + 1,
+		    write_trigger_reg_ + trigger_register_source_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_invert_pulse_,
-	      trigger_register_invert_bithi - trigger_register_invert_bitlo + 1,
-	      write_trigger_reg_ + trigger_register_invert_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_invert_pulse_,
+		    trigger_register_invert_bithi - trigger_register_invert_bitlo + 1,
+		    write_trigger_reg_ + trigger_register_invert_bitlo,
+		    LSBfirst);
   //
   return;
 }
@@ -1912,22 +1914,22 @@ void ALCTController::WriteDelayLineControlReg_() {
   //
   FillDelayLineControlReg_();
   //
-  setup_jtag(ChainAlctFastFpga);
+  tmb_->setup_jtag(ChainAlctFastFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-	      ALCT_FAST_WRT_DELAYLINE_CTRL_REG,
-	      RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_,
-	      write_delay_line_control_reg_);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastFpga,
+		    ALCT_FAST_WRT_DELAYLINE_CTRL_REG,
+		    RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_,
+		    write_delay_line_control_reg_);
   //
-  if ( GetCheckJtagWrite() ) {
+  if ( tmb_->GetCheckJtagWrite() ) {
     //
     if ( debug_>4 )
       (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
     //
     ReadDelayLineControlReg_();
-    CompareBitByBit(write_delay_line_control_reg_,
-		    read_delay_line_control_reg_,
-		    RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_);
+    tmb_->CompareBitByBit(write_delay_line_control_reg_,
+			  read_delay_line_control_reg_,
+			  RegSizeAlctFastFpga_WRT_DELAYLINE_CTRL_REG_);
   }
   //
   return;
@@ -1935,21 +1937,21 @@ void ALCTController::WriteDelayLineControlReg_() {
 //
 void ALCTController::ReadDelayLineControlReg_() {
   //
-  setup_jtag(ChainAlctFastFpga);
+  tmb_->setup_jtag(ChainAlctFastFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-	      ALCT_FAST_RD_DELAYLINE_CTRL_REG,
-	      RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastFpga,
+		    ALCT_FAST_RD_DELAYLINE_CTRL_REG,
+		    RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_);
   //
-  int * register_pointer = GetDRtdo();
+  int * register_pointer = tmb_->GetDRtdo();
   for (int i=0; i<RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_; i++)
     read_delay_line_control_reg_[i] = *(register_pointer+i);
   //
   //Print out control register value in hex
   if ( debug_>4 ) {
-    int scaler_delay_line_control_reg = bits_to_int(read_delay_line_control_reg_,
-						    RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_,
-						    LSBfirst);
+    int scaler_delay_line_control_reg = tmb_->bits_to_int(read_delay_line_control_reg_,
+							  RegSizeAlctFastFpga_RD_DELAYLINE_CTRL_REG_,
+							  LSBfirst);
     (*MyOutput_) << "ALCT READ: delay line CONTROL REGISTER = " 
 		 << std::hex << scaler_delay_line_control_reg << std::dec << std::endl;
   }
@@ -1999,14 +2001,14 @@ void ALCTController::DecodeDelayLineControlReg_() {
   // ** from the vector of bits read_delay_line_control_reg_[]     **
   //
   int number_of_bits = delay_line_reset_bithi - delay_line_reset_bitlo + 1;  
-  read_delay_line_reset_ = bits_to_int(read_delay_line_control_reg_+delay_line_reset_bitlo,
-				       number_of_bits,
-				       LSBfirst);
+  read_delay_line_reset_ = tmb_->bits_to_int(read_delay_line_control_reg_+delay_line_reset_bitlo,
+					     number_of_bits,
+					     LSBfirst);
   //
   number_of_bits = delay_line_settst_bithi - delay_line_settst_bitlo + 1;  
-  read_delay_line_settst_ = bits_to_int(read_delay_line_control_reg_+delay_line_settst_bitlo,
-					number_of_bits,
-					LSBfirst);
+  read_delay_line_settst_ = tmb_->bits_to_int(read_delay_line_control_reg_+delay_line_settst_bitlo,
+					      number_of_bits,
+					      LSBfirst);
   //
   for (int index=0; index<GetNumberOfGroupsOfDelayChips(); index++)
     read_delay_line_group_select_[index] = read_delay_line_control_reg_[index+delay_line_group_select_bitlo];
@@ -2018,15 +2020,15 @@ void ALCTController::FillDelayLineControlReg_() {
   // ** Project the delay line control register's software values  **
   // ** into the vector of bits write_delay_line_control_reg_[]    **
   //
-  int_to_bits(write_delay_line_reset_,
-	      delay_line_reset_bithi-delay_line_reset_bitlo+1,
-	      write_delay_line_control_reg_+delay_line_reset_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_delay_line_reset_,
+		    delay_line_reset_bithi-delay_line_reset_bitlo+1,
+		    write_delay_line_control_reg_+delay_line_reset_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_delay_line_settst_,
-	      delay_line_settst_bithi-delay_line_settst_bitlo+1,
-	      write_delay_line_control_reg_+delay_line_settst_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_delay_line_settst_,
+		    delay_line_settst_bithi-delay_line_settst_bitlo+1,
+		    write_delay_line_control_reg_+delay_line_settst_bitlo,
+		    LSBfirst);
   //
   for (int index=0; index<GetNumberOfGroupsOfDelayChips(); index++) 
     write_delay_line_control_reg_[index+delay_line_group_select_bitlo] 
@@ -2090,22 +2092,22 @@ void ALCTController::WriteAsicDelaysAndPatterns_(int group) {
   //
   FillAsicDelaysAndPatterns_(group);
   //
-  setup_jtag(ChainAlctFastFpga);
+  tmb_->setup_jtag(ChainAlctFastFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-	      ALCT_FAST_WRT_ASIC_DELAY_LINES,
-	      RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES,
-	      write_asic_delays_and_patterns_);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastFpga,
+		    ALCT_FAST_WRT_ASIC_DELAY_LINES,
+		    RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES,
+		    write_asic_delays_and_patterns_);
   //
-  if ( GetCheckJtagWrite() ) {
+  if ( tmb_->GetCheckJtagWrite() ) {
     //
     if (debug_)
       (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
     //
     ReadAsicDelaysAndPatterns_(group);
-    CompareBitByBit(write_asic_delays_and_patterns_,           
-		    read_asic_delays_and_patterns_,            
-		    RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES); 
+    tmb_->CompareBitByBit(write_asic_delays_and_patterns_,           
+			  read_asic_delays_and_patterns_,            
+			  RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES); 
   }
   //
   SetDelayLineGroupSelect_(group,OFF);     
@@ -2122,14 +2124,14 @@ void ALCTController::ReadAsicDelaysAndPatterns_(int group) {
   if (debug_)
     (*MyOutput_) << "ALCT: READ asic DELAYS and PATTERNS for group " << group << std::endl;
   //
-  setup_jtag(ChainAlctFastFpga);
+  tmb_->setup_jtag(ChainAlctFastFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-	      ALCT_FAST_RD_ASIC_DELAY_LINES,
-	      RegSizeAlctFastFpga_RD_ASIC_DELAY_LINES);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastFpga,
+		    ALCT_FAST_RD_ASIC_DELAY_LINES,
+		    RegSizeAlctFastFpga_RD_ASIC_DELAY_LINES);
 
   //The first bit of the read register is junk--the data we want starts at index=1
-  int * register_pointer = GetDRtdo();
+  int * register_pointer = tmb_->GetDRtdo();
   for (int i=1; i<RegSizeAlctFastFpga_RD_ASIC_DELAY_LINES; i++)  
     read_asic_delays_and_patterns_[i-1] = *(register_pointer+i);
   //
@@ -2138,10 +2140,10 @@ void ALCTController::ReadAsicDelaysAndPatterns_(int group) {
   if (debug_)
     (*MyOutput_) << "ALCT: READ asic DELAYS and PATTERNS destructive... writing it back in... " << std::endl;
   //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-	      ALCT_FAST_WRT_ASIC_DELAY_LINES,
-	      RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES,
-	      read_asic_delays_and_patterns_);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastFpga,
+		    ALCT_FAST_WRT_ASIC_DELAY_LINES,
+		    RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES,
+		    read_asic_delays_and_patterns_);
   //
   DecodeAsicDelaysAndPatterns_(group);
   //
@@ -2180,9 +2182,9 @@ void ALCTController::DecodeAsicDelaysAndPatterns_(int group) {
   //print out values read to screen:
   if (debug_) {
     char values_read[RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES/8];
-    packCharBuffer(read_asic_delays_and_patterns_,
-		   RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES,
-		   values_read);
+    tmb_->packCharBuffer(read_asic_delays_and_patterns_,
+			 RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES,
+			 values_read);
     (*MyOutput_) << "Read values:  group" << group << "-> asic_delays_and_patterns = ";
     for (int char_counter=RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES/8-1; char_counter>=0; char_counter--) {
       //      (*MyOutput_) << "char_counter " << std::dec << char_counter << " -> ";    
@@ -2204,9 +2206,9 @@ void ALCTController::DecodeAsicDelaysAndPatterns_(int group) {
     int minimum_delay_bit = afeb_counter * NUMBER_OF_ASIC_BITS + asic_delay_value_bitlo;
     //
     int number_of_bits = asic_delay_value_bithi - asic_delay_value_bitlo + 1;
-    int delay_value = bits_to_int(read_asic_delays_and_patterns_+minimum_delay_bit,
-				  number_of_bits,
-				  MSBfirst);
+    int delay_value = tmb_->bits_to_int(read_asic_delays_and_patterns_+minimum_delay_bit,
+					number_of_bits,
+					MSBfirst);
     //
     read_asic_delay_[afeb] = delay_value;
     //
@@ -2243,10 +2245,10 @@ void ALCTController::FillAsicDelaysAndPatterns_(int group) {
     //location of delay value bits for this afeb:
     int minimum_delay_bit = afeb_counter * NUMBER_OF_ASIC_BITS + asic_delay_value_bitlo;
     //
-    int_to_bits(write_asic_delay_[afeb],
-		asic_delay_value_bithi-asic_delay_value_bitlo+1,
-		write_asic_delays_and_patterns_+minimum_delay_bit,
-		MSBfirst);
+    tmb_->int_to_bits(write_asic_delay_[afeb],
+		      asic_delay_value_bithi-asic_delay_value_bitlo+1,
+		      write_asic_delays_and_patterns_+minimum_delay_bit,
+		      MSBfirst);
     //
     //location of pattern value bits for this afeb:
     int minimum_pattern_bit = afeb_counter * NUMBER_OF_ASIC_BITS + asic_pattern_value_bitlo;
@@ -2268,9 +2270,9 @@ void ALCTController::FillAsicDelaysAndPatterns_(int group) {
   //print out values written to screen:
   if (debug_) {
     char values_written[RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES/8];
-    packCharBuffer(write_asic_delays_and_patterns_,
-		   RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES,
-		   values_written);
+    tmb_->packCharBuffer(write_asic_delays_and_patterns_,
+			 RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES,
+			 values_written);
     (*MyOutput_) << "To write:  group" << group << "-> asic_delays_and_patterns = ";
     for (int char_counter=RegSizeAlctFastFpga_WRT_ASIC_DELAY_LINES/8-1; char_counter>=0; char_counter--) {
       //      (*MyOutput_) << "char_counter " << std::dec << char_counter << " -> ";    
@@ -2402,9 +2404,9 @@ void ALCTController::PrintAsicPatterns() {
   //
   char pattern[MAX_NUM_LAYERS][MAX_NUM_WIRES_PER_LAYER/8];
   for (int layer=0; layer<MAX_NUM_LAYERS; layer++)
-    packCharBuffer(read_asic_pattern_[layer],
-		   GetNumberOfChannelsPerLayer(),
-		   pattern[layer]);
+    tmb_->packCharBuffer(read_asic_pattern_[layer],
+			 GetNumberOfChannelsPerLayer(),
+			 pattern[layer]);
   //
   (*MyOutput_) << "READ Asic pattern for ALCT" << std::dec << GetNumberOfChannelsInAlct() 
 	       << " (from right to left):" << std::endl;
@@ -2433,22 +2435,22 @@ void ALCTController::WriteConfigurationReg() {
   //
   FillConfigurationReg_();
   //
-  setup_jtag(ChainAlctFastFpga);
+  tmb_->setup_jtag(ChainAlctFastFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-  	      ALCT_FAST_WRT_CONFIG_REG,
-  	      RegSizeAlctFastFpga_WRT_CONFIG_REG,
-	      write_config_reg_);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastFpga,
+		    ALCT_FAST_WRT_CONFIG_REG,
+		    RegSizeAlctFastFpga_WRT_CONFIG_REG,
+		    write_config_reg_);
   //
-  if ( GetCheckJtagWrite() ) {
+  if ( tmb_->GetCheckJtagWrite() ) {
     //
     if (debug_)
       (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
     //
     ReadConfigurationReg();
-    CompareBitByBit(write_config_reg_,
-		    read_config_reg_,
-		    RegSizeAlctFastFpga_WRT_CONFIG_REG);
+    tmb_->CompareBitByBit(write_config_reg_,
+			  read_config_reg_,
+			  RegSizeAlctFastFpga_WRT_CONFIG_REG);
   }
   //
   return;
@@ -2456,22 +2458,22 @@ void ALCTController::WriteConfigurationReg() {
 //
 void ALCTController::ReadConfigurationReg() {
   //
-  setup_jtag(ChainAlctFastFpga);
+  tmb_->setup_jtag(ChainAlctFastFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-	      ALCT_FAST_RD_CONFIG_REG,
-	      RegSizeAlctFastFpga_RD_CONFIG_REG);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastFpga,
+		    ALCT_FAST_RD_CONFIG_REG,
+		    RegSizeAlctFastFpga_RD_CONFIG_REG);
   //
-  int * register_pointer = GetDRtdo();
+  int * register_pointer = tmb_->GetDRtdo();
   for (int i=0; i<RegSizeAlctFastFpga_RD_CONFIG_REG; i++)
     read_config_reg_[i] = *(register_pointer+i);
   //
   if (debug_) {
     //Print out configuration register in hex...
     char configuration_register[RegSizeAlctFastFpga_RD_CONFIG_REG/8];
-    packCharBuffer(read_config_reg_,
-		   RegSizeAlctFastFpga_RD_CONFIG_REG,
-		   configuration_register);
+    tmb_->packCharBuffer(read_config_reg_,
+			 RegSizeAlctFastFpga_RD_CONFIG_REG,
+			 configuration_register);
     //
     (*MyOutput_) << "ALCT READ: configuration register = 0x";
     for (int counter=RegSizeAlctFastFpga_RD_CONFIG_REG/8; counter>=0; counter--) 
@@ -2794,119 +2796,119 @@ void ALCTController::DecodeConfigurationReg_(){
   // ** from the vector of bits read_config_reg_[]            **
   //
   int number_of_bits = trigger_mode_bithi - trigger_mode_bitlo + 1;
-  read_trigger_mode_ = bits_to_int(read_config_reg_+trigger_mode_bitlo,
-				   number_of_bits,
-				   LSBfirst);
+  read_trigger_mode_ = tmb_->bits_to_int(read_config_reg_+trigger_mode_bitlo,
+					 number_of_bits,
+					 LSBfirst);
   //
   number_of_bits = ext_trig_enable_bithi - ext_trig_enable_bitlo + 1;
-  read_ext_trig_enable_ = bits_to_int(read_config_reg_+ext_trig_enable_bitlo,
-				      number_of_bits,
-				      LSBfirst);
+  read_ext_trig_enable_ = tmb_->bits_to_int(read_config_reg_+ext_trig_enable_bitlo,
+					    number_of_bits,
+					    LSBfirst);
   //
   number_of_bits = send_empty_bithi - send_empty_bitlo + 1;
-  read_send_empty_ = bits_to_int(read_config_reg_+send_empty_bitlo,
-				 number_of_bits,
-				 LSBfirst);
+  read_send_empty_ = tmb_->bits_to_int(read_config_reg_+send_empty_bitlo,
+				       number_of_bits,
+				       LSBfirst);
   //
   number_of_bits = inject_bithi - inject_bitlo + 1;
-  read_inject_ = bits_to_int(read_config_reg_+inject_bitlo,
-			     number_of_bits,
-			     LSBfirst);
+  read_inject_ = tmb_->bits_to_int(read_config_reg_+inject_bitlo,
+				   number_of_bits,
+				   LSBfirst);
   //
   number_of_bits = bxc_offset_bithi - bxc_offset_bitlo + 1;
-  read_bxc_offset_ = bits_to_int(read_config_reg_+bxc_offset_bitlo,
-				 number_of_bits,
-				 LSBfirst);
+  read_bxc_offset_ = tmb_->bits_to_int(read_config_reg_+bxc_offset_bitlo,
+				       number_of_bits,
+				       LSBfirst);
   //
   number_of_bits = nph_thresh_bithi - nph_thresh_bitlo + 1;
-  read_nph_thresh_ = bits_to_int(read_config_reg_+nph_thresh_bitlo,
-				 number_of_bits,
-				 LSBfirst);
+  read_nph_thresh_ = tmb_->bits_to_int(read_config_reg_+nph_thresh_bitlo,
+				       number_of_bits,
+				       LSBfirst);
   //
   number_of_bits = nph_pattern_bithi - nph_pattern_bitlo + 1;
-  read_nph_pattern_ = bits_to_int(read_config_reg_+nph_pattern_bitlo,
-				  number_of_bits,
-				  LSBfirst);
-  //
-  number_of_bits = alct_drift_delay_bithi - alct_drift_delay_bitlo + 1;
-  read_drift_delay_ = bits_to_int(read_config_reg_+alct_drift_delay_bitlo,
-				  number_of_bits,
-				  LSBfirst);
-  //
-  number_of_bits = alct_fifo_tbins_bithi - alct_fifo_tbins_bitlo + 1;
-  read_fifo_tbins_ = bits_to_int(read_config_reg_+alct_fifo_tbins_bitlo,
-				 number_of_bits,
-				 LSBfirst);
-  //
-  number_of_bits = alct_fifo_pretrig_bithi - alct_fifo_pretrig_bitlo + 1;
-  read_fifo_pretrig_ = bits_to_int(read_config_reg_+alct_fifo_pretrig_bitlo,
-				   number_of_bits,
-				   LSBfirst);
-  //
-  number_of_bits = alct_fifo_mode_bithi - alct_fifo_mode_bitlo + 1;
-  read_fifo_mode_ = bits_to_int(read_config_reg_+alct_fifo_mode_bitlo,
-				number_of_bits,
-				LSBfirst);
-  //
-  number_of_bits = accelerator_pretrig_thresh_bithi - accelerator_pretrig_thresh_bitlo + 1;
-  read_accelerator_pretrig_thresh_ = bits_to_int(read_config_reg_+accelerator_pretrig_thresh_bitlo,
-						 number_of_bits,
-						 LSBfirst);
-  //
-  number_of_bits = l1a_delay_bithi - l1a_delay_bitlo + 1;
-  read_l1a_delay_ = bits_to_int(read_config_reg_+l1a_delay_bitlo,
-				number_of_bits,
-				LSBfirst);
-  //
-  number_of_bits = l1a_window_bithi - l1a_window_bitlo + 1;
-  read_l1a_window_ = bits_to_int(read_config_reg_+l1a_window_bitlo,
-				 number_of_bits,
-				 LSBfirst);
-  //
-  number_of_bits = alct_l1a_offset_bithi - alct_l1a_offset_bitlo + 1;
-  read_l1a_offset_ = bits_to_int(read_config_reg_+alct_l1a_offset_bitlo,
-				 number_of_bits,
-				 LSBfirst);
-  //
-  number_of_bits = l1a_internal_bithi - l1a_internal_bitlo + 1;
-  read_l1a_internal_ = bits_to_int(read_config_reg_+l1a_internal_bitlo,
-				   number_of_bits,
-				   LSBfirst);
-  //
-  number_of_bits = board_id_bithi - board_id_bitlo + 1;
-  read_board_id_ = bits_to_int(read_config_reg_+board_id_bitlo,
-			       number_of_bits,
-			       LSBfirst);
-  //
-  number_of_bits = accelerator_pattern_thresh_bithi - accelerator_pattern_thresh_bitlo + 1;
-  read_accelerator_pattern_thresh_ = bits_to_int(read_config_reg_+accelerator_pattern_thresh_bitlo,
-						 number_of_bits,
-						 LSBfirst);
-  //
-  number_of_bits = ccb_enable_bithi - ccb_enable_bitlo + 1;
-  read_ccb_enable_ = bits_to_int(read_config_reg_+ccb_enable_bitlo,
-				 number_of_bits,
-				 LSBfirst);
-  //
-  number_of_bits = config_in_readout_bithi - config_in_readout_bitlo + 1;
-  read_config_in_readout_ = bits_to_int(read_config_reg_+config_in_readout_bitlo,
+  read_nph_pattern_ = tmb_->bits_to_int(read_config_reg_+nph_pattern_bitlo,
 					number_of_bits,
 					LSBfirst);
   //
+  number_of_bits = alct_drift_delay_bithi - alct_drift_delay_bitlo + 1;
+  read_drift_delay_ = tmb_->bits_to_int(read_config_reg_+alct_drift_delay_bitlo,
+					number_of_bits,
+					LSBfirst);
+  //
+  number_of_bits = alct_fifo_tbins_bithi - alct_fifo_tbins_bitlo + 1;
+  read_fifo_tbins_ = tmb_->bits_to_int(read_config_reg_+alct_fifo_tbins_bitlo,
+				       number_of_bits,
+				       LSBfirst);
+  //
+  number_of_bits = alct_fifo_pretrig_bithi - alct_fifo_pretrig_bitlo + 1;
+  read_fifo_pretrig_ = tmb_->bits_to_int(read_config_reg_+alct_fifo_pretrig_bitlo,
+					 number_of_bits,
+					 LSBfirst);
+  //
+  number_of_bits = alct_fifo_mode_bithi - alct_fifo_mode_bitlo + 1;
+  read_fifo_mode_ = tmb_->bits_to_int(read_config_reg_+alct_fifo_mode_bitlo,
+				      number_of_bits,
+				      LSBfirst);
+  //
+  number_of_bits = accelerator_pretrig_thresh_bithi - accelerator_pretrig_thresh_bitlo + 1;
+  read_accelerator_pretrig_thresh_ = tmb_->bits_to_int(read_config_reg_+accelerator_pretrig_thresh_bitlo,
+						       number_of_bits,
+						       LSBfirst);
+  //
+  number_of_bits = l1a_delay_bithi - l1a_delay_bitlo + 1;
+  read_l1a_delay_ = tmb_->bits_to_int(read_config_reg_+l1a_delay_bitlo,
+				      number_of_bits,
+				      LSBfirst);
+  //
+  number_of_bits = l1a_window_bithi - l1a_window_bitlo + 1;
+  read_l1a_window_ = tmb_->bits_to_int(read_config_reg_+l1a_window_bitlo,
+				       number_of_bits,
+				       LSBfirst);
+  //
+  number_of_bits = alct_l1a_offset_bithi - alct_l1a_offset_bitlo + 1;
+  read_l1a_offset_ = tmb_->bits_to_int(read_config_reg_+alct_l1a_offset_bitlo,
+				       number_of_bits,
+				       LSBfirst);
+  //
+  number_of_bits = l1a_internal_bithi - l1a_internal_bitlo + 1;
+  read_l1a_internal_ = tmb_->bits_to_int(read_config_reg_+l1a_internal_bitlo,
+					 number_of_bits,
+					 LSBfirst);
+  //
+  number_of_bits = board_id_bithi - board_id_bitlo + 1;
+  read_board_id_ = tmb_->bits_to_int(read_config_reg_+board_id_bitlo,
+				     number_of_bits,
+				     LSBfirst);
+  //
+  number_of_bits = accelerator_pattern_thresh_bithi - accelerator_pattern_thresh_bitlo + 1;
+  read_accelerator_pattern_thresh_ = tmb_->bits_to_int(read_config_reg_+accelerator_pattern_thresh_bitlo,
+						       number_of_bits,
+						       LSBfirst);
+  //
+  number_of_bits = ccb_enable_bithi - ccb_enable_bitlo + 1;
+  read_ccb_enable_ = tmb_->bits_to_int(read_config_reg_+ccb_enable_bitlo,
+				       number_of_bits,
+				       LSBfirst);
+  //
+  number_of_bits = config_in_readout_bithi - config_in_readout_bitlo + 1;
+  read_config_in_readout_ = tmb_->bits_to_int(read_config_reg_+config_in_readout_bitlo,
+					      number_of_bits,
+					      LSBfirst);
+  //
   number_of_bits = alct_amode_bithi - alct_amode_bitlo + 1;
-  read_alct_amode_ = bits_to_int(read_config_reg_+alct_amode_bitlo,
-				 number_of_bits,
-				 LSBfirst);
+  read_alct_amode_ = tmb_->bits_to_int(read_config_reg_+alct_amode_bitlo,
+				       number_of_bits,
+				       LSBfirst);
   //
   number_of_bits = trigger_info_en_bithi - trigger_info_en_bitlo + 1;
-  read_trigger_info_en_ = bits_to_int(read_config_reg_+trigger_info_en_bitlo,
-				 number_of_bits,
-				 LSBfirst);
+  read_trigger_info_en_ = tmb_->bits_to_int(read_config_reg_+trigger_info_en_bitlo,
+					    number_of_bits,
+					    LSBfirst);
   //
   number_of_bits = sn_select_bithi - sn_select_bitlo + 1;
-  read_sn_select_ = bits_to_int(read_config_reg_+sn_select_bitlo,
-				number_of_bits,
-				LSBfirst);
+  read_sn_select_ = tmb_->bits_to_int(read_config_reg_+sn_select_bitlo,
+				      number_of_bits,
+				      LSBfirst);
   //
   return;
 }
@@ -2915,120 +2917,120 @@ void ALCTController::FillConfigurationReg_(){
   // ** Project the configuration register's software values  **
   // ** into the vector of bits write_config_reg_[]           **
   //
-  int_to_bits(write_trigger_mode_,
-	      trigger_mode_bithi-trigger_mode_bitlo+1,
-	      write_config_reg_+trigger_mode_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_trigger_mode_,
+		    trigger_mode_bithi-trigger_mode_bitlo+1,
+		    write_config_reg_+trigger_mode_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_ext_trig_enable_,
-	      ext_trig_enable_bithi-ext_trig_enable_bitlo+1,
-	      write_config_reg_+ext_trig_enable_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_ext_trig_enable_,
+		    ext_trig_enable_bithi-ext_trig_enable_bitlo+1,
+		    write_config_reg_+ext_trig_enable_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_send_empty_,
-	      send_empty_bithi-send_empty_bitlo+1,
-	      write_config_reg_+send_empty_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_send_empty_,
+		    send_empty_bithi-send_empty_bitlo+1,
+		    write_config_reg_+send_empty_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_inject_,
-	      inject_bithi-inject_bitlo+1,
-	      write_config_reg_+inject_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_inject_,
+		    inject_bithi-inject_bitlo+1,
+		    write_config_reg_+inject_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_bxc_offset_,
-	      bxc_offset_bithi-bxc_offset_bitlo+1,
-	      write_config_reg_+bxc_offset_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_bxc_offset_,
+		    bxc_offset_bithi-bxc_offset_bitlo+1,
+		    write_config_reg_+bxc_offset_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_nph_thresh_,
-	      nph_thresh_bithi-nph_thresh_bitlo+1,
-	      write_config_reg_+nph_thresh_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_nph_thresh_,
+		    nph_thresh_bithi-nph_thresh_bitlo+1,
+		    write_config_reg_+nph_thresh_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_nph_pattern_,
-	      nph_pattern_bithi-nph_pattern_bitlo+1,
-	      write_config_reg_+nph_pattern_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_nph_pattern_,
+		    nph_pattern_bithi-nph_pattern_bitlo+1,
+		    write_config_reg_+nph_pattern_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_drift_delay_,
-	      alct_drift_delay_bithi-alct_drift_delay_bitlo+1,
-	      write_config_reg_+alct_drift_delay_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_drift_delay_,
+		    alct_drift_delay_bithi-alct_drift_delay_bitlo+1,
+		    write_config_reg_+alct_drift_delay_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_fifo_tbins_,
-	      alct_fifo_tbins_bithi-alct_fifo_tbins_bitlo+1,
-	      write_config_reg_+alct_fifo_tbins_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_fifo_tbins_,
+		    alct_fifo_tbins_bithi-alct_fifo_tbins_bitlo+1,
+		    write_config_reg_+alct_fifo_tbins_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_fifo_pretrig_,
-	      alct_fifo_pretrig_bithi-alct_fifo_pretrig_bitlo+1,
-	      write_config_reg_+alct_fifo_pretrig_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_fifo_pretrig_,
+		    alct_fifo_pretrig_bithi-alct_fifo_pretrig_bitlo+1,
+		    write_config_reg_+alct_fifo_pretrig_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_fifo_mode_,
-	      alct_fifo_mode_bithi-alct_fifo_mode_bitlo+1,
-	      write_config_reg_+alct_fifo_mode_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_fifo_mode_,
+		    alct_fifo_mode_bithi-alct_fifo_mode_bitlo+1,
+		    write_config_reg_+alct_fifo_mode_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_accelerator_pretrig_thresh_,
-	      accelerator_pretrig_thresh_bithi-accelerator_pretrig_thresh_bitlo+1,
-	      write_config_reg_+accelerator_pretrig_thresh_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_accelerator_pretrig_thresh_,
+		    accelerator_pretrig_thresh_bithi-accelerator_pretrig_thresh_bitlo+1,
+		    write_config_reg_+accelerator_pretrig_thresh_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_l1a_delay_,
-	      l1a_delay_bithi-l1a_delay_bitlo+1,
-	      write_config_reg_+l1a_delay_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_l1a_delay_,
+		    l1a_delay_bithi-l1a_delay_bitlo+1,
+		    write_config_reg_+l1a_delay_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_l1a_window_,
-	      l1a_window_bithi-l1a_window_bitlo+1,
-	      write_config_reg_+l1a_window_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_l1a_window_,
+		    l1a_window_bithi-l1a_window_bitlo+1,
+		    write_config_reg_+l1a_window_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_l1a_offset_,
-	      alct_l1a_offset_bithi-alct_l1a_offset_bitlo+1,
-	      write_config_reg_+alct_l1a_offset_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_l1a_offset_,
+		    alct_l1a_offset_bithi-alct_l1a_offset_bitlo+1,
+		    write_config_reg_+alct_l1a_offset_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_l1a_internal_,
-	      l1a_internal_bithi-l1a_internal_bitlo+1,
-	      write_config_reg_+l1a_internal_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_l1a_internal_,
+		    l1a_internal_bithi-l1a_internal_bitlo+1,
+		    write_config_reg_+l1a_internal_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_board_id_,
-	      board_id_bithi-board_id_bitlo+1,
-	      write_config_reg_+board_id_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_board_id_,
+		    board_id_bithi-board_id_bitlo+1,
+		    write_config_reg_+board_id_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_accelerator_pattern_thresh_,
-	      accelerator_pattern_thresh_bithi-accelerator_pattern_thresh_bitlo+1,
-	      write_config_reg_+accelerator_pattern_thresh_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_accelerator_pattern_thresh_,
+		    accelerator_pattern_thresh_bithi-accelerator_pattern_thresh_bitlo+1,
+		    write_config_reg_+accelerator_pattern_thresh_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_ccb_enable_,
-	      ccb_enable_bithi-ccb_enable_bitlo+1,
-	      write_config_reg_+ccb_enable_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_ccb_enable_,
+		    ccb_enable_bithi-ccb_enable_bitlo+1,
+		    write_config_reg_+ccb_enable_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_config_in_readout_,
-	      config_in_readout_bithi-config_in_readout_bitlo+1,
-	      write_config_reg_+config_in_readout_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_config_in_readout_,
+		    config_in_readout_bithi-config_in_readout_bitlo+1,
+		    write_config_reg_+config_in_readout_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_alct_amode_,
-	      alct_amode_bithi-alct_amode_bitlo+1,
-	      write_config_reg_+alct_amode_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_alct_amode_,
+		    alct_amode_bithi-alct_amode_bitlo+1,
+		    write_config_reg_+alct_amode_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_trigger_info_en_,
-	      trigger_info_en_bithi-trigger_info_en_bitlo+1,
-	      write_config_reg_+trigger_info_en_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_trigger_info_en_,
+		    trigger_info_en_bithi-trigger_info_en_bitlo+1,
+		    write_config_reg_+trigger_info_en_bitlo,
+		    LSBfirst);
   //
-  int_to_bits(write_sn_select_,
-	      sn_select_bithi-sn_select_bitlo+1,
-	      write_config_reg_+sn_select_bitlo,
-	      LSBfirst);
+  tmb_->int_to_bits(write_sn_select_,
+		    sn_select_bithi-sn_select_bitlo+1,
+		    write_config_reg_+sn_select_bitlo,
+		    LSBfirst);
   return;
 }
 //
@@ -3073,23 +3075,23 @@ void ALCTController::WriteHotChannelMask() {
   if (debug_)
     (*MyOutput_) << "ALCT: WRITE hot channel mask" << std::endl;
   //
-  setup_jtag(ChainAlctFastFpga);
+  tmb_->setup_jtag(ChainAlctFastFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-  	      ALCT_FAST_WRT_HOTCHAN_MASK,
-  	      RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_,
-	      write_hot_channel_mask_);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastFpga,
+		    ALCT_FAST_WRT_HOTCHAN_MASK,
+		    RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_,
+		    write_hot_channel_mask_);
   usleep(100);
   //
-  if ( GetCheckJtagWrite() ) {
+  if ( tmb_->GetCheckJtagWrite() ) {
     //
     if (debug_)
       (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
     //
     ReadHotChannelMask();
-    CompareBitByBit(write_hot_channel_mask_,
-		    read_hot_channel_mask_,
-		    RegSizeAlctFastFpga_RD_HOTCHAN_MASK_);
+    tmb_->CompareBitByBit(write_hot_channel_mask_,
+			  read_hot_channel_mask_,
+			  RegSizeAlctFastFpga_RD_HOTCHAN_MASK_);
   }
   //
   return;
@@ -3100,13 +3102,13 @@ void ALCTController::ReadHotChannelMask() {
   if (debug_)
     (*MyOutput_) << "ALCT: READ hot channel mask" << std::endl;
   //
-  setup_jtag(ChainAlctFastFpga);
+  tmb_->setup_jtag(ChainAlctFastFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-	      ALCT_FAST_RD_HOTCHAN_MASK,
-	      RegSizeAlctFastFpga_RD_HOTCHAN_MASK_);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastFpga,
+		    ALCT_FAST_RD_HOTCHAN_MASK,
+		    RegSizeAlctFastFpga_RD_HOTCHAN_MASK_);
   //
-  int * register_pointer = GetDRtdo();
+  int * register_pointer = tmb_->GetDRtdo();
   for (int i=0; i<RegSizeAlctFastFpga_RD_HOTCHAN_MASK_; i++)
     read_hot_channel_mask_[i] = *(register_pointer+i);
   //
@@ -3117,10 +3119,10 @@ void ALCTController::ReadHotChannelMask() {
   if (debug_)
     (*MyOutput_) << "ALCT: READ Hot Channel Mask destructive... writing it back in... " << std::endl;
   //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-  	      ALCT_FAST_WRT_HOTCHAN_MASK,
-  	      RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_,
-	      read_hot_channel_mask_);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastFpga,
+		    ALCT_FAST_WRT_HOTCHAN_MASK,
+		    RegSizeAlctFastFpga_WRT_HOTCHAN_MASK_,
+		    read_hot_channel_mask_);
   //
   usleep(100);
   //
@@ -3132,9 +3134,9 @@ void ALCTController::PrintHotChannelMask() {
   // from right (channel 0) to left (number of channels in layer)
   //
   char hot_channel_mask[RegSizeAlctFastFpga_RD_HOTCHAN_MASK_/8];
-  packCharBuffer(read_hot_channel_mask_,
-		 RegSizeAlctFastFpga_RD_HOTCHAN_MASK_,
-		 hot_channel_mask);
+  tmb_->packCharBuffer(read_hot_channel_mask_,
+		       RegSizeAlctFastFpga_RD_HOTCHAN_MASK_,
+		       hot_channel_mask);
   //
   int char_counter = RegSizeAlctFastFpga_RD_HOTCHAN_MASK_/8 - 1;
   //
@@ -3219,22 +3221,22 @@ void ALCTController::WriteCollisionPatternMask() {
   if (debug_)
     (*MyOutput_) << "ALCT: WRITE Collision Pattern mask" << std::endl;
   //
-  setup_jtag(ChainAlctFastFpga);
+  tmb_->setup_jtag(ChainAlctFastFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-  	      ALCT_FAST_WRT_COLLISION_MASK_REG,
-  	      RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_,
-	      write_collision_pattern_mask_reg_);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastFpga,
+		    ALCT_FAST_WRT_COLLISION_MASK_REG,
+		    RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_,
+		    write_collision_pattern_mask_reg_);
   //
-  if ( GetCheckJtagWrite() ) {
+  if ( tmb_->GetCheckJtagWrite() ) {
     //
     if (debug_)
       (*MyOutput_) << "ALCT: Check JTAG write compared with read... " << std::endl;
     //
     ReadCollisionPatternMask();
-    CompareBitByBit(write_collision_pattern_mask_reg_,
-		    read_collision_pattern_mask_reg_,
-		    RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_);
+    tmb_->CompareBitByBit(write_collision_pattern_mask_reg_,
+			  read_collision_pattern_mask_reg_,
+			  RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_);
   }
   //
   return;
@@ -3245,13 +3247,13 @@ void ALCTController::ReadCollisionPatternMask() {
   if (debug_)
     (*MyOutput_) << "ALCT: READ Collision Pattern mask" << std::endl;
   //
-  setup_jtag(ChainAlctFastFpga);
+  tmb_->setup_jtag(ChainAlctFastFpga);
   //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-	      ALCT_FAST_RD_COLLISION_MASK_REG,
-	      RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastFpga,
+		    ALCT_FAST_RD_COLLISION_MASK_REG,
+		    RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_);
   //
-  int * register_pointer = GetDRtdo();
+  int * register_pointer = tmb_->GetDRtdo();
   for (int i=0; i<RegSizeAlctFastFpga_RD_COLLISION_MASK_REG_; i++)
     read_collision_pattern_mask_reg_[i] = *(register_pointer+i);
   //
@@ -3260,10 +3262,10 @@ void ALCTController::ReadCollisionPatternMask() {
   if (debug_)
     (*MyOutput_) << "ALCT: READ Collision Pattern Mask destructive... writing it back in... " << std::endl;
   //
-  ShfIR_ShfDR(ChipLocationAlctFastFpga,
-  	      ALCT_FAST_WRT_COLLISION_MASK_REG,
-  	      RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_,
-	      read_collision_pattern_mask_reg_);
+  tmb_->ShfIR_ShfDR(ChipLocationAlctFastFpga,
+		    ALCT_FAST_WRT_COLLISION_MASK_REG,
+		    RegSizeAlctFastFpga_WRT_COLLISION_MASK_REG_,
+		    read_collision_pattern_mask_reg_);
   //
   return;
 }
@@ -3594,7 +3596,7 @@ void ALCTController::SetChamberCharacteristics_(std::string chamberType) {
     //the number of channels per layer depends on the ALCT type, not the physical number of channels in the layer:
     NumberOfChannelsPerLayer_ = GetNumberOfChannelsInAlct() / MAX_NUM_LAYERS;  
     //
-    SetAlctTypeForProm(GetNumberOfChannelsInAlct());
+    tmb_->SetAlctTypeForProm(GetNumberOfChannelsInAlct());
     //
     (*MyOutput_) << "........................ ALCT type = " << std::dec << GetNumberOfChannelsInAlct() << std::endl; 
     (*MyOutput_) << "............ Number of Wire Groups = " << std::dec << GetNumberOfWireGroupsInChamber() << std::endl; 
@@ -3752,4 +3754,11 @@ void ALCTController::SetSlowControlAlctType_(int type_of_slow_control_alct) {
   highest_afeb_index_ = GetNumberOfAfebs() - 1;
   //
   return;
+}
+//
+// Methods used to program ALCT prom: 
+//
+int ALCTController::SVFLoad(int * arg1, const char * arg2, int arg3) { 
+  //
+  return tmb_->SVFLoad(arg1,arg2,arg3); 
 }

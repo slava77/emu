@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.h,v 3.22 2007/07/13 11:57:46 rakness Exp $
+// $Id: ALCTController.h,v 3.23 2007/10/09 11:10:35 rakness Exp $
 // $Log: ALCTController.h,v $
+// Revision 3.23  2007/10/09 11:10:35  rakness
+// remove RAT and ALCT inheritance from EMUjtag, i.e., make calls to EMUjtag methods explicitly through TMB
+//
 // Revision 3.22  2007/07/13 11:57:46  rakness
 // add read/accessors to ALCT temperature+on-board voltage
 //
@@ -152,14 +155,14 @@
 //-----------------------------------------------------------------------
 #ifndef ALCTController_h
 #define ALCTController_h
-
+//
 #include <string>
-#include "EMUjtag.h"
-
+#include "EMU_JTAG_constants.h"
+//
 class TMB;
 //
-class ALCTController : public EMUjtag {
-public:
+class ALCTController {
+ public:
   //
   ALCTController(TMB * tmb, 
 		 std::string chamberType); //chamberType = ME11, ME12, ME13, ME21, ME22, ME31, ME32, ME41, ME42
@@ -564,6 +567,9 @@ public:
   void Set_PulseDirection(std::string afebs_or_strips); //afebs_or_strips = [afebs,strips]
   //
   inline TMB * GetTMB(){ return tmb_;}
+  //
+  // Methods used to program ALCT prom:
+  int SVFLoad(int *, const char *, int);
   //
 protected:
   //
