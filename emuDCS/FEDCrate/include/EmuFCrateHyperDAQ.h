@@ -199,7 +199,9 @@ throw (xgi::exception::Exception)
 		*out << std::endl;
 		*out << cgicc::legend("Upload Configuration...").set("style","color:blue") 
 		<< std::endl ;
-	
+
+		*out << "<font color=red size=+1> &nbsp; &nbsp; Use 'Init Only' for Global run or mid-run access! </font>" << std::endl;
+
 		*out << cgicc::form().set("method","POST").set("action",method) << std::endl ;
 		*out << cgicc::input().set("type","text")
 		.set("name","xmlFilename")
@@ -702,7 +704,9 @@ throw (xgi::exception::Exception)
 	LOG4CPLUS_INFO(getApplicationLogger(), " EmuFEDVME: server startup" << endl);
 	LoggerName = getApplicationLogger().getName() ;
 	cout << " (Name of Logger is " <<  LoggerName << ")" << endl;
+	webRedirect(in, out);
 }
+
 
 void EmuFCrateHyperDAQ::setCrate(xgi::Input *in, xgi::Output *out)
 	throw (xgi::exception::Exception)
@@ -725,6 +729,7 @@ void EmuFCrateHyperDAQ::setCrate(xgi::Input *in, xgi::Output *out)
 	
 	cout << " crate set to " << icrate << ", which is crate number " << thisCrate->number() << endl;
 	in = NULL;
+//	webRedirect(in, out);
 	Default(in,out);
 }
 
@@ -787,7 +792,7 @@ void EmuFCrateHyperDAQ::Configuring(int SkipConfig){
 
 // LSD, Make these optional with buttons
 // JRG, only start/reset the IRQ handler:
-	if(SkipConfig>0) thisCrate->init(0);
+	// JRG uncomment?  if(SkipConfig>0) thisCrate->init(0);
 
 // JRG, download setup to all boards, then start/reset the IRQ handler:
 	if(SkipConfig==0) thisCrate->configure(0);
@@ -1984,11 +1989,11 @@ void EmuFCrateHyperDAQ::DDUReset(xgi::Input *in, xgi::Output *out)
 	  else *out << cgicc::tr() << cgicc::td() << buf << cgicc::td() << cgicc::td() << "<font color=red>" << buf2 << "</font>";
 	  if((0xf0000000&thisDDU->fpga_lcode[0])!=(0xf0000000&thisDDU->fpga_lcode[3])){
 	    err++;
-	    *out << "<font=red> * </font>";
+	    *out << "<font color=red> * </font>";
 	    sprintf(buf3," &nbsp * %d End error, last was DDU input = %d read as %ld",err,j,0x0000000f&(thisDDU->fpga_lcode[3]>>28));
 	  }
 	  if(thisDDU->ddu_shift0!=0xFACE){
-	    *out << "<font=orange> * </font>";
+	    *out << "<font color=orange> * </font>";
 	    sprintf(buf4," &nbsp ** JTAG Error in i=%d, DDU input #%d: Shifted %04X",i,j,thisDDU->ddu_shift0);
 	  }
 	  *out << cgicc::td() << cgicc::tr() << std::endl;
@@ -5617,6 +5622,20 @@ void EmuFCrateHyperDAQ::DDUVoltMon(xgi::Input * in, xgi::Output * out )
     *out << cgicc::fieldset()<< std::endl;
     *out << cgicc::body() << std::endl; 
     *out << cgicc::html() << std::endl;
+}
+
+
+void EmuFCrateHyperDAQ::webRedirect(xgi::Input *in, xgi::Output *out)
+		throw (xgi::exception::Exception)
+{
+	string url = in->getenv("PATH_TRANSLATED");
+
+	HTTPResponseHeader &header = out->getHTTPResponseHeader();
+
+	header.getStatusCode(303);
+	header.getReasonPhrase("See Other");
+	header.addHeader("Location",
+			url.substr(0, url.find("/" + in->getenv("PATH_INFO"))));
 }
 
 
