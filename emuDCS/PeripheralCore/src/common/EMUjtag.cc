@@ -1066,6 +1066,8 @@ bool EMUjtag::CreateXsvfImage_() {
   //
   number_of_write_bytes_ = image_counter_;
   //
+  std::vector<char>(xsvf_image_).swap(xsvf_image_);   //reduce the size allocated to xsvf_image to the size that is needed
+  //
   return true;                   // xsvf image creation OK
 }
 //
@@ -1782,7 +1784,7 @@ void EMUjtag::ReadXsvfFile_(bool create_logfile) {
     }
     //    std::cout << "size before swap = " << xsvf_image_.capacity() << std::endl;
     //
-    std::vector<int>(xsvf_image_).swap(xsvf_image_);   //reduce the size allocated to xsvf_image to the size that is needed
+    std::vector<char>(xsvf_image_).swap(xsvf_image_);   //reduce the size allocated to xsvf_image to the size that is needed
     //
     //    std::cout << "size after swap = " << xsvf_image_.capacity() << std::endl;
     //
@@ -1874,7 +1876,7 @@ void EMUjtag::ReadXsvfFile_(bool create_logfile) {
   //
   //  std::cout << "size before zeroing = " << xsvf_image_.capacity() << std::endl;
   //
-  std::vector<int>().swap(xsvf_image_);   //reduce the size allocated to xsvf_image to 0
+  std::vector<char>().swap(xsvf_image_);   //reduce the size allocated to xsvf_image to 0
   //
   //  std::cout << "size after zeroing = " << xsvf_image_.capacity() << std::endl;
   //
@@ -2246,7 +2248,7 @@ int EMUjtag::GetReadXsvfImage_(unsigned int address) {
 		 << " out of range...  should be between 0 and " << xsvf_image_.size()-1 
 		 << std::endl;
   //
-  return xsvf_image_.at(address); 
+  return ( (int) xsvf_image_.at(address) ); 
 }
 //
 void EMUjtag::SetWriteXsvfImage_(unsigned int address, int value) {

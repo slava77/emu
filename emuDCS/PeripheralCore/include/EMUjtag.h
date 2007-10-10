@@ -256,7 +256,7 @@ private:
   //-------------------
   // read xsvf file 
   //-------------------
-  std::vector<int> xsvf_image_;
+  std::vector<char> xsvf_image_;
   int number_of_read_bytes_;
   //
   void ReadXsvfFile_(bool create_logfile);
