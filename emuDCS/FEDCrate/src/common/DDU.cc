@@ -32,14 +32,14 @@ void shuffle(char *a,char *b);
 
 DDU::DDU(int crate,int slot):
 	VMEModule(slot),
-	gbe_prescale_(1),killfiber_(0xf7fff)
+	skip_vme_load_(0),gbe_prescale_(0),killfiber_(0xf7fff)
 {
   //  cout<<"DDU construct\n";
 }
 
 DDU::DDU(int slot):
 	VMEModule(slot),
-	gbe_prescale_(1),killfiber_(0xf7fff)
+	skip_vme_load_(0),gbe_prescale_(0),killfiber_(0xf7fff)
 {
   //  cout<<"DDU construct\n";
 }
@@ -62,8 +62,13 @@ void DDU::end()
 void DDU::configure() {
 	printf(" ********************DDU configure is called, slot %d\n",slot());
 	//  printf(" DDU slot %d gbe_prescale %d  \n",slot(),gbe_prescale_);
-	if (slot()<21) vmepara_wr_GbEprescale(gbe_prescale_);
-	if (slot()<21) ddu_loadkillfiber(killfiber_);
+	if(skip_vme_load_==0){
+	  if (slot()<21) vmepara_wr_GbEprescale(gbe_prescale_);
+	  if (slot()<21) ddu_loadkillfiber(killfiber_);
+	}
+	else{
+	  printf("     skipping config download for this DDU. \n");
+	}
 }
 
 
