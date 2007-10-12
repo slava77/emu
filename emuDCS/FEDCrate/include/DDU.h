@@ -26,6 +26,7 @@ public:
   virtual unsigned int boardType() const {return DDU_ENUM;}
   virtual void end();
 
+  int skip_vme_load_;
   int gbe_prescale_;
   int killfiber_;
 
