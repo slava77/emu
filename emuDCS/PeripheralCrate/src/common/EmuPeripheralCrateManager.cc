@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.23 2007/10/22 15:52:21 rakness Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.24 2007/10/22 17:04:56 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -37,6 +37,14 @@ using namespace std;
     DmbControlFPGAFirmwareFile_       = FirmwareDir_+"dmb/dmb6cntl_pro.svf";
     DmbVmeFPGAFirmwareFile_           = FirmwareDir_+"dmb/dmb6vme_pro.svf";
     CfebFPGAFirmwareFile_             = FirmwareDir_+"cfeb/cfeb_pro.svf";
+    //
+    //In order to load firmware automatically from the firmware values in the xml files, 
+    //the firmware needs to reside in directories in the form:
+    //    TMB  ->  $HOME/firmware/tmb/YEARMONTHDAY/tmb.xsvf   <-- N.B. xsvf format for TMB
+    //    RAT  ->  $HOME/firmware/rat/YEARMONTHDAY/rat.svf
+    //    ALCT ->  $HOME/firmware/alct/YEARMONTHDAY/alctXXX/alctXXX.svf
+    // with the zero-values filled in with 0's.  
+    // In other words:  9 April 2007 firmware should reside in YEARMONTHDAY=20070409
     //
     //    std::cout << "PeripheralCrateBroadcastXmlFile_ = " << PeripheralCrateBroadcastXmlFile_ << std::endl;
     //    std::cout << "DmbControlFPGAFirmwareFile_      = " << DmbControlFPGAFirmwareFile_      << std::endl;
@@ -79,6 +87,7 @@ using namespace std;
     xgi::bind(this,&EmuPeripheralCrateManager::LoadDMBControlFPGAFirmware, "LoadDMBControlFPGAFirmware");
     xgi::bind(this,&EmuPeripheralCrateManager::LoadDMBvmeFPGAFirmware, "LoadDMBvmeFPGAFirmware");
     xgi::bind(this,&EmuPeripheralCrateManager::LoadCFEBFPGAFirmware, "LoadCFEBFPGAFirmware");
+    xgi::bind(this,&EmuPeripheralCrateManager::LoadTMBFirmware, "LoadTMBFirmware");
     //
     xgi::bind(this,&EmuPeripheralCrateManager::UploadDB, "UpLoadDB");
     xgi::bind(this,&EmuPeripheralCrateManager::RetrieveTStoreTable, "RetrieveTStoreTable");
@@ -1115,7 +1124,7 @@ using namespace std;
   //
   void EmuPeripheralCrateManager::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out ){
 
-    MyHeader(in,out,"Load DAQMB/CFEB FPGA Firmware,  Be extra careful    !!!");
+    MyHeader(in,out,"Broadcast Load DAQMB, CFEB, or TMB Firmware,  Be extra careful    !!!");
 
     //define broadcast crate and board, if not defined before
     if (!broadcastCrate) {
@@ -1159,6 +1168,24 @@ using namespace std;
     *out << cgicc::form().set("method","GET").set("action",LoadCFEBFPGA) << std::endl ;
     *out << cgicc::input().set("type","submit")
       .set("value","Load CFEBs FPGA Firmware") << std::endl ;
+    *out << cgicc::form()<<std::endl;
+    //
+    //
+    //create TMB filename for firmware based on expected dates...
+    char date[8];
+    sprintf(date,"%4x%1x%1x%1x%1x",
+	    broadcastTMB->GetExpectedTmbFirmwareYear()&0xffff,
+	    (broadcastTMB->GetExpectedTmbFirmwareMonth()>>4)&0xf,
+	    (broadcastTMB->GetExpectedTmbFirmwareMonth()   )&0xf,
+	    (broadcastTMB->GetExpectedTmbFirmwareDay()  >>4)&0xf,
+	    (broadcastTMB->GetExpectedTmbFirmwareDay()     )&0xf);
+    TMBFirmwareFile_ = FirmwareDir_+"tmb/"+date+"/tmb";   // Note:  ".xsvf" is added in SetXsvfFilename
+    //
+    std::string LoadTMBFirmware =
+      toolbox::toString("/%s/LoadTMBFirmware",getApplicationDescriptor()->getURN().c_str());
+    *out << cgicc::form().set("method","GET").set("action",LoadTMBFirmware) << std::endl ;
+    *out << cgicc::input().set("type","submit").set("value","Load TMB Firmware") << std::endl ;
+    *out << TMBFirmwareFile_ << ".xsvf";
     *out << cgicc::form()<<std::endl;
 
     *out << cgicc::fieldset()<<std::endl;
@@ -1213,7 +1240,20 @@ using namespace std;
     this->Default(in, out);
   }
   //
-
+  void EmuPeripheralCrateManager::LoadTMBFirmware(xgi::Input * in, xgi::Output * out )  {
+    //
+    // load the TMB firmware
+    //
+    std::cout <<" Loading all TMBs with firmware from " << TMBFirmwareFile_ << ".xsvf" << std::endl;
+    //
+    broadcastTMB->SetXsvfFilename(TMBFirmwareFile_);
+    broadcastTMB->ProgramTMBProms();
+    broadcastTMB->ClearXsvfFilename();
+    //
+    in=NULL;
+    this->LoadDMBCFEBFPGAFirmware(in, out);
+  }
+  //
   void EmuPeripheralCrateManager::LoadDMBControlFPGAFirmware(xgi::Input * in, xgi::Output * out )  {
 
     // load the DAQMB Controller FPGA firmware
