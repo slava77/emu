@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.22 2007/09/14 15:37:28 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.23 2007/10/22 15:52:21 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -29,6 +29,19 @@ using namespace std;
 
   EmuPeripheralCrateManager::EmuPeripheralCrateManager(xdaq::ApplicationStub * s): EmuApplication(s)
   {	
+    HomeDir_     = getenv("HOME");
+    FirmwareDir_ = HomeDir_+"/firmware/";
+    ConfigDir_   = HomeDir_+"/config/";
+    //
+    PeripheralCrateBroadcastXmlFile_  = ConfigDir_+"pc/broadcast.xml";
+    DmbControlFPGAFirmwareFile_       = FirmwareDir_+"dmb/dmb6cntl_pro.svf";
+    DmbVmeFPGAFirmwareFile_           = FirmwareDir_+"dmb/dmb6vme_pro.svf";
+    CfebFPGAFirmwareFile_             = FirmwareDir_+"cfeb/cfeb_pro.svf";
+    //
+    //    std::cout << "PeripheralCrateBroadcastXmlFile_ = " << PeripheralCrateBroadcastXmlFile_ << std::endl;
+    //    std::cout << "DmbControlFPGAFirmwareFile_      = " << DmbControlFPGAFirmwareFile_      << std::endl;
+    //    std::cout << "DmbVmeFPGAFirmwareFile_          = " << DmbVmeFPGAFirmwareFile_          << std::endl;
+    //    std::cout << "CfebFPGAFirmwareFile_            = " << CfebFPGAFirmwareFile_            << std::endl;
     //
     // Bind SOAP callback
     //
@@ -61,6 +74,7 @@ using namespace std;
     xgi::bind(this,&EmuPeripheralCrateManager::LoadCFEBexternal, "LoadCFEBexternal");
     xgi::bind(this,&EmuPeripheralCrateManager::DmbTurnOnPower, "DmbTurnOnPower");
     xgi::bind(this,&EmuPeripheralCrateManager::DmbTurnOffPower, "DmbTurnOffPower");
+    //
     xgi::bind(this,&EmuPeripheralCrateManager::LoadDMBCFEBFPGAFirmware, "LoadDMBCFEBFPGAFirmware");
     xgi::bind(this,&EmuPeripheralCrateManager::LoadDMBControlFPGAFirmware, "LoadDMBControlFPGAFirmware");
     xgi::bind(this,&EmuPeripheralCrateManager::LoadDMBvmeFPGAFirmware, "LoadDMBvmeFPGAFirmware");
@@ -1018,8 +1032,9 @@ using namespace std;
     //define broadcast crate and board, if not defined before
     if (!broadcastCrate) {
       cout <<" Broadcast crate has not been defined yet"<<endl;
+      cout <<" Defining Broadcast crate from " << PeripheralCrateBroadcastXmlFile_ << endl;
       MyController = new EmuController();
-      MyController->SetConfFile("/nfshome0/cscpro/config/pc/broadcast.xml");
+      MyController->SetConfFile(PeripheralCrateBroadcastXmlFile_);
       MyController->init();
       CrateSelector selector = MyController->selector();
       vector<Crate *> tmpcrate=selector.broadcast_crate();
@@ -1105,8 +1120,9 @@ using namespace std;
     //define broadcast crate and board, if not defined before
     if (!broadcastCrate) {
       cout <<" Broadcast crate has not been defined yet"<<endl;
+      cout <<" Defining Broadcast crate from " << PeripheralCrateBroadcastXmlFile_ << endl;
       MyController = new EmuController();
-      MyController->SetConfFile("/nfshome0/cscpro/config/pc/broadcast.xml");
+      MyController->SetConfFile(PeripheralCrateBroadcastXmlFile_);
       MyController->init();
       CrateSelector selector = MyController->selector();
       vector<Crate *> tmpcrate=selector.broadcast_crate();
@@ -1155,8 +1171,9 @@ using namespace std;
     //define broadcast crate and board, if not defined before
     if (!broadcastCrate) {
       cout <<" Broadcast crate has not been defined yet"<<endl;
+      cout <<" Defining Broadcast crate from " << PeripheralCrateBroadcastXmlFile_ << endl;
       MyController = new EmuController();
-      MyController->SetConfFile("/nfshome0/cscpro/config/pc/broadcast.xml");
+      MyController->SetConfFile(PeripheralCrateBroadcastXmlFile_);
       MyController->init();
       CrateSelector selector = MyController->selector();
       vector<Crate *> tmpcrate=selector.broadcast_crate();
@@ -1178,8 +1195,9 @@ using namespace std;
     //define broadcast crate and board, if not defined before
     if (!broadcastCrate) {
       cout <<" Broadcast crate has not been defined yet"<<endl;
+      cout <<" Defining Broadcast crate from " << PeripheralCrateBroadcastXmlFile_ << endl;
       MyController = new EmuController();
-      MyController->SetConfFile("/nfshome0/cscpro/config/pc/broadcast.xml");
+      MyController->SetConfFile(PeripheralCrateBroadcastXmlFile_);
       MyController->init();
       CrateSelector selector = MyController->selector();
       vector<Crate *> tmpcrate=selector.broadcast_crate();
@@ -1202,8 +1220,8 @@ using namespace std;
     unsigned short int dword[2];
     dword[0]=0;
     char *outp=(char *)dword;
-    cout <<" Loading all the DMB's Controller FPGAs firmware ..."<<endl;
-    broadcastDMB->epromload(MPROM,"/nfshome0/cscpro/firmware/dmb/dmb6cntl_pro.svf",1,outp);
+    cout <<" Loading all the DMB's Controller FPGAs firmware from " << DmbControlFPGAFirmwareFile_ <<endl;
+    broadcastDMB->epromload(MPROM,DmbControlFPGAFirmwareFile_.c_str(),1,outp);
     in=NULL;
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
@@ -1212,7 +1230,7 @@ using namespace std;
     //    cgicc::Cgicc cgi(in);
     // load the DAQMB VME FPGA firmware
     char *outp="0";
-    cout <<" Loading all the DMB's VME FPGAs firmware ..."<<endl;
+    cout <<" Loading all the DMB's VME FPGAs firmware from " << DmbVmeFPGAFirmwareFile_ <<endl;
     cout <<" Step 1: Sending soup message to all the crates to readback the VME_PROM_ID"<<endl;
     cout <<"         This is the DMB board number"<<endl;
 
@@ -1220,14 +1238,14 @@ using namespace std;
     PCsendCommand("ReadVmePromUserid","EmuPeripheralCrate");
 
     cout <<" Step 2: Broadcast programming the VME until the 'loading USERCODE' point"<<endl;
-    broadcastDMB->epromload_broadcast(VPROM,"/nfshome0/cscpro/firmware/dmb/dmb6vme_pro.svf",1,outp,1);
+    broadcastDMB->epromload_broadcast(VPROM,DmbVmeFPGAFirmwareFile_.c_str(),1,outp,1);
 
     cout <<" Step 3: Sending SOAP message to program PROM_USERCODE"<<endl;
     //SOAP message to individual crates to program the PROM_USERCODE
     PCsendCommand("LoadVmePromUserid","EmuPeripheralCrate");
 
     cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
-    broadcastDMB->epromload_broadcast(VPROM,"/nfshome0/cscpro/firmware/dmb/dmb6vme_pro.svf",1,outp,3);
+    broadcastDMB->epromload_broadcast(VPROM,DmbVmeFPGAFirmwareFile_.c_str(),1,outp,3);
 
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
@@ -1236,7 +1254,7 @@ using namespace std;
 
     // load the CFEB FPGA firmware
     char *outp="0";
-    cout <<" Loading all the CFEBs FPGAs firmware ..."<<endl;
+    cout <<" Loading all the CFEBs FPGAs firmware from " << CfebFPGAFirmwareFile_ <<endl;
 
     cout <<" Step 1: Sending soup message to all the crates to readback the CFEB_PROM_ID"<<endl;
     cout <<"         This is the CFEB board number"<<endl;
@@ -1244,14 +1262,14 @@ using namespace std;
     PCsendCommand("ReadCfebPromUserid","EmuPeripheralCrate");
 
     cout <<" Step 2: Broadcast programming the CFEB until the 'loading USERCODE' point"<<endl;
-    broadcastDMB->epromload_broadcast(FAPROM,"/nfshome0/cscpro/firmware/cfeb/cfeb_pro.svf",1,outp,1);
+    broadcastDMB->epromload_broadcast(FAPROM,CfebFPGAFirmwareFile_.c_str(),1,outp,1);
 
     cout <<" Step 3: Sending SOAP message to program CFEB PROM_USERCODE"<<endl;
     //SOAP message to individual crates to program the CFEB PROM_USERCODE
     PCsendCommand("LoadCfebPromUserid","EmuPeripheralCrate");
 
     cout <<" Step 4: Broadcast the remaining part of the PROM/SVF"<<endl;
-    broadcastDMB->epromload_broadcast(FAPROM,"/nfshome0/cscpro/firmware/cfeb/cfeb_pro.svf",1,outp,3);
+    broadcastDMB->epromload_broadcast(FAPROM,CfebFPGAFirmwareFile_.c_str(),1,outp,3);
 
     this->LoadDMBCFEBFPGAFirmware(in, out);
   }
@@ -1474,8 +1492,9 @@ using namespace std;
     //define broadcast crate and board, if not defined before
     if (!broadcastCrate) {
       cout <<" Broadcast crate has not been defined yet"<<endl;
+      cout <<" Defining Broadcast crate from " << PeripheralCrateBroadcastXmlFile_ << endl;
       MyController = new EmuController();
-      MyController->SetConfFile("/nfshome0/cscpro/config/pc/broadcast.xml");
+      MyController->SetConfFile(PeripheralCrateBroadcastXmlFile_);
       MyController->init();
       CrateSelector selector = MyController->selector();
       vector<Crate *> tmpcrate=selector.broadcast_crate();

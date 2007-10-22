@@ -16,7 +16,7 @@ using namespace cgicc;
 using namespace std;
 
 const string       CFEB_FIRMWARE_FILENAME = "cfeb/cfeb_pro.svf";
-const unsigned int EXPECTED_CFEB_USERID   = 0xcfeda092;
+const unsigned int EXPECTED_CFEB_USERID   = 0xcfeda102;
 //
 const string       DMB_FIRMWARE_FILENAME    = "dmb/dmb6cntl_pro.svf";
 const unsigned int EXPECTED_DMB_USERID      = 0x48547241;
@@ -8378,10 +8378,13 @@ void EmuPeripheralCrate::TMBUtils(xgi::Input * in, xgi::Output * out )
     //
     int mintmb = tmb;
     int maxtmb = tmb+1;
-    if (thisTMB->slot() == 26) { //if TMB slot = 26, loop over each alct according to its type
-      mintmb = 0;
-      maxtmb = tmbVector.size()-1;
-    }
+    //
+    // To remove the loop, comment out the following if (thisTMB->slot() ...) stuff...
+    //    if (thisTMB->slot() == 26) { //if TMB slot = 26, loop over each alct according to its type
+    //      mintmb = 0;
+    //      maxtmb = tmbVector.size()-1;
+    //    }
+    // end of stuff to remove...
     //
     std::cout << "Loading TMB firmware from " << mintmb << " to " << maxtmb << std::endl;
     //
@@ -8389,6 +8392,11 @@ void EmuPeripheralCrate::TMBUtils(xgi::Input * in, xgi::Output * out )
     //
     for (tmb=mintmb; tmb<maxtmb; tmb++) {
       thisTMB = tmbVector[tmb];
+      //
+      std::cout << "Loading TMB firmware in slot " << thisTMB->slot() << std::endl;
+      //
+      ::sleep(10);
+      //
       thisTMB->SetXsvfFilename(TMBFirmware_.toString().c_str());
       thisTMB->ProgramTMBProms();
       thisTMB->ClearXsvfFilename();
@@ -10371,7 +10379,10 @@ void EmuPeripheralCrate::ParseTestLogFile(xdata::String logFile)
 	prombrdname[2]=(boardnumber>>16)&0xff;
 	prombrdname[3]=(boardnumber>>24)&0xff;
     	cout<<" Loading the board number ..."<<endl;
-	thisDMB->epromload_broadcast(VPROM,"$HOME/firmware/dmb/dmb6vme_pro.svf",1,prombrdname,2);
+	//
+	std::string DMBVmeFirmware = FirmwareDir_+DMBVME_FIRMWARE_FILENAME;
+	//
+	thisDMB->epromload_broadcast(VPROM,DMBVmeFirmware.c_str(),1,prombrdname,2);
 	usleep(200);
 	cout <<" The DMB Number: "<<idmb<<" is in Slot Number: "<<dmbVector[idmb]->slot()<<endl;
 	cout <<" This DMB is programmed to board number: "<<boardnumber<<endl<<endl;
@@ -10433,7 +10444,10 @@ void EmuPeripheralCrate::ParseTestLogFile(xdata::String logFile)
 	  promid[1]=(boardid>>8)&0xff;
 	  promid[2]=(boardid>>16)&0xff;
 	  promid[3]=(boardid>>24)&0xff;
-	  thisDMB->epromload_broadcast(thisCFEBs[i].promDevice(),"$HOME/firmware/cfeb/cfeb_pro.svf",1,promid,2);
+	  //
+	  std::string CFEBFirmware = FirmwareDir_+CFEB_FIRMWARE_FILENAME;
+	  //
+	  thisDMB->epromload_broadcast(thisCFEBs[i].promDevice(),CFEBFirmware.c_str(),1,promid,2);
 	  usleep(200);
 	  cout <<" This CFEB Board Number is set to: "<<boardid<<endl;
 	}
