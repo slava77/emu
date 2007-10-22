@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.35 2007/09/14 15:36:07 gujh Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.36 2007/10/22 15:52:20 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -156,7 +156,15 @@ public:
   xoap::MessageReference ExecuteCommandMessage(std::string port);
   xoap::MessageReference createXRelayMessage(const std::string & command, const std::string & setting,
                                              std::set<xdaq::ApplicationDescriptor * > descriptor );
-                                             
+  //
+  std::string HomeDir_;
+  std::string ConfigDir_;  
+  std::string FirmwareDir_;
+  //
+  std::string PeripheralCrateBroadcastXmlFile_;
+  std::string DmbControlFPGAFirmwareFile_;
+  std::string DmbVmeFPGAFirmwareFile_;
+  std::string CfebFPGAFirmwareFile_;
 };
 
 #endif
