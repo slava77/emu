@@ -8380,10 +8380,10 @@ void EmuPeripheralCrate::TMBUtils(xgi::Input * in, xgi::Output * out )
     int maxtmb = tmb+1;
     //
     // To remove the loop, comment out the following if (thisTMB->slot() ...) stuff...
-    //    if (thisTMB->slot() == 26) { //if TMB slot = 26, loop over each alct according to its type
-    //      mintmb = 0;
-    //      maxtmb = tmbVector.size()-1;
-    //    }
+    if (thisTMB->slot() == 26) { //if TMB slot = 26, loop over each alct according to its type
+      mintmb = 0;
+      maxtmb = tmbVector.size()-1;
+    }
     // end of stuff to remove...
     //
     std::cout << "Loading TMB firmware from " << mintmb << " to " << maxtmb << std::endl;

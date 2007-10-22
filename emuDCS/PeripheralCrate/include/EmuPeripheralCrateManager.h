@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.36 2007/10/22 15:52:20 rakness Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.37 2007/10/22 17:04:54 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -92,10 +92,13 @@ public:
   void DmbTurnOnPower(xgi::Input * in, xgi::Output * out );
   void DmbTurnOffPower(xgi::Input * in, xgi::Output * out );
   void LoadDACandTrigger(xgi::Input * in, xgi::Output * out );
+  //
   void LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out );
   void LoadDMBControlFPGAFirmware(xgi::Input * in, xgi::Output * out );
   void LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::Output * out ) throw(xgi::exception::Exception);
   void LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out );
+  void LoadTMBFirmware(xgi::Input * in, xgi::Output * out );
+  //
   void configureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
   void enableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
   void disableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
@@ -165,6 +168,7 @@ public:
   std::string DmbControlFPGAFirmwareFile_;
   std::string DmbVmeFPGAFirmwareFile_;
   std::string CfebFPGAFirmwareFile_;
+  std::string TMBFirmwareFile_;
 };
 
 #endif
