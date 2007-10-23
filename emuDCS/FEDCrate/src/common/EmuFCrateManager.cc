@@ -1,4 +1,4 @@
-/// $Id: EmuFCrateManager.cc,v 1.2 2007/10/08 19:21:08 gilmore Exp $
+/// $Id: EmuFCrateManager.cc,v 1.3 2007/10/23 17:50:18 gilmore Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -30,8 +30,9 @@ using namespace std;
 static const string NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
 
   EmuFCrateManager::EmuFCrateManager(xdaq::ApplicationStub * s): EmuApplication(s)
-{	
+{
 	xdata::InfoSpace *i = getApplicationInfoSpace();
+	i->fireItemAvailable("ttsID", &tts_id_);
 	i->fireItemAvailable("ttsCrate", &tts_crate_);
 	i->fireItemAvailable("ttsSlot", &tts_slot_);
 	i->fireItemAvailable("ttsBits", &tts_bits_);
@@ -258,10 +259,71 @@ void EmuFCrateManager::setTTSBitsAction(toolbox::Event::Reference e)
       LOG4CPLUS_INFO(getApplicationLogger(), "Received Message SetTTSBits");
       //
 	const string fed_app = "EmuFCrate";
-	cout << "*** EmuFCrateManager: inside setTTSBitsAction" << endl;
+	cout << "*** EmuFCrateManager: inside setTTSBitsAction";
+
+// JRG, decode the Source ID into Crate/Slot locations
+	unsigned int srcID=tts_id_;
+	if(srcID<748)srcID=748;
+	printf(", srcID=%d\n",srcID);
+
+	if(srcID>830&&srcID<840){       // crate 2 DDUs, S1-G06g, ME+
+	  tts_crate_=2;
+	  unsigned int islot=srcID-827; // srcID-831+4
+	  if(islot>7)islot++;
+	  tts_slot_=islot;
+	}
+	else if(srcID>840&&srcID<850){  // crate 1 DDUs, S1-G06i, ME+
+	  tts_crate_=1;
+	  unsigned int islot=srcID-837; // srcID-841+4
+	  if(islot>7)islot++;
+	  tts_slot_=islot;
+	}
+/*
+	else if(srcID>850&&srcID<860){  // crate 4 DDUs, S1-G08g, ME-
+	  tts_crate_=4;
+	  unsigned int islot=srcID-847; // srcID-851+4
+	  if(islot>7)islot++;
+	  tts_slot_=islot;
+	}
+	else if(srcID>860&&srcID<870){  // crate 3 DDUs, S1-G08i, ME-
+	  tts_crate_=3;
+	  unsigned int islot=srcID-857; // srcID-861+4
+	  if(islot>7)islot++;
+	  tts_slot_=islot;
+	}
+*/
+	else if(srcID==760){  //crate ? TF-DDU, S1-?
+	  tts_crate_=3;  // JRG temp!  Later should be 5!  After ME- installed.
+	  tts_slot_=2;   // check...!
+	}
+
+	else {                           // set crates/slot for DCCs,
+	  unsigned int icrate=(srcID-748)/2; // will work for both S-Link IDs
+	  if(icrate>0&&icrate<5){
+	    tts_crate_=icrate;
+	    tts_slot_=8;
+	  }
+	}
+/*  better way used above ^^^^
+	if(srcID==752){  //crate 2 DCC, S1-G06g
+	  tts_crate_=2;
+	  tts_slot_=8;
+	}
+	if(srcID==750){  //crate 1 DCC, S1-G06i
+	  tts_crate_=1;
+	  tts_slot_=8;
+	}
+	if(srcID==756){  //crate 4 DCC, S1-G08g
+	  tts_crate_=4;
+	  tts_slot_=8;
+	}
+	if(srcID==754){  //crate 3 DCC, S1-G08i
+	  tts_crate_=3;
+	  tts_slot_=8;
+	}
+*/
 
 	try {
-		setParameter(fed_app, "ttsCrate", "xsd:unsignedInt", tts_crate_);
 // JRG: this is the instance for the FED application, NOT really the CrateID
 //		int instance = (tts_crate_ == "1") ? 0 : 1;
 		int instance = 0;
@@ -271,12 +333,14 @@ void EmuFCrateManager::setTTSBitsAction(toolbox::Event::Reference e)
 //		if(tts_crate_>0)instance=tts_crate_ - ui_diff;
 		instance=tts_crate_;
 		if(instance>0)instance--;
-/*
+		if(srcID==760)tts_crate_=5;
+/* JRG, for case of 2 FED crates in a single config (2 crates per EmuFCrate):
 		if(instance>2)instance=1;
 		else instance=0;
 */
-		setParameter(fed_app, "ttsSlot",  "xsd:unsignedInt",tts_slot_);
-		setParameter(fed_app, "ttsBits",  "xsd:unsignedInt",tts_bits_);
+		setParameter(fed_app,"ttsCrate","xsd:unsignedInt",tts_crate_);
+		setParameter(fed_app,"ttsSlot", "xsd:unsignedInt",tts_slot_);
+		setParameter(fed_app,"ttsBits", "xsd:unsignedInt",tts_bits_);
 //		cout << "inside setTTSAction" << tts_crate_.str() << tts_slot_.str() << tts_bits_.str() << endl;
 
 		cout << " ** EmuFCrateManager: inside setTTSBitsAction, setParameter tried, now sendCommand instance=" << instance << fed_app << endl;

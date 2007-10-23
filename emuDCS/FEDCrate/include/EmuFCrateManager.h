@@ -1,4 +1,4 @@
-// $Id: EmuFCrateManager.h,v 1.1 2007/09/28 14:18:25 ichiro Exp $
+// $Id: EmuFCrateManager.h,v 1.2 2007/10/23 17:50:17 gilmore Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -115,6 +115,7 @@ class EmuFCrateManager: public EmuApplication
 
 
  private:
+	xdata::UnsignedInteger tts_id_;
 	xdata::UnsignedInteger tts_crate_;
 	xdata::UnsignedInteger tts_slot_;
 	xdata::UnsignedInteger tts_bits_;

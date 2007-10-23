@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: EmuFController.cc,v 3.5 2007/10/08 19:20:05 gilmore Exp $
+// $Id: EmuFController.cc,v 3.6 2007/10/23 17:50:17 gilmore Exp $
 // $Log: EmuFController.cc,v $
+// Revision 3.6  2007/10/23 17:50:17  gilmore
+// EmuFCrateManager fixes for real USC operation
+//
 // Revision 3.5  2007/10/08 19:20:05  gilmore
 // fixes for multi-crate Soap operation
 //
@@ -75,8 +78,8 @@ void EmuFController::init(){
     theController->irq_pthread_start(crate);
   }
 */
-
 }
+
 
 void EmuFController::configure() {
   // read the configuration
@@ -88,10 +91,10 @@ void EmuFController::configure() {
     myCrates[i]->configure(0);
   }
 }
-//
-//
+
+
 void  EmuFController::enable() {
-  //
+// JRG, not used?
   std::vector<Crate*> myCrates = theSelector.crates();
   //
   for(unsigned i = 0; i < myCrates.size(); ++i) {
@@ -99,18 +102,20 @@ void  EmuFController::enable() {
   }
   std::cout << "TAKING DATA" << std::endl;
 }
-//
-//
+
+
 void EmuFController::disable() {
+// JRG, not used?
   std::vector<Crate*> myCrates = theSelector.crates();
 
   for(unsigned i = 0; i < myCrates.size(); ++i) {
     myCrates[i]->disable();
   }
 }
-//
-//
-int EmuFController::irqtest(){  
+
+
+int EmuFController::irqtest(){
+// JRG, not used?
   std::vector<Crate*> myCrates = theSelector.crates();
   int ret,ret2;
   ret=0;
@@ -126,6 +131,7 @@ int EmuFController::irqtest(){
   }
   return ret;
 }
+
 
 void EmuFController::writeTTSBits(
     unsigned int crate, unsigned int slot, unsigned int bits)
@@ -149,6 +155,7 @@ void EmuFController::writeTTSBits(
     }
   }
 }
+
 
 unsigned int EmuFController::readTTSBits(
     unsigned int crate, unsigned int slot)
@@ -178,6 +185,7 @@ unsigned int EmuFController::readTTSBits(
   return bits & 0xf;
 }
 
+
 DCC *EmuFController::getDCC(int crate, int slot)
 {
   theSelector.setCrate(crate);
@@ -191,6 +199,7 @@ DCC *EmuFController::getDCC(int crate, int slot)
     return NULL;
   }
 }
+
 
 DDU *EmuFController::getDDU(int crate, int slot)
 {
