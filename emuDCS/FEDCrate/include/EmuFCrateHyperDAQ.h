@@ -137,8 +137,8 @@ EmuFCrateHyperDAQ(xdaq::ApplicationStub * s): xdaq::Application(s)
 	tidcode[5] = 0x05036093;
 	tidcode[6] = 0x05036093;
 	tidcode[7] = 0x05036093;
-	
-	tuscode[0] = 0xcf042a01;
+
+	tuscode[0] = 0xcf042a05;
 	tuscode[1] = 0xdf025a02;
 	tuscode[2] = 0xdf025a02;
 	tuscode[3] = 0xb0019a03;
@@ -146,7 +146,7 @@ EmuFCrateHyperDAQ(xdaq::ApplicationStub * s): xdaq::Application(s)
 	tuscode[5] = 0xc142dd99;
 	tuscode[6] = 0xd0025a02;
 	tuscode[7] = 0xd1025a02;
-	
+
 	interrupt_set = false;
 }
 

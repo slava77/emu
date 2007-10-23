@@ -72,6 +72,7 @@ EmuFCrate::EmuFCrate(xdaq::ApplicationStub *s): EmuApplication(s)
 	// Exported parameters
 	getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
 
+	getApplicationInfoSpace()->fireItemAvailable("ttsID", &ttsID_);
 	getApplicationInfoSpace()->fireItemAvailable("ttsCrate", &ttsCrate_);
 	getApplicationInfoSpace()->fireItemAvailable("ttsSlot",  &ttsSlot_);
 	getApplicationInfoSpace()->fireItemAvailable("ttsBits",  &ttsBits_);

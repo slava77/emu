@@ -63,11 +63,12 @@ private:
 private:
 	xdata::String xmlFile_;
 
+	xdata::UnsignedInteger ttsID_;
 	xdata::UnsignedInteger ttsCrate_;
 	xdata::UnsignedInteger ttsSlot_;
 	xdata::UnsignedInteger ttsBits_;
 
-	string ttsCrateStr_, ttsSlotStr_, ttsBitsStr_;
+	string ttsIDStr_, ttsCrateStr_, ttsSlotStr_, ttsBitsStr_;
 
 
 // addition for STEP
