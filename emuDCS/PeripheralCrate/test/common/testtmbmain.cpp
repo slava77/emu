@@ -43,9 +43,62 @@ int main() {
   bool HardResetOK = false;
   bool VMEfpgaDataRegisterOK = false;
   bool isU76OK = false;
-
+  //
   int Menu = 999;
-
+  //
+  const int MAX_NUM_LCTS_IN_FILE = 1000;
+  unsigned long int lct0[MAX_NUM_LCTS_IN_FILE];
+  unsigned long int lct1[MAX_NUM_LCTS_IN_FILE];
+  //
+  int lctCounter = 0;
+  //
+  std::ifstream PatternFile;
+  PatternFile.open("patterns.txt");
+  if ( PatternFile.is_open() ) {
+    while (PatternFile.good()) {
+      //
+      // pattern file has format "MPC[0-1] XXXXXXXX"  where XXXXXXXX is the LCT in hex format
+      //
+      std::string line;
+      std::getline(PatternFile,line);
+      //
+      std::istringstream instring(line);
+      //
+      std::string MPC1or2;
+      unsigned long int lctValue;
+      instring >> MPC1or2 >> std::hex >> lctValue;
+      //
+      //      std::cout << MPC1or2 << " = 0x" << std::hex << lctValue << std::endl;
+      if (lctCounter < MAX_NUM_LCTS_IN_FILE) {
+	if (MPC1or2 == "MPC1") {
+	  lct0[lctCounter] = lctValue;
+	} else if (MPC1or2 == "MPC2") {
+	  lct1[lctCounter++] = lctValue;
+	}
+      }
+    }
+  }
+  //
+  PatternFile.close();
+  //
+  // at the moment the two frames are reversed in the file... switch them to be correct here:
+  //  std::cout << "LCT 0 are..." << std::endl;
+  for (int i=0; i<lctCounter; i++) {
+    //    std::cout << std::dec << std::setw(4) << i << "  0x" << std::hex << lct0[i] << std::endl;
+    unsigned long temp = ( ((lct0[i] & 0x0000ffff) << 16) | ((lct0[i] & 0xffff0000) >> 16) );
+    lct0[i] = temp;
+    //    std::cout << "  ->  0x" << std::hex << lct0[i] << std::endl;
+  }
+  //
+  //  std::cout << "LCT 1 are..." << std::endl;
+  for (int i=0; i<lctCounter; i++) {
+    //    std::cout << std::dec << std::setw(4) << i << "  0x" << std::hex << lct1[i] << std::endl;
+    unsigned long temp = ( ((lct1[i] & 0x0000ffff) << 16) | ((lct1[i] & 0xffff0000) >> 16) );
+    lct1[i] = temp;
+    //    std::cout << "  ->  0x" << std::hex << lct1[i] << std::endl;
+  }
+  
+  //
   int value,channel,layer;
   int write_data, read_data;
   int busy, verify;
@@ -180,6 +233,7 @@ int main() {
     //std::cout << "703:Setup pulse AFEBs         704:Set up CFEB pulsing        705:Pulse CFEB                         " << std::endl;
     //std::cout << std::endl;
     //std::cout << "706:pulse strips:CCB L1Adelay 707:pulse strips: CLCT Distn  708:pulse strips: match timing          " << std::endl;
+    std::cout << "800:Load TMB with MPC data    801:configure MPC                                                     " << std::endl;
     std::cout << std::endl;
     std::cout << "1000:Exit                                                                                           " << std::endl;
     std::cout << " menu choice? (Default = 999)" << std::endl;
@@ -1143,6 +1197,33 @@ int main() {
       //      }
       thisCCB->setCCBMode(CCB::DLOG);
       //
+      break;
+    case 800:
+      //
+      for (int i=0; i<lctCounter; i++) {
+	//
+	thisTMB->ResetInjectedLCT();
+	thisTMB->InjectMPCData(2,lct0[i],lct1[i]);
+	std::cout << "Software inject values = " << std::endl;
+	for (unsigned int i=0; i<thisTMB->GetInjectedLct0().size(); i++) {
+	std::cout << "LCT0 = " << std::hex << thisTMB->GetInjectedLct0()[i] << std::endl;
+	std::cout << "LCT1 = " << std::hex << thisTMB->GetInjectedLct1()[i] << std::endl;
+	}
+	thisTMB->ReadBackMpcRAM(2);
+	thisTMB->FireMPCInjector(2);
+	//
+	thisTMB->DataSendMPC();
+	std::cout << "MPC0/1 accepted = " << thisTMB->MPC0Accept() << "/" << thisTMB->MPC1Accept() << std::endl;
+	thisTMB->GetCounters();
+	thisTMB->PrintCounters(16);
+	thisTMB->PrintCounters(17);
+	//
+	::sleep(1);
+      }
+      //
+      break;
+    case 801:
+      thisMPC->configure();
       break;
     default:
       std::cout << "Unknown Menu Option =" << Menu << std::endl; 
