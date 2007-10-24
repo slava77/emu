@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.50 2007/10/08 15:04:36 rakness Exp $
+// $Id: TMB.cc,v 3.51 2007/10/24 13:21:31 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.51  2007/10/24 13:21:31  rakness
+// try to clean up and document TMB to MPC methods
+//
 // Revision 3.50  2007/10/08 15:04:36  rakness
 // add ALCT and TMB raw hits button in hyperDAQ
 //
@@ -996,9 +999,11 @@ void TMB::ReadBackMpcRAM(int nEvents){
   //
   unsigned short ramAdd;
   //
-  (*MyOutput_) << "Reading back RAM address" << std::endl ;
+  (*MyOutput_) << "TMB:  Read MPC injector RAM for " << std::dec << nEvents << " events" << std::endl ;
   //
   for (int evtId(0); evtId<nEvents; ++evtId) {
+    //
+    (*MyOutput_) << "Event " << std::dec << evtId << "..." << std::endl;
     //
     ramAdd = (evtId<<8);
     //
@@ -1016,7 +1021,9 @@ void TMB::ReadBackMpcRAM(int nEvents){
     tmb_vme(VME_READ,mpc_ram_rdata_adr,sndbuf,rcvbuf,NOW);
     unsigned long int rlct02 = ((rcvbuf[0]&0xff)<<8) | (rcvbuf[1]&0xff) ;
     //
-    printf(" %x %x \n",(unsigned int)rlct01,(unsigned int)rlct02);
+    unsigned long int rlct0 = ( ((rlct01 & 0xffff) << 16) | ((rlct02 & 0xffff) << 0) );
+    (*MyOutput_) << "LCT0 = " << std::hex << rlct0 << std::endl;
+    //
     //
     sndbuf[0] = ((ramAdd)>>8)&0xff ;
     sndbuf[1] = (ramAdd)&0xff | (0x1<<6) ;
@@ -1032,7 +1039,8 @@ void TMB::ReadBackMpcRAM(int nEvents){
     tmb_vme(VME_READ,mpc_ram_rdata_adr,sndbuf,rcvbuf,NOW);
     unsigned long int rlct12 = ((rcvbuf[0]&0xff)<<8) | ((rcvbuf[1]&0xff)) ;
     //
-    printf(" %x %x \n",(unsigned int)rlct11,(unsigned int)rlct12);
+    unsigned long int rlct1 = ( ((rlct11 & 0xffff) << 16) | ((rlct12 & 0xffff) << 0) );
+    (*MyOutput_) << "LCT1 = " << std::hex << rlct1 << std::endl;
     //
   }
   //
@@ -1042,7 +1050,7 @@ void TMB::FireMPCInjector(int nEvents){
   //
   tmb_vme(VME_READ,mpc_inj_adr,sndbuf,rcvbuf,NOW);
   //
-  (*MyOutput_) << "Fire now" << std::endl;
+  (*MyOutput_) << "TMB: Fire MPC injector" << std::endl;
   //
   sndbuf[0] = rcvbuf[0] & 0xfe ; // Unfire injector
   sndbuf[1] = nEvents & 0xff;
@@ -1056,8 +1064,28 @@ void TMB::FireMPCInjector(int nEvents){
   sndbuf[1] = nEvents & 0xff;
   tmb_vme(VME_WRITE,mpc_inj_adr,sndbuf,rcvbuf,NOW);
   //
+  return;
 }
-
+//
+void TMB::DataSendMPC(){
+  //
+  (*MyOutput_) << "TMB: data sent to MPC..." << std::endl;
+  //
+  int mpc0frame0 = ReadRegister(mpc0_frame0_adr);
+  (*MyOutput_) << "LCT0 FRAME0 " << std::hex << mpc0frame0 << std::endl ; 
+  //
+  int mpc0frame1 = ReadRegister(mpc0_frame1_adr);
+  (*MyOutput_) << "LCT0 FRAME1 " << std::hex << mpc0frame1 << std::endl ; 
+  //
+  int mpc1frame0 = ReadRegister(mpc1_frame0_adr);
+  (*MyOutput_) << "LCT1 FRAME0 " << std::hex << mpc1frame0 << std::endl ; 
+  //
+  int mpc1frame1 = ReadRegister(mpc1_frame1_adr);
+  (*MyOutput_) << "LCT1 FRAME1 " << std::hex << mpc1frame1 << std::endl ; 
+  //
+  return;
+}
+//
 void TMB::DecodeALCT(){
   //
   tmb_vme(VME_READ,alct_alct0_adr,sndbuf,rcvbuf,NOW);
@@ -3402,32 +3430,6 @@ void TMB::decode() {
 
 } //main
 //
-void TMB::DataSendMPC(){
-  //
-  (*MyOutput_) << "TMB LCT data send to MPC" << std::endl;
-  //
-  tmb_vme(VME_READ,mpc0_frame0_adr,sndbuf,rcvbuf,NOW);
-  //
-  (*MyOutput_) << "MPC0 " << std::endl;
-  (*MyOutput_) << "FRAME0 " << std::hex << ((rcvbuf[0]&0xff)<<8 | rcvbuf[1]&0xff) << std::endl ; 
-  //
-  tmb_vme(VME_READ,mpc0_frame1_adr,sndbuf,rcvbuf,NOW);
-  //
-  (*MyOutput_) << "FRAME1 " << std::hex << ((rcvbuf[0]&0xff)<<8 | rcvbuf[1]&0xff) << std::endl ; 
-  //
-  tmb_vme(VME_READ,mpc1_frame0_adr,sndbuf,rcvbuf,NOW);
-  //
-  (*MyOutput_) << "MPC1 " << std::endl;
-  (*MyOutput_) << "FRAME0 " << std::hex << ((rcvbuf[0]&0xff)<<8 | rcvbuf[1]&0xff) << std::endl ; 
-  //
-  tmb_vme(VME_READ,mpc1_frame1_adr,sndbuf,rcvbuf,NOW);
-  //
-  (*MyOutput_) << "FRAME1 " << std::hex << ((rcvbuf[0]&0xff)<<8 | rcvbuf[1]&0xff) << std:: endl ; 
-  //
-  (*MyOutput_) << std::endl ;
-  //
-}
-
 void TMB::init_alct(int choice)
 {
  //start(1);

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.32 2007/10/08 15:04:32 rakness Exp $
+// $Id: TMB.h,v 3.33 2007/10/24 13:21:30 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.33  2007/10/24 13:21:30  rakness
+// try to clean up and document TMB to MPC methods
+//
 // Revision 3.32  2007/10/08 15:04:32  rakness
 // add ALCT and TMB raw hits button in hyperDAQ
 //
@@ -410,8 +413,6 @@ public:
   void tmb_clk_delays(unsigned short int time, int cfeb_id);
   //
   int  CCB_command_from_TTC();
-  void DataSendMPC();
-  void InjectMPCData(const int nEvents, const unsigned long lct0, const unsigned long lct1);
   //
   void ExtClctTrigFromCCBonly();
   int ReadTMBtempPCB();  
@@ -484,14 +485,39 @@ public:
   //
   void enableAllClocks();
   void disableAllClocks();
-  void FireMPCInjector(int);
-  void ReadBackMpcRAM(int);
+  //
+  ////////////////////////
+  // The following methods deal with data going from TMB to MPC...
+  //
+  //!load nEvents worth of MPC data to injector RAM.  The data to load is lct0 and lct1.  If lct0 or lct1 are 0, random data will be generated
+  void InjectMPCData(const int nEvents, const unsigned long lct0, const unsigned long lct1);
+  //
+  //!Read values which will be sent when the injector is fired
+  void ReadBackMpcRAM(int nEvents);
+  //
+  //!Software values of data in TMB injector RAM to MPC
+  inline std::vector<unsigned long int> GetInjectedLct0() { return InjectedLct0 ; }
+  inline std::vector<unsigned long int> GetInjectedLct1() { return InjectedLct1 ; }
+  //
+  //!Reset software values of data in TMB injector RAM to MPC
+  inline void ResetInjectedLCT() {
+    InjectedLct0.clear();
+    InjectedLct1.clear();
+  }
+  //
+  //!Send the data in the MPC injector RAM to the MPC
+  void FireMPCInjector(int nEvents);
+  //
+  //!Read back and print the data sent to the MPC
+  void DataSendMPC();
+  //
+  //!Values of "MPC accept" data sent from MPC to TMB 
+  int MPC0Accept();
+  int MPC1Accept();
+  ////////////////////////
   //
   void TriggerTestInjectALCT();
   void TriggerTestInjectCLCT();
-  //
-  int MPC0Accept();
-  int MPC1Accept();
   //
   bool SelfTest() ;
   void init() ;
@@ -1144,16 +1170,6 @@ public:
   //
   //!Return the software value to be written into the register at "address", whose values have been set by the "Set...(int data)" methods
   int  FillTMBRegister(unsigned long int address); 
-  //
-  //!Data at MPC injector RAM
-  inline std::vector<unsigned long int> GetInjectedLct0() { return InjectedLct0 ; }
-  inline std::vector<unsigned long int> GetInjectedLct1() { return InjectedLct1 ; }
-  //
-  //!Reset data at MPC injector RAM
-  inline void ResetInjectedLCT() {
-    InjectedLct0.clear();
-    InjectedLct1.clear();
-  }
   //
   void ReadTmbIdCodes();
   inline int GetTMBmezzFpgaIdCode() { return tmb_idcode_[0]; }
