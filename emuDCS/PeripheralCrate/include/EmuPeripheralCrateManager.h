@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.37 2007/10/22 17:04:54 rakness Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.38 2007/10/25 17:38:30 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -55,10 +55,11 @@
 
 static int calsetup;
 EmuController * MyController;
-Crate *broadcastCrate;
-DAQMB *broadcastDMB;
-TMB *broadcastTMB;
-CCB *broadcastCCB;
+Crate * broadcastCrate;
+DAQMB * broadcastDMB;
+TMB * broadcastTMB;
+ALCTController * broadcastALCT;
+CCB * broadcastCCB;
 
 using namespace cgicc;
 using namespace std;
@@ -75,9 +76,33 @@ public:
   xdata::String ConfigureState_;
   xdata::Table table_;                            
   int LTCDone;
-
+  //
+  std::string HomeDir_;
+  std::string ConfigDir_;  
+  std::string FirmwareDir_;
+  //
+  void DefineBroadcastCrate();
+  std::string PeripheralCrateBroadcastXmlFile_;
+  std::string DmbControlFPGAFirmwareFile_;
+  std::string DmbVmeFPGAFirmwareFile_;
+  std::string CfebFPGAFirmwareFile_;
+  std::string TMBFirmwareFile_;
+  //
+  std::string ALCTFirmwareDirectory_     ;
+  //
+  std::string ALCT192FirmwareFile_       ;
+  std::string ALCT288FirmwareFile_       ;
+  std::string ALCT288bnFirmwareFile_     ;
+  std::string ALCT288bpFirmwareFile_     ;
+  std::string ALCT288fpFirmwareFile_     ;
+  std::string ALCT384FirmwareFile_       ;
+  std::string ALCT384MirrorFirmwareFile_ ;
+  std::string ALCT576MirrorFirmwareFile_ ;
+  std::string ALCT672FirmwareFile_       ;
+  std::string ALCT672MirrorFirmwareFile_ ;  
+  //
   EmuPeripheralCrateManager(xdaq::ApplicationStub * s);
-
+  //
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void MainPage(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void CheckEmuPeripheralCrateState(xgi::Input * in, xgi::Output * out );
@@ -85,6 +110,7 @@ public:
   void UploadDB(xgi::Input * in, xgi::Output * out );
   void AddRow(int Row,xdata::Table & table, std::vector<std::string> NewColumn);
   int CompareEmuPeripheralCrateState(std::string state_compare);
+  //
   void CheckEmuPeripheralCrateCalibrationState(xgi::Input * in, xgi::Output * out );
   void LoadCFEBcalchannel(xgi::Input * in, xgi::Output * out );
   void LoadCFEBinternal(xgi::Input * in, xgi::Output * out );
@@ -93,11 +119,14 @@ public:
   void DmbTurnOffPower(xgi::Input * in, xgi::Output * out );
   void LoadDACandTrigger(xgi::Input * in, xgi::Output * out );
   //
+  // Firmware
+  //
   void LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out );
   void LoadDMBControlFPGAFirmware(xgi::Input * in, xgi::Output * out );
   void LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::Output * out ) throw(xgi::exception::Exception);
   void LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out );
   void LoadTMBFirmware(xgi::Input * in, xgi::Output * out );
+  void LoadALCTFirmware(xgi::Input * in, xgi::Output * out );
   //
   void configureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
   void enableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
@@ -105,9 +134,13 @@ public:
   void haltAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
   void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);
   void MyHeader(xgi::Input * in, xgi::Output * out, std::string title ) throw (xgi::exception::Exception);
+  //
   string extractCalibrationState(xoap::MessageReference message);
   string extractState(xoap::MessageReference message);
   string extractRunNumber(xoap::MessageReference message);
+  //
+  // What to do when we receive soap messages
+  //
   xoap::MessageReference LTCResponse (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onConfigCalCFEB (xoap::MessageReference message) throw (xoap::exception::Exception);
@@ -118,6 +151,12 @@ public:
   xoap::MessageReference onEnableCalCFEBComparator (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onDisable (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onHalt (xoap::MessageReference message) throw (xoap::exception::Exception);
+  //
+  // Sending soap messages
+  //
+  xoap::MessageReference PCcreateCommandSOAP(string command);
+  void PCsendCommand(string command, string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
+  //
   void relayMessage (xoap::MessageReference msg) throw (xgi::exception::Exception);
   void SendSOAPMessageConnectTStore(xgi::Input * in, xgi::Output * out) throw (xgi::exception::Exception);
   void SendSOAPMessageDisconnectTStore(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
@@ -148,8 +187,6 @@ public:
   void SendSOAPMessageConfigureXRelay(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void SendSOAPMessageCalibrationXRelay(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void SendSOAPMessageConfigure(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
-  void PCsendCommand(string command, string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
-  xoap::MessageReference PCcreateCommandSOAP(string command);
   //  void PCanalyzeReply(xoap::MessageReference message, xoap::MessageReference reply,xdaq::ApplicationDescriptor *app);
 
   xoap::MessageReference killAllMessage();
@@ -160,15 +197,6 @@ public:
   xoap::MessageReference createXRelayMessage(const std::string & command, const std::string & setting,
                                              std::set<xdaq::ApplicationDescriptor * > descriptor );
   //
-  std::string HomeDir_;
-  std::string ConfigDir_;  
-  std::string FirmwareDir_;
-  //
-  std::string PeripheralCrateBroadcastXmlFile_;
-  std::string DmbControlFPGAFirmwareFile_;
-  std::string DmbVmeFPGAFirmwareFile_;
-  std::string CfebFPGAFirmwareFile_;
-  std::string TMBFirmwareFile_;
 };
 
 #endif

@@ -181,6 +181,17 @@ public:
   xoap::MessageReference LoadAllVmePromUserid (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference ReadAllCfebPromUserid (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference LoadAllCfebPromUserid (xoap::MessageReference message) throw (xoap::exception::Exception);
+  //
+  xoap::MessageReference EnableJtagWriteALCT192 (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference EnableJtagWriteALCT288 (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference EnableJtagWriteALCT288bn (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference EnableJtagWriteALCT288bp (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference EnableJtagWriteALCT288fp (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference EnableJtagWriteALCT384 (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference EnableJtagWriteALCT384Mirror (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference EnableJtagWriteALCT576Mirror (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference EnableJtagWriteALCT672 (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference EnableJtagWriteALCT672Mirror (xoap::MessageReference message) throw (xoap::exception::Exception);
 
 private:
 
