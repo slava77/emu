@@ -2438,6 +2438,10 @@ std::string EMUjtag::AddTrailer_(std::string filename,
 // SVF programming:
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 int EMUjtag::SVFLoad(int *jch, const char *fn, int db ) {
+  //
+  // Note, in order to use this method, the TMB firmware must be loaded first...
+  // Comment out below in order to use the bootstrap register
+  //
   int MAXBUFSIZE=8200;
   unsigned char snd[MAXBUFSIZE], rcv[MAXBUFSIZE], expect[MAXBUFSIZE],rmask[MAXBUFSIZE],smask[MAXBUFSIZE],cmpbuf[MAXBUFSIZE];
   unsigned char sndbuf[MAXBUFSIZE],rcvbuf[MAXBUFSIZE], realsnd[MAXBUFSIZE];
@@ -2494,7 +2498,10 @@ int EMUjtag::SVFLoad(int *jch, const char *fn, int db ) {
   //
   printf("=== Going to send %d DATA packages \n",total_packages) ;
   //
-  tmb_->start(jtag_chain_tmb[jchan-1]); 
+  // Uncomment the following line to use the Bootstrap register
+  //  tmb_->start(jtag_chain_tmb[jchan-1]); 
+  //
+  tmb_->start(jtag_chain_tmb[jchan-1],jtagSourceFPGA);  
   //
   count=0; 
   nowrit=1;
