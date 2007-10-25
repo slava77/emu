@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.33 2007/10/24 13:21:30 rakness Exp $
+// $Id: TMB.h,v 3.34 2007/10/25 17:36:12 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.34  2007/10/25 17:36:12  rakness
+// Add option to enable/disable write to USER JTAG register to allow selective masking of broadcast JTAG commands.  Also enable/disable clocks with explicit write rather than read,write
+//
 // Revision 3.33  2007/10/24 13:21:30  rakness
 // try to clean up and document TMB to MPC methods
 //
@@ -1144,6 +1147,12 @@ public:
   inline int  GetRpcInjectorWriteDataMSBs() { return rpc_inj_wdata_; }
   //
   //------------------------------------------------------------------
+  //0XD4 = ADR_JTAGSM0:  JTAG State Machine Control (reads JTAG PROM)
+  //------------------------------------------------------------------
+  inline void SetJtagDisableWriteToAdr10(int jtag_disable_write_to_adr10) { jtag_disable_write_to_adr10_ = jtag_disable_write_to_adr10; }
+  inline int  GetJtagDisableWriteToAdr10() { return jtag_disable_write_to_adr10_; }
+  //
+  //------------------------------------------------------------------
   //0XE6 = ADR_DDDR0:  RAT 3D3444 RPC Delays, 1 step = 2ns
   //------------------------------------------------------------------
   //!rpc0_rat_delay = [0-15] (2ns)
@@ -1860,6 +1869,7 @@ private:
   //------------------------------------------------------------------
   int jtag_state_machine_start_;
   int jtag_state_machine_sreset_;
+  int jtag_disable_write_to_adr10_;
   int jtag_state_machine_throttle_;
   //
   int read_jtag_state_machine_start_;
@@ -1873,6 +1883,7 @@ private:
   int read_jtag_state_machine_vme_ready_;
   int read_jtag_state_machine_ok_;
   int read_jtag_state_machine_oe_;
+  int read_jtag_disable_write_to_adr10_;
   int read_jtag_state_machine_throttle_;
   //
   //------------------------------------------------------------------

@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.51 2007/10/24 13:21:31 rakness Exp $
+// $Id: TMB.cc,v 3.52 2007/10/25 17:36:12 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.52  2007/10/25 17:36:12  rakness
+// Add option to enable/disable write to USER JTAG register to allow selective masking of broadcast JTAG commands.  Also enable/disable clocks with explicit write rather than read,write
+//
 // Revision 3.51  2007/10/24 13:21:31  rakness
 // try to clean up and document TMB to MPC methods
 //
@@ -5200,21 +5203,27 @@ void TMB::executeCommand(std::string command) {
 
 
 void TMB::disableAllClocks(){
-  /// disable all clocks to cfeb and alct. Should be used when
-  /// updating the ALCT firmware
-   tmb_vme(VME_READ, vme_step_adr,sndbuf,rcvbuf,NOW);
-   sndbuf[0]=rcvbuf[0] & 0x1f;
-   sndbuf[1]=rcvbuf[1] & 0xf8;
-   tmb_vme(VME_WRITE, vme_step_adr, sndbuf,rcvbuf,NOW);
+  /// Disable all clocks to cfeb and alct. Should be used when updating the ALCT firmware
+  //
+  // Reading in broadcast mode does not work.  Comment the next few lines out...
+  //  tmb_vme(VME_READ, vme_step_adr,sndbuf,rcvbuf,NOW);  
+  //  sndbuf[0]=rcvbuf[0] & 0x1f;
+  //  sndbuf[1]=rcvbuf[1] & 0xf8;
+  sndbuf[0]= 0x1f;
+  sndbuf[1]= 0xf8;
+  tmb_vme(VME_WRITE, vme_step_adr, sndbuf,rcvbuf,NOW);
 }
 
 void TMB::enableAllClocks(){
-  /// enable all clocks to cfeb and alct. Should be used after
-  /// updating the ALCT firmware to get the TMB back in default mode.
-   tmb_vme(VME_READ, vme_step_adr,sndbuf,rcvbuf,NOW);
-   sndbuf[0]=rcvbuf[0] | 0xe0;
-   sndbuf[1]=rcvbuf[1] | 0x07;
-   tmb_vme(VME_WRITE, vme_step_adr, sndbuf,rcvbuf,NOW);
+  /// Dnable all clocks to cfeb and alct. Should be used after updating the ALCT firmware to get the TMB back in default mode.
+  //
+  // Reading in broadcast mode does not work.  Comment the next few lines out...
+  //  tmb_vme(VME_READ, vme_step_adr,sndbuf,rcvbuf,NOW);   
+  //  sndbuf[0]=rcvbuf[0] | 0xe0;
+  //  sndbuf[1]=rcvbuf[1] | 0x07;
+  sndbuf[0] = 0xe0;
+  sndbuf[1] = 0x07;
+  tmb_vme(VME_WRITE, vme_step_adr, sndbuf,rcvbuf,NOW);
 }
 
 void TMB::TriggerTestInjectALCT(){
@@ -6969,6 +6978,11 @@ void TMB::SetTMBRegisterDefaults_() {
   rpc_inj_wdata_ = rpc_inj_wdata_default;
   //
   //------------------------------------------------------------------
+  //0XD4 = ADR_JTAGSM0:  JTAG State Machine Control (reads JTAG PROM)
+  //------------------------------------------------------------------
+  jtag_disable_write_to_adr10_ = jtag_disable_write_to_adr10_default;
+  //
+  //------------------------------------------------------------------
   //0XE6 = ADR_DDDR0:  RAT 3D3444 RPC Delays, 1 step = 2ns
   //------------------------------------------------------------------
   rpc0_rat_delay_ = rpc0_rat_delay_default;
@@ -7330,6 +7344,7 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_jtag_state_machine_vme_ready_   = ExtractValueFromData(data,jtag_state_machine_vme_ready_bitlo  ,jtag_state_machine_vme_ready_bithi  );
     read_jtag_state_machine_ok_          = ExtractValueFromData(data,jtag_state_machine_ok_bitlo         ,jtag_state_machine_ok_bithi         );
     read_jtag_state_machine_oe_          = ExtractValueFromData(data,jtag_state_machine_oe_bitlo         ,jtag_state_machine_oe_bithi         );
+    read_jtag_disable_write_to_adr10_    = ExtractValueFromData(data,jtag_disable_write_to_adr10_bitlo   ,jtag_disable_write_to_adr10_bithi   );
     read_jtag_state_machine_throttle_    = ExtractValueFromData(data,jtag_state_machine_throttle_bitlo   ,jtag_state_machine_throttle_bithi   );
     //
   } else if ( address == jtag_sm_wdcnt_adr ) {    
@@ -7886,6 +7901,7 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "    VME ready        = "   << std::hex << read_jtag_state_machine_vme_ready_   << std::endl;
     (*MyOutput_) << "    state machine OK = "   << std::hex << read_jtag_state_machine_ok_          << std::endl;
     (*MyOutput_) << "    throttle         = 0x" << std::hex << read_jtag_state_machine_throttle_    << std::endl;
+    (*MyOutput_) << "    disable wrt to 10= "   << std::hex << read_jtag_disable_write_to_adr10_   << std::endl;
     (*MyOutput_) << "    jtag oe          = "   << std::hex << read_jtag_state_machine_oe_          << std::endl;
     //
   } else if ( address == jtag_sm_wdcnt_adr ) {
@@ -8327,6 +8343,7 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //------------------------------------------------------------------
     InsertValueIntoDataWord(jtag_state_machine_start_   ,jtag_state_machine_start_bithi   ,jtag_state_machine_start_bitlo   ,&data_word);
     InsertValueIntoDataWord(jtag_state_machine_sreset_  ,jtag_state_machine_sreset_bithi  ,jtag_state_machine_sreset_bitlo  ,&data_word);
+    InsertValueIntoDataWord(jtag_disable_write_to_adr10_,jtag_disable_write_to_adr10_bithi,jtag_disable_write_to_adr10_bitlo,&data_word);
     InsertValueIntoDataWord(jtag_state_machine_throttle_,jtag_state_machine_throttle_bithi,jtag_state_machine_throttle_bitlo,&data_word);
     //
   } else if ( address == vme_sm_ctrl_adr ) {
