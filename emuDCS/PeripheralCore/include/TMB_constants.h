@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB_constants.h,v 3.12 2007/10/08 15:04:32 rakness Exp $
+// $Id: TMB_constants.h,v 3.13 2007/10/25 17:36:12 rakness Exp $
 // $Log: TMB_constants.h,v $
+// Revision 3.13  2007/10/25 17:36:12  rakness
+// Add option to enable/disable write to USER JTAG register to allow selective masking of broadcast JTAG commands.  Also enable/disable clocks with explicit write rather than read,write
+//
 // Revision 3.12  2007/10/08 15:04:32  rakness
 // add ALCT and TMB raw hits button in hyperDAQ
 //
@@ -1267,6 +1270,11 @@ const int jtag_state_machine_ok_expected          =  1;   //expect JTAG state ma
 const int jtag_state_machine_oe_vmereg            =  jtag_sm_ctrl_adr;
 const int jtag_state_machine_oe_bitlo             = 10;
 const int jtag_state_machine_oe_bithi             = 10;
+//
+const int jtag_disable_write_to_adr10_vmereg      =  jtag_sm_ctrl_adr;
+const int jtag_disable_write_to_adr10_bitlo       = 11;
+const int jtag_disable_write_to_adr10_bithi       = 11;
+const int jtag_disable_write_to_adr10_default     =  0;
 //
 const int jtag_state_machine_throttle_vmereg      =  jtag_sm_ctrl_adr;
 const int jtag_state_machine_throttle_bitlo       = 12;
