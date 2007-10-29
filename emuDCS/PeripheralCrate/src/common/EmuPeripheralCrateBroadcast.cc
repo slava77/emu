@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.1 2007/10/29 12:49:33 gujh Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.2 2007/10/29 17:06:43 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -276,20 +276,30 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   *out << cgicc::form()<<std::endl;
   //
   //
-  //create ALCT filename for firmware based on expected dates...
-  int expected_year       = broadcastALCT->GetExpectedFastControlYear() & 0xffff;
-  int expected_month_tens = (broadcastALCT->GetExpectedFastControlMonth()>>4) & 0xf;
-  int expected_month_ones = (broadcastALCT->GetExpectedFastControlMonth()>>0) & 0xf;
-  int expected_day_tens   = (broadcastALCT->GetExpectedFastControlDay()  >>4) & 0xf;
-  int expected_day_ones   = (broadcastALCT->GetExpectedFastControlDay()  >>0) & 0xf;
-  //
   char alctdate[8];
-  sprintf(alctdate,"%4x%1x%1x%1x%1x",
-	  expected_year,
-	  expected_month_tens,
-	  expected_month_ones,
-	  expected_day_tens,
-	  expected_day_ones);
+  //create ALCT filename for firmware based on expected dates...
+  int expected_year  = broadcastALCT->GetExpectedFastControlYear() ;
+  int expected_month = broadcastALCT->GetExpectedFastControlMonth();
+  int expected_day   = broadcastALCT->GetExpectedFastControlDay()  ;
+  //
+  sprintf(alctdate,"%04u%02u%02u",
+  	  expected_year,
+  	  expected_month,
+  	  expected_day);
+  //
+  // pre-DAQ06 format
+  //  int expected_year       = broadcastALCT->GetExpectedFastControlYear() & 0xffff;
+  //  int expected_month_tens = (broadcastALCT->GetExpectedFastControlMonth()>>4) & 0xf;
+  //  int expected_month_ones = (broadcastALCT->GetExpectedFastControlMonth()>>0) & 0xf;
+  //  int expected_day_tens   = (broadcastALCT->GetExpectedFastControlDay()  >>4) & 0xf;
+  //  int expected_day_ones   = (broadcastALCT->GetExpectedFastControlDay()  >>0) & 0xf;
+  //
+  //  sprintf(alctdate,"%4x%1x%1x%1x%1x",
+  //	  expected_year,
+  //	  expected_month_tens,
+  //	  expected_month_ones,
+  //	  expected_day_tens,
+  //	  expected_day_ones);
   //
   ALCTFirmwareDirectory_     = FirmwareDir_+"alct/"+alctdate+"/";
   //
