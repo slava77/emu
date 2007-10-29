@@ -7210,17 +7210,27 @@ void EmuPeripheralCrate::LoadALCTFirmware(xgi::Input * in, xgi::Output * out )
   char date[8];
   //create filename for firmware based on expected date...
   //If broadcast slot 26 is picked, this will pick slot 26's date tag for ALL the firmware which is downloaded
-  int expected_year       = thisALCT->GetExpectedFastControlYear() & 0xffff;
-  int expected_month_tens = (thisALCT->GetExpectedFastControlMonth()>>4) & 0xf;
-  int expected_month_ones = (thisALCT->GetExpectedFastControlMonth()>>0) & 0xf;
-  int expected_day_tens   = (thisALCT->GetExpectedFastControlDay()  >>4) & 0xf;
-  int expected_day_ones   = (thisALCT->GetExpectedFastControlDay()  >>0) & 0xf;
-  sprintf(date,"%4x%1x%1x%1x%1x",
-	  expected_year,
-	  expected_month_tens,
-	  expected_month_ones,
-	  expected_day_tens,
-	  expected_day_ones);
+  int expected_year  = thisALCT->GetExpectedFastControlYear() ;
+  int expected_month = thisALCT->GetExpectedFastControlMonth();
+  int expected_day   = thisALCT->GetExpectedFastControlDay()  ;
+  //
+  sprintf(date,"%04u%02u%02u",
+  	  expected_year,
+  	  expected_month,
+  	  expected_day);
+  //
+  // pre-DAQ06 format
+  //  int expected_year       = thisALCT->GetExpectedFastControlYear() & 0xffff;
+  //  int expected_month_tens = (thisALCT->GetExpectedFastControlMonth()>>4) & 0xf;
+  //  int expected_month_ones = (thisALCT->GetExpectedFastControlMonth()>>0) & 0xf;
+  //  int expected_day_tens   = (thisALCT->GetExpectedFastControlDay()  >>4) & 0xf;
+  //  int expected_day_ones   = (thisALCT->GetExpectedFastControlDay()  >>0) & 0xf;
+  //  sprintf(date,"%4x%1x%1x%1x%1x",
+  //	  expected_year,
+  //	  expected_month_tens,
+  //	  expected_month_ones,
+  //	  expected_day_tens,
+  //	  expected_day_ones);
   //
   int mintmb = tmb;
   int maxtmb = tmb+1;
