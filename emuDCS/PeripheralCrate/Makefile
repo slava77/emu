@@ -37,6 +37,7 @@ Sources=\
 	CrateUtilities.cc \
         EmuPeripheralCrate.cc \
         EmuPeripheralCrateManager.cc \
+	EmuPeripheralCrateBroadcast.cc \
         EmuRunControlHyperDAQ.cc \
         CSCParser.cc \
         TStoreParser.cc \
