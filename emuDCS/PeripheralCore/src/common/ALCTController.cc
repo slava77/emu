@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ALCTController.cc,v 3.38 2007/10/09 11:10:35 rakness Exp $
+// $Id: ALCTController.cc,v 3.39 2007/10/29 13:07:20 rakness Exp $
 // $Log: ALCTController.cc,v $
+// Revision 3.39  2007/10/29 13:07:20  rakness
+// modify ALCT fast control ID decoding for DAQ06 format
+//
 // Revision 3.38  2007/10/09 11:10:35  rakness
 // remove RAT and ALCT inheritance from EMUjtag, i.e., make calls to EMUjtag methods explicitly through TMB
 //
@@ -1625,9 +1628,14 @@ void ALCTController::PrintFastControlId() {
     }
   }
   //
-  (*MyOutput_) << "day = " << std::hex << GetFastControlDay();
-  (*MyOutput_) << ", month = " << std::hex << GetFastControlMonth();
-  (*MyOutput_) << ", year = " << std::hex << GetFastControlYear() << std::dec << std::endl; 
+  (*MyOutput_) << "day = " << std::dec << GetFastControlDay();
+  (*MyOutput_) << ", month = " << std::dec << GetFastControlMonth();
+  (*MyOutput_) << ", year = " << std::dec << GetFastControlYear() << std::dec << std::endl; 
+  //
+  // pre-DAQ06 format:
+  //(*MyOutput_) << "day = " << std::hex << GetFastControlDay();
+  //(*MyOutput_) << ", month = " << std::hex << GetFastControlMonth();
+  //(*MyOutput_) << ", year = " << std::hex << GetFastControlYear() << std::dec << std::endl; 
   //
   return;
 }
@@ -1635,6 +1643,49 @@ void ALCTController::PrintFastControlId() {
 void ALCTController::DecodeFastControlId_() {
   // ** Extract the Fast Control ID's software values  **
   // ** from the vector of bits read_fastcontrol_id_[]          **
+  //
+  int fastcontrol_regular_mirror_bitlo    = fastcontrol_regular_mirror_bitlo_daq06_format   ;
+  int fastcontrol_regular_mirror_bithi    = fastcontrol_regular_mirror_bithi_daq06_format   ;
+  //
+  int fastcontrol_backward_forward_bitlo  = fastcontrol_backward_forward_bitlo_daq06_format ;
+  int fastcontrol_backward_forward_bithi  = fastcontrol_backward_forward_bithi_daq06_format ;
+  //
+  int fastcontrol_negative_positive_bitlo = fastcontrol_negative_positive_bitlo_daq06_format;
+  int fastcontrol_negative_positive_bithi = fastcontrol_negative_positive_bithi_daq06_format;
+  //
+  int fastcontrol_alct_type_bitlo         = fastcontrol_alct_type_bitlo_daq06_format        ;
+  int fastcontrol_alct_type_bithi         = fastcontrol_alct_type_bithi_daq06_format        ;
+  //
+  int fastcontrol_firmware_year_bitlo     = fastcontrol_firmware_year_bitlo_daq06_format    ;
+  int fastcontrol_firmware_year_bithi     = fastcontrol_firmware_year_bithi_daq06_format    ;
+  //
+  int fastcontrol_firmware_day_bitlo      = fastcontrol_firmware_day_bitlo_daq06_format     ;
+  int fastcontrol_firmware_day_bithi      = fastcontrol_firmware_day_bithi_daq06_format     ;
+  //
+  int fastcontrol_firmware_month_bitlo    = fastcontrol_firmware_month_bitlo_daq06_format   ;
+  int fastcontrol_firmware_month_bithi    = fastcontrol_firmware_month_bithi_daq06_format   ;
+  //
+  // pre-DAQ06 format:
+  //int fastcontrol_regular_mirror_bitlo    = fastcontrol_regular_mirror_bitlo_predaq06_format   ;
+  //int fastcontrol_regular_mirror_bithi    = fastcontrol_regular_mirror_bithi_predaq06_format   ;
+  //
+  //int fastcontrol_backward_forward_bitlo  = fastcontrol_backward_forward_bitlo_predaq06_format ;
+  //int fastcontrol_backward_forward_bithi  = fastcontrol_backward_forward_bithi_predaq06_format ;
+  //
+  //int fastcontrol_negative_positive_bitlo = fastcontrol_negative_positive_bitlo_predaq06_format;
+  //int fastcontrol_negative_positive_bithi = fastcontrol_negative_positive_bithi_predaq06_format;
+  //
+  //int fastcontrol_alct_type_bitlo         = fastcontrol_alct_type_bitlo_predaq06_format        ;
+  //int fastcontrol_alct_type_bithi         = fastcontrol_alct_type_bithi_predaq06_format        ;
+  //
+  //int fastcontrol_firmware_year_bitlo     = fastcontrol_firmware_year_bitlo_predaq06_format    ;
+  //int fastcontrol_firmware_year_bithi     = fastcontrol_firmware_year_bithi_predaq06_format    ;
+  //
+  //int fastcontrol_firmware_day_bitlo      = fastcontrol_firmware_day_bitlo_predaq06_format     ;
+  //int fastcontrol_firmware_day_bithi      = fastcontrol_firmware_day_bithi_predaq06_format     ;
+  //
+  //int fastcontrol_firmware_month_bitlo    = fastcontrol_firmware_month_bitlo_predaq06_format   ;
+  //int fastcontrol_firmware_month_bithi    = fastcontrol_firmware_month_bithi_predaq06_format   ;
   //
   int number_of_bits = fastcontrol_regular_mirror_bithi - fastcontrol_regular_mirror_bitlo + 1;  
   fastcontrol_regular_mirror_ = tmb_->bits_to_int(read_fastcontrol_id_+fastcontrol_regular_mirror_bitlo,
@@ -1730,21 +1781,30 @@ int ALCTController::GetFastControlMonth() {
 
 void ALCTController::SetExpectedFastControlYear(int firmware_year) { 
   //
-  expected_fastcontrol_firmware_year_ = tmb_->ConvertToHexAscii(firmware_year); 
+  expected_fastcontrol_firmware_year_ = firmware_year; 
+  //
+  // pre-DAQ06 format:
+  //expected_fastcontrol_firmware_year_ = tmb_->ConvertToHexAscii(firmware_year); 
   //
   return;
 } 
 //
 void ALCTController::SetExpectedFastControlDay(int firmware_day) { 
   //
-  expected_fastcontrol_firmware_day_ = tmb_->ConvertToHexAscii(firmware_day); 
+  expected_fastcontrol_firmware_day_ = firmware_day; 
+  //
+  // pre-DAQ06 format:
+  //expected_fastcontrol_firmware_day_ = tmb_->ConvertToHexAscii(firmware_day); 
   //
   return;
 } 
 //
 void ALCTController::SetExpectedFastControlMonth(int firmware_month) { 
   //
-  expected_fastcontrol_firmware_month_ = tmb_->ConvertToHexAscii(firmware_month); 
+  expected_fastcontrol_firmware_month_ = firmware_month; 
+  //
+  // pre-DAQ06 format:
+  //expected_fastcontrol_firmware_month_ = tmb_->ConvertToHexAscii(firmware_month); 
   //
   return;
 } 
