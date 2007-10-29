@@ -133,7 +133,7 @@ int main() {
   int hp[6];
   //
   std::string tmb_firmware_string = "/home/rakness/firmware/tmb/20070813/tmb";
-  char alct_firmware_string[100] = "/home/rakness/firmware/alct/20070409/alct672/alct672.svf";
+  char alct_firmware_string[100] = "/home/rakness/firmware/alct/20070828/alct672/alct672.svf";
   char rat_firmware_string[100] = "/home/rakness/firmware/rat/20060828/rat.svf";
   int jch, debug_mode;
   //

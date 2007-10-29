@@ -715,26 +715,61 @@ const int delay_line_group_select_default  = OFF;
 ////////////////////////////////////////
 // Fast Control ID register bit-map:
 ////////////////////////////////////////
-const int fastcontrol_regular_mirror_bitlo       = 0;
-const int fastcontrol_regular_mirror_bithi       = 0;
+// pre-DAQ-06 format:
+const int fastcontrol_regular_mirror_bitlo_predaq06_format       = 0;
+const int fastcontrol_regular_mirror_bithi_predaq06_format       = 0;
 //
-const int fastcontrol_backward_forward_bitlo     = 1;
-const int fastcontrol_backward_forward_bithi     = 1;
+const int fastcontrol_backward_forward_bitlo_predaq06_format     = 1;
+const int fastcontrol_backward_forward_bithi_predaq06_format     = 1;
 //
-const int fastcontrol_negative_positive_bitlo    = 2;
-const int fastcontrol_negative_positive_bithi    = 2;
+const int fastcontrol_negative_positive_bitlo_predaq06_format    = 2;
+const int fastcontrol_negative_positive_bithi_predaq06_format    = 2;
 //
-const int fastcontrol_alct_type_bitlo            = 4;
-const int fastcontrol_alct_type_bithi            = 7;
+const int fastcontrol_alct_type_bitlo_predaq06_format            = 4;
+const int fastcontrol_alct_type_bithi_predaq06_format            = 7;
 //
-const int fastcontrol_firmware_year_bitlo        = 8;
-const int fastcontrol_firmware_year_bithi        =23;
+const int fastcontrol_firmware_year_bitlo_predaq06_format        = 8;
+const int fastcontrol_firmware_year_bithi_predaq06_format        =23;
 //
-const int fastcontrol_firmware_day_bitlo         =24;
-const int fastcontrol_firmware_day_bithi         =31;
+const int fastcontrol_firmware_day_bitlo_predaq06_format         =24;
+const int fastcontrol_firmware_day_bithi_predaq06_format         =31;
 //
-const int fastcontrol_firmware_month_bitlo       =32;
-const int fastcontrol_firmware_month_bithi       =39;
+const int fastcontrol_firmware_month_bitlo_predaq06_format       =32;
+const int fastcontrol_firmware_month_bithi_predaq06_format       =39;
+//
+// DAQ-06 format:
+const int fastcontrol_firmware_version_bitlo_daq06_format     = 0;
+const int fastcontrol_firmware_version_bithi_daq06_format     = 5;
+//
+const int fastcontrol_alct_type_bitlo_daq06_format            = 6;
+const int fastcontrol_alct_type_bithi_daq06_format            = 8;
+//
+const int fastcontrol_backward_forward_bitlo_daq06_format     = 9;
+const int fastcontrol_backward_forward_bithi_daq06_format     = 9;
+//
+const int fastcontrol_negative_positive_bitlo_daq06_format    =10;
+const int fastcontrol_negative_positive_bithi_daq06_format    =10;
+//
+const int fastcontrol_regular_mirror_bitlo_daq06_format       =11;
+const int fastcontrol_regular_mirror_bithi_daq06_format       =11;
+//
+const int fastcontrol_kill_ghosts_bitlo_daq06_format          =12;
+const int fastcontrol_kill_ghosts_bithi_daq06_format          =12;
+//
+const int fastcontrol_reduced_latency_bitlo_daq06_format      =13;
+const int fastcontrol_reduced_latency_bithi_daq06_format      =13;
+//
+const int fastcontrol_pattern_b_enabled_bitlo_daq06_format    =14;
+const int fastcontrol_pattern_b_enabled_bithi_daq06_format    =14;
+//
+const int fastcontrol_firmware_year_bitlo_daq06_format        =19;
+const int fastcontrol_firmware_year_bithi_daq06_format        =30;
+//
+const int fastcontrol_firmware_day_bitlo_daq06_format         =31;
+const int fastcontrol_firmware_day_bithi_daq06_format         =35;
+//
+const int fastcontrol_firmware_month_bitlo_daq06_format       =36;
+const int fastcontrol_firmware_month_bithi_daq06_format       =39;
 //
 // Constants to decode:
 const int REGULAR_FIRMWARE_TYPE                  = 0;
@@ -751,6 +786,16 @@ const int FIRMWARE_TYPE_288                      = 2;
 const int FIRMWARE_TYPE_384                      = 3;
 const int FIRMWARE_TYPE_576                      = 5;
 const int FIRMWARE_TYPE_672                      = 6;
+//
+// constants added for DAQ06 format:
+const int PATTERN_B_DISABLED                     = 0;
+const int PATTERN_B_ENABLED                      = 1;
+//
+const int NOT_REDUCED_LATENCY_FIRMWARE           = 0;
+const int REDUCED_LATENCY_FIRMWARE               = 1;
+//
+const int KILL_GHOSTS_DISABLED                   = 0;
+const int KILL_GHOSTS_ENABLED                    = 1;
 //
 //
 /////////////////////////////////////////////////////
