@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.38 2007/10/25 17:38:30 rakness Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.39 2007/10/29 12:32:37 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -53,14 +53,6 @@
 #include "TStoreParser.h"
 #include "CrateUtilities.h"
 
-static int calsetup;
-EmuController * MyController;
-Crate * broadcastCrate;
-DAQMB * broadcastDMB;
-TMB * broadcastTMB;
-ALCTController * broadcastALCT;
-CCB * broadcastCCB;
-
 using namespace cgicc;
 using namespace std;
 
@@ -77,29 +69,6 @@ public:
   xdata::Table table_;                            
   int LTCDone;
   //
-  std::string HomeDir_;
-  std::string ConfigDir_;  
-  std::string FirmwareDir_;
-  //
-  void DefineBroadcastCrate();
-  std::string PeripheralCrateBroadcastXmlFile_;
-  std::string DmbControlFPGAFirmwareFile_;
-  std::string DmbVmeFPGAFirmwareFile_;
-  std::string CfebFPGAFirmwareFile_;
-  std::string TMBFirmwareFile_;
-  //
-  std::string ALCTFirmwareDirectory_     ;
-  //
-  std::string ALCT192FirmwareFile_       ;
-  std::string ALCT288FirmwareFile_       ;
-  std::string ALCT288bnFirmwareFile_     ;
-  std::string ALCT288bpFirmwareFile_     ;
-  std::string ALCT288fpFirmwareFile_     ;
-  std::string ALCT384FirmwareFile_       ;
-  std::string ALCT384MirrorFirmwareFile_ ;
-  std::string ALCT576MirrorFirmwareFile_ ;
-  std::string ALCT672FirmwareFile_       ;
-  std::string ALCT672MirrorFirmwareFile_ ;  
   //
   EmuPeripheralCrateManager(xdaq::ApplicationStub * s);
   //
@@ -112,21 +81,6 @@ public:
   int CompareEmuPeripheralCrateState(std::string state_compare);
   //
   void CheckEmuPeripheralCrateCalibrationState(xgi::Input * in, xgi::Output * out );
-  void LoadCFEBcalchannel(xgi::Input * in, xgi::Output * out );
-  void LoadCFEBinternal(xgi::Input * in, xgi::Output * out );
-  void LoadCFEBexternal(xgi::Input * in, xgi::Output * out );
-  void DmbTurnOnPower(xgi::Input * in, xgi::Output * out );
-  void DmbTurnOffPower(xgi::Input * in, xgi::Output * out );
-  void LoadDACandTrigger(xgi::Input * in, xgi::Output * out );
-  //
-  // Firmware
-  //
-  void LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out );
-  void LoadDMBControlFPGAFirmware(xgi::Input * in, xgi::Output * out );
-  void LoadDMBvmeFPGAFirmware(xgi::Input * in, xgi::Output * out ) throw(xgi::exception::Exception);
-  void LoadCFEBFPGAFirmware(xgi::Input * in, xgi::Output * out );
-  void LoadTMBFirmware(xgi::Input * in, xgi::Output * out );
-  void LoadALCTFirmware(xgi::Input * in, xgi::Output * out );
   //
   void configureAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
   void enableAction(toolbox::Event::Reference e) throw (toolbox::fsm::exception::Exception);
@@ -143,12 +97,7 @@ public:
   //
   xoap::MessageReference LTCResponse (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onConfigure (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onConfigCalCFEB (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onEnable (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onEnableCalCFEBGains (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onEnableCalCFEBCrossTalk (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onEnableCalCFEBSCAPed (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference onEnableCalCFEBComparator (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onDisable (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onHalt (xoap::MessageReference message) throw (xoap::exception::Exception);
   //
