@@ -525,7 +525,7 @@ bool CSCSupervisor::calibrationAction(toolbox::task::WorkLoop *wl)
 		LOG4CPLUS_DEBUG(getApplicationLogger(),
 				"calibrationAction: " << step_counter_);
 
-		sendCommand(command, "EmuPeripheralCrateManager");
+		sendCommand(command, "EmuPeripheralCrateBroadcast");
 		sendCommandWithAttr("Cyclic", start_attr, "LTCControl");
 		sleep(delay);
 	}
@@ -583,7 +583,7 @@ void CSCSupervisor::configureAction(toolbox::Event::Reference evt)
 		if (!isCalibrationMode()) {
 			sendCommand("Configure", "EmuPeripheralCrate");
 		} else {
-			sendCommand("ConfigCalCFEB", "EmuPeripheralCrateManager");
+			sendCommand("ConfigCalCFEB", "EmuPeripheralCrateBroadcast");
 		}
 
 		try {
