@@ -22,7 +22,8 @@
 
 /* // EMu-specific stuff */
 #include "emuDAQ/emuUtil/include/EmuFileWriter.h"
-#include "emuDAQ/emuReadout/include/EmuReader.h"
+// #include "emuDAQ/emuReadout/include/EmuReader.h"
+#include "emuDAQ/emuReadout/include/EmuSpyReader.h"
 #include "emuDAQ/emuClient/include/i2oEmuClientMsg.h"
 #include "emuDAQ/emuUtil/include/EmuServer.h"
 #include "emuDAQ/emuRUI/include/i2oEmuFirstEventNumberMsg.h"
@@ -455,6 +456,13 @@ private:
     /////////////////////////////////////////////////////////////
     // End of exported parameters used for monitoring          //
     /////////////////////////////////////////////////////////////
+
+  // DEBUG START
+  EmuClock *ec_rwl; // for the readout workloop
+  EmuClock *ec_swl; // for the server workloop
+  unsigned int visitCount_rwl, visitCount_swl;
+  
+  // DEBUG END
 
     /**
      * The blocks of the super-fragment under construction.
