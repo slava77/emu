@@ -8,23 +8,23 @@
 
   <xsl:template name="geoContainer">
     <CSC_rings>
-      <ring name="ME+1/1" x="-2100"  y="900" phiOffset="-85" deltaPhi="-10" chamberCorners="-31,262 31,262 15,100 -15,100" yText="242"/>
+      <ring name="ME+1/1" x="-2100" y= "900" phiOffset="-85" deltaPhi="-10" chamberCorners="-31,262 31,262 15,100 -15,100" yText="242"/>
       <ring name="ME+1/2" x="-2100" y= "900" phiOffset="-85" deltaPhi="-10" chamberCorners="-52,448 52,448 38,275 -38,275" yText="428"/>
       <ring name="ME+1/3" x="-2100" y= "900" phiOffset="-85" deltaPhi="-10" chamberCorners="-60,696 60,696 44,504 -44,504" yText="676"/>
       <ring name="ME+2/1" x= "-700" y= "900" phiOffset="-75" deltaPhi="-20" chamberCorners="-75,345 75,345 39,139 -39,139" yText="325"/>
       <ring name="ME+2/2" x= "-700" y= "900" phiOffset="-80" deltaPhi="-10" chamberCorners="-75,695 75,695 45,358 -45,358" yText="675"/>
-      <ring name="ME+3/1" x=  "700" y= "900" phiOffset="-75" deltaPhi="-20" chamberCorners="-75,345 75,345 39,139 -39,139" yText="325"/>
+      <ring name="ME+3/1" x=  "700" y= "900" phiOffset="-75" deltaPhi="-20" chamberCorners="-75,345 75,345 39,161 -39,161" yText="325"/>
       <ring name="ME+3/2" x=  "700" y= "900" phiOffset="-80" deltaPhi="-10" chamberCorners="-75,695 75,695 45,358 -45,358" yText="675"/>
-      <ring name="ME+4/1" x= "2100" y= "900" phiOffset="-75" deltaPhi="-20" chamberCorners="-75,345 75,345 39,139 -39,139" yText="325"/>
+      <ring name="ME+4/1" x= "2100" y= "900" phiOffset="-75" deltaPhi="-20" chamberCorners="-75,345 75,345 39,178 -39,178" yText="325"/>
       <ring name="ME+4/2" x= "2100" y= "900" phiOffset="-80" deltaPhi="-10" chamberCorners="-75,695 75,695 45,358 -45,358" yText="675"/>
       <ring name="ME-1/1" x=" 2100" y="-900" phiOffset="-85" deltaPhi="-10" chamberCorners="-31,262 31,262 15,100 -15,100" yText="242"/>
       <ring name="ME-1/2" x= "2100" y="-900" phiOffset="-85" deltaPhi="-10" chamberCorners="-52,448 52,448 38,275 -38,275" yText="428"/>
       <ring name="ME-1/3" x= "2100" y="-900" phiOffset="-85" deltaPhi="-10" chamberCorners="-60,696 60,696 44,504 -44,504" yText="676"/>
       <ring name="ME-2/1" x=  "700" y="-900" phiOffset="-75" deltaPhi="-20" chamberCorners="-75,345 75,345 39,139 -39,139" yText="325"/>
       <ring name="ME-2/2" x=  "700" y="-900" phiOffset="-80" deltaPhi="-10" chamberCorners="-75,695 75,695 45,358 -45,358" yText="675"/>
-      <ring name="ME-3/1" x= "-700" y="-900" phiOffset="-75" deltaPhi="-20" chamberCorners="-75,345 75,345 39,139 -39,139" yText="325"/>
+      <ring name="ME-3/1" x= "-700" y="-900" phiOffset="-75" deltaPhi="-20" chamberCorners="-75,345 75,345 39,161 -39,161" yText="325"/>
       <ring name="ME-3/2" x= "-700" y="-900" phiOffset="-80" deltaPhi="-10" chamberCorners="-75,695 75,695 45,358 -45,358" yText="675"/>
-      <ring name="ME-4/1" x="-2100" y="-900" phiOffset="-75" deltaPhi="-20" chamberCorners="-75,345 75,345 39,139 -39,139" yText="325"/>
+      <ring name="ME-4/1" x="-2100" y="-900" phiOffset="-75" deltaPhi="-20" chamberCorners="-75,345 75,345 39,178 -39,178" yText="325"/>
       <ring name="ME-4/2" x="-2100" y="-900" phiOffset="-80" deltaPhi="-10" chamberCorners="-75,695 75,695 45,358 -45,358" yText="675"/>
     </CSC_rings>
   </xsl:template>
@@ -97,7 +97,8 @@
   <xsl:template mode="table" match="RUI">
       <tr>
 	<th class="RUI">RUI</th>
-	<th class="computer" colspan="3">computer</th>
+	<th class="computer" colspan="4">computer</th>
+	<th class="DCC" colspan="2">DCC</th>
 	<th class="DDU" colspan="3">DDU</th>
 	<th class="fiber" colspan="3">fiber cassette</th>
 	<th class="PC" colspan="3">peripheral crate</th>
@@ -106,8 +107,11 @@
       <tr>
 	<th class="RUI">instance</th>
 	<th class="computer">host</th>
+	<th class="computer">alias</th>
 	<th class="computer">port</th>
 	<th class="computer">schar</th>
+	<th class="DCC">fifo</th>
+	<th class="DCC">S-link</th>
 	<th class="DDU">crate</th>
 	<th class="DDU">slot</th>
 	<th class="DDU">input</th>
@@ -142,8 +146,11 @@
 	</a>
       </td>
       <td class="computer"><xsl:value-of select="../../@host"/></td>
+      <td class="computer"><xsl:value-of select="../../@alias"/></td>
       <td class="computer"><xsl:value-of select="../../@port"/></td>
       <td class="computer"><xsl:value-of select="../../@schar"/></td>
+      <td class="DCC"><xsl:value-of select="../../DCC/@fifo"/></td>
+      <td class="DCC"><xsl:value-of select="../../DCC/@slink"/></td>
       <td class="DDU"><xsl:value-of select="../@crate"/></td>
       <td class="DDU"><xsl:value-of select="../@slot"/></td>
       <td class="DDU"><xsl:value-of select="@id"/></td>
@@ -168,13 +175,11 @@
 	<style>
 	  table.mapping td, th { border-width: 0px 0px 0px 0px; padding: 0px 2px 0px 2px; color:#99BBFF; }
 	  table.mapping { background-color: #2A3B90; }
-	  <!-- 	  table.mapping .RUI,.DDU,.PC { background-color: #334499; } -->
-	  <!-- 	  table.mapping .computer,.fiber,.chamber { background-color: #223388; } -->
-	  table.mapping td.RUI,td.DDU,td.PC { background-color: #334499; }
-	  table.mapping td.computer,td.fiber,td.chamber { background-color: #223388; }
-	  table.mapping th.RUI,th.DDU,th.PC { background-color: #112277; }
-	  table.mapping th.computer,th.fiber,th.chamber { background-color: #001177; }
-	  table.mapping td.RUI,td.DDU,td.PC,td.computer,td.fiber {  text-align:center; }
+	  table.mapping td.RUI,td.DCC,td.fiber,td.chamber { background-color: #334499; }
+	  table.mapping td.computer,td.DDU,td.PC { background-color: #223388; }
+	  table.mapping th.RUI,th.DCC,th.fiber,th.chamber { background-color: #112277; }
+	  table.mapping th.computer,th.DDU,th.PC { background-color: #001177; }
+	  table.mapping td.RUI,td.DCC,td.DDU,td.PC,td.computer,td.fiber {  text-align:center; }
 	  table.mapping a:link,a:active,a:visited { color:#99BBFF; }
 	  table.mapping a:hover { color:#FFFF00; font-weight:bold; }
 	</style>
