@@ -142,6 +142,13 @@ applicationBSem_(BSem::FULL)
     ruiTaPoolName << "EmuRUI" << instance_ << "-to-EmuTA";
     ruiTaPool_ = createHeapAllocatorMemoryPool(poolFactory_, ruiTaPoolName.str());
 
+    // DEBUG START
+    visitCount_rwl = 0;
+    visitCount_swl = 0;
+    ec_rwl = new EmuClock(100);
+    ec_swl = new EmuClock(100);
+    // DEBUG END
+
     LOG4CPLUS_INFO(logger_, "End of constructor");
 }
 
@@ -1654,7 +1661,7 @@ throw (toolbox::fsm::exception::Exception)
         try
         {
             workLoop_ =
-                workLoopFactory_->getWorkLoop(workLoopName_, "waiting");
+                workLoopFactory_->getWorkLoop(workLoopName_, "polling");
         }
         catch(xcept::Exception e)
         {
@@ -1719,7 +1726,7 @@ throw (toolbox::fsm::exception::Exception)
 	  try
 	    {
 	      clients_[iClient]->workLoop =
-                workLoopFactory_->getWorkLoop(clients_[iClient]->workLoopName, "waiting");
+                workLoopFactory_->getWorkLoop(clients_[iClient]->workLoopName, "polling");
 	    }
 	  catch(xcept::Exception e)
 	    {
@@ -2218,6 +2225,20 @@ bool EmuRUI::workLoopAction(toolbox::task::WorkLoop *wl)
 	  pauseForOtherThreads = 5000;
 	  break;
         case 'E':  // Enabled
+	  // DEBUG START
+	  visitCount_rwl++;
+	  if ( ec_rwl->timeIsUp() ){
+	    std::cout << "  " << workLoopName_.toString()
+		      << "   readout loop: " << visitCount_rwl
+		      << "   server loop: " << visitCount_swl
+		      << std::endl << std::flush;
+	    LOG4CPLUS_INFO(logger_,
+			   "  " << workLoopName_.toString()
+			   << "   readout loop: " << visitCount_rwl
+			   << "   server loop: " << visitCount_swl
+			   );
+	  }
+	  // DEBUG END
 	  pauseForOtherThreads = processAndCommunicate();
 	  isToBeRescheduled    = ( pauseForOtherThreads >= 0 );
 	  break;
@@ -2284,7 +2305,21 @@ bool EmuRUI::serverLoopAction(toolbox::task::WorkLoop *wl)
 	  // Find out from which work loop we dropped in here
 	  for ( unsigned int iClient=0; iClient<clients_.size(); ++iClient ){
 	    if ( clients_[iClient]->workLoop == wl ){
-// 	      LOG4CPLUS_DEBUG(logger_, "Sending data from " << clients_[iClient]->workLoopName << " ("<< wl << ")");
+	      // DEBUG START
+	      visitCount_swl++;
+	      if ( ec_swl->timeIsUp() ){
+		std::cout << "  " << clients_[iClient]->workLoopName 
+			  << "   readout loop: " << visitCount_rwl
+			  << "   server loop: " << visitCount_swl
+			  << std::endl << std::flush;
+		LOG4CPLUS_INFO(logger_,
+			       "  " << clients_[iClient]->workLoopName 
+			       << "   readout loop: " << visitCount_rwl
+			       << "   server loop: " << visitCount_swl
+			       );
+	      }
+	      // DEBUG END
+// 	      LOG4CPLUS_INFO(logger_, "Sending data from " << clients_[iClient]->workLoopName << " ("<< wl << ")");
 	      clients_[iClient]->server->sendData();
 	    break;
 	    }
@@ -2659,7 +2694,7 @@ int EmuRUI::continueConstructionOfSuperFrag()
 			  ", size: "       << dataLength );
 	  // Prepare the old block(s) to be sent out. 
 	  // They will be assumed to belong to the previous known event number.
-	  finalizeSuperFragment();
+	  if ( passDataOnToRUBuilder_.value_ ) finalizeSuperFragment();
 	  previousEventNumber_ = eventNumber_;
 	  nEventsRead_++;
 	  // Mark the last block for clients
@@ -2686,7 +2721,7 @@ int EmuRUI::continueConstructionOfSuperFrag()
 	if ( trailer ){
 	  // Prepare the block(s) to be sent out.
 	  // They will be assumed to belong to the previous known event number.
-	  finalizeSuperFragment();
+	  if ( passDataOnToRUBuilder_.value_ ) finalizeSuperFragment();
 	  insideEvent_ = false;
 	  previousEventNumber_ = eventNumber_;
 	  nEventsRead_++;
@@ -2730,7 +2765,7 @@ int EmuRUI::continueConstructionOfSuperFrag()
 
 	if ( trailer ){
 	  // Prepare the block(s) to be sent out.
-	  finalizeSuperFragment();
+	  if ( passDataOnToRUBuilder_.value_ ) finalizeSuperFragment();
 	  insideEvent_ = false;
 	  previousEventNumber_ = eventNumber_;
 	  nEventsRead_++;
@@ -3463,12 +3498,12 @@ bool EmuRUI::interestingDDUErrorBitPattern(char* const data, const int dataLengt
   }
   // 2)
   if ( trailerShortWord[6] & 0x4000 ) {    // DDU Trailer-1 bit 46
-    LOG4CPLUS_ERROR(logger_,
-		    "DDU error: bad event read from " 
-		    << deviceReader_->getName()
-		    << ". (bit T-1:46) Event "
-		    << deviceReader_->eventNumber()
-		    << " (" << nEventsRead_ << " read)");
+//     LOG4CPLUS_ERROR(logger_,
+// 		    "DDU error: bad event read from " 
+// 		    << deviceReader_->getName()
+// 		    << ". (bit T-1:46) Event "
+// 		    << deviceReader_->eventNumber()
+// 		    << " (" << nEventsRead_ << " read)");
     foundError = true;
   }
   // 3)
