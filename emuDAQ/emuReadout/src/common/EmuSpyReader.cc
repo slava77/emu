@@ -19,10 +19,14 @@
 EmuSpyReader::EmuSpyReader( std::string filename, int format, bool debug )
   : EmuReader( filename, format, debug ),
     theFileDescriptor( -1 )
-// DEBUG START
-    ,ec(100)
-// DEBUG END
 {
+// DEBUG START
+  ec  = new EmuClock(100);
+  ec1 = new EmuClock(100);
+  ec2 = new EmuClock(100);
+  ec3 = new EmuClock(100);
+  ec4 = new EmuClock(100);
+// DEBUG END
   open( filename );
   // MOVED TO enable() START
 //   reset();
@@ -42,6 +46,11 @@ EmuSpyReader::EmuSpyReader( std::string filename, int format, bool debug )
 
 EmuSpyReader::~EmuSpyReader(){
   close();
+  delete ec;
+  delete ec1;
+  delete ec2;
+  delete ec3;
+  delete ec4;
 }
 
 void EmuSpyReader::open(std::string filename) {
@@ -189,71 +198,9 @@ void EmuSpyReader::resetAndEnable(){
   theDeviceIsResetAndEnabled = true;
 }
 
-// int EmuSpyReader::readDDU(unsigned short **buf) {
 int EmuSpyReader::readDDU(unsigned short*& buf) {
+
   theLogMessage = "";
-#ifndef USE_DDU2004
-//---------------------------------------------------------------------//
-// use the -DUSE_DDU2004 switch in the Makefile to switch between DDU readout modes
-//---------------------------------------------------------------------//
-
-  // the size of package is somewhat smaller than 9000 as some
-  // stuff gets stripped off before it arrives
-  const unsigned int ushortsize = sizeof(unsigned short);
-  const unsigned int sizeOfPacket=8976*ushortsize; //9000;
-  const int maxPackets=50;
-  unsigned char tmpRead[maxPackets*sizeOfPacket];
-
-  // continue to read 8976b packages until readout <8976b
-  int pointer(0);
-  int count(0);
-  int packageCounter(0);
-
-
-  // it is very reasonable to assume that the event lines up w/ the first package ...
-  do {
-    // read package and append to big buffer
-    count = ::read(theFileDescriptor,&(tmpRead[pointer]),sizeOfPacket);
-    if (count <0) std::cout << "EmuSpyReader::readDDU: ERROR - " <<std::strerror(errno) << std::endl;
-    
-    // update pointer
-    pointer+=count;
-
-    if(count<=64){
-      // Find the TRL1 signature (00 80 00 80 ff ff 00 80) and
-      // adjust the end of buffer to point after TRL3 (offset: 3x8bytes)
-      for (int newPtr=pointer-count-1; newPtr<(pointer  -1); newPtr++){
-	if ((tmpRead[newPtr  ]==0x00) && (tmpRead[newPtr+1]==0x80) &&
-	    (tmpRead[newPtr+2]==0x00) && (tmpRead[newPtr+3]==0x80) &&
-	    (tmpRead[newPtr+4]==0xff) && (tmpRead[newPtr+5]==0xff) &&
-	    (tmpRead[newPtr+6]==0x00) && (tmpRead[newPtr+7]==0x80)){
-	  pointer=newPtr+3*8;
-	  break;
-	}  
-      }
-    }
-
-
-    // update package counter and check on buffer overflow
-    if (++packageCounter>maxPackets){
-      std::cerr << "dduRead: WARNING - INTERNAL BUFFER OVERFLOW" << std::endl;
-      break;
-    }
-    // (LG) wait till I stop receiving full packets
-    // (LG) should add header/tailer auto-check
-  } while ((count * ushortsize)==sizeOfPacket);
-
-
-#ifdef DEBUG_
-  std::cout << "event statistics: " << packageCounter
-       << " ("<< pointer*sizeof(tmpRead[0]) << "bytes)" << std::endl;
-#endif
-
-  // pass the joy on to rest of the world
-    *buf=(unsigned short *)tmpRead;
-
-  return pointer;
-#else
 //-------------------------------------------------------------------//
 //  MemoryMapped DDU2004 readout
 //-------------------------------------------------------------------//
@@ -266,6 +213,8 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
   pmissing_prev=0;
   packets=0;
 
+  visitCount++;
+
   // EndOfEventMissing bit will be unset when EndOfEvent is found
   theErrorFlag = EndOfEventMissing;
 
@@ -273,6 +222,16 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
 
     // Get the write pointer (relative to buf_start) of the kernel driver.
     buf_pnt_kern=*(unsigned long int *)(buf_start+BIGPHYS_PAGES_2*PAGE_SIZE-TAILPOS);
+
+//     // START DEBUG
+//     if ( ec1->timeIsUp() ){
+//       std::cout << " v:" << std::setw(10) << visitCount
+//                 << " idle loop count=" << iloop
+//                 << " buf_pnt_kern=" << buf_pnt_kern
+//                 << " buf_pnt=" << buf_pnt
+//                 << std::endl << std::flush;
+//     }
+//     // END DEBUG
 
     // If no data for a long time, abort.
     if(iloop>100000){timeout=1; timeoutCount++; theErrorFlag|=Timeout; break;}
@@ -298,6 +257,24 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
     // Get the reset counter from the first entry of the packet info ring...
     ring_loop_kern2=*(unsigned short int *)ring_start;
     ring_loop_kern2=0x3fff&ring_loop_kern2;
+
+//     // START DEBUG
+//     if ( ec2->timeIsUp() ){
+//       std::cout << " v:" << std::setw(10) << visitCount
+//                 << " ring_loop_kern=" << ring_loop_kern
+//                 << " ring_loop_kern2=" << ring_loop_kern2
+//                 << " ring_loop=" << ring_loop
+//                 << " ring_pnt=" << ring_pnt
+//                 << " buf_pnt_kern=" << buf_pnt_kern
+//                 << " buf_pnt=" << buf_pnt
+//                 << " length=" << length
+//                 << " pmissing=" << (pmissing==0x8000?"TRUE":"FALSE")
+//                 << " end_event=" << (end_event==0x4000?"TRUE":"FALSE")
+//                 << std::endl << std::flush;
+//     }
+//     // END DEBUG
+
+
     // ... and compare it with our reset count. If they're different, the
     // kernel has looped back (at least) one time more than we have.
     // If, in addition, the write pointer has moved past our read pointer, data must have
@@ -311,6 +288,22 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
       theLogMessage = theName+": buffer overwrite.";
       bufferOverwriteCount++;
       theErrorFlag|=BufferOverwrite;
+
+//       // START DEBUG
+//       if ( ec3->timeIsUp() ){
+// 	std::cout << " v:" << std::setw(10) << visitCount
+// 		  << " " << theLogMessage << " " 
+// 		  << " ring_loop_kern=" << ring_loop_kern
+// 		  << " ring_loop_kern2=" << ring_loop_kern2
+// 		  << " ring_loop=" << ring_loop
+// 		  << " ring_pnt=" << ring_pnt
+// 		  << " buf_pnt_kern=" << buf_pnt_kern
+// 		  << " buf_pnt=" << buf_pnt
+// 		  << " bufferOverwriteCount=" << bufferOverwriteCount
+// 		  << " loopOverwriteCount=" << loopOverwriteCount
+// 		  << std::endl << std::flush;
+//       }
+//       // END DEBUG
 
       // Reset the read pointers.
       buf_pnt  = 0;
@@ -331,6 +324,22 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
       theLogMessage = theName+": loop overwrite.";
       loopOverwriteCount++;
       theErrorFlag|=LoopOverwrite;
+
+//       // START DEBUG
+//       if ( ec4->timeIsUp() ){
+// 	std::cout << " v:" << std::setw(10) << visitCount
+// 		  << " " << theLogMessage << " " 
+// 		  << " ring_loop_kern=" << ring_loop_kern
+// 		  << " ring_loop_kern2=" << ring_loop_kern2
+// 		  << " ring_loop=" << ring_loop
+// 		  << " ring_pnt=" << ring_pnt
+// 		  << " buf_pnt_kern=" << buf_pnt_kern
+// 		  << " buf_pnt=" << buf_pnt
+// 		  << " bufferOverwriteCount=" << bufferOverwriteCount
+// 		  << " loopOverwriteCount=" << loopOverwriteCount
+// 		  << std::endl << std::flush;
+//       }
+//       // END DEBUG
 
       // Reset the read pointers.
       buf_pnt  = 0;
@@ -374,7 +383,7 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
 
     // Mark this event as oversized to keep a tally
     if(len>MAXEVENT_2){
-      theErrorFlag|=Oversized; 
+      theErrorFlag|=Oversized;
     }
 
     // If this event already has packets missing, don't read it
@@ -399,8 +408,10 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
       insideEventWithMissingPackets = false;
       break;
     }
-  }
-  visitCount++;
+
+    // break; // HACK: return after each packet
+
+  } // while (true)
 
   // Keep a tally of oversized events
   if(theErrorFlag & Oversized){
@@ -411,7 +422,7 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
   theErrorFlag |= packets << 8; 
 
   // Periodically write out counters for debugging purposes
-  if ( ec.timeIsUp() ){
+  if ( ec->timeIsUp() ){
     std::cout << " v:" << std::setw(10) << visitCount
 	      << " o:" << std::setw(10) << oversizedCount
 	      << " m:" << std::setw(10) << pmissingCount
@@ -429,12 +440,9 @@ int EmuSpyReader::readDDU(unsigned short*& buf) {
 
   theDataLength = dataLengthWithoutPadding( buf, len );
 
-//   std::cout << "Data length " << len << std::endl << "without padding " << theDataLength << std::endl << std::flush;
+  //   std::cout << "Data length " << len << std::endl << "without padding " << theDataLength << std::endl << std::flush;
 
   return len;
-  //-------------------------------------------------------------------//
-  #endif
-  //-------------------------------------------------------------------//
 }
 
 int EmuSpyReader::readDCC(unsigned short*& buf) {
