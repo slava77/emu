@@ -1625,8 +1625,10 @@ throw (xgi::exception::Exception)
 	      fsm_.reset();
 	    }
 	    catch( toolbox::fsm::exception::Exception e ){
-	      XCEPT_RETHROW(xgi::exception::Exception,
-			    "Failed to reset FSM: ", e);
+// 	      XCEPT_RETHROW(xgi::exception::Exception,
+// 			    "Failed to reset FSM: ", e);
+	      LOG4CPLUS_ERROR(logger_, "Failed to reset FSM: " << 
+			      xcept::stdformat_exception_history(e) );
 	    }
 	    fireEvent("Halt");
 	  }
@@ -3188,6 +3190,7 @@ void EmuDAQManager::controlDQM( const string action )
 void EmuDAQManager::resetDAQ()
 throw (emuDAQManager::exception::Exception)
 {
+  stringstream oss;
 
   // Reset EmuRUIs
     if(ruiDescriptors_.size() > 0)
@@ -3198,8 +3201,11 @@ throw (emuDAQManager::exception::Exception)
         }
         catch(xcept::Exception e)
         {
-            XCEPT_RETHROW(emuDAQManager::exception::Exception,
-                "Failed to reset EmuRUIs", e);
+	  // Don't rethrow here, but log an error message and go ahead and reset the rest
+//             XCEPT_RETHROW(emuDAQManager::exception::Exception,
+//                 "Failed to reset EmuRUIs", e);
+            oss << " Failed to reset EmuRUIs: " << xcept::stdformat_exception_history(e);
+	    LOG4CPLUS_ERROR(logger_, "Failed to reset EmuRUIs: " << xcept::stdformat_exception_history(e) );
         }
     }
 
@@ -3210,8 +3216,11 @@ throw (emuDAQManager::exception::Exception)
     }
     catch(xcept::Exception e)
     {
-        XCEPT_RETHROW(emuDAQManager::exception::Exception,
-            "Failed to stop RU builder", e);
+      // Don't rethrow here, but log an error message and go ahead and reset the rest
+//         XCEPT_RETHROW(emuDAQManager::exception::Exception,
+//             "Failed to stop RU builder", e);
+	oss << " Failed to stop RU builder: " << xcept::stdformat_exception_history(e);
+	LOG4CPLUS_ERROR(logger_, "Failed to stop RU builder: " << xcept::stdformat_exception_history(e) );
     }
 
     // EmuTA cannot be reset. (Should it?) Halt it instead.
@@ -3223,8 +3232,11 @@ throw (emuDAQManager::exception::Exception)
         }
         catch(xcept::Exception e)
         {
-            XCEPT_RETHROW(emuDAQManager::exception::Exception,
-                "Failed to stop trigger", e);
+	  // Don't rethrow here, but log an error message and go ahead and reset the rest
+//             XCEPT_RETHROW(emuDAQManager::exception::Exception,
+//                 "Failed to stop trigger", e);
+	  oss << " Failed to stop EmuTA: " << xcept::stdformat_exception_history(e);
+	  LOG4CPLUS_ERROR(logger_, "Failed to stop EmuTA: " << xcept::stdformat_exception_history(e) );
         }
     }
 
@@ -3238,14 +3250,24 @@ throw (emuDAQManager::exception::Exception)
         }
         catch(xcept::Exception e)
         {
-            XCEPT_RETHROW(emuDAQManager::exception::Exception,
-                "Failed to reset EmuFUs", e);
+	  // Don't rethrow here, but log an error message and go ahead and reset the rest
+//             XCEPT_RETHROW(emuDAQManager::exception::Exception,
+//                 "Failed to reset EmuFUs", e);
+	  oss << " Failed to reset EmuFUs: " << xcept::stdformat_exception_history(e);
+	  LOG4CPLUS_ERROR(logger_, "Failed to reset EmuFUs: " << xcept::stdformat_exception_history(e) );
         }
     }
+
+    if ( oss.str().size() ){
+      XCEPT_RAISE(emuDAQManager::exception::Exception, "Failed to reset DAQ: " + oss.str() );
+    }
+    
 }
 
 void EmuDAQManager::resetApps( vector< xdaq::ApplicationDescriptor* > apps )
   throw (emuDAQManager::exception::Exception){
+
+  stringstream oss;
 
     for( vector< xdaq::ApplicationDescriptor* >::iterator pos = apps.begin(); pos != apps.end(); pos++)
     {
@@ -3255,15 +3277,20 @@ void EmuDAQManager::resetApps( vector< xdaq::ApplicationDescriptor* > apps )
         }
         catch(xcept::Exception e)
         {
-            stringstream oss;
-            string       s;
+	  // Don't rethrow here, but log an error message and go ahead and reset the rest
+            oss << (*pos)->getClassName() 
+		<< (*pos)->getInstance() << " "
+		<< xcept::stdformat_exception_history(e) << " | ";
 
-            oss << "Failed to reset ";
-            oss << (*pos)->getClassName() << (*pos)->getInstance();
-            s = oss.str();
-
-            XCEPT_RETHROW(emuDAQManager::exception::Exception, s, e);
+	    LOG4CPLUS_ERROR(logger_, "Failed to reset " 
+			    << (*pos)->getClassName() 
+			    << (*pos)->getInstance() << " "
+			    << xcept::stdformat_exception_history(e) );
         }
+    }
+
+    if ( oss.str().size() ){
+      XCEPT_RAISE(emuDAQManager::exception::Exception, "Failed to reset: " + oss.str() );
     }
 }
 
@@ -4250,8 +4277,8 @@ void EmuDAQManager::printEventCountsTable
 // 	int iCount = superCol * nRows + row;
 	int iCount = row * nSuperCols + superCol;
 
-	  *out << "  <th align=\"center\">"                            << endl;
 	  if ( iCount < nCounts ){
+	    *out << "  <th align=\"center\">"                          << endl;
 	    *out << "      <a href=\"" <<counts[iCount]["appURL"] << "\"";
 	    if ( counts[iCount].find("appName") != counts[iCount].end() )
 	      *out <<         " title=\"click to visit "
@@ -4260,14 +4287,17 @@ void EmuDAQManager::printEventCountsTable
 	    *out <<         " target=\"_blank\">"
 		 <<             counts[iCount]["appInst"]
 		 <<       "</a>"                                       << endl;
+	    *out << "  </th>"                                          << endl;
 	  }
-	  *out << "  </th>"                                            << endl;
+	  else{
+	    *out << "  <td/>"                                          << endl;
+	  }
 
 	  *out << "  <td align=\"left\" style=\"padding:0 15px 0 5px;\">" << endl;
 	  if ( iCount < nCounts ){
 	    if ( counts[iCount].find("hwName") != counts[iCount].end() ){ // have element for hardware (chamber) name
 	      *out << "      <a href=\"" << counts[iCount]["hwMapURL"] << "\""
-	           <<         " title=\"click to view all chambers read out by "
+	           <<         " title=\"click to see which chambers are read out by "
 	           <<           counts[iCount]["appName"] << "."
 	           <<           counts[iCount]["appInst"] << "\""
 	           <<         " target=\"_blank\">"
@@ -5387,7 +5417,8 @@ void EmuDAQManager::resetAction()
       {
 	stringstream ss;
 	ss << "Failed to reset EmuDAQ: " << xcept::stdformat_exception_history(ex);
-	XCEPT_RETHROW(toolbox::fsm::exception::Exception, ss.str(), ex);
+// 	XCEPT_RETHROW(toolbox::fsm::exception::Exception, ss.str(), ex);
+	LOG4CPLUS_ERROR(logger_, ss.str());
       }
 
     if ( controlDQM_.value_ ){
@@ -5398,8 +5429,10 @@ void EmuDAQManager::resetAction()
 	}
       catch(xcept::Exception ex)
 	{
-	  XCEPT_RETHROW(toolbox::fsm::exception::Exception,
-			"Failed to configure the EmuMonitors of DQM", ex);
+// 	  XCEPT_RETHROW(toolbox::fsm::exception::Exception,
+// 			"Failed to configure the EmuMonitors of DQM", ex);
+	  LOG4CPLUS_ERROR(logger_, "Failed to configure the EmuMonitors of DQM" <<
+			  xcept::stdformat_exception_history(ex) );
 	}
     }
 
