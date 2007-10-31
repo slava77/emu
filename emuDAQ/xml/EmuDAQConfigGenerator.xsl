@@ -259,6 +259,9 @@
 	      <clientsInstance xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
 		<item xsi:type="xsd:unsignedLong" soapenc:position="[0]"><xsl:value-of select="@instance"/></item>
 	      </clientsInstance>
+	      <poolSizeForClient xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[5]">
+		<item xsi:type="xsd:unsignedLong" soapenc:position="[0]">0x4000000</item>
+	      </poolSizeForClient>
 	    </properties>
 	  </xc:Application>
 	  <xc:Module>${XDAQ_ROOT}/emu/emuDAQ/emuRUI/lib/linux/x86/libEmuRUI.so</xc:Module>
