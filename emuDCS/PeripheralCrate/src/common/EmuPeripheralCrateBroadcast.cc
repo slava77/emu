@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.2 2007/10/29 17:06:43 rakness Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.3 2007/11/02 15:13:43 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -700,6 +700,11 @@ xoap::MessageReference EmuPeripheralCrateBroadcast::onConfigCalCFEB (xoap::Messa
   broadcastTMB->DisableCLCTInputs();
   std::cout << "Disabling inputs for TMB slot  " << broadcastTMB->slot() << std::endl;
   broadcastTMB->DisableALCTInputs();
+  //
+  // DMB fifo Master_Reset
+  broadcastDMB->calctrl_fifomrst();
+  std::cout << "DMB Fifo reset and initialization "<<std::endl;
+  usleep(1000);
   //
   std::cout << "Set DAC for DMB slot  " << broadcastDMB->slot() << std::endl;
   broadcastDMB->set_cal_dac(dac,dac);
