@@ -275,23 +275,56 @@ unsigned long flags;
    proc_last_pmissing_5=packet_count;
    }
 
-// check for end of event 0x8000 0xffff 0x8000 0x8000
+   // check for end of event 0x8000 0xffff 0x8000 0x8000
    eevent_mask=0x0000;
    if(flag_eevent_5==1){
-         end1=*(unsigned short int *)(skb->data+skb->len-26);
-         end2=*(unsigned short int *)(skb->data+skb->len-24);
-         end3=*(unsigned short int *)(skb->data+skb->len-22);
-         end4=*(unsigned short int *)(skb->data+skb->len-20);
-	 // printk(KERN_INFO " LSD end1 %04x %04x %04x %04x \n",end1,end2,end3,end4);
-         if((end1==0x8000)&&(end2==0x8000)&&(end3==0xffff)&&(end4==0x8000))eevent_mask=0x4000;
-          
-         end1=*(unsigned short int *)(skb->data+skb->len-14);
-         end2=*(unsigned short int *)(skb->data+skb->len-6);
-         if(((end1&0xef00)==0xef00)&&((end1&0xaf00)==0xaf00))eevent_mask=0x4000;
-	 end1=*(unsigned short int *)(skb->data+skb->len-10);
-         end2=*(unsigned short int *)(skb->data+skb->len-6);
-         if(((end1&0xf000)==0xf000)&&((end2&0xf000)==0xe000))eevent_mask=0x4000;
-   }  
+     // printk(KERN_INFO "ETH5  ");
+     // TODO: There must be a way to calculate offset from other parameters... In the meantime:
+     const int offset = -6; // the end of packet is at skb->data + skb->len + offset
+     unsigned char *end_of_packet = skb->data + skb->len + offset;
+     // First see if this is minimum-length packet.
+     if ( skb->len+SKB_EXTRA-2 == 64 ){
+       // This is a minimum-length packet. This may mean either that it contains an entire
+       // empty DDU event (48 bytes DDU header+trailer + 16 bytes ethernet filler words)
+       // or that it contains the rump of a long event.
+       // In either case, it _must_ contain the end of an event.
+       eevent_mask=0x4000;
+       // printk("minimum-length packet ends event");
+     } // if ( skb->len+SKB_EXTRA-2 == 64 )
+     else{
+       // Not a minimum-length packet.
+       // First look for the end-of-event unique word of the DDU trailer.
+       const int DDU_trailer_length = 24; // bytes
+       // If present, it must be at the end of packet.
+       end1=*(unsigned short int *)(end_of_packet-DDU_trailer_length+0);
+       end2=*(unsigned short int *)(end_of_packet-DDU_trailer_length+2);
+       end3=*(unsigned short int *)(end_of_packet-DDU_trailer_length+4);
+       end4=*(unsigned short int *)(end_of_packet-DDU_trailer_length+6);
+       if((end1==0x8000)&&(end2==0x8000)&&(end3==0xffff)&&(end4==0x8000)){
+	 // Caught a DDU trailer
+	 eevent_mask=0x4000;
+	 // printk("DDU EoE");
+       }
+       else{
+	 // Then look for the end-of-event unique word of the DCC trailer.
+	 const int DCC_trailer_length = 16; // bytes
+	 // TODO: verify these offsets.
+	 end1=*(unsigned short int *)(end_of_packet-DCC_trailer_length+6);
+	 end2=*(unsigned short int *)(end_of_packet-DCC_trailer_length+14);
+	 if(((end1&0xff00)==0xef00)&&((end2&0xff00)==0xaf00)){
+	   // Caught a DCC trailer
+	   eevent_mask=0x4000;
+	   // printk("DCC EoE");
+	 }
+	 // Finally, look for the end-of-event unique word of the DMB trailer.
+	 // TODO: proper offsets must be found for DMB
+	 /* end1=*(unsigned short int *)(end_of_packet-???); */
+	 /* end2=*(unsigned short int *)(end_of_packet-???); */
+	 /* if(((end1&0xf000)==0xf000)&&((end2&0xf000)==0xe000))eevent_mask=0x4000; */
+       }
+       // printk("\n");
+     } // if ( skb->len+SKB_EXTRA-2 == 64 ) else
+   } // if(flag_eevent_2==1)
 
 // write data to ring buffer
      *(unsigned short int *)(ring_start_5+ring_pnt_5*RING_ENTRY_LENGTH)=ring_loop_5|(missing_mask|eevent_mask);
