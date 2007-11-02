@@ -4,7 +4,7 @@
 #define RING_ENTRY_LENGTH 8
 #define MAXPACKET_4 9100
 //#define MAXEVENT_4 30100
-#define MAXEVENT_4 75601
+#define MAXEVENT_4 180000
 #define TAILMEM 100
 #define TAILPOS  80
 #define SKB_EXTRA 10
