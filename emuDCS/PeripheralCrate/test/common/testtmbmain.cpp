@@ -137,6 +137,22 @@ int main() {
   char rat_firmware_string[100] = "/home/rakness/firmware/rat/20060828/rat.svf";
   int jch, debug_mode;
   //
+  const int number_of_chambers_to_check = 117;
+  bool tmb_config_check[number_of_chambers_to_check];
+  bool alct_config_check[number_of_chambers_to_check];
+  time_t starttime, endtime;
+  time_t starttimesubtract, endtimesubtract;
+  int time_elapsed;
+  int total_time_to_subtract, net_time_elapsed;
+  int total_tmb_time , tmbstarttime ,  tmbstoptime ;
+  int total_alct_time, alctstarttime,  alctstoptime;
+  int total_dmb_time , dmbstarttime ,  dmbstoptime ;
+  //
+  int alternate;
+  int tmp_setting;
+  float original_comp_thresh_setting;
+  float float_tmp_setting;
+  //
   EmuController emuController;
   //
   emuController.SetConfFile("config.xml");
@@ -226,6 +242,7 @@ int main() {
     std::cout << "500:Check TMB state machines  501:Read TMB config registers  502:Read ALCT config regs              " << std::endl;
     std::cout << "503:StartTriggers TMB         504:Check TMB config registers 505:Check ALCT config regs             " << std::endl;
     //std::cout << "506:Print TMB state machines  507: Check RAT config registers                                       " << std::endl;
+    std::cout << "508:Check TMB+ALCT conf regs  509:Time to program PROMs                                             " << std::endl;
     std::cout << std::endl;
     std::cout << "600:Program TMB firmware      601:Program ALCT firmware      602:Program RAT firmware               " << std::endl;
     //std::cout << std::endl;
@@ -811,6 +828,126 @@ int main() {
       std::cout << "Check RAT configuration vs xml file = "
 		<< myRat->GetRATConfigurationStatus()
 		<< std::endl;
+      //
+      break;
+    case 508:
+      starttime = time (NULL);
+      //
+      for (int chamber=0; chamber<number_of_chambers_to_check; chamber++) {
+	std::cout << "chamber = " << chamber << std::endl;
+	thisTMB->CheckTMBConfiguration(); 
+	tmb_config_check[chamber] = thisTMB->GetTMBConfigurationStatus();
+	std::cout << "Check TMB configuration vs xml file  = " << tmb_config_check[chamber]  << std::endl;
+	//
+	alct->CheckALCTConfiguration(); 
+	alct_config_check[chamber] = alct->GetALCTConfigurationStatus();
+	std::cout << "Check ALCT configuration vs xml file = " << alct_config_check[chamber] << std::endl;
+      }
+      //
+      for (int chamber=0; chamber<number_of_chambers_to_check; chamber++) { 
+	if (!tmb_config_check[chamber]) 
+	  std::cout << "TMB configuration check NOT pass chamber = " << chamber << std::endl;
+	if (!alct_config_check[chamber]) 
+	  std::cout << "ALCT configuration check NOT pass chamber = " << chamber << std::endl;
+      }
+      endtime = time (NULL);
+      //
+      time_elapsed = endtime - starttime;
+      //
+      std::cout << "Checked " << std::dec <<  number_of_chambers_to_check
+		<< " chambers in " << std::dec << time_elapsed << " seconds " << std::endl;
+      //
+      break;
+    case 509:
+      //
+      starttime = time (NULL);
+      //
+      total_time_to_subtract = 0;
+      //
+      alternate = 1;
+      //
+      original_comp_thresh_setting = thisDMB->GetCompThresh();  // somehow this value gets lost after it is set in the code => get it at the start...
+      //
+      for (int chamber=0; chamber<number_of_chambers_to_check; chamber++) {
+	std::cout << "chamber = " << chamber << std::endl;
+	//
+	// change the settings on each pass to force a reload of the PROMs and flash memories
+	if (alternate == 1) {    
+	  tmp_setting = thisTMB->GetL1aDelay() + 1;
+	  thisTMB->SetL1aDelay(tmp_setting);
+	  //
+	  tmp_setting = alct->GetL1aDelay() + 1;
+	  alct->SetL1aDelay(tmp_setting);
+	  //
+	  float_tmp_setting = original_comp_thresh_setting + 0.01;
+	  thisDMB->SetCompThresh(float_tmp_setting);
+	  //
+	  alternate = 0;
+	  //
+	} else {
+	  tmp_setting = thisTMB->GetL1aDelay() - 1;
+	  thisTMB->SetL1aDelay(tmp_setting);
+	  //
+	  tmp_setting = alct->GetL1aDelay() - 1;
+	  alct->SetL1aDelay(tmp_setting);
+	  //
+	  float_tmp_setting = original_comp_thresh_setting - 0.01;
+	  thisDMB->SetCompThresh(float_tmp_setting);
+	  //
+	  alternate = 1;
+	  //
+	}
+	tmbstarttime = time(NULL);
+	thisTMB->configure();
+	tmbstoptime = time(NULL);
+	//
+	dmbstarttime = time(NULL);
+	thisDMB->configure();
+	dmbstoptime = time(NULL);
+	//
+	alctstarttime = time(NULL);
+	alct->configure();
+	alctstoptime = time(NULL);
+	//
+	starttimesubtract = time (NULL);
+	//
+	thisCCB->HardReset_crate();
+	//
+	thisTMB->CheckTMBConfiguration(); 
+	tmb_config_check[chamber] = thisTMB->GetTMBConfigurationStatus();
+	std::cout << "Check TMB configuration vs xml file  = " << tmb_config_check[chamber]  << std::endl;
+	//
+	alct->CheckALCTConfiguration(); 
+	alct_config_check[chamber] = alct->GetALCTConfigurationStatus();
+	std::cout << "Check ALCT configuration vs xml file = " << alct_config_check[chamber] << std::endl;
+	//
+	endtimesubtract = time (NULL);
+	//
+	total_time_to_subtract += (endtimesubtract - starttimesubtract);
+	total_tmb_time   += (tmbstoptime - tmbstarttime);
+	total_alct_time  += (alctstoptime - alctstarttime);
+	total_dmb_time   += (dmbstoptime - dmbstarttime);
+      }
+      //
+      endtime = time (NULL);
+      //
+      for (int chamber=0; chamber<number_of_chambers_to_check; chamber++) { 
+	if (!tmb_config_check[chamber]) 
+	  std::cout << "TMB configuration check NOT pass chamber = " << chamber << std::endl;
+	if (!alct_config_check[chamber]) 
+	  std::cout << "ALCT configuration check NOT pass chamber = " << chamber << std::endl;
+      }
+      //
+      time_elapsed = endtime - starttime;
+      net_time_elapsed = time_elapsed - total_time_to_subtract;
+      //
+      std::cout << "Checked " << std::dec <<  number_of_chambers_to_check << " chambers" << std::endl; 
+      std::cout << "-> Total time = " << std::dec << time_elapsed << " seconds, of which " 
+		<< total_time_to_subtract << " seconds were hard reset and checking" << std::endl;
+      std::cout << "-> Net  time = " << net_time_elapsed << " seconds" << std::endl;
+      std::cout << "-> TMB  time = " << total_tmb_time   << " seconds" << std::endl;
+      std::cout << "-> ALCT time = " << total_alct_time  << " seconds" << std::endl;
+      std::cout << "-> DMB  time = " << total_dmb_time   << " seconds" << std::endl;
       //
       break;
     case 600:
