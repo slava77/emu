@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.1 2007/10/29 12:47:44 gujh Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.2 2007/11/07 09:14:13 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -95,7 +95,6 @@ public:
   std::string ALCT384MirrorFirmwareFile_ ;
   std::string ALCT576MirrorFirmwareFile_ ;
   std::string ALCT672FirmwareFile_       ;
-  std::string ALCT672MirrorFirmwareFile_ ;  
   //
   EmuPeripheralCrateBroadcast(xdaq::ApplicationStub * s);
   //

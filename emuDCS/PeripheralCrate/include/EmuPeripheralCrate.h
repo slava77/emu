@@ -191,7 +191,6 @@ public:
   xoap::MessageReference EnableJtagWriteALCT384Mirror (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference EnableJtagWriteALCT576Mirror (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference EnableJtagWriteALCT672 (xoap::MessageReference message) throw (xoap::exception::Exception);
-  xoap::MessageReference EnableJtagWriteALCT672Mirror (xoap::MessageReference message) throw (xoap::exception::Exception);
 
 private:
 

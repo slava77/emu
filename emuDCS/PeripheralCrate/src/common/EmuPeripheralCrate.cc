@@ -42,7 +42,7 @@ const string ALCT_FIRMWARE_FILENAME_ME21 = "alct672/alct672.svf";//
 const string ALCT_FIRMWARE_FILENAME_ME22 = "alct384/alct384.svf";//
 const string ALCT_FIRMWARE_FILENAME_ME31 = "alct576mirror/alct576mirror.svf";//
 const string ALCT_FIRMWARE_FILENAME_ME32 = "alct384mirror/alct384mirror.svf";//
-const string ALCT_FIRMWARE_FILENAME_ME41 = "alct672mirror/alct672mirror.svf";//
+const string ALCT_FIRMWARE_FILENAME_ME41 = "alct576mirror/alct576mirror.svf";//
 //
 // N.B. not yet able to load automatically from xml for RAT...
 const string RAT_FIRMWARE_FILENAME = "rat/20060828/rat.svf";
@@ -9961,7 +9961,8 @@ xoap::MessageReference EmuPeripheralCrate::EnableJtagWriteALCT576Mirror (xoap::M
   for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
     ALCTController * thisALCT = tmbVector[itmb]->alctController();
     //
-    if ( (thisALCT->GetChamberType()).find("ME31") != string::npos ) {
+    if ( (thisALCT->GetChamberType()).find("ME31") != string::npos ||
+	 (thisALCT->GetChamberType()).find("ME41") != string::npos ) {
       std::cout << "YES slot " << tmbVector[itmb]->slot() << std::endl;
       tmbVector[itmb]->SetJtagDisableWriteToAdr10(0);
     } else {
@@ -9993,37 +9994,6 @@ xoap::MessageReference EmuPeripheralCrate::EnableJtagWriteALCT672 (xoap::Message
     ALCTController * thisALCT = tmbVector[itmb]->alctController();
     //
     if ( (thisALCT->GetChamberType()).find("ME21") != string::npos ) {
-      std::cout << "YES slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(0);
-    } else {
-      std::cout << "NO slot " << tmbVector[itmb]->slot() << std::endl;
-      tmbVector[itmb]->SetJtagDisableWriteToAdr10(1);
-    }
-    tmbVector[itmb]->WriteRegister(0xD4);
-    //tmbVector[itmb]->ReadRegister(0xD4);
-    //tmbVector[itmb]->PrintTMBRegister(0xD4);
-    //
-    //unsigned short int BootData;
-    //tmbVector[itmb]->tmb_get_boot_reg(&BootData);
-    //tmbVector[itmb]->PrintBootRegister();
-  }
-  //
-  std::cout << std::endl;
-  //
-  return createReply(message);
-}
-//
-xoap::MessageReference EmuPeripheralCrate::EnableJtagWriteALCT672Mirror (xoap::MessageReference message) 
-  throw (xoap::exception::Exception) {
-  //
-  // enables write to JTAG user Register on TMBs attached to ALCT672Mirror
-  //
-  std::cout << "EnableJtagWriteALCT672Mirror to TMBs in slots..." << std::endl;
-  //
-  for (unsigned itmb=0; itmb<tmbVector.size();itmb++) {
-    ALCTController * thisALCT = tmbVector[itmb]->alctController();
-    //
-    if ( (thisALCT->GetChamberType()).find("ME41") != string::npos ) {
       std::cout << "YES slot " << tmbVector[itmb]->slot() << std::endl;
       tmbVector[itmb]->SetJtagDisableWriteToAdr10(0);
     } else {
