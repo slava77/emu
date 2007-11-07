@@ -1340,14 +1340,14 @@ int main() {
       for (int i=0; i<lctCounter; i++) {
 	//
 	thisTMB->ResetInjectedLCT();
-	thisTMB->InjectMPCData(2,lct0[i],lct1[i]);
+	thisTMB->InjectMPCData(1,lct0[i],lct1[i]);
 	std::cout << "Software inject values = " << std::endl;
 	for (unsigned int i=0; i<thisTMB->GetInjectedLct0().size(); i++) {
 	std::cout << "LCT0 = " << std::hex << thisTMB->GetInjectedLct0()[i] << std::endl;
 	std::cout << "LCT1 = " << std::hex << thisTMB->GetInjectedLct1()[i] << std::endl;
 	}
-	thisTMB->ReadBackMpcRAM(2);
-	thisTMB->FireMPCInjector(2);
+	thisTMB->ReadBackMpcRAM(1);
+	thisTMB->FireMPCInjector(1);
 	//
 	thisTMB->DataSendMPC();
 	std::cout << "MPC0/1 accepted = " << thisTMB->MPC0Accept() << "/" << thisTMB->MPC1Accept() << std::endl;
