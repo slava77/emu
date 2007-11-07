@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.52 2007/10/25 17:36:12 rakness Exp $
+// $Id: TMB.cc,v 3.53 2007/11/07 08:54:57 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.53  2007/11/07 08:54:57  rakness
+// make the csc_id which is injected into the MPC injector RAM always be the correct one for this TMB
+//
 // Revision 3.52  2007/10/25 17:36:12  rakness
 // Add option to enable/disable write to USER JTAG register to allow selective masking of broadcast JTAG commands.  Also enable/disable clocks with explicit write rather than read,write
 //
@@ -873,7 +876,8 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
 	((halfSt   & 0xff) <<  0);    
       //
     } else {
-      frame2 = (lct0>> 0) & 0xffff;
+      // insert the csc_id specific for this TMB (otherwise the user has to specify...)
+      frame2 = ( ((lct0>> 0) & 0x0fff) | (csc_id & 0xf) << 12 ) ;
       frame1 = (lct0>>16) & 0xffff;
     }
     //
@@ -942,7 +946,8 @@ void TMB::InjectMPCData(const int nEvents, const unsigned long lct0, const unsig
       //
 
     } else {
-      frame2 = (lct1 >>  0) & 0xffff;
+      // insert the csc_id specific for this TMB (otherwise the user has to specify...)
+      frame2 = ( ((lct1>> 0) & 0x0fff) | (csc_id & 0xf) << 12 ) ;
       frame1 = (lct1 >> 16) & 0xffff;
     }
     //
