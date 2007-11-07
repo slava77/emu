@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.3 2007/11/02 15:13:43 gujh Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.4 2007/11/07 09:14:16 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -46,17 +46,15 @@ EmuPeripheralCrateBroadcast::EmuPeripheralCrateBroadcast(xdaq::ApplicationStub *
   // In other words:  9 April 2007 firmware should reside in YEARMONTHDAY=20070409
   //
   // The XXX in the ALCT firmware specification corresponds to the following structure:
-  const string ALCT_FIRMWARE_FILENAME_ME11 = "alct288/alct288.svf";
-  const string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_NEGATIVE = "alct288bn/alct288bn.svf";
-  const string ALCT_FIRMWARE_FILENAME_ME11_BACKWARD_POSITIVE = "alct288bp/alct288bp.svf";
-  const string ALCT_FIRMWARE_FILENAME_ME11_FORWARD_POSITIVE  = "alct288fp/alct288fp.svf";
-  const string ALCT_FIRMWARE_FILENAME_ME12 = "alct384/alct384.svf";
-  const string ALCT_FIRMWARE_FILENAME_ME13 = "alct192/alct192.svf";
-  const string ALCT_FIRMWARE_FILENAME_ME21 = "alct672/alct672.svf";
-  const string ALCT_FIRMWARE_FILENAME_ME22 = "alct384/alct384.svf";
-  const string ALCT_FIRMWARE_FILENAME_ME31 = "alct576mirror/alct576mirror.svf";
-  const string ALCT_FIRMWARE_FILENAME_ME32 = "alct384mirror/alct384mirror.svf";
-  const string ALCT_FIRMWARE_FILENAME_ME41 = "alct672mirror/alct672mirror.svf";
+  //  ALCT192FirmwareFile_       = ALCTFirmwareDirectory_+"alct192/alct192.svf";
+  //  ALCT288FirmwareFile_       = ALCTFirmwareDirectory_+"alct288/alct288.svf";
+  //  ALCT288bnFirmwareFile_     = ALCTFirmwareDirectory_+"alct288bn/alct288bn.svf";
+  //  ALCT288bpFirmwareFile_     = ALCTFirmwareDirectory_+"alct288bp/alct288bp.svf";
+  //  ALCT288fpFirmwareFile_     = ALCTFirmwareDirectory_+"alct288fp/alct288fp.svf";
+  //  ALCT384FirmwareFile_       = ALCTFirmwareDirectory_+"alct384/alct384.svf";
+  //  ALCT384MirrorFirmwareFile_ = ALCTFirmwareDirectory_+"alct384mirror/alct384mirror.svf";
+  //  ALCT576MirrorFirmwareFile_ = ALCTFirmwareDirectory_+"alct576mirror/alct576mirror.svf";
+  //  ALCT672FirmwareFile_       = ALCTFirmwareDirectory_+"alct672/alct672.svf";  
   //
   //    std::cout << "PeripheralCrateBroadcastXmlFile_ = " << PeripheralCrateBroadcastXmlFile_ << std::endl;
   //    std::cout << "DmbControlFPGAFirmwareFile_      = " << DmbControlFPGAFirmwareFile_      << std::endl;
@@ -312,7 +310,6 @@ void EmuPeripheralCrateBroadcast::LoadDMBCFEBFPGAFirmware(xgi::Input * in, xgi::
   ALCT384MirrorFirmwareFile_ = ALCTFirmwareDirectory_+"alct384mirror/alct384mirror.svf";
   ALCT576MirrorFirmwareFile_ = ALCTFirmwareDirectory_+"alct576mirror/alct576mirror.svf";
   ALCT672FirmwareFile_       = ALCTFirmwareDirectory_+"alct672/alct672.svf";  
-  ALCT672MirrorFirmwareFile_ = ALCTFirmwareDirectory_+"alct672mirror/alct672mirror.svf";  
   //
   std::string LoadALCTFirmware = toolbox::toString("/%s/LoadALCTFirmware",getApplicationDescriptor()->getURN().c_str());
   *out << cgicc::form().set("method","GET").set("action",LoadALCTFirmware) << std::endl ;
@@ -415,9 +412,8 @@ void EmuPeripheralCrateBroadcast::LoadALCTFirmware(xgi::Input * in, xgi::Output 
   const bool program288bp     = false; // ME1/1
   const bool program288fp     = false; // ME1/1
   const bool program672       = true;  // ME2/1
-  const bool program576Mirror = true;  // ME3/1
+  const bool program576Mirror = true;  // ME3/1, ME4/1
   const bool program384Mirror = true;  // ME3/2
-  const bool program672Mirror = false; // ME4/1
   //
   int debugMode(0);
   int jch(3);
@@ -602,26 +598,6 @@ void EmuPeripheralCrateBroadcast::LoadALCTFirmware(xgi::Input * in, xgi::Output 
     //
     broadcastTMB->disableAllClocks();
     status = broadcastALCT->SVFLoad(&jch,ALCT384MirrorFirmwareFile_.c_str(),debugMode);
-    broadcastTMB->enableAllClocks();
-  }
-  //
-  if (program672Mirror) {
-    //---------------------
-    // ALCT672Mirror boards
-    //---------------------
-    LOG4CPLUS_INFO(getApplicationLogger(), "Broadcast ALCT672Mirror firmware");
-    //
-    std::cout << "ALCT672Mirror: Broadcast disable JTAG write to all TMBs..." << std::endl;
-    broadcastTMB->SetJtagDisableWriteToAdr10(1);
-    broadcastTMB->WriteRegister(0xD4);
-    //  
-    std::cout << "ALCT672Mirror: Enable JTAG write for TMBs connected to ALCT672Mirror..." << std::endl;
-    PCsendCommand("EnableALCT672Mirror","EmuPeripheralCrate");
-    //
-    std::cout << "ALCT672Mirror: Broadcast ALCT672Mirror firmware from " << ALCT672MirrorFirmwareFile_ << std::endl;
-    //
-    broadcastTMB->disableAllClocks();
-    status = broadcastALCT->SVFLoad(&jch,ALCT672MirrorFirmwareFile_.c_str(),debugMode);
     broadcastTMB->enableAllClocks();
   }
   //
