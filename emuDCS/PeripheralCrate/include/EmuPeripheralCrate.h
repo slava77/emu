@@ -44,7 +44,6 @@
 #include "CrateSelector.h"
 #include "ChamberUtilities.h"
 //#include "geom.h"
-#include "InfoSpace.h"
 #include "CrateUtilities.h"
 #include "CalibDAQ.h"
 #include "EmuSystem.h"
