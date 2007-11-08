@@ -137,7 +137,7 @@ int main() {
   char rat_firmware_string[100] = "/home/rakness/firmware/rat/20060828/rat.svf";
   int jch, debug_mode;
   //
-  const int number_of_chambers_to_check = 117;
+  const int number_of_chambers_to_check = 234;
   bool tmb_config_check[number_of_chambers_to_check];
   bool alct_config_check[number_of_chambers_to_check];
   time_t starttime, endtime;
@@ -242,7 +242,7 @@ int main() {
     std::cout << "500:Check TMB state machines  501:Read TMB config registers  502:Read ALCT config regs              " << std::endl;
     std::cout << "503:StartTriggers TMB         504:Check TMB config registers 505:Check ALCT config regs             " << std::endl;
     //std::cout << "506:Print TMB state machines  507: Check RAT config registers                                       " << std::endl;
-    std::cout << "508:Check TMB+ALCT conf regs  509:Time to program PROMs                                             " << std::endl;
+    std::cout << "508:Check TMB+ALCT conf regs  509:Time to program PROMs      510:Time to check TMB Header           " << std::endl;
     std::cout << std::endl;
     std::cout << "600:Program TMB firmware      601:Program ALCT firmware      602:Program RAT firmware               " << std::endl;
     //std::cout << std::endl;
@@ -948,6 +948,29 @@ int main() {
       std::cout << "-> TMB  time = " << total_tmb_time   << " seconds" << std::endl;
       std::cout << "-> ALCT time = " << total_alct_time  << " seconds" << std::endl;
       std::cout << "-> DMB  time = " << total_dmb_time   << " seconds" << std::endl;
+      //
+      break;
+    case 510:
+      starttime = time (NULL);
+      //
+      for (int chamber=0; chamber<number_of_chambers_to_check; chamber++) {
+	std::cout << "chamber = " << chamber << std::endl;
+	thisTMB->CheckRawHitsHeader(); 
+	tmb_config_check[chamber] = thisTMB->GetRawHitsHeaderStatus();
+	std::cout << "Check TMB Header  = " << tmb_config_check[chamber]  << std::endl;
+	//
+      }
+      //
+      for (int chamber=0; chamber<number_of_chambers_to_check; chamber++) { 
+	if (!tmb_config_check[chamber]) 
+	  std::cout << "TMB RawHits Header check NOT pass chamber = " << chamber << std::endl;
+      }
+      endtime = time (NULL);
+      //
+      time_elapsed = endtime - starttime;
+      //
+      std::cout << "Checked " << std::dec <<  number_of_chambers_to_check
+		<< " chambers in " << std::dec << time_elapsed << " seconds " << std::endl;
       //
       break;
     case 600:
