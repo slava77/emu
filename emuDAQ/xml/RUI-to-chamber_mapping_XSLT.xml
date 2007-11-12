@@ -171,7 +171,7 @@
   <xsl:template match="RUI-to-chamber_mapping">
     <html xmlns="http://www.w3.org/1999/xhtml">
       <head>
-	<title>CSC RUI-to-chamber mapping</title>
+	<title>CSC RUI-to-chamber mapping of <xsl:value-of select="@date"/></title>
 	<style>
 	  table.mapping td, th { border-width: 0px 0px 0px 0px; padding: 0px 2px 0px 2px; color:#99BBFF; }
 	  table.mapping { background-color: #2A3B90; }
