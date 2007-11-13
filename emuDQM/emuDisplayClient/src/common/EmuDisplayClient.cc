@@ -614,7 +614,7 @@ void EmuDisplayClient::headerPage (xgi::Input * in, xgi::Output * out)  throw (x
       
       std::string runNumber   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"runNumber","unsignedInt");
       std::string events = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"sessionEvents","unsignedInt");
-      std::string dataRate   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"dataRate","string");
+      std::string dataRate   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"averageRate","unsignedInt");
       std::string cscUnpacked   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"cscUnpacked","unsignedInt");
       std::string cscRate   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"cscRate","string");
       std::string readoutMode   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"readoutMode","string");
