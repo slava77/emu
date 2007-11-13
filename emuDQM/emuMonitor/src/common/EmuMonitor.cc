@@ -130,6 +130,7 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->fireItemAvailable("dataBw",&dataBw_);
   getApplicationInfoSpace()->fireItemAvailable("dataLatency",&dataLatency_);
   getApplicationInfoSpace()->fireItemAvailable("dataRate",&dataRate_);
+  getApplicationInfoSpace()->fireItemAvailable("averageRate",&averageRate_);
   getApplicationInfoSpace()->fireItemAvailable("cscRate",&cscRate_);
   getApplicationInfoSpace()->fireItemAvailable("cscUnpacked",&cscUnpacked_);
   getApplicationInfoSpace()->fireItemAvailable("runNumber",&runNumber_);
@@ -196,6 +197,7 @@ void EmuMonitor::initProperties()
   getApplicationInfoSpace()->addItemRetrieveListener ("dataBw", this);
   getApplicationInfoSpace()->addItemRetrieveListener ("dataLatency", this);
   getApplicationInfoSpace()->addItemRetrieveListener ("dataRate", this);
+  getApplicationInfoSpace()->addItemRetrieveListener ("averageRate", this);
   getApplicationInfoSpace()->addItemRetrieveListener ("stateName", this);
   getApplicationInfoSpace()->addItemRetrieveListener ("cscRate", this);
   getApplicationInfoSpace()->addItemRetrieveListener ("nDAQEvents", this);
@@ -1284,7 +1286,7 @@ int EmuMonitor::svc()
 			      " " << inputDeviceName_.toString() << " read error.");
 	      if (plotter_ != NULL) {
 		isReadoutActive = false;
-		if (fSaveROOTFile_== xdata::Boolean(true)) {
+		if (fSaveROOTFile_== xdata::Boolean(true) && (eventsReceived_ > xdata::UnsignedInteger(0)) ) {
 		  plotter_->saveToROOTFile(getROOTFileName());
                 }
 
