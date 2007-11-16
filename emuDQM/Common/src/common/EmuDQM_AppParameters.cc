@@ -3,17 +3,17 @@
 namespace emu {
   namespace dqm {
 
-    string getScalarParam
+    std::string getScalarParam
     (
      xdaq::ApplicationContext *appContext_,
      xdaq::ApplicationDescriptor* appDescriptor,
-     const string                 paramName,
-     const string                 paramType
+     const std::string                 paramName,
+     const std::string                 paramType
      )
   //    throw (xcept::Exception)
     {
-      string appClass = appDescriptor->getClassName();
-      string value    = "";
+      std::string appClass = appDescriptor->getClassName();
+      std::string value    = "";
 
 
       try
@@ -30,8 +30,8 @@ namespace emu {
 
 	  if(replyBody.hasFault())
 	    {
-	      stringstream oss;
-	      string s;
+	      std::stringstream oss;
+	      std::string s;
 
 	      oss << "Received fault reply: ";
 	      oss << replyBody.getFault().getFaultString();
@@ -44,7 +44,7 @@ namespace emu {
 	}
 	catch (xdaq::exception::Exception& e)     
 	{
-	  string s = "Failed to get scalar parameter from application";
+	  std::string s = "Failed to get scalar parameter from application";
 
 	//  XCEPT_RETHROW(xoap::exception::Exception, s, e);
 	}
@@ -56,13 +56,13 @@ namespace emu {
     (
      xdaq::ApplicationContext *appContext_,
      xdaq::ApplicationDescriptor* appDescriptor,
-     const string                 paramName,
-     const string                 paramType,
-     const string                 paramValue
+     const std::string                 paramName,
+     const std::string                 paramType,
+     const std::string                 paramValue
      )
       // throw (xcept::Exception)
     {
-      string appClass = appDescriptor->getClassName();
+      std::string appClass = appDescriptor->getClassName();
 
 
       try
@@ -79,8 +79,8 @@ namespace emu {
 
 	  if(replyBody.hasFault())
 	    {
-	      stringstream oss;
-	      string s;
+	      std::stringstream oss;
+	      std::string s;
 
 	      oss << "Received fault reply: ";
 	      oss << replyBody.getFault().getFaultString();
@@ -91,7 +91,7 @@ namespace emu {
 	}
       catch (xdaq::exception::Exception& e)
 	{
-	  string s = "Failed to set scalar parameter";
+	  std::string s = "Failed to set scalar parameter";
 
 	 //  XCEPT_RETHROW(xcept::Exception, s, e);
 	}
@@ -99,14 +99,14 @@ namespace emu {
 
     xoap::MessageReference createParameterGetSOAPMsg
     (
-     const string appClass,
-     const string paramName,
-     const string paramType
+     const std::string appClass,
+     const std::string paramName,
+     const std::string paramType
      )
       throw (xcept::Exception)
     {
-      string appNamespace = "urn:xdaq-application:" + appClass;
-      string paramXsdType = "xsd:" + paramType;
+      std::string appNamespace = "urn:xdaq-application:" + appClass;
+      std::string paramXsdType = "xsd:" + paramType;
 
       try
 	{
@@ -155,15 +155,15 @@ namespace emu {
 
     xoap::MessageReference createParameterSetSOAPMsg
     (
-     const string appClass,
-     const string paramName,
-     const string paramType,
-     const string paramValue
+     const std::string appClass,
+     const std::string paramName,
+     const std::string paramType,
+     const std::string paramValue
      )
       throw (xcept::Exception)
     {
-      string appNamespace = "urn:xdaq-application:" + appClass;
-      string paramXsdType = "xsd:" + paramType;
+      std::string appNamespace = "urn:xdaq-application:" + appClass;
+      std::string paramXsdType = "xsd:" + paramType;
 
       try
 	{
@@ -215,12 +215,12 @@ namespace emu {
     DOMNode *findNode
     (
      DOMNodeList *nodeList,
-     const string nodeLocalName
+     const std::string nodeLocalName
      )
       throw (xcept::Exception)
     {
       DOMNode            *node = 0;
-      string             name  = "";
+      std::string             name  = "";
       unsigned int       i     = 0;
 
 
@@ -245,10 +245,10 @@ namespace emu {
 
 
 
-    string extractScalarParameterValueFromSoapMsg
+    std::string extractScalarParameterValueFromSoapMsg
     (
      xoap::MessageReference msg,
-     const string           paramName
+     const std::string           paramName
      )
 //      throw (xcept::Exception)
     {
@@ -266,7 +266,7 @@ namespace emu {
 	  DOMNode *paramNode = findNode(propertiesList, paramName);
 	  DOMNodeList *paramList = paramNode->getChildNodes();
 	  DOMNode *valueNode = paramList->item(0);
-	  string paramValue = xoap::XMLCh2String(valueNode->getNodeValue());
+	  std::string paramValue = xoap::XMLCh2String(valueNode->getNodeValue());
 
 	  return paramValue;
 	}

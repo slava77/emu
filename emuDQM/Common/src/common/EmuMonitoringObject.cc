@@ -14,7 +14,7 @@ std::map<int, std::string> ParseAxisLabels(std::string s)
       tmp.replace(0,pos+1,"");
       if (label_pair.find("=") != std::string::npos) {
 	int nbin = strtol(label_pair.substr(0,label_pair.find("=")).c_str(),  &stopstring, 10);
-	std:: string label = label_pair.substr(label_pair.find("=")+1, label_pair.length());
+	std::string label = label_pair.substr(label_pair.find("=")+1, label_pair.length());
 	while (label.find("\'") != std::string::npos) {
 	  label.erase(label.find("\'"),1);
 	}
@@ -246,6 +246,55 @@ int EmuMonitoringObject::Book()
       object->SetMaximum(opt);
     }
 
+    if ((itr = params.find("SetNdivisionsX")) != params.end()) {
+      int opt = strtol( itr->second.c_str(), &stopstring, 10 );
+      if (object) {
+        object->SetNdivisions(opt,"X");
+      }
+    }
+
+    if ((itr = params.find("SetNdivisionsY")) != params.end()) {
+      int opt = strtol( itr->second.c_str(), &stopstring, 10 );
+      if (object) {
+        object->SetNdivisions(opt,"Y");
+      }
+    }
+
+    if ((itr = params.find("SetTickLengthX")) != params.end()) {
+      std::string st = itr->second;
+      double opt = atof(st.c_str()) ;
+      if (object) {
+        object->SetTickLength(opt,"X");
+      }
+    }
+
+    if ((itr = params.find("SetTickLengthY")) != params.end()) {
+      std::string st = itr->second;
+      double opt = atof(st.c_str()) ;
+      if (object) {
+        object->SetTickLength(opt,"Y");
+      }
+    }
+
+    if ((itr = params.find("SetLabelSizeX")) != params.end()) {
+      std::string st = itr->second;
+      double opt = atof(st.c_str()) ;
+      if (object) {
+        object->GetXaxis()->SetLabelSize(opt);
+      }
+    }
+   
+    if ((itr = params.find("SetLabelSizeY")) != params.end()) {
+      std::string st = itr->second;
+      double opt = atof(st.c_str()) ;
+      if (object) {
+        object->GetYaxis()->SetLabelSize(opt);
+      }
+    }
+
+
+
+
   }	
 	
   return 0;
@@ -443,7 +492,7 @@ int EmuMonitoringObject::parseDOMNode(DOMNode* info)
     // == Construct Monitoring Object Name
     std::string objname = "";
     if ((itr = obj_info.find("Type")) != obj_info.end()) {
-      // string typestr = itr->second;
+      // std::string typestr = itr->second;
       objname += itr->second;
       /*
 	if (typestr.find("h1") != std::string::npos) {

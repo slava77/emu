@@ -293,7 +293,7 @@ int EmuMonitoringCanvas::parseDOMNode(DOMNode* info)
     // == Construct Monitoring Canvas Name
     std::string objname = "";
     if ((itr = obj_info.find("Type")) != obj_info.end()) {
-      // string typestr = itr->second;
+      // std::string typestr = itr->second;
       objname += itr->second;
       type = itr->second;
       obj_info.erase("Type");
