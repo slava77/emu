@@ -26,7 +26,7 @@ namespace emu {
     DOMNode *findNode
       (
        DOMNodeList *nodeList,
-       const string nodeLocalName
+       const std::string nodeLocalName
        )
        throw (xcept::Exception);
 
@@ -35,12 +35,12 @@ namespace emu {
      * application.
      */
 
-    string getScalarParam
+    std::string getScalarParam
       (
        xdaq::ApplicationContext *appContext_,
        xdaq::ApplicationDescriptor* appDescriptor,
-       const string                 paramName,
-       const string                 paramType
+       const std::string                 paramName,
+       const std::string                 paramType
        );
       // throw (xcept::Exception);
     /**
@@ -51,9 +51,9 @@ namespace emu {
       (
        xdaq::ApplicationContext *appContext_,       
        xdaq::ApplicationDescriptor* appDescriptor,
-       const string                 paramName,
-       const string                 paramType,
-       const string                 paramValue
+       const std::string                 paramName,
+       const std::string                 paramType,
+       const std::string                 paramValue
        );
       // throw (xcept::Exception);
 
@@ -62,9 +62,9 @@ namespace emu {
      */
     xoap::MessageReference createParameterGetSOAPMsg
       (
-       const string appClass,
-       const string paramName,
-       const string paramType
+       const std::string appClass,
+       const std::string paramName,
+       const std::string paramType
        )
       throw (xcept::Exception);
 
@@ -73,10 +73,10 @@ namespace emu {
      */
     xoap::MessageReference createParameterSetSOAPMsg
       (
-       const string appClass,
-       const string paramName,
-       const string paramType,
-       const string paramValue
+       const std::string appClass,
+       const std::string paramName,
+       const std::string paramType,
+       const std::string paramValue
        )
       throw (xcept::Exception);
 
@@ -84,10 +84,10 @@ namespace emu {
      * Returns the value of the specified parameter from the specified SOAP
      * message.
      */
-    string extractScalarParameterValueFromSoapMsg
+    std::string extractScalarParameterValueFromSoapMsg
       (
        xoap::MessageReference msg,
-       const string           paramName
+       const std::string           paramName
        );
       // throw (xcept::Exception);
   }

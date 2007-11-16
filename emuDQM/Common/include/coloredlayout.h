@@ -101,7 +101,7 @@ namespace log4cplus {
       // Disallow copying of instances of this class
         SimpleColoredLayout(const SimpleColoredLayout&);
         SimpleColoredLayout& operator=(const SimpleColoredLayout&);
-	map<LogLevel, string> colormap;
+	map<LogLevel, std::string> colormap;
     };
 
 }
