@@ -127,20 +127,22 @@ public class CSCLeadingActions extends Level1LeadingActions {
 	 *
 	 */
 	public void initialize(Object o) throws UserActionException {
+
 		logger.debug("CSCLeadingActions.initialize");
 
 		fm.getParameterSet().put(new FunctionManagerParameter<StringT>(
 				Level1Parameters.ACTION_MSG, new StringT("Initializing")));
 
 		// get a user name from the first XDAQ executive
-		QualifiedResource r = fm.getQualifiedGroup()
-				.seekQualifiedResourcesOfType(new XdaqExecutive()).get(0);
+		List<QualifiedResource> l = fm.getQualifiedGroup()
+				.seekQualifiedResourcesOfType(new XdaqExecutive());
 
-		if (r != null) {
-			String user = ((XdaqExecutiveResource)r.getResource()).getUnixUser();
+		if (l.size() > 0) {
+			String user = ((XdaqExecutiveResource)(l.get(0).getResource()))
+				.getUnixUser();
 
 			// clear up job controls
-			List<QualifiedResource> l = fm.getQualifiedGroup()
+			l = fm.getQualifiedGroup()
 					.seekQualifiedResourcesOfType(new JobControl());
 
 			for (QualifiedResource qr: l) {
@@ -151,7 +153,7 @@ public class CSCLeadingActions extends Level1LeadingActions {
 				logger.debug("killed processes of " + user);
 			}
 		} else {
-			logger.error("initialize(): failed to get a QualifiedResource");
+			logger.info("initialize(): failed to get a QualifiedResource");
 		}
 
 		// Initialize the qualified group, whatever it means.
@@ -171,18 +173,21 @@ public class CSCLeadingActions extends Level1LeadingActions {
 		fm.xdaqSupervisor = new XdaqApplicationContainer(
 				xdaqApps.getApplicationsOfClass("CSCSupervisor"));
 
-		try { 
-			svStateParameter = ((XdaqApplication)fm.xdaqSupervisor.getApplications().get(0)).getXDAQParameter();
-			svStateParameter.select("stateName");
+		if (fm.xdaqSupervisor.getApplications().size() > 0) {
 
-			svTTSParameter = ((XdaqApplication)fm.xdaqSupervisor.getApplications().get(0)).getXDAQParameter();
-			svTTSParameter.select(new String[] {"TTSCrate", "TTSSlot", "TTSBits"});
+			try { 
+				svStateParameter = ((XdaqApplication)fm.xdaqSupervisor.getApplications().get(0)).getXDAQParameter();
+				svStateParameter.select("stateName");
 
-		} catch (Exception e) {
-			logger.error(getClass().toString() +
-					"Failed to prepare XDAQ parameters.", e);
+				svTTSParameter = ((XdaqApplication)fm.xdaqSupervisor.getApplications().get(0)).getXDAQParameter();
+				svTTSParameter.select(new String[] {"TTSCrate", "TTSSlot", "TTSBits"});
 
-			fm.fireEvent(Level1Inputs.ERROR);
+			} catch (Exception e) {
+				logger.error(getClass().toString() +
+							 "Failed to prepare XDAQ parameters.", e);
+				
+				fm.fireEvent(Level1Inputs.ERROR);
+			}
 		}
 
 		fm.fireEvent(createStateNotification());
@@ -475,3 +480,10 @@ public class CSCLeadingActions extends Level1LeadingActions {
 
 // End of file
 // vim: set sw=4 ts=4:
+/*
+Local Variables:
+indent-tabs-mode: t
+c-basic-indent: 4
+tab-width: 4
+End:
+*/
