@@ -2,7 +2,7 @@
 #define __emuDAQManager_Exception_h__
 
 
-#include "xcept/include/xcept/Exception.h"
+#include "xcept/Exception.h"
 
 
 namespace emuDAQManager
