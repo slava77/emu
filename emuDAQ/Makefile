@@ -1,6 +1,4 @@
-XDAQ_BACK_TO_ROOT:=../..
-
-include $(XDAQ_BACK_TO_ROOT)/config/mfAutoconf.rules
+include $(XDAQ_ROOT)/config/mfAutoconf.rules
 
 Project=emu
 
