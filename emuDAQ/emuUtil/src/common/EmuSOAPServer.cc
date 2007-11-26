@@ -280,7 +280,7 @@ void EmuSOAPServer::sendData()
 // 			clientDescriptor_->getClassName() << " :" << endl << s );
 	printMessages();
 
-	xoap::MessageReference reply = appContext_->postSOAP(msg, clientDescriptor_);
+	xoap::MessageReference reply = appContext_->postSOAP(msg, *appDescriptor_, *clientDescriptor_);
 
 	if ( !reply.isNull() ){
 	  if ( nEventCreditsHeld_->value_ > 0 &&

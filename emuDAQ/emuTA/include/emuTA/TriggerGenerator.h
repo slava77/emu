@@ -1,16 +1,16 @@
 #ifndef __emuTA_TriggerGenerator_h__
 #define __emuTA_TriggerGenerator_h__
 
-#include "emu/emuDAQ/emuTA/include/emuTA/exception/Exception.h"
-#include "extern/i2o/include/i2o/i2oDdmLib.h"
-#include "i2o/include/i2o/Method.h"
-#include "interface/evb/include/i2oEVBMsgs.h"
-#include "interface/shared/include/i2oXFunctionCodes.h"
-#include "toolbox/include/toolbox/mem/MemoryPoolFactory.h"
-#include "toolbox/include/toolbox/mem/Pool.h"
-#include "xcept/include/xcept/Exception.h"
+#include "emuTA/exception/Exception.h"
+#include "i2o/i2oDdmLib.h"
+#include "i2o/Method.h"
+#include "interface/evb/i2oEVBMsgs.h"
+#include "interface/shared/i2oXFunctionCodes.h"
+#include "toolbox/mem/MemoryPoolFactory.h"
+#include "toolbox/mem/Pool.h"
+#include "xcept/Exception.h"
 
-#include "emu/emuDAQ/emuTA/include/SliceTestTriggerChunk.h"
+#include "SliceTestTriggerChunk.h"
 
 
 using namespace std;

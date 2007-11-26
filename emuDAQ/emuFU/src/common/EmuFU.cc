@@ -1,27 +1,27 @@
-#include "emu/emuDAQ/emuFU/include/EmuFU.h"
-#include "emu/emuDAQ/emuFU/include/EmuFUV.h"
-#include "extern/cgicc/linuxx86/include/cgicc/HTTPHTMLHeader.h"
-#include "extern/cgicc/linuxx86/include/cgicc/HTTPPlainHeader.h"
-#include "i2o/include/i2o/Method.h"
-#include "interface/evb/include/i2oEVBMsgs.h"
-#include "interface/shared/include/frl_header.h"
-#include "interface/shared/include/fed_header.h"
-#include "interface/shared/include/fed_trailer.h"
-#include "interface/shared/include/i2oXFunctionCodes.h"
-#include "toolbox/include/toolbox/utils.h"
-#include "toolbox/include/toolbox/fsm/FailedEvent.h"
-#include "toolbox/include/toolbox/mem/HeapAllocator.h"
-#include "xcept/include/xcept/tools.h"
-#include "xdaq/include/xdaq/NamespaceURI.h"
-#include "xdaq/include/xdaq/exception/ApplicationNotFound.h"
-#include "xgi/include/xgi/Method.h"
-#include "xoap/include/xoap/domutils.h"
-#include "xoap/include/xoap/MessageFactory.h"
-#include "xoap/include/xoap/MessageReference.h"
-#include "xoap/include/xoap/Method.h"
-#include "xoap/include/xoap/SOAPBody.h"
-#include "xoap/include/xoap/SOAPBodyElement.h"
-#include "xoap/include/xoap/SOAPEnvelope.h"
+#include "EmuFU.h"
+#include "EmuFUV.h"
+#include "cgicc/HTTPHTMLHeader.h"
+#include "cgicc/HTTPPlainHeader.h"
+#include "i2o/Method.h"
+#include "interface/evb/i2oEVBMsgs.h"
+#include "interface/shared/frl_header.h"
+#include "interface/shared/fed_header.h"
+#include "interface/shared/fed_trailer.h"
+#include "interface/shared/i2oXFunctionCodes.h"
+#include "toolbox/utils.h"
+#include "toolbox/fsm/FailedEvent.h"
+#include "toolbox/mem/HeapAllocator.h"
+#include "xcept/tools.h"
+#include "xdaq/NamespaceURI.h"
+#include "xdaq/exception/ApplicationNotFound.h"
+#include "xgi/Method.h"
+#include "xoap/domutils.h"
+#include "xoap/MessageFactory.h"
+#include "xoap/MessageReference.h"
+#include "xoap/Method.h"
+#include "xoap/SOAPBody.h"
+#include "xoap/SOAPBodyElement.h"
+#include "xoap/SOAPEnvelope.h"
 
 // EMu-specific stuff
 #include "toolbox/mem/CommittedHeapAllocator.h"
@@ -32,30 +32,6 @@
 #include <sstream>
 
 
-// #include "EmuFU.h"
-// #include "EmuFUV.h"
-// #include "cgicc/HTTPHTMLHeader.h"
-// #include "cgicc/HTTPPlainHeader.h"
-// #include "i2o/Method.h"
-// #include "i2oEVBMsgs.h"
-// #include "frl_header.h"
-// #include "fed_header.h"
-// #include "fed_trailer.h"
-// #include "i2oXFunctionCodes.h"
-// #include "toolbox/utils.h"
-// #include "toolbox/fsm/FailedEvent.h"
-// #include "toolbox/mem/HeapAllocator.h"
-// #include "xcept/tools.h"
-// #include "xdaq/NamespaceURI.h"
-// #include "xdaq/exception/ApplicationNotFound.h"
-// #include "xgi/Method.h"
-// #include "xoap/domutils.h"
-// #include "xoap/MessageFactory.h"
-// #include "xoap/MessageReference.h"
-// #include "xoap/Method.h"
-// #include "xoap/SOAPBody.h"
-// #include "xoap/SOAPBodyElement.h"
-// #include "xoap/SOAPEnvelope.h"
 
 #include <unistd.h>
 
@@ -69,7 +45,7 @@ xdaq::WebApplication(s),
 
 logger_(Logger::getInstance(generateLoggerName())),
 
-bSem_(BSem::FULL)
+bSem_(toolbox::BSem::FULL)
 {
     tid_               = 0;
     i2oAddressMap_     = i2o::utils::getAddressMap();
@@ -92,9 +68,6 @@ bSem_(BSem::FULL)
     // Note that rubuilderTesterDescriptor_ will be zero if the
     // RUBuilderTester application is not found
     rubuilderTesterDescriptor_ = getRUBuilderTester(zone_);
-
-    // Note that sentinel_ will be zero if the setinel application is not found
-    sentinel_ = getSentinel(appContext_);
 
     i2oExceptionHandler_ =
         toolbox::exception::bind(this, &EmuFU::onI2oException, "onI2oException");
@@ -447,32 +420,6 @@ xdaq::ApplicationDescriptor *EmuFU::getRUBuilderTester
 
     return appDescriptor;
 }
-
-
-sentinel::Interface *EmuFU::getSentinel(xdaq::ApplicationContext *appContext)
-{
-    xdaq::Application   *application = 0;
-    sentinel::Interface *sentinel    = 0;
-
-
-    try
-    {
-        application = appContext->getFirstApplication("Sentinel");
-
-        LOG4CPLUS_INFO(logger_, "Found sentinel");
-    }
-    catch(xdaq::exception::ApplicationNotFound e)
-    {
-        LOG4CPLUS_WARN(logger_, "Did not find sentinel");
-
-        return 0;
-    }
-
-    sentinel = dynamic_cast<sentinel::Interface*>(application);
-
-    return sentinel;
-}
-
 
 DOMNode *EmuFU::findNode(DOMNodeList *nodeList,
 			 const string nodeLocalName)
@@ -1073,7 +1020,8 @@ throw (toolbox::fsm::exception::Exception)
 
     try
     {
-        buDescriptor_ = zone_->getApplicationDescriptor("BU", buInstNb_);
+//         buDescriptor_ = zone_->getApplicationDescriptor("BU", buInstNb_);
+        buDescriptor_ = zone_->getApplicationDescriptor("rubuilder::bu::Application", buInstNb_);
         buTid_        = i2oAddressMap_->getTid(buDescriptor_);
     }
     catch(xdaq::exception::ApplicationDescriptorNotFound e)
@@ -1456,7 +1404,7 @@ throw (xgi::exception::Exception)
     *out << "  <td align=\"left\">"                                    << endl;
     *out << "    <img"                                                 << endl;
     *out << "     align=\"middle\""                                    << endl;
-    *out << "     src=\"/emu/emuDAQ/emuFU/images/EmuFU64x64.gif\""     << endl;
+    *out << "     src=\"/emu/emuDAQ/emuFU/images/EmuFU64x64.gif\""<< endl;
     *out << "     alt=\"Main\""                                        << endl;
     *out << "     width=\"64\""                                        << endl;
     *out << "     height=\"64\""                                       << endl;
@@ -1469,7 +1417,7 @@ throw (xgi::exception::Exception)
     *out << "  <td class=\"app_links\" align=\"center\" width=\"70\">" << endl;
     *out << "    <a href=\"/urn:xdaq-application:lid=3\">"             << endl;
     *out << "      <img"                                               << endl;
-    *out << "       src=\"/daq/xdaq/hyperdaq/images/HyperDAQ.jpg\""    << endl;
+    *out << "       src=\"/hyperdaq/images/HyperDAQ.jpg\""             << endl;
     *out << "       alt=\"HyperDAQ\""                                  << endl;
     *out << "       width=\"64\""                                      << endl;
     *out << "       height=\"64\""                                     << endl;
@@ -2589,50 +2537,11 @@ string EmuFU::getHref(xdaq::ApplicationDescriptor *appDescriptor)
 
 bool EmuFU::onI2oException(xcept::Exception &exception, void *context)
 {
-    xdaq::ApplicationDescriptor *destDescriptor =
-        (xdaq::ApplicationDescriptor *)context;
-    xcept::Exception exceptionForSentinel =
-        createI2oExceptionForSentinel(exception, appDescriptor_,
-            appDescriptor_, destDescriptor);
-
-
-    if(sentinel_ != 0)
-    {
-        sentinel_->notify(exceptionForSentinel, this);
-    }
-
     LOG4CPLUS_ERROR(logger_,
-        " : " << xcept::stdformat_exception_history(exceptionForSentinel));
+        " : " << xcept::stdformat_exception_history(exception));
 
     return true;
 }
-
-
-emuFU::exception::Exception EmuFU::createI2oExceptionForSentinel
-(
-    xcept::Exception            &i2oException,
-    xdaq::ApplicationDescriptor *notifier,
-    xdaq::ApplicationDescriptor *source,
-    xdaq::ApplicationDescriptor *destination
-)
-{
-    string errorMsg      = createI2oErrorMsg(source, destination);
-    string notifierValue = createValueForSentinelNotifierProperty(notifier);
-
-
-    emuFU::exception::Exception exception("emuFU::exception::Exception", errorMsg,
-        __FILE__, __LINE__, __FUNCTION__, i2oException);
-
-    exception.setProperty("notifier", notifierValue);
-    exception.setProperty("qualifiedErrorSchemaURI",
-   "http://xdaq.web.cern.ch/xdaq/xsd/2005/QualifiedSoftwareErrorRecord-10.xsd");
-    exception.setProperty("dateTime", toolbox::getDateTime());
-    exception.setProperty("sessionID", "none");
-    exception.setProperty("severity", "ERROR");
-
-    return exception;
-}
-
 
 string EmuFU::createI2oErrorMsg
 (
@@ -2655,27 +2564,6 @@ string EmuFU::createI2oErrorMsg
 
     return s;
 }
-
-
-string EmuFU::createValueForSentinelNotifierProperty
-(
-    xdaq::ApplicationDescriptor *notifier
-)
-{
-    stringstream oss;
-    string       s;
-
-
-    oss << notifier->getContextDescriptor()->getURL();
-    oss << "/";
-    oss << notifier->getURN();
-
-    s = oss.str();
-
-    return s;
-}
-
-//---
 
 xoap::MessageReference EmuFU::createParameterGetSOAPMsg
 (
@@ -2705,7 +2593,7 @@ throw (emuFU::exception::Exception)
         xoap::SOAPBodyElement cmdElement =
             body.addBodyElement(cmdName);
         xoap::SOAPName propertiesName =
-            envelope.createName("properties", appClass, appNamespace);
+            envelope.createName("properties", "xapp", appNamespace);
         xoap::SOAPElement propertiesElement =
             cmdElement.addChildElement(propertiesName);
         xoap::SOAPName propertiesTypeName =
@@ -2713,7 +2601,7 @@ throw (emuFU::exception::Exception)
              "http://www.w3.org/2001/XMLSchema-instance");
         propertiesElement.addAttribute(propertiesTypeName, "soapenc:Struct");
         xoap::SOAPName propertyName =
-            envelope.createName(paramName, appClass, appNamespace);
+            envelope.createName(paramName, "xapp", appNamespace);
         xoap::SOAPElement propertyElement =
             propertiesElement.addChildElement(propertyName);
         xoap::SOAPName propertyTypeName =
@@ -2787,7 +2675,7 @@ throw (emuFU::exception::Exception)
             createParameterGetSOAPMsg(appClass, paramName, paramType);
 
         xoap::MessageReference reply =
-            appContext_->postSOAP(msg, appDescriptor);
+            appContext_->postSOAP(msg, *appDescriptor_, *appDescriptor);
 
         // Check if the reply indicates a fault occurred
         xoap::SOAPBody replyBody =

@@ -1,21 +1,10 @@
-// $Id: EmuSOAPClient.cc,v 3.4 2007/03/05 11:00:17 banicz Exp $
-
-/*************************************************************************
- * XDAQ Components for Distributed Data Acquisition                      *
- * Copyright (C) 2000-2004, CERN.			                 *
- * All rights reserved.                                                  *
- * Authors: J. Gutleber and L. Orsini					 *
- *                                                                       *
- * For the licensing terms see LICENSE.		                         *
- * For the list of contributors see CREDITS.   			         *
- *************************************************************************/
 #include <iomanip>
 
 #include "EmuSOAPClient.h"
 #include "i2oEmuClientMsg.h"
 
 // #include "i2oStreamIOMsg.h"
-#include "Task.h"
+#include "toolbox/Task.h"
 
 #include "toolbox/rlist.h"
 #include "toolbox/fsm/FiniteStateMachine.h"
@@ -45,13 +34,13 @@
 #include "xcept/Exception.h"
 #include "xcept/tools.h"
 
-#include "emuReadout/include/MuEndDDUHeader.h"
+#include "emu/emuDAQ/emuReadout/include/MuEndDDUHeader.h"
 
 EmuSOAPClient::EmuSOAPClient(xdaq::ApplicationStub* c)
   throw(xdaq::exception::Exception)
   :xdaq::Application(c)
   ,Task("EmuSOAPClient") 
-  ,applicationBSem_(BSem::FULL)
+  ,applicationBSem_(toolbox::BSem::FULL)
 {
   getApplicationInfoSpace()->fireItemAvailable("serversClassName", &serversClassName_);
   getApplicationInfoSpace()->fireItemAvailable("serversClassInstance", &serversClassInstance_);
@@ -67,7 +56,7 @@ EmuSOAPClient::EmuSOAPClient(xdaq::ApplicationStub* c)
   // bind SOAP callback server messages
   xoap::bind(this, &EmuSOAPClient::emuDataSOAPMsg, "onEmuDataMessage", XDAQ_NS_URI );
 
-  stringstream ss;
+  std::stringstream ss;
   ss << getApplicationDescriptor()->getClassName();// << getApplicationDescriptor()->getInstance();
   name_ = ss.str();
 
@@ -216,10 +205,10 @@ int EmuSOAPClient::sendCreditSOAPMessage()
 		       xcept::stdformat_exception_history(e));
     }	
   
-  string s;
+  std::string s;
   msg->writeTo(s);
   LOG4CPLUS_DEBUG(getApplicationLogger(), "Sending to " << 
-		  serverDescriptor->getClassName() << " :" << endl << s );
+		  serverDescriptor->getClassName() << " :" << std::endl << s );
   xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, serverDescriptor );
   s = "";
   reply->writeTo(s);
@@ -254,7 +243,7 @@ xoap::MessageReference EmuSOAPClient::emuDataSOAPMsg(xoap::MessageReference msg)
 
 
 std::string EmuSOAPClient::printMessageReceived( xoap::MessageReference msg ){
-  stringstream ss;
+  std::stringstream ss;
 
   xoap::SOAPPart part = msg->getSOAPPart();
   xoap::SOAPEnvelope env = part.getEnvelope();
@@ -264,15 +253,15 @@ std::string EmuSOAPClient::printMessageReceived( xoap::MessageReference msg ){
   DOMNode *functionNode = findNode(bodyList, "onEmuDataMessage");
   DOMNodeList *parameterList = functionNode->getChildNodes();
   DOMNode *parameterNode = findNode(parameterList, "serverName");
-  string sn              = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
+  std::string sn         = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
   parameterNode          = findNode(parameterList, "serverInstance");
-  string si              = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
+  std::string si         = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
   parameterNode          = findNode(parameterList, "runNumber");
-  string sr              = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
+  std::string sr         = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
   parameterNode          = findNode(parameterList, "nEventCreditsHeld");
-  string sc              = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
+  std::string sc         = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
   parameterNode          = findNode(parameterList, "errorFlag");
-  string se              = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
+  std::string se         = xoap::XMLCh2String(parameterNode->getFirstChild()->getNodeValue());
 
   int eventNumber = -1;
 
@@ -303,7 +292,7 @@ std::string EmuSOAPClient::printMessageReceived( xoap::MessageReference msg ){
 }
 
 std::string EmuSOAPClient::printAttachmentsOfMessageReceived( xoap::MessageReference msg ){
-  stringstream ss;
+  std::stringstream ss;
 
   std::list< xoap::AttachmentPart * > attachments = msg->getAttachments();
   int count=0;
@@ -311,7 +300,7 @@ std::string EmuSOAPClient::printAttachmentsOfMessageReceived( xoap::MessageRefer
     (*a)->removeAllMimeHeaders();
     char *data = (*a)->getContent();
     int   size = (*a)->getSize();
-    ss << "Attachment " << count << " ("<< size <<" bytes)" <<endl;
+    ss << "Attachment " << count << " ("<< size <<" bytes)" << std::endl;
     unsigned short *shorts = reinterpret_cast<unsigned short *>(data);
     int            nshorts = size / sizeof(unsigned short);
     ss<<std::hex;
@@ -336,11 +325,11 @@ std::string EmuSOAPClient::printAttachmentsOfMessageReceived( xoap::MessageRefer
 }
 
 DOMNode *EmuSOAPClient::findNode(DOMNodeList *nodeList,
-				 const string nodeLocalName)
+				 const std::string nodeLocalName)
   throw ( xoap::exception::Exception )
 {
     DOMNode            *node = 0;
-    string             name  = "";
+    std::string        name  = "";
     unsigned int       i     = 0;
 
 

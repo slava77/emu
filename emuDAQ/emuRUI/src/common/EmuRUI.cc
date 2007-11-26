@@ -1,38 +1,39 @@
-#include "emuDAQ/emuRUI/include/EmuRUI.h"
-#include "emuDAQ/emuRUI/include/EmuRUIV.h"
-#include "extern/cgicc/linuxx86/include/cgicc/HTTPHTMLHeader.h"
-#include "extern/cgicc/linuxx86/include/cgicc/HTTPPlainHeader.h"
-#include "i2o/include/i2o/Method.h"
-#include "interface/evb/include/i2oEVBMsgs.h"
-#include "interface/shared/include/i2oXFunctionCodes.h"
-#include "toolbox/include/toolbox/utils.h"
-#include "toolbox/include/toolbox/fsm/FailedEvent.h"
-#include "toolbox/include/toolbox/mem/HeapAllocator.h"
-#include "toolbox/include/toolbox/task/Action.h"
-#include "toolbox/include/toolbox/task/WorkLoop.h"
-#include "toolbox/include/toolbox/task/WorkLoopFactory.h"
-#include "xcept/include/xcept/tools.h"
-#include "xdaq/include/xdaq/NamespaceURI.h"
-#include "xdaq/include/xdaq/exception/ApplicationNotFound.h"
-#include "xgi/include/xgi/Method.h"
-#include "xoap/include/xoap/domutils.h"
-#include "xoap/include/xoap/MessageFactory.h"
-#include "xoap/include/xoap/MessageReference.h"
-#include "xoap/include/xoap/Method.h"
-#include "xoap/include/xoap/SOAPBody.h"
-#include "xoap/include/xoap/SOAPBodyElement.h"
-#include "xoap/include/xoap/SOAPEnvelope.h"
+#include "EmuRUI.h"
+#include "EmuRUIV.h"
+#include "cgicc/HTTPHTMLHeader.h"
+#include "cgicc/HTTPPlainHeader.h"
+#include "i2o/Method.h"
+#include "interface/evb/i2oEVBMsgs.h"
+#include "interface/shared/i2oXFunctionCodes.h"
+#include "toolbox/utils.h"
+#include "toolbox/fsm/FailedEvent.h"
+#include "toolbox/mem/HeapAllocator.h"
+#include "toolbox/task/Action.h"
+#include "toolbox/task/WorkLoop.h"
+#include "toolbox/task/WorkLoopFactory.h"
+#include "xcept/tools.h"
+#include "xdaq/NamespaceURI.h"
+#include "xdaq/exception/ApplicationNotFound.h"
+#include "xgi/Method.h"
+#include "xoap/domutils.h"
+#include "xoap/MessageFactory.h"
+#include "xoap/MessageReference.h"
+#include "xoap/Method.h"
+#include "xoap/SOAPBody.h"
+#include "xoap/SOAPBodyElement.h"
+#include "xoap/SOAPEnvelope.h"
 
 #include <unistd.h>
 // EMu-specific stuff
 #include "toolbox/mem/CommittedHeapAllocator.h"
-#include "emuDAQ/emuReadout/include/EmuFileReader.h"
-#include "emuDAQ/emuReadout/include/EmuSpyReader.h"
-#include "emuDAQ/emuUtil/include/EmuI2OServer.h"
-#include "emuDAQ/emuUtil/include/EmuSOAPServer.h"
+#include "emu/emuDAQ/emuReadout/include/EmuFileReader.h"
+#include "emu/emuDAQ/emuReadout/include/EmuSpyReader.h"
+#include "emu/emuDAQ/emuUtil/include/EmuI2OServer.h"
+#include "emu/emuDAQ/emuUtil/include/EmuSOAPServer.h"
 #include <sstream>
 #include "xdata/soap/Serializer.h"
-#include "xoap/include/xoap/DOMParser.h"
+#include "xoap/DOMParser.h"
+#include "xoap/DOMParserFactory.h"
 
 // Alias used to access the "versioning" namespace EmuRUI from within the class EmuRUI
 namespace EmuRUIV = EmuRUI;
@@ -44,7 +45,7 @@ xdaq::WebApplication(s),
 
 logger_(Logger::getInstance(generateLoggerName())),
 
-applicationBSem_(BSem::FULL)
+applicationBSem_(toolbox::BSem::FULL)
 
 {
     blocksArePendingTransmission_ = false;
@@ -73,9 +74,6 @@ applicationBSem_(BSem::FULL)
     // Note that rubuilderTesterDescriptor_ will be zero if the
     // RUBuilderTester application is not found
     rubuilderTesterDescriptor_ = getRUBuilderTester( zone_ );
-
-    // Note that sentinel_ will be zero if the setinel application is not found
-    sentinel_ = getSentinel(appContext_);
 
     i2oExceptionHandler_ =
         toolbox::exception::bind(this, &EmuRUI::onI2oException, "onI2oException");
@@ -436,32 +434,6 @@ xdaq::ApplicationDescriptor *EmuRUI::getRUBuilderTester
     return appDescriptor;
 }
 
-
-sentinel::Interface *EmuRUI::getSentinel(xdaq::ApplicationContext *appContext)
-{
-    xdaq::Application   *application = 0;
-    sentinel::Interface *sentinel    = 0;
-
-
-    try
-    {
-        application = appContext->getFirstApplication("Sentinel");
-
-        LOG4CPLUS_INFO(logger_, "Found sentinel");
-    }
-    catch(xdaq::exception::ApplicationNotFound e)
-    {
-        LOG4CPLUS_WARN(logger_, "Did not find sentinel");
-
-        return 0;
-    }
-
-    sentinel = dynamic_cast<sentinel::Interface*>(application);
-
-    return sentinel;
-}
-
-
 vector< xdaq::ApplicationDescriptor* > EmuRUI::getAppDescriptors(xdaq::Zone *zone,
 								 const string            appClass)
   throw (emuRUI::exception::Exception)
@@ -540,7 +512,7 @@ throw (emuRUI::exception::Exception)
         xoap::SOAPBodyElement cmdElement =
             body.addBodyElement(cmdName);
         xoap::SOAPName propertiesName =
-            envelope.createName("properties", appClass, appNamespace);
+            envelope.createName("properties", "xapp", appNamespace);
         xoap::SOAPElement propertiesElement =
             cmdElement.addChildElement(propertiesName);
         xoap::SOAPName propertiesTypeName =
@@ -548,7 +520,7 @@ throw (emuRUI::exception::Exception)
              "http://www.w3.org/2001/XMLSchema-instance");
         propertiesElement.addAttribute(propertiesTypeName, "soapenc:Struct");
         xoap::SOAPName propertyName =
-            envelope.createName(paramName, appClass, appNamespace);
+            envelope.createName(paramName, "xapp", appNamespace);
         xoap::SOAPElement propertyElement =
             propertiesElement.addChildElement(propertyName);
         xoap::SOAPName propertyTypeName =
@@ -650,7 +622,7 @@ throw (emuRUI::exception::Exception)
             createParameterGetSOAPMsg(appClass, paramName, paramType);
 
         xoap::MessageReference reply =
-            appContext_->postSOAP(msg, appDescriptor);
+            appContext_->postSOAP(msg, *appDescriptor_, *appDescriptor);
 
         // Check if the reply indicates a fault occurred
         xoap::SOAPBody replyBody =
@@ -1472,7 +1444,8 @@ throw (toolbox::fsm::exception::Exception)
     // Avoid repeated function calls to obtain RU descriptor and tid
     try
     {
-        ruDescriptor_ = zone_->getApplicationDescriptor("RU", instance_);
+//         ruDescriptor_ = zone_->getApplicationDescriptor("RU", instance_);
+        ruDescriptor_ = zone_->getApplicationDescriptor("rubuilder::ru::Application", instance_);
     }
     catch(xdaq::exception::ApplicationDescriptorNotFound  e)
     {
@@ -1931,7 +1904,7 @@ throw (xgi::exception::Exception)
     *out << "  <td class=\"app_links\" align=\"center\" width=\"70\">" << endl;
     *out << "    <a href=\"/urn:xdaq-application:lid=3\">"             << endl;
     *out << "      <img"                                               << endl;
-    *out << "       src=\"/daq/xdaq/hyperdaq/images/HyperDAQ.jpg\""    << endl;
+    *out << "       src=\"/hyperdaq/images/HyperDAQ.jpg\""             << endl;
     *out << "       alt=\"HyperDAQ\""                                  << endl;
     *out << "       width=\"64\""                                      << endl;
     *out << "       height=\"64\""                                     << endl;
@@ -3715,50 +3688,11 @@ string EmuRUI::getHref(xdaq::ApplicationDescriptor *appDescriptor)
 
 bool EmuRUI::onI2oException(xcept::Exception &exception, void *context)
 {
-    xdaq::ApplicationDescriptor *destDescriptor =
-        (xdaq::ApplicationDescriptor *)context;
-    xcept::Exception exceptionForSentinel =
-        createI2oExceptionForSentinel(exception, appDescriptor_,
-            appDescriptor_, destDescriptor);
 
-
-    if(sentinel_ != 0)
-    {
-        sentinel_->notify(exceptionForSentinel, this);
-    }
-
-    LOG4CPLUS_ERROR(logger_,
-        " : " << xcept::stdformat_exception_history(exceptionForSentinel));
+    LOG4CPLUS_ERROR(logger_, "I2O excpetion: " << xcept::stdformat_exception_history(exception));
 
     return true;
 }
-
-
-emuRUI::exception::Exception EmuRUI::createI2oExceptionForSentinel
-(
-    xcept::Exception            &i2oException,
-    xdaq::ApplicationDescriptor *notifier,
-    xdaq::ApplicationDescriptor *source,
-    xdaq::ApplicationDescriptor *destination
-)
-{
-    string errorMsg      = createI2oErrorMsg(source, destination);
-    string notifierValue = createValueForSentinelNotifierProperty(notifier);
-
-
-    emuRUI::exception::Exception exception("emuRUI::exception::Exception", errorMsg,
-        __FILE__, __LINE__, __FUNCTION__, i2oException);
-
-    exception.setProperty("notifier", notifierValue);
-    exception.setProperty("qualifiedErrorSchemaURI",
-   "http://xdaq.web.cern.ch/xdaq/xsd/2005/QualifiedSoftwareErrorRecord-10.xsd");
-    exception.setProperty("dateTime", toolbox::getDateTime());
-    exception.setProperty("sessionID", "none");
-    exception.setProperty("severity", "ERROR");
-
-    return exception;
-}
-
 
 string EmuRUI::createI2oErrorMsg
 (
@@ -3778,25 +3712,6 @@ string EmuRUI::createI2oErrorMsg
     oss << destination->getClassName();
     oss << " instance ";
     oss << destination->getInstance();
-
-    s = oss.str();
-
-    return s;
-}
-
-
-string EmuRUI::createValueForSentinelNotifierProperty
-(
-    xdaq::ApplicationDescriptor *notifier
-)
-{
-    stringstream oss;
-    string       s;
-
-
-    oss << notifier->getContextDescriptor()->getURL();
-    oss << "/";
-    oss << notifier->getURN();
 
     s = oss.str();
 
@@ -4075,7 +3990,7 @@ xoap::MessageReference EmuRUI::maskDDUInputs( const bool in, const xoap::Message
   xoap::MessageReference reply = xoap::createMessage();
 
   // Create a parser
-  xoap::DOMParser* parser = xoap::DOMParser::get("ParseFromSOAP");
+  xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
 
   // Create a (de)serializer
   xdata::soap::Serializer serializer;
@@ -4105,7 +4020,7 @@ xoap::MessageReference EmuRUI::maskDDUInputs( const bool in, const xoap::Message
   }
 
   // Parser must be explicitly removed, or else it stays in the memory
-  xoap::DOMParser::remove("ParseFromSOAP");
+  xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
 
   return reply;
 }

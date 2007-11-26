@@ -1,16 +1,18 @@
 #ifndef __EmuTAV_h__
 #define __EmuTAV_h__
 
-#include "toolbox/include/PackageInfo.h"
+#include "config/PackageInfo.h"
 
 namespace EmuTA
 {
-    const string package     = "emuDAQ/emuTA";
-    const string versions    = "3.5";
-    const string description = "Example trigger adapter (TA) to be copied and modified by end-users.";
-    const string link        = "NONE";
-    toolbox::PackageInfo getPackageInfo();
-    void checkPackageDependencies() throw (toolbox::PackageInfo::VersionException);
+    const std::string package     = "emuTA";
+    const std::string versions    = "4.0";
+    const std::string description = "A dummy trigger adapter (or rather generator) for the endcap muon local DAQ";
+    const std::string summary     = "emuDAQ/emuTA";
+    const std::string link        = "NONE";
+    const std::string authors     = "original by S.Murray adapted to Emu by K.Banicz";
+    config::PackageInfo getPackageInfo();
+    void checkPackageDependencies() throw (config::PackageInfo::VersionException);
     std::set<std::string, std::less<std::string> > getPackageDependencies();
 }
 

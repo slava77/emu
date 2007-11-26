@@ -1,30 +1,18 @@
-// $Id: EmuClient.h,v 3.2 2007/03/05 11:00:17 banicz Exp $
-
-/*************************************************************************
- * XDAQ Components for Distributed Data Acquisition                      *
- * Copyright (C) 2000-2004, CERN.			                 *
- * All rights reserved.                                                  *
- * Authors: J. Gutleber and L. Orsini					 *
- *                                                                       *
- * For the licensing terms see LICENSE.		                         *
- * For the list of contributors see CREDITS.   			         *
- *************************************************************************/
-
 #ifndef _EmuClient_h_
 #define _EmuClient_h_
 
 #include <vector>
-#include "Task.h"
+#include "toolbox/Task.h"
 #include "toolbox/mem/Reference.h"
 #include "toolbox/mem/Pool.h"
 #include "toolbox/fsm/FiniteStateMachine.h"
 #include "xdaq/Application.h"
 #include "xdata/UnsignedLong.h"
-#include "xdata/include/xdata/String.h"
+#include "xdata/String.h"
 #include "xdata/Event.h"
 #include "xdata/ActionListener.h"
 
-class EmuClient: public xdaq::Application, public Task, public xdata::ActionListener
+class EmuClient: public xdaq::Application, public toolbox::Task, public xdata::ActionListener
 {	
 public:
   XDAQ_INSTANTIATOR();
@@ -69,9 +57,9 @@ protected:
   
   toolbox::mem::Pool* pool_;			// Memory pool for allocating messages for sending
 
-  deque<toolbox::mem::Reference*> dataMessages_; // the queue of data messages waiting to be processed
+  std::deque<toolbox::mem::Reference*> dataMessages_; // the queue of data messages waiting to be processed
 
-  BSem applicationBSem_;
+  toolbox::BSem applicationBSem_;
 
 };
 
