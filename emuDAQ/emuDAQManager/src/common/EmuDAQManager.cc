@@ -1,23 +1,24 @@
-#include "emu/emuDAQ/emuDAQManager/include/EmuDAQManager.h"
-#include "emu/emuDAQ/emuDAQManager/include/EmuDAQManagerV.h"
+#include "EmuDAQManager.h"
+#include "EmuDAQManagerV.h"
 #include "emu/emuDAQ/emuRUI/include/emuRUI/STEPEventCounter.h"
-#include "extern/cgicc/linuxx86/include/cgicc/HTTPHTMLHeader.h"
-#include "extern/cgicc/linuxx86/include/cgicc/HTTPPlainHeader.h"
-#include "xcept/include/xcept/tools.h"
-#include "xdaq/include/xdaq/NamespaceURI.h"
-#include "xdaq/include/xdaq/exception/ApplicationNotFound.h"
-#include "xgi/include/xgi/Method.h"
-#include "xgi/include/xgi/Utils.h"
-#include "xoap/include/xoap/domutils.h"
-#include "xoap/include/xoap/MessageFactory.h"
-#include "xoap/include/xoap/MessageReference.h"
-#include "xoap/include/xoap/Method.h"
-#include "xoap/include/xoap/SOAPBody.h"
-#include "xoap/include/xoap/SOAPBodyElement.h"
-#include "xoap/include/xoap/SOAPEnvelope.h"
+#include "cgicc/HTTPHTMLHeader.h"
+#include "cgicc/HTTPPlainHeader.h"
+#include "xcept/tools.h"
+#include "xdaq/NamespaceURI.h"
+#include "xdaq/exception/ApplicationNotFound.h"
+#include "xgi/Method.h"
+#include "xgi/Utils.h"
+#include "xoap/domutils.h"
+#include "xoap/MessageFactory.h"
+#include "xoap/MessageReference.h"
+#include "xoap/Method.h"
+#include "xoap/SOAPBody.h"
+#include "xoap/SOAPBodyElement.h"
+#include "xoap/SOAPEnvelope.h"
 
-#include "xoap/include/xoap/DOMParser.h"
-#include "xoap/include/xoap/domutils.h"
+#include "xoap/DOMParser.h"
+#include "xoap/DOMParserFactory.h"
+#include "xoap/domutils.h"
 #include "xdata/soap/Serializer.h"
 #include "toolbox/regex.h"
 
@@ -51,55 +52,6 @@ runInfo_(0)
 
     appDescriptor_->setAttribute("icon",
         "/emu/emuDAQ/emuDAQManager/images/EmuDAQManager64x64.gif");
-
-    // Note that sentinel_ will be zero if the setinel application is not found
-    sentinel_ = getSentinel(appContext_);
-
-    // Listen to I2oException context if sentinel was found
-    if(sentinel_ != 0)
-    {
-        try
-        {
-            try
-            {
-                // Join sentinel for receiving notifications
-                sentinel_->join(this);
-            }
-            catch(xcept::Exception e)
-            {
-                XCEPT_RETHROW(emuDAQManager::exception::Exception,
-                    "Failed to join sentinel", e);
-            }
-
-            try
-            {
-                // Listen for incoming exceptions
-                sentinel_->setListener(this, this);
-            }
-            catch(xcept::Exception e)
-            {
-                XCEPT_RETHROW(emuDAQManager::exception::Exception,
-                    "Failed to listen to incomming exceptions", e);
-            }
-
-            try
-            {
-                // Handle exceptions of the "I2oException" context
-                sentinel_->attachContext("I2oException", this);
-            }
-            catch(xcept::Exception e)
-            {
-                XCEPT_RETHROW(emuDAQManager::exception::Exception,
-                    "Failed to attach to \"I2oException\" context", e);
-            }
-        }
-        catch(xcept::Exception e)
-        {
-            LOG4CPLUS_ERROR(logger_,
-                "Failed to listen to I2oException context"
-                << " : " << xcept::stdformat_exception_history(e));
-        }
-    }
 
     getAllAppDescriptors();
     createAllAppStatesVector();
@@ -171,7 +123,8 @@ void EmuDAQManager::getAllAppDescriptors()
 {
     try
     {
-        evmDescriptors_ = getAppDescriptors(zone_, "EVM");
+//         evmDescriptors_ = getAppDescriptors(zone_, "EVM");
+        evmDescriptors_ = getAppDescriptors(zone_, "rubuilder::evm::Application");
     }
     catch(emuDAQManager::exception::Exception e)
     {
@@ -184,7 +137,8 @@ void EmuDAQManager::getAllAppDescriptors()
 
     try
     {
-        ruDescriptors_ = getAppDescriptors(zone_, "RU");
+//         ruDescriptors_ = getAppDescriptors(zone_, "RU");
+        ruDescriptors_ = getAppDescriptors(zone_, "rubuilder::ru::Application");
     }
     catch(emuDAQManager::exception::Exception e)
     {
@@ -197,7 +151,8 @@ void EmuDAQManager::getAllAppDescriptors()
 
     try
     {
-        buDescriptors_ = getAppDescriptors(zone_, "BU");
+//         buDescriptors_ = getAppDescriptors(zone_, "BU");
+        buDescriptors_ = getAppDescriptors(zone_, "rubuilder::bu::Application");
     }
     catch(emuDAQManager::exception::Exception e)
     {
@@ -268,11 +223,8 @@ void EmuDAQManager::getAllAppDescriptors()
 
 void EmuDAQManager::onException(xcept::Exception &e)
 {
-    LOG4CPLUS_INFO(logger_, "Received an exception from the sentinel");
-
-    cout << "\n";
-    cout << xcept::stdformat_exception_history(e) << "\n";
-    cout << flush;
+  LOG4CPLUS_INFO(logger_, "Received an exception from the sentinel: " 
+		 << xcept::stdformat_exception_history(e));
 }
 
 
@@ -344,34 +296,6 @@ throw (emuDAQManager::exception::Exception)
 //     }
 
     return orderedDescriptors;
-}
-
-
-sentinel::Interface *EmuDAQManager::getSentinel
-(
-    xdaq::ApplicationContext *appContext
-)
-{
-    xdaq::Application   *application = 0;
-    sentinel::Interface *sentinel    = 0;
-
-
-    try
-    {
-        application = appContext->getFirstApplication("Sentinel");
-
-        LOG4CPLUS_INFO(logger_, "Found sentinel");
-    }
-    catch(xdaq::exception::ApplicationNotFound e)
-    {
-        LOG4CPLUS_WARN(logger_, "Did not find sentinel");
-
-        return 0;
-    }
-
-    sentinel = dynamic_cast<sentinel::Interface*>(application);
-
-    return sentinel;
 }
 
 
@@ -496,7 +420,7 @@ throw (xgi::exception::Exception)
     *out << "  <td class=\"app_links\" align=\"center\" width=\"70\">" << endl;
     *out << "    <a href=\"/urn:xdaq-application:lid=3\" target=\"_top\">"<< endl;
     *out << "      <img"                                               << endl;
-    *out << "       src=\"/daq/xdaq/hyperdaq/images/HyperDAQ.jpg\""    << endl;
+    *out << "       src=\"/hyperdaq/images/HyperDAQ.jpg\""             << endl;
     *out << "       alt=\"HyperDAQ\""                                  << endl;
     *out << "       width=\"64\""                                      << endl;
     *out << "       height=\"64\""                                     << endl;
@@ -1112,7 +1036,7 @@ void EmuDAQManager::commandWebPage(xgi::Input *in, xgi::Output *out)
     *out << "  <td class=\"app_links\" align=\"center\" width=\"70\">" << endl;
     *out << "    <a href=\"/urn:xdaq-application:lid=3\" target=\"_top\">"             << endl;
     *out << "      <img"                                               << endl;
-    *out << "       src=\"/daq/xdaq/hyperdaq/images/HyperDAQ.jpg\""    << endl;
+    *out << "       src=\"/hyperdaq/images/HyperDAQ.jpg\""             << endl;
     *out << "       alt=\"HyperDAQ\""                                  << endl;
     *out << "       width=\"64\""                                      << endl;
     *out << "       height=\"64\""                                     << endl;
@@ -3480,7 +3404,7 @@ throw (emuDAQManager::exception::Exception)
     {
         xoap::MessageReference msg = createSimpleSOAPCmdMsg(eventName);
         xoap::MessageReference reply =
-            appContext_->postSOAP(msg, appDescriptor);
+            appContext_->postSOAP(msg, *appDescriptor_, *appDescriptor);
 
         // Check if the reply indicates a fault occurred
         xoap::SOAPBody replyBody =
@@ -3559,7 +3483,7 @@ throw (emuDAQManager::exception::Exception)
             createParametersGetSOAPMsg(appClass, paramNamesAndTypes);
 
         xoap::MessageReference reply =
-            appContext_->postSOAP(msg, appDescriptor);
+            appContext_->postSOAP(msg, *appDescriptor_, *appDescriptor);
 
         // Check if the reply indicates a fault occurred
         xoap::SOAPBody replyBody =
@@ -3607,7 +3531,7 @@ throw (emuDAQManager::exception::Exception)
             createParameterGetSOAPMsg(appClass, paramName, paramType);
 
         xoap::MessageReference reply =
-            appContext_->postSOAP(msg, appDescriptor);
+            appContext_->postSOAP(msg, *appDescriptor_, *appDescriptor);
 
         // Check if the reply indicates a fault occurred
         xoap::SOAPBody replyBody =
@@ -3659,7 +3583,7 @@ throw (emuDAQManager::exception::Exception)
                                      paramName, paramType, paramValue);
 
         xoap::MessageReference reply =
-            appContext_->postSOAP(msg, appDescriptor);
+            appContext_->postSOAP(msg, *appDescriptor_, *appDescriptor);
 
         // Check if the reply indicates a fault occurred
         xoap::SOAPBody replyBody =
@@ -3716,7 +3640,7 @@ throw (emuDAQManager::exception::Exception)
         xoap::SOAPBodyElement cmdElement =
             body.addBodyElement(cmdName);
         xoap::SOAPName propertiesName =
-            envelope.createName("properties", appClass, appNamespace);
+            envelope.createName("properties", "xapp", appNamespace);
         xoap::SOAPElement propertiesElement =
             cmdElement.addChildElement(propertiesName);
         xoap::SOAPName propertiesTypeName =
@@ -3729,7 +3653,7 @@ throw (emuDAQManager::exception::Exception)
 	  problemParams = pnt->first + "(" + pnt->second + ") ";
 
 	  xoap::SOAPName propertyName =
-            envelope.createName(pnt->first, appClass, appNamespace);
+            envelope.createName(pnt->first, "xapp", appNamespace);
 	  xoap::SOAPElement propertyElement =
             propertiesElement.addChildElement(propertyName);
 	  xoap::SOAPName propertyTypeName =
@@ -3778,7 +3702,7 @@ throw (emuDAQManager::exception::Exception)
         xoap::SOAPBodyElement cmdElement =
             body.addBodyElement(cmdName);
         xoap::SOAPName propertiesName =
-            envelope.createName("properties", appClass, appNamespace);
+            envelope.createName("properties", "xapp", appNamespace);
         xoap::SOAPElement propertiesElement =
             cmdElement.addChildElement(propertiesName);
         xoap::SOAPName propertiesTypeName =
@@ -3786,7 +3710,7 @@ throw (emuDAQManager::exception::Exception)
              "http://www.w3.org/2001/XMLSchema-instance");
         propertiesElement.addAttribute(propertiesTypeName, "soapenc:Struct");
         xoap::SOAPName propertyName =
-            envelope.createName(paramName, appClass, appNamespace);
+            envelope.createName(paramName, "xapp", appNamespace);
         xoap::SOAPElement propertyElement =
             propertiesElement.addChildElement(propertyName);
         xoap::SOAPName propertyTypeName =
@@ -3835,7 +3759,7 @@ throw (emuDAQManager::exception::Exception)
         xoap::SOAPBodyElement cmdElement =
             body.addBodyElement(cmdName);
         xoap::SOAPName propertiesName =
-            envelope.createName("properties", appClass, appNamespace);
+            envelope.createName("properties", "xapp", appNamespace);
         xoap::SOAPElement propertiesElement =
             cmdElement.addChildElement(propertiesName);
         xoap::SOAPName propertiesTypeName =
@@ -3843,7 +3767,7 @@ throw (emuDAQManager::exception::Exception)
              "http://www.w3.org/2001/XMLSchema-instance");
         propertiesElement.addAttribute(propertiesTypeName, "soapenc:Struct");
         xoap::SOAPName propertyName =
-            envelope.createName(paramName, appClass, appNamespace);
+            envelope.createName(paramName, "xapp", appNamespace);
         xoap::SOAPElement propertyElement =
             propertiesElement.addChildElement(propertyName);
         xoap::SOAPName propertyTypeName =
@@ -4132,7 +4056,7 @@ void EmuDAQManager::exportParams(xdata::InfoSpace *s)
     s->fireItemAvailable("STEPFinished",&STEPFinished_);
     s->addItemRetrieveListener("STEPFinished",this);
 
-    hardwareMapping_ = "emu/EmuDAQ/xml/RUI-to-chamber_mapping.xml";
+    hardwareMapping_ = "/emu/EmuDAQ/xml/RUI-to-chamber_mapping.xml";
     s->fireItemAvailable("hardwareMapping",&hardwareMapping_);
 }
 
@@ -4397,7 +4321,7 @@ bool EmuDAQManager::printSTEPCountsTable( stringstream& out, bool control ){
 
   xoap::MessageReference reply;
 
-  xoap::DOMParser* parser = xoap::DOMParser::get("ParseFromSOAP");
+  xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
 
   xdata::soap::Serializer serializer;
 
@@ -4536,7 +4460,7 @@ bool EmuDAQManager::printSTEPCountsTable( stringstream& out, bool control ){
   } // for(rui = ruiDescriptors_.begin(); rui != ruiDescriptors_.end(); rui++)
 
   // Parser must be explicitly removed, or else it stays in the memory
-  xoap::DOMParser::remove("ParseFromSOAP");
+  xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
 
   out << "</table>"                                                 << endl;
 
@@ -4554,7 +4478,7 @@ xoap::MessageReference EmuDAQManager::querySTEP( xdaq::ApplicationDescriptor* ru
     xoap::MessageReference message = createSimpleSOAPCmdMsg("STEPQuery");
 
     // Post it
-    reply = appContext_->postSOAP(message, ruiDescriptor);
+    reply = appContext_->postSOAP(message, *appDescriptor_, *ruiDescriptor);
     
     // Check if the reply indicates a fault occurred
     xoap::SOAPBody replyBody = reply->getSOAPPart().getEnvelope().getBody();
@@ -4585,7 +4509,7 @@ bool EmuDAQManager::isSTEPFinished(){
   
   xoap::MessageReference reply;
 
-  xoap::DOMParser* parser = xoap::DOMParser::get("ParseFromSOAP");
+  xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
 
   xdata::soap::Serializer serializer;
 
@@ -4620,7 +4544,7 @@ bool EmuDAQManager::isSTEPFinished(){
     
   }
 
-  xoap::DOMParser::remove("ParseFromSOAP");
+  xoap::getDOMParserFactory()->destroy("ParseFromSOAP");
 
   return isFinished;
 }
@@ -4711,7 +4635,7 @@ void EmuDAQManager::sendDDUInputMask( const bool                    in,
 
 //     message->writeTo( std::cout ); std::cout << std:: endl;
 
-    xoap::MessageReference reply = appContext_->postSOAP( message, ruiDescriptor );
+    xoap::MessageReference reply = appContext_->postSOAP( message, *appDescriptor_, *ruiDescriptor );
     
 //     reply->writeTo( std::cout ); std::cout << std:: endl;
 
@@ -5300,7 +5224,7 @@ void EmuDAQManager::enableAction(toolbox::Event::Reference e)
     catch(xcept::Exception ex)
       {
 	XCEPT_RETHROW(toolbox::fsm::exception::Exception,
-		      "Failed to configure EmuDAQ", ex);
+		      "Failed to enable EmuDAQ", ex);
       }
 
     if ( controlDQM_.value_ ){

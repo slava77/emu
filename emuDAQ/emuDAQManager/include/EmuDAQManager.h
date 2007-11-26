@@ -1,23 +1,21 @@
 #ifndef __EmuDAQManager_h__
 #define __EmuDAQManager_h__
 
-#include "emu/emuDAQ/emuDAQManager/include/emuDAQManager/exception/Exception.h"
-#include "extern/i2o/include/i2o/i2oDdmLib.h"
-#include "i2o/utils/include/i2o/utils/AddressMap.h"
-#include "sentinel/include/sentinel/Interface.h"
-#include "sentinel/include/sentinel/Listener.h"
-#include "toolbox/include/toolbox/mem/MemoryPoolFactory.h"
-#include "xdaq/include/xdaq/ApplicationGroup.h"
-#include "xdaq/include/xdaq/WebApplication.h"
-#include "xdata/include/xdata/Boolean.h"
-#include "xdata/include/xdata/InfoSpace.h"
-#include "xdata/include/xdata/String.h"
-#include "xdata/include/xdata/UnsignedLong.h"
-#include "xdata/include/xdata/Integer.h"
-#include "xdata/include/xdata/Vector.h"
+#include "emuDAQManager/exception/Exception.h"
+#include "i2o/i2oDdmLib.h"
+#include "i2o/utils/AddressMap.h"
+#include "toolbox/mem/MemoryPoolFactory.h"
+#include "xdaq/ApplicationGroup.h"
+#include "xdaq/WebApplication.h"
+#include "xdata/Boolean.h"
+#include "xdata/InfoSpace.h"
+#include "xdata/String.h"
+#include "xdata/UnsignedLong.h"
+#include "xdata/Integer.h"
+#include "xdata/Vector.h"
 #include "emu/emuDAQ/emuUtil/include/EmuRunInfo.h"
 #include "emu/emuDAQ/emuUtil/include/EmuELog.h"
-#include "EmuApplication.h"
+#include "emu/cscSV/include/EmuApplication.h"
 #include "xdata/ItemEvent.h"
 
 #include <string>
@@ -32,7 +30,6 @@ using namespace std;
 class EmuDAQManager :
 // public xdaq::WebApplication,
 public EmuApplication,
-public sentinel::Listener,
 public xdata::ActionListener
 {
 
@@ -55,13 +52,6 @@ public:
     void onException(xcept::Exception &e);
 
 private:
-
-    /**
-     * The sentinel used by this application.
-     *
-     * Note that this pointer maybe equal to zero if no sentinel is found.
-     */
-    sentinel::Interface *sentinel_;
 
     /**
      * The logger of this application.
@@ -178,12 +168,6 @@ private:
      * need to control.
      */
     void getAllAppDescriptors();
-
-    /**
-     * Returns a pointer to the sentinel to be used by this application or 0
-     * if the sentinel could not be found.
-     */
-    sentinel::Interface *getSentinel(xdaq::ApplicationContext *appContext);
 
     /**
      * Returns a vector of application descriptors order by instance number.
