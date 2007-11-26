@@ -1,4 +1,4 @@
-#include "emu/emuFarmer/include/EmuProcessDescriptor.h"
+#include "EmuProcessDescriptor.h"
 #include <sstream>
 #include <iostream>
 

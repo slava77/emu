@@ -1,11 +1,11 @@
-#include "emu/emuFarmer/include/EmuFarmer.h"
-#include "emu/emuFarmer/include/EmuFarmerV.h"
-#include "xgi/include/xgi/Method.h"
-#include "xgi/include/xgi/Utils.h"
-#include "xoap/include/xoap/SOAPBody.h"
-#include "xoap/include/xoap/SOAPBodyElement.h"
-#include "xoap/include/xoap/SOAPEnvelope.h"
-#include "xoap/include/xoap/MessageFactory.h"
+#include "EmuFarmer.h"
+#include "EmuFarmerV.h"
+#include "xgi/Method.h"
+#include "xgi/Utils.h"
+#include "xoap/SOAPBody.h"
+#include "xoap/SOAPBodyElement.h"
+#include "xoap/SOAPEnvelope.h"
+#include "xoap/MessageFactory.h"
 #include "cgicc/HTMLClasses.h"
 
 #include "toolbox/Runtime.h"
@@ -13,6 +13,7 @@
 #include <xercesc/util/XMLURL.hpp>
 #include "xcept/tools.h"
 #include "xoap/DOMParser.h"
+#include "xoap/DOMParserFactory.h"
 #include "xoap/domutils.h"
 
 #include <time.h>
@@ -601,13 +602,15 @@ DOMDocument* EmuFarmer::loadDOM( const std::string& pathname )
 	{
 	  XCEPT_RAISE (xdaq::exception::Exception, "Failed to load from " + files[0]);
 	}
-      xoap::DOMParser* p = xoap::DOMParser::get("configure");
+      //xoap::DOMParser* p = xoap::DOMParser::get("configure");
+      xoap::DOMParser* p = xoap::getDOMParserFactory()->get("configure");
       DOMDocument* doc;
 		
       try
 	{
 	  doc = p->parse(*source);
 	  delete source;
+	  xoap::getDOMParserFactory()->destroy("configure");
 	  return doc;
 	} 
       catch (xoap::exception::Exception& xe)
@@ -1158,7 +1161,7 @@ bool EmuFarmer::pollExecutive( const string& URL ){
 
   xoap::MessageReference SOAPMessage;
   try{
-    SOAPMessage = createParameterGetSOAPMsg( "Executive", "logLevel", "string" );
+    SOAPMessage = createParameterGetSOAPMsg( "executive::Application", "logLevel", "string" );
   } catch ( xdaq::exception::Exception e ) {
     LOG4CPLUS_ERROR( logger_, "Failed to create SOAP message to poll executive at " 
 		     << URL << " : " << xcept::stdformat_exception_history(e) );
@@ -1473,7 +1476,7 @@ xoap::MessageReference EmuFarmer::createParameterGetSOAPMsg
       xoap::SOAPBodyElement cmdElement =
 	body.addBodyElement(cmdName);
       xoap::SOAPName propertiesName =
-	envelope.createName("properties", appClass, appNamespace);
+	envelope.createName("properties", "xapp", appNamespace);
       xoap::SOAPElement propertiesElement =
 	cmdElement.addChildElement(propertiesName);
       xoap::SOAPName propertiesTypeName =
@@ -1481,7 +1484,7 @@ xoap::MessageReference EmuFarmer::createParameterGetSOAPMsg
 			    "http://www.w3.org/2001/XMLSchema-instance");
       propertiesElement.addAttribute(propertiesTypeName, "soapenc:Struct");
       xoap::SOAPName propertyName =
-	envelope.createName(paramName, appClass, appNamespace);
+	envelope.createName(paramName, "xapp", appNamespace);
       xoap::SOAPElement propertyElement =
 	propertiesElement.addChildElement(propertyName);
       xoap::SOAPName propertyTypeName =

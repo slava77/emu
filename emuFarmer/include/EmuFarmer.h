@@ -1,16 +1,16 @@
 #ifndef __EmuFarmer_h__
 #define __EmuFarmer_h__
 
-#include "xdaq/include/xdaq/ApplicationGroup.h"
-#include "xdaq/include/xdaq/WebApplication.h"
-#include "xdata/include/xdata/Boolean.h"
-#include "xdata/include/xdata/InfoSpace.h"
-#include "xdata/include/xdata/String.h"
-#include "xdata/include/xdata/UnsignedInteger32.h"
-#include "xdata/include/xdata/Vector.h"
+#include "xdaq/ApplicationGroup.h"
+#include "xdaq/WebApplication.h"
+#include "xdata/Boolean.h"
+#include "xdata/InfoSpace.h"
+#include "xdata/String.h"
+#include "xdata/UnsignedInteger32.h"
+#include "xdata/Vector.h"
 
-#include "emu/emuFarmer/include/EmuXalanTransformerProblemListener.h"
-#include "emu/emuFarmer/include/EmuProcessDescriptor.h"
+#include "EmuXalanTransformerProblemListener.h"
+#include "EmuProcessDescriptor.h"
 
 #include <set>
 #include <map>
