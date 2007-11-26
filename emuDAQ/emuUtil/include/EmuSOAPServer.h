@@ -1,7 +1,7 @@
 #ifndef _EmuSOAPServer_h_
 #define _EmuSOAPServer_h_
 
-#include "xcept/include/xcept/tools.h"
+#include "xcept/tools.h"
 
 #include "xdaq/NamespaceURI.h"
 

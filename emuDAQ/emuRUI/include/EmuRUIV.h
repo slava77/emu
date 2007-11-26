@@ -1,16 +1,18 @@
 #ifndef __EmuRUIV_h__
 #define __EmuRUIV_h__
 
-#include "toolbox/include/PackageInfo.h"
+#include "config/PackageInfo.h"
 
 namespace EmuRUI
 {
-    const string package     = "emuDAQ/emuRUI";
-    const string versions    = "3.5";
-    const string description = "Example Readout Unit Interface (RUI) to be copied and modified by end-users.";
-    const string link        = "NONE";
-    toolbox::PackageInfo getPackageInfo();
-    void checkPackageDependencies() throw (toolbox::PackageInfo::VersionException);
+    const std::string package     = "emuRUI";
+    const std::string versions    = "4.0";
+    const std::string description = "Readout Unit Interface (RUI) for the endcap muon local DAQ";
+    const std::string summary     = "emuDAQ/emuRUI";
+    const std::string link        = "NONE";
+    const std::string authors     = "original by S.Murray adapted to Emu by K.Banicz";
+    config::PackageInfo getPackageInfo();
+    void checkPackageDependencies() throw (config::PackageInfo::VersionException);
     std::set<std::string, std::less<std::string> > getPackageDependencies();
 }
 

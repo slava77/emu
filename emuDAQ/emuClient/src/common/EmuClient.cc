@@ -1,22 +1,10 @@
-// $Id: EmuClient.cc,v 3.5 2007/03/05 11:00:17 banicz Exp $
-
-/*************************************************************************
- * XDAQ Components for Distributed Data Acquisition                      *
- * Copyright (C) 2000-2004, CERN.			                 *
- * All rights reserved.                                                  *
- * Authors: J. Gutleber and L. Orsini					 *
- *                                                                       *
- * For the licensing terms see LICENSE.		                         *
- * For the list of contributors see CREDITS.   			         *
- *************************************************************************/
-
 #include <iomanip>
 
 #include "EmuClient.h"
 #include "i2oEmuClientMsg.h"
 
 // #include "i2oStreamIOMsg.h"
-#include "Task.h"
+#include "toolbox/Task.h"
 
 #include "toolbox/rlist.h"
 #include "toolbox/fsm/FiniteStateMachine.h"
@@ -38,13 +26,13 @@
 #include "xcept/Exception.h"
 #include "xcept/tools.h"
 
-#include "emuReadout/include/MuEndDDUHeader.h"
+#include "emu/emuDAQ/emuReadout/include/MuEndDDUHeader.h"
 
 EmuClient::EmuClient(xdaq::ApplicationStub* c)
   throw(xdaq::exception::Exception)
   :xdaq::Application(c)
   ,Task("EmuClient") 
-  ,applicationBSem_(BSem::FULL)
+  ,applicationBSem_(toolbox::BSem::FULL)
 {
   getApplicationInfoSpace()->fireItemAvailable("committedPoolSize",&committedPoolSize_);
   getApplicationInfoSpace()->fireItemAvailable("serversClassName", &serversClassName_);
@@ -274,8 +262,8 @@ void EmuClient::emuDataMsg(toolbox::mem::Reference *bufRef){
 		 " of run " << msg->runNumber << 
 		 " from " << serversClassName_.toString() <<
 		 " still holding " << msg->nEventCreditsHeld << 
-		 " event credits. Error flag 0x" << setw(2) 
-		 << std::hex << setfill('0') << msg->errorFlag );
+		 " event credits. Error flag 0x" << std::setw(2) 
+		 << std::hex << std::setfill('0') << msg->errorFlag );
 
   // Send it to the end of the queue
 //   dataMessages_.push_back( bufRef );
@@ -301,14 +289,14 @@ void EmuClient::printMessageReceived( toolbox::mem::Reference *bufRef )
       return;
     }
 
-  stringstream ss;
+  std::stringstream ss;
 
-  ss << "EmuFU::printMessageReceived:" << endl;
+  ss << "EmuFU::printMessageReceived:" << std::endl;
   I2O_EMU_DATA_MESSAGE_FRAME* msgData = 
     (I2O_EMU_DATA_MESSAGE_FRAME*) bufRef->getDataLocation();
-  ss  << "   Data size [byte]      : " << bufRef->getDataSize() << endl;
-  ss  << "   Run                   : " << msgData->runNumber << endl;
-  ss  << "   Credits held by server: " << msgData->nEventCreditsHeld << endl;
+  ss  << "   Data size [byte]      : " << bufRef->getDataSize() << std::endl;
+  ss  << "   Run                   : " << msgData->runNumber << std::endl;
+  ss  << "   Credits held by server: " << msgData->nEventCreditsHeld << std::endl;
 
   char         *startOfPayload = (char*) bufRef->getDataLocation() 
     + sizeof(I2O_EMU_DATA_MESSAGE_FRAME);

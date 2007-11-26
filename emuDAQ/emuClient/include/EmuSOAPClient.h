@@ -1,26 +1,14 @@
-// $Id: EmuSOAPClient.h,v 3.3 2007/03/05 11:00:17 banicz Exp $
-
-/*************************************************************************
- * XDAQ Components for Distributed Data Acquisition                      *
- * Copyright (C) 2000-2004, CERN.			                 *
- * All rights reserved.                                                  *
- * Authors: J. Gutleber and L. Orsini					 *
- *                                                                       *
- * For the licensing terms see LICENSE.		                         *
- * For the list of contributors see CREDITS.   			         *
- *************************************************************************/
-
 #ifndef _EmuSOAPClient_h_
 #define _EmuSOAPClient_h_
 
 #include <vector>
-#include "Task.h"
+#include "toolbox/Task.h"
 #include "toolbox/mem/Reference.h"
 #include "toolbox/mem/Pool.h"
 #include "toolbox/fsm/FiniteStateMachine.h"
 #include "xdaq/Application.h"
 #include "xdata/UnsignedLong.h"
-#include "xdata/include/xdata/String.h"
+#include "xdata/String.h"
 #include "xdata/Event.h"
 #include "xdata/ActionListener.h"
 
@@ -34,7 +22,7 @@
 #include "xoap/Method.h"
 
 
-class EmuSOAPClient: public xdaq::Application, public Task, public xdata::ActionListener
+class EmuSOAPClient: public xdaq::Application, public toolbox::Task, public xdata::ActionListener
 {	
 public:
   XDAQ_INSTANTIATOR();
@@ -59,7 +47,7 @@ protected:
   std::string printMessageReceived( xoap::MessageReference msg );
   std::string printAttachmentsOfMessageReceived( xoap::MessageReference msg );
   DOMNode *findNode(DOMNodeList *nodeList,
-		    const string nodeLocalName)
+		    const std::string nodeLocalName)
     throw ( xoap::exception::Exception );
 
 protected:
@@ -78,7 +66,7 @@ protected:
   
   bool serviceLoopStarted_;
 
-  BSem applicationBSem_;
+  toolbox::BSem applicationBSem_;
 
 };
 

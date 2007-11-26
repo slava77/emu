@@ -39,7 +39,10 @@
 /// the same file name but with the extension \c raw replaced with \c is_closed
 /// \par 
 /// <b>4)</b> Repeat from <b>1)</b>.
+using namespace std;
+
 class EmuFileWriter{
+
 
 private:
   unsigned int  maxFileSize_;	///< when exceeding this size [bytes], the file will be closed, and a new one opened

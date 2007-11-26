@@ -1,13 +1,13 @@
 #ifndef _EmuI2OServer_h_
 #define _EmuI2OServer_h_
 
-#include "i2o/include/i2o/Method.h"
-#include "xcept/include/xcept/tools.h"
-#include "extern/i2o/include/i2o/i2oDdmLib.h"
+#include "i2o/Method.h"
+#include "xcept/tools.h"
+#include "i2o/i2oDdmLib.h"
 #include "emu/emuDAQ/emuClient/include/i2oEmuClientMsg.h"
 #include "toolbox/mem/CommittedHeapAllocator.h"
-#include "toolbox/include/toolbox/mem/MemoryPoolFactory.h"
-#include "i2o/utils/include/i2o/utils/AddressMap.h"
+#include "toolbox/mem/MemoryPoolFactory.h"
+#include "i2o/utils/AddressMap.h"
 
 #include "EmuServer.h"
 

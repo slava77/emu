@@ -1,24 +1,21 @@
 #ifndef __EmuTA_h__
 #define __EmuTA_h__
 
-// #include "evb/examples/ta/include/ta/TriggerGenerator.h"
-// #include "evb/examples/ta/include/ta/exception/Exception.h"
-#include "emu/emuDAQ/emuTA/include/emuTA/TriggerGenerator.h"
-#include "emu/emuDAQ/emuTA/include/emuTA/exception/Exception.h"
-#include "extern/i2o/include/i2o/i2oDdmLib.h"
-#include "i2o/utils/include/i2o/utils/AddressMap.h"
-#include "sentinel/include/sentinel/Interface.h"
-#include "toolbox/include/BSem.h"
-#include "toolbox/include/toolbox/fsm/FiniteStateMachine.h"
-#include "toolbox/include/toolbox/mem/MemoryPoolFactory.h"
-#include "xdaq/include/xdaq/ApplicationGroup.h"
-#include "xdaq/include/xdaq/WebApplication.h"
-#include "xdata/include/xdata/Boolean.h"
-#include "xdata/include/xdata/Double.h"
-#include "xdata/include/xdata/InfoSpace.h"
-#include "xdata/include/xdata/String.h"
-#include "xdata/include/xdata/UnsignedLong.h"
-#include "xdata/include/xdata/Integer.h"
+#include "emuTA/TriggerGenerator.h"
+#include "emuTA/exception/Exception.h"
+#include "i2o/i2oDdmLib.h"
+#include "i2o/utils/AddressMap.h"
+#include "toolbox/BSem.h"
+#include "toolbox/fsm/FiniteStateMachine.h"
+#include "toolbox/mem/MemoryPoolFactory.h"
+#include "xdaq/ApplicationGroup.h"
+#include "xdaq/WebApplication.h"
+#include "xdata/Boolean.h"
+#include "xdata/Double.h"
+#include "xdata/InfoSpace.h"
+#include "xdata/String.h"
+#include "xdata/UnsignedLong.h"
+#include "xdata/Integer.h"
 
 
 using namespace std;
@@ -63,13 +60,6 @@ private:
     xdaq::ApplicationDescriptor *rubuilderTesterDescriptor_;
 
     /**
-     * The sentinel used by this application.
-     *
-     * Note that this pointer maybe equal to zero if no sentinel is found.
-     */
-    sentinel::Interface *sentinel_;
-
-    /**
      * I2o exception handler.
      */
     toolbox::exception::HandlerSignature *i2oExceptionHandler_;
@@ -93,7 +83,7 @@ private:
     /**
      * Binary semaphore used to protect the EmuTA from multithreaded access.
      */
-    BSem bSem_;
+    toolbox::BSem bSem_;
 
     /**
      * The finite state machine of the application.
@@ -255,12 +245,6 @@ private:
     (
      xdaq::Zone *zone
     );
-
-    /**
-     * Returns a pointer to the sentinel to be used by this application or 0
-     * if the sentinel could not be found.
-     */
-    sentinel::Interface *getSentinel(xdaq::ApplicationContext *appContext);
 
     /**
      * Returns the name of the info space that contains exported parameters
@@ -470,17 +454,6 @@ private:
     bool onI2oException(xcept::Exception &exception, void *context);
 
     /**
-     * Creates and returns an I2O exception to be passed to the sentinel.
-     */
-    emuTA::exception::Exception createI2oExceptionForSentinel
-    (
-        xcept::Exception            &i2oException,
-        xdaq::ApplicationDescriptor *notifier,
-        xdaq::ApplicationDescriptor *source,
-        xdaq::ApplicationDescriptor *destination
-    );
-
-    /**
      * Creates and returns the error message of an I2O exception by specifying
      * the source and destination involved.
      */
@@ -490,15 +463,6 @@ private:
         xdaq::ApplicationDescriptor *destination
     );
 
-    /**
-     * Returns the value to be given to the "notfier" field of an exception
-     * for the sentinel.
-     */
-    string createValueForSentinelNotifierProperty
-    (
-        xdaq::ApplicationDescriptor *notifier
-    );
-  
   unsigned int nEmuRUIs_;                  ///< The number of EmuRUIs. They should all vote for the first event number.
   unsigned int nVotesForFirstEventNumber_; ///< Counts how many EmuRUIs have sent the L1A number of the first event it read out.
   unsigned int biggestFirstEventNumber_;   ///< The biggest of the first event numbers reported by EmuRUIs.

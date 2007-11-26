@@ -2,7 +2,7 @@
 #define __emuFU_Exception_h__
 
 
-#include "xcept/include/xcept/Exception.h"
+#include "xcept/Exception.h"
 
 
 namespace emuFU

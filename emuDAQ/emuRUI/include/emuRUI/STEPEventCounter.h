@@ -1,9 +1,9 @@
 #ifndef __emuRUI_STEPEventCounter_h__
 #define __emuRUI_STEPEventCounter_h__
 
-#include "xdata/include/xdata/UnsignedLong.h"
-#include "xdata/include/xdata/Vector.h"
-#include "xdata/include/xdata/Boolean.h"
+#include "xdata/UnsignedLong.h"
+#include "xdata/Vector.h"
+#include "xdata/Boolean.h"
 #include <string>
 
 namespace emuRUI{

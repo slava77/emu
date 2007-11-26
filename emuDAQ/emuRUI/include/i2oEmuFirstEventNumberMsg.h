@@ -1,7 +1,7 @@
 #ifndef _i2oEmuFirstEventNumber_h_
 #define _i2oEmuFirstEventNumber_h_
 
-#include "i2o.h"
+#include "i2o/i2o.h"
 
 // callback binding (user defined)
 #define I2O_EMU_FIRST_EVENT_NUMBER_CODE 0x0004

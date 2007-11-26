@@ -1,4 +1,4 @@
-#include "emu/emuDAQ/emuRUI/include/emuRUI/STEPEventCounter.h"
+#include "emuRUI/STEPEventCounter.h"
 
 #include <sstream>
 #include <iostream>

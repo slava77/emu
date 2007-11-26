@@ -1,9 +1,9 @@
 // #include "evb/examples/ta/include/ta/TriggerGenerator.h"
-#include "emu/emuDAQ/emuTA/include/emuTA/TriggerGenerator.h"
-#include "interface/shared/include/frl_header.h"
-#include "interface/shared/include/fed_header.h"
-#include "interface/shared/include/fed_trailer.h"
-#include "toolbox/include/toolbox/mem/MemoryPoolFactory.h"
+#include "emuTA/TriggerGenerator.h"
+#include "interface/shared/frl_header.h"
+#include "interface/shared/fed_header.h"
+#include "interface/shared/fed_trailer.h"
+#include "toolbox/mem/MemoryPoolFactory.h"
 #include <time.h>
 
 

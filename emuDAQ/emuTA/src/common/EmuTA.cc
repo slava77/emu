@@ -1,27 +1,25 @@
-// #include "evb/examples/ta/include/TA.h"
-// #include "evb/examples/ta/include/TAV.h"
-#include "emu/emuDAQ/emuTA/include/EmuTA.h"
-#include "emu/emuDAQ/emuTA/include/EmuTAV.h"
+#include "EmuTA.h"
+#include "EmuTAV.h"
 #include "emu/emuDAQ/emuRUI/include/i2oEmuFirstEventNumberMsg.h"
-#include "extern/cgicc/linuxx86/include/cgicc/HTTPHTMLHeader.h"
-#include "extern/cgicc/linuxx86/include/cgicc/HTTPPlainHeader.h"
-#include "i2o/include/i2o/Method.h"
-#include "interface/evb/include/i2oEVBMsgs.h"
-#include "interface/shared/include/i2oXFunctionCodes.h"
-#include "toolbox/include/toolbox/utils.h"
-#include "toolbox/include/toolbox/fsm/FailedEvent.h"
-#include "toolbox/include/toolbox/mem/HeapAllocator.h"
-#include "xcept/include/xcept/tools.h"
-#include "xdaq/include/xdaq/NamespaceURI.h"
-#include "xdaq/include/xdaq/exception/ApplicationNotFound.h"
-#include "xgi/include/xgi/Method.h"
-#include "xoap/include/xoap/domutils.h"
-#include "xoap/include/xoap/MessageFactory.h"
-#include "xoap/include/xoap/MessageReference.h"
-#include "xoap/include/xoap/Method.h"
-#include "xoap/include/xoap/SOAPBody.h"
-#include "xoap/include/xoap/SOAPBodyElement.h"
-#include "xoap/include/xoap/SOAPEnvelope.h"
+#include "cgicc/HTTPHTMLHeader.h"
+#include "cgicc/HTTPPlainHeader.h"
+#include "i2o/Method.h"
+#include "interface/evb/i2oEVBMsgs.h"
+#include "interface/shared/i2oXFunctionCodes.h"
+#include "toolbox/utils.h"
+#include "toolbox/fsm/FailedEvent.h"
+#include "toolbox/mem/HeapAllocator.h"
+#include "xcept/tools.h"
+#include "xdaq/NamespaceURI.h"
+#include "xdaq/exception/ApplicationNotFound.h"
+#include "xgi/Method.h"
+#include "xoap/domutils.h"
+#include "xoap/MessageFactory.h"
+#include "xoap/MessageReference.h"
+#include "xoap/Method.h"
+#include "xoap/SOAPBody.h"
+#include "xoap/SOAPBodyElement.h"
+#include "xoap/SOAPEnvelope.h"
 
 #include <netinet/in.h>
 
@@ -39,7 +37,7 @@ xdaq::WebApplication(s),
 
 logger_(Logger::getInstance(generateLoggerName())),
 
-bSem_(BSem::FULL)
+bSem_(toolbox::BSem::FULL)
 {
     tid_           = 0;
     i2oAddressMap_ = i2o::utils::getAddressMap();
@@ -58,9 +56,6 @@ bSem_(BSem::FULL)
     // Note that rubuilderTesterDescriptor_ will be zero if the
     // RUBuilderTester application is not found
     rubuilderTesterDescriptor_ = getRUBuilderTester(zone_);
-
-    // Note that sentinel_ will be zero if the setinel application is not found
-    sentinel_ = getSentinel(appContext_);
 
     i2oExceptionHandler_ =
         toolbox::exception::bind(this, &EmuTA::onI2oException, "onI2oException");
@@ -156,32 +151,6 @@ xdaq::ApplicationDescriptor *EmuTA::getRUBuilderTester
 
     return appDescriptor;
 }
-
-
-sentinel::Interface *EmuTA::getSentinel(xdaq::ApplicationContext *appContext)
-{
-    xdaq::Application   *application = 0;
-    sentinel::Interface *sentinel    = 0;
-
-
-    try
-    {
-        application = appContext->getFirstApplication("Sentinel");
-
-        LOG4CPLUS_INFO(logger_, "Found sentinel");
-    }
-    catch(xdaq::exception::ApplicationNotFound e)
-    {
-        LOG4CPLUS_WARN(logger_, "Did not find sentinel");
-
-        return 0;
-    }
-
-    sentinel = dynamic_cast<sentinel::Interface*>(application);
-
-    return sentinel;
-}
-
 
 void EmuTA::defineFsm()
 throw (emuTA::exception::Exception)
@@ -479,7 +448,7 @@ throw (xgi::exception::Exception)
     *out << "  <td class=\"app_links\" align=\"center\" width=\"70\">" << endl;
     *out << "    <a href=\"/urn:xdaq-application:lid=3\">"             << endl;
     *out << "      <img"                                               << endl;
-    *out << "       src=\"/daq/xdaq/hyperdaq/images/HyperDAQ.jpg\""    << endl;
+    *out << "       src=\"/hyperdaq/images/HyperDAQ.jpg\""             << endl;
     *out << "       alt=\"HyperDAQ\""                                  << endl;
     *out << "       width=\"64\""                                      << endl;
     *out << "       height=\"64\""                                     << endl;
@@ -864,7 +833,8 @@ throw (emuTA::exception::Exception)
     // Avoid repeated function calls to obtain EVM descriptor and tid
     try
     {
-        evmDescriptor_ = zone_->getApplicationDescriptor("EVM", 0);
+//         evmDescriptor_ = zone_->getApplicationDescriptor("EVM", 0);
+        evmDescriptor_ = zone_->getApplicationDescriptor("rubuilder::evm::Application", 0);
     }
     catch(xdaq::exception::ApplicationDescriptorNotFound e)
     {
@@ -1213,48 +1183,10 @@ string EmuTA::getHref(xdaq::ApplicationDescriptor *appDescriptor)
 
 bool EmuTA::onI2oException(xcept::Exception &exception, void *context)
 {
-    xdaq::ApplicationDescriptor *destDescriptor =
-        (xdaq::ApplicationDescriptor *)context;
-    xcept::Exception exceptionForSentinel =
-        createI2oExceptionForSentinel(exception, appDescriptor_,
-            appDescriptor_, destDescriptor);
-
-
-    if(sentinel_ != 0)
-    {
-        sentinel_->notify(exceptionForSentinel, this);
-    }
-
     LOG4CPLUS_ERROR(logger_,
-        " : " << xcept::stdformat_exception_history(exceptionForSentinel));
+        " I2O excpetion: " << xcept::stdformat_exception_history(exception));
 
     return true;
-}
-
-
-emuTA::exception::Exception EmuTA::createI2oExceptionForSentinel
-(
-    xcept::Exception            &i2oException,
-    xdaq::ApplicationDescriptor *notifier,
-    xdaq::ApplicationDescriptor *source,
-    xdaq::ApplicationDescriptor *destination
-)
-{
-    string errorMsg      = createI2oErrorMsg(source, destination);
-    string notifierValue = createValueForSentinelNotifierProperty(notifier);
-
-
-    emuTA::exception::Exception exception("emuTA::exception::Exception", errorMsg,
-        __FILE__, __LINE__, __FUNCTION__, i2oException);
-
-    exception.setProperty("notifier", notifierValue);
-    exception.setProperty("qualifiedErrorSchemaURI",
-   "http://xdaq.web.cern.ch/xdaq/xsd/2005/QualifiedSoftwareErrorRecord-10.xsd");
-    exception.setProperty("dateTime", toolbox::getDateTime());
-    exception.setProperty("sessionID", "none");
-    exception.setProperty("severity", "ERROR");
-
-    return exception;
 }
 
 
@@ -1282,24 +1214,6 @@ string EmuTA::createI2oErrorMsg
     return s;
 }
 
-
-string EmuTA::createValueForSentinelNotifierProperty
-(
-    xdaq::ApplicationDescriptor *notifier
-)
-{
-    stringstream oss;
-    string       s;
-
-
-    oss << notifier->getContextDescriptor()->getURL();
-    oss << "/";
-    oss << notifier->getURN();
-
-    s = oss.str();
-
-    return s;
-}
 
 /**
  * Provides the factory method for the instantiation of EmuTA applications.

@@ -3,29 +3,17 @@
 
 #include <string>
 #include "log4cplus/logger.h"
-#include "xdaq/include/xdaq/ApplicationGroup.h"
-#include "xdaq/include/xdaq/WebApplication.h"
-#include "xdata/include/xdata/InfoSpace.h"
-#include "xdata/include/xdata/String.h"
-#include "xdata/include/xdata/UnsignedLong.h"
-#include "xdata/include/xdata/Boolean.h"
+#include "xdaq/ApplicationGroup.h"
+#include "xdaq/WebApplication.h"
+#include "xdata/InfoSpace.h"
+#include "xdata/String.h"
+#include "xdata/UnsignedLong.h"
+#include "xdata/Boolean.h"
 
 
 #include "xoap/MessageReference.h"
 
-// #include "log4cplus/logger.h"
-// #include "i2o/Method.h"
-// #include "xcept/tools.h"
-// #include "toolbox/mem/CommittedHeapAllocator.h"
-// #include "i2o/i2oDdmLib.h"
-// #include "xdaq/ApplicationGroup.h"
-// #include "xdaq/WebApplication.h"
-// #include "xdata/InfoSpace.h"
-// #include "xdata/String.h"
-// #include "xdata/UnsignedLong.h"
-// #include "xdata/Boolean.h"
-// #include "toolbox/mem/MemoryPoolFactory.h"
-// #include "i2o/utils/AddressMap.h"
+using namespace std;
 
 /// Base class for data servers.
 

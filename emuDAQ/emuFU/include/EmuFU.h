@@ -1,50 +1,29 @@
 #ifndef __EmuFU_h__
 #define __EmuFU_h__
 
-#include "emu/emuDAQ/emuFU/include/emuFU/exception/Exception.h"
-#include "extern/i2o/include/i2o/i2oDdmLib.h"
-#include "i2o/utils/include/i2o/utils/AddressMap.h"
-#include "sentinel/include/sentinel/Interface.h"
-#include "toolbox/include/BSem.h"
-#include "toolbox/include/toolbox/fsm/FiniteStateMachine.h"
-#include "toolbox/include/toolbox/mem/MemoryPoolFactory.h"
-#include "xdaq/include/xdaq/ApplicationGroup.h"
-#include "xdaq/include/xdaq/WebApplication.h"
-#include "xdata/include/xdata/Boolean.h"
-#include "xdata/include/xdata/Double.h"
-#include "xdata/include/xdata/InfoSpace.h"
-#include "xdata/include/xdata/String.h"
-#include "xdata/include/xdata/UnsignedLong.h"
-#include "xdata/include/xdata/Vector.h"
+#include "emuFU/exception/Exception.h"
+#include "i2o/i2oDdmLib.h"
+#include "i2o/utils/AddressMap.h"
+#include "toolbox/BSem.h"
+#include "toolbox/fsm/FiniteStateMachine.h"
+#include "toolbox/mem/MemoryPoolFactory.h"
+#include "xdaq/ApplicationGroup.h"
+#include "xdaq/WebApplication.h"
+#include "xdata/Boolean.h"
+#include "xdata/Double.h"
+#include "xdata/InfoSpace.h"
+#include "xdata/String.h"
+#include "xdata/UnsignedLong.h"
+#include "xdata/Vector.h"
 
-/* // EMu-specific stuff */
-#include "toolbox/include/toolbox/task/Action.h"
-#include "toolbox/include/toolbox/task/WorkLoop.h"
-#include "toolbox/include/toolbox/task/WorkLoopFactory.h"
+#include "toolbox/task/Action.h"
+#include "toolbox/task/WorkLoop.h"
+#include "toolbox/task/WorkLoopFactory.h"
 #include "emu/emuDAQ/emuTA/include/SliceTestTriggerChunk.h"
 #include "emu/emuDAQ/emuUtil/include/EmuFileWriter.h"
-#include "emuDAQ/emuClient/include/i2oEmuClientMsg.h"
-#include "emuDAQ/emuUtil/include/EmuServer.h"
+#include "emu/emuDAQ/emuClient/include/i2oEmuClientMsg.h"
+#include "emu/emuDAQ/emuUtil/include/EmuServer.h"
 
-// #include "emuFU/exception/Exception.h"
-// #include "i2o/i2oDdmLib.h"
-// #include "i2o/utils/AddressMap.h"
-// #include "sentinel/Interface.h"
-// #include "BSem.h"
-// #include "toolbox/fsm/FiniteStateMachine.h"
-// #include "toolbox/mem/MemoryPoolFactory.h"
-// #include "xdaq/ApplicationGroup.h"
-// #include "xdaq/WebApplication.h"
-// #include "xdata/Boolean.h"
-// #include "xdata/Double.h"
-// #include "xdata/InfoSpace.h"
-// #include "xdata/String.h"
-// #include "xdata/UnsignedLong.h"
-// #include "xdata/Vector.h"
-
-// #include "SliceTestTriggerChunk.h"
-// #include "EmuFileWriter.h"
-// #include "EmuServer.h"
 
 using namespace std;
 
@@ -178,13 +157,6 @@ private:
     xdaq::ApplicationDescriptor *rubuilderTesterDescriptor_;
 
     /**
-     * The sentinel used by this application.
-     *
-     * Note that this pointer maybe equal to zero if no sentinel is found.
-     */
-    sentinel::Interface *sentinel_;
-
-    /**
      * I2o exception handler.
      */
     toolbox::exception::HandlerSignature *i2oExceptionHandler_;
@@ -263,7 +235,7 @@ private:
     /**
      * Protects the EmuFU from multithreaded access.
      */
-    BSem bSem_;
+    toolbox::BSem bSem_;
 
     /**
      * Name of the memory pool for creating EmuFU to BU I2O control messages.
@@ -413,12 +385,6 @@ private:
     (
      xdaq::Zone *zone
     );
-
-    /**
-     * Returns a pointer to the sentinel to be used by this application or 0
-     * if the sentinel could not be found.
-     */
-    sentinel::Interface *getSentinel(xdaq::ApplicationContext *appContext);
 
     /**
      * Returns the name of the info space that contains exported parameters
@@ -713,17 +679,6 @@ private:
     bool onI2oException(xcept::Exception &exception, void *context);
 
     /**
-     * Creates and returns an I2O exception to be passed to the sentinel.
-     */
-    emuFU::exception::Exception createI2oExceptionForSentinel
-    (
-        xcept::Exception            &i2oException,
-        xdaq::ApplicationDescriptor *notifier,
-        xdaq::ApplicationDescriptor *source,
-        xdaq::ApplicationDescriptor *destination
-    );
-
-    /**
      * Creates and returns the error message of an I2O exception by specifying
      * the source and destination involved.
      */
@@ -733,14 +688,6 @@ private:
         xdaq::ApplicationDescriptor *destination
     );
 
-    /**
-     * Returns the value to be given to the "notfier" field of an exception
-     * for the sentinel.
-     */
-    string createValueForSentinelNotifierProperty
-    (
-        xdaq::ApplicationDescriptor *notifier
-    );
 };
 
 
