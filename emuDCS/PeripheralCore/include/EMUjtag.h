@@ -208,8 +208,8 @@ private:
   //-------------------
   // prom image stuff
   //-------------------
-  int read_ascii_prom_image_[TOTAL_NUMBER_OF_ADDRESSES];
-  int write_ascii_prom_image_[TOTAL_NUMBER_OF_ADDRESSES];
+  int *read_ascii_prom_image_;
+  int *write_ascii_prom_image_;
   //
   int data_word_count_;
   int prom_image_word_count_;

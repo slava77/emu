@@ -546,6 +546,8 @@ void EMUjtag::CheckAndProgramProm(int which_prom) {
   //    a) SetFillVmeWriteVecs(true);
   //    b) written to the registers you want to be configured...
   //
+  read_ascii_prom_image_ = new int[TOTAL_NUMBER_OF_ADDRESSES];
+  write_ascii_prom_image_ = new int[TOTAL_NUMBER_OF_ADDRESSES];
   SetWhichUserProm(which_prom);
   CreateUserPromFile();
   //
@@ -557,6 +559,8 @@ void EMUjtag::CheckAndProgramProm(int which_prom) {
     CheckUserProm();
   }
   //
+  delete read_ascii_prom_image_;
+  delete write_ascii_prom_image_;
   return;
 }
 //

@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 3.4 2007/09/12 16:01:36 liu Exp $
+// $Id: VMEModule.h,v 3.5 2007/11/26 14:38:21 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 3.5  2007/11/26 14:38:21  liu
+// reduce memory usage
+//
 // Revision 3.4  2007/09/12 16:01:36  liu
 // remove log4cplus dependency
 //
@@ -151,11 +154,13 @@ protected:
   VMEController * theController;
   int theSlot;
   
-  /// is this really needed?
-  char sndbuf[4096];
-  char rcvbuf[4096];
-  char rcvbuf2[4096];
-  char cmd[4096];
+  // Liu--2007, Nov. 26
+  // reduced array sizes from 4096 to 1024,
+  // I even believe 16 should be enough.
+  char sndbuf[1024];
+  char rcvbuf[1024];
+  char rcvbuf2[1024];
+  char cmd[1024];
   //
 };
 
