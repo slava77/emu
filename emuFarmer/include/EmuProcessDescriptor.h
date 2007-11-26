@@ -1,7 +1,7 @@
 #ifndef __EmuProcessDescriptor_h__
 #define __EmuProcessDescriptor_h__
 
-#include "xdaq/include/xdaq/ApplicationGroup.h"
+#include "xdaq/ApplicationGroup.h"
 
 #include "toolbox/net/URL.h"
 #include "toolbox/net/exception/BadURL.h"
