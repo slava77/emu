@@ -15,7 +15,8 @@ void EmuPlotter::saveToROOTFile(std::string filename)
     std::map<std::string, ME_List>::iterator itr;
     ME_List_const_iterator h_itr;
 
-    TDirectory * hdir = f.mkdir("histos");
+//     TDirectory * hdir = f.mkdir("histos");
+    TDirectory * hdir = f.mkdir("DQMData");
     hdir->cd();
     for (itr = MEs.begin(); itr != MEs.end(); ++itr) {
       TDirectory * rdir = hdir->mkdir((itr->first).c_str());

@@ -10,7 +10,7 @@ int EmuPlotter::loadFromROOTFile(string rootfile, bool fReset)
     LOG4CPLUS_ERROR (logger_, "Unable to open " << rootfile.c_str());
     return -1;
   }
-  if (!rootsrc->cd("histos")) {
+  if (!rootsrc->cd("DQMData")) {
     LOG4CPLUS_ERROR (logger_, "No histos folder in file");
     return -1;
   }
