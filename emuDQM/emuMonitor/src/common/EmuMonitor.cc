@@ -281,6 +281,7 @@ void EmuMonitor::setupPlotter()
   //	plotter_ = new EmuPlotter(getApplicationLogger());
   if (xmlHistosBookingCfgFile_ != "") plotter_->setXMLHistosBookingCfgFile(xmlHistosBookingCfgFile_.toString());
   if (xmlCanvasesCfgFile_ != "") plotter_->setXMLCanvasesCfgFile(xmlCanvasesCfgFile_.toString());
+  if (cscMapFile_ != "") plotter_->setCSCMapFile(cscMapFile_.toString());
 }
 
 // == Bind I2O Callbacks ==//
@@ -560,6 +561,16 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
           }
 
 	}
+      else if ( item == "cscMapFile")
+        {
+          LOG4CPLUS_INFO(getApplicationLogger(),
+                         "CSC Mapping File for plotter : " << cscMapFile_.toString());
+          if (plotter_ != NULL) {
+            plotter_->setCSCMapFile(cscMapFile_.toString());
+          }
+
+        }
+
     }
 }
 
