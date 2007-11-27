@@ -84,11 +84,13 @@ class EmuMonitoringObject
 	void setName(std::string);
 	std::string getTitle() const {return title;}
 	void setTitle(std::string);
+	std::string getFolder() const {return folder;}
+	void setFolder(std::string new_folder) { folder=new_folder;}
 	int setParameter(std::string, std::string);	
 	std::string getParameter(std::string);
 	int setParameters(std::map<std::string, std::string>, bool resetParams = true);
 	std::map<std::string, std::string>getParameters() const { return params;}
-	std::string getFullName() const { return type+prefix+name;}
+	std::string getFullName() const { return type+"_"+prefix+"_"+name;}
 
 	void SetEntries(double);
 	void SetBinContent(int, double);
@@ -98,6 +100,10 @@ class EmuMonitoringObject
 	void SetAxisRange(double, double, std::string);
 	void Write() {if (object!=NULL) object->Write();}
         void Draw() {if (object!=NULL) object->Draw();}
+
+	int setObject(MonitorElement* hist);
+	int applyParameters();
+	int Add(MonitorElement* hist);
 
 //	DOMNode * getDOMInfo();
 // 	void setDOMInfo(DOMNode *info);
@@ -112,6 +118,7 @@ class EmuMonitoringObject
 	std::string prefix;
 	std::string name;
 	std::string title;
+	std::string folder;
 };
 /*
 bool operator<(const EmuMonitoringObject& s1, const EmuMonitoringObject& s2) 

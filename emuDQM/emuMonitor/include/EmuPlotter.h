@@ -23,6 +23,7 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 /* Normal calls to CMSSW source tree */
+#include "EventFilter/CSCRawToDigi/interface/CSCDCCExaminer.h"
 #include "EventFilter/CSCRawToDigi/interface/CSCEventData.h"
 #include "EventFilter/CSCRawToDigi/interface/CSCALCTHeader.h"
 #include "EventFilter/CSCRawToDigi/interface/CSCALCTTrailer.h"
@@ -58,7 +59,7 @@
 #include <TKey.h>
 
 // == DDU Bin Examiner
-#include "dduBinExaminer.hh"
+// #include "dduBinExaminer.hh"
 
 
 #define DEFAULT_IMAGE_FORMAT "png"
@@ -72,7 +73,7 @@ using namespace std;
 // typedef TH1 MonitorElement;
 #include "EmuMonitoringObject.h"
 #include "EmuMonitoringCanvas.h"
-
+#include "CSCReadoutMappingFromFile.h"
 
 class EmuPlotter {
 public:
@@ -98,7 +99,7 @@ public:
   //     data structures and calls the appropriate fill() routine below.
   void processEvent(const char * data, int32_t dataSize, uint32_t errorStat, int32_t nodeNumber = 0);
   void processChamber(const CSCEventData& data,int32_t nodeID, int32_t dduID);
-  void fillChamberBinCheck();
+  void fillChamberBinCheck(int32_t nodeNumber);
 
   void setHistoFile(string hfile) {HistoFile = hfile;};
   void setDDUCheckMask(uint32_t mask) { dduCheckMask = mask;}
@@ -116,14 +117,17 @@ public:
         int width=DEFAULT_CANVAS_WIDTH, 
         int height=DEFAULT_CANVAS_HEIGHT);
   void setXMLHistosBookingCfgFile(string filename) {xmlHistosBookingCfgFile = filename;}
-  string GetXMLHistosBookingCfgFile() const {return xmlHistosBookingCfgFile;}
+  std::string GetXMLHistosBookingCfgFile() const {return xmlHistosBookingCfgFile;}
   void setXMLCanvasesCfgFile(string filename) {xmlCanvasesCfgFile = filename;}
-  string GetXMLCanvasesCfgFile() const {return xmlCanvasesCfgFile;}
+  std::string GetXMLCanvasesCfgFile() const {return xmlCanvasesCfgFile;}
+  void setCSCMapFile(string filename);
+
+  void generateLayout(std::string filename, std::string rootfolder);
    
   bool isListModified() { return fListModified;};
   bool isBusy() { return fBusy;};
   void setListModified(bool flag) { fListModified = flag;};
-  bool isMEvalid(ME_List&, string, EmuMonitoringObject* & );
+  bool isMEvalid(ME_List&, std::string, EmuMonitoringObject* & );
   map<string, ME_List >  GetMEs() { return MEs;};
   map<string, MECanvases_List >  GetMECanvases() { return MECanvases;};
  
@@ -133,6 +137,7 @@ public:
 protected:
 
   void setParameters(); 
+  void getCSCFromMap(int crate, int slot, int& csctype, int& cscposition);
   int loadXMLBookingInfo(string xmlFile);
   int loadXMLCanvasesInfo(string xmlFile);
   void clearMECollection(ME_List &collection);
@@ -142,12 +147,13 @@ protected:
   // MonitorElement* createME(DOMNode* MEInfo);
   EmuMonitoringObject* createME(DOMNode* MEInfo);  
 
-  void createHTMLNavigation(std:: string path);
+  void createHTMLNavigation(std::string path);
   void createTreeTemplate(std::string path);
   void createTreeEngine(std::string path);
   void createTreePage(std::string path);
 
-
+  std::map<std::string, int> getCSCTypeToBinMap();
+  std::string getCSCTypeLabel(int endcap, int station, int ring );
 
 private:
   // == list of Monitored Elements 
@@ -170,22 +176,27 @@ private:
   uint32_t nEvents;
   uint32_t L1ANumber;
   uint32_t BXN;
+  uint32_t nBadEvents;
 
   Logger logger_;
-  dduBinExaminer bin_checker;
+//  dduBinExaminer bin_checker;
+  CSCDCCExaminer bin_checker;
 
   uint32_t dduCheckMask;
   uint32_t binCheckMask;
 
   bool fListModified;
-  string HistoFile;
+  std::string HistoFile;
   bool fSaveHistos;
   int SaveTimer;
   int fStopTimer;
   bool fBusy;
   
-  string xmlHistosBookingCfgFile;
-  string xmlCanvasesCfgFile;
+  std::string xmlHistosBookingCfgFile;
+  std::string xmlCanvasesCfgFile;
+  std::string cscMapFile;
+  CSCReadoutMappingFromFile cscMapping;
+  std::map<std::string, int> tmap;
 
 };
 

@@ -33,10 +33,12 @@ int main(int argc, char **argv) {
 
 //	string xmlcfg = "/home/dqm/TriDAS/emu/emuDQM/emuMonitor/xml/EmuDQMBooking.xml";
 	string xmlHistosBookingCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMBooking.xml";
-        string xmlCanvasesCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMCanvases.xml";
+        std::string xmlCanvasesCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMCanvases.xml";
+	string cscMapFile = "/csc_data/csc_slice_test_map.txt";
 	EmuPlotter plotter(logger);
 	plotter.setXMLHistosBookingCfgFile(xmlHistosBookingCfg);
 	plotter.setXMLCanvasesCfgFile(xmlCanvasesCfg);
+	plotter.setCSCMapFile(cscMapFile);
 	plotter.book();
 
 	uint32_t NumberOfEvents = 0xFFFFFFFF;
@@ -51,6 +53,8 @@ int main(int argc, char **argv) {
 	// FileReaderDDU ddu;
 	uint32_t dduCheckMask=0xFFFFDFFF;
         uint32_t binCheckMask=0xF7FB3BF6;
+
+	int node=0;
 	// int binCheckMask=0xFFFFFFFF;
 	// int dduCheckMask = 0x0;
 //	int binCheckMask = 0x0;
@@ -63,33 +67,43 @@ int main(int argc, char **argv) {
 		case 2:	datafile = argv[1];
 		break;
 	}
+
 	
-	if (datafile.find(".bin") != string::npos) {	
+	if (datafile.find(".bin") != std::string::npos) {	
 		histofile = datafile;
-		if (histofile.rfind("/") != string::npos) 
+		if (histofile.rfind("/") != std::string::npos) 
 			histofile.erase(0, histofile.rfind("/")+1);
 		plotsdir = histofile;
                 plotsdir = plotsdir.replace(plotsdir.find(".bin"), 4, ".plots");
 		histofile = histofile.replace(histofile.find(".bin"), 4, ".root");
 	}
-        if (datafile.find(".raw") != string::npos) {
+        if (datafile.find(".raw") != std::string::npos) {
                 histofile = datafile;
-                if (histofile.rfind("/") != string::npos)
+                if (histofile.rfind("/") != std::string::npos)
                         histofile.erase(0, histofile.rfind("/")+1);
 		plotsdir = histofile;
 		plotsdir = plotsdir.replace(plotsdir.find(".raw"), 4, ".plots");
                 histofile = histofile.replace(histofile.find(".raw"), 4, ".root");
         }
 
-	if (datafile.find(".root") != string::npos) {
+	// Try to extract Node ID from data file name (should match pattern EmuRUInn)
+	if (datafile.find("EmuRUI") != std::string::npos) {
+		std::string nodestr = datafile.substr(datafile.find("EmuRUI"), 8);
+		nodestr.erase(0,6); // remove "EmuRUI"
+		node = atoi(nodestr.c_str());
+		LOG4CPLUS_WARN (logger, "Found Node ID " << node);
+        }
+
+	if (datafile.find(".root") != std::string::npos) {
 		LOG4CPLUS_WARN (logger, "Load MEs from ROOT file " << datafile);
 		histofile = datafile;
-                if (histofile.rfind("/") != string::npos)
+                if (histofile.rfind("/") != std::string::npos)
                         histofile.erase(0, histofile.rfind("/")+1);
                 plotsdir = histofile;
                 plotsdir = plotsdir.replace(plotsdir.find(".root"), 5, ".plots");
 		plotter.loadFromROOTFile(datafile);
 		plotter.saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight);
+		plotter.generateLayout("csc-layouts.py", "EMU");
 		return 0;
 	}
 
@@ -131,7 +145,7 @@ int main(int argc, char **argv) {
 			// plotter.fill((unsigned char*) ddu.data(), ddu.dataLength(), status);			
 	//		if(debug_printout) 
 			LOG4CPLUS_INFO (logger, "Event#"<< dec << i<< " **** Buffer size: " << ddu.dataLength() << " bytes");
-			plotter.processEvent(ddu.data(), ddu.dataLength(), status);
+			plotter.processEvent(ddu.data(), ddu.dataLength(), status, node);
 	//		if (i%20000 == 0)
           //                      plotter.saveToROOTFile(histofile.c_str());
 			if (i%1000 == 0) LOG4CPLUS_WARN (logger, "Processed Events: "<< dec << i);
@@ -143,13 +157,15 @@ int main(int argc, char **argv) {
 
 
 	t1 = time(0);
-        LOG4CPLUS_WARN (logger, "Total time: " << t1-t0 << " seconds");
+        LOG4CPLUS_WARN (logger, "Processed Total time: " << t1-t0 << " seconds");
 
-	LOG4CPLUS_WARN (logger, "Events: " << i << " Rate: " << (i/(t1-t0)) << " Events/sec" );
+	LOG4CPLUS_WARN (logger, "Processed Events: " << i << " Rate: " << (i/(t1-t0)) << " Events/sec" );
 //	plotter.saveToROOTFile(histofile.c_str());
 //	plotter.saveImages("images", "png" , 1600, 1200);
-	plotter.saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight);
+//	plotter.saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight);
 	plotter.saveToROOTFile(histofile.c_str());
+//	plotter.saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight);
+
 	ddu.close();
 
 	// delete plotter;

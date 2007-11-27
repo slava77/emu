@@ -17,7 +17,7 @@ string now()
   char buf[255];
   time_t now=time(NULL);
   strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S %Z", localtime(&now));
-  string time = string(buf);
+  std::string time = std::string(buf);
   return time.substr(0,time.find("\n",0));
 
 };
@@ -62,7 +62,8 @@ XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
   bindI2Ocallbacks();
   bindSOAPcallbacks();
   bindCGIcallbacks();
-  appTid_ = i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor());
+//  appTid_ = i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor());
+  appTid_ = this->getApplicationDescriptor()->getInstance();
 }
 
 // == Application Error Handler == //
@@ -355,7 +356,7 @@ xoap::MessageReference EmuMonitor::fireEvent (xoap::MessageReference msg) throw 
 xoap::MessageReference EmuMonitor::onReset(xoap::MessageReference msg)
   throw (xoap::exception::Exception)
 {
-  string commandName = "Reset";
+  std::string commandName = "Reset";
   
   try{
     fsm_.reset();
@@ -566,16 +567,16 @@ std::string EmuMonitor::getROOTFileName()
 {
   std::string histofile="dqm_results";
   std::string path=outputROOTFile_;
-  if (path.rfind("/") != string::npos) {
+  if (path.rfind("/") != std::string::npos) {
     path = path.substr(0, path.rfind("/")+1);
   } else path="";
    
   if (readoutMode_.toString() == "internal") {
-    if (inputDeviceName_.toString().rfind(".") != string::npos) {
+    if (inputDeviceName_.toString().rfind(".") != std::string::npos) {
       histofile = inputDeviceName_.toString();
-      if (histofile.rfind("/") != string::npos)
+      if (histofile.rfind("/") != std::string::npos)
 	histofile.erase(0, histofile.rfind("/")+1);
-      if (histofile.rfind(".") != string::npos)
+      if (histofile.rfind(".") != std::string::npos)
 	histofile.erase(histofile.rfind("."), histofile.size());
     }
   }
@@ -891,8 +892,8 @@ void EmuMonitor::printParametersTable( xgi::Output * out ) throw (xgi::exception
   *out 	<< "</table>" << std::endl;
 }
 /*
-  string EmuMonitor::ageOfPageClock(){
-  stringstream ss;
+  std::string EmuMonitor::ageOfPageClock(){
+  std::stringstream ss;
   ss << "<script type=\"text/javascript\">"                        << endl;
   ss << "   ageOfPage=0"                                           << endl;
   ss << "   function countSeconds(){"                              << endl;
@@ -1464,7 +1465,7 @@ void EmuMonitor::updateList(xdata::Integer id)
       if (rb.hasFault() )
         {
           xoap::SOAPFault fault = rb.getFault();
-          string errmsg = "Server: ";
+          std::string errmsg = "Server: ";
           errmsg += fault.getFaultString();
           XCEPT_RAISE(xoap::exception::Exception, errmsg);
         } else
@@ -1528,20 +1529,20 @@ void EmuMonitor::updateObjects(xdata::Integer id)
   
   for (map<string, ME_List >::iterator itr = MEs.begin();
        itr != MEs.end(); ++itr) {
-    string dir = itr->first + "/";
+    std::string dir = itr->first + "/";
     /*
       if (int id=itr->first) {
-      stringstream stdir;
+      std::stringstream stdir;
       dir.clear();
       stdir.clear();
       stdir << "CSC_" << ((id>>4)&0xFF) << "_" << (id&0xF) << "/";
       stdir >> dir;
       }
       if (itr->first == SLIDES_ID) {
-      dir = string(SLIDES) +"/";
+      dir = std::string(SLIDES) +"/";
       }
     */
-    string location = dir;
+    std::string location = dir;
     for (ME_List_const_iterator h_itr = itr->second.begin();
          h_itr != itr->second.end(); ++h_itr) {
       //cout << "Count: " << cnt << endl;
@@ -1556,8 +1557,8 @@ void EmuMonitor::updateObjects(xdata::Integer id)
       buf.Reset();
       buf.SetReadMode();
       buf.ReadBuf(attch_buf, buf.BufferSize());
-      // string contenttype = "content/unknown";
-      string contenttype = "application/octet-stream";
+      // std::string contenttype = "content/unknown";
+      std::string contenttype = "application/octet-stream";
       xoap::AttachmentPart * attachment = msg->createAttachmentPart(attch_buf, buf.BufferSize(), contenttype);
       //attachment->addMimeHeader("Content-Description", h_itr->first);
       attachment->setContentLocation(location+h_itr->first);
@@ -1572,18 +1573,18 @@ void EmuMonitor::updateObjects(xdata::Integer id)
   /*
     for (map<int, map<string, ConsumerCanvas*> >::iterator itr = plotter_->canvases.begin();
     itr != plotter_->canvases.end(); ++itr) {
-    string dir="";
+    std::string dir="";
     if (int id=itr->first) {
-    stringstream stdir;
+    std::stringstream stdir;
     dir.clear();
     stdir.clear();
     stdir << "CSC_" << ((id>>4)&0xFF) << "_" << (id&0xF) << "/";
     stdir >> dir;
     }
     if (itr->first == SLIDES_ID) {
-    dir = string(SLIDES) +"/";
+    dir = std::string(SLIDES) +"/";
     }
-    string location = dir;
+    std::string location = dir;
     for (map<string, ConsumerCanvas*>::iterator h_itr = itr->second.begin();
     h_itr != itr->second.end(); ++h_itr) {
     //cout << "Count: " << cnt << endl;
@@ -1598,8 +1599,8 @@ void EmuMonitor::updateObjects(xdata::Integer id)
     buf.Reset();
     buf.SetReadMode();
     buf.ReadBuf(attch_buf, buf.BufferSize());
-    // string contenttype = "content/unknown";
-    string contenttype = "application/octet-stream";
+    // std::string contenttype = "content/unknown";
+    std::string contenttype = "application/octet-stream";
     xoap::AttachmentPart * attachment = msg->createAttachmentPart(attch_buf, buf.BufferSize(), contenttype);
     //attachment->addMimeHeader("Content-Description", h_itr->first);
     attachment->setContentLocation(location+h_itr->first);
@@ -1632,7 +1633,7 @@ void EmuMonitor::updateObjects(xdata::Integer id)
       if (rb.hasFault() )
         {
           xoap::SOAPFault fault = rb.getFault();
-          string errmsg = "Server: ";
+          std::string errmsg = "Server: ";
           errmsg += fault.getFaultString();
           XCEPT_RAISE(xoap::exception::Exception, errmsg);
 

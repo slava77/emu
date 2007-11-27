@@ -15,7 +15,7 @@ void EmuPlotter::saveImages(std::string path, std::string format, int width, int
   TString command = Form("mkdir -p %s",path.c_str());
     gSystem->Exec(command.Data());
 
-  string runNumber = "";
+  std::string runNumber = "";
 
   tree_items.open((path+"/tree_items.js").c_str());
   tree_items << "var TREE_ITEMS = [\n"
@@ -26,15 +26,15 @@ void EmuPlotter::saveImages(std::string path, std::string format, int width, int
   ME_List_const_iterator h_itr;
 
 
-  string imgfile = "";
+  std::string imgfile = "";
   for (itr = MEs.begin(); itr != MEs.end(); ++itr) {
-    string relpath = itr->first;
-    string fullpath  = path+"/"+relpath;
+    std::string relpath = itr->first;
+    std::string fullpath  = path+"/"+relpath;
     command = Form("mkdir -p %s",fullpath.c_str()); 
     gSystem->Exec(command.Data());
     tree_items << "            ['"<< itr->first <<"', '"<< itr->first <<"'," << endl;	
     for (h_itr = itr->second.begin(); h_itr != itr->second.end(); ++h_itr) {
-        string fullname = h_itr->second->getFullName() + "." + format;
+        std::string fullname = h_itr->second->getFullName() + "." + format;
 	string relname = relpath + "/" + fullname;
         imgfile = fullpath + "/"+ fullname;
         TCanvas *cnv = new TCanvas("cnv",fullname.c_str(), width, height);
@@ -81,7 +81,7 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
   TString command = Form("mkdir -p %s",path.c_str());
     gSystem->Exec(command.Data());
 
-  string runNumber = "";
+  std::string runNumber = "";
   tree_items.open((path+"/tree_items.js").c_str());
   tree_items << "var TREE_ITEMS = [\n"
         << "    ['RunNumber" << runNumber << "', ''," << endl;
@@ -99,10 +99,10 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
   vector<string> DDU_folders;
   vector<string> CSC_folders;
   for (itr = MECanvases.begin(); itr != MECanvases.end(); ++itr) {
-    string folder = itr->first;
-    if (folder.find("EMU") != string::npos) EMU_folders.push_back(folder);
-    else if (folder.find("DDU") != string::npos) DDU_folders.push_back(folder);
-    else if (folder.find("CSC") != string::npos) CSC_folders.push_back(folder);    
+    std::string folder = itr->first;
+    if (folder.find("EMU") != std::string::npos) EMU_folders.push_back(folder);
+    else if (folder.find("DDU") != std::string::npos) DDU_folders.push_back(folder);
+    else if (folder.find("CSC") != std::string::npos) CSC_folders.push_back(folder);    
   }
 
   if (EMU_folders.size()) {
@@ -127,7 +127,7 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
     int slot=0;
     int cur_crate=-1;
     for (uint32_t i=0; i<CSC_folders.size(); i++ ) {
-        string csc_ptrn = "CSC_%d_%d";
+        std::string csc_ptrn = "CSC_%d_%d";
         if (sscanf(CSC_folders[i].c_str(),csc_ptrn.c_str(), &crate, &slot) == 2) {
 		if (crate != cur_crate) {
 			if (cur_crate>=0) csc_list << "]]";
@@ -141,10 +141,10 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
     csc_list << "]]";
   }
 
-  string imgfile = "";
+  std::string imgfile = "";
   for (itr = MECanvases.begin(); itr != MECanvases.end(); ++itr) {
-    string relpath = itr->first;
-    if (relpath.find("CSC_") != string::npos) {
+    std::string relpath = itr->first;
+    if (relpath.find("CSC_") != std::string::npos) {
 	int crate=0;
 	int slot=0;
 	string csc_ptrn = "CSC_%d_%d";
@@ -156,8 +156,8 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
     }
     tree_items << "            ['"<< itr->first <<"', '"<< relpath <<"'," << endl;
     for (h_itr = itr->second.begin(); h_itr != itr->second.end(); ++h_itr) {
-        string fullname = h_itr->second->getName() + "." + format;
-        string relname = relpath + "/" + h_itr->second->getFolder() +"/" + fullname;
+        std::string fullname = h_itr->second->getName() + "." + format;
+        std::string relname = relpath + "/" + h_itr->second->getFolder() +"/" + fullname;
 	string fullpath  = path+"/"+relpath + "/" + h_itr->second->getFolder();
         imgfile = fullpath + "/"+ fullname;
 	command = Form("mkdir -p %s",fullpath.c_str());
@@ -263,7 +263,7 @@ void EmuPlotter::SaveImagesFromROOTFile(std::string rootfile,std::string path, s
   LOG4CPLUS_INFO(logger_, "Done...");
 }
 */
-void EmuPlotter::createHTMLNavigation(std:: string path) 
+void EmuPlotter::createHTMLNavigation(std::string path) 
 {
 
   std::ofstream indexfile;

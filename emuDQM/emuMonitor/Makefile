@@ -27,6 +27,7 @@ Sources=\
 	EmuMonitor_SOAP.cc \
         EmuMonitorV.cc \
 	EmuPlotter.cc \
+	EmuPlotter_generateLayout.cc \
 	EmuPlotter_bookHistograms.cc \
 	EmuPlotter_bookCanvases.cc \
 	EmuPlotter_loadXMLBookingInfo.cc \

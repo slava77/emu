@@ -86,7 +86,7 @@ class EmuMonitoringCanvas
 	std::string getParameter(std::string);
 	int setParameters(std::map<std::string, std::string>, bool resetParams = true);
 	std::map<std::string, std::string>getParameters() const { return params;}
-	std::string getFullName() const { return type+prefix+name;}
+	std::string getFullName() const { return type+"_"+prefix+"_"+name;}
 	int getCanvasWidth() const {return cnv_width;}
 	void setCanvasWidth(int width) {if (width>0) cnv_width = width;}
 	int getCanvasHeight() const {return cnv_height;}
