@@ -17,7 +17,7 @@ xoap::MessageReference EmuMonitor::requestObjectsList(xoap::MessageReference nod
   if (rb.hasFault() )
     {
       xoap::SOAPFault fault = rb.getFault();
-      string errmsg = "DQMNode: ";
+      std::string errmsg = "DQMNode: ";
       errmsg += fault.getFaultString();
       XCEPT_RAISE(xoap::exception::Exception, errmsg);
     } 
@@ -90,7 +90,7 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
   if (rb.hasFault() )
     {
       xoap::SOAPFault fault = rb.getFault();
-      string errmsg = "DQMNode: ";
+      std::string errmsg = "DQMNode: ";
       errmsg += fault.getFaultString();
       XCEPT_RAISE(xoap::exception::Exception, errmsg);
     } else {
@@ -138,7 +138,7 @@ xoap::MessageReference EmuMonitor::requestObjects(xoap::MessageReference node) t
 			    buf.Reset();
 			    buf.SetReadMode();
 			    buf.ReadBuf(attch_buf, buf.BufferSize());
-			    string contenttype = "application/octet-stream";
+			    std::string contenttype = "application/octet-stream";
 			    xoap::AttachmentPart * attachment = msg->createAttachmentPart(attch_buf, buf.BufferSize(), contenttype);
 			    //attachment->addMimeHeader("Content-Description", h_itr->first);
 			    attachment->setContentLocation(folder+"/"+objname);
@@ -164,7 +164,7 @@ xoap::MessageReference EmuMonitor::requestCanvasesList(xoap::MessageReference no
   if (rb.hasFault() )
     {
       xoap::SOAPFault fault = rb.getFault();
-      string errmsg = "DQMNode: ";
+      std::string errmsg = "DQMNode: ";
       errmsg += fault.getFaultString();
       XCEPT_RAISE(xoap::exception::Exception, errmsg);
     } 
@@ -237,7 +237,7 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
   if (rb.hasFault() )
     {
       xoap::SOAPFault fault = rb.getFault();
-      string errmsg = "DQMNode: ";
+      std::string errmsg = "DQMNode: ";
       errmsg += fault.getFaultString();
       XCEPT_RAISE(xoap::exception::Exception, errmsg);
     } else {
@@ -301,7 +301,7 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
 			    buf.Reset();
 			    buf.SetReadMode();
 			    buf.ReadBuf(attch_buf, buf.BufferSize());
-			    string contenttype = "application/octet-stream";
+			    std::string contenttype = "application/octet-stream";
 			    xoap::AttachmentPart * attachment = msg->createAttachmentPart(attch_buf, buf.BufferSize(), contenttype);
 			    //attachment->addMimeHeader("Content-Description", h_itr->first);
 			    attachment->setContentLocation(folder+"/"+objname);

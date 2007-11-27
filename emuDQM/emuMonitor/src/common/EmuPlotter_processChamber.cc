@@ -49,9 +49,10 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   //  LOG4CPLUS_DEBUG(logger_, 
   //		  "Chamber ID = "<< ChamberID << " Crate ID = "<< crateID << " DMB ID = " << dmbID);
 
-  string nodeTag(Form("EMU_%d", nodeID));
-  string dduTag(Form("DDU_%d", dduID));
-  string cscTag(Form("CSC_%03d_%02d", crateID, dmbID));
+  // std::string nodeTag(Form("EMU_%d", nodeID));
+  std::string nodeTag = "EMU";
+  std::string dduTag(Form("DDU_%d", dduID));
+  std::string cscTag(Form("CSC_%03d_%02d", crateID, dmbID));
   nDMBEvents[cscTag]++;
   LOG4CPLUS_INFO(logger_,
                 "Unpacking " << cscTag << " (Event: " << nDMBEvents[cscTag]<< ")");
@@ -73,6 +74,13 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   ME_List& nodeME = MEs[nodeTag];
   // ME_List& dduME = MEs[dduTag];
   ME_List& cscME = MEs[cscTag];
+
+  int CSCtype = 0;
+  int CSCposition = 0;
+  this->getCSCFromMap(crateID, dmbID, CSCtype, CSCposition );
+  if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked", mo))
+        mo->Fill(CSCposition-1, CSCtype);
+
 
   //    Efficiency of the chamber
   float DMBEvent  = 0.0;
@@ -169,9 +177,9 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   if (isMEvalid(cscME, "DMB_CFEB_MOVLP", mo)) mo->Fill(cfeb_movlp);
   if (isMEvalid(cscME, "DMB_CFEB_Sync", mo)) mo->Fill(dmb_cfeb_sync);
 
-  if (isMEvalid(nodeME, "CSC_Unpacked", mo)) { 
+  if (isMEvalid(nodeME, "DMB_Unpacked", mo)) { 
     mo->Fill(crateID,dmbID);
-    mo->SetEntries(nEvents);
+  //  mo->SetEntries(nEvents);
   }
 
   // if (isMEvalid(cscME, "DMB_CFEB_Active", mo) mo->Fill((dmbTrailer.header_1a>>5)&0x1F); //KK
@@ -751,11 +759,15 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	   
 		  if (isMEvalid(cscME,  Form("CLCT_Ly%d_Efficiency", nLayer), mo)) {
 		    mo->SetBinContent(hstrip,(float)number_hstrip);
+		
 		    if((Double_t)(nDMBEvents[cscTag]) > 0.0) {
-		      mo->getObject()->SetNormFactor(100.0*Number_of_entries_CLCT/(Double_t)(nDMBEvents[cscTag]));
+			double norm = (100.0*Number_of_entries_CLCT)/((Double_t)(nDMBEvents[cscTag]));
+			// if (norm < 1.0) norm=1;
+		      mo->getObject()->SetNormFactor(norm);
 		    } else {
 		      mo->getObject()->SetNormFactor(100.0);
 		    }
+	
 		    mo->getObject()->SetEntries(nDMBEvents[cscTag]);
 		  }
 		}
@@ -894,9 +906,9 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
         isMEvalid(cscME, Form("CFEB_SCA_Cell_Peak_Ly_%d", nLayer), mo_CFEB_SCA_Cell_Peak);
 
 	EmuMonitoringObject * mo_CFEB_Pedestal_withEMV_Sample = 0;
-	isMEvalid(cscME, Form("CFEB_Pedestal(withEMV)_Sample_01_Ly%d", nLayer), mo_CFEB_Pedestal_withEMV_Sample);
+	isMEvalid(cscME, Form("CFEB_Pedestal_withEMV_Sample_01_Ly%d", nLayer), mo_CFEB_Pedestal_withEMV_Sample);
 	EmuMonitoringObject * mo_CFEB_Pedestal_withRMS_Sample = 0;
-	isMEvalid(cscME, Form("CFEB_Pedestal(withRMS)_Sample_01_Ly%d", nLayer), mo_CFEB_Pedestal_withRMS_Sample);
+	isMEvalid(cscME, Form("CFEB_Pedestal_withRMS_Sample_01_Ly%d", nLayer), mo_CFEB_Pedestal_withRMS_Sample);
 	EmuMonitoringObject * mo_CFEB_PedestalRMS_Sample = 0;
 	isMEvalid(cscME, Form("CFEB_PedestalRMS_Sample_01_Ly%d", nLayer), mo_CFEB_PedestalRMS_Sample);
 

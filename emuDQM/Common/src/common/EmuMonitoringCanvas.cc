@@ -117,7 +117,8 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
     npadsy = strtol( itr->second.c_str(), &stopstring, 10 );
   }
   if (canvas == NULL) {
-    canvas = new MonitoringCanvas(getFullName().c_str(), getFullName().c_str(), getTitle().c_str(), npadsx, npadsy, getCanvasWidth(), getCanvasHeight());
+    canvas = new MonitoringCanvas(getFullName().c_str(), getFullName().c_str(), getTitle().c_str(), 
+				  npadsx, npadsy, getCanvasWidth(), getCanvasHeight());
     canvas->SetCanvasSize(width, height);
     for (int i=0; i< npadsx*npadsy; i++) {
       canvas->cd(i+1);
@@ -130,48 +131,38 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
       if (!objname.empty() && !MEs.empty()) {
 	ME_List_iterator obj = MEs.find(objname);
 	if (obj != MEs.end()) {
-	  /*
-	    std::string statOpt = obj->second->getParameter("SetOptStat");
-	    if (statOpt != "" ) {
-	    gStyle->SetOptStat(statOpt.c_str());
-	    }
-	  */
+	  // obj->second->Draw();
 	  std::string leftMargin = obj->second->getParameter("SetLeftMargin");
 	  if (leftMargin != "" ) {
 	    gPad->SetLeftMargin(atof(leftMargin.c_str()));
-	    // gStyle->SetOptStat(statOpt.c_str());
 	  }
 	  std::string rightMargin = obj->second->getParameter("SetRightMargin");
 	  if (rightMargin != "" ) {
 	    gPad->SetRightMargin(atof(rightMargin.c_str()));
-	    // gStyle->SetOptStat(statOpt.c_str());
 	  }
 
 	  std::string logx = obj->second->getParameter("SetLogx");
 	  if (logx!= "" ) {
-	    // gPad->SetLogx(atoi(logx.c_str()));
 	    gPad->SetLogx();
-	    // gStyle->SetOptStat(statOpt.c_str()); 
 	  }
 	  std::string logy = obj->second->getParameter("SetLogy");
 	  if (logy!= "" ) {
-	    // gPad->SetLogy(atoi(logy.c_str()));
 	    gPad->SetLogy();
-	    // gStyle->SetOptStat(statOpt.c_str()); 
 	  }
+
+ 	   std::string logz = obj->second->getParameter("SetLogz");
+          if (logz!= "" ) {
+            gPad->SetLogz();
+          }
 
 	  std::string gridx = obj->second->getParameter("SetGridx");
           if (gridx!= "" ) {
-            // gPad->SetLogy(atoi(logy.c_str()));
             gPad->SetGridx();
-            // gStyle->SetOptStat(statOpt.c_str());
           }
 
           std::string gridy = obj->second->getParameter("SetGridy");
           if (gridy!= "" ) {
-            // gPad->SetLogy(atoi(logy.c_str()));
             gPad->SetGridy();
-            // gStyle->SetOptStat(statOpt.c_str());
           }
 
 
@@ -192,8 +183,9 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
       }      
     }
   }//  else {
-    canvas->Draw();
-    canvas->SetCanvasSize(width, height);
+  // canvas->SetCanvasSize(width, height);
+  canvas->Draw();
+  canvas->SetCanvasSize(width, height);
   //}
 
 }

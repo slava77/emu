@@ -21,6 +21,7 @@ void EmuPlotter::saveToROOTFile(std::string filename)
       TDirectory * rdir = hdir->mkdir((itr->first).c_str());
       rdir->cd();
       for (h_itr = itr->second.begin(); h_itr != itr->second.end(); ++h_itr) {
+	h_itr->second->Draw();	
 	h_itr->second->Write();
       }
       hdir->cd();
@@ -36,7 +37,7 @@ void EmuPlotter::saveToROOTFile(std::string filename)
     */
     f.Close();
     LOG4CPLUS_WARN(logger_, "Done.");
-    saveCanvasesToROOTFile(filename);
+  //  saveCanvasesToROOTFile(filename);
     fBusy=false;
   } else {
     LOG4CPLUS_ERROR(logger_, "Unable to open output ROOT file " << filename);

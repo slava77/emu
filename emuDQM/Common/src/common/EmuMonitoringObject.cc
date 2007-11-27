@@ -107,7 +107,6 @@ int EmuMonitoringObject::Book()
   }
 
 
-
   if ((itr = params.find("XRange")) != params.end()) {
     std::string str = itr->second;
     replace(str.begin(), str.end(), '(', ' ');
@@ -155,8 +154,15 @@ int EmuMonitoringObject::Book()
 	  if (type.find("hp") != std::string::npos) {
 	    object = new TProfile(getFullName().c_str(), getTitle().c_str(), nbinsx, xlow, xup);
 	  }
-	
-		
+
+  applyParameters();
+  return 0;
+}
+
+int EmuMonitoringObject::applyParameters()	
+{
+  char* stopstring;
+  std::map<std::string, std::string>::iterator itr;	
   // !!! TODO: Add object class check
   if (object != NULL) {
     // std::cout << "Booked " << getFullName() << std::endl;
@@ -292,11 +298,16 @@ int EmuMonitoringObject::Book()
       }
     }
 
-
+    if ((itr = params.find("SetLabelSizeZ")) != params.end()) {
+      std::string st = itr->second;
+      double opt = atof(st.c_str()) ;
+      if (object) {
+        object->GetZaxis()->SetLabelSize(opt);
+      }
+    }
 
 
   }	
-	
   return 0;
 }
 
@@ -308,6 +319,26 @@ int EmuMonitoringObject::Book(DOMNode* info)
   Book();	
   return 0;
 }
+
+int EmuMonitoringObject::setObject(MonitorElement* hist)
+{
+  if (object != NULL) {
+    delete object;
+    object = NULL;
+  } 
+  object = reinterpret_cast<MonitorElement*>(hist->Clone());
+  applyParameters();
+  return 0;
+}
+
+int EmuMonitoringObject::Add(MonitorElement* hist)
+{
+  if (object != NULL) {
+    object->Add(hist);
+  }
+  return 0;
+}
+
 
 EmuMonitoringObject::~EmuMonitoringObject()
 {
@@ -482,35 +513,13 @@ int EmuMonitoringObject::parseDOMNode(DOMNode* info)
       obj_info[paramname] = param;
     }
   }
-  /*
-    for  (itr = obj_info.begin(); itr != obj_info.end(); ++itr) {
-    std::cout << itr->first << ":" << itr->second << std::endl;
-    }
-  */
 
   if (obj_info.size() > 0) {
     // == Construct Monitoring Object Name
     std::string objname = "";
     if ((itr = obj_info.find("Type")) != obj_info.end()) {
-      // std::string typestr = itr->second;
+
       objname += itr->second;
-      /*
-	if (typestr.find("h1") != std::string::npos) {
-	type = "TH1F";
-	} else		
-	if (typestr.find("h2") != std::string::npos) {
-	type = "TH2F";
-	} else 
-	if (typestr.find("h3") != std::string::npos) {
-	type = "TH3F";
-	}else
-	if (typestr.find("hp2") != std::string::npos) {
-	type = "TProfile2D";
-	} else
-	if (typestr.find("hp") != std::string::npos) {
-	type = "TProfile";
-	}
-      */
       type = itr->second;
       obj_info.erase("Type");
 		
@@ -525,20 +534,22 @@ int EmuMonitoringObject::parseDOMNode(DOMNode* info)
       name = itr->second;
       obj_info.erase("Name");
     }
-    // name = objname;
 	  
     // == Get Monitoring Object Title
     if ((itr = obj_info.find("Title")) != obj_info.end()) {
       title = itr->second;
       obj_info.erase("Title");
     }
-    // std::cout << "Name:" << objname << "\n\tTitle:\"" << title << "\"" << std::endl;
+
+    if ((itr = obj_info.find("Folder")) != obj_info.end()) {
+      folder = itr->second;
+      obj_info.erase("Folder");
+    }
 
     // == Create Monitoring Object Parameters map
     params.clear();
     for (itr = obj_info.begin(); itr != obj_info.end(); ++itr) {
       params[itr->first] = itr->second; 
-      // std::cout << "\t" << itr->first << ":" << itr->second << std::endl;
     }
   }
   return 0;

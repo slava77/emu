@@ -3,7 +3,8 @@
 
 MECanvases_List EmuPlotter::bookCommonCanvases(int nodeNumber) 
 {
-	string prefix = Form("EMU_%d_", nodeNumber);;
+//	string prefix = Form("EMU_%d", nodeNumber);;
+	string prefix = "EMU";
 	MECanvases_List commonCanvases;
 	MECanvases_List_iterator itr;
 	for (itr = commonCanvasesFactory.begin(); itr != commonCanvasesFactory.end(); ++itr) {
@@ -18,7 +19,7 @@ MECanvases_List EmuPlotter::bookCommonCanvases(int nodeNumber)
 
 MECanvases_List EmuPlotter::bookDDUCanvases(int dduNumber) 
 {
-	string prefix = Form("DDU_%02d_", dduNumber);
+	string prefix = Form("DDU_%02d", dduNumber);
  	MECanvases_List dduCanvases;
         MECanvases_List_iterator itr;
 
@@ -38,7 +39,7 @@ MECanvases_List EmuPlotter::bookChamberCanvases(int chamberID)
 {
 	int crate = (chamberID >> 4) & 0xFF;
 	int slot = chamberID & 0xF;
-	string prefix = Form("CSC_%03d_%02d_", crate, slot);
+	string prefix = Form("CSC_%03d_%02d", crate, slot);
 	MECanvases_List chamberCanvases;
         MECanvases_List_iterator itr;
 
