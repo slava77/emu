@@ -1496,8 +1496,8 @@ TObject *HistoDisplay::OpenFile( const char *filename,
       //InputOpen = kFALSE;
     }
   } else if ( inputtype == kTSOAP ) {
-     string soapCommand = "sendList";
-     string targetAddrStr = "18";
+     std::string soapCommand = "sendList";
+     std::string targetAddrStr = "18";
      // TUrl url(filename);
      SOAPMessage request;
      SOAPEnvelope envelope = request.getSOAPPart().getEnvelope();
@@ -1518,7 +1518,7 @@ TObject *HistoDisplay::OpenFile( const char *filename,
      // cout << "send command " << i << " of " << count << endl;
 
      SOAPConnection connection;	 
-     string urlStr = "http://";
+     std::string urlStr = "http://";
      urlStr += filename;
      //urlStr += ":";
      //urlStr += portnumber;
@@ -5009,10 +5009,10 @@ GetNewObj(const char* objpath, const char* objname, const TObject* inputobj)
   //std::cout << " objname = " << objname << std::endl;
 
   TObject *obj = 0;
-  string value(objname);
-  string oname = value;
+  std::string value(objname);
+  std::string oname = value;
   int pos = value.rfind("/", value.size());
-  if (pos != string::npos)
+  if (pos != std::string::npos)
       oname = value.substr(pos+1, value.size());
   TString objName = TString( objname );
   TString objPath = TString(objpath) + TString(oname.c_str());
@@ -5107,10 +5107,10 @@ GetNewObj(const char* objpath, const char* objname, const TObject* inputobj)
 	        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	        // The following was added: //2001/01/16 Wolfgang Wagner
                 if (obj) {
-		  string v = obj->GetName();
-	          string name = v;
+		  std::string v = obj->GetName();
+	          std::string name = v;
                   int pos = v.rfind("/", v.size());
-                  if (pos != string::npos) 
+                  if (pos != std::string::npos) 
 			name = v.substr(pos+1, v.size()); 
 		  
                   if (TString(name.c_str()) != TString(oname.c_str()))
@@ -5126,17 +5126,17 @@ GetNewObj(const char* objpath, const char* objname, const TObject* inputobj)
                   int messLength = message->BufferSize() + 10; 
                   char* keyString = new char[messLength];
                   message->ReadString(keyString,messLength);                  
-                  string serverString(keyString);
+                  std::string serverString(keyString);
                   delete keyString;
                   keyString = 0;
-                  // We got a message string from Display Server 
+                  // We got a message std::string from Display Server 
                   // indicating a special request.
-                  // Now we need to decode the string.
-                  // The key strings are defined in ServerProtocol.hh
+                  // Now we need to decode the std::string.
+                  // The key std::strings are defined in ServerProtocol.hh
                   //
                   bool localDebug = false;
                   if (localDebug) {
-                    std::cout << "HistoDisplay: got string: " << serverString
+                    std::cout << "HistoDisplay: got std::string: " << serverString
 		         << "." << std::endl;
                   } 
                   if (serverString == DspEndConnection) {

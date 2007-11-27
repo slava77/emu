@@ -11,8 +11,8 @@
 // RCS Current Revision Record
 //-----------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/src/common/ConsumerExport.cc,v $
-// $Revision: 1.2 $
-// $Date: 2006/03/09 00:17:06 $
+// $Revision: 1.3 $
+// $Date: 2007/11/27 15:27:21 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $
@@ -45,7 +45,7 @@ extern "C"
 {
   static void sigChildHandler(int sig)
   {
-    const string myName = string("ConsumerExport#sigChildHandler");
+    const std::string myName = std::string("ConsumerExport#sigChildHandler");
     bool locDebug = false;
 #ifdef CONSUMEREXPORT_DEBUG
     locDebug = true;
@@ -109,7 +109,7 @@ ConsumerExport::ConsumerExport(const int firstPort=9050,
   _consMonitor(new TMonitor), _consSS(0), _consSock(0)       
 {
   const int maxPort=9999;
-  const string myName = string("ConsumerExport::Constructor");
+  const std::string myName = std::string("ConsumerExport::Constructor");
   
 #ifdef CONSUMEREXPORT_DEBUG
     _debug = true;
@@ -191,7 +191,7 @@ int ConsumerExport::send(TConsumerInfo *consinfo, Bool_t modFlag)
   // (_failedLimit) the socket is closed. As a consequence IsValid
   // returns false and the send-method returns -1.
   //   
-  const string myName = string("ConsumerExport::send()");
+  const std::string myName = std::string("ConsumerExport::send()");
   
   static Bool_t firstCall=kTRUE;
   static int    sendErrors=0;
@@ -240,7 +240,7 @@ int ConsumerExport::send(TConsumerInfo *consinfo, Bool_t modFlag)
           // We need to overwrite the handler set by others.
 	  if (firstCall) SocketUtils::installSIGPIPEHandler();
           // Create a list of all objects to be sent. 
-          // Find out whether the default string length for the canvases
+          // Find out whether the default std::string length for the canvases
           // is large enough. 
           int actualLength=lengthNeeded(consinfo->list());
           if (_maxStringLength < actualLength) {
@@ -256,7 +256,7 @@ int ConsumerExport::send(TConsumerInfo *consinfo, Bool_t modFlag)
         }	
         if (_consSock && _consSock->IsValid()) {
           mess.Reset();
-          // 4.) Send the string with the objects' name
+          // 4.) Send the std::string with the objects' name
           sendRes=_consSock->Send(ctrlString);
           if (sendRes == -1) {
             errorReact(sendRes);
@@ -270,7 +270,7 @@ int ConsumerExport::send(TConsumerInfo *consinfo, Bool_t modFlag)
         send(consinfo->list());
       }
       //-----------------------------------------------------
-      // 5.) Send the finish string 
+      // 5.) Send the finish std::string 
       mess.Reset();
       if (!sockUt.sendStringMessage(DspConsumerFinish)) {
 	sendErrors++;
@@ -357,10 +357,10 @@ int ConsumerExport::send(TList *objlist)
 
 int ConsumerExport::send(const char *messString)
 {
-  // This method simply sends out a string to the consumer.
+  // This method simply sends out a std::string to the consumer.
   //
   // Return value:  1 if no error occured
-  //                0 if the send of the string failed
+  //                0 if the send of the std::string failed
   //               -1 if the socket is no longer valid
   // 
   int rtvalue=0;  
@@ -485,22 +485,22 @@ int ConsumerExport::startServer()
 {
   // Starts the display server using fork and exclp.
 
-  const string myName = string("ConsumerExport::startServer()");
+  const std::string myName = std::string("ConsumerExport::startServer()");
 
   int rtValue = 0;
   char portChar[128];
   char reportToSmChar[128];
-  string optArgs("-");
+  std::string optArgs("-");
   char fullPath[128];
   char fullPath2[128];
 
   sprintf(fullPath, "Server");
   sprintf(portChar, "%d", _port);
   sprintf(reportToSmChar, "%d", _reportToStateManager);
-  // Now create a string of optional arguments.
+  // Now create a std::string of optional arguments.
   // The Server understands the format "-vfod"
-  if (_serverVerboseFlag) optArgs += string("v");
-  if (_logFileFlag)       optArgs += string("f");
+  if (_serverVerboseFlag) optArgs += std::string("v");
+  if (_logFileFlag)       optArgs += std::string("f");
 
   if ( (_serverPid = fork()) < 0) { 
     std::cerr << myName << ": ERROR: fork failed." << std::endl;  
@@ -580,7 +580,7 @@ int ConsumerExport::startServer()
 
 int ConsumerExport::connectServer()
 {
-  const string myName = string("ConsumerExport::connectServer()");
+  const std::string myName = std::string("ConsumerExport::connectServer()");
   int res = 1;
 
   if (_debug) 
@@ -615,7 +615,7 @@ int ConsumerExport::connectServer()
 
 int ConsumerExport::reestablishServer()
 {
-  const string myName = string("ConsumerExport::reestablishServer()");  
+  const std::string myName = std::string("ConsumerExport::reestablishServer()");  
   const int minReconnectTime = 30;
   int rtValue = 1;
   bool locDebug = false;   

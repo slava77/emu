@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------
 // File: ServerProtocol.hh
 //
-// This file contains string declarations for the communication protocol
+// This file contains std::string declarations for the communication protocol
 // between the ConsumerExport class and the DisplayServer class on the hand
 // and the DisplayServer and the HistoDisplay on the other hand.
 //
@@ -12,8 +12,8 @@
 // RCS Current Revision Record
 //-----------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/include/ServerProtocol.hh,v $
-// $Revision: 1.2 $
-// $Date: 2006/03/09 00:17:06 $
+// $Revision: 1.3 $
+// $Date: 2007/11/27 15:27:20 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $
@@ -25,11 +25,11 @@
 
 using std::string;
 
-const string DspEndConnection  = string("END CONNECTION");
-const string DspConsumerSend   = string("CONSUMER SEND");
-const string DspConsumerFinish = string("CONSUMER FINISHED");
-const string DspRequestNewInfo = string("REQUEST NEW TCONSUMERINFO");    
-const string DspObjectNotFound = string("ERROR: Requested Object not found.");
-const string DspExitNow        = string("EXIT NOW");
+const std::string DspEndConnection  = std::string("END CONNECTION");
+const std::string DspConsumerSend   = std::string("CONSUMER SEND");
+const std::string DspConsumerFinish = std::string("CONSUMER FINISHED");
+const std::string DspRequestNewInfo = std::string("REQUEST NEW TCONSUMERINFO");    
+const std::string DspObjectNotFound = std::string("ERROR: Requested Object not found.");
+const std::string DspExitNow        = std::string("EXIT NOW");
  
 #endif
