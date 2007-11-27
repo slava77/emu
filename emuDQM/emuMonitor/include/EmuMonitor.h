@@ -55,6 +55,8 @@
   #include "xdata/ActionListener.h"
 */
 
+using namespace toolbox;
+
 class EmuMonitorTimerTask: public Task
 {
 

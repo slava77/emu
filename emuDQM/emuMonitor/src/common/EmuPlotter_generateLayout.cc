@@ -26,7 +26,7 @@ void EmuPlotter::generateLayout(std::string filename, std::string rootfolder)
 				std::string name = obj->getParameter(st.str());
 				ME_List_iterator me = commonMEfactory.find(name);
 				if (me != commonMEfactory.end()) {
-					out << "\"" << rootfolder << "/" << me->second->getFullName() << "\"" 
+					out << "\"" << rootfolder << "/Common/" << me->second->getFullName() << "\"" 
 					<< ((j==cols)?"]":",") << (((i<rows-1) && (j==cols))?",":"") << std::endl;
 				}
 			}

@@ -292,7 +292,6 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   if (isMEvalid(dduME, "L1A_Increment", mo)) mo->Fill(L1A_inc);
   
   if (isMEvalid(nodeME, "All_DDUs_L1A_Increment", mo)) {
-    // !!! Change to actual max numbe
     if (L1A_inc > 100000) { L1A_inc = 19;}
     else if (L1A_inc > 30000) { L1A_inc = 18;}
     else if (L1A_inc > 10000) { L1A_inc = 17;}
@@ -303,7 +302,6 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     else if (L1A_inc > 30)	  { L1A_inc = 12;}
     else if (L1A_inc > 10)    { L1A_inc = 11;}
     mo->Fill(dduID, L1A_inc);
-    //	mo->getObject()->GetXaxis()->SetBinLabel(dduID, Form("%d",dduID));	
   }
   /*
     if (isMEvalid(dduME, "L1A_Increment_vs_nEvents", mo)) {
@@ -413,9 +411,6 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     if (csc_warning_state>0) { mo->Fill(dduID, 1);} // Any Input
     else { mo->Fill(dduID, 0);} // No warnings
   }
-
-
-  
 
   if (isMEvalid(dduME,"DMB_DAV_Header_Occupancy",mo)) mo->SetEntries(nEvents);
 
@@ -585,7 +580,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node) {
     int CrateID = (chamber->first>>4) & 0xFF;
     int DMBSlot = chamber->first & 0xF;
     std::string cscTag(Form("CSC_%03d_%02d", CrateID, DMBSlot));
-    if (((chamber->first>>4) & 0xFF) ==255) {chamber++; continue;}
+    if (CrateID ==255) {chamber++; continue;}
     map<string, ME_List >::iterator h_itr = MEs.find(cscTag);
     if (h_itr == MEs.end() || (MEs.size()==0)) {
       LOG4CPLUS_WARN(logger_,
