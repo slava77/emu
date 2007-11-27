@@ -13,8 +13,8 @@
 // RCS Current Revision Record
 //-----------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/src/common/DisplayServer.cc,v $
-// $Revision: 1.3 $
-// $Date: 2006/03/09 22:30:53 $
+// $Revision: 1.4 $
+// $Date: 2007/11/27 15:27:22 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $
@@ -338,7 +338,7 @@ int DisplayServer::pollConsumer()
     SocketUtils sockUt0(&_consMoni, sock0);
     std::string ctrlString = sockUt0.getStringMessage();
     // For debugging only:---------------------------
-    // std::cout << _clName << ": Got string: " << ctrlString << std::endl;
+    // std::cout << _clName << ": Got std::string: " << ctrlString << std::endl;
     //-----------------------------------------------
     if (ctrlString == DspEndConnection) {
       std::string consumerName; 
@@ -413,7 +413,7 @@ int DisplayServer::pollConsumer()
           return -1; 
         }  
         //---------------------------------------------------------
-        // 3.) Receive the string with the object names.
+        // 3.) Receive the std::string with the object names.
         std::string namesString = sockUt0.getStringMessage();
         // For Debugging: 
         // std::cout << "Got names-String: " << namesString << std::endl;
@@ -474,11 +474,11 @@ int DisplayServer::pollConsumer()
                << std::endl;
         }
         //---------------------------------------------------------
-        // 5.) Wait for the end string to be sent.
+        // 5.) Wait for the end std::string to be sent.
         std::string endString = sockUt0.getStringMessage();
         if (endString != DspConsumerFinish)
           std::cerr << _clName << ": pollConsumer(): ERROR: "
-	       << "Expected different end string. Got " << endString
+	       << "Expected different end std::string. Got " << endString
 	       << std::endl;
         //----------------------------------------------------
         if (consSendCycle == 1) {
@@ -491,7 +491,7 @@ int DisplayServer::pollConsumer()
         }
       }
       else {
-        std::cerr << _clName << ": Got an unexpected string from the "
+        std::cerr << _clName << ": Got an unexpected std::string from the "
 		  << "consumer. Expected: '" << DspConsumerSend 
 		  << "'. Received: '" << ctrlString << "'." << std::endl;
         return -5;
@@ -740,7 +740,7 @@ void DisplayServer::updateOutdatedList(const std::string& nameString)
   if (_debugFlags & 0x8) {
     std::cout << "Outdated Size = " << _outdatedList.GetSize() << "  list size = "
 	 << _currList.GetSize() << std::endl;
-    std::cout << myName << "Received the following name string: \n"
+    std::cout << myName << "Received the following name std::string: \n"
 	 << nameString << std::endl;
   }  
   char* cpyName = new char[nameString.size()+1];

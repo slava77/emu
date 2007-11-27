@@ -11,8 +11,8 @@
 // RCS Current Revision Record
 //-----------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/src/common/SocketUtils.cc,v $
-// $Revision: 1.2 $
-// $Date: 2006/03/09 00:17:06 $
+// $Revision: 1.3 $
+// $Date: 2007/11/27 15:27:23 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $
@@ -118,7 +118,7 @@ bool SocketUtils::sendStringMessage(const std::string message)
       // A SIGPIPE signal occurred, most probably in response to our
       // effort to send the message.
       // As a result, we close the socket. 
-      std::cerr << myName << ": SIGPIPE occurred when sending message string:\n"
+      std::cerr << myName << ": SIGPIPE occurred when sending message std::string:\n"
 		<< message << ". The socket has to be closed."
 		<< std::endl;
       closeSocket();

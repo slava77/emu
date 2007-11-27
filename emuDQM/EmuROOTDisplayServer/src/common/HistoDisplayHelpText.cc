@@ -37,7 +37,7 @@ by pressing \"Start\" button.\n\
 Horizontal or vertical scroll bar appears when the list tree\n\
 exceeds the area.\n\
   You can specify a top folder in the list tree where items from \n\
-the input sources are placed by putting a path string such as:\n\
+the input sources are placed by putting a path std::string such as:\n\
 \t folder1/folder2/folder3 \n\
 in the \"Top Folder in List Tree\" area before clicking the start button.\n\
 Items are put in the folder3 in the folder2 where the folder2 are \n\

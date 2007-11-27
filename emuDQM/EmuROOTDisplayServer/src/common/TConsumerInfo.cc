@@ -6,8 +6,8 @@
 // RCS Current Revision Record
 //-------------------------------------------------------------------------
 // $Source: /afs/cern.ch/project/cvs/reps/tridas/TriDAS/emu/emuDQM/EmuROOTDisplayServer/src/common/TConsumerInfo.cc,v $
-// $Revision: 1.2 $
-// $Date: 2006/03/09 00:17:06 $
+// $Revision: 1.3 $
+// $Date: 2007/11/27 15:27:24 $
 // $Author: barvic $
 // $State: Exp $
 // $Locker:  $
@@ -22,6 +22,7 @@
 #include "TH1.h"
 #include "TList.h"
 #include "TSocket.h"
+#include "TBuffer.h"
 
 using std::cout;
 using std::endl;
@@ -197,7 +198,7 @@ void TConsumerInfo::addObject(const TString& name,const TString &path, int statu
     {
       _list->Add(obj);
       // increase estimatedsize
-      TBuffer testbuffer(TBuffer::kWrite);
+      TBufferFile testbuffer(TBufferFile::kWrite);
       obj->Streamer(testbuffer);
       _estimatedsize += testbuffer.BufferSize();
       _estimatedsize += 10000;
@@ -246,7 +247,7 @@ void TConsumerInfo::removeObject(TObject *obj)
   _list->Remove(obj);
   _objectlist.erase(obj->GetName());
   //print();
-  TBuffer testbuffer(TBuffer::kWrite);
+  TBufferFile testbuffer(TBufferFile::kWrite);
   obj->Streamer(testbuffer);
   _estimatedsize -= testbuffer.BufferSize();
   _estimatedsize -= 10000;
@@ -268,7 +269,7 @@ void TConsumerInfo::emptyWarningFolder()
 	  _objectlist.erase(del);
 	  _list->Remove(pns.address);
 
-	  TBuffer testbuffer(TBuffer::kWrite);
+	  TBufferFile testbuffer(TBufferFile::kWrite);
 	  pns.address->Streamer(testbuffer);
 	  _estimatedsize -= testbuffer.BufferSize();
 	  _estimatedsize -= 10000;
