@@ -8,7 +8,7 @@ void EmuDisplayClient::createTreeItems(xgi::Input * in, xgi::Output * out ) thro
   url += getApplicationDescriptor()->getURN();
   url += "/getImage";
 
-  *out << "var TREE_ITEMS = [\n['"<< runName << "','getEMUSystemView',"<< endl;
+  *out << "var TREE_ITEMS = [\n['"<< runName << "','getEMUSystemView',"<< std::endl;
   std::set<xdaq::ApplicationDescriptor*>::iterator pos;
   for (pos=monitors_.begin(); pos!=monitors_.end(); ++pos) {
   //  for (int i=0; i<monitors_.size(); i++) {
@@ -64,7 +64,7 @@ void EmuDisplayClient::createTreeItems(xgi::Input * in, xgi::Output * out ) thro
     } else {
     int crate = (int)((id>>4) & 0xFF);
     int slot =  (int)(id & 0xF);
-    string cscid = (Form("csc_%d_%d", crate, slot));
+    std::string cscid = (Form("csc_%d_%d", crate, slot));
     folders_nav << "<a href=\"canvases_" << cscid
     << ".html\" target=\"canvases_list\">CSC crate" << crate << " slot" << slot << "</a><br>\n"<<endl;
 
