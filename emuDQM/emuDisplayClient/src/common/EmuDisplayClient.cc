@@ -205,7 +205,7 @@ void EmuDisplayClient::dispatch (xgi::Input * in, xgi::Output * out)  throw (xgi
 
 
 string ageOfPageClock(){
-  stringstream ss;
+  std::stringstream ss;
   ss << "<script type=\"text/javascript\">"                        << endl;
   ss << "   ageOfPage=0"                                           << endl;
   ss << "   function countSeconds(){"                              << endl;
@@ -224,7 +224,7 @@ string ageOfPageClock(){
 }
 
 string autoResizeAction(int width, int height) {
-  stringstream ss;
+  std::stringstream ss;
   ss << "<script type=\"text/javascript\">"
      << "window.onresize= alertSize;\n"
      << "function alertSize() {\n"
@@ -317,9 +317,9 @@ string generateCSCTable()
   types.push_back(std::make_pair("ME-4/1",18));
   types.push_back(std::make_pair("ME-4/2",36));
    
-  string cscname =  "";
-  string csclink =  "";
-  string cscbgcolor = "#d0d0d0";
+  std::string cscname =  "";
+  std::string csclink =  "";
+  std::string cscbgcolor = "#d0d0d0";
 
   for (int i=0; i<9; i++) {
     ss << cgicc::tr();
@@ -784,7 +784,7 @@ xoap::MessageReference EmuDisplayClient::updateList(xoap::MessageReference node)
   if (rb.hasFault() )
     {
       xoap::SOAPFault fault = rb.getFault();
-      string errmsg = "DQMNode: ";
+      std::string errmsg = "DQMNode: ";
       errmsg += fault.getFaultString();
       XCEPT_RAISE(xoap::exception::Exception, errmsg);
     } else {                            
@@ -841,7 +841,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestObjectsL
             
 	    for (std::vector<xoap::SOAPElement>::iterator n_itr = nodeElement.begin();
 		 n_itr != nodeElement.end(); ++n_itr) {
-	      stringstream stdir;
+	      std::stringstream stdir;
 	      bmap.clear();
 	      xoap::SOAPName branchTag ("Branch", "", "");
 
@@ -865,12 +865,12 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestObjectsL
 		  olist.push_back(o_itr->getValue());
 		  // Problem with duplicates search
 		
-		  string value = o_itr->getValue();
+		  std::string value = o_itr->getValue();
 		  /*
 		    int pos = value.rfind("/",value.size());
-		    if (pos != string::npos) {
-		    string name = value.substr(pos+1,value.size());
-		    string path = dir+"/"+value.substr(0, pos);
+		    if (pos != std::string::npos) {
+		    std::string name = value.substr(pos+1,value.size());
+		    std::string path = dir+"/"+value.substr(0, pos);
 		    cout << "path:" << path << " name:" << name << endl;
 		    }
 		  */
@@ -936,7 +936,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestCanvases
             
 	    for (std::vector<xoap::SOAPElement>::iterator n_itr = nodeElement.begin();
 		 n_itr != nodeElement.end(); ++n_itr) {
-	      stringstream stdir;
+	      std::stringstream stdir;
 	      bmap.clear();
 	      xoap::SOAPName branchTag ("Branch", "", "");
 
@@ -958,7 +958,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestCanvases
 		for (vector<xoap::SOAPElement>::iterator o_itr = objElement.begin();
 		     o_itr != objElement.end(); ++o_itr ) {
 		  olist.push_back(o_itr->getValue());
-		  string value = o_itr->getValue();
+		  std::string value = o_itr->getValue();
 		  olist.sort();
 
 		}
@@ -1002,8 +1002,8 @@ xoap::MessageReference EmuDisplayClient::updateObjects(xoap::MessageReference no
     buf->WriteBuf(content, size);  
     buf->Reset();
     // MIME Headers functions does not return correct values
-    map<string, string, less<string> > mimeHdrs = (*iter)->getAllMimeHeaders();       
-    string objname="DQMNode"+nodeAddr.toString()+"/" +(*iter)->getContentLocation();
+    map<string, std::string, less<string> > mimeHdrs = (*iter)->getAllMimeHeaders();       
+    std::string objname="DQMNode"+nodeAddr.toString()+"/" +(*iter)->getContentLocation();
     MessageStorage *storage = new MessageStorage(objname.c_str());
     buf->Reset();
     storage->updateMessage(buf);
@@ -1072,7 +1072,7 @@ TMessage* EmuDisplayClient::requestObjects(xdata::Integer nodeaddr, std::string 
 	      buf->WriteBuf(content, size);
 	      buf->Reset();
 	      
-	      map<string, string, less<string> > mimeHdrs = (*iter)->getAllMimeHeaders();
+	      map<string, std::string, less<string> > mimeHdrs = (*iter)->getAllMimeHeaders();
               std:: cout << "size:" << size << " ,name: " << (*iter)->getContentLocation() << std::endl;
 	      // std:: cout << (*iter)->getContentLocation() << std::endl;
 	      

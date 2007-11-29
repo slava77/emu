@@ -19,10 +19,10 @@
 
 namespace EmuDisplayClient 
 {
-    const string package  =  "emuDQM/emuDisplayClient";
-    const string versions =  "1.0";
-    const string description = "CMS Emu DQM Display Client";
-	const string link = "http://www.phys.ufl.edu/cms/emu/dqm";
+    const std::string package  =  "emuDQM/emuDisplayClient";
+    const std::string versions =  "1.0";
+    const std::string description = "CMS Emu DQM Display Client";
+	const std::string link = "http://www.phys.ufl.edu/cms/emu/dqm";
     toolbox::PackageInfo getPackageInfo();
     void checkPackageDependencies() throw (toolbox::PackageInfo::VersionException);
     set<string, less<string> > getPackageDependencies();
