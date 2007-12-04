@@ -23,6 +23,7 @@ EmuPlotter::EmuPlotter(Logger logger):
 
 void EmuPlotter::setParameters() 
 {
+	fFirstEvent = true;
 	nEvents = 0;
 	nBadEvents = 0;
 	L1ANumber = 0;

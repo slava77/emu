@@ -20,7 +20,6 @@
 #include "xoap.h"
 #include "xgi.h"
 
-#include "Task.h"
 
 #include "i2o/Method.h"
 #include "i2o/utils/AddressMap.h"

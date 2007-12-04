@@ -284,7 +284,8 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
 			    TMessage buf(kMESS_OBJECT);
 			    buf.Reset();
 			    buf.SetWriteMode();
-			    EmuMonitoringCanvas* cnv = new EmuMonitoringCanvas(*(cnvobj_itr->second));
+			    // EmuMonitoringCanvas* cnv = new EmuMonitoringCanvas(*(cnvobj_itr->second));
+			    EmuMonitoringCanvas* cnv = cnvobj_itr->second;
 			    
 			    xoap::SOAPName widthTag ("Width", "", "");
 			    if (o_itr->getAttributeValue(widthTag ) != "")
@@ -309,7 +310,7 @@ xoap::MessageReference EmuMonitor::requestCanvas(xoap::MessageReference node) th
 			    msg->addAttachmentPart(attachment);
 			    LOG4CPLUS_INFO (getApplicationLogger(), "Sending "<<  cnv->getFullName());
 			    delete []attch_buf;
-			    delete cnv;
+			    // delete cnv;
 			  }
 			}
 		    }

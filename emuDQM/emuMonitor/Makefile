@@ -25,7 +25,6 @@ Package=emuDQM/emuMonitor
 Sources=\
 	EmuMonitor.cc \
 	EmuMonitor_SOAP.cc \
-        EmuMonitorV.cc \
 	EmuPlotter.cc \
 	EmuPlotter_generateLayout.cc \
 	EmuPlotter_bookHistograms.cc \
@@ -40,7 +39,9 @@ Sources=\
 	CSCStripClusterFinder.cc \
 	CSCStripClusterFitData.cc \
 	CSCStripCluster.cc \
-	ClusterLocalMax.cc
+	ClusterLocalMax.cc \
+	version.cc
+#	EmuMonitorV.cc
 #	EmuBinCheck.cc 
 
 
@@ -51,28 +52,27 @@ TestLibraries = xerces-c
 TestExecutables = xmlExample.cpp 
 
 ExternalObjects = \
-	$(XDAQ_ROOT)/$(Project)/emuDQM/Common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libemuDQMCommon.a \
-	$(XDAQ_ROOT)/$(Project)/emuDQM/CMSSWLibs/lib/libCSCRawToDigi.a \
-        $(XDAQ_ROOT)/$(Project)/emuDQM/CMSSWLibs/lib/libCSCDigi.a \
-	$(XDAQ_ROOT)/$(Project)/emuDQM/dduBinExaminer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libdduBinExaminer.a \
-	$(XDAQ_ROOT)/$(Project)/emuDQM/EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a 
+	../Common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libemuDQMCommon.a \
+	../CMSSWLibs/lib/libCSCRawToDigi.a \
+        ../CMSSWLibs/lib/libCSCDigi.a \
+	../dduBinExaminer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libdduBinExaminer.a \
+	../EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a 
 
 IncludeDirs = $(XdaqIncludeDirs) \
-	$(XDAQ_ROOT)/$(Project)/emuDQM/CMSSWLibs \
-	$(XDAQ_ROOT)/$(Project)/emuDQM/Common/include \
-	$(XDAQ_ROOT)/$(Project)/emuDQM/dduBinExaminer/include \
-	$(XDAQ_ROOT)/$(Project)/emuDAQ/emuReadout/include \
-	$(XDAQ_ROOT)/$(Project)/emuDAQ/emuReadout/ORCA \
+	../CMSSWLibs \
+	../Common/include \
+	../dduBinExaminer/include \
+	../../emuDAQ/emuReadout/include \
+	../../emuDAQ/emuReadout/ORCA \
 	$(CMSSW) \
-	$(XDAQ_ROOT)/$(Project) \
-	$(XDAQ_ROOT)/$(Project)/emuDQM/EmuROOTDisplayServer/include \
-	$(XDAQ_ROOT)/$(Project)/emuDQM/EmuDisplayServer/include \
-	$(XDAQ_ROOT)/$(Project)/emuDAQ/GenericRUI/include \
+	../.. \
+	../EmuROOTDisplayServer/include \
+	../../emuDAQ/GenericRUI/include \
 	$(BOOST)
 
 
 LibraryDirs = $(XdaqLibraryDirs) \
-	$(XDAQ_ROOT)/$(Project)/emuDAQ/emuReadout/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/ 
+	../../emuDAQ/emuReadout/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/ 
 
 
 UserSourcePath = 

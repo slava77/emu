@@ -1,6 +1,6 @@
 #include "EmuPlotter.h"
 
-void EmuPlotter::saveImages(std::string path, std::string format, int width, int height)
+void EmuPlotter::saveImages(std::string path, std::string format, int width, int height, std::string runname)
 {
 
   LOG4CPLUS_INFO(logger_, "Saving MEs as "<<format<< " images to " << path)
@@ -15,11 +15,11 @@ void EmuPlotter::saveImages(std::string path, std::string format, int width, int
   TString command = Form("mkdir -p %s",path.c_str());
     gSystem->Exec(command.Data());
 
-  std::string runNumber = "";
+  std::string runNumber = runname;
 
   tree_items.open((path+"/tree_items.js").c_str());
   tree_items << "var TREE_ITEMS = [\n"
-        << "    ['RunNumber" << runNumber << "', ''," << endl;
+        << "    ['Run: " << runNumber << "', ''," << endl;
 
 
   std::map<std::string, ME_List >::iterator itr;
@@ -64,7 +64,7 @@ void EmuPlotter::saveImages(std::string path, std::string format, int width, int
 
 }
 
-void EmuPlotter::saveCanvasImages(std::string path, std::string format, int width, int height)
+void EmuPlotter::saveCanvasImages(std::string path, std::string format, int width, int height, std::string runname)
 {
 
    LOG4CPLUS_WARN(logger_, "Saving MEs as "<<format<< " images to to " << path)
@@ -81,14 +81,14 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
   TString command = Form("mkdir -p %s",path.c_str());
     gSystem->Exec(command.Data());
 
-  std::string runNumber = "";
+  std::string runNumber = runname;
   tree_items.open((path+"/tree_items.js").c_str());
   tree_items << "var TREE_ITEMS = [\n"
-        << "    ['RunNumber" << runNumber << "', ''," << endl;
+        << "    ['Run: " << runNumber << "', ''," << endl;
 
   csc_list.open((path+"/csc_list.js").c_str());
   csc_list << "var CSC_LIST = [\n"
-        << "    ['RunNumber" << runNumber << "'";
+        << "    ['Run: " << runNumber << "'";
 
  
   std::map<std::string, ME_List>::iterator me_itr; 
@@ -186,6 +186,7 @@ void EmuPlotter::saveCanvasImages(std::string path, std::string format, int widt
   createTreeEngine(path);
   createTreeTemplate(path);
   createHTMLNavigation(path);
+  generateCanvasesListFile(path+"/canvases_list.js", format);
 
   LOG4CPLUS_INFO(logger_, "Done");
 }
@@ -417,4 +418,45 @@ void EmuPlotter::createTreeTemplate(std::string path)
    fout.close();
 }
 
+void EmuPlotter::generateCanvasesListFile(std::string filename, std::string imgformat )
+{
+  std::ofstream cnv_list;
+  LOG4CPLUS_WARN(logger_, "Generating Canvases List file " << filename);
+  cnv_list.open(filename.c_str());
+  cnv_list << "var TREE_ITEMS = [" << std::endl;
+  MECanvases_List_iterator itr;
 
+  cnv_list << "	['EMU', ' '," << std::endl;
+  for (itr = commonCanvasesFactory.begin(); itr != commonCanvasesFactory.end(); ++itr) {
+        EmuMonitoringCanvas * obj = itr->second;
+	std::string plot = obj->getFolder();
+	if (plot != "") plot += "/";
+	plot += obj->getName() + "." +imgformat;
+	cnv_list << "           ['" << obj->getTitle() << "','" << plot << "']," << std::endl;
+    }
+  cnv_list << "	]," << std::endl;
+
+  cnv_list << "	['DDU', ' '," << std::endl;
+  for (itr = dduCanvasesFactory.begin(); itr != dduCanvasesFactory.end(); ++itr) {
+        EmuMonitoringCanvas * obj = itr->second;
+	std::string plot = obj->getFolder();
+        if (plot != "") plot += "/";
+        plot += obj->getName() + "." +imgformat;
+        cnv_list << "           ['" << obj->getTitle() << "','" << plot << "']," << std::endl;
+    }
+  cnv_list << "	]," << std::endl;
+
+  cnv_list << "	['CSC', ' '," << std::endl;
+  for (itr = chamberCanvasesFactory.begin(); itr != chamberCanvasesFactory.end(); ++itr) {
+        EmuMonitoringCanvas * obj = itr->second;
+	std::string plot = obj->getFolder();
+        if (plot != "") plot += "/";
+        plot += obj->getName() + "." +imgformat;
+        cnv_list << "           ['" << obj->getTitle() << "','" << plot << "']," << std::endl;
+    }
+  cnv_list << "	]," << std::endl;
+	
+  cnv_list << "];" << std::endl;
+  cnv_list.close();
+	
+}

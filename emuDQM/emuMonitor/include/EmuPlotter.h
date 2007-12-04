@@ -108,14 +108,17 @@ public:
   void saveHistos() {};
   void saveToROOTFile(std::string filename);
   void saveCanvasesToROOTFile(std::string filename);
+  void generateCanvasesListFile(std::string filename="canvases_list.js", std::string imgformat="png");
   void saveImages(std::string path, 
 	std::string format=DEFAULT_IMAGE_FORMAT, 
 	int width=DEFAULT_CANVAS_WIDTH, 
-	int height=DEFAULT_CANVAS_HEIGHT);
+	int height=DEFAULT_CANVAS_HEIGHT,
+	std::string runname="");
   void saveCanvasImages(std::string path, 
         std::string format=DEFAULT_IMAGE_FORMAT, 
         int width=DEFAULT_CANVAS_WIDTH, 
-        int height=DEFAULT_CANVAS_HEIGHT);
+        int height=DEFAULT_CANVAS_HEIGHT,
+	std::string runname="");
   void setXMLHistosBookingCfgFile(string filename) {xmlHistosBookingCfgFile = filename;}
   std::string GetXMLHistosBookingCfgFile() const {return xmlHistosBookingCfgFile;}
   void setXMLCanvasesCfgFile(string filename) {xmlCanvasesCfgFile = filename;}
@@ -191,6 +194,7 @@ private:
   int SaveTimer;
   int fStopTimer;
   bool fBusy;
+  bool fFirstEvent;
   
   std::string xmlHistosBookingCfgFile;
   std::string xmlCanvasesCfgFile;
