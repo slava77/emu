@@ -6,6 +6,7 @@ namespace emu {
     std::string getScalarParam
     (
      xdaq::ApplicationContext *appContext_,
+     xdaq::ApplicationDescriptor* appSrcDescriptor,
      xdaq::ApplicationDescriptor* appDescriptor,
      const std::string                 paramName,
      const std::string                 paramType
@@ -22,7 +23,7 @@ namespace emu {
 	    createParameterGetSOAPMsg(appClass, paramName, paramType);
 
 	  xoap::MessageReference reply =
-	    appContext_->postSOAP(msg, appDescriptor);
+	    appContext_->postSOAP(msg, *appSrcDescriptor, *appDescriptor);
 
 	  // Check if the reply indicates a fault occurred
 	  xoap::SOAPBody replyBody =
@@ -55,6 +56,7 @@ namespace emu {
     void setScalarParam
     (
      xdaq::ApplicationContext *appContext_,
+     xdaq::ApplicationDescriptor* appSrcDescriptor,
      xdaq::ApplicationDescriptor* appDescriptor,
      const std::string                 paramName,
      const std::string                 paramType,
@@ -71,7 +73,7 @@ namespace emu {
 								 paramName, paramType, paramValue);
 
 	  xoap::MessageReference reply =
-	    appContext_->postSOAP(msg, appDescriptor);
+	    appContext_->postSOAP(msg, *appSrcDescriptor, *appDescriptor);
 
 	  // Check if the reply indicates a fault occurred
 	  xoap::SOAPBody replyBody =

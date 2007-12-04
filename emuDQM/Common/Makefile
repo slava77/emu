@@ -29,11 +29,11 @@ Sources=\
 	CSCReadoutMappingFromFile.cc
 
 Executables = 
-ExternalObjects = $(XDAQ_ROOT)/$(Project)/emuDQM/EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a
+ExternalObjects = ../EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a
 
 IncludeDirs = $(XdaqIncludeDirs) \
-	$(XDAQ_ROOT)/$(Project)/emuDQM/CMSSWLibs \
-	$(XDAQ_ROOT)/$(Project)/emuDQM/EmuROOTDisplayServer/include \
+	../CMSSWLibs \
+	../EmuROOTDisplayServer/include \
 	$(ROOTDIR)/include \
 	$(CMSSW)
 

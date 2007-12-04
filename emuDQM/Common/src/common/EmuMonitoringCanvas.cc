@@ -102,10 +102,12 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
 
   setCanvasWidth(width);
   setCanvasHeight(height);
+/*
   if (canvas != NULL) {
     delete canvas;
     canvas = NULL;
   }
+*/
   gStyle->SetPalette(1,0);
 
   std::map<std::string, std::string> other_params;
@@ -142,16 +144,21 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
 	  }
 
 	  std::string logx = obj->second->getParameter("SetLogx");
-	  if (logx!= "" ) {
+	  if (logx!= "") {
+	  //  std::cout << "Logx " << ((double)(obj->second->getObject()->GetMaximum())) << std::endl;
 	    gPad->SetLogx();
 	  }
 	  std::string logy = obj->second->getParameter("SetLogy");
-	  if (logy!= "" ) {
+	  if (logy!= "" && (obj->second->getObject()->GetMaximum()>0.)) {
+	  // if (logy!= "") {
+	  //  std::cout << "Logy " << ((double)(obj->second->getObject()->GetMaximum())) << std::endl;
 	    gPad->SetLogy();
 	  }
 
- 	   std::string logz = obj->second->getParameter("SetLogz");
-          if (logz!= "" ) {
+ 	  std::string logz = obj->second->getParameter("SetLogz");
+          if (logz!= "" && (obj->second->getObject()->GetMaximum()>0.) ) {
+          // if (logz!= "") {
+	  //  std::cout << "Logz " << ((double)(obj->second->getObject()->GetMaximum())) << std::endl;
             gPad->SetLogz();
           }
 
@@ -172,11 +179,26 @@ void EmuMonitoringCanvas::Draw(ME_List& MEs, int width, int height)
 	  }
 
 	  obj->second->Draw();
+/*
+	  if (obj->second->getParameter("SetLabelSizeZ") != "") {
+	      std::string st = obj->second->getParameter("SetlabelSizeZ");
+	      double opt = atof(st.c_str()) ;
+	      if (obj->second->getObject()) {
+        		TPaletteAxis *palette = (TPaletteAxis*)(obj->second->getObject()->GetListOfFunctions()->FindObject("palette"));
+		         if (palette != NULL) {
+                		palette->SetLabelSize(opt);
+		         } else {
+		              std::cout << "Unable to find palette" << std::endl;
+		         }
+
+      		}
+    	  }
+*/
 	  std::string statOpt = obj->second->getParameter("SetOptStat");
 	  if (statOpt != "" ) {
 	    gStyle->SetOptStat(statOpt.c_str());
 	  } else {
-            gStyle->SetOptStat("e");
+          //   gStyle->SetOptStat("e");
 	  }
 
         }

@@ -38,6 +38,7 @@ namespace emu {
     std::string getScalarParam
       (
        xdaq::ApplicationContext *appContext_,
+       xdaq::ApplicationDescriptor* appSrcDescriptor,
        xdaq::ApplicationDescriptor* appDescriptor,
        const std::string                 paramName,
        const std::string                 paramType
@@ -49,7 +50,8 @@ namespace emu {
      */
     void setScalarParam
       (
-       xdaq::ApplicationContext *appContext_,       
+       xdaq::ApplicationContext *appContext_,      
+       xdaq::ApplicationDescriptor* appSrcDescriptor, 
        xdaq::ApplicationDescriptor* appDescriptor,
        const std::string                 paramName,
        const std::string                 paramType,

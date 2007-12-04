@@ -46,7 +46,7 @@ ROOTDicts = \
 
 
 IncludeDirs = $(XdaqIncludeDirs) \
-	$(XDAQ_ROOT)/$(Project)/$(Package)/../Common/include \
+	../Common/include \
 	$(ROOTDIR)/include
 
 LibraryDirs = $(XdaqLibraryDirs) 
@@ -66,6 +66,6 @@ DynamicLibrary = EmuROOTDisplayServer
 StaticLibrary = EmuROOTDisplayServer
 
 MakeFilename=Makefile
-include $(XDAQ_ROOT)/$(Project)/$(Package)/../config/Makefile_root.rules
+include ../config/Makefile_root.rules
 include $(XDAQ_ROOT)/config/Makefile.rules
 

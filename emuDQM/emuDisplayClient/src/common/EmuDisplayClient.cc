@@ -163,7 +163,15 @@ void EmuDisplayClient::actionPerformed (xdata::Event& e)
           LOG4CPLUS_INFO(getApplicationLogger(), "monitor Class : " << monitorClass_.toString());
 	  monitors_.clear();
 	  monitors_ = getAppsList(monitorClass_);
-        }
+        } 
+      else if (item == "iconsURL") 
+	{
+		if (iconsURL_.toString().find("http") == std::string::npos) {
+			std::string url = getApplicationDescriptor()->getContextDescriptor()->getURL() + iconsURL_.toString();
+			iconsURL_ = url;
+		}
+	}
+      
     }
 
 }
@@ -496,7 +504,7 @@ void EmuDisplayClient::getImagePage (xgi::Input * in, xgi::Output * out)  throw 
   // TMessage* msgbuf = requestObjects(nodeID, folderName, objectName);
  
   xdaq::ApplicationDescriptor* d = i2o::utils::getAddressMap()->getApplicationDescriptor(nodeID);
-  std::string state =  emu::dqm::getScalarParam(getApplicationContext(), d,"stateName","string"); 
+  std::string state =  emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), d,"stateName","string"); 
   if (state=="") {
     *out << "<h3>ERROR: " << d->getClassName() <<"-" << d->getInstance() << " node is not available</h3>" << std::endl;
 //    *out << cgicc::h3("ERROR: Object is not available right now.") << std::endl;
@@ -523,7 +531,7 @@ void EmuDisplayClient::getImagePage (xgi::Input * in, xgi::Output * out)  throw 
 	delete canvas;
       }
       if (obj->InheritsFrom(TCanvas::Class())) {
-	((TCanvas*)obj)->Draw();
+//	((TCanvas*)obj)->Draw();
 	((TCanvas*)obj)->SetCanvasSize(w, h);
 	
         // ((TCanvas*)obj)->SetWindowSize(w, h); 
@@ -596,7 +604,7 @@ void EmuDisplayClient::headerPage (xgi::Input * in, xgi::Output * out)  throw (x
       std::ostringstream st;
       st << (*pos)->getClassName() << "-" << (*pos)->getInstance();
       std::string applink = (*pos)->getContextDescriptor()->getURL()+"/"+(*pos)->getURN();
-      std::string state =  emu::dqm::getScalarParam(getApplicationContext(), (*pos),"stateName","string");
+      std::string state =  emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"stateName","string");
       
       if (state == "") { 
 	state = "Unknown/Dead";
@@ -607,26 +615,26 @@ void EmuDisplayClient::headerPage (xgi::Input * in, xgi::Output * out)  throw (x
 	continue;
       }
       else {
-        std::string stateChangeTime = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"stateChangeTime","string");
+        std::string stateChangeTime = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"stateChangeTime","string");
         state += " at " + stateChangeTime;
       }
 
       
-      std::string runNumber   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"runNumber","unsignedInt");
-      std::string events = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"sessionEvents","unsignedInt");
-      std::string dataRate   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"averageRate","unsignedInt");
-      std::string cscUnpacked   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"cscUnpacked","unsignedInt");
-      std::string cscRate   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"cscRate","string");
-      std::string readoutMode   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"readoutMode","string");
-      std::string lastEventTime = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"lastEventTime","string");
+      std::string runNumber   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(),  (*pos),"runNumber","unsignedInt");
+      std::string events = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"sessionEvents","unsignedInt");
+      std::string dataRate   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"averageRate","unsignedInt");
+      std::string cscUnpacked   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"cscUnpacked","unsignedInt");
+      std::string cscRate   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"cscRate","string");
+      std::string readoutMode   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"readoutMode","string");
+      std::string lastEventTime = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"lastEventTime","string");
       
       std::string nDAQevents = "";
       std::string dataSource = "";
       if (readoutMode == "internal")
-	dataSource   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"inputDeviceName","string");
+	dataSource   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"inputDeviceName","string");
       if (readoutMode == "external") {
-        dataSource   = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"serversClassName","string");
-	nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), (*pos),"nDAQEvents","unsignedInt");
+        dataSource   = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"serversClassName","string");
+	nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"nDAQEvents","unsignedInt");
       }
       
       *out << cgicc::tr();
@@ -819,7 +827,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestObjectsL
     {
       LOG4CPLUS_INFO (getApplicationLogger(), "Sending requestObjectsList to " << monitor->getClassName() << " ID" << monitor->getLocalId());
       // xdaq::ApplicationDescriptor* d = i2o::utils::getAddressMap()->getApplicationDescriptor(nodeaddr);
-      xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, monitor);
+      xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *monitor);
 
       xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
       if (rb.hasFault() )
@@ -914,7 +922,7 @@ std::map<std::string, std::list<std::string> > EmuDisplayClient::requestCanvases
     {
       LOG4CPLUS_INFO (getApplicationLogger(), "Sending requestCanvasesList to " << monitor->getClassName() << " ID" << monitor->getLocalId());
       // xdaq::ApplicationDescriptor* d = i2o::utils::getAddressMap()->getApplicationDescriptor(nodeaddr);
-      xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, monitor);
+      xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *monitor);
 
       xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
       if (rb.hasFault() )
@@ -1048,7 +1056,7 @@ TMessage* EmuDisplayClient::requestObjects(xdata::Integer nodeaddr, std::string 
     {
       xdaq::ApplicationDescriptor* d = i2o::utils::getAddressMap()->getApplicationDescriptor(nodeaddr);
       LOG4CPLUS_INFO (getApplicationLogger(), "Sending requestObjects to " << d->getClassName() << " ID" << d->getLocalId());
-      xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, d);
+      xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *d);
       xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
       if (rb.hasFault() )
 	{
@@ -1122,7 +1130,7 @@ TMessage* EmuDisplayClient::requestCanvas(xdata::Integer nodeaddr, std::string f
     {
       xdaq::ApplicationDescriptor* d = i2o::utils::getAddressMap()->getApplicationDescriptor(nodeaddr);
       LOG4CPLUS_INFO (getApplicationLogger(), "Sending requestCanvas: \"" << folder << "/" << objname << "\" to " << d->getClassName() << " ID" << d->getLocalId());
-      xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, d);
+      xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()), *d);
       xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
       /*
 	std::cout << std::endl;

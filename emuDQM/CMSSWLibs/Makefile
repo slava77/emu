@@ -7,7 +7,7 @@ CXX     = g++
 
 CXXFLAGS  = -pedantic -Wno-long-long -Wall -fPIC
 
-LOG4CPLUS = $(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include
+LOG4CPLUS = $(XDAQ_ROOT)/include
 DEFINES   = -DLOG4CPLUS_LOGGER  $(INPDEF) $(OUTDEF)
 
 #------------------------------------------------------

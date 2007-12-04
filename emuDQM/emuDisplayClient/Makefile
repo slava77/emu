@@ -21,19 +21,24 @@ include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 Project=emu
 Package=emuDQM/emuDisplayClient
 
+#
+# TODO: Select version.cc or EmuDisplayClientV.cc depending on xdaq version
+#	version.cc - xdaq 4 (>3.11)
+
 Sources=\
 	EmuBrowsing.cc \
 	EmuDisplayClient.cc \
-	EmuDisplayClientV.cc
+	version.cc
+#	EmuDisplayClientV.cc
 
 Executables = 
-ExternalObjects = $(XDAQ_ROOT)/$(Project)/emuDQM/EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a \
-	$(XDAQ_ROOT)/$(Project)/emuDQM/Common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libemuDQMCommon.a 
+ExternalObjects = ../EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a \
+	../Common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libemuDQMCommon.a 
 	
 
 IncludeDirs = $(XdaqIncludeDirs) \
-	$(XDAQ_ROOT)/$(Project)/emuDQM/EmuROOTDisplayServer/include \
-	$(XDAQ_ROOT)/$(Project)/emuDQM/Common/include \
+	../EmuROOTDisplayServer/include \
+	../Common/include \
 	$(ROOTDIR)/include 
 
 LibraryDirs = $(XdaqLibraryDirs) 
