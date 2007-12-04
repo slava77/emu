@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 //	string xmlcfg = "/home/dqm/TriDAS/emu/emuDQM/emuMonitor/xml/EmuDQMBooking.xml";
 	string xmlHistosBookingCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMBooking.xml";
         std::string xmlCanvasesCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMCanvases.xml";
-	string cscMapFile = "/csc_data/csc_slice_test_map.txt";
+	string cscMapFile = "/csc_data/csc_map.txt";
 	EmuPlotter plotter(logger);
 	plotter.setXMLHistosBookingCfgFile(xmlHistosBookingCfg);
 	plotter.setXMLCanvasesCfgFile(xmlCanvasesCfg);
@@ -100,10 +100,13 @@ int main(int argc, char **argv) {
                 if (histofile.rfind("/") != std::string::npos)
                         histofile.erase(0, histofile.rfind("/")+1);
                 plotsdir = histofile;
+		std::string runname = histofile; 
+		runname = runname.replace(runname.find(".root"), 5, "");
                 plotsdir = plotsdir.replace(plotsdir.find(".root"), 5, ".plots");
 		plotter.loadFromROOTFile(datafile);
-		plotter.saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight);
+		plotter.saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight, runname);
 		plotter.generateLayout("csc-layouts.py", "EMU");
+	//	plotter.generateCanvasesListFile("canvases_list.js", imgFormat);
 		return 0;
 	}
 
@@ -164,6 +167,7 @@ int main(int argc, char **argv) {
 //	plotter.saveImages("images", "png" , 1600, 1200);
 //	plotter.saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight);
 	plotter.saveToROOTFile(histofile.c_str());
+//        plotter.generateCanvasesListFile("canvases_list.js", imgFormat);
 //	plotter.saveCanvasImages(plotsdir.c_str(), imgFormat , imgWidth, imgHeight);
 
 	ddu.close();

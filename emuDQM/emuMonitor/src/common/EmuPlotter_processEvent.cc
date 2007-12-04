@@ -213,6 +213,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     printMECollection(MEs[dduTag]);
     fBusy = false;
     L1ANumbers[dduID] = (int)(dduHeader.lvl1num());
+    fFirstEvent = true;
   }
 
   ME_List& dduME = MEs[dduTag];
@@ -221,43 +222,6 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
   LOG4CPLUS_DEBUG(logger_,"Start unpacking " << dduTag);
 
-  // ==     Check binary Error status at DDU Trailer
-  uint32_t trl_errorstat = dduTrailer.errorstat();
-  LOG4CPLUS_DEBUG(logger_,dduTag << " Trailer Error Status = 0x" << hex << trl_errorstat);
-  for (int i=0; i<32; i++) {
-    if ((trl_errorstat>>i) & 0x1) {
-      if (isMEvalid(dduME,"Trailer_ErrorStat_Rate", mo)) { 
-	mo->Fill(i);
-	double freq = (100.0*mo->GetBinContent(i+1))/nEvents;
-	if (isMEvalid(dduME, "Trailer_ErrorStat_Frequency", mo)) mo->SetBinContent(i+1, freq);
-      }
-      if (isMEvalid(dduME, "Trailer_ErrorStat_Table", mo)) mo->Fill(0.,i);
-      //  if (isMEvalid(dduME, "Trailer_ErrorStat_vs_nEvents", mo)) mo->Fill(nEvents, i);
-    }
-  }
-  if (isMEvalid(nodeME, "All_DDUs_Trailer_Errors", mo)) {
-    if (trl_errorstat) {
-      mo->Fill(dduID,1); // Any Error
-      for (int i=0; i<32; i++) {	
-	if ((trl_errorstat>>i) & 0x1) {
-	  mo->Fill(dduID,i+2);
-	}
-      }
-    } else {
-      mo->Fill(dduID,0); // No Errors
-    }
-    //	mo->getObject()->GetXaxis()->SetBinLabel(dduID, Form("%d",dduID));
-	
-  }
-	
-  if (isMEvalid(dduME,"Trailer_ErrorStat_Table", mo)) mo->SetEntries(nEvents);
-  if (isMEvalid(dduME,"Trailer_ErrorStat_Frequency", mo)) mo->SetEntries(nEvents);
-  /*
-    if (isMEvalid(dduME,"Trailer_ErrorStat_vs_nEvents", mo)) { 
-    mo->SetEntries(nEvents);
-    mo->SetAxisRange(0, nEvents, "X");
-    }
-  */
 
   if (isMEvalid(dduME, "Buffer_Size", mo)) mo->Fill(dataSize);
   // ==     DDU word counter
@@ -289,9 +253,9 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   L1ANumber = L1ANumbers[dduID];
   LOG4CPLUS_DEBUG(logger_,dduTag << " Header L1A Number = " << dec << L1ANumber);
   int L1A_inc = L1ANumber - L1ANumber_previous_event;
-  if (isMEvalid(dduME, "L1A_Increment", mo)) mo->Fill(L1A_inc);
+  if (!fFirstEvent && isMEvalid(dduME, "L1A_Increment", mo)) mo->Fill(L1A_inc);
   
-  if (isMEvalid(nodeME, "All_DDUs_L1A_Increment", mo)) {
+  if (!fFirstEvent && isMEvalid(nodeME, "All_DDUs_L1A_Increment", mo)) {
     if (L1A_inc > 100000) { L1A_inc = 19;}
     else if (L1A_inc > 30000) { L1A_inc = 18;}
     else if (L1A_inc > 10000) { L1A_inc = 17;}
@@ -333,8 +297,8 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
   dmb_dav_header     = dduHeader.dmb_dav();
   dmb_active_header  = (int)(dduHeader.ncsc()&0xF);
-  csc_error_state    = dduTrailer.dmb_full();
-  csc_warning_state  = dduTrailer.dmb_warn();
+  csc_error_state    = dduTrailer.dmb_full()&0x7FFF; // Only 15 inputs for DDU
+  csc_warning_state  = dduTrailer.dmb_warn()&0x7FFF; // Only 15 inputs for DDU
   ddu_connected_inputs=dduHeader.live_cscs();
 
 
@@ -343,7 +307,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
 
   double freq = 0;
-  for (int i=0; i<16; ++i) {
+  for (int i=0; i<15; ++i) {
     if ((dmb_dav_header>>i) & 0x1) {
       dmb_dav_header_cnt++;      
       if (isMEvalid(dduME, "DMB_DAV_Header_Occupancy_Rate", mo)) {
@@ -421,6 +385,47 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
   if (isMEvalid(dduME, "DMB_Active_Header_Count", mo)) mo->Fill(dmb_active_header);
   if (isMEvalid(dduME, "DMB_DAV_Header_Count_vs_DMB_Active_Header_Count", mo)) mo->Fill(dmb_active_header,dmb_dav_header_cnt);
 
+
+ // ==     Check binary Error status at DDU Trailer
+  uint32_t trl_errorstat = dduTrailer.errorstat();
+  if (dmb_dav_header_cnt==0) trl_errorstat &= ~0x20000000; // Ignore No Good DMB CRC bit of no DMB is present
+  LOG4CPLUS_DEBUG(logger_,dduTag << " Trailer Error Status = 0x" << hex << trl_errorstat);
+  for (int i=0; i<32; i++) {
+    if ((trl_errorstat>>i) & 0x1) {
+      if (isMEvalid(dduME,"Trailer_ErrorStat_Rate", mo)) { 
+	mo->Fill(i);
+	double freq = (100.0*mo->GetBinContent(i+1))/nEvents;
+	if (isMEvalid(dduME, "Trailer_ErrorStat_Frequency", mo)) mo->SetBinContent(i+1, freq);
+      }
+      if (isMEvalid(dduME, "Trailer_ErrorStat_Table", mo)) mo->Fill(0.,i);
+      //  if (isMEvalid(dduME, "Trailer_ErrorStat_vs_nEvents", mo)) mo->Fill(nEvents, i);
+    }
+  }
+  if (isMEvalid(nodeME, "All_DDUs_Trailer_Errors", mo)) {
+    if (trl_errorstat) {
+      mo->Fill(dduID,1); // Any Error
+      for (int i=0; i<32; i++) {	
+	if ((trl_errorstat>>i) & 0x1) {
+	  mo->Fill(dduID,i+2);
+	}
+      }
+    } else {
+      mo->Fill(dduID,0); // No Errors
+    }
+    //	mo->getObject()->GetXaxis()->SetBinLabel(dduID, Form("%d",dduID));
+	
+  }
+	
+  if (isMEvalid(dduME,"Trailer_ErrorStat_Table", mo)) mo->SetEntries(nEvents);
+  if (isMEvalid(dduME,"Trailer_ErrorStat_Frequency", mo)) mo->SetEntries(nEvents);
+  /*
+    if (isMEvalid(dduME,"Trailer_ErrorStat_vs_nEvents", mo)) { 
+    mo->SetEntries(nEvents);
+    mo->SetAxisRange(0, nEvents, "X");
+    }
+  */
+
+
   //      Unpack all founded CSC
   vector<CSCEventData> chamberDatas;
   chamberDatas = dduData.cscData();
@@ -480,7 +485,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
   LOG4CPLUS_DEBUG(logger_,
 		  "END OF EVENT :-(");
-
+  fFirstEvent = false;
 
 }
 

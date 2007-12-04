@@ -81,6 +81,27 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked", mo))
         mo->Fill(CSCposition-1, CSCtype);
 
+  EmuMonitoringObject* mof = NULL;
+  if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)
+      && isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) {
+    for(int bit=5; bit<24; bit++) {
+      double freq = (100.0*mo->GetBinContent(1,bit-4))/nDMBEvents[cscTag];
+      mof->SetBinContent(bit-4, freq);
+    }
+    mo->SetEntries(nDMBEvents[cscTag]);
+    mof->SetEntries(nDMBEvents[cscTag]);
+  }
+
+  if (isMEvalid(cscME, "BinCheck_WarningStat_Table", mo)
+      && isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) {
+    for(int bit=1; bit<2; bit++) {
+      double freq = (100.0*mo->GetBinContent(1,bit))/nDMBEvents[cscTag];
+      mof->SetBinContent(bit, freq);
+    }
+    mo->SetEntries(nDMBEvents[cscTag]);
+    mof->SetEntries(nDMBEvents[cscTag]);
+  }
+
 
   //    Efficiency of the chamber
   float DMBEvent  = 0.0;
@@ -93,6 +114,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   }
   
   //    Unpacking L1A number from DMB header
+  // == DMB L1A: 8bits (256)
+  // == DDU L1A: 24bits
   int dmbHeaderL1A      = 0;
   int dmb_ddu_l1a_diff  = 0;
   dmbHeaderL1A = dmbHeader.l1a();
@@ -117,42 +140,26 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
   if (isMEvalid(cscME,"DMB_L1A_vs_DDU_L1A",mo)) mo->Fill((int)(L1ANumber&0xFF), (int)dmbHeaderL1A);
 
-  EmuMonitoringObject* mof = NULL;
-  if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo) 
-      && isMEvalid(cscME, "BinCheck_ErrorStat_Frequency", mof)) {
-    for(int bit=5; bit<24; bit++) {
-      double freq = (100.0*mo->GetBinContent(1,bit-4))/nDMBEvents[cscTag];
-      mof->SetBinContent(bit-4, freq);
-    }
-    mo->SetEntries(nDMBEvents[cscTag]);
-    mof->SetEntries(nDMBEvents[cscTag]);
-  }
-
-  if (isMEvalid(cscME, "BinCheck_WarningStat_Table", mo) 
-      && isMEvalid(cscME, "BinCheck_WarningStat_Frequency", mof)) {
-    for(int bit=1; bit<2; bit++) {
-      double freq = (100.0*mo->GetBinContent(1,bit))/nDMBEvents[cscTag];
-      mof->SetBinContent(bit, freq);
-    }
-    mo->SetEntries(nDMBEvents[cscTag]);
-    mof->SetEntries(nDMBEvents[cscTag]);
-  }
-
   //    Unpacking BXN number from DMB header
   int dmbHeaderBXN      = 0;
   int dmb_ddu_bxn_diff  = 0;
 
+
+  // == DMB BXN: 12bits (4096) call bxn12(), bxn() return 7bits value
+  // == DDU BXN: 12bits (4096) 
   dmbHeaderBXN = dmbHeader.bxn12();
   //          Calculation difference between BXN numbers from DDU and DMB
-  dmb_ddu_bxn_diff = (int)(dmbHeaderBXN-(int)(BXN&0x7F));
+
+//  dmb_ddu_bxn_diff = (int)(dmbHeaderBXN-(int)(BXN&0x7F)); // For older DMB
+  dmb_ddu_bxn_diff = (int)(dmbHeaderBXN-(int)(BXN));
   LOG4CPLUS_DEBUG(logger_, "DMB(ID=" << ChamberID  << ") BXN = " << dmbHeaderBXN
 		  << " : DMB BXN - DDU BXN = " << dmb_ddu_bxn_diff);
   if (isMEvalid(cscME,"DMB_BXN_Distrib", mo)) mo->Fill((int)(dmbHeader.bxn12()));
 
   if (isMEvalid(cscME, "DMB_DDU_BXN_diff", mo)) {
-    if(dmb_ddu_bxn_diff < -64) mo->Fill(dmb_ddu_bxn_diff + 128);
+    if(dmb_ddu_bxn_diff < -2048) mo->Fill(dmb_ddu_bxn_diff + 4096);
     else {
-      if(dmb_ddu_bxn_diff > 64)  mo->Fill(dmb_ddu_bxn_diff - 128);
+      if(dmb_ddu_bxn_diff > 2048)  mo->Fill(dmb_ddu_bxn_diff - 4096);
       else mo->Fill(dmb_ddu_bxn_diff);
     }  
     mo->SetAxisRange(0.1, 1.1*(1.0+ mo->getObject()->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
@@ -313,13 +320,16 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     }
 
 
+    // == ALCT2007 L1A: 12bits (4096)
+    // == ALCT2006 L1A: 4bits (16)
     if (isMEvalid(cscME, "ALCT_L1A", mo)) mo->Fill((int)(alctHeader.L1Acc()));
 
     if (isMEvalid(cscME, "ALCT_DMB_L1A_diff", mo)) {
-      int alct_dmb_l1a_diff = (int)((dmbHeader.l1a()&0xF)-alctHeader.L1Acc());
-      if(alct_dmb_l1a_diff < -8) mo->Fill(alct_dmb_l1a_diff + 16);
+//      int alct_dmb_l1a_diff = (int)((dmbHeader.l1a()&0xF)-alctHeader.L1Acc());
+      int alct_dmb_l1a_diff = (int)(dmbHeader.l1a()-(alctHeader.L1Acc()&0xFF));
+      if(alct_dmb_l1a_diff < -128) mo->Fill(alct_dmb_l1a_diff + 256);
       else {
-	if(alct_dmb_l1a_diff > 8) mo->Fill(alct_dmb_l1a_diff - 16);
+	if(alct_dmb_l1a_diff > 128) mo->Fill(alct_dmb_l1a_diff - 256);
 	else mo->Fill(alct_dmb_l1a_diff);
       }
       mo->SetAxisRange(0.1, 1.1*(1.0+mo->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
@@ -327,13 +337,15 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
 
     // if (isMEvalid(cscME, "DMB_L1A_vs_ALCT_L1A", mo)) mo->Fill(alctHeader.L1Acc(),dmbHeader.l1a());
-    if (isMEvalid(cscME, "DMB_L1A_vs_ALCT_L1A", mo)) mo->Fill(alctHeader.L1Acc()%16,dmbHeader.l1a());
+    if (isMEvalid(cscME, "DMB_L1A_vs_ALCT_L1A", mo)) mo->Fill(alctHeader.L1Acc()%256,dmbHeader.l1a());
 
+
+    // === ALCT BXN: 12bits (4096)
     if (isMEvalid(cscME, "ALCT_DMB_BXN_diff", mo)) {
-      int alct_dmb_bxn_diff = (int)(dmbHeader.bxn12()-(alctHeader.BXNCount()&0x7F));
-      if(alct_dmb_bxn_diff < -64) mo->Fill(alct_dmb_bxn_diff + 128);
+      int alct_dmb_bxn_diff = (int)(dmbHeader.bxn12()-alctHeader.BXNCount());
+      if(alct_dmb_bxn_diff < -2048) mo->Fill(alct_dmb_bxn_diff + 4096);
       else {
-	if(alct_dmb_bxn_diff > 64)  mo->Fill(alct_dmb_bxn_diff - 128);
+	if(alct_dmb_bxn_diff > 2048)  mo->Fill(alct_dmb_bxn_diff - 4096);
 	else mo->Fill(alct_dmb_bxn_diff);
       }
       mo->SetAxisRange(0.1, 1.1*(1.0+mo->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
@@ -490,21 +502,21 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
     if (isMEvalid(cscME, "TMB_ALCT_BXN_diff", mo)) {
       int clct_alct_bxn_diff = (int)(alctHeader.BXNCount() - tmbHeader.BXNCount());
-      if(clct_alct_bxn_diff < -512) mo->Fill(clct_alct_bxn_diff + 1024);
+      if(clct_alct_bxn_diff < -2048) mo->Fill(clct_alct_bxn_diff + 4096);
       else {
-	if(clct_alct_bxn_diff > 512) mo->Fill(clct_alct_bxn_diff - 1024);
+	if(clct_alct_bxn_diff > 2048) mo->Fill(clct_alct_bxn_diff - 4096);
 	else mo->Fill(clct_alct_bxn_diff);
       }
       mo->SetAxisRange(0.1, 1.1*(1.0+mo->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
     }
 
-    if (isMEvalid(cscME, "TMB_L1A_vs_ALCT_L1A", mo)) mo->Fill((int)(alctHeader.L1Acc()),(int)(tmbHeader.L1ANumber()));
+    if (isMEvalid(cscME, "TMB_L1A_vs_ALCT_L1A", mo)) mo->Fill((int)(alctHeader.L1Acc()%256),(int)(tmbHeader.L1ANumber()%256));
 
     if (isMEvalid(cscME, "TMB_ALCT_L1A_diff", mo)) {
       int clct_alct_l1a_diff = (int)(tmbHeader.L1ANumber() - alctHeader.L1Acc());
-      if(clct_alct_l1a_diff < -8) mo->Fill(clct_alct_l1a_diff + 16);
+      if(clct_alct_l1a_diff < -2048) mo->Fill(clct_alct_l1a_diff + 4096);
       else {
-	if(clct_alct_l1a_diff > 8)  mo->Fill(clct_alct_l1a_diff - 16);
+	if(clct_alct_l1a_diff > 2048)  mo->Fill(clct_alct_l1a_diff - 4096);
 	else mo->Fill(clct_alct_l1a_diff);
       }
       mo->SetAxisRange(0.1, 1.1*(1.0+mo->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
@@ -561,23 +573,23 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     if (isMEvalid(cscME, "CLCT_L1A", mo)) mo->Fill(tmbHeader.L1ANumber());
 
     if (isMEvalid(cscME, "CLCT_DMB_L1A_diff", mo)) {
-      int clct_dmb_l1a_diff = (int)((dmbHeader.l1a()&0xF)-tmbHeader.L1ANumber());
-      if(clct_dmb_l1a_diff < -8) mo->Fill(clct_dmb_l1a_diff + 16);
+      int clct_dmb_l1a_diff = (int)(dmbHeader.l1a()-(tmbHeader.L1ANumber()&0xFF));
+      if(clct_dmb_l1a_diff < -128) mo->Fill(clct_dmb_l1a_diff + 256);
       else {
-	if(clct_dmb_l1a_diff > 8)  mo->Fill(clct_dmb_l1a_diff - 16);
+	if(clct_dmb_l1a_diff > 128)  mo->Fill(clct_dmb_l1a_diff - 256);
 	else mo->Fill(clct_dmb_l1a_diff);
       }
       mo->SetAxisRange(0.1, 1.1*(1.0+mo->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
     }
 
 //    if (isMEvalid(cscME, "DMB_L1A_vs_CLCT_L1A", mo)) mo->Fill(tmbHeader.L1ANumber(),dmbHeader.l1a());
-    if (isMEvalid(cscME, "DMB_L1A_vs_CLCT_L1A", mo)) mo->Fill(tmbHeader.L1ANumber(),dmbHeader.l1a()%16);
+    if (isMEvalid(cscME, "DMB_L1A_vs_CLCT_L1A", mo)) mo->Fill(tmbHeader.L1ANumber()%256,dmbHeader.l1a());
 
     if (isMEvalid(cscME, "CLCT_DMB_BXN_diff", mo)) {
-      int clct_dmb_bxn_diff = (int)(dmbHeader.bxn12()-(tmbHeader.BXNCount()&0x7F));
-      if(clct_dmb_bxn_diff < -64) mo->Fill(clct_dmb_bxn_diff + 128);
+      int clct_dmb_bxn_diff = (int)(dmbHeader.bxn12()-tmbHeader.BXNCount());
+      if(clct_dmb_bxn_diff < -2048) mo->Fill(clct_dmb_bxn_diff + 4096);
       else {
-	if(clct_dmb_bxn_diff > 64)  mo->Fill(clct_dmb_bxn_diff - 128);
+	if(clct_dmb_bxn_diff > 2048)  mo->Fill(clct_dmb_bxn_diff - 4096);
 	else mo->Fill(clct_dmb_bxn_diff);
       }
       mo->SetAxisRange(0.1, 1.1*(1.0+mo->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");

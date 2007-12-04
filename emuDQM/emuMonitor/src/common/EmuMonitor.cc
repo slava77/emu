@@ -430,7 +430,7 @@ void EmuMonitor::actionPerformed (xdata::Event& e)
 	  std::set<xdaq::ApplicationDescriptor*>::iterator pos;
 	  for (pos=dataservers_.begin(); pos!=dataservers_.end(); ++pos) {
 	    xdata::UnsignedLong count;
-	    count.fromString(emu::dqm::getScalarParam(getApplicationContext(), (*pos),"nEventsRead","unsignedLong"));
+	    count.fromString(emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"nEventsRead","unsignedLong"));
 	    nDAQEvents_ = nDAQEvents_ + count;	
           }
         }
@@ -692,7 +692,8 @@ void EmuMonitor::doStop()
   if (plotter_ != NULL && isReadoutActive) { 
     if (timer_ != NULL && timer_->isActive())
       timer_->kill();
-    if (fSaveROOTFile_ == xdata::Boolean(true)) {
+    if (fSaveROOTFile_ == xdata::Boolean(true) && (sessionEvents_ > xdata::UnsignedInteger(0))) {
+	
       if (timer_ != NULL) {
 	timer_->setPlotter(plotter_);
 	timer_->setROOTFileName(getROOTFileName());
@@ -703,7 +704,7 @@ void EmuMonitor::doStop()
 
       }
 	      
-      //	plotter_->saveToROOTFile(getROOTFileName());
+//      plotter_->saveToROOTFile(getROOTFileName());
     }
   }
   disableReadout();
@@ -718,7 +719,7 @@ void EmuMonitor::doConfigure()
   pmeter_->init(200);
   pmeterCSC_->init(200);
   // !! EmuMonitor or EmuRUI tid?
-  appTid_ = i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor());
+  // appTid_ = i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor());
   /*
     if (xmlCfgFile_ != "" && plotter_ != NULL) plotter_->setXMLCfgFile(xmlCfgFile_.toString());
     if (plotter_ != NULL) plotter_->book(appTid_);
@@ -1284,6 +1285,7 @@ int EmuMonitor::svc()
   keepRunning = true;
   bool readValid = true;
   startmark=time(NULL);
+  sleep(1);
 
   while(keepRunning && readValid)
     {
@@ -1298,14 +1300,19 @@ int EmuMonitor::svc()
 			      " " << inputDeviceName_.toString() << " read error.");
 	      if (plotter_ != NULL) {
 		isReadoutActive = false;
-		if (fSaveROOTFile_== xdata::Boolean(true) && (eventsReceived_ > xdata::UnsignedInteger(0)) ) {
+		if (fSaveROOTFile_== xdata::Boolean(true) && (sessionEvents_ > xdata::UnsignedInteger(0)) ) {
 		  plotter_->saveToROOTFile(getROOTFileName());
                 }
 
 	      }
 	    } else {
 	      uint32_t errorFlag = 0;
+	      
 	      processEvent(deviceReader_->data(), deviceReader_->dataLength(), errorFlag, appTid_);
+	      if ((sessionEvents_ % 100) == 1) {
+	       	time_t nowmark=time(NULL);	      	      
+	        averageRate_ = sessionEvents_/(nowmark-startmark);
+	      } 
 	    }
 
         }
@@ -1464,7 +1471,7 @@ void EmuMonitor::updateList(xdata::Integer id)
       */
       xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup("dqm");
       xdaq::ApplicationDescriptor* collectorDescriptor =        g->getApplicationDescriptor(collectorsClassName_, id);
-      xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, collectorDescriptor);
+      xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()),*collectorDescriptor);
 
       /*
         cout << endl;
@@ -1633,7 +1640,7 @@ void EmuMonitor::updateObjects(xdata::Integer id)
     	->getApplicationGroup()
     	->getApplicationDescriptor( collectorsClassName_, id );
       */
-      xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, collectorDescriptor);
+      xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()) ,*collectorDescriptor);
       /*
         cout << endl;
         reply.writeTo(cout);
