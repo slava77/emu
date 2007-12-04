@@ -2,7 +2,8 @@ include $(XDAQ_ROOT)/config/mfAutoconf.rules
 include $(XDAQ_ROOT)/config/mfDefs.$(XDAQ_OS)
 
 XdaqIncludeDirs = \
-        $(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
+	$(XDAQ_ROOT)/include \
+#        $(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
         $(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
 	$(XDAQ_ROOT)/daq/extern/cgicc/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
 	$(XDAQ_ROOT)/daq/extern/i2o/include \
@@ -23,7 +24,8 @@ XdaqIncludeDirs = \
         $(XDAQ_ROOT)/daq/interface/shared/include \
 
 XdaqLibraryDirs = \
-	$(XDAQ_ROOT)/daq/extern/asyncresolv/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
+	$(XDAQ_ROOT)/lib \
+#	$(XDAQ_ROOT)/daq/extern/asyncresolv/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
         $(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
 	$(XDAQ_ROOT)/daq/extern/cgicc/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
 	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
@@ -41,4 +43,4 @@ XdaqLibraryDirs = \
 	$(XDAQ_ROOT)/daq/i2o/utils/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
 	$(XDAQ_ROOT)/daq/xdaq/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)
 
-XdaqLibraries = asyncresolv toolbox xdaq xoap xerces-c log4cplus xdata xgi xcept cgicc mimetic xmlappender udpappender peer i2outils
+XdaqLibraries = asyncresolv toolbox xdaq xoap xerces-c log4cplus xdata xgi xcept cgicc mimetic logxmlappender logudpappender peer i2outils uuid config

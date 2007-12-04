@@ -4,7 +4,7 @@ RootCint=$(ROOTSYS)/bin/rootcint
 DictLinkdef=$(ROOTDicts)
 #CHistogram.hh CObject.hh TConsumerInfo.hh HistoDisplay.hh
 
-PackageDir=$(XDAQ_ROOT)/$(Project)/$(Package)
+PackageDir=$(BUILD_HOME)/$(Project)/$(Package)
 DestDir=$(PackageDir)/src/common
 Dicts=$(DictLinkdef:%.hh=%Dict.cc)
 Sources += $(Dicts)

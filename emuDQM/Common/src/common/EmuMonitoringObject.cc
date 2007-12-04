@@ -181,12 +181,15 @@ int EmuMonitoringObject::applyParameters()
 	
     if ((itr = params.find("SetOption")) != params.end()) {
       object->SetOption(itr->second.c_str());
+      //object->Draw();
     }
-		
+
+    /*		
     if ((itr = params.find("SetOptStat")) != params.end()) {
       gStyle->SetOptStat(itr->second.c_str());
 			
     }
+    */
 	
     if ((itr = params.find("SetStats")) != params.end()) {
       int stats = strtol( itr->second.c_str(), &stopstring, 10 );
@@ -286,7 +289,8 @@ int EmuMonitoringObject::applyParameters()
       std::string st = itr->second;
       double opt = atof(st.c_str()) ;
       if (object) {
-        object->GetXaxis()->SetLabelSize(opt);
+	object->SetLabelSize(opt,"X");
+
       }
     }
    
@@ -294,7 +298,8 @@ int EmuMonitoringObject::applyParameters()
       std::string st = itr->second;
       double opt = atof(st.c_str()) ;
       if (object) {
-        object->GetYaxis()->SetLabelSize(opt);
+//        object->GetYaxis()->SetLabelSize(opt);
+	object->SetLabelSize(opt,"Y");
       }
     }
 
@@ -302,7 +307,16 @@ int EmuMonitoringObject::applyParameters()
       std::string st = itr->second;
       double opt = atof(st.c_str()) ;
       if (object) {
-        object->GetZaxis()->SetLabelSize(opt);
+//        object->GetZaxis()->SetLabelSize(opt);
+//	object->SetLabelSize(opt,"Z");
+	TPaletteAxis *palette = (TPaletteAxis*)object->GetListOfFunctions()->FindObject("palette");
+         if (palette != NULL) {
+//		std::cout << "Found palette" << std::endl;
+                palette->SetLabelSize(opt);
+         } else {
+//		std::cout << "Unable to find palette" << std::endl;
+	 }
+
       }
     }
 

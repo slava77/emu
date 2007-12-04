@@ -9,5 +9,7 @@
 #include "toolbox/net/URN.h"
 #include "toolbox/fsm/FiniteStateMachine.h"
 #include "toolbox/PerformanceMeter.h"
+#include "toolbox/Task.h"
+#include "toolbox/BSem.h"
 
 #endif

@@ -13,7 +13,7 @@ void EmuDisplayClient::createTreeItems(xgi::Input * in, xgi::Output * out ) thro
   for (pos=monitors_.begin(); pos!=monitors_.end(); ++pos) {
   //  for (int i=0; i<monitors_.size(); i++) {
 
-    std::string state =  emu::dqm::getScalarParam(getApplicationContext(), *pos,"stateName","string");
+    std::string state =  emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), *pos,"stateName","string");
     
     *out <<"    ['" << (*pos)->getClassName() <<"-" << (*pos)->getInstance()  
 	 <<"', '" 
@@ -227,6 +227,7 @@ void EmuDisplayClient::createTreeEngine(xgi::Input * in, xgi::Output * out ) thr
 
 void EmuDisplayClient::createTreeTemplate(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
+
   std::string treebase = iconsURL_.toString();// "http://cms-dqm03.phys.ufl.edu/dqm/results/";
 
   *out  << "var TREE_TPL = {\n"
