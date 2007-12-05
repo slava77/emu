@@ -58,6 +58,29 @@
 	<Histogram Options="LineColor=4">
 		<Type>h1_</Type>
 		<Prefix>TF_id_</Prefix>
+		<Name>TrackCounter</Name>
+		<Title>Track Counter</Title>
+		<XRange>(0:1073741824)</XRange>
+		<XBins>4096</XBins>
+		<XLabel>30-bit Track Counter value</XLabel>
+		<YLabel>Number of Events</YLabel>
+	</Histogram>
+
+	<Histogram Options="LineColor=4">
+		<Type>h1_</Type>
+		<Prefix>TF_id_</Prefix>
+		<Name>OrbitCounter</Name>
+		<Title>Orbit Counter</Title>
+		<XRange>(0:1073741824)</XRange>
+		<XBins>4096</XBins>
+		<XLabel>30-bit Orbit Counter value</XLabel>
+		<YLabel>Number of Events</YLabel>
+	</Histogram>
+
+
+	<Histogram Options="LineColor=4">
+		<Type>h1_</Type>
+		<Prefix>TF_id_</Prefix>
 		<Name>L1A_BXN</Name>
 		<Title>DDU_FPGA: BXN of L1A arrival</Title>
 		<XRange>(0:4096)</XRange>
@@ -229,6 +252,32 @@
 	<Histogram Options="bar1:FillColor=48">
 		<Type>h1_</Type>
 		<Prefix>TF_id_id_id_</Prefix>
+		<Name>strips</Name>
+		<Title>Strips (old Half-Strips)</Title>
+		<XRange>(0:256)</XRange>
+		<XBins>256</XBins>
+		<XLabel>strip</XLabel>
+		<YLabel>Number of Events</YLabel>
+	</Histogram>
+
+	<Histogram Options="text">
+		<Type>h2_</Type>
+		<Prefix>TF_id_id_id_</Prefix>
+		<Name>stripsVSpatterns</Name>
+		<Title>Strips (old Half-Strips) vs. pattern # and bend bit</Title>
+		<XRange>(0:256)</XRange>
+		<XBins>256</XBins>
+		<XLabel>strip</XLabel>
+		<YLabel>Number of Events</YLabel>
+		<YRange>(0:32)</YRange>
+		<YBins>32</YBins>
+		<YBinLabels>-0,-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,+0,+1,+2,+3,+4,+5,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15</YBinLabels>
+	</Histogram>
+
+<!-- no more di-strips
+	<Histogram Options="bar1:FillColor=48">
+		<Type>h1_</Type>
+		<Prefix>TF_id_id_id_</Prefix>
 		<Name>HalfStrips</Name>
 		<Title>Half-Strips</Title>
 		<XRange>(0:256)</XRange>
@@ -247,7 +296,7 @@
 		<XLabel>Di-Strip</XLabel>
 		<YLabel>Number of Events</YLabel>
 	</Histogram>
-
+-->
 
 	<Histogram Options="bar1:FillColor=48">
 		<Type>h1_</Type>
@@ -320,7 +369,7 @@
 		<XLabel></XLabel>
 		<YLabel>Number of Events</YLabel>
 	</Histogram>
-
+<!--
 	<Histogram Options="bar1:FillColor=48">
 		<Type>h1_</Type>
 		<Prefix>TF_id_id_id_</Prefix>
@@ -328,7 +377,7 @@
 		<Title>Quality of Di-Strips</Title>
 		<XRange>(0:16)</XRange>
 		<XBins>16</XBins>
-		<!--<XBinLabels>Reserved,ALCT-accel+!CLCT,ALCT-accel+CLCT,ALCT+!CLCT,!ALCT+CLCT_di-strip,!ALCT+CLCT_half-strip,ALCT+CLCT_di-strip,ALCT+CLCT_di-strip,ALCT+CLCT_di-strip,ALCT+CLCT_di-strip,ALCT+CLCT_di-strip,ALCT+CLCT_half-strip,ALCT+CLCT_half-strip,ALCT+CLCT_half-strip,ALCT+CLCT_half-strip,ALCT+CLCT_half-strip</XBinLabels>-->
+		<XBinLabels>Reserved,ALCT-accel+!CLCT,ALCT-accel+CLCT,ALCT+!CLCT,!ALCT+CLCT_di-strip,!ALCT+CLCT_half-strip,ALCT+CLCT_di-strip,ALCT+CLCT_di-strip,ALCT+CLCT_di-strip,ALCT+CLCT_di-strip,ALCT+CLCT_di-strip,ALCT+CLCT_half-strip,ALCT+CLCT_half-strip,ALCT+CLCT_half-strip,ALCT+CLCT_half-strip,ALCT+CLCT_half-strip</XBinLabels>
 		<YLabel>Number of Events</YLabel>
 	</Histogram>
 
@@ -339,10 +388,10 @@
 		<Title>Quality of Half-Strips</Title>
 		<XRange>(0:16)</XRange>
 		<XBins>16</XBins>
-		<!--<XBinLabels>Reserved,ALCT-accel+!CLCT,ALCT-accel+CLCT,ALCT+!CLCT,!ALCT+CLCT_di-strip,!ALCT+CLCT_half-strip,ALCT+CLCT_di-strip,ALCT+CLCT_di-strip,ALCT+CLCT_di-strip,ALCT+CLCT_di-strip,ALCT+CLCT_di-strip,ALCT+CLCT_half-strip,ALCT+CLCT_half-strip,ALCT+CLCT_half-strip,ALCT+CLCT_half-strip,ALCT+CLCT_half-strip</XBinLabels>-->
+		<XBinLabels>Reserved,ALCT-accel+!CLCT,ALCT-accel+CLCT,ALCT+!CLCT,!ALCT+CLCT_di-strip,!ALCT+CLCT_half-strip,ALCT+CLCT_di-strip,ALCT+CLCT_di-strip,ALCT+CLCT_di-strip,ALCT+CLCT_di-strip,ALCT+CLCT_di-strip,ALCT+CLCT_half-strip,ALCT+CLCT_half-strip,ALCT+CLCT_half-strip,ALCT+CLCT_half-strip,ALCT+CLCT_half-strip</XBinLabels>
 		<YLabel>Number of Events</YLabel>
 	</Histogram>
-
+-->
 
 	<Histogram Options="bar1:FillColor=48">
 		<Type>h1_</Type>

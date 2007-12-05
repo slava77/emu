@@ -10,6 +10,7 @@
 
 #include "EmuTFtiming.cc"
 
+#include <math.h>
 #include <iostream>
 using namespace std;
 
@@ -101,10 +102,10 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 		// Container for storing all LCTs from SP event 
 		EmuTFtiming shared_hits;
 
-		unsigned short sp = spPtr->header().sector() + ( spPtr->header().endcap() ? 6 : 0 );
+		unsigned short sp = spPtr->header().sector() + ( spPtr->header().endcap() ? 0 : 6 );
 		if(!tf.isBooked(sp) ){
 			tf.book(sp);
-			std::cout<<"Booking histograms for SP: "<<sp<<std::endl;
+			std::cout<<"Booking histograms for SP: "<<sp<<" (sector="<<spPtr->header().sector()<<" & endcap="<<spPtr->header().endcap()<<")"<<std::endl;
 		}
 
 		TH1F *L1A_increment  = (TH1F*)tf.get("L1A_increment",sp);
@@ -130,7 +131,15 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 			if( spPtr->header().status()&CSCSPHeader::SP_OSY) FMM_status->Fill(nevents,5);
 			if( nevents%10==0 ) FMM_status->SetAxisRange(0, nevents);
 		}
+
+		TH1F *TrackCounter = (TH1F*)tf.get("TrackCounter",sp);
+		if( TrackCounter ) TrackCounter->Fill(spPtr->counters().track_counter());
+		
+		TH1F *OrbitCounter = (TH1F*)tf.get("OrbitCounter",sp);
+		if( OrbitCounter ) OrbitCounter->Fill(spPtr->counters().orbit_counter());
+
 		for(unsigned int tbin=0; tbin<spPtr->header().nTBINs(); tbin++){
+
 			TH2F *SE = (TH2F*)tf.get("SE",sp);
 			if( SE ){
 				if( spPtr->record(tbin).SEs()&0x1   ) SE->Fill(0);
@@ -242,13 +251,15 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 					tf.book(sp,mpc,csc);
 					std::cout<<"Booking histograms for SP:"<<sp<<" MPC: "<<mpc<<" CSC: "<<csc<<std::endl;
 				}
-				if( lct->pattern()&0x8 )
-					tf.get("HalfStrips",sp,mpc,csc)->Fill(lct->strip());
-				else
-					tf.get("DiStrips",sp,mpc,csc)->Fill(lct->strip());
 
-				if( lct->wireGroup() )
-					tf.get("WireGroup",sp,mpc,csc)->Fill(lct->wireGroup());
+				TH1F *strips = (TH1F*)tf.get("strips",sp,mpc,csc);
+				if( strips ) strips->Fill(lct->strip());
+
+				TH2F *stripsVSpatterns = (TH2F*)tf.get("stripsVSpatterns",sp,mpc,csc);
+				if( stripsVSpatterns ) stripsVSpatterns->Fill(lct->strip(),lct->pattern()|(lct->l_r()<<4));
+
+				TH1F *WireGroup = (TH1F*)tf.get("WireGroup",sp,mpc,csc);
+				if( lct->wireGroup() && WireGroup ) WireGroup->Fill(lct->wireGroup());
 
 				TH1F *clct = (TH1F*)tf.get("CLCT",sp,mpc,csc);
 				if( clct ) clct->Fill(lct->pattern());
@@ -281,12 +292,6 @@ void EmuTFfiller::fill(const unsigned short *buffer, unsigned int size, unsigned
 
 				TH1F *strip0quality = (TH1F*)tf.get("strip0quality",sp,mpc,csc);
 				if( strip0quality && lct->strip()==0 ) strip0quality->Fill(lct->quality());
-
-				TH1F *diStripQuality = (TH1F*)tf.get("diStripQuality",sp,mpc,csc);
-				if( diStripQuality && lct->pattern()&0x8==0 ) diStripQuality->Fill(lct->quality());
-
-				TH1F *halfStripQuality = (TH1F*)tf.get("halfStripQuality",sp,mpc,csc);
-				if( halfStripQuality && lct->pattern()&0x8 ) halfStripQuality->Fill(lct->quality());
 
 				TH1F *time_bin = (TH1F*)tf.get("time_bin",sp,mpc,csc);
 				if( time_bin ) time_bin->Fill(lct->tbin());

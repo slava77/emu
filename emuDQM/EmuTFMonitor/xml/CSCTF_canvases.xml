@@ -21,6 +21,15 @@
 	<Canvas>
 		<Type>c_</Type>
 		<Prefix>TF_id_</Prefix>
+		<Name>Counters</Name>
+		<Title>SP Counter Block</Title>
+		<Item>OrbitCounter(Top)</Item>
+		<Item>TrackCounter(Bottom)</Item>
+	</Canvas>
+
+	<Canvas>
+		<Type>c_</Type>
+		<Prefix>TF_id_</Prefix>
 		<Name>EventRecordHeader</Name>
 		<Title>SP: Event Record Header</Title>
 		<Item>L1A_BXN(Top)</Item>
@@ -82,16 +91,16 @@
 		<Title>CLCT Patter #</Title>
 		<Item>CLCT</Item>
 	</Canvas>
-
+<!--
 	<Canvas>
 		<Type>c_</Type>
 		<Prefix>TF_id_id_id_</Prefix>
 		<Name>Strips</Name>
 		<Title>Strip distributuon</Title>
-		<Item>HalfStrips(Top)</Item>
-		<Item>DiStrips(Bottom)</Item>
+		<Item>strips(Top)</Item>
+		<Item>stripsVSpatterns(Bottom)</Item>
 	</Canvas>
-
+-->
 	<Canvas>
 		<Type>c_</Type>
 		<Prefix>TF_id_id_id_</Prefix>
@@ -140,10 +149,8 @@
 		<Prefix>TF_id_id_id_</Prefix>
 		<Name>qualityConsistency</Name>
 		<Title>Consistency of Quality codes</Title>
-		<Item>wg0quality(0.485x0.485+0.01+0.01)</Item>
-		<Item>strip0quality(0.485x0.485+0.505+0.01)</Item>
-		<Item>halfStripQuality(0.485x0.485+0.01+0.505)</Item>
-		<Item>diStripQuality(0.485x0.485+0.505+0.505)</Item>
+		<Item>wg0quality(Top)</Item>
+		<Item>strip0quality(Bottom)</Item>
 	</Canvas>
 
 	<Canvas>
