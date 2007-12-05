@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.h,v 1.2 2007/11/07 09:14:13 rakness Exp $
+// $Id: EmuPeripheralCrateBroadcast.h,v 1.3 2007/12/05 10:24:55 geurts Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -128,6 +128,8 @@ public:
   xoap::MessageReference PCcreateCommandSOAP(string command);
   void PCsendCommand(string command, string klass) throw (xoap::exception::Exception, xdaq::exception::Exception);
   //
+  // define states
+  void stateChanged(toolbox::fsm::FiniteStateMachine &fsm) throw (toolbox::fsm::exception::Exception);
 };
 
 #endif
