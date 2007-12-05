@@ -1615,6 +1615,7 @@
 		<YTitle>Frequency (%)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Data Format Errors Frequency</Title>
+		<SetNdivisionsX>20</SetNdivisionsX>
 		<SetLeftMargin>0</SetLeftMargin>
 	</Histogram>
 	<Histogram>
@@ -1646,6 +1647,7 @@
 		<YTitle>Frequency (%)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Data Format Warnings Frequency</Title>
+		<SetNdivisionsX>1</SetNdivisionsX>
 		<SetLeftMargin>0</SetLeftMargin>
 	</Histogram>
 	<Histogram>
