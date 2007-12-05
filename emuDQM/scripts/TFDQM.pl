@@ -12,7 +12,8 @@ my $WEB              = "https://cms-csc.web.cern.ch:444/cms-csc/";
 sub scan_dir {
 	my ( $cwd ) = @_;
 	my @file_list;
-	opendir DIR, $cwd or die "Cannot read directory";
+	my $pwd = `pwd`;
+	opendir DIR, $cwd or die "Cannot read directory: $cwd ($pwd)";
 	my @catalogue = grep { $_!~/^\.$/ && $_!~/^\.\.$/ } readdir DIR;
 	closedir DIR;
 	push @file_list, map ( -d $_ ? scan_dir($_) : $_ , grep { -f $_ || -s $_ || -d } map ( "$cwd/$_" , @catalogue ) );

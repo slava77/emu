@@ -58,6 +58,10 @@ if( parent.type != 0 ){
 		layout[folder+'/'+RUNS[run][sp][0]+'/EventRecordHeader.png'] = '600x500+1+1';
 	}
 
+	if( parent.type=="Counters.png" ){
+		layout[folder+'/'+RUNS[run][sp][0]+'/Counters.png'] = '600x500+1+1';
+	}
+
 	if( parent.type=="DataBlockHeader{1,2}.png" ){
 		layout[folder+'/'+RUNS[run][sp][0]+'/DataBlockHeader1.png'] = '300x250+1+1';
 		layout[folder+'/'+RUNS[run][sp][0]+'/DataBlockHeader2.png'] = '300x250+1+2';
