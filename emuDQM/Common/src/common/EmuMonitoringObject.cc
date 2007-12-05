@@ -210,7 +210,8 @@ int EmuMonitoringObject::applyParameters()
 	{
 	  object->GetXaxis()->SetBinLabel(l_itr->first, l_itr->second.c_str());
 	}
-		  
+ 	      		  
+
     }
 
     if ((itr = params.find("SetYLabels")) != params.end()) {
@@ -228,6 +229,8 @@ int EmuMonitoringObject::applyParameters()
 	object->LabelsOption(opt.c_str(),axis.c_str());
       }
     }
+
+
     if ((itr = params.find("SetLabelSize")) != params.end()) {
       std::string st = itr->second;
       if (st.find(",") != std::string::npos) {
@@ -259,13 +262,16 @@ int EmuMonitoringObject::applyParameters()
       int opt = strtol( itr->second.c_str(), &stopstring, 10 );
       if (object) {
         object->SetNdivisions(opt,"X");
+        object->GetXaxis()->CenterLabels(true);
       }
+
     }
 
     if ((itr = params.find("SetNdivisionsY")) != params.end()) {
       int opt = strtol( itr->second.c_str(), &stopstring, 10 );
       if (object) {
         object->SetNdivisions(opt,"Y");
+        object->GetYaxis()->CenterLabels(true);
       }
     }
 
@@ -319,7 +325,6 @@ int EmuMonitoringObject::applyParameters()
 
       }
     }
-
 
   }	
   return 0;
