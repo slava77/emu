@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.h,v 1.39 2007/10/29 12:32:37 gujh Exp $
+// $Id: EmuPeripheralCrateManager.h,v 1.40 2007/12/05 13:48:59 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -100,7 +100,13 @@ public:
   xoap::MessageReference onEnable (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onDisable (xoap::MessageReference message) throw (xoap::exception::Exception);
   xoap::MessageReference onHalt (xoap::MessageReference message) throw (xoap::exception::Exception);
-  //
+  xoap::MessageReference onConfigCalCFEB (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onEnableCalCFEBCrossTalk (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onEnableCalCFEBSCAPed (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onEnableCalCFEBGains (xoap::MessageReference message) throw (xoap::exception::Exception);
+  xoap::MessageReference onEnableCalCFEBComparator (xoap::MessageReference message) throw (xoap::exception::Exception);
+
+//
   // Sending soap messages
   //
   xoap::MessageReference PCcreateCommandSOAP(string command);
@@ -133,6 +139,7 @@ public:
   void SendSOAPMessageJobControlkillAll(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void SendSOAPMessageQueryLTC(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void SendSOAPMessageXRelaySimple(std::string command,std::string setting);
+  void SendSOAPMessageXRelayBroadcast(std::string command,std::string setting);
   void SendSOAPMessageConfigureXRelay(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void SendSOAPMessageCalibrationXRelay(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void SendSOAPMessageConfigure(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
