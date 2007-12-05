@@ -214,15 +214,15 @@
 		<Prefix>EMU</Prefix>
 		<Name>All_Readout_Errors</Name>
 		<SetOption>colz</SetOption>
-		<XMin>1</XMin>
+		<XMin>0</XMin>
 		<XMax>37</XMax>
-		<XBins>36</XBins>
+		<XBins>37</XBins>
 		<YMin>0</YMin>
 		<YMax>18</YMax>
 		<YBins>18</YBins>
 		<SetOptStat>e</SetOptStat>
 		<Title>Readout Buffer Errors</Title>
-		<SetNdivisionsX>36</SetNdivisionsX>
+		<SetNdivisionsX>37</SetNdivisionsX>
 		<SetLabelSizeX>0.02</SetLabelSizeX>
 		<SetLabelSizeY>0.03</SetLabelSizeY>
 		<SetGridx>1</SetGridx>
