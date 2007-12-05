@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.26 2007/10/29 12:35:30 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.27 2007/12/05 13:46:42 gujh Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -67,6 +67,12 @@ EmuPeripheralCrateManager::EmuPeripheralCrateManager(xdaq::ApplicationStub * s):
   xoap::bind(this, &EmuPeripheralCrateManager::onEnable,    "Enable",    XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateManager::onDisable,   "Disable",   XDAQ_NS_URI);
   xoap::bind(this, &EmuPeripheralCrateManager::onHalt,      "Halt",      XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateManager::onConfigCalCFEB,"ConfigCalCFEB", XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBGains,"EnableCalCFEBGains", XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBCrossTalk,"EnableCalCFEBCrossTalk", XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBSCAPed,"EnableCalCFEBSCAPed", XDAQ_NS_URI);
+  xoap::bind(this, &EmuPeripheralCrateManager::onEnableCalCFEBComparator,"EnableCalCFEBComparator", XDAQ_NS_URI);
+
   //
   // fsm_ is defined in EmuApplication
   fsm_.addState('H', "Halted",     this, &EmuPeripheralCrateManager::stateChanged);
@@ -1049,6 +1055,33 @@ xoap::MessageReference EmuPeripheralCrateManager::QueryJobControlInfoSpace() {
    //
    } */
 //
+xoap::MessageReference EmuPeripheralCrateManager::onConfigCalCFEB (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) {
+  fireEvent("Configure");
+   SendSOAPMessageXRelayBroadcast("ConfigCalCFEB","");
+  return createReply(message);
+}
+xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBCrossTalk (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) {
+  SendSOAPMessageXRelayBroadcast("EnableCalCFEBCrossTalk","");
+  return createReply(message);
+}
+xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBSCAPed (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) {
+  SendSOAPMessageXRelayBroadcast("EnableCalCFEBSCAPed","");
+  return createReply(message);
+}
+xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBGains (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) {
+  SendSOAPMessageXRelayBroadcast("EnableCalCFEBGains","");
+  return createReply(message);
+}
+xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBComparator (xoap::MessageReference message) 
+  throw (xoap::exception::Exception) {
+  SendSOAPMessageXRelayBroadcast("EnableCalCFEBComparator","");
+  return createReply(message);
+}
+
 xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   //
@@ -2099,6 +2132,17 @@ void EmuPeripheralCrateManager::SendSOAPMessageXRelaySimple(std::string command,
   //
   std::set<xdaq::ApplicationDescriptor * >  descriptors =
     getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrate");
+  //
+  xoap::MessageReference configure = createXRelayMessage(command,setting,descriptors);
+  //
+  this->relayMessage(configure);
+  //
+}
+//
+void EmuPeripheralCrateManager::SendSOAPMessageXRelayBroadcast(std::string command,std::string setting) {
+  //
+  std::set<xdaq::ApplicationDescriptor * >  descriptors =
+    getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrateBroadcast");
   //
   xoap::MessageReference configure = createXRelayMessage(command,setting,descriptors);
   //
