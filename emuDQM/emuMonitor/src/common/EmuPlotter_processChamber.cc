@@ -41,9 +41,14 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	
   LOG4CPLUS_DEBUG(logger_, 
 		  "Unpacking of Chamber ID ... ");
-  crateID		= dmbHeader.crateID();
+  crateID	= dmbHeader.crateID();
   dmbID		= dmbHeader.dmbID();
   ChamberID	= (((crateID) << 4) + dmbID) & 0xFFF;
+
+  if (crateID==0 || dmbID==0) {
+	LOG4CPLUS_ERROR(logger_,
+		"Invalid crate or dmb ID");
+  }
 
   LOG4CPLUS_DEBUG(logger_, "Done");
   //  LOG4CPLUS_DEBUG(logger_, 
@@ -836,14 +841,14 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   //--------------E
 
   bool CheckThresholdStripInTheLayer[6][80];
-  for(int i=1; i<=6; ++i) {
-    for(int j = 1; j <= 80; ++j) CheckThresholdStripInTheLayer[i][j] = true;
+  for(int i=0; i<6; i++) {
+    for(int j=0; j <80; j++) CheckThresholdStripInTheLayer[i][j] = true;
   }
   
   
   bool CheckOutOffRangeStripInTheLayer[6][80];  
-  for(int i=1; i<6; i++) {
-    for(int j = 1; j < 80; j++) CheckOutOffRangeStripInTheLayer[i][j] = true;
+  for(int i=0; i<6; i++) {
+    for(int j=0; j<80; j++) CheckOutOffRangeStripInTheLayer[i][j] = true;
   }
 
   
@@ -934,9 +939,9 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	
 	  //        LOG4CPLUS_DEBUG(logger_, " nSample = " << nSample);
 	  // for(int nLayer = 1; nLayer <= N_Layers; ++nLayer) {
-          scaControllerWord[nCFEB][nSample][nLayer] = (timeSlice[nCFEB][nSample])->scaControllerWord(nLayer);
+          scaControllerWord[nCFEB][nSample][nLayer-1] = (timeSlice[nCFEB][nSample])->scaControllerWord(nLayer);
 
-          TrigTime = (int)(scaControllerWord[nCFEB][nSample][nLayer]).trig_time;
+          TrigTime = (int)(scaControllerWord[nCFEB][nSample][nLayer-1]).trig_time;
 	  //--------------B
           FreeCells = (timeSlice[nCFEB][nSample])->get_n_free_sca_blocks();
           LCT_Pipe_Empty = (timeSlice[nCFEB][nSample])->get_lctpipe_empty();
@@ -948,7 +953,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
           Buffer_Count = (timeSlice[nCFEB][nSample])->get_buffer_count();
 	  
 
-          SCA_BLK  = (int)(scaControllerWord[nCFEB][nSample][nLayer]).sca_blk;
+          SCA_BLK  = (int)(scaControllerWord[nCFEB][nSample][nLayer-1]).sca_blk;
           // LOG4CPLUS_DEBUG(logger_, "SCA BLOCK: Chamber="<<ChamberID<<" CFEB="<<nCFEB+1
 	  //  <<" TRIGTIME="<<TrigTime<<" TimeSlice="<<nSample+1<<" Layer="<<nLayer<<" SCA_BLK="<<SCA_BLK);
 	  
@@ -967,7 +972,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
           //                                    Free SCA Cells
 	  // if (isMEvalid(cscME, Form("CFEB%d_Free_SCA_Cells", nCFEB), mo)) {
 	  if (mo_CFEB_Free_SCA_Cells) {
-	    if (scaControllerWord[nCFEB][nSample][nLayer].sca_full == 1) mo_CFEB_Free_SCA_Cells->Fill(-1);
+	    if (scaControllerWord[nCFEB][nSample][nLayer-1].sca_full == 1) mo_CFEB_Free_SCA_Cells->Fill(-1);
 	    mo_CFEB_Free_SCA_Cells->Fill(FreeCells);
 	  }
 
@@ -991,17 +996,17 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	  //--------------E
           // LOG4CPLUS_DEBUG(logger_, "nCFEB " << nCFEB << " nSample " << nSample << " nLayer " << nLayer << " TrigTime " << TrigTime);
           if(nSample == 0 && nLayer == 1) {
-            TrigTime = (int)(scaControllerWord[nCFEB][nSample][nLayer]).trig_time;
+            TrigTime = (int)(scaControllerWord[nCFEB][nSample][nLayer-1]).trig_time;
             int k=1;
             while (((TrigTime >> (k-1)) & 0x1) != 1 && k<=8) {
               k = k +1;
             }
-            L1APhase = (int)(((scaControllerWord[nCFEB][nSample][nLayer]).l1a_phase)&0x1);
+            L1APhase = (int)(((scaControllerWord[nCFEB][nSample][nLayer-1]).l1a_phase)&0x1);
             UnpackedTrigTime = ((k<<1)&0xE)+L1APhase;
 
             if (isMEvalid(cscME, Form("CFEB%d_L1A_Sync_Time", nCFEB), mo)) 
 	      mo->Fill((int)UnpackedTrigTime);
-            LCTPhase = (int)(((scaControllerWord[nCFEB][nSample][nLayer]).lct_phase)&0x1);
+            LCTPhase = (int)(((scaControllerWord[nCFEB][nSample][nLayer-1]).lct_phase)&0x1);
 
             if (isMEvalid(cscME, Form("CFEB%d_LCT_PHASE_vs_L1A_PHASE", nCFEB), mo)) 
 	      mo->Fill(LCTPhase, L1APhase);
@@ -1025,16 +1030,16 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
 
           for(int nStrip = 1; nStrip <= N_Strips; ++nStrip) {
-            timeSample[nCFEB][nSample][nLayer][nStrip]=(data.cfebData(nCFEB)->timeSlice(nSample))->timeSample(nLayer,nStrip);
-            ADC = (int) ((timeSample[nCFEB][nSample][nLayer][nStrip]->adcCounts)&0xFFF);
+            timeSample[nCFEB][nSample][nLayer-1][nStrip-1]=(data.cfebData(nCFEB)->timeSlice(nSample))->timeSample(nLayer,nStrip);
+            ADC = (int) ((timeSample[nCFEB][nSample][nLayer-1][nStrip-1]->adcCounts)&0xFFF);
             LOG4CPLUS_DEBUG(logger_, " nStrip="<< dec << nStrip << " ADC=" << hex << ADC);
-            OutOffRange = (int) ((timeSample[nCFEB][nSample][nLayer][nStrip]->adcOverflow)&0x1);
+            OutOffRange = (int) ((timeSample[nCFEB][nSample][nLayer-1][nStrip-1]->adcOverflow)&0x1);
 
             if(nSample == 0) { // nSample == 0
-	      CellPeak[nCFEB][nLayer][nStrip] = std::make_pair(nSample,ADC);
-              Pedestal[nCFEB][nLayer][nStrip] = ADC;
+	      CellPeak[nCFEB][nLayer-1][nStrip-1] = std::make_pair(nSample,ADC);
+              Pedestal[nCFEB][nLayer-1][nStrip-1] = ADC;
               LOG4CPLUS_DEBUG(logger_, " nStrip="<< dec << nStrip
-			      << " Pedestal=" << hex << Pedestal[nCFEB][nLayer][nStrip]);
+			      << " Pedestal=" << hex << Pedestal[nCFEB][nLayer-1][nStrip-1]);
 	      //--------------B
 	      /*
 		hname = Form("hist/h%sCFEB_PedestalRMS_Sample_01_Ly%d_Strip%d", CSCTag.c_str(), nLayer, nStrip);
@@ -1059,13 +1064,13 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	    }
 
 
-	    if(OutOffRange == 1 && CheckOutOffRangeStripInTheLayer[nLayer][nCFEB*16+nStrip] == true) {
+	    if(OutOffRange == 1 && CheckOutOffRangeStripInTheLayer[nLayer-1][nCFEB*16+nStrip-1] == true) {
               // if (isMEvalid(cscME, Form("CFEB_Out_Off_Range_Strips_Ly%d", nLayer), mo)) 
 	      if ( mo_CFEB_Out_Off_Range_Strips)
 		mo_CFEB_Out_Off_Range_Strips->Fill((int)(nCFEB*16+nStrip));
-              CheckOutOffRangeStripInTheLayer[nLayer][nCFEB*16+nStrip] = false;
+              CheckOutOffRangeStripInTheLayer[nLayer-1][nCFEB*16+nStrip-1] = false;
             }
-            if(ADC - Pedestal[nCFEB][nLayer][nStrip] > Threshold && OutOffRange != 1) {	      
+            if(ADC - Pedestal[nCFEB][nLayer-1][nStrip-1] > Threshold && OutOffRange != 1) {	      
 	      // if (isMEvalid(cscME, Form("CFEB_Active_Samples_vs_Strip_Ly%d", nLayer), mo))
 	      if (mo_CFEB_Active_Samples_vs_Strip)
 		mo_CFEB_Active_Samples_vs_Strip->Fill((int)(nCFEB*16+nStrip), nSample);
@@ -1074,41 +1079,41 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	      if (mo_CFEB_Active_Samples_vs_Strip_Profile)
 		mo_CFEB_Active_Samples_vs_Strip_Profile->Fill((int)(nCFEB*16+nStrip), nSample);
 
-              if(CheckThresholdStripInTheLayer[nLayer][nCFEB*16+nStrip] == true) {
+              if(CheckThresholdStripInTheLayer[nLayer-1][nCFEB*16+nStrip-1] == true) {
 		// if (isMEvalid(cscME, Form("CFEB_ActiveStrips_Ly%d", nLayer), mo))
 		if (mo_CFEB_ActiveStrips)
 		  mo_CFEB_ActiveStrips->Fill((int)(nCFEB*16+nStrip));
-                CheckThresholdStripInTheLayer[nLayer][nCFEB*16+nStrip] = false;
+                CheckThresholdStripInTheLayer[nLayer-1][nCFEB*16+nStrip-1] = false;
               }
 	      //--------------B
-              if(ADC - Pedestal[nCFEB][nLayer][nStrip] > Threshold) {
+              if(ADC - Pedestal[nCFEB][nLayer-1][nStrip-1] > Threshold) {
 		LOG4CPLUS_DEBUG(logger_, "Layer="<<nLayer<<" Strip="<<nCFEB*16+nStrip<<" Time="<<nSample
-				<< " ADC-PEDEST = "<<ADC - Pedestal[nCFEB][nLayer][nStrip]);
-		cscdata[nCFEB*16+nStrip-1][nSample][nLayer-1] = ADC - Pedestal[nCFEB][nLayer][nStrip];
+				<< " ADC-PEDEST = "<<ADC - Pedestal[nCFEB][nLayer-1][nStrip-1]);
+		cscdata[nCFEB*16+nStrip-1][nSample][nLayer-1] = ADC - Pedestal[nCFEB][nLayer-1][nStrip-1];
               }	
 	      //--------------E
-	      if(ADC >  CellPeak[nCFEB][nLayer][nStrip].second) { 
-		CellPeak[nCFEB][nLayer][nStrip].first = nSample;
-		CellPeak[nCFEB][nLayer][nStrip].second = ADC;
+	      if(ADC >  CellPeak[nCFEB][nLayer-1][nStrip-1].second) { 
+		CellPeak[nCFEB][nLayer-1][nStrip-1].first = nSample;
+		CellPeak[nCFEB][nLayer-1][nStrip-1].second = ADC;
 	      }
             }
 	    // continue;
 	    //--------------B
 	    if(nSample == 1) {
 	      int channel_threshold = 40;
-	      if (abs(ADC - Pedestal[nCFEB][nLayer][nStrip]) < channel_threshold){
+	      if (abs(ADC - Pedestal[nCFEB][nLayer-1][nStrip-1]) < channel_threshold){
 		// if (isMEvalid(cscME, Form("CFEB_Pedestal(withEMV)_Sample_01_Ly%d", nLayer), mo))
 		if (mo_CFEB_Pedestal_withEMV_Sample)
-		  mo_CFEB_Pedestal_withEMV_Sample->Fill((int)(nCFEB*16+nStrip), Pedestal[nCFEB][nLayer][nStrip]);
+		  mo_CFEB_Pedestal_withEMV_Sample->Fill((int)(nCFEB*16+nStrip), Pedestal[nCFEB][nLayer-1][nStrip-1]);
 
 		//if (isMEvalid(cscME, Form("CFEB_Pedestal(withRMS)_Sample_01_Ly%d", nLayer), mo)) {
 		if (mo_CFEB_Pedestal_withRMS_Sample) {  
-		  mo_CFEB_Pedestal_withRMS_Sample->Fill((int)(nCFEB*16+nStrip), Pedestal[nCFEB][nLayer][nStrip]);
-		  PedestalError[nCFEB][nLayer][nStrip] = mo_CFEB_Pedestal_withRMS_Sample->getObject()->GetBinError(nCFEB*16+nStrip);
+		  mo_CFEB_Pedestal_withRMS_Sample->Fill((int)(nCFEB*16+nStrip), Pedestal[nCFEB][nLayer-1][nStrip-1]);
+		  PedestalError[nCFEB][nLayer-1][nStrip-1] = mo_CFEB_Pedestal_withRMS_Sample->getObject()->GetBinError(nCFEB*16+nStrip);
 
 		  // if (isMEvalid(cscME, Form("CFEB_PedestalRMS_Sample_01_Ly%d", nLayer), mo)) {
 		  if (mo_CFEB_PedestalRMS_Sample) {
-		    mo_CFEB_PedestalRMS_Sample->SetBinContent(nCFEB*16+nStrip,PedestalError[nCFEB][nLayer][nStrip]);
+		    mo_CFEB_PedestalRMS_Sample->SetBinContent(nCFEB*16+nStrip,PedestalError[nCFEB][nLayer-1][nStrip-1]);
 		    mo_CFEB_PedestalRMS_Sample->getObject()->SetBinError(nCFEB*16+nStrip,0.00000000001);
 		  }
 		}
@@ -1118,7 +1123,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
           }
         }
 	for(int nStrip = 1; nStrip <= N_Strips; ++nStrip) {
-	  if (mo_CFEB_SCA_Cell_Peak && CellPeak[nCFEB][nLayer][nStrip].first) mo_CFEB_SCA_Cell_Peak->Fill((int)(nCFEB*16+nStrip), CellPeak[nCFEB][nLayer][nStrip].first);
+	  if (mo_CFEB_SCA_Cell_Peak && CellPeak[nCFEB][nLayer-1][nStrip-1].first) mo_CFEB_SCA_Cell_Peak->Fill((int)(nCFEB*16+nStrip), CellPeak[nCFEB][nLayer-1][nStrip-1].first);
 	}
       }
     }

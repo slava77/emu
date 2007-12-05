@@ -324,7 +324,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
       ddu_connected_inputs_cnt++;
       if (isMEvalid(dduME, "DMB_Connected_Inputs_Rate", mo)) {
 	mo->Fill(i);
-	freq = 100.0*(mo->GetBinContent(i+1))/nEvents;
+	freq = 100.0*(mo->GetBinContent(i))/nEvents;
 	if (isMEvalid(dduME, "DMB_Connected_Inputs", mo)) mo->SetBinContent(i+1, freq);
       }
       if (isMEvalid(nodeME, "All_DDUs_Live_Inputs", mo)) {
@@ -335,7 +335,7 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     if( (csc_error_state>>i) & 0x1 ){
       if (isMEvalid(dduME, "CSC_Errors_Rate", mo)) {
 	mo->Fill(i);
-	freq = 100.0*(mo->GetBinContent(i+1))/nEvents;
+	freq = 100.0*(mo->GetBinContent(i))/nEvents;
 	if (isMEvalid(dduME, "CSC_Errors", mo)) mo->SetBinContent(i+1, freq);
       }
       if (isMEvalid(nodeME, "All_DDUs_Inputs_Errors", mo)) {
