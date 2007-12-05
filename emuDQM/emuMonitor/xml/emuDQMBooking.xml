@@ -5,18 +5,18 @@
 		<Prefix>EMU</Prefix>
 		<Name>DMB_Unpacked</Name>
 		<SetOption>colz</SetOption>
-		<XMin>0</XMin>
+		<XMin>1</XMin>
 		<XMax>61</XMax>
-		<XBins>61</XBins>
+		<XBins>60</XBins>
 		<XTitle>Crate ID</XTitle>
-		<YMin>0</YMin>
+		<YMin>1</YMin>
 		<YMax>11</YMax>
-		<YBins>11</YBins>
+		<YBins>10</YBins>
 		<YTitle>DMB/TMB Slot ID</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Unpacked DMBs</Title>
-		<SetNdivisionsX>61</SetNdivisionsX>
-		<SetNdivisionsY>16</SetNdivisionsY>
+		<SetNdivisionsX>60</SetNdivisionsX>
+		<SetNdivisionsY>10</SetNdivisionsY>
 		<SetLabelSizeX>0.015</SetLabelSizeX>
 		<SetLabelSizeY>0.03</SetLabelSizeY>
 		<SetStats>0</SetStats>
@@ -29,18 +29,18 @@
 		<Prefix>EMU</Prefix>
 		<Name>DMB_Format_Errors</Name>
 		<SetOption>colz</SetOption>
-		<XMin>0</XMin>
+		<XMin>1</XMin>
 		<XMax>61</XMax>
-		<XBins>61</XBins>
+		<XBins>60</XBins>
 		<XTitle>Crate ID</XTitle>
-		<YMin>0</YMin>
+		<YMin>1</YMin>
 		<YMax>11</YMax>
-		<YBins>11</YBins>
+		<YBins>10</YBins>
 		<YTitle>DMB/TMB Slot ID</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>DMBs with Format Errors</Title>
-		<SetNdivisionsX>61</SetNdivisionsX>
-		<SetNdivisionsY>16</SetNdivisionsY>
+		<SetNdivisionsX>60</SetNdivisionsX>
+		<SetNdivisionsY>10</SetNdivisionsY>
 		<SetLabelSizeX>0.015</SetLabelSizeX>
 		<SetLabelSizeY>0.03</SetLabelSizeY>
 		<SetStats>0</SetStats>
@@ -53,18 +53,18 @@
 		<Prefix>EMU</Prefix>
 		<Name>DMB_Format_Errors_Fract</Name>
 		<SetOption>colz</SetOption>
-		<XMin>0</XMin>
+		<XMin>1</XMin>
 		<XMax>61</XMax>
-		<XBins>61</XBins>
+		<XBins>60</XBins>
 		<XTitle>Crate ID</XTitle>
-		<YMin>0</YMin>
+		<YMin>1</YMin>
 		<YMax>11</YMax>
-		<YBins>11</YBins>
+		<YBins>10</YBins>
 		<YTitle>DMB/TMB Slot ID</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Fraction of DMB Records with Format Errors</Title>
-		<SetNdivisionsX>61</SetNdivisionsX>
-		<SetNdivisionsY>16</SetNdivisionsY>
+		<SetNdivisionsX>60</SetNdivisionsX>
+		<SetNdivisionsY>10</SetNdivisionsY>
 		<SetLabelSizeX>0.015</SetLabelSizeX>
 		<SetLabelSizeY>0.03</SetLabelSizeY>
 		<SetStats>0</SetStats>
@@ -78,18 +78,18 @@
 		<Prefix>EMU</Prefix>
 		<Name>DMB_Format_Warnings</Name>
 		<SetOption>colz</SetOption>
-		<XMin>0</XMin>
+		<XMin>1</XMin>
 		<XMax>61</XMax>
-		<XBins>61</XBins>
+		<XBins>60</XBins>
 		<XTitle>Crate ID</XTitle>
-		<YMin>0</YMin>
+		<YMin>1</YMin>
 		<YMax>11</YMax>
-		<YBins>11</YBins>
+		<YBins>10</YBins>
 		<YTitle>DMB/TMB Slot ID</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>DMBs with CFEB B-Words</Title>
-		<SetNdivisionsX>61</SetNdivisionsX>
-		<SetNdivisionsY>16</SetNdivisionsY>
+		<SetNdivisionsX>60</SetNdivisionsX>
+		<SetNdivisionsY>10</SetNdivisionsY>
 		<SetLabelSizeX>0.015</SetLabelSizeX>
 		<SetLabelSizeY>0.03</SetLabelSizeY>
 		<SetStats>0</SetStats>
@@ -102,8 +102,8 @@
 		<Prefix>EMU</Prefix>
 		<Name>CSC_Unpacked</Name>
 		<SetOption>colz</SetOption>
-		<XMin>0</XMin>
-		<XMax>36</XMax>
+		<XMin>1</XMin>
+		<XMax>37</XMax>
 		<XBins>36</XBins>
 		<XTitle>Chamber</XTitle>
 		<YMin>0</YMin>
@@ -124,8 +124,8 @@
 		<Prefix>EMU</Prefix>
 		<Name>CSC_Format_Errors</Name>
 		<SetOption>colz</SetOption>
-		<XMin>0</XMin>
-		<XMax>36</XMax>
+		<XMin>1</XMin>
+		<XMax>37</XMax>
 		<XBins>36</XBins>
 		<XTitle>Chamber</XTitle>
 		<YMin>0</YMin>
@@ -146,8 +146,8 @@
 		<Prefix>EMU</Prefix>
 		<Name>CSC_Format_Errors_Fract</Name>
 		<SetOption>colz</SetOption>
-		<XMin>0</XMin>
-		<XMax>36</XMax>
+		<XMin>1</XMin>
+		<XMax>37</XMax>
 		<XBins>36</XBins>
 		<XTitle>Chamber</XTitle>
 		<YMin>0</YMin>
@@ -169,8 +169,8 @@
 		<Prefix>EMU</Prefix>
 		<Name>CSC_Format_Warnings</Name>
 		<SetOption>colz</SetOption>
-		<XMin>0</XMin>
-		<XMax>36</XMax>
+		<XMin>1</XMin>
+		<XMax>37</XMax>
 		<XBins>36</XBins>
 		<XTitle>Chamber</XTitle>
 		<YMin>0</YMin>
@@ -191,8 +191,8 @@
 		<Prefix>EMU</Prefix>
 		<Name>CSC_Format_Warnings_Fract</Name>
 		<SetOption>colz</SetOption>
-		<XMin>0</XMin>
-		<XMax>36</XMax>
+		<XMin>1</XMin>
+		<XMax>37</XMax>
 		<XBins>36</XBins>
 		<XTitle>Chamber</XTitle>
 		<YMin>0</YMin>
@@ -214,8 +214,8 @@
 		<Prefix>EMU</Prefix>
 		<Name>All_Readout_Errors</Name>
 		<SetOption>colz</SetOption>
-		<XMin>0</XMin>
-		<XMax>36</XMax>
+		<XMin>1</XMin>
+		<XMax>37</XMax>
 		<XBins>36</XBins>
 		<YMin>0</YMin>
 		<YMax>18</YMax>
@@ -257,14 +257,14 @@
 		<Prefix>EMU</Prefix>
 		<Name>All_DDUs_in_Readout</Name>
 		<SetOption>bar1text</SetOption>
-		<XMin>0</XMin>
+		<XMin>1</XMin>
 		<XMax>41</XMax>
-		<XBins>41</XBins>
+		<XBins>40</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YTitle>DDU Events</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>DDUs in Readout</Title>
-		<SetNdivisionsX>41</SetNdivisionsX>
+		<SetNdivisionsX>40</SetNdivisionsX>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
 	</Histogram>
@@ -273,16 +273,16 @@
 		<Prefix>EMU</Prefix>
 		<Name>All_DDUs_L1A_Increment</Name>
 		<SetOption>textcolz</SetOption>
-		<XMin>0</XMin>
+		<XMin>1</XMin>
 		<XMax>41</XMax>
-		<XBins>41</XBins>
+		<XBins>40</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>20</YMax>
 		<YBins>20</YBins>
 		<YTitle>L1A Increment</YTitle>
 		<Title>L1A Increment</Title>
-		<SetNdivisionsX>41</SetNdivisionsX>
+		<SetNdivisionsX>40</SetNdivisionsX>
 		<SetNdivisionsY>20</SetNdivisionsY>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
@@ -293,16 +293,16 @@
 		<Prefix>EMU</Prefix>
 		<Name>All_DDUs_Trailer_Errors</Name>
 		<SetOption>colz</SetOption>
-		<XMin>0</XMin>
+		<XMin>1</XMin>
 		<XMax>41</XMax>
-		<XBins>41</XBins>
+		<XBins>40</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>34</YMax>
 		<YBins>34</YBins>
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Trailer Status Errors</Title>
-		<SetNdivisionsX>41</SetNdivisionsX>
+		<SetNdivisionsX>40</SetNdivisionsX>
 		<SetLabelSizeX>0.015</SetLabelSizeX>
 		<SetLabelSizeY>0.03</SetLabelSizeY>
 		<SetStats>0</SetStats>
@@ -317,16 +317,16 @@
 		<Prefix>EMU</Prefix>
 		<Name>All_DDUs_Format_Errors</Name>
 		<SetOption>colz</SetOption>
-		<XMin>0</XMin>
+		<XMin>1</XMin>
 		<XMax>41</XMax>
-		<XBins>41</XBins>
+		<XBins>40</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>26</YMax>
 		<YBins>26</YBins>
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Data Format Errors</Title>
-		<SetNdivisionsX>41</SetNdivisionsX>
+		<SetNdivisionsX>40</SetNdivisionsX>
 		<SetLabelSizeX>0.015</SetLabelSizeX>
 		<SetLabelSizeY>0.03</SetLabelSizeY>
 		<SetStats>0</SetStats>
@@ -341,9 +341,9 @@
 		<Prefix>EMU</Prefix>
 		<Name>All_DDUs_Event_Size</Name>
 		<SetOption>colz</SetOption>
-		<XMin>0</XMin>
+		<XMin>1</XMin>
 		<XMax>41</XMax>
-		<XBins>41</XBins>
+		<XBins>40</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>4</YMax>
@@ -351,7 +351,7 @@
 		<YTitle>log(DDU Words)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Event Size (from DDU Trailer)</Title>
-		<SetNdivisionsX>41</SetNdivisionsX>
+		<SetNdivisionsX>40</SetNdivisionsX>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
 		<SetLabelSizeZ>0.02</SetLabelSizeZ>
@@ -361,14 +361,14 @@
 		<Prefix>EMU</Prefix>
 		<Name>All_DDUs_Average_Event_Size</Name>
 		<SetOption>E1</SetOption>
-		<XMin>0</XMin>
+		<XMin>1</XMin>
 		<XMax>41</XMax>
-		<XBins>41</XBins>
+		<XBins>40</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YTitle>DDU Words</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Average Number of DDU 64-bit words</Title>
-		<SetNdivisionsX>41</SetNdivisionsX>
+		<SetNdivisionsX>40</SetNdivisionsX>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
 	</Histogram>
@@ -377,9 +377,9 @@
 		<Prefix>EMU</Prefix>
 		<Name>All_DDUs_Live_Inputs</Name>
 		<SetOption>textcolz</SetOption>
-		<XMin>0</XMin>
+		<XMin>1</XMin>
 		<XMax>41</XMax>
-		<XBins>41</XBins>
+		<XBins>40</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>15</YMax>
@@ -387,7 +387,7 @@
 		<YTitle>Inputs</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Live Inputs</Title>
-		<SetNdivisionsX>41</SetNdivisionsX>
+		<SetNdivisionsX>40</SetNdivisionsX>
 		<SetNdivisionsY>15</SetNdivisionsY>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
@@ -401,9 +401,9 @@
 		<Prefix>EMU</Prefix>
 		<Name>All_DDUs_Average_Live_Inputs</Name>
 		<SetOption>E1</SetOption>
-		<XMin>0</XMin>
+		<XMin>1</XMin>
 		<XMax>41</XMax>
-		<XBins>41</XBins>
+		<XBins>40</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>15</YMax>
@@ -411,7 +411,7 @@
 		<YTitle># of Inputs</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Average Number of DDU Live Inputs</Title>
-		<SetNdivisionsX>41</SetNdivisionsX>
+		<SetNdivisionsX>40</SetNdivisionsX>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
 		<SetMaximum>16</SetMaximum>
@@ -421,9 +421,9 @@
 		<Prefix>EMU</Prefix>
 		<Name>All_DDUs_Inputs_with_Data</Name>
 		<SetOption>textcolz</SetOption>
-		<XMin>0</XMin>
+		<XMin>1</XMin>
 		<XMax>41</XMax>
-		<XBins>41</XBins>
+		<XBins>40</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>15</YMax>
@@ -431,7 +431,7 @@
 		<YTitle>Inputs</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Inputs with data (DAV)</Title>
-		<SetNdivisionsX>41</SetNdivisionsX>
+		<SetNdivisionsX>40</SetNdivisionsX>
 		<SetNdivisionsY>15</SetNdivisionsY>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
@@ -445,9 +445,9 @@
 		<Prefix>EMU</Prefix>
 		<Name>All_DDUs_Average_Inputs_with_Data</Name>
 		<SetOption>E1</SetOption>
-		<XMin>0</XMin>
+		<XMin>1</XMin>
 		<XMax>41</XMax>
-		<XBins>41</XBins>
+		<XBins>40</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>15</YMax>
@@ -455,7 +455,7 @@
 		<YTitle># of Inputs</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Average Number of DDU Inputs with Data (DAV)</Title>
-		<SetNdivisionsX>41</SetNdivisionsX>
+		<SetNdivisionsX>40</SetNdivisionsX>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
 	</Histogram>
@@ -464,9 +464,9 @@
 		<Prefix>EMU</Prefix>
 		<Name>All_DDUs_Inputs_Errors</Name>
 		<SetOption>textcolz</SetOption>
-		<XMin>0</XMin>
+		<XMin>1</XMin>
 		<XMax>41</XMax>
-		<XBins>41</XBins>
+		<XBins>40</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>17</YMax>
@@ -474,7 +474,7 @@
 		<YTitle>Inputs</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Inputs in ERROR State</Title>
-		<SetNdivisionsX>41</SetNdivisionsX>
+		<SetNdivisionsX>40</SetNdivisionsX>
 		<SetNdivisionsY>17</SetNdivisionsY>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
@@ -488,9 +488,9 @@
 		<Prefix>EMU</Prefix>
 		<Name>All_DDUs_Inputs_Warnings</Name>
 		<SetOption>textcolz</SetOption>
-		<XMin>0</XMin>
+		<XMin>1</XMin>
 		<XMax>41</XMax>
-		<XBins>41</XBins>
+		<XBins>40</XBins>
 		<XTitle>DDU IDs</XTitle>
 		<YMin>0</YMin>
 		<YMax>17</YMax>
@@ -498,7 +498,7 @@
 		<YTitle>Inputs</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>DDU Inputs in WARNING State</Title>
-		<SetNdivisionsX>41</SetNdivisionsX>
+		<SetNdivisionsX>40</SetNdivisionsX>
 		<SetNdivisionsY>17</SetNdivisionsY>
 		<SetLabelSizeX>0.03</SetLabelSizeX>
 		<SetStats>0</SetStats>
@@ -593,6 +593,7 @@
 		<YTitle>Efficiency (% of total number of events)</YTitle>
 		<SetOptStat>emro</SetOptStat>
 		<Title>Errors</Title>
+		<SetNdivisionsX>15</SetNdivisionsX>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
@@ -601,6 +602,7 @@
 		<XMin>1</XMin>
 		<XMax>16</XMax>
 		<XBins>15</XBins>
+		<SetNdivisionsX>15</SetNdivisionsX>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
@@ -614,6 +616,7 @@
 		<YTitle>Efficiency (% of total number of events)</YTitle>
 		<SetOptStat>emro</SetOptStat>
 		<Title>Warnings</Title>
+		<SetNdivisionsX>15</SetNdivisionsX>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
@@ -622,6 +625,7 @@
 		<XMin>1</XMin>
 		<XMax>16</XMax>
 		<XBins>15</XBins>
+		<SetNdivisionsX>15</SetNdivisionsX>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
@@ -2262,78 +2266,84 @@
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_ActiveStrips_Ly1</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer 1</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_ActiveStrips_Ly2</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer 2</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_ActiveStrips_Ly3</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer 3</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_ActiveStrips_Ly4</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer 4</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_ActiveStrips_Ly5</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer 5</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_ActiveStrips_Ly6</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Number of events</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer 6</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2341,8 +2351,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly1</Name>
 		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2351,6 +2361,7 @@
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer 1</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2358,8 +2369,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly1_Profile</Name>
 		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2368,6 +2379,7 @@
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 1</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2375,8 +2387,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly2</Name>
 		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2385,6 +2397,7 @@
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer 2</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2392,8 +2405,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly2_Profile</Name>
 		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2402,6 +2415,7 @@
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 2</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2409,8 +2423,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly3</Name>
 		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2419,6 +2433,7 @@
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer 3</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2426,8 +2441,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly3_Profile</Name>
 		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2436,6 +2451,7 @@
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 3</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2443,8 +2459,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly4</Name>
 		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2453,6 +2469,7 @@
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer 4</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2460,8 +2477,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly4_Profile</Name>
 		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2470,6 +2487,7 @@
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 4</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2477,8 +2495,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly5</Name>
 		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2487,6 +2505,7 @@
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer 5</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2494,8 +2513,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly5_Profile</Name>
 		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2504,6 +2523,7 @@
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 5</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2511,8 +2531,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly6</Name>
 		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2521,6 +2541,7 @@
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>em</SetOptStat>
 		<Title>Layer 6</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2528,8 +2549,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Active_Samples_vs_Strip_Ly6_Profile</Name>
 		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2538,6 +2559,7 @@
 		<YTitle>Active sample number</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 6</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2778,8 +2800,8 @@
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Out_Off_Range_Strips_Ly1</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip Number</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -2791,8 +2813,8 @@
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Out_Off_Range_Strips_Ly2</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip Number</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -2804,8 +2826,8 @@
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Out_Off_Range_Strips_Ly3</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip Number</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -2817,8 +2839,8 @@
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Out_Off_Range_Strips_Ly4</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip Number</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -2830,8 +2852,8 @@
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Out_Off_Range_Strips_Ly5</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip Number</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -2843,8 +2865,8 @@
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Out_Off_Range_Strips_Ly6</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip Number</XTitle>
 		<YTitle>Number of Events</YTitle>
@@ -2857,8 +2879,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withEMV_Sample_01_Ly1</Name>
 		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2867,6 +2889,7 @@
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 1</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2874,8 +2897,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withEMV_Sample_01_Ly2</Name>
 		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2884,6 +2907,7 @@
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 2</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2891,8 +2915,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withEMV_Sample_01_Ly3</Name>
 		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2901,6 +2925,7 @@
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 3</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2908,8 +2933,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withEMV_Sample_01_Ly4</Name>
 		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2918,6 +2943,7 @@
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 4</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2925,8 +2951,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withEMV_Sample_01_Ly5</Name>
 		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2935,6 +2961,7 @@
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 5</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -2942,8 +2969,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withEMV_Sample_01_Ly6</Name>
 		<SetOption>P</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2952,14 +2979,15 @@
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 6</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>hp</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withRMS_Sample_01_Ly1</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2968,14 +2996,15 @@
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 1</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>hp</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withRMS_Sample_01_Ly2</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -2984,14 +3013,15 @@
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 2</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>hp</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withRMS_Sample_01_Ly3</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -3000,14 +3030,15 @@
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 3</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>hp</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withRMS_Sample_01_Ly4</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -3016,14 +3047,15 @@
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 4</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>hp</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withRMS_Sample_01_Ly5</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -3032,14 +3064,15 @@
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 5</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>hp</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Pedestal_withRMS_Sample_01_Ly6</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -3048,84 +3081,91 @@
 		<YTitle>Pedestal Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 6</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_PedestalRMS_Sample_01_Ly1</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Pedestal RMS Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 1</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_PedestalRMS_Sample_01_Ly2</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Pedestal RMS Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 2</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_PedestalRMS_Sample_01_Ly3</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Pedestal RMS Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 3</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_PedestalRMS_Sample_01_Ly4</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Pedestal RMS Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 4</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_PedestalRMS_Sample_01_Ly5</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Pedestal RMS Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 5</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_PedestalRMS_Sample_01_Ly6</Name>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YTitle>Pedestal RMS Value (in ADC Chanels)</YTitle>
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 6</Title>
+		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
 	</Histogram>
 	<Histogram>
@@ -3133,8 +3173,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_SCA_Cell_Peak_Ly_1</Name>
 		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -3150,8 +3190,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_SCA_Cell_Peak_Ly_2</Name>
 		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -3167,8 +3207,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_SCA_Cell_Peak_Ly_3</Name>
 		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -3184,8 +3224,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_SCA_Cell_Peak_Ly_4</Name>
 		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -3201,8 +3241,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_SCA_Cell_Peak_Ly_5</Name>
 		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>
@@ -3218,8 +3258,8 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_SCA_Cell_Peak_Ly_6</Name>
 		<SetOption>col</SetOption>
-		<XMin>0</XMin>
-		<XMax>80</XMax>
+		<XMin>1</XMin>
+		<XMax>81</XMax>
 		<XBins>80</XBins>
 		<XTitle>Strip number</XTitle>
 		<YMin>0</YMin>

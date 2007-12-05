@@ -126,7 +126,7 @@
 		<Type>cnv</Type>
 		<Prefix>EMU</Prefix>
 		<Name>EMU_Test09d_CSC_Format_Errors_Fract</Name>
-		<Title>EMU Test09db - CSCs with Format Errors (Fractions)</Title>
+		<Title>EMU Test09d - CSCs with Format Errors (Fractions)</Title>
 		<NumPadsX>1</NumPadsX>
 		<NumPadsY>1</NumPadsY>
 		<Pad1>CSC_Format_Errors_Fract</Pad1>
