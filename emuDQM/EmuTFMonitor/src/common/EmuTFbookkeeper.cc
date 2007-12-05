@@ -1,7 +1,9 @@
 #include "EmuTFbookkeeper.h"
 
+#include <TList.h>
 #include "RegEx.h"
 #include <sstream>
+#include <math.h>
 
 using namespace EmuTFxmlParsing;
 

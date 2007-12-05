@@ -15,18 +15,20 @@
 #include "EventFilter/CSCTFRawToDigi/src/CSCTFEvent.h"
 #include "EventFilter/CSCTFRawToDigi/src/CSCSPTrailer.h"
 
+#include <math.h>
 #include <sstream>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
 
-#define BASE "/home/cscdqm/DAQKit/v4.2.1/TriDAS/emu/emuDQM/" 
+//#define BASE "/nfshome0/cscdqm/TriDAS/emu/emuDQM/"
 
 //To compile on lxplus:   g++ -o test EmuTFtest.cpp -I/afs/cern.ch/cms/Releases/XDAQ/XDAQ_3_4/daq/extern/xerces/linuxx86/include/ -L/afs/cern.ch/cms/Releases/XDAQ/XDAQ_3_4/daq/extern/xerces/linuxx86/lib/ -lxerces-c `root-config --cflags` `root-config --glibs` -Wall -I/afs/cern.ch/user/k/kkotov/CMSSW_0_8_0_pre2/src/ -I../../src/common/ -I../../include/
 //To compile on cmsdaq03: g++ -o test EmuTFtest.cpp -I$XDAQ_ROOT/daq/extern/xerces/linuxx86/include/ -L$XDAQ_ROOT/daq/extern/xerces/linuxx86/lib/ -lxerces-c `root-config --cflags` `root-config --glibs` -Wall -I/home/daq/kotov/CMSSW_0_5_1/src/ -I../../src/common/ -I../../include/
 //To compile on slice11:  g++ -o test EmuTFtest.cpp -I/home/slice/DAQKit/v3.6/TriDAS/daq/extern/xerces/linuxx86/include/ -I../../src/common/ -I../../include/ -L/home/slice/DAQKit/v3.6/TriDAS/daq/extern/xerces/linuxx86/lib/ -lxerces-c `root-config --cflags` `root-config --glibs` -Wall -I/home/slice/kotov/CMSSW_0_8_0_pre2/src/
 //To compile on emudqm: g++ -o test EmuTFtest.cpp -I/home/cscdqm/DAQKit/v4.2.1/TriDAS/daq/extern/xerces/linuxx86/include/ -I../../src/common/ -I../../include/ -L/home/cscdqm/DAQKit/v4.2.1/TriDAS/daq/extern/xerces/linuxx86/lib/ -lxerces-c `root-config --cflags` `root-config --glibs` -Wall -I/home/cscdqm/CMSSW_1_3_0_pre4/src
+//To compile on csc-C2D07-10: g++ -o test EmuTFtest.cpp -DBASE="\"/nfshome0/cscdqm/TriDAS/emu/emuDQM/\"" -I/nfshome0/cscdqm/DAQKit/TriDAS/daq/extern/xerces/linuxx86/include/ -I../../src/common/ -I../../include/ -L/nfshome0/cscdqm/DAQKit/TriDAS/daq/extern/xerces/linuxx86/lib/ -lxerces-c `root-config --cflags` `root-config --glibs` -Wall -I/nfshome0/cscdqm/CMSSW/src
 
 int main(int argc, char *argv[]){
 	using namespace std;
@@ -96,8 +98,8 @@ int main(int argc, char *argv[]){
 		tfEvent.unpack(last_buf,last_size);
 		vector<CSCSPEvent> SPs = tfEvent.SPs();
 		for(vector<CSCSPEvent>::const_iterator spPtr=SPs.begin(); spPtr!=SPs.end(); spPtr++){
-			unsigned short sp = spPtr->header().sector() + ( spPtr->header().endcap() ? 6 : 0 );
-			str<<"SP"<<sp<<"  boar_id=0x"<<hex<<spPtr->trailer().board_id()<<dec<<" firmware: "<<spPtr->trailer().firmware_year()<<"/"<<spPtr->trailer().firmware_month()<<"/"<<spPtr->trailer().firmware_day()<<endl;
+			unsigned short sp = spPtr->header().sector() + ( spPtr->header().endcap() ? 0 : 6 );
+			str<<"SP"<<sp<<"  boar_id=0x"<<hex<<spPtr->trailer().board_id()<<dec<<" SP readout configuration: "<<spPtr->trailer().year()<<"/"<<spPtr->trailer().month()<<"/"<<spPtr->trailer().day()<<endl;
 		}
 	}
 
