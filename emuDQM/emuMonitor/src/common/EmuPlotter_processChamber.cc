@@ -84,7 +84,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   int CSCposition = 0;
   this->getCSCFromMap(crateID, dmbID, CSCtype, CSCposition );
   if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked", mo))
-        mo->Fill(CSCposition-1, CSCtype);
+        mo->Fill(CSCposition, CSCtype);
 
   EmuMonitoringObject* mof = NULL;
   if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)
