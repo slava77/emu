@@ -311,8 +311,8 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     if ((dmb_dav_header>>i) & 0x1) {
       dmb_dav_header_cnt++;      
       if (isMEvalid(dduME, "DMB_DAV_Header_Occupancy_Rate", mo)) {
-	mo->Fill(i);
-	freq = 100.0*(mo->GetBinContent(i+1))/nEvents;
+	mo->Fill(i+1);
+	freq = (100.0*mo->GetBinContent(i+1))/nEvents;
         if (isMEvalid(dduME, "DMB_DAV_Header_Occupancy", mo)) mo->SetBinContent(i+1,freq);
       }
       if (isMEvalid(nodeME, "All_DDUs_Inputs_with_Data", mo)) {
@@ -323,8 +323,8 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
     if( (ddu_connected_inputs>>i) & 0x1 ){
       ddu_connected_inputs_cnt++;
       if (isMEvalid(dduME, "DMB_Connected_Inputs_Rate", mo)) {
-	mo->Fill(i);
-	freq = 100.0*(mo->GetBinContent(i))/nEvents;
+	mo->Fill(i+1);
+	freq = (100.0*mo->GetBinContent(i+1))/nEvents;
 	if (isMEvalid(dduME, "DMB_Connected_Inputs", mo)) mo->SetBinContent(i+1, freq);
       }
       if (isMEvalid(nodeME, "All_DDUs_Live_Inputs", mo)) {
@@ -334,8 +334,8 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 
     if( (csc_error_state>>i) & 0x1 ){
       if (isMEvalid(dduME, "CSC_Errors_Rate", mo)) {
-	mo->Fill(i);
-	freq = 100.0*(mo->GetBinContent(i))/nEvents;
+	mo->Fill(i+1);
+	freq = (100.0*mo->GetBinContent(i+1))/nEvents;
 	if (isMEvalid(dduME, "CSC_Errors", mo)) mo->SetBinContent(i+1, freq);
       }
       if (isMEvalid(nodeME, "All_DDUs_Inputs_Errors", mo)) {
@@ -346,8 +346,8 @@ void EmuPlotter::processEvent(const char * data, int32_t dataSize, uint32_t erro
 	
     if( (csc_warning_state>>i) & 0x1 ){
       if (isMEvalid(dduME, "CSC_Warnings_Rate", mo)) {
-	mo->Fill(i);
-	freq = 100.0*(mo->GetBinContent(i+1))/nEvents;
+	mo->Fill(i+1);
+	freq = (100.0*mo->GetBinContent(i+1))/nEvents;
 	if (isMEvalid(dduME,"CSC_Warnings", mo)) mo->SetBinContent(i+1, freq);
       }
       if (isMEvalid(nodeME, "All_DDUs_Inputs_Warnings", mo)) {
@@ -570,7 +570,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node) {
     int CSCposition = 0;
     getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
     if (isCSCError && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Format_Errors", mo)) {
-      mo->Fill(CSCposition-1, CSCtype);
+      mo->Fill(CSCposition, CSCtype);
       //    mo->SetEntries(nBadEvents);
     }
 
@@ -621,7 +621,7 @@ void EmuPlotter::fillChamberBinCheck(int32_t node) {
     int CSCposition = 0;
     getCSCFromMap(CrateID, DMBSlot, CSCtype, CSCposition );
     if (isCSCWarning && CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Format_Warnings", mo)) {
-      mo->Fill(CSCposition-1, CSCtype);
+      mo->Fill(CSCposition, CSCtype);
       //      mo->SetEntries(nBadEvents);
     }
 
