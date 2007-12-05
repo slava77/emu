@@ -314,15 +314,13 @@ int EmuMonitoringObject::applyParameters()
       double opt = atof(st.c_str()) ;
       if (object) {
 //        object->GetZaxis()->SetLabelSize(opt);
-//	object->SetLabelSize(opt,"Z");
+	object->SetLabelSize(opt,"Z");
+/*
 	TPaletteAxis *palette = (TPaletteAxis*)object->GetListOfFunctions()->FindObject("palette");
          if (palette != NULL) {
-//		std::cout << "Found palette" << std::endl;
                 palette->SetLabelSize(opt);
-         } else {
-//		std::cout << "Unable to find palette" << std::endl;
-	 }
-
+         } 
+*/
       }
     }
 
