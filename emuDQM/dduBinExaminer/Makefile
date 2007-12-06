@@ -21,7 +21,7 @@ Package=emuDQM/dduBinExaminer
 Sources=\
 	dduBinExaminer.cc 
 
-Executables = dduEvtDump.cpp
+Executables = dduEvtDump.cpp dduEvtDump2007.cpp
 
 TestLibraries = 
 TestExecutables = dduBinExaminerTest.cpp
