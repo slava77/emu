@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.53 2007/11/07 08:54:57 rakness Exp $
+// $Id: TMB.cc,v 3.54 2007/12/06 15:12:41 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.54  2007/12/06 15:12:41  rakness
+// make scan parameters for synchronization configurable from hyperDAQ
+//
 // Revision 3.53  2007/11/07 08:54:57  rakness
 // make the csc_id which is injected into the MPC injector RAM always be the correct one for this TMB
 //
@@ -2515,11 +2518,16 @@ void TMB::DisableL1aRequest(){
 ////////////////////////////////////////////////////
 // ALCT and TMB data from VME reads
 ////////////////////////////////////////////////////
-void TMB::TMBRawhits(){
+void TMB::TMBRawhits() {
+  TMBRawhits(100000);
+  return;
+}
+//
+void TMB::TMBRawhits(int microseconds_between_data_reads){
   //
   bool read_ok = false;
   //
-  int max_number_of_times = 100;  //prevent going into an infinite loop
+  int max_number_of_times = 10;  //prevent going into an infinite loop
   int number_of_reads = 0;
   //
   while (!read_ok && (number_of_reads<max_number_of_times) ) {
@@ -2529,7 +2537,7 @@ void TMB::TMBRawhits(){
     //pretrigger and halt until next unhalt arrives:
     SetPretriggerHalt(1);
     WriteRegister(seq_clct_adr);
-    ::usleep(100000);   // Give the chamber time to trigger on and read an event
+    ::usleep(microseconds_between_data_reads);   // Give the chamber time to trigger on and read an event
     //
     // Attempt to read the data:
     ResetRAMAddress();

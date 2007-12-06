@@ -48,25 +48,53 @@ public:
   void RpcRatDelayScan();       //rpc=0
   void RpcRatDelayScan(int rpc);
   //
-  // ALCT-CLCT match timing
-  int FindALCTinCLCTMatchWindow(int number_of_reads);
-  //  int FindALCTvpf();
+  //-----
+  /// number of microseconds to wait between data reads
+  inline void setPauseBetweenDataReads(int pause) { pause_between_data_reads_ = pause; }
+  inline int getPauseBetweenDataReads() { return pause_between_data_reads_; }
   //
-  // Winner bits from MPC -> TMB
-  int FindWinner();                          /// Use cosmic rays/pulsing from TTC
-  int FindWinner(int number_of_pulses);      /// Use local pulsing of CFEB, data sent to MPC from TMB by VME command
+  /// number of times to read DMB scope/counter
+  inline void setNumberOfDataReads(int number) { number_of_data_reads_ = number; }
+  inline int getNumberOfDataReads() { return number_of_data_reads_; }
+  //
+  // ALCT-CLCT match timing
+  int FindALCTinCLCTMatchWindow();
+  //  int FindALCTvpf();
   //
   // DMB parameters
   int MeasureAlctDavCableDelay();
   int MeasureTmbLctCableDelay();
   int MeasureCfebDavCableDelay();
-  void ReadAllDmbValuesAndScopes();
-  void PrintAllDmbValuesAndScopes();
+  //
+  //
+  //-----
+  /// number of seconds to wait (sec) at each delay value setting
+  inline void setPauseAtEachSetting(int pause) { pause_at_each_setting_ = pause; }
+  inline int getPauseAtEachSetting() { return pause_at_each_setting_; }
+  //
+  /// Winner bits from MPC -> TMB
+  int FindWinner();                          /// Use cosmic rays/pulsing from TTC
+  int FindWinner(int number_of_pulses);      /// Use local pulsing of CFEB, data sent to MPC from TMB by VME command
   //
   // L1A accept windows
+  inline void setMinAlctL1aDelayValue(int value) { min_alct_l1a_delay_value_ = value; }
+  inline int getMinAlctL1aDelayValue() { return min_alct_l1a_delay_value_; }
+  //
+  inline void setMaxAlctL1aDelayValue(int value) { max_alct_l1a_delay_value_ = value; }
+  inline int getMaxAlctL1aDelayValue() { return max_alct_l1a_delay_value_; }
+  //
+  inline void setMinTmbL1aDelayValue(int value) { min_tmb_l1a_delay_value_ = value; }
+  inline int getMinTmbL1aDelayValue() { return min_tmb_l1a_delay_value_; }
+  //
+  inline void setMaxTmbL1aDelayValue(int value) { max_tmb_l1a_delay_value_ = value; }
+  inline int getMaxTmbL1aDelayValue() { return max_tmb_l1a_delay_value_; }
+  //
   int FindTmbAndAlctL1aDelay();
-  int  FindTMB_L1A_delay(int min_delay, int max_delay);
-  int  FindALCT_L1A_delay(int min_delay, int max_delay);
+  int FindTMB_L1A_delay();
+  int FindALCT_L1A_delay();
+  //
+  int  FindTMB_L1A_delay(int min_delay, int max_delay);  //set the min/max values by arguments... should go away...
+  int  FindALCT_L1A_delay(int min_delay, int max_delay); //set the min/max values by arguments... should go away...
   //
   // scans to check functionality of electronics
   void ALCTChamberScan();  
@@ -91,7 +119,9 @@ public:
   //
   void InjectMPCData() ;
   //
-  void PopulateDmbHistograms(int number_of_reads);
+  void PopulateDmbHistograms();
+  void ReadAllDmbValuesAndScopes();
+  void PrintAllDmbValuesAndScopes();
   //
   int  AdjustL1aLctDMB();
   //
@@ -202,6 +232,13 @@ private:
   int debug_;
   //
   bool use_measured_values_;
+  int min_alct_l1a_delay_value_;
+  int max_alct_l1a_delay_value_;
+  int min_tmb_l1a_delay_value_; 
+  int max_tmb_l1a_delay_value_; 
+  int pause_at_each_setting_;
+  int pause_between_data_reads_;
+  int number_of_data_reads_;
   //
   int Npulses_;
   bool comparing_with_clct_;

@@ -206,6 +206,8 @@ EmuPeripheralCrate::EmuPeripheralCrate(xdaq::ApplicationStub * s): EmuApplicatio
   xgi::bind(this,&EmuPeripheralCrate::setupCoincidencePulsing, "setupCoincidencePulsing");
   xgi::bind(this,&EmuPeripheralCrate::TMBStartTrigger, "TMBStartTrigger");                    //should be deprecated
   xgi::bind(this,&EmuPeripheralCrate::EnableL1aRequest, "EnableL1aRequest");                  //should be deprecated
+  xgi::bind(this,&EmuPeripheralCrate::setTMBCounterReadValues, "setTMBCounterReadValues");
+  xgi::bind(this,&EmuPeripheralCrate::setDataReadValues, "setDataReadValues");
   xgi::bind(this,&EmuPeripheralCrate::Automatic, "Automatic");
   xgi::bind(this,&EmuPeripheralCrate::ALCTvpf,"ALCTvpf");
   xgi::bind(this,&EmuPeripheralCrate::FindWinner, "FindWinner");
@@ -3593,8 +3595,49 @@ void EmuPeripheralCrate::ChamberTests(xgi::Input * in, xgi::Output * out )
   *out << "   d) LTC:  Resync" << std::endl;
   *out << "   e) LTC Enable L1A's" << std::endl;
   *out << "   f) LTC Begin cyclic BGo to fire ADB Sync pulse on CCB" << std::endl;
+  *out << "   g) Set the parameters for performing the synchronization scans" << std::endl;
   *out << cgicc::pre();
   //
+  std::string setDataReadValues = toolbox::toString("/%s/setDataReadValues",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",setDataReadValues) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Set DMB/ALCT-CLCT match data read values") << std::endl ;
+  sprintf(buf,"%d",MyTest[tmb].getNumberOfDataReads());
+  *out << "Number of reads" << std::endl;
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","number_of_reads") << std::endl ;
+  sprintf(buf,"%d",MyTest[tmb].getPauseBetweenDataReads());
+  *out << "Pause between reads (usec)" << std::endl;
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","pause_btw_reads") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
+  //
+  *out << cgicc::br();
+  //
+  std::string setTMBCounterReadValues = toolbox::toString("/%s/setTMBCounterReadValues",getApplicationDescriptor()->getURN().c_str());
+  *out << cgicc::form().set("method","GET").set("action",setTMBCounterReadValues) << std::endl ;
+  *out << cgicc::input().set("type","submit").set("value","Set scan values") << std::endl ;
+  *out << "TMB L1A min value (bx)" << std::endl;
+  sprintf(buf,"%d",MyTest[tmb].getMinTmbL1aDelayValue());
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","tmb_l1a_delay_min") << std::endl ;
+  *out << "TMB L1A max value (bx)" << std::endl;
+  sprintf(buf,"%d",MyTest[tmb].getMaxTmbL1aDelayValue());
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","tmb_l1a_delay_max") << std::endl ;
+  *out << "ALCT L1A min value (bx)" << std::endl;
+  sprintf(buf,"%d",MyTest[tmb].getMinAlctL1aDelayValue());
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","alct_l1a_delay_min") << std::endl ;
+  *out << "ALCT L1A max value (bx)" << std::endl;
+  sprintf(buf,"%d",MyTest[tmb].getMaxAlctL1aDelayValue());
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","alct_l1a_delay_max") << std::endl ;
+  *out << "Pause at each setting (sec)" << std::endl;
+  sprintf(buf,"%d",MyTest[tmb].getPauseAtEachSetting());
+  *out << cgicc::input().set("type","text").set("value",buf).set("name","time_to_pause") << std::endl ;
+  sprintf(buf,"%d",tmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","tmb");
+  sprintf(buf,"%d",dmb);
+  *out << cgicc::input().set("type","hidden").set("value",buf).set("name","dmb");
+  *out << cgicc::form() << std::endl ;
   //
   *out << cgicc::pre();
   *out << "3) Perform all synchronization steps by pushing the following button" << std::endl;
@@ -3741,7 +3784,7 @@ void EmuPeripheralCrate::ChamberTests(xgi::Input * in, xgi::Output * out )
   //
   *out << cgicc::pre();
   *out << "E) Check the overall state of the DMB readout" << std::endl;
-  *out << "   -> Is the Active FEB Flag to L1A = 147?" << std::endl;
+  *out << "   -> Is the Active FEB Flag to L1A where it should be for this xLatency?" << std::endl;
   *out << "   -> Is the ALCT DAV scope centered at 2?" << std::endl;
   *out << "   -> Is the CFEB DAV scope centered at 2?" << std::endl;
   *out << cgicc::pre();
@@ -4074,6 +4117,113 @@ void EmuPeripheralCrate::Automatic(xgi::Input * in, xgi::Output * out )
   //
 }
 //
+void EmuPeripheralCrate::setTMBCounterReadValues(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  int tmb;
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  cgicc::form_iterator name2 = cgi.getElement("tmb_l1a_delay_min");
+  cgicc::form_iterator name3 = cgi.getElement("tmb_l1a_delay_max");
+  cgicc::form_iterator name4 = cgi.getElement("alct_l1a_delay_min");
+  cgicc::form_iterator name5 = cgi.getElement("alct_l1a_delay_max");
+  cgicc::form_iterator name6 = cgi.getElement("time_to_pause");
+  //
+  int tmb_l1a_delay_min  = 100;
+  int tmb_l1a_delay_max  = 101;
+  int alct_l1a_delay_min = 102;
+  int alct_l1a_delay_max = 103;
+  int time_to_pause      = 11;
+  //
+  if(name2 != cgi.getElements().end()) 
+    tmb_l1a_delay_min = strtol(cgi["tmb_l1a_delay_min"]->getValue().c_str(),NULL,10);
+  if(name3 != cgi.getElements().end()) 
+    tmb_l1a_delay_max = strtol(cgi["tmb_l1a_delay_max"]->getValue().c_str(),NULL,10);
+  if(name4 != cgi.getElements().end()) 
+    alct_l1a_delay_min = strtol(cgi["alct_l1a_delay_min"]->getValue().c_str(),NULL,10);
+  if(name5 != cgi.getElements().end()) 
+    alct_l1a_delay_max = strtol(cgi["alct_l1a_delay_max"]->getValue().c_str(),NULL,10);
+  if(name6 != cgi.getElements().end()) 
+    time_to_pause = strtol(cgi["time_to_pause"]->getValue().c_str(),NULL,10);
+  //
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "setTMBCounterReadValues: TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  } else {
+    std::cout << "setTMBCounterReadValues:  No tmb" << std::endl;
+    tmb = TMB_;
+  }
+  //
+  int dmb;
+  name = cgi.getElement("dmb");
+  //
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "setTMBCounterReadValues:  DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  } else {
+    std::cout << "setTMBCounterReadValues:  No dmb" << std::endl;
+    dmb = DMB_;
+  }
+  //
+  MyTest[tmb].setMinAlctL1aDelayValue(alct_l1a_delay_min);
+  MyTest[tmb].setMaxAlctL1aDelayValue(alct_l1a_delay_max);
+  MyTest[tmb].setMinTmbL1aDelayValue(tmb_l1a_delay_min);
+  MyTest[tmb].setMaxTmbL1aDelayValue(tmb_l1a_delay_max);
+  MyTest[tmb].setPauseAtEachSetting(time_to_pause);
+  //
+  this->ChamberTests(in,out);
+  //
+}
+//
+void EmuPeripheralCrate::setDataReadValues(xgi::Input * in, xgi::Output * out ) 
+  throw (xgi::exception::Exception) {
+  //
+  cgicc::Cgicc cgi(in);
+  //
+  int tmb;
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    std::cout << "setDataReadValues: TMB " << tmb << std::endl;
+    TMB_ = tmb;
+  } else {
+    std::cout << "setDataReadValues:  No tmb" << std::endl;
+    tmb = TMB_;
+  }
+  //
+  int dmb;
+  name = cgi.getElement("dmb");
+  cgicc::form_iterator name2 = cgi.getElement("number_of_reads");
+  cgicc::form_iterator name3 = cgi.getElement("pause_btw_reads");
+  //
+  int number_of_reads    = 1;
+  int pause_btw_reads    = 1000000;
+  //
+  if(name2 != cgi.getElements().end()) 
+    number_of_reads = strtol(cgi["number_of_reads"]->getValue().c_str(),NULL,10);
+  if(name3 != cgi.getElements().end()) 
+    pause_btw_reads = strtol(cgi["pause_btw_reads"]->getValue().c_str(),NULL,10);
+  //
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "SetDataReadValues:  DMB " << dmb << std::endl;
+    DMB_ = dmb;
+  } else {
+    std::cout << "setDataReadValues:  No dmb" << std::endl;
+    dmb = DMB_;
+  }
+  //
+  MyTest[tmb].setNumberOfDataReads(number_of_reads);
+  MyTest[tmb].setPauseBetweenDataReads(pause_btw_reads);
+  //
+  this->ChamberTests(in,out);
+  //
+}
+//
 void EmuPeripheralCrate::TMBL1aTiming(xgi::Input * in, xgi::Output * out ) 
   throw (xgi::exception::Exception) {
   //
@@ -4099,15 +4249,18 @@ void EmuPeripheralCrate::TMBL1aTiming(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "TMBL1aTiming:  TMB " << tmb << endl;
+    std::cout << "TMBL1aTiming:  TMB " << std::dec << tmb 
+	      << " scan from " << MyTest[tmb].getMinTmbL1aDelayValue()
+	      << " to " << MyTest[tmb].getMaxTmbL1aDelayValue()
+	      << ", pausing " << MyTest[tmb].getPauseAtEachSetting() << " seconds at each delay value" << std::endl;
     TMB_ = tmb;
   } else {
-    cout << "TMBL1aTiming:  No tmb" << endl;
+    std::cout << "TMBL1aTiming:  No tmb" << std::endl;
     tmb = TMB_;
   }
   //
   MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].FindTMB_L1A_delay(100,200);
+  MyTest[tmb].FindTMB_L1A_delay();
   MyTest[tmb].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
@@ -4139,7 +4292,10 @@ void EmuPeripheralCrate::ALCTL1aTiming(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "ALCTL1aTiming:  TMB " << tmb << endl;
+    std::cout << "ALCTL1aTiming:  TMB " << std::dec << tmb 
+	      << " scan from " << MyTest[tmb].getMinAlctL1aDelayValue()
+	      << " to " << MyTest[tmb].getMaxAlctL1aDelayValue()
+	      << ", pausing " << MyTest[tmb].getPauseAtEachSetting() << " seconds at each delay value" << std::endl;
     TMB_ = tmb;
   } else {
     cout << "No tmb" << endl;
@@ -4147,7 +4303,7 @@ void EmuPeripheralCrate::ALCTL1aTiming(xgi::Input * in, xgi::Output * out )
   }
   //
   MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].FindALCT_L1A_delay(100,170);
+  MyTest[tmb].FindALCT_L1A_delay();
   MyTest[tmb].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
@@ -4168,7 +4324,7 @@ void EmuPeripheralCrate::ALCTvpf(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "ALCTvpf:  TMB " << tmb << endl;
+    cout << "ALCTvpf:  TMB " << tmb << " will read TMB Raw Hits " << MyTest[tmb].getNumberOfDataReads() << " times" << std::endl;
     TMB_ = tmb;
   } else {
     cout << "ALCTvpf:  No tmb" << endl;
@@ -4186,7 +4342,7 @@ void EmuPeripheralCrate::ALCTvpf(xgi::Input * in, xgi::Output * out )
   }
   //
   MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
-  MyTest[tmb].FindALCTinCLCTMatchWindow(100);
+  MyTest[tmb].FindALCTinCLCTMatchWindow();
   MyTest[tmb].RedirectOutput(&std::cout);
   //
   this->ChamberTests(in,out);
@@ -4329,7 +4485,8 @@ void EmuPeripheralCrate::FindWinner(xgi::Input * in, xgi::Output * out )
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
-    cout << "FindWinner:  TMB " << tmb << endl;
+    cout << "FindWinner:  TMB " << tmb 
+	 << ", pausing " << MyTest[tmb].getPauseAtEachSetting() << " seconds at each delay value" << std::endl;
     TMB_ = tmb;
   } else {
     cout << "FindWinner:  No tmb" << endl;
@@ -4352,17 +4509,7 @@ void EmuPeripheralCrate::AlctDavCableDelay(xgi::Input * in, xgi::Output * out )
   //
   int tmb, dmb;
   //
-  cgicc::form_iterator name = cgi.getElement("dmb");
-  //
-  if(name != cgi.getElements().end()) {
-    dmb = cgi["dmb"]->getIntegerValue();
-    cout << "AlctDavCableDelay:  DMB " << dmb << endl;
-    DMB_ = dmb;
-  } else {
-    cout << "AlctDavCableDelay:  No dmb" << endl;
-  }
-  //
-  name = cgi.getElement("tmb");
+  cgicc::form_iterator name = cgi.getElement("tmb");
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
@@ -4371,6 +4518,19 @@ void EmuPeripheralCrate::AlctDavCableDelay(xgi::Input * in, xgi::Output * out )
   } else {
     cout << "AlctDavCableDelay:  No tmb" << endl;
   }
+  //
+  name = cgi.getElement("dmb");
+  //
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    cout << "AlctDavCableDelay:  DMB " << dmb 
+	 << " Read " << MyTest[tmb].getNumberOfDataReads()
+	 << " times, pausing " << MyTest[tmb].getPauseBetweenDataReads() << "usec between each read" << std::endl;
+    DMB_ = dmb;
+  } else {
+    cout << "AlctDavCableDelay:  No dmb" << endl;
+  }
+  //
   //
   MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);
   MyTest[tmb].MeasureAlctDavCableDelay();
@@ -4390,11 +4550,23 @@ void EmuPeripheralCrate::CfebDavCableDelay(xgi::Input * in, xgi::Output * out )
   //
   int tmb, dmb;
   //
-  cgicc::form_iterator name = cgi.getElement("dmb");
+  cgicc::form_iterator name = cgi.getElement("tmb");
+  //
+  if(name != cgi.getElements().end()) {
+    tmb = cgi["tmb"]->getIntegerValue();
+    cout << "CfebDavCableDelay:  TMB " << tmb << endl;
+    TMB_ = tmb;
+  } else {
+    cout << "CfebDavCableDelay:  No tmb" << endl;
+  }
+  //
+  name = cgi.getElement("dmb");
   //
   if(name != cgi.getElements().end()) {
     dmb = cgi["dmb"]->getIntegerValue();
-    cout << "CfebDavCableDelay:  DMB " << dmb << endl;
+    cout << "CfebDavCableDelay:  DMB " << dmb 
+	 << " Read " << MyTest[tmb].getNumberOfDataReads()
+	 << " times, pausing " << MyTest[tmb].getPauseBetweenDataReads() << "usec between each read" << std::endl;
     DMB_ = dmb;
   } else {
     cout << "CfebDavCableDelay:  No dmb" << endl;
@@ -4428,17 +4600,7 @@ void EmuPeripheralCrate::TmbLctCableDelay(xgi::Input * in, xgi::Output * out )
   //
   int tmb, dmb;
   //
-  cgicc::form_iterator name = cgi.getElement("dmb");
-  //
-  if(name != cgi.getElements().end()) {
-    dmb = cgi["dmb"]->getIntegerValue();
-    cout << "TmbLctCableDelay:  DMB " << dmb << endl;
-    DMB_ = dmb;
-  } else {
-    cout << "TmbLctCableDelay:  No dmb" << endl;
-  }
-  //
-  name = cgi.getElement("tmb");
+  cgicc::form_iterator name = cgi.getElement("tmb");
   //
   if(name != cgi.getElements().end()) {
     tmb = cgi["tmb"]->getIntegerValue();
@@ -4446,6 +4608,18 @@ void EmuPeripheralCrate::TmbLctCableDelay(xgi::Input * in, xgi::Output * out )
     TMB_ = tmb;
   } else {
     cout << "TmbLctCableDelay:  No tmb" << endl;
+  }
+  //
+  name = cgi.getElement("dmb");
+  //
+  if(name != cgi.getElements().end()) {
+    dmb = cgi["dmb"]->getIntegerValue();
+    std::cout << "TmbLctCableDelay:  DMB " << dmb << std::dec
+	      << " Read " << MyTest[tmb].getNumberOfDataReads()
+	      << " times, pausing " << MyTest[tmb].getPauseBetweenDataReads() << "usec between each read" << std::endl;
+    DMB_ = dmb;
+  } else {
+    cout << "TmbLctCableDelay:  No dmb" << endl;
   }
   //
   MyTest[tmb].RedirectOutput(&ChamberTestsOutput[tmb]);

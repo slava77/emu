@@ -292,6 +292,8 @@ private:
   void TMBStartTrigger(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void EnableL1aRequest(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void ALCTTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void setTMBCounterReadValues(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
+  void setDataReadValues(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void Automatic(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void CFEBTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 
   void TMBL1aTiming(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception); 

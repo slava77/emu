@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.34 2007/10/25 17:36:12 rakness Exp $
+// $Id: TMB.h,v 3.35 2007/12/06 15:12:39 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.35  2007/12/06 15:12:39  rakness
+// make scan parameters for synchronization configurable from hyperDAQ
+//
 // Revision 3.34  2007/10/25 17:36:12  rakness
 // Add option to enable/disable write to USER JTAG register to allow selective masking of broadcast JTAG commands.  Also enable/disable clocks with explicit write rather than read,write
 //
@@ -325,7 +328,9 @@ public:
   bool CheckAlctFIFOBusy(int number_of_checks_before_aborting);
   //
   //!Extract TMB raw hits data from VME
-  void TMBRawhits();
+  void TMBRawhits(int microseconds_between_data_reads);
+  /// default is 0.1seconds
+  void TMBRawhits(); 
   void ResetRAMAddress();
   inline int GetAlctInClctMatchWindow() { return h11_alct_in_clct_match_window_ ; }
   void PrintTMBRawHits();
