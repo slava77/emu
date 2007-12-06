@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 3.39 2007/09/26 08:42:48 rakness Exp $
+// $Id: ChamberUtilities.cc,v 3.40 2007/12/06 15:12:45 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 3.40  2007/12/06 15:12:45  rakness
+// make scan parameters for synchronization configurable from hyperDAQ
+//
 // Revision 3.39  2007/09/26 08:42:48  rakness
 // open scan windows to find L1A from different sources, slightly re-order ::automatic() to make DAV cable delay scan more robust by finding L1A windows first
 //
@@ -278,6 +281,15 @@ ChamberUtilities::ChamberUtilities(){
   comparing_with_clct_ = false;
   //
   use_measured_values_ = false;
+  //
+  pause_between_data_reads_ = 100000; // default number of microseconds to wait between data reads
+  number_of_data_reads_     = 100;    // default number of data reads
+  //
+  pause_at_each_setting_    = 10;     // default number of seconds to wait at each delay value
+  min_alct_l1a_delay_value_ = 125;
+  max_alct_l1a_delay_value_ = 140;
+  min_tmb_l1a_delay_value_  = 115; 
+  max_tmb_l1a_delay_value_  = 130; 
   //
   MyOutput_ = &std::cout ;
   //
@@ -1040,7 +1052,7 @@ void ChamberUtilities::Automatic(){
   if (FindTMB_L1A_delay(100,200) < 0 ) return;
   //
   // Center the ALCT in the CLCT match window:
-  if (FindALCTinCLCTMatchWindow(100) < 0) return;
+  if (FindALCTinCLCTMatchWindow() < 0) return;
   //
   // Since mpc_tx_delay is set, we can now determine mpc_rx_delay:
   if (FindWinner() < 0) return;
@@ -1065,7 +1077,7 @@ void ChamberUtilities::Automatic(){
 //----------------------------------------------
 // ALCT-CLCT match timing
 //----------------------------------------------
-int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
+int ChamberUtilities::FindALCTinCLCTMatchWindow() {
   //
   if (debug_) {
     std::cout << "***************************" << std::endl;
@@ -1125,10 +1137,10 @@ int ChamberUtilities::FindALCTinCLCTMatchWindow(int number_of_reads) {
   //
   ZeroTmbHistograms();
   //
-  if (debug_) std::cout << "Going to read TMB " << std::dec << number_of_reads << " times" << std::endl;
-  for (int i=0; i<number_of_reads; i++) {
+  if (debug_) std::cout << "Going to read TMB " << std::dec << getNumberOfDataReads() << " times" << std::endl;
+  for (int i=0; i<getNumberOfDataReads(); i++) {
     if ((i%25) == 0 && debug_) std::cout << "Read TMB " << i << " times" << std::endl;
-    thisTMB->TMBRawhits();
+    thisTMB->TMBRawhits(getPauseBetweenDataReads());
     int value = thisTMB->GetAlctInClctMatchWindow();
     AlctInClctMatchWindowHisto_[value]++;
   }
@@ -1339,7 +1351,7 @@ int ChamberUtilities::FindWinner(){
     //
     thisTMB->ResetCounters();
     //
-    ::sleep(1);
+    ::sleep(getPauseAtEachSetting());
     //
     thisTMB->GetCounters();
     number_of_mpc_accepted[delay_value] = thisTMB->GetCounter(16);
@@ -1848,9 +1860,7 @@ void ChamberUtilities::ReadAllDmbValuesAndScopes() {
   }
   //
   ZeroDmbHistograms();
-  //
-  const int number_of_reads = 120;
-  PopulateDmbHistograms(number_of_reads);
+  PopulateDmbHistograms();
   //
   AffToL1aScopeAverageValue_ = AverageHistogram(AffToL1aScopeHisto_,ScopeMin_,ScopeMax_);
   CfebDavScopeAverageValue_  = AverageHistogram(CfebDavScopeHisto_ ,ScopeMin_,ScopeMax_);
@@ -1928,16 +1938,15 @@ int ChamberUtilities::FindTmbAndAlctL1aDelay(){
   int tmb_in_l1a_window[255] = {};
   int alct_in_l1a_window[255] = {};
   //
-  const int range = 100;
-  //
   int tmb_delay_value;
-  const int tmb_delay_min = 100;
-  const int tmb_delay_max = tmb_delay_min + range;
+  int tmb_delay_min = getMinTmbL1aDelayValue();
+  int tmb_delay_max = getMaxTmbL1aDelayValue();
   //
   int alct_delay_value;
-  const int alct_delay_min = 100;
-  const int alct_delay_max = alct_delay_min + range;
+  const int alct_delay_min = getMinAlctL1aDelayValue();
+  const int alct_delay_max = getMaxAlctL1aDelayValue();
   //
+  int range = ((alct_delay_max-alct_delay_min) > (tmb_delay_max-tmb_delay_min)) ? (alct_delay_max-alct_delay_min) : (tmb_delay_max-tmb_delay_min);
   //
   for (int delay=0; delay<=range; delay++){
     //
@@ -1956,7 +1965,7 @@ int ChamberUtilities::FindTmbAndAlctL1aDelay(){
     //
     thisTMB->ResetCounters();    // reset counters
     //
-    ::sleep(1);                  // accumulate statistics
+    ::sleep(getPauseAtEachSetting());                  // accumulate statistics
     //
     thisTMB->GetCounters();      // read counter values
     //
@@ -2032,7 +2041,15 @@ int ChamberUtilities::FindTmbAndAlctL1aDelay(){
 }
 //
 //
-int ChamberUtilities::FindTMB_L1A_delay(int delay_min, int delay_max ){
+int ChamberUtilities::FindTMB_L1A_delay(){
+  //
+  // use the values of min and max set by the accessors
+  //
+  return FindTMB_L1A_delay(getMinTmbL1aDelayValue(),getMaxTmbL1aDelayValue());
+  //
+}
+//
+int ChamberUtilities::FindTMB_L1A_delay(int delay_min, int delay_max){
   //
   if (debug_) {
     std::cout << "*******************" << std::endl;
@@ -2069,7 +2086,7 @@ int ChamberUtilities::FindTMB_L1A_delay(int delay_min, int delay_max ){
     //
     thisTMB->ResetCounters();    // reset counters
     //
-    ::sleep(1);                  // accumulate statistics
+    ::sleep(getPauseAtEachSetting());                  // accumulate statistics
     //
     thisTMB->GetCounters();      // read counter values
     //
@@ -2114,6 +2131,14 @@ int ChamberUtilities::FindTMB_L1A_delay(int delay_min, int delay_max ){
 }
 //
 //
+int ChamberUtilities::FindALCT_L1A_delay(){
+  //
+  // use the values of min and max set by the accessors
+  //
+  return FindALCT_L1A_delay(getMinAlctL1aDelayValue(),getMaxAlctL1aDelayValue());
+  //
+}
+//
 int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
   //
   if (debug_) {
@@ -2155,7 +2180,7 @@ int ChamberUtilities::FindALCT_L1A_delay(int minlimit, int maxlimit){
     //
     thisTMB->ResetCounters();
     //
-    ::sleep(1);                     //collect statistics
+    ::sleep(getPauseAtEachSetting());
     //
     thisTMB->GetCounters();
     //
@@ -3021,11 +3046,11 @@ void ChamberUtilities::InjectMPCData(){
   //
 }
 //
-void ChamberUtilities::PopulateDmbHistograms(int number_of_reads) {
+void ChamberUtilities::PopulateDmbHistograms() {
   //
-  for (int i=0; i<number_of_reads; i++) {
+  for (int i=0; i<getNumberOfDataReads(); i++) {
     //
-    if ( (i%25) == 0 && debug_)  std::cout << "DMB Read " << std::dec << i << " times" << std::endl;
+    if ( (i%5) == 0 && debug_)  std::cout << "DMB Read " << std::dec << i << " times" << std::endl;
     //
     thisDMB->readtimingCounter();
     thisDMB->readtimingScope();
@@ -3055,7 +3080,7 @@ void ChamberUtilities::PopulateDmbHistograms(int number_of_reads) {
       AlctDavScopeHisto_[i]  += ((AlctDavScope >>i)&0x1);
     }
     //
-  ::usleep(10000);
+  ::usleep(getPauseBetweenDataReads());
   }
   return;
 }
