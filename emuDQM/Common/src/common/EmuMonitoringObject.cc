@@ -308,7 +308,14 @@ int EmuMonitoringObject::applyParameters()
 	object->SetLabelSize(opt,"Y");
       }
     }
+    if ((itr = params.find("SetErrorOption")) != params.end()) {
+      std::string st = itr->second;
+      if (object) {
+        reinterpret_cast<TProfile*>(object)->SetErrorOption(st.c_str());
+      }
+    }
 
+    
     if ((itr = params.find("SetLabelSizeZ")) != params.end()) {
       std::string st = itr->second;
       double opt = atof(st.c_str()) ;
