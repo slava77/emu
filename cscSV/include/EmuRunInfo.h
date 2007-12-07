@@ -11,45 +11,53 @@
 using namespace std;
 using namespace redi;
 
+/// Books run number with, and writes run summary to, run info database.
 
+/// EmuRunInfo is a destructible singleton.<br/>
+/// Instantiate at configuration:<br/>
+/// <tt>EmuRunInfo *ri = EmuRunInfo::\ref Instance ("dooobee","doobee","dooo");</tt><br/>
+/// Delete it when the run is stopped, and, just in case, when it's configured:<br/>
+/// <tt>delete ri;</tt>
 class EmuRunInfo{
-  // EmuRunInfo is a destructible singleton.
-  // Instantiate at configuration:
-  // EmuRunInfo *ri = EmuRunInfo::Instance("dooobee","doobee","dooo");
-  // Delete it when the run is stopped, and, just in case, when it's configured.
-  // delete ri;
 
 private:
 
-  static EmuRunInfo* instance_;
+  static EmuRunInfo* instance_;	///< the (one and only) instance of EmuRunInfo
 
-  string  bookingCommand_;
-  string  writingCommand_;
-  string  dbUserFile_;
-  string  dbAddress_;
+  string  bookingCommand_;	///< name of (external) command to be invoked for booking
+  string  writingCommand_;	///< name of (external) command to be invoked writing to database
+  string  dbUserFile_;		///< file containing the name and password of the database user
+  string  dbAddress_;		///< address of the database
 
-  string  dbUser_;
-  string  dbPassword_;
-  string  user_;
+  string  dbUser_;		///< name of the database user
+  string  dbPassword_;		///< password of the database user
+  string  user_;		///< user running this application
 
-  unsigned int runNumber_;
-  unsigned int runSequenceNumber_;
-  string runNumberString_;
-  string sequenceName_;
-  string runSequenceNumberString_;
+  unsigned int runNumber_;	///< booked run number
+  unsigned int runSequenceNumber_; ///< booked run sequence number
+  string runNumberString_;	///< run number in string format
+  string sequenceName_;		///< run sequence name
+  string runSequenceNumberString_; ///< run sequence number in string format
 
-  string errorMessage_;
+  string errorMessage_;		///< error message
 
-  static const string runNumKeyword_;
-  static const string seqNameKeyword_;
-  static const string runSeqNumKeyword_;
-  static const string bookingSuccessKeyword_;
-  static const string updateSuccessKeyword_;
+  static const string runNumKeyword_; ///< keyword to look for in order to find the run number in the output of the booking command
+  static const string seqNameKeyword_; ///< keyword to look for in order to find the sequence name in the output of the booking command
+  static const string runSeqNumKeyword_; ///< keyword to look for in order to find sequence number in the output of the booking command
+  static const string bookingSuccessKeyword_; ///< keyword in the output of the booking command indicating success
+  static const string updateSuccessKeyword_; ///< keyword in the output of the writing command indicating success
 
 
 protected:
 
-//   EmuRunInfo();
+  /// constructor
+
+  /// The constructor is protected in order to be callable by \ref Instance only.
+  /// @param bookingCommand name of (external) command to be invoked for booking
+  /// @param writingCommand name of (external) command to be invoked writing to database
+  /// @param dbUserFile file containing the name and password of the database user
+  /// @param dbAddress address of the database
+  ///
   EmuRunInfo( const string bookingCommand, 
 	      const string writingCommand, 
 	      const string dbUserFile, 
@@ -70,6 +78,17 @@ protected:
 
 public:
 
+  /// Instantiates this class.
+
+  /// With the constructor being protected, this is the only way to instantiate this class.
+  /// It makes sure there exists only one single instance of it.
+  /// @param bookingCommand name of (external) command to be invoked for booking
+  /// @param writingCommand name of (external) command to be invoked writing to database
+  /// @param dbUserFile file containing the name and password of the database user
+  /// @param dbAddress address of the database
+  ///
+  /// @return pointer to the sole instance
+  ///
   static EmuRunInfo* Instance( const string bookingCommand, 
 			       const string writingCommand, 
 			       const string dbUserFile, 
@@ -82,10 +101,12 @@ public:
 
   }
 
+  /// destructor
   ~EmuRunInfo(){
     instance_ = 0; // make sure it can be instantiated next time
   }
 
+  /// Gets name of user running this application.
   void findOutWhoIAm(){
 
     ipstream who("whoami");
@@ -93,6 +114,7 @@ public:
 
   }
 
+  /// Gets database user's name and password from \ref dbUserFile_ .
   void getDbUserData(){
     
     fstream fs;
@@ -118,6 +140,13 @@ public:
 
   }
 
+  /// Books run number with run info database.
+
+  /// Invokes the external command specified by \ref bookingCommand_
+  /// @param sequence run sequence name
+  ///
+  /// @return \c TRUE if successful
+  ///
   bool bookRunNumber( const string sequence ){
 
     errorMessage_ = "";
@@ -143,7 +172,7 @@ public:
     command += " ";
     command += sequence;
 
-//     cout << command << endl;
+    cout << command << endl;
 
     string reply;
     ipstream book( command.c_str() );
@@ -156,7 +185,7 @@ public:
     while ( std::getline(book, reply) ) {
       replyLines.push_back(reply);
     }
-//     copy( replyLines.begin(), replyLines.end(), ostream_iterator<string>(cout, "\n") );
+    copy( replyLines.begin(), replyLines.end(), ostream_iterator<string>(cout, "\n") );
 
     vector<string>::const_iterator line;
     for ( line = replyLines.begin(); line != replyLines.end(); ++line ){
@@ -192,7 +221,16 @@ public:
     return success;
 
   }
-  
+
+  /// Writes a parameter to the run info database.
+
+  /// Invokes the external command specified by \ref writingCommand_
+  /// @param name parameter name
+  /// @param value parameter value
+  /// @param nameSpace parameter's name space
+  ///
+  /// @return \c TRUE if successful
+  ///  
   bool writeRunInfo( const string name, const string value, const string nameSpace ){
 
     errorMessage_ = "";
@@ -237,16 +275,22 @@ public:
     return success;
 
   }
-  
+
+  /// accessor of booked run number
   unsigned int runNumber()        { return runNumber_; }
+  /// accessor of booked run sequence number
   unsigned int runSequenceNumber(){ return runSequenceNumber_; }
+  /// accessor of booked run number in string format
   string runNumberString()        { return runNumberString_; }
+  /// accessor of booked run sequence number in string format
   string runSequenceNumberString(){ return runSequenceNumberString_; }
+  /// accessor of run sequence name
   string sequenceName()           { return sequenceName_; }
+  /// accessor of error message
   string errorMessage()           { return errorMessage_; }
 };
 
-EmuRunInfo* EmuRunInfo::instance_ = 0; // init pointer
+EmuRunInfo* EmuRunInfo::instance_ = 0; ///< initial pointer
 
 const string EmuRunInfo::runNumKeyword_   ("RUN_NUMBER"         );
 const string EmuRunInfo::seqNameKeyword_  ("SEQUENCE_NAME"      );
