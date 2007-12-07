@@ -18,7 +18,6 @@ Packages=\
 	emuDQM/dduBinExaminer \
 	emuDQM/EmuROOTDisplayServer \
 	emuDQM/Common \
-	emuDQM/EmuDisplayServer \
 	emuDQM/emuMonitor \
 	emuDQM/emuDisplayClient
 endif
@@ -41,18 +40,6 @@ endif
 
 ifeq ($(Set),dduBinExaminer)
 Packages= emuDQM/dduBinExaminer
-endif
-
-ifeq ($(Set),GenericRUI)
-Packages= emuDQM/EmuROOTDisplayServer
-endif
-
-ifeq ($(Set),EmuRUI)
-Packages= emuDQM/EmuDisplayServer
-endif
-
-ifeq ($(Set),TriggerAdapter)
-Packages= emuDQM/EmuMonitor
 endif
 
 
