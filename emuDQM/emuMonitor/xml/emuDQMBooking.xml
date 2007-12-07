@@ -2651,11 +2651,11 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Clusters_Charge_Ly_1</Name>
 		<XMin>80</XMin>
-		<XMax>3000</XMax>
+		<XMax>16000</XMax>
 		<XBins>100</XBins>
 		<XTitle>Clusters Charge (in ADC Chanels)</XTitle>
 		<YTitle>Number of Events</YTitle>
-		<SetOptStat>em</SetOptStat>
+		<SetOptStat>eom</SetOptStat>
 		<Title>Layer 1</Title>
 		<Folder>CFEB</Folder>
 	</Histogram>
@@ -2664,11 +2664,11 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Clusters_Charge_Ly_2</Name>
 		<XMin>80</XMin>
-		<XMax>3000</XMax>
+		<XMax>16000</XMax>
 		<XBins>100</XBins>
 		<XTitle>Clusters Charge (in ADC Chanels)</XTitle>
 		<YTitle>Number of Events</YTitle>
-		<SetOptStat>em</SetOptStat>
+		<SetOptStat>eom</SetOptStat>
 		<Title>Layer 2</Title>
 		<Folder>CFEB</Folder>
 	</Histogram>
@@ -2677,11 +2677,11 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Clusters_Charge_Ly_3</Name>
 		<XMin>80</XMin>
-		<XMax>3000</XMax>
+		<XMax>16000</XMax>
 		<XBins>100</XBins>
 		<XTitle>Clusters Charge (in ADC Chanels)</XTitle>
 		<YTitle>Number of Events</YTitle>
-		<SetOptStat>em</SetOptStat>
+		<SetOptStat>eom</SetOptStat>
 		<Title>Layer 3</Title>
 		<Folder>CFEB</Folder>
 	</Histogram>
@@ -2690,11 +2690,11 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Clusters_Charge_Ly_4</Name>
 		<XMin>80</XMin>
-		<XMax>3000</XMax>
+		<XMax>16000</XMax>
 		<XBins>100</XBins>
 		<XTitle>Clusters Charge (in ADC Chanels)</XTitle>
 		<YTitle>Number of Events</YTitle>
-		<SetOptStat>em</SetOptStat>
+		<SetOptStat>eom</SetOptStat>
 		<Title>Layer 4</Title>
 		<Folder>CFEB</Folder>
 	</Histogram>
@@ -2703,11 +2703,11 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Clusters_Charge_Ly_5</Name>
 		<XMin>80</XMin>
-		<XMax>3000</XMax>
+		<XMax>16000</XMax>
 		<XBins>100</XBins>
 		<XTitle>Clusters Charge (in ADC Chanels)</XTitle>
 		<YTitle>Number of Events</YTitle>
-		<SetOptStat>em</SetOptStat>
+		<SetOptStat>eom</SetOptStat>
 		<Title>Layer 5</Title>
 		<Folder>CFEB</Folder>
 	</Histogram>
@@ -2716,11 +2716,11 @@
 		<Prefix>CSC</Prefix>
 		<Name>CFEB_Clusters_Charge_Ly_6</Name>
 		<XMin>80</XMin>
-		<XMax>3000</XMax>
+		<XMax>16000</XMax>
 		<XBins>100</XBins>
 		<XTitle>Clusters Charge (in ADC Chanels)</XTitle>
 		<YTitle>Number of Events</YTitle>
-		<SetOptStat>em</SetOptStat>
+		<SetOptStat>eom</SetOptStat>
 		<Title>Layer 6</Title>
 		<Folder>CFEB</Folder>
 	</Histogram>
@@ -3004,6 +3004,7 @@
 		<Title>Layer 1</Title>
 		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
+		<SetErrorOption>s</SetErrorOption>
 	</Histogram>
 	<Histogram>
 		<Type>hp</Type>
@@ -3021,6 +3022,7 @@
 		<Title>Layer 2</Title>
 		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
+		<SetErrorOption>s</SetErrorOption>
 	</Histogram>
 	<Histogram>
 		<Type>hp</Type>
@@ -3038,6 +3040,7 @@
 		<Title>Layer 3</Title>
 		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
+		<SetErrorOption>s</SetErrorOption>
 	</Histogram>
 	<Histogram>
 		<Type>hp</Type>
@@ -3055,6 +3058,7 @@
 		<Title>Layer 4</Title>
 		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
+		<SetErrorOption>s</SetErrorOption>
 	</Histogram>
 	<Histogram>
 		<Type>hp</Type>
@@ -3072,6 +3076,7 @@
 		<Title>Layer 5</Title>
 		<SetMinimum>0</SetMinimum>
 		<Folder>CFEB</Folder>
+		<SetErrorOption>s</SetErrorOption>
 	</Histogram>
 	<Histogram>
 		<Type>hp</Type>
@@ -3088,7 +3093,8 @@
 		<SetOptStat>e</SetOptStat>
 		<Title>Layer 6</Title>
 		<SetMinimum>0</SetMinimum>
-		<Folder>CFEB</Folder>
+		<Folder>CFEB</Folder>	
+		<SetErrorOption>s</SetErrorOption>
 	</Histogram>
 	<Histogram>
 		<Type>h1</Type>
