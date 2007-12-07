@@ -55,13 +55,11 @@ ExternalObjects = \
 	../Common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libemuDQMCommon.a \
 	../CMSSWLibs/lib/libCSCRawToDigi.a \
         ../CMSSWLibs/lib/libCSCDigi.a \
-	../dduBinExaminer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libdduBinExaminer.a \
 	../EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a 
 
 IncludeDirs = $(XdaqIncludeDirs) \
 	../CMSSWLibs \
 	../Common/include \
-	../dduBinExaminer/include \
 	../../emuDAQ/emuReadout/include \
 	../../emuDAQ/emuReadout/ORCA \
 	$(CMSSW) \

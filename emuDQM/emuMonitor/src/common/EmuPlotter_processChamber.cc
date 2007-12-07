@@ -46,8 +46,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   ChamberID	= (((crateID) << 4) + dmbID) & 0xFFF;
 
   if (crateID==0 || dmbID==0) {
-	LOG4CPLUS_ERROR(logger_,
-		"Invalid crate or dmb ID");
+    LOG4CPLUS_ERROR(logger_,
+		    "Invalid crate or dmb ID");
   }
 
   LOG4CPLUS_DEBUG(logger_, "Done");
@@ -60,7 +60,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   std::string cscTag(Form("CSC_%03d_%02d", crateID, dmbID));
   nDMBEvents[cscTag]++;
   LOG4CPLUS_INFO(logger_,
-                "Unpacking " << cscTag << " (Event: " << nDMBEvents[cscTag]<< ")");
+		 "Unpacking " << cscTag << " (Event: " << nDMBEvents[cscTag]<< ")");
 
   //	Creating list of histograms for the particular chamber
   map<string, ME_List >::iterator h_itr = MEs.find(cscTag);
@@ -68,7 +68,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     LOG4CPLUS_WARN(logger_,
 		   "List of Histos for " << cscTag <<  " not found");
     LOG4CPLUS_DEBUG(logger_, 
-		   "Booking Histos for " << cscTag);
+		    "Booking Histos for " << cscTag);
     fBusy = true;
     MEs[cscTag] = bookChamber(ChamberID);
     MECanvases[cscTag] = bookChamberCanvases(ChamberID);
@@ -84,7 +84,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   int CSCposition = 0;
   this->getCSCFromMap(crateID, dmbID, CSCtype, CSCposition );
   if (CSCtype && CSCposition && isMEvalid(nodeME, "CSC_Unpacked", mo))
-        mo->Fill(CSCposition, CSCtype);
+    mo->Fill(CSCposition, CSCtype);
 
   EmuMonitoringObject* mof = NULL;
   if (isMEvalid(cscME, "BinCheck_ErrorStat_Table", mo)
@@ -155,7 +155,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
   dmbHeaderBXN = dmbHeader.bxn12();
   //          Calculation difference between BXN numbers from DDU and DMB
 
-//  dmb_ddu_bxn_diff = (int)(dmbHeaderBXN-(int)(BXN&0x7F)); // For older DMB
+  //  dmb_ddu_bxn_diff = (int)(dmbHeaderBXN-(int)(BXN&0x7F)); // For older DMB
   dmb_ddu_bxn_diff = (int)(dmbHeaderBXN-(int)(BXN));
   LOG4CPLUS_DEBUG(logger_, "DMB(ID=" << ChamberID  << ") BXN = " << dmbHeaderBXN
 		  << " : DMB BXN - DDU BXN = " << dmb_ddu_bxn_diff);
@@ -170,7 +170,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     mo->SetAxisRange(0.1, 1.1*(1.0+ mo->getObject()->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
   }
 
-//  if (isMEvalid(cscME,"DMB_BXN_vs_DDU_BXN", mo)) mo->Fill((int)(BXN), (int)dmbHeaderBXN);
+  //  if (isMEvalid(cscME,"DMB_BXN_vs_DDU_BXN", mo)) mo->Fill((int)(BXN), (int)dmbHeaderBXN);
   if (isMEvalid(cscME,"DMB_BXN_vs_DDU_BXN", mo)) mo->Fill(((int)(BXN))%256, ((int)dmbHeaderBXN)%256);
 
   //    Unpacking CFEB information from DMB header
@@ -191,7 +191,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
   if (isMEvalid(nodeME, "DMB_Unpacked", mo)) { 
     mo->Fill(crateID,dmbID);
-  //  mo->SetEntries(nEvents);
+    //  mo->SetEntries(nEvents);
   }
 
   // if (isMEvalid(cscME, "DMB_CFEB_Active", mo) mo->Fill((dmbTrailer.header_1a>>5)&0x1F); //KK
@@ -287,8 +287,6 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     }
   }
 
-
-
   //ALCT Found
   if (data.nalct()) {
     CSCALCTHeader alctHeader = data.alctHeader();
@@ -330,7 +328,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     if (isMEvalid(cscME, "ALCT_L1A", mo)) mo->Fill((int)(alctHeader.L1Acc()));
 
     if (isMEvalid(cscME, "ALCT_DMB_L1A_diff", mo)) {
-//      int alct_dmb_l1a_diff = (int)((dmbHeader.l1a()&0xF)-alctHeader.L1Acc());
+      //      int alct_dmb_l1a_diff = (int)((dmbHeader.l1a()&0xF)-alctHeader.L1Acc());
       int alct_dmb_l1a_diff = (int)(dmbHeader.l1a()-(alctHeader.L1Acc()&0xFF));
       if(alct_dmb_l1a_diff < -128) mo->Fill(alct_dmb_l1a_diff + 256);
       else {
@@ -358,7 +356,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
     if (isMEvalid(cscME, "ALCT_BXN", mo)) mo->Fill(alctHeader.BXNCount());
 
-//    if (isMEvalid(cscME, "ALCT_BXN_vs_DMB_BXN", mo)) mo->Fill((int)((alctHeader.BXNCount())), (int)(dmbHeader.bxn()));
+    //    if (isMEvalid(cscME, "ALCT_BXN_vs_DMB_BXN", mo)) mo->Fill((int)((alctHeader.BXNCount())), (int)(dmbHeader.bxn()));
     if (isMEvalid(cscME, "ALCT_BXN_vs_DMB_BXN", mo)) mo->Fill((int)((alctHeader.BXNCount())%256), (int)(dmbHeader.bxn12())%256);
 
     if (isMEvalid(cscME, "ALCT_Number_Rate", mo)) {
@@ -502,7 +500,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
     CSCTMBData tmbData = data.tmbData();
     CSCTMBHeader tmbHeader = tmbData.tmbHeader();
 
-//    if (isMEvalid(cscME, "TMB_BXN_vs_ALCT_BXN", mo)) mo->Fill((int)((alctHeader.BXNCount())),(int)(tmbHeader.BXNCount()));
+    //    if (isMEvalid(cscME, "TMB_BXN_vs_ALCT_BXN", mo)) mo->Fill((int)((alctHeader.BXNCount())),(int)(tmbHeader.BXNCount()));
     if (isMEvalid(cscME, "TMB_BXN_vs_ALCT_BXN", mo)) mo->Fill( ((int)(alctHeader.BXNCount()))%256, ((int)(tmbHeader.BXNCount()))%256 );
 
     if (isMEvalid(cscME, "TMB_ALCT_BXN_diff", mo)) {
@@ -530,6 +528,10 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
   //CLCT Found
   if (data.nclct()) {
+
+    //     LOG4CPLUS_WARN(logger_,
+    //	    "TMB CRC calc: 0x" << hex << data.tmbData().TMBCRCcalc() << " trailer: 0x" << hex << data.tmbData().tmbTrailer().crc22());
+
     CSCTMBData tmbData = data.tmbData();
     CSCTMBHeader tmbHeader = tmbData.tmbHeader();
     CSCTMBTrailer tmbTrailer = tmbData.tmbTrailer();
@@ -587,7 +589,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
       mo->SetAxisRange(0.1, 1.1*(1.0+mo->GetBinContent(mo->getObject()->GetMaximumBin())), "Y");
     }
 
-//    if (isMEvalid(cscME, "DMB_L1A_vs_CLCT_L1A", mo)) mo->Fill(tmbHeader.L1ANumber(),dmbHeader.l1a());
+    //    if (isMEvalid(cscME, "DMB_L1A_vs_CLCT_L1A", mo)) mo->Fill(tmbHeader.L1ANumber(),dmbHeader.l1a());
     if (isMEvalid(cscME, "DMB_L1A_vs_CLCT_L1A", mo)) mo->Fill(tmbHeader.L1ANumber()%256,dmbHeader.l1a());
 
     if (isMEvalid(cscME, "CLCT_DMB_BXN_diff", mo)) {
@@ -602,7 +604,7 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 
     if (isMEvalid(cscME, "CLCT_BXN", mo)) mo->Fill((int)(tmbHeader.BXNCount()));
 
-//    if (isMEvalid(cscME, "CLCT_BXN_vs_DMB_BXN", mo)) mo->Fill(tmbHeader.BXNCount(),dmbHeader.bxn());
+    //    if (isMEvalid(cscME, "CLCT_BXN_vs_DMB_BXN", mo)) mo->Fill(tmbHeader.BXNCount(),dmbHeader.bxn());
     if (isMEvalid(cscME, "CLCT_BXN_vs_DMB_BXN", mo)) mo->Fill(tmbHeader.BXNCount()%256,dmbHeader.bxn12()%256);
 
     if (isMEvalid(cscME, "CLCT_Number_Rate", mo)) {
@@ -670,32 +672,32 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 	  // int pattern_clct = (int)((clctsDatas[lct].getPattern()>>1)&0x3);
 	  //                              pattern_clct = Number of patterns in CLCT
 	  //                              Last (left) bit is bend. Positive bend = 1, negative bend = 0
-         double tbin = -1;
-	 switch (pattern_clct) {
-	 case 0:  tbin=0.; break;
-	 case 1:  tbin=1.; break;
-	 case 2:  tbin=2.; break;
-	 case 3:  tbin=10.; break;
-	 case 4:  tbin=3.; break;
-	 case 5:  tbin=9.; break;
-	 case 6:  tbin=4.; break;
-	 case 7:  tbin=8.; break;
-	 case 8:  tbin=5.; break;
-	 case 9:  tbin=7.; break;
-	 case 10: tbin=6.; break;
-         }
-	 if (tbin >= 0) mo->Fill(clctsDatas[lct].getKeyStrip(), tbin);
+	  double tbin = -1;
+	  switch (pattern_clct) {
+	  case 0:  tbin=0.; break;
+	  case 1:  tbin=1.; break;
+	  case 2:  tbin=2.; break;
+	  case 3:  tbin=10.; break;
+	  case 4:  tbin=3.; break;
+	  case 5:  tbin=9.; break;
+	  case 6:  tbin=4.; break;
+	  case 7:  tbin=8.; break;
+	  case 8:  tbin=5.; break;
+	  case 9:  tbin=7.; break;
+	  case 10: tbin=6.; break;
+	  }
+	  if (tbin >= 0) mo->Fill(clctsDatas[lct].getKeyStrip(), tbin);
 
-/*	// 3-bit CLCT pattern field
-	  if(pattern_clct == 1) mo->Fill(clctsDatas[lct].getKeyStrip(), 7.0);
-	  if(pattern_clct == 3) mo->Fill(clctsDatas[lct].getKeyStrip(), 6.0);
-	  if(pattern_clct == 5) mo->Fill(clctsDatas[lct].getKeyStrip(), 5.0);
-	  if(pattern_clct == 7) mo->Fill(clctsDatas[lct].getKeyStrip(), 4.0);
-	  if(pattern_clct == 6) mo->Fill(clctsDatas[lct].getKeyStrip(), 3.0);
-	  if(pattern_clct == 4) mo->Fill(clctsDatas[lct].getKeyStrip(), 2.0);
-	  if(pattern_clct == 2) mo->Fill(clctsDatas[lct].getKeyStrip(), 1.0);
-	  if(pattern_clct == 0) mo->Fill(clctsDatas[lct].getKeyStrip(), 0.0);
-*/
+	  /*	// 3-bit CLCT pattern field
+		if(pattern_clct == 1) mo->Fill(clctsDatas[lct].getKeyStrip(), 7.0);
+		if(pattern_clct == 3) mo->Fill(clctsDatas[lct].getKeyStrip(), 6.0);
+		if(pattern_clct == 5) mo->Fill(clctsDatas[lct].getKeyStrip(), 5.0);
+		if(pattern_clct == 7) mo->Fill(clctsDatas[lct].getKeyStrip(), 4.0);
+		if(pattern_clct == 6) mo->Fill(clctsDatas[lct].getKeyStrip(), 3.0);
+		if(pattern_clct == 4) mo->Fill(clctsDatas[lct].getKeyStrip(), 2.0);
+		if(pattern_clct == 2) mo->Fill(clctsDatas[lct].getKeyStrip(), 1.0);
+		if(pattern_clct == 0) mo->Fill(clctsDatas[lct].getKeyStrip(), 0.0);
+	  */
 	}
 
         if (isMEvalid(cscME,  Form("CLCT%d_Half_Strip_Quality", lct), mo)) 
@@ -778,8 +780,8 @@ void EmuPlotter::processChamber(const CSCEventData& data, int nodeID=0, int dduI
 		    mo->SetBinContent(hstrip,(float)number_hstrip);
 		
 		    if((Double_t)(nDMBEvents[cscTag]) > 0.0) {
-			double norm = (100.0*Number_of_entries_CLCT)/((Double_t)(nDMBEvents[cscTag]));
-			// if (norm < 1.0) norm=1;
+		      double norm = (100.0*Number_of_entries_CLCT)/((Double_t)(nDMBEvents[cscTag]));
+		      // if (norm < 1.0) norm=1;
 		      mo->getObject()->SetNormFactor(norm);
 		    } else {
 		      mo->getObject()->SetNormFactor(100.0);
