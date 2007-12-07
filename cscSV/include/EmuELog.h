@@ -11,31 +11,41 @@
 using namespace std;
 using namespace redi;
 
-class EmuELog{
+/// Class for posting to electronic log book by invoking the @c curl command.
 
-  // Logs in to elog, posts entry, and logs out. Uses curl.
-  // Gets username:password of elog user and CMS user from files.
+/// 
+/// Logs in to elog, posts entry, and logs out. Uses @c curl.
+/// Gets username:password of elog user and CMS user from files.
+class EmuELog{
 
 private:
 
-  string curlCommand_;
-  string curlCookies_;
+  string curlCommand_;		///< curl command to be executed by the shell
+  string curlCookies_;		///< name of cookies file created by curl
 
-  string CMSUserFile_;
-  string eLogUserFile_;
+  string CMSUserFile_;		///< name of file containing user's id and password
+  string eLogUserFile_;		///< name of file containing e-log user's id and password
 
-  string eLogURL_;
+  string eLogURL_;		///< URL of electronic log book
 
-  string eLogUser_;
-  string eLogPassword_;
-  string eLogAuthor_;
-  string CMSUser_;
-  string CMSPassword_;
+  string eLogUser_;		///< e-log user's id
+  string eLogPassword_;		///< e-log user's password
+  string eLogAuthor_;		///< e-log entry's author
+  string CMSUser_;		///< user id
+  string CMSPassword_;		///< user password
 
-  string errorMessage_;
+  string errorMessage_;		///< error message
 
 public:
 
+  /// constructor
+
+  /// @param curlCommand curl command to be executed by the shell
+  /// @param curlCookies name of cookies file created by curl
+  /// @param CMSUserFile name of file containing user's id and password
+  /// @param eLogUserFile name of file containing e-log user's id and password
+  /// @param eLogURL URL of electronic log book
+  ///
   EmuELog( string curlCommand, 
 	   string curlCookies, 
 	   string CMSUserFile, 
@@ -51,8 +61,10 @@ public:
     getELogUserData();
   }
 
+  /// destructor
   ~EmuELog(){}
 
+  /// Gets user id and password from \ref CMSUserFile_ .
   void getCMSUserData(){
     
     fstream fs;
@@ -78,6 +90,7 @@ public:
 
   }
 
+  /// Gets e-log user id, password and author of entry from \ref eLogUserFile_ .
   void getELogUserData(){
     
     fstream fs;
@@ -107,7 +120,14 @@ public:
 
   }
 
+  /// Invokes curl to post e-log entry.
 
+  /// @param subject subject of entry
+  /// @param body message body
+  /// @param attachments names of files to be attached
+  ///
+  /// @return TRUE if successful
+  ///
   bool postMessage( string subject, string body, vector<string> *attachments=0 ){
 
     // TODO: try to find out whether or not posting was successful
@@ -203,10 +223,29 @@ public:
     return success;
 
   }
-  
+
+  /// accessor of e-log user's id
+
+  ///
+  /// @return e-log user's id
   string eLogUser(){ return eLogUser_; }
+
+  /// accessor of e-log user's password
+
+  ///
+  /// @return e-log user's password
   string eLogPassword(){ return eLogPassword_; }
+
+  /// accessor of user's id
+
+  ///
+  /// @return user's id
   string CMSUser(){ return CMSUser_; }
+
+  /// accessor of error message
+
+  ///
+  /// @return error message
   string errorMessage(){ return errorMessage_; }
 };
 
