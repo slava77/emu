@@ -145,8 +145,11 @@ void EmuDisplayClient::createTreeItems(xgi::Input * in, xgi::Output * out ) thro
 
 void EmuDisplayClient::createHTMLNavigation(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
 {
+  std::string baseurl = getApplicationDescriptor()->getContextDescriptor()->getURL() + "/" + getApplicationDescriptor()->getURN() + "/";
   *out << "<html>\n<head>\n"
        << "<title>Emu DQM Web Client Interface</title>\n"
+       << "<base href='" << baseurl <<"' />\n"
+
        << "</head>\n"
        << "<frameset rows=\"120,*\">\n"
        << "	<frame src=\"header\" name=\"control\" id=\"control\">\n"
