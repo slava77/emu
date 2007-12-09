@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.27 2007/12/05 13:46:42 gujh Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.28 2007/12/09 14:16:49 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -1057,28 +1057,38 @@ xoap::MessageReference EmuPeripheralCrateManager::QueryJobControlInfoSpace() {
 //
 xoap::MessageReference EmuPeripheralCrateManager::onConfigCalCFEB (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
-  fireEvent("Configure");
    SendSOAPMessageXRelayBroadcast("ConfigCalCFEB","");
+   //
+   ::sleep(1);
+   fireEvent("Configure");
   return createReply(message);
 }
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBCrossTalk (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   SendSOAPMessageXRelayBroadcast("EnableCalCFEBCrossTalk","");
+  //
+  fireEvent("Enable");
   return createReply(message);
 }
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBSCAPed (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   SendSOAPMessageXRelayBroadcast("EnableCalCFEBSCAPed","");
+  //
+  fireEvent("Enable");
   return createReply(message);
 }
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBGains (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   SendSOAPMessageXRelayBroadcast("EnableCalCFEBGains","");
+  //
+  fireEvent("Enable");
   return createReply(message);
 }
 xoap::MessageReference EmuPeripheralCrateManager::onEnableCalCFEBComparator (xoap::MessageReference message) 
   throw (xoap::exception::Exception) {
   SendSOAPMessageXRelayBroadcast("EnableCalCFEBComparator","");
+  //
+  fireEvent("Enable");
   return createReply(message);
 }
 
@@ -1092,9 +1102,11 @@ xoap::MessageReference EmuPeripheralCrateManager::onConfigure (xoap::MessageRefe
   //cout << test.str() <<endl;
   //cout << " Print check working "<<endl;
   //
-  fireEvent("Configure");
-  //
   SendSOAPMessageXRelaySimple("Configure","");
+  //
+  // really should wait for OK message from EmuPeripheralCrate before change status
+  ::sleep(1);
+  fireEvent("Configure");
   //
   return createReply(message);
   //
