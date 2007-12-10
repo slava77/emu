@@ -25,6 +25,7 @@ Package=emuDQM/emuMonitor
 Sources=\
 	EmuMonitor.cc \
 	EmuMonitor_SOAP.cc \
+	EmuMonitor_WebInterface.cc \
 	EmuPlotter.cc \
 	EmuPlotter_generateLayout.cc \
 	EmuPlotter_bookHistograms.cc \
@@ -52,7 +53,7 @@ TestLibraries = xerces-c
 TestExecutables = xmlExample.cpp 
 
 ExternalObjects = \
-	../Common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libemuDQMCommon.a \
+	../Common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuDQMCommon.a \
 	../CMSSWLibs/lib/libCSCRawToDigi.a \
         ../CMSSWLibs/lib/libCSCDigi.a \
 	../EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a 

@@ -17,11 +17,11 @@ void CSCReadoutMappingFromFile::fill( std::string mapfile ) {
   std::string line;
   const std::string commentFlag = "#";
   if ( !in ) {
-    edm::LogError("CSC") << " Failed to open file " << theMappingFile << " containing mapping.";
+    edm::LogError("CSCMapping") << " Failed to open file " << theMappingFile << " containing mapping.";
   }
   else
   {
-    edm::LogInfo("CSC") << " Opened file " << theMappingFile << " containing mapping.";
+    edm::LogInfo("CSCMapping") << " Opened file " << theMappingFile << " containing mapping.";
 
     while ( getline(in, line) ) { // getline() from <string>
       // LogDebug("CSC") << line;

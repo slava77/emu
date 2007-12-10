@@ -143,6 +143,8 @@ class EmuMonitor: public xdaq::WebApplication, xdata::ActionListener, Task
   // Web callback functions
   void Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception);
   void dispatch (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
+  void showStatus (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
+  void showControl (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception);
   void Configure(xgi::Input * in ) throw (xgi::exception::Exception);
   void Enable(xgi::Input * in ) throw (xgi::exception::Exception);
   void Halt(xgi::Input * in ) throw (xgi::exception::Exception);

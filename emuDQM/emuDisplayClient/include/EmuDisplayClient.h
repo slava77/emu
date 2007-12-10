@@ -90,6 +90,7 @@ class EmuDisplayClient : public xdaq::WebApplication, xdata::ActionListener
   xdata::String iconsURL_;
   xdata::String imageFormat_;
   xdata::String imagePath_;
+  xdata::Boolean viewOnly_;
 
 
 };

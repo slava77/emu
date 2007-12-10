@@ -5,7 +5,8 @@ include ../config/xdaq.mk
 
 CXX     = g++
 
-CXXFLAGS  = -pedantic -Wno-long-long -Wall -fPIC
+CXXFLAGS  = -pedantic -Wno-long-long -Wall 
+#-fPIC
 
 LOG4CPLUS = $(XDAQ_ROOT)/include
 DEFINES   = -DLOG4CPLUS_LOGGER  $(INPDEF) $(OUTDEF)
@@ -111,7 +112,7 @@ $(LDIR)/libCSCDigi.so: $(OBJS_DIGI)
 	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) -shared $(OBJS_DIGI) -o $@
 
 $(LDIR)/libCSCDigi.a: $(OBJS_DIGI)
-	ar cr $@ $(OBJS_DIGI)
+	ar crs $@ $(OBJS_DIGI)
 	@echo "Done."
 
 $(LDIR)/libCSCRawToDigi.so: $(OBJS_RAW)
@@ -120,7 +121,7 @@ $(LDIR)/libCSCRawToDigi.so: $(OBJS_RAW)
 	
 
 $(LDIR)/libCSCRawToDigi.a: $(OBJS_RAW)
-	ar cr $@ $(OBJS_RAW)
+	ar crs $@ $(OBJS_RAW)
 	@echo "Done."
 
 $(LDIR)/libQualityTests.so: $(OBJS_QLTY)
@@ -128,7 +129,7 @@ $(LDIR)/libQualityTests.so: $(OBJS_QLTY)
 	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) -shared $(OBJS_QLTY)  -o $@
 
 $(LDIR)/libQualityTests.a: $(OBJS_QLTY)
-	ar cr $@ $(OBJS_QLTY)
+	ar crs $@ $(OBJS_QLTY)
 	@echo "Done."
 
 
