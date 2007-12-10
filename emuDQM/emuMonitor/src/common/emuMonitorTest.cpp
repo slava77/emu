@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 //	string xmlcfg = "/home/dqm/TriDAS/emu/emuDQM/emuMonitor/xml/EmuDQMBooking.xml";
 	string xmlHistosBookingCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMBooking.xml";
         std::string xmlCanvasesCfg = "http://cms-dqm03.phys.ufl.edu/dqm/results/emuDQMCanvases.xml";
-	string cscMapFile = "/csc_data/csc_map.txt";
+	string cscMapFile = "/csc_data/results/csc_map.txt";
 	EmuPlotter plotter(logger);
 	plotter.setXMLHistosBookingCfgFile(xmlHistosBookingCfg);
 	plotter.setXMLCanvasesCfgFile(xmlCanvasesCfg);

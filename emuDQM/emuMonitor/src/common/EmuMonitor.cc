@@ -45,7 +45,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
   pool_ = NULL;
   initProperties();
   setMemoryPool();
-  // setupPlotter();
+
   timer_ = new EmuMonitorTimerTask();
   pmeter_ = new toolbox::PerformanceMeter();
   pmeterCSC_ = new toolbox::PerformanceMeter();
@@ -62,7 +62,7 @@ XDAQ_INSTANTIATOR_IMPL(EmuMonitor)
   bindI2Ocallbacks();
   bindSOAPcallbacks();
   bindCGIcallbacks();
-//  appTid_ = i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor());
+
   appTid_ = this->getApplicationDescriptor()->getInstance();
 }
 
@@ -232,11 +232,7 @@ void EmuMonitor::defineWebSM()
   wsm_.addState('R', "Ready",     this, &EmuMonitor::stateMachinePage);
   wsm_.addState('E', "Enabled",   this, &EmuMonitor::stateMachinePage);
   wsm_.addStateTransition('H','R', "Configure", this, &EmuMonitor::Configure, &EmuMonitor::failurePage);
-  // wsm_.addStateTransition('H','E', "Halt",    this, &EmuMonitor::InvalidWebAction, &EmuMonitor::failurePage);
-  // wsm_.addStateTransition('R','R', "Configure", this, &EmuMonitor::InvalidWebAction, &EmuMonitor::failurePage);
   wsm_.addStateTransition('R','E', "Enable",    this, &EmuMonitor::Enable,    &EmuMonitor::failurePage);
-  // wsm_.addStateTransition('E','E', "Enable",    this, &EmuMonitor::InvalidWebAction, &EmuMonitor::failurePage);
-  // wsm_.addStateTransition('E','R', "Enable", this, &EmuMonitor::InvalidWebAction, &EmuMonitor::failurePage);
   wsm_.addStateTransition('R','H', "Halt",      this, &EmuMonitor::Halt,      &EmuMonitor::failurePage);
   wsm_.addStateTransition('E','H', "Halt",      this, &EmuMonitor::Halt,      &EmuMonitor::failurePage);
   wsm_.addStateTransition('H','H', "Halt",      this, &EmuMonitor::Halt, &EmuMonitor::failurePage);
@@ -276,12 +272,12 @@ void EmuMonitor::setupPlotter()
     delete plotter_;
     plotter_ = NULL;
   }
+
   plotter_ = new EmuPlotter(getApplicationLogger());
-  // 	plotter_ = new EmuLocalPlotter(getApplicationLogger());
-  //	plotter_ = new EmuPlotter(getApplicationLogger());
   if (xmlHistosBookingCfgFile_ != "") plotter_->setXMLHistosBookingCfgFile(xmlHistosBookingCfgFile_.toString());
   if (xmlCanvasesCfgFile_ != "") plotter_->setXMLCanvasesCfgFile(xmlCanvasesCfgFile_.toString());
   if (cscMapFile_ != "") plotter_->setCSCMapFile(cscMapFile_.toString());
+
 }
 
 // == Bind I2O Callbacks ==//
@@ -310,6 +306,8 @@ void EmuMonitor::bindSOAPcallbacks()
 void EmuMonitor::bindCGIcallbacks()
 {
   xgi::bind(this, &EmuMonitor::dispatch, "dispatch");
+  xgi::bind(this, &EmuMonitor::showStatus, "showStatus");
+  xgi::bind(this, &EmuMonitor::showControl, "showControl");
   maxFrameSize_ = sizeof(I2O_EMUMONITOR_CREDIT_MESSAGE_FRAME);
 }
 
@@ -800,22 +798,8 @@ void EmuMonitor::noAction(toolbox::Event::Reference e) throw (toolbox::fsm::exce
   fsm_.setInitialState(fsm_.getCurrentState());
 }
 
-// == XGI Call back == //
-void EmuMonitor::Default(xgi::Input * in, xgi::Output * out ) throw (xgi::exception::Exception)
-{
-  wsm_.displayPage(out);
-}
 
-// == WSM Dispatcher function == //
-void EmuMonitor::dispatch (xgi::Input * in, xgi::Output * out)  throw (xgi::exception::Exception)
-{
-  cgicc::Cgicc cgi(in);
-  //const cgicc::CgiEnvironment& env = cgi.getEnvironment();
-  cgicc::const_form_iterator stateInputElement = cgi.getElement("StateInput");
-  std::string stateInput = (*stateInputElement).getValue();
-  wsm_.fireEvent(stateInput,in,out);
-  stateName_ = wsm_.getStateName(wsm_.getCurrentState());
-}
+
 
 // == Web Events that trigger state changes (result of wsm::fireEvent) == //
 void EmuMonitor::Configure(xgi::Input * in ) throw (xgi::exception::Exception)
@@ -857,168 +841,7 @@ void EmuMonitor::Halt(xgi::Input * in ) throw (xgi::exception::Exception)
     }
 }
 
-void EmuMonitor::InvalidWebAction(xgi::Input * in ) throw (xgi::exception::Exception)
-{
-  LOG4CPLUS_WARN(getApplicationLogger(),"Invalid Web FSM transition. Ignored");
-}
 
-
-// == Print application parameters == //
-void EmuMonitor::printParametersTable( xgi::Output * out ) throw (xgi::exception::Exception)
-{
-
-  // xdata::InfoSpace * params_list = getApplicationInfoSpace(); 
-  // xdata::InfoSpace::iterator itr;
-  std::map<std::string, xdata::Serializable*, std::less<std::string> > *params_list = getApplicationInfoSpace(); 
-  std::map<std::string, xdata::Serializable*, std::less<std::string> >::iterator itr;
-  *out 	<< "<table border>"
-	<< "<tr>"
-        << "<th colspan=3 bgcolor=#7F7FFF>" << "Parameters List" << "</th>"
-	<< "</tr>"
-	<< "<tr>"
-  	<< "<th>" << "Name" << "</th>"
-	<< "<th>" << "Type" << "</th>" 
-	<< "<th>" << "Value" << "</th>"
- 	<< "</tr>" << std::endl;
-  for (itr=params_list->begin(); itr != params_list->end(); ++itr) 
-    {
-      if (itr->second->type() == "properties") continue;
-      *out << "<tr>" << std::endl;
-      *out << "<td>" << itr->first << "</td>" << std::endl;
-      *out << "<td>" << itr->second->type() << "</td>" << std::endl;
-      if (itr->second->type() == "vector") {
-        *out << "<td>";
-	// =VB= !!! possible XDAQ bug: returns wrong pointer to xdata::Vector (+4 bytes offset)
-        /* 
-	   for (int i=0; i < reinterpret_cast<xdata::Vector<xdata::Serializable>* >((int)(itr->second)-4)->elements(); i++) {
-	   *out << reinterpret_cast<xdata::Vector<xdata::Serializable>*>((int)(itr->second)-4)->elementAt(i)->toString() << " ";
-	   }
-	*/
-	*out << "</td>" << std::endl;
-      } else {
-	*out << "<td>" << itr->second->toString() << "</td>" << std::endl;
-      }
-
-      *out << "</tr>" << std::endl;
-    }
-  *out 	<< "</table>" << std::endl;
-}
-/*
-  std::string EmuMonitor::ageOfPageClock(){
-  std::stringstream ss;
-  ss << "<script type=\"text/javascript\">"                        << endl;
-  ss << "   ageOfPage=0"                                           << endl;
-  ss << "   function countSeconds(){"                              << endl;
-  ss << "      hours=Math.floor(ageOfPage/3600)"                   << endl;
-  ss << "      minutes=Math.floor(ageOfPage/60)%60"                << endl;
-  ss << "      age=\"\""                                           << endl;
-  ss << "      if (hours) age+=hours+\" h \""                      << endl;
-  ss << "      if (minutes) age+=minutes+\" m \""                  << endl;
-  ss << "      age+=ageOfPage%60+\" s \""                          << endl;
-  ss << "      document.getElementById('ageOfPage').innerHTML=age" << endl;
-  ss << "      ageOfPage=ageOfPage+1"                              << endl;
-  ss << "      setTimeout('countSeconds()',1000)"                  << endl;
-  ss << "   }"                                                     << endl;
-  ss << "</script>"                                                << endl;
-  return ss.str();
-  }
-
-*/
-// == Web Navigation Pages == //
-void EmuMonitor::stateMachinePage( xgi::Output * out ) throw (xgi::exception::Exception)
-{
-  *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-  /*
-    if ( fsm_.getCurrentState() == 'E' ){
-    *out << "<meta http-equiv=\"Refresh\" content=\"5\">"              << endl;
-    }
-  */
-  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-
-  xgi::Utils::getPageHeader
-    (out,
-     "EmuMonitor",
-     getApplicationDescriptor()->getContextDescriptor()->getURL(),
-     getApplicationDescriptor()->getURN(),
-     "/daq/xgi/images/Application.gif"
-     );
-
-  std::string url = "/";
-  url += getApplicationDescriptor()->getURN();
-  url += "/dispatch";
-
-  // display FSM
-  std::set<std::string> possibleInputs = wsm_.getInputs(wsm_.getCurrentState());
-  std::set<std::string> allInputs = wsm_.getInputs();
-
-
-  *out << cgicc::h3("Finite State Machine").set("style", "font-family: arial") << std::endl;
-
-  //  printParametersTable(out);
-
-  //  *out << cgicc::hr() << std::endl;
-
-  *out << "<table border cellpadding=10 cellspacing=0>" << std::endl;
-  *out << "<tr>" << std::endl;
-  *out << "<th>" << wsm_.getStateName(wsm_.getCurrentState()) << "</th>" << std::endl;
-  *out << "</tr>" << std::endl;
-  *out << "<tr>" << std::endl;
-  std::set<std::string>::iterator i;
-  for ( i = allInputs.begin(); i != allInputs.end(); i++)
-    {
-      *out << "<td>";
-      *out << cgicc::form().set("method","get").set("action", url).set("enctype","multipart/form-data") << std::endl;
-
-      if ( possibleInputs.find(*i) != possibleInputs.end() )
-	{
-	  *out << cgicc::input().set("type", "submit").set("name", "StateInput").set("value", (*i) );
-	}
-      else
-	{
-	  *out << cgicc::input() .set("type", "submit").set("name", "StateInput").set("value", (*i) ).set("disabled", "true");
-	}
-
-      *out << cgicc::form();
-      *out << "</td>" << std::endl;
-    }
-
-  *out << "</tr>" << std::endl;
-  *out << "</table>" << std::endl;
-  //
-
-  *out << cgicc::hr() << std::endl;
-
-  printParametersTable(out);
-  
-
-  xgi::Utils::getPageFooter(*out);
-}
-
-
-
-
-// == Failure Pages == //
-void EmuMonitor::failurePage(xgi::Output * out, xgi::exception::Exception & e)  throw (xgi::exception::Exception)
-{
-  *out << cgicc::HTMLDoctype(cgicc::HTMLDoctype::eStrict) << std::endl;
-  *out << cgicc::html().set("lang", "en").set("dir","ltr") << std::endl;
-
-  xgi::Utils::getPageHeader
-    (out,
-     "EmuMonitor Failure",
-     getApplicationDescriptor()->getContextDescriptor()->getURL(),
-     getApplicationDescriptor()->getURN(),
-     "/daq/xgi/images/Application.gif"
-     );
-
-  *out << cgicc::br() << e.what() << cgicc::br() << endl;
-  std::string url = "/";
-  url += getApplicationDescriptor()->getURN();
-
-  *out << cgicc::br() << "<a href=\"" << url << "\">" << "retry" << "</a>" << cgicc::br() << endl;
-
-  xgi::Utils::getPageFooter(*out);
-}
 
 void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
   // Emu-specific stuff
@@ -1061,12 +884,6 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
   if (eventsReceived_%200 == 0) {
     time_t nowmark=time(NULL);
     averageRate_ = eventsReceived_/(nowmark-startmark);
-    /*        LOG4CPLUS_WARN(getApplicationLogger(),
-	      "==> Average rate: " << averageRate_ << " evt/sec");
-	      LOG4CPLUS_WARN(getApplicationLogger(),
-	      "==> Current rate: " << pmeter_->rate() << " evt/sec");
-    */
-
   }
 
  
@@ -1087,7 +904,6 @@ void EmuMonitor::emuDataMsg(toolbox::mem::Reference *bufRef){
   }
 
   if (status == 0) processEvent(reinterpret_cast<const char *>(startOfPayload), sizeOfPayload, status, serverTID);
-  //  usleep(2500);
 
   // Free the Emu data message
   bufRef->release();
@@ -1110,14 +926,7 @@ int EmuMonitor::sendDataRequest(uint32_t last)
 	  nEventCredits_ = newRate;
 	}
       }
-      /*
-	uint32_t newRate = (uint32_t)(rint(pmeter_->rate()));
-	if (newRate>10) newRate=(newRate/10)*10;
-	if (newRate>nEventCredits_ && (newRate <=300)) {
-	LOG4CPLUS_WARN (getApplicationLogger(), "Adjusting nEventCredits to " << newRate);
-	nEventCredits_ = newRate;
-	};
-      */
+
       creditMsgsSent_ ++;
       eventsRequested_ = eventsRequested_ +  nEventCredits_;
       toolbox::mem::Reference * ref = 0;
@@ -1382,307 +1191,14 @@ void EmuMonitor::processEvent(const char * data, int dataSize, uint32_t errorFla
     sessionEvents_++;
     LOG4CPLUS_INFO(getApplicationLogger(), "Event #" << sessionEvents_.toString() 
 		   << " (Total processed: " << totalEvents_.toString() << ")"); 
-    //   plotter_->processEvent(data, dataSize, errorFlag, node);
-    plotter_->processEvent(data, dataSize, errorFlag, appTid_);
+    plotter_->processEvent(data, dataSize, errorFlag, node);
     pmeter_->addSample(dataSize);
     cscUnpacked_ = cscUnpacked_ + plotter_->getUnpackedDMBCount();
     for (int i=0; i< plotter_->getUnpackedDMBCount(); i++) {
       pmeterCSC_->addSample(1);
     }
-    /*
-      if (plotter_->isListModified()) {
-      updateList(collectorID_);
-      updateObjects(collectorID_);
-      plotter_->setListModified(false);
-      }
-    */
     lastEventTime_ = now();
   }
-}
-
-void EmuMonitor::updateList(xdata::Integer id)
-{
-  return;
-  xoap::MessageReference msg = xoap::createMessage();
-  xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
-  xoap::SOAPBody body = envelope.getBody();
-  xoap::SOAPName commandName = envelope.createName("updateList","xdaq", "urn:xdaq-soap:3.0");
-  /*
-    xoap::SOAPName originator = envelope.createName("originator");
-    xoap::SOAPName targetAddr = envelope.createName("targetAddr");
-  */
-  xoap::SOAPElement command = body.addBodyElement(commandName );
-
-
-  xdata::Integer localTid(i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor()));
-  /*
-    xdata::Integer serverTid (displayServerTID_);
-
-    command.addAttribute (targetAddr, serverTid.toString() );
-    command.addAttribute (originator, localTid.toString() );
-  */
-  xoap::SOAPName monitorName = envelope.createName("DQMNode", "", "");
-  xoap::SOAPElement monitorElement = command.addChildElement(monitorName);
-  monitorElement.addTextNode(localTid.toString());
-
-  xoap::SOAPName histoName = envelope.createName("Obj", "", "");
-  xoap::SOAPName histodirName = envelope.createName("Branch", "", "");
-
-  map<string, ME_List> MEs = plotter_->GetMEs();
-
-  for (map<string, ME_List >::iterator itr = MEs.begin();
-       itr != MEs.end(); ++itr) {
-    xdata::String dir(itr->first);
-    xoap::SOAPElement histodirElement = monitorElement.addChildElement(histodirName);
-    histodirElement.addTextNode(dir);
-    for (ME_List_const_iterator h_itr = itr->second.begin();
-         h_itr != itr->second.end(); ++h_itr) {
-      xdata::String hname  (h_itr->first);
-      xoap::SOAPElement histoElement = histodirElement.addChildElement(histoName);
-      histoElement.addTextNode(hname);
-      LOG4CPLUS_DEBUG(getApplicationLogger(), 
-		      "MyHistograms: " << h_itr->first << " size: " << sizeof(*(h_itr->second)));
-    }
-  }
-
-  /*
-    for (map<int, map<string, ConsumerCanvas*> >::iterator itr = plotter_->canvases.begin();
-    itr != plotter_->canvases.end(); ++itr) {
-    xdata::Integer dir (itr->first);
-    xoap::SOAPElement histodirElement = monitorElement.addChildElement(histodirName);
-    histodirElement.addTextNode(dir.toString());
-    for (map<string, ConsumerCanvas*>::iterator h_itr = itr->second.begin();
-    h_itr != itr->second.end(); ++h_itr) {
-    xdata::String hname  (h_itr->first);
-    xoap::SOAPElement histoElement = histodirElement.addChildElement(histoName);
-    histoElement.addTextNode(hname);
-    //              LOG4CPLUS_DEBUG(getApplicationLogger(), 
-    //		"MyCanvases: " << h_itr->first << " size: " << sizeof(*h_itr->second));
-    }
-    }
-  */
-  try
-    {
-      /*
-	xdaq::ApplicationDescriptor* collectorDescriptor =
-	getApplicationContext()
-	->getApplicationGroup()
-	->getApplicationDescriptor( collectorsClassName_, id );
-      */
-      xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup("dqm");
-      xdaq::ApplicationDescriptor* collectorDescriptor =        g->getApplicationDescriptor(collectorsClassName_, id);
-      xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()),*collectorDescriptor);
-
-      /*
-        cout << endl;
-        reply.writeTo(cout);
-        cout << endl;
-      */
-      xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
-
-      if (rb.hasFault() )
-        {
-          xoap::SOAPFault fault = rb.getFault();
-          std::string errmsg = "Server: ";
-          errmsg += fault.getFaultString();
-          XCEPT_RAISE(xoap::exception::Exception, errmsg);
-        } else
-          {
-            vector<xoap::SOAPElement> content = rb.getChildElements ();
-            if (content.size() == 1)
-              {
-                xoap::SOAPName statusTag ("Status", "", "");
-                vector<xoap::SOAPElement> statusElement = content[0].getChildElements (statusTag );
-                if (statusElement[0].getElementName() == statusTag)
-                  {
-                    LOG4CPLUS_INFO(getApplicationLogger(), 
-				   "The server status is: " << statusElement[0].getValue());
-                  } else {
-                    LOG4CPLUS_DEBUG(getApplicationLogger(), 
-				    "Value of element is: " << statusElement[0].getValue());
-                  }
-              } else
-                {
-                  LOG4CPLUS_DEBUG(getApplicationLogger(), 
-				  "Response contains wrong number of elements: " << content.size());
-                }
-          }
-    }
-  catch (xdaq::exception::Exception& e)
-    {
-      // handle exception
-    }
-
-
-  //   return reply;
-}
-
-void EmuMonitor::updateObjects(xdata::Integer id)
-{
-  return;
-  xoap::MessageReference msg = xoap::createMessage();
-  xoap::SOAPEnvelope envelope = msg->getSOAPPart().getEnvelope();
-  xoap::SOAPBody body = envelope.getBody();
-  xoap::SOAPName commandName = envelope.createName("updateObjects", "xdaq", "urn:xdaq-soap:3.0");
-
-  xoap::SOAPName originator = envelope.createName("originator");
-  // xoap::SOAPName targetAddr = envelope.createName("targetAddr");
-  xoap::SOAPElement command = body.addBodyElement(commandName );
-
-  xdata::Integer localTid(i2o::utils::getAddressMap()->getTid(this->getApplicationDescriptor()));
-  /*
-    xdata::Integer serverTid (displayServerTID_);
-
-    command.addAttribute (targetAddr, serverTid.toString() );
-    command.addAttribute (originator, localTid.toString() );
-  */
-  command.addAttribute (originator, localTid.toString() );
-  xoap::SOAPName monitorName = envelope.createName("DQMNode", "", "");
-  xoap::SOAPElement monitorElement = command.addChildElement(monitorName);
-  monitorElement.addTextNode(localTid.toString());
-  // b.addTextNode ("Monitor Objects Attached");
-  //int cnt=0;
-  
-  map<string, ME_List > MEs = plotter_->GetMEs();
-  
-  for (map<string, ME_List >::iterator itr = MEs.begin();
-       itr != MEs.end(); ++itr) {
-    std::string dir = itr->first + "/";
-    /*
-      if (int id=itr->first) {
-      std::stringstream stdir;
-      dir.clear();
-      stdir.clear();
-      stdir << "CSC_" << ((id>>4)&0xFF) << "_" << (id&0xF) << "/";
-      stdir >> dir;
-      }
-      if (itr->first == SLIDES_ID) {
-      dir = std::string(SLIDES) +"/";
-      }
-    */
-    std::string location = dir;
-    for (ME_List_const_iterator h_itr = itr->second.begin();
-         h_itr != itr->second.end(); ++h_itr) {
-      //cout << "Count: " << cnt << endl;
-      //if (cnt < 1) {
-      xdata::String hname  (h_itr->first);
-      TMessage buf(kMESS_OBJECT);
-      buf.Reset();
-      buf.SetWriteMode();
-      buf.WriteObjectAny(h_itr->second->getObject(), h_itr->second->getObject()->Class());
-      //        LOG4CPLUS_DEBUG(getApplicationLogger(), "Histogram: " << h_itr->first << " buffer size:" << buf.BufferSize());
-      char * attch_buf = new char[buf.BufferSize()];
-      buf.Reset();
-      buf.SetReadMode();
-      buf.ReadBuf(attch_buf, buf.BufferSize());
-      // std::string contenttype = "content/unknown";
-      std::string contenttype = "application/octet-stream";
-      xoap::AttachmentPart * attachment = msg->createAttachmentPart(attch_buf, buf.BufferSize(), contenttype);
-      //attachment->addMimeHeader("Content-Description", h_itr->first);
-      attachment->setContentLocation(location+h_itr->first);
-      attachment->setContentEncoding("binary");
-      msg->addAttachmentPart(attachment);
-      delete []attch_buf;
-      //cnt++;
-      //}
-    }
-  }
-
-  /*
-    for (map<int, map<string, ConsumerCanvas*> >::iterator itr = plotter_->canvases.begin();
-    itr != plotter_->canvases.end(); ++itr) {
-    std::string dir="";
-    if (int id=itr->first) {
-    std::stringstream stdir;
-    dir.clear();
-    stdir.clear();
-    stdir << "CSC_" << ((id>>4)&0xFF) << "_" << (id&0xF) << "/";
-    stdir >> dir;
-    }
-    if (itr->first == SLIDES_ID) {
-    dir = std::string(SLIDES) +"/";
-    }
-    std::string location = dir;
-    for (map<string, ConsumerCanvas*>::iterator h_itr = itr->second.begin();
-    h_itr != itr->second.end(); ++h_itr) {
-    //cout << "Count: " << cnt << endl;
-    //if (cnt < 1) {
-    xdata::String hname  (h_itr->first);
-    TMessage buf(kMESS_OBJECT);
-    buf.Reset();
-    buf.SetWriteMode();
-    buf.WriteObjectAny(h_itr->second, h_itr->second->Class());
-    //           LOG4CPLUS_DEBUG(getApplicationLogger(), "Canvas: " << h_itr->first << " buffer size:" << buf.BufferSize());
-    char * attch_buf = new char[buf.BufferSize()];
-    buf.Reset();
-    buf.SetReadMode();
-    buf.ReadBuf(attch_buf, buf.BufferSize());
-    // std::string contenttype = "content/unknown";
-    std::string contenttype = "application/octet-stream";
-    xoap::AttachmentPart * attachment = msg->createAttachmentPart(attch_buf, buf.BufferSize(), contenttype);
-    //attachment->addMimeHeader("Content-Description", h_itr->first);
-    attachment->setContentLocation(location+h_itr->first);
-    attachment->setContentEncoding("binary");
-    msg->addAttachmentPart(attachment);
-    delete []attch_buf;
-    //cnt++;
-    //}
-    }
-    }
-  */
-  try
-    {
-      xdaq::ApplicationGroup *g = getApplicationContext()->getDefaultZone()->getApplicationGroup("dqm");
-      xdaq::ApplicationDescriptor* collectorDescriptor =        g->getApplicationDescriptor(collectorsClassName_, id);
-      /*
-	xdaq::ApplicationDescriptor* collectorDescriptor =
-	getApplicationContext()
-    	->getApplicationGroup()
-    	->getApplicationDescriptor( collectorsClassName_, id );
-      */
-      xoap::MessageReference reply = getApplicationContext()->postSOAP(msg, *(this->getApplicationDescriptor()) ,*collectorDescriptor);
-      /*
-        cout << endl;
-        reply.writeTo(cout);
-        cout << endl;
-      */
-      xoap::SOAPBody rb = reply->getSOAPPart().getEnvelope().getBody();
-
-      if (rb.hasFault() )
-        {
-          xoap::SOAPFault fault = rb.getFault();
-          std::string errmsg = "Server: ";
-          errmsg += fault.getFaultString();
-          XCEPT_RAISE(xoap::exception::Exception, errmsg);
-
-        } else
-          {
-            vector<xoap::SOAPElement> content = rb.getChildElements ();
-            if (content.size() == 1)
-              {
-                xoap::SOAPName statusTag ("UpdateStatus", "", "");
-                vector<xoap::SOAPElement> statusElement = content[0].getChildElements (statusTag );
-                if (statusElement[0].getElementName() == statusTag)
-                  {
-                    LOG4CPLUS_INFO(getApplicationLogger(), 
-				   "The server status is: " << statusElement[0].getValue());
-                  } else {
-                    LOG4CPLUS_DEBUG(getApplicationLogger(), 
-				    "Value of element is: " << statusElement[0].getValue());
-                  }
-              } else
-                {
-                  LOG4CPLUS_DEBUG(getApplicationLogger(), 
-				  "Response contains wrong number of elements: " << content.size());
-                }
-          }
-      //   return reply;
-    }
-  catch (xdaq::exception::Exception& e)
-    {
-      // handle exception
-    }
-
 }
 
 

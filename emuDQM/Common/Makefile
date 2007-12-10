@@ -22,6 +22,7 @@ Project=emu
 Package=emuDQM/Common
 
 Sources=\
+	ConsumerCanvas.cc \
 	EmuDQM_AppParameters.cc \
 	EmuDQM_SOAPCommands.cc \
 	EmuMonitoringObject.cc \
@@ -29,13 +30,15 @@ Sources=\
 	CSCReadoutMappingFromFile.cc
 
 Executables = 
-ExternalObjects = ../EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a
+ExternalObjects =
+# ../EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a
 
 IncludeDirs = $(XdaqIncludeDirs) \
 	../CMSSWLibs \
-	../EmuROOTDisplayServer/include \
 	$(ROOTDIR)/include \
 	$(CMSSW)
+
+#../EmuROOTDisplayServer/include \
 
 LibraryDirs = $(XdaqLibraryDirs) 
 
@@ -55,8 +58,8 @@ Libraries = $(XdaqLibraries)
 #
 # Compile the source files and create a shared library
 #
-DynamicLibrary = emuDQMCommon
-StaticLibrary = emuDQMCommon
+DynamicLibrary = 
+StaticLibrary = EmuDQMCommon
 
 MakeFilename=Makefile
 include $(XDAQ_ROOT)/config/Makefile.rules

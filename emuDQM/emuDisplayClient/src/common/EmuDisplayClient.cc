@@ -38,7 +38,8 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
       monitorClass_("EmuMonitor"),
       iconsURL_("http://cms-dqm03.phys.ufl.edu/dqm/results/"),
       imageFormat_("png"),
-      imagePath_("/tmp/images")
+      imagePath_("/tmp/images"),
+      viewOnly_(true)
 {
 
   errorHandler_ = toolbox::exception::bind (this, &EmuDisplayClient::onError, "onError");
@@ -89,6 +90,8 @@ XDAQ_INSTANTIATOR_IMPL(EmuDisplayClient)
   getApplicationInfoSpace()->fireItemAvailable("imageFormat",&imageFormat_);
   getApplicationInfoSpace()->addItemChangedListener ("imageFormat", this);
   getApplicationInfoSpace()->fireItemAvailable("imagePath",&imagePath_);
+  getApplicationInfoSpace()->fireItemAvailable("viewOnly",&viewOnly_);
+  getApplicationInfoSpace()->addItemChangedListener ("viewOnly", this);
 
   // === Initialize ROOT system
   if (!gApplication)
@@ -605,13 +608,16 @@ void EmuDisplayClient::headerPage (xgi::Input * in, xgi::Output * out)  throw (x
       st << (*pos)->getClassName() << "-" << (*pos)->getInstance();
       std::string applink = (*pos)->getContextDescriptor()->getURL()+"/"+(*pos)->getURN();
       std::string state =  emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"stateName","string");
-      
+     
+      *out << cgicc::tr();
+      if (!viewOnly_) {
+		applink += "/showControl";
+      }
+      *out << cgicc::td("<a href="+applink+" target=frameset>"+st.str()+"</a>" )<< std::endl; 
+
       if (state == "") { 
 	state = "Unknown/Dead";
-	*out << cgicc::tr();
-        *out << cgicc::td("<a href="+applink+" target=frameset>"+st.str()+"</a>" )
-	     << cgicc::td(state) << std::endl;
-        *out << cgicc::tr() << std::endl;
+	*out << cgicc::td(state) << cgicc::tr() << std::endl;
 	continue;
       }
       else {
@@ -637,8 +643,8 @@ void EmuDisplayClient::headerPage (xgi::Input * in, xgi::Output * out)  throw (x
 	nDAQevents = emu::dqm::getScalarParam(getApplicationContext(), getApplicationDescriptor(), (*pos),"nDAQEvents","unsignedInt");
       }
       
-      *out << cgicc::tr();
-      *out << cgicc::td("<a href="+applink+" target=frameset>"+st.str()+"</a>" )
+//      *out << cgicc::tr();
+      *out /* << cgicc::td("<a href="+applink+" target=frameset>"+st.str()+"</a>" )*/
 	   << cgicc::td(state) << cgicc::td(runNumber) << cgicc::td(nDAQevents) <<cgicc::td(events) << cgicc::td(dataRate) 
 	   << cgicc::td(cscUnpacked) << cgicc::td(cscRate) << cgicc::td(readoutMode) << cgicc::td(dataSource) 
 	   << cgicc::td(lastEventTime)/* << cgicc::td(dataBw) << cgicc::td(dataLatency) */ <<std::endl;

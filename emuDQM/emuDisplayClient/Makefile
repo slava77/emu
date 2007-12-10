@@ -29,15 +29,13 @@ Sources=\
 	EmuBrowsing.cc \
 	EmuDisplayClient.cc \
 	version.cc
-#	EmuDisplayClientV.cc
 
 Executables = 
-ExternalObjects = ../EmuROOTDisplayServer/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuROOTDisplayServer.a \
-	../Common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libemuDQMCommon.a 
+ExternalObjects = \
+	../Common/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM)/libEmuDQMCommon.a 
 	
 
 IncludeDirs = $(XdaqIncludeDirs) \
-	../EmuROOTDisplayServer/include \
 	../Common/include \
 	$(ROOTDIR)/include 
 
@@ -60,7 +58,7 @@ Libraries = $(XdaqLibraries)
 # Compile the source files and create a shared library
 #
 DynamicLibrary = emuDisplayClient
-StaticLibrary = emuDisplayClient
+StaticLibrary = 
 
 MakeFilename=Makefile
 include $(XDAQ_ROOT)/config/Makefile.rules

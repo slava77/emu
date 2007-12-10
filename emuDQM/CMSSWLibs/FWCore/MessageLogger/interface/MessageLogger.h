@@ -26,7 +26,7 @@ using namespace log4cplus::helpers;
 using namespace log4cplus::spi;
 
 
-static Logger logger = Logger::getRoot();
+static Logger logger = Logger::getInstance("CSCRawUnpacking");
 
 class LogWarning
 {
