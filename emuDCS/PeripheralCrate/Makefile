@@ -35,10 +35,9 @@ Sources=\
         CalibDAQ.cc \
 	CrateUtils.cc \
 	CrateUtilities.cc \
-        EmuPeripheralCrate.cc \
+        EmuPeripheralCrateConfig.cc \
         EmuPeripheralCrateManager.cc \
 	EmuPeripheralCrateBroadcast.cc \
-        EmuRunControlHyperDAQ.cc \
         CSCParser.cc \
         TStoreParser.cc \
         TStoreVMEParser.cc \
