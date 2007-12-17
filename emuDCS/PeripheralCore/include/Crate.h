@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 3.6 2007/07/17 16:16:09 liu Exp $
+// $Id: Crate.h,v 3.7 2007/12/17 15:02:38 liu Exp $
 // $Log: Crate.h,v $
+// Revision 3.7  2007/12/17 15:02:38  liu
+// update
+//
 // Revision 3.6  2007/07/17 16:16:09  liu
 // remove ChamberUtilities dependence
 //
@@ -88,7 +91,6 @@ public:
   std::vector<ALCTController *> alcts() const;
   //std::vector<ChamberUtilities> chamberUtilsMatch() const;
   std::vector<Chamber*> chambers() const;
-  std::vector<Chamber> chambersMatch() const;
   //
   CCB * ccb() const;
   MPC * mpc() const;
