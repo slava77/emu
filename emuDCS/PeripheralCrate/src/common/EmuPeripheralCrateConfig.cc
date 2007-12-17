@@ -828,7 +828,7 @@ void EmuPeripheralCrateConfig::actionPerformed (xdata::Event& e) {
     throw (xgi::exception::Exception)
   {
      ConfigureInit();
-     fireEvent("Configure");
+//     fireEvent("Configure");
      this->Default(in,out);
   }
 
