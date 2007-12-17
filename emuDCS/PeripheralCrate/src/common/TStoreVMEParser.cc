@@ -31,7 +31,7 @@ TStoreVMEParser::TStoreVMEParser(
   int CrateID;
   input >> CrateID;
   //
-  controller_ = new VMEController(CrateID);
+  controller_ = new VMEController();
   controller_->SetVMEAddress(VMEaddress);
   controller_->SetPort(port);
   //

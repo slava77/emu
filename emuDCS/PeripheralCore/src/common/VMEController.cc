@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.15 2007/09/12 16:02:14 liu Exp $
+// $Id: VMEController.cc,v 3.16 2007/12/17 15:01:12 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.16  2007/12/17 15:01:12  liu
+// remove Crate dependence from VMEController
+//
 // Revision 3.15  2007/09/12 16:02:14  liu
 // remove log4cplus dependency
 //
@@ -205,8 +208,8 @@
 #define PRINTSTRING(x) cout << #x << endl; 
 #endif
 
-VMEController::VMEController(int crateID): 
-  port_(2), crate_(crateID), indian(SWAP),  max_buff(0), tot_buff(0), 
+VMEController::VMEController(): 
+  port_(2), indian(SWAP),  max_buff(0), tot_buff(0), 
   plev(1), idevo(0), error_type(0), error_count(0), DEBUG(0),
   ok_vme_write_(false), fill_write_vme_vectors_(false)
 {

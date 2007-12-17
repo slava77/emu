@@ -8,7 +8,7 @@ int main(int argc,char *argv[]){
   if(argc>2)
   {
    // create VME Controller
-   VMEController *osucc = new VMEController(0);
+   VMEController *osucc = new VMEController();
    int port=atoi(argv[1]);
    osucc->init(argv[2], port);
 //   osucc->Debug(100);
