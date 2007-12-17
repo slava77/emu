@@ -17,7 +17,7 @@ int main(int argc,char **argv){
   int crateId(0);
   string ipAddr("02:00:00:00:00:1a");
   int port(3);
-  VMEController *dynatem = new VMEController(crateId);
+  VMEController *dynatem = new VMEController();
   dynatem->init(ipAddr,port);
   EmuSystem * emuSystem = new EmuSystem();
   Crate *crate = new Crate(crateId,dynatem,emuSystem);

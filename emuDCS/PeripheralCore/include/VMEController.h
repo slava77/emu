@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.12 2007/09/12 16:01:47 liu Exp $
+// $Id: VMEController.h,v 3.13 2007/12/17 15:01:44 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 3.13  2007/12/17 15:01:44  liu
+// remove Crate dependence from VMEController
+//
 // Revision 3.12  2007/09/12 16:01:47  liu
 // remove log4cplus dependency
 //
@@ -136,7 +139,7 @@ using namespace std;
 class VMEController
 {
 public:
-  VMEController(int crate);
+  VMEController();
   ~VMEController();
 
   enum ENDIAN {SWAP, NOSWAP};
@@ -220,8 +223,6 @@ private:
   int theSocket;
   std::string ipAddress_;
   int port_;
-  int crate_;
-  sockaddr_in serv_addr;
   const ENDIAN indian;
 
   unsigned char hw_source_addr[6];

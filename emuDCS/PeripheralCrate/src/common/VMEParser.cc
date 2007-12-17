@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.cc,v 3.2 2006/11/28 14:17:16 mey Exp $
+// $Id: VMEParser.cc,v 3.3 2007/12/17 15:03:13 liu Exp $
 // $Log: VMEParser.cc,v $
+// Revision 3.3  2007/12/17 15:03:13  liu
+// remove Crate dependence from VMEController
+//
 // Revision 3.2  2006/11/28 14:17:16  mey
 // UPdate
 //
@@ -59,7 +62,7 @@ VMEParser::VMEParser(xercesc::DOMNode * pNode, int CrateID, EmuSystem * emuSyste
   std::string label;
   parser_.fillString("label",label);   
 
-  controller_ = new VMEController(CrateID); 
+  controller_ = new VMEController(); 
 
   // The following is just to show how it works. 
   // Must be moved to somewhere else. Jinghua Liu
