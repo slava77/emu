@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.cc,v 3.3 2007/12/17 15:03:13 liu Exp $
+// $Id: VMEParser.cc,v 3.4 2007/12/25 13:57:05 liu Exp $
 // $Log: VMEParser.cc,v $
+// Revision 3.4  2007/12/25 13:57:05  liu
+// update
+//
 // Revision 3.3  2007/12/17 15:03:13  liu
 // remove Crate dependence from VMEController
 //
@@ -72,20 +75,12 @@ VMEParser::VMEParser(xercesc::DOMNode * pNode, int CrateID, EmuSystem * emuSyste
   controller_->SetVMEAddress(VMEaddress);
   controller_->SetPort(port);
   
-  crate_ = new Crate(CrateID,controller_,emuSystem);
+  crate_ = new Crate(CrateID,controller_);
   crate_->SetLabel(label);
+
+  emuSystem->addCrate(crate_);  
 }
 //VMEParser::~VMEParser(){
 //  delete crate_;
 //}
-
-
-
-
-
-
-
-
-
-
 

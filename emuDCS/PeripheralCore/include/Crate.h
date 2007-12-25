@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 3.7 2007/12/17 15:02:38 liu Exp $
+// $Id: Crate.h,v 3.8 2007/12/25 13:55:43 liu Exp $
 // $Log: Crate.h,v $
+// Revision 3.8  2007/12/25 13:55:43  liu
+// update
+//
 // Revision 3.7  2007/12/17 15:02:38  liu
 // update
 //
@@ -63,11 +66,10 @@ class CCB;
 class MPC;
 //class ChamberUtilities;
 class Chamber;
-class EmuSystem;
 
 class Crate {
 public:
-  Crate(int, VMEController *, EmuSystem *);
+  Crate(int, VMEController *);
   ~Crate();
   
   int CrateID() const {return theCrateID;}
@@ -82,6 +84,8 @@ public:
   //
   std::string GetLabel() {return label_;}
   inline void SetLabel(std::string label ) {label_ = label;}
+  inline void SetLife(bool life) { alive_=life; }
+  inline bool IsAlive() { return alive_; }
   //
   VMEController * vmeController() const {return theController;}
 
@@ -108,6 +112,7 @@ private:
   
   int theCrateID;
   std::string label_;
+  bool alive_;
   /// indexed by slot 
   std::vector<VMEModule *> theModules;
   std::vector<Chamber *> theChambers;
