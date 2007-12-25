@@ -37,7 +37,8 @@ TStoreVMEParser::TStoreVMEParser(
   //
   // Create the crate object
   //
-  crate_ = new Crate(CrateID,controller_,emuSystem);
+  crate_ = new Crate(CrateID,controller_);
+  emuSystem->addCrate(crate_);
   //
   // Now create CSCs
   //
