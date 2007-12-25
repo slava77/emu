@@ -27,7 +27,6 @@
 
 // My Stuff
 
-#include "PeripheralCrateParser.h"
 #include "EmuController.h"
 #include "VMEController.h"
 #include "Crate.h"

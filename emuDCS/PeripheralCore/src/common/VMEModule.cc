@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.11 2007/09/12 16:02:00 liu Exp $
+// $Id: VMEModule.cc,v 3.12 2007/12/25 00:12:00 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.12  2007/12/25 00:12:00  liu
+// *** empty log message ***
+//
 // Revision 3.11  2007/09/12 16:02:00  liu
 // remove log4cplus dependency
 //
@@ -120,7 +123,7 @@
 #include "VMEModule.h"
 #include "VMEController.h"
 #include "Crate.h"
-#include "CrateSetup.h"
+// #include "CrateSetup.h"
 #include <cmath>
 #include <string>
 #include <stdio.h>
