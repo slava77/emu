@@ -7,8 +7,6 @@
 #include "MPC.h"
 #include "ALCTController.h"
 #include "VMEController.h"
-#include "CrateSelector.h"
-#include "EmuSystem.h"
 
 using namespace std;
 
@@ -22,8 +20,7 @@ int main(int argc,char **argv){
   dynatem->init(ipAddr,port);
   //
   dynatem->reset();
-  EmuSystem * emuSystem = new EmuSystem();
-  Crate *crate = new Crate(crateId,dynatem,emuSystem);
+  Crate *crate = new Crate(crateId,dynatem);
   Chamber * chamber = new Chamber(crate);
   //
   // create CCB
