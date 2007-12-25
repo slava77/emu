@@ -8,7 +8,6 @@
 #include "ALCTController.h"
 #include "VMEController.h"
 #include "CrateSelector.h"
-#include "EmuSystem.h"
 
 using namespace std;
 
@@ -20,8 +19,7 @@ int main(int argc,char **argv){
   int port(3);
   VMEController *dynatem = new VMEController();
   dynatem->init(ipAddr,port);
-  EmuSystem * emuSystem = new EmuSystem();
-  Crate *crate = new Crate(crateId,dynatem,emuSystem);
+  Crate *crate = new Crate(crateId,dynatem);
   Chamber * chamber = new Chamber(crate);
   // create CCB
   int ccbSlot(13);
