@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.16 2007/08/27 22:51:36 liu Exp $
+// $Id: Crate.cc,v 3.17 2007/12/25 13:56:19 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.17  2007/12/25 13:56:19  liu
+// update
+//
 // Revision 3.16  2007/08/27 22:51:36  liu
 // update
 //
@@ -122,9 +125,8 @@
 #include "RAT.h"
 #include "ALCTController.h"
 #include "Chamber.h"
-#include "EmuSystem.h"
 
-Crate::Crate(int CrateID, VMEController * controller, EmuSystem * emuSystem) : 
+Crate::Crate(int CrateID, VMEController * controller) : 
   theCrateID(CrateID),  
   label_("label"),
   theModules(28),
@@ -132,10 +134,6 @@ Crate::Crate(int CrateID, VMEController * controller, EmuSystem * emuSystem) :
 {
   for(unsigned i=0;i<theModules.size();i++) theModules[i] = 0;
   theChambers.clear();
-  //
-  //emuSystem->addCrate(number, this);
-  //
-  emuSystem->addCrate(this);
 }
 
 
