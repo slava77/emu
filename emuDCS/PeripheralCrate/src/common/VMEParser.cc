@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: VMEParser.cc,v 3.4 2007/12/25 13:57:05 liu Exp $
+// $Id: VMEParser.cc,v 3.5 2007/12/25 14:14:25 liu Exp $
 // $Log: VMEParser.cc,v $
+// Revision 3.5  2007/12/25 14:14:25  liu
+// update
+//
 // Revision 3.4  2007/12/25 13:57:05  liu
 // update
 //
@@ -50,6 +53,7 @@
 #include "VMEParser.h"
 #include "VMEController.h"
 #include "Crate.h"
+#include "EmuSystem.h"
 
 VMEParser::VMEParser(xercesc::DOMNode * pNode, int CrateID, EmuSystem * emuSystem)
 {
