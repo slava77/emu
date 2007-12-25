@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.16 2007/12/17 15:01:12 liu Exp $
+// $Id: VMEController.cc,v 3.17 2007/12/25 00:12:31 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.17  2007/12/25 00:12:31  liu
+// *** empty log message ***
+//
 // Revision 3.16  2007/12/17 15:01:12  liu
 // remove Crate dependence from VMEController
 //
@@ -157,7 +160,6 @@
 //
 //----------------------------------------------------------------------
 #include "VMEController.h"
-#include "Crate.h"
 #include <cmath>
 #include <string>
 #include <stdio.h>
