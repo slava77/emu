@@ -31,7 +31,8 @@ Sources=\
 	VMEModule.cc \
 	Chamber.cc \
 	EMUjtag.cc \
-	EmuSystem.cc
+	EmuSystem.cc \
+	EmuEndcap.cc
 
 IncludeDirs = 
 
