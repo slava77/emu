@@ -323,7 +323,11 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   MPCBoardID_ = "-2";
   CCBBoardID_ = "-2";
   ControllerBoardID_ = "-2";
-  for (int i=0; i<9; i++) { DMBBoardID_[i] = "-2" ; TMBBoardID_[i] = "-2" ; RATBoardID_[i] = "-2" ;}
+  for (int i=0; i<9; i++) 
+   {  DMBBoardID_[i] = "-2" ; 
+      TMBBoardID_[i] = "-2" ; 
+      RATBoardID_[i] = "-2" ;
+   }
   for (int i=0; i<9; i++) 
     for (int j=0; j<5; j++)
       CFEBid_[i][j] = -2;
@@ -345,20 +349,6 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   this->getApplicationInfoSpace()->fireItemAvailable("runNumber", &runNumber_);
   this->getApplicationInfoSpace()->fireItemAvailable("xmlFileName", &xmlFile_);
   this->getApplicationInfoSpace()->fireItemAvailable("CalibrationState", &CalibrationState_);
-  //
-/*
-  curlCommand_  = "curl -v";
-  curlCookies_  = ".curlCookies";
-  CMSUserFile_  = "/home/meydev/.CMSUserFile";
-  eLogUserFile_ = ".eLogUserFile";
-  eLogURL_      = "https://cmsdaq.cern.ch/elog/CSC";
-*/
-  //
-  this->getApplicationInfoSpace()->fireItemAvailable( "curlCommand",  &curlCommand_  );
-  this->getApplicationInfoSpace()->fireItemAvailable( "curlCookies", 	&curlCookies_  );
-  this->getApplicationInfoSpace()->fireItemAvailable( "CMSUserFile", 	&CMSUserFile_  );
-  this->getApplicationInfoSpace()->fireItemAvailable( "eLogUserFile",	&eLogUserFile_ );
-  this->getApplicationInfoSpace()->fireItemAvailable( "eLogURL",     	&eLogURL_      );
   //
   // Create/Retrieve an infospace
   xdata::InfoSpace * is =xdata::InfoSpace::get("urn:xdaq-monitorable:EmuPeripheralCrateData");
