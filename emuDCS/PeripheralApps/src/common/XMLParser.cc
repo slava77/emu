@@ -11,7 +11,6 @@
 #include "MPC.h"
 #include "VMEController.h"
 #include "TMB.h"
-#include "AnodeChannel.h"
 #include "ALCTController.h"
 #include "RAT.h"
 #include "DAQMB.h"
@@ -96,9 +95,9 @@ bool XMLParser::fillString(std::string item, std::string & target)
     value = xercesc::XMLString::transcode(pAttributeNode->getNodeValue());
     target = value;
     found = true;
-    #ifdef debugV
+#ifdef debugV
       std::cout << "  " << item << " = " << target << std::endl;
-    #endif
+#endif
   }
   return found;
 }
@@ -180,7 +179,6 @@ void XMLParser::MPCParser(xercesc::DOMNode * pNode, Crate * theCrate)
   if(fillInt("BoardID",value)){
     mpc_->SetBoardID(value);
   }
-
 }
 
 void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * theChamber, xercesc::DOMNode * pNodeGlobal)
