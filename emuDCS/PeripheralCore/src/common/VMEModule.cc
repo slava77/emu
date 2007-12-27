@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.cc,v 3.12 2007/12/25 00:12:00 liu Exp $
+// $Id: VMEModule.cc,v 3.13 2007/12/27 00:33:54 liu Exp $
 // $Log: VMEModule.cc,v $
+// Revision 3.13  2007/12/27 00:33:54  liu
+// update
+//
 // Revision 3.12  2007/12/25 00:12:00  liu
 // *** empty log message ***
 //
@@ -153,6 +156,7 @@ VMEModule::VMEModule(Crate * theCrate, int newslot):
   //
 }
 
+int VMEModule::crate() { return theCrate_->CrateID(); }
 
 void VMEModule::start() {
   PRINTSTRING(OVAL: start() from VMEModule have been called...);

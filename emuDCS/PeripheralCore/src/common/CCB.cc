@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: CCB.cc,v 3.15 2007/08/27 22:50:57 liu Exp $
+// $Id: CCB.cc,v 3.16 2007/12/27 00:33:52 liu Exp $
 // $Log: CCB.cc,v $
+// Revision 3.16  2007/12/27 00:33:52  liu
+// update
+//
 // Revision 3.15  2007/08/27 22:50:57  liu
 // update
 //
@@ -215,6 +218,7 @@
 #include <unistd.h> // for sleep
 #include <vector>
 #include <string>
+#include "Crate.h"
 
 //
 CCB::CCB(Crate * theCrate ,int slot)
