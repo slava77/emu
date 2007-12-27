@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.h,v 3.8 2007/12/25 13:55:43 liu Exp $
+// $Id: Crate.h,v 3.9 2007/12/27 00:34:25 liu Exp $
 // $Log: Crate.h,v $
+// Revision 3.9  2007/12/27 00:34:25  liu
+// update
+//
 // Revision 3.8  2007/12/25 13:55:43  liu
 // update
 //
@@ -59,12 +62,11 @@
 //
 class VMEModule;
 class VMEController;
-class DAQMB;
-class TMB;
 class ALCTController;
+class TMB;
+class DAQMB;
 class CCB;
 class MPC;
-//class ChamberUtilities;
 class Chamber;
 
 class Crate {
@@ -93,12 +95,13 @@ public:
   std::vector<DAQMB *> daqmbs() const;
   std::vector<TMB *> tmbs() const;
   std::vector<ALCTController *> alcts() const;
-  //std::vector<ChamberUtilities> chamberUtilsMatch() const;
   std::vector<Chamber*> chambers() const;
   //
   CCB * ccb() const;
   MPC * mpc() const;
-  //
+  Chamber * GetChamber(int slot);
+  Chamber * GetChamber(TMB *tmb);
+  Chamber * GetChamber(DAQMB *dmb);
 private:
 
   template<class T> T * findBoard() const

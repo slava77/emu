@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Chamber.cc,v 3.3 2006/11/28 14:17:16 mey Exp $
+// $Id: Chamber.cc,v 3.4 2007/12/27 00:33:53 liu Exp $
 // $Log: Chamber.cc,v $
+// Revision 3.4  2007/12/27 00:33:53  liu
+// update
+//
 // Revision 3.3  2006/11/28 14:17:16  mey
 // UPdate
 //
@@ -60,6 +63,13 @@
 #include <string>
 //
 #include "Chamber.h"
+#include "DAQMB.h"
+#include "TMB.h"
+#include "CCB.h"
+#include "MPC.h"
+#include "ALCTController.h"
+#include "CFEB.h"
+#include "Crate.h"
 //
 using namespace std;
 //
@@ -74,3 +84,7 @@ Chamber::~Chamber(){
   //
 }
 //
+  void Chamber::SetTMB(TMB* myTMB)
+  {  thisTMB = myTMB; 
+     alct = myTMB->alctController();
+  }

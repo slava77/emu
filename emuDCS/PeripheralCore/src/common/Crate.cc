@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: Crate.cc,v 3.17 2007/12/25 13:56:19 liu Exp $
+// $Id: Crate.cc,v 3.18 2007/12/27 00:33:54 liu Exp $
 // $Log: Crate.cc,v $
+// Revision 3.18  2007/12/27 00:33:54  liu
+// update
+//
 // Revision 3.17  2007/12/25 13:56:19  liu
 // update
 //
@@ -348,3 +351,15 @@ void Crate::init() {
   //
 }
 //
+  Chamber * Crate::GetChamber(int slotN)
+  {
+     for(unsigned i=0; i < theChambers.size(); i++)
+     {  if(theChambers[i]->GetTMB()->slot()==slotN || 
+           theChambers[i]->GetDMB()->slot()==slotN ) return theChambers[i];
+     }
+     return (Chamber *) 0x0;
+  }
+
+  Chamber * Crate::GetChamber(TMB * tmb)   {  return GetChamber(tmb->slot()); }
+
+  Chamber * Crate::GetChamber(DAQMB * dmb)   {  return GetChamber(dmb->slot()); }

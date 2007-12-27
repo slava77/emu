@@ -5,13 +5,13 @@
 #include <vector>
 #include <string>
 
-#include "DAQMB.h"
-#include "TMB.h"
-#include "CCB.h"
-#include "MPC.h"
-#include "ALCTController.h"
-#include "CFEB.h"
-#include "Crate.h"
+class TMB;
+class DAQMB;
+class CCB;
+class ALCTController;
+class MPC;
+class CFEB;
+class Crate;
 
 class Chamber {
   //
@@ -20,7 +20,7 @@ public:
   Chamber(Crate *);
   ~Chamber();
   //
-  inline void SetTMB(TMB* myTMB)   {thisTMB = myTMB; alct = myTMB->alctController() ;}
+  void SetTMB(TMB* myTMB);
   inline TMB* GetTMB(){ return thisTMB; }
   //
   inline void SetDMB(DAQMB* myDMB) {thisDMB = myDMB; }

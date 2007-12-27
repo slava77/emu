@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.h,v 3.13 2007/12/17 15:01:44 liu Exp $
+// $Id: VMEController.h,v 3.14 2007/12/27 00:34:26 liu Exp $
 // $Log: VMEController.h,v $
+// Revision 3.14  2007/12/27 00:34:26  liu
+// update
+//
 // Revision 3.13  2007/12/17 15:01:44  liu
 // remove Crate dependence from VMEController
 //
@@ -127,7 +130,6 @@ using namespace std;
 #include <vector>
 #include <string>
 #include <iostream>
-// class Crate;
 #include "JTAG_constants.h"
 #include <string>
 #include <arpa/inet.h>

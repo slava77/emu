@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEModule.h,v 3.5 2007/11/26 14:38:21 liu Exp $
+// $Id: VMEModule.h,v 3.6 2007/12/27 00:34:26 liu Exp $
 // $Log: VMEModule.h,v $
+// Revision 3.6  2007/12/27 00:34:26  liu
+// update
+//
 // Revision 3.5  2007/11/26 14:38:21  liu
 // reduce memory usage
 //
@@ -84,13 +87,12 @@
 #ifndef VMEModule_h
 #define VMEModule_h
 
-#include "Crate.h"
+#include <vector>
+#include <iostream>
+#include "JTAG_constants.h"
 
 class VMEController;
-class Chamber;
 class Crate;
-
-#include "JTAG_constants.h"
 
 class VMEModule
 {
@@ -102,7 +104,7 @@ public:
   /// automatically registers itself with the Crate
   VMEModule(Crate *, int );
   virtual ~VMEModule() {};
-  int crate() const {return theCrate_->CrateID();}
+  int crate();
   int slot() const {return theSlot;}
   bool exist();
   
