@@ -11,6 +11,9 @@
 #include "TStore_constants.h"
 //
 #include "TStoreAFEBParser.h"
+#include "Crate.h"
+#include "Chamber.h"
+#include "ALCTController.h"
 //
 TStoreAFEBParser::TStoreAFEBParser(
 				 std::vector<std::vector <std::string > > afeb_table,
