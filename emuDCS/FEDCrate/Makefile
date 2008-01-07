@@ -42,35 +42,12 @@ Sources=\
 	EmuFController.cc
 
 IncludeDirs = \
-	$(XDAQ_ROOT)/daq/toolbox/include \
-	$(XDAQ_ROOT)/daq/toolbox/include/$(XDAQ_OS) \
-	$(XDAQ_ROOT)/daq/toolbox/include/solaris \
-	$(XDAQ_ROOT)/daq/xoap/include \
-	$(XDAQ_ROOT)/daq/xdata/include \
-	$(XDAQ_ROOT)/daq/pt/include \
-	$(XDAQ_ROOT)/daq/xdaq/include \
-	$(XDAQ_ROOT)/daq/xcept/include \
-	$(XDAQ_ROOT)/daq/extern/cgicc/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
-	$(XDAQ_ROOT)/daq/extern/i2o/include \
-	$(XDAQ_ROOT)/daq/extern/i2o/include/i2o \
-	$(XDAQ_ROOT)/daq/extern/i2o/include/i2o/shared \
-	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
-	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/include/log4cplus/ \
-	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/include \
-	$(DCSDIR)/include \
-	$(XDAQ_ROOT)/daq/xgi/include \
-	$(DIMDIR)/dim \
-	$(XDAQ_ROOT)/emu/cscSV/include
+	$(XDAQ_ROOT)/include/ \
+	$(BUILD_HOME)/emu/cscSV/include/ \
+	./include
 
 LibraryDirs = \
-	$(XDAQ_ROOT)/daq/xdata/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-	$(XDAQ_ROOT)/daq/extern/xerces/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
-	$(XDAQ_ROOT)/daq/extern/log4cplus/$(XDAQ_OS)$(XDAQ_PLATFORM)/lib \
-	$(XDAQ_ROOT)/daq/xdaq/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-	$(XDAQ_ROOT)/daq/pt/tcp/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-	$(XDAQ_ROOT)/daq/toolbox/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-	$(XDAQ_ROOT)/daq/xoap/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
-	$(XDAQ_ROOT)/daq/pt/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) 
+	$(XDAQ_ROOT)/lib
 
 TestLibraryDirs = \
 	$(XDAQ_ROOT)/daq/xdata/lib/$(XDAQ_OS)/$(XDAQ_PLATFORM) \
@@ -89,7 +66,7 @@ TestLibraryDirs = \
 
 UserCFlags  = 
 UserCCFlags = -DOSUcc -fPIC -DLINUX  -s
-UserDynamicLinkFlags = -l CAENVME
+//UserDynamicLinkFlags = -l CAENVME
 UserStaticLinkFlags =
 UserExecutableLinkFlags =-D_REENTRAN -pthread
 
