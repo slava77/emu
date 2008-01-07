@@ -192,14 +192,15 @@ throw (xgi::exception::Exception)
 
 	if (reload>0||(dduVector.size()==0 && dccVector.size()==0)) {
 		cout << "Awaiting configuration..." << endl;
-	
+		cout <<"debug printout 0.1"<<endl <<flush;
+
 		std::string method =
 		toolbox::toString("/%s/setConfFile",getApplicationDescriptor()->getURN().c_str());
 		*out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
 		*out << std::endl;
 		*out << cgicc::legend("Upload Configuration...").set("style","color:blue") 
 		<< std::endl ;
-
+		cout<<"debug printout 0.2"<<endl<<flush;
 		*out << "<font color=red size=+1> &nbsp; &nbsp; Use 'Init Only' for Global run or mid-run access! </font>" << std::endl;
 
 		*out << cgicc::form().set("method","POST").set("action",method) << std::endl ;
@@ -231,7 +232,7 @@ throw (xgi::exception::Exception)
 		*out << cgicc::input().set("type","submit").set("value","Send") << std::endl ;
 		*out << cgicc::form() << std::endl ;
 		*out << std::endl;
-
+		cout<<"debug printout 0.5" <<endl<<flush;
 		std::string methodRaw =
 		toolbox::toString("/%s/setRawConfFile",getApplicationDescriptor()->getURN().c_str());
 	
@@ -246,6 +247,8 @@ throw (xgi::exception::Exception)
 		*out << std::endl;
 		*out << cgicc::fieldset() << std::endl;
 
+		cout <<" debug printout 1 "<<endl << flush;
+	  
 	} else if (dduVector.size()>0 || dccVector.size()>0) {
 		cout << "Main page loading." << endl;
 		//Cgicc cgi(in);

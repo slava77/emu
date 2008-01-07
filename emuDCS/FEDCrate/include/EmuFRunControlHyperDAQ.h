@@ -1,4 +1,4 @@
-// $Id: EmuFRunControlHyperDAQ.h,v 3.1 2007/02/03 14:09:45 gujh Exp $
+// $Id: EmuFRunControlHyperDAQ.h,v 3.2 2008/01/07 18:19:04 gilmore Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -34,6 +34,7 @@
 #include "xoap/SOAPBodyElement.h"
 #include "xoap/Method.h"
 #include "xoap/DOMParser.h"
+#include "xoap/DOMParserFactory.h"
 #include "xoap/domutils.h"
 
 #include "xdata/xdata.h"
@@ -340,7 +341,7 @@ public:
   xoap::MessageReference IRQSeen (xoap::MessageReference msg) throw (xoap::exception::Exception)
   {   
     std::cout << "Received Message IRQSeen **********************" << std::endl ;
-        xoap::DOMParser* parser = xoap::DOMParser::get("ParseFromSOAP");
+        xoap::DOMParser* parser = xoap::getDOMParserFactory()->get("ParseFromSOAP");
 	// msg->writeTo(std::cout);
 	//  std::cout << std::endl;
 	std::string data;
