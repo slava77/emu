@@ -239,10 +239,6 @@ void CrateUtilities::CreateTstoreTables(){
     tmb_table[tmb].push_back(tmb_output[tmb].str());
     //
     tmb_output[tmb].str("");
-    tmb_output[tmb] << myTmbs[tmb]->GetDsPretrigThresh();
-    tmb_table[tmb].push_back(tmb_output[tmb].str());
-    //
-    tmb_output[tmb].str("");
     tmb_output[tmb] << myTmbs[tmb]->GetFifoPreTrig();
     tmb_table[tmb].push_back(tmb_output[tmb].str());
     //

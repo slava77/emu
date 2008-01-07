@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.h,v 3.35 2007/12/06 15:12:39 rakness Exp $
+// $Id: TMB.h,v 3.36 2008/01/07 15:08:53 rakness Exp $
 // $Log: TMB.h,v $
+// Revision 3.36  2008/01/07 15:08:53  rakness
+// add xml parameters:  clct_stagger, clct_blanking, clct_pattern_id_thresh, aff_thresh, min_clct_separation.  Remove xml parameter:  clct_distrip_pretrig_thresh
+//
 // Revision 3.35  2007/12/06 15:12:39  rakness
 // make scan parameters for synchronization configurable from hyperDAQ
 //
@@ -878,7 +881,7 @@ public:
   inline void SetHsPretrigThresh(int hs_pretrig_thresh) { hs_pretrig_thresh_ = hs_pretrig_thresh; }
   inline int  GetHsPretrigThresh() { return hs_pretrig_thresh_; }
   //
-  //!ds_pretrig_thresh = [0-6] = di-strip pretrigger threshold
+  //!ds_pretrig_thresh = [0-6] = di-strip pretrigger threshold...  N.B. di-strip patterns are deprecated from TMB version 08/2007
   inline void SetDsPretrigThresh(int ds_pretrig_thresh) { ds_pretrig_thresh_ = ds_pretrig_thresh; }
   inline int  GetDsPretrigThresh() { return ds_pretrig_thresh_; }
   //
@@ -1178,6 +1181,37 @@ public:
   //!layer_trig_thresh = [0-6] = number of layers required for layer trigger
   inline void SetLayerTriggerThreshold(int layer_trig_thresh) { layer_trig_thresh_ = layer_trig_thresh; }
   inline int  GetLayerTriggerThreshold() { return layer_trig_thresh_; }
+  //
+  //---------------------------------------------------------------------
+  //0XF4 = ADR_TEMP0:  Pattern finder Pretrigger
+  //---------------------------------------------------------------------
+  //!clct_blanking = 1 = blank CLCT output if no valid pattern flag
+  inline void SetClctBlanking(int clct_blanking) { clct_blanking_ = clct_blanking; } 
+  inline int  GetClctBlanking() { return clct_blanking_; } 
+  inline int  GetReadClctBlanking() { return read_clct_blanking_; } 
+  //
+  //!clct_stagger = 1/0 = do/don't stagger strip layers (staggering needed for ME1/1)
+  inline void SetClctStagger(int clct_stagger) { clct_stagger_ = clct_stagger; } 
+  inline int  GetClctStagger() { return clct_stagger_; } 
+  inline int  GetReadClctStagger() { return read_clct_stagger_; } 
+  //
+  //!clct_pattern_id_thresh = [0-8] = minimum pattern ID value for CLCT pretrigger
+  inline void SetClctPatternIdThresh(int clct_pattern_id_thresh) { clct_pattern_id_thresh_ = clct_pattern_id_thresh; } 
+  inline int  GetClctPatternIdThresh() { return clct_pattern_id_thresh_; } 
+  inline int  GetReadClctPatternIdThresh() { return read_clct_pattern_id_thresh_; } 
+  //
+  //!aff_thresh = [0-6] = minimum number of hits needed on CLCT pretrigger pattern to send Active FEB Flag to DMB
+  inline void SetActiveFebFlagThresh(int aff_thresh) { aff_thresh_ = aff_thresh; } 
+  inline int  GetActiveFebFlagThresh() { return aff_thresh_; } 
+  inline int  GetReadActiveFebFlagThresh() { return read_aff_thresh_; } 
+  //
+  //---------------------------------------------------------------------
+  //0XF6 = ADR_TEMP1:  CLCT separation
+  //---------------------------------------------------------------------
+  //!min_clct_separation = [0-255] = minimum 1/2-strip separation between two CLCTs
+  inline void SetMinClctSeparation(int min_clct_separation) { min_clct_separation_ = min_clct_separation; } 
+  inline int  GetMinClctSeparation() { return min_clct_separation_; } 
+  inline int  GetReadMinClctSeparation() { return read_min_clct_separation_; } 
   //
   //
   // **********************************************************************************
@@ -1695,14 +1729,13 @@ private:
   //------------------------------------------------------------------
   int triad_persist_;
   int hs_pretrig_thresh_;
-  int ds_pretrig_thresh_;
+  int ds_pretrig_thresh_;  //N.B. this is deprecated from TMB version 08/2007
   int min_hits_pattern_;
   int drift_delay_;
   int pretrigger_halt_;
   //
   int read_triad_persist_;
   int read_hs_pretrig_thresh_;
-  int read_ds_pretrig_thresh_;
   int read_min_hits_pattern_;
   int read_drift_delay_;
   int read_pretrigger_halt_;
@@ -1980,6 +2013,32 @@ private:
   int read_layer_trigger_en_ ;
   int read_layer_trig_thresh_;
   int read_number_layers_hit_;
+  //
+  //---------------------------------------------------------------------
+  //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
+  //---------------------------------------------------------------------
+  int clct_blanking_;
+  int clct_stagger_;
+  int clct_pattern_id_thresh_;
+  int aff_thresh_;
+  //
+  int read_clct_blanking_;
+  int read_clct_stagger_;
+  int read_clct_pattern_id_thresh_;
+  int read_aff_thresh_;
+  //
+  //---------------------------------------------------------------------
+  //0XF6 = ADR_TEMP1:  CLCT separation
+  //---------------------------------------------------------------------
+  int clct_separation_src_;
+  int clct_separation_ram_write_enable_;
+  int clct_separation_ram_adr_;
+  int min_clct_separation_;
+  //
+  int read_clct_separation_src_;
+  int read_clct_separation_ram_write_enable_;
+  int read_clct_separation_ram_adr_;
+  int read_min_clct_separation_;
   //
   //*******************************************************************
   // TMB Raw Hits header words
