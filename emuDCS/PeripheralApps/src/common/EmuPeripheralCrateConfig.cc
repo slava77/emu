@@ -269,6 +269,11 @@ EmuPeripheralCrateConfig::EmuPeripheralCrateConfig(xdaq::ApplicationStub * s): E
   xoap::bind(this,&EmuPeripheralCrateConfig::ReadAllCfebPromUserid,"ReadCfebPromUserid",XDAQ_NS_URI);
   xoap::bind(this,&EmuPeripheralCrateConfig::LoadAllCfebPromUserid,"LoadCfebPromUserid",XDAQ_NS_URI);
   //
+  xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT192      ,"EnableALCT192",XDAQ_NS_URI);
+  xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT288      ,"EnableALCT288",XDAQ_NS_URI);
+  xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT288bn    ,"EnableALCT288bn",XDAQ_NS_URI);
+  xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT288bp    ,"EnableALCT288bp",XDAQ_NS_URI);
+  xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT288fp    ,"EnableALCT288fp",XDAQ_NS_URI);
   xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT384      ,"EnableALCT384",XDAQ_NS_URI);
   xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT384Mirror,"EnableALCT384Mirror",XDAQ_NS_URI);
   xoap::bind(this,&EmuPeripheralCrateConfig::EnableJtagWriteALCT576Mirror,"EnableALCT576Mirror",XDAQ_NS_URI);

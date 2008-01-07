@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.1 2007/12/26 11:23:52 liu Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.2 2008/01/07 17:08:05 rakness Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -410,12 +410,12 @@ void EmuPeripheralCrateBroadcast::LoadALCTFirmware(xgi::Input * in, xgi::Output 
   //
   // load the ALCT firmware
   //
-  const bool program192       = false; // ME1/3
+  const bool program192       = true;  // ME1/3
   const bool program384       = true;  // ME1/2, ME2/2
-  const bool program288       = false; // ME1/1
-  const bool program288bn     = false; // ME1/1
-  const bool program288bp     = false; // ME1/1
-  const bool program288fp     = false; // ME1/1
+  const bool program288       = true;  // ME1/1
+  const bool program288bn     = true;  // ME1/1
+  const bool program288bp     = true;  // ME1/1
+  const bool program288fp     = true;  // ME1/1
   const bool program672       = true;  // ME2/1
   const bool program576Mirror = true;  // ME3/1, ME4/1
   const bool program384Mirror = true;  // ME3/2
