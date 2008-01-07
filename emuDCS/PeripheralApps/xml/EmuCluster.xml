@@ -1,0 +1,81 @@
+<?xml version='1.0'?>
+<xc:Partition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xc="http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
+
+    	<xc:Context url="http://emupc:40010">		
+                <xc:Application class="EmuPeripheralCrateManager" id="60" instance="0" network="local">
+
+                </xc:Application>
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
+
+                <xc:Application class="TStore" id="400"  network="local">
+                <properties xmlns="urn:xdaq-application:TStore" xsi:type="soapenc:Struct">
+                  <views xsi:type="soapenc:Array" soapenc:arrayType="xsd:ur-type[1]">
+                    <item xsi:type="xsd:string" soapenc:position="[0]">${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/xml/views.xml</item>
+                  </views>
+                </properties>
+                </xc:Application>
+	        <xc:Module>${XDAQ_ROOT}/daq/extern/oracle/linuxx86/libclntsh.so</xc:Module>
+	        <xc:Module>${XDAQ_ROOT}/daq/extern/oracle/linuxx86/libocci.so</xc:Module>
+	        <xc:Module>${XDAQ_ROOT}/daq/tstore/lib/linux/x86/libtstore.so</xc:Module>
+	        <xc:Module>${XDAQ_ROOT}/daq/tstore/tstore/lib/linux/x86/libTStore.so</xc:Module>
+        </xc:Context>
+
+    	<xc:Context url="http://emupc:40011">		
+                <xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="local">
+                 <properties xmlns="urn:xdaq-application:EmuCrateHyperDAQ" xsi:type="soapenc:Struct">
+                  <runNumber xsi:type="xsd:unsignedLong">57005</runNumber>
+                  <xmlFileName xsi:type="xsd:string">/home/cscpc/config/configFall2006ME1a-highrate.xml</xmlFileName>
+                 </properties>
+                </xc:Application>
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCore/lib/linux/x86/libEmuPeripheralCore.so</xc:Module>      
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
+        </xc:Context>
+
+
+    	<xc:Context url="http://emupc:40012">		
+                <xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="local">
+                 <properties xmlns="urn:xdaq-application:EmuCrateHyperDAQ" xsi:type="soapenc:Struct">
+                  <runNumber xsi:type="xsd:unsignedLong">57005</runNumber>
+                  <xmlFileName xsi:type="xsd:string">/home/cscpc/config/configFall2006ME1b-highrate.xml</xmlFileName>
+                 </properties>
+                </xc:Application>
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCore/lib/linux/x86/libEmuPeripheralCore.so</xc:Module>      
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
+        </xc:Context>
+
+    	<xc:Context url="http://emupc:40013">		
+                <xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="local">
+                 <properties xmlns="urn:xdaq-application:EmuCrateHyperDAQ" xsi:type="soapenc:Struct">
+                  <runNumber xsi:type="xsd:unsignedLong">57005</runNumber>
+                  <xmlFileName xsi:type="xsd:string">/home/cscpc/config/configFall2006ME2-highrate.xml</xmlFileName>
+                 </properties>
+                </xc:Application>
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCore/lib/linux/x86/libEmuPeripheralCore.so</xc:Module>      
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
+        </xc:Context>
+
+    	<xc:Context url="http://emupc:40014">		
+                <xc:Application class="EmuPeripheralCrate" id="30" instance="0" network="local">
+                 <properties xmlns="urn:xdaq-application:EmuCrateHyperDAQ" xsi:type="soapenc:Struct">
+                  <runNumber xsi:type="xsd:unsignedLong">57005</runNumber>
+                  <xmlFileName xsi:type="xsd:string">/home/cscpc/config/configFall2006ME3-highrate.xml</xmlFileName>
+                 </properties>
+                </xc:Application>
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCore/lib/linux/x86/libEmuPeripheralCore.so</xc:Module>      
+        	<xc:Module>${XDAQ_ROOT}/emu/emuDCS/PeripheralCrate/lib/linux/x86/libEmuPeripheralCrate.so</xc:Module>      
+        </xc:Context>
+
+
+    	<xc:Context url="http://emuttc:40110">		
+                <xc:Application class="LTCControl" id="32" instance="0" network="local">
+                </xc:Application>
+        </xc:Context>
+
+    	<xc:Context url="http://emupc:39999">		
+                <xc:Application class="JobControl" id="10" instance="0" network="local">
+                </xc:Application>
+        </xc:Context>
+
+
+</xc:Partition>
+
