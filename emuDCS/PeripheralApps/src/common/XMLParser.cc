@@ -313,7 +313,7 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     //0X70:
     if (fillInt("triad_persistence"            ,value)) { tmb_->SetTriadPersistence(value); }
     if (fillInt("clct_halfstrip_pretrig_thresh",value)) { tmb_->SetHsPretrigThresh(value);  }
-    if (fillInt("clct_distrip_pretrig_thresh"  ,value)) { tmb_->SetDsPretrigThresh(value);  }
+    //if (fillInt("clct_distrip_pretrig_thresh"  ,value)) { tmb_->SetDsPretrigThresh(value);  } //deprecated from TMB version 08/2007 on
     if (fillInt("clct_pattern_thresh"          ,value)) { tmb_->SetMinHitsPattern(value);   }
     if (fillInt("clct_drift_delay"             ,value)) { tmb_->SetDriftDelay(value);       }
     //if (fillInt("pretrigger_halt"              ,value)) { tmb_->SetPretriggerHalt(value);   }
@@ -349,6 +349,14 @@ void XMLParser::TMBParser(xercesc::DOMNode * pNode, Crate * theCrate, Chamber * 
     if (fillInt("layer_trig_enable",value)) { tmb_->SetEnableLayerTrigger(value);    }
     if (fillInt("layer_trig_thresh",value)) { tmb_->SetLayerTriggerThreshold(value); }
     //
+    //0XF4
+    if (fillInt("clct_blanking"         ,value)) { tmb_->SetClctBlanking(value);        }
+    if (fillInt("clct_stagger"          ,value)) { tmb_->SetClctStagger(value);         }
+    if (fillInt("clct_pattern_id_thresh",value)) { tmb_->SetClctPatternIdThresh(value); }
+    if (fillInt("aff_thresh"            ,value)) { tmb_->SetActiveFebFlagThresh(value); }
+    //
+    //0XF6
+    if (fillInt("min_clct_separation",value)) { tmb_->SetMinClctSeparation(value); }
     //
     ///////////////////////////////////
     // distrip hot channel mask

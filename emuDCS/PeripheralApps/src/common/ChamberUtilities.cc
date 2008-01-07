@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: ChamberUtilities.cc,v 1.1 2007/12/26 11:23:49 liu Exp $
+// $Id: ChamberUtilities.cc,v 1.2 2008/01/07 15:08:44 rakness Exp $
 // $Log: ChamberUtilities.cc,v $
+// Revision 1.2  2008/01/07 15:08:44  rakness
+// add xml parameters:  clct_stagger, clct_blanking, clct_pattern_id_thresh, aff_thresh, min_clct_separation.  Remove xml parameter:  clct_distrip_pretrig_thresh
+//
 // Revision 1.1  2007/12/26 11:23:49  liu
 // new parser and applications
 //
@@ -378,7 +381,6 @@ void ChamberUtilities::CFEBTiming(){
   int initial_clct_pretrig_enable           = thisTMB->GetClctPatternTrigEnable();    //0x68
   int initial_clct_trig_enable              = thisTMB->GetTmbAllowClct();             //0x86
   int initial_clct_halfstrip_pretrig_thresh = thisTMB->GetHsPretrigThresh();          //0x70
-  int initial_clct_distrip_pretrig_thresh   = thisTMB->GetDsPretrigThresh();          //0x70
   int initial_clct_pattern_thresh           = thisTMB->GetMinHitsPattern();           //0x70
   int initial_layer_trig_enable             = thisTMB->GetEnableLayerTrigger();       //0xf0
   int initial_ignore_ccb_startstop          = thisTMB->GetIgnoreCcbStartStop();       //0x2c
@@ -396,7 +398,6 @@ void ChamberUtilities::CFEBTiming(){
   thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisTMB->SetHsPretrigThresh(6);
-  thisTMB->SetDsPretrigThresh(6);
   thisTMB->SetMinHitsPattern(6);
   thisTMB->WriteRegister(seq_clct_adr);
   //
@@ -584,7 +585,6 @@ void ChamberUtilities::CFEBTiming(){
   thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisTMB->SetHsPretrigThresh(initial_clct_halfstrip_pretrig_thresh);
-  thisTMB->SetDsPretrigThresh(initial_clct_distrip_pretrig_thresh);
   thisTMB->SetMinHitsPattern(initial_clct_pattern_thresh);
   thisTMB->WriteRegister(seq_clct_adr);
   //
@@ -1423,7 +1423,6 @@ int ChamberUtilities::FindWinner(int npulses){
   int initial_layer_trig_enable             = thisTMB->GetEnableLayerTrigger();       //0xf0
   int initial_clct_pretrig_enable           = thisTMB->GetClctPatternTrigEnable();    //0x68
   int initial_clct_halfstrip_pretrig_thresh = thisTMB->GetHsPretrigThresh();          //0x70
-  int initial_clct_distrip_pretrig_thresh   = thisTMB->GetDsPretrigThresh();          //0x70
   int initial_clct_pattern_thresh           = thisTMB->GetMinHitsPattern();           //0x70
   int initial_ignore_ccb_startstop          = thisTMB->GetIgnoreCcbStartStop();       //0x2c
   //
@@ -1436,7 +1435,6 @@ int ChamberUtilities::FindWinner(int npulses){
   thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisTMB->SetHsPretrigThresh(6);
-  thisTMB->SetDsPretrigThresh(6);
   thisTMB->SetMinHitsPattern(6);
   thisTMB->WriteRegister(seq_clct_adr);
   //
@@ -1555,7 +1553,6 @@ int ChamberUtilities::FindWinner(int npulses){
   thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisTMB->SetHsPretrigThresh(initial_clct_halfstrip_pretrig_thresh);
-  thisTMB->SetDsPretrigThresh(initial_clct_distrip_pretrig_thresh);
   thisTMB->SetMinHitsPattern(initial_clct_pattern_thresh);
   thisTMB->WriteRegister(seq_clct_adr);
   //
@@ -2393,7 +2390,6 @@ void ChamberUtilities::CFEBChamberScan(){
   int initial_clct_pretrig_enable           = thisTMB->GetClctPatternTrigEnable();    //0x68
   int initial_clct_trig_enable              = thisTMB->GetTmbAllowClct();             //0x86
   int initial_clct_halfstrip_pretrig_thresh = thisTMB->GetHsPretrigThresh();          //0x70
-  int initial_clct_distrip_pretrig_thresh   = thisTMB->GetDsPretrigThresh();          //0x70
   int initial_clct_pattern_thresh           = thisTMB->GetMinHitsPattern();           //0x70
   int initial_layer_trig_enable             = thisTMB->GetEnableLayerTrigger();       //0xf0
   int initial_ignore_ccb_startstop          = thisTMB->GetIgnoreCcbStartStop();       //0x2c
@@ -2406,7 +2402,6 @@ void ChamberUtilities::CFEBChamberScan(){
   thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisTMB->SetHsPretrigThresh(6);
-  thisTMB->SetDsPretrigThresh(6);
   thisTMB->SetMinHitsPattern(6);
   thisTMB->WriteRegister(seq_clct_adr);
   //
@@ -2501,7 +2496,6 @@ void ChamberUtilities::CFEBChamberScan(){
   thisTMB->WriteRegister(tmb_trig_adr);
   //
   thisTMB->SetHsPretrigThresh(initial_clct_halfstrip_pretrig_thresh);
-  thisTMB->SetDsPretrigThresh(initial_clct_distrip_pretrig_thresh);
   thisTMB->SetMinHitsPattern(initial_clct_pattern_thresh);
   thisTMB->WriteRegister(seq_clct_adr);
   //

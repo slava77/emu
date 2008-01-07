@@ -1,6 +1,9 @@
 //-----------------------------------------------------------------------
-// $Id: TMB.cc,v 3.54 2007/12/06 15:12:41 rakness Exp $
+// $Id: TMB.cc,v 3.55 2008/01/07 15:08:55 rakness Exp $
 // $Log: TMB.cc,v $
+// Revision 3.55  2008/01/07 15:08:55  rakness
+// add xml parameters:  clct_stagger, clct_blanking, clct_pattern_id_thresh, aff_thresh, min_clct_separation.  Remove xml parameter:  clct_distrip_pretrig_thresh
+//
 // Revision 3.54  2007/12/06 15:12:41  rakness
 // make scan parameters for synchronization configurable from hyperDAQ
 //
@@ -4264,6 +4267,7 @@ int TMB::tmb_enable_vme_commands(int flag_enable)
 }
 //
 std::ostream & operator<<(std::ostream & os, TMB & tmb) {
+
   os << std::dec << "TMB: crate " << tmb.theCrate_
      << " slot " << tmb.theSlot << std::endl
      << std::hex 
@@ -4295,7 +4299,7 @@ std::ostream & operator<<(std::ostream & os, TMB & tmb) {
      << "shift_rpc_ " << tmb.shift_rpc_ << std::endl
      << "request_l1a_ " << tmb.request_l1a_ << std::endl
      << "hs_pretrig_thresh_ " << tmb.hs_pretrig_thresh_ << std::endl
-     << "ds_pretrig_thresh_ " << tmb.ds_pretrig_thresh_ << std::endl
+    //     << "ds_pretrig_thresh_ " << tmb.ds_pretrig_thresh_ << std::endl
      << "min_hits_pattern_ " << tmb.min_hits_pattern_ << std::endl
      << "dmb_tx_delay_ " << tmb.dmb_tx_delay_ << std::endl
      << "rat_tmb_delay_ " << tmb.rat_tmb_delay_ << std::endl
@@ -4790,11 +4794,11 @@ void TMB::trgmode(int choice)
   // Read address back
   tmb_vme(VME_READ,seq_clct_adr,sndbuf,rcvbuf,NOW); 
   sndbuf[0] = (rcvbuf[0] & 0xe0) |
-    ( (min_hits_pattern_  & 0x7) << 2) |
-    ( (ds_pretrig_thresh_ & 0x6) >> 1);
+    ( (min_hits_pattern_  & 0x7) << 2); 
+  //    | ( (ds_pretrig_thresh_ & 0x6) >> 1);
   sndbuf[1] = (rcvbuf[1] & 0x0f) |
-    ( (ds_pretrig_thresh_ & 0x1) << 7) |
     ( (hs_pretrig_thresh_ & 0x7) << 4);
+  //    | ( (ds_pretrig_thresh_ & 0x1) << 7)
   //  printf("TRGMODE %x %x %x" , seq_clct_adr, sndbuf[0], sndbuf[1]);
   // Change address
   tmb_vme(VME_WRITE,seq_clct_adr,sndbuf,rcvbuf,NOW); // Sequencer CLCT Conf.
@@ -6718,12 +6722,14 @@ void TMB::DefineTMBConfigurationRegisters_(){
   TMBConfigurationRegister.push_back(rpc_raw_delay_adr);    //0xBA RPC Raw Hits delay
   //
   // trigger configuration:
-  TMBConfigurationRegister.push_back(seq_trig_en_adr   );   //0x68 sequencer trigger source enables
-  TMBConfigurationRegister.push_back(seq_clct_adr      );   //0x70 CLCT sequencer configuration
-  TMBConfigurationRegister.push_back(seq_fifo_adr      );   //0x72 sequencer fifo configuration
-  TMBConfigurationRegister.push_back(tmb_trig_adr      );   //0x86 TMB trigger configuration/MPC accept, delays
-  TMBConfigurationRegister.push_back(seqmod_adr        );   //0xAC sequencer Trigger modifiers
-  TMBConfigurationRegister.push_back(layer_trg_mode_adr);   //0xF0 Layer-Trigger mode
+  TMBConfigurationRegister.push_back(seq_trig_en_adr        );   //0x68 sequencer trigger source enables
+  TMBConfigurationRegister.push_back(seq_clct_adr           );   //0x70 CLCT sequencer configuration
+  TMBConfigurationRegister.push_back(seq_fifo_adr           );   //0x72 sequencer fifo configuration
+  TMBConfigurationRegister.push_back(tmb_trig_adr           );   //0x86 TMB trigger configuration/MPC accept, delays
+  TMBConfigurationRegister.push_back(seqmod_adr             );   //0xAC sequencer Trigger modifiers
+  TMBConfigurationRegister.push_back(layer_trg_mode_adr     );   //0xF0 Layer-Trigger mode
+  TMBConfigurationRegister.push_back(pattern_find_pretrg_adr);   //0xF4 CLCT pattern-finder operation 
+  TMBConfigurationRegister.push_back(clct_separation_adr    );   //0xF6 CLCT separation 
   //
   // special modifiers:
   TMBConfigurationRegister.push_back(ccb_trig_adr);         //0x2c configure request l1a from CCB 
@@ -6900,7 +6906,7 @@ void TMB::SetTMBRegisterDefaults_() {
   //------------------------------------------------------------------
   triad_persist_     = triad_persist_default    ;
   hs_pretrig_thresh_ = hs_pretrig_thresh_default;
-  ds_pretrig_thresh_ = ds_pretrig_thresh_default;
+  //ds_pretrig_thresh_ = ds_pretrig_thresh_default;
   min_hits_pattern_  = min_hits_pattern_default ;
   drift_delay_       = drift_delay_default      ;
   pretrigger_halt_   = pretrigger_halt_default  ;
@@ -7006,6 +7012,22 @@ void TMB::SetTMBRegisterDefaults_() {
   //---------------------------------------------------------------------
   layer_trigger_en_  = layer_trigger_en_default ; 
   layer_trig_thresh_ = layer_trig_thresh_default;
+  //
+  //---------------------------------------------------------------------
+  //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
+  //---------------------------------------------------------------------
+  clct_blanking_          = clct_blanking_default         ; 
+  clct_stagger_           = clct_stagger_default          ; 
+  clct_pattern_id_thresh_ = clct_pattern_id_thresh_default; 
+  aff_thresh_             = aff_thresh_default            ; 
+  //
+  //---------------------------------------------------------------------
+  //0XF6 = ADR_TEMP1:  CLCT separation
+  //---------------------------------------------------------------------
+  clct_separation_src_              = clct_separation_src_default             ; 
+  clct_separation_ram_write_enable_ = clct_separation_ram_write_enable_default; 
+  clct_separation_ram_adr_          = clct_separation_ram_adr_default         ; 
+  min_clct_separation_              = min_clct_separation_default             ; 
   //
   return;
 }
@@ -7218,7 +7240,7 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     //------------------------------------------------------------------
     read_triad_persist_     = ExtractValueFromData(data,triad_persist_bitlo    ,triad_persist_bithi    );
     read_hs_pretrig_thresh_ = ExtractValueFromData(data,hs_pretrig_thresh_bitlo,hs_pretrig_thresh_bithi);
-    read_ds_pretrig_thresh_ = ExtractValueFromData(data,ds_pretrig_thresh_bitlo,ds_pretrig_thresh_bithi);
+    //read_ds_pretrig_thresh_ = ExtractValueFromData(data,ds_pretrig_thresh_bitlo,ds_pretrig_thresh_bithi);
     read_min_hits_pattern_  = ExtractValueFromData(data,min_hits_pattern_bitlo ,min_hits_pattern_bithi );
     read_drift_delay_       = ExtractValueFromData(data,drift_delay_bitlo      ,drift_delay_bithi      );
     read_pretrigger_halt_   = ExtractValueFromData(data,pretrigger_halt_bitlo  ,pretrigger_halt_bithi  );
@@ -7454,6 +7476,24 @@ void TMB::DecodeTMBRegister_(unsigned long int address, int data) {
     read_layer_trigger_en_   = ExtractValueFromData(data,layer_trigger_en_bitlo ,layer_trigger_en_bithi );
     read_layer_trig_thresh_  = ExtractValueFromData(data,layer_trig_thresh_bitlo,layer_trig_thresh_bithi);
     read_number_layers_hit_  = ExtractValueFromData(data,number_layers_hit_bitlo,number_layers_hit_bithi);
+    //
+  } else if ( address == pattern_find_pretrg_adr ) {    
+    //---------------------------------------------------------------------
+    //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
+    //---------------------------------------------------------------------
+    read_clct_blanking_          = ExtractValueFromData(data,clct_blanking_bitlo         ,clct_blanking_bithi         );
+    read_clct_stagger_           = ExtractValueFromData(data,clct_stagger_bitlo          ,clct_stagger_bithi          );
+    read_clct_pattern_id_thresh_ = ExtractValueFromData(data,clct_pattern_id_thresh_bitlo,clct_pattern_id_thresh_bithi);
+    read_aff_thresh_             = ExtractValueFromData(data,aff_thresh_bitlo            ,aff_thresh_bithi            );
+    //
+  } else if ( address == clct_separation_adr ) {    
+    //---------------------------------------------------------------------
+    //0XF6 = ADR_TEMP1:  CLCT separation
+    //---------------------------------------------------------------------
+    read_clct_separation_src_              = ExtractValueFromData(data,clct_separation_src_bitlo             ,clct_separation_src_bithi             );
+    read_clct_separation_ram_write_enable_ = ExtractValueFromData(data,clct_separation_ram_write_enable_bitlo,clct_separation_ram_write_enable_bithi);
+    read_clct_separation_ram_adr_          = ExtractValueFromData(data,clct_separation_ram_adr_bitlo         ,clct_separation_ram_adr_bithi         );
+    read_min_clct_separation_              = ExtractValueFromData(data,min_clct_separation_bitlo             ,min_clct_separation_bithi             );
     //
   } 
   //
@@ -7778,7 +7818,7 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << " ->Sequencer CLCT configuration register:" << std::endl;
     (*MyOutput_) << "    Triad 1-shot persistence          = 0x" << std::hex << read_triad_persist_     << std::endl;
     (*MyOutput_) << "    1/2-strip pretrigger thresh       = "   << std::dec << read_hs_pretrig_thresh_ << std::endl;
-    (*MyOutput_) << "    di-strip pretrigger thresh        = "   << std::dec << read_ds_pretrig_thresh_ << std::endl;
+    //(*MyOutput_) << "    di-strip pretrigger thresh        = "   << std::dec << read_ds_pretrig_thresh_ << std::endl;
     (*MyOutput_) << "    min pattern hits for valid pattern= "   << std::dec << read_min_hits_pattern_  << std::endl;
     (*MyOutput_) << "    drift delay                       = "   << std::dec << read_drift_delay_       << std::endl;
     (*MyOutput_) << "    pretrigger then halt until unhalt = "   << std::hex << read_pretrigger_halt_   << std::endl;
@@ -8013,6 +8053,26 @@ void TMB::PrintTMBRegister(unsigned long int address) {
     (*MyOutput_) << "    Enable layer trigger mode = " << std::dec << read_layer_trigger_en_  << std::endl; 
     (*MyOutput_) << "    Layer trigger threshold   = " << std::dec << read_layer_trig_thresh_ << std::endl; 
     (*MyOutput_) << "    Number of layers hit      = " << std::dec << read_number_layers_hit_ << std::endl; 
+    //
+  } else if ( address == pattern_find_pretrg_adr ) {
+    //---------------------------------------------------------------------
+    //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
+    //---------------------------------------------------------------------
+    (*MyOutput_) << " ->CLCT Pattern Finder pretrigger configuration register:" << std::endl;
+    (*MyOutput_) << "    Blank CLCT output if no valid pattern flag                = " << std::dec << read_clct_blanking_           << std::endl; 
+    (*MyOutput_) << "    Stagger CLCT layers                                       = " << std::dec << read_clct_stagger_            << std::endl; 
+    (*MyOutput_) << "    Minimum pattern ID value for CLCT pretrig                 = " << std::dec << read_clct_pattern_id_thresh_  << std::endl; 
+    (*MyOutput_) << "    Minimum layers in pattern to send Active FEB Flag to DMB  = " << std::dec << read_aff_thresh_              << std::endl; 
+    //
+  } else if ( address == clct_separation_adr ) {
+    //---------------------------------------------------------------------
+    //0XF6 = ADR_TEMP1:  CLCT separation
+    //---------------------------------------------------------------------
+    (*MyOutput_) << " ->CLCT Separation register:" << std::endl;
+    (*MyOutput_) << "    CLCT separation source = VME      = " << std::dec << read_clct_separation_src_               << std::endl; 
+    (*MyOutput_) << "    CLCT separation RAM write enable  = " << std::dec << read_clct_separation_ram_write_enable_  << std::endl; 
+    (*MyOutput_) << "    CLCT separation RAM address       = " << std::dec << read_clct_separation_ram_adr_           << std::endl; 
+    (*MyOutput_) << "    Minimum 1/2-strip CLCT separation = " << std::dec << read_min_clct_separation_               << std::endl; 
     //
   } else {
     //
@@ -8250,7 +8310,7 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //------------------------------------------------------------------
     InsertValueIntoDataWord(triad_persist_    ,triad_persist_bithi    ,triad_persist_bitlo    ,&data_word);
     InsertValueIntoDataWord(hs_pretrig_thresh_,hs_pretrig_thresh_bithi,hs_pretrig_thresh_bitlo,&data_word);
-    InsertValueIntoDataWord(ds_pretrig_thresh_,ds_pretrig_thresh_bithi,ds_pretrig_thresh_bitlo,&data_word);
+    //InsertValueIntoDataWord(ds_pretrig_thresh_,ds_pretrig_thresh_bithi,ds_pretrig_thresh_bitlo,&data_word);
     InsertValueIntoDataWord(min_hits_pattern_ ,min_hits_pattern_bithi ,min_hits_pattern_bitlo ,&data_word);
     InsertValueIntoDataWord(drift_delay_      ,drift_delay_bithi      ,drift_delay_bitlo      ,&data_word);
     InsertValueIntoDataWord(pretrigger_halt_  ,pretrigger_halt_bithi  ,pretrigger_halt_bitlo  ,&data_word);
@@ -8381,6 +8441,24 @@ int TMB::FillTMBRegister(unsigned long int address) {
     //---------------------------------------------------------------------
     InsertValueIntoDataWord(layer_trigger_en_ ,layer_trigger_en_bithi ,layer_trigger_en_bitlo ,&data_word); 
     InsertValueIntoDataWord(layer_trig_thresh_,layer_trig_thresh_bithi,layer_trig_thresh_bitlo,&data_word); 
+    //
+  } else if ( address == pattern_find_pretrg_adr ) {
+    //---------------------------------------------------------------------
+    //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
+    //---------------------------------------------------------------------
+    InsertValueIntoDataWord(clct_blanking_         ,clct_blanking_bithi         ,clct_blanking_bitlo         ,&data_word);
+    InsertValueIntoDataWord(clct_stagger_          ,clct_stagger_bithi          ,clct_stagger_bitlo          ,&data_word);
+    InsertValueIntoDataWord(clct_pattern_id_thresh_,clct_pattern_id_thresh_bithi,clct_pattern_id_thresh_bitlo,&data_word);
+    InsertValueIntoDataWord(aff_thresh_            ,aff_thresh_bithi            ,aff_thresh_bitlo            ,&data_word);
+    //
+  } else if ( address == clct_separation_adr ) {
+    //---------------------------------------------------------------------
+    //0XF6 = ADR_TEMP1:  CLCT separation
+    //---------------------------------------------------------------------
+    InsertValueIntoDataWord(clct_separation_src_             ,clct_separation_src_bithi             ,clct_separation_src_bitlo             ,&data_word);
+    InsertValueIntoDataWord(clct_separation_ram_write_enable_,clct_separation_ram_write_enable_bithi,clct_separation_ram_write_enable_bitlo,&data_word);
+    InsertValueIntoDataWord(clct_separation_ram_adr_         ,clct_separation_ram_adr_bithi         ,clct_separation_ram_adr_bitlo         ,&data_word);
+    InsertValueIntoDataWord(min_clct_separation_             ,min_clct_separation_bithi             ,min_clct_separation_bitlo             ,&data_word);
     //
   } else {
     //
@@ -8568,7 +8646,7 @@ void TMB::CheckTMBConfiguration() {
   //------------------------------------------------------------------
   config_ok &= compareValues("Triad persistence"               ,read_triad_persist_    ,triad_persist_    );
   config_ok &= compareValues("CLCT 1/2-strip pretrig threshold",read_hs_pretrig_thresh_,hs_pretrig_thresh_);
-  config_ok &= compareValues("CLCT di-strip pretrig threshold" ,read_ds_pretrig_thresh_,ds_pretrig_thresh_);
+  //config_ok &= compareValues("CLCT di-strip pretrig threshold" ,read_ds_pretrig_thresh_,ds_pretrig_thresh_);
   config_ok &= compareValues("CLCT pattern threshold"          ,read_min_hits_pattern_ ,min_hits_pattern_ );
   config_ok &= compareValues("CLCT Drift Delay"                ,read_drift_delay_      ,drift_delay_      );
   //
@@ -8659,6 +8737,20 @@ void TMB::CheckTMBConfiguration() {
   //---------------------------------------------------------------------
   config_ok &= compareValues("Enable layer trigger mode",read_layer_trigger_en_ ,layer_trigger_en_ ); 
   config_ok &= compareValues("Layer trigger threshold"  ,read_layer_trig_thresh_,layer_trig_thresh_); 
+  //
+  //---------------------------------------------------------------------
+  //0XF4 = ADR_TEMP0:  Pattern Finder Pretrigger
+  //---------------------------------------------------------------------
+  config_ok &= compareValues("CLCT blanking mode"               ,read_clct_blanking_         ,clct_blanking_         );
+  config_ok &= compareValues("CLCT stagger mode"                ,read_clct_stagger_          ,clct_stagger_          );
+  config_ok &= compareValues("CLCT pattern ID threshold"        ,read_clct_pattern_id_thresh_,clct_pattern_id_thresh_);
+  config_ok &= compareValues("Active FEB Flag pattern threshold",read_aff_thresh_            ,aff_thresh_            );
+  //
+  //---------------------------------------------------------------------
+  //0XF6 = ADR_TEMP1:  CLCT separation
+  //---------------------------------------------------------------------
+  config_ok &= compareValues("CLCT separation source is VME",read_clct_separation_src_,clct_separation_src_);
+  config_ok &= compareValues("Minimum CLCT separation"      ,read_min_clct_separation_,min_clct_separation_);
   //
   //
   ReportCheck("TMB configuration check",config_ok);
