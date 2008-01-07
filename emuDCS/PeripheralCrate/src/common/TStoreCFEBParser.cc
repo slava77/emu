@@ -11,6 +11,9 @@
 #include "TStore_constants.h"
 //
 #include "TStoreCFEBParser.h"
+#include "Crate.h"
+#include "Chamber.h"
+#include "DAQMB.h"
 //
 TStoreCFEBParser::TStoreCFEBParser(
 				   std::vector<std::vector <std::string > > cfeb_table,
