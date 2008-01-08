@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-// $Id: VMEController.cc,v 3.17 2007/12/25 00:12:31 liu Exp $
+// $Id: VMEController.cc,v 3.18 2008/01/08 10:59:32 liu Exp $
 // $Log: VMEController.cc,v $
+// Revision 3.18  2008/01/08 10:59:32  liu
+// remove exit() in functions
+//
 // Revision 3.17  2007/12/25 00:12:31  liu
 // *** empty log message ***
 //
@@ -359,7 +362,6 @@ char ttt;
  if(fcn==3) sleep_vme(snd); // sleep 
  if(fcn==4) handshake_vme(); // handshake
 }
-
 
 
 int VMEController::do_schar(int open_or_close) 
@@ -871,7 +873,7 @@ int VMEController::eth_write()
 
 }
 //
-void VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv)
+int VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv)
 {
   /* irdwr:   
      0 bufread
@@ -946,22 +948,28 @@ void VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sh
      2. If we don't know what's in the buffer, then sending the buffer 
         to vme is reckless.
   */
-  if(irdwr==4) return;
+  if(irdwr==4) return 0;
 
 
   // LOOP back to/from Controller , disabled.
   // if(irdwr==5) {wbuf[0]=ACNLG_LOOP;wbuf[1]=LOOP_CNTRL;irdwr=2;}
-  if(irdwr==5) return;
+  if(irdwr==5) return 0;
 
   /* skip zero delay */
-  if(irdwr==6 && data[0]==0 && data[1]==0) return;
+  if(irdwr==6 && data[0]==0 && data[1]==0) return 0;
 
   ptrt=(unsigned long int)ptr;
   // Jinghua Liu:
   // VME address higher than 0xC00000 is for broadcasting,
   // READ is not allowed in the software. 
-  if((irdwr==0 || irdwr==2) && ptrt >= 0xC00000) return;
+  if((irdwr==0 || irdwr==2) && ptrt >= 0xC00000) return 0;
 
+  // Jinghua Liu: 
+  // to prevent the OSU controller hanging up on invalid VME address
+  if(irdwr<=3 && ptrt<0x80000) 
+      {  printf("VME ADDRESS ERROR: %06lX\n",ptrt);
+         return -10;
+      }
   //printf("vme_control: %02x %08x ",irdwr, (unsigned long int)ptr);
   //printf(" %02x %04x%04x\n", irdwr, data[1], data[0]);
 
@@ -984,12 +992,6 @@ void VMEController::VME_controller(int irdwr,unsigned short int *ptr,unsigned sh
   } 
   if(irdwr<=3){
     wbuf[nwbuf+2]=0x00;
-    // Jinghua Liu: 
-    // to prevent the OSU controller hanging up on invalid VME address
-    if(ptrt<0x80000) 
-      {  printf("VME ADDRESS ERROR: %06lX\n",ptrt);
-         exit(-1);
-      }
     wbuf[nwbuf+3]=(ptrt&0xff0000)>>16;
     wbuf[nwbuf+4]=(ptrt&0xff00)>>8;
     wbuf[nwbuf+5]=(ptrt&0xff);
@@ -1084,7 +1086,7 @@ READETH:
               printf(" failed to inquire schar driver status\n");
             }
             fflush(NULL);
-            exit(0);
+            return -100;
          }
 // Jinghua Liu to debug
     if(DEBUG>10)
@@ -1167,39 +1169,9 @@ hw_source_addr[0],hw_source_addr[1],hw_source_addr[2],hw_source_addr[3],hw_sourc
   if(LRG_read_flag==0) LRG_read_pnt=0;   
 
   }
-
+  return 0;
 }
 
-/* dump specific to A24/1/0 for now */
-/*
-void VMEController::dump_outpacket(int nvme)
-{
-int nwbuft,nwbufto,i;
- printf(" Header %02x%02x   #Cmds  %02x%02x \n",wbuf[0]&0xff,wbuf[1]&0xff,wbuf[2]&0xff,wbuf[3]&0xff);
- if(wbuf[1]==VME_CMDS){
-    nwbuft=4;
-    for(i=0;i<nvme;i++){
-      nwbufto=nwbuft;
-      if(wbuf[nwbufto]==0){
-      if(wbuf[1+nwbufto]==0x54){
-	printf(" %d. W %02x%02x %02x%02x%02x%02x %02x%02x \n",i,wbuf[0+nwbuft]&0xff,wbuf[1+nwbuft]&0xff,wbuf[2+nwbuft]&0xff,wbuf[3+nwbuft]&0xff,wbuf[4+nwbuft]&0xff,wbuf[5+nwbuft]&0xff,wbuf[6+nwbuft]&0xff,wbuf[7+nwbuft]&0xff);
-      nwbuft=nwbuft+8;}
-      if(wbuf[1+nwbufto]==0x44){
-         printf(" %d. R %02x%02x %02x%02x%02x%02x  \n",i,wbuf[0+nwbuft]&0xff,wbuf[1+nwbuft]&0xff,wbuf[2+nwbuft]&0xff,wbuf[3+nwbuft]&0xff,wbuf[4+nwbuft]&0xff,wbuf[5+nwbuft]&0xff);
-      nwbuft=nwbuft+6;}
-      }else{
-	if(wbuf[nwbufto]<=3){
-	   printf(" %d. D %02x%02x %02x%02x \n",i,wbuf[0+nwbuft]&0xff,wbuf[1+nwbuft]&0xff,wbuf[2+nwbuft]&0xff,wbuf[3+nwbuft]&0xff);
-           nwbuft=nwbuft+4;
-        }else{
-           printf(" %d. D %02x%02x %02x%02x%02x \n",i,wbuf[0+nwbuft]&0xff,wbuf[1+nwbuft]&0xff,wbuf[2+nwbuft]&0xff,wbuf[3+nwbuft]&0xff,wbuf[4+nwbuft]&0xff,wbuf[5+nwbuft]&0xff);
-           nwbuft=nwbuft+6;
-        }
-      }
-    }
- }
-}
-*/
 //
 void VMEController::Clear_VmeWriteVecs() {
   //
@@ -1210,7 +1182,7 @@ void VMEController::Clear_VmeWriteVecs() {
   return;
 }
 //
-void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv) {
+int VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned short int *data,char *rcv) {
   //
   int address = ( (int)ptr ) & 0xff;
   //
@@ -1231,9 +1203,8 @@ void VMEController::vme_controller(int irdwr,unsigned short int *ptr,unsigned sh
     //
   }    
   //
-  VME_controller(irdwr,ptr,data,rcv); 
-  //
-  return;
+  return VME_controller(irdwr,ptr,data,rcv); 
+  
   //
 }
 //
