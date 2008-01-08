@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateManager.cc,v 1.1 2007/12/26 11:23:53 liu Exp $
+// $Id: EmuPeripheralCrateManager.cc,v 1.2 2008/01/08 08:48:16 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -91,7 +91,7 @@ void EmuPeripheralCrateManager::MainPage(xgi::Input * in, xgi::Output * out ) th
   LOG4CPLUS_INFO(getApplicationLogger(), "Main Page");
   //
   std::set<xdaq::ApplicationDescriptor * >  descriptor =
-    getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrate");
+    getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrateConfig");
   //
   std::set <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
   for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) {
@@ -137,7 +137,7 @@ void EmuPeripheralCrateManager::MainPage(xgi::Input * in, xgi::Output * out ) th
   //
   *out << cgicc::fieldset() ;
   //
-  LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrate");
+  LOG4CPLUS_INFO(getApplicationLogger(), "EmuPeripheralCrateConfig");
   //
   *out << cgicc::fieldset().set("style","font-size: 11pt; font-family: arial;");
   //
@@ -202,7 +202,7 @@ void EmuPeripheralCrateManager::CheckEmuPeripheralCrateState(xgi::Input * in, xg
   MyHeader(in,out,"CheckEmuperipheralCrate state");
   //
   std::set<xdaq::ApplicationDescriptor * >  descriptor =
-    getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrate");
+    getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrateConfig");
   //
   std::set<xdaq::ApplicationDescriptor *>::iterator itDescriptor;
   for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) {
@@ -254,7 +254,7 @@ int EmuPeripheralCrateManager::CompareEmuPeripheralCrateState(std::string state_
   int compare =0;
   //
   std::set<xdaq::ApplicationDescriptor * >  descriptor =
-    getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrate");
+    getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrateConfig");
   //
   std::set <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
   for ( itDescriptor = descriptor.begin(); itDescriptor != descriptor.end(); itDescriptor++ ) {
@@ -373,9 +373,9 @@ xoap::MessageReference EmuPeripheralCrateManager::QueryPeripheralCrateInfoSpace(
   envelope.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
   //
   xoap::SOAPName command    = envelope.createName("ParameterGet"    , "xdaq"              , "urn:xdaq-soap:3.0"                        );
-  xoap::SOAPName properties = envelope.createName("properties"      , "EmuPeripheralCrate", "urn:xdaq-application:EmuPeripheralCrate"  );
-  xoap::SOAPName parameter  = envelope.createName("stateName"       , "EmuPeripheralCrate", "urn:xdaq-application:EmuPeripheralCrate"  );
-  xoap::SOAPName parameter2 = envelope.createName("CalibrationState", "EmuPeripheralCrate", "urn:xdaq-application:EmuPeripheralCrate"  );
+  xoap::SOAPName properties = envelope.createName("properties"      , "EmuPeripheralCrateConfig", "urn:xdaq-application:EmuPeripheralCrateConfig"  );
+  xoap::SOAPName parameter  = envelope.createName("stateName"       , "EmuPeripheralCrateConfig", "urn:xdaq-application:EmuPeripheralCrateConfig"  );
+  xoap::SOAPName parameter2 = envelope.createName("CalibrationState", "EmuPeripheralCrateConfig", "urn:xdaq-application:EmuPeripheralCrateConfig"  );
   xoap::SOAPName xsitype    = envelope.createName("type"            , "xsi"               , "http://www.w3.org/2001/XMLSchema-instance");
   //    
   xoap::SOAPElement properties_e = envelope.getBody().addBodyElement(command).addChildElement(properties);
@@ -586,7 +586,7 @@ void EmuPeripheralCrateManager::relayMessage (xoap::MessageReference msg)
 void EmuPeripheralCrateManager::SendSOAPMessageXRelaySimple(std::string command,std::string setting) {
   //
   std::set<xdaq::ApplicationDescriptor * >  descriptors =
-    getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrate");
+    getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrateConfig");
   //
   xoap::MessageReference configure = createXRelayMessage(command,setting,descriptors);
   //
@@ -619,7 +619,7 @@ void EmuPeripheralCrateManager::SendSOAPMessageConfigureXRelay(xgi::Input * in, 
     compare = CompareEmuPeripheralCrateState("Configured");
     //
     std::set<xdaq::ApplicationDescriptor * >  descriptor =
-      getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrate");
+      getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrateConfig");
     //
     if ( compare == (int) descriptor.size() ) {
       ConfigureState_ = "Configured";
@@ -647,7 +647,7 @@ void EmuPeripheralCrateManager::SendSOAPMessageConfigure(xgi::Input * in, xgi::O
   //
   try {	
     std::set<xdaq::ApplicationDescriptor * >  descriptors =
-      getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrate");
+      getApplicationContext()->getDefaultZone()->getApplicationGroup("default")->getApplicationDescriptors("EmuPeripheralCrateConfig");
     //
     std::set <xdaq::ApplicationDescriptor *>::iterator itDescriptor;
     for ( itDescriptor = descriptors.begin(); itDescriptor != descriptors.end(); itDescriptor++ ) {

@@ -1,4 +1,4 @@
-// $Id: EmuPeripheralCrateBroadcast.cc,v 1.2 2008/01/07 17:08:05 rakness Exp $
+// $Id: EmuPeripheralCrateBroadcast.cc,v 1.3 2008/01/08 08:48:16 liu Exp $
 
 /*************************************************************************
  * XDAQ Components for Distributed Data Acquisition                      *
@@ -172,7 +172,6 @@ void EmuPeripheralCrateBroadcast::LoadCFEBinternal(xgi::Input * in, xgi::Output 
   //
   unsigned short int dword[2];
   dword[0]=0;
-  char *outp=(char *)dword;
   cout << " Loading all Buckeye half-strip pattern 8 ..."<<endl;
   broadcastDMB->buck_shift_comp_bc(8);
   in=NULL;
@@ -183,7 +182,6 @@ void EmuPeripheralCrateBroadcast::LoadCFEBexternal(xgi::Input * in, xgi::Output 
   //
   unsigned short int dword[2];
   dword[0]=0;
-  char *outp=(char *)dword;
   cout <<" Loading all Buckeye external pattern 8 ..."<<endl;
   broadcastDMB->buck_shift_ext_bc(8);
   in=NULL;
@@ -194,7 +192,6 @@ void EmuPeripheralCrateBroadcast::LoadDACandTrigger(xgi::Input * in, xgi::Output
   //
   unsigned short int dword[2];
   dword[0]=0;
-  char *outp=(char *)dword;
   cout <<" Loading all Buckeye external pattern 8 ..."<<endl;
   broadcastDMB->set_cal_dac(1.0,1.0);
   broadcastDMB->settrgsrc(1);
